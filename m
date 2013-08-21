@@ -1,229 +1,60 @@
-From: "Ivan T. Ivanov" <iivanov@mm-sol.com>
-Subject: [PATCH v5 3/3] usb: dwc3: Add Qualcomm DWC3 glue layer driver
-Date: Wed, 21 Aug 2013 16:29:46 +0300
-Message-ID: <1377091786-5613-4-git-send-email-iivanov@mm-sol.com>
-References: <1377091786-5613-1-git-send-email-iivanov@mm-sol.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1377091786-5613-1-git-send-email-iivanov@mm-sol.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ian.campbell@citrix.com, rob@landley.net, gregkh@linuxfoundation.org, grant.likely@linaro.org, idos@codeaurora.org, mgautam@codeaurora.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-msm@vger.kernel.org, "Ivan T. Ivanov" <iivanov@mm-sol.com>
+From: Benoit Cousson <bcousson@baylibre.com>
+Subject: Re: [PATCH v2 0/2] ARM: dts: Add SHAM and AES DT information
+Date: Wed, 21 Aug 2013 15:31:11 +0200
+Message-ID: <5214C11F.8090808@baylibre.com>
+References: <1374078222-12883-1-git-send-email-mgreer@animalcreek.com> <alpine.DEB.2.02.1308210012420.6426@utopia.booyaka.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-15;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ee0-f42.google.com ([74.125.83.42]:38558 "EHLO
+	mail-ee0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751779Ab3HUNbQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Aug 2013 09:31:16 -0400
+Received: by mail-ee0-f42.google.com with SMTP id b45so233932eek.15
+        for <linux-omap@vger.kernel.org>; Wed, 21 Aug 2013 06:31:15 -0700 (PDT)
+In-Reply-To: <alpine.DEB.2.02.1308210012420.6426@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>, "Mark A. Greer" <mgreer@animalcreek.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-From: "Ivan T. Ivanov" <iivanov@mm-sol.com>
+Hi Paul,
 
-DWC3 glue layer is hardware layer around Synopsys DesignWare
-USB3 core. Its purpose is to supply Synopsys IP with required
-clocks, voltages and interface it with the rest of the SoC.
+On 21/08/2013 02:13, Paul Walmsley wrote:
+> Hi Beno=EEt,
+>
+> On Wed, 17 Jul 2013, Mark A. Greer wrote:
+>
+>> From: "Mark A. Greer" <mgreer@animalcreek.com>
+>>
+>> Long overdue patches to add the device tree updates and
+>> documentation for the SHAM and AES modules on the am33xx.
+>> The supporting code is already in the mainline kernel.
+>>
+>> This series is based on the current mainline kernel,
+>> c0d15cc (linked-list: Remove __list_for_each).
+>>
+>> Changes from v1:
+>>   - Added missing '};' as pointed out by Lokesh Vutla <lokeshvutla@t=
+i.com>
+>
+> I guess you should take these patches?
 
-Signed-off-by: Ivan T. Ivanov <iivanov@mm-sol.com>
----
- drivers/usb/dwc3/Kconfig    |    8 +++
- drivers/usb/dwc3/Makefile   |    1 +
- drivers/usb/dwc3/dwc3-msm.c |  167 +++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 176 insertions(+)
- create mode 100644 drivers/usb/dwc3/dwc3-msm.c
+You're right, I should, I've just never seen them :-(
+Thanks for the pointer.
 
-diff --git a/drivers/usb/dwc3/Kconfig b/drivers/usb/dwc3/Kconfig
-index f969ea2..d845966 100644
---- a/drivers/usb/dwc3/Kconfig
-+++ b/drivers/usb/dwc3/Kconfig
-@@ -71,6 +71,14 @@ config USB_DWC3_PCI
- 	  One such PCIe-based platform is Synopsys' PCIe HAPS model of
- 	  this IP.
- 
-+config USB_DWC3_MSM
-+	tristate "Qualcomm MSM/APQ Platforms"
-+	default USB_DWC3
-+	select USB_MSM_DWC3_PHYS
-+	help
-+	  Recent Qualcomm SoCs ship with one DesignWare Core USB3 IP inside,
-+	  say 'Y' or 'M' if you have one such device.
-+
- comment "Debugging features"
- 
- config USB_DWC3_DEBUG
-diff --git a/drivers/usb/dwc3/Makefile b/drivers/usb/dwc3/Makefile
-index dd17601..5226681 100644
---- a/drivers/usb/dwc3/Makefile
-+++ b/drivers/usb/dwc3/Makefile
-@@ -32,3 +32,4 @@ endif
- obj-$(CONFIG_USB_DWC3_OMAP)		+= dwc3-omap.o
- obj-$(CONFIG_USB_DWC3_EXYNOS)		+= dwc3-exynos.o
- obj-$(CONFIG_USB_DWC3_PCI)		+= dwc3-pci.o
-+obj-$(CONFIG_USB_DWC3_MSM)		+= dwc3-msm.o
-diff --git a/drivers/usb/dwc3/dwc3-msm.c b/drivers/usb/dwc3/dwc3-msm.c
-new file mode 100644
-index 0000000..361076c
---- /dev/null
-+++ b/drivers/usb/dwc3/dwc3-msm.c
-@@ -0,0 +1,167 @@
-+/* Copyright (c) 2013, The Linux Foundation. All rights reserved.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 and
-+ * only version 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#include <linux/clk.h>
-+#include <linux/err.h>
-+#include <linux/io.h>
-+#include <linux/module.h>
-+#include <linux/of.h>
-+#include <linux/of_platform.h>
-+#include <linux/platform_device.h>
-+#include <linux/regulator/consumer.h>
-+#include <linux/usb/phy.h>
-+
-+struct dwc3_msm {
-+	struct device		*dev;
-+
-+	struct clk		*core_clk;
-+	struct clk		*iface_clk;
-+	struct clk		*sleep_clk;
-+	struct clk		*utmi_clk;
-+
-+	struct regulator	*gdsc;
-+};
-+
-+static int dwc3_msm_probe(struct platform_device *pdev)
-+{
-+	struct device_node *node = pdev->dev.of_node;
-+	struct dwc3_msm *mdwc;
-+	struct resource *res;
-+	void __iomem *tcsr;
-+	int ret = 0;
-+
-+	mdwc = devm_kzalloc(&pdev->dev, sizeof(*mdwc), GFP_KERNEL);
-+	if (!mdwc)
-+		return -ENOMEM;
-+
-+	platform_set_drvdata(pdev, mdwc);
-+	mdwc->dev = &pdev->dev;
-+
-+	mdwc->gdsc = devm_regulator_get(mdwc->dev, "gdsc");
-+
-+	mdwc->core_clk = devm_clk_get(&pdev->dev, "core");
-+	if (IS_ERR(mdwc->core_clk)) {
-+		dev_dbg(&pdev->dev, "failed to get core clock\n");
-+		return PTR_ERR(mdwc->core_clk);
-+	}
-+
-+	mdwc->iface_clk = devm_clk_get(&pdev->dev, "iface");
-+	if (IS_ERR(mdwc->iface_clk)) {
-+		dev_dbg(&pdev->dev, "failed to get iface clock\n");
-+		return PTR_ERR(mdwc->iface_clk);
-+	}
-+
-+	mdwc->sleep_clk = devm_clk_get(&pdev->dev, "sleep ");
-+	if (IS_ERR(mdwc->sleep_clk)) {
-+		dev_dbg(&pdev->dev, "failed to get sleep clock\n");
-+		return  PTR_ERR(mdwc->sleep_clk);
-+	}
-+
-+	mdwc->utmi_clk = devm_clk_get(&pdev->dev, "utmi");
-+	if (IS_ERR(mdwc->utmi_clk)) {
-+		dev_dbg(&pdev->dev, "failed to get utmi clock\n");
-+		return  PTR_ERR(mdwc->utmi_clk);
-+	}
-+
-+	if (!IS_ERR(mdwc->gdsc)) {
-+		ret = regulator_enable(mdwc->gdsc);
-+		if (ret)
-+			dev_err(mdwc->dev, "cannot enable usb3 gdsc\n");
-+	}
-+
-+	/*
-+	 * DWC3 Core requires its CORE CLK (aka master / bus clk) to
-+	 * run at 125Mhz in SSUSB mode and >60MHZ for HSUSB mode.
-+	 */
-+	clk_set_rate(mdwc->core_clk, 125000000);
-+	clk_prepare_enable(mdwc->core_clk);
-+	clk_prepare_enable(mdwc->iface_clk);
-+	clk_prepare_enable(mdwc->sleep_clk);
-+	clk_prepare_enable(mdwc->utmi_clk);
-+
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	tcsr = devm_ioremap_resource(&pdev->dev, res);
-+	if (!tcsr) {
-+		ret = PTR_ERR(tcsr);
-+		goto dis_clks;
-+	}
-+
-+	/*
-+	 * Primary USB port is shared between USB2 and USB3 controllers.
-+	 * By default this port is routed to USB2. Select primary port for
-+	 * USB3, this will automatically move USB2 to secondary port.
-+	 */
-+	writel(0x1, tcsr);
-+
-+	ret = of_platform_populate(node, NULL, NULL, &pdev->dev);
-+	if (ret) {
-+		dev_dbg(&pdev->dev, "failed to add create dwc3 core\n");
-+		writel(0x0, tcsr);
-+		goto dis_clks;
-+	}
-+
-+	return 0;
-+
-+dis_clks:
-+	clk_disable_unprepare(mdwc->utmi_clk);
-+	clk_disable_unprepare(mdwc->sleep_clk);
-+	clk_disable_unprepare(mdwc->iface_clk);
-+	clk_disable_unprepare(mdwc->core_clk);
-+	if (!IS_ERR(mdwc->gdsc)) {
-+		ret = regulator_disable(mdwc->gdsc);
-+		if (ret)
-+			dev_dbg(mdwc->dev, "cannot disable usb3 gdsc\n");
-+	}
-+
-+	return ret;
-+}
-+
-+static int dwc3_msm_remove(struct platform_device *pdev)
-+{
-+	struct dwc3_msm	*mdwc = platform_get_drvdata(pdev);
-+	int ret;
-+
-+	clk_disable_unprepare(mdwc->utmi_clk);
-+	clk_disable_unprepare(mdwc->sleep_clk);
-+	clk_disable_unprepare(mdwc->iface_clk);
-+	clk_disable_unprepare(mdwc->core_clk);
-+
-+	if (!IS_ERR(mdwc->gdsc)) {
-+		ret = regulator_disable(mdwc->gdsc);
-+		if (ret)
-+			dev_dbg(mdwc->dev, "cannot disable usb3 gdsc\n");
-+	}
-+
-+	return 0;
-+}
-+
-+static const struct of_device_id of_dwc3_match[] = {
-+	{ .compatible = "qcom,dwc3" },
-+	{ /* Sentinel */ }
-+};
-+MODULE_DEVICE_TABLE(of, of_dwc3_match);
-+
-+static struct platform_driver dwc3_msm_driver = {
-+	.probe		= dwc3_msm_probe,
-+	.remove		= dwc3_msm_remove,
-+	.driver		= {
-+		.name	= "msm-dwc3",
-+		.owner	= THIS_MODULE,
-+		.of_match_table	= of_dwc3_match,
-+	},
-+};
-+
-+module_platform_driver(dwc3_msm_driver);
-+
-+MODULE_ALIAS("platform:msm_dwc3");
-+MODULE_LICENSE("GPL v2");
-+MODULE_DESCRIPTION("DesignWare USB3 MSM Glue Layer");
--- 
-1.7.9.5
+Mark,
+
+After a quick search on Google, I did not see any comment on these=20
+patches. Did you get any review so far?
+
+Thanks,
+Benoit
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
