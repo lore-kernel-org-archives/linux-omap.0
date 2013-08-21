@@ -1,54 +1,46 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 3/3] ARM: OMAP4: dts: Add main and optional clock data
- into DT
-Date: Tue, 20 Aug 2013 23:57:26 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1308202352330.6426@utopia.booyaka.com>
-References: <1374560679-14666-1-git-send-email-rnayak@ti.com> <1374560679-14666-4-git-send-email-rnayak@ti.com>
+Subject: Re: [PATCH v2 0/2] ARM: dts: Add SHAM and AES DT information
+Date: Wed, 21 Aug 2013 00:13:25 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1308210012420.6426@utopia.booyaka.com>
+References: <1374078222-12883-1-git-send-email-mgreer@animalcreek.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: MULTIPART/MIXED; BOUNDARY="843723315-1375918862-1377044005=:6426"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:45627 "EHLO
+Received: from utopia.booyaka.com ([74.50.51.50]:45747 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751809Ab3HTX51 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Aug 2013 19:57:27 -0400
-In-Reply-To: <1374560679-14666-4-git-send-email-rnayak@ti.com>
+	with ESMTP id S1751236Ab3HUAN0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Aug 2013 20:13:26 -0400
+In-Reply-To: <1374078222-12883-1-git-send-email-mgreer@animalcreek.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, t-kristo@ti.com, benoit.cousson@gmail.com, linux-arm-kernel@lists.infradead.org, nm@ti.com, mark.rutland@arm.com, pawel.moll@arm.com, swarren@wwwdotorg.org, tomasz.figa@gmail.com, rob.herring@calxeda.com, ian.campbell@citrix.com, galak@codeaurora.org, mturquette@linaro.org
+To: bcousson@baylibre.com
+Cc: "Mark A. Greer" <mgreer@animalcreek.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-On Tue, 23 Jul 2013, Rajendra Nayak wrote:
+--843723315-1375918862-1377044005=:6426
+Content-Type: TEXT/PLAIN; charset=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-> With support to parse clock data from DT, move all main and optional
-> clock information from hwmod to DT.
-> 
-> We still retain clocks in hwmod for devices which do not have a DT node.
-> 
-> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-> ---
->  arch/arm/boot/dts/omap4.dtsi               |  100 +++++++++++++++++++++++++
->  arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  112 ----------------------------
->  2 files changed, 100 insertions(+), 112 deletions(-)
-> 
-> diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-> index 8e142f9..4dddf64 100644
-> --- a/arch/arm/boot/dts/omap4.dtsi
-> +++ b/arch/arm/boot/dts/omap4.dtsi
-> @@ -106,6 +106,8 @@
->  			compatible = "ti,omap-counter32k";
->  			reg = <0x4a304000 0x20>;
->  			ti,hwmods = "counter_32k";
-> +			clocks = <&sys_32k_ck>;
-> +			clock-names = "fck";
+Hi Beno=EEt,
 
-Shouldn't these patches be using the official DT clock binding format?  
-Either the 'clocks' property should be something like:
+On Wed, 17 Jul 2013, Mark A. Greer wrote:
 
-    clocks = <&prm 10>;
+> From: "Mark A. Greer" <mgreer@animalcreek.com>
+>=20
+> Long overdue patches to add the device tree updates and
+> documentation for the SHAM and AES modules on the am33xx.
+> The supporting code is already in the mainline kernel.
+>=20
+> This series is based on the current mainline kernel,
+> c0d15cc (linked-list: Remove __list_for_each).
+>=20
+> Changes from v1:
+>  - Added missing '};' as pointed out by Lokesh Vutla <lokeshvutla@ti.com>
 
-or a change to the bindings needs to be discussed and implemented.
+I guess you should take these patches?
 
 
 - Paul
+--843723315-1375918862-1377044005=:6426--
