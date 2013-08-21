@@ -1,130 +1,95 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] ARM: OMAP: Device Tree for 3.12
-Date: Wed, 21 Aug 2013 00:13:34 -0700
-Message-ID: <20130821071334.GQ7656@atomide.com>
-References: <521384D5.1050607@baylibre.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [PATCH v2 01/13] ARM: OMAP2+: CM: reintroduce SW_SLEEP for OMAP4
+Date: Wed, 21 Aug 2013 12:43:16 +0530
+Message-ID: <5214688C.9030801@ti.com>
+References: <cover.1375443858.git.afzal@ti.com> <cfcae1c52efc51786878c60b75cc3c182bcd50a5.1375443858.git.afzal@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:44896 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752280Ab3HUHNj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Aug 2013 03:13:39 -0400
-Content-Disposition: inline
-In-Reply-To: <521384D5.1050607@baylibre.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:41147 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752251Ab3HUHNt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 21 Aug 2013 03:13:49 -0400
+In-Reply-To: <cfcae1c52efc51786878c60b75cc3c182bcd50a5.1375443858.git.afzal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@linaro.org>, Olof Johansson <olof@lixom.net>
-Cc: arm@kernel.org, Benoit Cousson <bcousson@baylibre.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
+To: Afzal Mohammed <afzal@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Benoit Cousson <benoit.cousson@linaro.org>, Paul Walmsley <paul@pwsan.com>, benoit.cousson@gmail.com, Vaibhav Bedia <vaibhav.bedia@ti.com>
 
-Kevin & Olof,
+On Friday 02 August 2013 07:06 PM, Afzal Mohammed wrote:
+> From: Vaibhav Bedia <vaibhav.bedia@ti.com>
+> 
+> "65aa94b ARM: OMAP4: clockdomain/CM code: Update supported transition modes"
+> removed SW_SLEEP mode for clockdomains on OMAP4 class of devices. Not
+> having SW_SLEEP mode works fine for OMAP4/5 devices but it gets in the
+> way of reuse for other devices like AM43x which have the same hardware
+> but where most of clockdomains support only SW_SLEEP/SW_WKUP modes.
+> 
+> This also can help make AM335x (which has custom functions) reuse
+> OMAP4 PRM/CM functions.
+> 
+> While here also fixup a trivial typo in the comment.
+> 
+> [afzal@ti.com: Alter message to refer to AM43x instead of AM335x, this
+>  was pulled in from series that reuses OMAP4 PRM/CM for AM335x, which
+>  as of now is not being followed upon]
+> Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
+> Signed-off-by: Afzal Mohammed <afzal@ti.com>
+> ---
+>  arch/arm/mach-omap2/cminst44xx.c |   20 +++++++++++++++++---
+>  1 file changed, 17 insertions(+), 3 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/cminst44xx.c b/arch/arm/mach-omap2/cminst44xx.c
+> index f0290f5..35051fd 100644
+> --- a/arch/arm/mach-omap2/cminst44xx.c
+> +++ b/arch/arm/mach-omap2/cminst44xx.c
+> @@ -237,7 +237,7 @@ void omap4_cminst_clkdm_disable_hwsup(u8 part, s16 inst, u16 cdoffs)
+>  }
+>  
+>  /**
+> - * omap4_cminst_clkdm_force_sleep - try to take a clockdomain out of idle
+> + * omap4_cminst_clkdm_force_wakeup - try to take a clockdomain out of idle
+>   * @part: PRCM partition ID that the clockdomain registers exist in
+>   * @inst: CM instance register offset (*_INST macro)
+>   * @cdoffs: Clockdomain register offset (*_CDOFFS macro)
+> @@ -250,6 +250,20 @@ void omap4_cminst_clkdm_force_wakeup(u8 part, s16 inst, u16 cdoffs)
+>  	_clktrctrl_write(OMAP34XX_CLKSTCTRL_FORCE_WAKEUP, part, inst, cdoffs);
+>  }
+>  
+> +/**
+> + * omap4_cminst_clkdm_force_sleep - try to put a clockdomain to idle
+> + * @part: PRCM partition ID that the clockdomain registers exist in
+> + * @inst: CM instance register offset (*_INST macro)
+> + * @cdoffs: Clockdomain register offset (*_CDOFFS macro)
+> + *
+> + * Put a clockdomain referred to by (@part, @inst, @cdoffs) to idle,
+> + * forcing it to sleep.  No return value.
+> + */
+> +void omap4_cminst_clkdm_force_sleep(u8 part, s16 inst, u16 cdoffs)
+> +{
+> +	_clktrctrl_write(OMAP34XX_CLKSTCTRL_FORCE_SLEEP, part, inst, cdoffs);
 
-Care to pull the below .dts changes directly from Benoit?
+I guess this won't work on omap4/5 where some clockdomains do not support
+SW_SLEEP and only support HW_AUTO. We might need to have different clkdm
+operations for the different omap4 variants.
 
-* Benoit Cousson <bcousson@baylibre.com> [130820 08:08]:
+
+> +}
+> +
+>  /*
+>   *
+>   */
+> @@ -404,8 +418,8 @@ static int omap4_clkdm_clear_all_wkup_sleep_deps(struct clockdomain *clkdm)
+>  
+>  static int omap4_clkdm_sleep(struct clockdomain *clkdm)
+>  {
+> -	omap4_cminst_clkdm_enable_hwsup(clkdm->prcm_partition,
+> -					clkdm->cm_inst, clkdm->clkdm_offs);
+> +	omap4_cminst_clkdm_force_sleep(clkdm->prcm_partition,
+> +				       clkdm->cm_inst, clkdm->clkdm_offs);
+>  	return 0;
+>  }
+>  
 > 
-> Hi Tony,
-> 
-> Please pull the following commits for OMAP Device Tree for v3.12.
-> 
-> Thanks,
-> Benoit
-> 
-> ----------------------------------------------------------------
-> Add the minimal DTS support for DRA7xx based SoC core.
-> Add the initial support for N900 and gta04 phones.
-> Do a lot of various cleanups.
-> ----------------------------------------------------------------
-> 
-> The following changes since commit b36f4be3de1b123d8601de062e7dbfc904f305fb:
-> 
->   Linux 3.11-rc6 (2013-08-18 14:36:53 -0700)
-> 
-> are available in the git repository at:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git for_3.12/dts
-> 
-> for you to fetch changes up to 9f311a2325905043718da9bf649e2344b8df8473:
-> 
->   ARM: dts: omap3-beagle: Make USB host pin naming consistent (2013-08-20 14:30:07 +0200)
-> 
-> ----------------------------------------------------------------
-> Afzal Mohammed (2):
->       ARM: dts: AM4372: cpu(s) node per latest binding
->       ARM: dts: AM4372: add few nodes
-> 
-> Alexandre Belloni (1):
->       ARM: dts: AM33XX: Add PMU support
-> 
-> Javier Martinez Canillas (5):
->       ARM: dts: omap3-igep: add pinmux node for GPIO LED configuration
->       ARM: dts: omap3-igep0020: add mux conf for GPIO LEDs
->       ARM: dts: omap3-igep0030: add mux conf for GPIO LED
->       ARM: dts: AM33XX: use pinmux node defined in included file
->       ARM: dts: AM33XX: don't redefine OCP bus and device nodes
-> 
-> Kishon Vijay Abraham I (1):
->       ARM: dts: omap5-uevm: Split SMPS10 in two nodes
-> 
-> Lars Poeschel (1):
->       ARM: dts: AM33xx: Correct gpio #interrupt-cells property
-> 
-> Lee Jones (7):
->       ARM: dts: Remove '0x's from OMAP2420 H4 DTS file
->       ARM: dts: Remove '0x's from OMAP3 IGEP0020 DTS file
->       ARM: dts: Remove '0x's from OMAP3 IGEP0030 DTS file
->       ARM: dts: Remove '0x's from OMAP3 DTS file
->       ARM: dts: Remove '0x's from OMAP3430 SDP DTS file
->       ARM: dts: Remove '0x's from OMAP4 DTS file
->       ARM: dts: Remove '0x's from OMAP5 DTS file
-> 
-> Marek Belisko (1):
->       ARM: dts: Add devicetree for gta04 board.
-> 
-> Pavel Machek (1):
->       ARM: dts: N900: Add device tree
-> 
-> R Sricharan (1):
->       ARM: dts: DRA7: Add the dts files for dra7 SoC and dra7-evm board
-> 
-> Robert Nelson (1):
->       ARM: dts: omap3-beagle-xm: fix string error in compatible property
-> 
-> Roger Quadros (1):
->       ARM: dts: omap3-beagle: Make USB host pin naming consistent
-> 
-> Ruslan Bilovol (1):
->       ARM: dts: twl6030: Move common configuration for OMAP4 boards in a separate dtsi file
-> 
->  arch/arm/boot/dts/Makefile                |   5 +-
->  arch/arm/boot/dts/am335x-bone.dts         | 217 ++++++-----
->  arch/arm/boot/dts/am335x-evm.dts          | 576 +++++++++++++++---------------
->  arch/arm/boot/dts/am335x-evmsk.dts        | 374 ++++++++++---------
->  arch/arm/boot/dts/am33xx.dtsi             |  13 +-
->  arch/arm/boot/dts/am4372.dtsi             | 347 ++++++++++++++++++
->  arch/arm/boot/dts/dra7-evm.dts            | 140 ++++++++
->  arch/arm/boot/dts/dra7.dtsi               | 575 +++++++++++++++++++++++++++++
->  arch/arm/boot/dts/omap2420-h4.dts         |   6 +-
->  arch/arm/boot/dts/omap3-beagle-xm.dts     |   2 +-
->  arch/arm/boot/dts/omap3-beagle.dts        |  24 +-
->  arch/arm/boot/dts/omap3-gta04.dts         | 168 +++++++++
->  arch/arm/boot/dts/omap3-igep.dtsi         |   2 +
->  arch/arm/boot/dts/omap3-igep0020.dts      |  19 +-
->  arch/arm/boot/dts/omap3-igep0030.dts      |  17 +-
->  arch/arm/boot/dts/omap3-n900.dts          |  92 +++++
->  arch/arm/boot/dts/omap3.dtsi              |   2 +-
->  arch/arm/boot/dts/omap3430-sdp.dts        |  22 +-
->  arch/arm/boot/dts/omap4-panda-common.dtsi |  21 +-
->  arch/arm/boot/dts/omap4-sdp.dts           |  21 +-
->  arch/arm/boot/dts/omap4.dtsi              |   2 +-
->  arch/arm/boot/dts/omap5-uevm.dts          |  13 +-
->  arch/arm/boot/dts/omap5.dtsi              |   4 +-
->  arch/arm/boot/dts/twl6030_omap4.dtsi      |  38 ++
->  include/dt-bindings/pinctrl/dra.h         |  50 +++
->  25 files changed, 2077 insertions(+), 673 deletions(-)
->  create mode 100644 arch/arm/boot/dts/dra7-evm.dts
->  create mode 100644 arch/arm/boot/dts/dra7.dtsi
->  create mode 100644 arch/arm/boot/dts/omap3-gta04.dts
->  create mode 100644 arch/arm/boot/dts/omap3-n900.dts
->  create mode 100644 arch/arm/boot/dts/twl6030_omap4.dtsi
->  create mode 100644 include/dt-bindings/pinctrl/dra.h
+
