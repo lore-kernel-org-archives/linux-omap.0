@@ -1,41 +1,48 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 00/12] DRA7xx PRCM, hwmod and DT data
-Date: Wed, 21 Aug 2013 02:10:09 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1308210203190.6426@utopia.booyaka.com>
-References: <1373355139-12487-1-git-send-email-rnayak@ti.com>
+Subject: Re: [PATCH v2 00/13] ARM: OMAP2+: AM43x PRCM support
+Date: Wed, 21 Aug 2013 02:53:12 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1308210249260.6426@utopia.booyaka.com>
+References: <cover.1375443858.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:46204 "EHLO
+Received: from utopia.booyaka.com ([74.50.51.50]:46360 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752075Ab3HUCKK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Aug 2013 22:10:10 -0400
-In-Reply-To: <1373355139-12487-1-git-send-email-rnayak@ti.com>
+	with ESMTP id S1752045Ab3HUCxN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Aug 2013 22:53:13 -0400
+In-Reply-To: <cover.1375443858.git.afzal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, khilman@linaro.org, benoit.cousson@gmail.com, r.sricharan@ti.com, ambresh@ti.com
+To: Afzal Mohammed <afzal@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Benoit Cousson <benoit.cousson@linaro.org>, benoit.cousson@gmail.com
 
 Hi
 
-On Tue, 9 Jul 2013, Rajendra Nayak wrote:
+On Fri, 2 Aug 2013, Afzal Mohammed wrote:
 
-> This series adds the data files for DRA7xx devices for
-> PRCM, hwmod and DT. This is dependent on the core support [1]
-> patches for DRA7xx and leaves out the clock data since its
-> on its way to DT [2]
-> 
-> The regbit headers for prm and cm are cleaned up post the
-> autogeneration as 95% was seen to be currently unused
-> (prm-regbits-7xx.h was 100% unused and hence removed)
-> 
-> These patches along with the core support patches are available at:
-> git://github.com/rrnayak/linux.git for-3.12/dra-core-data
+> AM43x PRCM support (excluding clock tree) is being added with this
+> series. AM43x reuses most of the IP's from AM335x, as that is the
+> case, much of the AM335x hwmod data is reused.
 
-Is a public TRM available for this chip?
+...
+
+> Currently there is no public TRM available for AM43x.
+
+Can you think of any way that the data can be doublechecked against some 
+reference or against the reality of the chip?
 
 Can development boards be made available to the OMAP maintainers so we can 
 ensure that the code, once merged, continues to work?
+
+> Powerdomain & Clockdomain data has been added separately as it was not
+> giving much advantage reusing AM335x ones (runtime updates required
+> was getting too ugly). But as AM43x PRCM functionality is similar to
+> OMAP4, power domain, clock domain & hwmod operations are reused from
+> OMAP4.
+
+Is the AM43xx PRCM design and IP derived from AM33xx, or from OMAP4, or 
+from something else?
+
 
 
 - Paul
