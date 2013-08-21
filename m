@@ -1,59 +1,102 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: omap2: Use a consistent AM33XX SoC option
- description
-Date: Wed, 21 Aug 2013 00:55:01 -0700
-Message-ID: <20130821075501.GY7656@atomide.com>
-References: <1375997528-396-1-git-send-email-ezequiel.garcia@free-electrons.com>
- <CABxcv=keV2Jf4gDwF477a9Msk6b-RgDBcxK1QyhchWffbKAoXw@mail.gmail.com>
- <20130820164251.GC4889@localhost>
+From: Lars Poeschel <poeschel@lemonage.de>
+Subject: Re: [PATCH] ARM: dts: am33xx: Correct gpio #interrupt-cells property
+Date: Wed, 21 Aug 2013 09:57:01 +0200
+Message-ID: <201308210957.01956.poeschel@lemonage.de>
+References: <1375873592-26881-1-git-send-email-larsi@wh2.tu-dresden.de> <20130821075016.GW7656@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:61585 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751466Ab3HUHzE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Aug 2013 03:55:04 -0400
-Content-Disposition: inline
-In-Reply-To: <20130820164251.GC4889@localhost>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20130821075016.GW7656@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Benoit Cousson <bcousson@baylibre.com>, Lars Poeschel <larsi@wh2.tu-dresden.de>, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ian.campbell@citrix.com, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Ezequiel Garcia <ezequiel.garcia@free-electrons.com> [130820 09:49]:
-> On Fri, Aug 09, 2013 at 11:18:43AM +0200, Javier Martinez Canillas wrote:
-> > On Thu, Aug 8, 2013 at 11:32 PM, Ezequiel Garcia
-> > <ezequiel.garcia@free-electrons.com> wrote:
-> > > Fix the option description to match the other TI SoCs.
-> > > This is just a cosmetic change.
-> > >
-> > > Signed-off-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-> > > ---
-> > >  arch/arm/mach-omap2/Kconfig | 2 +-
-> > >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > >
-> > > diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-> > > index 76170dd..56021c6 100644
-> > > --- a/arch/arm/mach-omap2/Kconfig
-> > > +++ b/arch/arm/mach-omap2/Kconfig
-> > > @@ -64,7 +64,7 @@ config SOC_OMAP5
-> > >         select ARM_ERRATA_798181 if SMP
-> > >
-> > >  config SOC_AM33XX
-> > > -       bool "AM33XX support"
-> > > +       bool "TI AM33XX"
-> > >         depends on ARCH_MULTI_V7
-> > >         select ARCH_OMAP2PLUS
-> > >         select ARM_CPU_SUSPEND if PM
-> > > --
-> > > 1.8.1.5
-> > >
-> > >
-> > 
-> > Reviewed-by: Javier Martinez Canillas <javier@dowhile0.org>
+Hi Tony!
+
+On Wednesday 21 August 2013 at 09:50:16, Tony Lindgren wrote:
+> Benoit,
 > 
-> ping?
+> Care to take a look at this too?
 
-Applying to omap-for-v3.12/fixes-non-critical thanks.
+Benoit already applied this with Mark Rutlands Acked-By and Javier Martinez 
+Canillas Reviewed-by.
 
-Tony
+Regards,
+Lars
+ 
+> * Lars Poeschel <larsi@wh2.tu-dresden.de> [130807 04:14]:
+> > From: Lars Poeschel <poeschel@lemonage.de>
+> > 
+> > Following commit ff5c9059 and therefore other omap platforms using
+> > the gpio-omap driver correct the #interrupt-cells property on am33xx
+> > too. The omap gpio binding documentaion also states that
+> > the #interrupt-cells property should be 2.
+> > 
+> > Signed-off-by: Lars Poeschel <poeschel@lemonage.de>
+> > ---
+> > 
+> >  arch/arm/boot/dts/am33xx.dtsi |    8 ++++----
+> >  1 file changed, 4 insertions(+), 4 deletions(-)
+> > 
+> > diff --git a/arch/arm/boot/dts/am33xx.dtsi
+> > b/arch/arm/boot/dts/am33xx.dtsi index 38b446b..033c5dd 100644
+> > --- a/arch/arm/boot/dts/am33xx.dtsi
+> > +++ b/arch/arm/boot/dts/am33xx.dtsi
+> > @@ -102,7 +102,7 @@
+> > 
+> >  			gpio-controller;
+> >  			#gpio-cells = <2>;
+> >  			interrupt-controller;
+> > 
+> > -			#interrupt-cells = <1>;
+> > +			#interrupt-cells = <2>;
+> > 
+> >  			reg = <0x44e07000 0x1000>;
+> >  			interrupts = <96>;
+> >  		
+> >  		};
+> > 
+> > @@ -113,7 +113,7 @@
+> > 
+> >  			gpio-controller;
+> >  			#gpio-cells = <2>;
+> >  			interrupt-controller;
+> > 
+> > -			#interrupt-cells = <1>;
+> > +			#interrupt-cells = <2>;
+> > 
+> >  			reg = <0x4804c000 0x1000>;
+> >  			interrupts = <98>;
+> >  		
+> >  		};
+> > 
+> > @@ -124,7 +124,7 @@
+> > 
+> >  			gpio-controller;
+> >  			#gpio-cells = <2>;
+> >  			interrupt-controller;
+> > 
+> > -			#interrupt-cells = <1>;
+> > +			#interrupt-cells = <2>;
+> > 
+> >  			reg = <0x481ac000 0x1000>;
+> >  			interrupts = <32>;
+> >  		
+> >  		};
+> > 
+> > @@ -135,7 +135,7 @@
+> > 
+> >  			gpio-controller;
+> >  			#gpio-cells = <2>;
+> >  			interrupt-controller;
+> > 
+> > -			#interrupt-cells = <1>;
+> > +			#interrupt-cells = <2>;
+> > 
+> >  			reg = <0x481ae000 0x1000>;
+> >  			interrupts = <62>;
+> >  		
+> >  		};
