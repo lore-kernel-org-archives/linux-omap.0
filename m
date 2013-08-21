@@ -1,124 +1,86 @@
-From: "Ivan T. Ivanov" <iivanov-NEYub+7Iv8PQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v4 2/3] usb: phy: Add Qualcomm SS-USB and HS-USB drivers
- for DWC3 core
-Date: Wed, 21 Aug 2013 16:06:04 +0300
-Message-ID: <1377090364.15070.13.camel@iivanov-dev.int.mm-sol.com>
-References: <1376992565-22292-1-git-send-email-iivanov@mm-sol.com>
-	 <1376992565-22292-3-git-send-email-iivanov@mm-sol.com>
-	 <20130820122907.GU26587@radagast>
-	 <1377005543.26268.22.camel@iivanov-dev.int.mm-sol.com>
-	 <20130820133712.GC26587@radagast>
-	 <1377007751.26268.27.camel@iivanov-dev.int.mm-sol.com>
-	 <20130820143319.GG26587@radagast>
-	 <1377010458.26268.30.camel@iivanov-dev.int.mm-sol.com>
-	 <8691FDFE-326E-4198-838A-202D9EC988E1@codeaurora.org>
-	 <1377011163.31445.30.camel@hornet> <1377018092.31445.42.camel@hornet>
+From: Benoit Cousson <bcousson@baylibre.com>
+Subject: Re: [PATCH 2/3] ARM: OMAP2+: Add new bindings for OMAP
+Date: Wed, 21 Aug 2013 15:12:18 +0200
+Message-ID: <5214BCB2.5020302@baylibre.com>
+References: <1376983966-16490-1-git-send-email-rnayak@ti.com> <1376983966-16490-3-git-send-email-rnayak@ti.com> <20130821074514.GU7656@atomide.com> <52147E95.5000606@ti.com> <20130821085330.GH7656@atomide.com> <521486E1.6030009@ti.com> <20130821122327.GI7656@atomide.com> <5214B50D.3050703@ti.com> <20130821125146.GJ7656@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1377018092.31445.42.camel@hornet>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>
-Cc: Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "balbi-l0cyMroinI0@public.gmane.org" <balbi-l0cyMroinI0@public.gmane.org>, "rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org" <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Mark Rutland <Mark.Rutland-5wv7dgnIgG8@public.gmane.org>, "swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org" <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, "ian.campbell-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org" <ian.campbell-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org>, "rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org" <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>, "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, "grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "idos-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org" <idos-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "mgautam-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org" <mgautam-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>Paul Zimmerman <p>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <20130821125146.GJ7656@atomide.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Rajendra Nayak <rnayak@ti.com>, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, 2013-08-20 at 18:01 +0100, Pawel Moll wrote:=20
-> On Tue, 2013-08-20 at 16:06 +0100, Pawel Moll wrote:
-> > On Tue, 2013-08-20 at 16:01 +0100, Kumar Gala wrote:
-> > > On Aug 20, 2013, at 9:54 AM, Ivan T. Ivanov wrote:
-> > >=20
-> > > >=20
-> > > > Hi,=20
-> > > >=20
-> > > > On Tue, 2013-08-20 at 09:33 -0500, Felipe Balbi wrote:=20
-> > > >> On Tue, Aug 20, 2013 at 05:09:11PM +0300, Ivan T. Ivanov wrote=
-:
-> > > >>> Hi,
-> > > >>>=20
-> > > >>> On Tue, 2013-08-20 at 08:37 -0500, Felipe Balbi wrote:=20
-> > > >>>> Hi,
-> > > >>>>=20
-> > > >>>> On Tue, Aug 20, 2013 at 04:32:23PM +0300, Ivan T. Ivanov wro=
-te:
-> > > >>>>>> On Tue, Aug 20, 2013 at 12:56:04PM +0300, Ivan T. Ivanov w=
-rote:
-> > > >>>>>>> From: "Ivan T. Ivanov" <iivanov-NEYub+7Iv8PQT0dZR+AlfA@public.gmane.org>
-> > > >>>>>>>=20
-> > > >>>>>>> These drivers handles control and configuration of the HS
-> > > >>>>>>> and SS USB PHY transceivers. They are part of the driver
-> > > >>>>>>> which manage Synopsys DesignWare USB3 controller stack
-> > > >>>>>>> inside Qualcomm SoC's.
-> > > >>>>>>>=20
-> > > >>>>>>> Signed-off-by: Ivan T. Ivanov <iivanov-NEYub+7Iv8PQT0dZR+AlfA@public.gmane.org>
-> > > >>>>>>> ---
-> > > >>>>>>> drivers/usb/phy/Kconfig           |   11 ++
-> > > >>>>>>> drivers/usb/phy/Makefile          |    2 +
-> > > >>>>>>> drivers/usb/phy/phy-msm-dwc3-hs.c |  327 ++++++++++++++++=
-++++++++++++++++
-> > > >>>>>>> drivers/usb/phy/phy-msm-dwc3-ss.c |  374 ++++++++++++++++=
-+++++++++++++++++++++
-> > > >>>>>>=20
-> > > >>>>>> please rename these PHY drivers, they have nothing to do w=
-ith DWC3. PHYs
-> > > >>>>>> don't care about the USB controller.
-> > > >>>>>=20
-> > > >>>>> I think they are SNPS DesignWare PHY's, additionally
-> > > >>>>> wrapped with Qualcomm logic. I could substitute "dwc3"
-> > > >>>>> with just "dw", which will be more correct.
-> > > >>>>=20
-> > > >>>> alright, thank you. Let's add Paul to the loop since he migh=
-t have very
-> > > >>>> good insight in the synopsys PHYs.
-> > > >>>>=20
-> > > >>>> mental note: if any other platform shows up with Synopsys PH=
-Y, ask them
-> > > >>>> to use this driver instead :-)
-> > > >>>=20
-> > > >>> I really doubt that this will bi possible. Control of the PHY=
-'s is
-> > > >>> not directly trough ULPI, UTMI or PIPE3 interfaces, but troug=
-h
-> > > >>> QSCRATCH registers, which of course is highly Qualcomm specif=
-ic.
-> > > >>=20
-> > > >> isn't it a memory mapped IP ? doesn't synopsys provide their o=
-wn set of
-> > > >> registers ?
-> > > >=20
-> > > > From what I see it is not directly mapped. How QSCRATCH write a=
-nd
-> > > > reads transactions are translated to DW IP is unclear to me.
-> > >=20
-> > >=20
-> > > I think the question is how does SW access them?
-> >=20
-> > I afraid the answer may be: "it depends on the SOC". In my past I h=
-ad to
-> > initialize a (SATA) PHY by implementing a software JTAG state machi=
-ne,
-> > as the PHY's registers were not memory mapped *at all*. And the IP
-> > itself came from Synopsys, Cadence or yet another EDA company...
->=20
-> Having said all that... If the PHY's spec at least defined layout of =
-the
-> registers in question and driver was using regmap API to talk to the
-> device (initially regmap-mmio), it has some chances to become univers=
-al.
-> The SOCs designed like "my" one would have to provide a custom regmap
-> implementation.
+On 21/08/2013 14:51, Tony Lindgren wrote:
+> * Rajendra Nayak <rnayak@ti.com> [130821 05:46]:
+>> On Wednesday 21 August 2013 05:53 PM, Tony Lindgren wrote:
+>>> * Rajendra Nayak <rnayak@ti.com> [130821 02:29]:
+>>>> On Wednesday 21 August 2013 02:23 PM, Tony Lindgren wrote:
+>>>>>
+>>>>> Or you could also have various bus specific bindings for the ocp
+>>>>> with lists of phandles?
+>>>>>
+>>>>> ocp {
+>>>>> 	reg = <...>;
+>>>>> 	interrupts = <...>;
+>>>>> 	ti,reset-on-init = <&module1, &module2>;
+>>>>> 	...
+>>>>> };
+>>>>>
+>>>>> Or something similar.
+>>>>
+>>>> The only problem I see with this is that some of these modules could be
+>>>> board specific ones and need to be part of the board dts files, like
+>>>> some boards which have PMIC power switch hooked up to some gpio etc.
+>>>> So there could be some SoC specific modules (like emif/gpmc on OMAPs)
+>>>> and some which depend on how the boards are designed.
+>>>
+>>> You can still override the ocp entry in the board specific .dts file.
+>>> Would probably be a lot easier than to override each module separately
+>>> in the board specific .dts file.
+>>
+>> So, If I understand this right we would have the dt entries
+>> something like,
+>>
+>> omap4.dtsi
+>> ------
+>> ocp {
+>> 	reg = <...>;
+>> 	interrupts = <...>;
+>> 	ti,no-reset-on-init = <&emif1, &emif2, &gpmc>;
+>> 	...
+>> };
+>>
+>> omap4-panda-es.dts
+>> ------
+>> ocp {
+>> 	ti,no-reset-on-init = <&emif1, &emif2, &gpmc, &gpio4>;
+>> 	...
+>> };
+>>
+>> Is it that, or you suggesting we can _append_ the soc list of
+>> modules with board specific modules, which I am not sure if its
+>> possible.
+>
+> Yes I think the board specific entry just overrides the .dtsi
+> entry.
 
-Sound reasonable. Unfortunately I don't have PHY's IP spec.=20
+That's the issue of using a single attribute with a list. You cannot add 
+or remove an entry. That's why I think it is better to stick to a per 
+device attribute.
+
+Moreover, in term of SW, this is managed at device level today. I'm not 
+convince it will make sense to move that to the OCP level for the moment.
+
+Even if we consider that in the future an omap-ocp bus driver will 
+handle most of the PM/reset glue managed today by hwmod, it will still 
+be a per device attribute. The bus driver, being the parent of the 
+device, will anyway be able to retrieve the information at device level 
+if needed.
 
 Regards,
-Ivan
-
->=20
-> Pawe=C5=82
->=20
+Benoit
 
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
