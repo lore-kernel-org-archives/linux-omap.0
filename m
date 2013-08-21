@@ -1,136 +1,80 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] arm: omap5: hwmod: add missing ocp2scp hwmod data
-Date: Wed, 21 Aug 2013 00:47:29 -0700
-Message-ID: <20130821074728.GV7656@atomide.com>
-References: <1373642066-5235-1-git-send-email-balbi@ti.com>
+Subject: Re: [PATCH] ARM: dts: am33xx: Correct gpio #interrupt-cells
+ property
+Date: Wed, 21 Aug 2013 00:50:16 -0700
+Message-ID: <20130821075016.GW7656@atomide.com>
+References: <1375873592-26881-1-git-send-email-larsi@wh2.tu-dresden.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:47356 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:53081 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752171Ab3HUHrb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Aug 2013 03:47:31 -0400
+	with ESMTP id S1752251Ab3HUHu0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Aug 2013 03:50:26 -0400
 Content-Disposition: inline
-In-Reply-To: <1373642066-5235-1-git-send-email-balbi@ti.com>
+In-Reply-To: <1375873592-26881-1-git-send-email-larsi@wh2.tu-dresden.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <bcousson@baylibre.com>, Felipe Balbi <balbi@ti.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+To: Benoit Cousson <bcousson@baylibre.com>, Lars Poeschel <larsi@wh2.tu-dresden.de>
+Cc: poeschel@lemonage.de, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ian.campbell@citrix.com, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 
 Benoit,
 
-Got this one queued up somewhere?
+Care to take a look at this too?
 
-* Felipe Balbi <balbi@ti.com> [130712 08:21]:
-> From: Benoit Cousson <benoit.cousson@linaro.org>
+* Lars Poeschel <larsi@wh2.tu-dresden.de> [130807 04:14]:
+> From: Lars Poeschel <poeschel@lemonage.de>
 > 
-> without that hwmod data, USB3 will not in OMAP5 boards.
+> Following commit ff5c9059 and therefore other omap platforms using
+> the gpio-omap driver correct the #interrupt-cells property on am33xx
+> too. The omap gpio binding documentaion also states that
+> the #interrupt-cells property should be 2.
 > 
-> While at that, also fix DTS data to pass reg property,
-> otherwise driver won't probe.
-> 
-> Signed-off-by: Benoit Cousson <benoit.cousson@linaro.org>
-> Signed-off-by: Felipe Balbi <balbi@ti.com>
+> Signed-off-by: Lars Poeschel <poeschel@lemonage.de>
 > ---
+>  arch/arm/boot/dts/am33xx.dtsi |    8 ++++----
+>  1 file changed, 4 insertions(+), 4 deletions(-)
 > 
-> tested on OMAP5 uEVM. Gets rid of a data abort when USB3
-> is enabled. There still some other patches missing to get
-> USB3 working out of the box, but that's on Palmas and will
-> come as soon as I get those ready.
-> 
-> This is already on step forward.
-> 
->  arch/arm/boot/dts/omap5.dtsi               |  3 +-
->  arch/arm/mach-omap2/omap_hwmod_54xx_data.c | 45 ++++++++++++++++++++++++++++++
->  2 files changed, 47 insertions(+), 1 deletion(-)
-> 
-> diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-> index da41d70..a0de586 100644
-> --- a/arch/arm/boot/dts/omap5.dtsi
-> +++ b/arch/arm/boot/dts/omap5.dtsi
-> @@ -654,10 +654,11 @@
->  			};
+> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+> index 38b446b..033c5dd 100644
+> --- a/arch/arm/boot/dts/am33xx.dtsi
+> +++ b/arch/arm/boot/dts/am33xx.dtsi
+> @@ -102,7 +102,7 @@
+>  			gpio-controller;
+>  			#gpio-cells = <2>;
+>  			interrupt-controller;
+> -			#interrupt-cells = <1>;
+> +			#interrupt-cells = <2>;
+>  			reg = <0x44e07000 0x1000>;
+>  			interrupts = <96>;
 >  		};
->  
-> -		ocp2scp {
-> +		ocp2scp@4a080000 {
->  			compatible = "ti,omap-ocp2scp";
->  			#address-cells = <1>;
->  			#size-cells = <1>;
-> +			reg = <0x4a080000 0x20>;
->  			ranges;
->  			ti,hwmods = "ocp2scp1";
->  			usb2_phy: usb2phy@4a084000 {
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_54xx_data.c b/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
-> index 2435109..d9118a1 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
-> @@ -1105,6 +1105,42 @@ static struct omap_hwmod omap54xx_mpu_hwmod = {
->  };
->  
->  /*
-> + * 'ocp2scp' class
-> + * bridge to transform ocp interface protocol to scp (serial control port)
-> + * protocol
-> + */
-> +
-> +static struct omap_hwmod_class_sysconfig omap54xx_ocp2scp_sysc = {
-> +	.rev_offs	= 0x0000,
-> +	.sysc_offs	= 0x0010,
-> +	.syss_offs	= 0x0014,
-> +	.sysc_flags	= (SYSC_HAS_AUTOIDLE | SYSC_HAS_SIDLEMODE |
-> +			SYSC_HAS_SOFTRESET | SYSS_HAS_RESET_STATUS),
-> +	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
-> +	.sysc_fields	= &omap_hwmod_sysc_type1,
-> +};
-> +
-> +static struct omap_hwmod_class omap54xx_ocp2scp_hwmod_class = {
-> +	.name	= "ocp2scp",
-> +	.sysc	= &omap54xx_ocp2scp_sysc,
-> +};
-> +
-> +/* ocp2scp1 */
-> +static struct omap_hwmod omap54xx_ocp2scp1_hwmod = {
-> +	.name		= "ocp2scp1",
-> +	.class		= &omap54xx_ocp2scp_hwmod_class,
-> +	.clkdm_name	= "l3init_clkdm",
-> +	.main_clk	= "l4_root_clk_div",
-> +	.prcm = {
-> +		.omap4 = {
-> +			.clkctrl_offs = OMAP54XX_CM_L3INIT_OCP2SCP1_CLKCTRL_OFFSET,
-> +			.context_offs = OMAP54XX_RM_L3INIT_OCP2SCP1_CONTEXT_OFFSET,
-> +			.modulemode   = MODULEMODE_HWCTRL,
-> +		},
-> +	},
-> +};
-> +
-> +/*
->   * 'timer' class
->   * general purpose timer module with accurate 1ms tick
->   * This class contains several variants: ['timer_1ms', 'timer']
-> @@ -1900,6 +1936,14 @@ static struct omap_hwmod_ocp_if omap54xx_l4_cfg__mpu = {
->  	.user		= OCP_USER_MPU | OCP_USER_SDMA,
->  };
->  
-> +/* l4_cfg -> ocp2scp1 */
-> +static struct omap_hwmod_ocp_if omap54xx_l4_cfg__ocp2scp1 = {
-> +	.master		= &omap54xx_l4_cfg_hwmod,
-> +	.slave		= &omap54xx_ocp2scp1_hwmod,
-> +	.clk		= "l4_root_clk_div",
-> +	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-> +};
-> +
->  /* l4_wkup -> timer1 */
->  static struct omap_hwmod_ocp_if omap54xx_l4_wkup__timer1 = {
->  	.master		= &omap54xx_l4_wkup_hwmod,
-> @@ -2102,6 +2146,7 @@ static struct omap_hwmod_ocp_if *omap54xx_hwmod_ocp_ifs[] __initdata = {
->  	&omap54xx_l4_per__mmc4,
->  	&omap54xx_l4_per__mmc5,
->  	&omap54xx_l4_cfg__mpu,
-> +	&omap54xx_l4_cfg__ocp2scp1,
->  	&omap54xx_l4_wkup__timer1,
->  	&omap54xx_l4_per__timer2,
->  	&omap54xx_l4_per__timer3,
+> @@ -113,7 +113,7 @@
+>  			gpio-controller;
+>  			#gpio-cells = <2>;
+>  			interrupt-controller;
+> -			#interrupt-cells = <1>;
+> +			#interrupt-cells = <2>;
+>  			reg = <0x4804c000 0x1000>;
+>  			interrupts = <98>;
+>  		};
+> @@ -124,7 +124,7 @@
+>  			gpio-controller;
+>  			#gpio-cells = <2>;
+>  			interrupt-controller;
+> -			#interrupt-cells = <1>;
+> +			#interrupt-cells = <2>;
+>  			reg = <0x481ac000 0x1000>;
+>  			interrupts = <32>;
+>  		};
+> @@ -135,7 +135,7 @@
+>  			gpio-controller;
+>  			#gpio-cells = <2>;
+>  			interrupt-controller;
+> -			#interrupt-cells = <1>;
+> +			#interrupt-cells = <2>;
+>  			reg = <0x481ae000 0x1000>;
+>  			interrupts = <62>;
+>  		};
 > -- 
-> 1.8.2.1
+> 1.7.10.4
 > 
