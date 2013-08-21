@@ -1,48 +1,50 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] arm: omap5: hwmod: add missing ocp2scp hwmod data
-Date: Wed, 21 Aug 2013 05:54:28 -0700
-Message-ID: <20130821125427.GL7656@atomide.com>
-References: <1373642066-5235-1-git-send-email-balbi@ti.com>
- <20130821074728.GV7656@atomide.com>
- <52148C67.3080106@baylibre.com>
- <CALpuT30YToRvgS3rgvpSZf8d1DZBK9y5mNUJL6qbHS22mL4k-g@mail.gmail.com>
- <5214AE69.8010009@baylibre.com>
+From: George Cherian <george.cherian@ti.com>
+Subject: Re: [PATCH 1/2] extcon: extcon-dra7xx: Add extcon driver for USB
+ ID detection
+Date: Wed, 21 Aug 2013 18:36:52 +0530
+Message-ID: <5214BB6C.3060903@ti.com>
+References: <1376648029-30659-1-git-send-email-george.cherian@ti.com> <1376648029-30659-2-git-send-email-george.cherian@ti.com> <52127284.6030506@wwwdotorg.org> <521312CC.8060003@ti.com> <52139F0F.6090507@wwwdotorg.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:50380 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751519Ab3HUMya (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Aug 2013 08:54:30 -0400
-Content-Disposition: inline
-In-Reply-To: <5214AE69.8010009@baylibre.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <52139F0F.6090507@wwwdotorg.org>
+Sender: linux-doc-owner@vger.kernel.org
+To: Stephen Warren <swarren@wwwdotorg.org>
+Cc: balbi@ti.com, myungjoo.ham@samsung.com, cw00.choi@samsung.com, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, grant.likely@linaro.org, rob@landley.net, ian.campbell@citrix.com, mark.rutland@arm.com, pawel.moll@arm.com, rob.herring@calxeda.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, bcousson@baylibre.com
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <bcousson@baylibre.com>
-Cc: Kishon Vijay Abraham I <kishon@ti.com>, Roger Quadros <rogerq@ti.com>, Felipe Balbi <balbi@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
-* Benoit Cousson <bcousson@baylibre.com> [130821 05:18]:
-> + Kishon and Roger
-> 
-> Ok, so in fact that's a complete series now.
-> 
-> [v2,1/5] arm: omap5: dts: fix reg property size
-> [v2,2/5] arm: omap5: dts: fix ocp2scp DTS data
-> [v2,3/5] arm: omap5: dts: add palmas-usb node
-> [v2,4/5] arm: omap5: hwmod: add missing ocp2scp hwmod data
-> [v2,5/5] arm: omap2plus_defconfig: enable dwc3 and dependencies
-> 
-> Moreover, it does not build because of the change in the palmas SMPS10 regulator name from Kishon I already pulled.
-> 
-> Kishon or Roger,
-> 
-> Could you resend that series ASAP after fixing, testing and changing my email address?
-> 
-> 
-> Tony,
-> 
-> I will need your ack for the omap2plus_defconfig patch. 
+Hi Stephen,
 
-OK, acked the v2 of the omap2plus_defconfig patch.
+On 8/20/2013 10:23 PM, Stephen Warren wrote:
+>> >ID pins are connected to pcf8575, and the pcf8575's interrupt line is
+>> >inturn connected to
+>> >gpio bank6 pin 11, we use this gpio interrupt to detect the ID pin change.
+> In that case, the PCF8575 node needs to be a GPIO controller and an IRQ
+> controller, as does the driver for the PCF8575. This binding should have
+> a single entry in the gpios property, and the driver can call
+> gpio_to_irq() on that so it knows which IRQ to request.
 
-Tony
+You meant some thing like this?
+
+        pcf_usb: pcf8575@21 {
+                 compatible = "ti,pcf8575";
+                 reg = <0x21>;
+                 gpio-controller;
+                 #gpio-cells = <2>;
+                 interrupt-parent = <&gpio6>;
+                 interrupts = <11 2>;
+                 interrupt-controller;
+                 #interrupt-cells = <2>;
+         };
+
+	 usb_vid_gpio {
+                 compatible = "ti,dra7xx-usb";
+                 gpios = <&pcf_usb 1 0>;
+              
+         };
+
+
+-- 
+-George
+
