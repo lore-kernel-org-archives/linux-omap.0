@@ -1,78 +1,82 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/3] ARM: OMAP2+: Add new bindings for OMAP
-Date: Wed, 21 Aug 2013 05:51:47 -0700
-Message-ID: <20130821125146.GJ7656@atomide.com>
-References: <1376983966-16490-1-git-send-email-rnayak@ti.com>
- <1376983966-16490-3-git-send-email-rnayak@ti.com>
- <20130821074514.GU7656@atomide.com>
- <52147E95.5000606@ti.com>
- <20130821085330.GH7656@atomide.com>
- <521486E1.6030009@ti.com>
- <20130821122327.GI7656@atomide.com>
- <5214B50D.3050703@ti.com>
+Subject: Re: [PATCH v2 5/5] arm: omap2plus_defconfig: enable dwc3 and
+ dependencies
+Date: Wed, 21 Aug 2013 05:53:41 -0700
+Message-ID: <20130821125341.GK7656@atomide.com>
+References: <1373979037-27587-1-git-send-email-balbi@ti.com>
+ <1373979037-27587-6-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-doc-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <5214B50D.3050703@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: bcousson@baylibre.com, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org
+In-Reply-To: <1373979037-27587-6-git-send-email-balbi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Benoit Cousson <benoit.cousson@linaro.org>, Kishon Vijay Abraham I <kishon@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Rajendra Nayak <rnayak@ti.com> [130821 05:46]:
-> On Wednesday 21 August 2013 05:53 PM, Tony Lindgren wrote:
-> > * Rajendra Nayak <rnayak@ti.com> [130821 02:29]:
-> >> On Wednesday 21 August 2013 02:23 PM, Tony Lindgren wrote:
-> >>>
-> >>> Or you could also have various bus specific bindings for the ocp
-> >>> with lists of phandles?
-> >>>
-> >>> ocp {
-> >>> 	reg = <...>;
-> >>> 	interrupts = <...>;
-> >>> 	ti,reset-on-init = <&module1, &module2>;
-> >>> 	...
-> >>> };
-> >>>
-> >>> Or something similar.
-> >>
-> >> The only problem I see with this is that some of these modules could be
-> >> board specific ones and need to be part of the board dts files, like
-> >> some boards which have PMIC power switch hooked up to some gpio etc.
-> >> So there could be some SoC specific modules (like emif/gpmc on OMAPs)
-> >> and some which depend on how the boards are designed.
-> > 
-> > You can still override the ocp entry in the board specific .dts file.
-> > Would probably be a lot easier than to override each module separately
-> > in the board specific .dts file.
+* Felipe Balbi <balbi@ti.com> [130716 05:57]:
+> DWC3 enables USB3 functionality for OMAP5 boards,
+> it's safe to enable those drivers in omap2plus_defconfig.
 > 
-> So, If I understand this right we would have the dt entries
-> something like,
-> 
-> omap4.dtsi
-> ------
-> ocp {
-> 	reg = <...>;
-> 	interrupts = <...>;
-> 	ti,no-reset-on-init = <&emif1, &emif2, &gpmc>;
-> 	...
-> };
-> 
-> omap4-panda-es.dts
-> ------
-> ocp {
-> 	ti,no-reset-on-init = <&emif1, &emif2, &gpmc, &gpio4>;
-> 	...
-> };
-> 
-> Is it that, or you suggesting we can _append_ the soc list of
-> modules with board specific modules, which I am not sure if its
-> possible.
+> Signed-off-by: Felipe Balbi <balbi@ti.com>
 
-Yes I think the board specific entry just overrides the .dtsi
-entry.
+Looks like Benoit will take this, so:
 
-Regards,
+Acked-by: Tony Lindgren <tony@atomide.com>
 
-Tony
+> ---
+>  arch/arm/configs/omap2plus_defconfig | 9 +++++++++
+>  1 file changed, 9 insertions(+)
+> 
+> diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
+> index 5339e6a..aed3cce 100644
+> --- a/arch/arm/configs/omap2plus_defconfig
+> +++ b/arch/arm/configs/omap2plus_defconfig
+> @@ -81,6 +81,7 @@ CONFIG_CMA=y
+>  CONFIG_CONNECTOR=y
+>  CONFIG_DEVTMPFS=y
+>  CONFIG_DEVTMPFS_MOUNT=y
+> +CONFIG_OMAP_OCP2SCP=y
+>  CONFIG_MTD=y
+>  CONFIG_MTD_CMDLINE_PARTS=y
+>  CONFIG_MTD_CHAR=y
+> @@ -167,9 +168,11 @@ CONFIG_THERMAL_GOV_USER_SPACE=y
+>  CONFIG_CPU_THERMAL=y
+>  CONFIG_OMAP_WATCHDOG=y
+>  CONFIG_TWL4030_WATCHDOG=y
+> +CONFIG_MFD_PALMAS=y
+>  CONFIG_MFD_TPS65217=y
+>  CONFIG_MFD_TPS65910=y
+>  CONFIG_TWL6040_CORE=y
+> +CONFIG_REGULATOR_PALMAS=y
+>  CONFIG_REGULATOR_TWL4030=y
+>  CONFIG_REGULATOR_TPS65023=y
+>  CONFIG_REGULATOR_TPS6507X=y
+> @@ -222,10 +225,14 @@ CONFIG_USB_MON=y
+>  CONFIG_USB_WDM=y
+>  CONFIG_USB_STORAGE=y
+>  CONFIG_USB_LIBUSUAL=y
+> +CONFIG_USB_DWC3=m
+> +CONFIG_USB_DWC3_OMAP=m
+>  CONFIG_USB_TEST=y
+>  CONFIG_USB_PHY=y
+>  CONFIG_NOP_USB_XCEIV=y
+>  CONFIG_USB_GADGET=y
+> +CONFIG_OMAP_USB2=y
+> +CONFIG_OMAP_USB3=y
+>  CONFIG_USB_GADGET_DEBUG=y
+>  CONFIG_USB_GADGET_DEBUG_FILES=y
+>  CONFIG_USB_GADGET_DEBUG_FS=y
+> @@ -258,6 +265,8 @@ CONFIG_TI_THERMAL=y
+>  CONFIG_OMAP4_THERMAL=y
+>  CONFIG_OMAP5_THERMAL=y
+>  CONFIG_DRA752_THERMAL=y
+> +CONFIG_EXTCON=y
+> +CONFIG_EXTCON_PALMAS=y
+>  CONFIG_EXT2_FS=y
+>  CONFIG_EXT3_FS=y
+>  # CONFIG_EXT3_FS_XATTR is not set
+> -- 
+> 1.8.3.3.754.g9c3c367
+> 
