@@ -1,43 +1,75 @@
-From: Chen Gang <gang.chen@asianux.com>
-Subject: [PATCH] ARM: OMAP2: add type cast from 'unsigned' to 'signed'
-Date: Wed, 21 Aug 2013 16:26:28 +0800
-Message-ID: <521479B4.8030604@asianux.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [PATCH 3/3] ARM: OMAP4: dts: Add main and optional clock data
+ into DT
+Date: Wed, 21 Aug 2013 13:58:26 +0530
+Message-ID: <52147A2A.60105@ti.com>
+References: <1374560679-14666-1-git-send-email-rnayak@ti.com> <1374560679-14666-4-git-send-email-rnayak@ti.com> <alpine.DEB.2.02.1308202352330.6426@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from intranet.asianux.com ([58.214.24.6]:63031 "EHLO
-	intranet.asianux.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751374Ab3HUI1a (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Aug 2013 04:27:30 -0400
+Received: from arroyo.ext.ti.com ([192.94.94.40]:59814 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751457Ab3HUI3M (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 21 Aug 2013 04:29:12 -0400
+In-Reply-To: <alpine.DEB.2.02.1308202352330.6426@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, t-kristo@ti.com, benoit.cousson@gmail.com, linux-arm-kernel@lists.infradead.org, nm@ti.com, mark.rutland@arm.com, pawel.moll@arm.com, swarren@wwwdotorg.org, tomasz.figa@gmail.com, rob.herring@calxeda.com, ian.campbell@citrix.com, galak@codeaurora.org, mturquette@linaro.org
 
-Need add type cast, or can not notice the failure. The related warning
-(allmodconfig, "EXTRA_CFLAGS=-W"):
+On Wednesday 21 August 2013 05:27 AM, Paul Walmsley wrote:
+> Hi
+> 
+> On Tue, 23 Jul 2013, Rajendra Nayak wrote:
+> 
+>> With support to parse clock data from DT, move all main and optional
+>> clock information from hwmod to DT.
+>>
+>> We still retain clocks in hwmod for devices which do not have a DT node.
+>>
+>> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+>> ---
+>>  arch/arm/boot/dts/omap4.dtsi               |  100 +++++++++++++++++++++++++
+>>  arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  112 ----------------------------
+>>  2 files changed, 100 insertions(+), 112 deletions(-)
+>>
+>> diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+>> index 8e142f9..4dddf64 100644
+>> --- a/arch/arm/boot/dts/omap4.dtsi
+>> +++ b/arch/arm/boot/dts/omap4.dtsi
+>> @@ -106,6 +106,8 @@
+>>  			compatible = "ti,omap-counter32k";
+>>  			reg = <0x4a304000 0x20>;
+>>  			ti,hwmods = "counter_32k";
+>> +			clocks = <&sys_32k_ck>;
+>> +			clock-names = "fck";
+> 
+> Shouldn't these patches be using the official DT clock binding format?
 
-  arch/arm/mach-omap2/gpmc.c:728:2: warning: comparison of unsigned expression < 0 is always false [-Wtype-limits]
-
-
-Signed-off-by: Chen Gang <gang.chen@asianux.com>
----
- arch/arm/mach-omap2/gpmc.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-index f3fdd6a..62377b5 100644
---- a/arch/arm/mach-omap2/gpmc.c
-+++ b/arch/arm/mach-omap2/gpmc.c
-@@ -725,7 +725,7 @@ static int gpmc_setup_irq(void)
- 		return -EINVAL;
+They are, already.
  
- 	gpmc_irq_start = irq_alloc_descs(-1, 0, GPMC_NR_IRQ, 0);
--	if (gpmc_irq_start < 0) {
-+	if ((signed)gpmc_irq_start < 0) {
- 		pr_err("irq_alloc_descs failed\n");
- 		return gpmc_irq_start;
- 	}
--- 
-1.7.7.6
+> Either the 'clocks' property should be something like:
+> 
+>     clocks = <&prm 10>;
+
+That depends on the #clock-cells for the clock provider node. These patches
+are based on Teros series to move all OMAP clocks to DT [1], and the clock providers
+in his series have the #clock-cells set to 0.
+
+So the clock bindings do not mandate
+	clocks = <&clk-provider index>
+or
+	clocks = <&clk-provider>
+
+It just depends on how the clk-provider node is defined.
+
+[1] http://comments.gmane.org/gmane.linux.ports.arm.omap/100117
+
+> 
+> or a change to the bindings needs to be discussed and implemented.
+> 
+> 
+> - Paul
+> 
+
