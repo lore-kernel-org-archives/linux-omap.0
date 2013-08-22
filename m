@@ -1,87 +1,67 @@
-From: Chen Gang F T <chen.gang.flying.transformer@gmail.com>
-Subject: Re: [PATCH v2] ARM: OMAP2: use 'int' instead of 'unsigned' for variable
- 'gpmc_irq_start'
-Date: Thu, 22 Aug 2013 16:59:56 +0800
-Message-ID: <5215D30C.1070500@gmail.com>
-References: <521479B4.8030604@asianux.com> <20130822071402.GQ7656@atomide.com> <5215C12D.5020807@asianux.com> <5215C209.3080606@asianux.com> <20130822075731.GT7656@atomide.com> <5215C555.9060902@asianux.com> <20130822083206.GU7656@atomide.com>
+From: Chen Gang <gang.chen@asianux.com>
+Subject: Re: [Suggestion] ARM: allmodconfig: about cross compiling failure
+ under i386 ubuntu.
+Date: Thu, 22 Aug 2013 17:19:53 +0800
+Message-ID: <5215D7B9.50105@asianux.com>
+References: <521479B4.8030604@asianux.com> <52147AC6.9040300@asianux.com>
+ <52147E12.4060401@asianux.com> <20130822074524.GS7656@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pd0-f174.google.com ([209.85.192.174]:49487 "EHLO
-	mail-pd0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752247Ab3HVJBD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Aug 2013 05:01:03 -0400
-Received: by mail-pd0-f174.google.com with SMTP id y13so1613747pdi.19
-        for <linux-omap@vger.kernel.org>; Thu, 22 Aug 2013 02:01:02 -0700 (PDT)
-In-Reply-To: <20130822083206.GU7656@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20130822074524.GS7656@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: Chen Gang <gang.chen@asianux.com>, Kevin Hilman <khilman@deeprootsystems.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Cc: linux-omap@vger.kernel.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+List-Id: linux-omap@vger.kernel.org
 
-On 08/22/2013 04:32 PM, Tony Lindgren wrote:
-> * Chen Gang <gang.chen@asianux.com> [130822 01:10]:
->> On 08/22/2013 03:57 PM, Tony Lindgren wrote:
->>> * Chen Gang <gang.chen@asianux.com> [130822 00:55]:
->>>> 'gpmc_irq_start' is mostly used as 'int', and for a variable, do not
->>>> suggest to only use 'unsigned' as its type, so use 'int' instead of
->>>> 'unsigned' for variable 'gpmc_irq_start'.
->>>>
->>>> Also it will fix the related issue (dummy the real world failure):
->>>>
->>>>   arch/arm/mach-omap2/gpmc.c:728:2: warning: comparison of unsigned expression < 0 is always false [-Wtype-limits]
->>>>
->>>
->>> Thanks applying into omap-for-v3.12/fixes-non-critical.
->>>
+On 08/22/2013 03:45 PM, Tony Lindgren wrote:
+> * Chen Gang <gang.chen@asianux.com> [130821 01:53]:
+>> Hello Maintainers:
 >>
->> Thank you too.
+>> When build arm with allmodconfig under ubuntu i386 with arm-linux-
+>> gnueabi-gcc 4.7, as 2.22, it report the errors.
 >>
->> Hmm... excuse me, I am not quite familiar with the omap version trees,
->> so may have a doubt: "it seems this is a real bug, is it suitable to
->> belong to fixes-none-critical tree ?"
+>> Please help check, thanks (the related config file in attachment).
 > 
-> For the -rc cycle we try to limit the patches to oopses and regressions,
-> especially this close to v3.11 being tagged.
+> It seems that some make flags may need to be specified separately
+> in some makefiles. See the following for some examples:
 > 
-
-Really necessary.
-
-> It seems the bug has been there for quite some time, and that we don't
-> seem to have oopses or other failures reporting this. So it seems there's
-> no reason for urgency to have it merged into the current -rc series.
+> $ find arch/arm -name Makefile | xargs grep -i flags
 > 
-
-I guess so too (I only find it by compiling).
-
-
-> If you (or somebody else) strongly feels that it should be in applied
-> to the current -rc series as a fix instead of during the merge window,
-> then please let me know the failing cases with logs showing what
-> happens.
+> I'm getting different errors though, I'm getting:
+> 
+> arch/arm/mach-zynq/hotplug.c:1: error: bad value (cortex-a9) for -mcpu= switch
+> 
+> As probably my compiler does not support the cortex-a9 switch,
+> I have gcc version 4.3.5 (Debian 4.3.5-4), tried with v3.11-rc5.
 > 
 
-Hmm... for urgent bugs, the reporters really need supply the failing
-cases with logs showing what happens.
+Thank you for your valuable reply, I followed what you said above, and
+now it seems really related the compiler's flags.
 
-Bugs can be sort of by urgent priority (e.g. this bug is not urgent).
-but for most of bugs may cause critical issue which depends on the using
-environments, and can be 'imagined' by us.
+I have passed compiling for the VEXPRESS with dcscb, I will compare the
+difference between the 2 building flags.
 
-Hmm... I guess: for our case, what your meaning is "fixes-none-urgent",
-not "fixes-none-critical", is it correct ?  :-)
+It seems we need add the related dependency for ARCH_VEXPRESS (I am just
+analyzing, may get final result today).
 
 
 Thanks.
 
+
 > Regards,
 > 
 > Tony
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 > 
 
 
