@@ -1,45 +1,93 @@
-From: Kyle McMartin <kmcmarti@redhat.com>
-Subject: Re: 3.11-rc1+ multiplatform kernel+dtb pandaboard issues
-Date: Thu, 22 Aug 2013 13:19:17 -0400
-Message-ID: <20130822171917.GN26531@redacted.bos.redhat.com>
-References: <20130821154321.GA26531@redacted.bos.redhat.com>
- <20130821194143.GE26531@redacted.bos.redhat.com>
- <20130822002558.GA9933@earth.universe>
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Subject: Re: [PATCH 2/4] net: ethernet: cpsw: add optional third memory region
+ for CONTROL module
+Date: Thu, 22 Aug 2013 22:12:46 +0400
+Message-ID: <5216549E.1010305@cogentembedded.com>
+References: <1377171448-27924-1-git-send-email-zonque@gmail.com> <1377171448-27924-3-git-send-email-zonque@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:2953 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753784Ab3HVRTV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 22 Aug 2013 13:19:21 -0400
-Content-Disposition: inline
-In-Reply-To: <20130822002558.GA9933@earth.universe>
+Received: from mail-la0-f49.google.com ([209.85.215.49]:61108 "EHLO
+	mail-la0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753897Ab3HVSMl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Aug 2013 14:12:41 -0400
+Received: by mail-la0-f49.google.com with SMTP id ev20so1729364lab.36
+        for <linux-omap@vger.kernel.org>; Thu, 22 Aug 2013 11:12:40 -0700 (PDT)
+In-Reply-To: <1377171448-27924-3-git-send-email-zonque@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sebastian Reichel <sre@debian.org>
-Cc: linux-omap@vger.kernel.org
+To: Daniel Mack <zonque@gmail.com>
+Cc: netdev@vger.kernel.org, davem@davemloft.net, ujhelyi.m@gmail.com, mugunthanvnm@ti.com, vaibhav.bedia@ti.com, d-gerlach@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
 
-On Thu, Aug 22, 2013 at 02:25:59AM +0200, Sebastian Reichel wrote:
-> Hi,
-> 
-> On Wed, Aug 21, 2013 at 03:41:43PM -0400, Kyle McMartin wrote:
-> > On Wed, Aug 21, 2013 at 11:43:21AM -0400, Kyle McMartin wrote:
-> > > I've suspected there might be a config issue, as omap2_defconfig
-> > > works alright, as does booting a uImage with an appended
-> > > omap4-panda.dtb, but there's no love with a zImage + initrd + dtb
-> > > (or even just zImage without initrd + dtb.)
-> > > 
-> > 
-> > after some further investigation, something odd is going on... turns
-> > out things have been working (at least until initrd time, but that's
-> > another story)
-> 
-> The initrd problem may be the same error I got, when I tried to boot
-> an OMAP DT kernel with an initrd file (I had no problems with kernel
-> arguments):
-> 
+Hello.
 
-Definitely looks similar... I don't even get that far though. Spooky.
-Something definitely seems wonky.
+On 08/22/2013 03:37 PM, Daniel Mack wrote:
 
---Kyle
+> At least the AM33xx SoC has a control module register to configure
+> details such as the hardware ethernet interface mode.
+
+> I'm not sure whether all SoCs which feature the cpsw block have such a
+> register, so that third memory region is considered optional for now.
+
+> Signed-off-by: Daniel Mack <zonque@gmail.com>
+> ---
+>   Documentation/devicetree/bindings/net/cpsw.txt |  5 ++++-
+>   drivers/net/ethernet/ti/cpsw.c                 | 22 ++++++++++++++++++++++
+>   2 files changed, 26 insertions(+), 1 deletion(-)
+
+> diff --git a/Documentation/devicetree/bindings/net/cpsw.txt b/Documentation/devicetree/bindings/net/cpsw.txt
+> index 05d660e..4e5ca54 100644
+> --- a/Documentation/devicetree/bindings/net/cpsw.txt
+> +++ b/Documentation/devicetree/bindings/net/cpsw.txt
+[...]
+> diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+> index 63feaae..4855d8e 100644
+> --- a/drivers/net/ethernet/ti/cpsw.c
+> +++ b/drivers/net/ethernet/ti/cpsw.c
+[...]
+> @@ -2012,6 +2013,27 @@ static int cpsw_probe(struct platform_device *pdev)
+>   		goto clean_runtime_disable_ret;
+>   	}
+>
+> +	/* If the control memory region is unspecified, continue without it.
+> +	 * If it is specified, but we're unable to reserve it, bail. */
+
+    According to Documentation/CodingStyle, the networking code's preferred 
+style of multi-line comments is this:
+
+/* Bla
+  * bla
+  */
+
+> +	res = platform_get_resource(pdev, IORESOURCE_MEM, 2);
+> +	if (!res) {
+> +		dev_err(priv->dev, "error getting control i/o resource\n");
+> +		goto no_gmii_sel;
+> +	}
+> +	if (!devm_request_mem_region(&pdev->dev, res->start, resource_size(res),
+> +				     ndev->name)) {
+
+    Not dev_name(&pdev->dev)?
+
+> +		dev_err(priv->dev, "failed request control i/o region\n");
+> +		ret = -ENXIO;
+
+    Rather -EBUSY.
+
+> +		goto clean_runtime_disable_ret;
+> +	}
+> +	priv->gmii_sel_reg = devm_ioremap(&pdev->dev, res->start,
+> +					  resource_size(res));
+> +	if (!priv->gmii_sel_reg) {
+> +		dev_err(priv->dev, "unable to map control i/o region\n");
+> +		goto clean_runtime_disable_ret;
+> +	}
+
+    Why not use devm_ioremap_resource() instead of the above sequence?
+
+> +
+> +no_gmii_sel:
+
+WBR, Sergei
+
