@@ -1,103 +1,94 @@
-From: Richard Zhao <rizhao@nvidia.com>
-Subject: [PATCH v2] DMA: add help function to check whether dma controller registered
-Date: Thu, 22 Aug 2013 14:43:00 +0800
-Message-ID: <1377153781-18006-1-git-send-email-rizhao@nvidia.com>
-References: <1375423458-6868-1-git-send-email-rizhao@nvidia.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL] omap fixes against v3.11-rc5
+Date: Thu, 22 Aug 2013 00:10:58 -0700
+Message-ID: <20130822071058.GP7656@atomide.com>
+References: <20130816071958.GB7656@atomide.com>
+ <CAOesGMiQBajdyW5AFJx6ASh1pHmdDPrh6Gy3o2HOBtFc9-g_Ag@mail.gmail.com>
+ <20130820123232.GN7656@atomide.com>
+ <20130822052635.GF5151@quad.lixom.net>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1375423458-6868-1-git-send-email-rizhao@nvidia.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: vinod.koul@intel.com, djbw@fb.com, swarren@wwwdotorg.org, grant.likely@linaro.org, rob.herring@calxeda.com, devicetree@vger.kernel.org, Richard Zhao <rizhao@nvidia.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:42081 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753603Ab3HVHLE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Aug 2013 03:11:04 -0400
+Content-Disposition: inline
+In-Reply-To: <20130822052635.GF5151@quad.lixom.net>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Olof Johansson <olof@lixom.net>
+Cc: "arm@kernel.org" <arm@kernel.org>, Kevin Hilman <khilman@linaro.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>
 
-DMA client device driver usually needs to know at probe time whether
-dma controller has been registered to deffer probe. So add a help
-function of_dma_check_controller.
+* Olof Johansson <olof@lixom.net> [130821 22:34]:
+> On Tue, Aug 20, 2013 at 05:32:32AM -0700, Tony Lindgren wrote:
+> > * Olof Johansson <olof@lixom.net> [130816 15:05]:
+> > > 
+> > > Our current fixes branch is based on -rc4, and I didn't see any of
+> > > these commits in linux-next, so I took the liberty to rebase them back
+> > > onto our current branch.
+> > > 
+> > > I.e. pulled, but rebased.
+> > 
+> > Thanks no problem at my end. But to avoid future confusion, what's
+> > the reasoning for rebasing? AFAIK, pulling this in would have just
+> > automatically updated your branch to -rc5, no?
+> > 
+> > The only time where pulling in a branch based on a later mainline
+> > commit would cause problems is if your branch is based on another
+> > series of patches you want to send separately as then you'd get
+> > all the commits between -rc4 and -rc5 when doing the pull request.
+> > 
+> > Probably nothing new in this for your, but FYI, you can use pulling
+> > or merging branches as a way of updating your publick branches without
+> > rebasing or adding extra merge commits while keeping the branch
+> > pullable.
+> > 
+> > Let's assume you have arm-soc/fixes based on -rc4, and -rc5
+> > comes out:
+> > 
+> > $ git checkout -b my-fixes-of-the-week v3.11-rc5
+> > # apply pending patches
+> > ...
+> > $ git checkout arm-soc/fixes
+> > $ git merge my-fixes-of-the-week
+> > 
+> > And then you have essentially fast forwarded your arm-soc/fixes to
+> > -rc5 and it stays pullable ;)
+> 
+> Yeah, it's not that we _can't_ pull it in, it's just that we either need to
+> merge in -rc5 manually first, or otherwise manually verify diffstat since
+> it'd otherwise cover the full delta.
 
-DMA request channel functions can also used to check it, but they
-are usually called at open() time.
+Hmm sounds like something's not right then, at least for the fixes
+branch. If you do the pull request for Linus against -rc5, it should
+only show the patches you merged, not the delta from -rc4 to -rc5.
 
-Signed-off-by: Richard Zhao <rizhao@nvidia.com>
----
- drivers/dma/of-dma.c   | 39 +++++++++++++++++++++++++++++++++++++++
- include/linux/of_dma.h |  6 ++++++
- 2 files changed, 45 insertions(+)
+If you mean that you need to be able to diff between the earlier pull
+request against -rc4 and the new pull request against -rc5, then that
+should work too without showing the full delta of non-arm-soc patches.
 
-diff --git a/drivers/dma/of-dma.c b/drivers/dma/of-dma.c
-index 8cd5f3f..0063ddf 100644
---- a/drivers/dma/of-dma.c
-+++ b/drivers/dma/of-dma.c
-@@ -189,6 +189,45 @@ struct dma_chan *of_dma_request_slave_channel(struct device_node *np,
- }
- 
- /**
-+ * of_dma_check_controller - Check whether dma controller registered
-+ * @dev:	pointer to client device structure
-+ * @name:	slave channel name
-+ */
-+int of_dma_check_controller(struct device *dev, const char *name)
-+{
-+	struct device_node *np = dev->of_node;
-+	struct of_phandle_args dma_spec;
-+	struct of_dma *ofdma = NULL;
-+	int count, i, ret = 0;
-+
-+	if (!np || !name)
-+		return -EINVAL;
-+
-+	count = of_property_count_strings(np, "dma-names");
-+	if (count < 0) {
-+		dev_err(dev, "dma-names property missing or empty\n");
-+		return -EINVAL;
-+	}
-+
-+	for (i = 0; i < count; i++) {
-+		ret = of_dma_match_channel(np, name, i, &dma_spec);
-+		if (ret)
-+			continue;
-+
-+		mutex_lock(&of_dma_lock);
-+		ofdma = of_dma_find_controller(&dma_spec);
-+		mutex_unlock(&of_dma_lock);
-+		of_node_put(dma_spec.np);
-+		if (!ofdma)
-+			ret = -EPROBE_DEFER;
-+		break;
-+	}
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(of_dma_check_controller);
-+
-+/**
-  * of_dma_simple_xlate - Simple DMA engine translation function
-  * @dma_spec:	pointer to DMA specifier as found in the device tree
-  * @of_dma:	pointer to DMA controller data
-diff --git a/include/linux/of_dma.h b/include/linux/of_dma.h
-index ae36298..bc7195f 100644
---- a/include/linux/of_dma.h
-+++ b/include/linux/of_dma.h
-@@ -39,6 +39,7 @@ extern int of_dma_controller_register(struct device_node *np,
- extern void of_dma_controller_free(struct device_node *np);
- extern struct dma_chan *of_dma_request_slave_channel(struct device_node *np,
- 						     const char *name);
-+extern int of_dma_check_controller(struct device *dev, const char *name);
- extern struct dma_chan *of_dma_simple_xlate(struct of_phandle_args *dma_spec,
- 		struct of_dma *ofdma);
- #else
-@@ -60,6 +61,11 @@ static inline struct dma_chan *of_dma_request_slave_channel(struct device_node *
- 	return NULL;
- }
- 
-+static inline int of_dma_check_controller(struct device *dev, const char *name)
-+{
-+	return 0;
-+}
-+
- static inline struct dma_chan *of_dma_simple_xlate(struct of_phandle_args *dma_spec,
- 		struct of_dma *ofdma)
- {
--- 
-1.8.1.5
+For your branches, it should not be necessary to manually merge
+any upstream tags, you can just let the branches automatically
+get updated when merging in branches and pulling in branches.
+
+Especially for the fixes branch as that should not have dependencies
+to other external branches :)
+
+> My request for people to not always eagerly pick up latest -rc as base for
+> their branches is new for this release cycle, mostly to see how well it works
+> out. It would keep the history of our arm-soc changes somewhat cleaner than if
+> we have new -rcs "anchor in" on the graph in multiple locations like we
+> sometimes do now. But it might just be annoying for everyone to deal with
+> complying too, so we'll see how it goes.
+
+Yes.. I think that's against natural way of developing things as that
+requires testing against multiple trees and rebasing patches that
+can often introduce new issues.
+
+The issue of generating pull requests when there are dependencies
+to earlier branches not yet merged still remains though.
+
+Regards,
+
+Tony
