@@ -1,72 +1,84 @@
-From: Sebastian Reichel <sre@debian.org>
-Subject: Re: 3.11-rc1+ multiplatform kernel+dtb pandaboard issues
-Date: Thu, 22 Aug 2013 02:25:59 +0200
-Message-ID: <20130822002558.GA9933@earth.universe>
-References: <20130821154321.GA26531@redacted.bos.redhat.com>
- <20130821194143.GE26531@redacted.bos.redhat.com>
+From: Lokesh Vutla <lokeshvutla@ti.com>
+Subject: Re: [PATCH v2 0/2] ARM: dts: Add SHAM and AES DT information
+Date: Thu, 22 Aug 2013 09:20:22 +0530
+Message-ID: <52158A7E.30305@ti.com>
+References: <1374078222-12883-1-git-send-email-mgreer@animalcreek.com> <alpine.DEB.2.02.1308210012420.6426@utopia.booyaka.com> <5214C11F.8090808@baylibre.com> <5214C372.3080402@baylibre.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="sm4nu43k4a2Rpi4c"
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ring0.de ([91.143.88.219]:40500 "EHLO smtp.ring0.de"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:58471 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752755Ab3HVA0G (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 21 Aug 2013 20:26:06 -0400
-Content-Disposition: inline
-In-Reply-To: <20130821194143.GE26531@redacted.bos.redhat.com>
+	id S1752031Ab3HVDvI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 21 Aug 2013 23:51:08 -0400
+In-Reply-To: <5214C372.3080402@baylibre.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kyle McMartin <kmcmarti@redhat.com>
-Cc: linux-omap@vger.kernel.org
+To: Benoit Cousson <bcousson@baylibre.com>
+Cc: "Mark A. Greer" <mgreer@animalcreek.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-
---sm4nu43k4a2Rpi4c
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi,
-
-On Wed, Aug 21, 2013 at 03:41:43PM -0400, Kyle McMartin wrote:
-> On Wed, Aug 21, 2013 at 11:43:21AM -0400, Kyle McMartin wrote:
-> > I've suspected there might be a config issue, as omap2_defconfig
-> > works alright, as does booting a uImage with an appended
-> > omap4-panda.dtb, but there's no love with a zImage + initrd + dtb
-> > (or even just zImage without initrd + dtb.)
-> >=20
+Hi Benoit,
+On Wednesday 21 August 2013 07:11 PM, Benoit Cousson wrote:
+> Hi Mark,
 >=20
-> after some further investigation, something odd is going on... turns
-> out things have been working (at least until initrd time, but that's
-> another story)
+> In fact I cannot even apply these patches since they are referring th=
+e the edma controller node that does not seem to be there in 3.11-rc6.
+>=20
+> Is this EDMA series supposed to be merged for 3.12? If this is the ca=
+se, where can I find a reference GIT for it?
+The following EDMA support dt patch series from Joel is needed :
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg92176.html
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg92177.html
 
-The initrd problem may be the same error I got, when I tried to boot
-an OMAP DT kernel with an initrd file (I had no problems with kernel
-arguments):
+Thanks and Regards,
+Lokesh
+>=20
+> Thanks,
+> Benoit
+>=20
+> On 21/08/2013 15:31, Benoit Cousson wrote:
+>> Hi Paul,
+>>
+>> On 21/08/2013 02:13, Paul Walmsley wrote:
+>>> Hi Beno=EEt,
+>>>
+>>> On Wed, 17 Jul 2013, Mark A. Greer wrote:
+>>>
+>>>> From: "Mark A. Greer" <mgreer@animalcreek.com>
+>>>>
+>>>> Long overdue patches to add the device tree updates and
+>>>> documentation for the SHAM and AES modules on the am33xx.
+>>>> The supporting code is already in the mainline kernel.
+>>>>
+>>>> This series is based on the current mainline kernel,
+>>>> c0d15cc (linked-list: Remove __list_for_each).
+>>>>
+>>>> Changes from v1:
+>>>>   - Added missing '};' as pointed out by Lokesh Vutla
+>>>> <lokeshvutla@ti.com>
+>>>
+>>> I guess you should take these patches?
+>>
+>> You're right, I should, I've just never seen them :-(
+>> Thanks for the pointer.
+>>
+>> Mark,
+>>
+>> After a quick search on Google, I did not see any comment on these
+>> patches. Did you get any review so far?
+>>
+>> Thanks,
+>> Benoit
+>>
+>=20
+> --=20
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-http://www.spinics.net/lists/linux-omap/msg95504.html
-
--- Sebastian
-
---sm4nu43k4a2Rpi4c
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
-
-iQIcBAEBCAAGBQJSFVqWAAoJENju1/PIO/qamPIP/2f2qBwcWPVyCAzUl8OzH+Gd
-oNMGug6uOzyLgGRqZ6ogRm3VrpXtT1y5Hj3/EGL+gSbuxYkZypzYwF2retIkZjOu
-OE6tBEME4+cOGGlmRncFaZsGmaKXUAkNKvBJDGvkdAC5ovjShWEe34X25ujr57qs
-uGQD9ZQ5ZsEddy6ihnPSp3NhGY6MZ55d3Xg8104ldZcTVFFDA8nmmEbPetFokwSL
-6J4CdP3WdiJ3jrjpHsOxvEfMtlf9j/gahDzw2/cK9kFOAnES16P8oUrBFHGWwbkO
-9/GoOuOZh33YRESYHTvCujP7fgnK6yzopQEsdHC4WXmht2HWFeRugXxaXkMgOhio
-CbNHsVp9DCPpkG/41ZwBImjtdD4ecrHdBOldKwOWOd88Se/ZfWImNc0OI5Vi/GUM
-+LRi6DpbNzned5z3JnoMepVZFHG1HbFUwrT0vtY/6yJX9nmhM4JAKls2KC0aBb5S
-4iIZ8y5HUdQ2n2Zlx6AJimHwhCxvXL8xbsWnQK7Nth1EdElUKLPjto3f2avROsKS
-MrsFSn13PVpUYoIL7r1tefjUCEjib46h2qazbtKoJQCutzYUe+12H4jFQ4w0zh1Z
-gdoYnUscLSjGr5Xg3Pz49QYEy6AKif1cxFI33uIHQ8PTJ/JUM14/AJkA/y9a08ch
-H92+RJ2c2wlOkGuoR4r1
-=hphF
------END PGP SIGNATURE-----
-
---sm4nu43k4a2Rpi4c--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
