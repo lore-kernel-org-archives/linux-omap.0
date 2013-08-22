@@ -1,98 +1,46 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH 1/3] misc: Add crossbar driver
-Date: Thu, 22 Aug 2013 09:45:49 -0400
-Message-ID: <5216160D.5000308@ti.com>
-References: <51E83A4F.5080904@ti.com> <CACRpkdY3nQaWimTwB-Zt-8+Q_KZr8a0rpB1SUQq=AuoG4bAYnQ@mail.gmail.com> <51ED2385.60108@ti.com> <51ED5C66.1010407@ti.com> <51EFFBE1.4090505@ti.com> <51F0031B.1050307@ti.com> <51F00530.9090703@ti.com> <51F02069.3050207@ti.com> <51F0223E.4050008@ti.com> <51F0240F.3050507@ti.com> <20130813081003.GU7656@atomide.com> <520A02BA.4090805@ti.com> <CACRpkda+m82PYJsExLM6JLsLa8-bVhdvy_r_+-uKfVT2NG7Cbg@mail.gmail.com> <520D398D.9040806@ti.com> <CACRpkdYeo1y-HhftkRWgwyq8o-NVuJ978Uq+ON880LHhUxC=hg@mail.gmail.com> <520D44C5.6080205@ti.com> <CACRpkdagSHxzV3=427O9iftNxM+N=w9aPds=iDvGQPoG3H-cWw@mail.gmail.com> <5215F6F6.9060703@ti.com>
+From: Kyle McMartin <kmcmarti@redhat.com>
+Subject: Re: 3.11-rc1+ multiplatform kernel+dtb pandaboard issues
+Date: Thu, 22 Aug 2013 10:00:34 -0400
+Message-ID: <20130822140034.GL26531@redacted.bos.redhat.com>
+References: <20130821154321.GA26531@redacted.bos.redhat.com>
+ <20130821194143.GE26531@redacted.bos.redhat.com>
+ <20130822063449.GO7656@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <5215F6F6.9060703@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Sricharan R <r.sricharan@ti.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux-OMAP <linux-omap@vger.kernel.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Rajendra Nayak <rnayak@ti.com>, Felipe Balbi <balbi@ti.com>, Thomas Gleixner <tglx@linutronix.de>, Grant Likely <grant.likely@secretlab.ca>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:57324 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753049Ab3HVOAw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 22 Aug 2013 10:00:52 -0400
+Content-Disposition: inline
+In-Reply-To: <20130822063449.GO7656@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
 
-On Thursday 22 August 2013 07:33 AM, Sricharan R wrote:
-> Hi Linus,
+On Wed, Aug 21, 2013 at 11:34:50PM -0700, Tony Lindgren wrote:
+> * Kyle McMartin <kmcmarti@redhat.com> [130821 12:48]:
+> > On Wed, Aug 21, 2013 at 11:43:21AM -0400, Kyle McMartin wrote:
+> > > I've suspected there might be a config issue, as omap2_defconfig
+> > > works alright, as does booting a uImage with an appended
+> > > omap4-panda.dtb, but there's no love with a zImage + initrd + dtb
+> > > (or even just zImage without initrd + dtb.)
+> > > 
+> > 
+> > after some further investigation, something odd is going on... turns
+> > out things have been working (at least until initrd time, but that's
+> > another story) fine but none of the bootargs have made it into the
+> > kernel, so console= was unset and no messages came out.
 > 
-> On Thursday 22 August 2013 02:40 AM, Linus Walleij wrote:
->> On Thu, Aug 15, 2013 at 11:14 PM, Santosh Shilimkar
->> <santosh.shilimkar@ti.com> wrote:
->>> On Thursday 15 August 2013 04:51 PM, Linus Walleij wrote:
->> (...)
->>>> Sorry I don't understand what thread that is... can you point me there?
->>>> My previous statement on this issue what this:
->>>> http://marc.info/?l=linux-kernel&m=137442541628641&w=2
->> (...)
->>>>> I don't see how you can make this happen with an irqchip
->>>>> infrastructure.
->>>> I think my post above describes this.
->>>>
->>> Sorry for being dumb but I don't think cascaded irqchip examples
->>> like GPIO and cross-bars are same. If you take an example of
->>> GPIO irqchip, it always have a physical connection even if it
->>> is 1 IRQ line for (32 logical/sparse IRQs). That goes with
->>> other MFD examples too.
->>>
->>> So may be I am still missing something in your proposal.
->> Why does it matter if it is a GPIO or MFD or whatever?
->> The point is that the IRQ line passes thru something else,
->> and this we model as an irqdomain.
->>
->> Anyway here is a silicon cascaded IRQ chip:
->> arch/arm/mach-versatile/core.c
->> See versatile_init_irq():
->>
->> __vic_init(VA_VIC_BASE, IRQ_VIC_START, ~0, 0, np);
->> (...)
->> fpga_irq_init(VA_SIC_BASE, "SIC", IRQ_SIC_START,
->>                 IRQ_VICSOURCE31, PIC_VALID, np);
->>
->> The VIC in the versatile has the SIC cascaded from one of
->> its IRQ lines. Both the VIC and SIC (fpga IRQ) are
->> using irqdomains so the SIC spawns a child irqdomain
->> from IRQ 31 (last IRQ) of the VIC.
->  Ok, this is a typical example of irqchip cascaded.
->> The difference with a crossbar is that it can software-config
->> which IRQ goes where, and does not have a callback
->> to clear interrupts or anything like that, it just passes them
->> thru. But it is best modeled as an irqdomain IMO.
-> We can model crossbar as irqchip and gic as its interrupt parent
-> and peripherals to have crossbar as interrupt-parent.
->    
->  peripherals will do request_irq(crossbar_number)
->               |
->               |
->  crossbar_unmask()
->               |
->               |
->  maps crossbar number<->  to interrupt number and
->  calls request_irq(int_no, crossbar_handler,..)
+> Hmm I've seen that with extra quotes around the u-boot bootargs line.
+> But if things work OK with omap2plus_defconfig, then it sounds that
+> something gets trashed with your .config options. Care to post your
+> .config file somewhere?
 > 
->  
->  crossbar_handler(interrupt number)
->             |
->             |
->  get crossbar number from interrupt number
->             |
->             |
->  handle_irq(crossbar_domain(crossbar number))
->                                                                              
-> 
-> So this means a extra dummy handler.
-Its not optimal to go through the dummy call stack on
-fast path but considering its not going to eat too many
-instructions, its fine to have dummy handler. We should
-try this out.
 
-> Also the concern is by modelling it as irqchip, we will have
-> to find a different solution for DMA crossbar.
-> 
-DMAEngine has a notion of logical channel and that was actually
-used in the EDMA support series by Matt [1]
-We can do something similar to handle that scenario.
+Sure, CONFIG_CMDLINE is "" for us...
 
+http://kyle.fedorapeople.org/config-3.11.0-0.rc6.git0.1.fc20.armv7hl
 
-[1] https://lkml.org/lkml/2013/6/18/56
-
+--Kyle
