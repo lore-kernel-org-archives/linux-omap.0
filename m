@@ -1,62 +1,45 @@
-From: Chen Gang <gang.chen@asianux.com>
-Subject: Re: [PATCH] ARM: OMAP2: add type cast from 'unsigned' to 'signed'
-Date: Thu, 22 Aug 2013 15:43:41 +0800
-Message-ID: <5215C12D.5020807@asianux.com>
-References: <521479B4.8030604@asianux.com> <20130822071402.GQ7656@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [Suggestion] ARM: allmodconfig: about cross compiling failure
+ under i386 ubuntu.
+Date: Thu, 22 Aug 2013 00:45:24 -0700
+Message-ID: <20130822074524.GS7656@atomide.com>
+References: <521479B4.8030604@asianux.com>
+ <52147AC6.9040300@asianux.com>
+ <52147E12.4060401@asianux.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from intranet.asianux.com ([58.214.24.6]:57495 "EHLO
-	intranet.asianux.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753642Ab3HVHol (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Aug 2013 03:44:41 -0400
-In-Reply-To: <20130822071402.GQ7656@atomide.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:43244 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753807Ab3HVHpa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Aug 2013 03:45:30 -0400
+Content-Disposition: inline
+In-Reply-To: <52147E12.4060401@asianux.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Chen Gang <gang.chen@asianux.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On 08/22/2013 03:14 PM, Tony Lindgren wrote:
-> * Chen Gang <gang.chen@asianux.com> [130821 01:34]:
->> Need add type cast, or can not notice the failure. The related warning
->> (allmodconfig, "EXTRA_CFLAGS=-W"):
->>
->>   arch/arm/mach-omap2/gpmc.c:728:2: warning: comparison of unsigned expression < 0 is always false [-Wtype-limits]
->>
->>
->> Signed-off-by: Chen Gang <gang.chen@asianux.com>
->> ---
->>  arch/arm/mach-omap2/gpmc.c |    2 +-
->>  1 files changed, 1 insertions(+), 1 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
->> index f3fdd6a..62377b5 100644
->> --- a/arch/arm/mach-omap2/gpmc.c
->> +++ b/arch/arm/mach-omap2/gpmc.c
->> @@ -725,7 +725,7 @@ static int gpmc_setup_irq(void)
->>  		return -EINVAL;
->>  
->>  	gpmc_irq_start = irq_alloc_descs(-1, 0, GPMC_NR_IRQ, 0);
->> -	if (gpmc_irq_start < 0) {
->> +	if ((signed)gpmc_irq_start < 0) {
->>  		pr_err("irq_alloc_descs failed\n");
->>  		return gpmc_irq_start;
->>  	}
+* Chen Gang <gang.chen@asianux.com> [130821 01:53]:
+> Hello Maintainers:
 > 
-> Hmm shouldn't we just have int gpmc_irq_start instead
-> of unsigned gpmc_irq_start?
->
-
-Oh, thanks, that sounds reasonable to me, I will send patch v2.
-
-
-> Regards,
+> When build arm with allmodconfig under ubuntu i386 with arm-linux-
+> gnueabi-gcc 4.7, as 2.22, it report the errors.
 > 
-> Tony
-> 
-> 
+> Please help check, thanks (the related config file in attachment).
 
-Thanks.
--- 
-Chen Gang
+It seems that some make flags may need to be specified separately
+in some makefiles. See the following for some examples:
+
+$ find arch/arm -name Makefile | xargs grep -i flags
+
+I'm getting different errors though, I'm getting:
+
+arch/arm/mach-zynq/hotplug.c:1: error: bad value (cortex-a9) for -mcpu= switch
+
+As probably my compiler does not support the cortex-a9 switch,
+I have gcc version 4.3.5 (Debian 4.3.5-4), tried with v3.11-rc5.
+
+Regards,
+
+Tony
