@@ -1,41 +1,103 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: 3.11-rc1+ multiplatform kernel+dtb pandaboard issues
-Date: Wed, 21 Aug 2013 23:34:50 -0700
-Message-ID: <20130822063449.GO7656@atomide.com>
-References: <20130821154321.GA26531@redacted.bos.redhat.com>
- <20130821194143.GE26531@redacted.bos.redhat.com>
+From: Richard Zhao <rizhao@nvidia.com>
+Subject: [PATCH v2] DMA: add help function to check whether dma controller registered
+Date: Thu, 22 Aug 2013 14:43:00 +0800
+Message-ID: <1377153781-18006-1-git-send-email-rizhao@nvidia.com>
+References: <1375423458-6868-1-git-send-email-rizhao@nvidia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:17998 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753536Ab3HVGew (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Aug 2013 02:34:52 -0400
-Content-Disposition: inline
-In-Reply-To: <20130821194143.GE26531@redacted.bos.redhat.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1375423458-6868-1-git-send-email-rizhao@nvidia.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: vinod.koul@intel.com, djbw@fb.com, swarren@wwwdotorg.org, grant.likely@linaro.org, rob.herring@calxeda.com, devicetree@vger.kernel.org, Richard Zhao <rizhao@nvidia.com>
 List-Id: linux-omap@vger.kernel.org
-To: Kyle McMartin <kmcmarti@redhat.com>
-Cc: linux-omap@vger.kernel.org
 
-* Kyle McMartin <kmcmarti@redhat.com> [130821 12:48]:
-> On Wed, Aug 21, 2013 at 11:43:21AM -0400, Kyle McMartin wrote:
-> > I've suspected there might be a config issue, as omap2_defconfig
-> > works alright, as does booting a uImage with an appended
-> > omap4-panda.dtb, but there's no love with a zImage + initrd + dtb
-> > (or even just zImage without initrd + dtb.)
-> > 
-> 
-> after some further investigation, something odd is going on... turns
-> out things have been working (at least until initrd time, but that's
-> another story) fine but none of the bootargs have made it into the
-> kernel, so console= was unset and no messages came out.
+DMA client device driver usually needs to know at probe time whether
+dma controller has been registered to deffer probe. So add a help
+function of_dma_check_controller.
 
-Hmm I've seen that with extra quotes around the u-boot bootargs line.
-But if things work OK with omap2plus_defconfig, then it sounds that
-something gets trashed with your .config options. Care to post your
-.config file somewhere?
+DMA request channel functions can also used to check it, but they
+are usually called at open() time.
 
-Regards,
+Signed-off-by: Richard Zhao <rizhao@nvidia.com>
+---
+ drivers/dma/of-dma.c   | 39 +++++++++++++++++++++++++++++++++++++++
+ include/linux/of_dma.h |  6 ++++++
+ 2 files changed, 45 insertions(+)
 
-Tony 
+diff --git a/drivers/dma/of-dma.c b/drivers/dma/of-dma.c
+index 8cd5f3f..0063ddf 100644
+--- a/drivers/dma/of-dma.c
++++ b/drivers/dma/of-dma.c
+@@ -189,6 +189,45 @@ struct dma_chan *of_dma_request_slave_channel(struct device_node *np,
+ }
+ 
+ /**
++ * of_dma_check_controller - Check whether dma controller registered
++ * @dev:	pointer to client device structure
++ * @name:	slave channel name
++ */
++int of_dma_check_controller(struct device *dev, const char *name)
++{
++	struct device_node *np = dev->of_node;
++	struct of_phandle_args dma_spec;
++	struct of_dma *ofdma = NULL;
++	int count, i, ret = 0;
++
++	if (!np || !name)
++		return -EINVAL;
++
++	count = of_property_count_strings(np, "dma-names");
++	if (count < 0) {
++		dev_err(dev, "dma-names property missing or empty\n");
++		return -EINVAL;
++	}
++
++	for (i = 0; i < count; i++) {
++		ret = of_dma_match_channel(np, name, i, &dma_spec);
++		if (ret)
++			continue;
++
++		mutex_lock(&of_dma_lock);
++		ofdma = of_dma_find_controller(&dma_spec);
++		mutex_unlock(&of_dma_lock);
++		of_node_put(dma_spec.np);
++		if (!ofdma)
++			ret = -EPROBE_DEFER;
++		break;
++	}
++
++	return ret;
++}
++EXPORT_SYMBOL_GPL(of_dma_check_controller);
++
++/**
+  * of_dma_simple_xlate - Simple DMA engine translation function
+  * @dma_spec:	pointer to DMA specifier as found in the device tree
+  * @of_dma:	pointer to DMA controller data
+diff --git a/include/linux/of_dma.h b/include/linux/of_dma.h
+index ae36298..bc7195f 100644
+--- a/include/linux/of_dma.h
++++ b/include/linux/of_dma.h
+@@ -39,6 +39,7 @@ extern int of_dma_controller_register(struct device_node *np,
+ extern void of_dma_controller_free(struct device_node *np);
+ extern struct dma_chan *of_dma_request_slave_channel(struct device_node *np,
+ 						     const char *name);
++extern int of_dma_check_controller(struct device *dev, const char *name);
+ extern struct dma_chan *of_dma_simple_xlate(struct of_phandle_args *dma_spec,
+ 		struct of_dma *ofdma);
+ #else
+@@ -60,6 +61,11 @@ static inline struct dma_chan *of_dma_request_slave_channel(struct device_node *
+ 	return NULL;
+ }
+ 
++static inline int of_dma_check_controller(struct device *dev, const char *name)
++{
++	return 0;
++}
++
+ static inline struct dma_chan *of_dma_simple_xlate(struct of_phandle_args *dma_spec,
+ 		struct of_dma *ofdma)
+ {
+-- 
+1.8.1.5
