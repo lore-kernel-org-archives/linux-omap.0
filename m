@@ -1,57 +1,48 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [Suggestion] ARM: allmodconfig: about cross compiling failure
-	under i386 ubuntu.
-Date: Thu, 22 Aug 2013 11:22:10 +0100
-Message-ID: <20130822102210.GF25647@n2100.arm.linux.org.uk>
-References: <521479B4.8030604@asianux.com> <52147AC6.9040300@asianux.com> <52147E12.4060401@asianux.com> <20130822074524.GS7656@atomide.com>
+From: "Smyrnov, Illia" <illia.smyrnov@ti.com>
+Subject: RE: [PATCH v3 0/3] Input: omap-keypad: Convert to threaded IRQ and
+ cleanup
+Date: Thu, 22 Aug 2013 11:34:04 +0000
+Message-ID: <6F887CA5EE8CA64BB614602A7379818F60A26D@DNCE04.ent.ti.com>
+References: <1374681293-5320-1-git-send-email-illia.smyrnov@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:42410 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752296Ab3HVKWZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Aug 2013 06:22:25 -0400
-Content-Disposition: inline
-In-Reply-To: <20130822074524.GS7656@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1374681293-5320-1-git-send-email-illia.smyrnov@ti.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: "Balbi, Felipe" <balbi@ti.com>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Chen Gang <gang.chen@asianux.com>, linux-omap@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Thu, Aug 22, 2013 at 12:45:24AM -0700, Tony Lindgren wrote:
-> * Chen Gang <gang.chen@asianux.com> [130821 01:53]:
-> > Hello Maintainers:
-> > 
-> > When build arm with allmodconfig under ubuntu i386 with arm-linux-
-> > gnueabi-gcc 4.7, as 2.22, it report the errors.
-> > 
-> > Please help check, thanks (the related config file in attachment).
-> 
-> It seems that some make flags may need to be specified separately
-> in some makefiles. See the following for some examples:
-> 
-> $ find arch/arm -name Makefile | xargs grep -i flags
-> 
-> I'm getting different errors though, I'm getting:
-> 
-> arch/arm/mach-zynq/hotplug.c:1: error: bad value (cortex-a9) for -mcpu= switch
-> 
-> As probably my compiler does not support the cortex-a9 switch,
-> I have gcc version 4.3.5 (Debian 4.3.5-4), tried with v3.11-rc5.
+Dmitry,
 
-The use of -mcpu with -march is not a good idea anyway - you either use
--mcpu= or you use -march and -mtune.
+should I take any additional action regarding these patches?
 
--mcpu= sets the CPU type, which specifies the instruction architecture
-(iow, which instructions can be used) and instruction scheduling behaviour.
+Best regards,
+Illia Smyrnov
 
--march= sets the architecture only.  -mtune= sets the instruction
-scheduling behaviour only.
 
-So, that -mcpu= should probably be -mtune=, but if that fails due to
-unrecognised instructions, the -march= parameter is wrong.
+________________________________________
+From: linux-kernel-owner@vger.kernel.org [linux-kernel-owner@vger.kernel.org] on behalf of Smyrnov, Illia
+Sent: Wednesday, July 24, 2013 6:54 PM
+To: Dmitry Torokhov
+Cc: Balbi, Felipe; linux-input@vger.kernel.org; linux-kernel@vger.kernel.org; linux-omap@vger.kernel.org
+Subject: [PATCH v3 0/3] Input: omap-keypad: Convert to threaded IRQ and cleanup
 
-Even so, if gcc 4.3.5 doesn't support cortex-a9 as a CPU type, and we
-want to support that gcc version, the setting of -mtune needs to be
-conditionalised.  As it is only a scheduling hint, it's probably fine
-for it to end up being omitted.
+Replace unclear hardcoded values with bit field, convert to threaded IRQ and
+clear interrupts when open the keypad.
+
+Based on top of v3.11-rc2.
+
+Tested on OMAP4 SDP.
+
+Illia Smyrnov (3):
+  Input: omap-keypad: Cleanup - use bitfiled instead of hardcoded
+    values
+  Input: omap-keypad: Convert to threaded IRQ
+  Input: omap-keypad: Clear interrupts on open
+
+ drivers/input/keyboard/omap4-keypad.c |   57 +++++++++++++++++++--------------
+ 1 files changed, 33 insertions(+), 24 deletions(-)
+
