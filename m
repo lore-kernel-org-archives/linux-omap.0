@@ -1,71 +1,61 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v4] extcon: palmas: Added a new compatible type *ti,
- palmas-usb-vid*
-Date: Thu, 22 Aug 2013 14:01:23 +0530
-Message-ID: <1377160283-26934-1-git-send-email-kishon@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2] ARM: OMAP2: use 'int' instead of 'unsigned' for
+ variable 'gpmc_irq_start'
+Date: Thu, 22 Aug 2013 01:32:06 -0700
+Message-ID: <20130822083206.GU7656@atomide.com>
+References: <521479B4.8030604@asianux.com>
+ <20130822071402.GQ7656@atomide.com>
+ <5215C12D.5020807@asianux.com>
+ <5215C209.3080606@asianux.com>
+ <20130822075731.GT7656@atomide.com>
+ <5215C555.9060902@asianux.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: bcousson@baylibre.com, swarren@wwwdotorg.org, tony@atomide.com, myungjoo.ham@samsung.com, cw00.choi@samsung.com
-Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, george.cherian@ti.com, linux@arm.linux.org.uk, ian.campbell@citrix.com, pawel.moll@arm.com, linux-doc@vger.kernel.org, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, rob.herring@calxeda.com, kishon@ti.com, balbi@ti.com, rob@landley.net, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:54600 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752251Ab3HVIcP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Aug 2013 04:32:15 -0400
+Content-Disposition: inline
+In-Reply-To: <5215C555.9060902@asianux.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Chen Gang <gang.chen@asianux.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-The Palmas device contains only a USB VBUS-ID detector, so added a
-compatible type *ti,palmas-usb-vid*. Didn't remove the existing compatible
-types for backward compatibility.
+* Chen Gang <gang.chen@asianux.com> [130822 01:10]:
+> On 08/22/2013 03:57 PM, Tony Lindgren wrote:
+> > * Chen Gang <gang.chen@asianux.com> [130822 00:55]:
+> >> 'gpmc_irq_start' is mostly used as 'int', and for a variable, do not
+> >> suggest to only use 'unsigned' as its type, so use 'int' instead of
+> >> 'unsigned' for variable 'gpmc_irq_start'.
+> >>
+> >> Also it will fix the related issue (dummy the real world failure):
+> >>
+> >>   arch/arm/mach-omap2/gpmc.c:728:2: warning: comparison of unsigned expression < 0 is always false [-Wtype-limits]
+> >>
+> > 
+> > Thanks applying into omap-for-v3.12/fixes-non-critical.
+> > 
+> 
+> Thank you too.
+> 
+> Hmm... excuse me, I am not quite familiar with the omap version trees,
+> so may have a doubt: "it seems this is a real bug, is it suitable to
+> belong to fixes-none-critical tree ?"
 
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
----
-Changes from v3:
-* Fixed commit log message (VID to VBUS-ID).
-* Fixed the Documentation to tell "ti,twl6035-usb" and "ti,palmas-usb" is
-deprecated
+For the -rc cycle we try to limit the patches to oopses and regressions,
+especially this close to v3.11 being tagged.
 
-Changes from [1]:
-* Since the old compatible values will be in 3.11 kernel, we shouldn't remove
-the old compatible values. So retain the old compatible values.
+It seems the bug has been there for quite some time, and that we don't
+seem to have oopses or other failures reporting this. So it seems there's
+no reason for urgency to have it merged into the current -rc series.
 
-[1] -> http://www.spinics.net/lists/linux-omap/msg95843.html
+If you (or somebody else) strongly feels that it should be in applied
+to the current -rc series as a fix instead of during the merge window,
+then please let me know the failing cases with logs showing what
+happens.
 
- Documentation/devicetree/bindings/extcon/extcon-palmas.txt |    3 ++-
- drivers/extcon/extcon-palmas.c                             |    1 +
- 2 files changed, 3 insertions(+), 1 deletion(-)
+Regards,
 
-diff --git a/Documentation/devicetree/bindings/extcon/extcon-palmas.txt b/Documentation/devicetree/bindings/extcon/extcon-palmas.txt
-index 7dab6a8..dc5fab3 100644
---- a/Documentation/devicetree/bindings/extcon/extcon-palmas.txt
-+++ b/Documentation/devicetree/bindings/extcon/extcon-palmas.txt
-@@ -2,7 +2,8 @@ EXTCON FOR PALMAS/TWL CHIPS
- 
- PALMAS USB COMPARATOR
- Required Properties:
-- - compatible : Should be "ti,palmas-usb" or "ti,twl6035-usb"
-+ - compatible : Should be "ti,palmas-usb-vid". "ti,twl6035-usb" and
-+   "ti,palmas-usb" is deprecated and is kept for backward compatibility.
- 
- Optional Properties:
-  - ti,wakeup : To enable the wakeup comparator in probe
-diff --git a/drivers/extcon/extcon-palmas.c b/drivers/extcon/extcon-palmas.c
-index 89fdd05..9672f31 100644
---- a/drivers/extcon/extcon-palmas.c
-+++ b/drivers/extcon/extcon-palmas.c
-@@ -268,6 +268,7 @@ static const struct dev_pm_ops palmas_pm_ops = {
- 
- static struct of_device_id of_palmas_match_tbl[] = {
- 	{ .compatible = "ti,palmas-usb", },
-+	{ .compatible = "ti,palmas-usb-vid", },
- 	{ .compatible = "ti,twl6035-usb", },
- 	{ /* end */ }
- };
--- 
-1.7.10.4
+Tony
