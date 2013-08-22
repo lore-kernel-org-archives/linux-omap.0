@@ -1,105 +1,50 @@
-From: Sricharan R <r.sricharan@ti.com>
-Subject: Re: [PATCH 1/3] misc: Add crossbar driver
-Date: Thu, 22 Aug 2013 17:03:10 +0530
-Message-ID: <5215F6F6.9060703@ti.com>
-References: <51E83A4F.5080904@ti.com>
- <CACRpkdY3nQaWimTwB-Zt-8+Q_KZr8a0rpB1SUQq=AuoG4bAYnQ@mail.gmail.com>
- <51ED2385.60108@ti.com> <51ED5C66.1010407@ti.com> <51EFFBE1.4090505@ti.com>
- <51F0031B.1050307@ti.com> <51F00530.9090703@ti.com> <51F02069.3050207@ti.com>
- <51F0223E.4050008@ti.com> <51F0240F.3050507@ti.com>
- <20130813081003.GU7656@atomide.com> <520A02BA.4090805@ti.com>
- <CACRpkda+m82PYJsExLM6JLsLa8-bVhdvy_r_+-uKfVT2NG7Cbg@mail.gmail.com>
- <520D398D.9040806@ti.com>
- <CACRpkdYeo1y-HhftkRWgwyq8o-NVuJ978Uq+ON880LHhUxC=hg@mail.gmail.com>
- <520D44C5.6080205@ti.com>
- <CACRpkdagSHxzV3=427O9iftNxM+N=w9aPds=iDvGQPoG3H-cWw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <CACRpkdagSHxzV3=427O9iftNxM+N=w9aPds=iDvGQPoG3H-cWw@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Nishanth Menon <nm@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, Rajendra Nayak <rnayak@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Thomas Gleixner <tglx@linutronix.de>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+From: Daniel Mack <zonque@gmail.com>
+Subject: [PATCH 0/4] cpsw: support for control module register
+Date: Thu, 22 Aug 2013 13:37:24 +0200
+Message-ID: <1377171448-27924-1-git-send-email-zonque@gmail.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from svenfoo.org ([82.94.215.22]:46130 "EHLO mail.zonque.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752444Ab3HVLhg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 22 Aug 2013 07:37:36 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: netdev@vger.kernel.org
+Cc: davem@davemloft.net, ujhelyi.m@gmail.com, mugunthanvnm@ti.com, vaibhav.bedia@ti.com, d-gerlach@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Daniel Mack <zonque@gmail.com>
 
-Hi Linus,
+In order to make the cpsw driver work in for example RMII mode with
+external clock the driver needs to learn about the control module
+register that is at least available on AM33xx SoCs. I'm not sure
+whether other chips have similar or compatible bits in such a register,
+hence I limited the code paths to that familiy only.
 
-On Thursday 22 August 2013 02:40 AM, Linus Walleij wrote:
-> On Thu, Aug 15, 2013 at 11:14 PM, Santosh Shilimkar
-> <santosh.shilimkar@ti.com> wrote:
->> On Thursday 15 August 2013 04:51 PM, Linus Walleij wrote:
-> (...)
->>> Sorry I don't understand what thread that is... can you point me there?
->>> My previous statement on this issue what this:
->>> http://marc.info/?l=linux-kernel&m=137442541628641&w=2
-> (...)
->>>> I don't see how you can make this happen with an irqchip
->>>> infrastructure.
->>> I think my post above describes this.
->>>
->> Sorry for being dumb but I don't think cascaded irqchip examples
->> like GPIO and cross-bars are same. If you take an example of
->> GPIO irqchip, it always have a physical connection even if it
->> is 1 IRQ line for (32 logical/sparse IRQs). That goes with
->> other MFD examples too.
->>
->> So may be I am still missing something in your proposal.
-> Why does it matter if it is a GPIO or MFD or whatever?
-> The point is that the IRQ line passes thru something else,
-> and this we model as an irqdomain.
->
-> Anyway here is a silicon cascaded IRQ chip:
-> arch/arm/mach-versatile/core.c
-> See versatile_init_irq():
->
-> __vic_init(VA_VIC_BASE, IRQ_VIC_START, ~0, 0, np);
-> (...)
-> fpga_irq_init(VA_SIC_BASE, "SIC", IRQ_SIC_START,
->                 IRQ_VICSOURCE31, PIC_VALID, np);
->
-> The VIC in the versatile has the SIC cascaded from one of
-> its IRQ lines. Both the VIC and SIC (fpga IRQ) are
-> using irqdomains so the SIC spawns a child irqdomain
-> from IRQ 31 (last IRQ) of the VIC.
- Ok, this is a typical example of irqchip cascaded.
-> The difference with a crossbar is that it can software-config
-> which IRQ goes where, and does not have a callback
-> to clear interrupts or anything like that, it just passes them
-> thru. But it is best modeled as an irqdomain IMO.
-We can model crossbar as irqchip and gic as its interrupt parent
-and peripherals to have crossbar as interrupt-parent.
-   
- peripherals will do request_irq(crossbar_number)
-              |
-              |
- crossbar_unmask()
-              |
-              |
- maps crossbar number<->  to interrupt number and
- calls request_irq(int_no, crossbar_handler,..)
+This series is necessary to make the cpsw driver work after resume on
+my systems, because that control register is only written from the
+bootloader at startup, and its content is altered after resume, so it
+needs reprogramming.
 
- 
- crossbar_handler(interrupt number)
-            |
-            |
- get crossbar number from interrupt number
-            |
-            |
- handle_irq(crossbar_domain(crossbar number))
-                                                                             
+The first patch is actually just a cleanup to make the additional
+memory resource handling cleaner.
 
-So this means a extra dummy handler.
-Also the concern is by modelling it as irqchip, we will have
-to find a different solution for DMA crossbar.
+Patches 1-3 are for the net tree and apply to net-next. Patch 4/4 is
+for the ARM/dts tree, but can be merged independently.
 
-Regards,
- Sricharan
+Thanks,
+Daniel
+
+Daniel Mack (4):
+  net: ethernet: cpsw: switch to devres allocations
+  net: ethernet: cpsw: add optional third memory region for CONTROL
+    module
+  net: ethernet: cpsw: add support for hardware interface mode config
+  ARM: dts: am33xx: add third memory region to cpsw block
+
+ Documentation/devicetree/bindings/net/cpsw.txt |   7 +-
+ arch/arm/boot/dts/am33xx.dtsi                  |   3 +-
+ drivers/net/ethernet/ti/cpsw.c                 | 218 ++++++++++++++-----------
+ include/linux/platform_data/cpsw.h             |   1 +
+ 4 files changed, 132 insertions(+), 97 deletions(-)
+
+-- 
+1.8.3.1
+
