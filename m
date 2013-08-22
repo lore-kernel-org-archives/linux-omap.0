@@ -1,40 +1,66 @@
-From: Richard Zhao <rizhao@nvidia.com>
-Subject: Re: [PATCH] DMA: let filter functions of of_dma_simple_xlate
- possible check of_node
-Date: Thu, 22 Aug 2013 13:19:05 +0800
-Message-ID: <20130822051904.GA2685@rizhao-lap>
-References: <1375408800-11789-1-git-send-email-rizhao@nvidia.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH v3] extcon: palmas: Added a new compatible type *ti,
+ palmas-usb-vid*
+Date: Thu, 22 Aug 2013 10:53:07 +0530
+Message-ID: <1377148987-21831-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1375408800-11789-1-git-send-email-rizhao@nvidia.com>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
-Cc: "vinod.koul@intel.com" <vinod.koul@intel.com>, "djbw@fb.com" <djbw@fb.com>, "swarren@wwwdotorg.org" <swarren@wwwdotorg.org>
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: bcousson@baylibre.com, swarren@wwwdotorg.org, tony@atomide.com, myungjoo.ham@samsung.com, cw00.choi@samsung.com
+Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, george.cherian@ti.com, linux@arm.linux.org.uk, ian.campbell@citrix.com, pawel.moll@arm.com, linux-doc@vger.kernel.org, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, rob.herring@calxeda.com, kishon@ti.com, balbi@ti.com, rob@landley.net, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Aug 02, 2013 at 10:00:00AM +0800, Richard Zhao wrote:
-> pass of_phandle_args dma_spec to dma_request_channel in of_dma_simple_xlate,
-> so the filter function could access of_node in of_phandle_args.
-> 
-> It also remove restriction of #dma-cells has to be one.
-> 
-> Signed-off-by: Richard Zhao <rizhao@nvidia.com>
-> ---
->  drivers/dma/edma.c     |  7 +++++--
->  drivers/dma/of-dma.c   | 10 ++++------
->  drivers/dma/omap-dma.c |  6 ++++--
->  3 files changed, 13 insertions(+), 10 deletions(-)
-> 
+The Palmas device contains only a USB VID detector, so added a
+compatible type *ti,palmas-usb-vid*. Didn't remove the existing compatible
+types for backward compatibility.
 
-Hi Vinod,
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+---
+Changes from [1]:
+* Since the old compatible values will be in 3.11 kernel, we shouldn't remove
+the old compatible values. So retain the old compatible values.
 
-Can you please pick up this change?
+[1] -> http://www.spinics.net/lists/linux-omap/msg95843.html
 
-Hi Stephen,
+ Documentation/devicetree/bindings/extcon/extcon-palmas.txt |    3 ++-
+ drivers/extcon/extcon-palmas.c                             |    1 +
+ 2 files changed, 3 insertions(+), 1 deletion(-)
 
-Can you please give a ack or reviewed-by etc?
-
-Thanks
-Richard
+diff --git a/Documentation/devicetree/bindings/extcon/extcon-palmas.txt b/Documentation/devicetree/bindings/extcon/extcon-palmas.txt
+index 7dab6a8..dc5fab3 100644
+--- a/Documentation/devicetree/bindings/extcon/extcon-palmas.txt
++++ b/Documentation/devicetree/bindings/extcon/extcon-palmas.txt
+@@ -2,7 +2,8 @@ EXTCON FOR PALMAS/TWL CHIPS
+ 
+ PALMAS USB COMPARATOR
+ Required Properties:
+- - compatible : Should be "ti,palmas-usb" or "ti,twl6035-usb"
++ - compatible : Should be "ti,palmas-usb" or "ti,twl6035-usb" or
++   "ti,palmas-usb-vid".
+ 
+ Optional Properties:
+  - ti,wakeup : To enable the wakeup comparator in probe
+diff --git a/drivers/extcon/extcon-palmas.c b/drivers/extcon/extcon-palmas.c
+index 89fdd05..9672f31 100644
+--- a/drivers/extcon/extcon-palmas.c
++++ b/drivers/extcon/extcon-palmas.c
+@@ -268,6 +268,7 @@ static const struct dev_pm_ops palmas_pm_ops = {
+ 
+ static struct of_device_id of_palmas_match_tbl[] = {
+ 	{ .compatible = "ti,palmas-usb", },
++	{ .compatible = "ti,palmas-usb-vid", },
+ 	{ .compatible = "ti,twl6035-usb", },
+ 	{ /* end */ }
+ };
+-- 
+1.7.10.4
