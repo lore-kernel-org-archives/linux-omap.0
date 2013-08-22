@@ -1,383 +1,77 @@
-From: Daniel Mack <zonque@gmail.com>
-Subject: [PATCH 1/4] net: ethernet: cpsw: switch to devres allocations
-Date: Thu, 22 Aug 2013 13:37:25 +0200
-Message-ID: <1377171448-27924-2-git-send-email-zonque@gmail.com>
-References: <1377171448-27924-1-git-send-email-zonque@gmail.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from svenfoo.org ([82.94.215.22]:46140 "EHLO mail.zonque.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752601Ab3HVLhh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 22 Aug 2013 07:37:37 -0400
-In-Reply-To: <1377171448-27924-1-git-send-email-zonque@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: majianpeng <majianpeng@gmail.com>
+Subject: Re: Re: [PATCH V2] mmc: omap_hsmmc: Fix sleep too long in ISR context.
+Date: Thu, 22 Aug 2013 20:03:16 +0800
+Message-ID: <201308222003128470850@gmail.com>
+References: <201308071805022428282@gmail.com> <5213BAD0.8030406@yahoo.es>,
+	<5214F55E.6020408@ti.com>
+Reply-To: majianpeng <majianpeng@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Sender: linux-mmc-owner@vger.kernel.org
+To: balajitk <balajitk@ti.com>, Hein Tibosch <hein_tibosch@yahoo.es>
+Cc: cjb <cjb@laptop.org>, Felipe Balbi <balbi@ti.com>, linux-mmc <linux-mmc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, mayuzheng <mayuzheng@kedacom.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
-To: netdev@vger.kernel.org
-Cc: davem@davemloft.net, ujhelyi.m@gmail.com, mugunthanvnm@ti.com, vaibhav.bedia@ti.com, d-gerlach@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Daniel Mack <zonque@gmail.com>
 
-This patch cleans up the allocation and error unwind paths, which
-allows us to carry less information in struct cpsw_priv and reduce the
-amount of jump labels in the probe functions.
-
-Signed-off-by: Daniel Mack <zonque@gmail.com>
----
- drivers/net/ethernet/ti/cpsw.c | 147 +++++++++++++++--------------------------
- 1 file changed, 52 insertions(+), 95 deletions(-)
-
-diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-index 5d673bf..63feaae 100644
---- a/drivers/net/ethernet/ti/cpsw.c
-+++ b/drivers/net/ethernet/ti/cpsw.c
-@@ -367,8 +367,6 @@ struct cpsw_priv {
- 	spinlock_t			lock;
- 	struct platform_device		*pdev;
- 	struct net_device		*ndev;
--	struct resource			*cpsw_res;
--	struct resource			*cpsw_wr_res;
- 	struct napi_struct		napi;
- 	struct device			*dev;
- 	struct cpsw_platform_data	data;
-@@ -1711,62 +1709,55 @@ static int cpsw_probe_dt(struct cpsw_platform_data *data,
- 
- 	if (of_property_read_u32(node, "active_slave", &prop)) {
- 		pr_err("Missing active_slave property in the DT.\n");
--		ret = -EINVAL;
--		goto error_ret;
-+		return -EINVAL;
- 	}
- 	data->active_slave = prop;
- 
- 	if (of_property_read_u32(node, "cpts_clock_mult", &prop)) {
- 		pr_err("Missing cpts_clock_mult property in the DT.\n");
--		ret = -EINVAL;
--		goto error_ret;
-+		return -EINVAL;
- 	}
- 	data->cpts_clock_mult = prop;
- 
- 	if (of_property_read_u32(node, "cpts_clock_shift", &prop)) {
- 		pr_err("Missing cpts_clock_shift property in the DT.\n");
--		ret = -EINVAL;
--		goto error_ret;
-+		return -EINVAL;
- 	}
- 	data->cpts_clock_shift = prop;
- 
--	data->slave_data = kcalloc(data->slaves, sizeof(struct cpsw_slave_data),
--				   GFP_KERNEL);
-+	data->slave_data = devm_kzalloc(&pdev->dev, data->slaves
-+					* sizeof(struct cpsw_slave_data),
-+					GFP_KERNEL);
- 	if (!data->slave_data)
--		return -EINVAL;
-+		return -ENOMEM;
- 
- 	if (of_property_read_u32(node, "cpdma_channels", &prop)) {
- 		pr_err("Missing cpdma_channels property in the DT.\n");
--		ret = -EINVAL;
--		goto error_ret;
-+		return -EINVAL;
- 	}
- 	data->channels = prop;
- 
- 	if (of_property_read_u32(node, "ale_entries", &prop)) {
- 		pr_err("Missing ale_entries property in the DT.\n");
--		ret = -EINVAL;
--		goto error_ret;
-+		return -EINVAL;
- 	}
- 	data->ale_entries = prop;
- 
- 	if (of_property_read_u32(node, "bd_ram_size", &prop)) {
- 		pr_err("Missing bd_ram_size property in the DT.\n");
--		ret = -EINVAL;
--		goto error_ret;
-+		return -EINVAL;
- 	}
- 	data->bd_ram_size = prop;
- 
- 	if (of_property_read_u32(node, "rx_descs", &prop)) {
- 		pr_err("Missing rx_descs property in the DT.\n");
--		ret = -EINVAL;
--		goto error_ret;
-+		return -EINVAL;
- 	}
- 	data->rx_descs = prop;
- 
- 	if (of_property_read_u32(node, "mac_control", &prop)) {
- 		pr_err("Missing mac_control property in the DT.\n");
--		ret = -EINVAL;
--		goto error_ret;
-+		return -EINVAL;
- 	}
- 	data->mac_control = prop;
- 
-@@ -1793,8 +1784,7 @@ static int cpsw_probe_dt(struct cpsw_platform_data *data,
- 		parp = of_get_property(slave_node, "phy_id", &lenp);
- 		if ((parp == NULL) || (lenp != (sizeof(void *) * 2))) {
- 			pr_err("Missing slave[%d] phy_id property\n", i);
--			ret = -EINVAL;
--			goto error_ret;
-+			return -EINVAL;
- 		}
- 		mdio_node = of_find_node_by_phandle(be32_to_cpup(parp));
- 		phyid = be32_to_cpup(parp+1);
-@@ -1824,10 +1814,6 @@ static int cpsw_probe_dt(struct cpsw_platform_data *data,
- 	}
- 
- 	return 0;
--
--error_ret:
--	kfree(data->slave_data);
--	return ret;
- }
- 
- static int cpsw_probe_dual_emac(struct platform_device *pdev,
-@@ -1869,7 +1855,6 @@ static int cpsw_probe_dual_emac(struct platform_device *pdev,
- 	priv_sl2->coal_intvl = 0;
- 	priv_sl2->bus_freq_mhz = priv->bus_freq_mhz;
- 
--	priv_sl2->cpsw_res = priv->cpsw_res;
- 	priv_sl2->regs = priv->regs;
- 	priv_sl2->host_port = priv->host_port;
- 	priv_sl2->host_port_regs = priv->host_port_regs;
-@@ -1913,8 +1898,8 @@ static int cpsw_probe(struct platform_device *pdev)
- 	struct cpsw_priv		*priv;
- 	struct cpdma_params		dma_params;
- 	struct cpsw_ale_params		ale_params;
--	void __iomem			*ss_regs, *wr_regs;
--	struct resource			*res;
-+	void __iomem			*ss_regs;
-+	struct resource			*res, *ss_res;
- 	u32 slave_offset, sliver_offset, slave_size;
- 	int ret = 0, i, k = 0;
- 
-@@ -1950,7 +1935,7 @@ static int cpsw_probe(struct platform_device *pdev)
- 	if (cpsw_probe_dt(&priv->data, pdev)) {
- 		pr_err("cpsw: platform data missing\n");
- 		ret = -ENODEV;
--		goto clean_ndev_ret;
-+		goto clean_runtime_disable_ret;
- 	}
- 	data = &priv->data;
- 
-@@ -1964,11 +1949,12 @@ static int cpsw_probe(struct platform_device *pdev)
- 
- 	memcpy(ndev->dev_addr, priv->mac_addr, ETH_ALEN);
- 
--	priv->slaves = kzalloc(sizeof(struct cpsw_slave) * data->slaves,
--			       GFP_KERNEL);
-+	priv->slaves =
-+		devm_kzalloc(&pdev->dev, sizeof(struct cpsw_slave) * data->slaves,
-+			     GFP_KERNEL);
- 	if (!priv->slaves) {
--		ret = -EBUSY;
--		goto clean_ndev_ret;
-+		ret = -ENOMEM;
-+		goto clean_runtime_disable_ret;
- 	}
- 	for (i = 0; i < data->slaves; i++)
- 		priv->slaves[i].slave_num = i;
-@@ -1976,55 +1962,55 @@ static int cpsw_probe(struct platform_device *pdev)
- 	priv->slaves[0].ndev = ndev;
- 	priv->emac_port = 0;
- 
--	priv->clk = clk_get(&pdev->dev, "fck");
-+	priv->clk = devm_clk_get(&pdev->dev, "fck");
- 	if (IS_ERR(priv->clk)) {
--		dev_err(&pdev->dev, "fck is not found\n");
-+		dev_err(priv->dev, "fck is not found\n");
- 		ret = -ENODEV;
--		goto clean_slave_ret;
-+		goto clean_runtime_disable_ret;
- 	}
- 	priv->coal_intvl = 0;
- 	priv->bus_freq_mhz = clk_get_rate(priv->clk) / 1000000;
- 
--	priv->cpsw_res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	if (!priv->cpsw_res) {
-+	ss_res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	if (!ss_res) {
- 		dev_err(priv->dev, "error getting i/o resource\n");
- 		ret = -ENOENT;
--		goto clean_clk_ret;
-+		goto clean_runtime_disable_ret;
- 	}
--	if (!request_mem_region(priv->cpsw_res->start,
--				resource_size(priv->cpsw_res), ndev->name)) {
-+	if (!devm_request_mem_region(&pdev->dev, ss_res->start,
-+				     resource_size(ss_res), ndev->name)) {
- 		dev_err(priv->dev, "failed request i/o region\n");
- 		ret = -ENXIO;
--		goto clean_clk_ret;
-+		goto clean_runtime_disable_ret;
- 	}
--	ss_regs = ioremap(priv->cpsw_res->start, resource_size(priv->cpsw_res));
-+	ss_regs = devm_ioremap(&pdev->dev, ss_res->start,
-+			       resource_size(ss_res));
- 	if (!ss_regs) {
- 		dev_err(priv->dev, "unable to map i/o region\n");
--		goto clean_cpsw_iores_ret;
-+		goto clean_runtime_disable_ret;
- 	}
- 	priv->regs = ss_regs;
- 	priv->version = __raw_readl(&priv->regs->id_ver);
- 	priv->host_port = HOST_PORT_NUM;
- 
--	priv->cpsw_wr_res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
--	if (!priv->cpsw_wr_res) {
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
-+	if (!res) {
- 		dev_err(priv->dev, "error getting i/o resource\n");
- 		ret = -ENOENT;
--		goto clean_iomap_ret;
-+		goto clean_runtime_disable_ret;
- 	}
--	if (!request_mem_region(priv->cpsw_wr_res->start,
--			resource_size(priv->cpsw_wr_res), ndev->name)) {
-+	if (!devm_request_mem_region(&pdev->dev, res->start,
-+				     resource_size(res), ndev->name)) {
- 		dev_err(priv->dev, "failed request i/o region\n");
- 		ret = -ENXIO;
--		goto clean_iomap_ret;
-+		goto clean_runtime_disable_ret;
- 	}
--	wr_regs = ioremap(priv->cpsw_wr_res->start,
--				resource_size(priv->cpsw_wr_res));
--	if (!wr_regs) {
-+	priv->wr_regs = devm_ioremap(&pdev->dev, res->start,
-+				     resource_size(res));
-+	if (!priv->wr_regs) {
- 		dev_err(priv->dev, "unable to map i/o region\n");
--		goto clean_cpsw_wr_iores_ret;
-+		goto clean_runtime_disable_ret;
- 	}
--	priv->wr_regs = wr_regs;
- 
- 	memset(&dma_params, 0, sizeof(dma_params));
- 	memset(&ale_params, 0, sizeof(ale_params));
-@@ -2055,12 +2041,12 @@ static int cpsw_probe(struct platform_device *pdev)
- 		slave_size           = CPSW2_SLAVE_SIZE;
- 		sliver_offset        = CPSW2_SLIVER_OFFSET;
- 		dma_params.desc_mem_phys =
--			(u32 __force) priv->cpsw_res->start + CPSW2_BD_OFFSET;
-+			(u32 __force) ss_res->start + CPSW2_BD_OFFSET;
- 		break;
- 	default:
- 		dev_err(priv->dev, "unknown version 0x%08x\n", priv->version);
- 		ret = -ENODEV;
--		goto clean_cpsw_wr_iores_ret;
-+		goto clean_runtime_disable_ret;
- 	}
- 	for (i = 0; i < priv->data.slaves; i++) {
- 		struct cpsw_slave *slave = &priv->slaves[i];
-@@ -2088,7 +2074,7 @@ static int cpsw_probe(struct platform_device *pdev)
- 	if (!priv->dma) {
- 		dev_err(priv->dev, "error initializing dma\n");
- 		ret = -ENOMEM;
--		goto clean_wr_iomap_ret;
-+		goto clean_runtime_disable_ret;
- 	}
- 
- 	priv->txch = cpdma_chan_create(priv->dma, tx_chan_num(0),
-@@ -2123,8 +2109,8 @@ static int cpsw_probe(struct platform_device *pdev)
- 
- 	while ((res = platform_get_resource(priv->pdev, IORESOURCE_IRQ, k))) {
- 		for (i = res->start; i <= res->end; i++) {
--			if (request_irq(i, cpsw_interrupt, 0,
--					dev_name(&pdev->dev), priv)) {
-+			if (devm_request_irq(&pdev->dev, i, cpsw_interrupt, 0,
-+					     dev_name(priv->dev), priv)) {
- 				dev_err(priv->dev, "error attaching irq\n");
- 				goto clean_ale_ret;
- 			}
-@@ -2146,7 +2132,7 @@ static int cpsw_probe(struct platform_device *pdev)
- 	if (ret) {
- 		dev_err(priv->dev, "error registering net device\n");
- 		ret = -ENODEV;
--		goto clean_irq_ret;
-+		goto clean_ale_ret;
- 	}
- 
- 	if (cpts_register(&pdev->dev, priv->cpts,
-@@ -2154,44 +2140,27 @@ static int cpsw_probe(struct platform_device *pdev)
- 		dev_err(priv->dev, "error registering cpts device\n");
- 
- 	cpsw_notice(priv, probe, "initialized device (regs %x, irq %d)\n",
--		  priv->cpsw_res->start, ndev->irq);
-+		    ss_res->start, ndev->irq);
- 
- 	if (priv->data.dual_emac) {
- 		ret = cpsw_probe_dual_emac(pdev, priv);
- 		if (ret) {
- 			cpsw_err(priv, probe, "error probe slave 2 emac interface\n");
--			goto clean_irq_ret;
-+			goto clean_ale_ret;
- 		}
- 	}
- 
- 	return 0;
- 
--clean_irq_ret:
--	for (i = 0; i < priv->num_irqs; i++)
--		free_irq(priv->irqs_table[i], priv);
- clean_ale_ret:
- 	cpsw_ale_destroy(priv->ale);
- clean_dma_ret:
- 	cpdma_chan_destroy(priv->txch);
- 	cpdma_chan_destroy(priv->rxch);
- 	cpdma_ctlr_destroy(priv->dma);
--clean_wr_iomap_ret:
--	iounmap(priv->wr_regs);
--clean_cpsw_wr_iores_ret:
--	release_mem_region(priv->cpsw_wr_res->start,
--			   resource_size(priv->cpsw_wr_res));
--clean_iomap_ret:
--	iounmap(priv->regs);
--clean_cpsw_iores_ret:
--	release_mem_region(priv->cpsw_res->start,
--			   resource_size(priv->cpsw_res));
--clean_clk_ret:
--	clk_put(priv->clk);
--clean_slave_ret:
-+clean_runtime_disable_ret:
- 	pm_runtime_disable(&pdev->dev);
--	kfree(priv->slaves);
- clean_ndev_ret:
--	kfree(priv->data.slave_data);
- 	free_netdev(priv->ndev);
- 	return ret;
- }
-@@ -2200,30 +2169,18 @@ static int cpsw_remove(struct platform_device *pdev)
- {
- 	struct net_device *ndev = platform_get_drvdata(pdev);
- 	struct cpsw_priv *priv = netdev_priv(ndev);
--	int i;
- 
- 	if (priv->data.dual_emac)
- 		unregister_netdev(cpsw_get_slave_ndev(priv, 1));
- 	unregister_netdev(ndev);
- 
- 	cpts_unregister(priv->cpts);
--	for (i = 0; i < priv->num_irqs; i++)
--		free_irq(priv->irqs_table[i], priv);
- 
- 	cpsw_ale_destroy(priv->ale);
- 	cpdma_chan_destroy(priv->txch);
- 	cpdma_chan_destroy(priv->rxch);
- 	cpdma_ctlr_destroy(priv->dma);
--	iounmap(priv->regs);
--	release_mem_region(priv->cpsw_res->start,
--			   resource_size(priv->cpsw_res));
--	iounmap(priv->wr_regs);
--	release_mem_region(priv->cpsw_wr_res->start,
--			   resource_size(priv->cpsw_wr_res));
- 	pm_runtime_disable(&pdev->dev);
--	clk_put(priv->clk);
--	kfree(priv->slaves);
--	kfree(priv->data.slave_data);
- 	if (priv->data.dual_emac)
- 		free_netdev(cpsw_get_slave_ndev(priv, 1));
- 	free_netdev(ndev);
--- 
-1.8.3.1
+Pk9uIFdlZG5lc2RheSAyMSBBdWd1c3QgMjAxMyAxMjoyMiBBTSwgSGVpbiBUaWJvc2NoIHdyb3Rl
+Og0KPj4gSGksDQo+Pg0KPj4gWyBhZGRlZCBzb21lIHBlb3BsZSBmcm9tIFRJIF0NCj4+DQo+PiBP
+biA4LzcvMjAxMyA2OjA1IFBNLCBtYWppYW5wZW5nIHdyb3RlOg0KPj4+IFYyOg0KPj4+IAljbGVh
+biB1cCBjb2RlLg0KPj4+IFYxOg0KPj4+IAl3d3cubWFpbC1hcmNoaXZlLmNvbS9saW51eC1vbWFw
+QHZnZXIuLi4vbXNnOTMyMzkuaHRtbOKAjg0KPj4+DQo+Pj4NCj4+PiBXZSBmb3VuZCBhIHByb2Js
+ZW0gd2hlbiB3ZSByZW1vdmVkIGEgd29ya2luZyBzZCBjYXJkIHRoYXQgdGhlIGlycWFjdGlvbg0K
+Pj4+IG9mIG9tYXBfaHNtbWMgY2FuIHNsZWVwIHRvIDMuNnMuIFRoaXMgY2F1c2Ugb3VyIHdhdGNo
+ZG9nIHRvIHdvcmsuDQo+Pj4gSW4gZnVuYyBvbWFwX2hzbW1jX3Jlc2V0X2NvbnRyb2xsZXJfZnNt
+LCBpdCBzaG91bGQgd2F0Y2ggYSAwLT4xDQo+Pj4gdHJhbnNpdGlvbi5CdXQgYXZvaWRpbmcgZW5k
+bGVzcyB3YWl0aW5nLCBpdCB1c2VkIGxvb3BzX3Blcl9qaWZmeSBhcyB0aGUgdGltZXIuDQo+Pg0K
+Pj4gVHJpZWQgb24gYSBPTUFQNDQ2MDoNCj4+IFRoaXMgY2FuIGVhc2lseSBiZSByZXBsaWNhdGVk
+OiBqdXN0IHdpdGhkcmF3IGFuIFNELWNhcmQgYW5kIHRoZSBrZXJuZWwNCj4+IHdpbGwgZ2V0IGJs
+b2NrZWQgZHVyaW5nIG1vcmUgdGhhbiAzIHNlY29uZHMuDQo+PiBDYWxsaW5nIE9NQVBfSFNNTUNf
+UkVBRCgpIGluIHRoaXMgbG9vcCBtYWtlcyBpdCBsYXN0IHNvIGxvbmcuDQo+Pg0KPj4gVGhlIGZ1
+bmN0aW9uIHdhaXRzIGZvciBhIDA9PjEsIGZvbGxvd2VkIGJ5IGEgMT0+MCB0cmFuc2l0aW9uLg0K
+Pj4gVGhlIHZhbHVlIG9mIDEgYWx3YXlzIGNvbWVzLCBidXQgaW4gbW9zdCBjYXNlcyB0aGUgY29k
+ZSBpcyBqdXN0IHRvbw0KPj4gc2xvdyB0byBkZXRlY3QgaXQuIFRoZSBmaXJzdCBsb29wIHdpbGwg
+b25seSBzdG9wIHdoZW4gKGkgPT0gbGltaXQpDQo+Pg0KPj4+IFRoZSBjb2RlIGlzOg0KPj4+PiB3
+aGlsZSAoKCEoT01BUF9IU01NQ19SRUFEKGhvc3QtPmJhc2UsIFNZU0NUTCkgJiBiaXQpKQ0KPj4+
+PiAgICAgICAgICAgICAgICAgJiYgKGkrKyA8IGxpbWl0KSkNCj4+Pj4gICAgICAgICAgICAgICAg
+ICAgICAgICAgY3B1X3JlbGF4KCk7DQo+Pj4gQnV0IGdlbmVyYW5seSBsb29wc19wZXJfamlmZnkg
+YXMgYSB0aW1lcixpdCBzaG91bGQgbGlrZToNCj4+Pj4gICB3aGlsZShpKysgPCBsaW1pdCkNCj4+
+Pj4gY3B1X3JlbGF4KCk7DQo+Pj4gSSBmb3VuZCBmb3IgdGhlIGxvbmcgdGltZSBjYXNlLCB0aGUg
+d2hpbGUtb3BlYXRpb24gc3RvcGVkIGJlY2F1c2UgJ2kgPT0gbGltaXQnLg0KPj4+IEJlY2F1c2Ug
+YWRkZWQgc29tZSBjb2RlLCBzbyB0aGUgZHVyYXRpb24gYmVjYW1lIHRvbyBsb25nZXIgdGhhbg0K
+Pj4+IE1NQ19USU1FT1VfVVMoMjBtcykuDQo+Pj4NCj4+PiBUaGUgc29mdHdhcmUgY2FuJ3QgbW9u
+aXRvciB0aGUgdHJhbnNpdGlvbiBvZiBoYXJkd2FyZSBmb3IgdGhpIGNhc2UuDQo+Pj4NCj4+PiBC
+ZWNhc3VlIHRob3NlIGNvZGVzIGluIElTUiBjb250ZXh0LCBpdCBjYW4ndCB1c2UgdGltZXJfYmVm
+b3JlL2FmdGVyLg0KPj4+IEkgZGl2aXZlZCB0aGUgdGltZSBpbnRvIDFtcyBhbmQgdXNlZCB1ZGVs
+YXkoMSkgdG8gaW5zdGVhZC4NCj4+PiBJdCB3aWxsIGNhdXNlIGRvIGFkZGl0aW9uYWwgdWRlbGF5
+KDEpLkJ1dCBmcm9tIG15IHRlc3QsaXQgbG9va3MgZ29vZC4NCj4+Pg0KPj4+IFJlcG9ydGVkLWJ5
+OiBZdXpoZW5nIE1hIDxtYXl1emhlbmdAa2VkYWNvbS5jb20+DQo+Pj4gVGVzdGVkLWJ5OiBZdXpo
+ZW5nIE1hIDxtYXl1emhlbmdAa2VkYWNvbS5jb20+DQo+Pj4gUmV2aWV3ZWQtYnk6IEhlaW4gVGli
+b3NjaCA8aGVpbl90aWJvc2NoQHlhaG9vLmVzPg0KPj4+IFNpZ25lZC1vZmYtYnk6IEppYW5wZW5n
+IE1hIDxtYWppYW5wZW5nQGdtYWlsLmNvbT4NCj4+PiAtLS0NCj4+PiAgIGRyaXZlcnMvbW1jL2hv
+c3Qvb21hcF9oc21tYy5jIHwgMjUgKysrKysrKysrKystLS0tLS0tLS0tLS0tLQ0KPj4+ICAgMSBm
+aWxlIGNoYW5nZWQsIDExIGluc2VydGlvbnMoKyksIDE0IGRlbGV0aW9ucygtKQ0KPj4+DQo+Pj4g
+ZGlmZiAtLWdpdCBhL2RyaXZlcnMvbW1jL2hvc3Qvb21hcF9oc21tYy5jIGIvZHJpdmVycy9tbWMv
+aG9zdC9vbWFwX2hzbW1jLmMNCj4+PiBpbmRleCAxODY1MzIxLi5iYmRhNWVkIDEwMDY0NA0KPj4+
+IC0tLSBhL2RyaXZlcnMvbW1jL2hvc3Qvb21hcF9oc21tYy5jDQo+Pj4gKysrIGIvZHJpdmVycy9t
+bWMvaG9zdC9vbWFwX2hzbW1jLmMNCj4+PiBAQCAtOTczLDkgKzk3Myw4IEBAIHN0YXRpYyBpbmxp
+bmUgdm9pZCBvbWFwX2hzbW1jX2RiZ19yZXBvcnRfaXJxKHN0cnVjdCBvbWFwX2hzbW1jX2hvc3Qg
+Kmhvc3QsDQo+Pj4gICBzdGF0aWMgaW5saW5lIHZvaWQgb21hcF9oc21tY19yZXNldF9jb250cm9s
+bGVyX2ZzbShzdHJ1Y3Qgb21hcF9oc21tY19ob3N0ICpob3N0LA0KPj4+ICAgCQkJCQkJICAgdW5z
+aWduZWQgbG9uZyBiaXQpDQo+Pj4gICB7DQo+Pj4gLQl1bnNpZ25lZCBsb25nIGkgPSAwOw0KPj4+
+IC0JdW5zaWduZWQgbG9uZyBsaW1pdCA9IChsb29wc19wZXJfamlmZnkgKg0KPj4+IC0JCQkJbXNl
+Y3NfdG9famlmZmllcyhNTUNfVElNRU9VVF9NUykpOw0KPj4+ICsJLypjaGFuZ2UgdG8gMW1zLHNv
+IHdlIGNhbiB1c2UgdWRlbGF5KDEpKi8NCj4+PiArCXVuc2lnbmVkIGxvbmcgbGltaXQgPSBNTUNf
+VElNRU9VVF9NUyAqIDEwMDA7DQo+Pj4NCj4+PiAgIAlPTUFQX0hTTU1DX1dSSVRFKGhvc3QtPmJh
+c2UsIFNZU0NUTCwNCj4+PiAgIAkJCSBPTUFQX0hTTU1DX1JFQUQoaG9zdC0+YmFzZSwgU1lTQ1RM
+KSB8IGJpdCk7DQo+Pg0KPj4gQ2hlY2tlZCBoZXJlOiB0aGUgU1JDLWJpdCBpbmRlZWQgYmVjb21l
+cyBoaWdoLg0KPj4gQWZ0ZXIgdGhlIHRlc3QgJ2ZlYXR1cmVzICYgSFNNTUNfSEFTX1VQREFURURf
+UkVTRVQnLCB0aGUgYml0IGhhcw0KPj4gYmVjb21lIGxvdyBhZ2FpbiBhbHJlYWR5Lg0KPj4gQ2hh
+bmdpbmcgdG8gb3JkZXIgb2Ygc3RhdGVtZW50cyB3b3JrZWQgZm9yIG1lLCBidXQgZm9yIEppYW5w
+ZW5nIE1hDQo+PiB0aGlzIGRpZG4ndCB3b3JrICh0aW1pbmdzIGFyZSAnb24gdGhlIGVkZ2UnKS4N
+Cj4NCj5JIHRoaW5rIDEtPjAgdHJhbnNpdGlvbiBpcyBtaXNzZWQgc29tZXRpbWVzIGFuZCB3YWl0
+aW5nIHVudGlsIHRpbWVvdXQsDQo+SmlhbnBlbmcgTWEsIHdoaWNoIFNvQyBhcmUgeW91IHRlc3Rp
+bmcgPw0KPg0KSGksIA0KCW15IHNvcyBpcyBETTgxMDcuDQpUaGFua3MhDQpKaWFucGVuZyBNYSEN
+Cg==
 
