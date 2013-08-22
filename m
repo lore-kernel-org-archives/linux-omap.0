@@ -1,60 +1,72 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: trinity: kernel warning at
-	drivers/video/omap2/dss/manager-sysfs.c:290
-	manager_alpha_blending_enabled_show+0x3c/0x60()
-Date: Wed, 21 Aug 2013 23:33:40 +0100
-Message-ID: <20130821223340.GE25647@n2100.arm.linux.org.uk>
+From: Sebastian Reichel <sre@debian.org>
+Subject: Re: 3.11-rc1+ multiplatform kernel+dtb pandaboard issues
+Date: Thu, 22 Aug 2013 02:25:59 +0200
+Message-ID: <20130822002558.GA9933@earth.universe>
+References: <20130821154321.GA26531@redacted.bos.redhat.com>
+ <20130821194143.GE26531@redacted.bos.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="sm4nu43k4a2Rpi4c"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:42345 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752645Ab3HUWes (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Aug 2013 18:34:48 -0400
+Received: from ring0.de ([91.143.88.219]:40500 "EHLO smtp.ring0.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752755Ab3HVA0G (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 21 Aug 2013 20:26:06 -0400
 Content-Disposition: inline
+In-Reply-To: <20130821194143.GE26531@redacted.bos.redhat.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
+To: Kyle McMartin <kmcmarti@redhat.com>
+Cc: linux-omap@vger.kernel.org
 
-Trinity found this error on OMAP4430SDP using 3.11-rc4:
 
-WARNING: CPU: 1 PID: 3395 at /home/rmk/git/linux-rmk/drivers/video/omap2/dss/manager-sysfs.c:290 manager_alpha_blending_enabled_show+0x3c/0x60()
-Modules linked in:
-CPU: 1 PID: 3395 Comm: trinity-child1 Not tainted 3.11.0-rc4+ #487
-Backtrace:
-[<c0016ca8>] (dump_backtrace+0x0/0x110) from [<c0016e44>] (show_stack+0x18/0x1c)
- r6:c03dc0d4 r5:00000009 r4:00000000 r3:00400040
-[<c0016e2c>] (show_stack+0x0/0x1c) from [<c03949ec>] (dump_stack+0x74/0x90)
-[<c0394978>] (dump_stack+0x0/0x90) from [<c0037a68>] (warn_slowpath_common+0x6c/0x8c)
- r4:00000000 r3:deaef800
-[<c00379fc>] (warn_slowpath_common+0x0/0x8c) from [<c0037aac>] (warn_slowpath_null+0x24/0x2c)
- r8:dd4eb718 r7:c03dc2a0 r6:dd629f70 r5:dd4eb700 r4:dd4af000
-[<c0037a88>] (warn_slowpath_null+0x0/0x2c) from [<c01e4744>] (manager_alpha_blending_enabled_show+0x3c/0x60)
-[<c01e4708>] (manager_alpha_blending_enabled_show+0x0/0x60) from [<c01e41c0>] (manager_attr_show+0x20/0x2c)
- r4:de090cd0
-[<c01e41a0>] (manager_attr_show+0x0/0x2c) from [<c0126ee4>] (sysfs_read_file+0xc4/0x14c)
-[<c0126e20>] (sysfs_read_file+0x0/0x14c) from [<c00cef2c>] (do_readv_writev+0x118/0x24c)
-[<c00cee14>] (do_readv_writev+0x0/0x24c) from [<c00cf140>] (vfs_readv+0x68/0x78)
-[<c00cf0d8>] (vfs_readv+0x0/0x78) from [<c00cf19c>] (SyS_readv+0x4c/0x74)
- r5:00000000 r4:dd5b7700
-[<c00cf150>] (SyS_readv+0x0/0x74) from [<c0013340>] (ret_fast_syscall+0x0/0x48)
+--sm4nu43k4a2Rpi4c
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Looking at the code:
+Hi,
 
-static ssize_t manager_alpha_blending_enabled_show(
-                struct omap_overlay_manager *mgr, char *buf)
-{
-        struct omap_overlay_manager_info info;
+On Wed, Aug 21, 2013 at 03:41:43PM -0400, Kyle McMartin wrote:
+> On Wed, Aug 21, 2013 at 11:43:21AM -0400, Kyle McMartin wrote:
+> > I've suspected there might be a config issue, as omap2_defconfig
+> > works alright, as does booting a uImage with an appended
+> > omap4-panda.dtb, but there's no love with a zImage + initrd + dtb
+> > (or even just zImage without initrd + dtb.)
+> >=20
+>=20
+> after some further investigation, something odd is going on... turns
+> out things have been working (at least until initrd time, but that's
+> another story)
 
-        mgr->get_manager_info(mgr, &info);
+The initrd problem may be the same error I got, when I tried to boot
+an OMAP DT kernel with an initrd file (I had no problems with kernel
+arguments):
 
-        WARN_ON(!dss_has_feature(FEAT_ALPHA_FIXED_ZORDER));
+http://www.spinics.net/lists/linux-omap/msg95504.html
 
--rw-r--r-- 1 root root 4096 Jan  1 00:01 manager0/alpha_blending_enabled
--rw-r--r-- 1 root root 4096 Jan  1 00:01 manager1/alpha_blending_enabled
--rw-r--r-- 1 root root 4096 Jan  1 00:01 manager2/alpha_blending_enabled
+-- Sebastian
 
-So, any program in userspace can open this sysfs file and on read cause
-the kernel to print a warning and taint itself if there is no ZORDER
-feature?  This is not good kernel programming guys.  Please audit your
-other sysfs files for this bug, thanks.
+--sm4nu43k4a2Rpi4c
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.14 (GNU/Linux)
+
+iQIcBAEBCAAGBQJSFVqWAAoJENju1/PIO/qamPIP/2f2qBwcWPVyCAzUl8OzH+Gd
+oNMGug6uOzyLgGRqZ6ogRm3VrpXtT1y5Hj3/EGL+gSbuxYkZypzYwF2retIkZjOu
+OE6tBEME4+cOGGlmRncFaZsGmaKXUAkNKvBJDGvkdAC5ovjShWEe34X25ujr57qs
+uGQD9ZQ5ZsEddy6ihnPSp3NhGY6MZ55d3Xg8104ldZcTVFFDA8nmmEbPetFokwSL
+6J4CdP3WdiJ3jrjpHsOxvEfMtlf9j/gahDzw2/cK9kFOAnES16P8oUrBFHGWwbkO
+9/GoOuOZh33YRESYHTvCujP7fgnK6yzopQEsdHC4WXmht2HWFeRugXxaXkMgOhio
+CbNHsVp9DCPpkG/41ZwBImjtdD4ecrHdBOldKwOWOd88Se/ZfWImNc0OI5Vi/GUM
++LRi6DpbNzned5z3JnoMepVZFHG1HbFUwrT0vtY/6yJX9nmhM4JAKls2KC0aBb5S
+4iIZ8y5HUdQ2n2Zlx6AJimHwhCxvXL8xbsWnQK7Nth1EdElUKLPjto3f2avROsKS
+MrsFSn13PVpUYoIL7r1tefjUCEjib46h2qazbtKoJQCutzYUe+12H4jFQ4w0zh1Z
+gdoYnUscLSjGr5Xg3Pz49QYEy6AKif1cxFI33uIHQ8PTJ/JUM14/AJkA/y9a08ch
+H92+RJ2c2wlOkGuoR4r1
+=hphF
+-----END PGP SIGNATURE-----
+
+--sm4nu43k4a2Rpi4c--
