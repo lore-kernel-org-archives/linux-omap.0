@@ -1,58 +1,47 @@
-From: Daniel Mack <zonque@gmail.com>
-Subject: Re: [PATCH 2/4] net: ethernet: cpsw: add optional third memory region
- for CONTROL module
-Date: Thu, 22 Aug 2013 20:37:20 +0200
-Message-ID: <52165A60.5030602@gmail.com>
-References: <1377171448-27924-1-git-send-email-zonque@gmail.com> <1377171448-27924-3-git-send-email-zonque@gmail.com> <5216549E.1010305@cogentembedded.com>
+From: Stephen Warren <swarren@wwwdotorg.org>
+Subject: Re: [PATCH] DMA: let filter functions of of_dma_simple_xlate possible
+ check of_node
+Date: Thu, 22 Aug 2013 14:18:27 -0600
+Message-ID: <52167213.6090604@wwwdotorg.org>
+References: <1375408800-11789-1-git-send-email-rizhao@nvidia.com> <20130822051904.GA2685@rizhao-lap>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bk0-f49.google.com ([209.85.214.49]:58386 "EHLO
-	mail-bk0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753766Ab3HVShY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Aug 2013 14:37:24 -0400
-In-Reply-To: <5216549E.1010305@cogentembedded.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20130822051904.GA2685@rizhao-lap>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Richard Zhao <rizhao@nvidia.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "vinod.koul@intel.com" <vinod.koul@intel.com>, "djbw@fb.com" <djbw@fb.com>
 List-Id: linux-omap@vger.kernel.org
-To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Cc: netdev@vger.kernel.org, davem@davemloft.net, ujhelyi.m@gmail.com, mugunthanvnm@ti.com, vaibhav.bedia@ti.com, d-gerlach@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
 
-Hi Sergei,
-
-On 22.08.2013 20:12, Sergei Shtylyov wrote:
->> @@ -2012,6 +2013,27 @@ static int cpsw_probe(struct platform_device *pdev)
->>   		goto clean_runtime_disable_ret;
->>   	}
+On 08/21/2013 11:19 PM, Richard Zhao wrote:
+> On Fri, Aug 02, 2013 at 10:00:00AM +0800, Richard Zhao wrote:
+>> pass of_phandle_args dma_spec to dma_request_channel in of_dma_simple_xlate,
+>> so the filter function could access of_node in of_phandle_args.
 >>
->> +	/* If the control memory region is unspecified, continue without it.
->> +	 * If it is specified, but we're unable to reserve it, bail. */
+>> It also remove restriction of #dma-cells has to be one.
+>>
+>> Signed-off-by: Richard Zhao <rizhao@nvidia.com>
+>> ---
+>>  drivers/dma/edma.c     |  7 +++++--
+>>  drivers/dma/of-dma.c   | 10 ++++------
+>>  drivers/dma/omap-dma.c |  6 ++++--
+>>  3 files changed, 13 insertions(+), 10 deletions(-)
+>>
 > 
->     According to Documentation/CodingStyle, the networking code's preferred 
-> style of multi-line comments is this:
+> Hi Vinod,
 > 
-> /* Bla
->   * bla
->   */
-
-Ok, thanks. Will fix.
-
->> +		goto clean_runtime_disable_ret;
->> +	}
->> +	priv->gmii_sel_reg = devm_ioremap(&pdev->dev, res->start,
->> +					  resource_size(res));
->> +	if (!priv->gmii_sel_reg) {
->> +		dev_err(priv->dev, "unable to map control i/o region\n");
->> +		goto clean_runtime_disable_ret;
->> +	}
+> Can you please pick up this change?
 > 
->     Why not use devm_ioremap_resource() instead of the above sequence?
+> Hi Stephen,
+> 
+> Can you please give a ack or reviewed-by etc?
 
-Right, that's much nicer. I'll also do that for the devm rework patch.
+Hmm. Looking at the patch, I'm not sure it's right.
 
-
-Thank you for your review!
-
-
-Daniel
-
+This patch simply passes all the specfier args to the filter function,
+and the code to check the equality of the of_node to the filter args is
+still duplicated in each DMA driver. Instead, the DMA core should be
+implementing the equality check, and only even calling the
+driver-specific filter function for devices where the client's phandle
+matches the DMA providing device's of_node handle.
