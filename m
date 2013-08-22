@@ -1,77 +1,82 @@
-From: majianpeng <majianpeng@gmail.com>
-Subject: Re: Re: [PATCH V2] mmc: omap_hsmmc: Fix sleep too long in ISR context.
-Date: Thu, 22 Aug 2013 20:03:16 +0800
-Message-ID: <201308222003128470850@gmail.com>
-References: <201308071805022428282@gmail.com> <5213BAD0.8030406@yahoo.es>,
-	<5214F55E.6020408@ti.com>
-Reply-To: majianpeng <majianpeng@gmail.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCHv11] drivers: spi: Add qspi flash controller
+Date: Thu, 22 Aug 2013 13:08:41 +0100
+Message-ID: <20130822120841.GE26118@sirena.org.uk>
+References: <1377005148-6983-1-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Sender: linux-mmc-owner@vger.kernel.org
-To: balajitk <balajitk@ti.com>, Hein Tibosch <hein_tibosch@yahoo.es>
-Cc: cjb <cjb@laptop.org>, Felipe Balbi <balbi@ti.com>, linux-mmc <linux-mmc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, mayuzheng <mayuzheng@kedacom.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="aPOcx+xoD6gZZHnz"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:37852 "EHLO
+	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751853Ab3HVMIu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Aug 2013 08:08:50 -0400
+Content-Disposition: inline
+In-Reply-To: <1377005148-6983-1-git-send-email-sourav.poddar@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Sourav Poddar <sourav.poddar@ti.com>
+Cc: spi-devel-general@lists.sourceforge.net, grant.likely@linaro.org, balbi@ti.com, linux-omap@vger.kernel.org
 
-Pk9uIFdlZG5lc2RheSAyMSBBdWd1c3QgMjAxMyAxMjoyMiBBTSwgSGVpbiBUaWJvc2NoIHdyb3Rl
-Og0KPj4gSGksDQo+Pg0KPj4gWyBhZGRlZCBzb21lIHBlb3BsZSBmcm9tIFRJIF0NCj4+DQo+PiBP
-biA4LzcvMjAxMyA2OjA1IFBNLCBtYWppYW5wZW5nIHdyb3RlOg0KPj4+IFYyOg0KPj4+IAljbGVh
-biB1cCBjb2RlLg0KPj4+IFYxOg0KPj4+IAl3d3cubWFpbC1hcmNoaXZlLmNvbS9saW51eC1vbWFw
-QHZnZXIuLi4vbXNnOTMyMzkuaHRtbOKAjg0KPj4+DQo+Pj4NCj4+PiBXZSBmb3VuZCBhIHByb2Js
-ZW0gd2hlbiB3ZSByZW1vdmVkIGEgd29ya2luZyBzZCBjYXJkIHRoYXQgdGhlIGlycWFjdGlvbg0K
-Pj4+IG9mIG9tYXBfaHNtbWMgY2FuIHNsZWVwIHRvIDMuNnMuIFRoaXMgY2F1c2Ugb3VyIHdhdGNo
-ZG9nIHRvIHdvcmsuDQo+Pj4gSW4gZnVuYyBvbWFwX2hzbW1jX3Jlc2V0X2NvbnRyb2xsZXJfZnNt
-LCBpdCBzaG91bGQgd2F0Y2ggYSAwLT4xDQo+Pj4gdHJhbnNpdGlvbi5CdXQgYXZvaWRpbmcgZW5k
-bGVzcyB3YWl0aW5nLCBpdCB1c2VkIGxvb3BzX3Blcl9qaWZmeSBhcyB0aGUgdGltZXIuDQo+Pg0K
-Pj4gVHJpZWQgb24gYSBPTUFQNDQ2MDoNCj4+IFRoaXMgY2FuIGVhc2lseSBiZSByZXBsaWNhdGVk
-OiBqdXN0IHdpdGhkcmF3IGFuIFNELWNhcmQgYW5kIHRoZSBrZXJuZWwNCj4+IHdpbGwgZ2V0IGJs
-b2NrZWQgZHVyaW5nIG1vcmUgdGhhbiAzIHNlY29uZHMuDQo+PiBDYWxsaW5nIE9NQVBfSFNNTUNf
-UkVBRCgpIGluIHRoaXMgbG9vcCBtYWtlcyBpdCBsYXN0IHNvIGxvbmcuDQo+Pg0KPj4gVGhlIGZ1
-bmN0aW9uIHdhaXRzIGZvciBhIDA9PjEsIGZvbGxvd2VkIGJ5IGEgMT0+MCB0cmFuc2l0aW9uLg0K
-Pj4gVGhlIHZhbHVlIG9mIDEgYWx3YXlzIGNvbWVzLCBidXQgaW4gbW9zdCBjYXNlcyB0aGUgY29k
-ZSBpcyBqdXN0IHRvbw0KPj4gc2xvdyB0byBkZXRlY3QgaXQuIFRoZSBmaXJzdCBsb29wIHdpbGwg
-b25seSBzdG9wIHdoZW4gKGkgPT0gbGltaXQpDQo+Pg0KPj4+IFRoZSBjb2RlIGlzOg0KPj4+PiB3
-aGlsZSAoKCEoT01BUF9IU01NQ19SRUFEKGhvc3QtPmJhc2UsIFNZU0NUTCkgJiBiaXQpKQ0KPj4+
-PiAgICAgICAgICAgICAgICAgJiYgKGkrKyA8IGxpbWl0KSkNCj4+Pj4gICAgICAgICAgICAgICAg
-ICAgICAgICAgY3B1X3JlbGF4KCk7DQo+Pj4gQnV0IGdlbmVyYW5seSBsb29wc19wZXJfamlmZnkg
-YXMgYSB0aW1lcixpdCBzaG91bGQgbGlrZToNCj4+Pj4gICB3aGlsZShpKysgPCBsaW1pdCkNCj4+
-Pj4gY3B1X3JlbGF4KCk7DQo+Pj4gSSBmb3VuZCBmb3IgdGhlIGxvbmcgdGltZSBjYXNlLCB0aGUg
-d2hpbGUtb3BlYXRpb24gc3RvcGVkIGJlY2F1c2UgJ2kgPT0gbGltaXQnLg0KPj4+IEJlY2F1c2Ug
-YWRkZWQgc29tZSBjb2RlLCBzbyB0aGUgZHVyYXRpb24gYmVjYW1lIHRvbyBsb25nZXIgdGhhbg0K
-Pj4+IE1NQ19USU1FT1VfVVMoMjBtcykuDQo+Pj4NCj4+PiBUaGUgc29mdHdhcmUgY2FuJ3QgbW9u
-aXRvciB0aGUgdHJhbnNpdGlvbiBvZiBoYXJkd2FyZSBmb3IgdGhpIGNhc2UuDQo+Pj4NCj4+PiBC
-ZWNhc3VlIHRob3NlIGNvZGVzIGluIElTUiBjb250ZXh0LCBpdCBjYW4ndCB1c2UgdGltZXJfYmVm
-b3JlL2FmdGVyLg0KPj4+IEkgZGl2aXZlZCB0aGUgdGltZSBpbnRvIDFtcyBhbmQgdXNlZCB1ZGVs
-YXkoMSkgdG8gaW5zdGVhZC4NCj4+PiBJdCB3aWxsIGNhdXNlIGRvIGFkZGl0aW9uYWwgdWRlbGF5
-KDEpLkJ1dCBmcm9tIG15IHRlc3QsaXQgbG9va3MgZ29vZC4NCj4+Pg0KPj4+IFJlcG9ydGVkLWJ5
-OiBZdXpoZW5nIE1hIDxtYXl1emhlbmdAa2VkYWNvbS5jb20+DQo+Pj4gVGVzdGVkLWJ5OiBZdXpo
-ZW5nIE1hIDxtYXl1emhlbmdAa2VkYWNvbS5jb20+DQo+Pj4gUmV2aWV3ZWQtYnk6IEhlaW4gVGli
-b3NjaCA8aGVpbl90aWJvc2NoQHlhaG9vLmVzPg0KPj4+IFNpZ25lZC1vZmYtYnk6IEppYW5wZW5n
-IE1hIDxtYWppYW5wZW5nQGdtYWlsLmNvbT4NCj4+PiAtLS0NCj4+PiAgIGRyaXZlcnMvbW1jL2hv
-c3Qvb21hcF9oc21tYy5jIHwgMjUgKysrKysrKysrKystLS0tLS0tLS0tLS0tLQ0KPj4+ICAgMSBm
-aWxlIGNoYW5nZWQsIDExIGluc2VydGlvbnMoKyksIDE0IGRlbGV0aW9ucygtKQ0KPj4+DQo+Pj4g
-ZGlmZiAtLWdpdCBhL2RyaXZlcnMvbW1jL2hvc3Qvb21hcF9oc21tYy5jIGIvZHJpdmVycy9tbWMv
-aG9zdC9vbWFwX2hzbW1jLmMNCj4+PiBpbmRleCAxODY1MzIxLi5iYmRhNWVkIDEwMDY0NA0KPj4+
-IC0tLSBhL2RyaXZlcnMvbW1jL2hvc3Qvb21hcF9oc21tYy5jDQo+Pj4gKysrIGIvZHJpdmVycy9t
-bWMvaG9zdC9vbWFwX2hzbW1jLmMNCj4+PiBAQCAtOTczLDkgKzk3Myw4IEBAIHN0YXRpYyBpbmxp
-bmUgdm9pZCBvbWFwX2hzbW1jX2RiZ19yZXBvcnRfaXJxKHN0cnVjdCBvbWFwX2hzbW1jX2hvc3Qg
-Kmhvc3QsDQo+Pj4gICBzdGF0aWMgaW5saW5lIHZvaWQgb21hcF9oc21tY19yZXNldF9jb250cm9s
-bGVyX2ZzbShzdHJ1Y3Qgb21hcF9oc21tY19ob3N0ICpob3N0LA0KPj4+ICAgCQkJCQkJICAgdW5z
-aWduZWQgbG9uZyBiaXQpDQo+Pj4gICB7DQo+Pj4gLQl1bnNpZ25lZCBsb25nIGkgPSAwOw0KPj4+
-IC0JdW5zaWduZWQgbG9uZyBsaW1pdCA9IChsb29wc19wZXJfamlmZnkgKg0KPj4+IC0JCQkJbXNl
-Y3NfdG9famlmZmllcyhNTUNfVElNRU9VVF9NUykpOw0KPj4+ICsJLypjaGFuZ2UgdG8gMW1zLHNv
-IHdlIGNhbiB1c2UgdWRlbGF5KDEpKi8NCj4+PiArCXVuc2lnbmVkIGxvbmcgbGltaXQgPSBNTUNf
-VElNRU9VVF9NUyAqIDEwMDA7DQo+Pj4NCj4+PiAgIAlPTUFQX0hTTU1DX1dSSVRFKGhvc3QtPmJh
-c2UsIFNZU0NUTCwNCj4+PiAgIAkJCSBPTUFQX0hTTU1DX1JFQUQoaG9zdC0+YmFzZSwgU1lTQ1RM
-KSB8IGJpdCk7DQo+Pg0KPj4gQ2hlY2tlZCBoZXJlOiB0aGUgU1JDLWJpdCBpbmRlZWQgYmVjb21l
-cyBoaWdoLg0KPj4gQWZ0ZXIgdGhlIHRlc3QgJ2ZlYXR1cmVzICYgSFNNTUNfSEFTX1VQREFURURf
-UkVTRVQnLCB0aGUgYml0IGhhcw0KPj4gYmVjb21lIGxvdyBhZ2FpbiBhbHJlYWR5Lg0KPj4gQ2hh
-bmdpbmcgdG8gb3JkZXIgb2Ygc3RhdGVtZW50cyB3b3JrZWQgZm9yIG1lLCBidXQgZm9yIEppYW5w
-ZW5nIE1hDQo+PiB0aGlzIGRpZG4ndCB3b3JrICh0aW1pbmdzIGFyZSAnb24gdGhlIGVkZ2UnKS4N
-Cj4NCj5JIHRoaW5rIDEtPjAgdHJhbnNpdGlvbiBpcyBtaXNzZWQgc29tZXRpbWVzIGFuZCB3YWl0
-aW5nIHVudGlsIHRpbWVvdXQsDQo+SmlhbnBlbmcgTWEsIHdoaWNoIFNvQyBhcmUgeW91IHRlc3Rp
-bmcgPw0KPg0KSGksIA0KCW15IHNvcyBpcyBETTgxMDcuDQpUaGFua3MhDQpKaWFucGVuZyBNYSEN
-Cg==
 
+--aPOcx+xoD6gZZHnz
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Tue, Aug 20, 2013 at 06:55:48PM +0530, Sourav Poddar wrote:
+> The patch add basic support for the quad spi controller.
+>=20
+> QSPI is a kind of spi module that allows single,
+> dual and quad read access to external spi devices. The module
+> has a memory mapped interface which provide direct interface
+> for accessing data form external spi devices.
+
+Applied, but please use subject lines appropraite for the subsystem and
+one other thing...
+
+> +static irqreturn_t ti_qspi_threaded_isr(int this_irq, void *dev_id)
+> +{
+> +	struct ti_qspi *qspi =3D dev_id;
+> +	unsigned long flags;
+> +
+> +	spin_lock_irqsave(&qspi->lock, flags);
+> +
+> +	if (qspi->stat & WC)
+> +		complete(&qspi->transfer_complete);
+> +
+> +	spin_unlock_irqrestore(&qspi->lock, flags);
+> +
+> +	ti_qspi_write(qspi, QSPI_WC_INT_EN, QSPI_INTR_ENABLE_SET_REG);
+
+This is doing a NAPI style thing where it suppresses interrupts while
+the interrupt completes however the transfer functions expect an
+interrupt per word.
+
+Then again there's no FIFO in the hardware so we'd overflow or underflow
+anyway - is there any way of detecting the underflow or overflow other
+than a timeout later on (which the driver will do)?
+
+--aPOcx+xoD6gZZHnz
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.20 (GNU/Linux)
+
+iQIcBAEBAgAGBQJSFf9GAAoJELSic+t+oim9p6UQAJAicVLtda2Wwx1jfP9rAL5f
+wQYHHgD/Ejc87cNdysRijigV1ZtPa59wvNeDixFDmuXfbIbj4djzYrHeQM6U4eg7
+w+OSFn4WvvxdKoKgzkvZnF7STNeumPIO2Of3aKNkcWwYIchabpWGpwhymyXap2Qk
+PSdR19nSI5UoyHnUJL/Tl0/0NUCgaWXy0US0Owtm38XNwkxor71quULrylKtW+sp
+WVaQ2Nw3U/E5nF02mGo8VyPlsMwsOcWfoQh6TUa1o6EsHGZ+klq25XW06jkklEGl
+KP5IpZ4ng2seE0zCRnF/Oygjq9+/JfXftR9Uip4YQQjS27PaChtNLVbx3JjcPbPZ
+beYsTvCRCly/UqCJOPQwUJPj/HjkmtGB2HlKyqS0cG9nHw4q4OA094Ul/WTWK5xU
+dZ1DJ1W74qQ9dmLXF3lvo2Zze5sTUdjy4Ti3R7xw1A+v92ia26rUl6RmfUtV70D+
+uRLgxVgVCRCOpaZVWvszoQWEC00oGJ4eMVuOz54+TmSzVVtRnECYphpXz2lSlow2
+oNa9s5rQm//MGDZoborR3/hUaYqFeXnetAUxAo0doe+9LeOmYy8EJnoYcwhasbE9
++G6RGW+r1EwaQC2HGfmvZIXXDBJjsdscdY8H5laheaVJAhih5RTiDIy0XVmKk/qE
+KNxZ0XGkdKa8J283trNi
+=wR99
+-----END PGP SIGNATURE-----
+
+--aPOcx+xoD6gZZHnz--
