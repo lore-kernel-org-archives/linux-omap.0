@@ -1,84 +1,136 @@
-From: Lokesh Vutla <lokeshvutla@ti.com>
-Subject: Re: [PATCH v2 0/2] ARM: dts: Add SHAM and AES DT information
-Date: Thu, 22 Aug 2013 09:20:22 +0530
-Message-ID: <52158A7E.30305@ti.com>
-References: <1374078222-12883-1-git-send-email-mgreer@animalcreek.com> <alpine.DEB.2.02.1308210012420.6426@utopia.booyaka.com> <5214C11F.8090808@baylibre.com> <5214C372.3080402@baylibre.com>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [PATCH v5 1/4] ARM: OMAP2+: cleaned-up DT support of various ECC
+ schemes
+Date: Wed, 21 Aug 2013 21:54:52 -0700
+Message-ID: <20130822045452.GA5151@quad.lixom.net>
+References: <1373748891-7779-1-git-send-email-pekon@ti.com>
+ <1373748891-7779-2-git-send-email-pekon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:58471 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752031Ab3HVDvI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 21 Aug 2013 23:51:08 -0400
-In-Reply-To: <5214C372.3080402@baylibre.com>
+Received: from mail-pd0-f178.google.com ([209.85.192.178]:40927 "EHLO
+	mail-pd0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753160Ab3HVEze (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Aug 2013 00:55:34 -0400
+Received: by mail-pd0-f178.google.com with SMTP id w10so1392432pde.9
+        for <linux-omap@vger.kernel.org>; Wed, 21 Aug 2013 21:55:34 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <1373748891-7779-2-git-send-email-pekon@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <bcousson@baylibre.com>
-Cc: "Mark A. Greer" <mgreer@animalcreek.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Pekon Gupta <pekon@ti.com>
+Cc: dedekind1@gmail.com, dwmw2@infradead.org, arnd@arndb.de, mugunthanvnm@ti.com, tony@atomide.com, benoit.cousson@linaro.org, avinashphilipk@gmail.com, balbi@ti.com, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
 
-Hi Benoit,
-On Wednesday 21 August 2013 07:11 PM, Benoit Cousson wrote:
-> Hi Mark,
->=20
-> In fact I cannot even apply these patches since they are referring th=
-e the edma controller node that does not seem to be there in 3.11-rc6.
->=20
-> Is this EDMA series supposed to be merged for 3.12? If this is the ca=
-se, where can I find a reference GIT for it?
-The following EDMA support dt patch series from Joel is needed :
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg92176.html
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg92177.html
+On Sun, Jul 14, 2013 at 02:24:48AM +0530, Pekon Gupta wrote:
+> ECC scheme on NAND devices can be implemented in multiple ways.Some using
+> Software algorithm, while others using in-build Hardware engines.
+> omap2-nand driver currently supports following flavours of ECC schemes,
+> selectable via DTB.
+> 
+> +---------------------------------------+---------------+---------------+
+> | ECC scheme                            |ECC calculation|Error detection|
+> +---------------------------------------+---------------+---------------+
+> |OMAP_ECC_HAMMING_CODE_DEFAULT          |S/W            |S/W            |
+> |OMAP_ECC_HAMMING_CODE_HW               |H/W (GPMC)     |S/W            |
+> |OMAP_ECC_HAMMING_CODE_HW_ROMCODE       |H/W (GPMC)     |S/W            |
+> +---------------------------------------+---------------+---------------+
+> |(requires CONFIG_MTD_NAND_ECC_BCH)     |               |               |
+> |OMAP_ECC_BCH8_CODE_HW_DETECTION_SW     |H/W (GPMC)     |S/W            |
+> +---------------------------------------+---------------+---------------+
+> |(requires CONFIG_MTD_NAND_OMAP_BCH)    |               |               |
+> |OMAP_ECC_BCH8_CODE_HW                  |H/W (GPMC)     |H/W (ELM)      |
+> +---------------------------------------+---------------+---------------+
+> 
+> Selection of some ECC schemes also require enabling following Kconfig options.
+> This was done to optimize footprint of omap2-nand driver.
+> -Kconfig:CONFIG_MTD_NAND_ECC_BCH	enables S/W based BCH ECC algorithm
+> -Kconfig:CONFIG_MTD_NAND_OMAP_BCH	enables H/W based BCH ECC algorithm
+> 
+> Signed-off-by: Pekon Gupta <pekon@ti.com>
+> ---
+>  .../devicetree/bindings/mtd/gpmc-nand.txt          | 45 ++++++++++++++++------
+>  arch/arm/mach-omap2/gpmc.c                         | 14 ++++---
+>  include/linux/platform_data/mtd-nand-omap2.h       | 22 +++++++----
+>  3 files changed, 57 insertions(+), 24 deletions(-)
+> 
+> diff --git a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
+> index df338cb..c6551b6 100644
+> --- a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
+> +++ b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
+> @@ -17,17 +17,42 @@ Required properties:
+>  
+>  Optional properties:
+>  
+> - - nand-bus-width: 		Set this numeric value to 16 if the hardware
+> -				is wired that way. If not specified, a bus
+> -				width of 8 is assumed.
+> + - nand-bus-width: 		Determines data-width of the connected device
+> +				x16 = "16"
+> +				x8  = "8" (default)
 
-Thanks and Regards,
-Lokesh
->=20
-> Thanks,
-> Benoit
->=20
-> On 21/08/2013 15:31, Benoit Cousson wrote:
->> Hi Paul,
->>
->> On 21/08/2013 02:13, Paul Walmsley wrote:
->>> Hi Beno=EEt,
->>>
->>> On Wed, 17 Jul 2013, Mark A. Greer wrote:
->>>
->>>> From: "Mark A. Greer" <mgreer@animalcreek.com>
->>>>
->>>> Long overdue patches to add the device tree updates and
->>>> documentation for the SHAM and AES modules on the am33xx.
->>>> The supporting code is already in the mainline kernel.
->>>>
->>>> This series is based on the current mainline kernel,
->>>> c0d15cc (linked-list: Remove __list_for_each).
->>>>
->>>> Changes from v1:
->>>>   - Added missing '};' as pointed out by Lokesh Vutla
->>>> <lokeshvutla@ti.com>
->>>
->>> I guess you should take these patches?
->>
->> You're right, I should, I've just never seen them :-(
->> Thanks for the pointer.
->>
->> Mark,
->>
->> After a quick search on Google, I did not see any comment on these
->> patches. Did you get any review so far?
->>
->> Thanks,
->> Benoit
->>
->=20
-> --=20
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This change doesn't look like an improvement to me.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> - - ti,nand-ecc-opt:		A string setting the ECC layout to use. One of:
+>  
+> -		"sw"		Software method (default)
+> -		"hw"		Hardware method
+> -		"hw-romcode"	gpmc hamming mode method & romcode layout
+> -		"bch4"		4-bit BCH ecc code
+> -		"bch8"		8-bit BCH ecc code
+> + - ti,nand-ecc-opt:		Determines the ECC scheme used by driver.
+> +				It can be any of the following strings:
+
+The device tree should define the hardware, not configure the software.
+
+Also, if it defines the scheme then you should probably call it something like
+"ti,nand-ecc-scheme" instead.
+
+> +
+> +	"hamming_code_sw"		1-bit Hamming ECC
+> +					- ECC calculation in software
+> +					- Error detection in software
+> +
+> +	"hamming_code_hw"		1-bit Hamming ECC
+> +					- ECC calculation in hardware
+> +					- Error detection in software
+
+Bzzt. Same here. It really doesn't matter to the hardware if the ECC is
+calculated in HW or SW, and it doesn't belong in the device tree.
+> +
+> +	"hamming_code_hw_romcode"	1-bit Hamming ECC
+> +					- ECC calculation in hardware
+> +					- Error detection in software
+> +					- ECC layout compatible to ROM code
+> +
+> +	"bch8_hw_code_detection_sw"	8-bit BCH ECC
+> +					- ECC calculation in hardware
+> +					- Error detection in software
+> +					- depends on CONFIG_MTD_NAND_ECC_BCH
+
+Configuration options don't belong in here either.
+
+> +
+> +	"bch8_code_hw"             	8-bit BCH ECC
+> +					- ECC calculation in hardware
+> +					- Error detection in hardware
+> +					- depends on CONFIG_MTD_NAND_OMAP_BCH
+> +					- requires <elm_id> to be specified
+
+Some of the above clearly shouldn't be described in the device tree at all, but
+it's also not very convenient to describe them as strings. Since you have
+a binding, it's probably easier to give them integer values and just define
+what those mean.
+
+> +
+> +
+> + - elm_id:			Specifies elm device node. This is required to
+> +				support some BCH ECC schemes mentioned above.
+
+Use dashes instead of underscores for properties. if all other properties are
+prepended with "ti,", then so should this.
+
+What's an ELM device node? How is it specified? A phandle?
+
+
+
+-Olof
