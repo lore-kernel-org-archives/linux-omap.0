@@ -1,91 +1,64 @@
-From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: Re: [PATCH v4 3/5] net: ethernet: cpsw: introduce ti,am3352-cpsw
- compatible string
-Date: Fri, 23 Aug 2013 23:59:41 +0530
-Message-ID: <5217AA15.7010907@ti.com>
-References: <1377267365-24057-1-git-send-email-zonque@gmail.com>
- <1377267365-24057-4-git-send-email-zonque@gmail.com>
- <52177052.1030308@ti.com> <52178E20.5040404@gmail.com>
- <52179448.1020906@ti.com> <5217974B.5090503@ti.com> <521799A3.7080706@ti.com>
- <52179AD6.8090406@gmail.com> <52179BDA.50603@ti.com>
- <52179E44.5030202@ti.com> <5217A59E.4090700@ti.com>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: [GIT PULL] ARM: OMAP: Device Tree for 3.12
+Date: Fri, 23 Aug 2013 11:31:04 -0700
+Message-ID: <87fvu0mf87.fsf@linaro.org>
+References: <521384D5.1050607@baylibre.com>
+	<20130821071334.GQ7656@atomide.com> <5214D4FD.4060405@baylibre.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <5217A59E.4090700@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: devicetree@vger.kernel.org, sergei.shtylyov@cogentembedded.com, d-gerlach@ti.com, netdev@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>, vaibhav.bedia@ti.com, Daniel Mack <zonque@gmail.com>, bcousson@baylibre.com, ujhelyi.m@gmail.com, linux-omap@vger.kernel.org, davem@davemloft.net, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:53415 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754157Ab3HWSbM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Aug 2013 14:31:12 -0400
+Received: by mail-pa0-f46.google.com with SMTP id fa1so994555pad.33
+        for <linux-omap@vger.kernel.org>; Fri, 23 Aug 2013 11:31:11 -0700 (PDT)
+In-Reply-To: <5214D4FD.4060405@baylibre.com> (Benoit Cousson's message of
+	"Wed, 21 Aug 2013 16:55:57 +0200")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Benoit Cousson <bcousson@baylibre.com>
+Cc: Olof Johansson <olof@lixom.net>, Tony Lindgren <tony@atomide.com>, arm@kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 
-On Friday 23 August 2013 11:40 PM, Santosh Shilimkar wrote:
-> On Friday 23 August 2013 01:39 PM, Sekhar Nori wrote:
->> On 8/23/2013 10:58 PM, Santosh Shilimkar wrote:
->>> On Friday 23 August 2013 01:24 PM, Daniel Mack wrote:
->>>> On 23.08.2013 19:19, Santosh Shilimkar wrote:
->>>>> On Friday 23 August 2013 01:09 PM, Sekhar Nori wrote:
->>>>>> On 8/23/2013 10:26 PM, Santosh Shilimkar wrote:
->>>>>>> So just stick the IP version or call it cpsw-v1... cpsw-v2 etc.
->>>>>> If this could be handled using IP version then the right way would be to
->>>>>> just read the IP version from hardware and use it. No need of DT property.
->>>>>>
->>>>> Thats fine as well but I thought the patch needed additional properties like
->>>>> CM reg-address come from DT and hence the separate compatible. If you can
->>>>> manage without that, thats even better.
->>>> We can't, that's the whole point :)
->>>>
->>> I saw that from the patch :)
->>>
->>>> Well, theoretically, we could for now, but that's not a clean solution.
->>>> Again: the problem here is that the control port is separated from the
->>>> cpsw core, and so we have to implement something specific for the AM3352
->>>> SoC. I know that's a violation of clean and generic driver ideas, but
->>>> there's no way we can assume that every cpsw v2 ip block has a control
->>>> port that is compatible to the one found on am335x chips.
->>>>
->>> But there is a possibility that other SOC will just use the same
->>> control module approach. So using a revision IP is just fine. BTW,
->> But this is misleading because it makes appear like the same compatible
->> can be used on on another SoC like DRA7 which probably has the same
->> version of IP but a different control module implementation, when in
->> practice it cannot.
->>
->> The fact is we are doing something SoC specific in the driver and we
->> cannot hide that behind IP versions. If really in practice there comes
->> another SoC with the same control module definition then it can always
->> use ti,am3352-cpsw compatible as well. The compatible name does not
->> preclude its usage.
->>
-> My point was the CPSW needs a feature which is implemented using
-> control module rather than within the IP itself. Its an implementation
-> detail. As such the additional feature makes sense for that IP. O.w
-> there was no need to do any monkeying with control module.
+Benoit Cousson <bcousson@baylibre.com> writes:
+
+> Hi Kevin & Olof,
 >
-> E.g
-> MMC card detect is a basic functionality, implemented by various types
-> like control module, PMIC or MMC IP itself. As such the driver need
-> that support and all the implementation details needs to still handled
-> to make that part work.
+> I've just updated the branch with the few USB3 patches I missed from Felipe.
 >
+> So here is a new pull-request.
+>
+> Thanks,
+> Benoit
+>
+> ----------------------------------------------------------------
+> Add the minimal DTS support for DRA7xx based SoC core.
+> Add the initial support for N900 and gta04 phones.
+> Enable USB3 on OMAP5 evm board.
+> Do a lot of various cleanups.
+> ----------------------------------------------------------------
+
+This is a nice description, but would be even better if it was the
+description of the signed tag.  For future pulls, since we're pulling
+from you directly into arm-soc, can you start using signed tags please?
+
+
+> The following changes since commit b36f4be3de1b123d8601de062e7dbfc904f305fb:
+>
+>   Linux 3.11-rc6 (2013-08-18 14:36:53 -0700)
+>
+> are available in the git repository at:
+>
+>   git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git for_3.12/dts
+>
+> for you to fetch changes up to 5903208d4e2c09a3872feba6b9e2e49c64fd07ad:
+>
+>   ARM: configs: omap2plus_defconfig: enable dwc3 and dependencies (2013-08-21 16:43:21 +0200)
 >
 
-CPSW core as such understands only GMII/MII signals, there is an
-additional module which converts GMII/MII signals to RGMII/RMII signals
-respectively which is called as CPRGMII/CPRMII as specified in the
-AM335x TRM in Figure 14-1. Ethernet Switch Integration.
+Pulled into next/dt.
 
-So to control this sub-module, the control register is used and this has
-to be configured according to the EVM design like what mode of phy is
-connected. CPRGMII and CPRMII is no way related to CPSW core.
+Benoit, since we're pulling directly from you into arm-soc, can you
+start using signed tags please?  Thanks.
 
-Regards
-Mugunthan V N
+Kevin
