@@ -1,119 +1,49 @@
-From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: Re: [PATCH v2 4/5] net: ethernet: cpsw: add support for hardware
- interface mode config
-Date: Fri, 23 Aug 2013 22:08:10 +0530
-Message-ID: <52178FF2.7010308@ti.com>
-References: <1377247417-27386-1-git-send-email-zonque@gmail.com> <1377247417-27386-5-git-send-email-zonque@gmail.com>
+From: Suman Anna <s-anna@ti.com>
+Subject: Re: [PATCH] mailbox: remove unnecessary platform_set_drvdata()
+Date: Fri, 23 Aug 2013 11:37:01 -0500
+Message-ID: <52178FAD.7040402@ti.com>
+References: <002201ce9edc$cdc3fb90$694bf2b0$%han@samsung.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:42070 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754386Ab3HWQin (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 23 Aug 2013 12:38:43 -0400
-In-Reply-To: <1377247417-27386-5-git-send-email-zonque@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <002201ce9edc$cdc3fb90$694bf2b0$%han@samsung.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Jingoo Han <jg1.han@samsung.com>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, "'Rafael J. Wysocki'" <rafael.j.wysocki@intel.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Daniel Mack <zonque@gmail.com>
-Cc: netdev@vger.kernel.org, nsekhar@ti.com, sergei.shtylyov@cogentembedded.com, davem@davemloft.net, ujhelyi.m@gmail.com, vaibhav.bedia@ti.com, d-gerlach@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
 
-On Friday 23 August 2013 02:13 PM, Daniel Mack wrote:
-> The cpsw currently lacks code to properly set up the hardware interface
-> mode on AM33xx. Other platforms might be equally affected.
->
-> Usually, the bootloader will configure the control module register, so
-> probably that's why such support wasn't needed in the past. In suspend
-> mode though, this register is modified, and so it needs reprogramming
-> after resume.
->
-> This patch adds code that makes use of the previously added and optional
-> support for passing the control mode register, and configures the
-> correct register bits when the slave is opened.
->
-> The AM33xx also has a bit for each slave to configure the RMII reference
-> clock direction. Setting it is now supported by a per-slave DT property.
->
-> This code path introducted by this patch is currently exclusive for
-> am33xx.
->
-> Signed-off-by: Daniel Mack <zonque@gmail.com>
++ OMAP mailing list
+
+Tony,
+Can you pick up this minor cleanup patch?
+
+regards
+Suman
+
+On 08/21/2013 09:10 PM, Jingoo Han wrote:
+> The driver core clears the driver data to NULL after device_release
+> or on probe failure. Thus, it is not needed to manually clear the
+> device driver data to NULL.
+> 
+> Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+
+Acked-by: Suman Anna <s-anna@ti.com>
+
 > ---
->  Documentation/devicetree/bindings/net/cpsw.txt |  2 +
->  drivers/net/ethernet/ti/cpsw.c                 | 61 ++++++++++++++++++++++++++
->  drivers/net/ethernet/ti/cpsw.h                 |  1 +
->  3 files changed, 64 insertions(+)
->
-> diff --git a/Documentation/devicetree/bindings/net/cpsw.txt b/Documentation/devicetree/bindings/net/cpsw.txt
-> index b717458..0895a51 100644
-> --- a/Documentation/devicetree/bindings/net/cpsw.txt
-> +++ b/Documentation/devicetree/bindings/net/cpsw.txt
-> @@ -34,6 +34,8 @@ Required properties:
->  - phy_id		: Specifies slave phy id
->  - phy-mode		: The interface between the SoC and the PHY (a string
->  			  that of_get_phy_mode() can understand)
-> +- ti,rmii-clock-ext	: If present, the driver will configure the RMII
-> +			  interface to external clock usage
->  - mac-address		: Specifies slave MAC address
+>  drivers/mailbox/mailbox-omap2.c |    1 -
+>  1 file changed, 1 deletion(-)
+> 
+> diff --git a/drivers/mailbox/mailbox-omap2.c b/drivers/mailbox/mailbox-omap2.c
+> index eba380d..42d2b89 100644
+> --- a/drivers/mailbox/mailbox-omap2.c
+> +++ b/drivers/mailbox/mailbox-omap2.c
+> @@ -325,7 +325,6 @@ static int omap2_mbox_remove(struct platform_device *pdev)
+>  	kfree(privblk);
+>  	kfree(mboxblk);
+>  	kfree(list);
+> -	platform_set_drvdata(pdev, NULL);
 >  
->  Optional properties:
-> diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-> index 2e19de0..6e36f49 100644
-> --- a/drivers/net/ethernet/ti/cpsw.c
-> +++ b/drivers/net/ethernet/ti/cpsw.c
-> @@ -138,6 +138,13 @@ do {								\
->  #define CPSW_CMINTMAX_INTVL	(1000 / CPSW_CMINTMIN_CNT)
->  #define CPSW_CMINTMIN_INTVL	((1000 / CPSW_CMINTMAX_CNT) + 1)
->  
-> +#define AM33XX_GMII_SEL_MODE_MII	(0)
-> +#define AM33XX_GMII_SEL_MODE_RMII	(1)
-> +#define AM33XX_GMII_SEL_MODE_RGMII	(2)
-> +
-> +#define AM33XX_GMII_SEL_RMII2_IO_CLK_EN	BIT(7)
-> +#define AM33XX_GMII_SEL_RMII1_IO_CLK_EN	BIT(6)
-
-These defined can go into cpsw.h so that we can maintain platform
-defines in one file.
-
-> +
->  #define cpsw_enable_irq(priv)	\
->  	do {			\
->  		u32 i;		\
-> @@ -980,6 +987,56 @@ static inline void cpsw_add_dual_emac_def_ale_entries(
->  		priv->host_port, ALE_VLAN, slave->port_vlan);
+>  	return 0;
 >  }
->  
-> +static void cpsw_set_phy_interface_mode(struct cpsw_slave *slave,
-> +					struct cpsw_priv *priv)
-> +{
-> +	u32 reg, mask, mode = 0;
-> +
-
-Please define each variable in separate line to make it clean.
-Please check for IS_ERR(gmii_sel_reg) and return if gmii register is not
-specified in DT then the below code will crash when trying to access
-gmii_sel_reg.
-
-> +	switch (priv->data.hw_type) {
-> +	case CPSW_TYPE_AM33XX:
-> +		if (!priv->gmii_sel_reg)
-> +			break;
-> +
-> +		reg = readl(priv->gmii_sel_reg);
-> +
-> +		if (slave->phy) {
-> +			switch (slave->phy->interface) {
-> +			case PHY_INTERFACE_MODE_MII:
-> +			default:
-> +				mode = AM33XX_GMII_SEL_MODE_MII;
-> +				break;
-> +			case PHY_INTERFACE_MODE_RMII:
-> +				mode = AM33XX_GMII_SEL_MODE_RMII;
-> +				break;
-> +			case PHY_INTERFACE_MODE_RGMII:
-
-You need to take care of other RGMII modes as well, for your info
-AM335xevm phy mode is "rgmii-txid"
-
-Regards
-Mugunthan V N
+> 
