@@ -1,83 +1,100 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH v4 3/5] net: ethernet: cpsw: introduce ti,am3352-cpsw
- compatible string
-Date: Fri, 23 Aug 2013 14:10:38 -0400
-Message-ID: <5217A59E.4090700@ti.com>
-References: <1377267365-24057-1-git-send-email-zonque@gmail.com>
- <1377267365-24057-4-git-send-email-zonque@gmail.com>
- <52177052.1030308@ti.com> <52178E20.5040404@gmail.com>
- <52179448.1020906@ti.com> <5217974B.5090503@ti.com> <521799A3.7080706@ti.com>
- <52179AD6.8090406@gmail.com> <52179BDA.50603@ti.com>
- <52179E44.5030202@ti.com>
+From: Sebastian Reichel <sre@debian.org>
+Subject: Re: [PATCH 2/3] ARM: OMAP2+: HSI: Introduce OMAP SSI driver
+Date: Fri, 23 Aug 2013 20:17:26 +0200
+Message-ID: <20130823181726.GB5753@earth.universe>
+References: <1376237628-1077-1-git-send-email-sre@debian.org>
+ <1376237877-1740-1-git-send-email-sre@debian.org>
+ <1376237877-1740-2-git-send-email-sre@debian.org>
+ <CACRpkdZpB0YjZzhOsyN9uNETQWJM=2N50eUBaxDF29jDw3ZJfw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <52179E44.5030202@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Sekhar Nori <nsekhar@ti.com>
-Cc: mugunthanvnm@ti.com, sergei.shtylyov@cogentembedded.com, d-gerlach@ti.com, netdev@vger.kernel.org, vaibhav.bedia@ti.com, Daniel Mack <zonque@gmail.com>, devicetree@vger.kernel.org, bcousson@baylibre.com, ujhelyi.m@gmail.com, linux-omap@vger.kernel.org, davem@davemloft.net, linux-arm-kernel@lists.infradead.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="SLDf9lqlvOQaIe6s"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CACRpkdZpB0YjZzhOsyN9uNETQWJM=2N50eUBaxDF29jDw3ZJfw@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, Shubhrajyoti Datta <omaplinuxkernel@gmail.com>, Carlos Chinea <cch.devel@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Friday 23 August 2013 01:39 PM, Sekhar Nori wrote:
-> On 8/23/2013 10:58 PM, Santosh Shilimkar wrote:
->> On Friday 23 August 2013 01:24 PM, Daniel Mack wrote:
->>> On 23.08.2013 19:19, Santosh Shilimkar wrote:
->>>> On Friday 23 August 2013 01:09 PM, Sekhar Nori wrote:
->>>>> On 8/23/2013 10:26 PM, Santosh Shilimkar wrote:
->>>
->>>>>> So just stick the IP version or call it cpsw-v1... cpsw-v2 etc.
->>>>>
->>>>> If this could be handled using IP version then the right way would be to
->>>>> just read the IP version from hardware and use it. No need of DT property.
->>>>>
->>>> Thats fine as well but I thought the patch needed additional properties like
->>>> CM reg-address come from DT and hence the separate compatible. If you can
->>>> manage without that, thats even better.
->>>
->>> We can't, that's the whole point :)
->>>
->> I saw that from the patch :)
->>
->>> Well, theoretically, we could for now, but that's not a clean solution.
->>> Again: the problem here is that the control port is separated from the
->>> cpsw core, and so we have to implement something specific for the AM3352
->>> SoC. I know that's a violation of clean and generic driver ideas, but
->>> there's no way we can assume that every cpsw v2 ip block has a control
->>> port that is compatible to the one found on am335x chips.
->>>
->> But there is a possibility that other SOC will just use the same
->> control module approach. So using a revision IP is just fine. BTW,
-> 
-> But this is misleading because it makes appear like the same compatible
-> can be used on on another SoC like DRA7 which probably has the same
-> version of IP but a different control module implementation, when in
-> practice it cannot.
-> 
-> The fact is we are doing something SoC specific in the driver and we
-> cannot hide that behind IP versions. If really in practice there comes
-> another SoC with the same control module definition then it can always
-> use ti,am3352-cpsw compatible as well. The compatible name does not
-> preclude its usage.
-> 
-My point was the CPSW needs a feature which is implemented using
-control module rather than within the IP itself. Its an implementation
-detail. As such the additional feature makes sense for that IP. O.w
-there was no need to do any monkeying with control module.
 
-E.g
-MMC card detect is a basic functionality, implemented by various types
-like control module, PMIC or MMC IP itself. As such the driver need
-that support and all the implementation details needs to still handled
-to make that part work.
+--SLDf9lqlvOQaIe6s
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Regards,
-Santosh
+Hi,
+
+On Fri, Aug 23, 2013 at 03:57:05PM +0200, Linus Walleij wrote:
+> The HSI subsystem is lacking an active maintainer, interested?
+> Given that you can apparently test the OMAP HSI driver you're
+> one of the few applicable candidates.
+
+I don't think I'm a good candidate for that. At least not yet. This
+is my first patch sent to the kernel and I merly took the code from
+Carlos Chinea and ported it to some new kernel frameworks. Apart
+=66rom that I'm lacking any documentation for the interface (SSI is
+not part of TI's public OMAP3 TRM).
+
+> Overall there is one big problem with this patch in that it implements
+> a lot of stuff that should not be implemented in the driver at all,
+> but in the HSI core.
+
+The actual implementation has not (yet?) been changed by me. It's
+still the code as written by Carlos.
+
+> For example compare commit
+> ffbbdd21329f3e15eeca6df2d4bc11c04d9d91c0
+> "spi: create a message queueing infrastructure"
+>=20
+> This patch basically seems to redo the mistake we did in
+> SPI and not create a central message queue from day one,
+> instead re-implementing the same code in each and every
+> driver.
+>=20
+> Please attempt to draw the message queueuing into the
+> driver core atlease.
+
+I will have a look at it after conversion to DT. I will sent another
+RFC before this change to speed up the DT review, though.
+
+> Further the allocation of hosts seem pretty generic as well
+> but I'm unsure about this. I'd prefer if you take a second
+> look at the generalizeable parts.
+
+OK.
+
+> [...] (Code Comments)
+
+Thanks for the review. The code has been written by Carlos, who
+apparently had documentation for the SSI IP used in the OMAP3. I
+cannot fix the magic numbers without either reverse engineering the
+IP (which I do not have the time for) or access to the documentation.
+
+I will fix the other comments in the next RFC patch.
+
+-- Sebastian
+
+--SLDf9lqlvOQaIe6s
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.14 (GNU/Linux)
+
+iQIcBAEBCAAGBQJSF6c2AAoJENju1/PIO/qa4I0QAKQkXnJKN4C0+Qogh3luYXnz
+E5glMVxX6mMUE5DGbR695Vrtp8NsR4Bop0RofaKhaj3QuohyghxwhBc6JH1oDyT0
+rAVTJ1AX8BPOLcsQHuy6SiGh7wLOdoJsXUmzKgGGCwqxherjPWmm02u6T3DIHHz0
+HPMTWD7PHOeVmeUulHOyKaD/fslzJ+/0dRn4U7qP6KnuRXS6TgoMjigN53ggq4c3
+k1HuQEUK6geNLz8TekN6IOoJ0IzIbtklON7KOwDR8WuBFXOMYAapJJSXZRvhdFNa
+CU1EtSO85+6DhGJPeZWuTq7SnzGmfBIlOvcu+xgBjhuIuHh2SE5AwQ5DrGKs+yHL
+CygfZnSZAlc0EiZdfaq7FdVYFsJE23opYaAChs6bcvXn9dhUzFSbOq6P9XtcRFLT
+4Ehklua6wvU6a9H+yABF8peliCmhtbQctIy88wQBuYgZxUrEKK1G+ni+21L/moTk
+5i/axToVOeW14+CFj933iUlXIWTKBre6UVtp52Xs0NbbQ25c82mePxBfDIcJ0KD2
+JRNQFdsEO0s86dJu7TcqL7fe4ccuHBcfpF03jkaKlLle66vTURaTessyzd8PUN17
+EJA9+kU2K9wgLXlha2b0ESDJXw+vjxIc1V7oiYIGbC0oT602zgf0A4jr2e0hsK1y
+atsTvtzpLcSTORUuDWmO
+=5P5n
+-----END PGP SIGNATURE-----
+
+--SLDf9lqlvOQaIe6s--
