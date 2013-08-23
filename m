@@ -1,64 +1,44 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [GIT PULL] ARM: OMAP: Device Tree for 3.12
-Date: Fri, 23 Aug 2013 11:31:04 -0700
-Message-ID: <87fvu0mf87.fsf@linaro.org>
-References: <521384D5.1050607@baylibre.com>
-	<20130821071334.GQ7656@atomide.com> <5214D4FD.4060405@baylibre.com>
+From: Daniel Mack <zonque@gmail.com>
+Subject: Re: [PATCH v4 1/5] net: ethernet: cpsw: switch to devres allocations
+Date: Fri, 23 Aug 2013 20:34:17 +0200
+Message-ID: <5217AB29.9020209@gmail.com>
+References: <1377267365-24057-1-git-send-email-zonque@gmail.com>
+ <1377267365-24057-2-git-send-email-zonque@gmail.com>
+ <5217A5AE.6090704@cogentembedded.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:53415 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754157Ab3HWSbM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Aug 2013 14:31:12 -0400
-Received: by mail-pa0-f46.google.com with SMTP id fa1so994555pad.33
-        for <linux-omap@vger.kernel.org>; Fri, 23 Aug 2013 11:31:11 -0700 (PDT)
-In-Reply-To: <5214D4FD.4060405@baylibre.com> (Benoit Cousson's message of
-	"Wed, 21 Aug 2013 16:55:57 +0200")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <5217A5AE.6090704@cogentembedded.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Cc: mugunthanvnm@ti.com, d-gerlach@ti.com, netdev@vger.kernel.org, nsekhar@ti.com, vaibhav.bedia@ti.com, devicetree@vger.kernel.org, bcousson@baylibre.com, ujhelyi.m@gmail.com, linux-omap@vger.kernel.org, davem@davemloft.net, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <bcousson@baylibre.com>
-Cc: Olof Johansson <olof@lixom.net>, Tony Lindgren <tony@atomide.com>, arm@kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 
-Benoit Cousson <bcousson@baylibre.com> writes:
+On 23.08.2013 20:10, Sergei Shtylyov wrote:
+> On 08/23/2013 06:16 PM, Daniel Mack wrote:
 
-> Hi Kevin & Olof,
->
-> I've just updated the branch with the few USB3 patches I missed from Felipe.
->
-> So here is a new pull-request.
->
-> Thanks,
-> Benoit
->
-> ----------------------------------------------------------------
-> Add the minimal DTS support for DRA7xx based SoC core.
-> Add the initial support for N900 and gta04 phones.
-> Enable USB3 on OMAP5 evm board.
-> Do a lot of various cleanups.
-> ----------------------------------------------------------------
+>>   	priv->coal_intvl = 0;
+>>   	priv->bus_freq_mhz = clk_get_rate(priv->clk) / 1000000;
+>>
+>> -	priv->cpsw_res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+>> -	if (!priv->cpsw_res) {
+>> +	ss_res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+>> +	if (!ss_res) {
+> 
+>     You don't need to check the result of platform_get_resource() if you call
+> devm_ioremap_resource() right afterwards -- it will check resource ptr for 
+> NULL the first thing. :-)
 
-This is a nice description, but would be even better if it was the
-description of the signed tag.  For future pulls, since we're pulling
-from you directly into arm-soc, can you start using signed tags please?
+Thanks! Will address that in v5.
 
 
-> The following changes since commit b36f4be3de1b123d8601de062e7dbfc904f305fb:
->
->   Linux 3.11-rc6 (2013-08-18 14:36:53 -0700)
->
-> are available in the git repository at:
->
->   git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git for_3.12/dts
->
-> for you to fetch changes up to 5903208d4e2c09a3872feba6b9e2e49c64fd07ad:
->
->   ARM: configs: omap2plus_defconfig: enable dwc3 and dependencies (2013-08-21 16:43:21 +0200)
->
-
-Pulled into next/dt.
-
-Benoit, since we're pulling directly from you into arm-soc, can you
-start using signed tags please?  Thanks.
-
-Kevin
+Daniel
