@@ -1,59 +1,130 @@
-From: Sekhar Nori <nsekhar@ti.com>
-Subject: Re: [PATCH] ARM: Update SMP_ON_UP code to detect A9MPCore with 1
- CPU devices
-Date: Fri, 23 Aug 2013 23:11:06 +0530
-Message-ID: <52179EB2.2050800@ti.com>
-References: <1375381033-13220-1-git-send-email-santosh.shilimkar@ti.com> <51FBC610.9030900@arm.com> <51FBCEC3.4030207@ti.com> <51FBD42A.9040901@arm.com> <20130802154857.GD5292@mudshark.cambridge.arm.com> <52092AA5.3090005@ti.com> <20130813111943.GE30280@mudshark.cambridge.arm.com> <520A3518.3030301@ti.com> <52179719.3080609@ti.com> <52179927.1020906@ti.com>
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Subject: Re: [PATCH v4 1/5] net: ethernet: cpsw: switch to devres allocations
+Date: Fri, 23 Aug 2013 22:10:54 +0400
+Message-ID: <5217A5AE.6090704@cogentembedded.com>
+References: <1377267365-24057-1-git-send-email-zonque@gmail.com> <1377267365-24057-2-git-send-email-zonque@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:33508 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755921Ab3HWRlm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 23 Aug 2013 13:41:42 -0400
-In-Reply-To: <52179927.1020906@ti.com>
+Received: from mail-lb0-f170.google.com ([209.85.217.170]:65000 "EHLO
+	mail-lb0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755874Ab3HWSKu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Aug 2013 14:10:50 -0400
+Received: by mail-lb0-f170.google.com with SMTP id r10so742900lbi.1
+        for <linux-omap@vger.kernel.org>; Fri, 23 Aug 2013 11:10:48 -0700 (PDT)
+In-Reply-To: <1377267365-24057-2-git-send-email-zonque@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Will Deacon <will.deacon@arm.com>, Russell King <linux@arm.linux.org.uk>, Sudeep KarkadaNagesha <Sudeep.KarkadaNagesha@arm.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Vaibhav Bedia <vaibhav.bedia@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Daniel Mack <zonque@gmail.com>
+Cc: netdev@vger.kernel.org, bcousson@baylibre.com, nsekhar@ti.com, davem@davemloft.net, ujhelyi.m@gmail.com, mugunthanvnm@ti.com, vaibhav.bedia@ti.com, d-gerlach@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
 
+On 08/23/2013 06:16 PM, Daniel Mack wrote:
 
+> This patch cleans up the allocation and error unwind paths, which
+> allows us to carry less information in struct cpsw_priv and reduce the
+> amount of jump labels in the probe functions.
 
-On 8/23/2013 10:47 PM, Santosh Shilimkar wrote:
-> On Friday 23 August 2013 01:08 PM, Sekhar Nori wrote:
->> On 8/13/2013 7:01 PM, Santosh Shilimkar wrote:
->>> On Tuesday 13 August 2013 07:19 AM, Will Deacon wrote:
->>>> On Mon, Aug 12, 2013 at 07:34:13PM +0100, Santosh Shilimkar wrote:
->>>>> On Friday 02 August 2013 11:48 AM, Will Deacon wrote:
->>>>>> I think this an A9-specific register, which reads as 0 on UP A9 and reads as
->>>>>> some form of PERIPH_BASE for SMP parts. The issue I have is when PERIPH_BASE
->>>>>> is zero.
->>>>>>
->>>>> What do we do here ? Should we document this in the code and proceed ?
->>>>> Mostly there is no platform with PERIPH_BASE = 0, so its should be fine but
->>>>> I am open for any other alternative.
->>>>
->>>> The only other alternative I can think of is forcing people to have
->>>> CONFIG_SMP=n, but that blows away single zImage for your platform.
->>>>
->>> Yep which surely we don't want considering after so much effort we
->>> have it working first place. How about going ahead with assumption
->>> that PERIPH_BASE = 0 case doesn't work.
->>
->> I must be missing something but why cannot we use the SCU configuration
->> register "CPU number" field to determine that its a UP? I do not have an
->> OMAP4 board, but on AM437x, it certainly indicates only CPU0 present.
->>
-> Thats what patch does. Yes, you are missing the point of dicussion. 
+> Signed-off-by: Daniel Mack <zonque@gmail.com>
+> ---
+>   drivers/net/ethernet/ti/cpsw.c | 147 +++++++++++++----------------------------
+>   1 file changed, 45 insertions(+), 102 deletions(-)
 
-Right, I see that now after actually reading the complete patch :)
+> diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+> index 79974e3..849af52 100644
+> --- a/drivers/net/ethernet/ti/cpsw.c
+> +++ b/drivers/net/ethernet/ti/cpsw.c
+[...]
+> @@ -1977,55 +1963,41 @@ static int cpsw_probe(struct platform_device *pdev)
+>   	priv->slaves[0].ndev = ndev;
+>   	priv->emac_port = 0;
+>
+> -	priv->clk = clk_get(&pdev->dev, "fck");
+> +	priv->clk = devm_clk_get(&pdev->dev, "fck");
+>   	if (IS_ERR(priv->clk)) {
+> -		dev_err(&pdev->dev, "fck is not found\n");
+> +		dev_err(priv->dev, "fck is not found\n");
+>   		ret = -ENODEV;
+> -		goto clean_slave_ret;
+> +		goto clean_runtime_disable_ret;
+>   	}
+>   	priv->coal_intvl = 0;
+>   	priv->bus_freq_mhz = clk_get_rate(priv->clk) / 1000000;
+>
+> -	priv->cpsw_res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> -	if (!priv->cpsw_res) {
+> +	ss_res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> +	if (!ss_res) {
 
-> On real UP Cortex-A9, the base address read will return '0' which is
-> treated as invalid address in the patch. Will D pointed out that one
+    You don't need to check the result of platform_get_resource() if you call
+devm_ioremap_resource() right afterwards -- it will check resource ptr for 
+NULL the first thing. :-)
 
-Is this something defined by spec for all UP Cortex-A9 or just an
-observation on AM437x implementation? It sounds like the later?
+>   		dev_err(priv->dev, "error getting i/o resource\n");
+>   		ret = -ENOENT;
+> -		goto clean_clk_ret;
+> +		goto clean_runtime_disable_ret;
+>   	}
+> -	if (!request_mem_region(priv->cpsw_res->start,
+> -				resource_size(priv->cpsw_res), ndev->name)) {
+> -		dev_err(priv->dev, "failed request i/o region\n");
+> -		ret = -ENXIO;
+> -		goto clean_clk_ret;
+> -	}
+> -	ss_regs = ioremap(priv->cpsw_res->start, resource_size(priv->cpsw_res));
+> -	if (!ss_regs) {
+> +	ss_regs = devm_ioremap_resource(&pdev->dev, ss_res);
+> +	if (IS_ERR(ss_regs)) {
+>   		dev_err(priv->dev, "unable to map i/o region\n");
 
-Thanks,
-Sekhar
+    Don't need the error message anymore -- devm_ioremap_resource() will print 
+it. And you missed:
+
+		ret = PTR_ERR(ss_regs);
+
+> -		goto clean_cpsw_iores_ret;
+> +		goto clean_runtime_disable_ret;
+>   	}
+>   	priv->regs = ss_regs;
+>   	priv->version = __raw_readl(&priv->regs->id_ver);
+>   	priv->host_port = HOST_PORT_NUM;
+>
+> -	priv->cpsw_wr_res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
+> -	if (!priv->cpsw_wr_res) {
+> +	res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
+> +	if (!res) {
+
+    Same comment about resource check here...
+
+>   		dev_err(priv->dev, "error getting i/o resource\n");
+>   		ret = -ENOENT;
+> -		goto clean_iomap_ret;
+> -	}
+> -	if (!request_mem_region(priv->cpsw_wr_res->start,
+> -			resource_size(priv->cpsw_wr_res), ndev->name)) {
+> -		dev_err(priv->dev, "failed request i/o region\n");
+> -		ret = -ENXIO;
+> -		goto clean_iomap_ret;
+> +		goto clean_runtime_disable_ret;
+>   	}
+> -	wr_regs = ioremap(priv->cpsw_wr_res->start,
+> -				resource_size(priv->cpsw_wr_res));
+> -	if (!wr_regs) {
+> +	priv->wr_regs = devm_ioremap_resource(&pdev->dev, res);
+> +	if (IS_ERR(priv->wr_regs)) {
+>   		dev_err(priv->dev, "unable to map i/o region\n");
+
+    And same comments about the unneeded error message and missing 'ret' 
+assignment here...
+
+> -		goto clean_cpsw_wr_iores_ret;
+> +		goto clean_runtime_disable_ret;
+>   	}
+> -	priv->wr_regs = wr_regs;
+>
+>   	memset(&dma_params, 0, sizeof(dma_params));
+>   	memset(&ale_params, 0, sizeof(ale_params));
+[...]
+
+WBR, Sergei
+
