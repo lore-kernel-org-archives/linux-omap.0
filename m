@@ -1,90 +1,69 @@
-From: Dave Gerlach <d-gerlach@ti.com>
-Subject: Re: [PATCHv3 8/9] ARM: OMAP2+: AM33XX: Basic suspend resume support
-Date: Fri, 23 Aug 2013 09:56:15 -0500
-Message-ID: <5217780F.30004@ti.com>
-References: <1375811376-49985-1-git-send-email-d-gerlach@ti.com> <1375811376-49985-9-git-send-email-d-gerlach@ti.com> <CA+Bv8XbK+=pvG+bbvfCtS2Rtg-YoAhuUbWjSro9m4xWjw=Cr8A@mail.gmail.com> <52038E88.2050604@ti.com> <5203B336.90102@ti.com> <5203C211.7040207@ti.com> <87iozfga1t.fsf@kernel.org> <alpine.DEB.2.02.1308202244350.6426@utopia.booyaka.com>
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Subject: Re: [PATCH v4 2/5] net: ethernet: cpsw: add optional third memory
+ region for CONTROL module
+Date: Fri, 23 Aug 2013 18:59:39 +0400
+Message-ID: <521778DB.7040402@cogentembedded.com>
+References: <1377267365-24057-1-git-send-email-zonque@gmail.com> <1377267365-24057-3-git-send-email-zonque@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:56294 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752507Ab3HWO5A (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 23 Aug 2013 10:57:00 -0400
-In-Reply-To: <alpine.DEB.2.02.1308202244350.6426@utopia.booyaka.com>
+Received: from mail-la0-f45.google.com ([209.85.215.45]:60806 "EHLO
+	mail-la0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754057Ab3HWO7f (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Aug 2013 10:59:35 -0400
+Received: by mail-la0-f45.google.com with SMTP id eh20so567461lab.4
+        for <linux-omap@vger.kernel.org>; Fri, 23 Aug 2013 07:59:33 -0700 (PDT)
+In-Reply-To: <1377267365-24057-3-git-send-email-zonque@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Kevin Hilman <khilman@linaro.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Nishanth Menon <nm@ti.com>, Russ Dill <russ.dill@gmail.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Vaibhav Bedia <vaibhav.bedia@ti.com>, Tony Lingren <tony@atomide.com>, Benoit Cousson <benoit.cousson@linaro.org>
+To: Daniel Mack <zonque@gmail.com>
+Cc: netdev@vger.kernel.org, bcousson@baylibre.com, nsekhar@ti.com, davem@davemloft.net, ujhelyi.m@gmail.com, mugunthanvnm@ti.com, vaibhav.bedia@ti.com, d-gerlach@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
 
-On 08/20/2013 05:48 PM, Paul Walmsley wrote:
->
-> Hi folks,
->
-> catching up on this thread.
->
-> On 08/06/2013 12:49 PM, Dave Gerlach wrote:
->
->> +
->> +static int am33xx_pm_suspend(void)
->> +{
->> +     int i, j, ret = 0;
->> +
->> +     int status = 0;
->> +     struct platform_device *pdev;
->> +     struct omap_device *od;
->> +
->> +     /*
->> +      * By default the following IPs do not have MSTANDBY asserted
->> +      * which is necessary for PER domain transition. If the drivers
->> +      * are not compiled into the kernel HWMOD code will not change the
->> +      * state of the IPs if the IP was not never enabled. To ensure
->> +      * that there no issues with or without the drivers being compiled
->> +      * in the kernel, we forcefully put these IPs to idle.
->> +      */
->> +     for (i = 0; i < ARRAY_SIZE(am33xx_mod); i++) {
->> +             pdev = to_platform_device(am33xx_mod[i].dev);
->> +             od = to_omap_device(pdev);
->> +             if (od->_driver_status != BUS_NOTIFY_BOUND_DRIVER) {
->> +                     omap_device_enable_hwmods(od);
->> +                     omap_device_idle_hwmods(od);
->> +             }
->> +     }
->
-> Does this have to be done for every suspend entry, or can it just be done
-> once during kernel initialization?
->
-> If the latter, shouldn't this be done by hwmod during the initial reset
-> and idle of all of these devices, based on a flag?  For example, we had
-> this flag for OMAP3630:
->
->   * HWMOD_FORCE_MSTANDBY: Always keep MIDLEMODE bits cleared so that device
->   *     is kept in force-standby mode. Failing to do so causes PM problems
->   *     with musb on OMAP3630 at least. Note that musb has a dedicated
-> register
->   *     to control MSTANDBY signal when MIDLEMODE is set to force-standby.
->
+On 23-08-2013 18:16, Daniel Mack wrote:
 
-Hi,
-Unfortunately this does have to be done at some point after every 
-suspend/resume cycle because while the IPs are idled during initial 
-reset, after a suspend cycle the context loss when no driver is bound 
-causes MSTANDBY to be unasserted again which as mentioned breaks the PER 
-power domain transition during the next suspend attempt.
+> At least the AM33xx SoC has a control module register to configure
+> details such as the hardware ethernet interface mode.
 
-The current plan for this is somewhat similar to what you mentioned, all 
-of the troublesome modules will be flagged in hwmod and when the hwmods 
-are loaded they are tracked if no driver gets bound and then idled post 
-resume by a pm_notifier.
+> I'm not sure whether all SoCs which feature the cpsw block have such a
+> register, so that third memory region is considered optional for now.
 
-Regards,
-Dave
+> Signed-off-by: Daniel Mack <zonque@gmail.com>
+[...]
 
+> diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+> index 849af52..7a25ff4 100644
+> --- a/drivers/net/ethernet/ti/cpsw.c
+> +++ b/drivers/net/ethernet/ti/cpsw.c
+[...]
+> @@ -1999,6 +2000,21 @@ static int cpsw_probe(struct platform_device *pdev)
+>   		goto clean_runtime_disable_ret;
+>   	}
 >
-> - Paul
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+> +	/* If the control memory region is unspecified, continue without it.
+> +	 * If it is specified, but we're unable to reserve it, bail.
+> +	 */
+> +	res = platform_get_resource(pdev, IORESOURCE_MEM, 2);
+> +	if (!res) {
+> +		dev_info(priv->dev, "error getting control i/o resource\n");
+> +		goto no_gmii_sel;
+> +	}
+> +	priv->gmii_sel_reg = devm_ioremap_resource(&pdev->dev, res);
+> +	if (IS_ERR(priv->gmii_sel_reg)) {
+> +		dev_err(priv->dev, "unable to map control i/o region\n");
+
+    You didn't actually seem to heed my words about error message. And don't 
+you want to do:
+
+	res = PTR_ERR(priv->gmii_sel_reg);
+
+> +		goto clean_runtime_disable_ret;
+> +	}
+> +
+> +no_gmii_sel:
+>   	memset(&dma_params, 0, sizeof(dma_params));
+>   	memset(&ale_params, 0, sizeof(ale_params));
+
+WBR, Sergei
+
 
