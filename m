@@ -1,58 +1,59 @@
 From: Sekhar Nori <nsekhar@ti.com>
-Subject: Re: [PATCH v4 3/5] net: ethernet: cpsw: introduce ti,am3352-cpsw
- compatible string
-Date: Fri, 23 Aug 2013 23:09:16 +0530
-Message-ID: <52179E44.5030202@ti.com>
-References: <1377267365-24057-1-git-send-email-zonque@gmail.com> <1377267365-24057-4-git-send-email-zonque@gmail.com> <52177052.1030308@ti.com> <52178E20.5040404@gmail.com> <52179448.1020906@ti.com> <5217974B.5090503@ti.com> <521799A3.7080706@ti.com> <52179AD6.8090406@gmail.com> <52179BDA.50603@ti.com>
+Subject: Re: [PATCH] ARM: Update SMP_ON_UP code to detect A9MPCore with 1
+ CPU devices
+Date: Fri, 23 Aug 2013 23:11:06 +0530
+Message-ID: <52179EB2.2050800@ti.com>
+References: <1375381033-13220-1-git-send-email-santosh.shilimkar@ti.com> <51FBC610.9030900@arm.com> <51FBCEC3.4030207@ti.com> <51FBD42A.9040901@arm.com> <20130802154857.GD5292@mudshark.cambridge.arm.com> <52092AA5.3090005@ti.com> <20130813111943.GE30280@mudshark.cambridge.arm.com> <520A3518.3030301@ti.com> <52179719.3080609@ti.com> <52179927.1020906@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <52179BDA.50603@ti.com>
-Sender: netdev-owner@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Daniel Mack <zonque@gmail.com>, netdev@vger.kernel.org, bcousson@baylibre.com, sergei.shtylyov@cogentembedded.com, davem@davemloft.net, ujhelyi.m@gmail.com, mugunthanvnm@ti.com, vaibhav.bedia@ti.com, d-gerlach@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:33508 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755921Ab3HWRlm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 23 Aug 2013 13:41:42 -0400
+In-Reply-To: <52179927.1020906@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Will Deacon <will.deacon@arm.com>, Russell King <linux@arm.linux.org.uk>, Sudeep KarkadaNagesha <Sudeep.KarkadaNagesha@arm.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Vaibhav Bedia <vaibhav.bedia@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On 8/23/2013 10:58 PM, Santosh Shilimkar wrote:
-> On Friday 23 August 2013 01:24 PM, Daniel Mack wrote:
->> On 23.08.2013 19:19, Santosh Shilimkar wrote:
->>> On Friday 23 August 2013 01:09 PM, Sekhar Nori wrote:
->>>> On 8/23/2013 10:26 PM, Santosh Shilimkar wrote:
->>
->>>>> So just stick the IP version or call it cpsw-v1... cpsw-v2 etc.
+
+
+On 8/23/2013 10:47 PM, Santosh Shilimkar wrote:
+> On Friday 23 August 2013 01:08 PM, Sekhar Nori wrote:
+>> On 8/13/2013 7:01 PM, Santosh Shilimkar wrote:
+>>> On Tuesday 13 August 2013 07:19 AM, Will Deacon wrote:
+>>>> On Mon, Aug 12, 2013 at 07:34:13PM +0100, Santosh Shilimkar wrote:
+>>>>> On Friday 02 August 2013 11:48 AM, Will Deacon wrote:
+>>>>>> I think this an A9-specific register, which reads as 0 on UP A9 and reads as
+>>>>>> some form of PERIPH_BASE for SMP parts. The issue I have is when PERIPH_BASE
+>>>>>> is zero.
+>>>>>>
+>>>>> What do we do here ? Should we document this in the code and proceed ?
+>>>>> Mostly there is no platform with PERIPH_BASE = 0, so its should be fine but
+>>>>> I am open for any other alternative.
 >>>>
->>>> If this could be handled using IP version then the right way would be to
->>>> just read the IP version from hardware and use it. No need of DT property.
+>>>> The only other alternative I can think of is forcing people to have
+>>>> CONFIG_SMP=n, but that blows away single zImage for your platform.
 >>>>
->>> Thats fine as well but I thought the patch needed additional properties like
->>> CM reg-address come from DT and hence the separate compatible. If you can
->>> manage without that, thats even better.
+>>> Yep which surely we don't want considering after so much effort we
+>>> have it working first place. How about going ahead with assumption
+>>> that PERIPH_BASE = 0 case doesn't work.
 >>
->> We can't, that's the whole point :)
+>> I must be missing something but why cannot we use the SCU configuration
+>> register "CPU number" field to determine that its a UP? I do not have an
+>> OMAP4 board, but on AM437x, it certainly indicates only CPU0 present.
 >>
-> I saw that from the patch :)
-> 
->> Well, theoretically, we could for now, but that's not a clean solution.
->> Again: the problem here is that the control port is separated from the
->> cpsw core, and so we have to implement something specific for the AM3352
->> SoC. I know that's a violation of clean and generic driver ideas, but
->> there's no way we can assume that every cpsw v2 ip block has a control
->> port that is compatible to the one found on am335x chips.
->>
-> But there is a possibility that other SOC will just use the same
-> control module approach. So using a revision IP is just fine. BTW,
+> Thats what patch does. Yes, you are missing the point of dicussion. 
 
-But this is misleading because it makes appear like the same compatible
-can be used on on another SoC like DRA7 which probably has the same
-version of IP but a different control module implementation, when in
-practice it cannot.
+Right, I see that now after actually reading the complete patch :)
 
-The fact is we are doing something SoC specific in the driver and we
-cannot hide that behind IP versions. If really in practice there comes
-another SoC with the same control module definition then it can always
-use ti,am3352-cpsw compatible as well. The compatible name does not
-preclude its usage.
+> On real UP Cortex-A9, the base address read will return '0' which is
+> treated as invalid address in the patch. Will D pointed out that one
+
+Is this something defined by spec for all UP Cortex-A9 or just an
+observation on AM437x implementation? It sounds like the later?
 
 Thanks,
 Sekhar
