@@ -1,99 +1,45 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH v4 3/5] net: ethernet: cpsw: introduce ti,am3352-cpsw
- compatible string
-Date: Fri, 23 Aug 2013 13:05:22 -0400
-Message-ID: <52179652.9090704@ti.com>
-References: <1377267365-24057-1-git-send-email-zonque@gmail.com> <1377267365-24057-4-git-send-email-zonque@gmail.com> <52177052.1030308@ti.com> <521791C1.2060803@ti.com>
+From: Sekhar Nori <nsekhar@ti.com>
+Subject: Re: [PATCH] ARM: Update SMP_ON_UP code to detect A9MPCore with 1
+ CPU devices
+Date: Fri, 23 Aug 2013 22:38:41 +0530
+Message-ID: <52179719.3080609@ti.com>
+References: <1375381033-13220-1-git-send-email-santosh.shilimkar@ti.com> <51FBC610.9030900@arm.com> <51FBCEC3.4030207@ti.com> <51FBD42A.9040901@arm.com> <20130802154857.GD5292@mudshark.cambridge.arm.com> <52092AA5.3090005@ti.com> <20130813111943.GE30280@mudshark.cambridge.arm.com> <520A3518.3030301@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:47144 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755702Ab3HWRFz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Aug 2013 13:05:55 -0400
-In-Reply-To: <521791C1.2060803@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:43438 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755424Ab3HWRJW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 23 Aug 2013 13:09:22 -0400
+In-Reply-To: <520A3518.3030301@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mugunthan V N <mugunthanvnm@ti.com>
-Cc: Daniel Mack <zonque@gmail.com>, netdev@vger.kernel.org, bcousson@baylibre.com, nsekhar@ti.com, sergei.shtylyov@cogentembedded.com, davem@davemloft.net, ujhelyi.m@gmail.com, vaibhav.bedia@ti.com, d-gerlach@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Will Deacon <will.deacon@arm.com>, Sudeep KarkadaNagesha <Sudeep.KarkadaNagesha@arm.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>, Vaibhav Bedia <vaibhav.bedia@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Friday 23 August 2013 12:45 PM, Mugunthan V N wrote:
-> On Friday 23 August 2013 07:53 PM, Santosh Shilimkar wrote:
->> On Friday 23 August 2013 10:16 AM, Daniel Mack wrote:
->>> In order to support features that are specific to the AM335x IP, we have
->>> to add hardware types and another compatible string.
->>>
->>> Signed-off-by: Daniel Mack <zonque@gmail.com>
->>> ---
->>>  Documentation/devicetree/bindings/net/cpsw.txt |  3 ++-
->>>  drivers/net/ethernet/ti/cpsw.c                 | 32 ++++++++++++++++++++------
->>>  drivers/net/ethernet/ti/cpsw.h                 |  1 +
->>>  3 files changed, 28 insertions(+), 8 deletions(-)
->>>
->>> diff --git a/Documentation/devicetree/bindings/net/cpsw.txt b/Documentation/devicetree/bindings/net/cpsw.txt
->>> index 4e5ca54..b717458 100644
->>> --- a/Documentation/devicetree/bindings/net/cpsw.txt
->>> +++ b/Documentation/devicetree/bindings/net/cpsw.txt
->>> @@ -2,7 +2,8 @@ TI SoC Ethernet Switch Controller Device Tree Bindings
->>>  ------------------------------------------------------
->>>  
->>>  Required properties:
->>> -- compatible		: Should be "ti,cpsw"
->>> +- compatible		: Should be "ti,cpsw" for generic cpsw support, or
->>> +			  "ti,am3352-cpsw" for AM3352 SoCs
->>>  - reg			: physical base address and size of the cpsw
->>>  			  registers map.
->>>  			  An optional third memory region can be supplied if
->>> diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
->>> index 7a25ff4..73c44cb6 100644
->>> --- a/drivers/net/ethernet/ti/cpsw.c
->>> +++ b/drivers/net/ethernet/ti/cpsw.c
->>> @@ -155,6 +155,11 @@ do {								\
->>>  		((priv->data.dual_emac) ? priv->emac_port :	\
->>>  		priv->data.active_slave)
->>>  
->>> +enum {
->>> +	CPSW_TYPE_GENERIC,
->>> +	CPSW_TYPE_AM33XX
->>> +};
->>> +
->>>  static int debug_level;
->>>  module_param(debug_level, int, 0);
->>>  MODULE_PARM_DESC(debug_level, "cpsw debug level (NETIF_MSG bits)");
->>> @@ -1692,17 +1697,36 @@ static void cpsw_slave_init(struct cpsw_slave *slave, struct cpsw_priv *priv,
->>>  	slave->port_vlan = data->dual_emac_res_vlan;
->>>  }
->>>  
->>> +static const struct of_device_id cpsw_of_mtable[] = {
->>> +	{
->>> +		.compatible	= "ti,am3352-cpsw",
->> I didn't notice this earlier, but can't you use the IP version
->> as a compatible instead of using a SOC name. Whats really SOC specific
->> on this IP ? Sorry i have missed any earlier discussion on this but
->> this approach doesn't seem good. Its like adding SOC checks in the
->> driver subsystem.
+On 8/13/2013 7:01 PM, Santosh Shilimkar wrote:
+> On Tuesday 13 August 2013 07:19 AM, Will Deacon wrote:
+>> On Mon, Aug 12, 2013 at 07:34:13PM +0100, Santosh Shilimkar wrote:
+>>> On Friday 02 August 2013 11:48 AM, Will Deacon wrote:
+>>>> I think this an A9-specific register, which reads as 0 on UP A9 and reads as
+>>>> some form of PERIPH_BASE for SMP parts. The issue I have is when PERIPH_BASE
+>>>> is zero.
+>>>>
+>>> What do we do here ? Should we document this in the code and proceed ?
+>>> Mostly there is no platform with PERIPH_BASE = 0, so its should be fine but
+>>> I am open for any other alternative.
 >>
+>> The only other alternative I can think of is forcing people to have
+>> CONFIG_SMP=n, but that blows away single zImage for your platform.
 >>
-> But the same IP can be used in different SoC as well where the control
-> register may be different as per the Silicon Integration team's decision?
-> 
-> Ideally there should be a separate control module driver so that it can
-> take care of different SoC related needs.
-> 
-Instead of having one control module driver to address all the requirements
-in various IP's, you could specifically address that in subsystem driver layer.
-SOC guys invariably use control modules for certain functionality since it
-is easy and quick fix. And their is uniformity in the way they are
-implemented for different IP needs.
+> Yep which surely we don't want considering after so much effort we
+> have it working first place. How about going ahead with assumption
+> that PERIPH_BASE = 0 case doesn't work.
 
-In this specific case, if the CPSW IP version has some part of the
-functionality implemented using control module that is just harfaware
-choice. Its not mandatory to partition that in two sub-system. Rather
-consider it as a special IP version and treat it accordingly in the
-driver.
+I must be missing something but why cannot we use the SCU configuration
+register "CPU number" field to determine that its a UP? I do not have an
+OMAP4 board, but on AM437x, it certainly indicates only CPU0 present.
 
-Regards,
-Santosh
-
-
+Thanks,
+Sekhar
