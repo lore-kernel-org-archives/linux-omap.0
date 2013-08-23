@@ -1,87 +1,91 @@
-From: Sebastian Reichel <sre@debian.org>
-Subject: Re: [PATCH 1/3] ARM: OMAP2+: hwmod-data: Add SSI information
-Date: Fri, 23 Aug 2013 20:29:28 +0200
-Message-ID: <20130823182928.GD5753@earth.universe>
-References: <1376237628-1077-1-git-send-email-sre@debian.org>
- <1376237877-1740-1-git-send-email-sre@debian.org>
- <alpine.DEB.2.02.1308210113040.6426@utopia.booyaka.com>
+From: Mugunthan V N <mugunthanvnm@ti.com>
+Subject: Re: [PATCH v4 3/5] net: ethernet: cpsw: introduce ti,am3352-cpsw
+ compatible string
+Date: Fri, 23 Aug 2013 23:59:41 +0530
+Message-ID: <5217AA15.7010907@ti.com>
+References: <1377267365-24057-1-git-send-email-zonque@gmail.com>
+ <1377267365-24057-4-git-send-email-zonque@gmail.com>
+ <52177052.1030308@ti.com> <52178E20.5040404@gmail.com>
+ <52179448.1020906@ti.com> <5217974B.5090503@ti.com> <521799A3.7080706@ti.com>
+ <52179AD6.8090406@gmail.com> <52179BDA.50603@ti.com>
+ <52179E44.5030202@ti.com> <5217A59E.4090700@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="gr/z0/N6AeWAPJVB"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.02.1308210113040.6426@utopia.booyaka.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linus.walleij@linaro.org, Kevin Hilman <khilman@deeprootsystems.com>, Shubhrajyoti Datta <omaplinuxkernel@gmail.com>, Carlos Chinea <cch.devel@gmail.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <5217A59E.4090700@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: devicetree@vger.kernel.org, sergei.shtylyov@cogentembedded.com, d-gerlach@ti.com, netdev@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>, vaibhav.bedia@ti.com, Daniel Mack <zonque@gmail.com>, bcousson@baylibre.com, ujhelyi.m@gmail.com, linux-omap@vger.kernel.org, davem@davemloft.net, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
+On Friday 23 August 2013 11:40 PM, Santosh Shilimkar wrote:
+> On Friday 23 August 2013 01:39 PM, Sekhar Nori wrote:
+>> On 8/23/2013 10:58 PM, Santosh Shilimkar wrote:
+>>> On Friday 23 August 2013 01:24 PM, Daniel Mack wrote:
+>>>> On 23.08.2013 19:19, Santosh Shilimkar wrote:
+>>>>> On Friday 23 August 2013 01:09 PM, Sekhar Nori wrote:
+>>>>>> On 8/23/2013 10:26 PM, Santosh Shilimkar wrote:
+>>>>>>> So just stick the IP version or call it cpsw-v1... cpsw-v2 etc.
+>>>>>> If this could be handled using IP version then the right way would be to
+>>>>>> just read the IP version from hardware and use it. No need of DT property.
+>>>>>>
+>>>>> Thats fine as well but I thought the patch needed additional properties like
+>>>>> CM reg-address come from DT and hence the separate compatible. If you can
+>>>>> manage without that, thats even better.
+>>>> We can't, that's the whole point :)
+>>>>
+>>> I saw that from the patch :)
+>>>
+>>>> Well, theoretically, we could for now, but that's not a clean solution.
+>>>> Again: the problem here is that the control port is separated from the
+>>>> cpsw core, and so we have to implement something specific for the AM3352
+>>>> SoC. I know that's a violation of clean and generic driver ideas, but
+>>>> there's no way we can assume that every cpsw v2 ip block has a control
+>>>> port that is compatible to the one found on am335x chips.
+>>>>
+>>> But there is a possibility that other SOC will just use the same
+>>> control module approach. So using a revision IP is just fine. BTW,
+>> But this is misleading because it makes appear like the same compatible
+>> can be used on on another SoC like DRA7 which probably has the same
+>> version of IP but a different control module implementation, when in
+>> practice it cannot.
+>>
+>> The fact is we are doing something SoC specific in the driver and we
+>> cannot hide that behind IP versions. If really in practice there comes
+>> another SoC with the same control module definition then it can always
+>> use ti,am3352-cpsw compatible as well. The compatible name does not
+>> preclude its usage.
+>>
+> My point was the CPSW needs a feature which is implemented using
+> control module rather than within the IP itself. Its an implementation
+> detail. As such the additional feature makes sense for that IP. O.w
+> there was no need to do any monkeying with control module.
+>
+> E.g
+> MMC card detect is a basic functionality, implemented by various types
+> like control module, PMIC or MMC IP itself. As such the driver need
+> that support and all the implementation details needs to still handled
+> to make that part work.
+>
+>
 
---gr/z0/N6AeWAPJVB
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+CPSW core as such understands only GMII/MII signals, there is an
+additional module which converts GMII/MII signals to RGMII/RMII signals
+respectively which is called as CPRGMII/CPRMII as specified in the
+AM335x TRM in Figure 14-1. Ethernet Switch Integration.
 
-Hi Paul,
+So to control this sub-module, the control register is used and this has
+to be configured according to the EVM design like what mode of phy is
+connected. CPRGMII and CPRMII is no way related to CPSW core.
 
-On Wed, Aug 21, 2013 at 01:22:09AM +0000, Paul Walmsley wrote:
-> > From: Sebastian Reichel <sre@ring0.de>
-> > This patch adds Synchronous Serial Interface (SSI) hwmod support for
-> > OMAP34xx SoCs.
->=20
-> a few comments:
->=20
-> - please add your Signed-off-by: to the patch description, per=20
-> Documentation/SubmittingPatches
-
-I assumed this was only important, when I actually want to submit
-patches.  This was merely a first RFC. I will do this for the next
-round of patches.
-
-> - please drop "omap34xx_ssi_irqs" and "omap34xx_ssi_addrs" - that data=20
-> should go into DT now
-
-I'm currently working on converting the driver to use DT.
-I will send another patch when I'm done.
-
-> [...]
-> FYI, this is stretching my recollection, and is not directly related to=
-=20
-> this patch, but I seem to recall that there was a problem with auto-idle=
-=20
-> when SSI was active on the 3430.  Basically, if the SSI was active, but=
-=20
-> other CORE_L3/CORE_L4 clockdomain devices weren't, I think that DPLL3=20
-> would be incorrectly shut down.  You'll probably need to check the Nokia=
-=20
-> kernel source for details.  I thought we had a hwmod flag for this, but I=
-=20
-> guess not.  Anyway, in case you notice odd behavior...
-
-OK. Thanks for the hint.
-
--- Sebastian
-
---gr/z0/N6AeWAPJVB
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
-
-iQIcBAEBCAAGBQJSF6oIAAoJENju1/PIO/qalSwP/Rgpb0a3+AjdbcthdW3lIwuS
-+YTq/pMYY+FUD2qaKe5yDOsq0mGF4Jw3lnMEfq03oLIqBcxRuizvjE5rL3ylEAAn
-z22PhDssfYNNQ2GB4zWBkTao/Ay25WLkg2WJ2SCTjA0qHs53TJO17RFAMcHIyQjD
-kqXLPE0H5YwVz6wcrlx0KnqISmbrxkGWHNq7kOaFDvrKsGnkqJAEB+Y3rBBrMfmm
-SzeThkZvN1aABYwOBc1EAfSu4n/uhuqAyFMSJUvKO8wHv7H0svadscD70nxaPyZS
-dK9gDgr59zf4kwE+5FPe95ixirhSxpnd+RuoTJUe89bs2M050cQQf0B/r51Tv7vt
-875vKDS5GLBMVsY9Z1+mXj6CnJeXsp1cLxN4zheEtzqgk5hIA+duOZ9MrBZfOs7H
-yh8iGbPbOLAJd1ZD/aX+jy7f/hxxi6bHvxCQ0I8aPi5AQhVLjNwpSEKCkPciP/Rh
-Bnrxk+7SRi4LW7bHHSoKJ2tFKAeW8LObsbgUVaDCxqqlgUU3eYMj6W3G8C3PYUI5
-5eWPTUvJf5mGqOVgRQJmQWICfEVcHauKd1Qr5tf+znylMmv5YodIl2uZCDUzrvYn
-cppCnDlFVfr1piDGWjlZSC+W+Yjb9YQGFuqAddF3wu/aiNfQYa1Ttb4exHnzzgxH
-f7yWIg188PpWYAjSjyQ2
-=sQGa
------END PGP SIGNATURE-----
-
---gr/z0/N6AeWAPJVB--
+Regards
+Mugunthan V N
