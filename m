@@ -1,64 +1,130 @@
-From: Stephen Warren <swarren@wwwdotorg.org>
-Subject: Re: [PATCH] DMA: let filter functions of of_dma_simple_xlate possible
- check of_node
-Date: Fri, 23 Aug 2013 09:57:43 -0600
-Message-ID: <52178677.6090001@wwwdotorg.org>
-References: <1375408800-11789-1-git-send-email-rizhao@nvidia.com> <20130822051904.GA2685@rizhao-lap> <52167213.6090604@wwwdotorg.org> <20130823012911.GB17925@rizhao-lap>
+From: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v3 1/2] rtc: omap: update of_device_id to reflect latest
+	ip revisions
+Date: Fri, 23 Aug 2013 21:47:15 +0530
+Message-ID: <52178B0B.7090303@ti.com>
+References: <1376653017-21935-1-git-send-email-gururaja.hebbar@ti.com>
+	<1376653017-21935-2-git-send-email-gururaja.hebbar@ti.com>
+	<520E341D.4080206@baylibre.com> <520E482A.1070504@ti.com>
+	<520E5444.1000700@baylibre.com> <52172264.3070000@ti.com>
+	<52177B6C.2080406@baylibre.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from avon.wwwdotorg.org ([70.85.31.133]:55036 "EHLO
-	avon.wwwdotorg.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754190Ab3HWP5q (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Aug 2013 11:57:46 -0400
-In-Reply-To: <20130823012911.GB17925@rizhao-lap>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+In-Reply-To: <52177B6C.2080406-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
+List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
+List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
+Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+To: Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Cc: mark.rutland-5wv7dgnIgG8@public.gmane.org, a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org, davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org, rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Richard Zhao <rizhao@nvidia.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "vinod.koul@intel.com" <vinod.koul@intel.com>, "djbw@fb.com" <djbw@fb.com>
 
-On 08/22/2013 07:29 PM, Richard Zhao wrote:
-> On Fri, Aug 23, 2013 at 04:18:27AM +0800, Stephen Warren wrote:
->> On 08/21/2013 11:19 PM, Richard Zhao wrote:
->>> On Fri, Aug 02, 2013 at 10:00:00AM +0800, Richard Zhao wrote:
->>>> pass of_phandle_args dma_spec to dma_request_channel in of_dma_simple_xlate,
->>>> so the filter function could access of_node in of_phandle_args.
->>>>
->>>> It also remove restriction of #dma-cells has to be one.
->>>>
->>>> Signed-off-by: Richard Zhao <rizhao@nvidia.com>
->>>> ---
->>>>  drivers/dma/edma.c     |  7 +++++--
->>>>  drivers/dma/of-dma.c   | 10 ++++------
->>>>  drivers/dma/omap-dma.c |  6 ++++--
->>>>  3 files changed, 13 insertions(+), 10 deletions(-)
->>>>
->>>
->>> Hi Vinod,
->>>
->>> Can you please pick up this change?
->>>
->>> Hi Stephen,
->>>
->>> Can you please give a ack or reviewed-by etc?
->>
->> Hmm. Looking at the patch, I'm not sure it's right.
->>
->> This patch simply passes all the specfier args to the filter function,
->> and the code to check the equality of the of_node to the filter args is
->> still duplicated in each DMA driver. Instead, the DMA core should be
->> implementing the equality check, and only even calling the
->> driver-specific filter function for devices where the client's phandle
->> matches the DMA providing device's of_node handle.
-> 
-> Filter function is called in dmaengine core code, independent of dt.
-
-The core code can still check if a dmaengine's driver was instantiated
-from DT and take additional actions in that case.
-
-> And the reason why the driver has to write its own filter function is
-> it has to store slave id there in its own way.
-
-I'm not saying don't call the driver's filter function, but rather that
-the dmaengine core should perform the common checks before doing so.
+T24gOC8yMy8yMDEzIDg6NDAgUE0sIEJlbm9pdCBDb3Vzc29uIHdyb3RlOgoKPj4+IFRoZXJlIGlz
+IG5vIGFzc3VtcHRpb24gYWJvdXQgdGhlIGxvc3Qgb2YgZnVuY3Rpb25hbGl0eSBieSB1c2luZyB0
+aGUKPj4+IGdlbmVyaWMgdmVyc2lvbiBvZiB0aGUgZHJpdmVyLiBIb3cgdGhlIHVzZXIgaXMgc3Vw
+cG9zZWQgdG8ga25vdyB0aGUKPj4+IGFtb3VudCBvZiBmdW5jdGlvbmFsaXR5IGhlIHdpbGwgbG9z
+ZSwgYW5kIGlmIHRoaXMgaXMgYWNjZXB0YWJsZSB0bwo+Pj4gaGltLgo+Pgo+PiBJIHN1cHBvc2Ug
+dGhlIGdlbmVyaWMgZHJpdmVyIHdvdWxkIHJldHVybiBzb21lIGVycm9yIGNvZGUgbGlrZQo+PiAt
+RU5PVFNVUCBmb3IgdGhlIGZ1bmN0aW9uYWxpdHkgaXQgY2Fubm90IHByb3ZpZGUuCj4gCj4gV2Vs
+bCwgSSBndWVzcyBpdCBkZXBlbmRzIG9mIHRoZSBhZGRlZCBmdW5jdGlvbmFsaXR5IGFkZCBob3cg
+ZmFyIHRoZSBJUAo+IHZlcnNpb24gaXMgZm9yd2FyZCBjb21wYXRpYmxlIHdpdGggdGhlIG9sZCBk
+cml2ZXIuIElmIHRoZSBuZXcgSVAgdmVyc2lvbgo+IGlzIGp1c3QgaW1wcm92aW5nIHRoZSBwZXJm
+b3JtYW5jZSBieSBhZGRpbmcgYSBETUEgbW9kZSBpbnN0ZWFkIG9mIHRoZQo+IFBJTywgdGhlbiB0
+aGUgZHJpdmVyIEFQSSBjYW4gcmVtYWluIHRoZSBzYW1lLgo+IEJ1dCBpZiB5b3UgYWRkIGEgbmV3
+IGZ1bmN0aW9uYWxpdHkgdGhhdCB3aWxsIHJlcXVpcmUgYW4gZXh0ZW5kZWQgQVBJLAo+IHRoZXJl
+IGlzIG5vIHdheSB5b3UgY2FuIHJlcG9ydCBzdWNoIGVycm9yLiBFeGNlcHQgaWYgdGhlIEFQSSBp
+dHNlbGYgaXMKPiBkb25lIHdpdGggYSBnb29kIGZvcndhcmQgY29tcGF0aWJpbGl0eSBzdXBwb3J0
+Lgo+IAo+IEFuZCBpZiB0aGUgbmV3IGZ1bmN0aW9uYWxpdHkgaXMgbWFuZGF0b3J5IHRvIG1ha2Ug
+dGhlIG5ldyBzeXN0ZW0KPiBvcGVyYXRpb25hbCwgcmV0dXJuaW5nIGFuIGVycm9yIG1pZ2h0IGp1
+c3QgbWFrZSB0aGUgc3lzdGVtIG5vdCB3b3JraW5nCj4gYXQgYWxsLgoKSWYgdGhlIGRyaXZlciBj
+YW5ub3Qgd29yayBhdCBhbGwsIHRoZW4geWVzLCBJIHdvdWxkIG5vdCBjbGFpbQpjb21wYXRpYmls
+aXR5LiBBdCBsZWFzdCBhIHN1YnNldCBvZiBmdW5jdGlvbmFsaXR5IHNob3VsZCB3b3JrLgoKPiAK
+Pj4gV2h5Cj4+IHdvdWxkIHNvbWVvbmUgd3JpdGUgYSBkcml2ZXIgc3VwcG9ydGluZyDigJxmc2ws
+bXBjODY0MS11YXJ04oCdIGlmIDEwMCUgb2YKPj4gaXRzIGhhcmR3YXJlIGZlYXR1cmVzIGFyZSBh
+bHNvIHN1cHBvcnRlZCBieSDigJxuczE2NTUwIiBkcml2ZXI/Cj4gCj4gVGhhdCdzIHN0aWxsIGRv
+YWJsZSwgaWYgeW91IHdhbnQgdG8gcmVkdWNlIHRoZSBzaXplIG9mIGEgYmlnIGdlbmVyaWMKPiBk
+cml2ZXIgaW50byBhIHNtYWxsZXIgc3BlY2lmaWMgZHJpdmVyLiBUaGUgcG9pbnQgaXMgdGhhdCB0
+aGUgY29tcGF0aWJsZQoKVGhhdHMgcGxhdXNpYmxlLiBBbHRob3VnaCBJIGhhdmUgdG8gYWRtaXQg
+SSBoYXZlIG5ldmVyIHNlZW4gYSBuZXcgZHJpdmVyCmJlaW5nIHdyaXR0ZW4ganVzdCBiZWNhdXNl
+IGFub3RoZXIgZXhpc3RpbmcgZHJpdmVyIGlzIGJsb2F0ZWQuCgo+IHZhbHVlIGRvZXMgbm90IGhh
+dmUgYW55IGFzc3VtcHRpb24gYWJvdXQgdGhlIGRyaXZlciB0aGF0IHdpbGwgaGFuZGxlIGl0LgoK
+UmlnaHQuIEl0cyBhbGwgZHJpdmVuIGJ5IGhhcmR3YXJlIGNoYW5nZXMuCgo+IAo+IFRoZSBvdGhl
+ciBpc3N1ZSBpcyB0aGF0IHdlIGFyZSBzdXBwb3NlZCB0byBhbHdheXMgdXNlIHRoZSBsYXRlc3Qg
+U29DCj4gdmVyc2lvbiBldmVuIGlmIHRoZSBJUCBpcyAxMDAlIHRoZSBzYW1lLiBMaWtlCj4gCj4g
+b21hcDUtdGltZXIgewo+ICAgICBjb21wYXRpYmxlID0gIm9tYXA1LXRpbWVyIiwgIm9tYXA0LXRp
+bWVyIjsKPiB9Cj4gCj4gU28gaG93IGFyZSB5b3Ugc3VwcG9zZSB0byBkaWZmZXJlbnRpYXRlIHRo
+ZSBzYW1lIElQLCBhbmQgYSBjb21wYXRpYmxlIElQPz8/Cj4gCj4gVGhhdCdzIHdoYXQgSSBkb24n
+dCBsaWtlIGluIHRoYXQgY29tcGF0aWJsZSBzdHJpbmcgZGVmaW5pdGlvbi4gWW91IGRvCj4gbm90
+IG5lY2Vzc2FyaWx5IGtub3cgdGhlIGFtb3VudCBvZiBjb21wYXRpYmlsaXR5IHlvdSBhcmUgdGFs
+a2luZyBhYm91dC4KClRoYXQncyBjb3JyZWN0LiBUaGUgc3RyaW5ncyB0aGVtc2VsdmVzIHRlbGwg
+dmVyeSBsaXR0bGUgaG93IG11Y2ggT01BUDUKdGltZXIgd29ya3Mgd2hlbiBjb21wYXRpYmxlID0g
+Im9tYXA0LXRpbWVyIiBpcyBwYXNzZWQuIFNvbWUga25vd24KbGltaXRhdGlvbnMgY2FuIHBlcmhh
+cHMgYmUgZG9jdW1lbnRlZCBpbiBiaW5kaW5nIGRlZmluaXRpb24uCgo+PiB0aGF0IGl0IGlzIHRv
+ZGF5LiBUaGluZyBpcywgeW91IGNhbiBuZXZlciBrbm93IGlmIHRoZSBJUCBuZWVkcyBhbnkKPj4g
+YWRkaXRpb25hbCBoYW5kbGluZyBldmVuIGFmdGVyIHJlYWRpbmcgdGhlIHNwZWMuIFdlIGtlZXAg
+ZGlzY292ZXJpbmcKPj4gbmV3IGZlYXR1cmVzL3F1aXJrcy4gU28sIHdoZW4gd3JpdGluZyA8bmV3
+LXNvYz4uZHRzaSBpdHMgc2FmZXIgdG8KPj4gYWx3YXlzIHVzZQo+Pgo+PiBjb21wYXRpYmxlID0g
+InRpLDxuZXctc29jPi1ydGMiLCAidGksPGNvbXBhdGlibGUtc29jPi1ydGMiOwo+Pgo+PiBldmVu
+IHRob3VnaCBfdG9kYXlfIHlvdSBtYXkgbm90IGhhdmUgY29kZSB0aGF0IHNwZWNpZmljYWxseSBo
+YW5kbGVzCj4+ICJ0aSw8bmV3LXNvYz4tcnRjIi4KPiAKPiBXZWxsLCB3ZSBjYW4gZG8gdGhhdCwg
+YnV0IGhvbmVzdGx5LCBJIGRvIG5vdCBzZWUgdGhlIG5lZWQuIFlvdSBjYW4KPiBhbHdheXMgdXBk
+YXRlIHRoZSBkdHMgbGF0ZXIuIFdoeSB3b3VsZCB3ZSBhZGQgaHVuZHJlZHMgbW9yZSBjb21wYXRp
+YmxlCj4gc3RyaW5ncyBqdXN0IGluIGNhc2UgZmV3IGRldmljZXMgd2lsbCBuZWVkIHNwZWNpYWwg
+aGFuZGxpbmcuIFRoYXQncwo+IG92ZXJraWxsLgo+IElmIHdhcyBtYXliZSBlYXN5IGFuZCBoYXJt
+bGVzcyBpbiB0aGUgZ29vZCBvbGQgUFBDIHRpbWUgd2hlbiB0aGUgRFRTCj4gZmlsZXMgd2VyZSBy
+ZWxhdGl2ZWx5IHNtYWxsLCBidXQgdGhlIEFSTSBEVFMgZmlsZXMgYXJlIG11Y2ggYmlnZ2VyLgo+
+IAo+IEluIHRoZSBuYW1lIG9mIHRoZSBLZWVwIEl0IFNpbXBsZSBQcmluY2lwbGUsIEkgd291bGQg
+anVzdCBhdm9pZCBhZGRpbmcKPiBzb21ldGhpbmcganVzdCBiZWNhdXNlIGl0IG1pZ2h0IGJlIHVz
+ZWZ1bCBpbiA1ICUgb2YgdGhlIGNhc2VzLgoKSXQgY2VydGFpbmx5IHNlZW1zIG92ZXJraWxsIHRv
+ZGF5LiBJZiBhbmQgd2hlbiB0aGUgLmR0c1tpXSBmaWxlcyBhcmUKbWFpbnRhaW5lZCBhcyBhIHNl
+cGFyYXRlIHByb2plY3QgaXQgd2lsbCBiZWNvbWUgcGFpbmZ1bCB0byBrZWVwIGtlcm5lbAphbmQg
+LmR0YiBpbiBzeW5jLiBUaGlzIHdpbGwgdGhlbiBiZWNvbWUgaW1wb3J0YW50LCBhcyBib290bG9h
+ZGVyCmluZGVwZW5kZW5jZSB0b2RheSBpcy4KCj4+Pj4gT3RoZXJ3aXNlIHRoZXkgZ2V0IHBsYWlu
+IFJUQyBmdW5jdGlvbmFsaXR5IC0gYnV0IGF0IGxlYXN0IHRoZXkKPj4+PiBnZXQgc29tZXRoaW5n
+IGluc3RlYWQgb2Ygbm8gUlRDLgo+Pj4KPj4+IEJlY2F1c2UgeW91IGFzc3VtZSB0aGF0IHRoaXMg
+ZmVhdHVyZSBpcyBub3QgaW1wb3J0YW50IGFuZCB0aHVzIHlvdQo+Pj4gY2FuIHVzZSB0aGUgcGxh
+aW4gUlRDLCBidXQgd2hhdCBpZiBzb21lb25lIGlzIGJ1eWluZyB0aGF0IEhXCj4+PiBiZWNhdXNl
+IG9mIHRoaXMgbmV3IGZlYXR1cmUuIFdpdGhvdXQgdGhhdCBmZWF0dXJlIGhpcyBzeXN0ZW0gd2ls
+bAo+Pj4ganVzdCBub3Qgd29yayBwcm9wZXJseS4KPj4KPj4gUmlnaHQsIGJ1dCB0aGF0cyBub3Qg
+YSBwcm9ibGVtIERUIGNhbiBzb2x2ZS4gSGUvc2hlIG5lZWRzIHRvIGhhc3NsZQo+PiBUSSBmb3Ig
+dXBkYXRlZCBkcml2ZXJzLiBCdXQgdGhlcmUgY291bGQgYmUgMTAgb3RoZXIgY3VzdG9tZXJzIHdo
+byBhcmUKPj4ganVzdCBva2F5IHdpdGggcGxhaW4gUlRDLiBTbyB0aWxsIHRoZSB0aW1lIGRyaXZl
+ciBpcyB1cGRhdGVkIHRvIHVzZQo+PiB0aSxhbTMzNTItcnRjIiwgYXJlIHlvdSBzYXlpbmcgbm8g
+b25lIHNob3VsZCBiZSBhYmxlIHRvIHVzZSB0aGUgUlRDCj4+IG9uIHRoZSBTb0MgYXQgYWxsIGV2
+ZW4gdGhvdWdoIDkwJSBmZWF0dXJlcyBhcmUgYXZhaWxhYmxlPwo+IAo+IEFnYWluLCBpZiBpdCB3
+aWxsIG5vdCBwcmV2ZW50IHRoZSBzeXN0ZW0gdG8gd29yayBwcm9wZXJseSwgdGhlbiBpdCBpcwo+
+IGZpbmUuIEJ1dCBsZXQncyBhc3N1bWUgdGhhdCB3aXRob3V0IHRoZSB3YWtldXAgUlRDIGZ1bmN0
+aW9uYWxpdHksIHlvdQo+IGp1c3QgY2Fubm90IHdha2V1cCBmcm9tIHN1c3BlbmQgYW4gYW0zMzUy
+IGJvYXJkLiBUaGVuIHlvdSBlbmQgdXAgd2l0aCBhCj4gbm9uIGZ1bmN0aW9uYWwgc3lzdGVtIGZv
+ciB0aGUgUE0gcG9pbnQgb2Ygdmlldy4KCkNvcnJlY3QsIGJ1dCB0aGlzIGlzIGJlY2F1c2Ugb2Yg
+bGFjayBvZiBrZXJuZWwgc3VwcG9ydCBmb3IgYSBmZWF0dXJlLgpOb3QgYmVjYXVzZSBvZiB0aGUg
+d2F5IGNvbXBhdGlibGUgaXMgd3JpdHRlbi4KCj4gU29tZW9uZSB3aG8gaXMgbm90IGF3YXJlIHRo
+YXQgdGhlIGNvbXBhdGlibGUgUlRDIGlzIG5vdCBzdXBwb3J0aW5nIHRoYXQKPiBmZWF0dXJlIG1p
+Z2h0IHNwZW5kIHNvbWUgdGltZSBmaWd1cmluZyBvdXQgd2h5IGhlIGNhbm5vdCB3YWtldXAgZnJv
+bQo+IHN1c3BlbmQgb24gYSBSVEMgYWxhcm0uCgpSaWdodC4gRFQvY29tcGF0aWJsZSBkb2VzIG5v
+dCBtYWtlIHRoaXMgcHJvYmxlbSBiZXR0ZXIgb3Igd29yc2UuIEV2ZW4KdXNpbmcgcGxhdGZvcm0g
+ZGV2aWNlIG1vZGVsLCB5b3Ugd291bGQgc3RpbGwgZW5kIHVwIHdpdGggYSBwYXJ0aWFsbHkKd29y
+a2luZyBzeXN0ZW0uCgo+Pj4gU2F5aW5nIHRoYXQgdGhpcyBpcyBjb21wYXRpYmxlIHdoZXJlYXMg
+eW91IGxvc3QgZnVuY3Rpb25hbGl0eSBpcwo+Pj4gbHlpbmcgdG8gdGhlIGN1c3RvbWVyIGZvciBt
+eSBwb2ludCBvZiB2aWV3Lgo+Pgo+PiBJZiAxMDAlIGZ1bmN0aW9uYWxpdHkgaXMgcmVxdWlyZWQg
+Zm9yIGNvbXBhdGliaWxpdHkgdGhlbiBJIGFtIGFmcmFpZAo+PiB0aGVyZSBpcyBub3RoaW5nIGxp
+a2UgImNvbXBhdGliaWxpdHkiLiBUaGVyZSBhcmUganVzdCBkaWZmZXJlbnQKPj4gaXNvbGF0ZWQg
+dmVyc2lvbnMuCj4gCj4gSSBndWVzcyB5b3UgYXJlIHJpZ2h0Lgo+IAo+IEJvdHRvbS1saW5lLCBJ
+J20gcmVhbGx5IGRpc2FwcG9pbnRlZCBidXQgdGhhdCBsYWNrIG9mIGFjY3VyYWN5IGluIHRoZQo+
+IGNvbXBhdGlibGUgc3RyaW5nLCBidXQgSSBndWVzcywgaXQgd2FzIGRvbmUgZm9yIHdoYXQgeW91
+IGd1eXMgYXJlIGRvaW5nLgo+IEFuZCBtYXliZSwgaXQgaXMgc29tZXRoaW5nIHRoYXQgc2hvdWxk
+IGp1c3QgYmUgd2VsbCBkb2N1bWVudGVkIGluIHRoZQo+IGJpbmRpbmdzIHRvIGF2b2lkIGNvbmZ1
+c2luZyB0aGUgdXNlcnMuCgpPa2F5LiBDYW4geW91IHBsZWFzZSBzZWUgaWYgeW91IGNhbiB0YWtl
+IDIvMiBmb3IgdjMuMTI/IEl0IGNhbiBiZSB0YWtlbgppbmRlcGVuZGVudGx5IG9mIDEvMiAod2hp
+Y2ggSSBndWVzcyBha3BtIHdpbGwgcGljayB1cCkuCgpUaGFua3MsClNla2hhcgpfX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpEYXZpbmNpLWxpbnV4LW9wZW4t
+c291cmNlIG1haWxpbmcgbGlzdApEYXZpbmNpLWxpbnV4LW9wZW4tc291cmNlQGxpbnV4LmRhdmlu
+Y2lkc3AuY29tCmh0dHA6Ly9saW51eC5kYXZpbmNpZHNwLmNvbS9tYWlsbWFuL2xpc3RpbmZvL2Rh
+dmluY2ktbGludXgtb3Blbi1zb3VyY2UK
