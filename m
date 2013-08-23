@@ -1,64 +1,61 @@
-From: Joel Fernandes <joelf@ti.com>
-Subject: Re: [PATCH v2 0/2] ARM: dts: Add SHAM and AES DT information
-Date: Fri, 23 Aug 2013 11:53:50 -0500
-Message-ID: <5217939E.40903@ti.com>
-References: <1374078222-12883-1-git-send-email-mgreer@animalcreek.com> <alpine.DEB.2.02.1308210012420.6426@utopia.booyaka.com> <5214C11F.8090808@baylibre.com> <5214C372.3080402@baylibre.com> <52158A7E.30305@ti.com> <5215CCFE.6040500@baylibre.com> <20130822212402.GA30504@animalcreek.com>
-Reply-To: <joelf@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH v4 3/5] net: ethernet: cpsw: introduce ti,am3352-cpsw
+ compatible string
+Date: Fri, 23 Aug 2013 12:56:40 -0400
+Message-ID: <52179448.1020906@ti.com>
+References: <1377267365-24057-1-git-send-email-zonque@gmail.com>
+ <1377267365-24057-4-git-send-email-zonque@gmail.com>
+ <52177052.1030308@ti.com> <52178E20.5040404@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:34361 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754761Ab3HWQyg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 23 Aug 2013 12:54:36 -0400
-In-Reply-To: <20130822212402.GA30504@animalcreek.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <52178E20.5040404@gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Daniel Mack <zonque@gmail.com>
+Cc: mugunthanvnm@ti.com, sergei.shtylyov@cogentembedded.com, d-gerlach@ti.com, netdev@vger.kernel.org, nsekhar@ti.com, vaibhav.bedia@ti.com, devicetree@vger.kernel.org, bcousson@baylibre.com, ujhelyi.m@gmail.com, linux-omap@vger.kernel.org, davem@davemloft.net, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: "Mark A. Greer" <mgreer@animalcreek.com>
-Cc: Benoit Cousson <bcousson@baylibre.com>, Lokesh Vutla <lokeshvutla@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 08/22/2013 04:24 PM, Mark A. Greer wrote:
-> On Thu, Aug 22, 2013 at 10:34:06AM +0200, Benoit Cousson wrote:
->> Hi Lokesh,
->>
->> On 22/08/2013 05:50, Lokesh Vutla wrote:
->>> Hi Benoit,
->>> On Wednesday 21 August 2013 07:11 PM, Benoit Cousson wrote:
->>>> Hi Mark,
->>>>
->>>> In fact I cannot even apply these patches since they are referring the the edma controller node that does not seem to be there in 3.11-rc6.
->>>>
->>>> Is this EDMA series supposed to be merged for 3.12? If this is the case, where can I find a reference GIT for it?
->>> The following EDMA support dt patch series from Joel is needed :
->>> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg92176.html
->>> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg92177.html
->>
->> Thanks, it works a little bit better with these patches :-)
+On Friday 23 August 2013 12:30 PM, Daniel Mack wrote:
+> On 23.08.2013 16:23, Santosh Shilimkar wrote:
+>> On Friday 23 August 2013 10:16 AM, Daniel Mack wrote:
 > 
-> Yeah, sorry.
+>>> +static const struct of_device_id cpsw_of_mtable[] = {
+>>> +	{
+>>> +		.compatible	= "ti,am3352-cpsw",
+>>
+>> I didn't notice this earlier, but can't you use the IP version
+>> as a compatible instead of using a SOC name. Whats really SOC specific
+>> on this IP ? Sorry i have missed any earlier discussion on this but
+>> this approach doesn't seem good. Its like adding SOC checks in the
+>> driver subsystem.
 > 
-> Given Mark Rutland's comments in another email, let me respin and send v3.
-> I'll put a comment about the dependencies this time.
+> As I already mentioned in the cover letter and in the commit message, I
+> just don't know which criteria makes most sense here.
+> 
+> On a general note, I would say that chances that this exactly IP core
+> with the same version number will appear on some other silicon which
+> doesn't support the control mode register in an AM33xx fashion, is not
+> necessarily negligible.
+> 
+> So what that new compatible string denotes is the cpsw in a version as
+> found on am3352 SoCs, which is actually exactly what it does.
+> 
+> I don't have a strong opinion here, but see your point. I just don't
+> have a better idea on how to treat that.
+> 
+So just stick the IP version or call it cpsw-v1... cpsw-v2 etc.
+That way if in future if someone uses those features, they can use
+this compatible if they don't they use the one which suites that
+SOC.
 
-Just sanity tested these patches on v3.11-rc6 too.
-
-Drivers register successfully after passing the boot crypto testmgr tests.
-
-bash-4.2# cat /proc/crypto | grep -i omap
-driver       : ctr-aes-omap
-driver       : cbc-aes-omap
-driver       : ecb-aes-omap
-driver       : omap-hmac-sha256
-driver       : omap-hmac-sha224
-driver       : omap-sha256
-driver       : omap-sha224
-driver       : omap-hmac-md5
-driver       : omap-hmac-sha1
-driver       : omap-md5
-driver       : omap-sha1
-
-
-Thanks,
-
--Joel
+Regards,
+Santosh
