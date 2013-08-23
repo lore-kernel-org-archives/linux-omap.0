@@ -1,133 +1,68 @@
-From: "Mark A. Greer" <mgreer@animalcreek.com>
-Subject: [PATCH v3 2/2] ARM: dts: Add AES data and documentation for AM33XX
-Date: Fri, 23 Aug 2013 14:12:36 -0700
-Message-ID: <1377292356-19199-3-git-send-email-mgreer@animalcreek.com>
-References: <1377292356-19199-1-git-send-email-mgreer@animalcreek.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from m1plsmtpa01-02.prod.mesa1.secureserver.net ([64.202.165.174]:44677
-	"EHLO m1plsmtpa01-02.prod.mesa1.secureserver.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756304Ab3HWVM6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 23 Aug 2013 17:12:58 -0400
-In-Reply-To: <1377292356-19199-1-git-send-email-mgreer@animalcreek.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+Subject: [RFC PATCH 06/14] arm: dts: add omap4 CPU thermal data
+Date: Fri, 23 Aug 2013 19:15:47 -0400
+Message-ID: <1377299755-5134-7-git-send-email-eduardo.valentin@ti.com>
+References: <1377299755-5134-1-git-send-email-eduardo.valentin@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1377299755-5134-1-git-send-email-eduardo.valentin@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, grant.likely@linaro.org, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com, wni@nvidia.com
+Cc: devicetree@vger.kernel.org, durgadoss.r@intel.com, linux-pm@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, Eduardo Valentin <eduardo.valentin@ti.com>, linux-arm-kernel@lists.infradead.org, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <b-cousson@linaro.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Benoit Cousson <bcousson@baylibre.com>, Lokesh Vutla <lokeshvutla@ti.com>, Mark Rutland <mark.rutland@arm.com>, Joel Fernandes <joelf@ti.com>, "Mark A. Greer" <mgreer@animalcreek.com>, Paul Walmsley <paul@pwsan.com>
 
-Add the generic AM33XX AES module's device tree data and
-enable it for the am335x-evm, am335x-evmsk, and am335x-bone
-platforms.  Also add Documentation file describing the data
-for the AES module.
-
-CC: Paul Walmsley <paul@pwsan.com>
-Signed-off-by: Mark A. Greer <mgreer@animalcreek.com>
----
- .../devicetree/bindings/crypto/omap-aes.txt        | 34 ++++++++++++++++++++++
- arch/arm/boot/dts/am335x-bone.dts                  |  4 +++
- arch/arm/boot/dts/am335x-evm.dts                   |  4 +++
- arch/arm/boot/dts/am335x-evmsk.dts                 |  4 +++
- arch/arm/boot/dts/am33xx.dtsi                      | 11 +++++++
- 5 files changed, 57 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/crypto/omap-aes.txt
-
-diff --git a/Documentation/devicetree/bindings/crypto/omap-aes.txt b/Documentation/devicetree/bindings/crypto/omap-aes.txt
-new file mode 100644
-index 0000000..4bb1e27
---- /dev/null
-+++ b/Documentation/devicetree/bindings/crypto/omap-aes.txt
-@@ -0,0 +1,34 @@
-+OMAP SoC AES crypto Module
-+
-+Required properties:
-+
-+- compatible : Should contain entries for this and backward compatible
-+  AES versions:
-+  - "ti,omap2-aes" for OMAP2.
-+  - "ti,omap3-aes" for OMAP3.
-+  - "ti,omap4-aes" for OMAP4 and AM33XX.
-+  Note that the OMAP2 and 3 versions are compatible (OMAP3 supports
-+  more algorithms) but they are incompatible with OMAP4.
-+- ti,hwmods: Name of the hwmod associated with the AES odule
-+- reg : Offset and length of the register set for the module
-+- interrupt-parent : the phandle for the interrupt controller that
-+  services interrupts for this module.
-+- interrupts : the interrupt number for the AES odule.
-+
-+Optional properties:
-+- dmas: DMA specifier for tx and rx dma. See the DMA client binding,
-+	Documentation/devicetree/bindings/dma/dma.txt
-+- dma-names: DMA request names. Should be '"tx", "rx"' if dma is present.
-+
-+Example:
-+	/* AM335x */
-+	aes: aes@53500000 {
-+		compatible = "ti,omap4-aes";
-+		ti,hwmods = "aes";
-+		reg = <0x53500000 0xa0>;
-+		interrupt-parent = <&intc>;
-+		interrupts = <102>;
-+		dmas = <&edma 6
-+			&edma 5>;
-+		dma-names = "tx", "rx";
-+	};
-diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
-index bc75b2c..0cb454e 100644
---- a/arch/arm/boot/dts/am335x-bone.dts
-+++ b/arch/arm/boot/dts/am335x-bone.dts
-@@ -238,3 +238,7 @@
- &sham {
- 	status = "okay";
- };
-+
-+&aes {
-+	status = "okay";
-+};
-diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
-index 9b8c56d..76ba004 100644
---- a/arch/arm/boot/dts/am335x-evm.dts
-+++ b/arch/arm/boot/dts/am335x-evm.dts
-@@ -492,3 +492,7 @@
- &sham {
- 	status = "okay";
- };
-+
-+&aes {
-+	status = "okay";
-+};
-diff --git a/arch/arm/boot/dts/am335x-evmsk.dts b/arch/arm/boot/dts/am335x-evmsk.dts
-index 61dc5d4..025a47e 100644
---- a/arch/arm/boot/dts/am335x-evmsk.dts
-+++ b/arch/arm/boot/dts/am335x-evmsk.dts
-@@ -406,3 +406,7 @@
- &sham {
- 	status = "okay";
- };
-+
-+&aes {
-+	status = "okay";
-+};
-diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index 739d757..6e76d85 100644
---- a/arch/arm/boot/dts/am33xx.dtsi
-+++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -552,5 +552,16 @@
- 			dmas = <&edma 36>;
- 			dma-names = "rx";
- 		};
-+
-+		aes: aes@53500000 {
-+			compatible = "ti,omap4-aes";
-+			ti,hwmods = "aes";
-+			reg = <0x53500000 0xa0>;
-+			interrupt-parent = <&intc>;
-+			interrupts = <102>;
-+			dmas = <&edma 6
-+				&edma 5>;
-+			dma-names = "tx", "rx";
-+		};
- 	};
- };
--- 
-1.8.3.4
-
+VGhpcyBwYXRjaCBjaGFuZ2VzIGEgZHRzaSBmaWxlIHRvIGNvbnRhaW4gdGhlIHRoZXJtYWwgZGF0
+YQpmb3IgTVBVIGRvbWFpbiBvbiBPTUFQNCBhbmQgbGF0ZXIgU29Dcy4gVGhpcyBkYXRhIHdpbGwK
+ZW5hYmxlIHRoZSBwYXNzaXZlIGNvb2xpbmcgd2l0aCBDUFVmcmVxIGNvb2xpbmcgZGV2aWNlCmF0
+IDEwMEMgYW5kIHRoZSBzeXN0ZW0gd2lsbCBkbyBhIHRoZXJtYWwgc2h1dGRvd24gYXQgMTI1Qy4K
+ClRoaXMgdGhlcm1hbCBkYXRhIGNhbiBiZSByZXVzZWQgYWNyb3NzIFRJIFNvQyBkZXZpY2VzLgoK
+Q2M6ICJCZW5vw650IENvdXNzb24iIDxiLWNvdXNzb25AbGluYXJvLm9yZz4KQ2M6IFRvbnkgTGlu
+ZGdyZW4gPHRvbnlAYXRvbWlkZS5jb20+CkNjOiBSb2IgSGVycmluZyA8cm9iLmhlcnJpbmdAY2Fs
+eGVkYS5jb20+CkNjOiBQYXdlbCBNb2xsIDxwYXdlbC5tb2xsQGFybS5jb20+CkNjOiBNYXJrIFJ1
+dGxhbmQgPG1hcmsucnV0bGFuZEBhcm0uY29tPgpDYzogU3RlcGhlbiBXYXJyZW4gPHN3YXJyZW5A
+d3d3ZG90b3JnLm9yZz4KQ2M6IElhbiBDYW1wYmVsbCA8aWFuLmNhbXBiZWxsQGNpdHJpeC5jb20+
+CkNjOiBSdXNzZWxsIEtpbmcgPGxpbnV4QGFybS5saW51eC5vcmcudWs+CkNjOiBsaW51eC1vbWFw
+QHZnZXIua2VybmVsLm9yZwpDYzogZGV2aWNldHJlZUB2Z2VyLmtlcm5lbC5vcmcKQ2M6IGxpbnV4
+LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpDYzogbGludXgta2VybmVsQHZnZXIua2Vy
+bmVsLm9yZwpTaWduZWQtb2ZmLWJ5OiBFZHVhcmRvIFZhbGVudGluIDxlZHVhcmRvLnZhbGVudGlu
+QHRpLmNvbT4KLS0tCiBhcmNoL2FybS9ib290L2R0cy9vbWFwNC1jcHUtdGhlcm1hbC5kdHNpIHwg
+NDAgKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysKIDEgZmlsZSBjaGFuZ2VkLCA0MCBp
+bnNlcnRpb25zKCspCiBjcmVhdGUgbW9kZSAxMDA2NDQgYXJjaC9hcm0vYm9vdC9kdHMvb21hcDQt
+Y3B1LXRoZXJtYWwuZHRzaQoKZGlmZiAtLWdpdCBhL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXA0LWNw
+dS10aGVybWFsLmR0c2kgYi9hcmNoL2FybS9ib290L2R0cy9vbWFwNC1jcHUtdGhlcm1hbC5kdHNp
+Cm5ldyBmaWxlIG1vZGUgMTAwNjQ0CmluZGV4IDAwMDAwMDAuLmQ3NGM1NjUKLS0tIC9kZXYvbnVs
+bAorKysgYi9hcmNoL2FybS9ib290L2R0cy9vbWFwNC1jcHUtdGhlcm1hbC5kdHNpCkBAIC0wLDAg
+KzEsNDAgQEAKKworLyoKKyAqIERldmljZSBUcmVlIFNvdXJjZSBmb3IgT01BUDQvNSBTb0MgQ1BV
+IHRoZXJtYWwKKyAqCisgKiBDb3B5cmlnaHQgKEMpIDIwMTMgVGV4YXMgSW5zdHJ1bWVudHMgSW5j
+b3Jwb3JhdGVkIC0gaHR0cDovL3d3dy50aS5jb20vCisgKiBDb250YWN0OiBFZHVhcmRvIFZhbGVu
+dGluIDxlZHVhcmRvLnZhbGVudGluQHRpLmNvbT4KKyAqCisgKiBUaGlzIGZpbGUgaXMgbGljZW5z
+ZWQgdW5kZXIgdGhlIHRlcm1zIG9mIHRoZSBHTlUgR2VuZXJhbCBQdWJsaWMgTGljZW5zZQorICog
+dmVyc2lvbiAyLiAgVGhpcyBwcm9ncmFtIGlzIGxpY2Vuc2VkICJhcyBpcyIgd2l0aG91dCBhbnkg
+d2FycmFudHkgb2YgYW55CisgKiBraW5kLCB3aGV0aGVyIGV4cHJlc3Mgb3IgaW1wbGllZC4KKyAq
+LworCisjaW5jbHVkZSA8ZHQtYmluZGluZ3MvdGhlcm1hbC90aGVybWFsLmg+CisKK2NwdV90aGVy
+bWFsOiBjcHVfdGhlcm1hbCB7CisJI3RoZXJtYWwtY2VsbHMgPSA8MT47CisJbWFzayA9IDwweDAz
+PjsgLyogdHJpcHMgd3JpdGFiaWxpdHkgKi8KKwlwYXNzaXZlX2RlbGF5ID0gPDI1MD47IC8qIG1p
+bGxpc2Vjb25kcyAqLworCXBvbGxpbmdfZGVsYXkgPSA8MTAwMD47IC8qIG1pbGxpc2Vjb25kcyAq
+LworCXRyaXBzIHsKKwkJYWxlcnRAMTAwMDAweworCQkJdGVtcGVyYXR1cmUgPSA8MTAwMDAwPjsg
+LyogbWlsbGlDZWxzaXVzICovCisJCQloeXN0ZXJlc2lzID0gPDIwMDA+OyAvKiBtaWxsaUNlbHNp
+dXMgKi8KKwkJCXR5cGUgPSA8VEhFUk1BTF9UUklQX1BBU1NJVkU+OworCQl9OworCQljcml0QDEy
+NTAwMHsKKwkJCXRlbXBlcmF0dXJlID0gPDEyNTAwMD47IC8qIG1pbGxpQ2Vsc2l1cyAqLworCQkJ
+aHlzdGVyZXNpcyA9IDwyMDAwPjsgLyogbWlsbGlDZWxzaXVzICovCisJCQl0eXBlID0gPFRIRVJN
+QUxfVFJJUF9DUklUSUNBTD47CisJCX07CisJfTsKKwliaW5kX3BhcmFtcyB7CisJCWFjdGlvbkAw
+eworCQkJY29vbGluZ19kZXZpY2UgPSAidGhlcm1hbC1jcHVmcmVxIjsKKwkJCXdlaWdodCA9IDwx
+MDA+OyAvKiBwZXJjZW50YWdlICovCisJCQltYXNrID0gPDB4MDE+OworCQkJLyogbm8gbGltaXRz
+LCB1c2luZyBkZWZhdWx0cyAqLworCQl9OworCX07Cit9OwotLSAKMS44LjIuMS4zNDIuZ2ZhNzI4
+NWQKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51
+eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVh
+ZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1h
+cm0ta2VybmVsCg==
