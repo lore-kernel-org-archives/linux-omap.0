@@ -1,54 +1,99 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: Re: [PATCHv3 0/8] omap mailbox dt
-Date: Fri, 23 Aug 2013 11:56:55 -0500
-Message-ID: <52179457.2080203@ti.com>
-References: <1375825193-18046-1-git-send-email-s-anna@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH v4 3/5] net: ethernet: cpsw: introduce ti,am3352-cpsw
+ compatible string
+Date: Fri, 23 Aug 2013 13:05:22 -0400
+Message-ID: <52179652.9090704@ti.com>
+References: <1377267365-24057-1-git-send-email-zonque@gmail.com> <1377267365-24057-4-git-send-email-zonque@gmail.com> <52177052.1030308@ti.com> <521791C1.2060803@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1375825193-18046-1-git-send-email-s-anna@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Suman Anna <s-anna@ti.com>
-Cc: Ohad Ben-Cohen <ohad@wizery.com>, devicetree@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Jassi Brar <jaswinder.singh@linaro.org>, Benoit Cousson <bcousson@baylibre.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:47144 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755702Ab3HWRFz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Aug 2013 13:05:55 -0400
+In-Reply-To: <521791C1.2060803@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Mugunthan V N <mugunthanvnm@ti.com>
+Cc: Daniel Mack <zonque@gmail.com>, netdev@vger.kernel.org, bcousson@baylibre.com, nsekhar@ti.com, sergei.shtylyov@cogentembedded.com, davem@davemloft.net, ujhelyi.m@gmail.com, vaibhav.bedia@ti.com, d-gerlach@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
 
-Tony, Benoit,
-
-> This is an updated series for adding the device tree support to
-> the OMAP mailbox driver. The series is based on 3.11-rc4 and now
-> includes the support for AM335 WkupM3 mailbox.
+On Friday 23 August 2013 12:45 PM, Mugunthan V N wrote:
+> On Friday 23 August 2013 07:53 PM, Santosh Shilimkar wrote:
+>> On Friday 23 August 2013 10:16 AM, Daniel Mack wrote:
+>>> In order to support features that are specific to the AM335x IP, we have
+>>> to add hardware types and another compatible string.
+>>>
+>>> Signed-off-by: Daniel Mack <zonque@gmail.com>
+>>> ---
+>>>  Documentation/devicetree/bindings/net/cpsw.txt |  3 ++-
+>>>  drivers/net/ethernet/ti/cpsw.c                 | 32 ++++++++++++++++++++------
+>>>  drivers/net/ethernet/ti/cpsw.h                 |  1 +
+>>>  3 files changed, 28 insertions(+), 8 deletions(-)
+>>>
+>>> diff --git a/Documentation/devicetree/bindings/net/cpsw.txt b/Documentation/devicetree/bindings/net/cpsw.txt
+>>> index 4e5ca54..b717458 100644
+>>> --- a/Documentation/devicetree/bindings/net/cpsw.txt
+>>> +++ b/Documentation/devicetree/bindings/net/cpsw.txt
+>>> @@ -2,7 +2,8 @@ TI SoC Ethernet Switch Controller Device Tree Bindings
+>>>  ------------------------------------------------------
+>>>  
+>>>  Required properties:
+>>> -- compatible		: Should be "ti,cpsw"
+>>> +- compatible		: Should be "ti,cpsw" for generic cpsw support, or
+>>> +			  "ti,am3352-cpsw" for AM3352 SoCs
+>>>  - reg			: physical base address and size of the cpsw
+>>>  			  registers map.
+>>>  			  An optional third memory region can be supplied if
+>>> diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+>>> index 7a25ff4..73c44cb6 100644
+>>> --- a/drivers/net/ethernet/ti/cpsw.c
+>>> +++ b/drivers/net/ethernet/ti/cpsw.c
+>>> @@ -155,6 +155,11 @@ do {								\
+>>>  		((priv->data.dual_emac) ? priv->emac_port :	\
+>>>  		priv->data.active_slave)
+>>>  
+>>> +enum {
+>>> +	CPSW_TYPE_GENERIC,
+>>> +	CPSW_TYPE_AM33XX
+>>> +};
+>>> +
+>>>  static int debug_level;
+>>>  module_param(debug_level, int, 0);
+>>>  MODULE_PARM_DESC(debug_level, "cpsw debug level (NETIF_MSG bits)");
+>>> @@ -1692,17 +1697,36 @@ static void cpsw_slave_init(struct cpsw_slave *slave, struct cpsw_priv *priv,
+>>>  	slave->port_vlan = data->dual_emac_res_vlan;
+>>>  }
+>>>  
+>>> +static const struct of_device_id cpsw_of_mtable[] = {
+>>> +	{
+>>> +		.compatible	= "ti,am3352-cpsw",
+>> I didn't notice this earlier, but can't you use the IP version
+>> as a compatible instead of using a SOC name. Whats really SOC specific
+>> on this IP ? Sorry i have missed any earlier discussion on this but
+>> this approach doesn't seem good. Its like adding SOC checks in the
+>> driver subsystem.
+>>
+>>
+> But the same IP can be used in different SoC as well where the control
+> register may be different as per the Silicon Integration team's decision?
 > 
-> The support for WkupM3 mailbox is essential for achieving the PM
-> Suspend on AM335 devices, and this series is a dependency for
-> the AM335 suspend/resume series [1]. The AM335 support patches
-> required the mailbox DT patches posted previously, so I have
-> refreshed all of them together.
+> Ideally there should be a separate control module driver so that it can
+> take care of different SoC related needs.
 > 
-> Tested this on Beagle-XM, Panda4 and OMAP5 uEVM (with
-> out-of-tree clock patches).
-> 
-> v3:
-> - Includes 3 new patches on top of the unchanged patches in v2.
-> - Patches 7 and 8 adds the driver support and DT node for AM335.
-> - Patch6 is a minor cleanup patch removing omap_mbox_type_t from
->   mbox ops.
+Instead of having one control module driver to address all the requirements
+in various IP's, you could specifically address that in subsystem driver layer.
+SOC guys invariably use control modules for certain functionality since it
+is easy and quick fix. And their is uniformity in the way they are
+implemented for different IP needs.
 
-Any additional feedback/comments on this series? The series contains
-patches both for the driver code and DT/hwmod data. Let me know if you
-need me to rearrange the patches. I currently have one review comment
-to address regarding adding some additional notes [1] to the DT binding
-information.
+In this specific case, if the CPSW IP version has some part of the
+functionality implemented using control module that is just harfaware
+choice. Its not mandatory to partition that in two sub-system. Rather
+consider it as a special IP version and treat it accordingly in the
+driver.
 
-regards
-Suman
+Regards,
+Santosh
 
-[1] http://marc.info/?t=137582575400006&r=1&w=2
+
