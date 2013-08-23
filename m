@@ -1,37 +1,39 @@
-From: Benoit Cousson <bcousson@baylibre.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
 Subject: Re: [PATCH v4 3/5] net: ethernet: cpsw: introduce ti,am3352-cpsw
  compatible string
-Date: Fri, 23 Aug 2013 17:22:17 +0200
-Message-ID: <52177E29.6040103@baylibre.com>
-References: <1377267365-24057-1-git-send-email-zonque@gmail.com> <1377267365-24057-4-git-send-email-zonque@gmail.com> <52177052.1030308@ti.com>
+Date: Fri, 23 Aug 2013 11:54:45 -0400
+Message-ID: <521785C5.9000903@ti.com>
+References: <1377267365-24057-1-git-send-email-zonque@gmail.com> <1377267365-24057-4-git-send-email-zonque@gmail.com> <52177052.1030308@ti.com> <52177E29.6040103@baylibre.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <52177052.1030308@ti.com>
+In-Reply-To: <52177E29.6040103@baylibre.com>
 Sender: netdev-owner@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+To: Benoit Cousson <bcousson@baylibre.com>
 Cc: Daniel Mack <zonque@gmail.com>, netdev@vger.kernel.org, nsekhar@ti.com, sergei.shtylyov@cogentembedded.com, davem@davemloft.net, ujhelyi.m@gmail.com, mugunthanvnm@ti.com, vaibhav.bedia@ti.com, d-gerlach@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Santosh,
-
-[...]
-
->> +static const struct of_device_id cpsw_of_mtable[] = {
->> +	{
->> +		.compatible	= "ti,am3352-cpsw",
-> I didn't notice this earlier, but can't you use the IP version
-> as a compatible instead of using a SOC name. Whats really SOC specific
-> on this IP ? Sorry i have missed any earlier discussion on this but
-> this approach doesn't seem good. Its like adding SOC checks in the
-> driver subsystem.
-
-Hehe, welcome to the club!
-I keep arguing about that as well :-)
-
-I think we should create a Facebook group: 
-"against-the-soc-version-in-the-compatible-string".
+On Friday 23 August 2013 11:22 AM, Benoit Cousson wrote:
+> Hi Santosh,
+> 
+> [...]
+> 
+>>> +static const struct of_device_id cpsw_of_mtable[] = {
+>>> +    {
+>>> +        .compatible    = "ti,am3352-cpsw",
+>> I didn't notice this earlier, but can't you use the IP version
+>> as a compatible instead of using a SOC name. Whats really SOC specific
+>> on this IP ? Sorry i have missed any earlier discussion on this but
+>> this approach doesn't seem good. Its like adding SOC checks in the
+>> driver subsystem.
+> 
+> Hehe, welcome to the club!
+> I keep arguing about that as well :-)
+> 
+> I think we should create a Facebook group: "against-the-soc-version-in-the-compatible-string".
+> 
+Indeed !!
 
 Regards,
-Benoit
+Santosh
