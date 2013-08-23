@@ -1,152 +1,41 @@
-From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: Re: [PATCH 3/4] net: ethernet: cpsw: add support for hardware interface
- mode config
-Date: Fri, 23 Aug 2013 11:41:14 +0530
-Message-ID: <5216FD02.7030009@ti.com>
-References: <1377171448-27924-1-git-send-email-zonque@gmail.com> <1377171448-27924-4-git-send-email-zonque@gmail.com>
+From: Sricharan R <r.sricharan@ti.com>
+Subject: Re: [PATCH 1/3] misc: Add crossbar driver
+Date: Fri, 23 Aug 2013 11:41:24 +0530
+Message-ID: <5216FD0C.3090709@ti.com>
+References: <51E83A4F.5080904@ti.com> <CACRpkdY3nQaWimTwB-Zt-8+Q_KZr8a0rpB1SUQq=AuoG4bAYnQ@mail.gmail.com> <51ED2385.60108@ti.com> <51ED5C66.1010407@ti.com> <51EFFBE1.4090505@ti.com> <51F0031B.1050307@ti.com> <51F00530.9090703@ti.com> <51F02069.3050207@ti.com> <51F0223E.4050008@ti.com> <51F0240F.3050507@ti.com> <20130813081003.GU7656@atomide.com> <520A02BA.4090805@ti.com> <CACRpkda+m82PYJsExLM6JLsLa8-bVhdvy_r_+-uKfVT2NG7Cbg@mail.gmail.com> <520D398D.9040806@ti.com> <CACRpkdYeo1y-HhftkRWgwyq8o-NVuJ978Uq+ON880LHhUxC=hg@mail.gmail.com> <520D44C5.6080205@ti.com> <CACRpkdagSHxzV3=427O9iftNxM+N=w9aPds=iDvGQPoG3H-cWw@mail.gmail.com> <5215F6F6.9060703@ti.com> <5216E966.5020902@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1377171448-27924-4-git-send-email-zonque@gmail.com>
-Sender: netdev-owner@vger.kernel.org
-To: Daniel Mack <zonque@gmail.com>
-Cc: netdev@vger.kernel.org, davem@davemloft.net, ujhelyi.m@gmail.com, vaibhav.bedia@ti.com, d-gerlach@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <5216E966.5020902@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux-OMAP <linux-omap@vger.kernel.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Felipe Balbi <balbi@ti.com>, Thomas Gleixner <tglx@linutronix.de>, Grant Likely <grant.likely@secretlab.ca>
 List-Id: linux-omap@vger.kernel.org
 
-On Thursday 22 August 2013 05:07 PM, Daniel Mack wrote:
-> The cpsw currently lacks code to properly set up the hardware interface
-> mode on AM33xx. Other platforms might be equally affected.
+Hi,
+On Friday 23 August 2013 10:17 AM, Rajendra Nayak wrote:
+> On Thursday 22 August 2013 05:03 PM, Sricharan R wrote:
+>>  maps crossbar number<->  to interrupt number and
+>>  calls request_irq(int_no, crossbar_handler,..)
+> So will this mapping happen based on some data passed from DT or
+> just based on whats available when the device does a request_irq()?
 >
-> Usually, the bootloader will configure the control module register, so
-> probably that's why such support wasn't needed in the past. In suspend
-> mode though, this register is modified, and so it needs reprogramming
-> after resume.
->
-> This patch adds code that makes use of the previously added and optional
-> support for passing the control mode register, and configures the
-> correct register bits from _cpsw_adjust_link().
->
-> The AM33xx also has a bit for each slave to configure the RMII reference
-> clock direction. Setting it is now supported by a per-slave DT property.
->
-> This code path introducted by this patch is currently exclusive for
-> am33xx.
->
-> Signed-off-by: Daniel Mack <zonque@gmail.com>
-> ---
->  Documentation/devicetree/bindings/net/cpsw.txt |  2 ++
->  drivers/net/ethernet/ti/cpsw.c                 | 49 ++++++++++++++++++++++++++
->  include/linux/platform_data/cpsw.h             |  1 +
->  3 files changed, 52 insertions(+)
->
-> diff --git a/Documentation/devicetree/bindings/net/cpsw.txt b/Documentation/devicetree/bindings/net/cpsw.txt
-> index 4e5ca54..0ccf01f 100644
-> --- a/Documentation/devicetree/bindings/net/cpsw.txt
-> +++ b/Documentation/devicetree/bindings/net/cpsw.txt
-> @@ -33,6 +33,8 @@ Required properties:
->  - phy_id		: Specifies slave phy id
->  - phy-mode		: The interface between the SoC and the PHY (a string
->  			  that of_get_phy_mode() can understand)
-> +- ti,rmii-clock-ext	: If present, the driver will configure the RMII
-> +			  interface to external clock usage
->  - mac-address		: Specifies slave MAC address
->  
->  Optional properties:
-> diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-> index 4855d8e..d18ae43 100644
-> --- a/drivers/net/ethernet/ti/cpsw.c
-> +++ b/drivers/net/ethernet/ti/cpsw.c
-> @@ -138,6 +138,14 @@ do {								\
->  #define CPSW_CMINTMAX_INTVL	(1000 / CPSW_CMINTMIN_CNT)
->  #define CPSW_CMINTMIN_INTVL	((1000 / CPSW_CMINTMAX_CNT) + 1)
->  
-> +#define AM33XX_GMII_SEL_MODE_MII	(0)
-> +#define AM33XX_GMII_SEL_MODE_RMII	(1)
-> +#define AM33XX_GMII_SEL_MODE_RGMII	(2)
-> +#define AM33XX_GMII_SEL_MODE_UNUSED	(3)
-> +
-> +#define AM33XX_GMII_SEL_RMII2_IO_CLK_EN	BIT(7)
-> +#define AM33XX_GMII_SEL_RMII1_IO_CLK_EN	BIT(6)
-> +
->  #define cpsw_enable_irq(priv)	\
->  	do {			\
->  		u32 i;		\
-> @@ -728,6 +736,44 @@ static void _cpsw_adjust_link(struct cpsw_slave *slave,
->  	u32			mac_control = 0;
->  	u32			slave_port;
->  
-> +	if (priv->gmii_sel_reg && of_machine_is_compatible("ti,am33xx")) {
-> +		u32 reg = __raw_readl(priv->gmii_sel_reg);
-> +		u32 mode = AM33XX_GMII_SEL_MODE_UNUSED;
+> If its based on whats available then I see an issue when you need
+> to remap something thats already mapped by default (and not used)
+> since you run out of all free ones.
+Yes, when done based on what is available then there is a
+problem when we run out of free ones because we do not
+know which one to replace. I was thinking of something like
+this,
+    1) DT would give a list of all free ones, and also if some are
+        mapped as default and not used, mark those also as free.
 
-If phy interface is other than the below handled case then you will be
-writing UNUSED bit to gmii sel bits which is wrong as it should not be
-used as per hardware design guys. Please refer the following thread in
-U-Boot which had a discussion about the UNUSED bit combination usage.
-http://comments.gmane.org/gmane.comp.boot-loaders.u-boot/166689
+     2) While mapping see if it has a default mapping and use it.
+          otherwise, pick from free list.   
 
-> +		u32 mask;
-> +
-> +		if (phy) {
-> +			switch (phy->interface) {
-> +			case PHY_INTERFACE_MODE_MII:
-> +				mode = AM33XX_GMII_SEL_MODE_MII;
-> +				break;
-> +			case PHY_INTERFACE_MODE_RMII:
-> +				mode = AM33XX_GMII_SEL_MODE_RMII;
-> +				break;
-> +			case PHY_INTERFACE_MODE_RGMII:
-> +				mode = AM33XX_GMII_SEL_MODE_RGMII;
-> +				break;
-> +			default:
-> +				break;
-> +			};
-> +		}
-> +
-> +		mask = 0x3 << (slave->slave_num * 2) |
-> +		       BIT(slave->slave_num + 6);
-> +		mode <<= slave->slave_num * 2;
-> +
-> +		if (slave->data->rmii_clock_external) {
-> +			if (slave->slave_num == 0)
-> +				mode |= AM33XX_GMII_SEL_RMII1_IO_CLK_EN;
-> +			else
-> +				mode |= AM33XX_GMII_SEL_RMII2_IO_CLK_EN;
-> +		}
-> +
-> +		reg &= ~mask;
-> +		reg |= mode;
-> +
-> +		__raw_writel(reg, priv->gmii_sel_reg);
-> +	}
-> +
+  This should be ok right ?
 
-This is not the proper location to add phy interface enable and rmii
-external clock enable. This should be moved to open as this api is
-called from phy poll work queue at constant interval to detect phy link
-changes. The above init has required only once and not to be done regularly.
+Regards,
+ Sricharan
 
->  	if (!phy)
->  		return;
->  
-> @@ -1798,6 +1844,9 @@ static int cpsw_probe_dt(struct cpsw_platform_data *data,
->  			memcpy(slave_data->mac_addr, mac_addr, ETH_ALEN);
->  
->  		slave_data->phy_if = of_get_phy_mode(slave_node);
-> +		if (of_find_property(slave_node, "ti,rmii-clock-external",
-> +				     NULL))
-> +			slave_data->rmii_clock_external = true;
->  
->  		if (data->dual_emac) {
->  			if (of_property_read_u32(slave_node, "dual_emac_res_vlan",
-> diff --git a/include/linux/platform_data/cpsw.h b/include/linux/platform_data/cpsw.h
-> index bb3cd58..a29c48b 100644
-> --- a/include/linux/platform_data/cpsw.h
-> +++ b/include/linux/platform_data/cpsw.h
-
-In net-next this file is moved to drivers/net/ethernet/ti folder itself
-as this driver only supports DT boot.
-
-Regards
-Mugunthan V N
