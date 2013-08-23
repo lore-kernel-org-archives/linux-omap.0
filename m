@@ -1,49 +1,84 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: Re: [PATCH] mailbox: remove unnecessary platform_set_drvdata()
-Date: Fri, 23 Aug 2013 11:37:01 -0500
-Message-ID: <52178FAD.7040402@ti.com>
-References: <002201ce9edc$cdc3fb90$694bf2b0$%han@samsung.com>
+From: Mugunthan V N <mugunthanvnm@ti.com>
+Subject: Re: [PATCH v4 3/5] net: ethernet: cpsw: introduce ti,am3352-cpsw
+ compatible string
+Date: Fri, 23 Aug 2013 22:15:53 +0530
+Message-ID: <521791C1.2060803@ti.com>
+References: <1377267365-24057-1-git-send-email-zonque@gmail.com> <1377267365-24057-4-git-send-email-zonque@gmail.com> <52177052.1030308@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <002201ce9edc$cdc3fb90$694bf2b0$%han@samsung.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Jingoo Han <jg1.han@samsung.com>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, "'Rafael J. Wysocki'" <rafael.j.wysocki@intel.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:59136 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754625Ab3HWQq3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 23 Aug 2013 12:46:29 -0400
+In-Reply-To: <52177052.1030308@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Daniel Mack <zonque@gmail.com>, netdev@vger.kernel.org, bcousson@baylibre.com, nsekhar@ti.com, sergei.shtylyov@cogentembedded.com, davem@davemloft.net, ujhelyi.m@gmail.com, vaibhav.bedia@ti.com, d-gerlach@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
 
-+ OMAP mailing list
+On Friday 23 August 2013 07:53 PM, Santosh Shilimkar wrote:
+> On Friday 23 August 2013 10:16 AM, Daniel Mack wrote:
+>> In order to support features that are specific to the AM335x IP, we have
+>> to add hardware types and another compatible string.
+>>
+>> Signed-off-by: Daniel Mack <zonque@gmail.com>
+>> ---
+>>  Documentation/devicetree/bindings/net/cpsw.txt |  3 ++-
+>>  drivers/net/ethernet/ti/cpsw.c                 | 32 ++++++++++++++++++++------
+>>  drivers/net/ethernet/ti/cpsw.h                 |  1 +
+>>  3 files changed, 28 insertions(+), 8 deletions(-)
+>>
+>> diff --git a/Documentation/devicetree/bindings/net/cpsw.txt b/Documentation/devicetree/bindings/net/cpsw.txt
+>> index 4e5ca54..b717458 100644
+>> --- a/Documentation/devicetree/bindings/net/cpsw.txt
+>> +++ b/Documentation/devicetree/bindings/net/cpsw.txt
+>> @@ -2,7 +2,8 @@ TI SoC Ethernet Switch Controller Device Tree Bindings
+>>  ------------------------------------------------------
+>>  
+>>  Required properties:
+>> -- compatible		: Should be "ti,cpsw"
+>> +- compatible		: Should be "ti,cpsw" for generic cpsw support, or
+>> +			  "ti,am3352-cpsw" for AM3352 SoCs
+>>  - reg			: physical base address and size of the cpsw
+>>  			  registers map.
+>>  			  An optional third memory region can be supplied if
+>> diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+>> index 7a25ff4..73c44cb6 100644
+>> --- a/drivers/net/ethernet/ti/cpsw.c
+>> +++ b/drivers/net/ethernet/ti/cpsw.c
+>> @@ -155,6 +155,11 @@ do {								\
+>>  		((priv->data.dual_emac) ? priv->emac_port :	\
+>>  		priv->data.active_slave)
+>>  
+>> +enum {
+>> +	CPSW_TYPE_GENERIC,
+>> +	CPSW_TYPE_AM33XX
+>> +};
+>> +
+>>  static int debug_level;
+>>  module_param(debug_level, int, 0);
+>>  MODULE_PARM_DESC(debug_level, "cpsw debug level (NETIF_MSG bits)");
+>> @@ -1692,17 +1697,36 @@ static void cpsw_slave_init(struct cpsw_slave *slave, struct cpsw_priv *priv,
+>>  	slave->port_vlan = data->dual_emac_res_vlan;
+>>  }
+>>  
+>> +static const struct of_device_id cpsw_of_mtable[] = {
+>> +	{
+>> +		.compatible	= "ti,am3352-cpsw",
+> I didn't notice this earlier, but can't you use the IP version
+> as a compatible instead of using a SOC name. Whats really SOC specific
+> on this IP ? Sorry i have missed any earlier discussion on this but
+> this approach doesn't seem good. Its like adding SOC checks in the
+> driver subsystem.
+>
+>
+But the same IP can be used in different SoC as well where the control
+register may be different as per the Silicon Integration team's decision?
 
-Tony,
-Can you pick up this minor cleanup patch?
+Ideally there should be a separate control module driver so that it can
+take care of different SoC related needs.
 
-regards
-Suman
-
-On 08/21/2013 09:10 PM, Jingoo Han wrote:
-> The driver core clears the driver data to NULL after device_release
-> or on probe failure. Thus, it is not needed to manually clear the
-> device driver data to NULL.
-> 
-> Signed-off-by: Jingoo Han <jg1.han@samsung.com>
-
-Acked-by: Suman Anna <s-anna@ti.com>
-
-> ---
->  drivers/mailbox/mailbox-omap2.c |    1 -
->  1 file changed, 1 deletion(-)
-> 
-> diff --git a/drivers/mailbox/mailbox-omap2.c b/drivers/mailbox/mailbox-omap2.c
-> index eba380d..42d2b89 100644
-> --- a/drivers/mailbox/mailbox-omap2.c
-> +++ b/drivers/mailbox/mailbox-omap2.c
-> @@ -325,7 +325,6 @@ static int omap2_mbox_remove(struct platform_device *pdev)
->  	kfree(privblk);
->  	kfree(mboxblk);
->  	kfree(list);
-> -	platform_set_drvdata(pdev, NULL);
->  
->  	return 0;
->  }
-> 
+Regards
+Mugunthan V N
