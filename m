@@ -1,29 +1,68 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH 3/3] ARM: OMAP2+: Add SSI driver configuration
-Date: Fri, 23 Aug 2013 15:58:30 +0200
-Message-ID: <CACRpkdbfGPx=j7byCdQV7Eghohr==mi+FyxSODE8kNTCgH-ayA@mail.gmail.com>
-References: <1376237628-1077-1-git-send-email-sre@debian.org>
-	<1376237877-1740-1-git-send-email-sre@debian.org>
-	<1376237877-1740-3-git-send-email-sre@debian.org>
-	<20130812083051.GL7656@atomide.com>
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Subject: Re: [PATCH v2 2/5] net: ethernet: cpsw: add optional third memory
+ region for CONTROL module
+Date: Fri, 23 Aug 2013 18:03:35 +0400
+Message-ID: <52176BB7.3000405@cogentembedded.com>
+References: <1377247417-27386-1-git-send-email-zonque@gmail.com> <1377247417-27386-3-git-send-email-zonque@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130812083051.GL7656@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Sebastian Reichel <sre@debian.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, Shubhrajyoti Datta <omaplinuxkernel@gmail.com>, Carlos Chinea <cch.devel@gmail.com>, Sebastian Reichel <sre@ring0.de>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1377247417-27386-3-git-send-email-zonque@gmail.com>
+Sender: netdev-owner@vger.kernel.org
+To: Daniel Mack <zonque@gmail.com>
+Cc: netdev@vger.kernel.org, nsekhar@ti.com, davem@davemloft.net, ujhelyi.m@gmail.com, mugunthanvnm@ti.com, vaibhav.bedia@ti.com, d-gerlach@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Aug 12, 2013 at 10:30 AM, Tony Lindgren <tony@atomide.com> wrote:
-> * Sebastian Reichel <sre@debian.org> [130811 09:25]:
->> From: Sebastian Reichel <sre@ring0.de>
->>
->> This patch configures and activates the OMAP SSI driver on the RX-51.
+Hello.
+
+On 23-08-2013 12:43, Daniel Mack wrote:
+
+> At least the AM33xx SoC has a control module register to configure
+> details such as the hardware ethernet interface mode.
+
+> I'm not sure whether all SoCs which feature the cpsw block have such a
+> register, so that third memory region is considered optional for now.
+
+> Signed-off-by: Daniel Mack <zonque@gmail.com>
+[...]
+
+> diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+> index 1a91aac..bd0b664 100644
+> --- a/drivers/net/ethernet/ti/cpsw.c
+> +++ b/drivers/net/ethernet/ti/cpsw.c
+[...]
+> @@ -1999,6 +2000,21 @@ static int cpsw_probe(struct platform_device *pdev)
+>   		goto clean_runtime_disable_ret;
+>   	}
 >
-> Hmm, I'd rather see this be DT only driver at this point.
+> +	/* If the control memory region is unspecified, continue without it.
+> +	 * If it is specified, but we're unable to reserve it, bail.
+> +	 */
+> +	res = platform_get_resource(pdev, IORESOURCE_MEM, 2);
+> +	if (!res) {
+> +		dev_err(priv->dev, "error getting control i/o resource\n");
 
-+1 on this.
+    If the resource is optional, why use dev_err()?
 
-Yours,
-Linus Walleij
+> +		goto no_gmii_sel;
+> +	}
+> +	priv->gmii_sel_reg = devm_ioremap_resource(&pdev->dev, res);
+> +	if (!priv->gmii_sel_reg) {
+
+    devm_ioremap_resource() doesn't return NULL, it returns error, so you 
+should check with IS_ERR() and propagate the error to the caller with PTR_ERR().
+
+> +		dev_err(priv->dev, "unable to map control i/o region\n");
+
+    devm_ioremap_resource() prints out the error messages itself, so you don't 
+have to.
+
+> +		goto clean_runtime_disable_ret;
+> +	}
+> +
+> +no_gmii_sel:
+>   	memset(&dma_params, 0, sizeof(dma_params));
+>   	memset(&ale_params, 0, sizeof(ale_params));
+
+WBR, Sergei
