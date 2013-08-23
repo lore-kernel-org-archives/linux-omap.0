@@ -1,83 +1,129 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH v4 3/5] net: ethernet: cpsw: introduce ti,am3352-cpsw
- compatible string
-Date: Fri, 23 Aug 2013 15:54:34 -0400
-Message-ID: <5217BDFA.5040904@ti.com>
-References: <1377267365-24057-1-git-send-email-zonque@gmail.com> <1377267365-24057-4-git-send-email-zonque@gmail.com> <52177052.1030308@ti.com> <52178E20.5040404@gmail.com> <52179448.1020906@ti.com> <5217974B.5090503@ti.com> <521799A3.7080706@ti.com> <52179AD6.8090406@gmail.com> <52179BDA.50603@ti.com> <52179E44.5030202@ti.com> <5217A59E.4090700@ti.com> <5217AA15.7010907@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <5217AA15.7010907@ti.com>
-Sender: netdev-owner@vger.kernel.org
-To: Mugunthan V N <mugunthanvnm@ti.com>
-Cc: Sekhar Nori <nsekhar@ti.com>, Daniel Mack <zonque@gmail.com>, netdev@vger.kernel.org, bcousson@baylibre.com, sergei.shtylyov@cogentembedded.com, davem@davemloft.net, ujhelyi.m@gmail.com, vaibhav.bedia@ti.com, d-gerlach@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
+From: "Mark A. Greer" <mgreer@animalcreek.com>
+Subject: [PATCH v3 1/2] ARM: dts: Add SHAM data and documentation for AM33XX
+Date: Fri, 23 Aug 2013 14:12:35 -0700
+Message-ID: <1377292356-19199-2-git-send-email-mgreer@animalcreek.com>
+References: <1377292356-19199-1-git-send-email-mgreer@animalcreek.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from m1plsmtpa01-05.prod.mesa1.secureserver.net ([64.202.165.10]:57854
+	"EHLO m1plsmtpa01-05.prod.mesa1.secureserver.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756287Ab3HWVM6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 23 Aug 2013 17:12:58 -0400
+In-Reply-To: <1377292356-19199-1-git-send-email-mgreer@animalcreek.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, Benoit Cousson <bcousson@baylibre.com>, Lokesh Vutla <lokeshvutla@ti.com>, Mark Rutland <mark.rutland@arm.com>, Joel Fernandes <joelf@ti.com>, "Mark A. Greer" <mgreer@animalcreek.com>, Paul Walmsley <paul@pwsan.com>
 
-On Friday 23 August 2013 02:29 PM, Mugunthan V N wrote:
-> On Friday 23 August 2013 11:40 PM, Santosh Shilimkar wrote:
->> On Friday 23 August 2013 01:39 PM, Sekhar Nori wrote:
->>> On 8/23/2013 10:58 PM, Santosh Shilimkar wrote:
->>>> On Friday 23 August 2013 01:24 PM, Daniel Mack wrote:
->>>>> On 23.08.2013 19:19, Santosh Shilimkar wrote:
->>>>>> On Friday 23 August 2013 01:09 PM, Sekhar Nori wrote:
->>>>>>> On 8/23/2013 10:26 PM, Santosh Shilimkar wrote:
->>>>>>>> So just stick the IP version or call it cpsw-v1... cpsw-v2 etc.
->>>>>>> If this could be handled using IP version then the right way would be to
->>>>>>> just read the IP version from hardware and use it. No need of DT property.
->>>>>>>
->>>>>> Thats fine as well but I thought the patch needed additional properties like
->>>>>> CM reg-address come from DT and hence the separate compatible. If you can
->>>>>> manage without that, thats even better.
->>>>> We can't, that's the whole point :)
->>>>>
->>>> I saw that from the patch :)
->>>>
->>>>> Well, theoretically, we could for now, but that's not a clean solution.
->>>>> Again: the problem here is that the control port is separated from the
->>>>> cpsw core, and so we have to implement something specific for the AM3352
->>>>> SoC. I know that's a violation of clean and generic driver ideas, but
->>>>> there's no way we can assume that every cpsw v2 ip block has a control
->>>>> port that is compatible to the one found on am335x chips.
->>>>>
->>>> But there is a possibility that other SOC will just use the same
->>>> control module approach. So using a revision IP is just fine. BTW,
->>> But this is misleading because it makes appear like the same compatible
->>> can be used on on another SoC like DRA7 which probably has the same
->>> version of IP but a different control module implementation, when in
->>> practice it cannot.
->>>
->>> The fact is we are doing something SoC specific in the driver and we
->>> cannot hide that behind IP versions. If really in practice there comes
->>> another SoC with the same control module definition then it can always
->>> use ti,am3352-cpsw compatible as well. The compatible name does not
->>> preclude its usage.
->>>
->> My point was the CPSW needs a feature which is implemented using
->> control module rather than within the IP itself. Its an implementation
->> detail. As such the additional feature makes sense for that IP. O.w
->> there was no need to do any monkeying with control module.
->>
->> E.g
->> MMC card detect is a basic functionality, implemented by various types
->> like control module, PMIC or MMC IP itself. As such the driver need
->> that support and all the implementation details needs to still handled
->> to make that part work.
->>
->>
-> 
-> CPSW core as such understands only GMII/MII signals, there is an
-> additional module which converts GMII/MII signals to RGMII/RMII signals
-> respectively which is called as CPRGMII/CPRMII as specified in the
-> AM335x TRM in Figure 14-1. Ethernet Switch Integration.
-> 
-> So to control this sub-module, the control register is used and this has
-> to be configured according to the EVM design like what mode of phy is
-> connected. CPRGMII and CPRMII is no way related to CPSW core.
-> 
-Ok then why are you polluting cpsw driver with that code which
-not realted to CPSW as you said above. You are contradicting what
-you said by supporting the SOC usage in the core CPSW driver.
+Add the generic AM33XX SHAM module's device tree data and
+enable it for the am335x-evm, am335x-evmsk, and am335x-bone
+platforms.  Also add Documentation file describing the data
+for the SHAM module.
 
-Regards,
-Santosh
+CC: Paul Walmsley <paul@pwsan.com>
+Signed-off-by: Mark A. Greer <mgreer@animalcreek.com>
+---
+ .../devicetree/bindings/crypto/omap-sham.txt       | 31 ++++++++++++++++++++++
+ arch/arm/boot/dts/am335x-bone.dts                  |  4 +++
+ arch/arm/boot/dts/am335x-evm.dts                   |  4 +++
+ arch/arm/boot/dts/am335x-evmsk.dts                 |  4 +++
+ arch/arm/boot/dts/am33xx.dtsi                      | 10 +++++++
+ 5 files changed, 53 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/crypto/omap-sham.txt
+
+diff --git a/Documentation/devicetree/bindings/crypto/omap-sham.txt b/Documentation/devicetree/bindings/crypto/omap-sham.txt
+new file mode 100644
+index 0000000..b97710f
+--- /dev/null
++++ b/Documentation/devicetree/bindings/crypto/omap-sham.txt
+@@ -0,0 +1,31 @@
++OMAP SoC SHA crypto Module
++
++Required properties:
++
++- compatible : Should contain entries for this and backward compatible
++  SHAM versions:
++  - "ti,omap2-sham" for OMAP2 & OMAP3.
++  - "ti,omap4-sham" for OMAP4 and AM33XX.
++  Note that these two versions are incompatible.
++- ti,hwmods: Name of the hwmod associated with the SHAM module
++- reg : Offset and length of the register set for the module
++- interrupt-parent : the phandle for the interrupt controller that
++  services interrupts for this module.
++- interrupts : the interrupt number for the SHAM module.
++
++Optional properties:
++- dmas: DMA specifier for the rx dma. See the DMA client binding,
++	Documentation/devicetree/bindings/dma/dma.txt
++- dma-names: DMA request name. Should be "rx" if a dma is present.
++
++Example:
++	/* AM335x */
++	sham: sham@53100000 {
++		compatible = "ti,omap4-sham";
++		ti,hwmods = "sham";
++		reg = <0x53100000 0x200>;
++		interrupt-parent = <&intc>;
++		interrupts = <109>;
++		dmas = <&edma 36>;
++		dma-names = "rx";
++	};
+diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
+index 444b4ed..bc75b2c 100644
+--- a/arch/arm/boot/dts/am335x-bone.dts
++++ b/arch/arm/boot/dts/am335x-bone.dts
+@@ -234,3 +234,7 @@
+ 	pinctrl-0 = <&davinci_mdio_default>;
+ 	pinctrl-1 = <&davinci_mdio_sleep>;
+ };
++
++&sham {
++	status = "okay";
++};
+diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
+index 3aee1a4..9b8c56d 100644
+--- a/arch/arm/boot/dts/am335x-evm.dts
++++ b/arch/arm/boot/dts/am335x-evm.dts
+@@ -488,3 +488,7 @@
+ 		ti,adc-channels = <4 5 6 7>;
+ 	};
+ };
++
++&sham {
++	status = "okay";
++};
+diff --git a/arch/arm/boot/dts/am335x-evmsk.dts b/arch/arm/boot/dts/am335x-evmsk.dts
+index 0c8ad17..61dc5d4 100644
+--- a/arch/arm/boot/dts/am335x-evmsk.dts
++++ b/arch/arm/boot/dts/am335x-evmsk.dts
+@@ -402,3 +402,7 @@
+ 	phy_id = <&davinci_mdio>, <1>;
+ 	phy-mode = "rgmii-txid";
+ };
++
++&sham {
++	status = "okay";
++};
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index 784f774..739d757 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -542,5 +542,15 @@
+ 			#size-cells = <1>;
+ 			status = "disabled";
+ 		};
++
++		sham: sham@53100000 {
++			compatible = "ti,omap4-sham";
++			ti,hwmods = "sham";
++			reg = <0x53100000 0x200>;
++			interrupt-parent = <&intc>;
++			interrupts = <109>;
++			dmas = <&edma 36>;
++			dma-names = "rx";
++		};
+ 	};
+ };
+-- 
+1.8.3.4
+
