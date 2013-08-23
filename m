@@ -1,44 +1,122 @@
 From: Daniel Mack <zonque@gmail.com>
-Subject: Re: [PATCH v4 1/5] net: ethernet: cpsw: switch to devres allocations
-Date: Fri, 23 Aug 2013 20:34:17 +0200
-Message-ID: <5217AB29.9020209@gmail.com>
-References: <1377267365-24057-1-git-send-email-zonque@gmail.com>
- <1377267365-24057-2-git-send-email-zonque@gmail.com>
- <5217A5AE.6090704@cogentembedded.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <5217A5AE.6090704@cogentembedded.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Cc: mugunthanvnm@ti.com, d-gerlach@ti.com, netdev@vger.kernel.org, nsekhar@ti.com, vaibhav.bedia@ti.com, devicetree@vger.kernel.org, bcousson@baylibre.com, ujhelyi.m@gmail.com, linux-omap@vger.kernel.org, davem@davemloft.net, linux-arm-kernel@lists.infradead.org
+Subject: [PATCH v5 3/5] net: ethernet: cpsw: introduce ti,am3352-cpsw compatible string
+Date: Fri, 23 Aug 2013 20:53:05 +0200
+Message-ID: <1377283987-20040-4-git-send-email-zonque@gmail.com>
+References: <1377283987-20040-1-git-send-email-zonque@gmail.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from svenfoo.org ([82.94.215.22]:48748 "EHLO mail.zonque.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755975Ab3HWSxY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 23 Aug 2013 14:53:24 -0400
+In-Reply-To: <1377283987-20040-1-git-send-email-zonque@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: netdev@vger.kernel.org
+Cc: bcousson@baylibre.com, nsekhar@ti.com, sergei.shtylyov@cogentembedded.com, davem@davemloft.net, ujhelyi.m@gmail.com, mugunthanvnm@ti.com, vaibhav.bedia@ti.com, d-gerlach@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Daniel Mack <zonque@gmail.com>
 
-On 23.08.2013 20:10, Sergei Shtylyov wrote:
-> On 08/23/2013 06:16 PM, Daniel Mack wrote:
+In order to support features that are specific to the AM335x IP, we have
+to add hardware types and another compatible string.
 
->>   	priv->coal_intvl = 0;
->>   	priv->bus_freq_mhz = clk_get_rate(priv->clk) / 1000000;
->>
->> -	priv->cpsw_res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
->> -	if (!priv->cpsw_res) {
->> +	ss_res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
->> +	if (!ss_res) {
-> 
->     You don't need to check the result of platform_get_resource() if you call
-> devm_ioremap_resource() right afterwards -- it will check resource ptr for 
-> NULL the first thing. :-)
+Signed-off-by: Daniel Mack <zonque@gmail.com>
+---
+ Documentation/devicetree/bindings/net/cpsw.txt |  3 ++-
+ drivers/net/ethernet/ti/cpsw.c                 | 32 ++++++++++++++++++++------
+ drivers/net/ethernet/ti/cpsw.h                 |  1 +
+ 3 files changed, 28 insertions(+), 8 deletions(-)
 
-Thanks! Will address that in v5.
+diff --git a/Documentation/devicetree/bindings/net/cpsw.txt b/Documentation/devicetree/bindings/net/cpsw.txt
+index 4e5ca54..b717458 100644
+--- a/Documentation/devicetree/bindings/net/cpsw.txt
++++ b/Documentation/devicetree/bindings/net/cpsw.txt
+@@ -2,7 +2,8 @@ TI SoC Ethernet Switch Controller Device Tree Bindings
+ ------------------------------------------------------
+ 
+ Required properties:
+-- compatible		: Should be "ti,cpsw"
++- compatible		: Should be "ti,cpsw" for generic cpsw support, or
++			  "ti,am3352-cpsw" for AM3352 SoCs
+ - reg			: physical base address and size of the cpsw
+ 			  registers map.
+ 			  An optional third memory region can be supplied if
+diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+index 4feba2f..87c2bab 100644
+--- a/drivers/net/ethernet/ti/cpsw.c
++++ b/drivers/net/ethernet/ti/cpsw.c
+@@ -155,6 +155,11 @@ do {								\
+ 		((priv->data.dual_emac) ? priv->emac_port :	\
+ 		priv->data.active_slave)
+ 
++enum {
++	CPSW_TYPE_GENERIC,
++	CPSW_TYPE_AM33XX
++};
++
+ static int debug_level;
+ module_param(debug_level, int, 0);
+ MODULE_PARM_DESC(debug_level, "cpsw debug level (NETIF_MSG bits)");
+@@ -1692,17 +1697,36 @@ static void cpsw_slave_init(struct cpsw_slave *slave, struct cpsw_priv *priv,
+ 	slave->port_vlan = data->dual_emac_res_vlan;
+ }
+ 
++static const struct of_device_id cpsw_of_mtable[] = {
++	{
++		.compatible	= "ti,am3352-cpsw",
++		.data		= (void *) CPSW_TYPE_AM33XX
++	}, {
++		.compatible	= "ti,cpsw",
++		.data		= (void *) CPSW_TYPE_GENERIC
++	},
++	{ /* sentinel */ },
++};
++MODULE_DEVICE_TABLE(of, cpsw_of_mtable);
++
+ static int cpsw_probe_dt(struct cpsw_platform_data *data,
+ 			 struct platform_device *pdev)
+ {
+ 	struct device_node *node = pdev->dev.of_node;
++	const struct of_device_id *match;
+ 	struct device_node *slave_node;
++	unsigned long match_data;
+ 	int i = 0, ret;
+ 	u32 prop;
+ 
+-	if (!node)
++	match = of_match_device(cpsw_of_mtable, &pdev->dev);
++
++	if (!node || !match)
+ 		return -EINVAL;
+ 
++	match_data = (unsigned long) match->data;
++	data->hw_type = match_data;
++
+ 	if (of_property_read_u32(node, "slaves", &prop)) {
+ 		pr_err("Missing slaves property in the DT.\n");
+ 		return -EINVAL;
+@@ -2207,12 +2231,6 @@ static const struct dev_pm_ops cpsw_pm_ops = {
+ 	.resume		= cpsw_resume,
+ };
+ 
+-static const struct of_device_id cpsw_of_mtable[] = {
+-	{ .compatible = "ti,cpsw", },
+-	{ /* sentinel */ },
+-};
+-MODULE_DEVICE_TABLE(of, cpsw_of_mtable);
+-
+ static struct platform_driver cpsw_driver = {
+ 	.driver = {
+ 		.name	 = "cpsw",
+diff --git a/drivers/net/ethernet/ti/cpsw.h b/drivers/net/ethernet/ti/cpsw.h
+index eb3e101..96c374a 100644
+--- a/drivers/net/ethernet/ti/cpsw.h
++++ b/drivers/net/ethernet/ti/cpsw.h
+@@ -37,6 +37,7 @@ struct cpsw_platform_data {
+ 	u32	mac_control;	/* Mac control register */
+ 	u16	default_vlan;	/* Def VLAN for ALE lookup in VLAN aware mode*/
+ 	bool	dual_emac;	/* Enable Dual EMAC mode */
++	u32	hw_type;	/* hardware type as specified in 'compatible' */
+ };
+ 
+ #endif /* __CPSW_H__ */
+-- 
+1.8.3.1
 
-
-Daniel
