@@ -1,72 +1,46 @@
-From: Sekhar Nori <nsekhar@ti.com>
-Subject: Re: [PATCH v2 5/5] ARM: dts: am33xx: adopt to cpsw changes
-Date: Fri, 23 Aug 2013 15:10:34 +0530
-Message-ID: <52172E12.2000908@ti.com>
-References: <1377247417-27386-1-git-send-email-zonque@gmail.com>
- <1377247417-27386-6-git-send-email-zonque@gmail.com>
- <52172B54.8020201@ti.com> <52172CB0.9030204@gmail.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH v4] extcon: palmas: Added a new compatible type *ti,palmas-usb-vid*
+Date: Fri, 23 Aug 2013 16:58:21 +0530
+Message-ID: <52174755.8030506@ti.com>
+References: <1377160283-26934-1-git-send-email-kishon@ti.com> <5216798E.8070900@wwwdotorg.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <52172CB0.9030204@gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Daniel Mack <zonque@gmail.com>
-Cc: mugunthanvnm@ti.com, sergei.shtylyov@cogentembedded.com, d-gerlach@ti.com, netdev@vger.kernel.org, vaibhav.bedia@ti.com, devicetree@vger.kernel.org, ujhelyi.m@gmail.com, linux-omap@vger.kernel.org, davem@davemloft.net, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <5216798E.8070900@wwwdotorg.org>
+Sender: linux-doc-owner@vger.kernel.org
+To: Stephen Warren <swarren@wwwdotorg.org>
+Cc: bcousson@baylibre.com, tony@atomide.com, myungjoo.ham@samsung.com, cw00.choi@samsung.com, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob@landley.net, george.cherian@ti.com, gregkh@linuxfoundation.org, linux-doc@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, balbi@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On Friday 23 August 2013 03:04 PM, Daniel Mack wrote:
-> On 23.08.2013 11:28, Sekhar Nori wrote:
->> On Friday 23 August 2013 02:13 PM, Daniel Mack wrote:
->>> This third memory region just denotes one single register in the CONTROL
->>> module block. The driver uses that in order to set the correct physical
->>> ethernet interface modes.
->>>
->>> Also update the compatible string to make use of the am335x specific
->>> features of the cpsw driver.
->>>
->>> Signed-off-by: Daniel Mack <zonque@gmail.com>
->>> ---
->>>  arch/arm/boot/dts/am33xx.dtsi | 5 +++--
->>>  1 file changed, 3 insertions(+), 2 deletions(-)
->>>
->>> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
->>> index a785b95..1a1e9dd 100644
->>> --- a/arch/arm/boot/dts/am33xx.dtsi
->>> +++ b/arch/arm/boot/dts/am33xx.dtsi
->>> @@ -446,7 +446,7 @@
->>>  		};
->>>  
->>>  		mac: ethernet@4a100000 {
->>> -			compatible = "ti,cpsw";
->>> +			compatible = "ti,am3352-cpsw";
->>
->> Please keep this as
->>
->> 	compatible = "ti,am3352-cpsw", "ti,cpsw";
->>
->> so users can upgrade the DTB or kernel independently. Apart from this
->> the series looks good to me.
+Hi,
+
+On Friday 23 August 2013 02:20 AM, Stephen Warren wrote:
+> On 08/22/2013 02:31 AM, Kishon Vijay Abraham I wrote:
+>> The Palmas device contains only a USB VBUS-ID detector, so added a
+>> compatible type *ti,palmas-usb-vid*. Didn't remove the existing compatible
+>> types for backward compatibility.
 > 
-> Ok, thanks. Given that this last patch will be merged through another
-> tree, can I just resend it separately, while David takes the rest as it is?
+>> diff --git a/Documentation/devicetree/bindings/extcon/extcon-palmas.txt b/Documentation/devicetree/bindings/extcon/extcon-palmas.txt
+> 
+>>  PALMAS USB COMPARATOR
+>>  Required Properties:
+>> - - compatible : Should be "ti,palmas-usb" or "ti,twl6035-usb"
+>> + - compatible : Should be "ti,palmas-usb-vid". "ti,twl6035-usb" and
+>> +   "ti,palmas-usb" is deprecated and is kept for backward compatibility.
+> 
+> So this defines one new value and deprecates the two old values.
 
-Ideally you could, but there are some bugs in the way compatible string
-in handled and due to this I suspect you need to reorder
-cpsw_of_mtable[] to match correctly. Not sure if the bug has been fixed
-in recent -rcs. Please check if modifying just this patch works and then
-go ahead and post.
+yeah.
+> 
+> Why isn't a new "ti,twl6035-usb-vid" entry useful? Don't you still need
 
-Please Cc Benoit Cousson <bcousson@baylibre.com> on your next submission
-as he is the one who picks up DT patches for OMAP.
+yeah, it should be added too.
+> SoC-specific compatible values so the driver can enable any SoC-specific
+> bug-fixes/workarounds later if needed?
 
-Thanks,
-Sekhar
+hmm.. Palmas is external to SoC. So not sure if adding SoC specific compatible
+values is such a good idea.
+
+Thanks
+Kishon
