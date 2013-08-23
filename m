@@ -1,62 +1,110 @@
-From: Paul Zimmerman <Paul.Zimmerman@synopsys.com>
-Subject: RE: [PATCH v4 2/3] usb: phy: Add Qualcomm SS-USB and HS-USB drivers
- for DWC3 core
-Date: Thu, 22 Aug 2013 21:24:49 +0000
-Message-ID: <A2CA0424C0A6F04399FB9E1CD98E030458DECB7C@US01WEMBX2.internal.synopsys.com>
-References: <1376992565-22292-1-git-send-email-iivanov@mm-sol.com>
-	 <1376992565-22292-3-git-send-email-iivanov@mm-sol.com>
-	 <20130820122907.GU26587@radagast>
-	 <1377005543.26268.22.camel@iivanov-dev.int.mm-sol.com>
-	 <20130820133712.GC26587@radagast>
-	 <1377007751.26268.27.camel@iivanov-dev.int.mm-sol.com>
-	 <20130820143319.GG26587@radagast>
-	 <1377010458.26268.30.camel@iivanov-dev.int.mm-sol.com>
-	 <8691FDFE-326E-4198-838A-202D9EC988E1@codeaurora.org>
- <1377012381.26268.42.camel@iivanov-dev.int.mm-sol.com>
+From: Richard Zhao <rizhao@nvidia.com>
+Subject: Re: [PATCH v2] DMA: add help function to check whether dma
+ controller registered
+Date: Fri, 23 Aug 2013 09:17:38 +0800
+Message-ID: <20130823011738.GA17925@rizhao-lap>
+References: <1375423458-6868-1-git-send-email-rizhao@nvidia.com>
+ <1377153781-18006-1-git-send-email-rizhao@nvidia.com>
+ <52167665.90602@wwwdotorg.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <1377012381.26268.42.camel@iivanov-dev.int.mm-sol.com>
-Content-Language: en-US
-Sender: linux-doc-owner@vger.kernel.org
-To: "Ivan T. Ivanov" <iivanov@mm-sol.com>, Kumar Gala <galak@codeaurora.org>
-Cc: "balbi@ti.com" <balbi@ti.com>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "pawel.moll@arm.com" <pawel.moll@arm.com>, "mark.rutland@arm.com" <mark.rutland@arm.com>, "swarren@wwwdotorg.org" <swarren@wwwdotorg.org>, "ian.campbell@citrix.com" <ian.campbell@citrix.com>, "rob@landley.net" <rob@landley.net>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "idos@codeaurora.org" <idos@codeaurora.org>, "mgautam@codeaurora.org" <mgautam@codeaurora.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <52167665.90602@wwwdotorg.org>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: Stephen Warren <swarren@wwwdotorg.org>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "vinod.koul@intel.com" <vinod.koul@intel.com>, "djbw@fb.com" <djbw@fb.com>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-PiBGcm9tOiBJdmFuIFQuIEl2YW5vdiBbbWFpbHRvOmlpdmFub3ZAbW0tc29sLmNvbV0NCj4gU2Vu
-dDogVHVlc2RheSwgQXVndXN0IDIwLCAyMDEzIDg6MjYgQU0NCj4gDQo+IE9uIFR1ZSwgMjAxMy0w
-OC0yMCBhdCAxMDowMSAtMDUwMCwgS3VtYXIgR2FsYSB3cm90ZToNCj4gPiBPbiBBdWcgMjAsIDIw
-MTMsIGF0IDk6NTQgQU0sIEl2YW4gVC4gSXZhbm92IHdyb3RlOg0KPiA+DQo+ID4gPg0KPiA+ID4g
-SGksDQo+ID4gPg0KPiA+ID4gT24gVHVlLCAyMDEzLTA4LTIwIGF0IDA5OjMzIC0wNTAwLCBGZWxp
-cGUgQmFsYmkgd3JvdGU6DQo+ID4gPj4gT24gVHVlLCBBdWcgMjAsIDIwMTMgYXQgMDU6MDk6MTFQ
-TSArMDMwMCwgSXZhbiBULiBJdmFub3Ygd3JvdGU6DQo+ID4gPj4+DQo+ID4gPj4+IE9uIFR1ZSwg
-MjAxMy0wOC0yMCBhdCAwODozNyAtMDUwMCwgRmVsaXBlIEJhbGJpIHdyb3RlOg0KPiA+ID4+Pj4N
-Cj4gPiA+Pj4+IE9uIFR1ZSwgQXVnIDIwLCAyMDEzIGF0IDA0OjMyOjIzUE0gKzAzMDAsIEl2YW4g
-VC4gSXZhbm92IHdyb3RlOg0KPiA+ID4+Pj4+DQo+ID4gPj4+Pj4gSSB0aGluayB0aGV5IGFyZSBT
-TlBTIERlc2lnbldhcmUgUEhZJ3MsIGFkZGl0aW9uYWxseQ0KPiA+ID4+Pj4+IHdyYXBwZWQgd2l0
-aCBRdWFsY29tbSBsb2dpYy4gSSBjb3VsZCBzdWJzdGl0dXRlICJkd2MzIg0KPiA+ID4+Pj4+IHdp
-dGgganVzdCAiZHciLCB3aGljaCB3aWxsIGJlIG1vcmUgY29ycmVjdC4NCj4gPiA+Pj4+DQo+ID4g
-Pj4+PiBhbHJpZ2h0LCB0aGFuayB5b3UuIExldCdzIGFkZCBQYXVsIHRvIHRoZSBsb29wIHNpbmNl
-IGhlIG1pZ2h0IGhhdmUgdmVyeQ0KPiA+ID4+Pj4gZ29vZCBpbnNpZ2h0IGluIHRoZSBzeW5vcHN5
-cyBQSFlzLg0KPiA+ID4+Pj4NCj4gPiA+Pj4+IG1lbnRhbCBub3RlOiBpZiBhbnkgb3RoZXIgcGxh
-dGZvcm0gc2hvd3MgdXAgd2l0aCBTeW5vcHN5cyBQSFksIGFzayB0aGVtDQo+ID4gPj4+PiB0byB1
-c2UgdGhpcyBkcml2ZXIgaW5zdGVhZCA6LSkNCj4gPiA+Pj4NCj4gPiA+Pj4gSSByZWFsbHkgZG91
-YnQgdGhhdCB0aGlzIHdpbGwgYmkgcG9zc2libGUuIENvbnRyb2wgb2YgdGhlIFBIWSdzIGlzDQo+
-ID4gPj4+IG5vdCBkaXJlY3RseSB0cm91Z2ggVUxQSSwgVVRNSSBvciBQSVBFMyBpbnRlcmZhY2Vz
-LCBidXQgdHJvdWdoDQo+ID4gPj4+IFFTQ1JBVENIIHJlZ2lzdGVycywgd2hpY2ggb2YgY291cnNl
-IGlzIGhpZ2hseSBRdWFsY29tbSBzcGVjaWZpYy4NCj4gPiA+Pg0KPiA+ID4+IGlzbid0IGl0IGEg
-bWVtb3J5IG1hcHBlZCBJUCA/IGRvZXNuJ3Qgc3lub3BzeXMgcHJvdmlkZSB0aGVpciBvd24gc2V0
-IG9mDQo+ID4gPj4gcmVnaXN0ZXJzID8NCj4gPiA+DQo+ID4gPiBGcm9tIHdoYXQgSSBzZWUgaXQg
-aXMgbm90IGRpcmVjdGx5IG1hcHBlZC4gSG93IFFTQ1JBVENIIHdyaXRlIGFuZA0KPiA+ID4gcmVh
-ZHMgdHJhbnNhY3Rpb25zIGFyZSB0cmFuc2xhdGVkIHRvIERXIElQIGlzIHVuY2xlYXIgdG8gbWUu
-DQo+ID4NCj4gPg0KPiA+IEkgdGhpbmsgdGhlIHF1ZXN0aW9uIGlzIGhvdyBkb2VzIFNXIGFjY2Vz
-cyB0aGVtPw0KPiANCj4gIlVTQiBRU0NSQVRDSCBIYXJkd2FyZSByZWdpc3RlcnMiIGRvbid0IGFz
-ayBtZSB3aGF0IGlzIHRoaXMgOi0pDQo+IG9yIGxpa2UgUGF3ZWwgc2F5czogIml0IGRlcGVuZHMg
-b24gdGhlIFNPQyIgLg0KDQpUbyBhbnN3ZXIgdGhlIHF1ZXN0aW9uICJkb2Vzbid0IHN5bm9wc3lz
-IHByb3ZpZGUgdGhlaXIgb3duIHNldCBvZg0KcmVnaXN0ZXJzIiwgd2UgcHJvdmlkZSByZWdpc3Rl
-cnMgaW4gb3VyIFVTQiBjb3JlcyB0byBhY2Nlc3MgdGhlIFBIWXMNCnRocm91Z2ggSTJDLCBVTFBJ
-L1VUTUksIG9yIFBJUEUzIGludGVyZmFjZXMuIEJ1dCBpZiBzb21lb25lIHdhbnRzIHRvIHVzZQ0K
-b3VyIFBIWSB3aXRoIHNvbWUgb3RoZXIgY29udHJvbGxlciB0aGF0IGRvZXNuJ3QgcHJvdmlkZSB0
-aGF0LCB0aGVuIHRoZXkNCm1heSBuZWVkIHRvIGltcGxlbWVudCB0aGVpciBvd24gcmVnaXN0ZXIg
-c2V0LCBhcyBRdWFsY29tbSBoYXMgYXBwYXJlbnRseQ0KZG9uZS4NCg0KLS0gDQpQYXVsDQoNCg==
+On Fri, Aug 23, 2013 at 04:36:53AM +0800, Stephen Warren wrote:
+> On 08/22/2013 12:43 AM, Richard Zhao wrote:
+> > DMA client device driver usually needs to know at probe time whether
+> > dma controller has been registered to deffer probe. So add a help
+> > function of_dma_check_controller.
+> > 
+> > DMA request channel functions can also used to check it, but they
+> > are usually called at open() time.
+> 
+> This new function is almost identical to the existing
+> of_dma_request_slave_channel(). Surely the code should be shared?
+ofdma->of_dma_xlate(&dma_spec, ofdma);
+The above is called holding of_dma_lock. If I want to abstract the
+common lines, there' two options.
+
+Option 1:
+static struct of_dma* of_dma_check_controller_locked(np, name)
+{
+	parameter check
+	get dma-names count and check return value
+	for loop to get of_dma
+	return PTR_ERR(err) or of_dma
+}
+
+struct dma_chan *of_dma_request_slave_channel(struct device_node *np,
+					      const char *name)
+{
+	chan = null;
+	mutex_lock(&of_dma_lock);
+	of_dma = of_dma_check_controller_locked(np, name)
+	if(!IS_ERR(of_dma))
+		chan = ofdma->of_dma_xlate(&dma_spec, ofdma);
+	mutex_unlock(&of_dma_lock);
+	return chan;
+}
+
+int of_dma_check_controller(struct device *dev, const char *name)
+{
+	mutex_lock(&of_dma_lock);
+	ofdma = of_dma_check_controller_locked(dev->of_node, name);
+	mutex_unlock(&of_dma_lock);
+	if (IS_ERR(ofdma))
+		return ERR_PTR(ofdma);
+	else
+		return 0;
+}
+
+Option 2:
+static struct of_dma* of_dma_check_controller_getlock(np, name)
+{
+	parameter check
+	get dma-names count and check return value
+	for loop to get of_dma, get lock at old place
+	if failed, unlock.
+	return PTR_ERR(err) or of_dma
+}
+
+struct dma_chan *of_dma_request_slave_channel(struct device_node *np,
+					      const char *name)
+{
+}	of_dma = of_dma_check_controller_getlock(np, name)
+	if(!IS_ERR(of_dma)) {
+		chan = ofdma->of_dma_xlate(&dma_spec, ofdma);
+		unlock;
+	}
+	return chan;
+}
+
+int of_dma_check_controller(struct device *dev, const char *name)
+	ofdma = of_dma_check_controller_locked(dev->of_node, name);
+
+	if (IS_ERR(ofdma)) {
+		return ERR_PTR(ofdma);
+	} else {
+		unlock;
+		return 0;
+	}
+}
+
+> But that said, I don't see any need for a new function; why can't
+> drivers simply call of_dma_request_slave_channel() at probe time;
+It'll mislead user. channel supposed to be request at open time.
+
+> from
+> what I can see, that function doesn't actually request the channel, but
+> rather simply looks it up, just like this one. The only difference is
+> that of_dma_xlate() is also called, but that's just doing some data
+> transformation, not actually recording channel ownership.
+xlate function request the channel if things go well.
+
+Thanks
+Richard
