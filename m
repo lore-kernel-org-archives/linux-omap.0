@@ -1,18 +1,24 @@
-From: Chen Gang <gang.chen@asianux.com>
-Subject: Re: [PATCH v2] ARM: OMAP2: use 'int' instead of 'unsigned' for
- variable 'gpmc_irq_start'
-Date: Fri, 23 Aug 2013 14:14:20 +0800
-Message-ID: <5216FDBC.6080100@asianux.com>
-References: <521479B4.8030604@asianux.com> <20130822071402.GQ7656@atomide.com>
- <5215C12D.5020807@asianux.com> <5215C209.3080606@asianux.com>
- <20130822075731.GT7656@atomide.com> <5215C555.9060902@asianux.com>
- <20130822083206.GU7656@atomide.com> <5215D30C.1070500@gmail.com>
- <20130823054818.GX7656@atomide.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [PATCH 1/3] misc: Add crossbar driver
+Date: Fri, 23 Aug 2013 11:47:02 +0530
+Message-ID: <5216FE5E.80407@ti.com>
+References: <51E83A4F.5080904@ti.com>
+ <CACRpkdY3nQaWimTwB-Zt-8+Q_KZr8a0rpB1SUQq=AuoG4bAYnQ@mail.gmail.com>
+ <51ED2385.60108@ti.com> <51ED5C66.1010407@ti.com> <51EFFBE1.4090505@ti.com>
+ <51F0031B.1050307@ti.com> <51F00530.9090703@ti.com> <51F02069.3050207@ti.com>
+ <51F0223E.4050008@ti.com> <51F0240F.3050507@ti.com>
+ <20130813081003.GU7656@atomide.com> <520A02BA.4090805@ti.com>
+ <CACRpkda+m82PYJsExLM6JLsLa8-bVhdvy_r_+-uKfVT2NG7Cbg@mail.gmail.com>
+ <520D398D.9040806@ti.com>
+ <CACRpkdYeo1y-HhftkRWgwyq8o-NVuJ978Uq+ON880LHhUxC=hg@mail.gmail.com>
+ <520D44C5.6080205@ti.com>
+ <CACRpkdagSHxzV3=427O9iftNxM+N=w9aPds=iDvGQPoG3H-cWw@mail.gmail.com>
+ <5215F6F6.9060703@ti.com> <5216E966.5020902@ti.com> <5216FD0C.3090709@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20130823054818.GX7656@atomide.com>
+In-Reply-To: <5216FD0C.3090709@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -22,22 +28,37 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Chen Gang F T <chen.gang.flying.transformer@gmail.com>, Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Sricharan R <r.sricharan@ti.com>
+Cc: Nishanth Menon <nm@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Thomas Gleixner <tglx@linutronix.de>, Linux-OMAP <linux-omap@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 08/23/2013 01:48 PM, Tony Lindgren wrote:
-> * Chen Gang F T <chen.gang.flying.transformer@gmail.com> [130822 02:08]:
->> Hmm... I guess: for our case, what your meaning is "fixes-none-urgent",
->> not "fixes-none-critical", is it correct ?  :-)
+On Friday 23 August 2013 11:41 AM, Sricharan R wrote:
+> Hi,
+> On Friday 23 August 2013 10:17 AM, Rajendra Nayak wrote:
+>> On Thursday 22 August 2013 05:03 PM, Sricharan R wrote:
+>>>  maps crossbar number<->  to interrupt number and
+>>>  calls request_irq(int_no, crossbar_handler,..)
+>> So will this mapping happen based on some data passed from DT or
+>> just based on whats available when the device does a request_irq()?
+>>
+>> If its based on whats available then I see an issue when you need
+>> to remap something thats already mapped by default (and not used)
+>> since you run out of all free ones.
+> Yes, when done based on what is available then there is a
+> problem when we run out of free ones because we do not
+> know which one to replace. I was thinking of something like
+> this,
+>     1) DT would give a list of all free ones, and also if some are
+>         mapped as default and not used, mark those also as free.
 > 
-> Right, that naming might be actually better :)
+>      2) While mapping see if it has a default mapping and use it.
+>           otherwise, pick from free list.   
 > 
-> Tony
-> 
-> 
+>   This should be ok right ?
 
-Thanks !
+yeah, sounds ok.
 
--- 
-Chen Gang
+> 
+> Regards,
+>  Sricharan
+> 
