@@ -1,117 +1,64 @@
-From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: Re: [PATCH v4 4/5] net: ethernet: cpsw: add support for hardware
- interface mode config
-Date: Fri, 23 Aug 2013 22:20:02 +0530
-Message-ID: <521792BA.7000009@ti.com>
-References: <1377267365-24057-1-git-send-email-zonque@gmail.com> <1377267365-24057-5-git-send-email-zonque@gmail.com>
+From: Joel Fernandes <joelf@ti.com>
+Subject: Re: [PATCH v2 0/2] ARM: dts: Add SHAM and AES DT information
+Date: Fri, 23 Aug 2013 11:53:50 -0500
+Message-ID: <5217939E.40903@ti.com>
+References: <1374078222-12883-1-git-send-email-mgreer@animalcreek.com> <alpine.DEB.2.02.1308210012420.6426@utopia.booyaka.com> <5214C11F.8090808@baylibre.com> <5214C372.3080402@baylibre.com> <52158A7E.30305@ti.com> <5215CCFE.6040500@baylibre.com> <20130822212402.GA30504@animalcreek.com>
+Reply-To: <joelf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1377267365-24057-5-git-send-email-zonque@gmail.com>
-Sender: netdev-owner@vger.kernel.org
-To: Daniel Mack <zonque@gmail.com>
-Cc: netdev@vger.kernel.org, bcousson@baylibre.com, nsekhar@ti.com, sergei.shtylyov@cogentembedded.com, davem@davemloft.net, ujhelyi.m@gmail.com, vaibhav.bedia@ti.com, d-gerlach@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:34361 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754761Ab3HWQyg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 23 Aug 2013 12:54:36 -0400
+In-Reply-To: <20130822212402.GA30504@animalcreek.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Mark A. Greer" <mgreer@animalcreek.com>
+Cc: Benoit Cousson <bcousson@baylibre.com>, Lokesh Vutla <lokeshvutla@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Friday 23 August 2013 07:46 PM, Daniel Mack wrote:
-> The cpsw currently lacks code to properly set up the hardware interface
-> mode on AM33xx. Other platforms might be equally affected.
->
-> Usually, the bootloader will configure the control module register, so
-> probably that's why such support wasn't needed in the past. In suspend
-> mode though, this register is modified, and so it needs reprogramming
-> after resume.
->
-> This patch adds code that makes use of the previously added and optional
-> support for passing the control mode register, and configures the
-> correct register bits when the slave is opened.
->
-> The AM33xx also has a bit for each slave to configure the RMII reference
-> clock direction. Setting it is now supported by a per-slave DT property.
->
-> This code path introducted by this patch is currently exclusive for
-> am33xx.
->
-> Signed-off-by: Daniel Mack <zonque@gmail.com>
-> ---
->  Documentation/devicetree/bindings/net/cpsw.txt |  2 +
->  drivers/net/ethernet/ti/cpsw.c                 | 61 ++++++++++++++++++++++++++
->  drivers/net/ethernet/ti/cpsw.h                 |  1 +
->  3 files changed, 64 insertions(+)
->
-> diff --git a/Documentation/devicetree/bindings/net/cpsw.txt b/Documentation/devicetree/bindings/net/cpsw.txt
-> index b717458..0895a51 100644
-> --- a/Documentation/devicetree/bindings/net/cpsw.txt
-> +++ b/Documentation/devicetree/bindings/net/cpsw.txt
-> @@ -34,6 +34,8 @@ Required properties:
->  - phy_id		: Specifies slave phy id
->  - phy-mode		: The interface between the SoC and the PHY (a string
->  			  that of_get_phy_mode() can understand)
-> +- ti,rmii-clock-ext	: If present, the driver will configure the RMII
-> +			  interface to external clock usage
->  - mac-address		: Specifies slave MAC address
->  
->  Optional properties:
-> diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-> index 73c44cb6..86b8f7a 100644
-> --- a/drivers/net/ethernet/ti/cpsw.c
-> +++ b/drivers/net/ethernet/ti/cpsw.c
-> @@ -138,6 +138,13 @@ do {								\
->  #define CPSW_CMINTMAX_INTVL	(1000 / CPSW_CMINTMIN_CNT)
->  #define CPSW_CMINTMIN_INTVL	((1000 / CPSW_CMINTMAX_CNT) + 1)
->  
-> +#define AM33XX_GMII_SEL_MODE_MII	(0)
-> +#define AM33XX_GMII_SEL_MODE_RMII	(1)
-> +#define AM33XX_GMII_SEL_MODE_RGMII	(2)
-> +
-> +#define AM33XX_GMII_SEL_RMII2_IO_CLK_EN	BIT(7)
-> +#define AM33XX_GMII_SEL_RMII1_IO_CLK_EN	BIT(6)
+On 08/22/2013 04:24 PM, Mark A. Greer wrote:
+> On Thu, Aug 22, 2013 at 10:34:06AM +0200, Benoit Cousson wrote:
+>> Hi Lokesh,
+>>
+>> On 22/08/2013 05:50, Lokesh Vutla wrote:
+>>> Hi Benoit,
+>>> On Wednesday 21 August 2013 07:11 PM, Benoit Cousson wrote:
+>>>> Hi Mark,
+>>>>
+>>>> In fact I cannot even apply these patches since they are referring the the edma controller node that does not seem to be there in 3.11-rc6.
+>>>>
+>>>> Is this EDMA series supposed to be merged for 3.12? If this is the case, where can I find a reference GIT for it?
+>>> The following EDMA support dt patch series from Joel is needed :
+>>> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg92176.html
+>>> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg92177.html
+>>
+>> Thanks, it works a little bit better with these patches :-)
+> 
+> Yeah, sorry.
+> 
+> Given Mark Rutland's comments in another email, let me respin and send v3.
+> I'll put a comment about the dependencies this time.
 
-These defined can go into cpsw.h so that we can maintain platform
-defines in one file.
+Just sanity tested these patches on v3.11-rc6 too.
+
+Drivers register successfully after passing the boot crypto testmgr tests.
+
+bash-4.2# cat /proc/crypto | grep -i omap
+driver       : ctr-aes-omap
+driver       : cbc-aes-omap
+driver       : ecb-aes-omap
+driver       : omap-hmac-sha256
+driver       : omap-hmac-sha224
+driver       : omap-sha256
+driver       : omap-sha224
+driver       : omap-hmac-md5
+driver       : omap-hmac-sha1
+driver       : omap-md5
+driver       : omap-sha1
 
 
-> +
->  #define cpsw_enable_irq(priv)	\
->  	do {			\
->  		u32 i;		\
-> @@ -980,6 +987,56 @@ static inline void cpsw_add_dual_emac_def_ale_entries(
->  		priv->host_port, ALE_VLAN, slave->port_vlan);
->  }
->  
-> +static void cpsw_set_phy_interface_mode(struct cpsw_slave *slave,
-> +					struct cpsw_priv *priv)
-> +{
-> +	u32 reg, mask, mode = 0;
+Thanks,
 
-Please define each variable in separate line to make it clean.
-Please check for IS_ERR(gmii_sel_reg) and return if gmii register is not
-specified in DT then the below code will crash when trying to access
-gmii_sel_reg.
-
-
-> +
-> +	switch (priv->data.hw_type) {
-> +	case CPSW_TYPE_AM33XX:
-> +		if (!priv->gmii_sel_reg)
-> +			break;
-> +
-> +		reg = readl(priv->gmii_sel_reg);
-> +
-> +		if (slave->phy) {
-> +			switch (slave->phy->interface) {
-> +			case PHY_INTERFACE_MODE_MII:
-> +			default:
-> +				mode = AM33XX_GMII_SEL_MODE_MII;
-> +				break;
-> +			case PHY_INTERFACE_MODE_RMII:
-> +				mode = AM33XX_GMII_SEL_MODE_RMII;
-> +				break;
-> +			case PHY_INTERFACE_MODE_RGMII:
-
-You need to take care of other RGMII modes as well, for your info
-AM335xevm phy mode is "rgmii-txid"
-
-Regards
-Mugunthan V N
+-Joel
