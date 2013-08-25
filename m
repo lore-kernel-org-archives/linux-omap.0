@@ -1,68 +1,59 @@
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Subject: Re: [PATCH] ARM: dts: add AM33XX EDMA support
-Date: Sat, 24 Aug 2013 23:33:06 +0400
-Message-ID: <52190A72.4070407@cogentembedded.com>
-References: <1377284808-32412-1-git-send-email-bigeasy@linutronix.de> <5218F519.3040409@cogentembedded.com> <5218FC6C.6000002@ti.com>
+From: Chris Ball <cjb@laptop.org>
+Subject: Re: [PATCH] mmc: omap_hsmmc: clear status flags before starting a new command
+Date: Sat, 24 Aug 2013 22:02:24 -0400
+Message-ID: <87vc2uttn3.fsf@octavius.laptop.org>
+References: <51CE7DC8.2070905@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5218FC6C.6000002@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Joel Fernandes <joelf@ti.com>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Benoit Cousson <bcousson@baylibre.com>, tony@atomide.com, devicetree@vger.kernel.org, Matt Porter <matt@ohporter.com>, linux-kernel@vger.kernel.org, santosh.shilimkar@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <51CE7DC8.2070905@gmail.com> (Francesco Lavra's message of "Sat,
+	29 Jun 2013 08:25:12 +0200")
+Sender: linux-mmc-owner@vger.kernel.org
+To: Francesco Lavra <francescolavra.fl@gmail.com>
+Cc: Balaji T K <balajitk@ti.com>, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hello.
+Hi Balaji,
 
-On 08/24/2013 10:33 PM, Joel Fernandes wrote:
+On Sat, Jun 29 2013, Francesco Lavra wrote:
+> Commit 1f6b9fa40e76fffaaa0b3bd6a0bfdcf1cdc06efa consolidated writes to 
+> the STAT register in one location, moving them from omap_hsmmc_do_irq() 
+> to omap_hsmmc_irq(). This move has the unwanted side effect that the 
+> controller status flags are potentially cleared after a new command has 
+> been started as a consequence of reading the previous status flags. 
+> This means that if the new command changes the status flags before the 
+> IRQ routine returns, those flags may be cleared without handling the 
+> event which asserted them, and thus missing the event.
+> Move the writing of the STAT register back in omap_hsmmc_do_irq(), 
+> before handling the status flags which generated the interrupt.
+>
+> Signed-off-by: Francesco Lavra <francescolavra.fl@gmail.com>
+> ---
+>  drivers/mmc/host/omap_hsmmc.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+>
+> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+> index eccedc7..301cb7e 100644
+> --- a/drivers/mmc/host/omap_hsmmc.c
+> +++ b/drivers/mmc/host/omap_hsmmc.c
+> @@ -1041,6 +1041,7 @@ static void omap_hsmmc_do_irq(struct omap_hsmmc_host *host, int status)
+>  		}
+>  	}
+>  
+> +	OMAP_HSMMC_WRITE(host->base, STAT, status);
+>  	if (end_cmd || ((status & CC_EN) && host->cmd))
+>  		omap_hsmmc_cmd_done(host, host->cmd);
+>  	if ((end_trans || (status & TC_EN)) && host->mrq)
+> @@ -1060,7 +1061,6 @@ static irqreturn_t omap_hsmmc_irq(int irq, void *dev_id)
+>  		omap_hsmmc_do_irq(host, status);
+>  
+>  		/* Flush posted write */
+> -		OMAP_HSMMC_WRITE(host->base, STAT, status);
+>  		status = OMAP_HSMMC_READ(host->base, STAT);
+>  	}
 
-> Updating CC with Matt's current email address.
+Please could you review this patch?  Thanks,
 
->>> From: Matt Porter <mdp@ti.com>
-
->>> Adds AM33XX EDMA support to the am33xx.dtsi as documented in
->>> Documentation/devicetree/bindings/dma/ti-edma.txt
-
->>> Joel: Drop DT entries that are non-hardware-description for now as discussed
->>> in [1]
-
->>> [1] https://patchwork.kernel.org/patch/2226761/
-
->>> Signed-off-by: Matt Porter <mporter@ti.com>
->>> Signed-off-by: Joel A Fernandes <joelagnel@ti.com>
->>> Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
->>> ---
->>> Could someone please pick this up?
-
->>>    arch/arm/boot/dts/am33xx.dtsi | 12 ++++++++++++
->>>    1 file changed, 12 insertions(+)
-
->>> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
->>> index 38b446b..784f774 100644
->>> --- a/arch/arm/boot/dts/am33xx.dtsi
->>> +++ b/arch/arm/boot/dts/am33xx.dtsi
->>> @@ -96,6 +96,18 @@
->>>                reg = <0x48200000 0x1000>;
->>>            };
->>>
->>> +        edma: edma@49000000 {
-
->>     The node should be named "dma-controller", not "edma",according to ePAPR
->> section 2.2.2:
-
->> http://www.power.org/resources/downloads/Power_ePAPR_APPROVED_v1.0.pdf
-
-> So you mean something like the following?
-
-> edma: dma-controller@49000000 {
->    ...
-> }
-
-    Yes, exactly.
-
-> Thanks,
-
-> -Joel
-
-WBR, Sergei
+- Chris.
+-- 
+Chris Ball   <cjb@laptop.org>   <http://printf.net/>
