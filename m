@@ -1,45 +1,57 @@
-From: Chris Ball <cjb@laptop.org>
-Subject: Re: [PATCH] mmc: omap_hsmmc: fix dependency on indirect header inclusion
-Date: Sat, 24 Aug 2013 22:51:04 -0400
-Message-ID: <8761uutrdz.fsf@octavius.laptop.org>
-References: <1373548145-3833-1-git-send-email-balbi@ti.com>
-	<520E5382.1090408@ti.com>
+From: Balaji T K <balajitk@ti.com>
+Subject: Re: [PATCH] mmc: omap_hsmmc: clear status flags before starting a
+ new command
+Date: Mon, 26 Aug 2013 01:09:40 +0530
+Message-ID: <521A5D7C.4050208@ti.com>
+References: <51CE7DC8.2070905@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <520E5382.1090408@ti.com> (Balaji T. K.'s message of "Fri, 16 Aug
-	2013 21:59:54 +0530")
-Sender: linux-mmc-owner@vger.kernel.org
-To: Balaji T K <balajitk@ti.com>
-Cc: linux-mmc@vger.kernel.org, Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org, a-bindra@ti.com, Tony Lindgren <tony@atomide.com>, ezequiel.garcia@free-electrons.com, nm@ti.com
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <51CE7DC8.2070905@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Francesco Lavra <francescolavra.fl@gmail.com>
+Cc: Chris Ball <cjb@laptop.org>, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-
-On Fri, Aug 16 2013, Balaji T K wrote:
-> On Thursday 11 July 2013 06:39 PM, Felipe Balbi wrote:
->> omap_hsmmc.c depends on <linux/sizes.h> being
->> included indirectly by another header. Once we
->> enable COMPILE_TEST for this driver, we might
->> compile under architectures which won't include
->> <linux/sizes.h> for us. In fact, one such case
->> is x86.
->>
->> In order to prevent compile breakages, let's
->> explicitly include <linux/sizes.h>
->>
->> Signed-off-by: Felipe Balbi <balbi@ti.com>
->> ---
->>
->> This should be applied before
->> http://marc.info/?l=linux-omap&m=137347241524118&w=2
->> in order to maintain bisectability.
-> Thanks Felipe
+On Saturday 29 June 2013 11:55 AM, Francesco Lavra wrote:
+> Commit 1f6b9fa40e76fffaaa0b3bd6a0bfdcf1cdc06efa consolidated writes to
+> the STAT register in one location, moving them from omap_hsmmc_do_irq()
+> to omap_hsmmc_irq(). This move has the unwanted side effect that the
+> controller status flags are potentially cleared after a new command has
+> been started as a consequence of reading the previous status flags.
+> This means that if the new command changes the status flags before the
+> IRQ routine returns, those flags may be cleared without handling the
+> event which asserted them, and thus missing the event.
+> Move the writing of the STAT register back in omap_hsmmc_do_irq(),
+> before handling the status flags which generated the interrupt.
 >
-> Acked-by: Balaji T K <balajitk@ti.com>
+> Signed-off-by: Francesco Lavra <francescolavra.fl@gmail.com>
 
-Thanks, pushed to mmc-next for 3.12.
+Reviewed and Tested-by: Balaji T K <balajitk@ti.com>
 
-- Chris.
--- 
-Chris Ball   <cjb@laptop.org>   <http://printf.net/>
+> ---
+>   drivers/mmc/host/omap_hsmmc.c |    2 +-
+>   1 files changed, 1 insertions(+), 1 deletions(-)
+>
+> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+> index eccedc7..301cb7e 100644
+> --- a/drivers/mmc/host/omap_hsmmc.c
+> +++ b/drivers/mmc/host/omap_hsmmc.c
+> @@ -1041,6 +1041,7 @@ static void omap_hsmmc_do_irq(struct omap_hsmmc_host *host, int status)
+>   		}
+>   	}
+>
+> +	OMAP_HSMMC_WRITE(host->base, STAT, status);
+>   	if (end_cmd || ((status & CC_EN) && host->cmd))
+>   		omap_hsmmc_cmd_done(host, host->cmd);
+>   	if ((end_trans || (status & TC_EN)) && host->mrq)
+> @@ -1060,7 +1061,6 @@ static irqreturn_t omap_hsmmc_irq(int irq, void *dev_id)
+>   		omap_hsmmc_do_irq(host, status);
+>
+>   		/* Flush posted write */
+> -		OMAP_HSMMC_WRITE(host->base, STAT, status);
+>   		status = OMAP_HSMMC_READ(host->base, STAT);
+>   	}
+>
+>
