@@ -1,78 +1,36 @@
-From: Benoit Cousson <bcousson@baylibre.com>
-Subject: Re: [PATCH v2] ARM: dts: add AM33XX EDMA support
-Date: Mon, 26 Aug 2013 10:36:16 +0200
-Message-ID: <521B1380.3030908@baylibre.com>
-References: <1377505784-9820-1-git-send-email-bigeasy@linutronix.de>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 3/3] ARM: OMAP2+: Add SSI driver configuration
+Date: Mon, 26 Aug 2013 01:52:53 -0700
+Message-ID: <20130826085252.GA7656@atomide.com>
+References: <1376237628-1077-1-git-send-email-sre@debian.org>
+ <1376237877-1740-1-git-send-email-sre@debian.org>
+ <1376237877-1740-3-git-send-email-sre@debian.org>
+ <20130812083051.GL7656@atomide.com>
+ <CACRpkdbfGPx=j7byCdQV7Eghohr==mi+FyxSODE8kNTCgH-ayA@mail.gmail.com>
+ <20130823182011.GC5753@earth.universe>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ea0-f170.google.com ([209.85.215.170]:62818 "EHLO
-	mail-ea0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756031Ab3HZIgU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Aug 2013 04:36:20 -0400
-Received: by mail-ea0-f170.google.com with SMTP id h14so1454898eak.15
-        for <linux-omap@vger.kernel.org>; Mon, 26 Aug 2013 01:36:19 -0700 (PDT)
-In-Reply-To: <1377505784-9820-1-git-send-email-bigeasy@linutronix.de>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20130823182011.GC5753@earth.universe>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, Shubhrajyoti Datta <omaplinuxkernel@gmail.com>, Carlos Chinea <cch.devel@gmail.com>
 List-Id: linux-omap@vger.kernel.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: tony@atomide.com, santosh.shilimkar@ti.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 
-- minus all the TI emails which are not working anymore :-(
+* Sebastian Reichel <sre@debian.org> [130823 11:27]:
+> On Fri, Aug 23, 2013 at 03:58:30PM +0200, Linus Walleij wrote:
+> > On Mon, Aug 12, 2013 at 10:30 AM, Tony Lindgren <tony@atomide.com> wrote:
+> > > * Sebastian Reichel <sre@debian.org> [130811 09:25]:
+> > >> From: Sebastian Reichel <sre@ring0.de>
+> > >>
+> > >> This patch configures and activates the OMAP SSI driver on the RX-51.
+> > >
+> > > Hmm, I'd rather see this be DT only driver at this point.
+> > 
+> > +1 on this.
+> 
+> I'm already working on this.
 
-I've just sent my previous email too soon...
+Thanks good to hear!
 
-Now the patch is different :-) I'll take that one.
-
-Thanks,
-Benoit
-
-
-On 26/08/2013 10:29, Sebastian Andrzej Siewior wrote:
-> From: Matt Porter <mdp@ti.com>
->
-> Adds AM33XX EDMA support to the am33xx.dtsi as documented in
-> Documentation/devicetree/bindings/dma/ti-edma.txt
->
-> Joel: Drop DT entries that are non-hardware-description for now as discussed in [1]
->
-> [1] https://patchwork.kernel.org/patch/2226761/
->
-> Signed-off-by: Matt Porter <mporter@ti.com>
-> Signed-off-by: Joel A Fernandes <joelagnel@ti.com>
-> Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-> ---
-> Could someone please pick this up?
->
-> v1..v2:
-> 	- s/edma@/dma-controller@/
->
->   arch/arm/boot/dts/am33xx.dtsi | 12 ++++++++++++
->   1 file changed, 12 insertions(+)
->
-> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-> index 38b446b..784f774 100644
-> --- a/arch/arm/boot/dts/am33xx.dtsi
-> +++ b/arch/arm/boot/dts/am33xx.dtsi
-> @@ -96,6 +96,18 @@
->   			reg = <0x48200000 0x1000>;
->   		};
->
-> +		edma: dma-controller@49000000 {
-> +			compatible = "ti,edma3";
-> +			ti,hwmods = "tpcc", "tptc0", "tptc1", "tptc2";
-> +			reg =	<0x49000000 0x10000>,
-> +				<0x44e10f90 0x10>;
-> +			interrupts = <12 13 14>;
-> +			#dma-cells = <1>;
-> +			dma-channels = <64>;
-> +			ti,edma-regions = <4>;
-> +			ti,edma-slots = <256>;
-> +		};
-> +
->   		gpio0: gpio@44e07000 {
->   			compatible = "ti,omap4-gpio";
->   			ti,hwmods = "gpio1";
->
-
+Tony
