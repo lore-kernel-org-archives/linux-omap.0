@@ -1,84 +1,49 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH] DMA: let filter functions of of_dma_simple_xlate possible check of_node
-Date: Mon, 26 Aug 2013 15:18 +0200
-Message-ID: <2811939.DFy94j5OEx@avalon>
-References: <1375408800-11789-1-git-send-email-rizhao@nvidia.com> <1441310.1kjKG7uebg@avalon> <20130826125547.GA2733@richard-laptop>
+From: Balaji T K <balajitk@ti.com>
+Subject: [PATCH 1/2] ARM: dts: dra7-evm: Add mmc1 node for micro-sd support
+Date: Mon, 26 Aug 2013 19:23:37 +0530
+Message-ID: <1377525218-7655-2-git-send-email-balajitk@ti.com>
+References: <1377525218-7655-1-git-send-email-balajitk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130826125547.GA2733@richard-laptop>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Richard Zhao <linuxzsc@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: Stephen Warren <swarren@wwwdotorg.org>, "vinod.koul@intel.com" <vinod.koul@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Richard Zhao <rizhao@nvidia.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:42447 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752006Ab3HZNyK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 26 Aug 2013 09:54:10 -0400
+In-Reply-To: <1377525218-7655-1-git-send-email-balajitk@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: bcousson@baylibre.com, devicetree@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, linux-arm-kernel@lists.infradead.org, nm@ti.com, Balaji T K <balajitk@ti.com>
 
-Hi Richard,
+Add mmc1 dt node to dra7-evm board.
+Input for ldo1 regulator is controlled by gpio 5 of pcf8575 chip (0x21)
+on i2c1 bus. When dt support for gpio-pcf857x is available, input supply
+will be modelled as cascaded regulator.
 
-(Dropping Dan Williams from the CC list as his e-mail address doesn't seem to 
-be valid anymore)
+Signed-off-by: Balaji T K <balajitk@ti.com>
+---
+Patch has dependency on [1] for ldo1_reg
+[1] [PATCH] ARM: DTS: DRA7: Add TPS659038 PMIC nodes
+https://lkml.org/lkml/2013/8/26/21
 
-On Monday 26 August 2013 20:55:57 Richard Zhao wrote:
-> On Mon, Aug 26, 2013 at 02:17:43PM +0200, Laurent Pinchart wrote:
-> > On Friday 23 August 2013 09:57:43 Stephen Warren wrote:
-> > > On 08/22/2013 07:29 PM, Richard Zhao wrote:
-> > > > On Fri, Aug 23, 2013 at 04:18:27AM +0800, Stephen Warren wrote:
-> > > >> On 08/21/2013 11:19 PM, Richard Zhao wrote:
-> > > >>> On Fri, Aug 02, 2013 at 10:00:00AM +0800, Richard Zhao wrote:
-> > > >>>> pass of_phandle_args dma_spec to dma_request_channel in
-> > > >>>> of_dma_simple_xlate, so the filter function could access of_node in
-> > > >>>> of_phandle_args.
-> > > >>>> 
-> > > >>>> It also remove restriction of #dma-cells has to be one.
-> > > >>>> 
-> > > >>>> Signed-off-by: Richard Zhao <rizhao@nvidia.com>
-> > > >>>> ---
-> > > >>>> 
-> > > >>>>  drivers/dma/edma.c     |  7 +++++--
-> > > >>>>  drivers/dma/of-dma.c   | 10 ++++------
-> > > >>>>  drivers/dma/omap-dma.c |  6 ++++--
-> > > >>>>  3 files changed, 13 insertions(+), 10 deletions(-)
-> > > >>> 
-> > > >>> Hi Vinod,
-> > > >>> 
-> > > >>> Can you please pick up this change?
-> > > >>> 
-> > > >>> Hi Stephen,
-> > > >>> 
-> > > >>> Can you please give a ack or reviewed-by etc?
-> > > >> 
-> > > >> Hmm. Looking at the patch, I'm not sure it's right.
-> > > >> 
-> > > >> This patch simply passes all the specfier args to the filter
-> > > >> function, and the code to check the equality of the of_node to the
-> > > >> filter args is still duplicated in each DMA driver. Instead, the DMA
-> > > >> core should be implementing the equality check, and only even calling
-> > > >> the driver-specific filter function for devices where the client's
-> > > >> phandle matches the DMA providing device's of_node handle.
-> > > > 
-> > > > Filter function is called in dmaengine core code, independent of dt.
-> > > 
-> > > The core code can still check if a dmaengine's driver was instantiated
-> > > from DT and take additional actions in that case.
-> > > 
-> > > > And the reason why the driver has to write its own filter function is
-> > > > it has to store slave id there in its own way.
-> > > 
-> > > I'm not saying don't call the driver's filter function, but rather that
-> > > the dmaengine core should perform the common checks before doing so.
-> > 
-> > And it looks to me like the common case could even get rid of the driver's
-> > filter function:
-> > 
-> > https://lkml.org/lkml/2013/5/15/270
-> > https://lkml.org/lkml/2013/3/25/250
-> 
-> For general case, the slave id is not staticly bind to a specific channel.
+ arch/arm/boot/dts/dra7-evm.dts |    6 ++++++
+ 1 files changed, 6 insertions(+), 0 deletions(-)
 
-Certainly not in all cases, but I think it's common enough to deserve a 
-specific helper function.
-
+diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
+index 32f8534..a59bbd0 100644
+--- a/arch/arm/boot/dts/dra7-evm.dts
++++ b/arch/arm/boot/dts/dra7-evm.dts
+@@ -251,3 +251,9 @@
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&uart3_pins>;
+ };
++
++&mmc1 {
++	status = "okay";
++	vmmc-supply = <&ldo1_reg>;
++	bus-width = <4>;
++};
 -- 
-Regards,
+1.7.5.4
 
-Laurent Pinchart
