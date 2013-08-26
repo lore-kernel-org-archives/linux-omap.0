@@ -1,18 +1,11 @@
-From: "Gupta, Pekon" <pekon@ti.com>
-Subject: RE: [PATCH v4 3/5] net: ethernet: cpsw: introduce ti,am3352-cpsw
- compatible string
-Date: Mon, 26 Aug 2013 05:22:54 +0000
-Message-ID: <20980858CB6D3A4BAE95CA194937D5E73E9FA84F@DBDE04.ent.ti.com>
-References: <1377267365-24057-1-git-send-email-zonque@gmail.com>
- <1377267365-24057-4-git-send-email-zonque@gmail.com>
- <52177052.1030308@ti.com> <52178E20.5040404@gmail.com>
- <52179448.1020906@ti.com> <52179AA5.3060408@ti.com>
+From: Keerthy <j-keerthy@ti.com>
+Subject: [PATCH] ARM: DTS: DRA7: Add TPS659038 PMIC nodes
+Date: Mon, 26 Aug 2013 11:06:51 +0530
+Message-ID: <1377495411-21984-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <52179AA5.3060408@ti.com>
-Content-Language: en-US
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -22,74 +15,146 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "N, Mugunthan V" <mugunthanvnm@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "bcousson@baylibre.com" <bcousson@baylibre.com>, Daniel Mack <zonque@gmail.com>, "Nori, Sekhar" <nsekhar@ti.com>
-Cc: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "sergei.shtylyov@cogentembedded.com" <sergei.shtylyov@cogentembedded.com>, "Gerlach,
- Dave" <d-gerlach@ti.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "Bedia, Vaibhav" <vaibhav.bedia@ti.com>, "ujhelyi.m@gmail.com" <ujhelyi.m@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "davem@davemloft.net" <davem@davemloft.net>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: bcousson@baylibre.com
+Cc: nm@ti.com, devicetree@vger.kernel.org, balajitk@ti.com, pawel.moll@arm.com, j-keerthy@ti.com, linux-kernel@vger.kernel.org, rob.herring@calxeda.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-PiANCj4gT24gRnJpZGF5IDIzIEF1Z3VzdCAyMDEzIDEwOjI2IFBNLCBTYW50b3NoIFNoaWxpbWth
-ciB3cm90ZToNCj4gPiBPbiBGcmlkYXkgMjMgQXVndXN0IDIwMTMgMTI6MzAgUE0sIERhbmllbCBN
-YWNrIHdyb3RlOg0KPiA+PiBPbiAyMy4wOC4yMDEzIDE2OjIzLCBTYW50b3NoIFNoaWxpbWthciB3
-cm90ZToNCj4gPj4+IE9uIEZyaWRheSAyMyBBdWd1c3QgMjAxMyAxMDoxNiBBTSwgRGFuaWVsIE1h
-Y2sgd3JvdGU6DQo+ID4+Pj4gK3N0YXRpYyBjb25zdCBzdHJ1Y3Qgb2ZfZGV2aWNlX2lkIGNwc3df
-b2ZfbXRhYmxlW10gPSB7DQo+ID4+Pj4gKwl7DQo+ID4+Pj4gKwkJLmNvbXBhdGlibGUJPSAidGks
-YW0zMzUyLWNwc3ciLA0KPiA+Pj4gSSBkaWRuJ3Qgbm90aWNlIHRoaXMgZWFybGllciwgYnV0IGNh
-bid0IHlvdSB1c2UgdGhlIElQIHZlcnNpb24NCj4gPj4+IGFzIGEgY29tcGF0aWJsZSBpbnN0ZWFk
-IG9mIHVzaW5nIGEgU09DIG5hbWUuIFdoYXRzIHJlYWxseSBTT0Mgc3BlY2lmaWMNCj4gPj4+IG9u
-IHRoaXMgSVAgPyBTb3JyeSBpIGhhdmUgbWlzc2VkIGFueSBlYXJsaWVyIGRpc2N1c3Npb24gb24g
-dGhpcyBidXQNCj4gPj4+IHRoaXMgYXBwcm9hY2ggZG9lc24ndCBzZWVtIGdvb2QuIEl0cyBsaWtl
-IGFkZGluZyBTT0MgY2hlY2tzIGluIHRoZQ0KPiA+Pj4gZHJpdmVyIHN1YnN5c3RlbS4NCj4gPj4g
-QXMgSSBhbHJlYWR5IG1lbnRpb25lZCBpbiB0aGUgY292ZXIgbGV0dGVyIGFuZCBpbiB0aGUgY29t
-bWl0IG1lc3NhZ2UsIEkNCj4gPj4ganVzdCBkb24ndCBrbm93IHdoaWNoIGNyaXRlcmlhIG1ha2Vz
-IG1vc3Qgc2Vuc2UgaGVyZS4NCj4gPj4NCj4gPj4gT24gYSBnZW5lcmFsIG5vdGUsIEkgd291bGQg
-c2F5IHRoYXQgY2hhbmNlcyB0aGF0IHRoaXMgZXhhY3RseSBJUCBjb3JlDQo+ID4+IHdpdGggdGhl
-IHNhbWUgdmVyc2lvbiBudW1iZXIgd2lsbCBhcHBlYXIgb24gc29tZSBvdGhlciBzaWxpY29uIHdo
-aWNoDQo+ID4+IGRvZXNuJ3Qgc3VwcG9ydCB0aGUgY29udHJvbCBtb2RlIHJlZ2lzdGVyIGluIGFu
-IEFNMzN4eCBmYXNoaW9uLCBpcyBub3QNCj4gPj4gbmVjZXNzYXJpbHkgbmVnbGlnaWJsZS4NCj4g
-Pj4NCj4gPj4gU28gd2hhdCB0aGF0IG5ldyBjb21wYXRpYmxlIHN0cmluZyBkZW5vdGVzIGlzIHRo
-ZSBjcHN3IGluIGEgdmVyc2lvbiBhcw0KPiA+PiBmb3VuZCBvbiBhbTMzNTIgU29Dcywgd2hpY2gg
-aXMgYWN0dWFsbHkgZXhhY3RseSB3aGF0IGl0IGRvZXMuDQo+ID4+DQo+ID4+IEkgZG9uJ3QgaGF2
-ZSBhIHN0cm9uZyBvcGluaW9uIGhlcmUsIGJ1dCBzZWUgeW91ciBwb2ludC4gSSBqdXN0IGRvbid0
-DQo+ID4+IGhhdmUgYSBiZXR0ZXIgaWRlYSBvbiBob3cgdG8gdHJlYXQgdGhhdC4NCj4gPj4NCj4g
-PiBTbyBqdXN0IHN0aWNrIHRoZSBJUCB2ZXJzaW9uIG9yIGNhbGwgaXQgY3Bzdy12MS4uLiBjcHN3
-LXYyIGV0Yy4NCj4gPiBUaGF0IHdheSBpZiBpbiBmdXR1cmUgaWYgc29tZW9uZSB1c2VzIHRob3Nl
-IGZlYXR1cmVzLCB0aGV5IGNhbiB1c2UNCj4gPiB0aGlzIGNvbXBhdGlibGUgaWYgdGhleSBkb24n
-dCB0aGV5IHVzZSB0aGUgb25lIHdoaWNoIHN1aXRlcyB0aGF0DQo+ID4gU09DLg0KPiA+DQo+IFdl
-IGNhbm5vdCBtYXAgY29udHJvbCBtb2R1bGUgcmVnaXN0ZXIgd2l0aCBDUFNXIElQIHZlcnNpb24g
-YXMgYm90aCBjb21lcw0KPiBmcm9tIGRpZmZlcmVudCBkZXNpZ24gdGVhbSBhbmQgQ1BTVyBpcCB2
-ZXJzaW9uIGNhbiBiZSBzYW1lIGFjcm9zcyBTb0MNCj4gYW5kIGdtaWkgc2VsIHJlZ2lzdGVyIGRl
-ZmluaXRpb24gY2FuIGJlIGRpZmZlcmVudC4gQ29udHJvbCBtb2R1bGUNCj4gZGVmaW5lcyBtYXkg
-dmFyeSBpbiBkaWZmZXJlbnQgU29DIGFzIHBlciBTb0MgcmVxdWlyZW1lbnRzLg0KPiANCj4gQWRk
-aW5nIFBla29uIEd1cHRhIHdobyBoYWQgd29ya2VkIGluIFNpbGljb24gdGVhbSBiZWZvcmUuDQo+
-IA0KW1Bla29uXTogTXkgb3BpbmlvbiBoZXJlLi4NClVuaWZvcm1pdHkgaW4gY29udHJvbCBtb2R1
-bGUgY2Fubm90IGJlIGd1YXJhbnRlZWQsIG5laXRoZXIgaW4gcmVnaXN0ZXINCm9mZnNldHMgbm9y
-IHRoZWlyIGZ1bmN0aW9uYWxpdHkuIFVuaWZvcm1pdHkgaXMgdXN1YWxseSBtYWludGFpbmVkIHRp
-bGwgdGhlDQpwb2ludCBzYW1lIHBlcnNvbiBpcyB3cml0aW5nIHRoZSBzcGVjLCBvciBpdOKAmXMg
-YSBkZXJpdmF0aXZlIGRldmljZS4NCkNvbnRyb2wtbW9kdWxlIHNob3VsZCBub3QgYmUgY2F0ZWdv
-cml6ZWQgYXMgSVAsIGluc3RlYWQgaXTigJlzIGEgZ3JvdXAgb2YNCm1pc2NlbGxhbmVvdXMgbG9n
-aWMgdXN1YWxseSBjb25zaXN0aW5nIG9mIGZvbGxvd2luZzoNCihhKSBTb0MgYnVnLWZpeGVzIGFj
-cm9zcyBzaWxpY29uIHJldmlzaW9ucy4NCihiKSBTb0Mgc3BlY2lmaWMgbG9naWMgbGlrZSBkZXZp
-Y2VfdHlwZSwgSlRBRy1JRC4NCihjKSBJUCBidWcgZml4ZXMgd2hpY2ggY291bGQgbm90IGJlIGFj
-Y29tbW9kYXRlZCBpbiBJUCBhZGRyZXNzLW1hcC4NCihkKSBJUCBsb2dpYyB3aGljaCBkZXBlbmRz
-IG9uIFNvQyBjb25maWd1cmF0aW9ucy4NCg0KRHVlIHRvIHRoaXMgdW4tZGV0ZXJtaW5pc3RpYyBj
-b21wb3NpdGlvbiBvZiBjb250cm9sLW1vZHVsZSwgaGF2aW5nIA0KYSBkZWRpY2F0ZWQgZHJpdmVy
-IGZvciBjb250cm9sIG1vZHVsZSBtaWdodCBub3Qgd29yayBlaXRoZXIsIGFzIGl0DQpoYXMgdG8g
-YmUgdXBkYXRlZCB8IHJlLXdyaXR0ZW4gZm9yIGV2ZXJ5IG5ldyBkZXZpY2UuDQoNClNvLCBGb2xs
-b3dpbmcgY2FuIGJlIHVzZWQgYXMgZ3VpZGVsaW5lIHRvIGRldGVybWluZSBjb21wYXRpYmlsaXR5
-DQpzdHJpbmcgZm9yIERUIGJpbmRpbmdzLi4NCi0gSWYgYmluZGluZyBtYXBzIHRvIChhKSBhbmQg
-KGMpLCAuaS5lLiwgYnVnLWZpeGVzIGZvciBTb0Mgb3IgSVAsIA0KIHRoZW4gaXRzIG1vc3QgbGlr
-ZWx5IHRoYXQgdGhlc2Ugd291bGQgY2hhbmdlIGVpdGhlciBpbiBuZXh0IHNpbGljb24NCiByZXZp
-c2lvbiBvciBpbiBuZXh0IGRldmljZXMuIEhlbmNlIHN1Y2ggYmluZGluZ3Mgc2hvdWxkIHVzZSAq
-bm90Kg0KIHVzZSBJUCBjb21wYXRpYmlsaXR5IHN0cmluZ3MsIHRoZXkgX21heV8gdXNlIFNvQy1u
-YW1lIGJhc2VkDQogY29tcGF0aWJpbGl0eSBzdHJpbmcuDQoNCi0gRWxzZSBpZiBiaW5kaW5nIG1h
-cHMgdG8gKGIpLC5pLmUuLCBTb0Mgc3BlY2lmaWMgY29uZmlndXJhdGlvbnMuDQogdGhlbiB0aGVp
-ciBvZmZzZXRzIGFuZCBmdW5jdGlvbmFsaXR5IHNob3VsZCByZW1haW4gc2FtZSBhY3Jvc3MgdGhl
-DQogZmFtaWx5IG9mIGRldmljZXMgYXQtbGVhc3QsIHNvIGl0IHNob3VsZCB1c2UgU29DLW5hbWUg
-YmFzZWQNCiBjb21wYXRpYmlsaXR5IHN0cmluZy4NCi0gQW5kIGlmIGJpbmRpbmcgbWFwcyB0byAo
-ZCksIC5pLmUuLCBJUCBmZWF0dXJlIGJ1dCBkZXBlbmRpbmcgb24gU29DDQogVGhlbiBpdCBjYW4g
-dXNlIElQIGJhc2VkIGNvbXBhdGliaWxpdHkgc3RyaW5nLCBhbG9uZyB3aXRoIElQIHZlcnNpb24u
-DQoNCihzYW1lIGFwcHJvYWNoIGNhbiBiZSB1c2VkIGZvciBDUFNXIGJpbmRpbmcgdXNlZCBoZXJl
-LA0KDQp3aXRoIHJlZ2FyZHMsIHBla29uDQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0t
-a2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFp
-bG1hbi9saXN0aW5mby9saW51eC1hcm0ta2VybmVsCg==
+The Patch adds nodes for TPS659038 PMIC for DRA7 boards.
+
+It is based on top of:
+http://comments.gmane.org/gmane.linux.ports.arm.omap/102459.
+
+Documentation:	Documentation/devicetree/bindings/mfd/palmas.txt
+		Documentation/devicetree/bindings/regulator/palmas-pmic.txt		
+
+Boot Tested on DRA7 d1 Board.
+
+Signed-off-by: Keerthy <j-keerthy@ti.com>
+---
+ arch/arm/boot/dts/dra7-evm.dts |  118 ++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 118 insertions(+)
+
+Index: linux/arch/arm/boot/dts/dra7-evm.dts
+===================================================================
+--- linux.orig/arch/arm/boot/dts/dra7-evm.dts	2013-08-26 09:57:52.496173554 +0530
++++ linux/arch/arm/boot/dts/dra7-evm.dts	2013-08-26 10:38:44.995414695 +0530
+@@ -93,6 +93,119 @@
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&i2c1_pins>;
+ 	clock-frequency = <400000>;
++
++	tps659038: tps659038@58 {
++		compatible = "ti,tps659038";
++		reg = <0x58>;
++
++		tps659038_pmic {
++			compatible = "ti,tps659038-pmic";
++
++			regulators {
++				smps123_reg: smps123 {
++					/* VDD_MPU */
++						regulator-name = "smps123";
++						regulator-min-microvolt = < 850000>;
++						regulator-max-microvolt = <1250000>;
++						regulator-always-on;
++						regulator-boot-on;
++					};
++
++				smps45_reg: smps45 {
++						/* VDD_DSPEVE */
++						regulator-name = "smps45";
++						regulator-min-microvolt = < 850000>;
++						regulator-max-microvolt = <1150000>;
++						regulator-boot-on;
++					};
++
++				smps6_reg: smps6 {
++						/* VDD_GPU - over VDD_SMPS6 */
++						regulator-name = "smps6";
++						regulator-min-microvolt = <850000>;
++						regulator-max-microvolt = <12500000>;
++						regulator-boot-on;
++					};
++
++				smps7_reg: smps7 {
++						/* CORE_VDD */
++						regulator-name = "smps7";
++						regulator-min-microvolt = <850000>;
++						regulator-max-microvolt = <1030000>;
++						regulator-always-on;
++						regulator-boot-on;
++					};
++
++				smps8_reg: smps8 {
++						/* VDD_IVAHD */
++						regulator-name = "smps8";
++						regulator-min-microvolt = < 850000>;
++						regulator-max-microvolt = <1250000>;
++						regulator-boot-on;
++					};
++
++				smps9_reg: smps9 {
++						/* VDDS1V8 */
++						regulator-name = "smps9";
++						regulator-min-microvolt = <1800000>;
++						regulator-max-microvolt = <1800000>;
++						regulator-always-on;
++						regulator-boot-on;
++					};
++
++				ldo1_reg: ldo1 {
++						/* LDO1_OUT --> SDIO  */
++						regulator-name = "ldo1";
++						regulator-min-microvolt = <1800000>;
++						regulator-max-microvolt = <3300000>;
++						regulator-boot-on;
++					};
++
++				ldo2_reg: ldo2 {
++						/* VDD_RTCIO */
++						/* LDO2 -> VDDSHV5, LDO2 also goes to CAN_PHY_3V3 */
++						regulator-name = "ldo2";
++						regulator-min-microvolt = <3300000>;
++						regulator-max-microvolt = <3300000>;
++						regulator-boot-on;
++					};
++
++				ldo3_reg: ldo3 {
++						/* VDDA_1V8_PHY */
++						regulator-name = "ldo3";
++						regulator-min-microvolt = <1800000>;
++						regulator-max-microvolt = <1800000>;
++						regulator-boot-on;
++					};
++
++				ldo9_reg: ldo9 {
++						/* VDD_RTC */
++						regulator-name = "ldo9";
++						regulator-min-microvolt = <1050000>;
++						regulator-max-microvolt = <1050000>;
++						regulator-boot-on;
++					};
++
++				ldoln_reg: ldoln {
++						/* VDDA_1V8_PLL */
++						regulator-name = "ldoln";
++						regulator-min-microvolt = <1800000>;
++						regulator-max-microvolt = <1800000>;
++						regulator-always-on;
++						regulator-boot-on;
++					};
++
++				ldousb_reg: ldousb {
++						/* VDDA_3V_USB: VDDA_USBHS33 */
++						regulator-name = "ldousb";
++						regulator-min-microvolt = <3300000>;
++						regulator-max-microvolt = <3300000>;
++						regulator-boot-on;
++					};
++
++				};
++			};
++		};
+ };
+ 
+ &i2c2 {
