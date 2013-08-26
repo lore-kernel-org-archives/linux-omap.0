@@ -1,98 +1,78 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 2/2] late dra7xx PRCM and hwmod support for v3.12 merge
- window
-Date: Mon, 26 Aug 2013 07:21:36 -0700
-Message-ID: <E1VDxgO-0000AP-NK@merlin.infradead.org>
-References: <pull-1377526896-974252>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv5 01/31] CLK: clkdev: add support for looking up clocks
+ from DT
+Date: Mon, 26 Aug 2013 17:36:15 +0300
+Message-ID: <521B67DF.4000005@ti.com>
+References: <1375460751-23676-1-git-send-email-t-kristo@ti.com> <1375460751-23676-2-git-send-email-t-kristo@ti.com> <20130803183143.GE23053@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <pull-1377526896-974252>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: arm@kernel.org, Arnd Bergmann <arnd@arndb.de>, Kevin Hilman <khilman@linaro.org>, Olof Johansson <olof@lixom.net>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:44722 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751807Ab3HZOg4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 26 Aug 2013 10:36:56 -0400
+In-Reply-To: <20130803183143.GE23053@n2100.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, nm@ti.com, rnayak@ti.com, mturquette@linaro.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-The following changes since commit cf470a1b1a741bca00080ebc70968b4f22d9b1ea:
+On 08/03/2013 09:31 PM, Russell King - ARM Linux wrote:
+> On Fri, Aug 02, 2013 at 07:25:20PM +0300, Tero Kristo wrote:
+>> +
+>> +	if (cl)
+>> +		return cl;
+>> +
+>> +	/* If clock was not found, attempt to look-up from DT */
+>> +	node = of_find_node_by_name(NULL, con_id);
+>
+> This is utterly broken if you're looking up purely by a connection ID.
+> Please, go back and read clk_get()'s documentation in linux/clk.h.
+> It's spelt out very plainly there.
+>
+> NAK.
+>
 
-  Merge tag 'dra7-core-support-minus-dt' of git://github.com/rrnayak/linux into omap-for-v3.12/soc (2013-08-14 01:01:41 -0700)
+Hi Russell,
 
-are available in the git repository at:
+After looking at this a bit more, it seems difficult to get rid of the 
+clk_get -> of_clk_get conversion, however based on this comment I am 
+somewhat stuck. Do you think it would be acceptable if I change the 
+implementation of this patch to work like this:
 
+1) both dev_id + con_id defined:
+    a) search for device node named dev_id
+    b) check clock-names for matching con_id
+    c) return matching clock
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.12/dra7xx-prcm
+    Example in kernel:
+       clocksource-nomadik-mtu.c :
+           clk_get_sys("mtu0", "apb_pclk");
 
-for you to fetch changes up to e3e1970f892d873e0f01c4516eaf986ae3a91e13:
+       ste-nomadik-snt8815.dts:
+         mtu0: mtu@101e2000 {
+                 /* Nomadik system timer */
+                 compatible = "st,nomadik-mtu";
+                 reg = <0x101e2000 0x1000>;
+                 interrupt-parent = <&vica>;
+                 interrupts = <4>;
+                 clocks = <&timclk>, <&pclk>;
+                 clock-names = "timclk", "apb_pclk";
+         };
 
-  Merge tag 'for-v3.12/dra7xx' of git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending into omap-for-v3.12/soc (2013-08-26 02:53:05 -0700)
+2) dev_id = NULL, con_id defined (current patch implementation, most of 
+the OMAP clocks use this approach):
+    a) search for a device node named con_id
+    b) return corresponding clock from the node
 
-----------------------------------------------------------------
+Alternatively I must implement a regression and break some of the OMAP 
+drivers with this set, and also implement omap internal clk_get 
+functionality (basically adding a similar wrapper that I have 
+implemented in this patch) under mach-omap2 to get some basic OMAP infra 
+to work properly (namely, hwmod.) I can probably avoid part of this by 
+adding more beef to the *.dts files for the critical parts to get boot 
+working at least.
 
-Add basic support for devices on dra7xx by adding the PRCM and hwmod
-parts the same way as for other omaps. This is still needed in
-addition to device tree support for things like power management.
+-Tero
 
-Via Paul Walmsley <paul@pwsan.com>:
-
-This series adds basic TI DRA7xx PRCM and hwmod support.
-
-Basic test logs are available here:
-
-http://www.pwsan.com/omap/testlogs/dra7xx_prcm_devel_v3.12/20130823050445/
-
-Note that DRA7xx could not be tested locally, since I don't have a board.
-
-----------------------------------------------------------------
-Ambresh K (7):
-      ARM: OMAP: DRA7: PRM: Add DRA7XX register definitions
-      ARM: OMAP: DRA7: CM: Add DRA7XX register defines
-      ARM: OMAP: DRA7: PRCM: Add DRA7XX local MPU PRCM regsiters
-      ARM: OMAP: DRA7: clockdomain: Add DRA7XX data and update header
-      ARM: OMAP: DRA7: powerdomain: Add DRA7XX data and update header
-      ARM: OMAP: DRA7: hwmod: Create initial DRA7XX SoC data
-      ARM: OMAP: DRA7: Enable PM framework initializations
-
-Rajendra Nayak (3):
-      ARM: OMAP: DRA7: CM: Add minimal regbit shifts
-      ARM: OMAP: DRA7: powerdomain: Handle missing vc/vp
-      ARM: OMAP: DRA7: Reuse the omap44xx_restart and fix the device instance
-
-Tony Lindgren (1):
-      Merge tag 'for-v3.12/dra7xx' of git://git.kernel.org/.../pjw/omap-pending into omap-for-v3.12/soc
-
- arch/arm/mach-omap2/Makefile               |    4 +
- arch/arm/mach-omap2/board-generic.c        |    1 +
- arch/arm/mach-omap2/clockdomain.h          |    1 +
- arch/arm/mach-omap2/clockdomains7xx_data.c |  740 ++++++++
- arch/arm/mach-omap2/cm-regbits-7xx.h       |   51 +
- arch/arm/mach-omap2/cm1_7xx.h              |  324 ++++
- arch/arm/mach-omap2/cm2_7xx.h              |  513 ++++++
- arch/arm/mach-omap2/io.c                   |    5 +
- arch/arm/mach-omap2/omap_hwmod.h           |    1 +
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c  | 2724 ++++++++++++++++++++++++++++
- arch/arm/mach-omap2/powerdomain.h          |    1 +
- arch/arm/mach-omap2/powerdomains7xx_data.c |  454 +++++
- arch/arm/mach-omap2/prcm44xx.h             |    5 +
- arch/arm/mach-omap2/prcm_mpu7xx.h          |   78 +
- arch/arm/mach-omap2/prm44xx.c              |   12 +-
- arch/arm/mach-omap2/prm7xx.h               |  678 +++++++
- arch/arm/mach-omap2/prminst44xx.c          |   20 +-
- 17 files changed, 5607 insertions(+), 5 deletions(-)
- create mode 100644 arch/arm/mach-omap2/clockdomains7xx_data.c
- create mode 100644 arch/arm/mach-omap2/cm-regbits-7xx.h
- create mode 100644 arch/arm/mach-omap2/cm1_7xx.h
- create mode 100644 arch/arm/mach-omap2/cm2_7xx.h
- create mode 100644 arch/arm/mach-omap2/omap_hwmod_7xx_data.c
- create mode 100644 arch/arm/mach-omap2/powerdomains7xx_data.c
- create mode 100644 arch/arm/mach-omap2/prcm_mpu7xx.h
- create mode 100644 arch/arm/mach-omap2/prm7xx.h
