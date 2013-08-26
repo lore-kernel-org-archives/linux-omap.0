@@ -1,64 +1,72 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH v4] extcon: palmas: Added a new compatible type *ti,
- palmas-usb-vid*
-Date: Mon, 26 Aug 2013 17:33:19 +0530
-Message-ID: <521B4407.2090600@ti.com>
-References: <1377160283-26934-1-git-send-email-kishon@ti.com>
- <5216798E.8070900@wwwdotorg.org> <52174755.8030506@ti.com>
- <5217B54E.8070009@wwwdotorg.org>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH] DMA: let filter functions of of_dma_simple_xlate possible check of_node
+Date: Mon, 26 Aug 2013 14:17:43 +0200
+Message-ID: <1441310.1kjKG7uebg@avalon>
+References: <1375408800-11789-1-git-send-email-rizhao@nvidia.com> <20130823012911.GB17925@rizhao-lap> <52178677.6090001@wwwdotorg.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <5217B54E.8070009@wwwdotorg.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <52178677.6090001@wwwdotorg.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Stephen Warren <swarren@wwwdotorg.org>
-Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, george.cherian@ti.com, linux@arm.linux.org.uk, ian.campbell@citrix.com, pawel.moll@arm.com, linux-doc@vger.kernel.org, tony@atomide.com, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, rob.herring@calxeda.com, cw00.choi@samsung.com, myungjoo.ham@samsung.com, balbi@ti.com, rob@landley.net, bcousson@baylibre.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Richard Zhao <rizhao@nvidia.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "vinod.koul@intel.com" <vinod.koul@intel.com>, "djbw@fb.com" <djbw@fb.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Saturday 24 August 2013 12:47 AM, Stephen Warren wrote:
-> On 08/23/2013 05:28 AM, Kishon Vijay Abraham I wrote:
->> Hi,
->>
->> On Friday 23 August 2013 02:20 AM, Stephen Warren wrote:
->>> On 08/22/2013 02:31 AM, Kishon Vijay Abraham I wrote:
->>>> The Palmas device contains only a USB VBUS-ID detector, so added a
->>>> compatible type *ti,palmas-usb-vid*. Didn't remove the existing compatible
->>>> types for backward compatibility.
->>>
->>>> diff --git a/Documentation/devicetree/bindings/extcon/extcon-palmas.txt b/Documentation/devicetree/bindings/extcon/extcon-palmas.txt
->>>
->>>>  PALMAS USB COMPARATOR
->>>>  Required Properties:
->>>> - - compatible : Should be "ti,palmas-usb" or "ti,twl6035-usb"
->>>> + - compatible : Should be "ti,palmas-usb-vid". "ti,twl6035-usb" and
->>>> +   "ti,palmas-usb" is deprecated and is kept for backward compatibility.
->>>
->>> So this defines one new value and deprecates the two old values.
->>
->> yeah.
->>>
->>> Why isn't a new "ti,twl6035-usb-vid" entry useful? Don't you still need
->>
->> yeah, it should be added too.
->>> SoC-specific compatible values so the driver can enable any SoC-specific
->>> bug-fixes/workarounds later if needed?
->>
->> hmm.. Palmas is external to SoC. So not sure if adding SoC specific compatible
->> values is such a good idea.
+On Friday 23 August 2013 09:57:43 Stephen Warren wrote:
+> On 08/22/2013 07:29 PM, Richard Zhao wrote:
+> > On Fri, Aug 23, 2013 at 04:18:27AM +0800, Stephen Warren wrote:
+> >> On 08/21/2013 11:19 PM, Richard Zhao wrote:
+> >>> On Fri, Aug 02, 2013 at 10:00:00AM +0800, Richard Zhao wrote:
+> >>>> pass of_phandle_args dma_spec to dma_request_channel in
+> >>>> of_dma_simple_xlate, so the filter function could access of_node in
+> >>>> of_phandle_args.
+> >>>> 
+> >>>> It also remove restriction of #dma-cells has to be one.
+> >>>> 
+> >>>> Signed-off-by: Richard Zhao <rizhao@nvidia.com>
+> >>>> ---
+> >>>> 
+> >>>>  drivers/dma/edma.c     |  7 +++++--
+> >>>>  drivers/dma/of-dma.c   | 10 ++++------
+> >>>>  drivers/dma/omap-dma.c |  6 ++++--
+> >>>>  3 files changed, 13 insertions(+), 10 deletions(-)
+> >>> 
+> >>> Hi Vinod,
+> >>> 
+> >>> Can you please pick up this change?
+> >>> 
+> >>> Hi Stephen,
+> >>> 
+> >>> Can you please give a ack or reviewed-by etc?
+> >> 
+> >> Hmm. Looking at the patch, I'm not sure it's right.
+> >> 
+> >> This patch simply passes all the specfier args to the filter function,
+> >> and the code to check the equality of the of_node to the filter args is
+> >> still duplicated in each DMA driver. Instead, the DMA core should be
+> >> implementing the equality check, and only even calling the
+> >> driver-specific filter function for devices where the client's phandle
+> >> matches the DMA providing device's of_node handle.
+> > 
+> > Filter function is called in dmaengine core code, independent of dt.
 > 
-> In this case, but SoC, I meant the Palmas chip rather than the
-> application processor. Is twl6035 a name for Palmas or something else?
+> The core code can still check if a dmaengine's driver was instantiated
+> from DT and take additional actions in that case.
+> 
+> > And the reason why the driver has to write its own filter function is
+> > it has to store slave id there in its own way.
+> 
+> I'm not saying don't call the driver's filter function, but rather that
+> the dmaengine core should perform the common checks before doing so.
 
-yeah, tw6035 is a name for palmas.
+And it looks to me like the common case could even get rid of the driver's 
+filter function:
 
-Thanks
-Kishon
+https://lkml.org/lkml/2013/5/15/270
+https://lkml.org/lkml/2013/3/25/250
+
+-- 
+Regards,
+
+Laurent Pinchart
