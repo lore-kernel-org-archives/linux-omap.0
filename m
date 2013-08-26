@@ -1,104 +1,178 @@
-From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: Re: [PATCH v4 3/5] net: ethernet: cpsw: introduce ti,am3352-cpsw
- compatible string
-Date: Mon, 26 Aug 2013 11:29:43 +0530
-Message-ID: <521AEECF.8060606@ti.com>
-References: <1377267365-24057-1-git-send-email-zonque@gmail.com>
- <1377267365-24057-4-git-send-email-zonque@gmail.com>
- <52177052.1030308@ti.com> <52178E20.5040404@gmail.com>
- <52179448.1020906@ti.com> <5217974B.5090503@ti.com> <521799A3.7080706@ti.com>
- <52179AD6.8090406@gmail.com> <52179BDA.50603@ti.com>
- <52179E44.5030202@ti.com> <5217A59E.4090700@ti.com> <5217AA15.7010907@ti.com>
- <5217BDFA.5040904@ti.com>
+From: Archit Taneja <archit@ti.com>
+Subject: [PATCH v2] gpio: Enable pcf857x GPIO expander for Device Tree
+Date: Mon, 26 Aug 2013 11:51:21 +0530
+Message-ID: <1377498081-16358-1-git-send-email-archit@ti.com>
+References: <1370527523-1030-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <5217BDFA.5040904@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: devicetree@vger.kernel.org, sergei.shtylyov@cogentembedded.com, d-gerlach@ti.com, netdev@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>, vaibhav.bedia@ti.com, Daniel Mack <zonque@gmail.com>, bcousson@baylibre.com, ujhelyi.m@gmail.com, linux-omap@vger.kernel.org, davem@davemloft.net, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <1370527523-1030-1-git-send-email-archit@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: linus.walleij@linaro.org
+Cc: linux-doc@vger.kernel.org, linux-omap@vger.kernel.org, grant.likely@secretlab.ca, linux-arm-kernel@lists.infradead.org, Archit Taneja <archit@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Saturday 24 August 2013 01:24 AM, Santosh Shilimkar wrote:
-> On Friday 23 August 2013 02:29 PM, Mugunthan V N wrote:
->> On Friday 23 August 2013 11:40 PM, Santosh Shilimkar wrote:
->>> On Friday 23 August 2013 01:39 PM, Sekhar Nori wrote:
->>>> On 8/23/2013 10:58 PM, Santosh Shilimkar wrote:
->>>>> On Friday 23 August 2013 01:24 PM, Daniel Mack wrote:
->>>>>> On 23.08.2013 19:19, Santosh Shilimkar wrote:
->>>>>>> On Friday 23 August 2013 01:09 PM, Sekhar Nori wrote:
->>>>>>>> On 8/23/2013 10:26 PM, Santosh Shilimkar wrote:
->>>>>>>>> So just stick the IP version or call it cpsw-v1... cpsw-v2 etc.
->>>>>>>> If this could be handled using IP version then the right way would be to
->>>>>>>> just read the IP version from hardware and use it. No need of DT property.
->>>>>>>>
->>>>>>> Thats fine as well but I thought the patch needed additional properties like
->>>>>>> CM reg-address come from DT and hence the separate compatible. If you can
->>>>>>> manage without that, thats even better.
->>>>>> We can't, that's the whole point :)
->>>>>>
->>>>> I saw that from the patch :)
->>>>>
->>>>>> Well, theoretically, we could for now, but that's not a clean solution.
->>>>>> Again: the problem here is that the control port is separated from the
->>>>>> cpsw core, and so we have to implement something specific for the AM3352
->>>>>> SoC. I know that's a violation of clean and generic driver ideas, but
->>>>>> there's no way we can assume that every cpsw v2 ip block has a control
->>>>>> port that is compatible to the one found on am335x chips.
->>>>>>
->>>>> But there is a possibility that other SOC will just use the same
->>>>> control module approach. So using a revision IP is just fine. BTW,
->>>> But this is misleading because it makes appear like the same compatible
->>>> can be used on on another SoC like DRA7 which probably has the same
->>>> version of IP but a different control module implementation, when in
->>>> practice it cannot.
->>>>
->>>> The fact is we are doing something SoC specific in the driver and we
->>>> cannot hide that behind IP versions. If really in practice there comes
->>>> another SoC with the same control module definition then it can always
->>>> use ti,am3352-cpsw compatible as well. The compatible name does not
->>>> preclude its usage.
->>>>
->>> My point was the CPSW needs a feature which is implemented using
->>> control module rather than within the IP itself. Its an implementation
->>> detail. As such the additional feature makes sense for that IP. O.w
->>> there was no need to do any monkeying with control module.
->>>
->>> E.g
->>> MMC card detect is a basic functionality, implemented by various types
->>> like control module, PMIC or MMC IP itself. As such the driver need
->>> that support and all the implementation details needs to still handled
->>> to make that part work.
->>>
->>>
->> CPSW core as such understands only GMII/MII signals, there is an
->> additional module which converts GMII/MII signals to RGMII/RMII signals
->> respectively which is called as CPRGMII/CPRMII as specified in the
->> AM335x TRM in Figure 14-1. Ethernet Switch Integration.
->>
->> So to control this sub-module, the control register is used and this has
->> to be configured according to the EVM design like what mode of phy is
->> connected. CPRGMII and CPRMII is no way related to CPSW core.
->>
-> Ok then why are you polluting cpsw driver with that code which
-> not realted to CPSW as you said above. You are contradicting what
-> you said by supporting the SOC usage in the core CPSW driver.
-This patch series is not from me and because of the reason I mentioned
-about control module driver, so that cpsw driver can make use control
-module apis to select phy mode and control module driver takes care of
-SoC specific register offsets and definitions, but now it is not
-possible as it is not acceptable in mainline. So other way is to keep
-these in driver itself as it is done in this patch series with SoC
-compatibilities.
+Add code to parse the GPIO expander Device Tree node and extract platform data
+out of it, and populate the struct 'pcf857x_platform_data' maintained by the
+driver. This enables devices to reference the gpio expander from Device Tree.
 
-Regards
-Mugunthan V N
+Add DT binding info in Documentation.
+
+Signed-off-by: Archit Taneja <archit@ti.com>
+---
+- v2 posted after quite a while, sorry for the delay!
+
+Changes in v2:
+- second gpeio-cell description corrected in Documentation
+- interrupt controller description removed for now, will be added in a follow
+  up patch
+- n_latch description updated
+
+ .../devicetree/bindings/gpio/gpio-pcf857x.txt      | 41 ++++++++++++++++
+ drivers/gpio/gpio-pcf857x.c                        | 57 ++++++++++++++++++++--
+ 2 files changed, 94 insertions(+), 4 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/gpio/gpio-pcf857x.txt
+
+diff --git a/Documentation/devicetree/bindings/gpio/gpio-pcf857x.txt b/Documentation/devicetree/bindings/gpio/gpio-pcf857x.txt
+new file mode 100644
+index 0000000..504d114
+--- /dev/null
++++ b/Documentation/devicetree/bindings/gpio/gpio-pcf857x.txt
+@@ -0,0 +1,41 @@
++PCF857x I2C based GPIO controller bindings
++
++Required properties:
++- compatible:
++  - "nxp,pca9670" for NXP PCA9670 8 bit I/O expander
++  - "nxp,pca9672" for NXP PCA9672 8 bit I/O expander with interrupt
++  - "nxp,pca9674" for NXP PCA9672 8 bit I/O expander with interrupt
++  - "nxp,pca8574" for NXP PCA8574 8 bit I/O expander with interrupt
++  - "nxp,pca8575" for NXP PCA8575 16 bit I/O expander with interrupt
++  - "nxp,pca9671" for NXP PCA9671 16 bit I/O expander
++  - "nxp,pca9673" for NXP PCA9673 16 bit I/O expander with interrupt
++  - "nxp,pca9675" for NXP PCA9675 16 bit I/O expander with interrupt
++  - "ti,pcf8574"  for TI PCF8574 8 bit I/O expander with interrupt
++  - "ti,pcf8574a" for TI PCF8574A 8 bit I/O expander with interrupt
++  - "ti,pcf8575"  for TI PCF8575 16 bit I/O expander with interrupt
++  - "ti,tca9554"  for TI TCA9554 8 bit I/O expander with interrupt
++  - "maxim,max7328" for MAXIM MAX7328 8 bit I/O expander with interrupt
++  - "maxim,max7329" for MAXIM MAX7329 8 bit I/O expander with interrupt
++- gpio-controller : Marks the device node as a GPIO controller.
++- #gpio-cells : Should be two.
++  - first cell is the pin number.
++  - second cell is used to specify optional parameters (currently unused, but
++    needed by gpiolib).
++- reg: I2C address of the chip.
++
++Device speific properties:
++- n_latch:		optional bit-inverse of initial register value; if
++			you leave this initialized to zero the driver will act
++			like the chip was just reset. If it is a non-zero
++			value, the driver will program the inverted value of
++			n_latch as the initial state of the gpios.
++
++Example:
++
++pcf8575: pcf8575 {
++	compatible = "ti,pcf8575";
++	gpio-controller;
++	#gpio-cells = <2>;
++	reg = <0x20>;
++	n_latch = <0x0>;
++};
+diff --git a/drivers/gpio/gpio-pcf857x.c b/drivers/gpio/gpio-pcf857x.c
+index e8faf53..3435790 100644
+--- a/drivers/gpio/gpio-pcf857x.c
++++ b/drivers/gpio/gpio-pcf857x.c
+@@ -21,6 +21,7 @@
+ #include <linux/kernel.h>
+ #include <linux/slab.h>
+ #include <linux/gpio.h>
++#include <linux/of.h>
+ #include <linux/i2c.h>
+ #include <linux/i2c/pcf857x.h>
+ #include <linux/interrupt.h>
+@@ -255,17 +256,42 @@ fail:
+ 
+ /*-------------------------------------------------------------------------*/
+ 
++static struct pcf857x_platform_data *of_gpio_pcf857x(struct device *dev)
++{
++	struct pcf857x_platform_data *pdata;
++	int r;
++
++	pdata = devm_kzalloc(dev, sizeof(*pdata), GFP_KERNEL);
++	if (!pdata)
++		return NULL;
++
++	pdata->gpio_base = -1;
++
++	r = of_property_read_u32(dev->of_node, "n_latch", &pdata->n_latch);
++	if (r) {
++		dev_dbg(dev, "couldn't find n-latch, use default\n");
++		pdata->n_latch = 0;
++	}
++
++	return pdata;
++}
++
+ static int pcf857x_probe(struct i2c_client *client,
+ 			 const struct i2c_device_id *id)
+ {
+ 	struct pcf857x_platform_data	*pdata;
++	struct device_node		*node;
+ 	struct pcf857x			*gpio;
+ 	int				status;
+ 
+ 	pdata = client->dev.platform_data;
+-	if (!pdata) {
++	node = client->dev.of_node;
++
++	if (!pdata && node)
++		pdata = of_gpio_pcf857x(&client->dev);
++
++	if (!pdata)
+ 		dev_dbg(&client->dev, "no platform data\n");
+-	}
+ 
+ 	/* Allocate, initialize, and register this gpio_chip. */
+ 	gpio = devm_kzalloc(&client->dev, sizeof(*gpio), GFP_KERNEL);
+@@ -420,10 +446,33 @@ static int pcf857x_remove(struct i2c_client *client)
+ 	return status;
+ }
+ 
++static const struct of_device_id pcf857x_dt_ids[] = {
++	{ .compatible = "nxp,pca9670", },
++	{ .compatible = "nxp,pca9672", },
++	{ .compatible = "nxp,pca9674", },
++	{ .compatible = "nxp,pca8574", },
++	{ .compatible = "nxp,pca8575", },
++	{ .compatible = "nxp,pca9671", },
++	{ .compatible = "nxp,pca9673", },
++	{ .compatible = "nxp,pca9675", },
++
++	{ .compatible = "ti,pcf8574", },
++	{ .compatible = "ti,pcf8574a", },
++	{ .compatible = "ti,pcf8575", },
++	{ .compatible = "ti,tca9554", },
++
++	{ .compatible = "maxim,max7328", },
++	{ .compatible = "maxim,max7329", },
++	{ }
++};
++
++MODULE_DEVICE_TABLE(of, pcf857x_dt_ids);
++
+ static struct i2c_driver pcf857x_driver = {
+ 	.driver = {
+-		.name	= "pcf857x",
+-		.owner	= THIS_MODULE,
++		.name		= "pcf857x",
++		.owner		= THIS_MODULE,
++		.of_match_table	= pcf857x_dt_ids,
+ 	},
+ 	.probe	= pcf857x_probe,
+ 	.remove	= pcf857x_remove,
+-- 
+1.8.1.2
+
