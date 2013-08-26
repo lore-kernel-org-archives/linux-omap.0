@@ -1,66 +1,85 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: 3.11-rc1+ multiplatform kernel+dtb pandaboard issues
-Date: Mon, 26 Aug 2013 07:20:23 -0700
-Message-ID: <20130826142023.GI7656@atomide.com>
-References: <20130821154321.GA26531@redacted.bos.redhat.com>
- <20130821194143.GE26531@redacted.bos.redhat.com>
- <20130822063449.GO7656@atomide.com>
- <20130822140034.GL26531@redacted.bos.redhat.com>
+Subject: [GIT PULL 1/2] late omap PRCM and hwmod changes for v3.12 merge window
+Date: Mon, 26 Aug 2013 07:21:36 -0700
+Message-ID: <49140.9456627027$1377526912@news.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:31077 "EHLO
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:34647 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752002Ab3HZOU0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Aug 2013 10:20:26 -0400
+	with ESMTP id S1751429Ab3HZOVm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Aug 2013 10:21:42 -0400
 Content-Disposition: inline
-In-Reply-To: <20130822140034.GL26531@redacted.bos.redhat.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kyle McMartin <kmcmarti@redhat.com>
-Cc: linux-omap@vger.kernel.org
+To: arm@kernel.org, Arnd Bergmann <arnd@arndb.de>, Kevin Hilman <khilman@linaro.org>, Olof Johansson <olof@lixom.net>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Kyle McMartin <kmcmarti@redhat.com> [130822 07:08]:
-> On Wed, Aug 21, 2013 at 11:34:50PM -0700, Tony Lindgren wrote:
-> > * Kyle McMartin <kmcmarti@redhat.com> [130821 12:48]:
-> > > On Wed, Aug 21, 2013 at 11:43:21AM -0400, Kyle McMartin wrote:
-> > > > I've suspected there might be a config issue, as omap2_defconfig
-> > > > works alright, as does booting a uImage with an appended
-> > > > omap4-panda.dtb, but there's no love with a zImage + initrd + dtb
-> > > > (or even just zImage without initrd + dtb.)
-> > > > 
-> > > 
-> > > after some further investigation, something odd is going on... turns
-> > > out things have been working (at least until initrd time, but that's
-> > > another story) fine but none of the bootargs have made it into the
-> > > kernel, so console= was unset and no messages came out.
-> > 
-> > Hmm I've seen that with extra quotes around the u-boot bootargs line.
-> > But if things work OK with omap2plus_defconfig, then it sounds that
-> > something gets trashed with your .config options. Care to post your
-> > .config file somewhere?
-> > 
-> 
-> Sure, CONFIG_CMDLINE is "" for us...
-> 
-> http://kyle.fedorapeople.org/config-3.11.0-0.rc6.git0.1.fc20.armv7hl
+The following changes since commit b36f4be3de1b123d8601de062e7dbfc904f305fb:
 
-Tried this on my 4430 SDP with the current tip of linux-omap tree
-at -rc6, had to disable FTRACE and ARCH_ZYNQ to compile.
+  Linux 3.11-rc6 (2013-08-18 14:36:53 -0700)
 
-I can confirm that earlyprintk works, but no output from the
-serial console. Looking at the console output, looks like serial-omap
-probe is deferred because of no pinctrl driver. So having:
+are available in the git repository at:
 
-CONFIG_PINCTRL_SINGLE=y
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.12/prcm-signed
 
-fixes the issue at least for me booting to the point where it tries
-to mount root. It seems to be set to module in your .config.
+for you to fetch changes up to eb8460e01ba632416277ea6d0f6324caa6963e4f:
 
-Note that there's still that one bug where earlyprintk does not properly
-work with serial-omap because of the idling of the device.. But that's a
-separate issue :)
+  Merge tag 'for-v3.12/omap-prcm-hwmod' of git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending into omap-for-v3.12/prcm (2013-08-26 03:18:43 -0700)
 
-Regards,
+----------------------------------------------------------------
 
-Tony
+OMAP PRCM and hwmod fixes and improvments via Paul Walmsley <paul@pwsan.com>:
+
+Various OMAP PRCM & hwmod fixes and improvements.  Notable changes
+include:
+
+- a fix for OMAP4 PLL locking to avoid a bootloader dependency that
+  causes nasty log spew on startup
+
+- AM33xx DEBUGSS support fixes in hwmod data
+
+- OMAP5 mailbox support in hwmod data
+
+Basic test logs are here:
+
+http://www.pwsan.com/omap/testlogs/prcm_a_for_v3.12/20130823125002/
+
+Note that the 3530 failure is due to the mysterious transient serial
+issue affecting 3530 for several releases now, which causes a log
+parsing failure.  PM still seems to work.
+
+----------------------------------------------------------------
+Aida Mynzhasova (1):
+      ARM: OMAP: TI81XX: add always-on powerdomain for TI81XX
+
+Jon Hunter (1):
+      ARM: OMAP2+: Only write the sysconfig on idle when necessary
+
+Lokesh Vutla (1):
+      ARM: OMAP: AM33xx: clock: Add RNG clock data
+
+Paul Walmsley (1):
+      Merge branches 'hwmod_devel_v3.12', 'prcm_devel_v3.12' and 'am33xx_devel_v3.12' into prcm_a_for_v3.12
+
+Rajendra Nayak (1):
+      ARM: OMAP4: clock: Lock PLLs in the right sequence
+
+Suman Anna (1):
+      ARM: OMAP5: hwmod data: Add mailbox data
+
+Tony Lindgren (1):
+      Merge tag 'for-v3.12/omap-prcm-hwmod' of git://git.kernel.org/.../pjw/omap-pending into omap-for-v3.12/prcm
+
+Vaibhav Hiremath (1):
+      ARM: OMAP: AM33XX: hwmod: Add hwmod data for debugSS
+
+ arch/arm/mach-omap2/cclock33xx_data.c       |  5 +++
+ arch/arm/mach-omap2/cclock44xx_data.c       | 20 +++++----
+ arch/arm/mach-omap2/omap_hwmod.c            |  4 +-
+ arch/arm/mach-omap2/omap_hwmod_33xx_data.c  | 69 ++++++++++++++++++++---------
+ arch/arm/mach-omap2/omap_hwmod_54xx_data.c  | 42 ++++++++++++++++++
+ arch/arm/mach-omap2/powerdomains3xxx_data.c |  8 ++++
+ arch/arm/mach-omap2/prcm-common.h           |  1 +
+ 7 files changed, 118 insertions(+), 31 deletions(-)
