@@ -1,11 +1,20 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH] ARM: DTS: DRA7: Add TPS659038 PMIC nodes
-Date: Mon, 26 Aug 2013 11:06:51 +0530
-Message-ID: <1377495411-21984-1-git-send-email-j-keerthy@ti.com>
+From: Mugunthan V N <mugunthanvnm@ti.com>
+Subject: Re: [PATCH v4 3/5] net: ethernet: cpsw: introduce ti,am3352-cpsw
+ compatible string
+Date: Mon, 26 Aug 2013 11:29:43 +0530
+Message-ID: <521AEECF.8060606@ti.com>
+References: <1377267365-24057-1-git-send-email-zonque@gmail.com>
+ <1377267365-24057-4-git-send-email-zonque@gmail.com>
+ <52177052.1030308@ti.com> <52178E20.5040404@gmail.com>
+ <52179448.1020906@ti.com> <5217974B.5090503@ti.com> <521799A3.7080706@ti.com>
+ <52179AD6.8090406@gmail.com> <52179BDA.50603@ti.com>
+ <52179E44.5030202@ti.com> <5217A59E.4090700@ti.com> <5217AA15.7010907@ti.com>
+ <5217BDFA.5040904@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <5217BDFA.5040904@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -15,146 +24,81 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: bcousson@baylibre.com
-Cc: nm@ti.com, devicetree@vger.kernel.org, balajitk@ti.com, pawel.moll@arm.com, j-keerthy@ti.com, linux-kernel@vger.kernel.org, rob.herring@calxeda.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: devicetree@vger.kernel.org, sergei.shtylyov@cogentembedded.com, d-gerlach@ti.com, netdev@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>, vaibhav.bedia@ti.com, Daniel Mack <zonque@gmail.com>, bcousson@baylibre.com, ujhelyi.m@gmail.com, linux-omap@vger.kernel.org, davem@davemloft.net, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The Patch adds nodes for TPS659038 PMIC for DRA7 boards.
+On Saturday 24 August 2013 01:24 AM, Santosh Shilimkar wrote:
+> On Friday 23 August 2013 02:29 PM, Mugunthan V N wrote:
+>> On Friday 23 August 2013 11:40 PM, Santosh Shilimkar wrote:
+>>> On Friday 23 August 2013 01:39 PM, Sekhar Nori wrote:
+>>>> On 8/23/2013 10:58 PM, Santosh Shilimkar wrote:
+>>>>> On Friday 23 August 2013 01:24 PM, Daniel Mack wrote:
+>>>>>> On 23.08.2013 19:19, Santosh Shilimkar wrote:
+>>>>>>> On Friday 23 August 2013 01:09 PM, Sekhar Nori wrote:
+>>>>>>>> On 8/23/2013 10:26 PM, Santosh Shilimkar wrote:
+>>>>>>>>> So just stick the IP version or call it cpsw-v1... cpsw-v2 etc.
+>>>>>>>> If this could be handled using IP version then the right way would be to
+>>>>>>>> just read the IP version from hardware and use it. No need of DT property.
+>>>>>>>>
+>>>>>>> Thats fine as well but I thought the patch needed additional properties like
+>>>>>>> CM reg-address come from DT and hence the separate compatible. If you can
+>>>>>>> manage without that, thats even better.
+>>>>>> We can't, that's the whole point :)
+>>>>>>
+>>>>> I saw that from the patch :)
+>>>>>
+>>>>>> Well, theoretically, we could for now, but that's not a clean solution.
+>>>>>> Again: the problem here is that the control port is separated from the
+>>>>>> cpsw core, and so we have to implement something specific for the AM3352
+>>>>>> SoC. I know that's a violation of clean and generic driver ideas, but
+>>>>>> there's no way we can assume that every cpsw v2 ip block has a control
+>>>>>> port that is compatible to the one found on am335x chips.
+>>>>>>
+>>>>> But there is a possibility that other SOC will just use the same
+>>>>> control module approach. So using a revision IP is just fine. BTW,
+>>>> But this is misleading because it makes appear like the same compatible
+>>>> can be used on on another SoC like DRA7 which probably has the same
+>>>> version of IP but a different control module implementation, when in
+>>>> practice it cannot.
+>>>>
+>>>> The fact is we are doing something SoC specific in the driver and we
+>>>> cannot hide that behind IP versions. If really in practice there comes
+>>>> another SoC with the same control module definition then it can always
+>>>> use ti,am3352-cpsw compatible as well. The compatible name does not
+>>>> preclude its usage.
+>>>>
+>>> My point was the CPSW needs a feature which is implemented using
+>>> control module rather than within the IP itself. Its an implementation
+>>> detail. As such the additional feature makes sense for that IP. O.w
+>>> there was no need to do any monkeying with control module.
+>>>
+>>> E.g
+>>> MMC card detect is a basic functionality, implemented by various types
+>>> like control module, PMIC or MMC IP itself. As such the driver need
+>>> that support and all the implementation details needs to still handled
+>>> to make that part work.
+>>>
+>>>
+>> CPSW core as such understands only GMII/MII signals, there is an
+>> additional module which converts GMII/MII signals to RGMII/RMII signals
+>> respectively which is called as CPRGMII/CPRMII as specified in the
+>> AM335x TRM in Figure 14-1. Ethernet Switch Integration.
+>>
+>> So to control this sub-module, the control register is used and this has
+>> to be configured according to the EVM design like what mode of phy is
+>> connected. CPRGMII and CPRMII is no way related to CPSW core.
+>>
+> Ok then why are you polluting cpsw driver with that code which
+> not realted to CPSW as you said above. You are contradicting what
+> you said by supporting the SOC usage in the core CPSW driver.
+This patch series is not from me and because of the reason I mentioned
+about control module driver, so that cpsw driver can make use control
+module apis to select phy mode and control module driver takes care of
+SoC specific register offsets and definitions, but now it is not
+possible as it is not acceptable in mainline. So other way is to keep
+these in driver itself as it is done in this patch series with SoC
+compatibilities.
 
-It is based on top of:
-http://comments.gmane.org/gmane.linux.ports.arm.omap/102459.
-
-Documentation:	Documentation/devicetree/bindings/mfd/palmas.txt
-		Documentation/devicetree/bindings/regulator/palmas-pmic.txt		
-
-Boot Tested on DRA7 d1 Board.
-
-Signed-off-by: Keerthy <j-keerthy@ti.com>
----
- arch/arm/boot/dts/dra7-evm.dts |  118 ++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 118 insertions(+)
-
-Index: linux/arch/arm/boot/dts/dra7-evm.dts
-===================================================================
---- linux.orig/arch/arm/boot/dts/dra7-evm.dts	2013-08-26 09:57:52.496173554 +0530
-+++ linux/arch/arm/boot/dts/dra7-evm.dts	2013-08-26 10:38:44.995414695 +0530
-@@ -93,6 +93,119 @@
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&i2c1_pins>;
- 	clock-frequency = <400000>;
-+
-+	tps659038: tps659038@58 {
-+		compatible = "ti,tps659038";
-+		reg = <0x58>;
-+
-+		tps659038_pmic {
-+			compatible = "ti,tps659038-pmic";
-+
-+			regulators {
-+				smps123_reg: smps123 {
-+					/* VDD_MPU */
-+						regulator-name = "smps123";
-+						regulator-min-microvolt = < 850000>;
-+						regulator-max-microvolt = <1250000>;
-+						regulator-always-on;
-+						regulator-boot-on;
-+					};
-+
-+				smps45_reg: smps45 {
-+						/* VDD_DSPEVE */
-+						regulator-name = "smps45";
-+						regulator-min-microvolt = < 850000>;
-+						regulator-max-microvolt = <1150000>;
-+						regulator-boot-on;
-+					};
-+
-+				smps6_reg: smps6 {
-+						/* VDD_GPU - over VDD_SMPS6 */
-+						regulator-name = "smps6";
-+						regulator-min-microvolt = <850000>;
-+						regulator-max-microvolt = <12500000>;
-+						regulator-boot-on;
-+					};
-+
-+				smps7_reg: smps7 {
-+						/* CORE_VDD */
-+						regulator-name = "smps7";
-+						regulator-min-microvolt = <850000>;
-+						regulator-max-microvolt = <1030000>;
-+						regulator-always-on;
-+						regulator-boot-on;
-+					};
-+
-+				smps8_reg: smps8 {
-+						/* VDD_IVAHD */
-+						regulator-name = "smps8";
-+						regulator-min-microvolt = < 850000>;
-+						regulator-max-microvolt = <1250000>;
-+						regulator-boot-on;
-+					};
-+
-+				smps9_reg: smps9 {
-+						/* VDDS1V8 */
-+						regulator-name = "smps9";
-+						regulator-min-microvolt = <1800000>;
-+						regulator-max-microvolt = <1800000>;
-+						regulator-always-on;
-+						regulator-boot-on;
-+					};
-+
-+				ldo1_reg: ldo1 {
-+						/* LDO1_OUT --> SDIO  */
-+						regulator-name = "ldo1";
-+						regulator-min-microvolt = <1800000>;
-+						regulator-max-microvolt = <3300000>;
-+						regulator-boot-on;
-+					};
-+
-+				ldo2_reg: ldo2 {
-+						/* VDD_RTCIO */
-+						/* LDO2 -> VDDSHV5, LDO2 also goes to CAN_PHY_3V3 */
-+						regulator-name = "ldo2";
-+						regulator-min-microvolt = <3300000>;
-+						regulator-max-microvolt = <3300000>;
-+						regulator-boot-on;
-+					};
-+
-+				ldo3_reg: ldo3 {
-+						/* VDDA_1V8_PHY */
-+						regulator-name = "ldo3";
-+						regulator-min-microvolt = <1800000>;
-+						regulator-max-microvolt = <1800000>;
-+						regulator-boot-on;
-+					};
-+
-+				ldo9_reg: ldo9 {
-+						/* VDD_RTC */
-+						regulator-name = "ldo9";
-+						regulator-min-microvolt = <1050000>;
-+						regulator-max-microvolt = <1050000>;
-+						regulator-boot-on;
-+					};
-+
-+				ldoln_reg: ldoln {
-+						/* VDDA_1V8_PLL */
-+						regulator-name = "ldoln";
-+						regulator-min-microvolt = <1800000>;
-+						regulator-max-microvolt = <1800000>;
-+						regulator-always-on;
-+						regulator-boot-on;
-+					};
-+
-+				ldousb_reg: ldousb {
-+						/* VDDA_3V_USB: VDDA_USBHS33 */
-+						regulator-name = "ldousb";
-+						regulator-min-microvolt = <3300000>;
-+						regulator-max-microvolt = <3300000>;
-+						regulator-boot-on;
-+					};
-+
-+				};
-+			};
-+		};
- };
- 
- &i2c2 {
+Regards
+Mugunthan V N
