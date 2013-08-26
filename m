@@ -1,85 +1,65 @@
-From: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v2] ARM: EDMA: Fix clearing of unused list for DT DMA
-	resources
-Date: Mon, 26 Aug 2013 16:16:42 +0530
-Message-ID: <521B3212.3050405@ti.com>
-References: <1377287613-16491-1-git-send-email-joelf@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL] ARM: OMAP: miscellaneous PRCM and hwmod updates for
+ v3.12
+Date: Mon, 26 Aug 2013 04:17:08 -0700
+Message-ID: <20130826111708.GD7656@atomide.com>
+References: <alpine.DEB.2.02.1308231932400.22768@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <davinci-linux-open-source-bounces+gld-davinci-linux-open-source=gmane.org-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-In-Reply-To: <1377287613-16491-1-git-send-email-joelf-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
-List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
-List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
-Sender: <davinci-linux-open-source-bounces+gld-davinci-linux-open-source=gmane.org-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-Errors-To: davinci-linux-open-source-bounces+gld-davinci-linux-open-source=gmane.org-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
-To: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>
-Cc: Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Pantel Antoniou <panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dan Williams <djbw-b10kYP2dOMg@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.02.1308231932400.22768@utopia.booyaka.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Saturday 24 August 2013 01:23 AM, Joel Fernandes wrote:
-> HWMOD removal for MMC and Crypto is breaking edma_start as the events are
-> being manually triggered due to unused channel list not being clear. Atleast
-> breakage has been seen on these peripherals, but it is expected Audio (McASP)
-> maybe breaking too.
+* Paul Walmsley <paul@pwsan.com> [130823 12:40]:
+> Hi Tony
 > 
-> This patch fixes the issue, by reading the "dmas" property from the DT node if
-> it exists and clearing the bits in the unused channel list so that these channels
-> are not manually triggered.
+> The following changes since commit b36f4be3de1b123d8601de062e7dbfc904f305fb:
 > 
-> v2 changes:
-> Reduced indendation by returning from if block.
-
-Is this a v2 or v3 since you already sent a v2 about a month back?
-
+>   Linux 3.11-rc6 (2013-08-18 14:36:53 -0700)
 > 
-> Reviewed-by: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
-> Reported-by: Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>
-> Cc: Pantel Antoniou <panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>
-> Signed-off-by: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>
-> ---
-> Note:
-> Patch should go in for -rc cycle as it fixes existing crypto drivers.
-
-We agreed the patch is not needed in -rc cycle since there are no
-current EDMA users in DT-boot?
-
+> are available in the git repository at:
 > 
->  arch/arm/common/edma.c | 22 +++++++++++++++++++---
->  1 file changed, 19 insertions(+), 3 deletions(-)
+>   git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/for-v3.12/omap-prcm-hwmod
 > 
-> diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
-> index 39ad030..3867e7e 100644
-> --- a/arch/arm/common/edma.c
-> +++ b/arch/arm/common/edma.c
-> @@ -560,14 +560,30 @@ static int reserve_contiguous_slots(int ctlr, unsigned int id,
->  static int prepare_unused_channel_list(struct device *dev, void *data)
->  {
->  	struct platform_device *pdev = to_platform_device(dev);
-> -	int i, ctlr;
-> +	int i = 0, ctlr;
-> +	u32 dma_chan;
-> +	const __be32 *dma_chan_p;
-> +	struct property *prop;
-> +
-> +	if (dev->of_node) {
-> +		of_property_for_each_u32(dev->of_node, "dmas", prop,
-> +					 dma_chan_p, dma_chan) {
-> +			if (i++ & 1) {
-> +				ctlr = EDMA_CTLR(dma_chan);
-> +				clear_bit(EDMA_CHAN_SLOT(dma_chan),
-> +					  edma_cc[ctlr]->edma_unused);
-> +			}
+> for you to fetch changes up to 4514b4d7fcad2a84066c73966c6a7823ea1b3749:
+> 
+>   Merge branches 'hwmod_devel_v3.12', 'prcm_devel_v3.12' and 'am33xx_devel_v3.12' into prcm_a_for_v3.12 (2013-08-23 12:49:48 -0600)
+> 
+> ----------------------------------------------------------------
+> 
+> Various OMAP PRCM & hwmod fixes and improvements.  Notable changes
+> include:
+> 
+> - a fix for OMAP4 PLL locking to avoid a bootloader dependency that
+>   causes nasty log spew on startup
+> 
+> - AM33xx DEBUGSS support fixes in hwmod data
+> 
+> - OMAP5 mailbox support in hwmod data
+> 
+> Basic test logs are here:
+> 
+> http://www.pwsan.com/omap/testlogs/prcm_a_for_v3.12/20130823125002/
+> 
+> Note that the 3530 failure is due to the mysterious transient serial
+> issue affecting 3530 for several releases now, which causes a log
+> parsing failure.  PM still seems to work.
 
-I thought we agreed to do this differently using
-of_property_count_strings() and of_parse_phandle_with_args(). I seemed
-to have missed any discussion on why this cannot be done (if such a
-discussion took place on the list).
+Thanks pulling into omap-for-v3.12/prcm.
 
-Thanks,
-Sekhar
+Regards,
+
+Tony
