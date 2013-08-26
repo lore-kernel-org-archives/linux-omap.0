@@ -1,40 +1,35 @@
 From: Benoit Cousson <bcousson@baylibre.com>
-Subject: Re: [PATCH] ARM: dts: add AM33XX EDMA support
-Date: Mon, 26 Aug 2013 10:33:33 +0200
-Message-ID: <521B12DD.8010505@baylibre.com>
-References: <1377284808-32412-1-git-send-email-bigeasy@linutronix.de>
+Subject: Re: [PATCH v2] ARM: dts: add AM33XX EDMA support
+Date: Mon, 26 Aug 2013 10:36:16 +0200
+Message-ID: <521B1380.3030908@baylibre.com>
+References: <1377505784-9820-1-git-send-email-bigeasy@linutronix.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ea0-f174.google.com ([209.85.215.174]:50862 "EHLO
-	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756052Ab3HZIdh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Aug 2013 04:33:37 -0400
-Received: by mail-ea0-f174.google.com with SMTP id z15so1438909ead.19
-        for <linux-omap@vger.kernel.org>; Mon, 26 Aug 2013 01:33:36 -0700 (PDT)
-In-Reply-To: <1377284808-32412-1-git-send-email-bigeasy@linutronix.de>
+Received: from mail-ea0-f170.google.com ([209.85.215.170]:62818 "EHLO
+	mail-ea0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756031Ab3HZIgU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Aug 2013 04:36:20 -0400
+Received: by mail-ea0-f170.google.com with SMTP id h14so1454898eak.15
+        for <linux-omap@vger.kernel.org>; Mon, 26 Aug 2013 01:36:19 -0700 (PDT)
+In-Reply-To: <1377505784-9820-1-git-send-email-bigeasy@linutronix.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: tony@atomide.com, Joel Fernandes <joelf@ti.com>, santosh.shilimkar@ti.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Matt Porter <mdp@ti.com>, Matt Porter <mporter@ti.com>, Joel A Fernandes <joelagnel@ti.com>
+Cc: tony@atomide.com, santosh.shilimkar@ti.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 
-Hi Sebastian,
+- minus all the TI emails which are not working anymore :-(
 
-Is this patch different from that one:
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg92176.html
+I've just sent my previous email too soon...
 
-Lokesh just pointed me this patch because it was missing for the 
-SHAM/AES series from Mark Greer.
+Now the patch is different :-) I'll take that one.
 
-Bottom-line, I've just applied the original one along with a second one 
-that was adding EDMA in SPI.
-
-Regards,
+Thanks,
 Benoit
 
 
-On 23/08/2013 21:06, Sebastian Andrzej Siewior wrote:
+On 26/08/2013 10:29, Sebastian Andrzej Siewior wrote:
 > From: Matt Porter <mdp@ti.com>
 >
 > Adds AM33XX EDMA support to the am33xx.dtsi as documented in
@@ -50,6 +45,9 @@ On 23/08/2013 21:06, Sebastian Andrzej Siewior wrote:
 > ---
 > Could someone please pick this up?
 >
+> v1..v2:
+> 	- s/edma@/dma-controller@/
+>
 >   arch/arm/boot/dts/am33xx.dtsi | 12 ++++++++++++
 >   1 file changed, 12 insertions(+)
 >
@@ -61,7 +59,7 @@ On 23/08/2013 21:06, Sebastian Andrzej Siewior wrote:
 >   			reg = <0x48200000 0x1000>;
 >   		};
 >
-> +		edma: edma@49000000 {
+> +		edma: dma-controller@49000000 {
 > +			compatible = "ti,edma3";
 > +			ti,hwmods = "tpcc", "tptc0", "tptc1", "tptc2";
 > +			reg =	<0x49000000 0x10000>,
