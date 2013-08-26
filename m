@@ -1,67 +1,95 @@
-From: Vinod Koul <vinod.koul@intel.com>
-Subject: Re: [PATCH] DMA: let filter functions of of_dma_simple_xlate
- possible check of_node
-Date: Mon, 26 Aug 2013 19:40:57 +0530
-Message-ID: <20130826141057.GQ2748@intel.com>
-References: <1375408800-11789-1-git-send-email-rizhao@nvidia.com>
- <1441310.1kjKG7uebg@avalon>
- <20130826125547.GA2733@richard-laptop>
- <2811939.DFy94j5OEx@avalon>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH v6 0/8] phy: omap-usb: Support multiple instances and new types
+Date: Mon, 26 Aug 2013 18:08:25 +0300
+Message-ID: <1377529713-19762-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <2811939.DFy94j5OEx@avalon>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Richard Zhao <linuxzsc@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Stephen Warren <swarren@wwwdotorg.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Richard Zhao <rizhao@nvidia.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:46584 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751664Ab3HZPJO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 26 Aug 2013 11:09:14 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: balbi@ti.com, bcousson@baylibre.com
+Cc: tony@atomide.com, george.cherian@ti.com, kishon@ti.com, bigeasy@linutronix.de, sergei.shtylyov@cogentembedded.com, thomas.langer@lantiq.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 
-On Mon, Aug 26, 2013 at 03:18:00PM +0200, Laurent Pinchart wrote:
-> Hi Richard,
-> 
-> (Dropping Dan Williams from the CC list as his e-mail address doesn't seem to 
-> be valid anymore)
-> 
-> > > > >> Hmm. Looking at the patch, I'm not sure it's right.
-> > > > >> 
-> > > > >> This patch simply passes all the specfier args to the filter
-> > > > >> function, and the code to check the equality of the of_node to the
-> > > > >> filter args is still duplicated in each DMA driver. Instead, the DMA
-> > > > >> core should be implementing the equality check, and only even calling
-> > > > >> the driver-specific filter function for devices where the client's
-> > > > >> phandle matches the DMA providing device's of_node handle.
-> > > > > 
-> > > > > Filter function is called in dmaengine core code, independent of dt.
-> > > > 
-> > > > The core code can still check if a dmaengine's driver was instantiated
-> > > > from DT and take additional actions in that case.
-> > > > 
-> > > > > And the reason why the driver has to write its own filter function is
-> > > > > it has to store slave id there in its own way.
-> > > > 
-> > > > I'm not saying don't call the driver's filter function, but rather that
-> > > > the dmaengine core should perform the common checks before doing so.
-> > > 
-> > > And it looks to me like the common case could even get rid of the driver's
-> > > filter function:
-> > > 
-> > > https://lkml.org/lkml/2013/5/15/270
-> > > https://lkml.org/lkml/2013/3/25/250
-> > 
-> > For general case, the slave id is not staticly bind to a specific channel.
-> 
-> Certainly not in all cases, but I think it's common enough to deserve a 
-> specific helper function.
-Why does DT need the fliter function in the first place. The DT enabled drivers
-should not even have a filter function...
+Hi,
 
-The dmaengine core calls the optional filter function. This needs to be
-implemented in driver in order for driver to check if the channel is what it
-needs or not.
+This patchset does the following:
 
-And the selection should be done for the cases where you dont have programmable
-mux in dmac. For programmable ones passing slave_id in dma_slave_config should
-be fine.
+* Get rid of omap_control_usb platform data as we support DT only.
 
-~Vinod
+* Restructure and add support for new PHY types. We now support the follwing
+four types
+
+ TYPE_OMAP - if it has otghs_control mailbox register (e.g. on OMAP4)
+ TYPE_USB2 - if it has Power down bit in control_dev_conf register. e.g. USB2 PHY
+ TYPE_USB3 - if it has DPLL and individual Rx & Tx power control. e.g. USB3 PHY or SATA PHY
+ TYPE_DRA7 - if it has both power down and power aux registers. e.g. USB2 PHY on DRA7
+
+* Get rid of "ti,type" DT property and introduce compatible strings for each type.
+
+* Have only one power control API "omap_control_usb_phy_power()" instead of a
+different one for each PHY type.
+
+* Get rid of omap_get_control_dev() so that we can support multiple instances
+of the control device. We take advantage of the fact that omap control USB device
+is only present on OMAP4 onwards and hence only supports DT boot. The users
+of control USB device can get a reference to it from the device node's phandle.
+
+Patches are based on balbi/next.
+
+Smoke tested on OMAP4 panda with MUSB in gadget mode (g_zero).
+
+You can find the patches in branch
+ usb-control-module
+in git tree
+ git://github.com/rogerq/linux.git
+
+v6:
+- addressed review comment about usage of control_usb before allocation.
+
+v5:
+- fixed whitespace alignment issues.
+
+v4:
+- removed "ti,has-mailbox" from omap-usb binding document example.
+
+v3:
+- return -EINVAL instead of -ENODEV on probe failure.
+- pass device type data through of_device_id table.
+- get rid of "ti,mailbox" property and "has_mailbox" from musb platform data.
+
+v2:
+- get rid of "ti,type" property and introduce compatible strings for each device type.
+
+cheers,
+-roger
+
+---
+Roger Quadros (8):
+  usb: phy: omap-control: Get rid of platform data
+  usb: phy: omap: Add new device types and remove
+    omap_control_usb3_phy_power()
+  usb: phy: omap-usb2: Don't use omap_get_control_dev()
+  usb: phy: omap-usb3: Don't use omap_get_control_dev()
+  usb: musb: omap2430: Don't use omap_get_control_dev()
+  usb: phy: omap: get rid of omap_get_control_dev()
+  ARM: dts: omap4: update omap-control-usb nodes
+  ARM: dts: omap5: update omap-control-usb node
+
+ Documentation/devicetree/bindings/usb/omap-usb.txt |   33 ++--
+ arch/arm/boot/dts/omap4.dtsi                       |   20 ++-
+ arch/arm/boot/dts/omap5.dtsi                       |   20 ++-
+ drivers/usb/musb/omap2430.c                        |   25 ++-
+ drivers/usb/phy/phy-omap-control.c                 |  210 +++++++++++---------
+ drivers/usb/phy/phy-omap-usb2.c                    |   26 ++-
+ drivers/usb/phy/phy-omap-usb3.c                    |   32 +++-
+ include/linux/usb/musb.h                           |    2 -
+ include/linux/usb/omap_control_usb.h               |   33 ++--
+ 9 files changed, 226 insertions(+), 175 deletions(-)
+
+-- 
+1.7.4.1
+
