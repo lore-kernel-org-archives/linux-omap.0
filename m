@@ -1,58 +1,32 @@
 From: Balaji T K <balajitk@ti.com>
-Subject: [PATCH 2/2] ARM: dts: dra7-evm: Add mmc2 node for eMMC support
-Date: Mon, 26 Aug 2013 19:23:38 +0530
-Message-ID: <1377525218-7655-3-git-send-email-balajitk@ti.com>
-References: <1377525218-7655-1-git-send-email-balajitk@ti.com>
+Subject: [PATCH 0/2] ARM: dts: dra7-evm: add support for sd, eMMC
+Date: Mon, 26 Aug 2013 19:23:36 +0530
+Message-ID: <1377525218-7655-1-git-send-email-balajitk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:42474 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752006Ab3HZNyN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 26 Aug 2013 09:54:13 -0400
-In-Reply-To: <1377525218-7655-1-git-send-email-balajitk@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: bcousson@baylibre.com, devicetree@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, linux-arm-kernel@lists.infradead.org, nm@ti.com, Balaji T K <balajitk@ti.com>
+Cc: tony@atomide.com, nm@ti.com, linux-omap@vger.kernel.org, Balaji T K <balajitk@ti.com>, linux-arm-kernel@lists.infradead.org
+List-Id: linux-omap@vger.kernel.org
 
-Add mmc2 dt node to dra7-evm board
-and model eMMC vcc as fixed regulator.
+Add mmc1, mmc2 dt node to dra7-evm
 
-Signed-off-by: Balaji T K <balajitk@ti.com>
----
- arch/arm/boot/dts/dra7-evm.dts |   14 ++++++++++++++
- 1 files changed, 14 insertions(+), 0 deletions(-)
+Balaji T K (2):
+  ARM: dts: dra7-evm: Add mmc1 node for micro-sd support
+  ARM: dts: dra7-evm: Add mmc2 node for eMMC support
 
-diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
-index a59bbd0..2062724 100644
---- a/arch/arm/boot/dts/dra7-evm.dts
-+++ b/arch/arm/boot/dts/dra7-evm.dts
-@@ -17,6 +17,13 @@
- 		device_type = "memory";
- 		reg = <0x80000000 0x60000000>; /* 1536 MB */
- 	};
-+
-+	mmc2_3v3: fixedregulator-mmc2 {
-+		compatible = "regulator-fixed";
-+		regulator-name = "mmc2_3v3";
-+		regulator-min-microvolt = <3300000>;
-+		regulator-max-microvolt = <3300000>;
-+	};
- };
- 
- &dra7_pmx_core {
-@@ -257,3 +264,10 @@
- 	vmmc-supply = <&ldo1_reg>;
- 	bus-width = <4>;
- };
-+
-+&mmc2 {
-+	status = "okay";
-+	vmmc-supply = <&mmc2_3v3>;
-+	bus-width = <8>;
-+	ti,non-removable;
-+};
+ arch/arm/boot/dts/dra7-evm.dts |   20 ++++++++++++++++++++
+ 1 files changed, 20 insertions(+), 0 deletions(-)
+
 -- 
 1.7.5.4
-
