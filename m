@@ -1,38 +1,47 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH] DMA: let filter functions of of_dma_simple_xlate possible check of_node
-Date: Mon, 26 Aug 2013 20:15:17 +0200
-Message-ID: <3565907.5flGSRLgMJ@wuerfel>
-References: <1375408800-11789-1-git-send-email-rizhao@nvidia.com> <2811939.DFy94j5OEx@avalon> <20130826141057.GQ2748@intel.com>
+From: Mugunthan V N <mugunthanvnm@ti.com>
+Subject: Re: [PATCH v6 2/5] net: ethernet: cpsw: add optional third memory
+ region for CONTROL module
+Date: Tue, 27 Aug 2013 00:19:00 +0530
+Message-ID: <521BA31C.1010504@ti.com>
+References: <1377286330-29663-1-git-send-email-zonque@gmail.com> <1377286330-29663-3-git-send-email-zonque@gmail.com> <20130826090422.GB7656@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130826141057.GQ2748@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Vinod Koul <vinod.koul@intel.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Stephen Warren <swarren@wwwdotorg.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Richard Zhao <rizhao@nvidia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Richard Zhao <linuxzsc@gmail.com>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:58427 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752061Ab3HZSto (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 26 Aug 2013 14:49:44 -0400
+In-Reply-To: <20130826090422.GB7656@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Daniel Mack <zonque@gmail.com>, netdev@vger.kernel.org, bcousson@baylibre.com, nsekhar@ti.com, sergei.shtylyov@cogentembedded.com, davem@davemloft.net, ujhelyi.m@gmail.com, vaibhav.bedia@ti.com, d-gerlach@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
 
-On Monday 26 August 2013 19:40:57 Vinod Koul wrote:
-> Why does DT need the fliter function in the first place. The DT enabled drivers
-> should not even have a filter function...
-> 
-> The dmaengine core calls the optional filter function. This needs to be
-> implemented in driver in order for driver to check if the channel is what it
-> needs or not.
+On Monday 26 August 2013 02:34 PM, Tony Lindgren wrote:
+> * Daniel Mack <zonque@gmail.com> [130823 12:39]:
+>> At least the AM33xx SoC has a control module register to configure
+>> details such as the hardware ethernet interface mode.
+>>
+>> I'm not sure whether all SoCs which feature the cpsw block have such a
+>> register, so that third memory region is considered optional for now.
+> Assuming you're talking about omap SCM registers here..
+>
+> This should be in a separate driver module so the control module
+> parts can eventually be children of the SCM driver as they are
+> really separate devices on the bus. See how the USB PHY parts were done
+> for example.
+>
+> What do these control module registers do? If it's just multiplexing
+> and pinconf, then you can use pinctrl-single,bits most likely for it and
+> access it using the named modes.
+>
+> However, if the register also contains comparators and control for
+> regulators, you should only use pinctrl-single for the multiplexing
+> and pinconf parts.
+>
+I will take a look into usb control module driver and will try to adopt
+the driver here also.
 
-You only just merged the dma_get_slave_channel() patch, which allows having
-no filter function. Up to Linux-3.11, the filter was always needed but
-could be 'static' and only called by the xlate function. Now the xlate
-function can pick a channel itself.
-
-> And the selection should be done for the cases where you dont have programmable
-> mux in dmac. For programmable ones passing slave_id in dma_slave_config should
-> be fine.
-
-I think passing a slave_id from the slave driver is never correct with DT,
-since the ID is a property of the system rather than the slave device, so
-the driver has no access to it. Drivers have to always take the settings
-from DT and ignore what dma_slave_config() sets later.
-
-	Arnd
+Regards
+Mugunthan V N
