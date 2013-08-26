@@ -1,93 +1,96 @@
-From: Joel Fernandes <joelf@ti.com>
-Subject: Re: [PATCH] ARM: dts: add AM33XX EDMA support
-Date: Mon, 26 Aug 2013 11:40:49 -0500
-Message-ID: <521B8511.3030809@ti.com>
-References: <1377284808-32412-1-git-send-email-bigeasy@linutronix.de> <521B12DD.8010505@baylibre.com>
+From: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v2] ARM: EDMA: Fix clearing of unused list for DT DMA
+	resources
+Date: Mon, 26 Aug 2013 11:52:16 -0500
+Message-ID: <521B87C0.1090507@ti.com>
+References: <1377287613-16491-1-git-send-email-joelf@ti.com>
+	<521B3212.3050405@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:51838 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755477Ab3HZQl3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 26 Aug 2013 12:41:29 -0400
-In-Reply-To: <521B12DD.8010505@baylibre.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+In-Reply-To: <521B3212.3050405-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
+List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
+List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
+Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+To: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+Cc: Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Pantel Antoniou <panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dan Williams <djbw-b10kYP2dOMg@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <bcousson@baylibre.com>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>, tony@atomide.com, santosh.shilimkar@ti.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Matt Porter <matt@ohporter.com>
 
-Hi Benoit,
-
-On 08/26/2013 03:33 AM, Benoit Cousson wrote:
-> Hi Sebastian,
+On 08/26/2013 05:46 AM, Sekhar Nori wrote:
+> On Saturday 24 August 2013 01:23 AM, Joel Fernandes wrote:
+>> HWMOD removal for MMC and Crypto is breaking edma_start as the events are
+>> being manually triggered due to unused channel list not being clear. Atleast
+>> breakage has been seen on these peripherals, but it is expected Audio (McASP)
+>> maybe breaking too.
+>>
+>> This patch fixes the issue, by reading the "dmas" property from the DT node if
+>> it exists and clearing the bits in the unused channel list so that these channels
+>> are not manually triggered.
+>>
+>> v2 changes:
+>> Reduced indendation by returning from if block.
 > 
-> Is this patch different from that one:
-> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg92176.html
+> Is this a v2 or v3 since you already sent a v2 about a month back?
+
+No, there aren't any changes since v2, I just resubmitted the same patch.
+
+>>
+>> Reviewed-by: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+>> Reported-by: Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>
+>> Cc: Pantel Antoniou <panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>
+>> Signed-off-by: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>
+>> ---
+>> Note:
+>> Patch should go in for -rc cycle as it fixes existing crypto drivers.
 > 
-> Lokesh just pointed me this patch because it was missing for the SHAM/AES series
-> from Mark Greer.
+> We agreed the patch is not needed in -rc cycle since there are no
+> current EDMA users in DT-boot?
+
+There is now, crypto and EDMA DT patches are being merged in.
+
+>>
+>>  arch/arm/common/edma.c | 22 +++++++++++++++++++---
+>>  1 file changed, 19 insertions(+), 3 deletions(-)
+>>
+>> diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
+>> index 39ad030..3867e7e 100644
+>> --- a/arch/arm/common/edma.c
+>> +++ b/arch/arm/common/edma.c
+>> @@ -560,14 +560,30 @@ static int reserve_contiguous_slots(int ctlr, unsigned int id,
+>>  static int prepare_unused_channel_list(struct device *dev, void *data)
+>>  {
+>>  	struct platform_device *pdev = to_platform_device(dev);
+>> -	int i, ctlr;
+>> +	int i = 0, ctlr;
+>> +	u32 dma_chan;
+>> +	const __be32 *dma_chan_p;
+>> +	struct property *prop;
+>> +
+>> +	if (dev->of_node) {
+>> +		of_property_for_each_u32(dev->of_node, "dmas", prop,
+>> +					 dma_chan_p, dma_chan) {
+>> +			if (i++ & 1) {
+>> +				ctlr = EDMA_CTLR(dma_chan);
+>> +				clear_bit(EDMA_CHAN_SLOT(dma_chan),
+>> +					  edma_cc[ctlr]->edma_unused);
+>> +			}
 > 
-> Bottom-line, I've just applied the original one along with a second one that was
-> adding EDMA in SPI.
+> I thought we agreed to do this differently using
+> of_property_count_strings() and of_parse_phandle_with_args(). I seemed
+> to have missed any discussion on why this cannot be done (if such a
+> discussion took place on the list).
 
-Sebastian just submitted another version of the patch [1]. This is the latest
-version of the EDMA DT patch. If its ok, could you use this patch? You could
-ignore all earlier versions.
+I kind of missed that particular review comment after reading [1]. Because I
+thought only change left was the indentation. Let me work on that comment and
+resubmit as v3.
 
-[1] http://www.spinics.net/lists/arm-kernel/msg269712.html
-
-Thanks,
+Regards,
 
 -Joel
-
-> Regards,
-> Benoit
-> 
-> 
-> On 23/08/2013 21:06, Sebastian Andrzej Siewior wrote:
->> From: Matt Porter <mdp@ti.com>
->>
->> Adds AM33XX EDMA support to the am33xx.dtsi as documented in
->> Documentation/devicetree/bindings/dma/ti-edma.txt
->>
->> Joel: Drop DT entries that are non-hardware-description for now as discussed
->> in [1]
->>
->> [1] https://patchwork.kernel.org/patch/2226761/
->>
->> Signed-off-by: Matt Porter <mporter@ti.com>
->> Signed-off-by: Joel A Fernandes <joelagnel@ti.com>
->> Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
->> ---
->> Could someone please pick this up?
->>
->>   arch/arm/boot/dts/am33xx.dtsi | 12 ++++++++++++
->>   1 file changed, 12 insertions(+)
->>
->> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
->> index 38b446b..784f774 100644
->> --- a/arch/arm/boot/dts/am33xx.dtsi
->> +++ b/arch/arm/boot/dts/am33xx.dtsi
->> @@ -96,6 +96,18 @@
->>               reg = <0x48200000 0x1000>;
->>           };
->>
->> +        edma: edma@49000000 {
->> +            compatible = "ti,edma3";
->> +            ti,hwmods = "tpcc", "tptc0", "tptc1", "tptc2";
->> +            reg =    <0x49000000 0x10000>,
->> +                <0x44e10f90 0x10>;
->> +            interrupts = <12 13 14>;
->> +            #dma-cells = <1>;
->> +            dma-channels = <64>;
->> +            ti,edma-regions = <4>;
->> +            ti,edma-slots = <256>;
->> +        };
->> +
->>           gpio0: gpio@44e07000 {
->>               compatible = "ti,omap4-gpio";
->>               ti,hwmods = "gpio1";
->>
-> 
-
