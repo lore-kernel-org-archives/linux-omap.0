@@ -1,78 +1,75 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv5 01/31] CLK: clkdev: add support for looking up clocks
- from DT
-Date: Mon, 26 Aug 2013 17:36:15 +0300
-Message-ID: <521B67DF.4000005@ti.com>
-References: <1375460751-23676-1-git-send-email-t-kristo@ti.com> <1375460751-23676-2-git-send-email-t-kristo@ti.com> <20130803183143.GE23053@n2100.arm.linux.org.uk>
+From: Richard Zhao <linuxzsc@gmail.com>
+Subject: Re: [PATCH] DMA: let filter functions of of_dma_simple_xlate
+ possible check of_node
+Date: Mon, 26 Aug 2013 22:49:05 +0800
+Message-ID: <20130826144901.GB2733@richard-laptop>
+References: <1375408800-11789-1-git-send-email-rizhao@nvidia.com>
+ <20130822051904.GA2685@rizhao-lap>
+ <52167213.6090604@wwwdotorg.org>
+ <20130823012911.GB17925@rizhao-lap>
+ <52178677.6090001@wwwdotorg.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:44722 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751807Ab3HZOg4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 26 Aug 2013 10:36:56 -0400
-In-Reply-To: <20130803183143.GE23053@n2100.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <52178677.6090001@wwwdotorg.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Stephen Warren <swarren@wwwdotorg.org>
+Cc: Richard Zhao <rizhao@nvidia.com>, "vinod.koul@intel.com" <vinod.koul@intel.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "djbw@fb.com" <djbw@fb.com>
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, nm@ti.com, rnayak@ti.com, mturquette@linaro.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-On 08/03/2013 09:31 PM, Russell King - ARM Linux wrote:
-> On Fri, Aug 02, 2013 at 07:25:20PM +0300, Tero Kristo wrote:
->> +
->> +	if (cl)
->> +		return cl;
->> +
->> +	/* If clock was not found, attempt to look-up from DT */
->> +	node = of_find_node_by_name(NULL, con_id);
->
-> This is utterly broken if you're looking up purely by a connection ID.
-> Please, go back and read clk_get()'s documentation in linux/clk.h.
-> It's spelt out very plainly there.
->
-> NAK.
->
+On Fri, Aug 23, 2013 at 09:57:43AM -0600, Stephen Warren wrote:
+> On 08/22/2013 07:29 PM, Richard Zhao wrote:
+> > On Fri, Aug 23, 2013 at 04:18:27AM +0800, Stephen Warren wrote:
+> >> On 08/21/2013 11:19 PM, Richard Zhao wrote:
+> >>> On Fri, Aug 02, 2013 at 10:00:00AM +0800, Richard Zhao wrote:
+> >>>> pass of_phandle_args dma_spec to dma_request_channel in of_dma_simple_xlate,
+> >>>> so the filter function could access of_node in of_phandle_args.
+> >>>>
+> >>>> It also remove restriction of #dma-cells has to be one.
+> >>>>
+> >>>> Signed-off-by: Richard Zhao <rizhao@nvidia.com>
+> >>>> ---
+> >>>>  drivers/dma/edma.c     |  7 +++++--
+> >>>>  drivers/dma/of-dma.c   | 10 ++++------
+> >>>>  drivers/dma/omap-dma.c |  6 ++++--
+> >>>>  3 files changed, 13 insertions(+), 10 deletions(-)
+> >>>>
+> >>>
+> >>> Hi Vinod,
+> >>>
+> >>> Can you please pick up this change?
+> >>>
+> >>> Hi Stephen,
+> >>>
+> >>> Can you please give a ack or reviewed-by etc?
+> >>
+> >> Hmm. Looking at the patch, I'm not sure it's right.
+> >>
+> >> This patch simply passes all the specfier args to the filter function,
+> >> and the code to check the equality of the of_node to the filter args is
+> >> still duplicated in each DMA driver. Instead, the DMA core should be
+> >> implementing the equality check, and only even calling the
+> >> driver-specific filter function for devices where the client's phandle
+> >> matches the DMA providing device's of_node handle.
+> > 
+> > Filter function is called in dmaengine core code, independent of dt.
+> 
+> The core code can still check if a dmaengine's driver was instantiated
+> from DT and take additional actions in that case.
 
-Hi Russell,
+>From perspective of core code, the filter function is not attached to
+any dma driver. So it doesn't care whether dt dma driver is instantiated.
+I'm not sure I've got your point. Can you please write pieces of code if
+possible?
+The goal of this patch is to use least changes to add check of dt node.
 
-After looking at this a bit more, it seems difficult to get rid of the 
-clk_get -> of_clk_get conversion, however based on this comment I am 
-somewhat stuck. Do you think it would be acceptable if I change the 
-implementation of this patch to work like this:
-
-1) both dev_id + con_id defined:
-    a) search for device node named dev_id
-    b) check clock-names for matching con_id
-    c) return matching clock
-
-    Example in kernel:
-       clocksource-nomadik-mtu.c :
-           clk_get_sys("mtu0", "apb_pclk");
-
-       ste-nomadik-snt8815.dts:
-         mtu0: mtu@101e2000 {
-                 /* Nomadik system timer */
-                 compatible = "st,nomadik-mtu";
-                 reg = <0x101e2000 0x1000>;
-                 interrupt-parent = <&vica>;
-                 interrupts = <4>;
-                 clocks = <&timclk>, <&pclk>;
-                 clock-names = "timclk", "apb_pclk";
-         };
-
-2) dev_id = NULL, con_id defined (current patch implementation, most of 
-the OMAP clocks use this approach):
-    a) search for a device node named con_id
-    b) return corresponding clock from the node
-
-Alternatively I must implement a regression and break some of the OMAP 
-drivers with this set, and also implement omap internal clk_get 
-functionality (basically adding a similar wrapper that I have 
-implemented in this patch) under mach-omap2 to get some basic OMAP infra 
-to work properly (namely, hwmod.) I can probably avoid part of this by 
-adding more beef to the *.dts files for the critical parts to get boot 
-working at least.
-
--Tero
-
+Thanks
+Richard
+> 
+> > And the reason why the driver has to write its own filter function is
+> > it has to store slave id there in its own way.
+> 
+> I'm not saying don't call the driver's filter function, but rather that
+> the dmaengine core should perform the common checks before doing so.
+> 
