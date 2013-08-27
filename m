@@ -1,73 +1,88 @@
-From: Benoit Cousson <bcousson@baylibre.com>
-Subject: Re: [GIT PULL] ARM: OMAP: Device Tree for 3.12
-Date: Tue, 27 Aug 2013 11:43:26 +0200
-Message-ID: <521C74BE.9080404@baylibre.com>
-References: <521384D5.1050607@baylibre.com> <20130821071334.GQ7656@atomide.com> <5214D4FD.4060405@baylibre.com> <87fvu0mf87.fsf@linaro.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Vladimir Murzin <murzin.v@gmail.com>
+Subject: [PATCH] ARM: OMAP4: cpuidle: fix: call cpu_cluster_pm_exit conditionally
+Date: Tue, 27 Aug 2013 12:10:50 +0200
+Message-ID: <1377598250-2355-1-git-send-email-murzin.v@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bk0-f47.google.com ([209.85.214.47]:57817 "EHLO
-	mail-bk0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752785Ab3H0Jna (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Aug 2013 05:43:30 -0400
-Received: by mail-bk0-f47.google.com with SMTP id mx12so1503830bkb.34
-        for <linux-omap@vger.kernel.org>; Tue, 27 Aug 2013 02:43:29 -0700 (PDT)
-In-Reply-To: <87fvu0mf87.fsf@linaro.org>
+Received: from mail-la0-f42.google.com ([209.85.215.42]:49797 "EHLO
+	mail-la0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751961Ab3H0KL5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Aug 2013 06:11:57 -0400
+Received: by mail-la0-f42.google.com with SMTP id ep20so3289055lab.15
+        for <linux-omap@vger.kernel.org>; Tue, 27 Aug 2013 03:11:56 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@linaro.org>
-Cc: Olof Johansson <olof@lixom.net>, Tony Lindgren <tony@atomide.com>, arm@kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, tony@atomide.com, linux@arm.linux.org.uk, Vladimir Murzin <murzin.v@gmail.com>
 
-Hi Kevin,
+We call cpu_cluster_pm_enter for dev->cpu == 0 only, but
+cpu_cluster_pm_exit called without that check.
 
-On 23/08/2013 20:31, Kevin Hilman wrote:
-> Benoit Cousson <bcousson@baylibre.com> writes:
->
->> Hi Kevin & Olof,
->>
->> I've just updated the branch with the few USB3 patches I missed from Felipe.
->>
->> So here is a new pull-request.
->>
->> Thanks,
->> Benoit
->>
->> ----------------------------------------------------------------
->> Add the minimal DTS support for DRA7xx based SoC core.
->> Add the initial support for N900 and gta04 phones.
->> Enable USB3 on OMAP5 evm board.
->> Do a lot of various cleanups.
->> ----------------------------------------------------------------
->
-> This is a nice description, but would be even better if it was the
-> description of the signed tag.  For future pulls, since we're pulling
-> from you directly into arm-soc, can you start using signed tags please?
->
->
->> The following changes since commit b36f4be3de1b123d8601de062e7dbfc904f305fb:
->>
->>    Linux 3.11-rc6 (2013-08-18 14:36:53 -0700)
->>
->> are available in the git repository at:
->>
->>    git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git for_3.12/dts
->>
->> for you to fetch changes up to 5903208d4e2c09a3872feba6b9e2e49c64fd07ad:
->>
->>    ARM: configs: omap2plus_defconfig: enable dwc3 and dependencies (2013-08-21 16:43:21 +0200)
->>
->
-> Pulled into next/dt.
+Because of that unhandled page fault may happen:
 
-Thanks.
+[    3.803405] Unable to handle kernel paging request at virtual address 00002500
+[    3.810974] pgd = c0004000
+[    3.813812] [00002500] *pgd=00000000
+[    3.817596] Internal error: Oops: 5 [#1] SMP ARM
+[    3.822418] Modules linked in:
+[    3.825653] CPU: 1 PID: 0 Comm: swapper/1 Not tainted 3.11.0-rc6+ #21
+[    3.832397] task: ed86ef40 ti: ed896000 task.ti: ed896000
+[    3.838073] PC is at irq_notifier+0x234/0x25c
+[    3.842651] LR is at irq_notifier+0x218/0x25c
+[    3.847229] pc : [<c0029ed8>]    lr : [<c0029ebc>]    psr: 80000193
+[    3.847229] sp : ed897ee8  ip : 00000005  fp : 00000001
+[    3.859283] r10: c0b395f0  r9 : c0b30594  r8 : c0b8c2ac
+[    3.864776] r7 : ffffffff  r6 : 00000000  r5 : 00000005  r4 : 00000000
+[    3.871643] r3 : 00002500  r2 : 00000000  r1 : 00000005  r0 : 44302244
+[    3.878479] Flags: Nzcv  IRQs off  FIQs on  Mode SVC_32  ISA ARM  Segment kernel
+[    3.886260] Control: 10c5387d  Table: 8000404a  DAC: 00000015
+[    3.892272] Process swapper/1 (pid: 0, stack limit = 0xed896240)
+[    3.898590] Stack: (0xed897ee8 to 0xed898000)
+[    3.903167] 7ee0:                   c0979c3a 00000001 ed897ef8 ed896000 c0014f7c 00000000
+[    3.911743] 7f00: 00000005 00000000 ffffffff c0b8c2ac c0b395f0 c077c04c c0c94b48 c0b3953c
+[    3.920318] 7f20: c0bcd928 00000002 c0b39524 c00cfad8 00000000 ffffffff 00000000 c00cfb10
+[    3.928924] 7f40: c14e62c0 c002c1c8 c002c0ac c14e62c0 00000002 e251c37d 00000000 c0b39548
+[    3.937499] 7f60: c0b395f0 c05a1bc4 e251c37d 00000000 00000005 c05a3870 edc90380 edc90380
+[    3.946105] 7f80: edc90394 c14e62c0 c0b39548 00000002 c0784064 c05a3c78 c0b395e0 c14e62c0
+[    3.954681] 7fa0: 00000002 c0b39548 c0bc9db8 00000000 00000001 c05a1dc0 ed896000 00000015
+[    3.963287] 7fc0: c0bc9db8 ed896000 8000406a c0b30594 c0784064 c000e504 00000746 c007a528
+[    3.971862] 7fe0: 00000001 0000001d 600001d3 c0bcc004 00000000 800086c4 ee0aa6a7 d2aabaa9
+[    3.980499] [<c0029ed8>] (irq_notifier+0x234/0x25c) from [<c077c04c>] (notifier_call_chain+0x38/0x68)
+[    3.990173] [<c077c04c>] (notifier_call_chain+0x38/0x68) from [<c00cfad8>] (cpu_pm_notify+0x20/0x38)
+[    3.999786] [<c00cfad8>] (cpu_pm_notify+0x20/0x38) from [<c00cfb10>] (cpu_cluster_pm_exit+0x20/0x50)
+[    4.009399] [<c00cfb10>] (cpu_cluster_pm_exit+0x20/0x50) from [<c002c1c8>] (omap_enter_idle_coupled+0x11c/0x14c)
+[    4.020111] [<c002c1c8>] (omap_enter_idle_coupled+0x11c/0x14c) from [<c05a1bc4>] (cpuidle_enter_state+0x40/0xec)
+[    4.030822] [<c05a1bc4>] (cpuidle_enter_state+0x40/0xec) from [<c05a3c78>] (cpuidle_enter_state_coupled+0x1f4/0x240)
+[    4.041870] [<c05a3c78>] (cpuidle_enter_state_coupled+0x1f4/0x240) from [<c05a1dc0>] (cpuidle_idle_call+0x150/0x228)
+[    4.052947] [<c05a1dc0>] (cpuidle_idle_call+0x150/0x228) from [<c000e504>] (arch_cpu_idle+0x8/0x38)
+[    4.062499] [<c000e504>] (arch_cpu_idle+0x8/0x38) from [<c007a528>] (cpu_startup_entry+0x178/0x1e4)
+[    4.071990] [<c007a528>] (cpu_startup_entry+0x178/0x1e4) from [<800086c4>] (0x800086c4)
+[    4.080383] Code: e5922288 03a03b0a 13a03c25 e0823003 (e5932000)
+[    4.086791] ---[ end trace d83954a84a6fa69e ]---
 
-> Benoit, since we're pulling directly from you into arm-soc, can you
-> start using signed tags please?  Thanks.
+It is supposed that sar_base is initialized in irq_save_context, which
+is called on CPU_CLUSTER_PM_ENTER notification. If this notification
+has been missed and CPU_CLUSTER_PM_EXIT is received sar_base is NULL.
 
-OK, no problem, I'll RTFM to see how it works and do that next time.
+Fix it by calling CPU_CLUSTER_PM_{ENTER,EXIT} under the same condition.
 
-Regards,
-Benoit
+Signed-off-by: Vladimir Murzin <murzin.v@gmail.com>
+---
+ arch/arm/mach-omap2/cpuidle44xx.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
+diff --git a/arch/arm/mach-omap2/cpuidle44xx.c b/arch/arm/mach-omap2/cpuidle44xx.c
+index c443f2e..4c8982a 100644
+--- a/arch/arm/mach-omap2/cpuidle44xx.c
++++ b/arch/arm/mach-omap2/cpuidle44xx.c
+@@ -143,7 +143,7 @@ static int omap_enter_idle_coupled(struct cpuidle_device *dev,
+ 	 * Call idle CPU cluster PM exit notifier chain
+ 	 * to restore GIC and wakeupgen context.
+ 	 */
+-	if ((cx->mpu_state == PWRDM_POWER_RET) &&
++	if (dev->cpu == 0 && (cx->mpu_state == PWRDM_POWER_RET) &&
+ 		(cx->mpu_logic_state == PWRDM_POWER_OFF))
+ 		cpu_cluster_pm_exit();
+ 
+-- 
+1.8.1.5
 
