@@ -1,125 +1,61 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: OMAPDSS: remove dispc's dependency to VENC/HDMI
-Date: Tue, 27 Aug 2013 14:16:22 +0300
-Message-ID: <521C8A86.8020306@ti.com>
-References: <20130827012016.GE17061@elgon.mountain>
+From: Sekhar Nori <nsekhar@ti.com>
+Subject: Re: [PATCH 2/2] ARM: OMAP4+: Move SRAM data to DT
+Date: Tue, 27 Aug 2013 16:53:51 +0530
+Message-ID: <521C8C47.2000502@ti.com>
+References: <1377598305-15539-1-git-send-email-rnayak@ti.com>
+ <1377598305-15539-3-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="ioSxHtW6E7IDpPWplMn00SJALvA5G0LxG"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:40314 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752137Ab3H0LQZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 27 Aug 2013 07:16:25 -0400
-In-Reply-To: <20130827012016.GE17061@elgon.mountain>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1377598305-15539-3-git-send-email-rnayak@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, bcousson@baylibre.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: linux-omap@vger.kernel.org
 
---ioSxHtW6E7IDpPWplMn00SJALvA5G0LxG
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+On Tuesday 27 August 2013 03:41 PM, Rajendra Nayak wrote:
+> Use drivers/misc/sram.c driver to manage SRAM on all DT only
+> OMAP platforms (am33xx, am43xx, omap4 and omap5) instead of
+> the existing private implementation.
+> 
+> Address and size related data  is removed from mach-omap2/sram.c
+> and now passed to drivers/misc/sram.c from DT.
+> 
+> Users can hence use general purpose allocator apis instead of
+> OMAP private ones to manage and use SRAM.
+> 
+> Currently there are no users on SRAM on these platfoms.
+> 
+> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 
-Hi,
+Nice getting rid of code.
 
-On 27/08/13 04:20, Dan Carpenter wrote:
-> Hello Tomi Valkeinen,
->=20
-> This is a semi-automatic email about new static checker warnings.
->=20
-> The patch 5391e87d1259: "OMAPDSS: remove dispc's dependency to=20
-> VENC/HDMI" from May 16, 2013, leads to the following Smatch complaint:
->=20
-> drivers/video/omap2/dss/hdmi.c:672 omapdss_hdmi_display_set_timing()
-> 	 error: we previously assumed 't' could be null (see line 669)
->=20
-> drivers/video/omap2/dss/hdmi.c
->    668		t =3D hdmi_get_timings();
->    669		if (t !=3D NULL)
->                     ^^^^^^^^^
-> Existing check.
->=20
->    670			hdmi.ip_data.cfg =3D *t;
->    671=09
->    672		dispc_set_tv_pclk(t->timings.pixel_clock * 1000);
->                                   ^^^^^^^^^^^^^^^^^^^^^^
-> Patch added a dereference.
->=20
->    673=09
->    674		mutex_unlock(&hdmi.lock);
->=20
+> diff --git a/arch/arm/mach-omap2/sram.h b/arch/arm/mach-omap2/sram.h
+> index ca7277c..3f83b80 100644
+> --- a/arch/arm/mach-omap2/sram.h
+> +++ b/arch/arm/mach-omap2/sram.h
+> @@ -80,4 +80,3 @@ static inline void omap_push_sram_idle(void) {}
+>  #else
+>  #define OMAP4_SRAM_PA		0x40300000
+>  #endif
+> -#define AM33XX_SRAM_PA		0x40300000
 
-Thanks. I've made a fix, below.
+I guess OMAP4_SRAM_PA is left in the code to take care of errata I688?
+How about removing the iotable entry for SRAM on OMAP4 and converting
+omap_barriers_init() to use the gen_pool API instead of passing an
+incremented address to DT?
 
- Tomi
+SRAM driver is a postcore initcall so I think you it will be ready
+before first WFI hits (which is when the errata triggers).
 
-commit 70218db3effca57252625042a2b2c740fd3604ba (HEAD, work/fixes)
-Author: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Date:   Tue Aug 27 14:11:48 2013 +0300
-
-    OMAPDSS: HDMI: Fix possible NULL reference
-   =20
-    Commit 5391e87d1259 (OMAPDSS: remove dispc's dependency to VENC/HDMI)=
-
-    introduced a possible NULL reference bug in the HDMI driver when sett=
-ing
-    timings. In practice the bug shouldn't happen, as the timings have be=
-en
-    verified earlier, and thus the timings should always be ok.
-   =20
-    Fix the possible issue by moving the use of the timings pointer insid=
-e
-    the NULL check.
-   =20
-    Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-
-diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/dss/hdm=
-i.c
-index 44a885b..ea97854 100644
---- a/drivers/video/omap2/dss/hdmi.c
-+++ b/drivers/video/omap2/dss/hdmi.c
-@@ -666,10 +666,11 @@ void omapdss_hdmi_display_set_timing(struct omap_ds=
-s_device *dssdev,
- 	hdmi.ip_data.cfg.cm =3D cm;
-=20
- 	t =3D hdmi_get_timings();
--	if (t !=3D NULL)
-+	if (t !=3D NULL) {
- 		hdmi.ip_data.cfg =3D *t;
-=20
--	dispc_set_tv_pclk(t->timings.pixel_clock * 1000);
-+		dispc_set_tv_pclk(t->timings.pixel_clock * 1000);
-+	}
-=20
- 	mutex_unlock(&hdmi.lock);
- }
-
-
-
---ioSxHtW6E7IDpPWplMn00SJALvA5G0LxG
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJSHIqGAAoJEPo9qoy8lh71ngwP/0NS+yauoDP0oCXINzcD14KG
-aQFwOBb6xLQpeGdwPUlVFhUcVpQ7dba6aLr/Ih/WiNscm9AyMz0DnCWIp/5FLj4C
-axPVpoTfrerh/C83rnhitU1LpjOW4EqBig6j1CS0Gil6uTJ00HZw8a2NMr/YqdQJ
-FDs3ajoA+kUdaI+/HHWHHR29cPdEbPUeOkL0ivXRwBbcVpABKWDzGtcjXKpoUMQ1
-FtEetSAy7GuzeXc/q/IJLRG6rhu58In9zbYqnCg1CAGjuM87Z2EcDD2FWI3iQ5Ru
-14wgWf7k+qoudxE+DegSfW72JQSmX+3rYs012K0c+htNJ9LS0hEYAuUQdjhFLZpU
-bgodIFyzDciJtvHg8It3DlP+UFBg5rc2KooBM0pMjVygPhO95Em/rAPN4j51x+zk
-Okg8/sXHq2gzqbgmtzahfUxmWqW2moEdJlHJ11nNOlxHpzM1aB3g0eGbfJO2q5wt
-I0/EMkmm7MQZf+G+CnB/EcE8PDLzInM3+QpA8o67olEKc3nzDoRMohQB88xixTsL
-lcBldzT4ePZNLuyavU2gA832tisH71Z+LGgWK3SIsvge4SNvKTRAHEnxoX4NARi4
-roFvTHAhF07DCjWjXPPDJFfAw6gl99nlT9FtlPxrQqNIJNbVHWK6vJIHLK6TSZ7M
-r3oR2EbndzmLEXlN1MhM
-=Y/im
------END PGP SIGNATURE-----
-
---ioSxHtW6E7IDpPWplMn00SJALvA5G0LxG--
+Thanks,
+Sekhar
