@@ -1,108 +1,129 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [PATCHv3 8/9] ARM: OMAP2+: AM33XX: Basic suspend resume support
-Date: Tue, 27 Aug 2013 14:45:19 -0700
-Message-ID: <87mwo2vmds.fsf@linaro.org>
-References: <1375811376-49985-1-git-send-email-d-gerlach@ti.com>
-	<1375811376-49985-9-git-send-email-d-gerlach@ti.com>
+From: =?ISO-8859-1?Q?Kevyn=2DAlexandre_Par=E9?=
+	<kevyn.alexandre.pare@gmail.com>
+Subject: Re: Unable to randomly boot rootfs (EXT3 or EXT4) from SD: MMC error
+ -110 (TIMEDOUT)
+Date: Tue, 27 Aug 2013 17:47:22 -0400
+Message-ID: <CAL1yNc+9pOWLCLfk7WpWvvsLfb01cFCJSi+4mTvnks9VrwoF1Q@mail.gmail.com>
+References: <CAL1yNcJZBSSNu4aDmL6n9uu3LkNPCOM-LbUXD2990jkPJYpLoA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pb0-f47.google.com ([209.85.160.47]:40926 "EHLO
-	mail-pb0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753855Ab3H0VpY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Aug 2013 17:45:24 -0400
-Received: by mail-pb0-f47.google.com with SMTP id rr4so5391165pbb.34
-        for <linux-omap@vger.kernel.org>; Tue, 27 Aug 2013 14:45:23 -0700 (PDT)
-In-Reply-To: <1375811376-49985-9-git-send-email-d-gerlach@ti.com> (Dave
-	Gerlach's message of "Tue, 6 Aug 2013 12:49:35 -0500")
+Received: from mail-ve0-f176.google.com ([209.85.128.176]:43535 "EHLO
+	mail-ve0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753570Ab3H0VrZ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Aug 2013 17:47:25 -0400
+In-Reply-To: <CAL1yNcJZBSSNu4aDmL6n9uu3LkNPCOM-LbUXD2990jkPJYpLoA@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Dave Gerlach <d-gerlach@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Vaibhav Bedia <vaibhav.bedia@ti.com>, Tony Lingren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Benoit Cousson <benoit.cousson@linaro.org>
+To: linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org
+Cc: linux-ext4@vger.kernel.org
 
-Dave Gerlach <d-gerlach@ti.com> writes:
-
-> From: Vaibhav Bedia <vaibhav.bedia@ti.com>
->
-> AM335x supports various low power modes as documented
-> in section 8.1.4.3 of the AM335x TRM which is available
-> @ http://www.ti.com/litv/pdf/spruh73f
->
-> DeepSleep0 mode offers the lowest power mode with limited
-> wakeup sources without a system reboot and is mapped as
-> the suspend state in the kernel. In this state, MPU and
-> PER domains are turned off with the internal RAM held in
-> retention to facilitate resume process. As part of the boot
-> process, the assembly code is copied over to OCMCRAM using
-> the OMAP SRAM code.
->
-> AM335x has a Cortex-M3 (WKUP_M3) which assists the MPU
-> in DeepSleep0 entry and exit. WKUP_M3 takes care of the
-> clockdomain and powerdomain transitions based on the
-> intended low power state. MPU needs to load the appropriate
-> WKUP_M3 binary onto the WKUP_M3 memory space before it can
-> leverage any of the PM features like DeepSleep.
->
-> The IPC mechanism between MPU and WKUP_M3 uses a mailbox
-> sub-module and 8 IPC registers in the Control module. MPU
-> uses the assigned Mailbox for issuing an interrupt to
-> WKUP_M3 which then goes and checks the IPC registers for
-> the payload. WKUP_M3 has the ability to trigger on interrupt
-
-s/trigger on interrupt/trigger an interrupt/  ??
-
-> to MPU by executing the "sev" instruction.
->
-> In the current implementation when the suspend process
-> is initiated MPU interrupts the WKUP_M3 to let it know about
-> the intent of entering DeepSleep0 and waits for an ACK. When
-> the ACK is received MPU continues with its suspend process
-> to suspend all the drivers and then jumps to assembly in
-> OCMC RAM. The assembly code puts the PLLs in bypass, puts the
-> external RAM in self-refresh mode and then finally execute the
-> WFI instruction. Execution of the WFI instruction triggers another
-> interrupt to the WKUP_M3 which then continues wiht the power down
-> sequence wherein the clockdomain and powerdomain transition takes
-> place. As part of the sleep sequence, WKUP_M3 unmasks the interrupt
-> lines for the wakeup sources. WFI execution on WKUP_M3 causes the
-> hardware to disable the main oscillator of the SoC.
->
-> When a wakeup event occurs, WKUP_M3 starts the power-up
-> sequence by switching on the power domains and finally
-> enabling the clock to MPU. Since the MPU gets powered down
-> as part of the sleep sequence in the resume path ROM code
-> starts executing. The ROM code detects a wakeup from sleep
-> and then jumps to the resume location in OCMC which was
-> populated in one of the IPC registers as part of the suspend
-> sequence.
->
-> The low level code in OCMC relocks the PLLs, enables access
-> to external RAM and then jumps to the cpu_resume code of
-> the kernel to finish the resume process.
+Hi,
+Another test with 3.4.59 with EXT4 and:
+tune2fs -o journal_data_ordered -e panic (partition)
+results in kernel panic:
 
 [...]
+Waiting for root device /dev/mmcblk0p2...
+mmc0: host does not support reading read-only switch. assuming write-en=
+able.
+mmc0: new high speed SDXC card at address aaaa
+mmcblk0: mmc0:aaaa SU64G 59.4 GiB
+ mmcblk0: p1 p2
+mmc1: mmc_rescan_try_freq: trying to init card at 400000 Hz
+mmc1: new SDIO card at address 0001
+EXT4-fs (mmcblk0p2): mounted filesystem with ordered data mode. Opts: (=
+null)
+VFS: Mounted root (ext4 filesystem) on device 179:2.
+devtmpfs: mounted
+=46reeing init memory: 220K
+INIT: version 2.86 booting
+mmcblk0: error -110 sending status command, retrying
+mmcblk0: error -110 sending status command, retrying
+mmcblk0: error -110 sending status command, aborting
+end_request: I/O error, dev mmcblk0, sector 4391640
+mmcblk0: error -110 sending status command, retrying
+mmcblk0: error -110 sending status command, retrying
+mmcblk0: error -110 sending status command, aborting
+end_request: I/O error, dev mmcblk0, sector 4391640
+mmcblk0: error -110 sending status command, retrying
+mmcblk0: error -110 sending status command, retrying
+mmcblk0: error -110 sending status command, aborting
+end_request: I/O error, dev mmcblk0, sector 4391640
+mmcblk0: error -110 sending status command, retrying
+mmcblk0: error -110 sending status command, retrying
+mmcblk0: error -110 sending status command, aborting
+end_request: I/O error, dev mmcblk0, sector 4391640
+mmcblk0: error -110 sending status command, retrying
+mmcblk0: error -110 sending status command, retrying
+mmcblk0: error -110 sending status command, aborting
+end_request: I/O error, dev mmcblk0, sector 131072
+Buffer I/O error on device mmcblk0p2, logical block 0
+lost page write due to I/O error on mmcblk0p2
+EXT4-fs error (device mmcblk0p2): ext4_find_entry:932: inode #131526:
+comm rc: reading directory lblock 0
+Aborting journal on device mmcblk0p2-8.
+mmcblk0: error -110 sending status command, retrying
+mmcblk0: error -110 sending status command, retrying
+mmcblk0: error -110 sending status command, aborting
+end_request: I/O error, dev mmcblk0, sector 59113472
+Buffer I/O error on device mmcblk0p2, logical block 7372800
+lost page write due to I/O error on mmcblk0p2
+JBD2: Error -5 detected when updating journal superblock for mmcblk0p2-=
+8.
+mmcblk0: error -110 sending status command, retrying
+mmcblk0: error -110 sending status command, retrying
+mmcblk0: error -110 sending status command, aborting
+end_request: I/O error, dev mmcblk0, sector 59113472
+Buffer I/O error on device mmcblk0p2, logical block 7372800
+lost page write due to I/O error on mmcblk0p2
+JBD2: Error -5 detected when updating journal superblock for mmcblk0p2-=
+8.
+Kernel panic - not syncing: EXT4-fs (device mmcblk0p2): panic forced af=
+ter error
 
->  arch/arm/mach-omap2/pm33xx.c  |  474 +++++++++++++++++++++++++++++++++++++++++
->  arch/arm/mach-omap2/pm33xx.h  |   77 +++++++
->  arch/arm/mach-omap2/wkup_m3.c |  183 ++++++++++++++++
 
+If you need specific details let me know.
 
-Looking closer at this code as I'm trying to fully get my head around
-all the IPC, I have some more comments.
+thx
 
-I think the split between pm33xx.c and the M3 driver is still confusing
-here.  For example, am33xx_ping_wkup_m3(),
-am33xx_m3_state_machine_reset() and the guts of am33xx_pm_begin() all
-belong inside the M3 driver, along with all the wakeup_src stuff, which
-is info coming from the M3.
+-KA
 
-IOW, the communication with M3 should be abstracted from pm33xx by the
-M3 driver (or possibly an eventual remoteproc/rpmsg implementation) with
-a well defined API.  In this implementation, the interface is pretty
-fuzzy and mixed between pm33xx.c and wkup_m3.c.
-
-Kevin
-
-P.S. I'd also suggest renaming wakeup_src to something else since
-it's close to wakeup_source which has a rather different meaning in the
-kernel (c.f. linux/pm_wakeup.h)
+On Sun, Jul 21, 2013 at 1:07 PM, Kevyn-Alexandre Par=E9
+<kevyn.alexandre.pare@gmail.com> wrote:
+> Hi,
+>
+> I'm trying to figure out why when randomly booting our system after i=
+t =3D
+> have been hard shutdown for some time (couple of minutes to couple of=
+ =3D
+> days) doesn't boot with MMC error?=3D20
+>
+> WORKAROUND:
+> Rebooting the system most of the time remove the issue.
+>
+> I try couple of version of Kernel from stable 3.2.47 & 3.4.53 without=
+ =3D
+> success.
+> I try to change FS from EXT3 to EXT4 without success.
+> I try multiple SD..
+>
+> Any proposition of test that you think that is worth trying, I'm will=
+ing =3D
+> to try.
+>
+> Your opinions will really be appreciated,
+>
+> See below for some output of my environment,
+> http://pastebin.com/qchsr1FQ
+>
+> Thx,
+>
+> -Kevyn-Alexandre Par=3DE9
+> ps: My intention are to enable CONFIG_MMC_DEBUG? Try kernel 3.10.1?
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
