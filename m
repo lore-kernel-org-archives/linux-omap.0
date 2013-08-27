@@ -1,90 +1,119 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [RFC 2/2] usb: dwc3: Add Qualcomm DWC3 glue layer driver
-Date: Tue, 27 Aug 2013 13:46:58 -0500
-Message-ID: <20130827184658.GS3005@radagast>
-References: <1375789991-30041-1-git-send-email-iivanov@mm-sol.com>
- <1375789991-30041-3-git-send-email-iivanov@mm-sol.com>
- <20130809132349.GC12041@radagast>
- <1376064558.7709.31.camel@iivanov-dev.int.mm-sol.com>
- <20130812182439.GG27954@radagast>
- <1376472497.2132.6.camel@iivanov-dev.int.mm-sol.com>
-Reply-To: <balbi@ti.com>
+Subject: Re: [PATCH v11 0/8] PHY framework
+Date: Tue, 27 Aug 2013 14:20:59 -0500
+Message-ID: <20130827192059.GZ3005@radagast>
+References: <1377063973-22044-1-git-send-email-kishon@ti.com>
+ <521B0E79.6060506@ti.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="2KGcTUzwJ+J1jnia"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1376472497.2132.6.camel@iivanov-dev.int.mm-sol.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Ivan T. Ivanov" <iivanov@mm-sol.com>
-Cc: balbi@ti.com, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ian.campbell@citrix.com, rob@landley.net, gregkh@linuxfoundation.org, grant.likely@linaro.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: multipart/mixed; boundary="===============0432715803386776241=="
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <521B0E79.6060506@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: linux-fbdev@vger.kernel.org, linux-doc@vger.kernel.org, tony@atomide.com, nsekhar@ti.com, tomasz.figa@gmail.com, s.nawrocki@samsung.com, kgene.kim@samsung.com, swarren@nvidia.com, jg1.han@samsung.com, stern@rowland.harvard.edu, grant.likely@linaro.org, linux-media@vger.kernel.org, devicetree@vger.kernel.org, george.cherian@ti.com, arnd@arndb.de, linux-samsung-soc@vger.kernel.org, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balajitk@ti.com, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, kyungmin.park@samsung.com, broonie@kernel.org, akpm@linux-foundation.org
 List-Id: linux-omap@vger.kernel.org
 
---2KGcTUzwJ+J1jnia
+--===============0432715803386776241==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="kqOsKy60S4p104jH"
+Content-Disposition: inline
+
+--kqOsKy60S4p104jH
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Aug 14, 2013 at 12:28:17PM +0300, Ivan T. Ivanov wrote:
->=20
-> Hi,=20
->=20
-> On Mon, 2013-08-12 at 13:24 -0500, Felipe Balbi wrote:=20
-> > On Fri, Aug 09, 2013 at 07:09:18PM +0300, Ivan T. Ivanov wrote:
-> > > Hi,=20
-> > >=20
-> > > On Fri, 2013-08-09 at 16:23 +0300, Felipe Balbi wrote:
-> > > > Hi,
-> > > >=20
-> > > > On Tue, Aug 06, 2013 at 02:53:11PM +0300, Ivan T. Ivanov wrote:
-> > > > > diff --git a/drivers/usb/dwc3/dwc3-msm.c b/drivers/usb/dwc3/dwc3-=
-msm.c
-> > > > > new file mode 100644
-> > > > > index 0000000..e509abc
-> > > > > --- /dev/null
-> > > > > +++ b/drivers/usb/dwc3/dwc3-msm.c
-> > > > > @@ -0,0 +1,175 @@
-> > > > > +#undef CONFIG_REGULATOR
-> > > >=20
-> > > > why ??????
-> > > >=20
-> > >=20
-> > > 1. This shows that driver is still not fully tested=20
-> > >    Regulators support is still missing in the MSM
-> > > 2. Helps me to load driver successfully.=20
-> >=20
-> > Then remove all the regulator-related code from this.
->=20
-> I would like to keep them. I will just remove #undef line.=20
-> Code will continue to build fine. And once regulators drivers=20
-> are upstreamed this driver 'will not' require further
-> modifications.
+Hi,
 
-fair enough.
+On Mon, Aug 26, 2013 at 01:44:49PM +0530, Kishon Vijay Abraham I wrote:
+> On Wednesday 21 August 2013 11:16 AM, Kishon Vijay Abraham I wrote:
+> > Added a generic PHY framework that provides a set of APIs for the PHY d=
+rivers
+> > to create/destroy a PHY and APIs for the PHY users to obtain a referenc=
+e to
+> > the PHY with or without using phandle.
+> >=20
+> > This framework will be of use only to devices that uses external PHY (P=
+HY
+> > functionality is not embedded within the controller).
+> >=20
+> > The intention of creating this framework is to bring the phy drivers sp=
+read
+> > all over the Linux kernel to drivers/phy to increase code re-use and to
+> > increase code maintainability.
+> >=20
+> > Comments to make PHY as bus wasn't done because PHY devices can be part=
+ of
+> > other bus and making a same device attached to multiple bus leads to bad
+> > design.
+> >=20
+> > If the PHY driver has to send notification on connect/disconnect, the P=
+HY
+> > driver should make use of the extcon framework. Using this susbsystem
+> > to use extcon framwork will have to be analysed.
+> >=20
+> > You can find this patch series @
+> > git://git.kernel.org/pub/scm/linux/kernel/git/kishon/linux-phy.git test=
+ing
+>=20
+> Looks like there are not further comments on this series. Can you take th=
+is in
+> your misc tree?
+
+Do you want me to queue these for you ? There are quite a few users for
+this framework already and I know of at least 2 others which will show
+up for v3.13.
+
+Let me know.
+
+cheers
 
 --=20
 balbi
 
---2KGcTUzwJ+J1jnia
+--kqOsKy60S4p104jH
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJSHPQiAAoJEIaOsuA1yqREzzgP/1xZM/lS8jUehIde9h9hoptE
-G2E9c8fhLtBGdktTWIO53BxzkWpc2yAXePzdwh3EM/bIbtaVtgL7Yih9NxlszRXf
-Qzgf3IwcWy0LricvG5/diKAOFrdqgSYqZiLq6pDDpsh2vt0flWTHjQXFrGXjn2gx
-NK6AgWPhuenwtJrg8GRNOV/I9u+WzknxDM4hh/ft9uiEOk3vaXbVRWVcWaCB2KTm
-DN/tuTxqqYEO5glVCRQK2GhYqrjAiOKXkbNv12/3A20c7jLN4SnUJtFP5iUD0+BP
-BHcK3xD28GvojNibSA1ZBOLCTqbuHhoHAKPd54Szt7TmbofgD+9ykWxmFEPyg+JL
-4xk+UXd03iQVjVFFgtLDRZ/WubutmryNDNob6gxCFJDbxTOum41KW9SsDp7lVZc7
-3MecSBH11K7lDskl3l8d4wxt13KWNEOuWr0yxlXepVVbrpEQWPSpJq/vRxuGN3Ci
-3pVTcLYSiczJfgF0d3PpzqMgNK16z0gxFPJ0DFJVPyYk2JSUL7HXAQIz3X9AnxCM
-XaAgU32bV6++r2KX6TMQzyXdQjf85/hi1axl0HbRLYTbFJHXekqT2j7LyjCFRUmZ
-+aLB+fKZg+Y5bpQsv5vvABqAmebsLZ0StWoOcwRd2/Bgsj5j/+DaOcQylxsj4rIM
-zvrdbxSpmBu3j0wSL0Th
-=+AaF
+iQIcBAEBAgAGBQJSHPwbAAoJEIaOsuA1yqRE2nsQALFK6rMKqgAruQXU+gcAWuJg
+UjjW+Xp+SkOhvWawDZw1DAWBVwzDb0sBACYnCKxgsBKjHxXpTXTc3FeMl9zUxDa6
+8ViDWK4HpkkesIdI2lGbEPXL0sgSzBwmpPXAv2ctZFuKBEzPuNLxqcHNLKoxYeF9
+RdGbESxggPmmVL25iwOu187DvEcX9H+PZ2HzcJNjRjHX8uLOCDLZo6zGs61rqFpB
+vGMWgY+eP5NF2o4taf4JsSYQCT8F8Vda7cn5dNEekk0h7pIzHbCFbgqvuPax+zT2
+EjK1mRAj9mPT8qQIBR4F3ubiPXBBNd2pHHvXeC0WmEfxyAl74bZcOvRhER97jPFd
+CJFAy2pJRlEXOfHFHKQ7a3BbpY/fjacRJgbsB04JoPwr43Huin/w82+pO2LYnYVb
+LAA7avWE/4fGqUqlchiCcpSaC4rxTtF613t9GiVsim7oVE/BIIKqqbTdqSOGey2k
+BcKtFfhN62UZia7EGtdIttbdnBYffAzO5Mh4bTmF3APu1NvkGv36vzUcPukh1rB/
+bvxYPriPwtJEx4sQUmrta9LIvK5/7ogsHpB2FqhSywjc7H94PXwJGeCWTX5ZYrk5
+KNidKS5P1+F8HVA2Oa3E6fGEC9dMWi08YYUhykTw4nvwn7mSV0c2zERxHE06J9SN
+4SNq+kshoP9LPk9+IXfg
+=n6Sq
 -----END PGP SIGNATURE-----
 
---2KGcTUzwJ+J1jnia--
+--kqOsKy60S4p104jH--
+
+
+--===============0432715803386776241==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+--===============0432715803386776241==--
