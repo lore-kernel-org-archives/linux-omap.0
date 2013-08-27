@@ -1,53 +1,58 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: [PATCH 1/2] ARM: AM335x: Get rid of unused sram init function
-Date: Tue, 27 Aug 2013 15:41:44 +0530
-Message-ID: <1377598305-15539-2-git-send-email-rnayak@ti.com>
-References: <1377598305-15539-1-git-send-email-rnayak@ti.com>
+From: Illia Smyrnov <illia.smyrnov@globallogic.com>
+Subject: Re: [PATCH v3 0/3] Input: omap-keypad: Wakeup capability and w/a
+ for i689 errata.
+Date: Tue, 27 Aug 2013 13:08:05 +0300
+Message-ID: <521C7A85.6000504@ti.com>
+References: <1375116311-13999-1-git-send-email-illia.smyrnov@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:44727 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752963Ab3H0KMV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 27 Aug 2013 06:12:21 -0400
-In-Reply-To: <1377598305-15539-1-git-send-email-rnayak@ti.com>
+Received: from exprod5og102.obsmtp.com ([64.18.0.143]:35328 "EHLO
+	exprod5og102.obsmtp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752847Ab3H0KNi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Aug 2013 06:13:38 -0400
+Received: by mail-lb0-f180.google.com with SMTP id q8so2414140lbi.11
+        for <linux-omap@vger.kernel.org>; Tue, 27 Aug 2013 03:13:36 -0700 (PDT)
+In-Reply-To: <1375116311-13999-1-git-send-email-illia.smyrnov@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, bcousson@baylibre.com, Rajendra Nayak <rnayak@ti.com>
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Illia Smyrnov <illia.smyrnov@globallogic.com>, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>
 
-Remove the empty am33xx_sram_init() function.
+Hello Dmitry,
 
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
----
- arch/arm/mach-omap2/sram.c |    7 -------
- 1 file changed, 7 deletions(-)
+could you take reviewed patches from this patchset?
 
-diff --git a/arch/arm/mach-omap2/sram.c b/arch/arm/mach-omap2/sram.c
-index 4bd0968..305fc2b 100644
---- a/arch/arm/mach-omap2/sram.c
-+++ b/arch/arm/mach-omap2/sram.c
-@@ -285,11 +285,6 @@ static inline int omap34xx_sram_init(void)
- }
- #endif /* CONFIG_ARCH_OMAP3 */
- 
--static inline int am33xx_sram_init(void)
--{
--	return 0;
--}
--
- int __init omap_sram_init(void)
- {
- 	omap_detect_sram();
-@@ -299,8 +294,6 @@ int __init omap_sram_init(void)
- 		omap242x_sram_init();
- 	else if (cpu_is_omap2430())
- 		omap243x_sram_init();
--	else if (soc_is_am33xx())
--		am33xx_sram_init();
- 	else if (cpu_is_omap34xx())
- 		omap34xx_sram_init();
- 
--- 
-1.7.9.5
+Reviewed patches:
+[PATCH v3 1/3] Input: omap-keypad: Enable wakeup capability for keypad.
+[PATCH v3 3/3] Input: omap-keypad: Setup irq type from DT
+are not depend on
+[PATCH v3 2/3] Input: omap-keypad: errata i689: Correct debounce time
 
+Thanks.
+
+On 07/29/2013 07:45 PM, Illia Smyrnov wrote:
+> This patchset adds wake up capability for the keypad and
+> workaround for i689 errata.
+>
+> Based on top of v3.11-rc3
+>
+> Depends on:
+>
+> Input: omap-keypad: Convert to threaded IRQ
+> https://patchwork.kernel.org/patch/2832920/
+>
+> Input: omap-keypad: Cleanup - use bitfiled instead of hardcoded values
+> https://patchwork.kernel.org/patch/2832913/
+>
+> Axel Haslam (1):
+>    Input: omap-keypad: errata i689: Correct debounce time
+>
+> Illia Smyrnov (2):
+>    Input: omap-keypad: Enable wakeup capability for keypad.
+>    Input: omap-keypad: Setup irq type from DT
+>
+>   drivers/input/keyboard/omap4-keypad.c |   52 ++++++++++++++++++++++++++++++---
+>   1 file changed, 48 insertions(+), 4 deletions(-)
+>
