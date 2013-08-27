@@ -1,156 +1,125 @@
-From: George Cherian <george.cherian@ti.com>
-Subject: [PATCH] gpio: pcf857x: cleanup irq_demux_work and use threaded irq
-Date: Tue, 27 Aug 2013 16:00:55 +0530
-Message-ID: <1377599455-9379-1-git-send-email-george.cherian@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: OMAPDSS: remove dispc's dependency to VENC/HDMI
+Date: Tue, 27 Aug 2013 14:16:22 +0300
+Message-ID: <521C8A86.8020306@ti.com>
+References: <20130827012016.GE17061@elgon.mountain>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linus.walleij@linaro.org
-Cc: linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, George Cherian <george.cherian@ti.com>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="ioSxHtW6E7IDpPWplMn00SJALvA5G0LxG"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:40314 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752137Ab3H0LQZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 27 Aug 2013 07:16:25 -0400
+In-Reply-To: <20130827012016.GE17061@elgon.mountain>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: linux-omap@vger.kernel.org
 
-This patch
-	- removes the irq_demux_work
-	- Uses devm_request_threaded_irq
-	- Call the user handler iff gpio_to_irq is done.
+--ioSxHtW6E7IDpPWplMn00SJALvA5G0LxG
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: George Cherian <george.cherian@ti.com>
----
- drivers/gpio/gpio-pcf857x.c | 52 +++++++++++++++++++++++----------------------
- 1 file changed, 27 insertions(+), 25 deletions(-)
+Hi,
 
-diff --git a/drivers/gpio/gpio-pcf857x.c b/drivers/gpio/gpio-pcf857x.c
-index 947cff4..aebbba6 100644
---- a/drivers/gpio/gpio-pcf857x.c
-+++ b/drivers/gpio/gpio-pcf857x.c
-@@ -30,7 +30,7 @@
- #include <linux/of_device.h>
- #include <linux/slab.h>
- #include <linux/spinlock.h>
--#include <linux/workqueue.h>
-+#include <linux/of_irq.h>
- 
- 
- static const struct i2c_device_id pcf857x_id[] = {
-@@ -89,12 +89,12 @@ struct pcf857x {
- 	struct gpio_chip	chip;
- 	struct i2c_client	*client;
- 	struct mutex		lock;		/* protect 'out' */
--	struct work_struct	work;		/* irq demux work */
- 	struct irq_domain	*irq_domain;	/* for irq demux  */
- 	spinlock_t		slock;		/* protect irq demux */
- 	unsigned		out;		/* software latch */
- 	unsigned		status;		/* current status */
- 	int			irq;		/* real irq number */
-+	int			irq_mapped;	/* mapped gpio irqs  */
- 
- 	int (*write)(struct i2c_client *client, unsigned data);
- 	int (*read)(struct i2c_client *client);
-@@ -187,38 +187,35 @@ static void pcf857x_set(struct gpio_chip *chip, unsigned offset, int value)
- static int pcf857x_to_irq(struct gpio_chip *chip, unsigned offset)
- {
- 	struct pcf857x *gpio = container_of(chip, struct pcf857x, chip);
-+	int ret;
- 
--	return irq_create_mapping(gpio->irq_domain, offset);
-+	ret = irq_create_mapping(gpio->irq_domain, offset);
-+	if (ret > 0)
-+		gpio->irq_mapped |= (1 << offset);
-+
-+	return ret;
+On 27/08/13 04:20, Dan Carpenter wrote:
+> Hello Tomi Valkeinen,
+>=20
+> This is a semi-automatic email about new static checker warnings.
+>=20
+> The patch 5391e87d1259: "OMAPDSS: remove dispc's dependency to=20
+> VENC/HDMI" from May 16, 2013, leads to the following Smatch complaint:
+>=20
+> drivers/video/omap2/dss/hdmi.c:672 omapdss_hdmi_display_set_timing()
+> 	 error: we previously assumed 't' could be null (see line 669)
+>=20
+> drivers/video/omap2/dss/hdmi.c
+>    668		t =3D hdmi_get_timings();
+>    669		if (t !=3D NULL)
+>                     ^^^^^^^^^
+> Existing check.
+>=20
+>    670			hdmi.ip_data.cfg =3D *t;
+>    671=09
+>    672		dispc_set_tv_pclk(t->timings.pixel_clock * 1000);
+>                                   ^^^^^^^^^^^^^^^^^^^^^^
+> Patch added a dereference.
+>=20
+>    673=09
+>    674		mutex_unlock(&hdmi.lock);
+>=20
+
+Thanks. I've made a fix, below.
+
+ Tomi
+
+commit 70218db3effca57252625042a2b2c740fd3604ba (HEAD, work/fixes)
+Author: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Date:   Tue Aug 27 14:11:48 2013 +0300
+
+    OMAPDSS: HDMI: Fix possible NULL reference
+   =20
+    Commit 5391e87d1259 (OMAPDSS: remove dispc's dependency to VENC/HDMI)=
+
+    introduced a possible NULL reference bug in the HDMI driver when sett=
+ing
+    timings. In practice the bug shouldn't happen, as the timings have be=
+en
+    verified earlier, and thus the timings should always be ok.
+   =20
+    Fix the possible issue by moving the use of the timings pointer insid=
+e
+    the NULL check.
+   =20
+    Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+
+diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/dss/hdm=
+i.c
+index 44a885b..ea97854 100644
+--- a/drivers/video/omap2/dss/hdmi.c
++++ b/drivers/video/omap2/dss/hdmi.c
+@@ -666,10 +666,11 @@ void omapdss_hdmi_display_set_timing(struct omap_ds=
+s_device *dssdev,
+ 	hdmi.ip_data.cfg.cm =3D cm;
+=20
+ 	t =3D hdmi_get_timings();
+-	if (t !=3D NULL)
++	if (t !=3D NULL) {
+ 		hdmi.ip_data.cfg =3D *t;
+=20
+-	dispc_set_tv_pclk(t->timings.pixel_clock * 1000);
++		dispc_set_tv_pclk(t->timings.pixel_clock * 1000);
++	}
+=20
+ 	mutex_unlock(&hdmi.lock);
  }
- 
--static void pcf857x_irq_demux_work(struct work_struct *work)
-+static irqreturn_t pcf857x_irq(int irq, void *data)
- {
--	struct pcf857x *gpio = container_of(work,
--					       struct pcf857x,
--					       work);
-+	struct pcf857x	*gpio = data;
- 	unsigned long change, i, status, flags;
- 
- 	status = gpio->read(gpio->client);
- 
- 	spin_lock_irqsave(&gpio->slock, flags);
-+
-+	/*
-+	 * call the interrupt handler iff gpio is used as
-+	 * interrupt source, just to avoid bad irqs
-+	 */
- 
--	change = gpio->status ^ status;
-+	change = ((gpio->status ^ status) & gpio->irq_mapped);
- 	for_each_set_bit(i, &change, gpio->chip.ngpio)
- 		generic_handle_irq(irq_find_mapping(gpio->irq_domain, i));
- 	gpio->status = status;
- 
- 	spin_unlock_irqrestore(&gpio->slock, flags);
--}
--
--static irqreturn_t pcf857x_irq_demux(int irq, void *data)
--{
--	struct pcf857x	*gpio = data;
--
--	/*
--	 * pcf857x can't read/write data here,
--	 * since i2c data access might go to sleep.
--	 */
--	schedule_work(&gpio->work);
- 
- 	return IRQ_HANDLED;
- }
-@@ -226,9 +223,13 @@ static irqreturn_t pcf857x_irq_demux(int irq, void *data)
- static int pcf857x_irq_domain_map(struct irq_domain *domain, unsigned int virq,
- 				 irq_hw_number_t hw)
- {
-+	struct pcf857x  *gpio = domain->host_data;
- 	irq_set_chip_and_handler(virq,
- 				 &dummy_irq_chip,
- 				 handle_level_irq);
-+	set_irq_flags(virq, IRQF_VALID);
-+	gpio->irq_mapped |= (1 << hw);
-+
- 	return 0;
- }
- 
-@@ -241,30 +242,31 @@ static void pcf857x_irq_domain_cleanup(struct pcf857x *gpio)
- 	if (gpio->irq_domain)
- 		irq_domain_remove(gpio->irq_domain);
- 
--	if (gpio->irq)
--		free_irq(gpio->irq, gpio);
- }
- 
- static int pcf857x_irq_domain_init(struct pcf857x *gpio,
- 				   struct i2c_client *client)
- {
- 	int status;
-+	struct device_node *node;
- 
-+	node = client->dev.of_node;
- 	gpio->irq_domain = irq_domain_add_linear(client->dev.of_node,
- 						 gpio->chip.ngpio,
- 						 &pcf857x_irq_domain_ops,
--						 NULL);
-+						 gpio);
- 	if (!gpio->irq_domain)
- 		goto fail;
- 
- 	/* enable real irq */
--	status = request_irq(client->irq, pcf857x_irq_demux, 0,
--			     dev_name(&client->dev), gpio);
-+	status = devm_request_threaded_irq(&client->dev, client->irq,
-+				NULL, pcf857x_irq, IRQF_ONESHOT |
-+				IRQF_TRIGGER_FALLING,
-+				dev_name(&client->dev), gpio);
- 	if (status)
- 		goto fail;
- 
- 	/* enable gpio_to_irq() */
--	INIT_WORK(&gpio->work, pcf857x_irq_demux_work);
- 	gpio->chip.to_irq	= pcf857x_to_irq;
- 	gpio->irq		= client->irq;
- 
--- 
-1.8.1.4
+
+
+
+--ioSxHtW6E7IDpPWplMn00SJALvA5G0LxG
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJSHIqGAAoJEPo9qoy8lh71ngwP/0NS+yauoDP0oCXINzcD14KG
+aQFwOBb6xLQpeGdwPUlVFhUcVpQ7dba6aLr/Ih/WiNscm9AyMz0DnCWIp/5FLj4C
+axPVpoTfrerh/C83rnhitU1LpjOW4EqBig6j1CS0Gil6uTJ00HZw8a2NMr/YqdQJ
+FDs3ajoA+kUdaI+/HHWHHR29cPdEbPUeOkL0ivXRwBbcVpABKWDzGtcjXKpoUMQ1
+FtEetSAy7GuzeXc/q/IJLRG6rhu58In9zbYqnCg1CAGjuM87Z2EcDD2FWI3iQ5Ru
+14wgWf7k+qoudxE+DegSfW72JQSmX+3rYs012K0c+htNJ9LS0hEYAuUQdjhFLZpU
+bgodIFyzDciJtvHg8It3DlP+UFBg5rc2KooBM0pMjVygPhO95Em/rAPN4j51x+zk
+Okg8/sXHq2gzqbgmtzahfUxmWqW2moEdJlHJ11nNOlxHpzM1aB3g0eGbfJO2q5wt
+I0/EMkmm7MQZf+G+CnB/EcE8PDLzInM3+QpA8o67olEKc3nzDoRMohQB88xixTsL
+lcBldzT4ePZNLuyavU2gA832tisH71Z+LGgWK3SIsvge4SNvKTRAHEnxoX4NARi4
+roFvTHAhF07DCjWjXPPDJFfAw6gl99nlT9FtlPxrQqNIJNbVHWK6vJIHLK6TSZ7M
+r3oR2EbndzmLEXlN1MhM
+=Y/im
+-----END PGP SIGNATURE-----
+
+--ioSxHtW6E7IDpPWplMn00SJALvA5G0LxG--
