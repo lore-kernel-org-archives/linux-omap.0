@@ -1,96 +1,62 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [PATCH] ARM: OMAP4: cpuidle: fix: call cpu_cluster_pm_exit conditionally
-Date: Tue, 27 Aug 2013 08:54:06 -0700
-Message-ID: <87sixvw2n5.fsf@linaro.org>
-References: <1377598250-2355-1-git-send-email-murzin.v@gmail.com>
+From: Suman Anna <s-anna@ti.com>
+Subject: Re: [PATCHv3 7/8] mailbox/omap: add code to support the wkupm3 operations
+Date: Tue, 27 Aug 2013 11:03:25 -0500
+Message-ID: <521CCDCD.90207@ti.com>
+References: <1375825238-18299-1-git-send-email-s-anna@ti.com> <87li3n6bcc.fsf@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pd0-f174.google.com ([209.85.192.174]:39825 "EHLO
-	mail-pd0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753764Ab3H0PyK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Aug 2013 11:54:10 -0400
-Received: by mail-pd0-f174.google.com with SMTP id y13so4999731pdi.5
-        for <linux-omap@vger.kernel.org>; Tue, 27 Aug 2013 08:54:09 -0700 (PDT)
-In-Reply-To: <1377598250-2355-1-git-send-email-murzin.v@gmail.com> (Vladimir
-	Murzin's message of "Tue, 27 Aug 2013 12:10:50 +0200")
+Received: from arroyo.ext.ti.com ([192.94.94.40]:56181 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751653Ab3H0QDx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 27 Aug 2013 12:03:53 -0400
+In-Reply-To: <87li3n6bcc.fsf@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vladimir Murzin <murzin.v@gmail.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, linux@arm.linux.org.uk
+To: Kevin Hilman <khilman@linaro.org>
+Cc: Tony Lindgren <tony@atomide.com>, Benoit Cousson <benoit.cousson@linaro.org>, Paul Walmsley <paul@pwsan.com>, Ohad Ben-Cohen <ohad@wizery.com>, Jassi Brar <jaswinder.singh@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-Vladimir Murzin <murzin.v@gmail.com> writes:
+Kevin,
 
-> We call cpu_cluster_pm_enter for dev->cpu == 0 only, but
-> cpu_cluster_pm_exit called without that check.
->
-> Because of that unhandled page fault may happen:
->
-> [    3.803405] Unable to handle kernel paging request at virtual address 00002500
-> [    3.810974] pgd = c0004000
-> [    3.813812] [00002500] *pgd=00000000
-> [    3.817596] Internal error: Oops: 5 [#1] SMP ARM
-> [    3.822418] Modules linked in:
-> [    3.825653] CPU: 1 PID: 0 Comm: swapper/1 Not tainted 3.11.0-rc6+ #21
-> [    3.832397] task: ed86ef40 ti: ed896000 task.ti: ed896000
-> [    3.838073] PC is at irq_notifier+0x234/0x25c
-> [    3.842651] LR is at irq_notifier+0x218/0x25c
-> [    3.847229] pc : [<c0029ed8>]    lr : [<c0029ebc>]    psr: 80000193
-> [    3.847229] sp : ed897ee8  ip : 00000005  fp : 00000001
-> [    3.859283] r10: c0b395f0  r9 : c0b30594  r8 : c0b8c2ac
-> [    3.864776] r7 : ffffffff  r6 : 00000000  r5 : 00000005  r4 : 00000000
-> [    3.871643] r3 : 00002500  r2 : 00000000  r1 : 00000005  r0 : 44302244
-> [    3.878479] Flags: Nzcv  IRQs off  FIQs on  Mode SVC_32  ISA ARM  Segment kernel
-> [    3.886260] Control: 10c5387d  Table: 8000404a  DAC: 00000015
-> [    3.892272] Process swapper/1 (pid: 0, stack limit = 0xed896240)
-> [    3.898590] Stack: (0xed897ee8 to 0xed898000)
-> [    3.903167] 7ee0:                   c0979c3a 00000001 ed897ef8 ed896000 c0014f7c 00000000
-> [    3.911743] 7f00: 00000005 00000000 ffffffff c0b8c2ac c0b395f0 c077c04c c0c94b48 c0b3953c
-> [    3.920318] 7f20: c0bcd928 00000002 c0b39524 c00cfad8 00000000 ffffffff 00000000 c00cfb10
-> [    3.928924] 7f40: c14e62c0 c002c1c8 c002c0ac c14e62c0 00000002 e251c37d 00000000 c0b39548
-> [    3.937499] 7f60: c0b395f0 c05a1bc4 e251c37d 00000000 00000005 c05a3870 edc90380 edc90380
-> [    3.946105] 7f80: edc90394 c14e62c0 c0b39548 00000002 c0784064 c05a3c78 c0b395e0 c14e62c0
-> [    3.954681] 7fa0: 00000002 c0b39548 c0bc9db8 00000000 00000001 c05a1dc0 ed896000 00000015
-> [    3.963287] 7fc0: c0bc9db8 ed896000 8000406a c0b30594 c0784064 c000e504 00000746 c007a528
-> [    3.971862] 7fe0: 00000001 0000001d 600001d3 c0bcc004 00000000 800086c4 ee0aa6a7 d2aabaa9
-> [    3.980499] [<c0029ed8>] (irq_notifier+0x234/0x25c) from [<c077c04c>] (notifier_call_chain+0x38/0x68)
-> [    3.990173] [<c077c04c>] (notifier_call_chain+0x38/0x68) from [<c00cfad8>] (cpu_pm_notify+0x20/0x38)
-> [    3.999786] [<c00cfad8>] (cpu_pm_notify+0x20/0x38) from [<c00cfb10>] (cpu_cluster_pm_exit+0x20/0x50)
-> [    4.009399] [<c00cfb10>] (cpu_cluster_pm_exit+0x20/0x50) from [<c002c1c8>] (omap_enter_idle_coupled+0x11c/0x14c)
-> [    4.020111] [<c002c1c8>] (omap_enter_idle_coupled+0x11c/0x14c) from [<c05a1bc4>] (cpuidle_enter_state+0x40/0xec)
-> [    4.030822] [<c05a1bc4>] (cpuidle_enter_state+0x40/0xec) from [<c05a3c78>] (cpuidle_enter_state_coupled+0x1f4/0x240)
-> [    4.041870] [<c05a3c78>] (cpuidle_enter_state_coupled+0x1f4/0x240) from [<c05a1dc0>] (cpuidle_idle_call+0x150/0x228)
-> [    4.052947] [<c05a1dc0>] (cpuidle_idle_call+0x150/0x228) from [<c000e504>] (arch_cpu_idle+0x8/0x38)
-> [    4.062499] [<c000e504>] (arch_cpu_idle+0x8/0x38) from [<c007a528>] (cpu_startup_entry+0x178/0x1e4)
-> [    4.071990] [<c007a528>] (cpu_startup_entry+0x178/0x1e4) from [<800086c4>] (0x800086c4)
-> [    4.080383] Code: e5922288 03a03b0a 13a03c25 e0823003 (e5932000)
-> [    4.086791] ---[ end trace d83954a84a6fa69e ]---
->
-> It is supposed that sar_base is initialized in irq_save_context, which
-> is called on CPU_CLUSTER_PM_ENTER notification. If this notification
-> has been missed and CPU_CLUSTER_PM_EXIT is received sar_base is NULL.
->
-> Fix it by calling CPU_CLUSTER_PM_{ENTER,EXIT} under the same condition.
->
-> Signed-off-by: Vladimir Murzin <murzin.v@gmail.com>
+On 08/26/2013 10:50 PM, Kevin Hilman wrote:
+> Suman Anna <s-anna@ti.com> writes:
+> 
+>> The WkupM3 mailbox used for triggering PM operations such as suspend
+>> and resume on AM33x/AM43x is special in that the M3 processor cannot
+>> access the mailbox registers. However, an interrupt is needed to be
+>> sent to request the M3 to perform a desired PM operation. This patch
+>> adds the support for this special mailbox through separate ops for
+>> this mailbox. These ops are designed to have the WkupM3's Rx interrupt
+>> programmed within the driver, during transmission of a message. The
+>> message is immediately read back and the internal mailbox interrupt
+>> acknowledged as well to avoid triggering any spurious interrupts to
+>> the M3.
+>>
+>> Signed-off-by: Suman Anna <s-anna@ti.com>
+> 
+> Dumb Q: why does all this extra logic belong in the mailbox driver and
+> not in the wkup_m3 driver?  To me, this seems like part of the IPC
+> protocol between the MPU and M3 firmware, and not an inherent part of
+> the AM33xx mbox.
 
-Good catch.
+The IPC protocol state machine for the PM operations is still very much
+handled in the WkupM3 driver. The IPC registers in Control module
+provide the messaging payloads, but unfortunately it is not associated
+with any direct interrupts to make it a separate driver. As far as the
+WkupM3 driver is concerned, it is just using the mailbox for signalling
+- the internals of which would involve accessing the various mailbox
+registers including interrupt configuration and clearing. It is
+preferable to have the various operations on mailbox registers handled
+by the mailbox driver with the API supporting the necessary operations.
 
-Acked-by: Kevin Hilman <khilman@linaro.org>
+The previous version from Vaibhav added a new API to mailbox driver for
+clearing out the Tx fifo, which is non-standard. The mailboxes on AM335
+will also be used for IPC with the Programmable Real-time Unit (PRU)
+subsystem, which will use separate mbox devices. This version handles
+the wkup_m3 mbox device using its device-specific ops without the need
+for any new API, and not having to expose the mailbox registers outside.
 
-> ---
->  arch/arm/mach-omap2/cpuidle44xx.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/arch/arm/mach-omap2/cpuidle44xx.c b/arch/arm/mach-omap2/cpuidle44xx.c
-> index c443f2e..4c8982a 100644
-> --- a/arch/arm/mach-omap2/cpuidle44xx.c
-> +++ b/arch/arm/mach-omap2/cpuidle44xx.c
-> @@ -143,7 +143,7 @@ static int omap_enter_idle_coupled(struct cpuidle_device *dev,
->  	 * Call idle CPU cluster PM exit notifier chain
->  	 * to restore GIC and wakeupgen context.
->  	 */
-> -	if ((cx->mpu_state == PWRDM_POWER_RET) &&
-> +	if (dev->cpu == 0 && (cx->mpu_state == PWRDM_POWER_RET) &&
->  		(cx->mpu_logic_state == PWRDM_POWER_OFF))
->  		cpu_cluster_pm_exit();
+regards
+Suman
+
