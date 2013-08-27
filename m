@@ -1,50 +1,52 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH 0/2] OMAP4+: Get rid of internal SRAM handling
-Date: Tue, 27 Aug 2013 09:25:51 -0400
-Message-ID: <521CA8DF.9040400@ti.com>
-References: <1377598305-15539-1-git-send-email-rnayak@ti.com>
+From: Sourav Poddar <sourav.poddar@ti.com>
+Subject: [PATCH] spi/qspi: Add compatible string for am43xx
+Date: Tue, 27 Aug 2013 19:12:15 +0530
+Message-ID: <1377610935-23703-1-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:46537 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:47558 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753432Ab3H0N0V (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 27 Aug 2013 09:26:21 -0400
-In-Reply-To: <1377598305-15539-1-git-send-email-rnayak@ti.com>
+	id S1752147Ab3H0NpK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 27 Aug 2013 09:45:10 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, bcousson@baylibre.com, Paul Walmsley <paul@pwsan.com>
+To: broonie@sirena.org.uk
+Cc: balbi@ti.com, linux-spi@vger.kernel.org, linux-omap@vger.kernel.org, Sourav Poddar <sourav.poddar@ti.com>
 
-+ Paul,
+Add a compatible string for am43xx.
 
-On Tuesday 27 August 2013 06:11 AM, Rajendra Nayak wrote:
-> Make all OMAP DT only platforms (am33xx, am43xx, omap4 and omap5)
-> use drivers/misc/sram.c driver instead of the omap internal
-> implementation for SRAM handling.
-> 
-> Rajendra Nayak (2):
->   ARM: AM335x: Get rid of unused sram init function
->   ARM: OMAP4+: Move SRAM data to DT
-> 
->  arch/arm/boot/dts/am33xx.dtsi        |    5 +++++
->  arch/arm/boot/dts/am4372.dtsi        |    5 +++++
->  arch/arm/boot/dts/omap4.dtsi         |    5 +++++
->  arch/arm/boot/dts/omap5.dtsi         |    5 +++++
->  arch/arm/configs/omap2plus_defconfig |    1 +
->  arch/arm/mach-omap2/sram.c           |   39 +---------------------------------
->  arch/arm/mach-omap2/sram.h           |    1 -
->  7 files changed, 22 insertions(+), 39 deletions(-)
-> 
-Really nice to see the SRAM code getting moved now. Thanks
-a lot Rajendra.
+Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
+---
+ Documentation/devicetree/bindings/spi/ti_qspi.txt |    2 +-
+ drivers/spi/spi-ti-qspi.c                         |    1 +
+ 2 files changed, 2 insertions(+), 1 deletions(-)
 
-- The sram_init() seems to be the post core init call.
-Hope this is not a problem for SDRC init which needs to have
-SRAM ready to update the DDR parameters.
-
-Regards,
-Santosh
-
+diff --git a/Documentation/devicetree/bindings/spi/ti_qspi.txt b/Documentation/devicetree/bindings/spi/ti_qspi.txt
+index 398ef59..b6ccbfc 100644
+--- a/Documentation/devicetree/bindings/spi/ti_qspi.txt
++++ b/Documentation/devicetree/bindings/spi/ti_qspi.txt
+@@ -1,7 +1,7 @@
+ TI QSPI controller.
+ 
+ Required properties:
+-- compatible : should be "ti,dra7xxx-qspi".
++- compatible : should be "ti,dra7xxx-qspi" or "ti,am43xx-qspi".
+ - reg: Should contain QSPI registers location and length.
+ - #address-cells, #size-cells : Must be present if the device has sub-nodes
+ - ti,hwmods: Name of the hwmod associated to the QSPI
+diff --git a/drivers/spi/spi-ti-qspi.c b/drivers/spi/spi-ti-qspi.c
+index d6db561..44dafd9 100644
+--- a/drivers/spi/spi-ti-qspi.c
++++ b/drivers/spi/spi-ti-qspi.c
+@@ -442,6 +442,7 @@ static int ti_qspi_runtime_resume(struct device *dev)
+ 
+ static const struct of_device_id ti_qspi_match[] = {
+ 	{.compatible = "ti,dra7xxx-qspi" },
++	{.compatible = "ti,am43xx-qspi" },
+ 	{},
+ };
+ MODULE_DEVICE_TABLE(of, ti_qspi_match);
+-- 
+1.7.1
 
