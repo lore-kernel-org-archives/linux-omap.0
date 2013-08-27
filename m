@@ -1,52 +1,90 @@
-From: Greg KH <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH] serial: omap: Fix IRQ handling return value
-Date: Tue, 27 Aug 2013 10:38:19 -0700
-Message-ID: <20130827173819.GD21564@kroah.com>
-References: <1374067753-29560-1-git-send-email-oleksandr.savchenko@ti.com>
- <CAGa+x84dE_RwN2G1y_9OJFxnq3JKq5g0YZd+mFueOjjvMzyyew@mail.gmail.com>
- <CAGa+x859+7H3pjZfTFcECe4qMt4=SE_kmToZBt9zoVt0=sUcvA@mail.gmail.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [RFC 2/2] usb: dwc3: Add Qualcomm DWC3 glue layer driver
+Date: Tue, 27 Aug 2013 13:46:58 -0500
+Message-ID: <20130827184658.GS3005@radagast>
+References: <1375789991-30041-1-git-send-email-iivanov@mm-sol.com>
+ <1375789991-30041-3-git-send-email-iivanov@mm-sol.com>
+ <20130809132349.GC12041@radagast>
+ <1376064558.7709.31.camel@iivanov-dev.int.mm-sol.com>
+ <20130812182439.GG27954@radagast>
+ <1376472497.2132.6.camel@iivanov-dev.int.mm-sol.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-serial-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="2KGcTUzwJ+J1jnia"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAGa+x859+7H3pjZfTFcECe4qMt4=SE_kmToZBt9zoVt0=sUcvA@mail.gmail.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: Kevin Hilman <khilman@linaro.org>
-Cc: Alexander Savchenko <oleksandr.savchenko@ti.com>, jslaby@suse.cz, linux-serial@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, balbi@ti.com, linux-omap <linux-omap@vger.kernel.org>
+In-Reply-To: <1376472497.2132.6.camel@iivanov-dev.int.mm-sol.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Ivan T. Ivanov" <iivanov@mm-sol.com>
+Cc: balbi@ti.com, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ian.campbell@citrix.com, rob@landley.net, gregkh@linuxfoundation.org, grant.likely@linaro.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Aug 27, 2013 at 07:30:19AM -0700, Kevin Hilman wrote:
-> Greg,
-> 
-> 
-> On Tue, Aug 20, 2013 at 8:44 AM, Kevin Hilman <khilman@linaro.org> wrote:
-> > +Felipe
-> >
-> > On Wed, Jul 17, 2013 at 6:29 AM, Alexander Savchenko
-> > <oleksandr.savchenko@ti.com> wrote:
-> >> From: Ruchika Kharwar <ruchika@ti.com>
-> >>
-> >> Ensure the Interrupt handling routine return IRQ_HANDLED vs
-> >> IRQ_NONE.
-> >
-> > Why?
-> >
-> > By unconditionally returning IRQ_HANDLED, this patch will surely break
-> > systems where the UART IRQ is shared with other platforms.
-> >
-> > I just noticed this patch when bisecting a related problem.  Why
-> > wasn't this Cc'd to linux-omap where OMAP users might have been more
-> > likely to see it?
-> >
-> > Greg, without a better justification in the changelog, I think this
-> > patch should be dropped from tty-next.
-> 
-> Can you drop this from tty-next please?
-> 
-> The authors aren't responding (one of the ti.com addresses bounced)
-> and this "fix" is most is not correct.
+--2KGcTUzwJ+J1jnia
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Yes, sorry, behind on my pending tty patch queue.  I'll try to get to it
-this week.
+On Wed, Aug 14, 2013 at 12:28:17PM +0300, Ivan T. Ivanov wrote:
+>=20
+> Hi,=20
+>=20
+> On Mon, 2013-08-12 at 13:24 -0500, Felipe Balbi wrote:=20
+> > On Fri, Aug 09, 2013 at 07:09:18PM +0300, Ivan T. Ivanov wrote:
+> > > Hi,=20
+> > >=20
+> > > On Fri, 2013-08-09 at 16:23 +0300, Felipe Balbi wrote:
+> > > > Hi,
+> > > >=20
+> > > > On Tue, Aug 06, 2013 at 02:53:11PM +0300, Ivan T. Ivanov wrote:
+> > > > > diff --git a/drivers/usb/dwc3/dwc3-msm.c b/drivers/usb/dwc3/dwc3-=
+msm.c
+> > > > > new file mode 100644
+> > > > > index 0000000..e509abc
+> > > > > --- /dev/null
+> > > > > +++ b/drivers/usb/dwc3/dwc3-msm.c
+> > > > > @@ -0,0 +1,175 @@
+> > > > > +#undef CONFIG_REGULATOR
+> > > >=20
+> > > > why ??????
+> > > >=20
+> > >=20
+> > > 1. This shows that driver is still not fully tested=20
+> > >    Regulators support is still missing in the MSM
+> > > 2. Helps me to load driver successfully.=20
+> >=20
+> > Then remove all the regulator-related code from this.
+>=20
+> I would like to keep them. I will just remove #undef line.=20
+> Code will continue to build fine. And once regulators drivers=20
+> are upstreamed this driver 'will not' require further
+> modifications.
 
-greg k-h
+fair enough.
+
+--=20
+balbi
+
+--2KGcTUzwJ+J1jnia
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJSHPQiAAoJEIaOsuA1yqREzzgP/1xZM/lS8jUehIde9h9hoptE
+G2E9c8fhLtBGdktTWIO53BxzkWpc2yAXePzdwh3EM/bIbtaVtgL7Yih9NxlszRXf
+Qzgf3IwcWy0LricvG5/diKAOFrdqgSYqZiLq6pDDpsh2vt0flWTHjQXFrGXjn2gx
+NK6AgWPhuenwtJrg8GRNOV/I9u+WzknxDM4hh/ft9uiEOk3vaXbVRWVcWaCB2KTm
+DN/tuTxqqYEO5glVCRQK2GhYqrjAiOKXkbNv12/3A20c7jLN4SnUJtFP5iUD0+BP
+BHcK3xD28GvojNibSA1ZBOLCTqbuHhoHAKPd54Szt7TmbofgD+9ykWxmFEPyg+JL
+4xk+UXd03iQVjVFFgtLDRZ/WubutmryNDNob6gxCFJDbxTOum41KW9SsDp7lVZc7
+3MecSBH11K7lDskl3l8d4wxt13KWNEOuWr0yxlXepVVbrpEQWPSpJq/vRxuGN3Ci
+3pVTcLYSiczJfgF0d3PpzqMgNK16z0gxFPJ0DFJVPyYk2JSUL7HXAQIz3X9AnxCM
+XaAgU32bV6++r2KX6TMQzyXdQjf85/hi1axl0HbRLYTbFJHXekqT2j7LyjCFRUmZ
++aLB+fKZg+Y5bpQsv5vvABqAmebsLZ0StWoOcwRd2/Bgsj5j/+DaOcQylxsj4rIM
+zvrdbxSpmBu3j0wSL0Th
+=+AaF
+-----END PGP SIGNATURE-----
+
+--2KGcTUzwJ+J1jnia--
