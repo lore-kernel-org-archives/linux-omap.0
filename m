@@ -1,119 +1,118 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v11 0/8] PHY framework
-Date: Tue, 27 Aug 2013 14:20:59 -0500
-Message-ID: <20130827192059.GZ3005@radagast>
-References: <1377063973-22044-1-git-send-email-kishon@ti.com>
- <521B0E79.6060506@ti.com>
-Reply-To: balbi@ti.com
+Subject: Re: [PATCH v4 2/3] usb: phy: Add Qualcomm SS-USB and HS-USB drivers
+ for DWC3 core
+Date: Tue, 27 Aug 2013 14:58:59 -0500
+Message-ID: <20130827195859.GF3005@radagast>
+References: <1376992565-22292-3-git-send-email-iivanov@mm-sol.com>
+ <20130820122907.GU26587@radagast>
+ <1377005543.26268.22.camel@iivanov-dev.int.mm-sol.com>
+ <20130820133712.GC26587@radagast>
+ <1377007751.26268.27.camel@iivanov-dev.int.mm-sol.com>
+ <20130820143319.GG26587@radagast>
+ <1377010458.26268.30.camel@iivanov-dev.int.mm-sol.com>
+ <8691FDFE-326E-4198-838A-202D9EC988E1@codeaurora.org>
+ <1377012381.26268.42.camel@iivanov-dev.int.mm-sol.com>
+ <A2CA0424C0A6F04399FB9E1CD98E030458DECB7C@US01WEMBX2.internal.synopsys.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0432715803386776241=="
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <521B0E79.6060506@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: linux-fbdev@vger.kernel.org, linux-doc@vger.kernel.org, tony@atomide.com, nsekhar@ti.com, tomasz.figa@gmail.com, s.nawrocki@samsung.com, kgene.kim@samsung.com, swarren@nvidia.com, jg1.han@samsung.com, stern@rowland.harvard.edu, grant.likely@linaro.org, linux-media@vger.kernel.org, devicetree@vger.kernel.org, george.cherian@ti.com, arnd@arndb.de, linux-samsung-soc@vger.kernel.org, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balajitk@ti.com, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, kyungmin.park@samsung.com, broonie@kernel.org, akpm@linux-foundation.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="8hYiR1SWmJV79WGg"
+Return-path: <linux-doc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <A2CA0424C0A6F04399FB9E1CD98E030458DECB7C@US01WEMBX2.internal.synopsys.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Paul Zimmerman <Paul.Zimmerman@synopsys.com>
+Cc: "Ivan T. Ivanov" <iivanov@mm-sol.com>, Kumar Gala <galak@codeaurora.org>, "balbi@ti.com" <balbi@ti.com>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "pawel.moll@arm.com" <pawel.moll@arm.com>, "mark.rutland@arm.com" <mark.rutland@arm.com>, "swarren@wwwdotorg.org" <swarren@wwwdotorg.org>, "ian.campbell@citrix.com" <ian.campbell@citrix.com>, "rob@landley.net" <rob@landley.net>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "idos@codeaurora.org" <idos@codeaurora.org>, "mgautam@codeaurora.org" <mgautam@codeaurora.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.ke>
 List-Id: linux-omap@vger.kernel.org
 
---===============0432715803386776241==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="kqOsKy60S4p104jH"
-Content-Disposition: inline
-
---kqOsKy60S4p104jH
+--8hYiR1SWmJV79WGg
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Mon, Aug 26, 2013 at 01:44:49PM +0530, Kishon Vijay Abraham I wrote:
-> On Wednesday 21 August 2013 11:16 AM, Kishon Vijay Abraham I wrote:
-> > Added a generic PHY framework that provides a set of APIs for the PHY d=
-rivers
-> > to create/destroy a PHY and APIs for the PHY users to obtain a referenc=
-e to
-> > the PHY with or without using phandle.
+On Thu, Aug 22, 2013 at 09:24:49PM +0000, Paul Zimmerman wrote:
+> > From: Ivan T. Ivanov [mailto:iivanov@mm-sol.com]
+> > Sent: Tuesday, August 20, 2013 8:26 AM
 > >=20
-> > This framework will be of use only to devices that uses external PHY (P=
-HY
-> > functionality is not embedded within the controller).
+> > On Tue, 2013-08-20 at 10:01 -0500, Kumar Gala wrote:
+> > > On Aug 20, 2013, at 9:54 AM, Ivan T. Ivanov wrote:
+> > >
+> > > >
+> > > > Hi,
+> > > >
+> > > > On Tue, 2013-08-20 at 09:33 -0500, Felipe Balbi wrote:
+> > > >> On Tue, Aug 20, 2013 at 05:09:11PM +0300, Ivan T. Ivanov wrote:
+> > > >>>
+> > > >>> On Tue, 2013-08-20 at 08:37 -0500, Felipe Balbi wrote:
+> > > >>>>
+> > > >>>> On Tue, Aug 20, 2013 at 04:32:23PM +0300, Ivan T. Ivanov wrote:
+> > > >>>>>
+> > > >>>>> I think they are SNPS DesignWare PHY's, additionally
+> > > >>>>> wrapped with Qualcomm logic. I could substitute "dwc3"
+> > > >>>>> with just "dw", which will be more correct.
+> > > >>>>
+> > > >>>> alright, thank you. Let's add Paul to the loop since he might ha=
+ve very
+> > > >>>> good insight in the synopsys PHYs.
+> > > >>>>
+> > > >>>> mental note: if any other platform shows up with Synopsys PHY, a=
+sk them
+> > > >>>> to use this driver instead :-)
+> > > >>>
+> > > >>> I really doubt that this will bi possible. Control of the PHY's is
+> > > >>> not directly trough ULPI, UTMI or PIPE3 interfaces, but trough
+> > > >>> QSCRATCH registers, which of course is highly Qualcomm specific.
+> > > >>
+> > > >> isn't it a memory mapped IP ? doesn't synopsys provide their own s=
+et of
+> > > >> registers ?
+> > > >
+> > > > From what I see it is not directly mapped. How QSCRATCH write and
+> > > > reads transactions are translated to DW IP is unclear to me.
+> > >
+> > >
+> > > I think the question is how does SW access them?
 > >=20
-> > The intention of creating this framework is to bring the phy drivers sp=
-read
-> > all over the Linux kernel to drivers/phy to increase code re-use and to
-> > increase code maintainability.
-> >=20
-> > Comments to make PHY as bus wasn't done because PHY devices can be part=
- of
-> > other bus and making a same device attached to multiple bus leads to bad
-> > design.
-> >=20
-> > If the PHY driver has to send notification on connect/disconnect, the P=
-HY
-> > driver should make use of the extcon framework. Using this susbsystem
-> > to use extcon framwork will have to be analysed.
-> >=20
-> > You can find this patch series @
-> > git://git.kernel.org/pub/scm/linux/kernel/git/kishon/linux-phy.git test=
-ing
+> > "USB QSCRATCH Hardware registers" don't ask me what is this :-)
+> > or like Pawel says: "it depends on the SOC" .
 >=20
-> Looks like there are not further comments on this series. Can you take th=
-is in
-> your misc tree?
+> To answer the question "doesn't synopsys provide their own set of
+> registers", we provide registers in our USB cores to access the PHYs
+> through I2C, ULPI/UTMI, or PIPE3 interfaces. But if someone wants to use
+> our PHY with some other controller that doesn't provide that, then they
+> may need to implement their own register set, as Qualcomm has apparently
+> done.
 
-Do you want me to queue these for you ? There are quite a few users for
-this framework already and I know of at least 2 others which will show
-up for v3.13.
+thanks for clarifying. that pretty much hinders writing any sort of
+generic drivers for Synopsys' PHYs though :-s
 
-Let me know.
-
-cheers
+But I guess that's alright.
 
 --=20
 balbi
 
---kqOsKy60S4p104jH
+--8hYiR1SWmJV79WGg
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJSHPwbAAoJEIaOsuA1yqRE2nsQALFK6rMKqgAruQXU+gcAWuJg
-UjjW+Xp+SkOhvWawDZw1DAWBVwzDb0sBACYnCKxgsBKjHxXpTXTc3FeMl9zUxDa6
-8ViDWK4HpkkesIdI2lGbEPXL0sgSzBwmpPXAv2ctZFuKBEzPuNLxqcHNLKoxYeF9
-RdGbESxggPmmVL25iwOu187DvEcX9H+PZ2HzcJNjRjHX8uLOCDLZo6zGs61rqFpB
-vGMWgY+eP5NF2o4taf4JsSYQCT8F8Vda7cn5dNEekk0h7pIzHbCFbgqvuPax+zT2
-EjK1mRAj9mPT8qQIBR4F3ubiPXBBNd2pHHvXeC0WmEfxyAl74bZcOvRhER97jPFd
-CJFAy2pJRlEXOfHFHKQ7a3BbpY/fjacRJgbsB04JoPwr43Huin/w82+pO2LYnYVb
-LAA7avWE/4fGqUqlchiCcpSaC4rxTtF613t9GiVsim7oVE/BIIKqqbTdqSOGey2k
-BcKtFfhN62UZia7EGtdIttbdnBYffAzO5Mh4bTmF3APu1NvkGv36vzUcPukh1rB/
-bvxYPriPwtJEx4sQUmrta9LIvK5/7ogsHpB2FqhSywjc7H94PXwJGeCWTX5ZYrk5
-KNidKS5P1+F8HVA2Oa3E6fGEC9dMWi08YYUhykTw4nvwn7mSV0c2zERxHE06J9SN
-4SNq+kshoP9LPk9+IXfg
-=n6Sq
+iQIcBAEBAgAGBQJSHQUDAAoJEIaOsuA1yqREE5AP/2ZZ5zmei7G9/mOyYAwyr3/z
+79+Q+X/YxO2IKZSGZvH7fEyIbIsVBGq1BxFJTOyhkg6EyHkZixZeUotzMcMtcNB9
+OsSkZTlVNLGa737/U0FAHwG9xLXrL3pHKiZepuZ3V2ch/2MlCY1IQn2BmBjfsrC+
+PNHEjYyn1266O6r2JVJuiHv3sWyUI1cIbDn8d8jJG2pvbAAuEhmkgWMHZkSFvtco
+MrORQpW4beCZAYPtdsukl4jllXIa1Uu+J0+ff5ViHzTZxK4xGpYIQU3smLkU/F52
+hWdqr/gfsWSQa3/sHn6zJEaoQW/HlySAOaD6SzHCoLFUoemDqYkg0w0HPBRS8+lP
+g4ON6lvPywt0xOTzrgbGRp+OORnVwQOuKnfAI16aio/NZPsuIJKP8ECrVYjVno1b
+kkzg7x6i6ziSZ3iYimuN3w6hEG+RoK9qe/eCgmi8SuenpifOtdhjl7QexgAx5gC6
+j4Ux4/bGtg0oawzqfAuh87aC1XRn1EZjEHQWo8VH8iVbIWbLIH5NcAaq5U6EqraF
+4YLMOFGIjMgp8y+MAaIilZqiyBrRz24p+om1riZQOWLlYZZjjJPunhWI5BmA71mT
+3LMdpnJLLYceHQjgBPm2WSyvwFqMSiNzicmPpgY8312/utPUX5KkBv3J1/nIeFge
+39L0sMFx6xf3DhMmYM5F
+=OD97
 -----END PGP SIGNATURE-----
 
---kqOsKy60S4p104jH--
-
-
---===============0432715803386776241==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-arm-kernel mailing list
-linux-arm-kernel@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-
---===============0432715803386776241==--
+--8hYiR1SWmJV79WGg--
