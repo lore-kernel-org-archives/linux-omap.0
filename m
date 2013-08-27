@@ -1,118 +1,66 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v4 2/3] usb: phy: Add Qualcomm SS-USB and HS-USB drivers
- for DWC3 core
-Date: Tue, 27 Aug 2013 14:58:59 -0500
-Message-ID: <20130827195859.GF3005@radagast>
-References: <1376992565-22292-3-git-send-email-iivanov@mm-sol.com>
- <20130820122907.GU26587@radagast>
- <1377005543.26268.22.camel@iivanov-dev.int.mm-sol.com>
- <20130820133712.GC26587@radagast>
- <1377007751.26268.27.camel@iivanov-dev.int.mm-sol.com>
- <20130820143319.GG26587@radagast>
- <1377010458.26268.30.camel@iivanov-dev.int.mm-sol.com>
- <8691FDFE-326E-4198-838A-202D9EC988E1@codeaurora.org>
- <1377012381.26268.42.camel@iivanov-dev.int.mm-sol.com>
- <A2CA0424C0A6F04399FB9E1CD98E030458DECB7C@US01WEMBX2.internal.synopsys.com>
-Reply-To: <balbi@ti.com>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: [PATCHv3 0/9] ARM: OMAP2+: AM33XX: Add suspend-resume support
+Date: Tue, 27 Aug 2013 13:23:43 -0700
+Message-ID: <87vc2qyjao.fsf@linaro.org>
+References: <1375811376-49985-1-git-send-email-d-gerlach@ti.com>
+	<5211E3F6.6090108@ti.com> <52125A39.3010008@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="8hYiR1SWmJV79WGg"
-Return-path: <linux-doc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <A2CA0424C0A6F04399FB9E1CD98E030458DECB7C@US01WEMBX2.internal.synopsys.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Paul Zimmerman <Paul.Zimmerman@synopsys.com>
-Cc: "Ivan T. Ivanov" <iivanov@mm-sol.com>, Kumar Gala <galak@codeaurora.org>, "balbi@ti.com" <balbi@ti.com>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "pawel.moll@arm.com" <pawel.moll@arm.com>, "mark.rutland@arm.com" <mark.rutland@arm.com>, "swarren@wwwdotorg.org" <swarren@wwwdotorg.org>, "ian.campbell@citrix.com" <ian.campbell@citrix.com>, "rob@landley.net" <rob@landley.net>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "idos@codeaurora.org" <idos@codeaurora.org>, "mgautam@codeaurora.org" <mgautam@codeaurora.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.ke>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pa0-f51.google.com ([209.85.220.51]:55754 "EHLO
+	mail-pa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752323Ab3H0UXr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Aug 2013 16:23:47 -0400
+Received: by mail-pa0-f51.google.com with SMTP id lf1so5288679pab.24
+        for <linux-omap@vger.kernel.org>; Tue, 27 Aug 2013 13:23:46 -0700 (PDT)
+In-Reply-To: <52125A39.3010008@ti.com> (Dave Gerlach's message of "Mon, 19 Aug
+	2013 12:47:37 -0500")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Dave Gerlach <d-gerlach@ti.com>
+Cc: Gururaja Hebbar <gururaja.hebbar@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>
 
---8hYiR1SWmJV79WGg
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hi Dave,
 
-Hi,
+Dave Gerlach <d-gerlach@ti.com> writes:
 
-On Thu, Aug 22, 2013 at 09:24:49PM +0000, Paul Zimmerman wrote:
-> > From: Ivan T. Ivanov [mailto:iivanov@mm-sol.com]
-> > Sent: Tuesday, August 20, 2013 8:26 AM
-> >=20
-> > On Tue, 2013-08-20 at 10:01 -0500, Kumar Gala wrote:
-> > > On Aug 20, 2013, at 9:54 AM, Ivan T. Ivanov wrote:
-> > >
-> > > >
-> > > > Hi,
-> > > >
-> > > > On Tue, 2013-08-20 at 09:33 -0500, Felipe Balbi wrote:
-> > > >> On Tue, Aug 20, 2013 at 05:09:11PM +0300, Ivan T. Ivanov wrote:
-> > > >>>
-> > > >>> On Tue, 2013-08-20 at 08:37 -0500, Felipe Balbi wrote:
-> > > >>>>
-> > > >>>> On Tue, Aug 20, 2013 at 04:32:23PM +0300, Ivan T. Ivanov wrote:
-> > > >>>>>
-> > > >>>>> I think they are SNPS DesignWare PHY's, additionally
-> > > >>>>> wrapped with Qualcomm logic. I could substitute "dwc3"
-> > > >>>>> with just "dw", which will be more correct.
-> > > >>>>
-> > > >>>> alright, thank you. Let's add Paul to the loop since he might ha=
-ve very
-> > > >>>> good insight in the synopsys PHYs.
-> > > >>>>
-> > > >>>> mental note: if any other platform shows up with Synopsys PHY, a=
-sk them
-> > > >>>> to use this driver instead :-)
-> > > >>>
-> > > >>> I really doubt that this will bi possible. Control of the PHY's is
-> > > >>> not directly trough ULPI, UTMI or PIPE3 interfaces, but trough
-> > > >>> QSCRATCH registers, which of course is highly Qualcomm specific.
-> > > >>
-> > > >> isn't it a memory mapped IP ? doesn't synopsys provide their own s=
-et of
-> > > >> registers ?
-> > > >
-> > > > From what I see it is not directly mapped. How QSCRATCH write and
-> > > > reads transactions are translated to DW IP is unclear to me.
-> > >
-> > >
-> > > I think the question is how does SW access them?
-> >=20
-> > "USB QSCRATCH Hardware registers" don't ask me what is this :-)
-> > or like Pawel says: "it depends on the SOC" .
->=20
-> To answer the question "doesn't synopsys provide their own set of
-> registers", we provide registers in our USB cores to access the PHYs
-> through I2C, ULPI/UTMI, or PIPE3 interfaces. But if someone wants to use
-> our PHY with some other controller that doesn't provide that, then they
-> may need to implement their own register set, as Qualcomm has apparently
-> done.
+> On 08/19/2013 04:23 AM, Gururaja Hebbar wrote:
+>> On 8/6/2013 11:19 PM, Dave Gerlach wrote:
+>>> Hi,
+>>>
+>>> This is the third version of the patch series for adding basic suspend-resume
+>>> support for AM33XX, previously submitted by Vaibhav Bedia. This patchset
+>>> is based on 3.11-rc4 and depends on a forthcoming patchset from Suman Anna
+>>> that adds mailbox support for the wkup_m3. The patches at [1], [2], and [3] are
+>>> required for the pm code to properly suspend and resume.
+>>>
+>>> The PM code uses the firmware interface and expects the userspace to load
+>>> the WKUP_M3 binary before the suspend-resume functionality is made available.
+>>> The binary file (and the source-code for WKUP_M3) can be obtained from the
+>>> 'next2' branch at [4]. The WKUP_M3 binary can either be loaded post bootup
+>>> via the sysfs entry './sys/devices/ocp.2/wkup_m3.4/firmware' or it can be
+>>> included in the kernel image as part of the build process.
+>>>
+>>> Suspend to mem is tested on am335x-bone and am335x-evm.
+>>>
+>>> More details on AM335x suspend-resume are provided within the commit logs
+>>> for each patch.
+>>
+>> can you share the working repo which has all these patches applied?
+>>
+>> Thanks & Regards
+>> Gururaja
+>>
+>
+> The working repo for this version of the patch series can be found here:
+>
+> git://github.com/dgerlach/linux-pm.git am335x-3.11rc4-suspend-resume
 
-thanks for clarifying. that pretty much hinders writing any sort of
-generic drivers for Synopsys' PHYs though :-s
+I tried this branch on my beaglebone black, and it's not fully resuming.
+Suspend seems to be working (power draw goes from ~1W to ~130mW) and
+pressing a key on the UART seems to be waking up the SoC (power draw
+goes to ~600mW) but I don't ever get the console back.
 
-But I guess that's alright.
+Is there a specific version of the firmware I should be using?
 
---=20
-balbi
-
---8hYiR1SWmJV79WGg
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJSHQUDAAoJEIaOsuA1yqREE5AP/2ZZ5zmei7G9/mOyYAwyr3/z
-79+Q+X/YxO2IKZSGZvH7fEyIbIsVBGq1BxFJTOyhkg6EyHkZixZeUotzMcMtcNB9
-OsSkZTlVNLGa737/U0FAHwG9xLXrL3pHKiZepuZ3V2ch/2MlCY1IQn2BmBjfsrC+
-PNHEjYyn1266O6r2JVJuiHv3sWyUI1cIbDn8d8jJG2pvbAAuEhmkgWMHZkSFvtco
-MrORQpW4beCZAYPtdsukl4jllXIa1Uu+J0+ff5ViHzTZxK4xGpYIQU3smLkU/F52
-hWdqr/gfsWSQa3/sHn6zJEaoQW/HlySAOaD6SzHCoLFUoemDqYkg0w0HPBRS8+lP
-g4ON6lvPywt0xOTzrgbGRp+OORnVwQOuKnfAI16aio/NZPsuIJKP8ECrVYjVno1b
-kkzg7x6i6ziSZ3iYimuN3w6hEG+RoK9qe/eCgmi8SuenpifOtdhjl7QexgAx5gC6
-j4Ux4/bGtg0oawzqfAuh87aC1XRn1EZjEHQWo8VH8iVbIWbLIH5NcAaq5U6EqraF
-4YLMOFGIjMgp8y+MAaIilZqiyBrRz24p+om1riZQOWLlYZZjjJPunhWI5BmA71mT
-3LMdpnJLLYceHQjgBPm2WSyvwFqMSiNzicmPpgY8312/utPUX5KkBv3J1/nIeFge
-39L0sMFx6xf3DhMmYM5F
-=OD97
------END PGP SIGNATURE-----
-
---8hYiR1SWmJV79WGg--
+Kevin
