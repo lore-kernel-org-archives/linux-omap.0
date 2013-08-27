@@ -1,87 +1,50 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH v5] gpio: pcf857x: Add OF support
-Date: Tue, 27 Aug 2013 14:56:55 +0200
-Message-ID: <2400176.9Vcd5TUYl9@avalon>
-References: <1377590559-14279-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <521C63A0.10902@ti.com> <1830640.BeoA2uHWDI@amdc1227>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH 0/2] OMAP4+: Get rid of internal SRAM handling
+Date: Tue, 27 Aug 2013 09:25:51 -0400
+Message-ID: <521CA8DF.9040400@ti.com>
+References: <1377598305-15539-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <1830640.BeoA2uHWDI@amdc1227>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Tomasz Figa <t.figa@samsung.com>
-Cc: devicetree-discuss@lists.ozlabs.org, Archit Taneja <archit@ti.com>, Tomasz Figa <tomasz.figa@gmail.com>, Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>, linux-gpio@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Sylwester Nawrocki <sylvester.nawrocki@gmail.com>, Wolfram Sang <wsa@the-dreams.de>, grant.likely@secretlab.ca
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:46537 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753432Ab3H0N0V (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 27 Aug 2013 09:26:21 -0400
+In-Reply-To: <1377598305-15539-1-git-send-email-rnayak@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, bcousson@baylibre.com, Paul Walmsley <paul@pwsan.com>
 
-Hi Tomasz,
++ Paul,
 
-On Tuesday 27 August 2013 13:55:00 Tomasz Figa wrote:
-> On Tuesday 27 of August 2013 14:00:24 Archit Taneja wrote:
-> > On Tuesday 27 August 2013 01:44 PM, Tomasz Figa wrote:
-> > > On Tuesday 27 of August 2013 10:02:39 Laurent Pinchart wrote:
-> > >> Add DT bindings for the pcf857x-compatible chips and parse the device
-> > >> tree node in the driver.
-> > >> 
-> > >> Signed-off-by: Laurent Pinchart
-> > >> <laurent.pinchart+renesas@ideasonboard.com> ---
-> > >> 
-> > >>   .../devicetree/bindings/gpio/gpio-pcf857x.txt      | 71 +++++++++++++
-> > >>   drivers/gpio/gpio-pcf857x.c                        | 44 ++++++++++---
-> > >>   2 files changed, 107 insertions(+), 8 deletions(-)
-> > >>   create mode 100644
-> > >> Documentation/devicetree/bindings/gpio/gpio-pcf857x.txt
-> > >> 
-> > >> Changes since v4:
-> > >> 
-> > >> - Don't try to get ngpio from of_device_id data, we already get it
-> > >>   from i2c_device_id
-> > > 
-> > > Hmm, I'm not sure how this is supposed to work.
-> > > 
-> > > How does the I2C core resolve OF compatible name to particular entry in
-> > > id_table? I believe it simply passes NULL as the second argument of
-> > > .probe() if the device is instantiated based on OF compatible string
-> > > and not one in the legacy ID table.
-> > 
-> > It doesn't pass the second argument as NULL. If you look at
-> > i2c_device_probe() in drivers/i2c/i2c-core.c, the second argument to
-> > probe is passed as: i2c_match_id(driver->id_table, client)
-> > 
-> > This will extract the i2c_device_id pointer from the id_table.
+On Tuesday 27 August 2013 06:11 AM, Rajendra Nayak wrote:
+> Make all OMAP DT only platforms (am33xx, am43xx, omap4 and omap5)
+> use drivers/misc/sram.c driver instead of the omap internal
+> implementation for SRAM handling.
 > 
-> Yes, there is a chance that it will not return NULL, but I think that
-> relying on this is rather flawed.
+> Rajendra Nayak (2):
+>   ARM: AM335x: Get rid of unused sram init function
+>   ARM: OMAP4+: Move SRAM data to DT
 > 
-> If you look at the whole code path, you can see that it's only a
-> coincidence that this works. See the execution flow:
->  - I2C adapter driver calls of_i2c_register_devices(),
->  - of_i2c_register_devices() calls of_modalias_node() for every device on
-> this bus,
->  - of_modalias_node() stores the second substring of compatible string
-> separated by a comma, if there is one or the whole compatible otherwise to
-> the output buffer (type field of i2c_board_info struct, as passed by
-> of_i2c_register_devices()),
->  - of_i2c_register_devices() then calls i2c_new_device() with the resulting
-> info struct,
->  - i2c_new_device() takes info->type and copies its contents to client->name
->  - then a bit later, I2C core calls i2c_match_id(), which does matching of
-> client->name against id_table of the driver and the resulting i2c_device_id
-> entry (or NULL) is then passed to driver's .probe() callback.
+>  arch/arm/boot/dts/am33xx.dtsi        |    5 +++++
+>  arch/arm/boot/dts/am4372.dtsi        |    5 +++++
+>  arch/arm/boot/dts/omap4.dtsi         |    5 +++++
+>  arch/arm/boot/dts/omap5.dtsi         |    5 +++++
+>  arch/arm/configs/omap2plus_defconfig |    1 +
+>  arch/arm/mach-omap2/sram.c           |   39 +---------------------------------
+>  arch/arm/mach-omap2/sram.h           |    1 -
+>  7 files changed, 22 insertions(+), 39 deletions(-)
 > 
-> So if it happens that compatible is not equal to "<vendor>,<ID from legacy
-> I2C table>", then the matching will fail and NULL will be passed.
+Really nice to see the SRAM code getting moved now. Thanks
+a lot Rajendra.
 
-The driver should support the same chip models reardless of whether it's used 
-with or without DT. If an entry in the OF table has no corresponding entry in 
-the I2C table I would consider that as a driver bug. It would be caught early, 
-as the driver would crash at probe time, so it will likely not make it to 
-mainline (unless we merge untested code, but that's another issue :-)).
+- The sram_init() seems to be the post core init call.
+Hope this is not a problem for SDRC init which needs to have
+SRAM ready to update the DDR parameters.
 
-> [CCing Wolfram and Grant, as they should now more about this behavior and
-> whether it's intentional or no]
-
--- 
 Regards,
+Santosh
 
-Laurent Pinchart
 
