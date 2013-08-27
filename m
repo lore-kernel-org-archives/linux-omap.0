@@ -1,92 +1,53 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [PATCH] serial: omap: Fix IRQ handling return value
-Date: Tue, 27 Aug 2013 07:30:19 -0700
-Message-ID: <CAGa+x859+7H3pjZfTFcECe4qMt4=SE_kmToZBt9zoVt0=sUcvA@mail.gmail.com>
-References: <1374067753-29560-1-git-send-email-oleksandr.savchenko@ti.com>
-	<CAGa+x84dE_RwN2G1y_9OJFxnq3JKq5g0YZd+mFueOjjvMzyyew@mail.gmail.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH] spi/qspi: Add compatible string for am43xx
+Date: Tue, 27 Aug 2013 15:31:00 +0100
+Message-ID: <20130827143100.GL10783@sirena.org.uk>
+References: <1377610935-23703-1-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <CAGa+x84dE_RwN2G1y_9OJFxnq3JKq5g0YZd+mFueOjjvMzyyew@mail.gmail.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: gregkh@linuxfoundation.org
-Cc: Alexander Savchenko <oleksandr.savchenko@ti.com>, jslaby@suse.cz, linux-serial@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, balbi@ti.com, linux-omap <linux-omap@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="dfmC41YZQlborXoK"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:38751 "EHLO
+	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752996Ab3H0Oba (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Aug 2013 10:31:30 -0400
+Content-Disposition: inline
+In-Reply-To: <1377610935-23703-1-git-send-email-sourav.poddar@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Sourav Poddar <sourav.poddar@ti.com>
+Cc: balbi@ti.com, linux-spi@vger.kernel.org, linux-omap@vger.kernel.org
 
-Greg,
 
+--dfmC41YZQlborXoK
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-On Tue, Aug 20, 2013 at 8:44 AM, Kevin Hilman <khilman@linaro.org> wrote:
-> +Felipe
->
-> On Wed, Jul 17, 2013 at 6:29 AM, Alexander Savchenko
-> <oleksandr.savchenko@ti.com> wrote:
->> From: Ruchika Kharwar <ruchika@ti.com>
->>
->> Ensure the Interrupt handling routine return IRQ_HANDLED vs
->> IRQ_NONE.
->
-> Why?
->
-> By unconditionally returning IRQ_HANDLED, this patch will surely break
-> systems where the UART IRQ is shared with other platforms.
->
-> I just noticed this patch when bisecting a related problem.  Why
-> wasn't this Cc'd to linux-omap where OMAP users might have been more
-> likely to see it?
->
-> Greg, without a better justification in the changelog, I think this
-> patch should be dropped from tty-next.
+On Tue, Aug 27, 2013 at 07:12:15PM +0530, Sourav Poddar wrote:
+> Add a compatible string for am43xx.
 
-Can you drop this from tty-next please?
+Applied, thanks.
 
-The authors aren't responding (one of the ti.com addresses bounced)
-and this "fix" is most is not correct.
+--dfmC41YZQlborXoK
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-Kevin
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.20 (GNU/Linux)
 
-> Kevin
->
->> Signed-off-by: Ruchika Kharwar <ruchika@ti.com>
->> Signed-off-by: Alexander Savchenko <oleksandr.savchenko@ti.com>
->> ---
->>  drivers/tty/serial/omap-serial.c |    4 +---
->>  1 file changed, 1 insertion(+), 3 deletions(-)
->>
->> diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
->> index b6d1728..70feeb3 100644
->> --- a/drivers/tty/serial/omap-serial.c
->> +++ b/drivers/tty/serial/omap-serial.c
->> @@ -479,7 +479,6 @@ static irqreturn_t serial_omap_irq(int irq, void *dev_id)
->>         struct uart_omap_port *up = dev_id;
->>         unsigned int iir, lsr;
->>         unsigned int type;
->> -       irqreturn_t ret = IRQ_NONE;
->>         int max_count = 256;
->>
->>         spin_lock(&up->port.lock);
->> @@ -490,7 +489,6 @@ static irqreturn_t serial_omap_irq(int irq, void *dev_id)
->>                 if (iir & UART_IIR_NO_INT)
->>                         break;
->>
->> -               ret = IRQ_HANDLED;
->>                 lsr = serial_in(up, UART_LSR);
->>
->>                 /* extract IRQ type from IIR register */
->> @@ -529,7 +527,7 @@ static irqreturn_t serial_omap_irq(int irq, void *dev_id)
->>         pm_runtime_put_autosuspend(up->dev);
->>         up->port_activity = jiffies;
->>
->> -       return ret;
->> +       return IRQ_HANDLED;
->>  }
->>
->>  static unsigned int serial_omap_tx_empty(struct uart_port *port)
->> --
->> 1.7.9.5
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->> Please read the FAQ at  http://www.tux.org/lkml/
+iQIcBAEBAgAGBQJSHLghAAoJELSic+t+oim9p44QAImfpFNpAj3MU6J5q87/ydAX
+ppATw4iDC0itbcbSgUnRo5Qhj1DGo++jwTfq5SNQfK7Bg3S9pUnSfHQav8R+/7yg
+omJuKNXkJEOAapU5jk/kTWo5j5pf1deRvk/yrqRQiLFZTV4sZL/mTgMvyjL6iyx3
+FgiFV2t55KiNq78HwHQTVemSsxuWp6gSyeRohj8x8h1PDRJhPyfrGozDq653fb7e
+mUUboPWQTYpL3OZdqIa5FRONwro54Qiik8RvLNRSXjjcLhUmNKzpURCErO9AApgo
+dRz8uOaMFSwKRhMauPzXbyssbj3sRdPam5QFzYAeeiNzvGfll2xJ0HlDOPm+WpLK
+x3Ew7mu5milGiZXXM9ovjRWEvBo+D0mh+K7bC8ST3lPUmFNwlZdV0F/sWuqTv8QM
+1ccVRoBUfzEGcbLgGb/nWPPbXBD9QkTfGMx0Up2YwxvNIuHT5AgjRgFNGVYvLJW/
+MVB5caHXdV2CD5HG2C9xzqjFCPLoH6oJhXBJDyDGHS5XR1smDsbJ/Ka596soWYKs
+AKDb6CQ+UAEdDDY4cyMHBLWtCrpV0fYeEzq6QgWDGhm6KzTPY0s6rvCKq2yyfvD0
+v87QQ+USVuPSp3S+po24WFwzumSfhSuMuwwskHDOjUs7Ji3ulhTat+FOPdMECk4Z
+26f0pn2VxHeddmMyxmrO
+=/A2j
+-----END PGP SIGNATURE-----
+
+--dfmC41YZQlborXoK--
