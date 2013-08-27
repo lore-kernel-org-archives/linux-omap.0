@@ -1,88 +1,193 @@
-From: Vladimir Murzin <murzin.v@gmail.com>
-Subject: [PATCH] ARM: OMAP4: cpuidle: fix: call cpu_cluster_pm_exit conditionally
-Date: Tue, 27 Aug 2013 12:10:50 +0200
-Message-ID: <1377598250-2355-1-git-send-email-murzin.v@gmail.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: [PATCH 2/2] ARM: OMAP4+: Move SRAM data to DT
+Date: Tue, 27 Aug 2013 15:41:45 +0530
+Message-ID: <1377598305-15539-3-git-send-email-rnayak@ti.com>
+References: <1377598305-15539-1-git-send-email-rnayak@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-la0-f42.google.com ([209.85.215.42]:49797 "EHLO
-	mail-la0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751961Ab3H0KL5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Aug 2013 06:11:57 -0400
-Received: by mail-la0-f42.google.com with SMTP id ep20so3289055lab.15
-        for <linux-omap@vger.kernel.org>; Tue, 27 Aug 2013 03:11:56 -0700 (PDT)
+Received: from comal.ext.ti.com ([198.47.26.152]:44726 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751961Ab3H0KMU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 27 Aug 2013 06:12:20 -0400
+In-Reply-To: <1377598305-15539-1-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, tony@atomide.com, linux@arm.linux.org.uk, Vladimir Murzin <murzin.v@gmail.com>
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, bcousson@baylibre.com, Rajendra Nayak <rnayak@ti.com>
 
-We call cpu_cluster_pm_enter for dev->cpu == 0 only, but
-cpu_cluster_pm_exit called without that check.
+Use drivers/misc/sram.c driver to manage SRAM on all DT only
+OMAP platforms (am33xx, am43xx, omap4 and omap5) instead of
+the existing private implementation.
 
-Because of that unhandled page fault may happen:
+Address and size related data  is removed from mach-omap2/sram.c
+and now passed to drivers/misc/sram.c from DT.
 
-[    3.803405] Unable to handle kernel paging request at virtual address 00002500
-[    3.810974] pgd = c0004000
-[    3.813812] [00002500] *pgd=00000000
-[    3.817596] Internal error: Oops: 5 [#1] SMP ARM
-[    3.822418] Modules linked in:
-[    3.825653] CPU: 1 PID: 0 Comm: swapper/1 Not tainted 3.11.0-rc6+ #21
-[    3.832397] task: ed86ef40 ti: ed896000 task.ti: ed896000
-[    3.838073] PC is at irq_notifier+0x234/0x25c
-[    3.842651] LR is at irq_notifier+0x218/0x25c
-[    3.847229] pc : [<c0029ed8>]    lr : [<c0029ebc>]    psr: 80000193
-[    3.847229] sp : ed897ee8  ip : 00000005  fp : 00000001
-[    3.859283] r10: c0b395f0  r9 : c0b30594  r8 : c0b8c2ac
-[    3.864776] r7 : ffffffff  r6 : 00000000  r5 : 00000005  r4 : 00000000
-[    3.871643] r3 : 00002500  r2 : 00000000  r1 : 00000005  r0 : 44302244
-[    3.878479] Flags: Nzcv  IRQs off  FIQs on  Mode SVC_32  ISA ARM  Segment kernel
-[    3.886260] Control: 10c5387d  Table: 8000404a  DAC: 00000015
-[    3.892272] Process swapper/1 (pid: 0, stack limit = 0xed896240)
-[    3.898590] Stack: (0xed897ee8 to 0xed898000)
-[    3.903167] 7ee0:                   c0979c3a 00000001 ed897ef8 ed896000 c0014f7c 00000000
-[    3.911743] 7f00: 00000005 00000000 ffffffff c0b8c2ac c0b395f0 c077c04c c0c94b48 c0b3953c
-[    3.920318] 7f20: c0bcd928 00000002 c0b39524 c00cfad8 00000000 ffffffff 00000000 c00cfb10
-[    3.928924] 7f40: c14e62c0 c002c1c8 c002c0ac c14e62c0 00000002 e251c37d 00000000 c0b39548
-[    3.937499] 7f60: c0b395f0 c05a1bc4 e251c37d 00000000 00000005 c05a3870 edc90380 edc90380
-[    3.946105] 7f80: edc90394 c14e62c0 c0b39548 00000002 c0784064 c05a3c78 c0b395e0 c14e62c0
-[    3.954681] 7fa0: 00000002 c0b39548 c0bc9db8 00000000 00000001 c05a1dc0 ed896000 00000015
-[    3.963287] 7fc0: c0bc9db8 ed896000 8000406a c0b30594 c0784064 c000e504 00000746 c007a528
-[    3.971862] 7fe0: 00000001 0000001d 600001d3 c0bcc004 00000000 800086c4 ee0aa6a7 d2aabaa9
-[    3.980499] [<c0029ed8>] (irq_notifier+0x234/0x25c) from [<c077c04c>] (notifier_call_chain+0x38/0x68)
-[    3.990173] [<c077c04c>] (notifier_call_chain+0x38/0x68) from [<c00cfad8>] (cpu_pm_notify+0x20/0x38)
-[    3.999786] [<c00cfad8>] (cpu_pm_notify+0x20/0x38) from [<c00cfb10>] (cpu_cluster_pm_exit+0x20/0x50)
-[    4.009399] [<c00cfb10>] (cpu_cluster_pm_exit+0x20/0x50) from [<c002c1c8>] (omap_enter_idle_coupled+0x11c/0x14c)
-[    4.020111] [<c002c1c8>] (omap_enter_idle_coupled+0x11c/0x14c) from [<c05a1bc4>] (cpuidle_enter_state+0x40/0xec)
-[    4.030822] [<c05a1bc4>] (cpuidle_enter_state+0x40/0xec) from [<c05a3c78>] (cpuidle_enter_state_coupled+0x1f4/0x240)
-[    4.041870] [<c05a3c78>] (cpuidle_enter_state_coupled+0x1f4/0x240) from [<c05a1dc0>] (cpuidle_idle_call+0x150/0x228)
-[    4.052947] [<c05a1dc0>] (cpuidle_idle_call+0x150/0x228) from [<c000e504>] (arch_cpu_idle+0x8/0x38)
-[    4.062499] [<c000e504>] (arch_cpu_idle+0x8/0x38) from [<c007a528>] (cpu_startup_entry+0x178/0x1e4)
-[    4.071990] [<c007a528>] (cpu_startup_entry+0x178/0x1e4) from [<800086c4>] (0x800086c4)
-[    4.080383] Code: e5922288 03a03b0a 13a03c25 e0823003 (e5932000)
-[    4.086791] ---[ end trace d83954a84a6fa69e ]---
+Users can hence use general purpose allocator apis instead of
+OMAP private ones to manage and use SRAM.
 
-It is supposed that sar_base is initialized in irq_save_context, which
-is called on CPU_CLUSTER_PM_ENTER notification. If this notification
-has been missed and CPU_CLUSTER_PM_EXIT is received sar_base is NULL.
+Currently there are no users on SRAM on these platfoms.
 
-Fix it by calling CPU_CLUSTER_PM_{ENTER,EXIT} under the same condition.
-
-Signed-off-by: Vladimir Murzin <murzin.v@gmail.com>
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 ---
- arch/arm/mach-omap2/cpuidle44xx.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm/boot/dts/am33xx.dtsi        |    5 +++++
+ arch/arm/boot/dts/am4372.dtsi        |    5 +++++
+ arch/arm/boot/dts/omap4.dtsi         |    5 +++++
+ arch/arm/boot/dts/omap5.dtsi         |    5 +++++
+ arch/arm/configs/omap2plus_defconfig |    1 +
+ arch/arm/mach-omap2/sram.c           |   32 +-------------------------------
+ arch/arm/mach-omap2/sram.h           |    1 -
+ 7 files changed, 22 insertions(+), 32 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/cpuidle44xx.c b/arch/arm/mach-omap2/cpuidle44xx.c
-index c443f2e..4c8982a 100644
---- a/arch/arm/mach-omap2/cpuidle44xx.c
-+++ b/arch/arm/mach-omap2/cpuidle44xx.c
-@@ -143,7 +143,7 @@ static int omap_enter_idle_coupled(struct cpuidle_device *dev,
- 	 * Call idle CPU cluster PM exit notifier chain
- 	 * to restore GIC and wakeupgen context.
- 	 */
--	if ((cx->mpu_state == PWRDM_POWER_RET) &&
-+	if (dev->cpu == 0 && (cx->mpu_state == PWRDM_POWER_RET) &&
- 		(cx->mpu_logic_state == PWRDM_POWER_OFF))
- 		cpu_cluster_pm_exit();
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index 38b446b..6ed766e 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -88,6 +88,11 @@
+ 		ranges;
+ 		ti,hwmods = "l3_main";
  
++		sram: sram@40300000 {
++			compatible = "mmio-sram";
++			reg = <0x40300000 0x10000>; /* 64k */
++		};
++
+ 		intc: interrupt-controller@48200000 {
+ 			compatible = "ti,omap2-intc";
+ 			interrupt-controller;
+diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
+index ddc1df7..c78b74f 100644
+--- a/arch/arm/boot/dts/am4372.dtsi
++++ b/arch/arm/boot/dts/am4372.dtsi
+@@ -41,6 +41,11 @@
+ 		#size-cells = <1>;
+ 		ranges;
+ 
++		sram: sram@40300000 {
++			compatible = "mmio-sram";
++			reg = <0x40300000 0x40000>; /* 256k */
++		};
++
+ 		uart0: serial@44e09000 {
+ 			compatible = "ti,am4372-uart","ti,omap2-uart";
+ 			reg = <0x44e09000 0x2000>;
+diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+index 22d9f2b..292e5b5 100644
+--- a/arch/arm/boot/dts/omap4.dtsi
++++ b/arch/arm/boot/dts/omap4.dtsi
+@@ -126,6 +126,11 @@
+ 			pinctrl-single,function-mask = <0x7fff>;
+ 		};
+ 
++		sram: sram@40304000 {
++			compatible = "mmio-sram";
++			reg = <0x40304000 0xa000>; /* 40k */
++		};
++
+ 		sdma: dma-controller@4a056000 {
+ 			compatible = "ti,omap4430-sdma";
+ 			reg = <0x4a056000 0x1000>;
+diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+index e643620..a9e3e6c 100644
+--- a/arch/arm/boot/dts/omap5.dtsi
++++ b/arch/arm/boot/dts/omap5.dtsi
+@@ -119,6 +119,11 @@
+ 			pinctrl-single,function-mask = <0x7fff>;
+ 		};
+ 
++		sram: sram@40300000 {
++			compatible = "mmio-sram";
++			reg = <0x40300000 0x20000>; /* 128k */
++		};
++
+ 		sdma: dma-controller@4a056000 {
+ 			compatible = "ti,omap4430-sdma";
+ 			reg = <0x4a056000 0x1000>;
+diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
+index 5339e6a..5d4c9b8 100644
+--- a/arch/arm/configs/omap2plus_defconfig
++++ b/arch/arm/configs/omap2plus_defconfig
+@@ -101,6 +101,7 @@ CONFIG_SENSORS_LIS3LV02D=m
+ CONFIG_SENSORS_TSL2550=m
+ CONFIG_SENSORS_LIS3_I2C=m
+ CONFIG_BMP085_I2C=m
++CONFIG_SRAM=y
+ CONFIG_SCSI=y
+ CONFIG_BLK_DEV_SD=y
+ CONFIG_SCSI_MULTI_LUN=y
+diff --git a/arch/arm/mach-omap2/sram.c b/arch/arm/mach-omap2/sram.c
+index 305fc2b..8591044 100644
+--- a/arch/arm/mach-omap2/sram.c
++++ b/arch/arm/mach-omap2/sram.c
+@@ -32,12 +32,6 @@
+ 
+ #define OMAP2_SRAM_PUB_PA	(OMAP2_SRAM_PA + 0xf800)
+ #define OMAP3_SRAM_PUB_PA       (OMAP3_SRAM_PA + 0x8000)
+-#ifdef CONFIG_OMAP4_ERRATA_I688
+-#define OMAP4_SRAM_PUB_PA	OMAP4_SRAM_PA
+-#else
+-#define OMAP4_SRAM_PUB_PA	(OMAP4_SRAM_PA + 0x4000)
+-#endif
+-#define OMAP5_SRAM_PA		0x40300000
+ 
+ #define SRAM_BOOTLOADER_SZ	0x00
+ 
+@@ -105,32 +99,14 @@ static void __init omap_detect_sram(void)
+ 			} else {
+ 				omap_sram_size = 0x8000; /* 32K */
+ 			}
+-		} else if (cpu_is_omap44xx()) {
+-			omap_sram_start = OMAP4_SRAM_PUB_PA;
+-			omap_sram_size = 0xa000; /* 40K */
+-		} else if (soc_is_omap54xx()) {
+-			omap_sram_start = OMAP5_SRAM_PA;
+-			omap_sram_size = SZ_128K; /* 128KB */
+ 		} else {
+ 			omap_sram_start = OMAP2_SRAM_PUB_PA;
+ 			omap_sram_size = 0x800; /* 2K */
+ 		}
+ 	} else {
+-		if (soc_is_am33xx()) {
+-			omap_sram_start = AM33XX_SRAM_PA;
+-			omap_sram_size = 0x10000; /* 64K */
+-		} else if (soc_is_am43xx()) {
+-			omap_sram_start = AM33XX_SRAM_PA;
+-			omap_sram_size = SZ_256K;
+-		} else if (cpu_is_omap34xx()) {
++		if (cpu_is_omap34xx()) {
+ 			omap_sram_start = OMAP3_SRAM_PA;
+ 			omap_sram_size = 0x10000; /* 64K */
+-		} else if (cpu_is_omap44xx()) {
+-			omap_sram_start = OMAP4_SRAM_PA;
+-			omap_sram_size = 0xe000; /* 56K */
+-		} else if (soc_is_omap54xx()) {
+-			omap_sram_start = OMAP5_SRAM_PA;
+-			omap_sram_size = SZ_128K; /* 128KB */
+ 		} else {
+ 			omap_sram_start = OMAP2_SRAM_PA;
+ 			if (cpu_is_omap242x())
+@@ -148,12 +124,6 @@ static void __init omap2_map_sram(void)
+ {
+ 	int cached = 1;
+ 
+-#ifdef CONFIG_OMAP4_ERRATA_I688
+-	if (cpu_is_omap44xx()) {
+-		omap_sram_start += PAGE_SIZE;
+-		omap_sram_size -= SZ_16K;
+-	}
+-#endif
+ 	if (cpu_is_omap34xx()) {
+ 		/*
+ 		 * SRAM must be marked as non-cached on OMAP3 since the
+diff --git a/arch/arm/mach-omap2/sram.h b/arch/arm/mach-omap2/sram.h
+index ca7277c..3f83b80 100644
+--- a/arch/arm/mach-omap2/sram.h
++++ b/arch/arm/mach-omap2/sram.h
+@@ -80,4 +80,3 @@ static inline void omap_push_sram_idle(void) {}
+ #else
+ #define OMAP4_SRAM_PA		0x40300000
+ #endif
+-#define AM33XX_SRAM_PA		0x40300000
 -- 
-1.8.1.5
+1.7.9.5
 
