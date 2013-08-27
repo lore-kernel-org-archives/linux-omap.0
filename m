@@ -1,41 +1,44 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [PATCH] ARM: OMAP: fix return value check in omap_device_build_from_dt()
-Date: Mon, 26 Aug 2013 17:10:41 -0700
-Message-ID: <87r4dg6lj2.fsf@linaro.org>
-References: <CAPgLHd_E8wht4q5c9=TjUTwXxysjbbX+HnZyYe2KJU=w79cK4w@mail.gmail.com>
-	<20130821071901.GR7656@atomide.com>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: re: OMAPDSS: remove dispc's dependency to VENC/HDMI
+Date: Tue, 27 Aug 2013 04:20:16 +0300
+Message-ID: <20130827012016.GE17061@elgon.mountain>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pd0-f177.google.com ([209.85.192.177]:55443 "EHLO
-	mail-pd0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751625Ab3H0AKn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Aug 2013 20:10:43 -0400
-Received: by mail-pd0-f177.google.com with SMTP id y10so4078563pdj.22
-        for <linux-omap@vger.kernel.org>; Mon, 26 Aug 2013 17:10:43 -0700 (PDT)
-In-Reply-To: <20130821071901.GR7656@atomide.com> (Tony Lindgren's message of
-	"Wed, 21 Aug 2013 00:19:01 -0700")
+Received: from aserp1040.oracle.com ([141.146.126.69]:33977 "EHLO
+	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754616Ab3H0BU0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Aug 2013 21:20:26 -0400
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Wei Yongjun <weiyj.lk@gmail.com>, linux@arm.linux.org.uk, yongjun_wei@trendmicro.com.cn, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: tomi.valkeinen@ti.com
+Cc: linux-omap@vger.kernel.org
 
-Tony Lindgren <tony@atomide.com> writes:
+Hello Tomi Valkeinen,
 
-> Kevin,
->
-> * Wei Yongjun <weiyj.lk@gmail.com> [130704 06:48]:
->> From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
->> 
->> In case of error, the function omap_device_alloc() returns ERR_PTR()
->> and never returns NULL. The NULL test in the return value check
->> should be replaced with IS_ERR().
->
-> Looks like this is still pending, care to take this?
+This is a semi-automatic email about new static checker warnings.
 
-Acked-by: Kevin Hilman <khilman@linaro.org>
+The patch 5391e87d1259: "OMAPDSS: remove dispc's dependency to 
+VENC/HDMI" from May 16, 2013, leads to the following Smatch complaint:
 
-Looks fine to me, since I don't have anything else in the queue, feel
-free to queue up for fixes-non-critical.
+drivers/video/omap2/dss/hdmi.c:672 omapdss_hdmi_display_set_timing()
+	 error: we previously assumed 't' could be null (see line 669)
 
-Kevin
+drivers/video/omap2/dss/hdmi.c
+   668		t = hdmi_get_timings();
+   669		if (t != NULL)
+                    ^^^^^^^^^
+Existing check.
+
+   670			hdmi.ip_data.cfg = *t;
+   671	
+   672		dispc_set_tv_pclk(t->timings.pixel_clock * 1000);
+                                  ^^^^^^^^^^^^^^^^^^^^^^
+Patch added a dereference.
+
+   673	
+   674		mutex_unlock(&hdmi.lock);
+
+regards,
+dan carpenter
