@@ -1,54 +1,92 @@
-From: Sourav Poddar <sourav.poddar@ti.com>
-Subject: [PATCHv2] spi/qspi: Add compatible string for am4372.
-Date: Tue, 27 Aug 2013 19:42:24 +0530
-Message-ID: <1377612744-24779-1-git-send-email-sourav.poddar@ti.com>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: [PATCH] serial: omap: Fix IRQ handling return value
+Date: Tue, 27 Aug 2013 07:30:19 -0700
+Message-ID: <CAGa+x859+7H3pjZfTFcECe4qMt4=SE_kmToZBt9zoVt0=sUcvA@mail.gmail.com>
+References: <1374067753-29560-1-git-send-email-oleksandr.savchenko@ti.com>
+	<CAGa+x84dE_RwN2G1y_9OJFxnq3JKq5g0YZd+mFueOjjvMzyyew@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:56546 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751626Ab3H0OPG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 27 Aug 2013 10:15:06 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <CAGa+x84dE_RwN2G1y_9OJFxnq3JKq5g0YZd+mFueOjjvMzyyew@mail.gmail.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: gregkh@linuxfoundation.org
+Cc: Alexander Savchenko <oleksandr.savchenko@ti.com>, jslaby@suse.cz, linux-serial@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, balbi@ti.com, linux-omap <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: broonie@sirena.org.uk
-Cc: balbi@ti.com, linux-spi@vger.kernel.org, linux-omap@vger.kernel.org, Sourav Poddar <sourav.poddar@ti.com>
 
-Add a compatible string for am4372.
+Greg,
 
-Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
----
-v1->v2:
-Instead of am43xx, use exact part number.
- Documentation/devicetree/bindings/spi/ti_qspi.txt |    2 +-
- drivers/spi/spi-ti-qspi.c                         |    1 +
- 2 files changed, 2 insertions(+), 1 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/spi/ti_qspi.txt b/Documentation/devicetree/bindings/spi/ti_qspi.txt
-index 398ef59..1f9641a 100644
---- a/Documentation/devicetree/bindings/spi/ti_qspi.txt
-+++ b/Documentation/devicetree/bindings/spi/ti_qspi.txt
-@@ -1,7 +1,7 @@
- TI QSPI controller.
- 
- Required properties:
--- compatible : should be "ti,dra7xxx-qspi".
-+- compatible : should be "ti,dra7xxx-qspi" or "ti,am4372-qspi".
- - reg: Should contain QSPI registers location and length.
- - #address-cells, #size-cells : Must be present if the device has sub-nodes
- - ti,hwmods: Name of the hwmod associated to the QSPI
-diff --git a/drivers/spi/spi-ti-qspi.c b/drivers/spi/spi-ti-qspi.c
-index d6db561..93245aa 100644
---- a/drivers/spi/spi-ti-qspi.c
-+++ b/drivers/spi/spi-ti-qspi.c
-@@ -442,6 +442,7 @@ static int ti_qspi_runtime_resume(struct device *dev)
- 
- static const struct of_device_id ti_qspi_match[] = {
- 	{.compatible = "ti,dra7xxx-qspi" },
-+	{.compatible = "ti,am4372-qspi" },
- 	{},
- };
- MODULE_DEVICE_TABLE(of, ti_qspi_match);
--- 
-1.7.1
+On Tue, Aug 20, 2013 at 8:44 AM, Kevin Hilman <khilman@linaro.org> wrote:
+> +Felipe
+>
+> On Wed, Jul 17, 2013 at 6:29 AM, Alexander Savchenko
+> <oleksandr.savchenko@ti.com> wrote:
+>> From: Ruchika Kharwar <ruchika@ti.com>
+>>
+>> Ensure the Interrupt handling routine return IRQ_HANDLED vs
+>> IRQ_NONE.
+>
+> Why?
+>
+> By unconditionally returning IRQ_HANDLED, this patch will surely break
+> systems where the UART IRQ is shared with other platforms.
+>
+> I just noticed this patch when bisecting a related problem.  Why
+> wasn't this Cc'd to linux-omap where OMAP users might have been more
+> likely to see it?
+>
+> Greg, without a better justification in the changelog, I think this
+> patch should be dropped from tty-next.
 
+Can you drop this from tty-next please?
+
+The authors aren't responding (one of the ti.com addresses bounced)
+and this "fix" is most is not correct.
+
+Kevin
+
+> Kevin
+>
+>> Signed-off-by: Ruchika Kharwar <ruchika@ti.com>
+>> Signed-off-by: Alexander Savchenko <oleksandr.savchenko@ti.com>
+>> ---
+>>  drivers/tty/serial/omap-serial.c |    4 +---
+>>  1 file changed, 1 insertion(+), 3 deletions(-)
+>>
+>> diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
+>> index b6d1728..70feeb3 100644
+>> --- a/drivers/tty/serial/omap-serial.c
+>> +++ b/drivers/tty/serial/omap-serial.c
+>> @@ -479,7 +479,6 @@ static irqreturn_t serial_omap_irq(int irq, void *dev_id)
+>>         struct uart_omap_port *up = dev_id;
+>>         unsigned int iir, lsr;
+>>         unsigned int type;
+>> -       irqreturn_t ret = IRQ_NONE;
+>>         int max_count = 256;
+>>
+>>         spin_lock(&up->port.lock);
+>> @@ -490,7 +489,6 @@ static irqreturn_t serial_omap_irq(int irq, void *dev_id)
+>>                 if (iir & UART_IIR_NO_INT)
+>>                         break;
+>>
+>> -               ret = IRQ_HANDLED;
+>>                 lsr = serial_in(up, UART_LSR);
+>>
+>>                 /* extract IRQ type from IIR register */
+>> @@ -529,7 +527,7 @@ static irqreturn_t serial_omap_irq(int irq, void *dev_id)
+>>         pm_runtime_put_autosuspend(up->dev);
+>>         up->port_activity = jiffies;
+>>
+>> -       return ret;
+>> +       return IRQ_HANDLED;
+>>  }
+>>
+>>  static unsigned int serial_omap_tx_empty(struct uart_port *port)
+>> --
+>> 1.7.9.5
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> Please read the FAQ at  http://www.tux.org/lkml/
