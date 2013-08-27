@@ -1,182 +1,53 @@
-From: Archit Taneja <archit@ti.com>
-Subject: [RESEND PATCH v2] gpio: Enable pcf857x GPIO expander for Device Tree
-Date: Tue, 27 Aug 2013 10:57:03 +0530
-Message-ID: <1377581223-3728-1-git-send-email-archit@ti.com>
-References: <1370527523-1030-1-git-send-email-archit@ti.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH v2] gpio: Enable pcf857x GPIO expander for Device Tree
+Date: Tue, 27 Aug 2013 08:47:25 +0200
+Message-ID: <7142087.DRSP8TfuKN@avalon>
+References: <1370527523-1030-1-git-send-email-archit@ti.com> <1377498081-16358-1-git-send-email-archit@ti.com> <CACRpkda5Q-Zs8A2VFPvMc9519QWJ3EH08g4Do0se6BcLEg+rug@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:42488 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752576Ab3H0F2m (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Aug 2013 01:28:42 -0400
-In-Reply-To: <1370527523-1030-1-git-send-email-archit@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <CACRpkda5Q-Zs8A2VFPvMc9519QWJ3EH08g4Do0se6BcLEg+rug@mail.gmail.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: Archit Taneja <archit@ti.com>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, Grant Likely <grant.likely@secretlab.ca>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: linus.walleij@linaro.org
-Cc: linux-doc@vger.kernel.org, linux-omap@vger.kernel.org, grant.likely@secretlab.ca, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-Add code to parse the GPIO expander Device Tree node and extract platform data
-out of it, and populate the struct 'pcf857x_platform_data' maintained by the
-driver. This enables devices to reference the gpio expander from Device Tree.
+On Tuesday 27 August 2013 05:20:45 Linus Walleij wrote:
+> On Mon, Aug 26, 2013 at 8:21 AM, Archit Taneja <archit@ti.com> wrote:
+> > Add code to parse the GPIO expander Device Tree node and extract platform
+> > data out of it, and populate the struct 'pcf857x_platform_data'
+> > maintained by the driver. This enables devices to reference the gpio
+> > expander from Device Tree.
+> > 
+> > Add DT binding info in Documentation.
+> > 
+> > Signed-off-by: Archit Taneja <archit@ti.com>
+> > ---
+> > - v2 posted after quite a while, sorry for the delay!
+> > 
+> > Changes in v2:
+> > - second gpeio-cell description corrected in Documentation
+> > - interrupt controller description removed for now, will be added in a
+> >   follow up patch
+> > - n_latch description updated
 
-Add DT binding info in Documentation.
+And it seems that the patch conflicts with
 
-Signed-off-by: Archit Taneja <archit@ti.com>
----
-- v2 posted after quite a while, sorry for the delay!
+https://lkml.org/lkml/2013/8/26/248
 
-Changes in v2:
-- second gpeio-cell description corrected in Documentation
-- interrupt controller description removed for now, will be added in a follow
-  up patch
-- n_latch description updated
+:-/
 
- .../devicetree/bindings/gpio/gpio-pcf857x.txt      | 41 ++++++++++++++++
- drivers/gpio/gpio-pcf857x.c                        | 57 ++++++++++++++++++++--
- 2 files changed, 94 insertions(+), 4 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/gpio/gpio-pcf857x.txt
+If we end up merging this one, I'd like to at least rename the DT n-latch 
+property to pin-initial-states as in my patch and update the documentation, as 
+I find it more explicit.
 
-diff --git a/Documentation/devicetree/bindings/gpio/gpio-pcf857x.txt b/Documentation/devicetree/bindings/gpio/gpio-pcf857x.txt
-new file mode 100644
-index 0000000..504d114
---- /dev/null
-+++ b/Documentation/devicetree/bindings/gpio/gpio-pcf857x.txt
-@@ -0,0 +1,41 @@
-+PCF857x I2C based GPIO controller bindings
-+
-+Required properties:
-+- compatible:
-+  - "nxp,pca9670" for NXP PCA9670 8 bit I/O expander
-+  - "nxp,pca9672" for NXP PCA9672 8 bit I/O expander with interrupt
-+  - "nxp,pca9674" for NXP PCA9672 8 bit I/O expander with interrupt
-+  - "nxp,pca8574" for NXP PCA8574 8 bit I/O expander with interrupt
-+  - "nxp,pca8575" for NXP PCA8575 16 bit I/O expander with interrupt
-+  - "nxp,pca9671" for NXP PCA9671 16 bit I/O expander
-+  - "nxp,pca9673" for NXP PCA9673 16 bit I/O expander with interrupt
-+  - "nxp,pca9675" for NXP PCA9675 16 bit I/O expander with interrupt
-+  - "ti,pcf8574"  for TI PCF8574 8 bit I/O expander with interrupt
-+  - "ti,pcf8574a" for TI PCF8574A 8 bit I/O expander with interrupt
-+  - "ti,pcf8575"  for TI PCF8575 16 bit I/O expander with interrupt
-+  - "ti,tca9554"  for TI TCA9554 8 bit I/O expander with interrupt
-+  - "maxim,max7328" for MAXIM MAX7328 8 bit I/O expander with interrupt
-+  - "maxim,max7329" for MAXIM MAX7329 8 bit I/O expander with interrupt
-+- gpio-controller : Marks the device node as a GPIO controller.
-+- #gpio-cells : Should be two.
-+  - first cell is the pin number.
-+  - second cell is used to specify optional parameters (currently unused, but
-+    needed by gpiolib).
-+- reg: I2C address of the chip.
-+
-+Device speific properties:
-+- n_latch:		optional bit-inverse of initial register value; if
-+			you leave this initialized to zero the driver will act
-+			like the chip was just reset. If it is a non-zero
-+			value, the driver will program the inverted value of
-+			n_latch as the initial state of the gpios.
-+
-+Example:
-+
-+pcf8575: pcf8575 {
-+	compatible = "ti,pcf8575";
-+	gpio-controller;
-+	#gpio-cells = <2>;
-+	reg = <0x20>;
-+	n_latch = <0x0>;
-+};
-diff --git a/drivers/gpio/gpio-pcf857x.c b/drivers/gpio/gpio-pcf857x.c
-index e8faf53..3435790 100644
---- a/drivers/gpio/gpio-pcf857x.c
-+++ b/drivers/gpio/gpio-pcf857x.c
-@@ -21,6 +21,7 @@
- #include <linux/kernel.h>
- #include <linux/slab.h>
- #include <linux/gpio.h>
-+#include <linux/of.h>
- #include <linux/i2c.h>
- #include <linux/i2c/pcf857x.h>
- #include <linux/interrupt.h>
-@@ -255,17 +256,42 @@ fail:
- 
- /*-------------------------------------------------------------------------*/
- 
-+static struct pcf857x_platform_data *of_gpio_pcf857x(struct device *dev)
-+{
-+	struct pcf857x_platform_data *pdata;
-+	int r;
-+
-+	pdata = devm_kzalloc(dev, sizeof(*pdata), GFP_KERNEL);
-+	if (!pdata)
-+		return NULL;
-+
-+	pdata->gpio_base = -1;
-+
-+	r = of_property_read_u32(dev->of_node, "n_latch", &pdata->n_latch);
-+	if (r) {
-+		dev_dbg(dev, "couldn't find n-latch, use default\n");
-+		pdata->n_latch = 0;
-+	}
-+
-+	return pdata;
-+}
-+
- static int pcf857x_probe(struct i2c_client *client,
- 			 const struct i2c_device_id *id)
- {
- 	struct pcf857x_platform_data	*pdata;
-+	struct device_node		*node;
- 	struct pcf857x			*gpio;
- 	int				status;
- 
- 	pdata = client->dev.platform_data;
--	if (!pdata) {
-+	node = client->dev.of_node;
-+
-+	if (!pdata && node)
-+		pdata = of_gpio_pcf857x(&client->dev);
-+
-+	if (!pdata)
- 		dev_dbg(&client->dev, "no platform data\n");
--	}
- 
- 	/* Allocate, initialize, and register this gpio_chip. */
- 	gpio = devm_kzalloc(&client->dev, sizeof(*gpio), GFP_KERNEL);
-@@ -420,10 +446,33 @@ static int pcf857x_remove(struct i2c_client *client)
- 	return status;
- }
- 
-+static const struct of_device_id pcf857x_dt_ids[] = {
-+	{ .compatible = "nxp,pca9670", },
-+	{ .compatible = "nxp,pca9672", },
-+	{ .compatible = "nxp,pca9674", },
-+	{ .compatible = "nxp,pca8574", },
-+	{ .compatible = "nxp,pca8575", },
-+	{ .compatible = "nxp,pca9671", },
-+	{ .compatible = "nxp,pca9673", },
-+	{ .compatible = "nxp,pca9675", },
-+
-+	{ .compatible = "ti,pcf8574", },
-+	{ .compatible = "ti,pcf8574a", },
-+	{ .compatible = "ti,pcf8575", },
-+	{ .compatible = "ti,tca9554", },
-+
-+	{ .compatible = "maxim,max7328", },
-+	{ .compatible = "maxim,max7329", },
-+	{ }
-+};
-+
-+MODULE_DEVICE_TABLE(of, pcf857x_dt_ids);
-+
- static struct i2c_driver pcf857x_driver = {
- 	.driver = {
--		.name	= "pcf857x",
--		.owner	= THIS_MODULE,
-+		.name		= "pcf857x",
-+		.owner		= THIS_MODULE,
-+		.of_match_table	= pcf857x_dt_ids,
- 	},
- 	.probe	= pcf857x_probe,
- 	.remove	= pcf857x_remove,
+> The devicetree portions of this patch needs to be reviewed by
+> devicetree@vger.kernel.org, so please repost including that
+> list.
+
 -- 
-1.8.1.2
+Regards,
+
+Laurent Pinchart
 
