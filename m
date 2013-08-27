@@ -1,108 +1,108 @@
 From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [PATCHv3 7/8] mailbox/omap: add code to support the wkupm3 operations
-Date: Tue, 27 Aug 2013 14:25:34 -0700
-Message-ID: <87haeax1v5.fsf@linaro.org>
-References: <1375825238-18299-1-git-send-email-s-anna@ti.com>
-	<87li3n6bcc.fsf@linaro.org> <521CCDCD.90207@ti.com>
+Subject: Re: [PATCHv3 8/9] ARM: OMAP2+: AM33XX: Basic suspend resume support
+Date: Tue, 27 Aug 2013 14:45:19 -0700
+Message-ID: <87mwo2vmds.fsf@linaro.org>
+References: <1375811376-49985-1-git-send-email-d-gerlach@ti.com>
+	<1375811376-49985-9-git-send-email-d-gerlach@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f52.google.com ([209.85.220.52]:34488 "EHLO
-	mail-pa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752421Ab3H0VZi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Aug 2013 17:25:38 -0400
-Received: by mail-pa0-f52.google.com with SMTP id kq13so5312523pab.39
-        for <linux-omap@vger.kernel.org>; Tue, 27 Aug 2013 14:25:37 -0700 (PDT)
+Received: from mail-pb0-f47.google.com ([209.85.160.47]:40926 "EHLO
+	mail-pb0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753855Ab3H0VpY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Aug 2013 17:45:24 -0400
+Received: by mail-pb0-f47.google.com with SMTP id rr4so5391165pbb.34
+        for <linux-omap@vger.kernel.org>; Tue, 27 Aug 2013 14:45:23 -0700 (PDT)
+In-Reply-To: <1375811376-49985-9-git-send-email-d-gerlach@ti.com> (Dave
+	Gerlach's message of "Tue, 6 Aug 2013 12:49:35 -0500")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Suman Anna <s-anna@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Benoit Cousson <benoit.cousson@linaro.org>, Paul Walmsley <paul@pwsan.com>, Ohad Ben-Cohen <ohad@wizery.com>, Jassi Brar <jaswinder.singh@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
+To: Dave Gerlach <d-gerlach@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Vaibhav Bedia <vaibhav.bedia@ti.com>, Tony Lingren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Benoit Cousson <benoit.cousson@linaro.org>
 
-Suman Anna <s-anna@ti.com> writes:
+Dave Gerlach <d-gerlach@ti.com> writes:
 
-> Kevin,
+> From: Vaibhav Bedia <vaibhav.bedia@ti.com>
 >
-> On 08/26/2013 10:50 PM, Kevin Hilman wrote:
->> Suman Anna <s-anna@ti.com> writes:
->> 
->>> The WkupM3 mailbox used for triggering PM operations such as suspend
->>> and resume on AM33x/AM43x is special in that the M3 processor cannot
->>> access the mailbox registers. However, an interrupt is needed to be
->>> sent to request the M3 to perform a desired PM operation. This patch
->>> adds the support for this special mailbox through separate ops for
->>> this mailbox. These ops are designed to have the WkupM3's Rx interrupt
->>> programmed within the driver, during transmission of a message. The
->>> message is immediately read back and the internal mailbox interrupt
->>> acknowledged as well to avoid triggering any spurious interrupts to
->>> the M3.
-
-After reading this multiple times, I had to go back to the TRM to try
-and remember what's going on here because this changelog wasn't helping
-me understand.  IIUC, the basic idea is that the mailbox is only used to
-trigger an IRQ to the M3, the messages themselves are dummy.  You
-explained some more of this in subsequent replies, but all of that
-detail should be in the changelogs.
-
-Remember that changelogs should be written for those who don't have (or
-don't remember) all the internal details that you know off the top of
-your head.  Think of writing a changelog that you'll have to understand
-in a year when you haven't been staring at the hardware and code.  I've
-never seen a changelog with too much detail, so please err on the
-verbose side.
-
->>>
->>> Signed-off-by: Suman Anna <s-anna@ti.com>
->> 
->> Dumb Q: why does all this extra logic belong in the mailbox driver and
->> not in the wkup_m3 driver?  To me, this seems like part of the IPC
->> protocol between the MPU and M3 firmware, and not an inherent part of
->> the AM33xx mbox.
+> AM335x supports various low power modes as documented
+> in section 8.1.4.3 of the AM335x TRM which is available
+> @ http://www.ti.com/litv/pdf/spruh73f
 >
-> The IPC protocol state machine for the PM operations is still very
-> much handled in the WkupM3 driver.  The IPC registers in Control
-> module provide the messaging payloads, but unfortunately it is not
-> associated with any direct interrupts to make it a separate driver. As
-> far as the WkupM3 driver is concerned, it is just using the mailbox
-> for signalling - the internals of which would involve accessing the
-> various mailbox registers including interrupt configuration and
-> clearing. It is preferable to have the various operations on mailbox
-> registers handled by the mailbox driver with the API supporting the
-> necessary operations.
+> DeepSleep0 mode offers the lowest power mode with limited
+> wakeup sources without a system reboot and is mapped as
+> the suspend state in the kernel. In this state, MPU and
+> PER domains are turned off with the internal RAM held in
+> retention to facilitate resume process. As part of the boot
+> process, the assembly code is copied over to OCMCRAM using
+> the OMAP SRAM code.
 >
-> The previous version from Vaibhav added a new API to mailbox driver for
-> clearing out the Tx fifo, which is non-standard. The mailboxes on AM335
-> will also be used for IPC with the Programmable Real-time Unit (PRU)
-> subsystem, which will use separate mbox devices. This version handles
-> the wkup_m3 mbox device using its device-specific ops without the need
-> for any new API, and not having to expose the mailbox registers outside.
+> AM335x has a Cortex-M3 (WKUP_M3) which assists the MPU
+> in DeepSleep0 entry and exit. WKUP_M3 takes care of the
+> clockdomain and powerdomain transitions based on the
+> intended low power state. MPU needs to load the appropriate
+> WKUP_M3 binary onto the WKUP_M3 memory space before it can
+> leverage any of the PM features like DeepSleep.
+>
+> The IPC mechanism between MPU and WKUP_M3 uses a mailbox
+> sub-module and 8 IPC registers in the Control module. MPU
+> uses the assigned Mailbox for issuing an interrupt to
+> WKUP_M3 which then goes and checks the IPC registers for
+> the payload. WKUP_M3 has the ability to trigger on interrupt
 
-Perhaps I'm misunderstanding all of this (admittedly, I'm not up on the
-details of OMAP mailbox internals), but the changelog and code are not
-helping me understand so I have to ask dumb questions.
+s/trigger on interrupt/trigger an interrupt/  ??
 
-The more I look at this, the more confused I get.  The wkupm3 mbox is
-defined in the DTS to use usr_id=0 yet internally is
-overridden/hard-coded internally to use usr_id=3 in (at least for
-managing interrupts.)
+> to MPU by executing the "sev" instruction.
+>
+> In the current implementation when the suspend process
+> is initiated MPU interrupts the WKUP_M3 to let it know about
+> the intent of entering DeepSleep0 and waits for an ACK. When
+> the ACK is received MPU continues with its suspend process
+> to suspend all the drivers and then jumps to assembly in
+> OCMC RAM. The assembly code puts the PLLs in bypass, puts the
+> external RAM in self-refresh mode and then finally execute the
+> WFI instruction. Execution of the WFI instruction triggers another
+> interrupt to the WKUP_M3 which then continues wiht the power down
+> sequence wherein the clockdomain and powerdomain transition takes
+> place. As part of the sleep sequence, WKUP_M3 unmasks the interrupt
+> lines for the wakeup sources. WFI execution on WKUP_M3 causes the
+> hardware to disable the main oscillator of the SoC.
+>
+> When a wakeup event occurs, WKUP_M3 starts the power-up
+> sequence by switching on the power domains and finally
+> enabling the clock to MPU. Since the MPU gets powered down
+> as part of the sleep sequence in the resume path ROM code
+> starts executing. The ROM code detects a wakeup from sleep
+> and then jumps to the resume location in OCMC which was
+> populated in one of the IPC registers as part of the suspend
+> sequence.
+>
+> The low level code in OCMC relocks the PLLs, enables access
+> to external RAM and then jumps to the cpu_resume code of
+> the kernel to finish the resume process.
 
-Since only the interrupt management matters anyways (message payload is
-dummy), is there any reason not to define the mbox in DTS using usr_id=3
-so you don't have to do this clumsy override?  IOW, since the M3
-(usr_id=3) can't ever be a real user of the mbox registers, just have
-the MPU drive the mbox as usr_id=3?
+[...]
 
-Even that is a bit hacky IMO, but with proper documentation, is at least
-better than the current approach IMO.
+>  arch/arm/mach-omap2/pm33xx.c  |  474 +++++++++++++++++++++++++++++++++++++++++
+>  arch/arm/mach-omap2/pm33xx.h  |   77 +++++++
+>  arch/arm/mach-omap2/wkup_m3.c |  183 ++++++++++++++++
 
-That should at least get rid of the need to customize the IRQ management
-functions of mailbox-omap2.c.   After that, the M3 driver could then
-just do:
 
-     omap_mbox_enable_irq()
-     omap_mbox_msg_send()
-     omap_mbox_disable_irq()
+Looking closer at this code as I'm trying to fully get my head around
+all the IPC, I have some more comments.
 
-and you could get rid of the rest of the custom functions in
-mailbox-omap2.c also.
+I think the split between pm33xx.c and the M3 driver is still confusing
+here.  For example, am33xx_ping_wkup_m3(),
+am33xx_m3_state_machine_reset() and the guts of am33xx_pm_begin() all
+belong inside the M3 driver, along with all the wakeup_src stuff, which
+is info coming from the M3.
+
+IOW, the communication with M3 should be abstracted from pm33xx by the
+M3 driver (or possibly an eventual remoteproc/rpmsg implementation) with
+a well defined API.  In this implementation, the interface is pretty
+fuzzy and mixed between pm33xx.c and wkup_m3.c.
 
 Kevin
+
+P.S. I'd also suggest renaming wakeup_src to something else since
+it's close to wakeup_source which has a rather different meaning in the
+kernel (c.f. linux/pm_wakeup.h)
