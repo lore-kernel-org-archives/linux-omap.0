@@ -1,74 +1,37 @@
 From: Afzal Mohammed <afzal@ti.com>
-Subject: Re: [PATCH v2 06/13] ARM: OMAP2+: PRCM: AM43x definitions
-Date: Wed, 28 Aug 2013 17:33:46 +0530
-Message-ID: <521DE722.1050700@ti.com>
-References: <cover.1375443858.git.afzal@ti.com> <ec65e24f1637245257f55906e5533ca54b010418.1375443858.git.afzal@ti.com> <alpine.DEB.2.02.1308210313410.6426@utopia.booyaka.com>
+Subject: Re: [PATCH v2 00/13] ARM: OMAP2+: AM43x PRCM support
+Date: Wed, 28 Aug 2013 17:39:13 +0530
+Message-ID: <521DE869.6020503@ti.com>
+References: <cover.1375443858.git.afzal@ti.com> <20130813080159.GT7656@atomide.com> <5211BD07.9090309@ti.com> <52133482.7080405@baylibre.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:57877 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752175Ab3H1MEP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 28 Aug 2013 08:04:15 -0400
-In-Reply-To: <alpine.DEB.2.02.1308210313410.6426@utopia.booyaka.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:55030 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754076Ab3H1MJl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Aug 2013 08:09:41 -0400
+In-Reply-To: <52133482.7080405@baylibre.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Benoit Cousson <benoit.cousson@linaro.org>, benoit.cousson@gmail.com
+To: Benoit Cousson <bcousson@baylibre.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Paul Walmsley <paul@pwsan.com>, Rajendra Nayak <rnayak@ti.com>, "Kristo, Tero" <t-kristo@ti.com>
 
-Hi Paul,
+Hi Benoit,
 
-On Wednesday 21 August 2013 08:50 AM, Paul Walmsley wrote:
+On Tuesday 20 August 2013 02:48 PM, Benoit Cousson wrote:
 
->> +/* PRM instances */
->> +#define AM43XX_PRM_OCP_SOCKET_INST			0x0000
->> +#define AM43XX_PRM_MPU_INST				0x0300
->> +#define AM43XX_PRM_GFX_INST				0x0400
->> +#define AM43XX_PRM_RTC_INST				0x0500
->> +#define AM43XX_PRM_TAMPER_INST				0x0600
->> +#define AM43XX_PRM_CEFUSE_INST				0x0700
->> +#define AM43XX_PRM_PER_INST				0x0800
->> +#define AM43XX_PRM_WKUP_INST				0x2000
->> +#define AM43XX_PRM_DEVICE_INST				0x4000
->> +
+> Otherwise, I guess that most of these patches should be non-intrusive
+> for other OMAPs beside that one (ARM: OMAP2+: CM: reintroduce SW_SLEEP
+> for OMAP4). And for the moment, that's maybe the most important point.
 > 
-> ...
-> 
->> +/* CM instances */
->> +#define AM43XX_CM_WKUP_INST				0x2800
->> +#define AM43XX_CM_DEVICE_INST				0x4100
->> +#define AM43XX_CM_DPLL_INST				0x4200
->> +#define AM43XX_CM_MPU_INST				0x8300
->> +#define AM43XX_CM_GFX_INST				0x8400
->> +#define AM43XX_CM_RTC_INST				0x8500
->> +#define AM43XX_CM_TAMPER_INST				0x8600
->> +#define AM43XX_CM_CEFUSE_INST				0x8700
->> +#define AM43XX_CM_PER_INST				0x8800
-> 
-> That's a pretty broad address range to span, in PRCM terms.  Seems pretty 
-> unlikely that the whole area is really decoded to a single PRCM IP block?  
-> Or is it actually decoded into smaller PRM and CM sub-blocks, similar to 
-> OMAP4?
-> 
-> Just by looking at the offsets, it looks to me like you've got:
-> 
-> 1. one IP block at 0x0000-0x1fff? that covers system PRM
-> 
-> 2. one IP block at 0x2000-0x3fff? that covers WKUP PRM & CM
->   
-> 3. one IP block at 0x4000-? that covers device & PLL PRM & CM
-> 
-> 4. one IP block at 0x8000-? that covers system CM
+> Have you checked that it will not generate any regression for OMAP4 in
+> term of PM features: suspend, cpuidle at least?
 
-In AM43x, PRCM is a single entity as in AM335x, but with a mixed address
-space for PRM & CM instances.
-
-On AM335x, from the header files, it can be seen that PRM & CM base is
-0x44e00000, here it is similar case except that the base for both is
-0x44df0000 instead.
-
-Also, script too generated the macros as in this change.
+As noted by Rajendra, there could problem where clockdomain doesn't have
+SW_SLEEP and only have HW_AUTO. I have to rework the relevant patch to
+handle it properly.
 
 Regards
 Afzal
+
