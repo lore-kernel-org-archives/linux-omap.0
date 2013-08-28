@@ -1,66 +1,32 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: Odd behavior with dpll4_m4x2_ck on omap3 + DT
-Date: Wed, 28 Aug 2013 14:40:22 +0300
-Message-ID: <521DE1A6.6030005@ti.com>
-References: <521DC143.2010506@ti.com> <521DC770.5050000@ti.com> <521DCD80.1060600@ti.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH v5] gpio: pcf857x: Add OF support
+Date: Wed, 28 Aug 2013 13:58:13 +0200
+Message-ID: <7583101.2yAsZLOucV@avalon>
+References: <1377590559-14279-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <2400176.9Vcd5TUYl9@avalon> <20130827171854.GA2988@katana>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:41935 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755130Ab3H1Lka (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 28 Aug 2013 07:40:30 -0400
-In-Reply-To: <521DCD80.1060600@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20130827171854.GA2988@katana>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>, Tomasz Figa <t.figa@samsung.com>
+Cc: linux-arm-kernel@lists.infradead.org, Wolfram Sang <wsa@the-dreams.de>, devicetree@vger.kernel.org, Tomasz Figa <tomasz.figa@gmail.com>, linux-kernel@vger.kernel.org, grant.likely@secretlab.ca, linux-gpio@vger.kernel.org, Archit Taneja <archit@ti.com>, Sylwester Nawrocki <sylvester.nawrocki@gmail.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, Mike Turquette <mturquette@linaro.org>, Stefan Roese <sr@denx.de>
 
-On 08/28/2013 01:14 PM, Tomi Valkeinen wrote:
-> On 28/08/13 12:48, Tero Kristo wrote:
->> On 08/28/2013 12:22 PM, Tomi Valkeinen wrote:
->>> Hi,
->>>
->>> I'm seeing odd clock behavior with Beagle, booting with DT. I'm using
->>> v3.11-rc7 + DSS DT patches.
->>
->> I guess you are not using the clock DT patches? Just making sure I
->> didn't break anything. :)
->
-> No, plain rc7 with my DSS DT patches.
->
->>> So, for some reason, the first clk_set_rate goes wrong. Any ideas?
->>
->> Hmm, strange. I am not seeing similar behavior, but I am calling
->> clk_set_rate in different location.... also I am using clock DT patches
->> (don't try the current version though, as I am reworking them.)
->>
->> [    0.000000] dpll4_ck: 432000000
->> [    0.000000] dpll4_m4_ck: 72000000
->> [    0.000000] dpll4_m4x2_ck: 144000000
->> [    0.000000] dss1_alwon_fck_3430es2: 144000000
->> [    0.000000] dpll4_ck: 432000000
->> [    0.000000] dpll4_m4_ck: 86400000
->> [    0.000000] dpll4_m4x2_ck: 172800000
->> [    0.000000] dss1_alwon_fck_3430es2: 172800000
->>
->> Do you see the error only when setting to some specific rate (86400000)
->> or it doesn't matter?
->
-> I also tried setting to 72000000, with the same result.
->
-> Do you know if I can somehow easily get debug prints from the clock
-> framework, that could lighten up the issue?
+On Tuesday 27 August 2013 19:18:55 Wolfram Sang wrote:
+> > The driver should support the same chip models reardless of whether it's
+> > used with or without DT. If an entry in the OF table has no corresponding
+> > entry in the I2C table I would consider that as a driver bug.
+> 
+> Linus Walleij posted a patch to support DT only probing, but too many
+> side-effects showed up. Some were fixable (probe regressions) and some
+> need more work, if feasible at all. Most prominent is that runtime
+> instantiation of i2c slaves currently needs an entry in the i2c table.
 
-There isn't any good config option for that, I would suggest add prints 
-to the clk_set_rate and then for the clocks you are interested in, print 
-results for the recalc_rate / set_rate ops also.
+Linus, I'd like to get this in v3.12 if it's not too late. Could you please 
+provide your input ?
 
--Tero
+-- 
+Regards,
 
->
->   Tomi
->
->
-
+Laurent Pinchart
