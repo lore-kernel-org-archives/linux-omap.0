@@ -1,44 +1,41 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 1/3] ARM: AM33xx: hwmod: Add RNG module data
-Date: Wed, 28 Aug 2013 18:48:40 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1308281845560.22040@utopia.booyaka.com>
-References: <1375777984-6267-1-git-send-email-lokeshvutla@ti.com> <1375777984-6267-2-git-send-email-lokeshvutla@ti.com>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [GIT PULL] non-critical omap fixes for v3.12 merge window
+Date: Wed, 28 Aug 2013 11:50:45 -0700
+Message-ID: <20130828185045.GI8607@quad.lixom.net>
+References: <20130823054609.GW7656@atomide.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:34205 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753992Ab3H1Ssl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Aug 2013 14:48:41 -0400
-In-Reply-To: <1375777984-6267-2-git-send-email-lokeshvutla@ti.com>
+Received: from mail-pb0-f45.google.com ([209.85.160.45]:39660 "EHLO
+	mail-pb0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755167Ab3H1SvZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Aug 2013 14:51:25 -0400
+Received: by mail-pb0-f45.google.com with SMTP id mc17so6595095pbc.18
+        for <linux-omap@vger.kernel.org>; Wed, 28 Aug 2013 11:51:24 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <20130823054609.GW7656@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Lokesh Vutla <lokeshvutla@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, devicetree@vger.kernel.org, rob@landley.net, rnayak@ti.com, benoit.cousson@linaro.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Kevin Hilman <khilman@linaro.org>, arm@kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Matus Ujhelyi <ujhelyi.m@gmail.com>
 
-Hi
+On Thu, Aug 22, 2013 at 10:46:10PM -0700, Tony Lindgren wrote:
 
-On Tue, 6 Aug 2013, Lokesh Vutla wrote:
+> Matus Ujhelyi (1):
+>       ARM: OMAP2+: am33xx-restart: trigger warm reset on omap2+ boards
 
-> Add RNG hwmod data for AM33xx SoC.
-> 
-> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+Sigh. am33xx has been a bit of a pain this release cycle. Can you please
+start double-checking builds when you apply am33xx stuff? :(
 
-I tried to queue this one, but it caused AM33xx boots to hang.  
-Thought it might be related to the patch ordering -- seems to me that 
-the clock change patch needed to come before this patch -- but if I 
-recall correctly, both BeagleBone and BeagleBone-LT still hung.  
+This breaks with:
 
-Also, this patch created a sparse warning.
+        multi_v7_defconfig:
+arch/arm/mach-omap2/am33xx-restart.c:27:26: error: 'AM33XX_RST_GLOBAL_WARM_SW_MASK' undeclared (first use in this function)
 
-Could you take another look at this patch?  Maybe try basing off of this 
-tag:
-
-git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/for-v3.12/omap-prcm-hwmod
-
-Fix the sparse problem, and see if the patch boots for you?
-
-thanks
+        omap2plus_defconfig:
+arch/arm/mach-omap2/am33xx-restart.c:27:26: error: 'AM33XX_RST_GLOBAL_WARM_SW_MASK' undeclared (first use in this function)
 
 
-- Paul
+I've unmerged the branch until that's resolved.
+
+-Olof
