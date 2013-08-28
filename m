@@ -1,107 +1,69 @@
-From: Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
-Subject: Re: [PATCH v2 3/3] ARM: dts: dra7-evm: Add extcon nodes for USB ID
- pin detection
-Date: Wed, 28 Aug 2013 18:40:38 +0400
-Message-ID: <521E0BE6.3080607@cogentembedded.com>
-References: <1377698352-27689-1-git-send-email-george.cherian@ti.com> <1377698352-27689-4-git-send-email-george.cherian@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH 0/2] OMAP4+: Get rid of internal SRAM handling
+Date: Wed, 28 Aug 2013 10:46:15 -0400
+Message-ID: <521E0D37.3010909@ti.com>
+References: <1377598305-15539-1-git-send-email-rnayak@ti.com> <521CA8DF.9040400@ti.com> <521D98B9.4070902@ti.com> <521DFD5A.8050406@ti.com> <521DFE5D.8070000@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1377698352-27689-4-git-send-email-george.cherian-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>
-Cc: balbi-l0cyMroinI0@public.gmane.org, myungjoo.ham-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, cw00.choi-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org, ian.campbell-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org, swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, davidb-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, popcornmix-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:55879 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752504Ab3H1Oql (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 28 Aug 2013 10:46:41 -0400
+In-Reply-To: <521DFE5D.8070000@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "bcousson@baylibre.com" <bcousson@baylibre.com>, Paul Walmsley <paul@pwsan.com>
 
-Hello.
+On Wednesday 28 August 2013 09:42 AM, Rajendra Nayak wrote:
+> On Wednesday 28 August 2013 07:08 PM, Santosh Shilimkar wrote:
+>> On Wednesday 28 August 2013 02:29 AM, Nayak, Rajendra wrote:
+>>> On Tuesday 27 August 2013 06:55 PM, Santosh Shilimkar wrote:
+>>>> + Paul,
+>>>>
+>>>> On Tuesday 27 August 2013 06:11 AM, Rajendra Nayak wrote:
+>>>>> Make all OMAP DT only platforms (am33xx, am43xx, omap4 and omap5)
+>>>>> use drivers/misc/sram.c driver instead of the omap internal
+>>>>> implementation for SRAM handling.
+>>>>>
+>>>>> Rajendra Nayak (2):
+>>>>>   ARM: AM335x: Get rid of unused sram init function
+>>>>>   ARM: OMAP4+: Move SRAM data to DT
+>>>>>
+>>>>>  arch/arm/boot/dts/am33xx.dtsi        |    5 +++++
+>>>>>  arch/arm/boot/dts/am4372.dtsi        |    5 +++++
+>>>>>  arch/arm/boot/dts/omap4.dtsi         |    5 +++++
+>>>>>  arch/arm/boot/dts/omap5.dtsi         |    5 +++++
+>>>>>  arch/arm/configs/omap2plus_defconfig |    1 +
+>>>>>  arch/arm/mach-omap2/sram.c           |   39 +---------------------------------
+>>>>>  arch/arm/mach-omap2/sram.h           |    1 -
+>>>>>  7 files changed, 22 insertions(+), 39 deletions(-)
+>>>>>
+>>>> Really nice to see the SRAM code getting moved now. Thanks
+>>>> a lot Rajendra.
+>>>>
+>>>> - The sram_init() seems to be the post core init call.
+>>>> Hope this is not a problem for SDRC init which needs to have
+>>>> SRAM ready to update the DDR parameters.
+>>>
+>>> It should be fine given its needed only during core dvfs. Besides
+>>> drivers/misc/sram.c is useful only on DT platforms, so for now OMAP2/3
+>>> continue to use the omap specific sram handling.
+>>>
+>> Its used in early boot to initialize the DDR parameters and then
+>> later these can be used based on whether core DVFS supported or
+>> not. Look for _omap2_init_reprogram_sdrc() which has init
+>> dependency with omap_sram_init().
+> 
+> Right, I see that now. With this series (which addresses only DT platforms)
+> we would still be fine with the omap2/3 sdrc usage.
+> 
+Yep. When OMAP3 becomes DT only then this could become problem. Actually
+the SDRC init can be moved bit further down to solve that one as well so
+should be ok I guess.
 
-On 08/28/2013 05:59 PM, George Cherian wrote:
+Regards,
+Santosh
 
-> Add
-> 	-extcon nodes for USB ID pin detection.
-> 	-i2c nodes.
-> 	-pcf nodes to which USB ID pin is connected.
-
-> Signed-off-by: George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>
-> ---
->   arch/arm/boot/dts/dra7-evm.dts | 52 +++++++++++++++++++++++++++++++++++++++++-
->   1 file changed, 51 insertions(+), 1 deletion(-)
-
-> diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
-> index acd3c09..9ee97c0 100644
-> --- a/arch/arm/boot/dts/dra7-evm.dts
-> +++ b/arch/arm/boot/dts/dra7-evm.dts
-> @@ -17,6 +17,17 @@
->   		device_type = "memory";
->   		reg = <0x80000000 0x60000000>; /* 1536 MB */
->   	};
-> +
-> +	extcon1: gpio_usbvid_extcon1 {
-> +		compatible = "ti,gpio-usb-id";
-> +		gpios = <&pcf_21 1 0>;
-> +	};
-> +
-> +	extcon2: gpio_usbvid_extcon2 {
-> +		compatible = "ti,gpio-usb-id";
-> +		gpios = <&pcf_21 2 0>;
-> +	};
-> +
->   };
->
->   &dra7_pmx_core {
-> @@ -33,10 +44,49 @@
->           };
->   };
->
-> +&i2c1 {
-> +	clock-frequency = <400000>;
-> +
-> +	pcf_20: pcf8575@20 {
-
-    Acorrding to the ePAPR spec [1], "the name of a node should be somewhat 
-generic, reflecting the function of the device and not its precise 
-programming model. If appropriate, the name should be one of the following 
-choices:
-
-[...]
-- gpio
-[...]"
-
-> +		compatible = "ti,pcf8575";
-> +		reg = <0x20>;
-> +		n_latch = <0x4000>;
-> +		gpio-controller;
-> +		#gpio-cells = <2>;
-> +		interrupt-parent = <&gpio6>;
-> +		interrupts = <11 2>;
-> +		interrupt-controller;
-> +		#interrupt-cells = <2>;
-> +	};
-> +
-> +	pcf_21: pcf8575@21 {
-
-    Same comment here.
-
-> +		compatible = "ti,pcf8575";
-> +		reg = <0x21>;
-> +		n_latch = <0x1408>;
-> +		gpio-controller;
-> +		#gpio-cells = <2>;
-> +		interrupt-parent = <&pcf_20>;
-> +		interrupts = <14 2>;
-> +		interrupt-controller;
-> +		#interrupt-cells = <2>;
-> +	};
-> +
-> +};
-> +
-
-[1] http://www.power.org/resources/downloads/Power_ePAPR_APPROVED_v1.0.pdf
-
-WBR, Sergei
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
