@@ -1,7 +1,7 @@
 From: George Cherian <george.cherian@ti.com>
-Subject: [PATCH v2 2/3] drivers: Makefile: Extcon is a framework so bump it up
-Date: Wed, 28 Aug 2013 19:29:11 +0530
-Message-ID: <1377698352-27689-3-git-send-email-george.cherian@ti.com>
+Subject: [PATCH v2 3/3] ARM: dts: dra7-evm: Add extcon nodes for USB ID pin detection
+Date: Wed, 28 Aug 2013 19:29:12 +0530
+Message-ID: <1377698352-27689-4-git-send-email-george.cherian@ti.com>
 References: <1377698352-27689-1-git-send-email-george.cherian@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,34 +12,88 @@ To: balbi@ti.com, myungjoo.ham@samsung.com, cw00.choi@samsung.com
 Cc: linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, grant.likely@linaro.org, rob@landley.net, ian.campbell@citrix.com, swarren@wwwdotorg.org, mark.rutland@arm.com, pawel.moll@arm.com, rob.herring@calxeda.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, bcousson@baylibre.com, davidb@codeaurora.org, arnd@arndb.de, swarren@nvidia.com, popcornmix@gmail.com, George Cherian <george.cherian@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Bump up the order, since extcon is a framework and needed by
-other drivers. With the previous order it failed to detect
-extcon device in DWC3 when both were compiled built-in.
+Add
+	-extcon nodes for USB ID pin detection.
+	-i2c nodes.
+	-pcf nodes to which USB ID pin is connected.
 
 Signed-off-by: George Cherian <george.cherian@ti.com>
 ---
- drivers/Makefile | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm/boot/dts/dra7-evm.dts | 52 +++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 51 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/Makefile b/drivers/Makefile
-index ab93de8..4573b8d 100644
---- a/drivers/Makefile
-+++ b/drivers/Makefile
-@@ -49,6 +49,7 @@ obj-y				+= char/
- obj-y				+= gpu/
+diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
+index acd3c09..9ee97c0 100644
+--- a/arch/arm/boot/dts/dra7-evm.dts
++++ b/arch/arm/boot/dts/dra7-evm.dts
+@@ -17,6 +17,17 @@
+ 		device_type = "memory";
+ 		reg = <0x80000000 0x60000000>; /* 1536 MB */
+ 	};
++
++	extcon1: gpio_usbvid_extcon1 {
++		compatible = "ti,gpio-usb-id";
++		gpios = <&pcf_21 1 0>;
++	};
++
++	extcon2: gpio_usbvid_extcon2 {
++		compatible = "ti,gpio-usb-id";
++		gpios = <&pcf_21 2 0>;
++	};
++
+ };
  
- obj-$(CONFIG_CONNECTOR)		+= connector/
-+obj-$(CONFIG_EXTCON)		+= extcon/
+ &dra7_pmx_core {
+@@ -33,10 +44,49 @@
+         };
+ };
  
- # i810fb and intelfb depend on char/agp/
- obj-$(CONFIG_FB_I810)           += video/i810/
-@@ -145,7 +146,6 @@ obj-$(CONFIG_VIRT_DRIVERS)	+= virt/
- obj-$(CONFIG_HYPERV)		+= hv/
++&i2c1 {
++	clock-frequency = <400000>;
++
++	pcf_20: pcf8575@20 {
++		compatible = "ti,pcf8575";
++		reg = <0x20>;
++		n_latch = <0x4000>;
++		gpio-controller;
++		#gpio-cells = <2>;
++		interrupt-parent = <&gpio6>;
++		interrupts = <11 2>;
++		interrupt-controller;
++		#interrupt-cells = <2>;
++	};
++
++	pcf_21: pcf8575@21 {
++		compatible = "ti,pcf8575";
++		reg = <0x21>;
++		n_latch = <0x1408>;
++		gpio-controller;
++		#gpio-cells = <2>;
++		interrupt-parent = <&pcf_20>;
++		interrupts = <14 2>;
++		interrupt-controller;
++		#interrupt-cells = <2>;
++	};
++
++};
++
+ &dwc3_1 {
+-	dr_mode = "otg";
++	dr_mode = "host";
++/*	extcon = <&extcon1>;*/
+ };
  
- obj-$(CONFIG_PM_DEVFREQ)	+= devfreq/
--obj-$(CONFIG_EXTCON)		+= extcon/
- obj-$(CONFIG_MEMORY)		+= memory/
- obj-$(CONFIG_IIO)		+= iio/
- obj-$(CONFIG_VME_BUS)		+= vme/
+ &dwc3_2 {
+ 	dr_mode = "host";
++	/*extcon = <&extcon2>;*/
++};
++
++&usb1 {
++	extcon = <&extcon1>;
++};
++
++&usb2 {
++	extcon = <&extcon2>;
+ };
 -- 
 1.8.1.4
