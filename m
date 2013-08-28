@@ -1,55 +1,66 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH v11 0/8] PHY framework
-Date: Wed, 28 Aug 2013 16:13:58 +0530
-Message-ID: <521DD46E.9090202@ti.com>
-References: <1377063973-22044-1-git-send-email-kishon@ti.com> <521B0E79.6060506@ti.com> <20130827192059.GZ3005@radagast>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: Odd behavior with dpll4_m4x2_ck on omap3 + DT
+Date: Wed, 28 Aug 2013 14:40:22 +0300
+Message-ID: <521DE1A6.6030005@ti.com>
+References: <521DC143.2010506@ti.com> <521DC770.5050000@ti.com> <521DCD80.1060600@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130827192059.GZ3005@radagast>
-Sender: linux-kernel-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: gregkh@linuxfoundation.org, kyungmin.park@samsung.com, jg1.han@samsung.com, s.nawrocki@samsung.com, kgene.kim@samsung.com, stern@rowland.harvard.edu, broonie@kernel.org, tomasz.figa@gmail.com, arnd@arndb.de, grant.likely@linaro.org, tony@atomide.com, swarren@nvidia.com, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org, akpm@linux-foundation.org, balajitk@ti.com, george.cherian@ti.com, nsekhar@ti.com, linux@arm.linux.org.uk
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:41935 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755130Ab3H1Lka (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 28 Aug 2013 07:40:30 -0400
+In-Reply-To: <521DCD80.1060600@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, Mike Turquette <mturquette@linaro.org>, Stefan Roese <sr@denx.de>
 
-Hi,
-
-On Wednesday 28 August 2013 12:50 AM, Felipe Balbi wrote:
-> Hi,
-> 
-> On Mon, Aug 26, 2013 at 01:44:49PM +0530, Kishon Vijay Abraham I wrote:
->> On Wednesday 21 August 2013 11:16 AM, Kishon Vijay Abraham I wrote:
->>> Added a generic PHY framework that provides a set of APIs for the PHY drivers
->>> to create/destroy a PHY and APIs for the PHY users to obtain a reference to
->>> the PHY with or without using phandle.
+On 08/28/2013 01:14 PM, Tomi Valkeinen wrote:
+> On 28/08/13 12:48, Tero Kristo wrote:
+>> On 08/28/2013 12:22 PM, Tomi Valkeinen wrote:
+>>> Hi,
 >>>
->>> This framework will be of use only to devices that uses external PHY (PHY
->>> functionality is not embedded within the controller).
->>>
->>> The intention of creating this framework is to bring the phy drivers spread
->>> all over the Linux kernel to drivers/phy to increase code re-use and to
->>> increase code maintainability.
->>>
->>> Comments to make PHY as bus wasn't done because PHY devices can be part of
->>> other bus and making a same device attached to multiple bus leads to bad
->>> design.
->>>
->>> If the PHY driver has to send notification on connect/disconnect, the PHY
->>> driver should make use of the extcon framework. Using this susbsystem
->>> to use extcon framwork will have to be analysed.
->>>
->>> You can find this patch series @
->>> git://git.kernel.org/pub/scm/linux/kernel/git/kishon/linux-phy.git testing
+>>> I'm seeing odd clock behavior with Beagle, booting with DT. I'm using
+>>> v3.11-rc7 + DSS DT patches.
 >>
->> Looks like there are not further comments on this series. Can you take this in
->> your misc tree?
-> 
-> Do you want me to queue these for you ? There are quite a few users for
-> this framework already and I know of at least 2 others which will show
-> up for v3.13.
+>> I guess you are not using the clock DT patches? Just making sure I
+>> didn't break anything. :)
+>
+> No, plain rc7 with my DSS DT patches.
+>
+>>> So, for some reason, the first clk_set_rate goes wrong. Any ideas?
+>>
+>> Hmm, strange. I am not seeing similar behavior, but I am calling
+>> clk_set_rate in different location.... also I am using clock DT patches
+>> (don't try the current version though, as I am reworking them.)
+>>
+>> [    0.000000] dpll4_ck: 432000000
+>> [    0.000000] dpll4_m4_ck: 72000000
+>> [    0.000000] dpll4_m4x2_ck: 144000000
+>> [    0.000000] dss1_alwon_fck_3430es2: 144000000
+>> [    0.000000] dpll4_ck: 432000000
+>> [    0.000000] dpll4_m4_ck: 86400000
+>> [    0.000000] dpll4_m4x2_ck: 172800000
+>> [    0.000000] dss1_alwon_fck_3430es2: 172800000
+>>
+>> Do you see the error only when setting to some specific rate (86400000)
+>> or it doesn't matter?
+>
+> I also tried setting to 72000000, with the same result.
+>
+> Do you know if I can somehow easily get debug prints from the clock
+> framework, that could lighten up the issue?
 
-yeah sure. That would be better I think.
+There isn't any good config option for that, I would suggest add prints 
+to the clk_set_rate and then for the clocks you are interested in, print 
+results for the recalc_rate / set_rate ops also.
 
-Thanks
-Kishon
+-Tero
+
+>
+>   Tomi
+>
+>
+
