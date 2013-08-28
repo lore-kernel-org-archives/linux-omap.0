@@ -1,66 +1,58 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH 0/2] OMAP4+: Get rid of internal SRAM handling
-Date: Wed, 28 Aug 2013 19:12:53 +0530
-Message-ID: <521DFE5D.8070000@ti.com>
-References: <1377598305-15539-1-git-send-email-rnayak@ti.com> <521CA8DF.9040400@ti.com> <521D98B9.4070902@ti.com> <521DFD5A.8050406@ti.com>
+From: George Cherian <george.cherian@ti.com>
+Subject: [PATCH v2 0/3] Add Generic USB VBUS/ID detection via GPIO using extcon
+Date: Wed, 28 Aug 2013 19:29:09 +0530
+Message-ID: <1377698352-27689-1-git-send-email-george.cherian@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:50787 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752055Ab3H1Nn1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 28 Aug 2013 09:43:27 -0400
-In-Reply-To: <521DFD5A.8050406@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: balbi@ti.com, myungjoo.ham@samsung.com, cw00.choi@samsung.com
+Cc: linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, grant.likely@linaro.org, rob@landley.net, ian.campbell@citrix.com, swarren@wwwdotorg.org, mark.rutland@arm.com, pawel.moll@arm.com, rob.herring@calxeda.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, bcousson@baylibre.com, davidb@codeaurora.org, arnd@arndb.de, swarren@nvidia.com, popcornmix@gmail.com, George Cherian <george.cherian@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "bcousson@baylibre.com" <bcousson@baylibre.com>, Paul Walmsley <paul@pwsan.com>
 
-On Wednesday 28 August 2013 07:08 PM, Santosh Shilimkar wrote:
-> On Wednesday 28 August 2013 02:29 AM, Nayak, Rajendra wrote:
->> On Tuesday 27 August 2013 06:55 PM, Santosh Shilimkar wrote:
->>> + Paul,
->>>
->>> On Tuesday 27 August 2013 06:11 AM, Rajendra Nayak wrote:
->>>> Make all OMAP DT only platforms (am33xx, am43xx, omap4 and omap5)
->>>> use drivers/misc/sram.c driver instead of the omap internal
->>>> implementation for SRAM handling.
->>>>
->>>> Rajendra Nayak (2):
->>>>   ARM: AM335x: Get rid of unused sram init function
->>>>   ARM: OMAP4+: Move SRAM data to DT
->>>>
->>>>  arch/arm/boot/dts/am33xx.dtsi        |    5 +++++
->>>>  arch/arm/boot/dts/am4372.dtsi        |    5 +++++
->>>>  arch/arm/boot/dts/omap4.dtsi         |    5 +++++
->>>>  arch/arm/boot/dts/omap5.dtsi         |    5 +++++
->>>>  arch/arm/configs/omap2plus_defconfig |    1 +
->>>>  arch/arm/mach-omap2/sram.c           |   39 +---------------------------------
->>>>  arch/arm/mach-omap2/sram.h           |    1 -
->>>>  7 files changed, 22 insertions(+), 39 deletions(-)
->>>>
->>> Really nice to see the SRAM code getting moved now. Thanks
->>> a lot Rajendra.
->>>
->>> - The sram_init() seems to be the post core init call.
->>> Hope this is not a problem for SDRC init which needs to have
->>> SRAM ready to update the DDR parameters.
->>
->> It should be fine given its needed only during core dvfs. Besides
->> drivers/misc/sram.c is useful only on DT platforms, so for now OMAP2/3
->> continue to use the omap specific sram handling.
->>
-> Its used in early boot to initialize the DDR parameters and then
-> later these can be used based on whether core DVFS supported or
-> not. Look for _omap2_init_reprogram_sdrc() which has init
-> dependency with omap_sram_init().
+Hi,
 
-Right, I see that now. With this series (which addresses only DT platforms)
-we would still be fine with the omap2/3 sdrc usage.
+These patches add generic support for USB VBUS/ID pin detection using extcon framework. 
+The USB ID pin on DRA7xx is connected via the gpio expander pcf8575. 
+The interrupt line of the same is connected to the gpio 11 of bank 6. 
+The following driver relies on  the  gpio interrupt to notify the actual 
+ID pin values by which the dwc3 driver determines the HOST/Peripheral roles.
 
-> 
-> Regards,
-> Santosh
-> 
 
+These patches are on top of following merges.
+v3.11-rc3 dra7 baseport tree [1] , with balbi/next ,control-usb multi instance support [2],
+chanwoo/extcon-next, roger's patches for USB host adaptation[3],Laurent Pinchart's patch to 
+Enable pcf857x GPIO expander for Device Tree[4] and pcf857x cleanup patch [5].
+
+Patches are available at 
+extcon_gpio_usbvid
+in git tree
+git://git.ti.com/~georgecherian/ti-linux-kernel/georgec-connectivity-linux-feature-tree.git 
+
+[1] - dra7 base tree
+	https://github.com/lokeshvutla/linux/tree/dra7-3.11-rc3-base
+[2] - multiple control-usb instances
+	https://github.com/rogerq/linux/tree/usb-control-module
+[3] - [PATCH 0/4] ARM: DRA7-evm: USB host adaptation
+	https://lkml.org/lkml/2013/8/1/335
+[4] - [PATCH v5] gpio: pcf857x: Add OF support 
+ 	https://lkml.org/lkml/2013/8/27/70
+[5] - [PATCH] gpio: pcf857x: cleanup irq_demux_work and use threaded irq
+	https://lkml.org/lkml/2013/8/27/207
+
+George Cherian (3):
+  extcon: extcon-gpio-usbvid: Generic USB VBUS/ID detection via GPIO
+  drivers: Makefile: Extcon is a framework so bump it up
+  ARM: dts: dra7-evm: Add extcon nodes for USB ID pin detection
+
+ .../bindings/extcon/extcon-gpio-usbvid.txt         |  20 +++
+ arch/arm/boot/dts/dra7-evm.dts                     |  52 +++++-
+ drivers/Makefile                                   |   2 +-
+ drivers/extcon/Kconfig                             |   7 +-
+ drivers/extcon/Makefile                            |   2 +-
+ drivers/extcon/extcon-gpio-usbvid.c                | 185 +++++++++++++++++----
+ 6 files changed, 226 insertions(+), 42 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/extcon/extcon-gpio-usbvid.txt
+
+-- 
+1.8.1.4
