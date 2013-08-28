@@ -1,50 +1,98 @@
-From: George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v3 2/3] drivers: Makefile: Extcon is a framework so bump it up
-Date: Wed, 28 Aug 2013 23:03:04 +0530
-Message-ID: <1377711185-31238-3-git-send-email-george.cherian@ti.com>
+From: George Cherian <george.cherian@ti.com>
+Subject: [PATCH v3 3/3] ARM: dts: dra7-evm: Add extcon nodes for USB ID pin detection
+Date: Wed, 28 Aug 2013 23:03:05 +0530
+Message-ID: <1377711185-31238-4-git-send-email-george.cherian@ti.com>
 References: <1377711185-31238-1-git-send-email-george.cherian@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1377711185-31238-1-git-send-email-george.cherian-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: balbi-l0cyMroinI0@public.gmane.org, myungjoo.ham-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, cw00.choi-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org
-Cc: linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org, ian.campbell-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org, swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, davidb-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, popcornmix-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <1377711185-31238-1-git-send-email-george.cherian@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: balbi@ti.com, myungjoo.ham@samsung.com, cw00.choi@samsung.com
+Cc: linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, grant.likely@linaro.org, rob@landley.net, ian.campbell@citrix.com, swarren@wwwdotorg.org, mark.rutland@arm.com, pawel.moll@arm.com, rob.herring@calxeda.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, bcousson@baylibre.com, davidb@codeaurora.org, arnd@arndb.de, swarren@nvidia.com, popcornmix@gmail.com, George Cherian <george.cherian@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Bump up the order, since extcon is a framework and needed by
-other drivers. With the previous order it failed to detect
-extcon device in DWC3 when both were compiled built-in.
+Add
+	-extcon nodes for USB ID pin detection.
+	-i2c nodes.
+	-pcf nodes to which USB ID pin is connected.
 
-Signed-off-by: George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>
+Signed-off-by: George Cherian <george.cherian@ti.com>
 ---
- drivers/Makefile | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm/boot/dts/dra7-evm.dts | 50 +++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 49 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/Makefile b/drivers/Makefile
-index ab93de8..4573b8d 100644
---- a/drivers/Makefile
-+++ b/drivers/Makefile
-@@ -49,6 +49,7 @@ obj-y				+= char/
- obj-y				+= gpu/
+diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
+index acd3c09..8b0738a 100644
+--- a/arch/arm/boot/dts/dra7-evm.dts
++++ b/arch/arm/boot/dts/dra7-evm.dts
+@@ -17,6 +17,17 @@
+ 		device_type = "memory";
+ 		reg = <0x80000000 0x60000000>; /* 1536 MB */
+ 	};
++
++	extcon1: gpio_usbvid_extcon1 {
++		compatible = "ti,gpio-usb-id";
++		gpios = <&gpio21 1 0>;
++	};
++
++	extcon2: gpio_usbvid_extcon2 {
++		compatible = "ti,gpio-usb-id";
++		gpios = <&gpio21 2 0>;
++	};
++
+ };
  
- obj-$(CONFIG_CONNECTOR)		+= connector/
-+obj-$(CONFIG_EXTCON)		+= extcon/
+ &dra7_pmx_core {
+@@ -33,10 +44,47 @@
+         };
+ };
  
- # i810fb and intelfb depend on char/agp/
- obj-$(CONFIG_FB_I810)           += video/i810/
-@@ -145,7 +146,6 @@ obj-$(CONFIG_VIRT_DRIVERS)	+= virt/
- obj-$(CONFIG_HYPERV)		+= hv/
++&i2c1 {
++	clock-frequency = <400000>;
++
++	gpio20: pcf8575@20 {
++		compatible = "ti,pcf8575";
++		reg = <0x20>;
++		n_latch = <0x4000>;
++		gpio-controller;
++		#gpio-cells = <2>;
++		interrupt-parent = <&gpio6>;
++		interrupts = <11 2>;
++		interrupt-controller;
++		#interrupt-cells = <2>;
++	};
++
++	gpio21: pcf8575@21 {
++		compatible = "ti,pcf8575";
++		reg = <0x21>;
++		n_latch = <0x1408>;
++		gpio-controller;
++		#gpio-cells = <2>;
++		interrupt-parent = <&pcf_20>;
++		interrupts = <14 2>;
++		interrupt-controller;
++		#interrupt-cells = <2>;
++	};
++
++};
++
+ &dwc3_1 {
+-	dr_mode = "otg";
++	dr_mode = "host";
+ };
  
- obj-$(CONFIG_PM_DEVFREQ)	+= devfreq/
--obj-$(CONFIG_EXTCON)		+= extcon/
- obj-$(CONFIG_MEMORY)		+= memory/
- obj-$(CONFIG_IIO)		+= iio/
- obj-$(CONFIG_VME_BUS)		+= vme/
+ &dwc3_2 {
+ 	dr_mode = "host";
+ };
++
++&usb1 {
++	extcon = <&extcon1>;
++};
++
++&usb2 {
++	extcon = <&extcon2>;
++};
 -- 
 1.8.1.4
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
