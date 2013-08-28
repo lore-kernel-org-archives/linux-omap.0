@@ -1,59 +1,60 @@
-From: Afzal Mohammed <afzal@ti.com>
-Subject: Re: [PATCH v2 10/13] ARM: OMAP2+: hwmod: AM43x operations
-Date: Wed, 28 Aug 2013 17:59:48 +0530
-Message-ID: <521DED3C.2040407@ti.com>
-References: <cover.1375443858.git.afzal@ti.com> <838ab5ad788f64cef1e8859409490aa2b495d1ee.1375443858.git.afzal@ti.com> <5214A4D5.4000700@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH 0/2] OMAP4+: Get rid of internal SRAM handling
+Date: Wed, 28 Aug 2013 09:38:34 -0400
+Message-ID: <521DFD5A.8050406@ti.com>
+References: <1377598305-15539-1-git-send-email-rnayak@ti.com> <521CA8DF.9040400@ti.com> <521D98B9.4070902@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:59511 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753718Ab3H1MaR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 28 Aug 2013 08:30:17 -0400
-In-Reply-To: <5214A4D5.4000700@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:33090 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752758Ab3H1Ni7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Aug 2013 09:38:59 -0400
+In-Reply-To: <521D98B9.4070902@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Benoit Cousson <benoit.cousson@linaro.org>, Paul Walmsley <paul@pwsan.com>, Ambresh K <ambresh@ti.com>, benoit.cousson@gmail.com
+To: "Nayak, Rajendra" <rnayak@ti.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "bcousson@baylibre.com" <bcousson@baylibre.com>, Paul Walmsley <paul@pwsan.com>
 
-Hi Rajendra,
-
-On Wednesday 21 August 2013 05:00 PM, Rajendra Nayak wrote:
-> On Friday 02 August 2013 07:08 PM, Afzal Mohammed wrote:
-
->> Reuse OMAP4 operations on AM43x.
+On Wednesday 28 August 2013 02:29 AM, Nayak, Rajendra wrote:
+> On Tuesday 27 August 2013 06:55 PM, Santosh Shilimkar wrote:
+>> + Paul,
 >>
->> Signed-off-by: Ambresh K <ambresh@ti.com>
->> Signed-off-by: Afzal Mohammed <afzal@ti.com>
->> ---
->>  arch/arm/mach-omap2/omap_hwmod.c |    8 ++++++++
->>  1 file changed, 8 insertions(+)
+>> On Tuesday 27 August 2013 06:11 AM, Rajendra Nayak wrote:
+>>> Make all OMAP DT only platforms (am33xx, am43xx, omap4 and omap5)
+>>> use drivers/misc/sram.c driver instead of the omap internal
+>>> implementation for SRAM handling.
+>>>
+>>> Rajendra Nayak (2):
+>>>   ARM: AM335x: Get rid of unused sram init function
+>>>   ARM: OMAP4+: Move SRAM data to DT
+>>>
+>>>  arch/arm/boot/dts/am33xx.dtsi        |    5 +++++
+>>>  arch/arm/boot/dts/am4372.dtsi        |    5 +++++
+>>>  arch/arm/boot/dts/omap4.dtsi         |    5 +++++
+>>>  arch/arm/boot/dts/omap5.dtsi         |    5 +++++
+>>>  arch/arm/configs/omap2plus_defconfig |    1 +
+>>>  arch/arm/mach-omap2/sram.c           |   39 +---------------------------------
+>>>  arch/arm/mach-omap2/sram.h           |    1 -
+>>>  7 files changed, 22 insertions(+), 39 deletions(-)
+>>>
+>> Really nice to see the SRAM code getting moved now. Thanks
+>> a lot Rajendra.
 >>
->> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
->> index 7f4db12..a1b7e20 100644
->> --- a/arch/arm/mach-omap2/omap_hwmod.c
->> +++ b/arch/arm/mach-omap2/omap_hwmod.c
->> @@ -4123,6 +4123,14 @@ void __init omap_hwmod_init(void)
->>  		soc_ops.init_clkdm = _init_clkdm;
->>  		soc_ops.update_context_lost = _omap4_update_context_lost;
->>  		soc_ops.get_context_lost = _omap4_get_context_lost;
->> +	} else if (soc_is_am43xx()) {
->> +		soc_ops.enable_module = _omap4_enable_module;
->> +		soc_ops.disable_module = _omap4_disable_module;
->> +		soc_ops.wait_target_ready = _omap4_wait_target_ready;
->> +		soc_ops.assert_hardreset = _omap4_assert_hardreset;
->> +		soc_ops.deassert_hardreset = _omap4_deassert_hardreset;
->> +		soc_ops.is_hardreset_asserted = _omap4_is_hardreset_asserted;
->> +		soc_ops.init_clkdm = _init_clkdm;
+>> - The sram_init() seems to be the post core init call.
+>> Hope this is not a problem for SDRC init which needs to have
+>> SRAM ready to update the DDR parameters.
 > 
-> Did you leave out soc_ops.update_context_lost and soc_ops.get_context_lost on
-> purpose?
+> It should be fine given its needed only during core dvfs. Besides
+> drivers/misc/sram.c is useful only on DT platforms, so for now OMAP2/3
+> continue to use the omap specific sram handling.
+> 
+Its used in early boot to initialize the DDR parameters and then
+later these can be used based on whether core DVFS supported or
+not. Look for _omap2_init_reprogram_sdrc() which has init
+dependency with omap_sram_init().
 
-As far as I understand, primarily driver make use of this with the help
-of function pointers passed through platform data. And as am43x is a DT
-only platform, it was left out.
-
-Regards
-Afzal
+Regards,
+Santosh
 
