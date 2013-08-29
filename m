@@ -1,95 +1,60 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH] gpio: pcf857x: cleanup irq_demux_work and use threaded irq
-Date: Thu, 29 Aug 2013 14:57:50 +0200
-Message-ID: <CACRpkdbME_M8_X=5OttSFKDknqVEKSZc+7u=VLM-T-g3c_uv6Q@mail.gmail.com>
-References: <1377599455-9379-1-git-send-email-george.cherian@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: [PATCHv6 00/45] OMAP CCF DT conversion
+Date: Thu, 29 Aug 2013 16:15:52 +0300
+Message-ID: <1377782197-10611-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <1377599455-9379-1-git-send-email-george.cherian@ti.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: George Cherian <george.cherian@ti.com>, Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>, Nikolay Balandin <n.a.balandin@gmail.com>, Grant Likely <grant.likely@linaro.org>
-Cc: "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:55498 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752573Ab3H2NRS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Aug 2013 09:17:18 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, rnayak@ti.com, nm@ti.com, mturquette@linaro.org
+Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-On Tue, Aug 27, 2013 at 12:30 PM, George Cherian <george.cherian@ti.com> wrote:
+Hi,
 
-> This patch
->         - removes the irq_demux_work
->         - Uses devm_request_threaded_irq
->         - Call the user handler iff gpio_to_irq is done.
->
-> Signed-off-by: George Cherian <george.cherian@ti.com>
+Rather large diff from previous version, main changes:
 
-Can you please split this up? It seems like three different patches,
-and now they block each other. The threading patch is fine and
-I could apply it unless this was mixed up with other stuff.
+- Rebased on top of v3.11-rc5 (+ DRA7 data + Mike's clock bindings v4)
+- Clkdev code hacks replaced with a static array of clkdev entries which
+  get initialized during boot based on SoC type. These arrays can be
+  eventually removed once DT support for device drivers is fixed
+- Devicetree documentation changes
+- Split compatible + flag clock types to different clock types (e.g.
+  ti,gate-clock + ti,dss-clock => ti,dss-gate-clock), flags are no longer
+  needed
+- Removed some unnecessary DT properties for some of the clocks (like
+  DPLL has no longer clk-ref/clk-bypass / recal bit info)
+- Added a couple of patch sets from Rajendra (31-33) + Nishanth (38-40) to
+  the end; these are dealing with DT clock data and help to reduce code
+  from mach-omap2, added also a number of patches that tweak the DT data
+  based on these sets
 
-I'd like Kuninoro and/or Nikolay to have a look at this, so please
-CC them on subsequent iterations.
+NOTES:
+ - Patches 31+ are only needed for cleanup purposes
+ - Patches 43+ require Tony's DRA7 data pull-req to apply cleanly / work
+ - Patch 37 should only be applied once legacy boot for OMAP3 can be omitted
 
-NB: I really like that you move the irq handling to a thread, good
-job.
+Test branch available here:
 
->  static const struct i2c_device_id pcf857x_id[] = {
-> @@ -89,12 +89,12 @@ struct pcf857x {
->         struct gpio_chip        chip;
->         struct i2c_client       *client;
->         struct mutex            lock;           /* protect 'out' */
-> -       struct work_struct      work;           /* irq demux work */
->         struct irq_domain       *irq_domain;    /* for irq demux  */
->         spinlock_t              slock;          /* protect irq demux */
->         unsigned                out;            /* software latch */
->         unsigned                status;         /* current status */
->         int                     irq;            /* real irq number */
-> +       int                     irq_mapped;     /* mapped gpio irqs  */
+https://github.com/t-kristo/linux-pm.git
+branch: v3.11-rc5-clk-dt-v6
 
-This seems like an u32 or atleast unsigned, and state that its one
-bit flag per IRQ. How many GPIO lines are there?
+This branch contains:
+- Tony's DRA7 data pull-request
+- Mike's basic clock binding patches v4
+- Couple of hacks for testing purposes
+- This set
 
-> -static void pcf857x_irq_demux_work(struct work_struct *work)
-> +static irqreturn_t pcf857x_irq(int irq, void *data)
->  {
-> -       struct pcf857x *gpio = container_of(work,
-> -                                              struct pcf857x,
-> -                                              work);
-> +       struct pcf857x  *gpio = data;
->         unsigned long change, i, status, flags;
->
->         status = gpio->read(gpio->client);
->
->         spin_lock_irqsave(&gpio->slock, flags);
-> +
-> +       /*
-> +        * call the interrupt handler iff gpio is used as
-> +        * interrupt source, just to avoid bad irqs
-> +        */
->
-> -       change = gpio->status ^ status;
-> +       change = ((gpio->status ^ status) & gpio->irq_mapped);
+Testing done:
+- AM335x-bone - boot test
+- OMAP3-beagle - boot test, suspend test
+- OMAP4-panda-es - boot test, suspend test
+- OMAP5-sevm - boot test
+- DRA7-evm - boot test
 
-I don't know if that is right.
+-Tero
 
-If this happens you are getting what we call a "spurious IRQ"
-and this shall be reported to the IRQ core by returning
-IRQ_NONE and handled from there.
-
-> @@ -226,9 +223,13 @@ static irqreturn_t pcf857x_irq_demux(int irq, void *data)
->  static int pcf857x_irq_domain_map(struct irq_domain *domain, unsigned int virq,
->                                  irq_hw_number_t hw)
->  {
-> +       struct pcf857x  *gpio = domain->host_data;
->         irq_set_chip_and_handler(virq,
->                                  &dummy_irq_chip,
->                                  handle_level_irq);
-> +       set_irq_flags(virq, IRQF_VALID);
-> +       gpio->irq_mapped |= (1 << hw);
-
-I'm a bit uneasy about this. It feels like its the irqdomain's
-responsibility to keep track of whether an IRQ is mapped
-or not.
-
-Maybe Grant should have a look at this.
-
-Yours,
-Linus Walleij
