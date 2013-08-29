@@ -1,78 +1,43 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH v4 0/4] ARM: OMAP2+: AM33XX: VDD CORE OPP50 support
-Date: Thu, 29 Aug 2013 19:03:53 +0100
-Message-ID: <20130829180353.GP10783@sirena.org.uk>
-References: <1376487480.3889.64.camel@coredoba.hi.pengutronix.de>
- <CA+Bv8XYe0UzBkjqtO7bNkgNVTQtxiM7Hv93BOu8Lw1=pESOwLA@mail.gmail.com>
- <87txiasqhk.fsf@linaro.org>
- <CA+Bv8XZagHZ9mUuZB49hrH=901fXzoAcV8C0Fm3EfLa2eiBu0w@mail.gmail.com>
- <20130829110534.GV10783@sirena.org.uk>
- <CAGa+x85u0OpB9o71xUTs15wt8Te-o5f0C9o22GHzZwOjn5F6=w@mail.gmail.com>
- <20130829154929.GJ10783@sirena.org.uk>
- <CA+Bv8XYbpqQAYwJ3=vkP0gXDMTp7_VNVzB0NXLG6GHDi=Z1img@mail.gmail.com>
- <20130829173022.GN10783@sirena.org.uk>
- <CA+Bv8Xb38bwby78Q--nEGffBknj5ZD98x0OuRX5N1EFNjbh7zA@mail.gmail.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH v5] gpio: pcf857x: Add OF support
+Date: Thu, 29 Aug 2013 20:24:32 +0200
+Message-ID: <CACRpkda=pZ6xQ2XJke=MBLiH_DAS8CXW+JOZ856ohGZi+fOCzA@mail.gmail.com>
+References: <1377590559-14279-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+	<2400176.9Vcd5TUYl9@avalon>
+	<20130827171854.GA2988@katana>
+	<7583101.2yAsZLOucV@avalon>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Jtzgsd50XOpelISN"
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cassiel.sirena.org.uk ([80.68.93.111]:56637 "EHLO
-	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754076Ab3H2SEQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Aug 2013 14:04:16 -0400
-Content-Disposition: inline
-In-Reply-To: <CA+Bv8Xb38bwby78Q--nEGffBknj5ZD98x0OuRX5N1EFNjbh7zA@mail.gmail.com>
+Received: from mail-ob0-f178.google.com ([209.85.214.178]:36858 "EHLO
+	mail-ob0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755924Ab3H2SYc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Aug 2013 14:24:32 -0400
+Received: by mail-ob0-f178.google.com with SMTP id ef5so868905obb.37
+        for <linux-omap@vger.kernel.org>; Thu, 29 Aug 2013 11:24:32 -0700 (PDT)
+In-Reply-To: <7583101.2yAsZLOucV@avalon>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russ Dill <Russ.Dill@ti.com>
-Cc: devicetree@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@linaro.org>, Jan =?iso-8859-1?Q?L=FCbbe?= <jlu@pengutronix.de>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Tomasz Figa <t.figa@samsung.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Wolfram Sang <wsa@the-dreams.de>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Tomasz Figa <tomasz.figa@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Grant Likely <grant.likely@secretlab.ca>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Archit Taneja <archit@ti.com>, Sylwester Nawrocki <sylvester.nawrocki@gmail.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>
 
+On Wed, Aug 28, 2013 at 1:58 PM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> On Tuesday 27 August 2013 19:18:55 Wolfram Sang wrote:
+>> > The driver should support the same chip models reardless of whether it's
+>> > used with or without DT. If an entry in the OF table has no corresponding
+>> > entry in the I2C table I would consider that as a driver bug.
+>>
+>> Linus Walleij posted a patch to support DT only probing, but too many
+>> side-effects showed up. Some were fixable (probe regressions) and some
+>> need more work, if feasible at all. Most prominent is that runtime
+>> instantiation of i2c slaves currently needs an entry in the i2c table.
+>
+> Linus, I'd like to get this in v3.12 if it's not too late. Could you please
+> provide your input ?
 
---Jtzgsd50XOpelISN
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Provided some input on the v4 version, due to being a bit overloaded
+my patch queue is overloaded...
 
-On Thu, Aug 29, 2013 at 10:47:04AM -0700, Russ Dill wrote:
-> On Thu, Aug 29, 2013 at 10:30 AM, Mark Brown <broonie@kernel.org> wrote:
-
-> > So this is done from cpuidle rather than system suspend.
-
-> It is done for system suspend. It isn't possible to do this in a
-> cpuidle use case as the memory controller would need to come out of
-> idle automatically to service DMA requests.
-
-OK, so it's all part of the core power down sequence for the SoC?  I'm
-not sure that makes a big difference but it at least means that there
-are fewer runtime interactions to worry about.
-
-> > I mean describe the intended sequence of events in the system rather
-> > than the raw register commands to accomplish them.
-
-> I'm still not sure what you mean.
-
-Say "set voltage X" or even "regulator X supplies Y" not "send this
-bytestream to the device".
-
---Jtzgsd50XOpelISN
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.21 (GNU/Linux)
-
-iQIcBAEBAgAGBQJSH40GAAoJELSic+t+oim9nJMP+gLIcSKDdAyHLH/JL8JKzZo+
-eSixyfavlXJSfK7qz1v3Y33P2cgKXdYMCFXCTRnzV6bsArgYbrMzWmg1sgyiMSUR
-iQVFNi/vzjJT/RB6X08EB5cvxHcqSEQ/W0ZARR8XS4Bb7OMEXqw8wWBwWqZpWCh/
-7mtmi/WyUMkm90DdvXgBLbZ24C4QKUH3k5tJQsJ5LM+Xdw32qbILVHuNQyY+lqH3
-6tWL8WKUZ6m7mQvlnNmI+zsHw2RmNaUcjLfUGmjq8M6lhW/ZO5gd9GEX2OwWxZgC
-maU7lz6BwkqSpR/jq/V38O+lcoQ/Y6noqMY9jF3nZIsigRXWnyVrPGUM25NG3z0o
-0qkdzAdnsYC9TPS85dywnXN1BJDnCC+ju1rl3WRpSgY3rGoJEdfaX4WIT2NqbFSf
-ChQwA6a9NMFUVhmF9RCzpmPWQSM5ZhAAUZQ+t/m5m+Ayc11HMDhHtmDjM0t4gwMc
-VLH6b/GoJfDEKD3ygmsL0+rdU4rRmePJH4W9+1OSh6F3tAXKRvezIG8mknkau/nD
-nfenzB9huW9X9DqLfHKWyYYrwJTymNKK4ceCjZbSJL6PIYJ0KclIbnVuZTuShJ1c
-fLwr/daIV1X3lGWb4cZqJmozWyjaD1yc0xoRpFaZgM2sUAu7jGnXFZsf2BnmkpnI
-2ARAiACMpoh3pxUglQf+
-=ikwd
------END PGP SIGNATURE-----
-
---Jtzgsd50XOpelISN--
+Yours,
+Linus Walleij
