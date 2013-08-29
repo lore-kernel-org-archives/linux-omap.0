@@ -1,52 +1,91 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv6 02/45] CLK: TI: add DT alias clock registration mechanism
-Date: Thu, 29 Aug 2013 16:15:54 +0300
-Message-ID: <1377782197-10611-3-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv6 05/45] CLK: TI: add support for clockdomain binding
+Date: Thu, 29 Aug 2013 16:15:57 +0300
+Message-ID: <1377782197-10611-6-git-send-email-t-kristo@ti.com>
 References: <1377782197-10611-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:49032 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:47964 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753511Ab3H2NRW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 29 Aug 2013 09:17:22 -0400
+	id S1754076Ab3H2NRb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 29 Aug 2013 09:17:31 -0400
 In-Reply-To: <1377782197-10611-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, rnayak@ti.com, nm@ti.com, mturquette@linaro.org
 Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-Some devices require their clocks to be available with a specific
-dev-id con-id mapping. With DT, the clocks can be found by default
-only with their name, or alternatively through the device node of
-the consumer. With drivers, that don't support DT fully yet, add
-mechanism to register specific clock names.
+Some OMAP clocks require knowledge about their parent clockdomain for
+book keeping purposes. This patch creates a new DT binding for TI
+clockdomains, which act as a collection of device clocks.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- drivers/clk/ti/Makefile |    2 +-
- drivers/clk/ti/clk.c    |   52 +++++++++++++++++++++++++++++++++++++++++++++++
- include/linux/clk/ti.h  |   23 +++++++++++++++++++++
- 3 files changed, 76 insertions(+), 1 deletion(-)
- create mode 100644 drivers/clk/ti/clk.c
+ .../devicetree/bindings/clock/ti/clockdomain.txt   |   19 ++++++++
+ arch/arm/mach-omap2/clock.h                        |    1 -
+ drivers/clk/ti/Makefile                            |    3 +-
+ drivers/clk/ti/clockdomain.c                       |   46 ++++++++++++++++++++
+ include/linux/clk/ti.h                             |    2 +
+ 5 files changed, 69 insertions(+), 2 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/clock/ti/clockdomain.txt
+ create mode 100644 drivers/clk/ti/clockdomain.c
 
+diff --git a/Documentation/devicetree/bindings/clock/ti/clockdomain.txt b/Documentation/devicetree/bindings/clock/ti/clockdomain.txt
+new file mode 100644
+index 0000000..0dc5cd7
+--- /dev/null
++++ b/Documentation/devicetree/bindings/clock/ti/clockdomain.txt
+@@ -0,0 +1,19 @@
++Binding for Texas Instruments clockdomain.
++
++This binding uses the common clock binding[1]. Every clock on
++TI SoC belongs to one clockdomain, but software only needs this
++information for specific clocks which require their parent
++clockdomain to be controlled when the clock is enabled/disabled.
++
++[1] Documentation/devicetree/bindings/clock/clock-bindings.txt
++
++Required properties:
++- compatible : shall be "ti,clockdomain"
++- #clock-cells : from common clock binding; shall be set to 0.
++- clocks : link phandles of clocks within this domain
++
++Examples:
++	dss_clkdm: dss_clkdm {
++		compatible = "ti,clockdomain";
++		clocks = <&dss1_alwon_fck_3430es2>, <&dss_ick_3430es2>;
++	};
+diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
+index f0b7218..56d4664 100644
+--- a/arch/arm/mach-omap2/clock.h
++++ b/arch/arm/mach-omap2/clock.h
+@@ -38,7 +38,6 @@ struct omap_clk {
+ 	}
+ 
+ struct clockdomain;
+-#define to_clk_hw_omap(_hw) container_of(_hw, struct clk_hw_omap, hw)
+ 
+ #define DEFINE_STRUCT_CLK(_name, _parent_array_name, _clkops_name)	\
+ 	static struct clk _name = {				\
 diff --git a/drivers/clk/ti/Makefile b/drivers/clk/ti/Makefile
-index 93177987..05af5d8 100644
+index 57bfbaa..21dff46 100644
 --- a/drivers/clk/ti/Makefile
 +++ b/drivers/clk/ti/Makefile
-@@ -1,3 +1,3 @@
+@@ -1,3 +1,4 @@
  ifneq ($(CONFIG_OF),)
--obj-y					+= dpll.o
-+obj-y					+= clk.o dpll.o
+-obj-y					+= clk.o dpll.o autoidle.o gate.o
++obj-y					+= clk.o dpll.o autoidle.o gate.o \
++					   clockdomain.o
  endif
-diff --git a/drivers/clk/ti/clk.c b/drivers/clk/ti/clk.c
+diff --git a/drivers/clk/ti/clockdomain.c b/drivers/clk/ti/clockdomain.c
 new file mode 100644
-index 0000000..f09798e
+index 0000000..bc02937
 --- /dev/null
-+++ b/drivers/clk/ti/clk.c
-@@ -0,0 +1,52 @@
++++ b/drivers/clk/ti/clockdomain.c
+@@ -0,0 +1,46 @@
 +/*
-+ * TI clock support
++ * OMAP clockdomain support
 + *
 + * Copyright (C) 2013 Texas Instruments, Inc.
 + *
@@ -63,88 +102,47 @@ index 0000000..f09798e
 + */
 +
 +#include <linux/clk-provider.h>
-+#include <linux/clkdev.h>
-+#include <linux/clk/ti.h>
++#include <linux/slab.h>
 +#include <linux/of.h>
++#include <linux/of_address.h>
++#include <linux/clk/ti.h>
 +
-+/**
-+ * omap_dt_clocks_register - register DT duplicate clocks during boot
-+ * @oclks: list of clocks to register
-+ *
-+ * Register duplicate or non-standard DT clock entries during boot. By
-+ * default, DT clocks are found based on their node name. If any
-+ * additional con-id / dev-id -> clock mapping is required, use this
-+ * function to list these.
-+ */
-+void __init omap_dt_clocks_register(struct omap_dt_clk oclks[])
++void __init of_omap_clockdomain_setup(struct device_node *node)
 +{
-+	struct omap_dt_clk *c;
-+	struct device_node *node;
 +	struct clk *clk;
-+	struct of_phandle_args clkspec;
++	struct clk_hw *clk_hw;
++	const char *clkdm_name = node->name;
++	int i;
++	int num_clks;
 +
-+	for (c = oclks; c->node_name != NULL; c++) {
-+		node = of_find_node_by_name(NULL, c->node_name);
-+		clkspec.np = node;
-+		clk = of_clk_get_from_provider(&clkspec);
++	num_clks = of_count_phandle_with_args(node, "clocks", "#clock-cells");
 +
-+		if (!IS_ERR(clk)) {
-+			c->lk.clk = clk;
-+			clkdev_add(&c->lk);
-+		} else {
-+			pr_warn("%s: failed to lookup clock node %s\n",
-+				__func__, c->node_name);
++	for (i = 0; i < num_clks; i++) {
++		clk = of_clk_get(node, i);
++		if (__clk_get_flags(clk) & CLK_IS_BASIC) {
++			pr_warn("%s: can't setup clkdm for basic clk %s\n",
++				__func__, __clk_get_name(clk));
++			continue;
 +		}
++		clk_hw = __clk_get_hw(clk);
++		to_clk_hw_omap(clk_hw)->clkdm_name = clkdm_name;
++		omap2_init_clk_clkdm(clk_hw);
 +	}
 +}
++CLK_OF_DECLARE(omap_clockdomain, "ti,clockdomain", of_omap_clockdomain_setup);
 diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
-index 385384a..1c4f492 100644
+index 5fe2d43..ab73f35 100644
 --- a/include/linux/clk/ti.h
 +++ b/include/linux/clk/ti.h
-@@ -15,6 +15,8 @@
- #ifndef __LINUX_CLK_TI_H__
- #define __LINUX_CLK_TI_H__
+@@ -186,6 +186,8 @@ struct omap_dt_clk {
+ 		.node_name = name,	\
+ 	}
  
-+#include <linux/clkdev.h>
-+
- /**
-  * struct dpll_data - DPLL registers and integration data
-  * @mult_div1_reg: register containing the DPLL M and N bitfields
-@@ -138,6 +140,25 @@ struct clk_hw_omap {
- /* DPLL Type and DCO Selection Flags */
- #define DPLL_J_TYPE		0x1
- 
-+/**
-+ * struct omap_dt_clk - OMAP DT clock alias declarations
-+ * @lk: clock lookup definition
-+ * @node_name: clock DT node to map to
-+ */
-+struct omap_dt_clk {
-+	struct clk_lookup		lk;
-+	char				*node_name;
-+};
-+
-+#define DT_CLK(dev, con, name)		\
-+	{				\
-+		.lk = {			\
-+			.dev_id = dev,	\
-+			.con_id = con,	\
-+		},			\
-+		.node_name = name,	\
-+	}
++#define to_clk_hw_omap(_hw) container_of(_hw, struct clk_hw_omap, hw)
 +
  void omap2_init_clk_hw_omap_clocks(struct clk *clk);
  int omap3_noncore_dpll_enable(struct clk_hw *hw);
  void omap3_noncore_dpll_disable(struct clk_hw *hw);
-@@ -158,6 +179,8 @@ unsigned long omap3_clkoutx2_recalc(struct clk_hw *hw,
- int omap3_dpll4_set_rate(struct clk_hw *clk, unsigned long rate,
- 			 unsigned long parent_rate);
- 
-+void omap_dt_clocks_register(struct omap_dt_clk *oclks);
-+
- extern const struct clk_hw_omap_ops clkhwops_omap3_dpll;
- extern const struct clk_hw_omap_ops clkhwops_omap4_dpllmx;
- 
 -- 
 1.7.9.5
 
