@@ -1,59 +1,88 @@
 From: Lokesh Vutla <lokeshvutla@ti.com>
-Subject: Re: [PATCH 1/3] ARM: AM33xx: hwmod: Add RNG module data
-Date: Thu, 29 Aug 2013 14:52:18 +0530
-Message-ID: <521F12CA.8010608@ti.com>
-References: <1375777984-6267-1-git-send-email-lokeshvutla@ti.com> <1375777984-6267-2-git-send-email-lokeshvutla@ti.com> <alpine.DEB.2.02.1308281845560.22040@utopia.booyaka.com>
+Subject: [PATCH V2 1/3] ARM: AM33xx: hwmod: Add RNG module data
+Date: Thu, 29 Aug 2013 15:04:32 +0530
+Message-ID: <1377768872-1609-1-git-send-email-lokeshvutla@ti.com>
+References: <1375777984-6267-2-git-send-email-lokeshvutla@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:33290 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753384Ab3H2JWv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 29 Aug 2013 05:22:51 -0400
-In-Reply-To: <alpine.DEB.2.02.1308281845560.22040@utopia.booyaka.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:42874 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751650Ab3H2JfD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Aug 2013 05:35:03 -0400
+In-Reply-To: <1375777984-6267-2-git-send-email-lokeshvutla@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, devicetree@vger.kernel.org, rob@landley.net, rnayak@ti.com, benoit.cousson@linaro.org
+To: paul@pwsan.com, linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, bcousson@baylibre.com, tony@atomide.com, rnayak@ti.com, lokeshvutla@ti.com
 
-Hi Paul,
-On Thursday 29 August 2013 12:18 AM, Paul Walmsley wrote:
-> Hi
-> 
-> On Tue, 6 Aug 2013, Lokesh Vutla wrote:
-> 
->> Add RNG hwmod data for AM33xx SoC.
->>
->> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
-> 
-> I tried to queue this one, but it caused AM33xx boots to hang.  
-> Thought it might be related to the patch ordering -- seems to me that 
-> the clock change patch needed to come before this patch -- but if I 
-> recall correctly, both BeagleBone and BeagleBone-LT still hung. 
-This is because register address space is not passed in hwmod_data as it
-is passed from dt. So we need to include 3/3 patch in this series to boot.
+Add RNG hwmod data for AM33xx SoC.
 
-Ill fix this sparse warning and post a v2.
+Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+---
+Changes since V1:
+* Rebased on top of Paul's tree:
+  git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/for-v3.12/omap-prcm-hwmod 
+* Made am33xx_l4_per__rng structure as static to fix sparse warning
+* Updated am33xx_rng_hwmod flags
 
-PS: Probe for this driver will be failed even after this. Support for this version
-of rng ip is already posted and pushed into cryptodev-2.6 tree.
+ arch/arm/mach-omap2/omap_hwmod_33xx_data.c |   36 ++++++++++++++++++++++++++++
+ 1 file changed, 36 insertions(+)
 
-Thanks and regards,
-Lokesh
-> 
-> Also, this patch created a sparse warning.
-> 
-> Could you take another look at this patch?  Maybe try basing off of this 
-> tag:
-> 
-> git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/for-v3.12/omap-prcm-hwmod
-> 
-> Fix the sparse problem, and see if the patch boots for you?
-> 
-> thanks
-> 
-> 
-> - Paul
-> 
+diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
+index 215894f..3e32f45 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
+@@ -2480,6 +2480,41 @@ static struct omap_hwmod_ocp_if am33xx_l3_main__aes0 = {
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
++/* rng */
++static struct omap_hwmod_class_sysconfig am33xx_rng_sysc = {
++	.rev_offs	= 0x1fe0,
++	.sysc_offs	= 0x1fe4,
++	.sysc_flags	= SYSC_HAS_AUTOIDLE | SYSC_HAS_SIDLEMODE,
++	.idlemodes	= SIDLE_FORCE | SIDLE_NO,
++	.sysc_fields	= &omap_hwmod_sysc_type1,
++};
++
++static struct omap_hwmod_class am33xx_rng_hwmod_class = {
++	.name		= "rng",
++	.sysc		= &am33xx_rng_sysc,
++};
++
++static struct omap_hwmod am33xx_rng_hwmod = {
++	.name		= "rng",
++	.class		= &am33xx_rng_hwmod_class,
++	.clkdm_name	= "l4ls_clkdm",
++	.flags		= HWMOD_SWSUP_SIDLE,
++	.main_clk	= "rng_fck",
++	.prcm		= {
++		.omap4	= {
++			.clkctrl_offs	= AM33XX_CM_PER_RNG_CLKCTRL_OFFSET,
++			.modulemode	= MODULEMODE_SWCTRL,
++		},
++	},
++};
++
++static struct omap_hwmod_ocp_if am33xx_l4_per__rng = {
++	.master		= &am33xx_l4_ls_hwmod,
++	.slave		= &am33xx_rng_hwmod,
++	.clk		= "rng_fck",
++	.user		= OCP_USER_MPU,
++};
++
+ static struct omap_hwmod_ocp_if *am33xx_hwmod_ocp_ifs[] __initdata = {
+ 	&am33xx_l3_main__emif,
+ 	&am33xx_mpu__l3_main,
+@@ -2559,6 +2594,7 @@ static struct omap_hwmod_ocp_if *am33xx_hwmod_ocp_ifs[] __initdata = {
+ 	&am33xx_cpgmac0__mdio,
+ 	&am33xx_l3_main__sha0,
+ 	&am33xx_l3_main__aes0,
++	&am33xx_l4_per__rng,
+ 	NULL,
+ };
+ 
+-- 
+1.7.9.5
 
