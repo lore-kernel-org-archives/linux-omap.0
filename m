@@ -1,76 +1,102 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] non-critical omap fixes for v3.12 merge window
-Date: Wed, 28 Aug 2013 22:37:06 -0700
-Message-ID: <20130829053705.GL7656@atomide.com>
-References: <20130823054609.GW7656@atomide.com>
- <20130828185045.GI8607@quad.lixom.net>
+Subject: Re: [GIT PULL] OMAPDSS: use new display drivers
+Date: Wed, 28 Aug 2013 23:19:23 -0700
+Message-ID: <20130829061923.GM7656@atomide.com>
+References: <521DAC2B.4080100@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:37201 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752777Ab3H2FhQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Aug 2013 01:37:16 -0400
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:16758 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751895Ab3H2GT3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Aug 2013 02:19:29 -0400
 Content-Disposition: inline
-In-Reply-To: <20130828185045.GI8607@quad.lixom.net>
+In-Reply-To: <521DAC2B.4080100@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Olof Johansson <olof@lixom.net>
-Cc: Kevin Hilman <khilman@linaro.org>, arm@kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Matus Ujhelyi <ujhelyi.m@gmail.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, Kevin Hilman <khilman@linaro.org>, Olof Johansson <olof@lixom.net>
 
-* Olof Johansson <olof@lixom.net> [130828 11:58]:
-> On Thu, Aug 22, 2013 at 10:46:10PM -0700, Tony Lindgren wrote:
+* Tomi Valkeinen <tomi.valkeinen@ti.com> [130828 00:59]:
+> Hi,
 > 
-> > Matus Ujhelyi (1):
-> >       ARM: OMAP2+: am33xx-restart: trigger warm reset on omap2+ boards
-> 
-> Sigh. am33xx has been a bit of a pain this release cycle. Can you please
-> start double-checking builds when you apply am33xx stuff? :(
-> 
-> This breaks with:
-> 
->         multi_v7_defconfig:
-> arch/arm/mach-omap2/am33xx-restart.c:27:26: error: 'AM33XX_RST_GLOBAL_WARM_SW_MASK' undeclared (first use in this function)
-> 
->         omap2plus_defconfig:
-> arch/arm/mach-omap2/am33xx-restart.c:27:26: error: 'AM33XX_RST_GLOBAL_WARM_SW_MASK' undeclared (first use in this function)
+> Here's a pull request for the board file changes to take the new display
+> drivers into use.
 
-Oops sorry, I see what's going on. It builds fine against v3.11-rc6, but
-has a dependency for v3.12 for the cleanup branch that removed all the
-unused defines. 
+OK great.
  
-> I've unmerged the branch until that's resolved.
+> If there's an "early" pull request going to Linus during the merge window, it'd
+> be nice to have these in that request. That would give me time to send a pull
+> request to Linus containing removal of the old, no longer used, drivers.
 
-Care to apply the following fix to the cleanup branch?
+Nice to see that this is not conflicting with anything in linux next :)
 
-This way this fixes branch keeps working both against v3.11 and the
-patches queued for v3.12.
+I suggest you keep this branch immutable in case it need to be merged to arm-soc
+tree, and merge it yourself along with the DSS patches. That way you
+don't have a dependency to arm-soc for removal of the old drivers.
+
+I've cc:ed Kevin and Olof so they too are aware of this too.
 
 Regards,
 
 Tony
 
+ 
+> The following changes since commit b36f4be3de1b123d8601de062e7dbfc904f305fb:
+> 
+>   Linux 3.11-rc6 (2013-08-18 14:36:53 -0700)
+> 
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tomba/linux.git 3.12/linux-omap
+> 
+> for you to fetch changes up to d7b8eafbf513e414fa09dde61630b93be93a23a1:
+> 
+>   ARM: OMAP2+: Remove old display drivers from omap2plus_defconfig (2013-08-28 10:23:22 +0300)
+> 
+> ----------------------------------------------------------------
+> Tomi Valkeinen (20):
+>       ARM: OMAP2+: Remove legacy DSS initialization for omap4
+>       ARM: OMAP2+: Add selected display drivers to omap2plus_defconfig
+>       ARM: OMAP: dss-common: use new display drivers
+>       ARM: OMAP: 4430SDP: remove picodlp device data
+>       ARM: OMAP: overo: use new display drivers
+>       ARM: OMAP: rx51: use new display drivers
+>       ARM: OMAP: beagle: use new display drivers
+>       ARM: OMAP: devkit8000: use new display drivers
+>       ARM: OMAP: 2430SDP: use new display drivers
+>       ARM: OMAP: LDP: use new display drivers
+>       ARM: OMAP: omap3stalker: use new display drivers
+>       ARM: OMAP: igep0020: use new display drivers
+>       ARM: OMAP: cm-t35: use new display drivers
+>       ARM: OMAP: H4: use new display drivers
+>       ARM: OMAP: 3430SDP: use new display drivers
+>       ARM: OMAP: OMAP3EVM: use new display drivers
+>       ARM: OMAP: Pandora: use new display drivers
+>       ARM: OMAP: Zoom: use new display drivers
+>       ARM: OMAP: AM3517EVM: use new display drivers
+>       ARM: OMAP2+: Remove old display drivers from omap2plus_defconfig
+> 
+>  arch/arm/configs/omap2plus_defconfig         |  12 +-
+>  arch/arm/mach-omap2/board-2430sdp.c          |  57 ++++---
+>  arch/arm/mach-omap2/board-3430sdp.c          |  83 +++++----
+>  arch/arm/mach-omap2/board-am3517evm.c        | 113 +++++++++----
+>  arch/arm/mach-omap2/board-cm-t35.c           | 100 +++++++----
+>  arch/arm/mach-omap2/board-devkit8000.c       |  96 +++++++----
+>  arch/arm/mach-omap2/board-h4.c               |  48 ++++--
+>  arch/arm/mach-omap2/board-igep0020.c         |  36 ++--
+>  arch/arm/mach-omap2/board-ldp.c              |  68 +++++---
+>  arch/arm/mach-omap2/board-omap3beagle.c      |  56 +++---
+>  arch/arm/mach-omap2/board-omap3evm.c         |  87 ++++++----
+>  arch/arm/mach-omap2/board-omap3pandora.c     |  48 +++---
+>  arch/arm/mach-omap2/board-omap3stalker.c     |  61 ++++---
+>  arch/arm/mach-omap2/board-overo.c            | 160 +++++++++++-------
+>  arch/arm/mach-omap2/board-rx51-peripherals.c |  12 ++
+>  arch/arm/mach-omap2/board-rx51-video.c       |  35 ++--
+>  arch/arm/mach-omap2/board-zoom-display.c     |  30 ++--
+>  arch/arm/mach-omap2/dss-common.c             | 244 ++++++++++++---------------
+>  arch/arm/mach-omap2/dss-common.h             |   2 -
+>  19 files changed, 787 insertions(+), 561 deletions(-)
+> 
 
-8< ---------
 
-From: Tony Lindgren <tony@atomide.com>
-Date: Wed, 28 Aug 2013 22:24:13 -0700
-Subject: [PATCH] ARM: OMAP2+: Add back the define for AM33XX_RST_GLOBAL_WARM_SW_MASK
-
-This is needed to prevent a build error with a patch queued for fixes
-"ARM: OMAP2+: am33xx-restart: trigger warm reset on omap2+ boards".
-
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-
-diff --git a/arch/arm/mach-omap2/prm-regbits-33xx.h b/arch/arm/mach-omap2/prm-regbits-33xx.h
-index bbffc03..84feece 100644
---- a/arch/arm/mach-omap2/prm-regbits-33xx.h
-+++ b/arch/arm/mach-omap2/prm-regbits-33xx.h
-@@ -22,6 +22,7 @@
- #define AM33XX_GFX_MEM_RETSTATE_MASK			(1 << 6)
- #define AM33XX_GFX_MEM_STATEST_MASK			(0x3 << 4)
- #define AM33XX_GLOBAL_WARM_SW_RST_MASK			(1 << 1)
-+#define AM33XX_RST_GLOBAL_WARM_SW_MASK			(1 << 0)
- #define AM33XX_PRUSS_MEM_ONSTATE_MASK			(0x3 << 5)
- #define AM33XX_PRUSS_MEM_RETSTATE_MASK			(1 << 7)
- #define AM33XX_PRUSS_MEM_STATEST_MASK			(0x3 << 23)
