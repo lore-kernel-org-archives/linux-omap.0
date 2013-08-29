@@ -1,58 +1,58 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH] gpio: pcf857x: cleanup irq_demux_work and use threaded irq
-Date: Thu, 29 Aug 2013 19:24:11 +0200
-Message-ID: <CACRpkdYqHmw13t0Qj19Ko9qvus80eykjt25iXT0GP1aKETP+gQ@mail.gmail.com>
-References: <1377599455-9379-1-git-send-email-george.cherian@ti.com>
-	<CACRpkdbME_M8_X=5OttSFKDknqVEKSZc+7u=VLM-T-g3c_uv6Q@mail.gmail.com>
-	<521F5684.3090703@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH v2 3/3] ARM: OMAP4+: Remove static iotable mappings for
+ SRAM
+Date: Thu, 29 Aug 2013 13:25:04 -0400
+Message-ID: <521F83F0.9080503@ti.com>
+References: <1377775391-13103-1-git-send-email-rnayak@ti.com> <1377775391-13103-4-git-send-email-rnayak@ti.com> <871u5c2z3a.fsf@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <521F5684.3090703@ti.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: George Cherian <george.cherian@ti.com>
-Cc: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>, Nikolay Balandin <n.a.balandin@gmail.com>, Grant Likely <grant.likely@linaro.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:43199 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754035Ab3H2RZh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Aug 2013 13:25:37 -0400
+In-Reply-To: <871u5c2z3a.fsf@linaro.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@linaro.org>
+Cc: Rajendra Nayak <rnayak@ti.com>, tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, bcousson@baylibre.com, nsekhar@ti.com, paul@pwsan.com
 
-On Thu, Aug 29, 2013 at 4:11 PM, George Cherian <george.cherian@ti.com> wrote:
-> On 8/29/2013 6:27 PM, Linus Walleij wrote:
-
->>>          int                     irq;            /* real irq number */
->>> +       int                     irq_mapped;     /* mapped gpio irqs  */
+On Thursday 29 August 2013 01:20 PM, Kevin Hilman wrote:
+> Rajendra Nayak <rnayak@ti.com> writes:
+> 
+>> In order to handle errata I688, a page of sram was reserved by doing a
+>> static iotable map. Now that we use gen_pool to manage sram, we can
+>> completely remove all of these static mappings and use gen_pool_alloc()
+>> to get the one page of sram space needed to implement errata I688.
 >>
->> This seems like an u32 or atleast unsigned, and state that its one
->> bit flag per IRQ. How many GPIO lines are there?
->
-> pcf857x driver supports expanders with 8 and 16 gpio lines.
+>> Suggested-by: Sekhar Nori <nsekhar@ti.com>
+>> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+> 
+> [...]
+> 
+>> @@ -71,6 +72,21 @@ void omap_bus_sync(void)
+>>  }
+>>  EXPORT_SYMBOL(omap_bus_sync);
+>>  
+>> +static int __init omap4_sram_init(void)
+>> +{
+>> +	struct device_node *np;
+>> +	struct gen_pool *sram_pool;
+>> +
+>> +	np = of_find_compatible_node(NULL, NULL, "ti,omap4-mpu");
+>> +	if (!np)
+>> +		pr_warn("%s:Unable to allocate sram needed to handle errata I688\n",
+>> +			 __func__);
+>> +	sram_pool = of_get_named_gen_pool(np, "sram", 0);
+> 
+> I haven't actually tested this, but if there is no 'sram' property defined...
+>   
+If the sram property is not defined, the bus_sync will be just a nop. Below
+check will take care of it.
 
-OK should be an u16 then?
+ if (dram_sync && sram_sync)
 
->>>   static int pcf857x_irq_domain_map(struct irq_domain *domain, unsigned
->>> int virq,
->>>                                   irq_hw_number_t hw)
->>>   {
->>> +       struct pcf857x  *gpio = domain->host_data;
->>>          irq_set_chip_and_handler(virq,
->>>                                   &dummy_irq_chip,
->>>                                   handle_level_irq);
->>> +       set_irq_flags(virq, IRQF_VALID);
->>> +       gpio->irq_mapped |= (1 << hw);
->>
->> I'm a bit uneasy about this. It feels like its the irqdomain's
->> responsibility to keep track of whether an IRQ is mapped
->> or not.
->
-> Mainly these expanders dont have an ier sort of registers and if at all the
-> initial value is not set proper
-> then it gives bad irq prints only once per changed bit for which there is no
-> handler.
-> Should I drop this in v2?
+Regards,
+Santosh
 
-I don't know, I mean if it's causing a problem or filling the console
-with error prints it is really annoying, and if there is nothing to do
-about the condition then there is not much more we can do I guess.
-
-But please take a second look.
-
-Yours,
-Linus Walleij
