@@ -1,56 +1,138 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv6 24/45] ARM: OMAP3: hwmod: initialize clkdm from clkdm_name
-Date: Thu, 29 Aug 2013 16:16:16 +0300
-Message-ID: <1377782197-10611-25-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv6 27/45] ARM: dts: AM35xx clock data
+Date: Thu, 29 Aug 2013 16:16:19 +0300
+Message-ID: <1377782197-10611-28-git-send-email-t-kristo@ti.com>
 References: <1377782197-10611-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:48042 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:49158 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754693Ab3H2NSf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 29 Aug 2013 09:18:35 -0400
+	id S1754693Ab3H2NSl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 29 Aug 2013 09:18:41 -0400
 In-Reply-To: <1377782197-10611-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, rnayak@ti.com, nm@ti.com, mturquette@linaro.org
 Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-DT clocks are mostly missing clkdm info now, and this causes an issue with
-counter32k which makes its slave idlemode wrong and prevents core idle.
-
-Fixed by initializing the hwmod clkdm pointers for omap3 also which makes
-sure the clkdm flag matching logic works properly.
-
-This patch also changes the return value for _init_clkdm to 0 for
-incorrect clkdm_name, as this a warning, not a fatal error.
+This patch creates a unique node for each AM35xx specific clock in the
+AM35xx power, reset and clock manager (PRCM). Most of the AM35xx clock
+data is shared with OMAP3xxx, this patch only creates the delta.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/arm/boot/dts/am35xx-clocks.dtsi |  101 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 101 insertions(+)
+ create mode 100644 arch/arm/boot/dts/am35xx-clocks.dtsi
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index ec82989..ef61582 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -1544,7 +1544,7 @@ static int _init_clkdm(struct omap_hwmod *oh)
- 	if (!oh->clkdm) {
- 		pr_warning("omap_hwmod: %s: could not associate to clkdm %s\n",
- 			oh->name, oh->clkdm_name);
--		return -EINVAL;
-+		return 0;
- 	}
- 
- 	pr_debug("omap_hwmod: %s: associated to clkdm %s\n",
-@@ -4115,6 +4115,7 @@ void __init omap_hwmod_init(void)
- 		soc_ops.assert_hardreset = _omap2_assert_hardreset;
- 		soc_ops.deassert_hardreset = _omap2_deassert_hardreset;
- 		soc_ops.is_hardreset_asserted = _omap2_is_hardreset_asserted;
-+		soc_ops.init_clkdm = _init_clkdm;
- 	} else if (cpu_is_omap44xx() || soc_is_omap54xx() || soc_is_dra7xx()) {
- 		soc_ops.enable_module = _omap4_enable_module;
- 		soc_ops.disable_module = _omap4_disable_module;
+diff --git a/arch/arm/boot/dts/am35xx-clocks.dtsi b/arch/arm/boot/dts/am35xx-clocks.dtsi
+new file mode 100644
+index 0000000..7749413
+--- /dev/null
++++ b/arch/arm/boot/dts/am35xx-clocks.dtsi
+@@ -0,0 +1,101 @@
++/*
++ * Device Tree Source for AM35xx clock data
++ *
++ * Copyright (C) 2013 Texas Instruments, Inc.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++ipss_ick: ipss_ick@48004a10 {
++	#clock-cells = <0>;
++	compatible = "ti,am35xx-interface-clock";
++	clocks = <&core_l3_ick>;
++	reg = <0x48004a10 0x4>;
++	ti,enable-bit = <4>;
++};
++
++rmii_ck: rmii_ck {
++	#clock-cells = <0>;
++	compatible = "fixed-clock";
++	clock-frequency = <50000000>;
++};
++
++pclk_ck: pclk_ck {
++	#clock-cells = <0>;
++	compatible = "fixed-clock";
++	clock-frequency = <27000000>;
++};
++
++emac_ick: emac_ick@4800259c {
++	#clock-cells = <0>;
++	compatible = "ti,am35xx-gate-clock";
++	clocks = <&ipss_ick>;
++	reg = <0x4800259c 0x4>;
++	ti,enable-bit = <1>;
++};
++
++emac_fck: emac_fck@4800259c {
++	#clock-cells = <0>;
++	compatible = "gate-clock";
++	clocks = <&rmii_ck>;
++	reg = <0x4800259c 0x4>;
++	bit-shift = <9>;
++};
++
++vpfe_ick: vpfe_ick@4800259c {
++	#clock-cells = <0>;
++	compatible = "ti,am35xx-gate-clock";
++	clocks = <&ipss_ick>;
++	reg = <0x4800259c 0x4>;
++	ti,enable-bit = <2>;
++};
++
++vpfe_fck: vpfe_fck@4800259c {
++	#clock-cells = <0>;
++	compatible = "gate-clock";
++	clocks = <&pclk_ck>;
++	reg = <0x4800259c 0x4>;
++	bit-shift = <10>;
++};
++
++hsotgusb_ick: hsotgusb_ick@4800259c {
++	#clock-cells = <0>;
++	compatible = "ti,am35xx-gate-clock";
++	clocks = <&ipss_ick>;
++	reg = <0x4800259c 0x4>;
++	ti,enable-bit = <0>;
++};
++
++hsotgusb_fck_am35xx: hsotgusb_fck_am35xx@4800259c {
++	#clock-cells = <0>;
++	compatible = "gate-clock";
++	clocks = <&sys_ck>;
++	reg = <0x4800259c 0x4>;
++	bit-shift = <8>;
++};
++
++hecc_ck: hecc_ck@4800259c {
++	#clock-cells = <0>;
++	compatible = "ti,am35xx-gate-clock";
++	clocks = <&sys_ck>;
++	reg = <0x4800259c 0x4>;
++	ti,enable-bit = <3>;
++};
++
++uart4_ick_am35xx: uart4_ick_am35xx@48004a10 {
++	#clock-cells = <0>;
++	compatible = "ti,omap3-interface-clock";
++	clocks = <&core_l4_ick>;
++	reg = <0x48004a10 0x4>;
++	ti,enable-bit = <23>;
++};
++
++uart4_fck_am35xx: uart4_fck_am35xx@48004a00 {
++	#clock-cells = <0>;
++	compatible = "ti,gate-clock";
++	clocks = <&core_48m_fck>;
++	reg = <0x48004a00 0x4>;
++	ti,enable-bit = <23>;
++};
 -- 
 1.7.9.5
 
