@@ -1,107 +1,78 @@
 From: Mark Brown <broonie@kernel.org>
 Subject: Re: [PATCH v4 0/4] ARM: OMAP2+: AM33XX: VDD CORE OPP50 support
-Date: Thu, 29 Aug 2013 19:01:01 +0100
-Message-ID: <20130829180101.GO10783@sirena.org.uk>
-References: <1376432412-8509-1-git-send-email-Russ.Dill@ti.com>
- <1376487480.3889.64.camel@coredoba.hi.pengutronix.de>
+Date: Thu, 29 Aug 2013 19:03:53 +0100
+Message-ID: <20130829180353.GP10783@sirena.org.uk>
+References: <1376487480.3889.64.camel@coredoba.hi.pengutronix.de>
  <CA+Bv8XYe0UzBkjqtO7bNkgNVTQtxiM7Hv93BOu8Lw1=pESOwLA@mail.gmail.com>
  <87txiasqhk.fsf@linaro.org>
  <CA+Bv8XZagHZ9mUuZB49hrH=901fXzoAcV8C0Fm3EfLa2eiBu0w@mail.gmail.com>
  <20130829110534.GV10783@sirena.org.uk>
- <CA+Bv8XaX6v7wH0d1c2S7RzFDx6rAueHi1ZkmkGMpvcNDypXvzQ@mail.gmail.com>
+ <CAGa+x85u0OpB9o71xUTs15wt8Te-o5f0C9o22GHzZwOjn5F6=w@mail.gmail.com>
+ <20130829154929.GJ10783@sirena.org.uk>
+ <CA+Bv8XYbpqQAYwJ3=vkP0gXDMTp7_VNVzB0NXLG6GHDi=Z1img@mail.gmail.com>
+ <20130829173022.GN10783@sirena.org.uk>
+ <CA+Bv8Xb38bwby78Q--nEGffBknj5ZD98x0OuRX5N1EFNjbh7zA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============4024107348387216128=="
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <CA+Bv8XaX6v7wH0d1c2S7RzFDx6rAueHi1ZkmkGMpvcNDypXvzQ@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Russ Dill <Russ.Dill@ti.com>
-Cc: Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, devicetree@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Jan =?iso-8859-1?Q?L=FCbbe?= <jlu@pengutronix.de>, Kevin Hilman <khilman@linaro.org>
-List-Id: linux-omap@vger.kernel.org
-
-
---===============4024107348387216128==
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="YRPL3RJyuON7wuhd"
+	protocol="application/pgp-signature"; boundary="Jtzgsd50XOpelISN"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:56637 "EHLO
+	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754076Ab3H2SEQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Aug 2013 14:04:16 -0400
 Content-Disposition: inline
+In-Reply-To: <CA+Bv8Xb38bwby78Q--nEGffBknj5ZD98x0OuRX5N1EFNjbh7zA@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+To: Russ Dill <Russ.Dill@ti.com>
+Cc: devicetree@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@linaro.org>, Jan =?iso-8859-1?Q?L=FCbbe?= <jlu@pengutronix.de>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
 
 
---YRPL3RJyuON7wuhd
+--Jtzgsd50XOpelISN
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Thu, Aug 29, 2013 at 08:42:11AM -0700, Russ Dill wrote:
+On Thu, Aug 29, 2013 at 10:47:04AM -0700, Russ Dill wrote:
+> On Thu, Aug 29, 2013 at 10:30 AM, Mark Brown <broonie@kernel.org> wrote:
 
-> The path I'm taking in this patchset is to just put the board specific
-> I2C sequences necessary for the CM3 coprocessor to write out into the
-> devicetree. I've made it as generic as I can so that other platforms
-> with similar issues can reuse the bindings. Because of the limitations
-> of the firmware size and the desire not to have some sort of byte
-> code, this is a write only sequence.
+> > So this is done from cpuidle rather than system suspend.
 
-Making it write only seems to be a mistake - like I said in my other
-mail I'd expect you'd want bitfield updates here.  The read and modify
-could be done earlier by Linux though.
+> It is done for system suspend. It isn't possible to do this in a
+> cpuidle use case as the memory controller would need to come out of
+> idle automatically to service DMA requests.
 
-> Kevin Hilman is suggesting some way to query the regulator framework
-> for this sequence. There would be some call to the regulator framework
-> that would return a series of I2C commands that would be necessary to
-> program a regulator to a specific voltage. It would be called twice,
-> once for the suspend voltage, once for the resume voltage. The
-> regulator framework would then call into the driver that sets that
-> voltage, and by some method query the driver for the necessary I2C
-> sequence, either by some special new call, or some regmap magic.
+OK, so it's all part of the core power down sequence for the SoC?  I'm
+not sure that makes a big difference but it at least means that there
+are fewer runtime interactions to worry about.
 
-If it's just setting a single voltage then extracting the bitfield to
-update shouldn't be too hard for regmap based regulators.  Off the top
-of my head I'd expect either the driver for the M3 or the cpuidle driver
-that talks to it to be a consumer of the regulator and then go from
-there.
+> > I mean describe the intended sequence of events in the system rather
+> > than the raw register commands to accomplish them.
 
-Just putting the sequence directly into the device tree doesn't feel
-like the right abstraction.
+> I'm still not sure what you mean.
 
---YRPL3RJyuON7wuhd
+Say "set voltage X" or even "regulator X supplies Y" not "send this
+bytestream to the device".
+
+--Jtzgsd50XOpelISN
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2.0.21 (GNU/Linux)
 
-iQIcBAEBAgAGBQJSH4xaAAoJELSic+t+oim9lPsQAIabpXWiw4FqdXrPxiPgFI67
-CASXGao/PcUkdtNQsVxbPQM5yL0dk6M1D4O1I97TSDkhUo/4PB9ATD+aw8WRLdb4
-jr5Q+nFn3OBWgS7udn1ndcaKmCov6IMR/iHxyaiIHWzMqApJZslSGawuMMkoAJBA
-/lxx07+Z6MUO8+ZWTlyoIXaJbWZcpYMT2HZTMt1bpvtaGc7tPA5IP2ewo5leijAS
-t25oWVNC0tEdOTDEEFgM0wPVmCZIVkVZov9+vejnR8vLtttCgrLGQipqBoi084R4
-h1NhM0/Hxsiin6hBMWxpmc65fa0qsI+Ut6h+QxEdyhpB206/ZxHqKUViO2cVc5iJ
-ykEDAi2CCmyIZiXrrYKdZMJ/14BgcuBQUvz0qtskq8FyAuM8tbmIy6xSOfJneVWI
-zf2WgB6DI31d3+sXTiqB8pXk8D8zPSmFu3hFqM8UbHSGpv14aBvbmGZ3WTOHlHO8
-m3aEcCF6fCgJp550qLJtY8J4nEND4he0YPp3nCqByivViyS9Mo8UlynW0PasSlMg
-G1p+E9GJuTFqhkntfBabmTwGNSnsPiDC1uK3gp/YXHsSJUINGUOGnvONoAKJXayq
-Tar/AnDL2KNGJoqXrOC0g0KoxIz//LODf5yrKGKyEu3G19kWlfz8ORAauId08Qw7
-R7nV3xAziF7MmRVF6LOO
-=yg9z
+iQIcBAEBAgAGBQJSH40GAAoJELSic+t+oim9nJMP+gLIcSKDdAyHLH/JL8JKzZo+
+eSixyfavlXJSfK7qz1v3Y33P2cgKXdYMCFXCTRnzV6bsArgYbrMzWmg1sgyiMSUR
+iQVFNi/vzjJT/RB6X08EB5cvxHcqSEQ/W0ZARR8XS4Bb7OMEXqw8wWBwWqZpWCh/
+7mtmi/WyUMkm90DdvXgBLbZ24C4QKUH3k5tJQsJ5LM+Xdw32qbILVHuNQyY+lqH3
+6tWL8WKUZ6m7mQvlnNmI+zsHw2RmNaUcjLfUGmjq8M6lhW/ZO5gd9GEX2OwWxZgC
+maU7lz6BwkqSpR/jq/V38O+lcoQ/Y6noqMY9jF3nZIsigRXWnyVrPGUM25NG3z0o
+0qkdzAdnsYC9TPS85dywnXN1BJDnCC+ju1rl3WRpSgY3rGoJEdfaX4WIT2NqbFSf
+ChQwA6a9NMFUVhmF9RCzpmPWQSM5ZhAAUZQ+t/m5m+Ayc11HMDhHtmDjM0t4gwMc
+VLH6b/GoJfDEKD3ygmsL0+rdU4rRmePJH4W9+1OSh6F3tAXKRvezIG8mknkau/nD
+nfenzB9huW9X9DqLfHKWyYYrwJTymNKK4ceCjZbSJL6PIYJ0KclIbnVuZTuShJ1c
+fLwr/daIV1X3lGWb4cZqJmozWyjaD1yc0xoRpFaZgM2sUAu7jGnXFZsf2BnmkpnI
+2ARAiACMpoh3pxUglQf+
+=ikwd
 -----END PGP SIGNATURE-----
 
---YRPL3RJyuON7wuhd--
-
-
---===============4024107348387216128==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-arm-kernel mailing list
-linux-arm-kernel@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-
---===============4024107348387216128==--
+--Jtzgsd50XOpelISN--
