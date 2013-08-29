@@ -1,111 +1,327 @@
-From: George Cherian <george.cherian@ti.com>
-Subject: Re: [PATCH] gpio: pcf857x: cleanup irq_demux_work and use threaded
- irq
-Date: Thu, 29 Aug 2013 19:41:16 +0530
-Message-ID: <521F5684.3090703@ti.com>
-References: <1377599455-9379-1-git-send-email-george.cherian@ti.com> <CACRpkdbME_M8_X=5OttSFKDknqVEKSZc+7u=VLM-T-g3c_uv6Q@mail.gmail.com>
+From: Archit Taneja <archit@ti.com>
+Subject: Re: [PATCH 13/15] OMAPDSS: DSS: remove legacy dss bus support
+Date: Thu, 29 Aug 2013 20:02:32 +0530
+Message-ID: <521F5B80.6080802@ti.com>
+References: <1377783120-14001-1-git-send-email-tomi.valkeinen@ti.com> <1377783120-14001-14-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <CACRpkdbME_M8_X=5OttSFKDknqVEKSZc+7u=VLM-T-g3c_uv6Q@mail.gmail.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>, Nikolay Balandin <n.a.balandin@gmail.com>, Grant Likely <grant.likely@linaro.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:53175 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753995Ab3H2OdW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 29 Aug 2013 10:33:22 -0400
+In-Reply-To: <1377783120-14001-14-git-send-email-tomi.valkeinen@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
-Hi Linus,
+On Thursday 29 August 2013 07:01 PM, Tomi Valkeinen wrote:
+> With all the old panels removed and all the old panel model APIs removed
+> from the DSS encoders, we can now remove the custom omapdss-bus which
+> was used in the old panel model.
+>
+> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> ---
+>   drivers/video/omap2/dss/core.c | 279 +----------------------------------------
+>   drivers/video/omap2/dss/dss.h  |   9 --
+>   include/video/omapdss.h        |   6 -
+>   3 files changed, 3 insertions(+), 291 deletions(-)
+>
+> diff --git a/drivers/video/omap2/dss/core.c b/drivers/video/omap2/dss/core.c
+> index 71e6a77..54f3320 100644
+> --- a/drivers/video/omap2/dss/core.c
+> +++ b/drivers/video/omap2/dss/core.c
+> @@ -248,235 +248,6 @@ static struct platform_driver omap_dss_driver = {
+>   	},
+>   };
+>
+> -/* BUS */
+> -static int dss_bus_match(struct device *dev, struct device_driver *driver)
+> -{
+> -	struct omap_dss_device *dssdev = to_dss_device(dev);
+> -
+> -	DSSDBG("bus_match. dev %s/%s, drv %s\n",
+> -			dev_name(dev), dssdev->driver_name, driver->name);
+> -
+> -	return strcmp(dssdev->driver_name, driver->name) == 0;
+> -}
+> -
+> -static struct bus_type dss_bus_type = {
+> -	.name = "omapdss",
+> -	.match = dss_bus_match,
+> -};
+> -
+> -static void dss_bus_release(struct device *dev)
+> -{
+> -	DSSDBG("bus_release\n");
+> -}
+> -
+> -static struct device dss_bus = {
+> -	.release = dss_bus_release,
+> -};
+> -
+> -struct bus_type *dss_get_bus(void)
+> -{
+> -	return &dss_bus_type;
+> -}
+> -
+> -/* DRIVER */
+> -static int dss_driver_probe(struct device *dev)
+> -{
+> -	int r;
+> -	struct omap_dss_driver *dssdrv = to_dss_driver(dev->driver);
+> -	struct omap_dss_device *dssdev = to_dss_device(dev);
+> -
+> -	DSSDBG("driver_probe: dev %s/%s, drv %s\n",
+> -				dev_name(dev), dssdev->driver_name,
+> -				dssdrv->driver.name);
+> -
+> -	r = dssdrv->probe(dssdev);
+> -
+> -	if (r) {
+> -		DSSERR("driver probe failed: %d\n", r);
+> -		return r;
+> -	}
+> -
+> -	DSSDBG("probe done for device %s\n", dev_name(dev));
+> -
+> -	dssdev->driver = dssdrv;
+> -
+> -	return 0;
+> -}
+> -
+> -static int dss_driver_remove(struct device *dev)
+> -{
+> -	struct omap_dss_driver *dssdrv = to_dss_driver(dev->driver);
+> -	struct omap_dss_device *dssdev = to_dss_device(dev);
+> -
+> -	DSSDBG("driver_remove: dev %s/%s\n", dev_name(dev),
+> -			dssdev->driver_name);
+> -
+> -	dssdrv->remove(dssdev);
+> -
+> -	dssdev->driver = NULL;
+> -
+> -	return 0;
+> -}
+> -
+> -static int omapdss_default_connect(struct omap_dss_device *dssdev)
+> -{
+> -	struct omap_dss_device *out;
+> -	struct omap_overlay_manager *mgr;
+> -	int r;
+> -
+> -	out = dssdev->output;
+> -
+> -	if (out == NULL)
+> -		return -ENODEV;
+> -
+> -	mgr = omap_dss_get_overlay_manager(out->dispc_channel);
+> -	if (!mgr)
+> -		return -ENODEV;
+> -
+> -	r = dss_mgr_connect(mgr, out);
+> -	if (r)
+> -		return r;
+> -
+> -	return 0;
+> -}
+> -
+> -static void omapdss_default_disconnect(struct omap_dss_device *dssdev)
+> -{
+> -	struct omap_dss_device *out;
+> -	struct omap_overlay_manager *mgr;
+> -
+> -	out = dssdev->output;
+> -
+> -	if (out == NULL)
+> -		return;
+> -
+> -	mgr = out->manager;
+> -
+> -	if (mgr == NULL)
+> -		return;
+> -
+> -	dss_mgr_disconnect(mgr, out);
+> -}
+> -
+> -int omap_dss_register_driver(struct omap_dss_driver *dssdriver)
+> -{
+> -	dssdriver->driver.bus = &dss_bus_type;
+> -	dssdriver->driver.probe = dss_driver_probe;
+> -	dssdriver->driver.remove = dss_driver_remove;
+> -
+> -	if (dssdriver->get_resolution == NULL)
+> -		dssdriver->get_resolution = omapdss_default_get_resolution;
+> -	if (dssdriver->get_recommended_bpp == NULL)
+> -		dssdriver->get_recommended_bpp =
+> -			omapdss_default_get_recommended_bpp;
+> -	if (dssdriver->get_timings == NULL)
+> -		dssdriver->get_timings = omapdss_default_get_timings;
+> -	if (dssdriver->connect == NULL)
+> -		dssdriver->connect = omapdss_default_connect;
+> -	if (dssdriver->disconnect == NULL)
+> -		dssdriver->disconnect = omapdss_default_disconnect;
+> -
+> -	return driver_register(&dssdriver->driver);
+> -}
+> -EXPORT_SYMBOL(omap_dss_register_driver);
+> -
+> -void omap_dss_unregister_driver(struct omap_dss_driver *dssdriver)
+> -{
+> -	driver_unregister(&dssdriver->driver);
+> -}
+> -EXPORT_SYMBOL(omap_dss_unregister_driver);
+> -
+> -/* DEVICE */
+> -
+> -static void omap_dss_dev_release(struct device *dev)
+> -{
+> -	struct omap_dss_device *dssdev = to_dss_device(dev);
+> -	kfree(dssdev);
+> -}
+> -
+> -static int disp_num_counter;
+> -
+> -struct omap_dss_device *dss_alloc_and_init_device(struct device *parent)
+> -{
+> -	struct omap_dss_device *dssdev;
+> -
+> -	dssdev = kzalloc(sizeof(*dssdev), GFP_KERNEL);
+> -	if (!dssdev)
+> -		return NULL;
+> -
+> -	dssdev->old_dev.bus = &dss_bus_type;
+> -	dssdev->old_dev.parent = parent;
+> -	dssdev->old_dev.release = omap_dss_dev_release;
+> -	dev_set_name(&dssdev->old_dev, "display%d", disp_num_counter++);
+> -
+> -	device_initialize(&dssdev->old_dev);
+> -
+> -	return dssdev;
+> -}
+> -
+> -int dss_add_device(struct omap_dss_device *dssdev)
+> -{
+> -	dssdev->dev = &dssdev->old_dev;
+> -
+> -	omapdss_register_display(dssdev);
+> -	return device_add(&dssdev->old_dev);
+> -}
+> -
+> -void dss_put_device(struct omap_dss_device *dssdev)
+> -{
+> -	put_device(&dssdev->old_dev);
+> -}
+> -
+> -void dss_unregister_device(struct omap_dss_device *dssdev)
+> -{
+> -	device_unregister(&dssdev->old_dev);
+> -	omapdss_unregister_display(dssdev);
+> -}
+> -
+> -static int dss_unregister_dss_dev(struct device *dev, void *data)
+> -{
+> -	struct omap_dss_device *dssdev = to_dss_device(dev);
+> -	dss_unregister_device(dssdev);
+> -	return 0;
+> -}
+> -
+> -void dss_unregister_child_devices(struct device *parent)
+> -{
+> -	device_for_each_child(parent, NULL, dss_unregister_dss_dev);
+> -}
+> -
+> -void dss_copy_device_pdata(struct omap_dss_device *dst,
+> -		const struct omap_dss_device *src)
+> -{
+> -	u8 *d = (u8 *)dst;
+> -	u8 *s = (u8 *)src;
+> -	size_t dsize = sizeof(struct device);
+> -
+> -	memcpy(d + dsize, s + dsize, sizeof(struct omap_dss_device) - dsize);
+> -}
+> -
+> -/* BUS */
+> -static int __init omap_dss_bus_register(void)
+> -{
+> -	int r;
+> -
+> -	r = bus_register(&dss_bus_type);
+> -	if (r) {
+> -		DSSERR("bus register failed\n");
+> -		return r;
+> -	}
+> -
+> -	dev_set_name(&dss_bus, "omapdss");
+> -	r = device_register(&dss_bus);
+> -	if (r) {
+> -		DSSERR("bus driver register failed\n");
+> -		bus_unregister(&dss_bus_type);
+> -		return r;
+> -	}
+> -
+> -	return 0;
+> -}
+> -
+>   /* INIT */
+>   static int (*dss_output_drv_reg_funcs[])(void) __initdata = {
+>   #ifdef CONFIG_OMAP2_DSS_DSI
+> @@ -553,6 +324,8 @@ static int __init omap_dss_register_drivers(void)
+>   			dss_output_drv_loaded[i] = true;
+>   	}
+>
+> +	dss_initialized = true;
+> +
+>   	return 0;
+>
+>   err_dispc:
+> @@ -578,64 +351,18 @@ static void __exit omap_dss_unregister_drivers(void)
+>   	platform_driver_unregister(&omap_dss_driver);
+>   }
+>
+> -#ifdef CONFIG_OMAP2_DSS_MODULE
+> -static void omap_dss_bus_unregister(void)
+> -{
+> -	device_unregister(&dss_bus);
+> -
+> -	bus_unregister(&dss_bus_type);
+> -}
+> -
+>   static int __init omap_dss_init(void)
+>   {
+> -	int r;
+> -
+> -	r = omap_dss_bus_register();
+> -	if (r)
+> -		return r;
+> -
+> -	r = omap_dss_register_drivers();
+> -	if (r) {
+> -		omap_dss_bus_unregister();
+> -		return r;
+> -	}
+> -
+> -	dss_initialized = true;
+> -
+> -	return 0;
+> +	return omap_dss_register_drivers();
+>   }
+>
+>   static void __exit omap_dss_exit(void)
+>   {
+>   	omap_dss_unregister_drivers();
+> -
+> -	omap_dss_bus_unregister();
+>   }
+>
+>   module_init(omap_dss_init);
+>   module_exit(omap_dss_exit);
 
-Thanks for the review. I will split it and send v2.
+minor comment here, we could use 
+omap_dss_register_driver/unregister_driver for the module_init/exit 
+directly, the funcs omap_dss_init/ext don't seem to be doing much here.
 
-On 8/29/2013 6:27 PM, Linus Walleij wrote:
-> On Tue, Aug 27, 2013 at 12:30 PM, George Cherian <george.cherian@ti.com> wrote:
->
->> This patch
->>          - removes the irq_demux_work
->>          - Uses devm_request_threaded_irq
->>          - Call the user handler iff gpio_to_irq is done.
->>
->> Signed-off-by: George Cherian <george.cherian@ti.com>
-> Can you please split this up? It seems like three different patches,
-> and now they block each other. The threading patch is fine and
-> I could apply it unless this was mixed up with other stuff.
->
-> I'd like Kuninoro and/or Nikolay to have a look at this, so please
-> CC them on subsequent iterations.
-okay
-> NB: I really like that you move the irq handling to a thread, good
-> job.
->
->>   static const struct i2c_device_id pcf857x_id[] = {
->> @@ -89,12 +89,12 @@ struct pcf857x {
->>          struct gpio_chip        chip;
->>          struct i2c_client       *client;
->>          struct mutex            lock;           /* protect 'out' */
->> -       struct work_struct      work;           /* irq demux work */
->>          struct irq_domain       *irq_domain;    /* for irq demux  */
->>          spinlock_t              slock;          /* protect irq demux */
->>          unsigned                out;            /* software latch */
->>          unsigned                status;         /* current status */
->>          int                     irq;            /* real irq number */
->> +       int                     irq_mapped;     /* mapped gpio irqs  */
-> This seems like an u32 or atleast unsigned, and state that its one
-> bit flag per IRQ. How many GPIO lines are there?
-pcf857x driver supports expanders with 8 and 16 gpio lines.
->> -static void pcf857x_irq_demux_work(struct work_struct *work)
->> +static irqreturn_t pcf857x_irq(int irq, void *data)
->>   {
->> -       struct pcf857x *gpio = container_of(work,
->> -                                              struct pcf857x,
->> -                                              work);
->> +       struct pcf857x  *gpio = data;
->>          unsigned long change, i, status, flags;
->>
->>          status = gpio->read(gpio->client);
->>
->>          spin_lock_irqsave(&gpio->slock, flags);
->> +
->> +       /*
->> +        * call the interrupt handler iff gpio is used as
->> +        * interrupt source, just to avoid bad irqs
->> +        */
->>
->> -       change = gpio->status ^ status;
->> +       change = ((gpio->status ^ status) & gpio->irq_mapped);
-> I don't know if that is right.
->
-> If this happens you are getting what we call a "spurious IRQ"
-> and this shall be reported to the IRQ core by returning
-> IRQ_NONE and handled from there.
-While testing I got prints like bad irq and no handler installed.
-Now I notice its mostly when the n_latch is not passed properly.
->
->> @@ -226,9 +223,13 @@ static irqreturn_t pcf857x_irq_demux(int irq, void *data)
->>   static int pcf857x_irq_domain_map(struct irq_domain *domain, unsigned int virq,
->>                                   irq_hw_number_t hw)
->>   {
->> +       struct pcf857x  *gpio = domain->host_data;
->>          irq_set_chip_and_handler(virq,
->>                                   &dummy_irq_chip,
->>                                   handle_level_irq);
->> +       set_irq_flags(virq, IRQF_VALID);
->> +       gpio->irq_mapped |= (1 << hw);
-> I'm a bit uneasy about this. It feels like its the irqdomain's
-> responsibility to keep track of whether an IRQ is mapped
-> or not.
-Mainly these expanders dont have an ier sort of registers and if at all 
-the initial value is not set proper
-then it gives bad irq prints only once per changed bit for which there 
-is no handler.
-Should I drop this in v2?
-
->
-> Maybe Grant should have a look at this.
->
-> Yours,
-> Linus Walleij
-
-
--- 
--George
-
+Archit
