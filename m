@@ -1,81 +1,76 @@
-From: George Cherian <george.cherian@ti.com>
-Subject: Re: [PATCH v3 3/3] ARM: dts: dra7-evm: Add extcon nodes for USB ID
- pin detection
-Date: Thu, 29 Aug 2013 08:23:28 +0530
-Message-ID: <521EB7A8.3000603@ti.com>
-References: <1377711185-31238-1-git-send-email-george.cherian@ti.com> <1377711185-31238-4-git-send-email-george.cherian@ti.com> <521E394C.3040402@cogentembedded.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL] non-critical omap fixes for v3.12 merge window
+Date: Wed, 28 Aug 2013 22:37:06 -0700
+Message-ID: <20130829053705.GL7656@atomide.com>
+References: <20130823054609.GW7656@atomide.com>
+ <20130828185045.GI8607@quad.lixom.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <521E394C.3040402@cogentembedded.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Cc: balbi@ti.com, myungjoo.ham@samsung.com, cw00.choi@samsung.com, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, grant.likely@linaro.org, rob@landley.net, ian.campbell@citrix.com, swarren@wwwdotorg.org, mark.rutland@arm.com, pawel.moll@arm.com, rob.herring@calxeda.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, bcousson@baylibre.com, davidb@codeaurora.org, arnd@arndb.de, swarren@nvidia.com, popcornmix@gmail.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:37201 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752777Ab3H2FhQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Aug 2013 01:37:16 -0400
+Content-Disposition: inline
+In-Reply-To: <20130828185045.GI8607@quad.lixom.net>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Olof Johansson <olof@lixom.net>
+Cc: Kevin Hilman <khilman@linaro.org>, arm@kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Matus Ujhelyi <ujhelyi.m@gmail.com>
 
-On 8/28/2013 11:24 PM, Sergei Shtylyov wrote:
-> On 08/28/2013 09:33 PM, George Cherian wrote:
->
->> Add
->>     -extcon nodes for USB ID pin detection.
->>     -i2c nodes.
->>     -pcf nodes to which USB ID pin is connected.
->
->> Signed-off-by: George Cherian <george.cherian@ti.com>
->> ---
->>   arch/arm/boot/dts/dra7-evm.dts | 50 
->> +++++++++++++++++++++++++++++++++++++++++-
->>   1 file changed, 49 insertions(+), 1 deletion(-)
->
->> diff --git a/arch/arm/boot/dts/dra7-evm.dts 
->> b/arch/arm/boot/dts/dra7-evm.dts
->> index acd3c09..8b0738a 100644
->> --- a/arch/arm/boot/dts/dra7-evm.dts
->> +++ b/arch/arm/boot/dts/dra7-evm.dts
-> [...]
->> @@ -33,10 +44,47 @@
->>           };
->>   };
->>
->> +&i2c1 {
->> +    clock-frequency = <400000>;
->> +
->> +    gpio20: pcf8575@20 {
->
->     ePAPR was talking about the node naming, not about labelling. Back 
-> to the drawing board. ;-)
->
-ha..... :-/
->> +        compatible = "ti,pcf8575";
->> +        reg = <0x20>;
->> +        n_latch = <0x4000>;
->> +        gpio-controller;
->> +        #gpio-cells = <2>;
->> +        interrupt-parent = <&gpio6>;
->> +        interrupts = <11 2>;
->> +        interrupt-controller;
->> +        #interrupt-cells = <2>;
->> +    };
->> +
->> +    gpio21: pcf8575@21 {
->> +        compatible = "ti,pcf8575";
->> +        reg = <0x21>;
->> +        n_latch = <0x1408>;
->> +        gpio-controller;
->> +        #gpio-cells = <2>;
->> +        interrupt-parent = <&pcf_20>;
->> +        interrupts = <14 2>;
->> +        interrupt-controller;
->> +        #interrupt-cells = <2>;
->> +    };
->> +
->> +};
->> +
->
-> WBR, Sergei
->
+* Olof Johansson <olof@lixom.net> [130828 11:58]:
+> On Thu, Aug 22, 2013 at 10:46:10PM -0700, Tony Lindgren wrote:
+> 
+> > Matus Ujhelyi (1):
+> >       ARM: OMAP2+: am33xx-restart: trigger warm reset on omap2+ boards
+> 
+> Sigh. am33xx has been a bit of a pain this release cycle. Can you please
+> start double-checking builds when you apply am33xx stuff? :(
+> 
+> This breaks with:
+> 
+>         multi_v7_defconfig:
+> arch/arm/mach-omap2/am33xx-restart.c:27:26: error: 'AM33XX_RST_GLOBAL_WARM_SW_MASK' undeclared (first use in this function)
+> 
+>         omap2plus_defconfig:
+> arch/arm/mach-omap2/am33xx-restart.c:27:26: error: 'AM33XX_RST_GLOBAL_WARM_SW_MASK' undeclared (first use in this function)
+
+Oops sorry, I see what's going on. It builds fine against v3.11-rc6, but
+has a dependency for v3.12 for the cleanup branch that removed all the
+unused defines. 
+ 
+> I've unmerged the branch until that's resolved.
+
+Care to apply the following fix to the cleanup branch?
+
+This way this fixes branch keeps working both against v3.11 and the
+patches queued for v3.12.
+
+Regards,
+
+Tony
 
 
--- 
--George
+8< ---------
+
+From: Tony Lindgren <tony@atomide.com>
+Date: Wed, 28 Aug 2013 22:24:13 -0700
+Subject: [PATCH] ARM: OMAP2+: Add back the define for AM33XX_RST_GLOBAL_WARM_SW_MASK
+
+This is needed to prevent a build error with a patch queued for fixes
+"ARM: OMAP2+: am33xx-restart: trigger warm reset on omap2+ boards".
+
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+diff --git a/arch/arm/mach-omap2/prm-regbits-33xx.h b/arch/arm/mach-omap2/prm-regbits-33xx.h
+index bbffc03..84feece 100644
+--- a/arch/arm/mach-omap2/prm-regbits-33xx.h
++++ b/arch/arm/mach-omap2/prm-regbits-33xx.h
+@@ -22,6 +22,7 @@
+ #define AM33XX_GFX_MEM_RETSTATE_MASK			(1 << 6)
+ #define AM33XX_GFX_MEM_STATEST_MASK			(0x3 << 4)
+ #define AM33XX_GLOBAL_WARM_SW_RST_MASK			(1 << 1)
++#define AM33XX_RST_GLOBAL_WARM_SW_MASK			(1 << 0)
+ #define AM33XX_PRUSS_MEM_ONSTATE_MASK			(0x3 << 5)
+ #define AM33XX_PRUSS_MEM_RETSTATE_MASK			(1 << 7)
+ #define AM33XX_PRUSS_MEM_STATEST_MASK			(0x3 << 23)
