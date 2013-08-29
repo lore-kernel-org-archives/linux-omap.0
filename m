@@ -1,58 +1,113 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH v2 3/3] ARM: OMAP4+: Remove static iotable mappings for
- SRAM
-Date: Thu, 29 Aug 2013 13:25:04 -0400
-Message-ID: <521F83F0.9080503@ti.com>
-References: <1377775391-13103-1-git-send-email-rnayak@ti.com> <1377775391-13103-4-git-send-email-rnayak@ti.com> <871u5c2z3a.fsf@linaro.org>
+From: "Ivan T. Ivanov" <iivanov@mm-sol.com>
+Subject: Re: [PATCH v4 2/3] usb: phy: Add Qualcomm SS-USB and HS-USB
+ drivers for DWC3 core
+Date: Thu, 29 Aug 2013 20:28:40 +0300
+Message-ID: <1377797320.30358.16.camel@localhost>
+References: <1377005543.26268.22.camel@iivanov-dev.int.mm-sol.com>
+	 <20130820133712.GC26587@radagast>
+	 <1377007751.26268.27.camel@iivanov-dev.int.mm-sol.com>
+	 <20130820143319.GG26587@radagast>
+	 <1377010458.26268.30.camel@iivanov-dev.int.mm-sol.com>
+	 <8691FDFE-326E-4198-838A-202D9EC988E1@codeaurora.org>
+	 <1377011163.31445.30.camel@hornet> <1377018092.31445.42.camel@hornet>
+	 <1377090364.15070.13.camel@iivanov-dev.int.mm-sol.com>
+	 <68B25A45-443C-4CC0-9933-80A3D290B557@codeaurora.org>
+	 <20130822204130.GP28420@radagast>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:43199 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754035Ab3H2RZh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Aug 2013 13:25:37 -0400
-In-Reply-To: <871u5c2z3a.fsf@linaro.org>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <20130822204130.GP28420@radagast>
+Sender: linux-doc-owner@vger.kernel.org
+To: balbi@ti.com
+Cc: Kumar Gala <galak@codeaurora.org>, Pawel Moll <pawel.moll@arm.com>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, Mark Rutland <Mark.Rutland@arm.com>, "swarren@wwwdotorg.org" <swarren@wwwdotorg.org>, "ian.campbell@citrix.com" <ian.campbell@citrix.com>, "rob@landley.net" <rob@landley.net>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "idos@codeaurora.org" <idos@codeaurora.org>, "mgautam@codeaurora.org" <mgautam@codeaurora.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, Paul
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@linaro.org>
-Cc: Rajendra Nayak <rnayak@ti.com>, tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, bcousson@baylibre.com, nsekhar@ti.com, paul@pwsan.com
 
-On Thursday 29 August 2013 01:20 PM, Kevin Hilman wrote:
-> Rajendra Nayak <rnayak@ti.com> writes:
+On Thu, 2013-08-22 at 15:41 -0500, Felipe Balbi wrote:
+> On Wed, Aug 21, 2013 at 10:13:28AM -0500, Kumar Gala wrote:
+> > 
+> > On Aug 21, 2013, at 8:06 AM, Ivan T. Ivanov wrote:
+> > 
+> > > On Tue, 2013-08-20 at 18:01 +0100, Pawel Moll wrote: 
+> > >> On Tue, 2013-08-20 at 16:06 +0100, Pawel Moll wrote:
+> > >>> On Tue, 2013-08-20 at 16:01 +0100, Kumar Gala wrote:
+> > >>>> On Aug 20, 2013, at 9:54 AM, Ivan T. Ivanov wrote:
+> > >>>> 
+> > >>>>> 
+> > >>>>> Hi, 
+> > >>>>> 
+> > >>>>> On Tue, 2013-08-20 at 09:33 -0500, Felipe Balbi wrote: 
+> > >>>>>> On Tue, Aug 20, 2013 at 05:09:11PM +0300, Ivan T. Ivanov wrote:
+> > >>>>>>> Hi,
+> > >>>>>>> 
+> > >>>>>>> On Tue, 2013-08-20 at 08:37 -0500, Felipe Balbi wrote: 
+> > >>>>>>>> Hi,
+> > >>>>>>>> 
+> > >>>>>>>> On Tue, Aug 20, 2013 at 04:32:23PM +0300, Ivan T. Ivanov wrote:
+> > >>>>>>>>>> On Tue, Aug 20, 2013 at 12:56:04PM +0300, Ivan T. Ivanov wrote:
+> > >>>>>>>>>>> From: "Ivan T. Ivanov" <iivanov@mm-sol.com>
+> > >>>>>>>>>>> 
+> > >>>>>>>>>>> These drivers handles control and configuration of the HS
+> > >>>>>>>>>>> and SS USB PHY transceivers. They are part of the driver
+> > >>>>>>>>>>> which manage Synopsys DesignWare USB3 controller stack
+> > >>>>>>>>>>> inside Qualcomm SoC's.
+> > >>>>>>>>>>> 
+> > >>>>>>>>>>> Signed-off-by: Ivan T. Ivanov <iivanov@mm-sol.com>
+> > >>>>>>>>>>> ---
+> > >>>>>>>>>>> drivers/usb/phy/Kconfig           |   11 ++
+> > >>>>>>>>>>> drivers/usb/phy/Makefile          |    2 +
+> > >>>>>>>>>>> drivers/usb/phy/phy-msm-dwc3-hs.c |  327 ++++++++++++++++++++++++++++++++
+> > >>>>>>>>>>> drivers/usb/phy/phy-msm-dwc3-ss.c |  374 +++++++++++++++++++++++++++++++++++++
+> > >>>>>>>>>> 
+> > >>>>>>>>>> please rename these PHY drivers, they have nothing to do with DWC3. PHYs
+> > >>>>>>>>>> don't care about the USB controller.
+> > >>>>>>>>> 
+> > >>>>>>>>> I think they are SNPS DesignWare PHY's, additionally
+> > >>>>>>>>> wrapped with Qualcomm logic. I could substitute "dwc3"
+> > >>>>>>>>> with just "dw", which will be more correct.
+> > >>>>>>>> 
+> > >>>>>>>> alright, thank you. Let's add Paul to the loop since he might have very
+> > >>>>>>>> good insight in the synopsys PHYs.
+> > >>>>>>>> 
+> > >>>>>>>> mental note: if any other platform shows up with Synopsys PHY, ask them
+> > >>>>>>>> to use this driver instead :-)
+> > >>>>>>> 
+> > >>>>>>> I really doubt that this will bi possible. Control of the PHY's is
+> > >>>>>>> not directly trough ULPI, UTMI or PIPE3 interfaces, but trough
+> > >>>>>>> QSCRATCH registers, which of course is highly Qualcomm specific.
+> > >>>>>> 
+> > >>>>>> isn't it a memory mapped IP ? doesn't synopsys provide their own set of
+> > >>>>>> registers ?
+> > >>>>> 
+> > >>>>> From what I see it is not directly mapped. How QSCRATCH write and
+> > >>>>> reads transactions are translated to DW IP is unclear to me.
+> > >>>> 
+> > >>>> 
+> > >>>> I think the question is how does SW access them?
+> > >>> 
+> > >>> I afraid the answer may be: "it depends on the SOC". In my past I had to
+> > >>> initialize a (SATA) PHY by implementing a software JTAG state machine,
+> > >>> as the PHY's registers were not memory mapped *at all*. And the IP
+> > >>> itself came from Synopsys, Cadence or yet another EDA company...
+> > >> 
+> > >> Having said all that... If the PHY's spec at least defined layout of the
+> > >> registers in question and driver was using regmap API to talk to the
+> > >> device (initially regmap-mmio), it has some chances to become universal.
+> > >> The SOCs designed like "my" one would have to provide a custom regmap
+> > >> implementation.
+> > > 
+> > > Sound reasonable. Unfortunately I don't have PHY's IP spec. 
+> > 
+> > Looking into this it appears that the register wrapper around the IP
+> > is most likely highly specific to qualcomm as I'm not seeing a
+> > register interface around the DWC HS PHY.
 > 
->> In order to handle errata I688, a page of sram was reserved by doing a
->> static iotable map. Now that we use gen_pool to manage sram, we can
->> completely remove all of these static mappings and use gen_pool_alloc()
->> to get the one page of sram space needed to implement errata I688.
->>
->> Suggested-by: Sekhar Nori <nsekhar@ti.com>
->> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+> Then it's set, we'll go with this driver :-)
 > 
-> [...]
-> 
->> @@ -71,6 +72,21 @@ void omap_bus_sync(void)
->>  }
->>  EXPORT_SYMBOL(omap_bus_sync);
->>  
->> +static int __init omap4_sram_init(void)
->> +{
->> +	struct device_node *np;
->> +	struct gen_pool *sram_pool;
->> +
->> +	np = of_find_compatible_node(NULL, NULL, "ti,omap4-mpu");
->> +	if (!np)
->> +		pr_warn("%s:Unable to allocate sram needed to handle errata I688\n",
->> +			 __func__);
->> +	sram_pool = of_get_named_gen_pool(np, "sram", 0);
-> 
-> I haven't actually tested this, but if there is no 'sram' property defined...
->   
-If the sram property is not defined, the bus_sync will be just a nop. Below
-check will take care of it.
 
- if (dram_sync && sram_sync)
+Does this mean that driver could be merged? 
 
 Regards,
-Santosh
+Ivan
+
 
