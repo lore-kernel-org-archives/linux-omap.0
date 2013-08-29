@@ -1,674 +1,192 @@
-From: =?ISO-8859-1?Q?Kevyn=2DAlexandre_Par=E9?=
-	<kevyn.alexandre.pare@gmail.com>
-Subject: Re: Unable to randomly boot rootfs (EXT3 or EXT4) from SD: MMC error
- -110 (TIMEDOUT)
-Date: Thu, 29 Aug 2013 15:49:31 -0400
-Message-ID: <CAL1yNc+EHiZRD=G3-7OuMouh1uht6x3mvPXbQh7YWerFpnRqoA@mail.gmail.com>
-References: <CAL1yNcJZBSSNu4aDmL6n9uu3LkNPCOM-LbUXD2990jkPJYpLoA@mail.gmail.com>
-	<CAL1yNc+9pOWLCLfk7WpWvvsLfb01cFCJSi+4mTvnks9VrwoF1Q@mail.gmail.com>
-	<20130827220143.GC9182@thunk.org>
-	<CAL1yNcLzXir7KFavxaQK3OWWU5hHc06tvOSLrdvWB-VoEJdXQA@mail.gmail.com>
-	<20130828175622.GA27079@thunk.org>
-	<CAL1yNc+fzbeVR7TCuG9zjMG8D3zSu_ZnrrqnhtHv0oTRVteXTg@mail.gmail.com>
+From: Vaibhav Bedia <vaibhav.bedia@gmail.com>
+Subject: Re: [PATCH v4 0/4] ARM: OMAP2+: AM33XX: VDD CORE OPP50 support
+Date: Thu, 29 Aug 2013 16:09:40 -0400
+Message-ID: <CANacCWzK1w9+XKEoUfS4ZB7QGxi_0JkVWBLs_wsaUjrzW2QB+A@mail.gmail.com>
+References: <1376432412-8509-1-git-send-email-Russ.Dill@ti.com>
+	<1376487480.3889.64.camel@coredoba.hi.pengutronix.de>
+	<CA+Bv8XYe0UzBkjqtO7bNkgNVTQtxiM7Hv93BOu8Lw1=pESOwLA@mail.gmail.com>
+	<87txiasqhk.fsf@linaro.org>
+	<CA+Bv8XZagHZ9mUuZB49hrH=901fXzoAcV8C0Fm3EfLa2eiBu0w@mail.gmail.com>
+	<87ppsw7cgq.fsf@linaro.org>
+	<CA+Bv8XbxV=BFjcSsUMX2pz9LeCkSwrjzZmj_=YbHGzyfbLXmaQ@mail.gmail.com>
+	<874na8xqfl.fsf@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <CAL1yNc+fzbeVR7TCuG9zjMG8D3zSu_ZnrrqnhtHv0oTRVteXTg@mail.gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Theodore Ts'o <tytso@mit.edu>
-Cc: linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, linux-ext4@vger.kernel.org, arnd@linaro.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-la0-f45.google.com ([209.85.215.45]:45570 "EHLO
+	mail-la0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756570Ab3H2UJm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Aug 2013 16:09:42 -0400
+In-Reply-To: <874na8xqfl.fsf@linaro.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@linaro.org>
+Cc: Russ Dill <Russ.Dill@ti.com>, devicetree@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Mark Brown <broonie@kernel.org>, =?ISO-8859-1?Q?Jan_L=FCbbe?= <jlu@pengutronix.de>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
 
-I forgot to mention that I was not able to reproduce it yet with the
-CONFIG_MMC_DEBUG=3Dy
+On Thu, Aug 29, 2013 at 3:11 PM, Kevin Hilman <khilman@linaro.org> wrote:
+[...]
 
-Since this is simply slowing down the boot could this be a timeout
-problem that is to limit and fail to soon?
+First of all, apologies for jumping in here. Now that i am not
+actively involved in
+AM335x/AM437x stuff i wasn't actively following all the discussion here.
 
--KA
+Looking at the lists now i just wanted to mention a few things so that we can
+agree on the approach to be taken here.
 
-On Thu, Aug 29, 2013 at 3:39 PM, Kevyn-Alexandre Par=E9
-<kevyn.alexandre.pare@gmail.com> wrote:
-> On Wed, Aug 28, 2013 at 1:56 PM, Theodore Ts'o <tytso@mit.edu> wrote:
->> On Wed, Aug 28, 2013 at 11:22:58AM -0400, Kevyn-Alexandre Par=E9 wro=
-te:
->>> We try multiple of our system ( Different micro SD from SanDisk +
->>> Overo with OMAP3) and they are all doing this with the SanDisk 64GB=
-,
->>> 32GB :
->>> http://www.sandisk.com/products/memory-cards/microsd/ultra-class10-=
-for-android/?capacity=3D64GB
+>>>>>
+>>>>> So, why/how was the decision made to use the M3 instead of the MPU
+>>>>> running from SRAM?
+>>>>>
+>>>>> As a firmware minimalist, I obviously prefer to do this from the MPU
+>>>>> side.  But also, because the M3 is reset every suspend sequence, this
+>>>>> becomes rather heavy to do from the M3.
+>>>>
+>>>> After the feedback Vaibhav Bedia received on v2 of his suspend/resume
+>>>> patchset for am335x, he decided to move many of the operations from
+>>>> sleep33xx.S into the M3 firmware.
+>>>>
+>>>> See the commit message here:
+>>>> http://arago-project.org/git/projects/?p=am33x-cm3.git;a=commit;h=a972ce2f6
 >>>
->>> The problem seem to be easier to reproduce when we just flash the
->>> micro SD (partition, format & copy rootfs) at it first boot.
->>> Also, when we let the system down for a couple of days and then
->>> sometimes we need to reboot the system multiple times before it fal=
-l
->>> back alright.
+>>> Was this feedback on the public lists?  That patch has never been posted
+>>> to linux-omap AFAICT.
 >>>
->>> We found a old patch that was simply increasing the timeout of the =
-host:
->>> http://cgit.openembedded.org/cgit.cgi/openembedded/tree/recipes/lin=
-ux/linux-omap-2.6.39/sakoman/0024-omap-mmc-Adjust-dto-to-eliminate-time=
-out-errors.patch?h=3Dorg.openembedded.dev
+>>>> I need to wait until after the PLLs are put into bypass, which is now
+>>>> done in the M3 firmware. It also ends up being a lot easier to write
+>>>> the I2C writer code there in C rather than in assembly in sleep33xx.S.
 >>>
->>> By settings the timeout to zero I reproduce kind of the same timeou=
-t
->>> error at every boot. That was expected since I don't let enough tim=
-e
->>> to the controller to respond...
+>>> hmm, (carefully) written functions in C can still be copied to SRAM.  I
+>>> dont' see that as an obstacle.
 >>>
->>> Could the mix of that MMC controller and these card is not optimal?=
- Is
->>> the driver fully supporting the UHS-I speed grade?
+>>>>> Currently voltage scaling is only being proposed for suspend in this
+>>>>> series, but in theory it's possible from idle as well.  Doing this from
+>>>>> the MPU/SRAM seems much better suited for idle.
+>>>>
+>>>> The M3 firmware will also handle any cpuidle modes deeper than just
+>>>> putting SDRAM into self refresh. This is actually the only way of
+>>>> doing things like turning the MPU domain off on am335x.
+>>>
+>>> Yes, it will have to handle the MPU/interconnect off parts but other
+>>> than that, that's the only thing it *has* to do (well, and handle wakeup
+>>> from the deep state.)  The rest of the stuff being piled into the M3 is
+>>> a result of software/firmware design decisions AFAICT.  As I predicted
+>>> when I first saw this SoC design, the firmware is getting bigger and
+>>> bigger.  Initially it was argued that it would be tiny, and only handle
+>>> the things it had to do.  Now it's growing due to "convenience".  IMO,
+>>> this is a bad trend, and one that will make this code more and more
+>>> difficult to maintain upstream (assuming that's a goal.)
 >>
->> I've cc'ed Arnd Bergman who works at Linaro; I suspect that if he
->> doesn't know the answer off the top of his head, he can probably
->> direct you to someone who will.
+>> Do you mean upstream as in the firmware upstream, or upstream as in
+>> the kernel upstream? Upstream kernel is really easy to maintain
+>> because sleep33xx.S just puts the SDRAM into self-refresh.
+>
+> I mean making the kernel "simple" at the price of more complicated (and
+> much less reviewed) firmware code is a bad trend.  I understand the
+> desire to move this stuff into firmware and bypass the kernel review
+> process, but I predict it will backfire.
+>
+>> The code to perform these transitions is going to exist, either in
+>> kernel or in firmware. If you are looking for this to be maintainable
+>> C code that is copied into SRAM, it will need to be built much like a
+>> firmware, with it's elf sections being copied into SRAM properly.
+>
+> You're making it too complicated.  No need for ELF, etc.
+>
+> So the argument for moving much of the stuff from the kernel (in the
+> patch you referenced above) was that the "assembly code is quite big and
+> folks have found it hard to review and fixup issues in this dense piece
+> of code."  (interestingly, it was moved to firmware where it will see
+> even less review, but that's off topic.)
+>
+> My idea was that if reviewing assembly is the issue, why not carefully
+> write a self-contained C function that can be copied to SRAM.  It might
+> need a little stub in SRAM to setup the stack etc., but it should be
+> quite doable.  That eliminates the problem cited as the reason for the
+> move to M3.
+>
+>> I'm not sure how much it complicates things, but the code needs to be
+>> able to run with the MMU on and MMU off. The C code would be a
+>> minimalized duplication of much of what is already in
+>> mach-omap2. Because you are proposing to split this up between A8 and
+>> M3, much of that code would then be duplicated again within the M3
+>> firmware.
 >>
+>> And don't forget that am335x is just the first platform with such a PM scheme.
 >
-> Thx Ted,
+> IMO, all the more reason to handle it in Linux, not in platform-specific firmware.
 >
-> Here's more details that I manage to gathered. I add logs in
-> drivers/mmc/card/block.c in function mmc_blk_err_check() to grab the
-> command opcode:
-> pr_err("### KA: mmc_blk_err_check CMD %u\n", areq->mrq->cmd->opcode);
+>> Because the M3 firmware already has to manage power domains, hwmods,
+>> plls, and clockdomains, adding or removing which ones it handles
+>> doesn't really change the size or complexity of the firmware.
 >
-> Steps that I most often reproduce it.
-> Flashing microSD from Ubuntu 12.10 creating 2 partitions (FAT,EXT4)
-> with USB dongle if this may help (we try with different one and the
-> same result happen)?
+> No, but it significantly complicates its interaction with Linux, which
+> also has to know about all these things already.  IMO, as I've stated
+> from the very beginning of this SoC, there should be a very clean split.
+> M3 should only handle the minimum, what the MPU simply cannot do
+> (MPU/interconnect off, wakeup).  MPU/Linux should handle the rest.
 >
-> Aug 29 15:26:38 kap kernel: [371788.469842] usb 1-1: new high-speed
-> USB device number 19 using ehci_hcd
-> Aug 29 15:26:38 kap kernel: [371788.655389] usb 1-1: New USB device
-> found, idVendor=3D0bda, idProduct=3D0119
-> Aug 29 15:26:38 kap kernel: [371788.656090] usb 1-1: New USB device
-> strings: Mfr=3D1, Product=3D2, SerialNumber=3D3
-> Aug 29 15:26:38 kap kernel: [371788.656150] usb 1-1: Product: USB2.0-=
-CRW
-> Aug 29 15:26:38 kap kernel: [371788.656173] usb 1-1: Manufacturer: Ge=
-neric
-> Aug 29 15:26:38 kap kernel: [371788.656187] usb 1-1: SerialNumber:
-> 20090815198100000
-> Aug 29 15:26:39 kap kernel: [371789.101509] scsi16 : usb-storage 1-1:=
-1.0
-> Aug 29 15:26:40 kap kernel: [371790.114299] scsi 16:0:0:0:
-> Direct-Access     Generic- SD/MMC           1.00 PQ: 0 ANSI: 0 CCS
-> Aug 29 15:26:40 kap kernel: [371790.126066] sd 16:0:0:0: Attached scs=
-i
-> generic sg2 type 0
-> Aug 29 15:26:40 kap kernel: [371790.962739] sd 16:0:0:0: [sdb]
-> 124735488 512-byte logical blocks: (63.8 GB/59.4 GiB)
-> Aug 29 15:26:40 kap kernel: [371790.967661] sd 16:0:0:0: [sdb] Write
-> Protect is off
-> Aug 29 15:26:40 kap kernel: [371790.967713] sd 16:0:0:0: [sdb] Mode
-> Sense: 03 00 00 00
-> Aug 29 15:26:40 kap kernel: [371790.971559] sd 16:0:0:0: [sdb] No
-> Caching mode page present
-> Aug 29 15:26:40 kap kernel: [371790.971742] sd 16:0:0:0: [sdb]
-> Assuming drive cache: write through
-> Aug 29 15:26:40 kap kernel: [371790.991103] sd 16:0:0:0: [sdb] No
-> Caching mode page present
-> Aug 29 15:26:40 kap kernel: [371790.991113] sd 16:0:0:0: [sdb]
-> Assuming drive cache: write through
-> Aug 29 15:26:40 kap kernel: [371790.995660]  sdb: sdb1 sdb2
-> Aug 29 15:26:40 kap kernel: [371791.014090] sd 16:0:0:0: [sdb] No
-> Caching mode page present
-> Aug 29 15:26:40 kap kernel: [371791.014101] sd 16:0:0:0: [sdb]
-> Assuming drive cache: write through
-> Aug 29 15:26:40 kap kernel: [371791.014169] sd 16:0:0:0: [sdb]
-> Attached SCSI removable disk
+>> In fact, because so much of the code is common code, moving this into
+>> kernel would just mean making two copies of the firmware with
+>> different steps to be run, one for the A8 SRAM, one for the M3.
 >
-> Then take the SD but it in the embedded device and boot it. Note that
-> most of the time the next boot pass, with mmc_blk_err_check for CMD 1=
-8
-> & 25.
+> Maybe I'm getting confused, but the more you talk about the linux and
+> the firmware doing the same code, the more I think the firmware is
+> (trying) to do too much.  If this is going to be understandable (and
+> maintainable), there needs to be a clean split of roles between the MPU
+> and the M3.
 >
-> The output of the kernel panic (3.4.59) gives:
-> [...]
-> Waiting for root device /dev/mmcblk0p2...
-> mmc0: host does not support reading read-only switch. assuming write-=
-enable.
-> mmc0: new high speed SDXC card at address aaaa
-> mmcblk0: mmc0:aaaa SU64G 59.4 GiB
-> ### KA: mmc_blk_err_check CMD 18
->  mmcblk0: p1 p2
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> mmc1: new SDIO card at address 0001
-> ### KA: mmc_blk_err_check CMD 25
-> EXT4-fs (mmcblk0p2): mounted filesystem with ordered data mode. Opts:=
- (null)
-> VFS: Mounted root (ext4 filesystem) on device 179:2.
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> devtmpfs: mounted
-> Freeing init memory: 220K
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> INIT: version 2.86 booting
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> Please wait: boo### KA: mmc_blk_err_check CMD 18
-> ting...
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> Starting udev
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 25
-> ### KA: mmc_blk_err_check CMD 25
-> hub 1-0:1.0: hub_suspend
-> usb usb1: bus auto-suspend, wakeup 1
-> ehci-omap ehci-omap.0: suspend root hub
-> ### KA: mmc_blk_err_check CMD 25
-> ### KA: mmc_blk_err_check CMD 25
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> udevd (90): /proc/90/oom_adj is deprecated, please use
-> /proc/90/oom_score_adj instead.
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ads7846 spi1.0: touchscreen, irq 210
-> ### KA: mmc_blk_err_check CMD 18
-> input: ADS7846 Touchscreen as
-> /devices/platform/omap2_mcspi.1/spi_master/spi1/spi1.0/input/input0
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> input: twl4030_pwrbutton as
-> /devices/platform/omap_i2c.1/i2c-1/1-0049/twl4030_pwrbutton/input/inp=
-ut1
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> ### KA: mmc_blk_err_check CMD 18
-> mmcblk0: error -110 sending status command, retrying
-> mmcblk0: error -110 sending status command, retrying
-> mmcblk0: error -110 sending status command, aborting
-> ### KA: mmc_start_req catch error.
-> end_request: I/O error, dev mmcblk0, sector 416
-> Buffer I/O error on device mmcblk0, logical block 52
-> ### KA: mmc_blk_err_check CMD 18
-> mmcblk0: error -110 sending status command, retrying
-> mmcblk0: error -110 sending status command, retrying
-> mmcblk0: error -110 sending status command, aborting
-> ### KA: mmc_start_req catch error.
-> end_request: I/O error, dev mmcblk0, sector 67681792
-> end_request: I/O error, dev mmcblk0, sector 67681800
-> end_request: I/O error, dev mmcblk0, sector 67681808
-> end_request: I/O error, dev mmcblk0, sector 67681816
-> end_request: I/O error, dev mmcblk0, sector 67681824
-> end_request: I/O error, dev mmcblk0, sector 67681832
-> end_request: I/O error, dev mmcblk0, sector 67681840
-> end_request: I/O error, dev mmcblk0, sector 67681848
-> end_request: I/O error, dev mmcblk0, sector 67681856
-> end_request: I/O error, dev mmcblk0, sector 67681864
-> end_request: I/O error, dev mmcblk0, sector 67681872
-> end_request: I/O error, dev mmcblk0, sector 67681880
-> end_request: I/O error, dev mmcblk0, sector 67681888
-> end_request: I/O error, dev mmcblk0, sector 67681896
-> end_request: I/O error, dev mmcblk0, sector 67681904
-> end_request: I/O error, dev mmcblk0, sector 67681912
-> end_request: I/O error, dev mmcblk0, sector 67681920
-> end_request: I/O error, dev mmcblk0, sector 67681928
-> end_request: I/O error, dev mmcblk0, sector 67681936
-> end_request: I/O error, dev mmcblk0, sector 67681944
-> end_request: I/O error, dev mmcblk0, sector 67681952
-> end_request: I/O error, dev mmcblk0, sector 67681960
-> end_request: I/O error, dev mmcblk0, sector 67681968
-> end_request: I/O error, dev mmcblk0, sector 67681976
-> end_request: I/O error, dev mmcblk0, sector 67681984
-> end_request: I/O error, dev mmcblk0, sector 67681992
-> end_request: I/O error, dev mmcblk0, sector 67682000
-> end_request: I/O error, dev mmcblk0, sector 67682008
-> end_request: I/O error, dev mmcblk0, sector 67682016
-> end_request: I/O error, dev mmcblk0, sector 67682024
-> end_request: I/O error, dev mmcblk0, sector 67682032
-> end_request: I/O error, dev mmcblk0, sector 67682040
-> ### KA: mmc_blk_err_check CMD 18
-> mmcblk0: error -110 sending status command, retrying
-> mmcblk0: error -110 sending status command, retrying
-> mmcblk0: error -110 sending status command, aborting
-> ### KA: mmc_start_req catch error.
-> end_request: I/O error, dev mmcblk0, sector 67502720
-> end_request: I/O error, dev mmcblk0, sector 67502728
-> end_request: I/O error, dev mmcblk0, sector 67502736
-> end_request: I/O error, dev mmcblk0, sector 67502744
-> ### KA: mmc_blk_err_check CMD 18
-> mmcblk0: error -110 sending status command, retrying
-> mmcblk0: error -110 sending status command, retrying
-> mmcblk0: error -110 sending status command, aborting
-> ### KA: mmc_start_req catch error.
-> end_request: I/O error, dev mmcblk0, sector 416
-> Buffer I/O error on device mmcblk0, logical block 52
-> ### KA: mmc_blk_err_check CMD 18
-> mmcblk0: error -110 sending status command, retrying
-> mmcblk0: error -110 sending status command, retrying
-> mmcblk0: error -110 sending status command, aborting
-> ### KA: mmc_start_req catch error.
-> end_request: I/O error, dev mmcblk0, sector 50528680
-> ### KA: mmc_blk_err_check CMD 18
-> mmcblk0: error -110 sending status command, retrying
-> mmcblk0: error -110 sending status command, retrying
-> mmcblk0: error -110 sending status command, aborting
-> ### KA: mmc_start_req catch error.
-> end_request: I/O error, dev mmcblk0, sector 67502720
-> ### KA: mmc_blk_err_check CMD 18
-> mmcblk0: error -110 sending status command, retrying
-> mmcblk0: error -110 sending status command, retrying
-> mmcblk0: error -110 sending status command, aborting
-> ### KA: mmc_start_req catch error.
-> end_request: I/O error, dev mmcblk0, sector 67502960
-> end_request: I/O error, dev mmcblk0, sector 67502968
-> ### KA: mmc_blk_err_check CMD 18
-> mmcblk0: error -110 sending status command, retrying
-> mmcblk0: error -110 sending status command, retrying
-> mmcblk0: error -110 sending status command, aborting
-> ### KA: mmc_start_req catch error.
-> end_request: I/O error, dev mmcblk0, sector 67681792
-> ### KA: mmc_blk_err_check CMD 18
-> mmcblk0: error -110 sending status command, retrying
-> mmcblk0: error -110 sending status command, retrying
-> mmcblk0: error -110 sending status command, aborting
-> ### KA: mmc_start_req catch error.
-> end_request: I/O error, dev mmcblk0, sector 512
-> Buffer I/O error on device mmcblk0, logical block 64
-> ### KA: mmc_blk_err_check CMD 18
-> mmcblk0: error -110 sending status command, retrying
-> mmcblk0: error -110 sending status command, retrying
-> mmcblk0: error -110 sending status command, aborting
-> ### KA: mmc_start_req catch error.
-> end_request: I/O error, dev mmcblk0, sector 50766416
-> ### KA: mmc_blk_err_check CMD 18
-> mmcblk0: error -110 sending status command, retrying
-> mmcblk0: error -110 sending status command, retrying
-> mmcblk0: error -110 sending status command, aborting
-> ### KA: mmc_start_req catch error.
-> end_request: I/O error, dev mmcblk0, sector 67502960
-> ### KA: mmc_blk_err_check CMD 18
-> mmcblk0: error -110 sending status command, retrying
-> mmcblk0: error -110 sending status command, retrying
-> mmcblk0: error -110 sending status command, aborting
-> ### KA: mmc_start_req catch error.
-> end_request: I/O error, dev mmcblk0, sector 67681792
-> ### KA: mmc_blk_err_check CMD 18
-> mmcblk0: error -110 sending status command, retrying
-> mmcblk0: error -110 sending status command, retrying
-> mmcblk0: error -110 sending status command, aborting
-> ### KA: mmc_start_req catch error.
-> end_request: I/O error, dev mmcblk0, sector 512
-> Buffer I/O error on device mmcblk0, logical block 64
-> ### KA: mmc_blk_err_check CMD 18
-> mmcblk0: error -110 sending status command, retrying
-> mmcblk0: error -110 sending status command, retrying
-> mmcblk0: error -110 sending status command, aborting
-> ### KA: mmc_start_req catch error.
-> end_request: I/O error, dev mmcblk0, sector 50766416
-> udevd-work[220]: exec of program '/lib/udev/usb_id' failed
->
-> ### KA: mmc_blk_err_check CMD 25
-> mmcblk0: error -110 sending status command, retrying
-> mmcblk0: error -110 sending status command, retrying
-> mmcblk0: error -110 sending status command, aborting
-> ### KA: mmc_start_req catch error.
-> end_request: I/O error, dev mmcblk0, sector 131072
-> Buffer I/O error on device mmcblk0p2, logical block 0
-> lost page write due to I/O error on mmcblk0p2
-> EXT4-fs error (device mmcblk0p2): ext4_find_entry:932: inode #1572945=
-:
-> comm udevd: reading directory lblock 0
-> ### KA: mmc_blk_err_check CMD 25
-> mmcblk0: error -110 sending status command, retrying
-> mmcblk0: error -110 sending status command, retrying
-> mmcblk0: error -110 sending status command, aborting
-> ### KA: mmc_start_req catch error.
-> end_request: I/O error, dev mmcblk0, sector 25559216
-> Buffer I/O error on device mmcblk0p2, logical block 3178518
-> EXT4-fs warning (device mmcblk0p2): ext4_end_bio:250: I/O error
-> writing to inode 786588 (offset 0 size 4096 starting block 3194903)
-> end_request: I/O error, dev mmcblk0, sector 25559224
-> Buffer I/O error on device mmcblk0p2, logical block 3178519
-> EXT4-fs warning (device mmcblk0p2): ext4_end_bio:250: I/O error
-> writing to inode 786590 (offset 0 size 4096 starting block 3194904)
-> Aborting journal on device mmcblk0p2-8.
-> EXT4-fs (mmcblk0p2): previous I/O error to superblock detected
-> EXT4-fs (mmcblk0p2): previous I/O error to superblock detected
-> EXT4-fs (mmcblk0p2): previous I/O error to superblock detected
-> ### KA: mmc_blk_err_check CMD 25
-> mmcblk0: error -110 sending status command, retrying
-> mmcblk0: error -110 sending status command, retrying
-> mmcblk0: error -110 sending status command, aborting
-> ### KA: mmc_start_req catch error.
-> end_request: I/O error, dev mmcblk0, sector 25578592
-> Buffer I/O error on device mmcblk0p2, logical block 3180940
-> EXT4-fs warning (device mmcblk0p2): ext4_end_bio:250: I/O error
-> writing to inode 786591 (offset 0 size 4096 starting block 3197325)
-> end_request: I/O error, dev mmcblk0, sector 25578600
-> Buffer I/O error on device mmcblk0p2, logical block 3180941
-> EXT4-fs warning (device mmcblk0p2): ext4_end_bio:250: I/O error
-> writing to inode 786592 (offset 0 size 4096 starting block 3197326)
-> end_request: I/O error, dev mmcblk0, sector 25578608
-> Buffer I/O error on device mmcblk0p2, logical block 3180942
-> EXT4-fs warning (device mmcblk0p2): ext4_end_bio:250: I/O error
-> writing to inode 786593 (offset 0 size 4096 starting block 3197327)
-> ### KA: mmc_blk_err_check CMD 25
-> mmcblk0: error -110 sending status command, retrying
-> mmcblk0: error -110 sending status command, retrying
-> mmcblk0: error -110 sending status command, aborting
-> ### KA: mmc_start_req catch error.
-> end_request: I/O error, dev mmcblk0, sector 59113472
-> Buffer I/O error on device mmcblk0p2, logical block 7372800
-> lost page write due to I/O error on mmcblk0p2
-> JBD2: Error -5 detected when updating journal superblock for mmcblk0p=
-2-8.
-> ### KA: mmc_blk_err_check CMD 18
-> JBD2: Detected IO errors while flushing file data on mmcblk0p2-8
-> mmcblk0: error -110 sending status command, retrying
-> mmcblk0: error -110 sending status command, retrying
-> mmcblk0: error -110 sending status command, aborting
-> ### KA: mmc_start_req catch error.
-> end_request: I/O error, dev mmcblk0, sector 32
-> Buffer I/O error on device mmcblk0, logical block 4
-> ### KA: mmc_blk_err_check CMD 18
-> mmcblk0: error -110 sending status command, retrying
-> mmcblk0: error -110 sending status command, retrying
-> mmcblk0: error -110 sending status command, aborting
-> ### KA: mmc_start_req catch error.
-> end_request: I/O error, dev mmcblk0, sector 50766416
-> ### KA: mmc_blk_err_check CMD 18
-> mmcblk0: error -110 sending status command, retrying
-> mmcblk0: error -110 sending status command, retrying
-> mmcblk0: error -110 sending status command, aborting
-> ### KA: mmc_start_req catch error.
-> end_request: I/O error, dev mmcblk0, sector 67502720
-> ### KA: mmc_blk_err_check CMD 18
-> mmcblk0: error -110 sending status command, retrying
-> mmcblk0: error -110 sending status command, retrying
-> mmcblk0: error -110 sending status command, aborting
-> ### KA: mmc_start_req catch error.
-> end_request: I/O error, dev mmcblk0, sector 32
-> Buffer I/O error on device mmcblk0, logical block 4
-> ### KA: mmc_blk_err_check CMD 18
-> mmcblk0: error -110 sending status command, retrying
-> mmcblk0: error -110 sending status command, retrying
-> mmcblk0: error -110 sending status command, aborting
-> ### KA: mmc_start_req catch error.
-> end_request: I/O error, dev mmcblk0, sector 50766416
-> ### KA: mmc_blk_err_check CMD 25
-> mmcblk0: error -110 sending status command, retrying
-> mmcblk0: error -110 sending status command, retrying
-> mmcblk0: error -110 sending status command, aborting
-> ### KA: mmc_start_req catch error.
-> end_request: I/O error, dev mmcblk0, sector 131072
-> Buffer I/O error on device mmcblk0p2, logical block 0
-> lost page write due to I/O error on mmcblk0p2
-> ### KA: mmc_blk_err_check CMD 25
-> mmcblk0: error -110 sending status command, retrying
-> mmcblk0: error -110 sending status command, retrying
-> mmcblk0: error -110 sending status command, aborting
-> ### KA: mmc_start_req catch error.
-> end_request: I/O error, dev mmcblk0, sector 59113472
-> Buffer I/O error on device mmcblk0p2, logical block 7372800
-> lost page write due to I/O error on mmcblk0p2
-> JBD2: Error -5 detected when updating journal superblock for mmcblk0p=
-2-8.
-> ### KA: mmc_blk_err_check CMD 18
-> Kernel panic - not syncing: EXT4-fs (device mmcblk0p2): panic forced =
-after error
->
-> thx,
->
-> -KA
+
+In the past i tried to keep the firmware as minimal as possible and pushed
+back all efforts to push unnecessary stuff in there. Like Kevin, i too was of
+the opinion that we need to do whatever's possible in the kernel.
+
+Sadly, things just got a point where it made much more sense (technically
+as well as non-technically) to just put the low level stuff in the M3.
+
+1. In addition to the Linux support, we have non-OS based code for AM335x
+(and AM437x) which in the past just had to duplicate whatever was done
+in the Linux. Being a different codebase the non-OS guys have their own
+set of challenges and we had to at times sit through and debug issues in
+one codebase while the other was working fine. Ideally these things should
+never come up but sadly they do and we need to solve them.
+
+We also have people trying to implement this thing on different sort of
+OS environments and they also end up debugging the same set of issues.
+
+With only a handful of folks able to spend time debugging issues 'do everything
+in Linux and expect others to copy it' model doesn't scale up. Keeping
+things in the
+firmware with the code available online helps do away with the
+'developer scalability'
+problem and if one looks at things differently enables code-reuse at
+the same time.
+
+Moreover, when the code was finally moved to M3, AFAICT we had validated
+all supported combinations (DDR2, DDR3, DDR3 with VTT, DDR3 without VTT
+control) that TI hardware guys could throw at us.Yes there could be stupid bugs
+lurking in the code since it wasn't reviewed as much as i would have
+liked but we
+have something which proves the functionality to be used as the base.
+
+2. As has been already been pointed out by Russ, on AM335x this step needs
+to be done very late in the suspend process (the last stage actually). On the
+next SoC there are other complications related to security which enforce this
+step must be done from the M3. So trying to keep it in M3 for both AM335x
+and AM437x helps avoid the code churn that will happen if we were to do
+this differently on two SoCs which have similar PM architectures.
+
+Morevoer, all the suggestions on how to keep the code in Linux working
+around the
+complications due to the main memory not being accessible will need to
+be replicated
+on the non-Linux s/w stacks and that's just make it more difficult for them.
+
+3. Moving this to M3 leaves the option open to try out some crazy stuff for
+power optimizations wherein the CORE voltage is lowered even below OPP50.
+This is yet to be proved in h/w so one can ignore this for now but yes it's a
+possibility.
+
+Regards,
+Vaibhav
+
+[1] http://www.ti.com/tool/starterware-sitara
