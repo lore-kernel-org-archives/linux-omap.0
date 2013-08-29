@@ -1,113 +1,82 @@
-From: "Ivan T. Ivanov" <iivanov@mm-sol.com>
-Subject: Re: [PATCH v4 2/3] usb: phy: Add Qualcomm SS-USB and HS-USB
- drivers for DWC3 core
-Date: Thu, 29 Aug 2013 20:28:40 +0300
-Message-ID: <1377797320.30358.16.camel@localhost>
-References: <1377005543.26268.22.camel@iivanov-dev.int.mm-sol.com>
-	 <20130820133712.GC26587@radagast>
-	 <1377007751.26268.27.camel@iivanov-dev.int.mm-sol.com>
-	 <20130820143319.GG26587@radagast>
-	 <1377010458.26268.30.camel@iivanov-dev.int.mm-sol.com>
-	 <8691FDFE-326E-4198-838A-202D9EC988E1@codeaurora.org>
-	 <1377011163.31445.30.camel@hornet> <1377018092.31445.42.camel@hornet>
-	 <1377090364.15070.13.camel@iivanov-dev.int.mm-sol.com>
-	 <68B25A45-443C-4CC0-9933-80A3D290B557@codeaurora.org>
-	 <20130822204130.GP28420@radagast>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH] ARM: OMAP4: cpuidle: fix: call cpu_cluster_pm_exit conditionally
+Date: Thu, 29 Aug 2013 13:29:24 -0400
+Message-ID: <521F84F4.4090601@ti.com>
+References: <1377598250-2355-1-git-send-email-murzin.v@gmail.com> <87sixvw2n5.fsf@linaro.org> <902E09E6452B0E43903E4F2D568737AB35C674@DNCE04.ent.ti.com> <8761uo2zbb.fsf@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <20130822204130.GP28420@radagast>
-Sender: linux-doc-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: Kumar Gala <galak@codeaurora.org>, Pawel Moll <pawel.moll@arm.com>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, Mark Rutland <Mark.Rutland@arm.com>, "swarren@wwwdotorg.org" <swarren@wwwdotorg.org>, "ian.campbell@citrix.com" <ian.campbell@citrix.com>, "rob@landley.net" <rob@landley.net>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "idos@codeaurora.org" <idos@codeaurora.org>, "mgautam@codeaurora.org" <mgautam@codeaurora.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, Paul
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:36966 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753859Ab3H2RaD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 29 Aug 2013 13:30:03 -0400
+In-Reply-To: <8761uo2zbb.fsf@linaro.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@linaro.org>
+Cc: "Strashko, Grygorii" <grygorii.strashko@ti.com>, Vladimir Murzin <murzin.v@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "tony@atomide.com" <tony@atomide.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>
 
-On Thu, 2013-08-22 at 15:41 -0500, Felipe Balbi wrote:
-> On Wed, Aug 21, 2013 at 10:13:28AM -0500, Kumar Gala wrote:
-> > 
-> > On Aug 21, 2013, at 8:06 AM, Ivan T. Ivanov wrote:
-> > 
-> > > On Tue, 2013-08-20 at 18:01 +0100, Pawel Moll wrote: 
-> > >> On Tue, 2013-08-20 at 16:06 +0100, Pawel Moll wrote:
-> > >>> On Tue, 2013-08-20 at 16:01 +0100, Kumar Gala wrote:
-> > >>>> On Aug 20, 2013, at 9:54 AM, Ivan T. Ivanov wrote:
-> > >>>> 
-> > >>>>> 
-> > >>>>> Hi, 
-> > >>>>> 
-> > >>>>> On Tue, 2013-08-20 at 09:33 -0500, Felipe Balbi wrote: 
-> > >>>>>> On Tue, Aug 20, 2013 at 05:09:11PM +0300, Ivan T. Ivanov wrote:
-> > >>>>>>> Hi,
-> > >>>>>>> 
-> > >>>>>>> On Tue, 2013-08-20 at 08:37 -0500, Felipe Balbi wrote: 
-> > >>>>>>>> Hi,
-> > >>>>>>>> 
-> > >>>>>>>> On Tue, Aug 20, 2013 at 04:32:23PM +0300, Ivan T. Ivanov wrote:
-> > >>>>>>>>>> On Tue, Aug 20, 2013 at 12:56:04PM +0300, Ivan T. Ivanov wrote:
-> > >>>>>>>>>>> From: "Ivan T. Ivanov" <iivanov@mm-sol.com>
-> > >>>>>>>>>>> 
-> > >>>>>>>>>>> These drivers handles control and configuration of the HS
-> > >>>>>>>>>>> and SS USB PHY transceivers. They are part of the driver
-> > >>>>>>>>>>> which manage Synopsys DesignWare USB3 controller stack
-> > >>>>>>>>>>> inside Qualcomm SoC's.
-> > >>>>>>>>>>> 
-> > >>>>>>>>>>> Signed-off-by: Ivan T. Ivanov <iivanov@mm-sol.com>
-> > >>>>>>>>>>> ---
-> > >>>>>>>>>>> drivers/usb/phy/Kconfig           |   11 ++
-> > >>>>>>>>>>> drivers/usb/phy/Makefile          |    2 +
-> > >>>>>>>>>>> drivers/usb/phy/phy-msm-dwc3-hs.c |  327 ++++++++++++++++++++++++++++++++
-> > >>>>>>>>>>> drivers/usb/phy/phy-msm-dwc3-ss.c |  374 +++++++++++++++++++++++++++++++++++++
-> > >>>>>>>>>> 
-> > >>>>>>>>>> please rename these PHY drivers, they have nothing to do with DWC3. PHYs
-> > >>>>>>>>>> don't care about the USB controller.
-> > >>>>>>>>> 
-> > >>>>>>>>> I think they are SNPS DesignWare PHY's, additionally
-> > >>>>>>>>> wrapped with Qualcomm logic. I could substitute "dwc3"
-> > >>>>>>>>> with just "dw", which will be more correct.
-> > >>>>>>>> 
-> > >>>>>>>> alright, thank you. Let's add Paul to the loop since he might have very
-> > >>>>>>>> good insight in the synopsys PHYs.
-> > >>>>>>>> 
-> > >>>>>>>> mental note: if any other platform shows up with Synopsys PHY, ask them
-> > >>>>>>>> to use this driver instead :-)
-> > >>>>>>> 
-> > >>>>>>> I really doubt that this will bi possible. Control of the PHY's is
-> > >>>>>>> not directly trough ULPI, UTMI or PIPE3 interfaces, but trough
-> > >>>>>>> QSCRATCH registers, which of course is highly Qualcomm specific.
-> > >>>>>> 
-> > >>>>>> isn't it a memory mapped IP ? doesn't synopsys provide their own set of
-> > >>>>>> registers ?
-> > >>>>> 
-> > >>>>> From what I see it is not directly mapped. How QSCRATCH write and
-> > >>>>> reads transactions are translated to DW IP is unclear to me.
-> > >>>> 
-> > >>>> 
-> > >>>> I think the question is how does SW access them?
-> > >>> 
-> > >>> I afraid the answer may be: "it depends on the SOC". In my past I had to
-> > >>> initialize a (SATA) PHY by implementing a software JTAG state machine,
-> > >>> as the PHY's registers were not memory mapped *at all*. And the IP
-> > >>> itself came from Synopsys, Cadence or yet another EDA company...
-> > >> 
-> > >> Having said all that... If the PHY's spec at least defined layout of the
-> > >> registers in question and driver was using regmap API to talk to the
-> > >> device (initially regmap-mmio), it has some chances to become universal.
-> > >> The SOCs designed like "my" one would have to provide a custom regmap
-> > >> implementation.
-> > > 
-> > > Sound reasonable. Unfortunately I don't have PHY's IP spec. 
-> > 
-> > Looking into this it appears that the register wrapper around the IP
-> > is most likely highly specific to qualcomm as I'm not seeing a
-> > register interface around the DWC HS PHY.
+On Thursday 29 August 2013 01:15 PM, Kevin Hilman wrote:
+> +Santosh
 > 
-> Then it's set, we'll go with this driver :-)
+> "Strashko, Grygorii" <grygorii.strashko@ti.com> writes:
 > 
+>> Hi Vladimir, Kevin
+>>
+>> On 08/27/2013 06:54 PM, Kevin Hilman wrote:
+>>> Vladimir Murzin <murzin.v@gmail.com> writes:
+>>>
+>>>> We call cpu_cluster_pm_enter for dev->cpu == 0 only, but
+>>>> cpu_cluster_pm_exit called without that check.
+>>>>
+>>>> Because of that unhandled page fault may happen:
+>>>>
+>>
+>> [...]
+>>
+>>>>
+>>>> It is supposed that sar_base is initialized in irq_save_context, which
+>>>> is called on CPU_CLUSTER_PM_ENTER notification. If this notification
+>>>> has been missed and CPU_CLUSTER_PM_EXIT is received sar_base is NULL.
+>>>>
+>>>> Fix it by calling CPU_CLUSTER_PM_{ENTER,EXIT} under the same condition.
+>>
+>> Could you check, if revert of the following patch will solve the issue, pls?
+>> commit e7457253494fff660a72bc0cedeee97491ccd173
+>> "ARM: OMAP4+: CPUidle: Deprecate use of omap4_mpuss_read_prev_context_state()"
+>>
+>>>>
+>>>> Signed-off-by: Vladimir Murzin <murzin.v@gmail.com>
+>>>
+>>> Good catch.
+>>
+>> Yes, but It seems, that CPUIdle logic is unclear for OAMP4 .
+>> The above issue may happen if CPU1 enter/exit LP while CPU0:
+>> - not enter at all (somewhere inside "coupled" core);
+>> - still entering LP (somewhere before call to omap4_enter_lowpower());
+>>
+>> The question is - Should first CPUx, who exited from LP(C3) state,
+>> restore Cluster context, or it should be done by CPU0 only?
+>> (on OMAP4 CPUs may return from C3 async).
+> 
+> Well, they're not *supposed* to return async on OMAP4.  IIUC, only CPU0
+> wakes up and then it's CPU0s job to wake up CPU1. However, the crash
+> reported here certainly suggests that CPU1 exiting before CPU0, so
+> one of the possibilities you suggest above is probably happening (I
+> suspect the latter.)
+> 
+> It looks like we might still need to check the actual hardware state
+> there to avoid those potential cases.
+> 
+The subject patch is good enough to avoid the double notifier call chain
+even though its not harmful its UN-necessary.
 
-Does this mean that driver could be merged? 
+And then the sar_base check should be in place as well to avoid the
+reported issue.
 
 Regards,
-Ivan
+Santosh
+
 
 
