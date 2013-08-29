@@ -1,53 +1,130 @@
-From: Sekhar Nori <nsekhar@ti.com>
-Subject: Re: [PATCH v2 2/3] ARM: OMAP4+: Move SRAM data to DT
-Date: Thu, 29 Aug 2013 19:14:50 +0530
-Message-ID: <521F5052.90308@ti.com>
-References: <1377775391-13103-1-git-send-email-rnayak@ti.com>
- <1377775391-13103-3-git-send-email-rnayak@ti.com> <521F4BE9.60004@ti.com>
- <521F4D41.4010303@ti.com>
+From: George Cherian <george.cherian@ti.com>
+Subject: Re: [PATCH v3 1/3] extcon: extcon-gpio-usbvid: Generic USB VBUS/ID
+ detection via GPIO
+Date: Thu, 29 Aug 2013 19:15:02 +0530
+Message-ID: <521F505E.8090607@ti.com>
+References: <1377711185-31238-1-git-send-email-george.cherian@ti.com> <1377711185-31238-2-git-send-email-george.cherian@ti.com> <521EA563.4060305@samsung.com> <521EB018.3000301@ti.com> <521EE8FC.80802@samsung.com> <521EF88F.4070402@ti.com> <521F245E.8050506@samsung.com> <521F3515.7040001@ti.com> <521F3AA2.9010707@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <521F4D41.4010303@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: paul@pwsan.com, tony@atomide.com, Rajendra Nayak <rnayak@ti.com>, bcousson@baylibre.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <521F3AA2.9010707@samsung.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Chanwoo Choi <cw00.choi@samsung.com>
+Cc: balbi@ti.com, myungjoo.ham@samsung.com, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, grant.likely@linaro.org, rob@landley.net, ian.campbell@citrix.com, swarren@wwwdotorg.org, mark.rutland@arm.com, pawel.moll@arm.com, rob.herring@calxeda.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, bcousson@baylibre.com, davidb@codeaurora.org, arnd@arndb.de, swarren@nvidia.com, popcornmix@gmail.com
 List-Id: linux-omap@vger.kernel.org
 
-On 8/29/2013 7:01 PM, Santosh Shilimkar wrote:
-> On Thursday 29 August 2013 09:26 AM, Sekhar Nori wrote:
->> On 8/29/2013 4:53 PM, Rajendra Nayak wrote:
->>> diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
->>> index 22d9f2b..1ba6a77 100644
->>> --- a/arch/arm/boot/dts/omap4.dtsi
->>> +++ b/arch/arm/boot/dts/omap4.dtsi
->>> @@ -126,6 +126,11 @@
->>>  			pinctrl-single,function-mask = <0x7fff>;
->>>  		};
->>>  
->>> +		ocmcram: ocmcram@40304000 {
->>
->> This can now be changed to 0x40300000 now that you have moved to
->> gen_pool_alloc()?
->>
-> NO.
-> It won't work on secure devices since first 16 KB is occupied for
-> default configuration. Its not worth trouble also to handle
-> secure/non-secure considering the use of SRAM which is actually just
-> limited to errata. 40304000 will work for both devices.
+Hi Chanwoo,
 
-Okay, the same problem is not applicable to OMAP5 and other devices? I
-am okay with this as such, may be just add a comment explaining why
-there is an offset.
 
-Thanks,
-Sekhar
+On 8/29/2013 5:42 PM, Chanwoo Choi wrote:
+[big snip ]
+>>> I tested various development board based on Samsung Exynos series SoC.
+>>> Although some gpio of Exynos series SoC set high state(non zero, 1) as default value,
+>>> this gpio state could mean off state, disconnected or un-powered state according to gpio.
+>>> Of course, above explanation about specific gpio don't include all gpios.
+>>> This is meaning that there is possibility.
+>> okay then how about adding a flag for inverted logic too.  something like this
+>>
+>> if(of_property_read_bool(np,"inverted_gpio))
+>>      gpio_usbvid->gpio_inv = 1;
+>> And always check on this before deciding?
+Is this fine ?
+>>
+>>>>> Second,
+>>>>> gpio_usbvid_set_initial_state() dertermine both "USB-HOST" and "USB" cable state at same time
+>>>>> in 'case ID_DETCT' according to 'gpio_usbvid->id_gpio'. But, I think that other extcon devices
+>>>>> would not control both "USB-HOST" and "USB" cable state at same time.
+>>>>>
+>>>>> Other extcon devices would support either "USB-HOST" or "USB" cable.
+>>>> The driver has 2 configurations.
+>>>> 1) supports implementations with both VBUS and ID pin are routed via gpio's for swicthing roles(compatible  gpio-usb-vid).
+>>> As you explained about case 1, it is only used on dra7x SoC.
+>> No gpio-usb-id is used in dra7xx. dra7xx has got only ID pin routed via gpio.
+>>> Other SoC could not wish to control both "USB-HOST" and "USB" cable at same time.
+I could'nt actually parse this. You meant since the id_irq_handler 
+handles both USB and USB-HOST cable
+its not proper?
+> I need your answer about above my opinion for other SoC.
+So how about this, I have removed the dra7x specific stuffs (gpio-usb-id)
+
+static void gpio_usbvid_set_initial_state(struct gpio_usbvid *gpio_usbvid)
+{
+         int id_current, vbus_current;
+
+     id_current = gpio_get_value_cansleep(gpio_usbvid->id_gpio);
+     if (!!id_current == ID_FLOAT)
+         extcon_set_cable_state(&gpio_usbvid->edev, "USB-HOST", false);
+     else
+         extcon_set_cable_state(&gpio_usbvid->edev, "USB-HOST", true);
+
+     vbus_current = gpio_get_value_cansleep(gpio_usbvid->vbus_gpio);
+      if (!!vbus_current == VBUS_ON)
+         extcon_set_cable_state(&gpio_usbvid->edev, "USB", true);
+     else
+         extcon_set_cable_state(&gpio_usbvid->edev, "USB", false);
+}
+
+and the irq handlers like this
+
+static irqreturn_t id_irq_handler(int irq, void *data)
+{
+         struct gpio_usbvid *gpio_usbvid = (struct gpio_usbvid *)data;
+         int id_current;
+
+         id_current = gpio_get_value_cansleep(gpio_usbvid->id_gpio);
+         if (id_current == ID_GND)
+                 extcon_set_cable_state(&gpio_usbvid->edev, "USB-HOST", 
+true);
+         else
+                 extcon_set_cable_state(&gpio_usbvid->edev, "USB-HOST", 
+false);
+         return IRQ_HANDLED;
+}
+
+static irqreturn_t vbus_irq_handler(int irq, void *data)
+{
+         struct gpio_usbvid *gpio_usbvid = (struct gpio_usbvid *)data;
+         int vbus_current;
+
+         vbus_current = gpio_get_value_cansleep(gpio_usbvid->vbus_gpio);
+         if (vbus_current == VBUS_OFF)
+                 extcon_set_cable_state(&gpio_usbvid->edev, "USB", false);
+         else
+                 extcon_set_cable_state(&gpio_usbvid->edev, "USB", true);
+
+         return IRQ_HANDLED;
+}
+[snip]
+>>> I have some confusion. I need additional your explanation.
+>>> Could this driver register only one interrupt handler either id_irq_handler() or vbus_irq_handler()?
+>> If compatible == ID_DETECT, only one handler --> id_irq_handler() and it will handle both USB and USB-HOST
+>>> or
+>>> Could this driver register two interrupt handler both id_irq_handler() or vbus_irq_handler()?
+>> If compatible == VBUS_ID_DETECT, 2 handlers --> id_irq_handler() will handle USB-HOST and vbus_irq_handler will handle USB.
+> As you mentioned, we cannot only control either USB or USB-HOST cable on this extcon driver.
+> This extcon driver is only suitable dra7x SoC.
+Do you still feel its dra7x specific if i modify it as above?
+> Because id_irq_handler() control both "USB-HOST" and "USB" cable at same time,
+> you need this setting order between "USB-HOST" and "USB" cable.
+>> yes
+> I think that the setting order between cables isn't general. It is specific method for dra7x SoC.
+So if i remove that part then?
+>>> Did you think that SoC should always connect either "USB-HOST" cable or "USB" cable?
+>> No,  even if a physical cable is not connected it should  default to either USB-HOST or USB
+> It isn't general.
+>
+> If physical cable isn't connected to extcon device, the state both USB-HOST and USB cable
+> should certainly be zero. Because The extcon consumer driver could set proper operation
+> according to cable state.
+okay
+>
+>>
+>>> I don't know this case except for dra7x SoC. So, I think it has dependency on specific SoC.
+> I need your answer about above my opinion.
+Hope i could answer you :-)
+>>> and can't agree as generic extcon gpio driver.
+>
+
+-- 
+-George
