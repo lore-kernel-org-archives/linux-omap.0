@@ -1,51 +1,35 @@
-From: Joel Fernandes <joelf@ti.com>
-Subject: Re: [PATCH 1/3] crypto: omap-des: Add omap-des driver for OMAP4/AM43xx
-Date: Thu, 29 Aug 2013 18:31:12 -0500
-Message-ID: <521FD9C0.6020302@ti.com>
-References: <1377818873-21174-1-git-send-email-joelf@ti.com> <1377818873-21174-2-git-send-email-joelf@ti.com>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [GIT PULL 1/2] late omap PRCM and hwmod changes for v3.12 merge
+ window
+Date: Thu, 29 Aug 2013 16:38:47 -0700
+Message-ID: <20130829233847.GD29606@quad.lixom.net>
+References: <521b6475.4f2f310a.3f18.45a9SMTPIN_ADDED_BROKEN@mx.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-crypto-owner@vger.kernel.org>
-In-Reply-To: <1377818873-21174-2-git-send-email-joelf@ti.com>
-Sender: linux-crypto-owner@vger.kernel.org
-To: Joel Fernandes <joelf@ti.com>
-Cc: Herbert Xu <herbert@gondor.hengli.com.au>, "David S. Miller" <davem@davemloft.net>, Mark Greer <mgreer@animalcreek.com>, Tony Lindgren <tony@atomide.com>, Lokesh Vutla <lokeshvutla@ti.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux Crypto Mailing List <linux-crypto@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pd0-f182.google.com ([209.85.192.182]:51315 "EHLO
+	mail-pd0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752769Ab3H2Xj0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Aug 2013 19:39:26 -0400
+Received: by mail-pd0-f182.google.com with SMTP id r10so1090937pdi.27
+        for <linux-omap@vger.kernel.org>; Thu, 29 Aug 2013 16:39:26 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <521b6475.4f2f310a.3f18.45a9SMTPIN_ADDED_BROKEN@mx.google.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: arm@kernel.org, Arnd Bergmann <arnd@arndb.de>, Kevin Hilman <khilman@linaro.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On 08/29/2013 06:27 PM, Joel Fernandes wrote:
-> Add omap-des driver with platform data for OMAP4. Support added for DES
-> ECB and CBC modes.
+On Mon, Aug 26, 2013 at 07:21:36AM -0700, Tony Lindgren wrote:
+> The following changes since commit b36f4be3de1b123d8601de062e7dbfc904f305fb:
 > 
-> Where possible, code is reused from omap-aes driver with changes made for
-> adjusting key size, block size, removing non-existent encryption modes
-> and adding support for OMAP4 platform data and offsets.
+>   Linux 3.11-rc6 (2013-08-18 14:36:53 -0700)
 > 
-> Tests have been conducted with the CRYPTO test manager, and functionality
-> is verified at different page length alignments.
+> are available in the git repository at:
 > 
-> Signed-off-by: Joel Fernandes <joelf@ti.com>
-> ---
->  drivers/crypto/omap-des.c | 1192 +++++++++++++++++++++++++++++++++++++++++++++
->  1 file changed, 1192 insertions(+)
->  create mode 100644 drivers/crypto/omap-des.c
-> 
-> diff --git a/drivers/crypto/omap-des.c b/drivers/crypto/omap-des.c
-> new file mode 100644
-> index 0000000..6a9a25f
-> --- /dev/null
-> +++ b/drivers/crypto/omap-des.c
-> @@ -0,0 +1,1192 @@
-> +/*
-> + * Cryptographic API.
-> + *
-> + * Support for OMAP DES and Triple DES HW acceleration.
-> + *
-> + * Copyright (c) 2012 Texas Instruments Incorporated
-> + * Author: Joel Fernandes <joelf@ti.com>
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.12/prcm-signed
 
-Have to change this to 2013. Will do so if there are no other comments.
+Merged into late/all.
 
-Regards,
 
--Joel
+-Olof
