@@ -1,112 +1,81 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH v3 5/6] arm: dra7xx: hwmod data: add VPE hwmod data and
- ocp_if info
-Date: Thu, 29 Aug 2013 18:12:38 +0530
-Message-ID: <521F41BE.7080504@ti.com>
-References: <1376996457-17275-1-git-send-email-archit@ti.com> <1377779572-22624-1-git-send-email-archit@ti.com> <1377779572-22624-6-git-send-email-archit@ti.com>
+From: Lokesh Vutla <lokeshvutla@ti.com>
+Subject: [RESEND PATCH V2 1/2] ARM: dts: AM33xx: Add RNG node
+Date: Thu, 29 Aug 2013 18:22:09 +0530
+Message-ID: <1377780731-3648-2-git-send-email-lokeshvutla@ti.com>
+References: <1377780731-3648-1-git-send-email-lokeshvutla@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:53560 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753148Ab3H2Mmo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Aug 2013 08:42:44 -0400
-In-Reply-To: <1377779572-22624-6-git-send-email-archit@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:46078 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752272Ab3H2Mwn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 29 Aug 2013 08:52:43 -0400
+In-Reply-To: <1377780731-3648-1-git-send-email-lokeshvutla@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Archit Taneja <archit@ti.com>
-Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com, tomi.valkeinen@ti.com, linux-omap@vger.kernel.org, Sricharan R <r.sricharan@ti.com>
+To: bcousson@baylibre.com
+Cc: paul@pwsan.com, tony@atomide.com, rnayak@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, lokeshvutla@ti.com
 
-Archit,
+Add the AM33xx RNG module's device tree data.
+Also add Documentation file describing the data
+for the RNG module.
 
-On Thursday 29 August 2013 06:02 PM, Archit Taneja wrote:
-> Add hwmod data for the VPE IP, this is needed for the IP to be reset during
-> boot, and control the functional clock when the driver needs it via
-> pm_runtime apis. Add the corresponding ocp_if struct and add it DRA7XX's
-> ocp interface list.
+Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+---
+Changes since V1:
+- Drop "status=disabled" entry in dt node, Since
+  RNG is present on all AM33xx platforms.
 
-You need to swap patches 5/6 and 6/6 to maintain git-bisect.
-Thats needed because after $subject patch, hwmod wouldn't find
-the register iospace and crash, and thats added only in patch 6/6.
+ .../devicetree/bindings/hwrng/omap_rng.txt         |   22 ++++++++++++++++++++
+ arch/arm/boot/dts/am33xx.dtsi                      |    7 +++++++
+ 2 files changed, 29 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/hwrng/omap_rng.txt
 
-regards,
-Rajendra
-
-> 
-> Cc: Rajendra Nayak <rnayak@ti.com>
-> Cc: Sricharan R <r.sricharan@ti.com>
-> Signed-off-by: Archit Taneja <archit@ti.com>
-> ---
->  arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 42 +++++++++++++++++++++++++++++++
->  1 file changed, 42 insertions(+)
-> 
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-> index f647998b..181365d 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-> @@ -1883,6 +1883,39 @@ static struct omap_hwmod dra7xx_wd_timer2_hwmod = {
->  	},
->  };
->  
-> +/*
-> + * 'vpe' class
-> + *
-> + */
-> +
-> +static struct omap_hwmod_class_sysconfig dra7xx_vpe_sysc = {
-> +	.sysc_offs	= 0x0010,
-> +	.sysc_flags	= (SYSC_HAS_MIDLEMODE | SYSC_HAS_SIDLEMODE),
-> +	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
-> +			   SIDLE_SMART_WKUP | MSTANDBY_FORCE | MSTANDBY_NO |
-> +			   MSTANDBY_SMART | MSTANDBY_SMART_WKUP),
-> +	.sysc_fields	= &omap_hwmod_sysc_type2,
-> +};
-> +
-> +static struct omap_hwmod_class dra7xx_vpe_hwmod_class = {
-> +	.name	= "vpe",
-> +	.sysc	= &dra7xx_vpe_sysc,
-> +};
-> +
-> +/* vpe */
-> +static struct omap_hwmod dra7xx_vpe_hwmod = {
-> +	.name		= "vpe",
-> +	.class		= &dra7xx_vpe_hwmod_class,
-> +	.clkdm_name	= "vpe_clkdm",
-> +	.main_clk	= "dpll_core_h23x2_ck",
-> +	.prcm = {
-> +		.omap4 = {
-> +			.clkctrl_offs = DRA7XX_CM_VPE_VPE_CLKCTRL_OFFSET,
-> +			.context_offs = DRA7XX_RM_VPE_VPE_CONTEXT_OFFSET,
-> +			.modulemode   = MODULEMODE_HWCTRL,
-> +		},
-> +	},
-> +};
->  
->  /*
->   * Interfaces
-> @@ -2636,6 +2669,14 @@ static struct omap_hwmod_ocp_if dra7xx_l4_wkup__wd_timer2 = {
->  	.user		= OCP_USER_MPU | OCP_USER_SDMA,
->  };
->  
-> +/* l4_per3 -> vpe */
-> +static struct omap_hwmod_ocp_if dra7xx_l4_per3__vpe = {
-> +	.master		= &dra7xx_l4_per3_hwmod,
-> +	.slave		= &dra7xx_vpe_hwmod,
-> +	.clk		= "l3_iclk_div",
-> +	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-> +};
-> +
->  static struct omap_hwmod_ocp_if *dra7xx_hwmod_ocp_ifs[] __initdata = {
->  	&dra7xx_l3_main_2__l3_instr,
->  	&dra7xx_l4_cfg__l3_main_1,
-> @@ -2714,6 +2755,7 @@ static struct omap_hwmod_ocp_if *dra7xx_hwmod_ocp_ifs[] __initdata = {
->  	&dra7xx_l3_main_1__vcp2,
->  	&dra7xx_l4_per2__vcp2,
->  	&dra7xx_l4_wkup__wd_timer2,
-> +	&dra7xx_l4_per3__vpe,
->  	NULL,
->  };
->  
-> 
+diff --git a/Documentation/devicetree/bindings/hwrng/omap_rng.txt b/Documentation/devicetree/bindings/hwrng/omap_rng.txt
+new file mode 100644
+index 0000000..6a62acd
+--- /dev/null
++++ b/Documentation/devicetree/bindings/hwrng/omap_rng.txt
+@@ -0,0 +1,22 @@
++OMAP SoC HWRNG Module
++
++Required properties:
++
++- compatible : Should contain entries for this and backward compatible
++  RNG versions:
++  - "ti,omap2-rng" for OMAP2.
++  - "ti,omap4-rng" for OMAP4, OMAP5 and AM33XX.
++  Note that these two versions are incompatible.
++- ti,hwmods: Name of the hwmod associated with the RNG module
++- reg : Offset and length of the register set for the module
++- interrupts : the interrupt number for the RNG module.
++		Only used for "ti,omap4-rng".
++
++Example:
++/* AM335x */
++rng: rng@48310000 {
++	compatible = "ti,omap4-rng";
++	ti,hwmods = "rng";
++	reg = <0x48310000 0x2000>;
++	interrupts = <111>;
++};
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index 38b446b..26ebe30 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -530,5 +530,12 @@
+ 			#size-cells = <1>;
+ 			status = "disabled";
+ 		};
++
++		rng: rng@48310000 {
++			compatible = "ti,omap4-rng";
++			ti,hwmods = "rng";
++			reg = <0x48310000 0x2000>;
++			interrupts = <111>;
++		};
+ 	};
+ };
+-- 
+1.7.9.5
 
