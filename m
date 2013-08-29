@@ -1,42 +1,47 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: [GIT PULL 2/2] late dra7xx PRCM and hwmod support for v3.12
- merge window
-Date: Thu, 29 Aug 2013 16:46:33 -0700
-Message-ID: <20130829234633.GE29606@quad.lixom.net>
-References: <pull-1377526896-974252>
- <521b6476.4902310a.1183.6ea6SMTPIN_ADDED_MISSING@mx.google.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH v5] gpio: pcf857x: Add OF support
+Date: Fri, 30 Aug 2013 01:52:08 +0200
+Message-ID: <1992930.Xjyakli5Kt@avalon>
+References: <1377590559-14279-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <CACRpkda=pZ6xQ2XJke=MBLiH_DAS8CXW+JOZ856ohGZi+fOCzA@mail.gmail.com> <35333449.0R3QP6op66@avalon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f51.google.com ([209.85.220.51]:50299 "EHLO
-	mail-pa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752699Ab3H2XrM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Aug 2013 19:47:12 -0400
-Received: by mail-pa0-f51.google.com with SMTP id lf1so1570549pab.10
-        for <linux-omap@vger.kernel.org>; Thu, 29 Aug 2013 16:47:11 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <521b6476.4902310a.1183.6ea6SMTPIN_ADDED_MISSING@mx.google.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <35333449.0R3QP6op66@avalon>
+Sender: linux-gpio-owner@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: Linus Walleij <linus.walleij@linaro.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Wolfram Sang <wsa@the-dreams.de>, Tomasz Figa <t.figa@samsung.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Tomasz Figa <tomasz.figa@gmail.com>, Grant Likely <grant.likely@secretlab.ca>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Archit Taneja <archit@ti.com>, Sylwester Nawrocki <sylvester.nawrocki@gmail.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: arm@kernel.org, Arnd Bergmann <arnd@arndb.de>, Kevin Hilman <khilman@linaro.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Mon, Aug 26, 2013 at 07:21:36AM -0700, Tony Lindgren wrote:
-> The following changes since commit cf470a1b1a741bca00080ebc70968b4f22d9b1ea:
+On Friday 30 August 2013 01:44:50 Laurent Pinchart wrote:
+> On Thursday 29 August 2013 20:24:32 Linus Walleij wrote:
+> > On Wed, Aug 28, 2013 at 1:58 PM, Laurent Pinchart wrote:
+> > > On Tuesday 27 August 2013 19:18:55 Wolfram Sang wrote:
+> > >> > The driver should support the same chip models reardless of whether
+> > >> > it's used with or without DT. If an entry in the OF table has no
+> > >> > corresponding entry in the I2C table I would consider that as a
+> > >> > driver
+> > >> > bug.
+> > >> 
+> > >> Linus Walleij posted a patch to support DT only probing, but too many
+> > >> side-effects showed up. Some were fixable (probe regressions) and some
+> > >> need more work, if feasible at all. Most prominent is that runtime
+> > >> instantiation of i2c slaves currently needs an entry in the i2c table.
+> > > 
+> > > Linus, I'd like to get this in v3.12 if it's not too late. Could you
+> > > please provide your input ?
+> > 
+> > Provided some input on the v4 version,
 > 
->   Merge tag 'dra7-core-support-minus-dt' of git://github.com/rrnayak/linux into omap-for-v3.12/soc (2013-08-14 01:01:41 -0700)
-> 
-> are available in the git repository at:
-> 
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.12/dra7xx-prcm
-> 
-> for you to fetch changes up to e3e1970f892d873e0f01c4516eaf986ae3a91e13:
-> 
->   Merge tag 'for-v3.12/dra7xx' of git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending into omap-for-v3.12/soc (2013-08-26 02:53:05 -0700)
+> Do you mean v4 of this patch ? I can't find your reply.
 
-I contemplated holding this off for 3.13 given the volume of code this late,
-but since it's all for new platform I'll merge it in.
+Scratch that, I've found it. Sorry for the noise.
 
+> > due to being a bit overloaded my patch queue is overloaded...
+> 
+> No worries. We can delay this one until v3.13.
+-- 
+Regards,
 
--Olof
+Laurent Pinchart
+
