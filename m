@@ -1,14 +1,14 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv6 27/45] ARM: dts: AM35xx clock data
-Date: Thu, 29 Aug 2013 16:16:19 +0300
-Message-ID: <1377782197-10611-28-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv6 39/45] ARM: OMAP2+: omap_device: no need to add a clock dev for aliases
+Date: Thu, 29 Aug 2013 16:16:31 +0300
+Message-ID: <1377782197-10611-40-git-send-email-t-kristo@ti.com>
 References: <1377782197-10611-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:49158 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:49161 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754693Ab3H2NSl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1754772Ab3H2NSl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Thu, 29 Aug 2013 09:18:41 -0400
 In-Reply-To: <1377782197-10611-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
@@ -16,123 +16,55 @@ List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, rnayak@ti.com, nm@ti.com, mturquette@linaro.org
 Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-This patch creates a unique node for each AM35xx specific clock in the
-AM35xx power, reset and clock manager (PRCM). Most of the AM35xx clock
-data is shared with OMAP3xxx, this patch only creates the delta.
+From: Nishanth Menon <nm@ti.com>
 
+When we create aliases, we have an handy clk_add_alias which
+can be used instead of creating new nodes in the clock tree.
+
+Signed-off-by: Nishanth Menon <nm@ti.com>
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/boot/dts/am35xx-clocks.dtsi |  101 ++++++++++++++++++++++++++++++++++
- 1 file changed, 101 insertions(+)
- create mode 100644 arch/arm/boot/dts/am35xx-clocks.dtsi
+ arch/arm/mach-omap2/omap_device.c |   19 +++++--------------
+ 1 file changed, 5 insertions(+), 14 deletions(-)
 
-diff --git a/arch/arm/boot/dts/am35xx-clocks.dtsi b/arch/arm/boot/dts/am35xx-clocks.dtsi
-new file mode 100644
-index 0000000..7749413
---- /dev/null
-+++ b/arch/arm/boot/dts/am35xx-clocks.dtsi
-@@ -0,0 +1,101 @@
-+/*
-+ * Device Tree Source for AM35xx clock data
-+ *
-+ * Copyright (C) 2013 Texas Instruments, Inc.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+ipss_ick: ipss_ick@48004a10 {
-+	#clock-cells = <0>;
-+	compatible = "ti,am35xx-interface-clock";
-+	clocks = <&core_l3_ick>;
-+	reg = <0x48004a10 0x4>;
-+	ti,enable-bit = <4>;
-+};
-+
-+rmii_ck: rmii_ck {
-+	#clock-cells = <0>;
-+	compatible = "fixed-clock";
-+	clock-frequency = <50000000>;
-+};
-+
-+pclk_ck: pclk_ck {
-+	#clock-cells = <0>;
-+	compatible = "fixed-clock";
-+	clock-frequency = <27000000>;
-+};
-+
-+emac_ick: emac_ick@4800259c {
-+	#clock-cells = <0>;
-+	compatible = "ti,am35xx-gate-clock";
-+	clocks = <&ipss_ick>;
-+	reg = <0x4800259c 0x4>;
-+	ti,enable-bit = <1>;
-+};
-+
-+emac_fck: emac_fck@4800259c {
-+	#clock-cells = <0>;
-+	compatible = "gate-clock";
-+	clocks = <&rmii_ck>;
-+	reg = <0x4800259c 0x4>;
-+	bit-shift = <9>;
-+};
-+
-+vpfe_ick: vpfe_ick@4800259c {
-+	#clock-cells = <0>;
-+	compatible = "ti,am35xx-gate-clock";
-+	clocks = <&ipss_ick>;
-+	reg = <0x4800259c 0x4>;
-+	ti,enable-bit = <2>;
-+};
-+
-+vpfe_fck: vpfe_fck@4800259c {
-+	#clock-cells = <0>;
-+	compatible = "gate-clock";
-+	clocks = <&pclk_ck>;
-+	reg = <0x4800259c 0x4>;
-+	bit-shift = <10>;
-+};
-+
-+hsotgusb_ick: hsotgusb_ick@4800259c {
-+	#clock-cells = <0>;
-+	compatible = "ti,am35xx-gate-clock";
-+	clocks = <&ipss_ick>;
-+	reg = <0x4800259c 0x4>;
-+	ti,enable-bit = <0>;
-+};
-+
-+hsotgusb_fck_am35xx: hsotgusb_fck_am35xx@4800259c {
-+	#clock-cells = <0>;
-+	compatible = "gate-clock";
-+	clocks = <&sys_ck>;
-+	reg = <0x4800259c 0x4>;
-+	bit-shift = <8>;
-+};
-+
-+hecc_ck: hecc_ck@4800259c {
-+	#clock-cells = <0>;
-+	compatible = "ti,am35xx-gate-clock";
-+	clocks = <&sys_ck>;
-+	reg = <0x4800259c 0x4>;
-+	ti,enable-bit = <3>;
-+};
-+
-+uart4_ick_am35xx: uart4_ick_am35xx@48004a10 {
-+	#clock-cells = <0>;
-+	compatible = "ti,omap3-interface-clock";
-+	clocks = <&core_l4_ick>;
-+	reg = <0x48004a10 0x4>;
-+	ti,enable-bit = <23>;
-+};
-+
-+uart4_fck_am35xx: uart4_fck_am35xx@48004a00 {
-+	#clock-cells = <0>;
-+	compatible = "ti,gate-clock";
-+	clocks = <&core_48m_fck>;
-+	reg = <0x48004a00 0x4>;
-+	ti,enable-bit = <23>;
-+};
+diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
+index 070d17b..7c796e2 100644
+--- a/arch/arm/mach-omap2/omap_device.c
++++ b/arch/arm/mach-omap2/omap_device.c
+@@ -45,8 +45,8 @@
+ static void _add_clkdev(struct omap_device *od, const char *clk_alias,
+ 		       const char *clk_name)
+ {
++	int ret;
+ 	struct clk *r;
+-	struct clk_lookup *l;
+ 	struct device *dev = &od->pdev->dev;
+ 
+ 	if (!clk_alias || !clk_name)
+@@ -61,19 +61,10 @@ static void _add_clkdev(struct omap_device *od, const char *clk_alias,
+ 		return;
+ 	}
+ 
+-	r = clk_get(NULL, clk_name);
+-	if (IS_ERR(r)) {
+-		dev_err(dev, "clk_get for %s failed\n", clk_name);
+-		return;
+-	}
+-
+-	l = clkdev_alloc(r, clk_alias, dev_name(dev));
+-	if (!l) {
+-		dev_err(dev, "clkdev_alloc for %s failed\n", clk_alias);
+-		return;
+-	}
+-
+-	clkdev_add(l);
++	ret = clk_add_alias(clk_alias, dev_name(dev), (char *)clk_name, dev);
++	if (ret)
++		dev_err(dev, "Failed to alias %s to %s: %d\n", clk_alias,
++			clk_name, ret);
+ }
+ 
+ /**
 -- 
 1.7.9.5
 
