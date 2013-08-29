@@ -1,57 +1,33 @@
-From: Dave Gerlach <d-gerlach@ti.com>
+From: Russ Dill <Russ.Dill@ti.com>
 Subject: Re: [PATCHv3 0/9] ARM: OMAP2+: AM33XX: Add suspend-resume support
-Date: Thu, 29 Aug 2013 17:20:29 -0500
-Message-ID: <521FC92D.1080601@ti.com>
-References: <1375811376-49985-1-git-send-email-d-gerlach@ti.com> <5211E3F6.6090108@ti.com> <52125A39.3010008@ti.com> <87vc2qyjao.fsf@linaro.org> <521FBD6B.3020208@ti.com> <877gf4tb9q.fsf@linaro.org>
+Date: Thu, 29 Aug 2013 15:43:04 -0700
+Message-ID: <CA+Bv8Xamd7e24nswG4QhLDNhHXs92EfXcfu8E2uL=XLhsL70Hw@mail.gmail.com>
+References: <1375811376-49985-1-git-send-email-d-gerlach@ti.com>
+	<5211E3F6.6090108@ti.com>
+	<52125A39.3010008@ti.com>
+	<87vc2qyjao.fsf@linaro.org>
+	<521FBD6B.3020208@ti.com>
+	<87mwo0rvf8.fsf@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:49234 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756119Ab3H2WUx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 29 Aug 2013 18:20:53 -0400
-In-Reply-To: <877gf4tb9q.fsf@linaro.org>
+Received: from mail-qa0-f51.google.com ([209.85.216.51]:48529 "EHLO
+	mail-qa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753667Ab3H2WnG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Aug 2013 18:43:06 -0400
+Received: by mail-qa0-f51.google.com with SMTP id bv4so779036qab.3
+        for <linux-omap@vger.kernel.org>; Thu, 29 Aug 2013 15:43:04 -0700 (PDT)
+In-Reply-To: <87mwo0rvf8.fsf@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Kevin Hilman <khilman@linaro.org>
-Cc: Gururaja Hebbar <gururaja.hebbar@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>
+Cc: Dave Gerlach <d-gerlach@ti.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Gururaja Hebbar <gururaja.hebbar@ti.com>
 
-On 08/29/2013 04:52 PM, Kevin Hilman wrote:
+On Thu, Aug 29, 2013 at 3:20 PM, Kevin Hilman <khilman@linaro.org> wrote:
 > Dave Gerlach <d-gerlach@ti.com> writes:
 >
->> On 08/27/2013 03:23 PM, Kevin Hilman wrote:
->>> Hi Dave,
->>>
->>> Dave Gerlach <d-gerlach@ti.com> writes:
->>>
->>>> On 08/19/2013 04:23 AM, Gururaja Hebbar wrote:
->>>>> On 8/6/2013 11:19 PM, Dave Gerlach wrote:
->>>>>> Hi,
->>>>>>
->>>>>> This is the third version of the patch series for adding basic suspend-resume
->>>>>> support for AM33XX, previously submitted by Vaibhav Bedia. This patchset
->>>>>> is based on 3.11-rc4 and depends on a forthcoming patchset from Suman Anna
->>>>>> that adds mailbox support for the wkup_m3. The patches at [1], [2], and [3] are
->>>>>> required for the pm code to properly suspend and resume.
->>>>>>
->>>>>> The PM code uses the firmware interface and expects the userspace to load
->>>>>> the WKUP_M3 binary before the suspend-resume functionality is made available.
->>>>>> The binary file (and the source-code for WKUP_M3) can be obtained from the
->>>>>> 'next2' branch at [4]. The WKUP_M3 binary can either be loaded post bootup
->>>>>> via the sysfs entry './sys/devices/ocp.2/wkup_m3.4/firmware' or it can be
->>>>>> included in the kernel image as part of the build process.
->>>>>>
->>>>>> Suspend to mem is tested on am335x-bone and am335x-evm.
->>>>>>
->>>>>> More details on AM335x suspend-resume are provided within the commit logs
->>>>>> for each patch.
->>>>>
->>>>> can you share the working repo which has all these patches applied?
->>>>>
->>>>> Thanks & Regards
->>>>> Gururaja
->>>>>
+> [...]
+>
 >>>>
 >>>> The working repo for this version of the patch series can be found here:
 >>>>
@@ -72,22 +48,15 @@ On 08/29/2013 04:52 PM, Kevin Hilman wrote:
 >> EVM, I am working on pinpointing the issue on beaglebone black, seems
 >> that support isn't quite there yet.
 >
-> OK, I didn't realize that.  I'll give it a try on my BB white.
+> OK, I tried the above branch on my BB white, using prebuilt firmware
+> from the next3 branch of the am33x-cm3 repo and it's suspending/resuming
+> fine.  Thanks for the pointer.
 >
-> Is there a specific version/branch of the firmware I should be using?
->
-> Thanks,
->
-> Kevin
->
+> FYI, measuring at the 5V supply, it goes from ~1.6W at idle down to
+> ~700mW in suspend.  The black goes from ~1W down to an impressive 130mW
+> but of course, it doesn't wake up so maybe it's not that impressive. ;)
 
-Kevin,
-
-The next2 branch, which you can find here [1], is what this revision of 
-the series was developed against and is tested and works.
-
-Regards,
-Dave
-
-[1] 
-http://arago-project.org/git/projects/?p=am33x-cm3.git;a=shortlog;h=refs/heads/next2
+Just a reminder, the next3 firmware is built to be compatible with
+older kernel revisions whereas the next2 firmware is not. In order for
+that compatibility to work, the CMD_ID_DS0 that mainline uses should
+change from 0x3 to 0x4
