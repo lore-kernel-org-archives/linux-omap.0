@@ -1,15 +1,15 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 11/15] OMAPDSS: VENC: remove code related to old panel model
-Date: Thu, 29 Aug 2013 16:31:56 +0300
-Message-ID: <1377783120-14001-12-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 07/15] OMAPDSS: DPI: remove code related to old panel model
+Date: Thu, 29 Aug 2013 16:31:52 +0300
+Message-ID: <1377783120-14001-8-git-send-email-tomi.valkeinen@ti.com>
 References: <1377783120-14001-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:49971 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:48892 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754702Ab3H2NcY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 29 Aug 2013 09:32:24 -0400
+	id S1754403Ab3H2NcT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 29 Aug 2013 09:32:19 -0400
 In-Reply-To: <1377783120-14001-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -19,132 +19,90 @@ Cc: Archit Taneja <archit@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 Now that the old panel drivers have been removed, we can remove the
 old-model API and related code from the DSS encoder drivers.
 
-This patch removes the code from the VENC driver.
+This patch removes the code from the DPI driver.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/omap2/dss/Makefile |   2 +-
- drivers/video/omap2/dss/dss.h    |  14 -----
- drivers/video/omap2/dss/venc.c   | 118 ++++++---------------------------------
- 3 files changed, 17 insertions(+), 117 deletions(-)
+ drivers/video/omap2/dss/dpi.c | 107 ++++--------------------------------------
+ include/video/omapdss.h       |   8 ----
+ 2 files changed, 9 insertions(+), 106 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/Makefile b/drivers/video/omap2/dss/Makefile
-index e022ed1..94832eb 100644
---- a/drivers/video/omap2/dss/Makefile
-+++ b/drivers/video/omap2/dss/Makefile
-@@ -7,7 +7,7 @@ omapdss-y += manager.o manager-sysfs.o overlay.o overlay-sysfs.o apply.o \
- 	dispc-compat.o display-sysfs.o
- omapdss-$(CONFIG_OMAP2_DSS_DPI) += dpi.o
- omapdss-$(CONFIG_OMAP2_DSS_RFBI) += rfbi.o
--omapdss-$(CONFIG_OMAP2_DSS_VENC) += venc.o venc_panel.o
-+omapdss-$(CONFIG_OMAP2_DSS_VENC) += venc.o
- omapdss-$(CONFIG_OMAP2_DSS_SDI) += sdi.o
- omapdss-$(CONFIG_OMAP2_DSS_DSI) += dsi.o
- omapdss-$(CONFIG_OMAP4_DSS_HDMI) += hdmi.o ti_hdmi_4xxx_ip.o
-diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
-index 6142885..68dd27f 100644
---- a/drivers/video/omap2/dss/dss.h
-+++ b/drivers/video/omap2/dss/dss.h
-@@ -434,20 +434,6 @@ int dispc_wb_setup(const struct omap_dss_writeback_info *wi,
- /* VENC */
- int venc_init_platform_driver(void) __init;
- void venc_uninit_platform_driver(void) __exit;
--int omapdss_venc_display_enable(struct omap_dss_device *dssdev);
--void omapdss_venc_display_disable(struct omap_dss_device *dssdev);
--void omapdss_venc_set_timings(struct omap_dss_device *dssdev,
--		struct omap_video_timings *timings);
--int omapdss_venc_check_timings(struct omap_dss_device *dssdev,
--		struct omap_video_timings *timings);
--u32 omapdss_venc_get_wss(struct omap_dss_device *dssdev);
--int omapdss_venc_set_wss(struct omap_dss_device *dssdev, u32 wss);
--void omapdss_venc_set_type(struct omap_dss_device *dssdev,
--		enum omap_dss_venc_type type);
--void omapdss_venc_invert_vid_out_polarity(struct omap_dss_device *dssdev,
--		bool invert_polarity);
--int venc_panel_init(void);
--void venc_panel_exit(void);
- 
- /* HDMI */
- int hdmi_init_platform_driver(void) __init;
-diff --git a/drivers/video/omap2/dss/venc.c b/drivers/video/omap2/dss/venc.c
-index 496a106..0d8ccde 100644
---- a/drivers/video/omap2/dss/venc.c
-+++ b/drivers/video/omap2/dss/venc.c
-@@ -492,7 +492,7 @@ static void venc_power_off(struct omap_dss_device *dssdev)
- 	venc_runtime_put();
+diff --git a/drivers/video/omap2/dss/dpi.c b/drivers/video/omap2/dss/dpi.c
+index 89c7a6e..b268d04 100644
+--- a/drivers/video/omap2/dss/dpi.c
++++ b/drivers/video/omap2/dss/dpi.c
+@@ -345,7 +345,7 @@ static void dpi_config_lcd_manager(struct omap_overlay_manager *mgr)
+ 	dss_mgr_set_lcd_config(mgr, &dpi.mgr_config);
  }
  
--int omapdss_venc_display_enable(struct omap_dss_device *dssdev)
-+static int venc_display_enable(struct omap_dss_device *dssdev)
+-int omapdss_dpi_display_enable(struct omap_dss_device *dssdev)
++static int dpi_display_enable(struct omap_dss_device *dssdev)
  {
- 	struct omap_dss_device *out = &venc.output;
+ 	struct omap_dss_device *out = &dpi.output;
  	int r;
-@@ -521,7 +521,7 @@ err0:
+@@ -423,9 +423,8 @@ err_no_reg:
+ 	mutex_unlock(&dpi.lock);
  	return r;
  }
+-EXPORT_SYMBOL(omapdss_dpi_display_enable);
  
--void omapdss_venc_display_disable(struct omap_dss_device *dssdev)
-+static void venc_display_disable(struct omap_dss_device *dssdev)
+-void omapdss_dpi_display_disable(struct omap_dss_device *dssdev)
++static void dpi_display_disable(struct omap_dss_device *dssdev)
  {
- 	DSSDBG("venc_display_disable\n");
+ 	struct omap_overlay_manager *mgr = dpi.output.manager;
  
-@@ -532,7 +532,7 @@ void omapdss_venc_display_disable(struct omap_dss_device *dssdev)
- 	mutex_unlock(&venc.venc_lock);
+@@ -446,9 +445,8 @@ void omapdss_dpi_display_disable(struct omap_dss_device *dssdev)
+ 
+ 	mutex_unlock(&dpi.lock);
  }
+-EXPORT_SYMBOL(omapdss_dpi_display_disable);
  
--void omapdss_venc_set_timings(struct omap_dss_device *dssdev,
-+static void venc_set_timings(struct omap_dss_device *dssdev,
+-void omapdss_dpi_set_timings(struct omap_dss_device *dssdev,
++static void dpi_set_timings(struct omap_dss_device *dssdev,
  		struct omap_video_timings *timings)
  {
- 	DSSDBG("venc_set_timings\n");
-@@ -550,7 +550,7 @@ void omapdss_venc_set_timings(struct omap_dss_device *dssdev,
- 	mutex_unlock(&venc.venc_lock);
- }
+ 	DSSDBG("dpi_set_timings\n");
+@@ -459,7 +457,6 @@ void omapdss_dpi_set_timings(struct omap_dss_device *dssdev,
  
--int omapdss_venc_check_timings(struct omap_dss_device *dssdev,
-+static int venc_check_timings(struct omap_dss_device *dssdev,
+ 	mutex_unlock(&dpi.lock);
+ }
+-EXPORT_SYMBOL(omapdss_dpi_set_timings);
+ 
+ static void dpi_get_timings(struct omap_dss_device *dssdev,
  		struct omap_video_timings *timings)
- {
- 	DSSDBG("venc_check_timings\n");
-@@ -574,13 +574,13 @@ static void venc_get_timings(struct omap_dss_device *dssdev,
- 	mutex_unlock(&venc.venc_lock);
+@@ -471,7 +468,7 @@ static void dpi_get_timings(struct omap_dss_device *dssdev,
+ 	mutex_unlock(&dpi.lock);
  }
  
--u32 omapdss_venc_get_wss(struct omap_dss_device *dssdev)
-+static u32 venc_get_wss(struct omap_dss_device *dssdev)
+-int dpi_check_timings(struct omap_dss_device *dssdev,
++static int dpi_check_timings(struct omap_dss_device *dssdev,
+ 			struct omap_video_timings *timings)
  {
- 	/* Invert due to VENC_L21_WC_CTL:INV=1 */
- 	return (venc.wss_data >> 8) ^ 0xfffff;
- }
+ 	struct omap_overlay_manager *mgr = dpi.output.manager;
+@@ -510,9 +507,8 @@ int dpi_check_timings(struct omap_dss_device *dssdev,
  
--int omapdss_venc_set_wss(struct omap_dss_device *dssdev, u32 wss)
-+static int venc_set_wss(struct omap_dss_device *dssdev, u32 wss)
- {
- 	const struct venc_config *config;
- 	int r;
-@@ -609,7 +609,7 @@ err:
- 	return r;
- }
- 
--void omapdss_venc_set_type(struct omap_dss_device *dssdev,
-+static void venc_set_type(struct omap_dss_device *dssdev,
- 		enum omap_dss_venc_type type)
- {
- 	mutex_lock(&venc.venc_lock);
-@@ -619,7 +619,7 @@ void omapdss_venc_set_type(struct omap_dss_device *dssdev,
- 	mutex_unlock(&venc.venc_lock);
- }
- 
--void omapdss_venc_invert_vid_out_polarity(struct omap_dss_device *dssdev,
-+static void venc_invert_vid_out_polarity(struct omap_dss_device *dssdev,
- 		bool invert_polarity)
- {
- 	mutex_lock(&venc.venc_lock);
-@@ -721,74 +721,6 @@ static int venc_get_clocks(struct platform_device *pdev)
  	return 0;
  }
+-EXPORT_SYMBOL(dpi_check_timings);
  
--static struct omap_dss_device *venc_find_dssdev(struct platform_device *pdev)
+-void omapdss_dpi_set_data_lines(struct omap_dss_device *dssdev, int data_lines)
++static void dpi_set_data_lines(struct omap_dss_device *dssdev, int data_lines)
+ {
+ 	mutex_lock(&dpi.lock);
+ 
+@@ -520,7 +516,6 @@ void omapdss_dpi_set_data_lines(struct omap_dss_device *dssdev, int data_lines)
+ 
+ 	mutex_unlock(&dpi.lock);
+ }
+-EXPORT_SYMBOL(omapdss_dpi_set_data_lines);
+ 
+ static int dpi_verify_dsi_pll(struct platform_device *dsidev)
+ {
+@@ -614,76 +609,6 @@ static enum omap_channel dpi_get_channel(void)
+ 	}
+ }
+ 
+-static struct omap_dss_device *dpi_find_dssdev(struct platform_device *pdev)
 -{
 -	struct omap_dss_board_info *pdata = pdev->dev.platform_data;
 -	const char *def_disp_name = omapdss_get_default_display_name();
@@ -156,7 +114,7 @@ index 496a106..0d8ccde 100644
 -	for (i = 0; i < pdata->num_devices; ++i) {
 -		struct omap_dss_device *dssdev = pdata->devices[i];
 -
--		if (dssdev->type != OMAP_DISPLAY_TYPE_VENC)
+-		if (dssdev->type != OMAP_DISPLAY_TYPE_DPI)
 -			continue;
 -
 -		if (def_dssdev == NULL)
@@ -172,28 +130,30 @@ index 496a106..0d8ccde 100644
 -	return def_dssdev;
 -}
 -
--static int venc_probe_pdata(struct platform_device *vencdev)
+-static int dpi_probe_pdata(struct platform_device *dpidev)
 -{
 -	struct omap_dss_device *plat_dssdev;
 -	struct omap_dss_device *dssdev;
 -	int r;
 -
--	plat_dssdev = venc_find_dssdev(vencdev);
+-	plat_dssdev = dpi_find_dssdev(dpidev);
 -
 -	if (!plat_dssdev)
 -		return 0;
 -
--	r = venc_init_regulator();
+-	r = dpi_init_regulator();
 -	if (r)
 -		return r;
 -
--	dssdev = dss_alloc_and_init_device(&vencdev->dev);
+-	dpi_init_pll();
+-
+-	dssdev = dss_alloc_and_init_device(&dpidev->dev);
 -	if (!dssdev)
 -		return -ENOMEM;
 -
 -	dss_copy_device_pdata(dssdev, plat_dssdev);
 -
--	r = omapdss_output_set_device(&venc.output, dssdev);
+-	r = omapdss_output_set_device(&dpi.output, dssdev);
 -	if (r) {
 -		DSSERR("failed to connect output to new device: %s\n",
 -				dssdev->name);
@@ -204,7 +164,7 @@ index 496a106..0d8ccde 100644
 -	r = dss_add_device(dssdev);
 -	if (r) {
 -		DSSERR("device %s register failed: %d\n", dssdev->name, r);
--		omapdss_output_unset_device(&venc.output);
+-		omapdss_output_unset_device(&dpi.output);
 -		dss_put_device(dssdev);
 -		return r;
 -	}
@@ -212,74 +172,79 @@ index 496a106..0d8ccde 100644
 -	return 0;
 -}
 -
- static int venc_connect(struct omap_dss_device *dssdev,
+ static int dpi_connect(struct omap_dss_device *dssdev,
  		struct omap_dss_device *dst)
  {
-@@ -836,18 +768,18 @@ static const struct omapdss_atv_ops venc_ops = {
- 	.connect = venc_connect,
- 	.disconnect = venc_disconnect,
+@@ -733,14 +658,14 @@ static const struct omapdss_dpi_ops dpi_ops = {
+ 	.connect = dpi_connect,
+ 	.disconnect = dpi_disconnect,
  
--	.enable = omapdss_venc_display_enable,
--	.disable = omapdss_venc_display_disable,
-+	.enable = venc_display_enable,
-+	.disable = venc_display_disable,
+-	.enable = omapdss_dpi_display_enable,
+-	.disable = omapdss_dpi_display_disable,
++	.enable = dpi_display_enable,
++	.disable = dpi_display_disable,
  
--	.check_timings = omapdss_venc_check_timings,
--	.set_timings = omapdss_venc_set_timings,
-+	.check_timings = venc_check_timings,
-+	.set_timings = venc_set_timings,
- 	.get_timings = venc_get_timings,
+ 	.check_timings = dpi_check_timings,
+-	.set_timings = omapdss_dpi_set_timings,
++	.set_timings = dpi_set_timings,
+ 	.get_timings = dpi_get_timings,
  
--	.set_type = omapdss_venc_set_type,
--	.invert_vid_out_polarity = omapdss_venc_invert_vid_out_polarity,
-+	.set_type = venc_set_type,
-+	.invert_vid_out_polarity = venc_invert_vid_out_polarity,
- 
--	.set_wss = omapdss_venc_set_wss,
--	.get_wss = omapdss_venc_get_wss,
-+	.set_wss = venc_set_wss,
-+	.get_wss = venc_get_wss,
+-	.set_data_lines = omapdss_dpi_set_data_lines,
++	.set_data_lines = dpi_set_data_lines,
  };
  
- static void venc_init_output(struct platform_device *pdev)
-@@ -913,26 +845,12 @@ static int omap_venchw_probe(struct platform_device *pdev)
+ static void dpi_init_output(struct platform_device *pdev)
+@@ -767,31 +692,17 @@ static void __exit dpi_uninit_output(struct platform_device *pdev)
  
- 	venc_runtime_put();
- 
--	r = venc_panel_init();
--	if (r)
--		goto err_panel_init;
+ static int omap_dpi_probe(struct platform_device *pdev)
+ {
+-	int r;
 -
- 	dss_debugfs_create_file("venc", venc_dump_regs);
+ 	dpi.pdev = pdev;
  
- 	venc_init_output(pdev);
+ 	mutex_init(&dpi.lock);
+ 
+ 	dpi_init_output(pdev);
  
 -	if (pdev->dev.platform_data) {
--		r = venc_probe_pdata(pdev);
+-		r = dpi_probe_pdata(pdev);
 -		if (r)
 -			goto err_probe;
 -	}
 -
  	return 0;
- 
+-
 -err_probe:
--	venc_panel_exit();
--	venc_uninit_output(pdev);
--err_panel_init:
- err_runtime_get:
- 	pm_runtime_disable(&pdev->dev);
- 	return r;
-@@ -940,10 +858,6 @@ err_runtime_get:
+-	dpi_uninit_output(pdev);
+-	return r;
+ }
  
- static int __exit omap_venchw_remove(struct platform_device *pdev)
+ static int __exit omap_dpi_remove(struct platform_device *pdev)
  {
 -	dss_unregister_child_devices(&pdev->dev);
 -
--	venc_panel_exit();
--
- 	venc_uninit_output(pdev);
+ 	dpi_uninit_output(pdev);
  
- 	pm_runtime_disable(&pdev->dev);
+ 	return 0;
+diff --git a/include/video/omapdss.h b/include/video/omapdss.h
+index 3b68dc2..1199e3b 100644
+--- a/include/video/omapdss.h
++++ b/include/video/omapdss.h
+@@ -1038,14 +1038,6 @@ int omapdss_dsi_display_enable(struct omap_dss_device *dssdev);
+ void omapdss_dsi_display_disable(struct omap_dss_device *dssdev,
+ 		bool disconnect_lanes, bool enter_ulps);
+ 
+-int omapdss_dpi_display_enable(struct omap_dss_device *dssdev);
+-void omapdss_dpi_display_disable(struct omap_dss_device *dssdev);
+-void omapdss_dpi_set_timings(struct omap_dss_device *dssdev,
+-		struct omap_video_timings *timings);
+-int dpi_check_timings(struct omap_dss_device *dssdev,
+-			struct omap_video_timings *timings);
+-void omapdss_dpi_set_data_lines(struct omap_dss_device *dssdev, int data_lines);
+-
+ int omapdss_sdi_display_enable(struct omap_dss_device *dssdev);
+ void omapdss_sdi_display_disable(struct omap_dss_device *dssdev);
+ void omapdss_sdi_set_timings(struct omap_dss_device *dssdev,
 -- 
 1.8.1.2
 
