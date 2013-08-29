@@ -1,143 +1,111 @@
 From: Russ Dill <Russ.Dill@ti.com>
 Subject: Re: [PATCH v4 0/4] ARM: OMAP2+: AM33XX: VDD CORE OPP50 support
-Date: Thu, 29 Aug 2013 09:10:51 -0700
-Message-ID: <CA+Bv8XbxV=BFjcSsUMX2pz9LeCkSwrjzZmj_=YbHGzyfbLXmaQ@mail.gmail.com>
+Date: Thu, 29 Aug 2013 09:31:55 -0700
+Message-ID: <CA+Bv8XYbpqQAYwJ3=vkP0gXDMTp7_VNVzB0NXLG6GHDi=Z1img@mail.gmail.com>
 References: <1376432412-8509-1-git-send-email-Russ.Dill@ti.com>
 	<1376487480.3889.64.camel@coredoba.hi.pengutronix.de>
 	<CA+Bv8XYe0UzBkjqtO7bNkgNVTQtxiM7Hv93BOu8Lw1=pESOwLA@mail.gmail.com>
 	<87txiasqhk.fsf@linaro.org>
 	<CA+Bv8XZagHZ9mUuZB49hrH=901fXzoAcV8C0Fm3EfLa2eiBu0w@mail.gmail.com>
-	<87ppsw7cgq.fsf@linaro.org>
+	<20130829110534.GV10783@sirena.org.uk>
+	<CAGa+x85u0OpB9o71xUTs15wt8Te-o5f0C9o22GHzZwOjn5F6=w@mail.gmail.com>
+	<20130829154929.GJ10783@sirena.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qc0-f173.google.com ([209.85.216.173]:51158 "EHLO
-	mail-qc0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752519Ab3H2QKw convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Aug 2013 12:10:52 -0400
-In-Reply-To: <87ppsw7cgq.fsf@linaro.org>
+Received: from mail-qe0-f46.google.com ([209.85.128.46]:52915 "EHLO
+	mail-qe0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753821Ab3H2Qb4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Aug 2013 12:31:56 -0400
+In-Reply-To: <20130829154929.GJ10783@sirena.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@linaro.org>
-Cc: devicetree@vger.kernel.org, Mark Brown <broonie@kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, =?UTF-8?Q?Jan_L=C3=BCbbe?= <jlu@pengutronix.de>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
+To: Mark Brown <broonie@kernel.org>
+Cc: Kevin Hilman <khilman@linaro.org>, devicetree@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, =?UTF-8?Q?Jan_L=C3=BCbbe?= <jlu@pengutronix.de>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
 
-On Thu, Aug 29, 2013 at 8:17 AM, Kevin Hilman <khilman@linaro.org> wrot=
-e:
-> Russ Dill <Russ.Dill@ti.com> writes:
+On Thu, Aug 29, 2013 at 8:49 AM, Mark Brown <broonie@kernel.org> wrote:
+> On Thu, Aug 29, 2013 at 08:29:37AM -0700, Kevin Hilman wrote:
+>> On Thu, Aug 29, 2013 at 4:05 AM, Mark Brown <broonie@kernel.org> wrote:
 >
->> On Tue, Aug 27, 2013 at 3:44 PM, Kevin Hilman <khilman@linaro.org> w=
-rote:
->>> [+Mark Brown for regulator suspend sequence ideas]
->>>
->>> Russ Dill <Russ.Dill@ti.com> writes:
->>>
->>>> On Wed, Aug 14, 2013 at 6:38 AM, Jan L=C3=BCbbe <jlu@pengutronix.d=
-e> wrote:
->>>>> On Tue, 2013-08-13 at 15:20 -0700, Russ Dill wrote:
->> [snip]
->>>>> Shouldn't the TPS driver know how to generate this sequence? It s=
-eems
->>>>> fragile to do voltage adjustments behind the back of the regulato=
-r
->>>>> framework and the TPS driver. The wake-sequence values should mat=
-ch the
->>>>> (in-memory) regulator configuration on resume (which may have bee=
-n
->>>>> changed by DVFS).
->>>>
->>>> The sequence is both PMIC specific and board specific. Additionall=
-y,
->>>> the PMICs used aren't am335x specific. It would be nice to have th=
-e
->>>> regulator framework and the driver write all this out, but the
->>>> sequence is written out by the Cortex-M3 processor running some PM
->>>> firmware. Even if the code was changed to run on the A8, it'd have=
- to
->>>> run from a small piece of SRAM.
->>>
->>> So, why/how was the decision made to use the M3 instead of the MPU
->>> running from SRAM?
->>>
->>> As a firmware minimalist, I obviously prefer to do this from the MP=
-U
->>> side.  But also, because the M3 is reset every suspend sequence, th=
-is
->>> becomes rather heavy to do from the M3.
->>
->> After the feedback Vaibhav Bedia received on v2 of his suspend/resum=
-e
->> patchset for am335x, he decided to move many of the operations from
->> sleep33xx.S into the M3 firmware.
->>
->> See the commit message here:
->> http://arago-project.org/git/projects/?p=3Dam33x-cm3.git;a=3Dcommit;=
-h=3Da972ce2f6
+>> > Someone is going to have to walk me through the context for me to fully
+>> > understand what this is all about - what's the problem?
 >
-> Was this feedback on the public lists?  That patch has never been pos=
-ted
-> to linux-omap AFAICT.
+>> The basic problem is how to have low-level platform code (or possibly
+>> firmware) send commands to a regulator to scale voltage.  This has to
+>> happen *very* late in the suspend process, so having the drivers do it
+>> themselves is not feasible.
 >
->> I need to wait until after the PLLs are put into bypass, which is no=
-w
->> done in the M3 firmware. It also ends up being a lot easier to write
->> the I2C writer code there in C rather than in assembly in sleep33xx.=
-S.
->
-> hmm, (carefully) written functions in C can still be copied to SRAM. =
- I
-> dont' see that as an obstacle.
->
->>> Currently voltage scaling is only being proposed for suspend in thi=
-s
->>> series, but in theory it's possible from idle as well.  Doing this =
-from
->>> the MPU/SRAM seems much better suited for idle.
->>
->> The M3 firmware will also handle any cpuidle modes deeper than just
->> putting SDRAM into self refresh. This is actually the only way of
->> doing things like turning the MPU domain off on am335x.
->
-> Yes, it will have to handle the MPU/interconnect off parts but other
-> than that, that's the only thing it *has* to do (well, and handle wak=
-eup
-> from the deep state.)  The rest of the stuff being piled into the M3 =
-is
-> a result of software/firmware design decisions AFAICT.  As I predicte=
-d
-> when I first saw this SoC design, the firmware is getting bigger and
-> bigger.  Initially it was argued that it would be tiny, and only hand=
-le
-> the things it had to do.  Now it's growing due to "convenience".  IMO=
-,
-> this is a bad trend, and one that will make this code more and more
-> difficult to maintain upstream (assuming that's a goal.)
+> Why does it have to happen this late and are the sequences definitely
+> fixed ones not ones that could depend on the system state at the time
+> we suspend?  It'd help to know what exactly is being controlled here...
 
-Do you mean upstream as in the firmware upstream, or upstream as in
-the kernel upstream? Upstream kernel is really easy to maintain
-because sleep33xx.S just puts the SDRAM into self-refresh.
+On all am335x platforms, the lower operating point for core voltage
+cannot be reached without first disabling the DDR controller, and
+programming it into a lower power mode. For DDR3 platforms, no such
+lower power mode is available and the lower operating point for core
+voltage can only be reached with the memory controller disabled.
 
-The code to perform these transitions is going to exist, either in
-kernel or in firmware. If you are looking for this to be maintainable
-C code that is copied into SRAM, it will need to be built much like a
-firmware, with it's elf sections being copied into SRAM properly. I'm
-not sure how much it complicates things, but the code needs to be able
-to run with the MMU on and MMU off. The C code would be a minimalized
-duplication of much of what is already in mach-omap2. Because you are
-proposing to split this up between A8 and M3, much of that code would
-then be duplicated again within the M3 firmware.
+It certainly is possible that some bizarre I2C regulator may mix in
+regulator voltage and some other state into one I2C register. In the
+case of such a platform, setting the lower operating point would not
+be supported.
 
-And don't forget that am335x is just the first platform with such a PM =
-scheme.
+>> The proposal in this series is to define the i2c commands sequence to
+>> be sent to the regulator in the i2c node of the DT.  The
+>> platform-specific code then reads the sequence from the DT and sends
+>> the commands (or in in the case of the current series, passes the
+>> sequence to some firmware on a microcontroller which does the
+>> sequence.)
+>
+> Surely specifying things in terms of the actual sequence would be better
+> than trying to specify the I2C commands if you want this to be done from
+> Linux?  If the firmware has to cope directly then this would require the
+> firmware to understand what it's doing of course.
 
-Because the M3 firmware already has to manage power domains, hwmods,
-plls, and clockdomains, adding or removing which ones it handles
-doesn't really change the size or complexity of the firmware. In fact,
-because so much of the code is common code, moving this into kernel
-would just mean making two copies of the firmware with different steps
-to be run, one for the A8 SRAM, one for the M3.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I'm not sure what you mean by "actual sequence". Maybe if I show you a
+couple examples, it will be more clear:
+
+This is for the AM335X-EVM which has a TPS65910. The first byte is the
+number of bytes to write, the second byte is the I2C device to write
+those bytes to, the third byte happens to be a register address on the
+TPS65910, and the 4th byte happens to be the value for 0.95V and 1.1V
+respectively.
+
+/* Set OPP50 (0.95V) for VDD core on TPS65910 */
+sleep_sequence = /bits/ 8 <
+        0x02 0x2d 0x25 0x1f /* Set VDD2 to 0.95V */
+>;
+
+/* Set OPP100 (1.10V) for VDD core on TPS65910 */
+wake_sequence = /bits/ 8 <
+        0x02 0x2d 0x25 0x2b /* Set VDD2 to 1.1V */
+>;
+
+These next sequences are for the Beaglebone which has a different
+PMIC. The format is the same, but the PMIC requires an unlock sequence
+to be performed for certain registers and it also requires an
+additional step to apply DCDC changes:
+
+/* Set OPP50 (0.95V) for VDD core on TPS65217 */
+sleep_sequence = /bits/ 8 <
+        0x02 0x24 0x0b 0x6d /* Password unlock 1 */
+        0x02 0x24 0x10 0x02 /* Set DCDC3 to 0.95V */
+        0x02 0x24 0x0b 0x6d /* Password unlock 2 */
+        0x02 0x24 0x10 0x02 /* Set DCDC3 to 0.95V */
+        0x02 0x24 0x0b 0x6c /* Password unlock 1 */
+        0x02 0x24 0x11 0x86 /* Apply DCDC changes */
+        0x02 0x24 0x0b 0x6c /* Password unlock 2 */
+        0x02 0x24 0x11 0x86 /* Apply DCDC changes */
+>;
+
+/* Set OPP100 (1.10V) for VDD core on TPS65217 */
+wake_sequence = /bits/ 8 <
+        0x02 0x24 0x0b 0x6d /* Password unlock 1 */
+        0x02 0x24 0x10 0x08 /* Set DCDC3 to 1.1V */
+        0x02 0x24 0x0b 0x6d /* Password unlock 2 */
+        0x02 0x24 0x10 0x08 /* Set DCDC3 to 1.1V */
+        0x02 0x24 0x0b 0x6c /* Password unlock 1 */
+        0x02 0x24 0x11 0x86 /* Apply DCDC changes */
+        0x02 0x24 0x0b 0x6c /* Password unlock 2 */
+        0x02 0x24 0x11 0x86 /* Apply DCDC changes */
+>;
