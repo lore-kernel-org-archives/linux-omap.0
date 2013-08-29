@@ -1,228 +1,124 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [PATCH v4 0/4] ARM: OMAP2+: AM33XX: VDD CORE OPP50 support
-Date: Thu, 29 Aug 2013 14:33:13 -0700
-Message-ID: <87hae8tc6e.fsf@linaro.org>
-References: <1376432412-8509-1-git-send-email-Russ.Dill@ti.com>
-	<1376487480.3889.64.camel@coredoba.hi.pengutronix.de>
-	<CA+Bv8XYe0UzBkjqtO7bNkgNVTQtxiM7Hv93BOu8Lw1=pESOwLA@mail.gmail.com>
-	<87txiasqhk.fsf@linaro.org>
-	<CA+Bv8XZagHZ9mUuZB49hrH=901fXzoAcV8C0Fm3EfLa2eiBu0w@mail.gmail.com>
-	<87ppsw7cgq.fsf@linaro.org>
-	<CA+Bv8XbxV=BFjcSsUMX2pz9LeCkSwrjzZmj_=YbHGzyfbLXmaQ@mail.gmail.com>
-	<874na8xqfl.fsf@linaro.org>
-	<CANacCWzK1w9+XKEoUfS4ZB7QGxi_0JkVWBLs_wsaUjrzW2QB+A@mail.gmail.com>
+From: Dave Gerlach <d-gerlach@ti.com>
+Subject: Re: [PATCHv3 8/9] ARM: OMAP2+: AM33XX: Basic suspend resume support
+Date: Thu, 29 Aug 2013 16:41:20 -0500
+Message-ID: <521FC000.6080900@ti.com>
+References: <1375811376-49985-1-git-send-email-d-gerlach@ti.com> <1375811376-49985-9-git-send-email-d-gerlach@ti.com> <87mwo2vmds.fsf@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pd0-f177.google.com ([209.85.192.177]:61268 "EHLO
-	mail-pd0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753675Ab3H2VdR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Aug 2013 17:33:17 -0400
-Received: by mail-pd0-f177.google.com with SMTP id y10so976852pdj.36
-        for <linux-omap@vger.kernel.org>; Thu, 29 Aug 2013 14:33:16 -0700 (PDT)
-In-Reply-To: <CANacCWzK1w9+XKEoUfS4ZB7QGxi_0JkVWBLs_wsaUjrzW2QB+A@mail.gmail.com>
-	(Vaibhav Bedia's message of "Thu, 29 Aug 2013 16:09:40 -0400")
+Received: from devils.ext.ti.com ([198.47.26.153]:55202 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751755Ab3H2Vlr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Aug 2013 17:41:47 -0400
+In-Reply-To: <87mwo2vmds.fsf@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vaibhav Bedia <vaibhav.bedia@gmail.com>
-Cc: Russ Dill <Russ.Dill@ti.com>, devicetree@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Mark Brown <broonie@kernel.org>, Jan =?utf-8?Q?L=C3=BCbbe?= <jlu@pengutronix.de>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
+To: Kevin Hilman <khilman@linaro.org>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Vaibhav Bedia <vaibhav.bedia@ti.com>, Tony Lingren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Benoit Cousson <benoit.cousson@linaro.org>
 
-Vaibhav Bedia <vaibhav.bedia@gmail.com> writes:
+On 08/27/2013 04:45 PM, Kevin Hilman wrote:
+> Dave Gerlach <d-gerlach@ti.com> writes:
+>
+>> From: Vaibhav Bedia <vaibhav.bedia@ti.com>
+>>
+>> AM335x supports various low power modes as documented
+>> in section 8.1.4.3 of the AM335x TRM which is available
+>> @ http://www.ti.com/litv/pdf/spruh73f
+>>
+>> DeepSleep0 mode offers the lowest power mode with limited
+>> wakeup sources without a system reboot and is mapped as
+>> the suspend state in the kernel. In this state, MPU and
+>> PER domains are turned off with the internal RAM held in
+>> retention to facilitate resume process. As part of the boot
+>> process, the assembly code is copied over to OCMCRAM using
+>> the OMAP SRAM code.
+>>
+>> AM335x has a Cortex-M3 (WKUP_M3) which assists the MPU
+>> in DeepSleep0 entry and exit. WKUP_M3 takes care of the
+>> clockdomain and powerdomain transitions based on the
+>> intended low power state. MPU needs to load the appropriate
+>> WKUP_M3 binary onto the WKUP_M3 memory space before it can
+>> leverage any of the PM features like DeepSleep.
+>>
+>> The IPC mechanism between MPU and WKUP_M3 uses a mailbox
+>> sub-module and 8 IPC registers in the Control module. MPU
+>> uses the assigned Mailbox for issuing an interrupt to
+>> WKUP_M3 which then goes and checks the IPC registers for
+>> the payload. WKUP_M3 has the ability to trigger on interrupt
+>
+> s/trigger on interrupt/trigger an interrupt/  ??
 
-> On Thu, Aug 29, 2013 at 3:11 PM, Kevin Hilman <khilman@linaro.org> wrote:
+Oops I will fix that.
+
+>
+>> to MPU by executing the "sev" instruction.
+>>
+>> In the current implementation when the suspend process
+>> is initiated MPU interrupts the WKUP_M3 to let it know about
+>> the intent of entering DeepSleep0 and waits for an ACK. When
+>> the ACK is received MPU continues with its suspend process
+>> to suspend all the drivers and then jumps to assembly in
+>> OCMC RAM. The assembly code puts the PLLs in bypass, puts the
+>> external RAM in self-refresh mode and then finally execute the
+>> WFI instruction. Execution of the WFI instruction triggers another
+>> interrupt to the WKUP_M3 which then continues wiht the power down
+>> sequence wherein the clockdomain and powerdomain transition takes
+>> place. As part of the sleep sequence, WKUP_M3 unmasks the interrupt
+>> lines for the wakeup sources. WFI execution on WKUP_M3 causes the
+>> hardware to disable the main oscillator of the SoC.
+>>
+>> When a wakeup event occurs, WKUP_M3 starts the power-up
+>> sequence by switching on the power domains and finally
+>> enabling the clock to MPU. Since the MPU gets powered down
+>> as part of the sleep sequence in the resume path ROM code
+>> starts executing. The ROM code detects a wakeup from sleep
+>> and then jumps to the resume location in OCMC which was
+>> populated in one of the IPC registers as part of the suspend
+>> sequence.
+>>
+>> The low level code in OCMC relocks the PLLs, enables access
+>> to external RAM and then jumps to the cpu_resume code of
+>> the kernel to finish the resume process.
+>
 > [...]
 >
-> First of all, apologies for jumping in here. Now that i am not
-> actively involved in AM335x/AM437x stuff i wasn't actively following
-> all the discussion here.
-
-No apologies needed, I was hoping you would jump in here.  Thanks for
-sharing your experience and insight.
-
-> Looking at the lists now i just wanted to mention a few things so that we can
-> agree on the approach to be taken here.
+>>   arch/arm/mach-omap2/pm33xx.c  |  474 +++++++++++++++++++++++++++++++++++++++++
+>>   arch/arm/mach-omap2/pm33xx.h  |   77 +++++++
+>>   arch/arm/mach-omap2/wkup_m3.c |  183 ++++++++++++++++
 >
->>>>>>
->>>>>> So, why/how was the decision made to use the M3 instead of the MPU
->>>>>> running from SRAM?
->>>>>>
->>>>>> As a firmware minimalist, I obviously prefer to do this from the MPU
->>>>>> side.  But also, because the M3 is reset every suspend sequence, this
->>>>>> becomes rather heavy to do from the M3.
->>>>>
->>>>> After the feedback Vaibhav Bedia received on v2 of his suspend/resume
->>>>> patchset for am335x, he decided to move many of the operations from
->>>>> sleep33xx.S into the M3 firmware.
->>>>>
->>>>> See the commit message here:
->>>>> http://arago-project.org/git/projects/?p=am33x-cm3.git;a=commit;h=a972ce2f6
->>>>
->>>> Was this feedback on the public lists?  That patch has never been posted
->>>> to linux-omap AFAICT.
->>>>
->>>>> I need to wait until after the PLLs are put into bypass, which is now
->>>>> done in the M3 firmware. It also ends up being a lot easier to write
->>>>> the I2C writer code there in C rather than in assembly in sleep33xx.S.
->>>>
->>>> hmm, (carefully) written functions in C can still be copied to SRAM.  I
->>>> dont' see that as an obstacle.
->>>>
->>>>>> Currently voltage scaling is only being proposed for suspend in this
->>>>>> series, but in theory it's possible from idle as well.  Doing this from
->>>>>> the MPU/SRAM seems much better suited for idle.
->>>>>
->>>>> The M3 firmware will also handle any cpuidle modes deeper than just
->>>>> putting SDRAM into self refresh. This is actually the only way of
->>>>> doing things like turning the MPU domain off on am335x.
->>>>
->>>> Yes, it will have to handle the MPU/interconnect off parts but other
->>>> than that, that's the only thing it *has* to do (well, and handle wakeup
->>>> from the deep state.)  The rest of the stuff being piled into the M3 is
->>>> a result of software/firmware design decisions AFAICT.  As I predicted
->>>> when I first saw this SoC design, the firmware is getting bigger and
->>>> bigger.  Initially it was argued that it would be tiny, and only handle
->>>> the things it had to do.  Now it's growing due to "convenience".  IMO,
->>>> this is a bad trend, and one that will make this code more and more
->>>> difficult to maintain upstream (assuming that's a goal.)
->>>
->>> Do you mean upstream as in the firmware upstream, or upstream as in
->>> the kernel upstream? Upstream kernel is really easy to maintain
->>> because sleep33xx.S just puts the SDRAM into self-refresh.
->>
->> I mean making the kernel "simple" at the price of more complicated (and
->> much less reviewed) firmware code is a bad trend.  I understand the
->> desire to move this stuff into firmware and bypass the kernel review
->> process, but I predict it will backfire.
->>
->>> The code to perform these transitions is going to exist, either in
->>> kernel or in firmware. If you are looking for this to be maintainable
->>> C code that is copied into SRAM, it will need to be built much like a
->>> firmware, with it's elf sections being copied into SRAM properly.
->>
->> You're making it too complicated.  No need for ELF, etc.
->>
->> So the argument for moving much of the stuff from the kernel (in the
->> patch you referenced above) was that the "assembly code is quite big and
->> folks have found it hard to review and fixup issues in this dense piece
->> of code."  (interestingly, it was moved to firmware where it will see
->> even less review, but that's off topic.)
->>
->> My idea was that if reviewing assembly is the issue, why not carefully
->> write a self-contained C function that can be copied to SRAM.  It might
->> need a little stub in SRAM to setup the stack etc., but it should be
->> quite doable.  That eliminates the problem cited as the reason for the
->> move to M3.
->>
->>> I'm not sure how much it complicates things, but the code needs to be
->>> able to run with the MMU on and MMU off. The C code would be a
->>> minimalized duplication of much of what is already in
->>> mach-omap2. Because you are proposing to split this up between A8 and
->>> M3, much of that code would then be duplicated again within the M3
->>> firmware.
->>>
->>> And don't forget that am335x is just the first platform with such a PM scheme.
->>
->> IMO, all the more reason to handle it in Linux, not in platform-specific firmware.
->>
->>> Because the M3 firmware already has to manage power domains, hwmods,
->>> plls, and clockdomains, adding or removing which ones it handles
->>> doesn't really change the size or complexity of the firmware.
->>
->> No, but it significantly complicates its interaction with Linux, which
->> also has to know about all these things already.  IMO, as I've stated
->> from the very beginning of this SoC, there should be a very clean split.
->> M3 should only handle the minimum, what the MPU simply cannot do
->> (MPU/interconnect off, wakeup).  MPU/Linux should handle the rest.
->>
->>> In fact, because so much of the code is common code, moving this into
->>> kernel would just mean making two copies of the firmware with
->>> different steps to be run, one for the A8 SRAM, one for the M3.
->>
->> Maybe I'm getting confused, but the more you talk about the linux and
->> the firmware doing the same code, the more I think the firmware is
->> (trying) to do too much.  If this is going to be understandable (and
->> maintainable), there needs to be a clean split of roles between the MPU
->> and the M3.
->>
 >
-> In the past i tried to keep the firmware as minimal as possible and pushed
-> back all efforts to push unnecessary stuff in there. Like Kevin, i too was of
-> the opinion that we need to do whatever's possible in the kernel.
+> Looking closer at this code as I'm trying to fully get my head around
+> all the IPC, I have some more comments.
 >
-> Sadly, things just got a point where it made much more sense (technically
-> as well as non-technically) to just put the low level stuff in the M3.
+> I think the split between pm33xx.c and the M3 driver is still confusing
+> here.  For example, am33xx_ping_wkup_m3(),
+> am33xx_m3_state_machine_reset() and the guts of am33xx_pm_begin() all
+> belong inside the M3 driver, along with all the wakeup_src stuff, which
+> is info coming from the M3.
 >
-> 1. In addition to the Linux support, we have non-OS based code for AM335x
-> (and AM437x) which in the past just had to duplicate whatever was done
-> in the Linux. Being a different codebase the non-OS guys have their own
-> set of challenges and we had to at times sit through and debug issues in
-> one codebase while the other was working fine. Ideally these things should
-> never come up but sadly they do and we need to solve them.
+> IOW, the communication with M3 should be abstracted from pm33xx by the
+> M3 driver (or possibly an eventual remoteproc/rpmsg implementation) with
+> a well defined API.  In this implementation, the interface is pretty
+> fuzzy and mixed between pm33xx.c and wkup_m3.c.
+
+I have since moved much more of the m3 functionality, including the ping 
+and wakeup src code, into the wkup_m3 driver to make the split more 
+clear but I haven't yet moved the state machine portion into the wkup_m3 
+driver. I feel that this is the portion of the IPC that could 
+potentially be the most variant between different SoC implementations so 
+leaving this in the pm code should allow for more flexibility.
+
 >
-> We also have people trying to implement this thing on different sort of
-> OS environments and they also end up debugging the same set of issues.
+> Kevin
 >
-> With only a handful of folks able to spend time debugging issues 'do everything
-> in Linux and expect others to copy it' model doesn't scale up. Keeping
-> things in the
-> firmware with the code available online helps do away with the
-> 'developer scalability'
-> problem and if one looks at things differently enables code-reuse at
-> the same time.
+> P.S. I'd also suggest renaming wakeup_src to something else since
+> it's close to wakeup_source which has a rather different meaning in the
+> kernel (c.f. linux/pm_wakeup.h)
+>
 
-Yes, yes, this is the classic argument for a HAL, and making that case has always
-gone over well in the kernel. ;)
+I will rename this to tie it into the M3 code.
 
-> Moreover, when the code was finally moved to M3, AFAICT we had validated
-> all supported combinations (DDR2, DDR3, DDR3 with VTT, DDR3 without VTT
-> control) that TI hardware guys could throw at us.Yes there could be stupid bugs
-> lurking in the code since it wasn't reviewed as much as i would have
-> liked but we
-> have something which proves the functionality to be used as the base.
+Regards,
+Dave
 
-I don't follow the argument here.  You mean it was validated *before*
-moving it to the M3, or after?  Either way, I'm how that makes a case
-for moving it to the M3.  Surely if it was on the MPU, it would also
-have been validated, no?
-
-> 2. As has been already been pointed out by Russ, on AM335x this step needs
-> to be done very late in the suspend process (the last stage
-> actually). 
-
-late, yes.  But *technically*, it can still be done from the MPU.
-
-> On the next SoC there are other complications related to security
-> which enforce this step must be done from the M3.
-
-Aha!  So far, the first technical reason I've seen.  Can you elaborate?
-Exactly which step has to be done from the M3, and why can't the MPU do
-it?  And could it be done more simply by putting *only* the parts needed
-on the M3 and not letting it snowball into a pile of stuff?
-
-> So trying to keep it in M3 for both AM335x and AM437x helps avoid the
-> code churn that will happen if we were to do this differently on two
-> SoCs which have similar PM architectures.
-
-I'm not conviced it has to be done so differently between the two.
-Let's have some more details about the security differences before
-making that decision.
-
-> Morevoer, all the suggestions on how to keep the code in Linux working
-> around the complications due to the main memory not being accessible
-> will need to be replicated on the non-Linux s/w stacks and that's just
-> make it more difficult for them.
-
-The linux code has to be very self-contained (in assembler or C), so I'm
-not sure how it's difficult to replicated in any other OS (or non-OS.)
-
-> 3. Moving this to M3 leaves the option open to try out some crazy stuff for
-> power optimizations wherein the CORE voltage is lowered even below OPP50.
-> This is yet to be proved in h/w so one can ignore this for now but yes it's a
-> possibility.
-
-All interesting reasons, but other than the security one, all boil down
-to non-technical arguments about what's easier.  But as you well know,
-"the easy way" usually isn't the same thing as "the right way" when it
-comes to getting things into the upstream linux kernel.
-
-Kevin
