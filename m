@@ -1,226 +1,195 @@
-From: Chanwoo Choi <cw00.choi@samsung.com>
-Subject: Re: [PATCH v3 1/3] extcon: extcon-gpio-usbvid: Generic USB VBUS/ID
- detection via GPIO
-Date: Fri, 30 Aug 2013 15:53:12 +0900
-Message-ID: <52204158.8070406@samsung.com>
-References: <1377711185-31238-1-git-send-email-george.cherian@ti.com>
- <1377711185-31238-2-git-send-email-george.cherian@ti.com>
- <521EA563.4060305@samsung.com> <521EB018.3000301@ti.com>
- <521EE8FC.80802@samsung.com> <521EF88F.4070402@ti.com>
- <521F245E.8050506@samsung.com> <521F3515.7040001@ti.com>
- <521F3AA2.9010707@samsung.com> <521F505E.8090607@ti.com>
- <521FE31D.8050902@samsung.com> <52203872.2050304@ti.com>
+From: Christian Hoffmann <chrmhoffmann@gmail.com>
+Subject: Fwd: Re: current panda omap kernel stacks
+Date: Fri, 30 Aug 2013 08:59:19 +0200
+Message-ID: <522042C7.1020809@gmail.com>
+References: <CAAk9F99Oy=ozOogZNZo6KzC8o-X4u_vTAdOww64dBCyEsSPgVw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-reply-to: <52203872.2050304@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: George Cherian <george.cherian@ti.com>
-Cc: balbi@ti.com, myungjoo.ham@samsung.com, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, grant.likely@linaro.org, rob@landley.net, ian.campbell@citrix.com, swarren@wwwdotorg.org, mark.rutland@arm.com, pawel.moll@arm.com, rob.herring@calxeda.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, bcousson@baylibre.com, davidb@codeaurora.org, arnd@arndb.de, swarren@nvidia.com, popcornmix@gmail.com
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-we0-f173.google.com ([74.125.82.173]:57134 "EHLO
+	mail-we0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754401Ab3H3G7Y (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Aug 2013 02:59:24 -0400
+Received: by mail-we0-f173.google.com with SMTP id x54so1256840wes.32
+        for <linux-omap@vger.kernel.org>; Thu, 29 Aug 2013 23:59:23 -0700 (PDT)
+In-Reply-To: <CAAk9F99Oy=ozOogZNZo6KzC8o-X4u_vTAdOww64dBCyEsSPgVw@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-Hi George,
+Hi,
 
-On 08/30/2013 03:15 PM, George Cherian wrote:
-> Hi Chanwoo,
-> 
-> On 8/30/2013 5:41 AM, Chanwoo Choi wrote:
->> Hi George,
->>
->> On 08/29/2013 10:45 PM, George Cherian wrote:
->>> Hi Chanwoo,
->>>
->>>
->>> On 8/29/2013 5:42 PM, Chanwoo Choi wrote:
->>> [big snip ]
->>>>>> I tested various development board based on Samsung Exynos series SoC.
->>>>>> Although some gpio of Exynos series SoC set high state(non zero, 1) as default value,
->>>>>> this gpio state could mean off state, disconnected or un-powered state according to gpio.
->>>>>> Of course, above explanation about specific gpio don't include all gpios.
->>>>>> This is meaning that there is possibility.
->>>>> okay then how about adding a flag for inverted logic too.  something like this
->>>>>
->>>>> if(of_property_read_bool(np,"inverted_gpio))
->>>>>       gpio_usbvid->gpio_inv = 1;
->>>>> And always check on this before deciding?
->>> Is this fine ?
->> OK.
->> But, as Stephen commented on other mail, you should use proper DT helper function.
-> okay
->>>>>>>> Second,
->>>>>>>> gpio_usbvid_set_initial_state() dertermine both "USB-HOST" and "USB" cable state at same time
->>>>>>>> in 'case ID_DETCT' according to 'gpio_usbvid->id_gpio'. But, I think that other extcon devices
->>>>>>>> would not control both "USB-HOST" and "USB" cable state at same time.
->>>>>>>>
->>>>>>>> Other extcon devices would support either "USB-HOST" or "USB" cable.
->>>>>>> The driver has 2 configurations.
->>>>>>> 1) supports implementations with both VBUS and ID pin are routed via gpio's for swicthing roles(compatible  gpio-usb-vid).
->>>>>> As you explained about case 1, it is only used on dra7x SoC.
->>>>> No gpio-usb-id is used in dra7xx. dra7xx has got only ID pin routed via gpio.
->>>>>> Other SoC could not wish to control both "USB-HOST" and "USB" cable at same time.
->>> I could'nt actually parse this. You meant since the id_irq_handler handles both USB and USB-HOST cable
->>> its not proper?
->> It's not proper in general case. The generic driver must guarantee all of extcon device using gpio.
->> As far as I know, the generic driver cannot direclty control gpio pin and get value from gpio pin.
->> Almost device driver including in kernel/drivers control gpio pin on specific device driver
->> instead of generic driver.
-> But without reading the gpio value how can we set the cable states? for this driver the assumption is the dedicated gpio
-> is always DIR_IN and in the driver we just read the value.
->>>> I need your answer about above my opinion for other SoC.
->>> So how about this, I have removed the dra7x specific stuffs (gpio-usb-id)
->>>
->>> static void gpio_usbvid_set_initial_state(struct gpio_usbvid *gpio_usbvid)
->>> {
->>>          int id_current, vbus_current;
->>>
->>>      id_current = gpio_get_value_cansleep(gpio_usbvid->id_gpio);
->>>      if (!!id_current == ID_FLOAT)
->>>          extcon_set_cable_state(&gpio_usbvid->edev, "USB-HOST", false);
->>>      else
->>>          extcon_set_cable_state(&gpio_usbvid->edev, "USB-HOST", true);
->>>
->>>      vbus_current = gpio_get_value_cansleep(gpio_usbvid->vbus_gpio);
->>>       if (!!vbus_current == VBUS_ON)
->>>          extcon_set_cable_state(&gpio_usbvid->edev, "USB", true);
->>>      else
->>>          extcon_set_cable_state(&gpio_usbvid->edev, "USB", false);
->>> }
->>>
->>> and the irq handlers like this
->>>
->>> static irqreturn_t id_irq_handler(int irq, void *data)
->>> {
->>>          struct gpio_usbvid *gpio_usbvid = (struct gpio_usbvid *)data;
->>>          int id_current;
->>>
->>>          id_current = gpio_get_value_cansleep(gpio_usbvid->id_gpio);
->>>          if (id_current == ID_GND)
->>>                  extcon_set_cable_state(&gpio_usbvid->edev, "USB-HOST", true);
->>>          else
->>>                  extcon_set_cable_state(&gpio_usbvid->edev, "USB-HOST", false);
->>>          return IRQ_HANDLED;
->>> }
->>>
->>> static irqreturn_t vbus_irq_handler(int irq, void *data)
->>> {
->>>          struct gpio_usbvid *gpio_usbvid = (struct gpio_usbvid *)data;
->>>          int vbus_current;
->>>
->>>          vbus_current = gpio_get_value_cansleep(gpio_usbvid->vbus_gpio);
->>>          if (vbus_current == VBUS_OFF)
->>>                  extcon_set_cable_state(&gpio_usbvid->edev, "USB", false);
->>>          else
->>>                  extcon_set_cable_state(&gpio_usbvid->edev, "USB", true);
->>>
->>>          return IRQ_HANDLED;
->>> }
->> I know your intention dividing interrupt handler for each cable.
->> But I don't think this driver must guarantee all of extcon device using gpio.
->>
->> For example,
->> below three SoC wish to detect USB/USB-HOST cable with each different methods.
->>
->> "SoC A" wish to detect USB/USB-HOST cable through only one gpio pin.
-> 
-> You mean to say that both USB ID pin and VBUS are connected to same gpio?
-> If so that is a really bad h/w design and it will not fly.
-> Or, you meant that only USB ID pin is connected to single gpio and it controls the state of the USB/USB-HOST cables?
-> If so thats what exactly the v3 driver did with compatible gpio-usb-id.
+please see the current issues I found on panda running 
+3.10.1.0-1-linaro-omap
 
-My original question intention,
-I'd like you to answer that this driver can support all case of "SoC A"/"SoC B"/"SoC C" without othe implementation?
+https://dl.dropboxusercontent.com/u/21820416/panda.syslog.gz
+https://dl.dropboxusercontent.com/u/21820416/panda-dmesg
 
-> 
->> "SoC B" wish to detect USB/USB-HOST cable through ADC value instead of gpio pin.
-> 
-> Via ADC this driver should never be used , it should be extcon-adc-usbvid driver and not extcon-gpio-usbvid driver.
+System is generally very unstable.
 
-No, we cannot implement many generic extcon device driver whenever this is the case.
+RCU stall sent in different thread
 
->> "SoC C" wish to detect USB/USB-HOST cable through two gpio pin because USB connected on gpio an USB-HOST connected on another.
-> 
-> Whatever modifications above should meet this need  in combination with named gpios (id_gpio and vbus_gpio in dt)as stephen pointed.
-> But still i feel the above modification would even support Soc A provided the code registered for the notifier could handle it properly.
-
-I'd like you to answer that this driver can support all case of "SoC A"/"SoC B"/"SoC C"?
-If we should implement extcon device driver according each case,
-Could you tell me that this driver is generic? I think NO.
-
->>
->> In addition,
->> if "SoC A/C" wish to write some data to own specific registers for proper opeating,
->> Could we write some data to register on generic driver?
-> 
-> Yes definitely, those register configuration should not be part of this driver and it should be done in the notifier handler.
-
-No. there are many extcon consumer driver. We cannot order the sequence of notification reception among all of extcon consumer driver.
-Only, extcon consumer driver get the changed state of cable and can never set cable H/W setting in extcon consumer driver.
-Certainly, we have to set cabe H/W setting in extcon producer driver.
-
->>
->> Finally,
->> "SoC D" wish to detect USB/USB-HOST/JIG cable through two gpio pin
-> Correct me If I am wrong, USB JIG is not a standard cable. so for supporting that anyways you need to have
-> a different driver.
-
-No, we cannot guarantee that some cable would be connected to SoC.
-If this dirver is generic, it have to certainly support above all case in this driver.
-
->> - one gpio may detect either USB or USB-HOST and another may detect JIG cable
-> I assume u meant the USB ID pin is connected to one gpio and based on it value USB/USB-HOST  is detected.
->> or one gpio may detect either USb or JIG and another may detect USB-HOST cable.
->  As I mentioned earlier these are gpios configured as input and if you try to drive with 2 sources (USB and JIG or USB and USB-HOST etc)
-> then its a potentially bad design . If at all we need to identify all 3 then there should be 3 dedicated gpios.
-> 
->> That way, there are many cases we cannot guarantee all of extcon devices.
->>
->> I think this driver could support dra7x series SoC but as I mentioned,
->> this driver may not guarantee all of cases.
-> I am sorry, I feel it supports all standard cases except for something like a JIG cable which is not standard.
-
-I've never seen spec documentation that USB/USB-HOST cable have to be only connected to SoC.
-As I mentioned above, there are many cases we cannot think about various extcon devices.
-
->>
->>> [snip]
->>>>>> I have some confusion. I need additional your explanation.
->>>>>> Could this driver register only one interrupt handler either id_irq_handler() or vbus_irq_handler()?
->>>>> If compatible == ID_DETECT, only one handler --> id_irq_handler() and it will handle both USB and USB-HOST
->>>>>> or
->>>>>> Could this driver register two interrupt handler both id_irq_handler() or vbus_irq_handler()?
->>>>> If compatible == VBUS_ID_DETECT, 2 handlers --> id_irq_handler() will handle USB-HOST and vbus_irq_handler will handle USB.
->>>> As you mentioned, we cannot only control either USB or USB-HOST cable on this extcon driver.
->>>> This extcon driver is only suitable dra7x SoC.
->>> Do you still feel its dra7x specific if i modify it as above?
->> I commented above about your modification.
->>
->>>> Because id_irq_handler() control both "USB-HOST" and "USB" cable at same time,
->>>> you need this setting order between "USB-HOST" and "USB" cable.
->>>>> yes
->>>> I think that the setting order between cables isn't general. It is specific method for dra7x SoC.
->>> So if i remove that part then?
->> The setting order should be removed in generic driver.
-> Yes I agree and should be done by the subscriber to the notifier.
-
-OK.
-
->>
->>>>>> Did you think that SoC should always connect either "USB-HOST" cable or "USB" cable?
->>>>> No,  even if a physical cable is not connected it should  default to either USB-HOST or USB
->>>> It isn't general.
->>>>
->>>> If physical cable isn't connected to extcon device, the state both USB-HOST and USB cable
->>>> should certainly be zero. Because The extcon consumer driver could set proper operation
->>>> according to cable state.
->>> okay
->>>>>> I don't know this case except for dra7x SoC. So, I think it has dependency on specific SoC.
->>>> I need your answer about above my opinion.
->>> Hope i could answer you :-)
->>>>>> and can't agree as generic extcon gpio driver.
->> Thanks,
->> Chanwoo Choi
+Chris
 
 
-Thanks,
-Chanwoo Choi
+-------- Original Message --------
+Subject: 	Re: current panda omap kernel stacks
+Date: 	Tue, 27 Aug 2013 21:11:12 +0200
+From: 	Christian Hoffmann <chrmhoffmann@gmail.com>
+To: 	linaro-kernel@lists.linaro.org
+
+
+
+Forgot to attach syslog here:
+https://dl.dropboxusercontent.com/u/21820416/panda.syslog.gz
+
+
+On Tue, Aug 27, 2013 at 9:09 PM, Christian Hoffmann
+<chrmhoffmann@gmail.com <mailto:chrmhoffmann@gmail.com>> wrote:
+
+     Sorry to reply to myself, but after a while the panda doesn't reply
+     any more over network and the syslog has lots of entries like this one:
+
+     Aug 27 13:00:38 panda kernel: [87136.303894] [<c044c1e9>]
+     (__schedule_bug+0x39/0x50) from [<c045219f>] (__schedule+0x51f/0x5c4)
+     Aug 27 13:00:38 panda kernel: [87136.303924] [<c045219f>]
+     (__schedule+0x51f/0x5c4) from [<c045250b>]
+     (schedule_preempt_disabled+0xf/0x10)
+     Aug 27 13:00:38 panda kernel: [87136.303924] [<c045250b>]
+     (schedule_preempt_disabled+0xf/0x10) from [<c0058bbb>]
+     (cpu_startup_entry+0x12f/0x164)
+     Aug 27 13:00:38 panda kernel: [87136.303955] [<c0058bbb>]
+     (cpu_startup_entry+0x12f/0x164) from [<80448ea9>] (0x80448ea9)
+     Aug 27 13:00:38 panda kernel: [87136.307403] BUG: scheduling while
+     atomic: swapper/1/0/0xffff0000
+     Aug 27 13:00:38 panda kernel: [87136.313781] Modules linked in:
+     snd_soc_omap_abe_twl6040 snd_soc_omap_mcpdm snd_soc_twl6040
+     snd_soc_omap snd_soc_omap_mcbsp snd_soc_core snd_compress regmap_spi
+     snd_pcm snd_page_alloc snd_timer snd soundcore gator
+     Aug 27 13:00:38 panda kernel: [87136.313842] CPU: 1 PID: 0 Comm:
+     swapper/1 Tainted: G        W    3.10.1.0-1-linaro-omap
+     #1ubuntu1~ci+130723003933-Ubuntu
+     Aug 27 13:00:38 panda kernel: [87136.313842] [<c001175d>]
+     (unwind_backtrace+0x1/0x9c) from [<c000f625>] (show_stack+0x11/0x14)
+     Aug 27 13:00:38 panda kernel: [87136.313873] [<c000f625>]
+     (show_stack+0x11/0x14) from [<c044c1e9>] (__schedule_bug+0x39/0x50)
+     Aug 27 13:00:38 panda kernel: [87136.313903] [<c044c1e9>]
+     (__schedule_bug+0x39/0x50) from [<c045219f>] (__schedule+0x51f/0x5c4)
+     Aug 27 13:00:38 panda kernel: [87136.313934] [<c045219f>]
+     (__schedule+0x51f/0x5c4) from [<c045250b>]
+     (schedule_preempt_disabled+0xf/0x10)
+     Aug 27 13:00:38 panda kernel: [87136.313934] [<c045250b>]
+     (schedule_preempt_disabled+0xf/0x10) from [<c0058bbb>]
+     (cpu_startup_entry+0x12f/0x164)
+     Aug 27 13:00:38 panda kernel: [87136.313964] [<c0058bbb>]
+     (cpu_startup_entry+0x12f/0x164) from [<80448ea9>] (0x80448ea9)
+     Aug 27 13:00:38 panda kernel: [87136.317382] BUG: scheduling while
+     atomic: swapper/1/0/0xffff0000
+     Aug 27 13:00:38 panda kernel: [87136.323760] Modules linked in:
+     snd_soc_omap_abe_twl6040 snd_soc_omap_mcpdm snd_soc_twl6040
+     snd_soc_omap snd_soc_omap_mcbsp snd_soc_core snd_compress regmap_spi
+     snd_pcm snd_page_alloc snd_timer snd soundcore gator
+     Aug 27 13:00:38 panda kernel: [87136.323822] CPU: 1 PID: 0 Comm:
+     swapper/1 Tainted: G        W    3.10.1.0-1-linaro-omap
+     #1ubuntu1~ci+130723003933-Ubuntu
+     Aug 27 13:00:38 panda kernel: [87136.323822] [<c001175d>]
+     (unwind_backtrace+0x1/0x9c) from [<c000f625>] (show_stack+0x11/0x14)
+     Aug 27 13:00:38 panda kernel: [87136.323822] [<c000f625>]
+     (show_stack+0x11/0x14) from [<c044c1e9>] (__schedule_bug+0x39/0x50)
+     Aug 27 13:00:38 panda kernel: [87136.323883] [<c044c1e9>]
+     (__schedule_bug+0x39/0x50) from [<c045219f>] (__schedule+0x51f/0x5c4)
+     Aug 27 13:00:38 panda kernel: [87136.323913] [<c045219f>]
+     (__schedule+0x51f/0x5c4) from [<c045250b>]
+     (schedule_preempt_disabled+0xf/0x10)
+     Aug 27 13:00:38 panda kernel: [87136.323913] [<c045250b>]
+     (schedule_preempt_disabled+0xf/0x10) from [<c0058bbb>]
+     (cpu_startup_entry+0x12f/0x164)
+     Aug 27 13:00:38 panda kernel: [87136.323944] [<c0058bbb>]
+     (cpu_startup_entry+0x12f/0x164) from [<80448ea9>] (0x80448ea9)
+     Aug 27 13:00:38 panda kernel: [87136.327392] BUG: scheduling while
+     atomic: swapper/1/0/0xffff0000
+     Aug 27 13:00:38 panda kernel: [87136.333770] Modules linked in:
+     snd_soc_omap_abe_twl6040 snd_soc_omap_mcpdm snd_soc_twl6040
+     snd_soc_omap snd_soc_omap_mcbsp snd_soc_core snd_compress regmap_spi
+     snd_pcm snd_page_alloc snd_timer snd soundcore gator
+
+     Rgds,
+     Chris
+
+
+     On Tue, Aug 27, 2013 at 8:50 AM, Christian Hoffmann
+     <chrmhoffmann@gmail.com <mailto:chrmhoffmann@gmail.com>> wrote:
+
+         Hi,
+
+         running the current panda linaro kernel 3.10.1.0-1-linaro-omap
+         from linaro release 13.07, I run into a few kernel stacks.
+
+         Eg.:
+
+         [33222.473022] ------------[ cut here ]------------
+         [33222.473052] WARNING: at
+         /build/buildd/linux-linaro-omap-3.10.1-3.10.1.0/kernel/timer.c:1122
+         call_timer_fn+0x81/0xb0()
+         [33222.473083] timer: process_timeout+0x1/0xc preempt leak:
+         00000100 -> 00000000
+         [33222.473083] Modules linked in: snd_soc_omap_abe_twl6040
+         snd_soc_omap_mcpdm snd_soc_twl6040 snd_soc_omap
+         snd_soc_omap_mcbsp snd_soc_core snd_compress regmap_spi snd_pcm
+         snd_page_alloc snd_timer snd soundcore gator
+         [33222.473114] CPU: 1 PID: 0 Comm: swapper/1 Not tainted
+         3.10.1.0-1-linaro-omap #1ubuntu1~ci+130723003933-Ubuntu
+         [33222.473114] [<c001175d>] (unwind_backtrace+0x1/0x9c) from
+         [<c000f625>] (show_stack+0x11/0x14)
+         [33222.473114] [<c000f625>] (show_stack+0x11/0x14) from
+         [<c002b8ad>] (warn_slowpath_common+0x39/0x54)
+         [33222.473236] [<c002b8ad>] (warn_slowpath_common+0x39/0x54)
+         from [<c002b933>] (warn_slowpath_fmt+0x23/0x2c)
+         [33222.473266] [<c002b933>] (warn_slowpath_fmt+0x23/0x2c) from
+         [<c00351e5>] (call_timer_fn+0x81/0xb0)
+         [33222.473266] [<c00351e5>] (call_timer_fn+0x81/0xb0) from
+         [<c0035cb9>] (run_timer_softirq+0x13d/0x1c8)
+         [33222.473297] [<c0035cb9>] (run_timer_softirq+0x13d/0x1c8) from
+         [<c003111f>] (__do_softirq+0xc3/0x1c0)
+         [33222.473327] [<c003111f>] (__do_softirq+0xc3/0x1c0) from
+         [<c0031447>] (irq_exit+0x63/0x88)
+         [33222.473327] [<c0031447>] (irq_exit+0x63/0x88) from
+         [<c001079d>] (handle_IPI+0x59/0x158)
+         [33222.473358] [<c001079d>] (handle_IPI+0x59/0x158) from
+         [<c00084ff>] (gic_handle_irq+0x4b/0x50)
+         [33222.473358] [<c00084ff>] (gic_handle_irq+0x4b/0x50) from
+         [<c045315b>] (__irq_svc+0x3b/0x5c)
+         [33222.473388] Exception stack(0xed8cdf50 to 0xed8cdf98)
+         [33222.473388] df40:
+         00000002 00000000 00000000 00000001
+         [33222.473419] df60: edc7664c 00000002 c045c2e0 c0ff00b8
+         00000002 c06f189c edc76640 ed8cc000
+         [33222.473419] df80: 3b9ac9ff ed8cdf98 c0284b33 c0375b04
+         00000173 ffffffff
+         [33222.473449] [<c045315b>] (__irq_svc+0x3b/0x5c) from
+         [<c0375b04>] (cpuidle_enter_state_coupled+0x1dc/0x210)
+         [33222.473480] [<c0375b04>]
+         (cpuidle_enter_state_coupled+0x1dc/0x210) from [<c037436d>]
+         (cpuidle_idle_call+0xbd/0x158)
+         [33222.473480] [<c037436d>] (cpuidle_idle_call+0xbd/0x158) from
+         [<c000d4b1>] (arch_cpu_idle+0xd/0x28)
+         [33222.473480] [<c000d4b1>] (arch_cpu_idle+0xd/0x28) from
+         [<c0058ae9>] (cpu_startup_entry+0x5d/0x164)
+         [33222.473541] [<c0058ae9>] (cpu_startup_entry+0x5d/0x164) from
+         [<80448ea9>] (0x80448ea9)
+         [33222.473541] ---[ end trace 0f39b8196adfb0ec ]---
+
+
+         Full dmesg can be found here:
+         https://dl.dropboxusercontent.com/u/21820416/panda-dmesg
+
+         Is this a known issue?
+
+         Rgds,
+         Chris
+
+
+
+
+
