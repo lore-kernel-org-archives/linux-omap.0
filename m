@@ -1,87 +1,110 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [RFC 00/22] OMAPDSS: DT support
-Date: Fri, 30 Aug 2013 12:47:52 +0300
-Message-ID: <52206A48.8040401@ti.com>
-References: <1376037547-10859-1-git-send-email-tomi.valkeinen@ti.com> <20130813075449.GS7656@atomide.com>
+From: Archit Taneja <archit@ti.com>
+Subject: Re: [PATCH v3 3/6] v4l: ti-vpe: Add VPE mem to mem driver
+Date: Fri, 30 Aug 2013 15:35:11 +0530
+Message-ID: <52206E57.4080300@ti.com>
+References: <1376996457-17275-1-git-send-email-archit@ti.com> <1377779572-22624-1-git-send-email-archit@ti.com> <1377779572-22624-4-git-send-email-archit@ti.com> <201308291528.21281.hverkuil@xs4all.nl> <5220400F.60705@ti.com> <522044AE.1080501@xs4all.nl>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="P6AOCXNVlxgIXSoL3PwQiUHh6Fg1XA0oU"
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:36024 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:36845 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753358Ab3H3Jr6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Aug 2013 05:47:58 -0400
-In-Reply-To: <20130813075449.GS7656@atomide.com>
+	with ESMTP id S1755062Ab3H3KGE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Aug 2013 06:06:04 -0400
+In-Reply-To: <522044AE.1080501@xs4all.nl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, Archit Taneja <archit@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Nishanth Menon <nm@ti.com>, Felipe Balbi <balbi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com, tomi.valkeinen@ti.com, linux-omap@vger.kernel.org
 
---P6AOCXNVlxgIXSoL3PwQiUHh6Fg1XA0oU
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Hi,
 
-On 13/08/13 10:54, Tony Lindgren wrote:
-> * Tomi Valkeinen <tomi.valkeinen@ti.com> [130809 01:46]:
+On Friday 30 August 2013 12:37 PM, Hans Verkuil wrote:
+> On 08/30/2013 08:47 AM, Archit Taneja wrote:
+>> On Thursday 29 August 2013 06:58 PM, Hans Verkuil wrote:
+>>> On Thu 29 August 2013 14:32:49 Archit Taneja wrote:
+>>>> VPE is a block which consists of a single memory to memory path which can
+>>>> perform chrominance up/down sampling, de-interlacing, scaling, and color space
+>>>> conversion of raster or tiled YUV420 coplanar, YUV422 coplanar or YUV422
+>>>> interleaved video formats.
+>>>>
+>>>> We create a mem2mem driver based primarily on the mem2mem-testdev example.
+>>>> The de-interlacer, scaler and color space converter are all bypassed for now
+>>>> to keep the driver simple. Chroma up/down sampler blocks are implemented, so
+>>>> conversion beteen different YUV formats is possible.
+>>>>
+>>>> Each mem2mem context allocates a buffer for VPE MMR values which it will use
+>>>> when it gets access to the VPE HW via the mem2mem queue, it also allocates
+>>>> a VPDMA descriptor list to which configuration and data descriptors are added.
+>>>>
+>>>> Based on the information received via v4l2 ioctls for the source and
+>>>> destination queues, the driver configures the values for the MMRs, and stores
+>>>> them in the buffer. There are also some VPDMA parameters like frame start and
+>>>> line mode which needs to be configured, these are configured by direct register
+>>>> writes via the VPDMA helper functions.
+>>>>
+>>>> The driver's device_run() mem2mem op will add each descriptor based on how the
+>>>> source and destination queues are set up for the given ctx, once the list is
+>>>> prepared, it's submitted to VPDMA, these descriptors when parsed by VPDMA will
+>>>> upload MMR registers, start DMA of video buffers on the various input and output
+>>>> clients/ports.
+>>>>
+<snip>
+
 >>
->> So as is evident, I have things in my mind that should be improved. Ma=
-ybe
->> the most important question for short term future is:
+>>>> +}
+>>>> +
+>>>> +#define V4L2_CID_TRANS_NUM_BUFS		(V4L2_CID_USER_BASE + 0x1000)
+>>>
+>>> Reserve a control range for this driver in include/uapi/linux/v4l2-controls.h.
+>>> Similar to the ones already defined there.
+>>>
+>>> That will ensure that controls for this driver have unique IDs.
 >>
->> Can we add DSS DT bindings for OMAP4 as unstable bindings? It would gi=
-ve us
->> some proper testing of the related code, and would also allow us to re=
-move
->> the related hacks (which don't even work quite right). However, I have=
- no
->> idea yet when the unstable DSS bindings would turn stable.
+>> Thanks, I took this from the mem2mem-testdev driver, a test driver
+>> doesn't need to worry about this I suppose.
 >>
->> If we shouldn't add the bindings as unstable, when should the bindings=
- be
->> added? Wait until CDF is in the mainline, and use that?
->=20
-> I don't think we should add any temporary bindings as it's going to be
-> a pain to support those in the long run. I suggest you initially just
-> stick to established bindings for the basic hardware IO address and
-> interrupts etc, then those should still be valid with the generic panel=
+>> I had a query regarding this. I am planning to add a capture driver in
+>> the future for a similar IP which can share some of the control IDs with
+>> VPE. Is it possible for 2 different drivers to share the IDs?
+>
+> Certainly. There are three levels of controls:
+>
+> 1) Standard controls: can be used by any driver and are documented in the spec.
+> 2) IP-specific controls: controls specific for a commonly used IP.
+>     These can be used by any driver containing that IP and are documented as well
+>     in the spec. Good examples are the MFC and CX2341x MPEG controls.
+> 3) Driver-specific controls: these are specific to a driver and do not have to be
+>     documented in the spec, only in the header/source specifying them. A range
+>     of controls needs to be assigned to such a driver in v4l2-dv-controls.h.
+>
+> In your case it looks like the controls would fall into category 2.
 
-> bindings later on.
+For 2), by commonly used IP, do you mean a commonly used class of IPs 
+like MPEG decoder, FM and camera? Or do you mean a specific vendor IP 
+like say a camera subsystem found on different SoCs.
 
-I don't understand what does it matter if the bindings are temporary, or
-basic established bindings. In both cases the DT data needs to be
-changed when the CDF is taken into use.
+I think the controls in my case are very specific to the VPE and VIP 
+IPs. These 2 IPs have some components like scaler, color space 
+converter, chrominance up/downsampler in common. The controls will be 
+specific to how these components behave. For example, a control can tell 
+what value of frequency of Luminance peaking the scaler needs to 
+perform. I don't think all scalers would provide Luma peaking. This 
+holds for other controls too.
 
-Well, one difference is that the temporary bindings would give us
-working display, but having only basic bindings would not. So I don't
-see any reason to add only the basic bindings. Or how would it work?
+So if I understood your explanation correctly, I think 3) might make 
+more sense.
 
- Tomi
+>
+>> Also, I noticed in the header that most drivers reserve space for 16
+>> IDs. The current driver just has one, but there will be more custom ones
+>> in the future. Is it fine if I reserve 16 for this driver too?
+>
+> Sure, that's no problem. Make sure you reserve enough space for future
+> expansion, i.e. IDs are cheap, so no need to be conservative when defining
+> the range.
 
+Thanks for the clarification.
 
+Archit
 
---P6AOCXNVlxgIXSoL3PwQiUHh6Fg1XA0oU
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJSIGpIAAoJEPo9qoy8lh716HoP/jOaxTPZzct/XmOpFiHK+Jub
-0Z3c82vlpTB3Cu/wBTGml15Cpry7i0qiU2wnbJMC16Fj4+ft3Ojiu7n8eA/fPuz5
-43T9BqN4oka0+981hbrcSO7vQndgK6tPsfxqZ6cBwWeHNdCvjnJip5EAFtZlwL5Z
-+cjJ9C6NXoHRaN+bNiOzN7t9nNmw/oIraKuGZNCH2xdbbO7jgVtCGHmgeJfc7Pbp
-aH109D/98xO3Fs9DVWtVFHQm6dSeCVdxTf63kUyWJuMLhfjuaS5B2CnxbD1ClIcL
-QVMwTJrb9J5mZwfAI4UnrLGZ1Mx81HBImzwErg+wLtLgH/HsnVZmaU5JHc3cTwIL
-vV6dIqPFLAg/Inqy4LZ2vSgcnZijWSLRcuWPMNGIOkvwtgiNiqZYBhWUC0MszwJF
-d5DUexYebq2BjKmUW5TA8wc1CZypaqQK89ml7k8jXfI632dqygzQuqkwXjQ+wMqm
-fkKWUd2rbomLgDA/cow1YOdbZc93mknzajvOHRNZ30r8NiaTt6A6on+wB7Td1vj3
-k3WIWDRW6nPnzOyCQ3NZrttvRCIQmuvgPNI9rvN1u5aWVg5PL3rlpVqolfvbfpyH
-VdnkoLiV0cinQW1ykhbKpKoJaoYvSLebhHR9wxc1jmX7RqY1SSOQGZ5dp9Wx6Vhx
-C7ZIYQGTzqhMMRO12o38
-=V+UN
------END PGP SIGNATURE-----
-
---P6AOCXNVlxgIXSoL3PwQiUHh6Fg1XA0oU--
