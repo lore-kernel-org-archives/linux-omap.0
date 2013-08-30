@@ -1,125 +1,177 @@
-From: Christian Hoffmann <chrmhoffmann@gmail.com>
-Subject: omap: panda rcu stall on 3.10.1
-Date: Fri, 30 Aug 2013 08:27:32 +0200
-Message-ID: <52203B54.70902@gmail.com>
-References: <521DA180.9010306@gmail.com>
+From: Archit Taneja <archit@ti.com>
+Subject: Re: [PATCH v3 3/6] v4l: ti-vpe: Add VPE mem to mem driver
+Date: Fri, 30 Aug 2013 12:17:43 +0530
+Message-ID: <5220400F.60705@ti.com>
+References: <1376996457-17275-1-git-send-email-archit@ti.com> <1377779572-22624-1-git-send-email-archit@ti.com> <1377779572-22624-4-git-send-email-archit@ti.com> <201308291528.21281.hverkuil@xs4all.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <521DA180.9010306@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: paulmck@linux.vnet.ibm.com
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:51596 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753340Ab3H3Gsi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 30 Aug 2013 02:48:38 -0400
+In-Reply-To: <201308291528.21281.hverkuil@xs4all.nl>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com, tomi.valkeinen@ti.com, linux-omap@vger.kernel.org
+
+On Thursday 29 August 2013 06:58 PM, Hans Verkuil wrote:
+> On Thu 29 August 2013 14:32:49 Archit Taneja wrote:
+>> VPE is a block which consists of a single memory to memory path which can
+>> perform chrominance up/down sampling, de-interlacing, scaling, and color space
+>> conversion of raster or tiled YUV420 coplanar, YUV422 coplanar or YUV422
+>> interleaved video formats.
+>>
+>> We create a mem2mem driver based primarily on the mem2mem-testdev example.
+>> The de-interlacer, scaler and color space converter are all bypassed for now
+>> to keep the driver simple. Chroma up/down sampler blocks are implemented, so
+>> conversion beteen different YUV formats is possible.
+>>
+>> Each mem2mem context allocates a buffer for VPE MMR values which it will use
+>> when it gets access to the VPE HW via the mem2mem queue, it also allocates
+>> a VPDMA descriptor list to which configuration and data descriptors are added.
+>>
+>> Based on the information received via v4l2 ioctls for the source and
+>> destination queues, the driver configures the values for the MMRs, and stores
+>> them in the buffer. There are also some VPDMA parameters like frame start and
+>> line mode which needs to be configured, these are configured by direct register
+>> writes via the VPDMA helper functions.
+>>
+>> The driver's device_run() mem2mem op will add each descriptor based on how the
+>> source and destination queues are set up for the given ctx, once the list is
+>> prepared, it's submitted to VPDMA, these descriptors when parsed by VPDMA will
+>> upload MMR registers, start DMA of video buffers on the various input and output
+>> clients/ports.
+>>
+>> When the list is parsed completely(and the DMAs on all the output ports done),
+>> an interrupt is generated which we use to notify that the source and destination
+>> buffers are done.
+>>
+>> The rest of the driver is quite similar to other mem2mem drivers, we use the
+>> multiplane v4l2 ioctls as the HW support coplanar formats.
+>>
+>> Signed-off-by: Archit Taneja <archit@ti.com>
+>
+> Thanks for the patch. Just a few small comments below...
+>
+>> ---
+>>   drivers/media/platform/Kconfig           |   16 +
+>>   drivers/media/platform/Makefile          |    2 +
+>>   drivers/media/platform/ti-vpe/Makefile   |    5 +
+>>   drivers/media/platform/ti-vpe/vpe.c      | 1740 ++++++++++++++++++++++++++++++
+>>   drivers/media/platform/ti-vpe/vpe_regs.h |  496 +++++++++
+>>   5 files changed, 2259 insertions(+)
+>>   create mode 100644 drivers/media/platform/ti-vpe/Makefile
+>>   create mode 100644 drivers/media/platform/ti-vpe/vpe.c
+>>   create mode 100644 drivers/media/platform/ti-vpe/vpe_regs.h
+>>
+>> diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
+>> new file mode 100644
+>> index 0000000..85b0880
+>> --- /dev/null
+>> +++ b/drivers/media/platform/ti-vpe/vpe.c
+>
+> <snip>
+>
+>> +static int vpe_enum_fmt(struct file *file, void *priv,
+>> +				struct v4l2_fmtdesc *f)
+>> +{
+>> +	if (V4L2_TYPE_IS_OUTPUT(f->type))
+>> +		return __enum_fmt(f, VPE_FMT_TYPE_OUTPUT);
+>> +	else
+>
+> The line above isn't necessary.
+
+Oh right, thanks for spotting that.
+
+>
+>> +		return __enum_fmt(f, VPE_FMT_TYPE_CAPTURE);
+>> +}
+>> +
+<snip>
+
+>> +
+>> +	pix->field = V4L2_FIELD_NONE;
+>> +
+>> +	v4l_bound_align_image(&pix->width, MIN_W, MAX_W, W_ALIGN,
+>> +			      &pix->height, MIN_H, MAX_H, H_ALIGN,
+>> +			      S_ALIGN);
+>> +
+>> +	pix->num_planes = fmt->coplanar ? 2 : 1;
+>> +	pix->pixelformat = fmt->fourcc;
+>> +	pix->colorspace = fmt->fourcc == V4L2_PIX_FMT_RGB24 ?
+>> +			V4L2_COLORSPACE_SRGB : V4L2_COLORSPACE_SMPTE170M;
+>
+> pix->priv should be set to NULL as well.
+
+I'll fix this.
+
+<snip>
+
+>> +}
+>> +
+>> +#define V4L2_CID_TRANS_NUM_BUFS		(V4L2_CID_USER_BASE + 0x1000)
+>
+> Reserve a control range for this driver in include/uapi/linux/v4l2-controls.h.
+> Similar to the ones already defined there.
+>
+> That will ensure that controls for this driver have unique IDs.
+
+Thanks, I took this from the mem2mem-testdev driver, a test driver 
+doesn't need to worry about this I suppose.
+
+I had a query regarding this. I am planning to add a capture driver in 
+the future for a similar IP which can share some of the control IDs with 
+VPE. Is it possible for 2 different drivers to share the IDs?
+
+Also, I noticed in the header that most drivers reserve space for 16 
+IDs. The current driver just has one, but there will be more custom ones 
+in the future. Is it fine if I reserve 16 for this driver too?
+
+<snip>
+
+>> +
+>> +static int queue_init(void *priv, struct vb2_queue *src_vq,
+>> +		      struct vb2_queue *dst_vq)
+>> +{
+>> +	struct vpe_ctx *ctx = priv;
+>> +	int ret;
+>> +
+>> +	memset(src_vq, 0, sizeof(*src_vq));
+>> +	src_vq->type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
+>> +	src_vq->io_modes = VB2_MMAP;
+>> +	src_vq->drv_priv = ctx;
+>> +	src_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
+>> +	src_vq->ops = &vpe_qops;
+>> +	src_vq->mem_ops = &vb2_dma_contig_memops;
+>> +	src_vq->timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+>
+> Shouldn't this be TIMESTAMP_COPY?
+
+Right, it should be, I'll fix it.
+
+>
+>> +
+>> +	ret = vb2_queue_init(src_vq);
+>> +	if (ret)
+>> +		return ret;
+>> +
+>> +	memset(dst_vq, 0, sizeof(*dst_vq));
+>> +	dst_vq->type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
+>> +	dst_vq->io_modes = VB2_MMAP;
+>> +	dst_vq->drv_priv = ctx;
+>> +	dst_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
+>> +	dst_vq->ops = &vpe_qops;
+>> +	dst_vq->mem_ops = &vb2_dma_contig_memops;
+>> +	dst_vq->timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+>
+> Ditto.
+>
+
+Thanks for the review.
+
+Archit
 
 
- > This also went to: linaro-kernel@lists.linaro.org
-
-Hi,
-
-current linaro kernel on 13.07 (3.10.1.0-1-linaro-omap) shows stack 
-below. System is generally quite unstable. Light usage (postfix+dovecot...)
-
-Full dmesg here:
-https://dl.dropboxusercontent.com/u/21820416/rcu.stall.panda
-
-Rgds,
-Chris
-
-[ 4538.880432] INFO: rcu_sched detected stalls on CPUs/tasks: { 1}
-(detected by 0, t=2103 jiffies, g=1649, c=1648, q=18)
-[ 4538.891723] Backtrace for cpu 0 (current):
-[ 4538.891723] CPU: 0 PID: 0 Comm: swapper/0 Not tainted
-3.10.1.0-1-linaro-omap #1ubuntu1~ci+130723003933-Ubuntu
-[ 4538.891754] [<c001175d>] (unwind_backtrace+0x1/0x9c) from
-[<c000f625>] (show_stack+0x11/0x14)
-[ 4538.891815] [<c000f625>] (show_stack+0x11/0x14) from [<c00106d5>]
-(smp_send_all_cpu_backtrace+0x49/0x98)
-[ 4538.891815] [<c00106d5>] (smp_send_all_cpu_backtrace+0x49/0x98) from
-[<c007c755>] (rcu_check_callbacks+0x439/0x4ac)
-[ 4538.891815] [<c007c755>] (rcu_check_callbacks+0x439/0x4ac) from
-[<c0036599>] (update_process_times+0x2d/0x4c)
-[ 4538.891876] [<c0036599>] (update_process_times+0x2d/0x4c) from
-[<c005fcfd>] (tick_sched_handle+0x35/0x40)
-[ 4538.891906] [<c005fcfd>] (tick_sched_handle+0x35/0x40) from
-[<c005feed>] (tick_sched_timer+0x31/0x54)
-[ 4538.891937] [<c005feed>] (tick_sched_timer+0x31/0x54) from
-[<c004532b>] (__run_hrtimer+0x5b/0x138)
-[ 4538.891937] [<c004532b>] (__run_hrtimer+0x5b/0x138) from [<c0045bcb>]
-(hrtimer_interrupt+0xdb/0x22c)
-[ 4538.891967] [<c0045bcb>] (hrtimer_interrupt+0xdb/0x22c) from
-[<c0010e13>] (twd_handler+0x1b/0x28)
-[ 4538.891998] [<c0010e13>] (twd_handler+0x1b/0x28) from [<c00783b9>]
-(handle_percpu_devid_irq+0x4d/0xac)
-[ 4538.891998] [<c00783b9>] (handle_percpu_devid_irq+0x4d/0xac) from
-[<c0075ead>] (generic_handle_irq+0x19/0x24)
-[ 4538.892028] [<c0075ead>] (generic_handle_irq+0x19/0x24) from
-[<c000d16d>] (handle_IRQ+0x29/0x68)
-[ 4538.892059] [<c000d16d>] (handle_IRQ+0x29/0x68) from [<c00084db>]
-(gic_handle_irq+0x27/0x50)
-[ 4538.892059] [<c00084db>] (gic_handle_irq+0x27/0x50) from [<c045315b>]
-(__irq_svc+0x3b/0x5c)
-[ 4538.892059] Exception stack(0xc06e3f68 to 0xc06e3fb0)
-[ 4538.892059] 3f60:                   00000000 00000000 00000000
-00000000 c06e2000 c075f130
-[ 4538.892120] 3f80: c06e2000 c075ea93 c075f130 c06ea594 c045c2e0
-c06e2000 c0fe5908 c06e3fb0
-[ 4538.892120] 3fa0: c007bab1 c0058b48 400f0133 ffffffff
-[ 4538.892120] [<c045315b>] (__irq_svc+0x3b/0x5c) from [<c0058b48>]
-(cpu_startup_entry+0xbc/0x164)
-[ 4538.892120] [<c0058b48>] (cpu_startup_entry+0xbc/0x164) from
-[<c06735f9>] (start_kernel+0x251/0x2ac)
-[ 4538.892120]
-[ 4538.892120] sending IPI to all other CPUs:
-[ 4538.892211] IPI backtrace for cpu 1
-[ 4538.892211]
-[ 4538.892242] CPU: 1 PID: 2064 Comm: clamd Not tainted
-3.10.1.0-1-linaro-omap #1ubuntu1~ci+130723003933-Ubuntu
-[ 4538.892242] task: edb09500 ti: ec91e000 task.ti: ec91e000
-[ 4538.892272] PC is at 0xb6e2f0d4
-[ 4538.892272] LR is at 0xb6eeec01
-[ 4538.892272] pc : [<b6e2f0d4>]    lr : [<b6eeec01>]    psr: 000f0130
-[ 4538.892272] sp : be8b472c  ip : 62323337  fp : 0000684a
-[ 4538.892303] r10: 0084d750  r9 : 00000200  r8 : e86d6a2f
-[ 4538.892303] r7 : 0a0a0a0a  r6 : 69393e32  r5 : 0080bf24  r4 : 0080bf28
-[ 4538.892333] r3 : 81010100  r2 : 63333438  r1 : 0000000a  r0 : 0080bf24
-[ 4538.892333] Flags: nzcv  IRQs on  FIQs on  Mode USER_32  ISA Thumb
-Segment user
-[ 4538.892333] Control: 50c5387d  Table: acbd404a  DAC: 55555555
-[ 4538.892364]
-[ 4538.892364] R8: 0xe86d69af:
-[ 4538.892364] 69ac  6a6f7254 412e6e61 746e6567 3939332d 00303934
-b1aa3270 25060000 47a83ca7
-[ 4538.892395] 69cc  e4ebc453 91ad979e 23363f8b fd49d9d0 773b48ba
-ad58f7d3 04c351eb 96e4414f
-[ 4538.892395] 69ec  7e1a3ac7 f39072a5 e362cedb b119b3e0 b595375e
-b2137762 b19f99a8 b10dc638
-[ 4538.892395] 6a0c  18060000 2e6e6957 6a6f7254 412e6e61 746e6567
-3939332d 00303534 b23ade28
-[ 4538.892395] 6a2c  18060000 2e6e6957 6a6f7254 462e6e61 61656b61
-37342d76 00373131 ac58376e
-[ 4538.892395] 6a4c  72542e6e 6e616a6f 3434382e 35313336 3e55c600
-412e6eb2 72617764 61472e65
-[ 4538.892517] 6a6c  6176656d 2d65636e 34393132 55b20037 1604b173
-2e6e6957 6a6f7254 462e6e61
-[ 4538.892547] 6a8c  61656b61 37342d76 00343131 b652e2c0 72542e6e
-6e616a6f 7075532e 756a7265
-[ 4538.892547] 6aac  322d6e61 fb003731 15b23a2b 2e6e6957 6a6f7254
-412e6e61 746e6567 3939332d
-[ 4538.892547] CPU: 1 PID: 2064 Comm: clamd Not tainted
-3.10.1.0-1-linaro-omap #1ubuntu1~ci+130723003933-Ubuntu
-[ 4538.892547] [<c001175d>] (unwind_backtrace+0x1/0x9c) from
-[<c000f625>] (show_stack+0x11/0x14)
-[ 4538.892639] [<c000f625>] (show_stack+0x11/0x14) from [<c0010819>]
-(handle_IPI+0xd5/0x158)
-[ 4538.892669] [<c0010819>] (handle_IPI+0xd5/0x158) from [<c00084ff>]
-(gic_handle_irq+0x4b/0x50)
-[ 4538.892669] [<c00084ff>] (gic_handle_irq+0x4b/0x50) from [<c0453369>]
-(__irq_usr+0x49/0x60)
-[ 4538.892700] Exception stack(0xec91ffb0 to 0xec91fff8)
-[ 4538.892700] ffa0:                                     0080bf24
-0000000a 63333438 81010100
-[ 4538.892730] ffc0: 0080bf28 0080bf24 69393e32 0a0a0a0a e86d6a2f
-00000200 0084d750 0000684a
-[ 4538.892730] ffe0: 62323337 be8b472c b6eeec01 b6e2f0d4 000f0130 ffffffff
