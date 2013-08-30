@@ -1,60 +1,57 @@
-From: Russ Dill <Russ.Dill@ti.com>
-Subject: Re: [PATCH v4 0/4] ARM: OMAP2+: AM33XX: VDD CORE OPP50 support
-Date: Thu, 29 Aug 2013 17:25:24 -0700
-Message-ID: <CA+Bv8XaQgOiSiScQW=CVxzXBuG0soafQotApjoVEZ0P9U3netg@mail.gmail.com>
-References: <1376432412-8509-1-git-send-email-Russ.Dill@ti.com>
-	<1376487480.3889.64.camel@coredoba.hi.pengutronix.de>
-	<CA+Bv8XYe0UzBkjqtO7bNkgNVTQtxiM7Hv93BOu8Lw1=pESOwLA@mail.gmail.com>
-	<87txiasqhk.fsf@linaro.org>
-	<CA+Bv8XZagHZ9mUuZB49hrH=901fXzoAcV8C0Fm3EfLa2eiBu0w@mail.gmail.com>
-	<87ppsw7cgq.fsf@linaro.org>
-	<CA+Bv8XbxV=BFjcSsUMX2pz9LeCkSwrjzZmj_=YbHGzyfbLXmaQ@mail.gmail.com>
-	<874na8xqfl.fsf@linaro.org>
-	<CANacCWzK1w9+XKEoUfS4ZB7QGxi_0JkVWBLs_wsaUjrzW2QB+A@mail.gmail.com>
-	<87hae8tc6e.fsf@linaro.org>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [GIT PULL] non-critical omap fixes for v3.12 merge window
+Date: Thu, 29 Aug 2013 19:11:42 -0700
+Message-ID: <20130830021142.GA2579@quad.lixom.net>
+References: <20130823054609.GW7656@atomide.com>
+ <20130828185045.GI8607@quad.lixom.net>
+ <20130829053705.GL7656@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qc0-f171.google.com ([209.85.216.171]:62564 "EHLO
-	mail-qc0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753276Ab3H3AZZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Aug 2013 20:25:25 -0400
-In-Reply-To: <87hae8tc6e.fsf@linaro.org>
+Received: from mail-pd0-f171.google.com ([209.85.192.171]:52394 "EHLO
+	mail-pd0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752609Ab3H3CMW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Aug 2013 22:12:22 -0400
+Received: by mail-pd0-f171.google.com with SMTP id g10so1214027pdj.30
+        for <linux-omap@vger.kernel.org>; Thu, 29 Aug 2013 19:12:21 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <20130829053705.GL7656@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@linaro.org>
-Cc: Vaibhav Bedia <vaibhav.bedia@gmail.com>, devicetree@vger.kernel.org, =?UTF-8?Q?Jan_L=C3=BCbbe?= <jlu@pengutronix.de>, Mark Brown <broonie@kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Kevin Hilman <khilman@linaro.org>, arm@kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Matus Ujhelyi <ujhelyi.m@gmail.com>
 
-On Thu, Aug 29, 2013 at 2:33 PM, Kevin Hilman <khilman@linaro.org> wrote:
-> Vaibhav Bedia <vaibhav.bedia@gmail.com> writes:
-[snip]
->> Morevoer, all the suggestions on how to keep the code in Linux working
->> around the complications due to the main memory not being accessible
->> will need to be replicated on the non-Linux s/w stacks and that's just
->> make it more difficult for them.
->
-> The linux code has to be very self-contained (in assembler or C), so I'm
-> not sure how it's difficult to replicated in any other OS (or non-OS.)
+On Wed, Aug 28, 2013 at 10:37:06PM -0700, Tony Lindgren wrote:
+> * Olof Johansson <olof@lixom.net> [130828 11:58]:
+> > On Thu, Aug 22, 2013 at 10:46:10PM -0700, Tony Lindgren wrote:
+> > 
+> > > Matus Ujhelyi (1):
+> > >       ARM: OMAP2+: am33xx-restart: trigger warm reset on omap2+ boards
+> > 
+> > Sigh. am33xx has been a bit of a pain this release cycle. Can you please
+> > start double-checking builds when you apply am33xx stuff? :(
+> > 
+> > This breaks with:
+> > 
+> >         multi_v7_defconfig:
+> > arch/arm/mach-omap2/am33xx-restart.c:27:26: error: 'AM33XX_RST_GLOBAL_WARM_SW_MASK' undeclared (first use in this function)
+> > 
+> >         omap2plus_defconfig:
+> > arch/arm/mach-omap2/am33xx-restart.c:27:26: error: 'AM33XX_RST_GLOBAL_WARM_SW_MASK' undeclared (first use in this function)
+> 
+> Oops sorry, I see what's going on. It builds fine against v3.11-rc6, but
+> has a dependency for v3.12 for the cleanup branch that removed all the
+> unused defines. 
+>  
+> > I've unmerged the branch until that's resolved.
+> 
+> Care to apply the following fix to the cleanup branch?
+> 
+> This way this fixes branch keeps working both against v3.11 and the
+> patches queued for v3.12.
 
-Let me pull on this thread a little bit. Would this involve defining a
-bunch of different sections for each arch so that I could do:
+Ah, yeah. Applied. And fixes branch pulled, since we'd otherwise just get most
+of them during 3.12-rc. :)
 
-void __sram_am33xx am33xx_some_pm_function(args....)
-{
-}
 
-static struct am33xx_foo_dyn *blargity __sramdata_am33xx = { ...};
-
-static const struct am33xx_foo_const *blarg __sramconst_am33xx = { ... };
-
-The sram push code could then push these sections into sram. There
-would then be a set of inlines or macros for converting addresses
-within these sections to SRAM addresses, maybe also inlines or macros
-for calling code that has been pushed into sram by wrapping the
-original function pointer. The macros or inlines that call SRAM code
-could perform the trampoline as well.
-
-Would there be much general interest in a scheme like this? Is there
-already I scheme like this I haven't noticed. Would such an explosion
-of sections be a problem if all platforms started using this for SRAM
-code?
+-Olof
