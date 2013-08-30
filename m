@@ -1,121 +1,45 @@
-From: Michael Trimarchi <michael@amarulasolutions.com>
-Subject: Re: omap4 ehci sporadic resume issue
-Date: Fri, 30 Aug 2013 19:59:41 +0200
-Message-ID: <CAOf5uwk9U8CHWywfopCt-H5BJmYyuXrwPvpwaqqP+5-3g_qYhQ@mail.gmail.com>
-References: <51CC2755.2030505@amarulasolutions.com>
-	<51CC454A.1040104@ti.com>
-	<20130627141704.GF12956@panicking>
-	<51CC5105.4070301@ti.com>
-	<20130627175623.GB21364@panicking>
-	<CAB=otbQXVqFKOTtgvif=FZnWgDpbovAB6naPKTrsEHUJb21xTw@mail.gmail.com>
-	<20130627192413.GA14115@panicking>
-	<CAB=otbT-BcJg5tNZ=7jd1jvoK8N1Hd_skScuxczaeP=tagdcSw@mail.gmail.com>
-	<20130628113314.GA25536@panicking>
-	<51CD7783.8030907@ti.com>
-	<20130628164751.GA1281@panicking>
-	<51D2E6DA.6030000@ti.com>
-	<51D2E88A.7050202@amarulasolutions.com>
-	<51D2EBBB.8000504@ti.com>
-	<51D5380B.3060401@amarulasolutions.com>
+From: Vaibhav Bedia <vaibhav.bedia@gmail.com>
+Subject: Re: [PATCH v2 01/13] ARM: OMAP2+: CM: reintroduce SW_SLEEP for OMAP4
+Date: Fri, 30 Aug 2013 14:04:23 -0400
+Message-ID: <CANacCWxziz5rcvsuhCDdWFb5eC=UCg8FHxO6xbPVw2rVO3gpXQ@mail.gmail.com>
+References: <cover.1375443858.git.afzal@ti.com>
+	<cfcae1c52efc51786878c60b75cc3c182bcd50a5.1375443858.git.afzal@ti.com>
+	<5214688C.9030801@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f41.google.com ([74.125.82.41]:56046 "EHLO
-	mail-wg0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755387Ab3H3R7m (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Aug 2013 13:59:42 -0400
-Received: by mail-wg0-f41.google.com with SMTP id b12so692820wgh.0
-        for <linux-omap@vger.kernel.org>; Fri, 30 Aug 2013 10:59:41 -0700 (PDT)
-In-Reply-To: <51D5380B.3060401@amarulasolutions.com>
+Received: from mail-lb0-f182.google.com ([209.85.217.182]:57310 "EHLO
+	mail-lb0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755387Ab3H3SEZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Aug 2013 14:04:25 -0400
+Received: by mail-lb0-f182.google.com with SMTP id c11so1492573lbj.13
+        for <linux-omap@vger.kernel.org>; Fri, 30 Aug 2013 11:04:24 -0700 (PDT)
+In-Reply-To: <5214688C.9030801@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: Ruslan Bilovol <ruslan.bilovol@ti.com>, USB list <linux-usb@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: Afzal Mohammed <afzal@ti.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, benoit.cousson@gmail.com, Vaibhav Bedia <vaibhav.bedia@ti.com>, Benoit Cousson <benoit.cousson@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
 
-Hi Roger
-
-On Thu, Jul 4, 2013 at 10:53 AM, Michael Trimarchi
-<michael@amarulasolutions.com> wrote:
-> Hi
+On Wed, Aug 21, 2013 at 3:13 AM, Rajendra Nayak <rnayak@ti.com> wrote:
+[...]
+>> +/**
+>> + * omap4_cminst_clkdm_force_sleep - try to put a clockdomain to idle
+>> + * @part: PRCM partition ID that the clockdomain registers exist in
+>> + * @inst: CM instance register offset (*_INST macro)
+>> + * @cdoffs: Clockdomain register offset (*_CDOFFS macro)
+>> + *
+>> + * Put a clockdomain referred to by (@part, @inst, @cdoffs) to idle,
+>> + * forcing it to sleep.  No return value.
+>> + */
+>> +void omap4_cminst_clkdm_force_sleep(u8 part, s16 inst, u16 cdoffs)
+>> +{
+>> +     _clktrctrl_write(OMAP34XX_CLKSTCTRL_FORCE_SLEEP, part, inst, cdoffs);
 >
-> On 07/02/2013 05:03 PM, Roger Quadros wrote:
->>
->> On 07/02/2013 05:49 PM, Michael Trimarchi wrote:
->>> Hi Roger
->>>
->>> On 07/02/2013 04:42 PM, Roger Quadros wrote:
->>>> On 06/28/2013 07:47 PM, Michael Trimarchi wrote:
->>>>> Hi
->>>>>
->>
-
-I'm working on PM consumption of other subsystem because it's a very
-complex device.
-Right now the pm consumption is sleep mode is 6mA just for (off mode disabled)
-
-omap4 + LPDDR2 and TWL6032
-
-I don't exactly know if they have updated the last bootloader but I think so.
-
-I have tried to work on STP signal and re-enable it just before resume
-but nothing change
-
-Anyway my idea is the problem is releated on 18clk counter and an
-invalid state of the
-hw. I will try to implement save & restore register by hand instead
-using the sar.
-
-Michael
-
-
->>>>>>
->>>>>> When you said earlier that the problem doesn't happen when one of the ULPIs is used
->>>>>> did you try both of them individually. e.g. case 1: port 1 only enabled,
->>>>>> case 2: port 2 only enabled.
->>>>>>
->>>>>> Did it work in both the cases?
->>>>>
->>>>> Yes, so I don't think could be a problem of ulpi pins and why this happen
->>>>> on both at the same time? Seems more connected to somenthing else.
->>>>>
->>>>
->>>> Right. Seems to be related to two things. OFF Mode and 2 ports being used simultaneously.
->>>>
->>>> I'm not sure how to go about fixing this. How important is OFF Mode for your application.
->>>> Can you keep it always disabled?
->>>>
->>
->>
->>>
->>> Right now I delivery without off mode. I will try to fix in long run the usb and I think that it could be a good platform to test omap4 mainline.
->>>
->>
->> Yes, our aim is to get it working with mainline as well.
->>
->>> Last question:
->>> If one domain is in RET mode and not OFF mode what happen during SAR restore in OFF mode?
->>>
->>
->> SAR restore will only happen when the Device enters OFF mode.
->>
->> Device OFF mode can only be reached when all voltage domains are switched OFF and that would depend
->> if all power domains entered OFF or not. Just a simplistic explanation. You can refer to chapter
->> "3.9.3 Device OFF State Management" in the TRM.
->
-> What happen if we ask to go in off mode for all domains but one doesn't go in off mode so the device
-> will not go in off mode and the sar will not be used? How can work the restore?
->
->>
->
-> I have added a check of CM_RESTORE_ST. This register need to be clear before
-> going in OFF mode and then show if the status of phase1 2a and 2b is completed.
-> So before proceed with system resume and after resetting OFF_MODE bit I have tried to wait on this register,
-> but without success.
->
-> Michael
->
->> cheers,
->> -roger
->>
+> I guess this won't work on omap4/5 where some clockdomains do not support
+> SW_SLEEP and only support HW_AUTO. We might need to have different clkdm
+> operations for the different omap4 variants.
 >
 >
+
+I am probably missing something here but doesn't omap4_clkdm_clk_disable() from
+where this gets invoked have the appropriate flags in place already?
