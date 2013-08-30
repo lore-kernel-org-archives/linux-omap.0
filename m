@@ -1,70 +1,78 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [PATCH v4 0/4] ARM: OMAP2+: AM33XX: VDD CORE OPP50 support
-Date: Fri, 30 Aug 2013 09:06:50 -0700
-Message-ID: <87eh9bqi1x.fsf@linaro.org>
-References: <1376432412-8509-1-git-send-email-Russ.Dill@ti.com>
-	<1376487480.3889.64.camel@coredoba.hi.pengutronix.de>
-	<CA+Bv8XYe0UzBkjqtO7bNkgNVTQtxiM7Hv93BOu8Lw1=pESOwLA@mail.gmail.com>
-	<87txiasqhk.fsf@linaro.org>
-	<CA+Bv8XZagHZ9mUuZB49hrH=901fXzoAcV8C0Fm3EfLa2eiBu0w@mail.gmail.com>
-	<87ppsw7cgq.fsf@linaro.org>
-	<CA+Bv8XbxV=BFjcSsUMX2pz9LeCkSwrjzZmj_=YbHGzyfbLXmaQ@mail.gmail.com>
-	<874na8xqfl.fsf@linaro.org>
-	<CANacCWzK1w9+XKEoUfS4ZB7QGxi_0JkVWBLs_wsaUjrzW2QB+A@mail.gmail.com>
-	<87hae8tc6e.fsf@linaro.org>
-	<CA+Bv8XaQgOiSiScQW=CVxzXBuG0soafQotApjoVEZ0P9U3netg@mail.gmail.com>
+From: Vaibhav Bedia <vaibhav.bedia@gmail.com>
+Subject: Re: [PATCHv3 8/9] ARM: OMAP2+: AM33XX: Basic suspend resume support
+Date: Fri, 30 Aug 2013 13:29:13 -0400
+Message-ID: <CANacCWzRcyU1wA07X8Q4bCfUOQe-gXSSM0jfMw6uyLiab1r9SQ@mail.gmail.com>
+References: <1375811376-49985-1-git-send-email-d-gerlach@ti.com>
+	<1375811376-49985-9-git-send-email-d-gerlach@ti.com>
+	<CA+Bv8XbK+=pvG+bbvfCtS2Rtg-YoAhuUbWjSro9m4xWjw=Cr8A@mail.gmail.com>
+	<52038E88.2050604@ti.com>
+	<5203B336.90102@ti.com>
+	<5203C211.7040207@ti.com>
+	<87iozfga1t.fsf@kernel.org>
+	<52040E67.4050402@ti.com>
+	<87pptndbtj.fsf@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pb0-f45.google.com ([209.85.160.45]:63153 "EHLO
-	mail-pb0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756309Ab3H3QGy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Aug 2013 12:06:54 -0400
-Received: by mail-pb0-f45.google.com with SMTP id mc17so2052264pbc.4
-        for <linux-omap@vger.kernel.org>; Fri, 30 Aug 2013 09:06:53 -0700 (PDT)
-In-Reply-To: <CA+Bv8XaQgOiSiScQW=CVxzXBuG0soafQotApjoVEZ0P9U3netg@mail.gmail.com>
-	(Russ Dill's message of "Thu, 29 Aug 2013 17:25:24 -0700")
+Received: from mail-la0-f41.google.com ([209.85.215.41]:50946 "EHLO
+	mail-la0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755102Ab3H3R3P (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Aug 2013 13:29:15 -0400
+Received: by mail-la0-f41.google.com with SMTP id ec20so1808930lab.28
+        for <linux-omap@vger.kernel.org>; Fri, 30 Aug 2013 10:29:13 -0700 (PDT)
+In-Reply-To: <87pptndbtj.fsf@kernel.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russ Dill <Russ.Dill@ti.com>
-Cc: Vaibhav Bedia <vaibhav.bedia@gmail.com>, devicetree@vger.kernel.org, Jan =?utf-8?Q?L=C3=BCbbe?= <jlu@pengutronix.de>, Mark Brown <broonie@kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
+To: Kevin Hilman <khilman@linaro.org>
+Cc: Nishanth Menon <nm@ti.com>, Paul Walmsley <paul@pwsan.com>, Dave Gerlach <d-gerlach@ti.com>, Russ Dill <russ.dill@gmail.com>, Vaibhav Bedia <vaibhav.bedia@ti.com>, Tony Lingren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Benoit Cousson <benoit.cousson@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
 
-Russ Dill <Russ.Dill@ti.com> writes:
+(picking up an old thread, again)
 
-> On Thu, Aug 29, 2013 at 2:33 PM, Kevin Hilman <khilman@linaro.org> wrote:
->> Vaibhav Bedia <vaibhav.bedia@gmail.com> writes:
-> [snip]
->>> Morevoer, all the suggestions on how to keep the code in Linux working
->>> around the complications due to the main memory not being accessible
->>> will need to be replicated on the non-Linux s/w stacks and that's just
->>> make it more difficult for them.
+On Thu, Aug 8, 2013 at 7:04 PM, Kevin Hilman <khilman@linaro.org> wrote:
+>
+> I disagree here.  I'm a firmware minimalist, and hiding bugs like this
+> in the firmware is wrong when Linux is otherwise managing these devices.
+> It also imposes criteria on the firmware of future SoCs that doesn't
+> belong there either.  IMO, the only stuff the firmware should do is what
+> Linux *cannot* do.
+>
+> Remember, this only needs to happen when there isn't a driver for these
+> devices.  Should we communicate to the firmware that the OS has no
+> driver, so please enable the hack?  I think not.
+>
+
+Agreed on not hiding the bugs in the firmware. Moreover, M3 can't access
+the IPs in PER domain which is where the bad modules are, so the h/w
+doesn't support such hackery (+1 for the h/w after all the -1's that it gets ;)
+
+[...]
+
+>>> That being said, IMO, the kernel (specifically omap_device) should
+>>> handle this, and it should be rather easy to do in the omap_device layer
+>>> and keep the SoC suspend/resume core code simple and ignorant of these
+>>> "quirks."
+>>>
+>>> AFAICT, there's no reason these quirks need to be dealt with immediatly
+>>> on suspend.  A slight delay should be fine, as long as it's before the
+>>> next suspend/idle attempt, right?
+>>>
+>>> Given that, what we need to do (and by we, I mean you) is to flag all
+>>> broken IP blocks, and let omap_device handle them in a suspend/resume
+>>> notifier (c.f. register_pm_notifier() and PM_POST_SUSPEND.)
 >>
->> The linux code has to be very self-contained (in assembler or C), so I'm
->> not sure how it's difficult to replicated in any other OS (or non-OS.)
+>> yes - that is the alternate that comes to mind.
 >
-> Let me pull on this thread a little bit. Would this involve defining a
-> bunch of different sections for each arch so that I could do:
+> In the earlier reviews of this series (many months ago now), I
+> complained about the presence of this device specific handling in the
+> core MPU PM code.  I'm somewhat troubled by the fact that nobody explored
+> alternatives that so easily come to mind.
 >
-> void __sram_am33xx am33xx_some_pm_function(args....)
-> {
-> }
->
-> static struct am33xx_foo_dyn *blargity __sramdata_am33xx = { ...};
->
-> static const struct am33xx_foo_const *blarg __sramconst_am33xx = { ... };
->
-> The sram push code could then push these sections into sram. There
-> would then be a set of inlines or macros for converting addresses
-> within these sections to SRAM addresses, maybe also inlines or macros
-> for calling code that has been pushed into sram by wrapping the
-> original function pointer. The macros or inlines that call SRAM code
-> could perform the trampoline as well.
 
-Well, I was thinking of something much dumber.
+My bad. I was thinking along those lines [1] but after the suggestion on
+using the driver bound status i just went with that suggestion in the dumbest
+possible manner.
 
-I was thinking about just _carefully_ writing a single, self-contained C
-function, with all of its data on the stack (and consts as #defines).
-Think of it is a step up in readability from straight assembly (which
-was the stated reason for moving the code to the M3 in the first place.)
+Regards,
+Vaibhav
 
-Kevin
+[1] http://lists.infradead.org/pipermail/linux-arm-kernel/2012-November/129676.html
