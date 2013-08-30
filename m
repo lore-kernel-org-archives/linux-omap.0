@@ -1,123 +1,91 @@
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH v3 3/6] v4l: ti-vpe: Add VPE mem to mem driver
-Date: Fri, 30 Aug 2013 12:44:26 +0200
-Message-ID: <201308301244.26464.hverkuil@xs4all.nl>
-References: <1376996457-17275-1-git-send-email-archit@ti.com> <522044AE.1080501@xs4all.nl> <52206E57.4080300@ti.com>
+From: George Cherian <george.cherian@ti.com>
+Subject: [PATCH v2 2/3] gpio: pcf857x: remove the irq_demux_work
+Date: Fri, 30 Aug 2013 16:18:32 +0530
+Message-ID: <1377859713-13460-3-git-send-email-george.cherian@ti.com>
+References: <1377859713-13460-1-git-send-email-george.cherian@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <52206E57.4080300@ti.com>
-Sender: linux-media-owner@vger.kernel.org
-To: Archit Taneja <archit@ti.com>
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com, tomi.valkeinen@ti.com, linux-omap@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1377859713-13460-1-git-send-email-george.cherian@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linus.walleij@linaro.org
+Cc: linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, kuninori.morimoto.gx@renesas.com, n.a.balandin@gmail.com, George Cherian <george.cherian@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri 30 August 2013 12:05:11 Archit Taneja wrote:
-> Hi,
-> 
-> On Friday 30 August 2013 12:37 PM, Hans Verkuil wrote:
-> > On 08/30/2013 08:47 AM, Archit Taneja wrote:
-> >> On Thursday 29 August 2013 06:58 PM, Hans Verkuil wrote:
-> >>> On Thu 29 August 2013 14:32:49 Archit Taneja wrote:
-> >>>> VPE is a block which consists of a single memory to memory path which can
-> >>>> perform chrominance up/down sampling, de-interlacing, scaling, and color space
-> >>>> conversion of raster or tiled YUV420 coplanar, YUV422 coplanar or YUV422
-> >>>> interleaved video formats.
-> >>>>
-> >>>> We create a mem2mem driver based primarily on the mem2mem-testdev example.
-> >>>> The de-interlacer, scaler and color space converter are all bypassed for now
-> >>>> to keep the driver simple. Chroma up/down sampler blocks are implemented, so
-> >>>> conversion beteen different YUV formats is possible.
-> >>>>
-> >>>> Each mem2mem context allocates a buffer for VPE MMR values which it will use
-> >>>> when it gets access to the VPE HW via the mem2mem queue, it also allocates
-> >>>> a VPDMA descriptor list to which configuration and data descriptors are added.
-> >>>>
-> >>>> Based on the information received via v4l2 ioctls for the source and
-> >>>> destination queues, the driver configures the values for the MMRs, and stores
-> >>>> them in the buffer. There are also some VPDMA parameters like frame start and
-> >>>> line mode which needs to be configured, these are configured by direct register
-> >>>> writes via the VPDMA helper functions.
-> >>>>
-> >>>> The driver's device_run() mem2mem op will add each descriptor based on how the
-> >>>> source and destination queues are set up for the given ctx, once the list is
-> >>>> prepared, it's submitted to VPDMA, these descriptors when parsed by VPDMA will
-> >>>> upload MMR registers, start DMA of video buffers on the various input and output
-> >>>> clients/ports.
-> >>>>
-> <snip>
-> 
-> >>
-> >>>> +}
-> >>>> +
-> >>>> +#define V4L2_CID_TRANS_NUM_BUFS		(V4L2_CID_USER_BASE + 0x1000)
-> >>>
-> >>> Reserve a control range for this driver in include/uapi/linux/v4l2-controls.h.
-> >>> Similar to the ones already defined there.
-> >>>
-> >>> That will ensure that controls for this driver have unique IDs.
-> >>
-> >> Thanks, I took this from the mem2mem-testdev driver, a test driver
-> >> doesn't need to worry about this I suppose.
-> >>
-> >> I had a query regarding this. I am planning to add a capture driver in
-> >> the future for a similar IP which can share some of the control IDs with
-> >> VPE. Is it possible for 2 different drivers to share the IDs?
-> >
-> > Certainly. There are three levels of controls:
-> >
-> > 1) Standard controls: can be used by any driver and are documented in the spec.
-> > 2) IP-specific controls: controls specific for a commonly used IP.
-> >     These can be used by any driver containing that IP and are documented as well
-> >     in the spec. Good examples are the MFC and CX2341x MPEG controls.
-> > 3) Driver-specific controls: these are specific to a driver and do not have to be
-> >     documented in the spec, only in the header/source specifying them. A range
-> >     of controls needs to be assigned to such a driver in v4l2-dv-controls.h.
-> >
-> > In your case it looks like the controls would fall into category 2.
-> 
-> For 2), by commonly used IP, do you mean a commonly used class of IPs 
-> like MPEG decoder, FM and camera? Or do you mean a specific vendor IP 
-> like say a camera subsystem found on different SoCs.
+Now that we are using devm_request_threaded_irq no need for
+irq_demux_work. Remove all its references.
 
-I mean a specific vendor IP found on different SoCs. So different drivers
-would have to support the same IP.
+Signed-off-by: George Cherian <george.cherian@ti.com>
+---
+ drivers/gpio/gpio-pcf857x.c | 35 -----------------------------------
+ 1 file changed, 35 deletions(-)
 
-> I think the controls in my case are very specific to the VPE and VIP 
-> IPs. These 2 IPs have some components like scaler, color space 
-> converter, chrominance up/downsampler in common. The controls will be 
-> specific to how these components behave. For example, a control can tell 
-> what value of frequency of Luminance peaking the scaler needs to 
-> perform. I don't think all scalers would provide Luma peaking. This 
-> holds for other controls too.
-> 
-> So if I understood your explanation correctly, I think 3) might make 
-> more sense.
-
-That might be a good starting point. It is not uncommon that controls
-migrate from being custom controls to more standardized controls when
-other devices appear using the same IP. Or sometimes what seemed like a
-HW specific feature turns out to be available on other hardware from
-other vendors as well.
-
-> 
-> >
-> >> Also, I noticed in the header that most drivers reserve space for 16
-> >> IDs. The current driver just has one, but there will be more custom ones
-> >> in the future. Is it fine if I reserve 16 for this driver too?
-> >
-> > Sure, that's no problem. Make sure you reserve enough space for future
-> > expansion, i.e. IDs are cheap, so no need to be conservative when defining
-> > the range.
-> 
-> Thanks for the clarification.
-> 
-> Archit
-> 
-> 
-
-Regards,
-
-	Hans
+diff --git a/drivers/gpio/gpio-pcf857x.c b/drivers/gpio/gpio-pcf857x.c
+index 4d0d28c..4890e97 100644
+--- a/drivers/gpio/gpio-pcf857x.c
++++ b/drivers/gpio/gpio-pcf857x.c
+@@ -30,7 +30,6 @@
+ #include <linux/of_device.h>
+ #include <linux/slab.h>
+ #include <linux/spinlock.h>
+-#include <linux/workqueue.h>
+ 
+ 
+ static const struct i2c_device_id pcf857x_id[] = {
+@@ -89,7 +88,6 @@ struct pcf857x {
+ 	struct gpio_chip	chip;
+ 	struct i2c_client	*client;
+ 	struct mutex		lock;		/* protect 'out' */
+-	struct work_struct	work;		/* irq demux work */
+ 	struct irq_domain	*irq_domain;	/* for irq demux  */
+ 	spinlock_t		slock;		/* protect irq demux */
+ 	unsigned		out;		/* software latch */
+@@ -210,38 +208,6 @@ static irqreturn_t pcf857x_irq(int irq, void *data)
+ 	return IRQ_HANDLED;
+ }
+ 
+-static void pcf857x_irq_demux_work(struct work_struct *work)
+-{
+-	struct pcf857x *gpio = container_of(work,
+-					       struct pcf857x,
+-					       work);
+-	unsigned long change, i, status, flags;
+-
+-	status = gpio->read(gpio->client);
+-
+-	spin_lock_irqsave(&gpio->slock, flags);
+-
+-	change = gpio->status ^ status;
+-	for_each_set_bit(i, &change, gpio->chip.ngpio)
+-		generic_handle_irq(irq_find_mapping(gpio->irq_domain, i));
+-	gpio->status = status;
+-
+-	spin_unlock_irqrestore(&gpio->slock, flags);
+-}
+-
+-static irqreturn_t pcf857x_irq_demux(int irq, void *data)
+-{
+-	struct pcf857x	*gpio = data;
+-
+-	/*
+-	 * pcf857x can't read/write data here,
+-	 * since i2c data access might go to sleep.
+-	 */
+-	schedule_work(&gpio->work);
+-
+-	return IRQ_HANDLED;
+-}
+-
+ static int pcf857x_irq_domain_map(struct irq_domain *domain, unsigned int virq,
+ 				 irq_hw_number_t hw)
+ {
+@@ -284,7 +250,6 @@ static int pcf857x_irq_domain_init(struct pcf857x *gpio,
+ 		goto fail;
+ 
+ 	/* enable gpio_to_irq() */
+-	INIT_WORK(&gpio->work, pcf857x_irq_demux_work);
+ 	gpio->chip.to_irq	= pcf857x_to_irq;
+ 	gpio->irq		= client->irq;
+ 
+-- 
+1.8.1.4
