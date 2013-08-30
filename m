@@ -1,67 +1,136 @@
-From: Kumar Gala <galak@codeaurora.org>
-Subject: Re: [PATCH 1/1] arm: dts: am33xx: correcting dt node unit address for usb
-Date: Fri, 30 Aug 2013 14:10:38 -0500
-Message-ID: <50F5779C-87B6-43C2-81A8-C72A0614464F@codeaurora.org>
-References: <1377885140-3529-1-git-send-email-mugunthanvnm@ti.com>
-Mime-Version: 1.0 (Apple Message framework v1283)
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
+From: Benoit Cousson <bcousson@baylibre.com>
+Subject: [GIT PULL] ARM: OMAP: Device Tree for 3.12 take #2
+Date: Fri, 30 Aug 2013 22:30:55 +0200
+Message-ID: <522100FF.5030204@baylibre.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.11.231]:57489 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753657Ab3H3TKY convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Aug 2013 15:10:24 -0400
-In-Reply-To: <1377885140-3529-1-git-send-email-mugunthanvnm@ti.com>
+Received: from mail-we0-f173.google.com ([74.125.82.173]:47877 "EHLO
+	mail-we0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752935Ab3H3UbE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Aug 2013 16:31:04 -0400
+Received: by mail-we0-f173.google.com with SMTP id x54so2019724wes.32
+        for <linux-omap@vger.kernel.org>; Fri, 30 Aug 2013 13:31:03 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mugunthan V N <mugunthanvnm@ti.com>
-Cc: balbi@ti.com, bigeasy@linutronix.de, bcousson@baylibre.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-usb@vger.kernel.org
+To: "khilman@linaro.org" <khilman@linaro.org>, Olof Johansson <olof@lixom.net>
+Cc: linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
+
+Hi Kevin & Olof,
+
+Here is the updated version without the conflicting patch (ARM: dts: AM33XX: don't redefine OCP bus and device nodes) and with the signed tag.
+There is still a small conflict with usb-next, but it is easily fixable, and already fixed by Stephen.
+
+Thanks,
+Benoit
 
 
-On Aug 30, 2013, at 12:52 PM, Mugunthan V N wrote:
+The following changes since commit b36f4be3de1b123d8601de062e7dbfc904f305fb:
 
-> DT node's unit address should be its own register offset address to make it a
-> unique across the system. This patch corrects the incorrect USB entries with
-> correct register offset for unit address.
-> 
-> Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-> Cc: Felipe Balbi <balbi@ti.com>
-> Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
-> ---
-> arch/arm/boot/dts/am33xx.dtsi | 4 ++--
-> 1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-> index f9c5da9..e9b6775 100644
-> --- a/arch/arm/boot/dts/am33xx.dtsi
-> +++ b/arch/arm/boot/dts/am33xx.dtsi
-> @@ -346,7 +346,7 @@
-> 			ti,hwmods = "usb_otg_hs";
-> 			status = "disabled";
-> 
-> -			ctrl_mod: control@44e10000 {
-> +			ctrl_mod: control@44e10620 {
-> 				compatible = "ti,am335x-usb-ctrl-module";
-> 				reg = <0x44e10620 0x10
-> 					0x44e10648 0x4>;
-> @@ -449,7 +449,7 @@
-> 					"tx14", "tx15";
-> 			};
-> 
-> -			cppi41dma: dma-controller@07402000 {
-> +			cppi41dma: dma-controller@47402000 {
+  Linux 3.11-rc6 (2013-08-18 14:36:53 -0700)
 
-Why isn't the unit address 47400000 ?
+are available in the git repository at:
 
-> 				compatible = "ti,am3359-cppi41";
-> 				reg =  <0x47400000 0x1000
-> 					0x47402000 0x1000
-> -- 
-> 1.8.4
+  git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git tags/for_3.12/dts_signed
 
-- k
+for you to fetch changes up to 4843be165c10f9886c87eeb20acf19a3ddec6653:
 
--- 
-Employee of Qualcomm Innovation Center, Inc.
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, hosted by The Linux Foundation
+  ARM: configs: omap2plus_defconfig: enable dwc3 and dependencies (2013-08-30 21:33:13 +0200)
 
+----------------------------------------------------------------
+Add the minimal DTS support for DRA7xx based SoC core.
+Add the initial support for N900 and gta04 phones.
+Enable USB3 on OMAP5 evm board.
+Do a lot of various cleanups.
+
+----------------------------------------------------------------
+Afzal Mohammed (2):
+      ARM: dts: AM4372: cpu(s) node per latest binding
+      ARM: dts: AM4372: add few nodes
+
+Alexandre Belloni (1):
+      ARM: dts: AM33XX: Add PMU support
+
+Benoit Cousson (1):
+      ARM: OMAP5: hwmod: add missing ocp2scp hwmod data
+
+Felipe Balbi (4):
+      ARM: OMAP5: dts: fix reg property size
+      ARM: OMAP5: dts: fix ocp2scp DTS data
+      ARM: OMAP5: dts: add palmas-usb node
+      ARM: configs: omap2plus_defconfig: enable dwc3 and dependencies
+
+Javier Martinez Canillas (4):
+      ARM: dts: omap3-igep: add pinmux node for GPIO LED configuration
+      ARM: dts: omap3-igep0020: add mux conf for GPIO LEDs
+      ARM: dts: omap3-igep0030: add mux conf for GPIO LED
+      ARM: dts: AM33XX: use pinmux node defined in included file
+
+Kishon Vijay Abraham I (1):
+      ARM: dts: omap5-uevm: Split SMPS10 in two nodes
+
+Lars Poeschel (1):
+      ARM: dts: AM33xx: Correct gpio #interrupt-cells property
+
+Lee Jones (7):
+      ARM: dts: Remove '0x's from OMAP2420 H4 DTS file
+      ARM: dts: Remove '0x's from OMAP3 IGEP0020 DTS file
+      ARM: dts: Remove '0x's from OMAP3 IGEP0030 DTS file
+      ARM: dts: Remove '0x's from OMAP3 DTS file
+      ARM: dts: Remove '0x's from OMAP3430 SDP DTS file
+      ARM: dts: Remove '0x's from OMAP4 DTS file
+      ARM: dts: Remove '0x's from OMAP5 DTS file
+
+Marek Belisko (1):
+      ARM: dts: Add devicetree for gta04 board.
+
+Pavel Machek (1):
+      ARM: dts: N900: Add device tree
+
+R Sricharan (1):
+      ARM: dts: DRA7: Add the dts files for dra7 SoC and dra7-evm board
+
+Robert Nelson (1):
+      ARM: dts: omap3-beagle-xm: fix string error in compatible property
+
+Roger Quadros (1):
+      ARM: dts: omap3-beagle: Make USB host pin naming consistent
+
+Ruslan Bilovol (1):
+      ARM: dts: twl6030: Move common configuration for OMAP4 boards in a separate dtsi file
+
+ arch/arm/boot/dts/Makefile                 |   5 +-
+ arch/arm/boot/dts/am335x-bone.dts          | 176 ++++-----
+ arch/arm/boot/dts/am335x-evm.dts           | 254 ++++++-------
+ arch/arm/boot/dts/am335x-evmsk.dts         | 258 ++++++-------
+ arch/arm/boot/dts/am33xx.dtsi              |  13 +-
+ arch/arm/boot/dts/am4372.dtsi              | 347 +++++++++++++++++
+ arch/arm/boot/dts/dra7-evm.dts             | 140 +++++++
+ arch/arm/boot/dts/dra7.dtsi                | 575 +++++++++++++++++++++++++++++
+ arch/arm/boot/dts/omap2420-h4.dts          |   6 +-
+ arch/arm/boot/dts/omap3-beagle-xm.dts      |   2 +-
+ arch/arm/boot/dts/omap3-beagle.dts         |  24 +-
+ arch/arm/boot/dts/omap3-gta04.dts          | 168 +++++++++
+ arch/arm/boot/dts/omap3-igep.dtsi          |   2 +
+ arch/arm/boot/dts/omap3-igep0020.dts       |  19 +-
+ arch/arm/boot/dts/omap3-igep0030.dts       |  17 +-
+ arch/arm/boot/dts/omap3-n900.dts           |  92 +++++
+ arch/arm/boot/dts/omap3.dtsi               |   2 +-
+ arch/arm/boot/dts/omap3430-sdp.dts         |  22 +-
+ arch/arm/boot/dts/omap4-panda-common.dtsi  |  21 +-
+ arch/arm/boot/dts/omap4-sdp.dts            |  21 +-
+ arch/arm/boot/dts/omap4.dtsi               |   2 +-
+ arch/arm/boot/dts/omap5-uevm.dts           |  25 +-
+ arch/arm/boot/dts/omap5.dtsi               |  13 +-
+ arch/arm/boot/dts/twl6030_omap4.dtsi       |  38 ++
+ arch/arm/configs/omap2plus_defconfig       |   9 +
+ arch/arm/mach-omap2/omap_hwmod_54xx_data.c |  45 +++
+ include/dt-bindings/pinctrl/dra.h          |  50 +++
+ 27 files changed, 1912 insertions(+), 434 deletions(-)
+ create mode 100644 arch/arm/boot/dts/dra7-evm.dts
+ create mode 100644 arch/arm/boot/dts/dra7.dtsi
+ create mode 100644 arch/arm/boot/dts/omap3-gta04.dts
+ create mode 100644 arch/arm/boot/dts/omap3-n900.dts
+ create mode 100644 arch/arm/boot/dts/twl6030_omap4.dtsi
+ create mode 100644 include/dt-bindings/pinctrl/dra.h
