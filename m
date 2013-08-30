@@ -1,47 +1,177 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH v5] gpio: pcf857x: Add OF support
-Date: Fri, 30 Aug 2013 01:52:08 +0200
-Message-ID: <1992930.Xjyakli5Kt@avalon>
-References: <1377590559-14279-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <CACRpkda=pZ6xQ2XJke=MBLiH_DAS8CXW+JOZ856ohGZi+fOCzA@mail.gmail.com> <35333449.0R3QP6op66@avalon>
+From: Chanwoo Choi <cw00.choi@samsung.com>
+Subject: Re: [PATCH v3 1/3] extcon: extcon-gpio-usbvid: Generic USB VBUS/ID
+ detection via GPIO
+Date: Fri, 30 Aug 2013 09:11:09 +0900
+Message-ID: <521FE31D.8050902@samsung.com>
+References: <1377711185-31238-1-git-send-email-george.cherian@ti.com>
+ <1377711185-31238-2-git-send-email-george.cherian@ti.com>
+ <521EA563.4060305@samsung.com> <521EB018.3000301@ti.com>
+ <521EE8FC.80802@samsung.com> <521EF88F.4070402@ti.com>
+ <521F245E.8050506@samsung.com> <521F3515.7040001@ti.com>
+ <521F3AA2.9010707@samsung.com> <521F505E.8090607@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <35333449.0R3QP6op66@avalon>
-Sender: linux-gpio-owner@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Linus Walleij <linus.walleij@linaro.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Wolfram Sang <wsa@the-dreams.de>, Tomasz Figa <t.figa@samsung.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Tomasz Figa <tomasz.figa@gmail.com>, Grant Likely <grant.likely@secretlab.ca>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Archit Taneja <archit@ti.com>, Sylwester Nawrocki <sylvester.nawrocki@gmail.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-reply-to: <521F505E.8090607@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: George Cherian <george.cherian@ti.com>
+Cc: balbi@ti.com, myungjoo.ham@samsung.com, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, grant.likely@linaro.org, rob@landley.net, ian.campbell@citrix.com, swarren@wwwdotorg.org, mark.rutland@arm.com, pawel.moll@arm.com, rob.herring@calxeda.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, bcousson@baylibre.com, davidb@codeaurora.org, arnd@arndb.de, swarren@nvidia.com, popcornmix@gmail.com
 List-Id: linux-omap@vger.kernel.org
 
-On Friday 30 August 2013 01:44:50 Laurent Pinchart wrote:
-> On Thursday 29 August 2013 20:24:32 Linus Walleij wrote:
-> > On Wed, Aug 28, 2013 at 1:58 PM, Laurent Pinchart wrote:
-> > > On Tuesday 27 August 2013 19:18:55 Wolfram Sang wrote:
-> > >> > The driver should support the same chip models reardless of whether
-> > >> > it's used with or without DT. If an entry in the OF table has no
-> > >> > corresponding entry in the I2C table I would consider that as a
-> > >> > driver
-> > >> > bug.
-> > >> 
-> > >> Linus Walleij posted a patch to support DT only probing, but too many
-> > >> side-effects showed up. Some were fixable (probe regressions) and some
-> > >> need more work, if feasible at all. Most prominent is that runtime
-> > >> instantiation of i2c slaves currently needs an entry in the i2c table.
-> > > 
-> > > Linus, I'd like to get this in v3.12 if it's not too late. Could you
-> > > please provide your input ?
-> > 
-> > Provided some input on the v4 version,
+Hi George,
+
+On 08/29/2013 10:45 PM, George Cherian wrote:
+> Hi Chanwoo,
 > 
-> Do you mean v4 of this patch ? I can't find your reply.
-
-Scratch that, I've found it. Sorry for the noise.
-
-> > due to being a bit overloaded my patch queue is overloaded...
 > 
-> No worries. We can delay this one until v3.13.
--- 
-Regards,
+> On 8/29/2013 5:42 PM, Chanwoo Choi wrote:
+> [big snip ]
+>>>> I tested various development board based on Samsung Exynos series SoC.
+>>>> Although some gpio of Exynos series SoC set high state(non zero, 1) as default value,
+>>>> this gpio state could mean off state, disconnected or un-powered state according to gpio.
+>>>> Of course, above explanation about specific gpio don't include all gpios.
+>>>> This is meaning that there is possibility.
+>>> okay then how about adding a flag for inverted logic too.  something like this
+>>>
+>>> if(of_property_read_bool(np,"inverted_gpio))
+>>>      gpio_usbvid->gpio_inv = 1;
+>>> And always check on this before deciding?
+> Is this fine ?
 
-Laurent Pinchart
+OK.
+But, as Stephen commented on other mail, you should use proper DT helper function.
 
+>>>
+>>>>>> Second,
+>>>>>> gpio_usbvid_set_initial_state() dertermine both "USB-HOST" and "USB" cable state at same time
+>>>>>> in 'case ID_DETCT' according to 'gpio_usbvid->id_gpio'. But, I think that other extcon devices
+>>>>>> would not control both "USB-HOST" and "USB" cable state at same time.
+>>>>>>
+>>>>>> Other extcon devices would support either "USB-HOST" or "USB" cable.
+>>>>> The driver has 2 configurations.
+>>>>> 1) supports implementations with both VBUS and ID pin are routed via gpio's for swicthing roles(compatible  gpio-usb-vid).
+>>>> As you explained about case 1, it is only used on dra7x SoC.
+>>> No gpio-usb-id is used in dra7xx. dra7xx has got only ID pin routed via gpio.
+>>>> Other SoC could not wish to control both "USB-HOST" and "USB" cable at same time.
+> I could'nt actually parse this. You meant since the id_irq_handler handles both USB and USB-HOST cable
+> its not proper?
+
+It's not proper in general case. The generic driver must guarantee all of extcon device using gpio.
+As far as I know, the generic driver cannot direclty control gpio pin and get value from gpio pin.
+Almost device driver including in kernel/drivers control gpio pin on specific device driver 
+instead of generic driver.
+
+>> I need your answer about above my opinion for other SoC.
+> So how about this, I have removed the dra7x specific stuffs (gpio-usb-id)
+> 
+> static void gpio_usbvid_set_initial_state(struct gpio_usbvid *gpio_usbvid)
+> {
+>         int id_current, vbus_current;
+> 
+>     id_current = gpio_get_value_cansleep(gpio_usbvid->id_gpio);
+>     if (!!id_current == ID_FLOAT)
+>         extcon_set_cable_state(&gpio_usbvid->edev, "USB-HOST", false);
+>     else
+>         extcon_set_cable_state(&gpio_usbvid->edev, "USB-HOST", true);
+> 
+>     vbus_current = gpio_get_value_cansleep(gpio_usbvid->vbus_gpio);
+>      if (!!vbus_current == VBUS_ON)
+>         extcon_set_cable_state(&gpio_usbvid->edev, "USB", true);
+>     else
+>         extcon_set_cable_state(&gpio_usbvid->edev, "USB", false);
+> }
+> 
+> and the irq handlers like this
+> 
+> static irqreturn_t id_irq_handler(int irq, void *data)
+> {
+>         struct gpio_usbvid *gpio_usbvid = (struct gpio_usbvid *)data;
+>         int id_current;
+> 
+>         id_current = gpio_get_value_cansleep(gpio_usbvid->id_gpio);
+>         if (id_current == ID_GND)
+>                 extcon_set_cable_state(&gpio_usbvid->edev, "USB-HOST", true);
+>         else
+>                 extcon_set_cable_state(&gpio_usbvid->edev, "USB-HOST", false);
+>         return IRQ_HANDLED;
+> }
+> 
+> static irqreturn_t vbus_irq_handler(int irq, void *data)
+> {
+>         struct gpio_usbvid *gpio_usbvid = (struct gpio_usbvid *)data;
+>         int vbus_current;
+> 
+>         vbus_current = gpio_get_value_cansleep(gpio_usbvid->vbus_gpio);
+>         if (vbus_current == VBUS_OFF)
+>                 extcon_set_cable_state(&gpio_usbvid->edev, "USB", false);
+>         else
+>                 extcon_set_cable_state(&gpio_usbvid->edev, "USB", true);
+> 
+>         return IRQ_HANDLED;
+> }
+
+I know your intention dividing interrupt handler for each cable.
+But I don't think this driver must guarantee all of extcon device using gpio.
+
+For example,
+below three SoC wish to detect USB/USB-HOST cable with each different methods.
+
+"SoC A" wish to detect USB/USB-HOST cable through only one gpio pin.
+"SoC B" wish to detect USB/USB-HOST cable through ADC value instead of gpio pin.
+"SoC C" wish to detect USB/USB-HOST cable through two gpio pin because USB connected on gpio an USB-HOST connected on another.
+
+In addition,
+if "SoC A/C" wish to write some data to own specific registers for proper opeating,
+Could we write some data to register on generic driver?
+
+Finally,
+"SoC D" wish to detect USB/USB-HOST/JIG cable through two gpio pin
+- one gpio may detect either USB or USB-HOST and another may detect JIG cable
+or one gpio may detect either USb or JIG and another may detect USB-HOST cable.
+
+That way, there are many cases we cannot guarantee all of extcon devices.
+
+I think this driver could support dra7x series SoC but as I mentioned,
+this driver may not guarantee all of cases.
+
+> [snip]
+>>>> I have some confusion. I need additional your explanation.
+>>>> Could this driver register only one interrupt handler either id_irq_handler() or vbus_irq_handler()?
+>>> If compatible == ID_DETECT, only one handler --> id_irq_handler() and it will handle both USB and USB-HOST
+>>>> or
+>>>> Could this driver register two interrupt handler both id_irq_handler() or vbus_irq_handler()?
+>>> If compatible == VBUS_ID_DETECT, 2 handlers --> id_irq_handler() will handle USB-HOST and vbus_irq_handler will handle USB.
+>> As you mentioned, we cannot only control either USB or USB-HOST cable on this extcon driver.
+>> This extcon driver is only suitable dra7x SoC.
+> Do you still feel its dra7x specific if i modify it as above?
+
+I commented above about your modification.
+
+>> Because id_irq_handler() control both "USB-HOST" and "USB" cable at same time,
+>> you need this setting order between "USB-HOST" and "USB" cable.
+>>> yes
+>> I think that the setting order between cables isn't general. It is specific method for dra7x SoC.
+> So if i remove that part then?
+
+The setting order should be removed in generic driver.
+
+>>>> Did you think that SoC should always connect either "USB-HOST" cable or "USB" cable?
+>>> No,  even if a physical cable is not connected it should  default to either USB-HOST or USB
+>> It isn't general.
+>>
+>> If physical cable isn't connected to extcon device, the state both USB-HOST and USB cable
+>> should certainly be zero. Because The extcon consumer driver could set proper operation
+>> according to cable state.
+> okay
+>>
+>>>
+>>>> I don't know this case except for dra7x SoC. So, I think it has dependency on specific SoC.
+>> I need your answer about above my opinion.
+> Hope i could answer you :-)
+>>>> and can't agree as generic extcon gpio driver.
+>>
+> 
+
+Thanks,
+Chanwoo Choi
