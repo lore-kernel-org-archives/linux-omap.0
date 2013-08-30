@@ -1,92 +1,33 @@
-From: George Cherian <george.cherian@ti.com>
-Subject: [PATCH v2 1/3] gpio: pcf857x: change to  devm_request_threaded_irq
-Date: Fri, 30 Aug 2013 16:18:31 +0530
-Message-ID: <1377859713-13460-2-git-send-email-george.cherian@ti.com>
-References: <1377859713-13460-1-git-send-email-george.cherian@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH 02/10] cpufreq: OMAP: Add SMP support for OMAP4+
+Date: Fri, 30 Aug 2013 09:26:12 -0400
+Message-ID: <52209D74.1050308@ti.com>
+References: <1316725648-26710-1-git-send-email-khilman@ti.com> <1316725648-26710-3-git-send-email-khilman@ti.com> <CAOh2x=k11EivJoy5-PMXnE5JGDc=DcJKhae7qoh6tNc4L63VnA@mail.gmail.com> <521F4E88.1000709@ti.com> <CAKohpokqz0cQNS12hZS-YOCd8KSOtCy9_TbGdqFzCYz8NyeamQ@mail.gmail.com> <521F4FBB.3080002@ti.com> <CAKohpomco=TodaosVbvAhFSxrth9aZ1gh+VOHftG1w6nYWBsPg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <1377859713-13460-1-git-send-email-george.cherian@ti.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: linus.walleij@linaro.org
-Cc: linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, kuninori.morimoto.gx@renesas.com, n.a.balandin@gmail.com, George Cherian <george.cherian@ti.com>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <cpufreq-owner@vger.kernel.org>
+In-Reply-To: <CAKohpomco=TodaosVbvAhFSxrth9aZ1gh+VOHftG1w6nYWBsPg@mail.gmail.com>
+Sender: cpufreq-owner@vger.kernel.org
+To: Viresh Kumar <viresh.kumar@linaro.org>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Kevin Hilman <khilman@linaro.org>, Russell King <linux@arm.linux.org.uk>, "cpufreq@vger.kernel.org" <cpufreq@vger.kernel.org>, Dave Jones <davej@redhat.com>, Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Rajendra Nayak <rnayak@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Remove the request_irq and use devm_request_threaded_irq
-also cleanup free_irq. devm_* takes care of that.
-
-Signed-off-by: George Cherian <george.cherian@ti.com>
----
- arch/arm/boot/dts/dra7-evm.dts |  2 +-
- drivers/gpio/gpio-pcf857x.c    | 28 ++++++++++++++++++++++++----
- 2 files changed, 25 insertions(+), 5 deletions(-)
-
-diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
-index 8b0738a..39b44bc 100644
---- a/arch/arm/boot/dts/dra7-evm.dts
-+++ b/arch/arm/boot/dts/dra7-evm.dts
-@@ -65,7 +65,7 @@
- 		n_latch = <0x1408>;
- 		gpio-controller;
- 		#gpio-cells = <2>;
--		interrupt-parent = <&pcf_20>;
-+		interrupt-parent = <&gpio20>;
- 		interrupts = <14 2>;
- 		interrupt-controller;
- 		#interrupt-cells = <2>;
-diff --git a/drivers/gpio/gpio-pcf857x.c b/drivers/gpio/gpio-pcf857x.c
-index 947cff4..4d0d28c 100644
---- a/drivers/gpio/gpio-pcf857x.c
-+++ b/drivers/gpio/gpio-pcf857x.c
-@@ -191,6 +191,25 @@ static int pcf857x_to_irq(struct gpio_chip *chip, unsigned offset)
- 	return irq_create_mapping(gpio->irq_domain, offset);
- }
- 
-+static irqreturn_t pcf857x_irq(int irq, void *data)
-+{
-+	struct pcf857x  *gpio = data;
-+	unsigned long change, i, status, flags;
-+
-+	status = gpio->read(gpio->client);
-+
-+	spin_lock_irqsave(&gpio->slock, flags);
-+
-+	change = gpio->status ^ status;
-+	for_each_set_bit(i, &change, gpio->chip.ngpio)
-+		generic_handle_irq(irq_find_mapping(gpio->irq_domain, i));
-+	gpio->status = status;
-+
-+	spin_unlock_irqrestore(&gpio->slock, flags);
-+
-+	return IRQ_HANDLED;
-+}
-+
- static void pcf857x_irq_demux_work(struct work_struct *work)
- {
- 	struct pcf857x *gpio = container_of(work,
-@@ -241,8 +260,6 @@ static void pcf857x_irq_domain_cleanup(struct pcf857x *gpio)
- 	if (gpio->irq_domain)
- 		irq_domain_remove(gpio->irq_domain);
- 
--	if (gpio->irq)
--		free_irq(gpio->irq, gpio);
- }
- 
- static int pcf857x_irq_domain_init(struct pcf857x *gpio,
-@@ -258,8 +275,11 @@ static int pcf857x_irq_domain_init(struct pcf857x *gpio,
- 		goto fail;
- 
- 	/* enable real irq */
--	status = request_irq(client->irq, pcf857x_irq_demux, 0,
--			     dev_name(&client->dev), gpio);
-+	status = devm_request_threaded_irq(&client->dev, client->irq,
-+				NULL, pcf857x_irq, IRQF_ONESHOT |
-+				IRQF_TRIGGER_FALLING,
-+				dev_name(&client->dev), gpio);
-+
- 	if (status)
- 		goto fail;
- 
--- 
-1.8.1.4
+> From: Viresh Kumar <viresh.kumar@linaro.org <mailto:viresh.kumar@linaro.org>>
+> Date: Wed, 21 Aug 2013 19:05:05 +0530
+> Subject: [PATCH] cpufreq: omap: use cpufreq_generic_init() routine
+> 
+> Use generic cpufreq_generic_init() routine instead of replicating the same code
+> here.
+> 
+> This also rearranges the code a bit to make it more sensible. Also removes some
+> unnecessary checks.
+> 
+> Signed-off-by: Viresh Kumar <viresh.kumar@linaro.org <mailto:viresh.kumar@linaro.org>>
+> ---
+>  drivers/cpufreq/omap-cpufreq.c | 41 +++++++++++------------------------------
+>  1 file changed, 11 insertions(+), 30 deletions(-)
+>
+I haven't tested it but looks straightforward so..
+Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 
