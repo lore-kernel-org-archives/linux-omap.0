@@ -1,79 +1,93 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [PATCHv3 8/9] ARM: OMAP2+: AM33XX: Basic suspend resume support
-Date: Fri, 30 Aug 2013 14:18:38 -0700
-Message-ID: <87ioymop1t.fsf@linaro.org>
-References: <1375811376-49985-1-git-send-email-d-gerlach@ti.com>
-	<1375811376-49985-9-git-send-email-d-gerlach@ti.com>
-	<87mwo2vmds.fsf@linaro.org>
-	<CANacCWwNp4yg0e_9HPJCGJgQkaYP1n=b6Kjmw9KYjp6HoOY0og@mail.gmail.com>
+From: Joel Fernandes <joelf@ti.com>
+Subject: Re: [PATCH v2] ARM: dts: add AM33XX EDMA support
+Date: Fri, 30 Aug 2013 20:19:39 -0500
+Message-ID: <522144AB.9010802@ti.com>
+References: <1377505784-9820-1-git-send-email-bigeasy@linutronix.de>
+ <521B1380.3030908@baylibre.com>
+Reply-To: joelf@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pd0-f175.google.com ([209.85.192.175]:57771 "EHLO
-	mail-pd0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752530Ab3H3VSm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Aug 2013 17:18:42 -0400
-Received: by mail-pd0-f175.google.com with SMTP id q10so2338835pdj.6
-        for <linux-omap@vger.kernel.org>; Fri, 30 Aug 2013 14:18:41 -0700 (PDT)
-In-Reply-To: <CANacCWwNp4yg0e_9HPJCGJgQkaYP1n=b6Kjmw9KYjp6HoOY0og@mail.gmail.com>
-	(Vaibhav Bedia's message of "Fri, 30 Aug 2013 13:39:21 -0400")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <521B1380.3030908@baylibre.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Benoit Cousson <bcousson@baylibre.com>
+Cc: devicetree@vger.kernel.org, tony@atomide.com, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, linux-kernel@vger.kernel.org, santosh.shilimkar@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Vaibhav Bedia <vaibhav.bedia@gmail.com>
-Cc: Dave Gerlach <d-gerlach@ti.com>, Paul Walmsley <paul@pwsan.com>, Tony Lingren <tony@atomide.com>, Vaibhav Bedia <vaibhav.bedia@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Benoit Cousson <benoit.cousson@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
 
-Vaibhav Bedia <vaibhav.bedia@gmail.com> writes:
+Hi Benoit,
 
-> On Tue, Aug 27, 2013 at 5:45 PM, Kevin Hilman <khilman@linaro.org> wrote:
-> [...]
->>
->> Looking closer at this code as I'm trying to fully get my head around
->> all the IPC, I have some more comments.
->>
->> I think the split between pm33xx.c and the M3 driver is still confusing
->> here.  For example, am33xx_ping_wkup_m3(),
->> am33xx_m3_state_machine_reset() and the guts of am33xx_pm_begin() all
->> belong inside the M3 driver, along with all the wakeup_src stuff, which
->> is info coming from the M3.
->>
->> IOW, the communication with M3 should be abstracted from pm33xx by the
->> M3 driver (or possibly an eventual remoteproc/rpmsg implementation) with
->> a well defined API.  In this implementation, the interface is pretty
->> fuzzy and mixed between pm33xx.c and wkup_m3.c.
->>
->>
->
-> The reason for the current split was to have the M3 driver just do the minimal
-> that's needed to talk to get M3 and MPU talking. What made me do it this way
-> was to attempt to address a previous comment on keeping options open for folks
-> to use M3 for things other than PM stuff. The IPC stuff is how
-> implementors of the
-> firmware (anything other than the PM one that TI provides) want it to be.
+On 08/26/2013 03:36 AM, Benoit Cousson wrote:
+> - minus all the TI emails which are not working anymore :-(
+> 
+> I've just sent my previous email too soon...
+> 
+> Now the patch is different :-) I'll take that one.
 
-IMO, there should actually be 3 levels. the SoC PM implementation
-(pm33xx.c), the M3 driver where the protocol, state-machine, etc. are
-handled, and the messaging layer.  In the current proposal, the last 2
-are combined, but I'd really like to see a generalized messaging layer
-that everyone else using an M3 coprocessor might use as well.  As
-mentioned already, I think that should be rpmsg, but that still needs
-some exploration.
+Unfortunately this patch is still missing from your latest pull request:
 
-> The top level idea was to have the users of the firmware (PM in this case)
-> decide what functionality they want when talking to M3. They are also free to
-> decide the register bitfield layout and other IPC details.
->
-> This was also a feeble attempt to keep things extensible for AM437x where
-> in addition to the broken mailbox usage there's now a control module bit
-> to trigger the interrupt to M3 (what's worse? pick one that you hate more ;)
+Subject "[GIT PULL] ARM: OMAP: Device Tree for 3.12 take #2"
+  git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git
+tags/for_3.12/dts_signed  (commit 4843be165c10f9886c87eeb20acf19a3ddec6653)
 
-Sounds like AM43xx is better.  If you have a control module bit to
-trigger an interrupt, why do you need the mailbox at all?
-
-> The AM437x PM routines could then just register different callbacks that
-> are triggered when the M3 interrupts the MPU.
->
-> Hope this clears up some of the confusion.
+Below is a scissor patch that cleanly applies on above branch.
 
 Thanks,
 
-Kevin
+-Joel
+
+--->8----
+From: Matt Porter <mporter@ti.com>
+Subject: [PATCH] ARM: dts: add AM33XX EDMA support
+
+Adds AM33XX EDMA support to the am33xx.dtsi as documented in
+Documentation/devicetree/bindings/dma/ti-edma.txt
+
+v2 changes:
+Drop DT entries that are non-hardware-description Joel Fernandes <joelf@ti.com>
+Discussion in [1].
+
+v3 changes: Changed node name from "edma: edma@" to "edma: dma-controller@"
+by Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+
+[1] https://patchwork.kernel.org/patch/2226761/
+
+Signed-off-by: Matt Porter <mporter@ti.com>
+Signed-off-by: Joel A Fernandes <joelagnel@ti.com>
+---
+ arch/arm/boot/dts/am33xx.dtsi | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index 5996d63..f5869ed 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -101,6 +101,18 @@
+ 			reg = <0x48200000 0x1000>;
+ 		};
+
++		edma: dma-controller@49000000 {
++			compatible = "ti,edma3";
++			ti,hwmods = "tpcc", "tptc0", "tptc1", "tptc2";
++			reg =	<0x49000000 0x10000>,
++				<0x44e10f90 0x10>;
++			interrupts = <12 13 14>;
++			#dma-cells = <1>;
++			dma-channels = <64>;
++			ti,edma-regions = <4>;
++			ti,edma-slots = <256>;
++		};
++
+ 		gpio0: gpio@44e07000 {
+ 			compatible = "ti,omap4-gpio";
+ 			ti,hwmods = "gpio1";
+-- 
+1.8.1.2
