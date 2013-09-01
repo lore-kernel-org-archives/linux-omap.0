@@ -1,67 +1,62 @@
-From: Axel Lin <axel.lin@ingics.com>
-Subject: [PATCH] mmc: omap: Use DIV_ROUND_UP instead of open coded
-Date: Sun, 01 Sep 2013 15:07:14 +0800
-Message-ID: <1378019234.6087.1.camel@phoenix>
+From: Belisko Marek <marek.belisko@gmail.com>
+Subject: Re: [PATCH] omap2: panel-generic: Added panel parameters for
+ ortus-com37h3m05dtc/99dtc and sharp-lq070y3dg3b.
+Date: Sun, 1 Sep 2013 14:32:05 +0200
+Message-ID: <CAAfyv35ViR6PxTAs-Q2OUHWn93RsX8eep-ew8m-AN1SjS-V80g@mail.gmail.com>
+References: <1377779724-30648-1-git-send-email-marek@goldelico.com>
+	<52205056.8080908@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Chris Ball <cjb@laptop.org>
-Cc: Lokesh Vutla <lokeshvutla@ti.com>, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <52205056.8080908@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-fbdev@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, "H. Nikolaus Schaller" <hns@goldelico.com>
 List-Id: linux-omap@vger.kernel.org
 
-This patch makes the intention of the code more clear.
+Hi Tomi,
 
-Signed-off-by: Axel Lin <axel.lin@ingics.com>
----
- drivers/mmc/host/omap.c | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+On Fri, Aug 30, 2013 at 9:57 AM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
+> On 29/08/13 15:35, Marek Belisko wrote:
+>> Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
+>> Signed-off-by: Marek Belisko <marek@goldelico.com>
+>> ---
+>>  drivers/video/omap2/displays/panel-generic-dpi.c | 53 ++++++++++++++++++++++++
+>>  1 file changed, 53 insertions(+)
+>>
+>> diff --git a/drivers/video/omap2/displays/panel-generic-dpi.c b/drivers/video/omap2/displays/panel-generic-dpi.c
+>> index bebebd4..d573291 100644
+>> --- a/drivers/video/omap2/displays/panel-generic-dpi.c
+>> +++ b/drivers/video/omap2/displays/panel-generic-dpi.c
+>> @@ -107,6 +107,33 @@ static struct panel_config generic_dpi_panels[] = {
+>>               .name                   = "sharp_ls",
+>>       },
+>
+> The drivers in drivers/video/omap2/displays/ are on their way out, and
+> will probably be removed for 3.12. Please look at the new one at
+> drivers/video/omap2/displays-new/panel-dpi.c.
+I've probably miss series (OMAPDSS: remove old panel model code)
+and in time when sent patch it wasn't in linux-next yes. AFAIU generic
+panel settings
+was moved to board files which is not case for our patch as gta04
+(other) board with panel isn't yes mainlined.
+>
+>  Tomi
+>
+>
 
-diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
-index b94f38e..3187af0 100644
---- a/drivers/mmc/host/omap.c
-+++ b/drivers/mmc/host/omap.c
-@@ -189,7 +189,7 @@ static void mmc_omap_fclk_offdelay(struct mmc_omap_slot *slot)
- 	unsigned long tick_ns;
- 
- 	if (slot != NULL && slot->host->fclk_enabled && slot->fclk_freq > 0) {
--		tick_ns = (1000000000 + slot->fclk_freq - 1) / slot->fclk_freq;
-+		tick_ns = DIV_ROUND_UP(1000000000, slot->fclk_freq);
- 		ndelay(8 * tick_ns);
- 	}
- }
-@@ -444,7 +444,7 @@ static void mmc_omap_send_stop_work(struct work_struct *work)
- 	struct mmc_data *data = host->stop_data;
- 	unsigned long tick_ns;
- 
--	tick_ns = (1000000000 + slot->fclk_freq - 1)/slot->fclk_freq;
-+	tick_ns = DIV_ROUND_UP(1000000000, slot->fclk_freq);
- 	ndelay(8*tick_ns);
- 
- 	mmc_omap_start_command(host, data->stop);
-@@ -486,7 +486,7 @@ mmc_omap_send_abort(struct mmc_omap_host *host, int maxloops)
- 	u16 stat = 0;
- 
- 	/* Sending abort takes 80 clocks. Have some extra and round up */
--	timeout = (120*1000000 + slot->fclk_freq - 1)/slot->fclk_freq;
-+	timeout = DIV_ROUND_UP(120 * 1000000, slot->fclk_freq);
- 	restarts = 0;
- 	while (restarts < maxloops) {
- 		OMAP_MMC_WRITE(host, STAT, 0xFFFF);
-@@ -686,8 +686,8 @@ mmc_omap_xfer_data(struct mmc_omap_host *host, int write)
- 	if (n > host->buffer_bytes_left)
- 		n = host->buffer_bytes_left;
- 
--	nwords = n / 2;
--	nwords += n & 1; /* handle odd number of bytes to transfer */
-+	/* Round up to handle odd number of bytes to transfer */
-+	nwords = DIV_ROUND_UP(n, 2);
- 
- 	host->buffer_bytes_left -= n;
- 	host->total_bytes_left -= n;
+Regards,
+
+marek
+
 -- 
-1.8.1.2
+as simple and primitive as possible
+-------------------------------------------------
+Marek Belisko - OPEN-NANDRA
+Freelance Developer
 
-
-
+Ruska Nova Ves 219 | Presov, 08005 Slovak Republic
+Tel: +421 915 052 184
+skype: marekwhite
+twitter: #opennandra
+web: http://open-nandra.com
