@@ -1,77 +1,61 @@
-From: George Cherian <george.cherian@ti.com>
-Subject: [PATCH v3 1/3] gpio: pcf857x: change to devm_request_threaded_irq
-Date: Mon, 2 Sep 2013 08:00:02 +0530
-Message-ID: <1378089004-14478-2-git-send-email-george.cherian@ti.com>
-References: <1378089004-14478-1-git-send-email-george.cherian@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [RFC 00/22] OMAPDSS: DT support
+Date: Sun, 1 Sep 2013 23:15:42 -0700
+Message-ID: <20130902061541.GU7656@atomide.com>
+References: <1376037547-10859-1-git-send-email-tomi.valkeinen@ti.com>
+ <20130813075449.GS7656@atomide.com>
+ <52206A48.8040401@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1378089004-14478-1-git-send-email-george.cherian@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linus.walleij@linaro.org
-Cc: linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, kuninori.morimoto.gx@renesas.com, n.a.balandin@gmail.com, George Cherian <george.cherian@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:36361 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754772Ab3IBGPq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Sep 2013 02:15:46 -0400
+Content-Disposition: inline
+In-Reply-To: <52206A48.8040401@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, Archit Taneja <archit@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Nishanth Menon <nm@ti.com>, Felipe Balbi <balbi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Remove the request_irq and use devm_request_threaded_irq
-also cleanup free_irq. devm_* takes care of that.
+* Tomi Valkeinen <tomi.valkeinen@ti.com> [130830 02:55]:
+> On 13/08/13 10:54, Tony Lindgren wrote:
+> > * Tomi Valkeinen <tomi.valkeinen@ti.com> [130809 01:46]:
+> >>
+> >> So as is evident, I have things in my mind that should be improved. Maybe
+> >> the most important question for short term future is:
+> >>
+> >> Can we add DSS DT bindings for OMAP4 as unstable bindings? It would give us
+> >> some proper testing of the related code, and would also allow us to remove
+> >> the related hacks (which don't even work quite right). However, I have no
+> >> idea yet when the unstable DSS bindings would turn stable.
+> >>
+> >> If we shouldn't add the bindings as unstable, when should the bindings be
+> >> added? Wait until CDF is in the mainline, and use that?
+> > 
+> > I don't think we should add any temporary bindings as it's going to be
+> > a pain to support those in the long run. I suggest you initially just
+> > stick to established bindings for the basic hardware IO address and
+> > interrupts etc, then those should still be valid with the generic panel
+> > bindings later on.
+> 
+> I don't understand what does it matter if the bindings are temporary, or
+> basic established bindings. In both cases the DT data needs to be
+> changed when the CDF is taken into use.
 
-Signed-off-by: George Cherian <george.cherian@ti.com>
----
- drivers/gpio/gpio-pcf857x.c | 28 ++++++++++++++++++++++++----
- 1 file changed, 24 insertions(+), 4 deletions(-)
+Yes but the old bindings still need to be supported because people
+are doing devices using those. So any kind of temporary binding will be
+a pain to support.
+ 
+> Well, one difference is that the temporary bindings would give us
+> working display, but having only basic bindings would not. So I don't
+> see any reason to add only the basic bindings. Or how would it work?
 
-diff --git a/drivers/gpio/gpio-pcf857x.c b/drivers/gpio/gpio-pcf857x.c
-index 947cff4..4d0d28c 100644
---- a/drivers/gpio/gpio-pcf857x.c
-+++ b/drivers/gpio/gpio-pcf857x.c
-@@ -191,6 +191,25 @@ static int pcf857x_to_irq(struct gpio_chip *chip, unsigned offset)
- 	return irq_create_mapping(gpio->irq_domain, offset);
- }
- 
-+static irqreturn_t pcf857x_irq(int irq, void *data)
-+{
-+	struct pcf857x  *gpio = data;
-+	unsigned long change, i, status, flags;
-+
-+	status = gpio->read(gpio->client);
-+
-+	spin_lock_irqsave(&gpio->slock, flags);
-+
-+	change = gpio->status ^ status;
-+	for_each_set_bit(i, &change, gpio->chip.ngpio)
-+		generic_handle_irq(irq_find_mapping(gpio->irq_domain, i));
-+	gpio->status = status;
-+
-+	spin_unlock_irqrestore(&gpio->slock, flags);
-+
-+	return IRQ_HANDLED;
-+}
-+
- static void pcf857x_irq_demux_work(struct work_struct *work)
- {
- 	struct pcf857x *gpio = container_of(work,
-@@ -241,8 +260,6 @@ static void pcf857x_irq_domain_cleanup(struct pcf857x *gpio)
- 	if (gpio->irq_domain)
- 		irq_domain_remove(gpio->irq_domain);
- 
--	if (gpio->irq)
--		free_irq(gpio->irq, gpio);
- }
- 
- static int pcf857x_irq_domain_init(struct pcf857x *gpio,
-@@ -258,8 +275,11 @@ static int pcf857x_irq_domain_init(struct pcf857x *gpio,
- 		goto fail;
- 
- 	/* enable real irq */
--	status = request_irq(client->irq, pcf857x_irq_demux, 0,
--			     dev_name(&client->dev), gpio);
-+	status = devm_request_threaded_irq(&client->dev, client->irq,
-+				NULL, pcf857x_irq, IRQF_ONESHOT |
-+				IRQF_TRIGGER_FALLING,
-+				dev_name(&client->dev), gpio);
-+
- 	if (status)
- 		goto fail;
- 
--- 
-1.8.1.4
+You might be able to use just a minimal binding for now using the
+basic reg, interrupt and entries for the various components. Those will
+be still valid when the CDF bindings are available.
+
+Regards,
+
+Tony
