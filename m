@@ -1,55 +1,34 @@
 From: George Cherian <george.cherian@ti.com>
-Subject: Re: [PATCH v2 1/3] gpio: pcf857x: change to  devm_request_threaded_irq
-Date: Mon, 2 Sep 2013 07:32:16 +0530
-Message-ID: <5223F1A8.4090509@ti.com>
-References: <1377859713-13460-1-git-send-email-george.cherian@ti.com> <1377859713-13460-2-git-send-email-george.cherian@ti.com> <87ppssrpci.wl%kuninori.morimoto.gx@renesas.com>
+Subject: [PATCH v3 0/3] cleanup of gpio_pcf857x.c
+Date: Mon, 2 Sep 2013 08:00:01 +0530
+Message-ID: <1378089004-14478-1-git-send-email-george.cherian@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <87ppssrpci.wl%kuninori.morimoto.gx@renesas.com>
 Sender: linux-gpio-owner@vger.kernel.org
-To: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
-Cc: linus.walleij@linaro.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, n.a.balandin@gmail.com
+To: linus.walleij@linaro.org
+Cc: linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, kuninori.morimoto.gx@renesas.com, n.a.balandin@gmail.com, George Cherian <george.cherian@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 9/2/2013 6:50 AM, Kuninori Morimoto wrote:
-> Hi
->
->> Remove the request_irq and use devm_request_threaded_irq
->> also cleanup free_irq. devm_* takes care of that.
->>
->> Signed-off-by: George Cherian <george.cherian@ti.com>
->> ---
->>   arch/arm/boot/dts/dra7-evm.dts |  2 +-
->>   drivers/gpio/gpio-pcf857x.c    | 28 ++++++++++++++++++++++++----
->>   2 files changed, 25 insertions(+), 5 deletions(-)
->>
->> diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
->> index 8b0738a..39b44bc 100644
->> --- a/arch/arm/boot/dts/dra7-evm.dts
->> +++ b/arch/arm/boot/dts/dra7-evm.dts
->> @@ -65,7 +65,7 @@
->>   		n_latch = <0x1408>;
->>   		gpio-controller;
->>   		#gpio-cells = <2>;
->> -		interrupt-parent = <&pcf_20>;
->> +		interrupt-parent = <&gpio20>;
->>   		interrupts = <14 2>;
->>   		interrupt-controller;
->>   		#interrupt-cells = <2>;
-> I'm not sure detail,
-> but does above "exchange interrupt-parent" and "using devm_request_threaded_irq()"
-> have any relationship ?
-Exactly. will resend this change alone.
-> Separate patch seems nice ?
+This patch series
+        - removes the irq_demux_work
+        - Uses devm_request_threaded_irq
+        - Call the user handler iff gpio_to_irq is done.
 
-okay
-> Best regards
-> ---
-> Kuninori Morimoto
+v1 --> v2
+        Split v1 to 3 patches
+v2 --> v3
+	Remove the unnecessary dts patches.
 
+
+George Cherian (3):
+  gpio: pcf857x: change to devm_request_threaded_irq
+  gpio: pcf857x: remove the irq_demux_work
+  gpio: pcf857x: call the gpio user handler iff gpio_to_irq is done
+
+ drivers/gpio/gpio-pcf857x.c | 51 +++++++++++++++++++++++----------------------
+ 1 file changed, 26 insertions(+), 25 deletions(-)
 
 -- 
--George
+1.8.1.4
 
