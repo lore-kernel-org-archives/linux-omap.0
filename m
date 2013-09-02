@@ -1,7 +1,7 @@
 From: George Cherian <george.cherian@ti.com>
-Subject: [PATCH v3 3/3] gpio: pcf857x: call the gpio user handler iff gpio_to_irq is done
-Date: Mon, 2 Sep 2013 08:00:04 +0530
-Message-ID: <1378089004-14478-4-git-send-email-george.cherian@ti.com>
+Subject: [PATCH v3 1/3] gpio: pcf857x: change to devm_request_threaded_irq
+Date: Mon, 2 Sep 2013 08:00:02 +0530
+Message-ID: <1378089004-14478-2-git-send-email-george.cherian@ti.com>
 References: <1378089004-14478-1-git-send-email-george.cherian@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,89 +12,65 @@ To: linus.walleij@linaro.org
 Cc: linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, kuninori.morimoto.gx@renesas.com, n.a.balandin@gmail.com, George Cherian <george.cherian@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-For pcf857x driver if the initial state is not set properly (proper
-n_latch is not passed), we get bad irq prints on console.
-We get this only for the first interrupt and doesnot repeat for further
-interrupts unles and until there are other gpio pins which are not flipping
-continously.
-
-following prints are seen on console.
-
-[   40.983924] irq 0, desc: ce004080, depth: 1, count: 0, unhandled: 0
-[   40.990511] ->handle_irq():  c00aa538, handle_bad_irq+0x0/0x260
-[   40.996768] ->irq_data.chip(): c080b6ec, no_irq_chip+0x0/0x60
-[   41.002842] ->action():   (null)
-[   41.006242]    IRQ_NOPROBE set
-[   41.009465]  IRQ_NOREQUEST set
+Remove the request_irq and use devm_request_threaded_irq
+also cleanup free_irq. devm_* takes care of that.
 
 Signed-off-by: George Cherian <george.cherian@ti.com>
 ---
- drivers/gpio/gpio-pcf857x.c | 22 +++++++++++++++++++---
- 1 file changed, 19 insertions(+), 3 deletions(-)
+ drivers/gpio/gpio-pcf857x.c | 28 ++++++++++++++++++++++++----
+ 1 file changed, 24 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/gpio/gpio-pcf857x.c b/drivers/gpio/gpio-pcf857x.c
-index 4890e97..578d93f 100644
+index 947cff4..4d0d28c 100644
 --- a/drivers/gpio/gpio-pcf857x.c
 +++ b/drivers/gpio/gpio-pcf857x.c
-@@ -93,6 +93,7 @@ struct pcf857x {
- 	unsigned		out;		/* software latch */
- 	unsigned		status;		/* current status */
- 	int			irq;		/* real irq number */
-+	unsigned		irq_mapped;	/* mapped gpio irqs */
- 
- 	int (*write)(struct i2c_client *client, unsigned data);
- 	int (*read)(struct i2c_client *client);
-@@ -185,8 +186,13 @@ static void pcf857x_set(struct gpio_chip *chip, unsigned offset, int value)
- static int pcf857x_to_irq(struct gpio_chip *chip, unsigned offset)
- {
- 	struct pcf857x *gpio = container_of(chip, struct pcf857x, chip);
-+	int ret;
- 
--	return irq_create_mapping(gpio->irq_domain, offset);
-+	ret = irq_create_mapping(gpio->irq_domain, offset);
-+	if (ret > 0)
-+		gpio->irq_mapped |= (1 << offset);
-+
-+	return ret;
+@@ -191,6 +191,25 @@ static int pcf857x_to_irq(struct gpio_chip *chip, unsigned offset)
+ 	return irq_create_mapping(gpio->irq_domain, offset);
  }
  
- static irqreturn_t pcf857x_irq(int irq, void *data)
-@@ -198,7 +204,12 @@ static irqreturn_t pcf857x_irq(int irq, void *data)
- 
- 	spin_lock_irqsave(&gpio->slock, flags);
- 
--	change = gpio->status ^ status;
-+	/*
-+	 * call the interrupt handler iff gpio is used as
-+	 * interrupt source, just to avoid bad irqs
-+	 */
++static irqreturn_t pcf857x_irq(int irq, void *data)
++{
++	struct pcf857x  *gpio = data;
++	unsigned long change, i, status, flags;
 +
-+	change = ((gpio->status ^ status) & gpio->irq_mapped);
- 	for_each_set_bit(i, &change, gpio->chip.ngpio)
- 		generic_handle_irq(irq_find_mapping(gpio->irq_domain, i));
- 	gpio->status = status;
-@@ -211,9 +222,14 @@ static irqreturn_t pcf857x_irq(int irq, void *data)
- static int pcf857x_irq_domain_map(struct irq_domain *domain, unsigned int virq,
- 				 irq_hw_number_t hw)
++	status = gpio->read(gpio->client);
++
++	spin_lock_irqsave(&gpio->slock, flags);
++
++	change = gpio->status ^ status;
++	for_each_set_bit(i, &change, gpio->chip.ngpio)
++		generic_handle_irq(irq_find_mapping(gpio->irq_domain, i));
++	gpio->status = status;
++
++	spin_unlock_irqrestore(&gpio->slock, flags);
++
++	return IRQ_HANDLED;
++}
++
+ static void pcf857x_irq_demux_work(struct work_struct *work)
  {
-+	struct pcf857x *gpio = domain->host_data;
-+
- 	irq_set_chip_and_handler(virq,
- 				 &dummy_irq_chip,
- 				 handle_level_irq);
-+	set_irq_flags(virq, IRQF_VALID);
-+	gpio->irq_mapped |= (1 << hw);
-+
- 	return 0;
+ 	struct pcf857x *gpio = container_of(work,
+@@ -241,8 +260,6 @@ static void pcf857x_irq_domain_cleanup(struct pcf857x *gpio)
+ 	if (gpio->irq_domain)
+ 		irq_domain_remove(gpio->irq_domain);
+ 
+-	if (gpio->irq)
+-		free_irq(gpio->irq, gpio);
  }
  
-@@ -236,7 +252,7 @@ static int pcf857x_irq_domain_init(struct pcf857x *gpio,
- 	gpio->irq_domain = irq_domain_add_linear(client->dev.of_node,
- 						 gpio->chip.ngpio,
- 						 &pcf857x_irq_domain_ops,
--						 NULL);
-+						 gpio);
- 	if (!gpio->irq_domain)
+ static int pcf857x_irq_domain_init(struct pcf857x *gpio,
+@@ -258,8 +275,11 @@ static int pcf857x_irq_domain_init(struct pcf857x *gpio,
+ 		goto fail;
+ 
+ 	/* enable real irq */
+-	status = request_irq(client->irq, pcf857x_irq_demux, 0,
+-			     dev_name(&client->dev), gpio);
++	status = devm_request_threaded_irq(&client->dev, client->irq,
++				NULL, pcf857x_irq, IRQF_ONESHOT |
++				IRQF_TRIGGER_FALLING,
++				dev_name(&client->dev), gpio);
++
+ 	if (status)
  		goto fail;
  
 -- 
