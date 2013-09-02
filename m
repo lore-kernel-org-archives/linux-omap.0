@@ -1,44 +1,49 @@
 From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH RFC 4/6] ARM: OMAP2+: AM43x/AM335x: have reset controller
-Date: Mon, 2 Sep 2013 19:50:28 +0530
-Message-ID: <54ef6f33272dfe2bbf3596da05579a7305fb0cff.1378129416.git.afzal@ti.com>
+Subject: [PATCH RFC 6/6] ARM: dts: AM4372: prcm node (for reset)
+Date: Mon, 2 Sep 2013 19:52:20 +0530
+Message-ID: <3ed48b0a5057a3efee97f4d91bd54214312a5adb.1378129416.git.afzal@ti.com>
 References: <cover.1378129416.git.afzal@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <cover.1378129416.git.afzal@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
+Cc: Mark Rutland <mark.rutland@arm.com>, Paul Walmsley <paul@pwsan.com>, Russell King <linux@arm.linux.org.uk>, Ian Campbell <ian.campbell@citrix.com>, Pawel Moll <pawel.moll@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Tony Lindgren <tony@atomide.com>, Rob Herring <rob.herring@calxeda.com>, Benoit Cousson <bcousson@baylibre.com>, Philipp Zabel <p.zabel@pengutronix.de>
 List-Id: linux-omap@vger.kernel.org
 
-AM43x, AM335x have reset block as part of prcm, let reset driver be
-usable with these SoC's.
+Add AM4372 prcm node with reset binding.
 
 Signed-off-by: Afzal Mohammed <afzal@ti.com>
 ---
- arch/arm/mach-omap2/Kconfig | 2 ++
- 1 file changed, 2 insertions(+)
+ arch/arm/boot/dts/am4372.dtsi | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index 3eed000..fa28d1d 100644
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -72,6 +72,7 @@ config SOC_AM33XX
- 	select CPU_V7
- 	select MULTI_IRQ_HANDLER
- 	select COMMON_CLK
-+	select ARCH_HAS_RESET_CONTROLLER
+diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
+index 5a68fde..d0d11b3 100644
+--- a/arch/arm/boot/dts/am4372.dtsi
++++ b/arch/arm/boot/dts/am4372.dtsi
+@@ -411,6 +411,12 @@
+ 			ti,hwmods = "epwmss5";
+ 			status = "disabled";
+ 		};
++
++		prcm: prcm@44df0000 {
++			compatible = "ti,am4372-prcm";
++			reg = <0x44df0000 0xa000>;
++			#reset-cells = <1>;
++		};
+ 	};
  
- config SOC_AM43XX
- 	bool "TI AM43x"
-@@ -82,6 +83,7 @@ config SOC_AM43XX
- 	select ARM_GIC
- 	select COMMON_CLK
- 	select MACH_OMAP_GENERIC
-+	select ARCH_HAS_RESET_CONTROLLER
- 
- config ARCH_OMAP2PLUS
- 	bool
+ 	clocks {
 -- 
 1.8.3.4
