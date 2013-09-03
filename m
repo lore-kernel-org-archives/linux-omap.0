@@ -1,51 +1,65 @@
-From: Russ Dill <Russ.Dill@ti.com>
-Subject: Re: [PATCH 2/2] ARM: OMAP4+: Move SRAM data to DT
-Date: Tue, 3 Sep 2013 08:07:56 -0700
-Message-ID: <CA+Bv8XZ4sxze7-vGK67yO3ujy+ASAffnT84mFkq8vNP8pG3Cgw@mail.gmail.com>
-References: <1377598305-15539-1-git-send-email-rnayak@ti.com>
-	<1377598305-15539-3-git-send-email-rnayak@ti.com>
-	<CA+Bv8XaK3fBkRZjN8dCzi9dt9C3SVe2nT746Szzb_F=69w=fMw@mail.gmail.com>
-	<1378218919.5891.3.camel@weser.hi.pengutronix.de>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH v11 0/8] PHY framework
+Date: Tue, 3 Sep 2013 20:55:23 +0530
+Message-ID: <5225FF63.6080608@ti.com>
+References: <1377063973-22044-1-git-send-email-kishon@ti.com>
+ <521B0E79.6060506@ti.com> <20130827192059.GZ3005@radagast>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qe0-f48.google.com ([209.85.128.48]:59319 "EHLO
-	mail-qe0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754033Ab3ICPH4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Sep 2013 11:07:56 -0400
-Received: by mail-qe0-f48.google.com with SMTP id t9so2424202qeq.35
-        for <linux-omap@vger.kernel.org>; Tue, 03 Sep 2013 08:07:56 -0700 (PDT)
-In-Reply-To: <1378218919.5891.3.camel@weser.hi.pengutronix.de>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20130827192059.GZ3005@radagast>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: gregkh@linuxfoundation.org
+Cc: linux-fbdev@vger.kernel.org, linux-doc@vger.kernel.org, tony@atomide.com, nsekhar@ti.com, tomasz.figa@gmail.com, s.nawrocki@samsung.com, kgene.kim@samsung.com, swarren@nvidia.com, jg1.han@samsung.com, stern@rowland.harvard.edu, grant.likely@linaro.org, linux-media@vger.kernel.org, devicetree@vger.kernel.org, george.cherian@ti.com, arnd@arndb.de, linux-samsung-soc@vger.kernel.org, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balajitk@ti.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, kyungmin.park@samsung.com, broonie@kernel.org, akpm@linux-foundation.org
 List-Id: linux-omap@vger.kernel.org
-To: Lucas Stach <l.stach@pengutronix.de>
-Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Rajendra Nayak <rnayak@ti.com>, bcousson@baylibre.com, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
 
-On Tue, Sep 3, 2013 at 7:35 AM, Lucas Stach <l.stach@pengutronix.de> wrote:
-> Am Dienstag, den 03.09.2013, 06:56 -0700 schrieb Russ Dill:
->> On Tue, Aug 27, 2013 at 3:11 AM, Rajendra Nayak <rnayak@ti.com> wrote:
->> > Use drivers/misc/sram.c driver to manage SRAM on all DT only
->> > OMAP platforms (am33xx, am43xx, omap4 and omap5) instead of
->> > the existing private implementation.
->> >
->> > Address and size related data  is removed from mach-omap2/sram.c
->> > and now passed to drivers/misc/sram.c from DT.
->> >
->> > Users can hence use general purpose allocator apis instead of
->> > OMAP private ones to manage and use SRAM.
->> >
->> > Currently there are no users on SRAM on these platfoms.
->> >
->> > Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+Hi Greg,
+
+On Wednesday 28 August 2013 12:50 AM, Felipe Balbi wrote:
+> Hi,
+> 
+> On Mon, Aug 26, 2013 at 01:44:49PM +0530, Kishon Vijay Abraham I wrote:
+>> On Wednesday 21 August 2013 11:16 AM, Kishon Vijay Abraham I wrote:
+>>> Added a generic PHY framework that provides a set of APIs for the PHY drivers
+>>> to create/destroy a PHY and APIs for the PHY users to obtain a reference to
+>>> the PHY with or without using phandle.
+>>>
+>>> This framework will be of use only to devices that uses external PHY (PHY
+>>> functionality is not embedded within the controller).
+>>>
+>>> The intention of creating this framework is to bring the phy drivers spread
+>>> all over the Linux kernel to drivers/phy to increase code re-use and to
+>>> increase code maintainability.
+>>>
+>>> Comments to make PHY as bus wasn't done because PHY devices can be part of
+>>> other bus and making a same device attached to multiple bus leads to bad
+>>> design.
+>>>
+>>> If the PHY driver has to send notification on connect/disconnect, the PHY
+>>> driver should make use of the extcon framework. Using this susbsystem
+>>> to use extcon framwork will have to be analysed.
+>>>
+>>> You can find this patch series @
+>>> git://git.kernel.org/pub/scm/linux/kernel/git/kishon/linux-phy.git testing
 >>
->> I was trying to experiment with this on am33xx, but I noticed that the
->> ioremap region is not marked exec, so it cannot be used to run code.
->
-> Could you outline a use-case where you would need to execute code from
-> SRAM while running in a linux system? I'm curious what you would use
-> this for.
+>> Looks like there are not further comments on this series. Can you take this in
+>> your misc tree?
+> 
+> Do you want me to queue these for you ? There are quite a few users for
+> this framework already and I know of at least 2 others which will show
+> up for v3.13.
 
-Code that needs to disable or reconfigure the memory controller is the
-common use case. Some suspend/resume code even goes beyond that and
-performs steps that must be done *after* the memory controller has
-powered down, such as putting PLLs in bypass, etc.
+Can you queue this patch series? There are quite a few users already for this
+framework.
+
+Thanks
+Kishon
