@@ -1,78 +1,42 @@
-From: Kumar Gala <galak@codeaurora.org>
-Subject: Re: [PATCH 1/2] hwspinlock/omap: add support for dt nodes
-Date: Tue, 3 Sep 2013 13:50:53 -0500
-Message-ID: <43798031-2D57-44F0-A19C-FD80DB9E9794@codeaurora.org>
-References: <1378230767-54931-1-git-send-email-s-anna@ti.com>
-Mime-Version: 1.0 (Apple Message framework v1283)
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1378230767-54931-1-git-send-email-s-anna@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Suman Anna <s-anna@ti.com>
-Cc: Ohad Ben-Cohen <ohad@wizery.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
+From: Russ Dill <Russ.Dill@ti.com>
+Subject: Re: [PATCH v4 0/4] ARM: OMAP2+: AM33XX: VDD CORE OPP50 support
+Date: Tue, 3 Sep 2013 11:55:48 -0700
+Message-ID: <CA+Bv8XakgQZoeB8OTWsq1uUTcPfuxcD1qP9wnhu4HK22FMxFNQ@mail.gmail.com>
+References: <1376432412-8509-1-git-send-email-Russ.Dill@ti.com>
+	<1376487480.3889.64.camel@coredoba.hi.pengutronix.de>
+	<CA+Bv8XYe0UzBkjqtO7bNkgNVTQtxiM7Hv93BOu8Lw1=pESOwLA@mail.gmail.com>
+	<87txiasqhk.fsf@linaro.org>
+	<CA+Bv8XZagHZ9mUuZB49hrH=901fXzoAcV8C0Fm3EfLa2eiBu0w@mail.gmail.com>
+	<87ppsw7cgq.fsf@linaro.org>
+	<CA+Bv8XbxV=BFjcSsUMX2pz9LeCkSwrjzZmj_=YbHGzyfbLXmaQ@mail.gmail.com>
+	<874na8xqfl.fsf@linaro.org>
+	<CANacCWzK1w9+XKEoUfS4ZB7QGxi_0JkVWBLs_wsaUjrzW2QB+A@mail.gmail.com>
+	<87hae8tc6e.fsf@linaro.org>
+	<CA+Bv8XaQgOiSiScQW=CVxzXBuG0soafQotApjoVEZ0P9U3netg@mail.gmail.com>
+	<87eh9bqi1x.fsf@linaro.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-qc0-f179.google.com ([209.85.216.179]:42083 "EHLO
+	mail-qc0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755351Ab3ICSzt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Sep 2013 14:55:49 -0400
+In-Reply-To: <87eh9bqi1x.fsf@linaro.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@linaro.org>
+Cc: devicetree@vger.kernel.org, =?UTF-8?Q?Jan_L=C3=BCbbe?= <jlu@pengutronix.de>, Mark Brown <broonie@kernel.org>, Vaibhav Bedia <vaibhav.bedia@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
 
+On Fri, Aug 30, 2013 at 9:06 AM, Kevin Hilman <khilman@linaro.org> wrote:
+> Well, I was thinking of something much dumber.
+>
+> I was thinking about just _carefully_ writing a single, self-contained C
+> function, with all of its data on the stack (and consts as #defines).
+> Think of it is a step up in readability from straight assembly (which
+> was the stated reason for moving the code to the M3 in the first place.)
+>
+> Kevin
 
-On Sep 3, 2013, at 12:52 PM, Suman Anna wrote:
-
-> HwSpinlock IP is present only on OMAP4 and other newer SoCs,
-> which are all device-tree boot only. This patch adds the
-> base support for parsing the DT nodes, and removes the code
-> dealing with the traditional platform device instantiation.
-> 
-> Signed-off-by: Suman Anna <s-anna@ti.com>
-> ---
-> .../devicetree/bindings/hwlock/omap-hwspinlock.txt | 28 ++++++++++
-> arch/arm/mach-omap2/Makefile                       |  3 --
-> arch/arm/mach-omap2/hwspinlock.c                   | 60 ----------------------
-> drivers/hwspinlock/omap_hwspinlock.c               | 21 ++++++--
-> 4 files changed, 45 insertions(+), 67 deletions(-)
-> create mode 100644 Documentation/devicetree/bindings/hwlock/omap-hwspinlock.txt
-> delete mode 100644 arch/arm/mach-omap2/hwspinlock.c
-> 
-> diff --git a/Documentation/devicetree/bindings/hwlock/omap-hwspinlock.txt b/Documentation/devicetree/bindings/hwlock/omap-hwspinlock.txt
-> new file mode 100644
-> index 0000000..adfb8ad
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/hwlock/omap-hwspinlock.txt
-> @@ -0,0 +1,28 @@
-> +OMAP4+ HwSpinlock Driver
-> +
-> +Required properties:
-> +- compatible:		Currently supports only "ti,omap4-hwspinlock" for
-> +				OMAP44xx, OMAP54xx, AM33xx, AM43xx, DRA7xx SoCs
-> +- reg:			Contains the hwspinlock register address range (base
-> +			address and length)
-> +- ti,hwmods:		Name of the hwmod associated with the hwspinlock device
-> +
-> +Optional properties:
-> +- base_id:		Base Id for the locks for a particular hwspinlock
-> +			device. If not mentioned, a default value of 0 is used.
-> +			This property is mandatory ONLY if a SoC has several
-> +			hwspinlock devices. There are currently no such OMAP
-> +			SoCs.
-
-Should this be ti,base_id ? [ I know its kinda generic in its intent for any SoC w/multiple blocks ]
-
-> +
-> +			See documentation on struct hwspinlock_pdata in
-> +			linux/hwspinlock.h for more details.
-> +
-> +
-> +Example:
-> +
-> +/* OMAP4 */
-> +hwspinlock: spinlock@4a0f6000 {
-> +	compatible = "ti,omap4-hwspinlock";
-> +	reg = <0x4a0f6000 0x1000>;
-> +	ti,hwmods = "spinlock";
-> +};
-
-[ snip ]
-
-- k
-
--- 
-Employee of Qualcomm Innovation Center, Inc.
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, hosted by The Linux Foundation
+That can only give you your suspend function. You need a resume
+function to undo everything before calling cpu_resume, and the resume
+function needs access to the data that was in the suspend function.
