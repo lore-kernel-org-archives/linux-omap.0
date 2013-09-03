@@ -1,39 +1,78 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: [PATCH 2/2] ARM: dts: OMAP4: Add hwspinlock node
-Date: Tue, 3 Sep 2013 12:52:52 -0500
-Message-ID: <1378230772-54967-1-git-send-email-s-anna@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain
+From: Kumar Gala <galak@codeaurora.org>
+Subject: Re: [PATCH 1/2] hwspinlock/omap: add support for dt nodes
+Date: Tue, 3 Sep 2013 13:50:53 -0500
+Message-ID: <43798031-2D57-44F0-A19C-FD80DB9E9794@codeaurora.org>
+References: <1378230767-54931-1-git-send-email-s-anna@ti.com>
+Mime-Version: 1.0 (Apple Message framework v1283)
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1378230767-54931-1-git-send-email-s-anna@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Benoit Cousson <bcousson@baylibre.com>
-Cc: Ohad Ben-Cohen <ohad@wizery.com>, Tony Lindgren <tony@atomide.com>, Kumar Gala <galak@codeaurora.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Suman Anna <s-anna@ti.com>
+To: Suman Anna <s-anna@ti.com>
+Cc: Ohad Ben-Cohen <ohad@wizery.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Add the hwspinlock device tree node for OMAP4 family
-of SoCs.
 
-Signed-off-by: Suman Anna <s-anna@ti.com>
----
- arch/arm/boot/dts/omap4.dtsi | 6 ++++++
- 1 file changed, 6 insertions(+)
+On Sep 3, 2013, at 12:52 PM, Suman Anna wrote:
 
-diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-index 22d9f2b..a8cc274 100644
---- a/arch/arm/boot/dts/omap4.dtsi
-+++ b/arch/arm/boot/dts/omap4.dtsi
-@@ -248,6 +248,12 @@
- 			clock-frequency = <48000000>;
- 		};
- 
-+		hwspinlock: spinlock@4a0f6000 {
-+			compatible = "ti,omap4-hwspinlock";
-+			reg = <0x4a0f6000 0x1000>;
-+			ti,hwmods = "spinlock";
-+		};
-+
- 		i2c1: i2c@48070000 {
- 			compatible = "ti,omap4-i2c";
- 			reg = <0x48070000 0x100>;
+> HwSpinlock IP is present only on OMAP4 and other newer SoCs,
+> which are all device-tree boot only. This patch adds the
+> base support for parsing the DT nodes, and removes the code
+> dealing with the traditional platform device instantiation.
+> 
+> Signed-off-by: Suman Anna <s-anna@ti.com>
+> ---
+> .../devicetree/bindings/hwlock/omap-hwspinlock.txt | 28 ++++++++++
+> arch/arm/mach-omap2/Makefile                       |  3 --
+> arch/arm/mach-omap2/hwspinlock.c                   | 60 ----------------------
+> drivers/hwspinlock/omap_hwspinlock.c               | 21 ++++++--
+> 4 files changed, 45 insertions(+), 67 deletions(-)
+> create mode 100644 Documentation/devicetree/bindings/hwlock/omap-hwspinlock.txt
+> delete mode 100644 arch/arm/mach-omap2/hwspinlock.c
+> 
+> diff --git a/Documentation/devicetree/bindings/hwlock/omap-hwspinlock.txt b/Documentation/devicetree/bindings/hwlock/omap-hwspinlock.txt
+> new file mode 100644
+> index 0000000..adfb8ad
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/hwlock/omap-hwspinlock.txt
+> @@ -0,0 +1,28 @@
+> +OMAP4+ HwSpinlock Driver
+> +
+> +Required properties:
+> +- compatible:		Currently supports only "ti,omap4-hwspinlock" for
+> +				OMAP44xx, OMAP54xx, AM33xx, AM43xx, DRA7xx SoCs
+> +- reg:			Contains the hwspinlock register address range (base
+> +			address and length)
+> +- ti,hwmods:		Name of the hwmod associated with the hwspinlock device
+> +
+> +Optional properties:
+> +- base_id:		Base Id for the locks for a particular hwspinlock
+> +			device. If not mentioned, a default value of 0 is used.
+> +			This property is mandatory ONLY if a SoC has several
+> +			hwspinlock devices. There are currently no such OMAP
+> +			SoCs.
+
+Should this be ti,base_id ? [ I know its kinda generic in its intent for any SoC w/multiple blocks ]
+
+> +
+> +			See documentation on struct hwspinlock_pdata in
+> +			linux/hwspinlock.h for more details.
+> +
+> +
+> +Example:
+> +
+> +/* OMAP4 */
+> +hwspinlock: spinlock@4a0f6000 {
+> +	compatible = "ti,omap4-hwspinlock";
+> +	reg = <0x4a0f6000 0x1000>;
+> +	ti,hwmods = "spinlock";
+> +};
+
+[ snip ]
+
+- k
+
 -- 
-1.8.3.3
+Employee of Qualcomm Innovation Center, Inc.
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, hosted by The Linux Foundation
