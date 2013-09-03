@@ -1,156 +1,163 @@
-From: Archit Taneja <archit@ti.com>
-Subject: Re: Pandaboard Kernel 3.8.13.6 no HDMI
-Date: Tue, 3 Sep 2013 11:26:28 +0530
-Message-ID: <52257A0C.5040005@ti.com>
-References: <522530DB.9080706@blueyonder.co.uk>
+From: Keerthy <a0393675@ti.com>
+Subject: Re: [PATCH] ARM: DTS: DRA7: Add TPS659038 PMIC nodes
+Date: Tue, 3 Sep 2013 12:03:58 +0530
+Message-ID: <522582D6.4020800@ti.com>
+References: <1377495411-21984-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:53583 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753133Ab3ICF5Y (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Sep 2013 01:57:24 -0400
-In-Reply-To: <522530DB.9080706@blueyonder.co.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1377495411-21984-1-git-send-email-j-keerthy@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: bcousson@baylibre.com
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, pawel.moll@arm.com, devicetree@vger.kernel.org, rob.herring@calxeda.com, linux-arm-kernel@lists.infradead.org, nm@ti.com, balajitk@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: sboyce@blueyonder.co.uk
-Cc: linux-omap@vger.kernel.org
 
-Hi,
+Benoit,
 
-There are a couple of options here.
 
-On Tuesday 03 September 2013 06:14 AM, Sid Boyce wrote:
-> The Pandaboard list seems dormant so I am seeking help here.
+On Monday 26 August 2013 11:06 AM, Keerthy wrote:
+> The Patch adds nodes for TPS659038 PMIC for DRA7 boards.
 >
-> The previous kernel with HDMI video output was 3.2.7x5.
+> It is based on top of:
+> http://comments.gmane.org/gmane.linux.ports.arm.omap/102459.
 >
-> I built and installed this new kernel with this xorg.conf, it does not
-> work.
-> Section "Device"
->          Identifier      "fb0"
->          Driver "omapfb"
->          Option "fb" "/dev/fb0"
-> EndSection
+> Documentation:	Documentation/devicetree/bindings/mfd/palmas.txt
+> 		Documentation/devicetree/bindings/regulator/palmas-pmic.txt		
+>
+> Boot Tested on DRA7 d1 Board.
 
-Looks like the problem below was buffer allocation. You could use 
-omapdrm instead of omapfb which should allocate buffers successfully. I 
-think the omapdrm drivers was in staging at that point. You could search 
-for it in the .config, and set NUM_CRTCS to 2.
+Any comments on this patch?
 
+> Signed-off-by: Keerthy <j-keerthy@ti.com>
+> ---
+>   arch/arm/boot/dts/dra7-evm.dts |  118 ++++++++++++++++++++++++++++++++++++++++
+>   1 file changed, 118 insertions(+)
 >
-> Section "Monitor"
->          Identifier "HP"
->          ModeLine "1920x1080" 148.501  1920 2008 2052 2200  1080 1084 1089
-> 1125 -HSync -VSync
-> EndSection
->
-> Section "Screen"
->          Identifier      "screen0"
->          Device  "fb0"
->          Monitor "HP"
->          DefaultDepth    16
->          SubSection "Display"
->                  Depth   16
->                  Modes   "1920x1080" "800x480"
->          EndSubSection
-> EndSection
->
-> Mode "800x480"
->      # D: 29.001 MHz, H: 31.251 kHz, V: 59.525 Hz
->      DotClock 29.002
->      HTimings 800 840 888 928
->      VTimings 480 503 506 525
->      Flags    "-HSync" "-VSync"
-> EndMode
->
-> Using the udlfb driver and an xorg.conf for the Lilliput USB 7" screen
-> there is no problem, LXDE is up and running and CRTL-ALT-F1 etc. all
-> OK,  but I need the USB screen for the Beaglebone.
->
-> root@panda:/etc/X11# lsmod
-> Module                  Size  Used by
-> omapdss               253516  0
-> udlfb                  17703  2
-> bluetooth             221172  6
-> snd_usb_audio         115881  0
-> snd_usbmidi_lib        18680  1 snd_usb_audio
-> snd_rawmidi            21747  1 snd_usbmidi_lib
-> snd_hwdep               6190  1 snd_usb_audio
-> snd_pcm_oss            42617  0
-> snd_mixer_oss          14244  1 snd_pcm_oss
-> snd_pcm                84961  2 snd_pcm_oss,snd_usb_audio
-> snd_page_alloc          5296  1 snd_pcm
-> snd_timer              20277  1 snd_pcm
-> snd                    61483  8
-> snd_pcm_oss,snd_usb_audio,snd_hwdep,snd_timer,snd_pcm,snd_rawmidi,snd_usbmidi_lib,snd_mixer_oss
->
-> soundcore               7260  1 snd
-> ehci_hcd               54613  0
-> ohci_hcd               31836  0
-> root@panda:/etc/X11# ls /lib/modules/3.8.13.6x-dirty/kernel/drivers/video/
-> backlight  omap2  udlfb.ko
-> root@panda:/etc/X11# ll
-> /lib/modules/3.8.13.6x-dirty/kernel/drivers/video/omap2/omapfb
-> total 64
-> drwxr-xr-x 2 root root  4096 Sep  2 10:18 ./
-> drwxr-xr-x 5 root root  4096 Sep  2 10:18 ../
-> -rw-r--r-- 1 root root 56916 Sep  2 02:52 omapfb.ko
-> root@panda:/etc/X11# modprobe omapfb
-> ERROR: could not insert 'omapfb': No such device
-> root@panda:/etc/X11# insmod
-> /lib/modules/3.8.13.6x-dirty/kernel/drivers/video/omap2/omapfb/omapfb.ko
-> Error: could not insert module
-> /lib/modules/3.8.13.6x-dirty/kernel/drivers/video/omap2/omapfb/omapfb.ko: No
-> such device
-> root@panda:/1/ubuntu-raring# grep CONFIG_FB .config
-> CONFIG_FB=y
-> CONFIG_FB_CFB_FILLRECT=y
-> CONFIG_FB_CFB_COPYAREA=y
-> CONFIG_FB_CFB_IMAGEBLIT=y
-> CONFIG_FB_SYS_FILLRECT=y
-> CONFIG_FB_SYS_COPYAREA=y
-> CONFIG_FB_SYS_IMAGEBLIT=y
-> CONFIG_FB_SYS_FOPS=y
-> CONFIG_FB_DEFERRED_IO=y
-> CONFIG_FB_MODE_HELPERS=y
-> CONFIG_FB_TILEBLITTING=y
-> CONFIG_FB_ARMCLCD=y
-> CONFIG_FB_UVESA=y
-> CONFIG_FB_TMIO=y
-> CONFIG_FB_TMIO_ACCELL=y
-> CONFIG_FB_UDL=m
-> CONFIG_FB_VIRTUAL=y
-> CONFIG_OMAP2_VRFB=y
-> CONFIG_OMAP2_DSS_RFBI=y
-> CONFIG_FB_OMAP2=m
-> CONFIG_FB_OMAP2_DEBUG_SUPPORT=y
-> CONFIG_FB_OMAP2_NUM_FBS=3
+> Index: linux/arch/arm/boot/dts/dra7-evm.dts
+> ===================================================================
+> --- linux.orig/arch/arm/boot/dts/dra7-evm.dts	2013-08-26 09:57:52.496173554 +0530
+> +++ linux/arch/arm/boot/dts/dra7-evm.dts	2013-08-26 10:38:44.995414695 +0530
+> @@ -93,6 +93,119 @@
+>   	pinctrl-names = "default";
+>   	pinctrl-0 = <&i2c1_pins>;
+>   	clock-frequency = <400000>;
+> +
+> +	tps659038: tps659038@58 {
+> +		compatible = "ti,tps659038";
+> +		reg = <0x58>;
+> +
+> +		tps659038_pmic {
+> +			compatible = "ti,tps659038-pmic";
+> +
+> +			regulators {
+> +				smps123_reg: smps123 {
+> +					/* VDD_MPU */
+> +						regulator-name = "smps123";
+> +						regulator-min-microvolt = < 850000>;
+> +						regulator-max-microvolt = <1250000>;
+> +						regulator-always-on;
+> +						regulator-boot-on;
+> +					};
+> +
+> +				smps45_reg: smps45 {
+> +						/* VDD_DSPEVE */
+> +						regulator-name = "smps45";
+> +						regulator-min-microvolt = < 850000>;
+> +						regulator-max-microvolt = <1150000>;
+> +						regulator-boot-on;
+> +					};
+> +
+> +				smps6_reg: smps6 {
+> +						/* VDD_GPU - over VDD_SMPS6 */
+> +						regulator-name = "smps6";
+> +						regulator-min-microvolt = <850000>;
+> +						regulator-max-microvolt = <12500000>;
+> +						regulator-boot-on;
+> +					};
+> +
+> +				smps7_reg: smps7 {
+> +						/* CORE_VDD */
+> +						regulator-name = "smps7";
+> +						regulator-min-microvolt = <850000>;
+> +						regulator-max-microvolt = <1030000>;
+> +						regulator-always-on;
+> +						regulator-boot-on;
+> +					};
+> +
+> +				smps8_reg: smps8 {
+> +						/* VDD_IVAHD */
+> +						regulator-name = "smps8";
+> +						regulator-min-microvolt = < 850000>;
+> +						regulator-max-microvolt = <1250000>;
+> +						regulator-boot-on;
+> +					};
+> +
+> +				smps9_reg: smps9 {
+> +						/* VDDS1V8 */
+> +						regulator-name = "smps9";
+> +						regulator-min-microvolt = <1800000>;
+> +						regulator-max-microvolt = <1800000>;
+> +						regulator-always-on;
+> +						regulator-boot-on;
+> +					};
+> +
+> +				ldo1_reg: ldo1 {
+> +						/* LDO1_OUT --> SDIO  */
+> +						regulator-name = "ldo1";
+> +						regulator-min-microvolt = <1800000>;
+> +						regulator-max-microvolt = <3300000>;
+> +						regulator-boot-on;
+> +					};
+> +
+> +				ldo2_reg: ldo2 {
+> +						/* VDD_RTCIO */
+> +						/* LDO2 -> VDDSHV5, LDO2 also goes to CAN_PHY_3V3 */
+> +						regulator-name = "ldo2";
+> +						regulator-min-microvolt = <3300000>;
+> +						regulator-max-microvolt = <3300000>;
+> +						regulator-boot-on;
+> +					};
+> +
+> +				ldo3_reg: ldo3 {
+> +						/* VDDA_1V8_PHY */
+> +						regulator-name = "ldo3";
+> +						regulator-min-microvolt = <1800000>;
+> +						regulator-max-microvolt = <1800000>;
+> +						regulator-boot-on;
+> +					};
+> +
+> +				ldo9_reg: ldo9 {
+> +						/* VDD_RTC */
+> +						regulator-name = "ldo9";
+> +						regulator-min-microvolt = <1050000>;
+> +						regulator-max-microvolt = <1050000>;
+> +						regulator-boot-on;
+> +					};
+> +
+> +				ldoln_reg: ldoln {
+> +						/* VDDA_1V8_PLL */
+> +						regulator-name = "ldoln";
+> +						regulator-min-microvolt = <1800000>;
+> +						regulator-max-microvolt = <1800000>;
+> +						regulator-always-on;
+> +						regulator-boot-on;
+> +					};
+> +
+> +				ldousb_reg: ldousb {
+> +						/* VDDA_3V_USB: VDDA_USBHS33 */
+> +						regulator-name = "ldousb";
+> +						regulator-min-microvolt = <3300000>;
+> +						regulator-max-microvolt = <3300000>;
+> +						regulator-boot-on;
+> +					};
+> +
+> +				};
+> +			};
+> +		};
+>   };
+>   
+>   &i2c2 {
 
-The other option is to figure out why it's not working with omapfb. 
-Could you add a CONFIG_OMAP2_DSS_DEBUG in order to get additional DSS 
-prints?
-
->
-> root@panda:/etc/X11# grep HDMI /1/ubuntu-raring/.config
-> CONFIG_OMAP4_DSS_HDMI=y
->
-> ONFIG_ARCH_OMAP4=y
-> CONFIG_MACH_OMAP4_PANDA=y
->
-> Displayed on the serial console
-> =======================
-> root@panda:~# [34587.439270] omapdss error: timeout reading edid
-> [34587.445220] omapfb omapfb: failed to allocate framebuffer
-> [34587.450958] omapfb omapfb: failed to allocate fbmem
-> [34587.456604] omapfb omapfb: failed to setup omapfb
-> [34587.461853] failed to register omapfb driver
-
-The debug prints will help with the edid timeout. About the allocation 
-of buffers, I think it should work if you enable CMA. And set 
-CONFIG_CMA_SIZE_MBYTES to say, 24 Mb. That should allocate the buffers 
-successfully.
-
-Archit
-
+Regards,
+Keerthy
