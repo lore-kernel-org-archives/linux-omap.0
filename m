@@ -1,52 +1,90 @@
-From: Lokesh Vutla <lokeshvutla@ti.com>
-Subject: [PATCH] ARM: dts: AM4372: Add node for dma-controller
-Date: Tue, 3 Sep 2013 16:29:26 +0530
-Message-ID: <1378205966-3683-1-git-send-email-lokeshvutla@ti.com>
+From: Sekhar Nori <nsekhar@ti.com>
+Subject: Re: [PATCH v2 2/3] ARM: OMAP4+: Move SRAM data to DT
+Date: Tue, 3 Sep 2013 19:07:54 +0530
+Message-ID: <5225E632.7010707@ti.com>
+References: <1377775391-13103-1-git-send-email-rnayak@ti.com> <1377775391-13103-3-git-send-email-rnayak@ti.com> <521F4BE9.60004@ti.com> <521F4D41.4010303@ti.com> <521F519E.9040204@ti.com> <521F51F6.90405@ti.com> <5224C4E5.7020002@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:43287 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:47759 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932539Ab3ICK7z (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 3 Sep 2013 06:59:55 -0400
+	id S932904Ab3ICNi2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 3 Sep 2013 09:38:28 -0400
+In-Reply-To: <5224C4E5.7020002@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: bcousson@baylibre.com, linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, nsekhar@ti.com, afzal@ti.com, rnayak@ti.com, r.sricharan@ti.com, devicetree@vger.kernel.org, joelf@ti.com, lokeshvutla@ti.com
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Rajendra Nayak <rnayak@ti.com>, tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, bcousson@baylibre.com, paul@pwsan.com
 
-Adds AM4372 EDMA support to the am4372.dtsi as documented in
-Documentation/devicetree/bindings/dma/ti-edma.txt
+On 9/2/2013 10:33 PM, Sekhar Nori wrote:
+> On 8/29/2013 7:21 PM, Santosh Shilimkar wrote:
+>> On Thursday 29 August 2013 09:50 AM, Rajendra Nayak wrote:
+>>> On Thursday 29 August 2013 07:01 PM, Santosh Shilimkar wrote:
+>>>> On Thursday 29 August 2013 09:26 AM, Sekhar Nori wrote:
+>>>>> On 8/29/2013 4:53 PM, Rajendra Nayak wrote:
+>>>>>> diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+>>>>>> index 22d9f2b..1ba6a77 100644
+>>>>>> --- a/arch/arm/boot/dts/omap4.dtsi
+>>>>>> +++ b/arch/arm/boot/dts/omap4.dtsi
+>>>>>> @@ -126,6 +126,11 @@
+>>>>>>  			pinctrl-single,function-mask = <0x7fff>;
+>>>>>>  		};
+>>>>>>  
+>>>>>> +		ocmcram: ocmcram@40304000 {
+>>>>>
+>>>>> This can now be changed to 0x40300000 now that you have moved to
+>>>>> gen_pool_alloc()?
+>>>>>
+>>>> NO.
+>>>> It won't work on secure devices since first 16 KB is occupied for
+>>>> default configuration. Its not worth trouble also to handle
+>>>> secure/non-secure considering the use of SRAM which is actually just
+>>>> limited to errata. 40304000 will work for both devices.
+>>>
+>>> Right. Sekhar, you might have confused because of the existing buggy code
+>>> in sram.c and sram.h which did this (and is removed in this series)
+>>>
+>>> from sram.c
+>>> -----------
+>>>  #define OMAP2_SRAM_PUB_PA	(OMAP2_SRAM_PA + 0xf800)
+>>>  #define OMAP3_SRAM_PUB_PA       (OMAP3_SRAM_PA + 0x8000)
+>>> -#ifdef CONFIG_OMAP4_ERRATA_I688
+>>> -#define OMAP4_SRAM_PUB_PA	OMAP4_SRAM_PA
+>>> -#else
+>>> -#define OMAP4_SRAM_PUB_PA	(OMAP4_SRAM_PA + 0x4000)
+>>> -#endif
+>>> -#define OMAP5_SRAM_PA		0x40300000
+>>>  
+>>> from sram.h
+>>> -----------
+>>>  #define OMAP2_SRAM_PA		0x40200000
+>>>  #define OMAP3_SRAM_PA           0x40200000
+>>> -#ifdef CONFIG_OMAP4_ERRATA_I688
+>>> -#define OMAP4_SRAM_PA		0x40304000
+>>> -#define OMAP4_SRAM_VA		0xfe404000
+>>> -#else
+>>> -#define OMAP4_SRAM_PA		0x40300000
+>>> -#endif
+>>>
+>>> I am not sure where the checks for CONFIG_OMAP4_ERRATA_I688
+>>> came in from, but these are done, like Santosh said, to handle
+>>> secure and non-secure sram across GP and HS devices and in
+>>> no way related to handling errata I688.
+>>>
+>> The check was to ensure that with errata enabled, we don't care
+>> about first 16 KB ;-)
+> 
+> Hi Rajendra, thanks for the explanation. Other devices like AM437x which
+> have HS variants might need such adjustment too. It will be nice to
+> check that.
 
-Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
----
- arch/arm/boot/dts/am4372.dtsi |   14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+So I checked with folks working on the HS variant and what you have for
+AM437x is just fine. The secure runtime uses a different SRAM bank and
+even if there is a need to use the GP SRAM, the space will first be
+carved using gen_pool APIs on Linux. Only requirement from secure
+runtime software is physically contiguous area - which I think
+gen_pool_alloc() guarantees.
 
-diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
-index ddc1df7..bfc556c 100644
---- a/arch/arm/boot/dts/am4372.dtsi
-+++ b/arch/arm/boot/dts/am4372.dtsi
-@@ -41,6 +41,20 @@
- 		#size-cells = <1>;
- 		ranges;
- 
-+		edma: dma-controller@49000000 {
-+			compatible = "ti,edma3";
-+			ti,hwmods = "tpcc", "tptc0", "tptc1", "tptc2";
-+			reg =	<0x49000000 0x10000>,
-+				<0x44e10f90 0x10>;
-+			interrupts = <GIC_SPI 12 IRQ_TYPE_LEVEL_HIGH>,
-+				     <GIC_SPI 13 IRQ_TYPE_LEVEL_HIGH>,
-+				     <GIC_SPI 14 IRQ_TYPE_LEVEL_HIGH>;
-+			#dma-cells = <1>;
-+			dma-channels = <64>;
-+			ti,edma-regions = <4>;
-+			ti,edma-slots = <256>;
-+		};
-+
- 		uart0: serial@44e09000 {
- 			compatible = "ti,am4372-uart","ti,omap2-uart";
- 			reg = <0x44e09000 0x2000>;
--- 
-1.7.9.5
-
+Thanks,
+Sekhar
