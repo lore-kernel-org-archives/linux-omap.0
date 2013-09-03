@@ -1,76 +1,356 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH v4 0/4] ARM: OMAP2+: AM33XX: VDD CORE OPP50 support
-Date: Tue, 3 Sep 2013 15:39:00 +0100
-Message-ID: <20130903143900.GJ3084@sirena.org.uk>
-References: <1376487480.3889.64.camel@coredoba.hi.pengutronix.de>
- <CA+Bv8XYe0UzBkjqtO7bNkgNVTQtxiM7Hv93BOu8Lw1=pESOwLA@mail.gmail.com>
- <87txiasqhk.fsf@linaro.org>
- <CA+Bv8XZagHZ9mUuZB49hrH=901fXzoAcV8C0Fm3EfLa2eiBu0w@mail.gmail.com>
- <20130829110534.GV10783@sirena.org.uk>
- <CA+Bv8XaX6v7wH0d1c2S7RzFDx6rAueHi1ZkmkGMpvcNDypXvzQ@mail.gmail.com>
- <20130829180101.GO10783@sirena.org.uk>
- <CA+Bv8XavoekzHM6DU3BFdq8W+XK6aGr7bvW60W3L6gR2Cu2p4Q@mail.gmail.com>
- <20130829191051.GT10783@sirena.org.uk>
- <CA+Bv8XYp9zzoYa=-Obr3CW4KmQkB9mswaFj11pxffYqPY7Qwqw@mail.gmail.com>
+From: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v4 2/6] dma: edma: Write out and handle MAX_NR_SG at a
+	given time
+Date: Tue, 3 Sep 2013 10:02:46 -0500
+Message-ID: <5225FA16.5000100@ti.com>
+References: <1377817545-18015-1-git-send-email-joelf@ti.com>
+	<1377817545-18015-3-git-send-email-joelf@ti.com>
+	<20130903040815.GC15824@intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Z+vV71AWp02Mr0PV"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cassiel.sirena.org.uk ([80.68.93.111]:48645 "EHLO
-	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753420Ab3ICOj0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Sep 2013 10:39:26 -0400
-Content-Disposition: inline
-In-Reply-To: <CA+Bv8XYp9zzoYa=-Obr3CW4KmQkB9mswaFj11pxffYqPY7Qwqw@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20130903040815.GC15824-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
+List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
+List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
+Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+To: Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Koen Kooi <koen-QLwJDigV5abLmq1fohREcCpxlwaOVQ5f@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sricharan R <r.sricharan-l0cyMroinI0@public.gmane.org>, Franklin Cooper <fcooper-l0cyMroinI0@public.gmane.org>, Dan Williams <djbw-b10kYP2dOMg@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Russ Dill <Russ.Dill@ti.com>
-Cc: devicetree@vger.kernel.org, Kevin Hilman <khilman@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Jan =?iso-8859-1?Q?L=FCbbe?= <jlu@pengutronix.de>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
 
+On 09/02/2013 11:08 PM, Vinod Koul wrote:
+> On Thu, Aug 29, 2013 at 06:05:41PM -0500, Joel Fernandes wrote:
+>> Process SG-elements in batches of MAX_NR_SG if they are greater
+>> than MAX_NR_SG. Due to this, at any given time only those many
+>> slots will be used in the given channel no matter how long the
+>> scatter list is. We keep track of how much has been written
+>> inorder to process the next batch of elements in the scatter-list
+>> and detect completion.
+>>
+>> For such intermediate transfer completions (one batch of MAX_NR_SG),
+>> make use of pause and resume functions instead of start and stop
+>> when such intermediate transfer is in progress or completed as we
+>> donot want to clear any pending events.
+>>
+>> Signed-off-by: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>
+>> ---
+>>  drivers/dma/edma.c | 79 ++++++++++++++++++++++++++++++++++++------------------
+>>  1 file changed, 53 insertions(+), 26 deletions(-)
+>>
+>> diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
+>> index e522ad5..732829b 100644
+>> --- a/drivers/dma/edma.c
+>> +++ b/drivers/dma/edma.c
+>> @@ -56,6 +56,7 @@ struct edma_desc {
+>>  	struct list_head		node;
+>>  	int				absync;
+>>  	int				pset_nr;
+>> +	int				processed;
+>>  	struct edmacc_param		pset[0];
+>>  };
+>>  
+>> @@ -104,22 +105,34 @@ static void edma_desc_free(struct virt_dma_desc *vdesc)
+>>  /* Dispatch a queued descriptor to the controller (caller holds lock) */
+>>  static void edma_execute(struct edma_chan *echan)
+>>  {
+>> -	struct virt_dma_desc *vdesc = vchan_next_desc(&echan->vchan);
+>> +	struct virt_dma_desc *vdesc;
+>>  	struct edma_desc *edesc;
+>> -	int i;
+>> -
+>> -	if (!vdesc) {
+>> -		echan->edesc = NULL;
+>> -		return;
+>> +	struct device *dev = echan->vchan.chan.device->dev;
+>> +	int i, j, left, nslots;
+>> +
+>> +	/* If either we processed all psets or we're still not started */
+>> +	if (!echan->edesc ||
+>> +	    echan->edesc->pset_nr == echan->edesc->processed) {
+>> +		/* Get next vdesc */
+>> +		vdesc = vchan_next_desc(&echan->vchan);
+>> +		if (!vdesc) {
+>> +			echan->edesc = NULL;
+>> +			return;
+>> +		}
+>> +		list_del(&vdesc->node);
+>> +		echan->edesc = to_edma_desc(&vdesc->tx);
+>>  	}
+>>  
+>> -	list_del(&vdesc->node);
+>> +	edesc = echan->edesc;
+>>  
+>> -	echan->edesc = edesc = to_edma_desc(&vdesc->tx);
+>> +	/* Find out how many left */
+>> +	left = edesc->pset_nr - edesc->processed;
+>> +	nslots = min(MAX_NR_SG, left);
+>>  
+>>  	/* Write descriptor PaRAM set(s) */
+>> -	for (i = 0; i < edesc->pset_nr; i++) {
+>> -		edma_write_slot(echan->slot[i], &edesc->pset[i]);
+>> +	for (i = 0; i < nslots; i++) {
+>> +		j = i + edesc->processed;
+>> +		edma_write_slot(echan->slot[i], &edesc->pset[j]);
+>>  		dev_dbg(echan->vchan.chan.device->dev,
+>>  			"\n pset[%d]:\n"
+>>  			"  chnum\t%d\n"
+>> @@ -132,24 +145,31 @@ static void edma_execute(struct edma_chan *echan)
+>>  			"  bidx\t%08x\n"
+>>  			"  cidx\t%08x\n"
+>>  			"  lkrld\t%08x\n",
+>> -			i, echan->ch_num, echan->slot[i],
+>> -			edesc->pset[i].opt,
+>> -			edesc->pset[i].src,
+>> -			edesc->pset[i].dst,
+>> -			edesc->pset[i].a_b_cnt,
+>> -			edesc->pset[i].ccnt,
+>> -			edesc->pset[i].src_dst_bidx,
+>> -			edesc->pset[i].src_dst_cidx,
+>> -			edesc->pset[i].link_bcntrld);
+>> +			j, echan->ch_num, echan->slot[i],
+>> +			edesc->pset[j].opt,
+>> +			edesc->pset[j].src,
+>> +			edesc->pset[j].dst,
+>> +			edesc->pset[j].a_b_cnt,
+>> +			edesc->pset[j].ccnt,
+>> +			edesc->pset[j].src_dst_bidx,
+>> +			edesc->pset[j].src_dst_cidx,
+>> +			edesc->pset[j].link_bcntrld);
+>>  		/* Link to the previous slot if not the last set */
+>> -		if (i != (edesc->pset_nr - 1))
+>> +		if (i != (nslots - 1))
+>>  			edma_link(echan->slot[i], echan->slot[i+1]);
+>>  		/* Final pset links to the dummy pset */
+>>  		else
+>>  			edma_link(echan->slot[i], echan->ecc->dummy_slot);
+>>  	}
+>>  
+>> -	edma_start(echan->ch_num);
+>> +	edesc->processed += nslots;
+>> +
+>> +	edma_resume(echan->ch_num);
+>> +
+>> +	if (edesc->processed <= MAX_NR_SG) {
+>> +		dev_dbg(dev, "first transfer starting %d\n", echan->ch_num);
+>> +		edma_start(echan->ch_num);
+>> +	}
+>>  }
+>>  
+>>  static int edma_terminate_all(struct edma_chan *echan)
+>> @@ -368,19 +388,26 @@ static void edma_callback(unsigned ch_num, u16 ch_status, void *data)
+>>  	struct edma_desc *edesc;
+>>  	unsigned long flags;
+>>  
+>> -	/* Stop the channel */
+>> -	edma_stop(echan->ch_num);
+>> +	/* Pause the channel */
+>> +	edma_pause(echan->ch_num);
+>>  
+>>  	switch (ch_status) {
+>>  	case DMA_COMPLETE:
+>> -		dev_dbg(dev, "transfer complete on channel %d\n", ch_num);
+>> -
+>>  		spin_lock_irqsave(&echan->vchan.lock, flags);
+>>  
+>>  		edesc = echan->edesc;
+>>  		if (edesc) {
+>> +			if (edesc->processed == edesc->pset_nr) {
+>> +				dev_dbg(dev, "transfer complete." \
+>> +					" stopping channel %d\n", ch_num);
+>> +				edma_stop(echan->ch_num);
+>> +				vchan_cookie_complete(&edesc->vdesc);
+>> +			} else {
+>> +				dev_dbg(dev, "Intermediate transfer complete" \
+>> +					" on channel %d\n", ch_num);
+> No, these two not right... Consider someone seeing this message will try to
+> grep "transfer complete stopping channel" and will fail miserable to find the
+> offending line. And this makes it uglier...
+> 
+> Also I believe checkpatch has this check, don't you run that before sending
+> patches?
 
---Z+vV71AWp02Mr0PV
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Sorry I did run checkpatch but the >80 char warnings were still there. Thanks
+for pointing out that user-visible strings should not be split.
 
-On Tue, Sep 03, 2013 at 07:06:01AM -0700, Russ Dill wrote:
-> On Thu, Aug 29, 2013 at 12:10 PM, Mark Brown <broonie@kernel.org> wrote:
+> 
+> Quoting CodingStyle:
+> 
+>                 Chapter 2: Breaking long lines and strings
+> 
+> Coding style is all about readability and maintainability using commonly
+> available tools.
+> 
+> The limit on the length of lines is 80 columns and this is a strongly
+> preferred limit.
+> 
+> Statements longer than 80 columns will be broken into sensible chunks, unless
+> exceeding 80 columns significantly increases readability and does not hide
+> information. Descendants are always substantially shorter than the parent and
+> are placed substantially to the right. The same applies to function headers
+> with a long argument list. However, never break user-visible strings such as
+> printk messages, because that breaks the ability to grep for them.
+>                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-> > I was thinking about the majority of regulators where setting a voltage
-> > would be a single bitfield update (plus ramp delay, which is going to
-> > need to be accounted for in the power on case).  If we need to do longer
-> > sequences things get a bit more tricky in terms of interface but it
-> > seems doable.
+Sure, I removed the string split and a generate a new patch below, Thanks.
 
-> The sequence for TPS65217 on beaglebone is rather long, it's 8
-> register writes. It has to write the new value to the DCDC3 register
-> and the apply bit to the DCDC register, but both registers are
-> password locked registers. The password sequence is to write the
-> password register, then the register, then the password register
-> again, then the register again.
+---8<---
+From: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v4 2/6] dma: edma: Write out and handle MAX_NR_SG at a given
+ time
 
-Oh dear, that's a bit annoying.  It's doable obviously if people decide
-to go down that route but it's work and this is a very common system.
+Process SG-elements in batches of MAX_NR_SG if they are greater
+than MAX_NR_SG. Due to this, at any given time only those many
+slots will be used in the given channel no matter how long the
+scatter list is. We keep track of how much has been written
+inorder to process the next batch of elements in the scatter-list
+and detect completion.
 
---Z+vV71AWp02Mr0PV
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+For such intermediate transfer completions (one batch of MAX_NR_SG),
+make use of pause and resume functions instead of start and stop
+when such intermediate transfer is in progress or completed as we
+donot want to clear any pending events.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.21 (GNU/Linux)
+Signed-off-by: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>
+---
+ drivers/dma/edma.c | 77 ++++++++++++++++++++++++++++++++++++------------------
+ 1 file changed, 51 insertions(+), 26 deletions(-)
 
-iQIcBAEBAgAGBQJSJfSBAAoJELSic+t+oim98ToP/iasNxlM3WzXPz9WTnQgRfnT
-ZfmXGxw3wQNT7GJ7e0XEjo3eYHyWHCHEt2m9xC7jxUWQzpf0+Fgz/jPDZcImbbVX
-dOGleZyLCnhSO2QJ5AWpIBxUWHTkjp5DaNYkufiJtK6+8hzr420E9xNNrJZom8XG
-w9idVdz/j+hP7I6fx3ljqHP/EoPHtorbTBeBWAcUeNZPie3oPDmkM0hRhObywH9M
-7VmFDblHCtui+GTsqhMKp7pbgTfqyv5P//TYWDD+SKlN8vnFtWwQoT9Di8M2Mxul
-jTL8fEuBbhWlBOA7bg2hLzL0dzhy8sBs8UJvfuYTP77OtW2p0zhc/ogmANhL8pi3
-F+ym5WLfYR+9++6Xu/Lje024+mwlFZezyUUiuJVDVfzGCC1QdB4WkcCh2ja3zoo+
-eBJqfs8qwGjeuHvq5oKFRSUcZ8UcnjJGzW2bYd7l7MX2dgemKiSmIvm5lDfgxmVl
-eo73tp9NNKx7mAkPfEDBTL4UvG06JCGLhCyIII4pLOkI5gF7b/1gNM1d4jdUsW4/
-Cq84HVzMAVkamrBSedbd2we897PlTRp/verh9lJGKEkUDQoRa0FvJ3XehMSi9e8D
-/BKlqgvI7cnQQrLx8eJP3SKL6tEI8ssHJAdEP/SnlwMN9dJY8f0vUsLJzjf7N2ij
-vY+3owlS5PSpEzRRPpr7
-=ggZr
------END PGP SIGNATURE-----
+diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
+index e522ad5..f5232bc 100644
+--- a/drivers/dma/edma.c
++++ b/drivers/dma/edma.c
+@@ -56,6 +56,7 @@ struct edma_desc {
+ 	struct list_head		node;
+ 	int				absync;
+ 	int				pset_nr;
++	int				processed;
+ 	struct edmacc_param		pset[0];
+ };
 
---Z+vV71AWp02Mr0PV--
+@@ -104,22 +105,34 @@ static void edma_desc_free(struct virt_dma_desc *vdesc)
+ /* Dispatch a queued descriptor to the controller (caller holds lock) */
+ static void edma_execute(struct edma_chan *echan)
+ {
+-	struct virt_dma_desc *vdesc = vchan_next_desc(&echan->vchan);
++	struct virt_dma_desc *vdesc;
+ 	struct edma_desc *edesc;
+-	int i;
+-
+-	if (!vdesc) {
+-		echan->edesc = NULL;
+-		return;
++	struct device *dev = echan->vchan.chan.device->dev;
++	int i, j, left, nslots;
++
++	/* If either we processed all psets or we're still not started */
++	if (!echan->edesc ||
++	    echan->edesc->pset_nr == echan->edesc->processed) {
++		/* Get next vdesc */
++		vdesc = vchan_next_desc(&echan->vchan);
++		if (!vdesc) {
++			echan->edesc = NULL;
++			return;
++		}
++		list_del(&vdesc->node);
++		echan->edesc = to_edma_desc(&vdesc->tx);
+ 	}
+
+-	list_del(&vdesc->node);
++	edesc = echan->edesc;
+
+-	echan->edesc = edesc = to_edma_desc(&vdesc->tx);
++	/* Find out how many left */
++	left = edesc->pset_nr - edesc->processed;
++	nslots = min(MAX_NR_SG, left);
+
+ 	/* Write descriptor PaRAM set(s) */
+-	for (i = 0; i < edesc->pset_nr; i++) {
+-		edma_write_slot(echan->slot[i], &edesc->pset[i]);
++	for (i = 0; i < nslots; i++) {
++		j = i + edesc->processed;
++		edma_write_slot(echan->slot[i], &edesc->pset[j]);
+ 		dev_dbg(echan->vchan.chan.device->dev,
+ 			"\n pset[%d]:\n"
+ 			"  chnum\t%d\n"
+@@ -132,24 +145,31 @@ static void edma_execute(struct edma_chan *echan)
+ 			"  bidx\t%08x\n"
+ 			"  cidx\t%08x\n"
+ 			"  lkrld\t%08x\n",
+-			i, echan->ch_num, echan->slot[i],
+-			edesc->pset[i].opt,
+-			edesc->pset[i].src,
+-			edesc->pset[i].dst,
+-			edesc->pset[i].a_b_cnt,
+-			edesc->pset[i].ccnt,
+-			edesc->pset[i].src_dst_bidx,
+-			edesc->pset[i].src_dst_cidx,
+-			edesc->pset[i].link_bcntrld);
++			j, echan->ch_num, echan->slot[i],
++			edesc->pset[j].opt,
++			edesc->pset[j].src,
++			edesc->pset[j].dst,
++			edesc->pset[j].a_b_cnt,
++			edesc->pset[j].ccnt,
++			edesc->pset[j].src_dst_bidx,
++			edesc->pset[j].src_dst_cidx,
++			edesc->pset[j].link_bcntrld);
+ 		/* Link to the previous slot if not the last set */
+-		if (i != (edesc->pset_nr - 1))
++		if (i != (nslots - 1))
+ 			edma_link(echan->slot[i], echan->slot[i+1]);
+ 		/* Final pset links to the dummy pset */
+ 		else
+ 			edma_link(echan->slot[i], echan->ecc->dummy_slot);
+ 	}
+
+-	edma_start(echan->ch_num);
++	edesc->processed += nslots;
++
++	edma_resume(echan->ch_num);
++
++	if (edesc->processed <= MAX_NR_SG) {
++		dev_dbg(dev, "first transfer starting %d\n", echan->ch_num);
++		edma_start(echan->ch_num);
++	}
+ }
+
+ static int edma_terminate_all(struct edma_chan *echan)
+@@ -368,19 +388,24 @@ static void edma_callback(unsigned ch_num, u16 ch_status,
+void *data)
+ 	struct edma_desc *edesc;
+ 	unsigned long flags;
+
+-	/* Stop the channel */
+-	edma_stop(echan->ch_num);
++	/* Pause the channel */
++	edma_pause(echan->ch_num);
+
+ 	switch (ch_status) {
+ 	case DMA_COMPLETE:
+-		dev_dbg(dev, "transfer complete on channel %d\n", ch_num);
+-
+ 		spin_lock_irqsave(&echan->vchan.lock, flags);
+
+ 		edesc = echan->edesc;
+ 		if (edesc) {
++			if (edesc->processed == edesc->pset_nr) {
++				dev_dbg(dev, "Transfer complete, stopping channel %d\n", ch_num);
++				edma_stop(echan->ch_num);
++				vchan_cookie_complete(&edesc->vdesc);
++			} else {
++				dev_dbg(dev, "Intermediate transfer complete on channel %d\n", ch_num);
++			}
++
+ 			edma_execute(echan);
+-			vchan_cookie_complete(&edesc->vdesc);
+ 		}
+
+ 		spin_unlock_irqrestore(&echan->vchan.lock, flags);
+-- 
+1.8.1.2
