@@ -1,57 +1,89 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [PATCH v4 0/4] ARM: OMAP2+: AM33XX: VDD CORE OPP50 support
-Date: Tue, 3 Sep 2013 12:07:16 -0700
-Message-ID: <CAGa+x86XVetqMGMTh7LoX6VAEb-d0W67_SbgTCxk4Q=QovpKTQ@mail.gmail.com>
-References: <1376432412-8509-1-git-send-email-Russ.Dill@ti.com>
- <1376487480.3889.64.camel@coredoba.hi.pengutronix.de>
- <CA+Bv8XYe0UzBkjqtO7bNkgNVTQtxiM7Hv93BOu8Lw1=pESOwLA@mail.gmail.com>
- <87txiasqhk.fsf@linaro.org>
- <CA+Bv8XZagHZ9mUuZB49hrH=901fXzoAcV8C0Fm3EfLa2eiBu0w@mail.gmail.com>
- <87ppsw7cgq.fsf@linaro.org>
- <CA+Bv8XbxV=BFjcSsUMX2pz9LeCkSwrjzZmj_=YbHGzyfbLXmaQ@mail.gmail.com>
- <874na8xqfl.fsf@linaro.org>
- <CANacCWzK1w9+XKEoUfS4ZB7QGxi_0JkVWBLs_wsaUjrzW2QB+A@mail.gmail.com>
- <87hae8tc6e.fsf@linaro.org>
- <CA+Bv8XaQgOiSiScQW=CVxzXBuG0soafQotApjoVEZ0P9U3netg@mail.gmail.com>
- <87eh9bqi1x.fsf@linaro.org>
- <CA+Bv8XakgQZoeB8OTWsq1uUTcPfuxcD1qP9wnhu4HK22FMxFNQ@mail.gmail.com>
+From: Suman Anna <s-anna@ti.com>
+Subject: Re: [PATCH 1/2] hwspinlock/omap: add support for dt nodes
+Date: Tue, 3 Sep 2013 14:10:11 -0500
+Message-ID: <52263413.1050108@ti.com>
+References: <1378230767-54931-1-git-send-email-s-anna@ti.com> <43798031-2D57-44F0-A19C-FD80DB9E9794@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <CA+Bv8XakgQZoeB8OTWsq1uUTcPfuxcD1qP9wnhu4HK22FMxFNQ@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Russ Dill <Russ.Dill@ti.com>
-Cc: devicetree@vger.kernel.org, =?ISO-8859-1?Q?Jan_L=FCbbe?= <jlu@pengutronix.de>, Mark Brown <broonie@kernel.org>, Vaibhav Bedia <vaibhav.bedia@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <43798031-2D57-44F0-A19C-FD80DB9E9794@codeaurora.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kumar Gala <galak@codeaurora.org>
+Cc: Ohad Ben-Cohen <ohad@wizery.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Sep 3, 2013 at 11:55 AM, Russ Dill <Russ.Dill@ti.com> wrote:
-> On Fri, Aug 30, 2013 at 9:06 AM, Kevin Hilman <khilman@linaro.org> wrote:
->> Well, I was thinking of something much dumber.
->>
->> I was thinking about just _carefully_ writing a single, self-contained C
->> function, with all of its data on the stack (and consts as #defines).
->> Think of it is a step up in readability from straight assembly (which
->> was the stated reason for moving the code to the M3 in the first place.)
->>
->> Kevin
->
-> That can only give you your suspend function. You need a resume
-> function to undo everything before calling cpu_resume, and the resume
-> function needs access to the data that was in the suspend function.
+Kumar,
 
-Well, it can be done (and I've seen it done) with various hacks, but I
-agree it's not pretty, but it is at least slightly prettier than piles
-of asm.  That being said, I saw you posted a more generic solution
-that looks like a real solution that can scale.  I'll have a closer
-look at that.  Thanks for working on it.
+On 09/03/2013 01:50 PM, Kumar Gala wrote:
+> 
+> On Sep 3, 2013, at 12:52 PM, Suman Anna wrote:
+> 
+>> HwSpinlock IP is present only on OMAP4 and other newer SoCs,
+>> which are all device-tree boot only. This patch adds the
+>> base support for parsing the DT nodes, and removes the code
+>> dealing with the traditional platform device instantiation.
+>>
+>> Signed-off-by: Suman Anna <s-anna@ti.com>
+>> ---
+>> .../devicetree/bindings/hwlock/omap-hwspinlock.txt | 28 ++++++++++
+>> arch/arm/mach-omap2/Makefile                       |  3 --
+>> arch/arm/mach-omap2/hwspinlock.c                   | 60 ----------------------
+>> drivers/hwspinlock/omap_hwspinlock.c               | 21 ++++++--
+>> 4 files changed, 45 insertions(+), 67 deletions(-)
+>> create mode 100644 Documentation/devicetree/bindings/hwlock/omap-hwspinlock.txt
+>> delete mode 100644 arch/arm/mach-omap2/hwspinlock.c
+>>
+>> diff --git a/Documentation/devicetree/bindings/hwlock/omap-hwspinlock.txt b/Documentation/devicetree/bindings/hwlock/omap-hwspinlock.txt
+>> new file mode 100644
+>> index 0000000..adfb8ad
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/hwlock/omap-hwspinlock.txt
+>> @@ -0,0 +1,28 @@
+>> +OMAP4+ HwSpinlock Driver
+>> +
+>> +Required properties:
+>> +- compatible:		Currently supports only "ti,omap4-hwspinlock" for
+>> +				OMAP44xx, OMAP54xx, AM33xx, AM43xx, DRA7xx SoCs
+>> +- reg:			Contains the hwspinlock register address range (base
+>> +			address and length)
+>> +- ti,hwmods:		Name of the hwmod associated with the hwspinlock device
+>> +
+>> +Optional properties:
+>> +- base_id:		Base Id for the locks for a particular hwspinlock
+>> +			device. If not mentioned, a default value of 0 is used.
+>> +			This property is mandatory ONLY if a SoC has several
+>> +			hwspinlock devices. There are currently no such OMAP
+>> +			SoCs.
+> 
+> Should this be ti,base_id ? [ I know its kinda generic in its intent for any SoC w/multiple blocks ]
 
-Kevin
+I didn't add the "ti," prefix exactly for the same reason - it is
+generic w.r.t the hwspinlock core irrespective of the SoC family, and
+there is nothing ti or OMAP specific about it. I have added it to keep
+the DT node definition in sync with the driver code. If it is too
+generic a name, it can always be renamed as hwlock_base_id. This will be
+SoC agnostic property for the hwspinlock driver. What do you think?
+
+regards
+Suman
+
+> 
+>> +
+>> +			See documentation on struct hwspinlock_pdata in
+>> +			linux/hwspinlock.h for more details.
+>> +
+>> +
+>> +Example:
+>> +
+>> +/* OMAP4 */
+>> +hwspinlock: spinlock@4a0f6000 {
+>> +	compatible = "ti,omap4-hwspinlock";
+>> +	reg = <0x4a0f6000 0x1000>;
+>> +	ti,hwmods = "spinlock";
+>> +};
+> 
+> [ snip ]
+> 
+> - k
+> 
