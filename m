@@ -1,72 +1,89 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [PATCHv3 0/9] ARM: OMAP2+: AM33XX: Add suspend-resume support
-Date: Wed, 4 Sep 2013 08:18:09 -0700
-Message-ID: <CAGa+x84FE3kRoEbmh449vBe0=dy17Zi9Z5aBXXxarfa7aOaGQw@mail.gmail.com>
-References: <1375811376-49985-1-git-send-email-d-gerlach@ti.com>
-	<5211E3F6.6090108@ti.com>
-	<52125A39.3010008@ti.com>
-	<87vc2qyjao.fsf@linaro.org>
-	<521FBD6B.3020208@ti.com>
-	<87mwo0rvf8.fsf@linaro.org>
-	<CA+Bv8Xamd7e24nswG4QhLDNhHXs92EfXcfu8E2uL=XLhsL70Hw@mail.gmail.com>
-	<CAGa+x84okZ_j71=oOnK5c43T9L3gmsGcQjWSxZSchfzheA_2HQ@mail.gmail.com>
-	<52261B34.60206@ti.com>
-	<CAGa+x85D2tnX_9QDNb6s1LQCpAz_kGUiOK82C7fPLVTmiZMEFg@mail.gmail.com>
-	<CA+Bv8Xac-HdLU5Cx=zi9=eVmd-hx+xJKVxBVHTaXuoM1c94c=Q@mail.gmail.com>
+From: Suman Anna <s-anna@ti.com>
+Subject: Re: [PATCH 1/2] hwspinlock/omap: add support for dt nodes
+Date: Wed, 4 Sep 2013 11:27:41 -0500
+Message-ID: <52275F7D.4030305@ti.com>
+References: <1378230767-54931-1-git-send-email-s-anna@ti.com> <43798031-2D57-44F0-A19C-FD80DB9E9794@codeaurora.org> <52263413.1050108@ti.com> <8E84282E-BAD1-4A2B-849A-167C32F629DA@codeaurora.org> <52266409.90908@ti.com> <71570936-39F5-4AE1-AD05-163EA3179271@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-we0-f175.google.com ([74.125.82.175]:49392 "EHLO
-	mail-we0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934783Ab3IDPSK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Sep 2013 11:18:10 -0400
-Received: by mail-we0-f175.google.com with SMTP id q59so513539wes.34
-        for <linux-omap@vger.kernel.org>; Wed, 04 Sep 2013 08:18:09 -0700 (PDT)
-In-Reply-To: <CA+Bv8Xac-HdLU5Cx=zi9=eVmd-hx+xJKVxBVHTaXuoM1c94c=Q@mail.gmail.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:43429 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1762745Ab3IDQ1y (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 4 Sep 2013 12:27:54 -0400
+In-Reply-To: <71570936-39F5-4AE1-AD05-163EA3179271@codeaurora.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russ Dill <Russ.Dill@ti.com>
-Cc: Dave Gerlach <d-gerlach@ti.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Gururaja Hebbar <gururaja.hebbar@ti.com>
+To: Kumar Gala <galak@codeaurora.org>
+Cc: Ohad Ben-Cohen <ohad@wizery.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
 
-On Wed, Sep 4, 2013 at 8:12 AM, Russ Dill <Russ.Dill@ti.com> wrote:
-> On Wed, Sep 4, 2013 at 8:01 AM, Kevin Hilman <khilman@linaro.org> wrote:
->> Hi Dave,
+Kumar,
+
+>>>>>
+>>>>>> HwSpinlock IP is present only on OMAP4 and other newer SoCs,
+>>>>>> which are all device-tree boot only. This patch adds the
+>>>>>> base support for parsing the DT nodes, and removes the code
+>>>>>> dealing with the traditional platform device instantiation.
+>>>>>>
+>>>>>> Signed-off-by: Suman Anna <s-anna@ti.com>
+>>>>>> ---
+>>>>>> .../devicetree/bindings/hwlock/omap-hwspinlock.txt | 28 ++++++++++
+>>>>>> arch/arm/mach-omap2/Makefile                       |  3 --
+>>>>>> arch/arm/mach-omap2/hwspinlock.c                   | 60 ----------------------
+>>>>>> drivers/hwspinlock/omap_hwspinlock.c               | 21 ++++++--
+>>>>>> 4 files changed, 45 insertions(+), 67 deletions(-)
+>>>>>> create mode 100644 Documentation/devicetree/bindings/hwlock/omap-hwspinlock.txt
+>>>>>> delete mode 100644 arch/arm/mach-omap2/hwspinlock.c
+>>>>>>
+>>>>>> diff --git a/Documentation/devicetree/bindings/hwlock/omap-hwspinlock.txt b/Documentation/devicetree/bindings/hwlock/omap-hwspinlock.txt
+>>>>>> new file mode 100644
+>>>>>> index 0000000..adfb8ad
+>>>>>> --- /dev/null
+>>>>>> +++ b/Documentation/devicetree/bindings/hwlock/omap-hwspinlock.txt
+>>>>>> @@ -0,0 +1,28 @@
+>>>>>> +OMAP4+ HwSpinlock Driver
+>>>>>> +
+>>>>>> +Required properties:
+>>>>>> +- compatible:		Currently supports only "ti,omap4-hwspinlock" for
+>>>>>> +				OMAP44xx, OMAP54xx, AM33xx, AM43xx, DRA7xx SoCs
+>>>>>> +- reg:			Contains the hwspinlock register address range (base
+>>>>>> +			address and length)
+>>>>>> +- ti,hwmods:		Name of the hwmod associated with the hwspinlock device
+>>>>>> +
+>>>>>> +Optional properties:
+>>>>>> +- base_id:		Base Id for the locks for a particular hwspinlock
+>>>>>> +			device. If not mentioned, a default value of 0 is used.
+>>>>>> +			This property is mandatory ONLY if a SoC has several
+>>>>>> +			hwspinlock devices. There are currently no such OMAP
+>>>>>> +			SoCs.
+>>>>>
+>>>>> Should this be ti,base_id ? [ I know its kinda generic in its intent for any SoC w/multiple blocks ]
+>>>>
+>>>> I didn't add the "ti," prefix exactly for the same reason - it is
+>>>> generic w.r.t the hwspinlock core irrespective of the SoC family, and
+>>>> there is nothing ti or OMAP specific about it. I have added it to keep
+>>>> the DT node definition in sync with the driver code. If it is too
+>>>> generic a name, it can always be renamed as hwlock_base_id. This will be
+>>>> SoC agnostic property for the hwspinlock driver. What do you think?
+>>>
+>>> I'm wondering if we should use cell-index for this purpose.
 >>
->>> Thanks for taking the time to try this out, it does seem there are a few
->>> kinks with BeagleBone Black but we'll get those worked out.
->>
->> I also just noticed that wake from RTC isn't working, but wake from
->> serial console does.  Does RTC wake work for you?  (I use rtcwake -m
->> mem -s4)
->>
->> Kevin
->
-> On Beaglebone white or black?
+>> I didn't get you completely. Do you intend to compute the base_id using
+>> cell-index and number of locks (which may be a separate field altogether
+>> if this information cannot be read from the h/w)? My understanding is
+>> that cell-index is primarily used for identifying the h/w instance number.
+> 
+> I was suggesting using cell-index instead of base_id.  What we should probably due is have a devicetree/bindings/hwlock/hwlock.txt that would describe generic properties like this and just reference that in the omap binding spec.
 
-White.
+Common hwlock.txt sounds good. Will make the change.
 
-> For PG 1.0 (Beaglebone white) there is
-> the following errata:
->
-> "RTC: 32.768-kHZ Clock is Gating Off"
->
-> Details The RTC has a clock gating issue that stops the internal
-> 32.768-kHz clock when the VDD_CORE voltage domain drops below the
-> recommended operating range or the PWRONRSTn input terminal is held
-> low. This issue has the following side effects:
->
-> - The RTC counters stop incrementing when the 32.768-kHz clock is
-> gated. This causes the RTC to lose time while the clock is gated.
->
-> - A wakeup event applied to the EXT_WAKEUP input terminal is masked if
-> the EXT_WAKEUP_DB_EN bit in the RTC PMIC register (0x98) is set to 1
-> which enables the de-bounce function for the EXT_WAKEUP input. This
-> occurs because the 32.768-kHz clock is being used to clock the
-> de-bounce circuit.
+> 
+> I'm thinking if we dont use cell-index, that it should probably be hwlock-base-id
+> 
 
-I'm not using your VDD_CORE scaling series (or maybe the firmware is
-scaling VDD_CORE?)
+I prefer to use hwlock-base-id. I think we should also be defining a
+common property name for number of locks, say hwlock-num-locks.
 
-Anyways, thanks for the info on the errata, that must be what's causing it.
+regards
+Suman
 
-Kevin
