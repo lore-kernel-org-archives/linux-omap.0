@@ -1,100 +1,38 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: Re: [PATCH 1/2] hwspinlock/omap: add support for dt nodes
-Date: Tue, 3 Sep 2013 17:34:49 -0500
-Message-ID: <52266409.90908@ti.com>
-References: <1378230767-54931-1-git-send-email-s-anna@ti.com> <43798031-2D57-44F0-A19C-FD80DB9E9794@codeaurora.org> <52263413.1050108@ti.com> <8E84282E-BAD1-4A2B-849A-167C32F629DA@codeaurora.org>
+From: George Cherian <george.cherian@ti.com>
+Subject: [PATCH v4 0/3] cleanup of gpio_pcf857x.c
+Date: Wed, 4 Sep 2013 12:33:00 +0530
+Message-ID: <1378278183-26596-1-git-send-email-george.cherian@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <8E84282E-BAD1-4A2B-849A-167C32F629DA@codeaurora.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kumar Gala <galak@codeaurora.org>
-Cc: Ohad Ben-Cohen <ohad@wizery.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-gpio-owner@vger.kernel.org>
+Sender: linux-gpio-owner@vger.kernel.org
+To: linus.walleij@linaro.org
+Cc: linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, kuninori.morimoto.gx@renesas.com, n.a.balandin@gmail.com, George Cherian <george.cherian@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Kumar,
+This patch series
+        - removes the irq_demux_work
+        - Uses devm_request_threaded_irq
+        - Call the user handler iff gpio_to_irq is done.
 
->>
->> On 09/03/2013 01:50 PM, Kumar Gala wrote:
->>>
->>> On Sep 3, 2013, at 12:52 PM, Suman Anna wrote:
->>>
->>>> HwSpinlock IP is present only on OMAP4 and other newer SoCs,
->>>> which are all device-tree boot only. This patch adds the
->>>> base support for parsing the DT nodes, and removes the code
->>>> dealing with the traditional platform device instantiation.
->>>>
->>>> Signed-off-by: Suman Anna <s-anna@ti.com>
->>>> ---
->>>> .../devicetree/bindings/hwlock/omap-hwspinlock.txt | 28 ++++++++++
->>>> arch/arm/mach-omap2/Makefile                       |  3 --
->>>> arch/arm/mach-omap2/hwspinlock.c                   | 60 ----------------------
->>>> drivers/hwspinlock/omap_hwspinlock.c               | 21 ++++++--
->>>> 4 files changed, 45 insertions(+), 67 deletions(-)
->>>> create mode 100644 Documentation/devicetree/bindings/hwlock/omap-hwspinlock.txt
->>>> delete mode 100644 arch/arm/mach-omap2/hwspinlock.c
->>>>
->>>> diff --git a/Documentation/devicetree/bindings/hwlock/omap-hwspinlock.txt b/Documentation/devicetree/bindings/hwlock/omap-hwspinlock.txt
->>>> new file mode 100644
->>>> index 0000000..adfb8ad
->>>> --- /dev/null
->>>> +++ b/Documentation/devicetree/bindings/hwlock/omap-hwspinlock.txt
->>>> @@ -0,0 +1,28 @@
->>>> +OMAP4+ HwSpinlock Driver
->>>> +
->>>> +Required properties:
->>>> +- compatible:		Currently supports only "ti,omap4-hwspinlock" for
->>>> +				OMAP44xx, OMAP54xx, AM33xx, AM43xx, DRA7xx SoCs
->>>> +- reg:			Contains the hwspinlock register address range (base
->>>> +			address and length)
->>>> +- ti,hwmods:		Name of the hwmod associated with the hwspinlock device
->>>> +
->>>> +Optional properties:
->>>> +- base_id:		Base Id for the locks for a particular hwspinlock
->>>> +			device. If not mentioned, a default value of 0 is used.
->>>> +			This property is mandatory ONLY if a SoC has several
->>>> +			hwspinlock devices. There are currently no such OMAP
->>>> +			SoCs.
->>>
->>> Should this be ti,base_id ? [ I know its kinda generic in its intent for any SoC w/multiple blocks ]
->>
->> I didn't add the "ti," prefix exactly for the same reason - it is
->> generic w.r.t the hwspinlock core irrespective of the SoC family, and
->> there is nothing ti or OMAP specific about it. I have added it to keep
->> the DT node definition in sync with the driver code. If it is too
->> generic a name, it can always be renamed as hwlock_base_id. This will be
->> SoC agnostic property for the hwspinlock driver. What do you think?
-> 
-> I'm wondering if we should use cell-index for this purpose.
+v1 --> v2
+        Split v1 to 3 patches
+v2 --> v3
+	Remove the unnecessary dts patches.
+v3 --> v4
+	Remove gpio->irq (in patch 2)
 
-I didn't get you completely. Do you intend to compute the base_id using
-cell-index and number of locks (which may be a separate field altogether
-if this information cannot be read from the h/w)? My understanding is
-that cell-index is primarily used for identifying the h/w instance number.
+Note: these patches were made after applying [1].
+[1] - [PATCH v5] gpio: pcf857x: Add OF support - https://lkml.org/lkml/2013/8/27/70
 
-regards
-Suman
+George Cherian (3):
+  gpio: pcf857x: change to devm_request_threaded_irq
+  gpio: pcf857x: remove the irq_demux_work and gpio->irq
+  gpio: pcf857x: call the gpio user handler iff gpio_to_irq is done
 
->>
->>>
->>>> +
->>>> +			See documentation on struct hwspinlock_pdata in
->>>> +			linux/hwspinlock.h for more details.
->>>> +
->>>> +
->>>> +Example:
->>>> +
->>>> +/* OMAP4 */
->>>> +hwspinlock: spinlock@4a0f6000 {
->>>> +	compatible = "ti,omap4-hwspinlock";
->>>> +	reg = <0x4a0f6000 0x1000>;
->>>> +	ti,hwmods = "spinlock";
->>>> +};
->>>
->>> [ snip ]
->>>
->>> - k
->>>
->>
-> 
+ drivers/gpio/gpio-pcf857x.c | 53 ++++++++++++++++++++++-----------------------
+ 1 file changed, 26 insertions(+), 27 deletions(-)
+
+-- 
+1.8.1.4
+
