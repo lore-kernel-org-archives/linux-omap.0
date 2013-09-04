@@ -1,98 +1,70 @@
-From: George Cherian <george.cherian@ti.com>
-Subject: [PATCH v3 2/3] gpio: pcf857x: remove the irq_demux_work and gpio->irq
-Date: Wed, 4 Sep 2013 12:33:02 +0530
-Message-ID: <1378278183-26596-3-git-send-email-george.cherian@ti.com>
-References: <1378278183-26596-1-git-send-email-george.cherian@ti.com>
+From: Stefan Roese <stefan.roese@gmail.com>
+Subject: Re: [RFC 00/22] OMAPDSS: DT support
+Date: Wed, 04 Sep 2013 09:29:02 +0200
+Message-ID: <5226E13E.1030807@gmail.com>
+References: <1376037547-10859-1-git-send-email-tomi.valkeinen@ti.com> <2305295.bk1TpuGLMv@avalon> <5224458F.9070401@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1378278183-26596-1-git-send-email-george.cherian@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linus.walleij@linaro.org
-Cc: linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, kuninori.morimoto.gx@renesas.com, n.a.balandin@gmail.com, George Cherian <george.cherian@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mo-p05-ob.rzone.de ([81.169.146.181]:40310 "EHLO
+	mo-p05-ob.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756283Ab3IDH3N (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Sep 2013 03:29:13 -0400
+In-Reply-To: <5224458F.9070401@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, Archit Taneja <archit@ti.com>, Nishanth Menon <nm@ti.com>, Felipe Balbi <balbi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>
 
-Now that we are using devm_request_threaded_irq no need for
-irq_demux_work and gpio->irq. Remove all its references.
+On 28.08.2013 13:40, Tero Kristo wrote:
+> On 08/28/2013 01:14 PM, Tomi Valkeinen wrote:
+>> On 28/08/13 12:48, Tero Kristo wrote:
+>>> On 08/28/2013 12:22 PM, Tomi Valkeinen wrote:
+>>>> Hi,
+>>>>
+>>>> I'm seeing odd clock behavior with Beagle, booting with DT. I'm using
+>>>> v3.11-rc7 + DSS DT patches.
+>>>
+>>> I guess you are not using the clock DT patches? Just making sure I
+>>> didn't break anything.
+>>
+>> No, plain rc7 with my DSS DT patches.
+>>
+>>>> So, for some reason, the first clk_set_rate goes wrong. Any ideas?
+>>>
+>>> Hmm, strange. I am not seeing similar behavior, but I am calling
+>>> clk_set_rate in different location.... also I am using clock DT patches
+>>> (don't try the current version though, as I am reworking them.)
+>>>
+>>> [    0.000000] dpll4_ck: 432000000
+>>> [    0.000000] dpll4_m4_ck: 72000000
+>>> [    0.000000] dpll4_m4x2_ck: 144000000
+>>> [    0.000000] dss1_alwon_fck_3430es2: 144000000
+>>> [    0.000000] dpll4_ck: 432000000
+>>> [    0.000000] dpll4_m4_ck: 86400000
+>>> [    0.000000] dpll4_m4x2_ck: 172800000
+>>> [    0.000000] dss1_alwon_fck_3430es2: 172800000
+>>>
+>>> Do you see the error only when setting to some specific rate (86400000)
+>>> or it doesn't matter?
+>>
+>> I also tried setting to 72000000, with the same result.
+>>
+>> Do you know if I can somehow easily get debug prints from the clock
+>> framework, that could lighten up the issue?
+>
+> There isn't any good config option for that, I would suggest add prints
+> to the clk_set_rate and then for the clocks you are interested in, print
+> results for the recalc_rate / set_rate ops also.
 
-Signed-off-by: George Cherian <george.cherian@ti.com>
----
- drivers/gpio/gpio-pcf857x.c | 37 -------------------------------------
- 1 file changed, 37 deletions(-)
+Tomi, did you make any progress on this issue? If not I'll try to dig
+into it later this week.
 
-diff --git a/drivers/gpio/gpio-pcf857x.c b/drivers/gpio/gpio-pcf857x.c
-index 4d0d28c..ef52ee3 100644
---- a/drivers/gpio/gpio-pcf857x.c
-+++ b/drivers/gpio/gpio-pcf857x.c
-@@ -30,7 +30,6 @@
- #include <linux/of_device.h>
- #include <linux/slab.h>
- #include <linux/spinlock.h>
--#include <linux/workqueue.h>
- 
- 
- static const struct i2c_device_id pcf857x_id[] = {
-@@ -89,12 +88,10 @@ struct pcf857x {
- 	struct gpio_chip	chip;
- 	struct i2c_client	*client;
- 	struct mutex		lock;		/* protect 'out' */
--	struct work_struct	work;		/* irq demux work */
- 	struct irq_domain	*irq_domain;	/* for irq demux  */
- 	spinlock_t		slock;		/* protect irq demux */
- 	unsigned		out;		/* software latch */
- 	unsigned		status;		/* current status */
--	int			irq;		/* real irq number */
- 
- 	int (*write)(struct i2c_client *client, unsigned data);
- 	int (*read)(struct i2c_client *client);
-@@ -210,38 +207,6 @@ static irqreturn_t pcf857x_irq(int irq, void *data)
- 	return IRQ_HANDLED;
- }
- 
--static void pcf857x_irq_demux_work(struct work_struct *work)
--{
--	struct pcf857x *gpio = container_of(work,
--					       struct pcf857x,
--					       work);
--	unsigned long change, i, status, flags;
--
--	status = gpio->read(gpio->client);
--
--	spin_lock_irqsave(&gpio->slock, flags);
--
--	change = gpio->status ^ status;
--	for_each_set_bit(i, &change, gpio->chip.ngpio)
--		generic_handle_irq(irq_find_mapping(gpio->irq_domain, i));
--	gpio->status = status;
--
--	spin_unlock_irqrestore(&gpio->slock, flags);
--}
--
--static irqreturn_t pcf857x_irq_demux(int irq, void *data)
--{
--	struct pcf857x	*gpio = data;
--
--	/*
--	 * pcf857x can't read/write data here,
--	 * since i2c data access might go to sleep.
--	 */
--	schedule_work(&gpio->work);
--
--	return IRQ_HANDLED;
--}
--
- static int pcf857x_irq_domain_map(struct irq_domain *domain, unsigned int virq,
- 				 irq_hw_number_t hw)
- {
-@@ -284,9 +249,7 @@ static int pcf857x_irq_domain_init(struct pcf857x *gpio,
- 		goto fail;
- 
- 	/* enable gpio_to_irq() */
--	INIT_WORK(&gpio->work, pcf857x_irq_demux_work);
- 	gpio->chip.to_irq	= pcf857x_to_irq;
--	gpio->irq		= client->irq;
- 
- 	return 0;
- 
--- 
-1.8.1.4
+BTW: Whats the current plan for your OMAPDSS DT patchset? Is it queued
+for v3.12 (this merge windows)? And do you have a git tree to pull the
+latest version from?
+
+Thanks,
+Stefan
+
