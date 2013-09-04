@@ -1,98 +1,48 @@
-From: Benoit Cousson <bcousson@baylibre.com>
+From: Joel Fernandes <joelf@ti.com>
 Subject: Re: [PATCH v2] ARM: dts: add AM33XX EDMA support
-Date: Wed, 04 Sep 2013 18:31:53 +0200
-Message-ID: <52276079.5020101@baylibre.com>
-References: <1377505784-9820-1-git-send-email-bigeasy@linutronix.de> <521B1380.3030908@baylibre.com> <522144AB.9010802@ti.com>
+Date: Wed, 4 Sep 2013 11:39:03 -0500
+Message-ID: <52276227.5040303@ti.com>
+References: <1377505784-9820-1-git-send-email-bigeasy@linutronix.de>
+ <521B1380.3030908@baylibre.com> <522144AB.9010802@ti.com>
+ <52276079.5020101@baylibre.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ea0-f178.google.com ([209.85.215.178]:35127 "EHLO
-	mail-ea0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935082Ab3IDQb6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Sep 2013 12:31:58 -0400
-Received: by mail-ea0-f178.google.com with SMTP id a15so309399eae.37
-        for <linux-omap@vger.kernel.org>; Wed, 04 Sep 2013 09:31:56 -0700 (PDT)
-In-Reply-To: <522144AB.9010802@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <52276079.5020101@baylibre.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Benoit Cousson <bcousson@baylibre.com>
+Cc: devicetree@vger.kernel.org, tony@atomide.com, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, linux-kernel@vger.kernel.org, santosh.shilimkar@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: joelf@ti.com
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>, tony@atomide.com, santosh.shilimkar@ti.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 
-Hi Joel,
-
-On 31/08/2013 03:19, Joel Fernandes wrote:
-> Hi Benoit,
->
-> On 08/26/2013 03:36 AM, Benoit Cousson wrote:
->> - minus all the TI emails which are not working anymore :-(
+On 09/04/2013 11:31 AM, Benoit Cousson wrote:
+> Hi Joel,
+> 
+> On 31/08/2013 03:19, Joel Fernandes wrote:
+>> Hi Benoit,
 >>
->> I've just sent my previous email too soon...
+>> On 08/26/2013 03:36 AM, Benoit Cousson wrote:
+>>> - minus all the TI emails which are not working anymore :-(
+>>>
+>>> I've just sent my previous email too soon...
+>>>
+>>> Now the patch is different :-) I'll take that one.
 >>
->> Now the patch is different :-) I'll take that one.
->
-> Unfortunately this patch is still missing from your latest pull request:
+>> Unfortunately this patch is still missing from your latest pull request:
+> 
+> Indeed, it was supposed to be applied on 3.13 only. It just came too late for 3.12.
 
-Indeed, it was supposed to be applied on 3.13 only. It just came too 
-late for 3.12.
+Ah ok, got it. :) Sorry for the noise.
+
 
 Regards,
-Benoit
 
-> Subject "[GIT PULL] ARM: OMAP: Device Tree for 3.12 take #2"
->    git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git
-> tags/for_3.12/dts_signed  (commit 4843be165c10f9886c87eeb20acf19a3ddec6653)
->
-> Below is a scissor patch that cleanly applies on above branch.
->
-> Thanks,
->
-> -Joel
->
-> --->8----
-> From: Matt Porter <mporter@ti.com>
-> Subject: [PATCH] ARM: dts: add AM33XX EDMA support
->
-> Adds AM33XX EDMA support to the am33xx.dtsi as documented in
-> Documentation/devicetree/bindings/dma/ti-edma.txt
->
-> v2 changes:
-> Drop DT entries that are non-hardware-description Joel Fernandes <joelf@ti.com>
-> Discussion in [1].
->
-> v3 changes: Changed node name from "edma: edma@" to "edma: dma-controller@"
-> by Sebastian Andrzej Siewior <bigeasy@linutronix.de>
->
-> [1] https://patchwork.kernel.org/patch/2226761/
->
-> Signed-off-by: Matt Porter <mporter@ti.com>
-> Signed-off-by: Joel A Fernandes <joelagnel@ti.com>
-> ---
->   arch/arm/boot/dts/am33xx.dtsi | 12 ++++++++++++
->   1 file changed, 12 insertions(+)
->
-> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-> index 5996d63..f5869ed 100644
-> --- a/arch/arm/boot/dts/am33xx.dtsi
-> +++ b/arch/arm/boot/dts/am33xx.dtsi
-> @@ -101,6 +101,18 @@
->   			reg = <0x48200000 0x1000>;
->   		};
->
-> +		edma: dma-controller@49000000 {
-> +			compatible = "ti,edma3";
-> +			ti,hwmods = "tpcc", "tptc0", "tptc1", "tptc2";
-> +			reg =	<0x49000000 0x10000>,
-> +				<0x44e10f90 0x10>;
-> +			interrupts = <12 13 14>;
-> +			#dma-cells = <1>;
-> +			dma-channels = <64>;
-> +			ti,edma-regions = <4>;
-> +			ti,edma-slots = <256>;
-> +		};
-> +
->   		gpio0: gpio@44e07000 {
->   			compatible = "ti,omap4-gpio";
->   			ti,hwmods = "gpio1";
->
-
+-Joel
