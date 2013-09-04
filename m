@@ -1,87 +1,38 @@
-From: Kumar Gala <galak@codeaurora.org>
-Subject: Re: [PATCH 1/2] hwspinlock/omap: add support for dt nodes
-Date: Wed, 4 Sep 2013 09:46:19 -0500
-Message-ID: <71570936-39F5-4AE1-AD05-163EA3179271@codeaurora.org>
-References: <1378230767-54931-1-git-send-email-s-anna@ti.com> <43798031-2D57-44F0-A19C-FD80DB9E9794@codeaurora.org> <52263413.1050108@ti.com> <8E84282E-BAD1-4A2B-849A-167C32F629DA@codeaurora.org> <52266409.90908@ti.com>
-Mime-Version: 1.0 (Apple Message framework v1283)
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <52266409.90908@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Suman Anna <s-anna@ti.com>
-Cc: Ohad Ben-Cohen <ohad@wizery.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: [PATCHv3 0/9] ARM: OMAP2+: AM33XX: Add suspend-resume support
+Date: Wed, 4 Sep 2013 08:01:32 -0700
+Message-ID: <CAGa+x85D2tnX_9QDNb6s1LQCpAz_kGUiOK82C7fPLVTmiZMEFg@mail.gmail.com>
+References: <1375811376-49985-1-git-send-email-d-gerlach@ti.com>
+	<5211E3F6.6090108@ti.com>
+	<52125A39.3010008@ti.com>
+	<87vc2qyjao.fsf@linaro.org>
+	<521FBD6B.3020208@ti.com>
+	<87mwo0rvf8.fsf@linaro.org>
+	<CA+Bv8Xamd7e24nswG4QhLDNhHXs92EfXcfu8E2uL=XLhsL70Hw@mail.gmail.com>
+	<CAGa+x84okZ_j71=oOnK5c43T9L3gmsGcQjWSxZSchfzheA_2HQ@mail.gmail.com>
+	<52261B34.60206@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-we0-f179.google.com ([74.125.82.179]:46512 "EHLO
+	mail-we0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934837Ab3IDPBe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Sep 2013 11:01:34 -0400
+Received: by mail-we0-f179.google.com with SMTP id t58so415326wes.10
+        for <linux-omap@vger.kernel.org>; Wed, 04 Sep 2013 08:01:32 -0700 (PDT)
+In-Reply-To: <52261B34.60206@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Dave Gerlach <d-gerlach@ti.com>
+Cc: Russ Dill <Russ.Dill@ti.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Gururaja Hebbar <gururaja.hebbar@ti.com>
 
+Hi Dave,
 
-On Sep 3, 2013, at 5:34 PM, Suman Anna wrote:
+> Thanks for taking the time to try this out, it does seem there are a few
+> kinks with BeagleBone Black but we'll get those worked out.
 
-> Kumar,
-> 
->>> 
->>> On 09/03/2013 01:50 PM, Kumar Gala wrote:
->>>> 
->>>> On Sep 3, 2013, at 12:52 PM, Suman Anna wrote:
->>>> 
->>>>> HwSpinlock IP is present only on OMAP4 and other newer SoCs,
->>>>> which are all device-tree boot only. This patch adds the
->>>>> base support for parsing the DT nodes, and removes the code
->>>>> dealing with the traditional platform device instantiation.
->>>>> 
->>>>> Signed-off-by: Suman Anna <s-anna@ti.com>
->>>>> ---
->>>>> .../devicetree/bindings/hwlock/omap-hwspinlock.txt | 28 ++++++++++
->>>>> arch/arm/mach-omap2/Makefile                       |  3 --
->>>>> arch/arm/mach-omap2/hwspinlock.c                   | 60 ----------------------
->>>>> drivers/hwspinlock/omap_hwspinlock.c               | 21 ++++++--
->>>>> 4 files changed, 45 insertions(+), 67 deletions(-)
->>>>> create mode 100644 Documentation/devicetree/bindings/hwlock/omap-hwspinlock.txt
->>>>> delete mode 100644 arch/arm/mach-omap2/hwspinlock.c
->>>>> 
->>>>> diff --git a/Documentation/devicetree/bindings/hwlock/omap-hwspinlock.txt b/Documentation/devicetree/bindings/hwlock/omap-hwspinlock.txt
->>>>> new file mode 100644
->>>>> index 0000000..adfb8ad
->>>>> --- /dev/null
->>>>> +++ b/Documentation/devicetree/bindings/hwlock/omap-hwspinlock.txt
->>>>> @@ -0,0 +1,28 @@
->>>>> +OMAP4+ HwSpinlock Driver
->>>>> +
->>>>> +Required properties:
->>>>> +- compatible:		Currently supports only "ti,omap4-hwspinlock" for
->>>>> +				OMAP44xx, OMAP54xx, AM33xx, AM43xx, DRA7xx SoCs
->>>>> +- reg:			Contains the hwspinlock register address range (base
->>>>> +			address and length)
->>>>> +- ti,hwmods:		Name of the hwmod associated with the hwspinlock device
->>>>> +
->>>>> +Optional properties:
->>>>> +- base_id:		Base Id for the locks for a particular hwspinlock
->>>>> +			device. If not mentioned, a default value of 0 is used.
->>>>> +			This property is mandatory ONLY if a SoC has several
->>>>> +			hwspinlock devices. There are currently no such OMAP
->>>>> +			SoCs.
->>>> 
->>>> Should this be ti,base_id ? [ I know its kinda generic in its intent for any SoC w/multiple blocks ]
->>> 
->>> I didn't add the "ti," prefix exactly for the same reason - it is
->>> generic w.r.t the hwspinlock core irrespective of the SoC family, and
->>> there is nothing ti or OMAP specific about it. I have added it to keep
->>> the DT node definition in sync with the driver code. If it is too
->>> generic a name, it can always be renamed as hwlock_base_id. This will be
->>> SoC agnostic property for the hwspinlock driver. What do you think?
->> 
->> I'm wondering if we should use cell-index for this purpose.
-> 
-> I didn't get you completely. Do you intend to compute the base_id using
-> cell-index and number of locks (which may be a separate field altogether
-> if this information cannot be read from the h/w)? My understanding is
-> that cell-index is primarily used for identifying the h/w instance number.
+I also just noticed that wake from RTC isn't working, but wake from
+serial console does.  Does RTC wake work for you?  (I use rtcwake -m
+mem -s4)
 
-I was suggesting using cell-index instead of base_id.  What we should probably due is have a devicetree/bindings/hwlock/hwlock.txt that would describe generic properties like this and just reference that in the omap binding spec.
-
-I'm thinking if we dont use cell-index, that it should probably be hwlock-base-id
-
-- k
-
--- 
-Employee of Qualcomm Innovation Center, Inc.
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, hosted by The Linux Foundation
+Kevin
