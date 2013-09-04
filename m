@@ -1,118 +1,69 @@
-From: Kumar Gala <galak@codeaurora.org>
-Subject: Re: [PATCH 1/2] hwspinlock/omap: add support for dt nodes
-Date: Wed, 4 Sep 2013 12:51:11 -0500
-Message-ID: <F363B498-5648-4C19-BC16-096EE12C29CE@codeaurora.org>
-References: <1378230767-54931-1-git-send-email-s-anna@ti.com> <43798031-2D57-44F0-A19C-FD80DB9E9794@codeaurora.org> <52263413.1050108@ti.com> <8E84282E-BAD1-4A2B-849A-167C32F629DA@codeaurora.org> <52266409.90908@ti.com> <71570936-39F5-4AE1-AD05-163EA3179271@codeaurora.org> <52275F7D.4030305@ti.com> <9BE41927-7C6C-4E62-860B-0288627E9421@codeaurora.org> <522767E5.9080302@ti.com>
-Mime-Version: 1.0 (Apple Message framework v1283)
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [RFC 3/4] Misc: SRAM: Hack for allowing executable code in
+ SRAM.
+Date: Wed, 4 Sep 2013 11:06:39 -0700
+Message-ID: <20130904180638.GC31541@atomide.com>
+References: <1378226665-27090-1-git-send-email-Russ.Dill@ti.com>
+ <1378226665-27090-4-git-send-email-Russ.Dill@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.11.231]:50130 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1762844Ab3IDRvJ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Sep 2013 13:51:09 -0400
-In-Reply-To: <522767E5.9080302@ti.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:52208 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759716Ab3IDSGp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Sep 2013 14:06:45 -0400
+Content-Disposition: inline
+In-Reply-To: <1378226665-27090-4-git-send-email-Russ.Dill@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Suman Anna <s-anna@ti.com>
-Cc: Ohad Ben-Cohen <ohad@wizery.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
+To: Russ Dill <Russ.Dill@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Philipp Zabel <p.zabel@pengutronix.de>, Shawn Guo <shawn.guo@linaro.org>, Grant Likely <grant.likely@secretlab.ca>, mans@mansr.com
 
-
-On Sep 4, 2013, at 12:03 PM, Suman Anna wrote:
-
->>>>>>>> 
->>>>>>>>> HwSpinlock IP is present only on OMAP4 and other newer SoCs,
->>>>>>>>> which are all device-tree boot only. This patch adds the
->>>>>>>>> base support for parsing the DT nodes, and removes the code
->>>>>>>>> dealing with the traditional platform device instantiation.
->>>>>>>>> 
->>>>>>>>> Signed-off-by: Suman Anna <s-anna@ti.com>
->>>>>>>>> ---
->>>>>>>>> .../devicetree/bindings/hwlock/omap-hwspinlock.txt | 28 ++++++++++
->>>>>>>>> arch/arm/mach-omap2/Makefile                       |  3 --
->>>>>>>>> arch/arm/mach-omap2/hwspinlock.c                   | 60 ----------------------
->>>>>>>>> drivers/hwspinlock/omap_hwspinlock.c               | 21 ++++++--
->>>>>>>>> 4 files changed, 45 insertions(+), 67 deletions(-)
->>>>>>>>> create mode 100644 Documentation/devicetree/bindings/hwlock/omap-hwspinlock.txt
->>>>>>>>> delete mode 100644 arch/arm/mach-omap2/hwspinlock.c
->>>>>>>>> 
->>>>>>>>> diff --git a/Documentation/devicetree/bindings/hwlock/omap-hwspinlock.txt b/Documentation/devicetree/bindings/hwlock/omap-hwspinlock.txt
->>>>>>>>> new file mode 100644
->>>>>>>>> index 0000000..adfb8ad
->>>>>>>>> --- /dev/null
->>>>>>>>> +++ b/Documentation/devicetree/bindings/hwlock/omap-hwspinlock.txt
->>>>>>>>> @@ -0,0 +1,28 @@
->>>>>>>>> +OMAP4+ HwSpinlock Driver
->>>>>>>>> +
->>>>>>>>> +Required properties:
->>>>>>>>> +- compatible:		Currently supports only "ti,omap4-hwspinlock" for
->>>>>>>>> +				OMAP44xx, OMAP54xx, AM33xx, AM43xx, DRA7xx SoCs
->>>>>>>>> +- reg:			Contains the hwspinlock register address range (base
->>>>>>>>> +			address and length)
->>>>>>>>> +- ti,hwmods:		Name of the hwmod associated with the hwspinlock device
->>>>>>>>> +
->>>>>>>>> +Optional properties:
->>>>>>>>> +- base_id:		Base Id for the locks for a particular hwspinlock
->>>>>>>>> +			device. If not mentioned, a default value of 0 is used.
->>>>>>>>> +			This property is mandatory ONLY if a SoC has several
->>>>>>>>> +			hwspinlock devices. There are currently no such OMAP
->>>>>>>>> +			SoCs.
->>>>>>>> 
->>>>>>>> Should this be ti,base_id ? [ I know its kinda generic in its intent for any SoC w/multiple blocks ]
->>>>>>> 
->>>>>>> I didn't add the "ti," prefix exactly for the same reason - it is
->>>>>>> generic w.r.t the hwspinlock core irrespective of the SoC family, and
->>>>>>> there is nothing ti or OMAP specific about it. I have added it to keep
->>>>>>> the DT node definition in sync with the driver code. If it is too
->>>>>>> generic a name, it can always be renamed as hwlock_base_id. This will be
->>>>>>> SoC agnostic property for the hwspinlock driver. What do you think?
->>>>>> 
->>>>>> I'm wondering if we should use cell-index for this purpose.
->>>>> 
->>>>> I didn't get you completely. Do you intend to compute the base_id using
->>>>> cell-index and number of locks (which may be a separate field altogether
->>>>> if this information cannot be read from the h/w)? My understanding is
->>>>> that cell-index is primarily used for identifying the h/w instance number.
->>>> 
->>>> I was suggesting using cell-index instead of base_id.  What we should probably due is have a devicetree/bindings/hwlock/hwlock.txt that would describe generic properties like this and just reference that in the omap binding spec.
->>> 
->>> Common hwlock.txt sounds good. Will make the change.
->>> 
->>>> 
->>>> I'm thinking if we dont use cell-index, that it should probably be hwlock-base-id
->>>> 
->>> 
->>> I prefer to use hwlock-base-id. I think we should also be defining a
->>> common property name for number of locks, say hwlock-num-locks.
->> 
->> I'm good with that, cell-index is always funny so might as well be explicit.
->> 
->> I'm also good with hwlock-num-locks, I'll update the msm spinlock driver to use this.
->> 
->> Can you also maybe add some helper functions into the hwspinlock core to return these values so we both don't duplicate code in drivers and maintain consistency.
+* Russ Dill <Russ.Dill@ti.com> [130903 09:52]:
+> The generic SRAM mechanism does not ioremap memory in a
+> manner that allows code to be executed from SRAM. There is
+> currently no generic way to request ioremap to return a
+> memory area with execution allowed.
 > 
-> I am trying to understand what you would need these for. Your driver
-> would already know the base_id and num_locks, since these are used in
-> the registration function.
+> Insert a temporary hack for proof of concept on ARM.
+> 
+> Signed-off-by: Russ Dill <Russ.Dill@ti.com>
+> ---
+>  drivers/misc/sram.c | 3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/misc/sram.c b/drivers/misc/sram.c
+> index 08baaab..e059a23 100644
+> --- a/drivers/misc/sram.c
+> +++ b/drivers/misc/sram.c
+> @@ -31,6 +31,7 @@
+>  #include <linux/genalloc.h>
+>  #include <linux/sram.h>
+>  #include <asm-generic/cacheflush.h>
+> +#include <asm/io.h>
+>  
+>  #define SRAM_GRANULARITY	32
+>  
+> @@ -138,7 +139,7 @@ static int sram_probe(struct platform_device *pdev)
+>  	int ret;
+>  
+>  	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> -	virt_base = devm_ioremap_resource(&pdev->dev, res);
+> +	virt_base = __arm_ioremap_exec(res->start, resource_size(res), false);
+>  	if (IS_ERR(virt_base))
+>  		return PTR_ERR(virt_base);
 
+You can get rid of this hack by defining ioremap_exec in
+include/asm-generic/io.h the same way as ioremap_nocache
+is done:
 
-It would be something simple like:
-
-static inline int of_get_hwlock_base_id (struct device_node *dn) {
-#ifdef CONFIG_OF
-	u32 val;
-
-	if (of_property_read_u32(dn, "hwlock-base-id", &val)
-		return val;
+#ifndef ioremap_exec
+#define ioremap_exec ioremap
 #endif
-	return 0;
-}
 
-make sense?
+Then the arch that need ioremap_exec can define and
+implement it. Needs to be reviewed on LKML naturally :)
 
-- k
+Regards,
 
--- 
-Employee of Qualcomm Innovation Center, Inc.
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, hosted by The Linux Foundation
-
+Tony
