@@ -1,58 +1,73 @@
-From: Stanimir Varbanov <svarbanov@mm-sol.com>
-Subject: Re: [PATCH 1/2] hwspinlock/omap: add support for dt nodes
-Date: Wed, 04 Sep 2013 11:09:57 +0300
-Message-ID: <5226EAD5.8070400@mm-sol.com>
-References: <1378230767-54931-1-git-send-email-s-anna@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH v11 0/8] PHY framework
+Date: Wed, 4 Sep 2013 14:27:06 +0530
+Message-ID: <5226F5E2.5010409@ti.com>
+References: <1377063973-22044-1-git-send-email-kishon@ti.com>
+ <521B0E79.6060506@ti.com> <20130827192059.GZ3005@radagast>
+ <5225FF63.6080608@ti.com> <20130903155030.GA21525@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1378230767-54931-1-git-send-email-s-anna@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Suman Anna <s-anna@ti.com>
-Cc: Ohad Ben-Cohen <ohad@wizery.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>, Kumar Gala <galak@codeaurora.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20130903155030.GA21525@kroah.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: linux-fbdev@vger.kernel.org, linux-doc@vger.kernel.org, tony@atomide.com, nsekhar@ti.com, tomasz.figa@gmail.com, s.nawrocki@samsung.com, kgene.kim@samsung.com, swarren@nvidia.com, jg1.han@samsung.com, stern@rowland.harvard.edu, grant.likely@linaro.org, linux-media@vger.kernel.org, devicetree@vger.kernel.org, george.cherian@ti.com, arnd@arndb.de, linux-samsung-soc@vger.kernel.org, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balajitk@ti.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, kyungmin.park@samsung.com, broonie@kernel.org, Andrew Morton <akpm@linux-foundation.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Suman,
-
-Thanks for the patch.
-
-On 09/03/2013 08:52 PM, Suman Anna wrote:
-> HwSpinlock IP is present only on OMAP4 and other newer SoCs,
-> which are all device-tree boot only. This patch adds the
-> base support for parsing the DT nodes, and removes the code
-> dealing with the traditional platform device instantiation.
+On Tuesday 03 September 2013 09:20 PM, Greg KH wrote:
+> On Tue, Sep 03, 2013 at 08:55:23PM +0530, Kishon Vijay Abraham I wrote:
+>> Hi Greg,
+>>
+>> On Wednesday 28 August 2013 12:50 AM, Felipe Balbi wrote:
+>>> Hi,
+>>>
+>>> On Mon, Aug 26, 2013 at 01:44:49PM +0530, Kishon Vijay Abraham I wrote:
+>>>> On Wednesday 21 August 2013 11:16 AM, Kishon Vijay Abraham I wrote:
+>>>>> Added a generic PHY framework that provides a set of APIs for the PHY drivers
+>>>>> to create/destroy a PHY and APIs for the PHY users to obtain a reference to
+>>>>> the PHY with or without using phandle.
+>>>>>
+>>>>> This framework will be of use only to devices that uses external PHY (PHY
+>>>>> functionality is not embedded within the controller).
+>>>>>
+>>>>> The intention of creating this framework is to bring the phy drivers spread
+>>>>> all over the Linux kernel to drivers/phy to increase code re-use and to
+>>>>> increase code maintainability.
+>>>>>
+>>>>> Comments to make PHY as bus wasn't done because PHY devices can be part of
+>>>>> other bus and making a same device attached to multiple bus leads to bad
+>>>>> design.
+>>>>>
+>>>>> If the PHY driver has to send notification on connect/disconnect, the PHY
+>>>>> driver should make use of the extcon framework. Using this susbsystem
+>>>>> to use extcon framwork will have to be analysed.
+>>>>>
+>>>>> You can find this patch series @
+>>>>> git://git.kernel.org/pub/scm/linux/kernel/git/kishon/linux-phy.git testing
+>>>>
+>>>> Looks like there are not further comments on this series. Can you take this in
+>>>> your misc tree?
+>>>
+>>> Do you want me to queue these for you ? There are quite a few users for
+>>> this framework already and I know of at least 2 others which will show
+>>> up for v3.13.
+>>
+>> Can you queue this patch series? There are quite a few users already for this
+>> framework.
 > 
-> Signed-off-by: Suman Anna <s-anna@ti.com>
-> ---
->  .../devicetree/bindings/hwlock/omap-hwspinlock.txt | 28 ++++++++++
->  arch/arm/mach-omap2/Makefile                       |  3 --
->  arch/arm/mach-omap2/hwspinlock.c                   | 60 ----------------------
->  drivers/hwspinlock/omap_hwspinlock.c               | 21 ++++++--
->  4 files changed, 45 insertions(+), 67 deletions(-)
->  create mode 100644 Documentation/devicetree/bindings/hwlock/omap-hwspinlock.txt
->  delete mode 100644 arch/arm/mach-omap2/hwspinlock.c
-> 
-> diff --git a/Documentation/devicetree/bindings/hwlock/omap-hwspinlock.txt b/Documentation/devicetree/bindings/hwlock/omap-hwspinlock.txt
-> new file mode 100644
-> index 0000000..adfb8ad
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/hwlock/omap-hwspinlock.txt
-> @@ -0,0 +1,28 @@
-> +OMAP4+ HwSpinlock Driver
-> +
-> +Required properties:
-> +- compatible:		Currently supports only "ti,omap4-hwspinlock" for
-> +				OMAP44xx, OMAP54xx, AM33xx, AM43xx, DRA7xx SoCs
-> +- reg:			Contains the hwspinlock register address range (base
-> +			address and length)
-> +- ti,hwmods:		Name of the hwmod associated with the hwspinlock device
-> +
-> +Optional properties:
-> +- base_id:		Base Id for the locks for a particular hwspinlock
+> It will have to wait for 3.13 as the merge window for new features has
+> been closed for a week or so.  Sorry, I'll queue this up after 3.12-rc1
+> is out.
 
-Could you rename base_id to base-id. The property name convention is to
-use dashes in DT world.
+Alright, thanks.
 
-regards,
-Stan
+-Kishon
