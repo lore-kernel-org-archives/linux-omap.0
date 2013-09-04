@@ -1,48 +1,96 @@
-From: Joel Fernandes <joelf@ti.com>
-Subject: Re: [PATCH v2] ARM: dts: add AM33XX EDMA support
-Date: Wed, 4 Sep 2013 11:39:03 -0500
-Message-ID: <52276227.5040303@ti.com>
-References: <1377505784-9820-1-git-send-email-bigeasy@linutronix.de>
- <521B1380.3030908@baylibre.com> <522144AB.9010802@ti.com>
- <52276079.5020101@baylibre.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <52276079.5020101@baylibre.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Benoit Cousson <bcousson@baylibre.com>
-Cc: devicetree@vger.kernel.org, tony@atomide.com, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, linux-kernel@vger.kernel.org, santosh.shilimkar@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+From: Kumar Gala <galak@codeaurora.org>
+Subject: Re: [PATCH 1/2] hwspinlock/omap: add support for dt nodes
+Date: Wed, 4 Sep 2013 11:42:49 -0500
+Message-ID: <9BE41927-7C6C-4E62-860B-0288627E9421@codeaurora.org>
+References: <1378230767-54931-1-git-send-email-s-anna@ti.com> <43798031-2D57-44F0-A19C-FD80DB9E9794@codeaurora.org> <52263413.1050108@ti.com> <8E84282E-BAD1-4A2B-849A-167C32F629DA@codeaurora.org> <52266409.90908@ti.com> <71570936-39F5-4AE1-AD05-163EA3179271@codeaurora.org> <52275F7D.4030305@ti.com>
+Mime-Version: 1.0 (Apple Message framework v1283)
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <52275F7D.4030305@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Suman Anna <s-anna@ti.com>
+Cc: Ohad Ben-Cohen <ohad@wizery.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 09/04/2013 11:31 AM, Benoit Cousson wrote:
-> Hi Joel,
+
+On Sep 4, 2013, at 11:27 AM, Suman Anna wrote:
+
+> Kumar,
 > 
-> On 31/08/2013 03:19, Joel Fernandes wrote:
->> Hi Benoit,
->>
->> On 08/26/2013 03:36 AM, Benoit Cousson wrote:
->>> - minus all the TI emails which are not working anymore :-(
->>>
->>> I've just sent my previous email too soon...
->>>
->>> Now the patch is different :-) I'll take that one.
->>
->> Unfortunately this patch is still missing from your latest pull request:
+>>>>>> 
+>>>>>>> HwSpinlock IP is present only on OMAP4 and other newer SoCs,
+>>>>>>> which are all device-tree boot only. This patch adds the
+>>>>>>> base support for parsing the DT nodes, and removes the code
+>>>>>>> dealing with the traditional platform device instantiation.
+>>>>>>> 
+>>>>>>> Signed-off-by: Suman Anna <s-anna@ti.com>
+>>>>>>> ---
+>>>>>>> .../devicetree/bindings/hwlock/omap-hwspinlock.txt | 28 ++++++++++
+>>>>>>> arch/arm/mach-omap2/Makefile                       |  3 --
+>>>>>>> arch/arm/mach-omap2/hwspinlock.c                   | 60 ----------------------
+>>>>>>> drivers/hwspinlock/omap_hwspinlock.c               | 21 ++++++--
+>>>>>>> 4 files changed, 45 insertions(+), 67 deletions(-)
+>>>>>>> create mode 100644 Documentation/devicetree/bindings/hwlock/omap-hwspinlock.txt
+>>>>>>> delete mode 100644 arch/arm/mach-omap2/hwspinlock.c
+>>>>>>> 
+>>>>>>> diff --git a/Documentation/devicetree/bindings/hwlock/omap-hwspinlock.txt b/Documentation/devicetree/bindings/hwlock/omap-hwspinlock.txt
+>>>>>>> new file mode 100644
+>>>>>>> index 0000000..adfb8ad
+>>>>>>> --- /dev/null
+>>>>>>> +++ b/Documentation/devicetree/bindings/hwlock/omap-hwspinlock.txt
+>>>>>>> @@ -0,0 +1,28 @@
+>>>>>>> +OMAP4+ HwSpinlock Driver
+>>>>>>> +
+>>>>>>> +Required properties:
+>>>>>>> +- compatible:		Currently supports only "ti,omap4-hwspinlock" for
+>>>>>>> +				OMAP44xx, OMAP54xx, AM33xx, AM43xx, DRA7xx SoCs
+>>>>>>> +- reg:			Contains the hwspinlock register address range (base
+>>>>>>> +			address and length)
+>>>>>>> +- ti,hwmods:		Name of the hwmod associated with the hwspinlock device
+>>>>>>> +
+>>>>>>> +Optional properties:
+>>>>>>> +- base_id:		Base Id for the locks for a particular hwspinlock
+>>>>>>> +			device. If not mentioned, a default value of 0 is used.
+>>>>>>> +			This property is mandatory ONLY if a SoC has several
+>>>>>>> +			hwspinlock devices. There are currently no such OMAP
+>>>>>>> +			SoCs.
+>>>>>> 
+>>>>>> Should this be ti,base_id ? [ I know its kinda generic in its intent for any SoC w/multiple blocks ]
+>>>>> 
+>>>>> I didn't add the "ti," prefix exactly for the same reason - it is
+>>>>> generic w.r.t the hwspinlock core irrespective of the SoC family, and
+>>>>> there is nothing ti or OMAP specific about it. I have added it to keep
+>>>>> the DT node definition in sync with the driver code. If it is too
+>>>>> generic a name, it can always be renamed as hwlock_base_id. This will be
+>>>>> SoC agnostic property for the hwspinlock driver. What do you think?
+>>>> 
+>>>> I'm wondering if we should use cell-index for this purpose.
+>>> 
+>>> I didn't get you completely. Do you intend to compute the base_id using
+>>> cell-index and number of locks (which may be a separate field altogether
+>>> if this information cannot be read from the h/w)? My understanding is
+>>> that cell-index is primarily used for identifying the h/w instance number.
+>> 
+>> I was suggesting using cell-index instead of base_id.  What we should probably due is have a devicetree/bindings/hwlock/hwlock.txt that would describe generic properties like this and just reference that in the omap binding spec.
 > 
-> Indeed, it was supposed to be applied on 3.13 only. It just came too late for 3.12.
+> Common hwlock.txt sounds good. Will make the change.
+> 
+>> 
+>> I'm thinking if we dont use cell-index, that it should probably be hwlock-base-id
+>> 
+> 
+> I prefer to use hwlock-base-id. I think we should also be defining a
+> common property name for number of locks, say hwlock-num-locks.
 
-Ah ok, got it. :) Sorry for the noise.
+I'm good with that, cell-index is always funny so might as well be explicit.
 
+I'm also good with hwlock-num-locks, I'll update the msm spinlock driver to use this.
 
-Regards,
+Can you also maybe add some helper functions into the hwspinlock core to return these values so we both don't duplicate code in drivers and maintain consistency.
 
--Joel
+- k
+
+-- 
+Employee of Qualcomm Innovation Center, Inc.
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, hosted by The Linux Foundation
