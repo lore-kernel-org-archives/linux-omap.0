@@ -1,71 +1,109 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [PATCH] ARM: omap2: throw the die id into the entropy pool
-Date: Wed, 04 Sep 2013 15:24:31 -0700
-Message-ID: <87hae0mdi8.fsf@linaro.org>
-References: <1378326324-7170-1-git-send-email-linus.walleij@linaro.org>
+From: Archit Taneja <archit@ti.com>
+Subject: Re: [PATCH v3 3/6] v4l: ti-vpe: Add VPE mem to mem driver
+Date: Thu, 5 Sep 2013 11:26:48 +0530
+Message-ID: <52281D20.6010204@ti.com>
+References: <1376996457-17275-1-git-send-email-archit@ti.com> <1377779572-22624-1-git-send-email-archit@ti.com> <1377779572-22624-4-git-send-email-archit@ti.com> <201308291528.21281.hverkuil@xs4all.nl>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pd0-f180.google.com ([209.85.192.180]:58548 "EHLO
-	mail-pd0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756646Ab3IDWYe (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Sep 2013 18:24:34 -0400
-Received: by mail-pd0-f180.google.com with SMTP id y10so917357pdj.39
-        for <linux-omap@vger.kernel.org>; Wed, 04 Sep 2013 15:24:34 -0700 (PDT)
-In-Reply-To: <1378326324-7170-1-git-send-email-linus.walleij@linaro.org>
-	(Linus Walleij's message of "Wed, 4 Sep 2013 22:25:24 +0200")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <201308291528.21281.hverkuil@xs4all.nl>
+Sender: linux-media-owner@vger.kernel.org
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com, tomi.valkeinen@ti.com, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Theodore Ts'o <tytso@mit.edu>, Paul Walmsley <paul@pwsan.com>
 
-Linus Walleij <linus.walleij@linaro.org> writes:
+Hi Hans,
 
-> Atleast eight bytes of this number are totally unique for the device
-> it seems, so this is a perfect candidate for feeding the entropy
-> pool. One byte more or less of constants does not matter so feed in
-> the entire OID struct.
+On Thursday 29 August 2013 06:58 PM, Hans Verkuil wrote:
+> On Thu 29 August 2013 14:32:49 Archit Taneja wrote:
+>> VPE is a block which consists of a single memory to memory path which can
+>> perform chrominance up/down sampling, de-interlacing, scaling, and color space
+>> conversion of raster or tiled YUV420 coplanar, YUV422 coplanar or YUV422
+>> interleaved video formats.
+>>
+>> We create a mem2mem driver based primarily on the mem2mem-testdev example.
+>> The de-interlacer, scaler and color space converter are all bypassed for now
+>> to keep the driver simple. Chroma up/down sampler blocks are implemented, so
+>> conversion beteen different YUV formats is possible.
+>>
+>> Each mem2mem context allocates a buffer for VPE MMR values which it will use
+>> when it gets access to the VPE HW via the mem2mem queue, it also allocates
+>> a VPDMA descriptor list to which configuration and data descriptors are added.
+>>
+>> Based on the information received via v4l2 ioctls for the source and
+>> destination queues, the driver configures the values for the MMRs, and stores
+>> them in the buffer. There are also some VPDMA parameters like frame start and
+>> line mode which needs to be configured, these are configured by direct register
+>> writes via the VPDMA helper functions.
+>>
+>> The driver's device_run() mem2mem op will add each descriptor based on how the
+>> source and destination queues are set up for the given ctx, once the list is
+>> prepared, it's submitted to VPDMA, these descriptors when parsed by VPDMA will
+>> upload MMR registers, start DMA of video buffers on the various input and output
+>> clients/ports.
+>>
+>> When the list is parsed completely(and the DMAs on all the output ports done),
+>> an interrupt is generated which we use to notify that the source and destination
+>> buffers are done.
+>>
+>> The rest of the driver is quite similar to other mem2mem drivers, we use the
+>> multiplane v4l2 ioctls as the HW support coplanar formats.
+>>
+>> Signed-off-by: Archit Taneja <archit@ti.com>
 >
-> Cc: Theodore Ts'o <tytso@mit.edu>
-> Cc: Paul Walmsley <paul@pwsan.com>
-> Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
-> ---
->  arch/arm/mach-omap2/id.c | 12 ++++++++++++
->  1 file changed, 12 insertions(+)
+> Thanks for the patch. Just a few small comments below...
 >
-> diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-> index 2dc62a2..fc03cc6 100644
-> --- a/arch/arm/mach-omap2/id.c
-> +++ b/arch/arm/mach-omap2/id.c
-> @@ -18,6 +18,7 @@
->  #include <linux/kernel.h>
->  #include <linux/init.h>
->  #include <linux/io.h>
-> +#include <linux/random.h>
->  #include <linux/slab.h>
->  
->  #ifdef CONFIG_SOC_BUS
-> @@ -130,6 +131,17 @@ void omap_get_die_id(struct omap_die_id *odi)
->  	odi->id_3 = read_tap_reg(OMAP_TAP_DIE_ID_3);
->  }
->  
-> +static int __init omap_feed_randpool(void)
-> +{
-> +	struct omap_die_id odi;
-> +
-> +	/* Throw the die ID into the entropy pool at boot */
-> +	omap_get_die_id(&odi);
-> +	add_device_randomness(&odi, sizeof(odi));
-> +	return 0;
-> +}
-> +device_initcall(omap_feed_randpool);
+>> ---
+>>   drivers/media/platform/Kconfig           |   16 +
+>>   drivers/media/platform/Makefile          |    2 +
+>>   drivers/media/platform/ti-vpe/Makefile   |    5 +
+>>   drivers/media/platform/ti-vpe/vpe.c      | 1740 ++++++++++++++++++++++++++++++
+>>   drivers/media/platform/ti-vpe/vpe_regs.h |  496 +++++++++
+>>   5 files changed, 2259 insertions(+)
+>>   create mode 100644 drivers/media/platform/ti-vpe/Makefile
+>>   create mode 100644 drivers/media/platform/ti-vpe/vpe.c
+>>   create mode 100644 drivers/media/platform/ti-vpe/vpe_regs.h
+>>
+>> diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
+>> new file mode 100644
+>> index 0000000..85b0880
+>> --- /dev/null
+>> +++ b/drivers/media/platform/ti-vpe/vpe.c
+>
 
-Needs to be omap_device_initcall() so it doesn't get called on non-OMAPs
-in a multi-platform kernel.
+<snip>
 
-Otherwise looks good.
+>> +
+>> +static int __vpe_try_fmt(struct vpe_ctx *ctx, struct v4l2_format *f,
+>> +		       struct vpe_fmt *fmt, int type)
+>> +{
+>> +	struct v4l2_pix_format_mplane *pix = &f->fmt.pix_mp;
+>> +	struct v4l2_plane_pix_format *plane_fmt;
+>> +	int i;
+>> +
+>> +	if (!fmt || !(fmt->types & type)) {
+>> +		vpe_err(ctx->dev, "Fourcc format (0x%08x) invalid.\n",
+>> +			pix->pixelformat);
+>> +		return -EINVAL;
+>> +	}
+>> +
+>> +	pix->field = V4L2_FIELD_NONE;
+>> +
+>> +	v4l_bound_align_image(&pix->width, MIN_W, MAX_W, W_ALIGN,
+>> +			      &pix->height, MIN_H, MAX_H, H_ALIGN,
+>> +			      S_ALIGN);
+>> +
+>> +	pix->num_planes = fmt->coplanar ? 2 : 1;
+>> +	pix->pixelformat = fmt->fourcc;
+>> +	pix->colorspace = fmt->fourcc == V4L2_PIX_FMT_RGB24 ?
+>> +			V4L2_COLORSPACE_SRGB : V4L2_COLORSPACE_SMPTE170M;
+>
+> pix->priv should be set to NULL as well.
 
-Reviewed-by: Kevin Hilman <khilman@linaro.org>
+I wanted to point out that we use v4l2_pix_format_mplane in the 
+v4l2_format fmt union. So I suppose we don't have a priv field in the 
+pix structure here.
 
-Kevin
-
+Thanks,
+Archit
