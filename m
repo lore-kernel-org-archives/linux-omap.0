@@ -1,95 +1,49 @@
-From: Afzal Mohammed <afzal@ti.com>
-Subject: Re: [PATCH RFC 0/6] ARM: OMAP2+: AM43x/AM335x prcm reset driver
-Date: Thu, 5 Sep 2013 21:26:13 +0530
-Message-ID: <5228A99D.4020702@ti.com>
-References: <cover.1378129416.git.afzal@ti.com> <1378375634.3948.10.camel@pizza.hi.pengutronix.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1378375634.3948.10.camel@pizza.hi.pengutronix.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, devicetree@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Benoit Cousson <bcousson@baylibre.com>, Russell King <linux@arm.linux.org.uk>, Ian Campbell <ian.campbell@citrix.com>, Stephen Warren <swarren@wwwdotorg.org>, Mark Rutland <mark.rutland@arm.com>, Pawel Moll <pawel.moll@arm.com>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, Pavel Machek <pavel@ucw.cz>
+From: Koen Kooi <koen@dominion.thruhere.net>
+Subject: Re: [PATCHv2] am33xx: cpsw: default to ethernet hwaddr from efuse if not defined in dt
+Date: Thu, 5 Sep 2013 22:11:22 +0200
+Message-ID: <62E39EC3-A2D5-4631-A21F-4F29D18A74D9@dominion.thruhere.net>
+References: <1358461134-13452-1-git-send-email-jacmet@sunsite.dk> <50F8DA3A.3090406@ti.com> <51DAB39C.7090106@newflow.co.uk>
+Mime-Version: 1.0 (Mac OS X Mail 6.5 \(1508\))
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wi0-f170.google.com ([209.85.212.170]:43896 "EHLO
+	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752124Ab3IEUL0 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Sep 2013 16:11:26 -0400
+Received: by mail-wi0-f170.google.com with SMTP id cb5so96808wib.5
+        for <linux-omap@vger.kernel.org>; Thu, 05 Sep 2013 13:11:25 -0700 (PDT)
+In-Reply-To: <51DAB39C.7090106@newflow.co.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Mark Jackson <mpfj-list@newflow.co.uk>
+Cc: Mugunthan V N <mugunthanvnm@ti.com>, Peter Korsgaard <jacmet@sunsite.dk>, linux-omap@vger.kernel.org, netdev@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, hvaibhav@ti.com, richardcochran@gmail.com, tony@atomide.com, michal.bachraty@gmail.com, michal.bachraty@streamunlimited.com
 
-Hi Philipp,
 
-On Thursday 05 September 2013 03:37 PM, Philipp Zabel wrote:
-> Am Montag, den 02.09.2013, 19:41 +0530 schrieb Afzal Mohammed:
+Op 8 jul. 2013, om 14:42 heeft Mark Jackson <mpfj-list@newflow.co.uk> het volgende geschreven:
 
->> Two new reset API's are provided to check whether reset is ready and
->> to clear reset. This would be required in case IP needs to mix reset
->> handling procedure with power/clock managment procedure to achieve
->> proper reset and these procedures are sometimes IP specific that would
->> make it difficult to handle reset fully in pm_runtime platform support.
-
->> client IP handling s/w (DT based) should do as follows:
-
->> 2. In driver, that require reset to be deasserted,
->>  (this is the sequence required for gfx on AM43x/AM335x, this would
->>   depend on requirements of the IP)
->>
->> 	mydriver_probe(struct platform device *pdev)
->> 	{
->> 		:
->> 		:
->> 		reset_control_get(&pdev->dev, NULL);
->> 		reset_control_clear_reset();
->> 		reset_control_deassert();
->> 		pm_runtime_get_sync();
->> 		if (reset_control_is_reset() != true)
->> 			goto err;
->> 		reset_control_put();
->> 		:
->> 		:
->> 	}
-
-> if possible, I'd like to move this logic into the reset controller
-> driver. Can this be reordered to enable power before deasserting the
-> reset line (assuming it is initially asserted)? In this case, I'd
-> suggest to just call device_reset:
+> On 18/01/13 05:14, Mugunthan V N wrote:
+>> On 1/18/2013 3:48 AM, Peter Korsgaard wrote:
+>>> When booting with CONFIG_ARM_APPENDED_DTB (either because of using an old
+>>> U-Boot, not wanting the hassle of 2 files or when using Falcon fast boot
+>>> mode in U-Boot), nothing updates the ethernet hwaddr specified for the
+>>> CPSW slaves, causing the driver to use a random hwaddr, which is some times
+>>> troublesome.
+>>> 
+>>> The am33xx has unique ethernet hwaddrs programmed in the efuse, so it makes
+>>> more sense to default to these rather than random ones. Add a fixup step
+>>> which adds mac-address dt properties using the efuse addresses if the DTB
+>>> didn't contain valid ones.
+>>> 
+>>> Signed-off-by: Peter Korsgaard <jacmet@sunsite.dk>
+>>> 
+>> 
+>> This implementation looks fine.
+>> Acked-by: Mugunthan V N <mugunthanvnm@ti.com>
 > 
-> 	pm_runtime_get_sync(&pdev->dev);
-> 	ret = device_reset(&pdev->dev);
-> 	if (ret)
-> 		goto err;
-> 
-> The ops.reset callback in the prcm driver then can handle clearing
-> the reset status bit, deasserting the reset control bit, and waiting for
-> the reset status bit to be set (or timing out with an error).
+> Tested-by: Mark Jackson <mpfj-list@newflow.co.uk>
 
-I too would have loved to have it in such a clean way and was initially
-proceeding in that direction, but there is an issue specific to OMAP
-family SoC's, which was required to be taken care of (even though
-present use case for AM335x/AM43x would work [as it does not have
-hardware supervised clockdomain mode] with a small change in platform
-level power management support code - a generic one shared with other
-OMAP family SoC's)
+Tested-by: Koen Kooi <koen@dominion.thruhere.net>
 
-For a module to be reset, clock domain to which the module clock belongs
-should be set to software supervised mode. During "pm_runtime_get_sync",
-in OMAP platform level handling code, it first put clockdomain into
-software supervised mode, enables clock to module, and once module is
-ready, module will be put to hardware supervised mode. In hardware
-supervised mode, reset may not happen.
 
-So if device_reset() is done after pm_runtime_get_sync(), reset may not
-happen as by the time device_reset() is called, clockdomain would be in
-hardware supervised mode. But in other case, as reset is already
-deasserted when pm_runtime_get_sync() is called, module would be reset
-as it first puts to software supervised mode.
 
-And device reset would happen only upon enabling clock to module (if
-reset was deasserted) by pm_runtime_get_sync(), so reset status has to
-be checked after pm call, preventing us having device_reset() before
-pm_runtime_get_sync(), or else in that case we have to sacrifice on
-reset status checking (which may not be reliable)
-
-Another alternative would have been to integrate this reset handling in
-low level power management code thus hiding all reset handling from
-driver, but as far as I know the reset sequence to be done is sometimes
-IP specific, preventing it.
-
-Regards
-Afzal
