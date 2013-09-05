@@ -1,109 +1,195 @@
-From: Archit Taneja <archit@ti.com>
-Subject: Re: [PATCH v3 3/6] v4l: ti-vpe: Add VPE mem to mem driver
-Date: Thu, 5 Sep 2013 11:26:48 +0530
-Message-ID: <52281D20.6010204@ti.com>
-References: <1376996457-17275-1-git-send-email-archit@ti.com> <1377779572-22624-1-git-send-email-archit@ti.com> <1377779572-22624-4-git-send-email-archit@ti.com> <201308291528.21281.hverkuil@xs4all.nl>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: [GIT PULL] OMAP fbdev changes for 3.12
+Date: Thu, 5 Sep 2013 09:52:21 +0300
+Message-ID: <52282A25.8010904@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <201308291528.21281.hverkuil@xs4all.nl>
-Sender: linux-media-owner@vger.kernel.org
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com, tomi.valkeinen@ti.com, linux-omap@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="T331xTlq3hWU4CL2cuC7KUKGvLuta5eBP"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-kernel <linux-kernel@vger.kernel.org>, linux-fbdev <linux-fbdev@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Hans,
+--T331xTlq3hWU4CL2cuC7KUKGvLuta5eBP
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-On Thursday 29 August 2013 06:58 PM, Hans Verkuil wrote:
-> On Thu 29 August 2013 14:32:49 Archit Taneja wrote:
->> VPE is a block which consists of a single memory to memory path which can
->> perform chrominance up/down sampling, de-interlacing, scaling, and color space
->> conversion of raster or tiled YUV420 coplanar, YUV422 coplanar or YUV422
->> interleaved video formats.
->>
->> We create a mem2mem driver based primarily on the mem2mem-testdev example.
->> The de-interlacer, scaler and color space converter are all bypassed for now
->> to keep the driver simple. Chroma up/down sampler blocks are implemented, so
->> conversion beteen different YUV formats is possible.
->>
->> Each mem2mem context allocates a buffer for VPE MMR values which it will use
->> when it gets access to the VPE HW via the mem2mem queue, it also allocates
->> a VPDMA descriptor list to which configuration and data descriptors are added.
->>
->> Based on the information received via v4l2 ioctls for the source and
->> destination queues, the driver configures the values for the MMRs, and stores
->> them in the buffer. There are also some VPDMA parameters like frame start and
->> line mode which needs to be configured, these are configured by direct register
->> writes via the VPDMA helper functions.
->>
->> The driver's device_run() mem2mem op will add each descriptor based on how the
->> source and destination queues are set up for the given ctx, once the list is
->> prepared, it's submitted to VPDMA, these descriptors when parsed by VPDMA will
->> upload MMR registers, start DMA of video buffers on the various input and output
->> clients/ports.
->>
->> When the list is parsed completely(and the DMAs on all the output ports done),
->> an interrupt is generated which we use to notify that the source and destination
->> buffers are done.
->>
->> The rest of the driver is quite similar to other mem2mem drivers, we use the
->> multiplane v4l2 ioctls as the HW support coplanar formats.
->>
->> Signed-off-by: Archit Taneja <archit@ti.com>
->
-> Thanks for the patch. Just a few small comments below...
->
->> ---
->>   drivers/media/platform/Kconfig           |   16 +
->>   drivers/media/platform/Makefile          |    2 +
->>   drivers/media/platform/ti-vpe/Makefile   |    5 +
->>   drivers/media/platform/ti-vpe/vpe.c      | 1740 ++++++++++++++++++++++++++++++
->>   drivers/media/platform/ti-vpe/vpe_regs.h |  496 +++++++++
->>   5 files changed, 2259 insertions(+)
->>   create mode 100644 drivers/media/platform/ti-vpe/Makefile
->>   create mode 100644 drivers/media/platform/ti-vpe/vpe.c
->>   create mode 100644 drivers/media/platform/ti-vpe/vpe_regs.h
->>
->> diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
->> new file mode 100644
->> index 0000000..85b0880
->> --- /dev/null
->> +++ b/drivers/media/platform/ti-vpe/vpe.c
->
+Hi Linus,
 
-<snip>
+Here are the OMAP specific fbdev changes for 3.12.
 
->> +
->> +static int __vpe_try_fmt(struct vpe_ctx *ctx, struct v4l2_format *f,
->> +		       struct vpe_fmt *fmt, int type)
->> +{
->> +	struct v4l2_pix_format_mplane *pix = &f->fmt.pix_mp;
->> +	struct v4l2_plane_pix_format *plane_fmt;
->> +	int i;
->> +
->> +	if (!fmt || !(fmt->types & type)) {
->> +		vpe_err(ctx->dev, "Fourcc format (0x%08x) invalid.\n",
->> +			pix->pixelformat);
->> +		return -EINVAL;
->> +	}
->> +
->> +	pix->field = V4L2_FIELD_NONE;
->> +
->> +	v4l_bound_align_image(&pix->width, MIN_W, MAX_W, W_ALIGN,
->> +			      &pix->height, MIN_H, MAX_H, H_ALIGN,
->> +			      S_ALIGN);
->> +
->> +	pix->num_planes = fmt->coplanar ? 2 : 1;
->> +	pix->pixelformat = fmt->fourcc;
->> +	pix->colorspace = fmt->fourcc == V4L2_PIX_FMT_RGB24 ?
->> +			V4L2_COLORSPACE_SRGB : V4L2_COLORSPACE_SMPTE170M;
->
-> pix->priv should be set to NULL as well.
+I've got this pull request separate from the main fbdev pull request, as =
+this
+contains a bunch of OMAP board file changes and thus could possibly be
+rejected in case of bad conflicts.
 
-I wanted to point out that we use v4l2_pix_format_mplane in the 
-v4l2_format fmt union. So I suppose we don't have a priv field in the 
-pix structure here.
+The removal of the old display drivers depend on the board file changes, =
+so
+Tony Lindgren suggested taking them together via fbdev tree. These are in=
 
-Thanks,
-Archit
+linux-next, and also Tony didn't see any conflicts with any of the branch=
+es he
+had, so they should go in clean.
+
+ Tomi
+
+The following changes since commit b36f4be3de1b123d8601de062e7dbfc904f305=
+fb:
+
+  Linux 3.11-rc6 (2013-08-18 14:36:53 -0700)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/tomba/linux.git tags/fbde=
+v-3.12-omap-legacy-removal
+
+for you to fetch changes up to 9560dc1059222d059d494a64e5da4c54d23838da:
+
+  OMAPDSS: rename omap_dss_device's 'device' field to 'dst' (2013-08-30 0=
+8:51:11 +0300)
+
+----------------------------------------------------------------
+OMAP specific fbdev changes for 3.12:
+
+* Change the OMAP board files to use the new OMAP display drivers
+* Remove all the old drivers, and the related auxiliary code.
+
+----------------------------------------------------------------
+Tomi Valkeinen (35):
+      ARM: OMAP2+: Remove legacy DSS initialization for omap4
+      ARM: OMAP2+: Add selected display drivers to omap2plus_defconfig
+      ARM: OMAP: dss-common: use new display drivers
+      ARM: OMAP: 4430SDP: remove picodlp device data
+      ARM: OMAP: overo: use new display drivers
+      ARM: OMAP: rx51: use new display drivers
+      ARM: OMAP: beagle: use new display drivers
+      ARM: OMAP: devkit8000: use new display drivers
+      ARM: OMAP: 2430SDP: use new display drivers
+      ARM: OMAP: LDP: use new display drivers
+      ARM: OMAP: omap3stalker: use new display drivers
+      ARM: OMAP: igep0020: use new display drivers
+      ARM: OMAP: cm-t35: use new display drivers
+      ARM: OMAP: H4: use new display drivers
+      ARM: OMAP: 3430SDP: use new display drivers
+      ARM: OMAP: OMAP3EVM: use new display drivers
+      ARM: OMAP: Pandora: use new display drivers
+      ARM: OMAP: Zoom: use new display drivers
+      ARM: OMAP: AM3517EVM: use new display drivers
+      ARM: OMAP2+: Remove old display drivers from omap2plus_defconfig
+      OMAPDSS: RFBI: Mark RFBI as broken
+      OMAPDSS: remove omap_dss_device->channel field
+      OMAPDSS: fix DPI and SDI device ids
+      OMAPDSS: SDI: change regulator handling
+      OMAPDSS: DPI: change regulator handling
+      OMAPDSS: remove all old panel drivers
+      OMAPDSS: DPI: remove code related to old panel model
+      OMAPDSS: HDMI: remove code related to old panel model
+      OMAPDSS: DSI: remove code related to old panel model
+      OMAPDSS: SDI: remove code related to old panel model
+      OMAPDSS: VENC: remove code related to old panel model
+      OMAPDSS: RFBI: remove code related to old panel model
+      OMAPDSS: DSS: remove legacy dss bus support
+      OMAPDSS: rename omap_dss_device's 'output' to 'src'
+      OMAPDSS: rename omap_dss_device's 'device' field to 'dst'
+
+ arch/arm/configs/omap2plus_defconfig               |   12 +-
+ arch/arm/mach-omap2/board-2430sdp.c                |   57 +-
+ arch/arm/mach-omap2/board-3430sdp.c                |   83 +-
+ arch/arm/mach-omap2/board-am3517evm.c              |  113 +-
+ arch/arm/mach-omap2/board-cm-t35.c                 |  100 +-
+ arch/arm/mach-omap2/board-devkit8000.c             |   96 +-
+ arch/arm/mach-omap2/board-h4.c                     |   48 +-
+ arch/arm/mach-omap2/board-igep0020.c               |   36 +-
+ arch/arm/mach-omap2/board-ldp.c                    |   68 +-
+ arch/arm/mach-omap2/board-omap3beagle.c            |   56 +-
+ arch/arm/mach-omap2/board-omap3evm.c               |   87 +-
+ arch/arm/mach-omap2/board-omap3pandora.c           |   48 +-
+ arch/arm/mach-omap2/board-omap3stalker.c           |   61 +-
+ arch/arm/mach-omap2/board-overo.c                  |  160 +-
+ arch/arm/mach-omap2/board-rx51-peripherals.c       |   12 +
+ arch/arm/mach-omap2/board-rx51-video.c             |   35 +-
+ arch/arm/mach-omap2/board-zoom-display.c           |   30 +-
+ arch/arm/mach-omap2/display.c                      |    4 +-
+ arch/arm/mach-omap2/dss-common.c                   |  244 ++-
+ arch/arm/mach-omap2/dss-common.h                   |    2 -
+ drivers/gpu/drm/omapdrm/omap_encoder.c             |    2 +-
+ drivers/video/omap2/Kconfig                        |    1 -
+ drivers/video/omap2/Makefile                       |    1 -
+ drivers/video/omap2/displays-new/encoder-tfp410.c  |   14 +-
+ .../video/omap2/displays-new/encoder-tpd12s015.c   |   14 +-
+ drivers/video/omap2/displays/Kconfig               |   75 -
+ drivers/video/omap2/displays/Makefile              |   11 -
+ drivers/video/omap2/displays/panel-acx565akm.c     |  798 ----------
+ drivers/video/omap2/displays/panel-generic-dpi.c   |  744 ----------
+ .../omap2/displays/panel-lgphilips-lb035q02.c      |  262 ----
+ drivers/video/omap2/displays/panel-n8x0.c          |  616 --------
+ .../omap2/displays/panel-nec-nl8048hl11-01b.c      |  290 ----
+ drivers/video/omap2/displays/panel-picodlp.c       |  559 -------
+ drivers/video/omap2/displays/panel-picodlp.h       |  288 ----
+ .../video/omap2/displays/panel-sharp-ls037v7dw01.c |  198 ---
+ drivers/video/omap2/displays/panel-taal.c          | 1551 --------------=
+------
+ drivers/video/omap2/displays/panel-tfp410.c        |  353 -----
+ .../video/omap2/displays/panel-tpo-td043mtea1.c    |  596 --------
+ drivers/video/omap2/dss/Kconfig                    |    1 +
+ drivers/video/omap2/dss/Makefile                   |    5 +-
+ drivers/video/omap2/dss/apply.c                    |    4 +-
+ drivers/video/omap2/dss/core.c                     |  324 +---
+ drivers/video/omap2/dss/dpi.c                      |  121 +-
+ drivers/video/omap2/dss/dsi.c                      |  275 +---
+ drivers/video/omap2/dss/dss.h                      |   45 -
+ drivers/video/omap2/dss/hdmi.c                     |  307 +---
+ drivers/video/omap2/dss/hdmi_panel.c               |  414 ------
+ drivers/video/omap2/dss/output.c                   |   22 +-
+ drivers/video/omap2/dss/rfbi.c                     |  135 +-
+ drivers/video/omap2/dss/sdi.c                      |  119 +-
+ drivers/video/omap2/dss/venc.c                     |  122 +-
+ include/video/omap-panel-data.h                    |  118 --
+ include/video/omapdss.h                            |  106 +-
+ 53 files changed, 973 insertions(+), 8870 deletions(-)
+ delete mode 100644 drivers/video/omap2/displays/Kconfig
+ delete mode 100644 drivers/video/omap2/displays/Makefile
+ delete mode 100644 drivers/video/omap2/displays/panel-acx565akm.c
+ delete mode 100644 drivers/video/omap2/displays/panel-generic-dpi.c
+ delete mode 100644 drivers/video/omap2/displays/panel-lgphilips-lb035q02=
+=2Ec
+ delete mode 100644 drivers/video/omap2/displays/panel-n8x0.c
+ delete mode 100644 drivers/video/omap2/displays/panel-nec-nl8048hl11-01b=
+=2Ec
+ delete mode 100644 drivers/video/omap2/displays/panel-picodlp.c
+ delete mode 100644 drivers/video/omap2/displays/panel-picodlp.h
+ delete mode 100644 drivers/video/omap2/displays/panel-sharp-ls037v7dw01.=
+c
+ delete mode 100644 drivers/video/omap2/displays/panel-taal.c
+ delete mode 100644 drivers/video/omap2/displays/panel-tfp410.c
+ delete mode 100644 drivers/video/omap2/displays/panel-tpo-td043mtea1.c
+ delete mode 100644 drivers/video/omap2/dss/hdmi_panel.c
+
+
+--T331xTlq3hWU4CL2cuC7KUKGvLuta5eBP
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJSKColAAoJEPo9qoy8lh71hZEQAJFz3yqJLik+DAXrMQj7wwit
+uYVQCG1eUgkMFGTzdioiOkN7ksKopFuHp5J3P+wDM9peR6ZHv2DKVlKE/gzSQj4y
+D3YcESBZW3I+ePnzLO616xTsS3nMx4D4OznZcoSewrdOvOdJzqe/79J8dCYj5oYX
+x9OvkZoq7JsYVyIK325u4qG2e20B9HAE+oHdUo5d8UCnElgUeDZXNcyXjhwvChFk
+9s9cMWbizqO/XoAVZjkX+jiA2DSzgdzaXwGRxGVE52a+upXDg1nfRIrBSzwQXkjq
+3hd+fr17GpidcDZCXomZ8OKD5a6J+TSi9ITgI1IlKkXu2t+a5WXDBKftd9S2dfVz
+S65bfGmGaGmuSlb66Q4AjOjRoIUa7nZGM0cbjTNUF+EEv94K1PRJEZ2eLJwlLxJ6
+6jjdVNwIQfjsiQBYmXnc33J+f8GSq5rFZfaQ4rQFfnrPT9y15IE1ZX8aS7J4Cfge
+kzpzLAGGWiFPIDGvPUmnM1dqnkL3KiPpZYiegIwDiSKY1a/c5JlzxADpUR5AGCyj
+CUAA0H5xrBP74dIqIVDqgzA8sEI1VEmvnr7QGzxpCgi04IyiikAej0Eh1Oxeqmuf
+nAkTuLMCu8G8S2Z8SyreWiPliwZqnw6LbjcRxZFbtmNk3KbezWJraFWSIGuDACNF
+4SIxhIgATRyrXs8tqFok
+=HPrX
+-----END PGP SIGNATURE-----
+
+--T331xTlq3hWU4CL2cuC7KUKGvLuta5eBP--
