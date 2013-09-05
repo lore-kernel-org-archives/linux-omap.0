@@ -1,145 +1,91 @@
-From: Philipp Zabel <p.zabel@pengutronix.de>
-Subject: Re: [PATCH RFC 0/6] ARM: OMAP2+: AM43x/AM335x prcm reset driver
-Date: Thu, 05 Sep 2013 12:07:14 +0200
-Message-ID: <1378375634.3948.10.camel@pizza.hi.pengutronix.de>
-References: <cover.1378129416.git.afzal@ti.com>
+From: Afzal Mohammed <afzal@ti.com>
+Subject: [PATCH] ARM: OMAP2+: wakeupgen: AM43x adaptation
+Date: Thu, 5 Sep 2013 16:25:35 +0530
+Message-ID: <1378378535-2967-1-git-send-email-afzal@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:41632 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934879Ab3IEKIS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Sep 2013 06:08:18 -0400
-In-Reply-To: <cover.1378129416.git.afzal@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:57765 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934151Ab3IEK4F (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Sep 2013 06:56:05 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Afzal Mohammed <afzal@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, devicetree@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Benoit Cousson <bcousson@baylibre.com>, Russell King <linux@arm.linux.org.uk>, Ian Campbell <ian.campbell@citrix.com>, Stephen Warren <swarren@wwwdotorg.org>, Mark Rutland <mark.rutland@arm.com>, Pawel Moll <pawel.moll@arm.com>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, Pavel Machek <pavel@ucw.cz>
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>
 
-Hi Afzal,
+AM43x has 224 interrupts and 7 banks, make it as maximum values. Keep
+default values as earlier, if am43x is detected, update interrupts and
+banks to maximum.
 
-Am Montag, den 02.09.2013, 19:41 +0530 schrieb Afzal Mohammed:
-> Hi,
-> 
-> This is an attempt to achieve reset on AM43x/AM335x based SoC's with
-> reset driver making use of the reset framework.
-> 
-> prcm node is added in device tree, which would hold reset bindings.
-> Initially node was made as a one that represents reset functionality
-> of SoC. but ended up with node for prcm (which is felt to be natural
-> choice) instead. I am a bit doubtful whether placement of prcm node in
-> root node as in this series is the right thing.
-> 
-> Reset driver gets probed for specific prcm node, the same defines
-> register details to be used for a particular SoC (using ".data" field
-> associated with ".compatible" in driver match table).
-> 
-> Another option to handle different SoC's would be to add register
-> details to DT and let the driver extract it from DT. I vaguely
-> remember seeing a thread mentioning that putting register details in
-> DT is not preferred. But open to putting register level details
-> instead in DT if that is being generally preferred. This would have
-> advantage that adding reset support for a new SoC would be easier, but
-> would have to put more thought before doing so as DT bindings should
-> not change.
-> 
-> With the approach taken here, for supporting a new SoC with new prcm
-> register details, driver would have to be updated much like the way a
-> pci based ethernet driver would have to be updated to handle a new IP
-> version that is not register level compatible with the existing ones.
-> 
-> In this series out of the three IP's (gfx, m3, pruss) that would need
-> reset support, here as a proof of concept only gfx is taken care.
-> Other's can be easily supported by adding new register data array
-> entries.
-> 
-> Two new reset API's are provided to check whether reset is ready and
-> to clear reset. This would be required in case IP needs to mix reset
-> handling procedure with power/clock managment procedure to achieve
-> proper reset and these procedures are sometimes IP specific that would
-> make it difficult to handle reset fully in pm_runtime platform support.
-> 
-> *------*
-> client IP handling s/w (DT based) should do as follows:
-> 
-> 1. Specify reset handle in the relevant DT node, for eg.
-> 
-> 	myip@deadbeef {
-> 		:
-> 		:
-> 		/* here prcm is the handle to reset binding node */
-> 		resets = <&prcm 0>;
-> 	};
-> 
-> 2. In driver, that require reset to be deasserted,
->  (this is the sequence required for gfx on AM43x/AM335x, this would
->   depend on requirements of the IP)
-> 
-> 	mydriver_probe(struct platform device *pdev)
-> 	{
-> 		:
-> 		:
-> 		reset_control_get(&pdev->dev, NULL);
-> 		reset_control_clear_reset();
-> 		reset_control_deassert();
-> 		pm_runtime_get_sync();
-> 		if (reset_control_is_reset() != true)
-> 			goto err;
-> 		reset_control_put();
-> 		:
-> 		:
-> 	}
-> 
-> *------*
+Also AM43x has only one cpu, ensure that clearing bitmask at wakeupgen
+is done only for the single existing cpu, existing code assumes that
+there are two cpu's.
 
-if possible, I'd like to move this logic into the reset controller
-driver. Can this be reordered to enable power before deasserting the
-reset line (assuming it is initially asserted)? In this case, I'd
-suggest to just call device_reset:
+If bitmask is cleared in wakeupgen for the nonexistent second cpu,
+an imprecise abort happens as soon as Kernel switches to user space.
+It was rootcaused by Sekhar Nori <nsekhar@ti.com>.
 
-	pm_runtime_get_sync(&pdev->dev);
-	ret = device_reset(&pdev->dev);
-	if (ret)
-		goto err;
+Signed-off-by: Afzal Mohammed <afzal@ti.com>
+---
+ arch/arm/mach-omap2/omap-wakeupgen.c | 18 +++++++++++++-----
+ 1 file changed, 13 insertions(+), 5 deletions(-)
 
-The ops.reset callback in the prcm driver then can handle clearing
-the reset status bit, deasserting the reset control bit, and waiting for
-the reset status bit to be set (or timing out with an error).
-
-> May be removing reset handling in hwmod can be considered by making
-> use of reset driver.
-> 
-> Or as another extreme, perhaps, other logic's in the prcm can be
-> handled by a new prcm driver and then this reset driver can be a child
-> of it.
-> 
-> Regards
-> Afzal
-> 
-> 
-> Afzal Mohammed (6):
->   reset: is_reset and clear_reset api's
->   doc: dt: binding: omap: am43x/am335x prcm reset
->   reset: am43x/am335x support
->   ARM: OMAP2+: AM43x/AM335x: have reset controller
->   ARM: dts: AM335x: prcm node (for reset)
->   ARM: dts: AM4372: prcm node (for reset)
-> 
->  .../devicetree/bindings/arm/omap/prcm.txt          |  13 ++
->  arch/arm/boot/dts/am33xx.dtsi                      |   6 +
->  arch/arm/boot/dts/am4372.dtsi                      |   6 +
->  arch/arm/mach-omap2/Kconfig                        |   2 +
->  drivers/reset/Kconfig                              |  14 ++
->  drivers/reset/Makefile                             |   1 +
->  drivers/reset/amx3_reset.c                         | 157 +++++++++++++++++++++
->  drivers/reset/core.c                               |  32 +++++
->  include/linux/reset-controller.h                   |   2 +
->  include/linux/reset.h                              |   2 +
->  10 files changed, 235 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/arm/omap/prcm.txt
->  create mode 100644 drivers/reset/amx3_reset.c
-
-regards
-Philipp
+diff --git a/arch/arm/mach-omap2/omap-wakeupgen.c b/arch/arm/mach-omap2/omap-wakeupgen.c
+index 813c615..899d4946 100644
+--- a/arch/arm/mach-omap2/omap-wakeupgen.c
++++ b/arch/arm/mach-omap2/omap-wakeupgen.c
+@@ -33,8 +33,11 @@
+ #include "omap4-sar-layout.h"
+ #include "common.h"
+ 
+-#define MAX_NR_REG_BANKS	5
+-#define MAX_IRQS		160
++/* maximum value correspond to that of AM43x */
++#define MAX_NR_REG_BANKS	7
++#define MAX_IRQS		224
++#define DEFAULT_NR_REG_BANKS	5
++#define DEFAULT_IRQS		160
+ #define WKG_MASK_ALL		0x00000000
+ #define WKG_UNMASK_ALL		0xffffffff
+ #define CPU_ENA_OFFSET		0x400
+@@ -47,8 +50,8 @@ static void __iomem *wakeupgen_base;
+ static void __iomem *sar_base;
+ static DEFINE_RAW_SPINLOCK(wakeupgen_lock);
+ static unsigned int irq_target_cpu[MAX_IRQS];
+-static unsigned int irq_banks = MAX_NR_REG_BANKS;
+-static unsigned int max_irqs = MAX_IRQS;
++static unsigned int irq_banks = DEFAULT_NR_REG_BANKS;
++static unsigned int max_irqs = DEFAULT_IRQS;
+ static unsigned int omap_secure_apis;
+ 
+ /*
+@@ -402,6 +405,7 @@ int __init omap_wakeupgen_init(void)
+ {
+ 	int i;
+ 	unsigned int boot_cpu = smp_processor_id();
++	bool am43x = soc_is_am43xx() ? true : false;
+ 
+ 	/* Not supported on OMAP4 ES1.0 silicon */
+ 	if (omap_rev() == OMAP4430_REV_ES1_0) {
+@@ -418,12 +422,16 @@ int __init omap_wakeupgen_init(void)
+ 		irq_banks = OMAP4_NR_BANKS;
+ 		max_irqs = OMAP4_NR_IRQS;
+ 		omap_secure_apis = 1;
++	} else if (am43x) {
++		irq_banks = MAX_NR_REG_BANKS;
++		max_irqs = MAX_IRQS;
+ 	}
+ 
+ 	/* Clear all IRQ bitmasks at wakeupGen level */
+ 	for (i = 0; i < irq_banks; i++) {
+ 		wakeupgen_writel(0, i, CPU0_ID);
+-		wakeupgen_writel(0, i, CPU1_ID);
++		if (!am43x)
++			wakeupgen_writel(0, i, CPU1_ID);
+ 	}
+ 
+ 	/*
+-- 
+1.8.3.4
 
