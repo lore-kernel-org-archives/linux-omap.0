@@ -1,91 +1,95 @@
 From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH] ARM: OMAP2+: wakeupgen: AM43x adaptation
-Date: Thu, 5 Sep 2013 16:25:35 +0530
-Message-ID: <1378378535-2967-1-git-send-email-afzal@ti.com>
+Subject: Re: [PATCH RFC 0/6] ARM: OMAP2+: AM43x/AM335x prcm reset driver
+Date: Thu, 5 Sep 2013 21:26:13 +0530
+Message-ID: <5228A99D.4020702@ti.com>
+References: <cover.1378129416.git.afzal@ti.com> <1378375634.3948.10.camel@pizza.hi.pengutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:57765 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934151Ab3IEK4F (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Sep 2013 06:56:05 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1378375634.3948.10.camel@pizza.hi.pengutronix.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, devicetree@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Benoit Cousson <bcousson@baylibre.com>, Russell King <linux@arm.linux.org.uk>, Ian Campbell <ian.campbell@citrix.com>, Stephen Warren <swarren@wwwdotorg.org>, Mark Rutland <mark.rutland@arm.com>, Pawel Moll <pawel.moll@arm.com>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, Pavel Machek <pavel@ucw.cz>
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>
 
-AM43x has 224 interrupts and 7 banks, make it as maximum values. Keep
-default values as earlier, if am43x is detected, update interrupts and
-banks to maximum.
+Hi Philipp,
 
-Also AM43x has only one cpu, ensure that clearing bitmask at wakeupgen
-is done only for the single existing cpu, existing code assumes that
-there are two cpu's.
+On Thursday 05 September 2013 03:37 PM, Philipp Zabel wrote:
+> Am Montag, den 02.09.2013, 19:41 +0530 schrieb Afzal Mohammed:
 
-If bitmask is cleared in wakeupgen for the nonexistent second cpu,
-an imprecise abort happens as soon as Kernel switches to user space.
-It was rootcaused by Sekhar Nori <nsekhar@ti.com>.
+>> Two new reset API's are provided to check whether reset is ready and
+>> to clear reset. This would be required in case IP needs to mix reset
+>> handling procedure with power/clock managment procedure to achieve
+>> proper reset and these procedures are sometimes IP specific that would
+>> make it difficult to handle reset fully in pm_runtime platform support.
 
-Signed-off-by: Afzal Mohammed <afzal@ti.com>
----
- arch/arm/mach-omap2/omap-wakeupgen.c | 18 +++++++++++++-----
- 1 file changed, 13 insertions(+), 5 deletions(-)
+>> client IP handling s/w (DT based) should do as follows:
 
-diff --git a/arch/arm/mach-omap2/omap-wakeupgen.c b/arch/arm/mach-omap2/omap-wakeupgen.c
-index 813c615..899d4946 100644
---- a/arch/arm/mach-omap2/omap-wakeupgen.c
-+++ b/arch/arm/mach-omap2/omap-wakeupgen.c
-@@ -33,8 +33,11 @@
- #include "omap4-sar-layout.h"
- #include "common.h"
- 
--#define MAX_NR_REG_BANKS	5
--#define MAX_IRQS		160
-+/* maximum value correspond to that of AM43x */
-+#define MAX_NR_REG_BANKS	7
-+#define MAX_IRQS		224
-+#define DEFAULT_NR_REG_BANKS	5
-+#define DEFAULT_IRQS		160
- #define WKG_MASK_ALL		0x00000000
- #define WKG_UNMASK_ALL		0xffffffff
- #define CPU_ENA_OFFSET		0x400
-@@ -47,8 +50,8 @@ static void __iomem *wakeupgen_base;
- static void __iomem *sar_base;
- static DEFINE_RAW_SPINLOCK(wakeupgen_lock);
- static unsigned int irq_target_cpu[MAX_IRQS];
--static unsigned int irq_banks = MAX_NR_REG_BANKS;
--static unsigned int max_irqs = MAX_IRQS;
-+static unsigned int irq_banks = DEFAULT_NR_REG_BANKS;
-+static unsigned int max_irqs = DEFAULT_IRQS;
- static unsigned int omap_secure_apis;
- 
- /*
-@@ -402,6 +405,7 @@ int __init omap_wakeupgen_init(void)
- {
- 	int i;
- 	unsigned int boot_cpu = smp_processor_id();
-+	bool am43x = soc_is_am43xx() ? true : false;
- 
- 	/* Not supported on OMAP4 ES1.0 silicon */
- 	if (omap_rev() == OMAP4430_REV_ES1_0) {
-@@ -418,12 +422,16 @@ int __init omap_wakeupgen_init(void)
- 		irq_banks = OMAP4_NR_BANKS;
- 		max_irqs = OMAP4_NR_IRQS;
- 		omap_secure_apis = 1;
-+	} else if (am43x) {
-+		irq_banks = MAX_NR_REG_BANKS;
-+		max_irqs = MAX_IRQS;
- 	}
- 
- 	/* Clear all IRQ bitmasks at wakeupGen level */
- 	for (i = 0; i < irq_banks; i++) {
- 		wakeupgen_writel(0, i, CPU0_ID);
--		wakeupgen_writel(0, i, CPU1_ID);
-+		if (!am43x)
-+			wakeupgen_writel(0, i, CPU1_ID);
- 	}
- 
- 	/*
--- 
-1.8.3.4
+>> 2. In driver, that require reset to be deasserted,
+>>  (this is the sequence required for gfx on AM43x/AM335x, this would
+>>   depend on requirements of the IP)
+>>
+>> 	mydriver_probe(struct platform device *pdev)
+>> 	{
+>> 		:
+>> 		:
+>> 		reset_control_get(&pdev->dev, NULL);
+>> 		reset_control_clear_reset();
+>> 		reset_control_deassert();
+>> 		pm_runtime_get_sync();
+>> 		if (reset_control_is_reset() != true)
+>> 			goto err;
+>> 		reset_control_put();
+>> 		:
+>> 		:
+>> 	}
 
+> if possible, I'd like to move this logic into the reset controller
+> driver. Can this be reordered to enable power before deasserting the
+> reset line (assuming it is initially asserted)? In this case, I'd
+> suggest to just call device_reset:
+> 
+> 	pm_runtime_get_sync(&pdev->dev);
+> 	ret = device_reset(&pdev->dev);
+> 	if (ret)
+> 		goto err;
+> 
+> The ops.reset callback in the prcm driver then can handle clearing
+> the reset status bit, deasserting the reset control bit, and waiting for
+> the reset status bit to be set (or timing out with an error).
+
+I too would have loved to have it in such a clean way and was initially
+proceeding in that direction, but there is an issue specific to OMAP
+family SoC's, which was required to be taken care of (even though
+present use case for AM335x/AM43x would work [as it does not have
+hardware supervised clockdomain mode] with a small change in platform
+level power management support code - a generic one shared with other
+OMAP family SoC's)
+
+For a module to be reset, clock domain to which the module clock belongs
+should be set to software supervised mode. During "pm_runtime_get_sync",
+in OMAP platform level handling code, it first put clockdomain into
+software supervised mode, enables clock to module, and once module is
+ready, module will be put to hardware supervised mode. In hardware
+supervised mode, reset may not happen.
+
+So if device_reset() is done after pm_runtime_get_sync(), reset may not
+happen as by the time device_reset() is called, clockdomain would be in
+hardware supervised mode. But in other case, as reset is already
+deasserted when pm_runtime_get_sync() is called, module would be reset
+as it first puts to software supervised mode.
+
+And device reset would happen only upon enabling clock to module (if
+reset was deasserted) by pm_runtime_get_sync(), so reset status has to
+be checked after pm call, preventing us having device_reset() before
+pm_runtime_get_sync(), or else in that case we have to sacrifice on
+reset status checking (which may not be reliable)
+
+Another alternative would have been to integrate this reset handling in
+low level power management code thus hiding all reset handling from
+driver, but as far as I know the reset sequence to be done is sometimes
+IP specific, preventing it.
+
+Regards
+Afzal
