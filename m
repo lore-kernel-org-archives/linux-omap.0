@@ -1,69 +1,90 @@
-From: Dave Martin <Dave.Martin@arm.com>
-Subject: Re: [RFC 0/4] Create infrastructure for running C code from SRAM.
-Date: Fri, 6 Sep 2013 17:40:59 +0100
-Message-ID: <20130906164059.GC3558@localhost.localdomain>
-References: <1378226665-27090-1-git-send-email-Russ.Dill@ti.com>
- <52278F84.2080509@elopez.com.ar>
- <CA+Bv8XaHonrpeNZ6tRCyqpMK1bzgpDTqvLyrsLWEyMY_ky6apQ@mail.gmail.com>
- <20130906111408.GI25647@n2100.arm.linux.org.uk>
+From: Joel Fernandes <joelf@ti.com>
+Subject: Re: [PATCH] arm: dts: am33xx: Add mmc nodes for am33xx platform
+Date: Fri, 6 Sep 2013 13:21:46 -0500
+Message-ID: <522A1D3A.8000301@ti.com>
+References: <1378455712-17379-1-git-send-email-george.cherian@ti.com>
+Reply-To: <joelf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20130906111408.GI25647@n2100.arm.linux.org.uk>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: "mans@mansr.com" <mans@mansr.com>, Emilio =?iso-8859-1?Q?L=F3pez?= <emilio@elopez.com.ar>, Grant Likely <grant.likely@secretlab.ca>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Russ Dill <Russ.Dill@ti.com>, Philipp Zabel <p.zabel@pengutronix.de>, Shawn Guo <shawn.guo@linaro.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1378455712-17379-1-git-send-email-george.cherian@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: George Cherian <george.cherian@ti.com>
+Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, bcousson@baylibre.com, tony@atomide.com, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ijc+devicetree@hellion.org.uk, linux@arm.linux.org.uk, Vinod Koul <vinod.koul@intel.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Sep 06, 2013 at 12:14:08PM +0100, Russell King - ARM Linux wrote:
-> On Wed, Sep 04, 2013 at 02:47:51PM -0700, Russ Dill wrote:
-> > I think this is already taken care of by the way sram.c is using
-> > genalloc. The allocation returned should be aligned to 32 bytes. The
-> > thumb bit shouldn't be an issue as code is copied based on the start
-> > and end makers made by the linker. I may need to add .align statements
-> > in the linker so that the start and end markers for the copied code
-> > are aligned to at least 8 bytes.
+Hi George,
+
+On 09/06/2013 03:21 AM, George Cherian wrote:
+> Add mmc nodes for am33xx platforms
 > 
-> I think you need to read up on what fncpy does... there's more to it
-> than just merely copying code at an appropriate alignment.
+> Signed-off-by: George Cherian <george.cherian@ti.com>
+> ---
+> Verified after applying [1] and [2]
+> [1] - [PATCH v4 0/6] dma: edma: Support scatter-lists of any length - https://lkml.org/lkml/2013/8/29/466
+> [2] - [PATCH v2] ARM: dts: add AM33XX EDMA support - https://lkml.org/lkml/2013/8/26/57
 
-The technique of putting each loadable blob in a specific vmlinux
-section, and then adjusting entry-point symbols by adding/subtracting
-the appropriate offset, probably does work.
+Thanks for the verification.
 
-This relies on the functions' code alignment requirement being
-honoured by both the vmlinux link map, and the allocator used to find
-SRAM space to copy the functions to.
+But, this patch should not be applied on its own as it a part of a bigger patch
+I had submitted earlier that includes DTS for other derivative boards and
+bindings Documentation. [3] That's the one to be applied and should be applied
+only after the above patches are merged. I will resubmit this later again once
+pending EDMA changes are merged. Thanks.
 
-Searching the entire list of known blobs every time we want to convert
-a symbol seems unnecessary though.  Surely the caller could know the
-blob<->symbol mapping anyway?
+[3] https://lkml.org/lkml/2013/6/25/781
 
+Regards,
 
-One thing fncpy() doesn't provide is a way to copy groups of functions
-that call each other, if vmlinux needs to know about any symbol other
-than the one at the start.  We might need a better mechanism if that is
-needed.
-
-
-I actually wonder whether fncpy() contains a buglet, whereby
-flush_icache_range() is used instead of coherent_kern_range().
-The SRAM is probably not mapped cached, but at least a DSB would be
-needed before flushing the relevant lines from the I-cache.
-
-However, flush_icache_range() seems to be implemented by a call to
-coherent_kern_range() anyway, so perhaps that's not a problem.
-
-Cheers
----Dave
+-Joel
+>  arch/arm/boot/dts/am33xx.dtsi | 35 +++++++++++++++++++++++++++++++++++
+>  1 file changed, 35 insertions(+)
+> 
+> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+> index b0badff..1df512d 100644
+> --- a/arch/arm/boot/dts/am33xx.dtsi
+> +++ b/arch/arm/boot/dts/am33xx.dtsi
+> @@ -236,6 +236,41 @@
+>  			status = "disabled";
+>  		};
+>  
+> +		mmc1: mmc@48061000 {
+> +			compatible = "ti,omap4-hsmmc";
+> +			reg = <0x48060000 0x1000>;
+> +			interrupts = <64>;
+> +			ti,hwmods = "mmc1";
+> +			ti,dual-volt;
+> +			ti,needs-special-reset;
+> +			ti,needs-special-hs-handling;
+> +			dmas = <&edma 24
+> +				&edma 25>;
+> +			dma-names = "tx", "rx";
+> +			status = "disabled";
+> +		};
+> +
+> +		mmc2: mmc@481d8000 {
+> +			compatible = "ti,omap4-hsmmc";
+> +			reg = <0x481d8000 0x1000>;
+> +			interrupts = <28>;
+> +			ti,hwmods = "mmc2";
+> +			ti,needs-special-reset;
+> +			dmas = <&edma 2
+> +				&edma 3>;
+> +			dma-names = "tx", "rx";
+> +			status = "disabled";
+> +		};
+> +
+> +		mmc3: mmc@47810000 {
+> +			compatible = "ti,omap4-hsmmc";
+> +			reg = <0x47810000 0x1000>;
+> +			interrupts = <29>;
+> +			ti,hwmods = "mmc3";
+> +			ti,needs-special-reset;
+> +			status = "disabled";
+> +		};
+> +
+>  		wdt2: wdt@44e35000 {
+>  			compatible = "ti,omap3-wdt";
+>  			ti,hwmods = "wd_timer2";
+> 
