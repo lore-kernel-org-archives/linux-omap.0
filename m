@@ -1,115 +1,66 @@
-From: Koen Kooi <koen@dominion.thruhere.net>
-Subject: Re: [PATCH] ARM: OMAP2+: am335x-bone*: add DT for BeagleBone Black
-Date: Fri, 6 Sep 2013 10:51:01 +0200
-Message-ID: <A83CF7D5-0A26-4740-9F4D-51E5C1592EEF@dominion.thruhere.net>
-References: <1378449204-8601-1-git-send-email-koen@dominion.thruhere.net> <52297CCF.3090200@ti.com> <50E637BB-5A62-477C-B943-9687BC3488BC@dominion.thruhere.net>
-Mime-Version: 1.0 (Mac OS X Mail 6.5 \(1508\))
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <50E637BB-5A62-477C-B943-9687BC3488BC@dominion.thruhere.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: George Cherian <george.cherian@ti.com>
-Cc: linux-omap@vger.kernel.org, bcousson@baylibre.com, tony@atomide.com, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ijc+devicetree@hellion.org.uk, linux@arm.linux.org.uk, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, olof@lixom.net
+From: Archit Taneja <archit@ti.com>
+Subject: [PATCH v4 0/4] v4l: VPE mem to mem driver
+Date: Fri, 6 Sep 2013 15:42:22 +0530
+Message-ID: <1378462346-10880-1-git-send-email-archit@ti.com>
+References: <1376996457-17275-1-git-send-email-archit@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:40368 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750919Ab3IFKNj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 6 Sep 2013 06:13:39 -0400
+In-Reply-To: <1376996457-17275-1-git-send-email-archit@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-media@vger.kernel.org, hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com
+Cc: linux-omap@vger.kernel.org, tomi.valkeinen@ti.com, Archit Taneja <archit@ti.com>
 
+VPE(Video Processing Engine) is an IP found on DRA7xx, this series adds VPE as a
+mem to mem v4l2 driver, and VPDMA as a helper library.
 
-Op 6 sep. 2013, om 09:10 heeft Koen Kooi <koen@dominion.thruhere.net> het volgende geschreven:
+The first version of the patch series described VPE in detail, you can have a
+look at it here:
 
-> 
-> Op 6 sep. 2013, om 08:57 heeft George Cherian <george.cherian@ti.com> het volgende geschreven:
-> 
->> On 9/6/2013 12:03 PM, Koen Kooi wrote:
->>> The BeagleBone Black is basically a regular BeagleBone with eMMC and HDMI added,
->>> so create a common dtsi both can use. MMC support for AM335x still isn't in, so
->>> only the LDO change has been added.
->>> 
->>> Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
->>> ---
->>> .../{am335x-bone.dts => am335x-bone-common.dtsi}   |   3 -
->>> arch/arm/boot/dts/am335x-bone.dts                  | 256 +--------------------
->>> arch/arm/boot/dts/am335x-boneblack.dts             |  18 ++
->>> 3 files changed, 19 insertions(+), 258 deletions(-)
->>> copy arch/arm/boot/dts/{am335x-bone.dts => am335x-bone-common.dtsi} (99%)
->>> create mode 100644 arch/arm/boot/dts/am335x-boneblack.dts
->> How did you test am335x-boneblack.dtb? where are the Makefile changes for boneblack?
-> 
-> Ah, I missed the makefile in my commit. I have a bunch of other patches on top to make more stuff work.
-> 
-> [..]
-> 
->>> 
->>> --- /dev/null
->>> +++ b/arch/arm/boot/dts/am335x-boneblack.dts
->>> @@ -0,0 +1,18 @@
->>> +/*
->>> + * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
->>> + *
->>> + * This program is free software; you can redistribute it and/or modify
->>> + * it under the terms of the GNU General Public License version 2 as
->>> + * published by the Free Software Foundation.
->>> + */
->>> +/dts-v1/;
->>> +
->>> +#include "am33xx.dtsi"
->> Why cant we add am33xx.dtsi  in am335x-bone-common.dtsi ?
-> 
-> That didn't work when I tried it. It did work before the preprocessor changes when using /include/
-> 
->>> +#include "am335x-bone-common.dtsi"
->>> +
->>> +&ldo3_reg {
->>> +	regulator-min-microvolt = <1800000>;
->>> +	regulator-max-microvolt = <1800000>;
->>> +	regulator-always-on;
->>> +};
->>> +
->> With this ldo values mmc was not working for me on Boneblack.
->> got it working with
->> 
->> &ldo3_reg {
->> 	regulator-min-microvolt = <1800000>;
->> 	regulator-max-microvolt = <3300000>;
->> 	regulator-always-on;
->> };
-> 
-> That LDO is shared, the other consumer will get fried if you use 3.3V. I forget if it's DDR3 or HDMI.
+http://www.spinics.net/lists/linux-media/msg66518.html
 
-On the black the LDOs changed, so for mmc (which (*$)@()$@) still isn't in mainline) you need:
+Changes in v4:
+- Control ID for the driver reserved in v4l2-controls.h
+- Some fixes/clean ups suggested by Hans.
+- A small hack done in VPE's probe to use a fixed 64K resource size, this
+  is needed as the DT bindings will split the addresses accross VPE
+  submodules, the driver currently works with register offsets from the top
+  level VPE base. The driver can be modified later to support multiple
+  ioremaps of the sub modules.
+- Addition of sync on channel descriptors for input DMA channels, this
+  ensures the VPDMA list is stalled in the rare case of an input channel's
+  DMA getting completed after all the output channel DMAs.
+- Removed the DT and hwmod patches from this series. DRA7xx support is not
+  yet got in the 3.12 merge window. Will deal with those separately.
 
-diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
-index e76d575..ae90a30 100644
---- a/arch/arm/boot/dts/am335x-bone-common.dtsi
-+++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
-@@ -362,6 +362,13 @@
-                        regulator-always-on;
-                };
-        };
-+
-+       vmmcsd_fixed: fixedregulator@0 {
-+               compatible = "regulator-fixed";
-+               regulator-name = "vmmcsd_fixed";
-+               regulator-min-microvolt = <3300000>;
-+               regulator-max-microvolt = <3300000>;
-+       };
- };
- 
- &cpsw_emac0 {
-diff --git a/arch/arm/boot/dts/am335x-boneblack.dts b/arch/arm/boot/dts/am335x-boneblack.dts
-index b4237fc..e092a61 100644
---- a/arch/arm/boot/dts/am335x-boneblack.dts
-+++ b/arch/arm/boot/dts/am335x-boneblack.dts
-@@ -16,7 +16,12 @@
-        regulator-always-on;
- };
- 
--&mmc2 {
-+&mmc1 { 
-+       vmmc-supply = <&vmmcsd_fixed>;
-+};
-+
-+&mmc2 { 
-+       vmmc-supply = <&vmmcsd_fixed>;
-        pinctrl-names = "default";
-        pinctrl-0 = <&emmc_pins>;
-        vmmc-supply = <&ldo3_reg>;
+Archit Taneja (4):
+  v4l: ti-vpe: Create a vpdma helper library
+  v4l: ti-vpe: Add helpers for creating VPDMA descriptors
+  v4l: ti-vpe: Add VPE mem to mem driver
+  v4l: ti-vpe: Add de-interlacer support in VPE
+
+ drivers/media/platform/Kconfig             |   16 +
+ drivers/media/platform/Makefile            |    2 +
+ drivers/media/platform/ti-vpe/Makefile     |    5 +
+ drivers/media/platform/ti-vpe/vpdma.c      |  846 ++++++++++++
+ drivers/media/platform/ti-vpe/vpdma.h      |  203 +++
+ drivers/media/platform/ti-vpe/vpdma_priv.h |  641 +++++++++
+ drivers/media/platform/ti-vpe/vpe.c        | 2074 ++++++++++++++++++++++++++++
+ drivers/media/platform/ti-vpe/vpe_regs.h   |  496 +++++++
+ include/uapi/linux/v4l2-controls.h         |    4 +
+ 9 files changed, 4287 insertions(+)
+ create mode 100644 drivers/media/platform/ti-vpe/Makefile
+ create mode 100644 drivers/media/platform/ti-vpe/vpdma.c
+ create mode 100644 drivers/media/platform/ti-vpe/vpdma.h
+ create mode 100644 drivers/media/platform/ti-vpe/vpdma_priv.h
+ create mode 100644 drivers/media/platform/ti-vpe/vpe.c
+ create mode 100644 drivers/media/platform/ti-vpe/vpe_regs.h
+
+-- 
+1.8.1.2
+
