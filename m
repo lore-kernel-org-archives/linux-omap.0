@@ -1,76 +1,119 @@
 From: Russ Dill <Russ.Dill@ti.com>
 Subject: Re: [RFC 0/4] Create infrastructure for running C code from SRAM.
-Date: Fri, 6 Sep 2013 12:32:03 -0700
-Message-ID: <CA+Bv8XbbWoBgrv83RmXLiO8AM0TDP9wNQMUFJKMbN82-0w3Scg@mail.gmail.com>
+Date: Fri, 6 Sep 2013 12:42:37 -0700
+Message-ID: <CA+Bv8XZk7cnRCZbw-jexwKnCxSAM81KbSevCtVTKE_0550W7rw@mail.gmail.com>
 References: <1378226665-27090-1-git-send-email-Russ.Dill@ti.com>
 	<20130906111221.GH25647@n2100.arm.linux.org.uk>
+	<20130906161902.GB3558@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qa0-f43.google.com ([209.85.216.43]:47166 "EHLO
-	mail-qa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750709Ab3IFTcF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Sep 2013 15:32:05 -0400
-Received: by mail-qa0-f43.google.com with SMTP id bv4so706549qab.9
-        for <linux-omap@vger.kernel.org>; Fri, 06 Sep 2013 12:32:03 -0700 (PDT)
-In-Reply-To: <20130906111221.GH25647@n2100.arm.linux.org.uk>
+Received: from mail-qc0-f182.google.com ([209.85.216.182]:58589 "EHLO
+	mail-qc0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750760Ab3IFTmi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Sep 2013 15:42:38 -0400
+Received: by mail-qc0-f182.google.com with SMTP id k18so1705861qcv.13
+        for <linux-omap@vger.kernel.org>; Fri, 06 Sep 2013 12:42:38 -0700 (PDT)
+In-Reply-To: <20130906161902.GB3558@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: mans@mansr.com, Shawn Guo <shawn.guo@linaro.org>, Grant Likely <grant.likely@secretlab.ca>, Philipp Zabel <p.zabel@pengutronix.de>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
+To: Dave Martin <Dave.Martin@arm.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, =?UTF-8?B?TcOlbnMgUnVsbGfDpXJk?= <mans@mansr.com>, Shawn Guo <shawn.guo@linaro.org>, Grant Likely <grant.likely@secretlab.ca>, Philipp Zabel <p.zabel@pengutronix.de>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
 
-On Fri, Sep 6, 2013 at 4:12 AM, Russell King - ARM Linux
-<linux@arm.linux.org.uk> wrote:
-> On Tue, Sep 03, 2013 at 09:44:21AM -0700, Russ Dill wrote:
->> SRAM handling code is in the process of being moved from arch directories
->> into drivers/misc/sram.c using device tree and genalloc [1] [2]. This RFC
->> patchset builds on that, including the limitation that the SRAM address is
->> not known at compile time. Because the SRAM address is not known at compile
->> time, the code that runs from SRAM must be compiled with -fPIC. Even if
->> the code were loaded to a fixed virtual address, portions of the code must
->> often be run with the MMU disabled.
->
-> What are you doing about the various gcc utility functions that may be
-> implicitly called from C code such as memcpy and memset?
-
-That would create a problem. Would '-ffreestanding' be the correct
-flag to add? As far as the family of __aeabi_*, I need to add
-documentation stating that on ARM, you can't divide, perform modulo,
-and can't do 64 bit multiplications. I can then add a make rule that
-will grep the symbol lists of .sram sections for ^__aeabi_. Is this
-enough?
-
->> The general idea is that for each SRAM user (such as an SoC specific
->> suspend/resume mechanism) to create a group of sections. The section group
->> is created with a single macro for each user, but end up looking like this:
+On Fri, Sep 6, 2013 at 9:19 AM, Dave Martin <Dave.Martin@arm.com> wrote:
+> On Fri, Sep 06, 2013 at 12:12:21PM +0100, Russell King - ARM Linux wrote:
+>> On Tue, Sep 03, 2013 at 09:44:21AM -0700, Russ Dill wrote:
+>> > SRAM handling code is in the process of being moved from arch directories
+>> > into drivers/misc/sram.c using device tree and genalloc [1] [2]. This RFC
+>> > patchset builds on that, including the limitation that the SRAM address is
+>> > not known at compile time. Because the SRAM address is not known at compile
+>> > time, the code that runs from SRAM must be compiled with -fPIC. Even if
+>> > the code were loaded to a fixed virtual address, portions of the code must
+>> > often be run with the MMU disabled.
 >>
->> .sram.am33xx : AT(ADDR(.sram.am33xx) - 0) {
->>   __sram_am33xx_start = .;
->>   *(.sram.am33xx.*)
->>   __sram_am33xx_end = .;
->> }
+>> What are you doing about the various gcc utility functions that may be
+>> implicitly called from C code such as memcpy and memset?
 >>
->> Any data or functions that should be copied to SRAM for this use should be
->> maked with an appropriate __section() attribute. A helper is then added for
->> translating between the original kernel symbol, and the address of that
->> function or variable once it has been copied into SRAM. Once control is
->> passed to a function within the SRAM section grouping, it can access any
->> variables or functions within that same SRAM section grouping without
->> translation.
+>> > The general idea is that for each SRAM user (such as an SoC specific
+>> > suspend/resume mechanism) to create a group of sections. The section group
+>> > is created with a single macro for each user, but end up looking like this:
+>> >
+>> > .sram.am33xx : AT(ADDR(.sram.am33xx) - 0) {
+>> >   __sram_am33xx_start = .;
+>> >   *(.sram.am33xx.*)
+>> >   __sram_am33xx_end = .;
+>> > }
+>> >
+>> > Any data or functions that should be copied to SRAM for this use should be
+>> > maked with an appropriate __section() attribute. A helper is then added for
+>> > translating between the original kernel symbol, and the address of that
+>> > function or variable once it has been copied into SRAM. Once control is
+>> > passed to a function within the SRAM section grouping, it can access any
+>> > variables or functions within that same SRAM section grouping without
+>> > translation.
+>>
+>> What about the relocations which will need to be fixed up - eg, addresses
+>> in the literal pool, the GOT table contents, etc?  You say nothing about
+>> this.
 >
-> What about the relocations which will need to be fixed up - eg, addresses
-> in the literal pool, the GOT table contents, etc?  You say nothing about
-> this.
+> I was also thinking about this, and there are more problems.
+>
+> As well as what has already been mentioned:
+>
+>  * Calls from inside the SRAM code to vmlinux (including lib1funcs etc.)
+>    will typically break, except on architectures where function calls are
+>    (absolute by default not ARM).
 
-The C code would need to be written so that such accesses do not
-occur. From functions that are in the sram text section, only accesses
-to other sram sections in their group would be allowed. And above, a
-compilation step could be added to make the compilation fail when such
-things happen.
+As in the response to RMK, I think compiler flags are enough to
+prevent implicit memcpy/memset calls. The code would not be allowed to
+do divisions, module, or 64 bit multiplication. A make rule would
+check the sram sections for any dynamically relocatable symbols.
 
-The direction you are going though is good, if this is fragile, it
-doesn't put us in a better place then having fragile asm that at least
-complies reliably. As I'm looking towards the future and platforms
-that are similar to am335x in that they are placing more and more of
-the PM state machine burden on the CPU, I'd really like to try to make
-this happen.
+>  * The compiler/linker won't detect unsafe constructs or code generation,
+>    because it assumes that anything built with -fPIC is going to be patched
+>    up later by ld.so or equivalent.
+
+Can you provide examples of what some of these other unsafe constructs might be?
+
+>  * The GOT is generated by the linker, and is a single table.  Yet each
+>    SRAM blob needs to be able to refer to its own GOT entries position-
+>    independently.  Moving the blobs independently won't work.
+
+Would GOT entries only exist if there are accesses to .data or .bss?
+The SRAM C code would not support such a thing, only access to data
+and text within the SRAM grouping is allowed. Is there a way to make
+the compiler or linker complain if such an access is done? If not,
+it'd be another make rule as above.
+
+> In other words: -fPIC does not generate position-independent code.
+>
+> It generates position-dependent code that is easier to move around than
+> non-fPIC code, but you still need a dynamic linker (or equivalent) to
+> make it all work.
+
+arch/arm/boot/compressed/ seems to manage it. Hopefully, by allowing
+only more limited code, I can get by with less tricks.
+
+> There are various "correct" ways to handle this, the simplest of which
+> is probably to build each SRAM blob as a kernel module, embed the result
+> in the kernel somehow, and then use the module loader infrastructure
+> to handle fixing the module up to the right address.
+>
+> But this is still likely to be overkill, given the small scale of the
+> SRAM code.
+
+Yes, I'm pretty sure several people would scream rather loudly if
+getting suspend/resume support on their platform required
+CONFIG_MODULES=y.
+
+> Restricting such code to carefully-written assembler (as now) may be
+> the more practical approrach, unless there's a good example of somewhere
+> that C code would provide a big benefit.
+
+There are currently about 5000 or so lines of assembly code in
+arch/arm that are used for suspend/resume stubs. In one stage of
+am335x development, the sleep/resume stub for am335x was about 1200
+lines long. Since then, a lot of that code has been moved to a
+firmware blob, but there has been some pushback on that, which is why
+I'm investigating this path. Especially given that there are some
+future platforms that will follow the am335x pm model.
