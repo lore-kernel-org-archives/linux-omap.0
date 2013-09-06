@@ -1,136 +1,73 @@
-From: Koen Kooi <koen@dominion.thruhere.net>
-Subject: Re: [PATCH] ARM: OMAP2+: am335x-bone*: add DT for BeagleBone Black
-Date: Fri, 6 Sep 2013 14:51:01 +0200
-Message-ID: <13CEC5D4-080F-499B-8451-7AFEDE065F27@dominion.thruhere.net>
-References: <1378449204-8601-1-git-send-email-koen@dominion.thruhere.net> <52297CCF.3090200@ti.com> <50E637BB-5A62-477C-B943-9687BC3488BC@dominion.thruhere.net> <A83CF7D5-0A26-4740-9F4D-51E5C1592EEF@dominion.thruhere.net>
-Mime-Version: 1.0 (Mac OS X Mail 6.5 \(1508\))
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH] RFC: interrupt consistency check for OF GPIO IRQs
+Date: Fri, 06 Sep 2013 17:32:43 +0200
+Message-ID: <2966898.neCKEkcf1e@avalon>
+References: <1375101368-17645-1-git-send-email-linus.walleij@linaro.org> <344239800.bDEkDg48ZQ@avalon> <CACRpkdavR=fv+y1RCNfdgQypPuRbO6isOSwGsABDrYiGeMdyZw@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f173.google.com ([209.85.212.173]:37299 "EHLO
-	mail-wi0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751349Ab3IFMvH convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Sep 2013 08:51:07 -0400
-Received: by mail-wi0-f173.google.com with SMTP id hq15so831234wib.0
-        for <linux-omap@vger.kernel.org>; Fri, 06 Sep 2013 05:51:05 -0700 (PDT)
-In-Reply-To: <A83CF7D5-0A26-4740-9F4D-51E5C1592EEF@dominion.thruhere.net>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:54826 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751391Ab3IFPcl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Sep 2013 11:32:41 -0400
+In-Reply-To: <CACRpkdavR=fv+y1RCNfdgQypPuRbO6isOSwGsABDrYiGeMdyZw@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: George Cherian <george.cherian@ti.com>
-Cc: linux-omap@vger.kernel.org, bcousson@baylibre.com, tony@atomide.com, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ijc+devicetree@hellion.org.uk, linux@arm.linux.org.uk, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, olof@lixom.net
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: Grant Likely <grant.likely@linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Alexander Holler <holler@ahsoftware.de>, Linux-OMAP <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Enric Balletbo i Serra <eballetbo@gmail.com>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@linaro.org>, Balaji T K <balajitk@ti.com>, Tony Lindgren <tony@atomide.com>, Jon Hunter <jgchunter@gmail.com>
 
+Hi Linus,
 
-Op 6 sep. 2013, om 10:51 heeft Koen Kooi <koen@dominion.thruhere.net> het volgende geschreven:
+Sorry for the late reply.
 
+On Thursday 22 August 2013 00:02:39 Linus Walleij wrote:
+> On Tue, Aug 20, 2013 at 12:04 AM, Laurent Pinchart wrote:
+> > On Wednesday 31 July 2013 01:44:53 Linus Walleij wrote:
+> >> I don't see how sharing works here, or how another user, i.e. another one
+> >> than the user wanting to recieve the IRQ, can validly request such a
+> >> line? What would the usecase for that valid request be?
+> > 
+> > When the GPIO is wired to a status signal (such as an MMC card detect
+> > signal) the driver might want to read the state of the signal
+> > independently of the interrupt handler.
 > 
-> Op 6 sep. 2013, om 09:10 heeft Koen Kooi <koen@dominion.thruhere.net> het volgende geschreven:
-> 
->> 
->> Op 6 sep. 2013, om 08:57 heeft George Cherian <george.cherian@ti.com> het volgende geschreven:
->> 
->>> On 9/6/2013 12:03 PM, Koen Kooi wrote:
->>>> The BeagleBone Black is basically a regular BeagleBone with eMMC and HDMI added,
->>>> so create a common dtsi both can use. MMC support for AM335x still isn't in, so
->>>> only the LDO change has been added.
->>>> 
->>>> Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
->>>> ---
->>>> .../{am335x-bone.dts => am335x-bone-common.dtsi}   |   3 -
->>>> arch/arm/boot/dts/am335x-bone.dts                  | 256 +--------------------
->>>> arch/arm/boot/dts/am335x-boneblack.dts             |  18 ++
->>>> 3 files changed, 19 insertions(+), 258 deletions(-)
->>>> copy arch/arm/boot/dts/{am335x-bone.dts => am335x-bone-common.dtsi} (99%)
->>>> create mode 100644 arch/arm/boot/dts/am335x-boneblack.dts
->>> How did you test am335x-boneblack.dtb? where are the Makefile changes for boneblack?
->> 
->> Ah, I missed the makefile in my commit. I have a bunch of other patches on top to make more stuff work.
->> 
->> [..]
->> 
->>>> 
->>>> --- /dev/null
->>>> +++ b/arch/arm/boot/dts/am335x-boneblack.dts
->>>> @@ -0,0 +1,18 @@
->>>> +/*
->>>> + * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
->>>> + *
->>>> + * This program is free software; you can redistribute it and/or modify
->>>> + * it under the terms of the GNU General Public License version 2 as
->>>> + * published by the Free Software Foundation.
->>>> + */
->>>> +/dts-v1/;
->>>> +
->>>> +#include "am33xx.dtsi"
->>> Why cant we add am33xx.dtsi  in am335x-bone-common.dtsi ?
->> 
->> That didn't work when I tried it. It did work before the preprocessor changes when using /include/
->> 
->>>> +#include "am335x-bone-common.dtsi"
->>>> +
->>>> +&ldo3_reg {
->>>> +	regulator-min-microvolt = <1800000>;
->>>> +	regulator-max-microvolt = <1800000>;
->>>> +	regulator-always-on;
->>>> +};
->>>> +
->>> With this ldo values mmc was not working for me on Boneblack.
->>> got it working with
->>> 
->>> &ldo3_reg {
->>> 	regulator-min-microvolt = <1800000>;
->>> 	regulator-max-microvolt = <3300000>;
->>> 	regulator-always-on;
->>> };
->> 
->> That LDO is shared, the other consumer will get fried if you use 3.3V. I forget if it's DDR3 or HDMI.
-> 
-> On the black the LDOs changed, so for mmc (which (*$)@()$@) still isn't in mainline) you need:
-> 
-> diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
-> index e76d575..ae90a30 100644
-> --- a/arch/arm/boot/dts/am335x-bone-common.dtsi
-> +++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
-> @@ -362,6 +362,13 @@
->                        regulator-always-on;
->                };
->        };
-> +
-> +       vmmcsd_fixed: fixedregulator@0 {
-> +               compatible = "regulator-fixed";
-> +               regulator-name = "vmmcsd_fixed";
-> +               regulator-min-microvolt = <3300000>;
-> +               regulator-max-microvolt = <3300000>;
-> +       };
-> };
-> 
-> &cpsw_emac0 {
-> diff --git a/arch/arm/boot/dts/am335x-boneblack.dts b/arch/arm/boot/dts/am335x-boneblack.dts
-> index b4237fc..e092a61 100644
-> --- a/arch/arm/boot/dts/am335x-boneblack.dts
-> +++ b/arch/arm/boot/dts/am335x-boneblack.dts
-> @@ -16,7 +16,12 @@
->        regulator-always-on;
-> };
-> 
-> -&mmc2 {
-> +&mmc1 { 
-> +       vmmc-supply = <&vmmcsd_fixed>;
-> +};
-> +
-> +&mmc2 { 
-> +       vmmc-supply = <&vmmcsd_fixed>;
->        pinctrl-names = "default";
->        pinctrl-0 = <&emmc_pins>;
->        vmmc-supply = <&ldo3_reg>;
+> That is true. But for such a complex usecase I think it's reasonable that
+> we only specify the GPIO in the device tree, and the driver utilizing the
+> IRQ need to take that and perform gpio_to_irq() on it, and then it still
+> works to use it both ways.
 
-And links to all the patches:
+I'm pretty sure I would have had an objection a couple of weeks ago when I was 
+looking into this, but I can't think of another use case for now, so I agree 
+with you.
 
-Card-detect fix: https://github.com/koenkooi/linux/commit/c3c87f330812275ce6aa791e2a81f4c124fe981b
-Add eMMC DT node: https://github.com/koenkooi/linux/commit/22459b61a7e80e05ab1cd02b9ec0a4467bf9fa4b
-Fix mmc regulator: https://github.com/koenkooi/linux/commit/8007217893b7d809782e08fa1f0d56b1083ec00d
+> >> Basically I believe these two things need to be exclusive in the DT
+> >> world:
+> >> 
+> >> A: request_irq(a resource passed from "interrupts");
+> >>      -> core implicitly performs gpio_request()
+> >>          gpio_direction_input()
+> >> 
+> >> B: gpio_request(a resource passed from "gpios");
+> >>      gpio_direction_input()
+> >>      request_irq(gpio_to_irq())
+> >> 
+> >> Never both. And IIUC that was what happened in the OMAP case.
+> > 
+> > Isn't the core issue that we can translate a GPIO number to an IRQ number,
+> > but not the other way around ? If that could be done, we could request
+> > the GPIO and configure it as an input when the IRQ is requested.
+> 
+> That is true. It would be easier if all GPIO drivers has an irqchip and
+> and irqdomain, then we could implement irq_to_gpio() properly in gpiolib
+> and this would not be a problem. Alas, not all do.
+> 
+> But I also think that the DT contains (as demonstrated by the patch)
+> all information about what interrupts and GPIOs may conflict, so I
+> also see this as something of a consistency check, but it could go
+> in either way.
 
-As soon as TI gets their act together and the EDMA/MMC patchset is in Linus' tree I'll rebase and submit the above properly.
+-- 
+Regards,
 
-regards,
-
-Koen
+Laurent Pinchart
