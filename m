@@ -1,89 +1,357 @@
-From: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v2] ARM: EDMA: Fix clearing of unused list for DT DMA
-	resources
-Date: Fri, 6 Sep 2013 14:51:14 -0500
-Message-ID: <522A3232.2090103@ti.com>
-References: <1377287613-16491-1-git-send-email-joelf@ti.com>
-	<522A2943.4060502@newflow.co.uk> <522A29CF.2090001@newflow.co.uk>
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
+Subject: Re: [PATCH v2] ADP1653 board code for Nokia RX-51
+Date: Fri, 6 Sep 2013 22:34:05 +0200
+Message-ID: <201309062234.05878@pali>
+References: <201302171616.50152@pali> <20130217190303.GC2317@blackmetal.musicnaut.iki.fi> <201303062112.06417@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: multipart/signed;
+  boundary="nextPart1696311.H7yyvhgxLS";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
 Content-Transfer-Encoding: 7bit
-Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-In-Reply-To: <522A29CF.2090001-2FZW7xY0fHgqdlJmJB21zg@public.gmane.org>
-List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
-List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
-List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
-Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
-To: Mark Jackson <mpfj-list-2FZW7xY0fHgqdlJmJB21zg@public.gmane.org>
-Cc: Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Pantel Antoniou <panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>, Dan Williams <djbw-b10kYP2dOMg@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <201303062112.06417@pali>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 09/06/2013 02:15 PM, Mark Jackson wrote:
-> On 06/09/13 20:13, Mark Jackson wrote:
->> On 23/08/13 20:53, Joel Fernandes wrote:
->>> HWMOD removal for MMC and Crypto is breaking edma_start as the events are
->>> being manually triggered due to unused channel list not being clear. Atleast
->>> breakage has been seen on these peripherals, but it is expected Audio (McASP)
->>> maybe breaking too.
->>>
->>> This patch fixes the issue, by reading the "dmas" property from the DT node if
->>> it exists and clearing the bits in the unused channel list so that these channels
->>> are not manually triggered.
->>>
->>> v2 changes:
->>> Reduced indendation by returning from if block.
->>>
->>> Reviewed-by: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
->>> Reported-by: Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>
->>> Cc: Pantel Antoniou <panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>
->>> Signed-off-by: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>
->>> ---
->>> Note:
->>> Patch should go in for -rc cycle as it fixes existing crypto drivers.
->>>
->>>  arch/arm/common/edma.c | 22 +++++++++++++++++++---
->>>  1 file changed, 19 insertions(+), 3 deletions(-)
->>>
->>> diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
->>> index 39ad030..3867e7e 100644
->>> --- a/arch/arm/common/edma.c
->>> +++ b/arch/arm/common/edma.c
->>> @@ -560,14 +560,30 @@ static int reserve_contiguous_slots(int ctlr, unsigned int id,
->>>  static int prepare_unused_channel_list(struct device *dev, void *data)
->>>  {
->>>  	struct platform_device *pdev = to_platform_device(dev);
->>> -	int i, ctlr;
->>> +	int i = 0, ctlr;
->>> +	u32 dma_chan;
->>> +	const __be32 *dma_chan_p;
->>> +	struct property *prop;
->>> +
->>> +	if (dev->of_node) {
->>> +		of_property_for_each_u32(dev->of_node, "dmas", prop,
->>> +					 dma_chan_p, dma_chan) {
->>> +			if (i++ & 1) {
->>> +				ctlr = EDMA_CTLR(dma_chan);
->>> +				clear_bit(EDMA_CHAN_SLOT(dma_chan),
->>> +					  edma_cc[ctlr]->edma_unused);
->>> +			}
->>> +		}
->>> +		return;
->>
->> This should return something here, otherwise we get:-
->>
->> arch/arm/common/edma.c: In function 'prepare_unused_channel_list':
->> arch/arm/common/edma.c:577:3: warning: 'return' with no value, in function returning non-void [-Wreturn-type]
-> 
-> Other than that I can confirm it fixes the issue for me ...
+--nextPart1696311.H7yyvhgxLS
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-Thanks for pointing that out. Will fix it in the next revision.
+On Wednesday 06 March 2013 21:12:06 Pali Roh=C3=A1r wrote:
+> On Sunday 17 February 2013 20:03:03 Aaro Koskinen wrote:
+> > Hi,
+> >=20
+> > On Sun, Feb 17, 2013 at 04:16:49PM +0100, Pali Roh=C3=A1r wrote:
+> > > I'm sending ADP1653 flash torch board code for Nokia
+> > > RX-51. Kernel driver ADP1653 is already in upstream
+> > > kernel. Board code was extracted from this big camera
+> > > meego patch:
+> > >=20
+> > > https://api.pub.meego.com/public/source/CE:Adaptation:N900
+> > > /k
+> > > ernel-adaptation-n900/linux-2.6-Camera-for-Meego-N900-Ada
+> > > pta tion-kernel-2.6.37-patch.patch
+> >=20
+> > You need to sign-off the patch.
+>=20
+> Signed-off-by: Pali Roh=C3=A1r <pali.rohar@gmail.com>
+>=20
+> > > --- /dev/null
+> > > +++ b/arch/arm/mach-omap2/board-rx51-camera.c
+> >=20
+> > I'm not sure if adding a new file is sensible. There are
+> > already 3 board files for RX-51, which I think is overkill.
+>=20
+> You can see that camera board code is big, so code was moved
+> to separate file. Because not all camera drivers are
+> upstreamed yet there is no camera support in RX-51 board
+> code. Current peripheral file for RX-51 is big too and split
+> camera code into separate file can be usefull...
+>=20
+> > > @@ -0,0 +1,177 @@
+> > > +/*
+> > > + * arch/arm/mach-omap2/board-rx51-camera.c
+> > > + *
+> > > + * Copyright (C) 2008 Nokia Corporation
+> > > + *
+> > > + * Contact: Sakari Ailus <sakari.ailus@nokia.com>
+> > > + *          Tuukka Toivonen <tuukka.o.toivonen@nokia.com>
+> >=20
+> > You should put these people to CC... Just to see if the
+> > addresses are still valid (which I doubt).
+>=20
+> Ok, trying :-)
+>=20
+> > > +static int __init rx51_adp1653_init(void)
+> > > +{
+> > > +	int err;
+> > > +
+> > > +	err =3D gpio_request(ADP1653_GPIO_ENABLE, "adp1653
+> > > enable"); +	if (err) {
+> > > +		printk(KERN_ERR ADP1653_NAME
+> > > +		       " Failed to request EN gpio\n");
+> > > +		err =3D -ENODEV;
+> > > +		goto err_omap_request_gpio;
+> > > +	}
+> > > +
+> > > +	err =3D gpio_request(ADP1653_GPIO_INT, "adp1653
+> > > interrupt"); +	if (err) {
+> > > +		printk(KERN_ERR ADP1653_NAME " Failed to request IRQ
+> > > gpio\n"); +		err =3D -ENODEV;
+> > > +		goto err_omap_request_gpio_2;
+> > > +	}
+> > > +
+> > > +	err =3D gpio_request(ADP1653_GPIO_STROBE, "adp1653
+> > > strobe"); +	if (err) {
+> > > +		printk(KERN_ERR ADP1653_NAME
+> > > +		       " Failed to request STROBE gpio\n");
+> > > +		err =3D -ENODEV;
+> > > +		goto err_omap_request_gpio_3;
+> > > +	}
+> > > +
+> > > +	gpio_direction_output(ADP1653_GPIO_ENABLE, 0);
+> > > +	gpio_direction_input(ADP1653_GPIO_INT);
+> > > +	gpio_direction_output(ADP1653_GPIO_STROBE, 0);
+> >=20
+> > gpio_request_array() should be used.
+>=20
+> Ok, fixing this.
+>=20
+> > > +void __init rx51_camera_init(void)
+> > > +{
+> > > +	if (rx51_camera_hw_init()) {
+> > > +		printk(KERN_WARNING "%s: Unable to initialize
+> > > camera\n", +		       __func__);
+> > > +		return;
+> > > +	}
+> > > +
+> > > +	if (omap3_init_camera(&rx51_isp_platform_data) < 0)
+> > > +		printk(KERN_WARNING "%s: Unable to register camera
+> > > platform " +		       "device\n", __func__);
+> >=20
+> > pr_warn() should be used.
+> >=20
+> > A.
+>=20
+> Fixed too.
+>=20
+> Here is new version v2 of this patch:
+>=20
+> diff --git a/arch/arm/mach-omap2/Kconfig
+> b/arch/arm/mach-omap2/Kconfig index 41b581f..268fa57 100644
+> --- a/arch/arm/mach-omap2/Kconfig
+> +++ b/arch/arm/mach-omap2/Kconfig
+> @@ -287,6 +287,7 @@ config MACH_NOKIA_RX51
+>  	depends on ARCH_OMAP3
+>  	default y
+>  	select OMAP_PACKAGE_CBB
+> +	select VIDEO_ADP1653 if VIDEO_OMAP3 &&
+> VIDEO_HELPER_CHIPS_AUTO
+>=20
+>  config MACH_OMAP_ZOOM2
+>  	bool "OMAP3 Zoom2 board"
+> diff --git a/arch/arm/mach-omap2/Makefile
+> b/arch/arm/mach-omap2/Makefile index 947cafe..f20f693 100644
+> --- a/arch/arm/mach-omap2/Makefile
+> +++ b/arch/arm/mach-omap2/Makefile
+> @@ -236,6 +236,7 @@ obj-$(CONFIG_MACH_NOKIA_RM680)		+=3D
+> board-rm680.o sdram-nokia.o obj-$(CONFIG_MACH_NOKIA_RX51)		+=3D
+> board-rx51.o sdram-nokia.o obj-$(CONFIG_MACH_NOKIA_RX51)	=09
++=3D
+> board-rx51-peripherals.o obj-$(CONFIG_MACH_NOKIA_RX51)		+=3D
+> board-rx51-video.o +obj-$(CONFIG_MACH_NOKIA_RX51)		+=3D
+> board-rx51-camera.o obj-$(CONFIG_MACH_OMAP_ZOOM2)		+=3D
+> board-zoom.o board-zoom-peripherals.o
+> obj-$(CONFIG_MACH_OMAP_ZOOM2)		+=3D board-zoom-display.o
+> obj-$(CONFIG_MACH_OMAP_ZOOM2)		+=3D board-zoom-debugboard.o
+> diff --git a/arch/arm/mach-omap2/board-rx51-camera.c
+> b/arch/arm/mach-omap2/board-rx51-camera.c new file mode
+> 100644
+> index 0000000..80057ab
+> --- /dev/null
+> +++ b/arch/arm/mach-omap2/board-rx51-camera.c
+> @@ -0,0 +1,152 @@
+> +/*
+> + * arch/arm/mach-omap2/board-rx51-camera.c
+> + *
+> + * Copyright (C) 2008 Nokia Corporation
+> + *
+> + * Contact: Sakari Ailus <sakari.ailus@nokia.com>
+> + *          Tuukka Toivonen <tuukka.o.toivonen@nokia.com>
+> + *
+> + * This program is free software; you can redistribute it
+> and/or + * modify it under the terms of the GNU General
+> Public License + * version 2 as published by the Free
+> Software Foundation. + *
+> + * This program is distributed in the hope that it will be
+> useful, but + * WITHOUT ANY WARRANTY; without even the
+> implied warranty of + * MERCHANTABILITY or FITNESS FOR A
+> PARTICULAR PURPOSE.  See the GNU + * General Public License
+> for more details.
+> + *
+> + * You should have received a copy of the GNU General Public
+> License + * along with this program; if not, write to the
+> Free Software + * Foundation, Inc., 51 Franklin St, Fifth
+> Floor, Boston, MA + * 02110-1301 USA
+> + *
+> + */
+> +
+> +#include <linux/i2c.h>
+> +#include <linux/delay.h>
+> +#include <linux/gpio.h>
+> +
+> +#include "../../../drivers/media/platform/omap3isp/isp.h"
+> +
+> +#include <media/adp1653.h>
+> +
+> +#include "devices.h"
+> +
+> +#define ADP1653_GPIO_ENABLE	88	/* Used for resetting ADP1653
+> */ +#define ADP1653_GPIO_INT	167	/* Fault interrupt */
+> +#define ADP1653_GPIO_STROBE	126	/* Pin used in cam_strobe
+> mode -> +					 * control using ISP drivers */
+> +
+> +static struct gpio rx51_adp1653_gpios[] __initdata =3D {
+> +	{ ADP1653_GPIO_ENABLE,	GPIOF_OUT_INIT_LOW,	"adp1653=20
+enable"
+> }, +	{ ADP1653_GPIO_INT,	GPIOF_IN,		"adp1653 interrupt" },
+> +	{ ADP1653_GPIO_STROBE,	GPIOF_OUT_INIT_LOW,	"adp1653=20
+strobe"
+> }, +};
+> +
+> +static int __init rx51_adp1653_init(void)
+> +{
+> +	int ret;
+> +
+> +	ret =3D gpio_request_array(rx51_adp1653_gpios,
+> +				 ARRAY_SIZE(rx51_adp1653_gpios));
+> +	if (ret < 0) {
+> +		pr_err(ADP1653_NAME ": Failed to request gpios\n");
+> +		return -ENODEV;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static int __init rx51_camera_hw_init(void)
+> +{
+> +	int rval;
+> +
+> +	rval =3D rx51_adp1653_init();
+> +	if (rval)
+> +		return rval;
+> +
+> +	return 0;
+> +}
+> +
+> +/*
+> + *
+> + * ADP1653
+> + *
+> + */
+> +
+> +static int rx51_adp1653_power(struct v4l2_subdev *subdev, int
+> on) +{
+> +	gpio_set_value(ADP1653_GPIO_ENABLE, on);
+> +	if (on) {
+> +		/* Some delay is apparently required. */
+> +		udelay(20);
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static struct adp1653_platform_data
+> rx51_adp1653_platform_data =3D { +	.power			 =3D
+> rx51_adp1653_power,
+> +	/* Must be limited to 500 ms in RX-51 */
+> +	.max_flash_timeout	 =3D 500000,		/* us */
+> +	/* Must be limited to 320 mA in RX-51 B3 and newer hardware
+> */ +	.max_flash_intensity	 =3D
+> ADP1653_FLASH_INTENSITY_REG_TO_mA(19), +	/* Must be limited
+> to 50 mA in RX-51 */
+> +	.max_torch_intensity	 =3D
+> ADP1653_FLASH_INTENSITY_REG_TO_mA(1),
+> +	.max_indicator_intensity =3D
+> ADP1653_INDICATOR_INTENSITY_REG_TO_uA(
+> +		ADP1653_REG_OUT_SEL_ILED_MAX),
+> +};
+> +
+> +/*
+> + *
+> + * Init it all
+> + *
+> + */
+> +
+> +#define ADP1653_I2C_BUS_NUM		2
+> +
+> +static struct i2c_board_info rx51_camera_i2c_devices[] =3D {
+> +	{
+> +		I2C_BOARD_INFO(ADP1653_NAME, ADP1653_I2C_ADDR),
+> +		.platform_data =3D &rx51_adp1653_platform_data,
+> +	},
+> +};
+> +
+> +static struct isp_subdev_i2c_board_info
+> rx51_camera_primary_subdevs[] =3D { +	{
+> +		.board_info =3D &rx51_camera_i2c_devices[0],
+> +		.i2c_adapter_id =3D ADP1653_I2C_BUS_NUM,
+> +	},
+> +	{ NULL, 0, },
+> +};
+> +
+> +static struct isp_v4l2_subdevs_group rx51_camera_subdevs[] =3D
+> { +	{
+> +		.subdevs =3D rx51_camera_primary_subdevs,
+> +		.interface =3D ISP_INTERFACE_CCP2B_PHY1,
+> +		.bus =3D { .ccp2 =3D {
+> +			.strobe_clk_pol		=3D 0,
+> +			.crc			=3D 1,
+> +			.ccp2_mode		=3D 1,
+> +			.phy_layer		=3D 1,
+> +			.vpclk_div		=3D 1,
+> +		} },
+> +	},
+> +	{ NULL, 0, },
+> +};
+> +
+> +static struct isp_platform_data rx51_isp_platform_data =3D {
+> +	.subdevs =3D rx51_camera_subdevs,
+> +};
+> +
+> +void __init rx51_camera_init(void)
+> +{
+> +	if (rx51_camera_hw_init()) {
+> +		pr_warn("%s: Unable to initialize camera\n", __func__);
+> +		return;
+> +	}
+> +
+> +	if (omap3_init_camera(&rx51_isp_platform_data) < 0)
+> +		pr_warn("%s: Unable to register camera platform "
+> +		       "device\n", __func__);
+> +}
+> diff --git a/arch/arm/mach-omap2/board-rx51.c
+> b/arch/arm/mach-omap2/board-rx51.c index d0374ea..92117a13
+> 100644
+> --- a/arch/arm/mach-omap2/board-rx51.c
+> +++ b/arch/arm/mach-omap2/board-rx51.c
+> @@ -75,6 +75,7 @@ static struct platform_device leds_gpio =3D {
+>  */
+>=20
+>  extern void __init rx51_peripherals_init(void);
+> +extern void __init rx51_camera_init(void);
+>=20
+>  #ifdef CONFIG_OMAP_MUX
+>  static struct omap_board_mux board_mux[] __initdata =3D {
+> @@ -100,6 +101,7 @@ static void __init rx51_init(void)
+>=20
+>  	usb_musb_init(&musb_board_data);
+>  	rx51_peripherals_init();
+> +	rx51_camera_init();
+>=20
+>  	/* Ensure SDRC pins are mux'd for self-refresh */
+>  	omap_mux_init_signal("sdrc_cke0", OMAP_PIN_OUTPUT);
 
+Ping, can you review this patch v2?
 
-Regards,
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
 
--Joel
+--nextPart1696311.H7yyvhgxLS
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iEYEABECAAYFAlIqPD0ACgkQi/DJPQPkQ1KJUgCfYz1SQDNtIdbUmXH47fK135Be
+9wEAnAkeKwmT3M9+2YeBcfXNJoX5UFs0
+=5jxi
+-----END PGP SIGNATURE-----
+
+--nextPart1696311.H7yyvhgxLS--
