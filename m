@@ -1,73 +1,97 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH] RFC: interrupt consistency check for OF GPIO IRQs
-Date: Fri, 06 Sep 2013 17:32:43 +0200
-Message-ID: <2966898.neCKEkcf1e@avalon>
-References: <1375101368-17645-1-git-send-email-linus.walleij@linaro.org> <344239800.bDEkDg48ZQ@avalon> <CACRpkdavR=fv+y1RCNfdgQypPuRbO6isOSwGsABDrYiGeMdyZw@mail.gmail.com>
+From: Dave Martin <Dave.Martin@arm.com>
+Subject: Re: [RFC 0/4] Create infrastructure for running C code from SRAM.
+Date: Fri, 6 Sep 2013 17:19:02 +0100
+Message-ID: <20130906161902.GB3558@localhost.localdomain>
+References: <1378226665-27090-1-git-send-email-Russ.Dill@ti.com>
+ <20130906111221.GH25647@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:54826 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751391Ab3IFPcl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Sep 2013 11:32:41 -0400
-In-Reply-To: <CACRpkdavR=fv+y1RCNfdgQypPuRbO6isOSwGsABDrYiGeMdyZw@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20130906111221.GH25647@n2100.arm.linux.org.uk>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: mans@mansr.com, Shawn Guo <shawn.guo@linaro.org>, Grant Likely <grant.likely@secretlab.ca>, Russ Dill <Russ.Dill@ti.com>, Philipp Zabel <p.zabel@pengutronix.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Grant Likely <grant.likely@linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Alexander Holler <holler@ahsoftware.de>, Linux-OMAP <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Enric Balletbo i Serra <eballetbo@gmail.com>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@linaro.org>, Balaji T K <balajitk@ti.com>, Tony Lindgren <tony@atomide.com>, Jon Hunter <jgchunter@gmail.com>
 
-Hi Linus,
-
-Sorry for the late reply.
-
-On Thursday 22 August 2013 00:02:39 Linus Walleij wrote:
-> On Tue, Aug 20, 2013 at 12:04 AM, Laurent Pinchart wrote:
-> > On Wednesday 31 July 2013 01:44:53 Linus Walleij wrote:
-> >> I don't see how sharing works here, or how another user, i.e. another one
-> >> than the user wanting to recieve the IRQ, can validly request such a
-> >> line? What would the usecase for that valid request be?
+On Fri, Sep 06, 2013 at 12:12:21PM +0100, Russell King - ARM Linux wrote:
+> On Tue, Sep 03, 2013 at 09:44:21AM -0700, Russ Dill wrote:
+> > SRAM handling code is in the process of being moved from arch directories
+> > into drivers/misc/sram.c using device tree and genalloc [1] [2]. This RFC
+> > patchset builds on that, including the limitation that the SRAM address is
+> > not known at compile time. Because the SRAM address is not known at compile
+> > time, the code that runs from SRAM must be compiled with -fPIC. Even if
+> > the code were loaded to a fixed virtual address, portions of the code must
+> > often be run with the MMU disabled.
+> 
+> What are you doing about the various gcc utility functions that may be
+> implicitly called from C code such as memcpy and memset?
+> 
+> > The general idea is that for each SRAM user (such as an SoC specific
+> > suspend/resume mechanism) to create a group of sections. The section group
+> > is created with a single macro for each user, but end up looking like this:
 > > 
-> > When the GPIO is wired to a status signal (such as an MMC card detect
-> > signal) the driver might want to read the state of the signal
-> > independently of the interrupt handler.
-> 
-> That is true. But for such a complex usecase I think it's reasonable that
-> we only specify the GPIO in the device tree, and the driver utilizing the
-> IRQ need to take that and perform gpio_to_irq() on it, and then it still
-> works to use it both ways.
-
-I'm pretty sure I would have had an objection a couple of weeks ago when I was 
-looking into this, but I can't think of another use case for now, so I agree 
-with you.
-
-> >> Basically I believe these two things need to be exclusive in the DT
-> >> world:
-> >> 
-> >> A: request_irq(a resource passed from "interrupts");
-> >>      -> core implicitly performs gpio_request()
-> >>          gpio_direction_input()
-> >> 
-> >> B: gpio_request(a resource passed from "gpios");
-> >>      gpio_direction_input()
-> >>      request_irq(gpio_to_irq())
-> >> 
-> >> Never both. And IIUC that was what happened in the OMAP case.
+> > .sram.am33xx : AT(ADDR(.sram.am33xx) - 0) {
+> >   __sram_am33xx_start = .;
+> >   *(.sram.am33xx.*)
+> >   __sram_am33xx_end = .;
+> > }
 > > 
-> > Isn't the core issue that we can translate a GPIO number to an IRQ number,
-> > but not the other way around ? If that could be done, we could request
-> > the GPIO and configure it as an input when the IRQ is requested.
+> > Any data or functions that should be copied to SRAM for this use should be
+> > maked with an appropriate __section() attribute. A helper is then added for
+> > translating between the original kernel symbol, and the address of that
+> > function or variable once it has been copied into SRAM. Once control is
+> > passed to a function within the SRAM section grouping, it can access any
+> > variables or functions within that same SRAM section grouping without
+> > translation.
 > 
-> That is true. It would be easier if all GPIO drivers has an irqchip and
-> and irqdomain, then we could implement irq_to_gpio() properly in gpiolib
-> and this would not be a problem. Alas, not all do.
-> 
-> But I also think that the DT contains (as demonstrated by the patch)
-> all information about what interrupts and GPIOs may conflict, so I
-> also see this as something of a consistency check, but it could go
-> in either way.
+> What about the relocations which will need to be fixed up - eg, addresses
+> in the literal pool, the GOT table contents, etc?  You say nothing about
+> this.
 
--- 
-Regards,
+I was also thinking about this, and there are more problems.
 
-Laurent Pinchart
+As well as what has already been mentioned:
+
+ * Calls from inside the SRAM code to vmlinux (including lib1funcs etc.)
+   will typically break, except on architectures where function calls are
+   (absolute by default not ARM).
+
+ * The compiler/linker won't detect unsafe constructs or code generation,
+   because it assumes that anything built with -fPIC is going to be patched
+   up later by ld.so or equivalent.
+
+ * The GOT is generated by the linker, and is a single table.  Yet each
+   SRAM blob needs to be able to refer to its own GOT entries position-
+   independently.  Moving the blobs independently won't work.
+
+In other words: -fPIC does not generate position-independent code.
+
+It generates position-dependent code that is easier to move around than
+non-fPIC code, but you still need a dynamic linker (or equivalent) to
+make it all work.
+
+
+There are various "correct" ways to handle this, the simplest of which
+is probably to build each SRAM blob as a kernel module, embed the result
+in the kernel somehow, and then use the module loader infrastructure
+to handle fixing the module up to the right address.
+
+But this is still likely to be overkill, given the small scale of the
+SRAM code.
+
+Restricting such code to carefully-written assembler (as now) may be
+the more practical approrach, unless there's a good example of somewhere
+that C code would provide a big benefit.
+
+Cheers
+---Dave
