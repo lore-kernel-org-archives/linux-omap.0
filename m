@@ -1,15 +1,18 @@
 From: Dave Martin <Dave.Martin@arm.com>
 Subject: Re: [RFC 0/4] Create infrastructure for running C code from SRAM.
-Date: Fri, 6 Sep 2013 17:19:02 +0100
-Message-ID: <20130906161902.GB3558@localhost.localdomain>
+Date: Fri, 6 Sep 2013 17:40:59 +0100
+Message-ID: <20130906164059.GC3558@localhost.localdomain>
 References: <1378226665-27090-1-git-send-email-Russ.Dill@ti.com>
- <20130906111221.GH25647@n2100.arm.linux.org.uk>
+ <52278F84.2080509@elopez.com.ar>
+ <CA+Bv8XaHonrpeNZ6tRCyqpMK1bzgpDTqvLyrsLWEyMY_ky6apQ@mail.gmail.com>
+ <20130906111408.GI25647@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20130906111221.GH25647@n2100.arm.linux.org.uk>
+In-Reply-To: <20130906111408.GI25647@n2100.arm.linux.org.uk>
+Content-Language: en-US
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -20,78 +23,47 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: mans@mansr.com, Shawn Guo <shawn.guo@linaro.org>, Grant Likely <grant.likely@secretlab.ca>, Russ Dill <Russ.Dill@ti.com>, Philipp Zabel <p.zabel@pengutronix.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: "mans@mansr.com" <mans@mansr.com>, Emilio =?iso-8859-1?Q?L=F3pez?= <emilio@elopez.com.ar>, Grant Likely <grant.likely@secretlab.ca>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Russ Dill <Russ.Dill@ti.com>, Philipp Zabel <p.zabel@pengutronix.de>, Shawn Guo <shawn.guo@linaro.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Sep 06, 2013 at 12:12:21PM +0100, Russell King - ARM Linux wrote:
-> On Tue, Sep 03, 2013 at 09:44:21AM -0700, Russ Dill wrote:
-> > SRAM handling code is in the process of being moved from arch directories
-> > into drivers/misc/sram.c using device tree and genalloc [1] [2]. This RFC
-> > patchset builds on that, including the limitation that the SRAM address is
-> > not known at compile time. Because the SRAM address is not known at compile
-> > time, the code that runs from SRAM must be compiled with -fPIC. Even if
-> > the code were loaded to a fixed virtual address, portions of the code must
-> > often be run with the MMU disabled.
+On Fri, Sep 06, 2013 at 12:14:08PM +0100, Russell King - ARM Linux wrote:
+> On Wed, Sep 04, 2013 at 02:47:51PM -0700, Russ Dill wrote:
+> > I think this is already taken care of by the way sram.c is using
+> > genalloc. The allocation returned should be aligned to 32 bytes. The
+> > thumb bit shouldn't be an issue as code is copied based on the start
+> > and end makers made by the linker. I may need to add .align statements
+> > in the linker so that the start and end markers for the copied code
+> > are aligned to at least 8 bytes.
 > 
-> What are you doing about the various gcc utility functions that may be
-> implicitly called from C code such as memcpy and memset?
-> 
-> > The general idea is that for each SRAM user (such as an SoC specific
-> > suspend/resume mechanism) to create a group of sections. The section group
-> > is created with a single macro for each user, but end up looking like this:
-> > 
-> > .sram.am33xx : AT(ADDR(.sram.am33xx) - 0) {
-> >   __sram_am33xx_start = .;
-> >   *(.sram.am33xx.*)
-> >   __sram_am33xx_end = .;
-> > }
-> > 
-> > Any data or functions that should be copied to SRAM for this use should be
-> > maked with an appropriate __section() attribute. A helper is then added for
-> > translating between the original kernel symbol, and the address of that
-> > function or variable once it has been copied into SRAM. Once control is
-> > passed to a function within the SRAM section grouping, it can access any
-> > variables or functions within that same SRAM section grouping without
-> > translation.
-> 
-> What about the relocations which will need to be fixed up - eg, addresses
-> in the literal pool, the GOT table contents, etc?  You say nothing about
-> this.
+> I think you need to read up on what fncpy does... there's more to it
+> than just merely copying code at an appropriate alignment.
 
-I was also thinking about this, and there are more problems.
+The technique of putting each loadable blob in a specific vmlinux
+section, and then adjusting entry-point symbols by adding/subtracting
+the appropriate offset, probably does work.
 
-As well as what has already been mentioned:
+This relies on the functions' code alignment requirement being
+honoured by both the vmlinux link map, and the allocator used to find
+SRAM space to copy the functions to.
 
- * Calls from inside the SRAM code to vmlinux (including lib1funcs etc.)
-   will typically break, except on architectures where function calls are
-   (absolute by default not ARM).
-
- * The compiler/linker won't detect unsafe constructs or code generation,
-   because it assumes that anything built with -fPIC is going to be patched
-   up later by ld.so or equivalent.
-
- * The GOT is generated by the linker, and is a single table.  Yet each
-   SRAM blob needs to be able to refer to its own GOT entries position-
-   independently.  Moving the blobs independently won't work.
-
-In other words: -fPIC does not generate position-independent code.
-
-It generates position-dependent code that is easier to move around than
-non-fPIC code, but you still need a dynamic linker (or equivalent) to
-make it all work.
+Searching the entire list of known blobs every time we want to convert
+a symbol seems unnecessary though.  Surely the caller could know the
+blob<->symbol mapping anyway?
 
 
-There are various "correct" ways to handle this, the simplest of which
-is probably to build each SRAM blob as a kernel module, embed the result
-in the kernel somehow, and then use the module loader infrastructure
-to handle fixing the module up to the right address.
+One thing fncpy() doesn't provide is a way to copy groups of functions
+that call each other, if vmlinux needs to know about any symbol other
+than the one at the start.  We might need a better mechanism if that is
+needed.
 
-But this is still likely to be overkill, given the small scale of the
-SRAM code.
 
-Restricting such code to carefully-written assembler (as now) may be
-the more practical approrach, unless there's a good example of somewhere
-that C code would provide a big benefit.
+I actually wonder whether fncpy() contains a buglet, whereby
+flush_icache_range() is used instead of coherent_kern_range().
+The SRAM is probably not mapped cached, but at least a DSB would be
+needed before flushing the relevant lines from the I-cache.
+
+However, flush_icache_range() seems to be implemented by a call to
+coherent_kern_range() anyway, so perhaps that's not a problem.
 
 Cheers
 ---Dave
