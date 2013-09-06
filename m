@@ -1,90 +1,38 @@
-From: Joel Fernandes <joelf@ti.com>
-Subject: Re: [PATCH] arm: dts: am33xx: Add mmc nodes for am33xx platform
-Date: Fri, 6 Sep 2013 13:21:46 -0500
-Message-ID: <522A1D3A.8000301@ti.com>
-References: <1378455712-17379-1-git-send-email-george.cherian@ti.com>
-Reply-To: <joelf@ti.com>
+From: Russ Dill <Russ.Dill@ti.com>
+Subject: Re: [RFC 0/4] Create infrastructure for running C code from SRAM.
+Date: Fri, 6 Sep 2013 11:40:09 -0700
+Message-ID: <CA+Bv8Xaw6KMu5MrjdjQfue7F1JtFfAMNyZhC1hyL-RpWz=wo+w@mail.gmail.com>
+References: <1378226665-27090-1-git-send-email-Russ.Dill@ti.com>
+	<52278F84.2080509@elopez.com.ar>
+	<CA+Bv8XaHonrpeNZ6tRCyqpMK1bzgpDTqvLyrsLWEyMY_ky6apQ@mail.gmail.com>
+	<20130906111408.GI25647@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1378455712-17379-1-git-send-email-george.cherian@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: George Cherian <george.cherian@ti.com>
-Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, bcousson@baylibre.com, tony@atomide.com, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ijc+devicetree@hellion.org.uk, linux@arm.linux.org.uk, Vinod Koul <vinod.koul@intel.com>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-qe0-f46.google.com ([209.85.128.46]:33315 "EHLO
+	mail-qe0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750883Ab3IFSkK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Sep 2013 14:40:10 -0400
+Received: by mail-qe0-f46.google.com with SMTP id x7so1929036qeu.33
+        for <linux-omap@vger.kernel.org>; Fri, 06 Sep 2013 11:40:09 -0700 (PDT)
+In-Reply-To: <20130906111408.GI25647@n2100.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: mans@mansr.com, =?UTF-8?Q?Emilio_L=C3=B3pez?= <emilio@elopez.com.ar>, Shawn Guo <shawn.guo@linaro.org>, Grant Likely <grant.likely@secretlab.ca>, Philipp Zabel <p.zabel@pengutronix.de>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
 
-Hi George,
+On Fri, Sep 6, 2013 at 4:14 AM, Russell King - ARM Linux
+<linux@arm.linux.org.uk> wrote:
+> On Wed, Sep 04, 2013 at 02:47:51PM -0700, Russ Dill wrote:
+>> I think this is already taken care of by the way sram.c is using
+>> genalloc. The allocation returned should be aligned to 32 bytes. The
+>> thumb bit shouldn't be an issue as code is copied based on the start
+>> and end makers made by the linker. I may need to add .align statements
+>> in the linker so that the start and end markers for the copied code
+>> are aligned to at least 8 bytes.
+>
+> I think you need to read up on what fncpy does... there's more to it
+> than just merely copying code at an appropriate alignment.
 
-On 09/06/2013 03:21 AM, George Cherian wrote:
-> Add mmc nodes for am33xx platforms
-> 
-> Signed-off-by: George Cherian <george.cherian@ti.com>
-> ---
-> Verified after applying [1] and [2]
-> [1] - [PATCH v4 0/6] dma: edma: Support scatter-lists of any length - https://lkml.org/lkml/2013/8/29/466
-> [2] - [PATCH v2] ARM: dts: add AM33XX EDMA support - https://lkml.org/lkml/2013/8/26/57
-
-Thanks for the verification.
-
-But, this patch should not be applied on its own as it a part of a bigger patch
-I had submitted earlier that includes DTS for other derivative boards and
-bindings Documentation. [3] That's the one to be applied and should be applied
-only after the above patches are merged. I will resubmit this later again once
-pending EDMA changes are merged. Thanks.
-
-[3] https://lkml.org/lkml/2013/6/25/781
-
-Regards,
-
--Joel
->  arch/arm/boot/dts/am33xx.dtsi | 35 +++++++++++++++++++++++++++++++++++
->  1 file changed, 35 insertions(+)
-> 
-> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-> index b0badff..1df512d 100644
-> --- a/arch/arm/boot/dts/am33xx.dtsi
-> +++ b/arch/arm/boot/dts/am33xx.dtsi
-> @@ -236,6 +236,41 @@
->  			status = "disabled";
->  		};
->  
-> +		mmc1: mmc@48061000 {
-> +			compatible = "ti,omap4-hsmmc";
-> +			reg = <0x48060000 0x1000>;
-> +			interrupts = <64>;
-> +			ti,hwmods = "mmc1";
-> +			ti,dual-volt;
-> +			ti,needs-special-reset;
-> +			ti,needs-special-hs-handling;
-> +			dmas = <&edma 24
-> +				&edma 25>;
-> +			dma-names = "tx", "rx";
-> +			status = "disabled";
-> +		};
-> +
-> +		mmc2: mmc@481d8000 {
-> +			compatible = "ti,omap4-hsmmc";
-> +			reg = <0x481d8000 0x1000>;
-> +			interrupts = <28>;
-> +			ti,hwmods = "mmc2";
-> +			ti,needs-special-reset;
-> +			dmas = <&edma 2
-> +				&edma 3>;
-> +			dma-names = "tx", "rx";
-> +			status = "disabled";
-> +		};
-> +
-> +		mmc3: mmc@47810000 {
-> +			compatible = "ti,omap4-hsmmc";
-> +			reg = <0x47810000 0x1000>;
-> +			interrupts = <29>;
-> +			ti,hwmods = "mmc3";
-> +			ti,needs-special-reset;
-> +			status = "disabled";
-> +		};
-> +
->  		wdt2: wdt@44e35000 {
->  			compatible = "ti,omap3-wdt";
->  			ti,hwmods = "wd_timer2";
-> 
+Yes, I need to add a pair of inlines that do the asm trickery to/from
+function addresses. Thanks.
