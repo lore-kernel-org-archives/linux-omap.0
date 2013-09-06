@@ -1,74 +1,76 @@
-From: Mark Jackson <mpfj-list@newflow.co.uk>
-Subject: Re: [PATCH v2] ARM: EDMA: Fix clearing of unused list for DT DMA
- resources
-Date: Fri, 06 Sep 2013 20:15:27 +0100
-Message-ID: <522A29CF.2090001@newflow.co.uk>
-References: <1377287613-16491-1-git-send-email-joelf@ti.com> <522A2943.4060502@newflow.co.uk>
+From: Russ Dill <Russ.Dill@ti.com>
+Subject: Re: [RFC 0/4] Create infrastructure for running C code from SRAM.
+Date: Fri, 6 Sep 2013 12:32:03 -0700
+Message-ID: <CA+Bv8XbbWoBgrv83RmXLiO8AM0TDP9wNQMUFJKMbN82-0w3Scg@mail.gmail.com>
+References: <1378226665-27090-1-git-send-email-Russ.Dill@ti.com>
+	<20130906111221.GH25647@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <522A2943.4060502@newflow.co.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Joel Fernandes <joelf@ti.com>
-Cc: Sekhar Nori <nsekhar@ti.com>, Tony Lindgren <tony@atomide.com>, Matt Porter <matt@ohporter.com>, Vinod Koul <vinod.koul@intel.com>, Dan Williams <djbw@fb.com>, Russell King <linux@arm.linux.org.uk>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux DaVinci Kernel List <davinci-linux-open-source@linux.davincidsp.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux MMC List <linux-mmc@vger.kernel.org>, Pantel Antoniou <panto@antoniou-consulting.com>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-qa0-f43.google.com ([209.85.216.43]:47166 "EHLO
+	mail-qa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750709Ab3IFTcF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Sep 2013 15:32:05 -0400
+Received: by mail-qa0-f43.google.com with SMTP id bv4so706549qab.9
+        for <linux-omap@vger.kernel.org>; Fri, 06 Sep 2013 12:32:03 -0700 (PDT)
+In-Reply-To: <20130906111221.GH25647@n2100.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: mans@mansr.com, Shawn Guo <shawn.guo@linaro.org>, Grant Likely <grant.likely@secretlab.ca>, Philipp Zabel <p.zabel@pengutronix.de>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
 
-On 06/09/13 20:13, Mark Jackson wrote:
-> On 23/08/13 20:53, Joel Fernandes wrote:
->> HWMOD removal for MMC and Crypto is breaking edma_start as the events are
->> being manually triggered due to unused channel list not being clear. Atleast
->> breakage has been seen on these peripherals, but it is expected Audio (McASP)
->> maybe breaking too.
->>
->> This patch fixes the issue, by reading the "dmas" property from the DT node if
->> it exists and clearing the bits in the unused channel list so that these channels
->> are not manually triggered.
->>
->> v2 changes:
->> Reduced indendation by returning from if block.
->>
->> Reviewed-by: Sekhar Nori <nsekhar@ti.com>
->> Reported-by: Balaji T K <balajitk@ti.com>
->> Cc: Pantel Antoniou <panto@antoniou-consulting.com>
->> Signed-off-by: Joel Fernandes <joelf@ti.com>
->> ---
->> Note:
->> Patch should go in for -rc cycle as it fixes existing crypto drivers.
->>
->>  arch/arm/common/edma.c | 22 +++++++++++++++++++---
->>  1 file changed, 19 insertions(+), 3 deletions(-)
->>
->> diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
->> index 39ad030..3867e7e 100644
->> --- a/arch/arm/common/edma.c
->> +++ b/arch/arm/common/edma.c
->> @@ -560,14 +560,30 @@ static int reserve_contiguous_slots(int ctlr, unsigned int id,
->>  static int prepare_unused_channel_list(struct device *dev, void *data)
->>  {
->>  	struct platform_device *pdev = to_platform_device(dev);
->> -	int i, ctlr;
->> +	int i = 0, ctlr;
->> +	u32 dma_chan;
->> +	const __be32 *dma_chan_p;
->> +	struct property *prop;
->> +
->> +	if (dev->of_node) {
->> +		of_property_for_each_u32(dev->of_node, "dmas", prop,
->> +					 dma_chan_p, dma_chan) {
->> +			if (i++ & 1) {
->> +				ctlr = EDMA_CTLR(dma_chan);
->> +				clear_bit(EDMA_CHAN_SLOT(dma_chan),
->> +					  edma_cc[ctlr]->edma_unused);
->> +			}
->> +		}
->> +		return;
-> 
-> This should return something here, otherwise we get:-
-> 
-> arch/arm/common/edma.c: In function 'prepare_unused_channel_list':
-> arch/arm/common/edma.c:577:3: warning: 'return' with no value, in function returning non-void [-Wreturn-type]
+On Fri, Sep 6, 2013 at 4:12 AM, Russell King - ARM Linux
+<linux@arm.linux.org.uk> wrote:
+> On Tue, Sep 03, 2013 at 09:44:21AM -0700, Russ Dill wrote:
+>> SRAM handling code is in the process of being moved from arch directories
+>> into drivers/misc/sram.c using device tree and genalloc [1] [2]. This RFC
+>> patchset builds on that, including the limitation that the SRAM address is
+>> not known at compile time. Because the SRAM address is not known at compile
+>> time, the code that runs from SRAM must be compiled with -fPIC. Even if
+>> the code were loaded to a fixed virtual address, portions of the code must
+>> often be run with the MMU disabled.
+>
+> What are you doing about the various gcc utility functions that may be
+> implicitly called from C code such as memcpy and memset?
 
-Other than that I can confirm it fixes the issue for me ...
+That would create a problem. Would '-ffreestanding' be the correct
+flag to add? As far as the family of __aeabi_*, I need to add
+documentation stating that on ARM, you can't divide, perform modulo,
+and can't do 64 bit multiplications. I can then add a make rule that
+will grep the symbol lists of .sram sections for ^__aeabi_. Is this
+enough?
 
-Tested-by: Mark Jackson <mpfj@newflow.co.uk>
+>> The general idea is that for each SRAM user (such as an SoC specific
+>> suspend/resume mechanism) to create a group of sections. The section group
+>> is created with a single macro for each user, but end up looking like this:
+>>
+>> .sram.am33xx : AT(ADDR(.sram.am33xx) - 0) {
+>>   __sram_am33xx_start = .;
+>>   *(.sram.am33xx.*)
+>>   __sram_am33xx_end = .;
+>> }
+>>
+>> Any data or functions that should be copied to SRAM for this use should be
+>> maked with an appropriate __section() attribute. A helper is then added for
+>> translating between the original kernel symbol, and the address of that
+>> function or variable once it has been copied into SRAM. Once control is
+>> passed to a function within the SRAM section grouping, it can access any
+>> variables or functions within that same SRAM section grouping without
+>> translation.
+>
+> What about the relocations which will need to be fixed up - eg, addresses
+> in the literal pool, the GOT table contents, etc?  You say nothing about
+> this.
+
+The C code would need to be written so that such accesses do not
+occur. From functions that are in the sram text section, only accesses
+to other sram sections in their group would be allowed. And above, a
+compilation step could be added to make the compilation fail when such
+things happen.
+
+The direction you are going though is good, if this is fragile, it
+doesn't put us in a better place then having fragile asm that at least
+complies reliably. As I'm looking towards the future and platforms
+that are similar to am335x in that they are placing more and more of
+the PM state machine burden on the CPU, I'd really like to try to make
+this happen.
