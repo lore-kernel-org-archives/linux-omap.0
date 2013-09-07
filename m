@@ -1,102 +1,30 @@
-From: Michael Opdenacker <michael.opdenacker@free-electrons.com>
-Subject: [PATCH] ARM: OMAP: remove deprecated IRQF_DISABLED
-Date: Sat,  7 Sep 2013 09:19:25 +0200
-Message-ID: <1378538365-7353-1-git-send-email-michael.opdenacker@free-electrons.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: tony@atomide.com, linux@arm.linux.org.uk, khilman@deeprootsystems.com
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Michael Opdenacker <michael.opdenacker@free-electrons.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [RFC 0/4] Create infrastructure for running C code from SRAM.
+Date: Sat, 7 Sep 2013 09:57:13 +0100
+Message-ID: <20130907085713.GJ25647@n2100.arm.linux.org.uk>
+References: <1378226665-27090-1-git-send-email-Russ.Dill@ti.com> <52278F84.2080509@elopez.com.ar> <CA+Bv8XaHonrpeNZ6tRCyqpMK1bzgpDTqvLyrsLWEyMY_ky6apQ@mail.gmail.com> <20130906111408.GI25647@n2100.arm.linux.org.uk> <20130906164059.GC3558@localhost.localdomain>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:53755 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750965Ab3IGI5l (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 7 Sep 2013 04:57:41 -0400
+Content-Disposition: inline
+In-Reply-To: <20130906164059.GC3558@localhost.localdomain>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Dave Martin <Dave.Martin@arm.com>
+Cc: Russ Dill <Russ.Dill@ti.com>, "mans@mansr.com" <mans@mansr.com>, Emilio =?iso-8859-1?Q?L=F3pez?= <emilio@elopez.com.ar>, Shawn Guo <shawn.guo@linaro.org>, Grant Likely <grant.likely@secretlab.ca>, Philipp Zabel <p.zabel@pengutronix.de>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
 
-This patch proposes to remove the IRQF_DISABLED flag from OMAP code
-It's a NOOP since 2.6.35, and will be removed one day.
+On Fri, Sep 06, 2013 at 05:40:59PM +0100, Dave Martin wrote:
+> I actually wonder whether fncpy() contains a buglet, whereby
+> flush_icache_range() is used instead of coherent_kern_range().
+> The SRAM is probably not mapped cached, but at least a DSB would be
+> needed before flushing the relevant lines from the I-cache.
 
-Signed-off-by: Michael Opdenacker <michael.opdenacker@free-electrons.com>
----
- arch/arm/mach-omap1/fpga.c     | 3 +--
- arch/arm/mach-omap1/pm.c       | 1 -
- arch/arm/mach-omap1/time.c     | 2 +-
- arch/arm/mach-omap1/timer32k.c | 2 +-
- arch/arm/mach-omap2/timer.c    | 2 +-
- arch/arm/plat-omap/dma.c       | 1 -
- 6 files changed, 4 insertions(+), 7 deletions(-)
+flush_icache_range() is correct - it's there to ensure that memory which
+has been written will be readable to the instruction stream.  That's it's
+whole purpose, and it's used when modules are loaded too.
 
-diff --git a/arch/arm/mach-omap1/fpga.c b/arch/arm/mach-omap1/fpga.c
-index 8bd71b2..3c0e422 100644
---- a/arch/arm/mach-omap1/fpga.c
-+++ b/arch/arm/mach-omap1/fpga.c
-@@ -135,8 +135,7 @@ static struct irq_chip omap_fpga_irq = {
-  * mask_ack routine for all of the FPGA interrupts has been changed from
-  * fpga_mask_ack_irq() to fpga_ack_irq() so that the specific FPGA interrupt
-  * being serviced is left unmasked.  We can do this because the FPGA cascade
-- * interrupt is installed with the IRQF_DISABLED flag, which leaves all
-- * interrupts masked at the CPU while an FPGA interrupt handler executes.
-+ * interrupt is run with all interrupts masked.
-  *
-  * Limited testing indicates that this workaround appears to be effective
-  * for the smc9194 Ethernet driver used on the Innovator.  It should work
-diff --git a/arch/arm/mach-omap1/pm.c b/arch/arm/mach-omap1/pm.c
-index 358b82c..40a1ae3 100644
---- a/arch/arm/mach-omap1/pm.c
-+++ b/arch/arm/mach-omap1/pm.c
-@@ -628,7 +628,6 @@ static irqreturn_t omap_wakeup_interrupt(int irq, void *dev)
- 
- static struct irqaction omap_wakeup_irq = {
- 	.name		= "peripheral wakeup",
--	.flags		= IRQF_DISABLED,
- 	.handler	= omap_wakeup_interrupt
- };
- 
-diff --git a/arch/arm/mach-omap1/time.c b/arch/arm/mach-omap1/time.c
-index 80603d2..6b5f298 100644
---- a/arch/arm/mach-omap1/time.c
-+++ b/arch/arm/mach-omap1/time.c
-@@ -160,7 +160,7 @@ static irqreturn_t omap_mpu_timer1_interrupt(int irq, void *dev_id)
- 
- static struct irqaction omap_mpu_timer1_irq = {
- 	.name		= "mpu_timer1",
--	.flags		= IRQF_DISABLED | IRQF_TIMER | IRQF_IRQPOLL,
-+	.flags		= IRQF_TIMER | IRQF_IRQPOLL,
- 	.handler	= omap_mpu_timer1_interrupt,
- };
- 
-diff --git a/arch/arm/mach-omap1/timer32k.c b/arch/arm/mach-omap1/timer32k.c
-index 0b74246..107e7ab 100644
---- a/arch/arm/mach-omap1/timer32k.c
-+++ b/arch/arm/mach-omap1/timer32k.c
-@@ -156,7 +156,7 @@ static irqreturn_t omap_32k_timer_interrupt(int irq, void *dev_id)
- 
- static struct irqaction omap_32k_timer_irq = {
- 	.name		= "32KHz timer",
--	.flags		= IRQF_DISABLED | IRQF_TIMER | IRQF_IRQPOLL,
-+	.flags		= IRQF_TIMER | IRQF_IRQPOLL,
- 	.handler	= omap_32k_timer_interrupt,
- };
- 
-diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-index b37e1fc..6552cd9 100644
---- a/arch/arm/mach-omap2/timer.c
-+++ b/arch/arm/mach-omap2/timer.c
-@@ -78,7 +78,7 @@ static irqreturn_t omap2_gp_timer_interrupt(int irq, void *dev_id)
- 
- static struct irqaction omap2_gp_timer_irq = {
- 	.name		= "gp_timer",
--	.flags		= IRQF_DISABLED | IRQF_TIMER | IRQF_IRQPOLL,
-+	.flags		= IRQF_TIMER | IRQF_IRQPOLL,
- 	.handler	= omap2_gp_timer_interrupt,
- };
- 
-diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
-index 4d463ca..848eab5 100644
---- a/arch/arm/plat-omap/dma.c
-+++ b/arch/arm/plat-omap/dma.c
-@@ -1965,7 +1965,6 @@ static irqreturn_t omap2_dma_irq_handler(int irq, void *dev_id)
- static struct irqaction omap24xx_dma_irq = {
- 	.name = "DMA",
- 	.handler = omap2_dma_irq_handler,
--	.flags = IRQF_DISABLED
- };
- 
- #else
--- 
-1.8.1.2
+You're reading too much into the name: it doesn't just touch the I cache.
