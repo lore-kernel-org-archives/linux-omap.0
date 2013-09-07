@@ -1,39 +1,102 @@
-From: Christian Hoffmann <chrmhoffmann@gmail.com>
-Subject: Re: omap: panda rcu stall on 3.10.1
-Date: Sat, 07 Sep 2013 08:23:38 +0200
-Message-ID: <522AC66A.1000605@gmail.com>
-References: <521DA180.9010306@gmail.com> <52203B54.70902@gmail.com> <CAGGh5h3AxogEURrQFd==zhGWpVF7eRaZPNo_Y1peC0TwS673Tw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Michael Opdenacker <michael.opdenacker@free-electrons.com>
+Subject: [PATCH] ARM: OMAP: remove deprecated IRQF_DISABLED
+Date: Sat,  7 Sep 2013 09:19:25 +0200
+Message-ID: <1378538365-7353-1-git-send-email-michael.opdenacker@free-electrons.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAGGh5h3AxogEURrQFd==zhGWpVF7eRaZPNo_Y1peC0TwS673Tw@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: jean-philippe francois <jp.francois@cynove.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, paulmck@linux.vnet.ibm.com
+To: tony@atomide.com, linux@arm.linux.org.uk, khilman@deeprootsystems.com
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Michael Opdenacker <michael.opdenacker@free-electrons.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 08/30/2013 10:10 AM, jean-philippe francois wrote:
-> 2013/8/30 Christian Hoffmann <chrmhoffmann@gmail.com>:
->>
->>> This also went to: linaro-kernel@lists.linaro.org
->>
->> Hi,
->>
->> current linaro kernel on 13.07 (3.10.1.0-1-linaro-omap) shows stack below.
->> System is generally quite unstable. Light usage (postfix+dovecot...)
->>
->> Full dmesg here:
->> https://dl.dropboxusercontent.com/u/21820416/rcu.stall.panda
->>
-> Hi,
->
-> Does it happen when run with nohlt in the kernel command line ?
+This patch proposes to remove the IRQF_DISABLED flag from OMAP code
+It's a NOOP since 2.6.35, and will be removed one day.
 
-Hi,
+Signed-off-by: Michael Opdenacker <michael.opdenacker@free-electrons.com>
+---
+ arch/arm/mach-omap1/fpga.c     | 3 +--
+ arch/arm/mach-omap1/pm.c       | 1 -
+ arch/arm/mach-omap1/time.c     | 2 +-
+ arch/arm/mach-omap1/timer32k.c | 2 +-
+ arch/arm/mach-omap2/timer.c    | 2 +-
+ arch/arm/plat-omap/dma.c       | 1 -
+ 6 files changed, 4 insertions(+), 7 deletions(-)
 
-the panda is much more stable (up now for 2 or three days) with nohlt. 
-No sign of stack traces or RCU stalls.
-
-Thank you.
-Chris
+diff --git a/arch/arm/mach-omap1/fpga.c b/arch/arm/mach-omap1/fpga.c
+index 8bd71b2..3c0e422 100644
+--- a/arch/arm/mach-omap1/fpga.c
++++ b/arch/arm/mach-omap1/fpga.c
+@@ -135,8 +135,7 @@ static struct irq_chip omap_fpga_irq = {
+  * mask_ack routine for all of the FPGA interrupts has been changed from
+  * fpga_mask_ack_irq() to fpga_ack_irq() so that the specific FPGA interrupt
+  * being serviced is left unmasked.  We can do this because the FPGA cascade
+- * interrupt is installed with the IRQF_DISABLED flag, which leaves all
+- * interrupts masked at the CPU while an FPGA interrupt handler executes.
++ * interrupt is run with all interrupts masked.
+  *
+  * Limited testing indicates that this workaround appears to be effective
+  * for the smc9194 Ethernet driver used on the Innovator.  It should work
+diff --git a/arch/arm/mach-omap1/pm.c b/arch/arm/mach-omap1/pm.c
+index 358b82c..40a1ae3 100644
+--- a/arch/arm/mach-omap1/pm.c
++++ b/arch/arm/mach-omap1/pm.c
+@@ -628,7 +628,6 @@ static irqreturn_t omap_wakeup_interrupt(int irq, void *dev)
+ 
+ static struct irqaction omap_wakeup_irq = {
+ 	.name		= "peripheral wakeup",
+-	.flags		= IRQF_DISABLED,
+ 	.handler	= omap_wakeup_interrupt
+ };
+ 
+diff --git a/arch/arm/mach-omap1/time.c b/arch/arm/mach-omap1/time.c
+index 80603d2..6b5f298 100644
+--- a/arch/arm/mach-omap1/time.c
++++ b/arch/arm/mach-omap1/time.c
+@@ -160,7 +160,7 @@ static irqreturn_t omap_mpu_timer1_interrupt(int irq, void *dev_id)
+ 
+ static struct irqaction omap_mpu_timer1_irq = {
+ 	.name		= "mpu_timer1",
+-	.flags		= IRQF_DISABLED | IRQF_TIMER | IRQF_IRQPOLL,
++	.flags		= IRQF_TIMER | IRQF_IRQPOLL,
+ 	.handler	= omap_mpu_timer1_interrupt,
+ };
+ 
+diff --git a/arch/arm/mach-omap1/timer32k.c b/arch/arm/mach-omap1/timer32k.c
+index 0b74246..107e7ab 100644
+--- a/arch/arm/mach-omap1/timer32k.c
++++ b/arch/arm/mach-omap1/timer32k.c
+@@ -156,7 +156,7 @@ static irqreturn_t omap_32k_timer_interrupt(int irq, void *dev_id)
+ 
+ static struct irqaction omap_32k_timer_irq = {
+ 	.name		= "32KHz timer",
+-	.flags		= IRQF_DISABLED | IRQF_TIMER | IRQF_IRQPOLL,
++	.flags		= IRQF_TIMER | IRQF_IRQPOLL,
+ 	.handler	= omap_32k_timer_interrupt,
+ };
+ 
+diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+index b37e1fc..6552cd9 100644
+--- a/arch/arm/mach-omap2/timer.c
++++ b/arch/arm/mach-omap2/timer.c
+@@ -78,7 +78,7 @@ static irqreturn_t omap2_gp_timer_interrupt(int irq, void *dev_id)
+ 
+ static struct irqaction omap2_gp_timer_irq = {
+ 	.name		= "gp_timer",
+-	.flags		= IRQF_DISABLED | IRQF_TIMER | IRQF_IRQPOLL,
++	.flags		= IRQF_TIMER | IRQF_IRQPOLL,
+ 	.handler	= omap2_gp_timer_interrupt,
+ };
+ 
+diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
+index 4d463ca..848eab5 100644
+--- a/arch/arm/plat-omap/dma.c
++++ b/arch/arm/plat-omap/dma.c
+@@ -1965,7 +1965,6 @@ static irqreturn_t omap2_dma_irq_handler(int irq, void *dev_id)
+ static struct irqaction omap24xx_dma_irq = {
+ 	.name = "DMA",
+ 	.handler = omap2_dma_irq_handler,
+-	.flags = IRQF_DISABLED
+ };
+ 
+ #else
+-- 
+1.8.1.2
