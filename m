@@ -1,7 +1,7 @@
 From: =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: [PATCH 3/4] power: isp1704_charger: Add callback function set_current
-Date: Sun,  8 Sep 2013 10:50:38 +0200
-Message-ID: <1378630239-10006-4-git-send-email-pali.rohar@gmail.com>
+Subject: [PATCH 4/4] RX-51: Add platform function and data for bq24150a charger
+Date: Sun,  8 Sep 2013 10:50:39 +0200
+Message-ID: <1378630239-10006-5-git-send-email-pali.rohar@gmail.com>
 References: <1378630239-10006-1-git-send-email-pali.rohar@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -13,86 +13,118 @@ To: Tony Lindgren <tony@atomide.com>, Anton Vorontsov <anton@enomsg.org>
 Cc: Russell King <linux@arm.linux.org.uk>, David Woodhouse <dwmw2@infradead.org>, Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, freemangordon@abv.bg, aaro.koskinen@iki.fi, pavel@ucw.cz, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-This patch add callback function set_current to platform data.
-Driver will call this function when isp1704 change current
-and board provided this callback funtion in platform data.
+This patch will register bq24150a charger in RX-51 board data.
+Patch also adding platform function between isp1704 and bq2415x
+drivers for detecting charger type.
 
-This patch is needed for Nokia RX-51 to tell bq2415x charging
-chip about connected wallcharger events.
+So finally charging battery on Nokia N900 (RX-51) working
+automatically without any proprietary Nokia bits in userspace.
 
 Signed-off-by: Pali Roh=C3=A1r <pali.rohar@gmail.com>
 ---
- drivers/power/isp1704_charger.c       |   16 ++++++++++++++++
- include/linux/power/isp1704_charger.h |    1 +
- 2 files changed, 17 insertions(+)
+ arch/arm/mach-omap2/board-rx51-peripherals.c |   56 ++++++++++++++++++=
++++++++-
+ 1 file changed, 55 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/power/isp1704_charger.c b/drivers/power/isp1704_ch=
-arger.c
-index f726cb6..4f20a1a 100644
---- a/drivers/power/isp1704_charger.c
-+++ b/drivers/power/isp1704_charger.c
-@@ -91,6 +91,18 @@ static void isp1704_charger_set_power(struct isp1704=
-_charger *isp, bool on)
- }
+diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/ma=
+ch-omap2/board-rx51-peripherals.c
+index 9c2dd10..a993ffe 100644
+--- a/arch/arm/mach-omap2/board-rx51-peripherals.c
++++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+@@ -25,6 +25,7 @@
+ #include <linux/gpio_keys.h>
+ #include <linux/mmc/host.h>
+ #include <linux/power/isp1704_charger.h>
++#include <linux/power/bq2415x_charger.h>
+ #include <linux/platform_data/spi-omap2-mcspi.h>
+ #include <linux/platform_data/mtd-onenand-omap2.h>
 =20
- /*
-+ * Set charger current from isp1704 if a function for it
-+ * has been provided with platform data.
-+ */
-+static void isp1704_charger_set_current(struct isp1704_charger *isp, i=
-nt mA)
-+{
-+	struct isp1704_charger_data *board =3D isp->dev->platform_data;
-+
-+	if (board && board->set_current)
-+		board->set_current(mA);
-+}
-+
-+/*
-  * Determine is the charging port DCP (dedicated charger) or CDP (Host=
-/HUB
-  * chargers).
-  *
-@@ -257,6 +269,7 @@ static void isp1704_charger_work(struct work_struct=
- *data)
- 			if (isp1704_charger_detect_dcp(isp)) {
- 				isp->psy.type =3D POWER_SUPPLY_TYPE_USB_DCP;
- 				isp->current_max =3D 1800;
-+				isp1704_charger_set_current(isp, 1800);
- 			} else {
- 				isp->psy.type =3D POWER_SUPPLY_TYPE_USB;
- 				isp->current_max =3D 500;
-@@ -277,6 +290,8 @@ static void isp1704_charger_work(struct work_struct=
- *data)
-=20
- 			if (isp->current_max > 100)
- 				isp->psy.type =3D POWER_SUPPLY_TYPE_USB_CDP;
-+
-+			isp1704_charger_set_current(isp, isp->current_max);
- 		}
- 		break;
- 	case USB_EVENT_NONE:
-@@ -297,6 +312,7 @@ static void isp1704_charger_work(struct work_struct=
- *data)
- 			usb_gadget_disconnect(isp->phy->otg->gadget);
-=20
- 		isp1704_charger_set_power(isp, 0);
-+		isp1704_charger_set_current(isp, 0);
- 		break;
- 	default:
- 		goto out;
-diff --git a/include/linux/power/isp1704_charger.h b/include/linux/powe=
-r/isp1704_charger.h
-index 68096a6..d154b02 100644
---- a/include/linux/power/isp1704_charger.h
-+++ b/include/linux/power/isp1704_charger.h
-@@ -24,6 +24,7 @@
-=20
- struct isp1704_charger_data {
- 	void		(*set_power)(bool on);
-+	void		(*set_current)(int mA);
+@@ -270,6 +271,44 @@ static struct platform_device rx51_battery_device =
+=3D {
+ 	.id	=3D -1,
  };
 =20
- #endif
++static enum bq2415x_mode rx51_charger_mode =3D BQ2415X_MODE_OFF;
++static void *rx51_charger_hook_data;
++static void (*rx51_charger_hook)(enum bq2415x_mode mode, void *data);
++
++static int rx51_charger_set_hook(
++		void (*hook)(enum bq2415x_mode mode, void *data), void *data)
++{
++	rx51_charger_hook =3D hook;
++	rx51_charger_hook_data =3D data;
++	if (rx51_charger_hook)
++		rx51_charger_hook(rx51_charger_mode, rx51_charger_hook_data);
++	return 1;
++}
++
++static void rx51_charger_set_current(int mA)
++{
++	enum bq2415x_mode mode;
++
++	pr_info("RX-51: Charger current limit is %d mA\n", mA);
++
++	if (mA =3D=3D 0)
++		mode =3D BQ2415X_MODE_OFF;
++	else if (mA < 500)
++		mode =3D BQ2415X_MODE_NONE;
++	else if (mA < 1800)
++		mode =3D BQ2415X_MODE_HOST_CHARGER;
++	else
++		mode =3D BQ2415X_MODE_DEDICATED_CHARGER;
++
++	if (rx51_charger_mode =3D=3D mode)
++		return;
++
++	rx51_charger_mode =3D mode;
++
++	if (rx51_charger_hook)
++		rx51_charger_hook(rx51_charger_mode, rx51_charger_hook_data);
++}
++
+ static void rx51_charger_set_power(bool on)
+ {
+ 	gpio_set_value(RX51_USB_TRANSCEIVER_RST_GPIO, on);
+@@ -277,6 +316,7 @@ static void rx51_charger_set_power(bool on)
+=20
+ static struct isp1704_charger_data rx51_charger_data =3D {
+ 	.set_power	=3D rx51_charger_set_power,
++	.set_current	=3D rx51_charger_set_current,
+ };
+=20
+ static struct platform_device rx51_charger_device =3D {
+@@ -1017,6 +1057,16 @@ static struct aic3x_pdata rx51_aic3x_data2 =3D {
+ 	.gpio_reset =3D 60,
+ };
+=20
++static struct bq2415x_platform_data rx51_bq24150a_platform_data =3D {
++	.current_limit =3D 100,			/* mA */
++	.weak_battery_voltage =3D 3400,		/* mV */
++	.battery_regulation_voltage =3D 4200,	/* mV */
++	.charge_current =3D 650,			/* mA */
++	.termination_current =3D 100,		/* mA */
++	.resistor_sense =3D 68,			/* m ohm */
++	.set_mode_hook =3D &rx51_charger_set_hook,
++};
++
+ static struct i2c_board_info __initdata rx51_peripherals_i2c_board_inf=
+o_2[] =3D {
+ 	{
+ 		I2C_BOARD_INFO("tlv320aic3x", 0x18),
+@@ -1044,7 +1094,11 @@ static struct i2c_board_info __initdata rx51_per=
+ipherals_i2c_board_info_2[] =3D {
+ 	{
+ 		I2C_BOARD_INFO("tpa6130a2", 0x60),
+ 		.platform_data =3D &rx51_tpa6130a2_data,
+-	}
++	},
++	{
++		I2C_BOARD_INFO("bq24150a", 0x6b),
++		.platform_data =3D &rx51_bq24150a_platform_data,
++	},
+ };
+=20
+ static struct i2c_board_info __initdata rx51_peripherals_i2c_board_inf=
+o_3[] =3D {
 --=20
 1.7.10.4
