@@ -1,68 +1,54 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Subject: Re: Build error in torvalds kernel 3.11 for omap2plus
-Date: Sun, 08 Sep 2013 10:16:14 -0700
-Message-ID: <522CB0DE.2010102@roeck-us.net>
-References: <CABYxbz7m4GdHFNY3fP1Cpv3a_dNTSozdd7dX9yLG6vQ3zZxu9A@mail.gmail.com> <20130908090206.GK25647@n2100.arm.linux.org.uk>
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Subject: Re: [RFC PATCH 4/4] ARM: dts: am33xx: adopt to cpsw-phy-sel driver
+ to configure phy mode
+Date: Sun, 08 Sep 2013 22:04:05 +0400
+Message-ID: <522CBC15.5060008@cogentembedded.com>
+References: <1378639438-27686-1-git-send-email-mugunthanvnm@ti.com> <1378639438-27686-5-git-send-email-mugunthanvnm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.active-venture.com ([67.228.131.205]:54650 "EHLO
-	mail.active-venture.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758469Ab3IHRQR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 8 Sep 2013 13:16:17 -0400
-In-Reply-To: <20130908090206.GK25647@n2100.arm.linux.org.uk>
+Received: from mail-la0-f54.google.com ([209.85.215.54]:38672 "EHLO
+	mail-la0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750891Ab3IHSEK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 8 Sep 2013 14:04:10 -0400
+Received: by mail-la0-f54.google.com with SMTP id ea20so4248116lab.13
+        for <linux-omap@vger.kernel.org>; Sun, 08 Sep 2013 11:04:08 -0700 (PDT)
+In-Reply-To: <1378639438-27686-5-git-send-email-mugunthanvnm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Anil Kumar <anilk4.v@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, Benoit Cousson <b-cousson@ti.com>
+To: Mugunthan V N <mugunthanvnm@ti.com>
+Cc: netdev@vger.kernel.org, zonque@gmail.com, davem@davemloft.net, bcousson@baylibre.com, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org
 
-On 09/08/2013 02:02 AM, Russell King - ARM Linux wrote:
-> On Sun, Sep 08, 2013 at 11:34:10AM +0530, Anil Kumar wrote:
->> scripts/kconfig/conf --silentoldconfig Kconfig
->>    CHK     include/generated/uapi/linux/version.h
->>    CHK     include/generated/utsrelease.h
->> make[1]: `include/generated/mach-types.h' is up to date.
->>    CALL    scripts/checksyscalls.sh
->>    CHK     include/generated/compile.h
->>    AS      arch/arm/mm/cache-v7.o
->> arch/arm/mm/cache-v7.S: Assembler messages:
->> arch/arm/mm/cache-v7.S:285: Error: garbage following instruction -- `dsb ishst'
->> arch/arm/mm/cache-v7.S:297: Error: garbage following instruction -- `dsb ishst'
->> make[1]: *** [arch/arm/mm/cache-v7.o] Error 1
->> make: *** [arch/arm/mm] Error 2
->
-> You need a later binutils for these instructions - 2.22 works just fine,
-> even with gcc 4.5.x.
+Hello.
 
-Since we are at it:
+On 09/08/2013 03:23 PM, Mugunthan V N wrote:
 
-Build reference: v3.11-7887-gb409624
+> Add DT entries for the phy mode selection in AM33xx SoC using cpsw-phy-sel
+> driver.
 
-Building arm:defconfig ... passed
-Building arm:allmodconfig ... failed
---------------
-Error log:
-arch/arm/mach-cns3xxx/pcie.c: In function 'cns3xxx_pcie_hw_init':
-arch/arm/mach-cns3xxx/pcie.c:350:1: warning: the frame size of 1064 bytes is larger than 1024 bytes [-Wframe-larger-than=]
-arch/arm/kernel/return_address.c:63:2: warning: #warning "TODO: return_address should use unwind tables" [-Wcpp]
-arch/arm/kernel/return_address.c:63:2: warning: #warning "TODO: return_address should use unwind tables" [-Wcpp]
-/tmp/cce439dZ.s: Assembler messages:
-/tmp/cce439dZ.s:506: Error: selected processor does not support ARM mode `isb '
-/tmp/cce439dZ.s:512: Error: selected processor does not support ARM mode `isb '
-/tmp/cce439dZ.s:513: Error: selected processor does not support ARM mode `dsb '
-/tmp/cce439dZ.s:583: Error: selected processor does not support ARM mode `isb '
-/tmp/cce439dZ.s:589: Error: selected processor does not support ARM mode `isb '
-/tmp/cce439dZ.s:590: Error: selected processor does not support ARM mode `dsb '
-make[1]: *** [arch/arm/mach-vexpress/dcscb.o] Error 1
-make: *** [arch/arm/mach-vexpress] Error 2
-make: *** Waiting for unfinished jobs....
---------------
+> Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
+> ---
+>   arch/arm/boot/dts/am33xx.dtsi | 6 ++++++
+>   1 file changed, 6 insertions(+)
 
-Any solution for this one ? omap2plus passes for me.
+> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+> index f9c5da9..4359672 100644
+> --- a/arch/arm/boot/dts/am33xx.dtsi
+> +++ b/arch/arm/boot/dts/am33xx.dtsi
+> @@ -594,6 +594,12 @@
+>   				/* Filled in by U-Boot */
+>   				mac-address = [ 00 00 00 00 00 00 ];
+>   			};
+> +
+> +			phy_sel: cpsw_phy_sel@44e10650 {
 
-gcc version used is "arm-poky-linux-gnueabi-gcc (GCC) 4.7.2" from poky 1.3.
+    Dashes are preferred to uderscores in the device tree names.
 
-Thanks,
-Guenter
+> +				compatible = "ti,am3352-cpsw-phy-sel";
+> +				reg= <0x44e10650 0x4>;
+> +				reg-names = "gmii-sel";
+> +			};
+
+WBR, Sergei
 
