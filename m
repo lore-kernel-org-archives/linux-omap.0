@@ -1,35 +1,32 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: Re: [PATCH v2] ADP1653 board code for Nokia RX-51
-Date: Sun, 8 Sep 2013 02:02:52 +0300
-Message-ID: <20130907230252.GA10700@blackmetal.musicnaut.iki.fi>
-References: <201302171616.50152@pali>
- <20130217190303.GC2317@blackmetal.musicnaut.iki.fi>
- <201303062112.06417@pali>
- <201309062234.05878@pali>
+From: Anil Kumar <anilk4.v@gmail.com>
+Subject: Build error in torvalds kernel 3.11 for omap2plus
+Date: Sun, 8 Sep 2013 11:34:10 +0530
+Message-ID: <CABYxbz7m4GdHFNY3fP1Cpv3a_dNTSozdd7dX9yLG6vQ3zZxu9A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <201309062234.05878@pali>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: linux-arm <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, Benoit Cousson <b-cousson@ti.com>, linux-kernel@vger.kernel.org, linux@arm.linux.org.uk, Grant Likely <grant.likely@secretlab.ca>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Hi All,
 
-On Fri, Sep 06, 2013 at 10:34:05PM +0200, Pali Roh=E1r wrote:
-> > --- /dev/null
-> > +++ b/arch/arm/mach-omap2/board-rx51-camera.c
-[...]
-> Ping, can you review this patch v2?
+I am getting below build error in torvalds kernel 3.11 for omap2plus.
 
-I don't think Tony will accept any new board stuff for RX-51/N900.
-See for example: http://marc.info/?l=3Dlinux-kernel&m=3D137629626213187=
-&w=3D2
 
-There should be initial Nokia N900 DTS file in 3.12-rc1, and we should
-continue converting this board fully to DT.
+scripts/kconfig/conf --silentoldconfig Kconfig
+  CHK     include/generated/uapi/linux/version.h
+  CHK     include/generated/utsrelease.h
+make[1]: `include/generated/mach-types.h' is up to date.
+  CALL    scripts/checksyscalls.sh
+  CHK     include/generated/compile.h
+  AS      arch/arm/mm/cache-v7.o
+arch/arm/mm/cache-v7.S: Assembler messages:
+arch/arm/mm/cache-v7.S:285: Error: garbage following instruction -- `dsb ishst'
+arch/arm/mm/cache-v7.S:297: Error: garbage following instruction -- `dsb ishst'
+make[1]: *** [arch/arm/mm/cache-v7.o] Error 1
+make: *** [arch/arm/mm] Error 2
 
-A.
+Thanks
+Anil
