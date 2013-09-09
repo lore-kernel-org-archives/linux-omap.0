@@ -1,49 +1,106 @@
-From: Daniel Mack <zonque@gmail.com>
-Subject: Re: [RFC PATCH 0/4] cpsw: support for control module register
-Date: Mon, 09 Sep 2013 10:58:32 +0200
-Message-ID: <522D8DB8.5050305@gmail.com>
-References: <1378639438-27686-1-git-send-email-mugunthanvnm@ti.com>
+From: Philipp Zabel <p.zabel@pengutronix.de>
+Subject: Re: [PATCH RFC 0/6] ARM: OMAP2+: AM43x/AM335x prcm reset driver
+Date: Mon, 09 Sep 2013 11:06:52 +0200
+Message-ID: <1378717612.4151.6.camel@pizza.hi.pengutronix.de>
+References: <cover.1378129416.git.afzal@ti.com>
+	 <1378375634.3948.10.camel@pizza.hi.pengutronix.de>
+	 <5228A99D.4020702@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bk0-f52.google.com ([209.85.214.52]:43227 "EHLO
-	mail-bk0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750753Ab3III6f (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Sep 2013 04:58:35 -0400
-In-Reply-To: <1378639438-27686-1-git-send-email-mugunthanvnm@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <5228A99D.4020702@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Afzal Mohammed <afzal@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, devicetree@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Benoit Cousson <bcousson@baylibre.com>, Russell King <linux@arm.linux.org.uk>, Ian Campbell <ian.campbell@citrix.com>, Stephen Warren <swarren@wwwdotorg.org>, Mark Rutland <mark.rutland@arm.com>, Pawel Moll <pawel.moll@arm.com>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, Pavel Machek <pavel@ucw.cz>
 List-Id: linux-omap@vger.kernel.org
-To: Mugunthan V N <mugunthanvnm@ti.com>
-Cc: netdev@vger.kernel.org, davem@davemloft.net, bcousson@baylibre.com, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org
 
-On 08.09.2013 13:23, Mugunthan V N wrote:
-> This patch series adds the support for configuring GMII_SEL register
-> of control module to select the phy mode type and also to configure
-> the clock source for RMII phy mode whether to use internal clock or
-> the external clock from the phy itself.
+Am Donnerstag, den 05.09.2013, 21:26 +0530 schrieb Afzal Mohammed:
+> Hi Philipp,
 > 
-> Till now CPSW works as this configuration is done in U-Boot and carried
-> over to the kernel. But during suspend/resume Control module tends to
-> lose its configured value for GMII_SEL register in AM33xx PG1.0, so
-> if CPSW is used in RMII or RGMII mode, on resume cpsw is not working
-> as GMII_SEL register lost its configuration values.
+> On Thursday 05 September 2013 03:37 PM, Philipp Zabel wrote:
+> > Am Montag, den 02.09.2013, 19:41 +0530 schrieb Afzal Mohammed:
 > 
-> The initial version of the patch is done by Daniel Mack but as per
-> Tony's comment he wants it as a seperate driver as it is done in USB
-> control module. I have created a seperate driver for the same and as
-> the merge window is open now and no feature request is accepted I am
-> submitting it as RFC for reviews.
+> >> Two new reset API's are provided to check whether reset is ready and
+> >> to clear reset. This would be required in case IP needs to mix reset
+> >> handling procedure with power/clock managment procedure to achieve
+> >> proper reset and these procedures are sometimes IP specific that would
+> >> make it difficult to handle reset fully in pm_runtime platform support.
+> 
+> >> client IP handling s/w (DT based) should do as follows:
+> 
+> >> 2. In driver, that require reset to be deasserted,
+> >>  (this is the sequence required for gfx on AM43x/AM335x, this would
+> >>   depend on requirements of the IP)
+> >>
+> >> 	mydriver_probe(struct platform device *pdev)
+> >> 	{
+> >> 		:
+> >> 		:
+> >> 		reset_control_get(&pdev->dev, NULL);
+> >> 		reset_control_clear_reset();
+> >> 		reset_control_deassert();
+> >> 		pm_runtime_get_sync();
+> >> 		if (reset_control_is_reset() != true)
+> >> 			goto err;
+> >> 		reset_control_put();
+> >> 		:
+> >> 		:
+> >> 	}
+> 
+> > if possible, I'd like to move this logic into the reset controller
+> > driver. Can this be reordered to enable power before deasserting the
+> > reset line (assuming it is initially asserted)? In this case, I'd
+> > suggest to just call device_reset:
+> > 
+> > 	pm_runtime_get_sync(&pdev->dev);
+> > 	ret = device_reset(&pdev->dev);
+> > 	if (ret)
+> > 		goto err;
+> > 
+> > The ops.reset callback in the prcm driver then can handle clearing
+> > the reset status bit, deasserting the reset control bit, and waiting for
+> > the reset status bit to be set (or timing out with an error).
+> 
+> I too would have loved to have it in such a clean way and was initially
+> proceeding in that direction, but there is an issue specific to OMAP
+> family SoC's, which was required to be taken care of (even though
+> present use case for AM335x/AM43x would work [as it does not have
+> hardware supervised clockdomain mode] with a small change in platform
+> level power management support code - a generic one shared with other
+> OMAP family SoC's)
+> 
+> For a module to be reset, clock domain to which the module clock belongs
+> should be set to software supervised mode. During "pm_runtime_get_sync",
+> in OMAP platform level handling code, it first put clockdomain into
+> software supervised mode, enables clock to module, and once module is
+> ready, module will be put to hardware supervised mode. In hardware
+> supervised mode, reset may not happen.
+> 
+> So if device_reset() is done after pm_runtime_get_sync(), reset may not
+> happen as by the time device_reset() is called, clockdomain would be in
+> hardware supervised mode. But in other case, as reset is already
+> deasserted when pm_runtime_get_sync() is called, module would be reset
+> as it first puts to software supervised mode.
+> 
+> And device reset would happen only upon enabling clock to module (if
+> reset was deasserted) by pm_runtime_get_sync(), so reset status has to
+> be checked after pm call, preventing us having device_reset() before
+> pm_runtime_get_sync(), or else in that case we have to sacrifice on
+> reset status checking (which may not be reliable)
+> 
+> Another alternative would have been to integrate this reset handling in
+> low level power management code thus hiding all reset handling from
+> driver, but as far as I know the reset sequence to be done is sometimes
+> IP specific, preventing it.
 
-Thanks for doing this. It's a somehow expensive approach of writing a
-single 32bit register, but I agree it's cleaner to not have this code in
-the cpsw driver directly.
+So if I understand correctly, the only problem is that on OMAP the clock
+needs to be enabled to deassert the reset, but as long as the clock
+domain is in hardware supervised mode, it won't be enabled?
+Would it be possible to create an internal API to switch the clock
+domain to software supervised mode, which can be used both by the code
+behind pm_runtime_get_sync and reset_control_deassert?
 
-For the whole series:
-
-  Tested-by: Daniel Mack <zonque@gmail.com>
-
-
-
-Daniel
+regards
+Philipp
 
