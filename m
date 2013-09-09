@@ -1,40 +1,42 @@
-From: Phil Carmody <phil.carmody@partner.samsung.com>
-Subject: [PATCH 1/1] OMAP2+: mux: fix trivial typo in name
-Date: Mon, 09 Sep 2013 16:18:00 +0300
-Message-ID: <1378732680-13159-1-git-send-email-phil.carmody@partner.samsung.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:35286 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751770Ab3IINST (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Sep 2013 09:18:19 -0400
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout2.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MSV004NJ0Y6Z080@mailout2.w1.samsung.com> for
- linux-omap@vger.kernel.org; Mon, 09 Sep 2013 14:18:17 +0100 (BST)
-Sender: linux-omap-owner@vger.kernel.org
+From: Tom Rini <trini@ti.com>
+Subject: Re: [PATCHv3] ARM: OMAP2+: am335x-bone*: add DT for BeagleBone Black
+Date: Mon, 9 Sep 2013 09:19:02 -0400
+Message-ID: <522DCAC6.8080705@ti.com>
+References: <1378638746-10627-1-git-send-email-koen@dominion.thruhere.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1378638746-10627-1-git-send-email-koen@dominion.thruhere.net>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Koen Kooi <koen@dominion.thruhere.net>
+Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, linux@arm.linux.org.uk, pawel.moll@arm.com, swarren@wwwdotorg.org, tony@atomide.com, ijc+devicetree@hellion.org.uk, linux-kernel@vger.kernel.org, rob.herring@calxeda.com, bcousson@baylibre.com, olof@lixom.net, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, Phil Carmody <phil.carmody@partner.samsung.com>
 
-Signed-off-by: Phil Carmody <phil.carmody@partner.samsung.com>
----
- arch/arm/mach-omap2/mux34xx.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+On 09/08/2013 07:12 AM, Koen Kooi wrote:
+> The BeagleBone Black is basically a regular BeagleBone with eMMC and HDMI added,
+> so create a common dtsi both can use.
+> 
+> IMPORTANT: booting the existing am335x-bone.dts will blow up the HDMI transceiver 
+> after a dozen boots with an uSD card inserted because LDO will be at 3.3V instead
+> of 1.8. 
+> 
+> MMC support for AM335x still isn't in, so only the LDO change has been added.
+> 
+> Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
 
-diff --git a/arch/arm/mach-omap2/mux34xx.c b/arch/arm/mach-omap2/mux34xx.c
-index c53609f4..be271f1 100644
---- a/arch/arm/mach-omap2/mux34xx.c
-+++ b/arch/arm/mach-omap2/mux34xx.c
-@@ -620,7 +620,7 @@ static struct omap_mux __initdata omap3_muxmodes[] = {
- 		"uart1_rts", "ssi1_flag_tx", NULL, NULL,
- 		"gpio_149", NULL, NULL, "safe_mode"),
- 	_OMAP3_MUXENTRY(UART1_RX, 151,
--		"uart1_rx", "ss1_wake_tx", "mcbsp1_clkr", "mcspi4_clk",
-+		"uart1_rx", "ssi1_wake_tx", "mcbsp1_clkr", "mcspi4_clk",
- 		"gpio_151", NULL, NULL, "safe_mode"),
- 	_OMAP3_MUXENTRY(UART1_TX, 148,
- 		"uart1_tx", "ssi1_dat_tx", NULL, NULL,
+Grabbed my beaglebone white and black and tested them both on top of
+e5c832d (top of Linus' tree atm), came up with a ramdisk.
+
+Tested-by: Tom Rini <trini@ti.com>
+
 -- 
-1.7.9.5
-
+Tom
