@@ -1,16 +1,54 @@
-From: <linux-omap@vger.kernel.org>
-Subject: =?utf-8?B?0JrQu9C40LXQvdGC0YHQutC40LUg0LHQsNC30Ysg0YJl0LsgKzc5SdCXNznQlzYz0Kcy?=
-Date: Sun, 8 Sep 2013 23:28:56 -0600
-Message-ID: <750dc35a-d415-4e63-bcd8-0fecb31310b2@CSPEWEB01.casperwy.local>
+From: Mugunthan V N <mugunthanvnm@ti.com>
+Subject: Re: [RFC PATCH 4/4] ARM: dts: am33xx: adopt to cpsw-phy-sel driver
+ to configure phy mode
+Date: Mon, 9 Sep 2013 12:12:47 +0530
+Message-ID: <522D6DE7.5080305@ti.com>
+References: <1378639438-27686-1-git-send-email-mugunthanvnm@ti.com> <1378639438-27686-5-git-send-email-mugunthanvnm@ti.com> <522CBC15.5060008@cogentembedded.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1251"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.casperwy.gov ([69.145.186.71]:11753 "EHLO
-	CSPEWEB01.casperwy.local" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751075Ab3IIFaj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Sep 2013 01:30:39 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <522CBC15.5060008@cogentembedded.com>
+Sender: netdev-owner@vger.kernel.org
+To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Cc: netdev@vger.kernel.org, zonque@gmail.com, davem@davemloft.net, bcousson@baylibre.com, tony@atomide.com, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
 
+On Sunday 08 September 2013 11:34 PM, Sergei Shtylyov wrote:
+> Hello.
+>
+> On 09/08/2013 03:23 PM, Mugunthan V N wrote:
+>
+>> Add DT entries for the phy mode selection in AM33xx SoC using
+>> cpsw-phy-sel
+>> driver.
+>
+>> Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
+>> ---
+>>   arch/arm/boot/dts/am33xx.dtsi | 6 ++++++
+>>   1 file changed, 6 insertions(+)
+>
+>> diff --git a/arch/arm/boot/dts/am33xx.dtsi
+>> b/arch/arm/boot/dts/am33xx.dtsi
+>> index f9c5da9..4359672 100644
+>> --- a/arch/arm/boot/dts/am33xx.dtsi
+>> +++ b/arch/arm/boot/dts/am33xx.dtsi
+>> @@ -594,6 +594,12 @@
+>>                   /* Filled in by U-Boot */
+>>                   mac-address = [ 00 00 00 00 00 00 ];
+>>               };
+>> +
+>> +            phy_sel: cpsw_phy_sel@44e10650 {
+>
+>    Dashes are preferred to uderscores in the device tree names. 
+I tried with dashes but i get the below error.
+
+$ make CROSS_COMPILE=arm-linux-gnueabihf- ARCH=arm dtbs
+  DTC     arch/arm/boot/dts/am335x-evm.dtb
+Error: arch/arm/boot/dts/am33xx.dtsi:598.11-12 syntax error
+FATAL ERROR: Unable to parse input tree
+make[1]: *** [arch/arm/boot/dts/am335x-evm.dtb] Error 1
+make: *** [dtbs] Error 2
+
+Regards
+Mugunthan V N
