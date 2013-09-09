@@ -1,13 +1,18 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH] ARM: DTS: DRA7: Add TPS659038 PMIC nodes
-Date: Mon, 9 Sep 2013 14:21:22 -0500
-Message-ID: <522E1FB2.10809@ti.com>
-References: <1377495411-21984-1-git-send-email-j-keerthy@ti.com>
+From: Joel Fernandes <joelf@ti.com>
+Subject: Re: [PATCH] ARM: OMAP2+: am335x-bone*: add DT for BeagleBone Black
+Date: Mon, 9 Sep 2013 14:50:51 -0500
+Message-ID: <522E269B.7000802@ti.com>
+References: <1378736961-21005-1-git-send-email-koen@dominion.thruhere.net>
+ <87zjrm81dl.fsf@linaro.org>
+ <BBAC0939-A4F9-4FEA-B137-0307D8787DC3@dominion.thruhere.net>
+ <522E1325.8050906@ti.com>
+ <41952E65-1037-4117-A1AE-8310FED59E3A@dominion.thruhere.net>
+ <522E18C0.9010909@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1377495411-21984-1-git-send-email-j-keerthy@ti.com>
+In-Reply-To: <522E18C0.9010909@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -17,153 +22,58 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Keerthy <j-keerthy@ti.com>
-Cc: devicetree@vger.kernel.org, balajitk@ti.com, pawel.moll@arm.com, linux-kernel@vger.kernel.org, rob.herring@calxeda.com, bcousson@baylibre.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Koen Kooi <koen@dominion.thruhere.net>
+Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, Kevin Hilman <khilman@linaro.org>, linux@arm.linux.org.uk, pawel.moll@arm.com, swarren@wwwdotorg.org, tony@atomide.com, ijc+devicetree@hellion.org.uk, linux-kernel@vger.kernel.org, rob.herring@calxeda.com, bcousson@baylibre.com, olof@lixom.net, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 08/26/2013 12:36 AM, Keerthy wrote:
-> The Patch adds nodes for TPS659038 PMIC for DRA7 boards.
+On 09/09/2013 01:51 PM, Joel Fernandes wrote:
+> On 09/09/2013 01:43 PM, Koen Kooi wrote:
+>>
+>> Op 9 sep. 2013, om 20:27 heeft Joel Fernandes <joelf@ti.com> het volgende geschreven:
+>>
+>>> On 09/09/2013 10:51 AM, Koen Kooi wrote:
+>>>>
+>>>> Op 9 sep. 2013, om 17:23 heeft Kevin Hilman <khilman@linaro.org> het volgende geschreven:
+>>>>
+>>>>> Koen Kooi <koen@dominion.thruhere.net> writes:
+>>>>>
+>>>>>> The BeagleBone Black is basically a regular BeagleBone with eMMC and HDMI added,
+>>>>>> so create a common dtsi both can use.
+>>>>>>
+>>>>>> IMPORTANT: booting the existing am335x-bone.dts will blow up the HDMI transceiver
+>>>>>> after a dozen boots with an uSD card inserted because LDO will be at 3.3V instead
+>>>>>> of 1.8.
+>>>>>>
+>>>>>> MMC support for AM335x still isn't in, so only the LDO change has been added.
+>>>>>>
+>>>>>> Cc: stable@vger.kernel.org
+>>>>>>
+>>>>>> Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
+>>>>>> Tested-by: Tom Rini <trini@ti.com>
+>>>>>> Tested-by: Matt Porter <matt.porter@linaro.org>
+>>>>>
+>>>>> I guess the subject should've included v5?
+>>>>
+>>>> Yes, I blame it on being monday :)
+>>>
+>>> The series you're posting will require rebasing on the current MMC DT series
+>>> that is being discussed last couple of weeks on the mailing list which were
+>>> waiting until now as DMA support was missing. Now that DMA support is pulled in,
+>>> it is safe to apply those patches so I will be reposting them shortly.
+>>>
+>>> Please hold off any changes until those patches are posted. This will avoid
+>>> unnecessary conflicts.
+>>
+>> Or you can rebase on top of this patch since it has no dependencies *and* fixes blowing up boards. FWIW, git-rebase, git-cherry-pick and git-am -3 track the rename in my patch just fine.
+>>
 > 
-> It is based on top of:
-> http://comments.gmane.org/gmane.linux.ports.arm.omap/102459.
+> That's fair enough, since  Kevin Acked and Benoit is pulling it, I'm fine with
+> rebasing on top of it and we avoid any merge conflicts.
 > 
-> Documentation:	Documentation/devicetree/bindings/mfd/palmas.txt
-> 		Documentation/devicetree/bindings/regulator/palmas-pmic.txt		
-> 
-> Boot Tested on DRA7 d1 Board.
-> 
-> Signed-off-by: Keerthy <j-keerthy@ti.com>
-> ---
->  arch/arm/boot/dts/dra7-evm.dts |  118 ++++++++++++++++++++++++++++++++++++++++
->  1 file changed, 118 insertions(+)
-> 
-> Index: linux/arch/arm/boot/dts/dra7-evm.dts
-> ===================================================================
-> --- linux.orig/arch/arm/boot/dts/dra7-evm.dts	2013-08-26 09:57:52.496173554 +0530
-> +++ linux/arch/arm/boot/dts/dra7-evm.dts	2013-08-26 10:38:44.995414695 +0530
-> @@ -93,6 +93,119 @@
->  	pinctrl-names = "default";
->  	pinctrl-0 = <&i2c1_pins>;
->  	clock-frequency = <400000>;
-> +
-> +	tps659038: tps659038@58 {
-> +		compatible = "ti,tps659038";
-> +		reg = <0x58>;
-> +
-> +		tps659038_pmic {
-> +			compatible = "ti,tps659038-pmic";
-> +
-> +			regulators {
-> +				smps123_reg: smps123 {
-> +					/* VDD_MPU */
-> +						regulator-name = "smps123";
-> +						regulator-min-microvolt = < 850000>;
-> +						regulator-max-microvolt = <1250000>;
-> +						regulator-always-on;
-> +						regulator-boot-on;
-> +					};
-> +
-> +				smps45_reg: smps45 {
-> +						/* VDD_DSPEVE */
-> +						regulator-name = "smps45";
-> +						regulator-min-microvolt = < 850000>;
-> +						regulator-max-microvolt = <1150000>;
-> +						regulator-boot-on;
-> +					};
-> +
-> +				smps6_reg: smps6 {
-> +						/* VDD_GPU - over VDD_SMPS6 */
-> +						regulator-name = "smps6";
-> +						regulator-min-microvolt = <850000>;
-> +						regulator-max-microvolt = <12500000>;
-> +						regulator-boot-on;
-> +					};
-> +
-> +				smps7_reg: smps7 {
-> +						/* CORE_VDD */
-> +						regulator-name = "smps7";
-> +						regulator-min-microvolt = <850000>;
-> +						regulator-max-microvolt = <1030000>;
-> +						regulator-always-on;
-> +						regulator-boot-on;
-> +					};
-> +
-> +				smps8_reg: smps8 {
-> +						/* VDD_IVAHD */
-> +						regulator-name = "smps8";
-> +						regulator-min-microvolt = < 850000>;
-> +						regulator-max-microvolt = <1250000>;
-> +						regulator-boot-on;
-> +					};
-> +
-> +				smps9_reg: smps9 {
-> +						/* VDDS1V8 */
-> +						regulator-name = "smps9";
-> +						regulator-min-microvolt = <1800000>;
-> +						regulator-max-microvolt = <1800000>;
-> +						regulator-always-on;
-> +						regulator-boot-on;
-> +					};
-> +
-> +				ldo1_reg: ldo1 {
-> +						/* LDO1_OUT --> SDIO  */
-> +						regulator-name = "ldo1";
-> +						regulator-min-microvolt = <1800000>;
-> +						regulator-max-microvolt = <3300000>;
-> +						regulator-boot-on;
-> +					};
-> +
-> +				ldo2_reg: ldo2 {
-> +						/* VDD_RTCIO */
-> +						/* LDO2 -> VDDSHV5, LDO2 also goes to CAN_PHY_3V3 */
-> +						regulator-name = "ldo2";
-> +						regulator-min-microvolt = <3300000>;
-> +						regulator-max-microvolt = <3300000>;
-> +						regulator-boot-on;
-> +					};
-> +
-> +				ldo3_reg: ldo3 {
-> +						/* VDDA_1V8_PHY */
-> +						regulator-name = "ldo3";
-> +						regulator-min-microvolt = <1800000>;
-> +						regulator-max-microvolt = <1800000>;
-> +						regulator-boot-on;
-> +					};
-> +
-> +				ldo9_reg: ldo9 {
-> +						/* VDD_RTC */
-> +						regulator-name = "ldo9";
-> +						regulator-min-microvolt = <1050000>;
-> +						regulator-max-microvolt = <1050000>;
-> +						regulator-boot-on;
-> +					};
-> +
-> +				ldoln_reg: ldoln {
-> +						/* VDDA_1V8_PLL */
-> +						regulator-name = "ldoln";
-> +						regulator-min-microvolt = <1800000>;
-> +						regulator-max-microvolt = <1800000>;
-> +						regulator-always-on;
-> +						regulator-boot-on;
-> +					};
-> +
-> +				ldousb_reg: ldousb {
-> +						/* VDDA_3V_USB: VDDA_USBHS33 */
-> +						regulator-name = "ldousb";
-> +						regulator-min-microvolt = <3300000>;
-> +						regulator-max-microvolt = <3300000>;
-> +						regulator-boot-on;
-> +					};
-> +
-> +				};
-> +			};
-> +		};
->  };
->  
->  &i2c2 {
-> 
-Acked-by: Nishanth Menon <nm@ti.com>
 
--- 
+I noticed - there were still some comments from Felipe on the v4 series of this
+patch regarding RF cape and HDMI may be breaking it. How are you addressing that?
+
 Regards,
-Nishanth Menon
+
+-Joel
