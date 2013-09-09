@@ -1,73 +1,102 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCHv4] ARM: OMAP2+: am335x-bone*: add DT for BeagleBone Black
-Date: Mon, 9 Sep 2013 09:15:31 -0500
-Message-ID: <20130909141531.GL9325@radagast>
-References: <1378734350-30479-1-git-send-email-koen@dominion.thruhere.net>
-Reply-To: <balbi@ti.com>
+From: Nicolas Pitre <nicolas.pitre@linaro.org>
+Subject: Re: Build error in torvalds kernel 3.11 for omap2plus
+Date: Mon, 9 Sep 2013 10:24:42 -0400 (EDT)
+Message-ID: <alpine.LFD.2.03.1309091023440.20709@syhkavp.arg>
+References: <CABYxbz7m4GdHFNY3fP1Cpv3a_dNTSozdd7dX9yLG6vQ3zZxu9A@mail.gmail.com> <20130908090206.GK25647@n2100.arm.linux.org.uk> <522CB0DE.2010102@roeck-us.net> <20130909105115.GL25647@n2100.arm.linux.org.uk> <522DB86A.8010207@roeck-us.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Gt+ay4QFgFrjOKz/"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1378734350-30479-1-git-send-email-koen@dominion.thruhere.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Koen Kooi <koen@dominion.thruhere.net>
-Cc: linux-omap@vger.kernel.org, bcousson@baylibre.com, tony@atomide.com, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ijc+devicetree@hellion.org.uk, linux@arm.linux.org.uk, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, olof@lixom.net, stable@vger.kernel.org, George Cherian <george.cherian@ti.com>, Sekhar Nori <nsekhar@ti.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-qa0-f48.google.com ([209.85.216.48]:65429 "EHLO
+	mail-qa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752514Ab3IIOYo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Sep 2013 10:24:44 -0400
+Received: by mail-qa0-f48.google.com with SMTP id k4so189022qaq.0
+        for <linux-omap@vger.kernel.org>; Mon, 09 Sep 2013 07:24:43 -0700 (PDT)
+In-Reply-To: <522DB86A.8010207@roeck-us.net>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Guenter Roeck <linux@roeck-us.net>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Anil Kumar <anilk4.v@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, Benoit Cousson <b-cousson@ti.com>
 
---Gt+ay4QFgFrjOKz/
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Mon, 9 Sep 2013, Guenter Roeck wrote:
 
-Hi,
+> On 09/09/2013 03:51 AM, Russell King - ARM Linux wrote:
+> > On Sun, Sep 08, 2013 at 10:16:14AM -0700, Guenter Roeck wrote:
+> > > Since we are at it:
+> > > 
+> > > Build reference: v3.11-7887-gb409624
+> > > 
+> > > Building arm:defconfig ... passed
+> > > Building arm:allmodconfig ... failed
+> > > --------------
+> > > Error log:
+> > > arch/arm/mach-cns3xxx/pcie.c: In function 'cns3xxx_pcie_hw_init':
+> > > arch/arm/mach-cns3xxx/pcie.c:350:1: warning: the frame size of 1064 bytes
+> > > is larger than 1024 bytes [-Wframe-larger-than=]
+> > > arch/arm/kernel/return_address.c:63:2: warning: #warning "TODO:
+> > > return_address should use unwind tables" [-Wcpp]
+> > > arch/arm/kernel/return_address.c:63:2: warning: #warning "TODO:
+> > > return_address should use unwind tables" [-Wcpp]
+> > > /tmp/cce439dZ.s: Assembler messages:
+> > > /tmp/cce439dZ.s:506: Error: selected processor does not support ARM mode
+> > > `isb '
+> > > /tmp/cce439dZ.s:512: Error: selected processor does not support ARM mode
+> > > `isb '
+> > > /tmp/cce439dZ.s:513: Error: selected processor does not support ARM mode
+> > > `dsb '
+> > > /tmp/cce439dZ.s:583: Error: selected processor does not support ARM mode
+> > > `isb '
+> > > /tmp/cce439dZ.s:589: Error: selected processor does not support ARM mode
+> > > `isb '
+> > > /tmp/cce439dZ.s:590: Error: selected processor does not support ARM mode
+> > > `dsb '
+> > > make[1]: *** [arch/arm/mach-vexpress/dcscb.o] Error 1
+> > > make: *** [arch/arm/mach-vexpress] Error 2
+> > > make: *** Waiting for unfinished jobs....
+> > > --------------
+> > > 
+> > > Any solution for this one ? omap2plus passes for me.
+> > > 
+> > > gcc version used is "arm-poky-linux-gnueabi-gcc (GCC) 4.7.2" from poky
+> > > 1.3.
+> > 
+> > That's due to:
+> > 
+> > commit e8f9bb1bd6bb93fff773345cc54c42585e0e3ece
+> > Author: Nicolas Pitre <nicolas.pitre@linaro.org>
+> > Date:   Tue Jul 16 20:59:53 2013 -0400
+> > 
+> >      ARM: vexpress/dcscb: fix cache disabling sequences
+> > 
+> >      Unlike real A15/A7's, the RTSM simulation doesn't appear to hit the
+> >      cache when the CTRL.C bit is cleared.  Let's ensure there is no memory
+> >      access within the disable and flush cache sequence, including to the
+> >      stack.
+> > 
+> >      Signed-off-by: Nicolas Pitre <nico@linaro.org>
+> > 
+> > which introduces some 'isb' and 'dsb' instructions which are not
+> > available on ARMv6 CPUs - however, their 'mcr' equivalents are.
+> > 
+> > Either dcscb needs to be built with an -march=armv7 override, or
+> > they need to use the mcr equivalent instructions.
+> > 
+> 
+> Well, I hope it will get fixed one way or another.
+> I don't know enough about arm to fix it myself.
 
-On Mon, Sep 09, 2013 at 03:45:50PM +0200, Koen Kooi wrote:
-> The BeagleBone Black is basically a regular BeagleBone with eMMC and HDMI=
- added,
-> so create a common dtsi both can use.
->=20
-> IMPORTANT: booting the existing am335x-bone.dts will blow up the HDMI tra=
-nsceiver=20
-> after a dozen boots with an uSD card inserted because LDO will be at 3.3V=
- instead
-> of 1.8.=20
->=20
-> MMC support for AM335x still isn't in, so only the LDO change has been ad=
-ded.
->=20
-> Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
-> Tested-by: Tom Rini <trini@ti.com>
-> Tested-by: Matt Porter <matt.porter@linaro.org>
+Would you try this patch please:
 
-not entirelly related to $SUBJECT but having HDMI listed in BBB DTS will
-prevent the use of RF cape, no ?
-
-Other than that, patch looks ok to me.
-
---=20
-balbi
-
---Gt+ay4QFgFrjOKz/
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJSLdgDAAoJEIaOsuA1yqREBKIQAKqHuKLQTU5AsGsXErPrfmQ1
-f+M86KifgBeAphi+ergH4mPz0YRi0J8Vdi13kTp7qMlYjAXTUGIB7jFfnuJW8XZ7
-wcpc3SWPpCcJPceP0pJA63GZQLO1t+tOTaWE0xYnsqCqxx5RPoenITzbL6Gh3Zk9
-wTzci1CiZKzNPktAYbOxTza7rDhxfllIigbuegJV2NIiWOmCiovXaNklc0wKturI
-BdTGUJ7A5/wGauy6iweeVLTV79BhVy9JlcC4dA/evH0yMlNWeb99lM9+lAZZl0ab
-8hKZUtaS3sx7RvBCnROR8ne7RZpRHCnvqGFCnsmihZxb7hjR9cyuZTukZZjtvc8Q
-5D+CqJ0W/9/lc0G9zwiHy/ezS+zcNyqquxnxqcv+E2Uwh2pZf2YmBprZt/7GGCIJ
-BFByAv1A+dKVQK+8eHnGJFiiv5eGUYldxutYJp7SYquK92RAOT+PoliRjuEumh7/
-iyomVSX5Ru9CUoRN9/LpEnZLH6PpWmAhz71HV8swS3/zyRRMivYn19KE6SNRG1zh
-sF8mVaWhVnwG/TEq2xGWi7yQPFvFWnNNgZ+JsX/I60wcu76N9kfwxHeR+ZG9z8yV
-+P4azU2rRKD3RSfRrOxosFqylgJYHhs/xTGQNcEMF7+TUl+SpIcvlfynTB9dX8CM
-RmrY5RCNtjRUT1AKxWvu
-=haOy
------END PGP SIGNATURE-----
-
---Gt+ay4QFgFrjOKz/--
+diff --git a/arch/arm/mach-vexpress/Makefile b/arch/arm/mach-vexpress/Makefile
+index 36ea824712..505e64ab3e 100644
+--- a/arch/arm/mach-vexpress/Makefile
++++ b/arch/arm/mach-vexpress/Makefile
+@@ -7,6 +7,8 @@ ccflags-$(CONFIG_ARCH_MULTIPLATFORM) := -I$(srctree)/$(src)/include \
+ obj-y					:= v2m.o
+ obj-$(CONFIG_ARCH_VEXPRESS_CA9X4)	+= ct-ca9x4.o
+ obj-$(CONFIG_ARCH_VEXPRESS_DCSCB)	+= dcscb.o	dcscb_setup.o
++CFLAGS_dcscb.o				+= -march=armv7-a
+ obj-$(CONFIG_ARCH_VEXPRESS_TC2_PM)	+= tc2_pm.o spc.o
++CFLAGS_tc2_pm.o				+= -march=armv7-a
+ obj-$(CONFIG_SMP)			+= platsmp.o
+ obj-$(CONFIG_HOTPLUG_CPU)		+= hotplug.o
