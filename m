@@ -1,27 +1,19 @@
-From: Tom Rini <trini@ti.com>
+From: Matt Porter <matt.porter@linaro.org>
 Subject: Re: [PATCHv3] ARM: OMAP2+: am335x-bone*: add DT for BeagleBone Black
-Date: Mon, 9 Sep 2013 09:19:02 -0400
-Message-ID: <522DCAC6.8080705@ti.com>
+Date: Mon, 9 Sep 2013 09:31:01 -0400
+Message-ID: <20130909133059.GD10973@ohporter.com>
 References: <1378638746-10627-1-git-send-email-koen@dominion.thruhere.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
 In-Reply-To: <1378638746-10627-1-git-send-email-koen@dominion.thruhere.net>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Koen Kooi <koen@dominion.thruhere.net>
-Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, linux@arm.linux.org.uk, pawel.moll@arm.com, swarren@wwwdotorg.org, tony@atomide.com, ijc+devicetree@hellion.org.uk, linux-kernel@vger.kernel.org, rob.herring@calxeda.com, bcousson@baylibre.com, olof@lixom.net, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org, bcousson@baylibre.com, tony@atomide.com, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ijc+devicetree@hellion.org.uk, linux@arm.linux.org.uk, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, olof@lixom.net
 List-Id: linux-omap@vger.kernel.org
 
-On 09/08/2013 07:12 AM, Koen Kooi wrote:
+On Sun, Sep 08, 2013 at 01:12:26PM +0200, Koen Kooi wrote:
 > The BeagleBone Black is basically a regular BeagleBone with eMMC and HDMI added,
 > so create a common dtsi both can use.
 > 
@@ -33,10 +25,15 @@ On 09/08/2013 07:12 AM, Koen Kooi wrote:
 > 
 > Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
 
-Grabbed my beaglebone white and black and tested them both on top of
-e5c832d (top of Linus' tree atm), came up with a ramdisk.
+Tested-by: Matt Porter <matt.porter@linaro.org>
 
-Tested-by: Tom Rini <trini@ti.com>
+Works fine for me on tip and 3.11. I did notice a regression in musb (worked
+on 3.11, now failing to probe but this is not related to your new dts as it
+happens on am335x-bone.dts too, assuming merge window volatility). One nit,
+git-am picked up a whitespace error on that extra line at EOF so you should
+trim that out.
 
--- 
-Tom
+Only thing is...for a clear bug like this that will destroy hardware, it
+should be marked Cc: stable@vger.kernel.org to be picked up in stable.
+
+-Matt
