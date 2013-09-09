@@ -1,130 +1,122 @@
-From: Russ Dill <Russ.Dill@ti.com>
-Subject: Re: [RFC 0/4] Create infrastructure for running C code from SRAM.
-Date: Mon, 9 Sep 2013 16:10:14 -0700
-Message-ID: <CA+Bv8Xbf02WNokiagwpUuvjFrAmHv-jL7APt=TFAd0YbN6h33w@mail.gmail.com>
-References: <1378226665-27090-1-git-send-email-Russ.Dill@ti.com>
-	<20130906111221.GH25647@n2100.arm.linux.org.uk>
-	<CA+Bv8XbbWoBgrv83RmXLiO8AM0TDP9wNQMUFJKMbN82-0w3Scg@mail.gmail.com>
-	<CAKv+Gu-eaS9djmz0d5hzY=jkVb-aPZWrLCUOr8wNb6fWoNpMiA@mail.gmail.com>
+From: Joel Fernandes <joelf@ti.com>
+Subject: Re: [PATCH] ARM: OMAP2+: am335x-bone*: add DT for BeagleBone Black
+Date: Mon, 9 Sep 2013 18:42:42 -0500
+Message-ID: <522E5CF2.3080108@ti.com>
+References: <1378736961-21005-1-git-send-email-koen@dominion.thruhere.net>
+ <87zjrm81dl.fsf@linaro.org>
+ <BBAC0939-A4F9-4FEA-B137-0307D8787DC3@dominion.thruhere.net>
+ <522E1325.8050906@ti.com>
+ <41952E65-1037-4117-A1AE-8310FED59E3A@dominion.thruhere.net>
+ <522E18C0.9010909@ti.com> <522E269B.7000802@ti.com>
+ <73968C64-F0B0-4ED6-82B8-BD1966ED9D84@dominion.thruhere.net>
+ <522E2B9E.8050404@ti.com>
+Reply-To: joelf@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qa0-f42.google.com ([209.85.216.42]:62069 "EHLO
-	mail-qa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755807Ab3IIXKP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Sep 2013 19:10:15 -0400
-Received: by mail-qa0-f42.google.com with SMTP id k4so548597qaq.1
-        for <linux-omap@vger.kernel.org>; Mon, 09 Sep 2013 16:10:14 -0700 (PDT)
-In-Reply-To: <CAKv+Gu-eaS9djmz0d5hzY=jkVb-aPZWrLCUOr8wNb6fWoNpMiA@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <522E2B9E.8050404@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Koen Kooi <koen@dominion.thruhere.net>
+Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, Kevin Hilman <khilman@linaro.org>, linux@arm.linux.org.uk, pawel.moll@arm.com, swarren@wwwdotorg.org, tony@atomide.com, ijc+devicetree@hellion.org.uk, linux-kernel@vger.kernel.org, rob.herring@calxeda.com, bcousson@baylibre.com, olof@lixom.net, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Cc: =?UTF-8?B?TcOlbnMgUnVsbGfDpXJk?= <mans@mansr.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Shawn Guo <shawn.guo@linaro.org>, Grant Likely <grant.likely@secretlab.ca>, Philipp Zabel <p.zabel@pengutronix.de>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
 
-On Sat, Sep 7, 2013 at 9:21 AM, Ard Biesheuvel
-<ard.biesheuvel@linaro.org> wrote:
-> On 6 September 2013 21:32, Russ Dill <Russ.Dill@ti.com> wrote:
->> On Fri, Sep 6, 2013 at 4:12 AM, Russell King - ARM Linux
->> <linux@arm.linux.org.uk> wrote:
->>> On Tue, Sep 03, 2013 at 09:44:21AM -0700, Russ Dill wrote:
->>>> SRAM handling code is in the process of being moved from arch directories
->>>> into drivers/misc/sram.c using device tree and genalloc [1] [2]. This RFC
->>>> patchset builds on that, including the limitation that the SRAM address is
->>>> not known at compile time. Because the SRAM address is not known at compile
->>>> time, the code that runs from SRAM must be compiled with -fPIC. Even if
->>>> the code were loaded to a fixed virtual address, portions of the code must
->>>> often be run with the MMU disabled.
->>>
->>> What are you doing about the various gcc utility functions that may be
->>> implicitly called from C code such as memcpy and memset?
+On 09/09/2013 03:12 PM, Joel Fernandes wrote:
+> On 09/09/2013 03:00 PM, Koen Kooi wrote:
 >>
->> That would create a problem. Would '-ffreestanding' be the correct
->> flag to add?
->
-> No, unfortunately, -ffreestanding won't prevent GCC from generating
-> implicit calls to memzero() et al. These are mainly issued when using
-> initialized non-POD stack variables so avoiding those might help you
-> there.
->> As far as the family of __aeabi_*, I need to add
->> documentation stating that on ARM, you can't divide, perform modulo,
->> and can't do 64 bit multiplications. I can then add a make rule that
->> will grep the symbol lists of .sram sections for ^__aeabi_. Is this
->> enough?
+>> Op 9 sep. 2013, om 21:50 heeft Joel Fernandes <joelf@ti.com> het volgende geschreven:
 >>
->
-> Well, even printk() needs integer division for its %d/%u modifiers, so
-> this is really not so easy to achieve.
->
->>>> The general idea is that for each SRAM user (such as an SoC specific
->>>> suspend/resume mechanism) to create a group of sections. The section group
->>>> is created with a single macro for each user, but end up looking like this:
+>>> On 09/09/2013 01:51 PM, Joel Fernandes wrote:
+>>>> On 09/09/2013 01:43 PM, Koen Kooi wrote:
+>>>>>
+>>>>> Op 9 sep. 2013, om 20:27 heeft Joel Fernandes <joelf@ti.com> het volgende geschreven:
+>>>>>
+>>>>>> On 09/09/2013 10:51 AM, Koen Kooi wrote:
+>>>>>>>
+>>>>>>> Op 9 sep. 2013, om 17:23 heeft Kevin Hilman <khilman@linaro.org> het volgende geschreven:
+>>>>>>>
+>>>>>>>> Koen Kooi <koen@dominion.thruhere.net> writes:
+>>>>>>>>
+>>>>>>>>> The BeagleBone Black is basically a regular BeagleBone with eMMC and HDMI added,
+>>>>>>>>> so create a common dtsi both can use.
+>>>>>>>>>
+>>>>>>>>> IMPORTANT: booting the existing am335x-bone.dts will blow up the HDMI transceiver
+>>>>>>>>> after a dozen boots with an uSD card inserted because LDO will be at 3.3V instead
+>>>>>>>>> of 1.8.
+>>>>>>>>>
+>>>>>>>>> MMC support for AM335x still isn't in, so only the LDO change has been added.
+>>>>>>>>>
+>>>>>>>>> Cc: stable@vger.kernel.org
+>>>>>>>>>
+>>>>>>>>> Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
+>>>>>>>>> Tested-by: Tom Rini <trini@ti.com>
+>>>>>>>>> Tested-by: Matt Porter <matt.porter@linaro.org>
+>>>>>>>>
+>>>>>>>> I guess the subject should've included v5?
+>>>>>>>
+>>>>>>> Yes, I blame it on being monday :)
+>>>>>>
+>>>>>> The series you're posting will require rebasing on the current MMC DT series
+>>>>>> that is being discussed last couple of weeks on the mailing list which were
+>>>>>> waiting until now as DMA support was missing. Now that DMA support is pulled in,
+>>>>>> it is safe to apply those patches so I will be reposting them shortly.
+>>>>>>
+>>>>>> Please hold off any changes until those patches are posted. This will avoid
+>>>>>> unnecessary conflicts.
+>>>>>
+>>>>> Or you can rebase on top of this patch since it has no dependencies *and* fixes blowing up boards. FWIW, git-rebase, git-cherry-pick and git-am -3 track the rename in my patch just fine.
+>>>>>
 >>>>
->>>> .sram.am33xx : AT(ADDR(.sram.am33xx) - 0) {
->>>>   __sram_am33xx_start = .;
->>>>   *(.sram.am33xx.*)
->>>>   __sram_am33xx_end = .;
->>>> }
+>>>> That's fair enough, since  Kevin Acked and Benoit is pulling it, I'm fine with
+>>>> rebasing on top of it and we avoid any merge conflicts.
 >>>>
->>>> Any data or functions that should be copied to SRAM for this use should be
->>>> maked with an appropriate __section() attribute. A helper is then added for
->>>> translating between the original kernel symbol, and the address of that
->>>> function or variable once it has been copied into SRAM. Once control is
->>>> passed to a function within the SRAM section grouping, it can access any
->>>> variables or functions within that same SRAM section grouping without
->>>> translation.
 >>>
->>> What about the relocations which will need to be fixed up - eg, addresses
->>> in the literal pool, the GOT table contents, etc?  You say nothing about
->>> this.
+>>> I noticed - there were still some comments from Felipe on the v4 series of this
+>>> patch regarding RF cape and HDMI may be breaking it. How are you addressing that?
 >>
->> The C code would need to be written so that such accesses do not
->> occur. From functions that are in the sram text section, only accesses
->> to other sram sections in their group would be allowed. And above, a
->> compilation step could be added to make the compilation fail when such
->> things happen.
+>> Capes will never go into the .dts and HDMI support needs some serious patching before it can get enabled in the DT. And the RF cape isn't being sold since it has no sw support. No need to worry about things in the 3.15/3.16 timeframe. Unless you want this LDO3 fix not to go in ASAP.
 >>
->
-> The point is that, sadly, GCC is just not very good at generating
-> relocatable code for embedded targets. Playing with -fvisibility may
-> result in code that contains fewer dynamic relocations, but you will
-> always end up with a few that need to be fixed up before the code can
-> run. Another thing to note is that usually, these relocations can only
-> be fixed up once, as the addend is overwritten by the fixed-up
-> address. This means that the code can only run in SRAM, and you should
-> probably best avoid the module loader machinery as it may clobber the
-> addends before you get to process them.
->
-> One thing that remains implicit in this discussion is that you are
-> executing from SRAM because DRAM is not available (I presume).
-> Wouldn't it be better to treat the code that lives in the SRAM as a
-> completely separate executable? You can generate a PIE executable that
-> supplies minimal memzero et al,  fixup the relocations yourself (look
-> at the uboot sources for an example of this) and you will be
-> absolutely sure that the code can run completely autonomously. In
-> fact, some of this stuff could potentially be reused for other
-> disjoint execution domains such as TZ secure world.
+>> Joel, is there anything relevant *right now* blocking this patch going in? If not, please test it and add your Tested-by: line.
+>>
+> 
+> We don't merge things in hurry and focus is to do things the right way.. I just
+> want to make sure that all possible comments have been addressed.
+> 
+> Otherwise patch looks OK and hope everyone else thinks so too. I am dealing with
+> some merge conflicts right now with my series on top of this though, but they
+> should be easy enough to fix up. That's delaying my testing, but otherwise as
+> such I don't have any objection to this patch (provided the conclusion is that
+> all comments have been addressed..). Thanks!
 
-This is the path I'm going down, but I'm trying to do it without
-relocations. I'm following the model of arch/arm/boot/compressed and
-generating a relocatable gcc builtin library with weak symbols
-containing lib1funcs.S, string.c, ashldi3.S, and some stubs for div0
-and the unwind symbols, call in sramlib.o.
+Koen,
 
-I'm then doing an objcopy of the .sramlib section, and the .sram.*
-sections into a single object file and performing a link with a linker
-script like:
+One note though, since I don't use HDMI (or BBB much for that matter), I was ok
+with taking a risk of upping the ldo3 regulator voltage to 3.3v on my board
+which I needed to do to get to the boot prompt.
 
-SECTIONS
-{
-    .text : { *(.sramlib) }
+I applied my AM335x DMA and MMC patches and tried to boot with rootfs as MMC1.
 
-    OVERLAY ALIGN(32) : NOCROSSREFS
-    {
-        .sram.am33xx { *(.sram.am33xx.*) }
-        .sram.am437x { *(.sram.am437x.*) }
-    }
-}
+With 1.8v, I get the following during boot:
+[    2.236043] mmc0: host doesn't support card's voltages
+[    2.241659] mmc0: error -22 whilst initialising SD card
 
-It produces output without any relocations, but from there I'm a
-little fuzzy on how to get the symbols of functions and variables into
-the kernel. In the meantime, I'll look into the u-boot methods.
+That's strange because I do have an SDHC card. With 3.3v it works fine.
+
+I will add a note about this to my series. Since this more of an MMC issue than
+anything, and your patch series doesn't enable MMC, you can add my tested-by:
+
+Tested-by: Joel Fernandes <joelf@ti.com>
+
+Later on, the regulator voltage may need to be tweaked for MMC support.
+
+Regards,
+
+-Joel
