@@ -1,119 +1,144 @@
-From: Jonathan Austin <jonathan.austin@arm.com>
-Subject: Re: [PATCHv3] ARM: OMAP2+: am335x-bone*: add DT for BeagleBone Black
-Date: Mon, 09 Sep 2013 17:02:26 +0100
-Message-ID: <522DF112.9000205@arm.com>
-References: <1378638746-10627-1-git-send-email-koen@dominion.thruhere.net> <20130909133059.GD10973@ohporter.com> <522DD251.2030607@arm.com> <20130909135924.GE10973@ohporter.com> <20130909141606.GF10973@ohporter.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Subject: Re: Build error in torvalds kernel 3.11 for omap2plus
+Date: Mon, 9 Sep 2013 09:03:48 -0700
+Message-ID: <20130909160348.GB18975@roeck-us.net>
+References: <CABYxbz7m4GdHFNY3fP1Cpv3a_dNTSozdd7dX9yLG6vQ3zZxu9A@mail.gmail.com>
+ <20130908090206.GK25647@n2100.arm.linux.org.uk>
+ <522CB0DE.2010102@roeck-us.net>
+ <20130909105115.GL25647@n2100.arm.linux.org.uk>
+ <522DB86A.8010207@roeck-us.net>
+ <alpine.LFD.2.03.1309091023440.20709@syhkavp.arg>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from service87.mimecast.com ([91.220.42.44]:40842 "EHLO
-	service87.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753001Ab3IIQCb convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Sep 2013 12:02:31 -0400
-In-Reply-To: <20130909141606.GF10973@ohporter.com>
+Received: from mail-pd0-f181.google.com ([209.85.192.181]:64104 "EHLO
+	mail-pd0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755133Ab3IIQDw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Sep 2013 12:03:52 -0400
+Received: by mail-pd0-f181.google.com with SMTP id g10so6394397pdj.12
+        for <linux-omap@vger.kernel.org>; Mon, 09 Sep 2013 09:03:51 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <alpine.LFD.2.03.1309091023440.20709@syhkavp.arg>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Matt Porter <matt.porter@linaro.org>
-Cc: Koen Kooi <koen@dominion.thruhere.net>, Mark Rutland <Mark.Rutland@arm.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, Pawel Moll <Pawel.Moll@arm.com>, "swarren@wwwdotorg.org" <swarren@wwwdotorg.org>, "tony@atomide.com" <tony@atomide.com>, "ijc+devicetree@hellion.org.uk" <ijc+devicetree@hellion.org.uk>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "bcousson@baylibre.com" <bcousson@baylibre.com>, "olof@lixom.net" <olof@lixom.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Nicolas Pitre <nicolas.pitre@linaro.org>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Anil Kumar <anilk4.v@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, Benoit Cousson <b-cousson@ti.com>
 
-Hi Matt,
+On Mon, Sep 09, 2013 at 10:24:42AM -0400, Nicolas Pitre wrote:
+> On Mon, 9 Sep 2013, Guenter Roeck wrote:
+> 
+> > On 09/09/2013 03:51 AM, Russell King - ARM Linux wrote:
+> > > On Sun, Sep 08, 2013 at 10:16:14AM -0700, Guenter Roeck wrote:
+> > > > Since we are at it:
+> > > > 
+> > > > Build reference: v3.11-7887-gb409624
+> > > > 
+> > > > Building arm:defconfig ... passed
+> > > > Building arm:allmodconfig ... failed
+> > > > --------------
+> > > > Error log:
+> > > > arch/arm/mach-cns3xxx/pcie.c: In function 'cns3xxx_pcie_hw_init':
+> > > > arch/arm/mach-cns3xxx/pcie.c:350:1: warning: the frame size of 1064 bytes
+> > > > is larger than 1024 bytes [-Wframe-larger-than=]
+> > > > arch/arm/kernel/return_address.c:63:2: warning: #warning "TODO:
+> > > > return_address should use unwind tables" [-Wcpp]
+> > > > arch/arm/kernel/return_address.c:63:2: warning: #warning "TODO:
+> > > > return_address should use unwind tables" [-Wcpp]
+> > > > /tmp/cce439dZ.s: Assembler messages:
+> > > > /tmp/cce439dZ.s:506: Error: selected processor does not support ARM mode
+> > > > `isb '
+> > > > /tmp/cce439dZ.s:512: Error: selected processor does not support ARM mode
+> > > > `isb '
+> > > > /tmp/cce439dZ.s:513: Error: selected processor does not support ARM mode
+> > > > `dsb '
+> > > > /tmp/cce439dZ.s:583: Error: selected processor does not support ARM mode
+> > > > `isb '
+> > > > /tmp/cce439dZ.s:589: Error: selected processor does not support ARM mode
+> > > > `isb '
+> > > > /tmp/cce439dZ.s:590: Error: selected processor does not support ARM mode
+> > > > `dsb '
+> > > > make[1]: *** [arch/arm/mach-vexpress/dcscb.o] Error 1
+> > > > make: *** [arch/arm/mach-vexpress] Error 2
+> > > > make: *** Waiting for unfinished jobs....
+> > > > --------------
+> > > > 
+> > > > Any solution for this one ? omap2plus passes for me.
+> > > > 
+> > > > gcc version used is "arm-poky-linux-gnueabi-gcc (GCC) 4.7.2" from poky
+> > > > 1.3.
+> > > 
+> > > That's due to:
+> > > 
+> > > commit e8f9bb1bd6bb93fff773345cc54c42585e0e3ece
+> > > Author: Nicolas Pitre <nicolas.pitre@linaro.org>
+> > > Date:   Tue Jul 16 20:59:53 2013 -0400
+> > > 
+> > >      ARM: vexpress/dcscb: fix cache disabling sequences
+> > > 
+> > >      Unlike real A15/A7's, the RTSM simulation doesn't appear to hit the
+> > >      cache when the CTRL.C bit is cleared.  Let's ensure there is no memory
+> > >      access within the disable and flush cache sequence, including to the
+> > >      stack.
+> > > 
+> > >      Signed-off-by: Nicolas Pitre <nico@linaro.org>
+> > > 
+> > > which introduces some 'isb' and 'dsb' instructions which are not
+> > > available on ARMv6 CPUs - however, their 'mcr' equivalents are.
+> > > 
+> > > Either dcscb needs to be built with an -march=armv7 override, or
+> > > they need to use the mcr equivalent instructions.
+> > > 
+> > 
+> > Well, I hope it will get fixed one way or another.
+> > I don't know enough about arm to fix it myself.
+> 
+> Would you try this patch please:
+> 
+> diff --git a/arch/arm/mach-vexpress/Makefile b/arch/arm/mach-vexpress/Makefile
+> index 36ea824712..505e64ab3e 100644
+> --- a/arch/arm/mach-vexpress/Makefile
+> +++ b/arch/arm/mach-vexpress/Makefile
+> @@ -7,6 +7,8 @@ ccflags-$(CONFIG_ARCH_MULTIPLATFORM) := -I$(srctree)/$(src)/include \
+>  obj-y					:= v2m.o
+>  obj-$(CONFIG_ARCH_VEXPRESS_CA9X4)	+= ct-ca9x4.o
+>  obj-$(CONFIG_ARCH_VEXPRESS_DCSCB)	+= dcscb.o	dcscb_setup.o
+>  obj-$(CONFIG_ARCH_VEXPRESS_DCSCB)	+= dcscb.o	dcscb_setup.o
+> +CFLAGS_dcscb.o				+= -march=armv7-a
+>  obj-$(CONFIG_ARCH_VEXPRESS_TC2_PM)	+= tc2_pm.o spc.o
+> +CFLAGS_tc2_pm.o				+= -march=armv7-a
+>  obj-$(CONFIG_SMP)			+= platsmp.o
+>  obj-$(CONFIG_HOTPLUG_CPU)		+= hotplug.o
+> 
+That fixes this problem. I'll leave it up to you and Russell to decide if it is
+the proper fix.
 
-On 09/09/13 15:16, Matt Porter wrote:
-> On Mon, Sep 09, 2013 at 09:59:26AM -0400, Matt Porter wrote:
->> On Mon, Sep 09, 2013 at 02:51:13PM +0100, Jonathan Austin wrote:
->>> Hi Matt,
->>>
->>> On 09/09/13 14:31, Matt Porter wrote:
->>>> On Sun, Sep 08, 2013 at 01:12:26PM +0200, Koen Kooi wrote:
->>>>> The BeagleBone Black is basically a regular BeagleBone with eMMC and HDMI added,
->>>>> so create a common dtsi both can use.
->>>>>
->>>>> IMPORTANT: booting the existing am335x-bone.dts will blow up the HDMI transceiver
->>>>> after a dozen boots with an uSD card inserted because LDO will be at 3.3V instead
->>>>> of 1.8.
->>>>>
->>>>> MMC support for AM335x still isn't in, so only the LDO change has been added.
->>>>>
->>>>> Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
->>>>
->>>> Tested-by: Matt Porter <matt.porter@linaro.org>
->>>>
->>>> Works fine for me on tip and 3.11. I did notice a regression in musb (worked
->>>> on 3.11, now failing to probe but this is not related to your new dts as it
->>>> happens on am335x-bone.dts too, assuming merge window volatility). One nit,
->>>> git-am picked up a whitespace error on that extra line at EOF so you should
->>>> trim that out.
->>>>
->>>> Only thing is...for a clear bug like this that will destroy hardware, it
->>>> should be marked Cc: stable@vger.kernel.org to be picked up in stable.
->>>>
->>>
->>> If I've understood Koen correctly then what he's saying is that if
->>> you *were* to use the current (before this patch) am335x-bone.dts on
->>> a Beagle Bone Black (which would be wrong, as that's not the board
->>> you have...) then things would break.
->>>
->>> I don't see that this patch fixes that - as far as I can see, even
->>> after the patch, using am335x-bone.dts with a Bone Black will risk
->>> the damage?
->>>
->>> If so, I don't think this is a 'stable fix' kind of thing, as it
->>> doesn't actually fix the problem?
->>
->> It fixes the problem by providing the correct dts for BBB which the
->> vendor tree has had for sometime. In the absence of a specific dts
->> for BBB, it appears everybody (TI and OMAP maintainers, included)
->> has assumed that am335x-bone.dts is correct and safe.
->>
->> I'm sure there's plenty of systems represented in dts/* where you
->> could cause damage by loading another dtb for a similar board from
->> the same SoC family...it's a common risk if you get the wrong dtb
->> with more-or-less arbitrary regulator settings.
->
-> Sorry to reply to myself, but I probably didn't make it 100% clear as
-> to why this effectively fixes the problem. Both mainline u-boot *and*
-> the vendor u-boot have findfdt implemented to load an
-> am335x-boneblack.dtb based on board detection.
+Unfortunately, there are more problems.
 
-This makes more sense now, thanks. Not sure that it is still a good case 
-for CC:stable. Are people currently working around findfdt failing, etc? 
-If so, do you think backporting the fix will stop them doing that? I 
-don't really know what the workflow looks like...
+arch/arm/kernel/built-in.o: In function `ret_fast_syscall':
+/home/groeck/src/linux-stable/arch/arm/kernel/entry-common.S:42: undefined reference to `user_enter'
+arch/arm/kernel/built-in.o: In function `no_work_pending':
+/home/groeck/src/linux-stable/arch/arm/kernel/entry-common.S:77: undefined reference to `user_enter'
+arch/arm/kernel/built-in.o: In function `vector_swi':
+/home/groeck/src/linux-stable/arch/arm/kernel/entry-common.S:376: undefined reference to `user_exit'
+arch/arm/kernel/built-in.o: In function `__dabt_usr':
+/home/groeck/src/linux-stable/arch/arm/kernel/entry-armv.S:365: undefined reference to `user_exit'
+arch/arm/kernel/built-in.o: In function `__irq_usr':
+/home/groeck/src/linux-stable/arch/arm/kernel/entry-armv.S:375: undefined reference to `user_exit'
+arch/arm/kernel/built-in.o: In function `__und_usr':
+/home/groeck/src/linux-stable/arch/arm/kernel/entry-armv.S:388: undefined reference to `user_exit'
+arch/arm/kernel/built-in.o: In function `__pabt_usr':
+/home/groeck/src/linux-stable/arch/arm/kernel/entry-armv.S:662: undefined reference to `user_exit'
+arch/arm/mach-omap2/built-in.o: In function `omap3_evm_init':
+/home/groeck/src/linux-stable/arch/arm/mach-omap2/board-omap3evm.c:703:
+undefined reference to `usb_nop_xceiv_register'
 
-Generally the idea of backporting DT fixes to older kernels gives me the 
-Heebie-Jeebies - this case of being able to damage hardware is a great 
-example of why it might be scary (though I acknowledge that this 
-specific patch is unlikely to have a bad outcome)
+The undefined reference to usb_nop_xceiv_register is because CONFIG_NOP_USB_XCEIV
+is built as module but obviously called from code built into the kernel.
+Not sure what the correct fix is - build CONFIG_NOP_USB_XCEIV into the kernel,
+make usb_nop_xceiv_register a dummy function if CONFIG_NOP_USB_XCEIV is built
+as module but called from built-in code, or don't call usb_nop_xceiv_register
+from code built into the kernel.
 
-Jonny
->
-> Hopefully this makes it clear why this fixes a bug in the kernel. If
-> you use appended dtb to include the wrong one, well, you shouldn't
-> be using appended dtb. It's a *hack* and loading it separately
-> works fine if you use the U-Boot that ships with BBB or mainline.
->
-> -Matt
->
->>> Koen - is there a way for a booting kernel to detect which board it
->>> is on and avoid any potential damage if someone gives it the wrong
->>> DT?
->>>
->>> Jonny
->>>
->>>> -Matt
->>>>
->>>> _______________________________________________
->>>> linux-arm-kernel mailing list
->>>> linux-arm-kernel@lists.infradead.org
->>>> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
->>>>
->>>
->>>
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+No idea where the undefined user_enter and user_exit comes from.
 
-
+Guenter
