@@ -1,76 +1,40 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Subject: Re: Build error in torvalds kernel 3.11 for omap2plus
-Date: Mon, 09 Sep 2013 05:00:42 -0700
-Message-ID: <522DB86A.8010207@roeck-us.net>
-References: <CABYxbz7m4GdHFNY3fP1Cpv3a_dNTSozdd7dX9yLG6vQ3zZxu9A@mail.gmail.com> <20130908090206.GK25647@n2100.arm.linux.org.uk> <522CB0DE.2010102@roeck-us.net> <20130909105115.GL25647@n2100.arm.linux.org.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Phil Carmody <phil.carmody@partner.samsung.com>
+Subject: [PATCH 1/1] OMAP2+: mux: fix trivial typo in name
+Date: Mon, 09 Sep 2013 16:18:00 +0300
+Message-ID: <1378732680-13159-1-git-send-email-phil.carmody@partner.samsung.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.active-venture.com ([67.228.131.205]:53827 "EHLO
-	mail.active-venture.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752554Ab3IIMAo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Sep 2013 08:00:44 -0400
-In-Reply-To: <20130909105115.GL25647@n2100.arm.linux.org.uk>
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:35286 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751770Ab3IINST (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Sep 2013 09:18:19 -0400
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout2.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MSV004NJ0Y6Z080@mailout2.w1.samsung.com> for
+ linux-omap@vger.kernel.org; Mon, 09 Sep 2013 14:18:17 +0100 (BST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Nicolas Pitre <nico@fluxnic.net>, Anil Kumar <anilk4.v@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, Benoit Cousson <b-cousson@ti.com>
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, Phil Carmody <phil.carmody@partner.samsung.com>
 
-On 09/09/2013 03:51 AM, Russell King - ARM Linux wrote:
-> On Sun, Sep 08, 2013 at 10:16:14AM -0700, Guenter Roeck wrote:
->> Since we are at it:
->>
->> Build reference: v3.11-7887-gb409624
->>
->> Building arm:defconfig ... passed
->> Building arm:allmodconfig ... failed
->> --------------
->> Error log:
->> arch/arm/mach-cns3xxx/pcie.c: In function 'cns3xxx_pcie_hw_init':
->> arch/arm/mach-cns3xxx/pcie.c:350:1: warning: the frame size of 1064 bytes is larger than 1024 bytes [-Wframe-larger-than=]
->> arch/arm/kernel/return_address.c:63:2: warning: #warning "TODO: return_address should use unwind tables" [-Wcpp]
->> arch/arm/kernel/return_address.c:63:2: warning: #warning "TODO: return_address should use unwind tables" [-Wcpp]
->> /tmp/cce439dZ.s: Assembler messages:
->> /tmp/cce439dZ.s:506: Error: selected processor does not support ARM mode `isb '
->> /tmp/cce439dZ.s:512: Error: selected processor does not support ARM mode `isb '
->> /tmp/cce439dZ.s:513: Error: selected processor does not support ARM mode `dsb '
->> /tmp/cce439dZ.s:583: Error: selected processor does not support ARM mode `isb '
->> /tmp/cce439dZ.s:589: Error: selected processor does not support ARM mode `isb '
->> /tmp/cce439dZ.s:590: Error: selected processor does not support ARM mode `dsb '
->> make[1]: *** [arch/arm/mach-vexpress/dcscb.o] Error 1
->> make: *** [arch/arm/mach-vexpress] Error 2
->> make: *** Waiting for unfinished jobs....
->> --------------
->>
->> Any solution for this one ? omap2plus passes for me.
->>
->> gcc version used is "arm-poky-linux-gnueabi-gcc (GCC) 4.7.2" from poky 1.3.
->
-> That's due to:
->
-> commit e8f9bb1bd6bb93fff773345cc54c42585e0e3ece
-> Author: Nicolas Pitre <nicolas.pitre@linaro.org>
-> Date:   Tue Jul 16 20:59:53 2013 -0400
->
->      ARM: vexpress/dcscb: fix cache disabling sequences
->
->      Unlike real A15/A7's, the RTSM simulation doesn't appear to hit the
->      cache when the CTRL.C bit is cleared.  Let's ensure there is no memory
->      access within the disable and flush cache sequence, including to the
->      stack.
->
->      Signed-off-by: Nicolas Pitre <nico@linaro.org>
->
-> which introduces some 'isb' and 'dsb' instructions which are not
-> available on ARMv6 CPUs - however, their 'mcr' equivalents are.
->
-> Either dcscb needs to be built with an -march=armv7 override, or
-> they need to use the mcr equivalent instructions.
->
+Signed-off-by: Phil Carmody <phil.carmody@partner.samsung.com>
+---
+ arch/arm/mach-omap2/mux34xx.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Well, I hope it will get fixed one way or another.
-I don't know enough about arm to fix it myself.
-
-Guenter
+diff --git a/arch/arm/mach-omap2/mux34xx.c b/arch/arm/mach-omap2/mux34xx.c
+index c53609f4..be271f1 100644
+--- a/arch/arm/mach-omap2/mux34xx.c
++++ b/arch/arm/mach-omap2/mux34xx.c
+@@ -620,7 +620,7 @@ static struct omap_mux __initdata omap3_muxmodes[] = {
+ 		"uart1_rts", "ssi1_flag_tx", NULL, NULL,
+ 		"gpio_149", NULL, NULL, "safe_mode"),
+ 	_OMAP3_MUXENTRY(UART1_RX, 151,
+-		"uart1_rx", "ss1_wake_tx", "mcbsp1_clkr", "mcspi4_clk",
++		"uart1_rx", "ssi1_wake_tx", "mcbsp1_clkr", "mcspi4_clk",
+ 		"gpio_151", NULL, NULL, "safe_mode"),
+ 	_OMAP3_MUXENTRY(UART1_TX, 148,
+ 		"uart1_tx", "ssi1_dat_tx", NULL, NULL,
+-- 
+1.7.9.5
 
