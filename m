@@ -1,106 +1,68 @@
-From: Philipp Zabel <p.zabel@pengutronix.de>
-Subject: Re: [PATCH RFC 0/6] ARM: OMAP2+: AM43x/AM335x prcm reset driver
-Date: Mon, 09 Sep 2013 11:06:52 +0200
-Message-ID: <1378717612.4151.6.camel@pizza.hi.pengutronix.de>
-References: <cover.1378129416.git.afzal@ti.com>
-	 <1378375634.3948.10.camel@pizza.hi.pengutronix.de>
-	 <5228A99D.4020702@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: Build error in torvalds kernel 3.11 for omap2plus
+Date: Mon, 9 Sep 2013 11:51:15 +0100
+Message-ID: <20130909105115.GL25647@n2100.arm.linux.org.uk>
+References: <CABYxbz7m4GdHFNY3fP1Cpv3a_dNTSozdd7dX9yLG6vQ3zZxu9A@mail.gmail.com> <20130908090206.GK25647@n2100.arm.linux.org.uk> <522CB0DE.2010102@roeck-us.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <5228A99D.4020702@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Afzal Mohammed <afzal@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, devicetree@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Benoit Cousson <bcousson@baylibre.com>, Russell King <linux@arm.linux.org.uk>, Ian Campbell <ian.campbell@citrix.com>, Stephen Warren <swarren@wwwdotorg.org>, Mark Rutland <mark.rutland@arm.com>, Pawel Moll <pawel.moll@arm.com>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, Pavel Machek <pavel@ucw.cz>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:54114 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752445Ab3IIKvf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Sep 2013 06:51:35 -0400
+Content-Disposition: inline
+In-Reply-To: <522CB0DE.2010102@roeck-us.net>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Guenter Roeck <linux@roeck-us.net>, Nicolas Pitre <nico@fluxnic.net>
+Cc: Anil Kumar <anilk4.v@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, Benoit Cousson <b-cousson@ti.com>
 
-Am Donnerstag, den 05.09.2013, 21:26 +0530 schrieb Afzal Mohammed:
-> Hi Philipp,
-> 
-> On Thursday 05 September 2013 03:37 PM, Philipp Zabel wrote:
-> > Am Montag, den 02.09.2013, 19:41 +0530 schrieb Afzal Mohammed:
-> 
-> >> Two new reset API's are provided to check whether reset is ready and
-> >> to clear reset. This would be required in case IP needs to mix reset
-> >> handling procedure with power/clock managment procedure to achieve
-> >> proper reset and these procedures are sometimes IP specific that would
-> >> make it difficult to handle reset fully in pm_runtime platform support.
-> 
-> >> client IP handling s/w (DT based) should do as follows:
-> 
-> >> 2. In driver, that require reset to be deasserted,
-> >>  (this is the sequence required for gfx on AM43x/AM335x, this would
-> >>   depend on requirements of the IP)
-> >>
-> >> 	mydriver_probe(struct platform device *pdev)
-> >> 	{
-> >> 		:
-> >> 		:
-> >> 		reset_control_get(&pdev->dev, NULL);
-> >> 		reset_control_clear_reset();
-> >> 		reset_control_deassert();
-> >> 		pm_runtime_get_sync();
-> >> 		if (reset_control_is_reset() != true)
-> >> 			goto err;
-> >> 		reset_control_put();
-> >> 		:
-> >> 		:
-> >> 	}
-> 
-> > if possible, I'd like to move this logic into the reset controller
-> > driver. Can this be reordered to enable power before deasserting the
-> > reset line (assuming it is initially asserted)? In this case, I'd
-> > suggest to just call device_reset:
-> > 
-> > 	pm_runtime_get_sync(&pdev->dev);
-> > 	ret = device_reset(&pdev->dev);
-> > 	if (ret)
-> > 		goto err;
-> > 
-> > The ops.reset callback in the prcm driver then can handle clearing
-> > the reset status bit, deasserting the reset control bit, and waiting for
-> > the reset status bit to be set (or timing out with an error).
-> 
-> I too would have loved to have it in such a clean way and was initially
-> proceeding in that direction, but there is an issue specific to OMAP
-> family SoC's, which was required to be taken care of (even though
-> present use case for AM335x/AM43x would work [as it does not have
-> hardware supervised clockdomain mode] with a small change in platform
-> level power management support code - a generic one shared with other
-> OMAP family SoC's)
-> 
-> For a module to be reset, clock domain to which the module clock belongs
-> should be set to software supervised mode. During "pm_runtime_get_sync",
-> in OMAP platform level handling code, it first put clockdomain into
-> software supervised mode, enables clock to module, and once module is
-> ready, module will be put to hardware supervised mode. In hardware
-> supervised mode, reset may not happen.
-> 
-> So if device_reset() is done after pm_runtime_get_sync(), reset may not
-> happen as by the time device_reset() is called, clockdomain would be in
-> hardware supervised mode. But in other case, as reset is already
-> deasserted when pm_runtime_get_sync() is called, module would be reset
-> as it first puts to software supervised mode.
-> 
-> And device reset would happen only upon enabling clock to module (if
-> reset was deasserted) by pm_runtime_get_sync(), so reset status has to
-> be checked after pm call, preventing us having device_reset() before
-> pm_runtime_get_sync(), or else in that case we have to sacrifice on
-> reset status checking (which may not be reliable)
-> 
-> Another alternative would have been to integrate this reset handling in
-> low level power management code thus hiding all reset handling from
-> driver, but as far as I know the reset sequence to be done is sometimes
-> IP specific, preventing it.
+On Sun, Sep 08, 2013 at 10:16:14AM -0700, Guenter Roeck wrote:
+> Since we are at it:
+>
+> Build reference: v3.11-7887-gb409624
+>
+> Building arm:defconfig ... passed
+> Building arm:allmodconfig ... failed
+> --------------
+> Error log:
+> arch/arm/mach-cns3xxx/pcie.c: In function 'cns3xxx_pcie_hw_init':
+> arch/arm/mach-cns3xxx/pcie.c:350:1: warning: the frame size of 1064 bytes is larger than 1024 bytes [-Wframe-larger-than=]
+> arch/arm/kernel/return_address.c:63:2: warning: #warning "TODO: return_address should use unwind tables" [-Wcpp]
+> arch/arm/kernel/return_address.c:63:2: warning: #warning "TODO: return_address should use unwind tables" [-Wcpp]
+> /tmp/cce439dZ.s: Assembler messages:
+> /tmp/cce439dZ.s:506: Error: selected processor does not support ARM mode `isb '
+> /tmp/cce439dZ.s:512: Error: selected processor does not support ARM mode `isb '
+> /tmp/cce439dZ.s:513: Error: selected processor does not support ARM mode `dsb '
+> /tmp/cce439dZ.s:583: Error: selected processor does not support ARM mode `isb '
+> /tmp/cce439dZ.s:589: Error: selected processor does not support ARM mode `isb '
+> /tmp/cce439dZ.s:590: Error: selected processor does not support ARM mode `dsb '
+> make[1]: *** [arch/arm/mach-vexpress/dcscb.o] Error 1
+> make: *** [arch/arm/mach-vexpress] Error 2
+> make: *** Waiting for unfinished jobs....
+> --------------
+>
+> Any solution for this one ? omap2plus passes for me.
+>
+> gcc version used is "arm-poky-linux-gnueabi-gcc (GCC) 4.7.2" from poky 1.3.
 
-So if I understand correctly, the only problem is that on OMAP the clock
-needs to be enabled to deassert the reset, but as long as the clock
-domain is in hardware supervised mode, it won't be enabled?
-Would it be possible to create an internal API to switch the clock
-domain to software supervised mode, which can be used both by the code
-behind pm_runtime_get_sync and reset_control_deassert?
+That's due to:
 
-regards
-Philipp
+commit e8f9bb1bd6bb93fff773345cc54c42585e0e3ece
+Author: Nicolas Pitre <nicolas.pitre@linaro.org>
+Date:   Tue Jul 16 20:59:53 2013 -0400
 
+    ARM: vexpress/dcscb: fix cache disabling sequences
+
+    Unlike real A15/A7's, the RTSM simulation doesn't appear to hit the
+    cache when the CTRL.C bit is cleared.  Let's ensure there is no memory
+    access within the disable and flush cache sequence, including to the
+    stack.
+
+    Signed-off-by: Nicolas Pitre <nico@linaro.org>
+
+which introduces some 'isb' and 'dsb' instructions which are not
+available on ARMv6 CPUs - however, their 'mcr' equivalents are.
+
+Either dcscb needs to be built with an -march=armv7 override, or
+they need to use the mcr equivalent instructions.
