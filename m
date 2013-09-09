@@ -1,54 +1,169 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v2] ARM: omap2: throw the die id into the entropy pool
-Date: Mon, 9 Sep 2013 19:14:59 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1309091908270.28435@utopia.booyaka.com>
-References: <1378366158-31183-1-git-send-email-linus.walleij@linaro.org>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH] ARM: DTS: DRA7: Add TPS659038 PMIC nodes
+Date: Mon, 9 Sep 2013 14:21:22 -0500
+Message-ID: <522E1FB2.10809@ti.com>
+References: <1377495411-21984-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:37390 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752574Ab3IITPA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Sep 2013 15:15:00 -0400
-In-Reply-To: <1378366158-31183-1-git-send-email-linus.walleij@linaro.org>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1377495411-21984-1-git-send-email-j-keerthy@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Keerthy <j-keerthy@ti.com>
+Cc: devicetree@vger.kernel.org, balajitk@ti.com, pawel.moll@arm.com, linux-kernel@vger.kernel.org, rob.herring@calxeda.com, bcousson@baylibre.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Theodore Ts'o <tytso@mit.edu>
 
-Hi Linus,
-
-On Thu, 5 Sep 2013, Linus Walleij wrote:
-
-> Atleast eight bytes of this number are totally unique for the device
-> it seems, so this is a perfect candidate for feeding the entropy
-> pool. One byte more or less of constants does not matter so feed in
-> the entire OID struct.
+On 08/26/2013 12:36 AM, Keerthy wrote:
+> The Patch adds nodes for TPS659038 PMIC for DRA7 boards.
 > 
-> Cc: Theodore Ts'o <tytso@mit.edu>
-> Cc: Paul Walmsley <paul@pwsan.com>
-> Reviewed-by: Kevin Hilman <khilman@linaro.org>
-> Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
+> It is based on top of:
+> http://comments.gmane.org/gmane.linux.ports.arm.omap/102459.
+> 
+> Documentation:	Documentation/devicetree/bindings/mfd/palmas.txt
+> 		Documentation/devicetree/bindings/regulator/palmas-pmic.txt		
+> 
+> Boot Tested on DRA7 d1 Board.
+> 
+> Signed-off-by: Keerthy <j-keerthy@ti.com>
+> ---
+>  arch/arm/boot/dts/dra7-evm.dts |  118 ++++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 118 insertions(+)
+> 
+> Index: linux/arch/arm/boot/dts/dra7-evm.dts
+> ===================================================================
+> --- linux.orig/arch/arm/boot/dts/dra7-evm.dts	2013-08-26 09:57:52.496173554 +0530
+> +++ linux/arch/arm/boot/dts/dra7-evm.dts	2013-08-26 10:38:44.995414695 +0530
+> @@ -93,6 +93,119 @@
+>  	pinctrl-names = "default";
+>  	pinctrl-0 = <&i2c1_pins>;
+>  	clock-frequency = <400000>;
+> +
+> +	tps659038: tps659038@58 {
+> +		compatible = "ti,tps659038";
+> +		reg = <0x58>;
+> +
+> +		tps659038_pmic {
+> +			compatible = "ti,tps659038-pmic";
+> +
+> +			regulators {
+> +				smps123_reg: smps123 {
+> +					/* VDD_MPU */
+> +						regulator-name = "smps123";
+> +						regulator-min-microvolt = < 850000>;
+> +						regulator-max-microvolt = <1250000>;
+> +						regulator-always-on;
+> +						regulator-boot-on;
+> +					};
+> +
+> +				smps45_reg: smps45 {
+> +						/* VDD_DSPEVE */
+> +						regulator-name = "smps45";
+> +						regulator-min-microvolt = < 850000>;
+> +						regulator-max-microvolt = <1150000>;
+> +						regulator-boot-on;
+> +					};
+> +
+> +				smps6_reg: smps6 {
+> +						/* VDD_GPU - over VDD_SMPS6 */
+> +						regulator-name = "smps6";
+> +						regulator-min-microvolt = <850000>;
+> +						regulator-max-microvolt = <12500000>;
+> +						regulator-boot-on;
+> +					};
+> +
+> +				smps7_reg: smps7 {
+> +						/* CORE_VDD */
+> +						regulator-name = "smps7";
+> +						regulator-min-microvolt = <850000>;
+> +						regulator-max-microvolt = <1030000>;
+> +						regulator-always-on;
+> +						regulator-boot-on;
+> +					};
+> +
+> +				smps8_reg: smps8 {
+> +						/* VDD_IVAHD */
+> +						regulator-name = "smps8";
+> +						regulator-min-microvolt = < 850000>;
+> +						regulator-max-microvolt = <1250000>;
+> +						regulator-boot-on;
+> +					};
+> +
+> +				smps9_reg: smps9 {
+> +						/* VDDS1V8 */
+> +						regulator-name = "smps9";
+> +						regulator-min-microvolt = <1800000>;
+> +						regulator-max-microvolt = <1800000>;
+> +						regulator-always-on;
+> +						regulator-boot-on;
+> +					};
+> +
+> +				ldo1_reg: ldo1 {
+> +						/* LDO1_OUT --> SDIO  */
+> +						regulator-name = "ldo1";
+> +						regulator-min-microvolt = <1800000>;
+> +						regulator-max-microvolt = <3300000>;
+> +						regulator-boot-on;
+> +					};
+> +
+> +				ldo2_reg: ldo2 {
+> +						/* VDD_RTCIO */
+> +						/* LDO2 -> VDDSHV5, LDO2 also goes to CAN_PHY_3V3 */
+> +						regulator-name = "ldo2";
+> +						regulator-min-microvolt = <3300000>;
+> +						regulator-max-microvolt = <3300000>;
+> +						regulator-boot-on;
+> +					};
+> +
+> +				ldo3_reg: ldo3 {
+> +						/* VDDA_1V8_PHY */
+> +						regulator-name = "ldo3";
+> +						regulator-min-microvolt = <1800000>;
+> +						regulator-max-microvolt = <1800000>;
+> +						regulator-boot-on;
+> +					};
+> +
+> +				ldo9_reg: ldo9 {
+> +						/* VDD_RTC */
+> +						regulator-name = "ldo9";
+> +						regulator-min-microvolt = <1050000>;
+> +						regulator-max-microvolt = <1050000>;
+> +						regulator-boot-on;
+> +					};
+> +
+> +				ldoln_reg: ldoln {
+> +						/* VDDA_1V8_PLL */
+> +						regulator-name = "ldoln";
+> +						regulator-min-microvolt = <1800000>;
+> +						regulator-max-microvolt = <1800000>;
+> +						regulator-always-on;
+> +						regulator-boot-on;
+> +					};
+> +
+> +				ldousb_reg: ldousb {
+> +						/* VDDA_3V_USB: VDDA_USBHS33 */
+> +						regulator-name = "ldousb";
+> +						regulator-min-microvolt = <3300000>;
+> +						regulator-max-microvolt = <3300000>;
+> +						regulator-boot-on;
+> +					};
+> +
+> +				};
+> +			};
+> +		};
+>  };
+>  
+>  &i2c2 {
+> 
+Acked-by: Nishanth Menon <nm@ti.com>
 
-Heh, that function name "add_device_randomness()" is a bit misleading.  
-It's not actually intended to add "randomness": from 
-drivers/char/random.c:
-
-/*
- * Add device- or boot-specific data to the input and nonblocking
- * pools to help initialize them to unique values.
- *
- * None of this adds any entropy, it is meant to avoid the
- * problem of the nonblocking pool having similar initial state
- * across largely identical devices.
- */
-
-But of course the function name is not your fault :-)  The entropy count 
-isn't increased by this, so:
-
-Reviewed-by: Paul Walmsley <paul@pwsan.com>
-
-Thanks Linus.
-
-
-- Paul
+-- 
+Regards,
+Nishanth Menon
