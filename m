@@ -1,130 +1,95 @@
-From: "Fernandes, Joel" <joelf@ti.com>
-Subject: Re: [PATCH] ARM: OMAP2+: am335x-bone*: add DT for BeagleBone Black
-Date: Tue, 10 Sep 2013 05:53:16 +0000
-Message-ID: <3D397F11-B184-4DC0-BEE2-90C91DBABB0B@ti.com>
-References: <1378736961-21005-1-git-send-email-koen@dominion.thruhere.net>
- <87zjrm81dl.fsf@linaro.org>
- <BBAC0939-A4F9-4FEA-B137-0307D8787DC3@dominion.thruhere.net>
- <522E1325.8050906@ti.com>
- <41952E65-1037-4117-A1AE-8310FED59E3A@dominion.thruhere.net>
- <522E18C0.9010909@ti.com> <522E269B.7000802@ti.com>
- <73968C64-F0B0-4ED6-82B8-BD1966ED9D84@dominion.thruhere.net>
- <522E2B9E.8050404@ti.com> <522E5CF2.3080108@ti.com>,
- <36F35544-5E8D-4595-8B0C-2020130AE804@dominion.thruhere.net>
+From: Joel Fernandes <joelf@ti.com>
+Subject: Re: [PATCH] RFC: interrupt consistency check for OF GPIO IRQs
+Date: Tue, 10 Sep 2013 02:00:34 -0500
+Message-ID: <522EC392.8070002@ti.com>
+References: <1375101368-17645-1-git-send-email-linus.walleij@linaro.org> <CACxGe6uNJNMdZ1HYGgCtLM2t2TWGCR6btjOHVmP=vDXXvvFfRg@mail.gmail.com> <CACRpkdYjJL6FZwEbB7XLnb9QtjB=3LeE9Ny6KQ4PkM3zpdNqqg@mail.gmail.com> <51F8CC35.1070704@collabora.co.uk>
+Reply-To: <joelf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <36F35544-5E8D-4595-8B0C-2020130AE804@dominion.thruhere.net>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Koen Kooi <koen@dominion.thruhere.net>
-Cc: "mark.rutland@arm.com" <mark.rutland@arm.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Kevin Hilman <khilman@linaro.org>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "pawel.moll@arm.com" <pawel.moll@arm.com>, "swarren@wwwdotorg.org" <swarren@wwwdotorg.org>, "tony@atomide.com" <tony@atomide.com>, "ijc+devicetree@hellion.org.uk" <ijc+devicetree@hellion.org.uk>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "bcousson@baylibre.com" <bcousson@baylibre.com>, "olof@lixom.net" <olof@lixom.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:50880 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753497Ab3IJHCA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 10 Sep 2013 03:02:00 -0400
+In-Reply-To: <51F8CC35.1070704@collabora.co.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Grant Likely <grant.likely@linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Alexander Holler <holler@ahsoftware.de>, Linux-OMAP <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Enric Balletbo i Serra <eballetbo@gmail.com>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@linaro.org>, Balaji T K <balajitk@ti.com>, Tony Lindgren <tony@atomide.com>, Jon Hunter <jgchunter@gmail.com>
 
-
-
-On Sep 10, 2013, at 12:45 AM, "Koen Kooi" <koen@dominion.thruhere.net> wrote:
-
+On 07/31/2013 03:35 AM, Javier Martinez Canillas wrote:
+> On 07/31/2013 01:44 AM, Linus Walleij wrote:
+>> On Tue, Jul 30, 2013 at 6:30 AM, Grant Likely <grant.likely@linaro.org> wrote:
+>>> On Mon, Jul 29, 2013 at 6:36 AM, Linus Walleij <linus.walleij@linaro.org> wrote:
+>>>> To solve this dilemma, perform an interrupt consistency check
+>>>> when adding a GPIO chip: if the chip is both gpio-controller and
+>>>> interrupt-controller, walk all children of the device tree,
+>>>> check if these in turn reference the interrupt-controller, and
+>>>> if they do, loop over the interrupts used by that child and
+>>>> perform gpio_reques() and gpio_direction_input() on these,
+>>>> making them unreachable from the GPIO side.
+>>>
+>>> Ugh, that's pretty awful, and it doesn't actually solve the root
+>>> problem of the GPIO and IRQ subsystems not cooperating. It's also a
+>>> very DT-centric solution even though we're going to see the exact same
+>>> issue on ACPI machines.
+>>
+>> The problem is that the patches for OMAP that I applied
+>> and now have had to revert solves it in an even uglier way,
+>> leading to breaking boards, as was noticed.
+>>
+>> The approach in this patch has the potential to actually
+>> work without regressing a bunch of boards...
+>>
+>> Whether this is a problem in ACPI or not remains to be seen,
+>> but I'm not sure about that. Device trees allows for a GPIO line
+>> to be used as an interrupt source and GPIO line orthogonally,
+>> and that is the root of this problem. Does ACPI have the same
+>> problem, or does it impose natural restrictions on such use
+>> cases?
+>>
 > 
-> Op 10 sep. 2013, om 01:42 heeft Joel Fernandes <joelf@ti.com> het volgende geschreven:
+> I agree with Linus here. The problem is that GPIO controllers that can work as
+> IRQ sources are treated in the kernel as if there where two separate controlers
+> that are rather orthogonal: an irq_chip and a gpio_chip.
+> But DT allows to use a GPIO line as an IRQ just by using an omap-gpio phandle as
+> "interrupt-parent".
 > 
->> On 09/09/2013 03:12 PM, Joel Fernandes wrote:
->>> On 09/09/2013 03:00 PM, Koen Kooi wrote:
->>>> 
->>>> Op 9 sep. 2013, om 21:50 heeft Joel Fernandes <joelf@ti.com> het volgende geschreven:
->>>> 
->>>>> On 09/09/2013 01:51 PM, Joel Fernandes wrote:
->>>>>> On 09/09/2013 01:43 PM, Koen Kooi wrote:
->>>>>>> 
->>>>>>> Op 9 sep. 2013, om 20:27 heeft Joel Fernandes <joelf@ti.com> het volgende geschreven:
->>>>>>> 
->>>>>>>> On 09/09/2013 10:51 AM, Koen Kooi wrote:
->>>>>>>>> 
->>>>>>>>> Op 9 sep. 2013, om 17:23 heeft Kevin Hilman <khilman@linaro.org> het volgende geschreven:
->>>>>>>>> 
->>>>>>>>>> Koen Kooi <koen@dominion.thruhere.net> writes:
->>>>>>>>>> 
->>>>>>>>>>> The BeagleBone Black is basically a regular BeagleBone with eMMC and HDMI added,
->>>>>>>>>>> so create a common dtsi both can use.
->>>>>>>>>>> 
->>>>>>>>>>> IMPORTANT: booting the existing am335x-bone.dts will blow up the HDMI transceiver
->>>>>>>>>>> after a dozen boots with an uSD card inserted because LDO will be at 3.3V instead
->>>>>>>>>>> of 1.8.
->>>>>>>>>>> 
->>>>>>>>>>> MMC support for AM335x still isn't in, so only the LDO change has been added.
->>>>>>>>>>> 
->>>>>>>>>>> Cc: stable@vger.kernel.org
->>>>>>>>>>> 
->>>>>>>>>>> Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
->>>>>>>>>>> Tested-by: Tom Rini <trini@ti.com>
->>>>>>>>>>> Tested-by: Matt Porter <matt.porter@linaro.org>
->>>>>>>>>> 
->>>>>>>>>> I guess the subject should've included v5?
->>>>>>>>> 
->>>>>>>>> Yes, I blame it on being monday :)
->>>>>>>> 
->>>>>>>> The series you're posting will require rebasing on the current MMC DT series
->>>>>>>> that is being discussed last couple of weeks on the mailing list which were
->>>>>>>> waiting until now as DMA support was missing. Now that DMA support is pulled in,
->>>>>>>> it is safe to apply those patches so I will be reposting them shortly.
->>>>>>>> 
->>>>>>>> Please hold off any changes until those patches are posted. This will avoid
->>>>>>>> unnecessary conflicts.
->>>>>>> 
->>>>>>> Or you can rebase on top of this patch since it has no dependencies *and* fixes blowing up boards. FWIW, git-rebase, git-cherry-pick and git-am -3 track the rename in my patch just fine.
->>>>>> 
->>>>>> That's fair enough, since  Kevin Acked and Benoit is pulling it, I'm fine with
->>>>>> rebasing on top of it and we avoid any merge conflicts.
->>>>> 
->>>>> I noticed - there were still some comments from Felipe on the v4 series of this
->>>>> patch regarding RF cape and HDMI may be breaking it. How are you addressing that?
->>>> 
->>>> Capes will never go into the .dts and HDMI support needs some serious patching before it can get enabled in the DT. And the RF cape isn't being sold since it has no sw support. No need to worry about things in the 3.15/3.16 timeframe. Unless you want this LDO3 fix not to go in ASAP.
->>>> 
->>>> Joel, is there anything relevant *right now* blocking this patch going in? If not, please test it and add your Tested-by: line.
->>> 
->>> We don't merge things in hurry and focus is to do things the right way.. I just
->>> want to make sure that all possible comments have been addressed.
->>> 
->>> Otherwise patch looks OK and hope everyone else thinks so too. I am dealing with
->>> some merge conflicts right now with my series on top of this though, but they
->>> should be easy enough to fix up. That's delaying my testing, but otherwise as
->>> such I don't have any objection to this patch (provided the conclusion is that
->>> all comments have been addressed..). Thanks!
->> 
->> Koen,
->> 
->> One note though, since I don't use HDMI (or BBB much for that matter), I was ok
->> with taking a risk of upping the ldo3 regulator voltage to 3.3v on my board
->> which I needed to do to get to the boot prompt.
->> I applied my AM335x DMA and MMC patches and tried to boot with rootfs as MMC1.
->> 
->> With 1.8v, I get the following during boot:
->> [    2.236043] mmc0: host doesn't support card's voltages
->> [    2.241659] mmc0: error -22 whilst initialising SD card
->> 
->> That's strange because I do have an SDHC card. With 3.3v it works fine.
->> 
->> I will add a note about this to my series. Since this more of an MMC issue than
->> anything, and your patch series doesn't enable MMC, you can add my tested-by:
->> 
->> Tested-by: Joel Fernandes <joelf@ti.com>
->> 
->> Later on, the regulator voltage may need to be tweaked for MMC support.
+> So, there should be a place where both irq_chip and gpio_chip has to be related
+> somehow to properly configure a GPIO (request it and setting it as input) when
+> used as an IRQ by DT.
 > 
-> See https://lkml.org/lkml/2013/9/6/95 and https://lkml.org/lkml/2013/9/6/183
+> My patch for OMAP used an irq_domain_ops .map function handler to configure the
+> GPIO when a IRQ was mapped since that seemed to me as the best place to do it.
+> This worked well in OMAP2+ platforms but unfortunately broke OMAP1 platforms
+> since they are still using legacy domain mapping thus not call .map.
 
-Ok since you said in above thread you'll rebase the card detect and the regulator fixes , I'll let you do that and drop my drop my hacked mmc1 patch for BBB from my series.
+Just wondering- why .map not called for omap1? irq_create_mapping does seem to
+call  -> irq_domain_associate which calls map function. For omap case, GPIO
+driver does call irq_create_mapping, just like omap2+ no?
+
+Further, if for any reason the .map is not called. Can you not call gpio_request
+yourself direct in omap_gpio_chip_init function?
+
+Does it really matter if you call gpio_request from .map or from the chip_init
+function?
+
+Also on a different note.. this would call gpio_request for *every* gpio line,
+but isn't that what your original patch that got reverted was doing in
+omap_gpio_chip_init:
+
++       if (!bank->chip.of_node)
++               for (j = 0; j < bank->width; j++)
++                       irq_create_mapping(bank->domain, j);
+
+Just trying to understand your initial patch better.
 
 Regards,
 
 -Joel
+
+
+
+
+
