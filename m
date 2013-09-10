@@ -1,114 +1,94 @@
-From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Subject: Re: [PATCH] RFC: interrupt consistency check for OF GPIO IRQs
-Date: Tue, 10 Sep 2013 15:17:36 +0200
-Message-ID: <522F1BF0.8080608@collabora.co.uk>
-References: <1375101368-17645-1-git-send-email-linus.walleij@linaro.org> <CACxGe6uNJNMdZ1HYGgCtLM2t2TWGCR6btjOHVmP=vDXXvvFfRg@mail.gmail.com> <CACRpkdYjJL6FZwEbB7XLnb9QtjB=3LeE9Ny6KQ4PkM3zpdNqqg@mail.gmail.com> <51F8CC35.1070704@collabora.co.uk> <522EC392.8070002@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: Odd behavior with dpll4_m4x2_ck on omap3 + DT
+Date: Tue, 10 Sep 2013 16:17:45 +0300
+Message-ID: <522F1BF9.5050006@ti.com>
+References: <521DC143.2010506@ti.com> <521DC770.5050000@ti.com> <521DCD80.1060600@ti.com> <521DE1A6.6030005@ti.com> <522F0390.9050802@gmail.com> <522F0CC7.50501@ti.com> <522F0E3E.1080001@ti.com> <522F0F9B.9050705@ti.com> <522F1346.3020206@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <522EC392.8070002@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: joelf@ti.com
-Cc: Linus Walleij <linus.walleij@linaro.org>, Grant Likely <grant.likely@linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Alexander Holler <holler@ahsoftware.de>, Linux-OMAP <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Enric Balletbo i Serra <eballetbo@gmail.com>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@linaro.org>, Balaji T K <balajitk@ti.com>, Tony Lindgren <tony@atomide.com>, Jon Hunter <jgchunter@gmail.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:49538 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752208Ab3IJNSA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 10 Sep 2013 09:18:00 -0400
+In-Reply-To: <522F1346.3020206@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Stefan Roese <stefan.roese@gmail.com>, linux-omap <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, Mike Turquette <mturquette@linaro.org>
 
-On 09/10/2013 09:00 AM, Joel Fernandes wrote:
-> On 07/31/2013 03:35 AM, Javier Martinez Canillas wrote:
->> On 07/31/2013 01:44 AM, Linus Walleij wrote:
->>> On Tue, Jul 30, 2013 at 6:30 AM, Grant Likely <grant.likely@linaro.org> wrote:
->>>> On Mon, Jul 29, 2013 at 6:36 AM, Linus Walleij <linus.walleij@linaro.org> wrote:
->>>>> To solve this dilemma, perform an interrupt consistency check
->>>>> when adding a GPIO chip: if the chip is both gpio-controller and
->>>>> interrupt-controller, walk all children of the device tree,
->>>>> check if these in turn reference the interrupt-controller, and
->>>>> if they do, loop over the interrupts used by that child and
->>>>> perform gpio_reques() and gpio_direction_input() on these,
->>>>> making them unreachable from the GPIO side.
->>>>
->>>> Ugh, that's pretty awful, and it doesn't actually solve the root
->>>> problem of the GPIO and IRQ subsystems not cooperating. It's also a
->>>> very DT-centric solution even though we're going to see the exact same
->>>> issue on ACPI machines.
+On 09/10/2013 03:40 PM, Tomi Valkeinen wrote:
+> On 10/09/13 15:24, Tero Kristo wrote:
+>> On 09/10/2013 03:19 PM, Tomi Valkeinen wrote:
+>>> On 10/09/13 15:12, Tero Kristo wrote:
 >>>
->>> The problem is that the patches for OMAP that I applied
->>> and now have had to revert solves it in an even uglier way,
->>> leading to breaking boards, as was noticed.
+>>>> If it claims it is not locked, it means the DPLL itself is disabled. You
+>>>> could try clk_enable for the clock before doing clk_set_rate.
 >>>
->>> The approach in this patch has the potential to actually
->>> work without regressing a bunch of boards...
->>>
->>> Whether this is a problem in ACPI or not remains to be seen,
->>> but I'm not sure about that. Device trees allows for a GPIO line
->>> to be used as an interrupt source and GPIO line orthogonally,
->>> and that is the root of this problem. Does ACPI have the same
->>> problem, or does it impose natural restrictions on such use
->>> cases?
->>>
->> 
->> I agree with Linus here. The problem is that GPIO controllers that can work as
->> IRQ sources are treated in the kernel as if there where two separate controlers
->> that are rather orthogonal: an irq_chip and a gpio_chip.
->> But DT allows to use a GPIO line as an IRQ just by using an omap-gpio phandle as
->> "interrupt-parent".
->> 
->> So, there should be a place where both irq_chip and gpio_chip has to be related
->> somehow to properly configure a GPIO (request it and setting it as input) when
->> used as an IRQ by DT.
->> 
->> My patch for OMAP used an irq_domain_ops .map function handler to configure the
->> GPIO when a IRQ was mapped since that seemed to me as the best place to do it.
->> This worked well in OMAP2+ platforms but unfortunately broke OMAP1 platforms
->> since they are still using legacy domain mapping thus not call .map.
-> 
-> Just wondering- why .map not called for omap1? irq_create_mapping does seem to
-> call  -> irq_domain_associate which calls map function. For omap case, GPIO
-> driver does call irq_create_mapping, just like omap2+ no?
+>>> Hmm, so is it required to enable the clock before setting the rate? If
+>>> so, I think I'm using the clocks wrong in all the places =).
+>>
+>> In generic case, it is not. But DPLLs behave strangely if they go to low
+>> power stop mode. If there is any downstream clock enabled for a specific
+>> DPLL it is enabled and things work okay.
+>>
+>> One could also argue that the API behavior in OMAP is wrong currently,
+>> as the bypass rate is something you are most likely never actually going
+>> to use for anything....
+>>
+>> Just try the change and check the results.
 >
+> Ok, so as Stefan said, enabling the clock fixes the issue.
+>
+> How do you suggest we fix this? Changing omapdss to enable the clock
+> before changing its rate is not very difficult, so it can be used as a
+> quick fix. But it doesn't sound like a proper fix if this is not
+> normally required.
 
-That is what I understood too when writing the patch but I remember someone
-mentioning legacy domain mapping not calling the .map function handler as a
-possible cause for the OMAP1 regression and since Linus decided to revert the
-patches in favor of a more general solution I didn't care to check if that was
-true or not. Now looking at irq_create_mapping() I see that my assumption was
-correct so I don't know what was the bug that caused the OMAP1 regression.
+The quick fix sounds good to me.
 
-> Further, if for any reason the .map is not called. Can you not call gpio_request
-> yourself direct in omap_gpio_chip_init function?
-> 
+> And, maybe I'm missing something as I don't have good understanding of
+> the PRCM's PLLs, but the current behavior sounds odd. So the DPLL is
+> off, and in bypass mode. When we try to change the rate of the clock
+> provided by the PLL, shouldn't it fail, as bypass mode's rate cannot be
+> changed? Or better, change the non-bypass rate.
 
-No, since you can't request a GPIO for all GPIO pins in the bank. Users have to
-do it explicitly (or implicitly in the case of GPIO mapped as IRQ in DT).
+In theory, DPLLs can also be used in their bypass mode to feed customer 
+nodes clocks. I just think the check in the clkoutx2_recalc is wrong, 
+and should be enhanced to actually check what is the target mode for the 
+clock once it is enabled. Maybe something like this would work properly:
 
-> Does it really matter if you call gpio_request from .map or from the chip_init
-> function?
-> 
+diff --git a/arch/arm/mach-omap2/dpll3xxx.c b/arch/arm/mach-omap2/dpll3xxx.c
+index 3a0296c..ba218fb 100644
+--- a/arch/arm/mach-omap2/dpll3xxx.c
++++ b/arch/arm/mach-omap2/dpll3xxx.c
+@@ -658,14 +658,12 @@ unsigned long omap3_clkoutx2_recalc(struct clk_hw *hw,
 
-Yes it does, because in DT the core calls irq_create_of_mapping() ->
-irq_create_mapping() -> .map(). That way only are requested the GPIO pins that
-are mapped as IRQ and not all of them.
+         dd = pclk->dpll_data;
 
-> Also on a different note.. this would call gpio_request for *every* gpio line,
-> but isn't that what your original patch that got reverted was doing in
-> omap_gpio_chip_init:
-> 
-> +       if (!bank->chip.of_node)
-> +               for (j = 0; j < bank->width; j++)
-> +                       irq_create_mapping(bank->domain, j);
-> 
+-       WARN_ON(!dd->enable_mask);
+-
+-       v = __raw_readl(dd->control_reg) & dd->enable_mask;
+-       v >>= __ffs(dd->enable_mask);
+-       if ((v != OMAP3XXX_EN_DPLL_LOCKED) || (dd->flags & DPLL_J_TYPE))
++       if ((dd->flags & DPLL_J_TYPE) ||
++           __clk_get_rate(dd->clk_bypass) == __clk_get_rate(pclk))
+                 rate = parent_rate;
+         else
+                 rate = parent_rate * 2;
++
+         return rate;
+  }
 
-No it won't. This is only needed for the legacy (non-DT) boot since no one calls
-irq_create_mapping() so it has to be called explicitly.
 
-And in that case .map will be called but gpio_request() won't since the call is
-made only when bank->chip.of_node is not NULL.
+>
+> How is the DPLL4's clock rate 432000000 anyway in bypass mode. Isn't
+> bypass mode usually plain sys-clock, or such?
 
-> Just trying to understand your initial patch better.
-> 
-> Regards,
-> 
-> -Joel
-> 
+This again reflects the rate that the clock has once it is enabled, the 
+clkoutx2 does not.
 
-Best regards,
-Javier
+Getting comment from someone like Paul would probably help here.
+
+-Tero
+
