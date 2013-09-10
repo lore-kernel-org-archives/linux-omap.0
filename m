@@ -1,155 +1,74 @@
-From: Joel Fernandes <joelf@ti.com>
-Subject: Re: [PATCH] RFC: interrupt consistency check for OF GPIO IRQs
-Date: Tue, 10 Sep 2013 10:00:24 -0500
-Message-ID: <522F3408.6050608@ti.com>
-References: <1375101368-17645-1-git-send-email-linus.walleij@linaro.org>
- <CACxGe6uNJNMdZ1HYGgCtLM2t2TWGCR6btjOHVmP=vDXXvvFfRg@mail.gmail.com>
- <CACRpkdYjJL6FZwEbB7XLnb9QtjB=3LeE9Ny6KQ4PkM3zpdNqqg@mail.gmail.com>
- <51F8CC35.1070704@collabora.co.uk> <522EC392.8070002@ti.com>
- <522F1BF0.8080608@collabora.co.uk>
-Reply-To: joelf@ti.com
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: Build error in torvalds kernel 3.11 for omap2plus
+Date: Tue, 10 Sep 2013 08:07:45 -0700
+Message-ID: <87y574g1fi.fsf@linaro.org>
+References: <CABYxbz7m4GdHFNY3fP1Cpv3a_dNTSozdd7dX9yLG6vQ3zZxu9A@mail.gmail.com>
+	<20130908090206.GK25647@n2100.arm.linux.org.uk>
+	<522CB0DE.2010102@roeck-us.net>
+	<20130909105115.GL25647@n2100.arm.linux.org.uk>
+	<522DB86A.8010207@roeck-us.net>
+	<alpine.LFD.2.03.1309091023440.20709@syhkavp.arg>
+	<20130909160348.GB18975@roeck-us.net>
+	<20130909203141.GM25647@n2100.arm.linux.org.uk>
+	<20130909210203.GC28416@roeck-us.net>
+	<alpine.LFD.2.03.1309091714420.20709@syhkavp.arg>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <522F1BF0.8080608@collabora.co.uk>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Cc: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Kevin Hilman <khilman@linaro.org>, Balaji T K <balajitk@ti.com>, Enric Balletbo i Serra <eballetbo@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Grant Likely <grant.likely@linaro.org>, Alexander Holler <holler@ahsoftware.de>, Linux-OMAP <linux-omap@vger.kernel.org>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, Jon Hunter <jgchunter@gmail.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:60893 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752452Ab3IJPHt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Sep 2013 11:07:49 -0400
+Received: by mail-pa0-f46.google.com with SMTP id fa1so7824923pad.5
+        for <linux-omap@vger.kernel.org>; Tue, 10 Sep 2013 08:07:49 -0700 (PDT)
+In-Reply-To: <alpine.LFD.2.03.1309091714420.20709@syhkavp.arg> (Nicolas
+	Pitre's message of "Mon, 9 Sep 2013 17:16:57 -0400 (EDT)")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Nicolas Pitre <nicolas.pitre@linaro.org>
+Cc: Guenter Roeck <linux@roeck-us.net>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Frederic Weisbecker <fweisbec@gmail.com>, Anil Kumar <anilk4.v@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, Benoit Cousson <b-cousson@ti.com>
 
-On 09/10/2013 08:17 AM, Javier Martinez Canillas wrote:
-> On 09/10/2013 09:00 AM, Joel Fernandes wrote:
->> On 07/31/2013 03:35 AM, Javier Martinez Canillas wrote:
->>> On 07/31/2013 01:44 AM, Linus Walleij wrote:
->>>> On Tue, Jul 30, 2013 at 6:30 AM, Grant Likely <grant.likely@linaro.org> wrote:
->>>>> On Mon, Jul 29, 2013 at 6:36 AM, Linus Walleij <linus.walleij@linaro.org> wrote:
->>>>>> To solve this dilemma, perform an interrupt consistency check
->>>>>> when adding a GPIO chip: if the chip is both gpio-controller and
->>>>>> interrupt-controller, walk all children of the device tree,
->>>>>> check if these in turn reference the interrupt-controller, and
->>>>>> if they do, loop over the interrupts used by that child and
->>>>>> perform gpio_reques() and gpio_direction_input() on these,
->>>>>> making them unreachable from the GPIO side.
->>>>>
->>>>> Ugh, that's pretty awful, and it doesn't actually solve the root
->>>>> problem of the GPIO and IRQ subsystems not cooperating. It's also a
->>>>> very DT-centric solution even though we're going to see the exact same
->>>>> issue on ACPI machines.
->>>>
->>>> The problem is that the patches for OMAP that I applied
->>>> and now have had to revert solves it in an even uglier way,
->>>> leading to breaking boards, as was noticed.
->>>>
->>>> The approach in this patch has the potential to actually
->>>> work without regressing a bunch of boards...
->>>>
->>>> Whether this is a problem in ACPI or not remains to be seen,
->>>> but I'm not sure about that. Device trees allows for a GPIO line
->>>> to be used as an interrupt source and GPIO line orthogonally,
->>>> and that is the root of this problem. Does ACPI have the same
->>>> problem, or does it impose natural restrictions on such use
->>>> cases?
->>>>
->>>
->>> I agree with Linus here. The problem is that GPIO controllers that can work as
->>> IRQ sources are treated in the kernel as if there where two separate controlers
->>> that are rather orthogonal: an irq_chip and a gpio_chip.
->>> But DT allows to use a GPIO line as an IRQ just by using an omap-gpio phandle as
->>> "interrupt-parent".
->>>
->>> So, there should be a place where both irq_chip and gpio_chip has to be related
->>> somehow to properly configure a GPIO (request it and setting it as input) when
->>> used as an IRQ by DT.
->>>
->>> My patch for OMAP used an irq_domain_ops .map function handler to configure the
->>> GPIO when a IRQ was mapped since that seemed to me as the best place to do it.
->>> This worked well in OMAP2+ platforms but unfortunately broke OMAP1 platforms
->>> since they are still using legacy domain mapping thus not call .map.
->>
->> Just wondering- why .map not called for omap1? irq_create_mapping does seem to
->> call  -> irq_domain_associate which calls map function. For omap case, GPIO
->> driver does call irq_create_mapping, just like omap2+ no?
->>
-> 
-> That is what I understood too when writing the patch but I remember someone
-> mentioning legacy domain mapping not calling the .map function handler as a
-> possible cause for the OMAP1 regression and since Linus decided to revert the
-> patches in favor of a more general solution I didn't care to check if that was
-> true or not. Now looking at irq_create_mapping() I see that my assumption was
-> correct so I don't know what was the bug that caused the OMAP1 regression.
+Nicolas Pitre <nicolas.pitre@linaro.org> writes:
 
-Only stuff you deleted from the chip_init function was:
+> Adding Kevin Hilman to the CC as he might be interested as well.
 
--       for (j = 0; j < bank->width; j++) {
--               int irq = irq_create_mapping(bank->domain, j);
--               irq_set_lockdep_class(irq, &gpio_lock_class);
--               irq_set_chip_data(irq, bank);
--               if (bank->is_mpuio) {
--                       omap_mpuio_alloc_gc(bank, irq, bank->width);
--               } else {
--                       irq_set_chip_and_handler(irq, &gpio_irq_chip,
--                                                handle_simple_irq);
--                       set_irq_flags(irq, IRQF_VALID);
--               }
+Thanks, I'd already noticed this but was distracted getting arm-soc
+changes ready for the merge window.  Looking into it now.
 
-and you moved all of it to the .map function in your patch. Not sure what could
-be breaking OMAP1 cases.
-You could potentially add that back with some #ifdef for OMAP1?
+Kevin
 
-Either way, map should be called looks like. If its not called, then the above
-block can be explicity called for OMAP1 case in omap_chip_gpio_init.
-
-What was strange is one person reported that mappings were not created for
-OMAP1. But I am wondering what you changed could result in not creating that
-mapping. Really nothing..
-
-I think your initial patch is much better than fixing up DT but then I may be
-missing other problems with your patch that Linus's patch addresses.
-
->> Further, if for any reason the .map is not called. Can you not call gpio_request
->> yourself direct in omap_gpio_chip_init function?
->>
-> 
-> No, since you can't request a GPIO for all GPIO pins in the bank. Users have to
-> do it explicitly (or implicitly in the case of GPIO mapped as IRQ in DT).
-
-Ah since you split the patch up into 2, I missed the gpio_request stuff. Ok,
-that makes sense.
-
->> Does it really matter if you call gpio_request from .map or from the chip_init
->> function?
->>
-> 
-> Yes it does, because in DT the core calls irq_create_of_mapping() ->
-> irq_create_mapping() -> .map(). That way only are requested the GPIO pins that
-> are mapped as IRQ and not all of them.
-
->> Also on a different note.. this would call gpio_request for *every* gpio line,
->> but isn't that what your original patch that got reverted was doing in
->> omap_gpio_chip_init:
->>
->> +       if (!bank->chip.of_node)
->> +               for (j = 0; j < bank->width; j++)
->> +                       irq_create_mapping(bank->domain, j);
->>
-> 
-> No it won't. This is only needed for the legacy (non-DT) boot since no one calls
-> irq_create_mapping() so it has to be called explicitly.
-> 
-> And in that case .map will be called but gpio_request() won't since the call is
-> made only when bank->chip.of_node is not NULL.
-
-Ok, thanks for the explanation. That makes sense to me.
-
-Regards,
-
--Joel
+> On Mon, 9 Sep 2013, Guenter Roeck wrote:
+>
+>> On Mon, Sep 09, 2013 at 09:31:41PM +0100, Russell King - ARM Linux wrote:
+>> > On Mon, Sep 09, 2013 at 09:03:48AM -0700, Guenter Roeck wrote:
+>> > > Unfortunately, there are more problems.
+>> > > 
+>> > > arch/arm/kernel/built-in.o: In function `ret_fast_syscall':
+>> > > /home/groeck/src/linux-stable/arch/arm/kernel/entry-common.S:42:
+>> > > undefined reference to `user_enter'
+>> > > arch/arm/kernel/built-in.o: In function `no_work_pending':
+>> > > /home/groeck/src/linux-stable/arch/arm/kernel/entry-common.S:77:
+>> > > undefined reference to `user_enter'
+>> > > arch/arm/kernel/built-in.o: In function `vector_swi':
+>> > > /home/groeck/src/linux-stable/arch/arm/kernel/entry-common.S:376:
+>> > > undefined reference to `user_exit'
+>> > > arch/arm/kernel/built-in.o: In function `__dabt_usr':
+>> > > /home/groeck/src/linux-stable/arch/arm/kernel/entry-armv.S:365: undefined reference to `user_exit'
+>> > > arch/arm/kernel/built-in.o: In function `__irq_usr':
+>> > > /home/groeck/src/linux-stable/arch/arm/kernel/entry-armv.S:375: undefined reference to `user_exit'
+>> > > arch/arm/kernel/built-in.o: In function `__und_usr':
+>> > > /home/groeck/src/linux-stable/arch/arm/kernel/entry-armv.S:388: undefined reference to `user_exit'
+>> > > arch/arm/kernel/built-in.o: In function `__pabt_usr':
+>> > > /home/groeck/src/linux-stable/arch/arm/kernel/entry-armv.S:662: undefined reference to `user_exit'
+>> > 
+>> > These are due to ad65782fba50 (context_tracking: Optimize main APIs off case
+>> > with static key) converting these functions to be inline.
+>> > 
+>> > No idea what the fix for this is other than reverting the change.  Any
+>> > ideas Frederic?
+>> > 
+>> I am all for reverting unless this can be fixed quickly.
+>> AFAICS this breaks all arm builds if CONFIG_CONTEXT_TRACKING is enabled.
+>> 
+>> Guenter
+>> 
