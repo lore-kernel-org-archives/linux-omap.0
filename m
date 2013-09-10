@@ -1,81 +1,180 @@
-From: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v3] ARM: EDMA: Fix clearing of unused list for DT DMA resources
-Date: Tue, 10 Sep 2013 13:52:51 -0500
-Message-ID: <1378839171-14455-1-git-send-email-joelf@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: commit 5fe212364 causes division by zero with large bauds
+Date: Tue, 10 Sep 2013 14:09:01 -0500
+Message-ID: <20130910190901.GA10105@radagast>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
-List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
-List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
-Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
-To: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Matt Porter <matt-agtwNxEcTQJWk0Htik3J/w@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dan Williams <djbw-b10kYP2dOMg@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Jyri Sarah <jsarha-l0cyMroinI0@public.gmane.org>, Jason Kridner <jkridner-hcmAuCOw+vXj4SYmN/TMmA@public.gmane.org>, Koen Kooi <koen-hcmAuCOw+vXj4SYmN/TMmA@public.gmane.org>
-Cc: Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Pantel Antoniou <panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="uAKRQypu60I7Lcqm"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: Alexey Pelykh <alexey.pelykh@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, Greg KH <gregkh@linuxfoundation.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-serial@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-HWMOD removal for MMC is breaking edma_start as the events are being manually
-triggered due to unused channel list not being clear.
+--uAKRQypu60I7Lcqm
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-This patch fixes the issue, by reading the "dmas" property from the DT node if
-it exists and clearing the bits in the unused channel list. For this purpose
-we use the of_* helpers to parse the arguments in the dmas phandle list.
+Hi Alexey,
 
-Reviewed-by: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
-Reported-by: Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>
-Cc: Pantel Antoniou <panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>
-Signed-off-by: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>
----
-This patch is a repost of v2 with minor change of return value.
+your commit 5fe212364 causes division by zero with any baud rate larger
+than 3 Mbaud (IP supports up to 3686400).
 
-As such this patch fixes DMA breakages on all dependent peripherals (DMA, AES,
-MMC, McASP..) so should go in for -rc cycle.
+Maybe this patch is all we need to get it fixed ? (untested)
 
- arch/arm/common/edma.c | 22 +++++++++++++++++++---
- 1 file changed, 19 insertions(+), 3 deletions(-)
-
-diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
-index 117f955..88ea067 100644
---- a/arch/arm/common/edma.c
-+++ b/arch/arm/common/edma.c
-@@ -560,14 +560,30 @@ static int reserve_contiguous_slots(int ctlr, unsigned int id,
- static int prepare_unused_channel_list(struct device *dev, void *data)
+diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-ser=
+ial.c
+index 816d1a2..b50327f 100644
+--- a/drivers/tty/serial/omap-serial.c
++++ b/drivers/tty/serial/omap-serial.c
+@@ -240,8 +240,14 @@ serial_omap_baud_is_mode16(struct uart_port *port, uns=
+igned int baud)
  {
- 	struct platform_device *pdev = to_platform_device(dev);
--	int i, ctlr;
-+	int i = 0, ctlr;
-+	u32 dma_chan;
-+	const __be32 *dma_chan_p;
-+	struct property *prop;
+ 	unsigned int n13 =3D port->uartclk / (13 * baud);
+ 	unsigned int n16 =3D port->uartclk / (16 * baud);
+-	int baudAbsDiff13 =3D baud - (port->uartclk / (13 * n13));
+-	int baudAbsDiff16 =3D baud - (port->uartclk / (16 * n16));
++	int baudAbsDiff13 =3D 0;
++	int baudAbsDiff16 =3D 0;
 +
-+	if (dev->of_node) {
-+		of_property_for_each_u32(dev->of_node, "dmas", prop,
-+					 dma_chan_p, dma_chan) {
-+			if (i++ & 1) {
-+				ctlr = EDMA_CTLR(dma_chan);
-+				clear_bit(EDMA_CHAN_SLOT(dma_chan),
-+					  edma_cc[ctlr]->edma_unused);
-+			}
-+		}
-+		return 0;
++	if (n13)
++		baudAbsDiff13 =3D baud - (port->uartclk / (13 * n13));
++	if (n16)
++		baudAbsDiff16 =3D baud - (port->uartclk / (16 * n16));
++
+ 	if(baudAbsDiff13 < 0)
+ 		baudAbsDiff13 =3D -baudAbsDiff13;
+ 	if(baudAbsDiff16 < 0)
+
+Another possibility would be to convert this into a lookup table (also
+untested):
+
+diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-ser=
+ial.c
+index 816d1a2..942d68e 100644
+--- a/drivers/tty/serial/omap-serial.c
++++ b/drivers/tty/serial/omap-serial.c
+@@ -224,6 +224,48 @@ static void serial_omap_enable_wakeup(struct uart_omap=
+_port *up, bool enable)
+ 	pdata->enable_wakeup(up->dev, enable);
+ }
+=20
++struct uart_omap_config {
++	unsigned int baud;
++	unsigned int oversampling;
++	unsigned int divisor;
++};
++
++static struct uart_omap_config omap_port_configs[] =3D {
++	{ .baud =3D 300,		.oversampling =3D 16,	.divisor =3D 10000, },
++	{ .baud =3D 300,		.oversampling =3D 16,	.divisor =3D 10000, },
++	{ .baud =3D 600,		.oversampling =3D 16,	.divisor =3D 5000, },
++	{ .baud =3D 1200,		.oversampling =3D 16,	.divisor =3D 2500, },
++	{ .baud =3D 2400,		.oversampling =3D 16,	.divisor =3D 1250, },
++	{ .baud =3D 4800,		.oversampling =3D 16,	.divisor =3D 625, },
++	{ .baud =3D 9600,		.oversampling =3D 16,	.divisor =3D 312, },
++	{ .baud =3D 14400,	.oversampling =3D 16,	.divisor =3D 208, },
++	{ .baud =3D 19200,	.oversampling =3D 16,	.divisor =3D 156, },
++	{ .baud =3D 28800,	.oversampling =3D 16,	.divisor =3D 704, },
++	{ .baud =3D 38400,	.oversampling =3D 16,	.divisor =3D 78, },
++	{ .baud =3D 57600,	.oversampling =3D 16,	.divisor =3D 52, },
++	{ .baud =3D 115200,	.oversampling =3D 16,	.divisor =3D 26, },
++	{ .baud =3D 230400,	.oversampling =3D 16,	.divisor =3D 13, },
++	{ .baud =3D 460800,	.oversampling =3D 13,	.divisor =3D 8, },
++	{ .baud =3D 921600,	.oversampling =3D 13,	.divisor =3D 4, },
++	{ .baud =3D 1843200,	.oversampling =3D 13,	.divisor =3D 2, },
++	{ .baud =3D 3000000,	.oversampling =3D 16,	.divisor =3D 1, },
++	{ .baud =3D 3686400,	.oversampling =3D 13,	.divisor =3D 1, },
++	{  } /* Terminating Entry */
++};
++
++static struct uart_omap_config *
++__serial_omap_get_config(struct uart_port *port, unsigned int baud)
++{
++	struct uart_omap_config *cfg =3D omap_port_configs;
++
++	while (cfg++) {
++		if (cfg->baud =3D=3D baud)
++			return cfg;
 +	}
- 
--	for (i = 0; i < pdev->num_resources; i++) {
-+	/* For non-OF case */
-+	for (; i < pdev->num_resources; i++) {
- 		if ((pdev->resource[i].flags & IORESOURCE_DMA) &&
- 				(int)pdev->resource[i].start >= 0) {
- 			ctlr = EDMA_CTLR(pdev->resource[i].start);
- 			clear_bit(EDMA_CHAN_SLOT(pdev->resource[i].start),
--					edma_cc[ctlr]->edma_unused);
-+				  edma_cc[ctlr]->edma_unused);
- 		}
- 	}
- 
--- 
-1.8.1.2
++
++	return NULL;
++}
++
+ /*
+  * serial_omap_baud_is_mode16 - check if baud rate is MODE16X
+  * @port: uart port info
+@@ -238,16 +280,12 @@ static void serial_omap_enable_wakeup(struct uart_oma=
+p_port *up, bool enable)
+ static bool
+ serial_omap_baud_is_mode16(struct uart_port *port, unsigned int baud)
+ {
+-	unsigned int n13 =3D port->uartclk / (13 * baud);
+-	unsigned int n16 =3D port->uartclk / (16 * baud);
+-	int baudAbsDiff13 =3D baud - (port->uartclk / (13 * n13));
+-	int baudAbsDiff16 =3D baud - (port->uartclk / (16 * n16));
+-	if(baudAbsDiff13 < 0)
+-		baudAbsDiff13 =3D -baudAbsDiff13;
+-	if(baudAbsDiff16 < 0)
+-		baudAbsDiff16 =3D -baudAbsDiff16;
+-
+-	return (baudAbsDiff13 > baudAbsDiff16);
++	struct uart_omap_config *cfg =3D __serial_omap_get_config(port, baud);
++
++	if (!cfg)
++		return -EINVAL;
++
++	return (cfg->oversampling =3D=3D 16);
+ }
+=20
+ /*
+@@ -258,13 +296,12 @@ serial_omap_baud_is_mode16(struct uart_port *port, un=
+signed int baud)
+ static unsigned int
+ serial_omap_get_divisor(struct uart_port *port, unsigned int baud)
+ {
+-	unsigned int divisor;
++	struct uart_omap_config *cfg =3D __serial_omap_get_config(port, baud);
+=20
+-	if (!serial_omap_baud_is_mode16(port, baud))
+-		divisor =3D 13;
+-	else
+-		divisor =3D 16;
+-	return port->uartclk/(baud * divisor);
++	if (!cfg)
++		return -EINVAL;
++
++	return cfg->divisor;
+ }
+=20
+ static void serial_omap_enable_ms(struct uart_port *port)
+
+--=20
+balbi
+
+--uAKRQypu60I7Lcqm
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJSL25NAAoJEIaOsuA1yqRER9YP/1wEp+k9f6Bxf2rma9pANpA3
+iuDa6IlsxptppBP2/cLcuXuG1fVVuSAxuDasLM5MRihKbhtZInwqNBcabcfmE5/K
+NakUw2GW6G4j+Mf8I52p4cKIoJD1dXCkwP2BZ+qeYaJKJiiZqY+hecB8LkCRCeOx
+hdd5EVadZpKsJcAv0VlN6jy4bI7GP9YPbrjOhGMkhqkvnDS2gLCdQaW5epY01TQW
+/C1MXtwxiulE/hwViSLwJsFSWrDd6PhzkMuLYMXr3VsoZRuJRElaP5sTB5HIBJ+X
+nqK3a/dqTOpqUslsixPJbOfRQIIvhvnG2VQ8KstVwDVjgkmXQYLB4Vwsfe5vhE0G
+jTD1LaN6gtju7B7A3A2jSEBKGOL+yDe8NOWC8NfaVHBTyg5x96VNe1EqgoyBAtED
+sJQGUWr3DW6JI1pIU1ogaDw6hEpJIWoRNbG3auyjyk45ABAiOT9E79f5rEWneIdk
+hbVUszxmBtyrSqOCvQN1jADn6rFmaeXkniPTeJOMAYgs7Xt/DGi+b43foECqbDiL
+Xx8DdO3vDB1DyNDEi6/Z9tYNyATTdXqXgnQ+kvJvz0xTUdabnylorFti+meprF/X
+rcrrmyTtmsndW4hoLZL3tr+5NPhSiUgcafmDag7Wbftnvu/0eMDxJ73rwLf4v37Y
++SAW1a9UhdJm6umHStGb
+=kzrb
+-----END PGP SIGNATURE-----
+
+--uAKRQypu60I7Lcqm--
