@@ -1,67 +1,114 @@
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Subject: Re: [RFC PATCH 4/4] ARM: dts: am33xx: adopt to cpsw-phy-sel driver
- to configure phy mode
-Date: Tue, 10 Sep 2013 16:55:32 +0400
-Message-ID: <522F16C4.5030600@cogentembedded.com>
-References: <1378639438-27686-1-git-send-email-mugunthanvnm@ti.com> <1378639438-27686-5-git-send-email-mugunthanvnm@ti.com> <522CBC15.5060008@cogentembedded.com> <522D6DE7.5080305@ti.com>
+From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Subject: Re: [PATCH] RFC: interrupt consistency check for OF GPIO IRQs
+Date: Tue, 10 Sep 2013 15:17:36 +0200
+Message-ID: <522F1BF0.8080608@collabora.co.uk>
+References: <1375101368-17645-1-git-send-email-linus.walleij@linaro.org> <CACxGe6uNJNMdZ1HYGgCtLM2t2TWGCR6btjOHVmP=vDXXvvFfRg@mail.gmail.com> <CACRpkdYjJL6FZwEbB7XLnb9QtjB=3LeE9Ny6KQ4PkM3zpdNqqg@mail.gmail.com> <51F8CC35.1070704@collabora.co.uk> <522EC392.8070002@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lb0-f176.google.com ([209.85.217.176]:58006 "EHLO
-	mail-lb0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753936Ab3IJMzd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Sep 2013 08:55:33 -0400
-Received: by mail-lb0-f176.google.com with SMTP id y6so6047631lbh.7
-        for <linux-omap@vger.kernel.org>; Tue, 10 Sep 2013 05:55:32 -0700 (PDT)
-In-Reply-To: <522D6DE7.5080305@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <522EC392.8070002@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: joelf@ti.com
+Cc: Linus Walleij <linus.walleij@linaro.org>, Grant Likely <grant.likely@linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Alexander Holler <holler@ahsoftware.de>, Linux-OMAP <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Enric Balletbo i Serra <eballetbo@gmail.com>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@linaro.org>, Balaji T K <balajitk@ti.com>, Tony Lindgren <tony@atomide.com>, Jon Hunter <jgchunter@gmail.com>
 List-Id: linux-omap@vger.kernel.org
-To: Mugunthan V N <mugunthanvnm@ti.com>
-Cc: netdev@vger.kernel.org, zonque@gmail.com, davem@davemloft.net, bcousson@baylibre.com, tony@atomide.com, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
 
-Hello.
+On 09/10/2013 09:00 AM, Joel Fernandes wrote:
+> On 07/31/2013 03:35 AM, Javier Martinez Canillas wrote:
+>> On 07/31/2013 01:44 AM, Linus Walleij wrote:
+>>> On Tue, Jul 30, 2013 at 6:30 AM, Grant Likely <grant.likely@linaro.org> wrote:
+>>>> On Mon, Jul 29, 2013 at 6:36 AM, Linus Walleij <linus.walleij@linaro.org> wrote:
+>>>>> To solve this dilemma, perform an interrupt consistency check
+>>>>> when adding a GPIO chip: if the chip is both gpio-controller and
+>>>>> interrupt-controller, walk all children of the device tree,
+>>>>> check if these in turn reference the interrupt-controller, and
+>>>>> if they do, loop over the interrupts used by that child and
+>>>>> perform gpio_reques() and gpio_direction_input() on these,
+>>>>> making them unreachable from the GPIO side.
+>>>>
+>>>> Ugh, that's pretty awful, and it doesn't actually solve the root
+>>>> problem of the GPIO and IRQ subsystems not cooperating. It's also a
+>>>> very DT-centric solution even though we're going to see the exact same
+>>>> issue on ACPI machines.
+>>>
+>>> The problem is that the patches for OMAP that I applied
+>>> and now have had to revert solves it in an even uglier way,
+>>> leading to breaking boards, as was noticed.
+>>>
+>>> The approach in this patch has the potential to actually
+>>> work without regressing a bunch of boards...
+>>>
+>>> Whether this is a problem in ACPI or not remains to be seen,
+>>> but I'm not sure about that. Device trees allows for a GPIO line
+>>> to be used as an interrupt source and GPIO line orthogonally,
+>>> and that is the root of this problem. Does ACPI have the same
+>>> problem, or does it impose natural restrictions on such use
+>>> cases?
+>>>
+>> 
+>> I agree with Linus here. The problem is that GPIO controllers that can work as
+>> IRQ sources are treated in the kernel as if there where two separate controlers
+>> that are rather orthogonal: an irq_chip and a gpio_chip.
+>> But DT allows to use a GPIO line as an IRQ just by using an omap-gpio phandle as
+>> "interrupt-parent".
+>> 
+>> So, there should be a place where both irq_chip and gpio_chip has to be related
+>> somehow to properly configure a GPIO (request it and setting it as input) when
+>> used as an IRQ by DT.
+>> 
+>> My patch for OMAP used an irq_domain_ops .map function handler to configure the
+>> GPIO when a IRQ was mapped since that seemed to me as the best place to do it.
+>> This worked well in OMAP2+ platforms but unfortunately broke OMAP1 platforms
+>> since they are still using legacy domain mapping thus not call .map.
+> 
+> Just wondering- why .map not called for omap1? irq_create_mapping does seem to
+> call  -> irq_domain_associate which calls map function. For omap case, GPIO
+> driver does call irq_create_mapping, just like omap2+ no?
+>
 
-On 09-09-2013 10:42, Mugunthan V N wrote:
+That is what I understood too when writing the patch but I remember someone
+mentioning legacy domain mapping not calling the .map function handler as a
+possible cause for the OMAP1 regression and since Linus decided to revert the
+patches in favor of a more general solution I didn't care to check if that was
+true or not. Now looking at irq_create_mapping() I see that my assumption was
+correct so I don't know what was the bug that caused the OMAP1 regression.
 
->>> Add DT entries for the phy mode selection in AM33xx SoC using
->>> cpsw-phy-sel
->>> driver.
+> Further, if for any reason the .map is not called. Can you not call gpio_request
+> yourself direct in omap_gpio_chip_init function?
+> 
 
->>> Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
->>> ---
->>>    arch/arm/boot/dts/am33xx.dtsi | 6 ++++++
->>>    1 file changed, 6 insertions(+)
+No, since you can't request a GPIO for all GPIO pins in the bank. Users have to
+do it explicitly (or implicitly in the case of GPIO mapped as IRQ in DT).
 
->>> diff --git a/arch/arm/boot/dts/am33xx.dtsi
->>> b/arch/arm/boot/dts/am33xx.dtsi
->>> index f9c5da9..4359672 100644
->>> --- a/arch/arm/boot/dts/am33xx.dtsi
->>> +++ b/arch/arm/boot/dts/am33xx.dtsi
->>> @@ -594,6 +594,12 @@
->>>                    /* Filled in by U-Boot */
->>>                    mac-address = [ 00 00 00 00 00 00 ];
->>>                };
->>> +
->>> +            phy_sel: cpsw_phy_sel@44e10650 {
+> Does it really matter if you call gpio_request from .map or from the chip_init
+> function?
+> 
 
->>     Dashes are preferred to uderscores in the device tree names.
+Yes it does, because in DT the core calls irq_create_of_mapping() ->
+irq_create_mapping() -> .map(). That way only are requested the GPIO pins that
+are mapped as IRQ and not all of them.
 
-> I tried with dashes but i get the below error.
+> Also on a different note.. this would call gpio_request for *every* gpio line,
+> but isn't that what your original patch that got reverted was doing in
+> omap_gpio_chip_init:
+> 
+> +       if (!bank->chip.of_node)
+> +               for (j = 0; j < bank->width; j++)
+> +                       irq_create_mapping(bank->domain, j);
+> 
 
-> $ make CROSS_COMPILE=arm-linux-gnueabihf- ARCH=arm dtbs
->    DTC     arch/arm/boot/dts/am335x-evm.dtb
-> Error: arch/arm/boot/dts/am33xx.dtsi:598.11-12 syntax error
-> FATAL ERROR: Unable to parse input tree
-> make[1]: *** [arch/arm/boot/dts/am335x-evm.dtb] Error 1
-> make: *** [dtbs] Error 2
+No it won't. This is only needed for the legacy (non-DT) boot since no one calls
+irq_create_mapping() so it has to be called explicitly.
 
-    Hm, perhaps the dashes can't be used in the labels but I was talking of 
-the names. Dashes in the node names should be definitely valid.
+And in that case .map will be called but gpio_request() won't since the call is
+made only when bank->chip.of_node is not NULL.
 
-> Regards
-> Mugunthan V N
+> Just trying to understand your initial patch better.
+> 
+> Regards,
+> 
+> -Joel
+> 
 
-WBR, Sergei
-
-
+Best regards,
+Javier
