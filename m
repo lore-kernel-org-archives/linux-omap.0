@@ -1,94 +1,67 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: Odd behavior with dpll4_m4x2_ck on omap3 + DT
-Date: Tue, 10 Sep 2013 15:40:38 +0300
-Message-ID: <522F1346.3020206@ti.com>
-References: <521DC143.2010506@ti.com> <521DC770.5050000@ti.com> <521DCD80.1060600@ti.com> <521DE1A6.6030005@ti.com> <522F0390.9050802@gmail.com> <522F0CC7.50501@ti.com> <522F0E3E.1080001@ti.com> <522F0F9B.9050705@ti.com>
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Subject: Re: [RFC PATCH 4/4] ARM: dts: am33xx: adopt to cpsw-phy-sel driver
+ to configure phy mode
+Date: Tue, 10 Sep 2013 16:55:32 +0400
+Message-ID: <522F16C4.5030600@cogentembedded.com>
+References: <1378639438-27686-1-git-send-email-mugunthanvnm@ti.com> <1378639438-27686-5-git-send-email-mugunthanvnm@ti.com> <522CBC15.5060008@cogentembedded.com> <522D6DE7.5080305@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="DHI2P7aGiJMTwxk7hPWFmkN9f48nTQljp"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:37143 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751410Ab3IJMkp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 10 Sep 2013 08:40:45 -0400
-In-Reply-To: <522F0F9B.9050705@ti.com>
+Received: from mail-lb0-f176.google.com ([209.85.217.176]:58006 "EHLO
+	mail-lb0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753936Ab3IJMzd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Sep 2013 08:55:33 -0400
+Received: by mail-lb0-f176.google.com with SMTP id y6so6047631lbh.7
+        for <linux-omap@vger.kernel.org>; Tue, 10 Sep 2013 05:55:32 -0700 (PDT)
+In-Reply-To: <522D6DE7.5080305@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: Stefan Roese <stefan.roese@gmail.com>, linux-omap <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, Mike Turquette <mturquette@linaro.org>
+To: Mugunthan V N <mugunthanvnm@ti.com>
+Cc: netdev@vger.kernel.org, zonque@gmail.com, davem@davemloft.net, bcousson@baylibre.com, tony@atomide.com, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
 
---DHI2P7aGiJMTwxk7hPWFmkN9f48nTQljp
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Hello.
 
-On 10/09/13 15:24, Tero Kristo wrote:
-> On 09/10/2013 03:19 PM, Tomi Valkeinen wrote:
->> On 10/09/13 15:12, Tero Kristo wrote:
->>
->>> If it claims it is not locked, it means the DPLL itself is disabled. =
-You
->>> could try clk_enable for the clock before doing clk_set_rate.
->>
->> Hmm, so is it required to enable the clock before setting the rate? If=
+On 09-09-2013 10:42, Mugunthan V N wrote:
 
->> so, I think I'm using the clocks wrong in all the places =3D).
->=20
-> In generic case, it is not. But DPLLs behave strangely if they go to lo=
-w
-> power stop mode. If there is any downstream clock enabled for a specifi=
-c
-> DPLL it is enabled and things work okay.
->=20
-> One could also argue that the API behavior in OMAP is wrong currently,
-> as the bypass rate is something you are most likely never actually goin=
-g
-> to use for anything....
->=20
-> Just try the change and check the results.
+>>> Add DT entries for the phy mode selection in AM33xx SoC using
+>>> cpsw-phy-sel
+>>> driver.
 
-Ok, so as Stefan said, enabling the clock fixes the issue.
+>>> Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
+>>> ---
+>>>    arch/arm/boot/dts/am33xx.dtsi | 6 ++++++
+>>>    1 file changed, 6 insertions(+)
 
-How do you suggest we fix this? Changing omapdss to enable the clock
-before changing its rate is not very difficult, so it can be used as a
-quick fix. But it doesn't sound like a proper fix if this is not
-normally required.
+>>> diff --git a/arch/arm/boot/dts/am33xx.dtsi
+>>> b/arch/arm/boot/dts/am33xx.dtsi
+>>> index f9c5da9..4359672 100644
+>>> --- a/arch/arm/boot/dts/am33xx.dtsi
+>>> +++ b/arch/arm/boot/dts/am33xx.dtsi
+>>> @@ -594,6 +594,12 @@
+>>>                    /* Filled in by U-Boot */
+>>>                    mac-address = [ 00 00 00 00 00 00 ];
+>>>                };
+>>> +
+>>> +            phy_sel: cpsw_phy_sel@44e10650 {
 
-And, maybe I'm missing something as I don't have good understanding of
-the PRCM's PLLs, but the current behavior sounds odd. So the DPLL is
-off, and in bypass mode. When we try to change the rate of the clock
-provided by the PLL, shouldn't it fail, as bypass mode's rate cannot be
-changed? Or better, change the non-bypass rate.
+>>     Dashes are preferred to uderscores in the device tree names.
 
-How is the DPLL4's clock rate 432000000 anyway in bypass mode. Isn't
-bypass mode usually plain sys-clock, or such?
+> I tried with dashes but i get the below error.
 
- Tomi
+> $ make CROSS_COMPILE=arm-linux-gnueabihf- ARCH=arm dtbs
+>    DTC     arch/arm/boot/dts/am335x-evm.dtb
+> Error: arch/arm/boot/dts/am33xx.dtsi:598.11-12 syntax error
+> FATAL ERROR: Unable to parse input tree
+> make[1]: *** [arch/arm/boot/dts/am335x-evm.dtb] Error 1
+> make: *** [dtbs] Error 2
+
+    Hm, perhaps the dashes can't be used in the labels but I was talking of 
+the names. Dashes in the node names should be definitely valid.
+
+> Regards
+> Mugunthan V N
+
+WBR, Sergei
 
 
-
---DHI2P7aGiJMTwxk7hPWFmkN9f48nTQljp
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJSLxNGAAoJEPo9qoy8lh71VpMP/jDn/9kNn55l7E43BHijaSho
-ozVkBooZ8LHiyJh36/X8un0FLcZnK9HpJHRByo7qveLLgZI0B/kjb9efrhxhh0hr
-KEG73Yngv9Rq8t57gsPKtl7RhDjWL1YaEt65SRKhYB4kUkKJJaNCZxE9+wrrJojy
-wf+XPEGCDk9dVXLUh75CBv54r6UDmqGqnMzrHCHKZeFPLRoEYBD4oUNOLrVHRWHh
-DjO26BH98RcBiTGK4ZQIdwaTSKCTcL1NnCVGbzLFwwx9moW47ITMvmXg/AjENKWN
-6afgyfYoR7nQuN2D5Mw58mPXcyDh8WyVgbxZ2OUiMIaitFBJ+1+QPx8L4/Ka402K
-zAJDdh5UzRfC2yqmXIa/h9PUvdTTpAZmasXjHpdH97ZnpPLUIHvzBXL328660WK4
-FopKHMIu1icaIjJ2jfYxztdG2e3iJ3rOPnUsVr7NZmWCkSYWme7q9Zn8NkruSXVo
-/1KqUxrkidcFhKK/cVQrioTDzWzsrKr4yuJEqGCLw9lZ47hr6Pk223tT/liGQCd8
-PvJ5t41Ie4+JGVxcKwKLy52V1oznN896MH3EvEc1h+8b7hcLyoukTMt/Mh+N6r/q
-wVN0IId1vWjBNJir8Zo5ElZnRE6wyWut+T1kDrxvmE0OXBb8Y/0ddWXBxicagnqJ
-MFSPxZEjPFHMYq7s8XMd
-=6efY
------END PGP SIGNATURE-----
-
---DHI2P7aGiJMTwxk7hPWFmkN9f48nTQljp--
