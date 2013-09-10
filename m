@@ -1,121 +1,199 @@
 From: Mike Turquette <mturquette@linaro.org>
-Subject: Re: Odd behavior with dpll4_m4x2_ck on omap3 + DT
-Date: Tue, 10 Sep 2013 14:57:07 -0700
-Message-ID: <CAPtuhTgUXf-Knd37_iz1FCvQQDVoub5QTJ-M3rzYw7p_zEQEDQ@mail.gmail.com>
-References: <521DC143.2010506@ti.com> <521DC770.5050000@ti.com>
- <521DCD80.1060600@ti.com> <521DE1A6.6030005@ti.com> <522F0390.9050802@gmail.com>
- <522F0CC7.50501@ti.com> <522F0E3E.1080001@ti.com> <522F0F9B.9050705@ti.com>
- <522F1346.3020206@ti.com> <522F1BF9.5050006@ti.com> <20130910211747.11074.21480@quantum>
+Subject: Re: [PATCHv6 01/45] CLK: TI: Add DPLL clock support
+Date: Tue, 10 Sep 2013 15:09:08 -0700
+Message-ID: <20130910220908.11074.36005@quantum>
+References: <1377782197-10611-1-git-send-email-t-kristo@ti.com>
+ <1377782197-10611-2-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f43.google.com ([74.125.82.43]:59511 "EHLO
-	mail-wg0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751101Ab3IJV53 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Sep 2013 17:57:29 -0400
-Received: by mail-wg0-f43.google.com with SMTP id z12so7244631wgg.22
-        for <linux-omap@vger.kernel.org>; Tue, 10 Sep 2013 14:57:28 -0700 (PDT)
-In-Reply-To: <20130910211747.11074.21480@quantum>
+Received: from mail-pd0-f182.google.com ([209.85.192.182]:58066 "EHLO
+	mail-pd0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752239Ab3IJWJN convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Sep 2013 18:09:13 -0400
+Received: by mail-pd0-f182.google.com with SMTP id r10so8318853pdi.27
+        for <linux-omap@vger.kernel.org>; Tue, 10 Sep 2013 15:09:12 -0700 (PDT)
+In-Reply-To: <1377782197-10611-2-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Stefan Roese <stefan.roese@gmail.com>, linux-omap <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>
+To: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, rnayak@ti.com, nm@ti.com
+Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-On Tue, Sep 10, 2013 at 2:17 PM, Mike Turquette <mturquette@linaro.org> wrote:
-> Quoting Tero Kristo (2013-09-10 06:17:45)
->> On 09/10/2013 03:40 PM, Tomi Valkeinen wrote:
->> > On 10/09/13 15:24, Tero Kristo wrote:
->> >> On 09/10/2013 03:19 PM, Tomi Valkeinen wrote:
->> >>> On 10/09/13 15:12, Tero Kristo wrote:
->> >>>
->> >>>> If it claims it is not locked, it means the DPLL itself is disabled. You
->> >>>> could try clk_enable for the clock before doing clk_set_rate.
->> >>>
->> >>> Hmm, so is it required to enable the clock before setting the rate? If
->> >>> so, I think I'm using the clocks wrong in all the places =).
->> >>
->> >> In generic case, it is not. But DPLLs behave strangely if they go to low
->> >> power stop mode. If there is any downstream clock enabled for a specific
->> >> DPLL it is enabled and things work okay.
->> >>
->> >> One could also argue that the API behavior in OMAP is wrong currently,
->> >> as the bypass rate is something you are most likely never actually going
->> >> to use for anything....
->> >>
->> >> Just try the change and check the results.
->> >
->> > Ok, so as Stefan said, enabling the clock fixes the issue.
->> >
->> > How do you suggest we fix this? Changing omapdss to enable the clock
->> > before changing its rate is not very difficult, so it can be used as a
->> > quick fix. But it doesn't sound like a proper fix if this is not
->> > normally required.
->>
->> The quick fix sounds good to me.
->>
->> > And, maybe I'm missing something as I don't have good understanding of
->> > the PRCM's PLLs, but the current behavior sounds odd. So the DPLL is
->> > off, and in bypass mode. When we try to change the rate of the clock
->> > provided by the PLL, shouldn't it fail, as bypass mode's rate cannot be
->> > changed? Or better, change the non-bypass rate.
->>
->> In theory, DPLLs can also be used in their bypass mode to feed customer
->> nodes clocks. I just think the check in the clkoutx2_recalc is wrong,
->> and should be enhanced to actually check what is the target mode for the
->> clock once it is enabled. Maybe something like this would work properly:
->>
->> diff --git a/arch/arm/mach-omap2/dpll3xxx.c b/arch/arm/mach-omap2/dpll3xxx.c
->> index 3a0296c..ba218fb 100644
->> --- a/arch/arm/mach-omap2/dpll3xxx.c
->> +++ b/arch/arm/mach-omap2/dpll3xxx.c
->> @@ -658,14 +658,12 @@ unsigned long omap3_clkoutx2_recalc(struct clk_hw *hw,
->>
->>          dd = pclk->dpll_data;
->>
->> -       WARN_ON(!dd->enable_mask);
->> -
->> -       v = __raw_readl(dd->control_reg) & dd->enable_mask;
->> -       v >>= __ffs(dd->enable_mask);
->> -       if ((v != OMAP3XXX_EN_DPLL_LOCKED) || (dd->flags & DPLL_J_TYPE))
->> +       if ((dd->flags & DPLL_J_TYPE) ||
->> +           __clk_get_rate(dd->clk_bypass) == __clk_get_rate(pclk))
->
-> Two quick asides here:
->
-> 1) might be nice if the J_TYPE pll was it's own clock type
->
-> 2) would be nice if the check for bypass used something like:
->
-> if (clk_get_parent(hw->clk) == dd->bypass_clk)
->         rate = parent_rate;
->
-> Which implies that the DPLLs become proper mux clocks.
+Quoting Tero Kristo (2013-08-29 06:15:53)
+> The OMAP clock driver now supports DPLL clock type. This patch also
+> adds support for DT DPLL nodes.
+> 
+> Signed-off-by: Tero Kristo <t-kristo@ti.com>
 
-Please disregard the above! I'm reviewing the OMAP v6 CCF series and
-does these things already. Very cool.
+Tero,
+
+Overall this patch is really great. Some minor comments below.
+
+> diff --git a/Documentation/devicetree/bindings/clock/ti/dpll.txt b/Documentation/devicetree/bindings/clock/ti/dpll.txt
+> new file mode 100644
+> index 0000000..83c21c6
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/clock/ti/dpll.txt
+> @@ -0,0 +1,68 @@
+> +Binding for Texas Instruments DPLL clock.
+> +
+> +This binding uses the common clock binding[1].  It assumes a
+> +register-mapped DPLL with usually two selectable input clocks
+> +(reference clock and bypass clock), with digital phase locked
+> +loop logic for multiplying the input clock to a desired output
+> +clock. This clock also typically supports different operation
+> +modes (locked, low power stop etc.) This binding has several
+> +sub-types, which effectively result in slightly different setup
+> +for the actual DPLL clock.
+> +
+> +[1] Documentation/devicetree/bindings/clock/clock-bindings.txt
+> +
+> +Required properties:
+> +- compatible : shall be one of:
+> +               "ti,omap4-dpll-x2-clock",
+> +               "ti,omap3-dpll-clock",
+> +               "ti,omap3-dpll-core-clock",
+> +               "ti,omap3-dpll-per-clock",
+> +               "ti,omap3-dpll-per-j-type-clock",
+> +               "ti,omap4-dpll-clock",
+> +               "ti,omap4-dpll-core-clock",
+> +               "ti,omap4-dpll-m4xen-clock",
+> +               "ti,omap4-dpll-j-type-clock",
+> +               "ti,omap4-dpll-no-gate-clock",
+> +               "ti,omap4-dpll-no-gate-j-type-clock",
+> +
+> +- #clock-cells : from common clock binding; shall be set to 0.
+> +- clocks : link phandles of parent clocks, first entry lists reference clock
+> +  and second entry bypass clock
+> +- reg : address and length of the register set for controlling the DPLL.
+> +  It contains the information of registers in the same order as described by
+> +  reg-names.
+> +- reg-names : array of the register names for controlling the device, sorted
+> +  in the same order as the reg property.
+> +       "control" - contains the control register base address
+> +        "idlest" - contains the idle status register base address
+> +        "autoidle" - contains the autoidle register base address
+> +        "mult-div1" - contains the multiplier / divider register base address
+> +
+> +Optional properties:
+> +- ti,modes : available modes for the DPLL, bitmask of:
+> +  0x02 - DPLL supports low power stop mode
+> +  0x20 - DPLL can be put to low power bypass mode
+> +  0x80 - DPLL can be put to lock mode (running)
+
+Any particular reason to use a bitmask here versus flags/DT properties?
+Something like
+
+Optional properties:
+low-power-stop : DPLL supports low power stop mode, gating output
+low-power-bypass : DPLL output matches rate of parent bypass clock
+lock : DPLL locks in programmed rate
+
+Is there ever a time when a DPLL does not support the locked state? We
+can probably remove that from binding entirely.
+
+> +  Other values currently unsupported.
+> +- ti,clkdm-name : clockdomain name for the DPLL
+
+What does this mean? I thought that the clockdomain data would not go
+into the clock binding?
+
+> diff --git a/drivers/clk/ti/dpll.c b/drivers/clk/ti/dpll.c
+> new file mode 100644
+> index 0000000..3f4236d
+> --- /dev/null
+> +++ b/drivers/clk/ti/dpll.c
+> @@ -0,0 +1,476 @@
+> +/*
+> + * OMAP DPLL clock support
+> + *
+> + * Copyright (C) 2013 Texas Instruments, Inc.
+> + *
+> + * Tero Kristo <t-kristo@ti.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + *
+> + * This program is distributed "as is" WITHOUT ANY WARRANTY of any
+> + * kind, whether express or implied; without even the implied warranty
+> + * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + */
+> +
+> +#include <linux/clk-provider.h>
+> +#include <linux/slab.h>
+> +#include <linux/err.h>
+> +#include <linux/of.h>
+> +#include <linux/of_address.h>
+> +#include <linux/clk/ti.h>
+> +
+> +static const struct clk_ops dpll_m4xen_ck_ops = {
+> +       .enable         = &omap3_noncore_dpll_enable,
+> +       .disable        = &omap3_noncore_dpll_disable,
+> +       .recalc_rate    = &omap4_dpll_regm4xen_recalc,
+> +       .round_rate     = &omap4_dpll_regm4xen_round_rate,
+> +       .set_rate       = &omap3_noncore_dpll_set_rate,
+> +       .get_parent     = &omap2_init_dpll_parent,
+> +};
+> +
+> +static const struct clk_ops dpll_core_ck_ops = {
+> +       .recalc_rate    = &omap3_dpll_recalc,
+> +       .get_parent     = &omap2_init_dpll_parent,
+> +};
+> +
+> +static const struct clk_ops omap3_dpll_core_ck_ops = {
+> +       .init           = &omap2_init_clk_clkdm,
+> +       .get_parent     = &omap2_init_dpll_parent,
+> +       .recalc_rate    = &omap3_dpll_recalc,
+> +       .round_rate     = &omap2_dpll_round_rate,
+> +};
+> +
+> +static const struct clk_ops dpll_ck_ops = {
+> +       .enable         = &omap3_noncore_dpll_enable,
+> +       .disable        = &omap3_noncore_dpll_disable,
+> +       .recalc_rate    = &omap3_dpll_recalc,
+> +       .round_rate     = &omap2_dpll_round_rate,
+> +       .set_rate       = &omap3_noncore_dpll_set_rate,
+> +       .get_parent     = &omap2_init_dpll_parent,
+> +       .init           = &omap2_init_clk_clkdm,
+> +};
+> +
+> +static const struct clk_ops dpll_no_gate_ck_ops = {
+> +       .recalc_rate    = &omap3_dpll_recalc,
+> +       .get_parent     = &omap2_init_dpll_parent,
+> +       .round_rate     = &omap2_dpll_round_rate,
+> +       .set_rate       = &omap3_noncore_dpll_set_rate,
+> +};
+> +
+> +static const struct clk_ops omap3_dpll_ck_ops = {
+> +       .init           = &omap2_init_clk_clkdm,
+> +       .enable         = &omap3_noncore_dpll_enable,
+> +       .disable        = &omap3_noncore_dpll_disable,
+> +       .get_parent     = &omap2_init_dpll_parent,
+> +       .recalc_rate    = &omap3_dpll_recalc,
+> +       .set_rate       = &omap3_noncore_dpll_set_rate,
+> +       .round_rate     = &omap2_dpll_round_rate,
+> +};
+> +
+> +static const struct clk_ops omap3_dpll_per_ck_ops = {
+> +       .init           = &omap2_init_clk_clkdm,
+> +       .enable         = &omap3_noncore_dpll_enable,
+> +       .disable        = &omap3_noncore_dpll_disable,
+> +       .get_parent     = &omap2_init_dpll_parent,
+> +       .recalc_rate    = &omap3_dpll_recalc,
+> +       .set_rate       = &omap3_dpll4_set_rate,
+> +       .round_rate     = &omap2_dpll_round_rate,
+> +};
+> +
+> +static const struct clk_ops dpll_x2_ck_ops = {
+> +       .recalc_rate    = &omap3_clkoutx2_recalc,
+> +};
+
+No .set_parent ops for any of the DPLLs? How do you handle bypassing
+them? Are you using another mux clock that is the parent of the DPLL, or
+just open-coding the bypass stuff?
 
 Regards,
 Mike
-
->
-> Regards,
-> Mike
->
->>                  rate = parent_rate;
->>          else
->>                  rate = parent_rate * 2;
->> +
->>          return rate;
->>   }
->>
->>
->> >
->> > How is the DPLL4's clock rate 432000000 anyway in bypass mode. Isn't
->> > bypass mode usually plain sys-clock, or such?
->>
->> This again reflects the rate that the clock has once it is enabled, the
->> clkoutx2 does not.
->>
->> Getting comment from someone like Paul would probably help here.
->>
->> -Tero
