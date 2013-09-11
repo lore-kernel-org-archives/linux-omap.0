@@ -1,99 +1,80 @@
-From: Felipe Balbi <balbi@ti.com>
+From: Alexey Pelykh <alexey.pelykh@gmail.com>
 Subject: Re: commit 5fe212364 causes division by zero with large bauds
-Date: Wed, 11 Sep 2013 13:38:25 -0500
-Message-ID: <20130911183825.GC10105@radagast>
-References: <20130910190901.GA10105@radagast>
- <CAOmKuSrbaLqaYiJFwonHzC-S003vgg2x0xUG4TGKDpMgvCCGHQ@mail.gmail.com>
-Reply-To: <balbi@ti.com>
+Date: Wed, 11 Sep 2013 21:48:13 +0300
+Message-ID: <CAOmKuSpJ4rX0p0a1gGvc3fVazTg=+43tDfTFiJSrxmAxXihf-A@mail.gmail.com>
+References: <20130910190901.GA10105@radagast> <CAOmKuSrbaLqaYiJFwonHzC-S003vgg2x0xUG4TGKDpMgvCCGHQ@mail.gmail.com>
+ <20130911183825.GC10105@radagast>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="7gGkHNMELEOhSGF6"
-Return-path: <linux-serial-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAOmKuSrbaLqaYiJFwonHzC-S003vgg2x0xUG4TGKDpMgvCCGHQ@mail.gmail.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: Alexey Pelykh <alexey.pelykh@gmail.com>
-Cc: balbi@ti.com, Tony Lindgren <tony@atomide.com>, Greg KH <gregkh@linuxfoundation.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-serial@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20130911183825.GC10105@radagast>
+Sender: linux-kernel-owner@vger.kernel.org
+To: balbi@ti.com
+Cc: Tony Lindgren <tony@atomide.com>, Greg KH <gregkh@linuxfoundation.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-serial@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
---7gGkHNMELEOhSGF6
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Wed, Sep 11, 2013 at 9:38 PM, Felipe Balbi <balbi@ti.com> wrote:
+> Hi,
+>
+> On Wed, Sep 11, 2013 at 09:22:26AM +0300, Alexey Pelykh wrote:
+>> Hi Felipe,
+>>
+>> Thanks for finding this issue. Indeed, there is a bug on 3M+ baud
+>> rates. First patch is close to a complete fix, but still contains
+>> div-by-zero issue. Here is my version:
+>>
+>> diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
+>> index 816d1a2..808a880 100644
+>> --- a/drivers/tty/serial/omap-serial.c
+>> +++ b/drivers/tty/serial/omap-serial.c
+>> @@ -240,8 +240,8 @@ serial_omap_baud_is_mode16(struct uart_port *port,
+>> unsigned int baud)
+>>  {
+>>         unsigned int n13 = port->uartclk / (13 * baud);
+>>         unsigned int n16 = port->uartclk / (16 * baud);
+>> -       int baudAbsDiff13 = baud - (port->uartclk / (13 * n13));
+>> -       int baudAbsDiff16 = baud - (port->uartclk / (16 * n16));
+>> +       int baudAbsDiff13 = n13 ? (baud - (port->uartclk / (13 * n13))) : INT_MAX;
+>> +       int baudAbsDiff16 = n16 ? (baud - (port->uartclk / (16 * n16))) : INT_MAX;
+>
+> IOW:
+>
+> int baudAbsDiff13 = 0;
+>
+> if (n13)
+>         baudAbsDiff13 = (baud - (port->uartclk / (13 * n13)));
 
-Hi,
+Not quite same code, INT_MAX instead of 0. With 0 a div-by-zero
+exception will still occur on 3686400.
 
-On Wed, Sep 11, 2013 at 09:22:26AM +0300, Alexey Pelykh wrote:
-> Hi Felipe,
->=20
-> Thanks for finding this issue. Indeed, there is a bug on 3M+ baud
-> rates. First patch is close to a complete fix, but still contains
-> div-by-zero issue. Here is my version:
->=20
-> diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-s=
-erial.c
-> index 816d1a2..808a880 100644
-> --- a/drivers/tty/serial/omap-serial.c
-> +++ b/drivers/tty/serial/omap-serial.c
-> @@ -240,8 +240,8 @@ serial_omap_baud_is_mode16(struct uart_port *port,
-> unsigned int baud)
->  {
->         unsigned int n13 =3D port->uartclk / (13 * baud);
->         unsigned int n16 =3D port->uartclk / (16 * baud);
-> -       int baudAbsDiff13 =3D baud - (port->uartclk / (13 * n13));
-> -       int baudAbsDiff16 =3D baud - (port->uartclk / (16 * n16));
-> +       int baudAbsDiff13 =3D n13 ? (baud - (port->uartclk / (13 * n13)))=
- : INT_MAX;
-> +       int baudAbsDiff16 =3D n16 ? (baud - (port->uartclk / (16 * n16)))=
- : INT_MAX;
+>
+> which is exactly what my patch did. I fail to see where division by zero
+> would be coming from.
+>
+>>         if(baudAbsDiff13 < 0)
+>>                 baudAbsDiff13 = -baudAbsDiff13;
+>>         if(baudAbsDiff16 < 0)
+>>
+>>
+>> With 48MHz UART clock, it will give
+>> 300: divisor = 12307 (13), real rate 300 (0.000000%)
+>> 600: divisor = 6153 (13), real rate 600 (0.000000%)
+>> 1200: divisor = 3076 (13), real rate 1200 (0.000000%)
+>> 2400: divisor = 1538 (13), real rate 2400 (0.000000%)
+>
+> TRM has these all set with oversampling of 16. In fact only 460800,
+> 921600, 1843200 and 3686400 should be using oversampling of 13.
+>
 
-IOW:
+That's true, but TRM anyways does not contain all possible baud rates
+(1M e.g.). IMO, as long as error rate is the same as in TRM,
+it makes no difference what combination of (mode, divisor) to use.
 
-int baudAbsDiff13 =3D 0;
+> --
+> balbi
 
-if (n13)
-	baudAbsDiff13 =3D (baud - (port->uartclk / (13 * n13)));
+A complex solution may be implemented: use LUT for baud rates that TRM
+defines explicitly, and use calculation if lookup failed.
 
-which is exactly what my patch did. I fail to see where division by zero
-would be coming from.
-
->         if(baudAbsDiff13 < 0)
->                 baudAbsDiff13 =3D -baudAbsDiff13;
->         if(baudAbsDiff16 < 0)
->=20
->=20
-> With 48MHz UART clock, it will give
-> 300: divisor =3D 12307 (13), real rate 300 (0.000000%)
-> 600: divisor =3D 6153 (13), real rate 600 (0.000000%)
-> 1200: divisor =3D 3076 (13), real rate 1200 (0.000000%)
-> 2400: divisor =3D 1538 (13), real rate 2400 (0.000000%)
-
-TRM has these all set with oversampling of 16. In fact only 460800,
-921600, 1843200 and 3686400 should be using oversampling of 13.
-
---=20
-balbi
-
---7gGkHNMELEOhSGF6
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJSMLihAAoJEIaOsuA1yqREg5QP/19hCQd5KWHH/DBYJz+VCV4T
-/5b3AfKiUBhe41SO3pdbLqfKe2BJzYsKftwOA7534/wjI2eRtMSxd/9Y6gbAiliE
-W9MiIMapDwTduqGSRJGnL/RW5CMCe9Z78UbDB3kx7uH+aE2DxNfr98jXkqiidihB
-KnNOjzGDI7PkneG80WBf/iLhonQkXaof+crw6OAvll79x2LeJ7bfWfCFwhebXEru
-OfLrn/S/nrddQrHU3F8EyKvOKwH8crX8lRmTVwocvCE2Mq81Ne99eNjdlIVmqCK6
-BPpO/Njlx/86nUdFsa36ufmo0KVwGqCmyr8kK+wLbjfUTpK0FXGaQlzawQyVbCDn
-8ohPteVBTE+bh5Mc1ROut7qKlOCjmc6NbNlBLK4KKlaRifzcz3fcdRDwT3Wx0Fe5
-2HA54FpjWLtkbcARtAVQqWt07zeUCKwUtBpp2DiViUXLV3THl0VesdAsf3jHoTK/
-nAtfH6n6Wk9KOGrBeaynbzQGJcaSvABFOyJYBB+5jfUgPIzWIztDDgnOUi20TT71
-g0L9HmhkAMXDJwVddYvpND03WyXzoWewJnOlI4c3VJf/ShPvZhzPgy+dydCKmGAk
-c2qmjILzjk1i/drVzVIhUpq0CqnbpxZE8UNZuzpfo2UenMDflcNcIzO+4bCd/2FW
-ppe2IVvY0l67k37DDhKG
-=E6B7
------END PGP SIGNATURE-----
-
---7gGkHNMELEOhSGF6--
+Thanks,
+Alexey
