@@ -1,113 +1,99 @@
-From: Alexander Holler <holler@ahsoftware.de>
-Subject: Re: [PATCH] RFC: interrupt consistency check for OF GPIO IRQs
-Date: Wed, 11 Sep 2013 19:42:06 +0200
-Message-ID: <5230AB6E.1070807@ahsoftware.de>
-References: <1375101368-17645-1-git-send-email-linus.walleij@linaro.org> <CACxGe6uNJNMdZ1HYGgCtLM2t2TWGCR6btjOHVmP=vDXXvvFfRg@mail.gmail.com> <CACRpkdYjJL6FZwEbB7XLnb9QtjB=3LeE9Ny6KQ4PkM3zpdNqqg@mail.gmail.com> <344239800.bDEkDg48ZQ@avalon> <CACRpkdavR=fv+y1RCNfdgQypPuRbO6isOSwGsABDrYiGeMdyZw@mail.gmail.com> <52308C91.2000105@ahsoftware.de> <523096FE.8080901@collabora.co.uk>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: commit 5fe212364 causes division by zero with large bauds
+Date: Wed, 11 Sep 2013 13:38:25 -0500
+Message-ID: <20130911183825.GC10105@radagast>
+References: <20130910190901.GA10105@radagast>
+ <CAOmKuSrbaLqaYiJFwonHzC-S003vgg2x0xUG4TGKDpMgvCCGHQ@mail.gmail.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <523096FE.8080901@collabora.co.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Grant Likely <grant.likely@linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Enric Balletbo i Serra <eballetbo@gmail.com>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@linaro.org>, Balaji T K <balajitk@ti.com>, Tony Lindgren <tony@atomide.com>, Jon Hunter <jgchunter@gmail.com>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="7gGkHNMELEOhSGF6"
+Return-path: <linux-serial-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAOmKuSrbaLqaYiJFwonHzC-S003vgg2x0xUG4TGKDpMgvCCGHQ@mail.gmail.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: Alexey Pelykh <alexey.pelykh@gmail.com>
+Cc: balbi@ti.com, Tony Lindgren <tony@atomide.com>, Greg KH <gregkh@linuxfoundation.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-serial@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Am 11.09.2013 18:14, schrieb Javier Martinez Canillas:
-> On 09/11/2013 05:30 PM, Alexander Holler wrote:
->> Am 22.08.2013 00:02, schrieb Linus Walleij:
->>> On Tue, Aug 20, 2013 at 12:04 AM, Laurent Pinchart
->>> <laurent.pinchart@ideasonboard.com> wrote:
->>>> On Wednesday 31 July 2013 01:44:53 Linus Walleij wrote:
->>>
->>>>> I don't see how sharing works here, or how another user, i.e. another one
->>>>> than the user wanting to recieve the IRQ, can validly request such a line?
->>>>> What would the usecase for that valid request be?
->>>>
->>>> When the GPIO is wired to a status signal (such as an MMC card detect signal)
->>>> the driver might want to read the state of the signal independently of the
->>>> interrupt handler.
->>>
->>> That is true. But for such a complex usecase I think it's reasonable that
->>> we only specify the GPIO in the device tree, and the driver utilizing the
->>> IRQ need to take that and perform gpio_to_irq() on it, and then it still
->>> works to use it both ways.
->>
->> Hmm, the problem is that DT is seen as fixed. So if someone marks a GPIO
->> as an IRQ, it can never be used otherwise. So if you really go this way,
->> you should make this pretty clear in the documentation.
->>
->
-> DT is fixed because that describes the hardware which is fixed of course. So if
-> a chip IRQ line is connected to a GPIO pin in a controller that should be
-> described in the DT and that pin can't be used for anything else.
->
+--7gGkHNMELEOhSGF6
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-If you request an gpio for every gpio which defined as IRQ centrally, 
-drivers can't just use that gpio as gpio afterwards. And there might be 
-one driver which uses the irq but another one which wants the gpio. But 
-if you define a gpio as irq in dt, you take away that choice.
+Hi,
 
->> Looking from the other side, why do you want to mark GPIOs as IRQs in
->> the DT at all?
->
-> Because from the component point-of-view that is wired to the SoC, that GPIO is
-> an IRQ line and so it has to be described.
->
->> And how will this be done? I found the way it was done in
->> the reverted patch very confusing because it needed an IRQ number. That
->> IRQ number depends on the mapping and isn't hw specific (and currently
->> just human doable because of the simple mapping).
->>
->
-> That's is not true. You don't define an IRQ number what you define is a GPIO
-> number that is mapped as IRQ. The GPIO number does not depend on the mapping and
-> it only depends on the GPIO controller.
->
-> This has absolutely nothing to do with the reverted patches and is described in
-> Documentation/devicetree/bindings/interrupt-controller/interrupts.txt.
->
-> The only difference is that the reverted patches did actually take an action
-> when a GPIO pin was mapped as an IRQ (requesting the GPIO and as input).
->
-> So for example in an OMAP board DT you can define something like this:
->
-> ethernet@5,0 {
->          compatible = "smsc,lan9221", "smsc,lan9115";
->          interrupt-parent = <&gpio6>;
->          interrupts = <16 8>;
-> };
->
-> Since each OMAP GPIO bank has 32 GPIO pins, then what you are defining is that
-> the GPIO 176 (5 * 32 + 16) will be mapped as the IRQ line for the ethernet
-> controller.
->
-> I explained the exact use case I'm trying to solve in the thread "Re: [PATCH v3]
-> gpio: interrupt consistency check for OF GPIO IRQs" [1] if you need more
-> context. I'm sure others cc'ed in this thread have different (but similar)
-> requirements.
+On Wed, Sep 11, 2013 at 09:22:26AM +0300, Alexey Pelykh wrote:
+> Hi Felipe,
+>=20
+> Thanks for finding this issue. Indeed, there is a bug on 3M+ baud
+> rates. First patch is close to a complete fix, but still contains
+> div-by-zero issue. Here is my version:
+>=20
+> diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-s=
+erial.c
+> index 816d1a2..808a880 100644
+> --- a/drivers/tty/serial/omap-serial.c
+> +++ b/drivers/tty/serial/omap-serial.c
+> @@ -240,8 +240,8 @@ serial_omap_baud_is_mode16(struct uart_port *port,
+> unsigned int baud)
+>  {
+>         unsigned int n13 =3D port->uartclk / (13 * baud);
+>         unsigned int n16 =3D port->uartclk / (16 * baud);
+> -       int baudAbsDiff13 =3D baud - (port->uartclk / (13 * n13));
+> -       int baudAbsDiff16 =3D baud - (port->uartclk / (16 * n16));
+> +       int baudAbsDiff13 =3D n13 ? (baud - (port->uartclk / (13 * n13)))=
+ : INT_MAX;
+> +       int baudAbsDiff16 =3D n16 ? (baud - (port->uartclk / (16 * n16)))=
+ : INT_MAX;
 
-So I would extend my previous proposal
-(http://www.mail-archive.com/linux-omap@vger.kernel.org/msg95202.html)
-for a gpio_request_as_irq() such, that I would change that to 
-request_irq_new(number, irq_controller) where the irq_controller would 
-be the gpio-controller in case of omap (while marking gpio_to_irq() as 
-deprecated).
+IOW:
 
-So request_irq_new() would than do the following on omap if the 
-irq-controller is a gpio-controller:
+int baudAbsDiff13 =3D 0;
 
-gpio_request() // This works only if the gpio was not requested before
-gpio_direction_input()
-(build irq-mapping)
-gpio_to_irq() // This needs an irq-mapping
-return request_threaded_irq()
+if (n13)
+	baudAbsDiff13 =3D (baud - (port->uartclk / (13 * n13)));
 
-and all drivers could replace the above sequence just with 
-request_irq_new(number_from_dt, irq-controller_from_dt).
+which is exactly what my patch did. I fail to see where division by zero
+would be coming from.
 
-How's that?
+>         if(baudAbsDiff13 < 0)
+>                 baudAbsDiff13 =3D -baudAbsDiff13;
+>         if(baudAbsDiff16 < 0)
+>=20
+>=20
+> With 48MHz UART clock, it will give
+> 300: divisor =3D 12307 (13), real rate 300 (0.000000%)
+> 600: divisor =3D 6153 (13), real rate 600 (0.000000%)
+> 1200: divisor =3D 3076 (13), real rate 1200 (0.000000%)
+> 2400: divisor =3D 1538 (13), real rate 2400 (0.000000%)
 
-Regards,
+TRM has these all set with oversampling of 16. In fact only 460800,
+921600, 1843200 and 3686400 should be using oversampling of 13.
 
-Alexander Holler
+--=20
+balbi
+
+--7gGkHNMELEOhSGF6
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJSMLihAAoJEIaOsuA1yqREg5QP/19hCQd5KWHH/DBYJz+VCV4T
+/5b3AfKiUBhe41SO3pdbLqfKe2BJzYsKftwOA7534/wjI2eRtMSxd/9Y6gbAiliE
+W9MiIMapDwTduqGSRJGnL/RW5CMCe9Z78UbDB3kx7uH+aE2DxNfr98jXkqiidihB
+KnNOjzGDI7PkneG80WBf/iLhonQkXaof+crw6OAvll79x2LeJ7bfWfCFwhebXEru
+OfLrn/S/nrddQrHU3F8EyKvOKwH8crX8lRmTVwocvCE2Mq81Ne99eNjdlIVmqCK6
+BPpO/Njlx/86nUdFsa36ufmo0KVwGqCmyr8kK+wLbjfUTpK0FXGaQlzawQyVbCDn
+8ohPteVBTE+bh5Mc1ROut7qKlOCjmc6NbNlBLK4KKlaRifzcz3fcdRDwT3Wx0Fe5
+2HA54FpjWLtkbcARtAVQqWt07zeUCKwUtBpp2DiViUXLV3THl0VesdAsf3jHoTK/
+nAtfH6n6Wk9KOGrBeaynbzQGJcaSvABFOyJYBB+5jfUgPIzWIztDDgnOUi20TT71
+g0L9HmhkAMXDJwVddYvpND03WyXzoWewJnOlI4c3VJf/ShPvZhzPgy+dydCKmGAk
+c2qmjILzjk1i/drVzVIhUpq0CqnbpxZE8UNZuzpfo2UenMDflcNcIzO+4bCd/2FW
+ppe2IVvY0l67k37DDhKG
+=E6B7
+-----END PGP SIGNATURE-----
+
+--7gGkHNMELEOhSGF6--
