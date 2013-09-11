@@ -1,60 +1,80 @@
-From: Alexander Holler <holler@ahsoftware.de>
-Subject: Re: [PATCH] RFC: interrupt consistency check for OF GPIO IRQs
-Date: Wed, 11 Sep 2013 09:36:11 +0200
-Message-ID: <52301D6B.70305@ahsoftware.de>
-References: <1375101368-17645-1-git-send-email-linus.walleij@linaro.org> <CACxGe6uNJNMdZ1HYGgCtLM2t2TWGCR6btjOHVmP=vDXXvvFfRg@mail.gmail.com> <CACRpkdYjJL6FZwEbB7XLnb9QtjB=3LeE9Ny6KQ4PkM3zpdNqqg@mail.gmail.com> <51F8CC35.1070704@collabora.co.uk> <522EC392.8070002@ti.com> <522F1BF0.8080608@collabora.co.uk> <522F3408.6050608@ti.com> <52301655.6080801@ahsoftware.de> <523018DB.7080004@ahsoftware.de> <52301C13.2030103@ahsoftware.de>
+From: Sekhar Nori <nsekhar@ti.com>
+Subject: Re: [PATCH 2/2] am335x-boneblack: add eMMC DT entry
+Date: Wed, 11 Sep 2013 15:36:45 +0530
+Message-ID: <523040B5.60407@ti.com>
+References: <1378879946-13037-1-git-send-email-koen@dominion.thruhere.net>
+ <1378879946-13037-3-git-send-email-koen@dominion.thruhere.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from h1446028.stratoserver.net ([85.214.92.142]:45629 "EHLO
-	mail.ahsoftware.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751495Ab3IKHgb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Sep 2013 03:36:31 -0400
-In-Reply-To: <52301C13.2030103@ahsoftware.de>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1378879946-13037-3-git-send-email-koen@dominion.thruhere.net>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Koen Kooi <koen@dominion.thruhere.net>
+Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, linux@arm.linux.org.uk, pawel.moll@arm.com, swarren@wwwdotorg.org, tony@atomide.com, ijc+devicetree@hellion.org.uk, linux-kernel@vger.kernel.org, rob.herring@calxeda.com, bcousson@baylibre.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: joelf@ti.com
-Cc: Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Linus Walleij <linus.walleij@linaro.org>, Grant Likely <grant.likely@linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Enric Balletbo i Serra <eballetbo@gmail.com>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@linaro.org>, Balaji T K <balajitk@ti.com>, Tony Lindgren <tony@atomide.com>, Jon Hunter <jgchunter@gmail.com>
 
-Am 11.09.2013 09:30, schrieb Alexander Holler:
-> And another small update. ;)
->
-> Am 11.09.2013 09:16, schrieb Alexander Holler:
->
->>> To summarize what happens if a driver uses a gpio as irq:
->>>
->>> gpio_request() // This works only if the gpio was not requested before
->>> gpio_direction_input()
->>> gpio_to_irq() // This needs an irq-mapping
->>> request_threaded_irq()
->>>
->>> So I would suggest multiple steps to change that:
->>>
->>> 1. Create a mapping for every gpio found in DT (or all gpios if no DT is
->>> used). I think that is what Linus patch does (sorry, I haven't really
->>> followed this thread and didn't look in deep at the patch).
->>>
->>> 2. Implement gpio_request_for_irq()
->>> This would just be a small macro for gpio_request();
->>> gpio_direction_input()
->>>
->
-> I would add gpio_to_irq() to that macro, so that it returns the irq
-> number or zero if something failed.
+On Wednesday 11 September 2013 11:42 AM, Koen Kooi wrote:
+> Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
+> ---
+>  arch/arm/boot/dts/am335x-bone-common.dtsi |  7 +++++++
+>  arch/arm/boot/dts/am335x-boneblack.dts    | 15 +++++++++++++++
+>  2 files changed, 22 insertions(+)
+> 
+> diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
+> index ced256c..9c61fef 100644
+> --- a/arch/arm/boot/dts/am335x-bone-common.dtsi
+> +++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
+> @@ -241,6 +241,13 @@
+>  			regulator-always-on;
+>  		};
+>  	};
+> +
+> +	vmmcsd_fixed: fixedregulator@0 {
+> +		compatible = "regulator-fixed";
+> +		regulator-name = "vmmcsd_fixed";
+> +		regulator-min-microvolt = <3300000>;
+> +		regulator-max-microvolt = <3300000>;
+> +	};
+>  };
+>  
+>  &cpsw_emac0 {
+> diff --git a/arch/arm/boot/dts/am335x-boneblack.dts b/arch/arm/boot/dts/am335x-boneblack.dts
+> index 197cadf..c09947a 100644
+> --- a/arch/arm/boot/dts/am335x-boneblack.dts
+> +++ b/arch/arm/boot/dts/am335x-boneblack.dts
+> @@ -15,3 +15,18 @@
+>  	regulator-max-microvolt = <1800000>;
+>  	regulator-always-on;
+>  };
+> +
+> +&mmc1 { 
+> +	vmmc-supply = <&vmmcsd_fixed>;
+> +};
+> +
+> +&mmc2 { 
+> +	vmmc-supply = <&vmmcsd_fixed>;
+> +	pinctrl-names = "default";
+> +	pinctrl-0 = <&emmc_pins>;
+> +	bus-width = <8>;
+> +	ti,non-removable;
 
-Doing that, it would be easy to mark gpio_to_irq() as deprecated and 
-driver authors would change automatically to use gpio_request_for_irq()
-(or gpio_request_as_irq() which might more correct english).
+There is a standard binding available for this: "non-removable"
+There should not be a need to introduce a TI specific binding for this
+(I know this is not your fault).
 
-So I would suggest just the two steps above, the first with the mapping 
-and the second which introduces gpio_request_as_irq() and marks 
-gpio_to_irq() as deprecated.
+I will send a patch to change the existing .dts files and update the
+driver - can you drop this line for now so we don't introduce more
+incompatibilities? I can send a patch adding "non-removable" to this
+node as part of my clean-up series.
 
-Everthing else I would leave out for the future (so I wouldn't request 
-gpios centrally).
-
-Regards,
-
-Alexander Holler
-
+Thanks,
+Sekhar
