@@ -1,80 +1,56 @@
-From: Sathya Prakash M R <sathyap@ti.com>
-Subject: [PATCH 1/1] OMAPDSS: Return right error during connector probe
-Date: Thu, 12 Sep 2013 14:12:55 +0530
-Message-ID: <1378975375-14747-1-git-send-email-sathyap@ti.com>
-References: <yes>
+From: Alexander Holler <holler@ahsoftware.de>
+Subject: Re: [PATCH] RFC: interrupt consistency check for OF GPIO IRQs
+Date: Thu, 12 Sep 2013 10:55:27 +0200
+Message-ID: <5231817F.8000901@ahsoftware.de>
+References: <1375101368-17645-1-git-send-email-linus.walleij@linaro.org> <CACxGe6uNJNMdZ1HYGgCtLM2t2TWGCR6btjOHVmP=vDXXvvFfRg@mail.gmail.com> <CACRpkdYjJL6FZwEbB7XLnb9QtjB=3LeE9Ny6KQ4PkM3zpdNqqg@mail.gmail.com> <344239800.bDEkDg48ZQ@avalon> <CACRpkdavR=fv+y1RCNfdgQypPuRbO6isOSwGsABDrYiGeMdyZw@mail.gmail.com> <52308C91.2000105@ahsoftware.de> <523096FE.8080901@collabora.co.uk> <5230AB6E.1070807@ahsoftware.de>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:44677 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751939Ab3ILInB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 12 Sep 2013 04:43:01 -0400
-Received: from dlelxv90.itg.ti.com ([172.17.2.17])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id r8C8h17T023473
-	for <linux-omap@vger.kernel.org>; Thu, 12 Sep 2013 03:43:01 -0500
-Received: from DLEE70.ent.ti.com (dlee70.ent.ti.com [157.170.170.113])
-	by dlelxv90.itg.ti.com (8.14.3/8.13.8) with ESMTP id r8C8h1KR008402
-	for <linux-omap@vger.kernel.org>; Thu, 12 Sep 2013 03:43:01 -0500
-In-Reply-To: <yes>
+Received: from h1446028.stratoserver.net ([85.214.92.142]:51481 "EHLO
+	mail.ahsoftware.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753742Ab3ILI4p (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Sep 2013 04:56:45 -0400
+In-Reply-To: <5230AB6E.1070807@ahsoftware.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: tomi.valkeinen@ti.com, Sathya Prakash M R <sathyap@ti.com>
+To: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Grant Likely <grant.likely@linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Enric Balletbo i Serra <eballetbo@gmail.com>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@linaro.org>, Balaji T K <balajitk@ti.com>, Tony Lindgren <tony@atomide.com>, Jon Hunter <jgchunter@gmail.com>
 
-While using HDMI connector driver with sil9022 encoder
-came across issue where connector driver is probed first.
-This resulted in error. A deffered probe solved this.
-Most connector drivers need a encoder driver as their
-video source. This patch ensures we do a probe defferal
-if video source is not present for connector drivers.
+Am 11.09.2013 19:42, schrieb Alexander Holler:
+> Am 11.09.2013 18:14, schrieb Javier Martinez Canillas:
 
-Signed-off-by: Sathya Prakash M R <sathyap@ti.com>
----
- .../video/omap2/displays-new/connector-analog-tv.c |    2 +-
- drivers/video/omap2/displays-new/connector-dvi.c   |    2 +-
- drivers/video/omap2/displays-new/connector-hdmi.c  |    2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+>> So for example in an OMAP board DT you can define something like this:
+>>
+>> ethernet@5,0 {
+>>          compatible = "smsc,lan9221", "smsc,lan9115";
+>>          interrupt-parent = <&gpio6>;
+>>          interrupts = <16 8>;
+>> };
+>>
+>> Since each OMAP GPIO bank has 32 GPIO pins, then what you are defining
+>> is that
+>> the GPIO 176 (5 * 32 + 16) will be mapped as the IRQ line for the
+>> ethernet
+>> controller.
 
-diff --git a/drivers/video/omap2/displays-new/connector-analog-tv.c b/drivers/video/omap2/displays-new/connector-analog-tv.c
-index 5338f36..547a604 100644
---- a/drivers/video/omap2/displays-new/connector-analog-tv.c
-+++ b/drivers/video/omap2/displays-new/connector-analog-tv.c
-@@ -177,7 +177,7 @@ static int tvc_probe_pdata(struct platform_device *pdev)
- 	in = omap_dss_find_output(pdata->source);
- 	if (in == NULL) {
- 		dev_err(&pdev->dev, "Failed to find video source\n");
--		return -ENODEV;
-+		return -EPROBE_DEFER;
- 	}
- 
- 	ddata->in = in;
-diff --git a/drivers/video/omap2/displays-new/connector-dvi.c b/drivers/video/omap2/displays-new/connector-dvi.c
-index bc5f8ce..63d88ee 100644
---- a/drivers/video/omap2/displays-new/connector-dvi.c
-+++ b/drivers/video/omap2/displays-new/connector-dvi.c
-@@ -263,7 +263,7 @@ static int dvic_probe_pdata(struct platform_device *pdev)
- 	in = omap_dss_find_output(pdata->source);
- 	if (in == NULL) {
- 		dev_err(&pdev->dev, "Failed to find video source\n");
--		return -ENODEV;
-+		return -EPROBE_DEFER;
- 	}
- 
- 	ddata->in = in;
-diff --git a/drivers/video/omap2/displays-new/connector-hdmi.c b/drivers/video/omap2/displays-new/connector-hdmi.c
-index c582671..9abe2c0 100644
---- a/drivers/video/omap2/displays-new/connector-hdmi.c
-+++ b/drivers/video/omap2/displays-new/connector-hdmi.c
-@@ -290,7 +290,7 @@ static int hdmic_probe_pdata(struct platform_device *pdev)
- 	in = omap_dss_find_output(pdata->source);
- 	if (in == NULL) {
- 		dev_err(&pdev->dev, "Failed to find video source\n");
--		return -ENODEV;
-+		return -EPROBE_DEFER;
- 	}
- 
- 	ddata->in = in;
--- 
-1.7.9.5
+By the way, how do you define two GPIOs/IRQs from different
+gpio-banks/irq-controllers wuth that scheme?
 
+Would that be like below?
+
+ ethernet@5,0 {
+          compatible = "smsc,lan9221", "smsc,lan9115";
+          interrupt-parent = <&gpio6>;
+          interrupts = <16 8>;
+          interrupt-parent = <&gpio7>;
+          interrupts = <1 IRQF_TRIGGER_FALLING>; /* GPIO7_1 */
+ };
+
+So multiple definitions of interrupt-parent are allowed and the order
+does matter? And such does work? Sorry for asking, but I'm relatively
+new to DT. ;)
+
+Regards,
+
+Alexander Holler
