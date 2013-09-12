@@ -1,76 +1,157 @@
-From: Alexander Holler <holler@ahsoftware.de>
-Subject: Re: [PATCH] RFC: interrupt consistency check for OF GPIO IRQs
-Date: Thu, 12 Sep 2013 12:28:17 +0200
-Message-ID: <52319741.5050407@ahsoftware.de>
-References: <1375101368-17645-1-git-send-email-linus.walleij@linaro.org> <CACxGe6uNJNMdZ1HYGgCtLM2t2TWGCR6btjOHVmP=vDXXvvFfRg@mail.gmail.com> <CACRpkdYjJL6FZwEbB7XLnb9QtjB=3LeE9Ny6KQ4PkM3zpdNqqg@mail.gmail.com> <344239800.bDEkDg48ZQ@avalon> <CACRpkdavR=fv+y1RCNfdgQypPuRbO6isOSwGsABDrYiGeMdyZw@mail.gmail.com> <52308C91.2000105@ahsoftware.de> <523096FE.8080901@collabora.co.uk> <5230AB6E.1070807@ahsoftware.de> <5231817F.8000901@ahsoftware.de> <5231934D.4060706@collabora.co.uk>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH 1/7] usb: dwc3: get "usb_phy" only if the platform
+ indicates the presence of PHY
+Date: Thu, 12 Sep 2013 13:36:02 +0300
+Message-ID: <52319912.8030203@ti.com>
+References: <1378136591-7463-1-git-send-email-kishon@ti.com>
+ <1378136591-7463-2-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from h1446028.stratoserver.net ([85.214.92.142]:36938 "EHLO
-	mail.ahsoftware.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751955Ab3ILK2h (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Sep 2013 06:28:37 -0400
-In-Reply-To: <5231934D.4060706@collabora.co.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1378136591-7463-2-git-send-email-kishon@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, george.cherian@ti.com, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, s.nawrocki@samsung.com, pawel.moll@arm.com, swarren@wwwdotorg.org, tony@atomide.com, gregkh@linuxfoundation.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, rob.herring@calxeda.com, linux-usb@vger.kernel.org, balbi@ti.com, bcousson@baylibre.com, galak@codeaurora.org, grant.likely@linaro.org, rob@landley.net, linux-arm-kernel@lists.infradead.org, ian.campbell@citrix.com
 List-Id: linux-omap@vger.kernel.org
-To: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Grant Likely <grant.likely@linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Enric Balletbo i Serra <eballetbo@gmail.com>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@linaro.org>, Balaji T K <balajitk@ti.com>, Tony Lindgren <tony@atomide.com>, Jon Hunter <jgchunter@gmail.com>
 
-Am 12.09.2013 12:11, schrieb Javier Martinez Canillas:
-> On 09/12/2013 10:55 AM, Alexander Holler wrote:
+Hi Kishon,
 
-...
->>
->> By the way, how do you define two GPIOs/IRQs from different
->> gpio-banks/irq-controllers wuth that scheme?
->>
->
-> That is indeed a very good question and I don't have a definite answer.
->
->> Would that be like below?
->>
->>   ethernet@5,0 {
->>            compatible = "smsc,lan9221", "smsc,lan9115";
->>            interrupt-parent = <&gpio6>;
->>            interrupts = <16 8>;
->>            interrupt-parent = <&gpio7>;
->>            interrupts = <1 IRQF_TRIGGER_FALLING>; /* GPIO7_1 */
->>   };
->>
+On 09/02/2013 06:43 PM, Kishon Vijay Abraham I wrote:
+> There can be systems which does not have a external usb_phy, so get
+> usb_phy only if usb-phy property is added in the case of dt boot or if
+> platform_data indicates the presence of PHY. Also remove checking if
+> return value is -ENXIO since it's now changed to always enable usb_phy layer.
+> 
+> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> ---
+>  drivers/usb/dwc3/Kconfig         |    1 +
+>  drivers/usb/dwc3/core.c          |   60 +++++++++++++++++---------------------
+>  drivers/usb/dwc3/platform_data.h |    1 +
+>  3 files changed, 28 insertions(+), 34 deletions(-)
+> 
+> diff --git a/drivers/usb/dwc3/Kconfig b/drivers/usb/dwc3/Kconfig
+> index f969ea2..cfc16dd 100644
+> --- a/drivers/usb/dwc3/Kconfig
+> +++ b/drivers/usb/dwc3/Kconfig
+> @@ -2,6 +2,7 @@ config USB_DWC3
+>  	tristate "DesignWare USB3 DRD Core Support"
+>  	depends on (USB || USB_GADGET) && GENERIC_HARDIRQS && HAS_DMA
+>  	depends on EXTCON
+> +	select USB_PHY
+>  	select USB_XHCI_PLATFORM if USB_SUPPORT && USB_XHCI_HCD
+>  	help
+>  	  Say Y or M here if your system has a Dual Role SuperSpeed
+> diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
+> index 474162e..428c29e 100644
+> --- a/drivers/usb/dwc3/core.c
+> +++ b/drivers/usb/dwc3/core.c
+> @@ -387,16 +387,38 @@ static int dwc3_probe(struct platform_device *pdev)
+>  	if (node) {
+>  		dwc->maximum_speed = of_usb_get_maximum_speed(node);
+>  
+> -		dwc->usb2_phy = devm_usb_get_phy_by_phandle(dev, "usb-phy", 0);
+> -		dwc->usb3_phy = devm_usb_get_phy_by_phandle(dev, "usb-phy", 1);
+> +		if (of_property_read_bool(node, "usb-phy")) {
+> +			dwc->usb2_phy = devm_usb_get_phy_by_phandle(dev,
+> +				"usb-phy", 0);
+> +			if (IS_ERR(dwc->usb2_phy))
+> +				return PTR_ERR(dwc->usb2_phy);
+> +			dwc->usb3_phy = devm_usb_get_phy_by_phandle(dev,
+> +				"usb-phy", 1);
+> +			if (IS_ERR(dwc->usb3_phy))
+> +				return PTR_ERR(dwc->usb3_phy);
 
-...
+Some DWC3 instances use only usb2_phy. e.g. on DRA7 the 2nd dwc3 instance doesn't use usb3_phy.
+This needs to be a valid case and driver shouldn't error out.
 
-> So, if I understood the code correctly the DT IRQ core doesn't expect a device
-> node to have more than one "interrupt-parent" property.
->
-> It *should* work though if you have multiple "interrupts" properties defined and
-> all of them have the same "interrupt-parent":
->
->         interrupt-parent = <&gpio6>;
->         interrupts = <1 IRQF_TRIGGER_HIGH>; /* GPIO6_1 */
->         interrupts = <2 IRQF_TRIGGER_LOW>; /* GPIO6_2 */
->
-> since of_irq_map_one() will be called for each "interrupts" and the correct
-> "interrupt-parent" will get obtained by of_irq_find_parent().
+> +		} else {
+> +			dwc->usb2_phy = NULL;
+> +			dwc->usb3_phy = NULL;
+> +		}
+>  
+>  		dwc->needs_fifo_resize = of_property_read_bool(node, "tx-fifo-resize");
+>  		dwc->dr_mode = of_usb_get_dr_mode(node);
+>  	} else if (pdata) {
+>  		dwc->maximum_speed = pdata->maximum_speed;
+>  
+> -		dwc->usb2_phy = devm_usb_get_phy(dev, USB_PHY_TYPE_USB2);
+> -		dwc->usb3_phy = devm_usb_get_phy(dev, USB_PHY_TYPE_USB3);
+> +		if (pdata->has_phy) {
+> +			dwc->usb2_phy = devm_usb_get_phy(dev,
+> +				USB_PHY_TYPE_USB2);
+> +			if (IS_ERR(dwc->usb2_phy))
+> +				return PTR_ERR(dwc->usb2_phy);
+> +			dwc->usb3_phy = devm_usb_get_phy(dev,
+> +				USB_PHY_TYPE_USB3);
+> +			if (IS_ERR(dwc->usb3_phy))
+> +				return PTR_ERR(dwc->usb3_phy);
 
-I assumed that answer. So to make such a scenario possible, something 
-like this might be neccessary:
+same here?
 
-          interrupts = <&gpio6 1 IRQF_TRIGGER_HIGH>; /* GPIO6_1 */
-          interrupts = <&gpio7 2 IRQF_TRIGGER_LOW>; /* GPIO7_2 */
+> +		} else {
+> +			dwc->usb2_phy = NULL;
+> +			dwc->usb3_phy = NULL;
+> +		}
+>  
+>  		dwc->needs_fifo_resize = pdata->tx_fifo_resize;
+>  		dwc->dr_mode = pdata->dr_mode;
+> @@ -409,36 +431,6 @@ static int dwc3_probe(struct platform_device *pdev)
+>  	if (dwc->maximum_speed == USB_SPEED_UNKNOWN)
+>  		dwc->maximum_speed = USB_SPEED_SUPER;
+>  
+> -	if (IS_ERR(dwc->usb2_phy)) {
+> -		ret = PTR_ERR(dwc->usb2_phy);
+> -
+> -		/*
+> -		 * if -ENXIO is returned, it means PHY layer wasn't
+> -		 * enabled, so it makes no sense to return -EPROBE_DEFER
+> -		 * in that case, since no PHY driver will ever probe.
+> -		 */
+> -		if (ret == -ENXIO)
+> -			return ret;
+> -
+> -		dev_err(dev, "no usb2 phy configured\n");
+> -		return -EPROBE_DEFER;
+> -	}
+> -
+> -	if (IS_ERR(dwc->usb3_phy)) {
+> -		ret = PTR_ERR(dwc->usb3_phy);
+> -
+> -		/*
+> -		 * if -ENXIO is returned, it means PHY layer wasn't
+> -		 * enabled, so it makes no sense to return -EPROBE_DEFER
+> -		 * in that case, since no PHY driver will ever probe.
+> -		 */
+> -		if (ret == -ENXIO)
+> -			return ret;
+> -
+> -		dev_err(dev, "no usb3 phy configured\n");
+> -		return -EPROBE_DEFER;
+> -	}
+> -
+>  	dwc->xhci_resources[0].start = res->start;
+>  	dwc->xhci_resources[0].end = dwc->xhci_resources[0].start +
+>  					DWC3_XHCI_REGS_END;
+> diff --git a/drivers/usb/dwc3/platform_data.h b/drivers/usb/dwc3/platform_data.h
+> index 7db34f0..5a5e068 100644
+> --- a/drivers/usb/dwc3/platform_data.h
+> +++ b/drivers/usb/dwc3/platform_data.h
+> @@ -24,4 +24,5 @@ struct dwc3_platform_data {
+>  	enum usb_device_speed maximum_speed;
+>  	enum usb_dr_mode dr_mode;
+>  	bool tx_fifo_resize;
+> +	bool has_phy;
+>  };
+> 
 
-or, to be compatible
-
-          interrupts = <1 IRQF_TRIGGER_HIGH &gpio6>; /* GPIO6_1 */
-          interrupts = <1 IRQF_TRIGGER_LOW &gpio7>; /* GPIO7_1 */
-
-Another problem is the naming. In all the above cases, the driver would 
-not know which IRQ he should use for what. Maybe the order defines it, 
-but that wouldn't be very verbose. And I think just changing the name 
-would make travelling the tree impossible, as only the driver itself 
-would know the name and it's meaning.
-
-Regards,
-
-Alexander Holler
+cheers,
+-roger
