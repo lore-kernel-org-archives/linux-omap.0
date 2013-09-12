@@ -1,77 +1,123 @@
-From: Alexey Pelykh <alexey.pelykh@gmail.com>
-Subject: Re: commit 5fe212364 causes division by zero with large bauds
-Date: Thu, 12 Sep 2013 17:38:32 +0300
-Message-ID: <CAOmKuSqh0w8GS-rokCsyF5gBHKWuiy+GvV7P5R8YK264UEG7EA@mail.gmail.com>
-References: <20130910190901.GA10105@radagast> <CAOmKuSrbaLqaYiJFwonHzC-S003vgg2x0xUG4TGKDpMgvCCGHQ@mail.gmail.com>
- <20130911183825.GC10105@radagast> <CAOmKuSpJ4rX0p0a1gGvc3fVazTg=+43tDfTFiJSrxmAxXihf-A@mail.gmail.com>
- <20130911190033.GD10105@radagast> <CAOmKuSoZQ=uDAD7P94EPfKEp97to3DqwWk=GW7OZ-98+S6nTBA@mail.gmail.com>
- <20130911204714.GH10105@radagast> <CAOmKuSpgwGcTaQTEdtH+9g-6WwNwseVU6X+hhntK31EOTM=WRA@mail.gmail.com>
- <CAOmKuSpRpb0mRnORvK-q1MMV3BHZaY8_yTyQV-iE+=gj1hqK7Q@mail.gmail.com> <20130912122135.GP10105@radagast>
+From: Balaji T K <balajitk@ti.com>
+Subject: Re: Uninitialized rx_req/tx_req (was: Re: [PATCH v2 2/3] mmc: omap_hsmmc:
+ Skip platform_get_resource_byname() for dt case)
+Date: Thu, 12 Sep 2013 20:40:11 +0530
+Message-ID: <5231D953.4070908@ti.com>
+References: <CAMuHMdVVjkZBZyJe2qnUxHeRVo+8WD_Vx1ZKin_pA7XLRCW8uw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130912122135.GP10105@radagast>
-Sender: linux-kernel-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: Tony Lindgren <tony@atomide.com>, Greg KH <gregkh@linuxfoundation.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-serial@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=windows-1252;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:54699 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752703Ab3ILPKe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Sep 2013 11:10:34 -0400
+In-Reply-To: <CAMuHMdVVjkZBZyJe2qnUxHeRVo+8WD_Vx1ZKin_pA7XLRCW8uw@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Matt Porter <matt.porter@linaro.org>, Chris Ball <cjb@laptop.org>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Vinod Koul <vinod.koul@intel.com>, Tony Lindgren <tony@atomide.com>, Devicetree Discuss <devicetree-discuss@lists.ozlabs.org>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux MMC List <linux-mmc@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, Dan Williams <djbw@fb.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-On Thu, Sep 12, 2013 at 3:21 PM, Felipe Balbi <balbi@ti.com> wrote:
-> Hi,
+On Thursday 12 September 2013 06:11 PM, Geert Uytterhoeven wrote:
+> On Tue, Mar 5, 2013 at 10:13 PM, Matt Porter <mporter@ti.com> wrote:
+>> From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>>
+>> MMC driver probe will abort for DT case because of failed
+>> platform_get_resource_byname() lookup. Fix it by skipping resource
+>> byname lookup for device tree build.
+>>
+>> Issue is hidden because hwmod popullates the IO resources which
+>> helps to succeed platform_get_resource_byname() and probe.
+>>
+>> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>> ---
+>>   drivers/mmc/host/omap_hsmmc.c |   28 +++++++++++++++-------------
+>>   1 file changed, 15 insertions(+), 13 deletions(-)
+>>
+>> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_h=
+smmc.c
+>> index e79b12d..8ae1225 100644
+>> --- a/drivers/mmc/host/omap_hsmmc.c
+>> +++ b/drivers/mmc/host/omap_hsmmc.c
+>> @@ -1896,21 +1896,23 @@ static int omap_hsmmc_probe(struct platform_=
+device *pdev)
+>>
+>>          omap_hsmmc_conf_bus_power(host);
+>>
+>> -       res =3D platform_get_resource_byname(pdev, IORESOURCE_DMA, "=
+tx");
+>> -       if (!res) {
+>> -               dev_err(mmc_dev(host->mmc), "cannot get DMA TX chann=
+el\n");
+>> -               ret =3D -ENXIO;
+>> -               goto err_irq;
+>> -       }
+>> -       tx_req =3D res->start;
+>> +       if (!pdev->dev.of_node) {
+>> +               res =3D platform_get_resource_byname(pdev, IORESOURC=
+E_DMA, "tx");
+>> +               if (!res) {
+>> +                       dev_err(mmc_dev(host->mmc), "cannot get DMA =
+TX channel\n");
+>> +                       ret =3D -ENXIO;
+>> +                       goto err_irq;
+>> +               }
+>> +               tx_req =3D res->start;
+>>
+>> -       res =3D platform_get_resource_byname(pdev, IORESOURCE_DMA, "=
+rx");
+>> -       if (!res) {
+>> -               dev_err(mmc_dev(host->mmc), "cannot get DMA RX chann=
+el\n");
+>> -               ret =3D -ENXIO;
+>> -               goto err_irq;
+>> +               res =3D platform_get_resource_byname(pdev, IORESOURC=
+E_DMA, "rx");
+>> +               if (!res) {
+>> +                       dev_err(mmc_dev(host->mmc), "cannot get DMA =
+RX channel\n");
+>> +                       ret =3D -ENXIO;
+>> +                       goto err_irq;
+>> +               }
+>> +               rx_req =3D res->start;
+>>          }
+>> -       rx_req =3D res->start;
+>>
+>>          dma_cap_zero(mask);
+>>          dma_cap_set(DMA_SLAVE, mask);
 >
-> On Thu, Sep 12, 2013 at 07:37:07AM +0300, Alexey Pelykh wrote:
->> Actually, here it is, but not formatted properly
->>
->> diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
->> index 816d1a2..146e712 100644
->> --- a/drivers/tty/serial/omap-serial.c
->> +++ b/drivers/tty/serial/omap-serial.c
->> @@ -240,14 +240,14 @@ serial_omap_baud_is_mode16(struct uart_port
->> *port, unsigned int baud)
->>  {
->>   unsigned int n13 = port->uartclk / (13 * baud);
->>   unsigned int n16 = port->uartclk / (16 * baud);
->> - int baudAbsDiff13 = baud - (port->uartclk / (13 * n13));
->> - int baudAbsDiff16 = baud - (port->uartclk / (16 * n16));
->> + int baudAbsDiff13 = n13 ? (baud - (port->uartclk / (13 * n13))) : INT_MAX;
->> + int baudAbsDiff16 = n16 ? (baud - (port->uartclk / (16 * n16))) : INT_MAX;
->>   if(baudAbsDiff13 < 0)
->>   baudAbsDiff13 = -baudAbsDiff13;
->>   if(baudAbsDiff16 < 0)
->>   baudAbsDiff16 = -baudAbsDiff16;
->>
->> - return (baudAbsDiff13 > baudAbsDiff16);
->> + return (baudAbsDiff13 >= baudAbsDiff16);
->>  }
->>
->>  /*
->> @@ -258,13 +258,13 @@ serial_omap_baud_is_mode16(struct uart_port
->> *port, unsigned int baud)
->>  static unsigned int
->>  serial_omap_get_divisor(struct uart_port *port, unsigned int baud)
->>  {
->> - unsigned int divisor;
->> + unsigned int mode;
->>
->>   if (!serial_omap_baud_is_mode16(port, baud))
->> - divisor = 13;
->> + mode = 13;
->>   else
->> - divisor = 16;
->> - return port->uartclk/(baud * divisor);
->> + mode = 16;
->> + return port->uartclk/(mode * baud);
->>  }
->>
->>  static void serial_omap_enable_ms(struct uart_port *port)
+> Now this is in mainline, I get (gcc 4.1.2):
 >
-> looks good to me, but I'd split it as suggested as a reply to previous
-> email.
-
-Well, the fix of baud rate calculation (giving mode-16 priority) is a
-simple >= instead of >.
-But indeed, probably commits should be different in terms of their subject.
-
+> drivers/mmc/host/omap_hsmmc.c: In function =91omap_hsmmc_probe=92:
+> drivers/mmc/host/omap_hsmmc.c:1779: warning: =91rx_req=92 may be used
+> uninitialized in this function
+> drivers/mmc/host/omap_hsmmc.c:1779: warning: =91tx_req=92 may be used
+> uninitialized in this function
+>
+> Indeed, rx_req and tx_req are not initialized in the DT case.
+>
+> Initializing them to zero is probably not the right fix. Where are th=
+e values
+> supposed to come from in the DT case?
+>
+> Gr{oetje,eeting}s,
+>
+>                          Geert
 >
 > --
-> balbi
+> Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linu=
+x-m68k.org
+>
+> In personal conversations with technical people, I call myself a hack=
+er. But
+> when I'm talking to journalists I just say "programmer" or something =
+like that.
+>                                  -- Linus Torvalds
+>
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
