@@ -1,22 +1,14 @@
-From: Alexander Holler <holler@ahsoftware.de>
-Subject: Re: [PATCH] RFC: interrupt consistency check for OF GPIO IRQs
-Date: Thu, 12 Sep 2013 17:57:00 +0200
-Message-ID: <5231E44C.9070800@ahsoftware.de>
-References: <1375101368-17645-1-git-send-email-linus.walleij@linaro.org>
- <CACxGe6uNJNMdZ1HYGgCtLM2t2TWGCR6btjOHVmP=vDXXvvFfRg@mail.gmail.com>
- <CACRpkdYjJL6FZwEbB7XLnb9QtjB=3LeE9Ny6KQ4PkM3zpdNqqg@mail.gmail.com>
- <344239800.bDEkDg48ZQ@avalon>
- <CACRpkdavR=fv+y1RCNfdgQypPuRbO6isOSwGsABDrYiGeMdyZw@mail.gmail.com>
- <52308C91.2000105@ahsoftware.de> <523096FE.8080901@collabora.co.uk>
- <5230AB6E.1070807@ahsoftware.de> <5231817F.8000901@ahsoftware.de>
- <5231934D.4060706@collabora.co.uk> <52319741.5050407@ahsoftware.de>
- <5231A0F8.1070505@ahsoftware.de> <5231A4FE.1070704@ahsoftware.de>
- <5231A791.9080600@ahsoftware.de> <5231DB88.90605@wwwdotorg.org>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH 1/4] arm: bone: dts: add CD for mmc1
+Date: Thu, 12 Sep 2013 11:15:58 -0500
+Message-ID: <5231E8BE.7080009@ti.com>
+References: <1379000532-27376-1-git-send-email-koen@dominion.thruhere.net>
+ <1379000532-27376-2-git-send-email-koen@dominion.thruhere.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <5231DB88.90605@wwwdotorg.org>
+In-Reply-To: <1379000532-27376-2-git-send-email-koen@dominion.thruhere.net>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -26,47 +18,82 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Stephen Warren <swarren@wwwdotorg.org>
-Cc: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Kevin Hilman <khilman@linaro.org>, Balaji T K <balajitk@ti.com>, Enric Balletbo i Serra <eballetbo@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Jon Hunter <jgchunter@gmail.com>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Grant Likely <grant.likely@linaro.org>, Linux-OMAP <linux-omap@vger.kernel.org>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Koen Kooi <koen@dominion.thruhere.net>
+Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, linux@arm.linux.org.uk, pawel.moll@arm.com, swarren@wwwdotorg.org, tony@atomide.com, ijc+devicetree@hellion.org.uk, linux-kernel@vger.kernel.org, rob.herring@calxeda.com, bcousson@baylibre.com, Alexander Holler <holler@ahsoftware.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Am 12.09.2013 17:19, schrieb Stephen Warren:
->
-> IRQs, DMA channels, and GPIOs are all different things. Their bindings
-> are defined independently. While it's good to define new types of
-> bindings consistently with other bindings, this hasn't always happened,
-> so you can make zero assumptions about the IRQ bindings by reading the
-> documentation for any other kind of binding.
->
-> Multiple interrupts are defined as follows:
->
-> 	// Optional; otherwise inherited from parent/grand-parent/...
-> 	interrupt-parent = <&gpio6>;
-> 	// Must be in a fixed order, unless binding defines that the
-> 	// optional interrupt-names property is to be used.
-> 	interrupts = <1 IRQF_TRIGGER_HIGH> <2 IRQF_TRIGGER_LOW>;
-> 	// Optional; binding for device defines whether it must
-> 	// be present
-> 	interrupt-names = "foo", "bar";
->
-> If you need multiple interrupts, each with a different parent, you need
-> to use an interrupt-map property (Google it for a more complete
-> explanation I guess). Unlike "interrupts", "interrupt-map" has a phandle
-> in each entry, and hence each entry can refer to a different IRQ
-> controller. You end up defining a dummy interrupt controller node (which
-> may be the leaf node with multiple IRQ outputs, which then points at
-> itself as the interrupt parent), pointing the leaf node's
-> interrupt-parent at that node, and then having interrupt-map "demux" the
-> N interrupt outputs to the various interrupt controllers.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
->
+nitpick minor comment:
+$subject: ARM: dts: am335x-bone: add card detect for mmc1
 
-What a mess. I assume that is the price that bindings don't have to change.
+btw, please use V3 in $subject next time. --subject-prefix "PATCH V3"
+when generating patch should do the job.
 
-Thanks for clarifying that,
+On 09/12/2013 10:42 AM, Koen Kooi wrote:
+> From: Alexander Holler <holler@ahsoftware.de>
+> 
+> This enables the use of MMC cards even when no card was inserted at boot.
+> 
+> Signed-off-by: Alexander Holler <holler@ahsoftware.de>
+> Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
+> ---
+> 
+> Changes since v2:
+> 	None, again a simple repost
+> 
+> Changes since v1:
+> 	None, simple repost
+> 
+>  arch/arm/boot/dts/am335x-bone-common.dtsi | 14 ++++++++++++++
+>  arch/arm/boot/dts/am335x-bone.dts         |  4 ----
+>  2 files changed, 14 insertions(+), 4 deletions(-)
+> 
+> diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
+> index 2f66ded..ced256c 100644
+> --- a/arch/arm/boot/dts/am335x-bone-common.dtsi
+> +++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
+> @@ -107,6 +107,11 @@
+>  				0x14c (PIN_INPUT_PULLDOWN | MUX_MODE7)
+>  			>;
+>  		};
 
-Alexander Holler
+An EOL here would be nice to separate the nodes.
+
+> +		mmc1_pins: pinmux_mmc1_pins {
+> +			pinctrl-single,pins = <
+> +				0x160 (PIN_INPUT | MUX_MODE7) /* GPIO0_6 */
+> +			>;
+> +		};
+>  	};
+>  
+>  	ocp {
+> @@ -260,3 +265,12 @@
+>  	pinctrl-0 = <&davinci_mdio_default>;
+>  	pinctrl-1 = <&davinci_mdio_sleep>;
+>  };
+> +
+> +&mmc1 {
+> +	status = "okay";
+> +	vmmc-supply = <&ldo3_reg>;
+> +	pinctrl-names = "default";
+> +	pinctrl-0 = <&mmc1_pins>;
+> +	cd-gpios = <&gpio0 6 GPIO_ACTIVE_HIGH>;
+> +	cd-inverted;
+> +};
+> diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
+> index d5f43fe..d34469c 100644
+> --- a/arch/arm/boot/dts/am335x-bone.dts
+> +++ b/arch/arm/boot/dts/am335x-bone.dts
+> @@ -16,7 +16,3 @@
+>  	regulator-always-on;
+>  };
+>  
+> -&mmc1 {
+> -	status = "okay";
+> -	vmmc-supply = <&ldo3_reg>;
+> -};
+> 
+
+
+-- 
+Regards,
+Nishanth Menon
