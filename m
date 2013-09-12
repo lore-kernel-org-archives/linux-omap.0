@@ -1,57 +1,57 @@
 From: Koen Kooi <koen@dominion.thruhere.net>
-Subject: [PATCHv3 0/2] ARM: dts: Beaglebone MMC fixes
-Date: Thu, 12 Sep 2013 17:42:08 +0200
-Message-ID: <1379000532-27376-1-git-send-email-koen@dominion.thruhere.net>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Subject: [PATCH 4/4] ARM: dts: am335x-bone-common: add cpu0 and mmc1 triggers
+Date: Thu, 12 Sep 2013 17:42:12 +0200
+Message-ID: <1379000532-27376-5-git-send-email-koen@dominion.thruhere.net>
+References: <1379000532-27376-1-git-send-email-koen@dominion.thruhere.net>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wi0-f176.google.com ([209.85.212.176]:47093 "EHLO
+	mail-wi0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754666Ab3ILPm1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Sep 2013 11:42:27 -0400
+Received: by mail-wi0-f176.google.com with SMTP id cb5so3740473wib.15
+        for <linux-omap@vger.kernel.org>; Thu, 12 Sep 2013 08:42:25 -0700 (PDT)
+In-Reply-To: <1379000532-27376-1-git-send-email-koen@dominion.thruhere.net>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: linux-kernel@vger.kernel.org
 Cc: bcousson@baylibre.com, tony@atomide.com, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ijc+devicetree@hellion.org.uk, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Koen Kooi <koen@dominion.thruhere.net>
-List-Id: linux-omap@vger.kernel.org
 
-Here are two patches to fix MMC on beaglebone, one fixes card detect on BBW,
-the other adds the eMMC entry for BBB and its fixed regulator. After that mmc1
-gets a nice speed boost by moving to 4-bit mode and LED triggers get assigned.
+This matches the vendor 3.8.x configuration that is shipping with the boards.
 
-This series depends on:
+The LED layout is now:
 
-http://comments.gmane.org/gmane.linux.kernel.stable/63648
-https://lkml.org/lkml/2013/9/10/454
-http://comments.gmane.org/gmane.linux.kernel.mmc/22381
+USR0: heartbeat
+USR1: mmc0 (micro-SD slot)
+USR2: cpu0
+USR3: mmc1 (eMMC)
 
-Or as git-cherry would put it:
+The cpu0 triggers was put inbetween the mmc triggers to make is easier to see
+where the disk activity is.
 
-[koen@rrMBP patches]$ git cherry -v
-+ 53aafdbc63c9b30c23f562855c8f359c0893bc40 ARM: OMAP2+: am335x-bone*: add DT for BeagleBone Black
-+ 084f262cb1058e00cf082739cf7ee93cb70761c9 ARM: EDMA: Fix clearing of unused list for DT DMA resources
-+ 6080eee0ef0ee3ab235cc267a69a0a7d3673266e ARM: dts: add AM33XX EDMA support
-+ 7312f68fb49202b65498865bd64680c95ec2f7ea ARM: dts: add AM33XX SPI DMA support
-+ 5580c3d400cefad5a1eb3c5a8e467353e22d526e ARM: dts: add AM33XX MMC support and documentation
-+ a11eddaa0a89c24d2b9768a82519ac096bb793f1 arm: bone: dts: add CD for mmc1
-+ b1e87bfc52775c2666b6c4a89d409193319d33f2 am335x-boneblack: add eMMC DT entry
-+ 090e095b74ba211b2cfbd2c87ae06c52d151453d ARM: am335x-bone-common: switch mmc1 to 4-bit mode
-+ 39f747078f0b01724cfa94ce19fd2e6029ac0bee ARM: dts: am335x-bone-common: add cpu0 and mmc1 triggers
-
-Also available as a git branch at https://github.com/koenkooi/linux/commits/mainline
-
-Changes since v2:
-	Missing pinmux entries for eMMC added
-
-Changes since v1:
-	Removed ti,non-removable entry from eMMC node, see http://marc.info/?l=linux-arm-kernel&m=137889435710552&w=2
+Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
 ---
+ arch/arm/boot/dts/am335x-bone-common.dtsi | 2 ++
+ 1 file changed, 2 insertions(+)
 
-Alexander Holler (1):
-  arm: bone: dts: add CD for mmc1
-
-Koen Kooi (3):
-  am335x-boneblack: add eMMC DT entry
-  ARM: am335x-bone-common: switch mmc1 to 4-bit mode
-  ARM: dts: am335x-bone-common: add cpu0 and mmc1 triggers
-
- arch/arm/boot/dts/am335x-bone-common.dtsi | 39 +++++++++++++++++++++++++++++++
- arch/arm/boot/dts/am335x-bone.dts         |  4 ----
- arch/arm/boot/dts/am335x-boneblack.dts    | 14 +++++++++++
- 3 files changed, 53 insertions(+), 4 deletions(-)
-
+diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
+index 80407ff..3057f30 100644
+--- a/arch/arm/boot/dts/am335x-bone-common.dtsi
++++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
+@@ -203,12 +203,14 @@
+ 		led@4 {
+ 			label = "beaglebone:green:usr2";
+ 			gpios = <&gpio1 23 GPIO_ACTIVE_HIGH>;
++			linux,default-trigger = "cpu0";
+ 			default-state = "off";
+ 		};
+ 
+ 		led@5 {
+ 			label = "beaglebone:green:usr3";
+ 			gpios = <&gpio1 24 GPIO_ACTIVE_HIGH>;
++			linux,default-trigger = "mmc1";
+ 			default-state = "off";
+ 		};
+ 	};
 -- 
 1.8.2.1
+
