@@ -1,55 +1,48 @@
-From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v4 0/2] ARM: dts: Beaglebone MMC fixes
-Date: Thu, 12 Sep 2013 14:21:59 -0500
-Message-ID: <52321457.100@ti.com>
-References: <1379010935-25943-1-git-send-email-koen@dominion.thruhere.net>
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: [RFC PATCH 1/4] DRIVERS: IRQCHIP: Add crossbar irqchip driver
+Date: Thu, 12 Sep 2013 22:18:50 +0200 (CEST)
+Message-ID: <alpine.DEB.2.02.1309122201530.4089@ionos.tec.linutronix.de>
+References: <1379000351-15672-1-git-send-email-r.sricharan@ti.com> <1379000351-15672-2-git-send-email-r.sricharan@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1379010935-25943-1-git-send-email-koen-QLwJDigV5abLmq1fohREcCpxlwaOVQ5f@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Koen Kooi <koen-QLwJDigV5abLmq1fohREcCpxlwaOVQ5f@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from www.linutronix.de ([62.245.132.108]:60901 "EHLO
+	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753403Ab3ILUSx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Sep 2013 16:18:53 -0400
+In-Reply-To: <1379000351-15672-2-git-send-email-r.sricharan@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Sricharan R <r.sricharan@ti.com>
+Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linus.walleij@linaro.org, santosh.shilimkar@ti.com, linux@arm.linux.org.uk, tony@atomide.com, rnayak@ti.com
 
-On 09/12/2013 01:35 PM, Koen Kooi wrote:
-> Here are two patches to fix MMC on beaglebone, one fixes card detect on BBW,
-> the other adds the eMMC entry for BBB and its fixed regulator. After that mmc1
-> gets a nice speed boost by moving to 4-bit mode and LED triggers get assigned.
-> 
-> This series depends on:
-> 
-> http://comments.gmane.org/gmane.linux.kernel.stable/63648
-> https://lkml.org/lkml/2013/9/10/454
-> http://comments.gmane.org/gmane.linux.kernel.mmc/22381
-> 
-> Or as git-cherry would put it:
-> 
-> [koen@rrMBP patches]$ git cherry -v
-> + 564fc88cc64387af5312e2abd8019c75a13223b2 ARM: OMAP2+: am335x-bone*: add DT for BeagleBone Black
-> + e5133ed98acc1c3e01c370b851041a8ca629cd15 ARM: EDMA: Fix clearing of unused list for DT DMA resources
-> + ac71bb58605d3bdd5d14af770a639fb3ff11c612 ARM: dts: add AM33XX EDMA support
-> + 31a8270a299c57c7de7510f44d9dc36fd1787243 ARM: dts: add AM33XX SPI DMA support
-> + 4fa0a4cb9ea17da30cf43085c03e5ec1361a4fc2 ARM: dts: add AM33XX MMC support and documentation
-> + 0553f50bd45f019a0cc11050e2f20bddbf07dfe0 ARM: dts: am335x-bone: add CD for mmc1
-> + 7d64f765630a2921a63b82f93f9959a6de37f29d ARM: dts: am335x-boneblack: add eMMC DT entry
-> + dc96cd4003e2668d8ec7e7fe19e402e97a198f81 ARM: dts: am335x-bone-common: switch mmc1 to 4-bit mode
-> + f8262e78830cda56c936724549ba9f04dddde312 ARM: dts: am335x-bone-common: add cpu0 and mmc1 triggers
-> 
-> Also available as a git branch at https://github.com/koenkooi/linux/commits/mainline
-> 
-> Changes since v3:
-> 	Addressed Nishants nitpicks for commit messages
+On Thu, 12 Sep 2013, Sricharan R wrote:
+> Signed-off-by: Sricharan R <r.sricharan@ti.com>
+> ---
+> There is lockdep warning during the boot. This is because we try to
+> do one request_irq with in another and that results in kmalloc being
+> called from an atomic context, which generates the warning.
+> Any suggestions to overcome this will help.
 
-Series:
-Reviewed-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+You can't be serious about that. You post a patch series with a
+serious bug in it instead of asking in the first place how to solve
+the problem at hand.
+
+So why do you actually need to call request_irq() from inside
+request_irq() and how do you actually manage to do that at all?
+
+I have a hard time to figure out how request_irq() might call itself
+recursive. And I have no intention to look at your patch to figure out
+that you abuse an irq chip callback to do so, simply because that
+would force me to use abusive language which is frowned upon nowadays.
+
+Can you please explain what you are trying to solve without referring
+to your existing broken implementation.
+
+Thanks,
+
+	tglx
 
 
--- 
-Regards,
-Nishanth Menon
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
