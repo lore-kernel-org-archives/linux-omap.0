@@ -1,101 +1,215 @@
-From: Alexander Holler <holler@ahsoftware.de>
-Subject: Re: [PATCH] RFC: interrupt consistency check for OF GPIO IRQs
-Date: Thu, 12 Sep 2013 13:37:53 +0200
-Message-ID: <5231A791.9080600@ahsoftware.de>
-References: <1375101368-17645-1-git-send-email-linus.walleij@linaro.org> <CACxGe6uNJNMdZ1HYGgCtLM2t2TWGCR6btjOHVmP=vDXXvvFfRg@mail.gmail.com> <CACRpkdYjJL6FZwEbB7XLnb9QtjB=3LeE9Ny6KQ4PkM3zpdNqqg@mail.gmail.com> <344239800.bDEkDg48ZQ@avalon> <CACRpkdavR=fv+y1RCNfdgQypPuRbO6isOSwGsABDrYiGeMdyZw@mail.gmail.com> <52308C91.2000105@ahsoftware.de> <523096FE.8080901@collabora.co.uk> <5230AB6E.1070807@ahsoftware.de> <5231817F.8000901@ahsoftware.de> <5231934D.4060706@collabora.co.uk> <52319741.5050407@ahsoftware.de> <5231A0F8.1070505@ahsoftware.de> <5231A4FE.1070704@ahsoftware.de>
+From: Pekon Gupta <pekon@ti.com>
+Subject: [PATCH v6 1/4] ARM: OMAP2+: cleaned-up DT support of various ECC schemes
+Date: Thu, 12 Sep 2013 17:20:16 +0530
+Message-ID: <1378986619-26765-2-git-send-email-pekon@ti.com>
+References: <1378986619-26765-1-git-send-email-pekon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5231A4FE.1070704@ahsoftware.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Grant Likely <grant.likely@linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Enric Balletbo i Serra <eballetbo@gmail.com>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@linaro.org>, Balaji T K <balajitk@ti.com>, Tony Lindgren <tony@atomide.com>, Jon Hunter <jgchunter@gmail.com>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:44665 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751682Ab3ILLvC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Sep 2013 07:51:02 -0400
+In-Reply-To: <1378986619-26765-1-git-send-email-pekon@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: dedekind1@gmail.com, olof@lixom.net, computersforpeace@gmail.com
+Cc: dwmw2@infradead.org, arnd@arndb.de, tony@atomide.com, benoit.cousson@linaro.org, avinashphilipk@gmail.com, balbi@ti.com, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Pekon Gupta <pekon@ti.com>
 
-Am 12.09.2013 13:26, schrieb Alexander Holler:
-> Am 12.09.2013 13:09, schrieb Alexander Holler:
->> Am 12.09.2013 12:28, schrieb Alexander Holler:
->>> Am 12.09.2013 12:11, schrieb Javier Martinez Canillas:
->>>> On 09/12/2013 10:55 AM, Alexander Holler wrote:
->>>
-...
->>>
->>>> So, if I understood the code correctly the DT IRQ core doesn't expect
->>>> a device
->>>> node to have more than one "interrupt-parent" property.
->>>>
->>>> It *should* work though if you have multiple "interrupts" properties
->>>> defined and
->>>> all of them have the same "interrupt-parent":
->>>>
->>>>         interrupt-parent = <&gpio6>;
->>>>         interrupts = <1 IRQF_TRIGGER_HIGH>; /* GPIO6_1 */
->>>>         interrupts = <2 IRQF_TRIGGER_LOW>; /* GPIO6_2 */
->>>>
->>>> since of_irq_map_one() will be called for each "interrupts" and the
->>>> correct
->>>> "interrupt-parent" will get obtained by of_irq_find_parent().
->>>
->>> I assumed that answer. So to make such a scenario possible, something
->>> like this might be neccessary:
->>>
->>>           interrupts = <&gpio6 1 IRQF_TRIGGER_HIGH>; /* GPIO6_1 */
->>>           interrupts = <&gpio7 2 IRQF_TRIGGER_LOW>; /* GPIO7_2 */
->>>
->>> or, to be compatible
->>>
->>>           interrupts = <1 IRQF_TRIGGER_HIGH &gpio6>; /* GPIO6_1 */
->>>           interrupts = <1 IRQF_TRIGGER_LOW &gpio7>; /* GPIO7_1 */
->>>
->>> Another problem is the naming. In all the above cases, the driver would
->>> not know which IRQ he should use for what. Maybe the order defines it,
->>> but that wouldn't be very verbose. And I think just changing the name
->>> would make travelling the tree impossible, as only the driver itself
->>> would know the name and it's meaning.
->>
->> On a second look, travelling the tree is still possible if the solution
->> would be like above (without that interrupt-parent). So if a driver
->> requires two interrupts he could use
->>
->>        interrupt-foo = <1 IRQF_TRIGGER_HIGH &gpio6>; /* GPIO6_1 */
->>        interrupt-bar = <1 IRQF_TRIGGER_LOW &gpio7>; /* GPIO7_1 */
->>
->> And travelling the tree will still be possible because walking from the
->> interrupt-controllers (those gpio) downwards would end up at the
->> interrupt definitions, so the name of them isn't needed to find them in
->> the tree.
->
-> I've just seen how they solved it for dma:
->
->              dmas = <&edma0 16
->                  &edma0 17>;
->              dma-names = "rx", "tx";
->
-> so it would be like
->
->        interrupts = <1 IRQF_TRIGGER_HIGH &gpio6>; /* GPIO6_1 */
->        interrupts = <1 IRQF_TRIGGER_LOW &gpio7>; /* GPIO7_1 */
->        interrupt-names = "foo", "bar";
->
-> Or this would be possible:
->
->        interrupt-parent = <&gpio6 &gpio7>;
->        interrupts = <1 IRQF_TRIGGER_HIGH>; /* GPIO6_1 */
->        interrupts = <1 IRQF_TRIGGER_LOW>; /* GPIO7_1 */
->        interrupt-names = "foo", "bar";
->
+OMAP NAND driver support multiple ECC scheme, which can used in following
+different flavours, depending on in-build Hardware engines supported by SoC.
 
-And looking at how gpios are defined, I think it should be like that:
++---------------------------------------+---------------+---------------+
+| ECC scheme                            |ECC calculation|Error detection|
++---------------------------------------+---------------+---------------+
+|OMAP_ECC_HAMMING_CODE_HW               |H/W (GPMC)     |S/W            |
++---------------------------------------+---------------+---------------+
+|OMAP_ECC_BCH8_CODE_HW_DETECTION_SW     |H/W (GPMC)     |S/W            |
+|(requires CONFIG_MTD_NAND_ECC_BCH)     |               |               |
++---------------------------------------+---------------+---------------+
+|OMAP_ECC_BCH8_CODE_HW                  |H/W (GPMC)     |H/W (ELM)      |
+|(requires CONFIG_MTD_NAND_OMAP_BCH &&  |               |               |
+| ti,elm-id in DT)                      |               |               |
++---------------------------------------+---------------+---------------+
+To optimize footprint of omap2-nand driver, selection of some ECC schemes
+also require enabling following Kconfigs, in addition to setting appropriate
+DT bindings
+- Kconfig:CONFIG_MTD_NAND_ECC_BCH        enables S/W based BCH ECC algorithm
+- Kconfig:CONFIG_MTD_NAND_OMAP_BCH       enables H/W based BCH ECC algorithm
 
+This patch
+- updates DT binding for selection of ecc-scheme
+- updates DT binding for detection of ELM h/w engine
+- removes following obselete ECC schemes
+	OMAP_ECC_HAMMING_CODE_DEFAULT (S/W based 1-bit Hamming ECC)
+	OMAP_ECC_HAMMING_CODE_HW_ROMCODE (H/W based 1-bit Hamming ECC scheme)
+- updates DT binding documentation for mtd/gpmc-nand
 
-           interrupts = <&gpio6 1 IRQF_TRIGGER_HIGH
-                         &gpio7 2 IRQF_TRIGGER_LOW
-           >;
-           interrupt-names = "foo", "bar";
+Signed-off-by: Pekon Gupta <pekon@ti.com>
+---
+ .../devicetree/bindings/mtd/gpmc-nand.txt          | 14 +++----
+ arch/arm/mach-omap2/board-flash.c                  |  2 +-
+ arch/arm/mach-omap2/gpmc.c                         | 47 +++++++++++++++-------
+ include/linux/platform_data/mtd-nand-omap2.h       | 23 +++++++----
+ 4 files changed, 56 insertions(+), 30 deletions(-)
 
-So without that interrupt-parent.
+diff --git a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
+index df338cb..958e5d5 100644
+--- a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
++++ b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
+@@ -21,11 +21,8 @@ Optional properties:
+ 				is wired that way. If not specified, a bus
+ 				width of 8 is assumed.
+ 
+- - ti,nand-ecc-opt:		A string setting the ECC layout to use. One of:
+-
+-		"sw"		Software method (default)
+-		"hw"		Hardware method
+-		"hw-romcode"	gpmc hamming mode method & romcode layout
++ - ti,nand-ecc-scheme:		A string setting the ECC layout to use. One of:
++		"ham1"		1-bit Hamming ecc code
+ 		"bch4"		4-bit BCH ecc code
+ 		"bch8"		8-bit BCH ecc code
+ 
+@@ -36,8 +33,11 @@ Optional properties:
+ 		"prefetch-dma"		Prefetch enabled sDMA mode
+ 		"prefetch-irq"		Prefetch enabled irq mode
+ 
+- - elm_id:	Specifies elm device node. This is required to support BCH
+- 		error correction using ELM module.
++ - ti,elm-id:	Specifies pHandle of the ELM devicetree node.
++		ELM is an on-chip hardware engine on TI SoC which is used for
++		locating ECC errors for BCHx algorithms. SoC devices which have
++		ELM hardware engines should specify this device node in .dtsi
++		Using ELM for ECC error correction frees some CPU cycles.
+ 
+ For inline partiton table parsing (optional):
+ 
+diff --git a/arch/arm/mach-omap2/board-flash.c b/arch/arm/mach-omap2/board-flash.c
+index fc20a61..ac82512 100644
+--- a/arch/arm/mach-omap2/board-flash.c
++++ b/arch/arm/mach-omap2/board-flash.c
+@@ -142,7 +142,7 @@ __init board_nand_init(struct mtd_partition *nand_parts, u8 nr_parts, u8 cs,
+ 	board_nand_data.nr_parts	= nr_parts;
+ 	board_nand_data.devsize		= nand_type;
+ 
+-	board_nand_data.ecc_opt = OMAP_ECC_HAMMING_CODE_DEFAULT;
++	board_nand_data.ecc_opt = OMAP_ECC_BCH8_CODE_HW;
+ 	gpmc_nand_init(&board_nand_data, gpmc_t);
+ }
+ #endif /* CONFIG_MTD_NAND_OMAP2 || CONFIG_MTD_NAND_OMAP2_MODULE */
+diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+index 9f4795a..6409884 100644
+--- a/arch/arm/mach-omap2/gpmc.c
++++ b/arch/arm/mach-omap2/gpmc.c
+@@ -1340,15 +1340,6 @@ static void __maybe_unused gpmc_read_timings_dt(struct device_node *np,
+ }
+ 
+ #ifdef CONFIG_MTD_NAND
+-
+-static const char * const nand_ecc_opts[] = {
+-	[OMAP_ECC_HAMMING_CODE_DEFAULT]		= "sw",
+-	[OMAP_ECC_HAMMING_CODE_HW]		= "hw",
+-	[OMAP_ECC_HAMMING_CODE_HW_ROMCODE]	= "hw-romcode",
+-	[OMAP_ECC_BCH4_CODE_HW]			= "bch4",
+-	[OMAP_ECC_BCH8_CODE_HW]			= "bch8",
+-};
+-
+ static const char * const nand_xfer_types[] = {
+ 	[NAND_OMAP_PREFETCH_POLLED]		= "prefetch-polled",
+ 	[NAND_OMAP_POLLED]			= "polled",
+@@ -1363,6 +1354,8 @@ static int gpmc_probe_nand_child(struct platform_device *pdev,
+ 	const char *s;
+ 	struct gpmc_timings gpmc_t;
+ 	struct omap_nand_platform_data *gpmc_nand_data;
++	const __be32 *parp;
++	int lenp;
+ 
+ 	if (of_property_read_u32(child, "reg", &val) < 0) {
+ 		dev_err(&pdev->dev, "%s has no 'reg' property\n",
+@@ -1378,12 +1371,36 @@ static int gpmc_probe_nand_child(struct platform_device *pdev,
+ 	gpmc_nand_data->cs = val;
+ 	gpmc_nand_data->of_node = child;
+ 
+-	if (!of_property_read_string(child, "ti,nand-ecc-opt", &s))
+-		for (val = 0; val < ARRAY_SIZE(nand_ecc_opts); val++)
+-			if (!strcasecmp(s, nand_ecc_opts[val])) {
+-				gpmc_nand_data->ecc_opt = val;
+-				break;
+-			}
++	/* Detect availability of ELM module */
++	parp = of_get_property(child, "ti,elm-id", &lenp);
++	if ((parp == NULL) && (lenp != (sizeof(void *) * 2))) {
++		pr_warn("%s: ti,elm-id property not found\n", __func__);
++		gpmc_nand_data->elm_of_node = NULL;
++	} else {
++		gpmc_nand_data->elm_of_node =
++				of_find_node_by_phandle(be32_to_cpup(parp));
++	}
++	/* select NAND ecc-scheme */
++	if (of_property_read_string(child, "ti,nand-ecc-scheme", &s)) {
++		pr_err("%s: valid ti,nand-ecc-scheme not found\n", __func__);
++		return -ENODEV;
++	}
++	if (!strcmp(s, "ham1"))
++		gpmc_nand_data->ecc_opt = OMAP_ECC_HAMMING_CODE_HW;
++	else if (!strcmp(s, "bch4"))
++		if (gpmc_nand_data->elm_of_node)
++			gpmc_nand_data->ecc_opt = OMAP_ECC_BCH4_CODE_HW;
++		else
++			gpmc_nand_data->ecc_opt =
++				OMAP_ECC_BCH4_CODE_HW_DETECTION_SW;
++	else if (!strcmp(s, "bch8"))
++		if (gpmc_nand_data->elm_of_node)
++			gpmc_nand_data->ecc_opt = OMAP_ECC_BCH8_CODE_HW;
++		else
++			gpmc_nand_data->ecc_opt =
++				OMAP_ECC_BCH8_CODE_HW_DETECTION_SW;
++	else
++		pr_err("%s: ti,ecc-scheme: invalid property value\n", __func__);
+ 
+ 	if (!of_property_read_string(child, "ti,nand-xfer-type", &s))
+ 		for (val = 0; val < ARRAY_SIZE(nand_xfer_types); val++)
+diff --git a/include/linux/platform_data/mtd-nand-omap2.h b/include/linux/platform_data/mtd-nand-omap2.h
+index 6bf9ef4..b4c2c5a 100644
+--- a/include/linux/platform_data/mtd-nand-omap2.h
++++ b/include/linux/platform_data/mtd-nand-omap2.h
+@@ -23,13 +23,21 @@ enum nand_io {
+ };
+ 
+ enum omap_ecc {
+-		/* 1-bit ecc: stored at end of spare area */
+-	OMAP_ECC_HAMMING_CODE_DEFAULT = 0, /* Default, s/w method */
+-	OMAP_ECC_HAMMING_CODE_HW, /* gpmc to detect the error */
+-		/* 1-bit ecc: stored at beginning of spare area as romcode */
+-	OMAP_ECC_HAMMING_CODE_HW_ROMCODE, /* gpmc method & romcode layout */
+-	OMAP_ECC_BCH4_CODE_HW, /* 4-bit BCH ecc code */
+-	OMAP_ECC_BCH8_CODE_HW, /* 8-bit BCH ecc code */
++	/* 1-bit  ECC calculation by Software, Error detection by Software */
++	OMAP_ECC_HAMMING_CODE_DEFAULT = 0,
++	/* 1-bit  ECC calculation by GPMC, Error detection by Software */
++	OMAP_ECC_HAMMING_CODE_HW,
++	/* 1-bit  ECC calculation by GPMC, Error detection by Software */
++	/* ECC layout compatible to legacy ROMCODE. */
++	OMAP_ECC_HAMMING_CODE_HW_ROMCODE,
++	/* 4-bit  ECC calculation by GPMC, Error detection by Software */
++	OMAP_ECC_BCH4_CODE_HW_DETECTION_SW,
++	/* 4-bit  ECC calculation by GPMC, Error detection by ELM */
++	OMAP_ECC_BCH4_CODE_HW,
++	/* 8-bit  ECC calculation by GPMC, Error detection by Software */
++	OMAP_ECC_BCH8_CODE_HW_DETECTION_SW,
++	/* 8-bit  ECC calculation by GPMC, Error detection by ELM */
++	OMAP_ECC_BCH8_CODE_HW,
+ };
+ 
+ struct gpmc_nand_regs {
+@@ -63,5 +71,6 @@ struct omap_nand_platform_data {
+ 
+ 	/* for passing the partitions */
+ 	struct device_node	*of_node;
++	struct device_node	*elm_of_node;
+ };
+ #endif
+-- 
+1.8.1
 
-Regards,
-
-Alexander
