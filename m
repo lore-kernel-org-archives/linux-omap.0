@@ -1,120 +1,108 @@
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: Uninitialized rx_req/tx_req (was: Re: [PATCH v2 2/3] mmc: omap_hsmmc:
- Skip platform_get_resource_byname() for dt case)
-Date: Thu, 12 Sep 2013 14:41:00 +0200
-Message-ID: <CAMuHMdVVjkZBZyJe2qnUxHeRVo+8WD_Vx1ZKin_pA7XLRCW8uw@mail.gmail.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH 1/7] usb: dwc3: get "usb_phy" only if the platform indicates
+ the presence of PHY
+Date: Thu, 12 Sep 2013 16:11:59 +0300
+Message-ID: <5231BD9F.4020105@ti.com>
+References: <1378136591-7463-1-git-send-email-kishon@ti.com> <1378136591-7463-2-git-send-email-kishon@ti.com> <52319912.8030203@ti.com> <CAFp+6iE+xbSWWp2bNc5MRSUrA4Fi6qVU4vhR4+mtZHZGidkMGg@mail.gmail.com> <52319FC4.8040703@ti.com> <CAFp+6iGzV4auP0AeySen2Qk6wEJM-xsTnQmfwMQDtp2tg1FMkQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pd0-f182.google.com ([209.85.192.182]:64363 "EHLO
-	mail-pd0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752380Ab3ILMlD convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Sep 2013 08:41:03 -0400
+Received: from comal.ext.ti.com ([198.47.26.152]:41661 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752208Ab3ILNMz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 12 Sep 2013 09:12:55 -0400
+In-Reply-To: <CAFp+6iGzV4auP0AeySen2Qk6wEJM-xsTnQmfwMQDtp2tg1FMkQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Matt Porter <matt.porter@linaro.org>
-Cc: Balaji T K <balajitk@ti.com>, Chris Ball <cjb@laptop.org>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Vinod Koul <vinod.koul@intel.com>, Tony Lindgren <tony@atomide.com>, Devicetree Discuss <devicetree-discuss@lists.ozlabs.org>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux MMC List <linux-mmc@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, Dan Williams <djbw@fb.com>, Jon Hunter <jon-hunter@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+To: Vivek Gautam <gautamvivek1987@gmail.com>
+Cc: Kishon Vijay Abraham I <kishon@ti.com>, Felipe Balbi <balbi@ti.com>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Grant Likely <grant.likely@linaro.org>, Sylwester Nawrocki <s.nawrocki@samsung.com>, Kumar Gala <galak@codeaurora.org>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ian.campbell@citrix.com>, Rob Landley <rob@landley.net>, george.cherian@ti.com, Greg KH <gregkh@linuxfoundation.org>, linux-doc@vger.kernel.org, linux-omap@vger.kernel.org, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linux USB Mailing List <linux-usb@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-kernel@vger.kernel.org
 
-On Tue, Mar 5, 2013 at 10:13 PM, Matt Porter <mporter@ti.com> wrote:
-> From: Santosh Shilimkar <santosh.shilimkar@ti.com>
->
-> MMC driver probe will abort for DT case because of failed
-> platform_get_resource_byname() lookup. Fix it by skipping resource
-> byname lookup for device tree build.
->
-> Issue is hidden because hwmod popullates the IO resources which
-> helps to succeed platform_get_resource_byname() and probe.
->
-> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> ---
->  drivers/mmc/host/omap_hsmmc.c |   28 +++++++++++++++-------------
->  1 file changed, 15 insertions(+), 13 deletions(-)
->
-> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hs=
-mmc.c
-> index e79b12d..8ae1225 100644
-> --- a/drivers/mmc/host/omap_hsmmc.c
-> +++ b/drivers/mmc/host/omap_hsmmc.c
-> @@ -1896,21 +1896,23 @@ static int omap_hsmmc_probe(struct platform_d=
-evice *pdev)
->
->         omap_hsmmc_conf_bus_power(host);
->
-> -       res =3D platform_get_resource_byname(pdev, IORESOURCE_DMA, "t=
-x");
-> -       if (!res) {
-> -               dev_err(mmc_dev(host->mmc), "cannot get DMA TX channe=
-l\n");
-> -               ret =3D -ENXIO;
-> -               goto err_irq;
-> -       }
-> -       tx_req =3D res->start;
-> +       if (!pdev->dev.of_node) {
-> +               res =3D platform_get_resource_byname(pdev, IORESOURCE=
-_DMA, "tx");
-> +               if (!res) {
-> +                       dev_err(mmc_dev(host->mmc), "cannot get DMA T=
-X channel\n");
-> +                       ret =3D -ENXIO;
-> +                       goto err_irq;
-> +               }
-> +               tx_req =3D res->start;
->
-> -       res =3D platform_get_resource_byname(pdev, IORESOURCE_DMA, "r=
-x");
-> -       if (!res) {
-> -               dev_err(mmc_dev(host->mmc), "cannot get DMA RX channe=
-l\n");
-> -               ret =3D -ENXIO;
-> -               goto err_irq;
-> +               res =3D platform_get_resource_byname(pdev, IORESOURCE=
-_DMA, "rx");
-> +               if (!res) {
-> +                       dev_err(mmc_dev(host->mmc), "cannot get DMA R=
-X channel\n");
-> +                       ret =3D -ENXIO;
-> +                       goto err_irq;
-> +               }
-> +               rx_req =3D res->start;
->         }
-> -       rx_req =3D res->start;
->
->         dma_cap_zero(mask);
->         dma_cap_set(DMA_SLAVE, mask);
+On 09/12/2013 02:26 PM, Vivek Gautam wrote:
+> Hi,
+> 
+> 
+> On Thu, Sep 12, 2013 at 4:34 PM, Roger Quadros <rogerq@ti.com> wrote:
+>> Hi,
+>>
+>> On 09/12/2013 01:47 PM, Vivek Gautam wrote:
+>>> On Thu, Sep 12, 2013 at 4:06 PM, Roger Quadros <rogerq@ti.com> wrote:
+>>>> Hi Kishon,
+>>>>
+>>>> On 09/02/2013 06:43 PM, Kishon Vijay Abraham I wrote:
+>>>>> There can be systems which does not have a external usb_phy, so get
+>>>>> usb_phy only if usb-phy property is added in the case of dt boot or if
+>>>>> platform_data indicates the presence of PHY. Also remove checking if
+>>>>> return value is -ENXIO since it's now changed to always enable usb_phy layer.
+>>>>>
+>>>>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+>>>>> ---
+>>>>>  drivers/usb/dwc3/Kconfig         |    1 +
+>>>>>  drivers/usb/dwc3/core.c          |   60 +++++++++++++++++---------------------
+>>>>>  drivers/usb/dwc3/platform_data.h |    1 +
+>>>>>  3 files changed, 28 insertions(+), 34 deletions(-)
+>>>>>
+>>>>> diff --git a/drivers/usb/dwc3/Kconfig b/drivers/usb/dwc3/Kconfig
+>>>>> index f969ea2..cfc16dd 100644
+>>>>> --- a/drivers/usb/dwc3/Kconfig
+>>>>> +++ b/drivers/usb/dwc3/Kconfig
+>>>>> @@ -2,6 +2,7 @@ config USB_DWC3
+>>>>>       tristate "DesignWare USB3 DRD Core Support"
+>>>>>       depends on (USB || USB_GADGET) && GENERIC_HARDIRQS && HAS_DMA
+>>>>>       depends on EXTCON
+>>>>> +     select USB_PHY
+>>>>>       select USB_XHCI_PLATFORM if USB_SUPPORT && USB_XHCI_HCD
+>>>>>       help
+>>>>>         Say Y or M here if your system has a Dual Role SuperSpeed
+>>>>> diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
+>>>>> index 474162e..428c29e 100644
+>>>>> --- a/drivers/usb/dwc3/core.c
+>>>>> +++ b/drivers/usb/dwc3/core.c
+>>>>> @@ -387,16 +387,38 @@ static int dwc3_probe(struct platform_device *pdev)
+>>>>>       if (node) {
+>>>>>               dwc->maximum_speed = of_usb_get_maximum_speed(node);
+>>>>>
+>>>>> -             dwc->usb2_phy = devm_usb_get_phy_by_phandle(dev, "usb-phy", 0);
+>>>>> -             dwc->usb3_phy = devm_usb_get_phy_by_phandle(dev, "usb-phy", 1);
+>>>>> +             if (of_property_read_bool(node, "usb-phy")) {
+>>>>> +                     dwc->usb2_phy = devm_usb_get_phy_by_phandle(dev,
+>>>>> +                             "usb-phy", 0);
+>>>>> +                     if (IS_ERR(dwc->usb2_phy))
+>>>>> +                             return PTR_ERR(dwc->usb2_phy);
+>>>>> +                     dwc->usb3_phy = devm_usb_get_phy_by_phandle(dev,
+>>>>> +                             "usb-phy", 1);
+>>>>> +                     if (IS_ERR(dwc->usb3_phy))
+>>>>> +                             return PTR_ERR(dwc->usb3_phy);
+>>>>
+>>>> Some DWC3 instances use only usb2_phy. e.g. on DRA7 the 2nd dwc3 instance doesn't use usb3_phy.
+>>>> This needs to be a valid case and driver shouldn't error out.
+>>>
+>>> So, i think adding flexibility to DWC3 to have either
+>>> usb2-phy/usb3-phy or both of them seems to be valid point.
+>>> Any suggestions ?
+>>>
+>>
+>> For high speed operation we need only usb2_phy but for super speed we need both usb2_phy
+>> and usb3_phy.
+>>
+>> Why would a dwc3 controller use only usb3_phy? A USB3.0 interface has to be compatible with
+>> USB2.0 as well, no?
+> 
+> True and for that reason we need both UTMI+ interface as well as PIPE3
+> interface, right ?
+> But as also mentioned in the thread:
+> https://lkml.org/lkml/2013/9/12/181, on Samsung exynos5
+> architecturally same block is managing UTMI+ and PIPE3 interfaces,
+> which is handled by phy-samsung-usb3 driver and denoted by "usb3_phy:
+> usbphy@12100000" node in "arch/arm/boot/dts/exynos5250.dtsi".
+> 
+> So on exynos5250, DWC3 really needs just usb3-phy, which is compatible
+> for USB 2.0 as well.
 
-Now this is in mainline, I get (gcc 4.1.2):
+I'm not familiar with exynos5250 dwc3, but looking at the dts file I can see both usb3_phy
+and usb2_phy nodes and both are referenced in the dwc3 node.
 
-drivers/mmc/host/omap_hsmmc.c: In function =E2=80=98omap_hsmmc_probe=E2=
-=80=99:
-drivers/mmc/host/omap_hsmmc.c:1779: warning: =E2=80=98rx_req=E2=80=99 m=
-ay be used
-uninitialized in this function
-drivers/mmc/host/omap_hsmmc.c:1779: warning: =E2=80=98tx_req=E2=80=99 m=
-ay be used
-uninitialized in this function
+The ehci and ohci controllers don't reference any PHY.
 
-Indeed, rx_req and tx_req are not initialized in the DT case.
-
-Initializing them to zero is probably not the right fix. Where are the =
-values
-supposed to come from in the DT case?
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-=
-m68k.org
-
-In personal conversations with technical people, I call myself a hacker=
-=2E But
-when I'm talking to journalists I just say "programmer" or something li=
-ke that.
-                                -- Linus Torvalds
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+cheers,
+-roger
