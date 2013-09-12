@@ -1,50 +1,61 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 3/4] ARM: am335x-bone-common: switch mmc1 to 4-bit mode
-Date: Thu, 12 Sep 2013 11:19:11 -0500
-Message-ID: <5231E97F.1060005@ti.com>
-References: <1379000532-27376-1-git-send-email-koen@dominion.thruhere.net>
- <1379000532-27376-4-git-send-email-koen@dominion.thruhere.net>
+Subject: Re: [PATCH 4/4] ARM: dts: am335x-bone-common: add cpu0 and mmc1 triggers
+Date: Thu, 12 Sep 2013 11:20:00 -0500
+Message-ID: <5231E9B0.8060303@ti.com>
+References: <1379000532-27376-1-git-send-email-koen@dominion.thruhere.net> <1379000532-27376-5-git-send-email-koen@dominion.thruhere.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1379000532-27376-4-git-send-email-koen@dominion.thruhere.net>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Koen Kooi <koen@dominion.thruhere.net>
-Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, linux@arm.linux.org.uk, pawel.moll@arm.com, swarren@wwwdotorg.org, tony@atomide.com, ijc+devicetree@hellion.org.uk, linux-kernel@vger.kernel.org, rob.herring@calxeda.com, bcousson@baylibre.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:58452 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754625Ab3ILQUc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Sep 2013 12:20:32 -0400
+In-Reply-To: <1379000532-27376-5-git-send-email-koen@dominion.thruhere.net>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-
-nitpick minor comment:
-$subject: ARM: dts: am335x-bone-common: switch mmc1 to 4-bit mode
+To: Koen Kooi <koen@dominion.thruhere.net>
+Cc: linux-kernel@vger.kernel.org, bcousson@baylibre.com, tony@atomide.com, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ijc+devicetree@hellion.org.uk, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
 On 09/12/2013 10:42 AM, Koen Kooi wrote:
-> The micro-SD slot hooks up all four data pins so lets' use them.
+> This matches the vendor 3.8.x configuration that is shipping with the boards.
+> 
+> The LED layout is now:
+> 
+> USR0: heartbeat
+> USR1: mmc0 (micro-SD slot)
+> USR2: cpu0
+> USR3: mmc1 (eMMC)
+> 
+> The cpu0 triggers was put inbetween the mmc triggers to make is easier to see
+nitpick: sinbetween/in between/
+
+> where the disk activity is.
 > 
 > Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
 > ---
->  arch/arm/boot/dts/am335x-bone-common.dtsi | 1 +
->  1 file changed, 1 insertion(+)
+>  arch/arm/boot/dts/am335x-bone-common.dtsi | 2 ++
+>  1 file changed, 2 insertions(+)
 > 
 > diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
-> index cfec441..80407ff 100644
+> index 80407ff..3057f30 100644
 > --- a/arch/arm/boot/dts/am335x-bone-common.dtsi
 > +++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
-> @@ -290,6 +290,7 @@
+> @@ -203,12 +203,14 @@
+>  		led@4 {
+>  			label = "beaglebone:green:usr2";
+>  			gpios = <&gpio1 23 GPIO_ACTIVE_HIGH>;
+> +			linux,default-trigger = "cpu0";
+>  			default-state = "off";
+>  		};
 >  
->  &mmc1 {
->  	status = "okay";
-> +	bus-width = <0x4>;
->  	vmmc-supply = <&ldo3_reg>;
->  	pinctrl-names = "default";
->  	pinctrl-0 = <&mmc1_pins>;
+>  		led@5 {
+>  			label = "beaglebone:green:usr3";
+>  			gpios = <&gpio1 24 GPIO_ACTIVE_HIGH>;
+> +			linux,default-trigger = "mmc1";
+>  			default-state = "off";
+>  		};
+>  	};
 > 
 
 
