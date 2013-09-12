@@ -1,73 +1,34 @@
-From: Koen Kooi <koen@dominion.thruhere.net>
-Subject: [PATCH 1/4] arm: bone: dts: add CD for mmc1
-Date: Thu, 12 Sep 2013 17:42:09 +0200
-Message-ID: <1379000532-27376-2-git-send-email-koen@dominion.thruhere.net>
-References: <1379000532-27376-1-git-send-email-koen@dominion.thruhere.net>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1379000532-27376-1-git-send-email-koen@dominion.thruhere.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: bcousson@baylibre.com, tony@atomide.com, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ijc+devicetree@hellion.org.uk, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Alexander Holler <holler@ahsoftware.de>, Koen Kooi <koen@dominion.thruhere.net>
+From: pawel cern <pawel.cern@wp.pl>
+Subject: Re: omap DSS fails with tft410 driver panel?
+Date: Thu, 12 Sep 2013 11:12:25 +0000 (UTC)
+Message-ID: <loom.20130912T131013-990@post.gmane.org>
+References: <CAFqH_50PVJdbX0CMwo9t3RuAhzi3q6jcBwzq2R3UFighkrF7iw@mail.gmail.com> <CAGDS+nmx8qFSx932TudMN6ikmZ=OGkbvrZuCV=Ump+HETkU-tw@mail.gmail.com> <8865776.jqeL1Eqbut@avalon> <CAAwP0s3GmAu8ij37y=5XCs246pWXWfLechaHLZf84+gaPXtwNw@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from plane.gmane.org ([80.91.229.3]:57272 "EHLO plane.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753768Ab3ILPpF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 12 Sep 2013 11:45:05 -0400
+Received: from list by plane.gmane.org with local (Exim 4.69)
+	(envelope-from <gplao-linux-omap-open-source-moved1@m.gmane.org>)
+	id 1VK94o-00008w-MA
+	for linux-omap@vger.kernel.org; Thu, 12 Sep 2013 17:45:02 +0200
+Received: from 213.77.7.67 ([213.77.7.67])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-omap@vger.kernel.org>; Thu, 12 Sep 2013 17:45:02 +0200
+Received: from pawel.cern by 213.77.7.67 with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-omap@vger.kernel.org>; Thu, 12 Sep 2013 17:45:02 +0200
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-From: Alexander Holler <holler@ahsoftware.de>
 
-This enables the use of MMC cards even when no card was inserted at boot.
+Try adding kernel bootargs, lets say: vram=48M omapfb.vram=0:16M,1:16M,2:16M
 
-Signed-off-by: Alexander Holler <holler@ahsoftware.de>
-Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
----
+And see what happens.
 
-Changes since v2:
-	None, again a simple repost
 
-Changes since v1:
-	None, simple repost
-
- arch/arm/boot/dts/am335x-bone-common.dtsi | 14 ++++++++++++++
- arch/arm/boot/dts/am335x-bone.dts         |  4 ----
- 2 files changed, 14 insertions(+), 4 deletions(-)
-
-diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
-index 2f66ded..ced256c 100644
---- a/arch/arm/boot/dts/am335x-bone-common.dtsi
-+++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
-@@ -107,6 +107,11 @@
- 				0x14c (PIN_INPUT_PULLDOWN | MUX_MODE7)
- 			>;
- 		};
-+		mmc1_pins: pinmux_mmc1_pins {
-+			pinctrl-single,pins = <
-+				0x160 (PIN_INPUT | MUX_MODE7) /* GPIO0_6 */
-+			>;
-+		};
- 	};
- 
- 	ocp {
-@@ -260,3 +265,12 @@
- 	pinctrl-0 = <&davinci_mdio_default>;
- 	pinctrl-1 = <&davinci_mdio_sleep>;
- };
-+
-+&mmc1 {
-+	status = "okay";
-+	vmmc-supply = <&ldo3_reg>;
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&mmc1_pins>;
-+	cd-gpios = <&gpio0 6 GPIO_ACTIVE_HIGH>;
-+	cd-inverted;
-+};
-diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
-index d5f43fe..d34469c 100644
---- a/arch/arm/boot/dts/am335x-bone.dts
-+++ b/arch/arm/boot/dts/am335x-bone.dts
-@@ -16,7 +16,3 @@
- 	regulator-always-on;
- };
- 
--&mmc1 {
--	status = "okay";
--	vmmc-supply = <&ldo3_reg>;
--};
--- 
-1.8.2.1
