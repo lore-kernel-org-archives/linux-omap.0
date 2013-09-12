@@ -1,29 +1,51 @@
-From: "Gupta, Pekon" <pekon@ti.com>
-Subject: RE: [PATCH v5 0/4] mtd:nand:omap2: clean-up of supported ECC schemes
-Date: Thu, 12 Sep 2013 12:02:11 +0000
-Message-ID: <20980858CB6D3A4BAE95CA194937D5E73EA0EFCA@DBDE04.ent.ti.com>
-References: <1373748891-7779-1-git-send-email-pekon@ti.com>
- <20130821013255.GD28382@ld-irv-0074.broadcom.com>
+From: Afzal Mohammed <afzal@ti.com>
+Subject: Re: [PATCH RFC 0/6] ARM: OMAP2+: AM43x/AM335x prcm reset driver
+Date: Thu, 12 Sep 2013 17:39:34 +0530
+Message-ID: <5231AEFE.5000206@ti.com>
+References: <cover.1378129416.git.afzal@ti.com>
+ <1378375634.3948.10.camel@pizza.hi.pengutronix.de> <5228A99D.4020702@ti.com>
+ <1378717612.4151.6.camel@pizza.hi.pengutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:44841 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753759Ab3ILMCo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 12 Sep 2013 08:02:44 -0400
-In-Reply-To: <20130821013255.GD28382@ld-irv-0074.broadcom.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1378717612.4151.6.camel@pizza.hi.pengutronix.de>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Russell King <linux@arm.linux.org.uk>, Ian Campbell <ian.campbell@citrix.com>, Pawel Moll <pawel.moll@arm.com>, linux-doc@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Pavel Machek <pavel@ucw.cz>, Stephen Warren <swarren@wwwdotorg.org>, linux-kernel@vger.kernel.org, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, Benoit Cousson <bcousson@baylibre.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Brian Norris <computersforpeace@gmail.com>
-Cc: "dedekind1@gmail.com" <dedekind1@gmail.com>, "dwmw2@infradead.org" <dwmw2@infradead.org>, "arnd@arndb.de" <arnd@arndb.de>, "olof@lixom.net" <olof@lixom.net>, "N, Mugunthan V" <mugunthanvnm@ti.com>, "tony@atomide.com" <tony@atomide.com>, "avinashphilipk@gmail.com" <avinashphilipk@gmail.com>, "Balbi, Felipe" <balbi@ti.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "benoit.cousson@linaro.org" <benoit.cousson@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
 
-SGksDQoNCj4gWy4uLl0NCj4gDQo+IFlvdSBtaWdodCBhbHNvIGNvbnNpZGVyIGEgZnV0dXJlIHBh
-dGNoIGZvciB1dGlsaXppbmcgZGV2bV8qIGZ1bmN0aW9ucw0KPiBmb3IgdGhlIHByb2JlL3JlbW92
-ZSByb3V0aW5lcyBpbiBkcml2ZXJzL210ZC9uYW5kL29tYXAyLmMuIFRoYXQgY291bGQNCj4gaW1w
-cm92ZSBzb21lIG9mIHRoZSBzdHVmZiBJIGxvb2tlZCBhdCBpbiB0aGlzIHNlcmllcy4NCj4gDQpU
-aGFua3MgZm9yIGZlZWRiYWNrLg0KSSBoYXZlIG5vdCBpbmNvcnBvcmF0ZWQgdGhpcyBwYXJ0aWN1
-bGFyIHVwZGF0ZSBpbiB2NiwgYXMgSSBkbyBub3QgaGF2ZSBtdWNoDQprbm93bGVkZ2UgYWJvdXQg
-ZGV2bV8qIGZ1bmN0aW9ucy4gQnV0IEknbGwga2VlcCBpdCBpbiBteSB0by1kbyhzKSBvbmNlDQpk
-cml2ZXIgaXMgY29tcGxldGUgZmVhdHVyZSB3aXNlLiANCg0Kd2l0aCByZWdhcmRzLCBwZWtvbg0K
+Hi Philipp,
+
+On Monday 09 September 2013 02:36 PM, Philipp Zabel wrote:
+
+> So if I understand correctly, the only problem is that on OMAP the clock
+> needs to be enabled to deassert the reset, but as long as the clock
+> domain is in hardware supervised mode, it won't be enabled?
+
+Yes, enabling clock with reset deassertion might not reset the module if
+the clock domain is in hardware supervised mode.
+
+> Would it be possible to create an internal API to switch the clock
+> domain to software supervised mode, which can be used both by the code
+> behind pm_runtime_get_sync and reset_control_deassert?
+
+I will see if that is acceptable.
+
+Another option that would have to be explored is invoking device_reset()
+(taking care of clear, deassert & status checking as you suggested)
+midway through pm_run_time_get_sync(), when the clockdomain is in
+software supervised mode with reset driver taking care of any particular
+sequence in the case of multiple reset signals, instead of the IP driver
+requiring to take care of it.
+
+Regards
+Afzal
