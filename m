@@ -1,110 +1,120 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: commit 5fe212364 causes division by zero with large bauds
-Date: Thu, 12 Sep 2013 07:21:35 -0500
-Message-ID: <20130912122135.GP10105@radagast>
-References: <20130910190901.GA10105@radagast>
- <CAOmKuSrbaLqaYiJFwonHzC-S003vgg2x0xUG4TGKDpMgvCCGHQ@mail.gmail.com>
- <20130911183825.GC10105@radagast>
- <CAOmKuSpJ4rX0p0a1gGvc3fVazTg=+43tDfTFiJSrxmAxXihf-A@mail.gmail.com>
- <20130911190033.GD10105@radagast>
- <CAOmKuSoZQ=uDAD7P94EPfKEp97to3DqwWk=GW7OZ-98+S6nTBA@mail.gmail.com>
- <20130911204714.GH10105@radagast>
- <CAOmKuSpgwGcTaQTEdtH+9g-6WwNwseVU6X+hhntK31EOTM=WRA@mail.gmail.com>
- <CAOmKuSpRpb0mRnORvK-q1MMV3BHZaY8_yTyQV-iE+=gj1hqK7Q@mail.gmail.com>
-Reply-To: <balbi@ti.com>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: Uninitialized rx_req/tx_req (was: Re: [PATCH v2 2/3] mmc: omap_hsmmc:
+ Skip platform_get_resource_byname() for dt case)
+Date: Thu, 12 Sep 2013 14:41:00 +0200
+Message-ID: <CAMuHMdVVjkZBZyJe2qnUxHeRVo+8WD_Vx1ZKin_pA7XLRCW8uw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="+gHRqQ1BTyNna/y8"
-Return-path: <linux-serial-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAOmKuSpRpb0mRnORvK-q1MMV3BHZaY8_yTyQV-iE+=gj1hqK7Q@mail.gmail.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: Alexey Pelykh <alexey.pelykh@gmail.com>
-Cc: balbi@ti.com, Tony Lindgren <tony@atomide.com>, Greg KH <gregkh@linuxfoundation.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-serial@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pd0-f182.google.com ([209.85.192.182]:64363 "EHLO
+	mail-pd0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752380Ab3ILMlD convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Sep 2013 08:41:03 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Matt Porter <matt.porter@linaro.org>
+Cc: Balaji T K <balajitk@ti.com>, Chris Ball <cjb@laptop.org>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Vinod Koul <vinod.koul@intel.com>, Tony Lindgren <tony@atomide.com>, Devicetree Discuss <devicetree-discuss@lists.ozlabs.org>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux MMC List <linux-mmc@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, Dan Williams <djbw@fb.com>, Jon Hunter <jon-hunter@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
---+gHRqQ1BTyNna/y8
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi,
-
-On Thu, Sep 12, 2013 at 07:37:07AM +0300, Alexey Pelykh wrote:
-> Actually, here it is, but not formatted properly
+On Tue, Mar 5, 2013 at 10:13 PM, Matt Porter <mporter@ti.com> wrote:
+> From: Santosh Shilimkar <santosh.shilimkar@ti.com>
 >
-> diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-s=
-erial.c
-> index 816d1a2..146e712 100644
-> --- a/drivers/tty/serial/omap-serial.c
-> +++ b/drivers/tty/serial/omap-serial.c
-> @@ -240,14 +240,14 @@ serial_omap_baud_is_mode16(struct uart_port
-> *port, unsigned int baud)
->  {
->   unsigned int n13 =3D port->uartclk / (13 * baud);
->   unsigned int n16 =3D port->uartclk / (16 * baud);
-> - int baudAbsDiff13 =3D baud - (port->uartclk / (13 * n13));
-> - int baudAbsDiff16 =3D baud - (port->uartclk / (16 * n16));
-> + int baudAbsDiff13 =3D n13 ? (baud - (port->uartclk / (13 * n13))) : INT=
-_MAX;
-> + int baudAbsDiff16 =3D n16 ? (baud - (port->uartclk / (16 * n16))) : INT=
-_MAX;
->   if(baudAbsDiff13 < 0)
->   baudAbsDiff13 =3D -baudAbsDiff13;
->   if(baudAbsDiff16 < 0)
->   baudAbsDiff16 =3D -baudAbsDiff16;
->=20
-> - return (baudAbsDiff13 > baudAbsDiff16);
-> + return (baudAbsDiff13 >=3D baudAbsDiff16);
->  }
->=20
->  /*
-> @@ -258,13 +258,13 @@ serial_omap_baud_is_mode16(struct uart_port
-> *port, unsigned int baud)
->  static unsigned int
->  serial_omap_get_divisor(struct uart_port *port, unsigned int baud)
->  {
-> - unsigned int divisor;
-> + unsigned int mode;
->=20
->   if (!serial_omap_baud_is_mode16(port, baud))
-> - divisor =3D 13;
-> + mode =3D 13;
->   else
-> - divisor =3D 16;
-> - return port->uartclk/(baud * divisor);
-> + mode =3D 16;
-> + return port->uartclk/(mode * baud);
->  }
->=20
->  static void serial_omap_enable_ms(struct uart_port *port)
+> MMC driver probe will abort for DT case because of failed
+> platform_get_resource_byname() lookup. Fix it by skipping resource
+> byname lookup for device tree build.
+>
+> Issue is hidden because hwmod popullates the IO resources which
+> helps to succeed platform_get_resource_byname() and probe.
+>
+> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> ---
+>  drivers/mmc/host/omap_hsmmc.c |   28 +++++++++++++++-------------
+>  1 file changed, 15 insertions(+), 13 deletions(-)
+>
+> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hs=
+mmc.c
+> index e79b12d..8ae1225 100644
+> --- a/drivers/mmc/host/omap_hsmmc.c
+> +++ b/drivers/mmc/host/omap_hsmmc.c
+> @@ -1896,21 +1896,23 @@ static int omap_hsmmc_probe(struct platform_d=
+evice *pdev)
+>
+>         omap_hsmmc_conf_bus_power(host);
+>
+> -       res =3D platform_get_resource_byname(pdev, IORESOURCE_DMA, "t=
+x");
+> -       if (!res) {
+> -               dev_err(mmc_dev(host->mmc), "cannot get DMA TX channe=
+l\n");
+> -               ret =3D -ENXIO;
+> -               goto err_irq;
+> -       }
+> -       tx_req =3D res->start;
+> +       if (!pdev->dev.of_node) {
+> +               res =3D platform_get_resource_byname(pdev, IORESOURCE=
+_DMA, "tx");
+> +               if (!res) {
+> +                       dev_err(mmc_dev(host->mmc), "cannot get DMA T=
+X channel\n");
+> +                       ret =3D -ENXIO;
+> +                       goto err_irq;
+> +               }
+> +               tx_req =3D res->start;
+>
+> -       res =3D platform_get_resource_byname(pdev, IORESOURCE_DMA, "r=
+x");
+> -       if (!res) {
+> -               dev_err(mmc_dev(host->mmc), "cannot get DMA RX channe=
+l\n");
+> -               ret =3D -ENXIO;
+> -               goto err_irq;
+> +               res =3D platform_get_resource_byname(pdev, IORESOURCE=
+_DMA, "rx");
+> +               if (!res) {
+> +                       dev_err(mmc_dev(host->mmc), "cannot get DMA R=
+X channel\n");
+> +                       ret =3D -ENXIO;
+> +                       goto err_irq;
+> +               }
+> +               rx_req =3D res->start;
+>         }
+> -       rx_req =3D res->start;
+>
+>         dma_cap_zero(mask);
+>         dma_cap_set(DMA_SLAVE, mask);
 
-looks good to me, but I'd split it as suggested as a reply to previous
-email.
+Now this is in mainline, I get (gcc 4.1.2):
 
---=20
-balbi
+drivers/mmc/host/omap_hsmmc.c: In function =E2=80=98omap_hsmmc_probe=E2=
+=80=99:
+drivers/mmc/host/omap_hsmmc.c:1779: warning: =E2=80=98rx_req=E2=80=99 m=
+ay be used
+uninitialized in this function
+drivers/mmc/host/omap_hsmmc.c:1779: warning: =E2=80=98tx_req=E2=80=99 m=
+ay be used
+uninitialized in this function
 
---+gHRqQ1BTyNna/y8
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Indeed, rx_req and tx_req are not initialized in the DT case.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+Initializing them to zero is probably not the right fix. Where are the =
+values
+supposed to come from in the DT case?
 
-iQIcBAEBAgAGBQJSMbHPAAoJEIaOsuA1yqREvgcP/At1CuLnB+sdWrhZLMKY6FJK
-GXtRovh4J0tkVoPXfIp5X1nF54YjFAi94owB2xBgAfD4mgpgE+OlC/Gt/HvEwKoV
-hg4p0xLXlR8CcyRvBE/BD9kWrf8BW/7UjCpXnbwHItLzu4aWcr9NpaqAVaq8b+Dk
-fzW3v0WQaGI3c+306Z5Y7qTgQED4oR8ZxRyMDnBgOiqFcEX+Uo3kEXZYVR7XYird
-L8AkidZX1rVYcWFhVHQLqlALh5j4Xk+aD/ItGfSRoIcTmXluCPk2+iynbpSxWB7X
-OELLL7zBiTGINp/Ztpu3VNg2qlyjrxQiEc0OI0l545pXz+2DwYxdxUaK3gJflQGk
-FxAQET27HPrPH2acgD8y54bZ85lmHZTiiN9qKpgBgGXIedBe3TlNE4xO1+ND8ro8
-7yDa7LfhnUgD3KJ51g3T7KpyrDIicWA7zXttVLP/xUncIVhTEMcIFiMfWuknqCDf
-o1zssgh/1u64C9nHwwHFO1izASUpt6c9XJw3hpQxdrXQYgIdlQEpyv86ZA5PlSZ0
-A9v6Vk4z9VUEyiAiJ88vHgeLX2zVAwsMmNTSLIcUkd09nnzKMmFGN87FEBo6TwO+
-Ph3cV5RlXJ7Dvgx9stvusTqsJlRnzAOE6Gevjr9qrfQTuOe6AJTyeQgPe23zsgel
-KjNlPES0vRFH3VdIgVsP
-=9Gv7
------END PGP SIGNATURE-----
+Gr{oetje,eeting}s,
 
---+gHRqQ1BTyNna/y8--
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-=
+m68k.org
+
+In personal conversations with technical people, I call myself a hacker=
+=2E But
+when I'm talking to journalists I just say "programmer" or something li=
+ke that.
+                                -- Linus Torvalds
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
