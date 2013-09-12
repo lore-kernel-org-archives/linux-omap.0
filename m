@@ -1,64 +1,67 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 4/4] ARM: dts: am335x-bone-common: add cpu0 and mmc1 triggers
-Date: Thu, 12 Sep 2013 11:20:00 -0500
-Message-ID: <5231E9B0.8060303@ti.com>
-References: <1379000532-27376-1-git-send-email-koen@dominion.thruhere.net> <1379000532-27376-5-git-send-email-koen@dominion.thruhere.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+From: Koen Kooi <koen@dominion.thruhere.net>
+Subject: [PATCH v4 0/2] ARM: dts: Beaglebone MMC fixes
+Date: Thu, 12 Sep 2013 20:35:31 +0200
+Message-ID: <1379010935-25943-1-git-send-email-koen@dominion.thruhere.net>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:58452 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754625Ab3ILQUc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Sep 2013 12:20:32 -0400
-In-Reply-To: <1379000532-27376-5-git-send-email-koen@dominion.thruhere.net>
+Received: from mail-wg0-f52.google.com ([74.125.82.52]:49926 "EHLO
+	mail-wg0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755704Ab3ILSfm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Sep 2013 14:35:42 -0400
+Received: by mail-wg0-f52.google.com with SMTP id m15so191417wgh.19
+        for <linux-omap@vger.kernel.org>; Thu, 12 Sep 2013 11:35:41 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Koen Kooi <koen@dominion.thruhere.net>
-Cc: linux-kernel@vger.kernel.org, bcousson@baylibre.com, tony@atomide.com, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ijc+devicetree@hellion.org.uk, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: linux-kernel@vger.kernel.org
+Cc: bcousson@baylibre.com, tony@atomide.com, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ijc+devicetree@hellion.org.uk, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Koen Kooi <koen@dominion.thruhere.net>
 
-On 09/12/2013 10:42 AM, Koen Kooi wrote:
-> This matches the vendor 3.8.x configuration that is shipping with the boards.
-> 
-> The LED layout is now:
-> 
-> USR0: heartbeat
-> USR1: mmc0 (micro-SD slot)
-> USR2: cpu0
-> USR3: mmc1 (eMMC)
-> 
-> The cpu0 triggers was put inbetween the mmc triggers to make is easier to see
-nitpick: sinbetween/in between/
+Here are two patches to fix MMC on beaglebone, one fixes card detect on BBW,
+the other adds the eMMC entry for BBB and its fixed regulator. After that mmc1
+gets a nice speed boost by moving to 4-bit mode and LED triggers get assigned.
 
-> where the disk activity is.
-> 
-> Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
-> ---
->  arch/arm/boot/dts/am335x-bone-common.dtsi | 2 ++
->  1 file changed, 2 insertions(+)
-> 
-> diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
-> index 80407ff..3057f30 100644
-> --- a/arch/arm/boot/dts/am335x-bone-common.dtsi
-> +++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
-> @@ -203,12 +203,14 @@
->  		led@4 {
->  			label = "beaglebone:green:usr2";
->  			gpios = <&gpio1 23 GPIO_ACTIVE_HIGH>;
-> +			linux,default-trigger = "cpu0";
->  			default-state = "off";
->  		};
->  
->  		led@5 {
->  			label = "beaglebone:green:usr3";
->  			gpios = <&gpio1 24 GPIO_ACTIVE_HIGH>;
-> +			linux,default-trigger = "mmc1";
->  			default-state = "off";
->  		};
->  	};
-> 
+This series depends on:
 
+http://comments.gmane.org/gmane.linux.kernel.stable/63648
+https://lkml.org/lkml/2013/9/10/454
+http://comments.gmane.org/gmane.linux.kernel.mmc/22381
+
+Or as git-cherry would put it:
+
+[koen@rrMBP patches]$ git cherry -v
++ 564fc88cc64387af5312e2abd8019c75a13223b2 ARM: OMAP2+: am335x-bone*: add DT for BeagleBone Black
++ e5133ed98acc1c3e01c370b851041a8ca629cd15 ARM: EDMA: Fix clearing of unused list for DT DMA resources
++ ac71bb58605d3bdd5d14af770a639fb3ff11c612 ARM: dts: add AM33XX EDMA support
++ 31a8270a299c57c7de7510f44d9dc36fd1787243 ARM: dts: add AM33XX SPI DMA support
++ 4fa0a4cb9ea17da30cf43085c03e5ec1361a4fc2 ARM: dts: add AM33XX MMC support and documentation
++ 0553f50bd45f019a0cc11050e2f20bddbf07dfe0 ARM: dts: am335x-bone: add CD for mmc1
++ 7d64f765630a2921a63b82f93f9959a6de37f29d ARM: dts: am335x-boneblack: add eMMC DT entry
++ dc96cd4003e2668d8ec7e7fe19e402e97a198f81 ARM: dts: am335x-bone-common: switch mmc1 to 4-bit mode
++ f8262e78830cda56c936724549ba9f04dddde312 ARM: dts: am335x-bone-common: add cpu0 and mmc1 triggers
+
+Also available as a git branch at https://github.com/koenkooi/linux/commits/mainline
+
+Changes since v3:
+	Addressed Nishants nitpicks for commit messages
+	Addressed Russ' comments about moving LDO3 for mmc1 out of the common dtsi
+
+Changes since v2:
+	Missing pinmux entries for eMMC added
+
+Changes since v1:
+	Removed ti,non-removable entry from eMMC node, see http://marc.info/?l=linux-arm-kernel&m=137889435710552&w=2
+---
+
+Alexander Holler (1):
+  arm: bone: dts: add CD for mmc1
+
+Koen Kooi (3):
+  am335x-boneblack: add eMMC DT entry
+  ARM: am335x-bone-common: switch mmc1 to 4-bit mode
+  ARM: dts: am335x-bone-common: add cpu0 and mmc1 triggers
+
+ arch/arm/boot/dts/am335x-bone-common.dtsi | 39 +++++++++++++++++++++++++++++++
+ arch/arm/boot/dts/am335x-bone.dts         |  1 -
+ arch/arm/boot/dts/am335x-boneblack.dts    | 14 +++++++++++
+ 3 files changed, 53 insertions(+), 1 deletion(-)
 
 -- 
-Regards,
-Nishanth Menon
+1.8.2.1
