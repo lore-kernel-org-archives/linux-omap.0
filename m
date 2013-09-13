@@ -1,80 +1,74 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [RFC PATCH 1/4] DRIVERS: IRQCHIP: Add crossbar irqchip driver
-Date: Thu, 12 Sep 2013 21:42:03 -0400
-Message-ID: <52326D6B.2010003@ti.com>
-References: <1379000351-15672-1-git-send-email-r.sricharan@ti.com> <1379000351-15672-2-git-send-email-r.sricharan@ti.com> <alpine.DEB.2.02.1309122201530.4089@ionos.tec.linutronix.de> <523228B5.5070507@ti.com> <alpine.DEB.2.02.1309122335440.4089@ionos.tec.linutronix.de> <5232457A.8080709@ti.com> <alpine.DEB.2.02.1309130138550.4089@ionos.tec.linutronix.de>
+From: Stefan Roese <stefan.roese@gmail.com>
+Subject: Re: Odd behavior with dpll4_m4x2_ck on omap3 + DT
+Date: Fri, 13 Sep 2013 09:51:47 +0200
+Message-ID: <5232C413.8010207@gmail.com>
+References: <521DC143.2010506@ti.com> <521DC770.5050000@ti.com> <521DCD80.1060600@ti.com> <521DE1A6.6030005@ti.com> <522F0390.9050802@gmail.com> <522F0CC7.50501@ti.com> <522F0E3E.1080001@ti.com> <522F0F9B.9050705@ti.com> <522F1346.3020206@ti.com> <522F1BF9.5050006@ti.com> <523019EE.5000508@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.02.1309130138550.4089@ionos.tec.linutronix.de>
-Sender: linux-doc-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: Sricharan R <r.sricharan@ti.com>, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linus.walleij@linaro.org, linux@arm.linux.org.uk, tony@atomide.com, rnayak@ti.com
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mo-p05-ob.rzone.de ([81.169.146.181]:43244 "EHLO
+	mo-p05-ob.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755913Ab3IMHwB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Sep 2013 03:52:01 -0400
+In-Reply-To: <523019EE.5000508@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Tero Kristo <t-kristo@ti.com>, linux-omap <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, Mike Turquette <mturquette@linaro.org>
 
-On Thursday 12 September 2013 08:26 PM, Thomas Gleixner wrote:
-> On Thu, 12 Sep 2013, Santosh Shilimkar wrote:
->> On Thursday 12 September 2013 06:22 PM, Thomas Gleixner wrote:
->>> Now the real question is, how that expansion mechanism is supposed to
->>> work. There are two possible scenarios:
->>>
->>> 1) Expand the number of handled interrupts beyond the GIC capacity:
->>>
->>>    That requires a mechanism in CROSSBAR to map several CROSSBAR
->>>    interrupts to a particular GIC interrupt and provide a demux
->>>    mechanism to invoke the shared handlers.
->>>
->> This is not possible in hardware and not supported. Hardware has
->> no notion of muxing multiple IRQ's to generate 1 IRQ or ack etc
->> functionality. Its a simple MUX to tie knots between input and output
->> wires.
+On 11.09.2013 09:21, Tomi Valkeinen wrote:
+> On 10/09/13 16:17, Tero Kristo wrote:
 > 
-> It's not a MUX. It's a ROUTING mechanism. That's similar to the
-> mechanisms which are used by MSI[X]. We assign arbitrary interrupt
-> numbers to a device and route them to some underlying limited hardware
-> interrupt controller.
+>> In theory, DPLLs can also be used in their bypass mode to feed customer
+>> nodes clocks. I just think the check in the clkoutx2_recalc is wrong,
+>> and should be enhanced to actually check what is the target mode for the
+>> clock once it is enabled. Maybe something like this would work properly:
+>>
+>> diff --git a/arch/arm/mach-omap2/dpll3xxx.c
+>> b/arch/arm/mach-omap2/dpll3xxx.c
+>> index 3a0296c..ba218fb 100644
+>> --- a/arch/arm/mach-omap2/dpll3xxx.c
+>> +++ b/arch/arm/mach-omap2/dpll3xxx.c
+>> @@ -658,14 +658,12 @@ unsigned long omap3_clkoutx2_recalc(struct clk_hw
+>> *hw,
+>>
+>>         dd = pclk->dpll_data;
+>>
+>> -       WARN_ON(!dd->enable_mask);
+>> -
+>> -       v = __raw_readl(dd->control_reg) & dd->enable_mask;
+>> -       v >>= __ffs(dd->enable_mask);
+>> -       if ((v != OMAP3XXX_EN_DPLL_LOCKED) || (dd->flags & DPLL_J_TYPE))
+>> +       if ((dd->flags & DPLL_J_TYPE) ||
+>> +           __clk_get_rate(dd->clk_bypass) == __clk_get_rate(pclk))
+>>                 rate = parent_rate;
+>>         else
+>>                 rate = parent_rate * 2;
+>> +
+>>         return rate;
+>>  }
 > 
->>> 2) Provide a mapping mechanism between possibly 250 interrupt numbers
->>>    and a limitation of a total 160 active interrupts by the underlying
->>>    GIC.
->>>
->> This is the need and problem we are trying to solve.
+> Stefan, are you able to test the above?
 > 
-> Let me summarize:
-> 
->    - GIC supports up to 160 interrupts
-> 
->    - CROSSBAR supports up to 250 interrupts 
-> 
->    - CROSSBAR routes up to 160 out of 250 interrupts to the GIC ones
-> 
->    - Drivers request a CROSSBAR interrupt number which must be mapped
->      to some arbitrary available GIC irq number
-> 
-Correct.
+> I'd rather have a proper fix for this, than hack omapdss =).
 
-> So basically the CROSSBAR mechanism is pretty much the same as MSI[X]
-> just in a different flavour and with a different set of semantics and
-> limitations, i.e. poor mans MSI[X] with a new level of bogosity.
-> 
-> So if CROSSBAR is going to be the new fangled SoC MSI[X] long term
-> equivalent then you better provide some infrastructure for that and
-> make the drivers ready to use it. Maybe check with the PCI/MSI folks
-> to share some of the interfaces.
->
-> If that whole thing is another onetime HW designers wet dream, then
-> please go back to the limited but completely functional (Who is going
-> to use more than 160 peripheral interrupts????) device tree model. I
-> really have no interest to support hardware designer brain farts.
-> 
-Thanks for clear NAK for irqchip approach. I should have looped you
-in the discussion where I was also suggesting against the irqchip
-approach. We will try to look at MSI stuff but if its get too
-complicated am going to fall-back to the initial probe based
-approach to achieve the functionality.
+Okay, I finally found some time to test this. The patch above generates
+this warning:
 
-Thanks again for clear direction and useful discussion.
+arch/arm/mach-omap2/dpll3xxx.c: In function 'omap3_clkoutx2_recalc':
+arch/arm/mach-omap2/dpll3xxx.c:663:6: warning: passing argument 1 of '__clk_get_rate' from incompatible pointer type [enabled by default]
+include/linux/clk-provider.h:423:15: note: expected 'struct clk *' but argument is of type 'struct clk_hw_omap *'
 
-Regards,
-Santosh
+I then changed it (not 100% sure if correctly) to this version:
+
++       if ((dd->flags & DPLL_J_TYPE) ||
++           __clk_get_rate(dd->clk_bypass) == __clk_get_rate(pclk->hw.clk))
+
+And this seems to work. At least the clock rate mismatch warning does not
+appear with this patch applied (and without the clk_enable) in the
+bootlog any more.
+
+Thanks,
+Stefan
+
