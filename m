@@ -1,208 +1,96 @@
-From: Archit Taneja <archit@ti.com>
-Subject: [PATCH 1/4] arm: omap: display: Create omapdrm inside omap_display_init
-Date: Fri, 13 Sep 2013 14:44:36 +0530
-Message-ID: <1379063679-4869-2-git-send-email-archit@ti.com>
+From: Archit Taneja <archit-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 2/4] ARM: dts: OMAP4+: Add DMM bindings
+Date: Fri, 13 Sep 2013 14:44:37 +0530
+Message-ID: <1379063679-4869-3-git-send-email-archit@ti.com>
 References: <1379063679-4869-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:45369 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753428Ab3IMJP6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Sep 2013 05:15:58 -0400
-In-Reply-To: <1379063679-4869-1-git-send-email-archit@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1379063679-4869-1-git-send-email-archit-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robdclark-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, tomi.valkeinen-l0cyMroinI0@public.gmane.org
+Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Archit Taneja <archit-l0cyMroinI0@public.gmane.org>, Andy Gross <andygro-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, linux-omap@vger.kernel.org, robdclark@gmail.com, tomi.valkeinen@ti.com
-Cc: devicetree@vger.kernel.org, Archit Taneja <archit@ti.com>, Andy Gross <andygro@gmail.com>
 
-Move omapdrm device creation inside the omap_display_init so that we can
-correctly create the device based on the presence of omapdss.
+Add Dynamic Memory Manager (DMM) bindings for OMAP4 and OMAP5 devices. DMM
+only requires address and irq information.
+
+Add documentation for the DMM bindings.
 
 Originally worked on by Andy Gross.
 
-Cc: Andy Gross <andygro@gmail.com>
-Signed-off-by: Archit Taneja <archit@ti.com>
+Cc: Andy Gross <andygro-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Archit Taneja <archit-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/mach-omap2/Makefile  |  4 ---
- arch/arm/mach-omap2/display.c | 55 +++++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/drm.c     | 67 -------------------------------------------
- 3 files changed, 55 insertions(+), 71 deletions(-)
- delete mode 100644 arch/arm/mach-omap2/drm.c
+ Documentation/devicetree/bindings/arm/omap/dmm.txt | 17 +++++++++++++++++
+ arch/arm/boot/dts/omap4.dtsi                       |  7 +++++++
+ arch/arm/boot/dts/omap5.dtsi                       |  7 +++++++
+ 3 files changed, 31 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/arm/omap/dmm.txt
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index ff2c162..f73b6a5 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -229,10 +229,6 @@ endif
- # OMAP2420 MSDI controller integration support ("MMC")
- obj-$(CONFIG_SOC_OMAP2420)		+= msdi.o
- 
--ifneq ($(CONFIG_DRM_OMAP),)
--obj-y					+= drm.o
--endif
--
- # Specific board support
- obj-$(CONFIG_MACH_OMAP_GENERIC)		+= board-generic.o
- obj-$(CONFIG_MACH_OMAP_H4)		+= board-h4.o
-diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
-index 03a0516..d097d23 100644
---- a/arch/arm/mach-omap2/display.c
-+++ b/arch/arm/mach-omap2/display.c
-@@ -18,11 +18,13 @@
- #include <linux/string.h>
- #include <linux/kernel.h>
- #include <linux/init.h>
-+#include <linux/dma-mapping.h>
- #include <linux/platform_device.h>
- #include <linux/io.h>
- #include <linux/clk.h>
- #include <linux/err.h>
- #include <linux/delay.h>
-+#include <linux/platform_data/omap_drm.h>
- 
- #include <video/omapdss.h>
- #include "omap_hwmod.h"
-@@ -102,6 +104,52 @@ static const struct omap_dss_hwmod_data omap4_dss_hwmod_data[] __initconst = {
- 	{ "dss_hdmi", "omapdss_hdmi", -1 },
- };
- 
-+#if defined(CONFIG_DRM_OMAP) || defined(CONFIG_DRM_OMAP_MODULE)
+diff --git a/Documentation/devicetree/bindings/arm/omap/dmm.txt b/Documentation/devicetree/bindings/arm/omap/dmm.txt
+new file mode 100644
+index 0000000..237cd83
+--- /dev/null
++++ b/Documentation/devicetree/bindings/arm/omap/dmm.txt
+@@ -0,0 +1,17 @@
++OMAP Dynamic Memory Manager (DMM) bindings
 +
-+static struct omap_drm_platform_data platform_drm_data;
++Required properties:
++- compatible:	Must be "ti,omap4-dmm" for OMAP4 family
++		Must be "ti,omap5-dmm" for OMAP5 family
++- reg:		Contains timer register address range (base address and length)
++- interrupts:	Contains interrupt information (source, etc) for the DMM IRQ
++- ti,hwmods:	Name of the hwmod associated to the counter, which is typically
++		"dmm"
 +
-+static struct platform_device drm_device = {
-+	.dev = {
-+		.coherent_dma_mask = DMA_BIT_MASK(32),
-+		.platform_data = &platform_drm_data,
-+	},
-+	.name = "omapdrm",
-+	.id = 0,
++Example:
++
++dmm: dmm@4e000000 {
++	compatible = "ti,omap4-dmm";
++	reg = <0x4e000000 0x800>;
++	ti,hwmods = "dmm";
 +};
-+
-+static struct platform_device *omap_drm_device = &drm_device;
-+#else
-+static struct platform_device *omap_drm_device;
-+#endif
-+
-+static int __init omapdrm_init(void)
-+{
-+	int r = 0;
-+
-+	/* create DRM and DMM device */
-+	if (omap_drm_device != NULL) {
-+		struct omap_hwmod *oh = NULL;
-+		struct platform_device *pdev;
-+
-+		/* lookup and populate the DMM information, if present - OMAP4+ */
-+		oh = omap_hwmod_lookup("dmm");
-+		if (oh) {
-+			pdev = omap_device_build(oh->name, -1, oh, NULL, 0);
-+			WARN(IS_ERR(pdev),
-+				"Could not build omap_device for %s\n",
-+				oh->name);
-+		}
-+
-+		platform_drm_data.omaprev = GET_OMAP_TYPE;
-+
-+		r = platform_device_register(omap_drm_device);
-+		if (r < 0)
-+			pr_err("Unable to register omapdrm device\n");
-+	}
-+
-+	return r;
-+}
-+
- static void __init omap4_tpd12s015_mux_pads(void)
- {
- 	omap_mux_init_signal("hdmi_cec",
-@@ -416,6 +464,13 @@ int __init omap_display_init(struct omap_dss_board_info *board_data)
- 		}
- 	}
+diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+index 22d9f2b..24f388e 100644
+--- a/arch/arm/boot/dts/omap4.dtsi
++++ b/arch/arm/boot/dts/omap4.dtsi
+@@ -487,6 +487,13 @@
+ 			ti,hwmods = "kbd";
+ 		};
  
-+	/* create DRM and DMM device */
-+	r = omapdrm_init();
-+	if (r < 0) {
-+		pr_err("Unable to register omapdrm device\n");
-+		return r;
-+	}
++		dmm: dmm@4e000000 {
++			compatible = "ti,omap4-dmm";
++			reg = <0x4e000000 0x800>;
++			interrupts = <0 113 0x4>;
++			ti,hwmods = "dmm";
++		};
 +
- 	return 0;
- }
+ 		emif1: emif@4c000000 {
+ 			compatible = "ti,emif-4d";
+ 			reg = <0x4c000000 0x100>;
+diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+index ac1f1e0..33b4fea 100644
+--- a/arch/arm/boot/dts/omap5.dtsi
++++ b/arch/arm/boot/dts/omap5.dtsi
+@@ -604,6 +604,13 @@
+ 			ti,hwmods = "wd_timer2";
+ 		};
  
-diff --git a/arch/arm/mach-omap2/drm.c b/arch/arm/mach-omap2/drm.c
-deleted file mode 100644
-index 59a4af7..0000000
---- a/arch/arm/mach-omap2/drm.c
-+++ /dev/null
-@@ -1,67 +0,0 @@
--/*
-- * DRM/KMS device registration for TI OMAP platforms
-- *
-- * Copyright (C) 2012 Texas Instruments
-- * Author: Rob Clark <rob.clark@linaro.org>
-- *
-- * This program is free software; you can redistribute it and/or modify it
-- * under the terms of the GNU General Public License version 2 as published by
-- * the Free Software Foundation.
-- *
-- * This program is distributed in the hope that it will be useful, but WITHOUT
-- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-- * more details.
-- *
-- * You should have received a copy of the GNU General Public License along with
-- * this program.  If not, see <http://www.gnu.org/licenses/>.
-- */
--
--#include <linux/module.h>
--#include <linux/kernel.h>
--#include <linux/mm.h>
--#include <linux/init.h>
--#include <linux/platform_device.h>
--#include <linux/dma-mapping.h>
--#include <linux/platform_data/omap_drm.h>
--
--#include "soc.h"
--#include "omap_device.h"
--#include "omap_hwmod.h"
--
--#if defined(CONFIG_DRM_OMAP) || (CONFIG_DRM_OMAP_MODULE)
--
--static struct omap_drm_platform_data platform_data;
--
--static struct platform_device omap_drm_device = {
--	.dev = {
--		.coherent_dma_mask = DMA_BIT_MASK(32),
--		.platform_data = &platform_data,
--	},
--	.name = "omapdrm",
--	.id = 0,
--};
--
--static int __init omap_init_drm(void)
--{
--	struct omap_hwmod *oh = NULL;
--	struct platform_device *pdev;
--
--	/* lookup and populate the DMM information, if present - OMAP4+ */
--	oh = omap_hwmod_lookup("dmm");
--
--	if (oh) {
--		pdev = omap_device_build(oh->name, -1, oh, NULL, 0);
--		WARN(IS_ERR(pdev), "Could not build omap_device for %s\n",
--			oh->name);
--	}
--
--	platform_data.omaprev = GET_OMAP_TYPE;
--
--	return platform_device_register(&omap_drm_device);
--
--}
--
--omap_arch_initcall(omap_init_drm);
--
--#endif
++		dmm: dmm@4e000000 {
++			compatible = "ti,omap5-dmm";
++			reg = <0x4e000000 0x800>;
++			interrupts = <0 113 0x4>;
++			ti,hwmods = "dmm";
++		};
++
+ 		emif1: emif@0x4c000000 {
+ 			compatible	= "ti,emif-4d5";
+ 			ti,hwmods	= "emif1";
 -- 
 1.8.1.2
 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
