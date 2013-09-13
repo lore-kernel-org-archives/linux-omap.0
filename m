@@ -1,48 +1,41 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: omap4, panda: 3.11, dtb and wifi
-Date: Fri, 13 Sep 2013 10:56:52 -0700
-Message-ID: <20130913175651.GQ7189@atomide.com>
-References: <20130913153602.GA17111@luxor.wired.org>
+Subject: [PATCH 0/2] WLAN regression fixes for omap4 after moving to DT
+ based booting
+Date: Fri, 13 Sep 2013 12:09:48 -0700
+Message-ID: <20130913190811.24617.97699.stgit@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:37132 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751830Ab3IMR4y (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Sep 2013 13:56:54 -0400
-Content-Disposition: inline
-In-Reply-To: <20130913153602.GA17111@luxor.wired.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:23087 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753552Ab3IMTJw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Sep 2013 15:09:52 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paolo Pisati <p.pisati@gmail.com>
+To: linux-arm-kernel@lists.infradead.org
 Cc: linux-omap@vger.kernel.org
 
-* Paolo Pisati <p.pisati@gmail.com> [130913 08:43]:
-> i know we switched to dtb-only booting, but what's happened to wifi?
-> 
-> 3.5.x:
-> flag@flag-desktop:~$ ls -la /sys/bus/platform/devices/wl12xx/
-> total 0
-> drwxr-xr-x 5 root root    0 set 13 17:26 .
-> drwxr-xr-x 4 root root    0 set 13 17:26 ..
-> -rw-r--r-- 1 root root 4096 set 13 17:28 bt_coex_state
-> lrwxrwxrwx 1 root root    0 set 13 17:27 driver -> ../../../../../../../../bus/platform/drivers/wl12xx_driver
-> -r-------- 1 root root    0 set 13 17:28 fwlog
-> -r--r--r-- 1 root root 4096 set 13 17:28 hw_pg_ver
-> drwxr-xr-x 3 root root    0 set 13 17:27 ieee80211
-> -r--r--r-- 1 root root 4096 set 13 17:28 modalias
-> drwxr-xr-x 3 root root    0 set 13 17:27 net
-> drwxr-xr-x 2 root root    0 set 13 17:28 power
-> lrwxrwxrwx 1 root root    0 set 13 17:27 subsystem -> ../../../../../../../../bus/platform
-> -rw-r--r-- 1 root root 4096 set 13 17:26 uevent
-> 
-> 3.11.x:
-> flag@flag-desktop:~$ ls -la /sys/bus/platform/devices/wl*
-> ls: cannot access /sys/bus/platform/devices/wl*: No such file or directory
+Hi all,
 
-Hmm it seems we're still missing the .dts entries. I'll post
-two patches shortly, one for panda and one for 4430sdp.
+Looks like these two patches are still missing as I did not
+update the kernel on my panda for a while but was testing with
+my 4430sdp that does not have the WLAN card..
 
 Regards,
 
 Tony
+
+---
+
+Tony Lindgren (2):
+      ARM: dts: Fix muxing and regulator for wl12xx on the SDIO bus for pandaboard
+      ARM: dts: Fix muxing and regulator for wl12xx on the SDIO bus for blaze
+
+
+ arch/arm/boot/dts/omap4-panda-common.dtsi |   46 ++++++++++++++++++++++++++++-
+ arch/arm/boot/dts/omap4-sdp.dts           |   39 ++++++++++++++++++++++++-
+ 2 files changed, 83 insertions(+), 2 deletions(-)
+
+-- 
+Signature
