@@ -1,48 +1,47 @@
-From: Koen Kooi <koen-QLwJDigV5abLmq1fohREcCpxlwaOVQ5f@public.gmane.org>
-Subject: Re: [PATCH 3/3] ARM: OMAP2+: BBB DT: mark eMMC as non removable
-Date: Fri, 13 Sep 2013 12:11:18 +0200
-Message-ID: <ECFF9D09-1CA1-45E5-9965-A7F4BCC127BC@dominion.thruhere.net>
-References: <cover.1379066249.git.nsekhar@ti.com> <f77adcf96d225b43e38058ddadcab76a9df6914a.1379066249.git.nsekhar@ti.com>
-Mime-Version: 1.0 (Mac OS X Mail 6.5 \(1508\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <f77adcf96d225b43e38058ddadcab76a9df6914a.1379066249.git.nsekhar-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
-Cc: Chris Ball <cjb-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org>, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Device Tree Mailing List <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux MMC Mailing List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Archit Taneja <archit@ti.com>
+Subject: Re: [PATCH 1/4] arm: omap: display: Create omapdrm inside omap_display_init
+Date: Fri, 13 Sep 2013 15:47:34 +0530
+Message-ID: <5232E63E.9020804@ti.com>
+References: <1379063679-4869-1-git-send-email-archit@ti.com> <1379063679-4869-2-git-send-email-archit@ti.com> <5232D9C8.9020809@ti.com> <5232DCFE.5050700@ti.com> <5232DD53.3010706@ti.com> <5232DF61.6000109@ti.com> <5232E00E.9040400@ti.com> <5232E2A8.10409@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:43045 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753428Ab3IMKS2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 13 Sep 2013 06:18:28 -0400
+In-Reply-To: <5232E2A8.10409@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, robdclark@gmail.com, devicetree@vger.kernel.org, Andy Gross <andygro@gmail.com>
 
+On Friday 13 September 2013 03:32 PM, Tomi Valkeinen wrote:
+> On 13/09/13 12:51, Archit Taneja wrote:
+>
+>> The calls in omap_generic_init() check the machine type via
+>> of_machine_is_compatible(), even if it's a multiplatform image, the dtb
+>> should be only of one platform. So it wouldn't be called at all.
+>
+> Hmm. BeagleBone is "ti,am33xx". The "Generic AM33XX (Flattened Device
+> Tree)" machine definition uses omap_generic_init(). So if I'm not
+> missing something here, omap_generic_init() is called for BeagleBone.
 
-Op 13 sep. 2013, om 12:09 heeft Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org> het volgende geschreven:
+I was talking about the calls within omap_generic_init() :
 
-> Mark the eMMC module on BeagleBone black as non removable.
-> 
-> Signed-off-by: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+omap_generic_init(void)
+{
+	...
+	if (of_machine_is_compatible("ti,omap4-panda")) {
+		omap4_panda_display_init_of();
+		legacy_init_ehci_clk("auxclk3_ck");
 
-Acked-by: Koen Kooi <koen-QLwJDigV5abLmq1fohREcCpxlwaOVQ5f@public.gmane.org>
+	}
+}
 
-> ---
-> arch/arm/boot/dts/am335x-boneblack.dts |    1 +
-> 1 file changed, 1 insertion(+)
-> 
-> diff --git a/arch/arm/boot/dts/am335x-boneblack.dts b/arch/arm/boot/dts/am335x-boneblack.dts
-> index f4703cf..58515dc 100644
-> --- a/arch/arm/boot/dts/am335x-boneblack.dts
-> +++ b/arch/arm/boot/dts/am335x-boneblack.dts
-> @@ -25,6 +25,7 @@
-> 	pinctrl-names = "default";
-> 	pinctrl-0 = <&emmc_pins>;
-> 	bus-width = <8>;
-> +	non-removable;
-> 	status = "okay";
-> 	ti,vcc-aux-disable-is-sleep;
-> };
-> -- 
-> 1.7.10.1
-> 
+omap4_panda_display_init_of() would be called only if a panda board dtb 
+was used. Are you talking about these display calls, or something else?
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Archit
+
