@@ -1,136 +1,48 @@
-From: Frederic Weisbecker <fweisbec@gmail.com>
-Subject: [PATCH] arm: Fix build error with context tracking calls
-Date: Fri, 13 Sep 2013 19:03:34 +0200
-Message-ID: <20130913170331.GA8453@somewhere>
-References: <20130908090206.GK25647@n2100.arm.linux.org.uk>
- <522CB0DE.2010102@roeck-us.net>
- <20130909105115.GL25647@n2100.arm.linux.org.uk>
- <522DB86A.8010207@roeck-us.net>
- <alpine.LFD.2.03.1309091023440.20709@syhkavp.arg>
- <20130909160348.GB18975@roeck-us.net>
- <20130909203141.GM25647@n2100.arm.linux.org.uk>
- <20130909210203.GC28416@roeck-us.net>
- <alpine.LFD.2.03.1309091714420.20709@syhkavp.arg>
- <87y574g1fi.fsf@linaro.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: omap4, panda: 3.11, dtb and wifi
+Date: Fri, 13 Sep 2013 10:56:52 -0700
+Message-ID: <20130913175651.GQ7189@atomide.com>
+References: <20130913153602.GA17111@luxor.wired.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f50.google.com ([74.125.82.50]:35153 "EHLO
-	mail-wg0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752587Ab3IMRDh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Sep 2013 13:03:37 -0400
-Received: by mail-wg0-f50.google.com with SMTP id f12so1417527wgh.17
-        for <linux-omap@vger.kernel.org>; Fri, 13 Sep 2013 10:03:36 -0700 (PDT)
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:37132 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751830Ab3IMR4y (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Sep 2013 13:56:54 -0400
 Content-Disposition: inline
-In-Reply-To: <87y574g1fi.fsf@linaro.org>
+In-Reply-To: <20130913153602.GA17111@luxor.wired.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@linaro.org>
-Cc: Nicolas Pitre <nicolas.pitre@linaro.org>, Guenter Roeck <linux@roeck-us.net>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Anil Kumar <anilk4.v@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, Benoit Cousson <b-cousson@ti.com>
+To: Paolo Pisati <p.pisati@gmail.com>
+Cc: linux-omap@vger.kernel.org
 
-On Tue, Sep 10, 2013 at 08:07:45AM -0700, Kevin Hilman wrote:
-> Nicolas Pitre <nicolas.pitre@linaro.org> writes:
+* Paolo Pisati <p.pisati@gmail.com> [130913 08:43]:
+> i know we switched to dtb-only booting, but what's happened to wifi?
 > 
-> > Adding Kevin Hilman to the CC as he might be interested as well.
+> 3.5.x:
+> flag@flag-desktop:~$ ls -la /sys/bus/platform/devices/wl12xx/
+> total 0
+> drwxr-xr-x 5 root root    0 set 13 17:26 .
+> drwxr-xr-x 4 root root    0 set 13 17:26 ..
+> -rw-r--r-- 1 root root 4096 set 13 17:28 bt_coex_state
+> lrwxrwxrwx 1 root root    0 set 13 17:27 driver -> ../../../../../../../../bus/platform/drivers/wl12xx_driver
+> -r-------- 1 root root    0 set 13 17:28 fwlog
+> -r--r--r-- 1 root root 4096 set 13 17:28 hw_pg_ver
+> drwxr-xr-x 3 root root    0 set 13 17:27 ieee80211
+> -r--r--r-- 1 root root 4096 set 13 17:28 modalias
+> drwxr-xr-x 3 root root    0 set 13 17:27 net
+> drwxr-xr-x 2 root root    0 set 13 17:28 power
+> lrwxrwxrwx 1 root root    0 set 13 17:27 subsystem -> ../../../../../../../../bus/platform
+> -rw-r--r-- 1 root root 4096 set 13 17:26 uevent
 > 
-> Thanks, I'd already noticed this but was distracted getting arm-soc
-> changes ready for the merge window.  Looking into it now.
+> 3.11.x:
+> flag@flag-desktop:~$ ls -la /sys/bus/platform/devices/wl*
+> ls: cannot access /sys/bus/platform/devices/wl*: No such file or directory
 
-Kevin, can you please try this patch? It built tested fine on ARM
-and live tested correctly on x86. There should be no problem but
-just in case.
+Hmm it seems we're still missing the .dts entries. I'll post
+two patches shortly, one for panda and one for 4430sdp.
 
-Thanks!
+Regards,
 
----
->From 9bb601401baea0a2b2eead3909a9f186d894d617 Mon Sep 17 00:00:00 2001
-From: Frederic Weisbecker <fweisbec@gmail.com>
-Date: Tue, 10 Sep 2013 00:54:17 +0200
-Subject: [PATCH] arm: Fix build error with context tracking calls
-
-ad65782fba50 (context_tracking: Optimize main APIs off case
-with static key) converted context tracking main APIs to inline
-functions and left ARM asm callers behind.
-
-This can be easily fixed by making ARM calling the post static
-keys context tracking functions. We just need to replicate the
-static key checks there. We'll remove these later when ARM will
-support the context tracking static keys.
-
-Reported-by: Guenter Roeck <linux@roeck-us.net>
-Reported-by: Russell King <linux@arm.linux.org.uk>
-Signed-off-by: Frederic Weisbecker <fweisbec@gmail.com>
-Cc: Kevin Hilman <khilman@linaro.org>
-Cc: Guenter Roeck <linux@roeck-us.net>
-Cc: Nicolas Pitre <nicolas.pitre@linaro.org>
-Cc: Anil Kumar <anilk4.v@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Benoit Cousson <b-cousson@ti.com>
----
- arch/arm/kernel/entry-header.S |    8 ++++----
- kernel/context_tracking.c      |   12 ++++++++++++
- 2 files changed, 16 insertions(+), 4 deletions(-)
-
-diff --git a/arch/arm/kernel/entry-header.S b/arch/arm/kernel/entry-header.S
-index de23a9b..39f89fb 100644
---- a/arch/arm/kernel/entry-header.S
-+++ b/arch/arm/kernel/entry-header.S
-@@ -329,10 +329,10 @@
- #ifdef CONFIG_CONTEXT_TRACKING
- 	.if	\save
- 	stmdb   sp!, {r0-r3, ip, lr}
--	bl	user_exit
-+	bl	context_tracking_user_exit
- 	ldmia	sp!, {r0-r3, ip, lr}
- 	.else
--	bl	user_exit
-+	bl	context_tracking_user_exit
- 	.endif
- #endif
- 	.endm
-@@ -341,10 +341,10 @@
- #ifdef CONFIG_CONTEXT_TRACKING
- 	.if	\save
- 	stmdb   sp!, {r0-r3, ip, lr}
--	bl	user_enter
-+	bl	context_tracking_user_enter
- 	ldmia	sp!, {r0-r3, ip, lr}
- 	.else
--	bl	user_enter
-+	bl	context_tracking_user_enter
- 	.endif
- #endif
- 	.endm
-diff --git a/kernel/context_tracking.c b/kernel/context_tracking.c
-index 247091b..859c8df 100644
---- a/kernel/context_tracking.c
-+++ b/kernel/context_tracking.c
-@@ -51,6 +51,15 @@ void context_tracking_user_enter(void)
- 	unsigned long flags;
- 
- 	/*
-+	 * Repeat the user_enter() check here because some archs may be calling
-+	 * this from asm and if no CPU needs context tracking, they shouldn't
-+	 * go further. We can remove that check here once these archs support the static key
-+	 * check.
-+	 */
-+	if (!static_key_false(&context_tracking_enabled))
-+		return;
-+
-+	/*
- 	 * Some contexts may involve an exception occuring in an irq,
- 	 * leading to that nesting:
- 	 * rcu_irq_enter() rcu_user_exit() rcu_user_exit() rcu_irq_exit()
-@@ -151,6 +160,9 @@ void context_tracking_user_exit(void)
- {
- 	unsigned long flags;
- 
-+	if (!static_key_false(&context_tracking_enabled))
-+		return;
-+
- 	if (in_interrupt())
- 		return;
- 
--- 
-1.7.5.4
-
+Tony
