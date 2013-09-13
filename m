@@ -1,69 +1,77 @@
-From: Rob Clark <robdclark-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 3/4] drm: omap: Enable DT support for DMM
-Date: Fri, 13 Sep 2013 10:14:34 -0400
-Message-ID: <CAF6AEGu7eRFhrQZUD-43AOHNQtRWeyxYga1dnir=qUo1mQ9ebA@mail.gmail.com>
-References: <1379063679-4869-1-git-send-email-archit@ti.com>
-	<1379063679-4869-4-git-send-email-archit@ti.com>
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: [RFC PATCH 1/4] DRIVERS: IRQCHIP: Add crossbar irqchip driver
+Date: Fri, 13 Sep 2013 16:24:29 +0200 (CEST)
+Message-ID: <alpine.DEB.2.02.1309131142540.4089@ionos.tec.linutronix.de>
+References: <1379000351-15672-1-git-send-email-r.sricharan@ti.com> <1379000351-15672-2-git-send-email-r.sricharan@ti.com> <alpine.DEB.2.02.1309122201530.4089@ionos.tec.linutronix.de> <523228B5.5070507@ti.com> <alpine.DEB.2.02.1309122335440.4089@ionos.tec.linutronix.de>
+ <5232457A.8080709@ti.com> <alpine.DEB.2.02.1309130138550.4089@ionos.tec.linutronix.de> <52326D6B.2010003@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1379063679-4869-4-git-send-email-archit-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Archit Taneja <archit-l0cyMroinI0@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Valkeinen, Tomi" <tomi.valkeinen-l0cyMroinI0@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andy Gross <andygro-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, DRI Development <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <52326D6B.2010003@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Sricharan R <r.sricharan@ti.com>, LKML <linux-kernel@vger.kernel.org>, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, LAK <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, linus.walleij@linaro.org, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, rnayak@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Sep 13, 2013 at 5:14 AM, Archit Taneja <archit-l0cyMroinI0@public.gmane.org> wrote:
-> Enable use of DT for DMM/Tiler.
->
-> Originally worked on by Andy Gross.
+On Thu, 12 Sep 2013, Santosh Shilimkar wrote:
+> On Thursday 12 September 2013 08:26 PM, Thomas Gleixner wrote:
+> > Let me summarize:
+> > 
+> >    - GIC supports up to 160 interrupts
+> > 
+> >    - CROSSBAR supports up to 250 interrupts 
+> > 
+> >    - CROSSBAR routes up to 160 out of 250 interrupts to the GIC ones
+> > 
+> >    - Drivers request a CROSSBAR interrupt number which must be mapped
+> >      to some arbitrary available GIC irq number
+> > 
+> Correct.
+> 
+> > So basically the CROSSBAR mechanism is pretty much the same as MSI[X]
+> > just in a different flavour and with a different set of semantics and
+> > limitations, i.e. poor mans MSI[X] with a new level of bogosity.
+> > 
+> > So if CROSSBAR is going to be the new fangled SoC MSI[X] long term
+> > equivalent then you better provide some infrastructure for that and
+> > make the drivers ready to use it. Maybe check with the PCI/MSI folks
+> > to share some of the interfaces.
+> >
+> > If that whole thing is another onetime HW designers wet dream, then
+> > please go back to the limited but completely functional (Who is going
+> > to use more than 160 peripheral interrupts????) device tree model. I
+> > really have no interest to support hardware designer brain farts.
+> > 
+> Thanks for clear NAK for irqchip approach. I should have looped you
+> in the discussion where I was also suggesting against the irqchip
+> approach. We will try to look at MSI stuff but if its get too
+> complicated am going to fall-back to the initial probe based
+> approach to achieve the functionality.
 
-looks good.. but do we want to get information about # of LUT's, etc,
-from DT?  Or did we decide that we can reliably get this from the hw?
-I lost track of that discussion (I guess Andy would remember)..
+Before you dig into MSI, lets talk about irq domains first.
 
-BR,
--R
+GIC implements a legacy irq domain, i.e. a linear domain of all
+possible GIC interrupts with a 1:1 mapping.
 
-> Cc: Andy Gross <andygro-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> Cc: DRI Development <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-> Signed-off-by: Archit Taneja <archit-l0cyMroinI0@public.gmane.org>
-> ---
->  drivers/gpu/drm/omapdrm/omap_dmm_tiler.c | 11 +++++++++++
->  1 file changed, 11 insertions(+)
->
-> diff --git a/drivers/gpu/drm/omapdrm/omap_dmm_tiler.c b/drivers/gpu/drm/omapdrm/omap_dmm_tiler.c
-> index acf6678..59f17de 100644
-> --- a/drivers/gpu/drm/omapdrm/omap_dmm_tiler.c
-> +++ b/drivers/gpu/drm/omapdrm/omap_dmm_tiler.c
-> @@ -968,12 +968,23 @@ static const struct dev_pm_ops omap_dmm_pm_ops = {
->  };
->  #endif
->
-> +#if defined(CONFIG_OF)
-> +static const struct of_device_id dmm_of_match[] = {
-> +       { .compatible = "ti,omap4-dmm", },
-> +       { .compatible = "ti,omap5-dmm", },
-> +       {},
-> +};
-> +#else
-> +#define dmm_of_match NULL
-> +#endif
-> +
->  struct platform_driver omap_dmm_driver = {
->         .probe = omap_dmm_probe,
->         .remove = omap_dmm_remove,
->         .driver = {
->                 .owner = THIS_MODULE,
->                 .name = DMM_DRIVER_NAME,
-> +               .of_match_table = dmm_of_match,
->  #ifdef CONFIG_PM
->                 .pm = &omap_dmm_pm_ops,
->  #endif
-> --
-> 1.8.1.2
->
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+So why can't you make use of irq domains and have the whole routing
+business implemented sanely?
+
+What's needed is in gic_init_bases():
+
+       if (of_property_read(node, "routable_irqs", &nr_routable_irqs) {
+       	  irq_domain_add_legacy(nr_gic_irqs);
+       } else {
+       	  irq_domain_add_legacy(nr_per_cpu_irqs);
+	  irq_domain_add_linear(nr_routable_irqs);
+       }
+
+Now that separate domain has an xlate function which grabs a free GIC
+irq from a bitmap and returns the hardware irq number in the gic
+space. The map/unmap callbacks take care of setting up / tearing down
+the route in the crossbar.
+
+Thoughts?
+
+Thanks,
+
+	tglx
