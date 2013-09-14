@@ -1,54 +1,105 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [PATCH] arm: Fix build error with context tracking calls
-Date: Fri, 13 Sep 2013 15:50:07 -0700
-Message-ID: <87mwnggwv4.fsf@linaro.org>
-References: <20130908090206.GK25647@n2100.arm.linux.org.uk>
-	<522CB0DE.2010102@roeck-us.net>
-	<20130909105115.GL25647@n2100.arm.linux.org.uk>
-	<522DB86A.8010207@roeck-us.net>
-	<alpine.LFD.2.03.1309091023440.20709@syhkavp.arg>
-	<20130909160348.GB18975@roeck-us.net>
-	<20130909203141.GM25647@n2100.arm.linux.org.uk>
-	<20130909210203.GC28416@roeck-us.net>
-	<alpine.LFD.2.03.1309091714420.20709@syhkavp.arg>
-	<87y574g1fi.fsf@linaro.org> <20130913170331.GA8453@somewhere>
+From: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v3] ARM: EDMA: Fix clearing of unused list for DT DMA
+	resources
+Date: Fri, 13 Sep 2013 19:57:21 -0500
+Message-ID: <5233B471.40603@ti.com>
+References: <1378839171-14455-1-git-send-email-joelf@ti.com>
+	<5231903F.7080301@ti.com>
+Reply-To: <joelf-l0cyMroinI0@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f42.google.com ([209.85.220.42]:36428 "EHLO
-	mail-pa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754990Ab3IMWuL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Sep 2013 18:50:11 -0400
-Received: by mail-pa0-f42.google.com with SMTP id lj1so3105679pab.29
-        for <linux-omap@vger.kernel.org>; Fri, 13 Sep 2013 15:50:11 -0700 (PDT)
-In-Reply-To: <20130913170331.GA8453@somewhere> (Frederic Weisbecker's message
-	of "Fri, 13 Sep 2013 19:03:34 +0200")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+In-Reply-To: <5231903F.7080301-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
+List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
+List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
+Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+To: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+Cc: Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Koen Kooi <koen-hcmAuCOw+vXj4SYmN/TMmA@public.gmane.org>, Jyri Sarah <jsarha-l0cyMroinI0@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Dan Williams <djbw-b10kYP2dOMg@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Frederic Weisbecker <fweisbec@gmail.com>
-Cc: Nicolas Pitre <nicolas.pitre@linaro.org>, Guenter Roeck <linux@roeck-us.net>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Anil Kumar <anilk4.v@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, Benoit Cousson <b-cousson@ti.com>
 
-Frederic Weisbecker <fweisbec@gmail.com> writes:
+On 09/12/2013 04:58 AM, Sekhar Nori wrote:
+> On Wednesday 11 September 2013 12:22 AM, Joel Fernandes wrote:
+>> HWMOD removal for MMC is breaking edma_start as the events are being manually
+>> triggered due to unused channel list not being clear.
+[..]
+> It is better to send one version with all comments fixed. Helps avoid
+> confusion.
 
-> On Tue, Sep 10, 2013 at 08:07:45AM -0700, Kevin Hilman wrote:
->> Nicolas Pitre <nicolas.pitre@linaro.org> writes:
->> 
->> > Adding Kevin Hilman to the CC as he might be interested as well.
->> 
->> Thanks, I'd already noticed this but was distracted getting arm-soc
->> changes ready for the merge window.  Looking into it now.
->
-> Kevin, can you please try this patch? It built tested fine on ARM
-> and live tested correctly on x86. There should be no problem but
-> just in case.
+Ok, here is the final version with all comments fixed, please apply this one:
 
-Tested-by: Kevin Hilman <khilman@linaro.org>
+--->8---
+From: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v4] ARM: EDMA: Fix clearing of unused list for DT DMA resources
 
-Things are back to working again on ARM.  Thanks for the fix, and for
-build testing on ARM.  
+HWMOD removal for MMC is breaking edma_start as the events are being manually
+triggered due to unused channel list not being clear.
 
-As you noticed to test on ARM, we still have to carry that patch to
-drop that 'depends on 64BIT' in order to build/test this... any more
-thoughts on what the remaining obstacles there are?
+This patch fixes the issue, by reading the "dmas" property from the DT node if
+it exists and clearing the bits in the unused channel list. For this purpose
+we use the of_* helpers to parse the arguments in the dmas phandle list.
 
-Kevin
+Reviewed-by: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+Reported-by: Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>
+Cc: Pantel Antoniou <panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>
+Signed-off-by: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>
+---
+Changes since v1, in v2 and v3:
+- Reduced indentation of non-of case by returning from of-case
+- Using of_* helpers for parsing
+
+Note:
+This patch should go into the merge window as it is a critical bug fix.
+
+ arch/arm/common/edma.c | 23 +++++++++++++++++++++--
+ 1 file changed, 21 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
+index 39ad030..43c7b22 100644
+--- a/arch/arm/common/edma.c
++++ b/arch/arm/common/edma.c
+@@ -560,14 +560,33 @@ static int reserve_contiguous_slots(int ctlr, unsigned int
+id,
+ static int prepare_unused_channel_list(struct device *dev, void *data)
+ {
+ 	struct platform_device *pdev = to_platform_device(dev);
+-	int i, ctlr;
++	int i, count, ctlr;
++	struct of_phandle_args  dma_spec;
+
++	if (dev->of_node) {
++		count = of_property_count_strings(dev->of_node, "dma-names");
++		if (count < 0)
++			return 0;
++		for (i = 0; i < count; i++) {
++			if (of_parse_phandle_with_args(dev->of_node, "dmas",
++						       "#dma-cells", i,
++						       &dma_spec))
++				continue;
++
++			ctlr = EDMA_CTLR(dma_spec.args[0]);
++			clear_bit(EDMA_CHAN_SLOT(dma_spec.args[0]),
++				  edma_cc[ctlr]->edma_unused);
++		}
++		return 0;
++	}
++
++	/* For non-OF case */
+ 	for (i = 0; i < pdev->num_resources; i++) {
+ 		if ((pdev->resource[i].flags & IORESOURCE_DMA) &&
+ 				(int)pdev->resource[i].start >= 0) {
+ 			ctlr = EDMA_CTLR(pdev->resource[i].start);
+ 			clear_bit(EDMA_CHAN_SLOT(pdev->resource[i].start),
+-					edma_cc[ctlr]->edma_unused);
++				  edma_cc[ctlr]->edma_unused);
+ 		}
+ 	}
+
+-- 
+1.8.1.2
