@@ -1,84 +1,61 @@
 From: Eduardo Valentin <eduardo.valentin@ti.com>
-Subject: [PATCH 15/16] arm: dts: add omap5 thermal data
-Date: Sun, 15 Sep 2013 18:02:42 -0400
-Message-ID: <1379282563-14650-16-git-send-email-eduardo.valentin@ti.com>
+Subject: [PATCH 13/16] arm: dts: add omap5 GPU thermal data
+Date: Sun, 15 Sep 2013 18:02:40 -0400
+Message-ID: <1379282563-14650-14-git-send-email-eduardo.valentin@ti.com>
 References: <1379282563-14650-1-git-send-email-eduardo.valentin@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1379282563-14650-1-git-send-email-eduardo.valentin@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com, wni@nvidia.com
-Cc: grant.likely@linaro.org, durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: devicetree@vger.kernel.org, durgadoss.r@intel.com, linux-pm@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, Eduardo Valentin <eduardo.valentin@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, grant.likely@linaro.org, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-This patch changes the dtsi entry on omap5 to contain
-the thermal data. This data will enable the passive
-cooling with CPUfreq cooling device at 100C. The
-system will do a thermal shutdown at 125C whenever
-any of its sensors sees this level.
-
-Cc: "Beno=C3=AEt Cousson" <bcousson@baylibre.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Rob Herring <rob.herring@calxeda.com>
-Cc: Pawel Moll <pawel.moll@arm.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Stephen Warren <swarren@wwwdotorg.org>
-Cc: Ian Campbell <ian.campbell@citrix.com>
-Cc: Russell King <linux@arm.linux.org.uk>
-Cc: linux-omap@vger.kernel.org
-Cc: devicetree@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
-Cc: linux-kernel@vger.kernel.org
-Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
----
- arch/arm/boot/dts/omap5.dtsi | 12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
-
-diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dts=
-i
-index 07be2cd..b2ca0cf 100644
---- a/arch/arm/boot/dts/omap5.dtsi
-+++ b/arch/arm/boot/dts/omap5.dtsi
-@@ -33,7 +33,7 @@
- 		#address-cells =3D <1>;
- 		#size-cells =3D <0>;
-=20
--		cpu@0 {
-+		cpu0: cpu@0 {
- 			device_type =3D "cpu";
- 			compatible =3D "arm,cortex-a15";
- 			reg =3D <0x0>;
-@@ -45,6 +45,12 @@
- 		};
- 	};
-=20
-+	thermal-zones {
-+		#include "omap4-cpu-thermal.dtsi"
-+		#include "omap5-gpu-thermal.dtsi"
-+		#include "omap5-core-thermal.dtsi"
-+	};
-+
- 	timer {
- 		compatible =3D "arm,armv7-timer";
- 		/* PPI secure/nonsecure IRQ */
-@@ -704,13 +710,15 @@
- 			};
- 		};
-=20
--		bandgap@4a0021e0 {
-+		bandgap: bandgap@4a0021e0 {
- 			reg =3D <0x4a0021e0 0xc
- 			       0x4a00232c 0xc
- 			       0x4a002380 0x2c
- 			       0x4a0023C0 0x3c>;
- 			interrupts =3D <GIC_SPI 126 IRQ_TYPE_LEVEL_HIGH>;
- 			compatible =3D "ti,omap5430-bandgap";
-+
-+			#sensor-cells =3D <1>;
- 		};
- 	};
- };
---=20
-1.8.2.1.342.gfa7285d
+VGhpcyBwYXRjaCBjaGFuZ2VzIGEgZHRzaSBmaWxlIHRvIGNvbnRhaW4gdGhlIHRoZXJtYWwgZGF0
+YQpmb3IgR1BVIGRvbWFpbiBvbiBPTUFQNSBhbmQgbGF0ZXIgU29Dcy4gVGhpcyBkYXRhIHdpbGwK
+ZW5hYmxlIGEgdGhlcm1hbCBzaHV0ZG93biBhdCAxMjVDLgoKVGhpcyB0aGVybWFsIGRhdGEgY2Fu
+IGJlIHJldXNlZCBhY3Jvc3MgVEkgU29DIGRldmljZXMuCgpDYzogIkJlbm/DrnQgQ291c3NvbiIg
+PGJjb3Vzc29uQGJheWxpYnJlLmNvbT4KQ2M6IFRvbnkgTGluZGdyZW4gPHRvbnlAYXRvbWlkZS5j
+b20+CkNjOiBSb2IgSGVycmluZyA8cm9iLmhlcnJpbmdAY2FseGVkYS5jb20+CkNjOiBQYXdlbCBN
+b2xsIDxwYXdlbC5tb2xsQGFybS5jb20+CkNjOiBNYXJrIFJ1dGxhbmQgPG1hcmsucnV0bGFuZEBh
+cm0uY29tPgpDYzogU3RlcGhlbiBXYXJyZW4gPHN3YXJyZW5Ad3d3ZG90b3JnLm9yZz4KQ2M6IElh
+biBDYW1wYmVsbCA8aWFuLmNhbXBiZWxsQGNpdHJpeC5jb20+CkNjOiBSdXNzZWxsIEtpbmcgPGxp
+bnV4QGFybS5saW51eC5vcmcudWs+CkNjOiBsaW51eC1vbWFwQHZnZXIua2VybmVsLm9yZwpDYzog
+ZGV2aWNldHJlZUB2Z2VyLmtlcm5lbC5vcmcKQ2M6IGxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5m
+cmFkZWFkLm9yZwpDYzogbGludXgta2VybmVsQHZnZXIua2VybmVsLm9yZwpTaWduZWQtb2ZmLWJ5
+OiBFZHVhcmRvIFZhbGVudGluIDxlZHVhcmRvLnZhbGVudGluQHRpLmNvbT4KLS0tCiBhcmNoL2Fy
+bS9ib290L2R0cy9vbWFwNS1ncHUtdGhlcm1hbC5kdHNpIHwgMjggKysrKysrKysrKysrKysrKysr
+KysrKysrKysrKwogMSBmaWxlIGNoYW5nZWQsIDI4IGluc2VydGlvbnMoKykKIGNyZWF0ZSBtb2Rl
+IDEwMDY0NCBhcmNoL2FybS9ib290L2R0cy9vbWFwNS1ncHUtdGhlcm1hbC5kdHNpCgpkaWZmIC0t
+Z2l0IGEvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDUtZ3B1LXRoZXJtYWwuZHRzaSBiL2FyY2gvYXJt
+L2Jvb3QvZHRzL29tYXA1LWdwdS10aGVybWFsLmR0c2kKbmV3IGZpbGUgbW9kZSAxMDA2NDQKaW5k
+ZXggMDAwMDAwMC4uMDhhMTI5MAotLS0gL2Rldi9udWxsCisrKyBiL2FyY2gvYXJtL2Jvb3QvZHRz
+L29tYXA1LWdwdS10aGVybWFsLmR0c2kKQEAgLTAsMCArMSwyOCBAQAorLyoKKyAqIERldmljZSBU
+cmVlIFNvdXJjZSBmb3IgT01BUDU0M3ggU29DIEdQVSB0aGVybWFsCisgKgorICogQ29weXJpZ2h0
+IChDKSAyMDEzIFRleGFzIEluc3RydW1lbnRzIEluY29ycG9yYXRlZCAtIGh0dHA6Ly93d3cudGku
+Y29tLworICogQ29udGFjdDogRWR1YXJkbyBWYWxlbnRpbiA8ZWR1YXJkby52YWxlbnRpbkB0aS5j
+b20+CisgKgorICogVGhpcyBmaWxlIGlzIGxpY2Vuc2VkIHVuZGVyIHRoZSB0ZXJtcyBvZiB0aGUg
+R05VIEdlbmVyYWwgUHVibGljIExpY2Vuc2UKKyAqIHZlcnNpb24gMi4gIFRoaXMgcHJvZ3JhbSBp
+cyBsaWNlbnNlZCAiYXMgaXMiIHdpdGhvdXQgYW55IHdhcnJhbnR5IG9mIGFueQorICoga2luZCwg
+d2hldGhlciBleHByZXNzIG9yIGltcGxpZWQuCisgKi8KKworI2luY2x1ZGUgPGR0LWJpbmRpbmdz
+L3RoZXJtYWwvdGhlcm1hbC5oPgorCitncHVfdGhlcm1hbDogZ3B1X3RoZXJtYWwgeworCXBhc3Np
+dmUtZGVsYXkgPSA8MjUwPjsgLyogbWlsbGlzZWNvbmRzICovCisJcG9sbGluZy1kZWxheSA9IDwx
+MDAwPjsgLyogbWlsbGlzZWNvbmRzICovCisKKwkJLyogc2Vuc29yICAgICAgIElEICovCisJc2Vu
+c29ycyA9IDwmYmFuZGdhcCAgICAgMT47CisKKwl0cmlwcyB7CisJCWdwdV9jcml0OiBncHVfY3Jp
+dCB7CisJCQl0ZW1wZXJhdHVyZSA9IDwxMjUwMDA+OyAvKiBtaWxsaUNlbHNpdXMgKi8KKwkJCWh5
+c3RlcmVzaXMgPSA8MjAwMD47IC8qIG1pbGxpQ2Vsc2l1cyAqLworCQkJdHlwZSA9IDxUSEVSTUFM
+X1RSSVBfQ1JJVElDQUw+OworCQl9OworCX07Cit9OwotLSAKMS44LjIuMS4zNDIuZ2ZhNzI4NWQK
+CgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1h
+cm0ta2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5v
+cmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1hcm0t
+a2VybmVsCg==
