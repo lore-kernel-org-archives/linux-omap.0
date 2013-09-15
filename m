@@ -1,48 +1,74 @@
 From: Eduardo Valentin <eduardo.valentin@ti.com>
-Subject: [PATCH 09/16] arm: dts: add omap4430 thermal data
-Date: Sun, 15 Sep 2013 18:02:36 -0400
-Message-ID: <1379282563-14650-10-git-send-email-eduardo.valentin@ti.com>
+Subject: [PATCH 10/16] arm: dts: add omap4460 thermal data
+Date: Sun, 15 Sep 2013 18:02:37 -0400
+Message-ID: <1379282563-14650-11-git-send-email-eduardo.valentin@ti.com>
 References: <1379282563-14650-1-git-send-email-eduardo.valentin@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-pm-owner@vger.kernel.org>
 In-Reply-To: <1379282563-14650-1-git-send-email-eduardo.valentin@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-pm-owner@vger.kernel.org
 To: swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com, wni@nvidia.com
-Cc: devicetree@vger.kernel.org, durgadoss.r@intel.com, linux-pm@vger.kernel.org, Tony Lindgren <tony@atomide.com>, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, Eduardo Valentin <eduardo.valentin@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, grant.likely@linaro.org, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: grant.likely@linaro.org, durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-VGhpcyBwYXRjaCBjaGFuZ2VzIHRoZSBkdHNpIGVudHJ5IG9uIG9tYXA0NDMwIHRvIGNvbnRhaW4K
-dGhlIHRoZXJtYWwgZGF0YS4gVGhpcyBkYXRhIHdpbGwgZW5hYmxlIHRoZSBwYXNzaXZlCmNvb2xp
-bmcgd2l0aCBDUFVmcmVxIGNvb2xpbmcgZGV2aWNlIGF0IDEwMEMgYW5kIHRoZQpzeXN0ZW0gd2ls
-bCBkbyBhIHRoZXJtYWwgc2h1dGRvd24gYXQgMTI1Qy4KCkNjOiAiQmVub8OudCBDb3Vzc29uIiA8
-YmNvdXNzb25AYmF5bGlicmUuY29tPgpDYzogVG9ueSBMaW5kZ3JlbiA8dG9ueUBhdG9taWRlLmNv
-bT4KQ2M6IFJ1c3NlbGwgS2luZyA8bGludXhAYXJtLmxpbnV4Lm9yZy51az4KQ2M6IGxpbnV4LW9t
-YXBAdmdlci5rZXJuZWwub3JnCkNjOiBkZXZpY2V0cmVlLWRpc2N1c3NAbGlzdHMub3psYWJzLm9y
-ZwpDYzogbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCkNjOiBsaW51eC1rZXJu
-ZWxAdmdlci5rZXJuZWwub3JnClNpZ25lZC1vZmYtYnk6IEVkdWFyZG8gVmFsZW50aW4gPGVkdWFy
-ZG8udmFsZW50aW5AdGkuY29tPgotLS0KIGFyY2gvYXJtL2Jvb3QvZHRzL29tYXA0NDN4LmR0c2kg
-fCAxMCArKysrKysrKy0tCiAxIGZpbGUgY2hhbmdlZCwgOCBpbnNlcnRpb25zKCspLCAyIGRlbGV0
-aW9ucygtKQoKZGlmZiAtLWdpdCBhL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXA0NDN4LmR0c2kgYi9h
-cmNoL2FybS9ib290L2R0cy9vbWFwNDQzeC5kdHNpCmluZGV4IGJjZjQ1NWUuLjY5ODdkZjkgMTAw
-NjQ0Ci0tLSBhL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXA0NDN4LmR0c2kKKysrIGIvYXJjaC9hcm0v
-Ym9vdC9kdHMvb21hcDQ0M3guZHRzaQpAQCAtMTIsNyArMTIsNyBAQAogCiAvIHsKIAljcHVzIHsK
-LQkJY3B1QDAgeworCQljcHUwOiBjcHVAMCB7CiAJCQkvKiBPTUFQNDQzeCB2YXJpYW50cyBPUFA1
-MC1PUFBOVCAqLwogCQkJb3BlcmF0aW5nLXBvaW50cyA9IDwKIAkJCQkvKiBrSHogICAgdVYgKi8K
-QEAgLTI1LDkgKzI1LDE1IEBACiAJCX07CiAJfTsKIAotCWJhbmRnYXAgeworCXRoZXJtYWwtem9u
-ZXN7CisJCSNpbmNsdWRlICJvbWFwNC1jcHUtdGhlcm1hbC5kdHNpIgorCX07CisKKwliYW5kZ2Fw
-OiBiYW5kZ2FwIHsKIAkJcmVnID0gPDB4NGEwMDIyNjAgMHg0CiAJCSAgICAgICAweDRhMDAyMzJD
-IDB4ND47CiAJCWNvbXBhdGlibGUgPSAidGksb21hcDQ0MzAtYmFuZGdhcCI7CisKKwkJI3NlbnNv
-ci1jZWxscyA9IDwxPjsKIAl9OwogfTsKLS0gCjEuOC4yLjEuMzQyLmdmYTcyODVkCgoKX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtlcm5l
-bCBtYWlsaW5nIGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6
-Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAo=
+This patch changes the dtsi entry on omap4460 to contain
+the thermal data. This data will enable the passive
+cooling with CPUfreq cooling device at 100C and the
+system will do a thermal shutdown at 125C.
+
+Cc: "Beno=C3=AEt Cousson" <bcousson@baylibre.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Rob Herring <rob.herring@calxeda.com>
+Cc: Pawel Moll <pawel.moll@arm.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Stephen Warren <swarren@wwwdotorg.org>
+Cc: Ian Campbell <ian.campbell@citrix.com>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org
+Cc: devicetree@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
+Cc: linux-kernel@vger.kernel.org
+Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
+---
+ arch/arm/boot/dts/omap4460.dtsi | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/boot/dts/omap4460.dtsi b/arch/arm/boot/dts/omap44=
+60.dtsi
+index c2f0f39..b6b9b83 100644
+--- a/arch/arm/boot/dts/omap4460.dtsi
++++ b/arch/arm/boot/dts/omap4460.dtsi
+@@ -12,7 +12,7 @@
+ / {
+ 	cpus {
+ 		/* OMAP446x 'standard device' variants OPP50 to OPPTurbo */
+-		cpu@0 {
++		cpu0: cpu@0 {
+ 			operating-points =3D <
+ 				/* kHz    uV */
+ 				350000  1025000
+@@ -30,12 +30,18 @@
+ 		ti,hwmods =3D "debugss";
+ 	};
+=20
+-	bandgap {
++	thermal-zones{
++		#include "omap4-cpu-thermal.dtsi"
++	};
++
++	bandgap: bandgap {
+ 		reg =3D <0x4a002260 0x4
+ 		       0x4a00232C 0x4
+ 		       0x4a002378 0x18>;
+ 		compatible =3D "ti,omap4460-bandgap";
+ 		interrupts =3D <0 126 IRQ_TYPE_LEVEL_HIGH>; /* talert */
+ 		gpios =3D <&gpio3 22 0>; /* tshut */
++
++		#sensor-cells =3D <1>;
+ 	};
+ };
+--=20
+1.8.2.1.342.gfa7285d
+
