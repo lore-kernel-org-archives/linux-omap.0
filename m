@@ -1,11 +1,13 @@
-From: Sebastian Reichel <sre@debian.org>
-Subject: [RFCv2 0/3] OMAP SSI driver
-Date: Sun, 15 Sep 2013 22:44:13 +0200
-Message-ID: <1379277856-24571-1-git-send-email-sre@debian.org>
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+Subject: [PATCH 08/16] arm: dts: add omap4 CPU thermal data
+Date: Sun, 15 Sep 2013 18:02:35 -0400
+Message-ID: <1379282563-14650-9-git-send-email-eduardo.valentin@ti.com>
+References: <1379282563-14650-1-git-send-email-eduardo.valentin@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1379282563-14650-1-git-send-email-eduardo.valentin@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -15,76 +17,55 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Sebastian Reichel <sre@ring0.de>, Linus Walleij <linus.walleij@linaro.org>, Shubhrajyoti Datta <omaplinuxkernel@gmail.com>, Carlos Chinea <cch.devel@gmail.com>, Paul Walmsley <paul@pwsan.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, =?UTF-8?q?=27Beno=C3=AEt=20Cousson=27?= <bcousson@baylibre.com>, Pawel Moll <pawel.moll@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Kevin Hilman <khilman@deeprootsystems.com>, Sebastian Reichel <sre@debian.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, Rob Herring <rob.herring@calxeda.com>, Tony Lindgren <tony@atomide.com>, Rob Landley <rob@landley.net>, Grant Likely <grant.likely@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com, wni@nvidia.com
+Cc: devicetree@vger.kernel.org, durgadoss.r@intel.com, linux-pm@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, Eduardo Valentin <eduardo.valentin@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, grant.likely@linaro.org, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-
-Here is the second round of the OMAP SSI driver patches.
-
-In this round I added/fixed:
-- Usage of runtime PM
-  Previously runtime PM was only used to enable/disable the involved
-  clocks. Now the driver makes use of resume/suspend callbacks, which
-  simplified its code (the driver did its own reference counting).
-- Removal of deprecated IRQF_DISABLED flag from irq requests
-- HWMOD: set SSI parent to L4-Core instead of L3
-  I checked the public OMAP3 TRM, which assigns the address space used
-  by the driver as reserved L4-Core address space.
-- HWMOD: removed data, which will be specified via Device Tree
-- Change omap_ssi_port.wktest and omap_ssi_port.wkin_cken from
-  "unsigned int" to "bool"
-- Change omap_ssi_port.wk_refcount from "int" to "unsigned int"
-- Convert __raw_read* to read*_relaxed / write*_relaxed
-- Removal of involved platform and board code
-- Split driver into omap_ssi.c and omap_ssi_port.c
-  This changes helps in making the DT interface cleaner.
-- Creation & Documentation of DT bindings
-
-TODO:
-- Central Message Queue
-  I did not yet implement a central message queue in the HSI framework.
-  I would prefer to do this after SSI is working in the mainline kernel,
-  since that makes testing easier.
-- HSI client registration via DT
-  This needs changes in the HSI framework, which currently assumes,
-  that clients are registered via board support code. This is more
-  or less independent of the controller and should be added in an
-  independent patchset IMHO.
-
-Version 1 (*) of the patchset: https://lkml.org/lkml/2013/8/11/67
-
-(*) There have been patchsets send out by Carlos before my RFCv1,
-    see RFCv1 for details.
-
--- Sebastian
-
-Sebastian Reichel (3):
-  ARM: OMAP2+: hwmod-data: Add SSI information
-  ARM: OMAP2+: HSI: Introduce OMAP SSI driver
-  ARM: dts: N900: Add SSI information
-
- Documentation/devicetree/bindings/hsi/omap_ssi.txt |   73 ++
- arch/arm/boot/dts/omap3-n900.dts                   |    8 +
- arch/arm/boot/dts/omap34xx.dtsi                    |   49 +
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |   48 +
- drivers/hsi/Kconfig                                |    1 +
- drivers/hsi/Makefile                               |    1 +
- drivers/hsi/controllers/Kconfig                    |   20 +
- drivers/hsi/controllers/Makefile                   |    6 +
- drivers/hsi/controllers/omap_ssi.c                 |  585 +++++++++
- drivers/hsi/controllers/omap_ssi.h                 |  167 +++
- drivers/hsi/controllers/omap_ssi_port.c            | 1346 ++++++++++++++++++++
- drivers/hsi/controllers/omap_ssi_regs.h            |  172 +++
- 12 files changed, 2476 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/hsi/omap_ssi.txt
- create mode 100644 drivers/hsi/controllers/Kconfig
- create mode 100644 drivers/hsi/controllers/Makefile
- create mode 100644 drivers/hsi/controllers/omap_ssi.c
- create mode 100644 drivers/hsi/controllers/omap_ssi.h
- create mode 100644 drivers/hsi/controllers/omap_ssi_port.c
- create mode 100644 drivers/hsi/controllers/omap_ssi_regs.h
-
--- 
-1.8.4.rc3
+VGhpcyBwYXRjaCBjaGFuZ2VzIGEgZHRzaSBmaWxlIHRvIGNvbnRhaW4gdGhlIHRoZXJtYWwgZGF0
+YQpmb3IgTVBVIGRvbWFpbiBvbiBPTUFQNCBhbmQgbGF0ZXIgU29Dcy4gVGhpcyBkYXRhIHdpbGwK
+ZW5hYmxlIHRoZSBwYXNzaXZlIGNvb2xpbmcgd2l0aCBDUFVmcmVxIGNvb2xpbmcgZGV2aWNlCmF0
+IDEwMEMgYW5kIHRoZSBzeXN0ZW0gd2lsbCBkbyBhIHRoZXJtYWwgc2h1dGRvd24gYXQgMTI1Qy4K
+ClRoaXMgdGhlcm1hbCBkYXRhIGNhbiBiZSByZXVzZWQgYWNyb3NzIFRJIFNvQyBkZXZpY2VzLgoK
+Q2M6ICJCZW5vw650IENvdXNzb24iIDxiY291c3NvbkBiYXlsaWJyZS5jb20+CkNjOiBUb255IExp
+bmRncmVuIDx0b255QGF0b21pZGUuY29tPgpDYzogUm9iIEhlcnJpbmcgPHJvYi5oZXJyaW5nQGNh
+bHhlZGEuY29tPgpDYzogUGF3ZWwgTW9sbCA8cGF3ZWwubW9sbEBhcm0uY29tPgpDYzogTWFyayBS
+dXRsYW5kIDxtYXJrLnJ1dGxhbmRAYXJtLmNvbT4KQ2M6IFN0ZXBoZW4gV2FycmVuIDxzd2FycmVu
+QHd3d2RvdG9yZy5vcmc+CkNjOiBJYW4gQ2FtcGJlbGwgPGlhbi5jYW1wYmVsbEBjaXRyaXguY29t
+PgpDYzogUnVzc2VsbCBLaW5nIDxsaW51eEBhcm0ubGludXgub3JnLnVrPgpDYzogbGludXgtb21h
+cEB2Z2VyLmtlcm5lbC5vcmcKQ2M6IGRldmljZXRyZWVAdmdlci5rZXJuZWwub3JnCkNjOiBsaW51
+eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKQ2M6IGxpbnV4LWtlcm5lbEB2Z2VyLmtl
+cm5lbC5vcmcKU2lnbmVkLW9mZi1ieTogRWR1YXJkbyBWYWxlbnRpbiA8ZWR1YXJkby52YWxlbnRp
+bkB0aS5jb20+Ci0tLQogYXJjaC9hcm0vYm9vdC9kdHMvb21hcDQtY3B1LXRoZXJtYWwuZHRzaSB8
+IDQxICsrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrCiAxIGZpbGUgY2hhbmdlZCwgNDEg
+aW5zZXJ0aW9ucygrKQogY3JlYXRlIG1vZGUgMTAwNjQ0IGFyY2gvYXJtL2Jvb3QvZHRzL29tYXA0
+LWNwdS10aGVybWFsLmR0c2kKCmRpZmYgLS1naXQgYS9hcmNoL2FybS9ib290L2R0cy9vbWFwNC1j
+cHUtdGhlcm1hbC5kdHNpIGIvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDQtY3B1LXRoZXJtYWwuZHRz
+aQpuZXcgZmlsZSBtb2RlIDEwMDY0NAppbmRleCAwMDAwMDAwLi5kZDY5Nzg4Ci0tLSAvZGV2L251
+bGwKKysrIGIvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDQtY3B1LXRoZXJtYWwuZHRzaQpAQCAtMCww
+ICsxLDQxIEBACisvKgorICogRGV2aWNlIFRyZWUgU291cmNlIGZvciBPTUFQNC81IFNvQyBDUFUg
+dGhlcm1hbAorICoKKyAqIENvcHlyaWdodCAoQykgMjAxMyBUZXhhcyBJbnN0cnVtZW50cyBJbmNv
+cnBvcmF0ZWQgLSBodHRwOi8vd3d3LnRpLmNvbS8KKyAqIENvbnRhY3Q6IEVkdWFyZG8gVmFsZW50
+aW4gPGVkdWFyZG8udmFsZW50aW5AdGkuY29tPgorICoKKyAqIFRoaXMgZmlsZSBpcyBsaWNlbnNl
+ZCB1bmRlciB0aGUgdGVybXMgb2YgdGhlIEdOVSBHZW5lcmFsIFB1YmxpYyBMaWNlbnNlCisgKiB2
+ZXJzaW9uIDIuICBUaGlzIHByb2dyYW0gaXMgbGljZW5zZWQgImFzIGlzIiB3aXRob3V0IGFueSB3
+YXJyYW50eSBvZiBhbnkKKyAqIGtpbmQsIHdoZXRoZXIgZXhwcmVzcyBvciBpbXBsaWVkLgorICov
+CisKKyNpbmNsdWRlIDxkdC1iaW5kaW5ncy90aGVybWFsL3RoZXJtYWwuaD4KKworY3B1X3RoZXJt
+YWw6IGNwdV90aGVybWFsIHsKKwlwYXNzaXZlLWRlbGF5ID0gPDI1MD47IC8qIG1pbGxpc2Vjb25k
+cyAqLworCXBvbGxpbmctZGVsYXkgPSA8MTAwMD47IC8qIG1pbGxpc2Vjb25kcyAqLworCisJCS8q
+IHNlbnNvciAgICAgICBJRCAqLworICAgICAgICBzZW5zb3JzID0gPCZiYW5kZ2FwICAgICAwPjsK
+KworICAgICAgICB0cmlwcyB7CisgICAgICAgICAgICAgICAgY3B1X2FsZXJ0MDogY3B1X2FsZXJ0
+IHsKKyAgICAgICAgICAgICAgICAgICAgICAgIHRlbXBlcmF0dXJlID0gPDEwMDAwMD47IC8qIG1p
+bGxpQ2Vsc2l1cyAqLworICAgICAgICAgICAgICAgICAgICAgICAgaHlzdGVyZXNpcyA9IDwyMDAw
+PjsgLyogbWlsbGlDZWxzaXVzICovCisgICAgICAgICAgICAgICAgICAgICAgICB0eXBlID0gPFRI
+RVJNQUxfVFJJUF9QQVNTSVZFPjsKKyAgICAgICAgICAgICAgICB9OworICAgICAgICAgICAgICAg
+IGNwdV9jcml0OiBjcHVfY3JpdCB7CisgICAgICAgICAgICAgICAgICAgICAgICB0ZW1wZXJhdHVy
+ZSA9IDwxMjUwMDA+OyAvKiBtaWxsaUNlbHNpdXMgKi8KKyAgICAgICAgICAgICAgICAgICAgICAg
+IGh5c3RlcmVzaXMgPSA8MjAwMD47IC8qIG1pbGxpQ2Vsc2l1cyAqLworICAgICAgICAgICAgICAg
+ICAgICAgICAgdHlwZSA9IDxUSEVSTUFMX1RSSVBfQ1JJVElDQUw+OworICAgICAgICAgICAgICAg
+IH07CisgICAgICAgIH07CisKKwljb29saW5nLWF0dGFjaG1lbnRzIHsKKwkJYXR0YWNoMCB7CisJ
+CQl0cmlwID0gPCZjcHVfYWxlcnQwPjsKKwkJCWNvb2xpbmctZGV2aWNlID0KKwkJCQk8JmNwdTAg
+VEhFUk1BTF9OT19MSU1JVCBUSEVSTUFMX05PX0xJTUlUPjsKKwkJfTsKKwl9OworfTsKLS0gCjEu
+OC4yLjEuMzQyLmdmYTcyODVkCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX18KbGludXgtYXJtLWtlcm5lbCBtYWlsaW5nIGxpc3QKbGludXgtYXJtLWtlcm5l
+bEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4v
+bGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAo=
