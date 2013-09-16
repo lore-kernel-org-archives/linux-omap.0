@@ -1,91 +1,66 @@
-From: Dave Martin <Dave.Martin@arm.com>
-Subject: Re: [PATCH v4 1/2] ARM: OMAP: Add secure function omap_smc3() which
- calling instruction smc #1
-Date: Mon, 16 Sep 2013 18:10:30 +0100
-Message-ID: <20130916171023.GA17477@localhost.localdomain>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: [PATCH] arm: Fix build error with context tracking calls
+Date: Mon, 16 Sep 2013 10:11:54 -0700
+Message-ID: <CAGa+x84rpdixmi5crMYtbKxWZdcT1u12O6ooA6QQN7hwDnEThA@mail.gmail.com>
+References: <20130909105115.GL25647@n2100.arm.linux.org.uk>
+	<522DB86A.8010207@roeck-us.net>
+	<alpine.LFD.2.03.1309091023440.20709@syhkavp.arg>
+	<20130909160348.GB18975@roeck-us.net>
+	<20130909203141.GM25647@n2100.arm.linux.org.uk>
+	<20130909210203.GC28416@roeck-us.net>
+	<alpine.LFD.2.03.1309091714420.20709@syhkavp.arg>
+	<87y574g1fi.fsf@linaro.org>
+	<20130913170331.GA8453@somewhere>
+	<87mwnggwv4.fsf@linaro.org>
+	<20130914141921.GB1718@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, =?utf-8?B?0JjQstCw0LnQu9C+INCU0LjQvNC40YLRgNC+0LI=?= <freemangordon@abv.bg>, "nm@ti.com" <nm@ti.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "aaro.koskinen@iki.fi" <aaro.koskinen@iki.fi>, "pdeschrijver@nvidia.com" <pdeschrijver@nvidia.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "santosh.shilimkar@ti.com" <santosh.shilimkar@ti.com>, "pavel@ucw.cz" <pavel@ucw.cz>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wi0-f174.google.com ([209.85.212.174]:42594 "EHLO
+	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751480Ab3IPRLz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Sep 2013 13:11:55 -0400
+Received: by mail-wi0-f174.google.com with SMTP id hj3so3753490wib.7
+        for <linux-omap@vger.kernel.org>; Mon, 16 Sep 2013 10:11:54 -0700 (PDT)
+In-Reply-To: <20130914141921.GB1718@localhost.localdomain>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Frederic Weisbecker <fweisbec@gmail.com>
+Cc: Nicolas Pitre <nicolas.pitre@linaro.org>, Guenter Roeck <linux@roeck-us.net>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Anil Kumar <anilk4.v@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, Benoit Cousson <b-cousson@ti.com>
 
-On Sat, Sep 14, 2013 at 10:37:12AM +0100, Pali Roh=E1r wrote:
-> On Sunday 08 September 2013 09:43:29 Pali Roh=E1r wrote:
-> > Here is new version (v4) of omap secure part patch:
-> >=20
-> > Other secure functions omap_smc1() and omap_smc2() calling
-> > instruction smc #0 but Nokia RX-51 board needs to call smc #1
-> > for PPA access.
-> >=20
-> > Signed-off-by: Ivaylo Dimitrov <freemangordon@abv.bg>
-> > Signed-off-by: Pali Roh=E1r <pali.rohar@gmail.com>
-> > ---
-> > diff --git a/arch/arm/mach-omap2/omap-secure.h
-> > b/arch/arm/mach-omap2/omap-secure.h index 0e72917..c4586f4
-> > 100644
-> > --- a/arch/arm/mach-omap2/omap-secure.h
-> > +++ b/arch/arm/mach-omap2/omap-secure.h
-> > @@ -51,6 +51,7 @@
-> >  extern u32 omap_secure_dispatcher(u32 idx, u32 flag, u32
-> > nargs, u32 arg1, u32 arg2, u32 arg3, u32 arg4);
-> >  extern u32 omap_smc2(u32 id, u32 falg, u32 pargs);
-> > +extern u32 omap_smc3(u32 id, u32 process, u32 flag, u32
-> > pargs); extern phys_addr_t
-> > omap_secure_ram_mempool_base(void); extern int
-> > omap_secure_ram_reserve_memblock(void);
-> >=20
-> > diff --git a/arch/arm/mach-omap2/omap-smc.S
-> > b/arch/arm/mach-omap2/omap-smc.S index f6441c1..fd90125
-> > 100644
-> > --- a/arch/arm/mach-omap2/omap-smc.S
-> > +++ b/arch/arm/mach-omap2/omap-smc.S
-> > @@ -1,9 +1,11 @@
-> >  /*
-> > - * OMAP44xx secure APIs file.
-> > + * OMAP34xx and OMAP44xx secure APIs file.
-> >   *
-> >   * Copyright (C) 2010 Texas Instruments, Inc.
-> >   * Written by Santosh Shilimkar <santosh.shilimkar@ti.com>
-> >   *
-> > + * Copyright (C) 2012 Ivaylo Dimitrov <freemangordon@abv.bg>
-> > + * Copyright (C) 2013 Pali Roh=E1r <pali.rohar@gmail.com>
-> >   *
-> >   * This program is free software,you can redistribute it
-> > and/or modify * it under the terms of the GNU General Public
-> > License version 2 as @@ -54,6 +56,23 @@ ENTRY(omap_smc2)
-> >  	ldmfd   sp!, {r4-r12, pc}
-> >  ENDPROC(omap_smc2)
-> >=20
-> > +/**
-> > + * u32 omap_smc3(u32 service_id, u32 process_id, u32 flag,
-> > u32 pargs) + * Low level common routine for secure HAL and
-> > PPA APIs via smc #1 + * r0 - @service_id: Secure Service ID
-> > + * r1 - @process_id: Process ID
-> > + * r2 - @flag: Flag to indicate the criticality of operation
-> > + * r3 - @pargs: Physical address of parameter list
-> > + */
-> > +ENTRY(omap_smc3)
-> > +	stmfd	sp!, {r4-r11, lr}
-> > +	mov	r12, r0		@ Copy the secure service ID
-> > +	mov	r6, #0xff	@ Indicate new Task call
-> > +	dsb			@ Memory Barrier (not sure if needed, copied from
-> > omap_smc2) +	smc	#1		@ Call PPA service
-> > +	ldmfd	sp!, {r4-r11, pc}
-> > +ENDPROC(omap_smc3)
-> > +
-> >  ENTRY(omap_modify_auxcoreboot0)
-> >  	stmfd   sp!, {r1-r12, lr}
-> >  	ldr	r12, =3D0x104
->=20
-> Dave, it is ok now?
+On Sat, Sep 14, 2013 at 7:19 AM, Frederic Weisbecker <fweisbec@gmail.com> wrote:
+> On Fri, Sep 13, 2013 at 03:50:07PM -0700, Kevin Hilman wrote:
+>> Frederic Weisbecker <fweisbec@gmail.com> writes:
+>>
+>> > On Tue, Sep 10, 2013 at 08:07:45AM -0700, Kevin Hilman wrote:
+>> >> Nicolas Pitre <nicolas.pitre@linaro.org> writes:
+>> >>
+>> >> > Adding Kevin Hilman to the CC as he might be interested as well.
+>> >>
+>> >> Thanks, I'd already noticed this but was distracted getting arm-soc
+>> >> changes ready for the merge window.  Looking into it now.
+>> >
+>> > Kevin, can you please try this patch? It built tested fine on ARM
+>> > and live tested correctly on x86. There should be no problem but
+>> > just in case.
+>>
+>> Tested-by: Kevin Hilman <khilman@linaro.org>
+>>
+>> Things are back to working again on ARM.  Thanks for the fix, and for
+>> build testing on ARM.
+>>
+>> As you noticed to test on ARM, we still have to carry that patch to
+>> drop that 'depends on 64BIT' in order to build/test this... any more
+>> thoughts on what the remaining obstacles there are?
+>
+> I was mostly fine with your last patchset that enabled that +
+> a few stuff to make it working on ARM. There were just a few details
+> to polish. But I remember I sent detailed reviews, may be you missed them
+> somewhow?
 
-Yes, that's sufficient to warn people to stop and think (at least, if
-someone copy-pastes it, they will likely highlight the possible error b=
-y
-copy-pasting the comment too).  Thanks.
+Hmm, looks like I missed those, but see them now.  I'll go back
+through those and respin/resend.
 
-Acked-by: Dave Martin <Dave.Martin@arm.com>
+Thanks,
+
+Kevin
