@@ -1,66 +1,40 @@
-From: Sebastian Reichel <sre@debian.org>
-Subject: Re: [RFCv2 3/3] ARM: dts: N900: Add SSI information
-Date: Mon, 16 Sep 2013 17:01:47 +0200
-Message-ID: <20130916150147.GA14047@earth.universe>
-References: <1379277856-24571-1-git-send-email-sre@debian.org>
- <1379277856-24571-4-git-send-email-sre@debian.org>
- <CAAwP0s0e-gYkNA78eQH7x2VJbM1byaisUeqU8YbbeWUbKwsxCQ@mail.gmail.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH RFC v3 08/12] ARM: OMAP2+: CM: AM43x clockdomain data
+Date: Mon, 16 Sep 2013 10:26:15 -0500
+Message-ID: <52372317.3000901@ti.com>
+References: <cover.1379337301.git.afzal@ti.com> <5dd3b417a32b7d52c7de1e19e69e6100b1ed991b.1379337301.git.afzal@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="9amGYk9869ThD9tj"
-Return-path: <linux-doc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAAwP0s0e-gYkNA78eQH7x2VJbM1byaisUeqU8YbbeWUbKwsxCQ@mail.gmail.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Javier Martinez Canillas <martinez.javier@gmail.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Shubhrajyoti Datta <omaplinuxkernel@gmail.com>, Carlos Chinea <cch.devel@gmail.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Grant Likely <grant.likely@linaro.org>, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Rob Landley <rob@landley.net>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, Linux Kernel <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:57229 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750971Ab3IPP06 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Sep 2013 11:26:58 -0400
+In-Reply-To: <5dd3b417a32b7d52c7de1e19e69e6100b1ed991b.1379337301.git.afzal@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Afzal Mohammed <afzal@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Ambresh K <ambresh@ti.com>
+
+On 09/16/2013 08:48 AM, Afzal Mohammed wrote:
+> From: Ambresh K <ambresh@ti.com>
+> 
+> Add the data file to describe clock domains in AM43x SoC.
+> OMAP4 clockdomain operations is being reused here.
+> 
+> Signed-off-by: Ambresh K <ambresh@ti.com>
+> Signed-off-by: Afzal Mohammed <afzal@ti.com>
+> ---
+>  arch/arm/mach-omap2/clockdomain.h           |   2 +
+>  arch/arm/mach-omap2/clockdomains43xx_data.c | 199 ++++++++++++++++++++++++++++
+>  arch/arm/mach-omap2/cminst44xx.c            |   9 ++
+>  3 files changed, 210 insertions(+)
+>  create mode 100644 arch/arm/mach-omap2/clockdomains43xx_data.c
+
+I suggest we drop this. this can be addressed by Tero's clk series.
 
 
---9amGYk9869ThD9tj
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi,
-
-> Is the Synchronous Serial Interface (SSI)  only supported by
-> OMAP34xx/OMAP35xx SoC and not by OMAP36xx/OMAP37xx SoC?
->=20
-> I'm asking this since if SSI is supported by both we should add the
-> device nodes in omap3.dtsi instead of omap34xx.dtsi.
->=20
-> I thought that all OMAP3 SoC supported SSI and all OMAP4 SoC supported
-> HSI but I guess I was wrong...
-
-I just do not know. Information about the SSI core is not included
-in the public OMAP TRM. It only lists the memory space as reserved.
-
-Thus I only included it in OMAP34xx, which is used in Nokia N900 and
-must support SSI.
-
--- Sebastian
-
---9amGYk9869ThD9tj
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
-
-iQIcBAEBCAAGBQJSNx1bAAoJENju1/PIO/qaOVUQAKFOU5QX6CGyWq647P1idzBq
-VwzZpJUSScmjcZBMlvD2ogMREJhOyPr6gsj4ClzlYCkH1drGrBHCgSsIt4PdnYh2
-JXODjsAtdSMg6hC9r4eG4KECSoXLNduRvhzLB/ejNMwJuCFwuHX3x9JCCIBReg+g
-4/Vxf6x5kJJr7bZuG3Mw66/MAQh87w/l0k4LVDiQP/U2Jd7dWvyYiOCbYwngaOwY
-mFUr6lR2nltamKytJkiNOP55uNKywhwXJ/pTse8NQdQQZ92ymn64RglshJ4/1R76
-PsXwfz7aWoyYvdZUSHVBM0XXszLxqghPYcsdXyQnrImVPh9fxMJxoJ2EJxkrvaRG
-DnYKr7C8+60aahGY676yM2dyfiK0EanZ1nWXb3kYq6ZednUaV7f+wsHsHzc3PtJd
-yQx3dCus6bGieVPxYCp0UUS9AsR6MbnOXa1HRkUkEl42LZwCE8N6pcOJJq2tyRi1
-JH1r2WXHEYC0y26yxLBJ1NF6DoOf66h48OU/VhOdqg//W74JSuu1D/7zMj/Pb9v+
-llZZfBsPYNxErUtZ1yCAKD+5RTsns4vv1pN7a+ANJ6I+dAZss0MBRArD6QUlYug8
-yY4gFmfAPSJV6lGA/ohLMNAyfINkz+4WtgIqXzeaAufo3S0nrLSZag6ReD+j+fGA
-iMffh7ZQBKn/4M0pdYHD
-=aYve
------END PGP SIGNATURE-----
-
---9amGYk9869ThD9tj--
+-- 
+Regards,
+Nishanth Menon
