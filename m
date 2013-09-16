@@ -1,94 +1,66 @@
-From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH RFC v3 11/12] ARM: OMAP2+: AM43x: PRCM kbuild
-Date: Mon, 16 Sep 2013 19:18:54 +0530
-Message-ID: <6daf2ac607c379007976a81622f982564b070943.1379337301.git.afzal@ti.com>
-References: <cover.1379337301.git.afzal@ti.com>
+From: Sebastian Reichel <sre@debian.org>
+Subject: Re: [RFCv2 3/3] ARM: dts: N900: Add SSI information
+Date: Mon, 16 Sep 2013 17:01:47 +0200
+Message-ID: <20130916150147.GA14047@earth.universe>
+References: <1379277856-24571-1-git-send-email-sre@debian.org>
+ <1379277856-24571-4-git-send-email-sre@debian.org>
+ <CAAwP0s0e-gYkNA78eQH7x2VJbM1byaisUeqU8YbbeWUbKwsxCQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:51768 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757524Ab3IPNtd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Sep 2013 09:49:33 -0400
-In-Reply-To: <cover.1379337301.git.afzal@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="9amGYk9869ThD9tj"
+Return-path: <linux-doc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAAwP0s0e-gYkNA78eQH7x2VJbM1byaisUeqU8YbbeWUbKwsxCQ@mail.gmail.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Javier Martinez Canillas <martinez.javier@gmail.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Shubhrajyoti Datta <omaplinuxkernel@gmail.com>, Carlos Chinea <cch.devel@gmail.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Grant Likely <grant.likely@linaro.org>, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Rob Landley <rob@landley.net>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, Linux Kernel <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Build AM43x power domain, clock domain and hwmod data.
 
-Many of AM43x IP's and interconnects are similar as that in AM335x,
-hence AM335x hwmod data is being reused with necessary changes.
+--9amGYk9869ThD9tj
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Earlier the plan was to reuse AM335x specific PRCM code, but as AM43x
-PRCM register layout is much similar to OMAP4/5, AM335x PRCM is
-divorced and instead married with OMAP4/5 PRCM for AM43x.
+Hi,
 
-Signed-off-by: Afzal Mohammed <afzal@ti.com>
----
- arch/arm/mach-omap2/Makefile | 7 ++++++-
- arch/arm/mach-omap2/cm33xx.h | 2 +-
- 2 files changed, 7 insertions(+), 2 deletions(-)
+> Is the Synchronous Serial Interface (SSI)  only supported by
+> OMAP34xx/OMAP35xx SoC and not by OMAP36xx/OMAP37xx SoC?
+>=20
+> I'm asking this since if SSI is supported by both we should add the
+> device nodes in omap3.dtsi instead of omap34xx.dtsi.
+>=20
+> I thought that all OMAP3 SoC supported SSI and all OMAP4 SoC supported
+> HSI but I guess I was wrong...
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 0746494..cb7b527 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -112,13 +112,13 @@ obj-$(CONFIG_ARCH_OMAP2)		+= prm2xxx_3xxx.o prm2xxx.o cm2xxx.o
- obj-$(CONFIG_ARCH_OMAP3)		+= prm2xxx_3xxx.o prm3xxx.o cm3xxx.o
- obj-$(CONFIG_ARCH_OMAP3)		+= vc3xxx_data.o vp3xxx_data.o
- obj-$(CONFIG_SOC_AM33XX)		+= prm33xx.o cm33xx.o
--obj-$(CONFIG_SOC_AM43XX)		+= prm33xx.o cm33xx.o
- omap-prcm-4-5-common			=  cminst44xx.o cm44xx.o prm44xx.o \
- 					   prcm_mpu44xx.o prminst44xx.o \
- 					   vc44xx_data.o vp44xx_data.o
- obj-$(CONFIG_ARCH_OMAP4)		+= $(omap-prcm-4-5-common)
- obj-$(CONFIG_SOC_OMAP5)			+= $(omap-prcm-4-5-common)
- obj-$(CONFIG_SOC_DRA7XX)		+= $(omap-prcm-4-5-common)
-+obj-$(CONFIG_SOC_AM43XX)		+= $(omap-prcm-4-5-common)
- 
- # OMAP voltage domains
- voltagedomain-common			:= voltage.o vc.o vp.o
-@@ -146,6 +146,7 @@ obj-$(CONFIG_ARCH_OMAP4)		+= powerdomains44xx_data.o
- obj-$(CONFIG_SOC_AM33XX)		+= $(powerdomain-common)
- obj-$(CONFIG_SOC_AM33XX)		+= powerdomains33xx_data.o
- obj-$(CONFIG_SOC_AM43XX)		+= $(powerdomain-common)
-+obj-$(CONFIG_SOC_AM43XX)		+= powerdomains43xx_data.o
- obj-$(CONFIG_SOC_OMAP5)			+= $(powerdomain-common)
- obj-$(CONFIG_SOC_OMAP5)			+= powerdomains54xx_data.o
- obj-$(CONFIG_SOC_DRA7XX)		+= $(powerdomain-common)
-@@ -165,6 +166,7 @@ obj-$(CONFIG_ARCH_OMAP4)		+= clockdomains44xx_data.o
- obj-$(CONFIG_SOC_AM33XX)		+= $(clockdomain-common)
- obj-$(CONFIG_SOC_AM33XX)		+= clockdomains33xx_data.o
- obj-$(CONFIG_SOC_AM43XX)		+= $(clockdomain-common)
-+obj-$(CONFIG_SOC_AM43XX)		+= clockdomains43xx_data.o
- obj-$(CONFIG_SOC_OMAP5)			+= $(clockdomain-common)
- obj-$(CONFIG_SOC_OMAP5)			+= clockdomains54xx_data.o
- obj-$(CONFIG_SOC_DRA7XX)		+= $(clockdomain-common)
-@@ -212,6 +214,9 @@ obj-$(CONFIG_ARCH_OMAP3)		+= omap_hwmod_3xxx_data.o
- obj-$(CONFIG_SOC_AM33XX)		+= omap_hwmod_33xx_data.o
- obj-$(CONFIG_SOC_AM33XX)		+= omap_hwmod_33xx_43xx_interconnect_data.o
- obj-$(CONFIG_SOC_AM33XX)		+= omap_hwmod_33xx_43xx_ipblock_data.o
-+obj-$(CONFIG_SOC_AM43XX)		+= omap_hwmod_43xx_data.o
-+obj-$(CONFIG_SOC_AM43XX)		+= omap_hwmod_33xx_43xx_interconnect_data.o
-+obj-$(CONFIG_SOC_AM43XX)		+= omap_hwmod_33xx_43xx_ipblock_data.o
- obj-$(CONFIG_ARCH_OMAP4)		+= omap_hwmod_44xx_data.o
- obj-$(CONFIG_SOC_OMAP5)			+= omap_hwmod_54xx_data.o
- obj-$(CONFIG_SOC_DRA7XX)		+= omap_hwmod_7xx_data.o
-diff --git a/arch/arm/mach-omap2/cm33xx.h b/arch/arm/mach-omap2/cm33xx.h
-index 201e507..757b9a1 100644
---- a/arch/arm/mach-omap2/cm33xx.h
-+++ b/arch/arm/mach-omap2/cm33xx.h
-@@ -383,7 +383,7 @@ extern void am33xx_cm_clkdm_disable_hwsup(u16 inst, u16 cdoffs);
- extern void am33xx_cm_clkdm_force_sleep(u16 inst, u16 cdoffs);
- extern void am33xx_cm_clkdm_force_wakeup(u16 inst, u16 cdoffs);
- 
--#if defined(CONFIG_SOC_AM33XX) || defined(CONFIG_SOC_AM43XX)
-+#ifdef CONFIG_SOC_AM33XX
- extern int am33xx_cm_wait_module_idle(u16 inst, u16 cdoffs,
- 					u16 clkctrl_offs);
- extern void am33xx_cm_module_enable(u8 mode, u16 inst, u16 cdoffs,
--- 
-1.8.3.4
+I just do not know. Information about the SSI core is not included
+in the public OMAP TRM. It only lists the memory space as reserved.
 
+Thus I only included it in OMAP34xx, which is used in Nokia N900 and
+must support SSI.
+
+-- Sebastian
+
+--9amGYk9869ThD9tj
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.14 (GNU/Linux)
+
+iQIcBAEBCAAGBQJSNx1bAAoJENju1/PIO/qaOVUQAKFOU5QX6CGyWq647P1idzBq
+VwzZpJUSScmjcZBMlvD2ogMREJhOyPr6gsj4ClzlYCkH1drGrBHCgSsIt4PdnYh2
+JXODjsAtdSMg6hC9r4eG4KECSoXLNduRvhzLB/ejNMwJuCFwuHX3x9JCCIBReg+g
+4/Vxf6x5kJJr7bZuG3Mw66/MAQh87w/l0k4LVDiQP/U2Jd7dWvyYiOCbYwngaOwY
+mFUr6lR2nltamKytJkiNOP55uNKywhwXJ/pTse8NQdQQZ92ymn64RglshJ4/1R76
+PsXwfz7aWoyYvdZUSHVBM0XXszLxqghPYcsdXyQnrImVPh9fxMJxoJ2EJxkrvaRG
+DnYKr7C8+60aahGY676yM2dyfiK0EanZ1nWXb3kYq6ZednUaV7f+wsHsHzc3PtJd
+yQx3dCus6bGieVPxYCp0UUS9AsR6MbnOXa1HRkUkEl42LZwCE8N6pcOJJq2tyRi1
+JH1r2WXHEYC0y26yxLBJ1NF6DoOf66h48OU/VhOdqg//W74JSuu1D/7zMj/Pb9v+
+llZZfBsPYNxErUtZ1yCAKD+5RTsns4vv1pN7a+ANJ6I+dAZss0MBRArD6QUlYug8
+yY4gFmfAPSJV6lGA/ohLMNAyfINkz+4WtgIqXzeaAufo3S0nrLSZag6ReD+j+fGA
+iMffh7ZQBKn/4M0pdYHD
+=aYve
+-----END PGP SIGNATURE-----
+
+--9amGYk9869ThD9tj--
