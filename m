@@ -1,257 +1,91 @@
-From: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v3] ARM: EDMA: Fix clearing of unused list for DT DMA
-	resources
-Date: Mon, 16 Sep 2013 11:26:53 -0500
-Message-ID: <5237314D.7080102@ti.com>
-References: <1378839171-14455-1-git-send-email-joelf@ti.com>
-	<5231903F.7080301@ti.com> <5233B471.40603@ti.com>
-	<5236F00B.5040605@ti.com>
+From: Dave Martin <Dave.Martin@arm.com>
+Subject: Re: [PATCH v4 1/2] ARM: OMAP: Add secure function omap_smc3() which
+ calling instruction smc #1
+Date: Mon, 16 Sep 2013 18:10:30 +0100
+Message-ID: <20130916171023.GA17477@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-In-Reply-To: <5236F00B.5040605-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
-List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
-List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
-Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
-To: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
-Cc: Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Pantel Antoniou <panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Koen Kooi <koen-hcmAuCOw+vXj4SYmN/TMmA@public.gmane.org>, Jyri Sarah <jsarha-l0cyMroinI0@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Dan Williams <djbw-b10kYP2dOMg@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, =?utf-8?B?0JjQstCw0LnQu9C+INCU0LjQvNC40YLRgNC+0LI=?= <freemangordon@abv.bg>, "nm@ti.com" <nm@ti.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "aaro.koskinen@iki.fi" <aaro.koskinen@iki.fi>, "pdeschrijver@nvidia.com" <pdeschrijver@nvidia.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "santosh.shilimkar@ti.com" <santosh.shilimkar@ti.com>, "pavel@ucw.cz" <pavel@ucw.cz>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 09/16/2013 06:48 AM, Sekhar Nori wrote:
-> Hi Joel,
-> 
-> On Saturday 14 September 2013 06:27 AM, Joel Fernandes wrote:
->> From: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>
->> Subject: [PATCH v4] ARM: EDMA: Fix clearing of unused list for DT DMA resources
->>
->> HWMOD removal for MMC is breaking edma_start as the events are being manually
->> triggered due to unused channel list not being clear.
->>
->> This patch fixes the issue, by reading the "dmas" property from the DT node if
->> it exists and clearing the bits in the unused channel list. For this purpose
->> we use the of_* helpers to parse the arguments in the dmas phandle list.
->>
->> Reviewed-by: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
->> Reported-by: Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>
->> Cc: Pantel Antoniou <panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>
->> Signed-off-by: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>
->> ---
->> Changes since v1, in v2 and v3:
->> - Reduced indentation of non-of case by returning from of-case
->> - Using of_* helpers for parsing
->>
->> Note:
->> This patch should go into the merge window as it is a critical bug fix.
-> 
-> I still cannot find any users of edma in the device tree sources either
-> in linux-next or linus/master. Why cannot this wait until v3.13?
+On Sat, Sep 14, 2013 at 10:37:12AM +0100, Pali Roh=E1r wrote:
+> On Sunday 08 September 2013 09:43:29 Pali Roh=E1r wrote:
+> > Here is new version (v4) of omap secure part patch:
+> >=20
+> > Other secure functions omap_smc1() and omap_smc2() calling
+> > instruction smc #0 but Nokia RX-51 board needs to call smc #1
+> > for PPA access.
+> >=20
+> > Signed-off-by: Ivaylo Dimitrov <freemangordon@abv.bg>
+> > Signed-off-by: Pali Roh=E1r <pali.rohar@gmail.com>
+> > ---
+> > diff --git a/arch/arm/mach-omap2/omap-secure.h
+> > b/arch/arm/mach-omap2/omap-secure.h index 0e72917..c4586f4
+> > 100644
+> > --- a/arch/arm/mach-omap2/omap-secure.h
+> > +++ b/arch/arm/mach-omap2/omap-secure.h
+> > @@ -51,6 +51,7 @@
+> >  extern u32 omap_secure_dispatcher(u32 idx, u32 flag, u32
+> > nargs, u32 arg1, u32 arg2, u32 arg3, u32 arg4);
+> >  extern u32 omap_smc2(u32 id, u32 falg, u32 pargs);
+> > +extern u32 omap_smc3(u32 id, u32 process, u32 flag, u32
+> > pargs); extern phys_addr_t
+> > omap_secure_ram_mempool_base(void); extern int
+> > omap_secure_ram_reserve_memblock(void);
+> >=20
+> > diff --git a/arch/arm/mach-omap2/omap-smc.S
+> > b/arch/arm/mach-omap2/omap-smc.S index f6441c1..fd90125
+> > 100644
+> > --- a/arch/arm/mach-omap2/omap-smc.S
+> > +++ b/arch/arm/mach-omap2/omap-smc.S
+> > @@ -1,9 +1,11 @@
+> >  /*
+> > - * OMAP44xx secure APIs file.
+> > + * OMAP34xx and OMAP44xx secure APIs file.
+> >   *
+> >   * Copyright (C) 2010 Texas Instruments, Inc.
+> >   * Written by Santosh Shilimkar <santosh.shilimkar@ti.com>
+> >   *
+> > + * Copyright (C) 2012 Ivaylo Dimitrov <freemangordon@abv.bg>
+> > + * Copyright (C) 2013 Pali Roh=E1r <pali.rohar@gmail.com>
+> >   *
+> >   * This program is free software,you can redistribute it
+> > and/or modify * it under the terms of the GNU General Public
+> > License version 2 as @@ -54,6 +56,23 @@ ENTRY(omap_smc2)
+> >  	ldmfd   sp!, {r4-r12, pc}
+> >  ENDPROC(omap_smc2)
+> >=20
+> > +/**
+> > + * u32 omap_smc3(u32 service_id, u32 process_id, u32 flag,
+> > u32 pargs) + * Low level common routine for secure HAL and
+> > PPA APIs via smc #1 + * r0 - @service_id: Secure Service ID
+> > + * r1 - @process_id: Process ID
+> > + * r2 - @flag: Flag to indicate the criticality of operation
+> > + * r3 - @pargs: Physical address of parameter list
+> > + */
+> > +ENTRY(omap_smc3)
+> > +	stmfd	sp!, {r4-r11, lr}
+> > +	mov	r12, r0		@ Copy the secure service ID
+> > +	mov	r6, #0xff	@ Indicate new Task call
+> > +	dsb			@ Memory Barrier (not sure if needed, copied from
+> > omap_smc2) +	smc	#1		@ Call PPA service
+> > +	ldmfd	sp!, {r4-r11, pc}
+> > +ENDPROC(omap_smc3)
+> > +
+> >  ENTRY(omap_modify_auxcoreboot0)
+> >  	stmfd   sp!, {r1-r12, lr}
+> >  	ldr	r12, =3D0x104
+>=20
+> Dave, it is ok now?
 
-I understand this affects only DT users of EDMA. But I get so many private
-reports of breakage due to this patch not being there that I think it will save
-everyone a lot of pain, specially folks creating integration trees to have this
-patch available by default.
+Yes, that's sufficient to warn people to stop and think (at least, if
+someone copy-pastes it, they will likely highlight the possible error b=
+y
+copy-pasting the comment too).  Thanks.
 
-Further, EDMA DT enabling is surely to go in for 3.13, so its best if this is
-applied in advance here.
-
-I feel we shouldn't leave code intentionally broken just because it is not yet
-enabled in DTS, specially when it is about to be enabled in DT. For example, a
-potential problem is MMC/SD file system corruption due to DMA failure.
-
->>  arch/arm/common/edma.c | 23 +++++++++++++++++++++--
->>  1 file changed, 21 insertions(+), 2 deletions(-)
->>
->> diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
->> index 39ad030..43c7b22 100644
->> --- a/arch/arm/common/edma.c
->> +++ b/arch/arm/common/edma.c
->> @@ -560,14 +560,33 @@ static int reserve_contiguous_slots(int ctlr, unsigned int
->> id,
->>  static int prepare_unused_channel_list(struct device *dev, void *data)
->>  {
->>  	struct platform_device *pdev = to_platform_device(dev);
->> -	int i, ctlr;
->> +	int i, count, ctlr;
->> +	struct of_phandle_args  dma_spec;
->>
->> +	if (dev->of_node) {
->> +		count = of_property_count_strings(dev->of_node, "dma-names");
->> +		if (count < 0)
->> +			return 0;
->> +		for (i = 0; i < count; i++) {
->> +			if (of_parse_phandle_with_args(dev->of_node, "dmas",
->> +						       "#dma-cells", i,
->> +						       &dma_spec))
->> +				continue;
-> 
-> This will break for the case where devices on platform bus use non-EDMA
-> dma controllers like SDMA or CPPI (DRA7x has both EDMA and SDMA on the
-> same chip). You need to do an additional check to make sure the dma
-> controller is indeed EDMA. Something like.
-
-Ok, edma is probed earlier so I could never see any problem.
-Thanks for pointing this out,
-
-Using the below method is more future-proof than using compatible literal
-strings directly. The only problem is the matches table has to be defined
-earlier in the sources. What do you think?
-
-                        if (!of_match_node(edma_of_ids, dma_spec.np) {
-                                of_node_put(dma_spec.np);
-                                continue;
-                        }
-
-
-> 	if(!of_device_is_compatible(dma_spec.np, "ti,edma3"))
-> 		continue;
-> 
-> Don forget to call of_node_put() on dma_spec.np (something that needs to
-> be done even with your current code).
-
-Ok, will do.
-
-
->> +
->> +			ctlr = EDMA_CTLR(dma_spec.args[0]);
->> +			clear_bit(EDMA_CHAN_SLOT(dma_spec.args[0]),
->> +				  edma_cc[ctlr]->edma_unused);
-> 
-> We don't support the second controller when using DT and the controller
-> number is not really encoded in the argument to edma phandle. So just
-> simplify this to:
-> 
-> 	clear_bit(EDMA_CHAN_SLOT(dma_spec.args[0]), 	
-> 		  edma_cc[0]->edma_unused);
-
-I think let's not make that assumption just incase in the future we support more
-than one EDMA controller for DT-based boot. Is that ok?
-
-> 
->> +		}
->> +		return 0;
->> +	}
->> +
->> +	/* For non-OF case */
->>  	for (i = 0; i < pdev->num_resources; i++) {
->>  		if ((pdev->resource[i].flags & IORESOURCE_DMA) &&
->>  				(int)pdev->resource[i].start >= 0) {
->>  			ctlr = EDMA_CTLR(pdev->resource[i].start);
->>  			clear_bit(EDMA_CHAN_SLOT(pdev->resource[i].start),
->> -					edma_cc[ctlr]->edma_unused);
->> +				  edma_cc[ctlr]->edma_unused);
-> 
-> This is a useful change and I am okay with it happening in this
-> otherwise unrelated patch, but please mention this in changelog.
-
-Below is the updated version (v5), can you check and let me know if you had any
-other comments?
-
----8<---
-From: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v5] ARM: EDMA: Fix clearing of unused list for DT DMA resources
-
-HWMOD removal for MMC is breaking edma_start as the events are being manually
-triggered due to unused channel list not being clear.
-
-The above issue is fixed by reading the "dmas" property from the DT node if it
-exists and clearing the bits in the unused channel list if the dma controller
-used by any device is EDMA. For this purpose we use the of_* helpers to parse
-the arguments in the dmas phandle list.
-
-Also introduced is a minor clean up of a checkpatch error in old code.
-
-Reviewed-by: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
-Reported-by: Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>
-Cc: Pantel Antoniou <panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>
-Signed-off-by: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>
----
-Changes since v4:
-- Using of_node_put on dma_spec's node pointer.
-- Update changelog with minor cleanup information.
-
-Changes since v1, in v2 and v3:
- - Reduced indentation of non-of case by returning from of-case
- - Using of_* helpers for parsing
-
- arch/arm/common/edma.c | 39 ++++++++++++++++++++++++++++++++-------
- 1 file changed, 32 insertions(+), 7 deletions(-)
-
-diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
-index 117f955..8b5c6ed 100644
---- a/arch/arm/common/edma.c
-+++ b/arch/arm/common/edma.c
-@@ -269,6 +269,11 @@ static const struct edmacc_param dummy_paramset = {
- 	.ccnt = 1,
- };
-
-+static const struct of_device_id edma_of_ids[] = {
-+	{ .compatible = "ti,edma3", },
-+	{}
-+};
-+
- /*****************************************************************************/
-
- static void map_dmach_queue(unsigned ctlr, unsigned ch_no,
-@@ -560,14 +565,39 @@ static int reserve_contiguous_slots(int ctlr, unsigned int id,
- static int prepare_unused_channel_list(struct device *dev, void *data)
- {
- 	struct platform_device *pdev = to_platform_device(dev);
--	int i, ctlr;
-+	int i, count, ctlr;
-+	struct of_phandle_args  dma_spec;
-
-+	if (dev->of_node) {
-+		count = of_property_count_strings(dev->of_node, "dma-names");
-+		if (count < 0)
-+			return 0;
-+		for (i = 0; i < count; i++) {
-+			if (of_parse_phandle_with_args(dev->of_node, "dmas",
-+						       "#dma-cells", i,
-+						       &dma_spec))
-+				continue;
-+
-+			if (!of_match_node(edma_of_ids, dma_spec.np)) {
-+				of_node_put(dma_spec.np);
-+				continue;
-+			}
-+
-+			ctlr = EDMA_CTLR(dma_spec.args[0]);
-+			clear_bit(EDMA_CHAN_SLOT(dma_spec.args[0]),
-+				  edma_cc[ctlr]->edma_unused);
-+			of_node_put(dma_spec.np);
-+		}
-+		return 0;
-+	}
-+
-+	/* For non-OF case */
- 	for (i = 0; i < pdev->num_resources; i++) {
- 		if ((pdev->resource[i].flags & IORESOURCE_DMA) &&
- 				(int)pdev->resource[i].start >= 0) {
- 			ctlr = EDMA_CTLR(pdev->resource[i].start);
- 			clear_bit(EDMA_CHAN_SLOT(pdev->resource[i].start),
--					edma_cc[ctlr]->edma_unused);
-+				  edma_cc[ctlr]->edma_unused);
- 		}
- 	}
-
-@@ -1762,11 +1792,6 @@ static int edma_probe(struct platform_device *pdev)
- 	return 0;
- }
-
--static const struct of_device_id edma_of_ids[] = {
--	{ .compatible = "ti,edma3", },
--	{}
--};
--
- static struct platform_driver edma_driver = {
- 	.driver = {
- 		.name	= "edma",
--- 
-1.8.1.2
+Acked-by: Dave Martin <Dave.Martin@arm.com>
