@@ -1,56 +1,69 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [PATCH v2 0/4] arm: omap: display: Ensure DRM/FB/V4L devices are created if DSS is available
-Date: Mon, 16 Sep 2013 12:48:27 +0530
-Message-ID: <1379315911-24634-1-git-send-email-archit@ti.com>
+Subject: [PATCH v2 1/4] arm: omap: drm: Don't build device for DMM
+Date: Mon, 16 Sep 2013 12:48:28 +0530
+Message-ID: <1379315911-24634-2-git-send-email-archit@ti.com>
+References: <1379315911-24634-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:52954 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:34619 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750938Ab3IPHT2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 16 Sep 2013 03:19:28 -0400
+	id S1750938Ab3IPHTa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 16 Sep 2013 03:19:30 -0400
+In-Reply-To: <1379315911-24634-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@ti.com, tony@atomide.com
-Cc: linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
+Cc: linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>, Andy Gross <andygro@gmail.com>
 
-Currently, omapdrm, omapfb and omap_vout platform devices are created and
-registered through omap_arch_initcalls. In a multiplatform config. It's
-possible that all the corresponding configs for the above drivers along with
-omapdss config are selected even if the hardware doesn't have a DSS IP.
+DMM exists on omap4+ platforms, these platforms are always expected to boot with
+DT. Remove the current method of searching the dmm hwmod and building an
+omap_device for dmm.
 
-If the image is booted on a AM33xx platform, the above drm, fb and v4l devices
-would be registered throuth the omap_arch_initcalls even if omapdss itself isn't
-registered. These platform devices don't cause any harm, but are unnecessary.
+For OMAP4, the address and irq data for DMM hwmod(along with other blocks) were
+removed, so the current method fails in the dmm driver's probe anyway.
 
-Move the registration of these devices into omap_display_init(), which registers
-omapdss devices and is called only if the platform has DSS hardware.
+The addition of DMM nodes in DT will ensure that a DMM device is built
+correctly.
 
-Also, the first patch prevents creation of a DMM device when omapdrm device is
-registered. With the removal of address and irq data from the omap4 hwmods, the
-probe of DMM driver fails and omapdrm isn't able to utilize the DMM hardware.
-This will be fixed when DMM DT nodes are added for omap4, omap5 and dra7x.
+Cc: Andy Gross <andygro@gmail.com>
+Signed-off-by: Archit Taneja <archit@ti.com>
+---
+ arch/arm/mach-omap2/drm.c | 14 --------------
+ 1 file changed, 14 deletions(-)
 
-Changes in v2:
-- Move device creation for omapfb and omap_vout to omap_display_init too.
-- Keep the DMM DT conversion as a separate patch series since this series does
-  something different now.
-
-Archit Taneja (4):
-  arm: omap: drm: Don't build device for DMM
-  arm: omap: display: Create omapdrm device inside omap_display_init
-  arm: omap: display: Create omapvrfb and omapfb devices inside
-    omap_display_init
-  arm: omap: display: Create omap_vout device inside omap_display_init
-
- arch/arm/mach-omap2/Makefile  |  6 +-----
- arch/arm/mach-omap2/devices.c | 10 +++++-----
- arch/arm/mach-omap2/display.c | 28 ++++++++++++++++++++++++++++
- arch/arm/mach-omap2/display.h |  4 ++++
- arch/arm/mach-omap2/drm.c     | 24 +++++-------------------
- arch/arm/mach-omap2/fb.c      | 14 +++++++-------
- 6 files changed, 50 insertions(+), 36 deletions(-)
-
+diff --git a/arch/arm/mach-omap2/drm.c b/arch/arm/mach-omap2/drm.c
+index 59a4af7..e6c38cd 100644
+--- a/arch/arm/mach-omap2/drm.c
++++ b/arch/arm/mach-omap2/drm.c
+@@ -26,8 +26,6 @@
+ #include <linux/platform_data/omap_drm.h>
+ 
+ #include "soc.h"
+-#include "omap_device.h"
+-#include "omap_hwmod.h"
+ 
+ #if defined(CONFIG_DRM_OMAP) || (CONFIG_DRM_OMAP_MODULE)
+ 
+@@ -44,18 +42,6 @@ static struct platform_device omap_drm_device = {
+ 
+ static int __init omap_init_drm(void)
+ {
+-	struct omap_hwmod *oh = NULL;
+-	struct platform_device *pdev;
+-
+-	/* lookup and populate the DMM information, if present - OMAP4+ */
+-	oh = omap_hwmod_lookup("dmm");
+-
+-	if (oh) {
+-		pdev = omap_device_build(oh->name, -1, oh, NULL, 0);
+-		WARN(IS_ERR(pdev), "Could not build omap_device for %s\n",
+-			oh->name);
+-	}
+-
+ 	platform_data.omaprev = GET_OMAP_TYPE;
+ 
+ 	return platform_device_register(&omap_drm_device);
 -- 
 1.8.1.2
 
