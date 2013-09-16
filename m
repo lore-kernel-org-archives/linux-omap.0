@@ -1,67 +1,85 @@
-From: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 0/3] mmc: omap_hsmmc: get rid of ti,non-removable
-Date: Mon, 16 Sep 2013 17:55:32 +0530
-Message-ID: <5236F8BC.1000305@ti.com>
-References: <cover.1379066249.git.nsekhar@ti.com> <20130913153732.GO7189@atomide.com>
+From: Archit Taneja <archit-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v2 1/2] arm: dts: omap4+: Add DMM bindings
+Date: Mon, 16 Sep 2013 17:55:00 +0530
+Message-ID: <5236F89C.2020903@ti.com>
+References: <1379063679-4869-1-git-send-email-archit@ti.com> <1379323815-14130-1-git-send-email-archit@ti.com> <1379323815-14130-2-git-send-email-archit@ti.com> <5236E940.9070503@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20130913153732.GO7189-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <5236E940.9070503-l0cyMroinI0@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Chris Ball <cjb-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org>, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Device Tree Mailing List <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Koen Kooi <koen-QLwJDigV5abLmq1fohREcCpxlwaOVQ5f@public.gmane.org>, Linux MMC Mailing List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
+Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robdclark-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andy Gross <andygro-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Friday 13 September 2013 09:07 PM, Tony Lindgren wrote:
-> * Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org> [130913 03:18]:
->> Get rid of TI specific binding ti,non-removable in favour of the
->> generic binding present for the same purpose.
-> 
-> Looks like there's a different handling in the MMC driver
-> for no_regulator_off_init that's needed for eMMC. That needs to
-> be sorted out and tested first.
+On Monday 16 September 2013 04:49 PM, Tomi Valkeinen wrote:
+> On 16/09/13 12:30, Archit Taneja wrote:
+>> Add Dynamic Memory Manager (DMM) bindings for OMAP4 and OMAP5 devices. DMM
+>> only requires address and irq information.
+>>
+>> Add documentation for the DMM bindings.
+>>
+>> Originally worked on by Andy Gross.
+>>
+>> Cc: Andy Gross <andygro-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+>> Signed-off-by: Archit Taneja <archit-l0cyMroinI0@public.gmane.org>
+>> ---
+>>   Documentation/devicetree/bindings/arm/omap/dmm.txt | 17 +++++++++++++++++
+>>   arch/arm/boot/dts/omap4.dtsi                       |  7 +++++++
+>>   arch/arm/boot/dts/omap5.dtsi                       |  7 +++++++
+>>   3 files changed, 31 insertions(+)
+>>   create mode 100644 Documentation/devicetree/bindings/arm/omap/dmm.txt
+>>
+>> diff --git a/Documentation/devicetree/bindings/arm/omap/dmm.txt b/Documentation/devicetree/bindings/arm/omap/dmm.txt
+>> new file mode 100644
+>> index 0000000..237cd83
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/arm/omap/dmm.txt
+>> @@ -0,0 +1,17 @@
+>> +OMAP Dynamic Memory Manager (DMM) bindings
+>> +
+>> +Required properties:
+>> +- compatible:	Must be "ti,omap4-dmm" for OMAP4 family
+>> +		Must be "ti,omap5-dmm" for OMAP5 family
+>> +- reg:		Contains timer register address range (base address and length)
+>
+> "timer"?
+>
+>> +- interrupts:	Contains interrupt information (source, etc) for the DMM IRQ
+>> +- ti,hwmods:	Name of the hwmod associated to the counter, which is typically
+>> +		"dmm"
+>
+> "associated to the counter"?
 
-Okay. I couldn't really get the eMMC on my board to detect, but
-apparently Koen has been able to get it to work. I am not really deep
-into details of HSMMC driver so will check with Balaji on what needs to
-be done here.
+Seem like copy paste errors, will fix them.
 
->> This patch set does not support the old binding anymore. So, yes,
->> it does introduce an ABI breakage. IMHO, it is not really worth
->> supporting both bindings ATM since DT-usage in OMAP is still very
->> nascent and almost always DTB and uImage are upgraded together.
-> 
-> The old bindings must be supported. It's not like we can just drop
-> them. We should just keep the old binding and parse it the same way
-> as the generic binding. That's a minimal amount of code.
+>
+>> +
+>> +Example:
+>> +
+>> +dmm: dmm@4e000000 {
+>> +	compatible = "ti,omap4-dmm";
+>> +	reg = <0x4e000000 0x800>;
+>> +	ti,hwmods = "dmm";
+>> +};
+>> diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+>> index 22d9f2b..24f388e 100644
+>> --- a/arch/arm/boot/dts/omap4.dtsi
+>> +++ b/arch/arm/boot/dts/omap4.dtsi
+>> @@ -487,6 +487,13 @@
+>>   			ti,hwmods = "kbd";
+>>   		};
+>>
+>> +		dmm: dmm@4e000000 {
+>
+> I don't think anyone refers to this node, so there shouldn't be any need
+> for the "dmm: " alias.
 
-Yes, its minimal amount of code but its code that will very likely never
-get exercised in future because of the reasons I mentioned above. I fear
-in time we will accumulate a lot of unused code this way.
-
-Anyway, since you don't feel its okay to remove the old binding, I will
-go ahead and mark the old binding as deprecated. But perhaps we can
-come-up with some time frame within which users of old .dtb can upgrade
-their .dtb or consider never upgrading to a newer kernel? This sounds
-eerily similar to feature-removal-schedule.txt and yeah I am aware of
-what happened to that. But I still put it here since this problem of DTB
-compatibility is not going to go away.
-
-One thing that might help is a kernel configuration that does not
-support deprecated bindings so users of old dtbs can actually see what
-deprecated bindings they are using. This way they can probably plan for
-a dtb upgrade better. So in driver you would do something like:
-
-	if (of_support_deprecated_bindings() &&
-	    of_find_property(np, "ti,non-removable", NULL)) {
-		.. do something ..
-	}
-
-of_support_deprecated_bindings() would return based on a config option.
+Yes, it won't be used. Will remove them.
 
 Thanks,
-Sekhar
+Archit
 
 --
 To unsubscribe from this list: send the line "unsubscribe devicetree" in
