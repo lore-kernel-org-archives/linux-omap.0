@@ -1,75 +1,55 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: Re: [RFCv2 3/3] ARM: dts: N900: Add SSI information
-Date: Mon, 16 Sep 2013 08:11:06 -0500
-Message-ID: <20130916131106.GA14873@kahuna>
-References: <1379277856-24571-1-git-send-email-sre@debian.org>
- <1379277856-24571-4-git-send-email-sre@debian.org>
+Subject: Re: [PATCH] ARM: OMAP: TI816X: add clock domain support for TI816x
+Date: Mon, 16 Sep 2013 08:14:54 -0500
+Message-ID: <20130916131451.GB14873@kahuna>
+References: <1377352941-29699-1-git-send-email-aida.mynzhasova@skitlab.ru>
+ <5236A9FA.2040100@skitlab.ru>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-doc-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:40289 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751438Ab3IPNO7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 16 Sep 2013 09:14:59 -0400
 Content-Disposition: inline
-In-Reply-To: <1379277856-24571-4-git-send-email-sre@debian.org>
-Sender: linux-doc-owner@vger.kernel.org
-To: Sebastian Reichel <sre@debian.org>
-Cc: Sebastian Reichel <sre@ring0.de>, Linus Walleij <linus.walleij@linaro.org>, Shubhrajyoti Datta <omaplinuxkernel@gmail.com>, Carlos Chinea <cch.devel@gmail.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Grant Likely <grant.likely@linaro.org>, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Rob Landley <rob@landley.net>, =?iso-8859-1?Q?'Beno=EEt?= Cousson' <bcousson@baylibre.com>, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+In-Reply-To: <5236A9FA.2040100@skitlab.ru>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Aida Mynzhasova <aida.mynzhasova@skitlab.ru>
+Cc: linux-omap@vger.kernel.org
 
-On 22:44-20130915, Sebastian Reichel wrote:
-> Add SSI device tree data for OMAP34xx and Nokia N900.
+On 10:49-20130916, Aida Mynzhasova wrote:
+> On 24.08.2013 18:02, Aida Mynzhasova wrote:
+> >This patch adds required definitions and structures for clockdomain
+> >initialization, so omap3xxx_clockdomains_init() was substituted by
+> >new ti81xx_clockdomains_init() while early initialization of
+> >TI81XX platform.
+> >
+> >signed-off-by: Aida Mynzhasova <aida.mynzhasova@skitlab.ru>
+> >---
+> >  arch/arm/mach-omap2/Makefile                   |   2 +
+> >  arch/arm/mach-omap2/clockdomain.h              |   1 +
+> >  arch/arm/mach-omap2/clockdomains_ti81xx_data.c | 208 +++++++++++++++++++++++++
+> >  arch/arm/mach-omap2/cm-regbits-ti81xx.h        |  22 +++
+> >  arch/arm/mach-omap2/cm_ti81xx.h                |  61 ++++++++
+> >  arch/arm/mach-omap2/io.c                       |   2 +-
+> >  6 files changed, 295 insertions(+), 1 deletion(-)
+> >  create mode 100644 arch/arm/mach-omap2/clockdomains_ti81xx_data.c
+> >  create mode 100644 arch/arm/mach-omap2/cm-regbits-ti81xx.h
+> >  create mode 100644 arch/arm/mach-omap2/cm_ti81xx.h
+> >
 > 
-> Signed-off-by: Sebastian Reichel <sre@debian.org>
-> ---
->  Documentation/devicetree/bindings/hsi/omap_ssi.txt | 73 ++++++++++++++++++++++
->  arch/arm/boot/dts/omap3-n900.dts                   |  8 +++
->  arch/arm/boot/dts/omap34xx.dtsi                    | 49 +++++++++++++++
->  3 files changed, 130 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/hsi/omap_ssi.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/hsi/omap_ssi.txt b/Documentation/devicetree/bindings/hsi/omap_ssi.txt
-> new file mode 100644
-> index 0000000..e3597eb
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/hsi/omap_ssi.txt
-> @@ -0,0 +1,73 @@
-> +OMAP SSI controller bindings
-> +
-> +Required properties:
-> +- compatible:		Should be set to the following value
-> +                        ti,omap3-ssi (applicable to OMAP34xx devices)
-> +- ti,hwmods:		Name of the hwmod associated to the controller, which
-> +			is "ssi".
-> +- reg:			Contains SSI register address range (base address and
-> +			length).
-> +- reg-names:		Contains the names of the address ranges. It's
-> +                        expected, that "sys" and "gdd" address ranges are
-> +			provided.
-> +- interrupts: 		Contains the interrupt information for the controller.
-> +- interrupt-names:      Contains the names of the interrupts. It's expected,
-> +			that "gdd_mpu" is provided.
-> +- ranges		Required as an empty node
-> +- #address-cells	Should be set to <1>
-> +- #size-cells		Should be set to <1>
-> +
-> +Each port is represented as a sub-node of the ti,omap3-ssi device.
-> +
-> +Required Port sub-node properties:
-> +- compatible:		Should be set to the following value
-> +                        ti,omap3-ssi-port (applicable to OMAP34xx devices)
-> +- reg:			Contains port's register address range (base address
-> +			and length).
-> +- reg-names:		Contains the names of the address ranges. It's
-> +                        expected, that "tx" and "rx" address ranges are
-> +			provided.
-> +- interrupt-parent	Should be a phandle for the interrupt controller
-> +- interrupts:		Contains the interrupt information for the port.
-> +- interrupt-names:	Contains the names of the interrupts. It's expected,
-> +			that "mpu_irq0" and "mpu_irq1" are provided.
-> +- ti,ssi-cawake-gpio:	Defines which GPIO pin is used to signify CAWAKE
-> +			events for the port. This is an optional board-specific
-> +			property. If it's missing the port will not be
-> +			enabled.
-> +
-This belongs to patch which introduces SSI driver, no?
+[...]
+> Can anybody please review my changes?
+
+We are transitioning out of having clock information in mach-omap2 to
+using devicetree
+
+http://marc.info/?l=devicetree&m=137778225431749&w=2
+
+Will be good to align the conversion with upcoming V7 of the patch
+series as well.
+
 -- 
 Regards,
 Nishanth Menon
