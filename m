@@ -1,20 +1,22 @@
-From: Javier Martinez Canillas <martinez.javier@gmail.com>
+From: Nishanth Menon <nm@ti.com>
 Subject: Re: [RFCv2 3/3] ARM: dts: N900: Add SSI information
-Date: Mon, 16 Sep 2013 15:05:49 +0200
-Message-ID: <CAAwP0s0e-gYkNA78eQH7x2VJbM1byaisUeqU8YbbeWUbKwsxCQ@mail.gmail.com>
-References: <1379277856-24571-1-git-send-email-sre@debian.org> <1379277856-24571-4-git-send-email-sre@debian.org>
+Date: Mon, 16 Sep 2013 08:11:06 -0500
+Message-ID: <20130916131106.GA14873@kahuna>
+References: <1379277856-24571-1-git-send-email-sre@debian.org>
+ <1379277856-24571-4-git-send-email-sre@debian.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-doc-owner@vger.kernel.org>
+Content-Disposition: inline
 In-Reply-To: <1379277856-24571-4-git-send-email-sre@debian.org>
 Sender: linux-doc-owner@vger.kernel.org
 To: Sebastian Reichel <sre@debian.org>
-Cc: Sebastian Reichel <sre@ring0.de>, Linus Walleij <linus.walleij@linaro.org>, Shubhrajyoti Datta <omaplinuxkernel@gmail.com>, Carlos Chinea <cch.devel@gmail.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Grant Likely <grant.likely@linaro.org>, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Rob Landley <rob@landley.net>, =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, Linux Kernel <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: Sebastian Reichel <sre@ring0.de>, Linus Walleij <linus.walleij@linaro.org>, Shubhrajyoti Datta <omaplinuxkernel@gmail.com>, Carlos Chinea <cch.devel@gmail.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Grant Likely <grant.likely@linaro.org>, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Rob Landley <rob@landley.net>, =?iso-8859-1?Q?'Beno=EEt?= Cousson' <bcousson@baylibre.com>, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Sun, Sep 15, 2013 at 10:44 PM, Sebastian Reichel <sre@debian.org> wrote:
+On 22:44-20130915, Sebastian Reichel wrote:
 > Add SSI device tree data for OMAP34xx and Nokia N900.
->
+> 
 > Signed-off-by: Sebastian Reichel <sre@debian.org>
 > ---
 >  Documentation/devicetree/bindings/hsi/omap_ssi.txt | 73 ++++++++++++++++++++++
@@ -22,7 +24,7 @@ On Sun, Sep 15, 2013 at 10:44 PM, Sebastian Reichel <sre@debian.org> wrote:
 >  arch/arm/boot/dts/omap34xx.dtsi                    | 49 +++++++++++++++
 >  3 files changed, 130 insertions(+)
 >  create mode 100644 Documentation/devicetree/bindings/hsi/omap_ssi.txt
->
+> 
 > diff --git a/Documentation/devicetree/bindings/hsi/omap_ssi.txt b/Documentation/devicetree/bindings/hsi/omap_ssi.txt
 > new file mode 100644
 > index 0000000..e3597eb
@@ -32,166 +34,42 @@ On Sun, Sep 15, 2013 at 10:44 PM, Sebastian Reichel <sre@debian.org> wrote:
 > +OMAP SSI controller bindings
 > +
 > +Required properties:
-> +- compatible:          Should be set to the following value
+> +- compatible:		Should be set to the following value
 > +                        ti,omap3-ssi (applicable to OMAP34xx devices)
-> +- ti,hwmods:           Name of the hwmod associated to the controller, which
-> +                       is "ssi".
-> +- reg:                 Contains SSI register address range (base address and
-> +                       length).
-> +- reg-names:           Contains the names of the address ranges. It's
+> +- ti,hwmods:		Name of the hwmod associated to the controller, which
+> +			is "ssi".
+> +- reg:			Contains SSI register address range (base address and
+> +			length).
+> +- reg-names:		Contains the names of the address ranges. It's
 > +                        expected, that "sys" and "gdd" address ranges are
-> +                       provided.
-> +- interrupts:          Contains the interrupt information for the controller.
+> +			provided.
+> +- interrupts: 		Contains the interrupt information for the controller.
 > +- interrupt-names:      Contains the names of the interrupts. It's expected,
-> +                       that "gdd_mpu" is provided.
-> +- ranges               Required as an empty node
-> +- #address-cells       Should be set to <1>
-> +- #size-cells          Should be set to <1>
+> +			that "gdd_mpu" is provided.
+> +- ranges		Required as an empty node
+> +- #address-cells	Should be set to <1>
+> +- #size-cells		Should be set to <1>
 > +
 > +Each port is represented as a sub-node of the ti,omap3-ssi device.
 > +
 > +Required Port sub-node properties:
-> +- compatible:          Should be set to the following value
+> +- compatible:		Should be set to the following value
 > +                        ti,omap3-ssi-port (applicable to OMAP34xx devices)
-> +- reg:                 Contains port's register address range (base address
-> +                       and length).
-> +- reg-names:           Contains the names of the address ranges. It's
+> +- reg:			Contains port's register address range (base address
+> +			and length).
+> +- reg-names:		Contains the names of the address ranges. It's
 > +                        expected, that "tx" and "rx" address ranges are
-> +                       provided.
-> +- interrupt-parent     Should be a phandle for the interrupt controller
-> +- interrupts:          Contains the interrupt information for the port.
-> +- interrupt-names:     Contains the names of the interrupts. It's expected,
-> +                       that "mpu_irq0" and "mpu_irq1" are provided.
-> +- ti,ssi-cawake-gpio:  Defines which GPIO pin is used to signify CAWAKE
-> +                       events for the port. This is an optional board-specific
-> +                       property. If it's missing the port will not be
-> +                       enabled.
+> +			provided.
+> +- interrupt-parent	Should be a phandle for the interrupt controller
+> +- interrupts:		Contains the interrupt information for the port.
+> +- interrupt-names:	Contains the names of the interrupts. It's expected,
+> +			that "mpu_irq0" and "mpu_irq1" are provided.
+> +- ti,ssi-cawake-gpio:	Defines which GPIO pin is used to signify CAWAKE
+> +			events for the port. This is an optional board-specific
+> +			property. If it's missing the port will not be
+> +			enabled.
 > +
-> +Example for Nokia N900:
-> +
-> +ssi-controller@48058000 {
-> +       compatible = "ti,omap3-ssi";
-> +       ti,hwmods = "ssi";
-> +
-> +       reg = <0x48058000 0x1000>,
-> +             <0x48059000 0x1000>;
-> +       reg-names = "sys",
-> +                   "gdd";
-> +
-> +       interrupts = <55>;
-> +       interrupt-names = "gdd_mpu";
-> +
-> +       #address-cells = <1>;
-> +       #size-cells = <1>;
-> +       ranges;
-> +
-> +       ssi-port@0 {
-> +               compatible = "ti,omap3-ssi-port";
-> +
-> +               reg = <0x4805a000 0x800>,
-> +                     <0x4805a800 0x800>;
-> +               reg-names = "tx",
-> +                           "rx";
-> +
-> +               interrupt-parent = <&intc>;
-> +               interrupts = <51>,
-> +                            <52>;
-> +               interrupt-names = "mpu_irq0",
-> +                                 "mpu_irq1";
-> +
-> +               ti,ssi-cawake-gpio = <&gpio5 23 GPIO_ACTIVE_HIGH>; /* 151 */
-> +       }
-> +}
-> diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
-> index 0582356..cc4a3e2 100644
-> --- a/arch/arm/boot/dts/omap3-n900.dts
-> +++ b/arch/arm/boot/dts/omap3-n900.dts
-> @@ -186,6 +186,14 @@
->         power = <50>;
->  };
->
-> +&ssi_port1 {
-> +       ti,ssi-cawake-gpio = <&gpio5 23 GPIO_ACTIVE_HIGH>; /* 151 */
-> +};
-> +
-> +&ssi_port2 {
-> +       status = "disabled";
-> +};
-> +
->  &uart1 {
->         pinctrl-names = "default";
->         pinctrl-0 = <&uart1_pins>;
-> diff --git a/arch/arm/boot/dts/omap34xx.dtsi b/arch/arm/boot/dts/omap34xx.dtsi
-> index 5355d61..393b7a7 100644
-> --- a/arch/arm/boot/dts/omap34xx.dtsi
-> +++ b/arch/arm/boot/dts/omap34xx.dtsi
-> @@ -25,4 +25,53 @@
->                         clock-latency = <300000>; /* From legacy driver */
->                 };
->         };
-> +
-> +       ocp {
-> +               ssi: ssi-controller@48058000 {
-> +                       compatible = "ti,omap3-ssi";
-> +                       ti,hwmods = "ssi";
-> +
-> +                       reg = <0x48058000 0x1000>,
-> +                             <0x48059000 0x1000>;
-> +                       reg-names = "sys",
-> +                                   "gdd";
-> +
-> +                       interrupts = <55>;
-> +                       interrupt-names = "gdd_mpu";
-> +
-> +                       #address-cells = <1>;
-> +                       #size-cells = <1>;
-> +                       ranges;
-> +
-> +                       ssi_port1: ssi-port@0 {
-> +                               compatible = "ti,omap3-ssi-port";
-> +
-> +                               reg = <0x4805a000 0x800>,
-> +                                     <0x4805a800 0x800>;
-> +                               reg-names = "tx",
-> +                                           "rx";
-> +
-> +                               interrupt-parent = <&intc>;
-> +                               interrupts = <51>,
-> +                                            <52>;
-> +                               interrupt-names = "mpu_irq0",
-> +                                                 "mpu_irq1";
-> +                       };
-> +
-> +                       ssi_port2: ssi-port@1 {
-> +                               compatible = "ti,omap3-ssi-port";
-> +
-> +                               reg = <0x4805b000 0x800>,
-> +                                     <0x4805b800 0x800>;
-> +                               reg-names = "tx",
-> +                                           "rx";
-> +
-> +                               interrupt-parent = <&intc>;
-> +                               interrupts = <53>,
-> +                                            <54>;
-> +                               interrupt-names = "mpu_irq0",
-> +                                                 "mpu_irq1";
-> +                       };
-> +               };
-> +       };
->  };
-> --
-> 1.8.4.rc3
-
-Hi Sebastian,
-
-Is the Synchronous Serial Interface (SSI)  only supported by
-OMAP34xx/OMAP35xx SoC and not by OMAP36xx/OMAP37xx SoC?
-
-I'm asking this since if SSI is supported by both we should add the
-device nodes in omap3.dtsi instead of omap34xx.dtsi.
-
-I thought that all OMAP3 SoC supported SSI and all OMAP4 SoC supported
-HSI but I guess I was wrong...
-
-Thanks a lot and best regards,
-Javier
+This belongs to patch which introduces SSI driver, no?
+-- 
+Regards,
+Nishanth Menon
