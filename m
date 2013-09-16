@@ -1,433 +1,1501 @@
 From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH RFC v3 01/12] ARM: OMAP2+: CM: cm_inst offset s16->u16
-Date: Mon, 16 Sep 2013 19:17:22 +0530
-Message-ID: <41dedf7cc2fce611217acc97c966306f1b1f8bb6.1379337301.git.afzal@ti.com>
+Subject: [PATCH RFC v3 02/12] ARM: OMAP2+: hwmod: AM335x/AM43x: move common ocpif
+Date: Mon, 16 Sep 2013 19:17:31 +0530
+Message-ID: <6cf2e6a8e7023fc389afdc51264610267368ed8d.1379337301.git.afzal@ti.com>
 References: <cover.1379337301.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:51641 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:51660 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757433Ab3IPNru (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Sep 2013 09:47:50 -0400
+	with ESMTP id S1752515Ab3IPNsM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Sep 2013 09:48:12 -0400
 In-Reply-To: <cover.1379337301.git.afzal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Paul Walmsley <paul@pwsan.com>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Ankur Kishore <a-kishore@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-From: Ankur Kishore <a-kishore@ti.com>
+AM335x and AM43x have most of the interconnect's similar. Instead of
+adding redundant hwmod data, move interconnects similar between AM335x
+and AM43x to a common location. This helps in reuse on AM43x.
 
-Most of the AM43x CM reg address offsets are with MSB bit '1' (on
-16-bit value) leading to arithmetic miscalculations while calculating
-CLOCK ENABLE register's address because cm_inst field was a type of
-"const s16", so make it "const u16".
+AM335x interconnects that has difference and not present in AM43x is
+not moved. Ocp clock of those in l4_wkup is fed from a different source
+for AM43x. Also pruss interconnect is different.
 
-Also modify relevant functions so as to take care of the above.
-
-Signed-off-by: Ankur Kishore <a-kishore@ti.com>
 Signed-off-by: Afzal Mohammed <afzal@ti.com>
 ---
- arch/arm/mach-omap2/clockdomain.h |  2 +-
- arch/arm/mach-omap2/cm33xx.c      | 30 +++++++++++++++---------------
- arch/arm/mach-omap2/cm33xx.h      | 26 +++++++++++++-------------
- arch/arm/mach-omap2/cminst44xx.c  | 31 ++++++++++++++++---------------
- arch/arm/mach-omap2/cminst44xx.h  | 25 +++++++++++++------------
- 5 files changed, 58 insertions(+), 56 deletions(-)
+ arch/arm/mach-omap2/Makefile                       |   1 +
+ arch/arm/mach-omap2/omap_hwmod_33xx_43xx_common.h  |  76 +++
+ .../omap_hwmod_33xx_43xx_interconnect_data.c       | 656 +++++++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_33xx_data.c         | 625 +-------------------
+ 4 files changed, 734 insertions(+), 624 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/omap_hwmod_33xx_43xx_common.h
+ create mode 100644 arch/arm/mach-omap2/omap_hwmod_33xx_43xx_interconnect_data.c
 
-diff --git a/arch/arm/mach-omap2/clockdomain.h b/arch/arm/mach-omap2/clockdomain.h
-index 4b03394..5431b0c 100644
---- a/arch/arm/mach-omap2/clockdomain.h
-+++ b/arch/arm/mach-omap2/clockdomain.h
-@@ -132,7 +132,7 @@ struct clockdomain {
- 	u8 _flags;
- 	const u8 dep_bit;
- 	const u8 prcm_partition;
--	const s16 cm_inst;
-+	const u16 cm_inst;
- 	const u16 clkdm_offs;
- 	struct clkdm_dep *wkdep_srcs;
- 	struct clkdm_dep *sleepdep_srcs;
-diff --git a/arch/arm/mach-omap2/cm33xx.c b/arch/arm/mach-omap2/cm33xx.c
-index 325a515..59f276d 100644
---- a/arch/arm/mach-omap2/cm33xx.c
-+++ b/arch/arm/mach-omap2/cm33xx.c
-@@ -48,13 +48,13 @@
- /* Private functions */
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index afb457c..4bd83da 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -210,6 +210,7 @@ obj-$(CONFIG_ARCH_OMAP3)		+= omap_hwmod_2xxx_3xxx_ipblock_data.o
+ obj-$(CONFIG_ARCH_OMAP3)		+= omap_hwmod_2xxx_3xxx_interconnect_data.o
+ obj-$(CONFIG_ARCH_OMAP3)		+= omap_hwmod_3xxx_data.o
+ obj-$(CONFIG_SOC_AM33XX)		+= omap_hwmod_33xx_data.o
++obj-$(CONFIG_SOC_AM33XX)		+= omap_hwmod_33xx_43xx_interconnect_data.o
+ obj-$(CONFIG_ARCH_OMAP4)		+= omap_hwmod_44xx_data.o
+ obj-$(CONFIG_SOC_OMAP5)			+= omap_hwmod_54xx_data.o
+ obj-$(CONFIG_SOC_DRA7XX)		+= omap_hwmod_7xx_data.o
+diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_common.h b/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_common.h
+new file mode 100644
+index 0000000..c193d9c
+--- /dev/null
++++ b/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_common.h
+@@ -0,0 +1,76 @@
++/*
++ *
++ * Copyright (C) 2013 Texas Instruments Incorporated
++ *
++ * Data common for AM335x and AM43x
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License as
++ * published by the Free Software Foundation version 2.
++ *
++ * This program is distributed "as is" WITHOUT ANY WARRANTY of any
++ * kind, whether express or implied; without even the implied warranty
++ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
++ * GNU General Public License for more details.
++ */
++
++extern struct omap_hwmod_ocp_if am33xx_mpu__l3_main;
++extern struct omap_hwmod_ocp_if am33xx_l3_main__l3_s;
++extern struct omap_hwmod_ocp_if am33xx_l3_s__l4_ls;
++extern struct omap_hwmod_ocp_if am33xx_l3_s__l4_wkup;
++extern struct omap_hwmod_ocp_if am33xx_l3_main__l3_instr;
++extern struct omap_hwmod_ocp_if am33xx_mpu__prcm;
++extern struct omap_hwmod_ocp_if am33xx_l3_s__l3_main;
++extern struct omap_hwmod_ocp_if am33xx_pruss__l3_main;
++extern struct omap_hwmod_ocp_if am33xx_gfx__l3_main;
++extern struct omap_hwmod_ocp_if am33xx_l3_main__gfx;
++extern struct omap_hwmod_ocp_if am33xx_l4_wkup__rtc;
++extern struct omap_hwmod_ocp_if am33xx_l4_per__dcan0;
++extern struct omap_hwmod_ocp_if am33xx_l4_per__dcan1;
++extern struct omap_hwmod_ocp_if am33xx_l4_per__gpio1;
++extern struct omap_hwmod_ocp_if am33xx_l4_per__gpio2;
++extern struct omap_hwmod_ocp_if am33xx_l4_per__gpio3;
++extern struct omap_hwmod_ocp_if am33xx_cpgmac0__mdio;
++extern struct omap_hwmod_ocp_if am33xx_l4_ls__elm;
++extern struct omap_hwmod_ocp_if am33xx_l4_ls__epwmss0;
++extern struct omap_hwmod_ocp_if am33xx_epwmss0__ecap0;
++extern struct omap_hwmod_ocp_if am33xx_epwmss0__eqep0;
++extern struct omap_hwmod_ocp_if am33xx_epwmss0__ehrpwm0;
++extern struct omap_hwmod_ocp_if am33xx_l4_ls__epwmss1;
++extern struct omap_hwmod_ocp_if am33xx_epwmss1__ecap1;
++extern struct omap_hwmod_ocp_if am33xx_epwmss1__eqep1;
++extern struct omap_hwmod_ocp_if am33xx_epwmss1__ehrpwm1;
++extern struct omap_hwmod_ocp_if am33xx_l4_ls__epwmss2;
++extern struct omap_hwmod_ocp_if am33xx_epwmss2__ecap2;
++extern struct omap_hwmod_ocp_if am33xx_epwmss2__eqep2;
++extern struct omap_hwmod_ocp_if am33xx_epwmss2__ehrpwm2;
++extern struct omap_hwmod_ocp_if am33xx_l3_s__gpmc;
++extern struct omap_hwmod_ocp_if am33xx_l4_per__i2c2;
++extern struct omap_hwmod_ocp_if am33xx_l4_per__i2c3;
++extern struct omap_hwmod_ocp_if am33xx_l4_per__mailbox;
++extern struct omap_hwmod_ocp_if am33xx_l4_ls__spinlock;
++extern struct omap_hwmod_ocp_if am33xx_l4_ls__mcasp0;
++extern struct omap_hwmod_ocp_if am33xx_l4_ls__mcasp1;
++extern struct omap_hwmod_ocp_if am33xx_l4_ls__mmc0;
++extern struct omap_hwmod_ocp_if am33xx_l4_ls__mmc1;
++extern struct omap_hwmod_ocp_if am33xx_l3_s__mmc2;
++extern struct omap_hwmod_ocp_if am33xx_l4_ls__mcspi0;
++extern struct omap_hwmod_ocp_if am33xx_l4_ls__mcspi1;
++extern struct omap_hwmod_ocp_if am33xx_l4_ls__timer2;
++extern struct omap_hwmod_ocp_if am33xx_l4_ls__timer3;
++extern struct omap_hwmod_ocp_if am33xx_l4_ls__timer4;
++extern struct omap_hwmod_ocp_if am33xx_l4_ls__timer5;
++extern struct omap_hwmod_ocp_if am33xx_l4_ls__timer6;
++extern struct omap_hwmod_ocp_if am33xx_l4_ls__timer7;
++extern struct omap_hwmod_ocp_if am33xx_l3_main__tpcc;
++extern struct omap_hwmod_ocp_if am33xx_l3_main__tptc0;
++extern struct omap_hwmod_ocp_if am33xx_l3_main__tptc1;
++extern struct omap_hwmod_ocp_if am33xx_l3_main__tptc2;
++extern struct omap_hwmod_ocp_if am33xx_l4_ls__uart2;
++extern struct omap_hwmod_ocp_if am33xx_l4_ls__uart3;
++extern struct omap_hwmod_ocp_if am33xx_l4_ls__uart4;
++extern struct omap_hwmod_ocp_if am33xx_l4_ls__uart5;
++extern struct omap_hwmod_ocp_if am33xx_l4_ls__uart6;
++extern struct omap_hwmod_ocp_if am33xx_l3_main__ocmc;
++extern struct omap_hwmod_ocp_if am33xx_l3_main__sha0;
++extern struct omap_hwmod_ocp_if am33xx_l3_main__aes0;
+diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_interconnect_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_interconnect_data.c
+new file mode 100644
+index 0000000..2adee39
+--- /dev/null
++++ b/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_interconnect_data.c
+@@ -0,0 +1,656 @@
++/*
++ *
++ * Copyright (C) 2013 Texas Instruments Incorporated
++ *
++ * Interconnects common for AM335x and AM43x
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License as
++ * published by the Free Software Foundation version 2.
++ *
++ * This program is distributed "as is" WITHOUT ANY WARRANTY of any
++ * kind, whether express or implied; without even the implied warranty
++ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
++ * GNU General Public License for more details.
++ */
++
++#include <linux/i2c-omap.h>
++
++#include "omap_hwmod.h"
++#include <linux/platform_data/gpio-omap.h>
++#include <linux/platform_data/spi-omap2-mcspi.h>
++
++#include "omap_hwmod_common_data.h"
++
++#include "control.h"
++#include "cm33xx.h"
++#include "prm33xx.h"
++#include "prm-regbits-33xx.h"
++#include "i2c.h"
++#include "mmc.h"
++#include "wd_timer.h"
++#include "omap_hwmod_33xx_43xx_common.h"
++
++/* mpu -> l3 main */
++struct omap_hwmod_ocp_if am33xx_mpu__l3_main = {
++	.master		= &am33xx_mpu_hwmod,
++	.slave		= &am33xx_l3_main_hwmod,
++	.clk		= "dpll_mpu_m2_ck",
++	.user		= OCP_USER_MPU,
++};
++
++/* l3 main -> l3 s */
++struct omap_hwmod_ocp_if am33xx_l3_main__l3_s = {
++	.master		= &am33xx_l3_main_hwmod,
++	.slave		= &am33xx_l3_s_hwmod,
++	.clk		= "l3s_gclk",
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* l3 s -> l4 per/ls */
++struct omap_hwmod_ocp_if am33xx_l3_s__l4_ls = {
++	.master		= &am33xx_l3_s_hwmod,
++	.slave		= &am33xx_l4_ls_hwmod,
++	.clk		= "l3s_gclk",
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* l3 s -> l4 wkup */
++struct omap_hwmod_ocp_if am33xx_l3_s__l4_wkup = {
++	.master		= &am33xx_l3_s_hwmod,
++	.slave		= &am33xx_l4_wkup_hwmod,
++	.clk		= "l3s_gclk",
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* l3 main -> l3 instr */
++struct omap_hwmod_ocp_if am33xx_l3_main__l3_instr = {
++	.master		= &am33xx_l3_main_hwmod,
++	.slave		= &am33xx_l3_instr_hwmod,
++	.clk		= "l3s_gclk",
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* mpu -> prcm */
++struct omap_hwmod_ocp_if am33xx_mpu__prcm = {
++	.master		= &am33xx_mpu_hwmod,
++	.slave		= &am33xx_prcm_hwmod,
++	.clk		= "dpll_mpu_m2_ck",
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* l3 s -> l3 main*/
++struct omap_hwmod_ocp_if am33xx_l3_s__l3_main = {
++	.master		= &am33xx_l3_s_hwmod,
++	.slave		= &am33xx_l3_main_hwmod,
++	.clk		= "l3s_gclk",
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* pru-icss -> l3 main */
++struct omap_hwmod_ocp_if am33xx_pruss__l3_main = {
++	.master		= &am33xx_pruss_hwmod,
++	.slave		= &am33xx_l3_main_hwmod,
++	.clk		= "l3_gclk",
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* gfx -> l3 main */
++struct omap_hwmod_ocp_if am33xx_gfx__l3_main = {
++	.master		= &am33xx_gfx_hwmod,
++	.slave		= &am33xx_l3_main_hwmod,
++	.clk		= "dpll_core_m4_ck",
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* l3 main -> gfx */
++struct omap_hwmod_ocp_if am33xx_l3_main__gfx = {
++	.master		= &am33xx_l3_main_hwmod,
++	.slave		= &am33xx_gfx_hwmod,
++	.clk		= "dpll_core_m4_ck",
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* l4 wkup -> rtc */
++struct omap_hwmod_ocp_if am33xx_l4_wkup__rtc = {
++	.master		= &am33xx_l4_wkup_hwmod,
++	.slave		= &am33xx_rtc_hwmod,
++	.clk		= "clkdiv32k_ick",
++	.user		= OCP_USER_MPU,
++};
++
++/* l4 per/ls -> DCAN0 */
++struct omap_hwmod_ocp_if am33xx_l4_per__dcan0 = {
++	.master		= &am33xx_l4_ls_hwmod,
++	.slave		= &am33xx_dcan0_hwmod,
++	.clk		= "l4ls_gclk",
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* l4 per/ls -> DCAN1 */
++struct omap_hwmod_ocp_if am33xx_l4_per__dcan1 = {
++	.master		= &am33xx_l4_ls_hwmod,
++	.slave		= &am33xx_dcan1_hwmod,
++	.clk		= "l4ls_gclk",
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* l4 per/ls -> GPIO2 */
++struct omap_hwmod_ocp_if am33xx_l4_per__gpio1 = {
++	.master		= &am33xx_l4_ls_hwmod,
++	.slave		= &am33xx_gpio1_hwmod,
++	.clk		= "l4ls_gclk",
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* l4 per/ls -> gpio3 */
++struct omap_hwmod_ocp_if am33xx_l4_per__gpio2 = {
++	.master		= &am33xx_l4_ls_hwmod,
++	.slave		= &am33xx_gpio2_hwmod,
++	.clk		= "l4ls_gclk",
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* l4 per/ls -> gpio4 */
++struct omap_hwmod_ocp_if am33xx_l4_per__gpio3 = {
++	.master		= &am33xx_l4_ls_hwmod,
++	.slave		= &am33xx_gpio3_hwmod,
++	.clk		= "l4ls_gclk",
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++struct omap_hwmod_ocp_if am33xx_cpgmac0__mdio = {
++	.master		= &am33xx_cpgmac0_hwmod,
++	.slave		= &am33xx_mdio_hwmod,
++	.user		= OCP_USER_MPU,
++};
++
++static struct omap_hwmod_addr_space am33xx_elm_addr_space[] = {
++	{
++		.pa_start	= 0x48080000,
++		.pa_end		= 0x48080000 + SZ_8K - 1,
++		.flags		= ADDR_TYPE_RT
++	},
++	{ }
++};
++
++struct omap_hwmod_ocp_if am33xx_l4_ls__elm = {
++	.master		= &am33xx_l4_ls_hwmod,
++	.slave		= &am33xx_elm_hwmod,
++	.clk		= "l4ls_gclk",
++	.addr		= am33xx_elm_addr_space,
++	.user		= OCP_USER_MPU,
++};
++
++static struct omap_hwmod_addr_space am33xx_epwmss0_addr_space[] = {
++	{
++		.pa_start	= 0x48300000,
++		.pa_end		= 0x48300000 + SZ_16 - 1,
++		.flags		= ADDR_TYPE_RT
++	},
++	{ }
++};
++
++struct omap_hwmod_ocp_if am33xx_l4_ls__epwmss0 = {
++	.master		= &am33xx_l4_ls_hwmod,
++	.slave		= &am33xx_epwmss0_hwmod,
++	.clk		= "l4ls_gclk",
++	.addr		= am33xx_epwmss0_addr_space,
++	.user		= OCP_USER_MPU,
++};
++
++struct omap_hwmod_ocp_if am33xx_epwmss0__ecap0 = {
++	.master		= &am33xx_epwmss0_hwmod,
++	.slave		= &am33xx_ecap0_hwmod,
++	.clk		= "l4ls_gclk",
++	.user		= OCP_USER_MPU,
++};
++
++struct omap_hwmod_ocp_if am33xx_epwmss0__eqep0 = {
++	.master		= &am33xx_epwmss0_hwmod,
++	.slave		= &am33xx_eqep0_hwmod,
++	.clk		= "l4ls_gclk",
++	.user		= OCP_USER_MPU,
++};
++
++struct omap_hwmod_ocp_if am33xx_epwmss0__ehrpwm0 = {
++	.master		= &am33xx_epwmss0_hwmod,
++	.slave		= &am33xx_ehrpwm0_hwmod,
++	.clk		= "l4ls_gclk",
++	.user		= OCP_USER_MPU,
++};
++
++
++static struct omap_hwmod_addr_space am33xx_epwmss1_addr_space[] = {
++	{
++		.pa_start	= 0x48302000,
++		.pa_end		= 0x48302000 + SZ_16 - 1,
++		.flags		= ADDR_TYPE_RT
++	},
++	{ }
++};
++
++struct omap_hwmod_ocp_if am33xx_l4_ls__epwmss1 = {
++	.master		= &am33xx_l4_ls_hwmod,
++	.slave		= &am33xx_epwmss1_hwmod,
++	.clk		= "l4ls_gclk",
++	.addr		= am33xx_epwmss1_addr_space,
++	.user		= OCP_USER_MPU,
++};
++
++struct omap_hwmod_ocp_if am33xx_epwmss1__ecap1 = {
++	.master		= &am33xx_epwmss1_hwmod,
++	.slave		= &am33xx_ecap1_hwmod,
++	.clk		= "l4ls_gclk",
++	.user		= OCP_USER_MPU,
++};
++
++struct omap_hwmod_ocp_if am33xx_epwmss1__eqep1 = {
++	.master		= &am33xx_epwmss1_hwmod,
++	.slave		= &am33xx_eqep1_hwmod,
++	.clk		= "l4ls_gclk",
++	.user		= OCP_USER_MPU,
++};
++
++struct omap_hwmod_ocp_if am33xx_epwmss1__ehrpwm1 = {
++	.master		= &am33xx_epwmss1_hwmod,
++	.slave		= &am33xx_ehrpwm1_hwmod,
++	.clk		= "l4ls_gclk",
++	.user		= OCP_USER_MPU,
++};
++
++static struct omap_hwmod_addr_space am33xx_epwmss2_addr_space[] = {
++	{
++		.pa_start	= 0x48304000,
++		.pa_end		= 0x48304000 + SZ_16 - 1,
++		.flags		= ADDR_TYPE_RT
++	},
++	{ }
++};
++
++struct omap_hwmod_ocp_if am33xx_l4_ls__epwmss2 = {
++	.master		= &am33xx_l4_ls_hwmod,
++	.slave		= &am33xx_epwmss2_hwmod,
++	.clk		= "l4ls_gclk",
++	.addr		= am33xx_epwmss2_addr_space,
++	.user		= OCP_USER_MPU,
++};
++
++struct omap_hwmod_ocp_if am33xx_epwmss2__ecap2 = {
++	.master		= &am33xx_epwmss2_hwmod,
++	.slave		= &am33xx_ecap2_hwmod,
++	.clk		= "l4ls_gclk",
++	.user		= OCP_USER_MPU,
++};
++
++struct omap_hwmod_ocp_if am33xx_epwmss2__eqep2 = {
++	.master		= &am33xx_epwmss2_hwmod,
++	.slave		= &am33xx_eqep2_hwmod,
++	.clk		= "l4ls_gclk",
++	.user		= OCP_USER_MPU,
++};
++
++struct omap_hwmod_ocp_if am33xx_epwmss2__ehrpwm2 = {
++	.master		= &am33xx_epwmss2_hwmod,
++	.slave		= &am33xx_ehrpwm2_hwmod,
++	.clk		= "l4ls_gclk",
++	.user		= OCP_USER_MPU,
++};
++
++/* l3s cfg -> gpmc */
++static struct omap_hwmod_addr_space am33xx_gpmc_addr_space[] = {
++	{
++		.pa_start	= 0x50000000,
++		.pa_end		= 0x50000000 + SZ_8K - 1,
++		.flags		= ADDR_TYPE_RT,
++	},
++	{ }
++};
++
++struct omap_hwmod_ocp_if am33xx_l3_s__gpmc = {
++	.master		= &am33xx_l3_s_hwmod,
++	.slave		= &am33xx_gpmc_hwmod,
++	.clk		= "l3s_gclk",
++	.addr		= am33xx_gpmc_addr_space,
++	.user		= OCP_USER_MPU,
++};
++
++/* i2c2 */
++struct omap_hwmod_ocp_if am33xx_l4_per__i2c2 = {
++	.master		= &am33xx_l4_ls_hwmod,
++	.slave		= &am33xx_i2c2_hwmod,
++	.clk		= "l4ls_gclk",
++	.user		= OCP_USER_MPU,
++};
++
++struct omap_hwmod_ocp_if am33xx_l4_per__i2c3 = {
++	.master		= &am33xx_l4_ls_hwmod,
++	.slave		= &am33xx_i2c3_hwmod,
++	.clk		= "l4ls_gclk",
++	.user		= OCP_USER_MPU,
++};
++
++static struct omap_hwmod_addr_space am33xx_mailbox_addrs[] = {
++	{
++		.pa_start	= 0x480C8000,
++		.pa_end		= 0x480C8000 + (SZ_4K - 1),
++		.flags		= ADDR_TYPE_RT
++	},
++	{ }
++};
++
++/* l4 ls -> mailbox */
++struct omap_hwmod_ocp_if am33xx_l4_per__mailbox = {
++	.master		= &am33xx_l4_ls_hwmod,
++	.slave		= &am33xx_mailbox_hwmod,
++	.clk		= "l4ls_gclk",
++	.addr		= am33xx_mailbox_addrs,
++	.user		= OCP_USER_MPU,
++};
++
++/* l4 ls -> spinlock */
++struct omap_hwmod_ocp_if am33xx_l4_ls__spinlock = {
++	.master		= &am33xx_l4_ls_hwmod,
++	.slave		= &am33xx_spinlock_hwmod,
++	.clk		= "l4ls_gclk",
++	.user		= OCP_USER_MPU,
++};
++
++/* l4 ls -> mcasp0 */
++static struct omap_hwmod_addr_space am33xx_mcasp0_addr_space[] = {
++	{
++		.pa_start	= 0x48038000,
++		.pa_end		= 0x48038000 + SZ_8K - 1,
++		.flags		= ADDR_TYPE_RT
++	},
++	{ }
++};
++
++struct omap_hwmod_ocp_if am33xx_l4_ls__mcasp0 = {
++	.master		= &am33xx_l4_ls_hwmod,
++	.slave		= &am33xx_mcasp0_hwmod,
++	.clk		= "l4ls_gclk",
++	.addr		= am33xx_mcasp0_addr_space,
++	.user		= OCP_USER_MPU,
++};
++
++/* l4 ls -> mcasp1 */
++static struct omap_hwmod_addr_space am33xx_mcasp1_addr_space[] = {
++	{
++		.pa_start	= 0x4803C000,
++		.pa_end		= 0x4803C000 + SZ_8K - 1,
++		.flags		= ADDR_TYPE_RT
++	},
++	{ }
++};
++
++struct omap_hwmod_ocp_if am33xx_l4_ls__mcasp1 = {
++	.master		= &am33xx_l4_ls_hwmod,
++	.slave		= &am33xx_mcasp1_hwmod,
++	.clk		= "l4ls_gclk",
++	.addr		= am33xx_mcasp1_addr_space,
++	.user		= OCP_USER_MPU,
++};
++
++/* l4 ls -> mmc0 */
++static struct omap_hwmod_addr_space am33xx_mmc0_addr_space[] = {
++	{
++		.pa_start	= 0x48060100,
++		.pa_end		= 0x48060100 + SZ_4K - 1,
++		.flags		= ADDR_TYPE_RT,
++	},
++	{ }
++};
++
++struct omap_hwmod_ocp_if am33xx_l4_ls__mmc0 = {
++	.master		= &am33xx_l4_ls_hwmod,
++	.slave		= &am33xx_mmc0_hwmod,
++	.clk		= "l4ls_gclk",
++	.addr		= am33xx_mmc0_addr_space,
++	.user		= OCP_USER_MPU,
++};
++
++/* l4 ls -> mmc1 */
++static struct omap_hwmod_addr_space am33xx_mmc1_addr_space[] = {
++	{
++		.pa_start	= 0x481d8100,
++		.pa_end		= 0x481d8100 + SZ_4K - 1,
++		.flags		= ADDR_TYPE_RT,
++	},
++	{ }
++};
++
++struct omap_hwmod_ocp_if am33xx_l4_ls__mmc1 = {
++	.master		= &am33xx_l4_ls_hwmod,
++	.slave		= &am33xx_mmc1_hwmod,
++	.clk		= "l4ls_gclk",
++	.addr		= am33xx_mmc1_addr_space,
++	.user		= OCP_USER_MPU,
++};
++
++/* l3 s -> mmc2 */
++static struct omap_hwmod_addr_space am33xx_mmc2_addr_space[] = {
++	{
++		.pa_start	= 0x47810100,
++		.pa_end		= 0x47810100 + SZ_64K - 1,
++		.flags		= ADDR_TYPE_RT,
++	},
++	{ }
++};
++
++struct omap_hwmod_ocp_if am33xx_l3_s__mmc2 = {
++	.master		= &am33xx_l3_s_hwmod,
++	.slave		= &am33xx_mmc2_hwmod,
++	.clk		= "l3s_gclk",
++	.addr		= am33xx_mmc2_addr_space,
++	.user		= OCP_USER_MPU,
++};
++
++/* l4 ls -> mcspi0 */
++struct omap_hwmod_ocp_if am33xx_l4_ls__mcspi0 = {
++	.master		= &am33xx_l4_ls_hwmod,
++	.slave		= &am33xx_spi0_hwmod,
++	.clk		= "l4ls_gclk",
++	.user		= OCP_USER_MPU,
++};
++
++/* l4 ls -> mcspi1 */
++struct omap_hwmod_ocp_if am33xx_l4_ls__mcspi1 = {
++	.master		= &am33xx_l4_ls_hwmod,
++	.slave		= &am33xx_spi1_hwmod,
++	.clk		= "l4ls_gclk",
++	.user		= OCP_USER_MPU,
++};
++
++/* l4 per -> timer2 */
++struct omap_hwmod_ocp_if am33xx_l4_ls__timer2 = {
++	.master		= &am33xx_l4_ls_hwmod,
++	.slave		= &am33xx_timer2_hwmod,
++	.clk		= "l4ls_gclk",
++	.user		= OCP_USER_MPU,
++};
++
++/* l4 per -> timer3 */
++struct omap_hwmod_ocp_if am33xx_l4_ls__timer3 = {
++	.master		= &am33xx_l4_ls_hwmod,
++	.slave		= &am33xx_timer3_hwmod,
++	.clk		= "l4ls_gclk",
++	.user		= OCP_USER_MPU,
++};
++
++/* l4 per -> timer4 */
++struct omap_hwmod_ocp_if am33xx_l4_ls__timer4 = {
++	.master		= &am33xx_l4_ls_hwmod,
++	.slave		= &am33xx_timer4_hwmod,
++	.clk		= "l4ls_gclk",
++	.user		= OCP_USER_MPU,
++};
++
++/* l4 per -> timer5 */
++struct omap_hwmod_ocp_if am33xx_l4_ls__timer5 = {
++	.master		= &am33xx_l4_ls_hwmod,
++	.slave		= &am33xx_timer5_hwmod,
++	.clk		= "l4ls_gclk",
++	.user		= OCP_USER_MPU,
++};
++
++/* l4 per -> timer6 */
++struct omap_hwmod_ocp_if am33xx_l4_ls__timer6 = {
++	.master		= &am33xx_l4_ls_hwmod,
++	.slave		= &am33xx_timer6_hwmod,
++	.clk		= "l4ls_gclk",
++	.user		= OCP_USER_MPU,
++};
++
++/* l4 per -> timer7 */
++struct omap_hwmod_ocp_if am33xx_l4_ls__timer7 = {
++	.master		= &am33xx_l4_ls_hwmod,
++	.slave		= &am33xx_timer7_hwmod,
++	.clk		= "l4ls_gclk",
++	.user		= OCP_USER_MPU,
++};
++
++/* l3 main -> tpcc */
++struct omap_hwmod_ocp_if am33xx_l3_main__tpcc = {
++	.master		= &am33xx_l3_main_hwmod,
++	.slave		= &am33xx_tpcc_hwmod,
++	.clk		= "l3_gclk",
++	.user		= OCP_USER_MPU,
++};
++
++/* l3 main -> tpcc0 */
++static struct omap_hwmod_addr_space am33xx_tptc0_addr_space[] = {
++	{
++		.pa_start	= 0x49800000,
++		.pa_end		= 0x49800000 + SZ_8K - 1,
++		.flags		= ADDR_TYPE_RT,
++	},
++	{ }
++};
++
++struct omap_hwmod_ocp_if am33xx_l3_main__tptc0 = {
++	.master		= &am33xx_l3_main_hwmod,
++	.slave		= &am33xx_tptc0_hwmod,
++	.clk		= "l3_gclk",
++	.addr		= am33xx_tptc0_addr_space,
++	.user		= OCP_USER_MPU,
++};
++
++/* l3 main -> tpcc1 */
++static struct omap_hwmod_addr_space am33xx_tptc1_addr_space[] = {
++	{
++		.pa_start	= 0x49900000,
++		.pa_end		= 0x49900000 + SZ_8K - 1,
++		.flags		= ADDR_TYPE_RT,
++	},
++	{ }
++};
++
++struct omap_hwmod_ocp_if am33xx_l3_main__tptc1 = {
++	.master		= &am33xx_l3_main_hwmod,
++	.slave		= &am33xx_tptc1_hwmod,
++	.clk		= "l3_gclk",
++	.addr		= am33xx_tptc1_addr_space,
++	.user		= OCP_USER_MPU,
++};
++
++/* l3 main -> tpcc2 */
++static struct omap_hwmod_addr_space am33xx_tptc2_addr_space[] = {
++	{
++		.pa_start	= 0x49a00000,
++		.pa_end		= 0x49a00000 + SZ_8K - 1,
++		.flags		= ADDR_TYPE_RT,
++	},
++	{ }
++};
++
++struct omap_hwmod_ocp_if am33xx_l3_main__tptc2 = {
++	.master		= &am33xx_l3_main_hwmod,
++	.slave		= &am33xx_tptc2_hwmod,
++	.clk		= "l3_gclk",
++	.addr		= am33xx_tptc2_addr_space,
++	.user		= OCP_USER_MPU,
++};
++
++/* l4 ls -> uart2 */
++struct omap_hwmod_ocp_if am33xx_l4_ls__uart2 = {
++	.master		= &am33xx_l4_ls_hwmod,
++	.slave		= &am33xx_uart2_hwmod,
++	.clk		= "l4ls_gclk",
++	.user		= OCP_USER_MPU,
++};
++
++/* l4 ls -> uart3 */
++struct omap_hwmod_ocp_if am33xx_l4_ls__uart3 = {
++	.master		= &am33xx_l4_ls_hwmod,
++	.slave		= &am33xx_uart3_hwmod,
++	.clk		= "l4ls_gclk",
++	.user		= OCP_USER_MPU,
++};
++
++/* l4 ls -> uart4 */
++struct omap_hwmod_ocp_if am33xx_l4_ls__uart4 = {
++	.master		= &am33xx_l4_ls_hwmod,
++	.slave		= &am33xx_uart4_hwmod,
++	.clk		= "l4ls_gclk",
++	.user		= OCP_USER_MPU,
++};
++
++/* l4 ls -> uart5 */
++struct omap_hwmod_ocp_if am33xx_l4_ls__uart5 = {
++	.master		= &am33xx_l4_ls_hwmod,
++	.slave		= &am33xx_uart5_hwmod,
++	.clk		= "l4ls_gclk",
++	.user		= OCP_USER_MPU,
++};
++
++/* l4 ls -> uart6 */
++struct omap_hwmod_ocp_if am33xx_l4_ls__uart6 = {
++	.master		= &am33xx_l4_ls_hwmod,
++	.slave		= &am33xx_uart6_hwmod,
++	.clk		= "l4ls_gclk",
++	.user		= OCP_USER_MPU,
++};
++
++/* l3 main -> ocmc */
++struct omap_hwmod_ocp_if am33xx_l3_main__ocmc = {
++	.master		= &am33xx_l3_main_hwmod,
++	.slave		= &am33xx_ocmcram_hwmod,
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* l3 main -> sha0 HIB2 */
++static struct omap_hwmod_addr_space am33xx_sha0_addrs[] = {
++	{
++		.pa_start	= 0x53100000,
++		.pa_end		= 0x53100000 + SZ_512 - 1,
++		.flags		= ADDR_TYPE_RT
++	},
++	{ }
++};
++
++struct omap_hwmod_ocp_if am33xx_l3_main__sha0 = {
++	.master		= &am33xx_l3_main_hwmod,
++	.slave		= &am33xx_sha0_hwmod,
++	.clk		= "sha0_fck",
++	.addr		= am33xx_sha0_addrs,
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* l3 main -> AES0 HIB2 */
++static struct omap_hwmod_addr_space am33xx_aes0_addrs[] = {
++	{
++		.pa_start	= 0x53500000,
++		.pa_end		= 0x53500000 + SZ_1M - 1,
++		.flags		= ADDR_TYPE_RT
++	},
++	{ }
++};
++
++struct omap_hwmod_ocp_if am33xx_l3_main__aes0 = {
++	.master		= &am33xx_l3_main_hwmod,
++	.slave		= &am33xx_aes0_hwmod,
++	.clk		= "aes0_fck",
++	.addr		= am33xx_aes0_addrs,
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
+diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
+index 215894f..ce58713 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
+@@ -29,6 +29,7 @@
+ #include "i2c.h"
+ #include "mmc.h"
+ #include "wd_timer.h"
++#include "omap_hwmod_33xx_43xx_common.h"
  
- /* Read a register in a CM instance */
--static inline u32 am33xx_cm_read_reg(s16 inst, u16 idx)
-+static inline u32 am33xx_cm_read_reg(u16 inst, u16 idx)
- {
- 	return __raw_readl(cm_base + inst + idx);
- }
- 
- /* Write into a register in a CM */
--static inline void am33xx_cm_write_reg(u32 val, s16 inst, u16 idx)
-+static inline void am33xx_cm_write_reg(u32 val, u16 inst, u16 idx)
- {
- 	__raw_writel(val, cm_base + inst + idx);
- }
-@@ -82,7 +82,7 @@ static inline u32 am33xx_cm_clear_reg_bits(u32 bits, s16 inst, s16 idx)
- 	return am33xx_cm_rmw_reg_bits(bits, 0x0, inst, idx);
- }
- 
--static inline u32 am33xx_cm_read_reg_bits(u16 inst, s16 idx, u32 mask)
-+static inline u32 am33xx_cm_read_reg_bits(u16 inst, u16 idx, u32 mask)
- {
- 	u32 v;
- 
-@@ -102,7 +102,7 @@ static inline u32 am33xx_cm_read_reg_bits(u16 inst, s16 idx, u32 mask)
-  * Return the IDLEST bitfield of a CM_*_CLKCTRL register, shifted down to
-  * bit 0.
-  */
--static u32 _clkctrl_idlest(u16 inst, s16 cdoffs, u16 clkctrl_offs)
-+static u32 _clkctrl_idlest(u16 inst, u16 cdoffs, u16 clkctrl_offs)
- {
- 	u32 v = am33xx_cm_read_reg(inst, clkctrl_offs);
- 	v &= AM33XX_IDLEST_MASK;
-@@ -119,7 +119,7 @@ static u32 _clkctrl_idlest(u16 inst, s16 cdoffs, u16 clkctrl_offs)
-  * Returns true if the module's CM_*_CLKCTRL.IDLEST bitfield is either
-  * *FUNCTIONAL or *INTERFACE_IDLE; false otherwise.
-  */
--static bool _is_module_ready(u16 inst, s16 cdoffs, u16 clkctrl_offs)
-+static bool _is_module_ready(u16 inst, u16 cdoffs, u16 clkctrl_offs)
- {
- 	u32 v;
- 
-@@ -138,7 +138,7 @@ static bool _is_module_ready(u16 inst, s16 cdoffs, u16 clkctrl_offs)
-  * @c must be the unshifted value for CLKTRCTRL - i.e., this function
-  * will handle the shift itself.
-  */
--static void _clktrctrl_write(u8 c, s16 inst, u16 cdoffs)
-+static void _clktrctrl_write(u8 c, u16 inst, u16 cdoffs)
- {
- 	u32 v;
- 
-@@ -158,7 +158,7 @@ static void _clktrctrl_write(u8 c, s16 inst, u16 cdoffs)
-  * Returns true if the clockdomain referred to by (@inst, @cdoffs)
-  * is in hardware-supervised idle mode, or 0 otherwise.
-  */
--bool am33xx_cm_is_clkdm_in_hwsup(s16 inst, u16 cdoffs)
-+bool am33xx_cm_is_clkdm_in_hwsup(u16 inst, u16 cdoffs)
- {
- 	u32 v;
- 
-@@ -177,7 +177,7 @@ bool am33xx_cm_is_clkdm_in_hwsup(s16 inst, u16 cdoffs)
-  * Put a clockdomain referred to by (@inst, @cdoffs) into
-  * hardware-supervised idle mode.  No return value.
-  */
--void am33xx_cm_clkdm_enable_hwsup(s16 inst, u16 cdoffs)
-+void am33xx_cm_clkdm_enable_hwsup(u16 inst, u16 cdoffs)
- {
- 	_clktrctrl_write(OMAP34XX_CLKSTCTRL_ENABLE_AUTO, inst, cdoffs);
- }
-@@ -191,7 +191,7 @@ void am33xx_cm_clkdm_enable_hwsup(s16 inst, u16 cdoffs)
-  * software-supervised idle mode, i.e., controlled manually by the
-  * Linux OMAP clockdomain code.  No return value.
-  */
--void am33xx_cm_clkdm_disable_hwsup(s16 inst, u16 cdoffs)
-+void am33xx_cm_clkdm_disable_hwsup(u16 inst, u16 cdoffs)
- {
- 	_clktrctrl_write(OMAP34XX_CLKSTCTRL_DISABLE_AUTO, inst, cdoffs);
- }
-@@ -204,7 +204,7 @@ void am33xx_cm_clkdm_disable_hwsup(s16 inst, u16 cdoffs)
-  * Put a clockdomain referred to by (@inst, @cdoffs) into idle
-  * No return value.
-  */
--void am33xx_cm_clkdm_force_sleep(s16 inst, u16 cdoffs)
-+void am33xx_cm_clkdm_force_sleep(u16 inst, u16 cdoffs)
- {
- 	_clktrctrl_write(OMAP34XX_CLKSTCTRL_FORCE_SLEEP, inst, cdoffs);
- }
-@@ -217,7 +217,7 @@ void am33xx_cm_clkdm_force_sleep(s16 inst, u16 cdoffs)
-  * Take a clockdomain referred to by (@inst, @cdoffs) out of idle,
-  * waking it up.  No return value.
-  */
--void am33xx_cm_clkdm_force_wakeup(s16 inst, u16 cdoffs)
-+void am33xx_cm_clkdm_force_wakeup(u16 inst, u16 cdoffs)
- {
- 	_clktrctrl_write(OMAP34XX_CLKSTCTRL_FORCE_WAKEUP, inst, cdoffs);
- }
-@@ -237,7 +237,7 @@ void am33xx_cm_clkdm_force_wakeup(s16 inst, u16 cdoffs)
-  * sysconfig cannot be accessed and will probably lead to an "imprecise
-  * external abort"
-  */
--int am33xx_cm_wait_module_ready(u16 inst, s16 cdoffs, u16 clkctrl_offs)
-+int am33xx_cm_wait_module_ready(u16 inst, u16 cdoffs, u16 clkctrl_offs)
- {
- 	int i = 0;
- 
-@@ -258,7 +258,7 @@ int am33xx_cm_wait_module_ready(u16 inst, s16 cdoffs, u16 clkctrl_offs)
-  * like reset assertion or parent clock de-activation must wait the
-  * module to be fully disabled.
-  */
--int am33xx_cm_wait_module_idle(u16 inst, s16 cdoffs, u16 clkctrl_offs)
-+int am33xx_cm_wait_module_idle(u16 inst, u16 cdoffs, u16 clkctrl_offs)
- {
- 	int i = 0;
- 
-@@ -281,7 +281,7 @@ int am33xx_cm_wait_module_idle(u16 inst, s16 cdoffs, u16 clkctrl_offs)
-  *
-  * No return value.
-  */
--void am33xx_cm_module_enable(u8 mode, u16 inst, s16 cdoffs, u16 clkctrl_offs)
-+void am33xx_cm_module_enable(u8 mode, u16 inst, u16 cdoffs, u16 clkctrl_offs)
- {
- 	u32 v;
- 
-@@ -299,7 +299,7 @@ void am33xx_cm_module_enable(u8 mode, u16 inst, s16 cdoffs, u16 clkctrl_offs)
-  *
-  * No return value.
-  */
--void am33xx_cm_module_disable(u16 inst, s16 cdoffs, u16 clkctrl_offs)
-+void am33xx_cm_module_disable(u16 inst, u16 cdoffs, u16 clkctrl_offs)
- {
- 	u32 v;
- 
-diff --git a/arch/arm/mach-omap2/cm33xx.h b/arch/arm/mach-omap2/cm33xx.h
-index 9d1f4fc..201e507 100644
---- a/arch/arm/mach-omap2/cm33xx.h
-+++ b/arch/arm/mach-omap2/cm33xx.h
-@@ -377,36 +377,36 @@
- 
- 
- #ifndef __ASSEMBLER__
--extern bool am33xx_cm_is_clkdm_in_hwsup(s16 inst, u16 cdoffs);
--extern void am33xx_cm_clkdm_enable_hwsup(s16 inst, u16 cdoffs);
--extern void am33xx_cm_clkdm_disable_hwsup(s16 inst, u16 cdoffs);
--extern void am33xx_cm_clkdm_force_sleep(s16 inst, u16 cdoffs);
--extern void am33xx_cm_clkdm_force_wakeup(s16 inst, u16 cdoffs);
-+extern bool am33xx_cm_is_clkdm_in_hwsup(u16 inst, u16 cdoffs);
-+extern void am33xx_cm_clkdm_enable_hwsup(u16 inst, u16 cdoffs);
-+extern void am33xx_cm_clkdm_disable_hwsup(u16 inst, u16 cdoffs);
-+extern void am33xx_cm_clkdm_force_sleep(u16 inst, u16 cdoffs);
-+extern void am33xx_cm_clkdm_force_wakeup(u16 inst, u16 cdoffs);
- 
- #if defined(CONFIG_SOC_AM33XX) || defined(CONFIG_SOC_AM43XX)
--extern int am33xx_cm_wait_module_idle(u16 inst, s16 cdoffs,
-+extern int am33xx_cm_wait_module_idle(u16 inst, u16 cdoffs,
- 					u16 clkctrl_offs);
--extern void am33xx_cm_module_enable(u8 mode, u16 inst, s16 cdoffs,
-+extern void am33xx_cm_module_enable(u8 mode, u16 inst, u16 cdoffs,
- 					u16 clkctrl_offs);
--extern void am33xx_cm_module_disable(u16 inst, s16 cdoffs,
-+extern void am33xx_cm_module_disable(u16 inst, u16 cdoffs,
- 					u16 clkctrl_offs);
--extern int am33xx_cm_wait_module_ready(u16 inst, s16 cdoffs,
-+extern int am33xx_cm_wait_module_ready(u16 inst, u16 cdoffs,
- 					u16 clkctrl_offs);
- #else
--static inline int am33xx_cm_wait_module_idle(u16 inst, s16 cdoffs,
-+static inline int am33xx_cm_wait_module_idle(u16 inst, u16 cdoffs,
- 					u16 clkctrl_offs)
- {
- 	return 0;
- }
--static inline void am33xx_cm_module_enable(u8 mode, u16 inst, s16 cdoffs,
-+static inline void am33xx_cm_module_enable(u8 mode, u16 inst, u16 cdoffs,
- 					u16 clkctrl_offs)
- {
- }
--static inline void am33xx_cm_module_disable(u16 inst, s16 cdoffs,
-+static inline void am33xx_cm_module_disable(u16 inst, u16 cdoffs,
- 					u16 clkctrl_offs)
- {
- }
--static inline int am33xx_cm_wait_module_ready(u16 inst, s16 cdoffs,
-+static inline int am33xx_cm_wait_module_ready(u16 inst, u16 cdoffs,
- 					u16 clkctrl_offs)
- {
- 	return 0;
-diff --git a/arch/arm/mach-omap2/cminst44xx.c b/arch/arm/mach-omap2/cminst44xx.c
-index 35051fd..ef452e8 100644
---- a/arch/arm/mach-omap2/cminst44xx.c
-+++ b/arch/arm/mach-omap2/cminst44xx.c
-@@ -80,7 +80,7 @@ void omap_cm_base_init(void)
-  * Return the IDLEST bitfield of a CM_*_CLKCTRL register, shifted down to
-  * bit 0.
-  */
--static u32 _clkctrl_idlest(u8 part, u16 inst, s16 cdoffs, u16 clkctrl_offs)
-+static u32 _clkctrl_idlest(u8 part, u16 inst, u16 cdoffs, u16 clkctrl_offs)
- {
- 	u32 v = omap4_cminst_read_inst_reg(part, inst, clkctrl_offs);
- 	v &= OMAP4430_IDLEST_MASK;
-@@ -98,7 +98,7 @@ static u32 _clkctrl_idlest(u8 part, u16 inst, s16 cdoffs, u16 clkctrl_offs)
-  * Returns true if the module's CM_*_CLKCTRL.IDLEST bitfield is either
-  * *FUNCTIONAL or *INTERFACE_IDLE; false otherwise.
-  */
--static bool _is_module_ready(u8 part, u16 inst, s16 cdoffs, u16 clkctrl_offs)
-+static bool _is_module_ready(u8 part, u16 inst, u16 cdoffs, u16 clkctrl_offs)
- {
- 	u32 v;
- 
-@@ -111,7 +111,7 @@ static bool _is_module_ready(u8 part, u16 inst, s16 cdoffs, u16 clkctrl_offs)
- /* Public functions */
- 
- /* Read a register in a CM instance */
--u32 omap4_cminst_read_inst_reg(u8 part, s16 inst, u16 idx)
-+u32 omap4_cminst_read_inst_reg(u8 part, u16 inst, u16 idx)
- {
- 	BUG_ON(part >= OMAP4_MAX_PRCM_PARTITIONS ||
- 	       part == OMAP4430_INVALID_PRCM_PARTITION ||
-@@ -120,7 +120,7 @@ u32 omap4_cminst_read_inst_reg(u8 part, s16 inst, u16 idx)
- }
- 
- /* Write into a register in a CM instance */
--void omap4_cminst_write_inst_reg(u32 val, u8 part, s16 inst, u16 idx)
-+void omap4_cminst_write_inst_reg(u32 val, u8 part, u16 inst, u16 idx)
- {
- 	BUG_ON(part >= OMAP4_MAX_PRCM_PARTITIONS ||
- 	       part == OMAP4430_INVALID_PRCM_PARTITION ||
-@@ -152,7 +152,7 @@ u32 omap4_cminst_clear_inst_reg_bits(u32 bits, u8 part, s16 inst, s16 idx)
- 	return omap4_cminst_rmw_inst_reg_bits(bits, 0x0, part, inst, idx);
- }
- 
--u32 omap4_cminst_read_inst_reg_bits(u8 part, u16 inst, s16 idx, u32 mask)
-+u32 omap4_cminst_read_inst_reg_bits(u8 part, u16 inst, u16 idx, u32 mask)
- {
- 	u32 v;
- 
-@@ -177,7 +177,7 @@ u32 omap4_cminst_read_inst_reg_bits(u8 part, u16 inst, s16 idx, u32 mask)
-  * @c must be the unshifted value for CLKTRCTRL - i.e., this function
-  * will handle the shift itself.
-  */
--static void _clktrctrl_write(u8 c, u8 part, s16 inst, u16 cdoffs)
-+static void _clktrctrl_write(u8 c, u8 part, u16 inst, u16 cdoffs)
- {
- 	u32 v;
- 
-@@ -196,7 +196,7 @@ static void _clktrctrl_write(u8 c, u8 part, s16 inst, u16 cdoffs)
-  * Returns true if the clockdomain referred to by (@part, @inst, @cdoffs)
-  * is in hardware-supervised idle mode, or 0 otherwise.
-  */
--bool omap4_cminst_is_clkdm_in_hwsup(u8 part, s16 inst, u16 cdoffs)
-+bool omap4_cminst_is_clkdm_in_hwsup(u8 part, u16 inst, u16 cdoffs)
- {
- 	u32 v;
- 
-@@ -216,7 +216,7 @@ bool omap4_cminst_is_clkdm_in_hwsup(u8 part, s16 inst, u16 cdoffs)
-  * Put a clockdomain referred to by (@part, @inst, @cdoffs) into
-  * hardware-supervised idle mode.  No return value.
-  */
--void omap4_cminst_clkdm_enable_hwsup(u8 part, s16 inst, u16 cdoffs)
-+void omap4_cminst_clkdm_enable_hwsup(u8 part, u16 inst, u16 cdoffs)
- {
- 	_clktrctrl_write(OMAP34XX_CLKSTCTRL_ENABLE_AUTO, part, inst, cdoffs);
- }
-@@ -231,7 +231,7 @@ void omap4_cminst_clkdm_enable_hwsup(u8 part, s16 inst, u16 cdoffs)
-  * software-supervised idle mode, i.e., controlled manually by the
-  * Linux OMAP clockdomain code.  No return value.
-  */
--void omap4_cminst_clkdm_disable_hwsup(u8 part, s16 inst, u16 cdoffs)
-+void omap4_cminst_clkdm_disable_hwsup(u8 part, u16 inst, u16 cdoffs)
- {
- 	_clktrctrl_write(OMAP34XX_CLKSTCTRL_DISABLE_AUTO, part, inst, cdoffs);
- }
-@@ -245,7 +245,7 @@ void omap4_cminst_clkdm_disable_hwsup(u8 part, s16 inst, u16 cdoffs)
-  * Take a clockdomain referred to by (@part, @inst, @cdoffs) out of idle,
-  * waking it up.  No return value.
-  */
--void omap4_cminst_clkdm_force_wakeup(u8 part, s16 inst, u16 cdoffs)
-+void omap4_cminst_clkdm_force_wakeup(u8 part, u16 inst, u16 cdoffs)
- {
- 	_clktrctrl_write(OMAP34XX_CLKSTCTRL_FORCE_WAKEUP, part, inst, cdoffs);
- }
-@@ -259,7 +259,7 @@ void omap4_cminst_clkdm_force_wakeup(u8 part, s16 inst, u16 cdoffs)
-  * Put a clockdomain referred to by (@part, @inst, @cdoffs) to idle,
-  * forcing it to sleep.  No return value.
-  */
--void omap4_cminst_clkdm_force_sleep(u8 part, s16 inst, u16 cdoffs)
-+void omap4_cminst_clkdm_force_sleep(u8 part, u16 inst, u16 cdoffs)
- {
- 	_clktrctrl_write(OMAP34XX_CLKSTCTRL_FORCE_SLEEP, part, inst, cdoffs);
- }
-@@ -280,7 +280,7 @@ void omap4_cminst_clkdm_force_sleep(u8 part, s16 inst, u16 cdoffs)
-  * sysconfig cannot be accessed and will probably lead to an "imprecise
-  * external abort"
-  */
--int omap4_cminst_wait_module_ready(u8 part, u16 inst, s16 cdoffs,
-+int omap4_cminst_wait_module_ready(u8 part, u16 inst, u16 cdoffs,
- 				   u16 clkctrl_offs)
- {
- 	int i = 0;
-@@ -306,7 +306,8 @@ int omap4_cminst_wait_module_ready(u8 part, u16 inst, s16 cdoffs,
-  * like reset assertion or parent clock de-activation must wait the
-  * module to be fully disabled.
-  */
--int omap4_cminst_wait_module_idle(u8 part, u16 inst, s16 cdoffs, u16 clkctrl_offs)
-+int omap4_cminst_wait_module_idle(u8 part, u16 inst,
-+				  u16 cdoffs, u16 clkctrl_offs)
- {
- 	int i = 0;
- 
-@@ -330,7 +331,7 @@ int omap4_cminst_wait_module_idle(u8 part, u16 inst, s16 cdoffs, u16 clkctrl_off
-  *
-  * No return value.
-  */
--void omap4_cminst_module_enable(u8 mode, u8 part, u16 inst, s16 cdoffs,
-+void omap4_cminst_module_enable(u8 mode, u8 part, u16 inst, u16 cdoffs,
- 			    u16 clkctrl_offs)
- {
- 	u32 v;
-@@ -350,7 +351,7 @@ void omap4_cminst_module_enable(u8 mode, u8 part, u16 inst, s16 cdoffs,
-  *
-  * No return value.
-  */
--void omap4_cminst_module_disable(u8 part, u16 inst, s16 cdoffs,
-+void omap4_cminst_module_disable(u8 part, u16 inst, u16 cdoffs,
- 			     u16 clkctrl_offs)
- {
- 	u32 v;
-diff --git a/arch/arm/mach-omap2/cminst44xx.h b/arch/arm/mach-omap2/cminst44xx.h
-index bd7bab8..dee2af5 100644
---- a/arch/arm/mach-omap2/cminst44xx.h
-+++ b/arch/arm/mach-omap2/cminst44xx.h
-@@ -11,31 +11,32 @@
- #ifndef __ARCH_ASM_MACH_OMAP2_CMINST44XX_H
- #define __ARCH_ASM_MACH_OMAP2_CMINST44XX_H
- 
--extern bool omap4_cminst_is_clkdm_in_hwsup(u8 part, s16 inst, u16 cdoffs);
--extern void omap4_cminst_clkdm_enable_hwsup(u8 part, s16 inst, u16 cdoffs);
--extern void omap4_cminst_clkdm_disable_hwsup(u8 part, s16 inst, u16 cdoffs);
--extern void omap4_cminst_clkdm_force_sleep(u8 part, s16 inst, u16 cdoffs);
--extern void omap4_cminst_clkdm_force_wakeup(u8 part, s16 inst, u16 cdoffs);
--extern int omap4_cminst_wait_module_ready(u8 part, u16 inst, s16 cdoffs, u16 clkctrl_offs);
--extern int omap4_cminst_wait_module_idle(u8 part, u16 inst, s16 cdoffs,
-+extern bool omap4_cminst_is_clkdm_in_hwsup(u8 part, u16 inst, u16 cdoffs);
-+extern void omap4_cminst_clkdm_enable_hwsup(u8 part, u16 inst, u16 cdoffs);
-+extern void omap4_cminst_clkdm_disable_hwsup(u8 part, u16 inst, u16 cdoffs);
-+extern void omap4_cminst_clkdm_force_sleep(u8 part, u16 inst, u16 cdoffs);
-+extern void omap4_cminst_clkdm_force_wakeup(u8 part, u16 inst, u16 cdoffs);
-+extern int omap4_cminst_wait_module_ready(u8 part, u16 inst,
-+					  u16 cdoffs, u16 clkctrl_offs);
-+extern int omap4_cminst_wait_module_idle(u8 part, u16 inst, u16 cdoffs,
- 					 u16 clkctrl_offs);
--extern void omap4_cminst_module_enable(u8 mode, u8 part, u16 inst, s16 cdoffs,
-+extern void omap4_cminst_module_enable(u8 mode, u8 part, u16 inst, u16 cdoffs,
- 				       u16 clkctrl_offs);
--extern void omap4_cminst_module_disable(u8 part, u16 inst, s16 cdoffs,
-+extern void omap4_cminst_module_disable(u8 part, u16 inst, u16 cdoffs,
- 					u16 clkctrl_offs);
  /*
-  * In an ideal world, we would not export these low-level functions,
-  * but this will probably take some time to fix properly
-  */
--extern u32 omap4_cminst_read_inst_reg(u8 part, s16 inst, u16 idx);
--extern void omap4_cminst_write_inst_reg(u32 val, u8 part, s16 inst, u16 idx);
-+extern u32 omap4_cminst_read_inst_reg(u8 part, u16 inst, u16 idx);
-+extern void omap4_cminst_write_inst_reg(u32 val, u8 part, u16 inst, u16 idx);
- extern u32 omap4_cminst_rmw_inst_reg_bits(u32 mask, u32 bits, u8 part,
- 					   s16 inst, s16 idx);
- extern u32 omap4_cminst_set_inst_reg_bits(u32 bits, u8 part, s16 inst,
- 					   s16 idx);
- extern u32 omap4_cminst_clear_inst_reg_bits(u32 bits, u8 part, s16 inst,
- 					   s16 idx);
--extern u32 omap4_cminst_read_inst_reg_bits(u8 part, u16 inst, s16 idx,
-+extern u32 omap4_cminst_read_inst_reg_bits(u8 part, u16 inst, u16 idx,
- 					   u32 mask);
+  * IP blocks
+@@ -1690,14 +1691,6 @@ static struct omap_hwmod_ocp_if am33xx_l3_main__emif = {
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
  
- extern void omap_cm_base_init(void);
+-/* mpu -> l3 main */
+-static struct omap_hwmod_ocp_if am33xx_mpu__l3_main = {
+-	.master		= &am33xx_mpu_hwmod,
+-	.slave		= &am33xx_l3_main_hwmod,
+-	.clk		= "dpll_mpu_m2_ck",
+-	.user		= OCP_USER_MPU,
+-};
+-
+ /* l3 main -> l4 hs */
+ static struct omap_hwmod_ocp_if am33xx_l3_main__l4_hs = {
+ 	.master		= &am33xx_l3_main_hwmod,
+@@ -1706,62 +1699,6 @@ static struct omap_hwmod_ocp_if am33xx_l3_main__l4_hs = {
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+-/* l3 main -> l3 s */
+-static struct omap_hwmod_ocp_if am33xx_l3_main__l3_s = {
+-	.master		= &am33xx_l3_main_hwmod,
+-	.slave		= &am33xx_l3_s_hwmod,
+-	.clk		= "l3s_gclk",
+-	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+-};
+-
+-/* l3 s -> l4 per/ls */
+-static struct omap_hwmod_ocp_if am33xx_l3_s__l4_ls = {
+-	.master		= &am33xx_l3_s_hwmod,
+-	.slave		= &am33xx_l4_ls_hwmod,
+-	.clk		= "l3s_gclk",
+-	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+-};
+-
+-/* l3 s -> l4 wkup */
+-static struct omap_hwmod_ocp_if am33xx_l3_s__l4_wkup = {
+-	.master		= &am33xx_l3_s_hwmod,
+-	.slave		= &am33xx_l4_wkup_hwmod,
+-	.clk		= "l3s_gclk",
+-	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+-};
+-
+-/* l3 main -> l3 instr */
+-static struct omap_hwmod_ocp_if am33xx_l3_main__l3_instr = {
+-	.master		= &am33xx_l3_main_hwmod,
+-	.slave		= &am33xx_l3_instr_hwmod,
+-	.clk		= "l3s_gclk",
+-	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+-};
+-
+-/* mpu -> prcm */
+-static struct omap_hwmod_ocp_if am33xx_mpu__prcm = {
+-	.master		= &am33xx_mpu_hwmod,
+-	.slave		= &am33xx_prcm_hwmod,
+-	.clk		= "dpll_mpu_m2_ck",
+-	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+-};
+-
+-/* l3 s -> l3 main*/
+-static struct omap_hwmod_ocp_if am33xx_l3_s__l3_main = {
+-	.master		= &am33xx_l3_s_hwmod,
+-	.slave		= &am33xx_l3_main_hwmod,
+-	.clk		= "l3s_gclk",
+-	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+-};
+-
+-/* pru-icss -> l3 main */
+-static struct omap_hwmod_ocp_if am33xx_pruss__l3_main = {
+-	.master		= &am33xx_pruss_hwmod,
+-	.slave		= &am33xx_l3_main_hwmod,
+-	.clk		= "l3_gclk",
+-	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+-};
+-
+ /* wkup m3 -> l4 wkup */
+ static struct omap_hwmod_ocp_if am33xx_wkup_m3__l4_wkup = {
+ 	.master		= &am33xx_wkup_m3_hwmod,
+@@ -1770,14 +1707,6 @@ static struct omap_hwmod_ocp_if am33xx_wkup_m3__l4_wkup = {
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+-/* gfx -> l3 main */
+-static struct omap_hwmod_ocp_if am33xx_gfx__l3_main = {
+-	.master		= &am33xx_gfx_hwmod,
+-	.slave		= &am33xx_l3_main_hwmod,
+-	.clk		= "dpll_core_m4_ck",
+-	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+-};
+-
+ /* l4 wkup -> wkup m3 */
+ static struct omap_hwmod_ocp_if am33xx_l4_wkup__wkup_m3 = {
+ 	.master		= &am33xx_l4_wkup_hwmod,
+@@ -1794,14 +1723,6 @@ static struct omap_hwmod_ocp_if am33xx_l4_hs__pruss = {
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+-/* l3 main -> gfx */
+-static struct omap_hwmod_ocp_if am33xx_l3_main__gfx = {
+-	.master		= &am33xx_l3_main_hwmod,
+-	.slave		= &am33xx_gfx_hwmod,
+-	.clk		= "dpll_core_m4_ck",
+-	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+-};
+-
+ /* l3_main -> debugss */
+ static struct omap_hwmod_addr_space am33xx_debugss_addrs[] = {
+ 	{
+@@ -1844,54 +1765,6 @@ static struct omap_hwmod_ocp_if am33xx_l4_wkup__control = {
+ 	.user		= OCP_USER_MPU,
+ };
+ 
+-/* l4 wkup -> rtc */
+-static struct omap_hwmod_ocp_if am33xx_l4_wkup__rtc = {
+-	.master		= &am33xx_l4_wkup_hwmod,
+-	.slave		= &am33xx_rtc_hwmod,
+-	.clk		= "clkdiv32k_ick",
+-	.user		= OCP_USER_MPU,
+-};
+-
+-/* l4 per/ls -> DCAN0 */
+-static struct omap_hwmod_ocp_if am33xx_l4_per__dcan0 = {
+-	.master		= &am33xx_l4_ls_hwmod,
+-	.slave		= &am33xx_dcan0_hwmod,
+-	.clk		= "l4ls_gclk",
+-	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+-};
+-
+-/* l4 per/ls -> DCAN1 */
+-static struct omap_hwmod_ocp_if am33xx_l4_per__dcan1 = {
+-	.master		= &am33xx_l4_ls_hwmod,
+-	.slave		= &am33xx_dcan1_hwmod,
+-	.clk		= "l4ls_gclk",
+-	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+-};
+-
+-/* l4 per/ls -> GPIO2 */
+-static struct omap_hwmod_ocp_if am33xx_l4_per__gpio1 = {
+-	.master		= &am33xx_l4_ls_hwmod,
+-	.slave		= &am33xx_gpio1_hwmod,
+-	.clk		= "l4ls_gclk",
+-	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+-};
+-
+-/* l4 per/ls -> gpio3 */
+-static struct omap_hwmod_ocp_if am33xx_l4_per__gpio2 = {
+-	.master		= &am33xx_l4_ls_hwmod,
+-	.slave		= &am33xx_gpio2_hwmod,
+-	.clk		= "l4ls_gclk",
+-	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+-};
+-
+-/* l4 per/ls -> gpio4 */
+-static struct omap_hwmod_ocp_if am33xx_l4_per__gpio3 = {
+-	.master		= &am33xx_l4_ls_hwmod,
+-	.slave		= &am33xx_gpio3_hwmod,
+-	.clk		= "l4ls_gclk",
+-	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+-};
+-
+ /* L4 WKUP -> I2C1 */
+ static struct omap_hwmod_ocp_if am33xx_l4_wkup__i2c1 = {
+ 	.master		= &am33xx_l4_wkup_hwmod,
+@@ -1933,177 +1806,6 @@ static struct omap_hwmod_ocp_if am33xx_l4_hs__cpgmac0 = {
+ 	.user		= OCP_USER_MPU,
+ };
+ 
+-static struct omap_hwmod_ocp_if am33xx_cpgmac0__mdio = {
+-	.master		= &am33xx_cpgmac0_hwmod,
+-	.slave		= &am33xx_mdio_hwmod,
+-	.user		= OCP_USER_MPU,
+-};
+-
+-static struct omap_hwmod_addr_space am33xx_elm_addr_space[] = {
+-	{
+-		.pa_start	= 0x48080000,
+-		.pa_end		= 0x48080000 + SZ_8K - 1,
+-		.flags		= ADDR_TYPE_RT
+-	},
+-	{ }
+-};
+-
+-static struct omap_hwmod_ocp_if am33xx_l4_ls__elm = {
+-	.master		= &am33xx_l4_ls_hwmod,
+-	.slave		= &am33xx_elm_hwmod,
+-	.clk		= "l4ls_gclk",
+-	.addr		= am33xx_elm_addr_space,
+-	.user		= OCP_USER_MPU,
+-};
+-
+-static struct omap_hwmod_addr_space am33xx_epwmss0_addr_space[] = {
+-	{
+-		.pa_start	= 0x48300000,
+-		.pa_end		= 0x48300000 + SZ_16 - 1,
+-		.flags		= ADDR_TYPE_RT
+-	},
+-	{ }
+-};
+-
+-static struct omap_hwmod_ocp_if am33xx_l4_ls__epwmss0 = {
+-	.master		= &am33xx_l4_ls_hwmod,
+-	.slave		= &am33xx_epwmss0_hwmod,
+-	.clk		= "l4ls_gclk",
+-	.addr		= am33xx_epwmss0_addr_space,
+-	.user		= OCP_USER_MPU,
+-};
+-
+-static struct omap_hwmod_ocp_if am33xx_epwmss0__ecap0 = {
+-	.master		= &am33xx_epwmss0_hwmod,
+-	.slave		= &am33xx_ecap0_hwmod,
+-	.clk		= "l4ls_gclk",
+-	.user		= OCP_USER_MPU,
+-};
+-
+-static struct omap_hwmod_ocp_if am33xx_epwmss0__eqep0 = {
+-	.master		= &am33xx_epwmss0_hwmod,
+-	.slave		= &am33xx_eqep0_hwmod,
+-	.clk		= "l4ls_gclk",
+-	.user		= OCP_USER_MPU,
+-};
+-
+-static struct omap_hwmod_ocp_if am33xx_epwmss0__ehrpwm0 = {
+-	.master		= &am33xx_epwmss0_hwmod,
+-	.slave		= &am33xx_ehrpwm0_hwmod,
+-	.clk		= "l4ls_gclk",
+-	.user		= OCP_USER_MPU,
+-};
+-
+-
+-static struct omap_hwmod_addr_space am33xx_epwmss1_addr_space[] = {
+-	{
+-		.pa_start	= 0x48302000,
+-		.pa_end		= 0x48302000 + SZ_16 - 1,
+-		.flags		= ADDR_TYPE_RT
+-	},
+-	{ }
+-};
+-
+-static struct omap_hwmod_ocp_if am33xx_l4_ls__epwmss1 = {
+-	.master		= &am33xx_l4_ls_hwmod,
+-	.slave		= &am33xx_epwmss1_hwmod,
+-	.clk		= "l4ls_gclk",
+-	.addr		= am33xx_epwmss1_addr_space,
+-	.user		= OCP_USER_MPU,
+-};
+-
+-static struct omap_hwmod_ocp_if am33xx_epwmss1__ecap1 = {
+-	.master		= &am33xx_epwmss1_hwmod,
+-	.slave		= &am33xx_ecap1_hwmod,
+-	.clk		= "l4ls_gclk",
+-	.user		= OCP_USER_MPU,
+-};
+-
+-static struct omap_hwmod_ocp_if am33xx_epwmss1__eqep1 = {
+-	.master		= &am33xx_epwmss1_hwmod,
+-	.slave		= &am33xx_eqep1_hwmod,
+-	.clk		= "l4ls_gclk",
+-	.user		= OCP_USER_MPU,
+-};
+-
+-static struct omap_hwmod_ocp_if am33xx_epwmss1__ehrpwm1 = {
+-	.master		= &am33xx_epwmss1_hwmod,
+-	.slave		= &am33xx_ehrpwm1_hwmod,
+-	.clk		= "l4ls_gclk",
+-	.user		= OCP_USER_MPU,
+-};
+-
+-static struct omap_hwmod_addr_space am33xx_epwmss2_addr_space[] = {
+-	{
+-		.pa_start	= 0x48304000,
+-		.pa_end		= 0x48304000 + SZ_16 - 1,
+-		.flags		= ADDR_TYPE_RT
+-	},
+-	{ }
+-};
+-
+-static struct omap_hwmod_ocp_if am33xx_l4_ls__epwmss2 = {
+-	.master		= &am33xx_l4_ls_hwmod,
+-	.slave		= &am33xx_epwmss2_hwmod,
+-	.clk		= "l4ls_gclk",
+-	.addr		= am33xx_epwmss2_addr_space,
+-	.user		= OCP_USER_MPU,
+-};
+-
+-static struct omap_hwmod_ocp_if am33xx_epwmss2__ecap2 = {
+-	.master		= &am33xx_epwmss2_hwmod,
+-	.slave		= &am33xx_ecap2_hwmod,
+-	.clk		= "l4ls_gclk",
+-	.user		= OCP_USER_MPU,
+-};
+-
+-static struct omap_hwmod_ocp_if am33xx_epwmss2__eqep2 = {
+-	.master		= &am33xx_epwmss2_hwmod,
+-	.slave		= &am33xx_eqep2_hwmod,
+-	.clk		= "l4ls_gclk",
+-	.user		= OCP_USER_MPU,
+-};
+-
+-static struct omap_hwmod_ocp_if am33xx_epwmss2__ehrpwm2 = {
+-	.master		= &am33xx_epwmss2_hwmod,
+-	.slave		= &am33xx_ehrpwm2_hwmod,
+-	.clk		= "l4ls_gclk",
+-	.user		= OCP_USER_MPU,
+-};
+-
+-/* l3s cfg -> gpmc */
+-static struct omap_hwmod_addr_space am33xx_gpmc_addr_space[] = {
+-	{
+-		.pa_start	= 0x50000000,
+-		.pa_end		= 0x50000000 + SZ_8K - 1,
+-		.flags		= ADDR_TYPE_RT,
+-	},
+-	{ }
+-};
+-
+-static struct omap_hwmod_ocp_if am33xx_l3_s__gpmc = {
+-	.master		= &am33xx_l3_s_hwmod,
+-	.slave		= &am33xx_gpmc_hwmod,
+-	.clk		= "l3s_gclk",
+-	.addr		= am33xx_gpmc_addr_space,
+-	.user		= OCP_USER_MPU,
+-};
+-
+-/* i2c2 */
+-static struct omap_hwmod_ocp_if am33xx_l4_per__i2c2 = {
+-	.master		= &am33xx_l4_ls_hwmod,
+-	.slave		= &am33xx_i2c2_hwmod,
+-	.clk		= "l4ls_gclk",
+-	.user		= OCP_USER_MPU,
+-};
+-
+-static struct omap_hwmod_ocp_if am33xx_l4_per__i2c3 = {
+-	.master		= &am33xx_l4_ls_hwmod,
+-	.slave		= &am33xx_i2c3_hwmod,
+-	.clk		= "l4ls_gclk",
+-	.user		= OCP_USER_MPU,
+-};
+-
+ static struct omap_hwmod_addr_space am33xx_lcdc_addr_space[] = {
+ 	{
+ 		.pa_start	= 0x4830E000,
+@@ -2121,138 +1823,6 @@ static struct omap_hwmod_ocp_if am33xx_l3_main__lcdc = {
+ 	.user		= OCP_USER_MPU,
+ };
+ 
+-static struct omap_hwmod_addr_space am33xx_mailbox_addrs[] = {
+-	{
+-		.pa_start	= 0x480C8000,
+-		.pa_end		= 0x480C8000 + (SZ_4K - 1),
+-		.flags		= ADDR_TYPE_RT
+-	},
+-	{ }
+-};
+-
+-/* l4 ls -> mailbox */
+-static struct omap_hwmod_ocp_if am33xx_l4_per__mailbox = {
+-	.master		= &am33xx_l4_ls_hwmod,
+-	.slave		= &am33xx_mailbox_hwmod,
+-	.clk		= "l4ls_gclk",
+-	.addr		= am33xx_mailbox_addrs,
+-	.user		= OCP_USER_MPU,
+-};
+-
+-/* l4 ls -> spinlock */
+-static struct omap_hwmod_ocp_if am33xx_l4_ls__spinlock = {
+-	.master		= &am33xx_l4_ls_hwmod,
+-	.slave		= &am33xx_spinlock_hwmod,
+-	.clk		= "l4ls_gclk",
+-	.user		= OCP_USER_MPU,
+-};
+-
+-/* l4 ls -> mcasp0 */
+-static struct omap_hwmod_addr_space am33xx_mcasp0_addr_space[] = {
+-	{
+-		.pa_start	= 0x48038000,
+-		.pa_end		= 0x48038000 + SZ_8K - 1,
+-		.flags		= ADDR_TYPE_RT
+-	},
+-	{ }
+-};
+-
+-static struct omap_hwmod_ocp_if am33xx_l4_ls__mcasp0 = {
+-	.master		= &am33xx_l4_ls_hwmod,
+-	.slave		= &am33xx_mcasp0_hwmod,
+-	.clk		= "l4ls_gclk",
+-	.addr		= am33xx_mcasp0_addr_space,
+-	.user		= OCP_USER_MPU,
+-};
+-
+-/* l4 ls -> mcasp1 */
+-static struct omap_hwmod_addr_space am33xx_mcasp1_addr_space[] = {
+-	{
+-		.pa_start	= 0x4803C000,
+-		.pa_end		= 0x4803C000 + SZ_8K - 1,
+-		.flags		= ADDR_TYPE_RT
+-	},
+-	{ }
+-};
+-
+-static struct omap_hwmod_ocp_if am33xx_l4_ls__mcasp1 = {
+-	.master		= &am33xx_l4_ls_hwmod,
+-	.slave		= &am33xx_mcasp1_hwmod,
+-	.clk		= "l4ls_gclk",
+-	.addr		= am33xx_mcasp1_addr_space,
+-	.user		= OCP_USER_MPU,
+-};
+-
+-/* l4 ls -> mmc0 */
+-static struct omap_hwmod_addr_space am33xx_mmc0_addr_space[] = {
+-	{
+-		.pa_start	= 0x48060100,
+-		.pa_end		= 0x48060100 + SZ_4K - 1,
+-		.flags		= ADDR_TYPE_RT,
+-	},
+-	{ }
+-};
+-
+-static struct omap_hwmod_ocp_if am33xx_l4_ls__mmc0 = {
+-	.master		= &am33xx_l4_ls_hwmod,
+-	.slave		= &am33xx_mmc0_hwmod,
+-	.clk		= "l4ls_gclk",
+-	.addr		= am33xx_mmc0_addr_space,
+-	.user		= OCP_USER_MPU,
+-};
+-
+-/* l4 ls -> mmc1 */
+-static struct omap_hwmod_addr_space am33xx_mmc1_addr_space[] = {
+-	{
+-		.pa_start	= 0x481d8100,
+-		.pa_end		= 0x481d8100 + SZ_4K - 1,
+-		.flags		= ADDR_TYPE_RT,
+-	},
+-	{ }
+-};
+-
+-static struct omap_hwmod_ocp_if am33xx_l4_ls__mmc1 = {
+-	.master		= &am33xx_l4_ls_hwmod,
+-	.slave		= &am33xx_mmc1_hwmod,
+-	.clk		= "l4ls_gclk",
+-	.addr		= am33xx_mmc1_addr_space,
+-	.user		= OCP_USER_MPU,
+-};
+-
+-/* l3 s -> mmc2 */
+-static struct omap_hwmod_addr_space am33xx_mmc2_addr_space[] = {
+-	{
+-		.pa_start	= 0x47810100,
+-		.pa_end		= 0x47810100 + SZ_64K - 1,
+-		.flags		= ADDR_TYPE_RT,
+-	},
+-	{ }
+-};
+-
+-static struct omap_hwmod_ocp_if am33xx_l3_s__mmc2 = {
+-	.master		= &am33xx_l3_s_hwmod,
+-	.slave		= &am33xx_mmc2_hwmod,
+-	.clk		= "l3s_gclk",
+-	.addr		= am33xx_mmc2_addr_space,
+-	.user		= OCP_USER_MPU,
+-};
+-
+-/* l4 ls -> mcspi0 */
+-static struct omap_hwmod_ocp_if am33xx_l4_ls__mcspi0 = {
+-	.master		= &am33xx_l4_ls_hwmod,
+-	.slave		= &am33xx_spi0_hwmod,
+-	.clk		= "l4ls_gclk",
+-	.user		= OCP_USER_MPU,
+-};
+-
+-/* l4 ls -> mcspi1 */
+-static struct omap_hwmod_ocp_if am33xx_l4_ls__mcspi1 = {
+-	.master		= &am33xx_l4_ls_hwmod,
+-	.slave		= &am33xx_spi1_hwmod,
+-	.clk		= "l4ls_gclk",
+-	.user		= OCP_USER_MPU,
+-};
+-
+ /* l4 wkup -> timer1 */
+ static struct omap_hwmod_ocp_if am33xx_l4_wkup__timer1 = {
+ 	.master		= &am33xx_l4_wkup_hwmod,
+@@ -2261,116 +1831,6 @@ static struct omap_hwmod_ocp_if am33xx_l4_wkup__timer1 = {
+ 	.user		= OCP_USER_MPU,
+ };
+ 
+-/* l4 per -> timer2 */
+-static struct omap_hwmod_ocp_if am33xx_l4_ls__timer2 = {
+-	.master		= &am33xx_l4_ls_hwmod,
+-	.slave		= &am33xx_timer2_hwmod,
+-	.clk		= "l4ls_gclk",
+-	.user		= OCP_USER_MPU,
+-};
+-
+-/* l4 per -> timer3 */
+-static struct omap_hwmod_ocp_if am33xx_l4_ls__timer3 = {
+-	.master		= &am33xx_l4_ls_hwmod,
+-	.slave		= &am33xx_timer3_hwmod,
+-	.clk		= "l4ls_gclk",
+-	.user		= OCP_USER_MPU,
+-};
+-
+-/* l4 per -> timer4 */
+-static struct omap_hwmod_ocp_if am33xx_l4_ls__timer4 = {
+-	.master		= &am33xx_l4_ls_hwmod,
+-	.slave		= &am33xx_timer4_hwmod,
+-	.clk		= "l4ls_gclk",
+-	.user		= OCP_USER_MPU,
+-};
+-
+-/* l4 per -> timer5 */
+-static struct omap_hwmod_ocp_if am33xx_l4_ls__timer5 = {
+-	.master		= &am33xx_l4_ls_hwmod,
+-	.slave		= &am33xx_timer5_hwmod,
+-	.clk		= "l4ls_gclk",
+-	.user		= OCP_USER_MPU,
+-};
+-
+-/* l4 per -> timer6 */
+-static struct omap_hwmod_ocp_if am33xx_l4_ls__timer6 = {
+-	.master		= &am33xx_l4_ls_hwmod,
+-	.slave		= &am33xx_timer6_hwmod,
+-	.clk		= "l4ls_gclk",
+-	.user		= OCP_USER_MPU,
+-};
+-
+-/* l4 per -> timer7 */
+-static struct omap_hwmod_ocp_if am33xx_l4_ls__timer7 = {
+-	.master		= &am33xx_l4_ls_hwmod,
+-	.slave		= &am33xx_timer7_hwmod,
+-	.clk		= "l4ls_gclk",
+-	.user		= OCP_USER_MPU,
+-};
+-
+-/* l3 main -> tpcc */
+-static struct omap_hwmod_ocp_if am33xx_l3_main__tpcc = {
+-	.master		= &am33xx_l3_main_hwmod,
+-	.slave		= &am33xx_tpcc_hwmod,
+-	.clk		= "l3_gclk",
+-	.user		= OCP_USER_MPU,
+-};
+-
+-/* l3 main -> tpcc0 */
+-static struct omap_hwmod_addr_space am33xx_tptc0_addr_space[] = {
+-	{
+-		.pa_start	= 0x49800000,
+-		.pa_end		= 0x49800000 + SZ_8K - 1,
+-		.flags		= ADDR_TYPE_RT,
+-	},
+-	{ }
+-};
+-
+-static struct omap_hwmod_ocp_if am33xx_l3_main__tptc0 = {
+-	.master		= &am33xx_l3_main_hwmod,
+-	.slave		= &am33xx_tptc0_hwmod,
+-	.clk		= "l3_gclk",
+-	.addr		= am33xx_tptc0_addr_space,
+-	.user		= OCP_USER_MPU,
+-};
+-
+-/* l3 main -> tpcc1 */
+-static struct omap_hwmod_addr_space am33xx_tptc1_addr_space[] = {
+-	{
+-		.pa_start	= 0x49900000,
+-		.pa_end		= 0x49900000 + SZ_8K - 1,
+-		.flags		= ADDR_TYPE_RT,
+-	},
+-	{ }
+-};
+-
+-static struct omap_hwmod_ocp_if am33xx_l3_main__tptc1 = {
+-	.master		= &am33xx_l3_main_hwmod,
+-	.slave		= &am33xx_tptc1_hwmod,
+-	.clk		= "l3_gclk",
+-	.addr		= am33xx_tptc1_addr_space,
+-	.user		= OCP_USER_MPU,
+-};
+-
+-/* l3 main -> tpcc2 */
+-static struct omap_hwmod_addr_space am33xx_tptc2_addr_space[] = {
+-	{
+-		.pa_start	= 0x49a00000,
+-		.pa_end		= 0x49a00000 + SZ_8K - 1,
+-		.flags		= ADDR_TYPE_RT,
+-	},
+-	{ }
+-};
+-
+-static struct omap_hwmod_ocp_if am33xx_l3_main__tptc2 = {
+-	.master		= &am33xx_l3_main_hwmod,
+-	.slave		= &am33xx_tptc2_hwmod,
+-	.clk		= "l3_gclk",
+-	.addr		= am33xx_tptc2_addr_space,
+-	.user		= OCP_USER_MPU,
+-};
+-
+ /* l4 wkup -> uart1 */
+ static struct omap_hwmod_ocp_if am33xx_l4_wkup__uart1 = {
+ 	.master		= &am33xx_l4_wkup_hwmod,
+@@ -2379,46 +1839,6 @@ static struct omap_hwmod_ocp_if am33xx_l4_wkup__uart1 = {
+ 	.user		= OCP_USER_MPU,
+ };
+ 
+-/* l4 ls -> uart2 */
+-static struct omap_hwmod_ocp_if am33xx_l4_ls__uart2 = {
+-	.master		= &am33xx_l4_ls_hwmod,
+-	.slave		= &am33xx_uart2_hwmod,
+-	.clk		= "l4ls_gclk",
+-	.user		= OCP_USER_MPU,
+-};
+-
+-/* l4 ls -> uart3 */
+-static struct omap_hwmod_ocp_if am33xx_l4_ls__uart3 = {
+-	.master		= &am33xx_l4_ls_hwmod,
+-	.slave		= &am33xx_uart3_hwmod,
+-	.clk		= "l4ls_gclk",
+-	.user		= OCP_USER_MPU,
+-};
+-
+-/* l4 ls -> uart4 */
+-static struct omap_hwmod_ocp_if am33xx_l4_ls__uart4 = {
+-	.master		= &am33xx_l4_ls_hwmod,
+-	.slave		= &am33xx_uart4_hwmod,
+-	.clk		= "l4ls_gclk",
+-	.user		= OCP_USER_MPU,
+-};
+-
+-/* l4 ls -> uart5 */
+-static struct omap_hwmod_ocp_if am33xx_l4_ls__uart5 = {
+-	.master		= &am33xx_l4_ls_hwmod,
+-	.slave		= &am33xx_uart5_hwmod,
+-	.clk		= "l4ls_gclk",
+-	.user		= OCP_USER_MPU,
+-};
+-
+-/* l4 ls -> uart6 */
+-static struct omap_hwmod_ocp_if am33xx_l4_ls__uart6 = {
+-	.master		= &am33xx_l4_ls_hwmod,
+-	.slave		= &am33xx_uart6_hwmod,
+-	.clk		= "l4ls_gclk",
+-	.user		= OCP_USER_MPU,
+-};
+-
+ /* l4 wkup -> wd_timer1 */
+ static struct omap_hwmod_ocp_if am33xx_l4_wkup__wd_timer1 = {
+ 	.master		= &am33xx_l4_wkup_hwmod,
+@@ -2437,49 +1857,6 @@ static struct omap_hwmod_ocp_if am33xx_l3_s__usbss = {
+ 	.flags		= OCPIF_SWSUP_IDLE,
+ };
+ 
+-/* l3 main -> ocmc */
+-static struct omap_hwmod_ocp_if am33xx_l3_main__ocmc = {
+-	.master		= &am33xx_l3_main_hwmod,
+-	.slave		= &am33xx_ocmcram_hwmod,
+-	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+-};
+-
+-/* l3 main -> sha0 HIB2 */
+-static struct omap_hwmod_addr_space am33xx_sha0_addrs[] = {
+-	{
+-		.pa_start	= 0x53100000,
+-		.pa_end		= 0x53100000 + SZ_512 - 1,
+-		.flags		= ADDR_TYPE_RT
+-	},
+-	{ }
+-};
+-
+-static struct omap_hwmod_ocp_if am33xx_l3_main__sha0 = {
+-	.master		= &am33xx_l3_main_hwmod,
+-	.slave		= &am33xx_sha0_hwmod,
+-	.clk		= "sha0_fck",
+-	.addr		= am33xx_sha0_addrs,
+-	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+-};
+-
+-/* l3 main -> AES0 HIB2 */
+-static struct omap_hwmod_addr_space am33xx_aes0_addrs[] = {
+-	{
+-		.pa_start	= 0x53500000,
+-		.pa_end		= 0x53500000 + SZ_1M - 1,
+-		.flags		= ADDR_TYPE_RT
+-	},
+-	{ }
+-};
+-
+-static struct omap_hwmod_ocp_if am33xx_l3_main__aes0 = {
+-	.master		= &am33xx_l3_main_hwmod,
+-	.slave		= &am33xx_aes0_hwmod,
+-	.clk		= "aes0_fck",
+-	.addr		= am33xx_aes0_addrs,
+-	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+-};
+-
+ static struct omap_hwmod_ocp_if *am33xx_hwmod_ocp_ifs[] __initdata = {
+ 	&am33xx_l3_main__emif,
+ 	&am33xx_mpu__l3_main,
 -- 
 1.8.3.4
 
