@@ -1,121 +1,73 @@
-From: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v3] ARM: EDMA: Fix clearing of unused list for DT DMA
-	resources
-Date: Mon, 16 Sep 2013 17:18:27 +0530
-Message-ID: <5236F00B.5040605@ti.com>
-References: <1378839171-14455-1-git-send-email-joelf@ti.com>
-	<5231903F.7080301@ti.com> <5233B471.40603@ti.com>
+From: Rob Clark <robdclark-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 3/4] drm: omap: Enable DT support for DMM
+Date: Mon, 16 Sep 2013 07:56:49 -0400
+Message-ID: <CAF6AEGsfeoQ2r1Km_ZeSrwHgBL7UzrhCY0TFzu9VeiWM3WxB0Q@mail.gmail.com>
+References: <1379063679-4869-1-git-send-email-archit@ti.com>
+	<1379063679-4869-4-git-send-email-archit@ti.com>
+	<CAF6AEGu7eRFhrQZUD-43AOHNQtRWeyxYga1dnir=qUo1mQ9ebA@mail.gmail.com>
+	<5236A503.90507@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <davinci-linux-open-source-bounces+gld-davinci-linux-open-source=gmane.org-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-In-Reply-To: <5233B471.40603-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
-List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
-List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
-Sender: <davinci-linux-open-source-bounces+gld-davinci-linux-open-source=gmane.org-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-Errors-To: davinci-linux-open-source-bounces+gld-davinci-linux-open-source=gmane.org-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
-To: joelf-l0cyMroinI0@public.gmane.org
-Cc: Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Koen Kooi <koen-hcmAuCOw+vXj4SYmN/TMmA@public.gmane.org>, Jyri Sarah <jsarha-l0cyMroinI0@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Dan Williams <djbw-b10kYP2dOMg@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <5236A503.90507-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Archit Taneja <archit-l0cyMroinI0@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Valkeinen, Tomi" <tomi.valkeinen-l0cyMroinI0@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andy Gross <andygro-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, DRI Development <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Joel,
+On Mon, Sep 16, 2013 at 2:28 AM, Archit Taneja <archit-l0cyMroinI0@public.gmane.org> wrote:
+> On Friday 13 September 2013 07:44 PM, Rob Clark wrote:
+>>
+>> On Fri, Sep 13, 2013 at 5:14 AM, Archit Taneja <archit-l0cyMroinI0@public.gmane.org> wrote:
+>>>
+>>> Enable use of DT for DMM/Tiler.
+>>>
+>>> Originally worked on by Andy Gross.
+>>
+>>
+>> looks good.. but do we want to get information about # of LUT's, etc,
+>> from DT?  Or did we decide that we can reliably get this from the hw?
+>> I lost track of that discussion (I guess Andy would remember)..
+>
+>
+> I am not aware of the discussion either. But looks like we get the LUT info
+> from the HW registers in omap_dmm_probe:
 
-On Saturday 14 September 2013 06:27 AM, Joel Fernandes wrote:
-> From: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>
-> Subject: [PATCH v4] ARM: EDMA: Fix clearing of unused list for DT DMA resources
-> 
-> HWMOD removal for MMC is breaking edma_start as the events are being manually
-> triggered due to unused channel list not being clear.
-> 
-> This patch fixes the issue, by reading the "dmas" property from the DT node if
-> it exists and clearing the bits in the unused channel list. For this purpose
-> we use the of_* helpers to parse the arguments in the dmas phandle list.
-> 
-> Reviewed-by: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
-> Reported-by: Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>
-> Cc: Pantel Antoniou <panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>
-> Signed-off-by: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>
-> ---
-> Changes since v1, in v2 and v3:
-> - Reduced indentation of non-of case by returning from of-case
-> - Using of_* helpers for parsing
-> 
-> Note:
-> This patch should go into the merge window as it is a critical bug fix.
+right.. I'm possibly mis-remembering, but I thought I remember Andy
+worried that this was not reliable for some reason or another, but I
+can't really remember the details.  The issue may have only been
+related to a pre-Si simulation environment, so it could be nothing.
 
-I still cannot find any users of edma in the device tree sources either
-in linux-next or linus/master. Why cannot this wait until v3.13?
+I suppose if it becomes an issue in the future we could always add DT
+bindings to override what we would read from the hw, so I guess if
+this works on all the current devices, maybe it isn't worth worrying
+about right now.
 
-> 
->  arch/arm/common/edma.c | 23 +++++++++++++++++++++--
->  1 file changed, 21 insertions(+), 2 deletions(-)
-> 
-> diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
-> index 39ad030..43c7b22 100644
-> --- a/arch/arm/common/edma.c
-> +++ b/arch/arm/common/edma.c
-> @@ -560,14 +560,33 @@ static int reserve_contiguous_slots(int ctlr, unsigned int
-> id,
->  static int prepare_unused_channel_list(struct device *dev, void *data)
->  {
->  	struct platform_device *pdev = to_platform_device(dev);
-> -	int i, ctlr;
-> +	int i, count, ctlr;
-> +	struct of_phandle_args  dma_spec;
-> 
-> +	if (dev->of_node) {
-> +		count = of_property_count_strings(dev->of_node, "dma-names");
-> +		if (count < 0)
-> +			return 0;
-> +		for (i = 0; i < count; i++) {
-> +			if (of_parse_phandle_with_args(dev->of_node, "dmas",
-> +						       "#dma-cells", i,
-> +						       &dma_spec))
-> +				continue;
+BR,
+-R
 
-This will break for the case where devices on platform bus use non-EDMA
-dma controllers like SDMA or CPPI (DRA7x has both EDMA and SDMA on the
-same chip). You need to do an additional check to make sure the dma
-controller is indeed EDMA. Something like.
-
-	if(!of_device_is_compatible(dma_spec.np, "ti,edma3"))
-		continue;
-
-Don forget to call of_node_put() on dma_spec.np (something that needs to
-be done even with your current code).
-
-> +
-> +			ctlr = EDMA_CTLR(dma_spec.args[0]);
-> +			clear_bit(EDMA_CHAN_SLOT(dma_spec.args[0]),
-> +				  edma_cc[ctlr]->edma_unused);
-
-We don't support the second controller when using DT and the controller
-number is not really encoded in the argument to edma phandle. So just
-simplify this to:
-
-	clear_bit(EDMA_CHAN_SLOT(dma_spec.args[0]), 	
-		  edma_cc[0]->edma_unused);
-
-> +		}
-> +		return 0;
-> +	}
-> +
-> +	/* For non-OF case */
->  	for (i = 0; i < pdev->num_resources; i++) {
->  		if ((pdev->resource[i].flags & IORESOURCE_DMA) &&
->  				(int)pdev->resource[i].start >= 0) {
->  			ctlr = EDMA_CTLR(pdev->resource[i].start);
->  			clear_bit(EDMA_CHAN_SLOT(pdev->resource[i].start),
-> -					edma_cc[ctlr]->edma_unused);
-> +				  edma_cc[ctlr]->edma_unused);
-
-This is a useful change and I am okay with it happening in this
-otherwise unrelated patch, but please mention this in changelog.
-
-Thanks,
-Sekhar
+>         hwinfo = readl(omap_dmm->base + DMM_PAT_HWINFO);
+>         omap_dmm->num_engines = (hwinfo >> 24) & 0x1F;
+>         omap_dmm->num_lut = (hwinfo >> 16) & 0x1F;
+>         omap_dmm->container_width = 256;
+>         omap_dmm->container_height = 128;
+>
+>         atomic_set(&omap_dmm->engine_counter, omap_dmm->num_engines);
+>
+>         /* read out actual LUT width and height */
+>         pat_geom = readl(omap_dmm->base + DMM_PAT_GEOMETRY);
+>         omap_dmm->lut_width = ((pat_geom >> 16) & 0xF) << 5;
+>         omap_dmm->lut_height = ((pat_geom >> 24) & 0xF) << 5;
+>
+>         /* increment LUT by one if on OMAP5 */
+>         /* LUT has twice the height, and is split into a separate container
+> */
+>         if (omap_dmm->lut_height != omap_dmm->container_height)
+>                 omap_dmm->num_lut++;
+>
+>
+> Archit
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
