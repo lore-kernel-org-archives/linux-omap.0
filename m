@@ -1,145 +1,112 @@
-From: Vivek Gautam <gautamvivek1987-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 1/7] usb: dwc3: get "usb_phy" only if the platform
- indicates the presence of PHY
-Date: Mon, 16 Sep 2013 14:10:25 +0530
-Message-ID: <CAFp+6iG=A5C3VY4sOT0qY10CSzdb2yCv1JVPW00K+MFHjcSqhA@mail.gmail.com>
-References: <1378136591-7463-1-git-send-email-kishon@ti.com>
-	<1378136591-7463-2-git-send-email-kishon@ti.com>
-	<52319912.8030203@ti.com>
-	<CAFp+6iE+xbSWWp2bNc5MRSUrA4Fi6qVU4vhR4+mtZHZGidkMGg@mail.gmail.com>
-	<52319FC4.8040703@ti.com>
-	<CAFp+6iGzV4auP0AeySen2Qk6wEJM-xsTnQmfwMQDtp2tg1FMkQ@mail.gmail.com>
-	<5231BD9F.4020105@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH v2 0/4] arm: omap: display: Ensure DRM/FB/V4L devices
+ are created if DSS is available
+Date: Mon, 16 Sep 2013 11:50:02 +0300
+Message-ID: <5236C63A.9000709@ti.com>
+References: <1379315911-24634-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5231BD9F.4020105-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, Sylwester Nawrocki <s.nawrocki-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
-Cc: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Ian Campbell <ian.campbell-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org>, Rob Landley <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>, george.cherian-l0cyMroinI0@public.gmane.org, Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="T1Q8qTHlWo5K6GHSfQOqciPLThCFhdsRH"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:37221 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752590Ab3IPIuJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Sep 2013 04:50:09 -0400
+In-Reply-To: <1379315911-24634-1-git-send-email-archit@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Archit Taneja <archit@ti.com>, tony@atomide.com
+Cc: linux-omap@vger.kernel.org
 
-Hi,
+--T1Q8qTHlWo5K6GHSfQOqciPLThCFhdsRH
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
+On 16/09/13 10:18, Archit Taneja wrote:
+> Currently, omapdrm, omapfb and omap_vout platform devices are created a=
+nd
+> registered through omap_arch_initcalls. In a multiplatform config. It's=
 
-On Thu, Sep 12, 2013 at 6:41 PM, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> wrote:
-> On 09/12/2013 02:26 PM, Vivek Gautam wrote:
->> Hi,
->>
->>
->> On Thu, Sep 12, 2013 at 4:34 PM, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> wrote:
->>> Hi,
->>>
->>> On 09/12/2013 01:47 PM, Vivek Gautam wrote:
->>>> On Thu, Sep 12, 2013 at 4:06 PM, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> wrote:
->>>>> Hi Kishon,
->>>>>
->>>>> On 09/02/2013 06:43 PM, Kishon Vijay Abraham I wrote:
->>>>>> There can be systems which does not have a external usb_phy, so get
->>>>>> usb_phy only if usb-phy property is added in the case of dt boot or if
->>>>>> platform_data indicates the presence of PHY. Also remove checking if
->>>>>> return value is -ENXIO since it's now changed to always enable usb_phy layer.
->>>>>>
->>>>>> Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
->>>>>> ---
->>>>>>  drivers/usb/dwc3/Kconfig         |    1 +
->>>>>>  drivers/usb/dwc3/core.c          |   60 +++++++++++++++++---------------------
->>>>>>  drivers/usb/dwc3/platform_data.h |    1 +
->>>>>>  3 files changed, 28 insertions(+), 34 deletions(-)
->>>>>>
->>>>>> diff --git a/drivers/usb/dwc3/Kconfig b/drivers/usb/dwc3/Kconfig
->>>>>> index f969ea2..cfc16dd 100644
->>>>>> --- a/drivers/usb/dwc3/Kconfig
->>>>>> +++ b/drivers/usb/dwc3/Kconfig
->>>>>> @@ -2,6 +2,7 @@ config USB_DWC3
->>>>>>       tristate "DesignWare USB3 DRD Core Support"
->>>>>>       depends on (USB || USB_GADGET) && GENERIC_HARDIRQS && HAS_DMA
->>>>>>       depends on EXTCON
->>>>>> +     select USB_PHY
->>>>>>       select USB_XHCI_PLATFORM if USB_SUPPORT && USB_XHCI_HCD
->>>>>>       help
->>>>>>         Say Y or M here if your system has a Dual Role SuperSpeed
->>>>>> diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
->>>>>> index 474162e..428c29e 100644
->>>>>> --- a/drivers/usb/dwc3/core.c
->>>>>> +++ b/drivers/usb/dwc3/core.c
->>>>>> @@ -387,16 +387,38 @@ static int dwc3_probe(struct platform_device *pdev)
->>>>>>       if (node) {
->>>>>>               dwc->maximum_speed = of_usb_get_maximum_speed(node);
->>>>>>
->>>>>> -             dwc->usb2_phy = devm_usb_get_phy_by_phandle(dev, "usb-phy", 0);
->>>>>> -             dwc->usb3_phy = devm_usb_get_phy_by_phandle(dev, "usb-phy", 1);
->>>>>> +             if (of_property_read_bool(node, "usb-phy")) {
->>>>>> +                     dwc->usb2_phy = devm_usb_get_phy_by_phandle(dev,
->>>>>> +                             "usb-phy", 0);
->>>>>> +                     if (IS_ERR(dwc->usb2_phy))
->>>>>> +                             return PTR_ERR(dwc->usb2_phy);
->>>>>> +                     dwc->usb3_phy = devm_usb_get_phy_by_phandle(dev,
->>>>>> +                             "usb-phy", 1);
->>>>>> +                     if (IS_ERR(dwc->usb3_phy))
->>>>>> +                             return PTR_ERR(dwc->usb3_phy);
->>>>>
->>>>> Some DWC3 instances use only usb2_phy. e.g. on DRA7 the 2nd dwc3 instance doesn't use usb3_phy.
->>>>> This needs to be a valid case and driver shouldn't error out.
->>>>
->>>> So, i think adding flexibility to DWC3 to have either
->>>> usb2-phy/usb3-phy or both of them seems to be valid point.
->>>> Any suggestions ?
->>>>
->>>
->>> For high speed operation we need only usb2_phy but for super speed we need both usb2_phy
->>> and usb3_phy.
->>>
->>> Why would a dwc3 controller use only usb3_phy? A USB3.0 interface has to be compatible with
->>> USB2.0 as well, no?
->>
->> True and for that reason we need both UTMI+ interface as well as PIPE3
->> interface, right ?
->> But as also mentioned in the thread:
->> https://lkml.org/lkml/2013/9/12/181, on Samsung exynos5
->> architecturally same block is managing UTMI+ and PIPE3 interfaces,
->> which is handled by phy-samsung-usb3 driver and denoted by "usb3_phy:
->> usbphy@12100000" node in "arch/arm/boot/dts/exynos5250.dtsi".
->>
->> So on exynos5250, DWC3 really needs just usb3-phy, which is compatible
->> for USB 2.0 as well.
->
-> I'm not familiar with exynos5250 dwc3, but looking at the dts file I can see both usb3_phy
-> and usb2_phy nodes and both are referenced in the dwc3 node.
+> possible that all the corresponding configs for the above drivers along=
+ with
+> omapdss config are selected even if the hardware doesn't have a DSS IP.=
 
-Right, and that's what we intend to fix.
-Exynos5250 dwc3 is not in the need of both usb2_phy and usb3_phy.
-In fact usb3_phy handle (which is served by phy-samsung-usb3 driver)
-sets up the UTMI+ as well as PIPE3 phy on DWC3.
-I know this looks different from the usual OMAP style of phy for dwc3.
+>=20
+> If the image is booted on a AM33xx platform, the above drm, fb and v4l =
+devices
+> would be registered throuth the omap_arch_initcalls even if omapdss its=
+elf isn't
+> registered. These platform devices don't cause any harm, but are unnece=
+ssary.
+>=20
+> Move the registration of these devices into omap_display_init(), which =
+registers
+> omapdss devices and is called only if the platform has DSS hardware.
+>=20
+> Also, the first patch prevents creation of a DMM device when omapdrm de=
+vice is
+> registered. With the removal of address and irq data from the omap4 hwm=
+ods, the
+> probe of DMM driver fails and omapdrm isn't able to utilize the DMM har=
+dware.
+> This will be fixed when DMM DT nodes are added for omap4, omap5 and dra=
+7x.
+>=20
+> Changes in v2:
+> - Move device creation for omapfb and omap_vout to omap_display_init to=
+o.
+> - Keep the DMM DT conversion as a separate patch series since this seri=
+es does
+>   something different now.
+>=20
+> Archit Taneja (4):
+>   arm: omap: drm: Don't build device for DMM
+>   arm: omap: display: Create omapdrm device inside omap_display_init
+>   arm: omap: display: Create omapvrfb and omapfb devices inside
+>     omap_display_init
+>   arm: omap: display: Create omap_vout device inside omap_display_init
+>=20
+>  arch/arm/mach-omap2/Makefile  |  6 +-----
+>  arch/arm/mach-omap2/devices.c | 10 +++++-----
+>  arch/arm/mach-omap2/display.c | 28 ++++++++++++++++++++++++++++
+>  arch/arm/mach-omap2/display.h |  4 ++++
+>  arch/arm/mach-omap2/drm.c     | 24 +++++-------------------
+>  arch/arm/mach-omap2/fb.c      | 14 +++++++-------
+>  6 files changed, 50 insertions(+), 36 deletions(-)
 
-Hi Sylwester,
-  any suggestions here ? As contained in the exynos5250 user manual
-too, there's only one block of PHY handling both UTMI+ and PIPE3
-interfaces, and the set of registers (same base address) also indicate
-one block of PHY. So we have the usb3_phy (phy-samsung-usb3 driver)
-which setup the entire PHY require for DWC3 operation, and thereby we
-__shouldn't__ need usb2_phy (phy-samsung-usb2 driver which actually
-setup the PHY for a separate USB 2.0 controller on exynos5250) for
-DWC3.
+Acked-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
->
-> The ehci and ohci controllers don't reference any PHY.
+Tony, since there are no driver changes here, and it's unlikely that
+we'd have a conflict between the dss driver changes and these changes, I
+think it's best if this goes through linux-omap.
 
-ehci-s5p and ohci-exynos are not using devm_usb_get_phy_by_phandle()
-api until now, so they don't need to have the PHY handlers in their
-node.
-
->
-> cheers,
-> -roger
+ Tomi
 
 
 
--- 
-Best Regards
-Vivek
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--T1Q8qTHlWo5K6GHSfQOqciPLThCFhdsRH
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJSNsY6AAoJEPo9qoy8lh7116cP/itu4J7JaEvpSsfFRpAH9rZ5
+lGFxuLPbbbK4p9DL/epSJL0zJjz+Bp+p8Mb0/2LXQkq3xEapi7q/9tXtkAOi9bRw
+802lCIIMq11ardNuEgcjP2xeF/gl8KT9aBuwwAAQls01YY479OSeFLiL6hKMD1wj
+I1XSlMoUrJO8+eMzLLY0BjxEZtMo7T3KZjswAPyLBQM/82wOLcLgNQOyKCUMJ4HD
+RBloUnAkmaEjUwL92rJMtDMoksb2yo8iqv/4LcaD7PbAAl9zbfR0Xuv7jsIq6Av8
+x1LSCme3ZrkD9YaNWUTLccbd6Qusb8tuVtJdUcPFg3V4i5nWmo9NgDmS3AOiFimV
+PuVlU3ahNqBpx7eJIKwMNNU6jRZiKciw1AYyMPxsiHfKy2gYM2fBiJ6yHBukHfeC
+vf2xJ/p8qg/Ma2tnM/ztPZBYp88QyGpyiAB+nAwJ4jwADSVR7cVs0ysJvP+mYEWF
+YEt2hKybtEqkVb6e36W0dEztN5bQFuA5KoIizwQ0jw2Ftk/PwEm0m7nVccJzX2L/
+gsPsOHhz3JSqt9JGepaJaNaVG+mx7St6oU577x82b8ZiGU2XNLbheaITDoGl5lki
+c+/I9g1ohoRrehmSmzytipdmpXiXFluqH2W1KMTb5HddKuO/tFHr3SqJl9fZSguj
+Ic/iQHXoSkuuAqhdc+Ew
+=ass4
+-----END PGP SIGNATURE-----
+
+--T1Q8qTHlWo5K6GHSfQOqciPLThCFhdsRH--
