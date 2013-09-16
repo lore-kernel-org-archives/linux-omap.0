@@ -1,55 +1,76 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [PATCH v2 3/4] arm: omap: display: Create omapvrfb and omapfb devices inside omap_display_init
-Date: Mon, 16 Sep 2013 12:48:30 +0530
-Message-ID: <1379315911-24634-4-git-send-email-archit@ti.com>
+Subject: [PATCH v2 2/4] arm: omap: display: Create omapdrm device inside omap_display_init
+Date: Mon, 16 Sep 2013 12:48:29 +0530
+Message-ID: <1379315911-24634-3-git-send-email-archit@ti.com>
 References: <1379315911-24634-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:34625 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:34623 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752444Ab3IPHTg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 16 Sep 2013 03:19:36 -0400
+	id S1752444Ab3IPHTd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 16 Sep 2013 03:19:33 -0400
 In-Reply-To: <1379315911-24634-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@ti.com, tony@atomide.com
-Cc: linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
+Cc: linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>, Andy Gross <andygro@gmail.com>
 
-Move omapfb and omapvrfb device creation inside the omap_display_init so that
-we can correctly create the device based on the presence of omapdss within the
+Move omapdrm device creation inside the omap_display_init so that we can
+correctly create the device based on the presence of omapdss within the
 platform.
 
-For example, on a kernel image supporting multiple platforms, omap_init_vrfb and
-omap_init_fb will create omapvrfb and omapfb platform devices respectively on a
-AM33xx platform even though it doesn't have a VRFB or DSS block.
+For example, on a kernel image supporting multiple platforms, omap_init_drm
+will create a omapdrm platform device on a AM33xx platform even though it
+doesn't have a DSS block.
 
+Originally worked on by Andy Gross.
+
+Cc: Andy Gross <andygro@gmail.com>
 Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- arch/arm/mach-omap2/display.c | 14 ++++++++++++++
- arch/arm/mach-omap2/display.h |  2 ++
- arch/arm/mach-omap2/fb.c      | 14 +++++++-------
- 3 files changed, 23 insertions(+), 7 deletions(-)
+ arch/arm/mach-omap2/Makefile  |  6 +-----
+ arch/arm/mach-omap2/display.c |  7 +++++++
+ arch/arm/mach-omap2/display.h |  1 +
+ arch/arm/mach-omap2/drm.c     | 10 +++++-----
+ 4 files changed, 14 insertions(+), 10 deletions(-)
 
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index ff2c162..cc84b25 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -8,7 +8,7 @@ ccflags-$(CONFIG_ARCH_MULTIPLATFORM) := -I$(srctree)/$(src)/include \
+ # Common support
+ obj-y := id.o io.o control.o mux.o devices.o fb.o serial.o gpmc.o timer.o pm.o \
+ 	 common.o gpio.o dma.o wd_timer.o display.o i2c.o hdq1w.o omap_hwmod.o \
+-	 omap_device.o sram.o
++	 omap_device.o sram.o drm.o
+ 
+ omap-2-3-common				= irq.o
+ hwmod-common				= omap_hwmod.o omap_hwmod_reset.o \
+@@ -229,10 +229,6 @@ endif
+ # OMAP2420 MSDI controller integration support ("MMC")
+ obj-$(CONFIG_SOC_OMAP2420)		+= msdi.o
+ 
+-ifneq ($(CONFIG_DRM_OMAP),)
+-obj-y					+= drm.o
+-endif
+-
+ # Specific board support
+ obj-$(CONFIG_MACH_OMAP_GENERIC)		+= board-generic.o
+ obj-$(CONFIG_MACH_OMAP_H4)		+= board-h4.o
 diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
-index 8d8ee474..fb66e5a 100644
+index 03a0516..8d8ee474 100644
 --- a/arch/arm/mach-omap2/display.c
 +++ b/arch/arm/mach-omap2/display.c
-@@ -423,6 +423,20 @@ int __init omap_display_init(struct omap_dss_board_info *board_data)
- 		return r;
+@@ -416,6 +416,13 @@ int __init omap_display_init(struct omap_dss_board_info *board_data)
+ 		}
  	}
  
-+	/* create vrfb device */
-+	r = omap_init_vrfb();
++	/* create DRM device */
++	r = omap_init_drm();
 +	if (r < 0) {
-+		pr_err("Unable to register omapvrfb device\n");
-+		return r;
-+	}
-+
-+	/* create FB device */
-+	r = omap_init_fb();
-+	if (r < 0) {
-+		pr_err("Unable to register omapfb device\n");
++		pr_err("Unable to register omapdrm device\n");
 +		return r;
 +	}
 +
@@ -57,62 +78,47 @@ index 8d8ee474..fb66e5a 100644
  }
  
 diff --git a/arch/arm/mach-omap2/display.h b/arch/arm/mach-omap2/display.h
-index e4e8d39..bc7af40 100644
+index b871b017..e4e8d39 100644
 --- a/arch/arm/mach-omap2/display.h
 +++ b/arch/arm/mach-omap2/display.h
-@@ -27,4 +27,6 @@ struct omap_dss_dispc_dev_attr {
+@@ -26,4 +26,5 @@ struct omap_dss_dispc_dev_attr {
+ 	bool	has_framedonetv_irq;
  };
  
- int omap_init_drm(void);
-+int omap_init_vrfb(void);
-+int omap_init_fb(void);
++int omap_init_drm(void);
  #endif
-diff --git a/arch/arm/mach-omap2/fb.c b/arch/arm/mach-omap2/fb.c
-index 2ca33cc..26e28e9 100644
---- a/arch/arm/mach-omap2/fb.c
-+++ b/arch/arm/mach-omap2/fb.c
-@@ -32,6 +32,7 @@
- #include <asm/mach/map.h>
+diff --git a/arch/arm/mach-omap2/drm.c b/arch/arm/mach-omap2/drm.c
+index e6c38cd..facd740 100644
+--- a/arch/arm/mach-omap2/drm.c
++++ b/arch/arm/mach-omap2/drm.c
+@@ -26,8 +26,9 @@
+ #include <linux/platform_data/omap_drm.h>
  
  #include "soc.h"
 +#include "display.h"
  
- #ifdef CONFIG_OMAP2_VRFB
+-#if defined(CONFIG_DRM_OMAP) || (CONFIG_DRM_OMAP_MODULE)
++#if defined(CONFIG_DRM_OMAP) || defined(CONFIG_DRM_OMAP_MODULE)
  
-@@ -64,7 +65,7 @@ static const struct resource omap3_vrfb_resources[] = {
- 	DEFINE_RES_MEM_NAMED(0xfc000000u, 0x4000000, "vrfb-area-11"),
+ static struct omap_drm_platform_data platform_data;
+ 
+@@ -40,14 +41,13 @@ static struct platform_device omap_drm_device = {
+ 	.id = 0,
  };
  
--static int __init omap_init_vrfb(void)
-+int __init omap_init_vrfb(void)
+-static int __init omap_init_drm(void)
++int __init omap_init_drm(void)
  {
- 	struct platform_device *pdev;
- 	const struct resource *res;
-@@ -85,8 +86,8 @@ static int __init omap_init_vrfb(void)
+ 	platform_data.omaprev = GET_OMAP_TYPE;
  
- 	return PTR_RET(pdev);
+ 	return platform_device_register(&omap_drm_device);
+ 
  }
 -
--omap_arch_initcall(omap_init_vrfb);
-+#else
-+int __init omap_init_vrfb(void) { return 0; }
- #endif
- 
- #if defined(CONFIG_FB_OMAP2) || defined(CONFIG_FB_OMAP2_MODULE)
-@@ -105,11 +106,10 @@ static struct platform_device omap_fb_device = {
- 	.num_resources = 0,
- };
- 
--static int __init omap_init_fb(void)
-+int __init omap_init_fb(void)
- {
- 	return platform_device_register(&omap_fb_device);
- }
--
--omap_arch_initcall(omap_init_fb);
+-omap_arch_initcall(omap_init_drm);
 -
 +#else
-+int __init omap_init_fb(void) { return 0; }
++int __init omap_init_drm(void) { return 0; }
  #endif
 -- 
 1.8.1.2
