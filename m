@@ -1,61 +1,213 @@
-From: Eduardo Valentin <eduardo.valentin@ti.com>
-Subject: [PATCH 13/16] arm: dts: add omap5 GPU thermal data
-Date: Sun, 15 Sep 2013 18:02:40 -0400
-Message-ID: <1379282563-14650-14-git-send-email-eduardo.valentin@ti.com>
-References: <1379282563-14650-1-git-send-email-eduardo.valentin@ti.com>
+From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 2/7] usb: dwc3: adapt dwc3 core to use Generic PHY Framework
+Date: Mon, 16 Sep 2013 08:22:14 +0530
+Message-ID: <5236725E.2090302@ti.com>
+References: <1378136591-7463-1-git-send-email-kishon@ti.com> <1378136591-7463-3-git-send-email-kishon@ti.com> <5231BF7A.3080104@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1379282563-14650-1-git-send-email-eduardo.valentin@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com, wni@nvidia.com
-Cc: devicetree@vger.kernel.org, durgadoss.r@intel.com, linux-pm@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, Eduardo Valentin <eduardo.valentin@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, grant.likely@linaro.org, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <5231BF7A.3080104-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Cc: balbi-l0cyMroinI0@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, s.nawrocki-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org, ian.campbell-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org, rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org, george.cherian-l0cyMroinI0@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-VGhpcyBwYXRjaCBjaGFuZ2VzIGEgZHRzaSBmaWxlIHRvIGNvbnRhaW4gdGhlIHRoZXJtYWwgZGF0
-YQpmb3IgR1BVIGRvbWFpbiBvbiBPTUFQNSBhbmQgbGF0ZXIgU29Dcy4gVGhpcyBkYXRhIHdpbGwK
-ZW5hYmxlIGEgdGhlcm1hbCBzaHV0ZG93biBhdCAxMjVDLgoKVGhpcyB0aGVybWFsIGRhdGEgY2Fu
-IGJlIHJldXNlZCBhY3Jvc3MgVEkgU29DIGRldmljZXMuCgpDYzogIkJlbm/DrnQgQ291c3NvbiIg
-PGJjb3Vzc29uQGJheWxpYnJlLmNvbT4KQ2M6IFRvbnkgTGluZGdyZW4gPHRvbnlAYXRvbWlkZS5j
-b20+CkNjOiBSb2IgSGVycmluZyA8cm9iLmhlcnJpbmdAY2FseGVkYS5jb20+CkNjOiBQYXdlbCBN
-b2xsIDxwYXdlbC5tb2xsQGFybS5jb20+CkNjOiBNYXJrIFJ1dGxhbmQgPG1hcmsucnV0bGFuZEBh
-cm0uY29tPgpDYzogU3RlcGhlbiBXYXJyZW4gPHN3YXJyZW5Ad3d3ZG90b3JnLm9yZz4KQ2M6IElh
-biBDYW1wYmVsbCA8aWFuLmNhbXBiZWxsQGNpdHJpeC5jb20+CkNjOiBSdXNzZWxsIEtpbmcgPGxp
-bnV4QGFybS5saW51eC5vcmcudWs+CkNjOiBsaW51eC1vbWFwQHZnZXIua2VybmVsLm9yZwpDYzog
-ZGV2aWNldHJlZUB2Z2VyLmtlcm5lbC5vcmcKQ2M6IGxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5m
-cmFkZWFkLm9yZwpDYzogbGludXgta2VybmVsQHZnZXIua2VybmVsLm9yZwpTaWduZWQtb2ZmLWJ5
-OiBFZHVhcmRvIFZhbGVudGluIDxlZHVhcmRvLnZhbGVudGluQHRpLmNvbT4KLS0tCiBhcmNoL2Fy
-bS9ib290L2R0cy9vbWFwNS1ncHUtdGhlcm1hbC5kdHNpIHwgMjggKysrKysrKysrKysrKysrKysr
-KysrKysrKysrKwogMSBmaWxlIGNoYW5nZWQsIDI4IGluc2VydGlvbnMoKykKIGNyZWF0ZSBtb2Rl
-IDEwMDY0NCBhcmNoL2FybS9ib290L2R0cy9vbWFwNS1ncHUtdGhlcm1hbC5kdHNpCgpkaWZmIC0t
-Z2l0IGEvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDUtZ3B1LXRoZXJtYWwuZHRzaSBiL2FyY2gvYXJt
-L2Jvb3QvZHRzL29tYXA1LWdwdS10aGVybWFsLmR0c2kKbmV3IGZpbGUgbW9kZSAxMDA2NDQKaW5k
-ZXggMDAwMDAwMC4uMDhhMTI5MAotLS0gL2Rldi9udWxsCisrKyBiL2FyY2gvYXJtL2Jvb3QvZHRz
-L29tYXA1LWdwdS10aGVybWFsLmR0c2kKQEAgLTAsMCArMSwyOCBAQAorLyoKKyAqIERldmljZSBU
-cmVlIFNvdXJjZSBmb3IgT01BUDU0M3ggU29DIEdQVSB0aGVybWFsCisgKgorICogQ29weXJpZ2h0
-IChDKSAyMDEzIFRleGFzIEluc3RydW1lbnRzIEluY29ycG9yYXRlZCAtIGh0dHA6Ly93d3cudGku
-Y29tLworICogQ29udGFjdDogRWR1YXJkbyBWYWxlbnRpbiA8ZWR1YXJkby52YWxlbnRpbkB0aS5j
-b20+CisgKgorICogVGhpcyBmaWxlIGlzIGxpY2Vuc2VkIHVuZGVyIHRoZSB0ZXJtcyBvZiB0aGUg
-R05VIEdlbmVyYWwgUHVibGljIExpY2Vuc2UKKyAqIHZlcnNpb24gMi4gIFRoaXMgcHJvZ3JhbSBp
-cyBsaWNlbnNlZCAiYXMgaXMiIHdpdGhvdXQgYW55IHdhcnJhbnR5IG9mIGFueQorICoga2luZCwg
-d2hldGhlciBleHByZXNzIG9yIGltcGxpZWQuCisgKi8KKworI2luY2x1ZGUgPGR0LWJpbmRpbmdz
-L3RoZXJtYWwvdGhlcm1hbC5oPgorCitncHVfdGhlcm1hbDogZ3B1X3RoZXJtYWwgeworCXBhc3Np
-dmUtZGVsYXkgPSA8MjUwPjsgLyogbWlsbGlzZWNvbmRzICovCisJcG9sbGluZy1kZWxheSA9IDwx
-MDAwPjsgLyogbWlsbGlzZWNvbmRzICovCisKKwkJLyogc2Vuc29yICAgICAgIElEICovCisJc2Vu
-c29ycyA9IDwmYmFuZGdhcCAgICAgMT47CisKKwl0cmlwcyB7CisJCWdwdV9jcml0OiBncHVfY3Jp
-dCB7CisJCQl0ZW1wZXJhdHVyZSA9IDwxMjUwMDA+OyAvKiBtaWxsaUNlbHNpdXMgKi8KKwkJCWh5
-c3RlcmVzaXMgPSA8MjAwMD47IC8qIG1pbGxpQ2Vsc2l1cyAqLworCQkJdHlwZSA9IDxUSEVSTUFM
-X1RSSVBfQ1JJVElDQUw+OworCQl9OworCX07Cit9OwotLSAKMS44LjIuMS4zNDIuZ2ZhNzI4NWQK
-CgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1h
-cm0ta2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5v
-cmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1hcm0t
-a2VybmVsCg==
+On Thursday 12 September 2013 06:49 PM, Roger Quadros wrote:
+> On 09/02/2013 06:43 PM, Kishon Vijay Abraham I wrote:
+>> Adapted dwc3 core to use the Generic PHY Framework. So for init, exit,
+>> power_on and power_off the following APIs are used phy_init(), phy_exit(),
+>> phy_power_on() and phy_power_off().
+>>
+>> However using the old USB phy library wont be removed till the PHYs of all
+>> other SoC's using dwc3 core is adapted to the Generic PHY Framework.
+>>
+>> Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+>> ---
+>>   Documentation/devicetree/bindings/usb/dwc3.txt |    6 ++-
+>>   drivers/usb/dwc3/Kconfig                       |    1 +
+>>   drivers/usb/dwc3/core.c                        |   49 ++++++++++++++++++++++++
+>>   drivers/usb/dwc3/core.h                        |    7 ++++
+>>   4 files changed, 61 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/Documentation/devicetree/bindings/usb/dwc3.txt b/Documentation/devicetree/bindings/usb/dwc3.txt
+>> index e807635..471366d 100644
+>> --- a/Documentation/devicetree/bindings/usb/dwc3.txt
+>> +++ b/Documentation/devicetree/bindings/usb/dwc3.txt
+>> @@ -6,11 +6,13 @@ Required properties:
+>>    - compatible: must be "snps,dwc3"
+>>    - reg : Address and length of the register set for the device
+>>    - interrupts: Interrupts used by the dwc3 controller.
+>> +
+>> +Optional properties:
+>>    - usb-phy : array of phandle for the PHY device.  The first element
+>>      in the array is expected to be a handle to the USB2/HS PHY and
+>>      the second element is expected to be a handle to the USB3/SS PHY
+>> -
+>> -Optional properties:
+>> + - phys: from the *Generic PHY* bindings
+>> + - phy-names: from the *Generic PHY* bindings
+>>    - tx-fifo-resize: determines if the FIFO *has* to be reallocated.
+>>
+>>   This is usually a subnode to DWC3 glue to which it is connected.
+>> diff --git a/drivers/usb/dwc3/Kconfig b/drivers/usb/dwc3/Kconfig
+>> index cfc16dd..ad7ce83 100644
+>> --- a/drivers/usb/dwc3/Kconfig
+>> +++ b/drivers/usb/dwc3/Kconfig
+>> @@ -3,6 +3,7 @@ config USB_DWC3
+>>   	depends on (USB || USB_GADGET) && GENERIC_HARDIRQS && HAS_DMA
+>>   	depends on EXTCON
+>>   	select USB_PHY
+>> +	select GENERIC_PHY
+>>   	select USB_XHCI_PLATFORM if USB_SUPPORT && USB_XHCI_HCD
+>>   	help
+>>   	  Say Y or M here if your system has a Dual Role SuperSpeed
+>> diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
+>> index 428c29e..485d365 100644
+>> --- a/drivers/usb/dwc3/core.c
+>> +++ b/drivers/usb/dwc3/core.c
+>> @@ -82,6 +82,12 @@ static void dwc3_core_soft_reset(struct dwc3 *dwc)
+>>
+>>   	usb_phy_init(dwc->usb2_phy);
+>>   	usb_phy_init(dwc->usb3_phy);
+>> +
+>> +	if (dwc->usb2_generic_phy)
+>> +		phy_init(dwc->usb2_generic_phy);
+>> +	if (dwc->usb3_generic_phy)
+>> +		phy_init(dwc->usb3_generic_phy);
+>> +
+>>   	mdelay(100);
+>>
+>>   	/* Clear USB3 PHY reset */
+>> @@ -343,6 +349,11 @@ static void dwc3_core_exit(struct dwc3 *dwc)
+>>   {
+>>   	usb_phy_shutdown(dwc->usb2_phy);
+>>   	usb_phy_shutdown(dwc->usb3_phy);
+>> +
+>> +	if (dwc->usb2_generic_phy)
+>> +		phy_power_off(dwc->usb2_generic_phy);
+>> +	if (dwc->usb3_generic_phy)
+>> +		phy_power_off(dwc->usb3_generic_phy);
+>>   }
+>>
+>>   #define DWC3_ALIGN_MASK		(16 - 1)
+>> @@ -427,6 +438,23 @@ static int dwc3_probe(struct platform_device *pdev)
+>>   		dwc->usb3_phy = devm_usb_get_phy(dev, USB_PHY_TYPE_USB3);
+>>   	}
+>>
+>> +	if (of_property_read_bool(node, "phys") || pdata->has_phy) {
+>> +		dwc->usb2_generic_phy = devm_phy_get(dev, "usb2-phy");
+>> +		if (IS_ERR(dwc->usb2_generic_phy)) {
+>> +			dev_err(dev, "no usb2 phy configured yet");
+>> +			return PTR_ERR(dwc->usb2_generic_phy);
+>> +		}
+>> +
+>> +		dwc->usb3_generic_phy = devm_phy_get(dev, "usb3-phy");
+>> +		if (IS_ERR(dwc->usb3_generic_phy)) {
+>> +			dev_err(dev, "no usb3 phy configured yet");
+>> +			return PTR_ERR(dwc->usb3_generic_phy);
+>> +		}
+>> +	} else {
+>> +		dwc->usb2_generic_phy = NULL;
+>> +		dwc->usb3_generic_phy = NULL;
+>> +	}
+>> +
+>>   	/* default to superspeed if no maximum_speed passed */
+>>   	if (dwc->maximum_speed == USB_SPEED_UNKNOWN)
+>>   		dwc->maximum_speed = USB_SPEED_SUPER;
+>> @@ -450,6 +478,11 @@ static int dwc3_probe(struct platform_device *pdev)
+>>   	usb_phy_set_suspend(dwc->usb2_phy, 0);
+>>   	usb_phy_set_suspend(dwc->usb3_phy, 0);
+>>
+>> +	if (dwc->usb2_generic_phy)
+>> +		phy_power_on(dwc->usb2_generic_phy);
+>> +	if (dwc->usb3_generic_phy)
+>> +		phy_power_on(dwc->usb3_generic_phy);
+>> +
+>>   	spin_lock_init(&dwc->lock);
+>>   	platform_set_drvdata(pdev, dwc);
+>>
+>> @@ -576,6 +609,11 @@ static int dwc3_remove(struct platform_device *pdev)
+>>   	usb_phy_set_suspend(dwc->usb2_phy, 1);
+>>   	usb_phy_set_suspend(dwc->usb3_phy, 1);
+>>
+>> +	if (dwc->usb2_generic_phy)
+>
+> if (IS_ERR())
+
+I assign NULL to usb2_generic_phy and usb3_generic_phy in case the dts 
+entry doesn't have a *phys* property.
+The IS_ERR of usb2_generic_phy is treated as an error condition and 
+probe will fail.
+>
+>> +		phy_power_off(dwc->usb2_generic_phy);
+>> +	if (dwc->usb3_generic_phy)
+>
+> if (IS_ERR())
+>
+> here and everywhere else in this patch.
+>
+>> +		phy_power_off(dwc->usb3_generic_phy);
+>> +
+>>   	pm_runtime_put(&pdev->dev);
+>>   	pm_runtime_disable(&pdev->dev);
+>>
+>> @@ -673,6 +711,11 @@ static int dwc3_suspend(struct device *dev)
+>>   	usb_phy_shutdown(dwc->usb3_phy);
+>>   	usb_phy_shutdown(dwc->usb2_phy);
+>>
+>> +	if (dwc->usb2_generic_phy)
+>> +		phy_exit(dwc->usb2_generic_phy);
+>> +	if (dwc->usb3_generic_phy)
+>> +		phy_exit(dwc->usb3_generic_phy);
+>> +
+>>   	return 0;
+>>   }
+>>
+>> @@ -683,6 +726,12 @@ static int dwc3_resume(struct device *dev)
+>>
+>>   	usb_phy_init(dwc->usb3_phy);
+>>   	usb_phy_init(dwc->usb2_phy);
+>> +
+>> +	if (dwc->usb2_generic_phy)
+>> +		phy_init(dwc->usb2_generic_phy);
+>> +	if (dwc->usb3_generic_phy)
+>> +		phy_init(dwc->usb3_generic_phy);
+>> +
+>>   	msleep(100);
+>>
+>>   	spin_lock_irqsave(&dwc->lock, flags);
+>> diff --git a/drivers/usb/dwc3/core.h b/drivers/usb/dwc3/core.h
+>> index f8af8d4..01ec7d7 100644
+>> --- a/drivers/usb/dwc3/core.h
+>> +++ b/drivers/usb/dwc3/core.h
+>> @@ -31,6 +31,8 @@
+>>   #include <linux/usb/gadget.h>
+>>   #include <linux/usb/otg.h>
+>>
+>> +#include <linux/phy/phy.h>
+>> +
+>>   /* Global constants */
+>>   #define DWC3_EP0_BOUNCE_SIZE	512
+>>   #define DWC3_ENDPOINTS_NUM	32
+>> @@ -613,6 +615,8 @@ struct dwc3_scratchpad_array {
+>>    * @dr_mode: requested mode of operation
+>>    * @usb2_phy: pointer to USB2 PHY
+>>    * @usb3_phy: pointer to USB3 PHY
+>> + * @usb2_generic_phy: pointer to USB2 PHY
+>> + * @usb3_generic_phy: pointer to USB3 PHY
+>
+> Why duplicate usbX_phy and usbX_generic_phy? Can't we just have one
+> for each type and call it usbX_phy?
+
+There was an already existing phy library in usb which usesusb_phy. 
+There might still be users using the existing usb phy library. Until all 
+the users have completely migrated to the generic PHY framework, this 
+would co-exist.
+
+Thanks
+Kishon
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
