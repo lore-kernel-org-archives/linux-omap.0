@@ -1,39 +1,78 @@
-From: Sachin Kamat <sachin.kamat@linaro.org>
-Subject: [PATCH 1/1] usb: phy: omap-usb3: Fix return value
-Date: Mon, 16 Sep 2013 11:10:10 +0530
-Message-ID: <1379310010-7822-1-git-send-email-sachin.kamat@linaro.org>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 0/7] omapdss: HDMI: Fix register definitions and reg dump
+ functions
+Date: Mon, 16 Sep 2013 09:11:01 +0300
+Message-ID: <5236A0F5.1090804@ti.com>
+References: <1379068178-17312-1-git-send-email-archit@ti.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="uDVe3WUauX5CaO5gqMlMtnrrwka5STQPS"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pd0-f172.google.com ([209.85.192.172]:51572 "EHLO
-	mail-pd0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753047Ab3IPF62 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Sep 2013 01:58:28 -0400
-Received: by mail-pd0-f172.google.com with SMTP id z10so3691371pdj.17
-        for <linux-omap@vger.kernel.org>; Sun, 15 Sep 2013 22:58:26 -0700 (PDT)
+Received: from comal.ext.ti.com ([198.47.26.152]:60030 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751556Ab3IPGLH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 16 Sep 2013 02:11:07 -0400
+In-Reply-To: <1379068178-17312-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-usb@vger.kernel.org
-Cc: balbi@ti.com, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, sachin.kamat@linaro.org, kishon@ti.com
+To: Archit Taneja <archit@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
-The function returns a pointer. Hence return NULL instead of 0.
+--uDVe3WUauX5CaO5gqMlMtnrrwka5STQPS
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
----
- drivers/usb/phy/phy-omap-usb3.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+On 13/09/13 13:29, Archit Taneja wrote:
+> These patches complete the OMAP4 HDMI register definitions for HDMI sub=
+modules
+> and make sure all the corresponding regdump functions dump all the regi=
+sters.
+>=20
+> Ricardo Neri (7):
+>   OMAPDSS: HDMI: OMAP4: Complete register definitions for wrapper
+>   OMAPDSS: HDMI: OMAP4: Complete dumping of wrapper registers
+>   OMAPDSS: HDMI: OMAP4: Complete register definitions for DPLL
+>   OMAPDSS: HDMI: OMAP4: Complete dumping of DPLL registers
+>   OMAPDSS: HDMI: OMAP4: Rename the HDMI_CORE_CTRL1 register
+>   OMAPDSS: HDMI: OMAP4: Complete register definitions for core
+>   OMAPDSS: HDMI: OMAP4: Complete dumping of core registers
+>=20
+>  drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c | 70 +++++++++++++++++++++++=
++++-----
+>  drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h | 65 +++++++++++++++++++++++=
++----
+>  2 files changed, 118 insertions(+), 17 deletions(-)
+>=20
 
-diff --git a/drivers/usb/phy/phy-omap-usb3.c b/drivers/usb/phy/phy-omap-usb3.c
-index fc15694..4e8a040 100644
---- a/drivers/usb/phy/phy-omap-usb3.c
-+++ b/drivers/usb/phy/phy-omap-usb3.c
-@@ -79,7 +79,7 @@ static struct usb_dpll_params *omap_usb3_get_dpll_params(unsigned long rate)
- 			return &dpll_map[i].params;
- 	}
- 
--	return 0;
-+	return NULL;
- }
- 
- static int omap_usb3_suspend(struct usb_phy *x, int suspend)
--- 
-1.7.9.5
+These look fine to me, queuing for 3.13.
 
+ Tomi
+
+
+
+--uDVe3WUauX5CaO5gqMlMtnrrwka5STQPS
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJSNqD3AAoJEPo9qoy8lh713pcQALHw8oPUa5VVY8Pkiep+PWAZ
+w3+1D4bORfOxLOAEJKGDe9EYJbW78oN2omcznOQSeA0OTl4Ha3D73bLC+pIguXuC
+ncwdXwlzYqy1FMXRj1SY3HOUT+YxV2uEoLj45w6GppSdxfa5L2gGWgmwTxWhOWmV
+gD57baFIb6N9vnkhMvIKA4Tk7iJv/UNdTWZwiCjyiYNZIwxmoIO5Tgod9gt8S3OF
+nJ6RjkyeVT9Ops8q24j1Jtz9h/GFFCaMUP4LVn7SAJMTzzE5MoDF1q3oRjQC7NR5
+Q+zWzlEOlyI3wZao/Js8XonSoSzOAvDTcOzjQYwdqEVmZEhqAjq0FAoeySJt+V2P
+Q3c84V63RYsszDLdtR9zHvBnY4EE2Vhio7i7JI+9Muims+XzGvNJimQt1d8i4YxU
+GzaMFElOWKGnBlFsRB6hyc5fNiFeNaHsb8VZVpUwVl2MWlDxKLLh+ehPgMMrzYAI
+hRimhHodCLjmCi5ieUJbc6F+PFslYMUUyLFQuvCGxn+uJu3e5+sLTy7iRXWy6564
+LzsG5cufvdD00KwIHxoQpzB5oIJeYGnXPb+d61c+mjfoCz/zcsc4t10TBbP663Ls
+s+CxWqXSKi3TwK/dKda45ywW4FprB+aveYj1c2MGP/dCzSn+9MJmE28d9qdSKzwF
+j+j6KwYxytBqHagbuMjm
+=5jWy
+-----END PGP SIGNATURE-----
+
+--uDVe3WUauX5CaO5gqMlMtnrrwka5STQPS--
