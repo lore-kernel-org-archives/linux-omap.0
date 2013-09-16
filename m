@@ -1,78 +1,53 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 0/7] omapdss: HDMI: Fix register definitions and reg dump
- functions
-Date: Mon, 16 Sep 2013 09:11:01 +0300
-Message-ID: <5236A0F5.1090804@ti.com>
-References: <1379068178-17312-1-git-send-email-archit@ti.com>
+From: Archit Taneja <archit-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 3/4] drm: omap: Enable DT support for DMM
+Date: Mon, 16 Sep 2013 11:58:19 +0530
+Message-ID: <5236A503.90507@ti.com>
+References: <1379063679-4869-1-git-send-email-archit@ti.com> <1379063679-4869-4-git-send-email-archit@ti.com> <CAF6AEGu7eRFhrQZUD-43AOHNQtRWeyxYga1dnir=qUo1mQ9ebA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="uDVe3WUauX5CaO5gqMlMtnrrwka5STQPS"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:60030 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751556Ab3IPGLH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 16 Sep 2013 02:11:07 -0400
-In-Reply-To: <1379068178-17312-1-git-send-email-archit@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAF6AEGu7eRFhrQZUD-43AOHNQtRWeyxYga1dnir=qUo1mQ9ebA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Rob Clark <robdclark-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Valkeinen, Tomi" <tomi.valkeinen-l0cyMroinI0@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andy Gross <andygro-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, DRI Development <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Archit Taneja <archit@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
---uDVe3WUauX5CaO5gqMlMtnrrwka5STQPS
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+On Friday 13 September 2013 07:44 PM, Rob Clark wrote:
+> On Fri, Sep 13, 2013 at 5:14 AM, Archit Taneja <archit-l0cyMroinI0@public.gmane.org> wrote:
+>> Enable use of DT for DMM/Tiler.
+>>
+>> Originally worked on by Andy Gross.
+>
+> looks good.. but do we want to get information about # of LUT's, etc,
+> from DT?  Or did we decide that we can reliably get this from the hw?
+> I lost track of that discussion (I guess Andy would remember)..
 
-On 13/09/13 13:29, Archit Taneja wrote:
-> These patches complete the OMAP4 HDMI register definitions for HDMI sub=
-modules
-> and make sure all the corresponding regdump functions dump all the regi=
-sters.
->=20
-> Ricardo Neri (7):
->   OMAPDSS: HDMI: OMAP4: Complete register definitions for wrapper
->   OMAPDSS: HDMI: OMAP4: Complete dumping of wrapper registers
->   OMAPDSS: HDMI: OMAP4: Complete register definitions for DPLL
->   OMAPDSS: HDMI: OMAP4: Complete dumping of DPLL registers
->   OMAPDSS: HDMI: OMAP4: Rename the HDMI_CORE_CTRL1 register
->   OMAPDSS: HDMI: OMAP4: Complete register definitions for core
->   OMAPDSS: HDMI: OMAP4: Complete dumping of core registers
->=20
->  drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c | 70 +++++++++++++++++++++++=
-+++-----
->  drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h | 65 +++++++++++++++++++++++=
-+----
->  2 files changed, 118 insertions(+), 17 deletions(-)
->=20
+I am not aware of the discussion either. But looks like we get the LUT 
+info from the HW registers in omap_dmm_probe:
 
-These look fine to me, queuing for 3.13.
+         hwinfo = readl(omap_dmm->base + DMM_PAT_HWINFO);
+         omap_dmm->num_engines = (hwinfo >> 24) & 0x1F;
+         omap_dmm->num_lut = (hwinfo >> 16) & 0x1F;
+         omap_dmm->container_width = 256;
+         omap_dmm->container_height = 128;
 
- Tomi
+         atomic_set(&omap_dmm->engine_counter, omap_dmm->num_engines);
+
+         /* read out actual LUT width and height */
+         pat_geom = readl(omap_dmm->base + DMM_PAT_GEOMETRY);
+         omap_dmm->lut_width = ((pat_geom >> 16) & 0xF) << 5;
+         omap_dmm->lut_height = ((pat_geom >> 24) & 0xF) << 5;
+
+         /* increment LUT by one if on OMAP5 */
+         /* LUT has twice the height, and is split into a separate 
+container */
+         if (omap_dmm->lut_height != omap_dmm->container_height)
+                 omap_dmm->num_lut++;
 
 
-
---uDVe3WUauX5CaO5gqMlMtnrrwka5STQPS
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJSNqD3AAoJEPo9qoy8lh713pcQALHw8oPUa5VVY8Pkiep+PWAZ
-w3+1D4bORfOxLOAEJKGDe9EYJbW78oN2omcznOQSeA0OTl4Ha3D73bLC+pIguXuC
-ncwdXwlzYqy1FMXRj1SY3HOUT+YxV2uEoLj45w6GppSdxfa5L2gGWgmwTxWhOWmV
-gD57baFIb6N9vnkhMvIKA4Tk7iJv/UNdTWZwiCjyiYNZIwxmoIO5Tgod9gt8S3OF
-nJ6RjkyeVT9Ops8q24j1Jtz9h/GFFCaMUP4LVn7SAJMTzzE5MoDF1q3oRjQC7NR5
-Q+zWzlEOlyI3wZao/Js8XonSoSzOAvDTcOzjQYwdqEVmZEhqAjq0FAoeySJt+V2P
-Q3c84V63RYsszDLdtR9zHvBnY4EE2Vhio7i7JI+9Muims+XzGvNJimQt1d8i4YxU
-GzaMFElOWKGnBlFsRB6hyc5fNiFeNaHsb8VZVpUwVl2MWlDxKLLh+ehPgMMrzYAI
-hRimhHodCLjmCi5ieUJbc6F+PFslYMUUyLFQuvCGxn+uJu3e5+sLTy7iRXWy6564
-LzsG5cufvdD00KwIHxoQpzB5oIJeYGnXPb+d61c+mjfoCz/zcsc4t10TBbP663Ls
-s+CxWqXSKi3TwK/dKda45ywW4FprB+aveYj1c2MGP/dCzSn+9MJmE28d9qdSKzwF
-j+j6KwYxytBqHagbuMjm
-=5jWy
------END PGP SIGNATURE-----
-
---uDVe3WUauX5CaO5gqMlMtnrrwka5STQPS--
+Archit
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
