@@ -1,82 +1,93 @@
-From: Sebastian Reichel <sre-GFxCN5SEZAc@public.gmane.org>
-Subject: Re: [RFCv2 3/3] ARM: dts: N900: Add SSI information
-Date: Mon, 16 Sep 2013 21:27:22 +0200
-Message-ID: <20130916192722.GB21903@earth.universe>
-References: <1379277856-24571-1-git-send-email-sre@debian.org>
- <1379277856-24571-4-git-send-email-sre@debian.org>
- <CAAwP0s0e-gYkNA78eQH7x2VJbM1byaisUeqU8YbbeWUbKwsxCQ@mail.gmail.com>
- <20130916150147.GA14047@earth.universe>
- <20130916181032.GB30568@blackmetal.musicnaut.iki.fi>
+From: Mike Turquette <mturquette@linaro.org>
+Subject: Re: Odd behavior with dpll4_m4x2_ck on omap3 + DT
+Date: Mon, 16 Sep 2013 12:45:05 -0700
+Message-ID: <20130916194505.27384.1874@quantum>
+References: <521DC143.2010506@ti.com> <522F0390.9050802@gmail.com>
+ <522F0CC7.50501@ti.com> <522F0E3E.1080001@ti.com> <522F0F9B.9050705@ti.com>
+ <522F1346.3020206@ti.com> <522F1BF9.5050006@ti.com>
+ <523019EE.5000508@ti.com> <5232C413.8010207@gmail.com>
+ <5232F85E.7050502@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="1UWUbFP1cBYEclgG"
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20130916181032.GB30568-R3WNPi76c83LsdW6vOPryG4HOFkwEHDbMR2xtNvyitY@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
-Cc: Javier Martinez Canillas <martinez.javier-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Shubhrajyoti Datta <omaplinuxkernel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Carlos Chinea <cch.devel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Rob Landley <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux Kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap@>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pb0-f52.google.com ([209.85.160.52]:63071 "EHLO
+	mail-pb0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751352Ab3IPTpK convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Sep 2013 15:45:10 -0400
+Received: by mail-pb0-f52.google.com with SMTP id wz12so4469588pbc.25
+        for <linux-omap@vger.kernel.org>; Mon, 16 Sep 2013 12:45:10 -0700 (PDT)
+In-Reply-To: <5232F85E.7050502@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>, Stefan Roese <stefan.roese@gmail.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>
 
+Quoting Tero Kristo (2013-09-13 04:34:54)
+> On 09/13/2013 10:51 AM, Stefan Roese wrote:
+> > On 11.09.2013 09:21, Tomi Valkeinen wrote:
+> >> On 10/09/13 16:17, Tero Kristo wrote:
+> >>
+> >>> In theory, DPLLs can also be used in their bypass mode to feed customer
+> >>> nodes clocks. I just think the check in the clkoutx2_recalc is wrong,
+> >>> and should be enhanced to actually check what is the target mode for the
+> >>> clock once it is enabled. Maybe something like this would work properly:
+> >>>
+> >>> diff --git a/arch/arm/mach-omap2/dpll3xxx.c
+> >>> b/arch/arm/mach-omap2/dpll3xxx.c
+> >>> index 3a0296c..ba218fb 100644
+> >>> --- a/arch/arm/mach-omap2/dpll3xxx.c
+> >>> +++ b/arch/arm/mach-omap2/dpll3xxx.c
+> >>> @@ -658,14 +658,12 @@ unsigned long omap3_clkoutx2_recalc(struct clk_hw
+> >>> *hw,
+> >>>
+> >>>          dd = pclk->dpll_data;
+> >>>
+> >>> -       WARN_ON(!dd->enable_mask);
+> >>> -
+> >>> -       v = __raw_readl(dd->control_reg) & dd->enable_mask;
+> >>> -       v >>= __ffs(dd->enable_mask);
+> >>> -       if ((v != OMAP3XXX_EN_DPLL_LOCKED) || (dd->flags & DPLL_J_TYPE))
+> >>> +       if ((dd->flags & DPLL_J_TYPE) ||
+> >>> +           __clk_get_rate(dd->clk_bypass) == __clk_get_rate(pclk))
+> >>>                  rate = parent_rate;
+> >>>          else
+> >>>                  rate = parent_rate * 2;
+> >>> +
+> >>>          return rate;
+> >>>   }
+> >>
+> >> Stefan, are you able to test the above?
+> >>
+> >> I'd rather have a proper fix for this, than hack omapdss =).
+> >
+> > Okay, I finally found some time to test this. The patch above generates
+> > this warning:
+> >
+> > arch/arm/mach-omap2/dpll3xxx.c: In function 'omap3_clkoutx2_recalc':
+> > arch/arm/mach-omap2/dpll3xxx.c:663:6: warning: passing argument 1 of '__clk_get_rate' from incompatible pointer type [enabled by default]
+> > include/linux/clk-provider.h:423:15: note: expected 'struct clk *' but argument is of type 'struct clk_hw_omap *'
+> 
+> Yea sorry about that, I just quickly hacked the patch together without 
+> testing it at all. :P
+> 
+> >
+> > I then changed it (not 100% sure if correctly) to this version:
+> >
+> > +       if ((dd->flags & DPLL_J_TYPE) ||
+> > +           __clk_get_rate(dd->clk_bypass) == __clk_get_rate(pclk->hw.clk))
+> >
+> > And this seems to work. At least the clock rate mismatch warning does not
+> > appear with this patch applied (and without the clk_enable) in the
+> > bootlog any more.
+> 
+> Yea, looks good to me, however I guess I would like second opinion on 
+> this also.
 
---1UWUbFP1cBYEclgG
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Looks right to me.
 
-On Mon, Sep 16, 2013 at 09:10:32PM +0300, Aaro Koskinen wrote:
-> On Mon, Sep 16, 2013 at 05:01:47PM +0200, Sebastian Reichel wrote:
-> > > Is the Synchronous Serial Interface (SSI)  only supported by
-> > > OMAP34xx/OMAP35xx SoC and not by OMAP36xx/OMAP37xx SoC?
-> > >=20
-> > > I'm asking this since if SSI is supported by both we should add the
-> > > device nodes in omap3.dtsi instead of omap34xx.dtsi.
-> > >=20
-> > > I thought that all OMAP3 SoC supported SSI and all OMAP4 SoC supported
-> > > HSI but I guess I was wrong...
-> >=20
-> > I just do not know. Information about the SSI core is not included
-> > in the public OMAP TRM. It only lists the memory space as reserved.
-> >=20
-> > Thus I only included it in OMAP34xx, which is used in Nokia N900 and
-> > must support SSI.
->=20
-> I think N9 and N950 (OMAP3630) are using pretty much the same driver.
+Regards,
+Mike
 
-OK. I've checked the N950 kernel from [0] and it uses the same data.
-I will move the data from omap34xx.dtsi to omap3.dtsi in the next
-RFC.
-
-Thanks for the hint.
-
-[0] https://github.com/nemomobile/kernel-adaptation-n950-n9/
-
--- Sebastian
-
---1UWUbFP1cBYEclgG
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
-
-iQIcBAEBCAAGBQJSN1uZAAoJENju1/PIO/qaYZMQAKag/PnkRZD1Z5sL72wzwlow
-nLzrbXSaY09Re18fgC32YHESnhwtoxUrWKNZIk1qQf8ppzeAbdjCBifsTTWB4X4q
-RrlZ1u6UfwO8cfqTtHKNrz2uA2MVWQpcLqb7j9zw/OLqDIDwhlZ/DEA7zF3fQgWA
-GdJxtjkLXAvoB5meTumn1iBuqe2NQGWolrUi8YL0zrabt1mrfhXQKHDaPv54WsHO
-G2UMURtQRXsjI5+kumX342TBbup4gGG8+ohZ/H8tOIbm6FWQa6jBp3PYn4UlybbX
-PUxxnqEkAKB44Pf4o4i2dPNg4Ehe0KdcIKXR8DYZbg46Nl+wQa/wtgqJ9/U4413Z
-6wViT4Xdtv3lxq4p/OrMUhU8uZWr2UTaZ6w5i6grWFRKhsPqVfXm1hnll3z8OBwo
-cDyYG2h/KP7IROYCMShP2FNEb43AdSxW84pv1c0G35LEyE5ehBVNujMzbM2bgL2R
-67swmCBvSAxaumtkY5vJ8+cMR4mt47iWMCfe5sN9hp6uCXZICk1u9kb5KRgkNgSe
-QdbXfvNwNKlQOmwAhIawLxolnaji1w+7V3abPf7qZuP2GnJsCsuhdTvhUYwShQkA
-LCZ99aAbmtyfM9z9a7RmSmsjUHLwdGZsT0Kq5AX7ON3KUajhX+7kEnVPy7VMmKIZ
-Efuk9Z4VkqZ+nfAeHMGh
-=KlmL
------END PGP SIGNATURE-----
-
---1UWUbFP1cBYEclgG--
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> -Tero
