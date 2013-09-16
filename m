@@ -1,102 +1,216 @@
-From: Archit Taneja <archit@ti.com>
-Subject: [PATCH v2 4/4] arm: omap: display: Create omap_vout device inside omap_display_init
-Date: Mon, 16 Sep 2013 12:48:31 +0530
-Message-ID: <1379315911-24634-5-git-send-email-archit@ti.com>
-References: <1379315911-24634-1-git-send-email-archit@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH 2/7] usb: dwc3: adapt dwc3 core to use Generic PHY Framework
+Date: Mon, 16 Sep 2013 10:25:09 +0300
+Message-ID: <5236B255.1020105@ti.com>
+References: <1378136591-7463-1-git-send-email-kishon@ti.com> <1378136591-7463-3-git-send-email-kishon@ti.com> <5231BF7A.3080104@ti.com> <5236725E.2090302@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:52985 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752444Ab3IPHUI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 16 Sep 2013 03:20:08 -0400
-In-Reply-To: <1379315911-24634-1-git-send-email-archit@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:33556 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754476Ab3IPH0E (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Sep 2013 03:26:04 -0400
+In-Reply-To: <5236725E.2090302@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tomi.valkeinen@ti.com, tony@atomide.com
-Cc: linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: balbi@ti.com, bcousson@baylibre.com, tony@atomide.com, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, linux@arm.linux.org.uk, grant.likely@linaro.org, s.nawrocki@samsung.com, galak@codeaurora.org, swarren@wwwdotorg.org, ian.campbell@citrix.com, rob@landley.net, george.cherian@ti.com, gregkh@linuxfoundation.org, linux-doc@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-usb@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 
-Move omap_vout device creation inside the omap_display_init so that we can
-correctly create the device based on the presence of omapdss within the
-platform.
+Hi,
 
-For example, on a kernel image supporting multiple platforms, omap_init_vout
-will create a omapdrm platform device on a AM33xx platform even though it
-doesn't have a DSS block.
+On 09/16/2013 05:52 AM, Kishon Vijay Abraham I wrote:
+> On Thursday 12 September 2013 06:49 PM, Roger Quadros wrote:
+>> On 09/02/2013 06:43 PM, Kishon Vijay Abraham I wrote:
+>>> Adapted dwc3 core to use the Generic PHY Framework. So for init, exit,
+>>> power_on and power_off the following APIs are used phy_init(), phy_exit(),
+>>> phy_power_on() and phy_power_off().
+>>>
+>>> However using the old USB phy library wont be removed till the PHYs of all
+>>> other SoC's using dwc3 core is adapted to the Generic PHY Framework.
+>>>
+>>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+>>> ---
+>>>   Documentation/devicetree/bindings/usb/dwc3.txt |    6 ++-
+>>>   drivers/usb/dwc3/Kconfig                       |    1 +
+>>>   drivers/usb/dwc3/core.c                        |   49 ++++++++++++++++++++++++
+>>>   drivers/usb/dwc3/core.h                        |    7 ++++
+>>>   4 files changed, 61 insertions(+), 2 deletions(-)
+>>>
+>>> diff --git a/Documentation/devicetree/bindings/usb/dwc3.txt b/Documentation/devicetree/bindings/usb/dwc3.txt
+>>> index e807635..471366d 100644
+>>> --- a/Documentation/devicetree/bindings/usb/dwc3.txt
+>>> +++ b/Documentation/devicetree/bindings/usb/dwc3.txt
+>>> @@ -6,11 +6,13 @@ Required properties:
+>>>    - compatible: must be "snps,dwc3"
+>>>    - reg : Address and length of the register set for the device
+>>>    - interrupts: Interrupts used by the dwc3 controller.
+>>> +
+>>> +Optional properties:
+>>>    - usb-phy : array of phandle for the PHY device.  The first element
+>>>      in the array is expected to be a handle to the USB2/HS PHY and
+>>>      the second element is expected to be a handle to the USB3/SS PHY
+>>> -
+>>> -Optional properties:
+>>> + - phys: from the *Generic PHY* bindings
+>>> + - phy-names: from the *Generic PHY* bindings
+>>>    - tx-fifo-resize: determines if the FIFO *has* to be reallocated.
+>>>
+>>>   This is usually a subnode to DWC3 glue to which it is connected.
+>>> diff --git a/drivers/usb/dwc3/Kconfig b/drivers/usb/dwc3/Kconfig
+>>> index cfc16dd..ad7ce83 100644
+>>> --- a/drivers/usb/dwc3/Kconfig
+>>> +++ b/drivers/usb/dwc3/Kconfig
+>>> @@ -3,6 +3,7 @@ config USB_DWC3
+>>>       depends on (USB || USB_GADGET) && GENERIC_HARDIRQS && HAS_DMA
+>>>       depends on EXTCON
+>>>       select USB_PHY
+>>> +    select GENERIC_PHY
+>>>       select USB_XHCI_PLATFORM if USB_SUPPORT && USB_XHCI_HCD
+>>>       help
+>>>         Say Y or M here if your system has a Dual Role SuperSpeed
+>>> diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
+>>> index 428c29e..485d365 100644
+>>> --- a/drivers/usb/dwc3/core.c
+>>> +++ b/drivers/usb/dwc3/core.c
+>>> @@ -82,6 +82,12 @@ static void dwc3_core_soft_reset(struct dwc3 *dwc)
+>>>
+>>>       usb_phy_init(dwc->usb2_phy);
+>>>       usb_phy_init(dwc->usb3_phy);
+>>> +
+>>> +    if (dwc->usb2_generic_phy)
+>>> +        phy_init(dwc->usb2_generic_phy);
+>>> +    if (dwc->usb3_generic_phy)
+>>> +        phy_init(dwc->usb3_generic_phy);
+>>> +
+>>>       mdelay(100);
+>>>
+>>>       /* Clear USB3 PHY reset */
+>>> @@ -343,6 +349,11 @@ static void dwc3_core_exit(struct dwc3 *dwc)
+>>>   {
+>>>       usb_phy_shutdown(dwc->usb2_phy);
+>>>       usb_phy_shutdown(dwc->usb3_phy);
+>>> +
+>>> +    if (dwc->usb2_generic_phy)
+>>> +        phy_power_off(dwc->usb2_generic_phy);
+>>> +    if (dwc->usb3_generic_phy)
+>>> +        phy_power_off(dwc->usb3_generic_phy);
+>>>   }
+>>>
+>>>   #define DWC3_ALIGN_MASK        (16 - 1)
+>>> @@ -427,6 +438,23 @@ static int dwc3_probe(struct platform_device *pdev)
+>>>           dwc->usb3_phy = devm_usb_get_phy(dev, USB_PHY_TYPE_USB3);
+>>>       }
+>>>
+>>> +    if (of_property_read_bool(node, "phys") || pdata->has_phy) {
+>>> +        dwc->usb2_generic_phy = devm_phy_get(dev, "usb2-phy");
+>>> +        if (IS_ERR(dwc->usb2_generic_phy)) {
+>>> +            dev_err(dev, "no usb2 phy configured yet");
+>>> +            return PTR_ERR(dwc->usb2_generic_phy);
+>>> +        }
+>>> +
+>>> +        dwc->usb3_generic_phy = devm_phy_get(dev, "usb3-phy");
+>>> +        if (IS_ERR(dwc->usb3_generic_phy)) {
+>>> +            dev_err(dev, "no usb3 phy configured yet");
+>>> +            return PTR_ERR(dwc->usb3_generic_phy);
+>>> +        }
+>>> +    } else {
+>>> +        dwc->usb2_generic_phy = NULL;
+>>> +        dwc->usb3_generic_phy = NULL;
+>>> +    }
+>>> +
+>>>       /* default to superspeed if no maximum_speed passed */
+>>>       if (dwc->maximum_speed == USB_SPEED_UNKNOWN)
+>>>           dwc->maximum_speed = USB_SPEED_SUPER;
+>>> @@ -450,6 +478,11 @@ static int dwc3_probe(struct platform_device *pdev)
+>>>       usb_phy_set_suspend(dwc->usb2_phy, 0);
+>>>       usb_phy_set_suspend(dwc->usb3_phy, 0);
+>>>
+>>> +    if (dwc->usb2_generic_phy)
+>>> +        phy_power_on(dwc->usb2_generic_phy);
+>>> +    if (dwc->usb3_generic_phy)
+>>> +        phy_power_on(dwc->usb3_generic_phy);
+>>> +
+>>>       spin_lock_init(&dwc->lock);
+>>>       platform_set_drvdata(pdev, dwc);
+>>>
+>>> @@ -576,6 +609,11 @@ static int dwc3_remove(struct platform_device *pdev)
+>>>       usb_phy_set_suspend(dwc->usb2_phy, 1);
+>>>       usb_phy_set_suspend(dwc->usb3_phy, 1);
+>>>
+>>> +    if (dwc->usb2_generic_phy)
+>>
+>> if (IS_ERR())
+> 
+> I assign NULL to usb2_generic_phy and usb3_generic_phy in case the dts entry doesn't have a *phys* property.
+> The IS_ERR of usb2_generic_phy is treated as an error condition and probe will fail.
 
-Signed-off-by: Archit Taneja <archit@ti.com>
----
- arch/arm/mach-omap2/devices.c | 10 +++++-----
- arch/arm/mach-omap2/display.c |  7 +++++++
- arch/arm/mach-omap2/display.h |  1 +
- 3 files changed, 13 insertions(+), 5 deletions(-)
+OK.
 
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index 3c1279f..520a4be 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -37,6 +37,7 @@
- #include "mux.h"
- #include "control.h"
- #include "devices.h"
-+#include "display.h"
- 
- #define L3_MODULES_MAX_LEN 12
- #define L3_MODULES 3
-@@ -504,13 +505,13 @@ static struct platform_device omap_vout_device = {
- 	.resource 	= &omap_vout_resource[0],
- 	.id		= -1,
- };
--static void omap_init_vout(void)
-+
-+int __init omap_init_vout(void)
- {
--	if (platform_device_register(&omap_vout_device) < 0)
--		printk(KERN_ERR "Unable to register OMAP-VOUT device\n");
-+	return platform_device_register(&omap_vout_device);
- }
- #else
--static inline void omap_init_vout(void) {}
-+int __init omap_init_vout(void) { return 0; }
- #endif
- 
- #if IS_ENABLED(CONFIG_WL12XX)
-@@ -576,7 +577,6 @@ static int __init omap2_init_devices(void)
- 	}
- 	omap_init_sti();
- 	omap_init_rng();
--	omap_init_vout();
- 
- 	return 0;
- }
-diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
-index fb66e5a..a4e536b 100644
---- a/arch/arm/mach-omap2/display.c
-+++ b/arch/arm/mach-omap2/display.c
-@@ -437,6 +437,13 @@ int __init omap_display_init(struct omap_dss_board_info *board_data)
- 		return r;
- 	}
- 
-+	/* create V4L2 display device */
-+	r = omap_init_vout();
-+	if (r < 0) {
-+		pr_err("Unable to register omap_vout device\n");
-+		return r;
-+	}
-+
- 	return 0;
- }
- 
-diff --git a/arch/arm/mach-omap2/display.h b/arch/arm/mach-omap2/display.h
-index bc7af40..f3d2ce4 100644
---- a/arch/arm/mach-omap2/display.h
-+++ b/arch/arm/mach-omap2/display.h
-@@ -29,4 +29,5 @@ struct omap_dss_dispc_dev_attr {
- int omap_init_drm(void);
- int omap_init_vrfb(void);
- int omap_init_fb(void);
-+int omap_init_vout(void);
- #endif
--- 
-1.8.1.2
+>>
+>>> +        phy_power_off(dwc->usb2_generic_phy);
+>>> +    if (dwc->usb3_generic_phy)
+>>
+>> if (IS_ERR())
+>>
+>> here and everywhere else in this patch.
+>>
+>>> +        phy_power_off(dwc->usb3_generic_phy);
+>>> +
+>>>       pm_runtime_put(&pdev->dev);
+>>>       pm_runtime_disable(&pdev->dev);
+>>>
+>>> @@ -673,6 +711,11 @@ static int dwc3_suspend(struct device *dev)
+>>>       usb_phy_shutdown(dwc->usb3_phy);
+>>>       usb_phy_shutdown(dwc->usb2_phy);
+>>>
+>>> +    if (dwc->usb2_generic_phy)
+>>> +        phy_exit(dwc->usb2_generic_phy);
+>>> +    if (dwc->usb3_generic_phy)
+>>> +        phy_exit(dwc->usb3_generic_phy);
+>>> +
+>>>       return 0;
+>>>   }
+>>>
+>>> @@ -683,6 +726,12 @@ static int dwc3_resume(struct device *dev)
+>>>
+>>>       usb_phy_init(dwc->usb3_phy);
+>>>       usb_phy_init(dwc->usb2_phy);
+>>> +
+>>> +    if (dwc->usb2_generic_phy)
+>>> +        phy_init(dwc->usb2_generic_phy);
+>>> +    if (dwc->usb3_generic_phy)
+>>> +        phy_init(dwc->usb3_generic_phy);
+>>> +
+>>>       msleep(100);
+>>>
+>>>       spin_lock_irqsave(&dwc->lock, flags);
+>>> diff --git a/drivers/usb/dwc3/core.h b/drivers/usb/dwc3/core.h
+>>> index f8af8d4..01ec7d7 100644
+>>> --- a/drivers/usb/dwc3/core.h
+>>> +++ b/drivers/usb/dwc3/core.h
+>>> @@ -31,6 +31,8 @@
+>>>   #include <linux/usb/gadget.h>
+>>>   #include <linux/usb/otg.h>
+>>>
+>>> +#include <linux/phy/phy.h>
+>>> +
+>>>   /* Global constants */
+>>>   #define DWC3_EP0_BOUNCE_SIZE    512
+>>>   #define DWC3_ENDPOINTS_NUM    32
+>>> @@ -613,6 +615,8 @@ struct dwc3_scratchpad_array {
+>>>    * @dr_mode: requested mode of operation
+>>>    * @usb2_phy: pointer to USB2 PHY
+>>>    * @usb3_phy: pointer to USB3 PHY
+>>> + * @usb2_generic_phy: pointer to USB2 PHY
+>>> + * @usb3_generic_phy: pointer to USB3 PHY
+>>
+>> Why duplicate usbX_phy and usbX_generic_phy? Can't we just have one
+>> for each type and call it usbX_phy?
+> 
+> There was an already existing phy library in usb which usesusb_phy. There might still be users using the existing usb phy library. Until all the users have completely migrated to the generic PHY framework, this would co-exist.
+> 
+OK.
 
+cheers,
+-roger
