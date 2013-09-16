@@ -1,41 +1,97 @@
-From: Archit Taneja <archit-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v2 0/2] DMM DT adaptation
-Date: Mon, 16 Sep 2013 15:00:13 +0530
-Message-ID: <1379323815-14130-1-git-send-email-archit@ti.com>
+From: Archit Taneja <archit@ti.com>
+Subject: [PATCH v2 1/2] arm: dts: omap4+: Add DMM bindings
+Date: Mon, 16 Sep 2013 15:00:14 +0530
+Message-ID: <1379323815-14130-2-git-send-email-archit@ti.com>
 References: <1379063679-4869-1-git-send-email-archit@ti.com>
+ <1379323815-14130-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1379063679-4869-1-git-send-email-archit-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robdclark-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, tomi.valkeinen-l0cyMroinI0@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org
-Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Archit Taneja <archit-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:39518 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752494Ab3IPJbR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Sep 2013 05:31:17 -0400
+In-Reply-To: <1379323815-14130-1-git-send-email-archit@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tony@atomide.com, linux-omap@vger.kernel.org, robdclark@gmail.com, tomi.valkeinen@ti.com, bcousson@baylibre.com
+Cc: devicetree@vger.kernel.org, linux-doc@vger.kernel.org, Archit Taneja <archit@ti.com>, Andy Gross <andygro@gmail.com>
 
-The DMM/Tiler block can used by omapdrm to allocate frame buffers. With the
-removal of address and irq data from the omap4 hwmods, the probe of DMM driver
-fails and omapdrm isn't able to utilize the DMM hardware.
+Add Dynamic Memory Manager (DMM) bindings for OMAP4 and OMAP5 devices. DMM
+only requires address and irq information.
 
-Add DMM bindings for omap4 and omap5.
+Add documentation for the DMM bindings.
 
-Changes in v2:
-- No changes, split out into a separate series containing only DT related parts.
+Originally worked on by Andy Gross.
 
-Archit Taneja (2):
-  arm: dts: omap4+: Add DMM bindings
-  drm: omap: Enable DT support for DMM
-
+Cc: Andy Gross <andygro@gmail.com>
+Signed-off-by: Archit Taneja <archit@ti.com>
+---
  Documentation/devicetree/bindings/arm/omap/dmm.txt | 17 +++++++++++++++++
  arch/arm/boot/dts/omap4.dtsi                       |  7 +++++++
  arch/arm/boot/dts/omap5.dtsi                       |  7 +++++++
- drivers/gpu/drm/omapdrm/omap_dmm_tiler.c           | 11 +++++++++++
- 4 files changed, 42 insertions(+)
+ 3 files changed, 31 insertions(+)
  create mode 100644 Documentation/devicetree/bindings/arm/omap/dmm.txt
 
+diff --git a/Documentation/devicetree/bindings/arm/omap/dmm.txt b/Documentation/devicetree/bindings/arm/omap/dmm.txt
+new file mode 100644
+index 0000000..237cd83
+--- /dev/null
++++ b/Documentation/devicetree/bindings/arm/omap/dmm.txt
+@@ -0,0 +1,17 @@
++OMAP Dynamic Memory Manager (DMM) bindings
++
++Required properties:
++- compatible:	Must be "ti,omap4-dmm" for OMAP4 family
++		Must be "ti,omap5-dmm" for OMAP5 family
++- reg:		Contains timer register address range (base address and length)
++- interrupts:	Contains interrupt information (source, etc) for the DMM IRQ
++- ti,hwmods:	Name of the hwmod associated to the counter, which is typically
++		"dmm"
++
++Example:
++
++dmm: dmm@4e000000 {
++	compatible = "ti,omap4-dmm";
++	reg = <0x4e000000 0x800>;
++	ti,hwmods = "dmm";
++};
+diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+index 22d9f2b..24f388e 100644
+--- a/arch/arm/boot/dts/omap4.dtsi
++++ b/arch/arm/boot/dts/omap4.dtsi
+@@ -487,6 +487,13 @@
+ 			ti,hwmods = "kbd";
+ 		};
+ 
++		dmm: dmm@4e000000 {
++			compatible = "ti,omap4-dmm";
++			reg = <0x4e000000 0x800>;
++			interrupts = <0 113 0x4>;
++			ti,hwmods = "dmm";
++		};
++
+ 		emif1: emif@4c000000 {
+ 			compatible = "ti,emif-4d";
+ 			reg = <0x4c000000 0x100>;
+diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+index ac1f1e0..33b4fea 100644
+--- a/arch/arm/boot/dts/omap5.dtsi
++++ b/arch/arm/boot/dts/omap5.dtsi
+@@ -604,6 +604,13 @@
+ 			ti,hwmods = "wd_timer2";
+ 		};
+ 
++		dmm: dmm@4e000000 {
++			compatible = "ti,omap5-dmm";
++			reg = <0x4e000000 0x800>;
++			interrupts = <0 113 0x4>;
++			ti,hwmods = "dmm";
++		};
++
+ 		emif1: emif@0x4c000000 {
+ 			compatible	= "ti,emif-4d5";
+ 			ti,hwmods	= "emif1";
 -- 
 1.8.1.2
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
