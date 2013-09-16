@@ -1,66 +1,42 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [PATCH] arm: Fix build error with context tracking calls
-Date: Mon, 16 Sep 2013 10:11:54 -0700
-Message-ID: <CAGa+x84rpdixmi5crMYtbKxWZdcT1u12O6ooA6QQN7hwDnEThA@mail.gmail.com>
-References: <20130909105115.GL25647@n2100.arm.linux.org.uk>
-	<522DB86A.8010207@roeck-us.net>
-	<alpine.LFD.2.03.1309091023440.20709@syhkavp.arg>
-	<20130909160348.GB18975@roeck-us.net>
-	<20130909203141.GM25647@n2100.arm.linux.org.uk>
-	<20130909210203.GC28416@roeck-us.net>
-	<alpine.LFD.2.03.1309091714420.20709@syhkavp.arg>
-	<87y574g1fi.fsf@linaro.org>
-	<20130913170331.GA8453@somewhere>
-	<87mwnggwv4.fsf@linaro.org>
-	<20130914141921.GB1718@localhost.localdomain>
+From: Javier Martinez Canillas <javier@dowhile0.org>
+Subject: Re: [RFCv2 3/3] ARM: dts: N900: Add SSI information
+Date: Mon, 16 Sep 2013 19:25:41 +0200
+Message-ID: <CABxcv==p02u8goDGJHFW0HtoPetxsRk+nmujnTqNDcGuVY0+mg@mail.gmail.com>
+References: <1379277856-24571-1-git-send-email-sre@debian.org>
+	<1379277856-24571-4-git-send-email-sre@debian.org>
+	<CAAwP0s0e-gYkNA78eQH7x2VJbM1byaisUeqU8YbbeWUbKwsxCQ@mail.gmail.com>
+	<20130916150147.GA14047@earth.universe>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f174.google.com ([209.85.212.174]:42594 "EHLO
-	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751480Ab3IPRLz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Sep 2013 13:11:55 -0400
-Received: by mail-wi0-f174.google.com with SMTP id hj3so3753490wib.7
-        for <linux-omap@vger.kernel.org>; Mon, 16 Sep 2013 10:11:54 -0700 (PDT)
-In-Reply-To: <20130914141921.GB1718@localhost.localdomain>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <20130916150147.GA14047@earth.universe>
+Sender: linux-doc-owner@vger.kernel.org
+To: Javier Martinez Canillas <martinez.javier@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Shubhrajyoti Datta <omaplinuxkernel@gmail.com>, Carlos Chinea <cch.devel@gmail.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Grant Likely <grant.likely@linaro.org>, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Rob Landley <rob@landley.net>, =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, Linux Kernel <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vg>
 List-Id: linux-omap@vger.kernel.org
-To: Frederic Weisbecker <fweisbec@gmail.com>
-Cc: Nicolas Pitre <nicolas.pitre@linaro.org>, Guenter Roeck <linux@roeck-us.net>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Anil Kumar <anilk4.v@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, Benoit Cousson <b-cousson@ti.com>
 
-On Sat, Sep 14, 2013 at 7:19 AM, Frederic Weisbecker <fweisbec@gmail.com> wrote:
-> On Fri, Sep 13, 2013 at 03:50:07PM -0700, Kevin Hilman wrote:
->> Frederic Weisbecker <fweisbec@gmail.com> writes:
->>
->> > On Tue, Sep 10, 2013 at 08:07:45AM -0700, Kevin Hilman wrote:
->> >> Nicolas Pitre <nicolas.pitre@linaro.org> writes:
->> >>
->> >> > Adding Kevin Hilman to the CC as he might be interested as well.
->> >>
->> >> Thanks, I'd already noticed this but was distracted getting arm-soc
->> >> changes ready for the merge window.  Looking into it now.
->> >
->> > Kevin, can you please try this patch? It built tested fine on ARM
->> > and live tested correctly on x86. There should be no problem but
->> > just in case.
->>
->> Tested-by: Kevin Hilman <khilman@linaro.org>
->>
->> Things are back to working again on ARM.  Thanks for the fix, and for
->> build testing on ARM.
->>
->> As you noticed to test on ARM, we still have to carry that patch to
->> drop that 'depends on 64BIT' in order to build/test this... any more
->> thoughts on what the remaining obstacles there are?
+On Mon, Sep 16, 2013 at 5:01 PM, Sebastian Reichel <sre@debian.org> wrote:
+> Hi,
 >
-> I was mostly fine with your last patchset that enabled that +
-> a few stuff to make it working on ARM. There were just a few details
-> to polish. But I remember I sent detailed reviews, may be you missed them
-> somewhow?
+>> Is the Synchronous Serial Interface (SSI)  only supported by
+>> OMAP34xx/OMAP35xx SoC and not by OMAP36xx/OMAP37xx SoC?
+>>
+>> I'm asking this since if SSI is supported by both we should add the
+>> device nodes in omap3.dtsi instead of omap34xx.dtsi.
+>>
+>> I thought that all OMAP3 SoC supported SSI and all OMAP4 SoC supported
+>> HSI but I guess I was wrong...
+>
+> I just do not know. Information about the SSI core is not included
+> in the public OMAP TRM. It only lists the memory space as reserved.
+>
+> Thus I only included it in OMAP34xx, which is used in Nokia N900 and
+> must support SSI.
+>
 
-Hmm, looks like I missed those, but see them now.  I'll go back
-through those and respin/resend.
+I see... hopefully someone from TI can shed some light on this.
 
-Thanks,
+> -- Sebastian
+>
 
-Kevin
+Best regards,
+Javier
