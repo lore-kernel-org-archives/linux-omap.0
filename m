@@ -1,91 +1,121 @@
-From: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v2 0/2] DMM DT adaptation
-Date: Mon, 16 Sep 2013 14:30:31 +0300
-Message-ID: <5236EBD7.1020405@ti.com>
-References: <1379063679-4869-1-git-send-email-archit@ti.com> <1379323815-14130-1-git-send-email-archit@ti.com>
+From: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v3] ARM: EDMA: Fix clearing of unused list for DT DMA
+	resources
+Date: Mon, 16 Sep 2013 17:18:27 +0530
+Message-ID: <5236F00B.5040605@ti.com>
+References: <1378839171-14455-1-git-send-email-joelf@ti.com>
+	<5231903F.7080301@ti.com> <5233B471.40603@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="KqnknAdQMdwjKBN2gnf8fOMc5wt6cRist"
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1379323815-14130-1-git-send-email-archit-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Archit Taneja <archit-l0cyMroinI0@public.gmane.org>
-Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robdclark-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <davinci-linux-open-source-bounces+gld-davinci-linux-open-source=gmane.org-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+In-Reply-To: <5233B471.40603-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
+List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
+List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
+Sender: <davinci-linux-open-source-bounces+gld-davinci-linux-open-source=gmane.org-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+Errors-To: davinci-linux-open-source-bounces+gld-davinci-linux-open-source=gmane.org-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+To: joelf-l0cyMroinI0@public.gmane.org
+Cc: Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Koen Kooi <koen-hcmAuCOw+vXj4SYmN/TMmA@public.gmane.org>, Jyri Sarah <jsarha-l0cyMroinI0@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Dan Williams <djbw-b10kYP2dOMg@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
---KqnknAdQMdwjKBN2gnf8fOMc5wt6cRist
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Hi Joel,
 
-On 16/09/13 12:30, Archit Taneja wrote:
-> The DMM/Tiler block can used by omapdrm to allocate frame buffers. With=
- the
-> removal of address and irq data from the omap4 hwmods, the probe of DMM=
- driver
-> fails and omapdrm isn't able to utilize the DMM hardware.
->=20
-> Add DMM bindings for omap4 and omap5.
->=20
-> Changes in v2:
-> - No changes, split out into a separate series containing only DT relat=
-ed parts.
->=20
-> Archit Taneja (2):
->   arm: dts: omap4+: Add DMM bindings
->   drm: omap: Enable DT support for DMM
+On Saturday 14 September 2013 06:27 AM, Joel Fernandes wrote:
+> From: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>
+> Subject: [PATCH v4] ARM: EDMA: Fix clearing of unused list for DT DMA resources
+> 
+> HWMOD removal for MMC is breaking edma_start as the events are being manually
+> triggered due to unused channel list not being clear.
+> 
+> This patch fixes the issue, by reading the "dmas" property from the DT node if
+> it exists and clearing the bits in the unused channel list. For this purpose
+> we use the of_* helpers to parse the arguments in the dmas phandle list.
+> 
+> Reviewed-by: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+> Reported-by: Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>
+> Cc: Pantel Antoniou <panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>
+> Signed-off-by: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>
+> ---
+> Changes since v1, in v2 and v3:
+> - Reduced indentation of non-of case by returning from of-case
+> - Using of_* helpers for parsing
+> 
+> Note:
+> This patch should go into the merge window as it is a critical bug fix.
 
-This is not an objection as such, but I just want to point out that DMM
-is part of the memory subsystem, and Tiler is part of DMM. So it's not
-linked to the display subsystem in any way. And with a quick glance to
-the TRM, DMM manages _all_ accesses to system memory.
+I still cannot find any users of edma in the device tree sources either
+in linux-next or linus/master. Why cannot this wait until v3.13?
 
-In that sense, having a "DMM" driver as part of omapdrm is quite wrong.
-If it was just a "Tiler" driver, it'd be better, but still wrong.
+> 
+>  arch/arm/common/edma.c | 23 +++++++++++++++++++++--
+>  1 file changed, 21 insertions(+), 2 deletions(-)
+> 
+> diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
+> index 39ad030..43c7b22 100644
+> --- a/arch/arm/common/edma.c
+> +++ b/arch/arm/common/edma.c
+> @@ -560,14 +560,33 @@ static int reserve_contiguous_slots(int ctlr, unsigned int
+> id,
+>  static int prepare_unused_channel_list(struct device *dev, void *data)
+>  {
+>  	struct platform_device *pdev = to_platform_device(dev);
+> -	int i, ctlr;
+> +	int i, count, ctlr;
+> +	struct of_phandle_args  dma_spec;
+> 
+> +	if (dev->of_node) {
+> +		count = of_property_count_strings(dev->of_node, "dma-names");
+> +		if (count < 0)
+> +			return 0;
+> +		for (i = 0; i < count; i++) {
+> +			if (of_parse_phandle_with_args(dev->of_node, "dmas",
+> +						       "#dma-cells", i,
+> +						       &dma_spec))
+> +				continue;
 
-That said, if I remember right I brought this point up long ago, and it
-was pointed out that only the Tiler part of DMM is configured at
-runtime, and more or less all the registers of DMM are about Tiler. And
-only omapdrm uses the Tiler. Thus it was deemed ok to have the DMM
-driver in omapdrm.
+This will break for the case where devices on platform bus use non-EDMA
+dma controllers like SDMA or CPPI (DRA7x has both EDMA and SDMA on the
+same chip). You need to do an additional check to make sure the dma
+controller is indeed EDMA. Something like.
 
-I'd still rather have tiler as a separate driver, but that's a separate
-issue from this series.
+	if(!of_device_is_compatible(dma_spec.np, "ti,edma3"))
+		continue;
 
-So, after fixing the issues I pointed in the other mail:
+Don forget to call of_node_put() on dma_spec.np (something that needs to
+be done even with your current code).
 
-Acked-by: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
+> +
+> +			ctlr = EDMA_CTLR(dma_spec.args[0]);
+> +			clear_bit(EDMA_CHAN_SLOT(dma_spec.args[0]),
+> +				  edma_cc[ctlr]->edma_unused);
 
- Tomi
+We don't support the second controller when using DT and the controller
+number is not really encoded in the argument to edma phandle. So just
+simplify this to:
 
+	clear_bit(EDMA_CHAN_SLOT(dma_spec.args[0]), 	
+		  edma_cc[0]->edma_unused);
 
+> +		}
+> +		return 0;
+> +	}
+> +
+> +	/* For non-OF case */
+>  	for (i = 0; i < pdev->num_resources; i++) {
+>  		if ((pdev->resource[i].flags & IORESOURCE_DMA) &&
+>  				(int)pdev->resource[i].start >= 0) {
+>  			ctlr = EDMA_CTLR(pdev->resource[i].start);
+>  			clear_bit(EDMA_CHAN_SLOT(pdev->resource[i].start),
+> -					edma_cc[ctlr]->edma_unused);
+> +				  edma_cc[ctlr]->edma_unused);
 
---KqnknAdQMdwjKBN2gnf8fOMc5wt6cRist
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+This is a useful change and I am okay with it happening in this
+otherwise unrelated patch, but please mention this in changelog.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJSNuvXAAoJEPo9qoy8lh71c+MP/2LE4gOhsIQuj/V/E7w4oNSX
-oLlPtUsOwYXkfpVU81o8KQabKCxYRlpFAPS15z3KnBt4okqs6MQvWemN36bDyzPf
-CmsUwfm8Oc73rIPYl8SJVJBlpO2rjgGms8z9R/+XczgvVrM1/ZNfjva9h+ar3OX3
-6wZ+6D7kOPausb+fyiVStA/Na+/txck7laX5CATyjmLNkAafI4C6dg4K9qjL8gWa
-AjatbYlMZfWbY+5VoRAoMf97hVJd0FEHv/bOhfiM8e8TMilVTMGgbZA3p8uZD2QE
-haHW0LZF7DZJBVwR32g1RpaMid9VmyMOuv874EjcOKkBNhoXwccNe+XAnRp1jxpm
-xASgIhCGeqlbWiCDj4OcRF3T71hrrwHKRsNZDFuH7I/3M0/mKfFdpsxNLoRLbQs5
-1pgt1Ewsc/rCEIiVxmkQMI1Qp8j8i9uowvex1wBjfAD7+B2w7aCkPcUHRQyyUMPF
-thnOSR23eDl2nBhycyiWNsNxMt/Ib6keO11MhSImRxqYDBIE515GanU94Yedg+zP
-z3MX36sdGSZohphvjrz6QRUvWHiJJUW6+ver+iPIeIGNO9oKDVta8NOm0qAwprwt
-NxCdEhFeEqTcbqW/DbbtYGP1yni2z6S00lld3g9Mf2tLgaYRxJukzF7pUj0l0rqh
-vBOmAmLPixBxmZqgYyzc
-=xG06
------END PGP SIGNATURE-----
-
---KqnknAdQMdwjKBN2gnf8fOMc5wt6cRist--
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+Sekhar
