@@ -1,50 +1,56 @@
 From: Archit Taneja <archit@ti.com>
-Subject: Re: [PATCH v4 0/4] v4l: VPE mem to mem driver
-Date: Mon, 16 Sep 2013 12:29:50 +0530
-Message-ID: <5236AC66.8090201@ti.com>
-References: <1376996457-17275-1-git-send-email-archit@ti.com> <1378462346-10880-1-git-send-email-archit@ti.com>
+Subject: [PATCH v2 0/4] arm: omap: display: Ensure DRM/FB/V4L devices are created if DSS is available
+Date: Mon, 16 Sep 2013 12:48:27 +0530
+Message-ID: <1379315911-24634-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:46090 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:52954 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750828Ab3IPHAs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 16 Sep 2013 03:00:48 -0400
-In-Reply-To: <1378462346-10880-1-git-send-email-archit@ti.com>
+	id S1750938Ab3IPHT2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 16 Sep 2013 03:19:28 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, tomi.valkeinen@ti.com
+To: tomi.valkeinen@ti.com, tony@atomide.com
+Cc: linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-Hi Hans, Laurent,
+Currently, omapdrm, omapfb and omap_vout platform devices are created and
+registered through omap_arch_initcalls. In a multiplatform config. It's
+possible that all the corresponding configs for the above drivers along with
+omapdss config are selected even if the hardware doesn't have a DSS IP.
 
-On Friday 06 September 2013 03:42 PM, Archit Taneja wrote:
-> VPE(Video Processing Engine) is an IP found on DRA7xx, this series adds VPE as a
-> mem to mem v4l2 driver, and VPDMA as a helper library.
->
-> The first version of the patch series described VPE in detail, you can have a
-> look at it here:
->
-> http://www.spinics.net/lists/linux-media/msg66518.html
->
-> Changes in v4:
-> - Control ID for the driver reserved in v4l2-controls.h
-> - Some fixes/clean ups suggested by Hans.
-> - A small hack done in VPE's probe to use a fixed 64K resource size, this
->    is needed as the DT bindings will split the addresses accross VPE
->    submodules, the driver currently works with register offsets from the top
->    level VPE base. The driver can be modified later to support multiple
->    ioremaps of the sub modules.
-> - Addition of sync on channel descriptors for input DMA channels, this
->    ensures the VPDMA list is stalled in the rare case of an input channel's
->    DMA getting completed after all the output channel DMAs.
-> - Removed the DT and hwmod patches from this series. DRA7xx support is not
->    yet got in the 3.12 merge window. Will deal with those separately.
+If the image is booted on a AM33xx platform, the above drm, fb and v4l devices
+would be registered throuth the omap_arch_initcalls even if omapdss itself isn't
+registered. These platform devices don't cause any harm, but are unnecessary.
 
-I incorporated your comments and suggestions from the previous series. 
-Wanted to know if you think it looks good enough to get merged now?
+Move the registration of these devices into omap_display_init(), which registers
+omapdss devices and is called only if the platform has DSS hardware.
 
-Thanks!
-Archit
+Also, the first patch prevents creation of a DMM device when omapdrm device is
+registered. With the removal of address and irq data from the omap4 hwmods, the
+probe of DMM driver fails and omapdrm isn't able to utilize the DMM hardware.
+This will be fixed when DMM DT nodes are added for omap4, omap5 and dra7x.
+
+Changes in v2:
+- Move device creation for omapfb and omap_vout to omap_display_init too.
+- Keep the DMM DT conversion as a separate patch series since this series does
+  something different now.
+
+Archit Taneja (4):
+  arm: omap: drm: Don't build device for DMM
+  arm: omap: display: Create omapdrm device inside omap_display_init
+  arm: omap: display: Create omapvrfb and omapfb devices inside
+    omap_display_init
+  arm: omap: display: Create omap_vout device inside omap_display_init
+
+ arch/arm/mach-omap2/Makefile  |  6 +-----
+ arch/arm/mach-omap2/devices.c | 10 +++++-----
+ arch/arm/mach-omap2/display.c | 28 ++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/display.h |  4 ++++
+ arch/arm/mach-omap2/drm.c     | 24 +++++-------------------
+ arch/arm/mach-omap2/fb.c      | 14 +++++++-------
+ 6 files changed, 50 insertions(+), 36 deletions(-)
+
+-- 
+1.8.1.2
 
