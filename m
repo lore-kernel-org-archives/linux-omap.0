@@ -1,56 +1,56 @@
-From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH V2] ARM: dts: DRA7: provide arch-timer frequenecy parameter
-Date: Tue, 17 Sep 2013 12:01:28 -0500
-Message-ID: <1379437288-10831-1-git-send-email-nm@ti.com>
-References: <5238899D.60903@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: PCF857x and 16-bit GPIO expanders
+Date: Tue, 17 Sep 2013 14:07:32 -0500
+Message-ID: <20130917190732.GD15645@radagast>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5238899D.60903-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, santosh.shilimkar-l0cyMroinI0@public.gmane.org, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, R Sricharan <r.sricharan-l0cyMroinI0@public.gmane.org>, Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>, Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="27KoNqt0fmcl1zj/"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: linus.walleij@linaro.org, linux-gpio@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-CNTFREQ isn't pre-programmed on DRA7 just like O5, so provide the
-timer frequency via DT. Without a valid value arch_timer_init results
-in div0 crash.
+--27KoNqt0fmcl1zj/
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Cc: R Sricharan <r.sricharan-l0cyMroinI0@public.gmane.org>
-Cc: Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>
-Cc: Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>
+Hi,
 
-Acked-by: Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
-Signed-off-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
----
+has anyone ever successfully using gpio-pcf857x.c driver with 16-bit
+gpio expanders ? We're having some issues here where toggling the last
+gpio pin (gpio 15) on a PCF8575 device causes platform to hang and I
+can't come up with any explanation of why would it hang...
 
-Based on Benoit's for_3.13/dts branch. 
-http://git.kernel.org/cgit/linux/kernel/git/bcousson/linux-omap-dt.git/log/?h=for_3.13/dts
+Any hints ?
 
-Crash log: http://pastebin.com/B2sDauS9
+cheers
 
-V2: commit message update
-V1: https://patchwork.kernel.org/patch/2903261/
+--=20
+balbi
 
- arch/arm/boot/dts/dra7.dtsi |    1 +
- 1 file changed, 1 insertion(+)
+--27KoNqt0fmcl1zj/
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index c98997b..71c2749 100644
---- a/arch/arm/boot/dts/dra7.dtsi
-+++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -50,6 +50,7 @@
- 			     <GIC_PPI 14 (GIC_CPU_MASK_SIMPLE(2) | IRQ_TYPE_LEVEL_LOW)>,
- 			     <GIC_PPI 11 (GIC_CPU_MASK_SIMPLE(2) | IRQ_TYPE_LEVEL_LOW)>,
- 			     <GIC_PPI 10 (GIC_CPU_MASK_SIMPLE(2) | IRQ_TYPE_LEVEL_LOW)>;
-+		clock-frequency = <6144000>;
- 	};
- 
- 	gic: interrupt-controller@48211000 {
--- 
-1.7.9.5
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+iQIcBAEBAgAGBQJSOKh0AAoJEIaOsuA1yqREFPQP+gKwfBNTzmxv3avpe6HwkPdP
+WE2RIXnJ+S4iaM8yeCD5Y9AyfaPn9VUlq+WiHPgeGB2xbs4N2hKo3BjRemWqh8qr
+HKBPeyQ7sg2zfawAkDsnp4hgIiAR6p5s34TtGN9kcWQ2TEuUnooDu6BQl+V81QIs
+m047GVXPOAOShBk8sbDT2TZfMEtoB+6uzcRVKZPupX0VGerYb6xcTzCuPEcNk2vn
+YZCG0Fh9S8SbtiOio3nx7V92d0NCvrN0Xe0HGhXUT6bkImsXsiaIUaJfdd3frXYU
+GiEWKjefCyAYkrmml6btNTnnhukJhqNjWVUP5yUlAuXIYhCES5kLIm7auVo+E9yw
+btI+dIQRdH+f1pNh+s1tLrw1wXVUm9VZvb9D6vM2rlPvpruVH3BMydOOWQetiVvw
+LhhnNjFeX7UX6PhhAhhOAbZ8W4hAIoJcfQgowoOra/hRaXuH9dVphpGBVugZY12Z
+uuiUIRd7XuWcMoElvecUaWnU7+ckf8psuYFHkPmxNCdlq+1I4pt00aBqI9A/N+pv
+dc296mOTlpeC2IuwHVHn8+uNfEunFCPYo9Tm3IVVqqxWF5caw5nqJcTNCcBxPQNt
+QEnKc9s3C4oXqa89QXby0nR9RClTG+BF71tx/CXCU96w9yBVocMTeIBhy5JQiCZ/
+TbSQIHJXefP13erBinOP
+=LRSi
+-----END PGP SIGNATURE-----
+
+--27KoNqt0fmcl1zj/--
