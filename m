@@ -1,73 +1,97 @@
-From: Benoit Cousson <bcousson@baylibre.com>
-Subject: Re: [PATCH v4 0/2] ARM: dts: Beaglebone MMC fixes
-Date: Tue, 17 Sep 2013 15:30:23 +0200
-Message-ID: <5238596F.9080806@baylibre.com>
-References: <1379010935-25943-1-git-send-email-koen@dominion.thruhere.net>
+From: Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCHv3 2/8] mailbox/omap: add support for parsing dt devices
+Date: Tue, 17 Sep 2013 15:44:33 +0200
+Message-ID: <52385CC1.7040908@baylibre.com>
+References: <1375825216-18119-1-git-send-email-s-anna@ti.com> <BB39592C-0DAC-49A4-A782-583D7EB858AF@codeaurora.org> <52027CDC.8080205@ti.com> <FF52B913-A5AB-4516-BDA6-ED0BCFFBD4D1@codeaurora.org> <5202A927.4030708@ti.com> <CE2B6412-870F-4B43-9466-BE291E4E7210@codeaurora.org> <5203BCEE.9090902@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1379010935-25943-1-git-send-email-koen@dominion.thruhere.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Koen Kooi <koen@dominion.thruhere.net>
-Cc: linux-kernel@vger.kernel.org, tony@atomide.com, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ijc+devicetree@hellion.org.uk, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <5203BCEE.9090902-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+Cc: Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, Jassi Brar <jaswinder.singh-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Koen,
+Hi Suman,
 
-On 12/09/2013 20:35, Koen Kooi wrote:
-> Here are two patches to fix MMC on beaglebone, one fixes card detect on BBW,
-> the other adds the eMMC entry for BBB and its fixed regulator. After that mmc1
-> gets a nice speed boost by moving to 4-bit mode and LED triggers get assigned.
+On 08/08/2013 17:44, Suman Anna wrote:
+> On 08/08/2013 09:34 AM, Kumar Gala wrote:
+>>
+>> On Aug 7, 2013, at 3:08 PM, Suman Anna wrote:
+>>
+>>> On 08/07/2013 12:41 PM, Kumar Gala wrote:
+>>>>
+>>>> On Aug 7, 2013, at 11:59 AM, Suman Anna wrote:
+>>>>
+>>>>> Kumar,
+>>>>>
+>>>>>>> Logic has been added to the OMAP2+ mailbox code to
+>>>>>>> parse the mailbox dt nodes and construct the different
+>>>>>>> mailboxes associated with the instance. The design is
+>>>>>>> based on gathering the same information that was being
+>>>>>>> passed previously through the platform data, except for
+>>>>>>> the interrupt type configuration information.
+>>>>>>>
+>>>>>>> Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+>>>>>>> ---
+>>>>>>> .../devicetree/bindings/mailbox/omap-mailbox.txt   |  43 +++++++
+>>>>>>> drivers/mailbox/mailbox-omap2.c                    | 130 ++++++++++++++++++---
+>>>>>>> 2 files changed, 158 insertions(+), 15 deletions(-)
+>>>>>>> create mode 100644 Documentation/devicetree/bindings/mailbox/omap-mailbox.txt
+>>>>>>>
+>>>>>>> diff --git a/Documentation/devicetree/bindings/mailbox/omap-mailbox.txt b/Documentation/devicetree/bindings/mailbox/omap-mailbox.txt
+>>>>>>> new file mode 100644
+>>>>>>> index 0000000..8ffb08a
+>>>>>>> --- /dev/null
+>>>>>>> +++ b/Documentation/devicetree/bindings/mailbox/omap-mailbox.txt
+>>>>>>> @@ -0,0 +1,43 @@
+>>>>>>> +OMAP2+ Mailbox Driver
+>>>>>>> +
+>>>>>>> +Required properties:
+>>>>>>> +- compatible:		Should be one of the following,
+>>>>>>> +			    "ti,omap2-mailbox" for
+>>>>>>> +				OMAP2420, OMAP2430, OMAP3430, OMAP3630 SoCs
+>>>>>>> +			    "ti,omap4-mailbox" for
+>>>>>>> +				OMAP44xx, OMAP54xx, AM33xx, AM43xx, DRA7xx SoCs
+>>>>>>> +- reg:			Contains the mailbox register address range (base address
+>>>>>>> +			and length)
+>>>>>>> +- interrupts: 		Contains the interrupt information for the mailbox
+>>>>>>> +			device. The format is dependent on which interrupt
+>>>>>>> +			controller the OMAP device uses
+>>>>>>> +- ti,hwmods:		Name of the hwmod associated with the mailbox
+>>>>>>> +- ti,mbox-num-users:	Number of targets (processor devices) that the mailbox device
+>>>>>>> +			can interrupt
+>>>>>>> +- ti,mbox-num-fifos:	Number of h/w fifos within the mailbox device
+>>>>>>
+>>>>>> Isn't "ti,mbox-num-users", "ti,mbox-num-fifos" this SoC specific, why do we need to encode in the device tree.  Can we not have a more SoC specific compatiable and encode such info in the driver as part of the .data field in of_device_id ?
+>>>>>
+>>>>> They are IP design parameters for the number of h/w fifos and interrupts
+>>>>> coming out of the IP block, with the functionality identical. This
+>>>>> information could not be read from any registers. Until OMAP5, we always
+>>>>> had a single IP in the SoC and so these could been encoded in the
+>>>>> driver. But in DRA7xx, a new SoC, we have 13 mailboxes which have
+>>>>> differing number of these properties even though the functional IP block
+>>>>> is same.
+>>>>
+>>>> Ah, I see.  Since you've got examples of the same IP with different design params in a given SoC than this makes sense.
+>>>>
+>>>> Is that true of ti,mbox-num-users?
+>>>
+>>> Yes, it is true of both "ti,mbox-num-users" and "ti,mbox-num-fifos".
+>>
+>> So I think it would be good to update the binding to convey that SoCs might have multiple mbox units w/different design pararms (maybe a short blurb as part of the intro).
 >
-> This series depends on:
->
-> http://comments.gmane.org/gmane.linux.kernel.stable/63648
-> https://lkml.org/lkml/2013/9/10/454
-> http://comments.gmane.org/gmane.linux.kernel.mmc/22381
+> Sure will do. Will wait for Benoit also to come back on this series if I
+> need to address any further review comments.
 
-I've just applied it on top of Joel's one.
+I had the same concern than Kumar originally, so if nobody has anymore 
+complain with this binding, that fine to me. At least for the DTS part.
 
-Thanks,
+Regards,
 Benoit
 
->
-> Or as git-cherry would put it:
->
-> [koen@rrMBP patches]$ git cherry -v
-> + 564fc88cc64387af5312e2abd8019c75a13223b2 ARM: OMAP2+: am335x-bone*: add DT for BeagleBone Black
-> + e5133ed98acc1c3e01c370b851041a8ca629cd15 ARM: EDMA: Fix clearing of unused list for DT DMA resources
-> + ac71bb58605d3bdd5d14af770a639fb3ff11c612 ARM: dts: add AM33XX EDMA support
-> + 31a8270a299c57c7de7510f44d9dc36fd1787243 ARM: dts: add AM33XX SPI DMA support
-> + 4fa0a4cb9ea17da30cf43085c03e5ec1361a4fc2 ARM: dts: add AM33XX MMC support and documentation
-> + 0553f50bd45f019a0cc11050e2f20bddbf07dfe0 ARM: dts: am335x-bone: add CD for mmc1
-> + 7d64f765630a2921a63b82f93f9959a6de37f29d ARM: dts: am335x-boneblack: add eMMC DT entry
-> + dc96cd4003e2668d8ec7e7fe19e402e97a198f81 ARM: dts: am335x-bone-common: switch mmc1 to 4-bit mode
-> + f8262e78830cda56c936724549ba9f04dddde312 ARM: dts: am335x-bone-common: add cpu0 and mmc1 triggers
->
-> Also available as a git branch at https://github.com/koenkooi/linux/commits/mainline
->
-> Changes since v3:
-> 	Addressed Nishants nitpicks for commit messages
-> 	Addressed Russ' comments about moving LDO3 for mmc1 out of the common dtsi
->
-> Changes since v2:
-> 	Missing pinmux entries for eMMC added
->
-> Changes since v1:
-> 	Removed ti,non-removable entry from eMMC node, see http://marc.info/?l=linux-arm-kernel&m=137889435710552&w=2
-> ---
->
-> Alexander Holler (1):
->    arm: bone: dts: add CD for mmc1
->
-> Koen Kooi (3):
->    am335x-boneblack: add eMMC DT entry
->    ARM: am335x-bone-common: switch mmc1 to 4-bit mode
->    ARM: dts: am335x-bone-common: add cpu0 and mmc1 triggers
->
->   arch/arm/boot/dts/am335x-bone-common.dtsi | 39 +++++++++++++++++++++++++++++++
->   arch/arm/boot/dts/am335x-bone.dts         |  1 -
->   arch/arm/boot/dts/am335x-boneblack.dts    | 14 +++++++++++
->   3 files changed, 53 insertions(+), 1 deletion(-)
->
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
