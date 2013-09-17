@@ -1,51 +1,41 @@
 From: Suman Anna <s-anna@ti.com>
-Subject: [PATCHv2 9/9] ARM: AM33xx: hwmod_data: add the sysc configuration for spinlock
-Date: Tue, 17 Sep 2013 14:31:26 -0500
-Message-ID: <760966ea7566835b151043bf1d806803c8b9f9c8.1379445653.git.s-anna@ti.com>
+Subject: [PATCHv2 8/9] ARM: dts: AM33XX: Add hwspinlock node
+Date: Tue, 17 Sep 2013 14:31:22 -0500
+Message-ID: <c947403dc42a6966c5dbe82fa5284043b25e9345.1379445653.git.s-anna@ti.com>
 References: <cover.1379445653.git.s-anna@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1379445653.git.s-anna@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Ohad Ben-Cohen <ohad@wizery.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>, Kumar Gala <galak@codeaurora.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Suman Anna <s-anna@ti.com>
+To: Benoit Cousson <bcousson@baylibre.com>
+Cc: Ohad Ben-Cohen <ohad@wizery.com>, Tony Lindgren <tony@atomide.com>, Kumar Gala <galak@codeaurora.org>, Paul Walmsley <paul@pwsan.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Suman Anna <s-anna@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Add the missing sysc configuration to the AM335 spinlock hwmod
-data. This ensures that smart-idle is enabled whenever the module
-is enabled by the driver.
+Add the hwspinlock device tree node for AM33xx family
+of SoCs.
 
 Signed-off-by: Suman Anna <s-anna@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_33xx_data.c | 13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ arch/arm/boot/dts/am33xx.dtsi | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-index 215894f..1084f2c 100644
---- a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-@@ -1278,8 +1278,21 @@ static struct omap_hwmod am33xx_spi1_hwmod = {
-  * spinlock provides hardware assistance for synchronizing the
-  * processes running on multiple processors
-  */
-+
-+static struct omap_hwmod_class_sysconfig am33xx_spinlock_sysc = {
-+	.rev_offs	= 0x0000,
-+	.sysc_offs	= 0x0010,
-+	.syss_offs	= 0x0014,
-+	.sysc_flags	= (SYSC_HAS_AUTOIDLE | SYSC_HAS_CLOCKACTIVITY |
-+			   SYSC_HAS_ENAWAKEUP | SYSC_HAS_SIDLEMODE |
-+			   SYSC_HAS_SOFTRESET | SYSS_HAS_RESET_STATUS),
-+	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
-+	.sysc_fields	= &omap_hwmod_sysc_type1,
-+};
-+
- static struct omap_hwmod_class am33xx_spinlock_hwmod_class = {
- 	.name		= "spinlock",
-+	.sysc		= &am33xx_spinlock_sysc,
- };
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index f9c5da9..4371257 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -228,6 +228,12 @@
+ 			status = "disabled";
+ 		};
  
- static struct omap_hwmod am33xx_spinlock_hwmod = {
++		hwspinlock: spinlock@480ca000 {
++			compatible = "ti,omap4-hwspinlock";
++			reg = <0x480ca000 0x1000>;
++			ti,hwmods = "spinlock";
++		};
++
+ 		wdt2: wdt@44e35000 {
+ 			compatible = "ti,omap3-wdt";
+ 			ti,hwmods = "wd_timer2";
 -- 
 1.8.3.3
