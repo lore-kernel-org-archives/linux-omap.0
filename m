@@ -1,46 +1,50 @@
-From: Afzal Mohammed <afzal@ti.com>
+From: Nishanth Menon <nm@ti.com>
 Subject: Re: [PATCH RFC v3 08/12] ARM: OMAP2+: CM: AM43x clockdomain data
-Date: Tue, 17 Sep 2013 20:01:09 +0530
-Message-ID: <523867AD.9080905@ti.com>
-References: <cover.1379337301.git.afzal@ti.com> <5dd3b417a32b7d52c7de1e19e69e6100b1ed991b.1379337301.git.afzal@ti.com> <52372317.3000901@ti.com>
+Date: Tue, 17 Sep 2013 09:33:40 -0500
+Message-ID: <52386844.9070501@ti.com>
+References: <cover.1379337301.git.afzal@ti.com> <5dd3b417a32b7d52c7de1e19e69e6100b1ed991b.1379337301.git.afzal@ti.com> <52372317.3000901@ti.com> <523867AD.9080905@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:43941 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752528Ab3IQObl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 17 Sep 2013 10:31:41 -0400
-In-Reply-To: <52372317.3000901@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:38743 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752854Ab3IQOeF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Sep 2013 10:34:05 -0400
+In-Reply-To: <523867AD.9080905@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
+To: Afzal Mohammed <afzal@ti.com>
 Cc: Paul Walmsley <paul@pwsan.com>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Ambresh K <ambresh@ti.com>
 
-Hi Nishant,
-
-On Monday 16 September 2013 08:56 PM, Nishanth Menon wrote:
-> On 09/16/2013 08:48 AM, Afzal Mohammed wrote:
-
->> From: Ambresh K <ambresh@ti.com>
->>
->> Add the data file to describe clock domains in AM43x SoC.
->> OMAP4 clockdomain operations is being reused here.
->>
->> Signed-off-by: Ambresh K <ambresh@ti.com>
->> Signed-off-by: Afzal Mohammed <afzal@ti.com>
->> ---
->>  arch/arm/mach-omap2/clockdomain.h           |   2 +
->>  arch/arm/mach-omap2/clockdomains43xx_data.c | 199 ++++++++++++++++++++++++++++
->>  arch/arm/mach-omap2/cminst44xx.c            |   9 ++
->>  3 files changed, 210 insertions(+)
->>  create mode 100644 arch/arm/mach-omap2/clockdomains43xx_data.c
+On 09/17/2013 09:31 AM, Afzal Mohammed wrote:
+> Hi Nishant,
 > 
-> I suggest we drop this. this can be addressed by Tero's clk series.
+> On Monday 16 September 2013 08:56 PM, Nishanth Menon wrote:
+>> On 09/16/2013 08:48 AM, Afzal Mohammed wrote:
+> 
+>>> From: Ambresh K <ambresh@ti.com>
+>>>
+>>> Add the data file to describe clock domains in AM43x SoC.
+>>> OMAP4 clockdomain operations is being reused here.
+>>>
+>>> Signed-off-by: Ambresh K <ambresh@ti.com>
+>>> Signed-off-by: Afzal Mohammed <afzal@ti.com>
+>>> ---
+>>>  arch/arm/mach-omap2/clockdomain.h           |   2 +
+>>>  arch/arm/mach-omap2/clockdomains43xx_data.c | 199 ++++++++++++++++++++++++++++
+>>>  arch/arm/mach-omap2/cminst44xx.c            |   9 ++
+>>>  3 files changed, 210 insertions(+)
+>>>  create mode 100644 arch/arm/mach-omap2/clockdomains43xx_data.c
+>>
+>> I suggest we drop this. this can be addressed by Tero's clk series.
+> 
+> Probably you misunderstood clock domain data as clock data, as Tero's
+> series does not take care of clock domain data, we would require this.
 
-Probably you misunderstood clock domain data as clock data, as Tero's
-series does not take care of clock domain data, we would require this.
+Arrgh.. yes - my bad. thanks for clarifying.
 
-Regards
-Afzal
 
+-- 
+Regards,
+Nishanth Menon
