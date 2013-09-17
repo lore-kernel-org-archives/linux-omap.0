@@ -1,675 +1,810 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [PATCH 02/11] omapdss: HDMI: create a HDMI PLL library
-Date: Tue, 17 Sep 2013 12:36:28 +0530
-Message-ID: <1379401597-27222-3-git-send-email-archit@ti.com>
+Subject: [PATCH 04/11] omapdss: HDMI: Use OMAP4 HDMI core functions directly and remove hdmi_ip_ops
+Date: Tue, 17 Sep 2013 12:36:30 +0530
+Message-ID: <1379401597-27222-5-git-send-email-archit@ti.com>
 References: <1379401597-27222-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:34365 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:49155 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752129Ab3IQHHh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 17 Sep 2013 03:07:37 -0400
+	id S1752184Ab3IQHHn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 17 Sep 2013 03:07:43 -0400
 In-Reply-To: <1379401597-27222-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@ti.com
 Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-HDMI PLL is a block common to DSS in OMAP4, OMAP5 and DRA7x. Move the
-existing PLL functions from ti_hdmi_4xxx_ip.c and hdmi.c to a separate file.
-These funcs are called directly from the hdmi driver rather than hdmi_ip_ops
-function pointer calls.
+After removing wrapper, pll and phy funcs from ti_hdmi_4xxx_ip.c, we are left
+with OMAP4 HDMI core functions. Use these directly in hdmi.c rather than using
+hdmi_ip_ops. Rename the core functions with a 'hdmi4' suffix.
 
-Add the PLL library function declarations to ti_hdmi.h. These will be shared
-amongst the omap4/5 hdmi platform drivers. Remove the PLL function pointer ops
-from the ti_hdmi_ip_ops struct. These will be shared amongst the omap4/5 hdmi
-platform drivers and other libraries.
+We used to have hdmi_ip_ops so that one could support HDMI within a TI SoC which
+had a non-DSS display subsytem. This however never got put into use, and hence
+these ops aren't useful any more.
 
 Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- drivers/video/omap2/dss/Makefile          |   2 +-
- drivers/video/omap2/dss/dss_features.c    |   3 -
- drivers/video/omap2/dss/hdmi.c            |  65 ++------
- drivers/video/omap2/dss/hdmi_pll.c        | 243 ++++++++++++++++++++++++++++++
- drivers/video/omap2/dss/ti_hdmi.h         |  25 +--
- drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c | 132 ----------------
- 6 files changed, 267 insertions(+), 203 deletions(-)
- create mode 100644 drivers/video/omap2/dss/hdmi_pll.c
+ drivers/video/omap2/dss/dss_features.c    |  33 -----
+ drivers/video/omap2/dss/dss_features.h    |   8 --
+ drivers/video/omap2/dss/hdmi.c            |  27 ++--
+ drivers/video/omap2/dss/ti_hdmi.h         |  41 +-----
+ drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c | 205 ++++++++++++++++--------------
+ drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h |  14 ++
+ 6 files changed, 144 insertions(+), 184 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/Makefile b/drivers/video/omap2/dss/Makefile
-index 56ce6bd..5ea65d3 100644
---- a/drivers/video/omap2/dss/Makefile
-+++ b/drivers/video/omap2/dss/Makefile
-@@ -10,5 +10,5 @@ omapdss-$(CONFIG_OMAP2_DSS_RFBI) += rfbi.o
- omapdss-$(CONFIG_OMAP2_DSS_VENC) += venc.o
- omapdss-$(CONFIG_OMAP2_DSS_SDI) += sdi.o
- omapdss-$(CONFIG_OMAP2_DSS_DSI) += dsi.o
--omapdss-$(CONFIG_OMAP4_DSS_HDMI) += hdmi.o hdmi_wp.o ti_hdmi_4xxx_ip.o
-+omapdss-$(CONFIG_OMAP4_DSS_HDMI) += hdmi.o hdmi_wp.o hdmi_pll.o ti_hdmi_4xxx_ip.o
- ccflags-$(CONFIG_OMAP2_DSS_DEBUG) += -DDEBUG
 diff --git a/drivers/video/omap2/dss/dss_features.c b/drivers/video/omap2/dss/dss_features.c
-index db359e8..9ee92e9 100644
+index 2777eb6..f8fd6db 100644
 --- a/drivers/video/omap2/dss/dss_features.c
 +++ b/drivers/video/omap2/dss/dss_features.c
-@@ -797,10 +797,7 @@ static const struct ti_hdmi_ip_ops omap4_hdmi_functions = {
- 	.phy_enable		=	ti_hdmi_4xxx_phy_enable,
- 	.phy_disable		=	ti_hdmi_4xxx_phy_disable,
- 	.read_edid		=	ti_hdmi_4xxx_read_edid,
--	.pll_enable		=	ti_hdmi_4xxx_pll_enable,
--	.pll_disable		=	ti_hdmi_4xxx_pll_disable,
- 	.dump_core		=	ti_hdmi_4xxx_core_dump,
--	.dump_pll		=	ti_hdmi_4xxx_pll_dump,
- 	.dump_phy		=	ti_hdmi_4xxx_phy_dump,
- #if defined(CONFIG_OMAP4_DSS_HDMI_AUDIO)
- 	.audio_start		=       ti_hdmi_4xxx_audio_start,
+@@ -789,39 +789,6 @@ static const struct omap_dss_features omap5_dss_features = {
+ 	.burst_size_unit = 16,
+ };
+ 
+-#if defined(CONFIG_OMAP4_DSS_HDMI)
+-/* HDMI OMAP4 Functions*/
+-static const struct ti_hdmi_ip_ops omap4_hdmi_functions = {
+-
+-	.video_configure	=	ti_hdmi_4xxx_basic_configure,
+-	.read_edid		=	ti_hdmi_4xxx_read_edid,
+-	.dump_core		=	ti_hdmi_4xxx_core_dump,
+-#if defined(CONFIG_OMAP4_DSS_HDMI_AUDIO)
+-	.audio_start		=       ti_hdmi_4xxx_audio_start,
+-	.audio_stop		=       ti_hdmi_4xxx_audio_stop,
+-	.audio_config		=	ti_hdmi_4xxx_audio_config,
+-	.audio_get_dma_port	=	ti_hdmi_4xxx_audio_get_dma_port,
+-#endif
+-
+-};
+-
+-void dss_init_hdmi_ip_ops(struct hdmi_ip_data *ip_data,
+-		enum omapdss_version version)
+-{
+-	switch (version) {
+-	case OMAPDSS_VER_OMAP4430_ES1:
+-	case OMAPDSS_VER_OMAP4430_ES2:
+-	case OMAPDSS_VER_OMAP4:
+-		ip_data->ops = &omap4_hdmi_functions;
+-		break;
+-	default:
+-		ip_data->ops = NULL;
+-	}
+-
+-	WARN_ON(ip_data->ops == NULL);
+-}
+-#endif
+-
+ /* Functions returning values related to a DSS feature */
+ int dss_feat_get_num_mgrs(void)
+ {
+diff --git a/drivers/video/omap2/dss/dss_features.h b/drivers/video/omap2/dss/dss_features.h
+index 489b9be..10b0556 100644
+--- a/drivers/video/omap2/dss/dss_features.h
++++ b/drivers/video/omap2/dss/dss_features.h
+@@ -20,10 +20,6 @@
+ #ifndef __OMAP2_DSS_FEATURES_H
+ #define __OMAP2_DSS_FEATURES_H
+ 
+-#if defined(CONFIG_OMAP4_DSS_HDMI)
+-#include "ti_hdmi.h"
+-#endif
+-
+ #define MAX_DSS_MANAGERS	4
+ #define MAX_DSS_OVERLAYS	4
+ #define MAX_DSS_LCD_MANAGERS	3
+@@ -117,8 +113,4 @@ bool dss_feat_rotation_type_supported(enum omap_dss_rotation_type rot_type);
+ bool dss_has_feature(enum dss_feat_id id);
+ void dss_feat_get_reg_field(enum dss_feat_reg_field id, u8 *start, u8 *end);
+ void dss_features_init(enum omapdss_version version);
+-#if defined(CONFIG_OMAP4_DSS_HDMI)
+-void dss_init_hdmi_ip_ops(struct hdmi_ip_data *ip_data,
+-		enum omapdss_version version);
+-#endif
+ #endif
 diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/dss/hdmi.c
-index f2475fc..f6a2eba 100644
+index f7e2ac6..0e9ecd6 100644
 --- a/drivers/video/omap2/dss/hdmi.c
 +++ b/drivers/video/omap2/dss/hdmi.c
-@@ -42,7 +42,6 @@
+@@ -37,12 +37,10 @@
+ #include <video/omapdss.h>
  
- #define HDMI_CORE_SYS		0x400
- #define HDMI_CORE_AV		0x900
--#define HDMI_PLLCTRL		0x200
- #define HDMI_PHY		0x300
+ #include "ti_hdmi.h"
++#include "ti_hdmi_4xxx_ip.h"
+ #include "dss.h"
+ #include "dss_features.h"
  
+-#define HDMI_CORE_SYS		0x400
+-#define HDMI_CORE_AV		0x900
+-
  /* HDMI EDID Length move this */
-@@ -53,9 +52,6 @@
- #define EDID_SIZE_BLOCK0_TIMING_DESCRIPTOR	4
- #define EDID_SIZE_BLOCK1_TIMING_DESCRIPTOR	4
- 
--#define HDMI_DEFAULT_REGN 16
--#define HDMI_DEFAULT_REGM2 1
--
- static struct {
- 	struct mutex lock;
- 	struct platform_device *pdev;
-@@ -428,52 +424,6 @@ end:	return cm;
- 
- }
- 
--static void hdmi_compute_pll(struct omap_dss_device *dssdev, int phy,
--		struct hdmi_pll_info *pi)
--{
--	unsigned long clkin, refclk;
--	u32 mf;
--
--	clkin = clk_get_rate(hdmi.sys_clk) / 10000;
--	/*
--	 * Input clock is predivided by N + 1
--	 * out put of which is reference clk
--	 */
--
--	pi->regn = HDMI_DEFAULT_REGN;
--
--	refclk = clkin / pi->regn;
--
--	pi->regm2 = HDMI_DEFAULT_REGM2;
--
--	/*
--	 * multiplier is pixel_clk/ref_clk
--	 * Multiplying by 100 to avoid fractional part removal
--	 */
--	pi->regm = phy * pi->regm2 / refclk;
--
--	/*
--	 * fractional multiplier is remainder of the difference between
--	 * multiplier and actual phy(required pixel clock thus should be
--	 * multiplied by 2^18(262144) divided by the reference clock
--	 */
--	mf = (phy - pi->regm / pi->regm2 * refclk) * 262144;
--	pi->regmf = pi->regm2 * mf / refclk;
--
--	/*
--	 * Dcofreq should be set to 1 if required pixel clock
--	 * is greater than 1000MHz
--	 */
--	pi->dcofreq = phy > 1000 * 100;
--	pi->regsd = ((pi->regm * clkin / 10) / (pi->regn * 250) + 5) / 10;
--
--	/* Set the reference clock to sysclk reference */
--	pi->refsel = HDMI_REFSEL_SYSCLK;
--
--	DSSDBG("M = %d Mf = %d\n", pi->regm, pi->regmf);
--	DSSDBG("range = %d sd = %d\n", pi->dcofreq, pi->regsd);
--}
--
- static int hdmi_power_on_core(struct omap_dss_device *dssdev)
- {
- 	int r;
-@@ -526,12 +476,12 @@ static int hdmi_power_on_full(struct omap_dss_device *dssdev)
- 
- 	phy = p->pixel_clock;
- 
--	hdmi_compute_pll(dssdev, phy, &hdmi.ip_data.pll_data);
-+	hdmi_pll_compute(&hdmi.ip_data.pll, clk_get_rate(hdmi.sys_clk), phy);
- 
- 	hdmi_wp_video_stop(&hdmi.ip_data.wp);
- 
- 	/* config the PLL and PHY hdmi_set_pll_pwrfirst */
--	r = hdmi.ip_data.ops->pll_enable(&hdmi.ip_data);
-+	r = hdmi_pll_enable(&hdmi.ip_data.pll, &hdmi.ip_data.wp);
- 	if (r) {
- 		DSSDBG("Failed to lock PLL\n");
- 		goto err_pll_enable;
-@@ -566,7 +516,7 @@ err_mgr_enable:
- err_vid_enable:
- 	hdmi.ip_data.ops->phy_disable(&hdmi.ip_data);
- err_phy_enable:
--	hdmi.ip_data.ops->pll_disable(&hdmi.ip_data);
-+	hdmi_pll_disable(&hdmi.ip_data.pll, &hdmi.ip_data.wp);
- err_pll_enable:
- 	hdmi_power_off_core(dssdev);
- 	return -EIO;
-@@ -580,7 +530,7 @@ static void hdmi_power_off_full(struct omap_dss_device *dssdev)
- 
- 	hdmi_wp_video_stop(&hdmi.ip_data.wp);
- 	hdmi.ip_data.ops->phy_disable(&hdmi.ip_data);
--	hdmi.ip_data.ops->pll_disable(&hdmi.ip_data);
-+	hdmi_pll_disable(&hdmi.ip_data.pll, &hdmi.ip_data.wp);
- 
- 	hdmi_power_off_core(dssdev);
- }
-@@ -642,7 +592,7 @@ static void hdmi_dump_regs(struct seq_file *s)
+ #define HDMI_EDID_MAX_LENGTH			256
+ #define EDID_TIMING_DESCRIPTOR_SIZE		0x12
+@@ -493,7 +491,8 @@ static int hdmi_power_on_full(struct omap_dss_device *dssdev)
+ 		goto err_phy_enable;
  	}
  
- 	hdmi_wp_dump(&hdmi.ip_data.wp, s);
--	hdmi.ip_data.ops->dump_pll(&hdmi.ip_data, s);
-+	hdmi_pll_dump(&hdmi.ip_data.pll, s);
- 	hdmi.ip_data.ops->dump_phy(&hdmi.ip_data, s);
- 	hdmi.ip_data.ops->dump_core(&hdmi.ip_data, s);
+-	hdmi.ip_data.ops->video_configure(&hdmi.ip_data);
++	hdmi4_configure(&hdmi.ip_data.core, &hdmi.ip_data.wp,
++		&hdmi.ip_data.cfg);
  
-@@ -1095,6 +1045,10 @@ static int omapdss_hdmihw_probe(struct platform_device *pdev)
+ 	/* bypass TV gamma table */
+ 	dispc_enable_gamma_table(0);
+@@ -594,7 +593,7 @@ static void hdmi_dump_regs(struct seq_file *s)
+ 	hdmi_wp_dump(&hdmi.ip_data.wp, s);
+ 	hdmi_pll_dump(&hdmi.ip_data.pll, s);
+ 	hdmi_phy_dump(&hdmi.ip_data.phy, s);
+-	hdmi.ip_data.ops->dump_core(&hdmi.ip_data, s);
++	hdmi4_core_dump(&hdmi.ip_data.core, s);
+ 
+ 	hdmi_runtime_put();
+ 	mutex_unlock(&hdmi.lock);
+@@ -609,7 +608,7 @@ static int read_edid(u8 *buf, int len)
+ 	r = hdmi_runtime_get();
+ 	BUG_ON(r);
+ 
+-	r = hdmi.ip_data.ops->read_edid(&hdmi.ip_data, buf, len);
++	r = hdmi4_read_edid(&hdmi.ip_data.core,  buf, len);
+ 
+ 	hdmi_runtime_put();
+ 	mutex_unlock(&hdmi.lock);
+@@ -813,7 +812,6 @@ static bool hdmi_mode_has_audio(void)
+ 	else
+ 		return false;
+ }
+-
+ #endif
+ 
+ static int hdmi_connect(struct omap_dss_device *dssdev,
+@@ -822,8 +820,6 @@ static int hdmi_connect(struct omap_dss_device *dssdev,
+ 	struct omap_overlay_manager *mgr;
+ 	int r;
+ 
+-	dss_init_hdmi_ip_ops(&hdmi.ip_data, omapdss_get_version());
+-
+ 	r = hdmi_init_regulator();
+ 	if (r)
+ 		return r;
+@@ -914,12 +910,12 @@ static void hdmi_audio_disable(struct omap_dss_device *dssdev)
+ 
+ static int hdmi_audio_start(struct omap_dss_device *dssdev)
+ {
+-	return hdmi.ip_data.ops->audio_start(&hdmi.ip_data);
++	return hdmi4_audio_start(&hdmi.ip_data.core, &hdmi.ip_data.wp);
+ }
+ 
+ static void hdmi_audio_stop(struct omap_dss_device *dssdev)
+ {
+-	hdmi.ip_data.ops->audio_stop(&hdmi.ip_data);
++	hdmi4_audio_stop(&hdmi.ip_data.core, &hdmi.ip_data.wp);
+ }
+ 
+ static bool hdmi_audio_supported(struct omap_dss_device *dssdev)
+@@ -946,7 +942,7 @@ static int hdmi_audio_config(struct omap_dss_device *dssdev,
+ 		goto err;
+ 	}
+ 
+-	r = hdmi.ip_data.ops->audio_config(&hdmi.ip_data, audio);
++	r = hdmi4_audio_config(&hdmi.ip_data.core, &hdmi.ip_data.wp, audio);
+ 	if (r)
+ 		goto err;
+ 
+@@ -1053,6 +1049,10 @@ static int omapdss_hdmihw_probe(struct platform_device *pdev)
  	if (r)
  		return r;
  
-+	r = hdmi_pll_init(pdev, &hdmi.ip_data.pll);
++	r = hdmi4_core_init(pdev, &hdmi.ip_data.core);
 +	if (r)
 +		return r;
 +
- 	hdmi.ip_data.irq = platform_get_irq(pdev, 0);
- 	if (hdmi.ip_data.irq < 0) {
- 		DSSERR("platform_get_irq failed\n");
-@@ -1111,7 +1065,6 @@ static int omapdss_hdmihw_probe(struct platform_device *pdev)
+ 	r = hdmi_get_clocks(pdev);
+ 	if (r) {
+ 		DSSERR("can't get clocks\n");
+@@ -1061,9 +1061,6 @@ static int omapdss_hdmihw_probe(struct platform_device *pdev)
  
- 	hdmi.ip_data.core_sys_offset = HDMI_CORE_SYS;
- 	hdmi.ip_data.core_av_offset = HDMI_CORE_AV;
--	hdmi.ip_data.pll_offset = HDMI_PLLCTRL;
- 	hdmi.ip_data.phy_offset = HDMI_PHY;
+ 	pm_runtime_enable(&pdev->dev);
  
+-	hdmi.ip_data.core_sys_offset = HDMI_CORE_SYS;
+-	hdmi.ip_data.core_av_offset = HDMI_CORE_AV;
+-
  	hdmi_init_output(pdev);
-diff --git a/drivers/video/omap2/dss/hdmi_pll.c b/drivers/video/omap2/dss/hdmi_pll.c
-new file mode 100644
-index 0000000..d53b8e2
---- /dev/null
-+++ b/drivers/video/omap2/dss/hdmi_pll.c
-@@ -0,0 +1,243 @@
-+/*
-+ * HDMI PLL
-+ *
-+ * Copyright (C) 2013 Texas Instruments Incorporated
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License version 2 as published by
-+ * the Free Software Foundation.
-+ */
+ 
+ 	dss_debugfs_create_file("hdmi", hdmi_dump_regs);
+diff --git a/drivers/video/omap2/dss/ti_hdmi.h b/drivers/video/omap2/dss/ti_hdmi.h
+index 716bac4..9eb9b32 100644
+--- a/drivers/video/omap2/dss/ti_hdmi.h
++++ b/drivers/video/omap2/dss/ti_hdmi.h
+@@ -145,27 +145,6 @@ struct hdmi_audio_dma {
+ 	u16				fifo_threshold;
+ };
+ 
+-struct ti_hdmi_ip_ops {
+-
+-	void (*video_configure)(struct hdmi_ip_data *ip_data);
+-
+-	int (*read_edid)(struct hdmi_ip_data *ip_data, u8 *edid, int len);
+-
+-	void (*dump_core)(struct hdmi_ip_data *ip_data, struct seq_file *s);
+-
+-#if defined(CONFIG_OMAP4_DSS_HDMI_AUDIO)
+-	int (*audio_start)(struct hdmi_ip_data *ip_data);
+-
+-	void (*audio_stop)(struct hdmi_ip_data *ip_data);
+-
+-	int (*audio_config)(struct hdmi_ip_data *ip_data,
+-		struct omap_dss_audio *audio);
+-
+-	int (*audio_get_dma_port)(u32 *offset, u32 *size);
+-#endif
+-
+-};
+-
+ /*
+  * Refer to section 8.2 in HDMI 1.3 specification for
+  * details about infoframe databytes
+@@ -223,17 +202,19 @@ struct hdmi_phy_data {
+ 	int irq;
+ };
+ 
++struct hdmi_core_data {
++	void __iomem *base;
 +
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/delay.h>
-+#include <linux/err.h>
-+#include <linux/io.h>
++	struct hdmi_core_infoframe_avi avi_cfg;
++};
++
+ struct hdmi_ip_data {
+ 	struct hdmi_wp_data	wp;
+ 	struct hdmi_pll_data	pll;
+ 	struct hdmi_phy_data	phy;
++	struct hdmi_core_data	core;
+ 
+-	unsigned long	core_sys_offset;
+-	unsigned long	core_av_offset;
+-
+-	const struct ti_hdmi_ip_ops *ops;
+ 	struct hdmi_config cfg;
+-	struct hdmi_core_infoframe_avi avi_cfg;
+ 
+ 	/* ti_hdmi_4xxx_ip private data. These should be in a separate struct */
+ 	struct mutex lock;
+@@ -273,9 +254,6 @@ void hdmi_phy_disable(struct hdmi_phy_data *phy, struct hdmi_wp_data *wp);
+ void hdmi_phy_dump(struct hdmi_phy_data *phy, struct seq_file *s);
+ int hdmi_phy_init(struct platform_device *pdev, struct hdmi_phy_data *phy);
+ 
+-int ti_hdmi_4xxx_read_edid(struct hdmi_ip_data *ip_data, u8 *edid, int len);
+-void ti_hdmi_4xxx_basic_configure(struct hdmi_ip_data *ip_data);
+-void ti_hdmi_4xxx_core_dump(struct hdmi_ip_data *ip_data, struct seq_file *s);
+ #if defined(CONFIG_OMAP4_DSS_HDMI_AUDIO)
+ int hdmi_compute_acr(u32 sample_freq, u32 *n, u32 *cts);
+ int hdmi_wp_audio_enable(struct hdmi_wp_data *wp, bool enable);
+@@ -284,10 +262,5 @@ void hdmi_wp_audio_config_format(struct hdmi_wp_data *wp,
+ 		struct hdmi_audio_format *aud_fmt);
+ void hdmi_wp_audio_config_dma(struct hdmi_wp_data *wp,
+ 		struct hdmi_audio_dma *aud_dma);
+-int ti_hdmi_4xxx_audio_start(struct hdmi_ip_data *ip_data);
+-void ti_hdmi_4xxx_audio_stop(struct hdmi_ip_data *ip_data);
+-int ti_hdmi_4xxx_audio_config(struct hdmi_ip_data *ip_data,
+-		struct omap_dss_audio *audio);
+-int ti_hdmi_4xxx_audio_get_dma_port(u32 *offset, u32 *size);
+ #endif
+ #endif
+diff --git a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
+index c705aa1..ca208d8 100644
+--- a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
++++ b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
+@@ -26,6 +26,7 @@
+ #include <linux/interrupt.h>
+ #include <linux/mutex.h>
+ #include <linux/delay.h>
 +#include <linux/platform_device.h>
-+#include <video/omapdss.h>
+ #include <linux/string.h>
+ #include <linux/seq_file.h>
+ #if defined(CONFIG_OMAP4_DSS_HDMI_AUDIO)
+@@ -37,6 +38,8 @@
+ #include "dss.h"
+ #include "dss_features.h"
+ 
++#define HDMI_CORE_AV		0x500
 +
-+#include "dss.h"
-+#include "ti_hdmi.h"
-+#include "ti_hdmi_4xxx_ip.h"
+ static inline void hdmi_write_reg(void __iomem *base_addr,
+ 				const u16 idx, u32 val)
+ {
+@@ -67,19 +70,14 @@ static inline int hdmi_wait_for_bit_change(void __iomem *base_addr,
+ 	return val;
+ }
+ 
+-static inline void __iomem *hdmi_av_base(struct hdmi_ip_data *ip_data)
+-{
+-	return ip_data->wp.base + ip_data->core_av_offset;
+-}
+-
+-static inline void __iomem *hdmi_core_sys_base(struct hdmi_ip_data *ip_data)
++static inline void __iomem *hdmi_av_base(struct hdmi_core_data *core)
+ {
+-	return ip_data->wp.base + ip_data->core_sys_offset;
++	return core->base + HDMI_CORE_AV;
+ }
+ 
+-static int hdmi_core_ddc_init(struct hdmi_ip_data *ip_data)
++static int hdmi_core_ddc_init(struct hdmi_core_data *core)
+ {
+-	void __iomem *base = hdmi_core_sys_base(ip_data);
++	void __iomem *base = core->base;
+ 
+ 	/* Turn on CLK for DDC */
+ 	REG_FLD_MOD(base, HDMI_CORE_AV_DPD, 0x7, 2, 0);
+@@ -119,10 +117,10 @@ static int hdmi_core_ddc_init(struct hdmi_ip_data *ip_data)
+ 	return 0;
+ }
+ 
+-static int hdmi_core_ddc_edid(struct hdmi_ip_data *ip_data,
++static int hdmi_core_ddc_edid(struct hdmi_core_data *core,
+ 		u8 *pedid, int ext)
+ {
+-	void __iomem *base = hdmi_core_sys_base(ip_data);
++	void __iomem *base = core->base;
+ 	u32 i;
+ 	char checksum;
+ 	u32 offset = 0;
+@@ -201,26 +199,25 @@ static int hdmi_core_ddc_edid(struct hdmi_ip_data *ip_data,
+ 	return 0;
+ }
+ 
+-int ti_hdmi_4xxx_read_edid(struct hdmi_ip_data *ip_data,
+-				u8 *edid, int len)
++int hdmi4_read_edid(struct hdmi_core_data *core, u8 *edid, int len)
+ {
+ 	int r, l;
+ 
+ 	if (len < 128)
+ 		return -EINVAL;
+ 
+-	r = hdmi_core_ddc_init(ip_data);
++	r = hdmi_core_ddc_init(core);
+ 	if (r)
+ 		return r;
+ 
+-	r = hdmi_core_ddc_edid(ip_data, edid, 0);
++	r = hdmi_core_ddc_edid(core, edid, 0);
+ 	if (r)
+ 		return r;
+ 
+ 	l = 128;
+ 
+ 	if (len >= 128 * 2 && edid[0x7e] > 0) {
+-		r = hdmi_core_ddc_edid(ip_data, edid + 0x80, 1);
++		r = hdmi_core_ddc_edid(core, edid + 0x80, 1);
+ 		if (r)
+ 			return r;
+ 		l += 128;
+@@ -273,30 +270,31 @@ static void hdmi_core_init(struct hdmi_core_video_config *video_cfg,
+ 	repeat_cfg->generic_pkt_repeat = 0;
+ }
+ 
+-static void hdmi_core_powerdown_disable(struct hdmi_ip_data *ip_data)
++static void hdmi_core_powerdown_disable(struct hdmi_core_data *core)
+ {
+ 	pr_debug("Enter hdmi_core_powerdown_disable\n");
+-	REG_FLD_MOD(hdmi_core_sys_base(ip_data), HDMI_CORE_SYS_SYS_CTRL1, 0x0, 0, 0);
++	REG_FLD_MOD(core->base, HDMI_CORE_SYS_SYS_CTRL1, 0x0, 0, 0);
+ }
+ 
+-static void hdmi_core_swreset_release(struct hdmi_ip_data *ip_data)
++static void hdmi_core_swreset_release(struct hdmi_core_data *core)
+ {
+ 	pr_debug("Enter hdmi_core_swreset_release\n");
+-	REG_FLD_MOD(hdmi_core_sys_base(ip_data), HDMI_CORE_SYS_SRST, 0x0, 0, 0);
++	REG_FLD_MOD(core->base, HDMI_CORE_SYS_SRST, 0x0, 0, 0);
+ }
+ 
+-static void hdmi_core_swreset_assert(struct hdmi_ip_data *ip_data)
++static void hdmi_core_swreset_assert(struct hdmi_core_data *core)
+ {
+ 	pr_debug("Enter hdmi_core_swreset_assert\n");
+-	REG_FLD_MOD(hdmi_core_sys_base(ip_data), HDMI_CORE_SYS_SRST, 0x1, 0, 0);
++	REG_FLD_MOD(core->base, HDMI_CORE_SYS_SRST, 0x1, 0, 0);
+ }
+ 
+ /* HDMI_CORE_VIDEO_CONFIG */
+-static void hdmi_core_video_config(struct hdmi_ip_data *ip_data,
++static void hdmi_core_video_config(struct hdmi_core_data *core,
+ 				struct hdmi_core_video_config *cfg)
+ {
+ 	u32 r = 0;
+-	void __iomem *core_sys_base = hdmi_core_sys_base(ip_data);
++	void __iomem *core_sys_base = core->base;
++	void __iomem *core_av_base = hdmi_av_base(core);
+ 
+ 	/* sys_ctrl1 default configuration not tunable */
+ 	r = hdmi_read_reg(core_sys_base, HDMI_CORE_SYS_SYS_CTRL1);
+@@ -323,23 +321,23 @@ static void hdmi_core_video_config(struct hdmi_ip_data *ip_data,
+ 	hdmi_write_reg(core_sys_base, HDMI_CORE_SYS_VID_MODE, r);
+ 
+ 	/* HDMI_Ctrl */
+-	r = hdmi_read_reg(hdmi_av_base(ip_data), HDMI_CORE_AV_HDMI_CTRL);
++	r = hdmi_read_reg(core_av_base, HDMI_CORE_AV_HDMI_CTRL);
+ 	r = FLD_MOD(r, cfg->deep_color_pkt, 6, 6);
+ 	r = FLD_MOD(r, cfg->pkt_mode, 5, 3);
+ 	r = FLD_MOD(r, cfg->hdmi_dvi, 0, 0);
+-	hdmi_write_reg(hdmi_av_base(ip_data), HDMI_CORE_AV_HDMI_CTRL, r);
++	hdmi_write_reg(core_av_base, HDMI_CORE_AV_HDMI_CTRL, r);
+ 
+ 	/* TMDS_CTRL */
+ 	REG_FLD_MOD(core_sys_base,
+ 			HDMI_CORE_SYS_TMDS_CTRL, cfg->tclk_sel_clkmult, 6, 5);
+ }
+ 
+-static void hdmi_core_aux_infoframe_avi_config(struct hdmi_ip_data *ip_data)
++static void hdmi_core_aux_infoframe_avi_config(struct hdmi_core_data *core)
+ {
+ 	u32 val;
+ 	char sum = 0, checksum = 0;
+-	void __iomem *av_base = hdmi_av_base(ip_data);
+-	struct hdmi_core_infoframe_avi info_avi = ip_data->avi_cfg;
++	void __iomem *av_base = hdmi_av_base(core);
++	struct hdmi_core_infoframe_avi info_avi = core->avi_cfg;
+ 
+ 	sum += 0x82 + 0x002 + 0x00D;
+ 	hdmi_write_reg(av_base, HDMI_CORE_AV_AVI_TYPE, 0x082);
+@@ -410,64 +408,64 @@ static void hdmi_core_aux_infoframe_avi_config(struct hdmi_ip_data *ip_data)
+ 	hdmi_write_reg(av_base, HDMI_CORE_AV_AVI_CHSUM, checksum);
+ }
+ 
+-static void hdmi_core_av_packet_config(struct hdmi_ip_data *ip_data,
++static void hdmi_core_av_packet_config(struct hdmi_core_data *core,
+ 		struct hdmi_core_packet_enable_repeat repeat_cfg)
+ {
+ 	/* enable/repeat the infoframe */
+-	hdmi_write_reg(hdmi_av_base(ip_data), HDMI_CORE_AV_PB_CTRL1,
++	hdmi_write_reg(hdmi_av_base(core), HDMI_CORE_AV_PB_CTRL1,
+ 		(repeat_cfg.audio_pkt << 5) |
+ 		(repeat_cfg.audio_pkt_repeat << 4) |
+ 		(repeat_cfg.avi_infoframe << 1) |
+ 		(repeat_cfg.avi_infoframe_repeat));
+ 
+ 	/* enable/repeat the packet */
+-	hdmi_write_reg(hdmi_av_base(ip_data), HDMI_CORE_AV_PB_CTRL2,
++	hdmi_write_reg(hdmi_av_base(core), HDMI_CORE_AV_PB_CTRL2,
+ 		(repeat_cfg.gen_cntrl_pkt << 3) |
+ 		(repeat_cfg.gen_cntrl_pkt_repeat << 2) |
+ 		(repeat_cfg.generic_pkt << 1) |
+ 		(repeat_cfg.generic_pkt_repeat));
+ }
+ 
+-void ti_hdmi_4xxx_basic_configure(struct hdmi_ip_data *ip_data)
++void hdmi4_configure(struct hdmi_core_data *core,
++	struct hdmi_wp_data *wp, struct hdmi_config *cfg)
+ {
+ 	/* HDMI */
+ 	struct omap_video_timings video_timing;
+ 	struct hdmi_video_format video_format;
+ 	/* HDMI core */
+-	struct hdmi_core_infoframe_avi *avi_cfg = &ip_data->avi_cfg;
++	struct hdmi_core_infoframe_avi *avi_cfg = &core->avi_cfg;
+ 	struct hdmi_core_video_config v_core_cfg;
+ 	struct hdmi_core_packet_enable_repeat repeat_cfg;
+-	struct hdmi_config *cfg = &ip_data->cfg;
+ 
+ 	hdmi_core_init(&v_core_cfg, avi_cfg, &repeat_cfg);
+ 
+ 	hdmi_wp_init_vid_fmt_timings(&video_format, &video_timing, cfg);
+ 
+-	hdmi_wp_video_config_timing(&ip_data->wp, &video_timing);
++	hdmi_wp_video_config_timing(wp, &video_timing);
+ 
+ 	/* video config */
+ 	video_format.packing_mode = HDMI_PACK_24b_RGB_YUV444_YUV422;
+ 
+-	hdmi_wp_video_config_format(&ip_data->wp, &video_format);
++	hdmi_wp_video_config_format(wp, &video_format);
+ 
+-	hdmi_wp_video_config_interface(&ip_data->wp, &video_timing);
++	hdmi_wp_video_config_interface(wp, &video_timing);
+ 
+ 	/*
+ 	 * configure core video part
+ 	 * set software reset in the core
+ 	 */
+-	hdmi_core_swreset_assert(ip_data);
++	hdmi_core_swreset_assert(core);
+ 
+ 	/* power down off */
+-	hdmi_core_powerdown_disable(ip_data);
++	hdmi_core_powerdown_disable(core);
+ 
+ 	v_core_cfg.pkt_mode = HDMI_PACKETMODE24BITPERPIXEL;
+ 	v_core_cfg.hdmi_dvi = cfg->cm.mode;
+ 
+-	hdmi_core_video_config(ip_data, &v_core_cfg);
++	hdmi_core_video_config(core, &v_core_cfg);
+ 
+ 	/* release software reset in the core */
+-	hdmi_core_swreset_release(ip_data);
++	hdmi_core_swreset_release(core);
+ 
+ 	/*
+ 	 * configure packet
+@@ -492,7 +490,7 @@ void ti_hdmi_4xxx_basic_configure(struct hdmi_ip_data *ip_data)
+ 	avi_cfg->db10_11_pixel_eofleft = 0;
+ 	avi_cfg->db12_13_pixel_sofright = 0;
+ 
+-	hdmi_core_aux_infoframe_avi_config(ip_data);
++	hdmi_core_aux_infoframe_avi_config(core);
+ 
+ 	/* enable/repeat the infoframe */
+ 	repeat_cfg.avi_infoframe = HDMI_PACKETENABLE;
+@@ -500,21 +498,21 @@ void ti_hdmi_4xxx_basic_configure(struct hdmi_ip_data *ip_data)
+ 	/* wakeup */
+ 	repeat_cfg.audio_pkt = HDMI_PACKETENABLE;
+ 	repeat_cfg.audio_pkt_repeat = HDMI_PACKETREPEATON;
+-	hdmi_core_av_packet_config(ip_data, repeat_cfg);
++	hdmi_core_av_packet_config(core, repeat_cfg);
+ }
+ 
+-void ti_hdmi_4xxx_core_dump(struct hdmi_ip_data *ip_data, struct seq_file *s)
++void hdmi4_core_dump(struct hdmi_core_data *core, struct seq_file *s)
+ {
+ 	int i;
+ 
+ #define CORE_REG(i, name) name(i)
+ #define DUMPCORE(r) seq_printf(s, "%-35s %08x\n", #r,\
+-		hdmi_read_reg(hdmi_core_sys_base(ip_data), r))
++		hdmi_read_reg(core->base, r))
+ #define DUMPCOREAV(r) seq_printf(s, "%-35s %08x\n", #r,\
+-		hdmi_read_reg(hdmi_av_base(ip_data), r))
++		hdmi_read_reg(hdmi_av_base(core), r))
+ #define DUMPCOREAV2(i, r) seq_printf(s, "%s[%d]%*s %08x\n", #r, i, \
+ 		(i < 10) ? 32 - (int)strlen(#r) : 31 - (int)strlen(#r), " ", \
+-		hdmi_read_reg(hdmi_av_base(ip_data), CORE_REG(i, r)))
++		hdmi_read_reg(hdmi_av_base(core), CORE_REG(i, r)))
+ 
+ 	DUMPCORE(HDMI_CORE_SYS_VND_IDL);
+ 	DUMPCORE(HDMI_CORE_SYS_DEV_IDL);
+@@ -672,11 +670,11 @@ void ti_hdmi_4xxx_core_dump(struct hdmi_ip_data *ip_data, struct seq_file *s)
+ }
+ 
+ #if defined(CONFIG_OMAP4_DSS_HDMI_AUDIO)
+-static void ti_hdmi_4xxx_core_audio_config(struct hdmi_ip_data *ip_data,
++static void hdmi_core_audio_config(struct hdmi_core_data *core,
+ 					struct hdmi_core_audio_config *cfg)
+ {
+ 	u32 r;
+-	void __iomem *av_base = hdmi_av_base(ip_data);
++	void __iomem *av_base = hdmi_av_base(core);
+ 
+ 	/*
+ 	 * Parameters for generation of Audio Clock Recovery packets
+@@ -771,11 +769,11 @@ static void ti_hdmi_4xxx_core_audio_config(struct hdmi_ip_data *ip_data,
+ 	REG_FLD_MOD(av_base, HDMI_CORE_AV_SWAP_I2S, 1, 5, 5);
+ }
+ 
+-static void ti_hdmi_4xxx_core_audio_infoframe_cfg(struct hdmi_ip_data *ip_data,
++static void hdmi_core_audio_infoframe_cfg(struct hdmi_core_data *core,
+ 		struct snd_cea_861_aud_if *info_aud)
+ {
+ 	u8 sum = 0, checksum = 0;
+-	void __iomem *av_base = hdmi_av_base(ip_data);
++	void __iomem *av_base = hdmi_av_base(core);
+ 
+ 	/*
+ 	 * Set audio info frame type, version and length as
+@@ -821,20 +819,20 @@ static void ti_hdmi_4xxx_core_audio_infoframe_cfg(struct hdmi_ip_data *ip_data,
+ 	 */
+ }
+ 
+-int ti_hdmi_4xxx_audio_config(struct hdmi_ip_data *ip_data,
++int hdmi4_audio_config(struct hdmi_core_data *core, struct hdmi_wp_data *wp,
+ 		struct omap_dss_audio *audio)
+ {
+ 	struct hdmi_audio_format audio_format;
+ 	struct hdmi_audio_dma audio_dma;
+-	struct hdmi_core_audio_config core;
++	struct hdmi_core_audio_config acore;
+ 	int err, n, cts, channel_count;
+ 	unsigned int fs_nr;
+ 	bool word_length_16b = false;
+ 
+-	if (!audio || !audio->iec || !audio->cea || !ip_data)
++	if (!audio || !audio->iec || !audio->cea || !core)
+ 		return -EINVAL;
+ 
+-	core.iec60958_cfg = audio->iec;
++	acore.iec60958_cfg = audio->iec;
+ 	/*
+ 	 * In the IEC-60958 status word, check if the audio sample word length
+ 	 * is 16-bit as several optimizations can be performed in such case.
+@@ -845,22 +843,22 @@ int ti_hdmi_4xxx_audio_config(struct hdmi_ip_data *ip_data,
+ 
+ 	/* I2S configuration. See Phillips' specification */
+ 	if (word_length_16b)
+-		core.i2s_cfg.justification = HDMI_AUDIO_JUSTIFY_LEFT;
++		acore.i2s_cfg.justification = HDMI_AUDIO_JUSTIFY_LEFT;
+ 	else
+-		core.i2s_cfg.justification = HDMI_AUDIO_JUSTIFY_RIGHT;
++		acore.i2s_cfg.justification = HDMI_AUDIO_JUSTIFY_RIGHT;
+ 	/*
+ 	 * The I2S input word length is twice the lenght given in the IEC-60958
+ 	 * status word. If the word size is greater than
+ 	 * 20 bits, increment by one.
+ 	 */
+-	core.i2s_cfg.in_length_bits = audio->iec->status[4]
++	acore.i2s_cfg.in_length_bits = audio->iec->status[4]
+ 		& IEC958_AES4_CON_WORDLEN;
+ 	if (audio->iec->status[4] & IEC958_AES4_CON_MAX_WORDLEN_24)
+-		core.i2s_cfg.in_length_bits++;
+-	core.i2s_cfg.sck_edge_mode = HDMI_AUDIO_I2S_SCK_EDGE_RISING;
+-	core.i2s_cfg.vbit = HDMI_AUDIO_I2S_VBIT_FOR_PCM;
+-	core.i2s_cfg.direction = HDMI_AUDIO_I2S_MSB_SHIFTED_FIRST;
+-	core.i2s_cfg.shift = HDMI_AUDIO_I2S_FIRST_BIT_SHIFT;
++		acore.i2s_cfg.in_length_bits++;
++	acore.i2s_cfg.sck_edge_mode = HDMI_AUDIO_I2S_SCK_EDGE_RISING;
++	acore.i2s_cfg.vbit = HDMI_AUDIO_I2S_VBIT_FOR_PCM;
++	acore.i2s_cfg.direction = HDMI_AUDIO_I2S_MSB_SHIFTED_FIRST;
++	acore.i2s_cfg.shift = HDMI_AUDIO_I2S_FIRST_BIT_SHIFT;
+ 
+ 	/* convert sample frequency to a number */
+ 	switch (audio->iec->status[3] & IEC958_AES3_CON_FS) {
+@@ -892,20 +890,20 @@ int ti_hdmi_4xxx_audio_config(struct hdmi_ip_data *ip_data,
+ 	err = hdmi_compute_acr(fs_nr, &n, &cts);
+ 
+ 	/* Audio clock regeneration settings */
+-	core.n = n;
+-	core.cts = cts;
++	acore.n = n;
++	acore.cts = cts;
+ 	if (dss_has_feature(FEAT_HDMI_CTS_SWMODE)) {
+-		core.aud_par_busclk = 0;
+-		core.cts_mode = HDMI_AUDIO_CTS_MODE_SW;
+-		core.use_mclk = dss_has_feature(FEAT_HDMI_AUDIO_USE_MCLK);
++		acore.aud_par_busclk = 0;
++		acore.cts_mode = HDMI_AUDIO_CTS_MODE_SW;
++		acore.use_mclk = dss_has_feature(FEAT_HDMI_AUDIO_USE_MCLK);
+ 	} else {
+-		core.aud_par_busclk = (((128 * 31) - 1) << 8);
+-		core.cts_mode = HDMI_AUDIO_CTS_MODE_HW;
+-		core.use_mclk = true;
++		acore.aud_par_busclk = (((128 * 31) - 1) << 8);
++		acore.cts_mode = HDMI_AUDIO_CTS_MODE_HW;
++		acore.use_mclk = true;
+ 	}
+ 
+-	if (core.use_mclk)
+-		core.mclk_mode = HDMI_AUDIO_MCLK_128FS;
++	if (acore.use_mclk)
++		acore.mclk_mode = HDMI_AUDIO_MCLK_128FS;
+ 
+ 	/* Audio channels settings */
+ 	channel_count = (audio->cea->db1_ct_cc &
+@@ -943,25 +941,25 @@ int ti_hdmi_4xxx_audio_config(struct hdmi_ip_data *ip_data,
+ 	 */
+ 	if (channel_count == 2) {
+ 		audio_format.stereo_channels = HDMI_AUDIO_STEREO_ONECHANNEL;
+-		core.i2s_cfg.active_sds = HDMI_AUDIO_I2S_SD0_EN;
+-		core.layout = HDMI_AUDIO_LAYOUT_2CH;
++		acore.i2s_cfg.active_sds = HDMI_AUDIO_I2S_SD0_EN;
++		acore.layout = HDMI_AUDIO_LAYOUT_2CH;
+ 	} else {
+ 		audio_format.stereo_channels = HDMI_AUDIO_STEREO_FOURCHANNELS;
+-		core.i2s_cfg.active_sds = HDMI_AUDIO_I2S_SD0_EN |
++		acore.i2s_cfg.active_sds = HDMI_AUDIO_I2S_SD0_EN |
+ 				HDMI_AUDIO_I2S_SD1_EN | HDMI_AUDIO_I2S_SD2_EN |
+ 				HDMI_AUDIO_I2S_SD3_EN;
+-		core.layout = HDMI_AUDIO_LAYOUT_8CH;
++		acore.layout = HDMI_AUDIO_LAYOUT_8CH;
+ 	}
+ 
+-	core.en_spdif = false;
++	acore.en_spdif = false;
+ 	/* use sample frequency from channel status word */
+-	core.fs_override = true;
++	acore.fs_override = true;
+ 	/* enable ACR packets */
+-	core.en_acr_pkt = true;
++	acore.en_acr_pkt = true;
+ 	/* disable direct streaming digital audio */
+-	core.en_dsd_audio = false;
++	acore.en_dsd_audio = false;
+ 	/* use parallel audio interface */
+-	core.en_parallel_aud_input = true;
++	acore.en_parallel_aud_input = true;
+ 
+ 	/* DMA settings */
+ 	if (word_length_16b)
+@@ -988,37 +986,37 @@ int ti_hdmi_4xxx_audio_config(struct hdmi_ip_data *ip_data,
+ 	audio_format.en_sig_blk_strt_end = HDMI_AUDIO_BLOCK_SIG_STARTEND_ON;
+ 
+ 	/* configure DMA and audio FIFO format*/
+-	hdmi_wp_audio_config_dma(&ip_data->wp, &audio_dma);
+-	hdmi_wp_audio_config_format(&ip_data->wp, &audio_format);
++	hdmi_wp_audio_config_dma(wp, &audio_dma);
++	hdmi_wp_audio_config_format(wp, &audio_format);
+ 
+ 	/* configure the core*/
+-	ti_hdmi_4xxx_core_audio_config(ip_data, &core);
++	hdmi_core_audio_config(core, &acore);
+ 
+ 	/* configure CEA 861 audio infoframe*/
+-	ti_hdmi_4xxx_core_audio_infoframe_cfg(ip_data, audio->cea);
++	hdmi_core_audio_infoframe_cfg(core, audio->cea);
+ 
+ 	return 0;
+ }
+ 
+-int ti_hdmi_4xxx_audio_start(struct hdmi_ip_data *ip_data)
++int hdmi4_audio_start(struct hdmi_core_data *core, struct hdmi_wp_data *wp)
+ {
+-	REG_FLD_MOD(hdmi_av_base(ip_data),
++	REG_FLD_MOD(hdmi_av_base(core),
+ 		    HDMI_CORE_AV_AUD_MODE, true, 0, 0);
+ 
+-	hdmi_wp_audio_core_req_enable(&ip_data->wp, true);
++	hdmi_wp_audio_core_req_enable(wp, true);
+ 
+ 	return 0;
+ }
+ 
+-void ti_hdmi_4xxx_audio_stop(struct hdmi_ip_data *ip_data)
++void hdmi4_audio_stop(struct hdmi_core_data *core, struct hdmi_wp_data *wp)
+ {
+-	REG_FLD_MOD(hdmi_av_base(ip_data),
++	REG_FLD_MOD(hdmi_av_base(core),
+ 		    HDMI_CORE_AV_AUD_MODE, false, 0, 0);
+ 
+-	hdmi_wp_audio_core_req_enable(&ip_data->wp, false);
++	hdmi_wp_audio_core_req_enable(wp, false);
+ }
+ 
+-int ti_hdmi_4xxx_audio_get_dma_port(u32 *offset, u32 *size)
++int hdmi4_audio_get_dma_port(u32 *offset, u32 *size)
+ {
+ 	if (!offset || !size)
+ 		return -EINVAL;
+@@ -1028,3 +1026,22 @@ int ti_hdmi_4xxx_audio_get_dma_port(u32 *offset, u32 *size)
+ }
+ 
+ #endif
 +
-+#define HDMI_DEFAULT_REGN 16
-+#define HDMI_DEFAULT_REGM2 1
-+
-+static inline void hdmi_write_reg(void __iomem *base_addr, const u16 idx,
-+		u32 val)
-+{
-+	__raw_writel(val, base_addr + idx);
-+}
-+
-+static inline u32 hdmi_read_reg(void __iomem *base_addr, const u16 idx)
-+{
-+	return __raw_readl(base_addr + idx);
-+}
-+
-+#define REG_FLD_MOD(base, idx, val, start, end) \
-+	hdmi_write_reg(base, idx, FLD_MOD(hdmi_read_reg(base, idx),\
-+							val, start, end))
-+#define REG_GET(base, idx, start, end) \
-+	FLD_GET(hdmi_read_reg(base, idx), start, end)
-+
-+static inline int hdmi_wait_for_bit_change(void __iomem *base_addr,
-+		const u16 idx, int b2, int b1, u32 val)
-+{
-+	u32 t = 0;
-+	while (val != REG_GET(base_addr, idx, b2, b1)) {
-+		udelay(1);
-+		if (t++ > 10000)
-+			return !val;
-+	}
-+	return val;
-+}
-+
-+void hdmi_pll_dump(struct hdmi_pll_data *pll, struct seq_file *s)
-+{
-+#define DUMPPLL(r) seq_printf(s, "%-35s %08x\n", #r,\
-+		hdmi_read_reg(pll->base, r))
-+
-+	DUMPPLL(PLLCTRL_PLL_CONTROL);
-+	DUMPPLL(PLLCTRL_PLL_STATUS);
-+	DUMPPLL(PLLCTRL_PLL_GO);
-+	DUMPPLL(PLLCTRL_CFG1);
-+	DUMPPLL(PLLCTRL_CFG2);
-+	DUMPPLL(PLLCTRL_CFG3);
-+	DUMPPLL(PLLCTRL_SSC_CFG1);
-+	DUMPPLL(PLLCTRL_SSC_CFG2);
-+	DUMPPLL(PLLCTRL_CFG4);
-+}
-+
-+void hdmi_pll_compute(struct hdmi_pll_data *pll, unsigned long clkin, int phy)
-+{
-+	struct hdmi_pll_info *pi = &pll->info;
-+	unsigned long refclk;
-+	u32 mf;
-+
-+	/* use our funky units */
-+	clkin /= 10000;
-+
-+	/*
-+	 * Input clock is predivided by N + 1
-+	 * out put of which is reference clk
-+	 */
-+
-+	pi->regn = HDMI_DEFAULT_REGN;
-+
-+	refclk = clkin / pi->regn;
-+
-+	pi->regm2 = HDMI_DEFAULT_REGM2;
-+
-+	/*
-+	 * multiplier is pixel_clk/ref_clk
-+	 * Multiplying by 100 to avoid fractional part removal
-+	 */
-+	pi->regm = phy * pi->regm2 / refclk;
-+
-+	/*
-+	 * fractional multiplier is remainder of the difference between
-+	 * multiplier and actual phy(required pixel clock thus should be
-+	 * multiplied by 2^18(262144) divided by the reference clock
-+	 */
-+	mf = (phy - pi->regm / pi->regm2 * refclk) * 262144;
-+	pi->regmf = pi->regm2 * mf / refclk;
-+
-+	/*
-+	 * Dcofreq should be set to 1 if required pixel clock
-+	 * is greater than 1000MHz
-+	 */
-+	pi->dcofreq = phy > 1000 * 100;
-+	pi->regsd = ((pi->regm * clkin / 10) / (pi->regn * 250) + 5) / 10;
-+
-+	/* Set the reference clock to sysclk reference */
-+	pi->refsel = HDMI_REFSEL_SYSCLK;
-+
-+	DSSDBG("M = %d Mf = %d\n", pi->regm, pi->regmf);
-+	DSSDBG("range = %d sd = %d\n", pi->dcofreq, pi->regsd);
-+}
-+
-+
-+static int hdmi_pll_config(struct hdmi_pll_data *pll)
-+{
-+	u32 r;
-+	struct hdmi_pll_info *fmt = &pll->info;
-+
-+	/* PLL start always use manual mode */
-+	REG_FLD_MOD(pll->base, PLLCTRL_PLL_CONTROL, 0x0, 0, 0);
-+
-+	r = hdmi_read_reg(pll->base, PLLCTRL_CFG1);
-+	r = FLD_MOD(r, fmt->regm, 20, 9);	/* CFG1_PLL_REGM */
-+	r = FLD_MOD(r, fmt->regn - 1, 8, 1);	/* CFG1_PLL_REGN */
-+	hdmi_write_reg(pll->base, PLLCTRL_CFG1, r);
-+
-+	r = hdmi_read_reg(pll->base, PLLCTRL_CFG2);
-+
-+	r = FLD_MOD(r, 0x0, 12, 12);	/* PLL_HIGHFREQ divide by 2 */
-+	r = FLD_MOD(r, 0x1, 13, 13);	/* PLL_REFEN */
-+	r = FLD_MOD(r, 0x0, 14, 14);	/* PHY_CLKINEN de-assert during locking */
-+	r = FLD_MOD(r, fmt->refsel, 22, 21);	/* REFSEL */
-+
-+	if (fmt->dcofreq) {
-+		/* divider programming for frequency beyond 1000Mhz */
-+		REG_FLD_MOD(pll->base, PLLCTRL_CFG3, fmt->regsd, 17, 10);
-+		r = FLD_MOD(r, 0x4, 3, 1);	/* 1000MHz and 2000MHz */
-+	} else {
-+		r = FLD_MOD(r, 0x2, 3, 1);	/* 500MHz and 1000MHz */
-+	}
-+
-+	hdmi_write_reg(pll->base, PLLCTRL_CFG2, r);
-+
-+	r = hdmi_read_reg(pll->base, PLLCTRL_CFG4);
-+	r = FLD_MOD(r, fmt->regm2, 24, 18);
-+	r = FLD_MOD(r, fmt->regmf, 17, 0);
-+	hdmi_write_reg(pll->base, PLLCTRL_CFG4, r);
-+
-+	/* go now */
-+	REG_FLD_MOD(pll->base, PLLCTRL_PLL_GO, 0x1, 0, 0);
-+
-+	/* wait for bit change */
-+	if (hdmi_wait_for_bit_change(pll->base, PLLCTRL_PLL_GO,
-+			0, 0, 1) != 1) {
-+		pr_err("PLL GO bit not set\n");
-+		return -ETIMEDOUT;
-+	}
-+
-+	/* Wait till the lock bit is set in PLL status */
-+	if (hdmi_wait_for_bit_change(pll->base,
-+			PLLCTRL_PLL_STATUS, 1, 1, 1) != 1) {
-+		pr_err("cannot lock PLL\n");
-+		pr_err("CFG1 0x%x\n",
-+			hdmi_read_reg(pll->base, PLLCTRL_CFG1));
-+		pr_err("CFG2 0x%x\n",
-+			hdmi_read_reg(pll->base, PLLCTRL_CFG2));
-+		pr_err("CFG4 0x%x\n",
-+			hdmi_read_reg(pll->base, PLLCTRL_CFG4));
-+		return -ETIMEDOUT;
-+	}
-+
-+	pr_debug("PLL locked!\n");
-+
-+	return 0;
-+}
-+
-+static int hdmi_pll_reset(struct hdmi_pll_data *pll)
-+{
-+	/* SYSRESET  controlled by power FSM */
-+	REG_FLD_MOD(pll->base, PLLCTRL_PLL_CONTROL, 0x0, 3, 3);
-+
-+	/* READ 0x0 reset is in progress */
-+	if (hdmi_wait_for_bit_change(pll->base, PLLCTRL_PLL_STATUS, 0, 0, 1)
-+			!= 1) {
-+		pr_err("Failed to sysreset PLL\n");
-+		return -ETIMEDOUT;
-+	}
-+
-+	return 0;
-+}
-+
-+int hdmi_pll_enable(struct hdmi_pll_data *pll, struct hdmi_wp_data *wp)
-+{
-+	u16 r = 0;
-+
-+	r = hdmi_wp_set_pll_pwr(wp, HDMI_PLLPWRCMD_ALLOFF);
-+	if (r)
-+		return r;
-+
-+	r = hdmi_wp_set_pll_pwr(wp, HDMI_PLLPWRCMD_BOTHON_ALLCLKS);
-+	if (r)
-+		return r;
-+
-+	r = hdmi_pll_reset(pll);
-+	if (r)
-+		return r;
-+
-+	r = hdmi_pll_config(pll);
-+	if (r)
-+		return r;
-+
-+	return 0;
-+}
-+
-+void hdmi_pll_disable(struct hdmi_pll_data *pll, struct hdmi_wp_data *wp)
-+{
-+	hdmi_wp_set_pll_pwr(wp, HDMI_PLLPWRCMD_ALLOFF);
-+}
-+
-+int hdmi_pll_init(struct platform_device *pdev, struct hdmi_pll_data *pll)
++int hdmi4_core_init(struct platform_device *pdev, struct hdmi_core_data *core)
 +{
 +	struct resource *res;
 +
-+	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "hdmi_pllctrl");
++	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "hdmi_core");
 +	if (!res) {
-+		DSSERR("can't get PLL CTRL IORESOURCE_MEM HDMI\n");
++		DSSERR("can't get CORE IORESOURCE_MEM HDMI\n");
 +		return -EINVAL;
 +	}
 +
-+	pll->base = devm_request_and_ioremap(&pdev->dev, res);
-+	if (!pll->base) {
-+		DSSERR("can't ioremap PLL ctrl\n");
++	core->base = devm_request_and_ioremap(&pdev->dev, res);
++	if (!core->base) {
++		DSSERR("can't ioremap HDMI core\n");
 +		return -ENOMEM;
 +	}
 +
 +	return 0;
 +}
-diff --git a/drivers/video/omap2/dss/ti_hdmi.h b/drivers/video/omap2/dss/ti_hdmi.h
-index d16f28d..62a83c7 100644
---- a/drivers/video/omap2/dss/ti_hdmi.h
-+++ b/drivers/video/omap2/dss/ti_hdmi.h
-@@ -155,14 +155,8 @@ struct ti_hdmi_ip_ops {
- 
- 	int (*read_edid)(struct hdmi_ip_data *ip_data, u8 *edid, int len);
- 
--	int (*pll_enable)(struct hdmi_ip_data *ip_data);
--
--	void (*pll_disable)(struct hdmi_ip_data *ip_data);
--
- 	void (*dump_core)(struct hdmi_ip_data *ip_data, struct seq_file *s);
- 
--	void (*dump_pll)(struct hdmi_ip_data *ip_data, struct seq_file *s);
--
- 	void (*dump_phy)(struct hdmi_ip_data *ip_data, struct seq_file *s);
- 
- #if defined(CONFIG_OMAP4_DSS_HDMI_AUDIO)
-@@ -223,17 +217,22 @@ struct hdmi_wp_data {
- 	void __iomem *base;
+diff --git a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h
+index dc49713..b9bb300 100644
+--- a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h
++++ b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h
+@@ -400,4 +400,18 @@ struct hdmi_core_audio_config {
+ 	bool					en_spdif;
  };
  
-+struct hdmi_pll_data {
-+	void __iomem *base;
++int hdmi4_read_edid(struct hdmi_core_data *core, u8 *edid, int len);
++void hdmi4_configure(struct hdmi_core_data *core, struct hdmi_wp_data *wp,
++		struct hdmi_config *cfg);
++void hdmi4_core_dump(struct hdmi_core_data *core, struct seq_file *s);
++int hdmi4_core_init(struct platform_device *pdev, struct hdmi_core_data *core);
 +
-+	struct hdmi_pll_info info;
-+};
++#if defined(CONFIG_OMAP4_DSS_HDMI_AUDIO)
++int hdmi4_audio_start(struct hdmi_core_data *core, struct hdmi_wp_data *wp);
++void hdmi4_audio_stop(struct hdmi_core_data *core, struct hdmi_wp_data *wp);
++int hdmi4_audio_config(struct hdmi_core_data *core, struct hdmi_wp_data *wp,
++		struct omap_dss_audio *audio);
++int hdmi4_audio_get_dma_port(u32 *offset, u32 *size);
++#endif
 +
- struct hdmi_ip_data {
- 	struct hdmi_wp_data	wp;
-+	struct hdmi_pll_data	pll;
- 
- 	unsigned long	core_sys_offset;
- 	unsigned long	core_av_offset;
--	unsigned long	pll_offset;
- 	unsigned long	phy_offset;
- 	int		irq;
- 	const struct ti_hdmi_ip_ops *ops;
- 	struct hdmi_config cfg;
--	struct hdmi_pll_info pll_data;
- 	struct hdmi_core_infoframe_avi avi_cfg;
- 
- 	/* ti_hdmi_4xxx_ip private data. These should be in a separate struct */
-@@ -260,13 +259,17 @@ void hdmi_wp_init_vid_fmt_timings(struct hdmi_video_format *video_fmt,
- 		struct omap_video_timings *timings, struct hdmi_config *param);
- int hdmi_wp_init(struct platform_device *pdev, struct hdmi_wp_data *wp);
- 
-+/* HDMI PLL funcs */
-+int hdmi_pll_enable(struct hdmi_pll_data *pll, struct hdmi_wp_data *wp);
-+void hdmi_pll_disable(struct hdmi_pll_data *pll, struct hdmi_wp_data *wp);
-+void hdmi_pll_dump(struct hdmi_pll_data *pll, struct seq_file *s);
-+void hdmi_pll_compute(struct hdmi_pll_data *pll, unsigned long clkin, int phy);
-+int hdmi_pll_init(struct platform_device *pdev, struct hdmi_pll_data *pll);
-+
- int ti_hdmi_4xxx_phy_enable(struct hdmi_ip_data *ip_data);
- void ti_hdmi_4xxx_phy_disable(struct hdmi_ip_data *ip_data);
- int ti_hdmi_4xxx_read_edid(struct hdmi_ip_data *ip_data, u8 *edid, int len);
--int ti_hdmi_4xxx_pll_enable(struct hdmi_ip_data *ip_data);
--void ti_hdmi_4xxx_pll_disable(struct hdmi_ip_data *ip_data);
- void ti_hdmi_4xxx_basic_configure(struct hdmi_ip_data *ip_data);
--void ti_hdmi_4xxx_pll_dump(struct hdmi_ip_data *ip_data, struct seq_file *s);
- void ti_hdmi_4xxx_core_dump(struct hdmi_ip_data *ip_data, struct seq_file *s);
- void ti_hdmi_4xxx_phy_dump(struct hdmi_ip_data *ip_data, struct seq_file *s);
- #if defined(CONFIG_OMAP4_DSS_HDMI_AUDIO)
-diff --git a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
-index d4b8883..8cfb54b 100644
---- a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
-+++ b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
-@@ -75,11 +75,6 @@ static inline void __iomem *hdmi_phy_base(struct hdmi_ip_data *ip_data)
- 	return ip_data->wp.base + ip_data->phy_offset;
- }
- 
--static inline void __iomem *hdmi_pll_base(struct hdmi_ip_data *ip_data)
--{
--	return ip_data->wp.base + ip_data->pll_offset;
--}
--
- static inline void __iomem *hdmi_av_base(struct hdmi_ip_data *ip_data)
- {
- 	return ip_data->wp.base + ip_data->core_av_offset;
-@@ -90,117 +85,6 @@ static inline void __iomem *hdmi_core_sys_base(struct hdmi_ip_data *ip_data)
- 	return ip_data->wp.base + ip_data->core_sys_offset;
- }
- 
--
--static int hdmi_pll_init(struct hdmi_ip_data *ip_data)
--{
--	u32 r;
--	void __iomem *pll_base = hdmi_pll_base(ip_data);
--	struct hdmi_pll_info *fmt = &ip_data->pll_data;
--
--	/* PLL start always use manual mode */
--	REG_FLD_MOD(pll_base, PLLCTRL_PLL_CONTROL, 0x0, 0, 0);
--
--	r = hdmi_read_reg(pll_base, PLLCTRL_CFG1);
--	r = FLD_MOD(r, fmt->regm, 20, 9); /* CFG1_PLL_REGM */
--	r = FLD_MOD(r, fmt->regn - 1, 8, 1);  /* CFG1_PLL_REGN */
--
--	hdmi_write_reg(pll_base, PLLCTRL_CFG1, r);
--
--	r = hdmi_read_reg(pll_base, PLLCTRL_CFG2);
--
--	r = FLD_MOD(r, 0x0, 12, 12); /* PLL_HIGHFREQ divide by 2 */
--	r = FLD_MOD(r, 0x1, 13, 13); /* PLL_REFEN */
--	r = FLD_MOD(r, 0x0, 14, 14); /* PHY_CLKINEN de-assert during locking */
--	r = FLD_MOD(r, fmt->refsel, 22, 21); /* REFSEL */
--
--	if (fmt->dcofreq) {
--		/* divider programming for frequency beyond 1000Mhz */
--		REG_FLD_MOD(pll_base, PLLCTRL_CFG3, fmt->regsd, 17, 10);
--		r = FLD_MOD(r, 0x4, 3, 1); /* 1000MHz and 2000MHz */
--	} else {
--		r = FLD_MOD(r, 0x2, 3, 1); /* 500MHz and 1000MHz */
--	}
--
--	hdmi_write_reg(pll_base, PLLCTRL_CFG2, r);
--
--	r = hdmi_read_reg(pll_base, PLLCTRL_CFG4);
--	r = FLD_MOD(r, fmt->regm2, 24, 18);
--	r = FLD_MOD(r, fmt->regmf, 17, 0);
--
--	hdmi_write_reg(pll_base, PLLCTRL_CFG4, r);
--
--	/* go now */
--	REG_FLD_MOD(pll_base, PLLCTRL_PLL_GO, 0x1, 0, 0);
--
--	/* wait for bit change */
--	if (hdmi_wait_for_bit_change(pll_base, PLLCTRL_PLL_GO,
--							0, 0, 1) != 1) {
--		pr_err("PLL GO bit not set\n");
--		return -ETIMEDOUT;
--	}
--
--	/* Wait till the lock bit is set in PLL status */
--	if (hdmi_wait_for_bit_change(pll_base,
--				PLLCTRL_PLL_STATUS, 1, 1, 1) != 1) {
--		pr_err("cannot lock PLL\n");
--		pr_err("CFG1 0x%x\n",
--			hdmi_read_reg(pll_base, PLLCTRL_CFG1));
--		pr_err("CFG2 0x%x\n",
--			hdmi_read_reg(pll_base, PLLCTRL_CFG2));
--		pr_err("CFG4 0x%x\n",
--			hdmi_read_reg(pll_base, PLLCTRL_CFG4));
--		return -ETIMEDOUT;
--	}
--
--	pr_debug("PLL locked!\n");
--
--	return 0;
--}
--
--
--static int hdmi_pll_reset(struct hdmi_ip_data *ip_data)
--{
--	/* SYSRESET  controlled by power FSM */
--	REG_FLD_MOD(hdmi_pll_base(ip_data), PLLCTRL_PLL_CONTROL, 0x0, 3, 3);
--
--	/* READ 0x0 reset is in progress */
--	if (hdmi_wait_for_bit_change(hdmi_pll_base(ip_data),
--				PLLCTRL_PLL_STATUS, 0, 0, 1) != 1) {
--		pr_err("Failed to sysreset PLL\n");
--		return -ETIMEDOUT;
--	}
--
--	return 0;
--}
--
--int ti_hdmi_4xxx_pll_enable(struct hdmi_ip_data *ip_data)
--{
--	u16 r = 0;
--
--	r = hdmi_wp_set_pll_pwr(&ip_data->wp, HDMI_PLLPWRCMD_ALLOFF);
--	if (r)
--		return r;
--
--	r = hdmi_wp_set_pll_pwr(&ip_data->wp, HDMI_PLLPWRCMD_BOTHON_ALLCLKS);
--	if (r)
--		return r;
--
--	r = hdmi_pll_reset(ip_data);
--	if (r)
--		return r;
--
--	r = hdmi_pll_init(ip_data);
--	if (r)
--		return r;
--
--	return 0;
--}
--
--void ti_hdmi_4xxx_pll_disable(struct hdmi_ip_data *ip_data)
--{
--	hdmi_wp_set_pll_pwr(&ip_data->wp, HDMI_PLLPWRCMD_ALLOFF);
--}
--
- static irqreturn_t hdmi_irq_handler(int irq, void *data)
- {
- 	struct hdmi_ip_data *ip_data = data;
-@@ -717,22 +601,6 @@ void ti_hdmi_4xxx_basic_configure(struct hdmi_ip_data *ip_data)
- 	hdmi_core_av_packet_config(ip_data, repeat_cfg);
- }
- 
--void ti_hdmi_4xxx_pll_dump(struct hdmi_ip_data *ip_data, struct seq_file *s)
--{
--#define DUMPPLL(r) seq_printf(s, "%-35s %08x\n", #r,\
--		hdmi_read_reg(hdmi_pll_base(ip_data), r))
--
--	DUMPPLL(PLLCTRL_PLL_CONTROL);
--	DUMPPLL(PLLCTRL_PLL_STATUS);
--	DUMPPLL(PLLCTRL_PLL_GO);
--	DUMPPLL(PLLCTRL_CFG1);
--	DUMPPLL(PLLCTRL_CFG2);
--	DUMPPLL(PLLCTRL_CFG3);
--	DUMPPLL(PLLCTRL_SSC_CFG1);
--	DUMPPLL(PLLCTRL_SSC_CFG2);
--	DUMPPLL(PLLCTRL_CFG4);
--}
--
- void ti_hdmi_4xxx_core_dump(struct hdmi_ip_data *ip_data, struct seq_file *s)
- {
- 	int i;
+ #endif
 -- 
 1.8.1.2
 
