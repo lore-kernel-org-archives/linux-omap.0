@@ -1,91 +1,87 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 1/4] usb: musb: Call atomic_notifier_call_chain when
- status is changed
-Date: Tue, 17 Sep 2013 10:48:59 -0500
-Message-ID: <20130917154859.GK15645@radagast>
-References: <1378630239-10006-1-git-send-email-pali.rohar@gmail.com>
- <1378630239-10006-2-git-send-email-pali.rohar@gmail.com>
-Reply-To: <balbi@ti.com>
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
+Subject: Re: [PATCH v4 1/2] ARM: OMAP: Add secure function omap_smc3() which calling instruction smc #1
+Date: Tue, 17 Sep 2013 17:53:23 +0200
+Message-ID: <201309171753.24433@pali>
+References: <20130916171023.GA17477@localhost.localdomain> <20130917154331.GA9994@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="j3zO+32zXj6UcJCE"
+Content-Type: multipart/signed;
+  boundary="nextPart1783934.necBAGRBmD";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1378630239-10006-2-git-send-email-pali.rohar@gmail.com>
+In-Reply-To: <20130917154331.GA9994@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, Anton Vorontsov <anton@enomsg.org>, Russell King <linux@arm.linux.org.uk>, David Woodhouse <dwmw2@infradead.org>, Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, freemangordon@abv.bg, aaro.koskinen@iki.fi, pavel@ucw.cz
+To: Tony Lindgren <tony@atomide.com>
+Cc: Dave Martin <Dave.Martin@arm.com>, =?utf-8?q?=D0=98=D0=B2=D0=B0=D0=B9=D0=BB=D0=BE?= =?utf-8?q?_=D0=94=D0=B8=D0=BC=D0=B8=D1=82=D1=80=D0=BE=D0=B2?= <freemangordon@abv.bg>, "nm@ti.com" <nm@ti.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "aaro.koskinen@iki.fi" <aaro.koskinen@iki.fi>, "pdeschrijver@nvidia.com" <pdeschrijver@nvidia.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "santosh.shilimkar@ti.com" <santosh.shilimkar@ti.com>, "pavel@ucw.cz" <pavel@ucw.cz>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
---j3zO+32zXj6UcJCE
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
+--nextPart1783934.necBAGRBmD
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Sun, Sep 08, 2013 at 10:50:36AM +0200, Pali Roh=E1r wrote:
-> More power supply drivers depends on vbus events and without it they not
-> working. Power supply drivers using usb_register_notifier, so to deliver
-> events it is needed to call atomic_notifier_call_chain.
+On Tuesday 17 September 2013 17:43:31 Tony Lindgren wrote:
+> * Dave Martin <Dave.Martin@arm.com> [130916 10:18]:
+> > On Sat, Sep 14, 2013 at 10:37:12AM +0100, Pali Roh=C3=A1r wrote:
+> > > On Sunday 08 September 2013 09:43:29 Pali Roh=C3=A1r wrote:
+> > > > + */
+> > > > +ENTRY(omap_smc3)
+> > > > +	stmfd	sp!, {r4-r11, lr}
+> > > > +	mov	r12, r0		@ Copy the secure service ID
+> > > > +	mov	r6, #0xff	@ Indicate new Task call
+> > > > +	dsb			@ Memory Barrier (not sure if needed, copied
+> > > > from omap_smc2) +	smc	#1		@ Call PPA service
+> > > > +	ldmfd	sp!, {r4-r11, pc}
+> > > > +ENDPROC(omap_smc3)
+> > > > +
+> > > >=20
+> > > >  ENTRY(omap_modify_auxcoreboot0)
+> > > > =20
+> > > >  	stmfd   sp!, {r1-r12, lr}
+> > > >  	ldr	r12, =3D0x104
+> > >=20
+> > > Dave, it is ok now?
+> >=20
+> > Yes, that's sufficient to warn people to stop and think (at
+> > least, if someone copy-pastes it, they will likely
+> > highlight the possible error by copy-pasting the comment
+> > too).  Thanks.
+> >=20
+> > Acked-by: Dave Martin <Dave.Martin@arm.com>
 >=20
-> So without atomic notifier power supply driver isp1704 not retrieving
-> vbus status and reporting bogus values to userspace and also to board
-> platform data functions. Without proper data charger drivers trying to
-> charge battery also when charger is disconnected or do not start charging
-> when wallcharger connects.
+> Have you guys checked how this works with the recently posted
+> "[PATCH v6 0/5] ARM: support for Trusted Foundations secure
+> monitor" series?
 >=20
-> Atomic notifier in musb driver was used before v3.5 and was replaced with
-> omap mailbox. This patch adding atomic_notifier_call_chain call from
-> function omap_musb_set_mailbox.
+> Regards,
 >=20
-> Signed-off-by: Pali Roh=E1r <pali.rohar@gmail.com>
-> ---
->  drivers/usb/musb/omap2430.c       |    3 +++
->  drivers/usb/phy/phy-twl4030-usb.c |    2 ++
->  2 files changed, 5 insertions(+)
->=20
-> diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
-> index f44e8b5..5c40252 100644
-> --- a/drivers/usb/musb/omap2430.c
-> +++ b/drivers/usb/musb/omap2430.c
-> @@ -305,6 +305,9 @@ static void omap_musb_set_mailbox(struct omap2430_glu=
-e *glue)
->  	default:
->  		dev_dbg(dev, "ID float\n");
->  	}
-> +
-> +	atomic_notifier_call_chain(&musb->xceiv->notifier,
-> +			musb->xceiv->last_event, NULL);
+> Tony
 
-let's add a wrapper for this:
+Hello,
 
-static inline int usb_phy_notify(struct usb phy *x, unsigned val, void *v)
-{
-	return atomic_notifier_call_chain(&x->notifier, val, v);
-}
+this code looks like some Tegra and "Trusted Foundations"=20
+specific. There is Note: The API followed by Trusted Foundations=20
+does *not* follow the SMC calling conventions.  Also code calling=20
+smc #0 instruction, so in my opinion for rx51 it is useless.
 
---=20
-balbi
+Tony, can you include this two rx51 secure patches (patch v4 1/2=20
+and patch v2 2/2)? Or is there some any other problem?
 
---j3zO+32zXj6UcJCE
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
+
+--nextPart1783934.necBAGRBmD
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQIcBAEBAgAGBQJSOHnrAAoJEIaOsuA1yqRE3VIP/jbnKeeXAnDtgPZnMfhAKijJ
-+4+kEFKdF+3vshKJ8uQGnkfGlnk/EO+goAe/Vzydi98O9HyLGzP+Pb3Fee9qkL3j
-rd81eUPftksoXItFXpSZSjdQgPMFSGe3SXGyW5Dyv9kIyv2goaKI6XfHbAls/eNn
-UD11KyPQcKa2m5DhvsT2H/pFl85+XgNW2kIqEqm7GDeyGWdLVGGx0lTWV8uWV6wR
-QbV1lTkWVKPh/Qzhp4pkbR8KnfkrgyVWEpEVXKdVjYJMVDgeWE0dcV7TTaKoiQs2
-2XGUur+M8pvhLa8iLqYve46cXY61c3DH5i7srIcwBlq5xyvM5FliXc/Xk7TS4Iv2
-p8VIUapepWPiBX5q6hy9Fj4vKFz0Io+HnaYRggWdn9+V+y2VAWPYMHfHB3niX9E8
-G6ad8KMDSdIUhYp4tWCB4vvb9hRGkUtmdqMK0QPBJHVuTxe2HqvHFIOhDqFRtmx6
-fnltP9CYI69IPkFW2VwMkfHZ++xCpkD0UOUvi5rg+fv1SLTSPqhzxzvEgnR/1I0z
-uCPxFBZsrA6DfysPc/N0a8BTsB8MmOhNiVzxgoNpSM7Vo9jqPDZ2cw1ruKa6gcBm
-cPMTPKpdJvT+etW6ituHihOzh99TdUq1LMkDyc/zfSzy9qFXzXBr9uMJ5jIjA6Qt
-ch/igUK+kF90fa+fRCVF
-=MVFx
+iEYEABECAAYFAlI4evQACgkQi/DJPQPkQ1I6bgCfbbfsNJlk6xTy+LKKMJ2fjk8R
+xhcAoJUvGZ8O+650grdDDw5sxVbwFzEM
+=ueLy
 -----END PGP SIGNATURE-----
 
---j3zO+32zXj6UcJCE--
+--nextPart1783934.necBAGRBmD--
