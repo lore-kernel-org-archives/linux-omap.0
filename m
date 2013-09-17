@@ -1,58 +1,101 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] mailbox: remove unnecessary platform_set_drvdata()
-Date: Tue, 17 Sep 2013 16:44:25 -0700
-Message-ID: <20130917234424.GP9994@atomide.com>
-References: <002201ce9edc$cdc3fb90$694bf2b0$%han@samsung.com>
- <52178FAD.7040402@ti.com>
+Subject: Re: [PATCH] ARM: OMAP4: cpuidle: fix: call cpu_cluster_pm_exit
+ conditionally
+Date: Tue, 17 Sep 2013 16:47:17 -0700
+Message-ID: <20130917234717.GQ9994@atomide.com>
+References: <1377598250-2355-1-git-send-email-murzin.v@gmail.com>
+ <87sixvw2n5.fsf@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:31646 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753371Ab3IQXrV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Sep 2013 19:47:21 -0400
 Content-Disposition: inline
-In-Reply-To: <52178FAD.7040402@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Suman Anna <s-anna@ti.com>
-Cc: Jingoo Han <jg1.han@samsung.com>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, "'Rafael J. Wysocki'" <rafael.j.wysocki@intel.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+In-Reply-To: <87sixvw2n5.fsf@linaro.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@linaro.org>
+Cc: Vladimir Murzin <murzin.v@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux@arm.linux.org.uk
 
-* Suman Anna <s-anna@ti.com> [130823 09:50]:
-> + OMAP mailing list
+* Kevin Hilman <khilman@linaro.org> [130827 09:01]:
+> Vladimir Murzin <murzin.v@gmail.com> writes:
 > 
-> Tony,
-> Can you pick up this minor cleanup patch?
+> > We call cpu_cluster_pm_enter for dev->cpu == 0 only, but
+> > cpu_cluster_pm_exit called without that check.
+> >
+> > Because of that unhandled page fault may happen:
+> >
+> > [    3.803405] Unable to handle kernel paging request at virtual address 00002500
+> > [    3.810974] pgd = c0004000
+> > [    3.813812] [00002500] *pgd=00000000
+> > [    3.817596] Internal error: Oops: 5 [#1] SMP ARM
+> > [    3.822418] Modules linked in:
+> > [    3.825653] CPU: 1 PID: 0 Comm: swapper/1 Not tainted 3.11.0-rc6+ #21
+> > [    3.832397] task: ed86ef40 ti: ed896000 task.ti: ed896000
+> > [    3.838073] PC is at irq_notifier+0x234/0x25c
+> > [    3.842651] LR is at irq_notifier+0x218/0x25c
+> > [    3.847229] pc : [<c0029ed8>]    lr : [<c0029ebc>]    psr: 80000193
+> > [    3.847229] sp : ed897ee8  ip : 00000005  fp : 00000001
+> > [    3.859283] r10: c0b395f0  r9 : c0b30594  r8 : c0b8c2ac
+> > [    3.864776] r7 : ffffffff  r6 : 00000000  r5 : 00000005  r4 : 00000000
+> > [    3.871643] r3 : 00002500  r2 : 00000000  r1 : 00000005  r0 : 44302244
+> > [    3.878479] Flags: Nzcv  IRQs off  FIQs on  Mode SVC_32  ISA ARM  Segment kernel
+> > [    3.886260] Control: 10c5387d  Table: 8000404a  DAC: 00000015
+> > [    3.892272] Process swapper/1 (pid: 0, stack limit = 0xed896240)
+> > [    3.898590] Stack: (0xed897ee8 to 0xed898000)
+> > [    3.903167] 7ee0:                   c0979c3a 00000001 ed897ef8 ed896000 c0014f7c 00000000
+> > [    3.911743] 7f00: 00000005 00000000 ffffffff c0b8c2ac c0b395f0 c077c04c c0c94b48 c0b3953c
+> > [    3.920318] 7f20: c0bcd928 00000002 c0b39524 c00cfad8 00000000 ffffffff 00000000 c00cfb10
+> > [    3.928924] 7f40: c14e62c0 c002c1c8 c002c0ac c14e62c0 00000002 e251c37d 00000000 c0b39548
+> > [    3.937499] 7f60: c0b395f0 c05a1bc4 e251c37d 00000000 00000005 c05a3870 edc90380 edc90380
+> > [    3.946105] 7f80: edc90394 c14e62c0 c0b39548 00000002 c0784064 c05a3c78 c0b395e0 c14e62c0
+> > [    3.954681] 7fa0: 00000002 c0b39548 c0bc9db8 00000000 00000001 c05a1dc0 ed896000 00000015
+> > [    3.963287] 7fc0: c0bc9db8 ed896000 8000406a c0b30594 c0784064 c000e504 00000746 c007a528
+> > [    3.971862] 7fe0: 00000001 0000001d 600001d3 c0bcc004 00000000 800086c4 ee0aa6a7 d2aabaa9
+> > [    3.980499] [<c0029ed8>] (irq_notifier+0x234/0x25c) from [<c077c04c>] (notifier_call_chain+0x38/0x68)
+> > [    3.990173] [<c077c04c>] (notifier_call_chain+0x38/0x68) from [<c00cfad8>] (cpu_pm_notify+0x20/0x38)
+> > [    3.999786] [<c00cfad8>] (cpu_pm_notify+0x20/0x38) from [<c00cfb10>] (cpu_cluster_pm_exit+0x20/0x50)
+> > [    4.009399] [<c00cfb10>] (cpu_cluster_pm_exit+0x20/0x50) from [<c002c1c8>] (omap_enter_idle_coupled+0x11c/0x14c)
+> > [    4.020111] [<c002c1c8>] (omap_enter_idle_coupled+0x11c/0x14c) from [<c05a1bc4>] (cpuidle_enter_state+0x40/0xec)
+> > [    4.030822] [<c05a1bc4>] (cpuidle_enter_state+0x40/0xec) from [<c05a3c78>] (cpuidle_enter_state_coupled+0x1f4/0x240)
+> > [    4.041870] [<c05a3c78>] (cpuidle_enter_state_coupled+0x1f4/0x240) from [<c05a1dc0>] (cpuidle_idle_call+0x150/0x228)
+> > [    4.052947] [<c05a1dc0>] (cpuidle_idle_call+0x150/0x228) from [<c000e504>] (arch_cpu_idle+0x8/0x38)
+> > [    4.062499] [<c000e504>] (arch_cpu_idle+0x8/0x38) from [<c007a528>] (cpu_startup_entry+0x178/0x1e4)
+> > [    4.071990] [<c007a528>] (cpu_startup_entry+0x178/0x1e4) from [<800086c4>] (0x800086c4)
+> > [    4.080383] Code: e5922288 03a03b0a 13a03c25 e0823003 (e5932000)
+> > [    4.086791] ---[ end trace d83954a84a6fa69e ]---
+> >
+> > It is supposed that sar_base is initialized in irq_save_context, which
+> > is called on CPU_CLUSTER_PM_ENTER notification. If this notification
+> > has been missed and CPU_CLUSTER_PM_EXIT is received sar_base is NULL.
+> >
+> > Fix it by calling CPU_CLUSTER_PM_{ENTER,EXIT} under the same condition.
+> >
+> > Signed-off-by: Vladimir Murzin <murzin.v@gmail.com>
 > 
-> regards
-> Suman
+> Good catch.
 > 
-> On 08/21/2013 09:10 PM, Jingoo Han wrote:
-> > The driver core clears the driver data to NULL after device_release
-> > or on probe failure. Thus, it is not needed to manually clear the
-> > device driver data to NULL.
-> > 
-> > Signed-off-by: Jingoo Han <jg1.han@samsung.com>
-> 
-> Acked-by: Suman Anna <s-anna@ti.com>
+> Acked-by: Kevin Hilman <khilman@linaro.org>
 
-OK applying into omap-for-v3.12/fixes thanks.
-
-Regards,
+Thanks applying into omap-for-v3.12/fixes.
 
 Tony
  
 > > ---
-> >  drivers/mailbox/mailbox-omap2.c |    1 -
-> >  1 file changed, 1 deletion(-)
-> > 
-> > diff --git a/drivers/mailbox/mailbox-omap2.c b/drivers/mailbox/mailbox-omap2.c
-> > index eba380d..42d2b89 100644
-> > --- a/drivers/mailbox/mailbox-omap2.c
-> > +++ b/drivers/mailbox/mailbox-omap2.c
-> > @@ -325,7 +325,6 @@ static int omap2_mbox_remove(struct platform_device *pdev)
-> >  	kfree(privblk);
-> >  	kfree(mboxblk);
-> >  	kfree(list);
-> > -	platform_set_drvdata(pdev, NULL);
-> >  
-> >  	return 0;
-> >  }
-> > 
-> 
+> >  arch/arm/mach-omap2/cpuidle44xx.c | 2 +-
+> >  1 file changed, 1 insertion(+), 1 deletion(-)
+> >
+> > diff --git a/arch/arm/mach-omap2/cpuidle44xx.c b/arch/arm/mach-omap2/cpuidle44xx.c
+> > index c443f2e..4c8982a 100644
+> > --- a/arch/arm/mach-omap2/cpuidle44xx.c
+> > +++ b/arch/arm/mach-omap2/cpuidle44xx.c
+> > @@ -143,7 +143,7 @@ static int omap_enter_idle_coupled(struct cpuidle_device *dev,
+> >  	 * Call idle CPU cluster PM exit notifier chain
+> >  	 * to restore GIC and wakeupgen context.
+> >  	 */
+> > -	if ((cx->mpu_state == PWRDM_POWER_RET) &&
+> > +	if (dev->cpu == 0 && (cx->mpu_state == PWRDM_POWER_RET) &&
+> >  		(cx->mpu_logic_state == PWRDM_POWER_OFF))
+> >  		cpu_cluster_pm_exit();
