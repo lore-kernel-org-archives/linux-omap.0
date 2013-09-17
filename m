@@ -1,120 +1,138 @@
-From: Sekhar Nori <nsekhar@ti.com>
-Subject: Re: [PATCH v3] ARM: EDMA: Fix clearing of unused list for DT DMA
- resources
-Date: Tue, 17 Sep 2013 11:35:59 +0530
-Message-ID: <5237F147.1020302@ti.com>
-References: <1378839171-14455-1-git-send-email-joelf@ti.com> <5231903F.7080301@ti.com> <5233B471.40603@ti.com> <5236F00B.5040605@ti.com> <5237314D.7080102@ti.com> <5237E3C3.8050602@ti.com> <5237EAF3.70505@ti.com>
+From: Luca Coelho <luca@coelho.fi>
+Subject: Re: [PATCH 1/2] ARM: dts: Fix muxing and regulator for wl12xx on
+ the SDIO bus for pandaboard
+Date: Tue, 17 Sep 2013 09:26:54 +0300
+Message-ID: <1379399214.4223.123.camel@porter.coelho.fi>
+References: <20130913190811.24617.97699.stgit@localhost>
+ <20130913190953.24617.46506.stgit@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <5237EAF3.70505@ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Joel Fernandes <joelf@ti.com>
-Cc: Vinod Koul <vinod.koul@intel.com>, Dan Williams <djbw@fb.com>, Russell King <linux@arm.linux.org.uk>, Jyri Sarah <jsarha@ti.com>, Koen Kooi <koen@beagleboard.org>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux DaVinci Kernel List <davinci-linux-open-source@linux.davincidsp.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux MMC List <linux-mmc@vger.kernel.org>, Pantel Antoniou <panto@antoniou-consulting.com>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20130913190953.24617.46506.stgit@localhost>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: devicetree-discuss@lists.ozlabs.org, Rajendra Nayak <rnayak@ti.com>, Benoit Cousson <bcousson@baylibre.com>, Paolo Pisati <p.pisati@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tuesday 17 September 2013 11:08 AM, Joel Fernandes wrote:
-> On 09/17/2013 12:08 AM, Sekhar Nori wrote:
-> [..]
->>>> I still cannot find any users of edma in the device tree sources either
->>>> in linux-next or linus/master. Why cannot this wait until v3.13?
->>>
->>> I understand this affects only DT users of EDMA. But I get so many private
->>> reports of breakage due to this patch not being there that I think it will save
->>> everyone a lot of pain, specially folks creating integration trees to have this
->>> patch available by default.
->>
->> Well, I do agree that the current DT support for EDMA is incomplete
->> without this patch even if there are no in-kernel users of it. I will
->> try sending this for the next -rc if we get to the final version in time
->> and after that its upto the upstreams to take it.
+Hi Tony,
+
+Both patches look good to me, though I didn't have the time to retest
+them.
+
+--
+Cheers,
+Luca.
+
+On Fri, 2013-09-13 at 12:09 -0700, Tony Lindgren wrote:
+> Commit b42b9181 (ARM: OMAP2+: Remove board-omap4panda.c)
+> removed legacy booting in favor of device tree based booting
+> for pandaboard. That caused the WLAN to stop working as the
+> related .dts entries fell through the cracks.
 > 
-> Ok, except for the one minor nit below my last scissor patch is good to go.
+> The legacy muxing was setting pulls for GPIO 48 and 49, so let's
+> keep that behaviour for now to avoid further regressions for
+> BT and FM. Also input logic was enabled for MMC CLK line, but
+> I've verified that the input logic we don't need enabled for
+> CLK line as it's not bidirectional.
 > 
->>>>> +
->>>>> +			ctlr = EDMA_CTLR(dma_spec.args[0]);
->>>>> +			clear_bit(EDMA_CHAN_SLOT(dma_spec.args[0]),
->>>>> +				  edma_cc[ctlr]->edma_unused);
->>>>
->>>> We don't support the second controller when using DT and the controller
->>>> number is not really encoded in the argument to edma phandle. So just
->>>> simplify this to:
->>>>
->>>> 	clear_bit(EDMA_CHAN_SLOT(dma_spec.args[0]), 	
->>>> 		  edma_cc[0]->edma_unused);
->>>
->>> I think let's not make that assumption just incase in the future we support more
->>> than one EDMA controller for DT-based boot. Is that ok?
->>
->> We don't write future proof code in that _hope_ that it will get used
->> someday.  In fact this will confuse the reader into wondering if support
->> for second channel controller is present or not as the code will send
+> Also, we want to use non-removable instead of ti,non-removable
+> as the ti,non-removable also sets no_regulator_off_init which
+> is really not what we want as then wl12xx won't get powered
+> up and down which is needed for resetting it.
 > 
-> Nope I don't agree with this at all.. EDMA CC ctrl will not be hardcoded. We
-> need to write future-proof code to make sure sudden regressions don't pop up
-> when say a second EDMA CC is introduced.. further edma_cc[ctrl] pattern is used
-
-I am not sure why you call this a regression. There is no support for
-second channel controller. If someone wants to add that support there is
-a lot to worry about than just these two lines of code. So, no, there
-wont be "sudden regressions that pop up" like you say. Look at the probe
-routine. There is no way the second CC is going to get probed.
-
-> all through out the code so what you're asking to do doesn't make much sense in
-> this context. There's no reason to break out of this pattern. It actually will
-> confuse the reader more.
-
-Thats because that code is also used for existing platform data based
-approach. If you are adding code paths which just get exercised with DT,
-no point referring to the second channel controller since that does not
-exist.
-
+> Note that looks like the WLAN interface fails to come up after
+> a warm reset, but that most likely was also happening with
+> the legacy booting and needs a separate fix.
 > 
-> Second controller can be present in future. I don't want to come back to change
-> the code when we introduce more than 1 CC which is possible in the future.
-
-You *will* have to come back and change the code to support the second
-channel controller. That is true with or without this patch. So lets
-stop arguing like the second channel controller support is only blocked
-because of these two lines of code.
-
+> Cc: Paolo Pisati <p.pisati@gmail.com>
+> Cc: Benoit Cousson <bcousson@baylibre.com>
+> Cc: Rajendra Nayak <rnayak@ti.com>
+> Cc: Luciano Coelho <luca@coelho.fi>
+> Cc: devicetree-discuss@lists.ozlabs.org
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> ---
+>  arch/arm/boot/dts/omap4-panda-common.dtsi |   46 ++++++++++++++++++++++++++++-
+>  1 file changed, 45 insertions(+), 1 deletion(-)
 > 
->> mixed messages. In short, we aim for consistency with situation today,
->> not tomorrow.
+> diff --git a/arch/arm/boot/dts/omap4-panda-common.dtsi b/arch/arm/boot/dts/omap4-panda-common.dtsi
+> index faa95b5..814ab67 100644
+> --- a/arch/arm/boot/dts/omap4-panda-common.dtsi
+> +++ b/arch/arm/boot/dts/omap4-panda-common.dtsi
+> @@ -107,6 +107,19 @@
+>  	 */
+>  		clock-frequency = <19200000>;
+>  	};
+> +
+> +	/* regulator for wl12xx on sdio5 */
+> +	wl12xx_vmmc: wl12xx_vmmc {
+> +		pinctrl-names = "default";
+> +		pinctrl-0 = <&wl12xx_gpio>;
+> +		compatible = "regulator-fixed";
+> +		regulator-name = "vwl1271";
+> +		regulator-min-microvolt = <1800000>;
+> +		regulator-max-microvolt = <1800000>;
+> +		gpio = <&gpio2 11 0>;
+> +		startup-delay-us = <70000>;
+> +		enable-active-high;
+> +	};
+>  };
+>  
+>  &omap4_pmx_wkup {
+> @@ -235,6 +248,33 @@
+>  			0x1c (PIN_OUTPUT | MUX_MODE3)	/* gpio_wk8 */
+>  		>;
+>  	};
+> +
+> +	/*
+> +	 * wl12xx GPIO outputs for WLAN_EN, BT_EN, FM_EN, BT_WAKEUP
+> +	 * REVISIT: Are the pull-ups needed for GPIO 48 and 49?
+> +	 */
+> +	wl12xx_gpio: pinmux_wl12xx_gpio {
+> +		pinctrl-single,pins = <
+> +			0x26 (PIN_OUTPUT | MUX_MODE3)		/* gpmc_a19.gpio_43 */
+> +			0x2c (PIN_OUTPUT | MUX_MODE3)		/* gpmc_a22.gpio_46 */
+> +			0x30 (PIN_OUTPUT_PULLUP | MUX_MODE3)	/* gpmc_a24.gpio_48 */
+> +			0x32 (PIN_OUTPUT_PULLUP | MUX_MODE3)	/* gpmc_a25.gpio_49 */
+> +		>;
+> +	};
+> +
+> +	/* wl12xx GPIO inputs and SDIO pins */
+> +	wl12xx_pins: pinmux_wl12xx_pins {
+> +		pinctrl-single,pins = <
+> +			0x38 (PIN_INPUT | MUX_MODE3)		/* gpmc_ncs2.gpio_52 */
+> +			0x3a (PIN_INPUT | MUX_MODE3)		/* gpmc_ncs3.gpio_53 */
+> +			0x108 (PIN_OUTPUT | MUX_MODE0)		/* sdmmc5_clk.sdmmc5_clk */
+> +			0x10a (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc5_cmd.sdmmc5_cmd */
+> +			0x10c (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc5_dat0.sdmmc5_dat0 */
+> +			0x10e (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc5_dat1.sdmmc5_dat1 */
+> +			0x110 (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc5_dat2.sdmmc5_dat2 */
+> +			0x112 (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc5_dat3.sdmmc5_dat3 */
+> +		>;
+> +	};
+>  };
+>  
+>  &i2c1 {
+> @@ -314,8 +354,12 @@
+>  };
+>  
+>  &mmc5 {
+> -	ti,non-removable;
+> +	pinctrl-names = "default";
+> +	pinctrl-0 = <&wl12xx_pins>;
+> +	vmmc-supply = <&wl12xx_vmmc>;
+> +	non-removable;
+>  	bus-width = <4>;
+> +	cap-power-off-card;
+>  };
+>  
+>  &emif1 {
 > 
-> What you're asking to do infact breaks consistency with the rest of the code.
-
-Well, ideally we support second CC even with DT to be consistent all
-around. Since that has not happened, I don't want the code to pretend
-that it it supports the second channel controller with DT that too only
-in parts of code.
-
-> 
->>
->> Besides, I can bet that when second CC support does get added, it is
->> very unlikely that the CC number is get encoded into channel number when
->> using DT.
-> 
-> Even if it is not encoded, the data structure for edma_cc is an array and what
-> you're asking is to hardcode the controller number to 0 always. No way I'm going
-> to hard code controller number to a single value.
-
-You are missing the point. Look at the code. You are extracting
-controller number from dma_spec.args[0] which is directly the value
-present in DT. The binding today does not specify that the value be
-encoded with controller number. So I will have not have code that
-interprets it that way.
-
-The code follows from bindings, not the other way around.
-
-> 
-> Different topic but anyway why wouldn't ctrl number be encoded in the channel?
-> That's clean, and saves variables and extra structures. Better use of the
-> integer bitmap making up the Ctrl and channel number of small ranges.
-
-Lets have this discussion when you update the bindings to support the
-second controller.
-
-Thanks,
-Sekhar
