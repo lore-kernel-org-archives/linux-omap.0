@@ -1,71 +1,50 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 03/15] OMAPDSS: fix DPI and SDI device ids
-Date: Tue, 17 Sep 2013 09:20:22 -0700
-Message-ID: <20130917162022.GC9994@atomide.com>
-References: <1377783120-14001-1-git-send-email-tomi.valkeinen@ti.com>
- <1377783120-14001-4-git-send-email-tomi.valkeinen@ti.com>
+From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH] ARM: dts: DRA7: provide arch-timer frequenecy parameter
+Date: Tue, 17 Sep 2013 11:47:13 -0500
+Message-ID: <1379436433-24914-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:42053 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752790Ab3IQQUY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Sep 2013 12:20:24 -0400
-Content-Disposition: inline
-In-Reply-To: <1377783120-14001-4-git-send-email-tomi.valkeinen@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, R Sricharan <r.sricharan-l0cyMroinI0@public.gmane.org>, Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>, Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>, Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-* Tomi Valkeinen <tomi.valkeinen@ti.com> [130829 06:40]:
-> The DPI and SDI platform devices are currently created with the ID of
-> -1. The ID doesn't currently affect anything.
-> 
-> However, we have added regulator supply entries for "omapdss_dpi.0" and
-> "omapdss_sdi.0" to the board files, although these supply entries are
-> not yet used. As the ID used for the devices is -1, these regulator
-> supply entries will not work.
-> 
-> To fix the issue, assign ID of 0 to the devices. In the future there may
-> be more than one DPI or SDI output, so it makes sense to have a proper
-> ID for them.
+CNTFREQ isn't pre-programmed on DRA7 just like O5, so provide the
+same. Without a valid value arch_timer_init results in div0 crash.
+Providing the same is a safer alternative.
 
-This should be safe to queue by you along with other DSS patches:
+Cc: R Sricharan <r.sricharan-l0cyMroinI0@public.gmane.org>
+Cc: Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>
+Cc: Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>
+Cc: Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+---
+
+Based on Benoit's for_3.13/dts branch. 
+http://git.kernel.org/cgit/linux/kernel/git/bcousson/linux-omap-dt.git/log/?h=for_3.13/dts
+Without this patch, div0 error occurs(seen on 3.12-rc1 tag): http://pastebin.com/B2sDauS9
+
+ arch/arm/boot/dts/dra7.dtsi |    1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+index c01ef76..b478beb 100644
+--- a/arch/arm/boot/dts/dra7.dtsi
++++ b/arch/arm/boot/dts/dra7.dtsi
+@@ -50,6 +50,7 @@
+ 			     <GIC_PPI 14 (GIC_CPU_MASK_SIMPLE(2) | IRQ_TYPE_LEVEL_LOW)>,
+ 			     <GIC_PPI 11 (GIC_CPU_MASK_SIMPLE(2) | IRQ_TYPE_LEVEL_LOW)>,
+ 			     <GIC_PPI 10 (GIC_CPU_MASK_SIMPLE(2) | IRQ_TYPE_LEVEL_LOW)>;
++		clock-frequency = <6144000>;
+ 	};
  
-> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> ---
->  arch/arm/mach-omap2/display.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
-> index ff37be1..03a0516 100644
-> --- a/arch/arm/mach-omap2/display.c
-> +++ b/arch/arm/mach-omap2/display.c
-> @@ -400,7 +400,7 @@ int __init omap_display_init(struct omap_dss_board_info *board_data)
->  
->  	/* Create devices for DPI and SDI */
->  
-> -	pdev = create_simple_dss_pdev("omapdss_dpi", -1,
-> +	pdev = create_simple_dss_pdev("omapdss_dpi", 0,
->  			board_data, sizeof(*board_data), dss_pdev);
->  	if (IS_ERR(pdev)) {
->  		pr_err("Could not build platform_device for omapdss_dpi\n");
-> @@ -408,7 +408,7 @@ int __init omap_display_init(struct omap_dss_board_info *board_data)
->  	}
->  
->  	if (cpu_is_omap34xx()) {
-> -		pdev = create_simple_dss_pdev("omapdss_sdi", -1,
-> +		pdev = create_simple_dss_pdev("omapdss_sdi", 0,
->  				board_data, sizeof(*board_data), dss_pdev);
->  		if (IS_ERR(pdev)) {
->  			pr_err("Could not build platform_device for omapdss_sdi\n");
-> -- 
-> 1.8.1.2
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ 	gic: interrupt-controller@48211000 {
+-- 
+1.7.9.5
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
