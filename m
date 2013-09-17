@@ -1,693 +1,92 @@
-From: Mike Turquette <mturquette@linaro.org>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
 Subject: Re: [PATCH 02/11] omapdss: HDMI: create a HDMI PLL library
-Date: Tue, 17 Sep 2013 02:38:13 -0700
-Message-ID: <20130917093813.27384.67975@quantum>
-References: <1379401597-27222-1-git-send-email-archit@ti.com>
- <1379401597-27222-3-git-send-email-archit@ti.com>
+Date: Tue, 17 Sep 2013 13:02:15 +0300
+Message-ID: <523828A7.8050204@ti.com>
+References: <1379401597-27222-1-git-send-email-archit@ti.com> <1379401597-27222-3-git-send-email-archit@ti.com> <20130917093813.27384.67975@quantum>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="ct7tEPPNtHgl7eOidBlxjohXdVbWTeKvL"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f49.google.com ([209.85.220.49]:54209 "EHLO
-	mail-pa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752135Ab3IQJiW convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Sep 2013 05:38:22 -0400
-Received: by mail-pa0-f49.google.com with SMTP id ld10so6551171pab.22
-        for <linux-omap@vger.kernel.org>; Tue, 17 Sep 2013 02:38:22 -0700 (PDT)
-In-Reply-To: <1379401597-27222-3-git-send-email-archit@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:42687 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752505Ab3IQKCW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 17 Sep 2013 06:02:22 -0400
+In-Reply-To: <20130917093813.27384.67975@quantum>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tomi.valkeinen@ti.com
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Archit Taneja <archit@ti.com>
+To: Mike Turquette <mturquette@linaro.org>
+Cc: Archit Taneja <archit@ti.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
-Quoting Archit Taneja (2013-09-17 00:06:28)
-> HDMI PLL is a block common to DSS in OMAP4, OMAP5 and DRA7x. Move the
-> existing PLL functions from ti_hdmi_4xxx_ip.c and hdmi.c to a separate file.
-> These funcs are called directly from the hdmi driver rather than hdmi_ip_ops
-> function pointer calls.
-> 
-> Add the PLL library function declarations to ti_hdmi.h. These will be shared
-> amongst the omap4/5 hdmi platform drivers. Remove the PLL function pointer ops
-> from the ti_hdmi_ip_ops struct. These will be shared amongst the omap4/5 hdmi
-> platform drivers and other libraries.
-> 
-> Signed-off-by: Archit Taneja <archit@ti.com>
+--ct7tEPPNtHgl7eOidBlxjohXdVbWTeKvL
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-Would be cool to see this convert to the common clock framework
-implementation (include/linux/clk-provider.h). It appears that this PLL
-only needs to support .enable, .disable and .recalc_rate callbacks at
-first glance.
+On 17/09/13 12:38, Mike Turquette wrote:
+> Quoting Archit Taneja (2013-09-17 00:06:28)
+>> HDMI PLL is a block common to DSS in OMAP4, OMAP5 and DRA7x. Move the
+>> existing PLL functions from ti_hdmi_4xxx_ip.c and hdmi.c to a separate=
+ file.
+>> These funcs are called directly from the hdmi driver rather than hdmi_=
+ip_ops
+>> function pointer calls.
+>>
+>> Add the PLL library function declarations to ti_hdmi.h. These will be =
+shared
+>> amongst the omap4/5 hdmi platform drivers. Remove the PLL function poi=
+nter ops
+>> from the ti_hdmi_ip_ops struct. These will be shared amongst the omap4=
+/5 hdmi
+>> platform drivers and other libraries.
+>>
+>> Signed-off-by: Archit Taneja <archit@ti.com>
+>=20
+> Would be cool to see this convert to the common clock framework
+> implementation (include/linux/clk-provider.h). It appears that this PLL=
 
-Regards,
-Mike
+> only needs to support .enable, .disable and .recalc_rate callbacks at
+> first glance.
 
-> ---
->  drivers/video/omap2/dss/Makefile          |   2 +-
->  drivers/video/omap2/dss/dss_features.c    |   3 -
->  drivers/video/omap2/dss/hdmi.c            |  65 ++------
->  drivers/video/omap2/dss/hdmi_pll.c        | 243 ++++++++++++++++++++++++++++++
->  drivers/video/omap2/dss/ti_hdmi.h         |  25 +--
->  drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c | 132 ----------------
->  6 files changed, 267 insertions(+), 203 deletions(-)
->  create mode 100644 drivers/video/omap2/dss/hdmi_pll.c
-> 
-> diff --git a/drivers/video/omap2/dss/Makefile b/drivers/video/omap2/dss/Makefile
-> index 56ce6bd..5ea65d3 100644
-> --- a/drivers/video/omap2/dss/Makefile
-> +++ b/drivers/video/omap2/dss/Makefile
-> @@ -10,5 +10,5 @@ omapdss-$(CONFIG_OMAP2_DSS_RFBI) += rfbi.o
->  omapdss-$(CONFIG_OMAP2_DSS_VENC) += venc.o
->  omapdss-$(CONFIG_OMAP2_DSS_SDI) += sdi.o
->  omapdss-$(CONFIG_OMAP2_DSS_DSI) += dsi.o
-> -omapdss-$(CONFIG_OMAP4_DSS_HDMI) += hdmi.o hdmi_wp.o ti_hdmi_4xxx_ip.o
-> +omapdss-$(CONFIG_OMAP4_DSS_HDMI) += hdmi.o hdmi_wp.o hdmi_pll.o ti_hdmi_4xxx_ip.o
->  ccflags-$(CONFIG_OMAP2_DSS_DEBUG) += -DDEBUG
-> diff --git a/drivers/video/omap2/dss/dss_features.c b/drivers/video/omap2/dss/dss_features.c
-> index db359e8..9ee92e9 100644
-> --- a/drivers/video/omap2/dss/dss_features.c
-> +++ b/drivers/video/omap2/dss/dss_features.c
-> @@ -797,10 +797,7 @@ static const struct ti_hdmi_ip_ops omap4_hdmi_functions = {
->         .phy_enable             =       ti_hdmi_4xxx_phy_enable,
->         .phy_disable            =       ti_hdmi_4xxx_phy_disable,
->         .read_edid              =       ti_hdmi_4xxx_read_edid,
-> -       .pll_enable             =       ti_hdmi_4xxx_pll_enable,
-> -       .pll_disable            =       ti_hdmi_4xxx_pll_disable,
->         .dump_core              =       ti_hdmi_4xxx_core_dump,
-> -       .dump_pll               =       ti_hdmi_4xxx_pll_dump,
->         .dump_phy               =       ti_hdmi_4xxx_phy_dump,
->  #if defined(CONFIG_OMAP4_DSS_HDMI_AUDIO)
->         .audio_start            =       ti_hdmi_4xxx_audio_start,
-> diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/dss/hdmi.c
-> index f2475fc..f6a2eba 100644
-> --- a/drivers/video/omap2/dss/hdmi.c
-> +++ b/drivers/video/omap2/dss/hdmi.c
-> @@ -42,7 +42,6 @@
->  
->  #define HDMI_CORE_SYS          0x400
->  #define HDMI_CORE_AV           0x900
-> -#define HDMI_PLLCTRL           0x200
->  #define HDMI_PHY               0x300
->  
->  /* HDMI EDID Length move this */
-> @@ -53,9 +52,6 @@
->  #define EDID_SIZE_BLOCK0_TIMING_DESCRIPTOR     4
->  #define EDID_SIZE_BLOCK1_TIMING_DESCRIPTOR     4
->  
-> -#define HDMI_DEFAULT_REGN 16
-> -#define HDMI_DEFAULT_REGM2 1
-> -
->  static struct {
->         struct mutex lock;
->         struct platform_device *pdev;
-> @@ -428,52 +424,6 @@ end:       return cm;
->  
->  }
->  
-> -static void hdmi_compute_pll(struct omap_dss_device *dssdev, int phy,
-> -               struct hdmi_pll_info *pi)
-> -{
-> -       unsigned long clkin, refclk;
-> -       u32 mf;
-> -
-> -       clkin = clk_get_rate(hdmi.sys_clk) / 10000;
-> -       /*
-> -        * Input clock is predivided by N + 1
-> -        * out put of which is reference clk
-> -        */
-> -
-> -       pi->regn = HDMI_DEFAULT_REGN;
-> -
-> -       refclk = clkin / pi->regn;
-> -
-> -       pi->regm2 = HDMI_DEFAULT_REGM2;
-> -
-> -       /*
-> -        * multiplier is pixel_clk/ref_clk
-> -        * Multiplying by 100 to avoid fractional part removal
-> -        */
-> -       pi->regm = phy * pi->regm2 / refclk;
-> -
-> -       /*
-> -        * fractional multiplier is remainder of the difference between
-> -        * multiplier and actual phy(required pixel clock thus should be
-> -        * multiplied by 2^18(262144) divided by the reference clock
-> -        */
-> -       mf = (phy - pi->regm / pi->regm2 * refclk) * 262144;
-> -       pi->regmf = pi->regm2 * mf / refclk;
-> -
-> -       /*
-> -        * Dcofreq should be set to 1 if required pixel clock
-> -        * is greater than 1000MHz
-> -        */
-> -       pi->dcofreq = phy > 1000 * 100;
-> -       pi->regsd = ((pi->regm * clkin / 10) / (pi->regn * 250) + 5) / 10;
-> -
-> -       /* Set the reference clock to sysclk reference */
-> -       pi->refsel = HDMI_REFSEL_SYSCLK;
-> -
-> -       DSSDBG("M = %d Mf = %d\n", pi->regm, pi->regmf);
-> -       DSSDBG("range = %d sd = %d\n", pi->dcofreq, pi->regsd);
-> -}
-> -
->  static int hdmi_power_on_core(struct omap_dss_device *dssdev)
->  {
->         int r;
-> @@ -526,12 +476,12 @@ static int hdmi_power_on_full(struct omap_dss_device *dssdev)
->  
->         phy = p->pixel_clock;
->  
-> -       hdmi_compute_pll(dssdev, phy, &hdmi.ip_data.pll_data);
-> +       hdmi_pll_compute(&hdmi.ip_data.pll, clk_get_rate(hdmi.sys_clk), phy);
->  
->         hdmi_wp_video_stop(&hdmi.ip_data.wp);
->  
->         /* config the PLL and PHY hdmi_set_pll_pwrfirst */
-> -       r = hdmi.ip_data.ops->pll_enable(&hdmi.ip_data);
-> +       r = hdmi_pll_enable(&hdmi.ip_data.pll, &hdmi.ip_data.wp);
->         if (r) {
->                 DSSDBG("Failed to lock PLL\n");
->                 goto err_pll_enable;
-> @@ -566,7 +516,7 @@ err_mgr_enable:
->  err_vid_enable:
->         hdmi.ip_data.ops->phy_disable(&hdmi.ip_data);
->  err_phy_enable:
-> -       hdmi.ip_data.ops->pll_disable(&hdmi.ip_data);
-> +       hdmi_pll_disable(&hdmi.ip_data.pll, &hdmi.ip_data.wp);
->  err_pll_enable:
->         hdmi_power_off_core(dssdev);
->         return -EIO;
-> @@ -580,7 +530,7 @@ static void hdmi_power_off_full(struct omap_dss_device *dssdev)
->  
->         hdmi_wp_video_stop(&hdmi.ip_data.wp);
->         hdmi.ip_data.ops->phy_disable(&hdmi.ip_data);
-> -       hdmi.ip_data.ops->pll_disable(&hdmi.ip_data);
-> +       hdmi_pll_disable(&hdmi.ip_data.pll, &hdmi.ip_data.wp);
->  
->         hdmi_power_off_core(dssdev);
->  }
-> @@ -642,7 +592,7 @@ static void hdmi_dump_regs(struct seq_file *s)
->         }
->  
->         hdmi_wp_dump(&hdmi.ip_data.wp, s);
-> -       hdmi.ip_data.ops->dump_pll(&hdmi.ip_data, s);
-> +       hdmi_pll_dump(&hdmi.ip_data.pll, s);
->         hdmi.ip_data.ops->dump_phy(&hdmi.ip_data, s);
->         hdmi.ip_data.ops->dump_core(&hdmi.ip_data, s);
->  
-> @@ -1095,6 +1045,10 @@ static int omapdss_hdmihw_probe(struct platform_device *pdev)
->         if (r)
->                 return r;
->  
-> +       r = hdmi_pll_init(pdev, &hdmi.ip_data.pll);
-> +       if (r)
-> +               return r;
-> +
->         hdmi.ip_data.irq = platform_get_irq(pdev, 0);
->         if (hdmi.ip_data.irq < 0) {
->                 DSSERR("platform_get_irq failed\n");
-> @@ -1111,7 +1065,6 @@ static int omapdss_hdmihw_probe(struct platform_device *pdev)
->  
->         hdmi.ip_data.core_sys_offset = HDMI_CORE_SYS;
->         hdmi.ip_data.core_av_offset = HDMI_CORE_AV;
-> -       hdmi.ip_data.pll_offset = HDMI_PLLCTRL;
->         hdmi.ip_data.phy_offset = HDMI_PHY;
->  
->         hdmi_init_output(pdev);
-> diff --git a/drivers/video/omap2/dss/hdmi_pll.c b/drivers/video/omap2/dss/hdmi_pll.c
-> new file mode 100644
-> index 0000000..d53b8e2
-> --- /dev/null
-> +++ b/drivers/video/omap2/dss/hdmi_pll.c
-> @@ -0,0 +1,243 @@
-> +/*
-> + * HDMI PLL
-> + *
-> + * Copyright (C) 2013 Texas Instruments Incorporated
-> + *
-> + * This program is free software; you can redistribute it and/or modify it
-> + * under the terms of the GNU General Public License version 2 as published by
-> + * the Free Software Foundation.
-> + */
-> +
-> +#include <linux/kernel.h>
-> +#include <linux/module.h>
-> +#include <linux/delay.h>
-> +#include <linux/err.h>
-> +#include <linux/io.h>
-> +#include <linux/platform_device.h>
-> +#include <video/omapdss.h>
-> +
-> +#include "dss.h"
-> +#include "ti_hdmi.h"
-> +#include "ti_hdmi_4xxx_ip.h"
-> +
-> +#define HDMI_DEFAULT_REGN 16
-> +#define HDMI_DEFAULT_REGM2 1
-> +
-> +static inline void hdmi_write_reg(void __iomem *base_addr, const u16 idx,
-> +               u32 val)
-> +{
-> +       __raw_writel(val, base_addr + idx);
-> +}
-> +
-> +static inline u32 hdmi_read_reg(void __iomem *base_addr, const u16 idx)
-> +{
-> +       return __raw_readl(base_addr + idx);
-> +}
-> +
-> +#define REG_FLD_MOD(base, idx, val, start, end) \
-> +       hdmi_write_reg(base, idx, FLD_MOD(hdmi_read_reg(base, idx),\
-> +                                                       val, start, end))
-> +#define REG_GET(base, idx, start, end) \
-> +       FLD_GET(hdmi_read_reg(base, idx), start, end)
-> +
-> +static inline int hdmi_wait_for_bit_change(void __iomem *base_addr,
-> +               const u16 idx, int b2, int b1, u32 val)
-> +{
-> +       u32 t = 0;
-> +       while (val != REG_GET(base_addr, idx, b2, b1)) {
-> +               udelay(1);
-> +               if (t++ > 10000)
-> +                       return !val;
-> +       }
-> +       return val;
-> +}
-> +
-> +void hdmi_pll_dump(struct hdmi_pll_data *pll, struct seq_file *s)
-> +{
-> +#define DUMPPLL(r) seq_printf(s, "%-35s %08x\n", #r,\
-> +               hdmi_read_reg(pll->base, r))
-> +
-> +       DUMPPLL(PLLCTRL_PLL_CONTROL);
-> +       DUMPPLL(PLLCTRL_PLL_STATUS);
-> +       DUMPPLL(PLLCTRL_PLL_GO);
-> +       DUMPPLL(PLLCTRL_CFG1);
-> +       DUMPPLL(PLLCTRL_CFG2);
-> +       DUMPPLL(PLLCTRL_CFG3);
-> +       DUMPPLL(PLLCTRL_SSC_CFG1);
-> +       DUMPPLL(PLLCTRL_SSC_CFG2);
-> +       DUMPPLL(PLLCTRL_CFG4);
-> +}
-> +
-> +void hdmi_pll_compute(struct hdmi_pll_data *pll, unsigned long clkin, int phy)
-> +{
-> +       struct hdmi_pll_info *pi = &pll->info;
-> +       unsigned long refclk;
-> +       u32 mf;
-> +
-> +       /* use our funky units */
-> +       clkin /= 10000;
-> +
-> +       /*
-> +        * Input clock is predivided by N + 1
-> +        * out put of which is reference clk
-> +        */
-> +
-> +       pi->regn = HDMI_DEFAULT_REGN;
-> +
-> +       refclk = clkin / pi->regn;
-> +
-> +       pi->regm2 = HDMI_DEFAULT_REGM2;
-> +
-> +       /*
-> +        * multiplier is pixel_clk/ref_clk
-> +        * Multiplying by 100 to avoid fractional part removal
-> +        */
-> +       pi->regm = phy * pi->regm2 / refclk;
-> +
-> +       /*
-> +        * fractional multiplier is remainder of the difference between
-> +        * multiplier and actual phy(required pixel clock thus should be
-> +        * multiplied by 2^18(262144) divided by the reference clock
-> +        */
-> +       mf = (phy - pi->regm / pi->regm2 * refclk) * 262144;
-> +       pi->regmf = pi->regm2 * mf / refclk;
-> +
-> +       /*
-> +        * Dcofreq should be set to 1 if required pixel clock
-> +        * is greater than 1000MHz
-> +        */
-> +       pi->dcofreq = phy > 1000 * 100;
-> +       pi->regsd = ((pi->regm * clkin / 10) / (pi->regn * 250) + 5) / 10;
-> +
-> +       /* Set the reference clock to sysclk reference */
-> +       pi->refsel = HDMI_REFSEL_SYSCLK;
-> +
-> +       DSSDBG("M = %d Mf = %d\n", pi->regm, pi->regmf);
-> +       DSSDBG("range = %d sd = %d\n", pi->dcofreq, pi->regsd);
-> +}
-> +
-> +
-> +static int hdmi_pll_config(struct hdmi_pll_data *pll)
-> +{
-> +       u32 r;
-> +       struct hdmi_pll_info *fmt = &pll->info;
-> +
-> +       /* PLL start always use manual mode */
-> +       REG_FLD_MOD(pll->base, PLLCTRL_PLL_CONTROL, 0x0, 0, 0);
-> +
-> +       r = hdmi_read_reg(pll->base, PLLCTRL_CFG1);
-> +       r = FLD_MOD(r, fmt->regm, 20, 9);       /* CFG1_PLL_REGM */
-> +       r = FLD_MOD(r, fmt->regn - 1, 8, 1);    /* CFG1_PLL_REGN */
-> +       hdmi_write_reg(pll->base, PLLCTRL_CFG1, r);
-> +
-> +       r = hdmi_read_reg(pll->base, PLLCTRL_CFG2);
-> +
-> +       r = FLD_MOD(r, 0x0, 12, 12);    /* PLL_HIGHFREQ divide by 2 */
-> +       r = FLD_MOD(r, 0x1, 13, 13);    /* PLL_REFEN */
-> +       r = FLD_MOD(r, 0x0, 14, 14);    /* PHY_CLKINEN de-assert during locking */
-> +       r = FLD_MOD(r, fmt->refsel, 22, 21);    /* REFSEL */
-> +
-> +       if (fmt->dcofreq) {
-> +               /* divider programming for frequency beyond 1000Mhz */
-> +               REG_FLD_MOD(pll->base, PLLCTRL_CFG3, fmt->regsd, 17, 10);
-> +               r = FLD_MOD(r, 0x4, 3, 1);      /* 1000MHz and 2000MHz */
-> +       } else {
-> +               r = FLD_MOD(r, 0x2, 3, 1);      /* 500MHz and 1000MHz */
-> +       }
-> +
-> +       hdmi_write_reg(pll->base, PLLCTRL_CFG2, r);
-> +
-> +       r = hdmi_read_reg(pll->base, PLLCTRL_CFG4);
-> +       r = FLD_MOD(r, fmt->regm2, 24, 18);
-> +       r = FLD_MOD(r, fmt->regmf, 17, 0);
-> +       hdmi_write_reg(pll->base, PLLCTRL_CFG4, r);
-> +
-> +       /* go now */
-> +       REG_FLD_MOD(pll->base, PLLCTRL_PLL_GO, 0x1, 0, 0);
-> +
-> +       /* wait for bit change */
-> +       if (hdmi_wait_for_bit_change(pll->base, PLLCTRL_PLL_GO,
-> +                       0, 0, 1) != 1) {
-> +               pr_err("PLL GO bit not set\n");
-> +               return -ETIMEDOUT;
-> +       }
-> +
-> +       /* Wait till the lock bit is set in PLL status */
-> +       if (hdmi_wait_for_bit_change(pll->base,
-> +                       PLLCTRL_PLL_STATUS, 1, 1, 1) != 1) {
-> +               pr_err("cannot lock PLL\n");
-> +               pr_err("CFG1 0x%x\n",
-> +                       hdmi_read_reg(pll->base, PLLCTRL_CFG1));
-> +               pr_err("CFG2 0x%x\n",
-> +                       hdmi_read_reg(pll->base, PLLCTRL_CFG2));
-> +               pr_err("CFG4 0x%x\n",
-> +                       hdmi_read_reg(pll->base, PLLCTRL_CFG4));
-> +               return -ETIMEDOUT;
-> +       }
-> +
-> +       pr_debug("PLL locked!\n");
-> +
-> +       return 0;
-> +}
-> +
-> +static int hdmi_pll_reset(struct hdmi_pll_data *pll)
-> +{
-> +       /* SYSRESET  controlled by power FSM */
-> +       REG_FLD_MOD(pll->base, PLLCTRL_PLL_CONTROL, 0x0, 3, 3);
-> +
-> +       /* READ 0x0 reset is in progress */
-> +       if (hdmi_wait_for_bit_change(pll->base, PLLCTRL_PLL_STATUS, 0, 0, 1)
-> +                       != 1) {
-> +               pr_err("Failed to sysreset PLL\n");
-> +               return -ETIMEDOUT;
-> +       }
-> +
-> +       return 0;
-> +}
-> +
-> +int hdmi_pll_enable(struct hdmi_pll_data *pll, struct hdmi_wp_data *wp)
-> +{
-> +       u16 r = 0;
-> +
-> +       r = hdmi_wp_set_pll_pwr(wp, HDMI_PLLPWRCMD_ALLOFF);
-> +       if (r)
-> +               return r;
-> +
-> +       r = hdmi_wp_set_pll_pwr(wp, HDMI_PLLPWRCMD_BOTHON_ALLCLKS);
-> +       if (r)
-> +               return r;
-> +
-> +       r = hdmi_pll_reset(pll);
-> +       if (r)
-> +               return r;
-> +
-> +       r = hdmi_pll_config(pll);
-> +       if (r)
-> +               return r;
-> +
-> +       return 0;
-> +}
-> +
-> +void hdmi_pll_disable(struct hdmi_pll_data *pll, struct hdmi_wp_data *wp)
-> +{
-> +       hdmi_wp_set_pll_pwr(wp, HDMI_PLLPWRCMD_ALLOFF);
-> +}
-> +
-> +int hdmi_pll_init(struct platform_device *pdev, struct hdmi_pll_data *pll)
-> +{
-> +       struct resource *res;
-> +
-> +       res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "hdmi_pllctrl");
-> +       if (!res) {
-> +               DSSERR("can't get PLL CTRL IORESOURCE_MEM HDMI\n");
-> +               return -EINVAL;
-> +       }
-> +
-> +       pll->base = devm_request_and_ioremap(&pdev->dev, res);
-> +       if (!pll->base) {
-> +               DSSERR("can't ioremap PLL ctrl\n");
-> +               return -ENOMEM;
-> +       }
-> +
-> +       return 0;
-> +}
-> diff --git a/drivers/video/omap2/dss/ti_hdmi.h b/drivers/video/omap2/dss/ti_hdmi.h
-> index d16f28d..62a83c7 100644
-> --- a/drivers/video/omap2/dss/ti_hdmi.h
-> +++ b/drivers/video/omap2/dss/ti_hdmi.h
-> @@ -155,14 +155,8 @@ struct ti_hdmi_ip_ops {
->  
->         int (*read_edid)(struct hdmi_ip_data *ip_data, u8 *edid, int len);
->  
-> -       int (*pll_enable)(struct hdmi_ip_data *ip_data);
-> -
-> -       void (*pll_disable)(struct hdmi_ip_data *ip_data);
-> -
->         void (*dump_core)(struct hdmi_ip_data *ip_data, struct seq_file *s);
->  
-> -       void (*dump_pll)(struct hdmi_ip_data *ip_data, struct seq_file *s);
-> -
->         void (*dump_phy)(struct hdmi_ip_data *ip_data, struct seq_file *s);
->  
->  #if defined(CONFIG_OMAP4_DSS_HDMI_AUDIO)
-> @@ -223,17 +217,22 @@ struct hdmi_wp_data {
->         void __iomem *base;
->  };
->  
-> +struct hdmi_pll_data {
-> +       void __iomem *base;
-> +
-> +       struct hdmi_pll_info info;
-> +};
-> +
->  struct hdmi_ip_data {
->         struct hdmi_wp_data     wp;
-> +       struct hdmi_pll_data    pll;
->  
->         unsigned long   core_sys_offset;
->         unsigned long   core_av_offset;
-> -       unsigned long   pll_offset;
->         unsigned long   phy_offset;
->         int             irq;
->         const struct ti_hdmi_ip_ops *ops;
->         struct hdmi_config cfg;
-> -       struct hdmi_pll_info pll_data;
->         struct hdmi_core_infoframe_avi avi_cfg;
->  
->         /* ti_hdmi_4xxx_ip private data. These should be in a separate struct */
-> @@ -260,13 +259,17 @@ void hdmi_wp_init_vid_fmt_timings(struct hdmi_video_format *video_fmt,
->                 struct omap_video_timings *timings, struct hdmi_config *param);
->  int hdmi_wp_init(struct platform_device *pdev, struct hdmi_wp_data *wp);
->  
-> +/* HDMI PLL funcs */
-> +int hdmi_pll_enable(struct hdmi_pll_data *pll, struct hdmi_wp_data *wp);
-> +void hdmi_pll_disable(struct hdmi_pll_data *pll, struct hdmi_wp_data *wp);
-> +void hdmi_pll_dump(struct hdmi_pll_data *pll, struct seq_file *s);
-> +void hdmi_pll_compute(struct hdmi_pll_data *pll, unsigned long clkin, int phy);
-> +int hdmi_pll_init(struct platform_device *pdev, struct hdmi_pll_data *pll);
-> +
->  int ti_hdmi_4xxx_phy_enable(struct hdmi_ip_data *ip_data);
->  void ti_hdmi_4xxx_phy_disable(struct hdmi_ip_data *ip_data);
->  int ti_hdmi_4xxx_read_edid(struct hdmi_ip_data *ip_data, u8 *edid, int len);
-> -int ti_hdmi_4xxx_pll_enable(struct hdmi_ip_data *ip_data);
-> -void ti_hdmi_4xxx_pll_disable(struct hdmi_ip_data *ip_data);
->  void ti_hdmi_4xxx_basic_configure(struct hdmi_ip_data *ip_data);
-> -void ti_hdmi_4xxx_pll_dump(struct hdmi_ip_data *ip_data, struct seq_file *s);
->  void ti_hdmi_4xxx_core_dump(struct hdmi_ip_data *ip_data, struct seq_file *s);
->  void ti_hdmi_4xxx_phy_dump(struct hdmi_ip_data *ip_data, struct seq_file *s);
->  #if defined(CONFIG_OMAP4_DSS_HDMI_AUDIO)
-> diff --git a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
-> index d4b8883..8cfb54b 100644
-> --- a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
-> +++ b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
-> @@ -75,11 +75,6 @@ static inline void __iomem *hdmi_phy_base(struct hdmi_ip_data *ip_data)
->         return ip_data->wp.base + ip_data->phy_offset;
->  }
->  
-> -static inline void __iomem *hdmi_pll_base(struct hdmi_ip_data *ip_data)
-> -{
-> -       return ip_data->wp.base + ip_data->pll_offset;
-> -}
-> -
->  static inline void __iomem *hdmi_av_base(struct hdmi_ip_data *ip_data)
->  {
->         return ip_data->wp.base + ip_data->core_av_offset;
-> @@ -90,117 +85,6 @@ static inline void __iomem *hdmi_core_sys_base(struct hdmi_ip_data *ip_data)
->         return ip_data->wp.base + ip_data->core_sys_offset;
->  }
->  
-> -
-> -static int hdmi_pll_init(struct hdmi_ip_data *ip_data)
-> -{
-> -       u32 r;
-> -       void __iomem *pll_base = hdmi_pll_base(ip_data);
-> -       struct hdmi_pll_info *fmt = &ip_data->pll_data;
-> -
-> -       /* PLL start always use manual mode */
-> -       REG_FLD_MOD(pll_base, PLLCTRL_PLL_CONTROL, 0x0, 0, 0);
-> -
-> -       r = hdmi_read_reg(pll_base, PLLCTRL_CFG1);
-> -       r = FLD_MOD(r, fmt->regm, 20, 9); /* CFG1_PLL_REGM */
-> -       r = FLD_MOD(r, fmt->regn - 1, 8, 1);  /* CFG1_PLL_REGN */
-> -
-> -       hdmi_write_reg(pll_base, PLLCTRL_CFG1, r);
-> -
-> -       r = hdmi_read_reg(pll_base, PLLCTRL_CFG2);
-> -
-> -       r = FLD_MOD(r, 0x0, 12, 12); /* PLL_HIGHFREQ divide by 2 */
-> -       r = FLD_MOD(r, 0x1, 13, 13); /* PLL_REFEN */
-> -       r = FLD_MOD(r, 0x0, 14, 14); /* PHY_CLKINEN de-assert during locking */
-> -       r = FLD_MOD(r, fmt->refsel, 22, 21); /* REFSEL */
-> -
-> -       if (fmt->dcofreq) {
-> -               /* divider programming for frequency beyond 1000Mhz */
-> -               REG_FLD_MOD(pll_base, PLLCTRL_CFG3, fmt->regsd, 17, 10);
-> -               r = FLD_MOD(r, 0x4, 3, 1); /* 1000MHz and 2000MHz */
-> -       } else {
-> -               r = FLD_MOD(r, 0x2, 3, 1); /* 500MHz and 1000MHz */
-> -       }
-> -
-> -       hdmi_write_reg(pll_base, PLLCTRL_CFG2, r);
-> -
-> -       r = hdmi_read_reg(pll_base, PLLCTRL_CFG4);
-> -       r = FLD_MOD(r, fmt->regm2, 24, 18);
-> -       r = FLD_MOD(r, fmt->regmf, 17, 0);
-> -
-> -       hdmi_write_reg(pll_base, PLLCTRL_CFG4, r);
-> -
-> -       /* go now */
-> -       REG_FLD_MOD(pll_base, PLLCTRL_PLL_GO, 0x1, 0, 0);
-> -
-> -       /* wait for bit change */
-> -       if (hdmi_wait_for_bit_change(pll_base, PLLCTRL_PLL_GO,
-> -                                                       0, 0, 1) != 1) {
-> -               pr_err("PLL GO bit not set\n");
-> -               return -ETIMEDOUT;
-> -       }
-> -
-> -       /* Wait till the lock bit is set in PLL status */
-> -       if (hdmi_wait_for_bit_change(pll_base,
-> -                               PLLCTRL_PLL_STATUS, 1, 1, 1) != 1) {
-> -               pr_err("cannot lock PLL\n");
-> -               pr_err("CFG1 0x%x\n",
-> -                       hdmi_read_reg(pll_base, PLLCTRL_CFG1));
-> -               pr_err("CFG2 0x%x\n",
-> -                       hdmi_read_reg(pll_base, PLLCTRL_CFG2));
-> -               pr_err("CFG4 0x%x\n",
-> -                       hdmi_read_reg(pll_base, PLLCTRL_CFG4));
-> -               return -ETIMEDOUT;
-> -       }
-> -
-> -       pr_debug("PLL locked!\n");
-> -
-> -       return 0;
-> -}
-> -
-> -
-> -static int hdmi_pll_reset(struct hdmi_ip_data *ip_data)
-> -{
-> -       /* SYSRESET  controlled by power FSM */
-> -       REG_FLD_MOD(hdmi_pll_base(ip_data), PLLCTRL_PLL_CONTROL, 0x0, 3, 3);
-> -
-> -       /* READ 0x0 reset is in progress */
-> -       if (hdmi_wait_for_bit_change(hdmi_pll_base(ip_data),
-> -                               PLLCTRL_PLL_STATUS, 0, 0, 1) != 1) {
-> -               pr_err("Failed to sysreset PLL\n");
-> -               return -ETIMEDOUT;
-> -       }
-> -
-> -       return 0;
-> -}
-> -
-> -int ti_hdmi_4xxx_pll_enable(struct hdmi_ip_data *ip_data)
-> -{
-> -       u16 r = 0;
-> -
-> -       r = hdmi_wp_set_pll_pwr(&ip_data->wp, HDMI_PLLPWRCMD_ALLOFF);
-> -       if (r)
-> -               return r;
-> -
-> -       r = hdmi_wp_set_pll_pwr(&ip_data->wp, HDMI_PLLPWRCMD_BOTHON_ALLCLKS);
-> -       if (r)
-> -               return r;
-> -
-> -       r = hdmi_pll_reset(ip_data);
-> -       if (r)
-> -               return r;
-> -
-> -       r = hdmi_pll_init(ip_data);
-> -       if (r)
-> -               return r;
-> -
-> -       return 0;
-> -}
-> -
-> -void ti_hdmi_4xxx_pll_disable(struct hdmi_ip_data *ip_data)
-> -{
-> -       hdmi_wp_set_pll_pwr(&ip_data->wp, HDMI_PLLPWRCMD_ALLOFF);
-> -}
-> -
->  static irqreturn_t hdmi_irq_handler(int irq, void *data)
->  {
->         struct hdmi_ip_data *ip_data = data;
-> @@ -717,22 +601,6 @@ void ti_hdmi_4xxx_basic_configure(struct hdmi_ip_data *ip_data)
->         hdmi_core_av_packet_config(ip_data, repeat_cfg);
->  }
->  
-> -void ti_hdmi_4xxx_pll_dump(struct hdmi_ip_data *ip_data, struct seq_file *s)
-> -{
-> -#define DUMPPLL(r) seq_printf(s, "%-35s %08x\n", #r,\
-> -               hdmi_read_reg(hdmi_pll_base(ip_data), r))
-> -
-> -       DUMPPLL(PLLCTRL_PLL_CONTROL);
-> -       DUMPPLL(PLLCTRL_PLL_STATUS);
-> -       DUMPPLL(PLLCTRL_PLL_GO);
-> -       DUMPPLL(PLLCTRL_CFG1);
-> -       DUMPPLL(PLLCTRL_CFG2);
-> -       DUMPPLL(PLLCTRL_CFG3);
-> -       DUMPPLL(PLLCTRL_SSC_CFG1);
-> -       DUMPPLL(PLLCTRL_SSC_CFG2);
-> -       DUMPPLL(PLLCTRL_CFG4);
-> -}
-> -
->  void ti_hdmi_4xxx_core_dump(struct hdmi_ip_data *ip_data, struct seq_file *s)
->  {
->         int i;
-> -- 
-> 1.8.1.2
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+We've got a (very) long term plan to use CCF for DSS. And, if I'm not
+mistaken, the PLL used for HDMI and DSI is the same as used elsewhere in
+OMAP (I don't remember the PLL type name).
+
+I think the main issue with DSS clocks is that we require as exact
+clocks as possible, and there are multiple dividers/multipliers on the
+clock path. So we iterate over the divider/multiplier ranges, trying to
+find as good freq match as possible.
+
+So if the clock path is composed from "black boxes", and we can only ask
+for a certain frequency, and get back probably some other frequency, it
+gets quite difficult to find good clock matches. Well, at least I
+imagine so, I have not tried to implement that.
+
+ Tomi
+
+
+
+--ct7tEPPNtHgl7eOidBlxjohXdVbWTeKvL
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJSOCirAAoJEPo9qoy8lh71yU8P/0yYX3tE08Z6LHU1CycNerW4
+UaZTucCKbigZujtohBVDHT9iip9YSwHJP7jUwmrXCXcCfm0k9OhlPtHsToeJjjhz
+PkHGoJ7WV9CHu+ydDa+vQDUigjnFlftnt3/9vqX8EiNICx6MeNIQVXsHfc56ADDf
+RGujdLyssjpKxtPmxj6PTaO45iyDKwwoTRCzDPd0ULgg/Chr9xMxvjAqHMqwiXzr
+TejA7mEQuMIqmzp0UKVyw171Ze/bBMyc6Laxt5SHJYz8KEPS3m/Nv83C60T900TE
+O2wcKrlDx/7eS6DC9CD9fXwsbf2EzIJwwrHNEsIl3+Ho80EHM/A3qD9orBrApBqE
+Vg9RkVv2Tmfg8mBmlXK57Z/6e8ecOIpW8kdRn7qE7y3dJeYfVEKVV3gyZ873E4ju
+mpGla/0iHcdojsDq1Gh2G+jX3hpfhu2AgYlNE5vKHYyYXrakjyjN4dJ59lS8clqL
+GDU6xMn5As02utPYSjuxxE8GFehm+rs2Lh/7sUTnLBAotjIErtqlinzVFlj4+ok2
+Wi8ceLZ3JHxFcDQpb+D/b3k69v7ij2Fcf6gulLrXoECiiY5hdfqP0XVEbrzXnC0q
+an2qWKBD3cBqZfMo5/XJWsyRuw8fjKo6lXAdgAU5taLmim62/RMUcxzX+INmwLvp
+5iQM2JCVG/ATrsQWUNwS
+=Gv13
+-----END PGP SIGNATURE-----
+
+--ct7tEPPNtHgl7eOidBlxjohXdVbWTeKvL--
