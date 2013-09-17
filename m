@@ -1,92 +1,47 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 02/11] omapdss: HDMI: create a HDMI PLL library
-Date: Tue, 17 Sep 2013 13:02:15 +0300
-Message-ID: <523828A7.8050204@ti.com>
-References: <1379401597-27222-1-git-send-email-archit@ti.com> <1379401597-27222-3-git-send-email-archit@ti.com> <20130917093813.27384.67975@quantum>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [RFC PATCH 1/4] DRIVERS: IRQCHIP: Add crossbar irqchip driver
+Date: Tue, 17 Sep 2013 14:26:22 +0200
+Message-ID: <CACRpkdYzaoZUunoNDNirV5Bt-G6p-avFV8A=iznDKjK2biqwrw@mail.gmail.com>
+References: <1379000351-15672-1-git-send-email-r.sricharan@ti.com>
+	<1379000351-15672-2-git-send-email-r.sricharan@ti.com>
+	<alpine.DEB.2.02.1309122201530.4089@ionos.tec.linutronix.de>
+	<523228B5.5070507@ti.com>
+	<alpine.DEB.2.02.1309122335440.4089@ionos.tec.linutronix.de>
+	<5232457A.8080709@ti.com>
+	<alpine.DEB.2.02.1309130138550.4089@ionos.tec.linutronix.de>
+	<52326D6B.2010003@ti.com>
+	<alpine.DEB.2.02.1309131142540.4089@ionos.tec.linutronix.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="ct7tEPPNtHgl7eOidBlxjohXdVbWTeKvL"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:42687 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752505Ab3IQKCW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 17 Sep 2013 06:02:22 -0400
-In-Reply-To: <20130917093813.27384.67975@quantum>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.02.1309131142540.4089@ionos.tec.linutronix.de>
+Sender: linux-doc-owner@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Sricharan R <r.sricharan@ti.com>, LKML <linux-kernel@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, LAK <linux-arm-kernel@lists.infradead.org>, Linux-OMAP <linux-omap@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Rajendra Nayak <rnayak@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Mike Turquette <mturquette@linaro.org>
-Cc: Archit Taneja <archit@ti.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
---ct7tEPPNtHgl7eOidBlxjohXdVbWTeKvL
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+On Fri, Sep 13, 2013 at 4:24 PM, Thomas Gleixner <tglx@linutronix.de> wrote:
 
-On 17/09/13 12:38, Mike Turquette wrote:
-> Quoting Archit Taneja (2013-09-17 00:06:28)
->> HDMI PLL is a block common to DSS in OMAP4, OMAP5 and DRA7x. Move the
->> existing PLL functions from ti_hdmi_4xxx_ip.c and hdmi.c to a separate=
- file.
->> These funcs are called directly from the hdmi driver rather than hdmi_=
-ip_ops
->> function pointer calls.
->>
->> Add the PLL library function declarations to ti_hdmi.h. These will be =
-shared
->> amongst the omap4/5 hdmi platform drivers. Remove the PLL function poi=
-nter ops
->> from the ti_hdmi_ip_ops struct. These will be shared amongst the omap4=
-/5 hdmi
->> platform drivers and other libraries.
->>
->> Signed-off-by: Archit Taneja <archit@ti.com>
->=20
-> Would be cool to see this convert to the common clock framework
-> implementation (include/linux/clk-provider.h). It appears that this PLL=
+> So why can't you make use of irq domains and have the whole routing
+> business implemented sanely?
+>
+> What's needed is in gic_init_bases():
+>
+>        if (of_property_read(node, "routable_irqs", &nr_routable_irqs) {
+>           irq_domain_add_legacy(nr_gic_irqs);
+>        } else {
+>           irq_domain_add_legacy(nr_per_cpu_irqs);
+>           irq_domain_add_linear(nr_routable_irqs);
+>        }
+>
+> Now that separate domain has an xlate function which grabs a free GIC
+> irq from a bitmap and returns the hardware irq number in the gic
+> space. The map/unmap callbacks take care of setting up / tearing down
+> the route in the crossbar.
 
-> only needs to support .enable, .disable and .recalc_rate callbacks at
-> first glance.
+This is obviously the right approach, it's exactly what .map should do
+the only special thing here being that we have hardware to perform
+the mapping ... bah why didn't I realize this :-(
 
-We've got a (very) long term plan to use CCF for DSS. And, if I'm not
-mistaken, the PLL used for HDMI and DSI is the same as used elsewhere in
-OMAP (I don't remember the PLL type name).
-
-I think the main issue with DSS clocks is that we require as exact
-clocks as possible, and there are multiple dividers/multipliers on the
-clock path. So we iterate over the divider/multiplier ranges, trying to
-find as good freq match as possible.
-
-So if the clock path is composed from "black boxes", and we can only ask
-for a certain frequency, and get back probably some other frequency, it
-gets quite difficult to find good clock matches. Well, at least I
-imagine so, I have not tried to implement that.
-
- Tomi
-
-
-
---ct7tEPPNtHgl7eOidBlxjohXdVbWTeKvL
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJSOCirAAoJEPo9qoy8lh71yU8P/0yYX3tE08Z6LHU1CycNerW4
-UaZTucCKbigZujtohBVDHT9iip9YSwHJP7jUwmrXCXcCfm0k9OhlPtHsToeJjjhz
-PkHGoJ7WV9CHu+ydDa+vQDUigjnFlftnt3/9vqX8EiNICx6MeNIQVXsHfc56ADDf
-RGujdLyssjpKxtPmxj6PTaO45iyDKwwoTRCzDPd0ULgg/Chr9xMxvjAqHMqwiXzr
-TejA7mEQuMIqmzp0UKVyw171Ze/bBMyc6Laxt5SHJYz8KEPS3m/Nv83C60T900TE
-O2wcKrlDx/7eS6DC9CD9fXwsbf2EzIJwwrHNEsIl3+Ho80EHM/A3qD9orBrApBqE
-Vg9RkVv2Tmfg8mBmlXK57Z/6e8ecOIpW8kdRn7qE7y3dJeYfVEKVV3gyZ873E4ju
-mpGla/0iHcdojsDq1Gh2G+jX3hpfhu2AgYlNE5vKHYyYXrakjyjN4dJ59lS8clqL
-GDU6xMn5As02utPYSjuxxE8GFehm+rs2Lh/7sUTnLBAotjIErtqlinzVFlj4+ok2
-Wi8ceLZ3JHxFcDQpb+D/b3k69v7ij2Fcf6gulLrXoECiiY5hdfqP0XVEbrzXnC0q
-an2qWKBD3cBqZfMo5/XJWsyRuw8fjKo6lXAdgAU5taLmim62/RMUcxzX+INmwLvp
-5iQM2JCVG/ATrsQWUNwS
-=Gv13
------END PGP SIGNATURE-----
-
---ct7tEPPNtHgl7eOidBlxjohXdVbWTeKvL--
+Yours,
+Linus Walleij
