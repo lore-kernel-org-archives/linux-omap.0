@@ -1,39 +1,77 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: [GIT PULL 2/2] omap dt fixes against v3.12-rc1
-Date: Wed, 18 Sep 2013 14:48:01 -0700
-Message-ID: <20130918214801.GB2649@quad.lixom.net>
-References: <pull-1379537942-109201>
- <523a141e.8480e00a.5d23.5257SMTPIN_ADDED_MISSING@mx.google.com>
+From: =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>
+Subject: =?UTF-8?q?=5BPATCH=5D=20RX-51=3A=20Add=20missing=20max=5Fcurrent=20to=20rx51=5Flp5523=5Fled=5Fconfig?=
+Date: Wed, 18 Sep 2013 23:52:25 +0200
+Message-ID: <1379541145-25934-1-git-send-email-pali.rohar@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pd0-f171.google.com ([209.85.192.171]:36778 "EHLO
-	mail-pd0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752206Ab3IRVse (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Sep 2013 17:48:34 -0400
-Received: by mail-pd0-f171.google.com with SMTP id g10so7585156pdj.2
-        for <linux-omap@vger.kernel.org>; Wed, 18 Sep 2013 14:48:34 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <523a141e.8480e00a.5d23.5257SMTPIN_ADDED_MISSING@mx.google.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: arm@kernel.org, Arnd Bergmann <arnd@arndb.de>, Kevin Hilman <khilman@linaro.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Wed, Sep 18, 2013 at 01:59:02PM -0700, Tony Lindgren wrote:
-> The following changes since commit 272b98c6455f00884f0350f775c5342358ebb73f:
-> 
->   Linux 3.12-rc1 (2013-09-16 16:17:51 -0400)
-> 
-> are available in the git repository at:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.12/fixes-dt-signed
-> 
-> for you to fetch changes up to 45bea1d39a956619881315e20bdf52c8a702be03:
-> 
->   Merge tag 'for_3.12-rc2/dts_signed' of git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt into omap-for-v3.12/fixes-dt (2013-09-18 12:50:45 -0700)
+Without max_current data in board file lp5523 driver does not change cu=
+rrent.
 
-Pulled, thanks. Now I can add the BBB to my boot farm (with nfsroot). Whee.
+Signed-off-by: Pali Roh=C3=A1r <pali.rohar@gmail.com>
+---
+ arch/arm/mach-omap2/board-rx51-peripherals.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-
--Olof
+diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/ma=
+ch-omap2/board-rx51-peripherals.c
+index 9326890..d0f857c 100644
+--- a/arch/arm/mach-omap2/board-rx51-peripherals.c
++++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+@@ -180,38 +180,47 @@ static struct lp55xx_led_config rx51_lp5523_led_c=
+onfig[] =3D {
+ 		.name		=3D "lp5523:kb1",
+ 		.chan_nr	=3D 0,
+ 		.led_current	=3D 50,
++		.max_current	=3D 255,
+ 	}, {
+ 		.name		=3D "lp5523:kb2",
+ 		.chan_nr	=3D 1,
+ 		.led_current	=3D 50,
++		.max_current	=3D 255,
+ 	}, {
+ 		.name		=3D "lp5523:kb3",
+ 		.chan_nr	=3D 2,
+ 		.led_current	=3D 50,
++		.max_current	=3D 255,
+ 	}, {
+ 		.name		=3D "lp5523:kb4",
+ 		.chan_nr	=3D 3,
+ 		.led_current	=3D 50,
++		.max_current	=3D 255,
+ 	}, {
+ 		.name		=3D "lp5523:b",
+ 		.chan_nr	=3D 4,
+ 		.led_current	=3D 50,
++		.max_current	=3D 255,
+ 	}, {
+ 		.name		=3D "lp5523:g",
+ 		.chan_nr	=3D 5,
+ 		.led_current	=3D 50,
++		.max_current	=3D 255,
+ 	}, {
+ 		.name		=3D "lp5523:r",
+ 		.chan_nr	=3D 6,
+ 		.led_current	=3D 50,
++		.max_current	=3D 255,
+ 	}, {
+ 		.name		=3D "lp5523:kb5",
+ 		.chan_nr	=3D 7,
+ 		.led_current	=3D 50,
++		.max_current	=3D 255,
+ 	}, {
+ 		.name		=3D "lp5523:kb6",
+ 		.chan_nr	=3D 8,
+ 		.led_current	=3D 50,
++		.max_current	=3D 255,
+ 	}
+ };
+=20
+--=20
+1.7.10.4
