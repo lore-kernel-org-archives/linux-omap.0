@@ -1,29 +1,64 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: Re: [PATCH 1/2] hwrng: OMAP3 ROM Random Number Generator support
-Date: Wed, 18 Sep 2013 23:50:25 +0300
-Message-ID: <20130918205025.GC30568@blackmetal.musicnaut.iki.fi>
-References: <201303281854.02847@pali>
- <1379534757-20870-1-git-send-email-pali.rohar@gmail.com>
- <1379534757-20870-2-git-send-email-pali.rohar@gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL 1/2] omap fixes against v3.12-rc1
+Date: Wed, 18 Sep 2013 13:59:02 -0700
+Message-ID: <18848.5692292035$1379537960@news.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:51776 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752561Ab3IRU7J (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Sep 2013 16:59:09 -0400
 Content-Disposition: inline
-In-Reply-To: <1379534757-20870-2-git-send-email-pali.rohar@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
-Cc: Matt Mackall <mpm@selenic.com>, Herbert Xu <herbert@gondor.apana.org.au>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Juha Yrjola <juha.yrjola@solidboot.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: arm@kernel.org, Arnd Bergmann <arnd@arndb.de>, Kevin Hilman <khilman@linaro.org>, Olof Johansson <olof@lixom.net>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Hi,
+The following changes since commit 272b98c6455f00884f0350f775c5342358ebb73f:
 
-On Wed, Sep 18, 2013 at 10:05:56PM +0200, Pali Roh=E1r wrote:
-> +	if (IS_ERR(rng_clk)) {
-> +		printk(KERN_ERR "%s: unable to get RNG clock\n",
-> +		       omap3_rom_rng_name);
-> +		return IS_ERR(rng_clk);
+  Linux 3.12-rc1 (2013-09-16 16:17:51 -0400)
 
-This should be PTR_ERR().
+are available in the git repository at:
 
-A.
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.12/fixes-signed
+
+for you to fetch changes up to e942cc06e2d183975dd47d8da9e569316cb870ea:
+
+  ARM: OMAP2+: mux: fix trivial typo in name (2013-09-18 12:02:01 -0700)
+
+----------------------------------------------------------------
+omap fixes for build warnings and cpuidle, and
+a few trivial typo fixes.
+
+----------------------------------------------------------------
+Anoop Thomas Mathew (1):
+      ARM: OMAP4 SMP: Corrected a typo fucntions to functions
+
+Fabio Estevam (1):
+      ARM: mach-omap2: gpmc: Fix warning when CONFIG_ARM_LPAE=y
+
+Jingoo Han (1):
+      mailbox: remove unnecessary platform_set_drvdata()
+
+Phil Carmody (1):
+      ARM: OMAP2+: mux: fix trivial typo in name
+
+Tony Lindgren (1):
+      ARM: OMAP4: Fix clock_get error for GPMC during boot
+
+Vladimir Murzin (1):
+      ARM: OMAP4: cpuidle: fix: call cpu_cluster_pm_exit conditionally
+
+Wei Yongjun (1):
+      ARM: OMAP: fix return value check in omap_device_build_from_dt()
+
+ arch/arm/mach-omap2/cclock44xx_data.c | 2 +-
+ arch/arm/mach-omap2/cpuidle44xx.c     | 2 +-
+ arch/arm/mach-omap2/gpmc.c            | 4 ++--
+ arch/arm/mach-omap2/mux34xx.c         | 2 +-
+ arch/arm/mach-omap2/omap-smp.c        | 2 +-
+ arch/arm/mach-omap2/omap_device.c     | 2 +-
+ drivers/mailbox/mailbox-omap2.c       | 1 -
+ 7 files changed, 7 insertions(+), 8 deletions(-)
