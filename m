@@ -1,77 +1,109 @@
-From: Benoit Cousson <bcousson@baylibre.com>
-Subject: [GIT PULL] ARM: DTS: Fix OMAP bugs for 3.12-rc, take #2
-Date: Wed, 18 Sep 2013 14:44:51 +0200
-Message-ID: <5239A043.70308@baylibre.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH v7 00/10] phy: omap-usb: Support multiple instances and new
+ types
+Date: Wed, 18 Sep 2013 15:48:52 +0300
+Message-ID: <1379508542-22389-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f175.google.com ([209.85.212.175]:42689 "EHLO
-	mail-wi0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751433Ab3IRMpH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Sep 2013 08:45:07 -0400
-Received: by mail-wi0-f175.google.com with SMTP id ez12so6329224wid.8
-        for <linux-omap@vger.kernel.org>; Wed, 18 Sep 2013 05:45:06 -0700 (PDT)
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: balbi@ti.com, bcousson@baylibre.com
+Cc: devicetree@vger.kernel.org, george.cherian@ti.com, sergei.shtylyov@cogentembedded.com, tony@atomide.com, bigeasy@linutronix.de, linux-usb@vger.kernel.org, kishon@ti.com, thomas.langer@lantiq.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "khilman@linaro.org" <khilman@linaro.org>, Olof Johansson <olof@lixom.net>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
 
-Hi Tony,
+Hi,
 
-Please pull few fixes for OMAP DTS. This take #2 contains one more fix I missed from Enric.
+This patchset does the following:
 
-Thanks,
-Benoit
+* Get rid of omap_control_usb platform data as we support DT only.
 
+* Restructure and add support for new PHY types. We now support the follwing
+four types
 
+ TYPE_OTGHS - if it has otghs_control mailbox register (e.g. on OMAP4)
+ TYPE_USB2 - if it has Power down bit in control_dev_conf register. e.g. USB2 PHY
+ TYPE_PIPE3 - if it has DPLL and individual Rx & Tx power control. e.g. USB3 PHY or SATA PHY
+ TYPE_DRA7USB2 - if it has both power down and power aux registers. e.g. USB2 PHY on DRA7
 
-The following changes since commit 272b98c6455f00884f0350f775c5342358ebb73f:
+* Get rid of "ti,type" DT property and introduce compatible strings for each type.
 
-  Linux 3.12-rc1 (2013-09-16 16:17:51 -0400)
+* Have only one power control API "omap_control_usb_phy_power()" instead of a
+different one for each PHY type.
 
-are available in the git repository at:
+* Get rid of omap_get_control_dev() so that we can support multiple instances
+of the control device. We take advantage of the fact that omap control USB device
+is only present on OMAP4 onwards and hence only supports DT boot. The users
+of control USB device can get a reference to it from the device node's phandle.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git tags/for_3.12-rc2/dts_signed
+Patches are based on v3.12-rc1.
 
-for you to fetch changes up to 65399f03266e138506417920952e1c8ed022ec47:
+Smoke tested on OMAP4 panda with MUSB in gadget mode (g_zero).
 
-  ARM: dts: igep00x0: Add pinmux configuration for MCBSP2 (2013-09-18 14:31:58 +0200)
+You can find the patches in branch
+ usb-control-module
+in git tree
+ git://github.com/rogerq/linux.git
 
-----------------------------------------------------------------
-Fix BBB LDO voltage to avoid HDMI destruction
-Fix OMAP5 wrong attribute
-Fix typo in beagle xM strings
-Fix missing pinmux and regulator for OMAP4 wifi
-Fix missing pinmux for igep headset
+v7:
+- Rebased on v3.12-rc1
+- Updated DT compatibility ID for better readability
+- Renamed TYPE_OMAP4 to TYPE_OTGHS, TYPE_USB3 to TYPE_PIPE3 and TYPE_DRA7 to
+  TYPE_DRA7USB2
 
-----------------------------------------------------------------
-Enric Balletbo i Serra (1):
-      ARM: dts: igep00x0: Add pinmux configuration for MCBSP2
+v6:
+- addressed review comment about usage of control_usb before allocation.
 
-Felipe Balbi (2):
-      ARM: dts: OMAP5: fix reg property size
-      ARM: dts: OMAP5: fix ocp2scp DTS data
+v5:
+- fixed whitespace alignment issues.
 
-Koen Kooi (1):
-      ARM: dts: am335x-bone*: add DT for BeagleBone Black
+v4:
+- removed "ti,has-mailbox" from omap-usb binding document example.
 
-Robert Nelson (1):
-      ARM: dts: omap3-beagle-xm: fix string error in compatible property
+v3:
+- return -EINVAL instead of -ENODEV on probe failure.
+- pass device type data through of_device_id table.
+- get rid of "ti,mailbox" property and "has_mailbox" from musb platform data.
 
-Tony Lindgren (2):
-      ARM: dts: Fix muxing and regulator for wl12xx on the SDIO bus for pandaboard
-      ARM: dts: Fix muxing and regulator for wl12xx on the SDIO bus for blaze
+v2:
+- get rid of "ti,type" property and introduce compatible strings for each device type.
 
- arch/arm/boot/dts/Makefile                |   1 +
- arch/arm/boot/dts/am335x-bone-common.dtsi | 262 ++++++++++++++++++++++++++++++
- arch/arm/boot/dts/am335x-bone.dts         | 256 +----------------------------
- arch/arm/boot/dts/am335x-boneblack.dts    |  17 ++
- arch/arm/boot/dts/omap3-beagle-xm.dts     |   2 +-
- arch/arm/boot/dts/omap3-igep.dtsi         |  14 ++
- arch/arm/boot/dts/omap4-panda-common.dtsi |  46 +++++-
- arch/arm/boot/dts/omap4-sdp.dts           |  39 ++++-
- arch/arm/boot/dts/omap5.dtsi              |   7 +-
- 9 files changed, 383 insertions(+), 261 deletions(-)
- create mode 100644 arch/arm/boot/dts/am335x-bone-common.dtsi
- create mode 100644 arch/arm/boot/dts/am335x-boneblack.dts
+cheers,
+-roger
+
+---
+Roger Quadros (10):
+  usb: phy: omap-control: Get rid of platform data
+  usb: phy: omap: Add new device types and remove
+    omap_control_usb3_phy_power()
+  usb: phy: omap-usb2: Don't use omap_get_control_dev()
+  usb: phy: omap-usb3: Don't use omap_get_control_dev()
+  usb: musb: omap2430: Don't use omap_get_control_dev()
+  ARM: dts: omap4: update omap-control-usb nodes
+  usb: phy: omap: get rid of omap_get_control_dev()
+  ARM: dts: omap5: update omap-control-usb node
+  usb: dwc3: omap: manage "usb_otg_ss_refclk960m" clock
+  usb: phy: omap-usb2: Manage phy clock and not otg controller clock
+
+ Documentation/devicetree/bindings/usb/omap-usb.txt |   38 ++--
+ arch/arm/boot/dts/omap4.dtsi                       |   20 ++-
+ arch/arm/boot/dts/omap5.dtsi                       |   20 ++-
+ drivers/usb/dwc3/dwc3-omap.c                       |   13 ++
+ drivers/usb/musb/omap2430.c                        |   25 ++-
+ drivers/usb/phy/phy-omap-control.c                 |  208 ++++++++++---------
+ drivers/usb/phy/phy-omap-usb2.c                    |   30 ++-
+ drivers/usb/phy/phy-omap-usb3.c                    |   32 +++-
+ include/linux/usb/musb.h                           |    2 -
+ include/linux/usb/omap_control_usb.h               |   33 ++--
+ 10 files changed, 236 insertions(+), 185 deletions(-)
+
+-- 
+1.7.4.1
