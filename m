@@ -1,86 +1,76 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v7 03/10] usb: phy: omap-usb2: Don't use omap_get_control_dev()
-Date: Wed, 18 Sep 2013 15:48:55 +0300
-Message-ID: <1379508542-22389-4-git-send-email-rogerq@ti.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v7 01/10] usb: phy: omap-control: Get rid of platform data
+Date: Wed, 18 Sep 2013 15:48:53 +0300
+Message-ID: <1379508542-22389-2-git-send-email-rogerq@ti.com>
 References: <1379508542-22389-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:37065 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752708Ab3IRMuE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 18 Sep 2013 08:50:04 -0400
-In-Reply-To: <1379508542-22389-1-git-send-email-rogerq@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1379508542-22389-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: balbi-l0cyMroinI0@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org
+Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, george.cherian-l0cyMroinI0@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, thomas.langer-th3ZBGNqt+7QT0dZR+AlfA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com, bcousson@baylibre.com
-Cc: tony@atomide.com, george.cherian@ti.com, kishon@ti.com, bigeasy@linutronix.de, sergei.shtylyov@cogentembedded.com, thomas.langer@lantiq.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 
-omap_get_control_dev() is being deprecated as it doesn't support
-multiple instances. As control device is present only from OMAP4
-onwards which supports DT only, we use phandles to get the
-reference to the control device.
+omap-control device is present from OMAP4 onwards which
+support device tree boots only. So get rid of platform data.
 
-As we don't support non-DT boot, we just bail out on probe
-if device node is not present.
-
-Signed-off-by: Roger Quadros <rogerq@ti.com>
+Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 ---
- drivers/usb/phy/phy-omap-usb2.c |   26 ++++++++++++++++++++------
- 1 files changed, 20 insertions(+), 6 deletions(-)
+ drivers/usb/phy/phy-omap-control.c   |   12 +++---------
+ include/linux/usb/omap_control_usb.h |    4 ----
+ 2 files changed, 3 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/usb/phy/phy-omap-usb2.c b/drivers/usb/phy/phy-omap-usb2.c
-index d266861..e7d4790 100644
---- a/drivers/usb/phy/phy-omap-usb2.c
-+++ b/drivers/usb/phy/phy-omap-usb2.c
-@@ -28,6 +28,7 @@
- #include <linux/pm_runtime.h>
- #include <linux/delay.h>
- #include <linux/usb/omap_control_usb.h>
-+#include <linux/of_platform.h>
- 
- /**
-  * omap_usb2_set_comparator - links the comparator present in the sytem with
-@@ -120,8 +121,14 @@ static int omap_usb2_suspend(struct usb_phy *x, int suspend)
- 
- static int omap_usb2_probe(struct platform_device *pdev)
+diff --git a/drivers/usb/phy/phy-omap-control.c b/drivers/usb/phy/phy-omap-control.c
+index a4dda8e..9772592 100644
+--- a/drivers/usb/phy/phy-omap-control.c
++++ b/drivers/usb/phy/phy-omap-control.c
+@@ -197,8 +197,6 @@ static int omap_control_usb_probe(struct platform_device *pdev)
  {
--	struct omap_usb			*phy;
--	struct usb_otg			*otg;
-+	struct omap_usb	*phy;
-+	struct usb_otg *otg;
-+	struct device_node *node = pdev->dev.of_node;
-+	struct device_node *control_node;
-+	struct platform_device *control_pdev;
-+
-+	if (!node)
-+		return -EINVAL;
+ 	struct resource	*res;
+ 	struct device_node *np = pdev->dev.of_node;
+-	struct omap_control_usb_platform_data *pdata =
+-			dev_get_platdata(&pdev->dev);
  
- 	phy = devm_kzalloc(&pdev->dev, sizeof(*phy), GFP_KERNEL);
- 	if (!phy) {
-@@ -143,11 +150,18 @@ static int omap_usb2_probe(struct platform_device *pdev)
- 	phy->phy.otg		= otg;
- 	phy->phy.type		= USB_PHY_TYPE_USB2;
- 
--	phy->control_dev = omap_get_control_dev();
--	if (IS_ERR(phy->control_dev)) {
--		dev_dbg(&pdev->dev, "Failed to get control device\n");
--		return -ENODEV;
-+	control_node = of_parse_phandle(node, "ctrl-module", 0);
-+	if (!control_node) {
-+		dev_err(&pdev->dev, "Failed to get control device phandle\n");
-+		return -EINVAL;
+ 	control_usb = devm_kzalloc(&pdev->dev, sizeof(*control_usb),
+ 		GFP_KERNEL);
+@@ -207,14 +205,10 @@ static int omap_control_usb_probe(struct platform_device *pdev)
+ 		return -ENOMEM;
  	}
-+	control_pdev = of_find_device_by_node(control_node);
-+	if (!control_pdev) {
-+		dev_err(&pdev->dev, "Failed to get control device\n");
-+		return -EINVAL;
-+	}
-+
-+	phy->control_dev = &control_pdev->dev;
  
- 	phy->is_suspended	= 1;
- 	omap_control_usb_phy_power(phy->control_dev, 0);
+-	if (np) {
++	if (np)
+ 		of_property_read_u32(np, "ti,type", &control_usb->type);
+-	} else if (pdata) {
+-		control_usb->type = pdata->type;
+-	} else {
+-		dev_err(&pdev->dev, "no pdata present\n");
+-		return -EINVAL;
+-	}
++	else
++		return -EINVAL;	/* We only support DT boot */
+ 
+ 	control_usb->dev	= &pdev->dev;
+ 
+diff --git a/include/linux/usb/omap_control_usb.h b/include/linux/usb/omap_control_usb.h
+index 27b5b8c..e2416b4 100644
+--- a/include/linux/usb/omap_control_usb.h
++++ b/include/linux/usb/omap_control_usb.h
+@@ -31,10 +31,6 @@ struct omap_control_usb {
+ 	u32 type;
+ };
+ 
+-struct omap_control_usb_platform_data {
+-	u8 type;
+-};
+-
+ enum omap_control_usb_mode {
+ 	USB_MODE_UNDEFINED = 0,
+ 	USB_MODE_HOST,
 -- 
 1.7.4.1
 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
