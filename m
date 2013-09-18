@@ -1,75 +1,58 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: PCF857x and 16-bit GPIO expanders
-Date: Wed, 18 Sep 2013 12:36:36 -0500
-Message-ID: <20130918173636.GT21559@radagast>
-References: <20130917190732.GD15645@radagast>
- <CACRpkdYn8yaTyFJMaC3vK4kGrQsaZpAX=pyn5y33ers7QhQ_pg@mail.gmail.com>
- <2356541.62QktiIBr5@avalon>
-Reply-To: <balbi@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2] ADP1653 board code for Nokia RX-51
+Date: Wed, 18 Sep 2013 10:42:12 -0700
+Message-ID: <20130918174211.GU9994@atomide.com>
+References: <201302171616.50152@pali>
+ <20130907230252.GA10700@blackmetal.musicnaut.iki.fi>
+ <20130918131644.GA2953@amd.pavel.ucw.cz>
+ <201309181800.10486@pali>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="80Ds8Z/hZmemMosa"
-Return-path: <linux-gpio-owner@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <2356541.62QktiIBr5@avalon>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Felipe Balbi <balbi@ti.com>, George Cherian <george.cherian@ti.com>, Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>, Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+In-Reply-To: <201309181800.10486@pali>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
+Cc: Pavel Machek <pavel@ucw.cz>, Aaro Koskinen <aaro.koskinen@iki.fi>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
---80Ds8Z/hZmemMosa
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi,
-
-On Wed, Sep 18, 2013 at 07:18:04PM +0200, Laurent Pinchart wrote:
-> On Wednesday 18 September 2013 13:16:27 Linus Walleij wrote:
-> > On Tue, Sep 17, 2013 at 9:07 PM, Felipe Balbi <balbi@ti.com> wrote:
-> > > has anyone ever successfully using gpio-pcf857x.c driver with 16-bit
-> > > gpio expanders ? We're having some issues here where toggling the last
-> > > gpio pin (gpio 15) on a PCF8575 device causes platform to hang and I
-> > > can't come up with any explanation of why would it hang...
+* Pali Roh=C3=A1r <pali.rohar@gmail.com> [130918 09:08]:
+> On Wednesday 18 September 2013 15:16:44 Pavel Machek wrote:
+> > On Sun 2013-09-08 02:02:52, Aaro Koskinen wrote:
+> > > Hi,
+> > >=20
+> > > On Fri, Sep 06, 2013 at 10:34:05PM +0200, Pali Roh=C3=A1r wrote:
+> > > > > --- /dev/null
+> > > > > +++ b/arch/arm/mach-omap2/board-rx51-camera.c
+> > >=20
+> > > [...]
+> > >=20
+> > > > Ping, can you review this patch v2?
+> > >=20
+> > > I don't think Tony will accept any new board stuff for
+> > > RX-51/N900. See for example:
+> > > http://marc.info/?l=3Dlinux-kernel&m=3D137629626213187&w=3D2
+> > >=20
+> > > There should be initial Nokia N900 DTS file in 3.12-rc1, and
+> > > we should continue converting this board fully to DT.
 > >=20
-> > Bouncing the question to George, Laurent and Kuninori...
+> > That's not reasonable. N900 is pretty far away from working
+> > with device tree. Yes, I was able to get some bits merged,
+> > but that should not be excuse to halt other N900 development.
+> > 									Pavel
 >=20
-> I've got a board with a PCF8575 chip, but it uses I/Os 8 to 14 only as fa=
-r as=20
-> I know.
->=20
-> I can try toggling I/O 15, but that will need to wait until next week as =
-I'm=20
-> currently travelling without access to the hardware.
+> Right. So Tony, will you accept future patches for board files?
 
-alright, that'd help me a lot :-) Just want to make sure if we're having
-a board issue, or PCF8575 is a bit screwy ;-)
+Only fixes to board-*.c files please unless there's a _really_
+good reason to make things more complex with the platform data.
+Let's not make the DT conversion any more complex than it
+already is.
 
-Thanks
+Getting things working with DT for the devices is pretty trivial
+in most cases. And we can also still initialize the legacy devices
+using platform data the same way as earlier.
 
---=20
-balbi
+Regards,
 
---80Ds8Z/hZmemMosa
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJSOeSkAAoJEIaOsuA1yqREUAoP/RmjGgpunquif5il7vnvP9+P
-Be+5vMynpoVFe6idESL1nDSriXnLAeUJ36AhIz1IqAxnkCXdH3iGzQmgXCSmrXBf
-Kbuaa0A3UCcWKSHpwLv092o6ie/EOFIQTEpYhs+Pe9xTX/3HpAam3zDeulFJIs0h
-S8AUmHj6+4rRW3w5nkwCuICP2jtNLX4rXvKMjkwTWltqLwlZcf8pPhGMh2Uoe3IV
-lFtcfdsg0usDiXGf4+kHA9y8S4IQuWe/JO3klIKFsE/CJt7ParhQGTMN98zMGIaC
-J2Lju8S08/7phfC6nUT5U3k74OKXcIkGsvGo7Kq1vLoA6c5Pz+urRNmb7xYmqOWD
-Itg2ezH9aaFyW7/kABCHmDyR+JPKuU+dwtuTcvaOxhZME1jrrficyABGh+gGgS8O
-p/W9eSHHv8nmfEcWZIsXOHuXExvrVRh76K7ZppuI2qsBh+6QZpnlBxTjRXMy9l90
-Y4Y/cIF2PBcvGLeWla8+s0X33TBTJecgF8Eq1ZpOQynlvbozdFuIfraC8Aa3AI0R
-2ONWdVMjtFKri78yjgDxM+qQPT5PBDfXhXYW0OqHeyFwLm3oQSDi5lTtrkV67Erd
-/zg0R0zu7K8djnIADGGykcDL5jj+gpEIq0igWaApQz967cvxNLTZKNzNoybBlCUP
-t1DL2qEfP4UbS/poTRPX
-=ZauD
------END PGP SIGNATURE-----
-
---80Ds8Z/hZmemMosa--
+Tony
