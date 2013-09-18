@@ -1,50 +1,132 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/2] ARM: dts: Fix muxing and regulator for wl12xx on
- the SDIO bus for pandaboard
-Date: Wed, 18 Sep 2013 10:51:59 -0700
-Message-ID: <20130918175158.GW9994@atomide.com>
-References: <20130913190811.24617.97699.stgit@localhost>
- <20130913190953.24617.46506.stgit@localhost>
- <1379399214.4223.123.camel@porter.coelho.fi>
- <1379399290.4223.124.camel@porter.coelho.fi>
- <20130918000203.GS9994@atomide.com>
- <52396CA0.6030100@baylibre.com>
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
+Subject: Re: [PATCH v2 2/2] RX-51: ARM errata 430973 workaround
+Date: Wed, 18 Sep 2013 20:13:52 +0200
+Message-ID: <201309182013.52975@pali>
+References: <1362044548-5398-1-git-send-email-pali.rohar@gmail.com> <201309181033.24965@pali> <20130918171816.GT9994@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:48895 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751739Ab3IRRwP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Sep 2013 13:52:15 -0400
-Content-Disposition: inline
-In-Reply-To: <52396CA0.6030100@baylibre.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed;
+  boundary="nextPart1431164.Jrtyb74O6d";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20130918171816.GT9994@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-kernel@vger.kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, Nishanth Menon <nm@ti.com>, Pavel Machek <pavel@ucw.cz>, Peter De Schrijver <pdeschrijver@nvidia.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Ivaylo Dimitrov <freemangordon@abv.bg>
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <bcousson@baylibre.com>
-Cc: Luca Coelho <luca@coelho.fi>, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, Rajendra Nayak <rnayak@ti.com>, Paolo Pisati <p.pisati@gmail.com>, linux-omap@vger.kernel.org
 
-* Benoit Cousson <bcousson@baylibre.com> [130918 02:12]:
-> Hi Tony,
-> 
-> On 18/09/2013 02:02, Tony Lindgren wrote:
-> >* Luca Coelho <luca@coelho.fi> [130916 23:35]:
-> >>On Tue, 2013-09-17 at 09:26 +0300, Luca Coelho wrote:
-> >>>Both patches look good to me, though I didn't have the time to retest
-> >>>them.
-> >>
-> >>Actually I don't even have a Blaze device anymore, so I can't really
-> >>test the second patch. :(
-> >
-> >OK no problem, I've tested it on panda es.
-> 
-> Do we have someone out-there that still own a Blaze?
-> 
-> Anyway, I'm about to send a DTS fix branch for -rc2, so I'll include
-> these two patches.
+--nextPart1431164.Jrtyb74O6d
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-OK yes good please do pick them up, I'll drop them from my
-not-yet-pushed-out omap-for-v3.12/fixes.
+Hello,
 
-Regards,
+On Wednesday 18 September 2013 19:18:17 Tony Lindgren wrote:
+> * Pali Roh=C3=A1r <pali.rohar@gmail.com> [130918 01:41]:
+> > I'm not very happy. I sent this patch 6 months ago and only
+> > now you commented that needs rework again. This patch is
+> > needed because all thumb-2 userspace binaries crashing. I
+> > want to have working support for Nokia N900 and not always
+> > rebasing and changing patches. Also DT still not working on
+> > N900 (file contains only small subset of devices as in
+> > board files plus it is not in stable kernel) so I do not
+> > want to switch to DT. I need something which is working and
+> > not something new non-working. I belive that you and other
+> > kernel guys do not remove all n900 board files until every
+> > one line will be rewritten to DT and tested that everything
+> > working. And from this and other conversation it looks for
+> > me that you are going to do that. So please clarify what
+> > you want to do (and when) with board-rx51-* files. Aftethat
+> > I can decide what to do in future.
+>=20
+> Sorry if there's been some going back and forth with the
+> patches, I think pretty much everybody wants n900 support in
+> the mainline.
+>=20
+> It's obvious that we're moving everything to be devicetree
+> only as discussed on the mailing lists over past few years.
+> For most drivers it's already working, and we can still
+> initialize platform data too for the legacy devices until
+> they have bindings, so it should not be too intrusive except
+> for the configuration changes to use appended DTB or a
+> chained bootloader with DTB support.
+>=20
+> > For now I see this situation something like: I wrote
+> > patches, send them to ML and after half of year maintainer
+> > politely rejected them becuase my patches not using new
+> > uber cool technology with still not working and also was
+> > not available half year ago. What happen if I find another
+> > time to rework this patch and send it again in next 2 or 5
+> > months?
+>=20
+> Hmm hasn't there been pending comments until recently on your
+> patches?
+>=20
 
-Tony
+Since 10.07.2013 I do not have any emails for patch 2/2. If I=20
+missed something from you, please resend me it.
+
+> It seems that with the changes I suggested your patches should
+> work for both legacy booting and DT based booting, so maybe
+> just try to update them over next few weeks, let's say by
+> -rc3 rather than wait 2 to 5 months? :) No need to test them
+> currently on the DT based booting if you don't have that set
+> up, just move the code out of the board-*.c file.
+>=20
+
+Ok, no problem. I will move code as you suggested.
+
+> > Tony, if you did not have time for review this patch months
+> > ago or you found it only today - no problem, I understand
+> > it. But what I need to know is what will happen with
+> > board-rx51-* files (and when?) You can see that DT does not
+> > have definitions of all n900 hw parts (plus it is not in
+> > last 3.11 kernel!) which means that DT is not usable for me
+> > and other n900 people. This also means that I cannot
+> > rewrite my patches for DT and test if they working.
+>=20
+> I usually stop looking at new code around -rc4 and concentrate
+> on fixes until -rc1 or so. So there can be easily one month
+> delays on reviewing stuff depending on where we are with the
+> current merge window or -rc cycle, sorry if that's annoying.
+>=20
+> The .dts files will be separate from the kernel soonish, so
+> that's not be a show stopper. Just like all the board specific
+> .config files are separate from the kernel already. Too bad
+> our .dts changes did not get merged for v3.12 because of
+> conflicts with other branches, but hey, they should be
+> independent from the kernel anyways.
+>=20
+> The board files will be going away as soon as things are
+> working with DT. We've been pretty much only applying fixes
+> to them for quite some time now. For the timeline, the
+> earliest we'll be able to remove the board-*.c files and
+> platform data is for v3.13 assuming the PM dependencies get
+> sorted out before that. Making omap3 DT only is going remove
+> about 25k LOC, so that's a good reason for doing that.
+>=20
+> Cheers,
+>=20
+> Tony
+
+Thanks for clarification.
+
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
+
+--nextPart1431164.Jrtyb74O6d
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iEYEABECAAYFAlI57WAACgkQi/DJPQPkQ1JXDACfas6684/9ZPirlnHQc0lE47/z
+JD0AnA5aiHDaxtpUPX7nQ0QSMFBWf9oX
+=YDPw
+-----END PGP SIGNATURE-----
+
+--nextPart1431164.Jrtyb74O6d--
