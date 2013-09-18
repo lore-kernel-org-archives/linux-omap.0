@@ -1,211 +1,56 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: [PATCH v3 2/2] RX-51: ARM errata 430973 workaround
-Date: Wed, 18 Sep 2013 21:22:01 +0200
-Message-ID: <201309182122.01570@pali>
-References: <1362044548-5398-1-git-send-email-pali.rohar@gmail.com> <1373461145-9812-3-git-send-email-pali.rohar@gmail.com> <20130917232417.GK9994@atomide.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [RFCv2 2/3] ARM: OMAP2+: HSI: Introduce OMAP SSI driver
+Date: Wed, 18 Sep 2013 12:23:31 -0700
+Message-ID: <20130918192331.GD9994@atomide.com>
+References: <1379277856-24571-1-git-send-email-sre@debian.org>
+ <1379277856-24571-3-git-send-email-sre@debian.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart2901258.RGeO3zN659";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ee0-f41.google.com ([74.125.83.41]:34273 "EHLO
-	mail-ee0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751880Ab3IRTWH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Sep 2013 15:22:07 -0400
-In-Reply-To: <20130917232417.GK9994@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1379277856-24571-3-git-send-email-sre-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sebastian Reichel <sre-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
+Cc: Sebastian Reichel <sre-GFxCN5SEZAc@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Shubhrajyoti Datta <omaplinuxkernel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Carlos Chinea <cch.devel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Rob Landley <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>, =?utf-8?Q?'Beno=C3=AEt?= Cousson' <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-kernel@vger.kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, Nishanth Menon <nm@ti.com>, Pavel Machek <pavel@ucw.cz>, Peter De Schrijver <pdeschrijver@nvidia.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Ivaylo Dimitrov <freemangordon@abv.bg>
 
---nextPart2901258.RGeO3zN659
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+* Sebastian Reichel <sre-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org> [130915 13:56]:
+> This patch adds an OMAP SSI driver to the HSI framework.
 
-Hello Tony,
+Thanks for working on this.
+ 
+> +config OMAP_SSI
+> +	tristate "OMAP SSI hardware driver"
+> +	depends on ARCH_OMAP && HSI
+> +	default n
+> +	---help---
+> +	  SSI is a legacy version of HSI. It is usually used to connect
+> +	  an application engine with a cellular modem.
+> +	  If you say Y here, you will enable the OMAP SSI hardware driver.
 
-here is new v3 patch. I just only moved functions rx51_secure_dispatcher and
-rx51_secure_update_aux_cr to omap-secure.c and added header to omap-secure.h
-Because I only moved two functions to other source file I tested only compi=
-lation.
-It is OK now?
+You can drop the "default n" line here, it's the default.
 
-diff --git a/arch/arm/mach-omap2/board-rx51.c b/arch/arm/mach-omap2/board-r=
-x51.c
-index 773510556..db168c9 100644
-=2D-- a/arch/arm/mach-omap2/board-rx51.c
-+++ b/arch/arm/mach-omap2/board-rx51.c
-@@ -2,6 +2,8 @@
-  * Board support file for Nokia N900 (aka RX-51).
-  *
-  * Copyright (C) 2007, 2008 Nokia
-+ * Copyright (C) 2012 Ivaylo Dimitrov <freemangordon@abv.bg>
-+ * Copyright (C) 2013 Pali Roh=C3=A1r <pali.rohar@gmail.com>
-  *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License version 2 as
-@@ -31,7 +33,9 @@
- #include "mux.h"
- #include "gpmc.h"
- #include "pm.h"
-+#include "soc.h"
- #include "sdram-nokia.h"
-+#include "omap-secure.h"
-=20
- #define RX51_GPIO_SLEEP_IND 162
-=20
-@@ -103,6 +107,14 @@ static void __init rx51_init(void)
- 	usb_musb_init(&musb_board_data);
- 	rx51_peripherals_init();
-=20
-+	if (omap_type() =3D=3D OMAP2_DEVICE_TYPE_SEC) {
-+#ifdef CONFIG_ARM_ERRATA_430973
-+		pr_info("RX-51: Enabling ARM errata 430973 workaround\n");
-+		/* set IBE to 1 */
-+		rx51_secure_update_aux_cr(BIT(6), 0);
-+#endif
-+	}
-+
- 	/* Ensure SDRC pins are mux'd for self-refresh */
- 	omap_mux_init_signal("sdrc_cke0", OMAP_PIN_OUTPUT);
- 	omap_mux_init_signal("sdrc_cke1", OMAP_PIN_OUTPUT);
-diff --git a/arch/arm/mach-omap2/omap-secure.c b/arch/arm/mach-omap2/omap-s=
-ecure.c
-index b970440..eba74cf 100644
-=2D-- a/arch/arm/mach-omap2/omap-secure.c
-+++ b/arch/arm/mach-omap2/omap-secure.c
-@@ -3,6 +3,8 @@
-  *
-  * Copyright (C) 2011 Texas Instruments, Inc.
-  *	Santosh Shilimkar <santosh.shilimkar@ti.com>
-+ * Copyright (C) 2012 Ivaylo Dimitrov <freemangordon@abv.bg>
-+ * Copyright (C) 2013 Pali Roh=C3=A1r <pali.rohar@gmail.com>
-  *
-  *
-  * This program is free software,you can redistribute it and/or modify
-@@ -70,3 +72,63 @@ phys_addr_t omap_secure_ram_mempool_base(void)
- {
- 	return omap_secure_memblock_base;
- }
-+
-+/**
-+ * rx51_secure_dispatcher: Routine to dispatch secure PPA API calls
-+ * @idx: The PPA API index
-+ * @process: Process ID
-+ * @flag: The flag indicating criticality of operation
-+ * @nargs: Number of valid arguments out of four.
-+ * @arg1, arg2, arg3 args4: Parameters passed to secure API
-+ *
-+ * Return the non-zero error value on failure.
-+ */
-+u32 rx51_secure_dispatcher(u32 idx, u32 process, u32 flag, u32 nargs,
-+			   u32 arg1, u32 arg2, u32 arg3, u32 arg4)
-+{
-+	u32 ret;
-+	u32 param[5];
-+
-+	param[0] =3D nargs+1; /* RX-51 needs number of arguments + 1 */
-+	param[1] =3D arg1;
-+	param[2] =3D arg2;
-+	param[3] =3D arg3;
-+	param[4] =3D arg4;
-+
-+	/*
-+	 * Secure API needs physical address
-+	 * pointer for the parameters
-+	 */
-+	local_irq_disable();
-+	local_fiq_disable();
-+	flush_cache_all();
-+	outer_clean_range(__pa(param), __pa(param + 5));
-+	ret =3D omap_smc3(idx, process, flag, __pa(param));
-+	flush_cache_all();
-+	local_fiq_enable();
-+	local_irq_enable();
-+
-+	return ret;
-+}
-+
-+/**
-+ * rx51_secure_update_aux_cr: Routine to modify the contents of Auxiliary =
-Control Register
-+ *  @set_bits: bits to set in ACR
-+ *  @clr_bits: bits to clear in ACR
-+ *
-+ * Return the non-zero error value on failure.
-+*/
-+u32 rx51_secure_update_aux_cr(u32 set_bits, u32 clear_bits)
-+{
-+	u32 acr;
-+
-+	/* Read ACR */
-+	asm volatile ("mrc p15, 0, %0, c1, c0, 1" : "=3Dr" (acr));
-+	acr &=3D ~clear_bits;
-+	acr |=3D set_bits;
-+
-+	return rx51_secure_dispatcher(RX51_PPA_WRITE_ACR,
-+				      0,
-+				      FLAG_START_CRITICAL,
-+				      1, acr, 0, 0, 0);
-+}
-diff --git a/arch/arm/mach-omap2/omap-secure.h b/arch/arm/mach-omap2/omap-s=
-ecure.h
-index c4586f4..51b59c6 100644
-=2D-- a/arch/arm/mach-omap2/omap-secure.h
-+++ b/arch/arm/mach-omap2/omap-secure.h
-@@ -3,6 +3,8 @@
-  *
-  * Copyright (C) 2011 Texas Instruments, Inc.
-  *	Santosh Shilimkar <santosh.shilimkar@ti.com>
-+ * Copyright (C) 2012 Ivaylo Dimitrov <freemangordon@abv.bg>
-+ * Copyright (C) 2013 Pali Roh=C3=A1r <pali.rohar@gmail.com>
-  *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License version 2 as
-@@ -46,6 +48,11 @@
- #define OMAP4_PPA_L2_POR_INDEX		0x23
- #define OMAP4_PPA_CPU_ACTRL_SMP_INDEX	0x25
-=20
-+/* Secure RX-51 PPA (Primary Protected Application) APIs */
-+#define RX51_PPA_HWRNG			29
-+#define RX51_PPA_L2_INVAL		40
-+#define RX51_PPA_WRITE_ACR		42
-+
- #ifndef __ASSEMBLER__
-=20
- extern u32 omap_secure_dispatcher(u32 idx, u32 flag, u32 nargs,
-@@ -55,6 +62,10 @@ extern u32 omap_smc3(u32 id, u32 process, u32 flag, u32 =
-pargs);
- extern phys_addr_t omap_secure_ram_mempool_base(void);
- extern int omap_secure_ram_reserve_memblock(void);
-=20
-+extern u32 rx51_secure_dispatcher(u32 idx, u32 process, u32 flag, u32 narg=
-s,
-+				  u32 arg1, u32 arg2, u32 arg3, u32 arg4);
-+extern u32 rx51_secure_update_aux_cr(u32 set_bits, u32 clear_bits);
-+
- #ifdef CONFIG_OMAP4_ERRATA_I688
- extern int omap_barrier_reserve_memblock(void);
- #else
+> +/* TODO: HACK: define omap_pm_get_dev_context_loss_count, because it is defined
+> + * in arch/arm/mach-omap2/omap-pm.h and thus not available via #include */
+> +int omap_pm_get_dev_context_loss_count(struct device *dev);
 
+You can drop this and related calls completely and rely on some
+SSI configuration registers instead to detect if context was lost.
 
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
+The reason for that is that the context loss count should be
+implemented in Linux generic way if needed at all and we can leave
+out a dependency to that.
 
---nextPart2901258.RGeO3zN659
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
+If there's a chance that the context is only partially lost,
+then of course something else is needed. So far I have not
+hit that issue for MMC or serial at least, but you'd have to
+test this with off-idle to verify it.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
+Regards,
 
-iEYEABECAAYFAlI5/VkACgkQi/DJPQPkQ1KAiQCeL3bUATeX51gFADl08nyejULc
-ufYAnir5A7FPAFdGSPI68S7vgUS50qzw
-=N8T9
------END PGP SIGNATURE-----
+Tony
 
---nextPart2901258.RGeO3zN659--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
