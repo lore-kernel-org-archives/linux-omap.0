@@ -1,109 +1,78 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v7 00/10] phy: omap-usb: Support multiple instances and new
- types
-Date: Wed, 18 Sep 2013 15:48:52 +0300
-Message-ID: <1379508542-22389-1-git-send-email-rogerq@ti.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v7 06/10] ARM: dts: omap4: update omap-control-usb nodes
+Date: Wed, 18 Sep 2013 15:48:58 +0300
+Message-ID: <1379508542-22389-7-git-send-email-rogerq@ti.com>
+References: <1379508542-22389-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: balbi@ti.com, bcousson@baylibre.com
-Cc: devicetree@vger.kernel.org, george.cherian@ti.com, sergei.shtylyov@cogentembedded.com, tony@atomide.com, bigeasy@linutronix.de, linux-usb@vger.kernel.org, kishon@ti.com, thomas.langer@lantiq.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
+Content-Type: text/plain
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1379508542-22389-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: balbi-l0cyMroinI0@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org
+Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, george.cherian-l0cyMroinI0@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, thomas.langer-th3ZBGNqt+7QT0dZR+AlfA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Split otghs_ctrl and USB2 PHY power-down into separate
+omap-control-usb nodes. Get rid of "ti,type" property.
 
-This patchset does the following:
+Also get rid of "ti,has-mailbox" property from usb_otg_hs
+node and provide the ctrl-module phandle.
 
-* Get rid of omap_control_usb platform data as we support DT only.
-
-* Restructure and add support for new PHY types. We now support the follwing
-four types
-
- TYPE_OTGHS - if it has otghs_control mailbox register (e.g. on OMAP4)
- TYPE_USB2 - if it has Power down bit in control_dev_conf register. e.g. USB2 PHY
- TYPE_PIPE3 - if it has DPLL and individual Rx & Tx power control. e.g. USB3 PHY or SATA PHY
- TYPE_DRA7USB2 - if it has both power down and power aux registers. e.g. USB2 PHY on DRA7
-
-* Get rid of "ti,type" DT property and introduce compatible strings for each type.
-
-* Have only one power control API "omap_control_usb_phy_power()" instead of a
-different one for each PHY type.
-
-* Get rid of omap_get_control_dev() so that we can support multiple instances
-of the control device. We take advantage of the fact that omap control USB device
-is only present on OMAP4 onwards and hence only supports DT boot. The users
-of control USB device can get a reference to it from the device node's phandle.
-
-Patches are based on v3.12-rc1.
-
-Smoke tested on OMAP4 panda with MUSB in gadget mode (g_zero).
-
-You can find the patches in branch
- usb-control-module
-in git tree
- git://github.com/rogerq/linux.git
-
-v7:
-- Rebased on v3.12-rc1
-- Updated DT compatibility ID for better readability
-- Renamed TYPE_OMAP4 to TYPE_OTGHS, TYPE_USB3 to TYPE_PIPE3 and TYPE_DRA7 to
-  TYPE_DRA7USB2
-
-v6:
-- addressed review comment about usage of control_usb before allocation.
-
-v5:
-- fixed whitespace alignment issues.
-
-v4:
-- removed "ti,has-mailbox" from omap-usb binding document example.
-
-v3:
-- return -EINVAL instead of -ENODEV on probe failure.
-- pass device type data through of_device_id table.
-- get rid of "ti,mailbox" property and "has_mailbox" from musb platform data.
-
-v2:
-- get rid of "ti,type" property and introduce compatible strings for each device type.
-
-cheers,
--roger
-
+CC: Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 ---
-Roger Quadros (10):
-  usb: phy: omap-control: Get rid of platform data
-  usb: phy: omap: Add new device types and remove
-    omap_control_usb3_phy_power()
-  usb: phy: omap-usb2: Don't use omap_get_control_dev()
-  usb: phy: omap-usb3: Don't use omap_get_control_dev()
-  usb: musb: omap2430: Don't use omap_get_control_dev()
-  ARM: dts: omap4: update omap-control-usb nodes
-  usb: phy: omap: get rid of omap_get_control_dev()
-  ARM: dts: omap5: update omap-control-usb node
-  usb: dwc3: omap: manage "usb_otg_ss_refclk960m" clock
-  usb: phy: omap-usb2: Manage phy clock and not otg controller clock
+ arch/arm/boot/dts/omap4.dtsi |   20 ++++++++++++--------
+ 1 files changed, 12 insertions(+), 8 deletions(-)
 
- Documentation/devicetree/bindings/usb/omap-usb.txt |   38 ++--
- arch/arm/boot/dts/omap4.dtsi                       |   20 ++-
- arch/arm/boot/dts/omap5.dtsi                       |   20 ++-
- drivers/usb/dwc3/dwc3-omap.c                       |   13 ++
- drivers/usb/musb/omap2430.c                        |   25 ++-
- drivers/usb/phy/phy-omap-control.c                 |  208 ++++++++++---------
- drivers/usb/phy/phy-omap-usb2.c                    |   30 ++-
- drivers/usb/phy/phy-omap-usb3.c                    |   32 +++-
- include/linux/usb/musb.h                           |    2 -
- include/linux/usb/omap_control_usb.h               |   33 ++--
- 10 files changed, 236 insertions(+), 185 deletions(-)
-
+diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+index 22d9f2b..ca6400d 100644
+--- a/arch/arm/boot/dts/omap4.dtsi
++++ b/arch/arm/boot/dts/omap4.dtsi
+@@ -519,7 +519,7 @@
+ 			usb2_phy: usb2phy@4a0ad080 {
+ 				compatible = "ti,omap-usb2";
+ 				reg = <0x4a0ad080 0x58>;
+-				ctrl-module = <&omap_control_usb>;
++				ctrl-module = <&omap_control_usb2phy>;
+ 			};
+ 		};
+ 
+@@ -643,12 +643,16 @@
+ 			};
+ 		};
+ 
+-		omap_control_usb: omap-control-usb@4a002300 {
+-			compatible = "ti,omap-control-usb";
+-			reg = <0x4a002300 0x4>,
+-			      <0x4a00233c 0x4>;
+-			reg-names = "control_dev_conf", "otghs_control";
+-			ti,type = <1>;
++		omap_control_usb2phy: control-phy@4a002300 {
++			compatible = "ti,control-phy-usb2";
++			reg = <0x4a002300 0x4>;
++			reg-names = "power";
++		};
++
++		omap_control_usbotg: control-phy@4a00233c {
++			compatible = "ti,control-phy-otghs";
++			reg = <0x4a00233c 0x4>;
++			reg-names = "otghs_control";
+ 		};
+ 
+ 		usb_otg_hs: usb_otg_hs@4a0ab000 {
+@@ -661,7 +665,7 @@
+ 			multipoint = <1>;
+ 			num-eps = <16>;
+ 			ram-bits = <12>;
+-			ti,has-mailbox;
++			ctrl-module = <&omap_control_usbotg>;
+ 		};
+ 	};
+ };
 -- 
 1.7.4.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
