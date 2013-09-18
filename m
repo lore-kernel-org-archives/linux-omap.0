@@ -1,70 +1,73 @@
-From: Sricharan R <r.sricharan-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH V2] ARM: dts: DRA7: provide arch-timer frequenecy parameter
-Date: Wed, 18 Sep 2013 17:03:27 +0530
-Message-ID: <52398F87.6090108@ti.com>
-References: <5238899D.60903@ti.com> <1379437288-10831-1-git-send-email-nm@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH] ARM: OMAP: TI816X: add clock domain support for TI816x
+Date: Wed, 18 Sep 2013 06:56:47 -0500
+Message-ID: <523994FF.4020307@ti.com>
+References: <1377352941-29699-1-git-send-email-aida.mynzhasova@skitlab.ru> <5236A9FA.2040100@skitlab.ru> <20130916131451.GB14873@kahuna> <52397517.9020508@skitlab.ru>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1379437288-10831-1-git-send-email-nm-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-Cc: Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, santosh.shilimkar-l0cyMroinI0@public.gmane.org, Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>, Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:59697 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751556Ab3IRL4x (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 18 Sep 2013 07:56:53 -0400
+In-Reply-To: <52397517.9020508@skitlab.ru>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Aida Mynzhasova <aida.mynzhasova@skitlab.ru>
+Cc: linux-omap@vger.kernel.org
 
-Hi,
+On 09/18/2013 04:40 AM, Aida Mynzhasova wrote:
+> On 16.09.2013 17:14, Nishanth Menon wrote:
+>> On 10:49-20130916, Aida Mynzhasova wrote:
+>>> On 24.08.2013 18:02, Aida Mynzhasova wrote:
+>>>> This patch adds required definitions and structures for clockdomain
+>>>> initialization, so omap3xxx_clockdomains_init() was substituted by
+>>>> new ti81xx_clockdomains_init() while early initialization of
+>>>> TI81XX platform.
+>>>>
+>>>> signed-off-by: Aida Mynzhasova <aida.mynzhasova@skitlab.ru>
+>>>> ---
+>>>>   arch/arm/mach-omap2/Makefile                   |   2 +
+>>>>   arch/arm/mach-omap2/clockdomain.h              |   1 +
+>>>>   arch/arm/mach-omap2/clockdomains_ti81xx_data.c | 208 +++++++++++++++++++++++++
+>>>>   arch/arm/mach-omap2/cm-regbits-ti81xx.h        |  22 +++
+>>>>   arch/arm/mach-omap2/cm_ti81xx.h                |  61 ++++++++
+>>>>   arch/arm/mach-omap2/io.c                       |   2 +-
+>>>>   6 files changed, 295 insertions(+), 1 deletion(-)
+>>>>   create mode 100644 arch/arm/mach-omap2/clockdomains_ti81xx_data.c
+>>>>   create mode 100644 arch/arm/mach-omap2/cm-regbits-ti81xx.h
+>>>>   create mode 100644 arch/arm/mach-omap2/cm_ti81xx.h
+>>>>
+>>>
+>> [...]
+>>> Can anybody please review my changes?
+>>
+>> We are transitioning out of having clock information in mach-omap2 to
+>> using devicetree
+>>
+>> http://marc.info/?l=devicetree&m=137778225431749&w=2
+>>
+>> Will be good to align the conversion with upcoming V7 of the patch
+>> series as well.
+>>
+> 
+> Hi Nishanth,
+> 
+> I'm sorry, but it seems like you mixed up clock and clock domain data. 
+> The same situation was for Afzal's patch:
+> 
+> http://article.gmane.org/gmane.linux.ports.arm.omap/104485
+> 
+Yep - same darned mistake!!! my sincere apologies. I had mistaken
+Tero's series originally to mean it took care of the data, but
+realized later(after kicking myself twice for not digging deeper) that
+it was handling the relationship between clocks and clockdomains at
+this stage and potentially creates the foundation to move the data out
+as well at a later stage.
 
-On Tuesday 17 September 2013 10:31 PM, Nishanth Menon wrote:
-> CNTFREQ isn't pre-programmed on DRA7 just like O5, so provide the
-> timer frequency via DT. Without a valid value arch_timer_init results
-> in div0 crash.
->
-> Cc: R Sricharan <r.sricharan-l0cyMroinI0@public.gmane.org>
-> Cc: Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>
-> Cc: Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>
->
-> Acked-by: Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
-> Signed-off-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-> ---
->
-> Based on Benoit's for_3.13/dts branch. 
-> http://git.kernel.org/cgit/linux/kernel/git/bcousson/linux-omap-dt.git/log/?h=for_3.13/dts
->
-> Crash log: http://pastebin.com/B2sDauS9
->
-> V2: commit message update
-> V1: https://patchwork.kernel.org/patch/2903261/
->
->  arch/arm/boot/dts/dra7.dtsi |    1 +
->  1 file changed, 1 insertion(+)
->
-> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-> index c98997b..71c2749 100644
-> --- a/arch/arm/boot/dts/dra7.dtsi
-> +++ b/arch/arm/boot/dts/dra7.dtsi
-> @@ -50,6 +50,7 @@
->  			     <GIC_PPI 14 (GIC_CPU_MASK_SIMPLE(2) | IRQ_TYPE_LEVEL_LOW)>,
->  			     <GIC_PPI 11 (GIC_CPU_MASK_SIMPLE(2) | IRQ_TYPE_LEVEL_LOW)>,
->  			     <GIC_PPI 10 (GIC_CPU_MASK_SIMPLE(2) | IRQ_TYPE_LEVEL_LOW)>;
-> +		clock-frequency = <6144000>;
->  	};
->  
->  	gic: interrupt-controller@48211000 {
-This is not the right way to pass the frequency. In fact, initially the frequency value was present
-when the dts was added, but had to revert it back based on the feedbacks. Please refer below.
-  
+My bad.. Apologies once again.
 
-http://www.mail-archive.com/linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg93832.html
-
-
-Also posted the below patch to fix this,
-
-    http://marc.info/?l=linux-omap&m=137950345528918&w=2
-
+-- 
 Regards,
- Sricharan
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Nishanth Menon
