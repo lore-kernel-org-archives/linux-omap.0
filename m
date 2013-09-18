@@ -1,31 +1,49 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: PCF857x and 16-bit GPIO expanders
-Date: Wed, 18 Sep 2013 13:16:27 +0200
-Message-ID: <CACRpkdYn8yaTyFJMaC3vK4kGrQsaZpAX=pyn5y33ers7QhQ_pg@mail.gmail.com>
-References: <20130917190732.GD15645@radagast>
+From: Sricharan R <r.sricharan@ti.com>
+Subject: [PATCH] ARM: DRA7: realtime_counter: Add ratio registers for 20MHZ sys-clk frequency
+Date: Wed, 18 Sep 2013 16:50:11 +0530
+Message-ID: <1379503211-26229-1-git-send-email-r.sricharan@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:36318 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751904Ab3IRLQ2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Sep 2013 07:16:28 -0400
-Received: by mail-ob0-f174.google.com with SMTP id uz6so7297519obc.33
-        for <linux-omap@vger.kernel.org>; Wed, 18 Sep 2013 04:16:27 -0700 (PDT)
-In-Reply-To: <20130917190732.GD15645@radagast>
+Received: from devils.ext.ti.com ([198.47.26.153]:43825 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751819Ab3IRLU6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Sep 2013 07:20:58 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>, George Cherian <george.cherian@ti.com>, Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>, Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
-Cc: "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Cc: r.sricharan@ti.com, santosh.shilimkar@ti.com, rnayak@ti.com, tony@atomide.com
 
-On Tue, Sep 17, 2013 at 9:07 PM, Felipe Balbi <balbi@ti.com> wrote:
+The real time counter also called master counter, is a free-running
+counter. It produces the count used by the CPU local timer peripherals
+in the MPU cluster. The timer counts at a rate of 6.144 MHz.
 
-> has anyone ever successfully using gpio-pcf857x.c driver with 16-bit
-> gpio expanders ? We're having some issues here where toggling the last
-> gpio pin (gpio 15) on a PCF8575 device causes platform to hang and I
-> can't come up with any explanation of why would it hang...
+The ratio registers are missing for a sys-clk of 20MHZ which is used
+by DRA7 socs. So because of this, the counter was getting wrongly
+programmed for a sys-clk of 38.4Mhz(default). So adding the ratio
+registers for 20MHZ sys-clk.
 
-Bouncing the question to George, Laurent and Kuninori...
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Signed-off-by: Sricharan R <r.sricharan@ti.com>
+---
+ arch/arm/mach-omap2/timer.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-Yours,
-Linus Walleij
+diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+index e1528a0..fd9238d 100644
+--- a/arch/arm/mach-omap2/timer.c
++++ b/arch/arm/mach-omap2/timer.c
+@@ -515,6 +515,10 @@ static void __init realtime_counter_init(void)
+ 		num = 8;
+ 		den = 25;
+ 		break;
++	case 20000000:
++		num = 192;
++		den = 625;
++		break;
+ 	case 2600000:
+ 		num = 384;
+ 		den = 1625;
+-- 
+1.7.9.5
+
