@@ -1,27 +1,85 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
 Subject: Re: [PATCH] ARM: OMAP5/DRA7: realtime_counter: Configure CNTFRQ register
-Date: Wed, 18 Sep 2013 09:45:13 -0400
-Message-ID: <5239AE69.6040600@ti.com>
-References: <1379503416-26318-1-git-send-email-r.sricharan@ti.com> <5239AB2C.1090201@ti.com> <5239AE35.8030406@ti.com>
+Date: Wed, 18 Sep 2013 09:49:15 -0400
+Message-ID: <5239AF5B.7010607@ti.com>
+References: <1379503416-26318-1-git-send-email-r.sricharan@ti.com> <5239AB2C.1090201@ti.com> <5239AE22.5090906@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:50665 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751344Ab3IRNqT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Sep 2013 09:46:19 -0400
-In-Reply-To: <5239AE35.8030406@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:40808 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751218Ab3IRNtn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 18 Sep 2013 09:49:43 -0400
+In-Reply-To: <5239AE22.5090906@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Sricharan R <r.sricharan@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, rnayak@ti.com, tony@atomide.com, marc.zyngier@arm.com, mark.rutland@arm.com
+To: Sricharan R <r.sricharan@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, rnayak@ti.com, tony@atomide.com, nm@ti.com, marc.zyngier@arm.com, mark.rutland@arm.com
 
-On Wednesday 18 September 2013 09:44 AM, Nishanth Menon wrote:
-> On 09/18/2013 08:31 AM, Santosh Shilimkar wrote:
+On Wednesday 18 September 2013 09:44 AM, Sricharan R wrote:
+> On Wednesday 18 September 2013 07:01 PM, Santosh Shilimkar wrote:
 >> On Wednesday 18 September 2013 07:23 AM, Sricharan R wrote:
-> [...]
-> 						4, 0, 0, 0, 0, 0);
+>>> The realtime counter called master counter, produces the count
+>>> used by the private timer peripherals in the MPU_CLUSTER. The
+>>> CNTFRQ per cpu register is used to denote the frequency of the counter.
+>>> Currently the frequency value is passed from the
+>>> DT file, but this is not scalable when we have other non-DT guest
+>>> OS. This register must be set to the right value by the
+>>> host OS, as this will be propagated to the guests as well.
+>>>
+>> Its not host OS but ROM code/secure code. Host OS is not
+>> ideal place to set it up.
+>  ok, so you are suggesting to re word this right ?
+>>> More discussions and the reason for adding this in a non-DT
+>>> way can be seen from below.
+>>> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg93832.html
+>>>
+>>> So configuring this secure register for all the cpus here.
+>>>
+>>> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>>> Cc: Nishanth Menon <nm@ti.com>
+>>> Cc: Rajendra Nayak <rnayak@ti.com>
+>>> Cc: Marc Zyngier <marc.zyngier@arm.com>
+>>> Cc: Mark Rutland <mark.rutland@arm.com>
+>>> Cc: Tony Lindgren <tony@atomide.com>
+>>> Signed-off-by: Sricharan R <r.sricharan@ti.com>
+>>> ---
+>>>  arch/arm/mach-omap2/omap-secure.h |    2 ++
+>>>  arch/arm/mach-omap2/omap-smp.c    |    9 +++++++++
+>>>  arch/arm/mach-omap2/timer.c       |    6 ++++++
+>>>  3 files changed, 17 insertions(+)
+>>>
+>>> diff --git a/arch/arm/mach-omap2/omap-secure.h b/arch/arm/mach-omap2/omap-secure.h
+>>> index a171a5a..4de9a00 100644
+>>> --- a/arch/arm/mach-omap2/omap-secure.h
+>>> +++ b/arch/arm/mach-omap2/omap-secure.h
+>>> @@ -51,6 +51,8 @@
+>>>  
+>>>  #define OMAP5_MON_AMBA_IF_INDEX		0x108
+>>>  
+>>> +#define OMAP5_DRA7_MON_SET_CNTFRQ_INDEX	0x109
+>>> +
+>> Nice. Looks like OMAP5 ES2.0 addition which I missed.
+>>
+>>>  /* Secure PPA(Primary Protected Application) APIs */
+>>>  #define OMAP4_PPA_L2_POR_INDEX		0x23
+>>>  #define OMAP4_PPA_CPU_ACTRL_SMP_INDEX	0x25
+>>> diff --git a/arch/arm/mach-omap2/omap-smp.c b/arch/arm/mach-omap2/omap-smp.c
+>>> index 98a1146..00873b4 100644
+>>> --- a/arch/arm/mach-omap2/omap-smp.c
+>>> +++ b/arch/arm/mach-omap2/omap-smp.c
+>>> @@ -41,6 +41,8 @@
+>>>  
+>>>  u16 pm44xx_errata;
+>>>  
+>>> +extern unsigned long arch_timer_freq;
+>>> +
+>>>  /* SCU base address */
+>>>  static void __iomem *scu_base;
+>>>  
+>>> @@ -66,6 +68,13 @@ static void __cpuinit omap4_secondary_init(unsigned int cpu)
+>>>  							4, 0, 0, 0, 0, 0);
 >>>  
 >>>  	/*
 >>> +	 * Configure the CNTFRQ register for the secondary cpu's which
@@ -31,18 +89,66 @@ On Wednesday 18 September 2013 09:44 AM, Nishanth Menon wrote:
 >> CNTFREQ programming was not supported on OMAP5 ES1.0 and that was one
 >> of the reason this parameter came into picture. So you need to skip
 >> the ES1.0 here. 
+>  We do not intend to support ES1.0 right ? . ok then id.c needs to be
+>  cleaned up to remove ES1.0 traces.
+yes. With clean-up ES1.0, this can stay as is.
+
+>>> +		omap_smc1(OMAP5_DRA7_MON_SET_CNTFRQ_INDEX, arch_timer_freq);
+>>> +
+>>> +	/*
+>>>  	 * Synchronise with the boot thread.
+>>>  	 */
+>>>  	spin_lock(&boot_lock);
+>>> diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+>>> index fd9238d..2c499f3 100644
+>>> --- a/arch/arm/mach-omap2/timer.c
+>>> +++ b/arch/arm/mach-omap2/timer.c
+>>> @@ -55,6 +55,7 @@
+>>>  #include "soc.h"
+>>>  #include "common.h"
+>>>  #include "powerdomain.h"
+>>> +#include "omap-secure.h"
+>>>  
+>>>  #define REALTIME_COUNTER_BASE				0x48243200
+>>>  #define INCREMENTER_NUMERATOR_OFFSET			0x10
+>>> @@ -65,6 +66,7 @@
+>>>  
+>>>  static struct omap_dm_timer clkev;
+>>>  static struct clock_event_device clockevent_gpt;
+>>> +unsigned long arch_timer_freq;
+>>>  
+>>>  static irqreturn_t omap2_gp_timer_interrupt(int irq, void *dev_id)
+>>>  {
+>>> @@ -546,7 +548,11 @@ static void __init realtime_counter_init(void)
+>>>  	reg |= den;
+>>>  	__raw_writel(reg, base + INCREMENTER_DENUMERATOR_RELOAD_OFFSET);
+>>>  
+>>> +	arch_timer_freq = (rate / den) * num;
+>>> +
+>>>  	iounmap(base);
+>>> +
+>>> +	omap_smc1(OMAP5_DRA7_MON_SET_CNTFRQ_INDEX, arch_timer_freq);
+>> Few problems with this approach..
 >>
-> Even though ES1.0 is present in id.c, we have 0 support for ES1.0.
-> 
-> ES1.0 was more or less a test chip, no production devices were
-> manufactured with it, no public boards (including uevms) are available
-> to purchase with ES1.0. Further, inside TI, all ES1.0 samples and
-> boards have been scrapped and replaced with ES2.0 platforms.
-> 
-> In short, no users and dead code in kernel tree. I dont see why we
-> cant just cleanup OMAP5 ES1.0 entirely from kernel tree?
-> 
-Yes...There is no reason to keep broken ES1.0 support. Patch please ;-)
+>> 1. CNTFREQ needs to be programmed on all CPUs. Even though arch-timer
+>> code uses boot-cpu now thats not safe for guest which can start on
+>> secondary CPUs. So please update this in secondary boot path as well.
+> The patch is doing this for secondary cpu's as well in the
+> call back  omap4_secondary_init.
+>
+NM just pointed out this off-list.
+
+ 
+>> 2. When you power cycle CPU, you will loose the value of this register
+>> so you need to reprogram them on every CPU power up. Both DRA and OMAP5
+>> doesn't support that part yet but do remember to patch that when
+>> such support gets added.
+>  oh ok. did not realize this. Will add the change for this then.
+Since PM isn't supported for now, the patch looks alright with ES1.0
+support gets dropped. Just fix the change-log.
+
+Feel free to add my ack on updated version.
 
 Regards,
 Santosh
+
