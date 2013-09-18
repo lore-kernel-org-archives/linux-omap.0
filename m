@@ -1,90 +1,200 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 02/11] omapdss: HDMI: create a HDMI PLL library
-Date: Wed, 18 Sep 2013 10:00:08 +0300
-Message-ID: <52394F78.5010603@ti.com>
-References: <1379401597-27222-1-git-send-email-archit@ti.com> <1379401597-27222-3-git-send-email-archit@ti.com> <20130917093813.27384.67975@quantum> <523828A7.8050204@ti.com> <CAPtuhTh-6JJnpqp=0FCQqkPS2yBUmj7-zniY4vRQR9xq+t8htg@mail.gmail.com>
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 1/4] usb: musb: Call atomic_notifier_call_chain when status is changed
+Date: Wed, 18 Sep 2013 10:20:14 +0200
+Message-ID: <201309181020.15245@pali>
+References: <1378630239-10006-1-git-send-email-pali.rohar@gmail.com> <201309172128.42514@pali> <20130918014942.GD19817@radagast>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="jcbHqcPmgPNHXsqgSLuiafsd29wn9nloi"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:45932 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751652Ab3IRHAM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 18 Sep 2013 03:00:12 -0400
-In-Reply-To: <CAPtuhTh-6JJnpqp=0FCQqkPS2yBUmj7-zniY4vRQR9xq+t8htg@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed;
+  boundary="nextPart17918567.OB607qoQaA";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20130918014942.GD19817@radagast>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: balbi-l0cyMroinI0@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Anton Vorontsov <anton-9xeibp6oKSgdnm+yROfE0A@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, freemangordon-uiMcrn6V0Vs@public.gmane.org, aaro.koskinen-X3B1VOXEql0@public.gmane.org, pavel-+ZI9xUNit7I@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Mike Turquette <mturquette@linaro.org>
-Cc: Archit Taneja <archit@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-fbdev@vger.kernel.org
 
---jcbHqcPmgPNHXsqgSLuiafsd29wn9nloi
-Content-Type: text/plain; charset=ISO-8859-1
+--nextPart17918567.OB607qoQaA
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 
-On 17/09/13 22:40, Mike Turquette wrote:
+On Wednesday 18 September 2013 03:49:42 Felipe Balbi wrote:
+> On Tue, Sep 17, 2013 at 09:28:42PM +0200, Pali Roh=C3=A1r wrote:
+> > On Tuesday 17 September 2013 18:08:35 Felipe Balbi wrote:
+> > > On Tue, Sep 17, 2013 at 06:05:15PM +0200, Pali Roh=C3=A1r wrote:
+> > > > On Tuesday 17 September 2013 17:48:59 you wrote:
+> > > > > On Sun, Sep 08, 2013 at 10:50:36AM +0200, Pali Roh=C3=A1r wrote:
+> > > > > > More power supply drivers depends on vbus events and
+> > > > > > without it they not working. Power supply drivers
+> > > > > > using usb_register_notifier, so to deliver events
+> > > > > > it is needed to call atomic_notifier_call_chain.
+> > > > > >=20
+> > > > > > So without atomic notifier power supply driver
+> > > > > > isp1704 not retrieving vbus status and reporting
+> > > > > > bogus values to userspace and also to board
+> > > > > > platform data functions. Without proper data
+> > > > > > charger drivers trying to charge battery also when
+> > > > > > charger is disconnected or do not start charging
+> > > > > > when wallcharger connects.
+> > > > > >=20
+> > > > > > Atomic notifier in musb driver was used before v3.5
+> > > > > > and was replaced with omap mailbox. This patch
+> > > > > > adding atomic_notifier_call_chain call from
+> > > > > > function omap_musb_set_mailbox.
+> > > > > >=20
+> > > > > > Signed-off-by: Pali Roh=C3=A1r <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> > > > > > ---
+> > > > > >=20
+> > > > > >  drivers/usb/musb/omap2430.c       |    3 +++
+> > > > > >  drivers/usb/phy/phy-twl4030-usb.c |    2 ++
+> > > > > >  2 files changed, 5 insertions(+)
+> > > > > >=20
+> > > > > > diff --git a/drivers/usb/musb/omap2430.c
+> > > > > > b/drivers/usb/musb/omap2430.c index f44e8b5..5c40252
+> > > > > > 100644 --- a/drivers/usb/musb/omap2430.c
+> > > > > > +++ b/drivers/usb/musb/omap2430.c
+> > > > > > @@ -305,6 +305,9 @@ static void
+> > > > > > omap_musb_set_mailbox(struct omap2430_glue *glue)
+> > > > > >=20
+> > > > > >  	default:
+> > > > > >  		dev_dbg(dev, "ID float\n");
+> > > > > >  =09
+> > > > > >  	}
+> > > > > >=20
+> > > > > > +
+> > > > > > +	atomic_notifier_call_chain(&musb->xceiv->notifier,
+> > > > > > +			musb->xceiv->last_event, NULL);
+> > > > >=20
+> > > > > let's add a wrapper for this:
+> > > > >=20
+> > > > > static inline int usb_phy_notify(struct usb phy *x,
+> > > > > unsigned val, void *v) {
+> > > > >=20
+> > > > > 	return atomic_notifier_call_chain(&x->notifier, val,
+> > > > > 	v);
+> > > > >=20
+> > > > > }
+> > > >=20
+> > > > Where to add this wrapper? To omap2430.c? or some
+> > > > include file?
+> > >=20
+> > > <linux/usb/phy.h>
+> > >=20
+> > > > On Tuesday 17 September 2013 17:49:17 Felipe Balbi wrote:
+> > > > > On Sun, Sep 08, 2013 at 10:50:36AM +0200, Pali Roh=C3=A1r wrote:
+> > > > > > diff --git a/drivers/usb/phy/phy-twl4030-usb.c
+> > > > > > b/drivers/usb/phy/phy-twl4030-usb.c index
+> > > > > > 8f78d2d..efe6155 100644
+> > > > > > --- a/drivers/usb/phy/phy-twl4030-usb.c
+> > > > > > +++ b/drivers/usb/phy/phy-twl4030-usb.c
+> > > > > > @@ -705,6 +705,8 @@ static int
+> > > > > > twl4030_usb_probe(struct platform_device *pdev)
+> > > > > >=20
+> > > > > >  	if (device_create_file(&pdev->dev,
+> > > > > >  	&dev_attr_vbus))
+> > > > > >  =09
+> > > > > >  		dev_warn(&pdev->dev, "could not create sysfs
+> > > > > >  		file\n");
+> > > > > >=20
+> > > > > > +	ATOMIC_INIT_NOTIFIER_HEAD(&twl->phy.notifier);
+> > > > >=20
+> > > > > BTW, this is a bugfix, send separately.
+> > > >=20
+> > > > What to send separately?
+> > > >=20
+> > > > This full patch 1/4 is bugfix. And I did not understand
+> > > > what you want. Maybe it could be easier for you to
+> > > > apply this small 3+2 lines patch how you need.
+> > >=20
+> > > This hunk here (initializaing notifier head) is a separate
+> > > bug fix and needs its own patch.
+> >=20
+> > So will you do that? Or it is needed to resend this one line
+> > hunk again in new email again?
+>=20
+> new patch, new email
 
-> I hope that the existing CLK_SET_RATE_PARENT flag could help you get
-> the frequency you need; it causes a call to clk_set_rate(leaf_clk,
-> target_rate) to walk up the chain of parents and configure rates as
-> needed.
+Guys, WHY ARE YOU SO STUPID AND ARROGANT?
 
-Hmm, I'm not quite sure what that does, but it doesn't sound like it
-would help. The only way I know to find good clocks is to iterate over
-the dividers for each clock on the path.
+Sorry but, need to copy full isolated patch/hunk from one mail to
+another is hassling. So what you want from me? Do all those non
+sense working only because yesterday you had bad day? Or what?
 
-And to complicate things, clocks from the "middle" of the path are used
-for some purposes, so it's not only the final clock that we're
-interested in.
+Everything needed with described information was in first mail.
+Also second hunk has full isolated "git diff" output, so it is for
+you really big problem to copy it? Or you did not see that patch?
 
-For example, DSI: DSI PLL produces a high freq clock that goes to DSI
-PHY. That one is used for the DSI bus clock. The high freq clock from
-DSI PLL also goes to two dividers, of which one goes to DSI IP, and the
-second goes to DISPC. DISPC clock is then divided with two dividers in
-row, and the resulting clock goes also to DSI IP.
+I really did not understand what you wanted from me.
 
-All those different clocks have restrictions and dependencies to each
-other, like this one needs to be higher than that one, or ClkA =3D N *
-ClkB, etc.
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D
+=3D=3D=3D=3D BEGINNING OF PATCH =3D=3D=3D=3D
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D
 
-> However I have been looking at standardizing a way to define clock
-> rate tables, possibly in DT. In many cases it is a board-specific
-> issue (e.g. different oscillators or other reference clocks that feed
-> into the SoC) and specifying rate tables in DT is one way to store
-> known-good configurations for complex clock subtrees.
+This is bugfix and sending this patch separately from all other patches.
+This patch is visibly isolated from all others and could be readable also
+by disabled people. For other handicapped people I suggest to increase
+font size and other text settings in program which view this patch.
+=46or visually impaired people I suggest to use some text-to-speech softwar=
+e.
 
-Well, for some boards, which only have an LCD, we could probably get the
-clock from a table. But if the display used (say, external monitor)
-supports multiple resolutions, such a table is not feasible. We could
-have some clocks there in the table, but we'd still need a dynamic way
-to figure out the dividers for other clock rates.
+This is small 2 lines patch, diff starting after next visible break.
 
- Tomi
+This patch initializing notifier head in tw4030 usb code which is missing.
+Initialization code is needed for using any atomic_notifier_* functions.
 
+Signed-off-by: Pali Roh=C3=A1r <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D
+=3D=3D=3D=3D BEGINNING OF DIFF =3D=3D=3D=3D
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D
 
---jcbHqcPmgPNHXsqgSLuiafsd29wn9nloi
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+diff --git a/drivers/usb/phy/phy-twl4030-usb.c b/drivers/usb/phy/phy-twl403=
+0-usb.c
+index 8f78d2d..efe6155 100644
+=2D-- a/drivers/usb/phy/phy-twl4030-usb.c
++++ b/drivers/usb/phy/phy-twl4030-usb.c
+@@ -705,6 +705,8 @@ static int twl4030_usb_probe(struct platform_device *pd=
+ev)
+ 	if (device_create_file(&pdev->dev, &dev_attr_vbus))
+ 		dev_warn(&pdev->dev, "could not create sysfs file\n");
+=20
++	ATOMIC_INIT_NOTIFIER_HEAD(&twl->phy.notifier);
++
+ 	/* Our job is to use irqs and status from the power module
+ 	 * to keep the transceiver disabled when nothing's connected.
+ 	 *
+
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+=3D=3D=3D=3D END OF PATCH =3D=3D=3D=3D
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+
+PS: This is end of email and patch is above ^^^^
+
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+
+--nextPart17918567.OB607qoQaA
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQIcBAEBAgAGBQJSOU94AAoJEPo9qoy8lh71bsoP/A7yJSVHHoXtCT+0Scn7BYOD
-zJ60R3bpOjtMRQOn+3bHAxvM8e53OwtoQx0tx+5t44/iLLWSaFONsptRbOlxmFlg
-GAwqMdNE0uUERugXbF21KDCHXWlMThlepj/c/tuCwekgnijTyVx3dQ1FKk298rXI
-DR0DNmJ+kVHVn0avgjSjULbtZEWsPVyiINMZ4PSeQIwIYls00F3R39R9tx56HZPs
-T/ZMPR9uk0CYJDO0jt64+nzlr13OhrAfzwEw2JbXqjLPibRtisj/VinOPPeJnqpx
-t+kGTAX7j5Coygve8UQ4fDllKO21Kt9ZXy2oRMCoP0imw8uaoUMR+CCzX7DVbFFf
-3ufXMF5INMOZhYtvwqS2nZFM15BWui4Y0u4pEX0B/KAROVOa/pAJdJDx07BAh8Dy
-SsI0IqvRUcVleSay87pSaxaBKAtBxktMmnYRzT8YYKYIpMSptjBv2jMoLXCAymZv
-0oHrNqugyg3LoT7+SX2vQyPYs4cUdCIFoPcoE0Qhe7adp/ZQdCO9frOPDsXe68Oz
-943h4OB7onBDZy0MWd5Lw6o3LBriBJ9K6+Fz9akcE+klee218H5wjNRpiZPNgODe
-TkpbVKMYN8cvK3OmXityPTWiAc5e86g0hI8SLiWsoCeDIkrXncJ0eJn6gwEAC8JZ
-XnvQRIjv4LjuzolWRZac
-=mw5u
+iEYEABECAAYFAlI5Yj8ACgkQi/DJPQPkQ1KizwCguHYQSYcRpZG3a85BR/wH0G7k
+52QAn0BsfDgpnUwa3WaorrYtzfD1JkFg
+=A+Mk
 -----END PGP SIGNATURE-----
 
---jcbHqcPmgPNHXsqgSLuiafsd29wn9nloi--
+--nextPart17918567.OB607qoQaA--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
