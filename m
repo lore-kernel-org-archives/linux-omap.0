@@ -1,118 +1,70 @@
-From: Sricharan R <r.sricharan@ti.com>
-Subject: [PATCH] ARM: OMAP5/DRA7: realtime_counter: Configure CNTFRQ register
-Date: Wed, 18 Sep 2013 16:53:36 +0530
-Message-ID: <1379503416-26318-1-git-send-email-r.sricharan@ti.com>
+From: Sricharan R <r.sricharan-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH V2] ARM: dts: DRA7: provide arch-timer frequenecy parameter
+Date: Wed, 18 Sep 2013 17:03:27 +0530
+Message-ID: <52398F87.6090108@ti.com>
+References: <5238899D.60903@ti.com> <1379437288-10831-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:50307 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751860Ab3IRLYN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 18 Sep 2013 07:24:13 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1379437288-10831-1-git-send-email-nm-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Cc: Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, santosh.shilimkar-l0cyMroinI0@public.gmane.org, Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>, Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Cc: r.sricharan@ti.com, santosh.shilimkar@ti.com, rnayak@ti.com, tony@atomide.com, nm@ti.com, marc.zyngier@arm.com, mark.rutland@arm.com
 
-The realtime counter called master counter, produces the count
-used by the private timer peripherals in the MPU_CLUSTER. The
-CNTFRQ per cpu register is used to denote the frequency of the counter.
-Currently the frequency value is passed from the
-DT file, but this is not scalable when we have other non-DT guest
-OS. This register must be set to the right value by the
-host OS, as this will be propagated to the guests as well.
+Hi,
 
-More discussions and the reason for adding this in a non-DT
-way can be seen from below.
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg93832.html
+On Tuesday 17 September 2013 10:31 PM, Nishanth Menon wrote:
+> CNTFREQ isn't pre-programmed on DRA7 just like O5, so provide the
+> timer frequency via DT. Without a valid value arch_timer_init results
+> in div0 crash.
+>
+> Cc: R Sricharan <r.sricharan-l0cyMroinI0@public.gmane.org>
+> Cc: Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>
+> Cc: Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>
+>
+> Acked-by: Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+> ---
+>
+> Based on Benoit's for_3.13/dts branch. 
+> http://git.kernel.org/cgit/linux/kernel/git/bcousson/linux-omap-dt.git/log/?h=for_3.13/dts
+>
+> Crash log: http://pastebin.com/B2sDauS9
+>
+> V2: commit message update
+> V1: https://patchwork.kernel.org/patch/2903261/
+>
+>  arch/arm/boot/dts/dra7.dtsi |    1 +
+>  1 file changed, 1 insertion(+)
+>
+> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+> index c98997b..71c2749 100644
+> --- a/arch/arm/boot/dts/dra7.dtsi
+> +++ b/arch/arm/boot/dts/dra7.dtsi
+> @@ -50,6 +50,7 @@
+>  			     <GIC_PPI 14 (GIC_CPU_MASK_SIMPLE(2) | IRQ_TYPE_LEVEL_LOW)>,
+>  			     <GIC_PPI 11 (GIC_CPU_MASK_SIMPLE(2) | IRQ_TYPE_LEVEL_LOW)>,
+>  			     <GIC_PPI 10 (GIC_CPU_MASK_SIMPLE(2) | IRQ_TYPE_LEVEL_LOW)>;
+> +		clock-frequency = <6144000>;
+>  	};
+>  
+>  	gic: interrupt-controller@48211000 {
+This is not the right way to pass the frequency. In fact, initially the frequency value was present
+when the dts was added, but had to revert it back based on the feedbacks. Please refer below.
+  
 
-So configuring this secure register for all the cpus here.
+http://www.mail-archive.com/linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg93832.html
 
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Nishanth Menon <nm@ti.com>
-Cc: Rajendra Nayak <rnayak@ti.com>
-Cc: Marc Zyngier <marc.zyngier@arm.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Signed-off-by: Sricharan R <r.sricharan@ti.com>
----
- arch/arm/mach-omap2/omap-secure.h |    2 ++
- arch/arm/mach-omap2/omap-smp.c    |    9 +++++++++
- arch/arm/mach-omap2/timer.c       |    6 ++++++
- 3 files changed, 17 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/omap-secure.h b/arch/arm/mach-omap2/omap-secure.h
-index a171a5a..4de9a00 100644
---- a/arch/arm/mach-omap2/omap-secure.h
-+++ b/arch/arm/mach-omap2/omap-secure.h
-@@ -51,6 +51,8 @@
- 
- #define OMAP5_MON_AMBA_IF_INDEX		0x108
- 
-+#define OMAP5_DRA7_MON_SET_CNTFRQ_INDEX	0x109
-+
- /* Secure PPA(Primary Protected Application) APIs */
- #define OMAP4_PPA_L2_POR_INDEX		0x23
- #define OMAP4_PPA_CPU_ACTRL_SMP_INDEX	0x25
-diff --git a/arch/arm/mach-omap2/omap-smp.c b/arch/arm/mach-omap2/omap-smp.c
-index 98a1146..00873b4 100644
---- a/arch/arm/mach-omap2/omap-smp.c
-+++ b/arch/arm/mach-omap2/omap-smp.c
-@@ -41,6 +41,8 @@
- 
- u16 pm44xx_errata;
- 
-+extern unsigned long arch_timer_freq;
-+
- /* SCU base address */
- static void __iomem *scu_base;
- 
-@@ -66,6 +68,13 @@ static void __cpuinit omap4_secondary_init(unsigned int cpu)
- 							4, 0, 0, 0, 0, 0);
- 
- 	/*
-+	 * Configure the CNTFRQ register for the secondary cpu's which
-+	 * indicates the frequency of the cpu local timers.
-+	 */
-+	if (soc_is_omap54xx() || soc_is_dra7xx())
-+		omap_smc1(OMAP5_DRA7_MON_SET_CNTFRQ_INDEX, arch_timer_freq);
-+
-+	/*
- 	 * Synchronise with the boot thread.
- 	 */
- 	spin_lock(&boot_lock);
-diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-index fd9238d..2c499f3 100644
---- a/arch/arm/mach-omap2/timer.c
-+++ b/arch/arm/mach-omap2/timer.c
-@@ -55,6 +55,7 @@
- #include "soc.h"
- #include "common.h"
- #include "powerdomain.h"
-+#include "omap-secure.h"
- 
- #define REALTIME_COUNTER_BASE				0x48243200
- #define INCREMENTER_NUMERATOR_OFFSET			0x10
-@@ -65,6 +66,7 @@
- 
- static struct omap_dm_timer clkev;
- static struct clock_event_device clockevent_gpt;
-+unsigned long arch_timer_freq;
- 
- static irqreturn_t omap2_gp_timer_interrupt(int irq, void *dev_id)
- {
-@@ -546,7 +548,11 @@ static void __init realtime_counter_init(void)
- 	reg |= den;
- 	__raw_writel(reg, base + INCREMENTER_DENUMERATOR_RELOAD_OFFSET);
- 
-+	arch_timer_freq = (rate / den) * num;
-+
- 	iounmap(base);
-+
-+	omap_smc1(OMAP5_DRA7_MON_SET_CNTFRQ_INDEX, arch_timer_freq);
- }
- #else
- static inline void __init realtime_counter_init(void)
--- 
-1.7.9.5
+Also posted the below patch to fix this,
 
+    http://marc.info/?l=linux-omap&m=137950345528918&w=2
+
+Regards,
+ Sricharan
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
