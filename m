@@ -1,70 +1,79 @@
-From: Javier Martinez Canillas <martinez.javier@gmail.com>
-Subject: Re: [PATCH v2] ADP1653 board code for Nokia RX-51
-Date: Wed, 18 Sep 2013 16:12:06 +0200
-Message-ID: <CAAwP0s3MBd58Q9wijQP9Nd_DB4GdicE-b427cHS-UXYS4HW-Jg@mail.gmail.com>
-References: <201302171616.50152@pali> <20130217190303.GC2317@blackmetal.musicnaut.iki.fi>
- <201303062112.06417@pali> <201309062234.05878@pali> <20130907230252.GA10700@blackmetal.musicnaut.iki.fi>
- <20130917235028.GR9994@atomide.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH 1/4] usb: musb: Call atomic_notifier_call_chain when
+ status is changed
+Date: Wed, 18 Sep 2013 16:22:03 +0200
+Message-ID: <20130918142203.GD3748@amd.pavel.ucw.cz>
+References: <1378630239-10006-1-git-send-email-pali.rohar@gmail.com>
+ <201309172128.42514@pali>
+ <20130918014942.GD19817@radagast>
+ <201309181020.15245@pali>
+ <CAAwP0s1Ou7Nrq7GhnHX71TFCrTFg=nqUh+GsAJhN8DjZGsF4QQ@mail.gmail.com>
+ <20130918133025.GB2953@amd.pavel.ucw.cz>
+ <CAAwP0s0nGthkm9Bp1ug23Rtz6-sbR60FFTSfd-Cj9wKMU0RBEA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ie0-f169.google.com ([209.85.223.169]:55636 "EHLO
-	mail-ie0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752505Ab3IROM0 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Sep 2013 10:12:26 -0400
-In-Reply-To: <20130917235028.GR9994@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAAwP0s0nGthkm9Bp1ug23Rtz6-sbR60FFTSfd-Cj9wKMU0RBEA@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Javier Martinez Canillas <martinez.javier@gmail.com>
+Cc: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, Anton Vorontsov <anton@enomsg.org>, Russell King <linux@arm.linux.org.uk>, David Woodhouse <dwmw2@infradead.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, freemangordon@abv.bg, Aaro Koskinen <aaro.koskinen@iki.fi>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux Kernel <linux-kernel@vger.kernel.org>, linux-usb@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, =?UTF-8?Q?Pali_Roh=C3=A1r?= <pali.rohar@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux Kernel <linux-kernel@vger.kernel.org>
 
-On Wed, Sep 18, 2013 at 1:50 AM, Tony Lindgren <tony@atomide.com> wrote=
-:
-> * Aaro Koskinen <aaro.koskinen@iki.fi> [130907 16:10]:
->> Hi,
->>
->> On Fri, Sep 06, 2013 at 10:34:05PM +0200, Pali Roh=C3=A1r wrote:
->> > > --- /dev/null
->> > > +++ b/arch/arm/mach-omap2/board-rx51-camera.c
->> [...]
->> > Ping, can you review this patch v2?
->>
->> I don't think Tony will accept any new board stuff for RX-51/N900.
->> See for example: http://marc.info/?l=3Dlinux-kernel&m=3D137629626213=
-187&w=3D2
->>
->> There should be initial Nokia N900 DTS file in 3.12-rc1, and we shou=
-ld
->> continue converting this board fully to DT.
->
-> Yes let's plan on making mach-omap2 to be DT only soonish.
-> AFAIK the only stopper right now for omap3 are the pending
-> pinctrl changes for the wake-up events as otherwise we would
-> have sever PM regressions with off-idle.
->
+Hi!
 
-Hi Tony,
+> >> >> > So will you do that? Or it is needed to resend this one line
+> >> >> > hunk again in new email again?
+> >> >>
+> >> >> new patch, new email
+> >> >
+> >> > Guys, WHY ARE YOU SO STUPID AND ARROGANT?
+> >> >
+> >> > Sorry but, need to copy full isolated patch/hunk from one mail to
+> >> > another is hassling. So what you want from me? Do all those non
+> >> > sense working only because yesterday you had bad day? Or what?
+...
+> > Actually, there is need to be rude, because Felipe fails to act as
+> > maintainer. Instead of fixing bugs in his code, he bounces bugfix
+> > patches, points people to random READMEs and wastes everyones time.
+> 
+> I don't know what are you talking about (if that happened in another
+> thread then I need more context). Felipe is not bouncing any bugfix
 
-I don't know if OMAP2+ DT will happen soon as you said. At least I
-know about a big issue we had with GPIO pins not being auto-requested
-when are mapped as IRQ. You can refer to [1] for the latest approach
-and how this discussion have been going.
+Take a look here:
 
-This is something that we have been trying to solve for a couple of
-kernel releases by now so it would be great if you can join the
-discussion.
+https://lkml.org/lkml/2013/9/17/286
 
-> Regards,
->
-> Tony
+I clearly state that patch can not be tested as required for "proper"
+submission, but offer patch anyway. I get irrelevant boilerplate on
+patch format.
 
-Thanks a lot and best regards,
-Javier
+> but just asked to split the patch in two since the patch was solving
+> two separate issues so is way better to have it in two separate
+> patches for the reasons I explained before.
+> 
+> So, as far as I can tell Felipe did exactly what I would expect from a
+> maintainer. He took the time to review the patches sent to him and
 
-[1]: https://lkml.org/lkml/2013/8/26/260
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I'd expect maintainer to, well, maintain code. It means actually
+fixing bugs in his code, when he's pointed at them.
+
+> gave feedback. If the sender doesn't want to take his feedback into
+> account and prefer to send pretty insulting emails instead that is his
+> choice but I would say that is this not the greatest approach to get
+> your code merged (to say the least).
+
+Clearly not. But Pali found bug in code Felipe should
+maintain. Instead of "thank you for bug report, I applied this one
+line of your code to fix it", Pali got "new patch, new email" for his
+efforts. That is how you train dogs, not how you should treat kernel
+contributors.
+
+Now, it is possible that Felipe just has problems with english, as he
+called me piece of wood in https://lkml.org/lkml/2013/9/17/476 , but
+he appears more arogant than usual over email.
+
+								Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
