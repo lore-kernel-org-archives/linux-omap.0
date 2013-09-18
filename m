@@ -1,12 +1,14 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 1/2] omap fixes against v3.12-rc1
+Subject: [GIT PULL 2/2] omap dt fixes against v3.12-rc1
 Date: Wed, 18 Sep 2013 13:59:02 -0700
-Message-ID: <2373.72159394926$1379537985@news.gmane.org>
+Message-ID: <E1VMOqb-0007Bt-My@merlin.infradead.org>
+References: <pull-1379537942-109201>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
+In-Reply-To: <pull-1379537942-109201>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -26,43 +28,53 @@ The following changes since commit 272b98c6455f00884f0350f775c5342358ebb73f:
 
 are available in the git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.12/fixes-signed
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.12/fixes-dt-signed
 
-for you to fetch changes up to e942cc06e2d183975dd47d8da9e569316cb870ea:
+for you to fetch changes up to 45bea1d39a956619881315e20bdf52c8a702be03:
 
-  ARM: OMAP2+: mux: fix trivial typo in name (2013-09-18 12:02:01 -0700)
-
-----------------------------------------------------------------
-omap fixes for build warnings and cpuidle, and
-a few trivial typo fixes.
+  Merge tag 'for_3.12-rc2/dts_signed' of git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt into omap-for-v3.12/fixes-dt (2013-09-18 12:50:45 -0700)
 
 ----------------------------------------------------------------
-Anoop Thomas Mathew (1):
-      ARM: OMAP4 SMP: Corrected a typo fucntions to functions
 
-Fabio Estevam (1):
-      ARM: mach-omap2: gpmc: Fix warning when CONFIG_ARM_LPAE=y
+omap device tree changes that are needed to fix
+regressions and avoid electrical issues on beaglebone black.
 
-Jingoo Han (1):
-      mailbox: remove unnecessary platform_set_drvdata()
+Via Benoit Cousson <bcousson@baylibre.com>:
 
-Phil Carmody (1):
-      ARM: OMAP2+: mux: fix trivial typo in name
+Fix BBB LDO voltage to avoid HDMI destruction
+Fix OMAP5 wrong attribute
+Fix typo in beagle xM strings
+Fix missing pinmux and regulator for OMAP4 wifi
+Fix missing pinmux for igep headset
 
-Tony Lindgren (1):
-      ARM: OMAP4: Fix clock_get error for GPMC during boot
+----------------------------------------------------------------
+Enric Balletbo i Serra (1):
+      ARM: dts: igep00x0: Add pinmux configuration for MCBSP2
 
-Vladimir Murzin (1):
-      ARM: OMAP4: cpuidle: fix: call cpu_cluster_pm_exit conditionally
+Felipe Balbi (2):
+      ARM: dts: OMAP5: fix reg property size
+      ARM: dts: OMAP5: fix ocp2scp DTS data
 
-Wei Yongjun (1):
-      ARM: OMAP: fix return value check in omap_device_build_from_dt()
+Koen Kooi (1):
+      ARM: dts: am335x-bone*: add DT for BeagleBone Black
 
- arch/arm/mach-omap2/cclock44xx_data.c | 2 +-
- arch/arm/mach-omap2/cpuidle44xx.c     | 2 +-
- arch/arm/mach-omap2/gpmc.c            | 4 ++--
- arch/arm/mach-omap2/mux34xx.c         | 2 +-
- arch/arm/mach-omap2/omap-smp.c        | 2 +-
- arch/arm/mach-omap2/omap_device.c     | 2 +-
- drivers/mailbox/mailbox-omap2.c       | 1 -
- 7 files changed, 7 insertions(+), 8 deletions(-)
+Robert Nelson (1):
+      ARM: dts: omap3-beagle-xm: fix string error in compatible property
+
+Tony Lindgren (3):
+      ARM: dts: Fix muxing and regulator for wl12xx on the SDIO bus for pandaboard
+      ARM: dts: Fix muxing and regulator for wl12xx on the SDIO bus for blaze
+      Merge tag 'for_3.12-rc2/dts_signed' of git://git.kernel.org/.../bcousson/linux-omap-dt into omap-for-v3.12/fixes-dt
+
+ arch/arm/boot/dts/Makefile                |   1 +
+ arch/arm/boot/dts/am335x-bone-common.dtsi | 262 ++++++++++++++++++++++++++++++
+ arch/arm/boot/dts/am335x-bone.dts         | 256 +----------------------------
+ arch/arm/boot/dts/am335x-boneblack.dts    |  17 ++
+ arch/arm/boot/dts/omap3-beagle-xm.dts     |   2 +-
+ arch/arm/boot/dts/omap3-igep.dtsi         |  14 ++
+ arch/arm/boot/dts/omap4-panda-common.dtsi |  46 +++++-
+ arch/arm/boot/dts/omap4-sdp.dts           |  39 ++++-
+ arch/arm/boot/dts/omap5.dtsi              |   7 +-
+ 9 files changed, 383 insertions(+), 261 deletions(-)
+ create mode 100644 arch/arm/boot/dts/am335x-bone-common.dtsi
+ create mode 100644 arch/arm/boot/dts/am335x-boneblack.dts
