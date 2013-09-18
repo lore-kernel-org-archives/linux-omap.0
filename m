@@ -1,129 +1,66 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v7 05/10] usb: musb: omap2430: Don't use omap_get_control_dev()
-Date: Wed, 18 Sep 2013 15:48:57 +0300
-Message-ID: <1379508542-22389-6-git-send-email-rogerq@ti.com>
-References: <1379508542-22389-1-git-send-email-rogerq@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH] ARM: DRA7: realtime_counter: Add ratio registers for
+ 20MHZ sys-clk frequency\
+Date: Wed, 18 Sep 2013 07:56:26 -0500
+Message-ID: <20130918125626.GA3579@kahuna>
+References: <1379503211-26229-1-git-send-email-r.sricharan@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:37071 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:54307 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752705Ab3IRMuG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 18 Sep 2013 08:50:06 -0400
-In-Reply-To: <1379508542-22389-1-git-send-email-rogerq@ti.com>
+	id S1751698Ab3IRM4w (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 18 Sep 2013 08:56:52 -0400
+Content-Disposition: inline
+In-Reply-To: <1379503211-26229-1-git-send-email-r.sricharan@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com, bcousson@baylibre.com
-Cc: tony@atomide.com, george.cherian@ti.com, kishon@ti.com, bigeasy@linutronix.de, sergei.shtylyov@cogentembedded.com, thomas.langer@lantiq.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+To: Sricharan R <r.sricharan@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, santosh.shilimkar@ti.com, rnayak@ti.com, tony@atomide.com
 
-omap_get_control_dev() is being deprecated as it doesn't support
-multiple instances. As control device is present only from OMAP4
-onwards which supports DT only, we use phandles to get the
-reference to the control device.
+On 16:50-20130918, Sricharan R wrote:
+> The real time counter also called master counter, is a free-running
+> counter. It produces the count used by the CPU local timer peripherals
+> in the MPU cluster. The timer counts at a rate of 6.144 MHz.
+> 
+> The ratio registers are missing for a sys-clk of 20MHZ which is used
+> by DRA7 socs. So because of this, the counter was getting wrongly
+> programmed for a sys-clk of 38.4Mhz(default). So adding the ratio
+> registers for 20MHZ sys-clk.
+> 
+> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Signed-off-by: Sricharan R <r.sricharan@ti.com>
 
-Also get rid of "ti,has-mailbox" property as it is redundant and
-we can determine that from whether "ctrl-module" property is present
-or not. Get rid of has_mailbox from musb_hdrc_platform_data as well.
+Tested-by: Nishanth Menon <nm@ti.com>
+platform: DRA7-evm
 
-Signed-off-by: Roger Quadros <rogerq@ti.com>
----
- Documentation/devicetree/bindings/usb/omap-usb.txt |    4 ---
- drivers/usb/musb/omap2430.c                        |   25 +++++++++++--------
- include/linux/usb/musb.h                           |    2 -
- 3 files changed, 14 insertions(+), 17 deletions(-)
+> ---
+>  arch/arm/mach-omap2/timer.c |    4 ++++
+>  1 file changed, 4 insertions(+)
+> 
+> diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+> index e1528a0..fd9238d 100644
+> --- a/arch/arm/mach-omap2/timer.c
+> +++ b/arch/arm/mach-omap2/timer.c
+> @@ -515,6 +515,10 @@ static void __init realtime_counter_init(void)
+>  		num = 8;
+>  		den = 25;
+>  		break;
+> +	case 20000000:
+> +		num = 192;
+> +		den = 625;
+> +		break;
+>  	case 2600000:
+>  		num = 384;
+>  		den = 1625;
+> -- 
+> 1.7.9.5
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-diff --git a/Documentation/devicetree/bindings/usb/omap-usb.txt b/Documentation/devicetree/bindings/usb/omap-usb.txt
-index 6d8ab9c..f67573c 100644
---- a/Documentation/devicetree/bindings/usb/omap-usb.txt
-+++ b/Documentation/devicetree/bindings/usb/omap-usb.txt
-@@ -3,9 +3,6 @@ OMAP GLUE AND OTHER OMAP SPECIFIC COMPONENTS
- OMAP MUSB GLUE
-  - compatible : Should be "ti,omap4-musb" or "ti,omap3-musb"
-  - ti,hwmods : must be "usb_otg_hs"
-- - ti,has-mailbox : to specify that omap uses an external mailbox
--   (in control module) to communicate with the musb core during device connect
--   and disconnect.
-  - multipoint : Should be "1" indicating the musb controller supports
-    multipoint. This is a MUSB configuration-specific setting.
-  - num-eps : Specifies the number of endpoints. This is also a
-@@ -28,7 +25,6 @@ SOC specific device node entry
- usb_otg_hs: usb_otg_hs@4a0ab000 {
- 	compatible = "ti,omap4-musb";
- 	ti,hwmods = "usb_otg_hs";
--	ti,has-mailbox;
- 	multipoint = <1>;
- 	num-eps = <16>;
- 	ram-bits = <12>;
-diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
-index 59d2245..4512a05 100644
---- a/drivers/usb/musb/omap2430.c
-+++ b/drivers/usb/musb/omap2430.c
-@@ -38,6 +38,7 @@
- #include <linux/delay.h>
- #include <linux/usb/musb-omap.h>
- #include <linux/usb/omap_control_usb.h>
-+#include <linux/of_platform.h>
- 
- #include "musb_core.h"
- #include "omap2430.h"
-@@ -509,8 +510,12 @@ static int omap2430_probe(struct platform_device *pdev)
- 	glue->dev			= &pdev->dev;
- 	glue->musb			= musb;
- 	glue->status			= OMAP_MUSB_UNKNOWN;
-+	glue->control_otghs = ERR_PTR(-ENODEV);
- 
- 	if (np) {
-+		struct device_node *control_node;
-+		struct platform_device *control_pdev;
-+
- 		pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
- 		if (!pdata) {
- 			dev_err(&pdev->dev,
-@@ -539,22 +544,20 @@ static int omap2430_probe(struct platform_device *pdev)
- 		of_property_read_u32(np, "ram-bits", (u32 *)&config->ram_bits);
- 		of_property_read_u32(np, "power", (u32 *)&pdata->power);
- 		config->multipoint = of_property_read_bool(np, "multipoint");
--		pdata->has_mailbox = of_property_read_bool(np,
--		    "ti,has-mailbox");
- 
- 		pdata->board_data	= data;
- 		pdata->config		= config;
--	}
- 
--	if (pdata->has_mailbox) {
--		glue->control_otghs = omap_get_control_dev();
--		if (IS_ERR(glue->control_otghs)) {
--			dev_vdbg(&pdev->dev, "Failed to get control device\n");
--			ret = PTR_ERR(glue->control_otghs);
--			goto err2;
-+		control_node = of_parse_phandle(np, "ctrl-module", 0);
-+		if (control_node) {
-+			control_pdev = of_find_device_by_node(control_node);
-+			if (!control_pdev) {
-+				dev_err(&pdev->dev, "Failed to get control device\n");
-+				ret = -EINVAL;
-+				goto err2;
-+			}
-+			glue->control_otghs = &control_pdev->dev;
- 		}
--	} else {
--		glue->control_otghs = ERR_PTR(-ENODEV);
- 	}
- 	pdata->platform_ops		= &omap2430_ops;
- 
-diff --git a/include/linux/usb/musb.h b/include/linux/usb/musb.h
-index 053c268..eb50525 100644
---- a/include/linux/usb/musb.h
-+++ b/include/linux/usb/musb.h
-@@ -99,8 +99,6 @@ struct musb_hdrc_platform_data {
- 	/* MUSB_HOST, MUSB_PERIPHERAL, or MUSB_OTG */
- 	u8		mode;
- 
--	u8		has_mailbox:1;
--
- 	/* for clk_get() */
- 	const char	*clock;
- 
 -- 
-1.7.4.1
-
+Regards,
+Nishanth Menon
