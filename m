@@ -1,137 +1,108 @@
-From: Sricharan R <r.sricharan@ti.com>
-Subject: [PATCH V4] ARM: OMAP5/DRA7: realtime_counter: Configure CNTFRQ register
-Date: Wed, 18 Sep 2013 21:32:42 +0530
-Message-ID: <1379520162-31932-1-git-send-email-r.sricharan@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 1/4] usb: musb: Call atomic_notifier_call_chain when
+ status is changed
+Date: Wed, 18 Sep 2013 11:25:39 -0500
+Message-ID: <20130918162539.GK21559@radagast>
+References: <1378630239-10006-1-git-send-email-pali.rohar@gmail.com>
+ <201309172128.42514@pali> <20130918014942.GD19817@radagast>
+ <201309181020.15245@pali>
+ <CAAwP0s1Ou7Nrq7GhnHX71TFCrTFg=nqUh+GsAJhN8DjZGsF4QQ@mail.gmail.com>
+ <20130918133025.GB2953@amd.pavel.ucw.cz>
+ <CAAwP0s0nGthkm9Bp1ug23Rtz6-sbR60FFTSfd-Cj9wKMU0RBEA@mail.gmail.com>
+ <20130918142203.GD3748@amd.pavel.ucw.cz>
+ <20130918143537.GA4914@amd.pavel.ucw.cz>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:36836 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751652Ab3IRQDR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 18 Sep 2013 12:03:17 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/mixed; boundary="===============1351415869492566942=="
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20130918143537.GA4914@amd.pavel.ucw.cz>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Javier Martinez Canillas <martinez.javier@gmail.com>, linux-usb@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Anton Vorontsov <anton@enomsg.org>, Linux Kernel <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, freemangordon@abv.bg, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, David Woodhouse <dwmw2@infradead.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Cc: r.sricharan@ti.com, santosh.shilimkar@ti.com, rnayak@ti.com, tony@atomide.com, nm@ti.com, marc.zyngier@arm.com, mark.rutland@arm.com
 
-The realtime counter called master counter, produces the count
-used by the private timer peripherals in the MPU_CLUSTER. The
-CNTFRQ per cpu register is used to denote the frequency of the counter.
-Currently the frequency value is passed from the
-DT file, but this is not scalable when we have other non-DT guest
-OS. This register must be set to the right value by the
-secure rom code. Setting this register helps in propagating the right
-frequency value across OSes.
+--===============1351415869492566942==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="ogUXNSQj4OI1q3LQ"
+Content-Disposition: inline
 
-More discussions and the reason for adding this in a non-DT
-way can be seen from below.
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg93832.html
+--ogUXNSQj4OI1q3LQ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-So configuring this secure register for all the cpus here.
+Hi,
 
-While here, removing the clock-frequency DT entry for omap5 as
-it is no more needed after this patch.
+On Wed, Sep 18, 2013 at 04:35:37PM +0200, Pavel Machek wrote:
+> Hi!
+>=20
+> > > gave feedback. If the sender doesn't want to take his feedback into
+> > > account and prefer to send pretty insulting emails instead that is his
+> > > choice but I would say that is this not the greatest approach to get
+> > > your code merged (to say the least).
+> >=20
+> > Clearly not. But Pali found bug in code Felipe should
+> > maintain. Instead of "thank you for bug report, I applied this one
+> > line of your code to fix it", Pali got "new patch, new email" for his
+> > efforts. That is how you train dogs, not how you should treat kernel
+> > contributors.
+> >=20
+> > Now, it is possible that Felipe just has problems with english, as he
+> > called me piece of wood in https://lkml.org/lkml/2013/9/17/476 , but
+> > he appears more arogant than usual over email.
+>=20
+> Actually he called me "piece of wood with garbage in it". I guess I
+> have right to be offended. I'm baby in the next email. Hmm.
 
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Nishanth Menon <nm@ti.com>
-Cc: Rajendra Nayak <rnayak@ti.com>
-Cc: Marc Zyngier <marc.zyngier@arm.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Tested-by: Nishanth Menon <nm@ti.com>
-Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Signed-off-by: Sricharan R <r.sricharan@ti.com>
----
-[V4] Updated commit log, removed the redundant entry in OMAP5.dtsi and
-     a unnecessary newline in timer.c
+what a baby. Grow up dude, just grow up. I said your commit log has
+garbage which shouldn't be there (there was a typo you're instead of
+your).
 
- arch/arm/boot/dts/omap5.dtsi      |    1 -
- arch/arm/mach-omap2/omap-secure.h |    2 ++
- arch/arm/mach-omap2/omap-smp.c    |    9 +++++++++
- arch/arm/mach-omap2/timer.c       |    5 +++++
- 4 files changed, 16 insertions(+), 1 deletion(-)
+--=20
+balbi
 
-diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-index 07be2cd..8a45512 100644
---- a/arch/arm/boot/dts/omap5.dtsi
-+++ b/arch/arm/boot/dts/omap5.dtsi
-@@ -52,7 +52,6 @@
- 			     <GIC_PPI 14 (GIC_CPU_MASK_RAW(3) | IRQ_TYPE_LEVEL_LOW)>,
- 			     <GIC_PPI 11 (GIC_CPU_MASK_RAW(3) | IRQ_TYPE_LEVEL_LOW)>,
- 			     <GIC_PPI 10 (GIC_CPU_MASK_RAW(3) | IRQ_TYPE_LEVEL_LOW)>;
--		clock-frequency = <6144000>;
- 	};
- 
- 	gic: interrupt-controller@48211000 {
-diff --git a/arch/arm/mach-omap2/omap-secure.h b/arch/arm/mach-omap2/omap-secure.h
-index 0e72917..5f88824 100644
---- a/arch/arm/mach-omap2/omap-secure.h
-+++ b/arch/arm/mach-omap2/omap-secure.h
-@@ -42,6 +42,8 @@
- #define OMAP4_MON_L2X0_AUXCTRL_INDEX	0x109
- #define OMAP4_MON_L2X0_PREFETCH_INDEX	0x113
- 
-+#define OMAP5_DRA7_MON_SET_CNTFRQ_INDEX	0x109
-+
- /* Secure PPA(Primary Protected Application) APIs */
- #define OMAP4_PPA_L2_POR_INDEX		0x23
- #define OMAP4_PPA_CPU_ACTRL_SMP_INDEX	0x25
-diff --git a/arch/arm/mach-omap2/omap-smp.c b/arch/arm/mach-omap2/omap-smp.c
-index 8708b2a..5a3c8d3 100644
---- a/arch/arm/mach-omap2/omap-smp.c
-+++ b/arch/arm/mach-omap2/omap-smp.c
-@@ -41,6 +41,8 @@
- 
- u16 pm44xx_errata;
- 
-+extern unsigned long arch_timer_freq;
-+
- /* SCU base address */
- static void __iomem *scu_base;
- 
-@@ -66,6 +68,13 @@ static void omap4_secondary_init(unsigned int cpu)
- 							4, 0, 0, 0, 0, 0);
- 
- 	/*
-+	 * Configure the CNTFRQ register for the secondary cpu's which
-+	 * indicates the frequency of the cpu local timers.
-+	 */
-+	if (soc_is_omap54xx() || soc_is_dra7xx())
-+		omap_smc1(OMAP5_DRA7_MON_SET_CNTFRQ_INDEX, arch_timer_freq);
-+
-+	/*
- 	 * Synchronise with the boot thread.
- 	 */
- 	spin_lock(&boot_lock);
-diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-index fa74a06..d0af9b2 100644
---- a/arch/arm/mach-omap2/timer.c
-+++ b/arch/arm/mach-omap2/timer.c
-@@ -55,6 +55,7 @@
- #include "soc.h"
- #include "common.h"
- #include "powerdomain.h"
-+#include "omap-secure.h"
- 
- #define REALTIME_COUNTER_BASE				0x48243200
- #define INCREMENTER_NUMERATOR_OFFSET			0x10
-@@ -65,6 +66,7 @@
- 
- static struct omap_dm_timer clkev;
- static struct clock_event_device clockevent_gpt;
-+unsigned long arch_timer_freq;
- 
- static irqreturn_t omap2_gp_timer_interrupt(int irq, void *dev_id)
- {
-@@ -542,6 +544,9 @@ static void __init realtime_counter_init(void)
- 	reg |= den;
- 	__raw_writel(reg, base + INCREMENTER_DENUMERATOR_RELOAD_OFFSET);
- 
-+	arch_timer_freq = (rate / den) * num;
-+	omap_smc1(OMAP5_DRA7_MON_SET_CNTFRQ_INDEX, arch_timer_freq);
-+
- 	iounmap(base);
- }
- #else
--- 
-1.7.9.5
+--ogUXNSQj4OI1q3LQ
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJSOdQDAAoJEIaOsuA1yqREfNUQAJaBs9wwWysCfsisO3kneU58
+9E/8dXHmNPlUzBE2oRhB72clc8gphAc1XVCoNoFiiHI7mWJx0Gzq2/gQarS41AmE
+7/QtbS+o847kfTS66nHb1XQV+QgPBzBrPWyyNKVaSIGx2NnUCXXaunlZM/dZcj3g
+SBQYy7fcJDy2s9Q81JT16i5mbFuFjJg5qIywTdV+VA0fFE3O0DeNxyutPbYmb/Ec
+WTVDj3BgiK+ytHAwf9j4em2FpPXVvACED0vEB74bbOcylzPobhAmh2z6bBg9TllZ
+lS6+AonZEW0hqcdlsPmlGbG6LDB+LVLU9ZAiHISpN+1FF9t6AVDXXFPmMBLP6y2s
+3P4lZ0WKcS27V7c2pRlUqMpKgqoEmFD1dAMwtdjg9dSF8ggMQNyNOSht0p9eiSCM
+u3sa7lGA29BDFDMyn8fzjr/YMkJNdQWfBK9uiDclmIztf9rG7Sc8GCSVdn/CQfsG
+FywYj+ddhq6ad6Nkb7d9iBzZazY7B34YGCffzkWiq4BXCGJEPvPFlDyFxJh26SdR
+iCJArWj/wRBypBb0K3mhJw/8wWESnd48H226pJIxK9R9hI2+Kd/HAB9JEK3oVmBD
+Ln7TyFu/ezYY4rHsOPA1u1yaetjKmYQbIltZuVt0UTpEZGjBltZKb9IW87N8YXV4
+sEqt4kz3xMHfkXzsByCf
+=z/YG
+-----END PGP SIGNATURE-----
+
+--ogUXNSQj4OI1q3LQ--
+
+
+--===============1351415869492566942==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+--===============1351415869492566942==--
