@@ -1,59 +1,99 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [RFC PATCH 1/4] DRIVERS: IRQCHIP: Add crossbar irqchip driver
-Date: Thu, 19 Sep 2013 00:13:55 +0200 (CEST)
-Message-ID: <alpine.DEB.2.02.1309190012550.4089@ionos.tec.linutronix.de>
-References: <1379000351-15672-1-git-send-email-r.sricharan@ti.com> <1379000351-15672-2-git-send-email-r.sricharan@ti.com> <alpine.DEB.2.02.1309122201530.4089@ionos.tec.linutronix.de> <523228B5.5070507@ti.com> <alpine.DEB.2.02.1309122335440.4089@ionos.tec.linutronix.de>
- <5232457A.8080709@ti.com> <alpine.DEB.2.02.1309130138550.4089@ionos.tec.linutronix.de> <52326D6B.2010003@ti.com> <alpine.DEB.2.02.1309131142540.4089@ionos.tec.linutronix.de> <CACRpkdYzaoZUunoNDNirV5Bt-G6p-avFV8A=iznDKjK2biqwrw@mail.gmail.com>
- <5239B010.8080605@ti.com> <5239C5E1.4060807@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] RX-51: Add missing max_current to
+ rx51_lp5523_led_config
+Date: Wed, 18 Sep 2013 15:26:43 -0700
+Message-ID: <20130918222642.GK9994@atomide.com>
+References: <1379541145-25934-1-git-send-email-pali.rohar@gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <5239C5E1.4060807@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Sricharan R <r.sricharan@ti.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, LKML <linux-kernel@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, LAK <linux-arm-kernel@lists.infradead.org>, Linux-OMAP <linux-omap@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Rajendra Nayak <rnayak@ti.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:21861 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751804Ab3IRW0s (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Sep 2013 18:26:48 -0400
+Content-Disposition: inline
+In-Reply-To: <1379541145-25934-1-git-send-email-pali.rohar@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
+Cc: Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Wed, 18 Sep 2013, Sricharan R wrote:
-> On Wednesday 18 September 2013 07:22 PM, Sricharan R wrote:
-> > Hi Thomas,
-> >
-> > On Tuesday 17 September 2013 05:56 PM, Linus Walleij wrote:
-> >> On Fri, Sep 13, 2013 at 4:24 PM, Thomas Gleixner <tglx@linutronix.de> wrote:
-> >>
-> >>> So why can't you make use of irq domains and have the whole routing
-> >>> business implemented sanely?
-> >>>
-> >>> What's needed is in gic_init_bases():
-> >>> irq
-> >>>        if (of_property_read(node, "routable_irqs", &nr_routable_irqs) {
-> >>>           irq_domain_add_legacy(nr_gic_irqs);
-> >>>        } else {
-> >>>           irq_domain_add_legacy(nr_per_cpu_irqs);
-> >>>           irq_domain_add_linear(nr_routable_irqs);
-> >>>        }
-> >>>
-> >>> Now that separate domain has an xlate function which grabs a free GIC
-> >>> irq from a bitmap and returns the hardware irq number in the gic
-> >>> space. The map/unmap callbacks take care of setting up / tearing down
-> >>> the route in the crossbar.
-> >> This is obviously the right approach, it's exactly what .map should do
-> >> the only special thing here being that we have hardware to perform
-> >> the mapping ... bah why didn't I realize this :-(
-> >>
-> >> Yours,
-> >> Linus Walleij
-> > Thanks for the suggestion.
-> >
-> > So as i understand this, this implies using the GIC domain itself and
-> >  add the support for dynamically routable irqs (like crossbar) with in the
-> > GIC driver itself right ?
->   Please ignore this. So the question was more of how to implement the
->   call outs in the case of routable irqs from map/ unmap callbacks.
+* Pali Roh=C3=A1r <pali.rohar@gmail.com> [130918 15:02]:
+> Without max_current data in board file lp5523 driver does not change =
+current.
 
-If you look closely at what I suggested, you'll notice that I added a
-separate domain in the routed case. Go figure ...
+Hmm is this a regression or are there other reasons to merge
+this during the -rc cycle?
 
-Thanks,
+Regards,
 
-	tglx
+Tony
+=20
+> Signed-off-by: Pali Roh=C3=A1r <pali.rohar@gmail.com>
+> ---
+>  arch/arm/mach-omap2/board-rx51-peripherals.c |    9 +++++++++
+>  1 file changed, 9 insertions(+)
+>=20
+> diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/=
+mach-omap2/board-rx51-peripherals.c
+> index 9326890..d0f857c 100644
+> --- a/arch/arm/mach-omap2/board-rx51-peripherals.c
+> +++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+> @@ -180,38 +180,47 @@ static struct lp55xx_led_config rx51_lp5523_led=
+_config[] =3D {
+>  		.name		=3D "lp5523:kb1",
+>  		.chan_nr	=3D 0,
+>  		.led_current	=3D 50,
+> +		.max_current	=3D 255,
+>  	}, {
+>  		.name		=3D "lp5523:kb2",
+>  		.chan_nr	=3D 1,
+>  		.led_current	=3D 50,
+> +		.max_current	=3D 255,
+>  	}, {
+>  		.name		=3D "lp5523:kb3",
+>  		.chan_nr	=3D 2,
+>  		.led_current	=3D 50,
+> +		.max_current	=3D 255,
+>  	}, {
+>  		.name		=3D "lp5523:kb4",
+>  		.chan_nr	=3D 3,
+>  		.led_current	=3D 50,
+> +		.max_current	=3D 255,
+>  	}, {
+>  		.name		=3D "lp5523:b",
+>  		.chan_nr	=3D 4,
+>  		.led_current	=3D 50,
+> +		.max_current	=3D 255,
+>  	}, {
+>  		.name		=3D "lp5523:g",
+>  		.chan_nr	=3D 5,
+>  		.led_current	=3D 50,
+> +		.max_current	=3D 255,
+>  	}, {
+>  		.name		=3D "lp5523:r",
+>  		.chan_nr	=3D 6,
+>  		.led_current	=3D 50,
+> +		.max_current	=3D 255,
+>  	}, {
+>  		.name		=3D "lp5523:kb5",
+>  		.chan_nr	=3D 7,
+>  		.led_current	=3D 50,
+> +		.max_current	=3D 255,
+>  	}, {
+>  		.name		=3D "lp5523:kb6",
+>  		.chan_nr	=3D 8,
+>  		.led_current	=3D 50,
+> +		.max_current	=3D 255,
+>  	}
+>  };
+> =20
+> --=20
+> 1.7.10.4
+>=20
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
