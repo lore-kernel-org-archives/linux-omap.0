@@ -1,155 +1,104 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] drm: omap: fix: Defer probe if an omapdss device requests
- for it at connect
-Date: Wed, 18 Sep 2013 15:41:51 +0300
-Message-ID: <52399F8F.8050104@ti.com>
-References: <1379502502-8781-1-git-send-email-archit@ti.com>
+From: Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Subject: Re: [GIT PULL] ARM: DTS: Fix OMAP bugs for 3.12-rc
+Date: Wed, 18 Sep 2013 14:41:54 +0200
+Message-ID: <52399F92.7040504@baylibre.com>
+References: <52397523.4050209@baylibre.com> <CAFqH_52=NOZLHX4VZRMkUFpmJQJZ6egNZsckMJ=+QjVXO1=ofg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="ppJHmnlNVPkoaXTrQlA6Tc4nrwAF23u4E"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:33380 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751190Ab3IRMly (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 18 Sep 2013 08:41:54 -0400
-In-Reply-To: <1379502502-8781-1-git-send-email-archit@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAFqH_52=NOZLHX4VZRMkUFpmJQJZ6egNZsckMJ=+QjVXO1=ofg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Enric Balletbo Serra <eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "khilman-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <khilman-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Olof Johansson <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>, linux-arm-kernel <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Archit Taneja <archit@ti.com>
-Cc: robdclark@gmail.com, linux-omap@vger.kernel.org
 
---ppJHmnlNVPkoaXTrQlA6Tc4nrwAF23u4E
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Hi Enric
 
-On 18/09/13 14:08, Archit Taneja wrote:
-> Some omapdss panels are connected to outputs/encoders(HDMI/DSI/DPI) tha=
-t require
-> regulators. The output's connect op tries to get a regulator which may =
-not exist
-> yet because it might get registered later in the kernel boot.
->=20
-> omapdrm currently ignores those panels which return a non zero value wh=
-en
-> connected. A better approach would be for omapdrm to request for probe
-> deferral if a panel's connect op returns -EPROBE_DEFER.
->=20
-> The connecting of panels is moved very early in the the drm device's pr=
-obe
-> before anything else is initialized. When we enter omap_modeset_init(),=
- we have
-> a set of panels that have been connected. We now proceed with registeri=
-ng only
-> those panels which are already connected.
->=20
-> Checking whether the panel has a driver or whether it has get_timing/re=
-ad_edid
-> ops in omap_modeset_init() are redundant with the new display model. Th=
-ese can
-> be removed since a dssdev device will always have a driver associated w=
-ith it,
-> and all dssdev drivers have a get_timings op.
->=20
-> This fixes boot with omapdrm on an omap4 panda ES board. The regulators=
- used by
-> HDMI aren't initialized because I2c isn't initialized, I2C isn't initia=
-lized
-> as it's pins are not configured because pinctrl is yet to probe.
->=20
-> Signed-off-by: Archit Taneja <archit@ti.com>
-> ---
->  drivers/gpu/drm/omapdrm/omap_crtc.c |  5 ++++
->  drivers/gpu/drm/omapdrm/omap_drv.c  | 51 +++++++++++++++++++++--------=
---------
->  drivers/gpu/drm/omapdrm/omap_drv.h  |  1 +
->  3 files changed, 35 insertions(+), 22 deletions(-)
->=20
-> diff --git a/drivers/gpu/drm/omapdrm/omap_crtc.c b/drivers/gpu/drm/omap=
-drm/omap_crtc.c
-> index 0fd2eb1..9c01311 100644
-> --- a/drivers/gpu/drm/omapdrm/omap_crtc.c
-> +++ b/drivers/gpu/drm/omapdrm/omap_crtc.c
-> @@ -623,6 +623,11 @@ void omap_crtc_pre_init(void)
->  	dss_install_mgr_ops(&mgr_ops);
->  }
-> =20
-> +void omap_crtc_pre_uninit(void)
-> +{
-> +	dss_uninstall_mgr_ops();
-> +}
-> +
->  /* initialize crtc */
->  struct drm_crtc *omap_crtc_init(struct drm_device *dev,
->  		struct drm_plane *plane, enum omap_channel channel, int id)
-> diff --git a/drivers/gpu/drm/omapdrm/omap_drv.c b/drivers/gpu/drm/omapd=
-rm/omap_drv.c
-> index 2603d90..cbe5d8e 100644
-> --- a/drivers/gpu/drm/omapdrm/omap_drv.c
-> +++ b/drivers/gpu/drm/omapdrm/omap_drv.c
-> @@ -87,6 +87,24 @@ static bool channel_used(struct drm_device *dev, enu=
-m omap_channel channel)
->  	return false;
->  }
-> =20
-> +static int omap_connect_dssdevs(void)
-> +{
-> +	int r;
-> +	struct omap_dss_device *dssdev =3D NULL;
-> +
-> +	for_each_dss_dev(dssdev) {
-> +		r =3D dssdev->driver->connect(dssdev);
-> +		if (r =3D=3D -EPROBE_DEFER) {
-> +			return r;
-> +		} else if (r) {
-> +			dev_warn(dssdev->dev, "could not connect display: %s\n",
-> +				dssdev->name);
-> +		}
-> +	}
-> +
-> +	return 0;
-> +}
+On 18/09/2013 12:24, Enric Balletbo Serra wrote:
+> Hi Benoit,
+>
+>
+> 2013/9/18 Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>:
+>> Hi Tony,
+>>
+>> Please pull few fixes for OMAP DTS.
+>>
+>> Thanks,
+>> Benoit
+>>
+>>
+>>
+>> The following changes since commit 272b98c6455f00884f0350f775c5342358ebb73f:
+>>
+>>    Linux 3.12-rc1 (2013-09-16 16:17:51 -0400)
+>>
+>> are available in the git repository at:
+>>
+>>    git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git tags/for_3.12-rc2/dts_signed
+>>
+>> for you to fetch changes up to 775d2418f309052641d94c896f73dc779cf7ba1b:
+>>
+>>    ARM: dts: Fix muxing and regulator for wl12xx on the SDIO bus for blaze (2013-09-18 11:14:42 +0200)
+>>
+>> ----------------------------------------------------------------
+>> Fix BBB LDO voltage to avoid HDMI destruction
+>> Fix OMAP5 wrong attribute
+>> Fix typo in beagle xM strings
+>>
+>> ----------------------------------------------------------------
+>> Felipe Balbi (2):
+>>        ARM: dts: OMAP5: fix reg property size
+>>        ARM: dts: OMAP5: fix ocp2scp DTS data
+>>
+>> Koen Kooi (1):
+>>        ARM: dts: am335x-bone*: add DT for BeagleBone Black
+>>
+>> Robert Nelson (1):
+>>        ARM: dts: omap3-beagle-xm: fix string error in compatible property
+>>
+>> Tony Lindgren (2):
+>>        ARM: dts: Fix muxing and regulator for wl12xx on the SDIO bus for pandaboard
+>>        ARM: dts: Fix muxing and regulator for wl12xx on the SDIO bus for blaze
+>>
+>>   arch/arm/boot/dts/Makefile                |   1 +
+>>   arch/arm/boot/dts/am335x-bone-common.dtsi | 262 ++++++++++++++++++++++++++++++
+>>   arch/arm/boot/dts/am335x-bone.dts         | 256 +----------------------------
+>>   arch/arm/boot/dts/am335x-boneblack.dts    |  17 ++
+>>   arch/arm/boot/dts/omap3-beagle-xm.dts     |   2 +-
+>>   arch/arm/boot/dts/omap4-panda-common.dtsi |  46 +++++-
+>>   arch/arm/boot/dts/omap4-sdp.dts           |  39 ++++-
+>>   arch/arm/boot/dts/omap5.dtsi              |   7 +-
+>>   8 files changed, 369 insertions(+), 261 deletions(-)
+>>   create mode 100644 arch/arm/boot/dts/am335x-bone-common.dtsi
+>>   create mode 100644 arch/arm/boot/dts/am335x-boneblack.dts
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+> On July 5th, I sent the following patch
+>
+>      http://www.spinics.net/lists/linux-omap/msg96935.html
+>
+> and on Sep 10th I sent the same patch rebased with upstream and Acked
+> by Javier. I consider this patch as a fix, as is required to make the
+> sound work on IGEP boards but it's not included in this pull request.
+> Maybe you forget it due your email change. Can you consider adding
+> this patch, at least, in your next pull request? Thanks in advance.
 
-There are two issues with this one:
+Sorry I missed it, and will send an updated pull-request in five minutes 
+from now... If you do not see anything from me after 6 minutes you can 
+complain.
 
-for_each_dss_dev() uses omap_dss_get_next_device(), and that will
-increase the ref count of the current dssdev. If you interrupt the loop,
-the ref count won't be decreased. I have a hunch that we could have
-similar bugs elsewhere too...
+> Merci beaucoup,
 
-Second, in case of error, the dssdevs that were already connected should
-be disconnected. Although maybe that's not important, as they'll end up
-being connected again when the omapdrm is probed the next time.
+De rien.
 
-I had a quick test with this, and it seemed to fix the probe issue. I'll
-do some more testing.
+Regards,
+Benoit
 
- Tomi
-
-
-
---ppJHmnlNVPkoaXTrQlA6Tc4nrwAF23u4E
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJSOZ+PAAoJEPo9qoy8lh71sywQAKVdoYnKUUH4xr5weWkxI0+A
-QxBXdEFhutr9U24/xXiumZyAylwk48/3gsFhi/94MLslp7R2cSK/8H5sHrYpq0Sy
-QKiroBMg8METla0BNZH2NhmMalvYx3r0WhQwpkS0NvGugsVEXHUNq4Qfl7ojbikQ
-uTU1sg6JNKGyxd5qIt585bHawDL1bpGFrQAJRFAf/39pLBqyss0n2urxcSrSZAZP
-RX5o8Blm7+Cqn23kJ32s8JJR7cw4V46VSakOqWXgsPttuSqLNVz4yUZAgsit64TA
-vAgmR3Q2YuvPGSNJrxjPyntFToIeukCyFDF711/1KdvdXOQAXUZ8TaI6ilbSdXO5
-jaZ0HIQyPpschLEJDgxjpguhBUdWUSTsAbc1tIxNzv9lurJGIra5Wqc1Y3YRvxIu
-7JU0dnBBnOZ4OSmzFQyHjoPPfetC6rLIXARNSGFhX35n8Uhtx1pTRGnQfvAbIvA3
-od1KnigCphmTzyMMC2ZskOk1jAGn32rBZqm8UN/i2L7bzQk54nfPdnNxAmZXNmiW
-a8ioUxQU17zD4XJCxDjLC72U3mNpXi9B9lRT4ccm3bVevjw5BBQzwy8GmkDl6h91
-M6xgnnWEcVojXm6pM38ceTYQxHrIPk6V0THC1kUjfMieVlclJ+GmCWPlmDEWOzKp
-9KGSv7UgWEzBpfdhw+z3
-=k3Al
------END PGP SIGNATURE-----
-
---ppJHmnlNVPkoaXTrQlA6Tc4nrwAF23u4E--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
