@@ -1,95 +1,75 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 2/2] RX-51: ARM errata 430973 workaround
-Date: Wed, 18 Sep 2013 10:18:17 -0700
-Message-ID: <20130918171816.GT9994@atomide.com>
-References: <1362044548-5398-1-git-send-email-pali.rohar@gmail.com>
- <1373461145-9812-3-git-send-email-pali.rohar@gmail.com>
- <20130917232417.GK9994@atomide.com>
- <201309181033.24965@pali>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: PCF857x and 16-bit GPIO expanders
+Date: Wed, 18 Sep 2013 12:36:36 -0500
+Message-ID: <20130918173636.GT21559@radagast>
+References: <20130917190732.GD15645@radagast>
+ <CACRpkdYn8yaTyFJMaC3vK4kGrQsaZpAX=pyn5y33ers7QhQ_pg@mail.gmail.com>
+ <2356541.62QktiIBr5@avalon>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="80Ds8Z/hZmemMosa"
+Return-path: <linux-gpio-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <201309181033.24965@pali>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
-Cc: linux-kernel@vger.kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, Nishanth Menon <nm@ti.com>, Pavel Machek <pavel@ucw.cz>, Peter De Schrijver <pdeschrijver@nvidia.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Ivaylo Dimitrov <freemangordon@abv.bg>
+In-Reply-To: <2356541.62QktiIBr5@avalon>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Felipe Balbi <balbi@ti.com>, George Cherian <george.cherian@ti.com>, Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>, Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Pali Roh=C3=A1r <pali.rohar@gmail.com> [130918 01:41]:
+--80Ds8Z/hZmemMosa
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+Hi,
+
+On Wed, Sep 18, 2013 at 07:18:04PM +0200, Laurent Pinchart wrote:
+> On Wednesday 18 September 2013 13:16:27 Linus Walleij wrote:
+> > On Tue, Sep 17, 2013 at 9:07 PM, Felipe Balbi <balbi@ti.com> wrote:
+> > > has anyone ever successfully using gpio-pcf857x.c driver with 16-bit
+> > > gpio expanders ? We're having some issues here where toggling the last
+> > > gpio pin (gpio 15) on a PCF8575 device causes platform to hang and I
+> > > can't come up with any explanation of why would it hang...
+> >=20
+> > Bouncing the question to George, Laurent and Kuninori...
 >=20
-> I'm not very happy. I sent this patch 6 months ago and only now=20
-> you commented that needs rework again. This patch is needed=20
-> because all thumb-2 userspace binaries crashing. I want to have
-> working support for Nokia N900 and not always rebasing and=20
-> changing patches. Also DT still not working on N900 (file contains=20
-> only small subset of devices as in board files plus it is not in=20
-> stable kernel) so I do not want to switch to DT. I need something=20
-> which is working and not something new non-working. I belive that=20
-> you and other kernel guys do not remove all n900 board files until=20
-> every one line will be rewritten to DT and tested that everything=20
-> working. And from this and other conversation it looks for me=20
-> that you are going to do that. So please clarify what you want to=20
-> do (and when) with board-rx51-* files. Aftethat I can decide what=20
-> to do in future.
+> I've got a board with a PCF8575 chip, but it uses I/Os 8 to 14 only as fa=
+r as=20
+> I know.
+>=20
+> I can try toggling I/O 15, but that will need to wait until next week as =
+I'm=20
+> currently travelling without access to the hardware.
 
-Sorry if there's been some going back and forth with the patches,
-I think pretty much everybody wants n900 support in the mainline.
+alright, that'd help me a lot :-) Just want to make sure if we're having
+a board issue, or PCF8575 is a bit screwy ;-)
 
-It's obvious that we're moving everything to be devicetree only
-as discussed on the mailing lists over past few years. For most
-drivers it's already working, and we can still initialize platform
-data too for the legacy devices until they have bindings, so it
-should not be too intrusive except for the configuration changes
-to use appended DTB or a chained bootloader with DTB support.
+Thanks
 
-> For now I see this situation something like: I wrote patches,=20
-> send them to ML and after half of year maintainer politely=20
-> rejected them becuase my patches not using new uber cool=20
-> technology with still not working and also was not available half=20
-> year ago. What happen if I find another time to rework this patch=20
-> and send it again in next 2 or 5 months?
+--=20
+balbi
 
-Hmm hasn't there been pending comments until recently on your
-patches?
+--80Ds8Z/hZmemMosa
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-It seems that with the changes I suggested your patches should
-work for both legacy booting and DT based booting, so maybe just
-try to update them over next few weeks, let's say by -rc3 rather
-than wait 2 to 5 months? :) No need to test them currently on
-the DT based booting if you don't have that set up, just move
-the code out of the board-*.c file.
-=20
-> Tony, if you did not have time for review this patch months ago=20
-> or you found it only today - no problem, I understand it. But=20
-> what I need to know is what will happen with board-rx51-* files=20
-> (and when?) You can see that DT does not have definitions of all=20
-> n900 hw parts (plus it is not in last 3.11 kernel!) which means=20
-> that DT is not usable for me and other n900 people. This also=20
-> means that I cannot rewrite my patches for DT and test if they=20
-> working.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-I usually stop looking at new code around -rc4 and concentrate
-on fixes until -rc1 or so. So there can be easily one month
-delays on reviewing stuff depending on where we are with the
-current merge window or -rc cycle, sorry if that's annoying.
+iQIcBAEBAgAGBQJSOeSkAAoJEIaOsuA1yqREUAoP/RmjGgpunquif5il7vnvP9+P
+Be+5vMynpoVFe6idESL1nDSriXnLAeUJ36AhIz1IqAxnkCXdH3iGzQmgXCSmrXBf
+Kbuaa0A3UCcWKSHpwLv092o6ie/EOFIQTEpYhs+Pe9xTX/3HpAam3zDeulFJIs0h
+S8AUmHj6+4rRW3w5nkwCuICP2jtNLX4rXvKMjkwTWltqLwlZcf8pPhGMh2Uoe3IV
+lFtcfdsg0usDiXGf4+kHA9y8S4IQuWe/JO3klIKFsE/CJt7ParhQGTMN98zMGIaC
+J2Lju8S08/7phfC6nUT5U3k74OKXcIkGsvGo7Kq1vLoA6c5Pz+urRNmb7xYmqOWD
+Itg2ezH9aaFyW7/kABCHmDyR+JPKuU+dwtuTcvaOxhZME1jrrficyABGh+gGgS8O
+p/W9eSHHv8nmfEcWZIsXOHuXExvrVRh76K7ZppuI2qsBh+6QZpnlBxTjRXMy9l90
+Y4Y/cIF2PBcvGLeWla8+s0X33TBTJecgF8Eq1ZpOQynlvbozdFuIfraC8Aa3AI0R
+2ONWdVMjtFKri78yjgDxM+qQPT5PBDfXhXYW0OqHeyFwLm3oQSDi5lTtrkV67Erd
+/zg0R0zu7K8djnIADGGykcDL5jj+gpEIq0igWaApQz967cvxNLTZKNzNoybBlCUP
+t1DL2qEfP4UbS/poTRPX
+=ZauD
+-----END PGP SIGNATURE-----
 
-The .dts files will be separate from the kernel soonish, so
-that's not be a show stopper. Just like all the board specific
-=2Econfig files are separate from the kernel already. Too bad our
-=2Edts changes did not get merged for v3.12 because of conflicts
-with other branches, but hey, they should be independent from the
-kernel anyways.
-
-The board files will be going away as soon as things are working
-with DT. We've been pretty much only applying fixes to them for
-quite some time now. For the timeline, the earliest we'll be able
-to remove the board-*.c files and platform data is for v3.13
-assuming the PM dependencies get sorted out before that. Making
-omap3 DT only is going remove about 25k LOC, so that's a good
-reason for doing that.
-
-Cheers,
-
-Tony
+--80Ds8Z/hZmemMosa--
