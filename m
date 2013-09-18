@@ -1,59 +1,71 @@
-From: Aida Mynzhasova <aida.mynzhasova@skitlab.ru>
-Subject: Re: [PATCH] ARM: OMAP: TI816X: add clock domain support for TI816x
-Date: Wed, 18 Sep 2013 13:40:39 +0400
-Message-ID: <52397517.9020508@skitlab.ru>
-References: <1377352941-29699-1-git-send-email-aida.mynzhasova@skitlab.ru> <5236A9FA.2040100@skitlab.ru> <20130916131451.GB14873@kahuna>
+From: Benoit Cousson <bcousson@baylibre.com>
+Subject: [GIT PULL] ARM: DTS: Fix OMAP bugs for 3.12-rc
+Date: Wed, 18 Sep 2013 11:40:51 +0200
+Message-ID: <52397523.4050209@baylibre.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.skitlab.ru ([217.65.220.135]:47961 "EHLO mail.skitlab.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751388Ab3IRJkh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 18 Sep 2013 05:40:37 -0400
-In-Reply-To: <20130916131451.GB14873@kahuna>
+Received: from mail-bk0-f48.google.com ([209.85.214.48]:46075 "EHLO
+	mail-bk0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751343Ab3IRJkz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Sep 2013 05:40:55 -0400
+Received: by mail-bk0-f48.google.com with SMTP id my13so2659481bkb.35
+        for <linux-omap@vger.kernel.org>; Wed, 18 Sep 2013 02:40:54 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "khilman@linaro.org" <khilman@linaro.org>, Olof Johansson <olof@lixom.net>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
 
-On 16.09.2013 17:14, Nishanth Menon wrote:
-> On 10:49-20130916, Aida Mynzhasova wrote:
->> On 24.08.2013 18:02, Aida Mynzhasova wrote:
->>> This patch adds required definitions and structures for clockdomain
->>> initialization, so omap3xxx_clockdomains_init() was substituted by
->>> new ti81xx_clockdomains_init() while early initialization of
->>> TI81XX platform.
->>>
->>> signed-off-by: Aida Mynzhasova <aida.mynzhasova@skitlab.ru>
->>> ---
->>>   arch/arm/mach-omap2/Makefile                   |   2 +
->>>   arch/arm/mach-omap2/clockdomain.h              |   1 +
->>>   arch/arm/mach-omap2/clockdomains_ti81xx_data.c | 208 +++++++++++++++++++++++++
->>>   arch/arm/mach-omap2/cm-regbits-ti81xx.h        |  22 +++
->>>   arch/arm/mach-omap2/cm_ti81xx.h                |  61 ++++++++
->>>   arch/arm/mach-omap2/io.c                       |   2 +-
->>>   6 files changed, 295 insertions(+), 1 deletion(-)
->>>   create mode 100644 arch/arm/mach-omap2/clockdomains_ti81xx_data.c
->>>   create mode 100644 arch/arm/mach-omap2/cm-regbits-ti81xx.h
->>>   create mode 100644 arch/arm/mach-omap2/cm_ti81xx.h
->>>
->>
-> [...]
->> Can anybody please review my changes?
->
-> We are transitioning out of having clock information in mach-omap2 to
-> using devicetree
->
-> http://marc.info/?l=devicetree&m=137778225431749&w=2
->
-> Will be good to align the conversion with upcoming V7 of the patch
-> series as well.
->
+Hi Tony,
 
-Hi Nishanth,
+Please pull few fixes for OMAP DTS.
 
-I'm sorry, but it seems like you mixed up clock and clock domain data. 
-The same situation was for Afzal's patch:
+Thanks,
+Benoit
 
-http://article.gmane.org/gmane.linux.ports.arm.omap/104485
+
+
+The following changes since commit 272b98c6455f00884f0350f775c5342358ebb73f:
+
+  Linux 3.12-rc1 (2013-09-16 16:17:51 -0400)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git tags/for_3.12-rc2/dts_signed
+
+for you to fetch changes up to 775d2418f309052641d94c896f73dc779cf7ba1b:
+
+  ARM: dts: Fix muxing and regulator for wl12xx on the SDIO bus for blaze (2013-09-18 11:14:42 +0200)
+
+----------------------------------------------------------------
+Fix BBB LDO voltage to avoid HDMI destruction
+Fix OMAP5 wrong attribute
+Fix typo in beagle xM strings
+
+----------------------------------------------------------------
+Felipe Balbi (2):
+      ARM: dts: OMAP5: fix reg property size
+      ARM: dts: OMAP5: fix ocp2scp DTS data
+
+Koen Kooi (1):
+      ARM: dts: am335x-bone*: add DT for BeagleBone Black
+
+Robert Nelson (1):
+      ARM: dts: omap3-beagle-xm: fix string error in compatible property
+
+Tony Lindgren (2):
+      ARM: dts: Fix muxing and regulator for wl12xx on the SDIO bus for pandaboard
+      ARM: dts: Fix muxing and regulator for wl12xx on the SDIO bus for blaze
+
+ arch/arm/boot/dts/Makefile                |   1 +
+ arch/arm/boot/dts/am335x-bone-common.dtsi | 262 ++++++++++++++++++++++++++++++
+ arch/arm/boot/dts/am335x-bone.dts         | 256 +----------------------------
+ arch/arm/boot/dts/am335x-boneblack.dts    |  17 ++
+ arch/arm/boot/dts/omap3-beagle-xm.dts     |   2 +-
+ arch/arm/boot/dts/omap4-panda-common.dtsi |  46 +++++-
+ arch/arm/boot/dts/omap4-sdp.dts           |  39 ++++-
+ arch/arm/boot/dts/omap5.dtsi              |   7 +-
+ 8 files changed, 369 insertions(+), 261 deletions(-)
+ create mode 100644 arch/arm/boot/dts/am335x-bone-common.dtsi
+ create mode 100644 arch/arm/boot/dts/am335x-boneblack.dts
