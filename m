@@ -1,73 +1,83 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH] ARM: OMAP: TI816X: add clock domain support for TI816x
-Date: Wed, 18 Sep 2013 06:56:47 -0500
-Message-ID: <523994FF.4020307@ti.com>
-References: <1377352941-29699-1-git-send-email-aida.mynzhasova@skitlab.ru> <5236A9FA.2040100@skitlab.ru> <20130916131451.GB14873@kahuna> <52397517.9020508@skitlab.ru>
+From: Benoit Cousson <bcousson@baylibre.com>
+Subject: Re: [PATCH] ARM: dts: igep00x0: Add pinmux configuration for MCBSP2.
+Date: Wed, 18 Sep 2013 14:33:35 +0200
+Message-ID: <52399D9F.6020501@baylibre.com>
+References: <1378827323-15433-1-git-send-email-eballetbo@gmail.com> <CAFqH_503dztqH0XEohTyV8VCZiNHsrwk1ahKFXgz6DzKDc-fAQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:59697 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751556Ab3IRL4x (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 18 Sep 2013 07:56:53 -0400
-In-Reply-To: <52397517.9020508@skitlab.ru>
+Received: from mail-bk0-f48.google.com ([209.85.214.48]:62792 "EHLO
+	mail-bk0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752189Ab3IRMdj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Sep 2013 08:33:39 -0400
+Received: by mail-bk0-f48.google.com with SMTP id my13so2752841bkb.35
+        for <linux-omap@vger.kernel.org>; Wed, 18 Sep 2013 05:33:38 -0700 (PDT)
+In-Reply-To: <CAFqH_503dztqH0XEohTyV8VCZiNHsrwk1ahKFXgz6DzKDc-fAQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Aida Mynzhasova <aida.mynzhasova@skitlab.ru>
-Cc: linux-omap@vger.kernel.org
+To: Enric Balletbo Serra <eballetbo@gmail.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Javier Martinez Canillas <martinez.javier@gmail.com>
 
-On 09/18/2013 04:40 AM, Aida Mynzhasova wrote:
-> On 16.09.2013 17:14, Nishanth Menon wrote:
->> On 10:49-20130916, Aida Mynzhasova wrote:
->>> On 24.08.2013 18:02, Aida Mynzhasova wrote:
->>>> This patch adds required definitions and structures for clockdomain
->>>> initialization, so omap3xxx_clockdomains_init() was substituted by
->>>> new ti81xx_clockdomains_init() while early initialization of
->>>> TI81XX platform.
->>>>
->>>> signed-off-by: Aida Mynzhasova <aida.mynzhasova@skitlab.ru>
->>>> ---
->>>>   arch/arm/mach-omap2/Makefile                   |   2 +
->>>>   arch/arm/mach-omap2/clockdomain.h              |   1 +
->>>>   arch/arm/mach-omap2/clockdomains_ti81xx_data.c | 208 +++++++++++++++++++++++++
->>>>   arch/arm/mach-omap2/cm-regbits-ti81xx.h        |  22 +++
->>>>   arch/arm/mach-omap2/cm_ti81xx.h                |  61 ++++++++
->>>>   arch/arm/mach-omap2/io.c                       |   2 +-
->>>>   6 files changed, 295 insertions(+), 1 deletion(-)
->>>>   create mode 100644 arch/arm/mach-omap2/clockdomains_ti81xx_data.c
->>>>   create mode 100644 arch/arm/mach-omap2/cm-regbits-ti81xx.h
->>>>   create mode 100644 arch/arm/mach-omap2/cm_ti81xx.h
->>>>
->>>
->> [...]
->>> Can anybody please review my changes?
->>
->> We are transitioning out of having clock information in mach-omap2 to
->> using devicetree
->>
->> http://marc.info/?l=devicetree&m=137778225431749&w=2
->>
->> Will be good to align the conversion with upcoming V7 of the patch
->> series as well.
->>
-> 
-> Hi Nishanth,
-> 
-> I'm sorry, but it seems like you mixed up clock and clock domain data. 
-> The same situation was for Afzal's patch:
-> 
-> http://article.gmane.org/gmane.linux.ports.arm.omap/104485
-> 
-Yep - same darned mistake!!! my sincere apologies. I had mistaken
-Tero's series originally to mean it took care of the data, but
-realized later(after kicking myself twice for not digging deeper) that
-it was handling the relationship between clocks and clockdomains at
-this stage and potentially creates the foundation to move the data out
-as well at a later stage.
+Hi Enric,
 
-My bad.. Apologies once again.
+On 10/09/2013 17:38, Enric Balletbo Serra wrote:
+> 2013/9/10 Enric Balletbo i Serra <eballetbo@gmail.com>:
+>> Add pinmux configuration for MCBSP2 connected to the TDM interface. With
+>> this configuration the Headset modules works as expected.
+>>
+>> Signed-off-by: Enric Balletbo i Serra <eballetbo@gmail.com>
+>> Acked-by: Javier Martinez Canillas <javier@dowhile0.org>
+>> ---
+>>   arch/arm/boot/dts/omap3-igep.dtsi | 14 ++++++++++++++
+>>   1 file changed, 14 insertions(+)
+>>
+>> diff --git a/arch/arm/boot/dts/omap3-igep.dtsi b/arch/arm/boot/dts/omap3-igep.dtsi
+>> index bc48b11..2326d11 100644
+>> --- a/arch/arm/boot/dts/omap3-igep.dtsi
+>> +++ b/arch/arm/boot/dts/omap3-igep.dtsi
+>> @@ -48,6 +48,15 @@
+>>                  >;
+>>          };
+>>
+>> +       mcbsp2_pins: pinmux_mcbsp2_pins {
+>> +               pinctrl-single,pins = <
+>> +                       0x10c (PIN_INPUT | MUX_MODE0)           /* mcbsp2_fsx.mcbsp2_fsx */
+>> +                       0x10e (PIN_INPUT | MUX_MODE0)           /* mcbsp2_clkx.mcbsp2_clkx */
+>> +                       0x110 (PIN_INPUT | MUX_MODE0)           /* mcbsp2_dr.mcbsp2.dr */
+>> +                       0x112 (PIN_OUTPUT | MUX_MODE0)          /* mcbsp2_dx.mcbsp2_dx */
+>> +               >;
+>> +       };
+>> +
+>>          mmc1_pins: pinmux_mmc1_pins {
+>>                  pinctrl-single,pins = <
+>>                          0x114 (PIN_INPUT_PULLUP | MUX_MODE0)    /* sdmmc1_clk.sdmmc1_clk */
+>> @@ -93,6 +102,11 @@
+>>          clock-frequency = <400000>;
+>>   };
+>>
+>> +&mcbsp2 {
+>> +       pinctrl-names = "default";
+>> +       pinctrl-0 = <&mcbsp2_pins>;
+>> +};
+>> +
+>>   &mmc1 {
+>>         pinctrl-names = "default";
+>>         pinctrl-0 = <&mmc1_pins>;
+>> --
+>> 1.8.1.2
+>>
+>
+> Hi Benoit,
+>
+> I sent this patch some time ago to be merged as a fix for 3.11, but
+> seems was not merged. Would be possible include this patch in these
+> series ?
 
--- 
-Regards,
-Nishanth Menon
+I'm really sorry I missed that one :-(
+I'm applying it right now, and will update my pull request.
+
+Thanks,
+Benoit
+
+
