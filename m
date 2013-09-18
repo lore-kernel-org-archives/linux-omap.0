@@ -1,55 +1,123 @@
 From: Sricharan R <r.sricharan@ti.com>
-Subject: Re: [RFC PATCH 1/4] DRIVERS: IRQCHIP: Add crossbar irqchip driver
-Date: Wed, 18 Sep 2013 20:55:21 +0530
-Message-ID: <5239C5E1.4060807@ti.com>
-References: <1379000351-15672-1-git-send-email-r.sricharan@ti.com> <1379000351-15672-2-git-send-email-r.sricharan@ti.com> <alpine.DEB.2.02.1309122201530.4089@ionos.tec.linutronix.de> <523228B5.5070507@ti.com> <alpine.DEB.2.02.1309122335440.4089@ionos.tec.linutronix.de> <5232457A.8080709@ti.com> <alpine.DEB.2.02.1309130138550.4089@ionos.tec.linutronix.de> <52326D6B.2010003@ti.com> <alpine.DEB.2.02.1309131142540.4089@ionos.tec.linutronix.de> <CACRpkdYzaoZUunoNDNirV5Bt-G6p-avFV8A=iznDKjK2biqwrw@mail.gmail.com> <5239B010.8080605@ti.com>
+Subject: [PATCH V2] ARM: OMAP5/DRA7: realtime_counter: Configure CNTFRQ register
+Date: Wed, 18 Sep 2013 21:04:30 +0530
+Message-ID: <1379518470-28387-1-git-send-email-r.sricharan@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <5239B010.8080605@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Santosh Shilimkar <santosh.shilimkar@ti.com>, LKML <linux-kernel@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, LAK <linux-arm-kernel@lists.infradead.org>, Linux-OMAP <linux-omap@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Rajendra Nayak <rnayak@ti.com>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:43339 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752012Ab3IRPfX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 18 Sep 2013 11:35:23 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Cc: r.sricharan@ti.com, santosh.shilimkar@ti.com, rnayak@ti.com, tony@atomide.com, nm@ti.com, marc.zyngier@arm.com, mark.rutland@arm.com
 
-On Wednesday 18 September 2013 07:22 PM, Sricharan R wrote:
-> Hi Thomas,
->
-> On Tuesday 17 September 2013 05:56 PM, Linus Walleij wrote:
->> On Fri, Sep 13, 2013 at 4:24 PM, Thomas Gleixner <tglx@linutronix.de> wrote:
->>
->>> So why can't you make use of irq domains and have the whole routing
->>> business implemented sanely?
->>>
->>> What's needed is in gic_init_bases():
->>> irq
->>>        if (of_property_read(node, "routable_irqs", &nr_routable_irqs) {
->>>           irq_domain_add_legacy(nr_gic_irqs);
->>>        } else {
->>>           irq_domain_add_legacy(nr_per_cpu_irqs);
->>>           irq_domain_add_linear(nr_routable_irqs);
->>>        }
->>>
->>> Now that separate domain has an xlate function which grabs a free GIC
->>> irq from a bitmap and returns the hardware irq number in the gic
->>> space. The map/unmap callbacks take care of setting up / tearing down
->>> the route in the crossbar.
->> This is obviously the right approach, it's exactly what .map should do
->> the only special thing here being that we have hardware to perform
->> the mapping ... bah why didn't I realize this :-(
->>
->> Yours,
->> Linus Walleij
-> Thanks for the suggestion.
->
-> So as i understand this, this implies using the GIC domain itself and
->  add the support for dynamically routable irqs (like crossbar) with in the
-> GIC driver itself right ?
-  Please ignore this. So the question was more of how to implement the
-  call outs in the case of routable irqs from map/ unmap callbacks.
- I will look more here and come back.
+The realtime counter called master counter, produces the count
+used by the private timer peripherals in the MPU_CLUSTER. The
+CNTFRQ per cpu register is used to denote the frequency of the counter.
+Currently the frequency value is passed from the
+DT file, but this is not scalable when we have other non-DT guest
+OS. This register must be set to the right value by the
+secure rom code. Setting this register helps in propagating the right
+frequency value across OSes.
 
-Regards,
- Sricharan
+More discussions and the reason for adding this in a non-DT
+way can be seen from below.
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg93832.html
+
+So configuring this secure register for all the cpus here.
+
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Nishanth Menon <nm@ti.com>
+Cc: Rajendra Nayak <rnayak@ti.com>
+Cc: Marc Zyngier <marc.zyngier@arm.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Sricharan R <r.sricharan@ti.com>
+Tested-by: Nishanth Menon <nm@ti.com>
+Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+---
+ [V2] Updated commit log
+
+ arch/arm/mach-omap2/omap-secure.h |    2 ++
+ arch/arm/mach-omap2/omap-smp.c    |    9 +++++++++
+ arch/arm/mach-omap2/timer.c       |    6 ++++++
+ 3 files changed, 17 insertions(+)
+
+diff --git a/arch/arm/mach-omap2/omap-secure.h b/arch/arm/mach-omap2/omap-secure.h
+index a171a5a..4de9a00 100644
+--- a/arch/arm/mach-omap2/omap-secure.h
++++ b/arch/arm/mach-omap2/omap-secure.h
+@@ -51,6 +51,8 @@
  
+ #define OMAP5_MON_AMBA_IF_INDEX		0x108
+ 
++#define OMAP5_DRA7_MON_SET_CNTFRQ_INDEX	0x109
++
+ /* Secure PPA(Primary Protected Application) APIs */
+ #define OMAP4_PPA_L2_POR_INDEX		0x23
+ #define OMAP4_PPA_CPU_ACTRL_SMP_INDEX	0x25
+diff --git a/arch/arm/mach-omap2/omap-smp.c b/arch/arm/mach-omap2/omap-smp.c
+index 98a1146..00873b4 100644
+--- a/arch/arm/mach-omap2/omap-smp.c
++++ b/arch/arm/mach-omap2/omap-smp.c
+@@ -41,6 +41,8 @@
+ 
+ u16 pm44xx_errata;
+ 
++extern unsigned long arch_timer_freq;
++
+ /* SCU base address */
+ static void __iomem *scu_base;
+ 
+@@ -66,6 +68,13 @@ static void __cpuinit omap4_secondary_init(unsigned int cpu)
+ 							4, 0, 0, 0, 0, 0);
+ 
+ 	/*
++	 * Configure the CNTFRQ register for the secondary cpu's which
++	 * indicates the frequency of the cpu local timers.
++	 */
++	if (soc_is_omap54xx() || soc_is_dra7xx())
++		omap_smc1(OMAP5_DRA7_MON_SET_CNTFRQ_INDEX, arch_timer_freq);
++
++	/*
+ 	 * Synchronise with the boot thread.
+ 	 */
+ 	spin_lock(&boot_lock);
+diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+index fd9238d..2c499f3 100644
+--- a/arch/arm/mach-omap2/timer.c
++++ b/arch/arm/mach-omap2/timer.c
+@@ -55,6 +55,7 @@
+ #include "soc.h"
+ #include "common.h"
+ #include "powerdomain.h"
++#include "omap-secure.h"
+ 
+ #define REALTIME_COUNTER_BASE				0x48243200
+ #define INCREMENTER_NUMERATOR_OFFSET			0x10
+@@ -65,6 +66,7 @@
+ 
+ static struct omap_dm_timer clkev;
+ static struct clock_event_device clockevent_gpt;
++unsigned long arch_timer_freq;
+ 
+ static irqreturn_t omap2_gp_timer_interrupt(int irq, void *dev_id)
+ {
+@@ -546,7 +548,11 @@ static void __init realtime_counter_init(void)
+ 	reg |= den;
+ 	__raw_writel(reg, base + INCREMENTER_DENUMERATOR_RELOAD_OFFSET);
+ 
++	arch_timer_freq = (rate / den) * num;
++
+ 	iounmap(base);
++
++	omap_smc1(OMAP5_DRA7_MON_SET_CNTFRQ_INDEX, arch_timer_freq);
+ }
+ #else
+ static inline void __init realtime_counter_init(void)
+-- 
+1.7.9.5
+
