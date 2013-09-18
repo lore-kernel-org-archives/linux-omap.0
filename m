@@ -1,77 +1,68 @@
-From: Aida Mynzhasova <aida.mynzhasova@skitlab.ru>
-Subject: Re: [PATCH] ARM: OMAP: TI816X: add clock domain support for TI816x
-Date: Wed, 18 Sep 2013 20:42:18 +0400
-Message-ID: <5239D7EA.6090104@skitlab.ru>
-References: <1377352941-29699-1-git-send-email-aida.mynzhasova@skitlab.ru> <5236A9FA.2040100@skitlab.ru> <20130916131451.GB14873@kahuna> <52397517.9020508@skitlab.ru> <523994FF.4020307@ti.com>
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
+Subject: Re: [PATCH 1/4] usb: musb: Call atomic_notifier_call_chain when status is changed
+Date: Wed, 18 Sep 2013 18:43:49 +0200
+Message-ID: <201309181843.49850@pali>
+References: <1378630239-10006-1-git-send-email-pali.rohar@gmail.com> <201309181756.12782@pali> <20130918163649.GL21559@radagast>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: multipart/signed;
+  boundary="nextPart4274049.RbU57Pnz8g";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.skitlab.ru ([217.65.220.135]:37454 "EHLO mail.skitlab.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751612Ab3IRQmV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 18 Sep 2013 12:42:21 -0400
-In-Reply-To: <523994FF.4020307@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20130918163649.GL21559@radagast>
+Sender: linux-kernel-owner@vger.kernel.org
+To: balbi@ti.com
+Cc: Javier Martinez Canillas <martinez.javier@gmail.com>, Pavel Machek <pavel@ucw.cz>, Tony Lindgren <tony@atomide.com>, Anton Vorontsov <anton@enomsg.org>, Russell King <linux@arm.linux.org.uk>, David Woodhouse <dwmw2@infradead.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, freemangordon@abv.bg, Aaro Koskinen <aaro.koskinen@iki.fi>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux Kernel <linux-kernel@vger.kernel.org>, linux-usb@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: linux-omap@vger.kernel.org
 
-On 18.09.2013 15:56, Nishanth Menon wrote:
-> On 09/18/2013 04:40 AM, Aida Mynzhasova wrote:
->> On 16.09.2013 17:14, Nishanth Menon wrote:
->>> On 10:49-20130916, Aida Mynzhasova wrote:
->>>> On 24.08.2013 18:02, Aida Mynzhasova wrote:
->>>>> This patch adds required definitions and structures for clockdomain
->>>>> initialization, so omap3xxx_clockdomains_init() was substituted by
->>>>> new ti81xx_clockdomains_init() while early initialization of
->>>>> TI81XX platform.
->>>>>
->>>>> signed-off-by: Aida Mynzhasova <aida.mynzhasova@skitlab.ru>
->>>>> ---
->>>>>    arch/arm/mach-omap2/Makefile                   |   2 +
->>>>>    arch/arm/mach-omap2/clockdomain.h              |   1 +
->>>>>    arch/arm/mach-omap2/clockdomains_ti81xx_data.c | 208 +++++++++++++++++++++++++
->>>>>    arch/arm/mach-omap2/cm-regbits-ti81xx.h        |  22 +++
->>>>>    arch/arm/mach-omap2/cm_ti81xx.h                |  61 ++++++++
->>>>>    arch/arm/mach-omap2/io.c                       |   2 +-
->>>>>    6 files changed, 295 insertions(+), 1 deletion(-)
->>>>>    create mode 100644 arch/arm/mach-omap2/clockdomains_ti81xx_data.c
->>>>>    create mode 100644 arch/arm/mach-omap2/cm-regbits-ti81xx.h
->>>>>    create mode 100644 arch/arm/mach-omap2/cm_ti81xx.h
->>>>>
->>>>
->>> [...]
->>>> Can anybody please review my changes?
->>>
->>> We are transitioning out of having clock information in mach-omap2 to
->>> using devicetree
->>>
->>> http://marc.info/?l=devicetree&m=137778225431749&w=2
->>>
->>> Will be good to align the conversion with upcoming V7 of the patch
->>> series as well.
->>>
->>
->> Hi Nishanth,
->>
->> I'm sorry, but it seems like you mixed up clock and clock domain data.
->> The same situation was for Afzal's patch:
->>
->> http://article.gmane.org/gmane.linux.ports.arm.omap/104485
->>
-> Yep - same darned mistake!!! my sincere apologies. I had mistaken
-> Tero's series originally to mean it took care of the data, but
-> realized later(after kicking myself twice for not digging deeper) that
-> it was handling the relationship between clocks and clockdomains at
-> this stage and potentially creates the foundation to move the data out
-> as well at a later stage.
->
-> My bad.. Apologies once again.
->
+--nextPart4274049.RbU57Pnz8g
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-That's ok :)
+On Wednesday 18 September 2013 18:36:49 Felipe Balbi wrote:
+> On Wed, Sep 18, 2013 at 05:56:12PM +0200, Pali Roh=C3=A1r wrote:
+> > On Wednesday 18 September 2013 15:57:13 Javier Martinez
+> > Canillas
+> >=20
+> > wrote:
+> > > to split the patch in two since the patch was solving
+> > > two separate issues
+> >=20
+> > My patch does not solving *two* issues. It is *one*
+> > regression and both parts of patch are needed for fixing
+> > it. Read commit message again. It does not make sense to
+> > split patch fixing kernel regression into more one line
+> > patches - or please clarify why.
+>=20
+> issue 1) twl4030-usb.c doesn't initialize atomic notifier head
+> issue 2) musb doesn't call notifier chain
+>=20
+> do you need a drawing ?
 
-So, is there is somebody who wants to review my changes? :)
+Regression 1) power supply drivers not working since v3.5
 
-Thanks!
+Look at firsts emails.
+
+
+Do you really have problem to do what *you* need with 1 line=20
+patch which I sent? Or what what you want?
+
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
+
+--nextPart4274049.RbU57Pnz8g
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iEYEABECAAYFAlI52EUACgkQi/DJPQPkQ1IgdwCgnGUMAxGx9VQ/j8Ha5XzPFmiM
+Q7gAnRl+2/1B+8eCuCgPQ3qMaHz1mtqf
+=4hO2
+-----END PGP SIGNATURE-----
+
+--nextPart4274049.RbU57Pnz8g--
