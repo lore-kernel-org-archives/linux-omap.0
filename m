@@ -1,91 +1,163 @@
-From: Enric Balletbo Serra <eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [GIT PULL] ARM: DTS: Fix OMAP bugs for 3.12-rc
-Date: Wed, 18 Sep 2013 12:24:12 +0200
-Message-ID: <CAFqH_52=NOZLHX4VZRMkUFpmJQJZ6egNZsckMJ=+QjVXO1=ofg@mail.gmail.com>
-References: <52397523.4050209@baylibre.com>
+From: Archit Taneja <archit@ti.com>
+Subject: [PATCH] drm: omap: fix: Defer probe if an omapdss device requests for it at connect
+Date: Wed, 18 Sep 2013 16:38:22 +0530
+Message-ID: <1379502502-8781-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <52397523.4050209-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "khilman-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <khilman-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Olof Johansson <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>, linux-arm-kernel <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:49736 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752316Ab3IRLJS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 18 Sep 2013 07:09:18 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tomi.valkeinen@ti.com, robdclark@gmail.com
+Cc: linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-Hi Benoit,
+Some omapdss panels are connected to outputs/encoders(HDMI/DSI/DPI) that require
+regulators. The output's connect op tries to get a regulator which may not exist
+yet because it might get registered later in the kernel boot.
 
+omapdrm currently ignores those panels which return a non zero value when
+connected. A better approach would be for omapdrm to request for probe
+deferral if a panel's connect op returns -EPROBE_DEFER.
 
-2013/9/18 Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>:
-> Hi Tony,
->
-> Please pull few fixes for OMAP DTS.
->
-> Thanks,
-> Benoit
->
->
->
-> The following changes since commit 272b98c6455f00884f0350f775c5342358ebb73f:
->
->   Linux 3.12-rc1 (2013-09-16 16:17:51 -0400)
->
-> are available in the git repository at:
->
->   git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git tags/for_3.12-rc2/dts_signed
->
-> for you to fetch changes up to 775d2418f309052641d94c896f73dc779cf7ba1b:
->
->   ARM: dts: Fix muxing and regulator for wl12xx on the SDIO bus for blaze (2013-09-18 11:14:42 +0200)
->
-> ----------------------------------------------------------------
-> Fix BBB LDO voltage to avoid HDMI destruction
-> Fix OMAP5 wrong attribute
-> Fix typo in beagle xM strings
->
-> ----------------------------------------------------------------
-> Felipe Balbi (2):
->       ARM: dts: OMAP5: fix reg property size
->       ARM: dts: OMAP5: fix ocp2scp DTS data
->
-> Koen Kooi (1):
->       ARM: dts: am335x-bone*: add DT for BeagleBone Black
->
-> Robert Nelson (1):
->       ARM: dts: omap3-beagle-xm: fix string error in compatible property
->
-> Tony Lindgren (2):
->       ARM: dts: Fix muxing and regulator for wl12xx on the SDIO bus for pandaboard
->       ARM: dts: Fix muxing and regulator for wl12xx on the SDIO bus for blaze
->
->  arch/arm/boot/dts/Makefile                |   1 +
->  arch/arm/boot/dts/am335x-bone-common.dtsi | 262 ++++++++++++++++++++++++++++++
->  arch/arm/boot/dts/am335x-bone.dts         | 256 +----------------------------
->  arch/arm/boot/dts/am335x-boneblack.dts    |  17 ++
->  arch/arm/boot/dts/omap3-beagle-xm.dts     |   2 +-
->  arch/arm/boot/dts/omap4-panda-common.dtsi |  46 +++++-
->  arch/arm/boot/dts/omap4-sdp.dts           |  39 ++++-
->  arch/arm/boot/dts/omap5.dtsi              |   7 +-
->  8 files changed, 369 insertions(+), 261 deletions(-)
->  create mode 100644 arch/arm/boot/dts/am335x-bone-common.dtsi
->  create mode 100644 arch/arm/boot/dts/am335x-boneblack.dts
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The connecting of panels is moved very early in the the drm device's probe
+before anything else is initialized. When we enter omap_modeset_init(), we have
+a set of panels that have been connected. We now proceed with registering only
+those panels which are already connected.
 
-On July 5th, I sent the following patch
+Checking whether the panel has a driver or whether it has get_timing/read_edid
+ops in omap_modeset_init() are redundant with the new display model. These can
+be removed since a dssdev device will always have a driver associated with it,
+and all dssdev drivers have a get_timings op.
 
-    http://www.spinics.net/lists/linux-omap/msg96935.html
+This fixes boot with omapdrm on an omap4 panda ES board. The regulators used by
+HDMI aren't initialized because I2c isn't initialized, I2C isn't initialized
+as it's pins are not configured because pinctrl is yet to probe.
 
-and on Sep 10th I sent the same patch rebased with upstream and Acked
-by Javier. I consider this patch as a fix, as is required to make the
-sound work on IGEP boards but it's not included in this pull request.
-Maybe you forget it due your email change. Can you consider adding
-this patch, at least, in your next pull request? Thanks in advance.
+Signed-off-by: Archit Taneja <archit@ti.com>
+---
+ drivers/gpu/drm/omapdrm/omap_crtc.c |  5 ++++
+ drivers/gpu/drm/omapdrm/omap_drv.c  | 51 +++++++++++++++++++++----------------
+ drivers/gpu/drm/omapdrm/omap_drv.h  |  1 +
+ 3 files changed, 35 insertions(+), 22 deletions(-)
 
-Merci beaucoup,
-    Enric
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/gpu/drm/omapdrm/omap_crtc.c b/drivers/gpu/drm/omapdrm/omap_crtc.c
+index 0fd2eb1..9c01311 100644
+--- a/drivers/gpu/drm/omapdrm/omap_crtc.c
++++ b/drivers/gpu/drm/omapdrm/omap_crtc.c
+@@ -623,6 +623,11 @@ void omap_crtc_pre_init(void)
+ 	dss_install_mgr_ops(&mgr_ops);
+ }
+ 
++void omap_crtc_pre_uninit(void)
++{
++	dss_uninstall_mgr_ops();
++}
++
+ /* initialize crtc */
+ struct drm_crtc *omap_crtc_init(struct drm_device *dev,
+ 		struct drm_plane *plane, enum omap_channel channel, int id)
+diff --git a/drivers/gpu/drm/omapdrm/omap_drv.c b/drivers/gpu/drm/omapdrm/omap_drv.c
+index 2603d90..cbe5d8e 100644
+--- a/drivers/gpu/drm/omapdrm/omap_drv.c
++++ b/drivers/gpu/drm/omapdrm/omap_drv.c
+@@ -87,6 +87,24 @@ static bool channel_used(struct drm_device *dev, enum omap_channel channel)
+ 	return false;
+ }
+ 
++static int omap_connect_dssdevs(void)
++{
++	int r;
++	struct omap_dss_device *dssdev = NULL;
++
++	for_each_dss_dev(dssdev) {
++		r = dssdev->driver->connect(dssdev);
++		if (r == -EPROBE_DEFER) {
++			return r;
++		} else if (r) {
++			dev_warn(dssdev->dev, "could not connect display: %s\n",
++				dssdev->name);
++		}
++	}
++
++	return 0;
++}
++
+ static int omap_modeset_init(struct drm_device *dev)
+ {
+ 	struct omap_drm_private *priv = dev->dev_private;
+@@ -95,9 +113,6 @@ static int omap_modeset_init(struct drm_device *dev)
+ 	int num_mgrs = dss_feat_get_num_mgrs();
+ 	int num_crtcs;
+ 	int i, id = 0;
+-	int r;
+-
+-	omap_crtc_pre_init();
+ 
+ 	drm_mode_config_init(dev);
+ 
+@@ -119,26 +134,8 @@ static int omap_modeset_init(struct drm_device *dev)
+ 		enum omap_channel channel;
+ 		struct omap_overlay_manager *mgr;
+ 
+-		if (!dssdev->driver) {
+-			dev_warn(dev->dev, "%s has no driver.. skipping it\n",
+-					dssdev->name);
++		if (!omapdss_device_is_connected(dssdev))
+ 			continue;
+-		}
+-
+-		if (!(dssdev->driver->get_timings ||
+-					dssdev->driver->read_edid)) {
+-			dev_warn(dev->dev, "%s driver does not support "
+-				"get_timings or read_edid.. skipping it!\n",
+-				dssdev->name);
+-			continue;
+-		}
+-
+-		r = dssdev->driver->connect(dssdev);
+-		if (r) {
+-			dev_err(dev->dev, "could not connect display: %s\n",
+-					dssdev->name);
+-			continue;
+-		}
+ 
+ 		encoder = omap_encoder_init(dev, dssdev);
+ 
+@@ -656,9 +653,19 @@ static void pdev_shutdown(struct platform_device *device)
+ 
+ static int pdev_probe(struct platform_device *device)
+ {
++	int r;
++
+ 	if (omapdss_is_initialized() == false)
+ 		return -EPROBE_DEFER;
+ 
++	omap_crtc_pre_init();
++
++	r = omap_connect_dssdevs();
++	if (r) {
++		omap_crtc_pre_uninit();
++		return r;
++	}
++
+ 	DBG("%s", device->name);
+ 	return drm_platform_init(&omap_drm_driver, device);
+ }
+diff --git a/drivers/gpu/drm/omapdrm/omap_drv.h b/drivers/gpu/drm/omapdrm/omap_drv.h
+index 30b95b7..cb86cb3 100644
+--- a/drivers/gpu/drm/omapdrm/omap_drv.h
++++ b/drivers/gpu/drm/omapdrm/omap_drv.h
+@@ -158,6 +158,7 @@ enum omap_channel omap_crtc_channel(struct drm_crtc *crtc);
+ int omap_crtc_apply(struct drm_crtc *crtc,
+ 		struct omap_drm_apply *apply);
+ void omap_crtc_pre_init(void);
++void omap_crtc_pre_uninit(void);
+ struct drm_crtc *omap_crtc_init(struct drm_device *dev,
+ 		struct drm_plane *plane, enum omap_channel channel, int id);
+ 
+-- 
+1.8.1.2
+
