@@ -1,46 +1,52 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 2/2] RX-51: ARM errata 430973 workaround
-Date: Wed, 18 Sep 2013 11:21:46 -0700
-Message-ID: <20130918182144.GY9994@atomide.com>
-References: <1362044548-5398-1-git-send-email-pali.rohar@gmail.com>
- <201309181033.24965@pali>
- <20130918171816.GT9994@atomide.com>
- <201309182013.52975@pali>
+Subject: Re: [RFC PATCH 0/4] cpsw: support for control module register
+Date: Wed, 18 Sep 2013 11:49:32 -0700
+Message-ID: <20130918184931.GA9994@atomide.com>
+References: <1378639438-27686-1-git-send-email-mugunthanvnm@ti.com>
+ <522D8DB8.5050305@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <201309182013.52975@pali>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
-Cc: linux-kernel@vger.kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, Nishanth Menon <nm@ti.com>, Pavel Machek <pavel@ucw.cz>, Peter De Schrijver <pdeschrijver@nvidia.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Ivaylo Dimitrov <freemangordon@abv.bg>
+In-Reply-To: <522D8DB8.5050305@gmail.com>
+Sender: netdev-owner@vger.kernel.org
+To: Daniel Mack <zonque@gmail.com>
+Cc: Mugunthan V N <mugunthanvnm@ti.com>, netdev@vger.kernel.org, davem@davemloft.net, bcousson@baylibre.com, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Pali Roh=C3=A1r <pali.rohar@gmail.com> [130918 11:21]:
-> On Wednesday 18 September 2013 19:18:17 Tony Lindgren wrote:
-> >=20
-> > Hmm hasn't there been pending comments until recently on your
-> > patches?
-> >=20
->=20
-> Since 10.07.2013 I do not have any emails for patch 2/2. If I=20
-> missed something from you, please resend me it.
+* Daniel Mack <zonque@gmail.com> [130909 02:06]:
+> On 08.09.2013 13:23, Mugunthan V N wrote:
+> > This patch series adds the support for configuring GMII_SEL register
+> > of control module to select the phy mode type and also to configure
+> > the clock source for RMII phy mode whether to use internal clock or
+> > the external clock from the phy itself.
+> > 
+> > Till now CPSW works as this configuration is done in U-Boot and carried
+> > over to the kernel. But during suspend/resume Control module tends to
+> > lose its configured value for GMII_SEL register in AM33xx PG1.0, so
+> > if CPSW is used in RMII or RGMII mode, on resume cpsw is not working
+> > as GMII_SEL register lost its configuration values.
+> > 
+> > The initial version of the patch is done by Daniel Mack but as per
+> > Tony's comment he wants it as a seperate driver as it is done in USB
+> > control module. I have created a seperate driver for the same and as
+> > the merge window is open now and no feature request is accepted I am
+> > submitting it as RFC for reviews.
+> 
+> Thanks for doing this. It's a somehow expensive approach of writing a
+> single 32bit register, but I agree it's cleaner to not have this code in
+> the cpsw driver directly.
 
-Sorry I noticed it only when looking at them again from "keep
-in my inbox for applying" or "mark as read and archive" point
-of view. So no other comments from me are pending.
-=20
-> > It seems that with the changes I suggested your patches should
-> > work for both legacy booting and DT based booting, so maybe
-> > just try to update them over next few weeks, let's say by
-> > -rc3 rather than wait 2 to 5 months? :) No need to test them
-> > currently on the DT based booting if you don't have that set
-> > up, just move the code out of the board-*.c file.
-> >=20
->=20
-> Ok, no problem. I will move code as you suggested.
+The main reason for doing that is because this register is in a
+separate omap SCM (System Control Module) and may need to be
+eventually a child of a SCM core driver. This is to avoid invalid
+PM dependencies between separate hardware modules as they can
+be clocked separately.
 
-Thanks,
+Most of the SCM registers can be already handled by using
+pinctrl-single driver, but it's not intended for using for
+transceivers etc that are not strictly pinctrl related.
+
+Regards,
 
 Tony
