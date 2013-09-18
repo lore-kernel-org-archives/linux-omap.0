@@ -1,97 +1,90 @@
-From: Grant Likely <grant.likely@linaro.org>
-Subject: Re: [PATCH] RFC: interrupt consistency check for OF GPIO IRQs
-Date: Tue, 17 Sep 2013 17:36:32 -0700
-Message-ID: <20130918003632.CBF48C42BC5@trevor.secretlab.ca>
-References: <1375101368-17645-1-git-send-email-linus.walleij@linaro.org>
- <CACxGe6uNJNMdZ1HYGgCtLM2t2TWGCR6btjOHVmP=vDXXvvFfRg@mail.gmail.com>
- <CACRpkdYjJL6FZwEbB7XLnb9QtjB=3LeE9Ny6KQ4PkM3zpdNqqg@mail.gmail.com>
- <344239800.bDEkDg48ZQ@avalon>
- <CACRpkdavR=fv+y1RCNfdgQypPuRbO6isOSwGsABDrYiGeMdyZw@mail.gmail.com>
- <52308C91.2000105@ahsoftware.de> <523096FE.8080901@collabora.co.uk>
- <5230AB6E.1070807@ahsoftware.de> <5231817F.8000901@ahsoftware.de>
- <5231934D.4060706@collabora.co.uk> <52319741.5050407@ahsoftware.de>
- <5231A0F8.1070505@ahsoftware.de> <5231A4FE.1070704@ahsoftware.de>
- <5231A791.9080600@ahsoftware.de> <5231DB88.90605@wwwdotorg.org>
- <5231E44C.9070800@ahsoftware.de>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 02/11] omapdss: HDMI: create a HDMI PLL library
+Date: Wed, 18 Sep 2013 10:00:08 +0300
+Message-ID: <52394F78.5010603@ti.com>
+References: <1379401597-27222-1-git-send-email-archit@ti.com> <1379401597-27222-3-git-send-email-archit@ti.com> <20130917093813.27384.67975@quantum> <523828A7.8050204@ti.com> <CAPtuhTh-6JJnpqp=0FCQqkPS2yBUmj7-zniY4vRQR9xq+t8htg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <5231E44C.9070800@ahsoftware.de>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Alexander Holler <holler@ahsoftware.de>, Stephen Warren <swarren@wwwdotorg.org>
-Cc: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Kevin Hilman <khilman@linaro.org>, Balaji T K <balajitk@ti.com>, Enric Balletbo i Serra <eballetbo@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Jon Hunter <jgchunter@gmail.com>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Linux-OMAP <linux-omap@vger.kernel.org>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="jcbHqcPmgPNHXsqgSLuiafsd29wn9nloi"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:45932 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751652Ab3IRHAM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 18 Sep 2013 03:00:12 -0400
+In-Reply-To: <CAPtuhTh-6JJnpqp=0FCQqkPS2yBUmj7-zniY4vRQR9xq+t8htg@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Mike Turquette <mturquette@linaro.org>
+Cc: Archit Taneja <archit@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-fbdev@vger.kernel.org
 
-On Thu, 12 Sep 2013 17:57:00 +0200, Alexander Holler <holler@ahsoftware.de> wrote:
-> Am 12.09.2013 17:19, schrieb Stephen Warren:
-> >
-> > IRQs, DMA channels, and GPIOs are all different things. Their bindings
-> > are defined independently. While it's good to define new types of
-> > bindings consistently with other bindings, this hasn't always happened,
-> > so you can make zero assumptions about the IRQ bindings by reading the
-> > documentation for any other kind of binding.
-> >
-> > Multiple interrupts are defined as follows:
-> >
-> > 	// Optional; otherwise inherited from parent/grand-parent/...
-> > 	interrupt-parent = <&gpio6>;
-> > 	// Must be in a fixed order, unless binding defines that the
-> > 	// optional interrupt-names property is to be used.
-> > 	interrupts = <1 IRQF_TRIGGER_HIGH> <2 IRQF_TRIGGER_LOW>;
-> > 	// Optional; binding for device defines whether it must
-> > 	// be present
-> > 	interrupt-names = "foo", "bar";
-> >
-> > If you need multiple interrupts, each with a different parent, you need
-> > to use an interrupt-map property (Google it for a more complete
-> > explanation I guess). Unlike "interrupts", "interrupt-map" has a phandle
-> > in each entry, and hence each entry can refer to a different IRQ
-> > controller. You end up defining a dummy interrupt controller node (which
-> > may be the leaf node with multiple IRQ outputs, which then points at
-> > itself as the interrupt parent), pointing the leaf node's
-> > interrupt-parent at that node, and then having interrupt-map "demux" the
-> > N interrupt outputs to the various interrupt controllers.
-> 
-> What a mess. I assume that is the price that bindings don't have to change.
-> 
-> Thanks for clarifying that,
-> 
-> Alexander Holler
+--jcbHqcPmgPNHXsqgSLuiafsd29wn9nloi
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-Actually, I think it is solveable but doing so requires a new binding
-for interrupts. I took a shot at implementing it earlier this week and
-I've got working patches that I'll be posting soon. I created a new
-"interrupts-extended" property that uses a phandle+args type of
-binding like this:
+On 17/09/13 22:40, Mike Turquette wrote:
 
-intc1: intc@1000 {
-	interrupt-controller;
-	#interrupt-cells = <1>;
-};
+> I hope that the existing CLK_SET_RATE_PARENT flag could help you get
+> the frequency you need; it causes a call to clk_set_rate(leaf_clk,
+> target_rate) to walk up the chain of parents and configure rates as
+> needed.
 
-intc2: intc@2000 {
-	interrupt-controller;
-	#interrupt-cells = <2>;
-};
+Hmm, I'm not quite sure what that does, but it doesn't sound like it
+would help. The only way I know to find good clocks is to iterate over
+the dividers for each clock on the path.
 
-device@3000 {
-	interrupts-extended = <&intc1 5> <&intc2 3 4> <&intc1 6>;
-};
+And to complicate things, clocks from the "middle" of the path are used
+for some purposes, so it's not only the final clock that we're
+interested in.
 
-'interrupts-extended' will be proposed as a directly replacement of the
-'interrupts' property and it will eliminate the need for an
-interrupt-map property. A node will be allowed to have one or the other,
-but not both.
+For example, DSI: DSI PLL produces a high freq clock that goes to DSI
+PHY. That one is used for the DSI bus clock. The high freq clock from
+DSI PLL also goes to two dividers, of which one goes to DSI IP, and the
+second goes to DISPC. DISPC clock is then divided with two dividers in
+row, and the resulting clock goes also to DSI IP.
 
-I'll write up a proper binding document and post for review.
+All those different clocks have restrictions and dependencies to each
+other, like this one needs to be higher than that one, or ClkA =3D N *
+ClkB, etc.
 
-g.
+> However I have been looking at standardizing a way to define clock
+> rate tables, possibly in DT. In many cases it is a board-specific
+> issue (e.g. different oscillators or other reference clocks that feed
+> into the SoC) and specifying rate tables in DT is one way to store
+> known-good configurations for complex clock subtrees.
+
+Well, for some boards, which only have an LCD, we could probably get the
+clock from a table. But if the display used (say, external monitor)
+supports multiple resolutions, such a table is not feasible. We could
+have some clocks there in the table, but we'd still need a dynamic way
+to figure out the dividers for other clock rates.
+
+ Tomi
+
+
+
+--jcbHqcPmgPNHXsqgSLuiafsd29wn9nloi
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJSOU94AAoJEPo9qoy8lh71bsoP/A7yJSVHHoXtCT+0Scn7BYOD
+zJ60R3bpOjtMRQOn+3bHAxvM8e53OwtoQx0tx+5t44/iLLWSaFONsptRbOlxmFlg
+GAwqMdNE0uUERugXbF21KDCHXWlMThlepj/c/tuCwekgnijTyVx3dQ1FKk298rXI
+DR0DNmJ+kVHVn0avgjSjULbtZEWsPVyiINMZ4PSeQIwIYls00F3R39R9tx56HZPs
+T/ZMPR9uk0CYJDO0jt64+nzlr13OhrAfzwEw2JbXqjLPibRtisj/VinOPPeJnqpx
+t+kGTAX7j5Coygve8UQ4fDllKO21Kt9ZXy2oRMCoP0imw8uaoUMR+CCzX7DVbFFf
+3ufXMF5INMOZhYtvwqS2nZFM15BWui4Y0u4pEX0B/KAROVOa/pAJdJDx07BAh8Dy
+SsI0IqvRUcVleSay87pSaxaBKAtBxktMmnYRzT8YYKYIpMSptjBv2jMoLXCAymZv
+0oHrNqugyg3LoT7+SX2vQyPYs4cUdCIFoPcoE0Qhe7adp/ZQdCO9frOPDsXe68Oz
+943h4OB7onBDZy0MWd5Lw6o3LBriBJ9K6+Fz9akcE+klee218H5wjNRpiZPNgODe
+TkpbVKMYN8cvK3OmXityPTWiAc5e86g0hI8SLiWsoCeDIkrXncJ0eJn6gwEAC8JZ
+XnvQRIjv4LjuzolWRZac
+=mw5u
+-----END PGP SIGNATURE-----
+
+--jcbHqcPmgPNHXsqgSLuiafsd29wn9nloi--
