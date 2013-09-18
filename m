@@ -1,42 +1,50 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2] ADP1653 board code for Nokia RX-51
-Date: Wed, 18 Sep 2013 10:45:21 -0700
-Message-ID: <20130918174520.GV9994@atomide.com>
-References: <201302171616.50152@pali>
- <20130217190303.GC2317@blackmetal.musicnaut.iki.fi>
- <201303062112.06417@pali>
- <201309062234.05878@pali>
- <20130907230252.GA10700@blackmetal.musicnaut.iki.fi>
- <20130917235028.GR9994@atomide.com>
- <CAAwP0s3MBd58Q9wijQP9Nd_DB4GdicE-b427cHS-UXYS4HW-Jg@mail.gmail.com>
+Subject: Re: [PATCH 1/2] ARM: dts: Fix muxing and regulator for wl12xx on
+ the SDIO bus for pandaboard
+Date: Wed, 18 Sep 2013 10:51:59 -0700
+Message-ID: <20130918175158.GW9994@atomide.com>
+References: <20130913190811.24617.97699.stgit@localhost>
+ <20130913190953.24617.46506.stgit@localhost>
+ <1379399214.4223.123.camel@porter.coelho.fi>
+ <1379399290.4223.124.camel@porter.coelho.fi>
+ <20130918000203.GS9994@atomide.com>
+ <52396CA0.6030100@baylibre.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:48895 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751739Ab3IRRwP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Sep 2013 13:52:15 -0400
 Content-Disposition: inline
-In-Reply-To: <CAAwP0s3MBd58Q9wijQP9Nd_DB4GdicE-b427cHS-UXYS4HW-Jg@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Javier Martinez Canillas <martinez.javier@gmail.com>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux Kernel <linux-kernel@vger.kernel.org>
+In-Reply-To: <52396CA0.6030100@baylibre.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Benoit Cousson <bcousson@baylibre.com>
+Cc: Luca Coelho <luca@coelho.fi>, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, Rajendra Nayak <rnayak@ti.com>, Paolo Pisati <p.pisati@gmail.com>, linux-omap@vger.kernel.org
 
-* Javier Martinez Canillas <martinez.javier@gmail.com> [130918 07:20]:
-> 
+* Benoit Cousson <bcousson@baylibre.com> [130918 02:12]:
 > Hi Tony,
 > 
-> I don't know if OMAP2+ DT will happen soon as you said. At least I
-> know about a big issue we had with GPIO pins not being auto-requested
-> when are mapped as IRQ. You can refer to [1] for the latest approach
-> and how this discussion have been going.
+> On 18/09/2013 02:02, Tony Lindgren wrote:
+> >* Luca Coelho <luca@coelho.fi> [130916 23:35]:
+> >>On Tue, 2013-09-17 at 09:26 +0300, Luca Coelho wrote:
+> >>>Both patches look good to me, though I didn't have the time to retest
+> >>>them.
+> >>
+> >>Actually I don't even have a Blaze device anymore, so I can't really
+> >>test the second patch. :(
+> >
+> >OK no problem, I've tested it on panda es.
 > 
-> This is something that we have been trying to solve for a couple of
-> kernel releases by now so it would be great if you can join the
-> discussion.
+> Do we have someone out-there that still own a Blaze?
+> 
+> Anyway, I'm about to send a DTS fix branch for -rc2, so I'll include
+> these two patches.
 
-Yes I'm painfully aware of that mess too, that needs to be
-sorted out for sure.
+OK yes good please do pick them up, I'll drop them from my
+not-yet-pushed-out omap-for-v3.12/fixes.
 
 Regards,
 
 Tony
- 
-> [1]: https://lkml.org/lkml/2013/8/26/260
