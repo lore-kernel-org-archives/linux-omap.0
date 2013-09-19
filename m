@@ -1,70 +1,40 @@
-From: Archit Taneja <archit@ti.com>
-Subject: [PATCH 2/2] drm: omap: disconnect devices when omapdrm module is removed
-Date: Thu, 19 Sep 2013 14:19:45 +0530
-Message-ID: <1379580585-18364-1-git-send-email-archit@ti.com>
-References: <1379502502-8781-1-git-send-email-archit@ti.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: 3.12-rc1: no longer compiles for Nokia n900 (omap based)
+Date: Thu, 19 Sep 2013 11:30:02 +0200
+Message-ID: <20130919093002.GA23806@amd.pavel.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:54730 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751804Ab3ISIuk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 19 Sep 2013 04:50:40 -0400
-In-Reply-To: <1379502502-8781-1-git-send-email-archit@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: will.deacon@arm.com, catalin.marinas@arm.com
 List-Id: linux-omap@vger.kernel.org
-To: robdclark@gmail.com, tomi.valkeinen@ti.com
-Cc: linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org, Archit Taneja <archit@ti.com>
 
-omapdrm established connections for omap_dss_device devices when probed. It
-should also be responsible to disconnect the devices. Keeping the devices
-connected can prevent the panel driver modules from unloading, it can also
-cause problems when omapdrm is re-inserted.
+Hi!
 
-Signed-off-by: Archit Taneja <archit@ti.com>
----
- drivers/gpu/drm/omapdrm/omap_drv.c | 14 ++++++++++----
- 1 file changed, 10 insertions(+), 4 deletions(-)
+I get:
 
-diff --git a/drivers/gpu/drm/omapdrm/omap_drv.c b/drivers/gpu/drm/omapdrm/omap_drv.c
-index 45fbb1c..44a1203 100644
---- a/drivers/gpu/drm/omapdrm/omap_drv.c
-+++ b/drivers/gpu/drm/omapdrm/omap_drv.c
-@@ -86,6 +86,13 @@ static bool channel_used(struct drm_device *dev, enum omap_channel channel)
- 
- 	return false;
- }
-+static void omap_disconnect_dssdevs(void)
-+{
-+	struct omap_dss_device *dssdev = NULL;
-+
-+	for_each_dss_dev(dssdev)
-+		dssdev->driver->disconnect(dssdev);
-+}
- 
- static int omap_connect_dssdevs(void)
- {
-@@ -110,10 +117,7 @@ cleanup:
- 	 * if we are deferring probe, we disconnect the devices we previously
- 	 * connected
- 	 */
--	dssdev = NULL;
--
--	for_each_dss_dev(dssdev)
--		dssdev->driver->disconnect(dssdev);
-+	omap_disconnect_dssdevs();
- 
- 	return r;
- }
-@@ -688,6 +692,8 @@ static int pdev_remove(struct platform_device *device)
- 	DBG("");
- 	drm_platform_exit(&omap_drm_driver, device);
- 
-+	omap_disconnect_dssdevs();
-+
- 	platform_driver_unregister(&omap_dmm_driver);
- 	return 0;
- }
+  CC      arch/arm/kernel/machine_kexec.o
+/tmp/ccCFXeXG.s: Assembler messages:
+/tmp/ccCFXeXG.s:217: Error: garbage following instruction -- `dsb
+nshst'
+/tmp/ccCFXeXG.s:225: Error: garbage following instruction -- `dsb nsh'
+make[1]: *** [arch/arm/kernel/suspend.o] Error 1
+make[1]: *** Waiting for unfinished jobs....
+
+pavel@amd:/data/l/linux-n900$ arm-linux-gnueabi-gcc --version
+arm-linux-gnueabi-gcc (Debian 4.3.5-4) 4.3.5
+
+Minimum required gcc is 3.2, so I'm safe.
+
+I suspect
+
+commit 62cbbc42e0019aff6310259f275ae812463f8836
+Author: Will Deacon <will.deacon@arm.com>
+Date:   Thu May 23 18:43:58 2013 +0100
+
+								Pavel
 -- 
-1.8.1.2
-
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
