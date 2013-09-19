@@ -1,36 +1,106 @@
-From: "Sarha, Jyri" <jsarha-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH v3 07/11] ASoC: tlv320aic3x: Add regulators to DT
- bindings document
-Date: Thu, 19 Sep 2013 13:45:19 +0000
-Message-ID: <0EB243F40EB34A418EAED8001C4B3AD019E84292@DNCE05.ent.ti.com>
-References: <cover.1379590035.git.jsarha@ti.com>
- <1b88bfa3793d807ff6e325df1bbff6cb4eb976e6.1379590036.git.jsarha@ti.com>,<20130919132955.GS21013@sirena.org.uk>
+From: Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
+Subject: Re: [RFC PATCH 15/15] arm: dts: dra7: add sata node
+Date: Thu, 19 Sep 2013 18:11:09 +0400
+Message-ID: <523B05FD.7020200@cogentembedded.com>
+References: <1379595943-14622-1-git-send-email-rogerq@ti.com> <1379597059-15405-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20130919132955.GS21013-GFdadSzt00ze9xe1eoZjHA@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <1379597059-15405-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org" <alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Ujfalusi, Peter" <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, "liam.r.girdwood-VuQAYsv1563Yd54FQh9/CA@public.gmane.org" <liam.r.girdwood-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org" <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, "Fernandes, Joel" <joelf-l0cyMroinI0@public.gmane.org>
+To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Cc: balbi-l0cyMroinI0@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, balajitk-l0cyMroinI0@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-ide-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-No change here either.
+Hello.
 
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+On 09/19/2013 05:24 PM, Roger Quadros wrote:
 
-________________________________________
-From: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] on behalf of Mark Brown [broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org]
-Sent: Thursday, September 19, 2013 4:29 PM
-To: Sarha, Jyri
-Cc: alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org; devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Ujfalusi, Peter; liam.r.girdwood-VuQAYsv1563Yd54FQh9/CA@public.gmane.org; grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org; rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org; Fernandes, Joel
-Subject: Re: [PATCH v3 07/11] ASoC: tlv320aic3x: Add regulators to DT bindings document
+> From: Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>
 
-On Thu, Sep 19, 2013 at 02:29:40PM +0300, Jyri Sarha wrote:
-> Add regulator properties to tlv320aic3x DT bindings document.
+> Add support for sata controller.
 
-Similarly for this and the other CODEC patch, are these changed?
+> [Roger Q] Clean up.
+
+> CC: Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+> ---
+>   arch/arm/boot/dts/dra7.dtsi |   49 +++++++++++++++++++++++++++++++++++++++++++
+>   1 files changed, 49 insertions(+), 0 deletions(-)
+
+> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+> index ce9a0f0..545545d 100644
+> --- a/arch/arm/boot/dts/dra7.dtsi
+> +++ b/arch/arm/boot/dts/dra7.dtsi
+> @@ -426,6 +426,55 @@
+>   			dma-names = "tx", "rx";
+>   		};
+>
+> +		omap_control_sata: control-phy@4a002374 {
+> +			compatible = "ti,control-phy-pipe3";
+> +			reg = <0x4a002374 0x4>;
+> +			reg-names = "power";
+> +			clocks = <&sys_clkin1>;
+> +			clock-names = "sysclk";
+> +		};
+> +
+> +		ocp2scp3: ocp2scp3@4a090000 {
+> +			compatible = "ti,omap-ocp2scp";
+> +			#address-cells = <1>;
+> +			#size-cells = <1>;
+> +			ranges;
+> +			ti,hwmods = "ocp2scp3";
+> +			reg = <0x4a090000 0x1f>; /* ocp2scp3 */
+> +			reg-names = "ocp2scp3";
+> +			sata_phy: sataphy@4A096000 {
+
+    It's better to name the PHY nodes uniformly after already standard 
+"ethernet-phy" and your "control-phy".
+
+> +				compatible = "ti,phy-pipe3-sata";
+> +				reg = <0x4A096000 0x80>, /* phy_rx */
+> +				      <0x4A096400 0x64>, /* phy_tx */
+> +				      <0x4A096800 0x40>; /* pll_ctrl */
+> +				reg-names = "phy_rx", "phy_tx", "pll_ctrl";
+> +				ctrl-module = <&omap_control_sata>;
+> +				clocks = <&sata_ref_clk>,
+> +					 <&sys_clkin1>;
+> +				clock-names = "optclk", "sysclk";
+> +				#phy-cells = <0>;
+> +			};
+> +		};
+> +
+> +		sata: sata@4a141100 {
+> +			compatible = "ti,sata";
+> +			ti,hwmods = "sata";
+> +			reg = <0x4a141100 0x7>;
+> +			#address-cells = <1>;
+> +			#size-cells = <1>;
+> +			ranges;
+> +			dwc-ahci@4a140000 {
+
+    Hm, ePAPR spec. [1] says that "the name of a node should be somewhat 
+generic, reflecting the function of the device and not its precise programming 
+model", so it looks like the name should be "sata" as well. I'm a bit at a 
+loss here, not sure why you had to use the nested device nodes.
+
+> +				  compatible = "snps,dwc-ahci";
+> +				  reg = <0x4a140000 0x1100>;
+> +				  interrupts = <0 54 0x4>;
+> +				  phys = <&sata_phy>;
+
+    Hm, it's the third PHY related generic property I'm encountering. First, 
+there was "phy-handle", then "phy", now "phys"... Seems like a bit too much. :-)
+
+> +				  phy-names = "sata-phy";
+> +				  clocks = <&sata_ref_clk>;
+> +				  clock-names = "optclk";
+> +			};
+> +		};
+
+[1] http://www.power.org/resources/downloads/Power_ePAPR_APPROVED_v1.0.pdf
 
 --
 To unsubscribe from this list: send the line "unsubscribe devicetree" in
