@@ -1,91 +1,76 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: Re: [PATCH v2] ADP1653 board code for Nokia RX-51
-Date: Fri, 20 Sep 2013 00:30:36 +0200
-Message-ID: <201309200030.36606@pali>
-References: <201302171616.50152@pali> <201309181800.10486@pali> <20130918174211.GU9994@atomide.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart1913957.UXcQHdPmhg";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130918174211.GU9994@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Pavel Machek <pavel@ucw.cz>, Aaro Koskinen <aaro.koskinen@iki.fi>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Russell King <rmk+kernel-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
+Subject: [PATCH 08/51] DMA-API: net: intel/ixgbevf: fix 32-bit DMA mask
+ handling
+Date: Thu, 19 Sep 2013 22:32:59 +0100
+Message-ID: <E1VMlqN-0007fw-MQ@rmk-PC.arm.linux.org.uk>
+References: <20130919212235.GD12758@n2100.arm.linux.org.uk>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20130919212235.GD12758-l+eeeJia6m9vn6HldHNs0ANdhmdF6hFW@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, b43-dev-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, e1000-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-crypto-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-ide-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Solarflare linux maintainers <linux-net-drivers-s/n/eUQHGBpZroRs9YW3xA@public.gmane.org>, uclinux-dist-devel-ZG0+EudsQA8dtHy/vicBwGD2FQJk+8+b@public.gmane.org
+Cc: Jeff Kirsher <jeffrey.t.kirsher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jesse Brandeburg <jesse.brandeburg-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Bruce Allan <bruce.w.allan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Carolyn Wyborny <carolyn.wyborny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Don Skidmore <donald.c.skidmore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Greg Rose <gregory.v.rose-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Peter P Waskiewicz Jr <peter.p.waskiewicz.jr-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Alex Duyck <alexander.h.duyck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, John Ronciak <john.ronciak-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tushar Dave <tushar.n.dave-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
---nextPart1913957.UXcQHdPmhg
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+The fallback to 32-bit DMA mask is rather odd:
+	if (!dma_set_mask(&pdev->dev, DMA_BIT_MASK(64)) &&
+	    !dma_set_coherent_mask(&pdev->dev, DMA_BIT_MASK(64))) {
+		pci_using_dac = 1;
+	} else {
+		err = dma_set_mask(&pdev->dev, DMA_BIT_MASK(32));
+		if (err) {
+			err = dma_set_coherent_mask(&pdev->dev,
+						    DMA_BIT_MASK(32));
+			if (err) {
+				dev_err(&pdev->dev, "No usable DMA "
+					"configuration, aborting\n");
+				goto err_dma;
+			}
+		}
+		pci_using_dac = 0;
+	}
+This means we only set the coherent DMA mask in the fallback path if
+the DMA mask set failed, which is silly.  This fixes it to set the
+coherent DMA mask only if dma_set_mask() succeeded, and to error out
+if either fails.
 
-On Wednesday 18 September 2013 19:42:12 Tony Lindgren wrote:
-> * Pali Roh=C3=A1r <pali.rohar@gmail.com> [130918 09:08]:
-> > On Wednesday 18 September 2013 15:16:44 Pavel Machek wrote:
-> > > On Sun 2013-09-08 02:02:52, Aaro Koskinen wrote:
-> > > > Hi,
-> > > >=20
-> > > > On Fri, Sep 06, 2013 at 10:34:05PM +0200, Pali Roh=C3=A1r=20
-wrote:
-> > > > > > --- /dev/null
-> > > > > > +++ b/arch/arm/mach-omap2/board-rx51-camera.c
-> > > >=20
-> > > > [...]
-> > > >=20
-> > > > > Ping, can you review this patch v2?
-> > > >=20
-> > > > I don't think Tony will accept any new board stuff for
-> > > > RX-51/N900. See for example:
-> > > > http://marc.info/?l=3Dlinux-kernel&m=3D137629626213187&w=3D2
-> > > >=20
-> > > > There should be initial Nokia N900 DTS file in 3.12-rc1,
-> > > > and we should continue converting this board fully to
-> > > > DT.
-> > >=20
-> > > That's not reasonable. N900 is pretty far away from
-> > > working with device tree. Yes, I was able to get some
-> > > bits merged, but that should not be excuse to halt other
-> > > N900 development.
-> > >=20
-> > > 									Pavel
-> >=20
-> > Right. So Tony, will you accept future patches for board
-> > files?
->=20
-> Only fixes to board-*.c files please unless there's a _really_
-> good reason to make things more complex with the platform
-> data. Let's not make the DT conversion any more complex than
-> it already is.
->=20
-> Getting things working with DT for the devices is pretty
-> trivial in most cases. And we can also still initialize the
-> legacy devices using platform data the same way as earlier.
->=20
-> Regards,
->=20
-> Tony
+Signed-off-by: Russell King <rmk+kernel-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
+---
+ drivers/net/ethernet/intel/ixgbevf/ixgbevf_main.c |   15 +++++----------
+ 1 files changed, 5 insertions(+), 10 deletions(-)
 
-So, what to this with this patch v2 (it was sent 06.03.2013)?
-It adding board support for ADP1653 flash torch which is part of=20
-rx51 camera code. Driver itself is already in kernel tree.
-Can you comment/review this patch?
+diff --git a/drivers/net/ethernet/intel/ixgbevf/ixgbevf_main.c b/drivers/net/ethernet/intel/ixgbevf/ixgbevf_main.c
+index 59a62bb..e34c2da 100644
+--- a/drivers/net/ethernet/intel/ixgbevf/ixgbevf_main.c
++++ b/drivers/net/ethernet/intel/ixgbevf/ixgbevf_main.c
+@@ -3326,19 +3326,14 @@ static int ixgbevf_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
+ 	if (err)
+ 		return err;
+ 
+-	if (!dma_set_mask(&pdev->dev, DMA_BIT_MASK(64)) &&
+-	    !dma_set_coherent_mask(&pdev->dev, DMA_BIT_MASK(64))) {
++	if (!dma_set_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(64))) {
+ 		pci_using_dac = 1;
+ 	} else {
+-		err = dma_set_mask(&pdev->dev, DMA_BIT_MASK(32));
++		err = dma_set_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(32));
+ 		if (err) {
+-			err = dma_set_coherent_mask(&pdev->dev,
+-						    DMA_BIT_MASK(32));
+-			if (err) {
+-				dev_err(&pdev->dev, "No usable DMA "
+-					"configuration, aborting\n");
+-				goto err_dma;
+-			}
++			dev_err(&pdev->dev, "No usable DMA "
++				"configuration, aborting\n");
++			goto err_dma;
+ 		}
+ 		pci_using_dac = 0;
+ 	}
+-- 
+1.7.4.4
 
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
-
---nextPart1913957.UXcQHdPmhg
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEABECAAYFAlI7ewwACgkQi/DJPQPkQ1KZFQCdF+ViNJED0rKazmWMma3/9njl
-460Anir8BP0ic13HPOJuFmVTa4mvIv6e
-=siwo
------END PGP SIGNATURE-----
-
---nextPart1913957.UXcQHdPmhg--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
