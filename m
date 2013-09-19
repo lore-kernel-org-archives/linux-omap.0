@@ -1,78 +1,37 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/2] ARM: dts: Fix muxing and regulator for wl12xx on
- the SDIO bus for pandaboard
-Date: Thu, 19 Sep 2013 07:53:45 -0700
-Message-ID: <20130919145344.GM9994@atomide.com>
-References: <20130913190811.24617.97699.stgit@localhost>
- <20130913190953.24617.46506.stgit@localhost>
- <1379399214.4223.123.camel@porter.coelho.fi>
- <1379399290.4223.124.camel@porter.coelho.fi>
- <20130918000203.GS9994@atomide.com>
- <52396CA0.6030100@baylibre.com>
- <20130918175158.GW9994@atomide.com>
- <20130918234726.GL9994@atomide.com>
- <1379569391.4223.148.camel@porter.coelho.fi>
+From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 0/2] ARM: dts: dra7-evm: add support for sd, eMMC
+Date: Thu, 19 Sep 2013 10:20:58 -0500
+Message-ID: <523B165A.5020006@ti.com>
+References: <1377525218-7655-1-git-send-email-balajitk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:55374 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751984Ab3ISOx6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Sep 2013 10:53:58 -0400
-Content-Disposition: inline
-In-Reply-To: <1379569391.4223.148.camel@porter.coelho.fi>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1377525218-7655-1-git-send-email-balajitk-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Luca Coelho <luca@coelho.fi>
-Cc: Benoit Cousson <bcousson@baylibre.com>, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, Rajendra Nayak <rnayak@ti.com>, Paolo Pisati <p.pisati@gmail.com>, linux-omap@vger.kernel.org
 
-* Luca Coelho <luca@coelho.fi> [130918 22:50]:
-> On Wed, 2013-09-18 at 16:47 -0700, Tony Lindgren wrote:
-> > * Tony Lindgren <tony@atomide.com> [130918 11:00]:
-> > > * Benoit Cousson <bcousson@baylibre.com> [130918 02:12]:
-> > > > Hi Tony,
-> > > > 
-> > > > On 18/09/2013 02:02, Tony Lindgren wrote:
-> > > > >* Luca Coelho <luca@coelho.fi> [130916 23:35]:
-> > > > >>On Tue, 2013-09-17 at 09:26 +0300, Luca Coelho wrote:
-> > > > >>>Both patches look good to me, though I didn't have the time to retest
-> > > > >>>them.
-> > > > >>
-> > > > >>Actually I don't even have a Blaze device anymore, so I can't really
-> > > > >>test the second patch. :(
-> > > > >
-> > > > >OK no problem, I've tested it on panda es.
-> > > > 
-> > > > Do we have someone out-there that still own a Blaze?
-> > > > 
-> > > > Anyway, I'm about to send a DTS fix branch for -rc2, so I'll include
-> > > > these two patches.
-> > > 
-> > > OK yes good please do pick them up, I'll drop them from my
-> > > not-yet-pushed-out omap-for-v3.12/fixes.
-> > 
-> > Hmm looks like there's also some new regression in the
-> > wl12xx driver:
-> > 
-> > # iwconfig wlan0
-> > wlan0     no wireless extensions.
-> > 
-> > My test script was just doing:
-> > 
-> > # iw dev wlan0 scan
-> > 
-> > And that works fine. Luca, any ideas?
+On 08/26/2013 08:53 AM, Balaji T K wrote:
+> Add mmc1, mmc2 dt node to dra7-evm
 > 
-> Have you compiled WEXT support in your kernel? iwconfig uses the
-> (deprecated) Wireless Extensions API.  iw uses the current nl80211 API.
+> Balaji T K (2):
+>   ARM: dts: dra7-evm: Add mmc1 node for micro-sd support
+>   ARM: dts: dra7-evm: Add mmc2 node for eMMC support
 > 
-> If you want to use iwconfig and friends you need to enable
-> CONFIG_CFG80211_WEXT.
+>  arch/arm/boot/dts/dra7-evm.dts |   20 ++++++++++++++++++++
+>  1 files changed, 20 insertions(+), 0 deletions(-)
+> 
+Series:
 
-OK thanks, I don't need to use iwconfig. Looks like the default
-changed in commit 10bab00af (cfg80211: deprecate CFG80211_WEXT).
+Acked-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
 
+Thanks. this is needed for MMC boot on DRA7 evm.
+-- 
 Regards,
-
-Tony
-
+Nishanth Menon
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
