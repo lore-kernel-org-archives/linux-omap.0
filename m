@@ -1,191 +1,113 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [RFC PATCH 05/15] phy: omap-pipe3: Add SATA DPLL support
-Date: Thu, 19 Sep 2013 16:05:33 +0300
-Message-ID: <1379595943-14622-6-git-send-email-rogerq@ti.com>
-References: <1379595943-14622-1-git-send-email-rogerq@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: PCF857x and 16-bit GPIO expanders
+Date: Thu, 19 Sep 2013 08:10:59 -0500
+Message-ID: <20130919131059.GD26101@radagast>
+References: <20130917190732.GD15645@radagast>
+ <CACRpkdYn8yaTyFJMaC3vK4kGrQsaZpAX=pyn5y33ers7QhQ_pg@mail.gmail.com>
+ <2356541.62QktiIBr5@avalon>
+ <20130918173636.GT21559@radagast>
+ <523AB235.1000808@ti.com>
+ <20130919124457.GB26101@radagast>
+ <523AF73D.5010106@ti.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1379595943-14622-1-git-send-email-rogerq@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: balbi@ti.com, bcousson@baylibre.com, tony@atomide.com
-Cc: balajitk@ti.com, kishon@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-ide@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="NklN7DEeGtkPCoo3"
+Return-path: <linux-gpio-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <523AF73D.5010106@ti.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: George Cherian <george.cherian@ti.com>
+Cc: balbi@ti.com, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Linus Walleij <linus.walleij@linaro.org>, Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>, Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-USB and SATA DPLLs need different settings. Provide
-the SATA DPLL settings and use the proper DPLL settings
-based on device tree compatible_id.
+--NklN7DEeGtkPCoo3
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Roger Quadros <rogerq@ti.com>
----
- drivers/phy/phy-omap-pipe3.c   |   82 ++++++++++++++++++++++++++--------------
- include/linux/phy/omap_pipe3.h |    6 +++
- 2 files changed, 60 insertions(+), 28 deletions(-)
+Hi,
 
-diff --git a/drivers/phy/phy-omap-pipe3.c b/drivers/phy/phy-omap-pipe3.c
-index 807ab8a..19d1664 100644
---- a/drivers/phy/phy-omap-pipe3.c
-+++ b/drivers/phy/phy-omap-pipe3.c
-@@ -58,29 +58,41 @@
-  */
- # define PLL_IDLE_TIME  100;
- 
--struct pipe3_dpll_map {
--	unsigned long rate;
--	struct pipe3_dpll_params params;
--};
--
--static struct pipe3_dpll_map dpll_map[] = {
-+static struct pipe3_dpll_map dpll_map_usb[] = {
- 	{12000000, {1250, 5, 4, 20, 0} },	/* 12 MHz */
- 	{16800000, {3125, 20, 4, 20, 0} },	/* 16.8 MHz */
- 	{19200000, {1172, 8, 4, 20, 65537} },	/* 19.2 MHz */
- 	{20000000, {1000, 7, 4, 10, 0} },	/* 20 MHz */
- 	{26000000, {1250, 12, 4, 20, 0} },	/* 26 MHz */
- 	{38400000, {3125, 47, 4, 20, 92843} },	/* 38.4 MHz */
-+	{ },					/* Terminator */
-+};
-+
-+static struct pipe3_dpll_map dpll_map_sata[] = {
-+	{12000000, {1000, 7, 4, 6, 0} },	/* 12 MHz */
-+	{16800000, {714, 7, 4, 6, 0} },		/* 16.8 MHz */
-+	{19200000, {625, 7, 4, 6, 0} },		/* 19.2 MHz */
-+	{20000000, {600, 7, 4, 6, 0} },		/* 20 MHz */
-+	{26000000, {461, 7, 4, 6, 0} },		/* 26 MHz */
-+	{38400000, {312, 7, 4, 6, 0} },		/* 38.4 MHz */
-+	{ },					/* Terminator */
- };
- 
--static struct pipe3_dpll_params *omap_pipe3_get_dpll_params(unsigned long rate)
-+static struct pipe3_dpll_params *omap_pipe3_get_dpll_params(struct omap_pipe3
-+									*pipe3)
- {
--	int i;
-+	unsigned long rate;
-+	struct pipe3_dpll_map *dpll_map = pipe3->dpll_map;
- 
--	for (i = 0; i < ARRAY_SIZE(dpll_map); i++) {
--		if (rate == dpll_map[i].rate)
--			return &dpll_map[i].params;
-+	rate = clk_get_rate(pipe3->sys_clk);
-+
-+	for (; dpll_map->rate; dpll_map++) {
-+		if (rate == dpll_map->rate)
-+			return &dpll_map->params;
- 	}
- 
-+	dev_err(pipe3->dev,
-+		  "No DPLL configuration for %lu Hz SYS CLK\n", rate);
- 	return 0;
- }
- 
-@@ -148,10 +160,8 @@ static int omap_pipe3_dpll_lock(struct omap_pipe3 *phy)
- 	struct pipe3_dpll_params *dpll_params;
- 
- 	rate = clk_get_rate(phy->sys_clk);
--	dpll_params = omap_pipe3_get_dpll_params(rate);
-+	dpll_params = omap_pipe3_get_dpll_params(phy);
- 	if (!dpll_params) {
--		dev_err(phy->dev,
--			  "No DPLL configuration for %lu Hz SYS CLK\n", rate);
- 		return -EINVAL;
- 	}
- 
-@@ -206,6 +216,25 @@ static struct phy_ops ops = {
- 	.owner		= THIS_MODULE,
- };
- 
-+#ifdef CONFIG_OF
-+static const struct of_device_id omap_pipe3_id_table[] = {
-+	{
-+		.compatible = "ti,omap-pipe3",
-+		.data = dpll_map_usb,
-+	},
-+	{
-+		.compatible = "ti,omap-sata",
-+		.data = dpll_map_sata,
-+	},
-+	{
-+		.compatible = "ti,omap-usb3",
-+		.data = dpll_map_usb,
-+	},
-+	{},
-+};
-+MODULE_DEVICE_TABLE(of, omap_pipe3_id_table);
-+#endif
-+
- static int omap_pipe3_probe(struct platform_device *pdev)
- {
- 	struct omap_pipe3 *phy;
-@@ -215,9 +244,7 @@ static int omap_pipe3_probe(struct platform_device *pdev)
- 	struct device_node *node = pdev->dev.of_node;
- 	struct device_node *control_node;
- 	struct platform_device *control_pdev;
--
--	if (!node)
--		return -EINVAL;
-+	const struct of_device_id *match;
- 
- 	phy = devm_kzalloc(&pdev->dev, sizeof(*phy), GFP_KERNEL);
- 	if (!phy) {
-@@ -225,6 +252,16 @@ static int omap_pipe3_probe(struct platform_device *pdev)
- 		return -ENOMEM;
- 	}
- 
-+	match = of_match_device(of_match_ptr(omap_pipe3_id_table), &pdev->dev);
-+	if (!match)
-+		return -EINVAL;
-+
-+	phy->dpll_map = (struct pipe3_dpll_map *)match->data;
-+	if (!phy->dpll_map) {
-+		dev_err(&pdev->dev, "no dpll data\n");
-+		return -EINVAL;
-+	}
-+
- 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "pll_ctrl");
- 	phy->pll_ctrl_base = devm_ioremap_resource(&pdev->dev, res);
- 	if (IS_ERR(phy->pll_ctrl_base))
-@@ -354,17 +391,6 @@ static const struct dev_pm_ops omap_pipe3_pm_ops = {
- #define DEV_PM_OPS     NULL
- #endif
- 
--#ifdef CONFIG_OF
--static const struct of_device_id omap_pipe3_id_table[] = {
--	{ .compatible = "ti,omap-pipe3" },
--	{ .compatible = "ti,omap-sata" },
--	{ .compatible = "ti,omap-pcie" },
--	{ .compatible = "ti,omap-usb3" },
--	{}
--};
--MODULE_DEVICE_TABLE(of, omap_pipe3_id_table);
--#endif
--
- static struct platform_driver omap_pipe3_driver = {
- 	.probe		= omap_pipe3_probe,
- 	.remove		= omap_pipe3_remove,
-diff --git a/include/linux/phy/omap_pipe3.h b/include/linux/phy/omap_pipe3.h
-index 7329056..86825ca 100644
---- a/include/linux/phy/omap_pipe3.h
-+++ b/include/linux/phy/omap_pipe3.h
-@@ -29,6 +29,11 @@ struct pipe3_dpll_params {
- 	u32	mf;
- };
- 
-+struct pipe3_dpll_map {
-+	unsigned long rate;
-+	struct pipe3_dpll_params params;
-+};
-+
- struct omap_pipe3 {
- 	void __iomem		*pll_ctrl_base;
- 	struct device		*dev;
-@@ -36,6 +41,7 @@ struct omap_pipe3 {
- 	struct clk		*wkupclk;
- 	struct clk		*sys_clk;
- 	struct clk		*optclk;
-+	struct pipe3_dpll_map	*dpll_map;
- };
- 
- static inline u32 omap_pipe3_readl(void __iomem *addr, unsigned offset)
--- 
-1.7.4.1
+On Thu, Sep 19, 2013 at 06:38:13PM +0530, George Cherian wrote:
+> On 9/19/2013 6:14 PM, Felipe Balbi wrote:
+> >Hi,
+> >
+> >On Thu, Sep 19, 2013 at 01:43:41PM +0530, George Cherian wrote:
+> >>On 9/18/2013 11:06 PM, Felipe Balbi wrote:
+> >>>Hi,
+> >>>
+> >>>On Wed, Sep 18, 2013 at 07:18:04PM +0200, Laurent Pinchart wrote:
+> >>>>On Wednesday 18 September 2013 13:16:27 Linus Walleij wrote:
+> >>>>>On Tue, Sep 17, 2013 at 9:07 PM, Felipe Balbi <balbi@ti.com> wrote:
+> >>>>>>has anyone ever successfully using gpio-pcf857x.c driver with 16-bit
+> >>>>>>gpio expanders ? We're having some issues here where toggling the l=
+ast
+> >>>>>>gpio pin (gpio 15) on a PCF8575 device causes platform to hang and I
+> >>>>>>can't come up with any explanation of why would it hang...
+> >>>>>Bouncing the question to George, Laurent and Kuninori...
+> >>>>I've got a board with a PCF8575 chip, but it uses I/Os 8 to 14 only a=
+s far as
+> >>>>I know.
+> >>>>
+> >>>>I can try toggling I/O 15, but that will need to wait until next week=
+ as I'm
+> >>>>currently travelling without access to the hardware.
+> >>>alright, that'd help me a lot :-) Just want to make sure if we're havi=
+ng
+> >>>a board issue, or PCF8575 is a bit screwy ;-)
+> >>Is it on dra7x-evm if so which pcf device (i2c address)?
+> >0x21 IIRC, it's pin 15 on that goes to a discrete mux. I want to toggle
+> >the mux ;-)
+> >
+> I am able to toggle the same via sysfs(pcf8575 @ 0x21gpio15(p17)) and
+> it does not hang the board.
+> I am using Rev D1 board.
+>=20
+> Log :-
+> # cat /sys/kernel/debug/gpio
+> .
+> ...
+>  GPIOs 480-495, i2c/0-0021, pcf8575, can sleep:
+>  gpio-481 (id_gpio             ) in  hi
+>  gpio-482 (id_gpio             ) in  hi
+>  gpio-495 (sysfs               ) out hi
+> # echo 0 > /sys/class/gpio/gpio495/value
+> # cat /sys/kernel/debug/gpio
+> .
+> ...
+> GPIOs 480-495, i2c/0-0021, pcf8575, can sleep:
+>  gpio-481 (id_gpio             ) in  hi
+>  gpio-482 (id_gpio             ) in  hi
+>  gpio-495 (sysfs               ) out lo
+
+weird... I'll debug here and see if I can still reproduce with
+v3.12-rc1. Thanks anyway :-)
+
+cheers
+
+--=20
+balbi
+
+--NklN7DEeGtkPCoo3
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJSOvfjAAoJEIaOsuA1yqREX+IQAJXGFuDpv5afY/RMLij/nh7k
+GF3gGW4GQGB9dpL1WFMcV+jNNPyzjBlf0UDIWCjA4+0mM7uc4akc0Flx/w8kfjbN
+JBoyivHpZlP7tjEHQine9aFU60yUYcRh9qz+6+Aaek6tBCz5dI1o7zPPmlYcCZPK
+LuXhFXN3BjNTUv2fBPGBhI77/eW9ZfbQVcPYrjPLbNFdpdK5BR1/cofFcWLQ5hs1
+Ai07Q1aC3BEGaYFf+2C+R1cc9+rZvtbMVwczUQCs/SuiTI9b+ilsoQMUmqjkNxJr
+5No3jC9TjrFX28xiH3NcPMyov9oHvBkJ/Jb4TkcVs81OdJhDsySSFkkOzCKredbm
+LlXIpR9/uTSXEd2ONHdIVT+oX/ykNzYfJ3X2NZXL/D4HTsB9K0ZNV/b0M4UeMBPE
+mpOAtJfKUn+mD9TjPzJEbLjnlg2A41ubOdha5VwNVntWTdKkGHfzZ/cpQKKDl7qY
+y/IkyzaWmc5j3hapoySuUBuUXyKyVXfd6Ht28m1TVCQdpn5LbzaTTXC6NwvS5GM8
+jlrmvSfm6t2OlQDnVppqqa5DzpVPPMZC9GTRlSR5yxfcWfgDq+tl2cceViBX2ebq
+zlXFoq+yjCWx+klOvfyZmUkZp/LlN0yXFqgsGqvEHpnFDFANhGut+/aW6bYcqLMZ
+m4NAecIYGrZN1d+OSHHs
+=qdWM
+-----END PGP SIGNATURE-----
+
+--NklN7DEeGtkPCoo3--
