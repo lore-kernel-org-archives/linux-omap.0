@@ -1,120 +1,66 @@
-From: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v3 11/11] ARM/dts: am335x-evm: Add audio support for am335x-evm.dts
-Date: Thu, 19 Sep 2013 14:29:44 +0300
-Message-ID: <cd7271a46f1c6937039b749ed105afa8057b9770.1379590036.git.jsarha@ti.com>
-References: <cover.1379590035.git.jsarha@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: PCF857x and 16-bit GPIO expanders
+Date: Thu, 19 Sep 2013 07:07:27 -0500
+Message-ID: <523AE8FF.9020209@ti.com>
+References: <20130917190732.GD15645@radagast> <CACRpkdYn8yaTyFJMaC3vK4kGrQsaZpAX=pyn5y33ers7QhQ_pg@mail.gmail.com> <2356541.62QktiIBr5@avalon> <20130918173636.GT21559@radagast> <523AB235.1000808@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cover.1379590035.git.jsarha-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, peter.ujfalusi-l0cyMroinI0@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, liam.r.girdwood-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, joelf-l0cyMroinI0@public.gmane.org, Darren Etheridge <detheridge-l0cyMroinI0@public.gmane.org>, Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <523AB235.1000808@ti.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: George Cherian <george.cherian@ti.com>, balbi@ti.com
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Linus Walleij <linus.walleij@linaro.org>, Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>, Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-From: Darren Etheridge <detheridge-l0cyMroinI0@public.gmane.org>
+On 09/19/2013 03:13 AM, George Cherian wrote:
+> On 9/18/2013 11:06 PM, Felipe Balbi wrote:
+>> Hi,
+>>
+>> On Wed, Sep 18, 2013 at 07:18:04PM +0200, Laurent Pinchart wrote:
+>>> On Wednesday 18 September 2013 13:16:27 Linus Walleij wrote:
+>>>> On Tue, Sep 17, 2013 at 9:07 PM, Felipe Balbi <balbi@ti.com> wrote:
+>>>>> has anyone ever successfully using gpio-pcf857x.c driver with 16-bit
+>>>>> gpio expanders ? We're having some issues here where toggling the last
+>>>>> gpio pin (gpio 15) on a PCF8575 device causes platform to hang and I
+>>>>> can't come up with any explanation of why would it hang...
+>>>> Bouncing the question to George, Laurent and Kuninori...
+>>> I've got a board with a PCF8575 chip, but it uses I/Os 8 to 14 only as far as
+>>> I know.
+>>>
+>>> I can try toggling I/O 15, but that will need to wait until next week as I'm
+>>> currently travelling without access to the hardware.
+>> alright, that'd help me a lot :-) Just want to make sure if we're having
+>> a board issue, or PCF8575 is a bit screwy ;-)
+> Is it on dra7x-evm if so which pcf device (i2c address)?
+> The pins i were interested were only 1 and 2 I never tried pin 15.
+> 
+> Just tried toggling through sysfs and it works for me.
+When I look at the data sheet for PCF8575[1] Page 7, Figure 4 Write
+mode (output)
+I see the data writes are of the order:
+I2c 1's byte: address
+I2c 2'nd byte:P[7-0]
+I2c 3rd byte:P[17-10]
+Note: bits 8,9 are missing not supported.
 
-Adds sound, tlv320aic3x, mcasp1, and am335x_evm_audio_pin nodes.
+Now [2] claims that it does support PCF8575, however when I look at
+line 143[3]
+	unsigned	bit = 1 << offset;
+[snip]
+	if (value)
+		gpio->out |= bit;
+	else
+		gpio->out &= ~bit;
 
-Signed-off-by: Darren Etheridge <detheridge-l0cyMroinI0@public.gmane.org>
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Signed-off-by: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
----
- arch/arm/boot/dts/am335x-evm.dts |   56 ++++++++++++++++++++++++++++++++++++++
- 1 file changed, 56 insertions(+)
+There is no handling for the skip needed for bits 8 and 9.. Seems to
+me like a driver bug.
 
-diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
-index 3aee1a4..4a49229 100644
---- a/arch/arm/boot/dts/am335x-evm.dts
-+++ b/arch/arm/boot/dts/am335x-evm.dts
-@@ -149,6 +149,16 @@
- 				0x14c (PIN_INPUT_PULLDOWN | MUX_MODE7)
- 			>;
- 		};
-+
-+		am335x_evm_audio_pins: am335x_evm_audio_pins {
-+			pinctrl-single,pins = <
-+				0x10c (PIN_INPUT_PULLDOWN | MUX_MODE4) /* mii1_rx_dv.mcasp1_aclkx */
-+				0x110 (PIN_INPUT_PULLDOWN | MUX_MODE4) /* mii1_txd3.mcasp1_fsx */
-+				0x108 (PIN_OUTPUT_PULLDOWN | MUX_MODE4) /* mii1_col.mcasp1_axr2 */
-+				0x144 (PIN_INPUT_PULLDOWN | MUX_MODE4) /* rmii1_ref_clk.mcasp1_axr3 */
-+			>;
-+		};
-+
- 	};
- 
- 	ocp {
-@@ -215,6 +225,19 @@
- 				compatible = "ti,tmp275";
- 				reg = <0x48>;
- 			};
-+
-+			tlv320aic3x: tlv320aic3x@1b {
-+				compatible = "ti,tlv320aic3x";
-+				reg = <0x1b>;
-+				status = "okay";
-+
-+				/* Regulators */
-+				AVDD-supply = <&vaux2_reg>;
-+				IOVDD-supply = <&vaux2_reg>;
-+				DRVDD-supply = <&vaux2_reg>;
-+				DVDD-supply = <&vbat>;
-+			};
-+
- 		};
- 
- 		elm: elm@48080000 {
-@@ -311,6 +334,20 @@
- 				};
- 			};
- 		};
-+
-+		sound {
-+			compatible = "ti,da830-evm-audio";
-+			ti,model = "DA830 EVM";
-+			ti,audio-codec = <&tlv320aic3x>;
-+			ti,mcasp-controller = <&mcasp1>;
-+			ti,codec-clock-rate = <12000000>;
-+			ti,audio-routing =
-+				"Headphone Jack",       "HPLOUT",
-+				"Headphone Jack",       "HPROUT",
-+				"LINE1L",               "Line In",
-+				"LINE1R",               "Line In";
-+		};
-+
- 	};
- 
- 	vbat: fixedregulator@0 {
-@@ -378,6 +415,25 @@
- 
- #include "tps65910.dtsi"
- 
-+&mcasp1 {
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&am335x_evm_audio_pins>;
-+
-+		status = "okay";
-+
-+		op-mode = <0>;          /* MCASP_IIS_MODE */
-+		tdm-slots = <2>;
-+		num-serializer = <16>;
-+		serial-dir = <  /* 0: INACTIVE, 1: TX, 2: RX */
-+			0 0 1 2
-+			0 0 0 0
-+			0 0 0 0
-+			0 0 0 0
-+		>;
-+		tx-num-evt = <1>;
-+		rx-num-evt = <1>;
-+};
-+
- &tps {
- 	vcc1-supply = <&vbat>;
- 	vcc2-supply = <&vbat>;
+[1] http://www.ti.com/lit/ds/symlink/pcf8575.pdf
+[2]
+http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/drivers/gpio/gpio-pcf857x.c
+[3]
+http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/drivers/gpio/gpio-pcf857x.c#n143
 -- 
-1.7.9.5
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+Nishanth Menon
