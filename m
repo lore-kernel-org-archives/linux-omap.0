@@ -1,73 +1,52 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH v3 00/11] Fix AM335x-evm analog audio
-	support
-Date: Thu, 19 Sep 2013 14:31:22 +0100
-Message-ID: <20130919133122.GT21013@sirena.org.uk>
-References: <cover.1379409268.git.jsarha@ti.com>
- <cover.1379590035.git.jsarha@ti.com>
+From: "Sarha, Jyri" <jsarha@ti.com>
+Subject: RE: [PATCH v3 01/11] ASoC: davinci-evm: Move sysclk logic away from
+ evm_hw_params
+Date: Thu, 19 Sep 2013 13:43:50 +0000
+Message-ID: <0EB243F40EB34A418EAED8001C4B3AD019E84280@DNCE05.ent.ti.com>
+References: <cover.1379590035.git.jsarha@ti.com>
+ <dad0f7eb787d3f65848425a67d668e3935033195.1379590036.git.jsarha@ti.com>,<20130919132316.GR21013@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============8365409659093637312=="
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <cover.1379590035.git.jsarha@ti.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Jyri Sarha <jsarha@ti.com>
-Cc: devicetree@vger.kernel.org, alsa-devel@alsa-project.org, liam.r.girdwood@linux.intel.com, joelf@ti.com, rob.herring@calxeda.com, peter.ujfalusi@ti.com, grant.likely@linaro.org, linux-omap@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
-
-
---===============8365409659093637312==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="YgBy8fL35x4aZQ30"
-Content-Disposition: inline
-
-
---YgBy8fL35x4aZQ30
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Thu, Sep 19, 2013 at 02:29:33PM +0300, Jyri Sarha wrote:
-> The RFC version of patches can been found here:
-> http://mailman.alsa-project.org/pipermail/alsa-devel/2013-September/066178.html
-
-This all looks fine to me, I'd like some review from the DT guys though.
-
---YgBy8fL35x4aZQ30
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.21 (GNU/Linux)
-
-iQIcBAEBAgAGBQJSOvynAAoJELSic+t+oim9zGMQAI21VzzS3pf+5UlPfF+HSwBQ
-b5t6bpIu6lm/POG1TtDOsVGXSEq7BTUMcaaKivjFU5Z4ozJNoK7fEZdjifaHDr33
-7iC5putPhfcL8sHa/zVGrLKyjDQe/qnJwL1M8CK+2YbzLI4+jtsv59ops+9xcgu1
-l/6MyVsytjZPBauPhmgwO0JgouEpJCv8Jhq4CfSibkLZwfXU0xSeDhNiWvfFunkp
-YkLS2RvIfi2Y0wNT00Id/PO+4gnkDa+lOXH3IwtvcJB/67SXE/3XfQA5utL+y/uz
-TE0VVIbiFTRlbY/+SO+Uprob0faHGj6Ey2QcNPkxAGqreXyu6JtmXxlaMT9ha3T4
-ChLEF4bUt1sfAuRtoQCUsoSFPtSbuTtVDemKT+CNDdJ7rBoqoTmKtzqJe43dHcau
-mz6ZNqsTSvtpe1YmaCiJJsw+K8HsFS858eXBIZQCz8CMSmV4BDP3dsu+vZVcVMBc
-MMHJqp2fV+U3NYeV+s4Xcx4RV1mYp+vcrjmOlhViGFLmAyzCYJwqartf3x0IEJqU
-7l+0Vn4BeEsB+emSc9Lwv0muAvGBl6oGT9jC+TRWYv8EBGAxC4aNXbyUVMPcWxQV
-yowOrf0wBrQNThsfvTFSBp8ed6mAb5vM1AupMRsp6DZEr7LnYTwNE2NS9M6wHxR8
-fCVrSbrcAg5bLKQsA9HY
-=NI/w
------END PGP SIGNATURE-----
-
---YgBy8fL35x4aZQ30--
-
---===============8365409659093637312==
 Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:42832 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751629Ab3ISNn7 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Sep 2013 09:43:59 -0400
+In-Reply-To: <20130919132316.GR21013@sirena.org.uk>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+To: Mark Brown <broonie@kernel.org>
+Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Ujfalusi, Peter" <peter.ujfalusi@ti.com>, "liam.r.girdwood@linux.intel.com" <liam.r.girdwood@linux.intel.com>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "Fernandes, Joel" <joelf@ti.com>
 
+As I described in cover letter on these patches did change:
 
---===============8365409659093637312==--
+  [PATCH v2 05/11] ASoC: davinci-mcasp: Remove interrupt property from DT bindin
+   - restore binding but make it optional and add interrupt-names property
+  [PATCH v2 06/11] ASoC: davinci: Add support for AM33xx SoC Audio
+   - SND_DAVINCI_SOC help "Machine driver for ..." -> "Platform driver for ..."
+   - SND_AM33XX_SOC_EVM depends on SND_DAVINCI_SOC && SOC_AM33XX
+   - SND_AM33XX_SOC_EVM does not selcet SND_DAVINCI_SOC
+  [PATCH v2 09/11] ARM/dts: am33xx: Add mcasp0 and mcasp1 device tree entries
+   - restore interrupt property and add interrupt-names property----
+
+Best regards,
+Jyri
+
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+
+________________________________________
+From: Mark Brown [broonie@kernel.org]
+Sent: Thursday, September 19, 2013 4:23 PM
+To: Sarha, Jyri
+Cc: alsa-devel@alsa-project.org; devicetree@vger.kernel.org; linux-omap@vger.kernel.org; Ujfalusi, Peter; liam.r.girdwood@linux.intel.com; grant.likely@linaro.org; rob.herring@calxeda.com; Fernandes, Joel
+Subject: Re: [PATCH v3 01/11] ASoC: davinci-evm: Move sysclk logic away from evm_hw_params
+
+On Thu, Sep 19, 2013 at 02:29:34PM +0300, Jyri Sarha wrote:
+> The sysclk rate does not change runtime so it should be initialized at
+> init time.
+
+Are there any updates from the version already applied (I only dropped
+the patch to allow the extra builds, not this one).
+
