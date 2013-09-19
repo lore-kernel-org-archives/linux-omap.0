@@ -1,22 +1,44 @@
-From: Famatta Sando <famatasando23@yahoo.com>
-Subject: Hello My Dear.
-Date: Thu, 19 Sep 2013 11:07:20 -0700 (PDT)
-Message-ID: <1379614040.37723.YahooMailBasic__23059.7947877415$1379614426$gmane$org@web141205.mail.bf1.yahoo.com>
-Reply-To: famatasando23@yahoo.com
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: Re: 3.12-rc1: no longer compiles for Nokia n900 (omap based),
+ display no longer works
+Date: Thu, 19 Sep 2013 21:47:04 +0300
+Message-ID: <20130919184703.GE30568@blackmetal.musicnaut.iki.fi>
+References: <20130919093002.GA23806@amd.pavel.ucw.cz>
+ <20130919094402.GA27253@amd.pavel.ucw.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from nm27-vm1.bullet.mail.bf1.yahoo.com ([98.139.213.148]:32927 "EHLO
-	nm27-vm1.bullet.mail.bf1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752448Ab3ISSNg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 19 Sep 2013 14:13:36 -0400
+Received: from filtteri5.pp.htv.fi ([213.243.153.188]:41706 "EHLO
+	filtteri5.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752866Ab3ISSrL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Sep 2013 14:47:11 -0400
+Content-Disposition: inline
+In-Reply-To: <20130919094402.GA27253@amd.pavel.ucw.cz>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: famatasando23@yahoo.com
+To: Pavel Machek <pavel@ucw.cz>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, will.deacon@arm.com, catalin.marinas@arm.com
 
-Hello My Dear,
-How are you today? I hope fine, I came across your contact today while browsing looking for reliable friend and i became interested, My name is miss Famatta Sando. I wish to have you as a friend, if you care. I have important reasons to request your interest for a serious friendship, i will be happy if you write me back, so that i can easily explain to you more about me and give you my picture for you to know whom i am,
-I have something very Important to tell you. Thanks for your understanding.
-Your New Friend.
-Miss Famatta.
+Hi,
+
+On Thu, Sep 19, 2013 at 11:44:02AM +0200, Pavel Machek wrote:
+> something in 3.12-rc1 broke display :-(. (dmesg diff attached at the
+> end, maybe someone knows...)
+
+3.12-rc1 for N900 compiles and works (also display) here with binutils
+2.23.2.
+
+> + omapfb omapfb: no displays
+
+[...]
+
+> - acx565akm spi1.2: omapfb: acx565akm rev 12 LCD detected
+
+I think this is because the panel driver has changed, and the old one
+was deleted. You need to change your kernel configuration with something
+like below:
+
+-CONFIG_PANEL_ACX565AKM=y
++CONFIG_DISPLAY_PANEL_SONY_ACX565AKM=y
+
+A.
