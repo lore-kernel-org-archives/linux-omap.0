@@ -1,80 +1,22 @@
-From: Luca Coelho <luca@coelho.fi>
-Subject: Re: [PATCH 1/2] ARM: dts: Fix muxing and regulator for wl12xx on
- the SDIO bus for pandaboard
-Date: Thu, 19 Sep 2013 20:21:32 +0300
-Message-ID: <1379611292.4223.160.camel@porter.coelho.fi>
-References: <20130913190811.24617.97699.stgit@localhost>
-	 <20130913190953.24617.46506.stgit@localhost>
-	 <1379399214.4223.123.camel@porter.coelho.fi>
-	 <1379399290.4223.124.camel@porter.coelho.fi>
-	 <20130918000203.GS9994@atomide.com> <52396CA0.6030100@baylibre.com>
-	 <20130918175158.GW9994@atomide.com> <20130918234726.GL9994@atomide.com>
-	 <1379569391.4223.148.camel@porter.coelho.fi>
-	 <20130919145344.GM9994@atomide.com>
+From: Famatta Sando <famatasando23@yahoo.com>
+Subject: Hello My Dear.
+Date: Thu, 19 Sep 2013 11:07:20 -0700 (PDT)
+Message-ID: <1379614040.37723.YahooMailBasic__23059.7947877415$1379614426$gmane$org@web141205.mail.bf1.yahoo.com>
+Reply-To: famatasando23@yahoo.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from emh02.mail.saunalahti.fi ([62.142.5.108]:34684 "EHLO
-	emh02.mail.saunalahti.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752035Ab3ISRU4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Sep 2013 13:20:56 -0400
-In-Reply-To: <20130919145344.GM9994@atomide.com>
+Received: from nm27-vm1.bullet.mail.bf1.yahoo.com ([98.139.213.148]:32927 "EHLO
+	nm27-vm1.bullet.mail.bf1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752448Ab3ISSNg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 19 Sep 2013 14:13:36 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Benoit Cousson <bcousson@baylibre.com>, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, Rajendra Nayak <rnayak@ti.com>, Paolo Pisati <p.pisati@gmail.com>, linux-omap@vger.kernel.org
+To: famatasando23@yahoo.com
 
-On Thu, 2013-09-19 at 07:53 -0700, Tony Lindgren wrote:
-> * Luca Coelho <luca@coelho.fi> [130918 22:50]:
-> > On Wed, 2013-09-18 at 16:47 -0700, Tony Lindgren wrote:
-> > > * Tony Lindgren <tony@atomide.com> [130918 11:00]:
-> > > > * Benoit Cousson <bcousson@baylibre.com> [130918 02:12]:
-> > > > > Hi Tony,
-> > > > > 
-> > > > > On 18/09/2013 02:02, Tony Lindgren wrote:
-> > > > > >* Luca Coelho <luca@coelho.fi> [130916 23:35]:
-> > > > > >>On Tue, 2013-09-17 at 09:26 +0300, Luca Coelho wrote:
-> > > > > >>>Both patches look good to me, though I didn't have the time to retest
-> > > > > >>>them.
-> > > > > >>
-> > > > > >>Actually I don't even have a Blaze device anymore, so I can't really
-> > > > > >>test the second patch. :(
-> > > > > >
-> > > > > >OK no problem, I've tested it on panda es.
-> > > > > 
-> > > > > Do we have someone out-there that still own a Blaze?
-> > > > > 
-> > > > > Anyway, I'm about to send a DTS fix branch for -rc2, so I'll include
-> > > > > these two patches.
-> > > > 
-> > > > OK yes good please do pick them up, I'll drop them from my
-> > > > not-yet-pushed-out omap-for-v3.12/fixes.
-> > > 
-> > > Hmm looks like there's also some new regression in the
-> > > wl12xx driver:
-> > > 
-> > > # iwconfig wlan0
-> > > wlan0     no wireless extensions.
-> > > 
-> > > My test script was just doing:
-> > > 
-> > > # iw dev wlan0 scan
-> > > 
-> > > And that works fine. Luca, any ideas?
-> > 
-> > Have you compiled WEXT support in your kernel? iwconfig uses the
-> > (deprecated) Wireless Extensions API.  iw uses the current nl80211 API.
-> > 
-> > If you want to use iwconfig and friends you need to enable
-> > CONFIG_CFG80211_WEXT.
-> 
-> OK thanks, I don't need to use iwconfig. Looks like the default
-> changed in commit 10bab00af (cfg80211: deprecate CFG80211_WEXT).
-
-Yeah, it's not enabled by default anymore.  And it was more than about
-time! ;)
-
---
-Luca.
-
+Hello My Dear,
+How are you today? I hope fine, I came across your contact today while browsing looking for reliable friend and i became interested, My name is miss Famatta Sando. I wish to have you as a friend, if you care. I have important reasons to request your interest for a serious friendship, i will be happy if you write me back, so that i can easily explain to you more about me and give you my picture for you to know whom i am,
+I have something very Important to tell you. Thanks for your understanding.
+Your New Friend.
+Miss Famatta.
