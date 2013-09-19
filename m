@@ -1,76 +1,53 @@
-From: Russell King <rmk+kernel@arm.linux.org.uk>
-Subject: [PATCH 02/51] DMA-API: net: brocade/bna/bnad.c: fix
- 32-bit DMA mask handling
-Date: Thu, 19 Sep 2013 22:26:58 +0100
-Message-ID: <E1VMlkY-0007fG-LM@rmk-PC.arm.linux.org.uk>
-References: <20130919212235.GD12758@n2100.arm.linux.org.uk>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] RX-51: Add missing max_current to
+ rx51_lp5523_led_config
+Date: Thu, 19 Sep 2013 14:29:22 -0700
+Message-ID: <20130919212922.GA27501@atomide.com>
+References: <1379541145-25934-1-git-send-email-pali.rohar@gmail.com>
+ <20130918222642.GK9994@atomide.com>
+ <201309192301.58761@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20130919212235.GD12758@n2100.arm.linux.org.uk>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: alsa-devel@alsa-project.org, b43-dev@lists.infradead.org, devel@driverdev.osuosl.org, devicetree@vger.kernel.org, dri-devel@lists.freedesktop.org, e1000-devel@lists.sourceforge.net, linux-arm-kernel@lists.infradead.org, linux-crypto@vger.kernel.org, linux-doc@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-ide@vger.kernel.org, linux-media@vger.kernel.org, linux-mmc@vger.kernel.org, linux-nvme@lists.infradead.org, linux-omap@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-samsung-soc@vger.kernel.org, linux-scsi@vger.kernel.org, linux-tegra@vger.kernel.org, linux-usb@vger.kernel.org, linux-wireless@vger.kernel.org, netdev@vger.kernel.org, Solarflare linux maintainers <linux-net-drivers@solarflare.com>, uclinux-dist-devel@blackfin.uclinux.org
-Cc: Rasesh Mody <rmody@brocade.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:46555 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752885Ab3ISV30 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Sep 2013 17:29:26 -0400
+Content-Disposition: inline
+In-Reply-To: <201309192301.58761@pali>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
+Cc: Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
-The fallback to 32-bit DMA mask is rather odd:
-	if (!dma_set_mask(&pdev->dev, DMA_BIT_MASK(64)) &&
-	    !dma_set_coherent_mask(&pdev->dev, DMA_BIT_MASK(64))) {
-		*using_dac = true;
-	} else {
-		err = dma_set_mask(&pdev->dev, DMA_BIT_MASK(32));
-		if (err) {
-			err = dma_set_coherent_mask(&pdev->dev,
-						    DMA_BIT_MASK(32));
-			if (err)
-				goto release_regions;
-		}
+* Pali Roh=C3=A1r <pali.rohar@gmail.com> [130919 14:10]:
+> On Thursday 19 September 2013 00:26:43 Tony Lindgren wrote:
+> > * Pali Roh=C3=A1r <pali.rohar@gmail.com> [130918 15:02]:
+> > > Without max_current data in board file lp5523 driver does
+> > > not change current.
+> >=20
+> > Hmm is this a regression or are there other reasons to merge
+> > this during the -rc cycle?
+> >=20
+>=20
+> I think this is regression, drivers/leds/leds-lp55xx-common.c=20
+> code refuse to change led_current sysfs attribute if value is=20
+> higher than max_current specified in board file. And because in=20
+> board file max_current is not specified it is by default zero as=20
+> global variable. So changing led_current is not possible because=20
+> any positive value is more than zero. First I saw this behaviour=20
+> in 3.10, but I forgot to send this patch.
 
-This means we only try and set the coherent DMA mask if we failed to
-set a 32-bit DMA mask, and only if both fail do we fail the driver.
-Adjust this so that if either setting fails, we fail the driver - and
-thereby end up properly setting both the DMA mask and the coherent
-DMA mask in the fallback case.
+OK thanks, can you please update the patch description with
+that so I can merge it for the -rc cycle? Ideally of course
+with the breaking commit too.
 
-Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
----
- drivers/net/ethernet/brocade/bna/bnad.c |   13 ++++---------
- 1 files changed, 4 insertions(+), 9 deletions(-)
+Regards,
 
-diff --git a/drivers/net/ethernet/brocade/bna/bnad.c b/drivers/net/ethernet/brocade/bna/bnad.c
-index b78e69e..45ce6e2 100644
---- a/drivers/net/ethernet/brocade/bna/bnad.c
-+++ b/drivers/net/ethernet/brocade/bna/bnad.c
-@@ -3300,17 +3300,12 @@ bnad_pci_init(struct bnad *bnad,
- 	err = pci_request_regions(pdev, BNAD_NAME);
- 	if (err)
- 		goto disable_device;
--	if (!dma_set_mask(&pdev->dev, DMA_BIT_MASK(64)) &&
--	    !dma_set_coherent_mask(&pdev->dev, DMA_BIT_MASK(64))) {
-+	if (!dma_set_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(64))) {
- 		*using_dac = true;
- 	} else {
--		err = dma_set_mask(&pdev->dev, DMA_BIT_MASK(32));
--		if (err) {
--			err = dma_set_coherent_mask(&pdev->dev,
--						    DMA_BIT_MASK(32));
--			if (err)
--				goto release_regions;
--		}
-+		err = dma_set_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(32));
-+		if (err)
-+			goto release_regions;
- 		*using_dac = false;
- 	}
- 	pci_set_master(pdev);
--- 
-1.7.4.4
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
