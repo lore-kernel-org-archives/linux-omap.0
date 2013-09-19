@@ -1,79 +1,132 @@
-From: Archit Taneja <archit@ti.com>
-Subject: Re: [PATCH 2/2] drm: omap: disconnect devices when omapdrm module
- is removed
-Date: Thu, 19 Sep 2013 16:21:37 +0530
-Message-ID: <523AD739.1030801@ti.com>
-References: <1379502502-8781-1-git-send-email-archit@ti.com> <1379580585-18364-1-git-send-email-archit@ti.com> <523ACD07.5020406@ti.com>
+From: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v3 00/11] Fix AM335x-evm analog audio support
+Date: Thu, 19 Sep 2013 14:29:33 +0300
+Message-ID: <cover.1379590035.git.jsarha@ti.com>
+References: <cover.1379409268.git.jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:59621 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751717Ab3ISKwc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 19 Sep 2013 06:52:32 -0400
-In-Reply-To: <523ACD07.5020406@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <cover.1379409268.git.jsarha-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, peter.ujfalusi-l0cyMroinI0@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, liam.r.girdwood-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, joelf-l0cyMroinI0@public.gmane.org, Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>, robdclark@gmail.com
-Cc: linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org
 
-Hi,
+The RFC version of patches can been found here:
+http://mailman.alsa-project.org/pipermail/alsa-devel/2013-September/066178.html
+The v2 version of patches can be found here:
+http://mailman.alsa-project.org/pipermail/alsa-devel/2013-September/066379.html
 
-On Thursday 19 September 2013 03:38 PM, Tomi Valkeinen wrote:
-> On 19/09/13 11:49, Archit Taneja wrote:
->> omapdrm established connections for omap_dss_device devices when probed. It
->> should also be responsible to disconnect the devices. Keeping the devices
->> connected can prevent the panel driver modules from unloading, it can also
->> cause problems when omapdrm is re-inserted.
->>
->> Signed-off-by: Archit Taneja <archit@ti.com>
->> ---
->>   drivers/gpu/drm/omapdrm/omap_drv.c | 14 ++++++++++----
->>   1 file changed, 10 insertions(+), 4 deletions(-)
->>
->> diff --git a/drivers/gpu/drm/omapdrm/omap_drv.c b/drivers/gpu/drm/omapdrm/omap_drv.c
->> index 45fbb1c..44a1203 100644
->> --- a/drivers/gpu/drm/omapdrm/omap_drv.c
->> +++ b/drivers/gpu/drm/omapdrm/omap_drv.c
->> @@ -86,6 +86,13 @@ static bool channel_used(struct drm_device *dev, enum omap_channel channel)
->>
->>   	return false;
->>   }
->> +static void omap_disconnect_dssdevs(void)
->> +{
->> +	struct omap_dss_device *dssdev = NULL;
->> +
->> +	for_each_dss_dev(dssdev)
->> +		dssdev->driver->disconnect(dssdev);
->> +}
->
-> With a quick test, it looks like omapdrm leaves the displays enabled
-> when exiting. This can be fixed by adding to the above loop:
->
-> 		if (dssdev->state != OMAP_DSS_DISPLAY_DISABLED)
-> 			dssdev->driver->disable(dssdev);
->
-> However... omapdrm still crashes when unloading, and it could be somehow
-> related to leaving something un-removed. Disabling a CRTC should disable
-> the display, and maybe omapdrm should disable (and clean-up) all CRTCs
-> on exit, and maybe that would remove the crash, and also fix the issue
-> of leaving displays enabled.
->
-> But I'm just guessing there, I have no idea how the process of unloading
-> a drm driver goes.
+Changes since v2
+  [PATCH v2 01/11] ASoC: davinci-evm: Move sysclk logic away from evm_hw_params
+   - no change
+  [PATCH v2 02/11] ASoC: davinci-evm: Add device tree binding
+   - no change
+  [PATCH v2 03/11] ASoC: davinci-mcasp: Add DMA register locations to DT
+   - no change
+  [PATCH v2 04/11] ASoC: davinci-mcasp: Extract DMA channels directly from DT
+   - no change
+  [PATCH v2 05/11] ASoC: davinci-mcasp: Remove interrupt property from DT bindin
+   - restore binding but make it optional and add interrupt-names property
+  [PATCH v2 06/11] ASoC: davinci: Add support for AM33xx SoC Audio
+   - SND_DAVINCI_SOC help "Machine driver for ..." -> "Platform driver for ..."
+   - SND_AM33XX_SOC_EVM depends on SND_DAVINCI_SOC && SOC_AM33XX 
+   - SND_AM33XX_SOC_EVM does not selcet SND_DAVINCI_SOC
+  [PATCH v2 07/11] ASoC: tlv320aic3x: Add regulators to DT bindings document
+   - no change
+  [PATCH v2 08/11] ASoC: tlv320aic3x: Add codec pins to DT bindings document
+   - no change
+  [PATCH v2 09/11] ARM/dts: am33xx: Add mcasp0 and mcasp1 device tree entries
+   - restore interrupt property and add interrupt-names property
+  [PATCH v2 10/11] ARM/dts: am33xx: mcasp: Add new dma register location to reg-property
+   - no change
+  [PATCH v2 11/11] ARM/dts: am335x-evm: Add audio support for am335x-evm.dts
+   - no change
 
-It seems like dev_unload is the place where we should disconnect the 
-dssdevs.
+Changes from RFC to v2
+ - Dropped out "ASoC: davinci-mcasp: Add pinctrl support" since
+   driver core is taking care of this now.
+ - Cleanup am33xx audio build
+ - Add regulators to tlv320aic3x DT binding document
+ - Remove dm365-voice-codec-audio DT support as it has never
+   been tested an probably does not work
+ - Add output pins and Line In connector to davinci-evm-audio DT binding doc
+ - Remove asp_chan_q and ram_chan_q properties from mcasp DT node
+   in DT mode mcasp is hardcoded to event queue 0 (highest priority)
+ - Add pins to tlv320aic3x DT bindings document. If I misunderstood
+   Marks comment and this patch is not needed, then just leave it out
+ Changes based on TI internal discussions
+ - Move system clock rate logic away from from evm_hw_params soc-op
+ - Remove unnecesary #if defined(CONFIG_OF) from davinci-evm.c
+ - Make dma property DT binding document more exact
+ - Add only "dma" reg location instead of separate "dma-tx" and "dma-rx"
+ - Primarily look for "mpu" reg property, but fall back to index 0 if not found
+ - Remove interrupt property from mcasp DT node as it is not used
+ - Remove #address-cells and #size-cells mcasp properties as they are not needed
 
-omap_modeset_free() calls drm_mode_config_cleanup() which calls omapdrm 
-specific destroy funcs for connectors, encoders and crtcs.
+This set of patches fixes the basic audio support for am335x-evm. It
+should also be relatively simple to add the necessary nodes to
+relevant dts files to get BeagleBone + AudioCape and am335x-evmsk
+working too.
 
-I don't think crtcs should disable the device. I think it's the 
-encoder(and connector) which is mapped to a display. The omap_encoder's 
-destroy op should disable the dssdev device.
+The patch set depends on following patches:
 
-I'm not sure about this though. Rob, do you have any comment on this?
+[PATCH v11 4/8] ARM: dts: add AM33XX EDMA support 
+     https://lkml.org/lkml/2013/6/18/49
 
-Archit
+[PATCH v11 5/8] ARM: dts: add AM33XX SPI DMA support
+     https://lkml.org/lkml/2013/6/18/55
 
+[PATCH v2] ARM: EDMA: Fix clearing of unused list for DT DMA resources
+     https://lkml.org/lkml/2013/7/22/441
+
+I have tried my best not to break the existing support for older
+davinci boards, but since I do not have those boards I can not be
+sure.
+
+Some commit comments refer to a dmaengine based davinci audio
+implementation which is planned for but nothing has been done yet.
+
+Best regards,
+Jyri
+
+Darren Etheridge (1):
+  ARM/dts: am335x-evm: Add audio support for am335x-evm.dts
+
+Hebbar, Gururaja (2):
+  ASoC: davinci-evm: Add device tree binding
+  ASoC: davinci: Add support for AM33xx SoC Audio
+
+Jyri Sarha (7):
+  ASoC: davinci-evm: Move sysclk logic away from evm_hw_params
+  ASoC: davinci-mcasp: Add DMA register locations to DT
+  ASoC: davinci-mcasp: Extract DMA channels directly from DT
+  ASoC: davinci-mcasp: Interrupts property to optional and add
+    interrupt-names
+  ASoC: tlv320aic3x: Add regulators to DT bindings document
+  ASoC: tlv320aic3x: Add codec pins to DT bindings document
+  ARM/dts: am33xx: mcasp: Add new dma register location to reg-property
+
+Pantelis Antoniou (1):
+  ARM/dts: am33xx: Add mcasp0 and mcasp1 device tree entries
+
+ .../bindings/sound/davinci-evm-audio.txt           |   58 ++++++
+ .../bindings/sound/davinci-mcasp-audio.txt         |   17 +-
+ .../devicetree/bindings/sound/tlv320aic3x.txt      |   26 +++
+ arch/arm/boot/dts/am335x-evm.dts                   |   56 ++++++
+ arch/arm/boot/dts/am33xx.dtsi                      |   29 +++
+ include/linux/platform_data/davinci_asp.h          |    2 +
+ sound/soc/davinci/Kconfig                          |   18 +-
+ sound/soc/davinci/Makefile                         |    1 +
+ sound/soc/davinci/davinci-evm.c                    |  184 +++++++++++++++++---
+ sound/soc/davinci/davinci-mcasp.c                  |  106 +++++++----
+ 10 files changed, 435 insertions(+), 62 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/sound/davinci-evm-audio.txt
+
+-- 
+1.7.9.5
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
