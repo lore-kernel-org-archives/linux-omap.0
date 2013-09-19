@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [RFC PATCH 13/15] arm: dts: omap5: add sata node
-Date: Thu, 19 Sep 2013 16:23:55 +0300
-Message-ID: <1379597035-15331-1-git-send-email-rogerq@ti.com>
+Subject: [RFC PATCH 14/15] ARM: DRA7: hwmod: Add ocp2scp3 and sata hwmods
+Date: Thu, 19 Sep 2013 16:24:05 +0300
+Message-ID: <1379597045-15368-1-git-send-email-rogerq@ti.com>
 References: <1379595943-14622-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -9,97 +9,94 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1379595943-14622-1-git-send-email-rogerq@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: balbi@ti.com, bcousson@baylibre.com, tony@atomide.com
-Cc: balajitk@ti.com, kishon@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-ide@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+Cc: balajitk@ti.com, kishon@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-ide@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, Nikhil Devshatwar <nikhil.nd@ti.com>, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: Balaji T K <balajitk@ti.com>
+From: Nikhil Devshatwar <nikhil.nd@ti.com>
 
-Add support for sata.
+Add hwmods for ocp2scp3 and sata modules.
 
 [Roger Q] Clean up.
 
 CC: Benoit Cousson <bcousson@baylibre.com>
 Signed-off-by: Balaji T K <balajitk@ti.com>
+Signed-off-by: Nikhil Devshatwar <nikhil.nd@ti.com>
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- arch/arm/boot/dts/omap5.dtsi |   51 +++++++++++++++++++++++++++++++++++++++++-
- 1 files changed, 50 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c |   40 +++++++++++++++++++++++++---
+ 1 files changed, 35 insertions(+), 5 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-index 8a88a94..a79ccb7 100644
---- a/arch/arm/boot/dts/omap5.dtsi
-+++ b/arch/arm/boot/dts/omap5.dtsi
-@@ -434,6 +434,53 @@
- 			dma-names = "tx", "rx";
- 		};
+diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+index f647998b..4d7d70f 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+@@ -1215,6 +1215,40 @@ static struct omap_hwmod dra7xx_ocp2scp1_hwmod = {
+ 	},
+ };
  
-+		omap_control_sata: control-phy@4a002374 {
-+			compatible = "ti,control-phy-pipe3";
-+			reg = <0x4a002374 0x4>;
-+			reg-names = "power";
-+			clocks = <&sys_clkin>;
-+			clock-names = "sysclk";
-+		};
++/* ocp2scp3 */
++static struct omap_hwmod dra7xx_ocp2scp3_hwmod;
++static struct omap_hwmod_addr_space dra7xx_ocp2scp3_addrs[] = {
++	{
++		.name		= "ocp2scp3",
++		.pa_start	= 0x4a090000,
++		.pa_end		= 0x4a09001f,
++		.flags		= ADDR_TYPE_RT
++	},
++	{ }
++};
 +
-+		ocp2scp3: ocp2scp3@4a090000 {
-+			compatible = "ti,omap-ocp2scp";
-+			#address-cells = <1>;
-+			#size-cells = <1>;
-+			ranges;
-+			ti,hwmods = "ocp2scp3";
-+			reg = <0x4a090000 0x1f>; /* ocp2scp3 */
-+			reg-names = "ocp2scp3";
-+			sata_phy: sataphy@4A096000 {
-+				compatible = "ti,phy-pipe3-sata";
-+				reg = <0x4A096000 0x80>, /* phy_rx */
-+				      <0x4A096400 0x64>, /* phy_tx */
-+				      <0x4A096800 0x40>; /* pll_ctrl */
-+				reg-names = "phy_rx", "phy_tx", "pll_ctrl";
-+				ctrl-module = <&omap_control_sata>;
-+				clocks = <&sys_clkin>;
-+				clock-names = "sysclk";
-+				#phy-cells = <0>;
-+			};
-+		};
++/* l4_cfg -> ocp2scp3 */
++static struct omap_hwmod_ocp_if dra7xx_l4_cfg__ocp2scp3 = {
++	.master		= &dra7xx_l4_cfg_hwmod,
++	.slave		= &dra7xx_ocp2scp3_hwmod,
++	.clk		= "l4_root_clk_div",
++	.addr		= dra7xx_ocp2scp3_addrs,
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
 +
-+		sata: sata@4a141100 {
-+			compatible = "ti,sata";
-+			ti,hwmods = "sata";
-+			reg = <0x4a141100 0x7>;
-+			#address-cells = <1>;
-+			#size-cells = <1>;
-+			ranges;
-+			dwc-ahci@4a140000 {
-+				  compatible = "snps,dwc-ahci";
-+				  reg = <0x4a140000 0x1100>;
-+				  interrupts = <GIC_SPI 54 IRQ_TYPE_LEVEL_HIGH>;
-+				  phys = <&sata_phy>;
-+				  phy-names = "sata-phy";
-+				  clocks = <&sata_ref_clk>;
-+				  clock-names = "optclk";
-+			};
-+		};
++static struct omap_hwmod dra7xx_ocp2scp3_hwmod = {
++	.name		= "ocp2scp3",
++	.class		= &dra7xx_ocp2scp_hwmod_class,
++	.clkdm_name	= "l3init_clkdm",
++	.prcm = {
++		.omap4 = {
++			.clkctrl_offs = DRA7XX_CM_L3INIT_OCP2SCP3_CLKCTRL_OFFSET,
++			.context_offs = DRA7XX_RM_L3INIT_OCP2SCP3_CONTEXT_OFFSET,
++			.modulemode   = MODULEMODE_HWCTRL,
++		},
++	},
++};
 +
- 		keypad: keypad@4ae1c000 {
- 			compatible = "ti,omap4-keypad";
- 			reg = <0x4ae1c000 0x400>;
-@@ -636,6 +683,8 @@
- 			compatible = "ti,control-phy-pipe3";
- 			reg = <0x4a002370 0x4>;
- 			reg-names = "power";
-+			clocks = <&sys_clkin>;
-+			clock-names = "sysclk";
- 		};
+ /*
+  * 'qspi' class
+  *
+@@ -1268,9 +1302,6 @@ static struct omap_hwmod_class dra7xx_sata_hwmod_class = {
+ };
  
- 		omap_dwc3@4a020000 {
-@@ -657,7 +706,7 @@
- 			};
- 		};
+ /* sata */
+-static struct omap_hwmod_opt_clk sata_opt_clks[] = {
+-	{ .role = "ref_clk", .clk = "sata_ref_clk" },
+-};
  
--		ocp2scp {
-+		ocp2scp1: ocp2scp1@4a080000 {
- 			compatible = "ti,omap-ocp2scp";
- 			#address-cells = <1>;
- 			#size-cells = <1>;
+ static struct omap_hwmod dra7xx_sata_hwmod = {
+ 	.name		= "sata",
+@@ -1285,8 +1316,6 @@ static struct omap_hwmod dra7xx_sata_hwmod = {
+ 			.modulemode   = MODULEMODE_SWCTRL,
+ 		},
+ 	},
+-	.opt_clks	= sata_opt_clks,
+-	.opt_clks_cnt	= ARRAY_SIZE(sata_opt_clks),
+ };
+ 
+ /*
+@@ -2683,6 +2712,7 @@ static struct omap_hwmod_ocp_if *dra7xx_hwmod_ocp_ifs[] __initdata = {
+ 	&dra7xx_l4_per1__mmc4,
+ 	&dra7xx_l4_cfg__mpu,
+ 	&dra7xx_l4_cfg__ocp2scp1,
++	&dra7xx_l4_cfg__ocp2scp3,
+ 	&dra7xx_l3_main_1__qspi,
+ 	&dra7xx_l4_cfg__sata,
+ 	&dra7xx_l4_cfg__smartreflex_core,
 -- 
 1.7.4.1
