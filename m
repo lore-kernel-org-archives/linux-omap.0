@@ -1,94 +1,78 @@
-From: Balaji T K <balajitk@ti.com>
-Subject: Re: OMAP35x MMC Host Controller compatibility with SDXC?
-Date: Thu, 19 Sep 2013 20:01:13 +0530
-Message-ID: <523B0AB1.1050008@ti.com>
-References: <CAL1yNcLxUnDCfZJxLVUjSDLtgvuBYEjL-pw_aZ8dA1rVu5o=4Q@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/2] ARM: dts: Fix muxing and regulator for wl12xx on
+ the SDIO bus for pandaboard
+Date: Thu, 19 Sep 2013 07:53:45 -0700
+Message-ID: <20130919145344.GM9994@atomide.com>
+References: <20130913190811.24617.97699.stgit@localhost>
+ <20130913190953.24617.46506.stgit@localhost>
+ <1379399214.4223.123.camel@porter.coelho.fi>
+ <1379399290.4223.124.camel@porter.coelho.fi>
+ <20130918000203.GS9994@atomide.com>
+ <52396CA0.6030100@baylibre.com>
+ <20130918175158.GW9994@atomide.com>
+ <20130918234726.GL9994@atomide.com>
+ <1379569391.4223.148.camel@porter.coelho.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <CAL1yNcLxUnDCfZJxLVUjSDLtgvuBYEjL-pw_aZ8dA1rVu5o=4Q@mail.gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: =?ISO-8859-1?Q?Kevyn-Alexandre_Par=E9?= <kevyn.alexandre.pare@gmail.com>
-Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:55374 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751984Ab3ISOx6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Sep 2013 10:53:58 -0400
+Content-Disposition: inline
+In-Reply-To: <1379569391.4223.148.camel@porter.coelho.fi>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Luca Coelho <luca@coelho.fi>
+Cc: Benoit Cousson <bcousson@baylibre.com>, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, Rajendra Nayak <rnayak@ti.com>, Paolo Pisati <p.pisati@gmail.com>, linux-omap@vger.kernel.org
 
-On Wednesday 18 September 2013 02:32 AM, Kevyn-Alexandre Par=E9 wrote:
-> Hi,
->
-> My question is related to the drivers/mmc/host/omap_hsmmc.c host
-> controller compatibility with SDXC for the OMAP35x?
->
-> Reading the TRM for OMAP35x:
-> http://www.ti.com/lit/ug/spruf98x/spruf98x.pdf
->
-> It's said that:
-> - Full compliance with SD command/response sets as defined in the SD
-> Memory Card Specifications, v2.0 including high-capacity SDHC cards u=
-p
-> to 32GB.
->
-> - Full compliance with sets as defined in the SD Card Specification,
-> Part A2, SD Host Controller Standard Specification, v2.00
->
-> It doesn't mention the SDXC?
-> I'm trying to found my way through all the spec of sdcard.org.
->
-> I'm still wondering why using SDXC of 64GB is working and doesn't pop
-> a WARNING message and if it's safe??
->
-> My test shows that I'm having some timeout in some cases (v3.4.60):
-> omap_hsmmc omap_hsmmc.0: IRQ Status is 18000
-> omap_hsmmc omap_hsmmc.0: MMC IRQ 0x18000 : ERRI CTO
-> mmc0: req done (CMD52): -110: 00000000 00000000 00000000 00000000
-> mmc0: starting CMD52 arg 80000c08 flags 00000195
->
-> omap_hsmmc omap_hsmmc.0: mmc0: CMD5, argument 0x00000000
-> omap_hsmmc omap_hsmmc.0: IRQ Status is 18000
-> omap_hsmmc omap_hsmmc.0: MMC IRQ 0x18000 : ERRI CTO
-> mmc0: req failed (CMD5): -110, retrying...
->
-> mmc1: starting CMD8 arg 000001aa flags 000002f5
-> omap_hsmmc omap_hsmmc.1: mmc1: CMD8, argument 0x000001aa
-> mmc0: starting CMD18 arg 00020000 flags 000000b5
-> omap_hsmmc omap_hsmmc.1: IRQ Status is 18000
-> omap_hsmmc omap_hsmmc.1: MMC IRQ 0x18000 : ERRI CTO
-> mmc1: req done (CMD8): -110: 00000000 00000000 00000000 00000000
->
-> So CMD 52,5 and 8 gives me timeout...
+* Luca Coelho <luca@coelho.fi> [130918 22:50]:
+> On Wed, 2013-09-18 at 16:47 -0700, Tony Lindgren wrote:
+> > * Tony Lindgren <tony@atomide.com> [130918 11:00]:
+> > > * Benoit Cousson <bcousson@baylibre.com> [130918 02:12]:
+> > > > Hi Tony,
+> > > > 
+> > > > On 18/09/2013 02:02, Tony Lindgren wrote:
+> > > > >* Luca Coelho <luca@coelho.fi> [130916 23:35]:
+> > > > >>On Tue, 2013-09-17 at 09:26 +0300, Luca Coelho wrote:
+> > > > >>>Both patches look good to me, though I didn't have the time to retest
+> > > > >>>them.
+> > > > >>
+> > > > >>Actually I don't even have a Blaze device anymore, so I can't really
+> > > > >>test the second patch. :(
+> > > > >
+> > > > >OK no problem, I've tested it on panda es.
+> > > > 
+> > > > Do we have someone out-there that still own a Blaze?
+> > > > 
+> > > > Anyway, I'm about to send a DTS fix branch for -rc2, so I'll include
+> > > > these two patches.
+> > > 
+> > > OK yes good please do pick them up, I'll drop them from my
+> > > not-yet-pushed-out omap-for-v3.12/fixes.
+> > 
+> > Hmm looks like there's also some new regression in the
+> > wl12xx driver:
+> > 
+> > # iwconfig wlan0
+> > wlan0     no wireless extensions.
+> > 
+> > My test script was just doing:
+> > 
+> > # iw dev wlan0 scan
+> > 
+> > And that works fine. Luca, any ideas?
+> 
+> Have you compiled WEXT support in your kernel? iwconfig uses the
+> (deprecated) Wireless Extensions API.  iw uses the current nl80211 API.
+> 
+> If you want to use iwconfig and friends you need to enable
+> CONFIG_CFG80211_WEXT.
 
-=46or SD cards, these cmd's are expected to timeout during card initial=
-ization.
+OK thanks, I don't need to use iwconfig. Looks like the default
+changed in commit 10bab00af (cfg80211: deprecate CFG80211_WEXT).
 
->
-> Looking at the 3.11.1 there is 2 more validation for UHS that are not=
- in 3.4.60:
-> omap_hsmmc_set_clock  // Enable High-Speed Support
-> omap_set_bus_width
->
+Regards,
 
-Those changes are not for SD3.0 speed modes
-
-> Is it safe to use SDXC with OMAP35x or not? Should this pop a error m=
-essage?
-
-SDXC cards should work albeit at High Speed mode (as in SD2.0).
-Refer to [1] for card size Vs speed mode/SD spec version.
-Can you check if the filesystem type on SDXC card
-is supported by the system software running on OMAP35x.
-
-[1]
-https://www.sdcard.org/consumers/speed/bus_speed/
-
->
-> Best Regards,
->
-> -KA
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-mmc" =
-in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+Tony
 
