@@ -1,73 +1,45 @@
-From: Sekhar Nori <nsekhar@ti.com>
-Subject: Re: [PATCH v3] ARM: EDMA: Fix clearing of unused list for DT DMA
- resources
-Date: Thu, 19 Sep 2013 15:05:04 +0530
-Message-ID: <523AC548.5020908@ti.com>
-References: <1378839171-14455-1-git-send-email-joelf@ti.com> <5231903F.7080301@ti.com> <5233B471.40603@ti.com> <5236F00B.5040605@ti.com> <5237314D.7080102@ti.com> <5237E3C3.8050602@ti.com> <5237EAF3.70505@ti.com> <5237F147.1020302@ti.com> <52386733.8010807@ti.com>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: 3.12-rc1: no longer compiles for Nokia n900 (omap based)
+Date: Thu, 19 Sep 2013 10:36:28 +0100
+Message-ID: <20130919093627.GB24866@mudshark.cambridge.arm.com>
+References: <20130919093002.GA23806@amd.pavel.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:49735 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751646Ab3ISJf0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Sep 2013 05:35:26 -0400
-In-Reply-To: <52386733.8010807@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20130919093002.GA23806@amd.pavel.ucw.cz>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Catalin Marinas <Catalin.Marinas@arm.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: joelf@ti.com
-Cc: Vinod Koul <vinod.koul@intel.com>, Dan Williams <djbw@fb.com>, Russell King <linux@arm.linux.org.uk>, Jyri Sarah <jsarha@ti.com>, Koen Kooi <koen@beagleboard.org>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux DaVinci Kernel List <davinci-linux-open-source@linux.davincidsp.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux MMC List <linux-mmc@vger.kernel.org>, Pantel Antoniou <panto@antoniou-consulting.com>
 
-On Tuesday 17 September 2013 07:59 PM, Joel Fernandes wrote:
-> On 09/17/2013 01:05 AM, Sekhar Nori wrote:
-> [..]
->>>> mixed messages. In short, we aim for consistency with situation today,
->>>> not tomorrow.
->>>
->>> What you're asking to do infact breaks consistency with the rest of the code.
->>
->> Well, ideally we support second CC even with DT to be consistent all
->> around. Since that has not happened, I don't want the code to pretend
->> that it it supports the second channel controller with DT that too only
->> in parts of code.
+On Thu, Sep 19, 2013 at 10:30:02AM +0100, Pavel Machek wrote:
+> Hi!
 > 
-> Ok, I agree that the bindings don't talk about encoding a controller number in
-> the channel provided from DT so it shouldn't assume that without binding
-> updates. Following this suggestion, I've update the patch to the below:
+> I get:
 > 
-> ---8<---
-> From: Joel Fernandes <joelf@ti.com>
-> Subject: [PATCH v6] ARM: EDMA: Fix clearing of unused list for DT DMA resources
+>   CC      arch/arm/kernel/machine_kexec.o
+> /tmp/ccCFXeXG.s: Assembler messages:
+> /tmp/ccCFXeXG.s:217: Error: garbage following instruction -- `dsb
+> nshst'
+> /tmp/ccCFXeXG.s:225: Error: garbage following instruction -- `dsb nsh'
+> make[1]: *** [arch/arm/kernel/suspend.o] Error 1
+> make[1]: *** Waiting for unfinished jobs....
 > 
-> HWMOD removal for MMC is breaking edma_start as the events are being manually
-> triggered due to unused channel list not being clear.
+> pavel@amd:/data/l/linux-n900$ arm-linux-gnueabi-gcc --version
+> arm-linux-gnueabi-gcc (Debian 4.3.5-4) 4.3.5
 > 
-> The above issue is fixed by reading the "dmas" property from the DT node if it
-> exists and clearing the bits in the unused channel list if the dma controller
-> used by any device is EDMA. For this purpose we use the of_* helpers to parse
-> the arguments in the dmas phandle list.
-> 
-> Also introduced is a minor clean up of a checkpatch error in old code.
+> Minimum required gcc is 3.2, so I'm safe.
 
-The patch looks good to me. I made some modifications to commit message
-- mostly for brevity.
+Please check your binutils. >= 2.22 has been reported to work.
 
-    ARM: edma: dt: create unused channel list
-
-    HWMOD removal for MMC is breaking edma_start() as the events
-    are being manually triggered due to EDMA unused channel list
-    not being ready.
-
-    The above issue is fixed by reading the "dmas" property from
-    the DT node if it exists and then clearing the bits in the
-    unused channel list if the dma controller used by any device
-    is EDMA.
-
-    This is similar to approach taken in non-DT case.
-
-    Also introduced is a minor clean up of a checkpatch error in
-    old code.
-
-Thanks,
-Sekhar
-
+Will1
