@@ -1,44 +1,44 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: Re: 3.12-rc1: no longer compiles for Nokia n900 (omap based),
- display no longer works
-Date: Thu, 19 Sep 2013 21:47:04 +0300
-Message-ID: <20130919184703.GE30568@blackmetal.musicnaut.iki.fi>
-References: <20130919093002.GA23806@amd.pavel.ucw.cz>
- <20130919094402.GA27253@amd.pavel.ucw.cz>
+From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH] ARM: dts: omap5-uevm: mark TWL6037 as system-power-controller
+Date: Thu, 19 Sep 2013 14:11:36 -0500
+Message-ID: <1379617896-15213-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from filtteri5.pp.htv.fi ([213.243.153.188]:41706 "EHLO
-	filtteri5.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752866Ab3ISSrL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Sep 2013 14:47:11 -0400
-Content-Disposition: inline
-In-Reply-To: <20130919094402.GA27253@amd.pavel.ucw.cz>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, will.deacon@arm.com, catalin.marinas@arm.com
 
-Hi,
+This allows the palmas pm_power_off to kick in on power off command
+and switch off the board.
 
-On Thu, Sep 19, 2013 at 11:44:02AM +0200, Pavel Machek wrote:
-> something in 3.12-rc1 broke display :-(. (dmesg diff attached at the
-> end, maybe someone knows...)
+Signed-off-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+---
+Based on: (benoit's for_3.13/dts branch)
+https://git.kernel.org/cgit/linux/kernel/git/bcousson/linux-omap-dt.git/log/?h=for_3.13/dts
+This uses the support introduced by:
+http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=b81eec09a484c588ead035003ce7555ca8a9963a
 
-3.12-rc1 for N900 compiles and works (also display) here with binutils
-2.23.2.
+ arch/arm/boot/dts/omap5-uevm.dts |    1 +
+ 1 file changed, 1 insertion(+)
 
-> + omapfb omapfb: no displays
+diff --git a/arch/arm/boot/dts/omap5-uevm.dts b/arch/arm/boot/dts/omap5-uevm.dts
+index da25a14..8227386 100644
+--- a/arch/arm/boot/dts/omap5-uevm.dts
++++ b/arch/arm/boot/dts/omap5-uevm.dts
+@@ -271,6 +271,7 @@
+ 		reg = <0x48>;
+ 		interrupt-controller;
+ 		#interrupt-cells = <2>;
++		ti,system-power-controller;
+ 
+ 		extcon_usb3: palmas_usb {
+ 			compatible = "ti,palmas-usb-vid";
+-- 
+1.7.9.5
 
-[...]
-
-> - acx565akm spi1.2: omapfb: acx565akm rev 12 LCD detected
-
-I think this is because the panel driver has changed, and the old one
-was deleted. You need to change your kernel configuration with something
-like below:
-
--CONFIG_PANEL_ACX565AKM=y
-+CONFIG_DISPLAY_PANEL_SONY_ACX565AKM=y
-
-A.
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
