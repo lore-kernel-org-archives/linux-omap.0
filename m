@@ -1,101 +1,45 @@
-From: Enric Balletbo Serra <eballetbo@gmail.com>
-Subject: Re: [PATCH] ARM: dts: igep00x0: Add pinmux configuration for MCBSP2.
-Date: Thu, 19 Sep 2013 08:31:50 +0200
-Message-ID: <CAFqH_52qd3gLy8A67Xw1wXOBaChsRSMD-0k4JxC8aje7MEgXgw@mail.gmail.com>
-References: <1378827323-15433-1-git-send-email-eballetbo@gmail.com>
-	<CAFqH_503dztqH0XEohTyV8VCZiNHsrwk1ahKFXgz6DzKDc-fAQ@mail.gmail.com>
-	<52399D9F.6020501@baylibre.com>
+From: George Cherian <george.cherian@ti.com>
+Subject: Re: PCF857x and 16-bit GPIO expanders
+Date: Thu, 19 Sep 2013 13:43:41 +0530
+Message-ID: <523AB235.1000808@ti.com>
+References: <20130917190732.GD15645@radagast> <CACRpkdYn8yaTyFJMaC3vK4kGrQsaZpAX=pyn5y33ers7QhQ_pg@mail.gmail.com> <2356541.62QktiIBr5@avalon> <20130918173636.GT21559@radagast>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:37677 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752483Ab3ISGbw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Sep 2013 02:31:52 -0400
-Received: by mail-wi0-f172.google.com with SMTP id hn9so5115516wib.11
-        for <linux-omap@vger.kernel.org>; Wed, 18 Sep 2013 23:31:51 -0700 (PDT)
-In-Reply-To: <52399D9F.6020501@baylibre.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <20130918173636.GT21559@radagast>
+Sender: linux-gpio-owner@vger.kernel.org
+To: balbi@ti.com
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Linus Walleij <linus.walleij@linaro.org>, Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>, Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <bcousson@baylibre.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Javier Martinez Canillas <martinez.javier@gmail.com>
 
-Hi Benoit,
-
-2013/9/18 Benoit Cousson <bcousson@baylibre.com>:
-> Hi Enric,
+On 9/18/2013 11:06 PM, Felipe Balbi wrote:
+> Hi,
 >
->
-> On 10/09/2013 17:38, Enric Balletbo Serra wrote:
+> On Wed, Sep 18, 2013 at 07:18:04PM +0200, Laurent Pinchart wrote:
+>> On Wednesday 18 September 2013 13:16:27 Linus Walleij wrote:
+>>> On Tue, Sep 17, 2013 at 9:07 PM, Felipe Balbi <balbi@ti.com> wrote:
+>>>> has anyone ever successfully using gpio-pcf857x.c driver with 16-bit
+>>>> gpio expanders ? We're having some issues here where toggling the last
+>>>> gpio pin (gpio 15) on a PCF8575 device causes platform to hang and I
+>>>> can't come up with any explanation of why would it hang...
+>>> Bouncing the question to George, Laurent and Kuninori...
+>> I've got a board with a PCF8575 chip, but it uses I/Os 8 to 14 only as far as
+>> I know.
 >>
->> 2013/9/10 Enric Balletbo i Serra <eballetbo@gmail.com>:
->>>
->>> Add pinmux configuration for MCBSP2 connected to the TDM interface. With
->>> this configuration the Headset modules works as expected.
->>>
->>> Signed-off-by: Enric Balletbo i Serra <eballetbo@gmail.com>
->>> Acked-by: Javier Martinez Canillas <javier@dowhile0.org>
->>> ---
->>>   arch/arm/boot/dts/omap3-igep.dtsi | 14 ++++++++++++++
->>>   1 file changed, 14 insertions(+)
->>>
->>> diff --git a/arch/arm/boot/dts/omap3-igep.dtsi
->>> b/arch/arm/boot/dts/omap3-igep.dtsi
->>> index bc48b11..2326d11 100644
->>> --- a/arch/arm/boot/dts/omap3-igep.dtsi
->>> +++ b/arch/arm/boot/dts/omap3-igep.dtsi
->>> @@ -48,6 +48,15 @@
->>>                  >;
->>>          };
->>>
->>> +       mcbsp2_pins: pinmux_mcbsp2_pins {
->>> +               pinctrl-single,pins = <
->>> +                       0x10c (PIN_INPUT | MUX_MODE0)           /*
->>> mcbsp2_fsx.mcbsp2_fsx */
->>> +                       0x10e (PIN_INPUT | MUX_MODE0)           /*
->>> mcbsp2_clkx.mcbsp2_clkx */
->>> +                       0x110 (PIN_INPUT | MUX_MODE0)           /*
->>> mcbsp2_dr.mcbsp2.dr */
->>> +                       0x112 (PIN_OUTPUT | MUX_MODE0)          /*
->>> mcbsp2_dx.mcbsp2_dx */
->>> +               >;
->>> +       };
->>> +
->>>          mmc1_pins: pinmux_mmc1_pins {
->>>                  pinctrl-single,pins = <
->>>                          0x114 (PIN_INPUT_PULLUP | MUX_MODE0)    /*
->>> sdmmc1_clk.sdmmc1_clk */
->>> @@ -93,6 +102,11 @@
->>>          clock-frequency = <400000>;
->>>   };
->>>
->>> +&mcbsp2 {
->>> +       pinctrl-names = "default";
->>> +       pinctrl-0 = <&mcbsp2_pins>;
->>> +};
->>> +
->>>   &mmc1 {
->>>         pinctrl-names = "default";
->>>         pinctrl-0 = <&mmc1_pins>;
->>> --
->>> 1.8.1.2
->>>
->>
->> Hi Benoit,
->>
->> I sent this patch some time ago to be merged as a fix for 3.11, but
->> seems was not merged. Would be possible include this patch in these
->> series ?
+>> I can try toggling I/O 15, but that will need to wait until next week as I'm
+>> currently travelling without access to the hardware.
+> alright, that'd help me a lot :-) Just want to make sure if we're having
+> a board issue, or PCF8575 is a bit screwy ;-)
+Is it on dra7x-evm if so which pcf device (i2c address)?
+The pins i were interested were only 1 and 2 I never tried pin 15.
+
+Just tried toggling through sysfs and it works for me.
 >
->
-> I'm really sorry I missed that one :-(
-> I'm applying it right now, and will update my pull request.
->
-> Thanks,
-> Benoit
+> Thanks
 >
 
-Many thanks.
 
-Best regards,
-    Enric
+-- 
+-George
+
