@@ -1,36 +1,72 @@
 From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 0/2] ARM: dts: dra7-evm: add support for sd, eMMC
-Date: Thu, 19 Sep 2013 10:20:58 -0500
-Message-ID: <523B165A.5020006@ti.com>
-References: <1377525218-7655-1-git-send-email-balajitk@ti.com>
+Subject: [PATCH] ARM: dts: am335x-boneblack: move fixed regulator to board level
+Date: Thu, 19 Sep 2013 12:12:44 -0500
+Message-ID: <1379610764-758-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1377525218-7655-1-git-send-email-balajitk-l0cyMroinI0@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Koen Kooi <koen-QLwJDigV5abLmq1fohREcCpxlwaOVQ5f@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 08/26/2013 08:53 AM, Balaji T K wrote:
-> Add mmc1, mmc2 dt node to dra7-evm
-> 
-> Balaji T K (2):
->   ARM: dts: dra7-evm: Add mmc1 node for micro-sd support
->   ARM: dts: dra7-evm: Add mmc2 node for eMMC support
-> 
->  arch/arm/boot/dts/dra7-evm.dts |   20 ++++++++++++++++++++
->  1 files changed, 20 insertions(+), 0 deletions(-)
-> 
-Series:
+3.3V fixed regulator does not belong to TPS node - as a result
+the fixed regulator is never probed and MMC is continually deferred due
+to lack of regulator.
 
-Acked-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Move the fixed regulator to be at root of platform.
 
-Thanks. this is needed for MMC boot on DRA7 evm.
+Signed-off-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+---
+
+Based on: (benoit's for_3.13/dts branch)
+https://git.kernel.org/cgit/linux/kernel/git/bcousson/linux-omap-dt.git/log/?h=for_3.13/dts
+ +
+https://patchwork.kernel.org/patch/2902711/
+
+Test Log:
+before: http://pastebin.com/UuCsBg2d
+After: http://pastebin.com/149FWujf
+notice how "vmmcsd_fixed: 3300 mV " does not appear in the log before the patch.
+
+ arch/arm/boot/dts/am335x-bone-common.dtsi |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
+index 56361ce..fe2742e 100644
+--- a/arch/arm/boot/dts/am335x-bone-common.dtsi
++++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
+@@ -215,6 +215,13 @@
+ 			default-state = "off";
+ 		};
+ 	};
++
++	vmmcsd_fixed: fixedregulator@0 {
++		compatible = "regulator-fixed";
++		regulator-name = "vmmcsd_fixed";
++		regulator-min-microvolt = <3300000>;
++		regulator-max-microvolt = <3300000>;
++	};
+ };
+ 
+ /include/ "tps65217.dtsi"
+@@ -259,13 +266,6 @@
+ 			regulator-always-on;
+ 		};
+ 	};
+-
+-	vmmcsd_fixed: fixedregulator@0 {
+-		compatible = "regulator-fixed";
+-		regulator-name = "vmmcsd_fixed";
+-		regulator-min-microvolt = <3300000>;
+-		regulator-max-microvolt = <3300000>;
+-	};
+ };
+ 
+ &cpsw_emac0 {
 -- 
-Regards,
-Nishanth Menon
+1.7.9.5
+
 --
 To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
