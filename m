@@ -1,79 +1,146 @@
-From: Russell King <rmk+kernel-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
-Subject: [PATCH 04/51] DMA-API: net: intel/igb: fix 32-bit DMA mask handling
-Date: Thu, 19 Sep 2013 22:28:59 +0100
-Message-ID: <E1VMlmV-0007fU-75@rmk-PC.arm.linux.org.uk>
-References: <20130919212235.GD12758@n2100.arm.linux.org.uk>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20130919212235.GD12758-l+eeeJia6m9vn6HldHNs0ANdhmdF6hFW@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, b43-dev-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, e1000-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-crypto-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-ide-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Solarflare linux maintainers <linux-net-drivers-s/n/eUQHGBpZroRs9YW3xA@public.gmane.org>, uclinux-dist-devel-ZG0+EudsQA8dtHy/vicBwGD2FQJk+8+b@public.gmane.org
-Cc: Jeff Kirsher <jeffrey.t.kirsher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jesse Brandeburg <jesse.brandeburg-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Bruce Allan <bruce.w.allan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Carolyn Wyborny <carolyn.wyborny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Don Skidmore <donald.c.skidmore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Greg Rose <gregory.v.rose-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Peter P Waskiewicz Jr <peter.p.waskiewicz.jr-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Alex Duyck <alexander.h.duyck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, John Ronciak <john.ronciak-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tushar Dave <tushar.n.dave-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
+Subject: Re: [PATCH] RX-51: Add missing max_current to rx51_lp5523_led_config
+Date: Fri, 20 Sep 2013 00:20:58 +0200
+Message-ID: <201309200020.58671@pali>
+References: <1379541145-25934-1-git-send-email-pali.rohar@gmail.com> <201309192301.58761@pali> <20130919212922.GA27501@atomide.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed;
+  boundary="nextPart3701850.WM6TTXiHuD";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20130919212922.GA27501@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-The fallback to 32-bit DMA mask is rather odd:
-	err = dma_set_mask(&pdev->dev, DMA_BIT_MASK(64));
-	if (!err) {
-		err = dma_set_coherent_mask(&pdev->dev, DMA_BIT_MASK(64));
-		if (!err)
-			pci_using_dac = 1;
-	} else {
-		err = dma_set_mask(&pdev->dev, DMA_BIT_MASK(32));
-		if (err) {
-			err = dma_set_coherent_mask(&pdev->dev,
-						    DMA_BIT_MASK(32));
-			if (err) {
-				dev_err(&pdev->dev,
-					"No usable DMA configuration, aborting\n");
-				goto err_dma;
-			}
-		}
-	}
-This means we only set the coherent DMA mask in the fallback path if
-the DMA mask set failed, which is silly.  This fixes it to set the
-coherent DMA mask only if dma_set_mask() succeeded, and to error out
-if either fails.
+--nextPart3701850.WM6TTXiHuD
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Russell King <rmk+kernel-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
----
- drivers/net/ethernet/intel/igb/igb_main.c |   18 ++++++------------
- 1 files changed, 6 insertions(+), 12 deletions(-)
+On Thursday 19 September 2013 23:29:22 Tony Lindgren wrote:
+> * Pali Roh=C3=A1r <pali.rohar@gmail.com> [130919 14:10]:
+> > On Thursday 19 September 2013 00:26:43 Tony Lindgren wrote:
+> > > * Pali Roh=C3=A1r <pali.rohar@gmail.com> [130918 15:02]:
+> > > > Without max_current data in board file lp5523 driver
+> > > > does not change current.
+> > >=20
+> > > Hmm is this a regression or are there other reasons to
+> > > merge this during the -rc cycle?
+> >=20
+> > I think this is regression,
+> > drivers/leds/leds-lp55xx-common.c code refuse to change
+> > led_current sysfs attribute if value is higher than
+> > max_current specified in board file. And because in board
+> > file max_current is not specified it is by default zero as
+> > global variable. So changing led_current is not possible
+> > because any positive value is more than zero. First I saw
+> > this behaviour in 3.10, but I forgot to send this patch.
+>=20
+> OK thanks, can you please update the patch description with
+> that so I can merge it for the -rc cycle? Ideally of course
+> with the breaking commit too.
+>=20
+> Regards,
+>=20
+> Tony
 
-diff --git a/drivers/net/ethernet/intel/igb/igb_main.c b/drivers/net/ethernet/intel/igb/igb_main.c
-index 8cf44f2..7579383 100644
---- a/drivers/net/ethernet/intel/igb/igb_main.c
-+++ b/drivers/net/ethernet/intel/igb/igb_main.c
-@@ -2034,21 +2034,15 @@ static int igb_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
- 		return err;
- 
- 	pci_using_dac = 0;
--	err = dma_set_mask(&pdev->dev, DMA_BIT_MASK(64));
-+	err = dma_set_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(64));
- 	if (!err) {
--		err = dma_set_coherent_mask(&pdev->dev, DMA_BIT_MASK(64));
--		if (!err)
--			pci_using_dac = 1;
-+		pci_using_dac = 1;
- 	} else {
--		err = dma_set_mask(&pdev->dev, DMA_BIT_MASK(32));
-+		err = dma_set_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(32));
- 		if (err) {
--			err = dma_set_coherent_mask(&pdev->dev,
--						    DMA_BIT_MASK(32));
--			if (err) {
--				dev_err(&pdev->dev,
--					"No usable DMA configuration, aborting\n");
--				goto err_dma;
--			}
-+			dev_err(&pdev->dev,
-+				"No usable DMA configuration, aborting\n");
-+			goto err_dma;
- 		}
+I do not know which commit broke it. There was some change in lp driver whi=
+ch
+caused that driver not worked with testing applications. Now it should be f=
+ixed.
+So I resending my patch with updated description.
+
+
+
+RX-51: Add missing max_current to rx51_lp5523_led_config
+
+=46ile drivers/leds/leds-lp55xx-common.c refuse to change led_current sysfs
+attribute if value is higher than max_current specified in board file. By d=
+efault
+global C variables are zero, so changing always failed. This patch adding m=
+issing
+max_current and setting it to max value 255.
+
+Signed-off-by: Pali Roh=C3=A1r <pali.rohar@gmail.com>
+=2D--
+ arch/arm/mach-omap2/board-rx51-peripherals.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-o=
+map2/board-rx51-peripherals.c
+index 9326890..d0f857c 100644
+=2D-- a/arch/arm/mach-omap2/board-rx51-peripherals.c
++++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+@@ -180,38 +180,47 @@ static struct lp55xx_led_config rx51_lp5523_led_confi=
+g[] =3D {
+ 		.name		=3D "lp5523:kb1",
+ 		.chan_nr	=3D 0,
+ 		.led_current	=3D 50,
++		.max_current	=3D 255,
+ 	}, {
+ 		.name		=3D "lp5523:kb2",
+ 		.chan_nr	=3D 1,
+ 		.led_current	=3D 50,
++		.max_current	=3D 255,
+ 	}, {
+ 		.name		=3D "lp5523:kb3",
+ 		.chan_nr	=3D 2,
+ 		.led_current	=3D 50,
++		.max_current	=3D 255,
+ 	}, {
+ 		.name		=3D "lp5523:kb4",
+ 		.chan_nr	=3D 3,
+ 		.led_current	=3D 50,
++		.max_current	=3D 255,
+ 	}, {
+ 		.name		=3D "lp5523:b",
+ 		.chan_nr	=3D 4,
+ 		.led_current	=3D 50,
++		.max_current	=3D 255,
+ 	}, {
+ 		.name		=3D "lp5523:g",
+ 		.chan_nr	=3D 5,
+ 		.led_current	=3D 50,
++		.max_current	=3D 255,
+ 	}, {
+ 		.name		=3D "lp5523:r",
+ 		.chan_nr	=3D 6,
+ 		.led_current	=3D 50,
++		.max_current	=3D 255,
+ 	}, {
+ 		.name		=3D "lp5523:kb5",
+ 		.chan_nr	=3D 7,
+ 		.led_current	=3D 50,
++		.max_current	=3D 255,
+ 	}, {
+ 		.name		=3D "lp5523:kb6",
+ 		.chan_nr	=3D 8,
+ 		.led_current	=3D 50,
++		.max_current	=3D 255,
  	}
- 
--- 
-1.7.4.4
+ };
+=20
+=2D-=20
+1.7.10.4
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
+
+--nextPart3701850.WM6TTXiHuD
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iEYEABECAAYFAlI7eMoACgkQi/DJPQPkQ1JUNgCdEaSFwTrG+1DuDwQK8OyAO0K3
+OlgAnRfe8y/FnGC3jAbW1G7Qu77eym/d
+=oX2V
+-----END PGP SIGNATURE-----
+
+--nextPart3701850.WM6TTXiHuD--
