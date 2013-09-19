@@ -1,71 +1,101 @@
-From: Luca Coelho <luca@coelho.fi>
-Subject: Re: [PATCH 1/2] ARM: dts: Fix muxing and regulator for wl12xx on
- the SDIO bus for pandaboard
-Date: Thu, 19 Sep 2013 08:43:11 +0300
-Message-ID: <1379569391.4223.148.camel@porter.coelho.fi>
-References: <20130913190811.24617.97699.stgit@localhost>
-	 <20130913190953.24617.46506.stgit@localhost>
-	 <1379399214.4223.123.camel@porter.coelho.fi>
-	 <1379399290.4223.124.camel@porter.coelho.fi>
-	 <20130918000203.GS9994@atomide.com> <52396CA0.6030100@baylibre.com>
-	 <20130918175158.GW9994@atomide.com> <20130918234726.GL9994@atomide.com>
+From: Enric Balletbo Serra <eballetbo@gmail.com>
+Subject: Re: [PATCH] ARM: dts: igep00x0: Add pinmux configuration for MCBSP2.
+Date: Thu, 19 Sep 2013 08:31:50 +0200
+Message-ID: <CAFqH_52qd3gLy8A67Xw1wXOBaChsRSMD-0k4JxC8aje7MEgXgw@mail.gmail.com>
+References: <1378827323-15433-1-git-send-email-eballetbo@gmail.com>
+	<CAFqH_503dztqH0XEohTyV8VCZiNHsrwk1ahKFXgz6DzKDc-fAQ@mail.gmail.com>
+	<52399D9F.6020501@baylibre.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from emh01.mail.saunalahti.fi ([62.142.5.107]:57036 "EHLO
-	emh01.mail.saunalahti.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752139Ab3ISFme (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Sep 2013 01:42:34 -0400
-In-Reply-To: <20130918234726.GL9994@atomide.com>
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:37677 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752483Ab3ISGbw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Sep 2013 02:31:52 -0400
+Received: by mail-wi0-f172.google.com with SMTP id hn9so5115516wib.11
+        for <linux-omap@vger.kernel.org>; Wed, 18 Sep 2013 23:31:51 -0700 (PDT)
+In-Reply-To: <52399D9F.6020501@baylibre.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Benoit Cousson <bcousson@baylibre.com>, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, Rajendra Nayak <rnayak@ti.com>, Paolo Pisati <p.pisati@gmail.com>, linux-omap@vger.kernel.org
+To: Benoit Cousson <bcousson@baylibre.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Javier Martinez Canillas <martinez.javier@gmail.com>
 
-On Wed, 2013-09-18 at 16:47 -0700, Tony Lindgren wrote:
-> * Tony Lindgren <tony@atomide.com> [130918 11:00]:
-> > * Benoit Cousson <bcousson@baylibre.com> [130918 02:12]:
-> > > Hi Tony,
-> > > 
-> > > On 18/09/2013 02:02, Tony Lindgren wrote:
-> > > >* Luca Coelho <luca@coelho.fi> [130916 23:35]:
-> > > >>On Tue, 2013-09-17 at 09:26 +0300, Luca Coelho wrote:
-> > > >>>Both patches look good to me, though I didn't have the time to retest
-> > > >>>them.
-> > > >>
-> > > >>Actually I don't even have a Blaze device anymore, so I can't really
-> > > >>test the second patch. :(
-> > > >
-> > > >OK no problem, I've tested it on panda es.
-> > > 
-> > > Do we have someone out-there that still own a Blaze?
-> > > 
-> > > Anyway, I'm about to send a DTS fix branch for -rc2, so I'll include
-> > > these two patches.
-> > 
-> > OK yes good please do pick them up, I'll drop them from my
-> > not-yet-pushed-out omap-for-v3.12/fixes.
-> 
-> Hmm looks like there's also some new regression in the
-> wl12xx driver:
-> 
-> # iwconfig wlan0
-> wlan0     no wireless extensions.
-> 
-> My test script was just doing:
-> 
-> # iw dev wlan0 scan
-> 
-> And that works fine. Luca, any ideas?
+Hi Benoit,
 
-Have you compiled WEXT support in your kernel? iwconfig uses the
-(deprecated) Wireless Extensions API.  iw uses the current nl80211 API.
+2013/9/18 Benoit Cousson <bcousson@baylibre.com>:
+> Hi Enric,
+>
+>
+> On 10/09/2013 17:38, Enric Balletbo Serra wrote:
+>>
+>> 2013/9/10 Enric Balletbo i Serra <eballetbo@gmail.com>:
+>>>
+>>> Add pinmux configuration for MCBSP2 connected to the TDM interface. With
+>>> this configuration the Headset modules works as expected.
+>>>
+>>> Signed-off-by: Enric Balletbo i Serra <eballetbo@gmail.com>
+>>> Acked-by: Javier Martinez Canillas <javier@dowhile0.org>
+>>> ---
+>>>   arch/arm/boot/dts/omap3-igep.dtsi | 14 ++++++++++++++
+>>>   1 file changed, 14 insertions(+)
+>>>
+>>> diff --git a/arch/arm/boot/dts/omap3-igep.dtsi
+>>> b/arch/arm/boot/dts/omap3-igep.dtsi
+>>> index bc48b11..2326d11 100644
+>>> --- a/arch/arm/boot/dts/omap3-igep.dtsi
+>>> +++ b/arch/arm/boot/dts/omap3-igep.dtsi
+>>> @@ -48,6 +48,15 @@
+>>>                  >;
+>>>          };
+>>>
+>>> +       mcbsp2_pins: pinmux_mcbsp2_pins {
+>>> +               pinctrl-single,pins = <
+>>> +                       0x10c (PIN_INPUT | MUX_MODE0)           /*
+>>> mcbsp2_fsx.mcbsp2_fsx */
+>>> +                       0x10e (PIN_INPUT | MUX_MODE0)           /*
+>>> mcbsp2_clkx.mcbsp2_clkx */
+>>> +                       0x110 (PIN_INPUT | MUX_MODE0)           /*
+>>> mcbsp2_dr.mcbsp2.dr */
+>>> +                       0x112 (PIN_OUTPUT | MUX_MODE0)          /*
+>>> mcbsp2_dx.mcbsp2_dx */
+>>> +               >;
+>>> +       };
+>>> +
+>>>          mmc1_pins: pinmux_mmc1_pins {
+>>>                  pinctrl-single,pins = <
+>>>                          0x114 (PIN_INPUT_PULLUP | MUX_MODE0)    /*
+>>> sdmmc1_clk.sdmmc1_clk */
+>>> @@ -93,6 +102,11 @@
+>>>          clock-frequency = <400000>;
+>>>   };
+>>>
+>>> +&mcbsp2 {
+>>> +       pinctrl-names = "default";
+>>> +       pinctrl-0 = <&mcbsp2_pins>;
+>>> +};
+>>> +
+>>>   &mmc1 {
+>>>         pinctrl-names = "default";
+>>>         pinctrl-0 = <&mmc1_pins>;
+>>> --
+>>> 1.8.1.2
+>>>
+>>
+>> Hi Benoit,
+>>
+>> I sent this patch some time ago to be merged as a fix for 3.11, but
+>> seems was not merged. Would be possible include this patch in these
+>> series ?
+>
+>
+> I'm really sorry I missed that one :-(
+> I'm applying it right now, and will update my pull request.
+>
+> Thanks,
+> Benoit
+>
 
-If you want to use iwconfig and friends you need to enable
-CONFIG_CFG80211_WEXT.
+Many thanks.
 
---
-Cheers,
-Luca.
-
+Best regards,
+    Enric
