@@ -1,61 +1,58 @@
-From: Jyri Sarha <jsarha@ti.com>
-Subject: [PATCH v3 09/11] ARM/dts: am33xx: Add mcasp0 and mcasp1 device tree entries
-Date: Thu, 19 Sep 2013 14:29:42 +0300
-Message-ID: <62baac083e656dd964690999d493ff5489b4c34d.1379590036.git.jsarha@ti.com>
+From: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v3 08/11] ASoC: tlv320aic3x: Add codec pins to DT bindings document
+Date: Thu, 19 Sep 2013 14:29:41 +0300
+Message-ID: <a25e4974b7fc48ab860752a54f7f77107109a48b.1379590036.git.jsarha@ti.com>
 References: <cover.1379590035.git.jsarha@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:54152 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753649Ab3ISLab (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Sep 2013 07:30:31 -0400
-In-Reply-To: <cover.1379590035.git.jsarha@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <cover.1379590035.git.jsarha-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, peter.ujfalusi-l0cyMroinI0@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, liam.r.girdwood-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, joelf-l0cyMroinI0@public.gmane.org, Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: alsa-devel@alsa-project.org, devicetree@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, peter.ujfalusi@ti.com, broonie@kernel.org, liam.r.girdwood@linux.intel.com, grant.likely@linaro.org, rob.herring@calxeda.com, joelf@ti.com, Pantelis Antoniou <panto@antoniou-consulting.com>, Darren Etheridge <detheridge@ti.com>, Jyri Sarha <jsarha@ti.com>
 
-From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Add list of codec pins to tlv320aic3x DT bindings document.
 
-Add missing mcasp entries in the am33xx.dtsi include file.
-
-Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
-Signed-off-by: Darren Etheridge <detheridge@ti.com>
-Signed-off-by: Jyri Sarha <jsarha@ti.com>
+Signed-off-by: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/boot/dts/am33xx.dtsi |   19 +++++++++++++++++++
+ .../devicetree/bindings/sound/tlv320aic3x.txt      |   19 +++++++++++++++++++
  1 file changed, 19 insertions(+)
 
-diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index 0fdb949..fe53ce0 100644
---- a/arch/arm/boot/dts/am33xx.dtsi
-+++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -552,5 +552,24 @@
- 			#size-cells = <1>;
- 			status = "disabled";
- 		};
+diff --git a/Documentation/devicetree/bindings/sound/tlv320aic3x.txt b/Documentation/devicetree/bindings/sound/tlv320aic3x.txt
+index 11e24b2..2b76c81 100644
+--- a/Documentation/devicetree/bindings/sound/tlv320aic3x.txt
++++ b/Documentation/devicetree/bindings/sound/tlv320aic3x.txt
+@@ -20,6 +20,25 @@ Optional properties:
+ - AVDD-supply, IOVDD-supply, DRVDD-supply, DVDD-supply : power supplies for the
+   device as covered in Documentation/devicetree/bindings/regulator/regulator.txt
+ 
++CODEC output pins:
++  * LLOUT
++  * RLOUT
++  * MONO_LOUT
++  * HPLOUT
++  * HPROUT
++  * HPLCOM
++  * HPRCOM
 +
-+		mcasp0: mcasp@48038000 {
-+			compatible = "ti,omap2-mcasp-audio";
-+			ti,hwmods = "mcasp0";
-+			reg = <0x48038000 0x2000>;
-+			interrupts = <80 81>;
-+			interrupts-names = "tx", "rx";
-+			status = "disabled";
-+		};
++CODEC input pins:
++  * MIC3L
++  * MIC3R
++  * LINE1L
++  * LINE2L
++  * LINE1R
++  * LINE2R
 +
-+		mcasp1: mcasp@4803C000 {
-+			compatible = "ti,omap2-mcasp-audio";
-+			ti,hwmods = "mcasp1";
-+			reg = <0x4803C000 0x2000>;
-+			interrupts = <82 83>;
-+			interrupts-names = "tx", "rx";
-+			status = "disabled";
-+		};
++The pins can be used in referring sound node's audio-routing property.
 +
- 	};
- };
+ Example:
+ 
+ tlv320aic3x: tlv320aic3x@1b {
 -- 
 1.7.9.5
 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
