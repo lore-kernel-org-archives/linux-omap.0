@@ -1,88 +1,160 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [RFC PATCH 02/15] phy: omap-control: Update DT binding information
-Date: Thu, 19 Sep 2013 16:05:30 +0300
-Message-ID: <1379595943-14622-3-git-send-email-rogerq@ti.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: [RFC PATCH 04/15] phy: omap-pipe3: use generic clock names
+Date: Thu, 19 Sep 2013 16:05:32 +0300
+Message-ID: <1379595943-14622-5-git-send-email-rogerq@ti.com>
 References: <1379595943-14622-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1379595943-14622-1-git-send-email-rogerq@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: balbi@ti.com, bcousson@baylibre.com, tony@atomide.com
-Cc: balajitk@ti.com, kishon@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-ide@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1379595943-14622-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: balbi-l0cyMroinI0@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
+Cc: balajitk-l0cyMroinI0@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-ide-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Update compatibility string and DT binding document.
+From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
 
-Signed-off-by: Roger Quadros <rogerq@ti.com>
+As this driver is no longer USB specific use generic clock names.
+
+[Roger Q]
+- Fix PLL_SD_SHIFT from 9 to 10
+- As optclk and wkupclk may not be always required, don't bail out
+if they aren't available.
+
+Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 ---
- Documentation/devicetree/bindings/phy/omap-phy.txt |   23 ++++++++++++++++++++
- Documentation/devicetree/bindings/usb/omap-usb.txt |   23 --------------------
- 2 files changed, 23 insertions(+), 23 deletions(-)
+ drivers/phy/phy-omap-pipe3.c |   71 +++++++++++++++++++++++-------------------
+ 1 files changed, 39 insertions(+), 32 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/phy/omap-phy.txt b/Documentation/devicetree/bindings/phy/omap-phy.txt
-index 2c485ee..cf45b01 100644
---- a/Documentation/devicetree/bindings/phy/omap-phy.txt
-+++ b/Documentation/devicetree/bindings/phy/omap-phy.txt
-@@ -1,5 +1,28 @@
- OMAP PHY: DT DOCUMENTATION FOR PHYs in OMAP PLATFORM
+diff --git a/drivers/phy/phy-omap-pipe3.c b/drivers/phy/phy-omap-pipe3.c
+index 63de0f8..807ab8a 100644
+--- a/drivers/phy/phy-omap-pipe3.c
++++ b/drivers/phy/phy-omap-pipe3.c
+@@ -37,15 +37,15 @@
+ #define	PLL_CONFIGURATION4	0x00000020
  
-+OMAP CONTROL PHY
-+
-+Required properties:
-+ - compatible: Should be one of
-+ "ti,control-phy-otghs" - if it has otghs_control mailbox register as on OMAP4.
-+ "ti,control-phy-usb2" - if it has Power down bit in control_dev_conf register
-+			e.g. USB2_PHY on OMAP5.
-+ "ti,control-phy-pipe3" - if it has DPLL and individual Rx & Tx power control
-+			e.g. USB3 PHY and SATA PHY on OMAP5.
-+ "ti,control-phy-dra7usb2" - if it has power down register like USB2 PHY on
-+			DRA7 platform.
-+ - reg : Address and length of the register set for the device. It contains
-+   the address of "otghs_control" for control-phy-otghs or "power" register
-+   for other types.
-+ - reg-names: should be "otghs_control" control-phy-otghs and "power" for
-+   other types.
-+
-+omap_control_otghs: omap-control-phy@4a002300 {
-+	compatible = "ti,control-phy-otghs";
-+	reg = <0x4a00233c 0x4>;
-+	reg-names = "otghs_control";
-+};
-+
- OMAP USB2 PHY
+ #define	PLL_REGM_MASK		0x001FFE00
+-#define	PLL_REGM_SHIFT		0x9
++#define	PLL_REGM_SHIFT		9
+ #define	PLL_REGM_F_MASK		0x0003FFFF
+-#define	PLL_REGM_F_SHIFT	0x0
++#define	PLL_REGM_F_SHIFT	0
+ #define	PLL_REGN_MASK		0x000001FE
+-#define	PLL_REGN_SHIFT		0x1
++#define	PLL_REGN_SHIFT		1
+ #define	PLL_SELFREQDCO_MASK	0x0000000E
+-#define	PLL_SELFREQDCO_SHIFT	0x1
++#define	PLL_SELFREQDCO_SHIFT	1
+ #define	PLL_SD_MASK		0x0003FC00
+-#define	PLL_SD_SHIFT		0x9
++#define	PLL_SD_SHIFT		10
+ #define	SET_PLL_GO		0x1
+ #define	PLL_TICOPWDN		0x10000
+ #define	PLL_LOCK		0x2
+@@ -232,23 +232,21 @@ static int omap_pipe3_probe(struct platform_device *pdev)
  
- Required properties:
-diff --git a/Documentation/devicetree/bindings/usb/omap-usb.txt b/Documentation/devicetree/bindings/usb/omap-usb.txt
-index b2bf7b3..4aa8eab 100644
---- a/Documentation/devicetree/bindings/usb/omap-usb.txt
-+++ b/Documentation/devicetree/bindings/usb/omap-usb.txt
-@@ -79,26 +79,3 @@ omap_dwc3 {
- 	clock-names = "usb_otg_ss_refclk960m";
- 	ranges;
- };
--
--OMAP CONTROL USB
--
--Required properties:
-- - compatible: Should be one of
-- "ti,control-phy-otghs" - if it has otghs_control mailbox register as on OMAP4.
-- "ti,control-phy-usb2" - if it has Power down bit in control_dev_conf register
--			e.g. USB2_PHY on OMAP5.
-- "ti,control-phy-pipe3" - if it has DPLL and individual Rx & Tx power control
--			e.g. USB3 PHY and SATA PHY on OMAP5.
-- "ti,control-phy-dra7usb2" - if it has power down register like USB2 PHY on
--			DRA7 platform.
-- - reg : Address and length of the register set for the device. It contains
--   the address of "otghs_control" for control-phy-otghs or "power" register
--   for other types.
-- - reg-names: should be "otghs_control" control-phy-otghs and "power" for
--   other types.
--
--omap_control_usb: omap-control-usb@4a002300 {
--	compatible = "ti,control-phy-otghs";
--	reg = <0x4a00233c 0x4>;
--	reg-names = "otghs_control";
--};
+ 	phy->dev		= &pdev->dev;
+ 
+-	phy->wkupclk = devm_clk_get(phy->dev, "usb_phy_cm_clk32k");
+-	if (IS_ERR(phy->wkupclk)) {
+-		dev_err(&pdev->dev, "unable to get usb_phy_cm_clk32k\n");
+-		return PTR_ERR(phy->wkupclk);
+-	}
+-	clk_prepare(phy->wkupclk);
++	phy->wkupclk = devm_clk_get(phy->dev, "wkupclk");
++	if (IS_ERR(phy->wkupclk))
++		dev_dbg(&pdev->dev, "unable to get wkupclk\n");
++	else
++		clk_prepare(phy->wkupclk);
+ 
+-	phy->optclk = devm_clk_get(phy->dev, "usb_otg_ss_refclk960m");
+-	if (IS_ERR(phy->optclk)) {
+-		dev_err(&pdev->dev, "unable to get usb_otg_ss_refclk960m\n");
+-		return PTR_ERR(phy->optclk);
+-	}
+-	clk_prepare(phy->optclk);
++	phy->optclk = devm_clk_get(phy->dev, "optclk");
++	if (IS_ERR(phy->optclk))
++		dev_dbg(&pdev->dev, "unable to get optclk\n");
++	else
++		clk_prepare(phy->optclk);
+ 
+-	phy->sys_clk = devm_clk_get(phy->dev, "sys_clkin");
++	phy->sys_clk = devm_clk_get(phy->dev, "sysclk");
+ 	if (IS_ERR(phy->sys_clk)) {
+-		pr_err("%s: unable to get sys_clkin\n", __func__);
++		dev_err(&pdev->dev, "unable to get sysclk\n");
+ 		return -EINVAL;
+ 	}
+ 
+@@ -290,8 +288,10 @@ static int omap_pipe3_remove(struct platform_device *pdev)
+ {
+ 	struct omap_pipe3 *phy = platform_get_drvdata(pdev);
+ 
+-	clk_unprepare(phy->wkupclk);
+-	clk_unprepare(phy->optclk);
++	if (!IS_ERR(phy->wkupclk))
++		clk_unprepare(phy->wkupclk);
++	if (!IS_ERR(phy->optclk))
++		clk_unprepare(phy->optclk);
+ 	if (!pm_runtime_suspended(&pdev->dev))
+ 		pm_runtime_put(&pdev->dev);
+ 	pm_runtime_disable(&pdev->dev);
+@@ -305,8 +305,10 @@ static int omap_pipe3_runtime_suspend(struct device *dev)
+ {
+ 	struct omap_pipe3	*phy = dev_get_drvdata(dev);
+ 
+-	clk_disable(phy->wkupclk);
+-	clk_disable(phy->optclk);
++	if (!IS_ERR(phy->wkupclk))
++		clk_disable(phy->wkupclk);
++	if (!IS_ERR(phy->optclk))
++		clk_disable(phy->optclk);
+ 
+ 	return 0;
+ }
+@@ -316,22 +318,27 @@ static int omap_pipe3_runtime_resume(struct device *dev)
+ 	u32 ret = 0;
+ 	struct omap_pipe3	*phy = dev_get_drvdata(dev);
+ 
+-	ret = clk_enable(phy->optclk);
+-	if (ret) {
+-		dev_err(phy->dev, "Failed to enable optclk %d\n", ret);
+-		goto err1;
++	if (!IS_ERR(phy->optclk)) {
++		ret = clk_enable(phy->optclk);
++		if (ret) {
++			dev_err(phy->dev, "Failed to enable optclk %d\n", ret);
++			goto err1;
++		}
+ 	}
+ 
+-	ret = clk_enable(phy->wkupclk);
+-	if (ret) {
+-		dev_err(phy->dev, "Failed to enable wkupclk %d\n", ret);
+-		goto err2;
++	if (!IS_ERR(phy->wkupclk)) {
++		ret = clk_enable(phy->wkupclk);
++		if (ret) {
++			dev_err(phy->dev, "Failed to enable wkupclk %d\n", ret);
++			goto err2;
++		}
+ 	}
+ 
+ 	return 0;
+ 
+ err2:
+-	clk_disable(phy->optclk);
++	if (!IS_ERR(phy->optclk))
++		clk_disable(phy->optclk);
+ 
+ err1:
+ 	return ret;
 -- 
 1.7.4.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
