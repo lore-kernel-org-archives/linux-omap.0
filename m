@@ -1,190 +1,50 @@
-From: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v3 03/11] ASoC: davinci-mcasp: Add DMA register locations to DT
-Date: Thu, 19 Sep 2013 14:29:36 +0300
-Message-ID: <66bdda0c0b75d737d649260b9ec10f9f870c20cd.1379590036.git.jsarha@ti.com>
+From: Jyri Sarha <jsarha@ti.com>
+Subject: [PATCH v3 07/11] ASoC: tlv320aic3x: Add regulators to DT bindings document
+Date: Thu, 19 Sep 2013 14:29:40 +0300
+Message-ID: <1b88bfa3793d807ff6e325df1bbff6cb4eb976e6.1379590036.git.jsarha@ti.com>
 References: <cover.1379590035.git.jsarha@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cover.1379590035.git.jsarha-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, peter.ujfalusi-l0cyMroinI0@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, liam.r.girdwood-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, joelf-l0cyMroinI0@public.gmane.org, Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>, "Hebbar, Gururaja" <gururaja.hebbar-l0cyMroinI0@public.gmane.org>, Darren Etheridge <detheridge-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:54139 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753605Ab3ISLa1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Sep 2013 07:30:27 -0400
+In-Reply-To: <cover.1379590035.git.jsarha@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: alsa-devel@alsa-project.org, devicetree@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, peter.ujfalusi@ti.com, broonie@kernel.org, liam.r.girdwood@linux.intel.com, grant.likely@linaro.org, rob.herring@calxeda.com, joelf@ti.com, Jyri Sarha <jsarha@ti.com>
 
-This patch adds DMA register location to mcasp DT bindings. On am33xx
-SoCs the McASP registers are mapped trough L4 interconnect, which is
-not accessible by the DMA controller, so McASP data port is mapped
-trough L3 to a different location.
+Add regulator properties to tlv320aic3x DT bindings document.
 
-Signed-off-by: Hebbar, Gururaja <gururaja.hebbar-l0cyMroinI0@public.gmane.org>
-Signed-off-by: Darren Etheridge <detheridge-l0cyMroinI0@public.gmane.org>
-Signed-off-by: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Jyri Sarha <jsarha@ti.com>
 ---
- .../bindings/sound/davinci-mcasp-audio.txt         |    8 ++-
- sound/soc/davinci/davinci-mcasp.c                  |   59 +++++++++++++-------
- 2 files changed, 46 insertions(+), 21 deletions(-)
+ .../devicetree/bindings/sound/tlv320aic3x.txt      |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/sound/davinci-mcasp-audio.txt b/Documentation/devicetree/bindings/sound/davinci-mcasp-audio.txt
-index 374e145..63b67ae 100644
---- a/Documentation/devicetree/bindings/sound/davinci-mcasp-audio.txt
-+++ b/Documentation/devicetree/bindings/sound/davinci-mcasp-audio.txt
-@@ -6,7 +6,11 @@ Required properties:
- 	"ti,da830-mcasp-audio"	: for both DA830 & DA850 platforms
- 	"ti,omap2-mcasp-audio"	: for OMAP2 platforms (TI81xx, AM33xx)
+diff --git a/Documentation/devicetree/bindings/sound/tlv320aic3x.txt b/Documentation/devicetree/bindings/sound/tlv320aic3x.txt
+index f47c3f5..11e24b2 100644
+--- a/Documentation/devicetree/bindings/sound/tlv320aic3x.txt
++++ b/Documentation/devicetree/bindings/sound/tlv320aic3x.txt
+@@ -17,10 +17,17 @@ Optional properties:
+ 	3 - MICBIAS output is connected to AVDD,
+ 	If this node is not mentioned or if the value is incorrect, then MicBias
+ 	is powered down.
++- AVDD-supply, IOVDD-supply, DRVDD-supply, DVDD-supply : power supplies for the
++  device as covered in Documentation/devicetree/bindings/regulator/regulator.txt
  
--- reg : Should contain McASP registers offset and length
-+- reg : Should contain McASP registers address and length for mpu and
-+	optionally for dma controller access.
-+- reg-names : The mandatory reg-range must be named "mpu" and the optional DMA
-+	      reg-range must be named "dma". For backward compatibility it is
-+	      good to keep "mpu" first in the list.
- - interrupts : Interrupt number for McASP
- - op-mode : I2S/DIT ops mode.
- - tdm-slots : Slots for TDM operation.
-@@ -15,7 +19,6 @@ Required properties:
- 		to "num-serializer" parameter. Each entry is a number indication
- 		serializer pin direction. (0 - INACTIVE, 1 - TX, 2 - RX)
+ Example:
  
--
- Optional properties:
- 
- - ti,hwmods : Must be "mcasp<n>", n is controller instance starting 0
-@@ -31,6 +34,7 @@ mcasp0: mcasp0@1d00000 {
- 	#address-cells = <1>;
- 	#size-cells = <0>;
- 	reg = <0x100000 0x3000>;
-+	reg-names "mpu";
- 	interrupts = <82 83>;
- 	op-mode = <0>;		/* MCASP_IIS_MODE */
- 	tdm-slots = <2>;
-diff --git a/sound/soc/davinci/davinci-mcasp.c b/sound/soc/davinci/davinci-mcasp.c
-index 32ddb7f..a056fc5 100644
---- a/sound/soc/davinci/davinci-mcasp.c
-+++ b/sound/soc/davinci/davinci-mcasp.c
-@@ -1001,18 +1001,40 @@ static const struct snd_soc_component_driver davinci_mcasp_component = {
- 	.name		= "davinci-mcasp",
+ tlv320aic3x: tlv320aic3x@1b {
+ 	compatible = "ti,tlv320aic3x";
+ 	reg = <0x1b>;
++
++	AVDD-supply = <&regulator>;
++	IOVDD-supply = <&regulator>;
++	DRVDD-supply = <&regulator>;
++	DVDD-supply = <&regulator>;
  };
- 
-+/* Some HW specific values and defaults. The rest is filled in from DT. */
-+static struct snd_platform_data dm646x_mcasp_pdata = {
-+	.tx_dma_offset = 0x400,
-+	.rx_dma_offset = 0x400,
-+	.asp_chan_q = EVENTQ_0,
-+	.version = MCASP_VERSION_1,
-+};
-+
-+static struct snd_platform_data da830_mcasp_pdata = {
-+	.tx_dma_offset = 0x2000,
-+	.rx_dma_offset = 0x2000,
-+	.asp_chan_q = EVENTQ_0,
-+	.version = MCASP_VERSION_2,
-+};
-+
-+static struct snd_platform_data omap2_mcasp_pdata = {
-+	.tx_dma_offset = 0,
-+	.rx_dma_offset = 0,
-+	.asp_chan_q = EVENTQ_0,
-+	.version = MCASP_VERSION_3,
-+};
-+
- static const struct of_device_id mcasp_dt_ids[] = {
- 	{
- 		.compatible = "ti,dm646x-mcasp-audio",
--		.data = (void *)MCASP_VERSION_1,
-+		.data = &dm646x_mcasp_pdata,
- 	},
- 	{
- 		.compatible = "ti,da830-mcasp-audio",
--		.data = (void *)MCASP_VERSION_2,
-+		.data = &da830_mcasp_pdata,
- 	},
- 	{
- 		.compatible = "ti,omap2-mcasp-audio",
--		.data = (void *)MCASP_VERSION_3,
-+		.data = &omap2_mcasp_pdata,
- 	},
- 	{ /* sentinel */ }
- };
-@@ -1035,20 +1057,13 @@ static struct snd_platform_data *davinci_mcasp_set_pdata_from_of(
- 		pdata = pdev->dev.platform_data;
- 		return pdata;
- 	} else if (match) {
--		pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
--		if (!pdata) {
--			ret = -ENOMEM;
--			goto nodata;
--		}
-+		pdata = (struct snd_platform_data *) match->data;
- 	} else {
- 		/* control shouldn't reach here. something is wrong */
- 		ret = -EINVAL;
- 		goto nodata;
- 	}
- 
--	if (match->data)
--		pdata->version = (u8)((int)match->data);
--
- 	ret = of_property_read_u32(np, "op-mode", &val);
- 	if (ret >= 0)
- 		pdata->op_mode = val;
-@@ -1145,10 +1160,15 @@ static int davinci_mcasp_probe(struct platform_device *pdev)
- 		return -EINVAL;
- 	}
- 
--	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	mem = platform_get_resource_byname(pdev, IORESOURCE_MEM, "mpu");
- 	if (!mem) {
--		dev_err(&pdev->dev, "no mem resource?\n");
--		return -ENODEV;
-+		dev_warn(dev->dev,
-+			 "\"mpu\" mem resource not found, using index 0\n");
-+		mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+		if (!mem) {
-+			dev_err(&pdev->dev, "no mem resource?\n");
-+			return -ENODEV;
-+		}
- 	}
- 
- 	ioarea = devm_request_mem_region(&pdev->dev, mem->start,
-@@ -1182,13 +1202,16 @@ static int davinci_mcasp_probe(struct platform_device *pdev)
- 	dev->rxnumevt = pdata->rxnumevt;
- 	dev->dev = &pdev->dev;
- 
-+	dma = platform_get_resource_byname(pdev, IORESOURCE_MEM, "dma");
-+	if (!dma)
-+		dma = mem;
-+
- 	dma_data = &dev->dma_params[SNDRV_PCM_STREAM_PLAYBACK];
- 	dma_data->asp_chan_q = pdata->asp_chan_q;
- 	dma_data->ram_chan_q = pdata->ram_chan_q;
- 	dma_data->sram_pool = pdata->sram_pool;
- 	dma_data->sram_size = pdata->sram_size_playback;
--	dma_data->dma_addr = (dma_addr_t) (pdata->tx_dma_offset +
--							mem->start);
-+	dma_data->dma_addr = dma->start + pdata->tx_dma_offset;
- 
- 	/* first TX, then RX */
- 	res = platform_get_resource(pdev, IORESOURCE_DMA, 0);
-@@ -1205,8 +1228,7 @@ static int davinci_mcasp_probe(struct platform_device *pdev)
- 	dma_data->ram_chan_q = pdata->ram_chan_q;
- 	dma_data->sram_pool = pdata->sram_pool;
- 	dma_data->sram_size = pdata->sram_size_capture;
--	dma_data->dma_addr = (dma_addr_t)(pdata->rx_dma_offset +
--							mem->start);
-+	dma_data->dma_addr = dma->start + pdata->rx_dma_offset;
- 
- 	res = platform_get_resource(pdev, IORESOURCE_DMA, 1);
- 	if (!res) {
-@@ -1266,4 +1288,3 @@ module_platform_driver(davinci_mcasp_driver);
- MODULE_AUTHOR("Steve Chen");
- MODULE_DESCRIPTION("TI DAVINCI McASP SoC Interface");
- MODULE_LICENSE("GPL");
--
 -- 
 1.7.9.5
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
