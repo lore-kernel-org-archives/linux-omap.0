@@ -1,119 +1,74 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [RFC PATCH 10/15] ARM: omap5: hwmod: Add ocp2scp3 and sata hwmods
-Date: Thu, 19 Sep 2013 16:22:27 +0300
-Message-ID: <1379596947-15213-1-git-send-email-rogerq@ti.com>
-References: <1379595943-14622-1-git-send-email-rogerq@ti.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH v3 01/11] ASoC: davinci-evm: Move sysclk
+ logic away from evm_hw_params
+Date: Thu, 19 Sep 2013 14:23:16 +0100
+Message-ID: <20130919132316.GR21013@sirena.org.uk>
+References: <cover.1379590035.git.jsarha@ti.com>
+ <dad0f7eb787d3f65848425a67d668e3935033195.1379590036.git.jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1379595943-14622-1-git-send-email-rogerq@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: balbi@ti.com, bcousson@baylibre.com, tony@atomide.com
-Cc: balajitk@ti.com, kishon@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-ide@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+Content-Type: multipart/mixed; boundary="===============3374363470222491925=="
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <dad0f7eb787d3f65848425a67d668e3935033195.1379590036.git.jsarha@ti.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Jyri Sarha <jsarha@ti.com>
+Cc: devicetree@vger.kernel.org, alsa-devel@alsa-project.org, liam.r.girdwood@linux.intel.com, joelf@ti.com, rob.herring@calxeda.com, peter.ujfalusi@ti.com, grant.likely@linaro.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Keshava Munegowda <keshava_mgowda@ti.com>
 
-Create hwmods for ocp2scp3 and sata modules.
+--===============3374363470222491925==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="xYza636WGbju2Spp"
+Content-Disposition: inline
 
-[Roger Q] Clean up.
 
-CC: Benoit Cousson <bcousson@baylibre.com>
-Signed-off-by: Balaji T K <balajitk@ti.com>
-Signed-off-by: Roger Quadros <rogerq@ti.com>
----
- arch/arm/mach-omap2/omap_hwmod_54xx_data.c |   72 ++++++++++++++++++++++++++++
- 1 files changed, 72 insertions(+), 0 deletions(-)
+--xYza636WGbju2Spp
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_54xx_data.c b/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
-index 3dae6b9..2b698b8 100644
---- a/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
-@@ -1545,6 +1545,76 @@ static struct omap_hwmod omap54xx_wd_timer2_hwmod = {
- 	},
- };
- 
-+/*
-+ * 'ocp2scp' class
-+ * bridge to transform ocp interface protocol to scp (serial control port)
-+ * protocol
-+ */
-+/* ocp2scp3 */
-+static struct omap_hwmod omap54xx_ocp2scp3_hwmod;
-+/* l4_cfg -> ocp2scp3 */
-+static struct omap_hwmod_ocp_if omap54xx_l4_cfg__ocp2scp3 = {
-+	.master		= &omap54xx_l4_cfg_hwmod,
-+	.slave		= &omap54xx_ocp2scp3_hwmod,
-+	.clk		= "l4_root_clk_div",
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+static struct omap_hwmod omap54xx_ocp2scp3_hwmod = {
-+	.name		= "ocp2scp3",
-+	.class		= &omap54xx_ocp2scp_hwmod_class,
-+	.clkdm_name	= "l3init_clkdm",
-+	.prcm = {
-+		.omap4 = {
-+			.clkctrl_offs = OMAP54XX_CM_L3INIT_OCP2SCP3_CLKCTRL_OFFSET,
-+			.context_offs = OMAP54XX_RM_L3INIT_OCP2SCP3_CONTEXT_OFFSET,
-+			.modulemode   = MODULEMODE_HWCTRL,
-+		},
-+	},
-+};
-+
-+/*
-+ * 'sata' class
-+ * sata:  serial ata interface  gen2 compliant   ( 1 rx/ 1 tx)
-+ */
-+
-+static struct omap_hwmod_class_sysconfig omap54xx_sata_sysc = {
-+	.sysc_offs	= 0x0000,
-+	.sysc_flags	= (SYSC_HAS_MIDLEMODE | SYSC_HAS_SIDLEMODE),
-+	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
-+			   SIDLE_SMART_WKUP | MSTANDBY_FORCE | MSTANDBY_NO |
-+			   MSTANDBY_SMART | MSTANDBY_SMART_WKUP),
-+	.sysc_fields	= &omap_hwmod_sysc_type2,
-+};
-+
-+static struct omap_hwmod_class omap54xx_sata_hwmod_class = {
-+	.name	= "sata",
-+	.sysc	= &omap54xx_sata_sysc,
-+};
-+
-+/* sata */
-+static struct omap_hwmod omap54xx_sata_hwmod = {
-+	.name		= "sata",
-+	.class		= &omap54xx_sata_hwmod_class,
-+	.clkdm_name	= "l3init_clkdm",
-+	.flags		= HWMOD_SWSUP_SIDLE | HWMOD_SWSUP_MSTANDBY,
-+	.main_clk	= "func_48m_fclk",
-+	.prcm = {
-+		.omap4 = {
-+			.clkctrl_offs = OMAP54XX_CM_L3INIT_SATA_CLKCTRL_OFFSET,
-+			.context_offs = OMAP54XX_RM_L3INIT_SATA_CONTEXT_OFFSET,
-+			.modulemode   = MODULEMODE_SWCTRL,
-+		},
-+	},
-+};
-+
-+/* l4_cfg -> sata */
-+static struct omap_hwmod_ocp_if omap54xx_l4_cfg__sata = {
-+	.master		= &omap54xx_l4_cfg_hwmod,
-+	.slave		= &omap54xx_sata_hwmod,
-+	.clk		= "l3_iclk_div",
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
- 
- /*
-  * Interfaces
-@@ -2192,6 +2262,8 @@ static struct omap_hwmod_ocp_if *omap54xx_hwmod_ocp_ifs[] __initdata = {
- 	&omap54xx_l4_per__uart6,
- 	&omap54xx_l4_cfg__usb_otg_ss,
- 	&omap54xx_l4_wkup__wd_timer2,
-+	&omap54xx_l4_cfg__ocp2scp3,
-+	&omap54xx_l4_cfg__sata,
- 	NULL,
- };
- 
--- 
-1.7.4.1
+On Thu, Sep 19, 2013 at 02:29:34PM +0300, Jyri Sarha wrote:
+> The sysclk rate does not change runtime so it should be initialized at
+> init time.
+
+Are there any updates from the version already applied (I only dropped
+the patch to allow the extra builds, not this one).
+
+--xYza636WGbju2Spp
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.21 (GNU/Linux)
+
+iQIcBAEBAgAGBQJSOvrBAAoJELSic+t+oim9sIMP/1OJJWxWj23iC6/R2mNmQTEP
+pYjTan2t7VHKehEzpyyjZKUFVTHf1TzEZxcScymv5IO5nHl1BF3dqTA9vDy0TdIL
+1lG0X/OmKAESMdI2JoWv9mW8I8tpsF++CwmNxd41Ww7+6c3/BJFt1YUD26PQE+BM
+cWsymodjDjiVdB73GqsalsRCPCh8O5ngqPZDRlKF5PcgQtLn19CyFGttlVtF6yA5
+Yh4G+tIsZwAAUPxnE2NM3WS3Pomu/FM07slPh+CtPDO+DfwqdXwx21XVa4p5SVvd
+ec3M8QTa3jpmuE4WPg9sSKXbT+VEbONRxlbpN9ot6iouMpvFnIQYsDhwdyltoY22
+7fnpGgIC8Eo1uli4VmXhMhTDPuGbVkWgpHgVGMa2zUX3cfJsmVESJA0MVk8pM7tW
++uualifrXN6MPemltbl2Gxub4qctYcj4i2XVvVvKX952NxSkRKbs7r+zxhdOAcT1
++qxO+am9ng2n/LLpmaMwp1VmXAlkoDAbtyfr2P2zcRc3wCrBZNxdNAhBk66TBCFo
+pSJklnjDBLmal1N1FiUnSO6nceZwJ5RbP3SOeS/zvys9of8WzYoSslQ3EG3wKI9q
+RqXyWfqE2Ku5HMJ+X6MPwyYwKvpIMf2a824LK17VEvfJZvoKS+LbgmYu+Bs5FmHp
+VBzT4FJ7QDOLTq5ife1v
+=cwIE
+-----END PGP SIGNATURE-----
+
+--xYza636WGbju2Spp--
+
+--===============3374363470222491925==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--===============3374363470222491925==--
