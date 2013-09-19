@@ -1,89 +1,55 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [RFC PATCH 15/15] arm: dts: dra7: add sata node
-Date: Thu, 19 Sep 2013 16:24:19 +0300
-Message-ID: <1379597059-15405-1-git-send-email-rogerq@ti.com>
-References: <1379595943-14622-1-git-send-email-rogerq@ti.com>
+From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v3 07/11] ASoC: tlv320aic3x: Add regulators to DT
+ bindings document
+Date: Thu, 19 Sep 2013 14:29:55 +0100
+Message-ID: <20130919132955.GS21013@sirena.org.uk>
+References: <cover.1379590035.git.jsarha@ti.com>
+ <1b88bfa3793d807ff6e325df1bbff6cb4eb976e6.1379590036.git.jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1379595943-14622-1-git-send-email-rogerq@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: balbi@ti.com, bcousson@baylibre.com, tony@atomide.com
-Cc: balajitk@ti.com, kishon@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-ide@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="TRAzd1zqvkbVQS90"
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1b88bfa3793d807ff6e325df1bbff6cb4eb976e6.1379590036.git.jsarha-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
+Cc: alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, peter.ujfalusi-l0cyMroinI0@public.gmane.org, liam.r.girdwood-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, joelf-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Balaji T K <balajitk@ti.com>
 
-Add support for sata controller.
+--TRAzd1zqvkbVQS90
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-[Roger Q] Clean up.
+On Thu, Sep 19, 2013 at 02:29:40PM +0300, Jyri Sarha wrote:
+> Add regulator properties to tlv320aic3x DT bindings document.
 
-CC: Benoit Cousson <bcousson@baylibre.com>
-Signed-off-by: Balaji T K <balajitk@ti.com>
-Signed-off-by: Roger Quadros <rogerq@ti.com>
----
- arch/arm/boot/dts/dra7.dtsi |   49 +++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 49 insertions(+), 0 deletions(-)
+Similarly for this and the other CODEC patch, are these changed?
 
-diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index ce9a0f0..545545d 100644
---- a/arch/arm/boot/dts/dra7.dtsi
-+++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -426,6 +426,55 @@
- 			dma-names = "tx", "rx";
- 		};
- 
-+		omap_control_sata: control-phy@4a002374 {
-+			compatible = "ti,control-phy-pipe3";
-+			reg = <0x4a002374 0x4>;
-+			reg-names = "power";
-+			clocks = <&sys_clkin1>;
-+			clock-names = "sysclk";
-+		};
-+
-+		ocp2scp3: ocp2scp3@4a090000 {
-+			compatible = "ti,omap-ocp2scp";
-+			#address-cells = <1>;
-+			#size-cells = <1>;
-+			ranges;
-+			ti,hwmods = "ocp2scp3";
-+			reg = <0x4a090000 0x1f>; /* ocp2scp3 */
-+			reg-names = "ocp2scp3";
-+			sata_phy: sataphy@4A096000 {
-+				compatible = "ti,phy-pipe3-sata";
-+				reg = <0x4A096000 0x80>, /* phy_rx */
-+				      <0x4A096400 0x64>, /* phy_tx */
-+				      <0x4A096800 0x40>; /* pll_ctrl */
-+				reg-names = "phy_rx", "phy_tx", "pll_ctrl";
-+				ctrl-module = <&omap_control_sata>;
-+				clocks = <&sata_ref_clk>,
-+					 <&sys_clkin1>;
-+				clock-names = "optclk", "sysclk";
-+				#phy-cells = <0>;
-+			};
-+		};
-+
-+		sata: sata@4a141100 {
-+			compatible = "ti,sata";
-+			ti,hwmods = "sata";
-+			reg = <0x4a141100 0x7>;
-+			#address-cells = <1>;
-+			#size-cells = <1>;
-+			ranges;
-+			dwc-ahci@4a140000 {
-+				  compatible = "snps,dwc-ahci";
-+				  reg = <0x4a140000 0x1100>;
-+				  interrupts = <0 54 0x4>;
-+				  phys = <&sata_phy>;
-+				  phy-names = "sata-phy";
-+				  clocks = <&sata_ref_clk>;
-+				  clock-names = "optclk";
-+			};
-+		};
-+
-+
- 		mcspi1: spi@48098000 {
- 			compatible = "ti,omap4-mcspi";
- 			reg = <0x48098000 0x200>;
--- 
-1.7.4.1
+--TRAzd1zqvkbVQS90
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.21 (GNU/Linux)
+
+iQIcBAEBAgAGBQJSOvxQAAoJELSic+t+oim9qgMP/35GIxpqHMRAac682dOlnijS
+MgSrMvYeIszJXK/ILS6Y+pQbndMUE2QVwosV9GTq/HXjfZsct+z/5vILoHAL25b8
+wdqOHPmouAHMz3ZCR/SVtsKpesQ0VUsp1GrHV4/5cwfyttLGfyBtsuH5U8Tz0gkO
+4zzy59HTANyHbRpknc2mVzAMj2NdEpcmVKNFrWSpZB45XE+uXTT7iQI0L9JDEU1Q
+NWVfBNBhFk8mn6TypnqiOFmxgiXQHeHVzuE3ofgFeXQ05Yvl8IgEF7XkjLQI5Cy3
+KcQZtzGyduzNsWPEdqszIOsSvD5/QkO7rwYwfl5urYNhmMsgya7WdBgAXpmC20hO
+10TKUwdr+2SXzIGkT8Dvsg5w/q69WAktR9zQYRFodjuuvkalbFntKo8k8WbuN7xa
+O2eUxab+mMIZiV8PwuZEGKsJRdrxgsgcCKCcLKi6Z1v823WaHt23TC4enP+WQU3B
+e+wD2rI+qrhGgrlxcFe0AtR8bTMjexV3kPgCrFvTEYLmg0OWnX/H8y5D9NIx0tcS
+iNR+DdpeAteL4doR7ug2Zb0KYoU4XIM5NER7aBLu8vRARn3vjJky9dI6hOX5cBLl
+6+w9P0kZHUwD1aOlZ0dxrlBj7LRuqJS8RYgcM+ErQuuCjOc9FnCDyn2iXj4RrH3D
+0Nr2Y6UTB/zdGQbCb6/A
+=WQ5L
+-----END PGP SIGNATURE-----
+
+--TRAzd1zqvkbVQS90--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
