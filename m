@@ -1,160 +1,130 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: [RFC PATCH 04/15] phy: omap-pipe3: use generic clock names
-Date: Thu, 19 Sep 2013 16:05:32 +0300
-Message-ID: <1379595943-14622-5-git-send-email-rogerq@ti.com>
-References: <1379595943-14622-1-git-send-email-rogerq@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [RFC PATCH 00/15] Add SATA support for TI OMAP5 and DRA7 SoCs
+Date: Thu, 19 Sep 2013 16:05:28 +0300
+Message-ID: <1379595943-14622-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1379595943-14622-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: balbi-l0cyMroinI0@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
-Cc: balajitk-l0cyMroinI0@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-ide-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: balbi@ti.com, bcousson@baylibre.com, tony@atomide.com
+Cc: devicetree@vger.kernel.org, balajitk@ti.com, linux-kernel@vger.kernel.org, kishon@ti.com, linux-ide@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Hi,
 
-As this driver is no longer USB specific use generic clock names.
+This series adds SATA controller support for the Texas Instruments
+OMAP5 and DRA7 platforms.
 
-[Roger Q]
-- Fix PLL_SD_SHIFT from 9 to 10
-- As optclk and wkupclk may not be always required, don't bail out
-if they aren't available.
+As the SATA controller is compatible with AHCI, we use the ahci_platform
+driver and just provide the glue logic.
 
-Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+The AHCI controller is enclosed within a TI specific Wrapper that controls
+the controller power mode. Patch 9 adds a driver for this wrapper.
+
+The controller is linked to a SATA (PIPE3) PHY, which needs to be clocked
+and powered up before it can be used. We do that with the help of the
+generic PHY framework [2] in Patch 8.
+
+Patches 1 to 7 adapt the the PHY driver to the Generic PHY framework.
+
+Patches 9 to 15 provide platform adaptation code for OMAP5 and DRA7.
+
+Patches are based on v3.12-rc1 with the following patches on top
+[1] - omap control usb multiple instance support
+      http://article.gmane.org/gmane.linux.ports.arm.kernel/267587
+      git://github.com/rogerq/linux.git usb-control-module
+
+[2] - Generic PHY framework
+      git://git.kernel.org/pub/scm/linux/kernel/git/kishon/linux-phy.git testing
+
+[3] - Clock DT support
+      git://gitorious.org/~kristo/omap-pm/omap-pm-work.git mainline-3.11-rc3-omap-dt-clks-v5
+
+[4] - PHY framework mis cleanup
+      https://lkml.org/lkml/2013/9/2/313
+
+NOTE: [2], [3] and [4] will cause merge conflicts and need to be resolved manually.
+A merged tree is available for reference/testing at
+
+git://github.com/rogerq/linux.git ti-3.12-sata
+
+Tested on omap5-uevm and dra7-evm with Gen2 SATA hard drive.
+
+Known issues:
+- Gen3 SATA SSD does not work due to some issue with PHY speed negotiation.
+
+cheers,
+-roger
+
 ---
- drivers/phy/phy-omap-pipe3.c |   71 +++++++++++++++++++++++-------------------
- 1 files changed, 39 insertions(+), 32 deletions(-)
+Balaji T K (3):
+  ata: ahci_platform: Manage SATA PHY
+  arm: dts: omap5: add sata node
+  arm: dts: dra7: add sata node
 
-diff --git a/drivers/phy/phy-omap-pipe3.c b/drivers/phy/phy-omap-pipe3.c
-index 63de0f8..807ab8a 100644
---- a/drivers/phy/phy-omap-pipe3.c
-+++ b/drivers/phy/phy-omap-pipe3.c
-@@ -37,15 +37,15 @@
- #define	PLL_CONFIGURATION4	0x00000020
- 
- #define	PLL_REGM_MASK		0x001FFE00
--#define	PLL_REGM_SHIFT		0x9
-+#define	PLL_REGM_SHIFT		9
- #define	PLL_REGM_F_MASK		0x0003FFFF
--#define	PLL_REGM_F_SHIFT	0x0
-+#define	PLL_REGM_F_SHIFT	0
- #define	PLL_REGN_MASK		0x000001FE
--#define	PLL_REGN_SHIFT		0x1
-+#define	PLL_REGN_SHIFT		1
- #define	PLL_SELFREQDCO_MASK	0x0000000E
--#define	PLL_SELFREQDCO_SHIFT	0x1
-+#define	PLL_SELFREQDCO_SHIFT	1
- #define	PLL_SD_MASK		0x0003FC00
--#define	PLL_SD_SHIFT		0x9
-+#define	PLL_SD_SHIFT		10
- #define	SET_PLL_GO		0x1
- #define	PLL_TICOPWDN		0x10000
- #define	PLL_LOCK		0x2
-@@ -232,23 +232,21 @@ static int omap_pipe3_probe(struct platform_device *pdev)
- 
- 	phy->dev		= &pdev->dev;
- 
--	phy->wkupclk = devm_clk_get(phy->dev, "usb_phy_cm_clk32k");
--	if (IS_ERR(phy->wkupclk)) {
--		dev_err(&pdev->dev, "unable to get usb_phy_cm_clk32k\n");
--		return PTR_ERR(phy->wkupclk);
--	}
--	clk_prepare(phy->wkupclk);
-+	phy->wkupclk = devm_clk_get(phy->dev, "wkupclk");
-+	if (IS_ERR(phy->wkupclk))
-+		dev_dbg(&pdev->dev, "unable to get wkupclk\n");
-+	else
-+		clk_prepare(phy->wkupclk);
- 
--	phy->optclk = devm_clk_get(phy->dev, "usb_otg_ss_refclk960m");
--	if (IS_ERR(phy->optclk)) {
--		dev_err(&pdev->dev, "unable to get usb_otg_ss_refclk960m\n");
--		return PTR_ERR(phy->optclk);
--	}
--	clk_prepare(phy->optclk);
-+	phy->optclk = devm_clk_get(phy->dev, "optclk");
-+	if (IS_ERR(phy->optclk))
-+		dev_dbg(&pdev->dev, "unable to get optclk\n");
-+	else
-+		clk_prepare(phy->optclk);
- 
--	phy->sys_clk = devm_clk_get(phy->dev, "sys_clkin");
-+	phy->sys_clk = devm_clk_get(phy->dev, "sysclk");
- 	if (IS_ERR(phy->sys_clk)) {
--		pr_err("%s: unable to get sys_clkin\n", __func__);
-+		dev_err(&pdev->dev, "unable to get sysclk\n");
- 		return -EINVAL;
- 	}
- 
-@@ -290,8 +288,10 @@ static int omap_pipe3_remove(struct platform_device *pdev)
- {
- 	struct omap_pipe3 *phy = platform_get_drvdata(pdev);
- 
--	clk_unprepare(phy->wkupclk);
--	clk_unprepare(phy->optclk);
-+	if (!IS_ERR(phy->wkupclk))
-+		clk_unprepare(phy->wkupclk);
-+	if (!IS_ERR(phy->optclk))
-+		clk_unprepare(phy->optclk);
- 	if (!pm_runtime_suspended(&pdev->dev))
- 		pm_runtime_put(&pdev->dev);
- 	pm_runtime_disable(&pdev->dev);
-@@ -305,8 +305,10 @@ static int omap_pipe3_runtime_suspend(struct device *dev)
- {
- 	struct omap_pipe3	*phy = dev_get_drvdata(dev);
- 
--	clk_disable(phy->wkupclk);
--	clk_disable(phy->optclk);
-+	if (!IS_ERR(phy->wkupclk))
-+		clk_disable(phy->wkupclk);
-+	if (!IS_ERR(phy->optclk))
-+		clk_disable(phy->optclk);
- 
- 	return 0;
- }
-@@ -316,22 +318,27 @@ static int omap_pipe3_runtime_resume(struct device *dev)
- 	u32 ret = 0;
- 	struct omap_pipe3	*phy = dev_get_drvdata(dev);
- 
--	ret = clk_enable(phy->optclk);
--	if (ret) {
--		dev_err(phy->dev, "Failed to enable optclk %d\n", ret);
--		goto err1;
-+	if (!IS_ERR(phy->optclk)) {
-+		ret = clk_enable(phy->optclk);
-+		if (ret) {
-+			dev_err(phy->dev, "Failed to enable optclk %d\n", ret);
-+			goto err1;
-+		}
- 	}
- 
--	ret = clk_enable(phy->wkupclk);
--	if (ret) {
--		dev_err(phy->dev, "Failed to enable wkupclk %d\n", ret);
--		goto err2;
-+	if (!IS_ERR(phy->wkupclk)) {
-+		ret = clk_enable(phy->wkupclk);
-+		if (ret) {
-+			dev_err(phy->dev, "Failed to enable wkupclk %d\n", ret);
-+			goto err2;
-+		}
- 	}
- 
- 	return 0;
- 
- err2:
--	clk_disable(phy->optclk);
-+	if (!IS_ERR(phy->optclk))
-+		clk_disable(phy->optclk);
- 
- err1:
- 	return ret;
+Benoit Cousson (1):
+  arm: omap5: hwmod: add missing ocp2scp hwmod data
+
+Keshava Munegowda (1):
+  ARM: omap5: hwmod: Add ocp2scp3 and sata hwmods
+
+Kishon Vijay Abraham I (2):
+  phy: rename struct omap_control_usb to struct omap_control_phy
+  phy: omap-pipe3: use generic clock names
+
+Nikhil Devshatwar (1):
+  ARM: DRA7: hwmod: Add ocp2scp3 and sata hwmods
+
+Roger Quadros (7):
+  phy: omap-control: Update DT binding information
+  ARM: dts: omap5: Add clocks to usb3_phy node
+  phy: omap-pipe3: Add SATA DPLL support
+  phy: omap-pipe3: update compatibility string and DT binding
+  ARM: dts: omap5: Update usb3phy node
+  ata: ti_sata: Add Texas Instruments SATA Wrapper driver
+  ARM: dts: omap5: add ocp2scp1 address resource
+
+ .../devicetree/bindings/ata/ahci-platform.txt      |    2 +-
+ Documentation/devicetree/bindings/ata/ti-sata.txt  |   31 ++
+ Documentation/devicetree/bindings/phy/omap-phy.txt |   26 ++-
+ Documentation/devicetree/bindings/usb/omap-usb.txt |   23 --
+ arch/arm/boot/dts/dra7.dtsi                        |   49 ++++
+ arch/arm/boot/dts/omap5.dtsi                       |   56 ++++-
+ arch/arm/mach-omap2/omap_hwmod_54xx_data.c         |  117 ++++++++
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c          |   40 +++-
+ drivers/ata/Kconfig                                |    8 +
+ drivers/ata/Makefile                               |    1 +
+ drivers/ata/ahci.h                                 |    2 +
+ drivers/ata/ahci_platform.c                        |   31 ++-
+ drivers/ata/sata_ti.c                              |  160 +++++++++++
+ drivers/phy/Kconfig                                |   14 +-
+ drivers/phy/Makefile                               |    1 +
+ drivers/phy/phy-omap-control.c                     |  300 ++++++++++++++++++++
+ drivers/phy/phy-omap-pipe3.c                       |  157 ++++++-----
+ drivers/phy/phy-omap-usb2.c                        |    9 +-
+ drivers/usb/musb/omap2430.c                        |    2 +-
+ drivers/usb/phy/Kconfig                            |   10 -
+ drivers/usb/phy/Makefile                           |    1 -
+ drivers/usb/phy/phy-omap-control.c                 |  300 --------------------
+ include/linux/phy/omap_control_phy.h               |   83 ++++++
+ include/linux/phy/omap_pipe3.h                     |    6 +
+ include/linux/usb/omap_control_usb.h               |   83 ------
+ 25 files changed, 1013 insertions(+), 499 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/ata/ti-sata.txt
+ create mode 100644 drivers/ata/sata_ti.c
+ create mode 100644 drivers/phy/phy-omap-control.c
+ delete mode 100644 drivers/usb/phy/phy-omap-control.c
+ create mode 100644 include/linux/phy/omap_control_phy.h
+ delete mode 100644 include/linux/usb/omap_control_usb.h
+
 -- 
 1.7.4.1
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
