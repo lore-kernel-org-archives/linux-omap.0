@@ -1,44 +1,53 @@
-From: =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: [PATCH v2 1/3] omap2: Change clk dev id for rng to omap3-rom-rng
-Date: Fri, 20 Sep 2013 15:25:05 +0200
-Message-ID: <1379683507-30793-2-git-send-email-pali.rohar@gmail.com>
-References: <1379534757-20870-1-git-send-email-pali.rohar@gmail.com>
- <1379683507-30793-1-git-send-email-pali.rohar@gmail.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 42/51] DMA-API: usb: musb:
+	use	platform_device_register_full() to avoid directly messing
+	with dma	masks
+Date: Fri, 20 Sep 2013 14:49:38 +0100
+Message-ID: <20130920134938.GO25647@n2100.arm.linux.org.uk>
+References: <20130919212235.GD12758@n2100.arm.linux.org.uk>
+ <E1VMnQk-0007sX-Ty@rmk-PC.arm.linux.org.uk> <20130920131125.GO26101@radagast>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1379683507-30793-1-git-send-email-pali.rohar@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Matt Mackall <mpm@selenic.com>, Herbert Xu <herbert@gondor.apana.org.au>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Joe Perches <joe@perches.com>, Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Disposition: inline
+In-Reply-To: <20130920131125.GO26101@radagast>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: alsa-devel@alsa-project.org, linux-doc@vger.kernel.org, linux-mmc@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-nvme@lists.infradead.org, linux-ide@vger.kernel.org, devel@driverdev.osuosl.org, linux-samsung-soc@vger.kernel.org, linux-scsi@vger.kernel.org, e1000-devel@lists.sourceforge.net, b43-dev@lists.infradead.org, linux-media@vger.kernel.org, devicetree@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Solarflare linux maintainers <linux-net-drivers@solarflare.com>, netdev@vger.kernel.org, linux-usb@vger.kernel.org, linux-wireless@vger.kernel.org, linux-crypto@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, uclinux-dist-devel@blackfin.uclinux.org, linuxppc-dev@lists.ozlabs.org
 List-Id: linux-omap@vger.kernel.org
 
-Name omap_rng is already used by omap_rng driver which is for omap2 and=
- omap4.
-=46or omap3 HS devices there is new driver omap3-rom-rng which needs th=
-at clk.
-And because there cannot be two drivers with same name, rename omap3 cl=
-k dev id.
+On Fri, Sep 20, 2013 at 08:11:25AM -0500, Felipe Balbi wrote:
+> Hi,
+> 
+> On Fri, Sep 20, 2013 at 12:14:38AM +0100, Russell King wrote:
+> > Use platform_device_register_full() for those drivers which can, to
+> > avoid messing directly with DMA masks.  This can only be done when
+> > the driver does not need to access the allocated musb platform device
+> > from within its callbacks, which may be called during the musb
+> > device probing.
+> > 
+> > Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+> 
+> you want me to carry this one through my tree or you prefer getting my
+> Acked-by ? Either way works for me:
+> 
+> Acked-by: Felipe Balbi <balbi@ti.com>
+> 
+> there's also the third option of me setting up a branch with only this
+> patch and we both merge it, that'd also work.
 
-Signed-off-by: Pali Roh=C3=A1r <pali.rohar@gmail.com>
----
- arch/arm/mach-omap2/cclock3xxx_data.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+I think this patch is sufficiently stand-alone that it should be fine
+if you want to take it through your tree.  That may be better in the
+long run to avoid conflicts with this patch and any future work in
+this area during this cycle.
 
-diff --git a/arch/arm/mach-omap2/cclock3xxx_data.c b/arch/arm/mach-omap=
-2/cclock3xxx_data.c
-index 334b767..5059338 100644
---- a/arch/arm/mach-omap2/cclock3xxx_data.c
-+++ b/arch/arm/mach-omap2/cclock3xxx_data.c
-@@ -3274,7 +3274,7 @@ static struct omap_clk omap36xx_clks[] =3D {
-  */
- static struct omap_clk omap34xx_omap36xx_clks[] =3D {
- 	CLK(NULL,	"aes1_ick",	&aes1_ick),
--	CLK("omap_rng",	"ick",		&rng_ick),
-+	CLK("omap3-rom-rng",	"ick",		&rng_ick),
- 	CLK(NULL,	"sha11_ick",	&sha11_ick),
- 	CLK(NULL,	"des1_ick",	&des1_ick),
- 	CLK(NULL,	"cam_mclk",	&cam_mclk),
---=20
-1.7.10.4
+Thanks.
