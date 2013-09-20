@@ -1,58 +1,83 @@
-From: Ben Hutchings <bhutchings-s/n/eUQHGBpZroRs9YW3xA@public.gmane.org>
-Subject: Re: [PATCH 01/51] DMA-API: provide a helper to set both DMA and
- coherent DMA masks
-Date: Fri, 20 Sep 2013 02:21:37 +0100
-Message-ID: <1379640097.2500.4.camel@bwh-desktop.uk.level5networks.com>
-References: <20130919212235.GD12758@n2100.arm.linux.org.uk>
-	 <E1VMlja-0007fA-HU@rmk-PC.arm.linux.org.uk>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH v11 0/8] PHY framework
+Date: Fri, 20 Sep 2013 11:04:40 +0530
+Message-ID: <523BDE70.4090407@ti.com>
+References: <1377063973-22044-1-git-send-email-kishon@ti.com>
+ <521B0E79.6060506@ti.com> <20130827192059.GZ3005@radagast>
+ <5225FF63.6080608@ti.com> <20130903155030.GA21525@kroah.com>
+ <5226F5E2.5010409@ti.com> <20130917154107.GH15645@radagast>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <E1VMlja-0007fA-HU-eh5Bv4kxaXIANfyc6IWni62ZND6+EDdj@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Russell King <rmk+kernel-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
-Cc: alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, b43-dev-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, e1000-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-crypto-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-ide-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Solarflare linux maintainers <linux-net-drivers-s/n/eUQHGBpZroRs9YW3xA@public.gmane.org>, uclinux-dist-devel-ZG0+EudsQA8dtHy/vicBwGD2FQJk+8+b@public.gmane.org, Rob Landley <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dan
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20130917154107.GH15645@radagast>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: linux-fbdev@vger.kernel.org, linux-doc@vger.kernel.org, tony@atomide.com, nsekhar@ti.com, tomasz.figa@gmail.com, s.nawrocki@samsung.com, kgene.kim@samsung.com, swarren@nvidia.com, jg1.han@samsung.com, stern@rowland.harvard.edu, grant.likely@linaro.org, linux-media@vger.kernel.org, devicetree@vger.kernel.org, george.cherian@ti.com, arnd@arndb.de, linux-samsung-soc@vger.kernel.org, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balajitk@ti.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, kyungmin.park@samsung.com, broonie@kernel.org, Andrew Morton <akpm@linux-foundation.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, 2013-09-19 at 22:25 +0100, Russell King wrote:
-> Provide a helper to set both the DMA and coherent DMA masks to the
-> same value - this avoids duplicated code in a number of drivers,
-> sometimes with buggy error handling, and also allows us identify
-> which drivers do things differently.
+Hi Greg,
+
+On Tuesday 17 September 2013 09:11 PM, Felipe Balbi wrote:
+> On Wed, Sep 04, 2013 at 02:27:06PM +0530, Kishon Vijay Abraham I wrote:
+>> On Tuesday 03 September 2013 09:20 PM, Greg KH wrote:
+>>> On Tue, Sep 03, 2013 at 08:55:23PM +0530, Kishon Vijay Abraham I wrote:
+>>>> Hi Greg,
+>>>>
+>>>> On Wednesday 28 August 2013 12:50 AM, Felipe Balbi wrote:
+>>>>> Hi,
+>>>>>
+>>>>> On Mon, Aug 26, 2013 at 01:44:49PM +0530, Kishon Vijay Abraham I wrote:
+>>>>>> On Wednesday 21 August 2013 11:16 AM, Kishon Vijay Abraham I wrote:
+>>>>>>> Added a generic PHY framework that provides a set of APIs for the PHY drivers
+>>>>>>> to create/destroy a PHY and APIs for the PHY users to obtain a reference to
+>>>>>>> the PHY with or without using phandle.
+>>>>>>>
+>>>>>>> This framework will be of use only to devices that uses external PHY (PHY
+>>>>>>> functionality is not embedded within the controller).
+>>>>>>>
+>>>>>>> The intention of creating this framework is to bring the phy drivers spread
+>>>>>>> all over the Linux kernel to drivers/phy to increase code re-use and to
+>>>>>>> increase code maintainability.
+>>>>>>>
+>>>>>>> Comments to make PHY as bus wasn't done because PHY devices can be part of
+>>>>>>> other bus and making a same device attached to multiple bus leads to bad
+>>>>>>> design.
+>>>>>>>
+>>>>>>> If the PHY driver has to send notification on connect/disconnect, the PHY
+>>>>>>> driver should make use of the extcon framework. Using this susbsystem
+>>>>>>> to use extcon framwork will have to be analysed.
+>>>>>>>
+>>>>>>> You can find this patch series @
+>>>>>>> git://git.kernel.org/pub/scm/linux/kernel/git/kishon/linux-phy.git testing
+>>>>>>
+>>>>>> Looks like there are not further comments on this series. Can you take this in
+>>>>>> your misc tree?
+>>>>>
+>>>>> Do you want me to queue these for you ? There are quite a few users for
+>>>>> this framework already and I know of at least 2 others which will show
+>>>>> up for v3.13.
+>>>>
+>>>> Can you queue this patch series? There are quite a few users already for this
+>>>> framework.
+>>>
+>>> It will have to wait for 3.13 as the merge window for new features has
+>>> been closed for a week or so.  Sorry, I'll queue this up after 3.12-rc1
+>>> is out.
+>>
+>> Alright, thanks.
 > 
-> Signed-off-by: Russell King <rmk+kernel-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
-> ---
->  Documentation/DMA-API-HOWTO.txt |   37 ++++++++++++++++++++++---------------
->  Documentation/DMA-API.txt       |    8 ++++++++
->  include/linux/dma-mapping.h     |   14 ++++++++++++++
->  3 files changed, 44 insertions(+), 15 deletions(-)
-> 
-> diff --git a/Documentation/DMA-API-HOWTO.txt b/Documentation/DMA-API-HOWTO.txt
-> index 14129f1..5e98303 100644
-> --- a/Documentation/DMA-API-HOWTO.txt
-> +++ b/Documentation/DMA-API-HOWTO.txt
-[...]
-> -dma_set_coherent_mask() will always be able to set the same or a
-> -smaller mask as dma_set_mask(). However for the rare case that a
-> +The coherent coherent mask will always be able to set the same or a
-> +smaller mask as the streaming mask. However for the rare case that a
-[...]
+> Just a gentle ping on this one...
 
-The new wording doesn't make sense; a mask doesn't set itself.  I would
-suggest:
+Let me know if you want me to rebase this patch series on the latest mainline HEAD.
 
-"The coherent mask can always be set to the same or a smaller mask than
-the streaming mask."
-
-Ben.
-
--- 
-Ben Hutchings, Staff Engineer, Solarflare
-Not speaking for my employer; that's the marketing department's job.
-They asked us to note that Solarflare product names are trademarked.
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks
+Kishon
