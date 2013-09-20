@@ -1,14 +1,17 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 1/3] PM / OPP: rename functions to dev_pm_opp*
-Date: Fri, 20 Sep 2013 14:07:17 -0500
-Message-ID: <523C9CE5.9040009@ti.com>
-References: <1379624632-17356-1-git-send-email-nm@ti.com>	<1379624632-17356-2-git-send-email-nm@ti.com>	<CAKohpoku7n6b2dDKD=+3DqG4pHtmWoeXZnAt3EoFRp+rNFofYA@mail.gmail.com>	<20130920123808.GA22176@kahuna>
- <CAKohpoktS4ZSQAeKvu3hdVsKkzcbKFvHvR2=wCA3qeB6moPphA@mail.gmail.com>
+Subject: Re: [RFC PATCH] ARM: OMAP3630: Add generic machine descriptor
+Date: Fri, 20 Sep 2013 14:10:03 -0500
+Message-ID: <523C9D8B.2000701@ti.com>
+References: <1379693332-10585-1-git-send-email-nm@ti.com>
+ <CAOesGMj6G7LeYUJsGpZHxKOjiNrk+1U55QFqcQyTb6_Co+n4zQ@mail.gmail.com>
+ <20130920162329.GC18721@radagast>
+ <CAOesGMiru=RUHS4XKLL=DC+hxtAJqtcjgd5hPbaccnAfEZ3y0g@mail.gmail.com>
+ <20130920174228.GK18721@radagast>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <CAKohpoktS4ZSQAeKvu3hdVsKkzcbKFvHvR2=wCA3qeB6moPphA@mail.gmail.com>
+In-Reply-To: <20130920174228.GK18721@radagast>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -18,47 +21,46 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Viresh Kumar <viresh.kumar@linaro.org>
-Cc: Sudeep KarkadaNagesha <sudeep.karkadanagesha@arm.com>, linux-samsung-soc <linux-samsung-soc@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>, Sascha Hauer <kernel@pengutronix.de>, linux-doc@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "cpufreq@vger.kernel.org" <cpufreq@vger.kernel.org>, Shawn Guo <shawn.guo@linaro.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Kevin Hilman <khilman@deeprootsystems.com>, Kyungmin Park <kyungmin.park@samsung.com>, Kukjin Kim <kgene.kim@samsung.com>, Randy Dunlap <rdunlap@infradead.org>, MyungJoo Ham <myungjoo.ham@samsung.com>, Rob Landley <rob@landley.net>, linux-omap@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: balbi@ti.com, Olof Johansson <olof@lixom.net>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, =?ISO-8859-1?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 09/20/2013 11:51 AM, Viresh Kumar wrote:
-> On 20 September 2013 18:08, Nishanth Menon <nm@ti.com> wrote:
+On 09/20/2013 12:42 PM, Felipe Balbi wrote:
+> Hi,
 > 
->> I am open to suggestions if any one feels we can improve this better.
-> 
-> I didn't really had one.. I thought of pm_opp** instead of dev_pm_opp**
-> though..
-
-I had proposed this earlier, however, had gone with Rafael's
-suggestion [1] to have the right context to the usage.
-
-> 
->> I believe that change was from Patch #2[1]
-> 
-> Yeah.. I just replied on a single patch :)
-> 
->> yes, you are right, I had squashed this patch in to squelch checkpatch
->> warnings:
-> 
-> I see..
-> 
->> I had added a comment:
->> " Minor checkpatch warning fixes as a result of this change was fixed as
->> well."
-> 
-> I really missed that..
-no problems..
+> On Fri, Sep 20, 2013 at 10:16:48AM -0700, Olof Johansson wrote:
+>>> On Fri, Sep 20, 2013 at 09:19:02AM -0700, Olof Johansson wrote:
+>>>> On Fri, Sep 20, 2013 at 9:08 AM, Nishanth Menon <nm@ti.com> wrote:
+>>>>> An alternative approach may be to (for all SoCs):
+>>>>> 1. define every SoC entry - ti,omap3430 ti,omap3630...
+>>>>> 2. have a generic omap3_init which uses "if (of_machine_is_compatible("ti,omap3630"))"
+>>>>> to invoke the appropriate omap3xxx_init_early.
+>>>>
+>>>> Yes, this would be better, but you can do add a DT_MACHINE as in this
+>>>> patch but have ti,omap3630 as the dt_compat table. Then there's no
+>>>> need to add runtime checks.
+>>>
+>>> I was going to reply that adding of_machine_is_compatible("ti,omap3630")
+>>> would help in some situations, but guess it's already tainted ;-)
+>>
+>> Oh, if it's just a few checks, then by all means go down that route. I
+>> didn't look at the code to see how much it would be.
+>>
+>> But if a new DT_MACHINE is added, then it should definitely be based
+>> on ti,omap3630 instead of listing all the boards.
+This was more in the direction I was hoping to go.
 
 > 
->> Would you suggest I split the change off to a separate patch or improve
->>  the comment a little more?
-> 
-> don't really know, maybe leave those as is and let checkpatch warn you..
-> 
-that is fair as well. i can split it off seperately in the next respin.
+> the idea was to CPU compatible property to conditionally enable known
+> erratas workarounds. In some cases, Revision register can't be trusted,
+> so instead of creating per-errata DT properties (since that'd be
+> describing the SW, in a way), I thought of using
+> of_machine_is_compatible() checks, but that assumes CPU compatible is
+> "correct".
+I think the quirk handling is part of what Tony is attempting, and the
+definition of these might help, I think..
 
-[1] http://marc.info/?l=linaro-kernel&m=137645747511725&w=2
+
 -- 
 Regards,
 Nishanth Menon
