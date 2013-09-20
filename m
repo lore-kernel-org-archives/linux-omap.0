@@ -1,102 +1,95 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 42/51] DMA-API: usb: musb: use
- platform_device_register_full() to avoid directly messing with dma masks
-Date: Fri, 20 Sep 2013 10:15:52 -0500
-Message-ID: <20130920151552.GQ26101@radagast>
-References: <20130919212235.GD12758@n2100.arm.linux.org.uk>
- <E1VMnQk-0007sX-Ty@rmk-PC.arm.linux.org.uk>
- <20130920131125.GO26101@radagast>
- <20130920134938.GO25647@n2100.arm.linux.org.uk>
-Reply-To: balbi@ti.com
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 2/2] usb: musb: dsps fix the typo in reg-names of the dma
+ node
+Date: Fri, 20 Sep 2013 10:43:12 -0500
+Message-ID: <20130920154312.GU26101@radagast>
+References: <1376501399-27295-1-git-send-email-bigeasy@linutronix.de>
+ <1376501399-27295-3-git-send-email-bigeasy@linutronix.de>
+Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============8713123321030954905=="
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20130920134938.GO25647@n2100.arm.linux.org.uk>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: alsa-devel@alsa-project.org, linux-doc@vger.kernel.org, linux-mmc@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-nvme@lists.infradead.org, linux-ide@vger.kernel.org, devel@driverdev.osuosl.org, linux-samsung-soc@vger.kernel.org, linux-scsi@vger.kernel.org, e1000-devel@lists.sourceforge.net, b43-dev@lists.infradead.org, linux-media@vger.kernel.org, devicetree@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Solarflare linux maintainers <linux-net-drivers@solarflare.com>, netdev@vger.kernel.org, linux-usb@vger.kernel.org, linux-wireless@vger.kernel.org, Felipe Balbi <balbi@ti.com>, linux-crypto@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, uclinux-dist-devel@blackfin.uclinux.org, linuxppc-dev@lists.ozlabs.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="G9m07da55tKJni3T"
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1376501399-27295-3-git-send-email-bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
+Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Benoit Cousson <benoit.cousson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
---===============8713123321030954905==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="rKoHqF+aPLVth8b2"
-Content-Disposition: inline
-
---rKoHqF+aPLVth8b2
+--G9m07da55tKJni3T
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Fri, Sep 20, 2013 at 02:49:38PM +0100, Russell King - ARM Linux wrote:
-> On Fri, Sep 20, 2013 at 08:11:25AM -0500, Felipe Balbi wrote:
-> > Hi,
-> >=20
-> > On Fri, Sep 20, 2013 at 12:14:38AM +0100, Russell King wrote:
-> > > Use platform_device_register_full() for those drivers which can, to
-> > > avoid messing directly with DMA masks.  This can only be done when
-> > > the driver does not need to access the allocated musb platform device
-> > > from within its callbacks, which may be called during the musb
-> > > device probing.
-> > >=20
-> > > Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
-> >=20
-> > you want me to carry this one through my tree or you prefer getting my
-> > Acked-by ? Either way works for me:
-> >=20
-> > Acked-by: Felipe Balbi <balbi@ti.com>
-> >=20
-> > there's also the third option of me setting up a branch with only this
-> > patch and we both merge it, that'd also work.
->=20
-> I think this patch is sufficiently stand-alone that it should be fine
-> if you want to take it through your tree.  That may be better in the
-> long run to avoid conflicts with this patch and any future work in
-> this area during this cycle.
+adding Benoit Cousson and linux-omap
 
-awesome, i'll take this one early next week.
+On Wed, Aug 14, 2013 at 07:29:59PM +0200, Sebastian Andrzej Siewior wrote:
+> I forgot to separete the different names in the reg-names property. This
+> didn't cause anything to fail because the driver does not use the names
+> and simply relies on the order of the memory offsets in reg.
+> This patch fixes this in case it is used later.
+>=20
+> Signed-off-by: Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
+
+Benoit, hope you can take this patch in the -rc cycle.
+
+Acked-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+
+> ---
+>  arch/arm/boot/dts/am33xx.dtsi | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>=20
+> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+> index 24d6309..a38f8d3 100644
+> --- a/arch/arm/boot/dts/am33xx.dtsi
+> +++ b/arch/arm/boot/dts/am33xx.dtsi
+> @@ -470,7 +470,7 @@
+>  					0x47402000 0x1000
+>  					0x47403000 0x1000
+>  					0x47404000 0x4000>;
+> -				reg-names =3D "glue controller scheduler queuemgr";
+> +				reg-names =3D "glue", "controller", "scheduler", "queuemgr";
+>  				interrupts =3D <17>;
+>  				interrupt-names =3D "glue";
+>  				#dma-cells =3D <2>;
+> --=20
+> 1.8.4.rc1
+>=20
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 --=20
 balbi
 
---rKoHqF+aPLVth8b2
+--G9m07da55tKJni3T
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJSPGaoAAoJEIaOsuA1yqREE+MP/2yK4ec5lzVPs6fLeF9dUQHh
-yWwfvqZLfu9D9lFIzGOOgfPm03or8ubh7i/ryfKBHxyKiGysUyo2yen3AwOwFgq1
-2VbJzj55Zz5fejj7T9YE2hJPXU3ofUTdkNSJkbOGqnROvzNcCBYorIgcsAceohqP
-biXh7G8wuxJmJqe967o/LVi9M4GL9ny+GqXdqT7TzuPeFzIwnlDpRL2+vgQDD3Y8
-maW6NOBkrF8W7g2qM5qG4oT/LPNyIEAFpJqOYSQ14EgDp0VxviUl4kMDSqihMOM7
-iPMQJPMhNKRx8vSUilrRxGCY636T0bSXZd1x6L+AIQ0XsTzEtFT73v929byiFNso
-bzQpIOgJjrDgUfBi4MnOemhm98+/UhamcqoXq7v6FQ2FyhEMeIgArAIwwr3VxOf1
-E7iiKaT7jVMRMcNZ+7UJsb+09vie5hGleu4M7YBayoxDEEtlWI8t0aOcngW8oVO4
-DHD3uff/mpbTt9UYf7009WRToHXQwLMhbAimBcXbtya9Nxa79LNxT6aWEzfB2uVS
-Ju5j7FEQZUsAMHQdJIUu+kpcEjrc5IKWWsedQul4piraIFh2Jb+8ODrGLEQvMq9e
-8Jxl6hajoiw6zWfr+HMSqJa3MkDtaZ9GEOyvZqlnrBnpNS4dI3jZKDfresiz1fkq
-o5bj9gHe6QmYbP9tPOOz
-=V876
+iQIcBAEBAgAGBQJSPG0PAAoJEIaOsuA1yqREkKYP/1f4hajLBbck36wVaL6q+o1G
+ZpZdXqnNL/S4WuX/xopXoJS2xDm6LUguM0fiZASRpvhzoORiybJ0mCAtNsJGw40H
+wa44sMSHHpZiORk2dJQzv66DmwjDQVrp495BlkOzY7zrWQB8h1ALxpX9KCvq5vPh
+yxfXlZ+OeUHOBxuvq9Vlh5BUplRvFssLaEoJJYM+NItPXNZtmPyZu5XE5QQ3pmmc
+RUci2NGKffLP7x5dkfHIN+ogHAXArZT/BJo4cGW76eXwKS+zERXs0GWITim2eygV
+1wltdKHcL3jlrd5IR14WqOn9U4EhGC5QrKfXmwk4fnHIyNKGR0x6yBh7F2Qcm/hJ
+QfeRhKM7UErki7R/eOo78W9uadTCUMjT7vZ1lghJEK/yLQPbKYYJUAcggOvJK4ME
+G4VzVMXCm4kAg4BGio8YwyGosFTzmEokS9gg4WEg/DNvozlvWu54sDzlQ7hmAoRc
+y7ZKPIdHytZemCmEeCdMxom2N0+iLPYPrflTJlovQgVf46LIJ7r205M1GQ07rBBF
+F0/VXCLr1ESOYSTztUp8RradpZ/2hfce/AD7vXzsAZLxcWzHlVMqQp+5B1O0bxxL
+n+DEFk3/TUfK112md1m5m2vJ026QkkWWR2dOJeZwLgOVXzqjI2YNZA3HA1ZabeJX
+UYQjA3sEBeEPnHqtKs3S
+=iAAe
 -----END PGP SIGNATURE-----
 
---rKoHqF+aPLVth8b2--
-
---===============8713123321030954905==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---===============8713123321030954905==--
+--G9m07da55tKJni3T--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
