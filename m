@@ -1,36 +1,38 @@
-From: Tejun Heo <tj@kernel.org>
-Subject: Re: [PATCH 39/51] DMA-API: others: use dma_set_coherent_mask()
-Date: Fri, 20 Sep 2013 17:20:50 -0500
-Message-ID: <20130920222050.GA8763@mtj.dyndns.org>
-References: <20130919212235.GD12758@n2100.arm.linux.org.uk>
- <E1VMnNq-0007s4-HN@rmk-PC.arm.linux.org.uk>
- <20130920121652.GA7630@mtj.dyndns.org>
- <20130920140018.GP25647@n2100.arm.linux.org.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-doc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20130920140018.GP25647@n2100.arm.linux.org.uk>
-Sender: linux-doc-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: alsa-devel@alsa-project.org, b43-dev@lists.infradead.org, devel@driverdev.osuosl.org, devicetree@vger.kernel.org, dri-devel@lists.freedesktop.org, e1000-devel@lists.sourceforge.net, linux-arm-kernel@lists.infradead.org, linux-crypto@vger.kernel.org, linux-doc@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-ide@vger.kernel.org, linux-media@vger.kernel.org, linux-mmc@vger.kernel.org, linux-nvme@lists.infradead.org, linux-omap@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-samsung-soc@vger.kernel.org, linux-scsi@vger.kernel.org, linux-tegra@vger.kernel.org, linux-usb@vger.kernel.org, linux-wireless@vger.kernel.org, netdev@vger.kernel.org, Solarflare linux maintainers <linux-net-drivers@solarflare.com>, uclinux-dist-devel@blackfin.uclinux.org, Inki Dae <inki.dae@samsung.com>, Joonyoung Shim <jy0922.shim@samsung.com>, Seung-Woo Kim <sw0312.kim@samsung.com>, Kyun
+From: Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
+Subject: [PATCH] ARM: DTS: omap3-devkit8000.dts: fix a typo
+Date: Sat, 21 Sep 2013 02:40:14 +0300
+Message-ID: <1379720414-14960-1-git-send-email-aaro.koskinen@iki.fi>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Cc: Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hey,
+"gpmc,sync-clki-ps" is not defined/documented, it should be
+"gpmc,sync-clk-ps" instead.
 
-On Fri, Sep 20, 2013 at 03:00:18PM +0100, Russell King - ARM Linux wrote:
-> Another would be if subsystem maintainers are happy that I carry them,
-> I can add the acks, and then later on towards the end of the cycle,
-> provide a branch subsystem maintainers could pull.
-> 
-> Or... if you can think of something easier...
+Signed-off-by: Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
+---
+ arch/arm/boot/dts/omap3-devkit8000.dts | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-I'm happy with the latter method and it's likely that you'll end up
-carrying at least some of the patches through your tree anyway.
-Please feel free to add my acks to all libata related patches and
-carry them through your tree.
-
-Thanks and have fun routing.
-
+diff --git a/arch/arm/boot/dts/omap3-devkit8000.dts b/arch/arm/boot/dts/omap3-devkit8000.dts
+index 7ef2827..4665421 100644
+--- a/arch/arm/boot/dts/omap3-devkit8000.dts
++++ b/arch/arm/boot/dts/omap3-devkit8000.dts
+@@ -125,7 +125,7 @@
+ 		nand-bus-width = <16>;
+ 
+ 		gpmc,device-nand;
+-		gpmc,sync-clki-ps = <0>;
++		gpmc,sync-clk-ps = <0>;
+ 		gpmc,cs-on-ns = <0>;
+ 		gpmc,cs-rd-off-ns = <44>;
+ 		gpmc,cs-wr-off-ns = <44>;
 -- 
-tejun
+1.8.4.rc3
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
