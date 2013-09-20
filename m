@@ -1,98 +1,43 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: Re: [PATCH v2 1/3] omap2: Change clk dev id for rng to omap3-rom-rng
-Date: Fri, 20 Sep 2013 18:41:15 +0200
-Message-ID: <201309201841.16197@pali>
-References: <1379534757-20870-1-git-send-email-pali.rohar@gmail.com> <1379683507-30793-2-git-send-email-pali.rohar@gmail.com> <20130920162342.GS9994@atomide.com>
+From: Viresh Kumar <viresh.kumar@linaro.org>
+Subject: Re: [PATCH 1/3] PM / OPP: rename functions to dev_pm_opp*
+Date: Fri, 20 Sep 2013 22:21:05 +0530
+Message-ID: <CAKohpoktS4ZSQAeKvu3hdVsKkzcbKFvHvR2=wCA3qeB6moPphA@mail.gmail.com>
+References: <1379624632-17356-1-git-send-email-nm@ti.com>
+	<1379624632-17356-2-git-send-email-nm@ti.com>
+	<CAKohpoku7n6b2dDKD=+3DqG4pHtmWoeXZnAt3EoFRp+rNFofYA@mail.gmail.com>
+	<20130920123808.GA22176@kahuna>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart1626309.BAQjC3SRxv";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130920162342.GS9994@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Matt Mackall <mpm@selenic.com>, Herbert Xu <herbert@gondor.apana.org.au>, Russell King <linux@arm.linux.org.uk>, Joe Perches <joe@perches.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <20130920123808.GA22176@kahuna>
+Sender: linux-pm-owner@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, linux-doc@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, "cpufreq@vger.kernel.org" <cpufreq@vger.kernel.org>, linux-samsung-soc <linux-samsung-soc@vger.kernel.org>, Rob Landley <rob@landley.net>, Shawn Guo <shawn.guo@linaro.org>, Sascha Hauer <kernel@pengutronix.de>, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Sudeep KarkadaNagesha <sudeep.karkadanagesha@arm.com>, Kukjin Kim <kgene.kim@samsung.com>, MyungJoo Ham <myungjoo.ham@samsung.com>, Kyungmin Park <kyungmin.park@samsung.com>, Randy Dunlap <rdunlap@infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
---nextPart1626309.BAQjC3SRxv
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+On 20 September 2013 18:08, Nishanth Menon <nm@ti.com> wrote:
 
-On Friday 20 September 2013 18:23:43 Tony Lindgren wrote:
-> * Pali Roh=C3=A1r <pali.rohar@gmail.com> [130920 06:33]:
-> > Name omap_rng is already used by omap_rng driver which is
-> > for omap2 and omap4. For omap3 HS devices there is new
-> > driver omap3-rom-rng which needs that clk. And because
-> > there cannot be two drivers with same name, rename omap3
-> > clk dev id.
-> >=20
-> > Signed-off-by: Pali Roh=C3=A1r <pali.rohar@gmail.com>
-> > ---
-> >=20
-> >  arch/arm/mach-omap2/cclock3xxx_data.c |    2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> >=20
-> > diff --git a/arch/arm/mach-omap2/cclock3xxx_data.c
-> > b/arch/arm/mach-omap2/cclock3xxx_data.c index
-> > 334b767..5059338 100644
-> > --- a/arch/arm/mach-omap2/cclock3xxx_data.c
-> > +++ b/arch/arm/mach-omap2/cclock3xxx_data.c
-> > @@ -3274,7 +3274,7 @@ static struct omap_clk omap36xx_clks[]
-> > =3D {
-> >=20
-> >   */
-> > =20
-> >  static struct omap_clk omap34xx_omap36xx_clks[] =3D {
-> > =20
-> >  	CLK(NULL,	"aes1_ick",	&aes1_ick),
-> >=20
-> > -	CLK("omap_rng",	"ick",		&rng_ick),
-> > +	CLK("omap3-rom-rng",	"ick",		&rng_ick),
-> >=20
-> >  	CLK(NULL,	"sha11_ick",	&sha11_ick),
-> >  	CLK(NULL,	"des1_ick",	&des1_ick),
-> >  	CLK(NULL,	"cam_mclk",	&cam_mclk),
->=20
-> Hmm are you sure the omap_rng is not available on
-> any of the omap3 GP versions? If so, the omap_rng
-> alias should be kept as well.
->=20
-> Regards,
->=20
-> Tony
+> I am open to suggestions if any one feels we can improve this better.
 
-I really do not know, but driver char/hw_random/omap-rng.c=20
-support only omap2 and omap4 platforms. So "omap_rng" dev id for=20
-omap3 is not used.
+I didn't really had one.. I thought of pm_opp** instead of dev_pm_opp**
+though..
 
-In email [1] you suggested to use clk_get instead clk_get_sys. If=20
-I understand correctly clk_get calling clk_get_sys with driver=20
-name. So dev in in CLK macro must be same as driver name. And=20
-because in cclock3xxx_data.c is dev id "omap_rng" and there is=20
-already driver with name "omap_rng", I need to rename dev in=20
-cclock3xxx_data.c to get new omap3-rom-rng driver working.
+> I believe that change was from Patch #2[1]
 
-Or if you know better way how to do it, let me know.
+Yeah.. I just replied on a single patch :)
 
-[1] - https://lkml.org/lkml/2013/4/1/278
+> yes, you are right, I had squashed this patch in to squelch checkpatch
+> warnings:
 
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
+I see..
 
---nextPart1626309.BAQjC3SRxv
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
+> I had added a comment:
+> " Minor checkpatch warning fixes as a result of this change was fixed as
+> well."
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
+I really missed that..
 
-iEYEABECAAYFAlI8eqwACgkQi/DJPQPkQ1Lv4QCdGE6cUWP92PYiNEgXFisUjsDw
-m/sAnA7ufOwUWlSHSobuOjfU0wUrb6Ko
-=/cE6
------END PGP SIGNATURE-----
+> Would you suggest I split the change off to a separate patch or improve
+>  the comment a little more?
 
---nextPart1626309.BAQjC3SRxv--
+don't really know, maybe leave those as is and let checkpatch warn you..
