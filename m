@@ -1,70 +1,51 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [RFC PATCH] ARM: OMAP3630: Add generic machine descriptor
-Date: Fri, 20 Sep 2013 11:08:52 -0500
-Message-ID: <1379693332-10585-1-git-send-email-nm@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH v2 3/9] ARM: OMAP2+: omap-usb-host: Get rid of
+ platform_data from struct usbhs_phy_data
+Date: Fri, 20 Sep 2013 09:18:22 -0700
+Message-ID: <20130920161822.GR9994@atomide.com>
+References: <1376561909-4406-1-git-send-email-rogerq@ti.com>
+ <1376561909-4406-4-git-send-email-rogerq@ti.com>
+ <20130920154406.GV26101@radagast>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>
-Cc: Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20130920154406.GV26101@radagast>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Cc: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, p.zabel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Add generic machine which can handle inits for omap3630.
-Currently beagle-xm would matchup with ti,omap3 which invokes
-omap3430_init_early instead of omap3630_init_early
+* Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> [130920 08:52]:
+> Hi,
+> 
+> On Thu, Aug 15, 2013 at 01:18:23PM +0300, Roger Quadros wrote:
+> > The platform data bits can be inferred from the other members of
+> > struct usbhs_phy_data. So get rid of the platform_data member.
+> > 
+> > Build the platform data for the PHY device in usbhs_init_phys() instead.
+> > 
+> > Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+> 
+> Tony, do I get your Acked-by here and all following arch/arm/mach-omap2*
+> patches in this series ?
 
-This defeats the purpose of having SoC specific init_early handlers,
-example: clock nodes are not the same between 3430 and 3630.
+If you can merge just this series without the .dts changes
+into an immutable topic branch against let's say v3.12-rc2
+when it comes out, then yes I can ack them:
 
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
+Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 
-An alternative approach may be to (for all SoCs):
-1. define every SoC entry - ti,omap3430 ti,omap3630...
-2. have a generic omap3_init which uses "if (of_machine_is_compatible("ti,omap3630"))"
-to invoke the appropriate omap3xxx_init_early.
+That way I can also pull in the topic branch as needed to
+avoid self inflicted merge conflicts ;) And Benoit can
+set up a separate .dts branch based on your branch to make
+sure the dependencies are in place before merging that one
+upstream.
 
- arch/arm/mach-omap2/board-generic.c |   18 ++++++++++++++++++
- 1 file changed, 18 insertions(+)
+Regards,
 
-diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
-index 39c7838..cd85b36 100644
---- a/arch/arm/mach-omap2/board-generic.c
-+++ b/arch/arm/mach-omap2/board-generic.c
-@@ -147,6 +147,24 @@ DT_MACHINE_START(OMAP3_GP_DT, "Generic OMAP3-GP (Flattened Device Tree)")
- 	.dt_compat	= omap3_gp_boards_compat,
- 	.restart	= omap3xxx_restart,
- MACHINE_END
-+
-+static const char *omap3630_gp_boards_compat[] __initdata = {
-+	"ti,omap3-beagle-xm",
-+	NULL,
-+};
-+
-+DT_MACHINE_START(OMAP3630_GP_DT, "Generic OMAP3630-GP (Flattened Device Tree)")
-+	.reserve	= omap_reserve,
-+	.map_io		= omap3_map_io,
-+	.init_early	= omap3630_init_early,
-+	.init_irq	= omap_intc_of_init,
-+	.handle_irq	= omap3_intc_handle_irq,
-+	.init_machine	= omap_generic_init,
-+	.init_late	= omap3_init_late,
-+	.init_time	= omap3_secure_sync32k_timer_init,
-+	.dt_compat	= omap3630_gp_boards_compat,
-+	.restart	= omap3xxx_restart,
-+MACHINE_END
- #endif
- 
- #ifdef CONFIG_SOC_AM33XX
--- 
-1.7.9.5
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
