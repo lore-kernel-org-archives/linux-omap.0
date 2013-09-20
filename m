@@ -1,95 +1,88 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 2/2] usb: musb: dsps fix the typo in reg-names of the dma
- node
-Date: Fri, 20 Sep 2013 10:43:12 -0500
-Message-ID: <20130920154312.GU26101@radagast>
-References: <1376501399-27295-1-git-send-email-bigeasy@linutronix.de>
- <1376501399-27295-3-git-send-email-bigeasy@linutronix.de>
-Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH v2 3/9] ARM: OMAP2+: omap-usb-host: Get rid of
+ platform_data from struct usbhs_phy_data
+Date: Fri, 20 Sep 2013 10:44:06 -0500
+Message-ID: <20130920154406.GV26101@radagast>
+References: <1376561909-4406-1-git-send-email-rogerq@ti.com>
+ <1376561909-4406-4-git-send-email-rogerq@ti.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="G9m07da55tKJni3T"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1376501399-27295-3-git-send-email-bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
-Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Benoit Cousson <benoit.cousson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: multipart/mixed; boundary="===============7453431264100311825=="
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1376561909-4406-4-git-send-email-rogerq@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: devicetree@vger.kernel.org, bcousson@baylibre.com, tony@atomide.com, linux-usb@vger.kernel.org, balbi@ti.com, broonie@kernel.org, p.zabel@pengutronix.de, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
---G9m07da55tKJni3T
+--===============7453431264100311825==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="XaepPZQT0uxAV0NY"
+Content-Disposition: inline
+
+--XaepPZQT0uxAV0NY
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-adding Benoit Cousson and linux-omap
-
-On Wed, Aug 14, 2013 at 07:29:59PM +0200, Sebastian Andrzej Siewior wrote:
-> I forgot to separete the different names in the reg-names property. This
-> didn't cause anything to fail because the driver does not use the names
-> and simply relies on the order of the memory offsets in reg.
-> This patch fixes this in case it is used later.
+On Thu, Aug 15, 2013 at 01:18:23PM +0300, Roger Quadros wrote:
+> The platform data bits can be inferred from the other members of
+> struct usbhs_phy_data. So get rid of the platform_data member.
 >=20
-> Signed-off-by: Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
-
-Benoit, hope you can take this patch in the -rc cycle.
-
-Acked-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-
-> ---
->  arch/arm/boot/dts/am33xx.dtsi | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+> Build the platform data for the PHY device in usbhs_init_phys() instead.
 >=20
-> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-> index 24d6309..a38f8d3 100644
-> --- a/arch/arm/boot/dts/am33xx.dtsi
-> +++ b/arch/arm/boot/dts/am33xx.dtsi
-> @@ -470,7 +470,7 @@
->  					0x47402000 0x1000
->  					0x47403000 0x1000
->  					0x47404000 0x4000>;
-> -				reg-names =3D "glue controller scheduler queuemgr";
-> +				reg-names =3D "glue", "controller", "scheduler", "queuemgr";
->  				interrupts =3D <17>;
->  				interrupt-names =3D "glue";
->  				#dma-cells =3D <2>;
-> --=20
-> 1.8.4.rc1
->=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Signed-off-by: Roger Quadros <rogerq@ti.com>
+
+Tony, do I get your Acked-by here and all following arch/arm/mach-omap2*
+patches in this series ?
 
 --=20
 balbi
 
---G9m07da55tKJni3T
+--XaepPZQT0uxAV0NY
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJSPG0PAAoJEIaOsuA1yqREkKYP/1f4hajLBbck36wVaL6q+o1G
-ZpZdXqnNL/S4WuX/xopXoJS2xDm6LUguM0fiZASRpvhzoORiybJ0mCAtNsJGw40H
-wa44sMSHHpZiORk2dJQzv66DmwjDQVrp495BlkOzY7zrWQB8h1ALxpX9KCvq5vPh
-yxfXlZ+OeUHOBxuvq9Vlh5BUplRvFssLaEoJJYM+NItPXNZtmPyZu5XE5QQ3pmmc
-RUci2NGKffLP7x5dkfHIN+ogHAXArZT/BJo4cGW76eXwKS+zERXs0GWITim2eygV
-1wltdKHcL3jlrd5IR14WqOn9U4EhGC5QrKfXmwk4fnHIyNKGR0x6yBh7F2Qcm/hJ
-QfeRhKM7UErki7R/eOo78W9uadTCUMjT7vZ1lghJEK/yLQPbKYYJUAcggOvJK4ME
-G4VzVMXCm4kAg4BGio8YwyGosFTzmEokS9gg4WEg/DNvozlvWu54sDzlQ7hmAoRc
-y7ZKPIdHytZemCmEeCdMxom2N0+iLPYPrflTJlovQgVf46LIJ7r205M1GQ07rBBF
-F0/VXCLr1ESOYSTztUp8RradpZ/2hfce/AD7vXzsAZLxcWzHlVMqQp+5B1O0bxxL
-n+DEFk3/TUfK112md1m5m2vJ026QkkWWR2dOJeZwLgOVXzqjI2YNZA3HA1ZabeJX
-UYQjA3sEBeEPnHqtKs3S
-=iAAe
+iQIcBAEBAgAGBQJSPG1GAAoJEIaOsuA1yqREw54P/3ayz4TIUD3gFjF99oq4+D/F
+Lic490TzLVqTRG67ElaOvT8wBGnzhbraPRK3udigtoFR2VnGVXit6s/m6hNP9uf6
+WrABQjhGUIl8taaLkC1EIf9/+L7w8lOMuL6MZDV0NndOPDeJOEACLECfFMAEqjKx
+37YWwv4YUi3KluqAcKjWvGNsjdUEbbxASUsUkTSvfIwcwhjjAPVw0TFMwGRFclAL
+LhRPnY4RJyj3sarOWv2ELOGNB/ay3aQO0wr9BPbCuGfGU3cvX5I5d1mScMMLPXeE
+5jxSkx8S8mOOaT5RsyhLn7T0kvS7XInmIxLlpKWAeZ1qHssXBDwHcyY8MiKr1NDJ
+wAdkCN+7RYwBxuEC/w/W4QqIffatAHSSluuppKE6ufnpd3u/Axg4/0MvSBwidS/U
+LnRlou98jUPgHXrfgqIL0V9g2ATfu97+i7zgO1qn6+UHNUbr8bY6AAjHZAK6xYie
+REmhahDQn5+rYdZz9kPBTgDz5nJAr+une5WnQUPDvjr/NuveMk120T/1YVp2EztT
+vodKhuLTSubeUkupkuCAa8bpzbaFiu6y7HZANDW/UQkXdRM91U3+kXEC/0wvhqiV
+gABB7RhShxJWPvF0xXYj3deCc9xSoYnutNI8ZQ/XaBn/gCPOcjDO3hbJo5D3YtM7
+IGOH2a7nRp+zum0ebJ2n
+=prHi
 -----END PGP SIGNATURE-----
 
---G9m07da55tKJni3T--
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--XaepPZQT0uxAV0NY--
+
+
+--===============7453431264100311825==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+--===============7453431264100311825==--
