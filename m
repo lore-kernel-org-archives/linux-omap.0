@@ -1,52 +1,64 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 1/3] omap2: Change clk dev id for rng to
- omap3-rom-rng
-Date: Fri, 20 Sep 2013 11:31:44 -0700
-Message-ID: <20130920183144.GB2684@atomide.com>
-References: <1379534757-20870-1-git-send-email-pali.rohar@gmail.com>
- <201309201841.16197@pali>
- <20130920174640.GA2684@atomide.com>
- <201309202024.50755@pali>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH 1/3] PM / OPP: rename functions to dev_pm_opp*
+Date: Fri, 20 Sep 2013 14:07:17 -0500
+Message-ID: <523C9CE5.9040009@ti.com>
+References: <1379624632-17356-1-git-send-email-nm@ti.com>	<1379624632-17356-2-git-send-email-nm@ti.com>	<CAKohpoku7n6b2dDKD=+3DqG4pHtmWoeXZnAt3EoFRp+rNFofYA@mail.gmail.com>	<20130920123808.GA22176@kahuna>
+ <CAKohpoktS4ZSQAeKvu3hdVsKkzcbKFvHvR2=wCA3qeB6moPphA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <201309202024.50755@pali>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
-Cc: Matt Mackall <mpm@selenic.com>, Herbert Xu <herbert@gondor.apana.org.au>, Russell King <linux@arm.linux.org.uk>, Joe Perches <joe@perches.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <CAKohpoktS4ZSQAeKvu3hdVsKkzcbKFvHvR2=wCA3qeB6moPphA@mail.gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Viresh Kumar <viresh.kumar@linaro.org>
+Cc: Sudeep KarkadaNagesha <sudeep.karkadanagesha@arm.com>, linux-samsung-soc <linux-samsung-soc@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>, Sascha Hauer <kernel@pengutronix.de>, linux-doc@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "cpufreq@vger.kernel.org" <cpufreq@vger.kernel.org>, Shawn Guo <shawn.guo@linaro.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Kevin Hilman <khilman@deeprootsystems.com>, Kyungmin Park <kyungmin.park@samsung.com>, Kukjin Kim <kgene.kim@samsung.com>, Randy Dunlap <rdunlap@infradead.org>, MyungJoo Ham <myungjoo.ham@samsung.com>, Rob Landley <rob@landley.net>, linux-omap@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Pali Roh=C3=A1r <pali.rohar@gmail.com> [130920 11:32]:
-> On Friday 20 September 2013 19:46:41 Tony Lindgren wrote:
->=20
-> Ok, then there is new patch which only adding omap3-rom-rng and not r=
-emoving omap_rng.
-> It is OK to have same CLK data but with different names?
+On 09/20/2013 11:51 AM, Viresh Kumar wrote:
+> On 20 September 2013 18:08, Nishanth Menon <nm@ti.com> wrote:
+> 
+>> I am open to suggestions if any one feels we can improve this better.
+> 
+> I didn't really had one.. I thought of pm_opp** instead of dev_pm_opp**
+> though..
 
-Yes in this case it's always either omap_rng or omap3-rom-rng
-so the patch below looks OK to me.
+I had proposed this earlier, however, had gone with Rafael's
+suggestion [1] to have the right context to the usage.
 
+> 
+>> I believe that change was from Patch #2[1]
+> 
+> Yeah.. I just replied on a single patch :)
+> 
+>> yes, you are right, I had squashed this patch in to squelch checkpatch
+>> warnings:
+> 
+> I see..
+> 
+>> I had added a comment:
+>> " Minor checkpatch warning fixes as a result of this change was fixed as
+>> well."
+> 
+> I really missed that..
+no problems..
+
+> 
+>> Would you suggest I split the change off to a separate patch or improve
+>>  the comment a little more?
+> 
+> don't really know, maybe leave those as is and let checkpatch warn you..
+> 
+that is fair as well. i can split it off seperately in the next respin.
+
+[1] http://marc.info/?l=linaro-kernel&m=137645747511725&w=2
+-- 
 Regards,
-
-Tony
-=20
-> diff --git a/arch/arm/mach-omap2/cclock3xxx_data.c b/arch/arm/mach-om=
-ap2/cclock3xxx_data.c
-> index 334b767..03a2829 100644
-> --- a/arch/arm/mach-omap2/cclock3xxx_data.c
-> +++ b/arch/arm/mach-omap2/cclock3xxx_data.c
-> @@ -3275,6 +3275,7 @@ static struct omap_clk omap36xx_clks[] =3D {
->  static struct omap_clk omap34xx_omap36xx_clks[] =3D {
->  	CLK(NULL,	"aes1_ick",	&aes1_ick),
->  	CLK("omap_rng",	"ick",		&rng_ick),
-> +	CLK("omap3-rom-rng",	"ick",	&rng_ick),
->  	CLK(NULL,	"sha11_ick",	&sha11_ick),
->  	CLK(NULL,	"des1_ick",	&des1_ick),
->  	CLK(NULL,	"cam_mclk",	&cam_mclk),
->=20
->=20
-> --=20
-> Pali Roh=C3=A1r
-> pali.rohar@gmail.com
+Nishanth Menon
