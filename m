@@ -1,107 +1,84 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v2 3/9] ARM: OMAP2+: omap-usb-host: Get rid of
- platform_data from struct usbhs_phy_data
-Date: Fri, 20 Sep 2013 11:24:19 -0500
-Message-ID: <20130920162419.GD18721@radagast>
-References: <1376561909-4406-1-git-send-email-rogerq@ti.com>
- <1376561909-4406-4-git-send-email-rogerq@ti.com>
- <20130920154406.GV26101@radagast>
- <20130920161822.GR9994@atomide.com>
-Reply-To: balbi@ti.com
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2] ADP1653 board code for Nokia RX-51
+Date: Fri, 20 Sep 2013 09:33:18 -0700
+Message-ID: <20130920163318.GT9994@atomide.com>
+References: <201302171616.50152@pali>
+ <201309181800.10486@pali>
+ <20130918174211.GU9994@atomide.com>
+ <201309200030.36606@pali>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============1638675644969208939=="
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20130920161822.GR9994@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: devicetree@vger.kernel.org, bcousson@baylibre.com, linux-usb@vger.kernel.org, Felipe Balbi <balbi@ti.com>, broonie@kernel.org, p.zabel@pengutronix.de, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <201309200030.36606@pali>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
+Cc: Pavel Machek <pavel@ucw.cz>, Aaro Koskinen <aaro.koskinen@iki.fi>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
---===============1638675644969208939==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="F8dlzb82+Fcn6AgP"
-Content-Disposition: inline
-
---F8dlzb82+Fcn6AgP
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Fri, Sep 20, 2013 at 09:18:22AM -0700, Tony Lindgren wrote:
-> * Felipe Balbi <balbi@ti.com> [130920 08:52]:
-> > Hi,
-> >=20
-> > On Thu, Aug 15, 2013 at 01:18:23PM +0300, Roger Quadros wrote:
-> > > The platform data bits can be inferred from the other members of
-> > > struct usbhs_phy_data. So get rid of the platform_data member.
+* Pali Roh=C3=A1r <pali.rohar@gmail.com> [130919 15:38]:
+> On Wednesday 18 September 2013 19:42:12 Tony Lindgren wrote:
+> > * Pali Roh=C3=A1r <pali.rohar@gmail.com> [130918 09:08]:
+> > > On Wednesday 18 September 2013 15:16:44 Pavel Machek wrote:
+> > > > On Sun 2013-09-08 02:02:52, Aaro Koskinen wrote:
+> > > > > Hi,
+> > > > >=20
+> > > > > On Fri, Sep 06, 2013 at 10:34:05PM +0200, Pali Roh=C3=A1r=20
+> wrote:
+> > > > > > > --- /dev/null
+> > > > > > > +++ b/arch/arm/mach-omap2/board-rx51-camera.c
+> > > > >=20
+> > > > > [...]
+> > > > >=20
+> > > > > > Ping, can you review this patch v2?
+> > > > >=20
+> > > > > I don't think Tony will accept any new board stuff for
+> > > > > RX-51/N900. See for example:
+> > > > > http://marc.info/?l=3Dlinux-kernel&m=3D137629626213187&w=3D2
+> > > > >=20
+> > > > > There should be initial Nokia N900 DTS file in 3.12-rc1,
+> > > > > and we should continue converting this board fully to
+> > > > > DT.
+> > > >=20
+> > > > That's not reasonable. N900 is pretty far away from
+> > > > working with device tree. Yes, I was able to get some
+> > > > bits merged, but that should not be excuse to halt other
+> > > > N900 development.
+> > > >=20
+> > > > 									Pavel
 > > >=20
-> > > Build the platform data for the PHY device in usbhs_init_phys() inste=
-ad.
-> > >=20
-> > > Signed-off-by: Roger Quadros <rogerq@ti.com>
+> > > Right. So Tony, will you accept future patches for board
+> > > files?
 > >=20
-> > Tony, do I get your Acked-by here and all following arch/arm/mach-omap2*
-> > patches in this series ?
+> > Only fixes to board-*.c files please unless there's a _really_
+> > good reason to make things more complex with the platform
+> > data. Let's not make the DT conversion any more complex than
+> > it already is.
+> >=20
+> > Getting things working with DT for the devices is pretty
+> > trivial in most cases. And we can also still initialize the
+> > legacy devices using platform data the same way as earlier.
+> >=20
+> > Regards,
+> >=20
+> > Tony
 >=20
-> If you can merge just this series without the .dts changes
-> into an immutable topic branch against let's say v3.12-rc2
-> when it comes out, then yes I can ack them:
->=20
-> Acked-by: Tony Lindgren <tony@atomide.com>
->=20
-> That way I can also pull in the topic branch as needed to
-> avoid self inflicted merge conflicts ;) And Benoit can
-> set up a separate .dts branch based on your branch to make
-> sure the dependencies are in place before merging that one
-> upstream.
+> So, what to this with this patch v2 (it was sent 06.03.2013)?
+> It adding board support for ADP1653 flash torch which is part of=20
+> rx51 camera code. Driver itself is already in kernel tree.
+> Can you comment/review this patch?
 
-Alright, i'll put this in my todo for next week.
+Yeah I'm not taking any more of new platform data like this,
+this all is already very trivial to do with device tree
+directly in the driver. Adding this would make the pains of
+moving to device tree based booting just more of a pain and
+guess who has to deal with all of that.
 
---=20
-balbi
+=46or the hwrng platform data makes still sense even for the
+device tree as we don't have any better way currently to do
+the SMC callbacks.
 
---F8dlzb82+Fcn6AgP
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Regards,
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJSPHayAAoJEIaOsuA1yqREKegQAKEJWqHhdujbhyZn1F1U8lnZ
-Gzg0nKXOok81f8WMEiTaB2apG4D7uIEcjkdl9OfN0TSe9uaaKLSSVP8Wfmto1B7z
-6Jx4ekRTXXK6qrfTlUN1VdTx8tboZ4nFKhCrOszB7VmUwnaSJYIVUbW7ziLg5HdH
-SXMx6qRPTFgzrDQt5Eg6lPM0JdEvM2SJilHIZgVLBb1UH2Uo0Kt8c3op5rAzu/65
-aNG6sjN+YkSSPN2BJtyFloziFFHlL2vjz88+iTMkpiX/2glU4agHAH9w5XZhqjtu
-6na9kXOQyCnNYfW/29Hv5Hd6DoYzc5VYJuO1WrjP3z3MOxUKwfa/C5fjraHrqtIb
-M5cPfOEl5im2Y0uOQ2/w5RYlbyWndT3oKye/Q2SA41svGB2lnV3f+9cKG9D3JKOg
-E78xRlmBT0ENkvcti8/LmNoL9cOLU+RKD9fW0N4uY59+KB3JviCTvK3NxfUkwt/9
-eb4SsxamswN1NiKAEXcIyWuMaO5qUHIvxcCXNH13Y2bAhHhrfJQHjFsuAlONyhnE
-zwXa4luKNWTduOua5htZP/2eeAdIypMM8IdhbEZ7Aa0gsFUPO70P1Xy5qpOLu2f5
-ZokSDiaIpn8hJ8DPwopDDgd0H8o/Y6XP1sfFzDI27eG9cOUa7tOD2cGMDXP1oa3L
-QMAAEedR2ROLuzII0W5c
-=lLbv
------END PGP SIGNATURE-----
-
---F8dlzb82+Fcn6AgP--
-
-
---===============1638675644969208939==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-arm-kernel mailing list
-linux-arm-kernel@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-
---===============1638675644969208939==--
+Tony
