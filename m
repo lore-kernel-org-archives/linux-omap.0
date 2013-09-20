@@ -1,51 +1,28 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v2 3/9] ARM: OMAP2+: omap-usb-host: Get rid of
- platform_data from struct usbhs_phy_data
-Date: Fri, 20 Sep 2013 09:18:22 -0700
-Message-ID: <20130920161822.GR9994@atomide.com>
-References: <1376561909-4406-1-git-send-email-rogerq@ti.com>
- <1376561909-4406-4-git-send-email-rogerq@ti.com>
- <20130920154406.GV26101@radagast>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [RFC PATCH] ARM: OMAP3630: Add generic machine descriptor
+Date: Fri, 20 Sep 2013 09:19:02 -0700
+Message-ID: <CAOesGMj6G7LeYUJsGpZHxKOjiNrk+1U55QFqcQyTb6_Co+n4zQ@mail.gmail.com>
+References: <1379693332-10585-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20130920154406.GV26101@radagast>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Cc: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, p.zabel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1379693332-10585-1-git-send-email-nm@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, =?ISO-8859-1?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> [130920 08:52]:
-> Hi,
-> 
-> On Thu, Aug 15, 2013 at 01:18:23PM +0300, Roger Quadros wrote:
-> > The platform data bits can be inferred from the other members of
-> > struct usbhs_phy_data. So get rid of the platform_data member.
-> > 
-> > Build the platform data for the PHY device in usbhs_init_phys() instead.
-> > 
-> > Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-> 
-> Tony, do I get your Acked-by here and all following arch/arm/mach-omap2*
-> patches in this series ?
+Hi,
 
-If you can merge just this series without the .dts changes
-into an immutable topic branch against let's say v3.12-rc2
-when it comes out, then yes I can ack them:
+On Fri, Sep 20, 2013 at 9:08 AM, Nishanth Menon <nm@ti.com> wrote:
+> An alternative approach may be to (for all SoCs):
+> 1. define every SoC entry - ti,omap3430 ti,omap3630...
+> 2. have a generic omap3_init which uses "if (of_machine_is_compatible("ti,omap3630"))"
+> to invoke the appropriate omap3xxx_init_early.
 
-Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Yes, this would be better, but you can do add a DT_MACHINE as in this
+patch but have ti,omap3630 as the dt_compat table. Then there's no
+need to add runtime checks.
 
-That way I can also pull in the topic branch as needed to
-avoid self inflicted merge conflicts ;) And Benoit can
-set up a separate .dts branch based on your branch to make
-sure the dependencies are in place before merging that one
-upstream.
 
-Regards,
-
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-Olof
