@@ -1,84 +1,83 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2] ADP1653 board code for Nokia RX-51
-Date: Fri, 20 Sep 2013 09:33:18 -0700
-Message-ID: <20130920163318.GT9994@atomide.com>
-References: <201302171616.50152@pali>
- <201309181800.10486@pali>
- <20130918174211.GU9994@atomide.com>
- <201309200030.36606@pali>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH 28/51] DMA-API: sound: fix dma mask handling in a lot of
+ drivers
+Date: Fri, 20 Sep 2013 17:36:54 +0100
+Message-ID: <20130920163654.GN21013@sirena.org.uk>
+References: <20130919212235.GD12758@n2100.arm.linux.org.uk>
+ <E1VMm9m-0007ij-ER@rmk-PC.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <201309200030.36606@pali>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
-Cc: Pavel Machek <pavel@ucw.cz>, Aaro Koskinen <aaro.koskinen@iki.fi>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: multipart/mixed; boundary="===============4406136581201344290=="
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <E1VMm9m-0007ij-ER@rmk-PC.arm.linux.org.uk>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Russell King <rmk+kernel@arm.linux.org.uk>
+Cc: alsa-devel@alsa-project.org, linux-doc@vger.kernel.org, Takashi Iwai <tiwai@suse.de>, linux-mmc@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-nvme@lists.infradead.org, Jaroslav Kysela <perex@perex.cz>, Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-ide@vger.kernel.org, devel@driverdev.osuosl.org, linux-samsung-soc@vger.kernel.org, linux-scsi@vger.kernel.org, e1000-devel@lists.sourceforge.net, b43-dev@lists.infradead.org, linux-media@vger.kernel.org, devicetree@vger.kernel.org, Haojian Zhuang <haojian.zhuang@gmail.com>, Timur Tabi <timur@tabi.org>, Kukjin Kim <kgene.kim@samsung.com>, dri-devel@lists.freedesktop.org, Ben Dooks <ben-linux@fluff.org>, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Solarflare linux maintainers <linux-net-drivers@solarflare.com>, Eric Miao <eric.y.miao@gmail.com>, Sangbeom Kim <sbkim73@samsu>
 List-Id: linux-omap@vger.kernel.org
 
-* Pali Roh=C3=A1r <pali.rohar@gmail.com> [130919 15:38]:
-> On Wednesday 18 September 2013 19:42:12 Tony Lindgren wrote:
-> > * Pali Roh=C3=A1r <pali.rohar@gmail.com> [130918 09:08]:
-> > > On Wednesday 18 September 2013 15:16:44 Pavel Machek wrote:
-> > > > On Sun 2013-09-08 02:02:52, Aaro Koskinen wrote:
-> > > > > Hi,
-> > > > >=20
-> > > > > On Fri, Sep 06, 2013 at 10:34:05PM +0200, Pali Roh=C3=A1r=20
-> wrote:
-> > > > > > > --- /dev/null
-> > > > > > > +++ b/arch/arm/mach-omap2/board-rx51-camera.c
-> > > > >=20
-> > > > > [...]
-> > > > >=20
-> > > > > > Ping, can you review this patch v2?
-> > > > >=20
-> > > > > I don't think Tony will accept any new board stuff for
-> > > > > RX-51/N900. See for example:
-> > > > > http://marc.info/?l=3Dlinux-kernel&m=3D137629626213187&w=3D2
-> > > > >=20
-> > > > > There should be initial Nokia N900 DTS file in 3.12-rc1,
-> > > > > and we should continue converting this board fully to
-> > > > > DT.
-> > > >=20
-> > > > That's not reasonable. N900 is pretty far away from
-> > > > working with device tree. Yes, I was able to get some
-> > > > bits merged, but that should not be excuse to halt other
-> > > > N900 development.
-> > > >=20
-> > > > 									Pavel
-> > >=20
-> > > Right. So Tony, will you accept future patches for board
-> > > files?
-> >=20
-> > Only fixes to board-*.c files please unless there's a _really_
-> > good reason to make things more complex with the platform
-> > data. Let's not make the DT conversion any more complex than
-> > it already is.
-> >=20
-> > Getting things working with DT for the devices is pretty
-> > trivial in most cases. And we can also still initialize the
-> > legacy devices using platform data the same way as earlier.
-> >=20
-> > Regards,
-> >=20
-> > Tony
+
+--===============4406136581201344290==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="NbUNL4d9A9kY58qh"
+Content-Disposition: inline
+
+
+--NbUNL4d9A9kY58qh
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Thu, Sep 19, 2013 at 10:53:02PM +0100, Russell King wrote:
+> This code sequence is unsafe in modules:
 >=20
-> So, what to this with this patch v2 (it was sent 06.03.2013)?
-> It adding board support for ADP1653 flash torch which is part of=20
-> rx51 camera code. Driver itself is already in kernel tree.
-> Can you comment/review this patch?
+> static u64 mask =3D DMA_BIT_MASK(something);
+> ...
+> 	if (!dev->dma_mask)
+> 		dev->dma_mask =3D &mask;
 
-Yeah I'm not taking any more of new platform data like this,
-this all is already very trivial to do with device tree
-directly in the driver. Adding this would make the pains of
-moving to device tree based booting just more of a pain and
-guess who has to deal with all of that.
+Acked-by: Mark Brown <broonie@linaro.org>
 
-=46or the hwrng platform data makes still sense even for the
-device tree as we don't have any better way currently to do
-the SMC callbacks.
+--NbUNL4d9A9kY58qh
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-Regards,
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.21 (GNU/Linux)
 
-Tony
+iQIcBAEBAgAGBQJSPHmjAAoJELSic+t+oim9WB4QAINsf282vDwWmQYHGXTeorHo
+q0pJ/9bTwBrSE0KzOK9H6UvL7oxCgzMPOT8RiSjWcdEXX/FavpH1TCf+ETkaYyEA
+NaPvO/uUV/99qWhM/PJQvtv4yxhIR7ENiZKywUuFnWQuc44yGUWBLK8ooA4xXtme
+WMcWyy7SMMcP/+9eBd9aNe1FPYFirsqSrrCpWSR/fD+TWFKMB6HG+OZGNYRFMrRm
+Xet5sWMGwzBiL453M0ujAEHKd/g4VOkweCydEq+2Rt2am6ph+SrMuoQvCDZ1bvbh
+71nyYA+j2xNy8jb7AA9PukWoeXyAI0xRY8zh939Uvdxf4SPUIVgw9wJE5rMRGoT5
+k4We/z2A4m1DGCtg1JQN86HAe7jv3YlGLoPOhsrOnOEV55VnXIz0Lm9x3HjTNfvG
+LcJXBGeHmU3Jvj3JEpA57YDbOhpwx0klK7RS5v6BjIJrJUSwjATqt1WQVr528HDp
+rXQpUqxUL3KObdlA5TYweR2I0KxWe47rw612XGqhRiI+equSdTDP770QsO1nXlsA
+qCfn3Gh7t+hyB3yFZUquWEXwKVv0YMh3Ds/bR2RtZluSl3SzM9n/Dp45w6SMu1LN
+oSpxUS7KNzTPXQp0kns7dDFnJJWXid7mUScjK4rc5pSyBF4NSEqJsmqHm0whd/qL
+uR8J7AFq8DkXx3g+/4gf
+=H53r
+-----END PGP SIGNATURE-----
+
+--NbUNL4d9A9kY58qh--
+
+
+--===============4406136581201344290==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+--===============4406136581201344290==--
