@@ -1,114 +1,111 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 37/51] DMA-API: usb: use new dma_coerce_mask_and_coherent()
-Date: Fri, 20 Sep 2013 08:10:02 -0500
-Message-ID: <20130920131002.GN26101@radagast>
-References: <20130919212235.GD12758@n2100.arm.linux.org.uk>
- <E1VMmIV-0007jw-Gq@rmk-PC.arm.linux.org.uk>
-Reply-To: balbi@ti.com
+From: =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>
+Subject: [PATCH v2 3/3] RX-51: Add support for OMAP3 ROM Random Number Generator
+Date: Fri, 20 Sep 2013 15:25:07 +0200
+Message-ID: <1379683507-30793-4-git-send-email-pali.rohar@gmail.com>
+References: <1379534757-20870-1-git-send-email-pali.rohar@gmail.com>
+ <1379683507-30793-1-git-send-email-pali.rohar@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============2399579260979124827=="
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <E1VMmIV-0007jw-Gq@rmk-PC.arm.linux.org.uk>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Russell King <rmk+kernel@arm.linux.org.uk>
-Cc: alsa-devel@alsa-project.org, linux-doc@vger.kernel.org, Alexander Shishkin <alexander.shishkin@linux.intel.com>, linux-mmc@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-nvme@lists.infradead.org, linux-ide@vger.kernel.org, devel@driverdev.osuosl.org, linux-samsung-soc@vger.kernel.org, linux-scsi@vger.kernel.org, e1000-devel@lists.sourceforge.net, Alan Stern <stern@rowland.harvard.edu>, b43-dev@lists.infradead.org, linux-media@vger.kernel.org, devicetree@vger.kernel.org, Stephen Warren <swarren@wwwdotorg.org>, Kukjin Kim <kgene.kim@samsung.com>, dri-devel@lists.freedesktop.org, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Solarflare linux maintainers <linux-net-drivers@solarflare.com>, netdev@vger.kernel.org, linux-usb@vger.kernel.org, linux-wireless@vger.kernel.org, Felipe Balbi <balbi@ti.com>, linux-crypto@vger.ker
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1379683507-30793-1-git-send-email-pali.rohar@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Matt Mackall <mpm@selenic.com>, Herbert Xu <herbert@gondor.apana.org.au>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Joe Perches <joe@perches.com>, Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
---===============2399579260979124827==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="qi3SIpffvxS/TM8d"
-Content-Disposition: inline
+Adding this driver as platform device and only for RX-51 until somebody=
+ test if
+it working also on other OMAP3 HS devices and until there will be gener=
+ic ARM
+way to deal with SMC calls.
 
---qi3SIpffvxS/TM8d
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Pali Roh=C3=A1r <pali.rohar@gmail.com>
+---
+ arch/arm/mach-omap2/board-rx51-peripherals.c |   19 ++++++++++++++++++=
++
+ arch/arm/mach-omap2/omap-secure.c            |   11 +++++++++++
+ arch/arm/mach-omap2/omap-secure.h            |    1 +
+ 3 files changed, 31 insertions(+)
 
-Hi,
-
-On Thu, Sep 19, 2013 at 11:02:03PM +0100, Russell King wrote:
-> diff --git a/drivers/usb/dwc3/dwc3-exynos.c b/drivers/usb/dwc3/dwc3-exyno=
-s.c
-> index c10b324..8b20c70 100644
-> --- a/drivers/usb/dwc3/dwc3-exynos.c
-> +++ b/drivers/usb/dwc3/dwc3-exynos.c
-> @@ -119,9 +119,7 @@ static int dwc3_exynos_probe(struct platform_device *=
-pdev)
->  	 * Since shared usb code relies on it, set it here for now.
->  	 * Once we move to full device tree support this will vanish off.
->  	 */
-> -	if (!dev->dma_mask)
-> -		dev->dma_mask =3D &dev->coherent_dma_mask;
-> -	ret =3D dma_set_coherent_mask(dev, DMA_BIT_MASK(32));
-> +	ret =3D dma_coerce_mask_and_coherent(dev, DMA_BIT_MASK(32));
->  	if (ret)
->  		goto err1;
-> =20
-> diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
-> index d0759c5..6fa82d6 100644
-> --- a/drivers/usb/host/ehci-omap.c
-> +++ b/drivers/usb/host/ehci-omap.c
-> @@ -144,9 +144,7 @@ static int ehci_hcd_omap_probe(struct platform_device=
- *pdev)
->  	 * Since shared usb code relies on it, set it here for now.
->  	 * Once we have dma capability bindings this can go away.
->  	 */
-> -	if (!dev->dma_mask)
-> -		dev->dma_mask =3D &dev->coherent_dma_mask;
-> -	ret =3D dma_set_coherent_mask(dev, DMA_BIT_MASK(32));
-> +	ret =3D dma_coerce_mask_and_coherent(dev, DMA_BIT_MASK(32));
->  	if (ret)
->  		return ret;
-
-for dwc3 and ehci-omap:
-
-Acked-by: Felipe Balbi <balbi@ti.com>
-
+diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/ma=
+ch-omap2/board-rx51-peripherals.c
+index c3270c0..497d260 100644
+--- a/arch/arm/mach-omap2/board-rx51-peripherals.c
++++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+@@ -57,6 +57,8 @@
+ #include "common-board-devices.h"
+ #include "gpmc.h"
+ #include "gpmc-onenand.h"
++#include "soc.h"
++#include "omap-secure.h"
+=20
+ #define SYSTEM_REV_B_USES_VAUX3	0x1699
+ #define SYSTEM_REV_S_USES_VAUX3 0x8
+@@ -1289,6 +1291,22 @@ static void __init rx51_init_twl4030_hwmon(void)
+ 	platform_device_register(&madc_hwmon);
+ }
+=20
++static struct platform_device omap3_rom_rng_device =3D {
++	.name		=3D "omap3-rom-rng",
++	.id		=3D -1,
++	.dev	=3D {
++		.platform_data	=3D rx51_secure_rng_call,
++	},
++};
++
++static void __init rx51_init_omap3_rom_rng(void)
++{
++	if (omap_type() =3D=3D OMAP2_DEVICE_TYPE_SEC) {
++		pr_info("RX-51: Registring OMAP3 HWRNG device\n");
++		platform_device_register(&omap3_rom_rng_device);
++	}
++}
++
+ void __init rx51_peripherals_init(void)
+ {
+ 	rx51_i2c_init();
+@@ -1309,5 +1327,6 @@ void __init rx51_peripherals_init(void)
+=20
+ 	rx51_charger_init();
+ 	rx51_init_twl4030_hwmon();
++	rx51_init_omap3_rom_rng();
+ }
+=20
+diff --git a/arch/arm/mach-omap2/omap-secure.c b/arch/arm/mach-omap2/om=
+ap-secure.c
+index 146a7c4..5ac122e 100644
+--- a/arch/arm/mach-omap2/omap-secure.c
++++ b/arch/arm/mach-omap2/omap-secure.c
+@@ -135,3 +135,14 @@ u32 rx51_secure_update_aux_cr(u32 set_bits, u32 cl=
+ear_bits)
+ 				      FLAG_START_CRITICAL,
+ 				      1, acr, 0, 0, 0);
+ }
++
++/**
++ * rx51_secure_rng_call: Routine for HW random generator
++ */
++u32 rx51_secure_rng_call(u32 ptr, u32 count, u32 flag)
++{
++	return rx51_secure_dispatcher(RX51_PPA_HWRNG,
++				      0,
++				      NO_FLAG,
++				      3, ptr, count, flag, 0);
++}
+diff --git a/arch/arm/mach-omap2/omap-secure.h b/arch/arm/mach-omap2/om=
+ap-secure.h
+index 51b59c6..f6cabb0 100644
+--- a/arch/arm/mach-omap2/omap-secure.h
++++ b/arch/arm/mach-omap2/omap-secure.h
+@@ -65,6 +65,7 @@ extern int omap_secure_ram_reserve_memblock(void);
+ extern u32 rx51_secure_dispatcher(u32 idx, u32 process, u32 flag, u32 =
+nargs,
+ 				  u32 arg1, u32 arg2, u32 arg3, u32 arg4);
+ extern u32 rx51_secure_update_aux_cr(u32 set_bits, u32 clear_bits);
++extern u32 rx51_secure_rng_call(u32 ptr, u32 count, u32 flag);
+=20
+ #ifdef CONFIG_OMAP4_ERRATA_I688
+ extern int omap_barrier_reserve_memblock(void);
 --=20
-balbi
-
---qi3SIpffvxS/TM8d
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJSPEkpAAoJEIaOsuA1yqRE5YIP/31lUrjWWK0BZtKztgAZ5fjJ
-Be481Py022caHmi1k4ibHD/MCXINrJ4bt1/HqPUtS4dM9nS8xrpjawm0hyz1NpFd
-t3GyrpAJNpblpx8XSs4e2s0+06tAYbjPHBDLONoQbjfD9cT65f1Qury4tb3T6wN+
-Md3Jbe4JFUNwV2kmR63YUzE7/NZx7y9NZimdcKHOhUNMIfGcTsab0p7wWsbQKtJM
-+udKsbptMOCBWlYn7YWxr6vbCR7FWZxPFUq9gBX9tmOahSMNqoCPfl97RvGK8Exw
-lp6eXRZwnO8e1KQ3KKYtzeT+bSCakLdXhMc19A9EpxEhAk0Y/X+whVf+WvGyevtC
-AlDHUv6RXBabTl1iaNcM7HUWIVAuf1Byae+B89N7HS7KLkxMR3bEVeehIG8+41w5
-xFk654AIzRYJyDuuGgD5vlgoYEpV7uPdXRkFjI05K8YME0CCpmI7Zg3y/uhHwbgu
-Lo6PQQSeIqAKccQbHhlznagC9JeDSsygfoGXXc+K1jRw+FaJoRa2ClCtFUcI9W13
-RcM0Z6AYLflavmpTROakVySBtm8oc3VMD7FZwfqyfmdmb8jcalZItJ4ZbijSwo18
-H10HE6b4tqLxYQWnedPdwOuzHUb8unfQNpsuenGRRGJWrFu4Imx239V3+15m5biM
-WV1kb+UfNj6WuHNIFGbk
-=Y+4c
------END PGP SIGNATURE-----
-
---qi3SIpffvxS/TM8d--
-
-
---===============2399579260979124827==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-arm-kernel mailing list
-linux-arm-kernel@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-
---===============2399579260979124827==--
+1.7.10.4
