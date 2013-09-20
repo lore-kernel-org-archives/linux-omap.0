@@ -1,14 +1,17 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [RFC PATCH] ARM: OMAP3630: Add generic machine descriptor
-Date: Fri, 20 Sep 2013 11:23:30 -0500
-Message-ID: <20130920162329.GC18721@radagast>
-References: <1379693332-10585-1-git-send-email-nm@ti.com>
- <CAOesGMj6G7LeYUJsGpZHxKOjiNrk+1U55QFqcQyTb6_Co+n4zQ@mail.gmail.com>
+Subject: Re: [PATCH v2 3/9] ARM: OMAP2+: omap-usb-host: Get rid of
+ platform_data from struct usbhs_phy_data
+Date: Fri, 20 Sep 2013 11:24:19 -0500
+Message-ID: <20130920162419.GD18721@radagast>
+References: <1376561909-4406-1-git-send-email-rogerq@ti.com>
+ <1376561909-4406-4-git-send-email-rogerq@ti.com>
+ <20130920154406.GV26101@radagast>
+ <20130920161822.GR9994@atomide.com>
 Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============8801150262962677440=="
+Content-Type: multipart/mixed; boundary="===============1638675644969208939=="
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <CAOesGMj6G7LeYUJsGpZHxKOjiNrk+1U55QFqcQyTb6_Co+n4zQ@mail.gmail.com>
+In-Reply-To: <20130920161822.GR9994@atomide.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -18,68 +21,79 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Olof Johansson <olof@lixom.net>
-Cc: Nishanth Menon <nm@ti.com>, Tony Lindgren <tony@atomide.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: devicetree@vger.kernel.org, bcousson@baylibre.com, linux-usb@vger.kernel.org, Felipe Balbi <balbi@ti.com>, broonie@kernel.org, p.zabel@pengutronix.de, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
---===============8801150262962677440==
+--===============1638675644969208939==
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="GZVR6ND4mMseVXL/"
+	protocol="application/pgp-signature"; boundary="F8dlzb82+Fcn6AgP"
 Content-Disposition: inline
 
---GZVR6ND4mMseVXL/
+--F8dlzb82+Fcn6AgP
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi,
-
-On Fri, Sep 20, 2013 at 09:19:02AM -0700, Olof Johansson wrote:
-> On Fri, Sep 20, 2013 at 9:08 AM, Nishanth Menon <nm@ti.com> wrote:
-> > An alternative approach may be to (for all SoCs):
-> > 1. define every SoC entry - ti,omap3430 ti,omap3630...
-> > 2. have a generic omap3_init which uses "if (of_machine_is_compatible("=
-ti,omap3630"))"
-> > to invoke the appropriate omap3xxx_init_early.
+On Fri, Sep 20, 2013 at 09:18:22AM -0700, Tony Lindgren wrote:
+> * Felipe Balbi <balbi@ti.com> [130920 08:52]:
+> > Hi,
+> >=20
+> > On Thu, Aug 15, 2013 at 01:18:23PM +0300, Roger Quadros wrote:
+> > > The platform data bits can be inferred from the other members of
+> > > struct usbhs_phy_data. So get rid of the platform_data member.
+> > >=20
+> > > Build the platform data for the PHY device in usbhs_init_phys() inste=
+ad.
+> > >=20
+> > > Signed-off-by: Roger Quadros <rogerq@ti.com>
+> >=20
+> > Tony, do I get your Acked-by here and all following arch/arm/mach-omap2*
+> > patches in this series ?
 >=20
-> Yes, this would be better, but you can do add a DT_MACHINE as in this
-> patch but have ti,omap3630 as the dt_compat table. Then there's no
-> need to add runtime checks.
+> If you can merge just this series without the .dts changes
+> into an immutable topic branch against let's say v3.12-rc2
+> when it comes out, then yes I can ack them:
+>=20
+> Acked-by: Tony Lindgren <tony@atomide.com>
+>=20
+> That way I can also pull in the topic branch as needed to
+> avoid self inflicted merge conflicts ;) And Benoit can
+> set up a separate .dts branch based on your branch to make
+> sure the dependencies are in place before merging that one
+> upstream.
 
-I was going to reply that adding of_machine_is_compatible("ti,omap3630")
-would help in some situations, but guess it's already tainted ;-)
-
-cheers
+Alright, i'll put this in my todo for next week.
 
 --=20
 balbi
 
---GZVR6ND4mMseVXL/
+--F8dlzb82+Fcn6AgP
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJSPHaBAAoJEIaOsuA1yqRESMsQAIumLCjQoU5R0ppxxctnoTY+
-Mo5ufBbLe0jpen+N97unfJyjearXgALHW39uSvsHnH/gdpwBprFQWkK6+PgATJpx
-nOXFZ/5EXcuGYHYe3mjYIEinin53kgFmDYoiPQK88ljx6lriTsSr1bg+lbuXqzop
-TKx5jHqk7A+tikLw40ZV0PKPfxd86onztawWBD+8PE3twyophPFy/glPMTlBuuri
-PyvEmazgykXdmbb4ry9p4ixQqlA1f5XfbjufJpJiV4qX/T0FzNdgC4QGS5Lujhzo
-+kU/nwy51XAuW6hj0MCps6rwxhpcWEhT7y+IkULEZRzPk+nTs1L5J6mtDgJ9kS8F
-U7+76rSp0g7gYSZ4vJuNh0ocTGJTMqOPTJL7nuRNF6LbS/g7yYMfXIQltqG16tb1
-hJ93GJWLo94N8bkshEbdUGikvq1fe0XCDxQAYTYcXxz0xqjJsnOSGkPtimztleYE
-3h04jPUhS0fjxYl4oXidPM/cKTzjXnbUfheA2FFFqrH9lF/gFl/FBj9wLnLLQ6V4
-7xFQl8FauHxkKLnAPxLi/9gefP3IjXmYCvODLdhM4BJqG73Y/xxlJuwC/seTK3Ht
-w2huBScLGttVDXPLfYGeyCyHeDE302j1d/9O1ImFW+5IOInBsVFP12BLT9tbOvfx
-5gFI5X3NGgGW/atconIY
-=FvN5
+iQIcBAEBAgAGBQJSPHayAAoJEIaOsuA1yqREKegQAKEJWqHhdujbhyZn1F1U8lnZ
+Gzg0nKXOok81f8WMEiTaB2apG4D7uIEcjkdl9OfN0TSe9uaaKLSSVP8Wfmto1B7z
+6Jx4ekRTXXK6qrfTlUN1VdTx8tboZ4nFKhCrOszB7VmUwnaSJYIVUbW7ziLg5HdH
+SXMx6qRPTFgzrDQt5Eg6lPM0JdEvM2SJilHIZgVLBb1UH2Uo0Kt8c3op5rAzu/65
+aNG6sjN+YkSSPN2BJtyFloziFFHlL2vjz88+iTMkpiX/2glU4agHAH9w5XZhqjtu
+6na9kXOQyCnNYfW/29Hv5Hd6DoYzc5VYJuO1WrjP3z3MOxUKwfa/C5fjraHrqtIb
+M5cPfOEl5im2Y0uOQ2/w5RYlbyWndT3oKye/Q2SA41svGB2lnV3f+9cKG9D3JKOg
+E78xRlmBT0ENkvcti8/LmNoL9cOLU+RKD9fW0N4uY59+KB3JviCTvK3NxfUkwt/9
+eb4SsxamswN1NiKAEXcIyWuMaO5qUHIvxcCXNH13Y2bAhHhrfJQHjFsuAlONyhnE
+zwXa4luKNWTduOua5htZP/2eeAdIypMM8IdhbEZ7Aa0gsFUPO70P1Xy5qpOLu2f5
+ZokSDiaIpn8hJ8DPwopDDgd0H8o/Y6XP1sfFzDI27eG9cOUa7tOD2cGMDXP1oa3L
+QMAAEedR2ROLuzII0W5c
+=lLbv
 -----END PGP SIGNATURE-----
 
---GZVR6ND4mMseVXL/--
+--F8dlzb82+Fcn6AgP--
 
 
---===============8801150262962677440==
+--===============1638675644969208939==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -90,4 +104,4 @@ linux-arm-kernel mailing list
 linux-arm-kernel@lists.infradead.org
 http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
 
---===============8801150262962677440==--
+--===============1638675644969208939==--
