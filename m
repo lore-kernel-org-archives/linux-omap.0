@@ -1,12 +1,12 @@
 From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: [PATCH 2/3] ARM: dts: add minimal DT support for Nokia N950 & N9 phones
-Date: Sat, 21 Sep 2013 16:45:41 +0300
-Message-ID: <1379771142-29087-3-git-send-email-aaro.koskinen@iki.fi>
+Subject: [PATCH 3/3] ARM: OMAP2: delete board-rm680
+Date: Sat, 21 Sep 2013 16:45:42 +0300
+Message-ID: <1379771142-29087-4-git-send-email-aaro.koskinen@iki.fi>
 References: <1379771142-29087-1-git-send-email-aaro.koskinen@iki.fi>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from filtteri1.pp.htv.fi ([213.243.153.184]:46050 "EHLO
+Received: from filtteri1.pp.htv.fi ([213.243.153.184]:46051 "EHLO
 	filtteri1.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751946Ab3IUNtB (ORCPT
+	with ESMTP id S1751929Ab3IUNtB (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Sat, 21 Sep 2013 09:49:01 -0400
 In-Reply-To: <1379771142-29087-1-git-send-email-aaro.koskinen@iki.fi>
 Sender: linux-omap-owner@vger.kernel.org
@@ -14,260 +14,220 @@ List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 Cc: Sakari Ailus <sakari.ailus@iki.fi>, Aaro Koskinen <aaro.koskinen@iki.fi>
 
-Add minimal DT support for Nokia N950 & N9 phones. The same functionality
-that is provided by the current board file should work: serial console,
-USB, OneNAND and MMC.
+Delete board file for Nokia RM-680/RM-696 (N950/N9). DT-based booting
+should be used for further development on this HW.
 
 Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
 ---
- arch/arm/boot/dts/Makefile           |   2 +
- arch/arm/boot/dts/omap3-n9.dts       |  18 ++++
- arch/arm/boot/dts/omap3-n950-n9.dtsi | 172 +++++++++++++++++++++++++++++++++++
- arch/arm/boot/dts/omap3-n950.dts     |  18 ++++
- 4 files changed, 210 insertions(+)
- create mode 100644 arch/arm/boot/dts/omap3-n9.dts
- create mode 100644 arch/arm/boot/dts/omap3-n950-n9.dtsi
- create mode 100644 arch/arm/boot/dts/omap3-n950.dts
+ arch/arm/mach-omap2/Kconfig       |   7 --
+ arch/arm/mach-omap2/Makefile      |   1 -
+ arch/arm/mach-omap2/board-rm680.c | 167 --------------------------------------
+ 3 files changed, 175 deletions(-)
+ delete mode 100644 arch/arm/mach-omap2/board-rm680.c
 
-diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
-index cc0f1fb..5680410 100644
---- a/arch/arm/boot/dts/Makefile
-+++ b/arch/arm/boot/dts/Makefile
-@@ -173,6 +173,8 @@ dtb-$(CONFIG_ARCH_OMAP2PLUS) += omap2420-h4.dtb \
- 	omap3-tobi.dtb \
- 	omap3-igep0020.dtb \
- 	omap3-igep0030.dtb \
-+	omap3-n9.dtb \
-+	omap3-n950.dtb \
- 	omap4-panda.dtb \
- 	omap4-panda-a4.dtb \
- 	omap4-panda-es.dtb \
-diff --git a/arch/arm/boot/dts/omap3-n9.dts b/arch/arm/boot/dts/omap3-n9.dts
-new file mode 100644
-index 0000000..39828ce
---- /dev/null
-+++ b/arch/arm/boot/dts/omap3-n9.dts
-@@ -0,0 +1,18 @@
-+/*
-+ * omap3-n9.dts - Device Tree file for Nokia N9
-+ *
-+ * Written by: Aaro Koskinen <aaro.koskinen@iki.fi>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+/dts-v1/;
-+
-+#include "omap3-n950-n9.dtsi"
-+
-+/ {
-+	model = "Nokia N9";
-+	compatible = "nokia,omap3-n9", "ti,omap3";
-+};
-diff --git a/arch/arm/boot/dts/omap3-n950-n9.dtsi b/arch/arm/boot/dts/omap3-n950-n9.dtsi
-new file mode 100644
-index 0000000..56d6662
---- /dev/null
-+++ b/arch/arm/boot/dts/omap3-n950-n9.dtsi
-@@ -0,0 +1,172 @@
-+/*
-+ * omap3-n950-n9.dtsi - Device Tree file for Nokia N950 & N9 (common stuff)
-+ *
-+ * Written by: Aaro Koskinen <aaro.koskinen@iki.fi>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include "omap36xx.dtsi"
-+
-+/ {
-+	cpus {
-+		cpu@0 {
-+			cpu0-supply = <&vcc>;
-+		};
-+	};
-+
-+	memory {
-+		device_type = "memory";
-+		reg = <0x80000000 0x40000000>; /* 1 GB */
-+	};
-+
-+	vemmc: fixedregulator@0 {
-+		compatible = "regulator-fixed";
-+		regulator-name = "VEMMC";
-+		regulator-min-microvolt = <2900000>;
-+		regulator-max-microvolt = <2900000>;
-+		gpio = <&gpio5 29 0>; /* gpio line 157 */
-+		startup-delay-us = <150>;
-+		enable-active-high;
-+	};
-+};
-+
-+&omap3_pmx_core {
-+	mmc2_pins: pinmux_mmc2_pins {
-+		pinctrl-single,pins = <
-+			0x128 (PIN_INPUT_PULLUP | MUX_MODE0) /* sdmmc2_clk */
-+			0x12a (PIN_INPUT_PULLUP | MUX_MODE0) /* sdmmc2_cmd */
-+			0x12c (PIN_INPUT_PULLUP | MUX_MODE0) /* sdmmc2_dat0 */
-+			0x12e (PIN_INPUT_PULLUP | MUX_MODE0) /* sdmmc2_dat1 */
-+			0x130 (PIN_INPUT_PULLUP | MUX_MODE0) /* sdmmc2_dat2 */
-+			0x132 (PIN_INPUT_PULLUP | MUX_MODE0) /* sdmmc2_dat3 */
-+		>;
-+	};
-+};
-+
-+&i2c1 {
-+	clock-frequency = <2900000>;
-+
-+	twl: twl@48 {
-+		reg = <0x48>;
-+		interrupts = <7>; /* SYS_NIRQ cascaded to intc */
-+		interrupt-parent = <&intc>;
-+	};
-+};
-+
-+/include/ "twl4030.dtsi"
-+
-+&twl {
-+	compatible = "ti,twl5031";
-+};
-+
-+&twl_gpio {
-+	ti,pullups	= <0x000001>; /* BIT(0) */
-+	ti,pulldowns	= <0x008106>; /* BIT(1) | BIT(2) | BIT(8) | BIT(15) */
-+};
-+
-+&i2c2 {
-+	clock-frequency = <400000>;
-+};
-+
-+&i2c3 {
-+	clock-frequency = <400000>;
-+};
-+
-+&mmc1 {
-+	status = "disabled";
-+};
-+
-+&mmc2 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&mmc2_pins>;
-+	vmmc-supply = <&vemmc>;
-+	bus-width = <4>;
-+	ti,non-removable;
-+};
-+
-+&mmc3 {
-+	status = "disabled";
-+};
-+
-+&usb_otg_hs {
-+	interface-type = <0>;
-+	usb-phy = <&usb2_phy>;
-+	mode = <3>;
-+	power = <50>;
-+};
-+
-+&gpmc {
-+	ranges = <0 0 0x04000000 0x20000000>;
-+
-+	onenand@0,0 {
-+		#address-cells = <1>;
-+		#size-cells = <1>;
-+		reg = <0 0 0x20000000>;
-+
-+		gpmc,sync-read;
-+		gpmc,sync-write;
-+		gpmc,burst-length = <16>;
-+		gpmc,burst-read;
-+		gpmc,burst-wrap;
-+		gpmc,burst-write;
-+		gpmc,device-width = <2>;
-+		gpmc,mux-add-data = <2>;
-+		gpmc,cs-on-ns = <0>;
-+		gpmc,cs-rd-off-ns = <87>;
-+		gpmc,cs-wr-off-ns = <87>;
-+		gpmc,adv-on-ns = <0>;
-+		gpmc,adv-rd-off-ns = <10>;
-+		gpmc,adv-wr-off-ns = <10>;
-+		gpmc,oe-on-ns = <15>;
-+		gpmc,oe-off-ns = <87>;
-+		gpmc,we-on-ns = <0>;
-+		gpmc,we-off-ns = <87>;
-+		gpmc,rd-cycle-ns = <112>;
-+		gpmc,wr-cycle-ns = <112>;
-+		gpmc,access-ns = <81>;
-+		gpmc,page-burst-access-ns = <15>;
-+		gpmc,bus-turnaround-ns = <0>;
-+		gpmc,cycle2cycle-delay-ns = <0>;
-+		gpmc,wait-monitoring-ns = <0>;
-+		gpmc,clk-activation-ns = <5>;
-+		gpmc,wr-data-mux-bus-ns = <30>;
-+		gpmc,wr-access-ns = <81>;
-+		gpmc,sync-clk-ps = <15000>;
-+
-+		/*
-+		 * MTD partition table corresponding to Nokia's MeeGo 1.2
-+		 * Harmattan release.
-+		 */
-+		partition@0 {
-+			label = "bootloader";
-+			reg = <0x00000000 0x00100000>;
-+		};
-+		partition@1 {
-+			label = "config";
-+			reg = <0x00100000 0x002c0000>;
-+		};
-+		partition@2 {
-+			label = "kernel";
-+			reg = <0x003c0000 0x01000000>;
-+		};
-+		partition@3 {
-+			label = "log";
-+			reg = <0x013c0000 0x00200000>;
-+		};
-+		partition@4 {
-+			label = "var";
-+			reg = <0x015c0000 0x1ca40000>;
-+		};
-+		partition@5 {
-+			label = "moslo";
-+			reg = <0x1e000000 0x02000000>;
-+		};
-+		partition@6 {
-+			label = "omap2-onenand";
-+			reg = <0x00000000 0x20000000>;
-+		};
-+	};
-+};
-diff --git a/arch/arm/boot/dts/omap3-n950.dts b/arch/arm/boot/dts/omap3-n950.dts
-new file mode 100644
-index 0000000..b076a52
---- /dev/null
-+++ b/arch/arm/boot/dts/omap3-n950.dts
-@@ -0,0 +1,18 @@
-+/*
-+ * omap3-n950.dts - Device Tree file for Nokia N950
-+ *
-+ * Written by: Aaro Koskinen <aaro.koskinen@iki.fi>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+/dts-v1/;
-+
-+#include "omap3-n950-n9.dtsi"
-+
-+/ {
-+	model = "Nokia N950";
-+	compatible = "nokia,omap3-n950", "ti,omap3";
-+};
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index b5fb5f7..5a8e6bf 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -314,13 +314,6 @@ config MACH_NOKIA_N8X0
+ 	select MACH_NOKIA_N810_WIMAX
+ 	select OMAP_PACKAGE_ZAC
+ 
+-config MACH_NOKIA_RM680
+-	bool "Nokia N950 (RM-680) / N9 (RM-696) phones"
+-	depends on ARCH_OMAP3
+-	default y
+-	select MACH_NOKIA_RM696
+-	select OMAP_PACKAGE_CBB
+-
+ config MACH_NOKIA_RX51
+ 	bool "Nokia N900 (RX-51) phone"
+ 	depends on ARCH_OMAP3
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index afb457c..8d6d156 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -246,7 +246,6 @@ obj-$(CONFIG_MACH_OMAP3EVM)		+= board-omap3evm.o
+ obj-$(CONFIG_MACH_OMAP3_PANDORA)	+= board-omap3pandora.o
+ obj-$(CONFIG_MACH_OMAP_3430SDP)		+= board-3430sdp.o
+ obj-$(CONFIG_MACH_NOKIA_N8X0)		+= board-n8x0.o
+-obj-$(CONFIG_MACH_NOKIA_RM680)		+= board-rm680.o sdram-nokia.o
+ obj-$(CONFIG_MACH_NOKIA_RX51)		+= board-rx51.o sdram-nokia.o
+ obj-$(CONFIG_MACH_NOKIA_RX51)		+= board-rx51-peripherals.o
+ obj-$(CONFIG_MACH_NOKIA_RX51)		+= board-rx51-video.o
+diff --git a/arch/arm/mach-omap2/board-rm680.c b/arch/arm/mach-omap2/board-rm680.c
+deleted file mode 100644
+index 345e8c4..0000000
+--- a/arch/arm/mach-omap2/board-rm680.c
++++ /dev/null
+@@ -1,167 +0,0 @@
+-/*
+- * Board support file for Nokia N950 (RM-680) / N9 (RM-696).
+- *
+- * Copyright (C) 2010 Nokia
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-
+-#include <linux/io.h>
+-#include <linux/i2c.h>
+-#include <linux/gpio.h>
+-#include <linux/init.h>
+-#include <linux/i2c/twl.h>
+-#include <linux/platform_device.h>
+-#include <linux/regulator/fixed.h>
+-#include <linux/regulator/machine.h>
+-#include <linux/regulator/consumer.h>
+-#include <linux/platform_data/mtd-onenand-omap2.h>
+-#include <linux/usb/phy.h>
+-
+-#include <asm/mach/arch.h>
+-#include <asm/mach-types.h>
+-
+-#include "common.h"
+-#include "mux.h"
+-#include "gpmc.h"
+-#include "mmc.h"
+-#include "hsmmc.h"
+-#include "sdram-nokia.h"
+-#include "common-board-devices.h"
+-#include "gpmc-onenand.h"
+-
+-static struct regulator_consumer_supply rm680_vemmc_consumers[] = {
+-	REGULATOR_SUPPLY("vmmc", "omap_hsmmc.1"),
+-};
+-
+-/* Fixed regulator for internal eMMC */
+-static struct regulator_init_data rm680_vemmc = {
+-	.constraints =	{
+-		.name			= "rm680_vemmc",
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_STATUS
+-					| REGULATOR_CHANGE_MODE,
+-	},
+-	.num_consumer_supplies		= ARRAY_SIZE(rm680_vemmc_consumers),
+-	.consumer_supplies		= rm680_vemmc_consumers,
+-};
+-
+-static struct fixed_voltage_config rm680_vemmc_config = {
+-	.supply_name		= "VEMMC",
+-	.microvolts		= 2900000,
+-	.gpio			= 157,
+-	.startup_delay		= 150,
+-	.enable_high		= 1,
+-	.init_data		= &rm680_vemmc,
+-};
+-
+-static struct platform_device rm680_vemmc_device = {
+-	.name			= "reg-fixed-voltage",
+-	.dev			= {
+-		.platform_data	= &rm680_vemmc_config,
+-	},
+-};
+-
+-static struct platform_device *rm680_peripherals_devices[] __initdata = {
+-	&rm680_vemmc_device,
+-};
+-
+-/* TWL */
+-static struct twl4030_gpio_platform_data rm680_gpio_data = {
+-	.pullups		= BIT(0),
+-	.pulldowns		= BIT(1) | BIT(2) | BIT(8) | BIT(15),
+-};
+-
+-static struct twl4030_platform_data rm680_twl_data = {
+-	.gpio			= &rm680_gpio_data,
+-	/* add rest of the children here */
+-};
+-
+-static void __init rm680_i2c_init(void)
+-{
+-	omap3_pmic_get_config(&rm680_twl_data, TWL_COMMON_PDATA_USB, 0);
+-	omap_pmic_init(1, 2900, "twl5031", 7 + OMAP_INTC_START, &rm680_twl_data);
+-	omap_register_i2c_bus(2, 400, NULL, 0);
+-	omap_register_i2c_bus(3, 400, NULL, 0);
+-}
+-
+-#if defined(CONFIG_MTD_ONENAND_OMAP2) || \
+-	defined(CONFIG_MTD_ONENAND_OMAP2_MODULE)
+-static struct omap_onenand_platform_data board_onenand_data[] = {
+-	{
+-		.gpio_irq	= 65,
+-		.flags		= ONENAND_SYNC_READWRITE,
+-	}
+-};
+-#endif
+-
+-/* eMMC */
+-static struct omap2_hsmmc_info mmc[] __initdata = {
+-	{
+-		.name		= "internal",
+-		.mmc		= 2,
+-		.caps		= MMC_CAP_4_BIT_DATA | MMC_CAP_MMC_HIGHSPEED,
+-		.gpio_cd	= -EINVAL,
+-		.gpio_wp	= -EINVAL,
+-	},
+-	{ /* Terminator */ }
+-};
+-
+-static void __init rm680_peripherals_init(void)
+-{
+-	platform_add_devices(rm680_peripherals_devices,
+-				ARRAY_SIZE(rm680_peripherals_devices));
+-	rm680_i2c_init();
+-	gpmc_onenand_init(board_onenand_data);
+-	omap_hsmmc_init(mmc);
+-}
+-
+-#ifdef CONFIG_OMAP_MUX
+-static struct omap_board_mux board_mux[] __initdata = {
+-	{ .reg_offset = OMAP_MUX_TERMINATOR },
+-};
+-#endif
+-
+-static void __init rm680_init(void)
+-{
+-	struct omap_sdrc_params *sdrc_params;
+-
+-	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
+-	omap_serial_init();
+-
+-	sdrc_params = nokia_get_sdram_timings();
+-	omap_sdrc_init(sdrc_params, sdrc_params);
+-
+-	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
+-	usb_musb_init(NULL);
+-	rm680_peripherals_init();
+-}
+-
+-MACHINE_START(NOKIA_RM680, "Nokia RM-680 board")
+-	.atag_offset	= 0x100,
+-	.reserve	= omap_reserve,
+-	.map_io		= omap3_map_io,
+-	.init_early	= omap3630_init_early,
+-	.init_irq	= omap3_init_irq,
+-	.handle_irq	= omap3_intc_handle_irq,
+-	.init_machine	= rm680_init,
+-	.init_late	= omap3630_init_late,
+-	.init_time	= omap3_sync32k_timer_init,
+-	.restart	= omap3xxx_restart,
+-MACHINE_END
+-
+-MACHINE_START(NOKIA_RM696, "Nokia RM-696 board")
+-	.atag_offset	= 0x100,
+-	.reserve	= omap_reserve,
+-	.map_io		= omap3_map_io,
+-	.init_early	= omap3630_init_early,
+-	.init_irq	= omap3_init_irq,
+-	.handle_irq	= omap3_intc_handle_irq,
+-	.init_machine	= rm680_init,
+-	.init_late	= omap3630_init_late,
+-	.init_time	= omap3_sync32k_timer_init,
+-	.restart	= omap3xxx_restart,
+-MACHINE_END
 -- 
 1.8.4.rc3
 
