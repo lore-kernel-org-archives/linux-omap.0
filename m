@@ -1,62 +1,42 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: Re: [PATCH 0/4] Add support for charging battery in Nokia RX-51
-Date: Sat, 21 Sep 2013 15:42:37 +0200
-Message-ID: <201309211542.38033@pali>
-References: <1378630239-10006-1-git-send-email-pali.rohar@gmail.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart3163465.hdrj91rlDQ";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1378630239-10006-1-git-send-email-pali.rohar@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Anton Vorontsov <anton@enomsg.org>
-Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, David Woodhouse <dwmw2@infradead.org>, Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, freemangordon@abv.bg, aaro.koskinen@iki.fi, pavel@ucw.cz
+From: Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
+Subject: [PATCH 0/3] ARM: OMAP: convert N950/N9 to DT
+Date: Sat, 21 Sep 2013 16:45:39 +0300
+Message-ID: <1379771142-29087-1-git-send-email-aaro.koskinen@iki.fi>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Sakari Ailus <sakari.ailus-X3B1VOXEql0@public.gmane.org>, Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
---nextPart3163465.hdrj91rlDQ
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+Hi,
 
-On Sunday 08 September 2013 10:50:35 Pali Roh=C3=A1r wrote:
-> This patch series finally bringing support for charging
-> battery on Nokia N900 (RX-51) without any proprietary Nokia
-> bits in userspace.
->=20
-> Pali Roh=C3=A1r (4):
->   usb: musb: Call atomic_notifier_call_chain when status is
-> changed power: isp1704_charger: Fix driver to work with
-> changes introduced in v3.5
->   power: isp1704_charger: Add callback function set_current
->   RX-51: Add platform function and data for bq24150a charger
->=20
->  arch/arm/mach-omap2/board-rx51-peripherals.c |   56
-> +++++++++++++- drivers/power/isp1704_charger.c              |
->  107 ++++++++++++++------------ drivers/usb/musb/omap2430.c =20
->                |    3 + drivers/usb/phy/phy-twl4030-usb.c   =20
->        |    2 + include/linux/power/isp1704_charger.h      =20
-> |    1 + 5 files changed, 117 insertions(+), 52 deletions(-)
+This adds DTS for N950/N9 and removes the legacy board file. However,
+I guess the HACK in patch 1 needs to be solved somehow before we can
+do this...
 
-Anton, can you review this patch series, specially power supply=20
-code (changes to isp1704_charger.c driver)?
+Aaro Koskinen (3):
+  ARM: OMAP2: HACK: hardcode hsmmc2 input clock source for N950/N9
+  ARM: dts: add minimal DT support for Nokia N950 & N9 phones
+  ARM: OMAP2: delete board-rm680
 
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
+ arch/arm/boot/dts/Makefile           |   2 +
+ arch/arm/boot/dts/omap3-n9.dts       |  18 ++++
+ arch/arm/boot/dts/omap3-n950-n9.dtsi | 172 +++++++++++++++++++++++++++++++++++
+ arch/arm/boot/dts/omap3-n950.dts     |  18 ++++
+ arch/arm/mach-omap2/Kconfig          |   7 --
+ arch/arm/mach-omap2/Makefile         |   1 -
+ arch/arm/mach-omap2/board-generic.c  |  15 +++
+ arch/arm/mach-omap2/board-rm680.c    | 167 ----------------------------------
+ 8 files changed, 225 insertions(+), 175 deletions(-)
+ create mode 100644 arch/arm/boot/dts/omap3-n9.dts
+ create mode 100644 arch/arm/boot/dts/omap3-n950-n9.dtsi
+ create mode 100644 arch/arm/boot/dts/omap3-n950.dts
+ delete mode 100644 arch/arm/mach-omap2/board-rm680.c
 
---nextPart3163465.hdrj91rlDQ
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
+-- 
+1.8.4.rc3
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEABECAAYFAlI9ok4ACgkQi/DJPQPkQ1LYwgCgyxBw+K3ehNBuZZUNrD7J5o86
-cp8An3C8aro3cAqGTENDJ3Kh2w2FrocV
-=ai5M
------END PGP SIGNATURE-----
-
---nextPart3163465.hdrj91rlDQ--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
