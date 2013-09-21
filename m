@@ -1,95 +1,210 @@
-From: Sebastian Reichel <sre@ring0.de>
-Subject: Re: [PATCH v2 0/9] wilink: add device tree support
-Date: Sat, 21 Sep 2013 16:16:16 +0200
-Message-ID: <20130921141614.GA21383@earth.universe>
-References: <1372776948-24840-1-git-send-email-coelho@ti.com>
- <CANOLnOPBHesTiV61zpQ_QS9c7E91K50EnbMnGhvgaViuA_3=Bw@mail.gmail.com>
- <1372859132.21065.111.camel@cumari.coelho.fi>
- <20130921122718.GA4431@amd.pavel.ucw.cz>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="mP3DRpeJDSE+ciuQ"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ring0.de ([91.143.88.219]:60137 "EHLO smtp.ring0.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752383Ab3IUOQs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 21 Sep 2013 10:16:48 -0400
-Content-Disposition: inline
-In-Reply-To: <20130921122718.GA4431@amd.pavel.ucw.cz>
-Sender: linux-omap-owner@vger.kernel.org
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Subject: [PATCH v6] gpio: pcf857x: Add OF support
+Date: Sat, 21 Sep 2013 20:39:49 +0200
+Message-ID: <1379788789-19801-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Return-path: <linux-gpio-owner@vger.kernel.org>
+Sender: linux-gpio-owner@vger.kernel.org
+To: linux-gpio@vger.kernel.org
+Cc: devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, linux-kernel@vger.kernel.org, Tomasz Figa <tomasz.figa@gmail.com>, Archit Taneja <archit@ti.com>, Sylwester Nawrocki <sylvester.nawrocki@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Luciano Coelho <coelho@ti.com>, Grazvydas Ignotas <notasas@gmail.com>, "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, nsekhar@ti.com, mturquette@linaro.org, mark.rutland@arm.com, Felipe Balbi <balbi@ti.com>, grant.likely@linaro.org, rob.herring@calxeda.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
+Add DT bindings for the pcf857x-compatible chips and parse the device
+tree node in the driver.
 
---mP3DRpeJDSE+ciuQ
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ .../devicetree/bindings/gpio/gpio-pcf857x.txt      | 71 ++++++++++++++++++++++
+ drivers/gpio/gpio-pcf857x.c                        | 44 +++++++++++---
+ 2 files changed, 107 insertions(+), 8 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/gpio/gpio-pcf857x.txt
 
-On Sat, Sep 21, 2013 at 02:27:18PM +0200, Pavel Machek wrote:
-> Hi!
->=20
-> > > > This is a follow-up on a previous patch set that had a smaller
-> > > > audience.  This time, I added the lists and people who were involved
-> > > > in the review of the bindings documentation, since most of my chang=
-es
-> > > > in v2 are coming from discussions there.
-> > > >
-> > > > This patch series adds device tree support to the wlcore_sdio drive=
-r,
-> > > > which is used by WiLink6, WiLink7 and WiLink8.
-> > >=20
-> > > Could you perhaps consider doing device tree conversion for wl1251
-> > > too? With the knowledge you have from working on this series, it would
-> > > be much easier for you to do it than for someone else, and I don't
-> > > have much hope someone will do it at all. It's WiLink series chip
-> > > after all. Without this pandora and N900 are going to lose wifi
-> > > support after the switch to dt-only kernel.
-> >=20
-> > Unfortunately I don't have much time to work on wl1251.  I think it
-> > wouldn't be too difficult to do though, so patches are welcome. ;)
-> >=20
-> > Maybe you could try to make this change and I could support you if
-> > needed?
-> >=20
-> >=20
-> > > I can offer you my help testing things on pandora and I'm sure someone
-> > > here could try it on N900.
-> >=20
-> > I could try it on the N900, if it is still bootable easily with the
-> > mainline. ;)
->=20
-> 3.11 should be bootable on mainline, including device tree and
-> video. (But excluding some other stuff, like MMC.)
+Changes since v5:
 
-I got external MMC (=3D> =B5SD) working with some small modifications of
-the omap3-n900.dts file. I have not yet tried internal MMC, since
-its not important for me at the moment, but I guess its also just a
-small change in the dts file.
+- Renamed pin to line in the DT bindings documentation
+- Renamed pins-initial-states DT property to lines-initial-states
 
--- Sebastian
+Changes since v4:
 
---mP3DRpeJDSE+ciuQ
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+- Don't try to get ngpio from of_device_id data, we already get it from
+  i2c_device_id
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
+Changes since v3:
 
-iQIcBAEBCAAGBQJSPaouAAoJENju1/PIO/qa6tMP/1MAZ94J9QoJEOmvx3/92OHt
-XYigYI/aoUk9JtWuO7NSBTNKl2H+XRGB63SsitRx864ogy1MKEIKNfd+aQdOMWmy
-+CuVhKGaIRUSOt9HpyJOu/hKH4QgGSbzDZZh5tZ1+X/ZUj5DlnXCkepeuJ3VXQWv
-D/fjjnWOnSLYWP/tGRAdBhsOFm1sVcEVHMnWZ8CpBRamjKp5HhHUjUXZctBsedB6
-MtM9BMSA//4iZeIWCQzHHBVWOiUV/Cn6foIeyQuI0vsUobHbOJRYAyDhjnVyNRMB
-PpU9bK5Ultfav30NejyNPKfueZKlUo/Q//HoTwJYdEMKYnEwjomDzXPDwJixsVSF
-mEeOQstZyGAcaz0q/fAsf4naPmiZJ9lj2i26R4fg8YnGQKrBf84oQmGViHnb0yff
-wW+4d4Xl97Z4aybVn8HxTqMrNC9kHaqZFu/sncNJK66wK1wkI2LKYSouhIpJ9Ywm
-+szbhVhNSpqTagD1DNf6G09GTbMB2Ruw4Rf3fbGdU3QJgak8l3+2YeI3NbKLf4TF
-ldXTdawgpOebByQJw4kQ61CmT/v8n+uOoeV5acQLEFyqYVLC6OmqtrbBhJUebRX8
-Uc5z9mn2Gimx1A3JwSNYTuSym6pJoUCXctLPUIXO55TvkjRmpozvaz3YkDQpv6dd
-pSR7gEkUpohisVZMz7HA
-=RJDB
------END PGP SIGNATURE-----
+- Get rid of the #ifdef CONFIG_OF in the probe function
+- Give DT node priority over platform data
 
---mP3DRpeJDSE+ciuQ--
+Changes since v2:
+
+- Replace mention about interrupts software configuration in DT bindings
+  documentation with an explanation of the hardware configuration.
+
+diff --git a/Documentation/devicetree/bindings/gpio/gpio-pcf857x.txt b/Documentation/devicetree/bindings/gpio/gpio-pcf857x.txt
+new file mode 100644
+index 0000000..d63194a
+--- /dev/null
++++ b/Documentation/devicetree/bindings/gpio/gpio-pcf857x.txt
+@@ -0,0 +1,71 @@
++* PCF857x-compatible I/O expanders
++
++The PCF857x-compatible chips have "quasi-bidirectional" I/O lines that can be
++driven high by a pull-up current source or driven low to ground. This combines
++the direction and output level into a single bit per line, which can't be read
++back. We can't actually know at initialization time whether a line is configured
++(a) as output and driving the signal low/high, or (b) as input and reporting a
++low/high value, without knowing the last value written since the chip came out
++of reset (if any). The only reliable solution for setting up line direction is
++thus to do it explicitly.
++
++Required Properties:
++
++  - compatible: should be one of the following.
++    - "maxim,max7328": For the Maxim MAX7378
++    - "maxim,max7329": For the Maxim MAX7329
++    - "nxp,pca8574": For the NXP PCA8574
++    - "nxp,pca8575": For the NXP PCA8575
++    - "nxp,pca9670": For the NXP PCA9670
++    - "nxp,pca9671": For the NXP PCA9671
++    - "nxp,pca9672": For the NXP PCA9672
++    - "nxp,pca9673": For the NXP PCA9673
++    - "nxp,pca9674": For the NXP PCA9674
++    - "nxp,pca9675": For the NXP PCA9675
++    - "nxp,pcf8574": For the NXP PCF8574
++    - "nxp,pcf8574a": For the NXP PCF8574A
++    - "nxp,pcf8575": For the NXP PCF8575
++    - "ti,tca9554": For the TI TCA9554
++
++  - reg: I2C slave address.
++
++  - gpio-controller: Marks the device node as a gpio controller.
++  - #gpio-cells: Should be 2. The first cell is the GPIO number and the second
++    cell specifies GPIO flags, as defined in <dt-bindings/gpio/gpio.h>. Only the
++    GPIO_ACTIVE_HIGH and GPIO_ACTIVE_LOW flags are supported.
++
++Optional Properties:
++
++  - lines-initial-states: Bitmask that specifies the initial state of each
++  line. When a bit is set to zero, the corresponding line will be initialized to
++  the input (pulled-up) state. When the  bit is set to one, the line will be
++  initialized the the low-level output state. If the property is not specified
++  all lines will be initialized to the input state.
++
++  The I/O expander can detect input state changes, and thus optionally act as
++  an interrupt controller. When the expander interrupt line is connected all the
++  following properties must be set. For more information please see the
++  interrupt controller device tree bindings documentation available at
++  Documentation/devicetree/bindings/interrupt-controller/interrupts.txt.
++
++  - interrupt-controller: Identifies the node as an interrupt controller.
++  - #interrupt-cells: Number of cells to encode an interrupt source, shall be 2.
++  - interrupt-parent: phandle of the parent interrupt controller.
++  - interrupts: Interrupt specifier for the controllers interrupt.
++
++
++Please refer to gpio.txt in this directory for details of the common GPIO
++bindings used by client devices.
++
++Example: PCF8575 I/O expander node
++
++	pcf8575: gpio@20 {
++		compatible = "nxp,pcf8575";
++		reg = <0x20>;
++		interrupt-parent = <&irqpin2>;
++		interrupts = <3 0>;
++		gpio-controller;
++		#gpio-cells = <2>;
++		interrupt-controller;
++		#interrupt-cells = <2>;
++	};
+diff --git a/drivers/gpio/gpio-pcf857x.c b/drivers/gpio/gpio-pcf857x.c
+index 54725a6..1535686 100644
+--- a/drivers/gpio/gpio-pcf857x.c
++++ b/drivers/gpio/gpio-pcf857x.c
+@@ -26,6 +26,8 @@
+ #include <linux/irqdomain.h>
+ #include <linux/kernel.h>
+ #include <linux/module.h>
++#include <linux/of.h>
++#include <linux/of_device.h>
+ #include <linux/slab.h>
+ #include <linux/spinlock.h>
+ 
+@@ -49,6 +51,27 @@ static const struct i2c_device_id pcf857x_id[] = {
+ };
+ MODULE_DEVICE_TABLE(i2c, pcf857x_id);
+ 
++#ifdef CONFIG_OF
++static const struct of_device_id pcf857x_of_table[] = {
++	{ .compatible = "nxp,pcf8574" },
++	{ .compatible = "nxp,pcf8574a" },
++	{ .compatible = "nxp,pca8574" },
++	{ .compatible = "nxp,pca9670" },
++	{ .compatible = "nxp,pca9672" },
++	{ .compatible = "nxp,pca9674" },
++	{ .compatible = "nxp,pcf8575" },
++	{ .compatible = "nxp,pca8575" },
++	{ .compatible = "nxp,pca9671" },
++	{ .compatible = "nxp,pca9673" },
++	{ .compatible = "nxp,pca9675" },
++	{ .compatible = "maxim,max7328" },
++	{ .compatible = "maxim,max7329" },
++	{ .compatible = "ti,tca9554" },
++	{ }
++};
++MODULE_DEVICE_TABLE(of, pcf857x_of_table);
++#endif
++
+ /*
+  * The pcf857x, pca857x, and pca967x chips only expose one read and one
+  * write register.  Writing a "one" bit (to match the reset state) lets
+@@ -260,14 +283,18 @@ fail:
+ static int pcf857x_probe(struct i2c_client *client,
+ 			 const struct i2c_device_id *id)
+ {
+-	struct pcf857x_platform_data	*pdata;
++	struct pcf857x_platform_data	*pdata = dev_get_platdata(&client->dev);
++	struct device_node		*np = client->dev.of_node;
+ 	struct pcf857x			*gpio;
++	unsigned int			n_latch = 0;
+ 	int				status;
+ 
+-	pdata = dev_get_platdata(&client->dev);
+-	if (!pdata) {
++	if (IS_ENABLED(CONFIG_OF) && np)
++		of_property_read_u32(np, "lines-initial-states", &n_latch);
++	else if (pdata)
++		n_latch = pdata->n_latch;
++	else
+ 		dev_dbg(&client->dev, "no platform data\n");
+-	}
+ 
+ 	/* Allocate, initialize, and register this gpio_chip. */
+ 	gpio = devm_kzalloc(&client->dev, sizeof(*gpio), GFP_KERNEL);
+@@ -360,11 +387,11 @@ static int pcf857x_probe(struct i2c_client *client,
+ 	 * may cause transient glitching since it can't know the last value
+ 	 * written (some pins may need to be driven low).
+ 	 *
+-	 * Using pdata->n_latch avoids that trouble.  When left initialized
+-	 * to zero, our software copy of the "latch" then matches the chip's
+-	 * all-ones reset state.  Otherwise it flags pins to be driven low.
++	 * Using n_latch avoids that trouble.  When left initialized to zero,
++	 * our software copy of the "latch" then matches the chip's all-ones
++	 * reset state.  Otherwise it flags pins to be driven low.
+ 	 */
+-	gpio->out = pdata ? ~pdata->n_latch : ~0;
++	gpio->out = ~n_latch;
+ 	gpio->status = gpio->out;
+ 
+ 	status = gpiochip_add(&gpio->chip);
+@@ -426,6 +453,7 @@ static struct i2c_driver pcf857x_driver = {
+ 	.driver = {
+ 		.name	= "pcf857x",
+ 		.owner	= THIS_MODULE,
++		.of_match_table = of_match_ptr(pcf857x_of_table),
+ 	},
+ 	.probe	= pcf857x_probe,
+ 	.remove	= pcf857x_remove,
+-- 
+Regards,
+
+Laurent Pinchart
+
