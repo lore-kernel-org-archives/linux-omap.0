@@ -1,54 +1,63 @@
 From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH v2 0/9] wilink: add device tree support
-Date: Sat, 21 Sep 2013 14:27:18 +0200
-Message-ID: <20130921122718.GA4431@amd.pavel.ucw.cz>
-References: <1372776948-24840-1-git-send-email-coelho@ti.com>
- <CANOLnOPBHesTiV61zpQ_QS9c7E91K50EnbMnGhvgaViuA_3=Bw@mail.gmail.com>
- <1372859132.21065.111.camel@cumari.coelho.fi>
+Subject: Re: [PATCH v2] ADP1653 board code for Nokia RX-51
+Date: Sat, 21 Sep 2013 14:37:32 +0200
+Message-ID: <20130921123732.GB4652@amd.pavel.ucw.cz>
+References: <201302171616.50152@pali>
+ <20130907230252.GA10700@blackmetal.musicnaut.iki.fi>
+ <20130918131644.GA2953@amd.pavel.ucw.cz>
+ <201309181800.10486@pali>
+ <20130918174211.GU9994@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-doc-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1372859132.21065.111.camel@cumari.coelho.fi>
-Sender: linux-doc-owner@vger.kernel.org
-To: Luciano Coelho <coelho@ti.com>
-Cc: Grazvydas Ignotas <notasas@gmail.com>, "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, nsekhar@ti.com, mturquette@linaro.org, mark.rutland@arm.com, Felipe Balbi <balbi@ti.com>, grant.likely@linaro.org, rob.herring@calxeda.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+In-Reply-To: <20130918174211.GU9994@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 Hi!
 
-> > > This is a follow-up on a previous patch set that had a smaller
-> > > audience.  This time, I added the lists and people who were involved
-> > > in the review of the bindings documentation, since most of my changes
-> > > in v2 are coming from discussions there.
-> > >
-> > > This patch series adds device tree support to the wlcore_sdio driver,
-> > > which is used by WiLink6, WiLink7 and WiLink8.
+> > > > > > --- /dev/null
+> > > > > > +++ b/arch/arm/mach-omap2/board-rx51-camera.c
+> > > > 
+> > > > [...]
+> > > > 
+> > > > > Ping, can you review this patch v2?
+> > > > 
+> > > > I don't think Tony will accept any new board stuff for
+> > > > RX-51/N900. See for example:
+> > > > http://marc.info/?l=linux-kernel&m=137629626213187&w=2
+> > > > 
+> > > > There should be initial Nokia N900 DTS file in 3.12-rc1, and
+> > > > we should continue converting this board fully to DT.
+> > > 
+> > > That's not reasonable. N900 is pretty far away from working
+> > > with device tree. Yes, I was able to get some bits merged,
+> > > but that should not be excuse to halt other N900 development.
+> > > 									Pavel
 > > 
-> > Could you perhaps consider doing device tree conversion for wl1251
-> > too? With the knowledge you have from working on this series, it would
-> > be much easier for you to do it than for someone else, and I don't
-> > have much hope someone will do it at all. It's WiLink series chip
-> > after all. Without this pandora and N900 are going to lose wifi
-> > support after the switch to dt-only kernel.
+> > Right. So Tony, will you accept future patches for board files?
 > 
-> Unfortunately I don't have much time to work on wl1251.  I think it
-> wouldn't be too difficult to do though, so patches are welcome. ;)
+> Only fixes to board-*.c files please unless there's a _really_
+> good reason to make things more complex with the platform data.
+> Let's not make the DT conversion any more complex than it
+> already is.
 > 
-> Maybe you could try to make this change and I could support you if
-> needed?
-> 
-> 
-> > I can offer you my help testing things on pandora and I'm sure someone
-> > here could try it on N900.
-> 
-> I could try it on the N900, if it is still bootable easily with the
-> mainline. ;)
+> Getting things working with DT for the devices is pretty trivial
+> in most cases. And we can also still initialize the legacy devices
+> using platform data the same way as earlier.
 
-3.11 should be bootable on mainline, including device tree and
-video. (But excluding some other stuff, like MMC.)
+Well... It was quite a struggle to get video working with device tree
+in 3.10, and now it is broken in 3.12-rc1, again.
+
+"Now, here, you see, it takes all the running you can do, to keep in
+the same place. If you want to get somewhere else, you must run at
+least twice as fast as that! "
 
 									Pavel
+
 -- 
 (english) http://www.livejournal.com/~pavelmachek
 (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
