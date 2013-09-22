@@ -1,59 +1,126 @@
-From: Frederic Weisbecker <fweisbec@gmail.com>
-Subject: Re: [PATCH] arm: Fix build error with context tracking calls
-Date: Sun, 22 Sep 2013 11:59:35 -0500
-Message-ID: <CAFTL4hzccoaUinQ37bpbqXDv-bbNkuww8FURQMwD_zEb9RqSMA@mail.gmail.com>
-References: <522CB0DE.2010102@roeck-us.net>
-	<20130909105115.GL25647@n2100.arm.linux.org.uk>
-	<522DB86A.8010207@roeck-us.net>
-	<alpine.LFD.2.03.1309091023440.20709@syhkavp.arg>
-	<20130909160348.GB18975@roeck-us.net>
-	<20130909203141.GM25647@n2100.arm.linux.org.uk>
-	<20130909210203.GC28416@roeck-us.net>
-	<alpine.LFD.2.03.1309091714420.20709@syhkavp.arg>
-	<87y574g1fi.fsf@linaro.org>
-	<20130913170331.GA8453@somewhere>
-	<20130914143213.GN25647@n2100.arm.linux.org.uk>
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Subject: Re: [RFC PATCH 08/15] ata: ahci_platform: Manage SATA PHY
+Date: Sun, 22 Sep 2013 22:22:31 +0400
+Message-ID: <523F3567.80303@cogentembedded.com>
+References: <1379595943-14622-1-git-send-email-rogerq@ti.com> <1379595943-14622-9-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-la0-f41.google.com ([209.85.215.41]:62014 "EHLO
-	mail-la0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752196Ab3IVQ7g (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 22 Sep 2013 12:59:36 -0400
-Received: by mail-la0-f41.google.com with SMTP id ec20so1788497lab.14
-        for <linux-omap@vger.kernel.org>; Sun, 22 Sep 2013 09:59:35 -0700 (PDT)
-In-Reply-To: <20130914143213.GN25647@n2100.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-Reply-To: <1379595943-14622-9-git-send-email-rogerq@ti.com>
+Sender: linux-ide-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: balbi@ti.com, bcousson@baylibre.com, tony@atomide.com, balajitk@ti.com, kishon@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-ide@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, Tejun Heo <tj@kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Kevin Hilman <khilman@linaro.org>, Nicolas Pitre <nicolas.pitre@linaro.org>, Guenter Roeck <linux@roeck-us.net>, Anil Kumar <anilk4.v@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, Benoit Cousson <b-cousson@ti.com>
 
-2013/9/14, Russell King - ARM Linux <linux@arm.linux.org.uk>:
-> On Fri, Sep 13, 2013 at 07:03:34PM +0200, Frederic Weisbecker wrote:
->> diff --git a/kernel/context_tracking.c b/kernel/context_tracking.c
->> index 247091b..859c8df 100644
->> --- a/kernel/context_tracking.c
->> +++ b/kernel/context_tracking.c
->> @@ -51,6 +51,15 @@ void context_tracking_user_enter(void)
->>  	unsigned long flags;
->>
->>  	/*
->> +	 * Repeat the user_enter() check here because some archs may be calling
->> +	 * this from asm and if no CPU needs context tracking, they shouldn't
->> +	 * go further. We can remove that check here once these archs support
->> the static key
->> +	 * check.
+Hello.
+
+On 09/19/2013 05:05 PM, Roger Quadros wrote:
+
+> From: Balaji T K <balajitk@ti.com>
+
+> Some platforms have a PHY hooked up to the
+> SATA controller. The PHY needs to be initialized
+> and powered up for SATA to work. We do that
+> using the PHY framework.
+
+> [Roger Q] Cleaned up.
+
+> CC: Tejun Heo <tj@kernel.org>
+> Signed-off-by: Balaji T K <balajitk@ti.com>
+> Signed-off-by: Roger Quadros <rogerq@ti.com>
+[...]
+
+> diff --git a/drivers/ata/ahci.h b/drivers/ata/ahci.h
+> index 1145637..94484cb 100644
+> --- a/drivers/ata/ahci.h
+> +++ b/drivers/ata/ahci.h
+> @@ -37,6 +37,7 @@
 >
-> The only (minor) comment on this is that the above would fail checkpatch,
-> but that's not a good enough reason to respin it if you've already applied
-> it IMHO.
+>   #include <linux/clk.h>
+>   #include <linux/libata.h>
+> +#include <linux/phy/phy.h>
+
+struct phy;
+
+should suffice.
+
+> @@ -322,6 +323,7 @@ struct ahci_host_priv {
+>   	u32			em_buf_sz;	/* EM buffer size in byte */
+>   	u32			em_msg_type;	/* EM message type */
+>   	struct clk		*clk;		/* Only for platforms supporting clk */
+> +	struct phy		*phy;		/* If platforms use phy */
+>   	void			*plat_data;	/* Other platform data */
+>   };
 >
+> diff --git a/drivers/ata/ahci_platform.c b/drivers/ata/ahci_platform.c
+> index 2daaee0..f812ffa 100644
+> --- a/drivers/ata/ahci_platform.c
+> +++ b/drivers/ata/ahci_platform.c
+> @@ -23,6 +23,7 @@
+>   #include <linux/platform_device.h>
+>   #include <linux/libata.h>
+>   #include <linux/ahci_platform.h>
+> +#include <linux/phy/phy.h>
 
-Ah I haven't yet pushed that patch anywhere so I can definetly fix
-that. Thanks for the review. BTW, I initially first thought this fix
-could go through your tree but if you prefer I can push it through
-Ingo to the context tracking bits.
+    Why include it from both ahci.h and here?
 
-Just tell me either way.
+>   #include "ahci.h"
+>
+>   static void ahci_host_stop(struct ata_host *host);
+> @@ -141,16 +142,32 @@ static int ahci_probe(struct platform_device *pdev)
+>   		}
+>   	}
+>
+> +	hpriv->phy = devm_phy_get(dev, "sata-phy");
+> +	if (IS_ERR(hpriv->phy)) {
+> +		dev_err(dev, "can't get phy\n");
 
-Thanks!
+    Don't think it's a good idea to complain about missing PHY when the driver 
+doesn't even use it.
+
+> +		/* return only if -EPROBE_DEFER */
+> +		if (PTR_ERR(hpriv->phy) == -EPROBE_DEFER) {
+> +			rc = -EPROBE_DEFER;
+> +			goto disable_unprepare_clk;
+> +		}
+> +	}
+> +
+>   	/*
+>   	 * Some platforms might need to prepare for mmio region access,
+>   	 * which could be done in the following init call. So, the mmio
+>   	 * region shouldn't be accessed before init (if provided) has
+>   	 * returned successfully.
+>   	 */
+> +
+> +	if (!(IS_ERR(hpriv->phy))) {
+
+    () not needed around IS_ERR() invocation.
+
+> +		phy_init(hpriv->phy);
+> +		phy_power_on(hpriv->phy);
+> +	}
+> +
+
+    I think this is misplaced, i.e. it should precede the comment.
+
+>   	if (pdata && pdata->init) {
+>   		rc = pdata->init(dev, hpriv->mmio);
+>   		if (rc)
+> -			goto disable_unprepare_clk;
+> +			goto disable_phy;
+>   	}
+>
+>   	ahci_save_initial_config(dev, hpriv,
+[...]
+> @@ -328,6 +356,7 @@ static SIMPLE_DEV_PM_OPS(ahci_pm_ops, ahci_suspend, ahci_resume);
+>   static const struct of_device_id ahci_of_match[] = {
+>   	{ .compatible = "snps,spear-ahci", },
+>   	{ .compatible = "snps,exynos5440-ahci", },
+> +	{ .compatible = "snps,dwc-ahci", },
+
+    Looks like the binding documentation is incomplete -- it doesn't list 
+"snps,exynos5440-ahci"...
+
+WBR, Sergei
+
