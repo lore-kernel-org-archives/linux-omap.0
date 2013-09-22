@@ -1,44 +1,74 @@
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Subject: Re: [RFC PATCH 08/15] ata: ahci_platform: Manage SATA PHY
-Date: Sun, 22 Sep 2013 22:24:36 +0400
-Message-ID: <523F35E4.6050707@cogentembedded.com>
-References: <1379595943-14622-1-git-send-email-rogerq@ti.com> <1379595943-14622-9-git-send-email-rogerq@ti.com> <20130922165817.GD30946@htj.dyndns.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-ide-owner@vger.kernel.org>
-In-Reply-To: <20130922165817.GD30946@htj.dyndns.org>
-Sender: linux-ide-owner@vger.kernel.org
-To: Tejun Heo <tj@kernel.org>
-Cc: Roger Quadros <rogerq@ti.com>, balbi@ti.com, bcousson@baylibre.com, tony@atomide.com, balajitk@ti.com, kishon@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-ide@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
+From: Peter Senna Tschudin <peter.senna@gmail.com>
+Subject: [PATCH 3/5] OMAPDSS: DISPC: Fix assignment of 0/1 to bool variables
+Date: Sun, 22 Sep 2013 20:44:11 +0200
+Message-ID: <1379875453-20083-3-git-send-email-peter.senna@gmail.com>
+References: <1379875453-20083-1-git-send-email-peter.senna@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1379875453-20083-1-git-send-email-peter.senna@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: tomi.valkeinen@ti.com
+Cc: plagnioj@jcrosoft.com, archit@ti.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org, Peter Senna Tschudin <peter.senna@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hello.
+Convert 0 to false and 1 to true when assigning values to bool
+variables. Inspired by commit 3db1cd5c05f35fb43eb134df6f321de4e63141f2.
 
-On 09/22/2013 08:58 PM, Tejun Heo wrote:
+The simplified semantic patch that find this problem is as
+follows (http://coccinelle.lip6.fr/):
 
->> From: Balaji T K <balajitk@ti.com>
+@@
+bool b;
+@@
+(
+-b = 0
++b = false
+|
+-b = 1
++b = true
+)
 
->> Some platforms have a PHY hooked up to the
->> SATA controller. The PHY needs to be initialized
->> and powered up for SATA to work. We do that
->> using the PHY framework.
+Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
 
->> [Roger Q] Cleaned up.
+---
+ drivers/video/omap2/dss/dispc.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
->> CC: Tejun Heo <tj@kernel.org>
->> Signed-off-by: Balaji T K <balajitk@ti.com>
->> Signed-off-by: Roger Quadros <rogerq@ti.com>
-
-> Looks okay to me although I don't know whether everyone using
-> ahci_platform would be happy with requiring phy.  Sergei, does this
-> look good to you?
-
-    Not sure why you asked -- I'm not using this driver, neither I'm the 
-author of it (former MV's Anton Vorontsov is IIRC). I've commented on the 
-patch anyway though...
-
-> Thanks.
-
-WBR, Sergei
-
+diff -u -p a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
+--- a/drivers/video/omap2/dss/dispc.c
++++ b/drivers/video/omap2/dss/dispc.c
+@@ -2352,7 +2352,7 @@ int dispc_ovl_check(enum omap_plane plan
+ {
+ 	enum omap_overlay_caps caps = dss_feat_get_overlay_caps(plane);
+ 	bool five_taps = true;
+-	bool fieldmode = 0;
++	bool fieldmode = false;
+ 	u16 in_height = oi->height;
+ 	u16 in_width = oi->width;
+ 	bool ilace = timings->interlace;
+@@ -2365,7 +2365,7 @@ int dispc_ovl_check(enum omap_plane plan
+ 	out_height = oi->out_height == 0 ? oi->height : oi->out_height;
+ 
+ 	if (ilace && oi->height == out_height)
+-		fieldmode = 1;
++		fieldmode = true;
+ 
+ 	if (ilace) {
+ 		if (fieldmode)
+@@ -2396,7 +2396,7 @@ static int dispc_ovl_setup_common(enum o
+ 		bool mem_to_mem)
+ {
+ 	bool five_taps = true;
+-	bool fieldmode = 0;
++	bool fieldmode = false;
+ 	int r, cconv = 0;
+ 	unsigned offset0, offset1;
+ 	s32 row_inc;
+@@ -2417,7 +2417,7 @@ static int dispc_ovl_setup_common(enum o
+ 	out_height = out_height == 0 ? height : out_height;
+ 
+ 	if (ilace && height == out_height)
+-		fieldmode = 1;
++		fieldmode = true;
+ 
+ 	if (ilace) {
+ 		if (fieldmode)
