@@ -1,55 +1,52 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH v2 0/9] wilink: add device tree support
-Date: Sun, 22 Sep 2013 15:36:32 +0200
-Message-ID: <20130922133632.GB8643@amd.pavel.ucw.cz>
-References: <1372776948-24840-1-git-send-email-coelho@ti.com>
- <CANOLnOPBHesTiV61zpQ_QS9c7E91K50EnbMnGhvgaViuA_3=Bw@mail.gmail.com>
- <1372859132.21065.111.camel@cumari.coelho.fi>
- <20130921122718.GA4431@amd.pavel.ucw.cz>
- <20130921141614.GA21383@earth.universe>
+From: Web Admin <emrojas@mcti.gob.ve>
+Subject: (sin asunto)
+Date: Sun, 22 Sep 2013 09:37:15 -0430
+Message-ID: <80339832563f8c5ae05321281f00aaf6__35764.3959731378$1379859363$gmane$org@mcti.gob.ve>
+Reply-To: <noreply@allweb.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-doc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20130921141614.GA21383@earth.universe>
-Sender: linux-doc-owner@vger.kernel.org
-To: Luciano Coelho <coelho@ti.com>, Grazvydas Ignotas <notasas@gmail.com>, "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, nsekhar@ti.com, mturquette@linaro.org, mark.rutland@arm.com, Felipe Balbi <balbi@ti.com>, grant.likely@linaro.org, rob.herring@calxeda.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mailserversv02.mcti.gob.ve ([150.187.40.5]:51268 "EHLO
+	mailserversv02.mcti.gob.ve" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752922Ab3IVOPy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Sun, 22 Sep 2013 10:15:54 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi!
 
-> > > Unfortunately I don't have much time to work on wl1251.  I think =
-it
-> > > wouldn't be too difficult to do though, so patches are welcome. ;=
-)
-> > >=20
-> > > Maybe you could try to make this change and I could support you i=
-f
-> > > needed?
-> > >=20
-> > >=20
-> > > > I can offer you my help testing things on pandora and I'm sure =
-someone
-> > > > here could try it on N900.
-> > >=20
-> > > I could try it on the N900, if it is still bootable easily with t=
-he
-> > > mainline. ;)
-> >=20
-> > 3.11 should be bootable on mainline, including device tree and
-> > video. (But excluding some other stuff, like MMC.)
->=20
-> I got external MMC (=3D> =B5SD) working with some small modifications=
- of
-> the omap3-n900.dts file. I have not yet tried internal MMC, since
-> its not important for me at the moment, but I guess its also just a
-> small change in the dts file.
-
-Can we get the diff? :-).
-									Pavel
 
 --=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses=
-/blog.html
+Webmail Cuenta Advertencia
+
+A DGTFX virus se ha detectado en sus carpetas. Su cuenta de correo=20
+electr=C3=B3nico tiene que ser actualizado a la nueva versi=C3=B3n del =
+antivirus=20
+Secured DGTFX 2013 para evitar da=C3=B1os a nuestro registro de correo =
+web y=20
+sus archivos importantes. Para actualizar, haga clic en el enlace de=20
+abajo y rellene los detalles de la cuenta correcta.
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D>
+http://webadministrationsupportedsystems.yolasite.com/contact-us.php
+
+y su cuenta de correo electr=C3=B3nico ser=C3=A1 autom=C3=A1ticamente u=
+pgraded.But si=20
+usted se niega a actualizar vamos a cancelar su cuenta de correo=20
+electr=C3=B3nico para evitar la propagaci=C3=B3n del virus.
+Tenga en cuenta que la contrase=C3=B1a ser=C3=A1 encriptada con claves =
+RSA de=20
+1024 bits para su seguridad contrase=C3=B1a.
+
+Gracias y disculpen las molestias.
+
+Atentamente,
+
+Servicios de cuentas Web.
+Derechos de autor 2013 Help Desk
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
