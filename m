@@ -1,61 +1,196 @@
-From: Daniel Mack <zonque@gmail.com>
-Subject: [PATCH v3 0/5] dma: cppi41: some trivial fixes and support for suspend/resume
-Date: Sun, 22 Sep 2013 16:49:59 +0200
-Message-ID: <1379861404-8250-1-git-send-email-zonque@gmail.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from svenfoo.org ([82.94.215.22]:58521 "EHLO mail.zonque.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751543Ab3IVOuK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 22 Sep 2013 10:50:10 -0400
-Sender: linux-omap-owner@vger.kernel.org
+From: Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH v3 1/5] dma: cppi41: pass around device instead of platform_device
+Date: Sun, 22 Sep 2013 16:50:00 +0200
+Message-ID: <1379861404-8250-2-git-send-email-zonque@gmail.com>
+References: <1379861404-8250-1-git-send-email-zonque@gmail.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1379861404-8250-1-git-send-email-zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, neumann-SRDuVqtxQLSzQB+pC5nmwQ@public.gmane.org, bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-usb@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, neumann@teufel.de, bigeasy@linutronix.de, sergei.shtylyov@cogentembedded.com, vinod.koul@intel.com, dan.j.williams@intel.com, balbi@ti.com, gregkh@linuxfoundation.org, Daniel Mack <zonque@gmail.com>
 
-Here are some patches to teach the cppi41 DMA driver support for
-suspend and resume. Patches 1-3 are simply cosmetic things that emerged
-during my debugging sessions.
+Instead of passing around struct plafform_device, use struct device and
+save one level of dereferencing. This affects the following functions:
 
-Patch #4 is actually a real bugfix which I would like Sebastian
-Andrzej Siewior to have a look at. Quite frankly, the allocation scheme
-in this driver and the logic to determine a descriptor's index number
-seems quite complicated to me, but that's probably a different story.
-Allocating and freeing the exact same pointer more than once is
-certainly a bug.
+ * cppi41_add_chans
+ * purge_descs
+ * deinit_cpii41
+ * init_descs
+ * init_cppi41
+ * cppi_glue_infos
 
-Patch #5 adds support for suspend and resume. As the commit log says,
-the code needed to achive this is the result of a trial-and-error
-session. This is the minimum that's I'm left with now and which works
-for me.
+It's just a cosmetic cleanup that makes the code more readable.
 
-On a different note, I'm also working on patches for the musb core to
-make it suspend and resume. Currently, I still have to rmmod/insmod
-musb_dsps before/after the resume cycle, but I'm hoping to make
-progress here soon.
+Signed-off-by: Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+---
+ drivers/dma/cppi41.c | 40 ++++++++++++++++++++--------------------
+ 1 file changed, 20 insertions(+), 20 deletions(-)
 
-
-Thanks,
-Daniel
-
-v2 -> v3:
-	* Patch #5: kill DEV_PM_OPS macro hack and fix a typo
-	  (Reported by Sergei Shtylyov)
-
-v1 -> v2:
-	* Patch #5: depend on CONFIG_PM_SLEEP rather than on
-	  CONFIG_PM and use SIMPLE_DEV_PM_OPS
-	  (Reported by Sergei Shtylyov)
-
-Daniel Mack (5):
-  dma: cppi41: pass around device instead of platform_device
-  dma: cppi41: s/deinit_cpii41/deinit_cppi41/
-  dma: cppi41: add shortcut to &pdev->dev in cppi41_dma_probe()
-  dma: cppi41: only allocate descriptor memory once
-  dma: cppi41: add support for suspend and resume
-
- drivers/dma/cppi41.c | 115 +++++++++++++++++++++++++++++++--------------------
- 1 file changed, 70 insertions(+), 45 deletions(-)
-
+diff --git a/drivers/dma/cppi41.c b/drivers/dma/cppi41.c
+index 7c82b92..53d1d31 100644
+--- a/drivers/dma/cppi41.c
++++ b/drivers/dma/cppi41.c
+@@ -674,14 +674,14 @@ static void cleanup_chans(struct cppi41_dd *cdd)
+ 	}
+ }
+ 
+-static int cppi41_add_chans(struct platform_device *pdev, struct cppi41_dd *cdd)
++static int cppi41_add_chans(struct device *dev, struct cppi41_dd *cdd)
+ {
+ 	struct cppi41_channel *cchan;
+ 	int i;
+ 	int ret;
+ 	u32 n_chans;
+ 
+-	ret = of_property_read_u32(pdev->dev.of_node, "#dma-channels",
++	ret = of_property_read_u32(dev->of_node, "#dma-channels",
+ 			&n_chans);
+ 	if (ret)
+ 		return ret;
+@@ -719,7 +719,7 @@ err:
+ 	return -ENOMEM;
+ }
+ 
+-static void purge_descs(struct platform_device *pdev, struct cppi41_dd *cdd)
++static void purge_descs(struct device *dev, struct cppi41_dd *cdd)
+ {
+ 	unsigned int mem_decs;
+ 	int i;
+@@ -731,7 +731,7 @@ static void purge_descs(struct platform_device *pdev, struct cppi41_dd *cdd)
+ 		cppi_writel(0, cdd->qmgr_mem + QMGR_MEMBASE(i));
+ 		cppi_writel(0, cdd->qmgr_mem + QMGR_MEMCTRL(i));
+ 
+-		dma_free_coherent(&pdev->dev, mem_decs, cdd->cd,
++		dma_free_coherent(dev, mem_decs, cdd->cd,
+ 				cdd->descs_phys);
+ 	}
+ }
+@@ -741,19 +741,19 @@ static void disable_sched(struct cppi41_dd *cdd)
+ 	cppi_writel(0, cdd->sched_mem + DMA_SCHED_CTRL);
+ }
+ 
+-static void deinit_cpii41(struct platform_device *pdev, struct cppi41_dd *cdd)
++static void deinit_cpii41(struct device *dev, struct cppi41_dd *cdd)
+ {
+ 	disable_sched(cdd);
+ 
+-	purge_descs(pdev, cdd);
++	purge_descs(dev, cdd);
+ 
+ 	cppi_writel(0, cdd->qmgr_mem + QMGR_LRAM0_BASE);
+ 	cppi_writel(0, cdd->qmgr_mem + QMGR_LRAM0_BASE);
+-	dma_free_coherent(&pdev->dev, QMGR_SCRATCH_SIZE, cdd->qmgr_scratch,
++	dma_free_coherent(dev, QMGR_SCRATCH_SIZE, cdd->qmgr_scratch,
+ 			cdd->scratch_phys);
+ }
+ 
+-static int init_descs(struct platform_device *pdev, struct cppi41_dd *cdd)
++static int init_descs(struct device *dev, struct cppi41_dd *cdd)
+ {
+ 	unsigned int desc_size;
+ 	unsigned int mem_decs;
+@@ -777,7 +777,7 @@ static int init_descs(struct platform_device *pdev, struct cppi41_dd *cdd)
+ 		reg |= ilog2(ALLOC_DECS_NUM) - 5;
+ 
+ 		BUILD_BUG_ON(DESCS_AREAS != 1);
+-		cdd->cd = dma_alloc_coherent(&pdev->dev, mem_decs,
++		cdd->cd = dma_alloc_coherent(dev, mem_decs,
+ 				&cdd->descs_phys, GFP_KERNEL);
+ 		if (!cdd->cd)
+ 			return -ENOMEM;
+@@ -813,12 +813,12 @@ static void init_sched(struct cppi41_dd *cdd)
+ 	cppi_writel(reg, cdd->sched_mem + DMA_SCHED_CTRL);
+ }
+ 
+-static int init_cppi41(struct platform_device *pdev, struct cppi41_dd *cdd)
++static int init_cppi41(struct device *dev, struct cppi41_dd *cdd)
+ {
+ 	int ret;
+ 
+ 	BUILD_BUG_ON(QMGR_SCRATCH_SIZE > ((1 << 14) - 1));
+-	cdd->qmgr_scratch = dma_alloc_coherent(&pdev->dev, QMGR_SCRATCH_SIZE,
++	cdd->qmgr_scratch = dma_alloc_coherent(dev, QMGR_SCRATCH_SIZE,
+ 			&cdd->scratch_phys, GFP_KERNEL);
+ 	if (!cdd->qmgr_scratch)
+ 		return -ENOMEM;
+@@ -827,7 +827,7 @@ static int init_cppi41(struct platform_device *pdev, struct cppi41_dd *cdd)
+ 	cppi_writel(QMGR_SCRATCH_SIZE, cdd->qmgr_mem + QMGR_LRAM_SIZE);
+ 	cppi_writel(0, cdd->qmgr_mem + QMGR_LRAM1_BASE);
+ 
+-	ret = init_descs(pdev, cdd);
++	ret = init_descs(dev, cdd);
+ 	if (ret)
+ 		goto err_td;
+ 
+@@ -835,7 +835,7 @@ static int init_cppi41(struct platform_device *pdev, struct cppi41_dd *cdd)
+ 	init_sched(cdd);
+ 	return 0;
+ err_td:
+-	deinit_cpii41(pdev, cdd);
++	deinit_cpii41(dev, cdd);
+ 	return ret;
+ }
+ 
+@@ -914,11 +914,11 @@ static const struct of_device_id cppi41_dma_ids[] = {
+ };
+ MODULE_DEVICE_TABLE(of, cppi41_dma_ids);
+ 
+-static const struct cppi_glue_infos *get_glue_info(struct platform_device *pdev)
++static const struct cppi_glue_infos *get_glue_info(struct device *dev)
+ {
+ 	const struct of_device_id *of_id;
+ 
+-	of_id = of_match_node(cppi41_dma_ids, pdev->dev.of_node);
++	of_id = of_match_node(cppi41_dma_ids, dev->of_node);
+ 	if (!of_id)
+ 		return NULL;
+ 	return of_id->data;
+@@ -931,7 +931,7 @@ static int cppi41_dma_probe(struct platform_device *pdev)
+ 	int irq;
+ 	int ret;
+ 
+-	glue_info = get_glue_info(pdev);
++	glue_info = get_glue_info(&pdev->dev);
+ 	if (!glue_info)
+ 		return -EINVAL;
+ 
+@@ -970,11 +970,11 @@ static int cppi41_dma_probe(struct platform_device *pdev)
+ 	cdd->queues_tx = glue_info->queues_tx;
+ 	cdd->td_queue = glue_info->td_queue;
+ 
+-	ret = init_cppi41(pdev, cdd);
++	ret = init_cppi41(&pdev->dev, cdd);
+ 	if (ret)
+ 		goto err_init_cppi;
+ 
+-	ret = cppi41_add_chans(pdev, cdd);
++	ret = cppi41_add_chans(&pdev->dev, cdd);
+ 	if (ret)
+ 		goto err_chans;
+ 
+@@ -1009,7 +1009,7 @@ err_irq:
+ 	cppi_writel(0, cdd->usbss_mem + USBSS_IRQ_CLEARR);
+ 	cleanup_chans(cdd);
+ err_chans:
+-	deinit_cpii41(pdev, cdd);
++	deinit_cpii41(&pdev->dev, cdd);
+ err_init_cppi:
+ 	pm_runtime_put(&pdev->dev);
+ err_get_sync:
+@@ -1033,7 +1033,7 @@ static int cppi41_dma_remove(struct platform_device *pdev)
+ 	cppi_writel(0, cdd->usbss_mem + USBSS_IRQ_CLEARR);
+ 	free_irq(cdd->irq, cdd);
+ 	cleanup_chans(cdd);
+-	deinit_cpii41(pdev, cdd);
++	deinit_cpii41(&pdev->dev, cdd);
+ 	iounmap(cdd->usbss_mem);
+ 	iounmap(cdd->ctrl_mem);
+ 	iounmap(cdd->sched_mem);
 -- 
 1.8.3.1
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
