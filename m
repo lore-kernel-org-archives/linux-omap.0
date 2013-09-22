@@ -1,35 +1,47 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 24/51] DMA-API: dma: pl330:
-	add	dma_set_mask_and_coherent() call
-Date: Sat, 21 Sep 2013 21:00:00 +0100
-Message-ID: <20130921200000.GS25647@n2100.arm.linux.org.uk>
-References: <20130919212235.GD12758@n2100.arm.linux.org.uk>
- <E1VMm5t-0007i5-V7@rmk-PC.arm.linux.org.uk>
- <201309201926.29084.heiko@sntech.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <alsa-devel-bounces@alsa-project.org>
-Content-Disposition: inline
-In-Reply-To: <201309201926.29084.heiko@sntech.de>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Heiko =?iso-8859-1?Q?St=FCbner?= <heiko@sntech.de>
-Cc: alsa-devel@alsa-project.org, linux-doc@vger.kernel.org, linux-mmc@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-nvme@lists.infradead.org, linux-ide@vger.kernel.org, devel@driverdev.osuosl.org, linux-samsung-soc@vger.kernel.org, linux-scsi@vger.kernel.org, e1000-devel@lists.sourceforge.net, b43-dev@lists.infradead.org, linux-media@vger.kernel.org, devicetree@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-tegra@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Solarflare linux maintainers <linux-net-drivers@solarflare.com>, netdev@vger.kernel.org, linux-usb@vger.kernel.org, linux-wireless@vger.kernel.org, Vinod Koul <vinod.koul@intel.com>, linux-crypto@vger.kernel.org, uclinux-dist-devel@blackfin.uclinux.org, linuxppc-dev@lists.ozlabs.org
+From: Daniel Mack <zonque@gmail.com>
+Subject: [PATCH 1/4] usb: musb: am35x: use SIMPLE_DEV_PM_OPS
+Date: Sun, 22 Sep 2013 13:46:58 +0200
+Message-ID: <1379850421-7966-1-git-send-email-zonque@gmail.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from svenfoo.org ([82.94.215.22]:58052 "EHLO mail.zonque.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752897Ab3IVLrl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 22 Sep 2013 07:47:41 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-ubs@vger.kernel.org
+Cc: balbi@ti.com, linux-omap@vger.kernel.org, gregkh@linuxfoundation.org, Daniel Mack <zonque@gmail.com>
 
-On Fri, Sep 20, 2013 at 07:26:27PM +0200, Heiko St=FCbner wrote:
-> Am Donnerstag, 19. September 2013, 23:49:01 schrieb Russell King:
-> > The DMA API requires drivers to call the appropriate dma_set_mask()
-> > functions before doing any DMA mapping.  Add this required call to
-> > the AMBA PL08x driver.
-> 			^--- copy and paste error - should of course be PL330
+This makes am35x_pm_ops const.
 
-Fixed, thanks.
+Also, checkpatch.pl complains about the use of DEV_PM_OPS:
+
+  ERROR: Macros with complex values should be enclosed in parenthesis
+
+Signed-off-by: Daniel Mack <zonque@gmail.com>
+---
+ drivers/usb/musb/am35x.c | 7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/usb/musb/am35x.c b/drivers/usb/musb/am35x.c
+index 5c310c6..df32a29 100644
+--- a/drivers/usb/musb/am35x.c
++++ b/drivers/usb/musb/am35x.c
+@@ -616,12 +616,9 @@ static int am35x_resume(struct device *dev)
+ 	return 0;
+ }
+ 
+-static struct dev_pm_ops am35x_pm_ops = {
+-	.suspend	= am35x_suspend,
+-	.resume		= am35x_resume,
+-};
++static SIMPLE_DEV_PM_OPS(am35x_pm_ops, am35x_suspend, am35x_resume);
+ 
+-#define DEV_PM_OPS	&am35x_pm_ops
++#define DEV_PM_OPS	(&am35x_pm_ops)
+ #else
+ #define DEV_PM_OPS	NULL
+ #endif
+-- 
+1.8.3.1
+
