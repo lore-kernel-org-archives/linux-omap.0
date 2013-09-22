@@ -1,79 +1,60 @@
-From: Sebastian Reichel <sre@ring0.de>
-Subject: Re: [PATCH v2 0/9] wilink: add device tree support
-Date: Sun, 22 Sep 2013 16:24:56 +0200
-Message-ID: <20130922142455.GA31967@earth.universe>
-References: <1372776948-24840-1-git-send-email-coelho@ti.com>
- <CANOLnOPBHesTiV61zpQ_QS9c7E91K50EnbMnGhvgaViuA_3=Bw@mail.gmail.com>
- <1372859132.21065.111.camel@cumari.coelho.fi>
- <20130921122718.GA4431@amd.pavel.ucw.cz>
- <20130921141614.GA21383@earth.universe>
- <20130922133632.GB8643@amd.pavel.ucw.cz>
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Subject: Re: [PATCH v2 5/5] dma: cppi41: add support for suspend and resume
+Date: Sun, 22 Sep 2013 18:25:29 +0400
+Message-ID: <523EFDD9.4060906@cogentembedded.com>
+References: <1379851068-18675-1-git-send-email-zonque@gmail.com> <1379851068-18675-6-git-send-email-zonque@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="DocE+STaALJfprDB"
-Return-path: <linux-doc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20130922133632.GB8643@amd.pavel.ucw.cz>
-Sender: linux-doc-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Luciano Coelho <coelho@ti.com>, Grazvydas Ignotas <notasas@gmail.com>, "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, nsekhar@ti.com, mturquette@linaro.org, mark.rutland@arm.com, Felipe Balbi <balbi@ti.com>, grant.likely@linaro.org, rob.herring@calxeda.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-lb0-f171.google.com ([209.85.217.171]:51454 "EHLO
+	mail-lb0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753268Ab3IVOZe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 22 Sep 2013 10:25:34 -0400
+Received: by mail-lb0-f171.google.com with SMTP id u14so1996271lbd.30
+        for <linux-omap@vger.kernel.org>; Sun, 22 Sep 2013 07:25:33 -0700 (PDT)
+In-Reply-To: <1379851068-18675-6-git-send-email-zonque@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Daniel Mack <zonque@gmail.com>
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, neumann@teufel.de, bigeasy@linutronix.de, vinod.koul@intel.com, dan.j.williams@intel.com, balbi@ti.com, gregkh@linuxfoundation.org
 
+Hello.
 
---DocE+STaALJfprDB
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On 22-09-2013 15:57, Daniel Mack wrote:
 
-On Sun, Sep 22, 2013 at 03:36:32PM +0200, Pavel Machek wrote:
-> > > > Unfortunately I don't have much time to work on wl1251.  I think it
-> > > > wouldn't be too difficult to do though, so patches are welcome. ;)
-> > > >=20
-> > > > Maybe you could try to make this change and I could support you if
-> > > > needed?
-> > > >=20
-> > > >=20
-> > > > > I can offer you my help testing things on pandora and I'm sure so=
-meone
-> > > > > here could try it on N900.
-> > > >=20
-> > > > I could try it on the N900, if it is still bootable easily with the
-> > > > mainline. ;)
-> > >=20
-> > > 3.11 should be bootable on mainline, including device tree and
-> > > video. (But excluding some other stuff, like MMC.)
-> >=20
-> > I got external MMC (=3D> =B5SD) working with some small modifications of
-> > the omap3-n900.dts file. I have not yet tried internal MMC, since
-> > its not important for me at the moment, but I guess its also just a
-> > small change in the dts file.
->=20
-> Can we get the diff? :-).
+> This patch adds support for suspend/resume functionality to the cppi41
+> DMA driver. The steps neccessary to make the system resume properly were
 
-I will sent a patchset for the omap3-n900.dts file in the next days.
+    Necessary.
 
--- Sebastian
+> figured out by hefty trial-and-error. The code as it stands now is the
+> minimum that has to be done to put the musb host system on an AM33xx
+> system into an operable state after resume.
 
---DocE+STaALJfprDB
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+> Signed-off-by: Daniel Mack <zonque@gmail.com>
+> ---
+>   drivers/dma/cppi41.c | 33 +++++++++++++++++++++++++++++++++
+>   1 file changed, 33 insertions(+)
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
+> diff --git a/drivers/dma/cppi41.c b/drivers/dma/cppi41.c
+> index 3347321..59dfa8e 100644
+> --- a/drivers/dma/cppi41.c
+> +++ b/drivers/dma/cppi41.c
+> @@ -1040,12 +1040,45 @@ static int cppi41_dma_remove(struct platform_device *pdev)
+>   	return 0;
+>   }
+>
+> +#ifdef CONFIG_PM_SLEEP
+[...]
+> +static SIMPLE_DEV_PM_OPS(cppi41_pm_ops, cppi41_suspend, cppi41_resume);
+> +
+> +#define DEV_PM_OPS (&cppi41_pm_ops)
+> +#else
+> +#define DEV_PM_OPS NULL
+> +#endif
 
-iQIcBAEBCAAGBQJSPv23AAoJENju1/PIO/qaCicP+wdhXI0ya2fzalM6KTu4A9GH
-aVXTSDi9+PSzTd3XvxpwbdBQCvje99j/PDLWkoiv8s3MQAkPNBwDpkE3ukK0/2ER
-RdMOpX6JIVtX0VcZm8BLFeM1Fi4WWDkwqDmKU4VON5aqg4OMayCd1vEcGP1Yepua
-MGo1+p3hPgy7ZYUGzXsUKifdJiN9NpJmn2hcOEP0Hd/o44mYBT0bPxHeQ/HyD2RX
-NQ2i8YzcmtAnEeIbwiYkNJzzc2Z3wiTLkP9tYpv22kEX/5h7PzAmxnecRFYtz/m7
-8MW03zNV6S4Et/vOSNQNHZhPsXS32+LsFBZcYTwVgCqXz53qIIRKzPsMokNp6UHv
-RwOCevUUXX4WFk7S3c0zyNIaXopYeJSy8xWhIGQxAEXYZSLtxCn60u53pWcDEZAV
-oKTNm6tBb4/npOdkmSFnj5Ls9g3aUWVJNARsOeTyTxfGgFe9ET2LD2/57WJYQHyu
-v1V1sa0cSf921Jp7drZbAj2vdHHLw+IivJF9ydfsu3uJfuD7hy6OtuDs6TCQNakx
-GSRImkKxQxOhSdNw0RPGZoy2EKGr8ybN+3CzsjHPXvCE32kJkhVdUw+tyJBxZ36o
-xNgxBWDouoWO8dA0Qd/UrknA/XMAMfD4japCCiFtJEQ9/Jf5LDMvp4LJT8chbuSN
-bcg2s8xa3QlWiB/K3XUU
-=g66U
------END PGP SIGNATURE-----
+    You don't need that with SIMPLE_DEV_PM_OPS(), just get it out of #ifdef.
 
---DocE+STaALJfprDB--
+WBR, Sergei
+
