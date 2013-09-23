@@ -1,83 +1,92 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 1/4] usb: musb: am35x: use SIMPLE_DEV_PM_OPS
-Date: Mon, 23 Sep 2013 16:20:09 -0500
-Message-ID: <20130923212009.GK309@radagast>
-References: <1379850421-7966-1-git-send-email-zonque@gmail.com>
-Reply-To: <balbi@ti.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="WuedheRyq6FDfQ9j"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:45374 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752125Ab3IWVUR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 23 Sep 2013 17:20:17 -0400
-Content-Disposition: inline
-In-Reply-To: <1379850421-7966-1-git-send-email-zonque@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Thierry Reding <thierry.reding@gmail.com>
+Subject: [PATCH 00/10] pwm-backlight: Add GPIO and power supply support
+Date: Mon, 23 Sep 2013 23:40:57 +0200
+Message-ID: <1379972467-11243-1-git-send-email-treding@nvidia.com>
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: Thierry Reding <thierry.reding@gmail.com>
+Cc: Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Tony Lindgren <tony@atomide.com>, Eric Miao <eric.y.miao@gmail.com>, Haojian Zhuang <haojian.zhuang@gmail.com>, Ben Dooks <ben-linux@fluff.org>, Kukjin Kim <kgene.kim@samsung.com>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Guan Xuetao <gxt@mprc.pku.edu.cn>, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, openezx-devel@lists.openezx.org, linux-samsung-soc@vger.kernel.org, linux-sh@vger.kernel.org, linux-pwm@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Daniel Mack <zonque@gmail.com>
-Cc: linux-ubs@vger.kernel.org, balbi@ti.com, linux-omap@vger.kernel.org, gregkh@linuxfoundation.org
 
---WuedheRyq6FDfQ9j
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+This series adds the ability to specify a GPIO and a power supply to
+enable a backlight.
 
-Hi,
+Patch 1 refactors the power on and power off sequences into separate
+functions in preparation for subsequent patches.
 
-On Sun, Sep 22, 2013 at 01:46:58PM +0200, Daniel Mack wrote:
-> This makes am35x_pm_ops const.
->=20
-> Also, checkpatch.pl complains about the use of DEV_PM_OPS:
->=20
->   ERROR: Macros with complex values should be enclosed in parenthesis
->=20
-> Signed-off-by: Daniel Mack <zonque@gmail.com>
-> ---
->  drivers/usb/musb/am35x.c | 7 ++-----
->  1 file changed, 2 insertions(+), 5 deletions(-)
->=20
-> diff --git a/drivers/usb/musb/am35x.c b/drivers/usb/musb/am35x.c
-> index 5c310c6..df32a29 100644
-> --- a/drivers/usb/musb/am35x.c
-> +++ b/drivers/usb/musb/am35x.c
-> @@ -616,12 +616,9 @@ static int am35x_resume(struct device *dev)
->  	return 0;
->  }
-> =20
-> -static struct dev_pm_ops am35x_pm_ops =3D {
-> -	.suspend	=3D am35x_suspend,
-> -	.resume		=3D am35x_resume,
-> -};
-> +static SIMPLE_DEV_PM_OPS(am35x_pm_ops, am35x_suspend, am35x_resume);
+Patch 2 adds an optional GPIO to enable a backlight. This patch only
+includes the field within the platform data so that it can be properly
+setup before actually being put to use.
 
-you could as well remove the DEV_PM_OPS trickery. Ditto for all other
-patches
+Patches 3 to 7 convert all users of the pwm-backlight driver to use the
+new field. For most of them, this just initializes the field to -1,
+marking the field as unused.
 
---=20
-balbi
+Patch 8 uses the new field within the pwm-backlight driver and at the
+same time allows it to be parsed from device tree.
 
---WuedheRyq6FDfQ9j
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Patch 9 implements support for an optional power supply. This relies on
+the regulator core to return a dummy regulator when no supply has been
+otherwise setup so the driver doesn't have to handle that specially nor
+require all users to be updated.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+Patch 10 adds a way to keep a backlight turned off at boot. This is
+useful when hooking up a backlight with a subsystem such as DRM which
+has more explicit semantics as to when a backlight should be turned on.
 
-iQIcBAEBAgAGBQJSQLCJAAoJEIaOsuA1yqREQDkP+wQbLNC511KDIm34gz02Z0UY
-701qUpQPDPzW6qtcatLMFdjGnbeGgVrYaUKVP/dK5Wiuq/7T+hG+Eko5n7mvnhmc
-QVO6TXxdQvo3xRDn1tVAyI1LTmKYfN6KocwqtDfX03ZqUi5ZsQXjZz7myuh6lcwH
-qO+8bRqr8y4FXYZPdoY1/2/OOk2vGcCBFdXXigZqmYwIK1jztrLmWbRtMjICNP95
-gB6S10z1IGCnCnn00KGxo657jpbTb4tMD7Qlj/nyeLVTMzFZGzGz60hBV89wK1gT
-+fn2LsUku6NfxW/Ah/yEapQ/+AU5zFn4qkMbCB7M9GIVrEsZE+qD6copmp2jIGzW
-k02uja3HRau3W5f821hiJ4NQ+br3+fkmGvLrbkU/e0h5BCDMgIuQ8sF8gQZS+Jzh
-tR+83fbiSXgteqykUILvn0GljvU4gkLWnqYJrnDIQILh3nEzdUMH78rIYoX2Ip8y
-vK81wVwzGBawTk5tpM/E90Ve0y5BEX6qJMd72Y3vlBGqu6rlRbdUEet2U8sXafrv
-50lWjWQy07D2EmN5cnHb2LL1a5PBMqQCwGBKyczu0mtWejWFjypKDssBmVidKnDU
-OhtaZCdroImE+4k7clzOkDiP78Qbm76FfMS+dk3aQVXPq9TIK2YKi8iBjyx7cuWK
-pf2nKfVRlaSvD7Ut7iiK
-=ql7s
------END PGP SIGNATURE-----
+Due to the dependencies within the series, I propose to take all these
+patches through the PWM tree, so I'll need acks from OMAP, PXA, Samsung,
+shmobile and Unicore32 maintainers.
 
---WuedheRyq6FDfQ9j--
+Thierry
+
+Thierry Reding (10):
+  pwm-backlight: Refactor backlight power on/off
+  pwm-backlight: Add optional enable GPIO
+  ARM: OMAP: Initialize PWM backlight enable_gpio field
+  ARM: pxa: Initialize PWM backlight enable_gpio field
+  ARM: SAMSUNG: Initialize PWM backlight enable_gpio field
+  ARM: shmobile: Initialize PWM backlight enable_gpio field
+  unicore32: Initialize PWM backlight enable_gpio field
+  pwm-backlight: Use new enable_gpio field
+  pwm-backlight: Use an optional power supply
+  pwm-backlight: Allow backlight to remain disabled on boot
+
+ .../bindings/video/backlight/pwm-backlight.txt     |   6 +
+ arch/arm/mach-omap2/board-zoom-peripherals.c       |   1 +
+ arch/arm/mach-pxa/cm-x300.c                        |   1 +
+ arch/arm/mach-pxa/colibri-pxa270-income.c          |   1 +
+ arch/arm/mach-pxa/ezx.c                            |   1 +
+ arch/arm/mach-pxa/hx4700.c                         |   1 +
+ arch/arm/mach-pxa/lpd270.c                         |   1 +
+ arch/arm/mach-pxa/magician.c                       |   1 +
+ arch/arm/mach-pxa/mainstone.c                      |   1 +
+ arch/arm/mach-pxa/mioa701.c                        |   1 +
+ arch/arm/mach-pxa/palm27x.c                        |   1 +
+ arch/arm/mach-pxa/palmtc.c                         |  35 +----
+ arch/arm/mach-pxa/palmte2.c                        |   1 +
+ arch/arm/mach-pxa/pcm990-baseboard.c               |   1 +
+ arch/arm/mach-pxa/raumfeld.c                       |   1 +
+ arch/arm/mach-pxa/tavorevb.c                       |   2 +
+ arch/arm/mach-pxa/viper.c                          |   1 +
+ arch/arm/mach-pxa/z2.c                             |   2 +
+ arch/arm/mach-pxa/zylonite.c                       |   1 +
+ arch/arm/mach-s3c24xx/mach-h1940.c                 |   1 +
+ arch/arm/mach-s3c24xx/mach-rx1950.c                |   1 +
+ arch/arm/mach-s3c64xx/mach-crag6410.c              |   1 +
+ arch/arm/mach-s3c64xx/mach-hmt.c                   |   1 +
+ arch/arm/mach-s3c64xx/mach-smartq.c                |   1 +
+ arch/arm/mach-s3c64xx/mach-smdk6410.c              |   1 +
+ arch/arm/mach-s5p64x0/mach-smdk6440.c              |   1 +
+ arch/arm/mach-s5p64x0/mach-smdk6450.c              |   1 +
+ arch/arm/mach-s5pc100/mach-smdkc100.c              |   1 +
+ arch/arm/mach-s5pv210/mach-smdkv210.c              |   1 +
+ arch/arm/mach-shmobile/board-armadillo800eva.c     |   1 +
+ arch/arm/plat-samsung/dev-backlight.c              |   5 +
+ arch/unicore32/kernel/puv3-nb0916.c                |   1 +
+ drivers/video/backlight/pwm_bl.c                   | 142 ++++++++++++++++-----
+ include/linux/pwm_backlight.h                      |   7 +
+ 34 files changed, 162 insertions(+), 64 deletions(-)
+
+-- 
+1.8.4
