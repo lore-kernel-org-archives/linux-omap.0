@@ -1,79 +1,83 @@
-From: Sebastian Reichel <sre@ring0.de>
-Subject: Re: [PATCH 4/4] RX-51: Add platform function and data for bq24150a
- charger
-Date: Mon, 23 Sep 2013 22:47:15 +0200
-Message-ID: <20130923204714.GB22995@earth.universe>
-References: <1378630239-10006-1-git-send-email-pali.rohar@gmail.com>
- <201309232116.19161@pali>
- <20130923200008.GA21808@earth.universe>
- <201309232206.47391@pali>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 1/4] usb: musb: am35x: use SIMPLE_DEV_PM_OPS
+Date: Mon, 23 Sep 2013 16:20:09 -0500
+Message-ID: <20130923212009.GK309@radagast>
+References: <1379850421-7966-1-git-send-email-zonque@gmail.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="vGgW1X5XWziG23Ko"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="WuedheRyq6FDfQ9j"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:45374 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752125Ab3IWVUR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 23 Sep 2013 17:20:17 -0400
 Content-Disposition: inline
-In-Reply-To: <201309232206.47391@pali>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, freemangordon@abv.bg, aaro.koskinen@iki.fi, pavel@ucw.cz
+In-Reply-To: <1379850421-7966-1-git-send-email-zonque@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Daniel Mack <zonque@gmail.com>
+Cc: linux-ubs@vger.kernel.org, balbi@ti.com, linux-omap@vger.kernel.org, gregkh@linuxfoundation.org
 
-
---vGgW1X5XWziG23Ko
-Content-Type: text/plain; charset=iso-8859-1
+--WuedheRyq6FDfQ9j
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Sep 23, 2013 at 10:06:46PM +0200, Pali Roh=E1r wrote:
-> On Monday 23 September 2013 22:00:09 Sebastian Reichel wrote:
-> > On Mon, Sep 23, 2013 at 09:16:18PM +0200, Pali Roh=E1r wrote:
-> > > It is not as simple as it looks. This is reason why I
-> > > submited this patch long time after I submited bq2415x
-> > > driver.
-> > >=20
-> > > Problem is that for rx51 is needed specific function which
-> > > connect to two drivers (bq2415x and isp1704) plus it call
-> > > specific rx51 board functions.
-> > >=20
-> > > Something which cannot be in DT (unless DT support C/ASM
-> > > code).
-> >=20
-> > mh could isp1704 driver expose the data via the regulator
-> > framework?
+Hi,
+
+On Sun, Sep 22, 2013 at 01:46:58PM +0200, Daniel Mack wrote:
+> This makes am35x_pm_ops const.
 >=20
-> No, isp1704 is power supply driver and export data via power=20
-> supply (sysfs) interface. It is not regulator but charger driver.
+> Also, checkpatch.pl complains about the use of DEV_PM_OPS:
+>=20
+>   ERROR: Macros with complex values should be enclosed in parenthesis
+>=20
+> Signed-off-by: Daniel Mack <zonque@gmail.com>
+> ---
+>  drivers/usb/musb/am35x.c | 7 ++-----
+>  1 file changed, 2 insertions(+), 5 deletions(-)
+>=20
+> diff --git a/drivers/usb/musb/am35x.c b/drivers/usb/musb/am35x.c
+> index 5c310c6..df32a29 100644
+> --- a/drivers/usb/musb/am35x.c
+> +++ b/drivers/usb/musb/am35x.c
+> @@ -616,12 +616,9 @@ static int am35x_resume(struct device *dev)
+>  	return 0;
+>  }
+> =20
+> -static struct dev_pm_ops am35x_pm_ops =3D {
+> -	.suspend	=3D am35x_suspend,
+> -	.resume		=3D am35x_resume,
+> -};
+> +static SIMPLE_DEV_PM_OPS(am35x_pm_ops, am35x_suspend, am35x_resume);
 
-well it does not charge the battery directly, but just provides a
-power line with 5 Volt and a specified amount of current to the
-system, doesn't it?
+you could as well remove the DEV_PM_OPS trickery. Ditto for all other
+patches
 
-=46rom my POV this is a candiate for the regulator framework:
+--=20
+balbi
 
-https://www.kernel.org/doc/Documentation/power/regulator/overview.txt
-
--- Sebastian
-
---vGgW1X5XWziG23Ko
+--WuedheRyq6FDfQ9j
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBCAAGBQJSQKjSAAoJENju1/PIO/qa+8sP+wfWRfRSXNYLypgsVcts915N
-/28LyZzg9roUtzo2XZvx3KcY1XM6XfXPeEc3ELmySx2/g6xyXD3PLNA8ZVDFc6Us
-3uU5CorwWrBWInBMaiKi3jyKOdr8rsk6VZ7ZXNDHXtRwaencoo3nZw6aD9cYtUuH
-PG/9FvKAT/KHvHpmWA/uXX3iVKeR2QDhLtJ+sZb04LKtLwNG523Qz8dG59CCRivG
-xOhDAyY8Clmb9O7JM2vEHIYbRLRJBo1HXY2zwbJ4Y4qtv/6Ko0HqWKWZmRClF1oy
-+MPutgnr5jUPyr18cHeXGx3k0LYXwpa/NqwXY7gAVn58wAN23P/gYMOIO5xC62Xj
-r5x0YdidwkRNheH60N8bW+ifLMLl0bGOy6QmgPcfl3Az7u2gnyPB78TbzGAugm4a
-rTbtIycX25UF2Dw7A/3mH2nM5JrEIFRe/oZDggLV5XtppCBZTL/f+bV+eTXZ/7WS
-jSUqhH1xgKfABP/cyEnJAMLoIvtpFUdVQhB3jXmJqwMFBn6c5M2fzUduUALx9MS9
-7eiczgJ0/rtdvprgMNiA1G/ikcfJe9CdKLa51Dbg7FWZ6hNgTtdC+AYwm8H9bxR/
-GtUPyxIbpoCy/H0N984dCrF+9sBFmowh7andidE7OhkLSGMHEtX7OsHREXNz+y3x
-L+wJmo9OYGYrUYi8SH+v
-=4716
+iQIcBAEBAgAGBQJSQLCJAAoJEIaOsuA1yqREQDkP+wQbLNC511KDIm34gz02Z0UY
+701qUpQPDPzW6qtcatLMFdjGnbeGgVrYaUKVP/dK5Wiuq/7T+hG+Eko5n7mvnhmc
+QVO6TXxdQvo3xRDn1tVAyI1LTmKYfN6KocwqtDfX03ZqUi5ZsQXjZz7myuh6lcwH
+qO+8bRqr8y4FXYZPdoY1/2/OOk2vGcCBFdXXigZqmYwIK1jztrLmWbRtMjICNP95
+gB6S10z1IGCnCnn00KGxo657jpbTb4tMD7Qlj/nyeLVTMzFZGzGz60hBV89wK1gT
++fn2LsUku6NfxW/Ah/yEapQ/+AU5zFn4qkMbCB7M9GIVrEsZE+qD6copmp2jIGzW
+k02uja3HRau3W5f821hiJ4NQ+br3+fkmGvLrbkU/e0h5BCDMgIuQ8sF8gQZS+Jzh
+tR+83fbiSXgteqykUILvn0GljvU4gkLWnqYJrnDIQILh3nEzdUMH78rIYoX2Ip8y
+vK81wVwzGBawTk5tpM/E90Ve0y5BEX6qJMd72Y3vlBGqu6rlRbdUEet2U8sXafrv
+50lWjWQy07D2EmN5cnHb2LL1a5PBMqQCwGBKyczu0mtWejWFjypKDssBmVidKnDU
+OhtaZCdroImE+4k7clzOkDiP78Qbm76FfMS+dk3aQVXPq9TIK2YKi8iBjyx7cuWK
+pf2nKfVRlaSvD7Ut7iiK
+=ql7s
 -----END PGP SIGNATURE-----
 
---vGgW1X5XWziG23Ko--
+--WuedheRyq6FDfQ9j--
