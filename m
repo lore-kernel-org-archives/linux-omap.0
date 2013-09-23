@@ -1,33 +1,52 @@
-From: Vinod Koul <vinod.koul@intel.com>
-Subject: Re: [PATCH v3 4/5] dma: cppi41: only allocate descriptor memory
- once
-Date: Mon, 23 Sep 2013 20:06:59 +0530
-Message-ID: <20130923143659.GL17188@intel.com>
-References: <1379861404-8250-1-git-send-email-zonque@gmail.com>
- <1379861404-8250-5-git-send-email-zonque@gmail.com>
- <20130923041754.GZ17188@intel.com>
- <5240555A.60404@linutronix.de>
+From: Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 1/1] ARM: dts: am335x-bone-common: correct mux mode for
+ mmc1_cmd
+Date: Mon, 23 Sep 2013 20:58:48 +0530
+Message-ID: <52405E30.2020001@ti.com>
+References: <1379698696-21945-1-git-send-email-balajitk@ti.com> <523C9DE4.6040109@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:46731 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752298Ab3IWP1g (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 23 Sep 2013 11:27:36 -0400
-Content-Disposition: inline
-In-Reply-To: <5240555A.60404@linutronix.de>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <523C9DE4.6040109-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Cc: bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Daniel Mack <zonque@gmail.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, neumann@teufel.de, sergei.shtylyov@cogentembedded.com, dan.j.williams@intel.com, balbi@ti.com, gregkh@linuxfoundation.org
 
-On Mon, Sep 23, 2013 at 04:51:06PM +0200, Sebastian Andrzej Siewior wrote:
-> On 09/23/2013 06:17 AM, Vinod Koul wrote:
-> > Looks fine, Sebastian cna you test it pls
-> 
-> Just noticed that you already applied some of them. I just got back
-> after a few weeks of. Will review & test as soon as I get to it.
-Yes, the first three were trvial, 5th one looked fine to me !
+On Saturday 21 September 2013 12:41 AM, Nishanth Menon wrote:
+> On 09/20/2013 12:38 PM, Balaji T K wrote:
+>> correct mux mode for mmc1_cmd to detect eMMC on bone-black
+>>
+>> Signed-off-by: Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>
+>> ---
+>>   arch/arm/boot/dts/am335x-bone-common.dtsi |    2 +-
+>>   1 files changed, 1 insertions(+), 1 deletions(-)
+>>
+>> diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
+>> index 56361ce..90ab56c 100644
+>> --- a/arch/arm/boot/dts/am335x-bone-common.dtsi
+>> +++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
+>> @@ -117,7 +117,7 @@
+>>   		emmc_pins: pinmux_emmc_pins {
+>>   			pinctrl-single,pins = <
+>>   				0x80 (PIN_INPUT_PULLUP | MUX_MODE2) /* gpmc_csn1.mmc1_clk */
+>> -				0x84 (PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_csn2.mmc1_cmd */
+>> +				0x84 (PIN_INPUT_PULLUP | MUX_MODE2) /* gpmc_csn2.mmc1_cmd */
+>>   				0x00 (PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_ad0.mmc1_dat0 */
+>>   				0x04 (PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_ad1.mmc1_dat1 */
+>>   				0x08 (PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_ad2.mmc1_dat2 */
+>>
+> is'nt this a common change? why is it "black only"? if it is so, then
+> the pinmux should probably be spun off outside bone-common.dtsi into
+> boneblack.dtsi perhaps?
+>
 
-~Vinod
--- 
+It is applicable for add-on eMMC-cape for beagle bone white, so eMMC pinmux can
+remain in bone-common.dtsi.
+However I could test only on beagle bone black which has eMMC on board, since I
+don't have access to eMMC-cape
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
