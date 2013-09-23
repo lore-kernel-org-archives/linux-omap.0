@@ -1,64 +1,120 @@
-From: Chen Gang <gang.chen@asianux.com>
-Subject: [PATCH v3] ARM: VExpress: Makefile: add armv7 flags for inline assmembly
- code compiling
-Date: Mon, 23 Sep 2013 09:50:12 +0800
-Message-ID: <523F9E54.70907@asianux.com>
-References: <521479B4.8030604@asianux.com> <52147AC6.9040300@asianux.com> <52147E12.4060401@asianux.com> <20130822074524.GS7656@atomide.com> <20130822102210.GF25647@n2100.arm.linux.org.uk> <5216BF16.2080006@asianux.com> <5216C389.9050605@asianux.com> <5216D138.6080802@asianux.com> <5216D31B.9050609@asianux.com> <20130823055152.GY7656@atomide.com> <52170900.5070909@asianux.com> <52170C15.5010907@asianux.com> <52171720.4050501@asianux.com> <52171978.7080805@asianux.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: OMAP baseline test results for v3.12-rc1
+Date: Mon, 23 Sep 2013 03:02:08 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1309230255320.18475@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from intranet.asianux.com ([58.214.24.6]:14881 "EHLO
-	intranet.asianux.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753061Ab3IWBvQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 22 Sep 2013 21:51:16 -0400
-In-Reply-To: <52171978.7080805@asianux.com>
+Received: from utopia.booyaka.com ([74.50.51.50]:55480 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752611Ab3IWDCJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 22 Sep 2013 23:02:09 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: linux-omap@vger.kernel.org
+Cc: kernel-build-reports@lists.linaro.org, linux-arm-kernel@lists.infradead.org
 
 
-When 'vexpress' kernel is compiled for both v6 and v7, it can support
-armv7 instructions in lower level modules, so need let compiler know
-about it for related inline assembly code, or can not pass compiling.
+Here are some basic OMAP test results for Linux v3.12-rc1.
+Logs and other details at:
 
-The related failure command:
-
-  arm-linux-gnueabi-gcc -Wp,-MD,arch/arm/mach-vexpress/.dcscb.o.d  -nostdinc -isystem /usr/lib/gcc/arm-linux-gnueabi/4.7/include -I/root/linux-next/arch/arm/include -Iarch/arm/include/generated  -Iinclude -I/root/linux-next/arch/arm/include/uapi -Iarch/arm/include/generated/uapi -I/root/linux-next/include/uapi -Iinclude/generated/uapi -include /root/linux-next/include/linux/kconfig.h -D__KERNEL__ -mlittle-endian -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs -fno-strict-aliasing -fno-common -Werror-implicit-function-declaration -Wno-format-security -fno-delete-null-pointer-checks -Werror=implicit-int -Werror=strict-prototypes -Os -Wno-maybe-uninitialized -fno-dwarf2-cfi-asm -fno-omit-frame-pointer -mapcs -mno-sched-prolog -fstack-protector -mabi=aapcs-linux -mno-thumb-interwork -funwind-
- tables -marm -D__LINUX_ARM_ARCH__=6 -march=armv6k -mtune=arm1136j-s -msoft-float -Uarm -fno-reorder-blocks -fno-ipa-cp-clone -fno-partial-inlining -Wframe-larger-than=1024 -Wno-unused-but-se
- t-variabl
-
-e -fno-omit-frame-pointer -fno-optimize-sibling-calls -g -femit-struct-debug-baseonly -fno-var-tracking -pg -fno-inline-functions-called-once -Wdeclaration-after-statement -Wno-pointer-sign -fno-strict-overflow -fconserve-stack -DCC_HAVE_ASM_GOTO -I/root/linux-next/arch/arm/mach-vexpress/include -I/root/linux-next/arch/arm/plat-versatile/include -W     -D"KBUILD_STR(s)=#s" -D"KBUILD_BASENAME=KBUILD_STR(dcscb)"  -D"KBUILD_MODNAME=KBUILD_STR(dcscb)" -c -o arch/arm/mach-vexpress/.tmp_dcscb.o arch/arm/mach-vexpress/dcscb.c
-
-The related error:
-
-  /tmp/ccOMIprI.s: Assembler messages:
-  /tmp/ccOMIprI.s:507: Error: selected processor does not support ARM mode `isb '
-  /tmp/ccOMIprI.s:513: Error: selected processor does not support ARM mode `isb '
-  /tmp/ccOMIprI.s:514: Error: selected processor does not support ARM mode `dsb '
-  /tmp/ccOMIprI.s:584: Error: selected processor does not support ARM mode `isb '
-  /tmp/ccOMIprI.s:590: Error: selected processor does not support ARM mode `isb '
-  /tmp/ccOMIprI.s:591: Error: selected processor does not support ARM mode `dsb '
-  make[1]: *** [arch/arm/mach-vexpress/dcscb.o] Error 1
-  make: *** [arch/arm/mach-vexpress] Error 2
+    http://www.pwsan.com/omap/testlogs/test_v3.12-rc1/20130922202452/
 
 
-Signed-off-by: Chen Gang <gang.chen@asianux.com>
----
- arch/arm/mach-vexpress/Makefile |    3 +++
- 1 files changed, 3 insertions(+), 0 deletions(-)
+Test summary
+------------
 
-diff --git a/arch/arm/mach-vexpress/Makefile b/arch/arm/mach-vexpress/Makefile
-index 36ea824..f224577 100644
---- a/arch/arm/mach-vexpress/Makefile
-+++ b/arch/arm/mach-vexpress/Makefile
-@@ -10,3 +10,6 @@ obj-$(CONFIG_ARCH_VEXPRESS_DCSCB)	+= dcscb.o	dcscb_setup.o
- obj-$(CONFIG_ARCH_VEXPRESS_TC2_PM)	+= tc2_pm.o spc.o
- obj-$(CONFIG_SMP)			+= platsmp.o
- obj-$(CONFIG_HOTPLUG_CPU)		+= hotplug.o
-+
-+CFLAGS_dcscb.o				+=-march=armv7-a
-+CFLAGS_tc2_pm.o				+=-march=armv7-a
--- 
-1.7.7.6
+Build: zImage:
+    Pass ( 2/ 2): omap2plus_defconfig, omap2plus_defconfig_am33xx_only
+
+Build: uImage+dtb:
+    Pass ( 3/ 3): omap2plus_defconfig_am33xx_only/am335x-bone,
+		  omap2plus_defconfig/omap4-panda,
+		  omap2plus_defconfig/omap4-panda-es
+
+Build: uImage:
+    Pass (14/14): omap1_defconfig, omap1_defconfig_1510innovator_only,
+		  omap1_defconfig_5912osk_only, omap2plus_defconfig,
+		  omap2plus_defconfig_2430sdp_only,
+		  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm,
+		  omap2plus_defconfig_n800_only_a,
+		  omap2plus_defconfig_n800_multi_omap2xxx,
+		  omap2plus_defconfig_omap2_4_only,
+		  omap2plus_defconfig_omap3_4_only,
+		  rmk_omap3430_ldp_allnoconfig,
+		  rmk_omap3430_ldp_oldconfig,
+		  rmk_omap4430_sdp_allnoconfig
+
+Boot to userspace:
+    skip ( 1/ 1): 5912osk
+    Pass (11/11): 2430sdp, 3517evm, 3530es3beagle, 3730beaglexm,
+		  37xxevm, 4430es2panda, 4460pandaes, am335xbone,
+		  am335xbonelt, cmt3517, 4460varsomom
+
+PM: chip retention via suspend:
+    FAIL ( 3/ 7): 2430sdp, 4430es2panda, 4460varsomom
+    Pass ( 4/ 7): 3530es3beagle, 3730beaglexm, 37xxevm, 4460pandaes
+
+PM: chip retention via dynamic idle:
+    FAIL ( 4/ 7): 2430sdp, 4430es2panda, 4460pandaes, 4460varsomom
+    Pass ( 3/ 7): 3530es3beagle, 3730beaglexm, 37xxevm
+
+PM: chip off except CORE via suspend:
+    Pass ( 1/ 1): 3730beaglexm
+
+PM: chip off except CORE via dynamic idle:
+    Pass ( 1/ 1): 3730beaglexm
+
+PM: chip off via suspend:
+    FAIL ( 3/ 5): 4430es2panda, 4460pandaes, 4460varsomom
+    Pass ( 2/ 5): 3530es3beagle, 37xxevm
+
+PM: chip off via dynamic idle:
+    FAIL ( 3/ 5): 4430es2panda, 4460pandaes, 4460varsomom
+    Pass ( 2/ 5): 3530es3beagle, 37xxevm
+
+
+vmlinux object size
+(delta in bytes from test_v3.11 (6e4664525b1db28f8c4e1130957f70a94c19213e)):
+   text     data      bss    total  kernel
+ +39515    +1500      +56   +41071  omap1_defconfig
+ +37048    +1436      +56   +38540  omap1_defconfig_1510innovator_only
+ +38579    +1500      +88   +40167  omap1_defconfig_5912osk_only
++237402   +47344     +760  +285506  omap2plus_defconfig
+-245280   -65736    -8488  -319504  omap2plus_defconfig_2430sdp_only
++241222   +47120     +696  +289038  omap2plus_defconfig_cpupm
++3314252  +272060  +5365880  +8952192  omap2plus_defconfig_n800_multi_omap2xxx
++3282652  +234764  +5365840  +8883256  omap2plus_defconfig_n800_only_a
++242382   +49736     +824  +292942  omap2plus_defconfig_no_pm
++305085   +99792    +4408  +409285  omap2plus_defconfig_omap2_4_only
++292422   +98536    +3960  +394918  omap2plus_defconfig_omap3_4_only
+ +34044     -452    +2524   +36116  rmk_omap3430_ldp_allnoconfig
+ +42173     +412    -1152   +41433  rmk_omap3430_ldp_oldconfig
+ +33264    +1892     -732   +34424  rmk_omap4430_sdp_allnoconfig
+
+The large deltas associated with the N800 configs are due to a switchover 
+to seedconfig-generated Kconfigs - the name changed.  Something is not 
+right with the 2430sdp_only config; that should show a size increase 
+similar to the other OMAP2 kconfigs - will look into it.
+
+
+Boot-time memory difference
+(delta in bytes from test_v3.11 (6e4664525b1db28f8c4e1130957f70a94c19213e))
+  avail  rsrvd   high  freed  board          kconfig
+ 16376k -16376k      .      .  2420n800       omap2plus_defconfig_n800_only_a
+  -280k   280k      .    12k  2430sdp        omap2plus_defconfig
+  -280k   280k      .    12k  3517evm        omap2plus_defconfig
+  -280k   280k      .    12k  3530es3beagle  omap2plus_defconfig
+  -280k   280k      .    12k  3730beaglexm   omap2plus_defconfig
+  -280k   280k      .    12k  37xxevm        omap2plus_defconfig
+  -276k   276k      .    12k  4430es2panda   omap2plus_defconfig
+  -276k   276k      .    12k  4460pandaes    omap2plus_defconfig
+    24k   -24k      .   -32k  am335xbone     omap2plus_defconfig_am33xx_only
+  -288k   288k      .    12k  am335xbonelt   omap2plus_defconfig_am33xx_only
+
+The 16MB difference in the N800 boot memory usage is caused by disabling 
+CMA in the config here.
+
+Nice job everyone - this is the first -rc1 in a while where it looks like 
+there's no need to run around trying to deal with post-merge window boot 
+regressions.
