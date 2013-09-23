@@ -1,111 +1,94 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [RFC PATCH 15/15] arm: dts: dra7: add sata node
-Date: Mon, 23 Sep 2013 11:24:12 +0300
-Message-ID: <523FFAAC.3050907@ti.com>
-References: <1379595943-14622-1-git-send-email-rogerq@ti.com> <1379597059-15405-1-git-send-email-rogerq@ti.com> <523B05FD.7020200@cogentembedded.com> <523C214A.30406@ti.com> <523F3AE4.5050709@cogentembedded.com>
+From: Vinod Koul <vinod.koul@intel.com>
+Subject: Re: [PATCH v3 5/5] dma: cppi41: add support for suspend and resume
+Date: Mon, 23 Sep 2013 15:30:13 +0530
+Message-ID: <20130923100013.GE17188@intel.com>
+References: <1379861404-8250-1-git-send-email-zonque@gmail.com>
+ <1379861404-8250-6-git-send-email-zonque@gmail.com>
+ <20130923040947.GV17188@intel.com>
+ <523FD747.8060304@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-ide-owner@vger.kernel.org>
-In-Reply-To: <523F3AE4.5050709@cogentembedded.com>
-Sender: linux-ide-owner@vger.kernel.org
-To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>, kishon@ti.com
-Cc: balbi@ti.com, bcousson@baylibre.com, tony@atomide.com, balajitk@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-ide@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:24714 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752314Ab3IWKvA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 23 Sep 2013 06:51:00 -0400
+Content-Disposition: inline
+In-Reply-To: <523FD747.8060304@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Daniel Mack <zonque@gmail.com>
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, neumann@teufel.de, bigeasy@linutronix.de, sergei.shtylyov@cogentembedded.com, dan.j.williams@intel.com, balbi@ti.com, gregkh@linuxfoundation.org
 
-On 09/22/2013 09:45 PM, Sergei Shtylyov wrote:
-> On 09/20/2013 02:19 PM, Roger Quadros wrote:
-> 
->>>> From: Balaji T K <balajitk@ti.com>
-> 
->>>> Add support for sata controller.
-> 
->>>> [Roger Q] Clean up.
-> 
->>>> CC: Benoit Cousson <bcousson@baylibre.com>
->>>> Signed-off-by: Balaji T K <balajitk@ti.com>
->>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
->>>> ---
->>>>    arch/arm/boot/dts/dra7.dtsi |   49 +++++++++++++++++++++++++++++++++++++++++++
->>>>    1 files changed, 49 insertions(+), 0 deletions(-)
-> 
->>>> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
->>>> index ce9a0f0..545545d 100644
->>>> --- a/arch/arm/boot/dts/dra7.dtsi
->>>> +++ b/arch/arm/boot/dts/dra7.dtsi
->>>> @@ -426,6 +426,55 @@
+On Mon, Sep 23, 2013 at 07:53:11AM +0200, Daniel Mack wrote:
+> On 23.09.2013 06:09, Vinod Koul wrote:
+> > On Sun, Sep 22, 2013 at 04:50:04PM +0200, Daniel Mack wrote:
+>=20
+> >> +#ifdef CONFIG_PM_SLEEP
+> > ahhhh
+> >=20
+> >> +static int cppi41_suspend(struct device *dev)
+> >> +{
+> >> +	struct cppi41_dd *cdd =3D dev_get_drvdata(dev);
+> >> +
+> >> +	cppi_writel(0, cdd->usbss_mem + USBSS_IRQ_CLEARR);
+> >> +	disable_sched(cdd);
+> >> +
+> >> +	return 0;
+> >> +}
+> >> +
+> >> +static int cppi41_resume(struct device *dev)
+> >> +{
+> >> +	struct cppi41_dd *cdd =3D dev_get_drvdata(dev);
+> >> +	int i;
+> >> +
+> >> +	for (i =3D 0; i < DESCS_AREAS; i++)
+> >> +		cppi_writel(cdd->descs_phys, cdd->qmgr_mem + QMGR_MEMBASE(i));
+> >> +
+> >> +	init_sched(cdd);
+> >> +	cppi_writel(USBSS_IRQ_PD_COMP, cdd->usbss_mem + USBSS_IRQ_ENABLE=
+R);
+> >> +
+> >> +	return 0;
+> >> +}
+> >> +#endif
+> >> +
+> >> +static SIMPLE_DEV_PM_OPS(cppi41_pm_ops, cppi41_suspend, cppi41_re=
+sume);
+> > Here is the macro in pm.h
+>=20
 > [...]
-> 
->>>> +        sata: sata@4a141100 {
->>>> +            compatible = "ti,sata";
->>>> +            ti,hwmods = "sata";
->>>> +            reg = <0x4a141100 0x7>;
-> 
->    Not 0x8 BTW?
+>=20
+> > Now since you are using the macro there should be no need to wrap i=
+fdef around
+> > your code, the macro will take care of it.
+>=20
+> Well yes, which is why I put the macro itself *outside* of the #ifdef
+> block. Without that #ifdef, however, and with CONFIG_PM_SLEEP unset, =
+I get:
+>=20
+> drivers/dma/cppi41.c:1043:12: warning: =E2=80=98cppi41_suspend=E2=80=99=
+ defined but not
+> used [-Wunused-function]
+>  static int cppi41_suspend(struct device *dev)
+>             ^
+> drivers/dma/cppi41.c:1053:12: warning: =E2=80=98cppi41_resume=E2=80=99=
+ defined but not
+> used [-Wunused-function]
+>  static int cppi41_resume(struct device *dev)
+>             ^
+>=20
+> ... which doesn't surprise me much. Or do I still not get your point?
+And this is what i had expected... I was thinking we should ignore this=
+, but
+this is better too, so I will try to apply this now
 
-You are right. Two 32 bit registers are used.
-However, in the instance summary, the reference manual says 256 bytes.
-So I think we should use 0x100.
+~Vinod
 
-> 
->>>> +            #address-cells = <1>;
->>>> +            #size-cells = <1>;
->>>> +            ranges;
->>>> +            dwc-ahci@4a140000 {
-> 
->>>     Hm, ePAPR spec. [1] says that "the name of a node should be somewhat generic, reflecting the function of the device and not its precise programming model", so it looks like the name should be "sata" as well. I'm a bit at a loss here, not sure why you had to use the nested device nodes.
-> 
->> ok. will fix it to sata.
->> I've nested it because the wrapper registers are not part of the AHCI sata controller.
->> They are TI specific registers for power management.
->> Similar setup is on the USB controller. Please see omap_dwc3 node.
-> 
->> But if you have better idea, please let me know.
-> 
->     Don't know, it seems to me that you're over-complicating it by using the nested nodes. You could just have AHCI regs as a first tuple of the "regs" prop, and PM regs as a second tuple.
-> 
-
-Yes that is possible, and in fact it was that way in Balaji's original code.
-However in that case, won't TI specific handling be need to be done in the ahci_platform driver?
-
-As of now, that is limited to using pm_runtime to enable/disable the hardware module so it is generic enough.
-However in the future it would mean reading/writing to the TI wrapper register. If this can be done in ahci_platform
-driver then I don't see any issue and can combine the 2 nodes.
-
->>>> +                  compatible = "snps,dwc-ahci";
->>>> +                  reg = <0x4a140000 0x1100>;
->>>> +                  interrupts = <0 54 0x4>;
->>>> +                  phys = <&sata_phy>;
-> 
->>>     Hm, it's the third PHY related generic property I'm encountering. First, there was "phy-handle", then "phy", now "phys"... Seems like a bit too much. :-)
-> 
->> I'm afraid but this is how the designers have made it.
-> 
->> 1) control-phy-pipe3 is that part of the PHY which sits in control module space and is different
->> from the sata-phy space and hence needs a different node. If it were to me, I would just put this
->> resource in sata-phy node, but there was a discussion about this earlier to do it otherwise [1].
-> 
->> 2) sata-phy (sataphy) is the actual SATA PHY device.
-> 
->> 3) phys is just a reference to the sata_phy and is used via the generic PHY framework.
->> It is upto the sata driver to power up/down the phy.
-> 
->    I understand that it's a reference but why have 3 variants of such phandle containing prop? Is it really possible for a device to have multiple PHYs? Well, remembering our customer's USB, it's indeed possible, however, there 2 PHYs out of 3 are not software controllable...
-> 
-
-If I understand right, are you asking that we don't need "phy-names" property if there can be only one PHY?
-I too think it is redundant. Maybe the PHY framework should be modified to allow users to use phy_get() whithout
-any phy name string. In such case it should return the first PHY. 
-Kishon, any thoughts?
-
->>>> +                  phy-names = "sata-phy";
->>>> +                  clocks = <&sata_ref_clk>;
->>>> +                  clock-names = "optclk";
->>>> +            };
->>>> +        };
-> 
->>> [1] http://www.power.org/resources/downloads/Power_ePAPR_APPROVED_v1.0.pdf
-> 
-
-cheers,
--roger
+--=20
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
