@@ -1,97 +1,79 @@
-From: Stephen Warren <swarren@wwwdotorg.org>
-Subject: Re: [RFCv2 3/3] ARM: dts: N900: Add SSI information
-Date: Mon, 23 Sep 2013 14:35:35 -0600
-Message-ID: <5240A617.1010208@wwwdotorg.org>
-References: <1379277856-24571-1-git-send-email-sre@debian.org> <1379277856-24571-4-git-send-email-sre@debian.org>
+From: Sebastian Reichel <sre@ring0.de>
+Subject: Re: [PATCH 4/4] RX-51: Add platform function and data for bq24150a
+ charger
+Date: Mon, 23 Sep 2013 22:47:15 +0200
+Message-ID: <20130923204714.GB22995@earth.universe>
+References: <1378630239-10006-1-git-send-email-pali.rohar@gmail.com>
+ <201309232116.19161@pali>
+ <20130923200008.GA21808@earth.universe>
+ <201309232206.47391@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="vGgW1X5XWziG23Ko"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1379277856-24571-4-git-send-email-sre@debian.org>
+Content-Disposition: inline
+In-Reply-To: <201309232206.47391@pali>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@debian.org>
-Cc: Sebastian Reichel <sre@ring0.de>, Linus Walleij <linus.walleij@linaro.org>, Shubhrajyoti Datta <omaplinuxkernel@gmail.com>, Carlos Chinea <cch.devel@gmail.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Grant Likely <grant.likely@linaro.org>, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Rob Landley <rob@landley.net>, =?ISO-8859-1?Q?=27Beno=EEt_Cousson=27?= <bcousson@baylibre.com>, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, freemangordon@abv.bg, aaro.koskinen@iki.fi, pavel@ucw.cz
 List-Id: linux-omap@vger.kernel.org
 
-On 09/15/2013 02:44 PM, Sebastian Reichel wrote:
-> Add SSI device tree data for OMAP34xx and Nokia N900.
 
-What is an "SSI" device, ...
+--vGgW1X5XWziG23Ko
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> diff --git a/Documentation/devicetree/bindings/hsi/omap_ssi.txt b/Documentation/devicetree/bindings/hsi/omap_ssi.txt
+On Mon, Sep 23, 2013 at 10:06:46PM +0200, Pali Roh=E1r wrote:
+> On Monday 23 September 2013 22:00:09 Sebastian Reichel wrote:
+> > On Mon, Sep 23, 2013 at 09:16:18PM +0200, Pali Roh=E1r wrote:
+> > > It is not as simple as it looks. This is reason why I
+> > > submited this patch long time after I submited bq2415x
+> > > driver.
+> > >=20
+> > > Problem is that for rx51 is needed specific function which
+> > > connect to two drivers (bq2415x and isp1704) plus it call
+> > > specific rx51 board functions.
+> > >=20
+> > > Something which cannot be in DT (unless DT support C/ASM
+> > > code).
+> >=20
+> > mh could isp1704 driver expose the data via the regulator
+> > framework?
+>=20
+> No, isp1704 is power supply driver and export data via power=20
+> supply (sysfs) interface. It is not regulator but charger driver.
 
-... and what is the "HSI" subsystem?
+well it does not charge the battery directly, but just provides a
+power line with 5 Volt and a specified amount of current to the
+system, doesn't it?
 
-> +OMAP SSI controller bindings
-> +
-> +Required properties:
-> +- compatible:		Should be set to the following value
-> +                        ti,omap3-ssi (applicable to OMAP34xx devices)
+=46rom my POV this is a candiate for the regulator framework:
 
-I think that'd be better phrased as:
+https://www.kernel.org/doc/Documentation/power/regulator/overview.txt
 
-	Should include "ti,omap3-ssi".
+-- Sebastian
 
-The binding should not preclude other compatibel values being present
-(e.g. a SoC-specific compatible value, to allow SoC-specific quirks to
-be enabled later).
+--vGgW1X5XWziG23Ko
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-> +- ti,hwmods:		Name of the hwmod associated to the controller, which
-> +			is "ssi".
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.14 (GNU/Linux)
 
-I don't think we should add any more of that, for new bindings.
+iQIcBAEBCAAGBQJSQKjSAAoJENju1/PIO/qa+8sP+wfWRfRSXNYLypgsVcts915N
+/28LyZzg9roUtzo2XZvx3KcY1XM6XfXPeEc3ELmySx2/g6xyXD3PLNA8ZVDFc6Us
+3uU5CorwWrBWInBMaiKi3jyKOdr8rsk6VZ7ZXNDHXtRwaencoo3nZw6aD9cYtUuH
+PG/9FvKAT/KHvHpmWA/uXX3iVKeR2QDhLtJ+sZb04LKtLwNG523Qz8dG59CCRivG
+xOhDAyY8Clmb9O7JM2vEHIYbRLRJBo1HXY2zwbJ4Y4qtv/6Ko0HqWKWZmRClF1oy
++MPutgnr5jUPyr18cHeXGx3k0LYXwpa/NqwXY7gAVn58wAN23P/gYMOIO5xC62Xj
+r5x0YdidwkRNheH60N8bW+ifLMLl0bGOy6QmgPcfl3Az7u2gnyPB78TbzGAugm4a
+rTbtIycX25UF2Dw7A/3mH2nM5JrEIFRe/oZDggLV5XtppCBZTL/f+bV+eTXZ/7WS
+jSUqhH1xgKfABP/cyEnJAMLoIvtpFUdVQhB3jXmJqwMFBn6c5M2fzUduUALx9MS9
+7eiczgJ0/rtdvprgMNiA1G/ikcfJe9CdKLa51Dbg7FWZ6hNgTtdC+AYwm8H9bxR/
+GtUPyxIbpoCy/H0N984dCrF+9sBFmowh7andidE7OhkLSGMHEtX7OsHREXNz+y3x
+L+wJmo9OYGYrUYi8SH+v
+=4716
+-----END PGP SIGNATURE-----
 
-> +- reg:			Contains SSI register address range (base address and
-> +			length).
-> +- reg-names:		Contains the names of the address ranges. It's
-> +                        expected, that "sys" and "gdd" address ranges are
-> +			provided.
-
-Why two entries in reg-names but only one in reg?
-
-I think it'd be better to write:
-
-reg-names:	Contains the values "sys" and "gdd".
-reg:		Contains a register specifier for each entry in
-		reg-names.
-
-A similar re-ordering/-wording would apply to interrupts/interrupt-names.
-
-> +- ranges		Required as an empty node
-
-s/node/property/
-
-Why must ranges be empty? As long as the content correctly represents
-the bus setup, why does the content matter at all. How about:
-
-ranges		Represents the bus address mapping between the main
-		controller node and the child nodes below.
-
-> +Each port is represented as a sub-node of the ti,omap3-ssi device.
-> +
-> +Required Port sub-node properties:
-> +- compatible:		Should be set to the following value
-> +                        ti,omap3-ssi-port (applicable to OMAP34xx devices)
-
-Hmm. Is it really the case that there is 1 controller with n ports? Are
-the ports really dependent upon some shared resource? Couldn't the ports
-be represented as separate top-level SSI controllers?
-
-> +- interrupts:		Contains the interrupt information for the port.
-> +- interrupt-names:	Contains the names of the interrupts. It's expected,
-> +			that "mpu_irq0" and "mpu_irq1" are provided.
-
-What exactly are those interrupts? "MPU" sounds like an external
-micro-controller/processor...
-
-> +- ti,ssi-cawake-gpio:	Defines which GPIO pin is used to signify CAWAKE
-> +			events for the port. This is an optional board-specific
-> +			property. If it's missing the port will not be
-> +			enabled.
-
-That also sounds like something that's a higher-level protocol, rather
-than whatever low-level transport "SSI" implements. Should this be part
-of a child node that represents the device attached to the SSI controller?
-
-Does the SSI controller (or its ports) not need any clocks, resets,
-regulators, ...?
+--vGgW1X5XWziG23Ko--
