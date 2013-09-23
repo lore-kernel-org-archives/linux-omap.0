@@ -1,8 +1,7 @@
 From: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 1/3] dma: edma: Split out PaRAM set calculations into its own
-	function
-Date: Mon, 23 Sep 2013 18:05:13 -0500
-Message-ID: <1379977515-3794-2-git-send-email-joelf@ti.com>
+Subject: [PATCH 2/3] dma: edma: Add support for Cyclic DMA
+Date: Mon, 23 Sep 2013 18:05:14 -0500
+Message-ID: <1379977515-3794-3-git-send-email-joelf@ti.com>
 References: <1379977515-3794-1-git-send-email-joelf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,264 +21,234 @@ To: Matt Porter <matt-agtwNxEcTQJWk0Htik3J/w@public.gmane.org>, Vinod Koul <vino
 Cc: alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>, Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-PaRAM set calculation is abstracted into its own function to
-enable better reuse for other DMA cases such as cyclic. We adapt
-the Slave SG case to use the new function.
+Using the PaRAM configuration function that we split for reuse by the
+different DMA types, we implement Cyclic DMA support.
+For the cyclic case, we pass different configuration parameters to this
+function, and handle all the Cyclic-specific functionality separately.
 
-This provides a much cleaner abstraction to the internals of the
-PaRAM set. However, any PaRAM attributes that are not common to
-all DMA types must be set separately such as setting of interrupts.
-This function takes care of the most-common attributes.
+Callbacks to the DMA users are handled using vchan_cyclic_callback in
+the virt-dma layer. Linking is handled the same way as the slave SG case
+except for the last slot where we link it back to the first one in a
+cyclic fashion.
 
-Also added comments clarifying A-sync case calculations.
+For continuity, we check for cases where no.of periods is great than the
+MAX number of slots the driver can allocate for a particular descriptor
+and error out on such cases.
 
 Signed-off-by: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>
 ---
- drivers/dma/edma.c | 198 ++++++++++++++++++++++++++++++++++-------------------
- 1 file changed, 126 insertions(+), 72 deletions(-)
+ drivers/dma/edma.c | 159 ++++++++++++++++++++++++++++++++++++++++++++++++++---
+ 1 file changed, 151 insertions(+), 8 deletions(-)
 
 diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
-index ff50ff4..725b00c 100644
+index 725b00c..9b63e1e 100644
 --- a/drivers/dma/edma.c
 +++ b/drivers/dma/edma.c
-@@ -250,6 +250,117 @@ static int edma_control(struct dma_chan *chan, enum dma_ctrl_cmd cmd,
- 	return ret;
+@@ -54,6 +54,7 @@
+ struct edma_desc {
+ 	struct virt_dma_desc		vdesc;
+ 	struct list_head		node;
++	int				cyclic;
+ 	int				absync;
+ 	int				pset_nr;
+ 	int				processed;
+@@ -167,8 +168,13 @@ static void edma_execute(struct edma_chan *echan)
+ 	 * then setup a link to the dummy slot, this results in all future
+ 	 * events being absorbed and that's OK because we're done
+ 	 */
+-	if (edesc->processed == edesc->pset_nr)
+-		edma_link(echan->slot[nslots-1], echan->ecc->dummy_slot);
++	if (edesc->processed == edesc->pset_nr) {
++		if (edesc->cyclic)
++			edma_link(echan->slot[nslots-1], echan->slot[1]);
++		else
++			edma_link(echan->slot[nslots-1],
++				  echan->ecc->dummy_slot);
++	}
+ 
+ 	edma_resume(echan->ch_num);
+ 
+@@ -449,6 +455,138 @@ static struct dma_async_tx_descriptor *edma_prep_slave_sg(
+ 	return vchan_tx_prep(&echan->vchan, &edesc->vdesc, tx_flags);
  }
  
-+/*
-+ * A PaRAM set configuration abstraction used by other modes
-+ * @chan: Channel who's PaRAM set we're configuring
-+ * @pset: PaRAM set to initialize and setup.
-+ * @src_addr: Source address of the DMA
-+ * @dst_addr: Destination address of the DMA
-+ * @burst: In units of dev_width, how much to send
-+ * @dev_width: How much is the dev_width
-+ * @dma_length: Total length of the DMA transfer
-+ * @direction: Direction of the transfer
-+ */
-+static int edma_config_pset(struct dma_chan *chan, struct edmacc_param *pset,
-+	dma_addr_t src_addr, dma_addr_t dst_addr, u32 burst,
-+	enum dma_slave_buswidth dev_width, unsigned int dma_length,
-+	enum dma_transfer_direction direction)
++static struct dma_async_tx_descriptor *edma_prep_dma_cyclic(
++	struct dma_chan *chan, dma_addr_t buf_addr, size_t buf_len,
++	size_t period_len, enum dma_transfer_direction direction,
++	unsigned long tx_flags, void *context)
 +{
 +	struct edma_chan *echan = to_edma_chan(chan);
 +	struct device *dev = chan->device->dev;
-+	int acnt, bcnt, ccnt, cidx;
-+	int src_bidx, dst_bidx, src_cidx, dst_cidx;
-+	int absync;
++	struct edma_desc *edesc;
++	dma_addr_t src_addr, dst_addr;
++	enum dma_slave_buswidth dev_width;
++	u32 burst;
++	int i, ret, nr_periods;
 +
-+	acnt = dev_width;
-+	/*
-+	 * If the maxburst is equal to the fifo width, use
-+	 * A-synced transfers. This allows for large contiguous
-+	 * buffer transfers using only one PaRAM set.
-+	 */
-+	if (burst == 1) {
-+		/*
-+		 * For the A-sync case, bcnt and ccnt are the remainder
-+		 * and quotient respectively of the division of:
-+		 * (dma_length / acnt) by (SZ_64K -1). This is so
-+		 * that in case bcnt over flows, we have ccnt to use.
-+		 * Note: In A-sync tranfer only, bcntrld is used, but it
-+		 * only applies for sg_dma_len(sg) >= SZ_64K.
-+		 * In this case, the best way adopted is- bccnt for the
-+		 * first frame will be the remainder below. Then for
-+		 * every successive frame, bcnt will be SZ_64K-1. This
-+		 * is assured as bcntrld = 0xffff in end of function.
-+		 */
-+		absync = false;
-+		ccnt = dma_length / acnt / (SZ_64K - 1);
-+		bcnt = dma_length / acnt - ccnt * (SZ_64K - 1);
-+		/*
-+		 * If bcnt is non-zero, we have a remainder and hence an
-+		 * extra frame to transfer, so increment ccnt.
-+		 */
-+		if (bcnt)
-+			ccnt++;
-+		else
-+			bcnt = SZ_64K - 1;
-+		cidx = acnt;
-+	} else {
-+		/*
-+		 * If maxburst is greater than the fifo address_width,
-+		 * use AB-synced transfers where A count is the fifo
-+		 * address_width and B count is the maxburst. In this
-+		 * case, we are limited to transfers of C count frames
-+		 * of (address_width * maxburst) where C count is limited
-+		 * to SZ_64K-1. This places an upper bound on the length
-+		 * of an SG segment that can be handled.
-+		 */
-+		absync = true;
-+		bcnt = burst;
-+		ccnt = dma_length / (acnt * bcnt);
-+		if (ccnt > (SZ_64K - 1)) {
-+			dev_err(dev, "Exceeded max SG segment size\n");
-+			return -EINVAL;
-+		}
-+		cidx = acnt * bcnt;
-+	}
++	if (unlikely(!echan || !buf_len || !period_len))
++		return NULL;
 +
-+	if (direction == DMA_MEM_TO_DEV) {
-+		src_bidx = acnt;
-+		src_cidx = cidx;
-+		dst_bidx = 0;
-+		dst_cidx = 0;
-+	} else if (direction == DMA_DEV_TO_MEM)  {
-+		src_bidx = 0;
-+		src_cidx = 0;
-+		dst_bidx = acnt;
-+		dst_cidx = cidx;
-+	} else {
-+		dev_err(dev, "%s: direction not implemented yet\n", __func__);
-+		return -EINVAL;
-+	}
-+
-+	pset->opt = EDMA_TCC(EDMA_CHAN_SLOT(echan->ch_num));
-+	/* Configure A or AB synchronized transfers */
-+	if (absync)
-+		pset->opt |= SYNCDIM;
-+
-+	pset->src = src_addr;
-+	pset->dst = dst_addr;
-+
-+	pset->src_dst_bidx = (dst_bidx << 16) | src_bidx;
-+	pset->src_dst_cidx = (dst_cidx << 16) | src_cidx;
-+
-+	pset->a_b_cnt = bcnt << 16 | acnt;
-+	pset->ccnt = ccnt;
-+	/*
-+	 * Only time when (bcntrld) auto reload is required is for
-+	 * A-sync case, and in this case, a requirement of reload value
-+	 * of SZ_64K-1 only is assured. 'link' is initially set to NULL
-+	 * and then later will be populated by edma_execute.
-+	 */
-+	pset->link_bcntrld = 0xffffffff;
-+	return absync;
-+}
-+
- static struct dma_async_tx_descriptor *edma_prep_slave_sg(
- 	struct dma_chan *chan, struct scatterlist *sgl,
- 	unsigned int sg_len, enum dma_transfer_direction direction,
-@@ -258,23 +369,21 @@ static struct dma_async_tx_descriptor *edma_prep_slave_sg(
- 	struct edma_chan *echan = to_edma_chan(chan);
- 	struct device *dev = chan->device->dev;
- 	struct edma_desc *edesc;
--	dma_addr_t dev_addr;
-+	dma_addr_t src_addr = 0, dst_addr = 0;
- 	enum dma_slave_buswidth dev_width;
- 	u32 burst;
- 	struct scatterlist *sg;
--	int acnt, bcnt, ccnt, src, dst, cidx;
--	int src_bidx, dst_bidx, src_cidx, dst_cidx;
--	int i, nslots;
-+	int i, nslots, ret;
- 
- 	if (unlikely(!echan || !sgl || !sg_len))
- 		return NULL;
- 
- 	if (direction == DMA_DEV_TO_MEM) {
--		dev_addr = echan->cfg.src_addr;
++	if (direction == DMA_DEV_TO_MEM) {
 +		src_addr = echan->cfg.src_addr;
- 		dev_width = echan->cfg.src_addr_width;
- 		burst = echan->cfg.src_maxburst;
- 	} else if (direction == DMA_MEM_TO_DEV) {
--		dev_addr = echan->cfg.dst_addr;
++		dst_addr = buf_addr;
++		dev_width = echan->cfg.src_addr_width;
++		burst = echan->cfg.src_maxburst;
++	} else if (direction == DMA_MEM_TO_DEV) {
++		src_addr = buf_addr;
 +		dst_addr = echan->cfg.dst_addr;
- 		dev_width = echan->cfg.dst_addr_width;
- 		burst = echan->cfg.dst_maxburst;
- 	} else {
-@@ -313,63 +422,19 @@ static struct dma_async_tx_descriptor *edma_prep_slave_sg(
- 
- 	/* Configure PaRAM sets for each SG */
- 	for_each_sg(sgl, sg, sg_len, i) {
-+		/* Get address for each SG */
-+		if (direction == DMA_DEV_TO_MEM)
-+			dst_addr = sg_dma_address(sg);
-+		else
-+			src_addr = sg_dma_address(sg);
- 
--		acnt = dev_width;
--
--		/*
--		 * If the maxburst is equal to the fifo width, use
--		 * A-synced transfers. This allows for large contiguous
--		 * buffer transfers using only one PaRAM set.
--		 */
--		if (burst == 1) {
--			edesc->absync = false;
--			ccnt = sg_dma_len(sg) / acnt / (SZ_64K - 1);
--			bcnt = sg_dma_len(sg) / acnt - ccnt * (SZ_64K - 1);
--			if (bcnt)
--				ccnt++;
--			else
--				bcnt = SZ_64K - 1;
--			cidx = acnt;
--		/*
--		 * If maxburst is greater than the fifo address_width,
--		 * use AB-synced transfers where A count is the fifo
--		 * address_width and B count is the maxburst. In this
--		 * case, we are limited to transfers of C count frames
--		 * of (address_width * maxburst) where C count is limited
--		 * to SZ_64K-1. This places an upper bound on the length
--		 * of an SG segment that can be handled.
--		 */
--		} else {
--			edesc->absync = true;
--			bcnt = burst;
--			ccnt = sg_dma_len(sg) / (acnt * bcnt);
--			if (ccnt > (SZ_64K - 1)) {
--				dev_err(dev, "Exceeded max SG segment size\n");
--				return NULL;
--			}
--			cidx = acnt * bcnt;
--		}
--
--		if (direction == DMA_MEM_TO_DEV) {
--			src = sg_dma_address(sg);
--			dst = dev_addr;
--			src_bidx = acnt;
--			src_cidx = cidx;
--			dst_bidx = 0;
--			dst_cidx = 0;
--		} else {
--			src = dev_addr;
--			dst = sg_dma_address(sg);
--			src_bidx = 0;
--			src_cidx = 0;
--			dst_bidx = acnt;
--			dst_cidx = cidx;
--		}
++		dev_width = echan->cfg.dst_addr_width;
++		burst = echan->cfg.dst_maxburst;
++	} else {
++		dev_err(dev, "%s: bad direction?\n", __func__);
++		return NULL;
++	}
++
++	if (dev_width == DMA_SLAVE_BUSWIDTH_UNDEFINED) {
++		dev_err(dev, "Undefined slave buswidth\n");
++		return NULL;
++	}
++
++	if (unlikely(buf_len % period_len)) {
++		dev_err(dev, "Period should be multiple of Buffer length\n");
++		return NULL;
++	}
++
++	nr_periods = (buf_len / period_len) + 1;
++
++	/*
++	 * Cyclic DMA users such as audio cannot tolerate delays introduced
++	 * by cases where the number of periods is more than the maximum
++	 * number of SGs the EDMA driver can handle at a time. For DMA types
++	 * such as Slave SGs, such delays are tolerable and synchronized,
++	 * but the synchronization is difficult to achieve with Cyclic and
++	 * cannot be guaranteed, so we error out early.
++	 */
++	if (nr_periods > MAX_NR_SG)
++		return NULL;
++
++	edesc = kzalloc(sizeof(*edesc) + nr_periods *
++		sizeof(edesc->pset[0]), GFP_ATOMIC);
++	if (!edesc) {
++		dev_dbg(dev, "Failed to allocate a descriptor\n");
++		return NULL;
++	}
++
++	edesc->cyclic = 1;
++	edesc->pset_nr = nr_periods;
++
++	dev_dbg(dev, "%s: nr_periods=%d\n", __func__, nr_periods);
++	dev_dbg(dev, "%s: period_len=%d\n", __func__, period_len);
++	dev_dbg(dev, "%s: buf_len=%d\n", __func__, buf_len);
++
++	for (i = 0; i < nr_periods; i++) {
++		/* Allocate a PaRAM slot, if needed */
++		if (echan->slot[i] < 0) {
++			echan->slot[i] =
++				edma_alloc_slot(EDMA_CTLR(echan->ch_num),
++						EDMA_SLOT_ANY);
++			if (echan->slot[i] < 0) {
++				dev_err(dev, "Failed to allocate slot\n");
++				return NULL;
++			}
++		}
++
++		if (i == nr_periods - 1) {
++			memcpy(&edesc->pset[i], &edesc->pset[0],
++			       sizeof(edesc->pset[0]));
++			break;
++		}
++
 +		ret = edma_config_pset(chan, &edesc->pset[i], src_addr,
-+				       dst_addr, burst, dev_width,
-+				       sg_dma_len(sg), direction);
++				       dst_addr, burst, dev_width, period_len,
++				       direction);
 +		if (ret < 0)
 +			return NULL;
- 
--		edesc->pset[i].opt = EDMA_TCC(EDMA_CHAN_SLOT(echan->ch_num));
--		/* Configure A or AB synchronized transfers */
--		if (edesc->absync)
--			edesc->pset[i].opt |= SYNCDIM;
++
++		if (direction == DMA_DEV_TO_MEM)
++			dst_addr += period_len;
++		else
++			src_addr += period_len;
++
++		dev_dbg(dev, "%s: Configure period %d of buf:\n", __func__, i);
++		dev_dbg(dev,
++			"\n pset[%d]:\n"
++			"  chnum\t%d\n"
++			"  slot\t%d\n"
++			"  opt\t%08x\n"
++			"  src\t%08x\n"
++			"  dst\t%08x\n"
++			"  abcnt\t%08x\n"
++			"  ccnt\t%08x\n"
++			"  bidx\t%08x\n"
++			"  cidx\t%08x\n"
++			"  lkrld\t%08x\n",
++			i, echan->ch_num, echan->slot[i],
++			edesc->pset[i].opt,
++			edesc->pset[i].src,
++			edesc->pset[i].dst,
++			edesc->pset[i].a_b_cnt,
++			edesc->pset[i].ccnt,
++			edesc->pset[i].src_dst_bidx,
++			edesc->pset[i].src_dst_cidx,
++			edesc->pset[i].link_bcntrld);
++
 +		edesc->absync = ret;
++
++		/*
++		 * Enable interrupts for every period because callback
++		 * has to be called for every period.
++		 */
++		edesc->pset[i].opt |= TCINTEN;
++	}
++
++	return vchan_tx_prep(&echan->vchan, &edesc->vdesc, tx_flags);
++}
++
+ static void edma_callback(unsigned ch_num, u16 ch_status, void *data)
+ {
+ 	struct edma_chan *echan = data;
+@@ -457,24 +595,28 @@ static void edma_callback(unsigned ch_num, u16 ch_status, void *data)
+ 	unsigned long flags;
+ 	struct edmacc_param p;
  
- 		/* If this is the last in a current SG set of transactions,
- 		   enable interrupts so that next set is processed */
-@@ -379,17 +444,6 @@ static struct dma_async_tx_descriptor *edma_prep_slave_sg(
- 		/* If this is the last set, enable completion interrupt flag */
- 		if (i == sg_len - 1)
- 			edesc->pset[i].opt |= TCINTEN;
--
--		edesc->pset[i].src = src;
--		edesc->pset[i].dst = dst;
--
--		edesc->pset[i].src_dst_bidx = (dst_bidx << 16) | src_bidx;
--		edesc->pset[i].src_dst_cidx = (dst_cidx << 16) | src_cidx;
--
--		edesc->pset[i].a_b_cnt = bcnt << 16 | acnt;
--		edesc->pset[i].ccnt = ccnt;
--		edesc->pset[i].link_bcntrld = 0xffffffff;
--
- 	}
+-	/* Pause the channel */
+-	edma_pause(echan->ch_num);
++	edesc = echan->edesc;
++
++	/* Pause the channel for non-cyclic */
++	if (!edesc || (edesc && !edesc->cyclic))
++		edma_pause(echan->ch_num);
  
- 	return vchan_tx_prep(&echan->vchan, &edesc->vdesc, tx_flags);
+ 	switch (ch_status) {
+ 	case DMA_COMPLETE:
+ 		spin_lock_irqsave(&echan->vchan.lock, flags);
+ 
+-		edesc = echan->edesc;
+ 		if (edesc) {
+-			if (edesc->processed == edesc->pset_nr) {
++			if (edesc->cyclic) {
++				vchan_cyclic_callback(&edesc->vdesc);
++			} else if (edesc->processed == edesc->pset_nr) {
+ 				dev_dbg(dev, "Transfer complete, stopping channel %d\n", ch_num);
+ 				edma_stop(echan->ch_num);
+ 				vchan_cookie_complete(&edesc->vdesc);
++				edma_execute(echan);
+ 			} else {
+ 				dev_dbg(dev, "Intermediate transfer complete on channel %d\n", ch_num);
++				edma_execute(echan);
+ 			}
+-
+-			edma_execute(echan);
+ 		}
+ 
+ 		spin_unlock_irqrestore(&echan->vchan.lock, flags);
+@@ -670,6 +812,7 @@ static void edma_dma_init(struct edma_cc *ecc, struct dma_device *dma,
+ 			  struct device *dev)
+ {
+ 	dma->device_prep_slave_sg = edma_prep_slave_sg;
++	dma->device_prep_dma_cyclic = edma_prep_dma_cyclic;
+ 	dma->device_alloc_chan_resources = edma_alloc_chan_resources;
+ 	dma->device_free_chan_resources = edma_free_chan_resources;
+ 	dma->device_issue_pending = edma_issue_pending;
 -- 
 1.8.1.2
