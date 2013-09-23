@@ -1,30 +1,33 @@
-From: Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
-Subject: Re: [PATCH v3 4/5] dma: cppi41: only allocate descriptor memory once
-Date: Mon, 23 Sep 2013 16:51:06 +0200
-Message-ID: <5240555A.60404@linutronix.de>
-References: <1379861404-8250-1-git-send-email-zonque@gmail.com> <1379861404-8250-5-git-send-email-zonque@gmail.com> <20130923041754.GZ17188@intel.com>
+From: Vinod Koul <vinod.koul@intel.com>
+Subject: Re: [PATCH v3 4/5] dma: cppi41: only allocate descriptor memory
+ once
+Date: Mon, 23 Sep 2013 20:06:59 +0530
+Message-ID: <20130923143659.GL17188@intel.com>
+References: <1379861404-8250-1-git-send-email-zonque@gmail.com>
+ <1379861404-8250-5-git-send-email-zonque@gmail.com>
+ <20130923041754.GZ17188@intel.com>
+ <5240555A.60404@linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20130923041754.GZ17188-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, neumann-SRDuVqtxQLSzQB+pC5nmwQ@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mga14.intel.com ([143.182.124.37]:46731 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752298Ab3IWP1g (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 23 Sep 2013 11:27:36 -0400
+Content-Disposition: inline
+In-Reply-To: <5240555A.60404@linutronix.de>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Daniel Mack <zonque@gmail.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, neumann@teufel.de, sergei.shtylyov@cogentembedded.com, dan.j.williams@intel.com, balbi@ti.com, gregkh@linuxfoundation.org
 
-On 09/23/2013 06:17 AM, Vinod Koul wrote:
-> Looks fine, Sebastian cna you test it pls
-
-Just noticed that you already applied some of them. I just got back
-after a few weeks of. Will review & test as soon as I get to it.
-
+On Mon, Sep 23, 2013 at 04:51:06PM +0200, Sebastian Andrzej Siewior wrote:
+> On 09/23/2013 06:17 AM, Vinod Koul wrote:
+> > Looks fine, Sebastian cna you test it pls
 > 
-> ~Vinod
-> 
+> Just noticed that you already applied some of them. I just got back
+> after a few weeks of. Will review & test as soon as I get to it.
+Yes, the first three were trvial, 5th one looked fine to me !
 
-Sebastian
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+~Vinod
+-- 
