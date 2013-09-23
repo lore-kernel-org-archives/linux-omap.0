@@ -1,68 +1,77 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2] ADP1653 board code for Nokia RX-51
-Date: Mon, 23 Sep 2013 10:21:47 -0700
-Message-ID: <20130923172146.GH2684@atomide.com>
-References: <201302171616.50152@pali>
- <20130907230252.GA10700@blackmetal.musicnaut.iki.fi>
- <20130918131644.GA2953@amd.pavel.ucw.cz>
- <201309181800.10486@pali>
- <20130918174211.GU9994@atomide.com>
- <20130921123732.GB4652@amd.pavel.ucw.cz>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 1/3] ARM: OMAP2: HACK: hardcode hsmmc2 input clock
+ source for N950/N9
+Date: Mon, 23 Sep 2013 10:38:43 -0700
+Message-ID: <20130923173843.GI2684@atomide.com>
+References: <1379771142-29087-1-git-send-email-aaro.koskinen@iki.fi>
+ <1379771142-29087-2-git-send-email-aaro.koskinen@iki.fi>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20130921123732.GB4652@amd.pavel.ucw.cz>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <1379771142-29087-2-git-send-email-aaro.koskinen-X3B1VOXEql0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
+Cc: =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sakari Ailus <sakari.ailus-X3B1VOXEql0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Pavel Machek <pavel@ucw.cz> [130921 05:45]:
-> Hi!
+* Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org> [130921 06:56]:
+> Without this the eMMC (root file system) cannot be used on N950/N9.
+> Any ideas for a proper solution?
 > 
-> > > > > > > --- /dev/null
-> > > > > > > +++ b/arch/arm/mach-omap2/board-rx51-camera.c
-> > > > > 
-> > > > > [...]
-> > > > > 
-> > > > > > Ping, can you review this patch v2?
-> > > > > 
-> > > > > I don't think Tony will accept any new board stuff for
-> > > > > RX-51/N900. See for example:
-> > > > > http://marc.info/?l=linux-kernel&m=137629626213187&w=2
-> > > > > 
-> > > > > There should be initial Nokia N900 DTS file in 3.12-rc1, and
-> > > > > we should continue converting this board fully to DT.
-> > > > 
-> > > > That's not reasonable. N900 is pretty far away from working
-> > > > with device tree. Yes, I was able to get some bits merged,
-> > > > but that should not be excuse to halt other N900 development.
-> > > > 									Pavel
-> > > 
-> > > Right. So Tony, will you accept future patches for board files?
-> > 
-> > Only fixes to board-*.c files please unless there's a _really_
-> > good reason to make things more complex with the platform data.
-> > Let's not make the DT conversion any more complex than it
-> > already is.
-> > 
-> > Getting things working with DT for the devices is pretty trivial
-> > in most cases. And we can also still initialize the legacy devices
-> > using platform data the same way as earlier.
+> Signed-off-by: Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
+> ---
+>  arch/arm/mach-omap2/board-generic.c | 15 +++++++++++++++
+>  1 file changed, 15 insertions(+)
 > 
-> Well... It was quite a struggle to get video working with device tree
-> in 3.10, and now it is broken in 3.12-rc1, again.
+> diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
+> index 39c7838..8be49b3 100644
+> --- a/arch/arm/mach-omap2/board-generic.c
+> +++ b/arch/arm/mach-omap2/board-generic.c
+> @@ -20,6 +20,7 @@
+>  #include <asm/mach/arch.h>
+>  
+>  #include "common.h"
+> +#include "control.h"
+>  #include "common-board-devices.h"
+>  #include "dss-common.h"
+>  
+> @@ -51,12 +52,26 @@ static void __init legacy_init_ehci_clk(char *clkname)
+>  	}
+>  }
+>  
+> +static void __init hsmmc2_input_clk(void)
+> +{
+> +	u32 reg;
+> +
+> +	reg = omap_ctrl_readl(OMAP343X_CONTROL_DEVCONF1);
+> +	reg |= OMAP2_MMCSDIO2ADPCLKISEL;
+> +	omap_ctrl_writel(reg, OMAP343X_CONTROL_DEVCONF1);
+> +}
+> +
+>  static void __init omap_generic_init(void)
+>  {
+>  	omap_sdrc_init(NULL, NULL);
+>  
+>  	of_platform_populate(NULL, omap_dt_match_table, NULL, NULL);
+>  
+> +	/* HACK: Configure the MMC input clock source on N950/N9. */
+> +	if (of_machine_is_compatible("nokia,omap3-n950") ||
+> +	    of_machine_is_compatible("nokia,omap3-n9"))
+> +		hsmmc2_input_clk();
+> +
+>  	/*
+>  	 * HACK: call display setup code for selected boards to enable omapdss.
+>  	 * This will be removed when omapdss supports DT.
+> 
 
-Hmm didn't Aaro reply that you just need to change the Kconfig
-option for the panel to fix it?
- 
-> "Now, here, you see, it takes all the running you can do, to keep in
-> the same place. If you want to get somewhere else, you must run at
-> least twice as fast as that! "
-
-True at least for reading the mailing lists :)
+Can you please update this patch on the quirks series I posted
+few days ago?
 
 Regards,
 
 Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
