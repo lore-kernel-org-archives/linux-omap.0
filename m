@@ -1,35 +1,37 @@
-From: Tejun Heo <tj@kernel.org>
-Subject: Re: [RFC PATCH 08/15] ata: ahci_platform: Manage SATA PHY
-Date: Mon, 23 Sep 2013 10:12:51 -0400
-Message-ID: <20130923141251.GB13844@htj.dyndns.org>
-References: <1379595943-14622-1-git-send-email-rogerq@ti.com>
- <1379595943-14622-9-git-send-email-rogerq@ti.com>
- <523F3567.80303@cogentembedded.com>
- <20130922214859.GC27616@mtj.dyndns.org>
- <52404BD6.9070101@cogentembedded.com>
+From: Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
+Subject: Re: [PATCH 3/4] usb: musb: am335x: Do not remove the session bit
+ HOST-only mode
+Date: Mon, 23 Sep 2013 16:47:04 +0200
+Message-ID: <52405468.3040904@linutronix.de>
+References: <1376580112-17677-1-git-send-email-bigeasy@linutronix.de> <1376580112-17677-4-git-send-email-bigeasy@linutronix.de> <20130920154506.GY26101@radagast>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ye0-f178.google.com ([209.85.213.178]:58370 "EHLO
-	mail-ye0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753584Ab3IWOMy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Sep 2013 10:12:54 -0400
-Content-Disposition: inline
-In-Reply-To: <52404BD6.9070101@cogentembedded.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20130920154506.GY26101@radagast>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: balbi-l0cyMroinI0@public.gmane.org
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Benoit Cousson <benoit.cousson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Cc: Roger Quadros <rogerq@ti.com>, balbi@ti.com, bcousson@baylibre.com, tony@atomide.com, balajitk@ti.com, kishon@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-ide@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
 
-On Mon, Sep 23, 2013 at 06:10:30PM +0400, Sergei Shtylyov wrote:
-> >Unless it's actually likely to cause inclusion loop, I think it's
-> >better to include the header than adding explicit declarations.
+On 09/20/2013 05:45 PM, Felipe Balbi wrote:
 > 
->    Apparently, tastes differ here. E.g. Greg KH would have also told
-> Roger to use forward declaration in such case. :-)
+> Acked-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+> 
 
-Yes, it's a matter of taste, but, of course mine is better than
-Greg's. :P
+Those four patches went already in, for instance:
 
--- 
-tejun
+commit 781f17983015dae33324e34d1bb831e715fa04d4
+Author:     Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
+AuthorDate: Tue Aug 20 18:35:49 2013 +0200
+Commit:     Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+CommitDate: Tue Aug 27 14:18:41 2013 -0500
+
+    usb: musb: am335x-evm: Do not remove the session bit HOST-only mode
+
+
+Sebastian
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
