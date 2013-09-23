@@ -1,87 +1,65 @@
-From: Daniel Mack <zonque@gmail.com>
-Subject: Re: [PATCH v3 5/5] dma: cppi41: add support for suspend and resume
-Date: Mon, 23 Sep 2013 07:53:11 +0200
-Message-ID: <523FD747.8060304@gmail.com>
-References: <1379861404-8250-1-git-send-email-zonque@gmail.com> <1379861404-8250-6-git-send-email-zonque@gmail.com> <20130923040947.GV17188@intel.com>
+From: Jingoo Han <jg1.han@samsung.com>
+Subject: Re: [PATCH] usb: dwc3: Remove additional delay of 100ms when resuming
+Date: Mon, 23 Sep 2013 15:26:44 +0900
+Message-ID: <000001ceb825$dfae0eb0$9f0a2c10$%han@samsung.com>
+References: <1379907508-22492-1-git-send-email-gautam.vivek@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-we0-f179.google.com ([74.125.82.179]:46160 "EHLO
-	mail-we0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752990Ab3IWFxP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Sep 2013 01:53:15 -0400
-In-Reply-To: <20130923040947.GV17188@intel.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+In-reply-to: <1379907508-22492-1-git-send-email-gautam.vivek@samsung.com>
+Content-language: ko
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: 'Vivek Gautam' <gautam.vivek@samsung.com>
+Cc: linux-usb@vger.kernel.org, 'Greg Kroah-Hartman' <gregkh@linuxfoundation.org>, 'Felipe Balbi' <balbi@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-samsung-soc@vger.kernel.org, 'Jingoo Han' <jg1.han@samsung.com>
 List-Id: linux-omap@vger.kernel.org
-To: Vinod Koul <vinod.koul@intel.com>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, neumann@teufel.de, bigeasy@linutronix.de, sergei.shtylyov@cogentembedded.com, dan.j.williams@intel.com, balbi@ti.com, gregkh@linuxfoundation.org
 
-On 23.09.2013 06:09, Vinod Koul wrote:
-> On Sun, Sep 22, 2013 at 04:50:04PM +0200, Daniel Mack wrote:
+On Monday, September 23, 2013 12:38 PM, Vivek Gautam wrote:
+> 
+> This delay got introduced in:
+> "7415f17 usb: dwc3: core: add power management support"
+> which reflected similar code in dwc3_core_soft_reset() function.
+> However, originally the delay of 100ms in dwc3_core_soft_reset() was
+> meant to assist USB2PHY and USB3PHY reset, not for usb_phy_init()
+> sequence.
+> 
+> We should get rid of this delay, since things will still work
+> fine without this.
+> 
+> Signed-off-by: Vivek Gautam <gautam.vivek@samsung.com>
 
->> +#ifdef CONFIG_PM_SLEEP
-> ahhhh
->=20
->> +static int cppi41_suspend(struct device *dev)
->> +{
->> +	struct cppi41_dd *cdd =3D dev_get_drvdata(dev);
->> +
->> +	cppi_writel(0, cdd->usbss_mem + USBSS_IRQ_CLEARR);
->> +	disable_sched(cdd);
->> +
->> +	return 0;
->> +}
->> +
->> +static int cppi41_resume(struct device *dev)
->> +{
->> +	struct cppi41_dd *cdd =3D dev_get_drvdata(dev);
->> +	int i;
->> +
->> +	for (i =3D 0; i < DESCS_AREAS; i++)
->> +		cppi_writel(cdd->descs_phys, cdd->qmgr_mem + QMGR_MEMBASE(i));
->> +
->> +	init_sched(cdd);
->> +	cppi_writel(USBSS_IRQ_PD_COMP, cdd->usbss_mem + USBSS_IRQ_ENABLER)=
-;
->> +
->> +	return 0;
->> +}
->> +#endif
->> +
->> +static SIMPLE_DEV_PM_OPS(cppi41_pm_ops, cppi41_suspend, cppi41_resu=
-me);
-> Here is the macro in pm.h
+Reviewed-by: Jingoo Han <jg1.han@samsung.com>
 
-[...]
+OK, I see.
+There is no reason to add msleep(100) to dwc3_resume();
+thus, this msleep(100) can be removed.
 
-> Now since you are using the macro there should be no need to wrap ifd=
-ef around
-> your code, the macro will take care of it.
+Best regards,
+Jingoo Han
 
-Well yes, which is why I put the macro itself *outside* of the #ifdef
-block. Without that #ifdef, however, and with CONFIG_PM_SLEEP unset, I =
-get:
-
-drivers/dma/cppi41.c:1043:12: warning: =91cppi41_suspend=92 defined but=
- not
-used [-Wunused-function]
- static int cppi41_suspend(struct device *dev)
-            ^
-drivers/dma/cppi41.c:1053:12: warning: =91cppi41_resume=92 defined but =
-not
-used [-Wunused-function]
- static int cppi41_resume(struct device *dev)
-            ^
-
-=2E.. which doesn't surprise me much. Or do I still not get your point?
-
-
-Thanks,
-Daniel
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> ---
+> 
+> Hi Felipe,
+> 
+> I remember this change for phy_init including msleep(100) was
+> suggested by me, after testing the patch-series for PM support
+> to dwc3.
+> Sorry for that !!
+> 
+>  drivers/usb/dwc3/core.c |    1 -
+>  1 files changed, 0 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
+> index 474162e..e88ffae 100644
+> --- a/drivers/usb/dwc3/core.c
+> +++ b/drivers/usb/dwc3/core.c
+> @@ -691,7 +691,6 @@ static int dwc3_resume(struct device *dev)
+> 
+>  	usb_phy_init(dwc->usb3_phy);
+>  	usb_phy_init(dwc->usb2_phy);
+> -	msleep(100);
+> 
+>  	spin_lock_irqsave(&dwc->lock, flags);
+> 
+> --
+> 1.7.6.5
