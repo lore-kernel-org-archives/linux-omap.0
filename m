@@ -1,37 +1,223 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: Re: [PATCH 1/3] ARM: OMAP2: HACK: hardcode hsmmc2 input clock source
- for N950/N9
-Date: Mon, 23 Sep 2013 21:03:50 +0300
-Message-ID: <20130923180350.GA17450@blackmetal.musicnaut.iki.fi>
-References: <1379771142-29087-1-git-send-email-aaro.koskinen@iki.fi>
- <1379771142-29087-2-git-send-email-aaro.koskinen@iki.fi>
- <20130923173843.GI2684@atomide.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH v2 2/9] usb: phy: nop: Don't use regulator framework for
+ RESET line
+Date: Mon, 23 Sep 2013 21:05:30 +0300
+Message-ID: <524082EA.30100@ti.com>
+References: <1376561909-4406-1-git-send-email-rogerq@ti.com>
+ <1376561909-4406-3-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from filtteri6.pp.htv.fi ([213.243.153.189]:41489 "EHLO
-	filtteri6.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752875Ab3IWSEA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Sep 2013 14:04:00 -0400
-Content-Disposition: inline
-In-Reply-To: <20130923173843.GI2684@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1376561909-4406-3-git-send-email-rogerq@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: balbi@ti.com
+Cc: devicetree@vger.kernel.org, bcousson@baylibre.com, tony@atomide.com, linux-usb@vger.kernel.org, broonie@kernel.org, p.zabel@pengutronix.de, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>
 
-Hi,
+Hi Felipe,
 
-On Mon, Sep 23, 2013 at 10:38:43AM -0700, Tony Lindgren wrote:
-> * Aaro Koskinen <aaro.koskinen@iki.fi> [130921 06:56]:
-> > Without this the eMMC (root file system) cannot be used on N950/N9.
-> > Any ideas for a proper solution?
+There is an issue with this patch and is shown below.
+I will send a v3 for this.
 
-> Can you please update this patch on the quirks series I posted
-> few days ago?
+On 08/15/2013 01:18 PM, Roger Quadros wrote:
+> Modelling the RESET line as a regulator supply wasn't a good idea
+> as it kind of abuses the regulator framework and also makes adaptation
+> code more complex.
+> 
+> Instead, manage the RESET gpio line directly in the driver. Update
+> the device tree binding information.
+> 
+> This also makes us easy to migrate to a dedicated GPIO RESET controller
+> whenever it becomes available.
+> 
+> Signed-off-by: Roger Quadros <rogerq@ti.com>
+> ---
+>  .../devicetree/bindings/usb/usb-nop-xceiv.txt      |    7 +-
+>  drivers/usb/phy/phy-nop.c                          |   71 ++++++++++++++-----
+>  2 files changed, 55 insertions(+), 23 deletions(-)
+> 
+> diff --git a/Documentation/devicetree/bindings/usb/usb-nop-xceiv.txt b/Documentation/devicetree/bindings/usb/usb-nop-xceiv.txt
+> index d7e2726..1bd37fa 100644
+> --- a/Documentation/devicetree/bindings/usb/usb-nop-xceiv.txt
+> +++ b/Documentation/devicetree/bindings/usb/usb-nop-xceiv.txt
+> @@ -15,7 +15,7 @@ Optional properties:
+>  
+>  - vcc-supply: phandle to the regulator that provides RESET to the PHY.
+>  
+> -- reset-supply: phandle to the regulator that provides power to the PHY.
+> +- reset-gpios: Should specify the GPIO for reset.
+>  
+>  Example:
+>  
+> @@ -25,10 +25,9 @@ Example:
+>  		clocks = <&osc 0>;
+>  		clock-names = "main_clk";
+>  		vcc-supply = <&hsusb1_vcc_regulator>;
+> -		reset-supply = <&hsusb1_reset_regulator>;
+> +		reset-gpios = <&gpio1 7 GPIO_ACTIVE_LOW>;
+>  	};
+>  
+>  hsusb1_phy is a NOP USB PHY device that gets its clock from an oscillator
+>  and expects that clock to be configured to 19.2MHz by the NOP PHY driver.
+> -hsusb1_vcc_regulator provides power to the PHY and hsusb1_reset_regulator
+> -controls RESET.
+> +hsusb1_vcc_regulator provides power to the PHY and GPIO 7 controls RESET.
+> diff --git a/drivers/usb/phy/phy-nop.c b/drivers/usb/phy/phy-nop.c
+> index 55445e5d..1f88c32 100644
+> --- a/drivers/usb/phy/phy-nop.c
+> +++ b/drivers/usb/phy/phy-nop.c
+> @@ -35,6 +35,9 @@
+>  #include <linux/clk.h>
+>  #include <linux/regulator/consumer.h>
+>  #include <linux/of.h>
+> +#include <linux/of_gpio.h>
+> +#include <linux/gpio.h>
+> +#include <linux/delay.h>
+>  
+>  struct nop_usb_xceiv {
+>  	struct usb_phy phy;
+> @@ -42,6 +45,8 @@ struct nop_usb_xceiv {
+>  	struct clk *clk;
+>  	struct regulator *vcc;
+>  	struct regulator *reset;
+> +	int gpio_reset;
+> +	bool reset_active_low;
+>  };
+>  
+>  static struct platform_device *pd;
+> @@ -70,6 +75,23 @@ static int nop_set_suspend(struct usb_phy *x, int suspend)
+>  	return 0;
+>  }
+>  
+> +static void nop_reset_set(struct nop_usb_xceiv *nop, int asserted)
+> +{
+> +	int value;
+> +
+> +	if (!gpio_is_valid(nop->gpio_reset))
+> +		return;
+> +
+> +	value = asserted;
+> +	if (nop->reset_active_low)
+> +		value = !value;
+> +
+> +	gpio_set_value_cansleep(nop->gpio_reset, value);
+> +
+> +	if (!asserted)
+> +		usleep_range(10000, 20000);
+> +}
+> +
+>  static int nop_init(struct usb_phy *phy)
+>  {
+>  	struct nop_usb_xceiv *nop = dev_get_drvdata(phy->dev);
+> @@ -82,11 +104,8 @@ static int nop_init(struct usb_phy *phy)
+>  	if (!IS_ERR(nop->clk))
+>  		clk_enable(nop->clk);
+>  
+> -	if (!IS_ERR(nop->reset)) {
+> -		/* De-assert RESET */
+> -		if (regulator_enable(nop->reset))
+> -			dev_err(phy->dev, "Failed to de-assert reset\n");
+> -	}
+> +	/* De-assert RESET */
+> +	nop_reset_set(nop, 0);
+>  
+>  	return 0;
+>  }
+> @@ -95,11 +114,8 @@ static void nop_shutdown(struct usb_phy *phy)
+>  {
+>  	struct nop_usb_xceiv *nop = dev_get_drvdata(phy->dev);
+>  
+> -	if (!IS_ERR(nop->reset)) {
+> -		/* Assert RESET */
+> -		if (regulator_disable(nop->reset))
+> -			dev_err(phy->dev, "Failed to assert reset\n");
+> -	}
+> +	/* Assert RESET */
+> +	nop_reset_set(nop, 1);
+>  
+>  	if (!IS_ERR(nop->clk))
+>  		clk_disable(nop->clk);
+> @@ -148,7 +164,6 @@ static int nop_usb_xceiv_probe(struct platform_device *pdev)
+>  	int err;
+>  	u32 clk_rate = 0;
+>  	bool needs_vcc = false;
+> -	bool needs_reset = false;
+>  
+>  	nop = devm_kzalloc(&pdev->dev, sizeof(*nop), GFP_KERNEL);
+>  	if (!nop)
+> @@ -159,20 +174,28 @@ static int nop_usb_xceiv_probe(struct platform_device *pdev)
+>  	if (!nop->phy.otg)
+>  		return -ENOMEM;
+>  
+> +	nop->reset_active_low = true;	/* default behaviour */
+> +
+>  	if (dev->of_node) {
+>  		struct device_node *node = dev->of_node;
+> +		enum of_gpio_flags flags;
+>  
+>  		if (of_property_read_u32(node, "clock-frequency", &clk_rate))
+>  			clk_rate = 0;
+>  
+>  		needs_vcc = of_property_read_bool(node, "vcc-supply");
+> -		needs_reset = of_property_read_bool(node, "reset-supply");
+> +		nop->gpio_reset = of_get_named_gpio_flags(node, "reset-gpios",
+> +								0, &flags);
+> +		if (nop->gpio_reset == -EPROBE_DEFER)
+> +			return -EPROBE_DEFER;
+> +
+> +		nop->reset_active_low = flags & OF_GPIO_ACTIVE_LOW;
+>  
+>  	} else if (pdata) {
+>  		type = pdata->type;
+>  		clk_rate = pdata->clk_rate;
+>  		needs_vcc = pdata->needs_vcc;
+> -		needs_reset = pdata->needs_reset;
+> +		nop->gpio_reset = pdata->gpio_reset;
+>  	}
+>  
+>  	nop->clk = devm_clk_get(&pdev->dev, "main_clk");
+> @@ -205,12 +228,22 @@ static int nop_usb_xceiv_probe(struct platform_device *pdev)
+>  			return -EPROBE_DEFER;
+>  	}
+>  
+> -	nop->reset = devm_regulator_get(&pdev->dev, "reset");
+> -	if (IS_ERR(nop->reset)) {
+> -		dev_dbg(&pdev->dev, "Error getting reset regulator: %ld\n",
+> -					PTR_ERR(nop->reset));
+> -		if (needs_reset)
+> -			return -EPROBE_DEFER;
+> +	if (gpio_is_valid(nop->gpio_reset)) {
+> +		unsigned long gpio_flags;
+> +
+> +		/* Assert RESET */
+> +		if (nop->reset_active_low)
+> +			gpio_flags = GPIOF_OUT_INIT_HIGH;
+> +		else
+> +			gpio_flags = GPIOF_OUT_INIT_LOW;
 
-Ok, will do (sorry I missed that series).
+The operations inside if/else need to be reversed.
 
-Thanks,
+> +
+> +		err = devm_gpio_request_one(dev, nop->gpio_reset,
+> +						gpio_flags, dev_name(dev));
+> +		if (err) {
+> +			dev_err(dev, "Error requesting RESET GPIO %d\n",
+> +					nop->gpio_reset);
+> +			return err;
+> +		}
+>  	}
+>  
+>  	nop->dev		= &pdev->dev;
+> 
 
-A.
+cheers,
+-roger
