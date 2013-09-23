@@ -1,28 +1,29 @@
-From: Vinod Koul <vinod.koul@intel.com>
-Subject: Re: [PATCH v3 2/5] dma: cppi41: s/deinit_cpii41/deinit_cppi41/
-Date: Mon, 23 Sep 2013 09:46:38 +0530
-Message-ID: <20130923041638.GX17188@intel.com>
+From: Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v3 3/5] dma: cppi41: add shortcut to &pdev->dev in
+ cppi41_dma_probe()
+Date: Mon, 23 Sep 2013 09:47:04 +0530
+Message-ID: <20130923041704.GY17188@intel.com>
 References: <1379861404-8250-1-git-send-email-zonque@gmail.com>
- <1379861404-8250-3-git-send-email-zonque@gmail.com>
+ <1379861404-8250-4-git-send-email-zonque@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:29654 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752308Ab3IWFHD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 23 Sep 2013 01:07:03 -0400
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1379861404-8250-3-git-send-email-zonque@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1379861404-8250-4-git-send-email-zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, neumann-SRDuVqtxQLSzQB+pC5nmwQ@public.gmane.org, bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Daniel Mack <zonque@gmail.com>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, neumann@teufel.de, bigeasy@linutronix.de, sergei.shtylyov@cogentembedded.com, dan.j.williams@intel.com, balbi@ti.com, gregkh@linuxfoundation.org
 
-On Sun, Sep 22, 2013 at 04:50:01PM +0200, Daniel Mack wrote:
-> Fix a misspelled function name.
+On Sun, Sep 22, 2013 at 04:50:02PM +0200, Daniel Mack wrote:
+> Makes the code more readable and compact. No functional change.
 > 
-> Signed-off-by: Daniel Mack <zonque@gmail.com>
+> Signed-off-by: Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Applied, thanks
 
 ~Vinod
 -- 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
