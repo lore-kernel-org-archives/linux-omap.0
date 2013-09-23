@@ -1,53 +1,118 @@
-From: Nicolas Ferre <nicolas.ferre-AIFe0yeh4nAAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 37/51] DMA-API: usb: use new dma_coerce_mask_and_coherent()
-Date: Mon, 23 Sep 2013 14:34:34 +0200
-Message-ID: <5240355A.9010609@atmel.com>
-References: <20130919212235.GD12758@n2100.arm.linux.org.uk> <E1VMmIV-0007jw-Gq@rmk-PC.arm.linux.org.uk>
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
+Subject: [PATCH v2] RX-51: Add missing max_current to rx51_lp5523_led_config
+Date: Mon, 23 Sep 2013 14:50:12 +0200
+Message-ID: <201309231450.12171@pali>
+References: <1379541145-25934-1-git-send-email-pali.rohar@gmail.com> <20130919212922.GA27501@atomide.com> <201309200020.58671@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: multipart/signed;
+  boundary="nextPart1569287.tiabN1Odsz";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <E1VMmIV-0007jw-Gq-eh5Bv4kxaXIANfyc6IWni62ZND6+EDdj@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Russell King <rmk+kernel-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, b43-dev-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, e1000-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-crypto-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-ide-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Solarflare linux maintainers <linux-net-drivers-s/n/eUQHGBpZroRs9YW3xA@public.gmane.org>, uclinux-dist-devel-ZG0+EudsQA8dtHy/vicBwGD2FQJk+8+b@public.gmane.org
-Cc: Alexander Shishkin <alexander.shishkin-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Kukjin Kim <kgene.kim-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, Tony Prisk <linux-ci5G2KO2hbZ+pU9mqzGVBQ@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <201309200020.58671@pali>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, joerg@openmoko.org
 List-Id: linux-omap@vger.kernel.org
 
-On 20/09/2013 00:02, Russell King :
-> Signed-off-by: Russell King <rmk+kernel-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
-> ---
->   drivers/usb/chipidea/ci_hdrc_imx.c |    4 +---
->   drivers/usb/dwc3/dwc3-exynos.c     |    4 +---
->   drivers/usb/host/ehci-atmel.c      |    4 +---
+--nextPart1569287.tiabN1Odsz
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-For Atmel driver:
+Hi Tony,
 
-Acked-by: Nicolas Ferre <nicolas.ferre-AIFe0yeh4nAAvxtiuMwx3w@public.gmane.org>
+here is new version (v2) of patch which adding max_current values to rx51 b=
+oard data.
+According to joerg safe value for max_current is 100 (10 mA).
 
-[..]
 
-> diff --git a/drivers/usb/host/ehci-atmel.c b/drivers/usb/host/ehci-atmel.c
-> index 5831a88..8e7323e 100644
-> --- a/drivers/usb/host/ehci-atmel.c
-> +++ b/drivers/usb/host/ehci-atmel.c
-> @@ -90,9 +90,7 @@ static int ehci_atmel_drv_probe(struct platform_device *pdev)
->   	 * Since shared usb code relies on it, set it here for now.
->   	 * Once we have dma capability bindings this can go away.
->   	 */
-> -	if (!pdev->dev.dma_mask)
-> -		pdev->dev.dma_mask = &pdev->dev.coherent_dma_mask;
-> -	retval = dma_set_coherent_mask(&pdev->dev, DMA_BIT_MASK(32));
-> +	retval = dma_coerce_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(32));
->   	if (retval)
->   		goto fail_create_hcd;
->
+RX-51: Add missing max_current to rx51_lp5523_led_config
 
-[..]
+=46ile drivers/leds/leds-lp55xx-common.c refuse to change led_current sysfs
+attribute if value is higher than max_current specified in board file. By d=
+efault
+global C variables are zero, so changing always failed. This patch adding m=
+issing
+max_current and setting it to max safe value 100 (10 mA).
 
-Thanks Russell,
--- 
-Nicolas Ferre
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Pali Roh=C3=A1r <pali.rohar@gmail.com>
+=2D--
+ arch/arm/mach-omap2/board-rx51-peripherals.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-o=
+map2/board-rx51-peripherals.c
+index c3270c0..f6fe388 100644
+=2D-- a/arch/arm/mach-omap2/board-rx51-peripherals.c
++++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+@@ -167,38 +167,47 @@ static struct lp55xx_led_config rx51_lp5523_led_confi=
+g[] =3D {
+ 		.name		=3D "lp5523:kb1",
+ 		.chan_nr	=3D 0,
+ 		.led_current	=3D 50,
++		.max_current	=3D 100,
+ 	}, {
+ 		.name		=3D "lp5523:kb2",
+ 		.chan_nr	=3D 1,
+ 		.led_current	=3D 50,
++		.max_current	=3D 100,
+ 	}, {
+ 		.name		=3D "lp5523:kb3",
+ 		.chan_nr	=3D 2,
+ 		.led_current	=3D 50,
++		.max_current	=3D 100,
+ 	}, {
+ 		.name		=3D "lp5523:kb4",
+ 		.chan_nr	=3D 3,
+ 		.led_current	=3D 50,
++		.max_current	=3D 100,
+ 	}, {
+ 		.name		=3D "lp5523:b",
+ 		.chan_nr	=3D 4,
+ 		.led_current	=3D 50,
++		.max_current	=3D 100,
+ 	}, {
+ 		.name		=3D "lp5523:g",
+ 		.chan_nr	=3D 5,
+ 		.led_current	=3D 50,
++		.max_current	=3D 100,
+ 	}, {
+ 		.name		=3D "lp5523:r",
+ 		.chan_nr	=3D 6,
+ 		.led_current	=3D 50,
++		.max_current	=3D 100,
+ 	}, {
+ 		.name		=3D "lp5523:kb5",
+ 		.chan_nr	=3D 7,
+ 		.led_current	=3D 50,
++		.max_current	=3D 100,
+ 	}, {
+ 		.name		=3D "lp5523:kb6",
+ 		.chan_nr	=3D 8,
+ 		.led_current	=3D 50,
++		.max_current	=3D 100,
+ 	}
+ };
+=20
+=2D-=20
+1.7.10.4
+
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
+
+--nextPart1569287.tiabN1Odsz
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iEYEABECAAYFAlJAOQQACgkQi/DJPQPkQ1Ie7ACfaRKdlGuIvdFe9Cj7joFRwrou
+5TMAoLFwzG/LTg/GAuzOQr5khsY3Wlpc
+=x1tL
+-----END PGP SIGNATURE-----
+
+--nextPart1569287.tiabN1Odsz--
