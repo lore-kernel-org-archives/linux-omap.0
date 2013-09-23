@@ -1,46 +1,67 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC] gpio/omap: auto-setup a GPIO when used as an IRQ
-Date: Mon, 23 Sep 2013 10:07:24 -0700
-Message-ID: <20130923170724.GG2684@atomide.com>
-References: <1379860848-29020-1-git-send-email-javier.martinez@collabora.co.uk>
- <20130923164519.GF2684@atomide.com>
- <524073BC.9080907@collabora.co.uk>
+Subject: Re: [PATCH v2] ADP1653 board code for Nokia RX-51
+Date: Mon, 23 Sep 2013 10:21:47 -0700
+Message-ID: <20130923172146.GH2684@atomide.com>
+References: <201302171616.50152@pali>
+ <20130907230252.GA10700@blackmetal.musicnaut.iki.fi>
+ <20130918131644.GA2953@amd.pavel.ucw.cz>
+ <201309181800.10486@pali>
+ <20130918174211.GU9994@atomide.com>
+ <20130921123732.GB4652@amd.pavel.ucw.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <524073BC.9080907@collabora.co.uk>
+In-Reply-To: <20130921123732.GB4652@amd.pavel.ucw.cz>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, Stephen Warren <swarren@wwwdotorg.org>, Lars Poeschel <larsi@wh2.tu-dresden.de>, Grant Likely <grant.likely@linaro.org>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ian.campbell@citrix.com>, Kumar Gala <galak@codeaurora.org>, Pawel Moll <pawel.moll@arm.com>, Tomasz Figa <tomasz.figa@gmail.com>, Enric Balletbo i Serra <eballetbo@gmail.com>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, Balaji T K <balajitk@ti.com>, Jon Hunter <jgchunter@gmail.com>, linux-gpio@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Javier Martinez Canillas <javier.martinez@collabora.co.uk> [130923 10:09]:
-> On 09/23/2013 06:45 PM, Tony Lindgren wrote:
-> > 
-> > Hmm does this still work for legacy platform data based
-> > drivers that are doing gpio_request() first?
-> > 
+* Pavel Machek <pavel@ucw.cz> [130921 05:45]:
+> Hi!
 > 
-> Yes it still work when booting using board files. I tested on my OMAP3 board and
-> it worked in both DT and legacy booting mode.
+> > > > > > > --- /dev/null
+> > > > > > > +++ b/arch/arm/mach-omap2/board-rx51-camera.c
+> > > > > 
+> > > > > [...]
+> > > > > 
+> > > > > > Ping, can you review this patch v2?
+> > > > > 
+> > > > > I don't think Tony will accept any new board stuff for
+> > > > > RX-51/N900. See for example:
+> > > > > http://marc.info/?l=linux-kernel&m=137629626213187&w=2
+> > > > > 
+> > > > > There should be initial Nokia N900 DTS file in 3.12-rc1, and
+> > > > > we should continue converting this board fully to DT.
+> > > > 
+> > > > That's not reasonable. N900 is pretty far away from working
+> > > > with device tree. Yes, I was able to get some bits merged,
+> > > > but that should not be excuse to halt other N900 development.
+> > > > 									Pavel
+> > > 
+> > > Right. So Tony, will you accept future patches for board files?
+> > 
+> > Only fixes to board-*.c files please unless there's a _really_
+> > good reason to make things more complex with the platform data.
+> > Let's not make the DT conversion any more complex than it
+> > already is.
+> > 
+> > Getting things working with DT for the devices is pretty trivial
+> > in most cases. And we can also still initialize the legacy devices
+> > using platform data the same way as earlier.
+> 
+> Well... It was quite a struggle to get video working with device tree
+> in 3.10, and now it is broken in 3.12-rc1, again.
 
-OK great.
+Hmm didn't Aaro reply that you just need to change the Kconfig
+option for the panel to fix it?
  
-> > And what's the path for clearing things for PM when free_irq()
-> > gets called? It seems that this would leave the GPIO bank
-> > enabled causing a PM regression?
-> > 
-> 
-> Indeed, I did set bank->mod_usage |= 1 << offset so the bank is enabled if the
-> device goes to suspended and then resumed but I completely forget about the
-> clearing path when the IRQ is freed.
-> 
-> Which makes me think that we should probably maintain two usage variables, one
-> for GPIO and another one for IRQ and check both of them on the suspend/resume pm
-> functions.
+> "Now, here, you see, it takes all the running you can do, to keep in
+> the same place. If you want to get somewhere else, you must run at
+> least twice as fast as that! "
 
-Yes that it seems that they should be treated separately.
+True at least for reading the mailing lists :)
 
 Regards,
 
