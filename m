@@ -1,118 +1,35 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: [PATCH v2] RX-51: Add missing max_current to rx51_lp5523_led_config
-Date: Mon, 23 Sep 2013 14:50:12 +0200
-Message-ID: <201309231450.12171@pali>
-References: <1379541145-25934-1-git-send-email-pali.rohar@gmail.com> <20130919212922.GA27501@atomide.com> <201309200020.58671@pali>
+From: Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
+Subject: Re: [RFC PATCH 08/15] ata: ahci_platform: Manage SATA PHY
+Date: Mon, 23 Sep 2013 16:53:52 +0400
+Message-ID: <524039E0.2060205@cogentembedded.com>
+References: <1379595943-14622-1-git-send-email-rogerq@ti.com> <1379595943-14622-9-git-send-email-rogerq@ti.com> <20130922165817.GD30946@htj.dyndns.org> <523F35E4.6050707@cogentembedded.com> <20130922215107.GD27616@mtj.dyndns.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart1569287.tiabN1Odsz";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <201309200020.58671@pali>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, joerg@openmoko.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20130922215107.GD27616-9pTldWuhBndy/B6EtB590w@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, balbi-l0cyMroinI0@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, balajitk-l0cyMroinI0@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-ide-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
---nextPart1569287.tiabN1Odsz
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+Hello.
 
-Hi Tony,
+On 23-09-2013 1:51, Tejun Heo wrote:
 
-here is new version (v2) of patch which adding max_current values to rx51 b=
-oard data.
-According to joerg safe value for max_current is 100 (10 mA).
+>>     Not sure why you asked -- I'm not using this driver, neither I'm
 
+> Well, you have better grip of what's going on in the embedded world
+> than me.  I'm mostly curious whether adding dependency on PHY is okay.
 
-RX-51: Add missing max_current to rx51_lp5523_led_config
+    This driver already supports optional clock, the optional PHY support
+seems analogous.
 
-=46ile drivers/leds/leds-lp55xx-common.c refuse to change led_current sysfs
-attribute if value is higher than max_current specified in board file. By d=
-efault
-global C variables are zero, so changing always failed. This patch adding m=
-issing
-max_current and setting it to max safe value 100 (10 mA).
+> Thanks.
 
-Signed-off-by: Pali Roh=C3=A1r <pali.rohar@gmail.com>
-=2D--
- arch/arm/mach-omap2/board-rx51-peripherals.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+WBR, Sergei
 
-diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-o=
-map2/board-rx51-peripherals.c
-index c3270c0..f6fe388 100644
-=2D-- a/arch/arm/mach-omap2/board-rx51-peripherals.c
-+++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
-@@ -167,38 +167,47 @@ static struct lp55xx_led_config rx51_lp5523_led_confi=
-g[] =3D {
- 		.name		=3D "lp5523:kb1",
- 		.chan_nr	=3D 0,
- 		.led_current	=3D 50,
-+		.max_current	=3D 100,
- 	}, {
- 		.name		=3D "lp5523:kb2",
- 		.chan_nr	=3D 1,
- 		.led_current	=3D 50,
-+		.max_current	=3D 100,
- 	}, {
- 		.name		=3D "lp5523:kb3",
- 		.chan_nr	=3D 2,
- 		.led_current	=3D 50,
-+		.max_current	=3D 100,
- 	}, {
- 		.name		=3D "lp5523:kb4",
- 		.chan_nr	=3D 3,
- 		.led_current	=3D 50,
-+		.max_current	=3D 100,
- 	}, {
- 		.name		=3D "lp5523:b",
- 		.chan_nr	=3D 4,
- 		.led_current	=3D 50,
-+		.max_current	=3D 100,
- 	}, {
- 		.name		=3D "lp5523:g",
- 		.chan_nr	=3D 5,
- 		.led_current	=3D 50,
-+		.max_current	=3D 100,
- 	}, {
- 		.name		=3D "lp5523:r",
- 		.chan_nr	=3D 6,
- 		.led_current	=3D 50,
-+		.max_current	=3D 100,
- 	}, {
- 		.name		=3D "lp5523:kb5",
- 		.chan_nr	=3D 7,
- 		.led_current	=3D 50,
-+		.max_current	=3D 100,
- 	}, {
- 		.name		=3D "lp5523:kb6",
- 		.chan_nr	=3D 8,
- 		.led_current	=3D 50,
-+		.max_current	=3D 100,
- 	}
- };
-=20
-=2D-=20
-1.7.10.4
-
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
-
---nextPart1569287.tiabN1Odsz
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEABECAAYFAlJAOQQACgkQi/DJPQPkQ1Ie7ACfaRKdlGuIvdFe9Cj7joFRwrou
-5TMAoLFwzG/LTg/GAuzOQr5khsY3Wlpc
-=x1tL
------END PGP SIGNATURE-----
-
---nextPart1569287.tiabN1Odsz--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
