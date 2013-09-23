@@ -1,63 +1,97 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [RFC] gpio/omap: auto-setup a GPIO when used as an IRQ
-Date: Mon, 23 Sep 2013 22:15:48 +0200
-Message-ID: <CACRpkdb35DouKsZ+9aWfQmER1vmAaK1dR7VXjoFHTLRR+hBezg@mail.gmail.com>
-References: <1379860848-29020-1-git-send-email-javier.martinez@collabora.co.uk>
+From: Stephen Warren <swarren@wwwdotorg.org>
+Subject: Re: [RFCv2 3/3] ARM: dts: N900: Add SSI information
+Date: Mon, 23 Sep 2013 14:35:35 -0600
+Message-ID: <5240A617.1010208@wwwdotorg.org>
+References: <1379277856-24571-1-git-send-email-sre@debian.org> <1379277856-24571-4-git-send-email-sre@debian.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <1379860848-29020-1-git-send-email-javier.martinez@collabora.co.uk>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@linaro.org>, Stephen Warren <swarren@wwwdotorg.org>, Lars Poeschel <larsi@wh2.tu-dresden.de>, Grant Likely <grant.likely@linaro.org>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ian.campbell@citrix.com>, Kumar Gala <galak@codeaurora.org>, Pawel Moll <pawel.moll@arm.com>, Tomasz Figa <tomasz.figa@gmail.com>, Enric Balletbo i Serra <eballetbo@gmail.com>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, Balaji T K <balajitk@ti.com>, Tony Lindgren <tony@atomide.com>, Jon Hunter <jgchunter@gmail.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1379277856-24571-4-git-send-email-sre@debian.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Reichel <sre@debian.org>
+Cc: Sebastian Reichel <sre@ring0.de>, Linus Walleij <linus.walleij@linaro.org>, Shubhrajyoti Datta <omaplinuxkernel@gmail.com>, Carlos Chinea <cch.devel@gmail.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Grant Likely <grant.likely@linaro.org>, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Rob Landley <rob@landley.net>, =?ISO-8859-1?Q?=27Beno=EEt_Cousson=27?= <bcousson@baylibre.com>, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Sun, Sep 22, 2013 at 4:40 PM, Javier Martinez Canillas
-<javier.martinez@collabora.co.uk> wrote:
+On 09/15/2013 02:44 PM, Sebastian Reichel wrote:
+> Add SSI device tree data for OMAP34xx and Nokia N900.
 
-> To use a GPIO pin as an interrupt line, two previous configurations
-> have to be made:
->
-> a) Map the GPIO pin as an interrupt line into the Linux irq space
-> b) Enable the GPIO bank and configure the GPIO direction as input
->
-> Most GPIO/IRQ chip drivers just create a mapping for every single
-> GPIO pin with irq_create_mapping() on .probe so users usually can
-> assume a) and only have to do b) by using the following sequence:
->
-> gpio_request(gpio, "foo IRQ");
-> gpio_direction_input(gpio);
->
-> and then request a IRQ with:
->
-> irq = gpio_to_irq(gpio);
-> request_irq(irq, ...);
+What is an "SSI" device, ...
 
-I guess I have to live with this approach, but I'd like to - if possible -
-address my pet issue.
+> diff --git a/Documentation/devicetree/bindings/hsi/omap_ssi.txt b/Documentation/devicetree/bindings/hsi/omap_ssi.txt
 
-- It is OK that the HW get set up as GPIO input by the IRQ
-  request function alone. (Through gpio_irq_type I guess).
+... and what is the "HSI" subsystem?
 
-- When a second caller calls omap_gpio_request() it should
-  be OK as well, but only if the flags corresponds to the
-  previously enabled input mode. Else it should be
-  disallowed.
+> +OMAP SSI controller bindings
+> +
+> +Required properties:
+> +- compatible:		Should be set to the following value
+> +                        ti,omap3-ssi (applicable to OMAP34xx devices)
 
-- The same should happen for _set_gpio_direction() if a pin
-  previously set up for IRQ gets a request to be used as
-  output.
+I think that'd be better phrased as:
 
-If this cannot be tracked in the driver, it is certainly a candidate
-for something that gpiolib should be doing. And then I'm open to
-solutions to how we can do that.
+	Should include "ti,omap3-ssi".
 
-If this needs to be applied pronto to fix the regression I'm
-happy with that too, if we add a big boilerplate stating the above
-problem and that it needs to be *fixed* at some point.
+The binding should not preclude other compatibel values being present
+(e.g. a SoC-specific compatible value, to allow SoC-specific quirks to
+be enabled later).
 
-But in either case I want this to be tested on OMAP1 before
-I apply it, as in a Tested-by tag.
+> +- ti,hwmods:		Name of the hwmod associated to the controller, which
+> +			is "ssi".
 
-Yours,
-Linus Walleij
+I don't think we should add any more of that, for new bindings.
+
+> +- reg:			Contains SSI register address range (base address and
+> +			length).
+> +- reg-names:		Contains the names of the address ranges. It's
+> +                        expected, that "sys" and "gdd" address ranges are
+> +			provided.
+
+Why two entries in reg-names but only one in reg?
+
+I think it'd be better to write:
+
+reg-names:	Contains the values "sys" and "gdd".
+reg:		Contains a register specifier for each entry in
+		reg-names.
+
+A similar re-ordering/-wording would apply to interrupts/interrupt-names.
+
+> +- ranges		Required as an empty node
+
+s/node/property/
+
+Why must ranges be empty? As long as the content correctly represents
+the bus setup, why does the content matter at all. How about:
+
+ranges		Represents the bus address mapping between the main
+		controller node and the child nodes below.
+
+> +Each port is represented as a sub-node of the ti,omap3-ssi device.
+> +
+> +Required Port sub-node properties:
+> +- compatible:		Should be set to the following value
+> +                        ti,omap3-ssi-port (applicable to OMAP34xx devices)
+
+Hmm. Is it really the case that there is 1 controller with n ports? Are
+the ports really dependent upon some shared resource? Couldn't the ports
+be represented as separate top-level SSI controllers?
+
+> +- interrupts:		Contains the interrupt information for the port.
+> +- interrupt-names:	Contains the names of the interrupts. It's expected,
+> +			that "mpu_irq0" and "mpu_irq1" are provided.
+
+What exactly are those interrupts? "MPU" sounds like an external
+micro-controller/processor...
+
+> +- ti,ssi-cawake-gpio:	Defines which GPIO pin is used to signify CAWAKE
+> +			events for the port. This is an optional board-specific
+> +			property. If it's missing the port will not be
+> +			enabled.
+
+That also sounds like something that's a higher-level protocol, rather
+than whatever low-level transport "SSI" implements. Should this be part
+of a child node that represents the device attached to the SSI controller?
+
+Does the SSI controller (or its ports) not need any clocks, resets,
+regulators, ...?
