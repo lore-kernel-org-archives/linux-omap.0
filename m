@@ -1,66 +1,37 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 4/4] RX-51: Add platform function and data for bq24150a
- charger
-Date: Mon, 23 Sep 2013 11:03:00 -0700
-Message-ID: <20130923180259.GJ2684@atomide.com>
-References: <1378630239-10006-1-git-send-email-pali.rohar@gmail.com>
- <1378630239-10006-5-git-send-email-pali.rohar@gmail.com>
- <201309202122.06327@pali>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: Re: [PATCH 1/3] ARM: OMAP2: HACK: hardcode hsmmc2 input clock source
+ for N950/N9
+Date: Mon, 23 Sep 2013 21:03:50 +0300
+Message-ID: <20130923180350.GA17450@blackmetal.musicnaut.iki.fi>
+References: <1379771142-29087-1-git-send-email-aaro.koskinen@iki.fi>
+ <1379771142-29087-2-git-send-email-aaro.koskinen@iki.fi>
+ <20130923173843.GI2684@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from filtteri6.pp.htv.fi ([213.243.153.189]:41489 "EHLO
+	filtteri6.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752875Ab3IWSEA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Sep 2013 14:04:00 -0400
 Content-Disposition: inline
-In-Reply-To: <201309202122.06327@pali>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
-Cc: Anton Vorontsov <anton@enomsg.org>, Russell King <linux@arm.linux.org.uk>, David Woodhouse <dwmw2@infradead.org>, Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, freemangordon@abv.bg, aaro.koskinen@iki.fi, pavel@ucw.cz
+In-Reply-To: <20130923173843.GI2684@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>
 
-* Pali Roh=C3=A1r <pali.rohar@gmail.com> [130920 12:29]:
-> On Sunday 08 September 2013 10:50:39 Pali Roh=C3=A1r wrote:
-> > This patch will register bq24150a charger in RX-51 board data.
-> > Patch also adding platform function between isp1704 and
-> > bq2415x drivers for detecting charger type.
-> >=20
-> > So finally charging battery on Nokia N900 (RX-51) working
-> > automatically without any proprietary Nokia bits in userspace.
-=2E..
-=20
-> > @@ -277,6 +316,7 @@ static void rx51_charger_set_power(bool
-> > on)
-> >=20
-> >  static struct isp1704_charger_data rx51_charger_data =3D {
-> >  	.set_power	=3D rx51_charger_set_power,
-> > +	.set_current	=3D rx51_charger_set_current,
-> >  };
+Hi,
 
-We want to get rid of the platform data callbacks here,
-there no longer any need to keep these under arch/arm.
+On Mon, Sep 23, 2013 at 10:38:43AM -0700, Tony Lindgren wrote:
+> * Aaro Koskinen <aaro.koskinen@iki.fi> [130921 06:56]:
+> > Without this the eMMC (root file system) cannot be used on N950/N9.
+> > Any ideas for a proper solution?
 
-> Tony, can you look and review this board patch?
+> Can you please update this patch on the quirks series I posted
+> few days ago?
 
-Yes, looks like this can all be done in the driver nowadays.
-You can use drivers/reset for the set_power. Or if it's really
-controlling the regulator, then the regulator framework. The
-info can be passed in a .dts file for those.
+Ok, will do (sorry I missed that series).
 
-The .set_current you can do in the driver based on the
-compatible flag.
-=20
-> I think that this patch series it the most important for Nokia=20
-> N900, because it finally bringing charging support. And without=20
-> charging battery it very hard to use phone which has power supply=20
-> only from battery.
+Thanks,
 
-Right, let's get this driver updated to use the device tree
-based init and that way this file is no longer needed.
-I would like to $ grep -i grandmom ~/.phonebook | call too :)
-
-I forgot how this charger is wired up, but maybe take a
-look at commit d7bf353f (bq24190_charger: Add support for TI
-BQ24190 Battery Charger) for the DT parts.
-
-Regards,
-
-Tony
+A.
