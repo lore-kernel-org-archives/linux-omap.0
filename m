@@ -1,30 +1,30 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v4 1/3] usb: dwc3: msm: Add device tree binding
+Subject: Re: [PATCH v5 1/3] usb: dwc3: msm: Add device tree binding
  information
-Date: Mon, 23 Sep 2013 14:31:48 -0500
-Message-ID: <20130923193148.GN30811@radagast>
-References: <1376992565-22292-1-git-send-email-iivanov@mm-sol.com>
- <1376992565-22292-2-git-send-email-iivanov@mm-sol.com>
+Date: Mon, 23 Sep 2013 14:32:24 -0500
+Message-ID: <20130923193224.GO30811@radagast>
+References: <1377091786-5613-1-git-send-email-iivanov@mm-sol.com>
+ <1377091786-5613-2-git-send-email-iivanov@mm-sol.com>
 Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Ll0BBk1HBk/f94B0"
+	protocol="application/pgp-signature"; boundary="TYjWXklH5JTzT8n9"
 Return-path: <linux-doc-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1376992565-22292-2-git-send-email-iivanov@mm-sol.com>
+In-Reply-To: <1377091786-5613-2-git-send-email-iivanov@mm-sol.com>
 Sender: linux-doc-owner@vger.kernel.org
 To: "Ivan T. Ivanov" <iivanov@mm-sol.com>
 Cc: balbi@ti.com, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ian.campbell@citrix.com, rob@landley.net, gregkh@linuxfoundation.org, grant.likely@linaro.org, idos@codeaurora.org, mgautam@codeaurora.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-msm@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
 List-Id: linux-omap@vger.kernel.org
 
---Ll0BBk1HBk/f94B0
+--TYjWXklH5JTzT8n9
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Tue, Aug 20, 2013 at 12:56:03PM +0300, Ivan T. Ivanov wrote:
+On Wed, Aug 21, 2013 at 04:29:44PM +0300, Ivan T. Ivanov wrote:
 > From: "Ivan T. Ivanov" <iivanov@mm-sol.com>
 >=20
 > MSM USB3.0 core wrapper consist of USB3.0 IP from Synopsys
@@ -35,7 +35,7 @@ On Tue, Aug 20, 2013 at 12:56:03PM +0300, Ivan T. Ivanov wrote:
 >=20
 > Signed-off-by: Ivan T. Ivanov <iivanov@mm-sol.com>
 
-Any acks for the DT part ? This patch has been pending forever.
+and here's a new version from same patch
 
 > ---
 >  .../devicetree/bindings/usb/msm-ssusb.txt          |  104 ++++++++++++++=
@@ -46,17 +46,17 @@ Any acks for the DT part ? This patch has been pending forever.
 > diff --git a/Documentation/devicetree/bindings/usb/msm-ssusb.txt b/Docume=
 ntation/devicetree/bindings/usb/msm-ssusb.txt
 > new file mode 100644
-> index 0000000..cacbd3b
+> index 0000000..f57ba8d
 > --- /dev/null
 > +++ b/Documentation/devicetree/bindings/usb/msm-ssusb.txt
 > @@ -0,0 +1,104 @@
 > +MSM SuperSpeed DWC3 USB SoC controller
 > +
 > +
-> +DWC3 Highspeed USB PHY
-> +=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> +MSM DW Highspeed USB PHY
+> +=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
 > +Required properities :
-> +- compatible : sould be "qcom,dwc3-hsphy";
+> +- compatible : sould be "qcom,dw-hsphy";
 > +- reg : offset and length of the register set in the memory map
 > +- clocks : phandles to clock instances of the device tree nodes
 > +- clock-names :
@@ -70,10 +70,11 @@ ntation/devicetree/bindings/usb/msm-ssusb.txt
 > +	"vbus" : vbus supply for host mode
 > +	"vddcx" : vdd supply for HS-PHY digital circuit operation
 > +
-> +DWC3 Superspeed USB PHY
-> +=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> +MSM DW Superspeed USB PHY
+> +=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
 > +Required properities :
-> +- compatible : sould be "qcom,dwc3-ssphy";
+> +- compatible : sould be "qcom,dw-ssphy";
 > +- reg : offset and length of the register set in the memory map
 > +- clocks : phandles to clock instances of the device tree nodes
 > +- clock-names :
@@ -84,8 +85,9 @@ ntation/devicetree/bindings/usb/msm-ssusb.txt
 > +	"v1p8" : 1.8v supply for SS-PHY
 > +	"vddcx" : vdd supply for SS-PHY digital circuit operation
 > +
-> +DWC3 controller wrapper
-> +=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> +MSM DWC3 controller wrapper
+> +=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D
 > +Required properties :
 > +- compatible : should be "qcom,dwc3"
 > +- reg : offset and length of the register set in the memory map
@@ -110,8 +112,8 @@ t.
 > +
 > +Example device nodes:
 > +
-> +	dwc3_hsphy: phy@f92f8800 {
-> +		compatible =3D "qcom,dwc3-hsphy";
+> +	dw_hsphy: phy@f92f8800 {
+> +		compatible =3D "qcom,dw-hsphy";
 > +		reg =3D <0xf92f8800 0x30>;
 > +
 > +		clocks =3D <&cxo>, <&usb2a_phy_sleep_cxc>;
@@ -123,8 +125,8 @@ t.
 > +		v3p3-supply =3D <&supply>;
 > +	};
 > +
-> +	dwc3_ssphy: phy@f92f8830 {
-> +		compatible =3D "qcom,dwc3-ssphy";
+> +	dw_ssphy: phy@f92f8830 {
+> +		compatible =3D "qcom,dw-ssphy";
 > +		reg =3D <0xf92f8830 0x30>;
 > +
 > +		clocks =3D <&cxo>, <&usb30_mock_utmi_cxc>;
@@ -151,7 +153,7 @@ t.
 > +			compatible =3D "snps,dwc3";
 > +			reg =3D <0xf9200000 0xcd00>;
 > +			interrupts =3D <0 131 0>;
-> +			usb-phy =3D <&dwc3_hsphy>, <&dwc3_ssphy>;
+> +			usb-phy =3D <&dw_hsphy>, <&dw_ssphy>;
 > +			tx-fifo-resize;
 > +		};
 > +	};
@@ -162,26 +164,26 @@ t.
 --=20
 balbi
 
---Ll0BBk1HBk/f94B0
+--TYjWXklH5JTzT8n9
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJSQJckAAoJEIaOsuA1yqREBG8P/3Is9lg5RDz0q3cyaGK9XVnX
-azDKd9mEnLS7NBdKYQccdnNXmbkx2s+6pCpKqcHqjeuUionfsxCYsNfJ4cjTn4Oa
-2SA/+TJzCS3UhO/RiApQrLXAHSbqN5XIi0gAxMYgO0h7grc4puidMdBEsNsflOS0
-2HU1lw8ceY0NlspQTQMoj54GF6Syg9gcwOnKQzH7cpgZc3hCSWqU6rOYO+0VLYRu
-tM94csNA3WBI1YuQ4CVgCxD5JFb3DAnCC2+NQqhYgXKLsD9+xW2isrVhvubLjsLr
-JhoXx0/p89BnTFX6T+XNM+5sXHj5xGKXhO81vrzEqgju9XBWcAS0C8RtTIcDSLwW
-vOL4fhLxoviJiebOSrL9ULn8WZ8AzT0jCY4qun6uJrtllBNMa5UNy5DAaVfVlMI+
-5uyf3sI8Xw1L29vHhH95wULNPju627LNoEXiRT1i6dilpfqqXujYxs0tHcB5erRu
-HBLPSWQ9fzaEIBq8+aik4P9QrNqQFvSIS4Ohu3BZ6xjP7J+iCO5YlxOyqT/lY9Nc
-h/tGegV5sMkb/evaiLaBw12fhX3ZIqeyqaLQ1h/9a6IODWhnduAWIS5KNp/nxdGw
-NScY19WGaxB/Ek3yGPFbx93AbvlhbgDdGp6/96JXAbOtNEhsqMWFqhcJeN90QU6t
-DLZoe+rH7WnVQ9/lxPFU
-=ShyV
+iQIcBAEBAgAGBQJSQJdIAAoJEIaOsuA1yqREqVwQAJGOg2mo9AXvVy0PIAraxvFD
+P+QrqBUiu36Xt7Wr+asFmCWiErAWiyXlVWuYXNWil1Rf7xMc3iko0hkl0MxKksxW
+ZNbwCAVoxFcvWm7Ev1R0UEYz1mesN30Yfa1oLGRgW04DgYZb/Rh7CgifzWADfL2Q
+SYPEXPdZ5yh/9i8Vs8OADMLjgw7wJjcPfufizn9Jq3kW66vvU8HyDsI0GLn0bbZT
+teOeq1qF4LHWlIGPEfuZH/JYeIlQ/8LNZ4PQ7QaeF5jRz3GphkXNIJamHNNffK0Z
+UQkoo0neRtLZH4Ofb2u7DdNeUhe7DZmsK+TDaelWwKWiAVXx+F6AZWnbUFQI468p
+ZRZb0fTGeA47VGtm/1igtMxOv+k7ZTkmduoICpyVWU5DeFxmY9jGRz/RnFKX8UHB
+lU3ekrfpxLcFVECET3JbIj8g6KFijmSGimDU5oVyYXPemYsOL7ojFhovBRVyT8Vr
+3VVw/Fk5EUcx6K/sLUaVyiK611CsPEZ/KJ1q2TKshx8mGpBbdbLoS/+18ujnravZ
+FLfdMbFjjgelSevV7WWizjrlISWlXXvIEzR24ym0pYeeZaC01WsSEGQvlh5X2WOB
+XffFiOoAi95mFCHUJZM0BPgEgnRwiLRdyNxzzuluqEuuUUriU6PVi/NH/9ZPsWTQ
+RGUDPyuttjcO+WaJ4XJu
+=+V+B
 -----END PGP SIGNATURE-----
 
---Ll0BBk1HBk/f94B0--
+--TYjWXklH5JTzT8n9--
