@@ -1,51 +1,53 @@
-From: Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>
-Subject: Re: [PATCH v5 1/3] usb: dwc3: msm: Add device tree binding information
-Date: Mon, 23 Sep 2013 16:03:18 -0600
-Message-ID: <5240BAA6.9090509@wwwdotorg.org>
-References: <1377091786-5613-1-git-send-email-iivanov@mm-sol.com> <1377091786-5613-2-git-send-email-iivanov@mm-sol.com> <20130923193224.GO30811@radagast>
+From: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 0/3] dma: edma: Add cyclic DMA support
+Date: Mon, 23 Sep 2013 18:05:12 -0500
+Message-ID: <1379977515-3794-1-git-send-email-joelf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20130923193224.GO30811@radagast>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: balbi-l0cyMroinI0@public.gmane.org
-Cc: "Ivan T. Ivanov" <iivanov-NEYub+7Iv8PQT0dZR+AlfA@public.gmane.org>, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, ian.campbell-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org, rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, idos-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, mgautam-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
+List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
+List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
+Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+To: Matt Porter <matt-agtwNxEcTQJWk0Htik3J/w@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mark Brown <broonie-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Dan Williams <djbw-b10kYP2dOMg@public.gmane.org>, Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>, Lars Peter-Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>
+Cc: alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 09/23/2013 01:32 PM, Felipe Balbi wrote:
-> Hi,
-> 
-> On Wed, Aug 21, 2013 at 04:29:44PM +0300, Ivan T. Ivanov wrote:
->> From: "Ivan T. Ivanov" <iivanov-NEYub+7Iv8PQT0dZR+AlfA@public.gmane.org>
->> 
->> MSM USB3.0 core wrapper consist of USB3.0 IP from Synopsys (SNPS)
->> and HS, SS PHY's control and configuration registers.
->> 
->> It could operate in device mode (SS, HS, FS) and host mode (SS,
->> HS, FS, LS).
->> 
->> Signed-off-by: Ivan T. Ivanov <iivanov-NEYub+7Iv8PQT0dZR+AlfA@public.gmane.org>
-> 
-> and here's a new version from same patch
+The following series adds Cyclic DMA support to TI EDMA DMA Engine driver.
 
-The binding looks pretty simple, so I don't think it's too contentious.
+First we split out the calculations for the Slave DMA case into a separate
+function so that we may reuse it for the calculations of Cyclic DMA parameters.
+Next patch then adds the actual support for Cyclic DMA, enables interrupts
+correctly and uses's the callbacks in virt-dma during interrupts thus
+signalling back to the ALSA layer that a period was transmitted.
 
->> diff --git a/Documentation/devicetree/bindings/usb/msm-ssusb.txt
->> b/Documentation/devicetree/bindings/usb/msm-ssusb.txt
+Some background on motivation for this series:
+Currently, only user of Cyclic DMA in EDMA is davinci-pcm driver. As of today,
+this driver directly calls into the EDMA private API (arch/arm/common/edma.c)
+without going through the DMAEngine.
 
->> +MSM DWC3 controller wrapper
+davinci-pcm in future will be modified to use DMA Engine framework for Cyclic
+DMA instead of directly using the Private API. However that's a much larger
+effort, involving dealing with ping-pong from SRAM on user's of the Davinci
+McASP, etc. As a first step, we add Cyclic DMA support to the EDMA driver so
+that this may be used when the actual conversion of davinci-pcm happens.
 
->> +Optional properties : +- gdsc-supply : phandle to the globally
->> distributed switch controller +  regulator node to the USB
->> controller.
+Tested series along with couple of hacks to davinci-pcm to work with DMA Engine:
+git-9UaJU3cA/F/QT0dZR+AlfA@public.gmane.org:joelagnel/linux-kernel.git (branch dma/cyclic)
 
-If that's a regulator node, why not use xxx-supply properties to
-interface with it?
+Joel Fernandes (3):
+  dma: edma: Split out PaRAM set calculations into its own function
+  dma: edma: Add support for Cyclic DMA
+  dma: edma: Increase maximum SG limit to 20
 
-Aside from that, the binding,
-Acked-by: Stephen Warren <swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ drivers/dma/edma.c | 350 +++++++++++++++++++++++++++++++++++++++++------------
+ 1 file changed, 273 insertions(+), 77 deletions(-)
+
+-- 
+1.8.1.2
