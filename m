@@ -1,86 +1,59 @@
-From: Vinod Koul <vinod.koul@intel.com>
-Subject: Re: [PATCH v3 5/5] dma: cppi41: add support for suspend and resume
-Date: Mon, 23 Sep 2013 15:31:26 +0530
-Message-ID: <20130923100125.GF17188@intel.com>
-References: <1379861404-8250-1-git-send-email-zonque@gmail.com>
- <1379861404-8250-6-git-send-email-zonque@gmail.com>
+From: Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [alsa-devel] [PATCH 23/51] DMA-API: dma: pl08x: add
+ dma_set_mask_and_coherent() call
+Date: Mon, 23 Sep 2013 15:42:22 +0530
+Message-ID: <20130923101222.GH17188@intel.com>
+References: <20130919212235.GD12758@n2100.arm.linux.org.uk>
+ <E1VMm4v-0007hz-RC@rmk-PC.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:4135 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753186Ab3IWKvw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 23 Sep 2013 06:51:52 -0400
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1379861404-8250-6-git-send-email-zonque@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <E1VMm4v-0007hz-RC-eh5Bv4kxaXIANfyc6IWni62ZND6+EDdj@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Russell King <rmk+kernel-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
+Cc: alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, b43-dev-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, e1000-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-crypto-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-ide-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Solarflare linux maintainers <linux-net-drivers-s/n/eUQHGBpZroRs9YW3xA@public.gmane.org>, uclinux-dist-devel-ZG0+EudsQA8dtHy/vicBwGD2FQJk+8+b@public.gmane.org, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Daniel Mack <zonque@gmail.com>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, neumann@teufel.de, bigeasy@linutronix.de, sergei.shtylyov@cogentembedded.com, dan.j.williams@intel.com, balbi@ti.com, gregkh@linuxfoundation.org
 
-On Sun, Sep 22, 2013 at 04:50:04PM +0200, Daniel Mack wrote:
-> This patch adds support for suspend/resume functionality to the cppi41
-> DMA driver. The steps necessary to make the system resume properly were
-> figured out by trial-and-error. The code as it stands now is the
-> minimum that has to be done to put the musb host system on an AM33xx
-> system into an operable state after resume.
-Applied, thanks
+On Thu, Sep 19, 2013 at 10:48:01PM +0100, Russell King wrote:
+> The DMA API requires drivers to call the appropriate dma_set_mask()
+> functions before doing any DMA mapping.  Add this required call to
+> the AMBA PL08x driver.
+> 
+> Signed-off-by: Russell King <rmk+kernel-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
+Acked-by: Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
 ~Vinod
-> 
-> Signed-off-by: Daniel Mack <zonque@gmail.com>
 > ---
->  drivers/dma/cppi41.c | 29 +++++++++++++++++++++++++++++
->  1 file changed, 29 insertions(+)
+>  drivers/dma/amba-pl08x.c |    5 +++++
+>  1 files changed, 5 insertions(+), 0 deletions(-)
 > 
-> diff --git a/drivers/dma/cppi41.c b/drivers/dma/cppi41.c
-> index 3347321..89decc9 100644
-> --- a/drivers/dma/cppi41.c
-> +++ b/drivers/dma/cppi41.c
-> @@ -1040,12 +1040,41 @@ static int cppi41_dma_remove(struct platform_device *pdev)
->  	return 0;
->  }
+> diff --git a/drivers/dma/amba-pl08x.c b/drivers/dma/amba-pl08x.c
+> index fce46c5..e51a983 100644
+> --- a/drivers/dma/amba-pl08x.c
+> +++ b/drivers/dma/amba-pl08x.c
+> @@ -2055,6 +2055,11 @@ static int pl08x_probe(struct amba_device *adev, const struct amba_id *id)
+>  	if (ret)
+>  		return ret;
 >  
-> +#ifdef CONFIG_PM_SLEEP
-> +static int cppi41_suspend(struct device *dev)
-> +{
-> +	struct cppi41_dd *cdd = dev_get_drvdata(dev);
+> +	/* Ensure that we can do DMA */
+> +	ret = dma_set_mask_and_coherent(&adev->dev, DMA_BIT_MASK(32));
+> +	if (ret)
+> +		goto out_no_pl08x;
 > +
-> +	cppi_writel(0, cdd->usbss_mem + USBSS_IRQ_CLEARR);
-> +	disable_sched(cdd);
-> +
-> +	return 0;
-> +}
-> +
-> +static int cppi41_resume(struct device *dev)
-> +{
-> +	struct cppi41_dd *cdd = dev_get_drvdata(dev);
-> +	int i;
-> +
-> +	for (i = 0; i < DESCS_AREAS; i++)
-> +		cppi_writel(cdd->descs_phys, cdd->qmgr_mem + QMGR_MEMBASE(i));
-> +
-> +	init_sched(cdd);
-> +	cppi_writel(USBSS_IRQ_PD_COMP, cdd->usbss_mem + USBSS_IRQ_ENABLER);
-> +
-> +	return 0;
-> +}
-> +#endif
-> +
-> +static SIMPLE_DEV_PM_OPS(cppi41_pm_ops, cppi41_suspend, cppi41_resume);
-> +
->  static struct platform_driver cpp41_dma_driver = {
->  	.probe  = cppi41_dma_probe,
->  	.remove = cppi41_dma_remove,
->  	.driver = {
->  		.name = "cppi41-dma-engine",
->  		.owner = THIS_MODULE,
-> +		.pm = &cppi41_pm_ops,
->  		.of_match_table = of_match_ptr(cppi41_dma_ids),
->  	},
->  };
+>  	/* Create the driver state holder */
+>  	pl08x = kzalloc(sizeof(*pl08x), GFP_KERNEL);
+>  	if (!pl08x) {
 > -- 
-> 1.8.3.1
+> 1.7.4.4
 > 
+> _______________________________________________
+> Alsa-devel mailing list
+> Alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org
+> http://mailman.alsa-project.org/mailman/listinfo/alsa-devel
 
 -- 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
