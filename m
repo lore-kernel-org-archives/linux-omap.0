@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v3 01/10] usb: phy: generic: Add gpio_reset to platform data
-Date: Tue, 24 Sep 2013 11:53:47 +0300
-Message-ID: <1380012836-29900-2-git-send-email-rogerq@ti.com>
+Subject: [PATCH v3 05/10] ARM: dts: omap3-beagle: Use reset-gpios for hsusb2_reset
+Date: Tue, 24 Sep 2013 11:53:51 +0300
+Message-ID: <1380012836-29900-6-git-send-email-rogerq@ti.com>
 References: <1380012836-29900-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,28 +12,45 @@ To: balbi-l0cyMroinI0@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.g
 Cc: p.zabel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-The GPIO number of the RESET line can be passed to the
-driver using the gpio_reset member.
+We no longer need to model the RESET line as a regulator since
+the USB phy-nop driver accepts "reset-gpios" property.
 
 Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 ---
- include/linux/usb/usb_phy_gen_xceiv.h |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+ arch/arm/boot/dts/omap3-beagle.dts |   13 +------------
+ 1 files changed, 1 insertions(+), 12 deletions(-)
 
-diff --git a/include/linux/usb/usb_phy_gen_xceiv.h b/include/linux/usb/usb_phy_gen_xceiv.h
-index f9a7e7b..42f3b71 100644
---- a/include/linux/usb/usb_phy_gen_xceiv.h
-+++ b/include/linux/usb/usb_phy_gen_xceiv.h
-@@ -9,7 +9,8 @@ struct usb_phy_gen_xceiv_platform_data {
+diff --git a/arch/arm/boot/dts/omap3-beagle.dts b/arch/arm/boot/dts/omap3-beagle.dts
+index dfd8310..71bde47 100644
+--- a/arch/arm/boot/dts/omap3-beagle.dts
++++ b/arch/arm/boot/dts/omap3-beagle.dts
+@@ -44,17 +44,6 @@
+ 		};
+ 	};
  
- 	/* if set fails with -EPROBE_DEFER if can't get regulator */
- 	unsigned int needs_vcc:1;
--	unsigned int needs_reset:1;
-+	unsigned int needs_reset:1;	/* deprecated */
-+	int gpio_reset;
- };
+-	/* HS USB Port 2 RESET */
+-	hsusb2_reset: hsusb2_reset_reg {
+-		compatible = "regulator-fixed";
+-		regulator-name = "hsusb2_reset";
+-		regulator-min-microvolt = <3300000>;
+-		regulator-max-microvolt = <3300000>;
+-		gpio = <&gpio5 19 0>;	/* gpio_147 */
+-		startup-delay-us = <70000>;
+-		enable-active-high;
+-	};
+-
+ 	/* HS USB Port 2 Power */
+ 	hsusb2_power: hsusb2_power_reg {
+ 		compatible = "regulator-fixed";
+@@ -68,7 +57,7 @@
+ 	/* HS USB Host PHY on PORT 2 */
+ 	hsusb2_phy: hsusb2_phy {
+ 		compatible = "usb-nop-xceiv";
+-		reset-supply = <&hsusb2_reset>;
++		reset-gpios = <&gpio5 19 GPIO_ACTIVE_LOW>;	/* gpio_147 */
+ 		vcc-supply = <&hsusb2_power>;
+ 	};
  
- #if IS_ENABLED(CONFIG_NOP_USB_XCEIV)
 -- 
 1.7.4.1
 
