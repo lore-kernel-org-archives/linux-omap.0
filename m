@@ -1,71 +1,40 @@
-From: Benoit Cousson <bcousson@baylibre.com>
-Subject: Re: [PATCH 2/2] ARM: dts: dra7-evm: Add mmc2 node for eMMC support
-Date: Tue, 24 Sep 2013 11:41:21 +0200
-Message-ID: <52415E41.7050301@baylibre.com>
-References: <1377525218-7655-1-git-send-email-balajitk@ti.com> <1377525218-7655-3-git-send-email-balajitk@ti.com>
+From: =?iso-8859-1?Q?M=E5ns_Rullg=E5rd?= <mans@mansr.com>
+Subject: Re: new binutils needed for arm in 3.12-rc1
+Date: Tue, 24 Sep 2013 13:11:38 +0100
+Message-ID: <yw1xpprywhad.fsf@unicorn.mansr.com>
+References: <20130923235917.GA30967@amd.pavel.ucw.cz>
+	<1379988800.1974.68@driftwood>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bk0-f44.google.com ([209.85.214.44]:34955 "EHLO
-	mail-bk0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750713Ab3IXJlZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Sep 2013 05:41:25 -0400
-Received: by mail-bk0-f44.google.com with SMTP id mz10so1655756bkb.3
-        for <linux-omap@vger.kernel.org>; Tue, 24 Sep 2013 02:41:24 -0700 (PDT)
-In-Reply-To: <1377525218-7655-3-git-send-email-balajitk@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1379988800.1974.68@driftwood> (Rob Landley's message of "Mon, 23
+	Sep 2013 21:13:20 -0500")
+Sender: linux-kernel-owner@vger.kernel.org
+To: Rob Landley <rob@landley.net>
+Cc: Pavel Machek <pavel@ucw.cz>, Will Deacon <will.deacon@arm.com>, Trivial patch monkey <trivial@kernel.org>, Andrew Morton <akpm@osdl.org>, Linus Torvalds <torvalds@linux-foundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Catalin Marinas <Catalin.Marinas@arm.com>
 List-Id: linux-omap@vger.kernel.org
-To: Balaji T K <balajitk@ti.com>
-Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, tony@atomide.com, linux-arm-kernel@lists.infradead.org, nm@ti.com, Sekhar Nori <nsekhar@ti.com>
 
-+ Sekhar
+Rob Landley <rob@landley.net> writes:
 
-Hi Balaji,
-
-On 26/08/2013 15:53, Balaji T K wrote:
-> Add mmc2 dt node to dra7-evm board
-> and model eMMC vcc as fixed regulator.
+> On 09/23/2013 06:59:17 PM, Pavel Machek wrote:
+>> During 3.12-rc, Will Deacon introduced code into arch/arm that
+>> requires binutils 2.22.
 >
-> Signed-off-by: Balaji T K <balajitk@ti.com>
-> ---
->   arch/arm/boot/dts/dra7-evm.dts |   14 ++++++++++++++
->   1 files changed, 14 insertions(+), 0 deletions(-)
+> Um, my toolchain is using the last gplv2 snapshot of binutils out of =
+=20
+> git, which is just past 2.17 and can build armv7 (but not armv8).
 >
-> diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
-> index a59bbd0..2062724 100644
-> --- a/arch/arm/boot/dts/dra7-evm.dts
-> +++ b/arch/arm/boot/dts/dra7-evm.dts
-> @@ -17,6 +17,13 @@
->   		device_type = "memory";
->   		reg = <0x80000000 0x60000000>; /* 1536 MB */
->   	};
-> +
-> +	mmc2_3v3: fixedregulator-mmc2 {
-> +		compatible = "regulator-fixed";
-> +		regulator-name = "mmc2_3v3";
-> +		regulator-min-microvolt = <3300000>;
-> +		regulator-max-microvolt = <3300000>;
-> +	};
->   };
->
->   &dra7_pmx_core {
-> @@ -257,3 +264,10 @@
->   	vmmc-supply = <&ldo1_reg>;
->   	bus-width = <4>;
->   };
-> +
-> +&mmc2 {
-> +	status = "okay";
-> +	vmmc-supply = <&mmc2_3v3>;
-> +	bus-width = <8>;
-> +	ti,non-removable;
+> Binutils 2.12->2.22 is quite the jump. (11 years.) I'd except some =20
+> thought to have gone into that? Possibly a mention of it?
 
-Sekhar just posted a series to replace that with a non-TI attribute: 
-non-removable.
+I seriously doubt that 2.12 still works at all (I doubt it can even be
+built on a modern system).  In my experience, binutils older than 2.19
+or so rarely works properly for ARM.
 
-I'm not sure if this got merged, but it might be good to use the 
-standard attribute instead.
+What value is there in maintaining compatibility with a truly ancient
+binutils version anyway?
 
-Regards,
-Benoit
+--=20
+M=E5ns Rullg=E5rd
+mans@mansr.com
