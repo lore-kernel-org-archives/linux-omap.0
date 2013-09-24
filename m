@@ -1,40 +1,38 @@
-From: =?iso-8859-1?Q?M=E5ns_Rullg=E5rd?= <mans@mansr.com>
-Subject: Re: new binutils needed for arm in 3.12-rc1
-Date: Tue, 24 Sep 2013 13:11:38 +0100
-Message-ID: <yw1xpprywhad.fsf@unicorn.mansr.com>
-References: <20130923235917.GA30967@amd.pavel.ucw.cz>
-	<1379988800.1974.68@driftwood>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [net-next PATCH 0/4] cpsw: support for control module register
+Date: Tue, 24 Sep 2013 10:34:16 -0400 (EDT)
+Message-ID: <20130924.103416.2050021711877592417.davem@davemloft.net>
+References: <1379704841-32693-1-git-send-email-mugunthanvnm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1379988800.1974.68@driftwood> (Rob Landley's message of "Mon, 23
-	Sep 2013 21:13:20 -0500")
-Sender: linux-kernel-owner@vger.kernel.org
-To: Rob Landley <rob@landley.net>
-Cc: Pavel Machek <pavel@ucw.cz>, Will Deacon <will.deacon@arm.com>, Trivial patch monkey <trivial@kernel.org>, Andrew Morton <akpm@osdl.org>, Linus Torvalds <torvalds@linux-foundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Catalin Marinas <Catalin.Marinas@arm.com>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from shards.monkeyblade.net ([149.20.54.216]:54344 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752467Ab3IXOeT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Sep 2013 10:34:19 -0400
+In-Reply-To: <1379704841-32693-1-git-send-email-mugunthanvnm@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: mugunthanvnm@ti.com
+Cc: netdev@vger.kernel.org, zonque@gmail.com, bcousson@baylibre.com, tony@atomide.com, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Rob Landley <rob@landley.net> writes:
+From: Mugunthan V N <mugunthanvnm@ti.com>
+Date: Sat, 21 Sep 2013 00:50:37 +0530
 
-> On 09/23/2013 06:59:17 PM, Pavel Machek wrote:
->> During 3.12-rc, Will Deacon introduced code into arch/arm that
->> requires binutils 2.22.
->
-> Um, my toolchain is using the last gplv2 snapshot of binutils out of =
-=20
-> git, which is just past 2.17 and can build armv7 (but not armv8).
->
-> Binutils 2.12->2.22 is quite the jump. (11 years.) I'd except some =20
-> thought to have gone into that? Possibly a mention of it?
+> This patch series adds the support for configuring GMII_SEL register
+> of control module to select the phy mode type and also to configure
+> the clock source for RMII phy mode whether to use internal clock or
+> the external clock from the phy itself.
+> 
+> Till now CPSW works as this configuration is done in U-Boot and carried
+> over to the kernel. But during suspend/resume Control module tends to
+> lose its configured value for GMII_SEL register in AM33xx PG1.0, so
+> if CPSW is used in RMII or RGMII mode, on resume cpsw is not working
+> as GMII_SEL register lost its configuration values.
+> 
+> The initial version of the patch is done by Daniel Mack but as per
+> Tony's comment he wants it as a seperate driver as it is done in USB
+> control module. I have created a seperate driver for the same.
 
-I seriously doubt that 2.12 still works at all (I doubt it can even be
-built on a modern system).  In my experience, binutils older than 2.19
-or so rarely works properly for ARM.
-
-What value is there in maintaining compatibility with a truly ancient
-binutils version anyway?
-
---=20
-M=E5ns Rullg=E5rd
-mans@mansr.com
+Series applied, thanks.
