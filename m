@@ -1,42 +1,70 @@
-From: Paolo Pisati <p.pisati@gmail.com>
-Subject: panda, 3.11 and wifi: 'wlcore: ERROR timeout waiting for the
- hardware to complete initialization'
-Date: Tue, 24 Sep 2013 17:35:16 +0200
-Message-ID: <20130924153516.GB7410@luxor.wired.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [RFC v2] gpio/omap: auto-setup a GPIO when used as an IRQ
+Date: Tue, 24 Sep 2013 08:40:48 -0700
+Message-ID: <20130924154048.GM2684@atomide.com>
+References: <1380009480-4975-1-git-send-email-javier.martinez@collabora.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ea0-f172.google.com ([209.85.215.172]:55823 "EHLO
-	mail-ea0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753881Ab3IXPfV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Sep 2013 11:35:21 -0400
-Received: by mail-ea0-f172.google.com with SMTP id r16so2584207ead.3
-        for <linux-omap@vger.kernel.org>; Tue, 24 Sep 2013 08:35:20 -0700 (PDT)
+Return-path: <linux-gpio-owner@vger.kernel.org>
 Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1380009480-4975-1-git-send-email-javier.martinez@collabora.co.uk>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, Stephen Warren <swarren@wwwdotorg.org>, Lars Poeschel <larsi@wh2.tu-dresden.de>, Grant Likely <grant.likely@linaro.org>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ian.campbell@citrix.com>, Kumar Gala <galak@codeaurora.org>, Pawel Moll <pawel.moll@arm.com>, Tomasz Figa <tomasz.figa@gmail.com>, Enric Balletbo i Serra <eballetbo@gmail.com>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, Balaji T K <balajitk@ti.com>, Jon Hunter <jgchunter@gmail.com>, linux-gpio@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, r.sricharan@ti.com, holler@ahsoftware.de
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>
 
-Dear,
+* Javier Martinez Canillas <javier.martinez@collabora.co.uk> [130924 01:06]:
+> The OMAP GPIO controller HW requires a pin to be configured in GPIO
+> input mode in order to operate as an interrupt input. Since drivers
+> should not be aware of whether an interrupt pin is also a GPIO or not,
+> the HW should be fully configured/enabled as an IRQ if a driver solely
+> uses IRQ APIs such as request_irq(), and never calls any GPIO-related
+> APIs. As such, add the missing HW setup to the OMAP GPIO controller's
+> irq_chip driver.
+> 
+> Since this bypasses the GPIO subsystem we have to ensure that another
+> caller won't be able to request the same GPIO pin that is used as an
+> IRQ and set its direction as output. Requesting the GPIO and setting
+> its direction as input is allowed though.
 
-after the inclusion of 851320e:
+Also please mention the regression that this fixes. So far we know
+that smsc911x for tobi and igep boards in mainline, and also the
+MMC card detect for omap4 boards.
+ 
+> --- a/drivers/gpio/gpio-omap.c
+> +++ b/drivers/gpio/gpio-omap.c
+> @@ -63,6 +63,7 @@ struct gpio_bank {
+>  	struct gpio_chip chip;
+>  	struct clk *dbck;
+>  	u32 mod_usage;
+> +	u32 irq_usage;
+>  	u32 dbck_enable_mask;
+>  	bool dbck_enabled;
+>  	struct device *dev;
+> @@ -86,6 +87,9 @@ struct gpio_bank {
+>  #define GPIO_BIT(bank, gpio) (1 << GPIO_INDEX(bank, gpio))
+>  #define GPIO_MOD_CTRL_BIT	BIT(0)
+>  
+> +#define BANK_USED(bank) (bank->mod_usage || bank->irq_usage)
+> +#define LINE_USED(line, offset) (line & (1 << offset))
 
- ARM: dts: Fix muxing and regulator for wl12xx on the SDIO bus for pandaboard
+Hmm this patch is hard to read, maybe break it into two patches?
 
-wlan0 is back on my pandaes, but it doesn't work and my logs are swamped
-with:
+First you could do a patch to prepare thing by introducing
+BANK_USED and LINE_USED.
 
-[   56.255401] wlcore: ERROR timeout waiting for the hardware to complete initialization
-[   56.264770] wlcore: ERROR firmware boot failed despite 3 retries
-[   58.689971] wlcore: ERROR timeout waiting for the hardware to complete initialization
-[   61.086730] wlcore: ERROR timeout waiting for the hardware to complete initialization
-[   63.523223] wlcore: ERROR timeout waiting for the hardware to complete initialization
-[   63.532592] wlcore: ERROR firmware boot failed despite 3 retries
-...
+> +static int gpio_is_input(struct gpio_bank *bank, int mask)
+> +{
+> +	void __iomem *reg = bank->base + bank->regs->direction;
+> +
+> +	return __raw_readl(reg) & mask;
+> +}
 
-any idea what could be wrong now?
+And also move gpio_is_input() around in the first patch.
 
-here is a complete dmesg: http://goo.gl/e1ZDVp
--- 
-bye,
-p.
+Then the second patch for the fix would probably be much
+easier to read.
+
+Regards,
+
+Tony
