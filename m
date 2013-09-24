@@ -1,18 +1,20 @@
 From: Rob Landley <rob@landley.net>
 Subject: Re: new binutils needed for arm in 3.12-rc1
-Date: Mon, 23 Sep 2013 21:13:20 -0500
-Message-ID: <1379988800.1974.68@driftwood>
-References: <20130923235917.GA30967@amd.pavel.ucw.cz>
+Date: Mon, 23 Sep 2013 21:20:41 -0500
+Message-ID: <1379989241.1974.69@driftwood>
+References: <20130919093002.GA23806@amd.pavel.ucw.cz>
+	<20130919093627.GB24866@mudshark.cambridge.arm.com>
+	<20130923235917.GA30967@amd.pavel.ucw.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; DelSp=Yes; Format=Flowed
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ob0-f175.google.com ([209.85.214.175]:35242 "EHLO
-	mail-ob0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752503Ab3IXCNY convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Sep 2013 22:13:24 -0400
-Received: by mail-ob0-f175.google.com with SMTP id uz6so4273303obc.6
-        for <linux-omap@vger.kernel.org>; Mon, 23 Sep 2013 19:13:23 -0700 (PDT)
+Received: from mail-oa0-f41.google.com ([209.85.219.41]:49224 "EHLO
+	mail-oa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751571Ab3IXCUt convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Sep 2013 22:20:49 -0400
+Received: by mail-oa0-f41.google.com with SMTP id n10so1533788oag.28
+        for <linux-omap@vger.kernel.org>; Mon, 23 Sep 2013 19:20:48 -0700 (PDT)
 In-Reply-To: <20130923235917.GA30967@amd.pavel.ucw.cz> (from pavel@ucw.cz on
 	Mon Sep 23 18:59:17 2013)
 Content-Disposition: inline
@@ -25,25 +27,9 @@ On 09/23/2013 06:59:17 PM, Pavel Machek wrote:
 > During 3.12-rc, Will Deacon introduced code into arch/arm that
 > requires binutils 2.22.
 
-Um, my toolchain is using the last gplv2 snapshot of binutils out of  
-git, which is just past 2.17 and can build armv7 (but not armv8).
+I'm sorry, it occurs to me I should have been more explicit:
 
-Binutils 2.12->2.22 is quite the jump. (11 years.) I'd except some  
-thought to have gone into that? Possibly a mention of it?
-
-> diff --git a/Documentation/Changes b/Documentation/Changes
-> index b175808..0f8deaf 100644
-> --- a/Documentation/Changes
-> +++ b/Documentation/Changes
-> @@ -23,7 +23,7 @@ you probably needn't concern yourself with  
-> isdn4k-utils.
-> 
->  o  Gnu C                  3.2                     # gcc --version
->  o  Gnu make               3.80                    # make --version
-> -o  binutils               2.12                    # ld -v
-> +o  binutils               2.22                    # ld -v
-
-When the sh4 platform did this, I just reverted the patch. (It still  
-reverts cleanly ~4 years later, and builds with my old tool versions...)
+AAAAAAAAAAAAAAAAHHHHHHHHHH!!!!!!!!!!!!!!!!!  KILL IT WITH  
+FIRE!!!!!!!!!!!!!!!
 
 Rob
