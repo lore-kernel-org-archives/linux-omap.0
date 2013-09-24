@@ -1,580 +1,265 @@
-From: Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Subject: [RFC 00/15] Device Tree schemas and validation
-Date: Tue, 24 Sep 2013 18:52:06 +0200
-Message-ID: <1380041541-17529-1-git-send-email-bcousson@baylibre.com>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tomasz.figa-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org, grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org
-Cc: khilman-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, fparent-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+From: Benoit Cousson <bcousson@baylibre.com>
+Subject: [RFC 01/15] scripts/dtc: fix most memory leaks in dtc
+Date: Tue, 24 Sep 2013 18:52:07 +0200
+Message-ID: <1380041541-17529-2-git-send-email-bcousson@baylibre.com>
+References: <1380041541-17529-1-git-send-email-bcousson@baylibre.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-we0-f170.google.com ([74.125.82.170]:39259 "EHLO
+	mail-we0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754311Ab3IXQws (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Sep 2013 12:52:48 -0400
+Received: by mail-we0-f170.google.com with SMTP id w62so4915932wes.15
+        for <linux-omap@vger.kernel.org>; Tue, 24 Sep 2013 09:52:46 -0700 (PDT)
+In-Reply-To: <1380041541-17529-1-git-send-email-bcousson@baylibre.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-
-Hi All,
-
-Following the discussion that happened during LCE-2013 and the email
-thread started by Tomasz few months ago [1], here is a first attempt
-to introduce:
-- a schema language to define the bindings accurately
-- DTS validation during device tree compilation in DTC itself
-
-[1] http://www.spinics.net/lists/arm-kernel/msg262224.html
-
-
-=== What it does? ===
-
-For now device-tree bindings are defined in a not standardized
-text-based format and thus any one can write the documentation for a
-binding as he wish. In addition to this there is no automated way to
-check if a dts is conform to the available bindings.
-
-The goal of this series of patch is to fix this situation by adding a
-well defined way to write bindings in a human-readable format. These
-bindings will be written through files called "schemas".
-
-
-=== What is a schema? ===
-
-A schema is a file describing the constraints that one or several nodes
-of a dts must conform to. Schemas must use the file extension ".schema".
-A schema can check that:
-	- A node has a given property
-	- An array has a valid size
-	- A node contains the required children.
-	- A property has the correct type.
-	- A property has the correct value.
-
-A schema can as well recursively check the constraints for parent nodes.
-
-The syntax for a schema is the same as the one for dts. This choice has
-been made to simplify its development, to maximize the code reuse and
-finally because the format is human-readable.
-
-
-=== How to defined a schema? ===
-
-A binding directory has been added at the root of repository. Users can
-add schema files anywhere in it but a nice way would be to keep the same
-structure as the binding directory in the documentation.
-
-To demonstrate how to write a schema and its capability I will use the
-OMAP DTS schemas when applicable.
-
-How to:
- * Associate a schema to one or several nodes
-
-As said earlier a schema can be used to validate one or several nodes
-from a dts. To do this the "compatible" properties from the nodes which
-should be validated must be present in the schema.
-
-	timer1: timer@4a318000 {
-		compatible = "ti,omap3430-timer";
-		reg = <0x4a318000 0x80>;
-		interrupts = <0x0 0x25 0x4>;
-		ti,hwmods = "timer1";
-		ti,timer-alwon;
-	};
-
-To write a schema which will validate OMAP Timers like the one above,
-one may write the following schema:
-
-	/dts-v1/;
-	/ {
-		compatible = "ti,omap[0-9]+-timer";
-		...
-	};
-
-The schema above will be used to validate every node in a dts which has
-a compatible matching the following regular expression:
-"ti,omap[0-9]+-timer".
-
-It is possible to specify multiple compatible inside a schema using this
-syntax:
-	compatible = "ti,omap[0-9]+-timer", "ti,am[0-9]+-timer";
-
-This time the schema will be application for both OMAP Timers and AM
-Timers.
-
-
- * Define constraints on properties
-
-To define constraints on a property one has to create a node in a schema
-which has as name the name of the property that one want to validate.
-
-To specify constraints on the property "ti,hwmods" of OMAP Timers one
-can write this schema:
-
-	/dts-v1/;
-	/ {
-		compatible = "ti,omap[0-9]+-timer";
-		ti,hwmods {
-			...
-		};
-	};
-
-If one want to use a regular as property name one can write this schema:
-
-	/dts-v1/;
-	/ {
-		compatible = "abc";
-		def {
-			name = "def[0-9]";
-			...
-		};
-	};
-
-Above one can see that the "name" property override the node name.
-
-
- * Require the presence of a property
-
-One can require the presence of a property by using the "is-required"
-constraint.
-
-	/dts-v1/;
-	/ {
-		compatible = "ti,omap[0-9]+-timer";
-		ti,hwmods {
-			is-required;
-		};
-	};
-
-The "ti,hwmods" property above is set as required and its presence will
-be checked in every OMAP timer.
-
-
- * Require the presence of a property inside a node or inside one of its
-parents
-
-Sometimes a property required is not directly present inside a node but
-is present in one of its parents. To check this, one can use
-"can-be-inherited" in addition to "is-required".
-
-twl {
-    interrupt-controller;
-
-    rtc {
-        compatible = "ti,twl4030-rtc";
-        interrupts = <0xc>;
-    };
-}
-
-In the case of the rtc above the interrupt-controller is not present,
-but it is present in its parent. If inheriting the property from the
-parent makes senses like here one can specify in the schema that
-interrupt-controller is required in the rtc node and that the property
-can be inherited from a parent.
-
-/dts-v1/;
-/ {
-    compatible = "ti,twl[0-9]+-rtc";
-    interrupt-controller {
-        is-required;
-        can-be-inherited;
-    };
-};
-
-
- * Require a node to contains a given list of children
-
-One may want to check if a node has some required children nodes. 
-
-node {
-    compatible = "comp";
-
-    subnode1 {
-    };
-
-    subnode2 {
-    };
-
-    abc {
-    };
-};
-
-One can check if 'node' has the following subnode 'subnode1', 'subnode2',
-and 'abc' with the schema below:
-
-/dts-v1/;
-/ {
-    compatible = "comp";
-    children = "abc", "subnode[0-9]";
-};
-
-
- * Constraints on array size
-
-One can specify the following constraints on array size:
- - length: specify the exact length that an array must have.
- - min-length: specify the minimum number of elements an array must have.
- - max-length: specify the maximum number of elements an array must have.
-
-Usage example:
-node {
-    compatible = "array_size";
-    myarray = <0 1 2 3 4>;
-};
-
-Schema:
-/dts-v1/;
-/ {
-    compatible = "array_size";
-
-    myarray {
-        length = <5>;
-    };
-};
-
-
- * Count limit on nodes
-
-One can specify a count limit for the nodes matching the schema:
- - count: if there is a match between a dts and a schema then there must
-   be exactly X match between the dts and the schema at the end of the
-   validation process.
- - max-count: if there is a match between a dts and a schema then there
-   must be at most X match between the dts and the schema at the end of
-   the validation process.
-This can be used to check if a specific node appears the right amount of
-time in the dts.
-
-/ {
-    timer1 {
-        compatible = "ti,omap-4430-timer";
-        ...
-    };
-
-    timer2 {
-        compatible = "ti,omap-4430-timer";
-        ...
-    };
-};
-
-If in the above dts there must be exactly two timer one can check this
-constraints with the following schema:
-
-/ {
-    compatible = "ti,omap-4430-timer";
-    count = <2>;
-};
-
-
- * Check that a property has the right type
-
-One can check if a property has the correct type. Right now dtc only
-handles the two trivial types: integer array, string array. Since at the
-end everything is an array of byte which may or may not be terminated by
-a null byte this was enough.
-
-/ {
-    compatible = "abc";
-
-    abc = <0xa 0xb 0xc>;
-    def = "def", gef;
-};
-
-To check that the property abc is an integer array and that the property
-def is a string array for the dts above one can use the following schema:
-
-/ {
-    compatible = "abc";
-
-
-    abc {
-        type = "integer";
-    };
-
-    def {
-        type = "string";
-    };
-};
-
-
- * Check the value of properties
-
-It is possible to check if a property has the expected value through the
-"value" constraint.
-
-abc {
-   prop1 = <0 1 2 3>;
-   prop2 = "value0", "value1", "value3";
-};
-
-To check whether an integer array contains value from a given range
-use the following constraint:
-    prop1 {
-        type = "integer";
-        value = <0x0 0xF>;
-    };
-
-To check whether a string array contains value that match a given
-pattern use the following constraint:
-    prop2 {
-        type = "string";
-        value = "value[0-9]";
-    };
-
-To check whether a particular element of an array has the correct value
-one can use the following constraint:
-    prop1 {
-        type = "integer";
-        value@2 = <2>;
-    };
-
-or
-
-    prop2 {
-        type = "string";
-        value@1 = "value1";
-    };
-
-
- * Check constraints on a parent node
-
-It is possible to set constraints on parents of a node.
-
-node {
-    compatible = "abcomp";
-    abc = "abc";
-
-    subnode {
-        compatible = "comp";
-        abc = "def";
-    };
-};
-
-The schema below tests whether 'subnode' has a parent named 'node' and
-whether it has a compatible property equal to "abcomp" and a 'abc'
-property equal to "abc". In the case of the node above the constraints
-couldn't be check by inheriting the properties via 'can-be-inherited'
-since they are overwritten by the node 'subnode'.
-
-/dts-v1/;
-/ {
-    compatible = "comp";
-
-    parents {
-        node {
-            compatible {
-                type = "string";
-                value = "abcomp";
-            };
-
-            abc {
-                type = "string";
-                value = "abc";
-            };
-        };
-    };
-};
-
-It is possible to set conditional constraints on parents of the
-following form:
-    if (node_compatible == "compat1")
-        check_this_parent_constraints();
-    else if (node_compatible == "compat2")
-        check_that_parent_constraints();
-
-To do this one should put the parent constraints at the same place as
-the compatible definition in a schema file.
-
-/dts-v1/;
-/ {
-    compatible {
-        value@0 {
-            value = "compat1";
-            parents {
-                node {
-                    myprop {
-                        type = "int";
-                        value@0 = <0xf>;
-                    };
-                };
-            };
-        };
-
-        value@1 {
-            value = "compat2";
-            parents {
-                node {
-                    myprop {
-                        type = "int";
-                        value@0 = <0xa>;
-                    };
-                };
-            };
-        };
-    };
-};
-
-This schema will check that if the compatible of a node is "compat1"
-then it must have a parent node "node" which has an integer array
-property "myprop" which has as first element the value 0xf, otherwise
-if the node has the
-compatible "compat2" then the first element of the same property must
-have the value 0xa.
-
-
-=== How is it working? ===
-
-When a user will try to compile a dts, dtc will parse the device-tree
-and will try to find schemas that will help to check the correctness of
-the dts. In order to accomplish that dtc maintain a small index of all
-the schemas available.
-Once dtc finds a schema which can be used to validate a particular node,
-it will loads it and starts performing all the check defined by it.
-
-A set of unit-tests has been added to test that each feature is working
-properly.
-
-
-=== Usage ===
-
-Two extra options are added to handle validation into DTC:
- -M <schema-path> : path of the directoy containing the schemas
- -B <verbose-level> : Level of verbosity from the schema validation
- 
- dtc -M ./bindings -B 1 file.dts
-
-
-=== What could be done next? ===
-
- * Save the schema index to avoid to recompute it everytime.
- * The constraints capabilities for parents and children of a node is
-   not equal right now. A nice thing would be to bring the same feature
-   available for constraints on a parent for children nodes.
- * The type systems uses only the most trivial types. A nice thing would
-   be to bring higher level types.
- * May be add conditional constraints based on property values.
- * Need more? Feel free to add any item :-)
-
-Dependency: Please note that libpcre *must* be installed in order to
-add the regular expression support into the schema validation process.
-I'm not sure how such dependency should be handled, since the scripts
-directory does not contain any dependency like that for the moment.
-
-The series, based on 3.12-rc2, is available here:
-http://git.baylibre.com/pub/bcousson/linux-omap dts_schema
-
-Regards,
-Fabien & Benoit
-
+To: olof@lixom.net, devicetree@vger.kernel.org, tomasz.figa@gmail.com, swarren@wwwdotorg.org, grant.likely@secretlab.ca, rob.herring@calxeda.com
+Cc: khilman@linaro.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, fparent@baylibre.com, Benoit Cousson <bcousson@baylibre.com>
+
+From: Fabien Parent <fparent@baylibre.com>
+
+There are a few memory leaks in dtc which until now were not that important
+since they were all in the parser and only one instance of the parser was run
+per instance of dtc. The following commits will add a validation of dts through
+schema which have the same syntax as dts, i.e. the parser of dts will be reused
+to parse schema. The consequence is that instead of having the parser running
+only one time for an instance of the dtc process, the parser will run
+many many times and thus the leak that were not important until now becomes
+urgent to fix.
+
+dtc-lexer: Do not duplicate the string which contains literals because the
+string is directly converted afterward to an integer and is never used again.
+livetree: Add a bunch of free helper functions to clean properly the dt.
+
+Signed-off-by: Fabien Parent <fparent@baylibre.com>
+Signed-off-by: Benoit Cousson <bcousson@baylibre.com>
 ---
+ scripts/dtc/dtc-lexer.l             |   2 +-
+ scripts/dtc/dtc-lexer.lex.c_shipped |   2 +-
+ scripts/dtc/dtc.c                   |   1 +
+ scripts/dtc/dtc.h                   |   1 +
+ scripts/dtc/livetree.c              | 108 +++++++++++++++++++++++++++++++++---
+ 5 files changed, 105 insertions(+), 9 deletions(-)
 
-Fabien Parent (15):
-  scripts/dtc: fix most memory leaks in dtc
-  scripts/dtc: build schema index for dts validation
-  scripts/dtc: validate each nodes and properties
-  scripts/dtc: add procedure to handle dts errors
-  scripts/dtc: check type on properties
-  scripts/dtc: check for required properties
-  scripts/dtc: can inherit properties
-  scripts/dtc: check array size
-  scripts/dtc: check value of properties
-  scripts/dtc: add count limit on nodes
-  scripts/dtc: check for children nodes
-  scripts/dtc: check constraints on parents
-  bindings: OMAP: add new schema files
-  scripts/dtc: validate dts against schema bindings
-  scripts/dtc: add verbose options
-
- bindings/arm/omap/counter.schema                   |   28 +
- bindings/arm/omap/dsp.schema                       |   18 +
- bindings/arm/omap/intc.schema                      |   48 +
- bindings/arm/omap/iva.schema                       |   38 +
- bindings/arm/omap/l3-noc.schema                    |   38 +
- bindings/arm/omap/mpu.schema                       |   19 +
- bindings/arm/omap/omap.schema                      |   62 +
- bindings/arm/omap/timer.schema                     |  124 ++
- scripts/Makefile.lib                               |    1 +
- scripts/dtc/.gitignore                             |    2 +-
- scripts/dtc/Makefile                               |    9 +-
- scripts/dtc/data.c                                 |   27 +-
- scripts/dtc/dtc-lexer.l                            |    2 +-
- scripts/dtc/dtc-lexer.lex.c_shipped                |    2 +-
- scripts/dtc/dtc-parser.tab.c_shipped               |  595 ++++-----
- scripts/dtc/dtc-parser.y                           |    9 +
- scripts/dtc/dtc.c                                  |   29 +-
- scripts/dtc/dtc.h                                  |   30 +
- scripts/dtc/livetree.c                             |  108 +-
- scripts/dtc/schema-test.c                          |  146 +++
- scripts/dtc/schema.c                               | 1304 ++++++++++++++++++++
- scripts/dtc/tests/schemas/array-size-1.schema      |   13 +
- scripts/dtc/tests/schemas/array-size-2.schema      |    8 +
- scripts/dtc/tests/schemas/array-size-3.schema      |    8 +
- scripts/dtc/tests/schemas/array-size-4.schema      |    8 +
- scripts/dtc/tests/schemas/children-nodes-1.schema  |    5 +
- scripts/dtc/tests/schemas/children-nodes-2.schema  |    5 +
- scripts/dtc/tests/schemas/inheritence-1.schema     |    7 +
- scripts/dtc/tests/schemas/inheritence-2.schema     |    8 +
- scripts/dtc/tests/schemas/integer-array-1.schema   |   16 +
- scripts/dtc/tests/schemas/integer-array-2.schema   |    9 +
- scripts/dtc/tests/schemas/integer-array-3.schema   |    8 +
- scripts/dtc/tests/schemas/nodes-count-1.schema     |    5 +
- scripts/dtc/tests/schemas/nodes-count-2.schema     |    5 +
- scripts/dtc/tests/schemas/nodes-count-3.schema     |    5 +
- scripts/dtc/tests/schemas/nodes-count-4.schema     |    5 +
- scripts/dtc/tests/schemas/parent-nodes-1.schema    |   23 +
- scripts/dtc/tests/schemas/parent-nodes-2.schema    |   12 +
- scripts/dtc/tests/schemas/parent-nodes-3.schema    |   14 +
- scripts/dtc/tests/schemas/parent-nodes-4.schema    |   27 +
- scripts/dtc/tests/schemas/parent-nodes-5.schema    |   15 +
- scripts/dtc/tests/schemas/parent-nodes-6.schema    |   13 +
- scripts/dtc/tests/schemas/parent-nodes-7.schema    |   13 +
- .../dtc/tests/schemas/pattern-matching-1.schema    |   10 +
- .../dtc/tests/schemas/pattern-matching-2.schema    |   10 +
- .../dtc/tests/schemas/required-property-1.schema   |    7 +
- .../dtc/tests/schemas/required-property-2.schema   |    7 +
- scripts/dtc/tests/schemas/string-array-1.schema    |   20 +
- scripts/dtc/tests/schemas/string-array-2.schema    |    9 +
- scripts/dtc/tests/schemas/types-1.schema           |   12 +
- scripts/dtc/tests/schemas/types-2.schema           |    7 +
- scripts/dtc/tests/test1.dts                        |   22 +
- 52 files changed, 2619 insertions(+), 356 deletions(-)
- create mode 100644 bindings/arm/omap/counter.schema
- create mode 100644 bindings/arm/omap/dsp.schema
- create mode 100644 bindings/arm/omap/intc.schema
- create mode 100644 bindings/arm/omap/iva.schema
- create mode 100644 bindings/arm/omap/l3-noc.schema
- create mode 100644 bindings/arm/omap/mpu.schema
- create mode 100644 bindings/arm/omap/omap.schema
- create mode 100644 bindings/arm/omap/timer.schema
- create mode 100644 scripts/dtc/schema-test.c
- create mode 100644 scripts/dtc/schema.c
- create mode 100644 scripts/dtc/tests/schemas/array-size-1.schema
- create mode 100644 scripts/dtc/tests/schemas/array-size-2.schema
- create mode 100644 scripts/dtc/tests/schemas/array-size-3.schema
- create mode 100644 scripts/dtc/tests/schemas/array-size-4.schema
- create mode 100644 scripts/dtc/tests/schemas/children-nodes-1.schema
- create mode 100644 scripts/dtc/tests/schemas/children-nodes-2.schema
- create mode 100644 scripts/dtc/tests/schemas/inheritence-1.schema
- create mode 100644 scripts/dtc/tests/schemas/inheritence-2.schema
- create mode 100644 scripts/dtc/tests/schemas/integer-array-1.schema
- create mode 100644 scripts/dtc/tests/schemas/integer-array-2.schema
- create mode 100644 scripts/dtc/tests/schemas/integer-array-3.schema
- create mode 100644 scripts/dtc/tests/schemas/nodes-count-1.schema
- create mode 100644 scripts/dtc/tests/schemas/nodes-count-2.schema
- create mode 100644 scripts/dtc/tests/schemas/nodes-count-3.schema
- create mode 100644 scripts/dtc/tests/schemas/nodes-count-4.schema
- create mode 100644 scripts/dtc/tests/schemas/parent-nodes-1.schema
- create mode 100644 scripts/dtc/tests/schemas/parent-nodes-2.schema
- create mode 100644 scripts/dtc/tests/schemas/parent-nodes-3.schema
- create mode 100644 scripts/dtc/tests/schemas/parent-nodes-4.schema
- create mode 100644 scripts/dtc/tests/schemas/parent-nodes-5.schema
- create mode 100644 scripts/dtc/tests/schemas/parent-nodes-6.schema
- create mode 100644 scripts/dtc/tests/schemas/parent-nodes-7.schema
- create mode 100644 scripts/dtc/tests/schemas/pattern-matching-1.schema
- create mode 100644 scripts/dtc/tests/schemas/pattern-matching-2.schema
- create mode 100644 scripts/dtc/tests/schemas/required-property-1.schema
- create mode 100644 scripts/dtc/tests/schemas/required-property-2.schema
- create mode 100644 scripts/dtc/tests/schemas/string-array-1.schema
- create mode 100644 scripts/dtc/tests/schemas/string-array-2.schema
- create mode 100644 scripts/dtc/tests/schemas/types-1.schema
- create mode 100644 scripts/dtc/tests/schemas/types-2.schema
- create mode 100644 scripts/dtc/tests/test1.dts
-
+diff --git a/scripts/dtc/dtc-lexer.l b/scripts/dtc/dtc-lexer.l
+index 3b41bfc..4f63fbf 100644
+--- a/scripts/dtc/dtc-lexer.l
++++ b/scripts/dtc/dtc-lexer.l
+@@ -146,7 +146,7 @@ static int pop_input_file(void);
+ 		}
+ 
+ <V1>([0-9]+|0[xX][0-9a-fA-F]+)(U|L|UL|LL|ULL)? {
+-			yylval.literal = xstrdup(yytext);
++			yylval.literal = yytext;
+ 			DPRINT("Literal: '%s'\n", yylval.literal);
+ 			return DT_LITERAL;
+ 		}
+diff --git a/scripts/dtc/dtc-lexer.lex.c_shipped b/scripts/dtc/dtc-lexer.lex.c_shipped
+index 2d30f41..5c0d27c 100644
+--- a/scripts/dtc/dtc-lexer.lex.c_shipped
++++ b/scripts/dtc/dtc-lexer.lex.c_shipped
+@@ -1054,7 +1054,7 @@ case 10:
+ YY_RULE_SETUP
+ #line 148 "dtc-lexer.l"
+ {
+-			yylval.literal = xstrdup(yytext);
++			yylval.literal = yytext;
+ 			DPRINT("Literal: '%s'\n", yylval.literal);
+ 			return DT_LITERAL;
+ 		}
+diff --git a/scripts/dtc/dtc.c b/scripts/dtc/dtc.c
+index a375683..215ae92 100644
+--- a/scripts/dtc/dtc.c
++++ b/scripts/dtc/dtc.c
+@@ -256,5 +256,6 @@ int main(int argc, char *argv[])
+ 		die("Unknown output format \"%s\"\n", outform);
+ 	}
+ 
++	free_dt(bi);
+ 	exit(0);
+ }
+diff --git a/scripts/dtc/dtc.h b/scripts/dtc/dtc.h
+index 3e42a07..9c45fd2 100644
+--- a/scripts/dtc/dtc.h
++++ b/scripts/dtc/dtc.h
+@@ -245,6 +245,7 @@ struct boot_info {
+ struct boot_info *build_boot_info(struct reserve_info *reservelist,
+ 				  struct node *tree, uint32_t boot_cpuid_phys);
+ void sort_tree(struct boot_info *bi);
++void free_dt(struct boot_info *bi);
+ 
+ /* Checks */
+ 
+diff --git a/scripts/dtc/livetree.c b/scripts/dtc/livetree.c
+index b61465f..5c8692c 100644
+--- a/scripts/dtc/livetree.c
++++ b/scripts/dtc/livetree.c
+@@ -20,6 +20,10 @@
+ 
+ #include "dtc.h"
+ 
++static void free_node_list(struct node *n);
++static void free_node(struct node *n);
++static void free_property(struct property *p);
++
+ /*
+  * Tree building functions
+  */
+@@ -144,7 +148,7 @@ struct node *merge_nodes(struct node *old_node, struct node *new_node)
+ 
+ 	/* Add new node labels to old node */
+ 	for_each_label_withdel(new_node->labels, l)
+-		add_label(&old_node->labels, l->label);
++		add_label(&old_node->labels, xstrdup(l->label));
+ 
+ 	/* Move properties from the new node to the old node.  If there
+ 	 * is a collision, replace the old value with the new */
+@@ -156,7 +160,7 @@ struct node *merge_nodes(struct node *old_node, struct node *new_node)
+ 
+ 		if (new_prop->deleted) {
+ 			delete_property_by_name(old_node, new_prop->name);
+-			free(new_prop);
++			free_property(new_prop);
+ 			continue;
+ 		}
+ 
+@@ -165,7 +169,7 @@ struct node *merge_nodes(struct node *old_node, struct node *new_node)
+ 			if (streq(old_prop->name, new_prop->name)) {
+ 				/* Add new labels to old property */
+ 				for_each_label_withdel(new_prop->labels, l)
+-					add_label(&old_prop->labels, l->label);
++					add_label(&old_prop->labels, xstrdup(l->label));
+ 
+ 				old_prop->val = new_prop->val;
+ 				old_prop->deleted = 0;
+@@ -191,7 +195,7 @@ struct node *merge_nodes(struct node *old_node, struct node *new_node)
+ 
+ 		if (new_child->deleted) {
+ 			delete_node_by_name(old_node, new_child->name);
+-			free(new_child);
++			free_node(new_child);
+ 			continue;
+ 		}
+ 
+@@ -211,7 +215,7 @@ struct node *merge_nodes(struct node *old_node, struct node *new_node)
+ 
+ 	/* The new node contents are now merged into the old node.  Free
+ 	 * the new node. */
+-	free(new_node);
++	free_node(new_node);
+ 
+ 	return old_node;
+ }
+@@ -532,13 +536,13 @@ cell_t get_node_phandle(struct node *root, struct node *node)
+ 	if (!get_property(node, "linux,phandle")
+ 	    && (phandle_format & PHANDLE_LEGACY))
+ 		add_property(node,
+-			     build_property("linux,phandle",
++			     build_property(xstrdup("linux,phandle"),
+ 					    data_append_cell(empty_data, phandle)));
+ 
+ 	if (!get_property(node, "phandle")
+ 	    && (phandle_format & PHANDLE_EPAPR))
+ 		add_property(node,
+-			     build_property("phandle",
++			     build_property(xstrdup("phandle"),
+ 					    data_append_cell(empty_data, phandle)));
+ 
+ 	/* If the node *does* have a phandle property, we must
+@@ -707,3 +711,93 @@ void sort_tree(struct boot_info *bi)
+ 	sort_reserve_entries(bi);
+ 	sort_node(bi->dt);
+ }
++
++static void free_marker_list(struct marker *m)
++{
++	struct marker *marker, *marker_next;
++
++	if (!m)
++		return;
++
++	for (marker = m, marker_next = marker ? marker->next : NULL;
++	     marker;
++	     marker = marker_next, marker_next = marker ? marker->next : NULL) {
++		free(marker->ref);
++		free(marker);
++	}
++}
++
++static void free_label_list(struct label *l)
++{
++	struct label *label, *label_next;
++
++	if (!l)
++		return;
++
++	for (label = l, label_next = label ? label->next : NULL;
++	     label;
++	     label = label_next, label_next = label ? label->next : NULL) {
++		free(label->label);
++		free(label);
++	}
++}
++
++static void free_property(struct property *p)
++{
++	if (!p)
++		return;
++
++	free_label_list(p->labels);
++	free_marker_list(p->val.markers);
++	free(p->val.val);
++	free(p->name);
++	free(p);
++}
++
++static void free_property_list(struct property *p)
++{
++	struct property *next;
++
++	if (!p)
++		return;
++
++	for (next = p->next; p; p = next, next = p ? p->next : NULL)
++		free_property(p);
++}
++
++static void free_node(struct node *n)
++{
++	if (!n)
++		return;
++
++	free_node_list(n->children);
++	free_label_list(n->labels);
++	free_property_list(n->proplist);
++	free(n->fullpath);
++	if (n->name && *n->name)
++		free(n->name);
++	free(n);
++}
++
++static void free_node_list(struct node *n)
++{
++	struct node *next;
++
++	if (!n)
++		return;
++
++	for (next = n->next_sibling;
++	     n;
++	     n = next, next = n ? n->next_sibling : NULL) {
++		free_node(n);
++	}
++}
++
++void free_dt(struct boot_info *bi)
++{
++	if (!bi)
++		return;
++
++	free_node_list(bi->dt);
++	free(bi);
++}
 -- 
 1.8.1.2
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
