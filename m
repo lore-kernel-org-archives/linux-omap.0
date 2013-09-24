@@ -1,54 +1,71 @@
-From: Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] ARM: DTS: omap3-devkit8000.dts: fix a typo
-Date: Tue, 24 Sep 2013 11:35:17 +0200
-Message-ID: <52415CD5.8050209@baylibre.com>
-References: <1379720414-14960-1-git-send-email-aaro.koskinen@iki.fi>
+From: Benoit Cousson <bcousson@baylibre.com>
+Subject: Re: [PATCH 2/2] ARM: dts: dra7-evm: Add mmc2 node for eMMC support
+Date: Tue, 24 Sep 2013 11:41:21 +0200
+Message-ID: <52415E41.7050301@baylibre.com>
+References: <1377525218-7655-1-git-send-email-balajitk@ti.com> <1377525218-7655-3-git-send-email-balajitk@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1379720414-14960-1-git-send-email-aaro.koskinen-X3B1VOXEql0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-bk0-f44.google.com ([209.85.214.44]:34955 "EHLO
+	mail-bk0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750713Ab3IXJlZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Sep 2013 05:41:25 -0400
+Received: by mail-bk0-f44.google.com with SMTP id mz10so1655756bkb.3
+        for <linux-omap@vger.kernel.org>; Tue, 24 Sep 2013 02:41:24 -0700 (PDT)
+In-Reply-To: <1377525218-7655-3-git-send-email-balajitk@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Balaji T K <balajitk@ti.com>
+Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, tony@atomide.com, linux-arm-kernel@lists.infradead.org, nm@ti.com, Sekhar Nori <nsekhar@ti.com>
 
-Hi Aaro,
++ Sekhar
 
-On 21/09/2013 01:40, Aaro Koskinen wrote:
-> "gpmc,sync-clki-ps" is not defined/documented, it should be
-> "gpmc,sync-clk-ps" instead.
+Hi Balaji,
 
-Thanks for the fix. I've just applied it with a slight change in the 
-subject for consistency:
+On 26/08/2013 15:53, Balaji T K wrote:
+> Add mmc2 dt node to dra7-evm board
+> and model eMMC vcc as fixed regulator.
+>
+> Signed-off-by: Balaji T K <balajitk@ti.com>
+> ---
+>   arch/arm/boot/dts/dra7-evm.dts |   14 ++++++++++++++
+>   1 files changed, 14 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
+> index a59bbd0..2062724 100644
+> --- a/arch/arm/boot/dts/dra7-evm.dts
+> +++ b/arch/arm/boot/dts/dra7-evm.dts
+> @@ -17,6 +17,13 @@
+>   		device_type = "memory";
+>   		reg = <0x80000000 0x60000000>; /* 1536 MB */
+>   	};
+> +
+> +	mmc2_3v3: fixedregulator-mmc2 {
+> +		compatible = "regulator-fixed";
+> +		regulator-name = "mmc2_3v3";
+> +		regulator-min-microvolt = <3300000>;
+> +		regulator-max-microvolt = <3300000>;
+> +	};
+>   };
+>
+>   &dra7_pmx_core {
+> @@ -257,3 +264,10 @@
+>   	vmmc-supply = <&ldo1_reg>;
+>   	bus-width = <4>;
+>   };
+> +
+> +&mmc2 {
+> +	status = "okay";
+> +	vmmc-supply = <&mmc2_3v3>;
+> +	bus-width = <8>;
+> +	ti,non-removable;
 
-ARM: dts: omap3-devkit8000: fix a typo in GMPC node
+Sekhar just posted a series to replace that with a non-TI attribute: 
+non-removable.
+
+I'm not sure if this got merged, but it might be good to use the 
+standard attribute instead.
 
 Regards,
 Benoit
-
->
-> Signed-off-by: Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
-> ---
->   arch/arm/boot/dts/omap3-devkit8000.dts | 2 +-
->   1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/arch/arm/boot/dts/omap3-devkit8000.dts b/arch/arm/boot/dts/omap3-devkit8000.dts
-> index 7ef2827..4665421 100644
-> --- a/arch/arm/boot/dts/omap3-devkit8000.dts
-> +++ b/arch/arm/boot/dts/omap3-devkit8000.dts
-> @@ -125,7 +125,7 @@
->   		nand-bus-width = <16>;
->
->   		gpmc,device-nand;
-> -		gpmc,sync-clki-ps = <0>;
-> +		gpmc,sync-clk-ps = <0>;
->   		gpmc,cs-on-ns = <0>;
->   		gpmc,cs-rd-off-ns = <44>;
->   		gpmc,cs-wr-off-ns = <44>;
->
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
