@@ -1,38 +1,67 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [net-next PATCH 0/4] cpsw: support for control module register
-Date: Tue, 24 Sep 2013 10:34:16 -0400 (EDT)
-Message-ID: <20130924.103416.2050021711877592417.davem@davemloft.net>
-References: <1379704841-32693-1-git-send-email-mugunthanvnm@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [RFC] gpio/omap: auto-setup a GPIO when used as an IRQ
+Date: Tue, 24 Sep 2013 08:27:03 -0700
+Message-ID: <20130924152703.GL2684@atomide.com>
+References: <1379860848-29020-1-git-send-email-javier.martinez@collabora.co.uk>
+ <CACRpkdb35DouKsZ+9aWfQmER1vmAaK1dR7VXjoFHTLRR+hBezg@mail.gmail.com>
+ <524125F4.4060608@collabora.co.uk>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:54344 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752467Ab3IXOeT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Sep 2013 10:34:19 -0400
-In-Reply-To: <1379704841-32693-1-git-send-email-mugunthanvnm@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-gpio-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <524125F4.4060608@collabora.co.uk>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@linaro.org>, Stephen Warren <swarren@wwwdotorg.org>, Lars Poeschel <larsi@wh2.tu-dresden.de>, Grant Likely <grant.likely@linaro.org>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ian.campbell@citrix.com>, Kumar Gala <galak@codeaurora.org>, Pawel Moll <pawel.moll@arm.com>, Tomasz Figa <tomasz.figa@gmail.com>, Enric Balletbo i Serra <eballetbo@gmail.com>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, Balaji T K <balajitk@ti.com>, Jon Hunter <jgchunter@gmail.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: mugunthanvnm@ti.com
-Cc: netdev@vger.kernel.org, zonque@gmail.com, bcousson@baylibre.com, tony@atomide.com, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-From: Mugunthan V N <mugunthanvnm@ti.com>
-Date: Sat, 21 Sep 2013 00:50:37 +0530
-
-> This patch series adds the support for configuring GMII_SEL register
-> of control module to select the phy mode type and also to configure
-> the clock source for RMII phy mode whether to use internal clock or
-> the external clock from the phy itself.
+* Javier Martinez Canillas <javier.martinez@collabora.co.uk> [130923 22:49]:
+> On 09/23/2013 10:15 PM, Linus Walleij wrote:
+> > <javier.martinez@collabora.co.uk> wrote:
+> > - When a second caller calls omap_gpio_request() it should
+> >   be OK as well, but only if the flags corresponds to the
+> >   previously enabled input mode. Else it should be
+> >   disallowed.
+> > 
+> > - The same should happen for _set_gpio_direction() if a pin
+> >   previously set up for IRQ gets a request to be used as
+> >   output.
+> > 
+> > If this cannot be tracked in the driver, it is certainly a candidate
+> > for something that gpiolib should be doing. And then I'm open to
+> > solutions to how we can do that.
+> > 
 > 
-> Till now CPSW works as this configuration is done in U-Boot and carried
-> over to the kernel. But during suspend/resume Control module tends to
-> lose its configured value for GMII_SEL register in AM33xx PG1.0, so
-> if CPSW is used in RMII or RGMII mode, on resume cpsw is not working
-> as GMII_SEL register lost its configuration values.
+> Ok, this can be tracked in the driver, will add it when posting v2 soon.
 > 
-> The initial version of the patch is done by Daniel Mack but as per
-> Tony's comment he wants it as a seperate driver as it is done in USB
-> control module. I have created a seperate driver for the same.
+> > If this needs to be applied pronto to fix the regression I'm
+> > happy with that too, if we add a big boilerplate stating the above
+> > problem and that it needs to be *fixed* at some point.
 
-Series applied, thanks.
+In the mainline kernel, the regression is happening at least for
+smsc911x using boards, so that's omap3-igep.dtsi and omap3-tobi.dts
+currently. Also MMC card detection for omap4 is failing. Then
+of course there are tons of boards where we don't have the .dts
+files in the mainline kernel yet.
+
+So maybe let's do a minimal fix for the -rc cycle first?
+
+Then the extra checks can be queued for the next merge window
+if it gets too intrusive.
+
+> > But in either case I want this to be tested on OMAP1 before
+> > I apply it, as in a Tested-by tag.
+> >
+> 
+> Agreed. Even though this is a fix for a long standing issue I prefer it to be
+> tested extensively than applying the patch in a rush just to learn that causes
+> regressions and have to be reverted as it happens last time.
+> 
+> So as you said let's wait until we have a few Tested-by tags by people using
+> different OMAP platforms specially OMAP1.
+
+Yup.
+
+Regards,
+
+Tony
