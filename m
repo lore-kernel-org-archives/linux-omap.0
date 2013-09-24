@@ -1,55 +1,47 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: new binutils needed for arm in 3.12-rc1
-Date: Tue, 24 Sep 2013 22:48:00 +0100
-Message-ID: <20130924214800.GV25647@n2100.arm.linux.org.uk>
-References: <yw1xpprywhad.fsf@unicorn.mansr.com> <1380057828.1974.73@driftwood>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: Booting recent mainline on omap5-uevm
+Date: Tue, 24 Sep 2013 18:24:57 -0400
+Message-ID: <52421139.1090005@ti.com>
+References: <A2CA0424C0A6F04399FB9E1CD98E030458E05AC1@US01WEMBX2.internal.synopsys.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1380057828.1974.73@driftwood>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Rob Landley <rob@landley.net>
-Cc: =?iso-8859-1?Q?M=E5ns_Rullg=E5rd?= <mans@mansr.com>, Andrew Morton <akpm@osdl.org>, Trivial patch monkey <trivial@kernel.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <will.deacon@arm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:49061 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754374Ab3IXWZA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Sep 2013 18:25:00 -0400
+In-Reply-To: <A2CA0424C0A6F04399FB9E1CD98E030458E05AC1@US01WEMBX2.internal.synopsys.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Zimmerman <Paul.Zimmerman@synopsys.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "lokeshvutla@ti.com" <lokeshvutla@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Anna, Suman" <s-anna@ti.com>
 
-On Tue, Sep 24, 2013 at 04:23:48PM -0500, Rob Landley wrote:
-> What value is there in requiring the new toolchain? From what I could  
-> see of the commits it was micro-optimizations around memory barriers.
->
-> *shrug* I can revert the patch locally, or patch the extra instruction  
-> into my toolchain. But I do object to changing the documentation  
-> globally for every architecture because one architecture did something  
-> they apparently never thought through (or they'd have commented in the  
-> commit that it requires a big toolchain version jump; pretty sure they  
-> didn't actually notice).
+On Tuesday 24 September 2013 04:30 PM, Paul Zimmerman wrote:
+>> From: Paul Zimmerman
+>> Sent: Tuesday, September 24, 2013 1:21 PM
+>>
+>> Hi,
+>>
+>> I have an OMAP5432 uEVM which I cannot get to boot with recent mainline
+>> (tried 3.11 and 3.12-rc1). I have the TI GLSDK for this board (v6.0.0.7),
+>> which comes with 3.8.4 which works fine.
+>>
+>> I found this thread: http://marc.info/?l=fedora-arm&m=137717811815777 and
+> 
+> Wrong link, should have been http://marc.info/?l=linux-omap&m=137515583214350.
+> 
+Its because of commit 03ab349ec{ARM: OMAP5: hwmod data: Add mailbox data} which
+added hwmod data but DT data for mailbox is missing. Reverting that makes
+things work. Looks like mailbox dt patches missed the last merge window.
 
-Some of us are notoriously slow at updating our toolchains.  I'm still
-using gcc 4.5.4 here, and people regard that as bordering on "too old"
-because of the amount of warnings it spits out.  Binutils?  I upgraded
-to 2.22 when I needed to fix a problem I was having with the previous
-binutils I was using (I think that was 2.18).
+The booting branch is pushed here [1] just in case you need it.
 
-I generally don't touch my toolchain unless there's a _reason_ I need
-to, and as I've already updated to 2.22, it's a normally a pretty safe
-bet that everyone else is already using 2.22 or later.  One reason for
-this is that I don't want to be messing around trying to work out
-whether a bug I'm seeing is because of a toolchain problem or something
-in the kernel.
+regards,
+Santosh
 
-I realised at the time that I'm going to got shouted at if I accepted
-the patches by a minority who wanted to keep their old toolchains, but
-I also realise that if I don't accept the patches, I'll get shouted at
-by another group.  It's the classic damned if I do and damned if I
-don't.  So I've chosen the lesser of the two weavels.
+[1] https://git.kernel.org/cgit/linux/kernel/git/ssantosh/linux.git/log/?h=3.12/omap5
 
-Now, if you feel strongly about this, we _could_ introduce a
-CONFIG_OLD_BINUTILS and give everyone their cake - but it will be
-fragile.  Not everyone will remember to get that right, because they'll
-be using the later binutils.  Also, we already have an excessive number
-of potential breakage-inducing options and we certainly don't need
-another.
 
-Use IS_ENABLED() I hear you say.  That won't get the one dsb instruction
-in some SoC code which was missed which will break the build on older
-toolchains.
+
+
