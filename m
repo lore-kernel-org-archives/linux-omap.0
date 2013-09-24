@@ -1,463 +1,297 @@
-From: Benoit Cousson <bcousson@baylibre.com>
-Subject: [RFC 12/15] scripts/dtc: check constraints on parents
-Date: Tue, 24 Sep 2013 18:52:18 +0200
-Message-ID: <1380041541-17529-13-git-send-email-bcousson@baylibre.com>
+From: Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Subject: [RFC 08/15] scripts/dtc: check array size
+Date: Tue, 24 Sep 2013 18:52:14 +0200
+Message-ID: <1380041541-17529-9-git-send-email-bcousson@baylibre.com>
 References: <1380041541-17529-1-git-send-email-bcousson@baylibre.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f49.google.com ([74.125.82.49]:58674 "EHLO
-	mail-wg0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754581Ab3IXQxG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Sep 2013 12:53:06 -0400
-Received: by mail-wg0-f49.google.com with SMTP id l18so4805384wgh.4
-        for <linux-omap@vger.kernel.org>; Tue, 24 Sep 2013 09:53:05 -0700 (PDT)
-In-Reply-To: <1380041541-17529-1-git-send-email-bcousson@baylibre.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1380041541-17529-1-git-send-email-bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tomasz.figa-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org, grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org
+Cc: khilman-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, fparent-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: olof@lixom.net, devicetree@vger.kernel.org, tomasz.figa@gmail.com, swarren@wwwdotorg.org, grant.likely@secretlab.ca, rob.herring@calxeda.com
-Cc: khilman@linaro.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, fparent@baylibre.com, Benoit Cousson <bcousson@baylibre.com>
 
-From: Fabien Parent <fparent@baylibre.com>
+From: Fabien Parent <fparent-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 
-Add the ability to specify constraints on the parents of a node.
-Add as well seven test files for this feature.
+Add constraints on array size:
+    - length: specify the exact length that an array must have.
+    - min-length: specify the minimum number of elements an array must have.
+    - max-length: specify the maximum number of elements an array must have.
 
+Add as well four test files for the feature.
+
+Usage example:
 node {
-    compatible = "abcomp";
-    abc = "abc";
-
-    subnode {
-        compatible = "comp";
-        abc = "def";
-    };
+    compatible = "array_size";
+    myarray = <0 1 2 3 4>;
 };
 
-The schema below tests whether 'subnode' has a parent named 'node' and whether
-it has a compatible property equal to "abcomp" and a 'abc' property equal to
-"abc". In the case of the node above the constraints couldn't be check by
-inheriting the properties via 'can-be-inherited' since they are overwritten
-by the node 'subnode'.
-
+Schema:
 /dts-v1/;
 / {
-    compatible = "comp";
+    compatible = "array_size";
 
-    parents {
-        node {
-            compatible {
-                type = "string";
-                value = "abcomp";
-            };
-
-            abc {
-                type = "string";
-                value = "abc";
-            };
-        };
+    myarray {
+        length = <5>;
     };
 };
 
-It is possible to set conditional constraints on parents of the following form:
-    if (node_compatible == "compat1")
-        check_this_parent_constraints();
-    else if (node_compatible == "compat2")
-        check_that_parent_constraints();
-
-To do this one should put the parent constraints at the same place as the
-compatible definition in a schema file.
-
-/dts-v1/;
-/ {
-    compatible {
-        value@0 {
-            value = "compat1";
-            parents {
-                node {
-                    myprop {
-                        type = "int";
-                        value@0 = <0xf>;
-                    };
-                };
-            };
-        };
-
-        value@1 {
-            value = "compat2";
-            parents {
-                node {
-                    myprop {
-                        type = "int";
-                        value@0 = <0xa>;
-                    };
-                };
-            };
-        };
-    };
-};
-
-This schema will check that if the compatible of a node is "compat1" then it
-must have a parent node "node" which has an integer array property "myprop"
-which has as first element the value 0xf, otherwise if the node has the
-compatible "compat2" then the first element of the same property must have the
-value 0xa.
-
-Signed-off-by: Fabien Parent <fparent@baylibre.com>
-Signed-off-by: Benoit Cousson <bcousson@baylibre.com>
+Signed-off-by: Fabien Parent <fparent-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 ---
- scripts/dtc/schema-test.c                       |  16 +++
- scripts/dtc/schema.c                            | 126 +++++++++++++++++++++++-
- scripts/dtc/tests/schemas/parent-nodes-1.schema |  23 +++++
- scripts/dtc/tests/schemas/parent-nodes-2.schema |  12 +++
- scripts/dtc/tests/schemas/parent-nodes-3.schema |  14 +++
- scripts/dtc/tests/schemas/parent-nodes-4.schema |  27 +++++
- scripts/dtc/tests/schemas/parent-nodes-5.schema |  15 +++
- scripts/dtc/tests/schemas/parent-nodes-6.schema |  13 +++
- scripts/dtc/tests/schemas/parent-nodes-7.schema |  13 +++
- 9 files changed, 257 insertions(+), 2 deletions(-)
- create mode 100644 scripts/dtc/tests/schemas/parent-nodes-1.schema
- create mode 100644 scripts/dtc/tests/schemas/parent-nodes-2.schema
- create mode 100644 scripts/dtc/tests/schemas/parent-nodes-3.schema
- create mode 100644 scripts/dtc/tests/schemas/parent-nodes-4.schema
- create mode 100644 scripts/dtc/tests/schemas/parent-nodes-5.schema
- create mode 100644 scripts/dtc/tests/schemas/parent-nodes-6.schema
- create mode 100644 scripts/dtc/tests/schemas/parent-nodes-7.schema
+ scripts/dtc/data.c                            |  5 +++
+ scripts/dtc/dtc.h                             |  1 +
+ scripts/dtc/schema-test.c                     | 10 ++++++
+ scripts/dtc/schema.c                          | 52 +++++++++++++++++++++++++++
+ scripts/dtc/tests/schemas/array-size-1.schema | 13 +++++++
+ scripts/dtc/tests/schemas/array-size-2.schema |  8 +++++
+ scripts/dtc/tests/schemas/array-size-3.schema |  8 +++++
+ scripts/dtc/tests/schemas/array-size-4.schema |  8 +++++
+ 8 files changed, 105 insertions(+)
+ create mode 100644 scripts/dtc/tests/schemas/array-size-1.schema
+ create mode 100644 scripts/dtc/tests/schemas/array-size-2.schema
+ create mode 100644 scripts/dtc/tests/schemas/array-size-3.schema
+ create mode 100644 scripts/dtc/tests/schemas/array-size-4.schema
 
+diff --git a/scripts/dtc/data.c b/scripts/dtc/data.c
+index 9e03718..5284936 100644
+--- a/scripts/dtc/data.c
++++ b/scripts/dtc/data.c
+@@ -76,6 +76,7 @@ struct data data_copy_escape_string(const char *s, int len)
+ 
+ 	d = data_grow_for(empty_data, strlen(s)+1);
+ 	d.type = STRING;
++	d.array_size++;
+ 
+ 	q = d.val;
+ 	while (i < len) {
+@@ -95,6 +96,7 @@ struct data data_copy_file(FILE *f, size_t maxlen)
+ {
+ 	struct data d = empty_data;
+ 	d.type = STRING;
++	d.array_size++;
+ 
+ 	while (!feof(f) && (d.len < maxlen)) {
+ 		size_t chunksize, ret;
+@@ -159,6 +161,7 @@ struct data data_merge(struct data d1, struct data d2)
+ 	struct marker *m2 = d2.markers;
+ 
+ 	d = data_append_markers(data_append_data(d1, d2.val, d2.len), m2);
++	d.array_size += d2.array_size;
+ 	d.type = d2.type ? d2.type : d1.type;
+ 
+ 	/* Adjust for the length of d1 */
+@@ -204,6 +207,7 @@ struct data data_append_integer(struct data d, uint64_t value, int bits)
+ 	}
+ 
+ 	d.type = INTEGER;
++	d.array_size++;
+ 	return d;
+ }
+ 
+@@ -231,6 +235,7 @@ struct data data_append_byte(struct data d, uint8_t byte)
+ {
+ 	d = data_append_data(d, &byte, 1);
+ 	d.type = INTEGER;
++	d.array_size++;
+ 	return d;
+ }
+ 
+diff --git a/scripts/dtc/dtc.h b/scripts/dtc/dtc.h
+index a9b8602..64fdc8a 100644
+--- a/scripts/dtc/dtc.h
++++ b/scripts/dtc/dtc.h
+@@ -95,6 +95,7 @@ struct data {
+ 	struct marker *markers;
+ 
+ 	enum datatype type;
++	size_t array_size;
+ };
+ 
+ 
 diff --git a/scripts/dtc/schema-test.c b/scripts/dtc/schema-test.c
-index 9f1ce31..5075c24 100644
+index 99a4142..bfc9e43 100644
 --- a/scripts/dtc/schema-test.c
 +++ b/scripts/dtc/schema-test.c
-@@ -81,6 +81,22 @@ static struct schema_test tests[] = {
- 	 "tests/schemas/children-nodes-1.schema", 1},
- 	{"Children Nodes #2", "tests/test1.dts",
- 	 "tests/schemas/children-nodes-2.schema", 0},
+@@ -35,6 +35,16 @@ static struct schema_test tests[] = {
+ 	 "tests/schemas/types-1.schema", 1},
+ 	{"Types #2", "tests/test1.dts",
+ 	 "tests/schemas/types-2.schema", 0},
 +
-+	/* Parent nodes */
-+	{"Parent Nodes #1", "tests/test1.dts",
-+	 "tests/schemas/parent-nodes-1.schema", 1},
-+	{"Parent Nodes #2", "tests/test1.dts",
-+	 "tests/schemas/parent-nodes-2.schema", 0},
-+	{"Parent Nodes #3", "tests/test1.dts",
-+	 "tests/schemas/parent-nodes-3.schema", 0},
-+	{"Parent Nodes #4", "tests/test1.dts",
-+	 "tests/schemas/parent-nodes-4.schema", 1},
-+	{"Parent Nodes #5", "tests/test1.dts",
-+	 "tests/schemas/parent-nodes-5.schema", 0},
-+	{"Parent Nodes #6", "tests/test1.dts",
-+	 "tests/schemas/parent-nodes-6.schema", 0},
-+	{"Parent Nodes #7", "tests/test1.dts",
-+	 "tests/schemas/parent-nodes-7.schema", 1},
++	/* Array Size */
++	{"Array Size #1", "tests/test1.dts",
++	 "tests/schemas/array-size-1.schema", 1},
++	{"Array Size #2", "tests/test1.dts",
++	 "tests/schemas/array-size-2.schema", 0},
++	{"Array Size #3", "tests/test1.dts",
++	 "tests/schemas/array-size-3.schema", 0},
++	{"Array Size #4", "tests/test1.dts",
++	 "tests/schemas/array-size-4.schema", 0},
  };
  
  int main(void)
 diff --git a/scripts/dtc/schema.c b/scripts/dtc/schema.c
-index a454a19..e349e01 100644
+index 95fc44b..95ad925 100644
 --- a/scripts/dtc/schema.c
 +++ b/scripts/dtc/schema.c
-@@ -694,6 +694,123 @@ static void load_node_constraints(struct node_constraints *nc,
- 	}
+@@ -5,6 +5,7 @@
+ #include <dirent.h>
+ #include <pcre.h>
+ #include <stdio.h>
++#include <limits.h>
+ 
+ #define DT_ERROR(path, p, format, ...) \
+ 	do { \
+@@ -36,6 +37,8 @@ struct prop_constraints {
+ 	char *type;
+ 	int is_required;
+ 	int can_be_inherited;
++	size_t min_length;
++	size_t max_length;
+ };
+ 
+ struct node_constraints {
+@@ -73,6 +76,28 @@ static pcre *compile_pattern(const char *pattern)
+ 	return re;
  }
  
-+static struct node *find_parent_node(struct node *schema,
-+				     struct node_list *path)
++static uint32_t prop_val_to_uint32(struct property *p, int i)
 +{
-+	struct property *p;
-+	char *name;
++	assert(p);
++	assert(i >= 0);
 +
-+	if (!path)
-+		return NULL;
++	switch (p->val.len / p->val.array_size) {
++	case 1:
++		return ((uint8_t *) p->val.val)[i];
 +
-+	assert(schema);
-+	assert(path->n);
++	case 2:
++		return fdt16_to_cpu(((uint16_t *) p->val.val)[i]);
 +
-+	p = get_property(schema, "name");
++	case 4:
++		return fdt32_to_cpu(((uint32_t *) p->val.val)[i]);
++
++	default:
++		die("reach unreachable.");
++	}
++
++	return 0;
++}
++
+ static int get_next_string_offset(struct property *p, int offset)
+ {
+ 	assert(p);
+@@ -203,6 +228,7 @@ load_property_constraints(struct node *schema)
+ 
+ 	pc->is_required = get_property(schema, "is-required") != NULL;
+ 	pc->can_be_inherited = get_property(schema, "can-be-inherited") != NULL;
++	pc->max_length = ULONG_MAX;
+ 
+ 	p = get_property(schema, "name");
+ 	if (p)
+@@ -212,6 +238,24 @@ load_property_constraints(struct node *schema)
+ 	if (p)
+ 		pc->type = p->val.val;
+ 
++	p = get_property(schema, "length");
 +	if (p) {
-+		assert(p->val.type == STRING);
-+		name = p->val.val;
-+	} else {
-+		name = schema->name;
++		assert(p->val.type == INTEGER);
++		pc->min_length = pc->max_length = prop_val_to_uint32(p, 0);
 +	}
 +
-+	if (!strcmp(name, path->n->name))
-+		return path->n;
-+	else
-+		return find_parent_node(schema, path->next);
-+}
-+
-+static int validate_node(struct node *n,
-+			 struct node_constraints *nc,
-+			 struct node_list *path);
-+
-+static void free_node_constraints(struct node_constraints *nc);
-+
-+static int validate_parents(struct node *schema,
-+			    struct node_list *path)
-+{
-+	struct node *n;
-+	struct node_constraints *nc;
-+	int ret = 1;
-+
-+	assert(schema);
-+	assert(path);
-+
-+	nc = xmalloc(sizeof(*nc));
-+
-+	for (schema = schema->children; schema; schema = schema->next_sibling) {
-+		n = find_parent_node(schema, path);
-+		DT_ERROR_IF(!n, path, NULL,
-+			    "Missing parent node '%s'\n", schema->name);
-+
-+		memset(nc, 0, sizeof(*nc));
-+		load_node_constraints(nc, schema);
-+		nc->dt = schema;
-+		ret &= validate_node(n, nc, path);
-+		free_node_constraints(nc);
++	p = get_property(schema, "min-length");
++	if (p) {
++		assert(p->val.type == INTEGER);
++		pc->min_length = prop_val_to_uint32(p, 0);
 +	}
 +
-+end:
-+	free(nc);
-+	return ret;
-+}
-+
-+static struct node *find_current_compatible_node(struct node_constraints *nc)
-+{
-+	pcre *re;
-+	struct node *n;
-+	struct property *p;
-+
-+	assert(nc);
-+	assert(nc->compatible);
-+	assert(nc->bi);
-+	assert(nc->bi->dt);
-+
-+	n = get_subnode(nc->bi->dt, "compatible");
-+	if (!n)
-+		return NULL;
-+
-+	re = compile_pattern(nc->compatible);
-+	assert(re);
-+
-+	for (n = n->children; n; n = n->next_sibling) {
-+		if (!is_prop_value(n->name))
-+			continue;
-+
-+		p = get_property(n, "value");
-+		if (!p)
-+			continue;
-+
-+		assert(p->val.type == STRING);
-+		if (pcre_exec(re, 0, p->val.val, strlen(p->val.val),
-+			      0, 0, NULL, 0) >= 0)
-+			break;
++	p = get_property(schema, "max-length");
++	if (p) {
++		assert(p->val.type == INTEGER);
++		pc->max_length = prop_val_to_uint32(p, 0);
 +	}
 +
-+	pcre_free(re);
-+	return n;
-+}
-+
-+static int validate_compatible(struct node_constraints *nc,
-+			       struct node_list *path)
-+{
-+	int ret = 1;
-+	struct node *n;
-+
-+	assert(nc);
-+	assert(path);
-+
-+	n = find_current_compatible_node(nc);
-+	if (!n)
-+		return ret;
-+
-+	n = get_subnode(n, "parents");
-+	if (!n)
-+		return ret;
-+
-+	return ret & validate_parents(n, path);
-+}
-+
- static int validate_node(struct node *n,
- 			 struct node_constraints *nc,
- 			 struct node_list *path)
-@@ -709,8 +826,12 @@ static int validate_node(struct node *n,
- 	assert(nc);
- 	assert(nc->dt);
+ 	return pc;
+ }
  
--	for (iter = nc->dt->children; iter; iter = iter->next_sibling)
--		ret &= validate_properties(n, iter, path);
-+	for (iter = nc->dt->children; iter; iter = iter->next_sibling) {
-+		if (!strcmp(iter->name, "parents"))
-+			ret &= validate_parents(iter, path);
-+		else
-+			ret &= validate_properties(n, iter, path);
+@@ -280,6 +324,14 @@ static int validate_property(struct node *n,
+ 				  "the following type: '%s'\n", pc->type);
+ 	}
+ 
++	if (p->val.array_size < pc->min_length
++		|| p->val.array_size > pc->max_length) {
++		DT_ERROR(path, p, "Incorrect number of elements.\n"
++			 "\tShould have between %zu and %zu "
++			 "but has %zu elements.\n", pc->min_length,
++			 pc->max_length, p->val.array_size);
 +	}
- 
- 	/* Check whether the node has all the required children nodes */
- 	for (pattern = nc->children;
-@@ -814,6 +935,7 @@ static int for_each_compatible_validate(struct schema_db *db,
- 		while ((nc = get_node_constraints_of(db, p->val.val + offset,
- 						     &i)) != NULL) {
- 			ret &= validate_node(node, nc, path);
-+			ret &= validate_compatible(nc, path);
- 		}
- 
- 		offset = get_next_string_offset(p, offset);
-diff --git a/scripts/dtc/tests/schemas/parent-nodes-1.schema b/scripts/dtc/tests/schemas/parent-nodes-1.schema
-new file mode 100644
-index 0000000..95d3b50
---- /dev/null
-+++ b/scripts/dtc/tests/schemas/parent-nodes-1.schema
-@@ -0,0 +1,23 @@
-+/dts-v1/;
-+/ {
-+	compatible = "compat2";
 +
-+	parents {
-+		root {
-+			name = "";
-+			everywhere {
-+				type = "integer";
-+				value@0 = <0xf>;
-+				value@1 = <0xa>;
-+				value@2 = <0xb>;
-+			};
-+		};
-+
-+		node1 {
-+			mypropstr {
-+				type = "string";
-+				value = "value[0-9]";
-+			};
-+		};
-+	};
-+};
-diff --git a/scripts/dtc/tests/schemas/parent-nodes-2.schema b/scripts/dtc/tests/schemas/parent-nodes-2.schema
+ end:
+ 	free_property_constraints(pc);
+ 	return ret;
+diff --git a/scripts/dtc/tests/schemas/array-size-1.schema b/scripts/dtc/tests/schemas/array-size-1.schema
 new file mode 100644
-index 0000000..a2f2b80
+index 0000000..b495090
 --- /dev/null
-+++ b/scripts/dtc/tests/schemas/parent-nodes-2.schema
-@@ -0,0 +1,12 @@
-+/dts-v1/;
-+/ {
-+	compatible = "compat2";
-+
-+	parents {
-+		abc {
-+			def {
-+				type = "string";
-+			};
-+		};
-+	};
-+};
-diff --git a/scripts/dtc/tests/schemas/parent-nodes-3.schema b/scripts/dtc/tests/schemas/parent-nodes-3.schema
-new file mode 100644
-index 0000000..11c327c
---- /dev/null
-+++ b/scripts/dtc/tests/schemas/parent-nodes-3.schema
-@@ -0,0 +1,14 @@
-+/dts-v1/;
-+/ {
-+	compatible = "compat2";
-+
-+	parents {
-+		root {
-+			name = "";
-+			abc {
-+				type = "integer";
-+				is-required;
-+			};
-+		};
-+	};
-+};
-diff --git a/scripts/dtc/tests/schemas/parent-nodes-4.schema b/scripts/dtc/tests/schemas/parent-nodes-4.schema
-new file mode 100644
-index 0000000..ba67ae5
---- /dev/null
-+++ b/scripts/dtc/tests/schemas/parent-nodes-4.schema
-@@ -0,0 +1,27 @@
-+/dts-v1/;
-+/ {
-+	compatible {
-+		value@0 {
-+			value = "compat1";
-+			parents {
-+				root {
-+					name = "";
-+					everywhere {
-+						is-required;
-+					};
-+				};
-+			};
-+		};
-+
-+		value@1 {
-+			value = "compat2";
-+			parents {
-+				node1 {
-+					mypropstr {
-+						is-required;
-+					};
-+				};
-+			};
-+		};
-+	};
-+};
-diff --git a/scripts/dtc/tests/schemas/parent-nodes-5.schema b/scripts/dtc/tests/schemas/parent-nodes-5.schema
-new file mode 100644
-index 0000000..6e83ac5
---- /dev/null
-+++ b/scripts/dtc/tests/schemas/parent-nodes-5.schema
-@@ -0,0 +1,15 @@
-+/dts-v1/;
-+/ {
-+	compatible {
-+		value@0 {
-+			value = "compat1";
-+			parents {
-+				root {
-+					myprop {
-+						is-required;
-+					};
-+				};
-+			};
-+		};
-+	};
-+};
-diff --git a/scripts/dtc/tests/schemas/parent-nodes-6.schema b/scripts/dtc/tests/schemas/parent-nodes-6.schema
-new file mode 100644
-index 0000000..cc1531d
---- /dev/null
-+++ b/scripts/dtc/tests/schemas/parent-nodes-6.schema
++++ b/scripts/dtc/tests/schemas/array-size-1.schema
 @@ -0,0 +1,13 @@
 +/dts-v1/;
 +/ {
-+	compatible = "compat2";
++	compatible = "compat1";
 +
-+	parents {
-+		node1 {
-+			compatible {
-+				type = "string";
-+				value = "compat3";
-+			};
-+		};
++	mypropstr {
++		length = <3>;
++	};
++
++	mypropstr {
++		min-length = <2>;
++		max-length = <3>;
 +	};
 +};
-diff --git a/scripts/dtc/tests/schemas/parent-nodes-7.schema b/scripts/dtc/tests/schemas/parent-nodes-7.schema
+diff --git a/scripts/dtc/tests/schemas/array-size-2.schema b/scripts/dtc/tests/schemas/array-size-2.schema
 new file mode 100644
-index 0000000..0d45d09
+index 0000000..cd49361
 --- /dev/null
-+++ b/scripts/dtc/tests/schemas/parent-nodes-7.schema
-@@ -0,0 +1,13 @@
++++ b/scripts/dtc/tests/schemas/array-size-2.schema
+@@ -0,0 +1,8 @@
 +/dts-v1/;
 +/ {
-+	compatible = "compat2";
++	compatible = "compat1";
 +
-+	parents {
-+		node1 {
-+			compatible {
-+				type = "string";
-+				value = "compat1";
-+			};
-+		};
++	mypropstr {
++		length = <4>;
++	};
++};
+diff --git a/scripts/dtc/tests/schemas/array-size-3.schema b/scripts/dtc/tests/schemas/array-size-3.schema
+new file mode 100644
+index 0000000..c9cf285
+--- /dev/null
++++ b/scripts/dtc/tests/schemas/array-size-3.schema
+@@ -0,0 +1,8 @@
++/dts-v1/;
++/ {
++	compatible = "compat1";
++
++	mypropint {
++		max-length = <2>;
++	};
++};
+diff --git a/scripts/dtc/tests/schemas/array-size-4.schema b/scripts/dtc/tests/schemas/array-size-4.schema
+new file mode 100644
+index 0000000..e3a9775
+--- /dev/null
++++ b/scripts/dtc/tests/schemas/array-size-4.schema
+@@ -0,0 +1,8 @@
++/dts-v1/;
++/ {
++	compatible = "compat1";
++
++	mypropint {
++		min-length = <7>;
 +	};
 +};
 -- 
 1.8.1.2
 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
