@@ -1,83 +1,62 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: Re: [PATCH 4/4] RX-51: Add platform function and data for bq24150a charger
-Date: Tue, 24 Sep 2013 19:05:47 +0200
-Message-ID: <201309241905.48301@pali>
-References: <1378630239-10006-1-git-send-email-pali.rohar@gmail.com> <201309232206.47391@pali> <20130923204714.GB22995@earth.universe>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [PATCH] ARM: Update SMP_ON_UP code to detect A9MPCore with 1 CPU
+ devices
+Date: Tue, 24 Sep 2013 18:08:49 +0100
+Message-ID: <20130924170849.GC32220@mudshark.cambridge.arm.com>
+References: <1375381033-13220-1-git-send-email-santosh.shilimkar@ti.com>
+ <51FBC610.9030900@arm.com> <51FBCEC3.4030207@ti.com>
+ <51FBD42A.9040901@arm.com>
+ <20130802154857.GD5292@mudshark.cambridge.arm.com>
+ <52092AA5.3090005@ti.com>
+ <20130813111943.GE30280@mudshark.cambridge.arm.com>
+ <520A3518.3030301@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart12110048.YEdymJpjU4";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130923204714.GB22995@earth.universe>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, freemangordon@abv.bg, aaro.koskinen@iki.fi, pavel@ucw.cz
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <520A3518.3030301@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Sudeep KarkadaNagesha <Sudeep.KarkadaNagesha@arm.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>, Vaibhav Bedia <vaibhav.bedia@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
---nextPart12110048.YEdymJpjU4
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+Hi Santosh,
 
-On Monday 23 September 2013 22:47:15 Sebastian Reichel wrote:
-> On Mon, Sep 23, 2013 at 10:06:46PM +0200, Pali Roh=C3=A1r wrote:
-> > On Monday 23 September 2013 22:00:09 Sebastian Reichel wrote:
-> > > On Mon, Sep 23, 2013 at 09:16:18PM +0200, Pali Roh=C3=A1r wrote:
-> > > > It is not as simple as it looks. This is reason why I
-> > > > submited this patch long time after I submited bq2415x
-> > > > driver.
-> > > >=20
-> > > > Problem is that for rx51 is needed specific function
-> > > > which connect to two drivers (bq2415x and isp1704) plus
-> > > > it call specific rx51 board functions.
-> > > >=20
-> > > > Something which cannot be in DT (unless DT support C/ASM
-> > > > code).
-> > >=20
-> > > mh could isp1704 driver expose the data via the regulator
-> > > framework?
-> >=20
-> > No, isp1704 is power supply driver and export data via power
-> > supply (sysfs) interface. It is not regulator but charger
-> > driver.
->=20
-> well it does not charge the battery directly, but just
-> provides a power line with 5 Volt and a specified amount of
-> current to the system, doesn't it?
->=20
+On Tue, Aug 13, 2013 at 02:31:04PM +0100, Santosh Shilimkar wrote:
+> On Tuesday 13 August 2013 07:19 AM, Will Deacon wrote:
+> > On Mon, Aug 12, 2013 at 07:34:13PM +0100, Santosh Shilimkar wrote:
+> >> On Friday 02 August 2013 11:48 AM, Will Deacon wrote:
+> >>> I think this an A9-specific register, which reads as 0 on UP A9 and reads as
+> >>> some form of PERIPH_BASE for SMP parts. The issue I have is when PERIPH_BASE
+> >>> is zero.
+> >>>
+> >> What do we do here ? Should we document this in the code and proceed ?
+> >> Mostly there is no platform with PERIPH_BASE = 0, so its should be fine but
+> >> I am open for any other alternative.
+> > 
+> > The only other alternative I can think of is forcing people to have
+> > CONFIG_SMP=n, but that blows away single zImage for your platform.
+> > 
+> Yep which surely we don't want considering after so much effort we
+> have it working first place. How about going ahead with assumption
+> that PERIPH_BASE = 0 case doesn't work.
 
-No, isp1704 driver is doing fastcharger detection (and then=20
-export charger type via sysfs power supply) based on musb usb=20
-events.
+It's been over a month and I can't think of anything better than this
+without jeopardising the single zImage effort. However, it also doesn't seem
+fair if we rule out the possibility of single zImage for future SoCs which
+use 0x0 as their PERIPH_BASE (I don't know of any at the moment).
 
-Real charging (enabling/disabling and setting properties) is done=20
-by bq24150a chip which has own power driver bq2415x_charger.
+So how about we go ahead with this, but add a big fat comment to the code in
+head.S saying that, if a future SoC *does* use 0x0 as the PERIPH_BASE, then
+the check will need to be #ifdef'd or equivalent for the Aegis platform?
 
-As already wrote this is not simple and this is reason why I sent=20
-board data and functions only now...
-
-> From my POV this is a candiate for the regulator framework:
->=20
-> https://www.kernel.org/doc/Documentation/power/regulator/overv
-> iew.txt
->=20
-> -- Sebastian
-
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
-
---nextPart12110048.YEdymJpjU4
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEABECAAYFAlJBxmwACgkQi/DJPQPkQ1Kp7wCcC1XPLWrKuH4C2G1cXP6IjM7o
-p1EAoIMQl6pR0zV6eyhWzX2nXDwZk4eU
-=Lrlw
------END PGP SIGNATURE-----
-
---nextPart12110048.YEdymJpjU4--
+Will
