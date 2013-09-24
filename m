@@ -1,35 +1,71 @@
-From: Rob Landley <rob@landley.net>
-Subject: Re: new binutils needed for arm in 3.12-rc1
-Date: Mon, 23 Sep 2013 21:20:41 -0500
-Message-ID: <1379989241.1974.69@driftwood>
-References: <20130919093002.GA23806@amd.pavel.ucw.cz>
-	<20130919093627.GB24866@mudshark.cambridge.arm.com>
-	<20130923235917.GA30967@amd.pavel.ucw.cz>
+From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 1/1] ARM: dts: am335x-bone-common: correct mux mode for mmc1_cmd
+Date: Mon, 23 Sep 2013 21:24:06 -0500
+Message-ID: <CAGo_u6qRwq8nYe+A69uqKKfJzg6PMuAcvTQYy2soEWOoaMS3bw@mail.gmail.com>
+References: <1379698696-21945-1-git-send-email-balajitk@ti.com>
+	<523C9DE4.6040109@ti.com>
+	<52405E30.2020001@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; DelSp=Yes; Format=Flowed
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-oa0-f41.google.com ([209.85.219.41]:49224 "EHLO
-	mail-oa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751571Ab3IXCUt convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Sep 2013 22:20:49 -0400
-Received: by mail-oa0-f41.google.com with SMTP id n10so1533788oag.28
-        for <linux-omap@vger.kernel.org>; Mon, 23 Sep 2013 19:20:48 -0700 (PDT)
-In-Reply-To: <20130923235917.GA30967@amd.pavel.ucw.cz> (from pavel@ucw.cz on
-	Mon Sep 23 18:59:17 2013)
-Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <52405E30.2020001-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, dt list <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Will Deacon <will.deacon@arm.com>, Trivial patch monkey <trivial@kernel.org>, Andrew Morton <akpm@osdl.org>, Linus Torvalds <torvalds@linux-foundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Catalin Marinas <Catalin.Marinas@arm.com>
 
-On 09/23/2013 06:59:17 PM, Pavel Machek wrote:
-> During 3.12-rc, Will Deacon introduced code into arch/arm that
-> requires binutils 2.22.
+On Mon, Sep 23, 2013 at 10:28 AM, Balaji T K <balajitk-l0cyMroinI0@public.gmane.org> wrote:
+> On Saturday 21 September 2013 12:41 AM, Nishanth Menon wrote:
+>>
+>> On 09/20/2013 12:38 PM, Balaji T K wrote:
+>>>
+>>> correct mux mode for mmc1_cmd to detect eMMC on bone-black
+>>>
+>>> Signed-off-by: Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>
+>>> ---
+>>>   arch/arm/boot/dts/am335x-bone-common.dtsi |    2 +-
+>>>   1 files changed, 1 insertions(+), 1 deletions(-)
+>>>
+>>> diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi
+>>> b/arch/arm/boot/dts/am335x-bone-common.dtsi
+>>> index 56361ce..90ab56c 100644
+>>> --- a/arch/arm/boot/dts/am335x-bone-common.dtsi
+>>> +++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
+>>> @@ -117,7 +117,7 @@
+>>>                 emmc_pins: pinmux_emmc_pins {
+>>>                         pinctrl-single,pins = <
+>>>                                 0x80 (PIN_INPUT_PULLUP | MUX_MODE2) /*
+>>> gpmc_csn1.mmc1_clk */
+>>> -                               0x84 (PIN_INPUT_PULLUP | MUX_MODE1) /*
+>>> gpmc_csn2.mmc1_cmd */
+>>> +                               0x84 (PIN_INPUT_PULLUP | MUX_MODE2) /*
+>>> gpmc_csn2.mmc1_cmd */
+>>>                                 0x00 (PIN_INPUT_PULLUP | MUX_MODE1) /*
+>>> gpmc_ad0.mmc1_dat0 */
+>>>                                 0x04 (PIN_INPUT_PULLUP | MUX_MODE1) /*
+>>> gpmc_ad1.mmc1_dat1 */
+>>>                                 0x08 (PIN_INPUT_PULLUP | MUX_MODE1) /*
+>>> gpmc_ad2.mmc1_dat2 */
+>>>
+>> is'nt this a common change? why is it "black only"? if it is so, then
+>> the pinmux should probably be spun off outside bone-common.dtsi into
+>> boneblack.dtsi perhaps?
+>>
+>
+> It is applicable for add-on eMMC-cape for beagle bone white, so eMMC pinmux
+> can
+> remain in bone-common.dtsi.
+> However I could test only on beagle bone black which has eMMC on board,
+> since I
+> don't have access to eMMC-cape
 
-I'm sorry, it occurs to me I should have been more explicit:
 
-AAAAAAAAAAAAAAAAHHHHHHHHHH!!!!!!!!!!!!!!!!!  KILL IT WITH  
-FIRE!!!!!!!!!!!!!!!
+Could you update the patch to the effect please considering you are
+modifying am335x-bone-common.dtsi
 
-Rob
+Regards,
+Nishanth Menon
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
