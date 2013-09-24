@@ -1,602 +1,470 @@
-From: Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Subject: [RFC 09/15] scripts/dtc: check value of properties
-Date: Tue, 24 Sep 2013 18:52:15 +0200
-Message-ID: <1380041541-17529-10-git-send-email-bcousson@baylibre.com>
+From: Benoit Cousson <bcousson@baylibre.com>
+Subject: [RFC 13/15] bindings: OMAP: add new schema files
+Date: Tue, 24 Sep 2013 18:52:19 +0200
+Message-ID: <1380041541-17529-14-git-send-email-bcousson@baylibre.com>
 References: <1380041541-17529-1-git-send-email-bcousson@baylibre.com>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1380041541-17529-1-git-send-email-bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tomasz.figa-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org, grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org
-Cc: khilman-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, fparent-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wg0-f49.google.com ([74.125.82.49]:41988 "EHLO
+	mail-wg0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754378Ab3IXQxH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Sep 2013 12:53:07 -0400
+Received: by mail-wg0-f49.google.com with SMTP id l18so4805424wgh.4
+        for <linux-omap@vger.kernel.org>; Tue, 24 Sep 2013 09:53:06 -0700 (PDT)
+In-Reply-To: <1380041541-17529-1-git-send-email-bcousson@baylibre.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: olof@lixom.net, devicetree@vger.kernel.org, tomasz.figa@gmail.com, swarren@wwwdotorg.org, grant.likely@secretlab.ca, rob.herring@calxeda.com
+Cc: khilman@linaro.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, fparent@baylibre.com, Benoit Cousson <bcousson@baylibre.com>
 
-From: Fabien Parent <fparent-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+From: Fabien Parent <fparent@baylibre.com>
 
-Add the ability to check whether a property has a given value or not.
-Add as well 7 test files for this feature.
+Introduce a couple of real schema for OMAP DTS files. For the moment validate
+only: MPU, DSP, INTC, IVA, TIME and COUNTER.
 
-abc {
-   prop1 = <0 1 2 3>;
-   prop2 = "value0", "value1", "value3";
-};
-
-====
-
-To check whether an integer array contains value from a given range
-use the following constraint:
-    prop1 {
-        type = "integer";
-        value = <0x0 0xF>;
-    };
-
-To check whether a string array contains value that match a given pattern
-use the following constraint:
-    prop2 {
-        type = "string";
-        value = "value[0-9]";
-    };
-
-To check whether a particular element of an array has the correct value one
-can use the following constraint:
-    prop1 {
-        type = "integer";
-        value@2 = <2>;
-    };
-
-or
-
-    prop2 {
-        type = "string";
-        value@1 = "value1";
-    };
-
-Signed-off-by: Fabien Parent <fparent-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Fabien Parent <fparent@baylibre.com>
+Signed-off-by: Benoit Cousson <bcousson@baylibre.com>
 ---
- scripts/dtc/schema-test.c                          |  20 ++
- scripts/dtc/schema.c                               | 288 +++++++++++++++++++++
- scripts/dtc/tests/schemas/integer-array-1.schema   |  16 ++
- scripts/dtc/tests/schemas/integer-array-2.schema   |   9 +
- scripts/dtc/tests/schemas/integer-array-3.schema   |   8 +
- .../dtc/tests/schemas/pattern-matching-1.schema    |  10 +
- .../dtc/tests/schemas/pattern-matching-2.schema    |  10 +
- scripts/dtc/tests/schemas/string-array-1.schema    |  20 ++
- scripts/dtc/tests/schemas/string-array-2.schema    |   9 +
- scripts/dtc/tests/test1.dts                        |   4 +
- 10 files changed, 394 insertions(+)
- create mode 100644 scripts/dtc/tests/schemas/integer-array-1.schema
- create mode 100644 scripts/dtc/tests/schemas/integer-array-2.schema
- create mode 100644 scripts/dtc/tests/schemas/integer-array-3.schema
- create mode 100644 scripts/dtc/tests/schemas/pattern-matching-1.schema
- create mode 100644 scripts/dtc/tests/schemas/pattern-matching-2.schema
- create mode 100644 scripts/dtc/tests/schemas/string-array-1.schema
- create mode 100644 scripts/dtc/tests/schemas/string-array-2.schema
+ bindings/arm/omap/counter.schema |  28 +++++++++
+ bindings/arm/omap/dsp.schema     |  18 ++++++
+ bindings/arm/omap/intc.schema    |  48 +++++++++++++++
+ bindings/arm/omap/iva.schema     |  38 ++++++++++++
+ bindings/arm/omap/l3-noc.schema  |  38 ++++++++++++
+ bindings/arm/omap/mpu.schema     |  19 ++++++
+ bindings/arm/omap/omap.schema    |  62 ++++++++++++++++++++
+ bindings/arm/omap/timer.schema   | 124 +++++++++++++++++++++++++++++++++++++++
+ 8 files changed, 375 insertions(+)
+ create mode 100644 bindings/arm/omap/counter.schema
+ create mode 100644 bindings/arm/omap/dsp.schema
+ create mode 100644 bindings/arm/omap/intc.schema
+ create mode 100644 bindings/arm/omap/iva.schema
+ create mode 100644 bindings/arm/omap/l3-noc.schema
+ create mode 100644 bindings/arm/omap/mpu.schema
+ create mode 100644 bindings/arm/omap/omap.schema
+ create mode 100644 bindings/arm/omap/timer.schema
 
-diff --git a/scripts/dtc/schema-test.c b/scripts/dtc/schema-test.c
-index bfc9e43..a8a5664 100644
---- a/scripts/dtc/schema-test.c
-+++ b/scripts/dtc/schema-test.c
-@@ -45,6 +45,26 @@ static struct schema_test tests[] = {
- 	 "tests/schemas/array-size-3.schema", 0},
- 	{"Array Size #4", "tests/test1.dts",
- 	 "tests/schemas/array-size-4.schema", 0},
-+
-+	/* String Array */
-+	{"String Array Values #1", "tests/test1.dts",
-+	 "tests/schemas/string-array-1.schema", 1},
-+	{"String Array Values #2", "tests/test1.dts",
-+	 "tests/schemas/string-array-2.schema", 0},
-+
-+	/* Integer Array */
-+	{"Integer Array Values #1", "tests/test1.dts",
-+	 "tests/schemas/integer-array-1.schema", 1},
-+	{"Integer Array Values #2", "tests/test1.dts",
-+	 "tests/schemas/integer-array-2.schema", 0},
-+	{"Integer Array Values #3", "tests/test1.dts",
-+	 "tests/schemas/integer-array-3.schema", 0},
-+
-+	/* Pattern Matching */
-+	{"Pattern Matching #1", "tests/test1.dts",
-+	 "tests/schemas/pattern-matching-1.schema", 1},
-+	{"Pattern Matching #2", "tests/test1.dts",
-+	 "tests/schemas/pattern-matching-2.schema", 0},
- };
- 
- int main(void)
-diff --git a/scripts/dtc/schema.c b/scripts/dtc/schema.c
-index 95ad925..d96129f 100644
---- a/scripts/dtc/schema.c
-+++ b/scripts/dtc/schema.c
-@@ -7,6 +7,26 @@
- #include <stdio.h>
- #include <limits.h>
- 
-+#define sorted_list_add(x, e) \
-+	do { \
-+		typeof(x) prev, i; \
-+		if (!x) {\
-+			x = e; \
-+			break; \
-+		} \
-+		for (prev = x, i = x->next; \
-+			 i && i->id < e->id; \
-+			 prev = i, i = i->next) \
-+			; \
-+		e->next = i; \
-+		prev->next = e; \
-+	} while (0)
-+
-+#define for_each_safe(list, iter, iter_next) \
-+	for (iter = list, iter_next = list ? list->next : NULL;\
-+	     iter; \
-+	     iter = iter_next, iter_next = iter_next ? iter_next->next : NULL)
-+
- #define DT_ERROR(path, p, format, ...) \
- 	do { \
- 		dt_error(path, p, format, ##__VA_ARGS__); \
-@@ -32,6 +52,21 @@ struct node_list {
- 	struct node_list *next;
- };
- 
-+struct range {
-+	uint32_t low;
-+	uint32_t high;
-+	int id;
-+
-+	struct range *next;
-+};
-+
-+struct pattern {
-+	const char *text;
-+	int id;
-+
-+	struct pattern *next;
-+};
-+
- struct prop_constraints {
- 	const char *name;
- 	char *type;
-@@ -39,6 +74,12 @@ struct prop_constraints {
- 	int can_be_inherited;
- 	size_t min_length;
- 	size_t max_length;
-+
-+	union {
-+		struct pattern *patterns;
-+		struct range *ranges;
-+	} value;
-+	enum datatype value_type;
- };
- 
- struct node_constraints {
-@@ -207,11 +248,139 @@ static void dt_error(struct node_list *path,
- 		exit(1);
- }
- 
-+static void load_property_value_constraints(struct prop_constraints *pc,
-+					    struct node *schema)
-+{
-+	struct property *p;
-+	struct pattern *pattern;
-+	struct range *r;
-+	uint32_t low;
-+	uint32_t high;
-+	int offset;
-+
-+	assert(pc);
-+	assert(schema);
-+
-+	p = get_property(schema, "value");
-+	if (p) {
-+		switch (p->val.type) {
-+		case STRING:
-+			pc->value.patterns = xmalloc(sizeof(*pattern));
-+			memset(pc->value.patterns, 0,
-+			       sizeof(*pc->value.patterns));
-+			pc->value.patterns->text = p->val.val;
-+			pc->value.patterns->id = -1;
-+			pc->value_type = STRING;
-+			break;
-+
-+		case INTEGER:
-+			/**
-+			 * Constraints:
-+			 * value = <0x0 0xFF>;
-+			 *
-+			 * The value for each element of the cells
-+			 * must be between 0x0 and 0xFF.
-+			 */
-+			assert(p->val.array_size <= 2);
-+
-+			low = prop_val_to_uint32(p, 0);
-+			high = p->val.array_size == 2
-+				   ? prop_val_to_uint32(p, 1)
-+				   : low;
-+
-+			pc->value.ranges = xmalloc(sizeof(*r));
-+			memset(pc->value.ranges, 0, sizeof(*pc->value.ranges));
-+			pc->value.ranges->low = low;
-+			pc->value.ranges->high = high;
-+			pc->value_type = INTEGER;
-+			pc->value.ranges->id = -1;
-+			break;
-+
-+		default:
-+			die("Reach unreachable\n");
-+		}
-+	}
-+
-+	/**
-+	 * One can put a constraints on a specific cell without
-+	 * having to put this constraint on all the cells
-+	 *
-+	 * This can also be used to override a constraint that has
-+	 * been put on on cells.
-+	 *
-+	 * Ex:
-+	 * value = <0x0 0xFF>;
-+	 * value@1 = <0x24>;
-+	 *
-+	 * This will only accept cell that have a value between
-+	 * 0x0 and 0xFF, and will require that the second element
-+	 * to be equal to 0x24
-+	 * Ex:
-+	 *  - This is valid:   myprop = <0x13 0x24 0x6F 0x2D>;
-+	 *  - This is invalid: myprop = <0x13 0xFE 0x6F 0x2D>;
-+	 */
-+	for (p = schema->proplist; p; p = p->next) {
-+		assert(p->name);
-+
-+		if (strstr(p->name, "value@") != p->name)
-+			continue;
-+
-+		if (sscanf(p->name, "value@%u", &offset) != 1)
-+			continue;
-+
-+		if (offset >= pc->max_length) {
-+			die("Value offset must be lower to the "
-+				"number of elements in the array.");
-+		}
-+
-+		if (p->val.type == INTEGER) {
-+			assert(pc->value_type == INTEGER
-+			       || pc->value_type == UNDEFINED);
-+			assert(p->val.array_size <= 2);
-+
-+			pc->value_type = INTEGER;
-+
-+			low = prop_val_to_uint32(p, 0);
-+			high = p->val.array_size == 2
-+			       ? prop_val_to_uint32(p, 1)
-+			       : low;
-+
-+			r = xmalloc(sizeof(*r));
-+			memset(r, 0, sizeof(*r));
-+			r->low = low;
-+			r->high = high;
-+			r->id = offset;
-+			sorted_list_add(pc->value.ranges, r);
-+		} else if (p->val.type == STRING) {
-+			assert(pc->value_type == STRING
-+			       || pc->value_type == UNDEFINED);
-+
-+			pc->value_type = STRING;
-+			pattern = xmalloc(sizeof(*pattern));
-+			memset(pattern, 0, sizeof(*pattern));
-+			pattern->text = p->val.val;
-+			pattern->id = offset;
-+			sorted_list_add(pc->value.patterns, pattern);
-+		}
-+	}
-+}
-+
- static void free_property_constraints(struct prop_constraints *pc)
- {
-+	struct pattern *p, *p_next;
-+	struct range *r, *r_next;
-+
- 	if (!pc)
- 		return;
- 
-+	if (pc->value_type == STRING) {
-+		for_each_safe(pc->value.patterns, p, p_next)
-+			free(p);
-+	} else if (pc->value_type == INTEGER) {
-+		for_each_safe(pc->value.ranges, r, r_next)
-+			free(r);
-+	}
-+
- 	free(pc);
- }
- 
-@@ -256,6 +425,7 @@ load_property_constraints(struct node *schema)
- 		pc->max_length = prop_val_to_uint32(p, 0);
- 	}
- 
-+	load_property_value_constraints(pc, schema);
- 	return pc;
- }
- 
-@@ -287,6 +457,121 @@ static int check_types(struct property *p, struct prop_constraints *pc)
- 	return 0;
- }
- 
-+static inline struct range*
-+find_range_for_elem_num(struct prop_constraints *pc, int num)
-+{
-+	struct range *r;
-+
-+	assert(pc);
-+	assert(pc->value_type == INTEGER);
-+	assert(pc->value.ranges);
-+
-+	for (r = pc->value.ranges; r && r->id != num; r = r->next)
-+		;
-+
-+	if (!r && pc->value.ranges->id == -1)
-+		r = pc->value.ranges;
-+
-+	return r;
-+}
-+
-+static int check_integer_value(struct property *p, struct prop_constraints *pc)
-+{
-+	int i;
-+	struct range *r;
-+	uint32_t int_value;
-+
-+	assert(p);
-+	assert(pc);
-+	assert(p->val.type == INTEGER);
-+	assert(pc->value_type == INTEGER);
-+	assert(pc->value.ranges);
-+
-+	for (i = 0; i < p->val.array_size; i++, r = r->next) {
-+		r = find_range_for_elem_num(pc, i);
-+		if (!r)
-+			break;
-+
-+		int_value = prop_val_to_uint32(p, i);
-+		if (int_value < r->low || int_value > r->high)
-+			return 0;
-+	}
-+
-+	return 1;
-+}
-+
-+static inline struct pattern*
-+find_pattern_for_elem_num(struct prop_constraints *pc, int num)
-+{
-+	struct pattern *pattern;
-+
-+	assert(pc);
-+	assert(pc->value_type == STRING);
-+	assert(pc->value.patterns);
-+
-+	for (pattern = pc->value.patterns;
-+	     pattern && pattern->id != num;
-+	     pattern = pattern->next)
-+		;
-+
-+	if (!pattern && pc->value.patterns->id == -1)
-+		pattern = pc->value.patterns;
-+
-+	return pattern;
-+}
-+
-+static int check_string_value(struct property *p, struct prop_constraints *pc)
-+{
-+	pcre *re;
-+	struct pattern *pattern;
-+	int i;
-+	int str_offset = 0;
-+	int res;
-+
-+	assert(p);
-+	assert(pc);
-+	assert(p->val.type == STRING);
-+
-+	for (i = 0; i < p->val.array_size; i++) {
-+		pattern = find_pattern_for_elem_num(pc, i);
-+		if (!pattern)
-+			break;
-+
-+		assert(pattern->text);
-+		re = compile_pattern(pattern->text);
-+		if (!re)
-+			die("Invalid pattern '%s' in schema\n", pattern->text);
-+
-+		assert(str_offset >= 0);
-+		res = pcre_exec(re, 0, p->val.val + str_offset,
-+				strlen(p->val.val + str_offset),
-+				0, 0, NULL, 0) >= 0;
-+		pcre_free(re);
-+
-+		str_offset = get_next_string_offset(p, str_offset);
-+		if (!res)
-+			return 0;
-+	}
-+
-+	return 1;
-+}
-+
-+static int check_value(struct property *p, struct prop_constraints *pc)
-+{
-+	assert(p);
-+	assert(pc);
-+
-+	if (pc->value_type == UNDEFINED)
-+		return 1;
-+
-+	if (p->val.type == STRING)
-+		return check_string_value(p, pc);
-+	else if (p->val.type == INTEGER)
-+		return check_integer_value(p, pc);
-+
-+	return 1;
-+}
-+
- static int validate_properties(struct node *n,
- 			       struct node *schema,
- 			       struct node_list *path);
-@@ -332,6 +617,9 @@ static int validate_property(struct node *n,
- 			 pc->max_length, p->val.array_size);
- 	}
- 
-+	if (!check_value(p, pc))
-+		DT_ERROR(path, p, "Incorrect value.\n");
-+
- end:
- 	free_property_constraints(pc);
- 	return ret;
-diff --git a/scripts/dtc/tests/schemas/integer-array-1.schema b/scripts/dtc/tests/schemas/integer-array-1.schema
+diff --git a/bindings/arm/omap/counter.schema b/bindings/arm/omap/counter.schema
 new file mode 100644
-index 0000000..b7de822
+index 0000000..63b0272
 --- /dev/null
-+++ b/scripts/dtc/tests/schemas/integer-array-1.schema
-@@ -0,0 +1,16 @@
++++ b/bindings/arm/omap/counter.schema
+@@ -0,0 +1,28 @@
++/**
++ * OMAP Counter-32K bindings
++ */
++
 +/dts-v1/;
++
 +/ {
-+	compatible = "compat1";
++    compatible {
++        description = "Must be 'ti,omap-counter32k' for OMAP controllers.";
++        value = "ti,omap-counter32k";
++    };
 +
-+	mypropint {
-+		type = "integer";
-+		value@0 = <0>;
-+		value@1 = <2>;
-+		value@2 = <4>;
-+	};
++    reg {
++        description = "Contains timer register address range (base address
++                       and length).";
++        is-required;
++        type = "integer";
++        length = <2>;
++    };
 +
-+	mypropint2 {
-+		type = "integer";
-+		value = <0 5>;
-+	};
++    ti,hwmods {
++        description = "Name of the hwmod associated to the counter,
++                       which is typically 'counter_32k'.";
++        is-required;
++        type = "string";
++        value = "counter_32k";
++    };
 +};
-diff --git a/scripts/dtc/tests/schemas/integer-array-2.schema b/scripts/dtc/tests/schemas/integer-array-2.schema
+diff --git a/bindings/arm/omap/dsp.schema b/bindings/arm/omap/dsp.schema
 new file mode 100644
-index 0000000..a6e7628
+index 0000000..7087f60
 --- /dev/null
-+++ b/scripts/dtc/tests/schemas/integer-array-2.schema
-@@ -0,0 +1,9 @@
++++ b/bindings/arm/omap/dsp.schema
+@@ -0,0 +1,18 @@
++/**
++ * TI - DSP (Digital Signal Processor)
++ */
++
 +/dts-v1/;
++
 +/ {
-+	compatible = "compat1";
-+	mypropint {
-+		type = "integer";
-+		value@0 = <0>;
-+		value@1 = <3>;
-+	};
++    compatible {
++        description = "Should be 'ti,omap3-c64' for OMAP3 & 4";
++        value = "ti,omap3-c64";
++    };
++
++    ti,hwmods {
++        is-required;
++        type = "string";
++        value = "dsp";
++    };
 +};
-diff --git a/scripts/dtc/tests/schemas/integer-array-3.schema b/scripts/dtc/tests/schemas/integer-array-3.schema
+diff --git a/bindings/arm/omap/intc.schema b/bindings/arm/omap/intc.schema
 new file mode 100644
-index 0000000..b9ccc1c
+index 0000000..564c80e
 --- /dev/null
-+++ b/scripts/dtc/tests/schemas/integer-array-3.schema
-@@ -0,0 +1,8 @@
++++ b/bindings/arm/omap/intc.schema
+@@ -0,0 +1,48 @@
++/**
++ * OMAP Interrupt Controller
++ *
++ * OMAP2/3 are using a TI interrupt controller that can support several
++ * configurable number of interrupts.
++ */
++
 +/dts-v1/;
++
 +/ {
-+	compatible = "compat1";
-+	mypropint {
-+		type = "integer";
-+		value = <0 3>;
-+	};
++    compatible {
++        description = "Must be 'ti,omap-counter32k' for OMAP controllers.";
++        value = "ti,omap2-intc";
++    };
++
++    interrupt-controller {
++        description = "Identifies the node as an interrupt controller";
++        is-required;
++        type = "bool";
++    };
++
++    #interrupt-cells {
++        description = "Specifies the number of cells needed to encode an
++                       interrupt source. The type shall be a <u32>
++                       and the value shall be 1.
++                       The cell contains the interrupt number
++                       in the range [0-128].";
++        is-required;
++        type = "integer";
++        value = <1>;
++    };
++
++    ti,intc-size {
++        description = "Number of interrupts handled
++                       by the interrupt controller";
++        is-required;
++        type = "integer";
++        length = <1>;
++    };
++
++    reg {
++        description = "physical base address and size of the intc
++                       registers map.";
++        is-required;
++        type = "integer";
++        length = <2>;
++    };
 +};
-diff --git a/scripts/dtc/tests/schemas/pattern-matching-1.schema b/scripts/dtc/tests/schemas/pattern-matching-1.schema
+diff --git a/bindings/arm/omap/iva.schema b/bindings/arm/omap/iva.schema
 new file mode 100644
-index 0000000..093851e
+index 0000000..582c104
 --- /dev/null
-+++ b/scripts/dtc/tests/schemas/pattern-matching-1.schema
-@@ -0,0 +1,10 @@
-+/dts-v1/;
-+/ {
-+	compatible = "compat[0-9]";
++++ b/bindings/arm/omap/iva.schema
+@@ -0,0 +1,38 @@
++/**
++ * TI - IVA (Imaging and Video Accelerator) subsystem
++ *
++ * The IVA contain various audio, video or imaging HW accelerator
++ * depending of the version.
++ */
 +
-+	abc {
-+		name = "every.+";
-+		is-required;
-+		can-be-inherited;
-+	};
++/dts-v1/;
++
++/ {
++    compatible {
++        value@0 {
++            description = "for OMAP4";
++            value = "ti,ivahd";
++        };
++
++        value@1 {
++            description = "for OMAP3";
++            value = "ti,iva2.2";
++        };
++
++        value@2 {
++            description = "for OMAP2430";
++            value = "ti,iva2.1";
++        };
++
++        value@3 {
++            description = "for OMAP2420";
++            value = "ti,iva1";
++        };
++    };
++
++    ti,hwmods {
++        is-required;
++        type = "string";
++        value = "iva";
++    };
 +};
-diff --git a/scripts/dtc/tests/schemas/pattern-matching-2.schema b/scripts/dtc/tests/schemas/pattern-matching-2.schema
+diff --git a/bindings/arm/omap/l3-noc.schema b/bindings/arm/omap/l3-noc.schema
 new file mode 100644
-index 0000000..0d73a15
+index 0000000..0611c4d
 --- /dev/null
-+++ b/scripts/dtc/tests/schemas/pattern-matching-2.schema
-@@ -0,0 +1,10 @@
-+/dts-v1/;
-+/ {
-+	compatible = "compat[0-9]";
++++ b/bindings/arm/omap/l3-noc.schema
+@@ -0,0 +1,38 @@
++/**
++ * TI - L3 Network On Chip (NoC)
++ *
++ * This version is an implementation of the generic NoC IP
++ * provided by Arteris.
++ */
 +
-+	abc {
-+		name = "never.+";
-+		is-required;
-+		can-be-inherited;
-+	};
++/dts-v1/;
++
++/ {
++    compatible {
++        description = "Must be 'ti,omap-counter32k' for OMAP controllers.";
++
++        value@0 {
++            description = "Should be 'ti,omap3-l3-smx' for OMAP3 family";
++            value = "ti,omap3-l3-smx";
++        };
++
++        value@1 {
++            description = "Should be 'ti,omap4-l3-noc' for OMAP4 family";
++            value = "ti,omap4-l3-noc";
++        };
++    };
++
++    reg {
++        description = "Contains L3 register address range
++                       for each noc domain.";
++        is-required;
++        type = "integer";
++    };
++
++    ti,hwmods {
++        description = "'l3_main_1', ... One hwmod for each noc domain.";
++        is-required;
++        type = "string";
++        value = "l3_main_[0-9]+";
++    };
 +};
-diff --git a/scripts/dtc/tests/schemas/string-array-1.schema b/scripts/dtc/tests/schemas/string-array-1.schema
+diff --git a/bindings/arm/omap/mpu.schema b/bindings/arm/omap/mpu.schema
 new file mode 100644
-index 0000000..3d753e2
+index 0000000..abf3337
 --- /dev/null
-+++ b/scripts/dtc/tests/schemas/string-array-1.schema
-@@ -0,0 +1,20 @@
++++ b/bindings/arm/omap/mpu.schema
+@@ -0,0 +1,19 @@
++/**
++ * TI - MPU (Main Processor Unit) subsystem
++ *
++ * The MPU subsystem contain one or several ARM cores
++ * depending of the version.
++ * The MPU contain CPUs, GIC, L2 cache and a local PRCM.
++ */
++
 +/dts-v1/;
++
 +/ {
-+	compatible = "compat1";
++    compatible = "ti,omap3-mpu", "ti,omap4-mpu";
 +
-+	mypropstr {
-+		type = "string";
-+		value = "value[0-9]+";
-+	};
-+
-+	mypropstr2 {
-+		type = "string";
-+		value = "value[0-9]+";
-+		value@1 = "test";
-+	};
-+
-+	mypropstr3 {
-+		type = "string";
-+		value@0 = "test";
-+	};
++    ti,hwmods {
++        is-required;
++        type = "string";
++        value = "mpu";
++    };
 +};
-diff --git a/scripts/dtc/tests/schemas/string-array-2.schema b/scripts/dtc/tests/schemas/string-array-2.schema
+diff --git a/bindings/arm/omap/omap.schema b/bindings/arm/omap/omap.schema
 new file mode 100644
-index 0000000..ee1f441
+index 0000000..4ed0634
 --- /dev/null
-+++ b/scripts/dtc/tests/schemas/string-array-2.schema
-@@ -0,0 +1,9 @@
-+/dts-v1/;
-+/ {
-+	compatible = "compat1";
++++ b/bindings/arm/omap/omap.schema
+@@ -0,0 +1,62 @@
++/**
++ * Texas Instruments OMAP
++ *
++ * OMAP is currently using a static file per SoC family to describe the
++ * IPs present in the SoC.
++ * On top of that an omap_device is created to extend the platform_device
++ * capabilities and to allow binding with one or several hwmods.
++ * The hwmods will contain all the information to build the device:
++ * address range, irq lines, dma lines, interconnect, PRCM register,
++ * clock domain, input clocks.
++ * For the moment just point to the existing hwmod, the next step will be
++ * to move data from hwmod to device-tree representation.
++ *
++ *
++ * Boards:
++ *
++ * - OMAP3 BeagleBoard : Low cost community board
++ *   compatible = "ti,omap3-beagle", "ti,omap3"
++ *
++ * - OMAP3 Tobi with Overo : Commercial expansion board with daughter board
++ *   compatible = "ti,omap3-tobi", "ti,omap3-overo", "ti,omap3"
++ *
++ * - OMAP4 SDP : Software Development Board
++ *   compatible = "ti,omap4-sdp", "ti,omap4430"
++ *
++ * - OMAP4 PandaBoard : Low cost community board
++ *   compatible = "ti,omap4-panda", "ti,omap4430"
++ *
++ * - OMAP3 EVM : Software Development Board for OMAP35x, AM/DM37x
++ *   compatible = "ti,omap3-evm", "ti,omap3"
++ *
++ * - AM335X EVM : Software Development Board for AM335x
++ *   compatible = "ti,am335x-evm", "ti,am33xx", "ti,omap3"
++ *
++ * - AM335X Bone : Low cost community board
++ *   compatible = "ti,am335x-bone", "ti,am33xx", "ti,omap3"
++ *
++ * - OMAP5 EVM : Evaluation Module
++ *   compatible = "ti,omap5-evm", "ti,omap5"
++ *
++ * - AM43x EPOS EVM
++ *   compatible = "ti,am43x-epos-evm", "ti,am4372", "ti,am43"
++ */
 +
-+	mypropstr2 {
-+		type = "string";
-+		value = "value[0-9]+";
-+	};
++/dts-v1/;
++
++/ {
++    compatible = "ti,omap.+";
++
++    ti,hwmods {
++        description = "list of hwmod names (ascii strings), that comes
++                       from the OMAP HW documentation, attached to a
++                       device. Must contain at least one hwmod.";
++        type = "string";
++    };
++
++    ti,no_idle_on_suspend {
++        description = "When present, it prevents the PM to idle the module
++                       during suspend.";
++        type = "bool";
++    };
 +};
-diff --git a/scripts/dtc/tests/test1.dts b/scripts/dtc/tests/test1.dts
-index a296591..7d8d745 100644
---- a/scripts/dtc/tests/test1.dts
-+++ b/scripts/dtc/tests/test1.dts
-@@ -1,11 +1,15 @@
- /dts-v1/;
- / {
- 	compatible = "root", "node";
-+	everywhere = <0xf 0xa 0xb>;
- 
- 	node1 {
- 		compatible = "compat1";
- 		mypropint = <0 2 4 6>;
-+		mypropint2 = <1 2 3>;
- 		mypropstr = "value0", "value1", "value2";
-+		mypropstr2 = "value0", "test", "value2";
-+		mypropstr3 = "test", "toto", "tata";
- 
- 		subnode1 {
- 			compatible = "compat2";
+diff --git a/bindings/arm/omap/timer.schema b/bindings/arm/omap/timer.schema
+new file mode 100644
+index 0000000..b9ae19e
+--- /dev/null
++++ b/bindings/arm/omap/timer.schema
+@@ -0,0 +1,124 @@
++/**
++ * OMAP Timer bindings
++ */
++
++/dts-v1/;
++
++/ {
++    compatible {
++        description = "Should be set to one of the below. Please note that
++                       OMAP44xx devices have timer instances that are 100%
++                       register compatible with OMAP3xxx devices as well as
++                       newer timers that are not 100% register compatible.
++                       So for OMAP44xx devices timer instances may use
++                       different compatible strings.";
++
++        value@0 {
++            description = "Applicable to OMAP24xx devices";
++            value = "ti,omap2420-timer";
++            parents {
++                root {
++                    name = "";
++                    compatible = "ti,omap.+";
++                };
++            };
++        };
++
++        value@1 {
++            description = "Applicable to OMAP3xxx/44xx devices";
++            value = "ti,omap3430-timer";
++            parents {
++                root {
++                    name = "";
++                    compatible = "ti,omap.+";
++                };
++            };
++        };
++
++        value@2 {
++            description = "Applicable to OMAP44xx devices";
++            value = "ti,omap4430-timer";
++            parents {
++                root {
++                    name = "";
++                    compatible = "ti,omap.+";
++                };
++            };
++        };
++
++        value@3 {
++            description = "Applicable to OMAP543x devices";
++            value = "ti,omap5430-timer";
++            parents {
++                root {
++                    name = "";
++                    compatible = "ti,omap.+";
++                };
++            };
++        };
++
++        value@4 {
++            description = "Applicable to AM335x devices";
++            value = "ti,am335x-timer";
++            parents {
++                root {
++                    name = "";
++                    compatible = "ti,am.+";
++                };
++            };
++        };
++
++        value@5 {
++            description = "Applicable to AM335x devices";
++            value = "ti,am335x-timer-1ms";
++            parents {
++                root {
++                    name = "";
++                    compatible = "ti,am.+";
++                };
++            };
++        };
++    };
++
++    reg {
++        description = "Contains timer register address range (base address
++                       and length).";
++        is-required;
++        type = "integer";
++    };
++
++    interrupts {
++        description = "Contains the interrupt information for the timer.
++                       The format is being dependent on which interrupt
++                       controller the OMAP device uses.";
++        is-required;
++        type = "integer";
++    };
++
++    ti,hwmods {
++        description = "Name of the hwmod associated to the timer, 'timer<X>',
++                       where <X> is the instance number of the timer from the
++                       HW spec.";
++        is-required;
++        type = "string";
++        value = "timer[0-9]+";
++    };
++
++    ti,timer-alwon {
++        description = "Indicates the timer is in an alway-on power domain.";
++        type = "bool";
++    };
++
++    ti,timer-dsp {
++        description = "Indicates the timer can interrupt the on-chip DSP in
++                       addition to the ARM CPU.";
++        type = "bool";
++    };
++
++    ti,timer-secure {
++        description = "Indicates the timer is reserved on a secure
++                       OMAP device and therefore cannot be used
++                       by the kernel";
++        type = "bool";
++    };
++};
 -- 
 1.8.1.2
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
