@@ -1,83 +1,55 @@
-From: Rob Landley <rob@landley.net>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
 Subject: Re: new binutils needed for arm in 3.12-rc1
-Date: Tue, 24 Sep 2013 16:23:48 -0500
-Message-ID: <1380057828.1974.73@driftwood>
-References: <yw1xpprywhad.fsf@unicorn.mansr.com>
+Date: Tue, 24 Sep 2013 22:48:00 +0100
+Message-ID: <20130924214800.GV25647@n2100.arm.linux.org.uk>
+References: <yw1xpprywhad.fsf@unicorn.mansr.com> <1380057828.1974.73@driftwood>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1;
-	DelSp=Yes	Format=Flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <yw1xpprywhad.fsf@unicorn.mansr.com> (from mans@mansr.com on
-	Tue Sep 24 07:11:38 2013)
 Content-Disposition: inline
+In-Reply-To: <1380057828.1974.73@driftwood>
 Sender: linux-kernel-owner@vger.kernel.org
-To: =?iso-8859-1?q?M=E5ns_Rullg=E5rd?= <mans@mansr.com>
-Cc: Pavel Machek <pavel@ucw.cz>, Will Deacon <will.deacon@arm.com>, Trivial patch monkey <trivial@kernel.org>, Andrew Morton <akpm@osdl.org>, Linus Torvalds <torvalds@linux-foundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Catalin Marinas <Catalin.Marinas@arm.com>
+To: Rob Landley <rob@landley.net>
+Cc: =?iso-8859-1?Q?M=E5ns_Rullg=E5rd?= <mans@mansr.com>, Andrew Morton <akpm@osdl.org>, Trivial patch monkey <trivial@kernel.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <will.deacon@arm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 09/24/2013 07:11:38 AM, M=E5ns Rullg=E5rd wrote:
-> Rob Landley <rob@landley.net> writes:
->=20
-> > On 09/23/2013 06:59:17 PM, Pavel Machek wrote:
-> >> During 3.12-rc, Will Deacon introduced code into arch/arm that
-> >> requires binutils 2.22.
-> >
-> > Um, my toolchain is using the last gplv2 snapshot of binutils out o=
-f
-> > git, which is just past 2.17 and can build armv7 (but not armv8).
-> >
-> > Binutils 2.12->2.22 is quite the jump. (11 years.) I'd except some
-> > thought to have gone into that? Possibly a mention of it?
->=20
-> I seriously doubt that 2.12 still works at all (I doubt it can even b=
-e
-> built on a modern system).  In my experience, binutils older than 2.1=
-9
-> or so rarely works properly for ARM.
+On Tue, Sep 24, 2013 at 04:23:48PM -0500, Rob Landley wrote:
+> What value is there in requiring the new toolchain? From what I could  
+> see of the commits it was micro-optimizations around memory barriers.
+>
+> *shrug* I can revert the patch locally, or patch the extra instruction  
+> into my toolchain. But I do object to changing the documentation  
+> globally for every architecture because one architecture did something  
+> they apparently never thought through (or they'd have commented in the  
+> commit that it requires a big toolchain version jump; pretty sure they  
+> didn't actually notice).
 
-I've been building every kernel release with 2.17 for several years, on=
- =20
-a bunch of different architectures. Toolchain releases after that are =20
-GPLv3* and I can't distribute those binaries, so I can't ship prebuilt =
-=20
-binary toolchains.
+Some of us are notoriously slow at updating our toolchains.  I'm still
+using gcc 4.5.4 here, and people regard that as bordering on "too old"
+because of the amount of warnings it spits out.  Binutils?  I upgraded
+to 2.22 when I needed to fix a problem I was having with the previous
+binutils I was using (I think that was 2.18).
 
-(Lots of other people produce cross compilers, but nobody else seems to=
- =20
-produce prebuilt statically linked _native_ compilers. It would be nice=
- =20
-if they did.)
+I generally don't touch my toolchain unless there's a _reason_ I need
+to, and as I've already updated to 2.22, it's a normally a pretty safe
+bet that everyone else is already using 2.22 or later.  One reason for
+this is that I don't want to be messing around trying to work out
+whether a bug I'm seeing is because of a toolchain problem or something
+in the kernel.
 
-> What value is there in maintaining compatibility with a truly ancient
-> binutils version anyway?
+I realised at the time that I'm going to got shouted at if I accepted
+the patches by a minority who wanted to keep their old toolchains, but
+I also realise that if I don't accept the patches, I'll get shouted at
+by another group.  It's the classic damned if I do and damned if I
+don't.  So I've chosen the lesser of the two weavels.
 
-What value is there in requiring the new toolchain? From what I could =20
-see of the commits it was micro-optimizations around memory barriers.
+Now, if you feel strongly about this, we _could_ introduce a
+CONFIG_OLD_BINUTILS and give everyone their cake - but it will be
+fragile.  Not everyone will remember to get that right, because they'll
+be using the later binutils.  Also, we already have an excessive number
+of potential breakage-inducing options and we certainly don't need
+another.
 
-*shrug* I can revert the patch locally, or patch the extra instruction =
-=20
-into my toolchain. But I do object to changing the documentation =20
-globally for every architecture because one architecture did something =
-=20
-they apparently never thought through (or they'd have commented in the =
-=20
-commit that it requires a big toolchain version jump; pretty sure they =
-=20
-didn't actually notice).
-
-Rob
-
-* The Free Software Foundation got so pissed that MacOS X and BSD and =20
-such were sticking with the last GPLv2 release of binutils that they =20
-deleted the binutils tarball off their website and replaced it with one=
- =20
-including GPLv3 source code. Check the FTP site if you don't believe =20
-me. Some of us have it snapshotted though. In my case, I actually =20
-fished the last GPLv2 version out of source control, right before the =20
-license change was committed, because I wanted armv7 support.--
-To unsubscribe from this list: send the line "unsubscribe linux-kernel"=
- in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
-Please read the FAQ at  http://www.tux.org/lkml/
+Use IS_ENABLED() I hear you say.  That won't get the one dsb instruction
+in some SoC code which was missed which will break the build on older
+toolchains.
