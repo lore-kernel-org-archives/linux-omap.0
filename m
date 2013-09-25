@@ -1,139 +1,526 @@
-From: "Dr. H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: Re: DSS display-new custom enable/disable hooks
-Date: Wed, 25 Sep 2013 09:45:50 +0200
-Message-ID: <3A4BA9B4-262C-4F0A-95B7-D243065D01BA@goldelico.com>
-References: <CAAfyv349Xjt7Wy-R34OW81SzmUX-1WhfVZdbhWVDoOXpUKa9ug@mail.gmail.com> <52427ECA.1080500@ti.com> <CAAfyv37sSa=7x=p1wgX+Rhdxh=WMB4DhmC9ZQMpxB_rb30Aurw@mail.gmail.com>
-Mime-Version: 1.0 (Apple Message framework v1085)
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mo-p00-ob.rzone.de ([81.169.146.160]:8700 "EHLO
-	mo-p00-ob.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750955Ab3IYHpz convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Sep 2013 03:45:55 -0400
-In-Reply-To: <CAAfyv37sSa=7x=p1wgX+Rhdxh=WMB4DhmC9ZQMpxB_rb30Aurw@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Mark Jackson <mpfj-list@newflow.co.uk>
+Subject: [PATCH v3] Add support for Newflow NanoBone board
+Date: Wed, 25 Sep 2013 09:04:14 +0100
+Message-ID: <524298FE.4090200@newflow.co.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: Russell King <linux@arm.linux.org.uk>, Benoit Cousson <bcousson@baylibre.com>, Javier Martinez Canillas <martinez.javier@gmail.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, lkml <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap@vger.kernel.org, Belisko Marek <marek.belisko@gmail.com>
 
-Hi,
+NanoBone Specification:
+-----------------------
+CPU:
+  TI AM335x
 
-Am 25.09.2013 um 09:09 schrieb Belisko Marek:
+Memory:
+  256MB DDR3
+  128MB NOR flash
+  128KB FRAM
 
-> CC - Nikolaus Schaller
-> 
-> On Wed, Sep 25, 2013 at 8:12 AM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
->> On 24/09/13 23:04, Belisko Marek wrote:
->>> Hi,
->>> 
->>> we're using connector-analog-tv driver to enable TV out on gta04
->>> board. There is exception that we need to change some twl registers +
->>> some gpio when enable/disable TV output. My question is if there is
->>> some way how to do that or do we need to copy'n'paste code from
->>> connector-analog-tv driver and extend it for handling we need (let's
->>> call it hack)?
->> 
->> What are those TWL registers and GPIO used for?
+Ethernet:
+  2 x 10/100 connected to SMSC LAN8710 PHY
 
-The GTA04 devices uses an OPA362 video amplifier connected to the TV_VFB1 pin
-of the DM3730. According to some not well known discussion with TI [1] we must
-therefore configure the AC bias and Bypass through the DEVCONF1 register.
+USB:
+  1 x USB2.0 Type A
 
-[1] https://e2e.ti.com/support/dsp/omap_applications_processors/f/447/p/94072/343691.aspx
+I2C:
+  2Kbit EEPROM (Microchip 24AA02)
+  RTC (Maxim DS1338)
+  GPIO Expander (Microchip MCP23017)
 
-And we have to disable (High-Z) the OPA362 amplifier if TVout is not in use since the
-line is shared with a different function (microphone input).
+Expansion connector:
+  6 x UART
+  1 x MMC/SD
+  1 x USB2.0
 
-The reasons to use the OPA362 at all are to do short circuit protection and to high-Z
-the driver (both are n/a with the DM3730 as far as we know).
+Signed-off-by: Mark Jackson <mpfj@newflow.co.uk>
+Reviewed-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+---
+Changes in v3:
+- Added MMC support
+- Fixed regulator limits
 
-The code we did use successfully in the 2.6.32 board file is:
+Changes in v2:
+- Reworked to use existing device nodes as suggested by Javier
 
-120 #define TV_OUT_GPIO     23
+ MAINTAINERS                       |    6 +
+ arch/arm/boot/dts/Makefile        |    1 +
+ arch/arm/boot/dts/am335x-nano.dts |  431 +++++++++++++++++++++++++++++=
+++++++++
+ 3 files changed, 438 insertions(+)
+ create mode 100644 arch/arm/boot/dts/am335x-nano.dts
 
-374 static int gta04_panel_enable_tv(struct omap_dss_device *dssdev)
-375 {
-376         u32 reg;
-377 
-378 #define ENABLE_VDAC_DEDICATED           0x03
-379 #define ENABLE_VDAC_DEV_GRP             0x20
-380 #define OMAP2_TVACEN                            (1 << 11)
-381 #define OMAP2_TVOUTBYPASS                       (1 << 18)
-382 
-383         twl_i2c_write_u8(TWL_MODULE_PM_RECEIVER,
-384                         ENABLE_VDAC_DEDICATED,
-385                         TWL4030_VDAC_DEDICATED);
-386         twl_i2c_write_u8(TWL_MODULE_PM_RECEIVER,
-387                         ENABLE_VDAC_DEV_GRP, TWL4030_VDAC_DEV_GRP);
-388 
-389         /* idea taken from https://e2e.ti.com/support/dsp/omap_applications_processors/f/447/p/94072/343691.aspx */
-390         reg = omap_ctrl_readl(OMAP343X_CONTROL_DEVCONF1);
-391 //      printk(KERN_INFO "Value of DEVCONF1 was: %08x\n", reg);
-392         reg |= OMAP2_TVOUTBYPASS;       /* enable TV bypass mode for external video driver (for OPA362 driver) */
-393         reg |= OMAP2_TVACEN;            /* assume AC coupling to remove DC offset */
-394         omap_ctrl_writel(reg, OMAP343X_CONTROL_DEVCONF1);
-395         reg = omap_ctrl_readl(OMAP343X_CONTROL_DEVCONF1);
-396 //      printk(KERN_INFO "Value of DEVCONF1 now: %08x\n", reg);
-397 
-398         gpio_set_value(TV_OUT_GPIO, 1); /* enable output driver (OPA362) */
-399 
-400         return 0;
-401 }
-402 
-403 static void gta04_panel_disable_tv(struct omap_dss_device *dssdev)
-404 {
-405         gpio_set_value(TV_OUT_GPIO, 0); /* disable output driver (and re-enable microphone) */
-406 
-407         twl_i2c_write_u8(TWL_MODULE_PM_RECEIVER, 0x00,
-408                         TWL4030_VDAC_DEDICATED);
-409         twl_i2c_write_u8(TWL_MODULE_PM_RECEIVER, 0x00,
-410                         TWL4030_VDAC_DEV_GRP);
-411 }
-412
-413 static struct omap_dss_device gta04_tv_device = {
-414         .name = "tv",
-415         .driver_name = "venc",
-416         .type = OMAP_DISPLAY_TYPE_VENC,
-417         /* GTA04 has a single composite output (with external video driver) */
-418         .phy.venc.type = OMAP_DSS_VENC_TYPE_COMPOSITE,
-419         .phy.venc.invert_polarity = true,       /* needed if we use external video driver */
-420         .platform_enable = gta04_panel_enable_tv,
-421         .platform_disable = gta04_panel_disable_tv,
-422 };
-
-I think (but don't know) that controlling the TWL/VDAC is no longer needed because
-it should be done through the connector-analog-tv driver.
-
-So we need to
-1. control a GPIO - very similar to a TFT panel
-2. invert polarity
-3. configure the OMAP343X_CONTROL_DEVCONF1 register as needed
-
-I don't know if we must do step 3. each time we enable TVout (because we can't
-assume that no other part of the kernel code writes to the DEVCONF1 register) so that
-it could be done in the board init code.
-
->> If they are board
->> specific things, then I see two options:
->> 
->> - Presuming you're using board files, you could add
->> platform_enable/disable callbacks to the connector's platform_data, and
->> make the connector driver call those callbacks.
->> 
->> - Create a new display encoder driver, which handles the TWL and GPIO,
->> and position it in the video pipeline between VENC and the connector.
->> 
->> The first option is obviously not upstreamable, as it won't work with
->> DT. And I'm not enthusiastic about merging board specific display
->> drivers either, but so far I haven't figured better ways to implement
->> board specific oddities.
->> 
->> Tomi
->> 
->> 
-> 
-> marek
-
-
--- hns
+diff --git a/MAINTAINERS b/MAINTAINERS
+index e61c2e8..8a4c9d9 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -6062,6 +6062,12 @@ L:	linux-omap@vger.kernel.org
+ S:	Maintained
+ F:	drivers/gpio/gpio-omap.c
+=20
++OMAP/NEWFLOW NANOBONE MACHINE SUPPORT
++M:	Mark Jackson <mpfj@newflow.co.uk>
++L:	linux-omap@vger.kernel.org
++S:	Maintained
++F:	arch/arm/boot/dts/am335x-nano.dts
++
+ OMFS FILESYSTEM
+ M:	Bob Copeland <me@bobcopeland.com>
+ L:	linux-karma-devel@lists.sourceforge.net
+diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
+index e95af3f..543e837 100644
+--- a/arch/arm/boot/dts/Makefile
++++ b/arch/arm/boot/dts/Makefile
+@@ -184,6 +184,7 @@ dtb-$(CONFIG_ARCH_OMAP2PLUS) +=3D omap2420-h4.dtb \
+ 	am335x-evmsk.dtb \
+ 	am335x-bone.dtb \
+ 	am335x-boneblack.dtb \
++	am335x-nano.dtb \
+ 	am3517-evm.dtb \
+ 	am3517_mt_ventoux.dtb \
+ 	am43x-epos-evm.dtb
+diff --git a/arch/arm/boot/dts/am335x-nano.dts b/arch/arm/boot/dts/am33=
+5x-nano.dts
+new file mode 100644
+index 0000000..9907b49
+--- /dev/null
++++ b/arch/arm/boot/dts/am335x-nano.dts
+@@ -0,0 +1,431 @@
++/*
++ * Copyright (C) 2013 Newflow Ltd - http://www.newflow.co.uk/
++ *
++ * This program is free software; you can redistribute it and/or modif=
+y
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++/dts-v1/;
++
++#include "am33xx.dtsi"
++
++/ {
++	model =3D "Newflow AM335x NanoBone";
++	compatible =3D "ti,am33xx";
++
++	cpus {
++		cpu@0 {
++			cpu0-supply =3D <&dcdc2_reg>;
++		};
++	};
++
++	memory {
++		device_type =3D "memory";
++		reg =3D <0x80000000 0x10000000>; /* 256 MB */
++	};
++
++	leds {
++		compatible =3D "gpio-leds";
++
++		led@0 {
++			label =3D "nanobone:green:usr1";
++			gpios =3D <&gpio1 5 0>;
++			default-state =3D "off";
++		};
++	};
++};
++
++&am33xx_pinmux {
++	pinctrl-names =3D "default";
++	pinctrl-0 =3D <&misc_pins>;
++
++	misc_pins: misc_pins {
++		pinctrl-single,pins =3D <
++			0x15c (PIN_OUTPUT | MUX_MODE7)	/* spi0_cs0.gpio0_5 */
++		>;
++	};
++
++	gpmc_pins: gpmc_pins {
++		pinctrl-single,pins =3D <
++			0x0 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad0.gpmc_ad0 */
++			0x4 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad1.gpmc_ad1 */
++			0x8 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad2.gpmc_ad2 */
++			0xc (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad3.gpmc_ad3 */
++			0x10 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad4.gpmc_ad4 */
++			0x14 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad5.gpmc_ad5 */
++			0x18 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad6.gpmc_ad6 */
++			0x1c (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad7.gpmc_ad7 */
++			0x20 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad8.gpmc_ad8 */
++			0x24 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad9.gpmc_ad9 */
++			0x28 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad10.gpmc_ad10 */
++			0x2c (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad11.gpmc_ad11 */
++			0x30 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad12.gpmc_ad12 */
++			0x34 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad13.gpmc_ad13 */
++			0x38 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad14.gpmc_ad14 */
++			0x3c (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad15.gpmc_ad15 */
++
++			0x70 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_wait0.gpmc_wait0 */
++			0x7c (PIN_OUTPUT | MUX_MODE0)		/* gpmc_csn0.gpmc_csn0 */
++			0x80 (PIN_OUTPUT | MUX_MODE0)		/* gpmc_csn1.gpmc_csn1 */
++			0x84 (PIN_OUTPUT | MUX_MODE0)		/* gpmc_csn2.gpmc_csn2 */
++			0x88 (PIN_OUTPUT | MUX_MODE0)		/* gpmc_csn3.gpmc_csn3 */
++
++			0x90 (PIN_OUTPUT | MUX_MODE0)		/* gpmc_advn_ale.gpmc_advn_ale */
++			0x94 (PIN_OUTPUT | MUX_MODE0)		/* gpmc_oen_ren.gpmc_oen_ren */
++			0x98 (PIN_OUTPUT | MUX_MODE0)		/* gpmc_wen.gpmc_wen */
++			0x9c (PIN_OUTPUT | MUX_MODE0)		/* gpmc_ben0_cle.gpmc_ben0_cle */
++
++			0xa4 (PIN_OUTPUT | MUX_MODE1)		/* lcd_data1.gpmc_a1 */
++			0xa8 (PIN_OUTPUT | MUX_MODE1)		/* lcd_data2.gpmc_a2 */
++			0xac (PIN_OUTPUT | MUX_MODE1)		/* lcd_data3.gpmc_a3 */
++			0xb0 (PIN_OUTPUT | MUX_MODE1)		/* lcd_data4.gpmc_a4 */
++			0xb4 (PIN_OUTPUT | MUX_MODE1)		/* lcd_data5.gpmc_a5 */
++			0xb8 (PIN_OUTPUT | MUX_MODE1)		/* lcd_data6.gpmc_a6 */
++			0xbc (PIN_OUTPUT | MUX_MODE1)		/* lcd_data7.gpmc_a7 */
++
++			0xe0 (PIN_OUTPUT | MUX_MODE1)		/* lcd_vsync.gpmc_a8 */
++			0xe4 (PIN_OUTPUT | MUX_MODE1)		/* lcd_hsync.gpmc_a9 */
++			0xe8 (PIN_OUTPUT | MUX_MODE1)		/* lcd_pclk.gpmc_a10 */
++		>;
++	};
++
++	i2c0_pins: i2c0_pins {
++		pinctrl-single,pins =3D <
++			0x188 (PIN_INPUT_PULLDOWN | MUX_MODE0)	/* i2c0_sda.i2c0_sda */
++			0x18c (PIN_INPUT_PULLDOWN | MUX_MODE0)	/* i2c0_scl.i2c0_scl */
++		>;
++	};
++
++	uart0_pins: uart0_pins {
++		pinctrl-single,pins =3D <
++			0x170 (PIN_INPUT_PULLUP | MUX_MODE0)	/* uart0_rxd.uart0_rxd */
++			0x174 (PIN_OUTPUT | MUX_MODE0)		/* uart0_txd.uart0_txd */
++		>;
++	};
++
++	uart1_pins: uart1_pins {
++		pinctrl-single,pins =3D <
++			0x178 (PIN_OUTPUT | MUX_MODE7)		/* uart1_ctsn.uart1_ctsn */
++			0x17c (PIN_OUTPUT | MUX_MODE7)		/* uart1_rtsn.uart1_rtsn */
++			0x180 (PIN_INPUT_PULLUP | MUX_MODE0)	/* uart1_rxd.uart1_rxd */
++			0x184 (PIN_OUTPUT | MUX_MODE0)		/* uart1_txd.uart1_txd */
++		>;
++	};
++
++	uart2_pins: uart2_pins {
++		pinctrl-single,pins =3D <
++			0xc0 (PIN_INPUT_PULLUP | MUX_MODE7)	/* lcd_data8.gpio2[14] */
++			0xc4 (PIN_OUTPUT | MUX_MODE7)		/* lcd_data9.gpio2[15] */
++			0x150 (PIN_INPUT | MUX_MODE1)		/* spi0_sclk.uart2_rxd */
++			0x154 (PIN_OUTPUT | MUX_MODE1)		/* spi0_d0.uart2_txd */
++		>;
++	};
++
++	uart3_pins: uart3_pins {
++		pinctrl-single,pins =3D <
++			0xc8 (PIN_INPUT_PULLUP | MUX_MODE6)	/* lcd_data10.uart3_ctsn */
++			0xcc (PIN_OUTPUT | MUX_MODE6)		/* lcd_data11.uart3_rtsn */
++			0x160 (PIN_INPUT | MUX_MODE1)		/* spi0_cs1.uart3_rxd */
++			0x164 (PIN_OUTPUT | MUX_MODE1)		/* ecap0_in_pwm0_out.uart3_txd */
++		>;
++	};
++
++	uart4_pins: uart4_pins {
++		pinctrl-single,pins =3D <
++			0xd0 (PIN_INPUT_PULLUP | MUX_MODE6)	/* lcd_data12.uart4_ctsn */
++			0xd4 (PIN_OUTPUT | MUX_MODE6)		/* lcd_data13.uart4_rtsn */
++			0x168 (PIN_INPUT | MUX_MODE1)		/* uart0_ctsn.uart4_rxd */
++			0x16c (PIN_OUTPUT | MUX_MODE1)		/* uart0_rtsn.uart4_txd */
++		>;
++	};
++
++	uart5_pins: uart5_pins {
++		pinctrl-single,pins =3D <
++			0xd8 (PIN_INPUT | MUX_MODE4)		/* lcd_data14.uart5_rxd */
++			0x144 (PIN_OUTPUT | MUX_MODE3)		/* rmiii1_refclk.uart5_txd */
++		>;
++	};
++
++	mmc1_pins: mmc1_pins {
++		pinctrl-single,pins =3D <
++			0xf0 (PIN_INPUT_PULLUP | MUX_MODE0)	/* mmc0_dat0.mmc0_dat0 */
++			0xf4 (PIN_INPUT_PULLUP | MUX_MODE0)	/* mmc0_dat1.mmc0_dat1 */
++			0xf8 (PIN_INPUT_PULLUP | MUX_MODE0)	/* mmc0_dat2.mmc0_dat2 */
++			0xfc (PIN_INPUT_PULLUP | MUX_MODE0)	/* mmc0_dat3.mmc0_dat3 */
++			0x100 (PIN_INPUT_PULLUP | MUX_MODE0)	/* mmc0_clk.mmc0_clk */
++			0x104 (PIN_INPUT_PULLUP | MUX_MODE0)	/* mmc0_cmd.mmc0_cmd */
++			0x1e8 (PIN_INPUT_PULLUP | MUX_MODE7)	/* emu1.gpio3[8] */
++			0x1a0 (PIN_INPUT_PULLUP | MUX_MODE7)	/* mcasp0_aclkr.gpio3[18] */
++		>;
++	};
++};
++
++&uart0 {
++	pinctrl-names =3D "default";
++	pinctrl-0 =3D <&uart0_pins>;
++	status =3D "okay";
++};
++
++&uart1 {
++	pinctrl-names =3D "default";
++	pinctrl-0 =3D <&uart1_pins>;
++	status =3D "okay";
++	rts-gpio =3D <&gpio0 13 GPIO_ACTIVE_HIGH>;
++	rs485-rts-active-high;
++	rs485-rx-during-tx;
++	rs485-rts-delay =3D <1 1>;
++	linux,rs485-enabled-at-boot-time;
++};
++
++&uart2 {
++	pinctrl-names =3D "default";
++	pinctrl-0 =3D <&uart2_pins>;
++	status =3D "okay";
++	rts-gpio =3D <&gpio2 15 GPIO_ACTIVE_HIGH>;
++	rs485-rts-active-high;
++	rs485-rts-delay =3D <1 1>;
++	linux,rs485-enabled-at-boot-time;
++};
++
++&uart3 {
++	pinctrl-names =3D "default";
++	pinctrl-0 =3D <&uart3_pins>;
++	status =3D "okay";
++};
++
++&uart4 {
++	pinctrl-names =3D "default";
++	pinctrl-0 =3D <&uart4_pins>;
++	status =3D "okay";
++};
++
++&uart5 {
++	pinctrl-names =3D "default";
++	pinctrl-0 =3D <&uart5_pins>;
++	status =3D "okay";
++};
++
++&i2c0 {
++	status =3D "okay";
++	pinctrl-names =3D "default";
++	clock-frequency =3D <400000>;
++	pinctrl-names =3D "default";
++	pinctrl-0 =3D <&i2c0_pins>;
++
++	gpio@20 {
++		compatible =3D "mcp,mcp23017";
++		reg =3D <0x20>;
++	};
++
++	tps: tps@24 {
++		reg =3D <0x24>;
++	};
++
++	eeprom@53 {
++		compatible =3D "mcp,24c02";
++		reg =3D <0x53>;
++		pagesize =3D <8>;
++	};
++
++	rtc@68 {
++		compatible =3D "dallas,ds1307";
++		reg =3D <0x68>;
++	};
++};
++
++&elm {
++	status =3D "okay";
++};
++
++&gpmc {
++	compatible =3D "ti,am3352-gpmc";
++	ti,hwmods =3D "gpmc";
++	status =3D "okay";
++	gpmc,num-waitpins =3D <2>;
++	pinctrl-names =3D "default";
++	pinctrl-0 =3D <&gpmc_pins>;
++
++	#address-cells =3D <2>;
++	#size-cells =3D <1>;
++	ranges =3D <0 0 0x08000000 0x08000000>;	/* CS0: NOR 128M */
++
++	nor@0,0 {
++		reg =3D <0 0x00000000 0x08000000>;
++		compatible =3D "cfi-flash";
++		linux,mtd-name =3D "spansion,s29gl010p11t";
++		bank-width =3D <2>;
++
++		gpmc,mux-add-data =3D <2>;
++
++		gpmc,sync-clk-ps =3D <0>;
++		gpmc,cs-on-ns =3D <0>;
++		gpmc,cs-rd-off-ns =3D <160>;
++		gpmc,cs-wr-off-ns =3D <160>;
++		gpmc,adv-on-ns =3D <10>;
++		gpmc,adv-rd-off-ns =3D <30>;
++		gpmc,adv-wr-off-ns =3D <30>;
++		gpmc,oe-on-ns =3D <40>;
++		gpmc,oe-off-ns =3D <160>;
++		gpmc,we-on-ns =3D <40>;
++		gpmc,we-off-ns =3D <160>;
++		gpmc,rd-cycle-ns =3D <160>;
++		gpmc,wr-cycle-ns =3D <160>;
++		gpmc,access-ns =3D <150>;
++		gpmc,page-burst-access-ns =3D <10>;
++		gpmc,cycle2cycle-samecsen;
++		gpmc,cycle2cycle-delay-ns =3D <20>;
++		gpmc,wr-data-mux-bus-ns =3D <70>;
++		gpmc,wr-access-ns =3D <80>;
++
++		#address-cells =3D <1>;
++		#size-cells =3D <1>;
++
++		/*
++		MTD partition table
++		=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
++		+------------+-->0x00000000-> U-Boot start
++		|            |
++		|            |-->0x000BFFFF-> U-Boot end
++		|            |-->0x000C0000-> ENV1 start
++		|            |
++		|            |-->0x000DFFFF-> ENV1 end
++		|            |-->0x000E0000-> ENV2 start
++		|            |
++		|            |-->0x000FFFFF-> ENV2 end
++		|            |-->0x00100000-> Kernel start
++		|            |
++		|            |-->0x004FFFFF-> Kernel end
++		|            |-->0x00500000-> File system start
++		|            |
++		|            |-->0x014FFFFF-> File system end
++		|            |-->0x01500000-> User data start
++		|            |
++		|            |-->0x03FFFFFF-> User data end
++		|            |-->0x04000000-> Data storage start
++		|            |
++		+------------+-->0x08000000-> NOR end (Free end)
++		*/
++		partition@0 {
++			label =3D "boot";
++			reg =3D <0x00000000 0x000c0000>; /* 768KB */
++		};
++
++		partition@1 {
++			label =3D "env1";
++			reg =3D <0x000c0000 0x00020000>; /* 128KB */
++		};
++
++		partition@2 {
++			label =3D "env2";
++			reg =3D <0x000e0000 0x00020000>; /* 128KB */
++		};
++
++		partition@3 {
++			label =3D "kernel";
++			reg =3D <0x00100000 0x00400000>; /* 4MB */
++		};
++
++		partition@4 {
++			label =3D "rootfs";
++			reg =3D <0x00500000 0x01000000>; /* 16MB */
++		};
++
++		partition@5 {
++			label =3D "user";
++			reg =3D <0x01500000 0x02b00000>; /* 43MB */
++		};
++
++		partition@6 {
++			label =3D "data";
++			reg =3D <0x04000000 0x04000000>; /* 64MB */
++		};
++	};
++};
++
++&mac {
++	dual_emac =3D <1>;
++};
++
++&cpsw_emac0 {
++	phy_id =3D <&davinci_mdio>, <0>;
++	dual_emac_res_vlan =3D <1>;
++};
++
++&cpsw_emac1 {
++	phy_id =3D <&davinci_mdio>, <1>;
++	dual_emac_res_vlan =3D <2>;
++};
++
++&mmc1 {
++	status =3D "okay";
++	vmmc-supply =3D <&ldo4_reg>;
++	pinctrl-names =3D "default";
++	pinctrl-0 =3D <&mmc1_pins>;
++	bus-width =3D <4>;
++	cd-gpios =3D <&gpio3 8 0>;
++	wp-gpios =3D <&gpio3 18 0>;
++};
++
++#include "tps65217.dtsi"
++
++&tps {
++	regulators {
++		dcdc1_reg: regulator@0 {
++			/* +1.5V voltage with =C2=B14% tolerance */
++			regulator-min-microvolt =3D <1450000>;
++			regulator-max-microvolt =3D <1550000>;
++			regulator-boot-on;
++			regulator-always-on;
++		};
++
++		dcdc2_reg: regulator@1 {
++			/* VDD_MPU voltage limits 0.95V - 1.1V with =C2=B14% tolerance */
++			regulator-name =3D "vdd_mpu";
++			regulator-min-microvolt =3D <915000>;
++			regulator-max-microvolt =3D <1140000>;
++			regulator-boot-on;
++			regulator-always-on;
++		};
++
++		dcdc3_reg: regulator@2 {
++			/* VDD_CORE voltage limits 0.95V - 1.1V with =C2=B14% tolerance */
++			regulator-name =3D "vdd_core";
++			regulator-min-microvolt =3D <915000>;
++			regulator-max-microvolt =3D <1140000>;
++			regulator-boot-on;
++			regulator-always-on;
++		};
++
++		ldo1_reg: regulator@3 {
++			/* +1.8V voltage with =C2=B14% tolerance */
++			regulator-min-microvolt =3D <1750000>;
++			regulator-max-microvolt =3D <1870000>;
++			regulator-boot-on;
++			regulator-always-on;
++		};
++
++		ldo2_reg: regulator@4 {
++			/* +3.3V voltage with =C2=B14% tolerance */
++			regulator-min-microvolt =3D <3175000>;
++			regulator-max-microvolt =3D <3430000>;
++			regulator-boot-on;
++			regulator-always-on;
++		};
++
++		ldo3_reg: regulator@5 {
++			/* +1.8V voltage with =C2=B14% tolerance */
++			regulator-min-microvolt =3D <1750000>;
++			regulator-max-microvolt =3D <1870000>;
++			regulator-boot-on;
++			regulator-always-on;
++		};
++
++		ldo4_reg: regulator@6 {
++			/* +3.3V voltage with =C2=B14% tolerance */
++			regulator-min-microvolt =3D <3175000>;
++			regulator-max-microvolt =3D <3430000>;
++			regulator-boot-on;
++			regulator-always-on;
++		};
++	};
++};
+--=20
+1.7.9.5
