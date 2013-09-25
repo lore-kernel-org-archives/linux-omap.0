@@ -1,64 +1,60 @@
-From: Javier Martinez Canillas <martinez.javier@gmail.com>
-Subject: Re: [PATCHv3 0/2] ARM: dts: Add initial support for IGEP AQUILA
-Date: Wed, 25 Sep 2013 15:10:21 +0200
-Message-ID: <CAAwP0s2NOswrZPdeM7GG2J3e+2JeQSKUpX3cki+CbF9G4KyTpA@mail.gmail.com>
-References: <1378824949-18792-1-git-send-email-eballetbo@gmail.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: Re: [RFC PATCH 09/15] ata: ti_sata: Add Texas Instruments SATA Wrapper
+ driver
+Date: Wed, 25 Sep 2013 16:29:01 +0300
+Message-ID: <5242E51D.1020602@ti.com>
+References: <1379595943-14622-1-git-send-email-rogerq@ti.com> <1379595943-14622-10-git-send-email-rogerq@ti.com> <5608096.0pgFIteLqQ@amdc1032> <3930265.gHe05HETI5@amdc1032>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ie0-f172.google.com ([209.85.223.172]:35004 "EHLO
-	mail-ie0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755464Ab3IYNKm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Sep 2013 09:10:42 -0400
-Received: by mail-ie0-f172.google.com with SMTP id x13so10929613ief.3
-        for <linux-omap@vger.kernel.org>; Wed, 25 Sep 2013 06:10:41 -0700 (PDT)
-In-Reply-To: <1378824949-18792-1-git-send-email-eballetbo@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <3930265.gHe05HETI5@amdc1032>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bartlomiej Zolnierkiewicz <b.zolnierkie-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+Cc: balbi-l0cyMroinI0@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, balajitk-l0cyMroinI0@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-ide-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Enric Balletbo i Serra <eballetbo@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Enric Balletbo i Serra <eballetbo@iseebcn.com>
 
-On Tue, Sep 10, 2013 at 4:55 PM, Enric Balletbo i Serra
-<eballetbo@gmail.com> wrote:
-> From: Enric Balletbo i Serra <eballetbo@iseebcn.com>
->
-> Hi all,
->
-> These two patches introduces initial support for the IGEP AM335x-based
-> platforms. The first patch add support for IGEP COM AQUILA products, and the
-> second patch add support for the development board.
->
-> These patches apply on top of bcousson/for_3.12/dts repository.
->
-> Changes since v2:
->   * Make it compatible with "isee,am335x-base0033", "isee,am335x-igep0033",
->     "ti,am33xx" since these boards are manufactured by ISEE not TI. (Javier)
-> Changes since v1:
->   * Use &node to reference the nodes already defined in dtsi files. (Javier)
->
-> Best regards,
->
-> Enric Balletbo i Serra (2):
->   ARM: dts: AM33XX: Add support for IGEP COM AQUILA
->   ARM: dts: AM33XX: Add support for IGEP AQUILA EXPANSION board.
->
->  arch/arm/boot/dts/Makefile             |   1 +
->  arch/arm/boot/dts/am335x-base0033.dts  |  16 ++
->  arch/arm/boot/dts/am335x-igep0033.dtsi | 265 +++++++++++++++++++++++++++++++++
->  3 files changed, 282 insertions(+)
->  create mode 100644 arch/arm/boot/dts/am335x-base0033.dts
->  create mode 100644 arch/arm/boot/dts/am335x-igep0033.dtsi
->
-> --
-> 1.8.1.2
->
+Hi,
 
-Hi Benoit and Tony,
+On 09/25/2013 03:49 PM, Bartlomiej Zolnierkiewicz wrote:
+> On Wednesday, September 25, 2013 02:37:19 PM Bartlomiej Zolnierkiewicz wrote:
+> 
+> [...]
+> 
+>>> +#ifdef CONFIG_PM
+>>> +
+>>> +static int ti_sata_resume(struct device *dev)
+>>> +{
+>>> +	pm_runtime_disable(dev);
+>>> +	pm_runtime_set_active(dev);
+>>> +	pm_runtime_enable(dev);
+>>
+>> This doesn't look like a correct ->resume method:
+>> * it shouldn't touch runtime PM at all
+>> * for each ->resume method there should be a corresponding ->suspend method
+>>
+>> Moreover this whole wrapper driver seems strange, why not just add a proper
+>> runtime PM support to ahci_platform driver instead?
+> 
+> Hmm, even this shouldn't be needed as this wrapper driver doesn't have
+> ->runtime_suspend and ->runtime resume methods.
+> 
+> What exactly is the purpose of the existence of this wrapper driver?
 
-Any comments on this series? I had already reviewed previous versions
-of the DT and it looks good to me now.
+This is the weirdness of OMAP hwmod framework :).
 
-It would be great if this can make it for 3.13.
+The OMAP hwmod framework tries to manage the module clocks by itself and needs
+a runtime_resume to enable the relevant clocks.
 
-Thanks a lot and best regards,
-Javier
+hwmod framework will be deprecated in the near future and this is the place where
+we need to handle the resources.
+
+But since we are not yet there, I can get rid of this wrapper driver for now
+and add the necessary pm_runtime calls in the ahci_platform driver.
+
+cheers,
+-roger
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
