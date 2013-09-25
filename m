@@ -1,58 +1,73 @@
-From: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
-Subject: [PATCHv7 17/36] ARM: dts: clk: Add apll related clocks
-Date: Wed, 25 Sep 2013 11:48:23 +0300
-Message-ID: <1380098922-30340-18-git-send-email-t-kristo@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: [PATCHv7 19/36] ARM: dts: DRA7: Add PCIe related clock nodes
+Date: Wed, 25 Sep 2013 11:48:25 +0300
+Message-ID: <1380098922-30340-20-git-send-email-t-kristo@ti.com>
 References: <1380098922-30340-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1380098922-30340-1-git-send-email-t-kristo-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, mturquette-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
-Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:60113 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754661Ab3IYIu3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 25 Sep 2013 04:50:29 -0400
+In-Reply-To: <1380098922-30340-1-git-send-email-t-kristo@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, nm@ti.com, rnayak@ti.com, bcousson@baylibre.com, mturquette@linaro.org
+Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, Keerthy <j-keerthy@ti.com>
 
-From: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+From: Keerthy <j-keerthy@ti.com>
 
-The patch adds a mux node to choose the parent of apll_pcie_ck node.
+This patch adds optfclk_pciephy_clk and optfclk_pciephy_div_clk
+which are used by PCIe phy. It also adds a mux clock to choose
+the source of optfclk_pciephy_div_clk clock.
 
-Signed-off-by: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
-Signed-off-by: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Keerthy <j-keerthy@ti.com>
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/boot/dts/dra7xx-clocks.dtsi |   14 +++++++++++---
- 1 file changed, 11 insertions(+), 3 deletions(-)
+ arch/arm/boot/dts/dra7xx-clocks.dtsi |   27 ++++++++++++++++++++++++++-
+ 1 file changed, 26 insertions(+), 1 deletion(-)
 
 diff --git a/arch/arm/boot/dts/dra7xx-clocks.dtsi b/arch/arm/boot/dts/dra7xx-clocks.dtsi
-index 0d83f95..c830e15 100644
+index 75d5e1b..d83afd3 100644
 --- a/arch/arm/boot/dts/dra7xx-clocks.dtsi
 +++ b/arch/arm/boot/dts/dra7xx-clocks.dtsi
-@@ -315,11 +315,19 @@ dpll_pcie_ref_m2ldo_ck: dpll_pcie_ref_m2ldo_ck@4a008210 {
- 	ti,autoidle-low;
+@@ -1973,8 +1973,33 @@ vip3_gclk_mux: vip3_gclk_mux@4a009030 {
+ 	reg = <0x4a009030 0x4>;
  };
  
-+apll_pcie_in_clk_mux: apll_pcie_in_clk_mux@4ae06118 {
-+	compatible = "ti,mux-clock";
-+	clocks = <&dpll_pcie_ref_ck>, <&pciesref_acs_clk_ck>;
++optfclk_pciephy_div: optfclk_pciephy_div@4a00821c {
++	compatible = "ti,divider-clock";
++	clocks = <&apll_pcie_ck>;
 +	#clock-cells = <0>;
 +	reg = <0x4a00821c 0x4>;
-+	ti,bit-shift = <7>;
++	ti,bit-shift = <8>;
++	ti,max-div = <2>;
 +};
 +
- apll_pcie_ck: apll_pcie_ck@4a008200 {
++optfclk_pciephy_clk: optfclk_pciephy_clk@4a0093b0 {
++	compatible = "ti,gate-clock";
++	clocks = <&apll_pcie_ck>;
++	#clock-cells = <0>;
++	reg = <0x4a0093b0 0x4>;
++	ti,bit-shift = <9>;
++};
++
++optfclk_pciephy_div_clk: optfclk_pciephy_div_clk@4a0093b0 {
++	compatible = "ti,gate-clock";
++	clocks = <&optfclk_pciephy_div>;
++	#clock-cells = <0>;
++	reg = <0x4a0093b0 0x4>;
++	ti,bit-shift = <10>;
++};
++
+ dummy_ck: dummy_ck {
  	#clock-cells = <0>;
--	compatible = "ti,omap4-dpll-clock";
--	clocks = <&dpll_pcie_ref_ck>, <&dpll_pcie_ref_ck>;
--	reg = <0x4a008200 0x4>, <0x4a008204 0x4>, <0x4a008208 0x4>, <0x4a00820c 0x4>;
-+	compatible = "ti,dra7-apll-clock";
-+	clocks = <&apll_pcie_in_clk_mux>, <&dpll_pcie_ref_ck>;
-+	reg = <0x4a00821c 0x4>, <0x4a008220 0x4>;
- };
- 
- apll_pcie_clkvcoldo: apll_pcie_clkvcoldo {
+ 	compatible = "fixed-clock";
+ 	clock-frequency = <0>;
+-};
+\ No newline at end of file
++};
 -- 
 1.7.9.5
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
