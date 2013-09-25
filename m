@@ -1,313 +1,54 @@
-From: Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v6 3/4] mtd:nand:omap2: updated support for BCH4 ECC
- scheme
-Date: Wed, 25 Sep 2013 12:13:51 -0700
-Message-ID: <20130925191351.GE23337@ld-irv-0074.broadcom.com>
+From: Brian Norris <computersforpeace@gmail.com>
+Subject: Re: [PATCH v6 4/4] ARM: dts: AM33xx: updated default ECC scheme in
+ nand-ecc-opt
+Date: Wed, 25 Sep 2013 12:15:59 -0700
+Message-ID: <20130925191559.GF23337@ld-irv-0074.broadcom.com>
 References: <1378986619-26765-1-git-send-email-pekon@ti.com>
- <1378986619-26765-4-git-send-email-pekon@ti.com>
+ <1378986619-26765-5-git-send-email-pekon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ye0-f173.google.com ([209.85.213.173]:52540 "EHLO
+	mail-ye0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752755Ab3IYTQF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Sep 2013 15:16:05 -0400
 Content-Disposition: inline
-In-Reply-To: <1378986619-26765-4-git-send-email-pekon-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Pekon Gupta <pekon-l0cyMroinI0@public.gmane.org>
-Cc: dedekind1-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, benoit.cousson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, avinashphilipk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <1378986619-26765-5-git-send-email-pekon@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Pekon Gupta <pekon@ti.com>
+Cc: dedekind1@gmail.com, olof@lixom.net, dwmw2@infradead.org, arnd@arndb.de, tony@atomide.com, benoit.cousson@linaro.org, avinashphilipk@gmail.com, balbi@ti.com, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
 
-On Thu, Sep 12, 2013 at 05:20:18PM +0530, Pekon Gupta wrote:
-> This patch adds following two flavours of BCH4 ECC scheme in omap2-nand driver
-> - OMAP_ECC_BCH4_CODE_HW_DETECTION_SW
-> 	- uses GPMC H/W engine for calculating ECC.
-> 	- uses software library (lib/bch.h & nand_bch.h) for error correction.
+On Thu, Sep 12, 2013 at 05:20:19PM +0530, Pekon Gupta wrote:
+> DT property values for OMAP based gpmc-nand have been updated
+> to match changes in commit:
+> 	6faf096 ARM: OMAP2+: cleaned-up DT support of various ECC schemes
+
+Whose commit ID is this? Your patch is not merged yet, so don't use a
+commit ID.
+
+> Refer: Documentation/devicetree/bindings/mtd/gpmc-nand.txt
 > 
-> - OMAP_ECC_BCH4_CODE_HW
-> 	- uses GPMC H/W engine for calculating ECC.
-> 	- uses ELM H/W engine for error correction.
-> 
-> With this patch omap2-nand driver supports following ECC schemes:
-> +---------------------------------------+---------------+---------------+
-> | ECC scheme                            |ECC calculation|Error detection|
-> +---------------------------------------+---------------+---------------+
-> |OMAP_ECC_HAMMING_CODE_DEFAULT          |S/W            |S/W            |
-> |OMAP_ECC_HAMMING_CODE_HW               |H/W (GPMC)     |S/W            |
-> |OMAP_ECC_HAMMING_CODE_HW_ROMCODE       |H/W (GPMC)     |S/W            |
-> +---------------------------------------+---------------+---------------+
-> |OMAP_ECC_BCH4_CODE_HW_DETECTION_SW     |H/W (GPMC)     |S/W (lib/bch.h)|
-> |OMAP_ECC_BCH4_CODE_HW                  |H/W (GPMC)     |H/W (ELM)      |
-> +---------------------------------------+---------------+---------------+
-> |OMAP_ECC_BCH8_CODE_HW_DETECTION_SW     |H/W (GPMC)     |S/W (lib/bch.h)|
-> |OMAP_ECC_BCH8_CODE_HW                  |H/W (GPMC)     |H/W (ELM)      |
-> +---------------------------------------+---------------+---------------+
-> Important:
-> - Selection of OMAP_ECC_BCHx_CODE_HW_DETECTION_SW requires,
-> 	Kconfig: CONFIG_MTD_NAND_ECC_BCH: enables S/W based BCH ECC algorithm.
-> 
-> - Selection of OMAP_ECC_BCHx_CODE_HW requires,
-> 	Kconfig: CONFIG_MTD_NAND_OMAP_BCH: enables ELM H/W module.
-> 
-> Signed-off-by: Pekon Gupta <pekon-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Pekon Gupta <pekon@ti.com>
 > ---
->  drivers/mtd/nand/Kconfig |  30 ++---------
->  drivers/mtd/nand/omap2.c | 136 ++++++++++++++++++++++-------------------------
->  2 files changed, 68 insertions(+), 98 deletions(-)
+>  arch/arm/boot/dts/am335x-evm.dts | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> diff --git a/drivers/mtd/nand/Kconfig b/drivers/mtd/nand/Kconfig
-> index d885298..5836039 100644
-> --- a/drivers/mtd/nand/Kconfig
-> +++ b/drivers/mtd/nand/Kconfig
-> @@ -96,35 +96,13 @@ config MTD_NAND_OMAP2
->  
->  config MTD_NAND_OMAP_BCH
->  	depends on MTD_NAND && MTD_NAND_OMAP2 && ARCH_OMAP3
-> -	tristate "Enable support for hardware BCH error correction"
-> +	tristate "Support hardware based BCH error correction"
->  	default n
->  	select BCH
-> -	select BCH_CONST_PARAMS
->  	help
-> -	 Support for hardware BCH error correction.
-> -
-> -choice
-> -	prompt "BCH error correction capability"
-> -	depends on MTD_NAND_OMAP_BCH
-> -
-> -config MTD_NAND_OMAP_BCH8
-> -	bool "8 bits / 512 bytes (recommended)"
-> -	help
-> -	 Support correcting up to 8 bitflips per 512-byte block.
-> -	 This will use 13 bytes of spare area per 512 bytes of page data.
-> -	 This is the recommended mode, as 4-bit mode does not work
-> -	 on some OMAP3 revisions, due to a hardware bug.
-> -
-> -config MTD_NAND_OMAP_BCH4
-> -	bool "4 bits / 512 bytes"
-> -	help
-> -	 Support correcting up to 4 bitflips per 512-byte block.
-> -	 This will use 7 bytes of spare area per 512 bytes of page data.
-> -	 Note that this mode does not work on some OMAP3 revisions, due to a
-> -	 hardware bug. Please check your OMAP datasheet before selecting this
-> -	 mode.
-> -
-> -endchoice
-> +	  Some devices have built-in ELM hardware engine, which can be used to
-> +	  locate and correct errors when using BCH ECC scheme. This enables the
-> +	  driver support for same.
->  
->  if MTD_NAND_OMAP_BCH
->  config BCH_CONST_M
-> diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-> index 420078f..6f4596c 100644
-> --- a/drivers/mtd/nand/omap2.c
-> +++ b/drivers/mtd/nand/omap2.c
-> @@ -27,6 +27,7 @@
->  
->  #ifdef CONFIG_MTD_NAND_ECC_BCH
->  #include <linux/bch.h>
-> +#include <linux/mtd/nand_bch.h>
->  #endif
->  #ifdef CONFIG_MTD_NAND_OMAP_BCH
->  #include <linux/platform_data/elm.h>
-> @@ -144,7 +145,6 @@
->  #define BCH_ECC_SIZE1		0x20	/* ecc_size1 = 32 */
->  
->  #define BADBLOCK_MARKER_LENGTH		0x2
-> -#define OMAP_ECC_BCH8_POLYNOMIAL	0x201b
->  
->  #ifdef CONFIG_MTD_NAND_OMAP_BCH
->  static u_char bch8_vector[] = {0xf3, 0xdb, 0x14, 0x16, 0x8b, 0xd2, 0xbe, 0xcc,
-> @@ -185,10 +185,9 @@ struct omap_nand_info {
->  		OMAP_NAND_IO_WRITE,	/* write */
->  	} iomode;
->  	u_char				*buf;
-> -	int					buf_len;
-> +	int				buf_len;
+> diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
+> index e8ec875..e28a2ac 100644
+> --- a/arch/arm/boot/dts/am335x-evm.dts
+> +++ b/arch/arm/boot/dts/am335x-evm.dts
+> @@ -268,7 +268,7 @@
+>  			nand@0,0 {
+>  				reg = <0 0 0>; /* CS0, offset 0 */
+>  				nand-bus-width = <8>;
+> -				ti,nand-ecc-opt = "bch8";
+> +				ti,nand-ecc-scheme = "bch8";
+>  				gpmc,device-nand = "true";
+>  				gpmc,device-width = <1>;
+>  				gpmc,sync-clk-ps = <0>;
 
-Please do not make unrelated, arbitrary changes to whitespace as part of
-a patch that solves other problems.
-
->  	struct gpmc_nand_regs		reg;
->  	/* fields specific for BCHx_HW ECC scheme */
-> -	struct bch_control              *bch;
->  	bool				is_elm_used;
->  	struct device			*elm_dev;
->  	struct device_node		*of_node;
-
-...
-
-> @@ -1725,16 +1672,17 @@ static int omap_nand_probe(struct platform_device *pdev)
->  	mtd->owner		= THIS_MODULE;
->  	mtd->priv		= &info->nand;
->  	chip			= mtd->priv;
-> +	chip->ecc.priv		= NULL;
->  
->  	info->pdev		= pdev;
->  	info->gpmc_cs		= pdata->cs;
->  	info->reg		= pdata->reg;
-> -	info->bch		= NULL;
->  
->  	info->nand.options	= NAND_BUSWIDTH_AUTO;
->  	info->nand.options	|= NAND_SKIP_BBTSCAN;
->  	info->of_node		= pdata->of_node;
->  
-> +
-
-Extraneous whitespace.
-
->  	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
->  	if (res == NULL) {
->  		err = -EINVAL;
-> @@ -1924,20 +1872,21 @@ static int omap_nand_probe(struct platform_device *pdev)
->  		info->nand.ecc.bytes		= 7;
->  		info->nand.ecc.strength		= 4;
->  		info->nand.ecc.hwctl		= omap3_enable_hwecc_bch;
-> -		info->nand.ecc.correct		= omap3_correct_data_bch;
-> +		info->nand.ecc.correct		= nand_bch_correct_data;
->  		info->nand.ecc.calculate	= omap3_calculate_ecc_bch4;
->  		/* define custom ECC layout */
->  		ecclayout->eccbytes		= info->nand.ecc.bytes *
-> -						(mtd->writesize /
-> -						info->nand.ecc.size);
-> +							(mtd->writesize /
-> +							info->nand.ecc.size);
-
-Again, extraneous changes to the whitespace.
-
->  		ecclayout->eccpos[0]		= info->mtd.oobsize -
-> -						ecclayout->eccbytes;
-> +							ecclayout->eccbytes;
-
-Ditto.
-
->  		ecclayout->oobfree->offset	= BADBLOCK_MARKER_LENGTH;
->  		/* software bch library is used for locating errors */
-> -		info->bch = init_bch(info->nand.ecc.bytes,
-> -					info->nand.ecc.strength,
-> -					OMAP_ECC_BCH8_POLYNOMIAL);
-> -		if (!info->bch) {
-> +		info->nand.ecc.priv		= nand_bch_init(mtd,
-> +						info->nand.ecc.size,
-> +						info->nand.ecc.bytes,
-> +						&info->nand.ecc.layout);
-> +		if (!info->nand.ecc.priv) {
->  			pr_err("nand: error: unable to use s/w BCH library\n");
->  			err = -EINVAL;
->  			goto out_release_mem_region;
-> @@ -1949,6 +1898,39 @@ static int omap_nand_probe(struct platform_device *pdev)
->  		goto out_release_mem_region;
->  #endif
->  		break;
-> +	case OMAP_ECC_BCH4_CODE_HW:
-> +#ifdef CONFIG_MTD_NAND_OMAP_BCH
-> +		pr_info("nand: using OMAP_ECC_BCH4_CODE_HW ECC scheme\n");
-> +		info->nand.ecc.mode		= NAND_ECC_HW;
-> +		info->nand.ecc.size		= 512;
-> +		/* 14th bit is kept reserved for ROM-code compatibility */
-> +		info->nand.ecc.bytes		= 7 + 1;
-> +		info->nand.ecc.strength		= 4;
-> +		info->nand.ecc.hwctl		= omap3_enable_hwecc_bch;
-> +		info->nand.ecc.correct		= omap_elm_correct_data;
-> +		info->nand.ecc.calculate	= omap3_calculate_ecc_bch;
-> +		info->nand.ecc.read_page	= omap_read_page_bch;
-> +		info->nand.ecc.write_page	= omap_write_page_bch;
-> +		/* This ECC scheme requires ELM H/W block */
-> +		if (is_elm_present(info, pdata->elm_of_node, BCH4_ECC) < 0) {
-> +			pr_err("nand: error: could not initialize ELM\n");
-> +			err = -ENODEV;
-> +			goto out_release_mem_region;
-> +		}
-> +		/* define custom ECC layout */
-> +		ecclayout->eccbytes		= info->nand.ecc.bytes *
-> +							(mtd->writesize /
-> +							info->nand.ecc.size);
-> +		ecclayout->eccpos[0]		= BADBLOCK_MARKER_LENGTH;
-> +		ecclayout->oobfree->offset	= ecclayout->eccpos[0] +
-> +							ecclayout->eccbytes;
-> +		goto custom_ecc_layout;
-
-You don't need these 'goto' statements, when they are followed by a
-'break' which takes you to the same place. And generally, we reserve
-goto for use only with error paths, not the common path.
-
-I see you did the same thing in patch 2. Please remove them there too.
-
-> +#else
-> +		pr_err("nand: error: CONFIG_MTD_NAND_OMAP_BCH not enabled\n");
-> +		err = -EINVAL;
-> +		goto out_release_mem_region;
-> +#endif
-> +		break;
->  	case OMAP_ECC_BCH8_CODE_HW_DETECTION_SW:
->  #ifdef CONFIG_MTD_NAND_ECC_BCH
->  		pr_info("nand: using OMAP_ECC_BCH8_CODE_HW_DETECTION_SW\n");
-> @@ -1957,7 +1939,7 @@ static int omap_nand_probe(struct platform_device *pdev)
->  		info->nand.ecc.bytes		= 13;
->  		info->nand.ecc.strength		= 8;
->  		info->nand.ecc.hwctl		= omap3_enable_hwecc_bch;
-> -		info->nand.ecc.correct		= omap3_correct_data_bch;
-> +		info->nand.ecc.correct		= nand_bch_correct_data;
->  		info->nand.ecc.calculate	= omap3_calculate_ecc_bch8;
->  		/* define custom ECC layout */
->  		ecclayout->eccbytes		= info->nand.ecc.bytes *
-> @@ -1967,10 +1949,11 @@ static int omap_nand_probe(struct platform_device *pdev)
->  							ecclayout->eccbytes;
->  		ecclayout->oobfree->offset	= BADBLOCK_MARKER_LENGTH;
->  		/* software bch library is used for locating errors */
-> -		info->bch = init_bch(info->nand.ecc.bytes,
-> -					info->nand.ecc.strength,
-> -					OMAP_ECC_BCH8_POLYNOMIAL);
-> -		if (!info->bch) {
-> +		info->nand.ecc.priv		= nand_bch_init(mtd,
-> +						info->nand.ecc.size,
-> +						info->nand.ecc.bytes,
-> +						&info->nand.ecc.layout);
-> +		if (!info->nand.ecc.priv) {
->  			pr_err("nand: error: unable to use s/w BCH library\n");
->  			err = -EINVAL;
->  			goto out_release_mem_region;
-> @@ -2062,7 +2045,12 @@ out_release_mem_region:
->  	release_mem_region(info->phys_base, info->mem_size);
->  
->  out_free_info:
-> -	omap3_free_bch(&info->mtd);
-
-Didn't you just add this line in the previous patch? Your patch series
-is confusing me...
-
-> +#ifdef CONFIG_MTD_NAND_ECC_BCH
-> +	if (info->nand.ecc.priv) {
-> +		nand_bch_free(info->nand.ecc.priv);
-> +		info->nand.ecc.priv = NULL;
-> +	}
-> +#endif
-
-I don't think you need this #ifdef, do you? nand_bch_free is stubbed out
-for the !CONFIG_MTD_NAND_ECC_BCH case.
-
->  	kfree(info);
->  
->  	return err;
-> @@ -2073,8 +2061,12 @@ static int omap_nand_remove(struct platform_device *pdev)
->  	struct mtd_info *mtd = platform_get_drvdata(pdev);
->  	struct omap_nand_info *info = container_of(mtd, struct omap_nand_info,
->  							mtd);
-> -	omap3_free_bch(&info->mtd);
-> -
-> +#ifdef CONFIG_MTD_NAND_ECC_BCH
-> +	if (info->nand.ecc.priv) {
-> +		nand_bch_free(info->nand.ecc.priv);
-> +		info->nand.ecc.priv = NULL;
-> +	}
-> +#endif
-
-Ditto.
-
->  	if (info->dma)
->  		dma_release_channel(info->dma);
->  
+This change should probably go in patch 1 anyway, when you break the
+ABI.
 
 Brian
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
