@@ -1,92 +1,99 @@
-From: Rob Landley <rob@landley.net>
-Subject: Re: new binutils needed for arm in 3.12-rc1
-Date: Tue, 24 Sep 2013 20:13:27 -0500
-Message-ID: <1380071607.1974.78@driftwood>
-References: <20130924214800.GV25647@n2100.arm.linux.org.uk>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: OMAP baseline test results for v3.12-rc2
+Date: Wed, 25 Sep 2013 01:15:45 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1309242206470.31082@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; DelSp=Yes; Format=Flowed
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-oa0-f48.google.com ([209.85.219.48]:40487 "EHLO
-	mail-oa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756449Ab3IYBNb convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Sep 2013 21:13:31 -0400
-Received: by mail-oa0-f48.google.com with SMTP id m6so224791oag.7
-        for <linux-omap@vger.kernel.org>; Tue, 24 Sep 2013 18:13:30 -0700 (PDT)
-In-Reply-To: <20130924214800.GV25647@n2100.arm.linux.org.uk> (from
-	linux@arm.linux.org.uk on Tue Sep 24 16:48:00 2013)
-Content-Disposition: inline
+Received: from utopia.booyaka.com ([74.50.51.50]:41946 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755970Ab3IYBPq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Sep 2013 21:15:46 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: =?iso-8859-1?q?M=E5ns_Rullg=E5rd?= <mans@mansr.com>, Andrew Morton <akpm@osdl.org>, Trivial patch monkey <trivial@kernel.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <will.deacon@arm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org
 
-On 09/24/2013 04:48:00 PM, Russell King - ARM Linux wrote:
-> On Tue, Sep 24, 2013 at 04:23:48PM -0500, Rob Landley wrote:
-> > What value is there in requiring the new toolchain? From what I  
-> could
-> > see of the commits it was micro-optimizations around memory  
-> barriers.
-> >
-> > *shrug* I can revert the patch locally, or patch the extra  
-> instruction
-> > into my toolchain. But I do object to changing the documentation
-> > globally for every architecture because one architecture did  
-> something
-> > they apparently never thought through (or they'd have commented in  
-> the
-> > commit that it requires a big toolchain version jump; pretty sure  
-> they
-> > didn't actually notice).
-> 
-> Some of us are notoriously slow at updating our toolchains.
-...
 
-Some of us can't ship GPLv3 binaries and are looking forward to the day  
-LLVM or some such provides a complete solution.
+Here are some basic OMAP test results for Linux v3.12-rc2.
+Logs and other details at:
 
-> Now, if you feel strongly about this, we _could_ introduce a
-> CONFIG_OLD_BINUTILS and give everyone their cake - but it will be
-> fragile.  Not everyone will remember to get that right, because  
-> they'll
-> be using the later binutils.  Also, we already have an excessive  
-> number
-> of potential breakage-inducing options and we certainly don't need
-> another.
+    http://www.pwsan.com/omap/testlogs/test_v3.12-rc2/20130924152551/
 
-I'm doing the regression testing either way, on several different  
-architectures. (Although I tend to to only really do a thorough job  
-quarterly when a new kernel comes out and it's time to make it work.)  
-So I'm going to be doing something locally like this anyway, and if a  
-CONFIG_OLD_BINUTILS is acceptable I might as well push it upstream.
 
-My use case is running all these targets under qemu, so it's not  
-exactly performance-critical. :)
+Test summary
+------------
 
-> Use IS_ENABLED() I hear you say.  That won't get the one dsb  
-> instruction
-> in some SoC code which was missed which will break the build on older
-> toolchains.
+Build: zImage:
+    Pass ( 2/ 2): omap2plus_defconfig, omap2plus_defconfig_am33xx_only
 
-My regression test is my http://landley.net/aboriginal/about.html  
-project, where I:
+Build: uImage+dtb:
+    Pass ( 3/ 3): omap2plus_defconfig_am33xx_only/am335x-bone,
+		  omap2plus_defconfig/omap4-panda,
+		  omap2plus_defconfig/omap4-panda-es
 
-1) build cross compilers for ~15 different architecture variants (maybe  
-half unique, the rest variants of the others).
+Build: uImage:
+    Pass (14/14): omap1_defconfig, omap1_defconfig_1510innovator_only,
+		  omap1_defconfig_5912osk_only, omap2plus_defconfig,
+		  omap2plus_defconfig_2430sdp_only,
+		  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm,
+		  omap2plus_defconfig_n800_only_a,
+		  omap2plus_defconfig_n800_multi_omap2xxx,
+		  omap2plus_defconfig_omap2_4_only,
+		  omap2plus_defconfig_omap3_4_only,
+		  rmk_omap3430_ldp_allnoconfig,
+		  rmk_omap3430_ldp_oldconfig,
+		  rmk_omap4430_sdp_allnoconfig
 
-2) Use them to build the smallest native development environment  
-capable of reproducing itself from soruce code.
+Boot to userspace:
+    skip ( 1/ 1): 5912osk
+    Pass (11/11): 2430sdp, 3517evm, 3530es3beagle, 3730beaglexm,
+		  37xxevm, 4430es2panda, 4460pandaes, am335xbone,
+		  am335xbonelt, cmt3517, 4460varsomom
 
-3) Boot it under qemu.
+PM: chip retention via suspend:
+    FAIL ( 3/ 7): 2430sdp, 4430es2panda, 4460varsomom
+    Pass ( 4/ 7): 3530es3beagle, 3730beaglexm, 37xxevm, 4460pandaes
 
-4) Build linux from scratch under the result.
+PM: chip retention via dynamic idle:
+    FAIL ( 4/ 7): 2430sdp, 4430es2panda, 4460pandaes, 4460varsomom
+    Pass ( 3/ 7): 3530es3beagle, 3730beaglexm, 37xxevm
 
-I've sometimes had it the whole mess automated from a cron job, but the  
-server I had it on blew out its hard drive controller and I haven't  
-bothered to set it up again...
+PM: chip off except CORE via suspend:
+    Pass ( 1/ 1): 3730beaglexm
 
-Next couple days are crazy but I'll try to get you a patch this weekend.
+PM: chip off except CORE via dynamic idle:
+    Pass ( 1/ 1): 3730beaglexm
 
-Thanks,
+PM: chip off via suspend:
+    FAIL ( 3/ 5): 4430es2panda, 4460pandaes, 4460varsomom
+    Pass ( 2/ 5): 3530es3beagle, 37xxevm
 
-Rob
+PM: chip off via dynamic idle:
+    FAIL ( 3/ 5): 4430es2panda, 4460pandaes, 4460varsomom
+    Pass ( 2/ 5): 3530es3beagle, 37xxevm
+
+
+vmlinux object size
+(delta in bytes from test_v3.12-rc1 (272b98c6455f00884f0350f775c5342358ebb73f)):
+   text     data      bss    total  kernel
+   +784       -8        0     +776  omap1_defconfig
+   +816      +24        0     +840  omap1_defconfig_1510innovator_only
+   +752        0        0     +752  omap1_defconfig_5912osk_only
+   +708      -16        0     +692  omap2plus_defconfig
+   +916      -16        0     +900  omap2plus_defconfig_2430sdp_only
+   +780      +16        0     +796  omap2plus_defconfig_cpupm
+   +236       -8        0     +228  omap2plus_defconfig_n800_multi_omap2xxx
+   +236       -8        0     +228  omap2plus_defconfig_n800_only_a
+   +708      -16        0     +692  omap2plus_defconfig_no_pm
+   +708      -16        0     +692  omap2plus_defconfig_omap2_4_only
+   +772      -16        0     +756  omap2plus_defconfig_omap3_4_only
+   +632        0     -264     +368  rmk_omap3430_ldp_allnoconfig
+   +544        0        0     +544  rmk_omap3430_ldp_oldconfig
+   +680        0     -280     +400  rmk_omap4430_sdp_allnoconfig
+
+Boot-time memory difference
+(delta in bytes from test_v3.12-rc1 (272b98c6455f00884f0350f775c5342358ebb73f))
+  avail  rsrvd   high  freed  board          kconfig
+  (no differences)
+
