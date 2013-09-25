@@ -1,63 +1,158 @@
-From: Paul Zimmerman <Paul.Zimmerman@synopsys.com>
-Subject: RE: Booting recent mainline on omap5-uevm
-Date: Tue, 24 Sep 2013 23:59:33 +0000
-Message-ID: <A2CA0424C0A6F04399FB9E1CD98E030458E05BDB@US01WEMBX2.internal.synopsys.com>
-References: <A2CA0424C0A6F04399FB9E1CD98E030458E05AC1@US01WEMBX2.internal.synopsys.com>
- <52421139.1090005@ti.com> <524224CC.5010707@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from us02smtp2.synopsys.com ([198.182.60.77]:38182 "EHLO
-	alvesta.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755014Ab3IXX7f convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Sep 2013 19:59:35 -0400
-In-Reply-To: <524224CC.5010707@ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Subject: [PATCH 1/2] gpio/omap: maintain GPIO and IRQ usage separately
+Date: Wed, 25 Sep 2013 02:36:52 +0200
+Message-ID: <1380069414-2922-1-git-send-email-javier.martinez@collabora.co.uk>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@linaro.org>, Stephen Warren <swarren@wwwdotorg.org>, Lars Poeschel <larsi@wh2.tu-dresden.de>, Grant Likely <grant.likely@linaro.org>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ian.campbell@citrix.com>, Kumar Gala <galak@codeaurora.org>, Pawel Moll <pawel.moll@arm.com>, Tomasz Figa <tomasz.figa@gmail.com>, Enric Balletbo i Serra <eballetbo@gmail.com>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, Balaji T K <balajitk@ti.com>, Tony Lindgren <tony@atomide.com>, Jon Hunter <jgchunter@gmail.com>, linux-gpio@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, r.sricharan@ti.com, holler@ahsoftware.de, Javier Martinez Canillas <javier.martinez@collabora.co.uk>
 List-Id: linux-omap@vger.kernel.org
-To: Suman Anna <s-anna@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "lokeshvutla@ti.com" <lokeshvutla@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-> From: Suman Anna [mailto:s-anna@ti.com]
-> Sent: Tuesday, September 24, 2013 4:48 PM
-> 
-> On 09/24/2013 05:24 PM, Santosh Shilimkar wrote:
-> > On Tuesday 24 September 2013 04:30 PM, Paul Zimmerman wrote:
-> >>> From: Paul Zimmerman
-> >>> Sent: Tuesday, September 24, 2013 1:21 PM
-> >>>
-> >>> Hi,
-> >>>
-> >>> I have an OMAP5432 uEVM which I cannot get to boot with recent mainline
-> >>> (tried 3.11 and 3.12-rc1). I have the TI GLSDK for this board (v6.0.0.7),
-> >>> which comes with 3.8.4 which works fine.
-> >>>
-> >>> I found this thread: http://marc.info/?l=fedora-arm&m=137717811815777 and
-> >>
-> >> Wrong link, should have been http://marc.info/?l=linux-omap&m=137515583214350.
-> >>
-> > Its because of commit 03ab349ec{ARM: OMAP5: hwmod data: Add mailbox data} which
-> > added hwmod data but DT data for mailbox is missing. Reverting that makes
-> > things work. Looks like mailbox dt patches missed the last merge window.
-> 
-> Yeah, the boot sequence tries to enable and idle all the hwmods, and
-> this results in an error while initializing the mailbox hwmod during the
-> sysc configuration. This is because the OMAP5 hwmod data file no longer
-> has the omap_hwmod_addr_space defined in the hwmod_ocp_if data. Two ways
-> for now to get past is either revert the mailbox hwmod commit as above
-> or add the DT node [2].
-> 
-> I will be respinning the mailbox DT series very soon targeting 3.13, so
-> should not be an issue when OMAP5 boot is supported directly on mainline.
+The GPIO OMAP controller pins can be used as IRQ and GPIO
+independently so is necessary to keep track GPIO pins and
+IRQ lines usage separately to make sure that the bank will
+always be enabled while being used.
 
-That's good info, but unfortunately it didn't work for me. I must have a
-different problem, maybe I need a newer version of u-boot.
+Also move gpio_is_input() definition in preparation for the
+next patch that setups the controller's irq_chip driver when
+a caller requests an interrupt line.
 
-So there is no README or wiki that explains how to get Linux to boot on
-this board? Is there perhaps a prebuilt SD card image somewhere with a
-recent kernel that I can grab?
+Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+---
+ drivers/gpio/gpio-omap.c | 35 +++++++++++++++++++++--------------
+ 1 file changed, 21 insertions(+), 14 deletions(-)
 
+diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+index 0ff4355..a4fe038 100644
+--- a/drivers/gpio/gpio-omap.c
++++ b/drivers/gpio/gpio-omap.c
+@@ -63,6 +63,7 @@ struct gpio_bank {
+ 	struct gpio_chip chip;
+ 	struct clk *dbck;
+ 	u32 mod_usage;
++	u32 irq_usage;
+ 	u32 dbck_enable_mask;
+ 	bool dbck_enabled;
+ 	struct device *dev;
+@@ -86,6 +87,9 @@ struct gpio_bank {
+ #define GPIO_BIT(bank, gpio) (1 << GPIO_INDEX(bank, gpio))
+ #define GPIO_MOD_CTRL_BIT	BIT(0)
+ 
++#define BANK_USED(bank) (bank->mod_usage || bank->irq_usage)
++#define LINE_USED(line, offset) (line & (1 << offset))
++
+ static int irq_to_gpio(struct gpio_bank *bank, unsigned int gpio_irq)
+ {
+ 	return bank->chip.base + gpio_irq;
+@@ -420,6 +424,13 @@ static int _set_gpio_triggering(struct gpio_bank *bank, int gpio,
+ 	return 0;
+ }
+ 
++static int gpio_is_input(struct gpio_bank *bank, int mask)
++{
++	void __iomem *reg = bank->base + bank->regs->direction;
++
++	return __raw_readl(reg) & mask;
++}
++
+ static int gpio_irq_type(struct irq_data *d, unsigned type)
+ {
+ 	struct gpio_bank *bank = irq_data_get_irq_chip_data(d);
+@@ -427,7 +438,7 @@ static int gpio_irq_type(struct irq_data *d, unsigned type)
+ 	int retval;
+ 	unsigned long flags;
+ 
+-	if (WARN_ON(!bank->mod_usage))
++	if (WARN_ON(!BANK_USED(bank)))
+ 		return -EINVAL;
+ 
+ #ifdef CONFIG_ARCH_OMAP1
+@@ -447,6 +458,7 @@ static int gpio_irq_type(struct irq_data *d, unsigned type)
+ 
+ 	spin_lock_irqsave(&bank->lock, flags);
+ 	retval = _set_gpio_triggering(bank, GPIO_INDEX(bank, gpio), type);
++	bank->irq_usage |= 1 << GPIO_INDEX(bank, gpio);
+ 	spin_unlock_irqrestore(&bank->lock, flags);
+ 
+ 	if (type & (IRQ_TYPE_LEVEL_LOW | IRQ_TYPE_LEVEL_HIGH))
+@@ -603,7 +615,7 @@ static int omap_gpio_request(struct gpio_chip *chip, unsigned offset)
+ 	 * If this is the first gpio_request for the bank,
+ 	 * enable the bank module.
+ 	 */
+-	if (!bank->mod_usage)
++	if (!BANK_USED(bank))
+ 		pm_runtime_get_sync(bank->dev);
+ 
+ 	spin_lock_irqsave(&bank->lock, flags);
+@@ -619,7 +631,7 @@ static int omap_gpio_request(struct gpio_chip *chip, unsigned offset)
+ 		__raw_writel(__raw_readl(reg) | (1 << offset), reg);
+ 	}
+ 
+-	if (bank->regs->ctrl && !bank->mod_usage) {
++	if (bank->regs->ctrl && !BANK_USED(bank)) {
+ 		void __iomem *reg = bank->base + bank->regs->ctrl;
+ 		u32 ctrl;
+ 
+@@ -654,7 +666,7 @@ static void omap_gpio_free(struct gpio_chip *chip, unsigned offset)
+ 
+ 	bank->mod_usage &= ~(1 << offset);
+ 
+-	if (bank->regs->ctrl && !bank->mod_usage) {
++	if (bank->regs->ctrl && !BANK_USED(bank)) {
+ 		void __iomem *reg = bank->base + bank->regs->ctrl;
+ 		u32 ctrl;
+ 
+@@ -672,7 +684,7 @@ static void omap_gpio_free(struct gpio_chip *chip, unsigned offset)
+ 	 * If this is the last gpio to be freed in the bank,
+ 	 * disable the bank module.
+ 	 */
+-	if (!bank->mod_usage)
++	if (!BANK_USED(bank))
+ 		pm_runtime_put(bank->dev);
+ }
+ 
+@@ -762,8 +774,10 @@ static void gpio_irq_shutdown(struct irq_data *d)
+ 	struct gpio_bank *bank = irq_data_get_irq_chip_data(d);
+ 	unsigned int gpio = irq_to_gpio(bank, d->hwirq);
+ 	unsigned long flags;
++	unsigned offset = GPIO_INDEX(bank, gpio);
+ 
+ 	spin_lock_irqsave(&bank->lock, flags);
++	bank->irq_usage &= ~(1 << offset);
+ 	_reset_gpio(bank, gpio);
+ 	spin_unlock_irqrestore(&bank->lock, flags);
+ }
+@@ -897,13 +911,6 @@ static int gpio_input(struct gpio_chip *chip, unsigned offset)
+ 	return 0;
+ }
+ 
+-static int gpio_is_input(struct gpio_bank *bank, int mask)
+-{
+-	void __iomem *reg = bank->base + bank->regs->direction;
+-
+-	return __raw_readl(reg) & mask;
+-}
+-
+ static int gpio_get(struct gpio_chip *chip, unsigned offset)
+ {
+ 	struct gpio_bank *bank;
+@@ -1400,7 +1407,7 @@ void omap2_gpio_prepare_for_idle(int pwr_mode)
+ 	struct gpio_bank *bank;
+ 
+ 	list_for_each_entry(bank, &omap_gpio_list, node) {
+-		if (!bank->mod_usage || !bank->loses_context)
++		if (!BANK_USED(bank) || !bank->loses_context)
+ 			continue;
+ 
+ 		bank->power_mode = pwr_mode;
+@@ -1414,7 +1421,7 @@ void omap2_gpio_resume_after_idle(void)
+ 	struct gpio_bank *bank;
+ 
+ 	list_for_each_entry(bank, &omap_gpio_list, node) {
+-		if (!bank->mod_usage || !bank->loses_context)
++		if (!BANK_USED(bank) || !bank->loses_context)
+ 			continue;
+ 
+ 		pm_runtime_get_sync(bank->dev);
 -- 
-Paul
-
+1.8.4.rc3
