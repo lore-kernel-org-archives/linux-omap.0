@@ -1,79 +1,64 @@
-From: Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 2/2] ARM: dts: dra7-evm: Add mmc2 node for eMMC support
-Date: Wed, 25 Sep 2013 21:47:14 +0530
-Message-ID: <52430C8A.6040404@ti.com>
-References: <1377525218-7655-1-git-send-email-balajitk@ti.com> <1377525218-7655-3-git-send-email-balajitk@ti.com> <52415E41.7050301@baylibre.com>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: [PATCH] arm: Fix build error with context tracking calls
+Date: Wed, 25 Sep 2013 10:38:58 -0700
+Message-ID: <874n986bt9.fsf@linaro.org>
+References: <522CB0DE.2010102@roeck-us.net>
+	<20130909105115.GL25647@n2100.arm.linux.org.uk>
+	<522DB86A.8010207@roeck-us.net>
+	<alpine.LFD.2.03.1309091023440.20709@syhkavp.arg>
+	<20130909160348.GB18975@roeck-us.net>
+	<20130909203141.GM25647@n2100.arm.linux.org.uk>
+	<20130909210203.GC28416@roeck-us.net>
+	<alpine.LFD.2.03.1309091714420.20709@syhkavp.arg>
+	<87y574g1fi.fsf@linaro.org> <20130913170331.GA8453@somewhere>
+	<20130914143213.GN25647@n2100.arm.linux.org.uk>
+	<CAFTL4hzccoaUinQ37bpbqXDv-bbNkuww8FURQMwD_zEb9RqSMA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <52415E41.7050301-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pd0-f169.google.com ([209.85.192.169]:63686 "EHLO
+	mail-pd0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751315Ab3IYRjA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Sep 2013 13:39:00 -0400
+Received: by mail-pd0-f169.google.com with SMTP id r10so6397464pdi.14
+        for <linux-omap@vger.kernel.org>; Wed, 25 Sep 2013 10:39:00 -0700 (PDT)
+In-Reply-To: <CAFTL4hzccoaUinQ37bpbqXDv-bbNkuww8FURQMwD_zEb9RqSMA@mail.gmail.com>
+	(Frederic Weisbecker's message of "Sun, 22 Sep 2013 11:59:35 -0500")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Frederic Weisbecker <fweisbec@gmail.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Nicolas Pitre <nicolas.pitre@linaro.org>, Guenter Roeck <linux@roeck-us.net>, Anil Kumar <anilk4.v@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, Benoit Cousson <b-cousson@ti.com>
 
-On Tuesday 24 September 2013 03:11 PM, Benoit Cousson wrote:
-> + Sekhar
->
-> Hi Balaji,
->
-> On 26/08/2013 15:53, Balaji T K wrote:
->> Add mmc2 dt node to dra7-evm board
->> and model eMMC vcc as fixed regulator.
+Frederic Weisbecker <fweisbec@gmail.com> writes:
+
+> 2013/9/14, Russell King - ARM Linux <linux@arm.linux.org.uk>:
+>> On Fri, Sep 13, 2013 at 07:03:34PM +0200, Frederic Weisbecker wrote:
+>>> diff --git a/kernel/context_tracking.c b/kernel/context_tracking.c
+>>> index 247091b..859c8df 100644
+>>> --- a/kernel/context_tracking.c
+>>> +++ b/kernel/context_tracking.c
+>>> @@ -51,6 +51,15 @@ void context_tracking_user_enter(void)
+>>>  	unsigned long flags;
+>>>
+>>>  	/*
+>>> +	 * Repeat the user_enter() check here because some archs may be calling
+>>> +	 * this from asm and if no CPU needs context tracking, they shouldn't
+>>> +	 * go further. We can remove that check here once these archs support
+>>> the static key
+>>> +	 * check.
 >>
->> Signed-off-by: Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>
->> ---
->>   arch/arm/boot/dts/dra7-evm.dts |   14 ++++++++++++++
->>   1 files changed, 14 insertions(+), 0 deletions(-)
+>> The only (minor) comment on this is that the above would fail checkpatch,
+>> but that's not a good enough reason to respin it if you've already applied
+>> it IMHO.
 >>
->> diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
->> index a59bbd0..2062724 100644
->> --- a/arch/arm/boot/dts/dra7-evm.dts
->> +++ b/arch/arm/boot/dts/dra7-evm.dts
->> @@ -17,6 +17,13 @@
->>           device_type = "memory";
->>           reg = <0x80000000 0x60000000>; /* 1536 MB */
->>       };
->> +
->> +    mmc2_3v3: fixedregulator-mmc2 {
->> +        compatible = "regulator-fixed";
->> +        regulator-name = "mmc2_3v3";
->> +        regulator-min-microvolt = <3300000>;
->> +        regulator-max-microvolt = <3300000>;
->> +    };
->>   };
->>
->>   &dra7_pmx_core {
->> @@ -257,3 +264,10 @@
->>       vmmc-supply = <&ldo1_reg>;
->>       bus-width = <4>;
->>   };
->> +
->> +&mmc2 {
->> +    status = "okay";
->> +    vmmc-supply = <&mmc2_3v3>;
->> +    bus-width = <8>;
->> +    ti,non-removable;
 >
-> Sekhar just posted a series to replace that with a non-TI attribute: non-removable.
+> Ah I haven't yet pushed that patch anywhere so I can definetly fix
+> that. Thanks for the review. BTW, I initially first thought this fix
+> could go through your tree but if you prefer I can push it through
+> Ingo to the context tracking bits.
 >
-> I'm not sure if this got merged, but it might be good to use the standard attribute instead.
+> Just tell me either way.
 
-Hi Benoit,
+Frederic, I suggest you queue it directly for v3.12-rc.  Thanks,
 
-Those patches are not merged yet, standard attribute is good, but few cleanups are needed
-before ti,non-removable can be replaced by standard non-removable,
-no_regulator_off_init flag set under ti,non-removable is needed to detect eMMC
-during boot on OMAP4 devices to keep regulator ON during init. Given that eMMC on dra7-evm
-is powered by always ON regulator, ti,non-removable and standard attribute will behave same
-way. Let me know if you want to remove ti,non-removable attribute from this patch.
-
->
-> Regards,
-> Benoit
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Kevin
