@@ -1,38 +1,49 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: [PATCH] OMAPDSS: Add missing dependency on backlight for DSI-CM panel drier
-Date: Wed, 25 Sep 2013 12:31:01 +0100
-Message-ID: <1380108661-22702-1-git-send-email-broonie@kernel.org>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cassiel.sirena.org.uk ([80.68.93.111]:36281 "EHLO
-	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755240Ab3IYLbH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Sep 2013 07:31:07 -0400
-Sender: linux-omap-owner@vger.kernel.org
+From: Bartlomiej Zolnierkiewicz <b.zolnierkie-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [RFC PATCH 08/15] ata: ahci_platform: Manage SATA PHY
+Date: Wed, 25 Sep 2013 14:16:41 +0200
+Message-ID: <2926093.ynDRy1bx5J@amdc1032>
+References: <1379595943-14622-1-git-send-email-rogerq@ti.com>
+ <20130922215107.GD27616@mtj.dyndns.org> <524039E0.2060205@cogentembedded.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7Bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-reply-to: <524039E0.2060205-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
+Cc: Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, balbi-l0cyMroinI0@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, balajitk-l0cyMroinI0@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-ide-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>
-Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, linaro-kernel@lists.linaro.org, Mark Brown <broonie@linaro.org>
 
-From: Mark Brown <broonie@linaro.org>
 
-The DSI-CM driver uses the backlight class so needs to build depend on it.
+Hi,
 
-Signed-off-by: Mark Brown <broonie@linaro.org>
----
- drivers/video/omap2/displays-new/Kconfig | 1 +
- 1 file changed, 1 insertion(+)
+On Monday, September 23, 2013 04:53:52 PM Sergei Shtylyov wrote:
+> Hello.
+> 
+> On 23-09-2013 1:51, Tejun Heo wrote:
+> 
+> >>     Not sure why you asked -- I'm not using this driver, neither I'm
+> 
+> > Well, you have better grip of what's going on in the embedded world
+> > than me.  I'm mostly curious whether adding dependency on PHY is okay.
+> 
+>     This driver already supports optional clock, the optional PHY support
+> seems analogous.
 
-diff --git a/drivers/video/omap2/displays-new/Kconfig b/drivers/video/omap2/displays-new/Kconfig
-index 6c90885..10b25e7 100644
---- a/drivers/video/omap2/displays-new/Kconfig
-+++ b/drivers/video/omap2/displays-new/Kconfig
-@@ -35,6 +35,7 @@ config DISPLAY_PANEL_DPI
- 
- config DISPLAY_PANEL_DSI_CM
- 	tristate "Generic DSI Command Mode Panel"
-+	depends on BACKLIGHT_CLASS_DEVICE
- 	help
- 	  Driver for generic DSI command mode panels.
- 
--- 
-1.8.4.rc3
+Right, this reminds me that PHY support should probably also be added to
+ahci_suspend() and ahci_resume().
 
+Also please note the generic PHY framework is not yet merged in Linus'
+tree so this patch should probably be merged only after the generic PHY
+framework is in.
+
+Best regards,
+--
+Bartlomiej Zolnierkiewicz
+Samsung R&D Institute Poland
+Samsung Electronics
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
