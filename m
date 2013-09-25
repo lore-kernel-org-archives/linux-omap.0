@@ -1,7 +1,7 @@
 From: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
-Subject: [PATCHv7 02/36] CLK: TI: add DT alias clock registration mechanism
-Date: Wed, 25 Sep 2013 11:48:08 +0300
-Message-ID: <1380098922-30340-3-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv7 03/36] CLK: TI: add autoidle support
+Date: Wed, 25 Sep 2013 11:48:09 +0300
+Message-ID: <1380098922-30340-4-git-send-email-t-kristo@ti.com>
 References: <1380098922-30340-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,37 +12,61 @@ To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMw
 Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Some devices require their clocks to be available with a specific
-dev-id con-id mapping. With DT, the clocks can be found by default
-only with their name, or alternatively through the device node of
-the consumer. With drivers, that don't support DT fully yet, add
-mechanism to register specific clock names.
+TI clk driver now routes some of the basic clocks through own
+registration routine to allow autoidle support. This routine just
+checks a couple of device node properties and adds autoidle support
+if required, and just passes the registration forward to basic clocks.
 
 Signed-off-by: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
 ---
- drivers/clk/ti/Makefile |    2 +-
- drivers/clk/ti/clk.c    |   52 +++++++++++++++++++++++++++++++++++++++++++++++
- include/linux/clk/ti.h  |   23 +++++++++++++++++++++
- 3 files changed, 76 insertions(+), 1 deletion(-)
- create mode 100644 drivers/clk/ti/clk.c
+ arch/arm/mach-omap2/clock.c |    6 +++
+ drivers/clk/ti/Makefile     |    2 +-
+ drivers/clk/ti/autoidle.c   |  107 +++++++++++++++++++++++++++++++++++++++++++
+ include/linux/clk/ti.h      |    9 ++++
+ 4 files changed, 123 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/clk/ti/autoidle.c
 
+diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
+index 0c38ca9..223f432b 100644
+--- a/arch/arm/mach-omap2/clock.c
++++ b/arch/arm/mach-omap2/clock.c
+@@ -520,6 +520,9 @@ int omap2_clk_enable_autoidle_all(void)
+ 	list_for_each_entry(c, &clk_hw_omap_clocks, node)
+ 		if (c->ops && c->ops->allow_idle)
+ 			c->ops->allow_idle(c);
++
++	of_ti_clk_allow_autoidle_all();
++
+ 	return 0;
+ }
+ 
+@@ -539,6 +542,9 @@ int omap2_clk_disable_autoidle_all(void)
+ 	list_for_each_entry(c, &clk_hw_omap_clocks, node)
+ 		if (c->ops && c->ops->deny_idle)
+ 			c->ops->deny_idle(c);
++
++	of_ti_clk_deny_autoidle_all();
++
+ 	return 0;
+ }
+ 
 diff --git a/drivers/clk/ti/Makefile b/drivers/clk/ti/Makefile
-index 93177987..05af5d8 100644
+index 05af5d8..533efb4 100644
 --- a/drivers/clk/ti/Makefile
 +++ b/drivers/clk/ti/Makefile
 @@ -1,3 +1,3 @@
  ifneq ($(CONFIG_OF),)
--obj-y					+= dpll.o
-+obj-y					+= clk.o dpll.o
+-obj-y					+= clk.o dpll.o
++obj-y					+= clk.o dpll.o autoidle.o
  endif
-diff --git a/drivers/clk/ti/clk.c b/drivers/clk/ti/clk.c
+diff --git a/drivers/clk/ti/autoidle.c b/drivers/clk/ti/autoidle.c
 new file mode 100644
-index 0000000..ad58b01
+index 0000000..ccac33c
 --- /dev/null
-+++ b/drivers/clk/ti/clk.c
-@@ -0,0 +1,52 @@
++++ b/drivers/clk/ti/autoidle.c
+@@ -0,0 +1,107 @@
 +/*
-+ * TI clock support
++ * TI clock autoidle support
 + *
 + * Copyright (C) 2013 Texas Instruments, Inc.
 + *
@@ -59,88 +83,115 @@ index 0000000..ad58b01
 + */
 +
 +#include <linux/clk-provider.h>
-+#include <linux/clkdev.h>
-+#include <linux/clk/ti.h>
++#include <linux/slab.h>
++#include <linux/io.h>
 +#include <linux/of.h>
++#include <linux/of_address.h>
++#include <linux/clk/ti.h>
 +
-+/**
-+ * ti_dt_clocks_register - register DT duplicate clocks during boot
-+ * @oclks: list of clocks to register
-+ *
-+ * Register duplicate or non-standard DT clock entries during boot. By
-+ * default, DT clocks are found based on their node name. If any
-+ * additional con-id / dev-id -> clock mapping is required, use this
-+ * function to list these.
-+ */
-+void __init ti_dt_clocks_register(struct ti_dt_clk oclks[])
-+{
-+	struct ti_dt_clk *c;
-+	struct device_node *node;
-+	struct clk *clk;
-+	struct of_phandle_args clkspec;
-+
-+	for (c = oclks; c->node_name != NULL; c++) {
-+		node = of_find_node_by_name(NULL, c->node_name);
-+		clkspec.np = node;
-+		clk = of_clk_get_from_provider(&clkspec);
-+
-+		if (!IS_ERR(clk)) {
-+			c->lk.clk = clk;
-+			clkdev_add(&c->lk);
-+		} else {
-+			pr_warn("%s: failed to lookup clock node %s\n",
-+				__func__, c->node_name);
-+		}
-+	}
-+}
-diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
-index 385384a..c89574e 100644
---- a/include/linux/clk/ti.h
-+++ b/include/linux/clk/ti.h
-@@ -15,6 +15,8 @@
- #ifndef __LINUX_CLK_TI_H__
- #define __LINUX_CLK_TI_H__
- 
-+#include <linux/clkdev.h>
-+
- /**
-  * struct dpll_data - DPLL registers and integration data
-  * @mult_div1_reg: register containing the DPLL M and N bitfields
-@@ -138,6 +140,25 @@ struct clk_hw_omap {
- /* DPLL Type and DCO Selection Flags */
- #define DPLL_J_TYPE		0x1
- 
-+/**
-+ * struct ti_dt_clk - OMAP DT clock alias declarations
-+ * @lk: clock lookup definition
-+ * @node_name: clock DT node to map to
-+ */
-+struct ti_dt_clk {
-+	struct clk_lookup		lk;
-+	char				*node_name;
++struct clk_ti_autoidle {
++	void __iomem		*reg;
++	u8			shift;
++	u8			flags;
++	const char		*name;
++	struct list_head	node;
 +};
 +
-+#define DT_CLK(dev, con, name)		\
-+	{				\
-+		.lk = {			\
-+			.dev_id = dev,	\
-+			.con_id = con,	\
-+		},			\
-+		.node_name = name,	\
++#define AUTOIDLE_LOW		0x1
++
++static LIST_HEAD(autoidle_clks);
++
++static void ti_allow_autoidle(struct clk_ti_autoidle *clk)
++{
++	u32 val;
++
++	val = readl(clk->reg);
++
++	if (clk->flags & AUTOIDLE_LOW)
++		val &= ~(1 << clk->shift);
++	else
++		val |= (1 << clk->shift);
++
++	writel(val, clk->reg);
++}
++
++static void ti_deny_autoidle(struct clk_ti_autoidle *clk)
++{
++	u32 val;
++
++	val = readl(clk->reg);
++
++	if (clk->flags & AUTOIDLE_LOW)
++		val |= (1 << clk->shift);
++	else
++		val &= ~(1 << clk->shift);
++
++	writel(val, clk->reg);
++}
++
++void of_ti_clk_allow_autoidle_all(void)
++{
++	struct clk_ti_autoidle *c;
++
++	list_for_each_entry(c, &autoidle_clks, node)
++		ti_allow_autoidle(c);
++}
++
++void of_ti_clk_deny_autoidle_all(void)
++{
++	struct clk_ti_autoidle *c;
++
++	list_for_each_entry(c, &autoidle_clks, node)
++		ti_deny_autoidle(c);
++}
++
++void __init of_ti_autoidle_setup(struct device_node *node)
++{
++	u32 shift;
++	void __iomem *reg;
++	struct clk_ti_autoidle *clk;
++
++	if (of_property_read_u32(node, "ti,autoidle-shift", &shift))
++		return;
++
++	reg = of_iomap(node, 0);
++
++	clk = kzalloc(sizeof(*clk), GFP_KERNEL);
++
++	if (!clk) {
++		pr_err("%s: kzalloc failed\n", __func__);
++		return;
 +	}
 +
- void omap2_init_clk_hw_omap_clocks(struct clk *clk);
- int omap3_noncore_dpll_enable(struct clk_hw *hw);
- void omap3_noncore_dpll_disable(struct clk_hw *hw);
-@@ -158,6 +179,8 @@ unsigned long omap3_clkoutx2_recalc(struct clk_hw *hw,
- int omap3_dpll4_set_rate(struct clk_hw *clk, unsigned long rate,
++	clk->shift = shift;
++	clk->name = node->name;
++	clk->reg = reg;
++
++	if (of_property_read_bool(node, "ti,autoidle-low"))
++		clk->flags |= AUTOIDLE_LOW;
++
++	list_add(&clk->node, &autoidle_clks);
++}
+diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
+index c89574e..6d552c1 100644
+--- a/include/linux/clk/ti.h
++++ b/include/linux/clk/ti.h
+@@ -180,6 +180,15 @@ int omap3_dpll4_set_rate(struct clk_hw *clk, unsigned long rate,
  			 unsigned long parent_rate);
  
-+void ti_dt_clocks_register(struct ti_dt_clk *oclks);
+ void ti_dt_clocks_register(struct ti_dt_clk *oclks);
++void of_ti_autoidle_setup(struct device_node *node);
 +
++#ifdef CONFIG_OF
++void of_ti_clk_allow_autoidle_all(void);
++void of_ti_clk_deny_autoidle_all(void);
++#else
++static inline void of_ti_clk_allow_autoidle_all(void) { }
++static inline void of_ti_clk_deny_autoidle_all(void) { }
++#endif
+ 
  extern const struct clk_hw_omap_ops clkhwops_omap3_dpll;
  extern const struct clk_hw_omap_ops clkhwops_omap4_dpllmx;
- 
 -- 
 1.7.9.5
 
