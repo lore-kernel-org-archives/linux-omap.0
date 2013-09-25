@@ -1,206 +1,95 @@
-From: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
-Subject: [PATCHv7 06/36] CLK: TI: add support for OMAP gate clock
-Date: Wed, 25 Sep 2013 11:48:12 +0300
-Message-ID: <1380098922-30340-7-git-send-email-t-kristo@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: [PATCHv7 07/36] CLK: TI: add support for clockdomain binding
+Date: Wed, 25 Sep 2013 11:48:13 +0300
+Message-ID: <1380098922-30340-8-git-send-email-t-kristo@ti.com>
 References: <1380098922-30340-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1380098922-30340-1-git-send-email-t-kristo-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, mturquette-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
-Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:60039 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754411Ab3IYItw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 25 Sep 2013 04:49:52 -0400
+In-Reply-To: <1380098922-30340-1-git-send-email-t-kristo@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, nm@ti.com, rnayak@ti.com, bcousson@baylibre.com, mturquette@linaro.org
+Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-This patch adds support for TI specific gate clocks. These behave as basic
-gate-clock, but have different ops / hw-ops for controlling the actual
-gate, for example waiting until the clock is ready. Several sub-types
-are supported:
-- ti,gate-clock: basic gate clock with default ops/hwops
-- ti,clkdm-gate-clock: clockdomain level gate control
-- ti,dss-gate-clock: gate clock with DSS specific hardware handling
-- ti,am35xx-gate-clock: gate clock with AM35xx specific hardware handling
-- ti,hsdiv-gate-clock: gate clock with OMAP36xx hardware errata handling
+Some OMAP clocks require knowledge about their parent clockdomain for
+book keeping purposes. This patch creates a new DT binding for TI
+clockdomains, which act as a collection of device clocks.
 
-Signed-off-by: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- .../devicetree/bindings/clock/ti/gate.txt          |   75 ++++++++
- arch/arm/mach-omap2/clock.h                        |   28 ---
+ .../devicetree/bindings/clock/ti/clockdomain.txt   |   19 ++++++++
+ arch/arm/mach-omap2/clock.h                        |    1 -
  drivers/clk/ti/Makefile                            |    2 +-
- drivers/clk/ti/gate.c                              |  184 ++++++++++++++++++++
- include/linux/clk/ti.h                             |   35 ++++
- 5 files changed, 295 insertions(+), 29 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/clock/ti/gate.txt
- create mode 100644 drivers/clk/ti/gate.c
+ drivers/clk/ti/clockdomain.c                       |   46 ++++++++++++++++++++
+ include/linux/clk/ti.h                             |    2 +
+ 5 files changed, 68 insertions(+), 2 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/clock/ti/clockdomain.txt
+ create mode 100644 drivers/clk/ti/clockdomain.c
 
-diff --git a/Documentation/devicetree/bindings/clock/ti/gate.txt b/Documentation/devicetree/bindings/clock/ti/gate.txt
+diff --git a/Documentation/devicetree/bindings/clock/ti/clockdomain.txt b/Documentation/devicetree/bindings/clock/ti/clockdomain.txt
 new file mode 100644
-index 0000000..cf17534
+index 0000000..0dc5cd7
 --- /dev/null
-+++ b/Documentation/devicetree/bindings/clock/ti/gate.txt
-@@ -0,0 +1,75 @@
-+Binding for Texas Instruments gate clock.
++++ b/Documentation/devicetree/bindings/clock/ti/clockdomain.txt
+@@ -0,0 +1,19 @@
++Binding for Texas Instruments clockdomain.
 +
-+This binding uses the common clock binding[1]. This clock is
-+quite much similar to the basic gate-clock [2], however,
-+it supports a number of additional features. If no register
-+is provided for this clock, the code assumes that a clockdomain
-+will be controlled instead and the corresponding hw-ops for
-+that is used.
++This binding uses the common clock binding[1]. Every clock on
++TI SoC belongs to one clockdomain, but software only needs this
++information for specific clocks which require their parent
++clockdomain to be controlled when the clock is enabled/disabled.
 +
 +[1] Documentation/devicetree/bindings/clock/clock-bindings.txt
-+[2] Documentation/devicetree/bindings/clock/gate-clock.txt
-+[3] Documentation/devicetree/bindings/clock/ti/clockdomain.txt
 +
 +Required properties:
-+- compatible : shall be one of:
-+  "ti,gate-clock" - basic gate clock
-+  "ti,wait-gate-clock" - gate clock which waits until clock is active before
-+			 returning from clk_enable()
-+  "ti,dss-gate-clock" - gate clock with DSS specific hardware handling
-+  "ti,am35xx-gate-clock" - gate clock with AM35xx specific hardware handling
-+  "ti,clkdm-gate-clock" - clockdomain gate clock, which derives its functional
-+			  clock directly from a clockdomain, see [3] how
-+			  to map clockdomains properly
-+  "ti,hsdiv-gate-clock" - gate clock with OMAP36xx specific hardware handling,
-+			  required for a hardware errata
-+- #clock-cells : from common clock binding; shall be set to 0
-+- clocks : link to phandle of parent clock
-+- reg : base address for register controlling adjustable gate, not needed for
-+	ti,clkdm-gate-clock type
-+- ti,bit-shift : bit shift for programming the clock gate, not needed for
-+		 ti,clkdm-gate-clock type
-+
-+Optional properties:
-+- ti,set-bit-to-disable : inverts default gate programming. Setting the bit
-+  gates the clock and clearing the bit ungates the clock.
++- compatible : shall be "ti,clockdomain"
++- #clock-cells : from common clock binding; shall be set to 0.
++- clocks : link phandles of clocks within this domain
 +
 +Examples:
-+	mmchs2_fck: mmchs2_fck@48004a00 {
-+		#clock-cells = <0>;
-+		compatible = "ti,gate-clock";
-+		clocks = <&core_96m_fck>;
-+		reg = <0x48004a00 0x4>;
-+		ti,bit-shift = <25>;
-+	};
-+
-+	dss1_alwon_fck_3430es2: dss1_alwon_fck_3430es2@48004e00 {
-+		#clock-cells = <0>;
-+		compatible = "ti,dss-gate-clock";
-+		clocks = <&dpll4_m4x2_ck>;
-+		reg = <0x48004e00 0x4>;
-+		ti,bit-shift = <0>;
-+	};
-+
-+	emac_ick: emac_ick@4800259c {
-+		#clock-cells = <0>;
-+		compatible = "ti,am35xx-gate-clock";
-+		clocks = <&ipss_ick>;
-+		reg = <0x4800259c 0x4>;
-+		ti,bit-shift = <1>;
-+	};
-+
-+	emu_src_ck: emu_src_ck {
-+		#clock-cells = <0>;
-+		compatible = "ti,clkdm-gate-clock";
-+		clocks = <&emu_src_mux_ck>;
-+	};
-+
-+	dpll4_m2x2_ck: dpll4_m2x2_ck@48004d00 {
-+		#clock-cells = <0>;
-+		compatible = "ti,hsdiv-gate-clock";
-+		clocks = <&dpll4_m2x2_mul_ck>;
-+		ti,bit-shift = <0x1b>;
-+		reg = <0x48004d00 0x4>;
-+		ti,set-bit-to-disable;
++	dss_clkdm: dss_clkdm {
++		compatible = "ti,clockdomain";
++		clocks = <&dss1_alwon_fck_3430es2>, <&dss_ick_3430es2>;
 +	};
 diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
-index 079536a..f0b7218 100644
+index f0b7218..56d4664 100644
 --- a/arch/arm/mach-omap2/clock.h
 +++ b/arch/arm/mach-omap2/clock.h
-@@ -179,25 +179,6 @@ struct clksel {
- 	const struct clksel_rate *rates;
- };
+@@ -38,7 +38,6 @@ struct omap_clk {
+ 	}
  
--/*
-- * struct clk.flags possibilities
-- *
-- * XXX document the rest of the clock flags here
-- *
-- * CLOCK_CLKOUTX2: (OMAP4 only) DPLL CLKOUT and CLKOUTX2 GATE_CTRL
-- *     bits share the same register.  This flag allows the
-- *     omap4_dpllmx*() code to determine which GATE_CTRL bit field
-- *     should be used.  This is a temporary solution - a better approach
-- *     would be to associate clock type-specific data with the clock,
-- *     similar to the struct dpll_data approach.
-- */
--#define ENABLE_REG_32BIT	(1 << 0)	/* Use 32-bit access */
--#define CLOCK_IDLE_CONTROL	(1 << 1)
--#define CLOCK_NO_IDLE_PARENT	(1 << 2)
--#define ENABLE_ON_INIT		(1 << 3)	/* Enable upon framework init */
--#define INVERT_ENABLE		(1 << 4)	/* 0 enables, 1 disables */
--#define CLOCK_CLKOUTX2		(1 << 5)
--
- struct clk_hw_omap_ops {
- 	void			(*find_idlest)(struct clk_hw_omap *oclk,
- 					void __iomem **idlest_reg,
-@@ -260,9 +241,6 @@ extern void omap2_clkt_iclk_deny_idle(struct clk_hw_omap *clk);
+ struct clockdomain;
+-#define to_clk_hw_omap(_hw) container_of(_hw, struct clk_hw_omap, hw)
  
- unsigned long omap2_get_dpll_rate(struct clk_hw_omap *clk);
- 
--int omap2_dflt_clk_enable(struct clk_hw *hw);
--void omap2_dflt_clk_disable(struct clk_hw *hw);
--int omap2_dflt_clk_is_enabled(struct clk_hw *hw);
- void omap2_clk_dflt_find_companion(struct clk_hw_omap *clk,
- 				   void __iomem **other_reg,
- 				   u8 *other_bit);
-@@ -292,15 +270,12 @@ extern const struct clksel_rate dsp_ick_rates[];
- extern struct clk dummy_ck;
- 
- extern const struct clk_hw_omap_ops clkhwops_iclk_wait;
--extern const struct clk_hw_omap_ops clkhwops_wait;
- extern const struct clk_hw_omap_ops clkhwops_iclk;
- extern const struct clk_hw_omap_ops clkhwops_omap3430es2_ssi_wait;
- extern const struct clk_hw_omap_ops clkhwops_omap3430es2_iclk_ssi_wait;
--extern const struct clk_hw_omap_ops clkhwops_omap3430es2_dss_usbhost_wait;
- extern const struct clk_hw_omap_ops clkhwops_omap3430es2_iclk_dss_usbhost_wait;
- extern const struct clk_hw_omap_ops clkhwops_omap3430es2_iclk_hsotgusb_wait;
- extern const struct clk_hw_omap_ops clkhwops_omap3430es2_hsotgusb_wait;
--extern const struct clk_hw_omap_ops clkhwops_am35xx_ipss_module_wait;
- extern const struct clk_hw_omap_ops clkhwops_am35xx_ipss_wait;
- extern const struct clk_hw_omap_ops clkhwops_apll54;
- extern const struct clk_hw_omap_ops clkhwops_apll96;
-@@ -318,8 +293,5 @@ extern const struct clksel_rate div31_1to31_rates[];
- 
- extern int am33xx_clk_init(void);
- 
--extern int omap2_clkops_enable_clkdm(struct clk_hw *hw);
--extern void omap2_clkops_disable_clkdm(struct clk_hw *hw);
--
- extern void omap_clocks_register(struct omap_clk *oclks, int cnt);
- #endif
+ #define DEFINE_STRUCT_CLK(_name, _parent_array_name, _clkops_name)	\
+ 	static struct clk _name = {				\
 diff --git a/drivers/clk/ti/Makefile b/drivers/clk/ti/Makefile
-index a9b986a..63b1c45 100644
+index 63b1c45..ce8bd06 100644
 --- a/drivers/clk/ti/Makefile
 +++ b/drivers/clk/ti/Makefile
 @@ -1,4 +1,4 @@
  ifneq ($(CONFIG_OF),)
  obj-y					+= clk.o dpll.o autoidle.o divider.o \
--					   fixed-factor.o
-+					   fixed-factor.o gate.o
+-					   fixed-factor.o gate.o
++					   fixed-factor.o gate.o clockdomain.o
  endif
-diff --git a/drivers/clk/ti/gate.c b/drivers/clk/ti/gate.c
+diff --git a/drivers/clk/ti/clockdomain.c b/drivers/clk/ti/clockdomain.c
 new file mode 100644
-index 0000000..cc2a272
+index 0000000..3573bc9
 --- /dev/null
-+++ b/drivers/clk/ti/gate.c
-@@ -0,0 +1,184 @@
++++ b/drivers/clk/ti/clockdomain.c
+@@ -0,0 +1,46 @@
 +/*
-+ * OMAP gate clock support
++ * OMAP clockdomain support
 + *
 + * Copyright (C) 2013 Texas Instruments, Inc.
 + *
-+ * Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
++ * Tero Kristo <t-kristo@ti.com>
 + *
 + * This program is free software; you can redistribute it and/or modify
 + * it under the terms of the GNU General Public License version 2 as
@@ -214,236 +103,46 @@ index 0000000..cc2a272
 +
 +#include <linux/clk-provider.h>
 +#include <linux/slab.h>
-+#include <linux/io.h>
 +#include <linux/of.h>
 +#include <linux/of_address.h>
 +#include <linux/clk/ti.h>
 +
-+#define to_clk_divider(_hw) container_of(_hw, struct clk_divider, hw)
-+
-+static int omap36xx_gate_clk_enable_with_hsdiv_restore(struct clk_hw *clk);
-+
-+static const struct clk_ops omap_gate_clkdm_clk_ops = {
-+	.init		= &omap2_init_clk_clkdm,
-+	.enable		= &omap2_clkops_enable_clkdm,
-+	.disable	= &omap2_clkops_disable_clkdm,
-+};
-+
-+static const struct clk_ops omap_gate_clk_ops = {
-+	.init		= &omap2_init_clk_clkdm,
-+	.enable		= &omap2_dflt_clk_enable,
-+	.disable	= &omap2_dflt_clk_disable,
-+	.is_enabled	= &omap2_dflt_clk_is_enabled,
-+};
-+
-+static const struct clk_ops omap_gate_clk_hsdiv_restore_ops = {
-+	.init		= &omap2_init_clk_clkdm,
-+	.enable		= &omap36xx_gate_clk_enable_with_hsdiv_restore,
-+	.disable	= &omap2_dflt_clk_disable,
-+	.is_enabled	= &omap2_dflt_clk_is_enabled,
-+};
-+
-+/**
-+ * omap36xx_gate_clk_enable_with_hsdiv_restore - enable clocks suffering
-+ *         from HSDivider PWRDN problem Implements Errata ID: i556.
-+ * @clk: DPLL output struct clk
-+ *
-+ * 3630 only: dpll3_m3_ck, dpll4_m2_ck, dpll4_m3_ck, dpll4_m4_ck,
-+ * dpll4_m5_ck & dpll4_m6_ck dividers gets loaded with reset
-+ * valueafter their respective PWRDN bits are set.  Any dummy write
-+ * (Any other value different from the Read value) to the
-+ * corresponding CM_CLKSEL register will refresh the dividers.
-+ */
-+static int omap36xx_gate_clk_enable_with_hsdiv_restore(struct clk_hw *clk)
-+{
-+	struct clk_divider *parent;
-+	struct clk_hw *parent_hw;
-+	u32 dummy_v, orig_v;
-+	int ret;
-+
-+	/* Clear PWRDN bit of HSDIVIDER */
-+	ret = omap2_dflt_clk_enable(clk);
-+
-+	/* Parent is the x2 node, get parent of parent for the m2 div */
-+	parent_hw = __clk_get_hw(__clk_get_parent(__clk_get_parent(clk->clk)));
-+	parent = to_clk_divider(parent_hw);
-+
-+	/* Restore the dividers */
-+	if (!ret) {
-+		orig_v = __raw_readl(parent->reg);
-+		dummy_v = orig_v;
-+
-+		/* Write any other value different from the Read value */
-+		dummy_v ^= (1 << parent->shift);
-+		__raw_writel(dummy_v, parent->reg);
-+
-+		/* Write the original divider */
-+		__raw_writel(orig_v, parent->reg);
-+	}
-+
-+	return ret;
-+}
-+
-+static void __init _of_ti_gate_clk_setup(struct device_node *node,
-+					  void __iomem *reg,
-+					  const struct clk_ops *ops,
-+					  const struct clk_hw_omap_ops *hw_ops)
++static void __init of_ti_clockdomain_setup(struct device_node *node)
 +{
 +	struct clk *clk;
-+	struct clk_init_data init = { NULL };
-+	struct clk_hw_omap *clk_hw;
-+	const char *clk_name = node->name;
-+	const char *parent_name;
-+	u32 val;
++	struct clk_hw *clk_hw;
++	const char *clkdm_name = node->name;
++	int i;
++	int num_clks;
 +
-+	clk_hw = kzalloc(sizeof(*clk_hw), GFP_KERNEL);
-+	if (!clk_hw) {
-+		pr_err("%s: could not allocate clk_hw_omap\n", __func__);
-+		return;
++	num_clks = of_count_phandle_with_args(node, "clocks", "#clock-cells");
++
++	for (i = 0; i < num_clks; i++) {
++		clk = of_clk_get(node, i);
++		if (__clk_get_flags(clk) & CLK_IS_BASIC) {
++			pr_warn("%s: can't setup clkdm for basic clk %s\n",
++				__func__, __clk_get_name(clk));
++			continue;
++		}
++		clk_hw = __clk_get_hw(clk);
++		to_clk_hw_omap(clk_hw)->clkdm_name = clkdm_name;
++		omap2_init_clk_clkdm(clk_hw);
 +	}
-+
-+	clk_hw->hw.init = &init;
-+
-+	of_property_read_string(node, "clock-output-names", &clk_name);
-+
-+	init.name = clk_name;
-+	init.ops = ops;
-+	clk_hw->enable_reg = reg;
-+	if (!of_property_read_u32(node, "ti,bit-shift", &val))
-+		clk_hw->enable_bit = val;
-+	clk_hw->ops = hw_ops;
-+
-+	parent_name = of_clk_get_parent_name(node, 0);
-+	init.parent_names = &parent_name;
-+	init.num_parents = 1;
-+
-+	if (of_property_read_bool(node, "ti,set-rate-parent"))
-+		init.flags |= CLK_SET_RATE_PARENT;
-+
-+	if (of_property_read_bool(node, "ti,set-bit-to-disable"))
-+		clk_hw->flags |= INVERT_ENABLE;
-+
-+	clk = clk_register(NULL, &clk_hw->hw);
-+
-+	if (!IS_ERR(clk))
-+		of_clk_add_provider(node, of_clk_src_simple_get, clk);
 +}
-+
-+static void __init of_ti_clkdm_gate_clk_setup(struct device_node *node)
-+{
-+	_of_ti_gate_clk_setup(node, NULL, &omap_gate_clkdm_clk_ops, NULL);
-+}
-+CLK_OF_DECLARE(ti_clkdm_gate_clk, "ti,clkdm-gate-clock",
-+	       of_ti_clkdm_gate_clk_setup);
-+
-+static void __init of_ti_hsdiv_gate_clk_setup(struct device_node *node)
-+{
-+	void __iomem *reg = of_iomap(node, 0);
-+	_of_ti_gate_clk_setup(node, reg, &omap_gate_clk_hsdiv_restore_ops,
-+			      &clkhwops_wait);
-+}
-+CLK_OF_DECLARE(ti_hsdiv_gate_clk, "ti,hsdiv-gate-clock",
-+	       of_ti_hsdiv_gate_clk_setup);
-+
-+static void __init of_ti_gate_clk_setup(struct device_node *node)
-+{
-+	void __iomem *reg = of_iomap(node, 0);
-+	_of_ti_gate_clk_setup(node, reg, &omap_gate_clk_ops, NULL);
-+}
-+CLK_OF_DECLARE(ti_gate_clk, "ti,gate-clock", of_ti_gate_clk_setup)
-+
-+static void __init of_ti_wait_gate_clk_setup(struct device_node *node)
-+{
-+	void __iomem *reg = of_iomap(node, 0);
-+	_of_ti_gate_clk_setup(node, reg, &omap_gate_clk_ops, &clkhwops_wait);
-+}
-+CLK_OF_DECLARE(ti_wait_gate_clk, "ti,wait-gate-clock",
-+	       of_ti_wait_gate_clk_setup);
-+
-+#ifdef CONFIG_ARCH_OMAP3
-+static void __init of_ti_am35xx_gate_clk_setup(struct device_node *node)
-+{
-+	void __iomem *reg = of_iomap(node, 0);
-+	_of_ti_gate_clk_setup(node, reg, &omap_gate_clk_ops,
-+			      &clkhwops_am35xx_ipss_module_wait);
-+}
-+CLK_OF_DECLARE(ti_am35xx_gate_clk, "ti,am35xx-gate-clock",
-+	       of_ti_am35xx_gate_clk_setup);
-+
-+static void __init of_ti_dss_gate_clk_setup(struct device_node *node)
-+{
-+	void __iomem *reg = of_iomap(node, 0);
-+	_of_ti_gate_clk_setup(node, reg, &omap_gate_clk_ops,
-+			      &clkhwops_omap3430es2_dss_usbhost_wait);
-+}
-+CLK_OF_DECLARE(ti_dss_gate_clk, "ti,dss-gate-clock",
-+	       of_ti_dss_gate_clk_setup);
-+#endif
++CLK_OF_DECLARE(ti_clockdomain, "ti,clockdomain", of_ti_clockdomain_setup);
 diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
-index 7f58f11..e0a2d32 100644
+index e0a2d32..e70a2eb 100644
 --- a/include/linux/clk/ti.h
 +++ b/include/linux/clk/ti.h
-@@ -132,6 +132,33 @@ struct clk_hw_omap {
- 	const struct clk_hw_omap_ops	*ops;
- };
+@@ -186,6 +186,8 @@ struct ti_dt_clk {
+ 		.node_name = name,	\
+ 	}
  
-+/*
-+ * struct clk_hw_omap.flags possibilities
-+ *
-+ * XXX document the rest of the clock flags here
-+ *
-+ * ENABLE_REG_32BIT: (OMAP1 only) clock control register must be accessed
-+ *     with 32bit ops, by default OMAP1 uses 16bit ops.
-+ * CLOCK_IDLE_CONTROL: (OMAP1 only) clock has autoidle support.
-+ * CLOCK_NO_IDLE_PARENT: (OMAP1 only) when clock is enabled, its parent
-+ *     clock is put to no-idle mode.
-+ * ENABLE_ON_INIT: Clock is enabled on init.
-+ * INVERT_ENABLE: By default, clock enable bit behavior is '1' enable, '0'
-+ *     disable. This inverts the behavior making '0' enable and '1' disable.
-+ * CLOCK_CLKOUTX2: (OMAP4 only) DPLL CLKOUT and CLKOUTX2 GATE_CTRL
-+ *     bits share the same register.  This flag allows the
-+ *     omap4_dpllmx*() code to determine which GATE_CTRL bit field
-+ *     should be used.  This is a temporary solution - a better approach
-+ *     would be to associate clock type-specific data with the clock,
-+ *     similar to the struct dpll_data approach.
-+ */
-+#define ENABLE_REG_32BIT        (1 << 0)        /* Use 32-bit access */
-+#define CLOCK_IDLE_CONTROL      (1 << 1)
-+#define CLOCK_NO_IDLE_PARENT    (1 << 2)
-+#define ENABLE_ON_INIT          (1 << 3)        /* Enable upon framework init */
-+#define INVERT_ENABLE           (1 << 4)        /* 0 enables, 1 disables */
-+#define CLOCK_CLKOUTX2          (1 << 5)
++#define to_clk_hw_omap(_hw) container_of(_hw, struct clk_hw_omap, hw)
 +
- /* CM_CLKEN_PLL*.EN* bit values - not all are available for every DPLL */
- #define DPLL_LOW_POWER_STOP	0x1
- #define DPLL_LOW_POWER_BYPASS	0x5
-@@ -176,8 +203,13 @@ long omap2_dpll_round_rate(struct clk_hw *hw, unsigned long target_rate,
- void omap2_init_clk_clkdm(struct clk_hw *clk);
- unsigned long omap3_clkoutx2_recalc(struct clk_hw *hw,
- 				    unsigned long parent_rate);
-+int omap2_clkops_enable_clkdm(struct clk_hw *hw);
-+void omap2_clkops_disable_clkdm(struct clk_hw *hw);
- int omap3_dpll4_set_rate(struct clk_hw *clk, unsigned long rate,
- 			 unsigned long parent_rate);
-+int omap2_dflt_clk_enable(struct clk_hw *hw);
-+void omap2_dflt_clk_disable(struct clk_hw *hw);
-+int omap2_dflt_clk_is_enabled(struct clk_hw *hw);
- 
- void ti_dt_clocks_register(struct ti_dt_clk *oclks);
- void of_ti_autoidle_setup(struct device_node *node);
-@@ -194,5 +226,8 @@ static inline void of_ti_clk_deny_autoidle_all(void) { }
- 
- extern const struct clk_hw_omap_ops clkhwops_omap3_dpll;
- extern const struct clk_hw_omap_ops clkhwops_omap4_dpllmx;
-+extern const struct clk_hw_omap_ops clkhwops_wait;
-+extern const struct clk_hw_omap_ops clkhwops_omap3430es2_dss_usbhost_wait;
-+extern const struct clk_hw_omap_ops clkhwops_am35xx_ipss_module_wait;
- 
- #endif
+ void omap2_init_clk_hw_omap_clocks(struct clk *clk);
+ int omap3_noncore_dpll_enable(struct clk_hw *hw);
+ void omap3_noncore_dpll_disable(struct clk_hw *hw);
 -- 
 1.7.9.5
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
