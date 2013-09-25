@@ -1,64 +1,91 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: Booting recent mainline on omap5-uevm
-Date: Wed, 25 Sep 2013 11:02:39 -0400
-Message-ID: <5242FB0F.7090704@ti.com>
-References: <A2CA0424C0A6F04399FB9E1CD98E030458E05AC1@US01WEMBX2.internal.synopsys.com> <52421139.1090005@ti.com> <524224CC.5010707@ti.com> <A2CA0424C0A6F04399FB9E1CD98E030458E05BDB@US01WEMBX2.internal.synopsys.com>
+From: Rob Landley <rob@landley.net>
+Subject: Re: new binutils needed for arm in 3.12-rc1
+Date: Wed, 25 Sep 2013 10:23:06 -0500
+Message-ID: <1380122586.1974.84@driftwood>
+References: <alpine.LFD.2.03.1309242158340.312@syhkavp.arg>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii; DelSp=Yes; Format=Flowed
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:41533 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755443Ab3IYPCm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Sep 2013 11:02:42 -0400
-In-Reply-To: <A2CA0424C0A6F04399FB9E1CD98E030458E05BDB@US01WEMBX2.internal.synopsys.com>
+Received: from mail-ob0-f171.google.com ([209.85.214.171]:48751 "EHLO
+	mail-ob0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755905Ab3IYPXL convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Sep 2013 11:23:11 -0400
+Received: by mail-ob0-f171.google.com with SMTP id wm4so6878991obc.30
+        for <linux-omap@vger.kernel.org>; Wed, 25 Sep 2013 08:23:09 -0700 (PDT)
+In-Reply-To: <alpine.LFD.2.03.1309242158340.312@syhkavp.arg> (from
+	nico@fluxnic.net on Tue Sep 24 21:07:57 2013)
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Zimmerman <Paul.Zimmerman@synopsys.com>
-Cc: Suman Anna <s-anna@ti.com>, "tony@atomide.com" <tony@atomide.com>, "lokeshvutla@ti.com" <lokeshvutla@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Nicolas Pitre <nico@fluxnic.net>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, =?iso-8859-1?q?M=E5ns_Rullg=E5rd?= <mans@mansr.com>, Andrew Morton <akpm@osdl.org>, Trivial patch monkey <trivial@kernel.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <will.deacon@arm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Tuesday 24 September 2013 07:59 PM, Paul Zimmerman wrote:
->> From: Suman Anna [mailto:s-anna@ti.com]
->> Sent: Tuesday, September 24, 2013 4:48 PM
->>
->> On 09/24/2013 05:24 PM, Santosh Shilimkar wrote:
->>> On Tuesday 24 September 2013 04:30 PM, Paul Zimmerman wrote:
->>>>> From: Paul Zimmerman
->>>>> Sent: Tuesday, September 24, 2013 1:21 PM
->>>>>
->>>>> Hi,
->>>>>
->>>>> I have an OMAP5432 uEVM which I cannot get to boot with recent mainline
->>>>> (tried 3.11 and 3.12-rc1). I have the TI GLSDK for this board (v6.0.0.7),
->>>>> which comes with 3.8.4 which works fine.
->>>>>
->>>>> I found this thread: http://marc.info/?l=fedora-arm&m=137717811815777 and
->>>>
->>>> Wrong link, should have been http://marc.info/?l=linux-omap&m=137515583214350.
->>>>
->>> Its because of commit 03ab349ec{ARM: OMAP5: hwmod data: Add mailbox data} which
->>> added hwmod data but DT data for mailbox is missing. Reverting that makes
->>> things work. Looks like mailbox dt patches missed the last merge window.
->>
->> Yeah, the boot sequence tries to enable and idle all the hwmods, and
->> this results in an error while initializing the mailbox hwmod during the
->> sysc configuration. This is because the OMAP5 hwmod data file no longer
->> has the omap_hwmod_addr_space defined in the hwmod_ocp_if data. Two ways
->> for now to get past is either revert the mailbox hwmod commit as above
->> or add the DT node [2].
->>
->> I will be respinning the mailbox DT series very soon targeting 3.13, so
->> should not be an issue when OMAP5 boot is supported directly on mainline.
+On 09/24/2013 09:07:57 PM, Nicolas Pitre wrote:
+> On Tue, 24 Sep 2013, Rob Landley wrote:
 > 
-> That's good info, but unfortunately it didn't work for me. I must have a
-> different problem, maybe I need a newer version of u-boot.
+> > On 09/24/2013 04:48:00 PM, Russell King - ARM Linux wrote:
+> > > Now, if you feel strongly about this, we _could_ introduce a
+> > > CONFIG_OLD_BINUTILS and give everyone their cake - but it will be
+> > > fragile.  Not everyone will remember to get that right, because  
+> they'll
+> > > be using the later binutils.  Also, we already have an excessive  
+> number
+> > > of potential breakage-inducing options and we certainly don't need
+> > > another.
+> >
+> > I'm doing the regression testing either way, on several different
+> > architectures. (Although I tend to to only really do a thorough job  
+> quarterly
+> > when a new kernel comes out and it's time to make it work.) So I'm  
+> going to be
+> > doing something locally like this anyway, and if a  
+> CONFIG_OLD_BINUTILS is
+> > acceptable I might as well push it upstream.
 > 
-> So there is no README or wiki that explains how to get Linux to boot on
-> this board? Is there perhaps a prebuilt SD card image somewhere with a
-> recent kernel that I can grab?
-> 
-You don't need anything special as such. Just pull the latest mainline
-denx u-boot build it for 'omap5_uevm' and update your boot-loaders.
+> If you are convinced you have no choice but to stick to old binutils,
 
-Regards,
-Santosh
+Oh no, long-term other choices include lld.llvm.org and  
+http://landley.net/code/qcc but they're not ready yet and I don't have  
+time to work on them right now. (I had high hopes for gold, until the  
+guy signed it over to the FSF and it vanished into the tiergruben. Oh  
+well.)
+
+> I'd strongly suggest you make your binutils compatible with newer
+> instruction syntax instead of making the kernel more complex.
+
+Meaning I play whack-a-mole as this becomes permission to depend on  
+endless new gnuisms just because they're there and nobody else is  
+regression testing against them, not because they actually add anything.
+
+Whereas if I add an old binutils config option, other people might help  
+regression test it (if not actually fix it), and the other toolchain  
+projects have less of a moving target to catch up to.
+
+> This is more in line with being future proof rather than stuck into  
+> the past.
+
+No, it's exactly the opposite of that. Future proof is getting off a  
+toolchain whose license is a moving target.
+
+GPLv2: "shut up and show me the code"
+GPLv3: "I am altering the bargain, pray I don't alter it any further."
+GPLv4: ???
+
+> It could be as simple as making gas accept an extra argument for
+> instructions like dsb and just ignoring it.
+
+So you prefer I come up with the reversion patches locally and _not_  
+send them upstream?
+
+*shrug* That's what I've been doing for sh4 for around 4 years now.  
+(And their breakage still reverts cleanly even.) It's also what I did  
+when the arm versatile interrupts changed randomly 3 times in ways that  
+weren't backwards compatible with existing qemu versions. And I  
+maintained perl removal patches for 5 years before they finally went  
+upstream.
+
+But I do at least post said patches publicly, and other people use 'em  
+when I do...
+
+Rob
