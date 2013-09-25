@@ -1,83 +1,61 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v2 1/3] ARM: OMAP2: pdata-quirks: set internal clock
- source for MMC2 on N950/N9
-Date: Wed, 25 Sep 2013 16:26:49 -0700
-Message-ID: <20130925232649.GC8949@atomide.com>
-References: <1380050897-6605-1-git-send-email-aaro.koskinen@iki.fi>
- <1380050897-6605-2-git-send-email-aaro.koskinen@iki.fi>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 4/4] ARM: OMAP2+: Use pdata quirks for wl12xx legacy
+ init
+Date: Wed, 25 Sep 2013 16:26:59 -0700
+Message-ID: <20130925232658.GD8949@atomide.com>
+References: <20130920173310.2584.24522.stgit@localhost>
+ <20130920173821.2584.1124.stgit@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:54671 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1756481Ab3IYX1B (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Sep 2013 19:27:01 -0400
 Content-Disposition: inline
-In-Reply-To: <1380050897-6605-2-git-send-email-aaro.koskinen-X3B1VOXEql0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
-Cc: =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <20130920173821.2584.1124.stgit@localhost>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org
 
-* Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org> [130924 12:36]:
-> Set internal clock source for MMC2 on N950/N9.
-> 
-> Signed-off-by: Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
+* Tony Lindgren <tony@atomide.com> [130920 10:46]:
+> --- a/arch/arm/mach-omap2/pdata-quirks.c
+> +++ b/arch/arm/mach-omap2/pdata-quirks.c
+> +#if IS_ENABLED(CONFIG_WL12XX)
+> +
+> +static struct wl12xx_platform_data wl12xx __initdata;
+> +
+> +static void __init __used legacy_init_wl12xx(unsigned ref_clock,
+> +					     unsigned tcxo_clock,
+> +					     int gpio)
+> +{
+> +	int res;
+> +
+> +	wl12xx.board_ref_clock = ref_clock;
+> +	wl12xx.board_tcxo_clock = tcxo_clock;
+> +	wl12xx.irq = gpio_to_irq(gpio);
+> +
+> +	res = wl12xx_set_platform_data(&wl12xx);
+> +	if (res) {
+> +		pr_err("error setting wl12xx data: %d\n", res);
+> +		return;
+> +	}
+> +}
+> +#else
+> +static inline void omap_init_wl12xx_of(void)
+> +{
+> +}
+> +#endif
+> +
 
-Thanks applied into omap-for-v3.13/quirk and pushed
-out.
+This should be legacy_init_wl12xx(unsigned ref_clock,
+unsigned tcxo_clock, int gpio) instead of just
+omap_init_wl12xx_of(void).
 
-I'll apply the board file removal later on into a separate
-branch, and Benoit can pick the .dts changes.
+I've updated the patch and pushed this series to
+omap-for-v3.13/quirk.
 
 Regards,
 
 Tony
-
->  arch/arm/mach-omap2/pdata-quirks.c | 16 ++++++++++++++++
->  1 file changed, 16 insertions(+)
-> 
-> diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
-> index 52b4bc3..1a7f492 100644
-> --- a/arch/arm/mach-omap2/pdata-quirks.c
-> +++ b/arch/arm/mach-omap2/pdata-quirks.c
-> @@ -16,6 +16,7 @@
->  #include "common.h"
->  #include "common-board-devices.h"
->  #include "dss-common.h"
-> +#include "control.h"
->  
->  struct pdata_init {
->  	const char *compatible;
-> @@ -62,6 +63,17 @@ static inline void omap_init_wl12xx_of(void)
->  }
->  #endif
->  
-> +#ifdef CONFIG_ARCH_OMAP3
-> +static void __init hsmmc2_internal_input_clk(void)
-> +{
-> +	u32 reg;
-> +
-> +	reg = omap_ctrl_readl(OMAP343X_CONTROL_DEVCONF1);
-> +	reg |= OMAP2_MMCSDIO2ADPCLKISEL;
-> +	omap_ctrl_writel(reg, OMAP343X_CONTROL_DEVCONF1);
-> +}
-> +#endif /* CONFIG_ARCH_OMAP3 */
-> +
->  #ifdef CONFIG_ARCH_OMAP4
->  static void __init omap4_sdp_legacy_init(void)
->  {
-> @@ -86,6 +98,10 @@ static void __init omap5_uevm_legacy_init(void)
->  #endif
->  
->  static struct pdata_init pdata_quirks[] __initdata = {
-> +#ifdef CONFIG_ARCH_OMAP3
-> +	{ "nokia,omap3-n9", hsmmc2_internal_input_clk, },
-> +	{ "nokia,omap3-n950", hsmmc2_internal_input_clk, },
-> +#endif
->  #ifdef CONFIG_ARCH_OMAP4
->  	{ "ti,omap4-sdp", omap4_sdp_legacy_init, },
->  	{ "ti,omap4-panda", omap4_panda_legacy_init, },
-> -- 
-> 1.8.4.rc3
-> 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
