@@ -1,80 +1,113 @@
-From: Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: Rob Herring <robherring2@gmail.com>
 Subject: Re: [PATCH v6 1/4] ARM: OMAP2+: cleaned-up DT support of various ECC schemes
-Date: Wed, 25 Sep 2013 15:22:41 -0700
-Message-ID: <CAN8TOE9Mo6sHWjy7ebtxTqZoDTM9dzcBqdu_qsZfP_ELtSufWw@mail.gmail.com>
+Date: Wed, 25 Sep 2013 17:23:55 -0500
+Message-ID: <CAL_Jsq+XxQ_9ik_P8EPPNSzXiCz6yd-VJLRU668t3jvD-jhyOw@mail.gmail.com>
 References: <1378986619-26765-1-git-send-email-pekon@ti.com>
 	<1378986619-26765-2-git-send-email-pekon@ti.com>
-	<20980858CB6D3A4BAE95CA194937D5E73EA15ED7@DBDE04.ent.ti.com>
-	<20130925134619.GG10746@radagast>
-	<20130925175527.GA23337@ld-irv-0074.broadcom.com>
-	<20980858CB6D3A4BAE95CA194937D5E73EA16884@DBDE04.ent.ti.com>
-	<20130925200539.GH23337@ld-irv-0074.broadcom.com>
-	<CAOesGMif301iBe9zxHudkC_G9SzPPy1Mj4XYvQ-MY8nmx4wO+A@mail.gmail.com>
-	<20130925212903.GI23337@ld-irv-0074.broadcom.com>
-	<CAOesGMi=xBXTdMm+-yTRVVFf0VR-7gy6xTrdeAupyo7OWVb3iQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAOesGMi=xBXTdMm+-yTRVVFf0VR-7gy6xTrdeAupyo7OWVb3iQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Olof Johansson <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>
-Cc: "Gupta, Pekon" <pekon-l0cyMroinI0@public.gmane.org>, "benoit.cousson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <benoit.cousson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "arnd-r2nGTMty4D4@public.gmane.org" <arnd-r2nGTMty4D4@public.gmane.org>, "dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org" <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "avinashphilipk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <avinashphilipk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dedekind1-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <dedekind1-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-qa0-f49.google.com ([209.85.216.49]:33247 "EHLO
+	mail-qa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754662Ab3IYWX4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Sep 2013 18:23:56 -0400
+In-Reply-To: <1378986619-26765-2-git-send-email-pekon@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Pekon Gupta <pekon@ti.com>
+Cc: dedekind1@gmail.com, Olof Johansson <olof@lixom.net>, computersforpeace@gmail.com, dwmw2@infradead.org, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, benoit.cousson@linaro.org, avinashphilipk@gmail.com, balbi@ti.com, linux-mtd@lists.infradead.org, linux-omap <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
 
-On Wed, Sep 25, 2013 at 2:32 PM, Olof Johansson <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org> wrote:
-> On Wed, Sep 25, 2013 at 2:29 PM, Brian Norris
-> <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
->> On Wed, Sep 25, 2013 at 01:33:27PM -0700, Olof Johansson wrote:
->>> On Wed, Sep 25, 2013 at 1:05 PM, Brian Norris
->>> <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
->>>
->>> > Olof has given good advice on your DT binding and has (slowly) been
->>> > responding to other requests for DT review that make it to his list. I
->>> > see that he hasn't followed up on your changes (this v6), so pinging him
->>> > (as you did) is probably the correct approach. But please do recognize
->>> > that the DT list is very high volume, so it's hard to get good timely
->>> > responses there.
->>>
->>> I am not a DT mainainer, but sometimes when I see a binding that
->>> appears to be wrong I speak up. In this case, the binding was one of
->>> those.
->>
->> Whoops, my bad. I was deceived by the responses I've seen from you on
->> other issues (thanks, BTW). In that case, I haven't seen any response
->> from a proper DT binding maintainer :(
->>
->>> So, I have no more objections to it, and I hope you can get a quick
->>> review from a DT maintainer on the rest of the binding.
->>
->> At this point, I'm comfortable going ahead without their ack, since they
->> obviously don't care/don't have the manpower to review.
+On Thu, Sep 12, 2013 at 6:50 AM, Pekon Gupta <pekon@ti.com> wrote:
+> OMAP NAND driver support multiple ECC scheme, which can used in following
+> different flavours, depending on in-build Hardware engines supported by SoC.
 >
-> No, that is not how we handle device tree bindings. They need to be
-> reviewed, since we are moving over to a model where they will be
-> considered ABI and can't be changed after the fact. We have a long
-> backlog of mostly-unreviewed old bindings that we're going to do a
-> pass through and then lock down, but it would be good to not add to
-> that backlog with newer bindings.
+> +---------------------------------------+---------------+---------------+
+> | ECC scheme                            |ECC calculation|Error detection|
+> +---------------------------------------+---------------+---------------+
+> |OMAP_ECC_HAMMING_CODE_HW               |H/W (GPMC)     |S/W            |
+> +---------------------------------------+---------------+---------------+
+> |OMAP_ECC_BCH8_CODE_HW_DETECTION_SW     |H/W (GPMC)     |S/W            |
+> |(requires CONFIG_MTD_NAND_ECC_BCH)     |               |               |
+> +---------------------------------------+---------------+---------------+
+> |OMAP_ECC_BCH8_CODE_HW                  |H/W (GPMC)     |H/W (ELM)      |
+> |(requires CONFIG_MTD_NAND_OMAP_BCH &&  |               |               |
+> | ti,elm-id in DT)                      |               |               |
+> +---------------------------------------+---------------+---------------+
+> To optimize footprint of omap2-nand driver, selection of some ECC schemes
+> also require enabling following Kconfigs, in addition to setting appropriate
+> DT bindings
+> - Kconfig:CONFIG_MTD_NAND_ECC_BCH        enables S/W based BCH ECC algorithm
+> - Kconfig:CONFIG_MTD_NAND_OMAP_BCH       enables H/W based BCH ECC algorithm
 >
-> In other words, there's a strong desire for actual acks on bindings
-> from those maintainers these days.
+> This patch
+> - updates DT binding for selection of ecc-scheme
+> - updates DT binding for detection of ELM h/w engine
+> - removes following obselete ECC schemes
+>         OMAP_ECC_HAMMING_CODE_DEFAULT (S/W based 1-bit Hamming ECC)
+>         OMAP_ECC_HAMMING_CODE_HW_ROMCODE (H/W based 1-bit Hamming ECC scheme)
+> - updates DT binding documentation for mtd/gpmc-nand
+>
+> Signed-off-by: Pekon Gupta <pekon@ti.com>
+> ---
+>  .../devicetree/bindings/mtd/gpmc-nand.txt          | 14 +++----
+>  arch/arm/mach-omap2/board-flash.c                  |  2 +-
+>  arch/arm/mach-omap2/gpmc.c                         | 47 +++++++++++++++-------
+>  include/linux/platform_data/mtd-nand-omap2.h       | 23 +++++++----
+>  4 files changed, 56 insertions(+), 30 deletions(-)
+>
+> diff --git a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
+> index df338cb..958e5d5 100644
+> --- a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
+> +++ b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
+> @@ -21,11 +21,8 @@ Optional properties:
+>                                 is wired that way. If not specified, a bus
+>                                 width of 8 is assumed.
+>
+> - - ti,nand-ecc-opt:            A string setting the ECC layout to use. One of:
+> -
+> -               "sw"            Software method (default)
+> -               "hw"            Hardware method
+> -               "hw-romcode"    gpmc hamming mode method & romcode layout
+> + - ti,nand-ecc-scheme:         A string setting the ECC layout to use. One of:
+> +               "ham1"          1-bit Hamming ecc code
 
-This only works if we get a response. I'll repeat this fact: I have
-seen absolutely zero response from any DT maintainer regarding this
-binding, and they've been CC'd in some capacity since July:
+As has been pointed out, this breaks compatibility which should be
+avoided unless you know the state of use of this binding. I fail to
+see the advantage of using scheme over opt. You could simply add ham1
+here and maintain compatibility. Instead of removing sw, hw, etc. you
+can simply deprecate them or decide that the kernel doesn't support
+those options.
 
-Old revision from July (cross-posted, including the old DT list):
-http://thread.gmane.org/gmane.linux.ports.arm.omap/100484/
+However, since you are willing to break compatibility, then you should
+the generic NAND binding and use nand-ecc-mode adding the values you
+need.
 
-New list:
-http://www.mail-archive.com/linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg95238.html
+Documentation/devicetree/bindings/mtd/nand.txt:
+* MTD generic binding
 
-All official DT binding maintainers are CC'd here: you can't say you
-want more review of bindings, yet fail to review them across 3
-versions and almost 3 months. Ball's in your court.
+- nand-ecc-mode : String, operation mode of the NAND ecc mode.
+  Supported values are: "none", "soft", "hw", "hw_syndrome", "hw_oob_first",
+  "soft_bch".
+- nand-bus-width : 8 or 16 bus width if not present 8
+- nand-on-flash-bbt: boolean to enable on flash bbt option if not present false
 
-Brian
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+>                 "bch4"          4-bit BCH ecc code
+>                 "bch8"          8-bit BCH ecc code
+>
+> @@ -36,8 +33,11 @@ Optional properties:
+>                 "prefetch-dma"          Prefetch enabled sDMA mode
+>                 "prefetch-irq"          Prefetch enabled irq mode
+>
+> - - elm_id:     Specifies elm device node. This is required to support BCH
+> -               error correction using ELM module.
+> + - ti,elm-id:  Specifies pHandle of the ELM devicetree node.
+> +               ELM is an on-chip hardware engine on TI SoC which is used for
+> +               locating ECC errors for BCHx algorithms. SoC devices which have
+> +               ELM hardware engines should specify this device node in .dtsi
+> +               Using ELM for ECC error correction frees some CPU cycles.
+
+While yes, this is better name and documentation, I don't know that
+breaking compatibility is justified.
+
+Rob
