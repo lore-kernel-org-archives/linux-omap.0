@@ -1,118 +1,79 @@
-From: Nicolas Pitre <nico@fluxnic.net>
-Subject: Re: new binutils needed for arm in 3.12-rc1
-Date: Wed, 25 Sep 2013 12:13:17 -0400 (EDT)
-Message-ID: <alpine.LFD.2.03.1309251147320.312@syhkavp.arg>
-References: <1380122586.1974.84@driftwood>
+From: Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 2/2] ARM: dts: dra7-evm: Add mmc2 node for eMMC support
+Date: Wed, 25 Sep 2013 21:47:14 +0530
+Message-ID: <52430C8A.6040404@ti.com>
+References: <1377525218-7655-1-git-send-email-balajitk@ti.com> <1377525218-7655-3-git-send-email-balajitk@ti.com> <52415E41.7050301@baylibre.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; CHARSET=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-reply-to: <1380122586.1974.84@driftwood>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Rob Landley <rob@landley.net>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, =?ISO-8859-15?Q?M=E5ns_Rullg=E5rd?= <mans@mansr.com>, Andrew Morton <akpm@osdl.org>, Trivial patch monkey <trivial@kernel.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <will.deacon@arm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <52415E41.7050301-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, 25 Sep 2013, Rob Landley wrote:
+On Tuesday 24 September 2013 03:11 PM, Benoit Cousson wrote:
+> + Sekhar
+>
+> Hi Balaji,
+>
+> On 26/08/2013 15:53, Balaji T K wrote:
+>> Add mmc2 dt node to dra7-evm board
+>> and model eMMC vcc as fixed regulator.
+>>
+>> Signed-off-by: Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>
+>> ---
+>>   arch/arm/boot/dts/dra7-evm.dts |   14 ++++++++++++++
+>>   1 files changed, 14 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
+>> index a59bbd0..2062724 100644
+>> --- a/arch/arm/boot/dts/dra7-evm.dts
+>> +++ b/arch/arm/boot/dts/dra7-evm.dts
+>> @@ -17,6 +17,13 @@
+>>           device_type = "memory";
+>>           reg = <0x80000000 0x60000000>; /* 1536 MB */
+>>       };
+>> +
+>> +    mmc2_3v3: fixedregulator-mmc2 {
+>> +        compatible = "regulator-fixed";
+>> +        regulator-name = "mmc2_3v3";
+>> +        regulator-min-microvolt = <3300000>;
+>> +        regulator-max-microvolt = <3300000>;
+>> +    };
+>>   };
+>>
+>>   &dra7_pmx_core {
+>> @@ -257,3 +264,10 @@
+>>       vmmc-supply = <&ldo1_reg>;
+>>       bus-width = <4>;
+>>   };
+>> +
+>> +&mmc2 {
+>> +    status = "okay";
+>> +    vmmc-supply = <&mmc2_3v3>;
+>> +    bus-width = <8>;
+>> +    ti,non-removable;
+>
+> Sekhar just posted a series to replace that with a non-TI attribute: non-removable.
+>
+> I'm not sure if this got merged, but it might be good to use the standard attribute instead.
 
-> On 09/24/2013 09:07:57 PM, Nicolas Pitre wrote:
-> > I'd strongly suggest you make your binutils compatible with newer
-> > instruction syntax instead of making the kernel more complex.
-> 
-> Meaning I play whack-a-mole as this becomes permission to depend on endless
-> new gnuisms just because they're there and nobody else is regression testing
-> against them, not because they actually add anything.
+Hi Benoit,
 
-Gnuism?
+Those patches are not merged yet, standard attribute is good, but few cleanups are needed
+before ti,non-removable can be replaced by standard non-removable,
+no_regulator_off_init flag set under ti,non-removable is needed to detect eMMC
+during boot on OMAP4 devices to keep regulator ON during init. Given that eMMC on dra7-evm
+is powered by always ON regulator, ti,non-removable and standard attribute will behave same
+way. Let me know if you want to remove ti,non-removable attribute from this patch.
 
-Let me quote the ARM ARchitecture Reference Manual, version 7 revision C,  
-section A8.8.44 (sorry for the whitespace dammage):
+>
+> Regards,
+> Benoit
 
-|A8.8.44 DSB
-|
-|Data Synchronization Barrier is a memory barrier that ensures the 
-|completion of memory accesses, see Data Synchronization Barrier (DSB) on 
-|page A3-150.
-|
-|Encoding T1 ARMv7
-|
-|DSB<c> <option>
-|
-|15 14 13 12 11 10 9 8 7 6 5 4 3 2 1 0 15 14 13 12 11 10 9 8 7 6 5 4 3 2 1 0
-|
-|1 1 1 1 0 0 1 1 1 0 1 1 (1) (1) (1) (1) 1 0 (0) 0 (1) (1) (1) (1) 0 1 0 0 option
-|
-|// No additional decoding required
-|
-|Encoding A1 ARMv7
-|
-|DSB <option>
-|
-|31 30 29 28 27 26 25 24 23 22 21 20 19 18 17 16 15 14 13 12 11 10 9 8 7 6 5 4 3 2 1 0
-|
-|1 1 1 1 0 1 0 1 0 1 1 1 (1) (1) (1) (1) (1) (1) (1) (1) (0) (0) (0) (0) 0 1 0 0 option
-|
-|// No additional decoding required
-|
-|Assembler syntax
-|
-|DSB{<c>}{<q>} {<option>}
-|
-|where:
-|
-|<c>, <q> See Standard assembler syntax fields on page A8-285. An ARM DSB 
-|instruction must be unconditional.
-|
-|<option> Specifies an optional limitation on the DSB operation. Values are:
-|
-|SY Full system is the required shareability domain, reads and writes are 
-|the required access types. Can be omitted. This option is referred to as 
-|the full system DSB. Encoded as option == '1111'.
-|
-|ST Full system is the required shareability domain, writes are the 
-|required access type. SYST is a synonym for ST. Encoded as option == 
-|'1110'.
-|
-|ISH Inner Shareable is the required shareability domain, reads and 
-|writes are the required access types. Encoded as option == '1011'.
-|
-|ISHST Inner Shareable is the required shareability domain, writes are 
-|the required access type. Encoded as option == '1010'.
-|
-|NSH Non-shareable is the required shareability domain, reads and writes 
-|are the required access types. Encoded as option == '0111'.
-|
-|NSHST Non-shareable is the required shareability domain, writes are the 
-|required access type. Encoded as option == '0110'.
-|
-|OSH Outer Shareable is the required shareability domain, reads and 
-|writes are the required access types. Encoded as option == '0011'.
-|
-|OSHST Outer Shareable is the required shareability domain, writes are 
-|the required access type. Encoded as option == '0010'.
-
-So what's the link with the above and your issue with GPLv3, besides the 
-fact that the last binutils version to have been released under the 
-GPLv2 is defficient?
-
-For the record I have no opinion to provide about GPLv2 vs GPLv3 in the 
-context of this thread.
-
-> > It could be as simple as making gas accept an extra argument for
-> > instructions like dsb and just ignoring it.
-> 
-> So you prefer I come up with the reversion patches locally and _not_ send them
-> upstream?
-
-Sort of.  And I'm suggesting you patch your binutils rather than the 
-kernel.  Given you're not upgrading your binutils anymore that means 
-you'll have to apply that patch only once instead of having to apply it 
-to every kernel upgrade.
-
-> But I do at least post said patches publicly, and other people use 'em 
-> when I do...
-
-Excellent.
-
-
-Nicolas
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
