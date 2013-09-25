@@ -1,54 +1,103 @@
-From: Olof Johansson <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>
-Subject: Re: [PATCH v6 1/4] ARM: OMAP2+: cleaned-up DT support of various ECC schemes
-Date: Wed, 25 Sep 2013 13:33:27 -0700
-Message-ID: <CAOesGMif301iBe9zxHudkC_G9SzPPy1Mj4XYvQ-MY8nmx4wO+A@mail.gmail.com>
-References: <1378986619-26765-1-git-send-email-pekon@ti.com>
-	<1378986619-26765-2-git-send-email-pekon@ti.com>
-	<20980858CB6D3A4BAE95CA194937D5E73EA15ED7@DBDE04.ent.ti.com>
-	<20130925134619.GG10746@radagast>
-	<20130925175527.GA23337@ld-irv-0074.broadcom.com>
-	<20980858CB6D3A4BAE95CA194937D5E73EA16884@DBDE04.ent.ti.com>
-	<20130925200539.GH23337@ld-irv-0074.broadcom.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH usb 1/2] usb: musb: Add missing ATOMIC_INIT_NOTIFIER_HEAD
+Date: Wed, 25 Sep 2013 15:33:33 -0500
+Message-ID: <20130925203333.GU10746@radagast>
+References: <1378630239-10006-1-git-send-email-pali.rohar@gmail.com>
+ <20130918164816.GN21559@radagast> <201309181903.33243@pali>
+ <201309251017.39014@pali>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20130925200539.GH23337-bU/DPfM3abD4WzifrMjOTkcViWtcw2C0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "Gupta, Pekon" <pekon-l0cyMroinI0@public.gmane.org>, "benoit.cousson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <benoit.cousson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "arnd-r2nGTMty4D4@public.gmane.org" <arnd-r2nGTMty4D4@public.gmane.org>, "dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org" <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "avinashphilipk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <avinashphilipk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dedekind1-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <dedekind1-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>
+Content-Type: multipart/mixed; boundary="===============8148099519406578953=="
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <201309251017.39014@pali>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
+Cc: Javier Martinez Canillas <martinez.javier@gmail.com>, linux-usb@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Anton Vorontsov <anton@enomsg.org>, Linux Kernel <linux-kernel@vger.kernel.org>, balbi@ti.com, freemangordon@abv.bg, Pavel Machek <pavel@ucw.cz>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, David Woodhouse <dwmw2@infradead.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Sep 25, 2013 at 1:05 PM, Brian Norris
-<computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+--===============8148099519406578953==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="4QzzFpAwbwI4hdN6"
+Content-Disposition: inline
 
-> Olof has given good advice on your DT binding and has (slowly) been
-> responding to other requests for DT review that make it to his list. I
-> see that he hasn't followed up on your changes (this v6), so pinging him
-> (as you did) is probably the correct approach. But please do recognize
-> that the DT list is very high volume, so it's hard to get good timely
-> responses there.
+--4QzzFpAwbwI4hdN6
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I am not a DT mainainer, but sometimes when I see a binding that
-appears to be wrong I speak up. In this case, the binding was one of
-those.
+Hi,
 
-That doesn't mean you should necessarily rely on me for the rest of
-the review, there are several dedicated maintainers right now that
-should be able to spread the load across them, and it is their ack you
-should seek on the binding, not mine.
+On Wed, Sep 25, 2013 at 10:17:38AM +0200, Pali Roh=E1r wrote:
+> On Wednesday 18 September 2013 19:03:33 Pali Roh=E1r wrote:
+> > &twl->phy.notifier is not initalized
+> >=20
+> > Signed-off-by: Pali Roh=E1r <pali.rohar@gmail.com>
+> >=20
+> > diff --git a/drivers/usb/phy/phy-twl4030-usb.c
+> > b/drivers/usb/phy/phy-twl4030-usb.c index 8f78d2d..efe6155
+> > 100644
+> > --- a/drivers/usb/phy/phy-twl4030-usb.c
+> > +++ b/drivers/usb/phy/phy-twl4030-usb.c
+> > @@ -705,6 +705,8 @@ static int twl4030_usb_probe(struct
+> > platform_device *pdev) if (device_create_file(&pdev->dev,
+> > &dev_attr_vbus)) dev_warn(&pdev->dev, "could not create sysfs
+> > file\n");
+> >=20
+> > +	ATOMIC_INIT_NOTIFIER_HEAD(&twl->phy.notifier);
+> > +
+> >  	/* Our job is to use irqs and status from the power module
+> >  	 * to keep the transceiver disabled when nothing's
+> > connected. *
+>=20
+> I sent above patch week ago. Did you already included it?
 
-That being said: this latest version looks good to me. See how much
-simpler the binding got when you stopped trying to describe driver
-behavior and focused on describing hardware? That's the way we want it
-to look like.
+look at my testing branch.
+
+--=20
+balbi
+
+--4QzzFpAwbwI4hdN6
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJSQ0idAAoJEIaOsuA1yqRETvkP/00qKMIHusJX8O7XH/vSHkwR
++POrDoU06Cay14nUS7nWEVjNCH7N1shqK46Girevrbo4urlMZoDJhN0I1Q8lgenv
+IZsihUkx8Q3AOMNFt0um80vbLL456s9dr4/4PwVXFHK2dkdfUoJqm90JNXGK1Pi4
+QHxG8PVO1/6wFBtFgwj8YL1qZwFC6rqlwJCL/Q7orfS4AS6/TDy5p77wnS4md5Hx
+ehcD22VrPAo7CcAufw24Y8yYUuIOJK/+F1PUvSVya90D42g5Rueh7V3jxt/GJwDx
+ifTD23ENhNzvIU0GwOvLgYQYqDN8Gnx0FkF+UVQh5YrTZLIM1HB3UrHd7waIxNVO
+UezaPxv48Ez60/t3tb3SU2dNDrEc89mA/jVD59+fysyg4RJwLbAlROjwOJRXsKQ8
+cpuXRI2zH49JKkOuMvf0zhQxjlJvIuwyvof6wDc3iNuyXPypwRyUIgo8TxnIslgt
+mIle9yxd+nVbZBrdFUmt2bVW7LuYHZy6krL4HR914b3Mbyd2uOccR92v0n2fRJ6f
+cK0QHrocxVyXj4CyGTPyqRl2de0UYBkrlgkvf+n8tm1n4flylcBT7yhyNDkbHGQi
+D4KzVabaZHvkBVlaOR/xT51Ttrm1T1MpgPywY4McLnTO0RQ8cxqAzSWRJXCZF61J
+2F1KzfOEnDAazyl5qSRB
+=80Pi
+-----END PGP SIGNATURE-----
+
+--4QzzFpAwbwI4hdN6--
 
 
-So, I have no more objections to it, and I hope you can get a quick
-review from a DT maintainer on the rest of the binding.
+--===============8148099519406578953==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
 
--Olof
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--===============8148099519406578953==--
