@@ -1,260 +1,293 @@
-From: "Dr. H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: Re: DSS display-new custom enable/disable hooks
-Date: Wed, 25 Sep 2013 14:26:30 +0200
-Message-ID: <9172D29D-118B-4B6F-A454-BD359C5D97D4@goldelico.com>
-References: <CAAfyv349Xjt7Wy-R34OW81SzmUX-1WhfVZdbhWVDoOXpUKa9ug@mail.gmail.com> <52427ECA.1080500@ti.com> <CAAfyv37sSa=7x=p1wgX+Rhdxh=WMB4DhmC9ZQMpxB_rb30Aurw@mail.gmail.com> <3A4BA9B4-262C-4F0A-95B7-D243065D01BA@goldelico.com> <52429F06.6030609@ti.com> <307BD8A2-738A-4A66-8FD5-98C37AD4BCA3@goldelico.com> <5242BFEA.1090200@ti.com>
-Mime-Version: 1.0 (Apple Message framework v1085)
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mo-p00-ob.rzone.de ([81.169.146.160]:29311 "EHLO
-	mo-p00-ob.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752428Ab3IYM0j convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Sep 2013 08:26:39 -0400
-In-Reply-To: <5242BFEA.1090200@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Subject: Re: [RFC PATCH 09/15] ata: ti_sata: Add Texas Instruments SATA Wrapper
+ driver
+Date: Wed, 25 Sep 2013 14:37:19 +0200
+Message-ID: <5608096.0pgFIteLqQ@amdc1032>
+References: <1379595943-14622-1-git-send-email-rogerq@ti.com>
+ <1379595943-14622-10-git-send-email-rogerq@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-reply-to: <1379595943-14622-10-git-send-email-rogerq@ti.com>
+Sender: linux-ide-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: balbi@ti.com, bcousson@baylibre.com, tony@atomide.com, balajitk@ti.com, kishon@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-ide@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, Tejun Heo <tj@kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap@vger.kernel.org, Belisko Marek <marek.belisko@gmail.com>
 
-Hi Tomi,
 
-Am 25.09.2013 um 12:50 schrieb Tomi Valkeinen:
+Hi,
 
-> On 25/09/13 12:00, Dr. H. Nikolaus Schaller wrote:
+On Thursday, September 19, 2013 04:05:37 PM Roger Quadros wrote:
+> Texas Instruments SoCs like OMAP5 and DRA7 contain a SATA wrapper
+> around the AHCI SATA core. This driver will manage that.
 > 
->>> Well, OPA is a distinct hardware block in the video path, I see no issue
->>> in having an OPA encoder driver, that sits in between VENC and the
->>> connector.
->>> 
->>> The driver should handle things described in the OPA datasheet. With a
->>> quick glance, there seems to be one GPIO and one power line to OPA.
->> 
->> Hm. Why need a driver for a specific piece of hardware? For software it is just an
->> analog TV out with additional control options.
+> CC: Tejun Heo <tj@kernel.org>
+> Signed-off-by: Roger Quadros <rogerq@ti.com>
+> ---
+>  Documentation/devicetree/bindings/ata/ti-sata.txt |   31 ++++
+>  drivers/ata/Kconfig                               |    7 +
+>  drivers/ata/Makefile                              |    1 +
+>  drivers/ata/sata_ti.c                             |  160 +++++++++++++++++++++
+>  4 files changed, 199 insertions(+), 0 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/ata/ti-sata.txt
+>  create mode 100644 drivers/ata/sata_ti.c
 > 
-> I'm not sure I follow. Linux device drivers are drivers for specific
-> pieces of hardware. If the hardware needs to be controlled somehow, like
-> setting gpios, enabling regulators, then we need a driver for that piece
-> of hardware.
+> diff --git a/Documentation/devicetree/bindings/ata/ti-sata.txt b/Documentation/devicetree/bindings/ata/ti-sata.txt
+> new file mode 100644
+> index 0000000..bf0ea3b
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/ata/ti-sata.txt
+> @@ -0,0 +1,31 @@
+> +* Texas Instruments SATA Controller Wrapper
+> +
+> +Required properties:
+> +- compatible	: "ti,sata"
+> +- ti,hwmods	: "sata"
+> +- reg		: Register mapping
+> +- #address-cells: <1>
+> +- #size-cells	: <1>
+> +- ranges	: allows valid translation between child's address space and parent's
+> +		  address space.
+> +- Must contain at least one child node for the SATA controller core
+> +
+> +Example:
+> +
+> +	sata: sata@4a141100 {
+> +		compatible = "ti,sata";
+> +		ti,hwmods = "sata";
+> +		reg = <0x4a141100 0x7>;
+> +		#address-cells = <1>;
+> +		#size-cells = <1>;
+> +		ranges;
+> +		dwc-ahci@4a140000 {
+> +			compatible = "snps,dwc-ahci";
+> +			reg = <0x4a140000 0x1100>;
+> +			interrupts = <GIC_SPI 54 IRQ_TYPE_LEVEL_HIGH>;
+> +			phys = <&sata_phy>;
+> +			phy-names = "sata-phy";
+> +			clocks = <&sata_ref_clk>;
+> +			clock-names = "optclk";
+> +		};
+> +	};
+> diff --git a/drivers/ata/Kconfig b/drivers/ata/Kconfig
+> index a53ef27..a3de4d2 100644
+> --- a/drivers/ata/Kconfig
+> +++ b/drivers/ata/Kconfig
+> @@ -138,6 +138,13 @@ config SATA_SIL24
+>  
+>  	  If unsure, say N.
+>  
+> +config SATA_TI
+> +	tristate "Texas Instruments SATA Wrapper driver"
+> +	depends on ARCH_OMAP
+> +	help
+> +	  This options enables SATA Wrapper driver for Texas Instruments SoCs.
+> +	  It is found on OMAP5 and DRA7.
+> +
+>  config ATA_SFF
+>  	bool "ATA SFF support (for legacy IDE and PATA)"
+>  	default y
+> diff --git a/drivers/ata/Makefile b/drivers/ata/Makefile
+> index 46518c6..673ba5e 100644
+> --- a/drivers/ata/Makefile
+> +++ b/drivers/ata/Makefile
+> @@ -11,6 +11,7 @@ obj-$(CONFIG_SATA_SIL24)	+= sata_sil24.o
+>  obj-$(CONFIG_SATA_DWC)		+= sata_dwc_460ex.o
+>  obj-$(CONFIG_SATA_HIGHBANK)	+= sata_highbank.o libahci.o
+>  obj-$(CONFIG_AHCI_IMX)		+= ahci_imx.o
+> +obj-$(CONFIG_SATA_TI)		+= sata_ti.o
+>  
+>  # SFF w/ custom DMA
+>  obj-$(CONFIG_PDC_ADMA)		+= pdc_adma.o
+> diff --git a/drivers/ata/sata_ti.c b/drivers/ata/sata_ti.c
+> new file mode 100644
+> index 0000000..0b9093d
+> --- /dev/null
+> +++ b/drivers/ata/sata_ti.c
+> @@ -0,0 +1,160 @@
+> +/**
+> + * sata-ti.c - Texas Instruments Specific SATA Glue layer
 
-> 
->> And, it must not be the OPA362 - it could be something completely different.
-> 
-> Right. If it's something completely different, then you need a driver
-> for the completely different piece of hardware. At the board code, or
-> board's device tree data, you specify which pieces of hardware you have
-> on your board, and the respective drivers are then used
+s/sata-ti/sata_ti/
 
-> 
->>> So, is the GPIO the one that goes to OPA?
->> 
->> Yes. Like the enable_gpio in struct panel_dpi_platform_data.
->> 
->> So I now think we would be happy if the connector-analog-tv would have a gpio
->> in its platform data that can handle such an enable/disable.
-> 
-> Sure, but the gpio is not related to the connector, it's related to
-> another component.
+> + *
+> + * Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.com
+> + *
+> + * Authors: Roger Quadros <rogerq@ti.com>
+> + *
+> + * This program is free software: you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2  of
+> + * the License as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + */
+> +
+> +#include <linux/module.h>
+> +#include <linux/kernel.h>
+> +#include <linux/slab.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/ioport.h>
+> +#include <linux/io.h>
+> +#include <linux/pm_runtime.h>
+> +#include <linux/of.h>
+> +#include <linux/of_platform.h>
+> +
+> +/*
+> + * All these registers belong to OMAP's Wrapper around the
+> + * DesignWare SATA Core.
+> + */
+> +
+> +#define SATA_SYSCONFIG				0x0000
+> +#define SATA_CDRLOCK				0x0004
 
-I would see it as a part of the interface.
+These defines are not used anywhere.
 
-> And say, if we added the enable gpio to the
-> connector. What if the next board uses another version of OPA that
-> requires two gpios. Should we then add another gpio to the connector?
-> Maybe third also? How about a bunch of regulators? Where does it end?
+> +struct ti_sata {
+> +	struct device *dev;
+> +	void __iomem *base;
+> +};
+> +
+> +static int ti_sata_probe(struct platform_device *pdev)
+> +{
+> +	struct device_node *np = pdev->dev.of_node;
+> +	struct device *dev = &pdev->dev;
+> +	struct ti_sata *sata;
+> +	struct resource *res;
+> +	void __iomem *base;
+> +	int ret;
+> +
+> +	if (!np) {
+> +		dev_err(dev, "device node not found\n");
+> +		return -EINVAL;
+> +	}
+> +
+> +	sata = devm_kzalloc(dev, sizeof(*sata), GFP_KERNEL);
+> +	if (!sata)
+> +		return -ENOMEM;
+> +
+> +	platform_set_drvdata(pdev, sata);
+> +
+> +	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> +	if (!res) {
+> +		dev_err(dev, "missing memory base resource\n");
+> +		return -EINVAL;
+> +	}
+> +
+> +	base = devm_ioremap_resource(dev, res);
+> +	if (IS_ERR(base))
+> +		return PTR_ERR(base);
+> +
+> +	sata->dev = dev;
+> +	sata->base = base;
 
-Yes. Because we did have this already for the LCD panels (before display-new)
-and it was reduced in the latest updates to a single gpio for reasons I don't know.
+sata structure is just setup and it is not used later anywhere.
 
-But why should we hesitate to solve an existing problem because there could
-arrive a not-yet existing one of low likelihood?
+> +	pm_runtime_enable(dev);
+> +	ret = pm_runtime_get_sync(dev);
+> +	if (ret < 0) {
+> +		dev_err(dev, "pm_runtime_get_sync failed with err %d\n",
+> +									ret);
+> +		goto runtime_disable;
+> +	}
+> +
+> +	ret = of_platform_populate(np, NULL, NULL, dev);
 
-> 
->>> The DEVCONF1 register is problematic. For that we need some kind of
->>> platform hooks. We have some already for PM and DSI pins, so we could
->>> add a new one for TV-out. However, the DSI pins (hopefully) could be
->>> handled by the pinmuxing framework. Maybe that would be applicable here
->>> also.
->> 
->> Hm. Looks like a complex solution for a simple problem and isn't related to
->> pinmuxing (IMHO).
-> 
-> Right, I only suggested pinmuxing as that's why we need the callback for
-> DSI. I don't remember the details about DEVCONF1 and tv-out.
-> 
-> And I disagree that it's a simple problem =). Making generic, reusable
-> drivers is not simple.
-> Making a hack to make it work on your particular
-> platform and board is simple, though.
+Shouldn't this driver depend on CONFIG_OF?
 
-But could be a good starting point until someone else has a real need for
-a different solution :)
+> +	if (ret) {
+> +		dev_err(&pdev->dev, "failed to create TI SATA children\n");
+> +		goto runtime_put;
+> +	}
+> +
+> +	return 0;
+> +
+> +runtime_put:
+> +	pm_runtime_put_sync(dev);
+> +
+> +runtime_disable:
+> +	pm_runtime_disable(dev);
+> +
+> +	return ret;
+> +}
+> +
+> +static int ti_sata_remove_child(struct device *dev, void *c)
+> +{
+> +	struct platform_device *pdev = to_platform_device(dev);
+> +
+> +	platform_device_unregister(pdev);
+> +
+> +	return 0;
+> +}
+> +
+> +static int ti_sata_remove(struct platform_device *pdev)
+> +{
+> +	pm_runtime_put_sync(&pdev->dev);
+> +	pm_runtime_disable(&pdev->dev);
+> +	device_for_each_child(&pdev->dev, NULL, ti_sata_remove_child);
+> +
+> +	return 0;
+> +}
+> +
+> +static const struct of_device_id of_ti_sata_match[] = {
+> +	{
+> +		.compatible =	"ti,sata"
+> +	},
+> +	{ },
+> +};
+> +MODULE_DEVICE_TABLE(of, of_ti_sata_match);
+> +
+> +#ifdef CONFIG_PM
+> +
+> +static int ti_sata_resume(struct device *dev)
+> +{
+> +	pm_runtime_disable(dev);
+> +	pm_runtime_set_active(dev);
+> +	pm_runtime_enable(dev);
 
-And in my view our "hack" would just be an add-on, not removing any existing
-functionality. I.e. all those who were happy with the existing solution will be
-as well in the future.
+This doesn't look like a correct ->resume method:
+* it shouldn't touch runtime PM at all
+* for each ->resume method there should be a corresponding ->suspend method
 
-The only conflict I currently see is that if they don't initialize the enable_gpio to -1
-and happen to have a gpio #0 there would be an initialization problem.
+Moreover this whole wrapper driver seems strange, why not just add a proper
+runtime PM support to ahci_platform driver instead?
 
-Anyways the connector-analog-tv is really new in the kernel and we are probably
-the first ones who try to use it in real life.
+> +
+> +	return 0;
+> +}
+> +
+> +static const struct dev_pm_ops ti_sata_dev_pm_ops = {
+> +	.resume = ti_sata_resume,
+> +};
+> +
+> +#define DEV_PM_OPS	(&ti_sata_dev_pm_ops)
+> +#else
+> +#define DEV_PM_OPS	NULL
+> +#endif /* CONFIG_PM */
+> +
+> +static struct platform_driver ti_sata_driver = {
+> +	.probe		= ti_sata_probe,
+> +	.remove		= ti_sata_remove,
+> +	.driver		= {
+> +		.name	= "ti-sata",
+> +		.of_match_table	= of_ti_sata_match,
+> +		.pm	= DEV_PM_OPS,
+> +	},
+> +};
+> +
+> +module_platform_driver(ti_sata_driver);
+> +
+> +MODULE_ALIAS("platform:ti-sata");
+> +MODULE_AUTHOR("Roger Quadros <rogerq@ti.com>");
+> +MODULE_LICENSE("GPL v2");
+> +MODULE_DESCRIPTION("TI SATA Glue Layer");
 
-> 
->> Could we just add a "enable_ac" and "enable_bypass"  to struct connector_atv_platform_data,
->> that sets/resets these flags in the DEVCONF1 register each time the tvout is enabled?
-> 
-> No, those are properties of the SoC, as far as I understand, nothing to
-> do with the connector.
-
-Hm. I again get the impression that we have a different view on what a "connector" is.
-
-For me "the connector" that should be seen in kernel code are the analog video
-outputs of the SoC (i.e. TVOUT1, TV_VFB1, TV_OU2, TV_VFB2). Not the physical
-one going to some TV screen or other video signal consumer outside the board.
-
-Like with UARTs. They are not drivers for a 9 or 25 pin socket. And there may be
-a level shifetr chip in between that the software does not see.
-
-> Although I have to say I have no idea what "TV AC
-> coupled load enable" or "Active high enable AVDAC TV out bypass" do.
-> 
-> I guess I need to refresh my memory on the VENC, although if I recall
-> right, it wasn't explained very well in the TRM.
-
-There is a post-amplifier stage right after the Video DAC on the DM3730 chip
-and these bits we discuss control some electrical properties of that post-amplifier.
-
-I.e. bypass means that it is turned off and the VDAC signal is directly fed to the
-output pin.
-
-Section 7.2.3 and 7-58 to 7-61 depict this.
-
-> Also, note that drivers cannot touch DEVCONF1 register. That can only be
-> touched by the OMAP's platform code.
-
-Ah, I see.
-
-That may be one of the reasons why it did end up in our 2.6.32 board file,
-because there we know that it is an OMAP3 and can directly read/write registers.
-
-But I wonder how drivers access the DISPC to modify e.g. sync polarity or
-the video timing?
-
-Is this also an API exposed by the OMAP core driver or is it part of the DSS
-drivers? So somewhere in the complex thing someone must know the
-register address and be able to write to it.
-
-> So there has to be some kind of
-> callback or API to do that. And while the display drivers for OMAP are
-> currently OMAP specific, they will be made generic at some point, and
-> actually are already designed to be so. So they may not contain any
-> OMAP'isms.
-> 
->> I think this would be very similar to the "invert_polarity" property.
-> 
-> I have to say that I don't quite remember what the invert_polarity is
-> used for, but I think invert_polarity might be misplaced also. Is the
-> analog video signal that goes out from the connector inverted? I don't
-> think so. Does the connector require an inverted signal? No, as the
-> connector is really nothing else than a pass-though connector.
-
-Hm. Could you define the word "connector" here? Do you mean the
-physical plug (S-Video socket or RCA/Chinch composite video)?
-
-Or a logical connector (i.e. the DM3730 port ignoring the hardware
-that may come behind until we end at some physical connector)?
-
-> 
-> Correct me if I'm wrong, but I think the invert_polarity is required if
-> there's something on the board that requires the signal to be inverted
-> (OPA?), and it'll be re-inverterted before the signal goes to the analog
-> connector.
-
-Yes. There can be three different hardware designs. One with an inverting
-amplifier (like we have) and some without. And some without any amplifier
-(AFAIK like the Beagle Board).
-
-Depending on that, they need AC-Bias, invert and bypass or don't to
-create a standards compliant composite video signal.
-
-Apparently this should be configured through some platform data, because
-it is board specific - but there is no reasonable need to switch it during
-operation.
-
-> 
->> Then, the platform data has more control over the shape of the signals created by
->> the VENC (independently of that we use an OPA362).
->> 
->> IMHO this topic is very similar to controlling the polarity and timing of the
->> HSYNC/VSYNC of a LCD (.flags in struct display_timing), i.e. shaping the
->> interface signals so that they are accepted by the hardware connected to
->> the DM3730.
-> 
-> Well, I was never too well into the analog TV-out side, so please argue
-> if I say something silly here. But generally speaking, there are two
-> different kinds of properties here.
-> 
-> Consider DPI output from the SoC, and a DPI panel. Let's say the DPI
-> panel requires horizontal sync signal to be active high. It's a property
-> of the panel, and it makes sense (at least to me) to think that the DPI
-> panel asks the DPI encoder to provide a signal with hsync active high.
-
-Yes. I don't see much difference to connecting a video amplifier to the VENC
-output pins from connecting a panel to the DSS output pins and configuring
-them. They need some specific signal shapes.
-
-> Also, it doesn't matter what kind of DPI encoder there is, the hsync
-> active high is a "universal" property.
-
-Yes and therefore I would suggest to see inverted, ac-bias, bypass as
-such "universal" properties of the VENC driver.
-
-> Then, let's say the board has some electrical issues and requires the
-> DPI signals to be of slightly higher voltage than normally. I think OMAP
-> at least has bits to driver some pins with higher voltage.
-
-I think an even better example would be a panel that requires 3.3V I/O
-levels instead of the 1.8V levels the DM3730 provides.
-
-Now there could be some scenarios:
-a) the DM3730 were able to be switched to provide either 1.8V or 3.3V (like on
-the MMC interface)
-b) In such a case one would add some level shifter chips (that usually don't
-invert anything) and there is no need to switch anything by software
-c) there could be level shifters that invert all signals. Then, there would be
-need for a different control bit in the DM3730.
-
-But in practice the DM3730 has no control for that at all and there are no
-inverting level shifter chips. So software doesn't see these options at all.
-
-> This property
-> is not about panel.
-
-Well, it would be imposed by choosing a specific panel - either a 1.8V or
-a 3.3V model. So I'd argue that from platform data point of view it is no
-difference to specifying different hsync polarity or front porch timing. All
-those are found and defined in the panel data sheet.
-
-> There could be lots of different kinds of tweaks for
-> different SoCs, and they are SoC (or DPI encoder) specific things. Here
-> is makes no sense to have a property for the panel.
-
-Yes, as long as the hardware does a modification that is transparent (i.e. no
-change in logic) to the software, it does not need a control...
-
-> To me, enable_ac and enable_bypass sound like the latter kind.
-
-But the controls are part of the DM3730 and not our external hardware. I.e. they
-should IMHO be part of the set of the DM3730 drivers and not a separate
-one related to our hardware around. It is of course our hardware that asks
-to modify the DM3730 settings during boot or operation.
-
-Hm. Indeed diffiicult for an apparently simple problem and I hadn't expected
-that it gets so a long discussion :) But really good solutions need that before.
-
-BR,
-Nikolaus
-
+Best regards,
+--
+Bartlomiej Zolnierkiewicz
+Samsung R&D Institute Poland
+Samsung Electronics
 
