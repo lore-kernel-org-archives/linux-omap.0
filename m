@@ -1,61 +1,51 @@
-From: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 0/9] ARM: dts: DT data for OMAP platforms for v3.13
-Date: Wed, 25 Sep 2013 17:01:00 -0500
-Message-ID: <1380146469-29496-1-git-send-email-joelf@ti.com>
+From: Joel Fernandes <joelf@ti.com>
+Subject: [PATCH 6/9] ARM: am437x: dts: Add AES node for am437x
+Date: Wed, 25 Sep 2013 17:01:06 -0500
+Message-ID: <1380146469-29496-7-git-send-email-joelf@ti.com>
+References: <1380146469-29496-1-git-send-email-joelf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Olof Johansson <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, Jason Kridner <jkridner-hcmAuCOw+vXj4SYmN/TMmA@public.gmane.org>, Koen Kooi <koen-hcmAuCOw+vXj4SYmN/TMmA@public.gmane.org>
-Cc: Devicetree Discuss <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1380146469-29496-1-git-send-email-joelf@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@secretlab.ca>, Jason Kridner <jkridner@beagleboard.org>, Koen Kooi <koen@beagleboard.org>
+Cc: Joel Fernandes <joelf@ti.com>, Devicetree Discuss <devicetree@vger.kernel.org>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-Following series is a collection of dts patches for the below features:
-crypto:
- aes, sha on am335x
- aes, des on am437x
- aes, des on omap4
-display:
-  beaglebone black HDMI
-  am335x-evm panel
+AM437x SoC has AES module similar to the one on OMAP4.
+Add DT node for the same.
 
-Series is based on Benoit Cousson's for_3.13/dts branch (commit sha 45646cd)
-Available at: git-9UaJU3cA/F/QT0dZR+AlfA@public.gmane.org:joelagnel/linux-kernel.git (branch for-benoit)
+Signed-off-by: Joel Fernandes <joelf@ti.com>
+---
+ arch/arm/boot/dts/am4372.dtsi | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-Benoit Parrot (1):
-  ARM: dts: AM33XX: Add LCDC info into am335x-evm
-
-Darren Etheridge (1):
-  dts: boneblack: add pinmux and hdmi node to enable display
-
-Joel Fernandes (5):
-  omap4: dts: Add node for AES
-  omap4: dts: Add node for DES3DES module
-  am33xx: dts: Fix AES interrupt number
-  ARM: am437x: dts: Add AES node for am437x
-  ARM: am437x: dts: Add DES node for am437x
-
-Mark A. Greer (2):
-  ARM: dts: Add SHAM data and documentation for AM33XX
-  ARM: dts: Add AES data and documentation for AM33XX
-
- .../devicetree/bindings/crypto/omap-aes.txt        | 34 ++++++++++
- .../devicetree/bindings/crypto/omap-sham.txt       | 31 +++++++++
- arch/arm/boot/dts/am335x-bone.dts                  |  8 +++
- arch/arm/boot/dts/am335x-boneblack.dts             | 48 +++++++++++++
- arch/arm/boot/dts/am335x-evm.dts                   | 79 ++++++++++++++++++++++
- arch/arm/boot/dts/am335x-evmsk.dts                 |  8 +++
- arch/arm/boot/dts/am33xx.dtsi                      | 30 ++++++++
- arch/arm/boot/dts/am4372.dtsi                      | 16 +++++
- arch/arm/boot/dts/omap4.dtsi                       | 20 ++++++
- 9 files changed, 274 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/crypto/omap-aes.txt
- create mode 100644 Documentation/devicetree/bindings/crypto/omap-sham.txt
-
+diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
+index 0fe393a..3e631ab 100644
+--- a/arch/arm/boot/dts/am4372.dtsi
++++ b/arch/arm/boot/dts/am4372.dtsi
+@@ -411,5 +411,13 @@
+ 			ti,hwmods = "epwmss5";
+ 			status = "disabled";
+ 		};
++
++		aes: aes@53501000 {
++			compatible = "ti,omap4-aes";
++			ti,hwmods = "aes";
++			reg = <0x53501000 0xa0>;
++			interrupt-parent = <&gic>;
++			interrupts = <0 103 0x4>;
++		};
+ 	};
+ };
 -- 
 1.8.1.2
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
