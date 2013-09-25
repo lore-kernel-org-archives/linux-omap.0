@@ -1,51 +1,53 @@
-From: =?iso-8859-1?Q?M=E5ns_Rullg=E5rd?= <mans@mansr.com>
-Subject: Re: new binutils needed for arm in 3.12-rc1
-Date: Wed, 25 Sep 2013 21:49:07 +0100
-Message-ID: <yw1x38oswrss.fsf@unicorn.mansr.com>
-References: <alpine.LFD.2.03.1309242158340.312@syhkavp.arg>
-	<1380122586.1974.84@driftwood>
-	<20130925204432.GW25647@n2100.arm.linux.org.uk>
+From: Brian Norris <computersforpeace@gmail.com>
+Subject: Re: [PATCH v6 1/4] ARM: OMAP2+: cleaned-up DT support of various
+ ECC schemes
+Date: Wed, 25 Sep 2013 14:29:03 -0700
+Message-ID: <20130925212903.GI23337@ld-irv-0074.broadcom.com>
+References: <1378986619-26765-1-git-send-email-pekon@ti.com>
+ <1378986619-26765-2-git-send-email-pekon@ti.com>
+ <20980858CB6D3A4BAE95CA194937D5E73EA15ED7@DBDE04.ent.ti.com>
+ <20130925134619.GG10746@radagast>
+ <20130925175527.GA23337@ld-irv-0074.broadcom.com>
+ <20980858CB6D3A4BAE95CA194937D5E73EA16884@DBDE04.ent.ti.com>
+ <20130925200539.GH23337@ld-irv-0074.broadcom.com>
+ <CAOesGMif301iBe9zxHudkC_G9SzPPy1Mj4XYvQ-MY8nmx4wO+A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from unicorn.mansr.com ([81.2.72.234]:38182 "EHLO unicorn.mansr.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755128Ab3IYUtK convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Sep 2013 16:49:10 -0400
-In-Reply-To: <20130925204432.GW25647@n2100.arm.linux.org.uk> (Russell King's
-	message of "Wed, 25 Sep 2013 21:44:32 +0100")
+Received: from mail-ob0-f177.google.com ([209.85.214.177]:41154 "EHLO
+	mail-ob0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755269Ab3IYV3K (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Sep 2013 17:29:10 -0400
+Content-Disposition: inline
+In-Reply-To: <CAOesGMif301iBe9zxHudkC_G9SzPPy1Mj4XYvQ-MY8nmx4wO+A@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Rob Landley <rob@landley.net>, Nicolas Pitre <nico@fluxnic.net>, =?iso-8859-1?Q?M=E5ns_Rullg=E5rd?= <mans@mansr.com>, Andrew Morton <akpm@osdl.org>, Trivial patch monkey <trivial@kernel.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <will.deacon@arm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Olof Johansson <olof@lixom.net>
+Cc: "Gupta, Pekon" <pekon@ti.com>, "benoit.cousson@linaro.org" <benoit.cousson@linaro.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "arnd@arndb.de" <arnd@arndb.de>, "dwmw2@infradead.org" <dwmw2@infradead.org>, "tony@atomide.com" <tony@atomide.com>, "avinashphilipk@gmail.com" <avinashphilipk@gmail.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "dedekind1@gmail.com" <dedekind1@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Balbi, Felipe" <balbi@ti.com>, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Stephen Warren <swarren@wwwdotorg.org>, Mark Rutland <mark.rutland@arm.com>
 
-Russell King - ARM Linux <linux@arm.linux.org.uk> writes:
+On Wed, Sep 25, 2013 at 01:33:27PM -0700, Olof Johansson wrote:
+> On Wed, Sep 25, 2013 at 1:05 PM, Brian Norris
+> <computersforpeace@gmail.com> wrote:
+> 
+> > Olof has given good advice on your DT binding and has (slowly) been
+> > responding to other requests for DT review that make it to his list. I
+> > see that he hasn't followed up on your changes (this v6), so pinging him
+> > (as you did) is probably the correct approach. But please do recognize
+> > that the DT list is very high volume, so it's hard to get good timely
+> > responses there.
+> 
+> I am not a DT mainainer, but sometimes when I see a binding that
+> appears to be wrong I speak up. In this case, the binding was one of
+> those.
 
-> On Wed, Sep 25, 2013 at 10:23:06AM -0500, Rob Landley wrote:
->> On 09/24/2013 09:07:57 PM, Nicolas Pitre wrote:
->>> It could be as simple as making gas accept an extra argument for
->>> instructions like dsb and just ignoring it.
->>
->> So you prefer I come up with the reversion patches locally and _not_=
- =20
->> send them upstream?
->
-> This is a silly attitude.  What you're effectively saying is that we
-> are never allowed to use any future ARM instructions in any Linux
-> kernel because that might break your precious assembler.
->
-> I've got news for you.  We're *not* going to listen to that argument.
->
-> END OF DISCUSSION (everything else is just a waste of time.)
+Whoops, my bad. I was deceived by the responses I've seen from you on
+other issues (thanks, BTW). In that case, I haven't seen any response
+from a proper DT binding maintainer :(
+ 
+> So, I have no more objections to it, and I hope you can get a quick
+> review from a DT maintainer on the rest of the binding.
 
-I fully agree.
+At this point, I'm comfortable going ahead without their ack, since they
+obviously don't care/don't have the manpower to review.
 
---=20
-M=E5ns Rullg=E5rd
-mans@mansr.com
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Brian
