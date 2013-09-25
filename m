@@ -1,7 +1,7 @@
 From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
 Subject: [PATCH 2/2] gpio/omap: auto-setup a GPIO when used as an IRQ
-Date: Wed, 25 Sep 2013 02:36:54 +0200
-Message-ID: <1380069414-2922-3-git-send-email-javier.martinez@collabora.co.uk>
+Date: Wed, 25 Sep 2013 02:36:53 +0200
+Message-ID: <1380069414-2922-2-git-send-email-javier.martinez@collabora.co.uk>
 References: <1380069414-2922-1-git-send-email-javier.martinez@collabora.co.uk>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1380069414-2922-1-git-send-email-javier.martinez@collabora.co.uk>
