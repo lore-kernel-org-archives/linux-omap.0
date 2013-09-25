@@ -1,7 +1,7 @@
 From: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
-Subject: [PATCHv7 27/36] CLK: TI: add interface clock support for OMAP3
-Date: Wed, 25 Sep 2013 11:48:33 +0300
-Message-ID: <1380098922-30340-28-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv7 29/36] ARM: OMAP3: hwmod: initialize clkdm from clkdm_name
+Date: Wed, 25 Sep 2013 11:48:35 +0300
+Message-ID: <1380098922-30340-30-git-send-email-t-kristo@ti.com>
 References: <1380098922-30340-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,255 +12,41 @@ To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMw
 Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-OMAP3 has interface clocks in addition to functional clocks, which
-require special handling for the autoidle and idle status register
-offsets mainly.
+DT clocks are mostly missing clkdm info now, and this causes an issue with
+counter32k which makes its slave idlemode wrong and prevents core idle.
+
+Fixed by initializing the hwmod clkdm pointers for omap3 also which makes
+sure the clkdm flag matching logic works properly.
+
+This patch also changes the return value for _init_clkdm to 0 for
+incorrect clkdm_name, as this a warning, not a fatal error.
 
 Signed-off-by: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
 ---
- .../devicetree/bindings/clock/ti/interface.txt     |   52 ++++++++
- arch/arm/mach-omap2/clock.h                        |    6 -
- drivers/clk/ti/Makefile                            |    1 +
- drivers/clk/ti/interface.c                         |  124 ++++++++++++++++++++
- include/linux/clk/ti.h                             |    5 +
- 5 files changed, 182 insertions(+), 6 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/clock/ti/interface.txt
- create mode 100644 drivers/clk/ti/interface.c
+ arch/arm/mach-omap2/omap_hwmod.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/Documentation/devicetree/bindings/clock/ti/interface.txt b/Documentation/devicetree/bindings/clock/ti/interface.txt
-new file mode 100644
-index 0000000..f3e43a9
---- /dev/null
-+++ b/Documentation/devicetree/bindings/clock/ti/interface.txt
-@@ -0,0 +1,52 @@
-+Binding for Texas Instruments interface clock.
-+
-+This binding uses the common clock binding[1]. This clock is
-+quite much similar to the basic gate-clock [2], however,
-+it supports a number of additional features, including
-+companion clock finding (match corresponding functional gate
-+clock) and hardware autoidle enable / disable.
-+
-+[1] Documentation/devicetree/bindings/clock/clock-bindings.txt
-+[2] Documentation/devicetree/bindings/clock/gate-clock.txt
-+
-+Required properties:
-+- compatible : shall be one of:
-+  "ti,omap3-interface-clock" - basic OMAP3 interface clock
-+  "ti,omap3-no-wait-interface-clock" - interface clock which has no hardware
-+				       capability for waiting clock to be ready
-+  "ti,omap3-hsotgusb-interface-clock" - interface clock with USB specific HW
-+					handling
-+  "ti,omap3-dss-interface-clock" - interface clock with DSS specific HW handling
-+  "ti,omap3-ssi-interface-clock" - interface clock with SSI specific HW handling
-+  "ti,am35xx-interface-clock" - interface clock with AM35xx specific HW handling
-+- #clock-cells : from common clock binding; shall be set to 0
-+- clocks : link to phandle of parent clock
-+- reg : base address for the control register
-+
-+Optional properties:
-+- ti,bit-shift : bit shift for the bit enabling/disabling the clock (default 0)
-+
-+Examples:
-+	aes1_ick: aes1_ick@48004a14 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap3-interface-clock";
-+		clocks = <&security_l4_ick2>;
-+		reg = <0x48004a14 0x4>;
-+		ti,bit-shift = <3>;
-+	};
-+
-+	cam_ick: cam_ick@48004f10 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap3-no-wait-interface-clock";
-+		clocks = <&l4_ick>;
-+		reg = <0x48004f10 0x4>;
-+		ti,bit-shift = <0>;
-+	};
-+
-+	ssi_ick_3430es2: ssi_ick_3430es2@48004a10 {
-+		#clock-cells = <0>;
-+		compatible = "ti,omap3-ssi-interface-clock";
-+		clocks = <&ssi_l4_ick>;
-+		reg = <0x48004a10 0x4>;
-+		ti,bit-shift = <0>;
-+	};
-diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
-index 2e6cbeb..d1b227e 100644
---- a/arch/arm/mach-omap2/clock.h
-+++ b/arch/arm/mach-omap2/clock.h
-@@ -266,14 +266,8 @@ extern const struct clksel_rate gfx_l3_rates[];
- extern const struct clksel_rate dsp_ick_rates[];
- extern struct clk dummy_ck;
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index 5f8f587..ae33fae 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -1546,7 +1546,7 @@ static int _init_clkdm(struct omap_hwmod *oh)
+ 	if (!oh->clkdm) {
+ 		pr_warning("omap_hwmod: %s: could not associate to clkdm %s\n",
+ 			oh->name, oh->clkdm_name);
+-		return -EINVAL;
++		return 0;
+ 	}
  
--extern const struct clk_hw_omap_ops clkhwops_iclk_wait;
--extern const struct clk_hw_omap_ops clkhwops_iclk;
- extern const struct clk_hw_omap_ops clkhwops_omap3430es2_ssi_wait;
--extern const struct clk_hw_omap_ops clkhwops_omap3430es2_iclk_ssi_wait;
--extern const struct clk_hw_omap_ops clkhwops_omap3430es2_iclk_dss_usbhost_wait;
--extern const struct clk_hw_omap_ops clkhwops_omap3430es2_iclk_hsotgusb_wait;
- extern const struct clk_hw_omap_ops clkhwops_omap3430es2_hsotgusb_wait;
--extern const struct clk_hw_omap_ops clkhwops_am35xx_ipss_wait;
- extern const struct clk_hw_omap_ops clkhwops_apll54;
- extern const struct clk_hw_omap_ops clkhwops_apll96;
- extern const struct clk_hw_omap_ops clkhwops_omap2xxx_dpll;
-diff --git a/drivers/clk/ti/Makefile b/drivers/clk/ti/Makefile
-index 63b77f0..1ecb1a4 100644
---- a/drivers/clk/ti/Makefile
-+++ b/drivers/clk/ti/Makefile
-@@ -3,6 +3,7 @@ obj-y					+= clk.o dpll.o autoidle.o divider.o \
- 					   fixed-factor.o gate.o clockdomain.o \
- 					   mux-gate.o mux.o apll.o
- obj-$(CONFIG_SOC_AM33XX)		+= clk-33xx.o
-+obj-$(CONFIG_ARCH_OMAP3)		+= interface.o
- obj-$(CONFIG_ARCH_OMAP4)		+= clk-44xx.o
- obj-$(CONFIG_SOC_OMAP5)			+= clk-54xx.o
- obj-$(CONFIG_SOC_DRA7XX)		+= clk-7xx.o
-diff --git a/drivers/clk/ti/interface.c b/drivers/clk/ti/interface.c
-new file mode 100644
-index 0000000..1e50fba
---- /dev/null
-+++ b/drivers/clk/ti/interface.c
-@@ -0,0 +1,124 @@
-+/*
-+ * OMAP interface clock support
-+ *
-+ * Copyright (C) 2013 Texas Instruments, Inc.
-+ *
-+ * Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed "as is" WITHOUT ANY WARRANTY of any
-+ * kind, whether express or implied; without even the implied warranty
-+ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#include <linux/clk-provider.h>
-+#include <linux/slab.h>
-+#include <linux/of.h>
-+#include <linux/of_address.h>
-+#include <linux/clk/ti.h>
-+
-+static const struct clk_ops ti_interface_clk_ops = {
-+	.init		= &omap2_init_clk_clkdm,
-+	.enable		= &omap2_dflt_clk_enable,
-+	.disable	= &omap2_dflt_clk_disable,
-+	.is_enabled	= &omap2_dflt_clk_is_enabled,
-+};
-+
-+static void __init _of_ti_interface_clk_setup(struct device_node *node,
-+					const struct clk_hw_omap_ops *ops)
-+{
-+	struct clk *clk;
-+	struct clk_init_data init = { NULL };
-+	struct clk_hw_omap *clk_hw;
-+	const char *clk_name = node->name;
-+	const char *parent_name;
-+	u32 val;
-+
-+	clk_hw = kzalloc(sizeof(*clk_hw), GFP_KERNEL);
-+	if (!clk_hw) {
-+		pr_err("%s: could not allocate clk_hw_omap\n", __func__);
-+		return;
-+	}
-+
-+	clk_hw->hw.init = &init;
-+	clk_hw->ops = ops;
-+	clk_hw->enable_reg = of_iomap(node, 0);
-+
-+	if (!of_property_read_u32(node, "ti,bit-shift", &val))
-+		clk_hw->enable_bit = val;
-+
-+	of_property_read_string(node, "clock-output-names", &clk_name);
-+
-+	init.name = clk_name;
-+	init.ops = &ti_interface_clk_ops;
-+	init.flags = 0;
-+
-+	parent_name = of_clk_get_parent_name(node, 0);
-+	if (!parent_name) {
-+		pr_err("%s: %s must have a parent\n", __func__, clk_name);
-+		goto cleanup;
-+	}
-+
-+	init.num_parents = 1;
-+	init.parent_names = &parent_name;
-+
-+	clk = clk_register(NULL, &clk_hw->hw);
-+
-+	if (!IS_ERR(clk)) {
-+		of_clk_add_provider(node, of_clk_src_simple_get, clk);
-+		omap2_init_clk_hw_omap_clocks(clk);
-+		return;
-+	}
-+
-+cleanup:
-+	kfree(clk_hw);
-+}
-+
-+static void __init of_ti_interface_clk_setup(struct device_node *node)
-+{
-+	_of_ti_interface_clk_setup(node, &clkhwops_iclk_wait);
-+}
-+CLK_OF_DECLARE(ti_interface_clk, "ti,omap3-interface-clock",
-+	       of_ti_interface_clk_setup);
-+
-+static void __init of_ti_no_wait_interface_clk_setup(struct device_node *node)
-+{
-+	_of_ti_interface_clk_setup(node, &clkhwops_iclk);
-+}
-+CLK_OF_DECLARE(ti_no_wait_interface_clk, "ti,omap3-no-wait-interface-clock",
-+	       of_ti_no_wait_interface_clk_setup);
-+
-+static void __init
-+of_ti_hsotgusb_interface_clk_setup(struct device_node *node)
-+{
-+	_of_ti_interface_clk_setup(node,
-+				   &clkhwops_omap3430es2_iclk_hsotgusb_wait);
-+}
-+CLK_OF_DECLARE(ti_hsotgusb_interface_clk, "ti,omap3-hsotgusb-interface-clock",
-+	       of_ti_hsotgusb_interface_clk_setup);
-+
-+static void __init of_ti_dss_interface_clk_setup(struct device_node *node)
-+{
-+	_of_ti_interface_clk_setup(node,
-+		&clkhwops_omap3430es2_iclk_dss_usbhost_wait);
-+}
-+CLK_OF_DECLARE(ti_dss_interface_clk, "ti,omap3-dss-interface-clock",
-+	       of_ti_dss_interface_clk_setup);
-+
-+static void __init of_ti_ssi_interface_clk_setup(struct device_node *node)
-+{
-+	_of_ti_interface_clk_setup(node, &clkhwops_omap3430es2_iclk_ssi_wait);
-+}
-+CLK_OF_DECLARE(ti_ssi_interface_clk, "ti,omap3-ssi-interface-clock",
-+	       of_ti_ssi_interface_clk_setup);
-+
-+static void __init of_ti_am35xx_interface_clk_setup(struct device_node *node)
-+{
-+	_of_ti_interface_clk_setup(node, &clkhwops_am35xx_ipss_wait);
-+}
-+CLK_OF_DECLARE(ti_am35xx_interface_clk, "ti,am35xx-interface-clock",
-+	       of_ti_am35xx_interface_clk_setup);
-diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
-index 0748581..88d7497 100644
---- a/include/linux/clk/ti.h
-+++ b/include/linux/clk/ti.h
-@@ -239,5 +239,10 @@ extern const struct clk_hw_omap_ops clkhwops_wait;
- extern const struct clk_hw_omap_ops clkhwops_iclk_wait;
- extern const struct clk_hw_omap_ops clkhwops_omap3430es2_dss_usbhost_wait;
- extern const struct clk_hw_omap_ops clkhwops_am35xx_ipss_module_wait;
-+extern const struct clk_hw_omap_ops clkhwops_am35xx_ipss_wait;
-+extern const struct clk_hw_omap_ops clkhwops_iclk;
-+extern const struct clk_hw_omap_ops clkhwops_omap3430es2_iclk_ssi_wait;
-+extern const struct clk_hw_omap_ops clkhwops_omap3430es2_iclk_dss_usbhost_wait;
-+extern const struct clk_hw_omap_ops clkhwops_omap3430es2_iclk_hsotgusb_wait;
- 
- #endif
+ 	pr_debug("omap_hwmod: %s: associated to clkdm %s\n",
+@@ -4117,6 +4117,7 @@ void __init omap_hwmod_init(void)
+ 		soc_ops.assert_hardreset = _omap2_assert_hardreset;
+ 		soc_ops.deassert_hardreset = _omap2_deassert_hardreset;
+ 		soc_ops.is_hardreset_asserted = _omap2_is_hardreset_asserted;
++		soc_ops.init_clkdm = _init_clkdm;
+ 	} else if (cpu_is_omap44xx() || soc_is_omap54xx() || soc_is_dra7xx()) {
+ 		soc_ops.enable_module = _omap4_enable_module;
+ 		soc_ops.disable_module = _omap4_disable_module;
 -- 
 1.7.9.5
 
