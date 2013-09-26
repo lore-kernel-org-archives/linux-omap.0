@@ -1,69 +1,71 @@
 From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH usb 1/2] usb: musb: Add missing
- ATOMIC_INIT_NOTIFIER_HEAD
-Date: Thu, 26 Sep 2013 02:00:59 +0200
-Message-ID: <20130926000059.GA25716@amd.pavel.ucw.cz>
-References: <1378630239-10006-1-git-send-email-pali.rohar@gmail.com>
- <20130918164816.GN21559@radagast>
- <201309181903.33243@pali>
- <201309251017.39014@pali>
- <20130925203333.GU10746@radagast>
+Subject: Re: 3.12-rc1: no longer compiles for Nokia n900 (omap based),
+ display no longer works
+Date: Thu, 26 Sep 2013 02:23:49 +0200
+Message-ID: <20130926002349.GA26599@amd.pavel.ucw.cz>
+References: <20130919093002.GA23806@amd.pavel.ucw.cz>
+ <20130919094402.GA27253@amd.pavel.ucw.cz>
+ <20130919184703.GE30568@blackmetal.musicnaut.iki.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20130925203333.GU10746@radagast>
+In-Reply-To: <20130919184703.GE30568@blackmetal.musicnaut.iki.fi>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Javier Martinez Canillas <martinez.javier@gmail.com>, Tony Lindgren <tony@atomide.com>, Anton Vorontsov <anton@enomsg.org>, Russell King <linux@arm.linux.org.uk>, David Woodhouse <dwmw2@infradead.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, freemangordon@abv.bg, Aaro Koskinen <aaro.koskinen@iki.fi>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux Kernel <linux-kernel@vger.kernel.org>, linux-usb@vger.kernel.org
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, will.deacon@arm.com, catalin.marinas@arm.com
 List-Id: linux-omap@vger.kernel.org
 
-On Wed 2013-09-25 15:33:33, Felipe Balbi wrote:
-> Hi,
->=20
-> On Wed, Sep 25, 2013 at 10:17:38AM +0200, Pali Roh=E1r wrote:
-> > On Wednesday 18 September 2013 19:03:33 Pali Roh=E1r wrote:
-> > > &twl->phy.notifier is not initalized
-> > >=20
-> > > Signed-off-by: Pali Roh=E1r <pali.rohar@gmail.com>
-> > >=20
-> > > diff --git a/drivers/usb/phy/phy-twl4030-usb.c
-> > > b/drivers/usb/phy/phy-twl4030-usb.c index 8f78d2d..efe6155
-> > > 100644
-> > > --- a/drivers/usb/phy/phy-twl4030-usb.c
-> > > +++ b/drivers/usb/phy/phy-twl4030-usb.c
-> > > @@ -705,6 +705,8 @@ static int twl4030_usb_probe(struct
-> > > platform_device *pdev) if (device_create_file(&pdev->dev,
-> > > &dev_attr_vbus)) dev_warn(&pdev->dev, "could not create sysfs
-> > > file\n");
-> > >=20
-> > > +	ATOMIC_INIT_NOTIFIER_HEAD(&twl->phy.notifier);
-> > > +
-> > >  	/* Our job is to use irqs and status from the power module
-> > >  	 * to keep the transceiver disabled when nothing's
-> > > connected. *
-> >=20
-> > I sent above patch week ago. Did you already included it?
->=20
-> look at my testing branch.
+Hi!
 
-=46elipe prefers you to go MAINTAINERS file for
+> On Thu, Sep 19, 2013 at 11:44:02AM +0200, Pavel Machek wrote:
+> > something in 3.12-rc1 broke display :-(. (dmesg diff attached at the
+> > end, maybe someone knows...)
+> 
+> 3.12-rc1 for N900 compiles and works (also display) here with binutils
+> 2.23.2.
 
-git://git.kernel.org/pub/scm/linux/kernel/git/balbi/usb.git
+I updated to eldk-5.4, and now it compiles, but still no display on 
 
-entry. After few clicks, you'll find out your two patches in=20
+> > + omapfb omapfb: no displays
+> 
+> [...]
+> 
+> > - acx565akm spi1.2: omapfb: acx565akm rev 12 LCD detected
+> 
+> I think this is because the panel driver has changed, and the old one
+> was deleted. You need to change your kernel configuration with something
+> like below:
+> 
+> -CONFIG_PANEL_ACX565AKM=y
+> +CONFIG_DISPLAY_PANEL_SONY_ACX565AKM=y
 
-https://git.kernel.org/cgit/linux/kernel/git/balbi/usb.git/log/?h=3Dtes=
-ting
+Thanks for the hint.. but apparently it was not enough. Still no
+display on qemu :-(.
 
-=2E So yes, it seems that after 10+ flames Felipe was _not_ lazy to
-send, "Thanks for a patch" mail was too much work.
+Anyway, "make oldconfig" is expected to produce working kernel, which
+is clearly not case here. Perhaps this should be added to fix that?
 
-Apparently, we'll need  Documentation/HowToBeGoodMaintainer file...
+[Who can take the patch?]
+   	       	    	  	       	      	       	      Pavel
 
-									Pavel
---=20
+PS: whoever named directory in kernel sources "displays-new" should...
+think again.
+
+Signed-off-by: Pavel Machek <pavel@ucw.cz>
+
+index 6c90885..d3eabd2 100644
+--- a/drivers/video/omap2/displays-new/Kconfig
++++ b/drivers/video/omap2/displays-new/Kconfig
+@@ -40,6 +40,7 @@ config DISPLAY_PANEL_DSI_CM
+ 
+ config DISPLAY_PANEL_SONY_ACX565AKM
+ 	tristate "ACX565AKM Panel"
++	default PANEL_ACX565AKM
+ 	depends on SPI && BACKLIGHT_CLASS_DEVICE
+ 	help
+ 	  This is the LCD panel used on Nokia N900
+
+-- 
 (english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses=
-/blog.html
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
