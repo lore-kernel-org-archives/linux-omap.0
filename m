@@ -1,38 +1,103 @@
-From: Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>
-Subject: Re: [RFC v2] gpio/omap: auto-setup a GPIO when used as an IRQ
-Date: Thu, 26 Sep 2013 17:18:28 -0600
-Message-ID: <5244C0C4.2030004@wwwdotorg.org>
-References: <1380009480-4975-1-git-send-email-javier.martinez@collabora.co.uk>
+From: Paul Zimmerman <Paul.Zimmerman@synopsys.com>
+Subject: Solved: Booting recent mainline on omap5-uevm
+Date: Thu, 26 Sep 2013 23:44:19 +0000
+Message-ID: <A2CA0424C0A6F04399FB9E1CD98E030458E065EA@US01WEMBX2.internal.synopsys.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1380009480-4975-1-git-send-email-javier.martinez-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Javier Martinez Canillas <javier.martinez-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
-Cc: Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>, Kevin Hilman <khilman-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Lars Poeschel <larsi-myOXECIRRCL4ajHJ1XSv27NAH6kLmebB@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ian.campbell-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Tomasz Figa <tomasz.figa-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Enric Balletbo i Serra <eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj-sclMFOaUSTBWk0Htik3J/w@public.gmane.org>, Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Jon Hunter <jgchunter-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-gpio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, r.sricharan-l0cyMroinI0@public.gmane.org, holler-SXC+2es9fhnfWeYVQQPykw@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from us01smtp2.synopsys.com ([198.182.44.80]:47904 "EHLO
+	kiruna.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750894Ab3IZXoX convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Sep 2013 19:44:23 -0400
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Suman Anna <s-anna@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "lokeshvutla@ti.com" <lokeshvutla@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On 09/24/2013 01:58 AM, Javier Martinez Canillas wrote:
-> The OMAP GPIO controller HW requires a pin to be configured in GPIO
-> input mode in order to operate as an interrupt input. Since drivers
-> should not be aware of whether an interrupt pin is also a GPIO or not,
-> the HW should be fully configured/enabled as an IRQ if a driver solely
-> uses IRQ APIs such as request_irq(), and never calls any GPIO-related
-> APIs. As such, add the missing HW setup to the OMAP GPIO controller's
-> irq_chip driver.
+> From: Suman Anna [mailto:s-anna@ti.com]
+> Sent: Thursday, September 26, 2013 1:36 PM
+
+> >>>>>>>> I have an OMAP5432 uEVM which I cannot get to boot with recent mainline
+> >>>>>>>> (tried 3.11 and 3.12-rc1). I have the TI GLSDK for this board (v6.0.0.7),
+> >>>>>>>> which comes with 3.8.4 which works fine.
+> >>>>>>>>
+> >>>>>>>> I found this thread: http://marc.info/?l=fedora-arm&m=137717811815777 and
+> >>>>>>>
+> >>>>>>> Wrong link, should have been http://marc.info/?l=linux-omap&m=137515583214350.
+> >>>>>>>
+> >>>>>> Its because of commit 03ab349ec{ARM: OMAP5: hwmod data: Add mailbox data} which
+> >>>>>> added hwmod data but DT data for mailbox is missing. Reverting that makes
+> >>>>>> things work. Looks like mailbox dt patches missed the last merge window.
+> >>>>>
+> >>>>> I will be respinning the mailbox DT series very soon targeting 3.13, so
+> >>>>> should not be an issue when OMAP5 boot is supported directly on mainline.
+> >>>>
+> >>>> That's good info, but unfortunately it didn't work for me. I must have a
+> >>>> different problem, maybe I need a newer version of u-boot.
+> >>>>
+> >>>> So there is no README or wiki that explains how to get Linux to boot on
+> >>>> this board? Is there perhaps a prebuilt SD card image somewhere with a
+> >>>> recent kernel that I can grab?
+> >>>>
+> >>> You don't need anything special as such. Just pull the latest mainline
+> >>> denx u-boot build it for 'omap5_uevm' and update your boot-loaders.
+> >>
+> >> FYI, I was able to boot using the branch posted by Santosh just fine. I
+> >> used v2013.07 u-boot. The boot traces show up about 30~45 seconds after
+> >> you see the trace "Starting kernel...".
+> >>
+> >> For using a rootfs from MMC, enable the following in menuconfig:
+> >>   Device Drivers -> Multifunction device drivers -> TI Palmas series chips
+> >>   Device Drivers -> Voltage and Current Regulator Support -> TI Palmas
+> >> PMIC regulators.
+> >>
+> >> Depending on your u-boot settings, make sure the mmcroot is also set to
+> >> /dev/mmcblk1p2.
+> >
+> > Hi Suman,
+> >
+> > Thanks for trying to help. Unfortunately, updating to v2013.07 u-boot, and
+> > enabling the kernel config items you mentioned, didn't make a difference.
+> >
+> > Could you share your boot.scr? I'm still using the one from the TI GLSDK,
+> > but maybe something has changed since the 3.8 kernel? Also, how do you
+> > build your kernel? I'm doing "make LOADADDR=0x80008000 uImage" because
+> > newer kernels won't build without the LOADADDR= bit.
 > 
-> Since this bypasses the GPIO subsystem we have to ensure that another
-> caller won't be able to request the same GPIO pin that is used as an
-> IRQ and set its direction as output. Requesting the GPIO and setting
-> its direction as input is allowed though.
+> I build the kernel same way as you, and copy the zImage to boot
+> partition. I am not using any boot.scr, a simple uEnv.txt to override
+> the boot partition variables, and the default environment otherwise.
+> 
+> My boot log is here, including my uEnv.txt at the end.
+> http://hastebin.com/yinuxirexu.xml
+> 
+> Hopefully, this should clear out any setup differences..
 
-FWIW, the concept of this patch,
-Acked-by: Stephen Warren <swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+Thanks Suman!
 
-I didn't review the code; just skimmed it to see where the new
-functionality was implemented.
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Using your info I was able to get the board to boot. The keys were
+1) building the kernel with "make zImage" instead of "make uImage" and
+2) removing boot.scr and adding uEnv.txt.
+
+I added a third line to your uEnv.txt, so I don't have to break into
+u-boot and type "setenv mmcroot /dev/mmcblk1p2 rw":
+
+	bootdir=
+	bootpart=0:1
+	mmcroot="/dev/mmcblk1p2 rw"
+
+Or I suppose you could add that to the kernel command line in the kernel
+config.
+
+I'm seeing several stack dumps during the boot, with messages like
+"division by 0 in the kernel", but I suppose that has nothing to do with
+my boot problems. And it does boot to the login: prompt on the serial
+console.
+
+Thanks again.
+
+-- 
+Paul
+
