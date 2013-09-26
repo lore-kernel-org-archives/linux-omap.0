@@ -1,84 +1,74 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] OMAPDSS: Add missing dependency on backlight for DSI-CM
- panel drier
-Date: Thu, 26 Sep 2013 11:36:26 +0300
-Message-ID: <5243F20A.9000707@ti.com>
-References: <1380108661-22702-1-git-send-email-broonie@kernel.org>
+From: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
+Subject: Re: [PATCH v6 1/4] ARM: OMAP2+: cleaned-up DT support of various
+ ECC schemes
+Date: Thu, 26 Sep 2013 10:18:15 +0100
+Message-ID: <20130926091815.GC2411@e106331-lin.cambridge.arm.com>
+References: <1378986619-26765-1-git-send-email-pekon@ti.com>
+ <1378986619-26765-2-git-send-email-pekon@ti.com>
+ <20980858CB6D3A4BAE95CA194937D5E73EA15ED7@DBDE04.ent.ti.com>
+ <20130925134619.GG10746@radagast>
+ <20130925175527.GA23337@ld-irv-0074.broadcom.com>
+ <20980858CB6D3A4BAE95CA194937D5E73EA16884@DBDE04.ent.ti.com>
+ <20130925200539.GH23337@ld-irv-0074.broadcom.com>
+ <CAOesGMif301iBe9zxHudkC_G9SzPPy1Mj4XYvQ-MY8nmx4wO+A@mail.gmail.com>
+ <20130925212903.GI23337@ld-irv-0074.broadcom.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="Q7P57JJqmNco1i1AhWGpBSD6XPGfqMBsB"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:59722 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751720Ab3IZIgl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 26 Sep 2013 04:36:41 -0400
-In-Reply-To: <1380108661-22702-1-git-send-email-broonie@kernel.org>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20130925212903.GI23337-bU/DPfM3abD4WzifrMjOTkcViWtcw2C0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Gupta, Pekon" <pekon-l0cyMroinI0@public.gmane.org>
+Cc: Olof Johansson <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>, "benoit.cousson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <benoit.cousson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "arnd-r2nGTMty4D4@public.gmane.org" <arnd-r2nGTMty4D4@public.gmane.org>, "dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org" <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "avinashphilipk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <avinashphilipk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dedekind1-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <dedekind1-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>, "rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org" <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Pawel Moll <Pawel.Moll-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, linaro-kernel@lists.linaro.org, Mark Brown <broonie@linaro.org>
 
---Q7P57JJqmNco1i1AhWGpBSD6XPGfqMBsB
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+On Wed, Sep 25, 2013 at 10:29:03PM +0100, Brian Norris wrote:
+> On Wed, Sep 25, 2013 at 01:33:27PM -0700, Olof Johansson wrote:
+> > On Wed, Sep 25, 2013 at 1:05 PM, Brian Norris
+> > <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+> > 
+> > > Olof has given good advice on your DT binding and has (slowly) been
+> > > responding to other requests for DT review that make it to his list. I
+> > > see that he hasn't followed up on your changes (this v6), so pinging him
+> > > (as you did) is probably the correct approach. But please do recognize
+> > > that the DT list is very high volume, so it's hard to get good timely
+> > > responses there.
+> > 
+> > I am not a DT mainainer, but sometimes when I see a binding that
+> > appears to be wrong I speak up. In this case, the binding was one of
+> > those.
+> 
+> Whoops, my bad. I was deceived by the responses I've seen from you on
+> other issues (thanks, BTW). In that case, I haven't seen any response
+> from a proper DT binding maintainer :(
 
-On 25/09/13 14:31, Mark Brown wrote:
-> From: Mark Brown <broonie@linaro.org>
->=20
-> The DSI-CM driver uses the backlight class so needs to build depend on =
-it.
->=20
-> Signed-off-by: Mark Brown <broonie@linaro.org>
-> ---
->  drivers/video/omap2/displays-new/Kconfig | 1 +
->  1 file changed, 1 insertion(+)
->=20
-> diff --git a/drivers/video/omap2/displays-new/Kconfig b/drivers/video/o=
-map2/displays-new/Kconfig
-> index 6c90885..10b25e7 100644
-> --- a/drivers/video/omap2/displays-new/Kconfig
-> +++ b/drivers/video/omap2/displays-new/Kconfig
-> @@ -35,6 +35,7 @@ config DISPLAY_PANEL_DPI
-> =20
->  config DISPLAY_PANEL_DSI_CM
->  	tristate "Generic DSI Command Mode Panel"
-> +	depends on BACKLIGHT_CLASS_DEVICE
->  	help
->  	  Driver for generic DSI command mode panels.
-> =20
->=20
+Hmm... this is the first email in this thread I've received, and I don't
+have older postings either. It looks like I must have cocked up
+subscribing to the devicetree list, but as I was CC'd directly on many
+patches I hadn't noticed.
 
-Thanks, I'll queue for 3.12 fixes.
+As far as I can see I wasn't CC'd directly on any version of this
+series, which would have helped to highlight the series as needing
+review.
 
-I wish we could "select" instead of "depends on"...
+Apologies for that. I've attempted to correct the problem. Hopefully
+I've got this right and mails are not being silently dropped somewhere.
 
- Tomi
+Pekon, could you please re-send this version of the patches?
 
+Cheers,
+Mark.
 
-
---Q7P57JJqmNco1i1AhWGpBSD6XPGfqMBsB
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJSQ/IKAAoJEPo9qoy8lh712xIP/2PkqZse9fmy97uF9cXt6RHV
-cpriz04x7UgY11Gb808vqpO9RfNlXMqkMJ9kPCYTaINhT4VEYyXCVyrIlnje9+KO
-hI8e+0Wmo5uwKScD/1aXycs3eEOmfvIpYFRYUGPDDT3eE24rRjDKwsEYG0jd2eK5
-elEqfRJTueEZdckrIUVUfLogyJqtXWrWqDNZ9N1GYNo0+I3EVC+9q04b28QJhUvi
-8Ga38d3HDs7RLwVVRlgzpP1TsOLIdxcPAWG/iW9hgnBY+UR0YDpEoHOvG+y7SVvS
-BjU9dqYPjXShYku/OyFizRwnvGMqd2TOBYaLEuW5pFQw/voM/X+vqUhOOFN9M4oC
-Qsld6iLHAHVfYtRpOT9RD5tHs1CATlr8KRwgVENcc5kYqa3KMhVqyfpf4x+Akq76
-yedaDrsqrvKWTlBs6l+Ss6FZ4HS0oMkzBrJGAfBrlqXvGvlSZxpm/ny+gv9QMRHr
-1ugCabj9LR6/EONDbzRFLAoJaekxBLCA4hhelQXGIF/jOTtC2wx+hlV7ATr+VnGd
-8oG9imdHO54JZtgdupxzjsD7mTnZwYWiMlWUfDqYryzNLTqsAehBg1WaYZ60gRKq
-ZHDCECP4hGJUqQrT+F0Tnu1KwYSEvZ+nRF8ftD1mk9/oTL15CyI67n/yI/I9KRMV
-1mPFXA3J/Xc2EfhwPWcv
-=RF/c
------END PGP SIGNATURE-----
-
---Q7P57JJqmNco1i1AhWGpBSD6XPGfqMBsB--
+>  
+> > So, I have no more objections to it, and I hope you can get a quick
+> > review from a DT maintainer on the rest of the binding.
+> 
+> At this point, I'm comfortable going ahead without their ack, since they
+> obviously don't care/don't have the manpower to review.
+> 
+> Brian
+> 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
