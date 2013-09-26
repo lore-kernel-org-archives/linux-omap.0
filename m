@@ -1,52 +1,35 @@
-From: "Gupta, Pekon" <pekon@ti.com>
-Subject: RE: [PATCH v6 1/4] ARM: OMAP2+: cleaned-up DT support of various
- ECC schemes
-Date: Thu, 26 Sep 2013 06:15:17 +0000
-Message-ID: <20980858CB6D3A4BAE95CA194937D5E73EA16B22@DBDE04.ent.ti.com>
-References: <1378986619-26765-1-git-send-email-pekon@ti.com>
- <1378986619-26765-2-git-send-email-pekon@ti.com>
- <20980858CB6D3A4BAE95CA194937D5E73EA15ED7@DBDE04.ent.ti.com>
- <20130925134619.GG10746@radagast>
- <20130925175527.GA23337@ld-irv-0074.broadcom.com>
- <20980858CB6D3A4BAE95CA194937D5E73EA16884@DBDE04.ent.ti.com>
- <20130925200539.GH23337@ld-irv-0074.broadcom.com>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: Re: new binutils needed for arm in 3.12-rc1
+Date: Thu, 26 Sep 2013 09:18:10 +0200
+Message-ID: <CAMuHMdXN3CgOt6Lk1S-xYjeeACOZtuxuYu2RqSGMoTvp9qz8Cg@mail.gmail.com>
+References: <20130924214800.GV25647@n2100.arm.linux.org.uk>
+	<1380071607.1974.78@driftwood>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
-In-Reply-To: <20130925200539.GH23337@ld-irv-0074.broadcom.com>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
-To: Brian Norris <computersforpeace@gmail.com>, "olof@lixom.net" <olof@lixom.net>
-Cc: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "arnd@arndb.de" <arnd@arndb.de>, "dedekind1@gmail.com" <dedekind1@gmail.com>, "tony@atomide.com" <tony@atomide.com>, "avinashphilipk@gmail.com" <avinashphilipk@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Balbi,
- Felipe" <balbi@ti.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "benoit.cousson@linaro.org" <benoit.cousson@linaro.org>, Andrew Morton <akpm@linux-foundation.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "dwmw2@infradead.org" <dwmw2@infradead.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1380071607.1974.78@driftwood>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Rob Landley <rob@landley.net>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, =?UTF-8?B?TcOlbnMgUnVsbGfDpXJk?= <mans@mansr.com>, Andrew Morton <akpm@osdl.org>, Trivial patch monkey <trivial@kernel.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <will.deacon@arm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
+Hi Rob,
 
-> 
-> Anyway, at this point I think your patch series should be nearly
-> complete. I made a few comments on your patches, and I'd imagine you
-> only should need one more revision (v7) before I can accept it to the
-> l2-mtd.git tree.
-> 
-Yes surely I will send next version (v7), but it might take few days.
-As some more feedbacks on [PATCH 1] are pending for final conclusion
-and this needs to be properly re-tested.
+On Wed, Sep 25, 2013 at 3:13 AM, Rob Landley <rob@landley.net> wrote:
+> Some of us can't ship GPLv3 binaries and are looking forward to the day LLVM
+> or some such provides a complete solution.
 
-And thanks much to you and Olof for the feedbacks.
-I agree some of Olof's feedbacks on DT bindings gave me new view to
-look at things, And further simplified the NAND driver code.
+Sorry, I didn't have a coffee yet, but which subtility am I missing
+that prohibits
+you from shipping GPLv3 binaries?
 
-with regards, pekon
+Gr{oetje,eeting}s,
 
-______________________________________________________
-Linux MTD discussion mailing list
-http://lists.infradead.org/mailman/listinfo/linux-mtd/
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
