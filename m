@@ -1,138 +1,80 @@
-From: Daniel Mack <zonque@gmail.com>
-Subject: [PATCH 1/4] usb: musb: move port reset to worker
-Date: Thu, 26 Sep 2013 15:08:59 +0200
-Message-ID: <1380200942-28175-2-git-send-email-zonque@gmail.com>
-References: <1380200942-28175-1-git-send-email-zonque@gmail.com>
+From: Javier Martinez Canillas <martinez.javier@gmail.com>
+Subject: Re: [PATCH v6 4/4] ARM: dts: AM33xx: updated default ECC scheme in nand-ecc-opt
+Date: Thu, 26 Sep 2013 15:26:11 +0200
+Message-ID: <CAAwP0s1J8=_0bz5Cryjuy4EL4Ky9f33Bm6zZ-x+jm=EGh+VGiQ@mail.gmail.com>
+References: <1378986619-26765-1-git-send-email-pekon@ti.com>
+ <1378986619-26765-5-git-send-email-pekon@ti.com> <20130925191559.GF23337@ld-irv-0074.broadcom.com>
+ <20980858CB6D3A4BAE95CA194937D5E73EA16D3D@DBDE04.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from svenfoo.org ([82.94.215.22]:41299 "EHLO mail.zonque.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757008Ab3IZNJO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 26 Sep 2013 09:09:14 -0400
-In-Reply-To: <1380200942-28175-1-git-send-email-zonque@gmail.com>
+Received: from mail-ie0-f174.google.com ([209.85.223.174]:62739 "EHLO
+	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750854Ab3IZN0c (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Sep 2013 09:26:32 -0400
+In-Reply-To: <20980858CB6D3A4BAE95CA194937D5E73EA16D3D@DBDE04.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-usb@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, neumann@teufel.de, bigeasy@linutronix.de, balbi@ti.com, gregkh@linuxfoundation.org, Daniel Mack <zonque@gmail.com>
+To: "Gupta, Pekon" <pekon@ti.com>, Benoit Cousson <bcousson@baylibre.com>
+Cc: Brian Norris <computersforpeace@gmail.com>, "tony@atomide.com" <tony@atomide.com>, "dedekind1@gmail.com" <dedekind1@gmail.com>, "olof@lixom.net" <olof@lixom.net>, "dwmw2@infradead.org" <dwmw2@infradead.org>, "arnd@arndb.de" <arnd@arndb.de>, "avinashphilipk@gmail.com" <avinashphilipk@gmail.com>, "Balbi, Felipe" <balbi@ti.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "Rob Herring (robherring2@gmail.com)" <robherring2@gmail.com>, "Mark Rutland (mark.rutland@arm.com)" <mark.rutland@arm.com>, Pawel Moll <pawel.moll@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Stephen Warren <swarren@wwwdotorg.org>
 
-musb_port_reset() sleeps, so we can't call it from atomic context. It
-is, however, called from places inside musb_hub_control() while
-&musb->lock is held, which leads to a "scheduling while atomic" warning.
+On Thu, Sep 26, 2013 at 1:28 PM, Gupta, Pekon <pekon@ti.com> wrote:
+>> From: Brian Norris [mailto:computersforpeace@gmail.com]
+>>
+>> On Thu, Sep 12, 2013 at 05:20:19PM +0530, Pekon Gupta wrote:
+>> > DT property values for OMAP based gpmc-nand have been updated
+>> > to match changes in commit:
+>> >     6faf096 ARM: OMAP2+: cleaned-up DT support of various ECC
+>> schemes
+>>
+>> Whose commit ID is this? Your patch is not merged yet, so don't use a
+>> commit ID.
+>>
+>> > Refer: Documentation/devicetree/bindings/mtd/gpmc-nand.txt
+>> >
+>> > Signed-off-by: Pekon Gupta <pekon@ti.com>
+>> > ---
+>> >  arch/arm/boot/dts/am335x-evm.dts | 2 +-
+>> >  1 file changed, 1 insertion(+), 1 deletion(-)
+>> >
+>> > diff --git a/arch/arm/boot/dts/am335x-evm.dts
+>> b/arch/arm/boot/dts/am335x-evm.dts
+>> > index e8ec875..e28a2ac 100644
+>> > --- a/arch/arm/boot/dts/am335x-evm.dts
+>> > +++ b/arch/arm/boot/dts/am335x-evm.dts
+>> > @@ -268,7 +268,7 @@
+>> >                     nand@0,0 {
+>> >                             reg = <0 0 0>; /* CS0, offset 0 */
+>> >                             nand-bus-width = <8>;
+>> > -                           ti,nand-ecc-opt = "bch8";
+>> > +                           ti,nand-ecc-scheme = "bch8";
+>> >                             gpmc,device-nand = "true";
+>> >                             gpmc,device-width = <1>;
+>> >                             gpmc,sync-clk-ps = <0>;
+>>
+>> This change should probably go in patch 1 anyway, when you break the
+>> ABI.
+>>
+> As this patch series touches three different trees..
+> (1) arch/arm/boot/dts/..  maintained by Benoit Cousson (benoit.cousson@linaro.org)
 
-Fix this by moving the logic into a worker, and call it where the
-function was previously called directly.
+Hi Pekon,
 
-Signed-off-by: Daniel Mack <zonque@gmail.com>
----
- drivers/usb/musb/musb_core.c    |  7 +++++++
- drivers/usb/musb/musb_core.h    |  3 +++
- drivers/usb/musb/musb_host.h    |  2 ++
- drivers/usb/musb/musb_virthub.c | 13 ++++++++-----
- 4 files changed, 20 insertions(+), 5 deletions(-)
+Please note that Benoit's current email address is bcousson@baylibre.com.
 
-diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
-index 18e877f..2b9f4b4 100644
---- a/drivers/usb/musb/musb_core.c
-+++ b/drivers/usb/musb/musb_core.c
-@@ -1699,6 +1699,12 @@ static void musb_irq_work(struct work_struct *data)
- 	}
- }
- 
-+static void musb_port_reset_work(struct work_struct *data)
-+{
-+	struct musb *musb = container_of(data, struct musb, port_reset_work);
-+	musb_port_reset(musb);
-+}
-+
- /* --------------------------------------------------------------------------
-  * Init support
-  */
-@@ -1857,6 +1863,7 @@ musb_init_controller(struct device *dev, int nIrq, void __iomem *ctrl)
- 
- 	/* Init IRQ workqueue before request_irq */
- 	INIT_WORK(&musb->irq_work, musb_irq_work);
-+	INIT_WORK(&musb->port_reset_work, musb_port_reset_work);
- 
- 	/* attach to the IRQ */
- 	if (request_irq(nIrq, musb->isr, 0, dev_name(dev), musb)) {
-diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
-index 65f3917..9529512 100644
---- a/drivers/usb/musb/musb_core.h
-+++ b/drivers/usb/musb/musb_core.h
-@@ -294,6 +294,9 @@ struct musb {
- 
- 	irqreturn_t		(*isr)(int, void *);
- 	struct work_struct	irq_work;
-+	struct work_struct	port_reset_work;
-+	bool			port_reset_state;
-+
- 	u16			hwvers;
- 
- 	u16			intrrxe;
-diff --git a/drivers/usb/musb/musb_host.h b/drivers/usb/musb/musb_host.h
-index 960d735..843f48e 100644
---- a/drivers/usb/musb/musb_host.h
-+++ b/drivers/usb/musb/musb_host.h
-@@ -92,6 +92,7 @@ extern void musb_host_rx(struct musb *, u8);
- extern void musb_root_disconnect(struct musb *musb);
- extern void musb_host_resume_root_hub(struct musb *musb);
- extern void musb_host_poke_root_hub(struct musb *musb);
-+extern void musb_port_reset(struct musb *musb);
- #else
- static inline struct musb *hcd_to_musb(struct usb_hcd *hcd)
- {
-@@ -121,6 +122,7 @@ static inline void musb_root_disconnect(struct musb *musb)	{}
- static inline void musb_host_resume_root_hub(struct musb *musb)	{}
- static inline void musb_host_poll_rh_status(struct musb *musb)	{}
- static inline void musb_host_poke_root_hub(struct musb *musb)	{}
-+static inline void musb_port_reset(struct musb *musb)		{}
- #endif
- 
- struct usb_hcd;
-diff --git a/drivers/usb/musb/musb_virthub.c b/drivers/usb/musb/musb_virthub.c
-index a523950..30b43a1 100644
---- a/drivers/usb/musb/musb_virthub.c
-+++ b/drivers/usb/musb/musb_virthub.c
-@@ -155,7 +155,7 @@ static void musb_port_suspend(struct musb *musb, bool do_suspend)
- 	}
- }
- 
--static void musb_port_reset(struct musb *musb, bool do_reset)
-+void musb_port_reset(struct musb *musb)
- {
- 	u8		power;
- 	void __iomem	*mbase = musb->mregs;
-@@ -173,7 +173,7 @@ static void musb_port_reset(struct musb *musb, bool do_reset)
- 	 * the appropriate amount of time has passed
- 	 */
- 	power = musb_readb(mbase, MUSB_POWER);
--	if (do_reset) {
-+	if (musb->port_reset_state) {
- 
- 		/*
- 		 * If RESUME is set, we must make sure it stays minimum 20 ms.
-@@ -356,8 +356,10 @@ int musb_hub_control(
- 
- 		/* finish RESET signaling? */
- 		if ((musb->port1_status & USB_PORT_STAT_RESET)
--				&& time_after_eq(jiffies, musb->rh_timer))
--			musb_port_reset(musb, false);
-+				&& time_after_eq(jiffies, musb->rh_timer)) {
-+			musb->port_reset_state = false;
-+			schedule_work(&musb->port_reset_work);
-+		}
- 
- 		/* finish RESUME signaling? */
- 		if ((musb->port1_status & MUSB_PORT_STAT_RESUME)
-@@ -412,7 +414,8 @@ int musb_hub_control(
- 				musb_start(musb);
- 			break;
- 		case USB_PORT_FEAT_RESET:
--			musb_port_reset(musb, true);
-+			musb->port_reset_state = true;
-+			schedule_work(&musb->port_reset_work);
- 			break;
- 		case USB_PORT_FEAT_SUSPEND:
- 			musb_port_suspend(musb, true);
--- 
-1.8.3.1
+I had cc'ed him now with the correct address.
 
+> (2) arch/arm/mach-omap2/.. maintained by Tony Lindgren (tony@atomide.com)
+> (3) driver/mtd/nand/.. maintained by Brian Norris <computersforpeace@gmail.com>
+>
+> It was observed that there were conflicts usually during final merge,
+> Hence I separated out the patches.
+> However, if all are in sync and the series gets committed in above trees
+> simultaneously, then this conflicts can be avoided.
+> So, if Tony & Benoit are ok then I'll merge this [PATCH 4/4] in [PATCH 1/4].
+>
+> with regards, pekon
+> --
+
+Best regards,
+Javier
