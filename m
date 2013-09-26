@@ -1,78 +1,128 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] OMAPDSS: Add missing dependency on backlight for DSI-CM
- panel drier
-Date: Thu, 26 Sep 2013 13:21:31 +0300
-Message-ID: <52440AAB.70101@ti.com>
-References: <1380108661-22702-1-git-send-email-broonie@kernel.org> <5243F20A.9000707@ti.com> <20130926101247.GB19304@sirena.org.uk>
+From: Afzal Mohammed <afzal@ti.com>
+Subject: Re: [PATCH v4 00/11] ARM: OMAP2+: AM43x PRCM basic support
+Date: Thu, 26 Sep 2013 16:00:12 +0530
+Message-ID: <52440CB4.7010705@ti.com>
+References: <cover.1380179370.git.afzal@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="ULJm6eakE1Ai2LoskuhRSFJ97MXkT4B0D"
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:46209 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:37565 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756302Ab3IZKVh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 26 Sep 2013 06:21:37 -0400
-In-Reply-To: <20130926101247.GB19304@sirena.org.uk>
+	id S1754851Ab3IZKal (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 26 Sep 2013 06:30:41 -0400
+In-Reply-To: <cover.1380179370.git.afzal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, linaro-kernel@lists.linaro.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Rajendra Nayak <rnayak@ti.com>, Benoit Cousson <bcousson@baylibre.com>
 
---ULJm6eakE1Ai2LoskuhRSFJ97MXkT4B0D
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Hi,
 
-On 26/09/13 13:12, Mark Brown wrote:
-> On Thu, Sep 26, 2013 at 11:36:26AM +0300, Tomi Valkeinen wrote:
->=20
->> I wish we could "select" instead of "depends on"...
->=20
-> We probably could.
+It seems,
+"[PATCH v4 02/11] ARM: OMAP2+: hwmod: AM335x/AM43x: move common data"
+is held on LAKML for moderator approval due to big size.
 
-I'm not so sure.
+I will wait for some time to see if moderator approves, if not, will
+ping him (believe it is David Woodhouse), but not sure how to get it
+into omap list though.
 
-If we select BACKLIGHT_CLASS_DEVICE, we could end up compiling
-backlight.c without fbdev, and backlight.c uses fb's funcs.
+Changes are also available
+@git://gitorious.org/x0148406-public/linux-kernel.git tags/am43x-prcm-v4
 
-The funny thing is, there is FB_BACKLIGHT, which seems to be designed to
-be selectable (and is selected). That one depends on FB, but if I'm not
-mistaken, that dependency does not do anything if FB_BACKLIGHT is selecte=
-d.
+Regards
+Afzal
 
-FB_BACKLIGHT in turn selects both BACKLIGHT_LCD_SUPPORT and
-BACKLIGHT_CLASS_DEVICE, neither of which seem to be designed to be
-selectable.
+On Thursday 26 September 2013 02:58 PM, Afzal Mohammed wrote:
+> Hi Paul, Benoit, Tony,
+> 
+> This series adds PRCM support (except clock tree) for AM43x SoC's.
+> Current version is based on Rajendra's comments and discussions, please
+> consider this for inclusion in the coming merge window.
+> 
+> Major changes compared to v2 (v3 was only an rfc for current approach):
+> 1. omap_hwmod_33xx_43xx_interconnect_data.c has the common interconnect
+>    ocp's structs shared between AM335x and AM43x
+> 2. omap_hwmod_33xx_43xx_ipblock_data.c has the common hwmod structs
+>    shared between AM335x and AM43x
+> 3. Instances where clock domain or clock topology has changed in the few
+>    cases, have separate structures for AM335x and AM43x
+> 4. To handle scenarios where register offsets are different, they are
+>    dynamically init-ed in omap_hwmod_33xx_43xx_ipblock_data.c
+> 5. Register offsets for hwmod's that are present either in AM335x or
+>    AM43x are updated statically in omap_hwmod_33xx_data.c or
+>    omap_hwmod_43xx_data.c as that was cleaner.
+> 
+> Major changes compared to rfc v3:
+> 1. All register offsets properly taken care for AM43x (with rfc v3, a
+>    couple of issues was detected while testing on pre-silicon)
+> 2. There were two patches for common hwmod data movement (one for
+>    interconnect and other for ip block data), both were combined to have
+>    a cleaner series that is bisectable.
+> 3. Cleaner seperation of common data
+> 
+> This series has been boot tested on pre-silicon platform with the help
+> of Tero's DT clock tree conversion series. This series has been tested
+> on AM335x-EVM too.
+> 
+> The change that re-introduces SW_SLEEP for OMAP4 has been left out from
+> this series as it is the only potential change that affect other
+> platforms. It will be taken care seperately.
+> 
+> Additional details:
+> AM43x reuses most of the IP's from AM335x, as that is the case, much of
+> the AM335x hwmod data is reused. As AM43x PRCM register layout differs
+> from AM335x and is similar to OMAP4, power domain, clock domain & hwmod
+> operations are reused from OMAP4. Currently there is no public TRM
+> available for AM43x.
+> 
+> Changes based on: v3.12-rc2
+> 
+> Regards
+> Afzal
+> 
+> Afzal Mohammed (7):
+>   ARM: OMAP2+: hwmod: AM335x/AM43x: move common data
+>   ARM: OMAP2+: hwmod: AM335x: runtime register update
+>   ARM: OMAP2+: hwmod: AM335x: remove static register offs
+>   ARM: OMAP2+: PRCM: AM43x definitions
+>   ARM: OMAP2+: hwmod: AM43x support
+>   ARM: OMAP2+: hwmod: AM43x operations
+>   ARM: OMAP2+: AM43x: PRCM kbuild
+> 
+> Ambresh K (3):
+>   ARM: OMAP2+: PM: AM43x powerdomain data
+>   ARM: OMAP2+: CM: AM43x clockdomain data
+>   ARM: OMAP2+: AM43x PRCM init
+> 
+> Ankur Kishore (1):
+>   ARM: OMAP2+: CM: cm_inst offset s16->u16
+> 
+>  arch/arm/mach-omap2/Makefile                       |    9 +-
+>  arch/arm/mach-omap2/clockdomain.h                  |    4 +-
+>  arch/arm/mach-omap2/clockdomains43xx_data.c        |  196 ++
+>  arch/arm/mach-omap2/cm33xx.c                       |   16 +-
+>  arch/arm/mach-omap2/cm33xx.h                       |   12 +-
+>  arch/arm/mach-omap2/cminst44xx.c                   |   29 +-
+>  arch/arm/mach-omap2/cminst44xx.h                   |   26 +-
+>  arch/arm/mach-omap2/io.c                           |    6 +
+>  arch/arm/mach-omap2/omap_hwmod.c                   |    8 +
+>  arch/arm/mach-omap2/omap_hwmod.h                   |    1 +
+>  .../mach-omap2/omap_hwmod_33xx_43xx_common_data.h  |  163 ++
+>  .../omap_hwmod_33xx_43xx_interconnect_data.c       |  643 +++++++
+>  .../mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c | 1456 +++++++++++++++
+>  arch/arm/mach-omap2/omap_hwmod_33xx_data.c         | 1966 +-------------------
+>  arch/arm/mach-omap2/omap_hwmod_43xx_data.c         |  622 +++++++
+>  arch/arm/mach-omap2/powerdomain.h                  |    1 +
+>  arch/arm/mach-omap2/powerdomains43xx_data.c        |  142 ++
+>  arch/arm/mach-omap2/prcm43xx.h                     |  141 ++
+>  18 files changed, 3438 insertions(+), 2003 deletions(-)
+>  create mode 100644 arch/arm/mach-omap2/clockdomains43xx_data.c
+>  create mode 100644 arch/arm/mach-omap2/omap_hwmod_33xx_43xx_common_data.h
+>  create mode 100644 arch/arm/mach-omap2/omap_hwmod_33xx_43xx_interconnect_data.c
+>  create mode 100644 arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c
+>  create mode 100644 arch/arm/mach-omap2/omap_hwmod_43xx_data.c
+>  create mode 100644 arch/arm/mach-omap2/powerdomains43xx_data.c
+>  create mode 100644 arch/arm/mach-omap2/prcm43xx.h
+> 
 
-I think that's a bit broken. Anyway, I guess it's better to "depend on"
-here, to be on the safe side.
-
- Tomi
-
-
-
---ULJm6eakE1Ai2LoskuhRSFJ97MXkT4B0D
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJSRAqrAAoJEPo9qoy8lh717dkP/2OKI315CSH5bFBHMqJjwRpa
-+yao8VMVEQnJbe9IH+crHIbcWnwwDzjrB53NDPg+ah98rGVcgAMeI9IaWJmIdzlt
-hM9sTou/3Q8Cq8v0LzXNZvlm2ZkO8sqLVUD+P/kuB7DDbdi9CUyxqvOGxTFdK/UV
-W7pD5Y26sOW1EgFLsWkjfeud/jzMaLi+Wq5FhDkF0pCU5X5b8mO26l0KnSmeSySp
-NOzkV+WodznpZTC24dxy6I1SWyz6pGDS6Y8Uh5faSSUs9Lw74XkZRPSHNQyhmM55
-mhApJK2SfOFJnGJ69LupgEp7pD2kNQd9fIf0vTouYbyJX4ykxdcQ2CSkz4Cp+ybW
-i2UTjiR4s8SmS0brcqYp2kbN98psp1kV/e/PF2xferMq6+x9eGE/EoayqwjUhLnL
-TB9VHD9hI9qWg4BT606n2/RtD4gJJhCM70wNEYhfViTCpeoNejWJJvMSjPWDkhN7
-1EaCyQOHDCEXXXBgUdM4P/Qdq7p15VScDUuqfNFUCiysZHZkydEo+zN5uSy1Vzdl
-rk5IQAflLuYwhCet01sWIrdROUYhHx5Tc2j3dhNX/3wmoF9fLx57uXgtDq+ZIWde
-cQ7poZT5ZH+QtFKuIav1zBbzNBoAlxr5FR0035hN578dtzqpiwqp3zrGtiy1HJ4/
-miXSk1lwFTNS1WsUnTFs
-=I/0s
------END PGP SIGNATURE-----
-
---ULJm6eakE1Ai2LoskuhRSFJ97MXkT4B0D--
