@@ -1,80 +1,148 @@
-From: Javier Martinez Canillas <martinez.javier@gmail.com>
-Subject: Re: [PATCH v6 4/4] ARM: dts: AM33xx: updated default ECC scheme in nand-ecc-opt
-Date: Thu, 26 Sep 2013 15:26:11 +0200
-Message-ID: <CAAwP0s1J8=_0bz5Cryjuy4EL4Ky9f33Bm6zZ-x+jm=EGh+VGiQ@mail.gmail.com>
-References: <1378986619-26765-1-git-send-email-pekon@ti.com>
- <1378986619-26765-5-git-send-email-pekon@ti.com> <20130925191559.GF23337@ld-irv-0074.broadcom.com>
- <20980858CB6D3A4BAE95CA194937D5E73EA16D3D@DBDE04.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 2/2] mmc: omap_hsmmc: Enable SDIO interrupt
+Date: Thu, 26 Sep 2013 07:19:37 -0700
+Message-ID: <20130926141936.GE8949@atomide.com>
+References: <20130925234544.3745.55170.stgit@localhost>
+ <20130925234740.3745.50637.stgit@localhost>
+ <CALtMJEBKbbpM47uhM-KeSRHRkM5CJkgBx4kFq4j+GG9sKXEfag@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ie0-f174.google.com ([209.85.223.174]:62739 "EHLO
-	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750854Ab3IZN0c (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Sep 2013 09:26:32 -0400
-In-Reply-To: <20980858CB6D3A4BAE95CA194937D5E73EA16D3D@DBDE04.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CALtMJEBKbbpM47uhM-KeSRHRkM5CJkgBx4kFq4j+GG9sKXEfag@mail.gmail.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Andreas Fenkart <afenkart@gmail.com>
+Cc: Chris Ball <cjb@laptop.org>, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, Balaji T K <balajitk@ti.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gupta, Pekon" <pekon@ti.com>, Benoit Cousson <bcousson@baylibre.com>
-Cc: Brian Norris <computersforpeace@gmail.com>, "tony@atomide.com" <tony@atomide.com>, "dedekind1@gmail.com" <dedekind1@gmail.com>, "olof@lixom.net" <olof@lixom.net>, "dwmw2@infradead.org" <dwmw2@infradead.org>, "arnd@arndb.de" <arnd@arndb.de>, "avinashphilipk@gmail.com" <avinashphilipk@gmail.com>, "Balbi, Felipe" <balbi@ti.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "Rob Herring (robherring2@gmail.com)" <robherring2@gmail.com>, "Mark Rutland (mark.rutland@arm.com)" <mark.rutland@arm.com>, Pawel Moll <pawel.moll@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Stephen Warren <swarren@wwwdotorg.org>
 
-On Thu, Sep 26, 2013 at 1:28 PM, Gupta, Pekon <pekon@ti.com> wrote:
->> From: Brian Norris [mailto:computersforpeace@gmail.com]
->>
->> On Thu, Sep 12, 2013 at 05:20:19PM +0530, Pekon Gupta wrote:
->> > DT property values for OMAP based gpmc-nand have been updated
->> > to match changes in commit:
->> >     6faf096 ARM: OMAP2+: cleaned-up DT support of various ECC
->> schemes
->>
->> Whose commit ID is this? Your patch is not merged yet, so don't use a
->> commit ID.
->>
->> > Refer: Documentation/devicetree/bindings/mtd/gpmc-nand.txt
->> >
->> > Signed-off-by: Pekon Gupta <pekon@ti.com>
->> > ---
->> >  arch/arm/boot/dts/am335x-evm.dts | 2 +-
->> >  1 file changed, 1 insertion(+), 1 deletion(-)
->> >
->> > diff --git a/arch/arm/boot/dts/am335x-evm.dts
->> b/arch/arm/boot/dts/am335x-evm.dts
->> > index e8ec875..e28a2ac 100644
->> > --- a/arch/arm/boot/dts/am335x-evm.dts
->> > +++ b/arch/arm/boot/dts/am335x-evm.dts
->> > @@ -268,7 +268,7 @@
->> >                     nand@0,0 {
->> >                             reg = <0 0 0>; /* CS0, offset 0 */
->> >                             nand-bus-width = <8>;
->> > -                           ti,nand-ecc-opt = "bch8";
->> > +                           ti,nand-ecc-scheme = "bch8";
->> >                             gpmc,device-nand = "true";
->> >                             gpmc,device-width = <1>;
->> >                             gpmc,sync-clk-ps = <0>;
->>
->> This change should probably go in patch 1 anyway, when you break the
->> ABI.
->>
-> As this patch series touches three different trees..
-> (1) arch/arm/boot/dts/..  maintained by Benoit Cousson (benoit.cousson@linaro.org)
+Hi,
 
-Hi Pekon,
+* Andreas Fenkart <afenkart@gmail.com> [130926 01:34]:
+> 2013/9/26 Tony Lindgren <tony@atomide.com>:
+> > @@ -463,27 +469,34 @@ static void omap_hsmmc_stop_clock(struct omap_hsmmc_host *host)
+> >  static void omap_hsmmc_enable_irq(struct omap_hsmmc_host *host,
+> >                                   struct mmc_command *cmd)
+> >  {
+> > -       unsigned int irq_mask;
+> > +       u32 irq_mask = INT_EN_MASK;
+> > +       unsigned long flags;
+> >
+> >         if (host->use_dma)
+> > -               irq_mask = INT_EN_MASK & ~(BRR_EN | BWR_EN);
+> > -       else
+> > -               irq_mask = INT_EN_MASK;
+> > +               irq_mask &= ~(BRR_EN | BWR_EN);
+> >
+> >         /* Disable timeout for erases */
+> >         if (cmd->opcode == MMC_ERASE)
+> >                 irq_mask &= ~DTO_EN;
+> >
+> > +       spin_lock_irqsave(&host->irq_lock, flags);
+> >         OMAP_HSMMC_WRITE(host->base, STAT, STAT_CLEAR);
+> >         OMAP_HSMMC_WRITE(host->base, ISE, irq_mask);
+> > +       if (host->flags & HSMMC_SDIO_IRQ_ENABLED)
+> > +               irq_mask |= CIRQ_EN;
+> >         OMAP_HSMMC_WRITE(host->base, IE, irq_mask);
+> > +       spin_unlock_irqrestore(&host->irq_lock, flags);
+> >  }
+> >
+> >  static void omap_hsmmc_disable_irq(struct omap_hsmmc_host *host)
+> >  {
+> > +       unsigned long flags;
+> > +
+> > +       spin_lock_irqsave(&host->irq_lock, flags);
+> >         OMAP_HSMMC_WRITE(host->base, ISE, 0);
+> >         OMAP_HSMMC_WRITE(host->base, IE, 0);
+> >         OMAP_HSMMC_WRITE(host->base, STAT, STAT_CLEAR);
+> 
+> This is wrong. SDIO IRQ must not be disabled upon host initiated transfer.
+> see omap_hsmmc_request_done
 
-Please note that Benoit's current email address is bcousson@baylibre.com.
+Hmm I don't quite follow you here, are you saying that
+omap_hsmmc_request_done() should call this conditionally?
 
-I had cc'ed him now with the correct address.
+Or maybe even do a patch on top of this based on what you discovered
+with your earlier patches?
 
-> (2) arch/arm/mach-omap2/.. maintained by Tony Lindgren (tony@atomide.com)
-> (3) driver/mtd/nand/.. maintained by Brian Norris <computersforpeace@gmail.com>
->
-> It was observed that there were conflicts usually during final merge,
-> Hence I separated out the patches.
-> However, if all are in sync and the series gets committed in above trees
-> simultaneously, then this conflicts can be avoided.
-> So, if Tony & Benoit are ok then I'll merge this [PATCH 4/4] in [PATCH 1/4].
->
-> with regards, pekon
-> --
+I know we don't have the remuxing support yet, but that has
+dependencies to the pending pinctrl wake-up handling in general,
+and pinctrl state grouping. So let's remove those dependencies
+for now and get the basics going first before moving on to
+the remuxing part :)
+ 
+> > +       spin_unlock_irqrestore(&host->irq_lock, flags);
+> >  }
+> >
+> >  /* Calculate divisor for the given clock frequency */
+> > @@ -1040,8 +1053,12 @@ static irqreturn_t omap_hsmmc_irq(int irq, void *dev_id)
+> >         int status;
+> >
+> >         status = OMAP_HSMMC_READ(host->base, STAT);
+> > -       while (status & INT_EN_MASK && host->req_in_progress) {
+> > -               omap_hsmmc_do_irq(host, status);
+> > +       while (status & (INT_EN_MASK | CIRQ_EN)) {
+> > +               if (host->req_in_progress)
+> > +                       omap_hsmmc_do_irq(host, status);
+> > +
+> > +               if (status & CIRQ_EN)
+> > +                       mmc_signal_sdio_irq(host->mmc);
+> >
+> >                 /* Flush posted write */
+> >                 status = OMAP_HSMMC_READ(host->base, STAT);
+> > @@ -1556,6 +1573,43 @@ static void omap_hsmmc_init_card(struct mmc_host *mmc, struct mmc_card *card)
+> >                 mmc_slot(host).init_card(card);
+> >  }
+> >
+> > +static void omap_hsmmc_enable_sdio_irq_nolock(struct omap_hsmmc_host *host,
+> > +                                        int enable)
+> > +{
+> > +       u32 irq_mask;
+> > +
+> > +       if (enable)
+> > +               host->flags |= HSMMC_SDIO_IRQ_ENABLED;
+> > +       else
+> > +               host->flags &= ~HSMMC_SDIO_IRQ_ENABLED;
+> > +
+> > +       /* SDIO IRQ will be enabled as appropriate in runtime resume */
+> > +       if (host->flags & HSMMC_RUNTIME_SUSPENDED)
+> > +               goto out;
+> 
+> Not sure here, will the module still come out of suspend even with
+> SDIO IRQ disabled?
+> Otherwise nak, sdio irq must enabled independent of pm runtime state. In the
+> worst case need pm_runtime_get().
 
-Best regards,
-Javier
+Well this handling is similar to what's done in sdhci.c and
+seems to work for me for off-idle on 3730. In that case the
+whole MMC block is powered off and the wake up follows the
+dedicated io chain path. For the am33xx off-idle case, the
+wake-up path would be remuxed to the GPIO in the first GPIO
+bank that's always on, so again the whole MMC block is off.
+
+Maybe try to test this with your case with some additional
+patches?
+
+> >  static void omap_hsmmc_conf_bus_power(struct omap_hsmmc_host *host)
+> >  {
+> >         u32 hctl, capa, value;
+> > @@ -1608,7 +1662,7 @@ static const struct mmc_host_ops omap_hsmmc_ops = {
+> >         .get_cd = omap_hsmmc_get_cd,
+> >         .get_ro = omap_hsmmc_get_ro,
+> >         .init_card = omap_hsmmc_init_card,
+> > -       /* NYET -- enable_sdio_irq */
+> > +       .enable_sdio_irq = omap_hsmmc_enable_sdio_irq,
+> 
+> What about am335x, if this patch goes in, it will break that platform.
+> quirk flag via device tree?
+
+I think it should still work, except the wake-up won't work for
+the off-idle case unless the SDIO interrupt is remux to the
+GPIO input?
+
+If there are other issues then yes, we can use the compatible
+flags.
+
+Thanks for the review and comments, 
+
+Tony
+ 
