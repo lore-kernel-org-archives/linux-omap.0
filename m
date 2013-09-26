@@ -1,61 +1,113 @@
-From: Jingoo Han <jg1.han@samsung.com>
-Subject: Re: [PATCH] OMAPDSS: Add missing dependency on backlight for DSI-CM
- panel drier
-Date: Thu, 26 Sep 2013 09:59:04 +0900
-Message-ID: <000101ceba53$985740b0$c905c210$%han@samsung.com>
-References: <1380108661-22702-1-git-send-email-broonie@kernel.org>
+From: "Gupta, Pekon" <pekon@ti.com>
+Subject: RE: [PATCH v6 1/4] ARM: OMAP2+: cleaned-up DT support of various
+ ECC schemes
+Date: Thu, 26 Sep 2013 06:08:42 +0000
+Message-ID: <20980858CB6D3A4BAE95CA194937D5E73EA16B0D@DBDE04.ent.ti.com>
+References: <1378986619-26765-1-git-send-email-pekon@ti.com>
+	<1378986619-26765-2-git-send-email-pekon@ti.com>
+ <CAL_Jsq+XxQ_9ik_P8EPPNSzXiCz6yd-VJLRU668t3jvD-jhyOw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:57122 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752757Ab3IZA7G (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Sep 2013 20:59:06 -0400
-In-reply-to: <1380108661-22702-1-git-send-email-broonie@kernel.org>
-Content-language: ko
+Received: from comal.ext.ti.com ([198.47.26.152]:55503 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750933Ab3IZGJV convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Sep 2013 02:09:21 -0400
+In-Reply-To: <CAL_Jsq+XxQ_9ik_P8EPPNSzXiCz6yd-VJLRU668t3jvD-jhyOw@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: 'Mark Brown' <broonie@kernel.org>, 'Tomi Valkeinen' <tomi.valkeinen@ti.com>, 'Jean-Christophe Plagniol-Villard' <plagnioj@jcrosoft.com>
-Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, linaro-kernel@lists.linaro.org, 'Mark Brown' <broonie@linaro.org>, 'Jingoo Han' <jg1.han@samsung.com>
+To: Rob Herring <robherring2@gmail.com>
+Cc: "dedekind1@gmail.com" <dedekind1@gmail.com>, Olof Johansson <olof@lixom.net>, "computersforpeace@gmail.com" <computersforpeace@gmail.com>, "dwmw2@infradead.org" <dwmw2@infradead.org>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, "benoit.cousson@linaro.org" <benoit.cousson@linaro.org>, "avinashphilipk@gmail.com" <avinashphilipk@gmail.com>, "Balbi, Felipe" <balbi@ti.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
 
-On Wednesday, September 25, 2013 8:31 PM, Mark Brown wrote:
+Hi,
+
+> >
+> > diff --git a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
+> b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
+> > index df338cb..958e5d5 100644
+> > --- a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
+> > +++ b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
+> > @@ -21,11 +21,8 @@ Optional properties:
+> >                                 is wired that way. If not specified, a bus
+> >                                 width of 8 is assumed.
+> >
+> > - - ti,nand-ecc-opt:            A string setting the ECC layout to use. One of:
+> > -
+> > -               "sw"            Software method (default)
+> > -               "hw"            Hardware method
+> > -               "hw-romcode"    gpmc hamming mode method & romcode layout
+> > + - ti,nand-ecc-scheme:         A string setting the ECC layout to use. One of:
+> > +               "ham1"          1-bit Hamming ecc code
 > 
-> From: Mark Brown <broonie@linaro.org>
+> As has been pointed out, this breaks compatibility which should be
+> avoided unless you know the state of use of this binding. I fail to
+> see the advantage of using scheme over opt. You could simply add ham1
+> here and maintain compatibility. Instead of removing sw, hw, etc. you
+> can simply deprecate them or decide that the kernel doesn't support
+> those options.
 > 
-> The DSI-CM driver uses the backlight class so needs to build depend on it.
+Renaming 'ti,nand-ecc-opt' to 'ti,nand-ecc-scheme' was as per earlier 
+comments from Olof. So either way is fine with me. Should I revert
+it back to 'ti,nand-ecc-opt' ?
+
+Also, "sw", "hw_romcode" have been deprecated, they are no longer
+supported in driver. So shouldn't they be removed from the documentation ?
+
+> However, since you are willing to break compatibility, then you should
+> the generic NAND binding and use nand-ecc-mode adding the values you
+> need.
 > 
-> Signed-off-by: Mark Brown <broonie@linaro.org>
-
-Reviewed-by: Jingoo Han <jg1.han@samsung.com>
-
-I checked that the following build errors are removed.
-drivers/video/omap2/displays-new/panel-dsi-cm.c:1257: undefined reference to `backlight_device_register'
-drivers/video/omap2/displays-new/panel-dsi-cm.c:1283: undefined reference to `backlight_device_unregister'
-drivers/built-in.o: In function `dsicm_remove':
-drivers/video/omap2/displays-new/panel-dsi-cm.c:1309: undefined reference to `backlight_device_unregister'
-
-Thank you.
-
-Best regards,
-Jingoo Han
-
-> ---
->  drivers/video/omap2/displays-new/Kconfig | 1 +
->  1 file changed, 1 insertion(+)
+> Documentation/devicetree/bindings/mtd/nand.txt:
+> * MTD generic binding
 > 
-> diff --git a/drivers/video/omap2/displays-new/Kconfig b/drivers/video/omap2/displays-new/Kconfig
-> index 6c90885..10b25e7 100644
-> --- a/drivers/video/omap2/displays-new/Kconfig
-> +++ b/drivers/video/omap2/displays-new/Kconfig
-> @@ -35,6 +35,7 @@ config DISPLAY_PANEL_DPI
-> 
->  config DISPLAY_PANEL_DSI_CM
->  	tristate "Generic DSI Command Mode Panel"
-> +	depends on BACKLIGHT_CLASS_DEVICE
->  	help
->  	  Driver for generic DSI command mode panels.
-> 
-> --
-> 1.8.4.rc3
+> - nand-ecc-mode : String, operation mode of the NAND ecc mode.
+>   Supported values are: "none", "soft", "hw", "hw_syndrome",
+> "hw_oob_first",
+>   "soft_bch".
 
+Yes I can use generic 'nand-ecc-mode', But the binding values like
+"soft", "hw", "soft_bch" are too generic to describe the hardware.
+- BCH ECC scheme can itself be of multiple types, bch4/bch8/bch16
+  so "soft_bch" is ambiguous.
+- Similarly "soft" and "hw" do not determine the algorithm used
+   like Hamming or BCH.
+
+(a) Should I update the generic binding values (if no one else is using) ? like 
+	sw -> ham1_sw
+	hw -> ham1_hw
+	soft_bch-> soft_bch4, soft_bch8
+OR 
+(b) Should I add newer ones to it (like "ham1", "bch4", "bch8", "bch16") ?
+      keeping the old ones intact. And how should I handle un-supported
+     values, (Is pr_err during kernel probe enough ?).
+
+[...]
+
+> > - - elm_id:     Specifies elm device node. This is required to support BCH
+> > -               error correction using ELM module.
+> > + - ti,elm-id:  Specifies pHandle of the ELM devicetree node.
+> > +               ELM is an on-chip hardware engine on TI SoC which is used for
+> > +               locating ECC errors for BCHx algorithms. SoC devices which have
+> > +               ELM hardware engines should specify this device node in .dtsi
+> > +               Using ELM for ECC error correction frees some CPU cycles.
+> 
+> While yes, this is better name and documentation, I don't know that
+> breaking compatibility is justified.
+> 
+As this is TI specific binding, so manufacturer's name should have been
+included.  But as this was missed while adding this binding, so this should
+be fixed now. (Olof also recommended the same).
+
+AFAIK, For TI's NAND OMAP driver, currently there are not many
+end-users are using these bindings from mainline DT kernel.
+So this patch series mainly aims to cleanup NAND driver so that migrate
+to latest DT based kernel from board-file one is easy.
+So changes should be acceptable from end-user's point, its only matter
+of which path to take. 
+Request you to please help me finalize this before I resend next patch
+series addressing other comments from Brian.
+
+Thank You..
+with regards, pekon
