@@ -1,74 +1,46 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [RESEND PATCH v3 01/11] ASoC: davinci-evm: Move
- sysclk logic away from evm_hw_params
-Date: Thu, 26 Sep 2013 20:36:23 +0100
-Message-ID: <20130926193623.GA6066@sirena.org.uk>
-References: <cover.1379590035.git.jsarha@ti.com>
- <dad0f7eb787d3f65848425a67d668e3935033195.1379590036.git.jsarha@ti.com>
+From: =?UTF-8?B?UmFmYcWCIE1pxYJlY2tp?= <zajec5@gmail.com>
+Subject: Re: [PATCH 00/51] DMA mask changes
+Date: Thu, 26 Sep 2013 22:23:08 +0200
+Message-ID: <CACna6rxkpYzdD8_Jfi22vA2suUa3k-JM65_gCySQpp4crVCoPg@mail.gmail.com>
+References: <20130919212235.GD12758@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============4162402319421978488=="
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <dad0f7eb787d3f65848425a67d668e3935033195.1379590036.git.jsarha@ti.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Jyri Sarha <jsarha@ti.com>
-Cc: devicetree@vger.kernel.org, alsa-devel@alsa-project.org, liam.r.girdwood@linux.intel.com, joelf@ti.com, rob.herring@calxeda.com, peter.ujfalusi@ti.com, bcousson@baylibre.com, grant.likely@linaro.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wg0-f52.google.com ([74.125.82.52]:54550 "EHLO
+	mail-wg0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751025Ab3IZUXL convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Sep 2013 16:23:11 -0400
+In-Reply-To: <20130919212235.GD12758@n2100.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: alsa-devel@alsa-project.org, b43-dev <b43-dev@lists.infradead.org>, "devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>, devicetree@vger.kernel.org, dri-devel <dri-devel@lists.freedesktop.org>, e1000-devel@lists.sourceforge.net, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-crypto@vger.kernel.org, linux-doc@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-ide@vger.kernel.org, linux-media@vger.kernel.org, linux-mmc@vger.kernel.org, linux-nvme@lists.infradead.org, linux-omap@vger.kernel.org, linux ppc dev <linuxppc-dev@lists.ozlabs.org>, linux-samsung-soc@vger.kernel.org, Linux SCSI List <linux-scsi@vger.kernel.org>, linux-tegra@vger.kernel.org, linux-usb@vger.kernel.org, "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Solarflare linux maintainers <linux-ne>
 
+2013/9/19 Russell King - ARM Linux <linux@arm.linux.org.uk>:
+> This email is only being sent to the mailing lists in question, not t=
+o
+> anyone personally.  The list of individuals is far to great to do tha=
+t.
+> I'm hoping no mailing lists reject the patches based on the number of
+> recipients.
 
---===============4162402319421978488==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="PNTmBPCT7hxwcZjr"
-Content-Disposition: inline
+Huh, I think it was enough to send only 3 patches to the b43-dev@. Like=
+:
+[PATCH 01/51] DMA-API: provide a helper to set both DMA and coherent DM=
+A masks
+[PATCH 14/51] DMA-API: net: b43: (...)
+[PATCH 15/51] DMA-API: net: b43legacy: (...)
+;)
 
+I believe Joe has some nice script for doing it that way. When fixing
+some coding style / formatting, he sends only related patches to the
+given ML.
 
---PNTmBPCT7hxwcZjr
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Thu, Sep 26, 2013 at 10:18:26PM +0300, Jyri Sarha wrote:
-> The sysclk rate does not change runtime so it should be initialized at
-> init time.
-
-If you want the DT maintainers to review this stuff you probably need
-to send it to them rather than spam the ASoC maintainers again.
-
---PNTmBPCT7hxwcZjr
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.21 (GNU/Linux)
-
-iQIcBAEBAgAGBQJSRIy0AAoJELSic+t+oim9gtIP/iFXrrXmUKg9DlccEnzMrDmX
-ntVetZukxfy0L3fOV39AP2EYDdlUMnQPhZ2bfiAxZv9yOL1dmr4v9Fq5bniNX+Ff
-ted1+2XyS4IsvZq06RlJFl/BTkc5pTwBv6Tu9k6Xt2mjPss6y1533IeNpYxe1lru
-J7ZmVFLHy3VQ6ZZs7/zQeqR+p89gwY/wn/M6rgIZdABKUg06vQ/X58ltZrF0fOPr
-36tTa9LbK6sUV89rr8mc4qCUyAFBunH7L6otDU4vgqKbCS5Naw8vg2gtV770H6O5
-ISNZkgUUJZkHKFk8RFl25qCqQp1KNAH4KIvGxiB3C9UALfxEvPJKJb3GHcmVjqIj
-NRfWoZLJIJeoXEd/2MQzWx8Ssnc3v/iFCzzrhnXGbEfZ28nkGUZ2XMk52ae76St/
-Mgd8QL8eTPxqjtAy5jd5ztYJfr9Wwmh+eM35bR7iEsz8oCsBRmOF8u2upDSXxkgz
-9bcHqVBRT9ke+qZOoGAgZ83BDG/4khayMjkyd6rjsWm6baZqAmD+n0VmzTaxWZgV
-YKJ7k06FEzuEbh+VaOL0XMv4NMfyyxEmOQ/pxGUcmBnjVTRtnmPHGF9gDYGCdt7z
-RgyByAN40xVFMweRPrMOOgfyFLmCi/xsaU4iQaCGd982im0smC4k132ZQCozrDhk
-8sCVks1nx1ID/G6eDgdg
-=uVBh
------END PGP SIGNATURE-----
-
---PNTmBPCT7hxwcZjr--
-
---===============4162402319421978488==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---===============4162402319421978488==--
+--=20
+Rafa=C5=82
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
