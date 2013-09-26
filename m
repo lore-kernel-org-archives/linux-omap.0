@@ -1,87 +1,133 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCHv7 00/36] ARM: OMAP: clock data conversion to DT
-Date: Thu, 26 Sep 2013 10:29:10 -0500
-Message-ID: <524452C6.6090801@ti.com>
-References: <1380098922-30340-1-git-send-email-t-kristo@ti.com> <52445115.7010800@ti.com>
+Subject: Re: [PATCHv7 30/36] ARM: dts: omap3 clock data
+Date: Thu, 26 Sep 2013 11:06:57 -0500
+Message-ID: <20130926160657.GA6280@kahuna>
+References: <1380098922-30340-1-git-send-email-t-kristo@ti.com>
+ <1380098922-30340-31-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:56133 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750805Ab3IZP3g (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Sep 2013 11:29:36 -0400
-In-Reply-To: <52445115.7010800@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:36968 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751834Ab3IZQHZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 26 Sep 2013 12:07:25 -0400
+Content-Disposition: inline
+In-Reply-To: <1380098922-30340-31-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, rnayak@ti.com, bcousson@baylibre.com, mturquette@linaro.orgBenoit Cousson <bcousson@baylibre.com>
-Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, rnayak@ti.com, bcousson@baylibre.com, mturquette@linaro.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-On 09/26/2013 10:21 AM, Nishanth Menon wrote:
-> On 09/25/2013 03:48 AM, Tero Kristo wrote:
-> [...]
->> Test branch available here:
->> https://github.com/t-kristo/linux-pm.git
->> branch: mainline-3.12-rc2-ti-dt-clks-v7
->>
->> Testing done:
->> - am335x-bone : boot only
->> - omap5-sevm : boot only
->> - dra7-evm : boot only
->> - omap3-beagle : boot + suspend/resume (ret + off)
->> - omap4-panda-es : boot + suspend/resume
->>
->> Nishanth has also been doing some tests with omap3-beagle-xm with some WIP
->> versions of this branch, but not with this latest one. Nishanth, maybe you
->> can provide test results to this one also?
-> I rebased the branch on top of benoit's for_3.13/dts merged with
-> v3.12-rc2 tag
-> 45646cd ARM: dts: AM33XX: don't redefine OCP bus and device nodes
-> 
-> All platforms were to MMC filesystem boot (SD card). u-boot used
-> v2013.10-rc3 on all platforms (mainline u-boot).
-> 
-> OMAP3630: Beagle-XM:
-> http://pastebin.pandaboard.org/index.php/view/96577127
-> (needs additional patch
-> -> https://patchwork.kernel.org/patch/2919661/ )
-dependency patch needs rework
-> 
-> OMAP4460: Panda-ES: http://pastebin.pandaboard.org/index.php/view/85143661
-> 
-> OMAP5432: OMAP5-UEVM:
-> http://pastebin.pandaboard.org/index.php/view/91361843
-> (nice to have patch
-> -> https://patchwork.kernel.org/patch/2907761/ )
-Acked,tested, pending merge from  maintainers
-> 
-> AM335x: BeagleBone Black:
-> http://pastebin.pandaboard.org/index.php/view/42000597
-> (needs additional patches:
->  https://patchwork.kernel.org/patch/2902711/
--> merged to Shekar's davinci branch -> pending upstream.
->  https://patchwork.kernel.org/patch/2902711/
-Correction on ^^: should have been:
-https://patchwork.kernel.org/patch/2919661/
-tested, pending ack, merge.
-> )
-> 
-> DRA7: DRA7-EVM: http://pastebin.pandaboard.org/index.php/view/38362805
-> (needs additional patches:
-> -> https://patchwork.kernel.org/patch/2849391/
-> -> https://patchwork.kernel.org/patch/2849601/
-> -> https://patchwork.kernel.org/patch/2849602/
-> -> https://patchwork.kernel.org/patch/2907761/
-All of the above:
-Acked,tested, pending merge from  maintainers
-> )
-> 
-> So, for the entire series:
-> Tested-by: Nishanth Menon <nm@ti.com>
-> 
+On 11:48-20130925, Tero Kristo wrote:
+> diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
+> index 16420ae..bc11b83 100644
+> --- a/arch/arm/boot/dts/omap3.dtsi
+> +++ b/arch/arm/boot/dts/omap3.dtsi
+> @@ -533,4 +533,11 @@
+>  			ram-bits = <12>;
+>  		};
+>  	};
+> +
+> +	clocks {
+> +		#address-cells = <1>;
+> +		#size-cells = <1>;
+> +		ranges;
+> +		/include/ "omap3xxx-clocks.dtsi"
+> +	};
+>  };
+Clocks are introduced towards the tail of the dts -> this has a problem
+associated with it -> device nodes should be able to reference phandle
+like:
 
-Maybe Benoit and Tony could help reduce few of these acked patches
-pending merge from having to be cherry-picked by folks.
+devicex {
+	clocks = <&sys_ck>;
+}
+
+Since all the devices on ocp and cpu0 node appears above the definition
+they fail to catch the phandle. instead, moving the clocks node as high
+in the tree as possible resolves this: something like:
+diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
+index bc11b83..0b2161d 100644
+--- a/arch/arm/boot/dts/omap3.dtsi
++++ b/arch/arm/boot/dts/omap3.dtsi
+@@ -24,6 +24,13 @@
+ 		serial2 = &uart3;
+ 	};
+ 
++	clocks {
++		#address-cells = <1>;
++		#size-cells = <1>;
++		ranges;
++		/include/ "omap3xxx-clocks.dtsi"
++	};
++
+ 	cpus {
+ 		#address-cells = <1>;
+ 		#size-cells = <0>;
+@@ -534,10 +541,4 @@
+ 		};
+ 	};
+ 
+-	clocks {
+-		#address-cells = <1>;
+-		#size-cells = <1>;
+-		ranges;
+-		/include/ "omap3xxx-clocks.dtsi"
+-	};
+ };
+
+What do you think of the change? applies for all clock nodes in other
+dtsi as well - I will mark them as I find them.
+
+Further,
+> diff --git a/arch/arm/boot/dts/omap34xx.dtsi b/arch/arm/boot/dts/omap34xx.dtsi
+> index 5355d61..2ed7c69 100644
+> --- a/arch/arm/boot/dts/omap34xx.dtsi
+> +++ b/arch/arm/boot/dts/omap34xx.dtsi
+> @@ -25,4 +25,123 @@
+>  			clock-latency = <300000>; /* From legacy driver */
+>  		};
+>  	};
+> -};
+> +
+> +	clocks {
+> +		#address-cells = <1>;
+> +		#size-cells = <1>;
+> +		ranges;
+dont need to state the above two -> already done in omap3.dtsi.
+> +		/include/ "omap34xx-omap36xx-clocks.dtsi"
+> +		/include/ "omap36xx-omap3430es2plus-clocks.dtsi"
+> +		/include/ "omap36xx-am35xx-omap3430es2plus-clocks.dtsi"
+> +	};
+> +};
+[...]
+> \ No newline at end of file
+^^
+[...]
+> diff --git a/arch/arm/boot/dts/omap36xx.dtsi b/arch/arm/boot/dts/omap36xx.dtsi
+> index f8b3765..71fb6fb 100644
+> --- a/arch/arm/boot/dts/omap36xx.dtsi
+> +++ b/arch/arm/boot/dts/omap36xx.dtsi
+> @@ -35,4 +35,124 @@
+>  			clock-frequency = <48000000>;
+>  		};
+>  	};
+> -};
+> +
+> +	clocks {
+> +		#address-cells = <1>;
+> +		#size-cells = <1>;
+> +		ranges;
+^^ here as well.
+> +		/include/ "omap36xx-clocks.dtsi"
+> +		/include/ "omap34xx-omap36xx-clocks.dtsi"
+> +		/include/ "omap36xx-omap3430es2plus-clocks.dtsi"
+> +		/include/ "omap36xx-am35xx-omap3430es2plus-clocks.dtsi"
+> +	};
+[...]
+> +};
+> \ No newline at end of file
+^^ this need fix as well.
 
 -- 
 Regards,
