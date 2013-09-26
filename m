@@ -1,101 +1,75 @@
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: [PATCH 13/27] mmc: omap: Remove redundant suspend and resume callbacks
-Date: Thu, 26 Sep 2013 16:54:38 +0200
-Message-ID: <1380207292-16968-14-git-send-email-ulf.hansson@linaro.org>
-References: <1380207292-16968-1-git-send-email-ulf.hansson@linaro.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1380207292-16968-1-git-send-email-ulf.hansson@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-mmc@vger.kernel.org, Chris Ball <cjb@laptop.org>
-Cc: Ulf Hansson <ulf.hansson@linaro.org>, Jarkko Lavinen <jarkko.lavinen@nokia.com>, linux-omap@vger.kernel.org
+From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCHv7 00/36] ARM: OMAP: clock data conversion to DT
+Date: Thu, 26 Sep 2013 10:21:57 -0500
+Message-ID: <52445115.7010800@ti.com>
+References: <1380098922-30340-1-git-send-email-t-kristo@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1380098922-30340-1-git-send-email-t-kristo-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, mturquette-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Suspend and resume of cards are handled by the protocol layer and
-consequently the mmc_suspend|resume_host APIs are marked as deprecated.
+On 09/25/2013 03:48 AM, Tero Kristo wrote:
+[...]
+> Test branch available here:
+> https://github.com/t-kristo/linux-pm.git
+> branch: mainline-3.12-rc2-ti-dt-clks-v7
+> 
+> Testing done:
+> - am335x-bone : boot only
+> - omap5-sevm : boot only
+> - dra7-evm : boot only
+> - omap3-beagle : boot + suspend/resume (ret + off)
+> - omap4-panda-es : boot + suspend/resume
+> 
+> Nishanth has also been doing some tests with omap3-beagle-xm with some WIP
+> versions of this branch, but not with this latest one. Nishanth, maybe you
+> can provide test results to this one also?
+I rebased the branch on top of benoit's for_3.13/dts merged with
+v3.12-rc2 tag
+45646cd ARM: dts: AM33XX: don't redefine OCP bus and device nodes
 
-While moving away from using the deprecated APIs, there are nothing
-left to be done for the suspend and resume callbacks, so remove them.
+All platforms were to MMC filesystem boot (SD card). u-boot used
+v2013.10-rc3 on all platforms (mainline u-boot).
 
-Cc: Jarkko Lavinen <jarkko.lavinen@nokia.com>
-Cc: linux-omap@vger.kernel.org
-Signed-off-by: Ulf Hansson <ulf.hansson@linaro.org>
----
- drivers/mmc/host/omap.c |   53 -----------------------------------------------
- 1 file changed, 53 deletions(-)
+OMAP3630: Beagle-XM:
+http://pastebin.pandaboard.org/index.php/view/96577127
+(needs additional patch
+-> https://patchwork.kernel.org/patch/2919661/ )
 
-diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
-index b94f38e..0b10a90 100644
---- a/drivers/mmc/host/omap.c
-+++ b/drivers/mmc/host/omap.c
-@@ -128,7 +128,6 @@ struct mmc_omap_slot {
- 
- struct mmc_omap_host {
- 	int			initialized;
--	int			suspended;
- 	struct mmc_request *	mrq;
- 	struct mmc_command *	cmd;
- 	struct mmc_data *	data;
-@@ -1513,61 +1512,9 @@ static int mmc_omap_remove(struct platform_device *pdev)
- 	return 0;
- }
- 
--#ifdef CONFIG_PM
--static int mmc_omap_suspend(struct platform_device *pdev, pm_message_t mesg)
--{
--	int i, ret = 0;
--	struct mmc_omap_host *host = platform_get_drvdata(pdev);
--
--	if (host == NULL || host->suspended)
--		return 0;
--
--	for (i = 0; i < host->nr_slots; i++) {
--		struct mmc_omap_slot *slot;
--
--		slot = host->slots[i];
--		ret = mmc_suspend_host(slot->mmc);
--		if (ret < 0) {
--			while (--i >= 0) {
--				slot = host->slots[i];
--				mmc_resume_host(slot->mmc);
--			}
--			return ret;
--		}
--	}
--	host->suspended = 1;
--	return 0;
--}
--
--static int mmc_omap_resume(struct platform_device *pdev)
--{
--	int i, ret = 0;
--	struct mmc_omap_host *host = platform_get_drvdata(pdev);
--
--	if (host == NULL || !host->suspended)
--		return 0;
--
--	for (i = 0; i < host->nr_slots; i++) {
--		struct mmc_omap_slot *slot;
--		slot = host->slots[i];
--		ret = mmc_resume_host(slot->mmc);
--		if (ret < 0)
--			return ret;
--
--		host->suspended = 0;
--	}
--	return 0;
--}
--#else
--#define mmc_omap_suspend	NULL
--#define mmc_omap_resume		NULL
--#endif
--
- static struct platform_driver mmc_omap_driver = {
- 	.probe		= mmc_omap_probe,
- 	.remove		= mmc_omap_remove,
--	.suspend	= mmc_omap_suspend,
--	.resume		= mmc_omap_resume,
- 	.driver		= {
- 		.name	= DRIVER_NAME,
- 		.owner	= THIS_MODULE,
+OMAP4460: Panda-ES: http://pastebin.pandaboard.org/index.php/view/85143661
+
+OMAP5432: OMAP5-UEVM:
+http://pastebin.pandaboard.org/index.php/view/91361843
+(nice to have patch
+-> https://patchwork.kernel.org/patch/2907761/ )
+
+AM335x: BeagleBone Black:
+http://pastebin.pandaboard.org/index.php/view/42000597
+(needs additional patches:
+ https://patchwork.kernel.org/patch/2902711/
+ https://patchwork.kernel.org/patch/2902711/
+)
+
+DRA7: DRA7-EVM: http://pastebin.pandaboard.org/index.php/view/38362805
+(needs additional patches:
+-> https://patchwork.kernel.org/patch/2849391/
+-> https://patchwork.kernel.org/patch/2849601/
+-> https://patchwork.kernel.org/patch/2849602/
+-> https://patchwork.kernel.org/patch/2907761/
+)
+
+So, for the entire series:
+Tested-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+
 -- 
-1.7.9.5
+Regards,
+Nishanth Menon
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
