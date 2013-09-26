@@ -1,154 +1,71 @@
-From: "Gupta, Pekon" <pekon@ti.com>
-Subject: RE: [PATCH v6 0/4] mtd:nand:omap2: clean-up of supported ECC schemes
-Date: Thu, 26 Sep 2013 10:58:56 +0000
-Message-ID: <20980858CB6D3A4BAE95CA194937D5E73EA16D07@DBDE04.ent.ti.com>
+From: "Gupta, Pekon" <pekon-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH v6 4/4] ARM: dts: AM33xx: updated default ECC scheme in
+ nand-ecc-opt
+Date: Thu, 26 Sep 2013 11:28:19 +0000
+Message-ID: <20980858CB6D3A4BAE95CA194937D5E73EA16D3D@DBDE04.ent.ti.com>
 References: <1378986619-26765-1-git-send-email-pekon@ti.com>
+ <1378986619-26765-5-git-send-email-pekon@ti.com>
+ <20130925191559.GF23337@ld-irv-0074.broadcom.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
-In-Reply-To: <1378986619-26765-1-git-send-email-pekon@ti.com>
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20130925191559.GF23337-bU/DPfM3abD4WzifrMjOTkcViWtcw2C0@public.gmane.org>
 Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
-To: "Rob Herring (robherring2@gmail.com)" <robherring2@gmail.com>, "Mark
- Rutland (mark.rutland@arm.com)" <mark.rutland@arm.com>, Pawel Moll <pawel.moll@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Stephen Warren <swarren@wwwdotorg.org>
-Cc: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "computersforpeace@gmail.com" <computersforpeace@gmail.com>, "arnd@arndb.de" <arnd@arndb.de>, "dedekind1@gmail.com" <dedekind1@gmail.com>, "tony@atomide.com" <tony@atomide.com>, "avinashphilipk@gmail.com" <avinashphilipk@gmail.com>, "Balbi,
- Felipe" <balbi@ti.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "olof@lixom.net" <olof@lixom.net>, "benoit.cousson@linaro.org" <benoit.cousson@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "dwmw2@infradead.org" <dwmw2@infradead.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "benoit.cousson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <benoit.cousson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: "dedekind1-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <dedekind1-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org" <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>, "dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org" <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "arnd-r2nGTMty4D4@public.gmane.org" <arnd-r2nGTMty4D4@public.gmane.org>, "avinashphilipk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <avinashphilipk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>, "linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Rob Herring (robherring2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org)" <robherring2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Mark Rutland (mark.rutland-5wv7dgnIgG8@public.gmane.org)" <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
+> From: Brian Norris [mailto:computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org]
 > 
-> *Changes v5 -> v6*
-> [PATCH 1/4]:
-> 	- updated DT binding for gpmc-nand based on 'Olof Johansson's
-> feedbacks
-> 	http://lists.infradead.org/pipermail/linux-mtd/2013-
-> August/048394.html
-> 	- detection of ELM device via ti,elm-id DT node, moved to gpmc.c
-> driver
-> [PATCH 2/4]
-> 	- removed: support for following obselete ECC schemes
-> 	OMAP_ECC_HAMMING_CODE_DEFAULT (S/W based 1-bit Hamming
-> ECC)
-> 	OMAP_ECC_HAMMING_CODE_HW_ROMCODE (H/W based 1-bit
-> Hamming ECC scheme)
-> 	- updated: using omap_oobinfo as chip->ecc.layout for all ecc-
+> On Thu, Sep 12, 2013 at 05:20:19PM +0530, Pekon Gupta wrote:
+> > DT property values for OMAP based gpmc-nand have been updated
+> > to match changes in commit:
+> > 	6faf096 ARM: OMAP2+: cleaned-up DT support of various ECC
 > schemes
-> 	- clean: error messages
-> [PATCH 3/4] cleaned to include changes for OMAP_ECC_BCH8_CODE_HW
-> only
-> [PATCH 4/4] updated to include DT property changes
 > 
+> Whose commit ID is this? Your patch is not merged yet, so don't use a
+> commit ID.
 > 
-> *Changes v4 -> v5*
-> - Rebased to linux-next
-> IMPORTANT: Need to revert commit fb1585b, [PATCH 2/4] part of previous
-> version
-> 	http://lists.infradead.org/pipermail/linux-mtd/2013-July/047441.html
+> > Refer: Documentation/devicetree/bindings/mtd/gpmc-nand.txt
+> >
+> > Signed-off-by: Pekon Gupta <pekon-l0cyMroinI0@public.gmane.org>
+> > ---
+> >  arch/arm/boot/dts/am335x-evm.dts | 2 +-
+> >  1 file changed, 1 insertion(+), 1 deletion(-)
+> >
+> > diff --git a/arch/arm/boot/dts/am335x-evm.dts
+> b/arch/arm/boot/dts/am335x-evm.dts
+> > index e8ec875..e28a2ac 100644
+> > --- a/arch/arm/boot/dts/am335x-evm.dts
+> > +++ b/arch/arm/boot/dts/am335x-evm.dts
+> > @@ -268,7 +268,7 @@
+> >  			nand@0,0 {
+> >  				reg = <0 0 0>; /* CS0, offset 0 */
+> >  				nand-bus-width = <8>;
+> > -				ti,nand-ecc-opt = "bch8";
+> > +				ti,nand-ecc-scheme = "bch8";
+> >  				gpmc,device-nand = "true";
+> >  				gpmc,device-width = <1>;
+> >  				gpmc,sync-clk-ps = <0>;
 > 
-> - Swapped PATCH-1 & PATCH-2 to maintain bisectibility & compilation
-> dependency
-> 	http://lists.infradead.org/pipermail/linux-mtd/2013-July/047461.html
+> This change should probably go in patch 1 anyway, when you break the
+> ABI.
 > 
-> - PATCH-2: re-ordered call to is_elm_present() for later updates ELM driver
-> 	- dropped changes in include/linux/platform_data/elm.h (not
-> needed)
-> - PATCH-3: re-ordered call to is_elm_present() for later updates ELM driver
-> - Re-formated patch description (replaced tabs with white-spaces)
-> 
-> 
-> *Changes v3 -> v4*
-> (Resent with CC: devicetree-discuss@lists.ozlabs.org)
-> - [Patch 1/3] removed MTD_NAND_OMAP_BCH8 &
-> MTD_NAND_OMAP_BCH4 from nand/Kconfig
-> 	ECC scheme selectable via nand DT (nand-ecc-opt).
-> - [*] rebased for l2-mtd.git
-> 
-> 
-> *Changes v2 -> v3*
-> (Resent with Author Name fixed)
-> - PATCH-1: re-arranged code to remove redundancy, added
-> NAND_BUSWIDTH_AUTO
-> - PATCH-2: updated nand-ecc-opt DT mapping and Documentation
-> - PATCH-3: code-cleaning + changes to match PATCH-1
-> - PATCH-4 <DROPPED> update DT attribute for ti,nand-ecc-opt
-> 	- received feedback to keep DT mapping independent of linuxism
-> - PATCH-4:<NEW> : ARM: dts: AM33xx: updated default ECC scheme in nand-
-> ecc-opt
-> 	- independent patch for AM335x-evm.dts update based on PATCH-2
-> 
-> 
-> *Changes v1 -> v2*
-> 	added 	[PATCH 3/4] and [PATCH 4/4]
-> 
-> 
-> *Patches in this series*
-> [PATCH 1/4]->[PATCH v5 2/4]: clean-up and optimization for supported ECC
-> schemes.
-> [PATCH 2/4]->[PATCH v5 1/4]: add separate DT options each supported ECC
-> scheme.
-> [PATCH 3/4]: update BCH4 ECC implementation (using ELM or using lib/bch.h)
-> [PATCH 4/4]: ARM: dts: AM33xx: updated default ECC scheme in nand-ecc-
-> opt
-> 
-> After this patch series, omap2-nand driver will supports following ECC
-> schemes:
-> +---------------------------------------+---------------+---------------+
-> | ECC scheme                            |ECC calculation|Error detection|
-> +---------------------------------------+---------------+---------------+
-> |OMAP_ECC_HAMMING_CODE_HW               |H/W (GPMC)     |S/W            |
-> +---------------------------------------+---------------+---------------+
-> |OMAP_ECC_BCH4_CODE_HW_DETECTION_SW     |H/W (GPMC)     |S/W
-> (lib/bch.h)|
-> |OMAP_ECC_BCH4_CODE_HW                  |H/W (GPMC)     |H/W (ELM)      |
-> +---------------------------------------+---------------+---------------+
-> |OMAP_ECC_BCH8_CODE_HW_DETECTION_SW     |H/W (GPMC)     |S/W
-> (lib/bch.h)|
-> |OMAP_ECC_BCH8_CODE_HW                  |H/W (GPMC)     |H/W (ELM)      |
-> +---------------------------------------+---------------+---------------+
-> - Selection of OMAP_ECC_BCHx_CODE_HW_DETECTION_SW requires,
-> 	Kconfig: CONFIG_MTD_NAND_ECC_BCH: enables S/W based BCH
-> ECC algorithm.
-> 
-> - Selection of OMAP_ECC_BCHx_CODE_HW requires,
-> 	Kconfig: CONFIG_MTD_NAND_OMAP_BCH: enables ELM H/W
-> module.
-> 
-> Pekon Gupta (4):
->   ARM: OMAP2+: cleaned-up DT support of various ECC schemes
->   mtd:nand:omap2: clean-up BCHx_HW and BCHx_SW ECC configurations in
->     device_probe
->   mtd:nand:omap2: updated support for BCH4 ECC scheme
->   ARM: dts: AM33xx: updated default ECC scheme in nand-ecc-opt
-> 
->  .../devicetree/bindings/mtd/gpmc-nand.txt          |  14 +-
->  arch/arm/boot/dts/am335x-evm.dts                   |   2 +-
->  arch/arm/mach-omap2/board-flash.c                  |   2 +-
->  arch/arm/mach-omap2/gpmc.c                         |  47 +-
->  drivers/mtd/nand/Kconfig                           |  30 +-
->  drivers/mtd/nand/omap2.c                           | 526 ++++++++++-----------
->  include/linux/platform_data/mtd-nand-omap2.h       |  18 +-
->  7 files changed, 309 insertions(+), 330 deletions(-)
-> 
-> --
-> 1.8.1
-+ Rob Herring <robherring2@gmail.com>
-+ Mark Rutland <mark.rutland@arm.com>
-+ Pawel Moll <pawel.moll@arm.com>
-+ Ian Campbell <ijc+devicetree@hellion.org.uk>
-+ Stephen Warren <swarren@wwwdotorg.org>
+As this patch series touches three different trees.. 
+(1) arch/arm/boot/dts/..  maintained by Benoit Cousson (benoit.cousson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org)
+(2) arch/arm/mach-omap2/.. maintained by Tony Lindgren (tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org)
+(3) driver/mtd/nand/.. maintained by Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 
-CC other DT maintainers, who were missed earlier in mail-chain.
+It was observed that there were conflicts usually during final merge,
+Hence I separated out the patches.
+However, if all are in sync and the series gets committed in above trees
+simultaneously, then this conflicts can be avoided.
+So, if Tony & Benoit are ok then I'll merge this [PATCH 4/4] in [PATCH 1/4].
 
 with regards, pekon
-
-______________________________________________________
-Linux MTD discussion mailing list
-http://lists.infradead.org/mailman/listinfo/linux-mtd/
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
