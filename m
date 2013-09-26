@@ -1,73 +1,70 @@
-From: Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 0/9] ARM: dts: DT data for OMAP platforms for v3.13
-Date: Thu, 26 Sep 2013 11:36:01 +0200
-Message-ID: <52440001.8070804@baylibre.com>
-References: <1380146469-29496-1-git-send-email-joelf@ti.com>
+From: Benoit Cousson <bcousson@baylibre.com>
+Subject: Re: [PATCH 1/9] omap4: dts: Add node for AES
+Date: Thu, 26 Sep 2013 11:41:31 +0200
+Message-ID: <5244014B.1090502@baylibre.com>
+References: <1380146469-29496-1-git-send-email-joelf@ti.com> <1380146469-29496-2-git-send-email-joelf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1380146469-29496-1-git-send-email-joelf-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Olof Johansson <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, Jason Kridner <jkridner-hcmAuCOw+vXj4SYmN/TMmA@public.gmane.org>, Koen Kooi <koen-hcmAuCOw+vXj4SYmN/TMmA@public.gmane.org>, Devicetree Discuss <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-bk0-f49.google.com ([209.85.214.49]:54538 "EHLO
+	mail-bk0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752238Ab3IZJlf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Sep 2013 05:41:35 -0400
+Received: by mail-bk0-f49.google.com with SMTP id r7so310687bkg.22
+        for <linux-omap@vger.kernel.org>; Thu, 26 Sep 2013 02:41:34 -0700 (PDT)
+In-Reply-To: <1380146469-29496-2-git-send-email-joelf@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-
-Hi Joel,
+To: Joel Fernandes <joelf@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, Grant Likely <grant.likely@secretlab.ca>, Jason Kridner <jkridner@beagleboard.org>, Koen Kooi <koen@beagleboard.org>, Devicetree Discuss <devicetree@vger.kernel.org>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
 
 On 26/09/2013 00:01, Joel Fernandes wrote:
-> Following series is a collection of dts patches for the below features:
-> crypto:
->   aes, sha on am335x
->   aes, des on am437x
->   aes, des on omap4
-> display:
->    beaglebone black HDMI
->    am335x-evm panel
+> OMAP4 has an AES module that uses the omap-aes crypto driver.
+> Add DT entries for the same.
 >
-> Series is based on Benoit Cousson's for_3.13/dts branch (commit sha 45646cd)
-> Available at: git-9UaJU3cA/F/QT0dZR+AlfA@public.gmane.org:joelagnel/linux-kernel.git (branch for-benoit)
+> Signed-off-by: Joel Fernandes <joelf@ti.com>
+> ---
+>   arch/arm/boot/dts/omap4.dtsi | 10 ++++++++++
+>   1 file changed, 10 insertions(+)
+>
+> diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+> index 45708e1..4267a74 100644
+> --- a/arch/arm/boot/dts/omap4.dtsi
+> +++ b/arch/arm/boot/dts/omap4.dtsi
+> @@ -663,5 +663,15 @@
+>   			ram-bits = <12>;
+>   			ti,has-mailbox;
+>   		};
+> +
+> +		aes: aes@4B501000 {
+> +			compatible = "ti,omap4-aes";
+> +			ti,hwmods = "aes";
+> +			reg = <0x4B501000 0xa0>;
 
-Thanks for the update and rebase.
+Nit: Please use lower case for hexa value.
 
-I'll check the series ASAP.
+> +			interrupt-parent = <&gic>;
 
-Thanks,
+You don't have to add the interrupt-parent, it is already set by default 
+at the root of the tree.
+
+We did not add it for most nodes. Some are still there becasue I missed 
+them during the review :-)
+
+> +			interrupts = <0 85 0x4>;
+
+For interrupt, you should use the macros now for better readability.
+
+  +			interrupts = <GIC_SPI 85 IRQ_TYPE_LEVEL_HIGH>;
+
+Regards,
 Benoit
 
->
-> Benoit Parrot (1):
->    ARM: dts: AM33XX: Add LCDC info into am335x-evm
->
-> Darren Etheridge (1):
->    dts: boneblack: add pinmux and hdmi node to enable display
->
-> Joel Fernandes (5):
->    omap4: dts: Add node for AES
->    omap4: dts: Add node for DES3DES module
->    am33xx: dts: Fix AES interrupt number
->    ARM: am437x: dts: Add AES node for am437x
->    ARM: am437x: dts: Add DES node for am437x
->
-> Mark A. Greer (2):
->    ARM: dts: Add SHAM data and documentation for AM33XX
->    ARM: dts: Add AES data and documentation for AM33XX
->
->   .../devicetree/bindings/crypto/omap-aes.txt        | 34 ++++++++++
->   .../devicetree/bindings/crypto/omap-sham.txt       | 31 +++++++++
->   arch/arm/boot/dts/am335x-bone.dts                  |  8 +++
->   arch/arm/boot/dts/am335x-boneblack.dts             | 48 +++++++++++++
->   arch/arm/boot/dts/am335x-evm.dts                   | 79 ++++++++++++++++++++++
->   arch/arm/boot/dts/am335x-evmsk.dts                 |  8 +++
->   arch/arm/boot/dts/am33xx.dtsi                      | 30 ++++++++
->   arch/arm/boot/dts/am4372.dtsi                      | 16 +++++
->   arch/arm/boot/dts/omap4.dtsi                       | 20 ++++++
->   9 files changed, 274 insertions(+)
->   create mode 100644 Documentation/devicetree/bindings/crypto/omap-aes.txt
->   create mode 100644 Documentation/devicetree/bindings/crypto/omap-sham.txt
+> +			dmas = <&sdma 111>, <&sdma 110>;
+> +			dma-names = "tx", "rx";
+> +		};
+>   	};
+>   };
 >
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
