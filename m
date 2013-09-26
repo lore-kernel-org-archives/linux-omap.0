@@ -1,130 +1,101 @@
 From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: [PATCH 14/27] mmc: omap_hsmmc: Move away from using deprecated APIs
-Date: Thu, 26 Sep 2013 16:54:39 +0200
-Message-ID: <1380207292-16968-15-git-send-email-ulf.hansson@linaro.org>
+Subject: [PATCH 13/27] mmc: omap: Remove redundant suspend and resume callbacks
+Date: Thu, 26 Sep 2013 16:54:38 +0200
+Message-ID: <1380207292-16968-14-git-send-email-ulf.hansson@linaro.org>
 References: <1380207292-16968-1-git-send-email-ulf.hansson@linaro.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1380207292-16968-1-git-send-email-ulf.hansson@linaro.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, linux-mmc@vger.kernel.org, Chris Ball <cjb@laptop.org>
-Cc: Ulf Hansson <ulf.hansson@linaro.org>, Balaji T K <balajitk@ti.com>, linux-omap@vger.kernel.org
+Cc: Ulf Hansson <ulf.hansson@linaro.org>, Jarkko Lavinen <jarkko.lavinen@nokia.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Suspend and resume of cards are being handled from the protocol layer
-and consequently the mmc_suspend|resume_host APIs are deprecated.
+Suspend and resume of cards are handled by the protocol layer and
+consequently the mmc_suspend|resume_host APIs are marked as deprecated.
 
-This means we can simplify the suspend|resume callbacks by removing the
-use of the deprecated APIs. Additional cleanup done for keeping track
-suspended state.
+While moving away from using the deprecated APIs, there are nothing
+left to be done for the suspend and resume callbacks, so remove them.
 
-Cc: Balaji T K <balajitk@ti.com>
+Cc: Jarkko Lavinen <jarkko.lavinen@nokia.com>
 Cc: linux-omap@vger.kernel.org
 Signed-off-by: Ulf Hansson <ulf.hansson@linaro.org>
 ---
- drivers/mmc/host/omap_hsmmc.c |   37 +++----------------------------------
- 1 file changed, 3 insertions(+), 34 deletions(-)
+ drivers/mmc/host/omap.c |   53 -----------------------------------------------
+ 1 file changed, 53 deletions(-)
 
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index 6ac63df..eb6fb28 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -170,7 +170,6 @@ struct omap_hsmmc_host {
- 	unsigned int		dma_sg_idx;
- 	unsigned char		bus_mode;
- 	unsigned char		power_mode;
+diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
+index b94f38e..0b10a90 100644
+--- a/drivers/mmc/host/omap.c
++++ b/drivers/mmc/host/omap.c
+@@ -128,7 +128,6 @@ struct mmc_omap_slot {
+ 
+ struct mmc_omap_host {
+ 	int			initialized;
 -	int			suspended;
- 	int			irq;
- 	int			use_dma, dma_ch;
- 	struct dma_chan		*tx_chan;
-@@ -1178,9 +1177,6 @@ static irqreturn_t omap_hsmmc_detect(int irq, void *dev_id)
- 	struct omap_mmc_slot_data *slot = &mmc_slot(host);
- 	int carddetect;
+ 	struct mmc_request *	mrq;
+ 	struct mmc_command *	cmd;
+ 	struct mmc_data *	data;
+@@ -1513,61 +1512,9 @@ static int mmc_omap_remove(struct platform_device *pdev)
+ 	return 0;
+ }
  
--	if (host->suspended)
--		return IRQ_HANDLED;
+-#ifdef CONFIG_PM
+-static int mmc_omap_suspend(struct platform_device *pdev, pm_message_t mesg)
+-{
+-	int i, ret = 0;
+-	struct mmc_omap_host *host = platform_get_drvdata(pdev);
 -
- 	sysfs_notify(&host->mmc->class_dev.kobj, NULL, "cover_switch");
- 
- 	if (slot->card_detect)
-@@ -1643,11 +1639,6 @@ static int omap_hsmmc_regs_show(struct seq_file *s, void *data)
- 	seq_printf(s, "mmc%d:\n ctx_loss:\t%d:%d\n\nregs:\n",
- 			mmc->index, host->context_loss, context_loss);
- 
--	if (host->suspended) {
--		seq_printf(s, "host suspended, can't read registers\n");
+-	if (host == NULL || host->suspended)
 -		return 0;
+-
+-	for (i = 0; i < host->nr_slots; i++) {
+-		struct mmc_omap_slot *slot;
+-
+-		slot = host->slots[i];
+-		ret = mmc_suspend_host(slot->mmc);
+-		if (ret < 0) {
+-			while (--i >= 0) {
+-				slot = host->slots[i];
+-				mmc_resume_host(slot->mmc);
+-			}
+-			return ret;
+-		}
 -	}
--
- 	pm_runtime_get_sync(host->dev);
- 
- 	seq_printf(s, "CON:\t\t0x%08x\n",
-@@ -2119,23 +2110,12 @@ static void omap_hsmmc_complete(struct device *dev)
- 
- static int omap_hsmmc_suspend(struct device *dev)
- {
--	int ret = 0;
- 	struct omap_hsmmc_host *host = dev_get_drvdata(dev);
- 
- 	if (!host)
- 		return 0;
- 
--	if (host && host->suspended)
--		return 0;
--
- 	pm_runtime_get_sync(host->dev);
 -	host->suspended = 1;
--	ret = mmc_suspend_host(host->mmc);
+-	return 0;
+-}
 -
--	if (ret) {
--		host->suspended = 0;
--		goto err;
--	}
- 
- 	if (!(host->mmc->pm_flags & MMC_PM_KEEP_POWER)) {
- 		omap_hsmmc_disable_irq(host);
-@@ -2145,23 +2125,19 @@ static int omap_hsmmc_suspend(struct device *dev)
- 
- 	if (host->dbclk)
- 		clk_disable_unprepare(host->dbclk);
--err:
-+
- 	pm_runtime_put_sync(host->dev);
--	return ret;
-+	return 0;
- }
- 
- /* Routine to resume the MMC device */
- static int omap_hsmmc_resume(struct device *dev)
- {
--	int ret = 0;
- 	struct omap_hsmmc_host *host = dev_get_drvdata(dev);
- 
- 	if (!host)
- 		return 0;
- 
--	if (host && !host->suspended)
+-static int mmc_omap_resume(struct platform_device *pdev)
+-{
+-	int i, ret = 0;
+-	struct mmc_omap_host *host = platform_get_drvdata(pdev);
+-
+-	if (host == NULL || !host->suspended)
 -		return 0;
 -
- 	pm_runtime_get_sync(host->dev);
- 
- 	if (host->dbclk)
-@@ -2172,16 +2148,9 @@ static int omap_hsmmc_resume(struct device *dev)
- 
- 	omap_hsmmc_protect_card(host);
- 
--	/* Notify the core to resume the host */
--	ret = mmc_resume_host(host->mmc);
--	if (ret == 0)
+-	for (i = 0; i < host->nr_slots; i++) {
+-		struct mmc_omap_slot *slot;
+-		slot = host->slots[i];
+-		ret = mmc_resume_host(slot->mmc);
+-		if (ret < 0)
+-			return ret;
+-
 -		host->suspended = 0;
+-	}
+-	return 0;
+-}
+-#else
+-#define mmc_omap_suspend	NULL
+-#define mmc_omap_resume		NULL
+-#endif
 -
- 	pm_runtime_mark_last_busy(host->dev);
- 	pm_runtime_put_autosuspend(host->dev);
--
--	return ret;
--
-+	return 0;
- }
- 
- #else
+ static struct platform_driver mmc_omap_driver = {
+ 	.probe		= mmc_omap_probe,
+ 	.remove		= mmc_omap_remove,
+-	.suspend	= mmc_omap_suspend,
+-	.resume		= mmc_omap_resume,
+ 	.driver		= {
+ 		.name	= DRIVER_NAME,
+ 		.owner	= THIS_MODULE,
 -- 
 1.7.9.5
