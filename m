@@ -1,71 +1,61 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: 3.12-rc1: no longer compiles for Nokia n900 (omap based),
- display no longer works
-Date: Thu, 26 Sep 2013 02:23:49 +0200
-Message-ID: <20130926002349.GA26599@amd.pavel.ucw.cz>
-References: <20130919093002.GA23806@amd.pavel.ucw.cz>
- <20130919094402.GA27253@amd.pavel.ucw.cz>
- <20130919184703.GE30568@blackmetal.musicnaut.iki.fi>
+From: Jingoo Han <jg1.han@samsung.com>
+Subject: Re: [PATCH] OMAPDSS: Add missing dependency on backlight for DSI-CM
+ panel drier
+Date: Thu, 26 Sep 2013 09:59:04 +0900
+Message-ID: <000101ceba53$985740b0$c905c210$%han@samsung.com>
+References: <1380108661-22702-1-git-send-email-broonie@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20130919184703.GE30568@blackmetal.musicnaut.iki.fi>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, will.deacon@arm.com, catalin.marinas@arm.com
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mailout4.samsung.com ([203.254.224.34]:57122 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752757Ab3IZA7G (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Sep 2013 20:59:06 -0400
+In-reply-to: <1380108661-22702-1-git-send-email-broonie@kernel.org>
+Content-language: ko
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: 'Mark Brown' <broonie@kernel.org>, 'Tomi Valkeinen' <tomi.valkeinen@ti.com>, 'Jean-Christophe Plagniol-Villard' <plagnioj@jcrosoft.com>
+Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, linaro-kernel@lists.linaro.org, 'Mark Brown' <broonie@linaro.org>, 'Jingoo Han' <jg1.han@samsung.com>
 
-Hi!
-
-> On Thu, Sep 19, 2013 at 11:44:02AM +0200, Pavel Machek wrote:
-> > something in 3.12-rc1 broke display :-(. (dmesg diff attached at the
-> > end, maybe someone knows...)
+On Wednesday, September 25, 2013 8:31 PM, Mark Brown wrote:
 > 
-> 3.12-rc1 for N900 compiles and works (also display) here with binutils
-> 2.23.2.
-
-I updated to eldk-5.4, and now it compiles, but still no display on 
-
-> > + omapfb omapfb: no displays
+> From: Mark Brown <broonie@linaro.org>
 > 
-> [...]
+> The DSI-CM driver uses the backlight class so needs to build depend on it.
 > 
-> > - acx565akm spi1.2: omapfb: acx565akm rev 12 LCD detected
+> Signed-off-by: Mark Brown <broonie@linaro.org>
+
+Reviewed-by: Jingoo Han <jg1.han@samsung.com>
+
+I checked that the following build errors are removed.
+drivers/video/omap2/displays-new/panel-dsi-cm.c:1257: undefined reference to `backlight_device_register'
+drivers/video/omap2/displays-new/panel-dsi-cm.c:1283: undefined reference to `backlight_device_unregister'
+drivers/built-in.o: In function `dsicm_remove':
+drivers/video/omap2/displays-new/panel-dsi-cm.c:1309: undefined reference to `backlight_device_unregister'
+
+Thank you.
+
+Best regards,
+Jingoo Han
+
+> ---
+>  drivers/video/omap2/displays-new/Kconfig | 1 +
+>  1 file changed, 1 insertion(+)
 > 
-> I think this is because the panel driver has changed, and the old one
-> was deleted. You need to change your kernel configuration with something
-> like below:
+> diff --git a/drivers/video/omap2/displays-new/Kconfig b/drivers/video/omap2/displays-new/Kconfig
+> index 6c90885..10b25e7 100644
+> --- a/drivers/video/omap2/displays-new/Kconfig
+> +++ b/drivers/video/omap2/displays-new/Kconfig
+> @@ -35,6 +35,7 @@ config DISPLAY_PANEL_DPI
 > 
-> -CONFIG_PANEL_ACX565AKM=y
-> +CONFIG_DISPLAY_PANEL_SONY_ACX565AKM=y
+>  config DISPLAY_PANEL_DSI_CM
+>  	tristate "Generic DSI Command Mode Panel"
+> +	depends on BACKLIGHT_CLASS_DEVICE
+>  	help
+>  	  Driver for generic DSI command mode panels.
+> 
+> --
+> 1.8.4.rc3
 
-Thanks for the hint.. but apparently it was not enough. Still no
-display on qemu :-(.
-
-Anyway, "make oldconfig" is expected to produce working kernel, which
-is clearly not case here. Perhaps this should be added to fix that?
-
-[Who can take the patch?]
-   	       	    	  	       	      	       	      Pavel
-
-PS: whoever named directory in kernel sources "displays-new" should...
-think again.
-
-Signed-off-by: Pavel Machek <pavel@ucw.cz>
-
-index 6c90885..d3eabd2 100644
---- a/drivers/video/omap2/displays-new/Kconfig
-+++ b/drivers/video/omap2/displays-new/Kconfig
-@@ -40,6 +40,7 @@ config DISPLAY_PANEL_DSI_CM
- 
- config DISPLAY_PANEL_SONY_ACX565AKM
- 	tristate "ACX565AKM Panel"
-+	default PANEL_ACX565AKM
- 	depends on SPI && BACKLIGHT_CLASS_DEVICE
- 	help
- 	  This is the LCD panel used on Nokia N900
-
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
