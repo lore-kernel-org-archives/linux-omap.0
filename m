@@ -1,50 +1,138 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH] ARM: drop explicit selection of HAVE_CLK and CLKDEV_LOOKUP
-Date: Fri, 27 Sep 2013 14:44:55 +0200
-Message-ID: <CACRpkdZOSn0UuZkz2ZsKeG8u0j216BfrkUmO0Za74AYNKFNiiQ@mail.gmail.com>
-References: <1380044515-3173-1-git-send-email-u.kleine-koenig@pengutronix.de>
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+Subject: Re: [PATCHv4 11/18] arm: dts: add omap4430 thermal data
+Date: Fri, 27 Sep 2013 09:20:31 -0400
+Message-ID: <5245861F.7000109@ti.com>
+References: <1380251605-3804-1-git-send-email-eduardo.valentin@ti.com>
+ <1380251605-3804-12-git-send-email-eduardo.valentin@ti.com>
+ <20130927122439.GA8360@kahuna>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ob0-f177.google.com ([209.85.214.177]:46412 "EHLO
-	mail-ob0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751483Ab3I0Mo4 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Sep 2013 08:44:56 -0400
-Received: by mail-ob0-f177.google.com with SMTP id wp18so3118102obc.36
-        for <linux-omap@vger.kernel.org>; Fri, 27 Sep 2013 05:44:55 -0700 (PDT)
-In-Reply-To: <1380044515-3173-1-git-send-email-u.kleine-koenig@pengutronix.de>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/mixed; boundary="===============6295592945886805334=="
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20130927122439.GA8360@kahuna>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Nishanth Menon <nm@ti.com>
+Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, wni@nvidia.com, durgadoss.r@intel.com, ian.campbell@citrix.com, pawel.moll@arm.com, swarren@wwwdotorg.org, Tony Lindgren <tony@atomide.com>, devicetree-discuss@lists.ozlabs.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, rob.herring@calxeda.com, lm-sensors@lm-sensors.org, Eduardo Valentin <eduardo.valentin@ti.com>, linux-arm-kernel@lists.infradead.org, =?ISO-8859-1?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, grant.likely@linaro.org, Russell King <linux@arm.linux.org.uk>, rui.zhang@intel.com, linux-omap@vger.kernel.org, linux@roeck-us.net
 List-Id: linux-omap@vger.kernel.org
-To: =?ISO-8859-1?Q?Uwe_Kleine=2DK=F6nig?= <u.kleine-koenig@pengutronix.de>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Sascha Hauer <kernel@pengutronix.de>, Tony Lindgren <tony@atomide.com>, Linux-OMAP <linux-omap@vger.kernel.org>, Rob Herring <rob.herring@calxeda.com>, Dinh Nguyen <dinguyen@altera.com>, Viresh Kumar <viresh.linux@gmail.com>, Shiraz Hashim <shiraz.hashim@st.com>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, Tony Prisk <linux@prisktech.co.nz>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Pawel Moll <pawel.moll@arm.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Nicolas Pitre <nico@linaro.org>, Stephen Boyd <sboyd@codeaurora.org>, spear-devel <spear-devel@list.st.com>, "linux-tegra@vger.kernel.org" <linux-tegra@vger.kernel.org>
 
-On Tue, Sep 24, 2013 at 7:41 PM, Uwe Kleine-K=F6nig
-<u.kleine-koenig@pengutronix.de> wrote:
+--===============6295592945886805334==
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature";
+	boundary="1XmnBH6bta5Fi7w00RPEclm3IM4nH8DtB"
 
-> CLKDEV_LOOKUP selects HAVE_CLK and COMMON_CLK selects CLKDEV_LOOKUP. =
-So
-> all symbols that select at least two of these symbols can be simplifi=
-ed.
->
-> For imx, omap2 and ux500 some rearrangements were necessary before th=
-e
-> simplification.
->
-> Signed-off-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
+--1XmnBH6bta5Fi7w00RPEclm3IM4nH8DtB
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
->  arch/arm/mach-u300/Kconfig     |  1 -
->  arch/arm/mach-ux500/Kconfig    | 29 ++++++++++++-----------------
+On 27-09-2013 08:24, Nishanth Menon wrote:
+> On 23:13-20130926, Eduardo Valentin wrote:
+>> This patch changes the dtsi entry on omap4430 to contain
+>> the thermal data. This data will enable the passive
+>> cooling with CPUfreq cooling device at 100C and the
+>> system will do a thermal shutdown at 125C.
+>>
+>> Cc: "Beno=EEt Cousson" <bcousson@baylibre.com>
+>> Cc: Tony Lindgren <tony@atomide.com>
+>> Cc: Russell King <linux@arm.linux.org.uk>
+>> Cc: linux-omap@vger.kernel.org
+>> Cc: devicetree-discuss@lists.ozlabs.org
+>> Cc: linux-arm-kernel@lists.infradead.org
+>> Cc: linux-kernel@vger.kernel.org
+>> Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
+>> ---
+>>  arch/arm/boot/dts/omap443x.dtsi | 10 ++++++++--
+>>  1 file changed, 8 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/arch/arm/boot/dts/omap443x.dtsi b/arch/arm/boot/dts/omap4=
+43x.dtsi
+>> index bcf455e..e9c97d6 100644
+>> --- a/arch/arm/boot/dts/omap443x.dtsi
+>> +++ b/arch/arm/boot/dts/omap443x.dtsi
+>> @@ -12,7 +12,7 @@
+>> =20
+>>  / {
+>>  	cpus {
+>> -		cpu@0 {
+>> +		cpu0: cpu@0 {
+>>  			/* OMAP443x variants OPP50-OPPNT */
+>>  			operating-points =3D <
+>>  				/* kHz    uV */
+>> @@ -25,9 +25,15 @@
+>>  		};
+>>  	};
+>> =20
+>> -	bandgap {
+>> +	thermal-zones{
+>> +		#include "omap4-cpu-thermal.dtsi"
+>> +	};
+>> +
+>> +	bandgap: bandgap {
+>>  		reg =3D <0x4a002260 0x4
+>>  		       0x4a00232C 0x4>;
+>>  		compatible =3D "ti,omap4430-bandgap";
+>> +
+>> +		#thermal-sensor-cells =3D <0>;
+> 2 cents:
+> we might want to move bandgap under ocp?
+>=20
 
-I am worried that the ux500 stuff may conflict with other stuff destine=
-d
-for the ARM SoC tree, so if you coordinate with the ARM SoC folks:
-Acked-by: Linus Walleij <linus.walleij@linaro.org> for these two.
+Yes, agreed. But I don't think this change is related to this patch or
+to this series.
 
-Yours,
-Linus Walleij
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tks Nishanth
+
+>>  	};
+>>  };
+>> --=20
+>> 1.8.2.1.342.gfa7285d
+>>
+>>
+>> _______________________________________________
+>> linux-arm-kernel mailing list
+>> linux-arm-kernel@lists.infradead.org
+>> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+>=20
+
+
+--=20
+You have got to be excited about what you are doing. (L. Lamport)
+
+Eduardo Valentin
+
+
+--1XmnBH6bta5Fi7w00RPEclm3IM4nH8DtB
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iF4EAREIAAYFAlJFhh8ACgkQCXcVR3XQvP3I1gD/TM2JMQH3snFBp+F3rhhYaI0c
+cL1CsA6w/FXgJ/kznzUA/12a9HkHD8gpc6UrCJ4T3MvGlhN5+1vzL+xY9UQ3W7+o
+=iERc
+-----END PGP SIGNATURE-----
+
+--1XmnBH6bta5Fi7w00RPEclm3IM4nH8DtB--
+
+
+--===============6295592945886805334==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+--===============6295592945886805334==--
