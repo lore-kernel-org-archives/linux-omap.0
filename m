@@ -1,191 +1,62 @@
-From: Andreas Fenkart <afenkart@gmail.com>
-Subject: Re: [PATCH 2/2] mmc: omap_hsmmc: Enable SDIO interrupt
-Date: Fri, 27 Sep 2013 08:38:59 +0200
-Message-ID: <CALtMJEDKxTcaNHmrVqMv7tznxB0uqYxuOix+ks+Bs_huiOCL4A@mail.gmail.com>
-References: <20130925234544.3745.55170.stgit@localhost>
-	<20130925234740.3745.50637.stgit@localhost>
-	<CALtMJEBKbbpM47uhM-KeSRHRkM5CJkgBx4kFq4j+GG9sKXEfag@mail.gmail.com>
-	<20130926141936.GE8949@atomide.com>
+From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Subject: Re: [RFC v2] gpio/omap: auto-setup a GPIO when used as an IRQ
+Date: Fri, 27 Sep 2013 09:35:33 +0200
+Message-ID: <52453545.3090504@collabora.co.uk>
+References: <1380009480-4975-1-git-send-email-javier.martinez@collabora.co.uk> <5244C0C4.2030004@wwwdotorg.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ve0-f175.google.com ([209.85.128.175]:54022 "EHLO
-	mail-ve0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751813Ab3I0GjA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Sep 2013 02:39:00 -0400
-In-Reply-To: <20130926141936.GE8949@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <5244C0C4.2030004@wwwdotorg.org>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Stephen Warren <swarren@wwwdotorg.org>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, Lars Poeschel <larsi@wh2.tu-dresden.de>, Grant Likely <grant.likely@linaro.org>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ian.campbell@citrix.com>, Kumar Gala <galak@codeaurora.org>, Pawel Moll <pawel.moll@arm.com>, Tomasz Figa <tomasz.figa@gmail.com>, Enric Balletbo i Serra <eballetbo@gmail.com>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, Balaji T K <balajitk@ti.com>, Tony Lindgren <tony@atomide.com>, Jon Hunter <jgchunter@gmail.com>, linux-gpio@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, r.sricharan@ti.com, holler@ahsoftware.de, aaro.koskinen@iki.fi, Paul Walmsley <paul@pwsan.com>, joelf@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Chris Ball <cjb@laptop.org>, linux-omap <linux-omap@vger.kernel.org>, linux-mmc <linux-mmc@vger.kernel.org>, Balaji T K <balajitk@ti.com>
-
-2013/9/26 Tony Lindgren <tony@atomide.com>:
-> Hi,
->
-> * Andreas Fenkart <afenkart@gmail.com> [130926 01:34]:
->> 2013/9/26 Tony Lindgren <tony@atomide.com>:
->> > @@ -463,27 +469,34 @@ static void omap_hsmmc_stop_clock(struct omap_hsmmc_host *host)
->> >  static void omap_hsmmc_enable_irq(struct omap_hsmmc_host *host,
->> >                                   struct mmc_command *cmd)
->> >  {
->> > -       unsigned int irq_mask;
->> > +       u32 irq_mask = INT_EN_MASK;
->> > +       unsigned long flags;
->> >
->> >         if (host->use_dma)
->> > -               irq_mask = INT_EN_MASK & ~(BRR_EN | BWR_EN);
->> > -       else
->> > -               irq_mask = INT_EN_MASK;
->> > +               irq_mask &= ~(BRR_EN | BWR_EN);
->> >
->> >         /* Disable timeout for erases */
->> >         if (cmd->opcode == MMC_ERASE)
->> >                 irq_mask &= ~DTO_EN;
->> >
->> > +       spin_lock_irqsave(&host->irq_lock, flags);
->> >         OMAP_HSMMC_WRITE(host->base, STAT, STAT_CLEAR);
->> >         OMAP_HSMMC_WRITE(host->base, ISE, irq_mask);
->> > +       if (host->flags & HSMMC_SDIO_IRQ_ENABLED)
->> > +               irq_mask |= CIRQ_EN;
->> >         OMAP_HSMMC_WRITE(host->base, IE, irq_mask);
->> > +       spin_unlock_irqrestore(&host->irq_lock, flags);
->> >  }
->> >
->> >  static void omap_hsmmc_disable_irq(struct omap_hsmmc_host *host)
->> >  {
->> > +       unsigned long flags;
->> > +
->> > +       spin_lock_irqsave(&host->irq_lock, flags);
->> >         OMAP_HSMMC_WRITE(host->base, ISE, 0);
->> >         OMAP_HSMMC_WRITE(host->base, IE, 0);
->> >         OMAP_HSMMC_WRITE(host->base, STAT, STAT_CLEAR);
->>
->> This is wrong. SDIO IRQ must not be disabled upon host initiated transfer.
->> see omap_hsmmc_request_done
-
-It's what Balaji already pointed out.
-
-+   /* no transfer running, need to signal cirq if */
-+   if (host->sdio_irq_en)
-+       irq_mask |= CIRQ_EN;
 
 
-omap_hsmmc_request_done calls omap_hsmmc_disable_irq
+On 09/27/2013 01:18 AM, Stephen Warren wrote:
+> On 09/24/2013 01:58 AM, Javier Martinez Canillas wrote:
+>> The OMAP GPIO controller HW requires a pin to be configured in GPIO
+>> input mode in order to operate as an interrupt input. Since drivers
+>> should not be aware of whether an interrupt pin is also a GPIO or not,
+>> the HW should be fully configured/enabled as an IRQ if a driver solely
+>> uses IRQ APIs such as request_irq(), and never calls any GPIO-related
+>> APIs. As such, add the missing HW setup to the OMAP GPIO controller's
+>> irq_chip driver.
+>> 
+>> Since this bypasses the GPIO subsystem we have to ensure that another
+>> caller won't be able to request the same GPIO pin that is used as an
+>> IRQ and set its direction as output. Requesting the GPIO and setting
+>> its direction as input is allowed though.
+> 
+> FWIW, the concept of this patch,
+> Acked-by: Stephen Warren <swarren@nvidia.com>
+> 
+> I didn't review the code; just skimmed it to see where the new
+> functionality was implemented.
+> 
 
-imagine this case:
-1. host issues transfer from host->card (e.g. get RSSI)
-2. at end of this transfer, SDIO IRQ are being masked
-3. card wants to reply, raises an SDIO IRQ
-4. nothing happens, since in 2. SDIO IRQ are masked
+Thanks Stephen,
 
-I verified this with my 88W8787 card. It is a problem
+I split the changes as suggested by Tony and posted as a patch-set and not an
+RFC anymore:
 
->
->> > +       spin_unlock_irqrestore(&host->irq_lock, flags);
->> >  }
->> >
->> >  /* Calculate divisor for the given clock frequency */
->> > @@ -1040,8 +1053,12 @@ static irqreturn_t omap_hsmmc_irq(int irq, void *dev_id)
->> >         int status;
->> >
->> >         status = OMAP_HSMMC_READ(host->base, STAT);
->> > -       while (status & INT_EN_MASK && host->req_in_progress) {
->> > -               omap_hsmmc_do_irq(host, status);
->> > +       while (status & (INT_EN_MASK | CIRQ_EN)) {
->> > +               if (host->req_in_progress)
->> > +                       omap_hsmmc_do_irq(host, status);
->> > +
->> > +               if (status & CIRQ_EN)
->> > +                       mmc_signal_sdio_irq(host->mmc);
->> >
->> >                 /* Flush posted write */
->> >                 status = OMAP_HSMMC_READ(host->base, STAT);
->> > @@ -1556,6 +1573,43 @@ static void omap_hsmmc_init_card(struct mmc_host *mmc, struct mmc_card *card)
->> >                 mmc_slot(host).init_card(card);
->> >  }
->> >
->> > +static void omap_hsmmc_enable_sdio_irq_nolock(struct omap_hsmmc_host *host,
->> > +                                        int enable)
->> > +{
->> > +       u32 irq_mask;
->> > +
->> > +       if (enable)
->> > +               host->flags |= HSMMC_SDIO_IRQ_ENABLED;
->> > +       else
->> > +               host->flags &= ~HSMMC_SDIO_IRQ_ENABLED;
->> > +
->> > +       /* SDIO IRQ will be enabled as appropriate in runtime resume */
->> > +       if (host->flags & HSMMC_RUNTIME_SUSPENDED)
->> > +               goto out;
->>
->> Not sure here, will the module still come out of suspend even with
->> SDIO IRQ disabled?
->> Otherwise nak, sdio irq must enabled independent of pm runtime state. In the
->> worst case need pm_runtime_get().
->
-> Well this handling is similar to what's done in sdhci.c and
-> seems to work for me for off-idle on 3730. In that case the
-> whole MMC block is powered off and the wake up follows the
-> dedicated io chain path. For the am33xx off-idle case, the
-> wake-up path would be remuxed to the GPIO in the first GPIO
-> bank that's always on, so again the whole MMC block is off.
+[PATCH 1/2] gpio/omap: maintain GPIO and IRQ usage separately [1]
+[PATCH 2/2] gpio/omap: auto-setup a GPIO when used as an IRQ [2]
 
-Something like this but shorter as a comment:
+Linus,
 
-/*
- * Must not touch registers while fclk if off, otherwise SIGBUS.
- * Card will still wake up upon SDIO IRQ, and we'll complete
- * the request in pm_runtime_resume
- */
+Could you please add Stephen Acked-by when taking the patches and also George
+Cherian Tested-by that sent for this RFC. George it would be great if you can
+also comment on which OMAP platform you had tested.
 
-Another interpretation of your code could be:
+I cc'ed Aaro Koskinen and Paul Walmsley now which seems to have OMAP1 platforms
+to test. Could you please test [1] and [2] on a OMAP1 board? These patches
+solves a long standing issue we have on OMAP2+ when booting with DT and it would
+be great if you can check that it does not cause regressions on OMAP1 based boards.
 
-/* Sorry I'm having Siesta right now, try later */
+Thanks a lot and best regards,
+Javier
 
->
-> Maybe try to test this with your case with some additional
-> patches?
->
->> >  static void omap_hsmmc_conf_bus_power(struct omap_hsmmc_host *host)
->> >  {
->> >         u32 hctl, capa, value;
->> > @@ -1608,7 +1662,7 @@ static const struct mmc_host_ops omap_hsmmc_ops = {
->> >         .get_cd = omap_hsmmc_get_cd,
->> >         .get_ro = omap_hsmmc_get_ro,
->> >         .init_card = omap_hsmmc_init_card,
->> > -       /* NYET -- enable_sdio_irq */
->> > +       .enable_sdio_irq = omap_hsmmc_enable_sdio_irq,
->>
->> What about am335x, if this patch goes in, it will break that platform.
->> quirk flag via device tree?
->
-> I think it should still work, except the wake-up won't work for
-> the off-idle case unless the SDIO interrupt is remux to the
-> GPIO input?
->
-> If there are other issues then yes, we can use the compatible
-> flags.
-
-Compatible section you mean, that sounds to good to me.
-But do we know platform have the deficiency?
-
-There used to be an if statement like this in one of your previous
-patches.
-
-+   if (match) {
-+       mmc->caps |= MMC_CAP_SDIO_IRQ;
-+       if (of_find_property(host->dev->of_node,
-+                    "ti,quirk-swakeup-missing", NULL)) {
-+           /* no wakeup from deeper power states, use polling */
-+           mmc->caps &= ~MMC_CAP_SDIO_IRQ;
-+       }
-+   }
-
-Either or is needed, otherwise existing platforms will break, and will have
-to apply patches on top of yours to reenable polling (e.g. beaglebone)
-
->
-> Thanks for the review and comments,
->
-> Tony
->
+[1]: https://patchwork.kernel.org/patch/2937351/
+[2]: https://patchwork.kernel.org/patch/2937371/
