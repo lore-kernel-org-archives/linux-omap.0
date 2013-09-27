@@ -1,88 +1,51 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: Odd behavior with dpll4_m4x2_ck on omap3 + DT
-Date: Fri, 27 Sep 2013 14:24:59 +0300
-Message-ID: <52456B0B.9040502@ti.com>
-References: <521DC143.2010506@ti.com> <521DC770.5050000@ti.com> <521DCD80.1060600@ti.com> <521DE1A6.6030005@ti.com> <522F0390.9050802@gmail.com> <522F0CC7.50501@ti.com> <522F0E3E.1080001@ti.com> <522F0F9B.9050705@ti.com> <522F1346.3020206@ti.com> <522F1BF9.5050006@ti.com> <523019EE.5000508@ti.com> <5232C413.8010207@gmail.com> <5232F85E.7050502@ti.com> <524544B5.9050402@ti.com>
+From: Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 2/2] ARM: dts: am335x-evm, am335x-evmsdk: switch mmc1 to 4-bit mode
+Date: Fri, 27 Sep 2013 17:05:10 +0530
+Message-ID: <1380281710-12728-2-git-send-email-balajitk@ti.com>
+References: <1380281710-12728-1-git-send-email-balajitk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:55723 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751918Ab3I0LZF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Sep 2013 07:25:05 -0400
-In-Reply-To: <524544B5.9050402@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1380281710-12728-1-git-send-email-balajitk-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, koen-QLwJDigV5abLmq1fohREcCpxlwaOVQ5f@public.gmane.org, Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Stefan Roese <stefan.roese@gmail.com>, linux-omap <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, Mike Turquette <mturquette@linaro.org>
 
-On 09/27/2013 11:41 AM, Tomi Valkeinen wrote:
-> On 13/09/13 14:34, Kristo, Tero wrote:
->> On 09/13/2013 10:51 AM, Stefan Roese wrote:
->>> On 11.09.2013 09:21, Tomi Valkeinen wrote:
->>>> On 10/09/13 16:17, Tero Kristo wrote:
->>>>
->>>>> In theory, DPLLs can also be used in their bypass mode to feed customer
->>>>> nodes clocks. I just think the check in the clkoutx2_recalc is wrong,
->>>>> and should be enhanced to actually check what is the target mode for the
->>>>> clock once it is enabled. Maybe something like this would work properly:
->>>>>
->>>>> diff --git a/arch/arm/mach-omap2/dpll3xxx.c
->>>>> b/arch/arm/mach-omap2/dpll3xxx.c
->>>>> index 3a0296c..ba218fb 100644
->>>>> --- a/arch/arm/mach-omap2/dpll3xxx.c
->>>>> +++ b/arch/arm/mach-omap2/dpll3xxx.c
->>>>> @@ -658,14 +658,12 @@ unsigned long omap3_clkoutx2_recalc(struct clk_hw
->>>>> *hw,
->>>>>
->>>>>           dd = pclk->dpll_data;
->>>>>
->>>>> -       WARN_ON(!dd->enable_mask);
->>>>> -
->>>>> -       v = __raw_readl(dd->control_reg) & dd->enable_mask;
->>>>> -       v >>= __ffs(dd->enable_mask);
->>>>> -       if ((v != OMAP3XXX_EN_DPLL_LOCKED) || (dd->flags & DPLL_J_TYPE))
->>>>> +       if ((dd->flags & DPLL_J_TYPE) ||
->>>>> +           __clk_get_rate(dd->clk_bypass) == __clk_get_rate(pclk))
->>>>>                   rate = parent_rate;
->>>>>           else
->>>>>                   rate = parent_rate * 2;
->>>>> +
->>>>>           return rate;
->>>>>    }
->>>>
->>>> Stefan, are you able to test the above?
->>>>
->>>> I'd rather have a proper fix for this, than hack omapdss =).
->>>
->>> Okay, I finally found some time to test this. The patch above generates
->>> this warning:
->>>
->>> arch/arm/mach-omap2/dpll3xxx.c: In function 'omap3_clkoutx2_recalc':
->>> arch/arm/mach-omap2/dpll3xxx.c:663:6: warning: passing argument 1 of '__clk_get_rate' from incompatible pointer type [enabled by default]
->>> include/linux/clk-provider.h:423:15: note: expected 'struct clk *' but argument is of type 'struct clk_hw_omap *'
->>
->> Yea sorry about that, I just quickly hacked the patch together without
->> testing it at all. :P
->>
->>>
->>> I then changed it (not 100% sure if correctly) to this version:
->>>
->>> +       if ((dd->flags & DPLL_J_TYPE) ||
->>> +           __clk_get_rate(dd->clk_bypass) == __clk_get_rate(pclk->hw.clk))
->>>
->>> And this seems to work. At least the clock rate mismatch warning does not
->>> appear with this patch applied (and without the clk_enable) in the
->>> bootlog any more.
->>
->> Yea, looks good to me, however I guess I would like second opinion on
->> this also.
->
-> Tero, can you queue this patch? Or who should handle this?
+set bus-width to make SD card operate in 4 bit mode.
 
-I can't queue anything as I don't have maintainership on any of this 
-stuff. Paul / Tony should go with this.
+Signed-off-by: Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>
+---
+based on git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git for_3.13/dts
 
--Tero
+ arch/arm/boot/dts/am335x-evm.dts   |    1 +
+ arch/arm/boot/dts/am335x-evmsk.dts |    1 +
+ 2 files changed, 2 insertions(+), 0 deletions(-)
 
+diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
+index 23b0a3e..028ca09 100644
+--- a/arch/arm/boot/dts/am335x-evm.dts
++++ b/arch/arm/boot/dts/am335x-evm.dts
+@@ -521,4 +521,5 @@
+ &mmc1 {
+ 	status = "okay";
+ 	vmmc-supply = <&vmmc_reg>;
++	bus-width = <4>;
+ };
+diff --git a/arch/arm/boot/dts/am335x-evmsk.dts b/arch/arm/boot/dts/am335x-evmsk.dts
+index bc93895..563a2b1 100644
+--- a/arch/arm/boot/dts/am335x-evmsk.dts
++++ b/arch/arm/boot/dts/am335x-evmsk.dts
+@@ -423,4 +423,5 @@
+ &mmc1 {
+ 	status = "okay";
+ 	vmmc-supply = <&vmmc_reg>;
++	bus-width = <4>;
+ };
+-- 
+1.7.5.4
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
