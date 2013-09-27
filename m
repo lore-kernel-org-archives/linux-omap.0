@@ -1,47 +1,129 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 00/51] DMA mask changes
-Date: Fri, 27 Sep 2013 09:27:04 +0100
-Message-ID: <20130927082703.GZ25647@n2100.arm.linux.org.uk>
-References: <20130919212235.GD12758@n2100.arm.linux.org.uk>
- <CACna6rxkpYzdD8_Jfi22vA2suUa3k-JM65_gCySQpp4crVCoPg@mail.gmail.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: Odd behavior with dpll4_m4x2_ck on omap3 + DT
+Date: Fri, 27 Sep 2013 11:41:25 +0300
+Message-ID: <524544B5.9050402@ti.com>
+References: <521DC143.2010506@ti.com> <521DC770.5050000@ti.com> <521DCD80.1060600@ti.com> <521DE1A6.6030005@ti.com> <522F0390.9050802@gmail.com> <522F0CC7.50501@ti.com> <522F0E3E.1080001@ti.com> <522F0F9B.9050705@ti.com> <522F1346.3020206@ti.com> <522F1BF9.5050006@ti.com> <523019EE.5000508@ti.com> <5232C413.8010207@gmail.com> <5232F85E.7050502@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <alsa-devel-bounces@alsa-project.org>
-Content-Disposition: inline
-In-Reply-To: <CACna6rxkpYzdD8_Jfi22vA2suUa3k-JM65_gCySQpp4crVCoPg@mail.gmail.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: =?utf-8?B?UmFmYcWCIE1pxYJlY2tp?= <zajec5@gmail.com>
-Cc: alsa-devel@alsa-project.org, linux-doc@vger.kernel.org, linux-mmc@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-nvme@lists.infradead.org, linux-ide@vger.kernel.org, "devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>, linux-samsung-soc@vger.kernel.org, Linux SCSI List <linux-scsi@vger.kernel.org>, e1000-devel@lists.sourceforge.net, b43-dev <b43-dev@lists.infradead.org>, linux-media@vger.kernel.org, devicetree@vger.kernel.org, dri-devel <dri-devel@lists.freedesktop.org>, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Solarflare linux maintainers <linux-net-drivers@solarflare.com>, Network Development <netdev@vger.kernel.org>, linux-usb@vger.kernel.org, "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, linux-crypto@vger.kernel.org, uclinux-dist-devel@black
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="fFSSi7AHKDWoSIKRSrqgnS4abiRK9hduW"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:57627 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751548Ab3I0Il3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 27 Sep 2013 04:41:29 -0400
+In-Reply-To: <5232F85E.7050502@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Kristo, Tero" <t-kristo@ti.com>
+Cc: Stefan Roese <stefan.roese@gmail.com>, linux-omap <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, Mike Turquette <mturquette@linaro.org>
 
-T24gVGh1LCBTZXAgMjYsIDIwMTMgYXQgMTA6MjM6MDhQTSArMDIwMCwgUmFmYcWCIE1pxYJlY2tp
-IHdyb3RlOgo+IDIwMTMvOS8xOSBSdXNzZWxsIEtpbmcgLSBBUk0gTGludXggPGxpbnV4QGFybS5s
-aW51eC5vcmcudWs+Ogo+ID4gVGhpcyBlbWFpbCBpcyBvbmx5IGJlaW5nIHNlbnQgdG8gdGhlIG1h
-aWxpbmcgbGlzdHMgaW4gcXVlc3Rpb24sIG5vdCB0bwo+ID4gYW55b25lIHBlcnNvbmFsbHkuICBU
-aGUgbGlzdCBvZiBpbmRpdmlkdWFscyBpcyBmYXIgdG8gZ3JlYXQgdG8gZG8gdGhhdC4KPiA+IEkn
-bSBob3Bpbmcgbm8gbWFpbGluZyBsaXN0cyByZWplY3QgdGhlIHBhdGNoZXMgYmFzZWQgb24gdGhl
-IG51bWJlciBvZgo+ID4gcmVjaXBpZW50cy4KPiAKPiBIdWgsIEkgdGhpbmsgaXQgd2FzIGVub3Vn
-aCB0byBzZW5kIG9ubHkgMyBwYXRjaGVzIHRvIHRoZSBiNDMtZGV2QC4gTGlrZToKPiBbUEFUQ0gg
-MDEvNTFdIERNQS1BUEk6IHByb3ZpZGUgYSBoZWxwZXIgdG8gc2V0IGJvdGggRE1BIGFuZCBjb2hl
-cmVudCBETUEgbWFza3MKPiBbUEFUQ0ggMTQvNTFdIERNQS1BUEk6IG5ldDogYjQzOiAoLi4uKQo+
-IFtQQVRDSCAxNS81MV0gRE1BLUFQSTogbmV0OiBiNDNsZWdhY3k6ICguLi4pCj4gOykKPiAKPiBJ
-IGJlbGlldmUgSm9lIGhhcyBzb21lIG5pY2Ugc2NyaXB0IGZvciBkb2luZyBpdCB0aGF0IHdheS4g
-V2hlbiBmaXhpbmcKPiBzb21lIGNvZGluZyBzdHlsZSAvIGZvcm1hdHRpbmcsIGhlIHNlbmRzIG9u
-bHkgcmVsYXRlZCBwYXRjaGVzIHRvIHRoZQo+IGdpdmVuIE1MLgoKSWYgSSBkaWQgdGhhdCwgdGhl
-biB0aGUgbWFpbGluZyBsaXN0cyB3b3VsZCBub3QgZ2V0IHRoZSBmaXJzdCBwYXRjaCwKYmVjYXVz
-ZSBhbG1vc3Qgbm9uZSBvZiB0aGUgbGlzdHMgd291bGQgYmUgcmVmZXJyZWQgdG8gYnkgcGF0Y2gg
-MS4KCk1vcmVvdmVyLCBwZW9wbGUgY29tcGxhaW4gd2hlbiB0aGV5IGRvbid0IGhhdmUgYWNjZXNz
-IHRvIHRoZSBmdWxsCnBhdGNoIHNlcmllcyAtIHRoZXkgYXNzdW1lIHBhdGNoZXMgYXJlIG1pc3Np
-bmcgZm9yIHNvbWUgcmVhc29uLCBhbmQKdGhleSBhc2sgZm9yIHRoZSByZXN0IG9mIHRoZSBzZXJp
-ZXMuCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkFsc2Et
-ZGV2ZWwgbWFpbGluZyBsaXN0CkFsc2EtZGV2ZWxAYWxzYS1wcm9qZWN0Lm9yZwpodHRwOi8vbWFp
-bG1hbi5hbHNhLXByb2plY3Qub3JnL21haWxtYW4vbGlzdGluZm8vYWxzYS1kZXZlbAo=
+--fFSSi7AHKDWoSIKRSrqgnS4abiRK9hduW
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+On 13/09/13 14:34, Kristo, Tero wrote:
+> On 09/13/2013 10:51 AM, Stefan Roese wrote:
+>> On 11.09.2013 09:21, Tomi Valkeinen wrote:
+>>> On 10/09/13 16:17, Tero Kristo wrote:
+>>>
+>>>> In theory, DPLLs can also be used in their bypass mode to feed custo=
+mer
+>>>> nodes clocks. I just think the check in the clkoutx2_recalc is wrong=
+,
+>>>> and should be enhanced to actually check what is the target mode for=
+ the
+>>>> clock once it is enabled. Maybe something like this would work prope=
+rly:
+>>>>
+>>>> diff --git a/arch/arm/mach-omap2/dpll3xxx.c
+>>>> b/arch/arm/mach-omap2/dpll3xxx.c
+>>>> index 3a0296c..ba218fb 100644
+>>>> --- a/arch/arm/mach-omap2/dpll3xxx.c
+>>>> +++ b/arch/arm/mach-omap2/dpll3xxx.c
+>>>> @@ -658,14 +658,12 @@ unsigned long omap3_clkoutx2_recalc(struct clk=
+_hw
+>>>> *hw,
+>>>>
+>>>>          dd =3D pclk->dpll_data;
+>>>>
+>>>> -       WARN_ON(!dd->enable_mask);
+>>>> -
+>>>> -       v =3D __raw_readl(dd->control_reg) & dd->enable_mask;
+>>>> -       v >>=3D __ffs(dd->enable_mask);
+>>>> -       if ((v !=3D OMAP3XXX_EN_DPLL_LOCKED) || (dd->flags & DPLL_J_=
+TYPE))
+>>>> +       if ((dd->flags & DPLL_J_TYPE) ||
+>>>> +           __clk_get_rate(dd->clk_bypass) =3D=3D __clk_get_rate(pcl=
+k))
+>>>>                  rate =3D parent_rate;
+>>>>          else
+>>>>                  rate =3D parent_rate * 2;
+>>>> +
+>>>>          return rate;
+>>>>   }
+>>>
+>>> Stefan, are you able to test the above?
+>>>
+>>> I'd rather have a proper fix for this, than hack omapdss =3D).
+>>
+>> Okay, I finally found some time to test this. The patch above generate=
+s
+>> this warning:
+>>
+>> arch/arm/mach-omap2/dpll3xxx.c: In function 'omap3_clkoutx2_recalc':
+>> arch/arm/mach-omap2/dpll3xxx.c:663:6: warning: passing argument 1 of '=
+__clk_get_rate' from incompatible pointer type [enabled by default]
+>> include/linux/clk-provider.h:423:15: note: expected 'struct clk *' but=
+ argument is of type 'struct clk_hw_omap *'
+>=20
+> Yea sorry about that, I just quickly hacked the patch together without =
+
+> testing it at all. :P
+>=20
+>>
+>> I then changed it (not 100% sure if correctly) to this version:
+>>
+>> +       if ((dd->flags & DPLL_J_TYPE) ||
+>> +           __clk_get_rate(dd->clk_bypass) =3D=3D __clk_get_rate(pclk-=
+>hw.clk))
+>>
+>> And this seems to work. At least the clock rate mismatch warning does =
+not
+>> appear with this patch applied (and without the clk_enable) in the
+>> bootlog any more.
+>=20
+> Yea, looks good to me, however I guess I would like second opinion on=20
+> this also.
+
+Tero, can you queue this patch? Or who should handle this?
+
+ Tomi
+
+
+
+--fFSSi7AHKDWoSIKRSrqgnS4abiRK9hduW
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJSRUS1AAoJEPo9qoy8lh71nmAQAIqwh+h9Zk7Txsarcdu0YLSC
+EpZz+34XVSXGAHxBkgKoXzx/zkdRLUIeWJLziX4WNcWaHpowzTkr6xmLiPhS6sJp
+3IYhDVR6CFPM0InwS2G2CDfbwPqQObjpw4arq8ADfsTdC8xWdSPNMoYAu9he74Xq
+0MtrH94PxviP9xltJQYFVfgqZOrceBMngw3GmIXMCZZ+MhSsw2DtMULmUJ5qrJH9
+r2tGkYu9Xjaow2/qUfK5PoB27gkeWx6O2TgHDMMiOq/UBri5JsUNQZoThCqQFog6
+WRptc0ikryxscyNxdWuT9NLHRAysoxwTw5Rn8o5pD5tcsAYZUqSgM4G6YBTXdDp2
+iZSuW3+3Uwx+hD6zuXo84uhjSykYkN7OIvBWuuHV3Zrgu2RFCJS6ZCGPrBVhUpjm
+N7RmpPM1KMIMBRGnheo55x4KxUWdYUI20M0MP2SxBgk4QZnKyNBz/3eUHLxAwYK2
+gUdUgR6Y7Sd4hpFhlENR/STLTc6iQzg3TMjSGfYuCXqxXLJa/+2qzllu2MzM4mkw
+5X0w0DK9C1RZnZEBmKA4SoT7+2QF/4Qyd/4OOVLKkQo+CpaHcfoqXqWW/ZvjMe6u
+aye+/MC/DMZMfuJNlsTZncE3qwfi/sMZbMHrbvZdXKw5jiqqUFJg5LnCCjdw0L0A
+UXufsw4w3n+gFErjRbXB
+=gwEP
+-----END PGP SIGNATURE-----
+
+--fFSSi7AHKDWoSIKRSrqgnS4abiRK9hduW--
