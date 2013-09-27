@@ -1,38 +1,61 @@
-From: Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 1/2] gpio/omap: maintain GPIO and IRQ usage separately
-Date: Fri, 27 Sep 2013 15:31:47 -0400
-Message-ID: <5245DD23.6000508@ti.com>
-References: <1380069414-2922-1-git-send-email-javier.martinez@collabora.co.uk>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: new binutils needed for arm in 3.12-rc1
+Date: Fri, 27 Sep 2013 21:41:32 +0200
+Message-ID: <20130927194132.GA31663@amd.pavel.ucw.cz>
+References: <alpine.LFD.2.03.1309251147320.312@syhkavp.arg>
+ <1380235709.1974.93@driftwood>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1380069414-2922-1-git-send-email-javier.martinez-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Javier Martinez Canillas <javier.martinez-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
-Cc: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Kevin Hilman <khilman-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Lars Poeschel <larsi-myOXECIRRCL4ajHJ1XSv27NAH6kLmebB@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ian.campbell-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Tomasz Figa <tomasz.figa-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Enric Balletbo i Serra <eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj-sclMFOaUSTBWk0Htik3J/w@public.gmane.org>, Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Jon Hunter <jgchunter-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-gpio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, r.sricharan-l0cyMroinI0@public.gmane.org, holler-SXC+2es9fhnfWeYVQQPykw@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:60530 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753731Ab3I0Tle (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Sep 2013 15:41:34 -0400
+Content-Disposition: inline
+In-Reply-To: <1380235709.1974.93@driftwood>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Rob Landley <rob@landley.net>
+Cc: Nicolas Pitre <nico@fluxnic.net>, Russell King - ARM Linux <linux@arm.linux.org.uk>, =?iso-8859-1?Q?M=E5ns_Rullg=E5rd?= <mans@mansr.com>, Andrew Morton <akpm@osdl.org>, Trivial patch monkey <trivial@kernel.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <will.deacon@arm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Tuesday 24 September 2013 08:36 PM, Javier Martinez Canillas wrote:
-> The GPIO OMAP controller pins can be used as IRQ and GPIO
-> independently so is necessary to keep track GPIO pins and
-> IRQ lines usage separately to make sure that the bank will
-> always be enabled while being used.
+Hi!
+
+On Thu 2013-09-26 17:48:29, Rob Landley wrote:
+> On 09/25/2013 11:13:17 AM, Nicolas Pitre wrote:
+> >On Wed, 25 Sep 2013, Rob Landley wrote:
+> >
+> >> On 09/24/2013 09:07:57 PM, Nicolas Pitre wrote:
+> >> > I'd strongly suggest you make your binutils compatible with newer
+> >> > instruction syntax instead of making the kernel more complex.
+> >>
+> >> Meaning I play whack-a-mole as this becomes permission to depend
+> >on endless
+> >> new gnuisms just because they're there and nobody else is
+> >regression testing
+> >> against them, not because they actually add anything.
+> >
+> >Gnuism?
+> >
+> >Let me quote the ARM ARchitecture Reference Manual, version 7
+> >revision C,
+> >section A8.8.44 (sorry for the whitespace dammage):
 > 
-> Also move gpio_is_input() definition in preparation for the
-> next patch that setups the controller's irq_chip driver when
-> a caller requests an interrupt line.
-> 
-> Signed-off-by: Javier Martinez Canillas <javier.martinez-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
-> ---
-Considering GPIO core maintainer is fine with this approach,
-am fine with both of your patches. Again thanks a lot for
-fixing the long nagging issue.
+> Globally changing the binutils requirement for all architectures, as
+> the doc patch at the start of this thread proposed doing, would mean
+> gnuisms in common code (ext2 and such) wouldn't get caught, giving
+> llvm and pcc and such a moving target when trying to build the
+> kernel with non-gnu toolchains. That's what I meant by gnuisms
+> breeding.
 
-FWIW,
-Acked-by: Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
+Well. I did the docs patch, but my preferred solution would actually
+be to get the patches reverted so that it still works with old
+binutils.
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+(So far, I updated one machine with new cross environment, two more to
+go.)
+
+Anyway, it should be solved _somehow_.
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
