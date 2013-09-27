@@ -1,109 +1,71 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: Re: Solved: Booting recent mainline on omap5-uevm
-Date: Thu, 26 Sep 2013 21:24:33 -0500
-Message-ID: <5244EC61.9030408@ti.com>
-References: <A2CA0424C0A6F04399FB9E1CD98E030458E065EA@US01WEMBX2.internal.synopsys.com>
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+Subject: [PATCHv4 10/18] arm: dts: add omap4 CPU thermal data
+Date: Thu, 26 Sep 2013 23:13:17 -0400
+Message-ID: <1380251605-3804-11-git-send-email-eduardo.valentin@ti.com>
+References: <1380251605-3804-1-git-send-email-eduardo.valentin@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:59566 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751279Ab3I0CZO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Sep 2013 22:25:14 -0400
-In-Reply-To: <A2CA0424C0A6F04399FB9E1CD98E030458E065EA@US01WEMBX2.internal.synopsys.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1380251605-3804-1-git-send-email-eduardo.valentin@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com, wni@nvidia.com
+Cc: devicetree@vger.kernel.org, durgadoss.r@intel.com, linux-pm@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, Eduardo Valentin <eduardo.valentin@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, grant.likely@linaro.org, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Zimmerman <Paul.Zimmerman@synopsys.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "lokeshvutla@ti.com" <lokeshvutla@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On 09/26/2013 06:44 PM, Paul Zimmerman wrote:
->> From: Suman Anna [mailto:s-anna@ti.com]
->> Sent: Thursday, September 26, 2013 1:36 PM
-> 
->>>>>>>>>> I have an OMAP5432 uEVM which I cannot get to boot with recent mainline
->>>>>>>>>> (tried 3.11 and 3.12-rc1). I have the TI GLSDK for this board (v6.0.0.7),
->>>>>>>>>> which comes with 3.8.4 which works fine.
->>>>>>>>>>
->>>>>>>>>> I found this thread: http://marc.info/?l=fedora-arm&m=137717811815777 and
->>>>>>>>>
->>>>>>>>> Wrong link, should have been http://marc.info/?l=linux-omap&m=137515583214350.
->>>>>>>>>
->>>>>>>> Its because of commit 03ab349ec{ARM: OMAP5: hwmod data: Add mailbox data} which
->>>>>>>> added hwmod data but DT data for mailbox is missing. Reverting that makes
->>>>>>>> things work. Looks like mailbox dt patches missed the last merge window.
->>>>>>>
->>>>>>> I will be respinning the mailbox DT series very soon targeting 3.13, so
->>>>>>> should not be an issue when OMAP5 boot is supported directly on mainline.
->>>>>>
->>>>>> That's good info, but unfortunately it didn't work for me. I must have a
->>>>>> different problem, maybe I need a newer version of u-boot.
->>>>>>
->>>>>> So there is no README or wiki that explains how to get Linux to boot on
->>>>>> this board? Is there perhaps a prebuilt SD card image somewhere with a
->>>>>> recent kernel that I can grab?
->>>>>>
->>>>> You don't need anything special as such. Just pull the latest mainline
->>>>> denx u-boot build it for 'omap5_uevm' and update your boot-loaders.
->>>>
->>>> FYI, I was able to boot using the branch posted by Santosh just fine. I
->>>> used v2013.07 u-boot. The boot traces show up about 30~45 seconds after
->>>> you see the trace "Starting kernel...".
->>>>
->>>> For using a rootfs from MMC, enable the following in menuconfig:
->>>>   Device Drivers -> Multifunction device drivers -> TI Palmas series chips
->>>>   Device Drivers -> Voltage and Current Regulator Support -> TI Palmas
->>>> PMIC regulators.
->>>>
->>>> Depending on your u-boot settings, make sure the mmcroot is also set to
->>>> /dev/mmcblk1p2.
->>>
->>> Hi Suman,
->>>
->>> Thanks for trying to help. Unfortunately, updating to v2013.07 u-boot, and
->>> enabling the kernel config items you mentioned, didn't make a difference.
->>>
->>> Could you share your boot.scr? I'm still using the one from the TI GLSDK,
->>> but maybe something has changed since the 3.8 kernel? Also, how do you
->>> build your kernel? I'm doing "make LOADADDR=0x80008000 uImage" because
->>> newer kernels won't build without the LOADADDR= bit.
->>
->> I build the kernel same way as you, and copy the zImage to boot
->> partition. I am not using any boot.scr, a simple uEnv.txt to override
->> the boot partition variables, and the default environment otherwise.
->>
->> My boot log is here, including my uEnv.txt at the end.
->> http://hastebin.com/yinuxirexu.xml
->>
->> Hopefully, this should clear out any setup differences..
-> 
-> Thanks Suman!
-> 
-> Using your info I was able to get the board to boot. 
-
-Glad I could help..
-
-> I added a third line to your uEnv.txt, so I don't have to break into
-> u-boot and type "setenv mmcroot /dev/mmcblk1p2 rw":
-> 
-> 	bootdir=
-> 	bootpart=0:1
-> 	mmcroot="/dev/mmcblk1p2 rw"
-> 
-> Or I suppose you could add that to the kernel command line in the kernel
-> config.
-
-The uEnv.txt approach is good, since you can use the same image on other
-boards without resorting to other changes in environment for them.
-
-> 
-> I'm seeing several stack dumps during the boot, with messages like
-> "division by 0 in the kernel", but I suppose that has nothing to do with
-> my boot problems. And it does boot to the login: prompt on the serial
-> console.
-
-Yeah, those I believe are related to the ABE and USB DPLL locking (or
-lack of) issues.
-
-regards
-Suman
+VGhpcyBwYXRjaCBjaGFuZ2VzIGEgZHRzaSBmaWxlIHRvIGNvbnRhaW4gdGhlIHRoZXJtYWwgZGF0
+YQpmb3IgTVBVIGRvbWFpbiBvbiBPTUFQNCBhbmQgbGF0ZXIgU29Dcy4gVGhpcyBkYXRhIHdpbGwK
+ZW5hYmxlIHRoZSBwYXNzaXZlIGNvb2xpbmcgd2l0aCBDUFVmcmVxIGNvb2xpbmcgZGV2aWNlCmF0
+IDEwMEMgYW5kIHRoZSBzeXN0ZW0gd2lsbCBkbyBhIHRoZXJtYWwgc2h1dGRvd24gYXQgMTI1Qy4K
+ClRoaXMgdGhlcm1hbCBkYXRhIGNhbiBiZSByZXVzZWQgYWNyb3NzIFRJIFNvQyBkZXZpY2VzLgoK
+Q2M6ICJCZW5vw650IENvdXNzb24iIDxiY291c3NvbkBiYXlsaWJyZS5jb20+CkNjOiBUb255IExp
+bmRncmVuIDx0b255QGF0b21pZGUuY29tPgpDYzogUm9iIEhlcnJpbmcgPHJvYi5oZXJyaW5nQGNh
+bHhlZGEuY29tPgpDYzogUGF3ZWwgTW9sbCA8cGF3ZWwubW9sbEBhcm0uY29tPgpDYzogTWFyayBS
+dXRsYW5kIDxtYXJrLnJ1dGxhbmRAYXJtLmNvbT4KQ2M6IFN0ZXBoZW4gV2FycmVuIDxzd2FycmVu
+QHd3d2RvdG9yZy5vcmc+CkNjOiBJYW4gQ2FtcGJlbGwgPGlhbi5jYW1wYmVsbEBjaXRyaXguY29t
+PgpDYzogUnVzc2VsbCBLaW5nIDxsaW51eEBhcm0ubGludXgub3JnLnVrPgpDYzogbGludXgtb21h
+cEB2Z2VyLmtlcm5lbC5vcmcKQ2M6IGRldmljZXRyZWVAdmdlci5rZXJuZWwub3JnCkNjOiBsaW51
+eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKQ2M6IGxpbnV4LWtlcm5lbEB2Z2VyLmtl
+cm5lbC5vcmcKU2lnbmVkLW9mZi1ieTogRWR1YXJkbyBWYWxlbnRpbiA8ZWR1YXJkby52YWxlbnRp
+bkB0aS5jb20+Ci0tLQogYXJjaC9hcm0vYm9vdC9kdHMvb21hcDQtY3B1LXRoZXJtYWwuZHRzaSB8
+IDQxICsrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrCiAxIGZpbGUgY2hhbmdlZCwgNDEg
+aW5zZXJ0aW9ucygrKQogY3JlYXRlIG1vZGUgMTAwNjQ0IGFyY2gvYXJtL2Jvb3QvZHRzL29tYXA0
+LWNwdS10aGVybWFsLmR0c2kKCmRpZmYgLS1naXQgYS9hcmNoL2FybS9ib290L2R0cy9vbWFwNC1j
+cHUtdGhlcm1hbC5kdHNpIGIvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDQtY3B1LXRoZXJtYWwuZHRz
+aQpuZXcgZmlsZSBtb2RlIDEwMDY0NAppbmRleCAwMDAwMDAwLi42NWE2ZGViCi0tLSAvZGV2L251
+bGwKKysrIGIvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDQtY3B1LXRoZXJtYWwuZHRzaQpAQCAtMCww
+ICsxLDQxIEBACisvKgorICogRGV2aWNlIFRyZWUgU291cmNlIGZvciBPTUFQNC81IFNvQyBDUFUg
+dGhlcm1hbAorICoKKyAqIENvcHlyaWdodCAoQykgMjAxMyBUZXhhcyBJbnN0cnVtZW50cyBJbmNv
+cnBvcmF0ZWQgLSBodHRwOi8vd3d3LnRpLmNvbS8KKyAqIENvbnRhY3Q6IEVkdWFyZG8gVmFsZW50
+aW4gPGVkdWFyZG8udmFsZW50aW5AdGkuY29tPgorICoKKyAqIFRoaXMgZmlsZSBpcyBsaWNlbnNl
+ZCB1bmRlciB0aGUgdGVybXMgb2YgdGhlIEdOVSBHZW5lcmFsIFB1YmxpYyBMaWNlbnNlCisgKiB2
+ZXJzaW9uIDIuICBUaGlzIHByb2dyYW0gaXMgbGljZW5zZWQgImFzIGlzIiB3aXRob3V0IGFueSB3
+YXJyYW50eSBvZiBhbnkKKyAqIGtpbmQsIHdoZXRoZXIgZXhwcmVzcyBvciBpbXBsaWVkLgorICov
+CisKKyNpbmNsdWRlIDxkdC1iaW5kaW5ncy90aGVybWFsL3RoZXJtYWwuaD4KKworY3B1X3RoZXJt
+YWw6IGNwdV90aGVybWFsIHsKKwlwb2xsaW5nLWRlbGF5LXBhc3NpdmUgPSA8MjUwPjsgLyogbWls
+bGlzZWNvbmRzICovCisJcG9sbGluZy1kZWxheSA9IDwxMDAwPjsgLyogbWlsbGlzZWNvbmRzICov
+CisKKwkJCS8qIHNlbnNvciAgICAgICBJRCAqLworICAgICAgICB0aGVybWFsLXNlbnNvcnMgPSA8
+JmJhbmRnYXAgICAgIDA+OworCisgICAgICAgIHRyaXBzIHsKKyAgICAgICAgICAgICAgICBjcHVf
+YWxlcnQwOiBjcHVfYWxlcnQgeworICAgICAgICAgICAgICAgICAgICAgICAgdGVtcGVyYXR1cmUg
+PSA8MTAwMDAwPjsgLyogbWlsbGljZWxzaXVzICovCisgICAgICAgICAgICAgICAgICAgICAgICBo
+eXN0ZXJlc2lzID0gPDIwMDA+OyAvKiBtaWxsaWNlbHNpdXMgKi8KKyAgICAgICAgICAgICAgICAg
+ICAgICAgIHR5cGUgPSBUSEVSTUFMX1RSSVBfUEFTU0lWRTsKKyAgICAgICAgICAgICAgICB9Owor
+ICAgICAgICAgICAgICAgIGNwdV9jcml0OiBjcHVfY3JpdCB7CisgICAgICAgICAgICAgICAgICAg
+ICAgICB0ZW1wZXJhdHVyZSA9IDwxMjUwMDA+OyAvKiBtaWxsaWNlbHNpdXMgKi8KKyAgICAgICAg
+ICAgICAgICAgICAgICAgIGh5c3RlcmVzaXMgPSA8MjAwMD47IC8qIG1pbGxpY2Vsc2l1cyAqLwor
+ICAgICAgICAgICAgICAgICAgICAgICAgdHlwZSA9IFRIRVJNQUxfVFJJUF9DUklUSUNBTDsKKyAg
+ICAgICAgICAgICAgICB9OworICAgICAgICB9OworCisJY29vbGluZy1tYXBzIHsKKwkJbWFwMCB7
+CisJCQl0cmlwID0gPCZjcHVfYWxlcnQwPjsKKwkJCWNvb2xpbmctZGV2aWNlID0KKwkJCQk8JmNw
+dTAgVEhFUk1BTF9OT19MSU1JVCBUSEVSTUFMX05PX0xJTUlUPjsKKwkJfTsKKwl9OworfTsKLS0g
+CjEuOC4yLjEuMzQyLmdmYTcyODVkCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX18KbGludXgtYXJtLWtlcm5lbCBtYWlsaW5nIGxpc3QKbGludXgtYXJtLWtl
+cm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxt
+YW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAo=
