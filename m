@@ -1,103 +1,124 @@
-From: Paul Zimmerman <Paul.Zimmerman@synopsys.com>
-Subject: Solved: Booting recent mainline on omap5-uevm
-Date: Thu, 26 Sep 2013 23:44:19 +0000
-Message-ID: <A2CA0424C0A6F04399FB9E1CD98E030458E065EA@US01WEMBX2.internal.synopsys.com>
+From: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v3] ARM: EDMA: Fix clearing of unused list for DT DMA
+	resources
+Date: Thu, 26 Sep 2013 19:28:50 -0500
+Message-ID: <5244D142.1090307@ti.com>
+References: <1380232546-821-1-git-send-email-joelf@ti.com>
+	<CAOesGMgELbnuu8PM7Ah2xKo2H5rzgAN3w0g6wA7aVFsjuds-8g@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from us01smtp2.synopsys.com ([198.182.44.80]:47904 "EHLO
-	kiruna.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750894Ab3IZXoX convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Sep 2013 19:44:23 -0400
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <davinci-linux-open-source-bounces+gld-davinci-linux-open-source=gmane.org-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+In-Reply-To: <CAOesGMgELbnuu8PM7Ah2xKo2H5rzgAN3w0g6wA7aVFsjuds-8g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
+List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
+List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
+Sender: <davinci-linux-open-source-bounces+gld-davinci-linux-open-source=gmane.org-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+Errors-To: davinci-linux-open-source-bounces+gld-davinci-linux-open-source=gmane.org-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+To: Olof Johansson <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>
+Cc: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, "arm-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <arm-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Koen Kooi <koen-QLwJDigV5abLmq1fohREcCpxlwaOVQ5f@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Jason Kridner <jkridner-hcmAuCOw+vXj4SYmN/TMmA@public.gmane.org>, Pantel Antoniou <panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>, Dan Williams <djbw-b10kYP2dOMg@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Suman Anna <s-anna@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "lokeshvutla@ti.com" <lokeshvutla@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-> From: Suman Anna [mailto:s-anna@ti.com]
-> Sent: Thursday, September 26, 2013 1:36 PM
-
-> >>>>>>>> I have an OMAP5432 uEVM which I cannot get to boot with recent mainline
-> >>>>>>>> (tried 3.11 and 3.12-rc1). I have the TI GLSDK for this board (v6.0.0.7),
-> >>>>>>>> which comes with 3.8.4 which works fine.
-> >>>>>>>>
-> >>>>>>>> I found this thread: http://marc.info/?l=fedora-arm&m=137717811815777 and
-> >>>>>>>
-> >>>>>>> Wrong link, should have been http://marc.info/?l=linux-omap&m=137515583214350.
-> >>>>>>>
-> >>>>>> Its because of commit 03ab349ec{ARM: OMAP5: hwmod data: Add mailbox data} which
-> >>>>>> added hwmod data but DT data for mailbox is missing. Reverting that makes
-> >>>>>> things work. Looks like mailbox dt patches missed the last merge window.
-> >>>>>
-> >>>>> I will be respinning the mailbox DT series very soon targeting 3.13, so
-> >>>>> should not be an issue when OMAP5 boot is supported directly on mainline.
-> >>>>
-> >>>> That's good info, but unfortunately it didn't work for me. I must have a
-> >>>> different problem, maybe I need a newer version of u-boot.
-> >>>>
-> >>>> So there is no README or wiki that explains how to get Linux to boot on
-> >>>> this board? Is there perhaps a prebuilt SD card image somewhere with a
-> >>>> recent kernel that I can grab?
-> >>>>
-> >>> You don't need anything special as such. Just pull the latest mainline
-> >>> denx u-boot build it for 'omap5_uevm' and update your boot-loaders.
-> >>
-> >> FYI, I was able to boot using the branch posted by Santosh just fine. I
-> >> used v2013.07 u-boot. The boot traces show up about 30~45 seconds after
-> >> you see the trace "Starting kernel...".
-> >>
-> >> For using a rootfs from MMC, enable the following in menuconfig:
-> >>   Device Drivers -> Multifunction device drivers -> TI Palmas series chips
-> >>   Device Drivers -> Voltage and Current Regulator Support -> TI Palmas
-> >> PMIC regulators.
-> >>
-> >> Depending on your u-boot settings, make sure the mmcroot is also set to
-> >> /dev/mmcblk1p2.
-> >
-> > Hi Suman,
-> >
-> > Thanks for trying to help. Unfortunately, updating to v2013.07 u-boot, and
-> > enabling the kernel config items you mentioned, didn't make a difference.
-> >
-> > Could you share your boot.scr? I'm still using the one from the TI GLSDK,
-> > but maybe something has changed since the 3.8 kernel? Also, how do you
-> > build your kernel? I'm doing "make LOADADDR=0x80008000 uImage" because
-> > newer kernels won't build without the LOADADDR= bit.
+On 09/26/2013 06:13 PM, Olof Johansson wrote:
+> On Thu, Sep 26, 2013 at 2:55 PM, Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org> wrote:
+>> HWMOD removal for MMC is breaking edma_start as the events are being manually
+>> triggered due to unused channel list not being clear.
+>>
+>> The above issue is fixed by reading the "dmas" property from the DT node if it
+>> exists and clearing the bits in the unused channel list if the dma controller
+>> used by any device is EDMA. For this purpose we use the of_* helpers to parse
+>> the arguments in the dmas phandle list.
+>>
+>> Also introduced is a minor clean up of a checkpatch error in old code.
+>>
+>> Reviewed-by: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+>> Reported-by: Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>
+>> Cc: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+>> Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+>> Cc: Olof Johansson <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>
+>> Cc: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+>> Cc: Pantel Antoniou <panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>
+>> Cc: Jason Kridner <jkridner-hcmAuCOw+vXj4SYmN/TMmA@public.gmane.org>
+>> Cc: Koen Kooi <koen-QLwJDigV5abLmq1fohREcCpxlwaOVQ5f@public.gmane.org>
+>> Signed-off-by: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>
+>> ---
+>> Just resending this patch after discussing with Sekhar and Olof.
 > 
-> I build the kernel same way as you, and copy the zImage to boot
-> partition. I am not using any boot.scr, a simple uEnv.txt to override
-> the boot partition variables, and the default environment otherwise.
+> Actually, the patch you talked to me about was v3 of this. It seems
+> that you have reposted v6 but labelled it v3. This is very confusing.
+
+Sorry about this. :-( This is indeed v6.
+
+>> AM335x is being booted by many users such as the beaglebone community. DT is
+>> the only boot method available for all these users.  EDMA is required for the
+>> operation for many common peripherals in AM335x SoC such as McASP, MMC and
+>> Crypto.
+>>
+>> Although EDMA DT nodes are going in only for 3.13, in reality the kernel has
+>> been used for more than a year with EDMA code and out of tree EDMA DTS patches.
+>> Hence though the DT nodes are still not in mainline, this patch can be still be
+>> considered a critical fix as such and it would be great if it could be included
+>> in 3.12-rc release. Thanks.
 > 
-> My boot log is here, including my uEnv.txt at the end.
-> http://hastebin.com/yinuxirexu.xml
+> This is really the root of this problem. If you sit on code out of
+> tree for a year, and something breaks that we couldn't even have
+> detected since we didn't have the out-of-tree pieces. We'll help you
+> the first few times (such as now) but we will eventually stop caring.
+
+When I started looking at EDMA in June, I noticed that a lot had already been
+merged. EDMA DMA Engine driver itself was merged last year, no worries there.
+but the long pending list of fixes to be made to the driver had to written and
+rewritten multiple times which took a long time.
+
+Due to this, the EDMA device tree entries could not be merged in fear that doing
+so would cause problems such as MMC/SD corruption etc.
+
+> If I was in a worse mood, then I'd just say that since your users
+> already has to have out-of-tree code to even use this functionality,
+> they could just add this fix on top of that stack of patches. But I'm
+> in a slightly better mood than that and I'll pick it up this time. :)
+
+Thank you! :)
+
+>> More details about why this broke an existing feature folks were using:
+>> Previously the DMA resources for platform devices were being populated through
+>> HWMOD, however with the recent clean ups with HWMOD, this data has been moved
+>> to Device tree. The EDMA code though is not aware of this so it fails to fetch
+>> the DMA resources correctly which it needs to prepare the unused channel list
+>> (basically doesn't properly clear the channels that are in use, in the unused
+>> list).
 > 
-> Hopefully, this should clear out any setup differences..
+> So that we can learn for next time: What should we (as in us
+> maintainers and you TI) have done differently to avoid this?
 
-Thanks Suman!
+I think a little on both sides can be improved.
 
-Using your info I was able to get the board to boot. The keys were
-1) building the kernel with "make zImage" instead of "make uImage" and
-2) removing boot.scr and adding uEnv.txt.
+For TI, a bit more work toward explaining patches better in change logs so that
+maintainers understand and are willing to help to get the code upstream would
+help. A lot of improvement to internal policies have been made for developing on
+upstream, and that's certainly a good thing but there's still more room for
+improvement.
 
-I added a third line to your uEnv.txt, so I don't have to break into
-u-boot and type "setenv mmcroot /dev/mmcblk1p2 rw":
+For maintainers,  EDMA code would have been kept breathing all these months
+(atleast 8 months) if those temporary fixes mentioned above would have been
+merged into the kernel instead of not applied. With those fixes in place, dts
+could have been enabled and EDMA would be fully working all these months. This
+would have certainly made things a lot easier. Rewriting stuff the right way is
+OK but if it is a _lot_ of effort, then to keep things alive, merging stuff "for
+now" specially if they are one-liners could be made acceptable.
 
-	bootdir=
-	bootpart=0:1
-	mmcroot="/dev/mmcblk1p2 rw"
+EDMA fixes have now been written the "right way", so those temporary fixes are
+no longer needed :) but it certainly took a long time to do it the right way
+during which things were dead. Only thing pending for working EDMA now is the
+dts patches which are already in Benoit's for-3.13 tree and this patch that
+you're picking up.
 
-Or I suppose you could add that to the kernel command line in the kernel
-config.
+Thanks Olof for your help! :)
 
-I'm seeing several stack dumps during the boot, with messages like
-"division by 0 in the kernel", but I suppose that has nothing to do with
-my boot problems. And it does boot to the login: prompt on the serial
-console.
+regards,
 
-Thanks again.
-
--- 
-Paul
-
+-Joel
