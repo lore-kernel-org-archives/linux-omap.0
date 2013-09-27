@@ -1,140 +1,36 @@
-From: Eduardo Valentin <eduardo.valentin@ti.com>
-Subject: Re: [PATCHv4 11/18] arm: dts: add omap4430 thermal data
-Date: Fri, 27 Sep 2013 09:42:49 -0400
-Message-ID: <52458B59.8070703@ti.com>
-References: <1380251605-3804-1-git-send-email-eduardo.valentin@ti.com>
- <1380251605-3804-12-git-send-email-eduardo.valentin@ti.com>
- <20130927122439.GA8360@kahuna> <5245861F.7000109@ti.com>
- <CAGo_u6p3pp2EBo_fJE_RJOdrc05OHM-QFgCZFBUW+duhPgOYpw@mail.gmail.com>
+From: Lars Poeschel <poeschel-Xtl8qvBWbHwb1SvskN2V4Q@public.gmane.org>
+Subject: Re: [PATCH 1/2] gpio/omap: maintain GPIO and IRQ usage separately
+Date: Fri, 27 Sep 2013 16:31 +0200
+Message-ID: <1651688.AIWaNrhZnY@lem-wkst-02>
+References: <1380069414-2922-1-git-send-email-javier.martinez@collabora.co.uk>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============1152409969966347977=="
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <CAGo_u6p3pp2EBo_fJE_RJOdrc05OHM-QFgCZFBUW+duhPgOYpw@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, dt list <devicetree@vger.kernel.org>, wni@nvidia.com, durgadoss.r@intel.com, Ian Campbell <ian.campbell@citrix.com>, Pawel Moll <pawel.moll@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Tony Lindgren <tony@atomide.com>, devicetree-discuss@lists.ozlabs.org, linux-pm@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>, Rob Herring <rob.herring@calxeda.com>, lm-sensors@lm-sensors.org, Eduardo Valentin <eduardo.valentin@ti.com>, linux@roeck-us.net, =?ISO-8859-1?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, Grant Likely <grant.likely@linaro.org>, Russell King <linux@arm.linux.org.uk>, rui.zhang@intel.com, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1380069414-2922-1-git-send-email-javier.martinez-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Javier Martinez Canillas <javier.martinez-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
+Cc: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>, Kevin Hilman <khilman-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Lars Poeschel <larsi-myOXECIRRCL4ajHJ1XSv27NAH6kLmebB@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ian.campbell-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Tomasz Figa <tomasz.figa-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Enric Balletbo i Serra <eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj-sclMFOaUSTBWk0Htik3J/w@public.gmane.org>, Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Jon Hunter <jgchunter-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-gpio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, r.sricharan-l0cyMroinI0@public.gmane.org, holler-SXC+2es9fhnfWeYVQQPykw@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
---===============1152409969966347977==
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature";
-	boundary="okDvHLNIenjhDREDRe2cvg6qUKECOqodL"
+On Friday 27 September 2013 02:36:52, Javier Martinez Canillas wrote:
+> The GPIO OMAP controller pins can be used as IRQ and GPIO
+> independently so is necessary to keep track GPIO pins and
+> IRQ lines usage separately to make sure that the bank will
+> always be enabled while being used.
+> 
+> Also move gpio_is_input() definition in preparation for the
+> next patch that setups the controller's irq_chip driver when
+> a caller requests an interrupt line.
+> 
+> Signed-off-by: Javier Martinez Canillas <javier.martinez-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
 
---okDvHLNIenjhDREDRe2cvg6qUKECOqodL
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+For both patches:
 
-On 27-09-2013 09:26, Nishanth Menon wrote:
-> On Fri, Sep 27, 2013 at 8:20 AM, Eduardo Valentin
-> <eduardo.valentin@ti.com> wrote:
->> On 27-09-2013 08:24, Nishanth Menon wrote:
->>> On 23:13-20130926, Eduardo Valentin wrote:
->>>> This patch changes the dtsi entry on omap4430 to contain
->>>> the thermal data. This data will enable the passive
->>>> cooling with CPUfreq cooling device at 100C and the
->>>> system will do a thermal shutdown at 125C.
->>>>
->>>> Cc: "Beno=EEt Cousson" <bcousson@baylibre.com>
->>>> Cc: Tony Lindgren <tony@atomide.com>
->>>> Cc: Russell King <linux@arm.linux.org.uk>
->>>> Cc: linux-omap@vger.kernel.org
->>>> Cc: devicetree-discuss@lists.ozlabs.org
->>>> Cc: linux-arm-kernel@lists.infradead.org
->>>> Cc: linux-kernel@vger.kernel.org
->>>> Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
->>>> ---
->>>>  arch/arm/boot/dts/omap443x.dtsi | 10 ++++++++--
->>>>  1 file changed, 8 insertions(+), 2 deletions(-)
->>>>
->>>> diff --git a/arch/arm/boot/dts/omap443x.dtsi b/arch/arm/boot/dts/oma=
-p443x.dtsi
->>>> index bcf455e..e9c97d6 100644
->>>> --- a/arch/arm/boot/dts/omap443x.dtsi
->>>> +++ b/arch/arm/boot/dts/omap443x.dtsi
->>>> @@ -12,7 +12,7 @@
->>>>
->>>>  / {
->>>>      cpus {
->>>> -            cpu@0 {
->>>> +            cpu0: cpu@0 {
->>>>                      /* OMAP443x variants OPP50-OPPNT */
->>>>                      operating-points =3D <
->>>>                              /* kHz    uV */
->>>> @@ -25,9 +25,15 @@
->>>>              };
->>>>      };
->>>>
->>>> -    bandgap {
->>>> +    thermal-zones{
->>>> +            #include "omap4-cpu-thermal.dtsi"
->>>> +    };
->>>> +
->>>> +    bandgap: bandgap {
->>>>              reg =3D <0x4a002260 0x4
->>>>                     0x4a00232C 0x4>;
->>>>              compatible =3D "ti,omap4430-bandgap";
->>>> +
->>>> +            #thermal-sensor-cells =3D <0>;
->>> 2 cents:
->>> we might want to move bandgap under ocp?
->>>
->>
->> Yes, agreed. But I don't think this change is related to this patch or=
+Tested-by: Lars Poeschel <poeschel-Xtl8qvBWbHwb1SvskN2V4Q@public.gmane.org>
 
->> to this series.
->=20
-> Correct - this comment is not related to the current patch, hence my 2
-> cents ;) - will be nice to have it cleaned up though..
-
-Yes, it will be cleaned. ;-) Tks.
-
->=20
-> Regards,
-> Nishanth Menon
->=20
->=20
-
-
---=20
-You have got to be excited about what you are doing. (L. Lamport)
-
-Eduardo Valentin
-
-
---okDvHLNIenjhDREDRe2cvg6qUKECOqodL
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iF4EAREIAAYFAlJFi1kACgkQCXcVR3XQvP0QoAEA4MfbQt5xnfzUFjwU/nzb4Ahg
-nKZcdTIocqE6yVs/mg0A+wejPt8TOxTb8Gxy4/HJfD3MgfnLul13qlpnMBWID75d
-=J34r
------END PGP SIGNATURE-----
-
---okDvHLNIenjhDREDRe2cvg6qUKECOqodL--
-
-
---===============1152409969966347977==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-arm-kernel mailing list
-linux-arm-kernel@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-
---===============1152409969966347977==--
+on an am3359 (which is DT booting).
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
