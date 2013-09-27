@@ -1,84 +1,109 @@
-From: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
-Subject: Re: [PATCH 31/51] DMA-API: media: omap3isp: use dma_coerce_mask_and_coherent()
-Date: Fri, 27 Sep 2013 03:56:13 +0200
-Message-ID: <4110555.qb0XUyFHNE@avalon>
-References: <20130919212235.GD12758@n2100.arm.linux.org.uk> <E1VMmCg-0007j1-Pi@rmk-PC.arm.linux.org.uk>
+From: Suman Anna <s-anna@ti.com>
+Subject: Re: Solved: Booting recent mainline on omap5-uevm
+Date: Thu, 26 Sep 2013 21:24:33 -0500
+Message-ID: <5244EC61.9030408@ti.com>
+References: <A2CA0424C0A6F04399FB9E1CD98E030458E065EA@US01WEMBX2.internal.synopsys.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <E1VMmCg-0007j1-Pi-eh5Bv4kxaXIANfyc6IWni62ZND6+EDdj@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Russell King <rmk+kernel-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
-Cc: alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, b43-dev-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, e1000-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-crypto-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-ide-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Solarflare linux maintainers <linux-net-drivers-s/n/eUQHGBpZroRs9YW3xA@public.gmane.org>, uclinux-dist-devel-ZG0+EudsQA8dtHy/vicBwGD2FQJk+8+b@public.gmane.org, Mauro Carvalho Chehab <m.chehab-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:59566 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751279Ab3I0CZO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Sep 2013 22:25:14 -0400
+In-Reply-To: <A2CA0424C0A6F04399FB9E1CD98E030458E065EA@US01WEMBX2.internal.synopsys.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Zimmerman <Paul.Zimmerman@synopsys.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "lokeshvutla@ti.com" <lokeshvutla@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Russell,
-
-Thank you for the patch.
-
-On Thursday 19 September 2013 22:56:02 Russell King wrote:
-> The code sequence:
-> 	isp->raw_dmamask = DMA_BIT_MASK(32);
-> 	isp->dev->dma_mask = &isp->raw_dmamask;
-> 	isp->dev->coherent_dma_mask = DMA_BIT_MASK(32);
-> bypasses the architectures check on the DMA mask.  It can be replaced
-> with dma_coerce_mask_and_coherent(), avoiding the direct initialization
-> of this mask.
+On 09/26/2013 06:44 PM, Paul Zimmerman wrote:
+>> From: Suman Anna [mailto:s-anna@ti.com]
+>> Sent: Thursday, September 26, 2013 1:36 PM
 > 
-> Signed-off-by: Russell King <rmk+kernel-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
+>>>>>>>>>> I have an OMAP5432 uEVM which I cannot get to boot with recent mainline
+>>>>>>>>>> (tried 3.11 and 3.12-rc1). I have the TI GLSDK for this board (v6.0.0.7),
+>>>>>>>>>> which comes with 3.8.4 which works fine.
+>>>>>>>>>>
+>>>>>>>>>> I found this thread: http://marc.info/?l=fedora-arm&m=137717811815777 and
+>>>>>>>>>
+>>>>>>>>> Wrong link, should have been http://marc.info/?l=linux-omap&m=137515583214350.
+>>>>>>>>>
+>>>>>>>> Its because of commit 03ab349ec{ARM: OMAP5: hwmod data: Add mailbox data} which
+>>>>>>>> added hwmod data but DT data for mailbox is missing. Reverting that makes
+>>>>>>>> things work. Looks like mailbox dt patches missed the last merge window.
+>>>>>>>
+>>>>>>> I will be respinning the mailbox DT series very soon targeting 3.13, so
+>>>>>>> should not be an issue when OMAP5 boot is supported directly on mainline.
+>>>>>>
+>>>>>> That's good info, but unfortunately it didn't work for me. I must have a
+>>>>>> different problem, maybe I need a newer version of u-boot.
+>>>>>>
+>>>>>> So there is no README or wiki that explains how to get Linux to boot on
+>>>>>> this board? Is there perhaps a prebuilt SD card image somewhere with a
+>>>>>> recent kernel that I can grab?
+>>>>>>
+>>>>> You don't need anything special as such. Just pull the latest mainline
+>>>>> denx u-boot build it for 'omap5_uevm' and update your boot-loaders.
+>>>>
+>>>> FYI, I was able to boot using the branch posted by Santosh just fine. I
+>>>> used v2013.07 u-boot. The boot traces show up about 30~45 seconds after
+>>>> you see the trace "Starting kernel...".
+>>>>
+>>>> For using a rootfs from MMC, enable the following in menuconfig:
+>>>>   Device Drivers -> Multifunction device drivers -> TI Palmas series chips
+>>>>   Device Drivers -> Voltage and Current Regulator Support -> TI Palmas
+>>>> PMIC regulators.
+>>>>
+>>>> Depending on your u-boot settings, make sure the mmcroot is also set to
+>>>> /dev/mmcblk1p2.
+>>>
+>>> Hi Suman,
+>>>
+>>> Thanks for trying to help. Unfortunately, updating to v2013.07 u-boot, and
+>>> enabling the kernel config items you mentioned, didn't make a difference.
+>>>
+>>> Could you share your boot.scr? I'm still using the one from the TI GLSDK,
+>>> but maybe something has changed since the 3.8 kernel? Also, how do you
+>>> build your kernel? I'm doing "make LOADADDR=0x80008000 uImage" because
+>>> newer kernels won't build without the LOADADDR= bit.
+>>
+>> I build the kernel same way as you, and copy the zImage to boot
+>> partition. I am not using any boot.scr, a simple uEnv.txt to override
+>> the boot partition variables, and the default environment otherwise.
+>>
+>> My boot log is here, including my uEnv.txt at the end.
+>> http://hastebin.com/yinuxirexu.xml
+>>
+>> Hopefully, this should clear out any setup differences..
+> 
+> Thanks Suman!
+> 
+> Using your info I was able to get the board to boot. 
 
-Acked-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+Glad I could help..
 
-> ---
->  drivers/media/platform/omap3isp/isp.c |    6 +++---
->  drivers/media/platform/omap3isp/isp.h |    3 ---
->  2 files changed, 3 insertions(+), 6 deletions(-)
+> I added a third line to your uEnv.txt, so I don't have to break into
+> u-boot and type "setenv mmcroot /dev/mmcblk1p2 rw":
 > 
-> diff --git a/drivers/media/platform/omap3isp/isp.c
-> b/drivers/media/platform/omap3isp/isp.c index df3a0ec..1c36080 100644
-> --- a/drivers/media/platform/omap3isp/isp.c
-> +++ b/drivers/media/platform/omap3isp/isp.c
-> @@ -2182,9 +2182,9 @@ static int isp_probe(struct platform_device *pdev)
->  	isp->pdata = pdata;
->  	isp->ref_count = 0;
+> 	bootdir=
+> 	bootpart=0:1
+> 	mmcroot="/dev/mmcblk1p2 rw"
 > 
-> -	isp->raw_dmamask = DMA_BIT_MASK(32);
-> -	isp->dev->dma_mask = &isp->raw_dmamask;
-> -	isp->dev->coherent_dma_mask = DMA_BIT_MASK(32);
-> +	ret = dma_coerce_mask_and_coherent(isp->dev, DMA_BIT_MASK(32));
-> +	if (ret)
-> +		return ret;
-> 
->  	platform_set_drvdata(pdev, isp);
-> 
-> diff --git a/drivers/media/platform/omap3isp/isp.h
-> b/drivers/media/platform/omap3isp/isp.h index cd3eff4..ce65d3a 100644
-> --- a/drivers/media/platform/omap3isp/isp.h
-> +++ b/drivers/media/platform/omap3isp/isp.h
-> @@ -152,7 +152,6 @@ struct isp_xclk {
->   * @mmio_base_phys: Array with physical L4 bus addresses for ISP register
->   *                  regions.
->   * @mmio_size: Array with ISP register regions size in bytes.
-> - * @raw_dmamask: Raw DMA mask
->   * @stat_lock: Spinlock for handling statistics
->   * @isp_mutex: Mutex for serializing requests to ISP.
->   * @crashed: Bitmask of crashed entities (indexed by entity ID)
-> @@ -190,8 +189,6 @@ struct isp_device {
->  	unsigned long mmio_base_phys[OMAP3_ISP_IOMEM_LAST];
->  	resource_size_t mmio_size[OMAP3_ISP_IOMEM_LAST];
-> 
-> -	u64 raw_dmamask;
-> -
->  	/* ISP Obj */
->  	spinlock_t stat_lock;	/* common lock for statistic drivers */
->  	struct mutex isp_mutex;	/* For handling ref_count field */
--- 
-Regards,
+> Or I suppose you could add that to the kernel command line in the kernel
+> config.
 
-Laurent Pinchart
+The uEnv.txt approach is good, since you can use the same image on other
+boards without resorting to other changes in environment for them.
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> I'm seeing several stack dumps during the boot, with messages like
+> "division by 0 in the kernel", but I suppose that has nothing to do with
+> my boot problems. And it does boot to the login: prompt on the serial
+> console.
+
+Yeah, those I believe are related to the ABE and USB DPLL locking (or
+lack of) issues.
+
+regards
+Suman
