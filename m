@@ -1,99 +1,216 @@
-From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCHv2 0/9] omap hwspinlock dt support
-Date: Fri, 27 Sep 2013 10:48:26 -0500
-Message-ID: <5245A8CA.4020805@ti.com>
-References: <cover.1379445653.git.s-anna@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cover.1379445653.git.s-anna-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
-Cc: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Kumar Gala <galak@codeaurora.org>
+Subject: Re: [PATCHv2 1/9] hwspinlock/core: add common dt bindings and OF helpers
+Date: Fri, 27 Sep 2013 11:04:22 -0500
+Message-ID: <14DB8294-1148-446A-A6D3-34E66BA8732C@codeaurora.org>
+References: <cover.1379445653.git.s-anna@ti.com> <4df03ac30dcc79132e3acc2e586d0ca99b431258.1379445653.git.s-anna@ti.com>
+Mime-Version: 1.0 (Apple Message framework v1283)
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.codeaurora.org ([198.145.11.231]:49981 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753012Ab3I0QEU convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Sep 2013 12:04:20 -0400
+In-Reply-To: <4df03ac30dcc79132e3acc2e586d0ca99b431258.1379445653.git.s-anna@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Suman Anna <s-anna@ti.com>
+Cc: Ohad Ben-Cohen <ohad@wizery.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>, Paul Walmsley <paul@pwsan.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
 
-On 09/17/2013 02:30 PM, Suman Anna wrote:
-> Hi,
-> 
-> This is an updated series for adding the device tree support to
-> the OMAP hwspinlock driver. The series is based on 3.12-rc1, and
-> includes patches on hwspinlock driver, OMAP hwmod data files and
-> OMAP DTS files. The updated series adds new patches to enable the
-> hwspinlock driver on OMAP5 and AM335x SoCs as well.
-> 
-> Tested this on Panda4, BeagleBone Black and OMAP5 uEVM (with
-> out-of-tree clock patches from Tero).
 
-Ohad, Benoit,
-A gentle reminder - can you please provide your review comments on these
-patches. I am hoping that this series can make it to 3.13.
+On Sep 17, 2013, at 2:30 PM, Suman Anna wrote:
 
-Paul,
-The hwmod data patches needs to be merged only after the respective DT
-node patches are merged, without which the hwmod entry will not have a
-base address while enabling and idling (using sysc) the hwmod during
-hwmod initialization.
+> All the platform-specific hwlock driver implementations need the
+> number of locks and the associated base id for registering the
+> locks present within a hwspinlock device with the driver core.
+> These two variables are represented by 'hwlock-num-locks' and
+> 'hwlock-base-id' properties. The documentation and OF helpers to
+> retrieve these common properties have been added to the driver core.
+> 
+> Signed-off-by: Suman Anna <s-anna@ti.com>
+> ---
+> .../devicetree/bindings/hwlock/hwlock.txt          | 26 +++++++++
+> drivers/hwspinlock/hwspinlock_core.c               | 61 +++++++++++++++++++++-
+> include/linux/hwspinlock.h                         | 11 ++--
+> 3 files changed, 93 insertions(+), 5 deletions(-)
+> create mode 100644 Documentation/devicetree/bindings/hwlock/hwlock.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/hwlock/hwlock.txt b/Documentation/devicetree/bindings/hwlock/hwlock.txt
+> new file mode 100644
+> index 0000000..789930e
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/hwlock/hwlock.txt
+> @@ -0,0 +1,26 @@
+> +Generic hwlock bindings
+> +=======================
+> +
+> +Generic bindings that are common to all the hwlock platform specific driver
+> +implementations, the retrieved values are used for registering the device
+> +specific parameters with the hwspinlock core.
+> +
+> +The validity and need of these common properties may vary from one driver
+> +implementation to another. Look through the individual hwlock driver
+> +binding documentations for identifying which are mandatory and which are
+> +optional for that specific driver.
+> +
+> +Common properties:
+> +- hwlock-base-id:	Base Id for the locks for a particular hwlock device.
+> +			This property is used for representing a set of locks
+> +			present in a hwlock device with a unique base id in
+> +			the driver core. This property is mandatory ONLY if a
+> +			SoC has several hwlock devices.
+> +
+> +			See documentation on struct hwspinlock_pdata in
+> +			linux/hwspinlock.h for more details.
+> +
+> +- hwlock-num-locks:	Number of locks present in a hwlock device. This
+> +			property is needed on hwlock devices, where the number
+> +			of supported locks within a hwlock device cannot be
+> +			read from a register.
+> diff --git a/drivers/hwspinlock/hwspinlock_core.c b/drivers/hwspinlock/hwspinlock_core.c
+> index 461a0d7..aec32e7 100644
+> --- a/drivers/hwspinlock/hwspinlock_core.c
+> +++ b/drivers/hwspinlock/hwspinlock_core.c
+> @@ -1,7 +1,7 @@
+> /*
+>  * Hardware spinlock framework
+>  *
+> - * Copyright (C) 2010 Texas Instruments Incorporated - http://www.ti.com
+> + * Copyright (C) 2010-2013 Texas Instruments Incorporated - http://www.ti.com
+>  *
+>  * Contact: Ohad Ben-Cohen <ohad@wizery.com>
+>  *
+> @@ -27,6 +27,7 @@
+> #include <linux/hwspinlock.h>
+> #include <linux/pm_runtime.h>
+> #include <linux/mutex.h>
+> +#include <linux/of.h>
+> 
+> #include "hwspinlock_internal.h"
+> 
+> @@ -308,6 +309,64 @@ out:
+> }
+> 
+> /**
+> + * of_hwspin_lock_get_base_id() - OF helper to retrieve base id
+> + * @dn: device node pointer
+> + *
+> + * This is an OF helper function that can be called by the underlying
+> + * platform-specific implementations, to retrieve the base id for the
+> + * set of locks present within a hwspinlock device instance.
+> + *
+> + * Returns the base id value on success, -ENODEV on generic failure or
+> + * an appropriate error code as returned by the OF layer
+> + */
+> +int of_hwspin_lock_get_base_id(struct device_node *dn)
+> +{
+> +	unsigned int val;
+> +	int ret = -ENODEV;
+> +
+> +#ifdef CONFIG_OF
+> +	if (!dn)
+> +		return -ENODEV;
 
-regards
-Suman
+Checking !dn is done in of_property_read_u32, so you don't need to duplicate
 
-> 
-> Changes new in v2:
-> - Added a new common DT binding documentation and OF helpers (Patch1),
->   addressing the review comments from v1 [2]. The MSM support [1] needs
->   to be reworked on top of this common patch. 
-> - Revised OMAP DT parse support to use the new OF helper (Patch2)
-> - OMAP5 hwspinlock support including the hwmod entry and DT node (Patches 4, 5)
-> - Add AM335x support to OMAP hwspinlock driver, including a fix
->   needed in driver given that AM335 spinlock module requires s/w wakeup
->   (Patches 6, 7)
-> - AM335 DT node for spinlock, and a hwmod change to enable smart-idle
->   for AM335 (Patches 8, 9). The sysc patch is not essential for AM335
->   spinlock functionality, but is needed for smart-idling the IP when
->   the module is enabled.
-> - OMAP4 DT node patch is unchanged (Patch 3)
-> 
-> v1:
-> - Add DT parse support to OMAP hwspinlock driver
-> - Add OMAP4 DT node and bindings information
-> http://marc.info/?l=linux-omap&m=137823082308009&w=2
-> 
-> [1] https://lkml.org/lkml/2013/8/14/528
-> [2] http://marc.info/?t=137823090300005&r=1&w=2
-> 
-> 
-> Suman Anna (9):
->   hwspinlock/core: add common dt bindings and OF helpers
->   hwspinlock/omap: add support for dt nodes
->   ARM: dts: OMAP4: Add hwspinlock node
->   ARM: OMAP5: hwmod data: Add spinlock data
->   ARM: dts: OMAP5: Add hwspinlock node
->   hwspinlock/omap: support AM33xx
->   hwspinlock/omap: enable module before reading SYSSTATUS register
->   ARM: dts: AM33XX: Add hwspinlock node
->   ARM: AM33xx: hwmod_data: add the sysc configuration for spinlock
-> 
->  .../devicetree/bindings/hwlock/hwlock.txt          | 26 +++++++++
->  .../devicetree/bindings/hwlock/omap-hwspinlock.txt | 31 +++++++++++
->  arch/arm/boot/dts/am33xx.dtsi                      |  6 +++
->  arch/arm/boot/dts/omap4.dtsi                       |  6 +++
->  arch/arm/boot/dts/omap5.dtsi                       |  6 +++
->  arch/arm/mach-omap2/Makefile                       |  3 --
->  arch/arm/mach-omap2/hwspinlock.c                   | 60 ---------------------
->  arch/arm/mach-omap2/omap_hwmod_33xx_data.c         | 13 +++++
->  arch/arm/mach-omap2/omap_hwmod_54xx_data.c         | 44 ++++++++++++++++
->  drivers/hwspinlock/Kconfig                         |  2 +-
->  drivers/hwspinlock/hwspinlock_core.c               | 61 +++++++++++++++++++++-
->  drivers/hwspinlock/omap_hwspinlock.c               | 44 ++++++++++++----
->  include/linux/hwspinlock.h                         | 11 ++--
->  13 files changed, 233 insertions(+), 80 deletions(-)
->  create mode 100644 Documentation/devicetree/bindings/hwlock/hwlock.txt
->  create mode 100644 Documentation/devicetree/bindings/hwlock/omap-hwspinlock.txt
->  delete mode 100644 arch/arm/mach-omap2/hwspinlock.c
-> 
+> +
+> +	ret = of_property_read_u32(dn, "hwlock-base-id", &val);
+> +	if (!ret)
+> +		ret = val;
+> +#endif
+> +
+> +	return ret;
+> +}
+> +EXPORT_SYMBOL_GPL(of_hwspin_lock_get_base_id);
+> +
+> +/**
+> + * of_hwspin_lock_get_num_locks() - OF helper to retrieve number of locks
+> + * @dn: device node pointer
+> + *
+> + * This is an OF helper function that can be called by the underlying
+> + * platform-specific implementations, to retrieve the number of locks
+> + * present within a hwspinlock device instance.
+> + *
+> + * Returns a positive number of locks on success, -ENODEV on generic
+> + * failure or an appropriate error code as returned by the OF layer
+> + */
+> +int of_hwspin_lock_get_num_locks(struct device_node *dn)
+> +{
+> +	unsigned int val;
+> +	int ret = -ENODEV;
+> +
+> +#ifdef CONFIG_OF
+> +	if (!dn)
+> +		return -ENODEV;
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Checking !dn is done in of_property_read_u32, so you don't need to duplicate
+
+> +
+> +	ret = of_property_read_u32(dn, "hwlock-num-locks", &val);
+> +	if (!ret)
+> +		ret = val ? val : -ENODEV;
+> +#endif
+> +
+> +	return ret;
+> +}
+> +EXPORT_SYMBOL_GPL(of_hwspin_lock_get_num_locks);
+> +
+> +/**
+>  * hwspin_lock_register() - register a new hw spinlock device
+>  * @bank: the hwspinlock device, which usually provides numerous hw locks
+>  * @dev: the backing device
+> diff --git a/include/linux/hwspinlock.h b/include/linux/hwspinlock.h
+> index 3343298..1f6a5b8 100644
+> --- a/include/linux/hwspinlock.h
+> +++ b/include/linux/hwspinlock.h
+> @@ -1,7 +1,7 @@
+> /*
+>  * Hardware spinlock public header
+>  *
+> - * Copyright (C) 2010 Texas Instruments Incorporated - http://www.ti.com
+> + * Copyright (C) 2010-2013 Texas Instruments Incorporated - http://www.ti.com
+>  *
+>  * Contact: Ohad Ben-Cohen <ohad@wizery.com>
+>  *
+> @@ -26,6 +26,7 @@
+> #define HWLOCK_IRQ	0x02	/* Disable interrupts, don't save state */
+> 
+> struct device;
+> +struct device_node;
+> struct hwspinlock;
+> struct hwspinlock_device;
+> struct hwspinlock_ops;
+> @@ -60,6 +61,8 @@ struct hwspinlock_pdata {
+> 
+> #if defined(CONFIG_HWSPINLOCK) || defined(CONFIG_HWSPINLOCK_MODULE)
+> 
+> +int of_hwspin_lock_get_base_id(struct device_node *dn);
+> +int of_hwspin_lock_get_num_locks(struct device_node *dn);
+> int hwspin_lock_register(struct hwspinlock_device *bank, struct device *dev,
+> 		const struct hwspinlock_ops *ops, int base_id, int num_locks);
+> int hwspin_lock_unregister(struct hwspinlock_device *bank);
+> @@ -80,9 +83,9 @@ void __hwspin_unlock(struct hwspinlock *, int, unsigned long *);
+>  * code path get compiled away. This way, if CONFIG_HWSPINLOCK is not
+>  * required on a given setup, users will still work.
+>  *
+> - * The only exception is hwspin_lock_register/hwspin_lock_unregister, with which
+> - * we _do_ want users to fail (no point in registering hwspinlock instances if
+> - * the framework is not available).
+> + * The only exception is hwspin_lock_register/hwspin_lock_unregister and
+> + * associated OF helpers, with which we _do_ want users to fail (no point
+> + * in registering hwspinlock instances if the framework is not available).
+>  *
+>  * Note: ERR_PTR(-ENODEV) will still be considered a success for NULL-checking
+>  * users. Others, which care, can still check this with IS_ERR.
+> -- 
+> 1.8.3.3
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe devicetree" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+-- 
+Employee of Qualcomm Innovation Center, Inc.
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, hosted by The Linux Foundation
+
