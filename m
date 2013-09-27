@@ -1,7 +1,7 @@
 From: Eduardo Valentin <eduardo.valentin@ti.com>
-Subject: [PATCHv4 16/18] arm: dts: add omap5 CORE thermal data
-Date: Thu, 26 Sep 2013 23:13:23 -0400
-Message-ID: <1380251605-3804-17-git-send-email-eduardo.valentin@ti.com>
+Subject: [PATCHv4 15/18] arm: dts: add omap5 GPU thermal data
+Date: Thu, 26 Sep 2013 23:13:22 -0400
+Message-ID: <1380251605-3804-16-git-send-email-eduardo.valentin@ti.com>
 References: <1380251605-3804-1-git-send-email-eduardo.valentin@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -14,7 +14,7 @@ Cc: grant.likely@linaro.org, durgadoss.r@intel.com, linux-pm@vger.kernel.org, de
 List-Id: linux-omap@vger.kernel.org
 
 This patch changes a dtsi file to contain the thermal data
-for CORE domain on OMAP5 and later SoCs. This data will
+for GPU domain on OMAP5 and later SoCs. This data will
 enable a thermal shutdown at 125C.
 
 This thermal data can be reused across TI SoC devices.
@@ -33,20 +33,20 @@ Cc: linux-arm-kernel@lists.infradead.org
 Cc: linux-kernel@vger.kernel.org
 Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
 ---
- arch/arm/boot/dts/omap5-core-thermal.dtsi | 28 +++++++++++++++++++++++=
-+++++
+ arch/arm/boot/dts/omap5-gpu-thermal.dtsi | 28 ++++++++++++++++++++++++=
+++++
  1 file changed, 28 insertions(+)
- create mode 100644 arch/arm/boot/dts/omap5-core-thermal.dtsi
+ create mode 100644 arch/arm/boot/dts/omap5-gpu-thermal.dtsi
 
-diff --git a/arch/arm/boot/dts/omap5-core-thermal.dtsi b/arch/arm/boot/=
-dts/omap5-core-thermal.dtsi
+diff --git a/arch/arm/boot/dts/omap5-gpu-thermal.dtsi b/arch/arm/boot/d=
+ts/omap5-gpu-thermal.dtsi
 new file mode 100644
-index 0000000..3e9dc00
+index 0000000..8941c8e
 --- /dev/null
-+++ b/arch/arm/boot/dts/omap5-core-thermal.dtsi
++++ b/arch/arm/boot/dts/omap5-gpu-thermal.dtsi
 @@ -0,0 +1,28 @@
 +/*
-+ * Device Tree Source for OMAP543x SoC CORE thermal
++ * Device Tree Source for OMAP543x SoC GPU thermal
 + *
 + * Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.c=
 om/
@@ -61,15 +61,15 @@ f any
 +
 +#include <dt-bindings/thermal/thermal.h>
 +
-+core_thermal: core_thermal {
++gpu_thermal: gpu_thermal {
 +	polling-delay-passive =3D <250>; /* milliseconds */
 +	polling-delay =3D <1000>; /* milliseconds */
 +
 +			/* sensor       ID */
-+	thermal-sensors =3D <&bandgap     2>;
++	thermal-sensors =3D <&bandgap     1>;
 +
 +	trips {
-+		core_crit: core_crit {
++		gpu_crit: gpu_crit {
 +			temperature =3D <125000>; /* milliCelsius */
 +			hysteresis =3D <2000>; /* milliCelsius */
 +			type =3D THERMAL_TRIP_CRITICAL;
