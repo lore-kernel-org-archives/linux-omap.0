@@ -1,204 +1,188 @@
-From: "Gupta, Pekon" <pekon@ti.com>
-Subject: RE: [PATCH v6 1/4] ARM: OMAP2+: cleaned-up DT support of various
- ECC schemes
-Date: Fri, 27 Sep 2013 06:17:13 +0000
-Message-ID: <20980858CB6D3A4BAE95CA194937D5E73EA173C7@DBDE04.ent.ti.com>
-References: <1378986619-26765-1-git-send-email-pekon@ti.com>
- <1378986619-26765-2-git-send-email-pekon@ti.com>
- <CAL_Jsq+XxQ_9ik_P8EPPNSzXiCz6yd-VJLRU668t3jvD-jhyOw@mail.gmail.com>
- <20980858CB6D3A4BAE95CA194937D5E73EA16B0D@DBDE04.ent.ti.com>
- <20980858CB6D3A4BAE95CA194937D5E73EA16CEE@DBDE04.ent.ti.com>
- <20130926170927.GI2411@e106331-lin.cambridge.arm.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH v12 0/7] PHY framework
+Date: Fri, 27 Sep 2013 11:53:24 +0530
+Message-ID: <1380263012-9687-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
-In-Reply-To: <20130926170927.GI2411@e106331-lin.cambridge.arm.com>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
-To: Mark Rutland <mark.rutland@arm.com>, Rob Herring <robherring2@gmail.com>, Pawel Moll <Pawel.Moll@arm.com>, "ijc+devicetree@hellion.org.uk" <ijc+devicetree@hellion.org.uk>, "swarren@wwwdotorg.org" <swarren@wwwdotorg.org>, Olof Johansson <olof@lixom.net>, "computersforpeace@gmail.com" <computersforpeace@gmail.com>
-Cc: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, "dedekind1@gmail.com" <dedekind1@gmail.com>, Tony Lindgren <tony@atomide.com>, "avinashphilipk@gmail.com" <avinashphilipk@gmail.com>, "Balbi,
- Felipe" <balbi@ti.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "bcousson@baylibre.com" <bcousson@baylibre.com>, linux-omap <linux-omap@vger.kernel.org>, "dwmw2@infradead.org" <dwmw2@infradead.org>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: gregkh@linuxfoundation.org, swarren@wwwdotorg.org, bcousson@baylibre.com, tony@atomide.com, kishon@ti.com, balbi@ti.com, s.nawrocki@samsung.com
+Cc: mark.rutland@arm.com, linux-doc@vger.kernel.org, nsekhar@ti.com, peter.ujfalusi@ti.com, linux@arm.linux.org.uk, sameo@linux.intel.com, davidb@codeaurora.org, cesarb@cesarb.net, devicetree@vger.kernel.org, george.cherian@ti.com, pawel.moll@arm.com, ijc+devicetree@hellion.org.uk, rob.herring@calxeda.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rogerq@ti.com, balajitk@ti.com, jkosina@suse.cz, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, t-kristo@ti.com, rob@landley.net, joe@perches.com, akpm@linux-foundation.org, davem@davemloft.net, m.chehab@samsung.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi All,
+Added a generic PHY framework that provides a set of APIs for the PHY drivers
+to create/destroy a PHY and APIs for the PHY users to obtain a reference to
+the PHY with or without using phandle.
 
-So, based on feedbacks from everyone, I could come to following
-conclusions. Please confirm, if those are acceptable ?
+This framework will be of use only to devices that uses external PHY (PHY
+functionality is not embedded within the controller).
 
-> From: Mark Rutland [mailto:mark.rutland@arm.com]
-> > 
-> On Thu, Sep 26, 2013 at 11:54:39AM +0100, Gupta, Pekon wrote:
-> >
-> > > > From: Rob Herring [mailto:robherring2@gmail.com]
-> > > > > From: Pekon Gupta [mailto:pekon@ti.com]
-> > > > >
-> > > > > diff --git a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
-> > > > b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
-> > > > > index df338cb..958e5d5 100644
-> > > > > --- a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
-> > > > > +++ b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
-> > > > > @@ -21,11 +21,8 @@ Optional properties:
-> > > > >                                 is wired that way. If not specified, a bus
-> > > > >                                 width of 8 is assumed.
-> > > > >
-> > > > > - - ti,nand-ecc-opt:            A string setting the ECC layout to use. One of:
-> > > > > -
-> > > > > -               "sw"            Software method (default)
-> > > > > -               "hw"            Hardware method
-> > > > > -               "hw-romcode"    gpmc hamming mode method & romcode
-> > > layout
-> > > > > + - ti,nand-ecc-scheme:         A string setting the ECC layout to use.
-> One of:
-> > > > > +               "ham1"          1-bit Hamming ecc code
-> > > >
-> > > > As has been pointed out, this breaks compatibility which should be
-> > > > avoided unless you know the state of use of this binding. I fail to
-> > > > see the advantage of using scheme over opt. You could simply add
-> ham1
-> > > > here and maintain compatibility. Instead of removing sw, hw, etc. you
-> > > > can simply deprecate them or decide that the kernel doesn't support
-> > > > those options.
-> > > >
-> > > Renaming 'ti,nand-ecc-opt' to 'ti,nand-ecc-scheme' was as per earlier
-> > > comments from Olof. So either way is fine with me. Should I revert
-> > > it back to 'ti,nand-ecc-opt' ?
-> 
-> I think that if the binding is already in use then we shouldn't break
-> it, unless you're _definitely_ the only user.
-> 
-Agreed, would revert back to 'ti,nand-ecc-scheme'
+The intention of creating this framework is to bring the phy drivers spread
+all over the Linux kernel to drivers/phy to increase code re-use and to
+increase code maintainability.
 
+Comments to make PHY as bus wasn't done because PHY devices can be part of
+other bus and making a same device attached to multiple bus leads to bad
+design.
 
-> > >
-> > > Also, "sw", "hw_romcode" have been deprecated, they are no longer
-> > > supported in driver. So shouldn't they be removed from the
-> documentation
-> > > ?
-> 
-> Deprecated properties should be marked as deprecated, but continue to be
-> documented. That at least prevents the names being repurposed in an
-> incompatible way, and explains to anyone who looks at the document that
-> the proeprty is deprecated rather than simply undocumented.
->
-Agreed.
-- keep existing values in documentation (sw, hw, hw_romcode) but mark
-  them as deprecated.
-- add new values (ham1, bch4, bch8,..)
+If the PHY driver has to send notification on connect/disconnect, the PHY
+driver should make use of the extcon framework. Using this susbsystem
+to use extcon framwork will have to be analysed.
 
- 
-> > >
-> > > > However, since you are willing to break compatibility, then you should
-> > > > the generic NAND binding and use nand-ecc-mode adding the values
-> you
-> > > > need.
-> > > >
-> > > > Documentation/devicetree/bindings/mtd/nand.txt:
-> > > > * MTD generic binding
-> > > >
-> > > > - nand-ecc-mode : String, operation mode of the NAND ecc mode.
-> > > >   Supported values are: "none", "soft", "hw", "hw_syndrome",
-> > > > "hw_oob_first",
-> > > >   "soft_bch".
-> > >
-> > > Yes I can use generic 'nand-ecc-mode', But the binding values like
-> > > "soft", "hw", "soft_bch" are too generic to describe the hardware.
-> > > - BCH ECC scheme can itself be of multiple types, bch4/bch8/bch16
-> > >   so "soft_bch" is ambiguous.
-> 
-> It does indeed seem like the generic properties are not generic enough,
-> at least from my quick look other them. However, I am not familiar with
-> NAND, so I may have misunderstood.
-> 
-Would not use generic 'nand-ecc-mode' property, instead continue
-with 'ti,nand-ecc-opt'.
+You can find this patch series @
+git://git.kernel.org/pub/scm/linux/kernel/git/kishon/linux-phy.git testing
 
+I'll create a new branch *next* once this patch series is finalized. All the
+PHY driver development that depends on PHY framework can be based on this
+branch.
 
-> > > - Similarly "soft" and "hw" do not determine the algorithm used
-> > >    like Hamming or BCH.
-> > >
-> > > (a) Should I update the generic binding values (if no one else is using) ?
-> like
-> > > 	sw -> ham1_sw
-> > > 	hw -> ham1_hw
-> > > 	soft_bch-> soft_bch4, soft_bch8
-> 
-> What do the current property names actually correspond to logically? If
-> we did this and there are existing users, the old DTs need to continue
-> functioning.
-> 
-> > > OR
-> > > (b) Should I add newer ones to it (like "ham1", "bch4", "bch8", "bch16") ?
-> > >       keeping the old ones intact. And how should I handle un-supported
-> > >      values, (Is pr_err during kernel probe enough ?).
-> 
-> I think something like this, but with the names from (a) would be
-> preferrable.
-> 
-As Brian pointed, implementation of ecc-scheme can be very different
-from vendor to vendor, and even SoC to SoC within same vendor,
-Thus its difficult to generalize as common DT binding for everyone.
-- Even if we try to do, there would be too many values, out of which
-  only selectable would be applicable for a given SoC.
-- And some platforms might need extra DT information to get driver
-  working, because h/w was designed that way. So it would be mess.
-So, its better not to have a generic ecc-scheme binding, instead let every
-vendor define it specifically.
+Did USB enumeration testing in panda and beagle after applying [1] (needed for
+non-dt)
 
-So for TI OMAP NAND driver, I'm continuing to use 'ti,nand-ecc-opt'
-as described above. Is this acceptable ?
+Changes from v11:
+* rebased to 3.12-rc2
+* dropped "usb: phy: omap-usb2: remove *set_suspend* callback from omap-usb2"
+patch. It will be added in the patch series that adapts dwc3 to generic phy
+framework.
+* Fixed checkpatch warning that shows up newly for having extern in header file.
 
+Changes from v10:
+* fixed a mistake in devm_of_phy_provider_register macro which was carried over
+from earlier version.
+* used ida_simple_get for obtaining the id.
 
-> > >
-> > > [...]
-> > >
-> > > > > - - elm_id:     Specifies elm device node. This is required to support
-> BCH
-> > > > > -               error correction using ELM module.
-> > > > > + - ti,elm-id:  Specifies pHandle of the ELM devicetree node.
-> > > > > +               ELM is an on-chip hardware engine on TI SoC which is used
-> for
-> > > > > +               locating ECC errors for BCHx algorithms. SoC devices which
-> have
-> > > > > +               ELM hardware engines should specify this device node in
-> .dtsi
-> > > > > +               Using ELM for ECC error correction frees some CPU cycles.
-> > > >
-> > > > While yes, this is better name and documentation, I don't know that
-> > > > breaking compatibility is justified.
-> > > >
-> > > As this is TI specific binding, so manufacturer's name should have been
-> > > included.  But as this was missed while adding this binding, so this should
-> > > be fixed now. (Olof also recommended the same).
-> 
-> We could update the binding to prefer ti,elm-id, and deprecate elm_id
-> while maintaining support in the kernel.
-> 
-Agreed. 
-- would keep elm_id but mark it deprecated in Documentation
-- add new ti,elm-id
+Changes from v9:
+* Fixed Greg's concern on having *find PHY by string* and changed it to Tomasz
+  pseudo code.
+* move omap-usb2 phy and twl4030-usb phy to drivers/phy
+* made all the dependent drivers select GENERIC_PHY instead of having depends
+  on
+* Made PHY core to assign the id's (so changed the phy_create API).
+* Adapted twl4030-usb to the new design.
 
-> > >
-> > > AFAIK, For TI's NAND OMAP driver, currently there are not many
-> > > end-users are using these bindings from mainline DT kernel.
-> > > So this patch series mainly aims to cleanup NAND driver so that migrate
-> > > to latest DT based kernel from board-file one is easy.
-> > > So changes should be acceptable from end-user's point, its only matter
-> > > of which path to take.
-> > > Request you to please help me finalize this before I resend next patch
-> > > series addressing other comments from Brian.
-> > >
+Changes from v8:
+* Added phy_set_drvdata and phy_get_drvdata in phy.h.
+* Changed phy_create API not to take void *priv. private data should now be set
+  using phy_set_drvdata now.
+Changes from v7:
+* Fixed Documentation
+* Added to_phy, of_phy_provider_register and devm_of_phy_provider_register
+* modified runtime_pm usage in phy_init, phy_exit, phy_power_on and
+  phy_power_off. Now phy_power_on will enable the clocks and phy_power_off will
+  disable the clocks.
+* pm_runtime_no_callbacks() is added so that pm_runtime_get_sync doesn't fail
+* modified other patches to adhere to the changes in the PHY framework
+* removed usb: phy: twl4030: twl4030 shouldn't be subsys_initcall as it will
+  be merged separately.
+* reference counting has been added to protect phy ops when the PHY is shared
+  by multiple consumers.
 
-with regards, pekon
+Changes from v6
+* corrected few typos in Documentation
+* Changed PHY Subsystem to *bool* in Kconfig (to avoid compilation errors when
+  PHY Subsystem is kept as module and the dependent modules are built-in)
+* Added if pm_runtime_enabled check before runtime pm calls.
 
-______________________________________________________
-Linux MTD discussion mailing list
-http://lists.infradead.org/mailman/listinfo/linux-mtd/
+Changes from v5:
+* removed the new sysfs entries as it dint have any new information other than
+  what is already there in /sys/devices/...
+* removed a bunch of APIs added to get the PHY and now only phy_get and
+  devm_phy_get are used.
+* Added new APIs to register/unregister the PHY provider. This is needed for
+  dt boot case.
+* Enabled pm runtime and incorporated the comments given by Alan Stern in a
+  different patch series by Gautam.
+* Removed the *phy_bind* API. Now the phy binding information should be passed
+  using the platform data to the controller devices.
+* Fixed a few typos.
+
+Changes from v4:
+* removed of_phy_get_with_args/devm_of_phy_get_with_args. Now the *phy providers*
+  should use their custom implementation of of_xlate or use of_phy_xlate to get
+  *phy instance* from *phy providers*.
+* Added of_phy_xlate to be used by *phy providers* if it provides only one PHY.
+* changed phy_core from having subsys_initcall to module_init.
+* other minor fixes.
+
+Changes from v3:
+* Changed the return value of PHY APIs to ENOSYS
+* Added APIs of_phy_get_with_args/devm_of_phy_get_with_args to support getting
+  PHYs if the same IP implements multiple PHYs.
+* modified phy_bind API so that the binding information can now be _updated_.
+  In effect of this removed the binding information added in board files and
+  added only in usb-musb.c. If a particular board uses a different phy binding,
+  it can update it in board file after usb_musb_init().
+* Added Documentation/devicetree/bindings/phy/phy-bindings.txt for dt binding
+  information.
+
+Changes from v2:
+* removed phy_descriptor structure completely so changed the APIs which were
+  taking phy_descriptor as parameters
+* Added 2 more APIs *of_phy_get_byname* and *devm_of_phy_get_byname* to be used
+  by PHY user drivers which has *phy* and *phy-names* binding in the dt data
+* Fixed a few typos
+* Removed phy_list and we now use class_dev_iter_init, class_dev_iter_next and
+  class_dev_iter_exit for traversing through the phy list. (Note we still need
+  phy_bind list and phy_bind_mutex).
+* Changed the sysfs entry name from *bind* to *phy_bind*.
+
+Changes from v1:
+* Added Documentation for the PHY framework
+* Added few more APIs mostly w.r.t devres
+* Modified omap-usb2 and twl4030 to make use of the new framework
+
+Kishon Vijay Abraham I (7):
+  drivers: phy: add generic PHY framework
+  usb: phy: omap-usb2: use the new generic PHY framework
+  usb: phy: twl4030: use the new generic PHY framework
+  arm: omap3: twl: add phy consumer data in twl4030_usb_data
+  ARM: dts: omap: update usb_otg_hs data
+  usb: musb: omap2430: use the new generic PHY framework
+  usb: phy: twl4030-usb: remove *set_suspend* and *phy_init* ops
+
+ .../devicetree/bindings/phy/phy-bindings.txt       |   66 ++
+ Documentation/devicetree/bindings/usb/omap-usb.txt |    5 +
+ Documentation/devicetree/bindings/usb/usb-phy.txt  |    6 +
+ Documentation/phy.txt                              |  166 +++++
+ MAINTAINERS                                        |    8 +
+ arch/arm/boot/dts/omap3-beagle-xm.dts              |    2 +
+ arch/arm/boot/dts/omap3-evm.dts                    |    2 +
+ arch/arm/boot/dts/omap3-overo.dtsi                 |    2 +
+ arch/arm/boot/dts/omap4.dtsi                       |    3 +
+ arch/arm/boot/dts/twl4030.dtsi                     |    1 +
+ arch/arm/mach-omap2/twl-common.c                   |   11 +
+ drivers/Kconfig                                    |    2 +
+ drivers/Makefile                                   |    2 +
+ drivers/phy/Kconfig                                |   41 ++
+ drivers/phy/Makefile                               |    7 +
+ drivers/phy/phy-core.c                             |  698 ++++++++++++++++++++
+ drivers/{usb => }/phy/phy-omap-usb2.c              |   45 +-
+ drivers/{usb => }/phy/phy-twl4030-usb.c            |   69 +-
+ drivers/usb/musb/Kconfig                           |    1 +
+ drivers/usb/musb/musb_core.h                       |    2 +
+ drivers/usb/musb/omap2430.c                        |   26 +-
+ drivers/usb/phy/Kconfig                            |   21 -
+ drivers/usb/phy/Makefile                           |    2 -
+ include/linux/i2c/twl.h                            |    2 +
+ include/linux/phy/phy.h                            |  270 ++++++++
+ 25 files changed, 1402 insertions(+), 58 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/phy/phy-bindings.txt
+ create mode 100644 Documentation/phy.txt
+ create mode 100644 drivers/phy/Kconfig
+ create mode 100644 drivers/phy/Makefile
+ create mode 100644 drivers/phy/phy-core.c
+ rename drivers/{usb => }/phy/phy-omap-usb2.c (88%)
+ rename drivers/{usb => }/phy/phy-twl4030-usb.c (94%)
+ create mode 100644 include/linux/phy/phy.h
+
+-- 
+1.7.10.4
