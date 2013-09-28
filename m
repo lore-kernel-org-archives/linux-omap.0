@@ -1,85 +1,49 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/2] mmc: omap_hsmmc: Enable SDIO interrupt
-Date: Fri, 27 Sep 2013 14:10:02 -0700
-Message-ID: <20130927211001.GG8949@atomide.com>
-References: <20130925234544.3745.55170.stgit@localhost>
- <20130925234740.3745.50637.stgit@localhost>
- <CALtMJEBKbbpM47uhM-KeSRHRkM5CJkgBx4kFq4j+GG9sKXEfag@mail.gmail.com>
- <20130926141936.GE8949@atomide.com>
- <CALtMJEDKxTcaNHmrVqMv7tznxB0uqYxuOix+ks+Bs_huiOCL4A@mail.gmail.com>
+From: Greg KH <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH v12 0/7] PHY framework
+Date: Fri, 27 Sep 2013 17:37:42 -0700
+Message-ID: <20130928003742.GA3659@kroah.com>
+References: <1380263012-9687-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
+Return-path: <linux-doc-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CALtMJEDKxTcaNHmrVqMv7tznxB0uqYxuOix+ks+Bs_huiOCL4A@mail.gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Andreas Fenkart <afenkart@gmail.com>
-Cc: Chris Ball <cjb@laptop.org>, linux-omap <linux-omap@vger.kernel.org>, linux-mmc <linux-mmc@vger.kernel.org>, Balaji T K <balajitk@ti.com>
+In-Reply-To: <1380263012-9687-1-git-send-email-kishon@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: swarren@wwwdotorg.org, bcousson@baylibre.com, tony@atomide.com, balbi@ti.com, s.nawrocki@samsung.com, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, rob@landley.net, linux@arm.linux.org.uk, jkosina@suse.cz, m.chehab@samsung.com, cesarb@cesarb.net, joe@perches.com, davem@davemloft.net, davidb@codeaurora.org, sameo@linux.intel.com, peter.ujfalusi@ti.com, t-kristo@ti.com, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, akpm@linux-foundation.org, balajitk@ti.com, george.cherian@ti.com, nsekhar@ti.com, rogerq@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-* Andreas Fenkart <afenkart@gmail.com> [130926 23:46]:
+On Fri, Sep 27, 2013 at 11:53:24AM +0530, Kishon Vijay Abraham I wrote:
+> Added a generic PHY framework that provides a set of APIs for the PHY drivers
+> to create/destroy a PHY and APIs for the PHY users to obtain a reference to
+> the PHY with or without using phandle.
 > 
-> It's what Balaji already pointed out.
+> This framework will be of use only to devices that uses external PHY (PHY
+> functionality is not embedded within the controller).
 > 
-> +   /* no transfer running, need to signal cirq if */
-> +   if (host->sdio_irq_en)
-> +       irq_mask |= CIRQ_EN;
+> The intention of creating this framework is to bring the phy drivers spread
+> all over the Linux kernel to drivers/phy to increase code re-use and to
+> increase code maintainability.
 > 
+> Comments to make PHY as bus wasn't done because PHY devices can be part of
+> other bus and making a same device attached to multiple bus leads to bad
+> design.
 > 
-> omap_hsmmc_request_done calls omap_hsmmc_disable_irq
+> If the PHY driver has to send notification on connect/disconnect, the PHY
+> driver should make use of the extcon framework. Using this susbsystem
+> to use extcon framwork will have to be analysed.
 > 
-> imagine this case:
-> 1. host issues transfer from host->card (e.g. get RSSI)
-> 2. at end of this transfer, SDIO IRQ are being masked
-> 3. card wants to reply, raises an SDIO IRQ
-> 4. nothing happens, since in 2. SDIO IRQ are masked
+> You can find this patch series @
+> git://git.kernel.org/pub/scm/linux/kernel/git/kishon/linux-phy.git testing
 > 
-> I verified this with my 88W8787 card. It is a problem
+> I'll create a new branch *next* once this patch series is finalized. All the
+> PHY driver development that depends on PHY framework can be based on this
+> branch.
+> 
+> Did USB enumeration testing in panda and beagle after applying [1] (needed for
+> non-dt)
 
-OK thanks makes sense. 
+All now applied to my usb-next branch.  Thanks for redoing this many
+times and sticking with it.
 
-> Something like this but shorter as a comment:
-> 
-> /*
->  * Must not touch registers while fclk if off, otherwise SIGBUS.
->  * Card will still wake up upon SDIO IRQ, and we'll complete
->  * the request in pm_runtime_resume
->  */
-> 
-> Another interpretation of your code could be:
-> 
-> /* Sorry I'm having Siesta right now, try later */
-
-Well the clocking issue should be already handled by the
-runtime PM, otherwise we have a bug somewhere. I'm almost
-certain that no special handling is needed for register
-access beyond runtime PM, but it would probably be best
-if you could test it.
-
-> Compatible section you mean, that sounds to good to me.
-> But do we know platform have the deficiency?
-> 
-> There used to be an if statement like this in one of your previous
-> patches.
-> 
-> +   if (match) {
-> +       mmc->caps |= MMC_CAP_SDIO_IRQ;
-> +       if (of_find_property(host->dev->of_node,
-> +                    "ti,quirk-swakeup-missing", NULL)) {
-> +           /* no wakeup from deeper power states, use polling */
-> +           mmc->caps &= ~MMC_CAP_SDIO_IRQ;
-> +       }
-> +   }
-> 
-> Either or is needed, otherwise existing platforms will break, and will have
-> to apply patches on top of yours to reenable polling (e.g. beaglebone)
-
-Yes, let's merge the necessary tweaks to this patch before
-applying. The SDIO interrupt should work during runtime
-for all omaps, so maybe we should just ensure that runtime
-PM keeps those omaps from going to deeper idle modes for
-now.
-
-Regards,
-
-Tony
+greg k-h
