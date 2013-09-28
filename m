@@ -1,38 +1,61 @@
-From: richard -rw- weinberger <richard.weinberger@gmail.com>
-Subject: Re: new binutils needed for arm in 3.12-rc1
-Date: Sat, 28 Sep 2013 11:03:17 +0200
-Message-ID: <CAFLxGvyYQ6ng-yeBZe4TOTtTyk1d4v3RNEhdU29tEnm9vTLhBQ@mail.gmail.com>
-References: <20130924214800.GV25647@n2100.arm.linux.org.uk>
-	<1380071607.1974.78@driftwood>
-	<CAMuHMdXN3CgOt6Lk1S-xYjeeACOZtuxuYu2RqSGMoTvp9qz8Cg@mail.gmail.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH v12 0/7] PHY framework
+Date: Sat, 28 Sep 2013 15:12:12 +0530
+Message-ID: <5246A474.90500@ti.com>
+References: <1380263012-9687-1-git-send-email-kishon@ti.com>
+ <20130928003742.GA3659@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f49.google.com ([74.125.82.49]:49117 "EHLO
-	mail-wg0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752514Ab3I1JDT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 28 Sep 2013 05:03:19 -0400
-In-Reply-To: <CAMuHMdXN3CgOt6Lk1S-xYjeeACOZtuxuYu2RqSGMoTvp9qz8Cg@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20130928003742.GA3659@kroah.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: mark.rutland@arm.com, linux-doc@vger.kernel.org, tony@atomide.com, nsekhar@ti.com, peter.ujfalusi@ti.com, s.nawrocki@samsung.com, linux@arm.linux.org.uk, sameo@linux.intel.com, ijc+devicetree@hellion.org.uk, davidb@codeaurora.org, cesarb@cesarb.net, devicetree@vger.kernel.org, george.cherian@ti.com, rob@landley.net, pawel.moll@arm.com, swarren@wwwdotorg.org, rob.herring@calxeda.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rogerq@ti.com, balajitk@ti.com, jkosina@suse.cz, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, t-kristo@ti.com, bcousson@baylibre.com, joe@perches.com, akpm@linux-foundation.org, davem@davemloft.net, m.chehab@samsung.com
 List-Id: linux-omap@vger.kernel.org
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Rob Landley <rob@landley.net>, Russell King - ARM Linux <linux@arm.linux.org.uk>, =?ISO-8859-1?Q?M=E5ns_Rullg=E5rd?= <mans@mansr.com>, Andrew Morton <akpm@osdl.org>, Trivial patch monkey <trivial@kernel.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <will.deacon@arm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Thu, Sep 26, 2013 at 9:18 AM, Geert Uytterhoeven
-<geert@linux-m68k.org> wrote:
-> Hi Rob,
->
-> On Wed, Sep 25, 2013 at 3:13 AM, Rob Landley <rob@landley.net> wrote:
->> Some of us can't ship GPLv3 binaries and are looking forward to the day LLVM
->> or some such provides a complete solution.
->
-> Sorry, I didn't have a coffee yet, but which subtility am I missing
-> that prohibits
-> you from shipping GPLv3 binaries?
+On Saturday 28 September 2013 06:07 AM, Greg KH wrote:
+> On Fri, Sep 27, 2013 at 11:53:24AM +0530, Kishon Vijay Abraham I wrote:
+>> Added a generic PHY framework that provides a set of APIs for the PHY drivers
+>> to create/destroy a PHY and APIs for the PHY users to obtain a reference to
+>> the PHY with or without using phandle.
+>>
+>> This framework will be of use only to devices that uses external PHY (PHY
+>> functionality is not embedded within the controller).
+>>
+>> The intention of creating this framework is to bring the phy drivers spread
+>> all over the Linux kernel to drivers/phy to increase code re-use and to
+>> increase code maintainability.
+>>
+>> Comments to make PHY as bus wasn't done because PHY devices can be part of
+>> other bus and making a same device attached to multiple bus leads to bad
+>> design.
+>>
+>> If the PHY driver has to send notification on connect/disconnect, the PHY
+>> driver should make use of the extcon framework. Using this susbsystem
+>> to use extcon framwork will have to be analysed.
+>>
+>> You can find this patch series @
+>> git://git.kernel.org/pub/scm/linux/kernel/git/kishon/linux-phy.git testing
+>>
+>> I'll create a new branch *next* once this patch series is finalized. All the
+>> PHY driver development that depends on PHY framework can be based on this
+>> branch.
+>>
+>> Did USB enumeration testing in panda and beagle after applying [1] (needed for
+>> non-dt)
+> 
+> All now applied to my usb-next branch.  Thanks for redoing this many
+> times and sticking with it.
 
-/me had coffee but still doesn't get why you can't ship GPLv3 binaries.
-Rob, can you please enlighten us?
+Thanks :-)
 
--- 
-Thanks,
-//richard
+-Kishon
