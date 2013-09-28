@@ -1,49 +1,78 @@
-From: Greg KH <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH v12 0/7] PHY framework
-Date: Fri, 27 Sep 2013 17:37:42 -0700
-Message-ID: <20130928003742.GA3659@kroah.com>
-References: <1380263012-9687-1-git-send-email-kishon@ti.com>
+From: Jason Kridner <jkridner@beagleboard.org>
+Subject: Re: [PATCH v4 1/4] ARM: dts: am335x-bone: add CD for mmc1
+Date: Fri, 27 Sep 2013 23:13:50 -0400
+Message-ID: <CA+T6QPk=Z+u2eo63-2T4dZcyaZ=yL=+rBck5r5y14MiQK_w00w@mail.gmail.com>
+References: <1379010935-25943-1-git-send-email-koen@dominion.thruhere.net>
+	<1379010935-25943-2-git-send-email-koen@dominion.thruhere.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-doc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1380263012-9687-1-git-send-email-kishon@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: swarren@wwwdotorg.org, bcousson@baylibre.com, tony@atomide.com, balbi@ti.com, s.nawrocki@samsung.com, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, rob@landley.net, linux@arm.linux.org.uk, jkosina@suse.cz, m.chehab@samsung.com, cesarb@cesarb.net, joe@perches.com, davem@davemloft.net, davidb@codeaurora.org, sameo@linux.intel.com, peter.ujfalusi@ti.com, t-kristo@ti.com, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, akpm@linux-foundation.org, balajitk@ti.com, george.cherian@ti.com, nsekhar@ti.com, rogerq@ti.com
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1379010935-25943-2-git-send-email-koen@dominion.thruhere.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Koen Kooi <koen@dominion.thruhere.net>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "mark.rutland@arm.com" <mark.rutland@arm.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "pawel.moll@arm.com" <pawel.moll@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Tony Lindgren <tony@atomide.com>, "ijc+devicetree@hellion.org.uk" <ijc+devicetree@hellion.org.uk>, Rob Herring <rob.herring@calxeda.com>, Benoit Cousson <bcousson@baylibre.com>, Alexander Holler <holler@ahsoftware.de>, OMAP List <linux-omap@vger.kernel.org>, ARM Kernel List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Sep 27, 2013 at 11:53:24AM +0530, Kishon Vijay Abraham I wrote:
-> Added a generic PHY framework that provides a set of APIs for the PHY drivers
-> to create/destroy a PHY and APIs for the PHY users to obtain a reference to
-> the PHY with or without using phandle.
-> 
-> This framework will be of use only to devices that uses external PHY (PHY
-> functionality is not embedded within the controller).
-> 
-> The intention of creating this framework is to bring the phy drivers spread
-> all over the Linux kernel to drivers/phy to increase code re-use and to
-> increase code maintainability.
-> 
-> Comments to make PHY as bus wasn't done because PHY devices can be part of
-> other bus and making a same device attached to multiple bus leads to bad
-> design.
-> 
-> If the PHY driver has to send notification on connect/disconnect, the PHY
-> driver should make use of the extcon framework. Using this susbsystem
-> to use extcon framwork will have to be analysed.
-> 
-> You can find this patch series @
-> git://git.kernel.org/pub/scm/linux/kernel/git/kishon/linux-phy.git testing
-> 
-> I'll create a new branch *next* once this patch series is finalized. All the
-> PHY driver development that depends on PHY framework can be based on this
-> branch.
-> 
-> Did USB enumeration testing in panda and beagle after applying [1] (needed for
-> non-dt)
+On Thu, Sep 12, 2013 at 2:35 PM, Koen Kooi <koen@dominion.thruhere.net> wrote:
+> From: Alexander Holler <holler@ahsoftware.de>
+>
+> This enables the use of MMC cards even when no card was inserted at boot.
+>
+> Signed-off-by: Alexander Holler <holler@ahsoftware.de>
+> Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
 
-All now applied to my usb-next branch.  Thanks for redoing this many
-times and sticking with it.
+Acked-by: Jason Kridner <jdk@ti.com>
 
-greg k-h
+> ---
+>  arch/arm/boot/dts/am335x-bone-common.dtsi | 14 ++++++++++++++
+>  arch/arm/boot/dts/am335x-bone.dts         |  1 -
+>  2 files changed, 14 insertions(+), 1 deletion(-)
+>
+> diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
+> index 2f66ded..0d95d54 100644
+> --- a/arch/arm/boot/dts/am335x-bone-common.dtsi
+> +++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
+> @@ -107,6 +107,12 @@
+>                                 0x14c (PIN_INPUT_PULLDOWN | MUX_MODE7)
+>                         >;
+>                 };
+> +
+> +               mmc1_pins: pinmux_mmc1_pins {
+> +                       pinctrl-single,pins = <
+> +                               0x160 (PIN_INPUT | MUX_MODE7) /* GPIO0_6 */
+> +                       >;
+> +               };
+>         };
+>
+>         ocp {
+> @@ -260,3 +266,11 @@
+>         pinctrl-0 = <&davinci_mdio_default>;
+>         pinctrl-1 = <&davinci_mdio_sleep>;
+>  };
+> +
+> +&mmc1 {
+> +       status = "okay";
+> +       pinctrl-names = "default";
+> +       pinctrl-0 = <&mmc1_pins>;
+> +       cd-gpios = <&gpio0 6 GPIO_ACTIVE_HIGH>;
+> +       cd-inverted;
+> +};
+> diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
+> index d5f43fe..0d63348 100644
+> --- a/arch/arm/boot/dts/am335x-bone.dts
+> +++ b/arch/arm/boot/dts/am335x-bone.dts
+> @@ -17,6 +17,5 @@
+>  };
+>
+>  &mmc1 {
+> -       status = "okay";
+>         vmmc-supply = <&ldo3_reg>;
+>  };
+> --
+> 1.8.2.1
+>
+>
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
