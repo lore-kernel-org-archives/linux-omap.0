@@ -1,78 +1,42 @@
-From: Jason Kridner <jkridner@beagleboard.org>
-Subject: Re: [PATCH v4 1/4] ARM: dts: am335x-bone: add CD for mmc1
-Date: Fri, 27 Sep 2013 23:13:50 -0400
-Message-ID: <CA+T6QPk=Z+u2eo63-2T4dZcyaZ=yL=+rBck5r5y14MiQK_w00w@mail.gmail.com>
-References: <1379010935-25943-1-git-send-email-koen@dominion.thruhere.net>
-	<1379010935-25943-2-git-send-email-koen@dominion.thruhere.net>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: new binutils needed for arm in 3.12-rc1
+Date: Sat, 28 Sep 2013 10:43:28 +0200
+Message-ID: <20130928084328.GA5649@amd.pavel.ucw.cz>
+References: <alpine.LFD.2.03.1309251147320.312@syhkavp.arg>
+ <1380235709.1974.93@driftwood>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1379010935-25943-2-git-send-email-koen@dominion.thruhere.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Koen Kooi <koen@dominion.thruhere.net>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "mark.rutland@arm.com" <mark.rutland@arm.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "pawel.moll@arm.com" <pawel.moll@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Tony Lindgren <tony@atomide.com>, "ijc+devicetree@hellion.org.uk" <ijc+devicetree@hellion.org.uk>, Rob Herring <rob.herring@calxeda.com>, Benoit Cousson <bcousson@baylibre.com>, Alexander Holler <holler@ahsoftware.de>, OMAP List <linux-omap@vger.kernel.org>, ARM Kernel List <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:42867 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752075Ab3I1Ina (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 28 Sep 2013 04:43:30 -0400
+Content-Disposition: inline
+In-Reply-To: <1380235709.1974.93@driftwood>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Rob Landley <rob@landley.net>
+Cc: Nicolas Pitre <nico@fluxnic.net>, Russell King - ARM Linux <linux@arm.linux.org.uk>, =?iso-8859-1?Q?M=E5ns_Rullg=E5rd?= <mans@mansr.com>, Andrew Morton <akpm@osdl.org>, Trivial patch monkey <trivial@kernel.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <will.deacon@arm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Thu, Sep 12, 2013 at 2:35 PM, Koen Kooi <koen@dominion.thruhere.net> wrote:
-> From: Alexander Holler <holler@ahsoftware.de>
->
-> This enables the use of MMC cards even when no card was inserted at boot.
->
-> Signed-off-by: Alexander Holler <holler@ahsoftware.de>
-> Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
+Hi!
 
-Acked-by: Jason Kridner <jdk@ti.com>
+> >Given you're not upgrading your binutils anymore that means
+> >you'll have to apply that patch only once instead of having to
+> >apply it
+> >to every kernel upgrade.
+> 
+> Indeed. Patching my own toolchain isn't really a problem. My
+> objection was to the Documentation patch telling the world at large
+> that for all targets, older binutils aren't supported even on x86.
+> That was worth pushing back against.
+> 
+> I don't indend to use old gcc/binutils versions forever, I just want
+> to be able to use them until I can replace them with llvm or
+> similar.
 
-> ---
->  arch/arm/boot/dts/am335x-bone-common.dtsi | 14 ++++++++++++++
->  arch/arm/boot/dts/am335x-bone.dts         |  1 -
->  2 files changed, 14 insertions(+), 1 deletion(-)
->
-> diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
-> index 2f66ded..0d95d54 100644
-> --- a/arch/arm/boot/dts/am335x-bone-common.dtsi
-> +++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
-> @@ -107,6 +107,12 @@
->                                 0x14c (PIN_INPUT_PULLDOWN | MUX_MODE7)
->                         >;
->                 };
-> +
-> +               mmc1_pins: pinmux_mmc1_pins {
-> +                       pinctrl-single,pins = <
-> +                               0x160 (PIN_INPUT | MUX_MODE7) /* GPIO0_6 */
-> +                       >;
-> +               };
->         };
->
->         ocp {
-> @@ -260,3 +266,11 @@
->         pinctrl-0 = <&davinci_mdio_default>;
->         pinctrl-1 = <&davinci_mdio_sleep>;
->  };
-> +
-> +&mmc1 {
-> +       status = "okay";
-> +       pinctrl-names = "default";
-> +       pinctrl-0 = <&mmc1_pins>;
-> +       cd-gpios = <&gpio0 6 GPIO_ACTIVE_HIGH>;
-> +       cd-inverted;
-> +};
-> diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
-> index d5f43fe..0d63348 100644
-> --- a/arch/arm/boot/dts/am335x-bone.dts
-> +++ b/arch/arm/boot/dts/am335x-bone.dts
-> @@ -17,6 +17,5 @@
->  };
->
->  &mmc1 {
-> -       status = "okay";
->         vmmc-supply = <&ldo3_reg>;
->  };
-> --
-> 1.8.2.1
->
->
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+So, what is the proposal? Just ignore the problem and make people
+wonder why their arm kernels are not compiling?
+								Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
