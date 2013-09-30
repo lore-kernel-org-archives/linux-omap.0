@@ -1,53 +1,65 @@
-From: Sricharan R <r.sricharan@ti.com>
-Subject: Re: [PATCH] ARM: OMAP2+: timer: build with DRA7xx enable but without
- OMAP5
-Date: Mon, 30 Sep 2013 14:50:16 +0530
-Message-ID: <52494250.6060809@ti.com>
-References: <1380532531-21021-1-git-send-email-bigeasy@linutronix.de>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH v4 07/11] ARM: OMAP2+: CM: AM43x clockdomain data
+Date: Mon, 30 Sep 2013 09:31:06 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1309300927520.17980@utopia.booyaka.com>
+References: <cover.1380179370.git.afzal@ti.com> <a6758751113ef93bc912ccefb9cdb0ba383f19d5.1380179370.git.afzal@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:57520 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752828Ab3I3JUY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Sep 2013 05:20:24 -0400
-In-Reply-To: <1380532531-21021-1-git-send-email-bigeasy@linutronix.de>
+Received: from utopia.booyaka.com ([74.50.51.50]:43261 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752801Ab3I3JbH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Sep 2013 05:31:07 -0400
+In-Reply-To: <a6758751113ef93bc912ccefb9cdb0ba383f19d5.1380179370.git.afzal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Tony Lindgren <tony@atomide.com>, OMAP SUPPORT <linux-omap@vger.kernel.org>, Rajendra Nayak <rnayak@ti.com>
+To: Ambresh K <ambresh@ti.com>, Afzal Mohammed <afzal@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rajendra Nayak <rnayak@ti.com>
 
-On Monday 30 September 2013 02:45 PM, Sebastian Andrzej Siewior wrote:
-> with DRA7xx and without OMAP5 selected we get
-> |arch/arm/mach-omap2/built-in.o:(.arch.info.init+0x40): undefined reference to `omap5_realtime_timer_init'
-> |make[1]: *** [vmlinux] Error 1
->
-> since ARM: DRA7: board-generic: Add basic DT support ("439bf39e").
->
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: R Sricharan <r.sricharan@ti.com>
-> Cc: Rajendra Nayak <rnayak@ti.com>
-> Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Hi
+
+On Thu, 26 Sep 2013, Afzal Mohammed wrote:
+
+> From: Ambresh K <ambresh@ti.com>
+> 
+> Add the data file to describe clock domains in AM43x SoC.
+> OMAP4 clockdomain operations is being reused here.
+> 
+> Signed-off-by: Ambresh K <ambresh@ti.com>
+> Signed-off-by: Afzal Mohammed <afzal@ti.com>
 > ---
->  arch/arm/mach-omap2/timer.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-> index fa74a06..4fd1816 100644
-> --- a/arch/arm/mach-omap2/timer.c
-> +++ b/arch/arm/mach-omap2/timer.c
-> @@ -628,7 +628,7 @@ void __init omap4_local_timer_init(void)
->  #endif /* CONFIG_HAVE_ARM_TWD */
->  #endif /* CONFIG_ARCH_OMAP4 */
->  
-> -#ifdef CONFIG_SOC_OMAP5
-> +#if defined(CONFIG_SOC_OMAP5) || defined(CONFIG_SOC_DRA7XX)
->  void __init omap5_realtime_timer_init(void)
->  {
->  	omap4_sync32k_timer_init();
-Yes, this was missing. Thanks for the fix.
+>  arch/arm/mach-omap2/clockdomain.h           |   2 +
+>  arch/arm/mach-omap2/clockdomains43xx_data.c | 196 ++++++++++++++++++++++++++++
+>  arch/arm/mach-omap2/cminst44xx.c            |   9 ++
+>  3 files changed, 207 insertions(+)
+>  create mode 100644 arch/arm/mach-omap2/clockdomains43xx_data.c
+> 
 
-Regards,
- Sricharan
+...
 
+> diff --git a/arch/arm/mach-omap2/clockdomains43xx_data.c b/arch/arm/mach-omap2/clockdomains43xx_data.c
+> new file mode 100644
+> index 0000000..6d71c60
+> --- /dev/null
+> +++ b/arch/arm/mach-omap2/clockdomains43xx_data.c
+> @@ -0,0 +1,196 @@
+
+...
+
+> +static struct clockdomain l3s_tsc_43xx_clkdm = {
+> +	.name		  = "l3s_tsc_clkdm",
+> +	.pwrdm		  = { .name = "wkup_pwrdm" },
+> +	.prcm_partition	  = AM43XX_CM_PARTITION,
+> +	.cm_inst	  = AM43XX_CM_WKUP_INST,
+> +	.clkdm_offs	  = AM43XX_CM_WKUP_L3S_TSC_CDOFFS,
+> +	.flags		  = CLKDM_CAN_SWSUP,
+> +};
+
+The references to "wkup_pwrdm" on some of these clockdomains don't 
+look right to me.  For example, this clockdomain is listed as being in 
+AM43XX_CM_WKUP_INST, but its enclosing powerdomain is listed as being in 
+AM43XX_PRM_WKUP_INST.  Looks to me like it's best to have two different 
+wakeup powerdomains: one CM_WKUP, and one PRM_WKUP.
+ 
+
+- Paul
