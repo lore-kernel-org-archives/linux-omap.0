@@ -1,69 +1,76 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: Odd behavior with dpll4_m4x2_ck on omap3 + DT
-Date: Mon, 30 Sep 2013 10:56:12 +0300
-Message-ID: <52492E9C.4000901@ti.com>
-References: <521DC143.2010506@ti.com> <521DC770.5050000@ti.com> <521DCD80.1060600@ti.com> <521DE1A6.6030005@ti.com> <522F0390.9050802@gmail.com> <522F0CC7.50501@ti.com> <522F0E3E.1080001@ti.com> <522F0F9B.9050705@ti.com> <522F1346.3020206@ti.com> <522F1BF9.5050006@ti.com> <523019EE.5000508@ti.com> <5232C413.8010207@gmail.com> <5232F85E.7050502@ti.com> <524544B5.9050402@ti.com> <52456B0B.9040502@ti.com>
+From: Afzal Mohammed <afzal@ti.com>
+Subject: Re: [PATCH v4 01/11] ARM: OMAP2+: CM: cm_inst offset s16->u16
+Date: Mon, 30 Sep 2013 14:20:38 +0530
+Message-ID: <52493B5E.7000807@ti.com>
+References: <cover.1380179370.git.afzal@ti.com> <5e9ef86c35c60862a1c2aa24172e41ee4c6f07de.1380179370.git.afzal@ti.com> <alpine.DEB.2.02.1309300314520.17980@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="BKm7noMCe4ah95CwMIp7LggECJKesvWFG"
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:41123 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:53719 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752011Ab3I3H4R (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 30 Sep 2013 03:56:17 -0400
-In-Reply-To: <52456B0B.9040502@ti.com>
+	id S1752855Ab3I3IvG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 30 Sep 2013 04:51:06 -0400
+In-Reply-To: <alpine.DEB.2.02.1309300314520.17980@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: Stefan Roese <stefan.roese@gmail.com>, linux-omap <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, Mike Turquette <mturquette@linaro.org>
+To: Paul Walmsley <paul@pwsan.com>, a-kishore@ti.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rajendra Nayak <rnayak@ti.com>
 
---BKm7noMCe4ah95CwMIp7LggECJKesvWFG
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Hi Paul,
 
-On 27/09/13 14:24, Tero Kristo wrote:
+On Monday 30 September 2013 08:53 AM, Paul Walmsley wrote:
+> On Thu, 26 Sep 2013, Afzal Mohammed wrote:
 
->> Tero, can you queue this patch? Or who should handle this?
->=20
-> I can't queue anything as I don't have maintainership on any of this
-> stuff. Paul / Tony should go with this.
+>> Most of the AM43x CM reg address offsets are with MSB bit '1' (on
+>> 16-bit value) leading to arithmetic miscalculations while calculating
+>> CLOCK ENABLE register's address because cm_inst field was a type of
+>> "const s16", so make it "const u16".
+>>
+>> Also modify relevant functions so as to take care of the above.
+>>
+>> [afzal@ti.com: fixup and cleanup]
+>>
+>> Signed-off-by: Ankur Kishore <a-kishore@ti.com>
+>> Signed-off-by: Afzal Mohammed <afzal@ti.com>
+>> ---
+>>  arch/arm/mach-omap2/clockdomain.h |  2 +-
+>>  arch/arm/mach-omap2/cm33xx.c      | 16 ++++++++--------
+>>  arch/arm/mach-omap2/cm33xx.h      | 10 +++++-----
+>>  arch/arm/mach-omap2/cminst44xx.c  | 20 ++++++++++----------
+>>  arch/arm/mach-omap2/cminst44xx.h  | 26 +++++++++++++-------------
+>>  5 files changed, 37 insertions(+), 37 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/clockdomain.h b/arch/arm/mach-omap2/clockdomain.h
+>> index 4b03394..5431b0c 100644
+>> --- a/arch/arm/mach-omap2/clockdomain.h
+>> +++ b/arch/arm/mach-omap2/clockdomain.h
+>> @@ -132,7 +132,7 @@ struct clockdomain {
+>>  	u8 _flags;
+>>  	const u8 dep_bit;
+>>  	const u8 prcm_partition;
+>> -	const s16 cm_inst;
+>> +	const u16 cm_inst;
+>>  	const u16 clkdm_offs;
+>>  	struct clkdm_dep *wkdep_srcs;
+>>  	struct clkdm_dep *sleepdep_srcs;
 
-Well, I mainly meant preparing a patch with proper description and
-sending to relevant maintainers.
+> OMAP3 has at least one CM_INST that's negative:
+> 
+> ./prcm-common.h:40:#define OMAP3430_IVA2_MOD				-0x800
+> 
+> Have you tested this on OMAP34xx/35xx to ensure that the generated 
+> addresses for IVA2_MOD-based addresses doesn't change?  Seems like there's 
+> a risk that they might change, due to sign extension.
 
-For some reason I can't reproduce the issue with 3.12-rc1. I guess some
-other driver enables the clock now, which wasn't there in 3.11. So as
-far as DSS is concerned, things look fine now without the patch. But if
-the clock code is wrong, as I understood, maybe it's still good to have
-the patch applied.
+cm_inst field of clockdomain struct is not being used on OMAP3, but
+instead prcm_offs of struct powerdomain is being made use. cm_inst field
+of struct clockdomain is being used by OMAP4 types only, hence would
+affect OMAP4, OMAP5, DRA7x & AM43x only and these don't have CM_INST
+that is negative.
 
- Tomi
+This has been tested on OMAP3 Beagle Xm and verified that it does not
+cause any regresions.
 
-
-
---BKm7noMCe4ah95CwMIp7LggECJKesvWFG
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJSSS6cAAoJEPo9qoy8lh71um4P/1cNVUPcKfbln/Ki9fgZoKph
-l+QKoephABRg9zojKhgywSGzGGeOj/GtqP2hHmXIJ34aXqc5Z6rJT5SpFAFW1ifO
-oo9QCbAoqYRPQ5ywM34uQPb5mjT8d+P658miDd6TNKQAVlMeXlmEVm+JKs+luqYD
-pC/eAAhD+sBJZPjBEIBjRvpWdM0UEJ7jOs1jTpwfMX3ChUIcYXrtC+eOyAahNYA+
-sXA9J+H9P+w/h6pOFIkpfQbDtLAcsEuHHniCZtpdNqAVD3es2cd/nfDFBAH5MOxX
-9hz5I7jUW0UMQ75V5IJxqv9ljZ550WzuzTaQyBFnfJ+DgofpYFW0wTUdHIxnL2Vj
-Ri/3bNRxsFYi/ZVXgWuv8E0ZrXcRCLITzbmiBPgDzt1lghurYisS+jgkuDR1lzKd
-6M3UkuwOWDg8fwaZD+nYQR3I6n5diQg+XZAX/ypZ4pkxA1krWPubsZgq2o4a5Nvl
-8yE50Ewi+9iVicsouMf86Yemy0s3NTeBuLS+VQUINZyHlRD7kUVsKj8DRw8h1B4A
-Oa6kVYsbGrd/3vFkpL6uSD7J1knmVwAE6OXfMJrcxtxV2NJLbhe+cUbIMXlPSmJG
-PFX0BF66uLo20SBJ374iZL5yKiiYDXtMv7Jg2fXuriV0/GFgtV1ycKrfKxd4su8Y
-Nm6/aeViq6tMYSOP56Qs
-=0wh5
------END PGP SIGNATURE-----
-
---BKm7noMCe4ah95CwMIp7LggECJKesvWFG--
+Regards
+Afzal
