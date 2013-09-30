@@ -1,50 +1,72 @@
-From: Sricharan R <r.sricharan-l0cyMroinI0@public.gmane.org>
-Subject: Re: [RFC PATCH 1/6] DRIVERS: IRQCHIP: IRQ-GIC: Add support for routable
- irqs
-Date: Mon, 30 Sep 2013 20:30:43 +0530
-Message-ID: <5249921B.5020108@ti.com>
-References: <1380549564-31045-1-git-send-email-r.sricharan@ti.com> <1380549564-31045-2-git-send-email-r.sricharan@ti.com> <524987A3.4090204@arm.com> <5249890B.7020906@ti.com>
+From: Rob Herring <robherring2@gmail.com>
+Subject: Re: [RFC PATCH 0/6] DRIVERS: IRQCHIP: Add support for crossbar IP
+Date: Mon, 30 Sep 2013 10:09:53 -0500
+Message-ID: <52499441.1030403@gmail.com>
+References: <1380549564-31045-1-git-send-email-r.sricharan@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5249890B.7020906-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
-Cc: Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org" <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, "linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org" <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "rnayak-l0cyMroinI0@public.gmane.org" <rnayak-l0cyMroinI0@public.gmane.org>, "grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org" <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Mark Rutland <Mark.Rutland-5wv7dgnIgG8@public.gmane.org>
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <1380549564-31045-1-git-send-email-r.sricharan@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Sricharan R <r.sricharan@ti.com>
+Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, tglx@linutronix.de, linus.walleij@linaro.org, santosh.shilimkar@ti.com, linux@arm.linux.org.uk, tony@atomide.com, rnayak@ti.com, marc.zyngier@arm.com, grant.likely@linaro.org, mark.rutland@arm.com
 List-Id: linux-omap@vger.kernel.org
 
-On Monday 30 September 2013 07:52 PM, Santosh Shilimkar wrote:
-> On Monday 30 September 2013 10:16 AM, Marc Zyngier wrote:
->> On 30/09/13 14:59, Sricharan R wrote:
->>> In some socs the gic can be preceded by a crossbar IP which
->>> routes the peripheral interrupts to the gic inputs. The peripheral
->>> interrupts are associated with a fixed crossbar input line and the
->>> crossbar routes that to one of the free gic input line.
->>>
->>> The DT entries for peripherals provides the fixed crossbar input line
->>> as its interrupt number and the mapping code should associate this with
->>> a free gic input line. This patch adds the support inside the gic irqchip
->>> to handle such routable irqs. The routable irqs are registered in a linear
->>> domain. The registered routable domain's callback should be implemented
->>> to get a free irq and to configure the IP to route it.
->> Isn't this just another chained interrupt controller? How is it GIC
->> specific?
->>
-> No it isn't a irq controller rather a event router. Patch is missing
-> reference to the previous discussion. Previous discussion is here [1]
->
-> Regards,
-> Santosh
->
-> [1] https://lkml.org/lkml/2013/9/13/413
->
-Sorry, missed adding that and thanks for pointing it.
+On 09/30/2013 08:59 AM, Sricharan R wrote:
+> Some socs have a large number of interrupts requests to service
+> the needs of its many peripherals and subsystems. All of the interrupt
+> requests lines from the subsystems are not needed at the same
+> time, so they have to be muxed to the controllers appropriately.
+> In such places a interrupt controllers are preceded by an
+> IRQ CROSSBAR that provides flexibility in muxing the device interrupt
+> requests to the controller inputs.
+> 
+> This series models the peripheral interrupts that can be routed through
+> the crossbar to the GIC as 'routable-irqs'. The routable irqs are added
+> in a separate linear domain inside the GIC. The registered routable domain's
+> callback are invoked as a part of the GIC's callback, which in turn should
+> allocate a free irq line and configure the IP accordingly. So every peripheral
+> in the dts files mentions the fixed crossbar number as its interrupt. A free
+> gic line for that gets allocated and configured when the peripheral's interrupt
+> is mapped.
+> 
+> The minimal crossbar driver to track and allocate free GIC lines and configure the
+> crossbar is added here, along with the DT bindings.
 
-Regards,
- Sricharan
+Seems like interrupt-map property is what you need here.
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+http://devicetree.org/Device_Tree_Usage#Advanced_Interrupt_Mapping
+
+Versatile Express also has an example.
+
+Rob
+
+> 
+> Sricharan R (6):
+>   DRIVERS: IRQCHIP: IRQ-GIC: Add support for routable irqs
+>   DRIVERS: IRQCHIP: CROSSBAR: Add support for Crossbar IP
+>   ARM: DTS: DRA: Add crossbar device binding
+>   ARM: DTS: DRA: Replace peripheral interrupt numbers with crossbar
+>     inputs.
+>   ARM: OMAP4+: Correct Wakeup-gen code to use physical irq number
+>   ARM: DRA: Enable Crossbar IP support for DRA7XX
+> 
+>  Documentation/devicetree/bindings/arm/gic.txt      |    5 +
+>  .../devicetree/bindings/arm/omap/crossbar.txt      |   27 +++
+>  arch/arm/boot/dts/dra7.dtsi                        |   98 +++++-----
+>  arch/arm/mach-omap2/Kconfig                        |    1 +
+>  arch/arm/mach-omap2/omap-wakeupgen.c               |    4 +-
+>  arch/arm/mach-omap2/omap4-common.c                 |    4 +
+>  drivers/irqchip/Kconfig                            |    8 +
+>  drivers/irqchip/Makefile                           |    1 +
+>  drivers/irqchip/irq-crossbar.c                     |  195 ++++++++++++++++++++
+>  drivers/irqchip/irq-gic.c                          |   57 +++++-
+>  include/linux/irqchip/arm-gic.h                    |    8 +-
+>  include/linux/irqchip/irq-crossbar.h               |   11 ++
+>  12 files changed, 363 insertions(+), 56 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/arm/omap/crossbar.txt
+>  create mode 100644 drivers/irqchip/irq-crossbar.c
+>  create mode 100644 include/linux/irqchip/irq-crossbar.h
+> 
+
