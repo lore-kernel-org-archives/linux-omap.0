@@ -1,82 +1,53 @@
-From: Afzal Mohammed <afzal@ti.com>
-Subject: Re: [PATCH v4 07/11] ARM: OMAP2+: CM: AM43x clockdomain data
-Date: Mon, 30 Sep 2013 17:08:12 +0530
-Message-ID: <524962A4.5080405@ti.com>
-References: <cover.1380179370.git.afzal@ti.com> <a6758751113ef93bc912ccefb9cdb0ba383f19d5.1380179370.git.afzal@ti.com> <alpine.DEB.2.02.1309300927520.17980@utopia.booyaka.com> <52495B03.3050006@ti.com> <alpine.DEB.2.02.1309301107150.17980@utopia.booyaka.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH 19/51] DMA-API: media: dt3155v4l: replace dma_set_mask()+dma_set_coherent_mask()
+ with new helper
+Date: Mon, 30 Sep 2013 13:57:47 +0200
+Message-ID: <5249673B.5020705@xs4all.nl>
+References: <20130919212235.GD12758@n2100.arm.linux.org.uk> <E1VMm13-0007hO-9l@rmk-PC.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:49541 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754733Ab3I3Lik (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 30 Sep 2013 07:38:40 -0400
-In-Reply-To: <alpine.DEB.2.02.1309301107150.17980@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <E1VMm13-0007hO-9l@rmk-PC.arm.linux.org.uk>
+Sender: netdev-owner@vger.kernel.org
+To: Russell King <rmk+kernel@arm.linux.org.uk>
+Cc: alsa-devel@alsa-project.org, b43-dev@lists.infradead.org, devel@driverdev.osuosl.org, devicetree@vger.kernel.org, dri-devel@lists.freedesktop.org, e1000-devel@lists.sourceforge.net, linux-arm-kernel@lists.infradead.org, linux-crypto@vger.kernel.org, linux-doc@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-ide@vger.kernel.org, linux-media@vger.kernel.org, linux-mmc@vger.kernel.org, linux-nvme@lists.infradead.org, linux-omap@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-samsung-soc@vger.kernel.org, linux-scsi@vger.kernel.org, linux-tegra@vger.kernel.org, linux-usb@vger.kernel.org, linux-wireless@vger.kernel.org, netdev@vger.kernel.org, Solarflare linux maintainers <linux-net-drivers@solarflare.com>, uclinux-dist-devel@blackfin.uclinux.org, Mauro Carvalho Chehab <m.chehab@samsung.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Ambresh K <ambresh@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rajendra Nayak <rnayak@ti.com>
 
-Hi Paul,
-
-On Monday 30 September 2013 04:39 PM, Paul Walmsley wrote:
-> On Mon, 30 Sep 2013, Afzal Mohammed wrote:
-
->>> The references to "wkup_pwrdm" on some of these clockdomains don't 
->>> look right to me.  For example, this clockdomain is listed as being in 
->>> AM43XX_CM_WKUP_INST, but its enclosing powerdomain is listed as being in 
->>> AM43XX_PRM_WKUP_INST.  Looks to me like it's best to have two different 
->>> wakeup powerdomains: one CM_WKUP, and one PRM_WKUP.
->>
->> On AM43x, prcm is a single block as in AM335x and is part of wakeup
->> domain. This is different from OMAP4 that had separate prm and cm
->> blocks. Script also generated the same output.
-
-> Why are there two different address offsets for CM_WKUP and PRM_WKUP?  
-> From another patch in the series:
+On 09/19/2013 11:44 PM, Russell King wrote:
+> Replace the following sequence:
 > 
-> +#define AM43XX_PRM_WKUP_INST                           0x2000
+> 	dma_set_mask(dev, mask);
+> 	dma_set_coherent_mask(dev, mask);
 > 
-> ...
+> with a call to the new helper dma_set_mask_and_coherent().
 > 
-> +#define AM43XX_CM_WKUP_INST                            0x2800
+> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 
-AM43XX_PRM_WKUP_INST and AM43XX_CM_WKUP_INST are offsets from PRCM_BASE.
-We don't have separate base address for PRM & CM. This is similar to as
-that in AM335x, where it is 0xD00 and 0x400 respectively (both from same
-base) as in prm33xx.h & cm33xx.h.
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Please note that AM43XX_PRM_PARTITION and AM43XX_CM_PARTITION both are '1'.
+Regards,
 
-PRCM register details from TRM (not yet public) is mentioned below.
+	Hans
 
-Regards
-Afzal
-
-
-PRCM Functional Registers
-The table below shows the base address and address space for the PRCM
-module instances.
-Table 2. PRCM Instance Summary
-ModuleName	BaseAddress	Size
-OCP_SOCKET_PRM	0x0000		256 Bytes
-PRM_MPU		0x0300		256 Bytes
-PRM_GFX		0x0400		256 Bytes
-PRM_RTC		0x0500		256 Bytes
-PRM_TAMPER	0x0600		256 Bytes
-PRM_CEFUSE	0x0700		256 Bytes
-PRM_PER		0x0800		6 KBytes
-PRM_WKUP	0x2000		2 KBytes
-CM_WKUP		0x2800		2 KBytes
-PRM_DEVICE	0x4000		256 Bytes
-CM_DEVICE	0x4100		256 Bytes
-CM_DPLL		0x4200		256 Bytes
-CM_MPU		0x8300		256 Bytes
-CM_GFX		0x8400		256 Bytes
-CM_RTC		0x8500		256 Bytes
-CM_TAMPER	0x8600		256 Bytes
-CM_CEFUSE	0x8700		256 Bytes
-CM_PER		0x8800		6 KBytes
-
-
-
+> ---
+>  drivers/staging/media/dt3155v4l/dt3155v4l.c |    5 +----
+>  1 files changed, 1 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/staging/media/dt3155v4l/dt3155v4l.c b/drivers/staging/media/dt3155v4l/dt3155v4l.c
+> index 90d6ac4..081407b 100644
+> --- a/drivers/staging/media/dt3155v4l/dt3155v4l.c
+> +++ b/drivers/staging/media/dt3155v4l/dt3155v4l.c
+> @@ -901,10 +901,7 @@ dt3155_probe(struct pci_dev *pdev, const struct pci_device_id *id)
+>  	int err;
+>  	struct dt3155_priv *pd;
+>  
+> -	err = dma_set_mask(&pdev->dev, DMA_BIT_MASK(32));
+> -	if (err)
+> -		return -ENODEV;
+> -	err = dma_set_coherent_mask(&pdev->dev, DMA_BIT_MASK(32));
+> +	err = dma_set_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(32));
+>  	if (err)
+>  		return -ENODEV;
+>  	pd = kzalloc(sizeof(*pd), GFP_KERNEL);
+> 
