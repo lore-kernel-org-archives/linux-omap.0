@@ -1,50 +1,36 @@
-From: Daniel Mack <zonque@gmail.com>
-Subject: Re: [PATCH 1/4] usb: musb: am35x: use SIMPLE_DEV_PM_OPS
-Date: Mon, 30 Sep 2013 18:56:28 +0200
-Message-ID: <5249AD3C.5040601@gmail.com>
-References: <1379850421-7966-1-git-send-email-zonque@gmail.com> <20130923212009.GK309@radagast> <524137C4.1000104@gmail.com> <20130925134811.GH10746@radagast> <5245D2AE.6030400@gmail.com> <20130930162556.GD23534@radagast>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bk0-f43.google.com ([209.85.214.43]:57359 "EHLO
-	mail-bk0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755105Ab3I3Q4c (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Sep 2013 12:56:32 -0400
-In-Reply-To: <20130930162556.GD23534@radagast>
-Sender: linux-omap-owner@vger.kernel.org
+From: Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH v2 RESEND 1/3] usb: musb: am35x: use SIMPLE_DEV_PM_OPS
+Date: Mon, 30 Sep 2013 21:02:07 +0200
+Message-ID: <1380567729-27868-1-git-send-email-zonque@gmail.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, neumann-SRDuVqtxQLSzQB+pC5nmwQ@public.gmane.org, bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: linux-ubs@vger.kernel.org, linux-omap@vger.kernel.org, gregkh@linuxfoundation.org
 
-On 30.09.2013 18:25, Felipe Balbi wrote:
-> On Fri, Sep 27, 2013 at 08:47:10PM +0200, Daniel Mack wrote:
->> On 25.09.2013 15:48, Felipe Balbi wrote:
->>> On Tue, Sep 24, 2013 at 08:57:08AM +0200, Daniel Mack wrote:
->>>> On 23.09.2013 23:20, Felipe Balbi wrote:
->>>>> On Sun, Sep 22, 2013 at 01:46:58PM +0200, Daniel Mack wrote:
->>>>
->>>>>> -static struct dev_pm_ops am35x_pm_ops = {
->>>>>> -	.suspend	= am35x_suspend,
->>>>>> -	.resume		= am35x_resume,
->>>>>> -};
->>>>>> +static SIMPLE_DEV_PM_OPS(am35x_pm_ops, am35x_suspend, am35x_resume);
->>>>>
->>>>> you could as well remove the DEV_PM_OPS trickery. Ditto for all other
->>>>> patches
->>>>
->>>> Yes, I noticed that too. That's why I sent out a v2 of the series :)
->>>
->>> Awesome :-) Thanks dude
->>
->> So are you happy with this v2?
->> It's just a cosmetic cleanup after all ...
-> 
-> I can't see v2 anywhere... The only version I have is the one with
-> DEV_PM_OPS still in it.
+This makes am35x_pm_ops const and will stub the struct out in case
+CONFIG_PM_SLEEP is not set.
 
-Ok, I'll resend them later.
+Signed-off-by: Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+---
 
+I'm resending this series because I've just learned that
+SIMPLE_DEV_PM_OPS will stub itself out in case CONFIG_PM_SLEEP is
+not set. That makes the the code even smaller.
 
-Daniel
+ drivers/usb/musb/am35x.c | 13 +++----------
+ 1 file changed, 3 insertions(+), 10 deletions(-)
 
+diff --git a/drivers/usb/musb/am35x.c b/drivers/usb/musb/am35x.c
+index 5c310c6..7f1e990 100644
+--- a/drivers/usb/musb/am35x.c
++++ b/drivers/usb/musb/am35x.c
+@@ -615,23 +615,16 @@ static int am35x_resume(struct device *dev)
+ 
+ 	return 0;
+ }
+-
+-static struct dev_pm_ops am35x_pm_ops = {
+-	.suspend	= am35x_suspend,
+-	.resume		= am35x_resume,
+-};
