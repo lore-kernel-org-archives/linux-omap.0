@@ -1,53 +1,71 @@
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH 19/51] DMA-API: media: dt3155v4l: replace dma_set_mask()+dma_set_coherent_mask()
- with new helper
-Date: Mon, 30 Sep 2013 13:57:47 +0200
-Message-ID: <5249673B.5020705@xs4all.nl>
-References: <20130919212235.GD12758@n2100.arm.linux.org.uk> <E1VMm13-0007hO-9l@rmk-PC.arm.linux.org.uk>
+From: Afzal Mohammed <afzal@ti.com>
+Subject: Re: [PATCH v4 06/11] ARM: OMAP2+: PM: AM43x powerdomain data
+Date: Mon, 30 Sep 2013 17:44:12 +0530
+Message-ID: <52496B14.9090902@ti.com>
+References: <cover.1380179370.git.afzal@ti.com> <a3264d8cfea31ba2418ee015b772bef6d5a7ca0a.1380179370.git.afzal@ti.com> <alpine.DEB.2.02.1309301025500.17980@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <E1VMm13-0007hO-9l@rmk-PC.arm.linux.org.uk>
-Sender: netdev-owner@vger.kernel.org
-To: Russell King <rmk+kernel@arm.linux.org.uk>
-Cc: alsa-devel@alsa-project.org, b43-dev@lists.infradead.org, devel@driverdev.osuosl.org, devicetree@vger.kernel.org, dri-devel@lists.freedesktop.org, e1000-devel@lists.sourceforge.net, linux-arm-kernel@lists.infradead.org, linux-crypto@vger.kernel.org, linux-doc@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-ide@vger.kernel.org, linux-media@vger.kernel.org, linux-mmc@vger.kernel.org, linux-nvme@lists.infradead.org, linux-omap@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-samsung-soc@vger.kernel.org, linux-scsi@vger.kernel.org, linux-tegra@vger.kernel.org, linux-usb@vger.kernel.org, linux-wireless@vger.kernel.org, netdev@vger.kernel.org, Solarflare linux maintainers <linux-net-drivers@solarflare.com>, uclinux-dist-devel@blackfin.uclinux.org, Mauro Carvalho Chehab <m.chehab@samsung.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:42461 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754547Ab3I3MOm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 30 Sep 2013 08:14:42 -0400
+In-Reply-To: <alpine.DEB.2.02.1309301025500.17980@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>, Ambresh K <ambresh@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rajendra Nayak <rnayak@ti.com>
 
-On 09/19/2013 11:44 PM, Russell King wrote:
-> Replace the following sequence:
-> 
-> 	dma_set_mask(dev, mask);
-> 	dma_set_coherent_mask(dev, mask);
-> 
-> with a call to the new helper dma_set_mask_and_coherent().
-> 
-> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+Hi Paul,
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+On Monday 30 September 2013 03:57 PM, Paul Walmsley wrote:
+> On Thu, 26 Sep 2013, Afzal Mohammed wrote:
 
-Regards,
-
-	Hans
-
-> ---
->  drivers/staging/media/dt3155v4l/dt3155v4l.c |    5 +----
->  1 files changed, 1 insertions(+), 4 deletions(-)
+>> From: Ambresh K <ambresh@ti.com>
+>>
+>> Add the data file to describe all power domains in AM43x SoC.
+>> OMAP4 powerdomain operations is being reused here.
+>>
+>> Signed-off-by: Ambresh K <ambresh@ti.com>
+>> Signed-off-by: Afzal Mohammed <afzal@ti.com>
 > 
-> diff --git a/drivers/staging/media/dt3155v4l/dt3155v4l.c b/drivers/staging/media/dt3155v4l/dt3155v4l.c
-> index 90d6ac4..081407b 100644
-> --- a/drivers/staging/media/dt3155v4l/dt3155v4l.c
-> +++ b/drivers/staging/media/dt3155v4l/dt3155v4l.c
-> @@ -901,10 +901,7 @@ dt3155_probe(struct pci_dev *pdev, const struct pci_device_id *id)
->  	int err;
->  	struct dt3155_priv *pd;
->  
-> -	err = dma_set_mask(&pdev->dev, DMA_BIT_MASK(32));
-> -	if (err)
-> -		return -ENODEV;
-> -	err = dma_set_coherent_mask(&pdev->dev, DMA_BIT_MASK(32));
-> +	err = dma_set_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(32));
->  	if (err)
->  		return -ENODEV;
->  	pd = kzalloc(sizeof(*pd), GFP_KERNEL);
+> ...
 > 
+>> --- /dev/null
+>> +++ b/arch/arm/mach-omap2/powerdomains43xx_data.c
+>> @@ -0,0 +1,142 @@
+> 
+> ...
+> 
+>> +static struct powerdomain per_43xx_pwrdm = {
+>> +	.name		  = "per_pwrdm",
+>> +	.voltdm		  = { .name = "core" },
+>> +	.prcm_offs	  = AM43XX_PRM_PER_INST,
+>> +	.prcm_partition	  = AM43XX_PRM_PARTITION,
+>> +	.pwrsts		  = PWRSTS_OFF_RET_ON,
+>> +	.pwrsts_logic_ret = PWRSTS_OFF_RET,
+>> +	.banks		  = 4,
+>> +	.pwrsts_mem_ret	= {
+>> +		[0] = PWRSTS_OFF_RET,	/* icss_mem */
+>> +		[1] = PWRSTS_OFF_RET,	/* per_mem */
+>> +		[2] = PWRSTS_OFF_RET,	/* ram1_mem */
+>> +		[3] = PWRSTS_OFF_RET,	/* ram2_mem */
+>> +	},
+>> +	.pwrsts_mem_on	= {
+>> +		[0] = PWRSTS_OFF_RET,	/* icss_mem */
+>> +		[1] = PWRSTS_ON,	/* per_mem */
+>> +		[2] = PWRSTS_OFF_RET,	/* ram1_mem */
+>> +		[3] = PWRSTS_OFF_RET,	/* ram2_mem */
+>> +	},
+>> +	.flags		  = PWRDM_HAS_LOWPOWERSTATECHANGE,
+>> +};
+> 
+> The pwrsts_mem_on flags don't make any sense here for banks 0, 2, and 3.  
+> They claim that those banks can never be turned on.  Could you please 
+> doublecheck these?
+
+Checked it, they should be PWRSTS_ON, I will fix it.
+
+Regards
+Afzal
