@@ -1,69 +1,74 @@
-From: Balaji T K <balajitk@ti.com>
-Subject: Re: using mmc2 on panda [was: Regression 3.11-rc1: omap4panda: no
- usb and consequently no ethernet]
-Date: Tue, 1 Oct 2013 18:49:02 +0530
-Message-ID: <524ACBC6.5060208@ti.com>
-References: <51E7AA24.6080600@broadcom.com> <20130718085951.GT7656@atomide.com> <51E916C0.8080206@broadcom.com> <51E919CA.8060805@ti.com> <51E91B80.1050609@broadcom.com> <524A823F.6070209@broadcom.com> <524A9AB8.4010407@ti.com> <524A9BB2.2050503@ti.com> <524AA9C1.2000303@broadcom.com> <524ABD60.1010206@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:44249 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751834Ab3JANTR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 1 Oct 2013 09:19:17 -0400
-In-Reply-To: <524ABD60.1010206@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 1/3] dma: cppi41: restore more registers
+Date: Tue,  1 Oct 2013 15:31:09 +0200
+Message-ID: <1380634271-27588-2-git-send-email-zonque@gmail.com>
+References: <1380634271-27588-1-git-send-email-zonque@gmail.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1380634271-27588-1-git-send-email-zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, neumann-SRDuVqtxQLSzQB+pC5nmwQ@public.gmane.org, bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Arend van Spriel <arend@broadcom.com>
-Cc: Roger Quadros <rogerq@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, luca@coelho.fi
 
->>>>> Hi Roger,
->>>>>
->>>>> It has been a while, but I would like to pickup this thread. We have a couple of pandaboards used as test setup. These have an SDIO adapter hooked up to expansion connector A using MMC2. I have attached the patch file (just ignore platform_data stuff). Now on one board it works, but not for the other. I suspect a board issue so listing the two types that we use:
->>>>>
->>>>> PandaBoard rev A2 (dmesg: OMAP4430 ES2.1): works
->>>>> PandaBoardES rev B1 (dmesg: OMAP4460 ES1.1): nope
->>>>>
->>>>> Any hints for me.
->>>>
->>>> Does your PandaboardES have the WLAN chip (U4) mounted? If yes, how do you isolate
->>>> it from your external SDIO adapter?
->>
->> On my 4460 board in front of me U4 is not populated, but U3 is (the TiWi thing).
->>
->>>
->>> OK, just realized that the expansion connector uses different pads for MMC2. However, you still
->>> need to make sure that the other pins (connected to on board WLAN chip) are not muxed as MMC2.
->>
->> I think Luciano added DT patches for on-board WLAN and it uses MMC5 if I am not mistaken(?). Attached are the dmesg logs of the two boards.
->
-> Right. WLAN is supposed to use MMC5. But if you don't have Luca's patches, can you please ensure that those pins are muxed either as safe mode
-> or as MMC5? Default seems to be safe mode, but you should cross check.
->
-> Also in your patches you have set mmc2-clk to PIN_INPUT_PULLUP
-> Shouldn't it be PIN_OUTPUT?
->
-> Still I have no clue why it works on 4430 and not on 4460. Are you using the same bootloader image on both boards?
->
-if you are using vaux1, can you check the voltage levels,
+With active users over suspend/resume cycles, it turns out that
+more registers, in particular DMA_TDFDQ and RXHPCRA0, have to be
+restored on resume.
 
- From dmesg you attached,
-vaux1 is set to 1.8V on omap4430 and to 2.8V on OMAP4460
+Signed-off-by: Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+---
+ drivers/dma/cppi41.c | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
-4430
-[    2.425750] VAUX1_6030: 1000 <--> 3000 mV at 1800 mV
+diff --git a/drivers/dma/cppi41.c b/drivers/dma/cppi41.c
+index 89decc9..9a298b1 100644
+--- a/drivers/dma/cppi41.c
++++ b/drivers/dma/cppi41.c
+@@ -141,6 +141,9 @@ struct cppi41_dd {
+ 	const struct chan_queues *queues_rx;
+ 	const struct chan_queues *queues_tx;
+ 	struct chan_queues td_queue;
++
++	/* context for suspend/resume */
++	unsigned int dma_tdfdq;
+ };
+ 
+ #define FIST_COMPLETION_QUEUE	93
+@@ -1045,6 +1048,7 @@ static int cppi41_suspend(struct device *dev)
+ {
+ 	struct cppi41_dd *cdd = dev_get_drvdata(dev);
+ 
++	cdd->dma_tdfdq = cppi_readl(cdd->ctrl_mem + DMA_TDFDQ);
+ 	cppi_writel(0, cdd->usbss_mem + USBSS_IRQ_CLEARR);
+ 	disable_sched(cdd);
+ 
+@@ -1054,12 +1058,23 @@ static int cppi41_suspend(struct device *dev)
+ static int cppi41_resume(struct device *dev)
+ {
+ 	struct cppi41_dd *cdd = dev_get_drvdata(dev);
++	struct cppi41_channel *c;
+ 	int i;
+ 
+ 	for (i = 0; i < DESCS_AREAS; i++)
+ 		cppi_writel(cdd->descs_phys, cdd->qmgr_mem + QMGR_MEMBASE(i));
+ 
++	list_for_each_entry(c, &cdd->ddev.channels, chan.device_node)
++		if (!c->is_tx)
++			cppi_writel(c->q_num, c->gcr_reg + RXHPCRA0);
++
+ 	init_sched(cdd);
++
++	cppi_writel(cdd->dma_tdfdq, cdd->ctrl_mem + DMA_TDFDQ);
++	cppi_writel(cdd->scratch_phys, cdd->qmgr_mem + QMGR_LRAM0_BASE);
++	cppi_writel(QMGR_SCRATCH_SIZE, cdd->qmgr_mem + QMGR_LRAM_SIZE);
++	cppi_writel(0, cdd->qmgr_mem + QMGR_LRAM1_BASE);
++
+ 	cppi_writel(USBSS_IRQ_PD_COMP, cdd->usbss_mem + USBSS_IRQ_ENABLER);
+ 
+ 	return 0;
+-- 
+1.8.3.1
 
-4460
-[    2.244262] VAUX1_6030: 1000 <--> 3000 mV at 2800 mV
-
-Can you also check with MMC_DEBUG enabled for any clues.
-
-> cheers,
-> -roger
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
