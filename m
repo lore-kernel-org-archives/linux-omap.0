@@ -1,227 +1,157 @@
-From: "Arend van Spriel" <arend@broadcom.com>
-Subject: using mmc2 on panda [was: Regression 3.11-rc1: omap4panda: no
- usb and consequently no ethernet]
-Date: Tue, 1 Oct 2013 10:05:19 +0200
-Message-ID: <524A823F.6070209@broadcom.com>
-References: <51E7AA24.6080600@broadcom.com>
- <20130718085951.GT7656@atomide.com> <51E916C0.8080206@broadcom.com>
- <51E919CA.8060805@ti.com> <51E91B80.1050609@broadcom.com>
+From: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
+Subject: Re: [PATCHv2 1/9] hwspinlock/core: add common dt bindings and OF
+ helpers
+Date: Tue, 1 Oct 2013 09:36:02 +0100
+Message-ID: <20131001083602.GG22259@e106331-lin.cambridge.arm.com>
+References: <cover.1379445653.git.s-anna@ti.com>
+ <4df03ac30dcc79132e3acc2e586d0ca99b431258.1379445653.git.s-anna@ti.com>
+ <14DB8294-1148-446A-A6D3-34E66BA8732C@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary=------------000307010108090003000303
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mms3.broadcom.com ([216.31.210.19]:1922 "EHLO mms3.broadcom.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752092Ab3JAIGl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 1 Oct 2013 04:06:41 -0400
-In-Reply-To: <51E91B80.1050609@broadcom.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <14DB8294-1148-446A-A6D3-34E66BA8732C-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+Cc: Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
+Hi Suman,
 
---------------000307010108090003000303
-Content-Type: text/plain;
- charset=iso-8859-1;
- format=flowed
-Content-Transfer-Encoding: 7bit
+Apologies for replying to a subthread, due to an earlier mistake on my
+part I don't have the original to hand.
 
-On 07/19/2013 12:57 PM, Arend van Spriel wrote:
-> On 07/19/2013 12:49 PM, Roger Quadros wrote:
->> On 07/19/2013 01:36 PM, Arend van Spriel wrote:
->>> On 07/18/2013 10:59 AM, Tony Lindgren wrote:
->>>> Then for the SDIO with device tree, take a look at the following
->>>> patches:
->>>>
->>>> [PATCH 0/3] WLAN support for omap4 when booted with devicetree
->>>> http://comments.gmane.org/gmane.linux.ports.arm.omap/97522#
->>>
->>> I have been looking at the pandaboard patch in the series above and I
->>> do have a question. Among other things the patch adds these dt entries.
->>>
->>> +            0x108 0x118    /* sdmmc5_clk.sdmmc5_clk INPUT_PULLUP |
->>> MODE0 */
->>> +            0x10a 0x118    /* sdmmc5_cmd.sdmmc5_cmd INPUT_PULLUP |
->>> MODE0 */
->>>
->>> If I look at the similar names in the deceased board-omap4panda.c:
->>>
->>> board-omap4panda.c:    OMAP4_MUX(SDMMC5_CMD, OMAP_MUX_MODE0 |
->>> OMAP_PIN_INPUT_PULLUP),
->>> board-omap4panda.c:    OMAP4_MUX(SDMMC5_CLK, OMAP_MUX_MODE0 |
->>> OMAP_PIN_INPUT_PULLUP),
->>>
->>> and in mux44xx.h:
->>>
->>> mux44xx.h:#define OMAP4_CTRL_MODULE_PAD_SDMMC5_CLK_OFFSET    0x0148
->>> mux44xx.h:#define OMAP4_CTRL_MODULE_PAD_SDMMC5_CMD_OFFSET    0x014a
->>>
->>> So how did 0x0148 get 0x0108 in DT and 0x014a get 0x010a. There is
->>> probably an explanation to it and it would help my understanding to
->>> know where this difference comes from. Hope you can help me out here.
->>>
->>
->> If you see omap4.dtsi, omap4_pmx_core starts at register address
->> 0x4a100040.
->>
->> So, you need to subtract 0x40 from the offsets defined in mux44xx.h
->> for pmx_core registers.
->
-> That was what I was looking for. Thanks!
+On Fri, Sep 27, 2013 at 05:04:22PM +0100, Kumar Gala wrote:
+> 
+> On Sep 17, 2013, at 2:30 PM, Suman Anna wrote:
+> 
+> > All the platform-specific hwlock driver implementations need the
+> > number of locks and the associated base id for registering the
+> > locks present within a hwspinlock device with the driver core.
+> > These two variables are represented by 'hwlock-num-locks' and
+> > 'hwlock-base-id' properties. The documentation and OF helpers to
+> > retrieve these common properties have been added to the driver core.
+> > 
+> > Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+> > ---
+> > .../devicetree/bindings/hwlock/hwlock.txt          | 26 +++++++++
+> > drivers/hwspinlock/hwspinlock_core.c               | 61 +++++++++++++++++++++-
+> > include/linux/hwspinlock.h                         | 11 ++--
+> > 3 files changed, 93 insertions(+), 5 deletions(-)
+> > create mode 100644 Documentation/devicetree/bindings/hwlock/hwlock.txt
+> > 
+> > diff --git a/Documentation/devicetree/bindings/hwlock/hwlock.txt b/Documentation/devicetree/bindings/hwlock/hwlock.txt
+> > new file mode 100644
+> > index 0000000..789930e
+> > --- /dev/null
+> > +++ b/Documentation/devicetree/bindings/hwlock/hwlock.txt
+> > @@ -0,0 +1,26 @@
+> > +Generic hwlock bindings
+> > +=======================
+> > +
+> > +Generic bindings that are common to all the hwlock platform specific driver
+> > +implementations, the retrieved values are used for registering the device
+> > +specific parameters with the hwspinlock core.
+> > +
+> > +The validity and need of these common properties may vary from one driver
+> > +implementation to another. Look through the individual hwlock driver
+> > +binding documentations for identifying which are mandatory and which are
+> > +optional for that specific driver.
+> > +
+> > +Common properties:
+> > +- hwlock-base-id:	Base Id for the locks for a particular hwlock device.
+> > +			This property is used for representing a set of locks
+> > +			present in a hwlock device with a unique base id in
+> > +			the driver core. This property is mandatory ONLY if a
+> > +			SoC has several hwlock devices.
+> > +
+> > +			See documentation on struct hwspinlock_pdata in
+> > +			linux/hwspinlock.h for more details.
 
-Hi Roger,
+I don't like this, as it seems to be encoding a Linux implementation
+detail (the ID of the lock, which means that we have to have a numeric
+representation of each hwlock) in the device tree.
 
-It has been a while, but I would like to pickup this thread. We have a 
-couple of pandaboards used as test setup. These have an SDIO adapter 
-hooked up to expansion connector A using MMC2. I have attached the patch 
-file (just ignore platform_data stuff). Now on one board it works, but 
-not for the other. I suspect a board issue so listing the two types that 
-we use:
+I don't see why the ID within Linux should be a concern of the device
+tree binding. I think that whatever internal identifier we have in Linux
+(be it an integer or struct) should be allocated by Linux. If a driver
+needs to request specific hwlocks, then we should have a phandle + args
+representation for referring to a specific hwlock that bidnings can use,
+and some code for parsing that and returning a Linux-internal
+identifier/struct as we do with interrupts and clocks.
 
-PandaBoard rev A2 (dmesg: OMAP4430 ES2.1): works
-PandaBoardES rev B1 (dmesg: OMAP4460 ES1.1): nope
+> > +
+> > +- hwlock-num-locks:	Number of locks present in a hwlock device. This
+> > +			property is needed on hwlock devices, where the number
+> > +			of supported locks within a hwlock device cannot be
+> > +			read from a register.
 
-Any hints for me.
+Hmm... this seems generic, but it doesn't allow for sparse ID spaces on
+the hwlock module. It should probably be common for the moment, but if
+we encounter a hwlock module with a sparse ID space, we'll need to come
+up with a way of handling sparse IDs (that might be device-specific).
 
-Regards,
-Arend
+> > diff --git a/drivers/hwspinlock/hwspinlock_core.c b/drivers/hwspinlock/hwspinlock_core.c
+> > index 461a0d7..aec32e7 100644
+> > --- a/drivers/hwspinlock/hwspinlock_core.c
+> > +++ b/drivers/hwspinlock/hwspinlock_core.c
+> > @@ -1,7 +1,7 @@
+> > /*
+> >  * Hardware spinlock framework
+> >  *
+> > - * Copyright (C) 2010 Texas Instruments Incorporated - http://www.ti.com
+> > + * Copyright (C) 2010-2013 Texas Instruments Incorporated - http://www.ti.com
+> >  *
+> >  * Contact: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
+> >  *
+> > @@ -27,6 +27,7 @@
+> > #include <linux/hwspinlock.h>
+> > #include <linux/pm_runtime.h>
+> > #include <linux/mutex.h>
+> > +#include <linux/of.h>
+> > 
+> > #include "hwspinlock_internal.h"
+> > 
+> > @@ -308,6 +309,64 @@ out:
+> > }
+> > 
+> > /**
+> > + * of_hwspin_lock_get_base_id() - OF helper to retrieve base id
+> > + * @dn: device node pointer
+> > + *
+> > + * This is an OF helper function that can be called by the underlying
+> > + * platform-specific implementations, to retrieve the base id for the
+> > + * set of locks present within a hwspinlock device instance.
+> > + *
+> > + * Returns the base id value on success, -ENODEV on generic failure or
+> > + * an appropriate error code as returned by the OF layer
+> > + */
+> > +int of_hwspin_lock_get_base_id(struct device_node *dn)
+> > +{
+> > +	unsigned int val;
+> > +	int ret = -ENODEV;
+> > +
+> > +#ifdef CONFIG_OF
+> > +	if (!dn)
+> > +		return -ENODEV;
+> 
+> Checking !dn is done in of_property_read_u32, so you don't need to duplicate
+> 
+> > +
+> > +	ret = of_property_read_u32(dn, "hwlock-base-id", &val);
+> > +	if (!ret)
+> > +		ret = val;
+> > +#endif
 
->> NOTE: omap4_pmx_wkup starts at a different address. Those are for
->> wakeup domain
->> control registers.
->
-> Will keep that in mind.
->
-> Regards,
-> Arend
->
+Do we need the CONFIG_OF check? of_property_read_u32 is defined to
+return -ENOSYS if CONFIG_OF isn't defined. Or would that confuse a
+higher layer?
 
+Similarly elsewhere in the file.
 
---------------000307010108090003000303
-Content-Type: text/plain;
- name=0001-brcmfmac-add-device-tree-support-for-panda-board.patch
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename=0001-brcmfmac-add-device-tree-support-for-panda-board.patch
-
->From 4a20162935b27e23ec7ddc818c9fe6b451c1a968 Mon Sep 17 00:00:00 2001
-From: Arend van Spriel <arend@broadcom.com>
-Date: Thu, 22 Aug 2013 12:29:23 +0200
-Subject: [PATCH] brcmfmac: add device tree support for panda board
-
-In linux mainline the pandaboard specific code moved to using
-the device tree. Changing our internal patches to get platform
-specific info from the device tree.
-
-Signed-off-by: Arend van Spriel <arend@broadcom.com>
----
- arch/arm/boot/dts/omap4-panda-common.dtsi |   20 +++++++++++++++-
- arch/arm/mach-omap2/devices.c             |   36 ++++++++++++++++++++++++++++-
- 2 files changed, 54 insertions(+), 2 deletions(-)
-
-diff --git a/arch/arm/boot/dts/omap4-panda-common.dtsi b/arch/arm/boot/dts/omap4-panda-common.dtsi
-index faa95b5..6ebeb8e 100644
---- a/arch/arm/boot/dts/omap4-panda-common.dtsi
-+++ b/arch/arm/boot/dts/omap4-panda-common.dtsi
-@@ -226,6 +226,22 @@
- 			0xf0 (PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c4_sda */
- 		>;
- 	};
-+	mmc2_brcmf_en: pinmux_mmc2_brcmf_en {
-+		pinctrl-single,pins = <
-+			0x92 (PIN_OUTPUT | MUX_MODE3)		/* brcmf-power */
-+		>;
-+	};
-+	mmc2_pins: pinmux_mmc2_pins {
-+		pinctrl-single,pins = <
-+			0x44 (MUX_MODE1 | PIN_INPUT_PULLUP)	/* mmc2-cmd */
-+			0x42 (MUX_MODE1 | PIN_INPUT_PULLUP)	/* mmc2-clk */
-+			0x00 (MUX_MODE1 | PIN_INPUT_PULLUP)	/* mmc2-dat 0-3 */
-+			0x02 (MUX_MODE1 | PIN_INPUT_PULLUP)
-+			0x04 (MUX_MODE1 | PIN_INPUT_PULLUP)
-+			0x06 (MUX_MODE1 | PIN_INPUT_PULLUP)
-+			0x9a (MUX_MODE3 | PIN_INPUT_PULLDOWN)	/* oob-irq */
-+		>;
-+	};
- };
- 
- &omap4_pmx_wkup {
-@@ -302,7 +318,9 @@
- };
- 
- &mmc2 {
--	status = "disabled";
-+	vmmc-supply = <&vaux1>;
-+	bus-width = <4>;
-+	non-removable;
- };
- 
- &mmc3 {
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index 3c1279f..7a47535 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -21,7 +21,7 @@
- #include <linux/platform_data/omap4-keypad.h>
- #include <linux/wl12xx.h>
- #include <linux/platform_data/mailbox-omap.h>
--
-+#include <linux/platform_data/brcmfmac-sdio.h>
- #include <asm/mach-types.h>
- #include <asm/mach/map.h>
- 
-@@ -547,6 +547,39 @@ static inline void omap_init_wl12xx_of(void)
- }
- #endif
- 
-+#define GPIO_BRCMF_SDIO_PWR	134
-+#define GPIO_BRCMF_SDIO_OOB	138
-+static struct brcmfmac_sdio_platform_data brcmfmac_sdio_pdata;
-+
-+static struct platform_device brcmf_sdio_device = {
-+	.name		= BRCMFMAC_SDIO_PDATA_NAME,
-+	.id		= PLATFORM_DEVID_NONE,
-+	.dev.platform_data	= &brcmfmac_sdio_pdata
-+};
-+
-+static struct gpio brcmf_sdio_gpios[] __initdata = {
-+	{ GPIO_BRCMF_SDIO_PWR,	GPIOF_OUT_INIT_HIGH,	"brcmf_sdio_pwr"},
-+	{ GPIO_BRCMF_SDIO_OOB,	GPIOF_IN,		"brcmf_sdio_oob"},
-+};
-+
-+void __init omap_init_brcmfmac_of(void)
-+{
-+	if (!of_have_populated_dt())
-+		return;
-+
-+	if (!of_machine_is_compatible("ti,omap4-panda"))
-+		return;
-+
-+	if (gpio_request_array(brcmf_sdio_gpios,
-+			       ARRAY_SIZE(brcmf_sdio_gpios))) {
-+		pr_err("%s: failed to request gpio array\n", __func__);
-+		return;
-+	}
-+
-+	brcmfmac_sdio_pdata.oob_irq_supported = false;
-+	platform_device_register(&brcmf_sdio_device);
-+}
-+
- /*-------------------------------------------------------------------------*/
- 
- static int __init omap2_init_devices(void)
-@@ -573,6 +606,7 @@ static int __init omap2_init_devices(void)
- 	} else {
- 		/* These can be removed when bindings are done */
- 		omap_init_wl12xx_of();
-+		omap_init_brcmfmac_of();
- 	}
- 	omap_init_sti();
- 	omap_init_rng();
--- 
-1.7.10.4
-
-
---------------000307010108090003000303--
-
+Cheers,
+Mark.
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
