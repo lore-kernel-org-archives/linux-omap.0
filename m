@@ -1,606 +1,227 @@
-From: Benoit Cousson <bcousson@baylibre.com>
-Subject: Re: [RFC 00/15] Device Tree schemas and validation
-Date: Tue, 01 Oct 2013 10:06:33 +0200
-Message-ID: <524A8289.3050107@baylibre.com>
-References: <1380041541-17529-1-git-send-email-bcousson@baylibre.com>
+From: "Arend van Spriel" <arend@broadcom.com>
+Subject: using mmc2 on panda [was: Regression 3.11-rc1: omap4panda: no
+ usb and consequently no ethernet]
+Date: Tue, 1 Oct 2013 10:05:19 +0200
+Message-ID: <524A823F.6070209@broadcom.com>
+References: <51E7AA24.6080600@broadcom.com>
+ <20130718085951.GT7656@atomide.com> <51E916C0.8080206@broadcom.com>
+ <51E919CA.8060805@ti.com> <51E91B80.1050609@broadcom.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed;
+ boundary=------------000307010108090003000303
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f173.google.com ([209.85.212.173]:59352 "EHLO
-	mail-wi0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751769Ab3JAIGi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Oct 2013 04:06:38 -0400
-Received: by mail-wi0-f173.google.com with SMTP id hq15so5108182wib.6
-        for <linux-omap@vger.kernel.org>; Tue, 01 Oct 2013 01:06:37 -0700 (PDT)
-In-Reply-To: <1380041541-17529-1-git-send-email-bcousson@baylibre.com>
+Received: from mms3.broadcom.com ([216.31.210.19]:1922 "EHLO mms3.broadcom.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752092Ab3JAIGl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 1 Oct 2013 04:06:41 -0400
+In-Reply-To: <51E91B80.1050609@broadcom.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Rutland <mark.rutland@arm.com>, swarren@wwwdotorg.org, rob.herring@calxeda.com, Pawel Moll <pawel.moll@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>
-Cc: olof@lixom.net, devicetree@vger.kernel.org, tomasz.figa@gmail.com, grant.likely@secretlab.ca, khilman@linaro.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, fparent@baylibre.com
+To: Roger Quadros <rogerq@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-+ more DT maintainers folks
 
-Hi all,
+--------------000307010108090003000303
+Content-Type: text/plain;
+ charset=iso-8859-1;
+ format=flowed
+Content-Transfer-Encoding: 7bit
 
-I know this is mostly boring user space code, but I was expecting a 
-little bit of comments about at least the bindings syntax:-(
+On 07/19/2013 12:57 PM, Arend van Spriel wrote:
+> On 07/19/2013 12:49 PM, Roger Quadros wrote:
+>> On 07/19/2013 01:36 PM, Arend van Spriel wrote:
+>>> On 07/18/2013 10:59 AM, Tony Lindgren wrote:
+>>>> Then for the SDIO with device tree, take a look at the following
+>>>> patches:
+>>>>
+>>>> [PATCH 0/3] WLAN support for omap4 when booted with devicetree
+>>>> http://comments.gmane.org/gmane.linux.ports.arm.omap/97522#
+>>>
+>>> I have been looking at the pandaboard patch in the series above and I
+>>> do have a question. Among other things the patch adds these dt entries.
+>>>
+>>> +            0x108 0x118    /* sdmmc5_clk.sdmmc5_clk INPUT_PULLUP |
+>>> MODE0 */
+>>> +            0x10a 0x118    /* sdmmc5_cmd.sdmmc5_cmd INPUT_PULLUP |
+>>> MODE0 */
+>>>
+>>> If I look at the similar names in the deceased board-omap4panda.c:
+>>>
+>>> board-omap4panda.c:    OMAP4_MUX(SDMMC5_CMD, OMAP_MUX_MODE0 |
+>>> OMAP_PIN_INPUT_PULLUP),
+>>> board-omap4panda.c:    OMAP4_MUX(SDMMC5_CLK, OMAP_MUX_MODE0 |
+>>> OMAP_PIN_INPUT_PULLUP),
+>>>
+>>> and in mux44xx.h:
+>>>
+>>> mux44xx.h:#define OMAP4_CTRL_MODULE_PAD_SDMMC5_CLK_OFFSET    0x0148
+>>> mux44xx.h:#define OMAP4_CTRL_MODULE_PAD_SDMMC5_CMD_OFFSET    0x014a
+>>>
+>>> So how did 0x0148 get 0x0108 in DT and 0x014a get 0x010a. There is
+>>> probably an explanation to it and it would help my understanding to
+>>> know where this difference comes from. Hope you can help me out here.
+>>>
+>>
+>> If you see omap4.dtsi, omap4_pmx_core starts at register address
+>> 0x4a100040.
+>>
+>> So, you need to subtract 0x40 from the offsets defined in mux44xx.h
+>> for pmx_core registers.
+>
+> That was what I was looking for. Thanks!
 
-I'd like to know if this is the right direction and if it worth pursuing 
-in that direction.
+Hi Roger,
 
-The idea was to have at least some base for further discussion during 
-ARM KS 2013.
+It has been a while, but I would like to pickup this thread. We have a 
+couple of pandaboards used as test setup. These have an SDIO adapter 
+hooked up to expansion connector A using MMC2. I have attached the patch 
+file (just ignore platform_data stuff). Now on one board it works, but 
+not for the other. I suspect a board issue so listing the two types that 
+we use:
 
-I feel alone :-(
+PandaBoard rev A2 (dmesg: OMAP4430 ES2.1): works
+PandaBoardES rev B1 (dmesg: OMAP4460 ES1.1): nope
 
-If you have any comment, go ahead!
+Any hints for me.
 
-Thanks,
-Benoit
+Regards,
+Arend
 
-On 24/09/2013 18:52, Benoit Cousson wrote:
-> Hi All,
->
-> Following the discussion that happened during LCE-2013 and the email
-> thread started by Tomasz few months ago [1], here is a first attempt
-> to introduce:
-> - a schema language to define the bindings accurately
-> - DTS validation during device tree compilation in DTC itself
->
-> [1] http://www.spinics.net/lists/arm-kernel/msg262224.html
->
->
-> === What it does? ===
->
-> For now device-tree bindings are defined in a not standardized
-> text-based format and thus any one can write the documentation for a
-> binding as he wish. In addition to this there is no automated way to
-> check if a dts is conform to the available bindings.
->
-> The goal of this series of patch is to fix this situation by adding a
-> well defined way to write bindings in a human-readable format. These
-> bindings will be written through files called "schemas".
->
->
-> === What is a schema? ===
->
-> A schema is a file describing the constraints that one or several nodes
-> of a dts must conform to. Schemas must use the file extension ".schema".
-> A schema can check that:
-> 	- A node has a given property
-> 	- An array has a valid size
-> 	- A node contains the required children.
-> 	- A property has the correct type.
-> 	- A property has the correct value.
->
-> A schema can as well recursively check the constraints for parent nodes.
->
-> The syntax for a schema is the same as the one for dts. This choice has
-> been made to simplify its development, to maximize the code reuse and
-> finally because the format is human-readable.
->
->
-> === How to defined a schema? ===
->
-> A binding directory has been added at the root of repository. Users can
-> add schema files anywhere in it but a nice way would be to keep the same
-> structure as the binding directory in the documentation.
->
-> To demonstrate how to write a schema and its capability I will use the
-> OMAP DTS schemas when applicable.
->
-> How to:
->   * Associate a schema to one or several nodes
->
-> As said earlier a schema can be used to validate one or several nodes
-> from a dts. To do this the "compatible" properties from the nodes which
-> should be validated must be present in the schema.
->
-> 	timer1: timer@4a318000 {
-> 		compatible = "ti,omap3430-timer";
-> 		reg = <0x4a318000 0x80>;
-> 		interrupts = <0x0 0x25 0x4>;
-> 		ti,hwmods = "timer1";
-> 		ti,timer-alwon;
-> 	};
->
-> To write a schema which will validate OMAP Timers like the one above,
-> one may write the following schema:
->
-> 	/dts-v1/;
-> 	/ {
-> 		compatible = "ti,omap[0-9]+-timer";
-> 		...
-> 	};
->
-> The schema above will be used to validate every node in a dts which has
-> a compatible matching the following regular expression:
-> "ti,omap[0-9]+-timer".
->
-> It is possible to specify multiple compatible inside a schema using this
-> syntax:
-> 	compatible = "ti,omap[0-9]+-timer", "ti,am[0-9]+-timer";
->
-> This time the schema will be application for both OMAP Timers and AM
-> Timers.
->
->
->   * Define constraints on properties
->
-> To define constraints on a property one has to create a node in a schema
-> which has as name the name of the property that one want to validate.
->
-> To specify constraints on the property "ti,hwmods" of OMAP Timers one
-> can write this schema:
->
-> 	/dts-v1/;
-> 	/ {
-> 		compatible = "ti,omap[0-9]+-timer";
-> 		ti,hwmods {
-> 			...
-> 		};
-> 	};
->
-> If one want to use a regular as property name one can write this schema:
->
-> 	/dts-v1/;
-> 	/ {
-> 		compatible = "abc";
-> 		def {
-> 			name = "def[0-9]";
-> 			...
-> 		};
-> 	};
->
-> Above one can see that the "name" property override the node name.
->
->
->   * Require the presence of a property
->
-> One can require the presence of a property by using the "is-required"
-> constraint.
->
-> 	/dts-v1/;
-> 	/ {
-> 		compatible = "ti,omap[0-9]+-timer";
-> 		ti,hwmods {
-> 			is-required;
-> 		};
-> 	};
->
-> The "ti,hwmods" property above is set as required and its presence will
-> be checked in every OMAP timer.
->
->
->   * Require the presence of a property inside a node or inside one of its
-> parents
->
-> Sometimes a property required is not directly present inside a node but
-> is present in one of its parents. To check this, one can use
-> "can-be-inherited" in addition to "is-required".
->
-> twl {
->      interrupt-controller;
->
->      rtc {
->          compatible = "ti,twl4030-rtc";
->          interrupts = <0xc>;
->      };
-> }
->
-> In the case of the rtc above the interrupt-controller is not present,
-> but it is present in its parent. If inheriting the property from the
-> parent makes senses like here one can specify in the schema that
-> interrupt-controller is required in the rtc node and that the property
-> can be inherited from a parent.
->
-> /dts-v1/;
-> / {
->      compatible = "ti,twl[0-9]+-rtc";
->      interrupt-controller {
->          is-required;
->          can-be-inherited;
->      };
-> };
->
->
->   * Require a node to contains a given list of children
->
-> One may want to check if a node has some required children nodes.
->
-> node {
->      compatible = "comp";
->
->      subnode1 {
->      };
->
->      subnode2 {
->      };
->
->      abc {
->      };
-> };
->
-> One can check if 'node' has the following subnode 'subnode1', 'subnode2',
-> and 'abc' with the schema below:
->
-> /dts-v1/;
-> / {
->      compatible = "comp";
->      children = "abc", "subnode[0-9]";
-> };
->
->
->   * Constraints on array size
->
-> One can specify the following constraints on array size:
->   - length: specify the exact length that an array must have.
->   - min-length: specify the minimum number of elements an array must have.
->   - max-length: specify the maximum number of elements an array must have.
->
-> Usage example:
-> node {
->      compatible = "array_size";
->      myarray = <0 1 2 3 4>;
-> };
->
-> Schema:
-> /dts-v1/;
-> / {
->      compatible = "array_size";
->
->      myarray {
->          length = <5>;
->      };
-> };
->
->
->   * Count limit on nodes
->
-> One can specify a count limit for the nodes matching the schema:
->   - count: if there is a match between a dts and a schema then there must
->     be exactly X match between the dts and the schema at the end of the
->     validation process.
->   - max-count: if there is a match between a dts and a schema then there
->     must be at most X match between the dts and the schema at the end of
->     the validation process.
-> This can be used to check if a specific node appears the right amount of
-> time in the dts.
->
-> / {
->      timer1 {
->          compatible = "ti,omap-4430-timer";
->          ...
->      };
->
->      timer2 {
->          compatible = "ti,omap-4430-timer";
->          ...
->      };
-> };
->
-> If in the above dts there must be exactly two timer one can check this
-> constraints with the following schema:
->
-> / {
->      compatible = "ti,omap-4430-timer";
->      count = <2>;
-> };
->
->
->   * Check that a property has the right type
->
-> One can check if a property has the correct type. Right now dtc only
-> handles the two trivial types: integer array, string array. Since at the
-> end everything is an array of byte which may or may not be terminated by
-> a null byte this was enough.
->
-> / {
->      compatible = "abc";
->
->      abc = <0xa 0xb 0xc>;
->      def = "def", gef;
-> };
->
-> To check that the property abc is an integer array and that the property
-> def is a string array for the dts above one can use the following schema:
->
-> / {
->      compatible = "abc";
->
->
->      abc {
->          type = "integer";
->      };
->
->      def {
->          type = "string";
->      };
-> };
->
->
->   * Check the value of properties
->
-> It is possible to check if a property has the expected value through the
-> "value" constraint.
->
-> abc {
->     prop1 = <0 1 2 3>;
->     prop2 = "value0", "value1", "value3";
-> };
->
-> To check whether an integer array contains value from a given range
-> use the following constraint:
->      prop1 {
->          type = "integer";
->          value = <0x0 0xF>;
->      };
->
-> To check whether a string array contains value that match a given
-> pattern use the following constraint:
->      prop2 {
->          type = "string";
->          value = "value[0-9]";
->      };
->
-> To check whether a particular element of an array has the correct value
-> one can use the following constraint:
->      prop1 {
->          type = "integer";
->          value@2 = <2>;
->      };
->
-> or
->
->      prop2 {
->          type = "string";
->          value@1 = "value1";
->      };
->
->
->   * Check constraints on a parent node
->
-> It is possible to set constraints on parents of a node.
->
-> node {
->      compatible = "abcomp";
->      abc = "abc";
->
->      subnode {
->          compatible = "comp";
->          abc = "def";
->      };
-> };
->
-> The schema below tests whether 'subnode' has a parent named 'node' and
-> whether it has a compatible property equal to "abcomp" and a 'abc'
-> property equal to "abc". In the case of the node above the constraints
-> couldn't be check by inheriting the properties via 'can-be-inherited'
-> since they are overwritten by the node 'subnode'.
->
-> /dts-v1/;
-> / {
->      compatible = "comp";
->
->      parents {
->          node {
->              compatible {
->                  type = "string";
->                  value = "abcomp";
->              };
->
->              abc {
->                  type = "string";
->                  value = "abc";
->              };
->          };
->      };
-> };
->
-> It is possible to set conditional constraints on parents of the
-> following form:
->      if (node_compatible == "compat1")
->          check_this_parent_constraints();
->      else if (node_compatible == "compat2")
->          check_that_parent_constraints();
->
-> To do this one should put the parent constraints at the same place as
-> the compatible definition in a schema file.
->
-> /dts-v1/;
-> / {
->      compatible {
->          value@0 {
->              value = "compat1";
->              parents {
->                  node {
->                      myprop {
->                          type = "int";
->                          value@0 = <0xf>;
->                      };
->                  };
->              };
->          };
->
->          value@1 {
->              value = "compat2";
->              parents {
->                  node {
->                      myprop {
->                          type = "int";
->                          value@0 = <0xa>;
->                      };
->                  };
->              };
->          };
->      };
-> };
->
-> This schema will check that if the compatible of a node is "compat1"
-> then it must have a parent node "node" which has an integer array
-> property "myprop" which has as first element the value 0xf, otherwise
-> if the node has the
-> compatible "compat2" then the first element of the same property must
-> have the value 0xa.
->
->
-> === How is it working? ===
->
-> When a user will try to compile a dts, dtc will parse the device-tree
-> and will try to find schemas that will help to check the correctness of
-> the dts. In order to accomplish that dtc maintain a small index of all
-> the schemas available.
-> Once dtc finds a schema which can be used to validate a particular node,
-> it will loads it and starts performing all the check defined by it.
->
-> A set of unit-tests has been added to test that each feature is working
-> properly.
->
->
-> === Usage ===
->
-> Two extra options are added to handle validation into DTC:
->   -M <schema-path> : path of the directoy containing the schemas
->   -B <verbose-level> : Level of verbosity from the schema validation
->
->   dtc -M ./bindings -B 1 file.dts
->
->
-> === What could be done next? ===
->
->   * Save the schema index to avoid to recompute it everytime.
->   * The constraints capabilities for parents and children of a node is
->     not equal right now. A nice thing would be to bring the same feature
->     available for constraints on a parent for children nodes.
->   * The type systems uses only the most trivial types. A nice thing would
->     be to bring higher level types.
->   * May be add conditional constraints based on property values.
->   * Need more? Feel free to add any item :-)
->
-> Dependency: Please note that libpcre *must* be installed in order to
-> add the regular expression support into the schema validation process.
-> I'm not sure how such dependency should be handled, since the scripts
-> directory does not contain any dependency like that for the moment.
->
-> The series, based on 3.12-rc2, is available here:
-> http://git.baylibre.com/pub/bcousson/linux-omap dts_schema
+>> NOTE: omap4_pmx_wkup starts at a different address. Those are for
+>> wakeup domain
+>> control registers.
+>
+> Will keep that in mind.
 >
 > Regards,
-> Fabien & Benoit
+> Arend
 >
-> ---
->
-> Fabien Parent (15):
->    scripts/dtc: fix most memory leaks in dtc
->    scripts/dtc: build schema index for dts validation
->    scripts/dtc: validate each nodes and properties
->    scripts/dtc: add procedure to handle dts errors
->    scripts/dtc: check type on properties
->    scripts/dtc: check for required properties
->    scripts/dtc: can inherit properties
->    scripts/dtc: check array size
->    scripts/dtc: check value of properties
->    scripts/dtc: add count limit on nodes
->    scripts/dtc: check for children nodes
->    scripts/dtc: check constraints on parents
->    bindings: OMAP: add new schema files
->    scripts/dtc: validate dts against schema bindings
->    scripts/dtc: add verbose options
->
->   bindings/arm/omap/counter.schema                   |   28 +
->   bindings/arm/omap/dsp.schema                       |   18 +
->   bindings/arm/omap/intc.schema                      |   48 +
->   bindings/arm/omap/iva.schema                       |   38 +
->   bindings/arm/omap/l3-noc.schema                    |   38 +
->   bindings/arm/omap/mpu.schema                       |   19 +
->   bindings/arm/omap/omap.schema                      |   62 +
->   bindings/arm/omap/timer.schema                     |  124 ++
->   scripts/Makefile.lib                               |    1 +
->   scripts/dtc/.gitignore                             |    2 +-
->   scripts/dtc/Makefile                               |    9 +-
->   scripts/dtc/data.c                                 |   27 +-
->   scripts/dtc/dtc-lexer.l                            |    2 +-
->   scripts/dtc/dtc-lexer.lex.c_shipped                |    2 +-
->   scripts/dtc/dtc-parser.tab.c_shipped               |  595 ++++-----
->   scripts/dtc/dtc-parser.y                           |    9 +
->   scripts/dtc/dtc.c                                  |   29 +-
->   scripts/dtc/dtc.h                                  |   30 +
->   scripts/dtc/livetree.c                             |  108 +-
->   scripts/dtc/schema-test.c                          |  146 +++
->   scripts/dtc/schema.c                               | 1304 ++++++++++++++++++++
->   scripts/dtc/tests/schemas/array-size-1.schema      |   13 +
->   scripts/dtc/tests/schemas/array-size-2.schema      |    8 +
->   scripts/dtc/tests/schemas/array-size-3.schema      |    8 +
->   scripts/dtc/tests/schemas/array-size-4.schema      |    8 +
->   scripts/dtc/tests/schemas/children-nodes-1.schema  |    5 +
->   scripts/dtc/tests/schemas/children-nodes-2.schema  |    5 +
->   scripts/dtc/tests/schemas/inheritence-1.schema     |    7 +
->   scripts/dtc/tests/schemas/inheritence-2.schema     |    8 +
->   scripts/dtc/tests/schemas/integer-array-1.schema   |   16 +
->   scripts/dtc/tests/schemas/integer-array-2.schema   |    9 +
->   scripts/dtc/tests/schemas/integer-array-3.schema   |    8 +
->   scripts/dtc/tests/schemas/nodes-count-1.schema     |    5 +
->   scripts/dtc/tests/schemas/nodes-count-2.schema     |    5 +
->   scripts/dtc/tests/schemas/nodes-count-3.schema     |    5 +
->   scripts/dtc/tests/schemas/nodes-count-4.schema     |    5 +
->   scripts/dtc/tests/schemas/parent-nodes-1.schema    |   23 +
->   scripts/dtc/tests/schemas/parent-nodes-2.schema    |   12 +
->   scripts/dtc/tests/schemas/parent-nodes-3.schema    |   14 +
->   scripts/dtc/tests/schemas/parent-nodes-4.schema    |   27 +
->   scripts/dtc/tests/schemas/parent-nodes-5.schema    |   15 +
->   scripts/dtc/tests/schemas/parent-nodes-6.schema    |   13 +
->   scripts/dtc/tests/schemas/parent-nodes-7.schema    |   13 +
->   .../dtc/tests/schemas/pattern-matching-1.schema    |   10 +
->   .../dtc/tests/schemas/pattern-matching-2.schema    |   10 +
->   .../dtc/tests/schemas/required-property-1.schema   |    7 +
->   .../dtc/tests/schemas/required-property-2.schema   |    7 +
->   scripts/dtc/tests/schemas/string-array-1.schema    |   20 +
->   scripts/dtc/tests/schemas/string-array-2.schema    |    9 +
->   scripts/dtc/tests/schemas/types-1.schema           |   12 +
->   scripts/dtc/tests/schemas/types-2.schema           |    7 +
->   scripts/dtc/tests/test1.dts                        |   22 +
->   52 files changed, 2619 insertions(+), 356 deletions(-)
->   create mode 100644 bindings/arm/omap/counter.schema
->   create mode 100644 bindings/arm/omap/dsp.schema
->   create mode 100644 bindings/arm/omap/intc.schema
->   create mode 100644 bindings/arm/omap/iva.schema
->   create mode 100644 bindings/arm/omap/l3-noc.schema
->   create mode 100644 bindings/arm/omap/mpu.schema
->   create mode 100644 bindings/arm/omap/omap.schema
->   create mode 100644 bindings/arm/omap/timer.schema
->   create mode 100644 scripts/dtc/schema-test.c
->   create mode 100644 scripts/dtc/schema.c
->   create mode 100644 scripts/dtc/tests/schemas/array-size-1.schema
->   create mode 100644 scripts/dtc/tests/schemas/array-size-2.schema
->   create mode 100644 scripts/dtc/tests/schemas/array-size-3.schema
->   create mode 100644 scripts/dtc/tests/schemas/array-size-4.schema
->   create mode 100644 scripts/dtc/tests/schemas/children-nodes-1.schema
->   create mode 100644 scripts/dtc/tests/schemas/children-nodes-2.schema
->   create mode 100644 scripts/dtc/tests/schemas/inheritence-1.schema
->   create mode 100644 scripts/dtc/tests/schemas/inheritence-2.schema
->   create mode 100644 scripts/dtc/tests/schemas/integer-array-1.schema
->   create mode 100644 scripts/dtc/tests/schemas/integer-array-2.schema
->   create mode 100644 scripts/dtc/tests/schemas/integer-array-3.schema
->   create mode 100644 scripts/dtc/tests/schemas/nodes-count-1.schema
->   create mode 100644 scripts/dtc/tests/schemas/nodes-count-2.schema
->   create mode 100644 scripts/dtc/tests/schemas/nodes-count-3.schema
->   create mode 100644 scripts/dtc/tests/schemas/nodes-count-4.schema
->   create mode 100644 scripts/dtc/tests/schemas/parent-nodes-1.schema
->   create mode 100644 scripts/dtc/tests/schemas/parent-nodes-2.schema
->   create mode 100644 scripts/dtc/tests/schemas/parent-nodes-3.schema
->   create mode 100644 scripts/dtc/tests/schemas/parent-nodes-4.schema
->   create mode 100644 scripts/dtc/tests/schemas/parent-nodes-5.schema
->   create mode 100644 scripts/dtc/tests/schemas/parent-nodes-6.schema
->   create mode 100644 scripts/dtc/tests/schemas/parent-nodes-7.schema
->   create mode 100644 scripts/dtc/tests/schemas/pattern-matching-1.schema
->   create mode 100644 scripts/dtc/tests/schemas/pattern-matching-2.schema
->   create mode 100644 scripts/dtc/tests/schemas/required-property-1.schema
->   create mode 100644 scripts/dtc/tests/schemas/required-property-2.schema
->   create mode 100644 scripts/dtc/tests/schemas/string-array-1.schema
->   create mode 100644 scripts/dtc/tests/schemas/string-array-2.schema
->   create mode 100644 scripts/dtc/tests/schemas/types-1.schema
->   create mode 100644 scripts/dtc/tests/schemas/types-2.schema
->   create mode 100644 scripts/dtc/tests/test1.dts
->
+
+
+--------------000307010108090003000303
+Content-Type: text/plain;
+ name=0001-brcmfmac-add-device-tree-support-for-panda-board.patch
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename=0001-brcmfmac-add-device-tree-support-for-panda-board.patch
+
+>From 4a20162935b27e23ec7ddc818c9fe6b451c1a968 Mon Sep 17 00:00:00 2001
+From: Arend van Spriel <arend@broadcom.com>
+Date: Thu, 22 Aug 2013 12:29:23 +0200
+Subject: [PATCH] brcmfmac: add device tree support for panda board
+
+In linux mainline the pandaboard specific code moved to using
+the device tree. Changing our internal patches to get platform
+specific info from the device tree.
+
+Signed-off-by: Arend van Spriel <arend@broadcom.com>
+---
+ arch/arm/boot/dts/omap4-panda-common.dtsi |   20 +++++++++++++++-
+ arch/arm/mach-omap2/devices.c             |   36 ++++++++++++++++++++++++++++-
+ 2 files changed, 54 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/boot/dts/omap4-panda-common.dtsi b/arch/arm/boot/dts/omap4-panda-common.dtsi
+index faa95b5..6ebeb8e 100644
+--- a/arch/arm/boot/dts/omap4-panda-common.dtsi
++++ b/arch/arm/boot/dts/omap4-panda-common.dtsi
+@@ -226,6 +226,22 @@
+ 			0xf0 (PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c4_sda */
+ 		>;
+ 	};
++	mmc2_brcmf_en: pinmux_mmc2_brcmf_en {
++		pinctrl-single,pins = <
++			0x92 (PIN_OUTPUT | MUX_MODE3)		/* brcmf-power */
++		>;
++	};
++	mmc2_pins: pinmux_mmc2_pins {
++		pinctrl-single,pins = <
++			0x44 (MUX_MODE1 | PIN_INPUT_PULLUP)	/* mmc2-cmd */
++			0x42 (MUX_MODE1 | PIN_INPUT_PULLUP)	/* mmc2-clk */
++			0x00 (MUX_MODE1 | PIN_INPUT_PULLUP)	/* mmc2-dat 0-3 */
++			0x02 (MUX_MODE1 | PIN_INPUT_PULLUP)
++			0x04 (MUX_MODE1 | PIN_INPUT_PULLUP)
++			0x06 (MUX_MODE1 | PIN_INPUT_PULLUP)
++			0x9a (MUX_MODE3 | PIN_INPUT_PULLDOWN)	/* oob-irq */
++		>;
++	};
+ };
+ 
+ &omap4_pmx_wkup {
+@@ -302,7 +318,9 @@
+ };
+ 
+ &mmc2 {
+-	status = "disabled";
++	vmmc-supply = <&vaux1>;
++	bus-width = <4>;
++	non-removable;
+ };
+ 
+ &mmc3 {
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index 3c1279f..7a47535 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -21,7 +21,7 @@
+ #include <linux/platform_data/omap4-keypad.h>
+ #include <linux/wl12xx.h>
+ #include <linux/platform_data/mailbox-omap.h>
+-
++#include <linux/platform_data/brcmfmac-sdio.h>
+ #include <asm/mach-types.h>
+ #include <asm/mach/map.h>
+ 
+@@ -547,6 +547,39 @@ static inline void omap_init_wl12xx_of(void)
+ }
+ #endif
+ 
++#define GPIO_BRCMF_SDIO_PWR	134
++#define GPIO_BRCMF_SDIO_OOB	138
++static struct brcmfmac_sdio_platform_data brcmfmac_sdio_pdata;
++
++static struct platform_device brcmf_sdio_device = {
++	.name		= BRCMFMAC_SDIO_PDATA_NAME,
++	.id		= PLATFORM_DEVID_NONE,
++	.dev.platform_data	= &brcmfmac_sdio_pdata
++};
++
++static struct gpio brcmf_sdio_gpios[] __initdata = {
++	{ GPIO_BRCMF_SDIO_PWR,	GPIOF_OUT_INIT_HIGH,	"brcmf_sdio_pwr"},
++	{ GPIO_BRCMF_SDIO_OOB,	GPIOF_IN,		"brcmf_sdio_oob"},
++};
++
++void __init omap_init_brcmfmac_of(void)
++{
++	if (!of_have_populated_dt())
++		return;
++
++	if (!of_machine_is_compatible("ti,omap4-panda"))
++		return;
++
++	if (gpio_request_array(brcmf_sdio_gpios,
++			       ARRAY_SIZE(brcmf_sdio_gpios))) {
++		pr_err("%s: failed to request gpio array\n", __func__);
++		return;
++	}
++
++	brcmfmac_sdio_pdata.oob_irq_supported = false;
++	platform_device_register(&brcmf_sdio_device);
++}
++
+ /*-------------------------------------------------------------------------*/
+ 
+ static int __init omap2_init_devices(void)
+@@ -573,6 +606,7 @@ static int __init omap2_init_devices(void)
+ 	} else {
+ 		/* These can be removed when bindings are done */
+ 		omap_init_wl12xx_of();
++		omap_init_brcmfmac_of();
+ 	}
+ 	omap_init_sti();
+ 	omap_init_rng();
+-- 
+1.7.10.4
+
+
+--------------000307010108090003000303--
 
