@@ -1,177 +1,188 @@
 From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH v5 05/11] ARM: OMAP2+: PRCM: AM43x definitions
-Date: Tue, 1 Oct 2013 12:37:40 +0530
-Message-ID: <6405b562c9a6b0f1cde4700ff224fc8cd09ef0c6.1380608720.git.afzal@ti.com>
+Subject: [PATCH v5 06/11] ARM: OMAP2+: PM: AM43x powerdomain data
+Date: Tue, 1 Oct 2013 12:37:49 +0530
+Message-ID: <42967b7c9340fb5598b9c0632d807e57f6a768c0.1380608720.git.afzal@ti.com>
 References: <cover.1380608719.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:56297 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:38351 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751350Ab3JAHIE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 1 Oct 2013 03:08:04 -0400
+	id S1751350Ab3JAHIR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 1 Oct 2013 03:08:17 -0400
 In-Reply-To: <cover.1380608719.git.afzal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Paul Walmsley <paul@pwsan.com>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rajendra Nayak <rnayak@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rajendra Nayak <rnayak@ti.com>, Ambresh K <ambresh@ti.com>
 
-Add AM43x CMINST, CDOFFS, RM_RSTST & RM_RSTCTRL definitions - minimal
-ones that would be used.
+From: Ambresh K <ambresh@ti.com>
 
+Add the data file to describe all power domains in AM43x SoC.
+OMAP4 powerdomain operations is being reused here.
+
+Signed-off-by: Ambresh K <ambresh@ti.com>
 Signed-off-by: Afzal Mohammed <afzal@ti.com>
 ---
- arch/arm/mach-omap2/prcm43xx.h | 141 +++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 141 insertions(+)
- create mode 100644 arch/arm/mach-omap2/prcm43xx.h
+ arch/arm/mach-omap2/powerdomain.h           |   1 +
+ arch/arm/mach-omap2/powerdomains43xx_data.c | 136 ++++++++++++++++++++++++++++
+ 2 files changed, 137 insertions(+)
+ create mode 100644 arch/arm/mach-omap2/powerdomains43xx_data.c
 
-diff --git a/arch/arm/mach-omap2/prcm43xx.h b/arch/arm/mach-omap2/prcm43xx.h
+diff --git a/arch/arm/mach-omap2/powerdomain.h b/arch/arm/mach-omap2/powerdomain.h
+index baf3d8b..da5a59a 100644
+--- a/arch/arm/mach-omap2/powerdomain.h
++++ b/arch/arm/mach-omap2/powerdomain.h
+@@ -257,6 +257,7 @@ extern void am33xx_powerdomains_init(void);
+ extern void omap44xx_powerdomains_init(void);
+ extern void omap54xx_powerdomains_init(void);
+ extern void dra7xx_powerdomains_init(void);
++void am43xx_powerdomains_init(void);
+ 
+ extern struct pwrdm_ops omap2_pwrdm_operations;
+ extern struct pwrdm_ops omap3_pwrdm_operations;
+diff --git a/arch/arm/mach-omap2/powerdomains43xx_data.c b/arch/arm/mach-omap2/powerdomains43xx_data.c
 new file mode 100644
-index 0000000..f0636ec
+index 0000000..95fee54
 --- /dev/null
-+++ b/arch/arm/mach-omap2/prcm43xx.h
-@@ -0,0 +1,141 @@
++++ b/arch/arm/mach-omap2/powerdomains43xx_data.c
+@@ -0,0 +1,136 @@
 +/*
-+ * AM43x PRCM defines
++ * AM43xx Power domains framework
 + *
-+ * Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.com/
++ * Copyright (C) 2013 Texas Instruments, Inc.
 + *
-+ * This file is licensed under the terms of the GNU General Public License
-+ * version 2.  This program is licensed "as is" without any warranty of any
-+ * kind, whether express or implied.
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
 + */
 +
-+#ifndef __ARCH_ARM_MACH_OMAP2_PRCM_43XX_H
-+#define __ARCH_ARM_MACH_OMAP2_PRCM_43XX_H
++#include <linux/kernel.h>
++#include <linux/init.h>
 +
-+#define AM43XX_PRM_PARTITION				1
-+#define AM43XX_CM_PARTITION				1
++#include "powerdomain.h"
 +
-+/* PRM instances */
-+#define AM43XX_PRM_OCP_SOCKET_INST			0x0000
-+#define AM43XX_PRM_MPU_INST				0x0300
-+#define AM43XX_PRM_GFX_INST				0x0400
-+#define AM43XX_PRM_RTC_INST				0x0500
-+#define AM43XX_PRM_TAMPER_INST				0x0600
-+#define AM43XX_PRM_CEFUSE_INST				0x0700
-+#define AM43XX_PRM_PER_INST				0x0800
-+#define AM43XX_PRM_WKUP_INST				0x2000
-+#define AM43XX_PRM_DEVICE_INST				0x4000
++#include "prcm-common.h"
++#include "prcm44xx.h"
++#include "prcm43xx.h"
 +
-+/* RM RSTCTRL offsets */
-+#define AM43XX_RM_PER_RSTCTRL_OFFSET			0x0010
-+#define AM43XX_RM_GFX_RSTCTRL_OFFSET			0x0010
-+#define AM43XX_RM_WKUP_RSTCTRL_OFFSET			0x0010
++static struct powerdomain gfx_43xx_pwrdm = {
++	.name		  = "gfx_pwrdm",
++	.voltdm		  = { .name = "core" },
++	.prcm_offs	  = AM43XX_PRM_GFX_INST,
++	.prcm_partition	  = AM43XX_PRM_PARTITION,
++	.pwrsts		  = PWRSTS_OFF_ON,
++	.banks		  = 1,
++	.pwrsts_mem_on	= {
++		[0] = PWRSTS_ON,	/* gfx_mem */
++	},
++	.flags		  = PWRDM_HAS_LOWPOWERSTATECHANGE,
++};
 +
-+/* RM RSTST offsets */
-+#define AM43XX_RM_GFX_RSTST_OFFSET			0x0014
-+#define AM43XX_RM_WKUP_RSTST_OFFSET			0x0014
++static struct powerdomain mpu_43xx_pwrdm = {
++	.name		  = "mpu_pwrdm",
++	.voltdm		  = { .name = "mpu" },
++	.prcm_offs	  = AM43XX_PRM_MPU_INST,
++	.prcm_partition	  = AM43XX_PRM_PARTITION,
++	.pwrsts		  = PWRSTS_OFF_RET_ON,
++	.pwrsts_logic_ret = PWRSTS_OFF_RET,
++	.banks		  = 3,
++	.pwrsts_mem_ret	= {
++		[0] = PWRSTS_OFF_RET,	/* mpu_l1 */
++		[1] = PWRSTS_OFF_RET,	/* mpu_l2 */
++		[2] = PWRSTS_OFF_RET,	/* mpu_ram */
++	},
++	.pwrsts_mem_on	= {
++		[0] = PWRSTS_ON,	/* mpu_l1 */
++		[1] = PWRSTS_ON,	/* mpu_l2 */
++		[2] = PWRSTS_ON,	/* mpu_ram */
++	},
++	.flags		  = PWRDM_HAS_LOWPOWERSTATECHANGE,
++};
 +
-+/* CM instances */
-+#define AM43XX_CM_WKUP_INST				0x2800
-+#define AM43XX_CM_DEVICE_INST				0x4100
-+#define AM43XX_CM_DPLL_INST				0x4200
-+#define AM43XX_CM_MPU_INST				0x8300
-+#define AM43XX_CM_GFX_INST				0x8400
-+#define AM43XX_CM_RTC_INST				0x8500
-+#define AM43XX_CM_TAMPER_INST				0x8600
-+#define AM43XX_CM_CEFUSE_INST				0x8700
-+#define AM43XX_CM_PER_INST				0x8800
++static struct powerdomain rtc_43xx_pwrdm = {
++	.name		  = "rtc_pwrdm",
++	.voltdm		  = { .name = "rtc" },
++	.prcm_offs	  = AM43XX_PRM_RTC_INST,
++	.prcm_partition	  = AM43XX_PRM_PARTITION,
++	.pwrsts		  = PWRSTS_ON,
++};
 +
-+/* CD offsets */
-+#define AM43XX_CM_WKUP_L3_AON_CDOFFS			0x0000
-+#define AM43XX_CM_WKUP_L3S_TSC_CDOFFS			0x0100
-+#define AM43XX_CM_WKUP_L4_WKUP_AON_CDOFFS		0x0200
-+#define AM43XX_CM_WKUP_WKUP_CDOFFS			0x0300
-+#define AM43XX_CM_MPU_MPU_CDOFFS			0x0000
-+#define AM43XX_CM_GFX_GFX_L3_CDOFFS			0x0000
-+#define AM43XX_CM_RTC_RTC_CDOFFS			0x0000
-+#define AM43XX_CM_TAMPER_TAMPER_CDOFFS			0x0000
-+#define AM43XX_CM_CEFUSE_CEFUSE_CDOFFS			0x0000
-+#define AM43XX_CM_PER_L3_CDOFFS				0x0000
-+#define AM43XX_CM_PER_L3S_CDOFFS			0x0200
-+#define AM43XX_CM_PER_ICSS_CDOFFS			0x0300
-+#define AM43XX_CM_PER_L4LS_CDOFFS			0x0400
-+#define AM43XX_CM_PER_EMIF_CDOFFS			0x0700
-+#define AM43XX_CM_PER_DSS_CDOFFS			0x0a00
-+#define AM43XX_CM_PER_CPSW_CDOFFS			0x0b00
-+#define AM43XX_CM_PER_OCPWP_L3_CDOFFS			0x0c00
++static struct powerdomain wkup_43xx_pwrdm = {
++	.name		  = "wkup_pwrdm",
++	.voltdm		  = { .name = "core" },
++	.prcm_offs	  = AM43XX_PRM_WKUP_INST,
++	.prcm_partition	  = AM43XX_PRM_PARTITION,
++	.pwrsts		  = PWRSTS_ON,
++	.banks		  = 1,
++	.pwrsts_mem_on	= {
++		[0] = PWRSTS_ON,	/* debugss_mem */
++	},
++};
 +
-+/* CLK CTRL offsets */
-+#define AM43XX_CM_PER_UART1_CLKCTRL_OFFSET		0x0580
-+#define AM43XX_CM_PER_UART2_CLKCTRL_OFFSET		0x0588
-+#define AM43XX_CM_PER_UART3_CLKCTRL_OFFSET		0x0590
-+#define AM43XX_CM_PER_UART4_CLKCTRL_OFFSET		0x0598
-+#define AM43XX_CM_PER_UART5_CLKCTRL_OFFSET		0x05a0
-+#define AM43XX_CM_PER_DCAN0_CLKCTRL_OFFSET		0x0428
-+#define AM43XX_CM_PER_DCAN1_CLKCTRL_OFFSET		0x0430
-+#define AM43XX_CM_PER_ELM_CLKCTRL_OFFSET		0x0468
-+#define AM43XX_CM_PER_EPWMSS0_CLKCTRL_OFFSET		0x0438
-+#define AM43XX_CM_PER_EPWMSS1_CLKCTRL_OFFSET		0x0440
-+#define AM43XX_CM_PER_EPWMSS2_CLKCTRL_OFFSET		0x0448
-+#define AM43XX_CM_PER_GPIO1_CLKCTRL_OFFSET		0x0478
-+#define AM43XX_CM_PER_GPIO2_CLKCTRL_OFFSET		0x0480
-+#define AM43XX_CM_PER_GPIO3_CLKCTRL_OFFSET		0x0488
-+#define AM43XX_CM_PER_I2C1_CLKCTRL_OFFSET		0x04a8
-+#define AM43XX_CM_PER_I2C2_CLKCTRL_OFFSET		0x04b0
-+#define AM43XX_CM_PER_MAILBOX0_CLKCTRL_OFFSET		0x04b8
-+#define AM43XX_CM_PER_MMC0_CLKCTRL_OFFSET		0x04c0
-+#define AM43XX_CM_PER_MMC1_CLKCTRL_OFFSET		0x04c8
-+#define AM43XX_CM_PER_SPI0_CLKCTRL_OFFSET		0x0500
-+#define AM43XX_CM_PER_SPI1_CLKCTRL_OFFSET		0x0508
-+#define AM43XX_CM_PER_SPINLOCK_CLKCTRL_OFFSET		0x0528
-+#define AM43XX_CM_PER_TIMER2_CLKCTRL_OFFSET		0x0530
-+#define AM43XX_CM_PER_TIMER3_CLKCTRL_OFFSET		0x0538
-+#define AM43XX_CM_PER_TIMER4_CLKCTRL_OFFSET		0x0540
-+#define AM43XX_CM_PER_TIMER5_CLKCTRL_OFFSET		0x0548
-+#define AM43XX_CM_PER_TIMER6_CLKCTRL_OFFSET		0x0550
-+#define AM43XX_CM_PER_TIMER7_CLKCTRL_OFFSET		0x0558
-+#define AM43XX_CM_WKUP_WKUP_M3_CLKCTRL_OFFSET		0x0228
-+#define AM43XX_CM_WKUP_CONTROL_CLKCTRL_OFFSET		0x0360
-+#define AM43XX_CM_WKUP_SMARTREFLEX0_CLKCTRL_OFFSET	0x0350
-+#define AM43XX_CM_WKUP_SMARTREFLEX1_CLKCTRL_OFFSET	0x0358
-+#define AM43XX_CM_WKUP_UART0_CLKCTRL_OFFSET		0x0348
-+#define AM43XX_CM_WKUP_TIMER1_CLKCTRL_OFFSET		0x0328
-+#define AM43XX_CM_WKUP_I2C0_CLKCTRL_OFFSET		0x0340
-+#define AM43XX_CM_WKUP_GPIO0_CLKCTRL_OFFSET		0x0368
-+#define AM43XX_CM_WKUP_ADC_TSC_CLKCTRL_OFFSET		0x0120
-+#define AM43XX_CM_WKUP_WDT1_CLKCTRL_OFFSET		0x0338
-+#define AM43XX_CM_WKUP_L4WKUP_CLKCTRL_OFFSET		0x0220
-+#define AM43XX_CM_RTC_RTC_CLKCTRL_OFFSET		0x0020
-+#define AM43XX_CM_PER_MMC2_CLKCTRL_OFFSET		0x0248
-+#define AM43XX_CM_PER_GPMC_CLKCTRL_OFFSET		0x0220
-+#define AM43XX_CM_PER_MCASP0_CLKCTRL_OFFSET		0x0238
-+#define AM43XX_CM_PER_MCASP1_CLKCTRL_OFFSET		0x0240
-+#define AM43XX_CM_PER_L4LS_CLKCTRL_OFFSET		0x0420
-+#define AM43XX_CM_PER_L3_CLKCTRL_OFFSET			0x0020
-+#define AM43XX_CM_PER_TPCC_CLKCTRL_OFFSET		0x0078
-+#define AM43XX_CM_PER_TPTC0_CLKCTRL_OFFSET		0x0080
-+#define AM43XX_CM_PER_TPTC1_CLKCTRL_OFFSET		0x0088
-+#define AM43XX_CM_PER_TPTC2_CLKCTRL_OFFSET		0x0090
-+#define AM43XX_CM_PER_CPGMAC0_CLKCTRL_OFFSET		0x0b20
-+#define AM43XX_CM_PER_PRUSS_CLKCTRL_OFFSET		0x0320
-+#define AM43XX_CM_GFX_GFX_CLKCTRL_OFFSET		0x0020
-+#define AM43XX_CM_PER_L4HS_CLKCTRL_OFFSET		0x00a0
-+#define AM43XX_CM_MPU_MPU_CLKCTRL_OFFSET		0x0020
-+#define AM43XX_CM_PER_L3_INSTR_CLKCTRL_OFFSET		0x0040
-+#define AM43XX_CM_PER_OCMCRAM_CLKCTRL_OFFSET		0x0050
-+#define AM43XX_CM_PER_SHA0_CLKCTRL_OFFSET		0x0058
-+#define AM43XX_CM_PER_AES0_CLKCTRL_OFFSET		0x0028
-+#define AM43XX_CM_PER_TIMER8_CLKCTRL_OFFSET		0x0560
-+#define AM43XX_CM_PER_TIMER9_CLKCTRL_OFFSET		0x0568
-+#define AM43XX_CM_PER_TIMER10_CLKCTRL_OFFSET		0x0570
-+#define AM43XX_CM_PER_TIMER11_CLKCTRL_OFFSET		0x0578
-+#define AM43XX_CM_WKUP_SYNCTIMER_CLKCTRL_OFFSET		0x0230
-+#define AM43XX_CM_PER_EPWMSS3_CLKCTRL_OFFSET		0x0450
-+#define AM43XX_CM_PER_EPWMSS4_CLKCTRL_OFFSET		0x0458
-+#define AM43XX_CM_PER_EPWMSS5_CLKCTRL_OFFSET		0x0460
-+#define AM43XX_CM_PER_SPI2_CLKCTRL_OFFSET		0x0510
-+#define AM43XX_CM_PER_SPI3_CLKCTRL_OFFSET		0x0518
-+#define AM43XX_CM_PER_SPI4_CLKCTRL_OFFSET		0x0520
-+#define AM43XX_CM_PER_GPIO4_CLKCTRL_OFFSET		0x0490
-+#define AM43XX_CM_PER_GPIO5_CLKCTRL_OFFSET		0x0498
++static struct powerdomain tamper_43xx_pwrdm = {
++	.name		  = "tamper_pwrdm",
++	.voltdm		  = { .name = "tamper" },
++	.prcm_offs	  = AM43XX_PRM_TAMPER_INST,
++	.prcm_partition	  = AM43XX_PRM_PARTITION,
++	.pwrsts		  = PWRSTS_ON,
++};
 +
-+#endif
++static struct powerdomain cefuse_43xx_pwrdm = {
++	.name		  = "cefuse_pwrdm",
++	.voltdm		  = { .name = "core" },
++	.prcm_offs	  = AM43XX_PRM_CEFUSE_INST,
++	.prcm_partition	  = AM43XX_PRM_PARTITION,
++	.pwrsts		  = PWRSTS_OFF_ON,
++	.flags		  = PWRDM_HAS_LOWPOWERSTATECHANGE,
++};
++
++static struct powerdomain per_43xx_pwrdm = {
++	.name		  = "per_pwrdm",
++	.voltdm		  = { .name = "core" },
++	.prcm_offs	  = AM43XX_PRM_PER_INST,
++	.prcm_partition	  = AM43XX_PRM_PARTITION,
++	.pwrsts		  = PWRSTS_OFF_RET_ON,
++	.pwrsts_logic_ret = PWRSTS_OFF_RET,
++	.banks		  = 4,
++	.pwrsts_mem_ret	= {
++		[0] = PWRSTS_OFF_RET,	/* icss_mem */
++		[1] = PWRSTS_OFF_RET,	/* per_mem */
++		[2] = PWRSTS_OFF_RET,	/* ram1_mem */
++		[3] = PWRSTS_OFF_RET,	/* ram2_mem */
++	},
++	.pwrsts_mem_on	= {
++		[0] = PWRSTS_ON,	/* icss_mem */
++		[1] = PWRSTS_ON,	/* per_mem */
++		[2] = PWRSTS_ON,	/* ram1_mem */
++		[3] = PWRSTS_ON,	/* ram2_mem */
++	},
++	.flags		  = PWRDM_HAS_LOWPOWERSTATECHANGE,
++};
++
++static struct powerdomain *powerdomains_am43xx[] __initdata = {
++	&gfx_43xx_pwrdm,
++	&mpu_43xx_pwrdm,
++	&rtc_43xx_pwrdm,
++	&wkup_43xx_pwrdm,
++	&tamper_43xx_pwrdm,
++	&cefuse_43xx_pwrdm,
++	&per_43xx_pwrdm,
++	NULL
++};
++
++static int am43xx_check_vcvp(void)
++{
++	return 0;
++}
++
++void __init am43xx_powerdomains_init(void)
++{
++	omap4_pwrdm_operations.pwrdm_has_voltdm = am43xx_check_vcvp;
++	pwrdm_register_platform_funcs(&omap4_pwrdm_operations);
++	pwrdm_register_pwrdms(powerdomains_am43xx);
++	pwrdm_complete_init();
++}
 -- 
 1.8.3.4
 
