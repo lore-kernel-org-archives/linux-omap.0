@@ -1,123 +1,69 @@
-From: Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v3] usb: musb: dsps: add support for suspend and resume
-Date: Tue,  1 Oct 2013 18:12:01 +0200
-Message-ID: <1380643921-20642-1-git-send-email-zonque@gmail.com>
+From: Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
+Subject: Re: [PATCH v3 4/5] dma: cppi41: only allocate descriptor memory once
+Date: Tue, 01 Oct 2013 18:22:07 +0200
+Message-ID: <524AF6AF.50704@linutronix.de>
+References: <1379861404-8250-1-git-send-email-zonque@gmail.com> <1379861404-8250-5-git-send-email-zonque@gmail.com> <20130926082604.GA24205@linutronix.de> <524AC987.5000301@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <524AC987.5000301-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, neumann-SRDuVqtxQLSzQB+pC5nmwQ@public.gmane.org, bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, neumann-SRDuVqtxQLSzQB+pC5nmwQ@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-The dsps platform needs to save save some registers at suspend time and
-restore them after resume. This patch adds a struct for these registers,
-and also lets the musb core know that the core registers need to be
-saved as well.
+On 10/01/2013 03:09 PM, Daniel Mack wrote:
+> Hi Sebastian,
 
-Signed-off-by: Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
----
- drivers/usb/musb/musb_dsps.c | 60 ++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 60 insertions(+)
+Hi Daniel,
 
-diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
-index 5eba143..f2f4b3a 100644
---- a/drivers/usb/musb/musb_dsps.c
-+++ b/drivers/usb/musb/musb_dsps.c
-@@ -112,6 +112,19 @@ struct dsps_musb_wrapper {
- 	u8		poll_seconds;
- };
- 
-+/*
-+ * register shadow for suspend
-+ */
-+struct dsps_context {
-+	u32 control;
-+	u32 epintr;
-+	u32 coreintr;
-+	u32 phy_utmi;
-+	u32 mode;
-+	u32 tx_mode;
-+	u32 rx_mode;
-+};
-+
- /**
-  * DSPS glue structure.
-  */
-@@ -121,6 +134,8 @@ struct dsps_glue {
- 	const struct dsps_musb_wrapper *wrp; /* wrapper register offsets */
- 	struct timer_list timer;	/* otg_workaround timer */
- 	unsigned long last_timer;    /* last timer data for each instance */
-+
-+	struct dsps_context context;
- };
- 
- /**
-@@ -504,6 +519,7 @@ static int dsps_create_musb_pdev(struct dsps_glue *glue,
- 	}
- 	pdata.config = config;
- 	pdata.platform_ops = &dsps_ops;
-+	pdata.restore_after_suspend = 1;
- 
- 	config->num_eps = get_int_prop(dn, "mentor,num-eps");
- 	config->ram_bits = get_int_prop(dn, "mentor,ram-bits");
-@@ -627,11 +643,55 @@ static const struct of_device_id musb_dsps_of_match[] = {
- };
- MODULE_DEVICE_TABLE(of, musb_dsps_of_match);
- 
-+#ifdef CONFIG_PM
-+static int dsps_suspend(struct device *dev)
-+{
-+	struct dsps_glue *glue = dev_get_drvdata(dev);
-+	const struct dsps_musb_wrapper *wrp = glue->wrp;
-+	struct musb *musb = platform_get_drvdata(glue->musb);
-+	void __iomem *mbase = musb->ctrl_base;
-+
-+	glue->context.control = dsps_readl(mbase, wrp->control);
-+	glue->context.epintr = dsps_readl(mbase, wrp->epintr_set);
-+	glue->context.coreintr = dsps_readl(mbase, wrp->coreintr_set);
-+	glue->context.phy_utmi = dsps_readl(mbase, wrp->phy_utmi);
-+	glue->context.mode = dsps_readl(mbase, wrp->mode);
-+	glue->context.tx_mode = dsps_readl(mbase, wrp->tx_mode);
-+	glue->context.rx_mode = dsps_readl(mbase, wrp->rx_mode);
-+
-+	return 0;
-+}
-+
-+static int dsps_resume(struct device *dev)
-+{
-+	struct dsps_glue *glue = dev_get_drvdata(dev);
-+	const struct dsps_musb_wrapper *wrp = glue->wrp;
-+	struct musb *musb = platform_get_drvdata(glue->musb);
-+	void __iomem *mbase = musb->ctrl_base;
-+
-+	dsps_writel(mbase, wrp->control, glue->context.control);
-+	dsps_writel(mbase, wrp->epintr_set, glue->context.epintr);
-+	dsps_writel(mbase, wrp->coreintr_set, glue->context.coreintr);
-+	dsps_writel(mbase, wrp->phy_utmi, glue->context.phy_utmi);
-+	dsps_writel(mbase, wrp->mode, glue->context.mode);
-+	dsps_writel(mbase, wrp->tx_mode, glue->context.tx_mode);
-+	dsps_writel(mbase, wrp->rx_mode, glue->context.rx_mode);
-+
-+	musb->port_reset_state = false;
-+	schedule_work(&musb->port_reset_work);
-+
-+	return 0;
-+}
-+#endif
-+
-+static SIMPLE_DEV_PM_OPS(dsps_pm_ops, dsps_suspend, dsps_resume);
-+
- static struct platform_driver dsps_usbss_driver = {
- 	.probe		= dsps_probe,
- 	.remove         = dsps_remove,
- 	.driver         = {
- 		.name   = "musb-dsps",
-+		.pm	= &dsps_pm_ops,
- 		.of_match_table	= musb_dsps_of_match,
- 	},
- };
--- 
-1.8.3.1
+> sorry for the long delay, I got distracted by other things.
 
+No problem.
+
+> Well, I didn't merge the descriptors. Look again at my changes please.
+> 
+> A simplified version of the code as it stands is:
+> 
+>   for (i = 0; i < DESCS_AREAS; i++)
+>     cdd->cd = dma_alloc_coherent(dev, ..., &cdd->descs_phys, GFP_KERNEL);
+> 
+>   for (i = 0; i < DESCS_AREAS; i++)
+>     dma_free_coherent(dev, mem_decs, cdd->cd, cdd->descs_phys);
+> 
+> So you're effectively allocating and freeing the same pointer
+> DESCS_AREAS times, which is certainly not what you wanted.
+
+Well, no but since DESCS_AREAS is 1 it does not matter.
+
+> 
+> And this just doesn't hit you because DESCS_AREAS is always 1:
+
+exactly.
+
+> 
+>   BUILD_BUG_ON(DESCS_AREAS != 1);
+> 
+> 
+> So, after all, my patch doesn't really change any of the runtime
+> behaviour. Consider it a cosmetic cleanup if you wish :)
+
+But it looks strange (in my opinion at least). But now, that I look
+again at it yes you moved the alloc out of the loop and replaced
+mem_decs with the computation. So nothing changed but you moved it
+outside.
+
+Right I think one desc area should be enough so I would just remove the
+for loop and DESCS_AREAS as well. How does this sound to you?
+
+> 
+> 
+> Thanks,
+> Daniel
+> 
+
+Sebastian
 --
 To unsubscribe from this list: send the line "unsubscribe linux-usb" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
