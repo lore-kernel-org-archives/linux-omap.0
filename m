@@ -1,90 +1,86 @@
-From: Stephen Warren <swarren@wwwdotorg.org>
-Subject: Re: [PATCH 10/10] pwm-backlight: Allow backlight to remain disabled
- on boot
-Date: Tue, 01 Oct 2013 12:50:51 -0600
-Message-ID: <524B198B.3010609@wwwdotorg.org>
-References: <1379972467-11243-1-git-send-email-treding@nvidia.com> <1379972467-11243-11-git-send-email-treding@nvidia.com>
+From: Thierry Reding <thierry.reding@gmail.com>
+Subject: Re: [PATCH 01/10] pwm-backlight: Refactor backlight power on/off
+Date: Tue, 1 Oct 2013 22:34:34 +0200
+Message-ID: <20131001203430.GA9201@ulmo.nvidia.com>
+References: <1379972467-11243-1-git-send-email-treding@nvidia.com>
+ <1379972467-11243-2-git-send-email-treding@nvidia.com>
+ <524B13BF.7080902@wwwdotorg.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-sh-owner@vger.kernel.org>
-In-Reply-To: <1379972467-11243-11-git-send-email-treding@nvidia.com>
-Sender: linux-sh-owner@vger.kernel.org
-To: Thierry Reding <thierry.reding@gmail.com>
-Cc: Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Tony Lindgren <tony@atomide.com>, Eric Miao <eric.y.miao@gmail.com>, Haojian Zhuang <haojian.zhuang@gmail.com>, Ben Dooks <ben-linux@fluff.org>, Kukjin Kim <kgene.kim@samsung.com>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Guan Xuetao <gxt@mprc.pku.edu.cn>, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, openezx-devel@lists.openezx.org, linux-samsung-soc@vger.kernel.org, linux-sh@vger.kernel.org, linux-pwm@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="DocE+STaALJfprDB"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-bk0-f43.google.com ([209.85.214.43]:51511 "EHLO
+	mail-bk0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752180Ab3JAUgU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Oct 2013 16:36:20 -0400
+Content-Disposition: inline
+In-Reply-To: <524B13BF.7080902@wwwdotorg.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Stephen Warren <swarren@wwwdotorg.org>
+Cc: Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Tony Lindgren <tony@atomide.com>, Eric Miao <eric.y.miao@gmail.com>, Haojian Zhuang <haojian.zhuang@gmail.com>, Ben Dooks <ben-linux@fluff.org>, Kukjin Kim <kgene.kim@samsung.com>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Guan Xuetao <gxt@mprc.pku.edu.cn>, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, openezx-devel@lists.openezx.org, linux-samsung-soc@vger.kernel.org, linux-sh@vger.kernel.org, linux-pwm@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 09/23/2013 03:41 PM, Thierry Reding wrote:
-> The default for backlight devices is to be enabled immediately when
-> registering with the backlight core. This can be useful for setups that
-> use a simple framebuffer device and where the backlight cannot otherwise
-> be hooked up to the panel.
-> 
-> However, when dealing with more complex setups, such as those of recent
-> ARM SoCs, this can be problematic. Since the backlight is usually setup
-> separately from the display controller, the probe order is not usually
-> deterministic. That can lead to situations where the backlight will be
-> powered up and the panel will show an uninitialized framebuffer.
-> 
-> Furthermore, subsystems such as DRM have advanced functionality to set
-> the power mode of a panel. In order to allow such setups to power up the
-> panel at exactly the right moment, a way is needed to prevent the
-> backlight core from powering the backlight up automatically when it is
-> registered.
-> 
-> This commit introduces a new boot_off field in the platform data (and
-> also implements getting the same information from device tree). When set
-> the initial backlight power mode will be set to "off".
 
-> diff --git a/Documentation/devicetree/bindings/video/backlight/pwm-backlight.txt b/Documentation/devicetree/bindings/video/backlight/pwm-backlight.txt
+--DocE+STaALJfprDB
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> +  - backlight-boot-off: keep the backlight disabled on boot
+On Tue, Oct 01, 2013 at 12:26:07PM -0600, Stephen Warren wrote:
+> On 09/23/2013 03:40 PM, Thierry Reding wrote:
+> > In preparation for adding an optional regulator and enable GPIO to the
+> > driver, split the power on and power off sequences into separate
+> > functions to reduce code duplication at the multiple call sites.
+>=20
+> > diff --git a/drivers/video/backlight/pwm_bl.c b/drivers/video/backlight=
+/pwm_bl.c
+>=20
+> > +static void pwm_backlight_power_off(struct pwm_bl_data *pb)
+> > +{
+> > +	pwm_disable(pb->pwm);
+>=20
+> Both the call-sites you're replacing do the following before pwm_disable(=
+):
+>=20
+> 		pwm_config(pb->pwm, 0, pb->period);
+>=20
+> While I agree that probably shouldn't be necessary, I think it's at
+> least worth mentioning that in the commit description just to make it
+> obvious that it was a deliberate change. Splitting that change into a
+> separate patch might be reasonable in order to keep refactoring and
+> functional changes separate, although perhaps it's not worth it.
 
-A few thoughts:
+Actually I'll add that back. I'm not sure exactly why I dropped it (it
+may just have been oversight) and there have been reports that some HW
+actually requires pwm_config(..., 0, ...) before pwm_disable() to turn
+off properly.
 
-1) Does this property indicate that:
+> There are also a couple unrelated whitespace changes thrown in here.
 
-a) The current state of the backlight at boot. In which case, this will
-need bootloader involvement to modify the value in the DT at boot time
-based on whether the bootloader turned on the backlight:-(
+I think they increase readability, but I can certainly move them into a
+separate patch.
 
-b) That the driver should not turn on the backlight immediately? That
-seems to describe driver behaviour more than HW. Is it appropriate to
-put that into DT?
+Thierry
 
-Your suggestion to make the backlight not turn on by default might be a
-better fix?
+--DocE+STaALJfprDB
+Content-Type: application/pgp-signature
 
-2) Should the driver instead attempt to read the current state of the
-GPIO output to determine whether the backlight is on? This may not be
-possible on all HW.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.21 (GNU/Linux)
 
-3) Doesn't the following code in probe() (added in a previous patch)
-need to be updated?
+iQIcBAEBAgAGBQJSSzHWAAoJEN0jrNd/PrOhc4IP/A/8tzxD8ELDkkCzKhqGuLAZ
+TkfYFhVRUEccTBx1sn/ROmqYx5jcMwEeTuKb1QvrTozzwLW6dW7tVvz2QWr0Nxpk
+eFx99F2kmNvWNrf2in0wtmGRxBFJUydUWwKcagiVO+C4wl36tCWUaP5hMrlDbEte
+j7k6ydMQDZDxZuVcN/qZ+vOeIN5zdI7KeQtS/CbLAXpJtLCJr6W8dIm/+sJmt+MU
+VpkF/DxnK2VhEwNbxRS/irOnoIs9Kgh1PRPQFciNUq2ab7uy9ADUSlosUEp2Jhvw
+ZLNGsDeUm1zD4XYgBDVMJuU9hSeMneEUkdEQmJwih5gEDUs3NhyDzxZ00pM6IwQf
+g/Dw2ewFx9l7+qHEvxxnOYWdeSfal+M+rjfAkSz7jriypXDJgvYIToSQMj3rRxVV
+6G8AFe/+VaH/oKsKixk0d3aPhZQtNHVjQaShbJ8C7EvpowhkLFVQQ7MVMTQ7lWpS
+Rm3MVeP7tN39RtIC0svt66Vuq/OjxOW8xQEKS68USzWZVcSrgYSL6AEOc5e/nf73
+/IUabT+3ng/s9MmWcYNx01OEKAdDhegt5vcfAweX4ntcezcXgxkTXXHIH4emuymb
+ZS+0RIZ5QFWS0aUeAQ3CxjoEp4a660oA46LbG13viblpQw0ZB0xL17chLUwRCeYj
+UIuGk6yoOioDeG8g0A2J
+=zpgL
+-----END PGP SIGNATURE-----
 
-> +	if (gpio_is_valid(pb->enable_gpio)) {
-> +		if (pb->enable_gpio_flags & PWM_BACKLIGHT_GPIO_ACTIVE_LOW)
-> +			gpio_set_value(pb->enable_gpio, 0);
-> +		else
-> +			gpio_set_value(pb->enable_gpio, 1);
-> +	}
-
-... That assumes that the backlight is on at boot, and hence presumably
-after this patch still always turns on the backlight, only to turn it
-off very quickly once the following code in this patch executes:
-
-(and perhaps we also need to avoid turning the backlight off then on if
-it was already on at boot)
-
-> diff --git a/drivers/video/backlight/pwm_bl.c b/drivers/video/backlight/pwm_bl.c
-
-> @@ -318,6 +320,12 @@ static int pwm_backlight_probe(struct platform_device *pdev)
->  	}
->  
->  	bl->props.brightness = data->dft_brightness;
-> +
-> +	if (data->boot_off)
-> +		bl->props.power = FB_BLANK_POWERDOWN;
-> +	else
-> +		bl->props.power = FB_BLANK_UNBLANK;
-
+--DocE+STaALJfprDB--
