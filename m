@@ -1,93 +1,66 @@
-From: Rob Herring <robherring2@gmail.com>
-Subject: Re: [RFC PATCH 0/6] DRIVERS: IRQCHIP: Add support for crossbar IP
-Date: Tue, 01 Oct 2013 09:53:46 -0500
-Message-ID: <524AE1FA.2050104@gmail.com>
-References: <1380549564-31045-1-git-send-email-r.sricharan@ti.com> <52499441.1030403@gmail.com> <524AAE69.8060703@ti.com> <524AD290.207@gmail.com> <524AD4B7.7040700@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH v2 5/5] usb: musb: dsps: add support for suspend and
+ resume
+Date: Tue, 1 Oct 2013 09:59:19 -0500
+Message-ID: <20131001145919.GZ1476@radagast>
+References: <1380634797-29541-1-git-send-email-zonque@gmail.com>
+ <1380634797-29541-6-git-send-email-zonque@gmail.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <524AD4B7.7040700@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: tglx@linutronix.de, Sricharan R <r.sricharan@ti.com>, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linus.walleij@linaro.org, linux@arm.linux.org.uk, tony@atomide.com, rnayak@ti.com, marc.zyngier@arm.com, grant.likely@linaro.org, mark.rutland@arm.com
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="HwnjeXAdSoek43pS"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:60011 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753493Ab3JAO77 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 1 Oct 2013 10:59:59 -0400
+Content-Disposition: inline
+In-Reply-To: <1380634797-29541-6-git-send-email-zonque@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Daniel Mack <zonque@gmail.com>
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, neumann@teufel.de, bigeasy@linutronix.de, vinod.koul@intel.com, dan.j.williams@intel.com, balbi@ti.com
 
-On 10/01/2013 08:57 AM, Santosh Shilimkar wrote:
-> On Tuesday 01 October 2013 09:48 AM, Rob Herring wrote:
->> On 10/01/2013 06:13 AM, Sricharan R wrote:
->>> Hi,
->>>
->>> On Monday 30 September 2013 08:39 PM, Rob Herring wrote:
->>>> On 09/30/2013 08:59 AM, Sricharan R wrote:
->>>>> Some socs have a large number of interrupts requests to service
->>>>> the needs of its many peripherals and subsystems. All of the interrupt
->>>>> requests lines from the subsystems are not needed at the same
->>>>> time, so they have to be muxed to the controllers appropriately.
->>>>> In such places a interrupt controllers are preceded by an
->>>>> IRQ CROSSBAR that provides flexibility in muxing the device interrupt
->>>>> requests to the controller inputs.
->>>>>
->>>>> This series models the peripheral interrupts that can be routed through
->>>>> the crossbar to the GIC as 'routable-irqs'. The routable irqs are added
->>>>> in a separate linear domain inside the GIC. The registered routable domain's
->>>>> callback are invoked as a part of the GIC's callback, which in turn should
->>>>> allocate a free irq line and configure the IP accordingly. So every peripheral
->>>>> in the dts files mentions the fixed crossbar number as its interrupt. A free
->>>>> gic line for that gets allocated and configured when the peripheral's interrupt
->>>>> is mapped.
->>>>>
->>>>> The minimal crossbar driver to track and allocate free GIC lines and configure the
->>>>> crossbar is added here, along with the DT bindings.
->>>> Seems like interrupt-map property is what you need here.
->>>>
->>>> http://devicetree.org/Device_Tree_Usage#Advanced_Interrupt_Mapping
->>>>
->>>> Versatile Express also has an example.
->>>    OK, but the idea was not to tie up the crossbar<->interrupt numbers at the
->>>    DTS level, but to assign it dynamically during runtime. This was one of the
->>>   comments that came up with first crossbar support patches, which was assigning a
->>>   interrupt line to crossbar number in the DTS and setting it up in crossbar probe.
->>
->> Is there an actual usecase on a single h/w design that you run out of
->> interrupts and it is a user decision which interrupts to use?
->>
-> Yes. There are 240 peripheral interrupts connected out of which 160 can
-> be used in this specific case. 
+--HwnjeXAdSoek43pS
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Yes, I understand the SOC connections. That does not answer my question.
-The 240 interrupts are likely to be limited to fewer by board design,
-pinmuxing, etc.
+Hi,
 
-How do you handle the 161st interrupt request? Will never happen? Just
-rely on the random driver probe ordering?
+On Tue, Oct 01, 2013 at 03:39:57PM +0200, Daniel Mack wrote:
+> The dsps platform needs to save save some registers at suspend time and
+> restore them after resume. This patch adds a struct for these registers,
+> and also lets the musb core know that the core registers need to be
+> saved as well.
+>=20
+> Signed-off-by: Daniel Mack <zonque@gmail.com>
 
->> You could fill in the interrupt-map at run-time. It would have to be
->> early (bootloader or early kernel init) and can't be at request_irq time.
->>
-> Well all options are tried before coming up to the $subject solution.
-> It was suggested by Thomas in the last review.
->  
->>>     https://lkml.org/lkml/2013/7/18/416
->>>
->>>    Since this approach of assigning in DTS was opposed, we moved to IRQCHIP and
->>>    that did not go as well. Finally was asked to handle this as a part of GIC driver with
->>>    a separate domain.
->>>    
->>>   http://www.spinics.net/lists/linux-omap/msg97085.html
->>
->> This has nothing to do with the GIC, so it does not belong there.
->>
-> Well the router makes connections from peripheral to GIC. Thomas can
-> better explain it but I think since its doing irq routing for GIC on
-> a given hardware, I don't see any issue having some generic map/unmap
-> function in GIC. The actual implementation is still outside of GIC.
+this last patch didn't apply. can you rebase on my 'testing' branch ?
 
-I read Thomas' reply as don't put this crap in his code.
+--=20
+balbi
 
-You can call it generic, but it is not. It is specific to the GIC and
-looks like an abuse of irqdomains to me. Look where the function
-declaration for register_routable_domain_ops is.
+--HwnjeXAdSoek43pS
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-Rob
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
 
+iQIcBAEBAgAGBQJSSuNHAAoJEIaOsuA1yqREymkQALDqoNPlOu+8yRyy9gavDDCm
+S+FYNVU6AaCYTnhK3aqklQk78jWi8Qab2fAH3yljpu846F0eM4NCnuz/qJg+IEOb
+LAin9J0ZmYCvh/PDPnJYbN1PoqdtSqF3223kRCe+bd+Fh0UkIAUF6/wndkKnWljd
+qHHzh/QI3KHgzH+JytVoqo7I3oFA0MGVGk0w/lhnjX9Au5EO0QPDDutsn+9LPBRH
+KNvKtWVrEM1WIxflffWqInmEuYW/kPP8uKEGLft9X02G1d00CVODk4NtFICmXV1U
+ZI0VcRp8Fvj8H/2jZiK0WLCKkc6MhRgvL24eUk/ZRYsLEldhma8O9Zmi1edaCPVD
+x2St7485YMpyQpGOt8WuexwWlAQfJFB5pHq8NEOUgfPyAnCJ5kLZ+WsBuNnpWCXC
+PPi5oM2U0QYMUGHa1Fyqk2AOveB/i5sbk1L8vihUv+gcLlLcG44cpzdvCi9BJZjD
+NebkI3gxC3tsgoZTd9+acxDjLhj46InviW8+LvepwHeIxrVoQ3C2ErTadDH6VKzy
+OgwEp2tyMeAV6kDV21zTxhveJ915SIBgPWEzMY9em8J55eNy145+iM/QJsgJML/a
+KKuOlaVmZ1JFYmGre+5tZPUVitQYA5vBH/LWM8vczAfJN/5fdSCDhGzQKMksvBLH
+eR/8fDBvsOP6Nce1uRN7
+=WmhI
+-----END PGP SIGNATURE-----
+
+--HwnjeXAdSoek43pS--
