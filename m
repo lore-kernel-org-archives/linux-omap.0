@@ -1,121 +1,108 @@
 From: Thierry Reding <thierry.reding@gmail.com>
-Subject: Re: [PATCH 05/10] ARM: SAMSUNG: Initialize PWM backlight enable_gpio
- field
-Date: Tue, 1 Oct 2013 23:23:06 +0200
-Message-ID: <20131001212305.GF9201@ulmo.nvidia.com>
+Subject: Re: [PATCH 09/10] pwm-backlight: Use an optional power supply
+Date: Tue, 1 Oct 2013 23:31:27 +0200
+Message-ID: <20131001213120.GG9201@ulmo.nvidia.com>
 References: <1379972467-11243-1-git-send-email-treding@nvidia.com>
- <1379972467-11243-6-git-send-email-treding@nvidia.com>
- <524B14E8.5040302@wwwdotorg.org>
- <20131001204335.GB9201@ulmo.nvidia.com>
- <524B376E.6060507@wwwdotorg.org>
+ <1379972467-11243-10-git-send-email-treding@nvidia.com>
+ <524B17ED.1080806@wwwdotorg.org>
+ <20131001205310.GD9201@ulmo.nvidia.com>
+ <524B37BF.2090300@wwwdotorg.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="DO5DiztRLs659m5i"
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+	protocol="application/pgp-signature"; boundary="FUaywKC54iCcLzqT"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <524B376E.6060507@wwwdotorg.org>
-Sender: linux-samsung-soc-owner@vger.kernel.org
+In-Reply-To: <524B37BF.2090300@wwwdotorg.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Stephen Warren <swarren@wwwdotorg.org>
-Cc: Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Tony Lindgren <tony@atomide.com>, Eric Miao <eric.y.miao@gmail.com>, Haojian Zhuang <haojian.zhuang@gmail.com>, Ben Dooks <ben-linux@fluff.org>, Kukjin Kim <kgene.kim@samsung.com>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Guan Xuetao <gxt@mprc.pku.edu.cn>, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, openezx-devel@lists.openezx.org, linux-samsung-soc@vger.kernel.org, linux-sh@vger.kernel.org, linux-pwm@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Tony Lindgren <tony@atomide.com>, Eric Miao <eric.y.miao@gmail.com>, Haojian Zhuang <haojian.zhuang@gmail.com>, Ben Dooks <ben-linux@fluff.org>, Kukjin Kim <kgene.kim@samsung.com>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Guan Xuetao <gxt@mprc.pku.edu.cn>, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, openezx-devel@lists.openezx.org, linux-samsung-soc@vger.kernel.org, linux-sh@vger.kernel.org, linux-pwm@vger.kernel.org, linux-kernel@vger.kernel.org, Mark Brown <broonie@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
 
---DO5DiztRLs659m5i
+--FUaywKC54iCcLzqT
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Oct 01, 2013 at 02:58:22PM -0600, Stephen Warren wrote:
-> On 10/01/2013 02:43 PM, Thierry Reding wrote:
-> > On Tue, Oct 01, 2013 at 12:31:04PM -0600, Stephen Warren wrote:
+On Tue, Oct 01, 2013 at 02:59:43PM -0600, Stephen Warren wrote:
+> On 10/01/2013 02:53 PM, Thierry Reding wrote:
+> > On Tue, Oct 01, 2013 at 12:43:57PM -0600, Stephen Warren wrote:
 > >> On 09/23/2013 03:41 PM, Thierry Reding wrote:
-> >>> The GPIO API defines 0 as being a valid GPIO number, so this
-> >>> field needs to be initialized explicitly.
+> >>> Many backlights require a power supply to work properly. This
+> >>> commit uses a power-supply regulator, if available, to power up
+> >>> and power down the panel.
 > >>=20
-> >>> static void __init smdkv210_map_io(void)
-> >>=20
-> >>> @@ -70,6 +70,7 @@ static struct samsung_bl_drvdata
-> >>> samsung_dfl_bl_data __initdata =3D { .max_brightness =3D 255,=20
-> >>> .dft_brightness =3D 255, .pwm_period_ns  =3D 78770, +		.enable_gpio
-> >>> =3D -1, .init           =3D samsung_bl_init, .exit           =3D
-> >>> samsung_bl_exit, }, @@ -121,6 +122,10 @@ void __init
-> >>> samsung_bl_set(struct samsung_bl_gpio_info *gpio_info,=20
-> >>> samsung_bl_data->lth_brightness =3D bl_data->lth_brightness; if
-> >>> (bl_data->pwm_period_ns) samsung_bl_data->pwm_period_ns =3D
-> >>> bl_data->pwm_period_ns; +	if (bl_data->enable_gpio) +
-> >>> samsung_bl_data->enable_gpio =3D bl_data->enable_gpio; +	if
-> >>> (bl_data->enable_gpio_flags) +
-> >>> samsung_bl_data->enable_gpio_flags =3D
-> >>> bl_data->enable_gpio_flags;
-> >>=20
-> >> Won't this cause the core pwm_bl driver to request/manipulate the
-> >> GPIO, whereas this driver already does that inside the
-> >> samsung_bl_init/exit callbacks? I think you either need to adjust
-> >> those callbacks, or not set the new standard GPIO property in
-> >> samsung_bl_data.
+> >> I think that all backlights require a power supply, albeit the
+> >> supply may not be SW-controllable. Hence, shouldn't the regulator
+> >> be mandatory in the binding, yet the driver be defensively coded
+> >> such that if one isn't specified, the driver continues to work?
 > >=20
-> > I don't think so. The samsung_bl_data is a copy of
-> > samsung_dfl_bl_data augmented by board-specific settings. So in
-> > fact copying these values here is essential to allow boards to
-> > override the enable_gpio and flags fields. Currently no board sets
-> > the enable_gpio to a valid GPIO so it's all still handled by the
-> > callbacks only.
+> > That has already changed in my local version of this patch.
+> >=20
+> >>> diff --git a/drivers/video/backlight/pwm_bl.c
+> >>> b/drivers/video/backlight/pwm_bl.c
+> >>=20
+> >>> @@ -253,6 +264,16 @@ static int pwm_backlight_probe(struct
+> >>> platform_device *pdev) } }
+> >>>=20
+> >>> +	pb->power_supply =3D devm_regulator_get_optional(&pdev->dev,
+> >>> "power");
+> >>=20
+> >> ... so I think that should be devm_regulator_get(), since the
+> >> regulator isn't really optional.
+> >>=20
+> >>> +	if (IS_ERR(pb->power_supply)) { +		if
+> >>> (PTR_ERR(pb->power_supply) !=3D -ENODEV) { +			ret =3D
+> >>> PTR_ERR(pb->power_supply); +			goto err_gpio; +		} + +
+> >>> pb->power_supply =3D NULL;
+> >>=20
+> >> If devm_regulator_get_optional() returns an error value or a
+> >> valid value, then I don't think that this driver should transmute
+> >> error values into NULL; NULL might be a perfectly valid regulator
+> >> value. Related, I think the if (pb->power_supply) tests should be
+> >> replaced with if (!IS_ERR(pb->power_supply)) instead.
+> >=20
+> > All of that is already done in my local tree. This actually turns
+> > out to work rather smoothly with the new support for optional
+> > regulators. The regulator core will give you a dummy regulator
+> > (assuming it's there physically but hasn't been wired up in
+> > software) that's always on, so the driver doesn't even have to
+> > special case it anymore.
 >=20
-> Oh yes, you're right. I was confusing the new enable_gpio field in
-> pwm_bl's platform data with some other field in a custom data structure.
->=20
-> One minor point though:
->=20
-> >>> +	if (bl_data->enable_gpio) +		samsung_bl_data->enable_gpio =3D
-> >>> bl_data->enable_gpio;
->=20
-> That assumes that enable_gpio=3D=3D0 means "none", whereas you've gone to
-> great pains in the rest of the series to allow 0 to be a valid GPIO
-> ID. right now, the default value of samsung_bl_data->enable_gpio is
-> -1, and if !bl_data->enable_gpio, that value won't be propagated across.
+> OK, hopefully it (the regulator core) complains about the missing DT
+> property though; I assume you're using regulator_get() not
+> regulator_get_optional(), since the supply really is not optional.
 
-Right, that check should now be:
+It doesn't always. There's a pr_warn() in _regulator_get(), but that's
+only for non-DT (since for DT, has_full_constraints is set to true in
+regulator_init_complete()). Actually that would mean that the regulator
+core will complain as long as init isn't complete. But since, like many
+other drivers, pwm-backlight could use deferred probing it's likely to
+end up being probed after init.
 
-	if (bl_data->enable_gpio >=3D 0)
-
-Well, it depends. It would be possible for the default to specify a
-valid GPIO and for a board to override it with -1 (and provide a set of
-corresponding callbacks). In that case the right thing to do here would
-be not to check at all.
-
-Then again, I don't think that will ever happen, because no fixed GPIO
-will ever be a good default. So changing to >=3D 0 instead of !=3D 0 should
-work fine.
-
-Again, starting with 3.13 this should become a lot easier to handle
-since the GPIO subsystem will gain functionality to use a per-board
-lookup table, similarly to what the regulator and PWM subsystems do.
-Once that's in place I plan to make another pass over all users of the
-pwm-backlight driver and replace the enable_gpio field with a GPIO
-lookup table, so that the driver can uniformly request them using a
-simple gpiod_get().
+Cc'ing Mark Brown.
 
 Thierry
 
---DO5DiztRLs659m5i
+--FUaywKC54iCcLzqT
 Content-Type: application/pgp-signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2.0.21 (GNU/Linux)
 
-iQIcBAEBAgAGBQJSSz05AAoJEN0jrNd/PrOhDz0P/0XJLSooTkwvXGXDUxrOiN2c
-m6Drm5c1RR2Nz6rNkax19haIf1WOV05ZFBGbMzKlvI4/oGupIrzFFmIHmWsfZrX5
-ZmzR/ebD64/lHfB+I7mABRYJDV76Goibw68xNAKB5pW1cdt/FWOo1djQtC9WLfIS
-t7cLhWFUaXdntdYt1gmoqML/mCFCSPCXjRFvXPiph9+H5vQvY+w151GrNsyyHazr
-UpGDg54XVky804/QayqnWxXco2vhCCo4KZViqvAts+6+upv0Rn/6b+Gk6KITN7bb
-h7pkh7ZwR4Aro0aSKZapDzeGQRk5mRL4QpA1QX+LPbwFxpFhCjltuFSa7hFyFy3k
-N0dk2qpC4Pv/SlAFQmF4OISxSBXLy0c6veLg+jCWBjjnabjnIlC/Auxz2DqRctfF
-XoaKhreEB3n9njGOdroIsUEfw/DraGFLe+rkC5gqrcl3Dn11GS7lIWnsHFxOIhYe
-bt4jtFXA+X6+qDK2Bq9bzhPjkeJpUi0xcle0gh5fC3Pr/fceKYsFf5ENEMFNXKlY
-Ib5Pox5ftoUAjZ/+daoPtRbPkAKdDrwDGaZFpTT1FIkElte8DaWLuppgIaI2cB/2
-N6qjf3t4cZ9qMiuq+FRUzRSZtRsH/ECQClkyk7hePKd3gPBCNljijZQPEVfqfb1/
-wEgttnUyvkFYpczsbqWV
-=mP+c
+iQIcBAEBAgAGBQJSSz8tAAoJEN0jrNd/PrOhv0gP/ieeNUf9Ps2XqYD1G3O8YB97
+3KPaGRxbrlpvDzSkanaJ3kxrSx7ZLjRHGSFKiUF2LzKV3hMh3zi2j2RPOAGWeyIc
+dhERNIaNdaySD4uEiM3jtQSVnOXF9Cg8CeQz9vgayDXtB9GIEhSS95d4AuB0odWT
+EZ6cAXeoN7/sNNo8/POw/E3uS3X/vUGmcr1lLsFRVS8onmlCW2gvLiFn7nDpb+mE
+OCvURhEmzjcq+pyVD81qvtlWxj/D7vnvt4mexSqPVh3lDVCtX40rYC4l7hyVio2g
+VZRfhaHggWAWwHqChWgg7dY47dMO6xsL1giRCZ4BBLcLc0DlXn+vgMZjAzdDgqFC
+t3kkuXz576fHRzGaegM6WHJzMHB7oJ28+qki21ITxKqiZ2UYY1vHf2mR15DF++Cl
+jia5Zb2VjNcYMKoiHFePpzxNMKexJLhgIm+37ZpN9kN0KAuntr4bazHAe2g9RIt7
+AJQr+Rw+XGWFb04HCLml9vk/EzHgPrs9HyNwpIVO8tyj7r9A7UGmq/BGTM+ZuWLt
+pDcah1I33FMqyL/UvLvngy02539Nwla6y9flbUW/5amnvHHLlJwy1n33v3mW+IGB
+is2YdRngeXgCo4719YKAGuw4bWRoO7dzqc4e7MdOJ/bk1IMDv8O0Y1g3FyZyPIcT
+TjR4ebBaWU1ca2mvF4li
+=lgk1
 -----END PGP SIGNATURE-----
 
---DO5DiztRLs659m5i--
+--FUaywKC54iCcLzqT--
