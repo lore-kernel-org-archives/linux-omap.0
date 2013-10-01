@@ -1,84 +1,124 @@
-From: Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
-Subject: Re: [RFC PATCH 0/6] DRIVERS: IRQCHIP: Add support for crossbar IP
-Date: Tue, 1 Oct 2013 09:57:11 -0400
-Message-ID: <524AD4B7.7040700@ti.com>
-References: <1380549564-31045-1-git-send-email-r.sricharan@ti.com> <52499441.1030403@gmail.com> <524AAE69.8060703@ti.com> <524AD290.207@gmail.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH usb 1/2] usb: musb: Add missing ATOMIC_INIT_NOTIFIER_HEAD
+Date: Tue, 1 Oct 2013 09:22:40 -0500
+Message-ID: <20131001142240.GR1476@radagast>
+References: <1378630239-10006-1-git-send-email-pali.rohar@gmail.com>
+ <20130918164816.GN21559@radagast> <201309181903.33243@pali>
+ <201309251017.39014@pali> <20130925203333.GU10746@radagast>
+ <20130926000059.GA25716@amd.pavel.ucw.cz>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <524AD290.207-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Rob Herring <robherring2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org
-Cc: Sricharan R <r.sricharan-l0cyMroinI0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org, marc.zyngier-5wv7dgnIgG8@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org
+Content-Type: multipart/mixed; boundary="===============6864819252489075941=="
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20130926000059.GA25716@amd.pavel.ucw.cz>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Javier Martinez Canillas <martinez.javier@gmail.com>, linux-usb@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Anton Vorontsov <anton@enomsg.org>, Linux Kernel <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, freemangordon@abv.bg, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, David Woodhouse <dwmw2@infradead.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Tuesday 01 October 2013 09:48 AM, Rob Herring wrote:
-> On 10/01/2013 06:13 AM, Sricharan R wrote:
->> Hi,
->>
->> On Monday 30 September 2013 08:39 PM, Rob Herring wrote:
->>> On 09/30/2013 08:59 AM, Sricharan R wrote:
->>>> Some socs have a large number of interrupts requests to service
->>>> the needs of its many peripherals and subsystems. All of the interrupt
->>>> requests lines from the subsystems are not needed at the same
->>>> time, so they have to be muxed to the controllers appropriately.
->>>> In such places a interrupt controllers are preceded by an
->>>> IRQ CROSSBAR that provides flexibility in muxing the device interrupt
->>>> requests to the controller inputs.
->>>>
->>>> This series models the peripheral interrupts that can be routed through
->>>> the crossbar to the GIC as 'routable-irqs'. The routable irqs are added
->>>> in a separate linear domain inside the GIC. The registered routable domain's
->>>> callback are invoked as a part of the GIC's callback, which in turn should
->>>> allocate a free irq line and configure the IP accordingly. So every peripheral
->>>> in the dts files mentions the fixed crossbar number as its interrupt. A free
->>>> gic line for that gets allocated and configured when the peripheral's interrupt
->>>> is mapped.
->>>>
->>>> The minimal crossbar driver to track and allocate free GIC lines and configure the
->>>> crossbar is added here, along with the DT bindings.
->>> Seems like interrupt-map property is what you need here.
->>>
->>> http://devicetree.org/Device_Tree_Usage#Advanced_Interrupt_Mapping
->>>
->>> Versatile Express also has an example.
->>    OK, but the idea was not to tie up the crossbar<->interrupt numbers at the
->>    DTS level, but to assign it dynamically during runtime. This was one of the
->>   comments that came up with first crossbar support patches, which was assigning a
->>   interrupt line to crossbar number in the DTS and setting it up in crossbar probe.
-> 
-> Is there an actual usecase on a single h/w design that you run out of
-> interrupts and it is a user decision which interrupts to use?
->
-Yes. There are 240 peripheral interrupts connected out of which 160 can
-be used in this specific case. 
- 
-> You could fill in the interrupt-map at run-time. It would have to be
-> early (bootloader or early kernel init) and can't be at request_irq time.
->
-Well all options are tried before coming up to the $subject solution.
-It was suggested by Thomas in the last review.
- 
->>     https://lkml.org/lkml/2013/7/18/416
->>
->>    Since this approach of assigning in DTS was opposed, we moved to IRQCHIP and
->>    that did not go as well. Finally was asked to handle this as a part of GIC driver with
->>    a separate domain.
->>    
->>   http://www.spinics.net/lists/linux-omap/msg97085.html
-> 
-> This has nothing to do with the GIC, so it does not belong there.
-> 
-Well the router makes connections from peripheral to GIC. Thomas can
-better explain it but I think since its doing irq routing for GIC on
-a given hardware, I don't see any issue having some generic map/unmap
-function in GIC. The actual implementation is still outside of GIC.
+--===============6864819252489075941==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Ma2pZxZcUUd0eybH"
+Content-Disposition: inline
 
-Regards,
-Sasntosh
+--Ma2pZxZcUUd0eybH
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Hi,
+
+On Thu, Sep 26, 2013 at 02:00:59AM +0200, Pavel Machek wrote:
+> > On Wed, Sep 25, 2013 at 10:17:38AM +0200, Pali Roh=E1r wrote:
+> > > On Wednesday 18 September 2013 19:03:33 Pali Roh=E1r wrote:
+> > > > &twl->phy.notifier is not initalized
+> > > >=20
+> > > > Signed-off-by: Pali Roh=E1r <pali.rohar@gmail.com>
+> > > >=20
+> > > > diff --git a/drivers/usb/phy/phy-twl4030-usb.c
+> > > > b/drivers/usb/phy/phy-twl4030-usb.c index 8f78d2d..efe6155
+> > > > 100644
+> > > > --- a/drivers/usb/phy/phy-twl4030-usb.c
+> > > > +++ b/drivers/usb/phy/phy-twl4030-usb.c
+> > > > @@ -705,6 +705,8 @@ static int twl4030_usb_probe(struct
+> > > > platform_device *pdev) if (device_create_file(&pdev->dev,
+> > > > &dev_attr_vbus)) dev_warn(&pdev->dev, "could not create sysfs
+> > > > file\n");
+> > > >=20
+> > > > +	ATOMIC_INIT_NOTIFIER_HEAD(&twl->phy.notifier);
+> > > > +
+> > > >  	/* Our job is to use irqs and status from the power module
+> > > >  	 * to keep the transceiver disabled when nothing's
+> > > > connected. *
+> > >=20
+> > > I sent above patch week ago. Did you already included it?
+> >=20
+> > look at my testing branch.
+>=20
+> Felipe prefers you to go MAINTAINERS file for
+>=20
+> git://git.kernel.org/pub/scm/linux/kernel/git/balbi/usb.git
+>=20
+> entry. After few clicks, you'll find out your two patches in=20
+>=20
+> https://git.kernel.org/cgit/linux/kernel/git/balbi/usb.git/log/?h=3Dtesti=
+ng
+>=20
+> . So yes, it seems that after 10+ flames Felipe was _not_ lazy to
+> send, "Thanks for a patch" mail was too much work.
+>=20
+> Apparently, we'll need  Documentation/HowToBeGoodMaintainer file...
+
+I only send my automated emails after properly testing them. They sit in
+'testing' for as long as necessary. After all the test is done, they'll
+be moved to 'next' at which point you get your email notification and
+they reach linux-next for the next day.
+
+--=20
+balbi
+
+--Ma2pZxZcUUd0eybH
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJSStqwAAoJEIaOsuA1yqREAwsP/1FZp9Q04f3ZWw28tSd9flJ3
+i8ioP4uhQGr3c6lF5B1fyMcl80R9yBslQudVS8Zc5o1/ZXCgsECXtHE2KyZAvahR
+Jg3wfKCSFbIr3/ubuH0RRgyzPDzNOiDJ0T2a4PJHMSnxsFT4pdaJRMAvIaW7AuTT
+PqDvN1+sHbR1/pTDyfeuXnKTu9Bu5IZ5G/NLDKqwW1StHhoWDCPxLI/ryLR9Lh4+
+SPMirEszNGmnWGCL/DR4+cdC+WqvrxmttGavbsRAmB3yDh/8xbGnWJR3i+5cKIGR
+cEcn6bBufltmJbu99nX1J/x0TJ9zqSBnM/nm9uPReSb0/SzRM62THLbuJ5i41Nph
+rz0OIYl5GmV3PVjh0FX8KAi+8csCcNxCnHqIgSqk6t2JehN/BYBPO1cJ28We371N
+lLxdkQGH6+uSN5z4Am6sOM3Y6jYOePnYSuVkt+Mo8gRzTEQwQjw3jXe59CGOLfZE
+T+0eJzYpCdJNI84PgvqVDk7ofZUV1ezb+sO83C4FjfkeP8pDwRXHc61eHHx6hoDF
+x/SA1uLKGCVRNQFnyUtzFv7GFBFEKjLPROuPtlmMYB35sE4YUYaDVkUZ45/3imu+
+xux0snwUByRwgFcP1HVipkhpM9xAZF2L4CAhl0MeSbglAf1/KlwznZG30OD3Cdyd
+3ONL9X+CFtxZ28o68Aof
+=h3uN
+-----END PGP SIGNATURE-----
+
+--Ma2pZxZcUUd0eybH--
+
+
+--===============6864819252489075941==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+--===============6864819252489075941==--
