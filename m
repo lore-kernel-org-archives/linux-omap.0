@@ -1,51 +1,67 @@
-From: Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2 0/5] usb: musb_dsps: support for suspend and resume
-Date: Tue,  1 Oct 2013 15:39:52 +0200
-Message-ID: <1380634797-29541-1-git-send-email-zonque@gmail.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, neumann-SRDuVqtxQLSzQB+pC5nmwQ@public.gmane.org, bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: Rob Herring <robherring2@gmail.com>
+Subject: Re: [RFC PATCH 0/6] DRIVERS: IRQCHIP: Add support for crossbar IP
+Date: Tue, 01 Oct 2013 08:48:00 -0500
+Message-ID: <524AD290.207@gmail.com>
+References: <1380549564-31045-1-git-send-email-r.sricharan@ti.com> <52499441.1030403@gmail.com> <524AAE69.8060703@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <524AAE69.8060703@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Sricharan R <r.sricharan@ti.com>
+Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, tglx@linutronix.de, linus.walleij@linaro.org, santosh.shilimkar@ti.com, linux@arm.linux.org.uk, tony@atomide.com, rnayak@ti.com, marc.zyngier@arm.com, grant.likely@linaro.org, mark.rutland@arm.com
 List-Id: linux-omap@vger.kernel.org
 
-I've been working on some patches that allow suspending and resuming
-the musb-dsps platform. This was tested for host mode only.
+On 10/01/2013 06:13 AM, Sricharan R wrote:
+> Hi,
+> 
+> On Monday 30 September 2013 08:39 PM, Rob Herring wrote:
+>> On 09/30/2013 08:59 AM, Sricharan R wrote:
+>>> Some socs have a large number of interrupts requests to service
+>>> the needs of its many peripherals and subsystems. All of the interrupt
+>>> requests lines from the subsystems are not needed at the same
+>>> time, so they have to be muxed to the controllers appropriately.
+>>> In such places a interrupt controllers are preceded by an
+>>> IRQ CROSSBAR that provides flexibility in muxing the device interrupt
+>>> requests to the controller inputs.
+>>>
+>>> This series models the peripheral interrupts that can be routed through
+>>> the crossbar to the GIC as 'routable-irqs'. The routable irqs are added
+>>> in a separate linear domain inside the GIC. The registered routable domain's
+>>> callback are invoked as a part of the GIC's callback, which in turn should
+>>> allocate a free irq line and configure the IP accordingly. So every peripheral
+>>> in the dts files mentions the fixed crossbar number as its interrupt. A free
+>>> gic line for that gets allocated and configured when the peripheral's interrupt
+>>> is mapped.
+>>>
+>>> The minimal crossbar driver to track and allocate free GIC lines and configure the
+>>> crossbar is added here, along with the DT bindings.
+>> Seems like interrupt-map property is what you need here.
+>>
+>> http://devicetree.org/Device_Tree_Usage#Advanced_Interrupt_Mapping
+>>
+>> Versatile Express also has an example.
+>    OK, but the idea was not to tie up the crossbar<->interrupt numbers at the
+>    DTS level, but to assign it dynamically during runtime. This was one of the
+>   comments that came up with first crossbar support patches, which was assigning a
+>   interrupt line to crossbar number in the DTS and setting it up in crossbar probe.
 
-With these patches applied, I can successfully bring an AM335x board
-to suspend with a USB media connected, and access it again after
-resume.
+Is there an actual usecase on a single h/w design that you run out of
+interrupts and it is a user decision which interrupts to use?
 
-This works for both PIO mode and CPPI41 enabled configurations,
-together with my cppi41 patches that I posted here:
+You could fill in the interrupt-map at run-time. It would have to be
+early (bootloader or early kernel init) and can't be at request_irq time.
 
-  http://marc.info/?l=linux-usb&m=138063429219730&w=2
+>     https://lkml.org/lkml/2013/7/18/416
+> 
+>    Since this approach of assigning in DTS was opposed, we moved to IRQCHIP and
+>    that did not go as well. Finally was asked to handle this as a part of GIC driver with
+>    a separate domain.
+>    
+>   http://www.spinics.net/lists/linux-omap/msg97085.html
 
-More testing is certainly appreciated.
+This has nothing to do with the GIC, so it does not belong there.
 
+Rob
 
-Thanks,
-Daniel
-
-Daniel Mack (5):
-  usb: musb: move port reset to worker
-  usb: musb: call musb_port_suspend from musb_bus_suspend
-  usb: musb: conditionally save and restore the context on suspend
-  usb: musb: dsps: add {tx,rx}_mode to wrapper
-  usb: musb: dsps: add support for suspend and resume
-
- drivers/usb/musb/musb_core.c    | 24 +++++++++++++++-
- drivers/usb/musb/musb_core.h    |  3 ++
- drivers/usb/musb/musb_dsps.c    | 64 +++++++++++++++++++++++++++++++++++++++++
- drivers/usb/musb/musb_host.c    |  2 ++
- drivers/usb/musb/musb_host.h    |  4 +++
- drivers/usb/musb/musb_virthub.c | 15 ++++++----
- include/linux/usb/musb.h        |  1 +
- 7 files changed, 106 insertions(+), 7 deletions(-)
-
--- 
-1.8.3.1
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
