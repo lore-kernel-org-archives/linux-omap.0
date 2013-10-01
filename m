@@ -1,95 +1,78 @@
-From: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
-Subject: Re: [PATCHv2 2/9] hwspinlock/omap: add support for dt nodes
-Date: Tue, 1 Oct 2013 09:40:16 +0100
-Message-ID: <20131001084015.GH22259@e106331-lin.cambridge.arm.com>
-References: <cover.1379445653.git.s-anna@ti.com>
- <0fd6a11880894260d627a50b1e35f363625e9b1d.1379445653.git.s-anna@ti.com>
- <AE597DCC-83D7-4BCD-8990-3D63540F32EA@codeaurora.org>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: using mmc2 on panda [was: Regression 3.11-rc1: omap4panda: no
+ usb and consequently no ethernet]
+Date: Tue, 1 Oct 2013 12:49:44 +0300
+Message-ID: <524A9AB8.4010407@ti.com>
+References: <51E7AA24.6080600@broadcom.com> <20130718085951.GT7656@atomide.com> <51E916C0.8080206@broadcom.com> <51E919CA.8060805@ti.com> <51E91B80.1050609@broadcom.com> <524A823F.6070209@broadcom.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <AE597DCC-83D7-4BCD-8990-3D63540F32EA-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-Cc: Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <524A823F.6070209@broadcom.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Arend van Spriel <arend@broadcom.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Suman,
+Hi Arend,
 
-On Fri, Sep 27, 2013 at 05:06:38PM +0100, Kumar Gala wrote:
+On 10/01/2013 11:05 AM, Arend van Spriel wrote:
+> On 07/19/2013 12:57 PM, Arend van Spriel wrote:
+>> On 07/19/2013 12:49 PM, Roger Quadros wrote:
+>>> On 07/19/2013 01:36 PM, Arend van Spriel wrote:
+>>>> On 07/18/2013 10:59 AM, Tony Lindgren wrote:
+>>>>> Then for the SDIO with device tree, take a look at the following
+>>>>> patches:
+>>>>>
+>>>>> [PATCH 0/3] WLAN support for omap4 when booted with devicetree
+>>>>> http://comments.gmane.org/gmane.linux.ports.arm.omap/97522#
+>>>>
+>>>> I have been looking at the pandaboard patch in the series above and I
+>>>> do have a question. Among other things the patch adds these dt entries.
+>>>>
+>>>> +            0x108 0x118    /* sdmmc5_clk.sdmmc5_clk INPUT_PULLUP |
+>>>> MODE0 */
+>>>> +            0x10a 0x118    /* sdmmc5_cmd.sdmmc5_cmd INPUT_PULLUP |
+>>>> MODE0 */
+>>>>
+>>>> If I look at the similar names in the deceased board-omap4panda.c:
+>>>>
+>>>> board-omap4panda.c:    OMAP4_MUX(SDMMC5_CMD, OMAP_MUX_MODE0 |
+>>>> OMAP_PIN_INPUT_PULLUP),
+>>>> board-omap4panda.c:    OMAP4_MUX(SDMMC5_CLK, OMAP_MUX_MODE0 |
+>>>> OMAP_PIN_INPUT_PULLUP),
+>>>>
+>>>> and in mux44xx.h:
+>>>>
+>>>> mux44xx.h:#define OMAP4_CTRL_MODULE_PAD_SDMMC5_CLK_OFFSET    0x0148
+>>>> mux44xx.h:#define OMAP4_CTRL_MODULE_PAD_SDMMC5_CMD_OFFSET    0x014a
+>>>>
+>>>> So how did 0x0148 get 0x0108 in DT and 0x014a get 0x010a. There is
+>>>> probably an explanation to it and it would help my understanding to
+>>>> know where this difference comes from. Hope you can help me out here.
+>>>>
+>>>
+>>> If you see omap4.dtsi, omap4_pmx_core starts at register address
+>>> 0x4a100040.
+>>>
+>>> So, you need to subtract 0x40 from the offsets defined in mux44xx.h
+>>> for pmx_core registers.
+>>
+>> That was what I was looking for. Thanks!
 > 
-> On Sep 17, 2013, at 2:30 PM, Suman Anna wrote:
+> Hi Roger,
 > 
-> > HwSpinlock IP is present only on OMAP4 and other newer SoCs,
-> > which are all device-tree boot only. This patch adds the
-> > base support for parsing the DT nodes, and removes the code
-> > dealing with the traditional platform device instantiation.
-> > 
-> > Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-> > ---
-> > .../devicetree/bindings/hwlock/omap-hwspinlock.txt | 31 +++++++++++
-> > arch/arm/mach-omap2/Makefile                       |  3 --
-> > arch/arm/mach-omap2/hwspinlock.c                   | 60 ----------------------
-> > drivers/hwspinlock/omap_hwspinlock.c               | 23 +++++++--
-> > 4 files changed, 50 insertions(+), 67 deletions(-)
-> > create mode 100644 Documentation/devicetree/bindings/hwlock/omap-hwspinlock.txt
-> > delete mode 100644 arch/arm/mach-omap2/hwspinlock.c
-> > 
-> > diff --git a/Documentation/devicetree/bindings/hwlock/omap-hwspinlock.txt b/Documentation/devicetree/bindings/hwlock/omap-hwspinlock.txt
-> > new file mode 100644
-> > index 0000000..235b7c5
-> > --- /dev/null
-> > +++ b/Documentation/devicetree/bindings/hwlock/omap-hwspinlock.txt
-> > @@ -0,0 +1,31 @@
-> > +OMAP4+ HwSpinlock Driver
-> > +========================
-> > +
-> > +Required properties:
-> > +- compatible:		Currently supports only "ti,omap4-hwspinlock" for
-> > +				OMAP44xx, OMAP54xx, AM33xx, AM43xx, DRA7xx SoCs
+> It has been a while, but I would like to pickup this thread. We have a couple of pandaboards used as test setup. These have an SDIO adapter hooked up to expansion connector A using MMC2. I have attached the patch file (just ignore platform_data stuff). Now on one board it works, but not for the other. I suspect a board issue so listing the two types that we use:
+> 
+> PandaBoard rev A2 (dmesg: OMAP4430 ES2.1): works
+> PandaBoardES rev B1 (dmesg: OMAP4460 ES1.1): nope
+> 
+> Any hints for me.
 
-"Currently supports" is not something I expect to see in a binding
-document. That sounds like a description of the driver rather than the
-binding.
+Does your PandaboardES have the WLAN chip (U4) mounted? If yes, how do you isolate
+it from your external SDIO adapter?
 
-How similar are these hardware modules? What are the differences?
+Most likely your Pandaboard (A2) doesn't have the WLAN chip (U3) on board so there is no problem there.
 
-> > +- reg:			Contains the hwspinlock register address range (base
-> > +			address and length)
-
-Is there only one register bank for the hwlock module?
-
-> > +- ti,hwmods:		Name of the hwmod associated with the hwspinlock device
-> > +
-> > +Common hwlock properties:
-> > +The following describes the usage of the common hwlock properties (defined in
-> > +Documentation/devicetree/bindings/hwlock/hwlock.txt) on OMAP.
-> > +
-> > +- hwlock-base-id:	There are currently no OMAP SoCs with multiple
-> > +			hwspinlock devices. The OMAP driver uses a default
-> > +			base id value of 0 for the locks present within the
-> > +			single hwspinlock device on all SoCs.
-
-
-Driver details should not leak into bindngs...
-
-As mentioned in the other patch, I don't think this is the way to handle
-this. I think we need a phandle + args representation.
-
-> > +- hwlock-num-locks:	This property is not required on OMAP SoCs, since the
-> > +			number of locks present within a device can be deduced
-> > +			from the SPINLOCK_SYSSTATUS device register.
-
-Huh? Why define this property at all here if we don't need it and don't
-use it?
-
-The common document should state that specific bindings may use it and
-should explicitly state if they do, rather than stating they don't...
-
-Cheers,
-Mark.
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+cheers,
+-roger
