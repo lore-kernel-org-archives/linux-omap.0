@@ -1,44 +1,95 @@
-From: "Ivan T. Ivanov" <iivanov@mm-sol.com>
-Subject: Re: [PATCH v5 1/3] usb: dwc3: msm: Add device tree binding
- information
-Date: Tue, 01 Oct 2013 15:08:30 +0300
-Message-ID: <1380629310.30666.22.camel@iivanov-dev.int.mm-sol.com>
-References: <1377091786-5613-1-git-send-email-iivanov@mm-sol.com>
-	 <1377091786-5613-2-git-send-email-iivanov@mm-sol.com>
-	 <20130923193224.GO30811@radagast>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: using mmc2 on panda [was: Regression 3.11-rc1: omap4panda: no
+ usb and consequently no ethernet]
+Date: Tue, 1 Oct 2013 15:17:36 +0300
+Message-ID: <524ABD60.1010206@ti.com>
+References: <51E7AA24.6080600@broadcom.com> <20130718085951.GT7656@atomide.com> <51E916C0.8080206@broadcom.com> <51E919CA.8060805@ti.com> <51E91B80.1050609@broadcom.com> <524A823F.6070209@broadcom.com> <524A9AB8.4010407@ti.com> <524A9BB2.2050503@ti.com> <524AA9C1.2000303@broadcom.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130923193224.GO30811@radagast>
+In-Reply-To: <524AA9C1.2000303@broadcom.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ian.campbell@citrix.com, rob@landley.net, gregkh@linuxfoundation.org, grant.likely@linaro.org, idos@codeaurora.org, mgautam@codeaurora.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-msm@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
+To: Arend van Spriel <arend@broadcom.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, luca@coelho.fi
 List-Id: linux-omap@vger.kernel.org
 
-
-Hi,
-
-On Mon, 2013-09-23 at 14:32 -0500, Felipe Balbi wrote: 
-> Hi,
+On 10/01/2013 01:53 PM, Arend van Spriel wrote:
+> On 10/01/2013 11:53 AM, Roger Quadros wrote:
+>> On 10/01/2013 12:49 PM, Roger Quadros wrote:
+>>> Hi Arend,
+>>>
+>>> On 10/01/2013 11:05 AM, Arend van Spriel wrote:
+>>>> On 07/19/2013 12:57 PM, Arend van Spriel wrote:
+>>>>> On 07/19/2013 12:49 PM, Roger Quadros wrote:
+>>>>>> On 07/19/2013 01:36 PM, Arend van Spriel wrote:
+>>>>>>> On 07/18/2013 10:59 AM, Tony Lindgren wrote:
+>>>>>>>> Then for the SDIO with device tree, take a look at the following
+>>>>>>>> patches:
+>>>>>>>>
+>>>>>>>> [PATCH 0/3] WLAN support for omap4 when booted with devicetree
+>>>>>>>> http://comments.gmane.org/gmane.linux.ports.arm.omap/97522#
+>>>>>>>
+>>>>>>> I have been looking at the pandaboard patch in the series above and I
+>>>>>>> do have a question. Among other things the patch adds these dt entries.
+>>>>>>>
+>>>>>>> +            0x108 0x118    /* sdmmc5_clk.sdmmc5_clk INPUT_PULLUP |
+>>>>>>> MODE0 */
+>>>>>>> +            0x10a 0x118    /* sdmmc5_cmd.sdmmc5_cmd INPUT_PULLUP |
+>>>>>>> MODE0 */
+>>>>>>>
+>>>>>>> If I look at the similar names in the deceased board-omap4panda.c:
+>>>>>>>
+>>>>>>> board-omap4panda.c:    OMAP4_MUX(SDMMC5_CMD, OMAP_MUX_MODE0 |
+>>>>>>> OMAP_PIN_INPUT_PULLUP),
+>>>>>>> board-omap4panda.c:    OMAP4_MUX(SDMMC5_CLK, OMAP_MUX_MODE0 |
+>>>>>>> OMAP_PIN_INPUT_PULLUP),
+>>>>>>>
+>>>>>>> and in mux44xx.h:
+>>>>>>>
+>>>>>>> mux44xx.h:#define OMAP4_CTRL_MODULE_PAD_SDMMC5_CLK_OFFSET    0x0148
+>>>>>>> mux44xx.h:#define OMAP4_CTRL_MODULE_PAD_SDMMC5_CMD_OFFSET    0x014a
+>>>>>>>
+>>>>>>> So how did 0x0148 get 0x0108 in DT and 0x014a get 0x010a. There is
+>>>>>>> probably an explanation to it and it would help my understanding to
+>>>>>>> know where this difference comes from. Hope you can help me out here.
+>>>>>>>
+>>>>>>
+>>>>>> If you see omap4.dtsi, omap4_pmx_core starts at register address
+>>>>>> 0x4a100040.
+>>>>>>
+>>>>>> So, you need to subtract 0x40 from the offsets defined in mux44xx.h
+>>>>>> for pmx_core registers.
+>>>>>
+>>>>> That was what I was looking for. Thanks!
+>>>>
+>>>> Hi Roger,
+>>>>
+>>>> It has been a while, but I would like to pickup this thread. We have a couple of pandaboards used as test setup. These have an SDIO adapter hooked up to expansion connector A using MMC2. I have attached the patch file (just ignore platform_data stuff). Now on one board it works, but not for the other. I suspect a board issue so listing the two types that we use:
+>>>>
+>>>> PandaBoard rev A2 (dmesg: OMAP4430 ES2.1): works
+>>>> PandaBoardES rev B1 (dmesg: OMAP4460 ES1.1): nope
+>>>>
+>>>> Any hints for me.
+>>>
+>>> Does your PandaboardES have the WLAN chip (U4) mounted? If yes, how do you isolate
+>>> it from your external SDIO adapter?
 > 
-> On Wed, Aug 21, 2013 at 04:29:44PM +0300, Ivan T. Ivanov wrote:
-> > From: "Ivan T. Ivanov" <iivanov@mm-sol.com>
-> > 
-> > MSM USB3.0 core wrapper consist of USB3.0 IP from Synopsys
-> > (SNPS) and HS, SS PHY's control and configuration registers.
-> > 
-> > It could operate in device mode (SS, HS, FS) and host
-> > mode (SS, HS, FS, LS).
-> > 
-> > Signed-off-by: Ivan T. Ivanov <iivanov@mm-sol.com>
+> On my 4460 board in front of me U4 is not populated, but U3 is (the TiWi thing).
 > 
-> and here's a new version from same patch
+>>
+>> OK, just realized that the expansion connector uses different pads for MMC2. However, you still
+>> need to make sure that the other pins (connected to on board WLAN chip) are not muxed as MMC2.
+> 
+> I think Luciano added DT patches for on-board WLAN and it uses MMC5 if I am not mistaken(?). Attached are the dmesg logs of the two boards.
 
-The only difference is that references to "dwc3" are replaced with
-just "dw" in USB PHY drivers and file names. This is to indicate
-that the PHY's are DesignWare, but not necessarily related to
-DWC3 IP core. If you prefer I could keep old abbreviation.
+Right. WLAN is supposed to use MMC5. But if you don't have Luca's patches, can you please ensure that those pins are muxed either as safe mode
+or as MMC5? Default seems to be safe mode, but you should cross check.
 
-Thanks, 
-Ivan
+Also in your patches you have set mmc2-clk to PIN_INPUT_PULLUP
+Shouldn't it be PIN_OUTPUT?
+
+Still I have no clue why it works on 4430 and not on 4460. Are you using the same bootloader image on both boards?
+
+cheers,
+-roger
