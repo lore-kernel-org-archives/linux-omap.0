@@ -1,94 +1,67 @@
-From: Thierry Reding <thierry.reding@gmail.com>
-Subject: Re: [PATCH 09/10] pwm-backlight: Use an optional power supply
-Date: Tue, 1 Oct 2013 22:53:11 +0200
-Message-ID: <20131001205310.GD9201@ulmo.nvidia.com>
-References: <1379972467-11243-1-git-send-email-treding@nvidia.com>
- <1379972467-11243-10-git-send-email-treding@nvidia.com>
- <524B17ED.1080806@wwwdotorg.org>
+From: Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>
+Subject: Re: [PATCH 05/10] ARM: SAMSUNG: Initialize PWM backlight enable_gpio
+ field
+Date: Tue, 01 Oct 2013 14:58:22 -0600
+Message-ID: <524B376E.6060507@wwwdotorg.org>
+References: <1379972467-11243-1-git-send-email-treding@nvidia.com> <1379972467-11243-6-git-send-email-treding@nvidia.com> <524B14E8.5040302@wwwdotorg.org> <20131001204335.GB9201@ulmo.nvidia.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Qrgsu6vtpU/OV/zm"
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <524B17ED.1080806@wwwdotorg.org>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Stephen Warren <swarren@wwwdotorg.org>
-Cc: Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Tony Lindgren <tony@atomide.com>, Eric Miao <eric.y.miao@gmail.com>, Haojian Zhuang <haojian.zhuang@gmail.com>, Ben Dooks <ben-linux@fluff.org>, Kukjin Kim <kgene.kim@samsung.com>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Guan Xuetao <gxt@mprc.pku.edu.cn>, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, openezx-devel@lists.openezx.org, linux-samsung-soc@vger.kernel.org, linux-sh@vger.kernel.org, linux-pwm@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20131001204335.GB9201-AwZRO8vwLAwmlAP/+Wk3EA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Eric Miao <eric.y.miao-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Haojian Zhuang <haojian.zhuang-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, Kukjin Kim <kgene.kim-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Simon Horman <horms-/R6kz+dDXgpPR4JQBCEnsQ@public.gmane.org>, Magnus Damm <magnus.damm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Guan Xuetao <gxt-TG0Ac1+ktVePQbnJrJN+5g@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, openezx-devel-ZwoEplunGu3n3BO9LpVK+9i2O/JbrIOy@public.gmane.org, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pwm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
+On 10/01/2013 02:43 PM, Thierry Reding wrote:
+> On Tue, Oct 01, 2013 at 12:31:04PM -0600, Stephen Warren wrote:
+>> On 09/23/2013 03:41 PM, Thierry Reding wrote:
+>>> The GPIO API defines 0 as being a valid GPIO number, so this
+>>> field needs to be initialized explicitly.
+>> 
+>>> static void __init smdkv210_map_io(void)
+>> 
+>>> @@ -70,6 +70,7 @@ static struct samsung_bl_drvdata
+>>> samsung_dfl_bl_data __initdata = { .max_brightness = 255, 
+>>> .dft_brightness = 255, .pwm_period_ns  = 78770, +		.enable_gpio
+>>> = -1, .init           = samsung_bl_init, .exit           =
+>>> samsung_bl_exit, }, @@ -121,6 +122,10 @@ void __init
+>>> samsung_bl_set(struct samsung_bl_gpio_info *gpio_info, 
+>>> samsung_bl_data->lth_brightness = bl_data->lth_brightness; if
+>>> (bl_data->pwm_period_ns) samsung_bl_data->pwm_period_ns =
+>>> bl_data->pwm_period_ns; +	if (bl_data->enable_gpio) +
+>>> samsung_bl_data->enable_gpio = bl_data->enable_gpio; +	if
+>>> (bl_data->enable_gpio_flags) +
+>>> samsung_bl_data->enable_gpio_flags =
+>>> bl_data->enable_gpio_flags;
+>> 
+>> Won't this cause the core pwm_bl driver to request/manipulate the
+>> GPIO, whereas this driver already does that inside the
+>> samsung_bl_init/exit callbacks? I think you either need to adjust
+>> those callbacks, or not set the new standard GPIO property in
+>> samsung_bl_data.
+> 
+> I don't think so. The samsung_bl_data is a copy of
+> samsung_dfl_bl_data augmented by board-specific settings. So in
+> fact copying these values here is essential to allow boards to
+> override the enable_gpio and flags fields. Currently no board sets
+> the enable_gpio to a valid GPIO so it's all still handled by the
+> callbacks only.
 
---Qrgsu6vtpU/OV/zm
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Oh yes, you're right. I was confusing the new enable_gpio field in
+pwm_bl's platform data with some other field in a custom data structure.
 
-On Tue, Oct 01, 2013 at 12:43:57PM -0600, Stephen Warren wrote:
-> On 09/23/2013 03:41 PM, Thierry Reding wrote:
-> > Many backlights require a power supply to work properly. This commit
-> > uses a power-supply regulator, if available, to power up and power down
-> > the panel.
->=20
-> I think that all backlights require a power supply, albeit the supply
-> may not be SW-controllable. Hence, shouldn't the regulator be mandatory
-> in the binding, yet the driver be defensively coded such that if one
-> isn't specified, the driver continues to work?
+One minor point though:
 
-That has already changed in my local version of this patch.
+>>> +	if (bl_data->enable_gpio) +		samsung_bl_data->enable_gpio =
+>>> bl_data->enable_gpio;
 
-> > diff --git a/drivers/video/backlight/pwm_bl.c b/drivers/video/backlight=
-/pwm_bl.c
->=20
-> > @@ -253,6 +264,16 @@ static int pwm_backlight_probe(struct platform_dev=
-ice *pdev)
-> >  		}
-> >  	}
-> > =20
-> > +	pb->power_supply =3D devm_regulator_get_optional(&pdev->dev, "power");
->=20
-> ... so I think that should be devm_regulator_get(), since the regulator
-> isn't really optional.
->=20
-> > +	if (IS_ERR(pb->power_supply)) {
-> > +		if (PTR_ERR(pb->power_supply) !=3D -ENODEV) {
-> > +			ret =3D PTR_ERR(pb->power_supply);
-> > +			goto err_gpio;
-> > +		}
-> > +
-> > +		pb->power_supply =3D NULL;
->=20
-> If devm_regulator_get_optional() returns an error value or a valid
-> value, then I don't think that this driver should transmute error values
-> into NULL; NULL might be a perfectly valid regulator value. Related, I
-> think the if (pb->power_supply) tests should be replaced with if
-> (!IS_ERR(pb->power_supply)) instead.
-
-All of that is already done in my local tree. This actually turns out to
-work rather smoothly with the new support for optional regulators. The
-regulator core will give you a dummy regulator (assuming it's there
-physically but hasn't been wired up in software) that's always on, so
-the driver doesn't even have to special case it anymore.
-
-Thierry
-
---Qrgsu6vtpU/OV/zm
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.21 (GNU/Linux)
-
-iQIcBAEBAgAGBQJSSzY2AAoJEN0jrNd/PrOhbosQAI8JpuY1LGvyC3O93TMjpk2Y
-JicLAk8h13WtQR+o1efNd0XkNJZ3rCX3qSr4aneLVKu0IdppFATnuD4rfd9z+R/u
-ZD9Gb5CUBGKFGJWdi2K7awNQff7XWtCtwGRw0B8DXl1fWe6gCwtnvc41OZgRyJcB
-icoatpV4xjRrIWYx44WS0uyC3vjhuxOIqMM3/nkfGLpzWySq+awyz4qzXrVP/cN9
-Tl6WJtjlozamsq7Gx6ywqUrTiyJdZsPpu8k88f9phDlVMNxJkkehw+uOqqu8C1pt
-GEt+6DbeyPxDkgueeWHI20FJeK1wF26xHtpHaY5iy14veH5rSFqqBgtN9/0ONujQ
-XfudBxC8ZxF/lMpuTDVoo6O3GaplSNvsmO6iyeG79bvuHxpqE0VQYoiB25V6wG01
-mZyuLs5qX2WS8gumzNxJeNJWPO85eKdCPuOd2OKEAMJTQCguruwEfJHuuLUe3tkU
-Kqi2H8pGu7SQhYom/CR9wtfMEz3ypHWBo/qoCC/ZCgaA7Q7iUOJMYfUsJYTvwG/u
-SOqoFWBeicJXLW1qfeUZ6veksTyDu3gtsx6Rqgbd8ca/B5cK2C99zqsZhyvKKA4U
-QNUk0esD29BtCyTVx+UeHNd6YEBPjq9S1wWYGeykx8u7Zxf2onkqAcX13G3ZQ3AD
-eKYYhEPMdTQmC+NOt7Uy
-=9gdD
------END PGP SIGNATURE-----
-
---Qrgsu6vtpU/OV/zm--
+That assumes that enable_gpio==0 means "none", whereas you've gone to
+great pains in the rest of the series to allow 0 to be a valid GPIO
+ID. right now, the default value of samsung_bl_data->enable_gpio is
+-1, and if !bl_data->enable_gpio, that value won't be propagated across.
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
