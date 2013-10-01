@@ -1,57 +1,41 @@
-From: Daniel Mack <zonque@gmail.com>
-Subject: Re: [PATCH v3 4/5] dma: cppi41: only allocate descriptor memory once
-Date: Tue, 01 Oct 2013 18:57:44 +0200
-Message-ID: <524AFF08.7080206@gmail.com>
-References: <1379861404-8250-1-git-send-email-zonque@gmail.com> <1379861404-8250-5-git-send-email-zonque@gmail.com> <20130926082604.GA24205@linutronix.de> <524AC987.5000301@gmail.com> <524AF6AF.50704@linutronix.de>
+From: Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>
+Subject: Re: [PATCH 01/10] pwm-backlight: Refactor backlight power on/off
+Date: Tue, 01 Oct 2013 12:26:07 -0600
+Message-ID: <524B13BF.7080902@wwwdotorg.org>
+References: <1379972467-11243-1-git-send-email-treding@nvidia.com> <1379972467-11243-2-git-send-email-treding@nvidia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-we0-f170.google.com ([74.125.82.170]:49839 "EHLO
-	mail-we0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750964Ab3JAQ55 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Oct 2013 12:57:57 -0400
-In-Reply-To: <524AF6AF.50704@linutronix.de>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1379972467-11243-2-git-send-email-treding-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Eric Miao <eric.y.miao-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Haojian Zhuang <haojian.zhuang-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, Kukjin Kim <kgene.kim-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Simon Horman <horms-/R6kz+dDXgpPR4JQBCEnsQ@public.gmane.org>, Magnus Damm <magnus.damm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Guan Xuetao <gxt-TG0Ac1+ktVePQbnJrJN+5g@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, openezx-devel-ZwoEplunGu3n3BO9LpVK+9i2O/JbrIOy@public.gmane.org, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pwm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, neumann@teufel.de, sergei.shtylyov@cogentembedded.com, vinod.koul@intel.com, dan.j.williams@intel.com, balbi@ti.com, gregkh@linuxfoundation.org
 
-On 01.10.2013 18:22, Sebastian Andrzej Siewior wrote:
-> On 10/01/2013 03:09 PM, Daniel Mack wrote:
+On 09/23/2013 03:40 PM, Thierry Reding wrote:
+> In preparation for adding an optional regulator and enable GPIO to the
+> driver, split the power on and power off sequences into separate
+> functions to reduce code duplication at the multiple call sites.
 
->> A simplified version of the code as it stands is:
->>
->>   for (i = 0; i < DESCS_AREAS; i++)
->>     cdd->cd = dma_alloc_coherent(dev, ..., &cdd->descs_phys, GFP_KERNEL);
->>
->>   for (i = 0; i < DESCS_AREAS; i++)
->>     dma_free_coherent(dev, mem_decs, cdd->cd, cdd->descs_phys);
+> diff --git a/drivers/video/backlight/pwm_bl.c b/drivers/video/backlight/pwm_bl.c
 
-...
+> +static void pwm_backlight_power_off(struct pwm_bl_data *pb)
+> +{
+> +	pwm_disable(pb->pwm);
 
->> So, after all, my patch doesn't really change any of the runtime
->> behaviour. Consider it a cosmetic cleanup if you wish :)
-> 
-> But it looks strange (in my opinion at least).
+Both the call-sites you're replacing do the following before pwm_disable():
 
-I still disagree, but maybe that doesn't matter any more, because ...
+		pwm_config(pb->pwm, 0, pb->period);
 
-> But now, that I look
-> again at it yes you moved the alloc out of the loop and replaced
-> mem_decs with the computation. So nothing changed but you moved it
-> outside.
-> 
-> Right I think one desc area should be enough so I would just remove the
-> for loop and DESCS_AREAS as well. How does this sound to you?
+While I agree that probably shouldn't be necessary, I think it's at
+least worth mentioning that in the commit description just to make it
+obvious that it was a deliberate change. Splitting that change into a
+separate patch might be reasonable in order to keep refactoring and
+functional changes separate, although perhaps it's not worth it.
 
-That sound's like a good idea. Everything that make the driver smaller
-and easier to understand is certainly a good thing :)
-
-So we can drop this patch favor of your cleanup. However, I appreciate
-if you did it on top of the second round of patches I sent today please,
-because my resume() implementation uses DESCS_AREAS as well.
-
-
-Thanks,
-Daniel
+There are also a couple unrelated whitespace changes thrown in here.
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
