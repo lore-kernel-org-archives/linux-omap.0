@@ -1,135 +1,144 @@
-From: Thierry Reding <thierry.reding@gmail.com>
-Subject: Re: [PATCH 08/10] pwm-backlight: Use new enable_gpio field
-Date: Tue, 1 Oct 2013 22:49:26 +0200
-Message-ID: <20131001204925.GC9201@ulmo.nvidia.com>
-References: <1379972467-11243-1-git-send-email-treding@nvidia.com>
- <1379972467-11243-9-git-send-email-treding@nvidia.com>
- <524B16E8.5080506@wwwdotorg.org>
+From: Rob Herring <robherring2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [RFC 00/15] Device Tree schemas and validation
+Date: Tue, 1 Oct 2013 15:54:20 -0500
+Message-ID: <CAL_JsqJ31TGFJCSeSOqgee=OLVfSUTAYdF4nSn7X2DiCequVAw@mail.gmail.com>
+References: <1380041541-17529-1-git-send-email-bcousson@baylibre.com>
+	<524A8289.3050107@baylibre.com>
+	<524ACB76.1010001@gmail.com>
+	<524AE4FB.4080906@baylibre.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="RIYY1s2vRbPFwWeW"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <524B16E8.5080506@wwwdotorg.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Stephen Warren <swarren@wwwdotorg.org>
-Cc: Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Tony Lindgren <tony@atomide.com>, Eric Miao <eric.y.miao@gmail.com>, Haojian Zhuang <haojian.zhuang@gmail.com>, Ben Dooks <ben-linux@fluff.org>, Kukjin Kim <kgene.kim@samsung.com>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Guan Xuetao <gxt@mprc.pku.edu.cn>, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, openezx-devel@lists.openezx.org, linux-samsung-soc@vger.kernel.org, linux-sh@vger.kernel.org, linux-pwm@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <524AE4FB.4080906-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Cc: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Olof Johansson <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tomasz Figa <tomasz.figa-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, Kevin Hilman <khilman-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, fparent-rdvid1DuHRBWk0Htik3J/w@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
+On Tue, Oct 1, 2013 at 10:06 AM, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org> wrote:
+> Hi Rob,
+>
+>
+> On 01/10/2013 15:17, Rob Herring wrote:
+>>
+>> On 10/01/2013 03:06 AM, Benoit Cousson wrote:
+>>>
+>>> + more DT maintainers folks
+>>>
+>>> Hi all,
+>>>
+>>> I know this is mostly boring user space code, but I was expecting a
+>>> little bit of comments about at least the bindings syntax:-(
+>>>
+>>> I'd like to know if this is the right direction and if it worth pursuing
+>>> in that direction.
+>>>
+>>> The idea was to have at least some base for further discussion during
+>>> ARM KS 2013.
+>>>
+>>> I feel alone :-(
+>>>
+>>> If you have any comment, go ahead!
+>>
+>>
+>> Thanks for taking this on!
+>>
+>> This is interesting approach using the dts syntax,
+>
+>
+> Well, this was discussed a little bit on the list, and it has the big
+> advantage of re-using the parser already included in DTC for free.
+> In term or readability, it avoids to re-defining a brand new syntax for
+> people who are already familiar with the DTS one.
+>
+>
+>> but I worry that the
+>> validation will only be as good as the schema written and the review of
+>> the schema.
+>
+>
+> Well, sure, but unfortunately, that will always be the case :-(
+> The bindings definition being quite open, there is no easy way to ensure
+> proper schema / bindings without careful review of the schema. There is no
+> such thing as a free beer... Unfortunately :-)
+>
+>
+>> I think the schema needs to define the binding rather than
+>> define the checks. Then the schema can feed the validation checks.
+>
+>
+>> This format does not seem to me as easily being able to generate
+>> documentation from the schema which I believe is one of the goals.
+>
+>
+> Indeed, but I think is it easy to generate any kind of readable format for
+> the documentation purpose if needed from the actual format.
+> Otherwise, we should consider a schema format based on kerneldoc type of
+> syntax to improve readability. I'm just afraid it will become harder then to
+> define complex schema.
+>
+> BTW, what kind of documentation are you expecting here? Is is a text that
+> can be added on top of each schema?
 
---RIYY1s2vRbPFwWeW
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I would expect the schema to replace
+Documentation/devicetree/bindings/* over time. I think the thing that
+needs to be worked out here is how to add free form multi-line text.
 
-On Tue, Oct 01, 2013 at 12:39:36PM -0600, Stephen Warren wrote:
-> On 09/23/2013 03:41 PM, Thierry Reding wrote:
-> > Make use of the new enable_gpio field and allow it to be set from DT as
-> > well. Now that all legacy users of platform data have been converted to
-> > initialize this field to an invalid value, it is safe to use the field
-> > from the driver.
->=20
-> > diff --git a/Documentation/devicetree/bindings/video/backlight/pwm-back=
-light.txt b/Documentation/devicetree/bindings/video/backlight/pwm-backlight=
-=2Etxt
->=20
-> >  Optional properties:
->=20
-> > +  - enable-gpios: a list of GPIOs to enable and disable the backlight
->=20
-> That seems to imply that multiple GPIOs are legal. Was that intended? If
-> not, I would suggest:
->=20
-> - enable-gpios: contains a single GPIO specifier for the GPIO which
-> 		enables/disables the backlight. See [1] for the format.
->=20
-> > =20
-> >  [0]: Documentation/devicetree/bindings/pwm/pwm.txt
-> + [1]: Documentation/devicetree/bindings/gpio/gpio.txt
+>> I for
+>> one don't care to review the documentation and the schema for every
+>> binding.
+>>
+>> I would like to ensure we can start with the basics and have some
+>> generic rules. Some examples:
+>>
+>> - flag compatible strings in dts files that are not documented
+>
+>
+> This is almost done with the last patch of the series. Nodes are already
+> checked, properties are missing.
+>
+>> - check required properties
+>
+>
+> Done as well.
+>
+>
+>> - check properties against cell sizes
+>
+>
+> Yeah, that one is still to be done.
+>
+>
+>> - a node with reg property must have a unit address
+>
+>
+> Easy to add.
+>
+>
+>> - flag properties with "_"
+>
+>
+> Easy to add as well.
+>
+>
+>> - check properties are the correct data type
+>
+>
+> Already done for a couple of data type.
 
-Yes, that sounds better. Indeed only a single GPIO is supported. Adding
-more than one would require representing the timing between the two and
-that will take us back to where we left off with the power sequences.
+Good to know. It wasn't really clear what common items are checked. An
+example schema for clocks or gpio (or any other common) binding would
+be nice.
 
-> > diff --git a/drivers/video/backlight/pwm_bl.c b/drivers/video/backlight=
-/pwm_bl.c
->=20
-> > @@ -51,12 +55,27 @@ static void pwm_backlight_power_on(struct pwm_bl_da=
-ta *pb, int brightness,
-> >  		     pb->lth_brightness;
-> > =20
-> >  	pwm_config(pb->pwm, duty_cycle, pb->period);
-> > +
-> > +	if (gpio_is_valid(pb->enable_gpio)) {
-> > +		if (pb->enable_gpio_flags & PWM_BACKLIGHT_GPIO_ACTIVE_LOW)
-> > +			gpio_set_value(pb->enable_gpio, 0);
-> > +		else
-> > +			gpio_set_value(pb->enable_gpio, 1);
-> > +	}
->=20
-> Feel completely free to ignore this, but when the difference in two
-> code-paths is solely in function parameters, I prefer to calculate the
-> parameter inside the if statement, then call the function outside the
-> conditional code, to highlight the common/different parts:
->=20
-> int value;
->=20
-> /* or an if statement for the next 1 line, if you don't like ?: */
-> value =3D (pb->enable_gpio_flags & PWM_BACKLIGHT_GPIO_ACTIVE_LOW) ? 0 : 1;
-> gpio_set_value((pb->enable_gpio, value);
+Do you have a run with all the warnings found?
 
-I actually tried that, but it looked cluttered, so I opted for the
-alternative. Not that this matters all that much, because beginning with
-3.13 the GPIO subsystem should be able to handle the active low flag
-internally using the new gpiod_*() API. I plan on converting the driver
-to use that during the next cycle.
+> Thanks for your comments. Being the very first one, you might get a free
+> beer... meaning there might be such thing as a free beer :-)
 
-> > @@ -148,11 +168,10 @@ static int pwm_backlight_parse_dt(struct device *=
-dev,
->=20
-> > +	data->enable_gpio =3D of_get_named_gpio_flags(node, "enable-gpios", 0,
-> > +						    &flags);
-> > +	if (gpio_is_valid(data->enable_gpio) && (flags & OF_GPIO_ACTIVE_LOW))
-> > +		data->enable_gpio_flags |=3D PWM_BACKLIGHT_GPIO_ACTIVE_LOW;
->=20
-> This doesn't seem to handle deferred probe correctly; I would expect
-> something more like:
->=20
-> 	data->enable_gpio =3D of_get_named_gpio_flags(...);
-> 	if (data->enable_gpio =3D=3D -EPROBE_DEFERRED)
-> 		return data->enable_gpio;
-> 	if (gpio_is_valid(...))
-> 		...
-> 	return 0;
->=20
-> I suppose it's possible that the value filters down to
-> gpio_request_one() and this actually does work out OK, but that feels
-> very accidental/implicit to me.
+In that case, it all looks perfect. :)
 
-Yes, I think it does indeed propagate to gpio_request_one(), but you're
-right, it should be caught explicitly.
-
-Thierry
-
---RIYY1s2vRbPFwWeW
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.21 (GNU/Linux)
-
-iQIcBAEBAgAGBQJSSzVVAAoJEN0jrNd/PrOhNh0P/iIzsxuvFEo9B4ZEhLN7DYDh
-vX/9LIfVXFZIwrx8ID8HDPG2LbSnZ+Z4pxVvPdYS99Buci2Qb9q8CtoZW02E7SZd
-7cW++UrdnDShub81afs3M+39IwLfqdAIGjmlbCx19fVEeoZbm53K/bOQkNRGNPke
-N4akydvbuzA71RBIQd2oadwPezmVCo9RuVr1S299VgSp8zYPOGpmpqc9UWpxMnay
-xj20eCy+WHCslBs7AL6rI+lYtQT0sK1XrxuwnjXAsXD5XBRe7PRD+Qy36hJL/KzZ
-OuXeoZMOyE0wG/fDSTQpqn/lvYXvi0wSrf8SLhkU9gHFPHQ28pn91/vf4ow5oeW/
-oYdUNb28xJTDbzsUaemy0SzENRLNK2ri/b70pWNLs/hrQ3fIwenaQI/6rOvdQ1P8
-fGTrRB69fbQGpiUSTh5zWSpNmovhdU9SG98wQvGFswQ9CPYE/uCnofet106dDSQc
-81pho5bZWVuQ9LCITP03b9w6s4DrzEiFBcC6BKXUE19w+Z0/i3GAbTGkkztSyrCu
-y+0YSkXqvwmdComtBV5oIgkSI48+NAyYcpE7SaWdwI+arkru/c1aTvsfNvQyqsXA
-FWZuwO+oe3ArV32vM59i58gJwpkeJ1Hw1ZJeYelIWsFUBRQmNS7tSRRflCDB0uyw
-6UFVAxfserLZmKPQi2Vl
-=4zYP
------END PGP SIGNATURE-----
-
---RIYY1s2vRbPFwWeW--
+Rob
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
