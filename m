@@ -1,194 +1,84 @@
-From: Daniel Mack <zonque@gmail.com>
-Subject: [PATCH] ARM: omap: edma: add suspend suspend/resume hooks
-Date: Tue,  1 Oct 2013 15:51:33 +0200
-Message-ID: <1380635493-31040-2-git-send-email-zonque@gmail.com>
-References: <1380635493-31040-1-git-send-email-zonque@gmail.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from svenfoo.org ([82.94.215.22]:51066 "EHLO mail.zonque.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753181Ab3JANvq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 1 Oct 2013 09:51:46 -0400
-In-Reply-To: <1380635493-31040-1-git-send-email-zonque@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
+Subject: Re: [RFC PATCH 0/6] DRIVERS: IRQCHIP: Add support for crossbar IP
+Date: Tue, 1 Oct 2013 09:57:11 -0400
+Message-ID: <524AD4B7.7040700@ti.com>
+References: <1380549564-31045-1-git-send-email-r.sricharan@ti.com> <52499441.1030403@gmail.com> <524AAE69.8060703@ti.com> <524AD290.207@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <524AD290.207-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Rob Herring <robherring2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org
+Cc: Sricharan R <r.sricharan-l0cyMroinI0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org, marc.zyngier-5wv7dgnIgG8@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: s.neumann@raumfeld.com, mporter@ti.com, nsekhar@ti.com, alsa-devel@alsa-project.org, gururaja.hebbar@ti.com, linux-arm-kernel@lists.infradead.org, Daniel Mack <zonque@gmail.com>
 
-This patch makes the edma driver resume correctly after suspend. Tested
-on an AM33xx platform with cyclic audio streams.
-
-The code was shamelessly taken from an ancient BSP tree.
-
-Signed-off-by: Daniel Mack <zonque@gmail.com>
----
- arch/arm/common/edma.c | 133 +++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 133 insertions(+)
-
-diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
-index 2a72169..d787f14 100644
---- a/arch/arm/common/edma.c
-+++ b/arch/arm/common/edma.c
-@@ -258,6 +258,20 @@ struct edma {
- 				void *data);
- 		void *data;
- 	} intr_data[EDMA_MAX_DMACH];
-+
-+	struct {
-+		struct edmacc_param *prm_set;
-+		unsigned int *ch_map;               /* 64 registers */
-+		unsigned int *que_num;              /* 8 registers */
-+		unsigned int sh_esr;
-+		unsigned int sh_esrh;
-+		unsigned int sh_eesr;
-+		unsigned int sh_eesrh;
-+		unsigned int sh_iesr;
-+		unsigned int sh_iesrh;
-+		unsigned int que_tc_map;
-+		unsigned int que_pri;
-+	} context;
- };
+On Tuesday 01 October 2013 09:48 AM, Rob Herring wrote:
+> On 10/01/2013 06:13 AM, Sricharan R wrote:
+>> Hi,
+>>
+>> On Monday 30 September 2013 08:39 PM, Rob Herring wrote:
+>>> On 09/30/2013 08:59 AM, Sricharan R wrote:
+>>>> Some socs have a large number of interrupts requests to service
+>>>> the needs of its many peripherals and subsystems. All of the interrupt
+>>>> requests lines from the subsystems are not needed at the same
+>>>> time, so they have to be muxed to the controllers appropriately.
+>>>> In such places a interrupt controllers are preceded by an
+>>>> IRQ CROSSBAR that provides flexibility in muxing the device interrupt
+>>>> requests to the controller inputs.
+>>>>
+>>>> This series models the peripheral interrupts that can be routed through
+>>>> the crossbar to the GIC as 'routable-irqs'. The routable irqs are added
+>>>> in a separate linear domain inside the GIC. The registered routable domain's
+>>>> callback are invoked as a part of the GIC's callback, which in turn should
+>>>> allocate a free irq line and configure the IP accordingly. So every peripheral
+>>>> in the dts files mentions the fixed crossbar number as its interrupt. A free
+>>>> gic line for that gets allocated and configured when the peripheral's interrupt
+>>>> is mapped.
+>>>>
+>>>> The minimal crossbar driver to track and allocate free GIC lines and configure the
+>>>> crossbar is added here, along with the DT bindings.
+>>> Seems like interrupt-map property is what you need here.
+>>>
+>>> http://devicetree.org/Device_Tree_Usage#Advanced_Interrupt_Mapping
+>>>
+>>> Versatile Express also has an example.
+>>    OK, but the idea was not to tie up the crossbar<->interrupt numbers at the
+>>    DTS level, but to assign it dynamically during runtime. This was one of the
+>>   comments that came up with first crossbar support patches, which was assigning a
+>>   interrupt line to crossbar number in the DTS and setting it up in crossbar probe.
+> 
+> Is there an actual usecase on a single h/w design that you run out of
+> interrupts and it is a user decision which interrupts to use?
+>
+Yes. There are 240 peripheral interrupts connected out of which 160 can
+be used in this specific case. 
  
- static struct edma *edma_cc[EDMA_MAX_CC];
-@@ -1655,6 +1669,16 @@ static int edma_probe(struct platform_device *pdev)
- 			memcpy_toio(edmacc_regs_base[j] + PARM_OFFSET(i),
- 					&dummy_paramset, PARM_SIZE);
+> You could fill in the interrupt-map at run-time. It would have to be
+> early (bootloader or early kernel init) and can't be at request_irq time.
+>
+Well all options are tried before coming up to the $subject solution.
+It was suggested by Thomas in the last review.
  
-+		/* resume context */
-+		edma_cc[j]->context.prm_set =
-+			kzalloc((sizeof(struct edmacc_param) *
-+				 edma_cc[j]->num_slots), GFP_KERNEL);
-+		edma_cc[j]->context.ch_map =
-+			kzalloc((sizeof(unsigned int) *
-+				 edma_cc[j]->num_channels), GFP_KERNEL);
-+		edma_cc[j]->context.que_num =
-+			kzalloc((sizeof(unsigned int) * 8), GFP_KERNEL);
-+
- 		/* Mark all channels as unused */
- 		memset(edma_cc[j]->edma_unused, 0xff,
- 			sizeof(edma_cc[j]->edma_unused));
-@@ -1762,6 +1786,114 @@ static int edma_probe(struct platform_device *pdev)
- 	return 0;
- }
- 
-+static int edma_pm_suspend(struct device *dev)
-+{
-+	int i, j;
-+
-+	pm_runtime_get_sync(dev);
-+
-+	for (i = 0; i < arch_num_cc; i++) {
-+		struct edma *ecc = edma_cc[i];
-+
-+		/* backup channel data */
-+		for (j = 0; j < ecc->num_channels; j++)
-+			ecc->context.ch_map[j] =
-+				edma_read_array(i, EDMA_DCHMAP, j);
-+
-+		/* backup DMA Queue Number */
-+		for (j = 0; j < 8; j++)
-+			ecc->context.que_num[j] =
-+				edma_read_array(i, EDMA_DMAQNUM, j);
-+
-+		/* backup DMA shadow Event Set data */
-+		ecc->context.sh_esr = edma_shadow0_read_array(i, SH_ESR, 0);
-+		ecc->context.sh_esrh = edma_shadow0_read_array(i, SH_ESR, 1);
-+
-+		/* backup DMA Shadow Event Enable Set data */
-+		ecc->context.sh_eesr =
-+			edma_shadow0_read_array(i, SH_EER, 0);
-+		ecc->context.sh_eesrh =
-+			edma_shadow0_read_array(i, SH_EER, 1);
-+
-+		/* backup DMA Shadow Interrupt Enable Set data */
-+		ecc->context.sh_iesr =
-+			edma_shadow0_read_array(i, SH_IER, 0);
-+		ecc->context.sh_iesrh =
-+			edma_shadow0_read_array(i, SH_IER, 1);
-+
-+		ecc->context.que_tc_map = edma_read(i, EDMA_QUETCMAP);
-+
-+		/* backup DMA Queue Priority data */
-+		ecc->context.que_pri = edma_read(i, EDMA_QUEPRI);
-+
-+		/* backup paramset */
-+		for (j = 0; j < ecc->num_slots; j++)
-+			memcpy_fromio(&ecc->context.prm_set[j],
-+				      edmacc_regs_base[i] + PARM_OFFSET(j),
-+				      PARM_SIZE);
-+	}
-+
-+	pm_runtime_put_sync(dev);
-+
-+	return 0;
-+}
-+
-+static int edma_pm_resume(struct device *dev)
-+{
-+	int i, j;
-+
-+	pm_runtime_get_sync(dev);
-+
-+	for (i = 0; i < arch_num_cc; i++) {
-+		struct edma *ecc = edma_cc[i];
-+
-+		/* restore channel data */
-+		for (j = 0; j < ecc->num_channels; j++) {
-+			edma_write_array(i, EDMA_DCHMAP, j,
-+					 ecc->context.ch_map[j]);
-+		}
-+
-+		/* restore DMA Queue Number */
-+		for (j = 0; j < 8; j++) {
-+			edma_write_array(i, EDMA_DMAQNUM, j,
-+					 ecc->context.que_num[j]);
-+		}
-+
-+		/* restore DMA shadow Event Set data */
-+		edma_shadow0_write_array(i, SH_ESR, 0, ecc->context.sh_esr);
-+		edma_shadow0_write_array(i, SH_ESR, 1, ecc->context.sh_esrh);
-+
-+		/* restore DMA Shadow Event Enable Set data */
-+		edma_shadow0_write_array(i, SH_EESR, 0,
-+					 ecc->context.sh_eesr);
-+		edma_shadow0_write_array(i, SH_EESR, 1,
-+					 ecc->context.sh_eesrh);
-+
-+		/* restore DMA Shadow Interrupt Enable Set data */
-+		edma_shadow0_write_array(i, SH_IESR, 0,
-+					 ecc->context.sh_iesr);
-+		edma_shadow0_write_array(i, SH_IESR, 1,
-+					 ecc->context.sh_iesrh);
-+
-+		edma_write(i, EDMA_QUETCMAP, ecc->context.que_tc_map);
-+
-+		/* restore DMA Queue Priority data */
-+		edma_write(i, EDMA_QUEPRI, ecc->context.que_pri);
-+
-+		/* restore paramset */
-+		for (j = 0; j < ecc->num_slots; j++) {
-+			memcpy_toio(edmacc_regs_base[i] + PARM_OFFSET(j),
-+				    &ecc->context.prm_set[j], PARM_SIZE);
-+		}
-+	}
-+
-+	pm_runtime_put_sync(dev);
-+
-+	return 0;
-+}
-+
-+static SIMPLE_DEV_PM_OPS(edma_pm_ops, edma_pm_suspend, edma_pm_resume);
-+
- static const struct of_device_id edma_of_ids[] = {
- 	{ .compatible = "ti,edma3", },
- 	{}
-@@ -1770,6 +1902,7 @@ static const struct of_device_id edma_of_ids[] = {
- static struct platform_driver edma_driver = {
- 	.driver = {
- 		.name	= "edma",
-+		.pm	= &edma_pm_ops,
- 		.of_match_table = edma_of_ids,
- 	},
- 	.probe = edma_probe,
--- 
-1.8.3.1
+>>     https://lkml.org/lkml/2013/7/18/416
+>>
+>>    Since this approach of assigning in DTS was opposed, we moved to IRQCHIP and
+>>    that did not go as well. Finally was asked to handle this as a part of GIC driver with
+>>    a separate domain.
+>>    
+>>   http://www.spinics.net/lists/linux-omap/msg97085.html
+> 
+> This has nothing to do with the GIC, so it does not belong there.
+> 
+Well the router makes connections from peripheral to GIC. Thomas can
+better explain it but I think since its doing irq routing for GIC on
+a given hardware, I don't see any issue having some generic map/unmap
+function in GIC. The actual implementation is still outside of GIC.
 
+Regards,
+Sasntosh
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
