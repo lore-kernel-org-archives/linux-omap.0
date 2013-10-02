@@ -1,36 +1,33 @@
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: Re: [PATCH v3 4/5] dma: cppi41: only allocate descriptor memory once
-Date: Wed, 02 Oct 2013 09:13:27 +0200
-Message-ID: <524BC797.3080702@linutronix.de>
-References: <1379861404-8250-1-git-send-email-zonque@gmail.com> <1379861404-8250-5-git-send-email-zonque@gmail.com> <20130926082604.GA24205@linutronix.de> <524AC987.5000301@gmail.com> <524AF6AF.50704@linutronix.de> <524AFF08.7080206@gmail.com>
+From: Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 1/4] usb: musb: am35x: use SIMPLE_DEV_PM_OPS
+Date: Wed, 02 Oct 2013 10:10:23 +0200
+Message-ID: <524BD4EF.6050905@gmail.com>
+References: <1379850421-7966-1-git-send-email-zonque@gmail.com> <20130923212009.GK309@radagast> <524137C4.1000104@gmail.com> <20130925134811.GH10746@radagast> <5245D2AE.6030400@gmail.com> <20130930162556.GD23534@radagast>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from www.linutronix.de ([62.245.132.108]:40586 "EHLO
-	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752490Ab3JBHNb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Oct 2013 03:13:31 -0400
-In-Reply-To: <524AFF08.7080206@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20130930162556.GD23534@radagast>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: balbi-l0cyMroinI0@public.gmane.org
+Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Daniel Mack <zonque@gmail.com>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, neumann@teufel.de, sergei.shtylyov@cogentembedded.com, vinod.koul@intel.com, dan.j.williams@intel.com, balbi@ti.com, gregkh@linuxfoundation.org
 
-On 10/01/2013 06:57 PM, Daniel Mack wrote:
-> That sound's like a good idea. Everything that make the driver smaller
-> and easier to understand is certainly a good thing :)
-> 
-> So we can drop this patch favor of your cleanup. However, I appreciate
-> if you did it on top of the second round of patches I sent today please,
-> because my resume() implementation uses DESCS_AREAS as well.
+On 30.09.2013 18:25, Felipe Balbi wrote:
+On Fri, Sep 27, 2013 at 08:47:10PM +0200, Daniel Mack wrote:
 
-Okay, no problem. Let me look at those and once they are merged I do
-the cleanup.
+>> So are you happy with this v2?
+>> > It's just a cosmetic cleanup after all ...
+> I can't see v2 anywhere... The only version I have is the one with
+> DEV_PM_OPS still in it.
 
-> 
-> 
-> Thanks,
-> Daniel
+Seen them this time?
 
-Sebastian
+  http://marc.info/?l=linux-usb&m=138056774812520&w=2
+  http://marc.info/?l=linux-usb&m=138056774612517&w=2
+  http://marc.info/?l=linux-usb&m=138056775012522&w=2
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
