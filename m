@@ -1,60 +1,71 @@
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: Re: [PATCH 0/3] dma: cppi41: more suspend/resume patches
-Date: Wed, 02 Oct 2013 14:57:17 +0200
-Message-ID: <524C182D.7040901@linutronix.de>
-References: <1380634271-27588-1-git-send-email-zonque@gmail.com> <20131002102033.GB16680@linutronix.de> <524BFE60.6050707@gmail.com>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v7 09/10] usb: dwc3: omap: manage "usb_otg_ss_refclk960m"
+ clock
+Date: Wed, 2 Oct 2013 08:11:14 -0500
+Message-ID: <20131002131113.GM1476@radagast>
+References: <1379508542-22389-1-git-send-email-rogerq@ti.com>
+ <1379508542-22389-10-git-send-email-rogerq@ti.com>
+ <52403E02.4070208@ti.com>
+Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from www.linutronix.de ([62.245.132.108]:42845 "EHLO
-	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752945Ab3JBM5W (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Oct 2013 08:57:22 -0400
-In-Reply-To: <524BFE60.6050707@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="VsILLG6PYTzZlkGF"
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <52403E02.4070208-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Cc: balbi-l0cyMroinI0@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, george.cherian-l0cyMroinI0@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, thomas.langer-th3ZBGNqt+7QT0dZR+AlfA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Daniel Mack <zonque@gmail.com>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, neumann@teufel.de, vinod.koul@intel.com, dan.j.williams@intel.com, balbi@ti.com
 
-On 10/02/2013 01:07 PM, Daniel Mack wrote:
-> No, as stated, the line numbers in the kernel message are somewhat off
-> due to added debugging code. What kicks in here is this one:
-> 
->         if (!c->td_desc_seen) {
->                 desc_phys = cppi41_pop_desc(cdd, c->q_comp_num);
->                 if (desc_phys) {
->                         __iormb();
->                         WARN_ON(c->desc_phys != desc_phys);
->                         c->td_desc_seen = 1;
->                 }
->         }
+--VsILLG6PYTzZlkGF
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Ach okay. So something completed but it wasn't the expected descriptor.
+On Mon, Sep 23, 2013 at 04:11:30PM +0300, Roger Quadros wrote:
+> Hi Felipe,
+>=20
+> On 09/18/2013 03:49 PM, Roger Quadros wrote:
+> > "usb_otg_ss_refclk960m" is an optional functional clock to the
+> > UBS_OTG_SS module. So manage it in the driver.
+> >=20
+>=20
+> Just realized that "usb_otg_ss_refclk960m" is in fact functional clock to=
+ the=20
+> PHY and not USB_OTG_SS module. The name is misleading.
+>=20
+> So please ignore patch 9 and 10.
 
->> So you get the warning because
->> you tried to stop a channel which was not busy. But then you should not
->> be called at all because cppi41_dma_channel_abort() shouldn't call dma
->> driver on idle channels.
-> 
-> However, I see nothing that forbids you from calling
-> dmaengine_terminate_all() on idle channels. If that's not handled
-> properly by the cppi driver, I'd say it needs fixing.
+ignored. All others are fine, right ?
 
-No argue about that.
+--=20
+balbi
 
->> How does your suspend & resume thingy work? Is it completly shutdown
->> i.e. powered off? According to you earlier patches I would assume so. In
->> that case the request is not enqueued and there is nothing to be removed
->> from the engine, right?
-> 
-> No, my debugging showed that the channel has actually been prepared and
-> submitted before. It's just being torn down shortly after that. That's
-> what makes be believe in a race condition here.
+--VsILLG6PYTzZlkGF
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-I see.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-> Thanks,
-> Daniel
+iQIcBAEBAgAGBQJSTBtvAAoJEIaOsuA1yqRElrEP/RpfWjYvTQ92g8sDYn4vjtX0
+kZmQtEI/Vt68K8UHL+o/Yfxo7IrhclNFm4rrjkQCIh2rj15K06N/jlaos/RzXd4D
+5S4scBTAcsYdWBVhVS519E1C3lWR2DIMSr86F4xqrzvjt9nWvyWAK6jE9ReJ+ocU
+WndBtqP0uqJfH8b+OXTrjiigdRPJ+JPTMKBwZ4rb4qoELVyI+JCnSKS84VTEyTOJ
+BLFv2z0grFPGIN2ggUKF2MGVHRJ/yqZ77bS99rJUyiNonxYox3Ahk249skiz2/5x
+qSnv0oIClsPHSsF8FvhAkpNvZq+BZKSh+k7qO7ZJFWpq/YwxudLDTV4OWY8IAAuw
+b77yHRYE+ieLYg8oGFYrTjhsn0n2GLtbSbyA4MHiOO5UuEmkAM8N3JsZq8kQ9vB8
+D1lTQHK6oRCpk1BnoxCf3CmK1AsWLipm8ZJePqNSucuAfE8YMV74s4/F66DnAbDg
+iim65zyaL6DxSXmJ0YVuRbp/RuYELJvCqnKuT9rPcjdoV/H5qC7TAy3p4iZhu6o0
+5B3LHINu7Gp42AqrPE2b+ll1qpsTDr4Ssp2PAwztuJ5u1WQEH7N41qdhD5jLf/zX
+cB9HhIzdbqEReykKYqBAltE0eH4L06kU67eKn2GON4wandqvO4G4xbMaPCoiLZ0H
+/zyTdWtPez5UPBhT2OUE
+=EXQS
+-----END PGP SIGNATURE-----
 
-Sebastian
+--VsILLG6PYTzZlkGF--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
