@@ -1,32 +1,65 @@
-From: Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 1/4] usb: musb: am35x: use SIMPLE_DEV_PM_OPS
-Date: Wed, 02 Oct 2013 10:10:23 +0200
-Message-ID: <524BD4EF.6050905@gmail.com>
-References: <1379850421-7966-1-git-send-email-zonque@gmail.com> <20130923212009.GK309@radagast> <524137C4.1000104@gmail.com> <20130925134811.GH10746@radagast> <5245D2AE.6030400@gmail.com> <20130930162556.GD23534@radagast>
+From: Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
+Subject: Re: [PATCH 3/3] dma: cppi41: move -EAGAIN in tear_down
+Date: Wed, 2 Oct 2013 10:29:14 +0200
+Message-ID: <20131002082914.GA16680@linutronix.de>
+References: <1380634271-27588-1-git-send-email-zonque@gmail.com>
+ <1380634271-27588-4-git-send-email-zonque@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20130930162556.GD23534@radagast>
+Content-Disposition: inline
+In-Reply-To: <1380634271-27588-4-git-send-email-zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: balbi-l0cyMroinI0@public.gmane.org
-Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org
+To: Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, neumann-SRDuVqtxQLSzQB+pC5nmwQ@public.gmane.org, vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 30.09.2013 18:25, Felipe Balbi wrote:
-On Fri, Sep 27, 2013 at 08:47:10PM +0200, Daniel Mack wrote:
+* Daniel Mack | 2013-10-01 15:31:11 [+0200]:
 
->> So are you happy with this v2?
->> > It's just a cosmetic cleanup after all ...
-> I can't see v2 anywhere... The only version I have is the one with
-> DEV_PM_OPS still in it.
+>In cppi41_tear_down_chan(), bail out earlier in case td_seen is unset
+>instead of popping another descriptor when td_desc_seen is also unset.
+>
+>My system ran into WARN() condition multiple times when
+>cppi41_tear_down_chan() was called for channels that had all of
+>td_queued, td_seen and td_seen set to false.
 
-Seen them this time?
+Which one?
 
-  http://marc.info/?l=linux-usb&m=138056774812520&w=2
-  http://marc.info/?l=linux-usb&m=138056774612517&w=2
-  http://marc.info/?l=linux-usb&m=138056775012522&w=2
+>Signed-off-by: Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+>---
+> drivers/dma/cppi41.c | 5 +++--
+> 1 file changed, 3 insertions(+), 2 deletions(-)
+>
+>diff --git a/drivers/dma/cppi41.c b/drivers/dma/cppi41.c
+>index 7747bf7..6decf34 100644
+>--- a/drivers/dma/cppi41.c
+>+++ b/drivers/dma/cppi41.c
+>@@ -586,6 +586,9 @@ static int cppi41_tear_down_chan(struct cppi41_channel *c)
+> 			}
+> 			c->td_seen = 1;
+> 		}
+>+
+>+		if (c->td_retry)
+>+			return -EAGAIN;
 
+So you return right away since the retry counter should be > 0 here. And
+then you want to get the TDDOWN bit set and retry. Hmmm.
+Let me answer to you 0/3 on this.
+
+> 	}
+> 	if (!c->td_desc_seen) {
+> 		desc_phys = cppi41_pop_desc(cdd, c->q_comp_num);
+>@@ -606,8 +609,6 @@ static int cppi41_tear_down_chan(struct cppi41_channel *c)
+> 	 * descriptor before the TD we fetch it from enqueue, it has to be
+> 	 * there waiting for us.
+> 	 */
+>-	if (!c->td_seen && c->td_retry)
+>-		return -EAGAIN;
+> 
+> 	WARN_ON(!c->td_retry);
+> 	if (!c->td_desc_seen) {
+
+Sebastian
 --
 To unsubscribe from this list: send the line "unsubscribe linux-usb" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
