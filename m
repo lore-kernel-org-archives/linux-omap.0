@@ -1,66 +1,96 @@
-From: Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
-Subject: Re: [PATCH 3/3] dma: cppi41: move -EAGAIN in tear_down
-Date: Wed, 2 Oct 2013 10:29:14 +0200
-Message-ID: <20131002082914.GA16680@linutronix.de>
-References: <1380634271-27588-1-git-send-email-zonque@gmail.com>
- <1380634271-27588-4-git-send-email-zonque@gmail.com>
+From: "Arend van Spriel" <arend@broadcom.com>
+Subject: Re: using mmc2 on panda [was: Regression 3.11-rc1: omap4panda:
+ no usb and consequently no ethernet]
+Date: Wed, 2 Oct 2013 11:03:47 +0200
+Message-ID: <524BE173.1050407@broadcom.com>
+References: <51E7AA24.6080600@broadcom.com>
+ <20130718085951.GT7656@atomide.com> <51E916C0.8080206@broadcom.com>
+ <51E919CA.8060805@ti.com> <51E91B80.1050609@broadcom.com>
+ <524A823F.6070209@broadcom.com> <524A9AB8.4010407@ti.com>
+ <524A9BB2.2050503@ti.com> <524AA9C1.2000303@broadcom.com>
+ <524ABD60.1010206@ti.com> <524ACBC6.5060208@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1380634271-27588-4-git-send-email-zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, neumann-SRDuVqtxQLSzQB+pC5nmwQ@public.gmane.org, vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org
+Content-Type: text/plain;
+ charset=iso-8859-1;
+ format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <524ACBC6.5060208@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Balaji T K <balajitk@ti.com>
+Cc: Roger Quadros <rogerq@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, luca@coelho.fi
 List-Id: linux-omap@vger.kernel.org
 
-* Daniel Mack | 2013-10-01 15:31:11 [+0200]:
-
->In cppi41_tear_down_chan(), bail out earlier in case td_seen is unset
->instead of popping another descriptor when td_desc_seen is also unset.
+On 10/01/2013 03:19 PM, Balaji T K wrote:
+>>>>>> Hi Roger,
+>>>>>>
+>>>>>> It has been a while, but I would like to pickup this thread. We
+>>>>>> have a couple of pandaboards used as test setup. These have an
+>>>>>> SDIO adapter hooked up to expansion connector A using MMC2. I have
+>>>>>> attached the patch file (just ignore platform_data stuff). Now on
+>>>>>> one board it works, but not for the other. I suspect a board issue
+>>>>>> so listing the two types that we use:
+>>>>>>
+>>>>>> PandaBoard rev A2 (dmesg: OMAP4430 ES2.1): works
+>>>>>> PandaBoardES rev B1 (dmesg: OMAP4460 ES1.1): nope
+>>>>>>
+>>>>>> Any hints for me.
+>>>>>
+>>>>> Does your PandaboardES have the WLAN chip (U4) mounted? If yes, how
+>>>>> do you isolate
+>>>>> it from your external SDIO adapter?
+>>>
+>>> On my 4460 board in front of me U4 is not populated, but U3 is (the
+>>> TiWi thing).
+>>>
+>>>>
+>>>> OK, just realized that the expansion connector uses different pads
+>>>> for MMC2. However, you still
+>>>> need to make sure that the other pins (connected to on board WLAN
+>>>> chip) are not muxed as MMC2.
+>>>
+>>> I think Luciano added DT patches for on-board WLAN and it uses MMC5
+>>> if I am not mistaken(?). Attached are the dmesg logs of the two boards.
+>>
+>> Right. WLAN is supposed to use MMC5. But if you don't have Luca's
+>> patches, can you please ensure that those pins are muxed either as
+>> safe mode
+>> or as MMC5? Default seems to be safe mode, but you should cross check.
+>>
+>> Also in your patches you have set mmc2-clk to PIN_INPUT_PULLUP
+>> Shouldn't it be PIN_OUTPUT?
+>>
+>> Still I have no clue why it works on 4430 and not on 4460. Are you
+>> using the same bootloader image on both boards?
+>>
+> if you are using vaux1, can you check the voltage levels,
 >
->My system ran into WARN() condition multiple times when
->cppi41_tear_down_chan() was called for channels that had all of
->td_queued, td_seen and td_seen set to false.
-
-Which one?
-
->Signed-off-by: Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
->---
-> drivers/dma/cppi41.c | 5 +++--
-> 1 file changed, 3 insertions(+), 2 deletions(-)
+>  From dmesg you attached,
+> vaux1 is set to 1.8V on omap4430 and to 2.8V on OMAP4460
 >
->diff --git a/drivers/dma/cppi41.c b/drivers/dma/cppi41.c
->index 7747bf7..6decf34 100644
->--- a/drivers/dma/cppi41.c
->+++ b/drivers/dma/cppi41.c
->@@ -586,6 +586,9 @@ static int cppi41_tear_down_chan(struct cppi41_channel *c)
-> 			}
-> 			c->td_seen = 1;
-> 		}
->+
->+		if (c->td_retry)
->+			return -EAGAIN;
+> 4430
+> [    2.425750] VAUX1_6030: 1000 <--> 3000 mV at 1800 mV
+>
+> 4460
+> [    2.244262] VAUX1_6030: 1000 <--> 3000 mV at 2800 mV
 
-So you return right away since the retry counter should be > 0 here. And
-then you want to get the TDDOWN bit set and retry. Hmmm.
-Let me answer to you 0/3 on this.
+Nice catch. Not sure whether this is an issue, but worth looking into.
 
-> 	}
-> 	if (!c->td_desc_seen) {
-> 		desc_phys = cppi41_pop_desc(cdd, c->q_comp_num);
->@@ -606,8 +609,6 @@ static int cppi41_tear_down_chan(struct cppi41_channel *c)
-> 	 * descriptor before the TD we fetch it from enqueue, it has to be
-> 	 * there waiting for us.
-> 	 */
->-	if (!c->td_seen && c->td_retry)
->-		return -EAGAIN;
-> 
-> 	WARN_ON(!c->td_retry);
-> 	if (!c->td_desc_seen) {
+> Can you also check with MMC_DEBUG enabled for any clues.
 
-Sebastian
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+building....
+
+>> cheers,
+>> -roger
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
+>
