@@ -1,48 +1,60 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: [RFC PATCH] i2c: omap: Clear ARDY bit twice
-Date: Wed, 2 Oct 2013 14:48:35 +0000
-Message-ID: <EF62F09C0797D947AD4180A1043C0DF73D1EA70A@DLEE11.ent.ti.com>
-References: <1380711526-20365-1-git-send-email-taras.kondratiuk@linaro.org>
+From: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+Subject: Re: [PATCH v2 2/5] usb: musb: call musb_port_suspend from musb_bus_suspend
+Date: Wed, 2 Oct 2013 10:52:20 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1310021043490.1293-100000@iolanthe.rowland.org>
+References: <524C0D94.8050100@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:41614 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752971Ab3JBOsh convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Oct 2013 10:48:37 -0400
-In-Reply-To: <1380711526-20365-1-git-send-email-taras.kondratiuk@linaro.org>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <524C0D94.8050100-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, neumann-SRDuVqtxQLSzQB+pC5nmwQ@public.gmane.org, vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Taras Kondratiuk <taras.kondratiuk@linaro.org>, "Balbi, Felipe" <balbi@ti.com>
-Cc: "Strashko, Grygorii" <grygorii.strashko@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-> From: Taras Kondratiuk [mailto:taras.kondratiuk@linaro.org]
-> Sent: Wednesday, October 02, 2013 5:59 AM
-> To: Balbi, Felipe
-> Cc: Strashko, Grygorii; Woodruff, Richard; linux-omap@vger.kernel.org; Taras
-> Kondratiuk
-> Subject: [RFC PATCH] i2c: omap: Clear ARDY bit twice
- 
-> Initially commit cb527ede1bf6ff2008a025606f25344b8ed7b4ac
-> "i2c-omap: Double clear of ARDY status in IRQ handler"
-> added a workaround for undocumented errata ProDB0017052.
-> But then commit 1d7afc95946487945cc7f5019b41255b72224b70
-> "i2c: omap: ack IRQ in parts" refactored code and missed one of ARDY
-> clearings. So current code violates errata.
-> It causes often i2c bus timeouts on my Pandaboard.
+On Wed, 2 Oct 2013, Daniel Mack wrote:
 
-History of this was during OMAP3 a couple phone ramps were fixed with path.
+> On 02.10.2013 14:01, Sebastian Andrzej Siewior wrote:
+> > On 10/02/2013 01:14 PM, Daniel Mack wrote:
+> >> On 02.10.2013 12:49, Sebastian Andrzej Siewior wrote:
+> 
+> >>> What happens if the device is unplugged while the host is suspended and
+> >>> not there on resume?
+> >>
+> >> That condition is detected and a full teardown of the connected drivers
+> >> is conducted. Try what happens on your notebook when you do that.
+> >> Embedded systems should behave just the same.
+> > 
+> > I had the feeling that the USB device gets disconnected and
+> > re-enumerated on resume.
+> 
+> Yes. The device looses its +5V power supply, so it has to be reset and
+> re-enumerated on resume of course. It's just that USB drivers know about
+> the state the device has to be put back into after resume, and don't
+> assume the device was disconnected and reconnected. The latter would
+> (for usb-storage) also cause paritions to be removed and added.
 
-Another SOC (non-OMAP) which uses same I2C IP had clear HW root cause in its integration to SOC.
+This description may be slightly misleading.
 
-When stuck at customer I went through other SOC erratas and tried them when OMAP did not work.
+According to the USB spec, a device is not supposed to lose its +5V 
+power supply during suspend.  Therefore it does not need to be reset 
+and re-enumerated upon resume.  (Except that some devices don't handle 
+suspend properly because of buggy firmware; they _do_ need to be 
+reset.)
 
-This was found to be robust and did exist in RTL versions used as such fix was accepted and used on most end customers in that time frame.
+Of course, some systems don't follow the spec.  If they can't supply
+suspend power to the host controller and the USB bus, then the device
+_will_ need to be reset and re-enumerated.
 
-At 'that time' there was some internal process blockages around getting waveforms on OMAP integration which kept fix from sticking in errata.
+Some USB drivers (those which define a reset_resume method) are able to
+handle this -- they put the device back into the right state and then
+act as if nothing had happened.  Others aren't; they get unbound and
+rebound just as though the device really had been disconnected and
+reconnected.
 
-Regards,
-Richard W.
+Alan Stern
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
