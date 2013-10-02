@@ -1,96 +1,91 @@
-From: "Arend van Spriel" <arend@broadcom.com>
-Subject: Re: using mmc2 on panda [was: Regression 3.11-rc1: omap4panda:
- no usb and consequently no ethernet]
-Date: Wed, 2 Oct 2013 11:03:47 +0200
-Message-ID: <524BE173.1050407@broadcom.com>
-References: <51E7AA24.6080600@broadcom.com>
- <20130718085951.GT7656@atomide.com> <51E916C0.8080206@broadcom.com>
- <51E919CA.8060805@ti.com> <51E91B80.1050609@broadcom.com>
- <524A823F.6070209@broadcom.com> <524A9AB8.4010407@ti.com>
- <524A9BB2.2050503@ti.com> <524AA9C1.2000303@broadcom.com>
- <524ABD60.1010206@ti.com> <524ACBC6.5060208@ti.com>
+From: David Gibson <david@gibson.dropbear.id.au>
+Subject: Re: [RFC 00/15] Device Tree schemas and validation
+Date: Wed, 2 Oct 2013 18:24:02 +1000
+Message-ID: <20131002082402.GE6506@voom.fritz.box>
+References: <1380041541-17529-1-git-send-email-bcousson@baylibre.com>
+ <524A8289.3050107@baylibre.com>
+ <524ACB76.1010001@gmail.com>
+ <524AE4FB.4080906@baylibre.com>
+ <E1VR1hx-0000C1-6J@jdl.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
- charset=iso-8859-1;
- format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <524ACBC6.5060208@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Balaji T K <balajitk@ti.com>
-Cc: Roger Quadros <rogerq@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, luca@coelho.fi
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="//IivP0gvsAy3Can"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from ozlabs.org ([203.10.76.45]:38468 "EHLO ozlabs.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753007Ab3JBJSf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 2 Oct 2013 05:18:35 -0400
+Content-Disposition: inline
+In-Reply-To: <E1VR1hx-0000C1-6J@jdl.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jon Loeliger <jdl@jdl.com>
+Cc: Benoit Cousson <bcousson@baylibre.com>, Rob Herring <robherring2@gmail.com>, Mark Rutland <mark.rutland@arm.com>, swarren@wwwdotorg.org, Pawel Moll <pawel.moll@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, olof@lixom.net, devicetree@vger.kernel.org, tomasz.figa@gmail.com, grant.likely@secretlab.ca, khilman@linaro.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, fparent@baylibre.com
 
-On 10/01/2013 03:19 PM, Balaji T K wrote:
->>>>>> Hi Roger,
->>>>>>
->>>>>> It has been a while, but I would like to pickup this thread. We
->>>>>> have a couple of pandaboards used as test setup. These have an
->>>>>> SDIO adapter hooked up to expansion connector A using MMC2. I have
->>>>>> attached the patch file (just ignore platform_data stuff). Now on
->>>>>> one board it works, but not for the other. I suspect a board issue
->>>>>> so listing the two types that we use:
->>>>>>
->>>>>> PandaBoard rev A2 (dmesg: OMAP4430 ES2.1): works
->>>>>> PandaBoardES rev B1 (dmesg: OMAP4460 ES1.1): nope
->>>>>>
->>>>>> Any hints for me.
->>>>>
->>>>> Does your PandaboardES have the WLAN chip (U4) mounted? If yes, how
->>>>> do you isolate
->>>>> it from your external SDIO adapter?
->>>
->>> On my 4460 board in front of me U4 is not populated, but U3 is (the
->>> TiWi thing).
->>>
->>>>
->>>> OK, just realized that the expansion connector uses different pads
->>>> for MMC2. However, you still
->>>> need to make sure that the other pins (connected to on board WLAN
->>>> chip) are not muxed as MMC2.
->>>
->>> I think Luciano added DT patches for on-board WLAN and it uses MMC5
->>> if I am not mistaken(?). Attached are the dmesg logs of the two boards.
->>
->> Right. WLAN is supposed to use MMC5. But if you don't have Luca's
->> patches, can you please ensure that those pins are muxed either as
->> safe mode
->> or as MMC5? Default seems to be safe mode, but you should cross check.
->>
->> Also in your patches you have set mmc2-clk to PIN_INPUT_PULLUP
->> Shouldn't it be PIN_OUTPUT?
->>
->> Still I have no clue why it works on 4430 and not on 4460. Are you
->> using the same bootloader image on both boards?
->>
-> if you are using vaux1, can you check the voltage levels,
->
->  From dmesg you attached,
-> vaux1 is set to 1.8V on omap4430 and to 2.8V on OMAP4460
->
-> 4430
-> [    2.425750] VAUX1_6030: 1000 <--> 3000 mV at 1800 mV
->
-> 4460
-> [    2.244262] VAUX1_6030: 1000 <--> 3000 mV at 2800 mV
 
-Nice catch. Not sure whether this is an issue, but worth looking into.
+--//IivP0gvsAy3Can
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> Can you also check with MMC_DEBUG enabled for any clues.
+On Tue, Oct 01, 2013 at 10:17:53AM -0500, Jon Loeliger wrote:
+> > Hi Rob,
+> >=20
+> > On 01/10/2013 15:17, Rob Herring wrote:
+> > > On 10/01/2013 03:06 AM, Benoit Cousson wrote:
+> > >> + more DT maintainers folks
+> > >>
+> > >> Hi all,
+> > >>
+> > >> I know this is mostly boring user space code, but I was expecting a
+> > >> little bit of comments about at least the bindings syntax:-(
+> > >>
+> > >> I'd like to know if this is the right direction and if it worth purs=
+uing
+> > >> in that direction.
+> > >>
+> > >> The idea was to have at least some base for further discussion during
+> > >> ARM KS 2013.
+> > >>
+> > >> I feel alone :-(
+> > >>
+> > >> If you have any comment, go ahead!
+>=20
+>=20
+> Benoit,
+>=20
+> Sorry, I meant to ask earlier but forgot.
+> Shouldn't this development be based on the
+> upstream DTC repository and not the in-kernel
+> copy of the DTC?
 
-building....
+Absolutely.  Please work against upstream dtc.
 
->> cheers,
->> -roger
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
->
+--=20
+David Gibson			| I'll have my music baroque, and my code
+david AT gibson.dropbear.id.au	| minimalist, thank you.  NOT _the_ _other_
+				| _way_ _around_!
+http://www.ozlabs.org/~dgibson
+
+--//IivP0gvsAy3Can
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.14 (GNU/Linux)
+
+iQIcBAEBAgAGBQJSS9giAAoJEGw4ysog2bOSLJEQAI5TlHUc2Usu4IN6X46R5Mk3
+szZcs6WTYxClXW1JeiOESqwJsTdVGvzv1n9GrmgXg+Vmd/jAPaFymh6XljvCoJOv
+socVqYUFcqdfpPOqFjYbYXbAiAkqyJSZVcVX3XZeFM815KzmqUimXEwaYW7UEbEJ
+OGE2iy55Bsv7FLQpTBLv22ZTK3KOMimMpOJmVcmwYcqyopB3CUJKxWdNs4IhJlyg
+V70SZGcXAWrL6nntWfrhjMmpNNleHaiHEqYiz9eGBqq8/RAlxh4YSyjwknahpOBy
+Vo2sPulrxaxeoLhdgbbdOCXtWnBidov98aI++dMo/D5U2w4+A1mTN+/uOEAWg5Xw
+p9BUDYv011RPIzffxJAy55Ewhm7E8zJad2zlmRi2FlUQ6fYIb3pfvvc1JMlIguxh
+oysUH++RMO4OUWZftUmm5I5/6Q3PBtLOFeTQyLDrJzk8jUMZvd3lTraWLuviSMPA
++rDtLybzfA6edyXA3mEzJTsRq1FF5M7HmAt9p5GXD4MoeqfSEEHhoXvUpQaUrgNQ
+kBJACwSN7R80OhVh3e+m7sRV8EbRE2X9HdcKA4fVes2ge07jzqp1OQtK8j+4Nabt
+y5wCPHiAO4YLl0EebcPcuHl6Y+frnXcSGNv3uZYn5Ly1eeLlLd6Y7BKx594TAOkM
+AZFIy+90Jw7bZj+PO2zK
+=cLga
+-----END PGP SIGNATURE-----
+
+--//IivP0gvsAy3Can--
