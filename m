@@ -1,111 +1,88 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v3 03/10] ARM: OMAP2+: omap-usb-host: Get rid of platform_data
- from struct usbhs_phy_data
-Date: Wed, 2 Oct 2013 13:19:30 +0300
-Message-ID: <524BF332.4080303@ti.com>
-References: <1380012836-29900-1-git-send-email-rogerq@ti.com> <1380012836-29900-4-git-send-email-rogerq@ti.com>
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: Re: [PATCH 0/3] dma: cppi41: more suspend/resume patches
+Date: Wed, 2 Oct 2013 12:20:33 +0200
+Message-ID: <20131002102033.GB16680@linutronix.de>
+References: <1380634271-27588-1-git-send-email-zonque@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1380012836-29900-4-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
-Cc: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, balbi-l0cyMroinI0@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, p.zabel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from www.linutronix.de ([62.245.132.108]:41738 "EHLO
+	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753678Ab3JBKUf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Oct 2013 06:20:35 -0400
+Content-Disposition: inline
+In-Reply-To: <1380634271-27588-1-git-send-email-zonque@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Daniel Mack <zonque@gmail.com>
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, neumann@teufel.de, vinod.koul@intel.com, dan.j.williams@intel.com, balbi@ti.com
 
-Hi Tony,
+* Daniel Mack | 2013-10-01 15:31:08 [+0200]:
 
-On 09/24/2013 11:53 AM, Roger Quadros wrote:
-> The platform data bits can be inferred from the other members of
-> struct usbhs_phy_data. So get rid of the platform_data member.
-> 
-> Build the platform data for the PHY device in usbhs_init_phys() instead.
-> 
-> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+>Patch #3, however, gives me headaches. I can't fully explain what's
+>going on, but I can tell for sure that if fixes a problem that I stared
+>on for many hours.
+>
+>The problem is that on resume, the musb core will detect that some of
+>the suspended USB devices' endpoints are stalled. Which is something
+>that is unrelated to the dma driver, it just seems to be an expected
+>condition. That, however, makes the musb core call
+>cppi41_dma_channel_abort() -> cppi41_tear_down_chan(), which is
+>an otherwise untravelled code path. When that function is called for
+>a channel which has all of td_queued, td_seen and td_desc_seen set
+>to FALSE, I'm always getting a warning like this:
+>
+>[   17.105981] ------------[ cut here ]------------
+>[   17.110861] WARNING: CPU: 0 PID: 122 at drivers/dma/cppi41.c:644 cppi41_dma_control+0x378/0x3f8 [cppi41]()
 
-Could you please Ack this if OK?
+This is 
+    WARN_ON(!cdd->chan_busy[desc_num]);
 
-cheers,
--roger
+at the end of cppi41_stop_chan() right? So you get the warning because
+you tried to stop a channel which was not busy. But then you should not
+be called at all because cppi41_dma_channel_abort() shouldn't call dma
+driver on idle channels. So it should complete at some point.
 
-> ---
->  arch/arm/mach-omap2/board-omap3beagle.c |    6 ------
->  arch/arm/mach-omap2/usb-host.c          |   11 ++++++++++-
->  arch/arm/mach-omap2/usb.h               |    1 -
->  3 files changed, 10 insertions(+), 8 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-> index f269184..8b9cd06 100644
-> --- a/arch/arm/mach-omap2/board-omap3beagle.c
-> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
-> @@ -289,18 +289,12 @@ static struct regulator_consumer_supply beagle_vsim_supply[] = {
->  
->  static struct gpio_led gpio_leds[];
->  
-> -/* PHY's VCC regulator might be added later, so flag that we need it */
-> -static struct usb_phy_gen_xceiv_platform_data hsusb2_phy_data = {
-> -	.needs_vcc = true,
-> -};
-> -
->  static struct usbhs_phy_data phy_data[] = {
->  	{
->  		.port = 2,
->  		.reset_gpio = 147,
->  		.vcc_gpio = -1,		/* updated in beagle_twl_gpio_setup */
->  		.vcc_polarity = 1,	/* updated in beagle_twl_gpio_setup */
-> -		.platform_data = &hsusb2_phy_data,
->  	},
->  };
->  
-> diff --git a/arch/arm/mach-omap2/usb-host.c b/arch/arm/mach-omap2/usb-host.c
-> index e83a6a4..78ac1c2 100644
-> --- a/arch/arm/mach-omap2/usb-host.c
-> +++ b/arch/arm/mach-omap2/usb-host.c
-> @@ -435,6 +435,7 @@ int usbhs_init_phys(struct usbhs_phy_data *phy, int num_phys)
->  	struct platform_device *pdev;
->  	char *phy_id;
->  	struct platform_device_info pdevinfo;
-> +	struct usb_phy_gen_xceiv_platform_data nop_pdata;
->  
->  	for (i = 0; i < num_phys; i++) {
->  
-> @@ -455,11 +456,19 @@ int usbhs_init_phys(struct usbhs_phy_data *phy, int num_phys)
->  			return -ENOMEM;
->  		}
->  
-> +		/* set platform data */
-> +		memset(&nop_pdata, 0, sizeof(nop_pdata));
-> +		if (gpio_is_valid(phy->vcc_gpio))
-> +			nop_pdata.needs_vcc = true;
-> +		if (gpio_is_valid(phy->reset_gpio))
-> +			nop_pdata.needs_reset = true;
-> +		nop_pdata.type = USB_PHY_TYPE_USB2;
-> +
->  		/* create a NOP PHY device */
->  		memset(&pdevinfo, 0, sizeof(pdevinfo));
->  		pdevinfo.name = nop_name;
->  		pdevinfo.id = phy->port;
-> -		pdevinfo.data = phy->platform_data;
-> +		pdevinfo.data = &nop_pdata;
->  		pdevinfo.size_data =
->  			sizeof(struct usb_phy_gen_xceiv_platform_data);
->  		scnprintf(phy_id, MAX_STR, "usb_phy_gen_xceiv.%d",
-> diff --git a/arch/arm/mach-omap2/usb.h b/arch/arm/mach-omap2/usb.h
-> index e7261eb..4ba2ae7 100644
-> --- a/arch/arm/mach-omap2/usb.h
-> +++ b/arch/arm/mach-omap2/usb.h
-> @@ -58,7 +58,6 @@ struct usbhs_phy_data {
->  	int reset_gpio;
->  	int vcc_gpio;
->  	bool vcc_polarity;	/* 1 active high, 0 active low */
-> -	void *platform_data;
->  };
->  
->  extern void usb_musb_init(struct omap_musb_board_data *board_data);
-> 
+>Note that the line numbers don't match the current code in mainline due
+>to some debugging code, but it should be clear where the warning comes
+>from.
+>
+>With patch #3 applied, I made this problem go away, and I can suspend
+>resume with all musb related drivers active just fine. The only issue
+>I have is that I don't fully understand the reason, as it seems to me
+>that my patch just changes the timing, and we're actually seeing a
+>race condition here.
+>
+>Sebastian, can you give a comment on this? I'll post the musb patches
+>that are necessary as well now, and I'd appreciate more testers here.
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+How does your suspend & resume thingy work? Is it completly shutdown
+i.e. powered off? According to you earlier patches I would assume so. In
+that case the request is not enqueued and there is nothing to be removed
+from the engine, right?
+With the change you somehow get an interrupt that cleans up that slot.
+If you trigger TD bits for a random channel you get atleast the teardown
+descriptor. But then you don't complain about the WARN_ON() about
+missing / wrong desc_phys.
+In general this works like this:
+- descriptor is busy / in progress.
+  The TEAR-DOWN bits have to be set a few times. The hw returns the
+  teardown descriptor and the descriptor that has been enqueued
+- descriptor is queued but not busy / in use
+  Setting the TEAR-DOWN bit once seems to be enough. The hw returns
+  _only_ the teardown descriptor. The transfer descriptor remains pushed
+  onto the queue like it has been never consumed. A pop cleans it up,
+  the complete queue is empty. (Warning: reading the queue counter leads
+  to a pop! So checking if the queue counter increments after pushing
+  something to it is a bad idea).
+
+The whole thing has been tested by manipulating the USB storage driver
+to enqueue more / less data then required by the protocol leading to a
+stall followed by an abort of the transfer. Let me re-do your suspend
+with the patches you made so far to check what is going on and if the
+"normal" transfer cancel is still working.
+
+>Many thanks,
+>Daniel
+
+Sebastian
