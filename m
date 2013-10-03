@@ -1,115 +1,44 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: Re: [PATCHv2 2/9] hwspinlock/omap: add support for dt nodes
-Date: Wed, 2 Oct 2013 23:12:15 -0500
-Message-ID: <524CEE9F.8060407@ti.com>
-References: <cover.1379445653.git.s-anna@ti.com> <0fd6a11880894260d627a50b1e35f363625e9b1d.1379445653.git.s-anna@ti.com> <AE597DCC-83D7-4BCD-8990-3D63540F32EA@codeaurora.org> <20131001084015.GH22259@e106331-lin.cambridge.arm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+From: Guenter Roeck <linux@roeck-us.net>
+Subject: [PATCH] arm: Select NOP_USB_XCEIV if MACH_OMAP3EVM is enabled
+Date: Wed,  2 Oct 2013 22:05:10 -0700
+Message-ID: <1380776710-27788-1-git-send-email-linux@roeck-us.net>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20131001084015.GH22259@e106331-lin.cambridge.arm.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: Kumar Gala <galak@codeaurora.org>, Ohad Ben-Cohen <ohad@wizery.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>, Paul Walmsley <paul@pwsan.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Guenter Roeck <linux@roeck-us.net>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Mark,
+arm builds have been failing on and off with
 
-> On Fri, Sep 27, 2013 at 05:06:38PM +0100, Kumar Gala wrote:
->>
->> On Sep 17, 2013, at 2:30 PM, Suman Anna wrote:
->>
->>> HwSpinlock IP is present only on OMAP4 and other newer SoCs,
->>> which are all device-tree boot only. This patch adds the
->>> base support for parsing the DT nodes, and removes the code
->>> dealing with the traditional platform device instantiation.
->>>
->>> Signed-off-by: Suman Anna <s-anna@ti.com>
->>> ---
->>> .../devicetree/bindings/hwlock/omap-hwspinlock.txt | 31 +++++++++++
->>> arch/arm/mach-omap2/Makefile                       |  3 --
->>> arch/arm/mach-omap2/hwspinlock.c                   | 60 ----------------------
->>> drivers/hwspinlock/omap_hwspinlock.c               | 23 +++++++--
->>> 4 files changed, 50 insertions(+), 67 deletions(-)
->>> create mode 100644 Documentation/devicetree/bindings/hwlock/omap-hwspinlock.txt
->>> delete mode 100644 arch/arm/mach-omap2/hwspinlock.c
->>>
->>> diff --git a/Documentation/devicetree/bindings/hwlock/omap-hwspinlock.txt b/Documentation/devicetree/bindings/hwlock/omap-hwspinlock.txt
->>> new file mode 100644
->>> index 0000000..235b7c5
->>> --- /dev/null
->>> +++ b/Documentation/devicetree/bindings/hwlock/omap-hwspinlock.txt
->>> @@ -0,0 +1,31 @@
->>> +OMAP4+ HwSpinlock Driver
->>> +========================
->>> +
->>> +Required properties:
->>> +- compatible:		Currently supports only "ti,omap4-hwspinlock" for
->>> +				OMAP44xx, OMAP54xx, AM33xx, AM43xx, DRA7xx SoCs
-> 
-> "Currently supports" is not something I expect to see in a binding
-> document. That sounds like a description of the driver rather than the
-> binding.
-> 
-> How similar are these hardware modules? What are the differences?
+arch/arm/mach-omap2/board-omap3evm.c:703: undefined reference to
+`usb_nop_xceiv_register'
 
-The IP is almost the same, they all have the same revision id. The
-number of locks (each represented by a register) though vary from one
-SoC to another (OMAP4, OMAP5, DRA7 have same number of locks, and
-AM33xx/AM43xx have a different number). The number of locks is directly
-read by the driver from a module register. There is no separate .data
-associated with the of_device_id table, so I used a single compatible
-property for all the SoCs.
+for several years. Current arm:allmodconfig build fails for this reason.
 
-> 
->>> +- reg:			Contains the hwspinlock register address range (base
->>> +			address and length)
-> 
-> Is there only one register bank for the hwlock module?
+Problem is that board-omap3evm.c is always build into the kernel.
+It calls usb_nop_xceiv_register(), which is built with NOP_USB_XCEIV,
+which in turn can be configured as module. This results in the observed
+build failure.
 
-The lock registers start at a certain offset (0x800) within the module
-register space, and the offsets for various registers are identical
-between all SoCs.
+Fix the problem once and for all by selecting NOP_USB_XCEIV if MACH_OMAP3EVM
+is enabled.
 
-> 
->>> +- ti,hwmods:		Name of the hwmod associated with the hwspinlock device
->>> +
->>> +Common hwlock properties:
->>> +The following describes the usage of the common hwlock properties (defined in
->>> +Documentation/devicetree/bindings/hwlock/hwlock.txt) on OMAP.
->>> +
->>> +- hwlock-base-id:	There are currently no OMAP SoCs with multiple
->>> +			hwspinlock devices. The OMAP driver uses a default
->>> +			base id value of 0 for the locks present within the
->>> +			single hwspinlock device on all SoCs.
-> 
-> 
-> Driver details should not leak into bindngs...
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ arch/arm/mach-omap2/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-OK, will remove the info on driver details.
-
-> 
-> As mentioned in the other patch, I don't think this is the way to handle
-> this. I think we need a phandle + args representation.
-
-This is an optional parameter for now and I was going to revise the
-description based on comments from Kumar Gala on this thread, but I will
-wait and adjust this based on the outcome on the first patch.
-
-> 
->>> +- hwlock-num-locks:	This property is not required on OMAP SoCs, since the
->>> +			number of locks present within a device can be deduced
->>> +			from the SPINLOCK_SYSSTATUS device register.
-> 
-> Huh? Why define this property at all here if we don't need it and don't
-> use it?
-> 
-> The common document should state that specific bindings may use it and
-> should explicitly state if they do, rather than stating they don't...
-
-Yeah, I wasn't sure how to go about the split between the common file
-and the platform-specific bindings. I will clean this up and revise the
-common bindings.
-
-Thanks
-Suman
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index b5fb5f7..0bc2cf4 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -265,6 +265,7 @@ config MACH_OMAP3EVM
+ 	depends on ARCH_OMAP3
+ 	default y
+ 	select OMAP_PACKAGE_CBB
++	select NOP_USB_XCEIV
+ 
+ config MACH_OMAP3517EVM
+ 	bool "OMAP3517/ AM3517 EVM board"
+-- 
+1.7.9.7
