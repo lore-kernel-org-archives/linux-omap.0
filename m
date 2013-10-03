@@ -1,108 +1,334 @@
-From: Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH v3 05/10] ARM: dts: omap3-beagle: Use reset-gpios for
- hsusb2_reset
-Date: Thu, 03 Oct 2013 16:25:03 +0200
-Message-ID: <524D7E3F.6010609@baylibre.com>
-References: <1380012836-29900-1-git-send-email-rogerq@ti.com> <1380012836-29900-6-git-send-email-rogerq@ti.com> <524D483D.9040907@ti.com> <524D5D88.9020308@baylibre.com> <524D74A5.7010604@baylibre.com> <524D780C.1090708@ti.com>
+From: Fabien Parent <fparent@baylibre.com>
+Subject: Re: [RFC 01/15] scripts/dtc: fix most memory leaks in dtc
+Date: Thu, 3 Oct 2013 16:26:13 +0200
+Message-ID: <CAOwMV_ykJOWLT=x6_hAiPBMSznNn5fvXRrm83PNVHBvg_s2o+w@mail.gmail.com>
+References: <1380041541-17529-1-git-send-email-bcousson@baylibre.com>
+	<1380041541-17529-2-git-send-email-bcousson@baylibre.com>
+	<20131002125934.GF6506@voom.fritz.box>
+	<CAOwMV_zAZG3vvWS6pkyK-FbOEg_32KRO-k1SmFSh-pc9+0JiPA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <524D780C.1090708-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Cc: balbi-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, p.zabel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pa0-f49.google.com ([209.85.220.49]:36959 "EHLO
+	mail-pa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754068Ab3JCO0O (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Oct 2013 10:26:14 -0400
+Received: by mail-pa0-f49.google.com with SMTP id ld10so2676233pab.36
+        for <linux-omap@vger.kernel.org>; Thu, 03 Oct 2013 07:26:13 -0700 (PDT)
+In-Reply-To: <CAOwMV_zAZG3vvWS6pkyK-FbOEg_32KRO-k1SmFSh-pc9+0JiPA@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 03/10/2013 15:58, Roger Quadros wrote:
-> Hi Benoit,
+Looping back the mailing-lists.
+
+On Thu, Oct 3, 2013 at 4:23 PM, Fabien Parent <fparent@baylibre.com> wrote:
 >
-> On 10/03/2013 04:44 PM, Benoit Cousson wrote:
->> On 03/10/2013 14:05, Benoit Cousson wrote:
->>> Hi Roger,
->>>
->>> Yes, I will. I've been waiting for these ones for so long :-)
+> Hi David,
+>
+>
+> On Wed, Oct 2, 2013 at 2:59 PM, David Gibson <david@gibson.dropbear.id.au> wrote:
 >>
->> In fact it does not apply correctly on my for_3.13/dts branch :-(
+>> On Tue, Sep 24, 2013 at 06:52:07PM +0200, Benoit Cousson wrote:
+>> > From: Fabien Parent <fparent@baylibre.com>
 >>
->> error: arch/arm/boot/dts/omap3-beagle.dts: patch does not apply
->> Patch failed at 0004 ARM: dts: omap3-beagle: Make USB host pin naming consistent
+>> As noted elsewhere, please write patches against upstream dtc, not the
+>> version in the kernel.  git://git.kernel.org/pub/scm/utils/dtc/dtc.git
 >>
->> Could you rebase it?
+>> > There are a few memory leaks in dtc which until now were not that important
+>> > since they were all in the parser and only one instance of the parser was run
+>> > per instance of dtc. The following commits will add a validation of dts through
+>> > schema which have the same syntax as dts, i.e. the parser of dts will be reused
+>> > to parse schema. The consequence is that instead of having the parser running
+>> > only one time for an instance of the dtc process, the parser will run
+>> > many many times and thus the leak that were not important until now becomes
+>> > urgent to fix.
+>>
+>> Hrm, yeah.  I'm aware that I haven't been very careful with memory
+>> leaks within the parser.  Essentially, I've been treating the process
+>> as a pool allocator with exactly one pool - I've even considered
+>> getting rid of those free()s we do have.
+>>
+>> If the parser's going to be invoked repeatedly, then, yes, that
+>> certainly needs fixing.  Whether individually fixing each leak or
+>> using a explicit pool allocator is a better option is less clear.
 >
-> Looks like it was already applied before. Could you please skip that and use the rest?
-> I've checked that the remaining patches apply fine on top of your for_3.13/dts
-> branch.
-
-Indeed, it was already there :-)
-
-Sorry for the noise.
-
-Benoit
-
 >
-> cheers,
-> -roger
+> I've chosen the path of using free()s since it was removing most (all?) memory leaks from
+> the parser and wasn't adding much more complexity to it. I don't think a pool allocator would
+> be useful to DTC in its current state, but it's true that with schemas which are using
+> the DTS syntax it could make a lot of sense to switch to a pool allocator.
 >
->>>
->>> On 03/10/2013 12:34, Roger Quadros wrote:
->>>> Hi Benoit,
->>>>
->>>> Could you please take the device tree related patches [5 to 10] in
->>>> this series?
->>>> Thanks.
->>>>
->>>> cheers,
->>>> -roger
->>>>
->>>> On 09/24/2013 11:53 AM, Roger Quadros wrote:
->>>>> We no longer need to model the RESET line as a regulator since
->>>>> the USB phy-nop driver accepts "reset-gpios" property.
->>>>>
->>>>> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
->>>>> ---
->>>>>    arch/arm/boot/dts/omap3-beagle.dts |   13 +------------
->>>>>    1 files changed, 1 insertions(+), 12 deletions(-)
->>>>>
->>>>> diff --git a/arch/arm/boot/dts/omap3-beagle.dts
->>>>> b/arch/arm/boot/dts/omap3-beagle.dts
->>>>> index dfd8310..71bde47 100644
->>>>> --- a/arch/arm/boot/dts/omap3-beagle.dts
->>>>> +++ b/arch/arm/boot/dts/omap3-beagle.dts
->>>>> @@ -44,17 +44,6 @@
->>>>>            };
->>>>>        };
->>>>>
->>>>> -    /* HS USB Port 2 RESET */
->>>>> -    hsusb2_reset: hsusb2_reset_reg {
->>>>> -        compatible = "regulator-fixed";
->>>>> -        regulator-name = "hsusb2_reset";
->>>>> -        regulator-min-microvolt = <3300000>;
->>>>> -        regulator-max-microvolt = <3300000>;
->>>>> -        gpio = <&gpio5 19 0>;    /* gpio_147 */
->>>>> -        startup-delay-us = <70000>;
->>>>> -        enable-active-high;
->>>>> -    };
->>>>> -
->>>>>        /* HS USB Port 2 Power */
->>>>>        hsusb2_power: hsusb2_power_reg {
->>>>>            compatible = "regulator-fixed";
->>>>> @@ -68,7 +57,7 @@
->>>>>        /* HS USB Host PHY on PORT 2 */
->>>>>        hsusb2_phy: hsusb2_phy {
->>>>>            compatible = "usb-nop-xceiv";
->>>>> -        reset-supply = <&hsusb2_reset>;
->>>>> +        reset-gpios = <&gpio5 19 GPIO_ACTIVE_LOW>;    /* gpio_147 */
->>>>>            vcc-supply = <&hsusb2_power>;
->>>>>        };
->>>>>
->>>>>
->>>>
->>>
+> I guess I will wait until the discussion about this proposal has progressed and see
+> whether this patch should be rewritten using a pool allocator or not.
+>
+>>
+>> > dtc-lexer: Do not duplicate the string which contains literals because the
+>> > string is directly converted afterward to an integer and is never used again.
+>> > livetree: Add a bunch of free helper functions to clean properly the
+>> > dt.
+>>
+>> This is no good.  Making this assumption is a layering violation - if
+>> the parser was changed so that this literal wasn't converted until
+>> after another token was read, the yytext value copied in here would no
+>> longer be valid and would break horribly.
 >>
 >
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Right, I've been lazy on this one and I took the easy road.
+>
+>
+>>
+>> >
+>> > Signed-off-by: Fabien Parent <fparent@baylibre.com>
+>> > Signed-off-by: Benoit Cousson <bcousson@baylibre.com>
+>> > ---
+>> >  scripts/dtc/dtc-lexer.l             |   2 +-
+>> >  scripts/dtc/dtc-lexer.lex.c_shipped |   2 +-
+>> >  scripts/dtc/dtc.c                   |   1 +
+>> >  scripts/dtc/dtc.h                   |   1 +
+>> >  scripts/dtc/livetree.c              | 108 +++++++++++++++++++++++++++++++++---
+>> >  5 files changed, 105 insertions(+), 9 deletions(-)
+>> >
+>> > diff --git a/scripts/dtc/dtc-lexer.l b/scripts/dtc/dtc-lexer.l
+>> > index 3b41bfc..4f63fbf 100644
+>> > --- a/scripts/dtc/dtc-lexer.l
+>> > +++ b/scripts/dtc/dtc-lexer.l
+>> > @@ -146,7 +146,7 @@ static int pop_input_file(void);
+>> >               }
+>> >
+>> >  <V1>([0-9]+|0[xX][0-9a-fA-F]+)(U|L|UL|LL|ULL)? {
+>> > -                     yylval.literal = xstrdup(yytext);
+>> > +                     yylval.literal = yytext;
+>> >                       DPRINT("Literal: '%s'\n", yylval.literal);
+>> >                       return DT_LITERAL;
+>> >               }
+>> > diff --git a/scripts/dtc/dtc-lexer.lex.c_shipped b/scripts/dtc/dtc-lexer.lex.c_shipped
+>> > index 2d30f41..5c0d27c 100644
+>> > --- a/scripts/dtc/dtc-lexer.lex.c_shipped
+>> > +++ b/scripts/dtc/dtc-lexer.lex.c_shipped
+>> > @@ -1054,7 +1054,7 @@ case 10:
+>> >  YY_RULE_SETUP
+>> >  #line 148 "dtc-lexer.l"
+>> >  {
+>> > -                     yylval.literal = xstrdup(yytext);
+>> > +                     yylval.literal = yytext;
+>> >                       DPRINT("Literal: '%s'\n", yylval.literal);
+>> >                       return DT_LITERAL;
+>> >               }
+>> > diff --git a/scripts/dtc/dtc.c b/scripts/dtc/dtc.c
+>> > index a375683..215ae92 100644
+>> > --- a/scripts/dtc/dtc.c
+>> > +++ b/scripts/dtc/dtc.c
+>> > @@ -256,5 +256,6 @@ int main(int argc, char *argv[])
+>> >               die("Unknown output format \"%s\"\n", outform);
+>> >       }
+>> >
+>> > +     free_dt(bi);
+>> >       exit(0);
+>> >  }
+>> > diff --git a/scripts/dtc/dtc.h b/scripts/dtc/dtc.h
+>> > index 3e42a07..9c45fd2 100644
+>> > --- a/scripts/dtc/dtc.h
+>> > +++ b/scripts/dtc/dtc.h
+>> > @@ -245,6 +245,7 @@ struct boot_info {
+>> >  struct boot_info *build_boot_info(struct reserve_info *reservelist,
+>> >                                 struct node *tree, uint32_t boot_cpuid_phys);
+>> >  void sort_tree(struct boot_info *bi);
+>> > +void free_dt(struct boot_info *bi);
+>> >
+>> >  /* Checks */
+>> >
+>> > diff --git a/scripts/dtc/livetree.c b/scripts/dtc/livetree.c
+>> > index b61465f..5c8692c 100644
+>> > --- a/scripts/dtc/livetree.c
+>> > +++ b/scripts/dtc/livetree.c
+>> > @@ -20,6 +20,10 @@
+>> >
+>> >  #include "dtc.h"
+>> >
+>> > +static void free_node_list(struct node *n);
+>> > +static void free_node(struct node *n);
+>> > +static void free_property(struct property *p);
+>> > +
+>> >  /*
+>> >   * Tree building functions
+>> >   */
+>> > @@ -144,7 +148,7 @@ struct node *merge_nodes(struct node *old_node, struct node *new_node)
+>> >
+>> >       /* Add new node labels to old node */
+>> >       for_each_label_withdel(new_node->labels, l)
+>> > -             add_label(&old_node->labels, l->label);
+>> > +             add_label(&old_node->labels, xstrdup(l->label));
+>> >
+>> >       /* Move properties from the new node to the old node.  If there
+>> >        * is a collision, replace the old value with the new */
+>> > @@ -156,7 +160,7 @@ struct node *merge_nodes(struct node *old_node, struct node *new_node)
+>> >
+>> >               if (new_prop->deleted) {
+>> >                       delete_property_by_name(old_node, new_prop->name);
+>> > -                     free(new_prop);
+>> > +                     free_property(new_prop);
+>> >                       continue;
+>> >               }
+>> >
+>> > @@ -165,7 +169,7 @@ struct node *merge_nodes(struct node *old_node, struct node *new_node)
+>> >                       if (streq(old_prop->name, new_prop->name)) {
+>> >                               /* Add new labels to old property */
+>> >                               for_each_label_withdel(new_prop->labels, l)
+>> > -                                     add_label(&old_prop->labels, l->label);
+>> > +                                     add_label(&old_prop->labels, xstrdup(l->label));
+>> >
+>> >                               old_prop->val = new_prop->val;
+>> >                               old_prop->deleted = 0;
+>> > @@ -191,7 +195,7 @@ struct node *merge_nodes(struct node *old_node, struct node *new_node)
+>> >
+>> >               if (new_child->deleted) {
+>> >                       delete_node_by_name(old_node, new_child->name);
+>> > -                     free(new_child);
+>> > +                     free_node(new_child);
+>> >                       continue;
+>> >               }
+>> >
+>> > @@ -211,7 +215,7 @@ struct node *merge_nodes(struct node *old_node, struct node *new_node)
+>> >
+>> >       /* The new node contents are now merged into the old node.  Free
+>> >        * the new node. */
+>> > -     free(new_node);
+>> > +     free_node(new_node);
+>> >
+>> >       return old_node;
+>> >  }
+>> > @@ -532,13 +536,13 @@ cell_t get_node_phandle(struct node *root, struct node *node)
+>> >       if (!get_property(node, "linux,phandle")
+>> >           && (phandle_format & PHANDLE_LEGACY))
+>> >               add_property(node,
+>> > -                          build_property("linux,phandle",
+>> > +                          build_property(xstrdup("linux,phandle"),
+>> >                                           data_append_cell(empty_data, phandle)));
+>> >
+>> >       if (!get_property(node, "phandle")
+>> >           && (phandle_format & PHANDLE_EPAPR))
+>> >               add_property(node,
+>> > -                          build_property("phandle",
+>> > +                          build_property(xstrdup("phandle"),
+>> >                                           data_append_cell(empty_data, phandle)));
+>> >
+>> >       /* If the node *does* have a phandle property, we must
+>> > @@ -707,3 +711,93 @@ void sort_tree(struct boot_info *bi)
+>> >       sort_reserve_entries(bi);
+>> >       sort_node(bi->dt);
+>> >  }
+>> > +
+>> > +static void free_marker_list(struct marker *m)
+>> > +{
+>> > +     struct marker *marker, *marker_next;
+>> > +
+>> > +     if (!m)
+>> > +             return;
+>> > +
+>> > +     for (marker = m, marker_next = marker ? marker->next : NULL;
+>> > +          marker;
+>> > +          marker = marker_next, marker_next = marker ? marker->next : NULL) {
+>>
+>> Rather hard to read version of safe-against-free list iteration.
+>>
+>
+> Agreed.
+>
+>>
+>> > +             free(marker->ref);
+>> > +             free(marker);
+>> > +     }
+>> > +}
+>> > +
+>> > +static void free_label_list(struct label *l)
+>> > +{
+>> > +     struct label *label, *label_next;
+>> > +
+>> > +     if (!l)
+>> > +             return;
+>> > +
+>> > +     for (label = l, label_next = label ? label->next : NULL;
+>> > +          label;
+>> > +          label = label_next, label_next = label ? label->next : NULL) {
+>> > +             free(label->label);
+>> > +             free(label);
+>> > +     }
+>> > +}
+>> > +
+>> > +static void free_property(struct property *p)
+>> > +{
+>> > +     if (!p)
+>> > +             return;
+>> > +
+>> > +     free_label_list(p->labels);
+>> > +     free_marker_list(p->val.markers);
+>> > +     free(p->val.val);
+>> > +     free(p->name);
+>> > +     free(p);
+>> > +}
+>> > +
+>> > +static void free_property_list(struct property *p)
+>> > +{
+>> > +     struct property *next;
+>> > +
+>> > +     if (!p)
+>> > +             return;
+>> > +
+>> > +     for (next = p->next; p; p = next, next = p ? p->next : NULL)
+>> > +             free_property(p);
+>> > +}
+>> > +
+>> > +static void free_node(struct node *n)
+>> > +{
+>> > +     if (!n)
+>> > +             return;
+>> > +
+>> > +     free_node_list(n->children);
+>> > +     free_label_list(n->labels);
+>> > +     free_property_list(n->proplist);
+>> > +     free(n->fullpath);
+>> > +     if (n->name && *n->name)
+>>
+>> *n->name .. so, the name can (and must) be statically allocated if
+>> it's exactly "".  Not a useful optimization, I think.
+>
+>
+> True.
+>
+>>
+>>
+>> > +             free(n->name);
+>> > +     free(n);
+>> > +}
+>> > +
+>> > +static void free_node_list(struct node *n)
+>> > +{
+>> > +     struct node *next;
+>> > +
+>> > +     if (!n)
+>> > +             return;
+>> > +
+>> > +     for (next = n->next_sibling;
+>> > +          n;
+>> > +          n = next, next = n ? n->next_sibling : NULL) {
+>> > +             free_node(n);
+>> > +     }
+>> > +}
+>> > +
+>> > +void free_dt(struct boot_info *bi)
+>> > +{
+>> > +     if (!bi)
+>> > +             return;
+>> > +
+>> > +     free_node_list(bi->dt);
+>> > +     free(bi);
+>> > +}
+>>
+>> --
+>> David Gibson                    | I'll have my music baroque, and my code
+>> david AT gibson.dropbear.id.au  | minimalist, thank you.  NOT _the_ _other_
+>>                                 | _way_ _around_!
+>> http://www.ozlabs.org/~dgibson
+>
+>
