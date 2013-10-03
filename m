@@ -1,90 +1,56 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v8 4/8] usb: phy: omap-usb3: Don't use omap_get_control_dev()
-Date: Thu, 3 Oct 2013 18:12:33 +0300
-Message-ID: <1380813157-22311-5-git-send-email-rogerq@ti.com>
-References: <1380813157-22311-1-git-send-email-rogerq@ti.com>
+From: Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+Subject: Re: [PATCH v7 09/10] usb: dwc3: omap: manage "usb_otg_ss_refclk960m"
+ clock
+Date: Thu, 3 Oct 2013 08:41:44 -0700
+Message-ID: <20131003154144.GA18189@kroah.com>
+References: <1379508542-22389-1-git-send-email-rogerq@ti.com>
+ <1379508542-22389-10-git-send-email-rogerq@ti.com>
+ <52403E02.4070208@ti.com>
+ <20131002131113.GM1476@radagast>
+ <524C22A1.30200@ti.com>
+ <20131003122941.GD3230@radagast>
+ <524D8516.8000107@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1380813157-22311-1-git-send-email-rogerq@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: gregkh@linuxfoundation.org, balbi@ti.com
-Cc: devicetree@vger.kernel.org, george.cherian@ti.com, sergei.shtylyov@cogentembedded.com, tony@atomide.com, bigeasy@linutronix.de, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, kishon@ti.com, thomas.langer@lantiq.com, bcousson@baylibre.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <524D8516.8000107-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Cc: balbi-l0cyMroinI0@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, george.cherian-l0cyMroinI0@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, thomas.langer-th3ZBGNqt+7QT0dZR+AlfA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-omap_get_control_dev() is being deprecated as it doesn't support
-multiple instances. As control device is present only from OMAP4
-onwards which supports DT only, we use phandles to get the
-reference to the control device.
+On Thu, Oct 03, 2013 at 05:54:14PM +0300, Roger Quadros wrote:
+> On 10/03/2013 03:29 PM, Felipe Balbi wrote:
+> > Hi,
+> > 
+> > On Wed, Oct 02, 2013 at 04:41:53PM +0300, Roger Quadros wrote:
+> >> On 10/02/2013 04:11 PM, Felipe Balbi wrote:
+> >>> On Mon, Sep 23, 2013 at 04:11:30PM +0300, Roger Quadros wrote:
+> >>>> Hi Felipe,
+> >>>>
+> >>>> On 09/18/2013 03:49 PM, Roger Quadros wrote:
+> >>>>> "usb_otg_ss_refclk960m" is an optional functional clock to the
+> >>>>> UBS_OTG_SS module. So manage it in the driver.
+> >>>>>
+> >>>>
+> >>>> Just realized that "usb_otg_ss_refclk960m" is in fact functional clock to the 
+> >>>> PHY and not USB_OTG_SS module. The name is misleading.
+> >>>>
+> >>>> So please ignore patch 9 and 10.
+> >>>
+> >>> ignored. All others are fine, right ?
+> >>>
+> >> Yes. But I might have to rebase this on top of Phy framework stuff.
+> > 
+> > alright, Greg already took the PHY framework, so maybe we need to just
+> > give him my Acked-by and he takes the patches directly as I don't have
+> > PYH framework.
+> > 
+> OK. I'll resend this series to Greg in a while.
 
-As we don't support non-DT boot, we just bail out on probe
-if device node is not present.
-
-Signed-off-by: Roger Quadros <rogerq@ti.com>
----
- drivers/usb/phy/phy-omap-usb3.c |   26 ++++++++++++++++++++------
- 1 files changed, 20 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/usb/phy/phy-omap-usb3.c b/drivers/usb/phy/phy-omap-usb3.c
-index 0824be4..0c6ba29 100644
---- a/drivers/usb/phy/phy-omap-usb3.c
-+++ b/drivers/usb/phy/phy-omap-usb3.c
-@@ -26,6 +26,7 @@
- #include <linux/pm_runtime.h>
- #include <linux/delay.h>
- #include <linux/usb/omap_control_usb.h>
-+#include <linux/of_platform.h>
- 
- #define	PLL_STATUS		0x00000004
- #define	PLL_GO			0x00000008
-@@ -196,8 +197,14 @@ static int omap_usb3_init(struct usb_phy *x)
- 
- static int omap_usb3_probe(struct platform_device *pdev)
- {
--	struct omap_usb			*phy;
--	struct resource			*res;
-+	struct omap_usb *phy;
-+	struct resource *res;
-+	struct device_node *node = pdev->dev.of_node;
-+	struct device_node *control_node;
-+	struct platform_device *control_pdev;
-+
-+	if (!node)
-+		return -EINVAL;
- 
- 	phy = devm_kzalloc(&pdev->dev, sizeof(*phy), GFP_KERNEL);
- 	if (!phy) {
-@@ -239,11 +246,18 @@ static int omap_usb3_probe(struct platform_device *pdev)
- 		return -EINVAL;
- 	}
- 
--	phy->control_dev = omap_get_control_dev();
--	if (IS_ERR(phy->control_dev)) {
--		dev_dbg(&pdev->dev, "Failed to get control device\n");
--		return -ENODEV;
-+	control_node = of_parse_phandle(node, "ctrl-module", 0);
-+	if (!control_node) {
-+		dev_err(&pdev->dev, "Failed to get control device phandle\n");
-+		return -EINVAL;
- 	}
-+	control_pdev = of_find_device_by_node(control_node);
-+	if (!control_pdev) {
-+		dev_err(&pdev->dev, "Failed to get control device\n");
-+		return -EINVAL;
-+	}
-+
-+	phy->control_dev = &control_pdev->dev;
- 
- 	omap_control_usb_phy_power(phy->control_dev, 0);
- 	usb_add_phy_dev(&phy->phy);
--- 
-1.7.4.1
+It looks like you did, but forgot Felipe's ack :(
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
