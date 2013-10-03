@@ -1,142 +1,214 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 5/6] pinctrl: single: Add support for auxdata
-Date: Wed, 02 Oct 2013 22:42:26 -0700
-Message-ID: <20131003054226.8941.80570.stgit@localhost>
-References: <20131003054104.8941.88857.stgit@localhost>
+From: Gururaja Hebbar <gururaja.hebbar@ti.com>
+Subject: Re: [PATCH] ARM: omap: edma: add suspend
+	suspend/resume hooks
+Date: Thu, 3 Oct 2013 12:13:53 +0530
+Message-ID: <524D1229.7060908@ti.com>
+References: <1380635493-31040-1-git-send-email-zonque@gmail.com>
+ <1380635493-31040-2-git-send-email-zonque@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:18970 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755728Ab3JCFm3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Oct 2013 01:42:29 -0400
-In-Reply-To: <20131003054104.8941.88857.stgit@localhost>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <1380635493-31040-2-git-send-email-zonque@gmail.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Daniel Mack <zonque@gmail.com>, linux-omap@vger.kernel.org
+Cc: matt.porter@linaro.org, alsa-devel@alsa-project.org, s.neumann@raumfeld.com, linux-arm-kernel@lists.infradead.org, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Grygorii Strashko <grygorii.strashko@ti.com>, Linus Walleij <linus.walleij@linaro.org>, linux-kernel@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@ti.com>, Prakash Manjunathappa <prakash.pm@ti.com>, Haojian Zhuang <haojian.zhuang@linaro.org>, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 
-For omaps, we still have dependencies to the legacy code
-for handling the PRM (Power Reset Management) interrupts,
-and also for reconfiguring the io wake-up chain after
-changes.
+On Tuesday 01 October 2013 07:21 PM, Daniel Mack wrote:
+> This patch makes the edma driver resume correctly after suspend. Tested
+> on an AM33xx platform with cyclic audio streams.
 
-Let's pass the PRM interrupt and the rearm functions via
-auxdata. Then when at some point we have a proper PRM
-driver, we can get the interrupt via device tree and
-set up the rearm function as exported function in the
-PRM driver.
+I believe you have confirmed below are the only registers/fields which
+will lose context across suspend/resume
 
-By using auxdata we can remove a dependency to the
-wake-up events for converting omap3 to be device
-tree only.
+> 
+> The code was shamelessly taken from an ancient BSP tree.
 
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: Prakash Manjunathappa <prakash.pm@ti.com>
-Cc: Roger Quadros <rogerq@ti.com>
-Cc: Haojian Zhuang <haojian.zhuang@linaro.org>
-Cc: Linus Walleij <linus.walleij@linaro.org>
-Cc: linux-kernel@vger.kernel.org
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- drivers/pinctrl/pinctrl-single.c             |   23 +++++++++++++++++++++++
- include/linux/platform_data/pinctrl-single.h |   12 ++++++++++++
- 2 files changed, 35 insertions(+)
- create mode 100644 include/linux/platform_data/pinctrl-single.h
+Can you pick and merge below commit as well..
 
-diff --git a/drivers/pinctrl/pinctrl-single.c b/drivers/pinctrl/pinctrl-single.c
-index b4ff055..e7092e8 100644
---- a/drivers/pinctrl/pinctrl-single.c
-+++ b/drivers/pinctrl/pinctrl-single.c
-@@ -28,6 +28,8 @@
- #include <linux/pinctrl/pinmux.h>
- #include <linux/pinctrl/pinconf-generic.h>
- 
-+#include <linux/platform_data/pinctrl-single.h>
-+
- #include "core.h"
- #include "pinconf.h"
- 
-@@ -159,12 +161,14 @@ struct pcs_name {
-  * @irq:	optional interrupt for the controller
-  * @irq_enable_mask:	optional SoC specific interrupt enable mask
-  * @irq_status_mask:	optional SoC specific interrupt status mask
-+ * @rearm:	optional SoC specific wake-up rearm function
-  */
- struct pcs_soc_data {
- 	unsigned flags;
- 	int irq;
- 	unsigned irq_enable_mask;
- 	unsigned irq_status_mask;
-+	void (*rearm)(void);
- };
- 
- /**
-@@ -1622,6 +1626,8 @@ static void pcs_irq_unmask(struct irq_data *d)
- 	struct pcs_soc_data *pcs_soc = irq_data_get_irq_chip_data(d);
- 
- 	pcs_irq_set(pcs_soc, d->irq, true);
-+	if (pcs_soc->rearm)
-+		pcs_soc->rearm();
- }
- 
- /**
-@@ -1672,6 +1678,11 @@ static int pcs_irq_handle(struct pcs_soc_data *pcs_soc)
- 		}
- 	}
- 
-+	/*
-+	 * For debugging on omaps, you may want to call pcs_soc->rearm()
-+	 * here to see wake-up interrupts during runtime also.
-+	 */
-+
- 	return count;
- }
- 
-@@ -1838,6 +1849,7 @@ static int pcs_probe(struct platform_device *pdev)
- {
- 	struct device_node *np = pdev->dev.of_node;
- 	const struct of_device_id *match;
-+	struct pcs_pdata *pdata;
- 	struct resource *res;
- 	struct pcs_device *pcs;
- 	const struct pcs_soc_data *soc;
-@@ -1952,6 +1964,17 @@ static int pcs_probe(struct platform_device *pdev)
- 	if (pcs->socdata.irq)
- 		pcs->flags |= PCS_FEAT_IRQ;
- 
-+	/* We still need auxdata for some omaps for PRM interrupts */
-+	pdata = dev_get_platdata(&pdev->dev);
-+	if (pdata) {
-+		if (pdata->rearm)
-+			pcs->socdata.rearm = pdata->rearm;
-+		if (pdata->irq) {
-+			pcs->socdata.irq = pdata->irq;
-+			pcs->flags |= PCS_FEAT_IRQ;
-+		}
-+	}
-+
- 	if (PCS_HAS_IRQ) {
- 		ret = pcs_irq_init_chained_handler(pcs, np);
- 		if (ret < 0)
-diff --git a/include/linux/platform_data/pinctrl-single.h b/include/linux/platform_data/pinctrl-single.h
-new file mode 100644
-index 0000000..72eacda
---- /dev/null
-+++ b/include/linux/platform_data/pinctrl-single.h
-@@ -0,0 +1,12 @@
-+/**
-+ * irq:		optional wake-up interrupt
-+ * rearm:	optional soc specific rearm function
-+ *
-+ * Note that the irq and rearm setup should come from device
-+ * tree except for omap where there are still some dependencies
-+ * to the legacy PRM code.
-+ */
-+struct pcs_pdata {
-+	int irq;
-+	void (*rearm)(void);
-+};
+http://arago-project.org/git/projects/?p=linux-am33x.git;a=commitdiff;h=b81bf04091986fa3893f31955564594567be3b61
 
+Thanks & regards
+Gururaja
+
+> 
+> Signed-off-by: Daniel Mack <zonque@gmail.com>
+> ---
+>  arch/arm/common/edma.c | 133 +++++++++++++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 133 insertions(+)
+> 
+> diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
+> index 2a72169..d787f14 100644
+> --- a/arch/arm/common/edma.c
+> +++ b/arch/arm/common/edma.c
+> @@ -258,6 +258,20 @@ struct edma {
+>  				void *data);
+>  		void *data;
+>  	} intr_data[EDMA_MAX_DMACH];
+> +
+> +	struct {
+> +		struct edmacc_param *prm_set;
+> +		unsigned int *ch_map;               /* 64 registers */
+> +		unsigned int *que_num;              /* 8 registers */
+> +		unsigned int sh_esr;
+> +		unsigned int sh_esrh;
+> +		unsigned int sh_eesr;
+> +		unsigned int sh_eesrh;
+> +		unsigned int sh_iesr;
+> +		unsigned int sh_iesrh;
+> +		unsigned int que_tc_map;
+> +		unsigned int que_pri;
+> +	} context;
+>  };
+>  
+>  static struct edma *edma_cc[EDMA_MAX_CC];
+> @@ -1655,6 +1669,16 @@ static int edma_probe(struct platform_device *pdev)
+>  			memcpy_toio(edmacc_regs_base[j] + PARM_OFFSET(i),
+>  					&dummy_paramset, PARM_SIZE);
+>  
+> +		/* resume context */
+> +		edma_cc[j]->context.prm_set =
+> +			kzalloc((sizeof(struct edmacc_param) *
+> +				 edma_cc[j]->num_slots), GFP_KERNEL);
+> +		edma_cc[j]->context.ch_map =
+> +			kzalloc((sizeof(unsigned int) *
+> +				 edma_cc[j]->num_channels), GFP_KERNEL);
+> +		edma_cc[j]->context.que_num =
+> +			kzalloc((sizeof(unsigned int) * 8), GFP_KERNEL);
+> +
+>  		/* Mark all channels as unused */
+>  		memset(edma_cc[j]->edma_unused, 0xff,
+>  			sizeof(edma_cc[j]->edma_unused));
+> @@ -1762,6 +1786,114 @@ static int edma_probe(struct platform_device *pdev)
+>  	return 0;
+>  }
+>  
+> +static int edma_pm_suspend(struct device *dev)
+> +{
+> +	int i, j;
+> +
+> +	pm_runtime_get_sync(dev);
+> +
+> +	for (i = 0; i < arch_num_cc; i++) {
+> +		struct edma *ecc = edma_cc[i];
+> +
+> +		/* backup channel data */
+> +		for (j = 0; j < ecc->num_channels; j++)
+> +			ecc->context.ch_map[j] =
+> +				edma_read_array(i, EDMA_DCHMAP, j);
+> +
+> +		/* backup DMA Queue Number */
+> +		for (j = 0; j < 8; j++)
+> +			ecc->context.que_num[j] =
+> +				edma_read_array(i, EDMA_DMAQNUM, j);
+> +
+> +		/* backup DMA shadow Event Set data */
+> +		ecc->context.sh_esr = edma_shadow0_read_array(i, SH_ESR, 0);
+> +		ecc->context.sh_esrh = edma_shadow0_read_array(i, SH_ESR, 1);
+> +
+> +		/* backup DMA Shadow Event Enable Set data */
+> +		ecc->context.sh_eesr =
+> +			edma_shadow0_read_array(i, SH_EER, 0);
+> +		ecc->context.sh_eesrh =
+> +			edma_shadow0_read_array(i, SH_EER, 1);
+> +
+> +		/* backup DMA Shadow Interrupt Enable Set data */
+> +		ecc->context.sh_iesr =
+> +			edma_shadow0_read_array(i, SH_IER, 0);
+> +		ecc->context.sh_iesrh =
+> +			edma_shadow0_read_array(i, SH_IER, 1);
+> +
+> +		ecc->context.que_tc_map = edma_read(i, EDMA_QUETCMAP);
+> +
+> +		/* backup DMA Queue Priority data */
+> +		ecc->context.que_pri = edma_read(i, EDMA_QUEPRI);
+> +
+> +		/* backup paramset */
+> +		for (j = 0; j < ecc->num_slots; j++)
+> +			memcpy_fromio(&ecc->context.prm_set[j],
+> +				      edmacc_regs_base[i] + PARM_OFFSET(j),
+> +				      PARM_SIZE);
+> +	}
+> +
+> +	pm_runtime_put_sync(dev);
+> +
+> +	return 0;
+> +}
+> +
+> +static int edma_pm_resume(struct device *dev)
+> +{
+> +	int i, j;
+> +
+> +	pm_runtime_get_sync(dev);
+> +
+> +	for (i = 0; i < arch_num_cc; i++) {
+> +		struct edma *ecc = edma_cc[i];
+> +
+> +		/* restore channel data */
+> +		for (j = 0; j < ecc->num_channels; j++) {
+> +			edma_write_array(i, EDMA_DCHMAP, j,
+> +					 ecc->context.ch_map[j]);
+> +		}
+> +
+> +		/* restore DMA Queue Number */
+> +		for (j = 0; j < 8; j++) {
+> +			edma_write_array(i, EDMA_DMAQNUM, j,
+> +					 ecc->context.que_num[j]);
+> +		}
+> +
+> +		/* restore DMA shadow Event Set data */
+> +		edma_shadow0_write_array(i, SH_ESR, 0, ecc->context.sh_esr);
+> +		edma_shadow0_write_array(i, SH_ESR, 1, ecc->context.sh_esrh);
+> +
+> +		/* restore DMA Shadow Event Enable Set data */
+> +		edma_shadow0_write_array(i, SH_EESR, 0,
+> +					 ecc->context.sh_eesr);
+> +		edma_shadow0_write_array(i, SH_EESR, 1,
+> +					 ecc->context.sh_eesrh);
+> +
+> +		/* restore DMA Shadow Interrupt Enable Set data */
+> +		edma_shadow0_write_array(i, SH_IESR, 0,
+> +					 ecc->context.sh_iesr);
+> +		edma_shadow0_write_array(i, SH_IESR, 1,
+> +					 ecc->context.sh_iesrh);
+> +
+> +		edma_write(i, EDMA_QUETCMAP, ecc->context.que_tc_map);
+> +
+> +		/* restore DMA Queue Priority data */
+> +		edma_write(i, EDMA_QUEPRI, ecc->context.que_pri);
+> +
+> +		/* restore paramset */
+> +		for (j = 0; j < ecc->num_slots; j++) {
+> +			memcpy_toio(edmacc_regs_base[i] + PARM_OFFSET(j),
+> +				    &ecc->context.prm_set[j], PARM_SIZE);
+> +		}
+> +	}
+> +
+> +	pm_runtime_put_sync(dev);
+> +
+> +	return 0;
+> +}
+> +
+> +static SIMPLE_DEV_PM_OPS(edma_pm_ops, edma_pm_suspend, edma_pm_resume);
+> +
+>  static const struct of_device_id edma_of_ids[] = {
+>  	{ .compatible = "ti,edma3", },
+>  	{}
+> @@ -1770,6 +1902,7 @@ static const struct of_device_id edma_of_ids[] = {
+>  static struct platform_driver edma_driver = {
+>  	.driver = {
+>  		.name	= "edma",
+> +		.pm	= &edma_pm_ops,
+>  		.of_match_table = edma_of_ids,
+>  	},
+>  	.probe = edma_probe,
+> 
