@@ -1,101 +1,84 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 2/6] ARM: OMAP2+: Add support for auxdata
-Date: Wed, 02 Oct 2013 22:17:00 -0700
-Message-ID: <20131003051700.8444.10657.stgit@localhost>
+Subject: Re: [PATCH 0/6] add support for omap wake-up interrupts via
+ pinctrl-single
+Date: Wed, 2 Oct 2013 22:40:00 -0700
+Message-ID: <20131003054000.GK8949@atomide.com>
 References: <20131003051049.8444.16913.stgit@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:28984 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756813Ab3JCFRC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Oct 2013 01:17:02 -0400
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:14959 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1757267Ab3JCFkD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Oct 2013 01:40:03 -0400
+Content-Disposition: inline
 In-Reply-To: <20131003051049.8444.16913.stgit@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
 Cc: linux-omap@vger.kernel.org
 
-For few things we're still going to be needing platform
-data for device tree based drivers. Let's set up auxdata
-handling and do it in pdata-quirks.c so we have all the
-legacy calls in one place.
+* Tony Lindgren <tony@atomide.com> [131002 22:25]:
+> Hi all,
+> 
+> Here's a respin of the pinctrl-single related patches to
+> use chained irq as suggested by Linus W earlier. This series
+> does not try to provide any generic automated solution yet,
+> but works by doing a request_irq() for the wake-up pin, so
+> it should be flexible enough for both manual control and
+> automated solution.
+> 
+> This series removes the last nasty blocker for making omap3
+> to be device tree only without causing nasty PM regressions.
+> 
+> Assuming Linus W acks the drivers/pinctrl parts, I can
+> provide those three patches in a separate immutable branch
+> against v3.12-rc3 for Linus W to pull so I can merge them in
+> too.
+> 
+> This series is based on my earlier series "[PATCH 0/4] Clean
+> up legacy platform data handling for omaps for v3.13" as
+> it has a dependency for the pdata quirks for passing the
+> auxdata to the driver.
 
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/mach-omap2/board-generic.c |    5 +----
- arch/arm/mach-omap2/common.h        |    3 ++-
- arch/arm/mach-omap2/pdata-quirks.c  |   11 ++++++++++-
- 3 files changed, 13 insertions(+), 6 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
-index a66575f..3017a9d 100644
---- a/arch/arm/mach-omap2/board-generic.c
-+++ b/arch/arm/mach-omap2/board-generic.c
-@@ -35,10 +35,7 @@ static struct of_device_id omap_dt_match_table[] __initdata = {
+Sorry I had some typos in my Cc addresses and this series
+did not get fully sent. Will resend it, sorry for the noise.
  
- static void __init omap_generic_init(void)
- {
--	omap_sdrc_init(NULL, NULL);
--
--	of_platform_populate(NULL, omap_dt_match_table, NULL, NULL);
--	pdata_quirks_init();
-+	pdata_quirks_init(omap_dt_match_table);
- }
- 
- #ifdef CONFIG_SOC_OMAP2420
-diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
-index fd059e0..c6aebf0 100644
---- a/arch/arm/mach-omap2/common.h
-+++ b/arch/arm/mach-omap2/common.h
-@@ -288,7 +288,8 @@ static inline void omap4_cpu_resume(void)
- 
- #endif
- 
--void pdata_quirks_init(void);
-+void pdata_quirks_init(struct of_device_id *);
-+void omap_pcs_legacy_init(int irq, void (*rearm)(void));
- 
- struct omap_sdrc_params;
- extern void omap_sdrc_init(struct omap_sdrc_params *sdrc_cs0,
-diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
-index 3d472db..c739631 100644
---- a/arch/arm/mach-omap2/pdata-quirks.c
-+++ b/arch/arm/mach-omap2/pdata-quirks.c
-@@ -11,6 +11,7 @@
- #include <linux/gpio.h>
- #include <linux/init.h>
- #include <linux/kernel.h>
-+#include <linux/of_platform.h>
- #include <linux/wl12xx.h>
- 
- #include "common.h"
-@@ -99,6 +100,10 @@ static void __init omap5_uevm_legacy_init(void)
- }
- #endif
- 
-+struct of_dev_auxdata omap_auxdata_lookup[] __initdata = {
-+	{ /* sentinel */ },
-+};
-+
- static struct pdata_init pdata_quirks[] __initdata = {
- #ifdef CONFIG_ARCH_OMAP3
- 	{ "nokia,omap3-n9", hsmmc2_internal_input_clk, },
-@@ -114,10 +119,14 @@ static struct pdata_init pdata_quirks[] __initdata = {
- 	{ /* sentinel */ },
- };
- 
--void __init pdata_quirks_init(void)
-+void __init pdata_quirks_init(struct of_device_id *omap_dt_match_table)
- {
- 	struct pdata_init *quirks = pdata_quirks;
- 
-+	omap_sdrc_init(NULL, NULL);
-+	of_platform_populate(NULL, omap_dt_match_table,
-+			     omap_auxdata_lookup, NULL);
-+
- 	while (quirks->compatible) {
- 		if (of_machine_is_compatible(quirks->compatible)) {
- 			if (quirks->fn)
-
+> Regards,
+> 
+> Tony
+> 
+> ---
+> 
+> Tony Lindgren (6):
+>       ARM: dts: Fix pinctrl mask for omap3
+>       ARM: OMAP2+: Add support for auxdata
+>       pinctrl: single: Prepare for supporting SoC specific features
+>       pinctrl: single: Add support for wake-up interrupts
+>       pinctrl: single: Add support for auxdata
+>       ARM: OMAP: Move DT wake-up event handling over to use pinctrl-single-omap
+> 
+> 
+>  .../devicetree/bindings/pinctrl/pinctrl-single.txt |   11 +
+>  arch/arm/boot/dts/omap3.dtsi                       |    8 
+>  arch/arm/boot/dts/omap4.dtsi                       |    4 
+>  arch/arm/mach-omap2/board-generic.c                |    5 
+>  arch/arm/mach-omap2/common.h                       |    3 
+>  arch/arm/mach-omap2/mux.c                          |    8 
+>  arch/arm/mach-omap2/mux.h                          |    4 
+>  arch/arm/mach-omap2/pdata-quirks.c                 |   29 +-
+>  arch/arm/mach-omap2/prm3xxx.h                      |    8 
+>  arch/arm/mach-omap2/prm44xx_54xx.h                 |    8 
+>  arch/arm/mach-omap2/prm_common.c                   |   11 +
+>  drivers/pinctrl/pinctrl-single.c                   |  386 ++++++++++++++++++++
+>  include/dt-bindings/pinctrl/omap.h                 |    4 
+>  include/linux/platform_data/pinctrl-single.h       |   12 +
+>  14 files changed, 474 insertions(+), 27 deletions(-)
+>  create mode 100644 include/linux/platform_data/pinctrl-single.h
+> 
+> -- 
+> Signature
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
