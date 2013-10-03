@@ -1,74 +1,104 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 0/6] add support for omap wake-up interrupts via
- pinctrl-single
-Date: Wed, 02 Oct 2013 22:16:54 -0700
-Message-ID: <20131003051049.8444.16913.stgit@localhost>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH 1/6] ARM: dts: Fix pinctrl mask for omap3
+Date: Wed, 02 Oct 2013 22:16:57 -0700
+Message-ID: <20131003051657.8444.97429.stgit@localhost>
+References: <20131003051049.8444.16913.stgit@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:28805 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754593Ab3JCFQ4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Oct 2013 01:16:56 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20131003051049.8444.16913.stgit@localhost>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?utf-8?q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org
 
-Hi all,
+The wake-up interrupt bit is available on omap3/4/5 processors
+unlike what we claim. Without fixing it we cannot use it on
+omap3 and the system configured for wake-up events will just
+hang on wake-up.
 
-Here's a respin of the pinctrl-single related patches to
-use chained irq as suggested by Linus W earlier. This series
-does not try to provide any generic automated solution yet,
-but works by doing a request_irq() for the wake-up pin, so
-it should be flexible enough for both manual control and
-automated solution.
-
-This series removes the last nasty blocker for making omap3
-to be device tree only without causing nasty PM regressions.
-
-Assuming Linus W acks the drivers/pinctrl parts, I can
-provide those three patches in a separate immutable branch
-against v3.12-rc3 for Linus W to pull so I can merge them in
-too.
-
-This series is based on my earlier series "[PATCH 0/4] Clean
-up legacy platform data handling for omaps for v3.13" as
-it has a dependency for the pdata quirks for passing the
-auxdata to the driver.
-
-Regards,
-
-Tony
-
+Cc: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
+Cc: Beno=C3=AEt Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 ---
+ arch/arm/boot/dts/omap3.dtsi       |    4 ++--
+ arch/arm/mach-omap2/mux.h          |    4 +---
+ include/dt-bindings/pinctrl/omap.h |    4 +---
+ 3 files changed, 4 insertions(+), 8 deletions(-)
 
-Tony Lindgren (6):
-      ARM: dts: Fix pinctrl mask for omap3
-      ARM: OMAP2+: Add support for auxdata
-      pinctrl: single: Prepare for supporting SoC specific features
-      pinctrl: single: Add support for wake-up interrupts
-      pinctrl: single: Add support for auxdata
-      ARM: OMAP: Move DT wake-up event handling over to use pinctrl-single-omap
+diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dts=
+i
+index 7d95cda..b41bd57 100644
+--- a/arch/arm/boot/dts/omap3.dtsi
++++ b/arch/arm/boot/dts/omap3.dtsi
+@@ -108,7 +108,7 @@
+ 			#address-cells =3D <1>;
+ 			#size-cells =3D <0>;
+ 			pinctrl-single,register-width =3D <16>;
+-			pinctrl-single,function-mask =3D <0x7f1f>;
++			pinctrl-single,function-mask =3D <0xff1f>;
+ 		};
+=20
+ 		omap3_pmx_wkup: pinmux@0x48002a00 {
+@@ -117,7 +117,7 @@
+ 			#address-cells =3D <1>;
+ 			#size-cells =3D <0>;
+ 			pinctrl-single,register-width =3D <16>;
+-			pinctrl-single,function-mask =3D <0x7f1f>;
++			pinctrl-single,function-mask =3D <0xff1f>;
+ 		};
+=20
+ 		gpio1: gpio@48310000 {
+diff --git a/arch/arm/mach-omap2/mux.h b/arch/arm/mach-omap2/mux.h
+index 5d2080e..16f78a9 100644
+--- a/arch/arm/mach-omap2/mux.h
++++ b/arch/arm/mach-omap2/mux.h
+@@ -28,7 +28,7 @@
+ #define OMAP_PULL_UP			(1 << 4)
+ #define OMAP_ALTELECTRICALSEL		(1 << 5)
+=20
+-/* 34xx specific mux bit defines */
++/* omap3/4/5 specific mux bit defines */
+ #define OMAP_INPUT_EN			(1 << 8)
+ #define OMAP_OFF_EN			(1 << 9)
+ #define OMAP_OFFOUT_EN			(1 << 10)
+@@ -36,8 +36,6 @@
+ #define OMAP_OFF_PULL_EN		(1 << 12)
+ #define OMAP_OFF_PULL_UP		(1 << 13)
+ #define OMAP_WAKEUP_EN			(1 << 14)
+-
+-/* 44xx specific mux bit defines */
+ #define OMAP_WAKEUP_EVENT		(1 << 15)
+=20
+ /* Active pin states */
+diff --git a/include/dt-bindings/pinctrl/omap.h b/include/dt-bindings/p=
+inctrl/omap.h
+index edbd250..bed35e3 100644
+--- a/include/dt-bindings/pinctrl/omap.h
++++ b/include/dt-bindings/pinctrl/omap.h
+@@ -23,7 +23,7 @@
+ #define PULL_UP			(1 << 4)
+ #define ALTELECTRICALSEL	(1 << 5)
+=20
+-/* 34xx specific mux bit defines */
++/* omap3/4/5 specific mux bit defines */
+ #define INPUT_EN		(1 << 8)
+ #define OFF_EN			(1 << 9)
+ #define OFFOUT_EN		(1 << 10)
+@@ -31,8 +31,6 @@
+ #define OFF_PULL_EN		(1 << 12)
+ #define OFF_PULL_UP		(1 << 13)
+ #define WAKEUP_EN		(1 << 14)
+-
+-/* 44xx specific mux bit defines */
+ #define WAKEUP_EVENT		(1 << 15)
+=20
+ /* Active pin states */
 
-
- .../devicetree/bindings/pinctrl/pinctrl-single.txt |   11 +
- arch/arm/boot/dts/omap3.dtsi                       |    8 
- arch/arm/boot/dts/omap4.dtsi                       |    4 
- arch/arm/mach-omap2/board-generic.c                |    5 
- arch/arm/mach-omap2/common.h                       |    3 
- arch/arm/mach-omap2/mux.c                          |    8 
- arch/arm/mach-omap2/mux.h                          |    4 
- arch/arm/mach-omap2/pdata-quirks.c                 |   29 +-
- arch/arm/mach-omap2/prm3xxx.h                      |    8 
- arch/arm/mach-omap2/prm44xx_54xx.h                 |    8 
- arch/arm/mach-omap2/prm_common.c                   |   11 +
- drivers/pinctrl/pinctrl-single.c                   |  386 ++++++++++++++++++++
- include/dt-bindings/pinctrl/omap.h                 |    4 
- include/linux/platform_data/pinctrl-single.h       |   12 +
- 14 files changed, 474 insertions(+), 27 deletions(-)
- create mode 100644 include/linux/platform_data/pinctrl-single.h
-
--- 
-Signature
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" i=
+n
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
