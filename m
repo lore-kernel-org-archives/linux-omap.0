@@ -1,106 +1,96 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v8 7/8] usb: phy: omap: get rid of omap_get_control_dev()
-Date: Thu, 3 Oct 2013 12:59:05 +0300
-Message-ID: <1380794346-30185-8-git-send-email-rogerq@ti.com>
+Subject: [PATCH v8 3/8] usb: phy: omap-usb2: Don't use omap_get_control_dev()
+Date: Thu, 3 Oct 2013 12:59:01 +0300
+Message-ID: <1380794346-30185-4-git-send-email-rogerq@ti.com>
 References: <1380794346-30185-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1380794346-30185-1-git-send-email-rogerq@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: balbi@ti.com, bcousson@baylibre.com
-Cc: tony@atomide.com, george.cherian@ti.com, kishon@ti.com, bigeasy@linutronix.de, sergei.shtylyov@cogentembedded.com, thomas.langer@lantiq.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+Cc: devicetree@vger.kernel.org, george.cherian@ti.com, sergei.shtylyov@cogentembedded.com, tony@atomide.com, bigeasy@linutronix.de, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, kishon@ti.com, thomas.langer@lantiq.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-This function was preventing us from supporting multiple
-instances. Get rid of it. Since we support DT boots only,
-users can get the control device phandle from the DT node.
+omap_get_control_dev() is being deprecated as it doesn't support
+multiple instances. As control device is present only from OMAP4
+onwards which supports DT only, we use phandles to get the
+reference to the control device.
+
+As we don't support non-DT boot, we just bail out on probe
+if device node is not present.
 
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- drivers/usb/phy/phy-omap-control.c   |   31 ++++++++++---------------------
- include/linux/usb/omap_control_usb.h |    5 -----
- 2 files changed, 10 insertions(+), 26 deletions(-)
+ drivers/phy/phy-omap-usb2.c |   31 +++++++++++++++++++++++--------
+ 1 files changed, 23 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/usb/phy/phy-omap-control.c b/drivers/usb/phy/phy-omap-control.c
-index 1c8a7c5..09c5ace 100644
---- a/drivers/usb/phy/phy-omap-control.c
-+++ b/drivers/usb/phy/phy-omap-control.c
-@@ -26,26 +26,6 @@
- #include <linux/clk.h>
+diff --git a/drivers/phy/phy-omap-usb2.c b/drivers/phy/phy-omap-usb2.c
+index 4d7b4e5..bfc5c33 100644
+--- a/drivers/phy/phy-omap-usb2.c
++++ b/drivers/phy/phy-omap-usb2.c
+@@ -29,6 +29,7 @@
+ #include <linux/delay.h>
  #include <linux/usb/omap_control_usb.h>
+ #include <linux/phy/phy.h>
++#include <linux/of_platform.h>
  
--static struct omap_control_usb *control_usb;
--
--/**
-- * omap_get_control_dev - returns the device pointer for this control device
-- *
-- * This API should be called to get the device pointer for this control
-- * module device. This device pointer should be used for called other
-- * exported API's in this driver.
-- *
-- * To be used by PHY driver and glue driver.
-- */
--struct device *omap_get_control_dev(void)
--{
--	if (!control_usb)
--		return ERR_PTR(-ENODEV);
--
--	return control_usb->dev;
--}
--EXPORT_SYMBOL_GPL(omap_get_control_dev);
--
  /**
-  * omap_control_usb_phy_power - power on/off the phy using control module reg
-  * @dev: the control module device
-@@ -182,11 +162,19 @@ void omap_control_usb_set_mode(struct device *dev,
+  * omap_usb2_set_comparator - links the comparator present in the sytem with
+@@ -145,10 +146,16 @@ static struct phy_ops ops = {
+ 
+ static int omap_usb2_probe(struct platform_device *pdev)
  {
- 	struct omap_control_usb	*ctrl_usb;
+-	struct omap_usb			*phy;
+-	struct phy			*generic_phy;
+-	struct usb_otg			*otg;
+-	struct phy_provider		*phy_provider;
++	struct omap_usb	*phy;
++	struct phy *generic_phy;
++	struct phy_provider *phy_provider;
++	struct usb_otg *otg;
++	struct device_node *node = pdev->dev.of_node;
++	struct device_node *control_node;
++	struct platform_device *control_pdev;
++
++	if (!node)
++		return -EINVAL;
  
--	if (IS_ERR(dev) || control_usb->type != OMAP_CTRL_TYPE_OTGHS)
-+	if (IS_ERR(dev) || !dev)
- 		return;
+ 	phy = devm_kzalloc(&pdev->dev, sizeof(*phy), GFP_KERNEL);
+ 	if (!phy) {
+@@ -175,12 +182,20 @@ static int omap_usb2_probe(struct platform_device *pdev)
+ 	if (IS_ERR(phy_provider))
+ 		return PTR_ERR(phy_provider);
  
- 	ctrl_usb = dev_get_drvdata(dev);
+-	phy->control_dev = omap_get_control_dev();
+-	if (IS_ERR(phy->control_dev)) {
+-		dev_dbg(&pdev->dev, "Failed to get control device\n");
+-		return -ENODEV;
++	control_node = of_parse_phandle(node, "ctrl-module", 0);
++	if (!control_node) {
++		dev_err(&pdev->dev, "Failed to get control device phandle\n");
++		return -EINVAL;
+ 	}
  
-+	if (!ctrl_usb) {
-+		dev_err(dev, "Invalid control usb device\n");
-+		return;
++	control_pdev = of_find_device_by_node(control_node);
++	if (!control_pdev) {
++		dev_err(&pdev->dev, "Failed to get control device\n");
++		return -EINVAL;
 +	}
 +
-+	if (ctrl_usb->type != OMAP_CTRL_TYPE_OTGHS)
-+		return;
++	phy->control_dev = &control_pdev->dev;
 +
- 	switch (mode) {
- 	case USB_MODE_HOST:
- 		omap_control_usb_host_mode(ctrl_usb);
-@@ -237,6 +225,7 @@ static int omap_control_usb_probe(struct platform_device *pdev)
- {
- 	struct resource	*res;
- 	const struct of_device_id *of_id;
-+	struct omap_control_usb *control_usb;
+ 	phy->is_suspended	= 1;
+ 	omap_control_usb_phy_power(phy->control_dev, 0);
  
- 	of_id = of_match_device(of_match_ptr(omap_control_usb_id_table),
- 								&pdev->dev);
-diff --git a/include/linux/usb/omap_control_usb.h b/include/linux/usb/omap_control_usb.h
-index 61b889a..596b019 100644
---- a/include/linux/usb/omap_control_usb.h
-+++ b/include/linux/usb/omap_control_usb.h
-@@ -65,15 +65,10 @@ enum omap_control_usb_mode {
- #define OMAP_CTRL_USB2_PHY_PD		BIT(28)
- 
- #if IS_ENABLED(CONFIG_OMAP_CONTROL_USB)
--extern struct device *omap_get_control_dev(void);
- extern void omap_control_usb_phy_power(struct device *dev, int on);
- extern void omap_control_usb_set_mode(struct device *dev,
- 	enum omap_control_usb_mode mode);
- #else
--static inline struct device *omap_get_control_dev(void)
--{
--	return ERR_PTR(-ENODEV);
--}
- 
- static inline void omap_control_usb_phy_power(struct device *dev, int on)
- {
 -- 
 1.7.4.1
