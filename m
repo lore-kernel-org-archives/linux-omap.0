@@ -1,32 +1,24 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP: TI816X: add clock domain support for TI816x
-Date: Thu, 3 Oct 2013 11:03:49 -0700
-Message-ID: <20131003180349.GO8949@atomide.com>
-References: <1377352941-29699-1-git-send-email-aida.mynzhasova@skitlab.ru>
- <5236A9FA.2040100@skitlab.ru>
- <20130916131451.GB14873@kahuna>
- <52397517.9020508@skitlab.ru>
- <523994FF.4020307@ti.com>
- <5239D7EA.6090104@skitlab.ru>
+Subject: Re: [PATCH 1/2] hwspinlock/omap: add support for dt nodes
+Date: Thu, 3 Oct 2013 11:05:46 -0700
+Message-ID: <20131003180546.GP8949@atomide.com>
+References: <1378230767-54931-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:20387 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754116Ab3JCSDw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Oct 2013 14:03:52 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <5239D7EA.6090104@skitlab.ru>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1378230767-54931-1-git-send-email-s-anna@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Suman Anna <s-anna@ti.com>
+Cc: Ohad Ben-Cohen <ohad@wizery.com>, Benoit Cousson <bcousson@baylibre.com>, Kumar Gala <galak@codeaurora.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Aida Mynzhasova <aida.mynzhasova@skitlab.ru>
-Cc: Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org
 
-* Aida Mynzhasova <aida.mynzhasova@skitlab.ru> [130918 09:50]:
-> 
-> So, is there is somebody who wants to review my changes? :)
+* Suman Anna <s-anna@ti.com> [130903 11:00]:
+> HwSpinlock IP is present only on OMAP4 and other newer SoCs,
+> which are all device-tree boot only. This patch adds the
+> base support for parsing the DT nodes, and removes the code
+> dealing with the traditional platform device instantiation.
 
-Maybe resend with Tero and Paul in Cc so they can coordinate
-how it should be handled?
+Great, this should be safe for Ohad to queue:
 
-Tony
+Acked-by: Tony Lindgren <tony@atomide.com>
