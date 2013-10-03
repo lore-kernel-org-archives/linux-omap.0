@@ -1,57 +1,50 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH] ARM: OMAP2+: hwmod: check for module address space during
- init
-Date: Thu, 3 Oct 2013 13:05:30 -0400
-Message-ID: <524DA3DA.5000507@ti.com>
-References: <1380819546-53631-1-git-send-email-s-anna@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH V5 0/6] ARM: OMAP3+: support cpufreq-cpu0 for device tree
+ boot
+Date: Thu, 3 Oct 2013 12:06:36 -0500
+Message-ID: <524DA41C.7000809@ti.com>
+References: <1368039976-29648-1-git-send-email-nm@ti.com> <87pprmuwxg.fsf@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:44993 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754121Ab3JCRFg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 3 Oct 2013 13:05:36 -0400
-In-Reply-To: <1380819546-53631-1-git-send-email-s-anna@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <87pprmuwxg.fsf@linaro.org>
+Sender: linux-doc-owner@vger.kernel.org
+To: Kevin Hilman <khilman@linaro.org>, Benoit Cousson <bcousson@baylibre.com>
+Cc: Tony Lindgren <tony@atomide.com>, Mike Turquette <mturquette@linaro.org>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-doc@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Suman Anna <s-anna@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, Afzal Mohammed <afzal@ti.com>, Tero Kristo <t-kristo@ti.com>, Rajendra Nayak <rnayak@ti.com>, Nishant Menon <nm@ti.com>, linux-omap@vger.kernel.org
 
-On Thursday 03 October 2013 12:59 PM, Suman Anna wrote:
-> The hwmod init sequence involves initializing and idling all the
-> hwmods during bootup. If a module class has sysconfig, the init
-> sequence utilizes the module register base for performing any
-> sysc configuration.
+fixing Benoit's mail ID.
+On 10/03/2013 11:43 AM, Kevin Hilman wrote:
+> Hi Nishanth,
 > 
-> The module address space is being removed from hwmod database and
-> retrieved from the <reg> property of the corresponding DT node.
-> If a hwmod does not have its corresponding DT node defined and the
-> memory address space is not defined in the corresponding
-> omap_hwmod_ocp_if, then the module register target address space
-> would be NULL and any sysc programming would result in a NULL
-> pointer dereference and a kernel boot hang.
+> Nishanth Menon <nm@ti.com> writes:
 > 
-> Handle this scenario by checking for a valid module address space
-> during the _init of each hwmod, and leaving it in the registered
-> state if no module register address base is defined in either of
-> the hwmod data or the DT data.
+>> The following version 5 of the series arose from trying to use
+>> BeagleBoard-XM (OMAP3 variant) for doing CPU DVFS using cpufreq-cpu0.
+>> This series enables the generic cpufreq-cpu0 driver to be used in
+>> device tree enabled boot while maintaining support of the legacy
+>> omap-cpufreq driver when used in non device tree enabled boot.
 > 
-> Signed-off-by: Suman Anna <s-anna@ti.com>
-> ---
-> This patch helps break the dependencies between hwmod entries and
-> corresponding DT entries (especially on OMAP5, where most of the
-> address spaces are already cleaned up and the current data files
-> have minimal entries) and fixes any boot issues due to missing
-> addresses. See for reference,
-> http://marc.info/?t=138005421400003&r=1&w=2
-> 
-> Tested on BeagleXM, Panda4, BeagleBone Black and Panda5 using
-> Tero's v7 clk DT patches and Benoit's for-3.13/dts on top of
-> 3.12-rc3
-> 
-Good to break that dts/hwmod dependency.
-FWIW,
-Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> What's the status of this series?  Is it still waiting on the clock DT
+> changes?
 
+yes - i do have a new series lined up at the moment here[1] - trying
+to ensure everything is dandy before public post. ofcourse, we'd like
+to ensure we have feedback on tero's series[2]. I am now working on
+ensuring ABB regulator[3](again depends on Tero's series) fits on top
+of Mike's voltage notifier series[4]
 
+So, yep, everything is blocked due to lack of feedback on Tero's
+series [2].
+
+[1]
+https://github.com/nmenon/linux-2.6-playground/commits/devel/cpufreq-cpu0
+[2] http://marc.info/?t=138009899400001&r=1&w=2
+[3]
+https://github.com/nmenon/linux-2.6-playground/commits/push/abb-regulator-dts
+[4]
+http://git.linaro.org/gitweb?p=people/mturquette/linux.git;a=shortlog;h=refs/heads/clk-next-volt
+-- 
+Regards,
+Nishanth Menon
