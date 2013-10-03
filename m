@@ -1,104 +1,71 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v8 0/8] phy: omap-usb: Support multiple instances and new types
-Date: Thu, 3 Oct 2013 12:58:58 +0300
-Message-ID: <1380794346-30185-1-git-send-email-rogerq@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH v8 1/8] usb: phy: omap-control: Get rid of platform data
+Date: Thu, 3 Oct 2013 12:58:59 +0300
+Message-ID: <1380794346-30185-2-git-send-email-rogerq@ti.com>
+References: <1380794346-30185-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: balbi-l0cyMroinI0@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org
-Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, george.cherian-l0cyMroinI0@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, thomas.langer-th3ZBGNqt+7QT0dZR+AlfA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1380794346-30185-1-git-send-email-rogerq@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: balbi@ti.com, bcousson@baylibre.com
+Cc: tony@atomide.com, george.cherian@ti.com, kishon@ti.com, bigeasy@linutronix.de, sergei.shtylyov@cogentembedded.com, thomas.langer@lantiq.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+omap-control device is present from OMAP4 onwards which
+support device tree boots only. So get rid of platform data.
 
-This patchset does the following:
+Signed-off-by: Roger Quadros <rogerq@ti.com>
+---
+ drivers/usb/phy/phy-omap-control.c   |   12 +++---------
+ include/linux/usb/omap_control_usb.h |    4 ----
+ 2 files changed, 3 insertions(+), 13 deletions(-)
 
-* Get rid of omap_control_usb platform data as we support DT only.
-
-* Restructure and add support for new PHY types. We now support the following
-four types
-
- TYPE_OTGHS - if it has otghs_control mailbox register (e.g. on OMAP4)
- TYPE_USB2 - if it has Power down bit in control_dev_conf register. e.g. USB2 PHY
- TYPE_PIPE3 - if it has DPLL and individual Rx & Tx power control. e.g. USB3 PHY or SATA PHY
- TYPE_DRA7USB2 - if it has both power down and power aux registers. e.g. USB2 PHY on DRA7
-
-* Get rid of "ti,type" DT property and introduce compatible strings for each type.
-
-* Have only one power control API "omap_control_usb_phy_power()" instead of a
-different one for each PHY type.
-
-* Get rid of omap_get_control_dev() so that we can support multiple instances
-of the control device. We take advantage of the fact that omap control USB device
-is only present on OMAP4 onwards and hence only supports DT boot. The users
-of control USB device can get a reference to it from the device node's phandle.
-
-Patches are based on greg/usb-next.
-
-Smoke tested on OMAP4 panda with MUSB in gadget mode (g_zero).
-
-You can find the patches in branch
- usb-control-module
-in git tree
- git://github.com/rogerq/linux.git
-
-v8:
-- Rebased on top of greg/usb-next to avoid conflicts
-- Removed patches 9 and 10 as they are not applicable
-
-v7:
-- Rebased on v3.12-rc1
-- Updated DT compatibility ID for better readability
-- Renamed TYPE_OMAP4 to TYPE_OTGHS, TYPE_USB3 to TYPE_PIPE3 and TYPE_DRA7 to
-  TYPE_DRA7USB2
-
-v6:
-- addressed review comment about usage of control_usb before allocation.
-
-v5:
-- fixed whitespace alignment issues.
-
-v4:
-- removed "ti,has-mailbox" from omap-usb binding document example.
-
-v3:
-- return -EINVAL instead of -ENODEV on probe failure.
-- pass device type data through of_device_id table.
-- get rid of "ti,mailbox" property and "has_mailbox" from musb platform data.
-
-v2:
-- get rid of "ti,type" property and introduce compatible strings for each device type.
-
-cheers,
--roger
-
-Roger Quadros (8):
-  usb: phy: omap-control: Get rid of platform data
-  usb: phy: omap: Add new device types and remove
-    omap_control_usb3_phy_power()
-  usb: phy: omap-usb2: Don't use omap_get_control_dev()
-  usb: phy: omap-usb3: Don't use omap_get_control_dev()
-  usb: musb: omap2430: Don't use omap_get_control_dev()
-  ARM: dts: omap4: update omap-control-usb nodes
-  usb: phy: omap: get rid of omap_get_control_dev()
-  ARM: dts: omap5: update omap-control-usb node
-
- Documentation/devicetree/bindings/usb/omap-usb.txt |   34 ++--
- arch/arm/boot/dts/omap4.dtsi                       |   20 ++-
- arch/arm/boot/dts/omap5.dtsi                       |   20 ++-
- drivers/phy/phy-omap-usb2.c                        |   31 +++-
- drivers/usb/musb/omap2430.c                        |   25 ++-
- drivers/usb/phy/phy-omap-control.c                 |  208 ++++++++++---------
- drivers/usb/phy/phy-omap-usb3.c                    |   32 +++-
- include/linux/usb/musb.h                           |    2 -
- include/linux/usb/omap_control_usb.h               |   33 ++--
- 9 files changed, 220 insertions(+), 185 deletions(-)
-
+diff --git a/drivers/usb/phy/phy-omap-control.c b/drivers/usb/phy/phy-omap-control.c
+index a4dda8e..9772592 100644
+--- a/drivers/usb/phy/phy-omap-control.c
++++ b/drivers/usb/phy/phy-omap-control.c
+@@ -197,8 +197,6 @@ static int omap_control_usb_probe(struct platform_device *pdev)
+ {
+ 	struct resource	*res;
+ 	struct device_node *np = pdev->dev.of_node;
+-	struct omap_control_usb_platform_data *pdata =
+-			dev_get_platdata(&pdev->dev);
+ 
+ 	control_usb = devm_kzalloc(&pdev->dev, sizeof(*control_usb),
+ 		GFP_KERNEL);
+@@ -207,14 +205,10 @@ static int omap_control_usb_probe(struct platform_device *pdev)
+ 		return -ENOMEM;
+ 	}
+ 
+-	if (np) {
++	if (np)
+ 		of_property_read_u32(np, "ti,type", &control_usb->type);
+-	} else if (pdata) {
+-		control_usb->type = pdata->type;
+-	} else {
+-		dev_err(&pdev->dev, "no pdata present\n");
+-		return -EINVAL;
+-	}
++	else
++		return -EINVAL;	/* We only support DT boot */
+ 
+ 	control_usb->dev	= &pdev->dev;
+ 
+diff --git a/include/linux/usb/omap_control_usb.h b/include/linux/usb/omap_control_usb.h
+index 27b5b8c..e2416b4 100644
+--- a/include/linux/usb/omap_control_usb.h
++++ b/include/linux/usb/omap_control_usb.h
+@@ -31,10 +31,6 @@ struct omap_control_usb {
+ 	u32 type;
+ };
+ 
+-struct omap_control_usb_platform_data {
+-	u8 type;
+-};
+-
+ enum omap_control_usb_mode {
+ 	USB_MODE_UNDEFINED = 0,
+ 	USB_MODE_HOST,
 -- 
 1.7.4.1
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
