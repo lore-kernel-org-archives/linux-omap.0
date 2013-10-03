@@ -1,50 +1,80 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v7 09/10] usb: dwc3: omap: manage "usb_otg_ss_refclk960m"
- clock
-Date: Thu, 3 Oct 2013 17:54:14 +0300
-Message-ID: <524D8516.8000107@ti.com>
-References: <1379508542-22389-1-git-send-email-rogerq@ti.com> <1379508542-22389-10-git-send-email-rogerq@ti.com> <52403E02.4070208@ti.com> <20131002131113.GM1476@radagast> <524C22A1.30200@ti.com> <20131003122941.GD3230@radagast>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH v8 1/8] usb: phy: omap-control: Get rid of platform data
+Date: Thu, 3 Oct 2013 18:12:30 +0300
+Message-ID: <1380813157-22311-2-git-send-email-rogerq@ti.com>
+References: <1380813157-22311-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20131003122941.GD3230@radagast>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: balbi-l0cyMroinI0@public.gmane.org
-Cc: bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, george.cherian-l0cyMroinI0@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, thomas.langer-th3ZBGNqt+7QT0dZR+AlfA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1380813157-22311-1-git-send-email-rogerq@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: gregkh@linuxfoundation.org, balbi@ti.com
+Cc: devicetree@vger.kernel.org, george.cherian@ti.com, sergei.shtylyov@cogentembedded.com, tony@atomide.com, bigeasy@linutronix.de, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, kishon@ti.com, thomas.langer@lantiq.com, bcousson@baylibre.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 10/03/2013 03:29 PM, Felipe Balbi wrote:
-> Hi,
-> 
-> On Wed, Oct 02, 2013 at 04:41:53PM +0300, Roger Quadros wrote:
->> On 10/02/2013 04:11 PM, Felipe Balbi wrote:
->>> On Mon, Sep 23, 2013 at 04:11:30PM +0300, Roger Quadros wrote:
->>>> Hi Felipe,
->>>>
->>>> On 09/18/2013 03:49 PM, Roger Quadros wrote:
->>>>> "usb_otg_ss_refclk960m" is an optional functional clock to the
->>>>> UBS_OTG_SS module. So manage it in the driver.
->>>>>
->>>>
->>>> Just realized that "usb_otg_ss_refclk960m" is in fact functional clock to the 
->>>> PHY and not USB_OTG_SS module. The name is misleading.
->>>>
->>>> So please ignore patch 9 and 10.
->>>
->>> ignored. All others are fine, right ?
->>>
->> Yes. But I might have to rebase this on top of Phy framework stuff.
-> 
-> alright, Greg already took the PHY framework, so maybe we need to just
-> give him my Acked-by and he takes the patches directly as I don't have
-> PYH framework.
-> 
-OK. I'll resend this series to Greg in a while.
+omap-control device is present from OMAP4 onwards which
+support device tree boots only. So get rid of platform data.
 
-cheers,
--roger
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Roger Quadros <rogerq@ti.com>
+---
+ drivers/usb/phy/phy-omap-control.c   |   12 +++---------
+ include/linux/usb/omap_control_usb.h |    4 ----
+ 2 files changed, 3 insertions(+), 13 deletions(-)
+
+diff --git a/drivers/usb/phy/phy-omap-control.c b/drivers/usb/phy/phy-omap-control.c
+index a4dda8e..9772592 100644
+--- a/drivers/usb/phy/phy-omap-control.c
++++ b/drivers/usb/phy/phy-omap-control.c
+@@ -197,8 +197,6 @@ static int omap_control_usb_probe(struct platform_device *pdev)
+ {
+ 	struct resource	*res;
+ 	struct device_node *np = pdev->dev.of_node;
+-	struct omap_control_usb_platform_data *pdata =
+-			dev_get_platdata(&pdev->dev);
+ 
+ 	control_usb = devm_kzalloc(&pdev->dev, sizeof(*control_usb),
+ 		GFP_KERNEL);
+@@ -207,14 +205,10 @@ static int omap_control_usb_probe(struct platform_device *pdev)
+ 		return -ENOMEM;
+ 	}
+ 
+-	if (np) {
++	if (np)
+ 		of_property_read_u32(np, "ti,type", &control_usb->type);
+-	} else if (pdata) {
+-		control_usb->type = pdata->type;
+-	} else {
+-		dev_err(&pdev->dev, "no pdata present\n");
+-		return -EINVAL;
+-	}
++	else
++		return -EINVAL;	/* We only support DT boot */
+ 
+ 	control_usb->dev	= &pdev->dev;
+ 
+diff --git a/include/linux/usb/omap_control_usb.h b/include/linux/usb/omap_control_usb.h
+index 27b5b8c..e2416b4 100644
+--- a/include/linux/usb/omap_control_usb.h
++++ b/include/linux/usb/omap_control_usb.h
+@@ -31,10 +31,6 @@ struct omap_control_usb {
+ 	u32 type;
+ };
+ 
+-struct omap_control_usb_platform_data {
+-	u8 type;
+-};
+-
+ enum omap_control_usb_mode {
+ 	USB_MODE_UNDEFINED = 0,
+ 	USB_MODE_HOST,
+-- 
+1.7.4.1
