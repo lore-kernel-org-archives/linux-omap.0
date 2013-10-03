@@ -1,165 +1,218 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 3/6] pinctrl: single: Prepare for supporting SoC specific
- features
-Date: Wed, 02 Oct 2013 22:42:18 -0700
-Message-ID: <20131003054218.8941.19273.stgit@localhost>
+Subject: [PATCH 6/6] ARM: OMAP: Move DT wake-up event handling over to use
+ pinctrl-single-omap
+Date: Wed, 02 Oct 2013 22:42:29 -0700
+Message-ID: <20131003054229.8941.5056.stgit@localhost>
 References: <20131003054104.8941.88857.stgit@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:19074 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1757347Ab3JCFmc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Oct 2013 01:42:32 -0400
 In-Reply-To: <20131003054104.8941.88857.stgit@localhost>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Grygorii Strashko <grygorii.strashko@ti.com>, Linus Walleij <linus.walleij@linaro.org>, linux-kernel@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@ti.com>, Prakash Manjunathappa <prakash.pm@ti.com>, Haojian Zhuang <haojian.zhuang@linaro.org>, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: Grygorii Strashko <grygorii.strashko@ti.com>, Linus Walleij <linus.walleij@linaro.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Prakash Manjunathappa <prakash.pm@ti.com>, Haojian Zhuang <haojian.zhuang@linaro.org>, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 
-Let's replace is_pinconf with flags and add struct pcs_soc_data
-so we can support SoC specific features like pin wake-up events.
+Now pinctrl-single-omap can handle the wake-up events for us now
+as long as the events are configured in the .dts files.
 
 Done in collaboration with Roger Quadros <rogerq@ti.com>.
 
 Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
 Cc: Grygorii Strashko <grygorii.strashko@ti.com>
 Cc: Prakash Manjunathappa <prakash.pm@ti.com>
+Cc: Roger Quadros <rogerq@ti.com>
 Cc: Haojian Zhuang <haojian.zhuang@linaro.org>
 Cc: Linus Walleij <linus.walleij@linaro.org>
-Cc: linux-kernel@vger.kernel.org
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/pinctrl/pinctrl-single.c |   38 +++++++++++++++++++++++++++++---------
- 1 file changed, 29 insertions(+), 9 deletions(-)
+ arch/arm/boot/dts/omap3.dtsi       |    4 ++++
+ arch/arm/boot/dts/omap4.dtsi       |    4 ++++
+ arch/arm/mach-omap2/mux.c          |    8 ++++++--
+ arch/arm/mach-omap2/pdata-quirks.c |   18 ++++++++++++++++++
+ arch/arm/mach-omap2/prm3xxx.h      |    8 +++++++-
+ arch/arm/mach-omap2/prm44xx_54xx.h |    8 +++++++-
+ arch/arm/mach-omap2/prm_common.c   |   11 +++++++++++
+ 7 files changed, 57 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/pinctrl/pinctrl-single.c b/drivers/pinctrl/pinctrl-single.c
-index a82ace4..f88d3d1 100644
---- a/drivers/pinctrl/pinctrl-single.c
-+++ b/drivers/pinctrl/pinctrl-single.c
-@@ -150,19 +150,27 @@ struct pcs_name {
- };
- 
- /**
-+ * struct pcs_soc_data - SoC specific settings
-+ * @flags:	initial SoC specific PCS_FEAT_xxx values
-+ */
-+struct pcs_soc_data {
-+	unsigned flags;
-+};
-+
-+/**
-  * struct pcs_device - pinctrl device instance
-  * @res:	resources
-  * @base:	virtual address of the controller
-  * @size:	size of the ioremapped area
-  * @dev:	device entry
-  * @pctl:	pin controller device
-+ * @flags:	mask of PCS_FEAT_xxx values
-  * @mutex:	mutex protecting the lists
-  * @width:	bits per mux register
-  * @fmask:	function register mask
-  * @fshift:	function register shift
-  * @foff:	value to turn mux off
-  * @fmax:	max number of functions in fmask
-- * @is_pinconf:	whether supports pinconf
-  * @bits_per_pin:number of bits per pin
-  * @names:	array of register names for pins
-  * @pins:	physical pins on the SoC
-@@ -183,6 +191,8 @@ struct pcs_device {
- 	unsigned size;
- 	struct device *dev;
- 	struct pinctrl_dev *pctl;
-+	unsigned flags;
-+#define PCS_FEAT_PINCONF	(1 << 0)
- 	struct mutex mutex;
- 	unsigned width;
- 	unsigned fmask;
-@@ -190,7 +200,6 @@ struct pcs_device {
- 	unsigned foff;
- 	unsigned fmax;
- 	bool bits_per_mux;
--	bool is_pinconf;
- 	unsigned bits_per_pin;
- 	struct pcs_name *names;
- 	struct pcs_data pins;
-@@ -206,6 +215,8 @@ struct pcs_device {
- 	void (*write)(unsigned val, void __iomem *reg);
- };
- 
-+#define PCS_HAS_PINCONF		(pcs->flags & PCS_FEAT_PINCONF)
-+
- static int pcs_pinconf_get(struct pinctrl_dev *pctldev, unsigned pin,
- 			   unsigned long *config);
- static int pcs_pinconf_set(struct pinctrl_dev *pctldev, unsigned pin,
-@@ -1060,7 +1071,7 @@ static int pcs_parse_pinconf(struct pcs_device *pcs, struct device_node *np,
- 	};
- 
- 	/* If pinconf isn't supported, don't parse properties in below. */
--	if (!pcs->is_pinconf)
-+	if (!PCS_HAS_PINCONF)
- 		return 0;
- 
- 	/* cacluate how much properties are supported in current node */
-@@ -1184,7 +1195,7 @@ static int pcs_parse_one_pinctrl_entry(struct pcs_device *pcs,
- 	(*map)->data.mux.group = np->name;
- 	(*map)->data.mux.function = np->name;
- 
--	if (pcs->is_pinconf) {
-+	if (PCS_HAS_PINCONF) {
- 		res = pcs_parse_pinconf(pcs, np, function, map);
- 		if (res)
- 			goto free_pingroups;
-@@ -1305,7 +1316,7 @@ static int pcs_parse_bits_in_pinctrl_entry(struct pcs_device *pcs,
- 	(*map)->data.mux.group = np->name;
- 	(*map)->data.mux.function = np->name;
- 
--	if (pcs->is_pinconf) {
-+	if (PCS_HAS_PINCONF) {
- 		dev_err(pcs->dev, "pinconf not supported\n");
- 		goto free_pingroups;
+diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
+index b41bd57..6e928e8 100644
+--- a/arch/arm/boot/dts/omap3.dtsi
++++ b/arch/arm/boot/dts/omap3.dtsi
+@@ -107,6 +107,8 @@
+ 			reg = <0x48002030 0x05cc>;
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
++			#interrupt-cells = <1>;
++			interrupt-controller;
+ 			pinctrl-single,register-width = <16>;
+ 			pinctrl-single,function-mask = <0xff1f>;
+ 		};
+@@ -116,6 +118,8 @@
+ 			reg = <0x48002a00 0x5c>;
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
++			#interrupt-cells = <1>;
++			interrupt-controller;
+ 			pinctrl-single,register-width = <16>;
+ 			pinctrl-single,function-mask = <0xff1f>;
+ 		};
+diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+index 22d9f2b..0415d5e 100644
+--- a/arch/arm/boot/dts/omap4.dtsi
++++ b/arch/arm/boot/dts/omap4.dtsi
+@@ -114,6 +114,8 @@
+ 			reg = <0x4a100040 0x0196>;
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
++			#interrupt-cells = <1>;
++			interrupt-controller;
+ 			pinctrl-single,register-width = <16>;
+ 			pinctrl-single,function-mask = <0x7fff>;
+ 		};
+@@ -122,6 +124,8 @@
+ 			reg = <0x4a31e040 0x0038>;
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
++			#interrupt-cells = <1>;
++			interrupt-controller;
+ 			pinctrl-single,register-width = <16>;
+ 			pinctrl-single,function-mask = <0x7fff>;
+ 		};
+diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
+index f82cf87..48094b58 100644
+--- a/arch/arm/mach-omap2/mux.c
++++ b/arch/arm/mach-omap2/mux.c
+@@ -811,6 +811,12 @@ int __init omap_mux_late_init(void)
+ 		}
  	}
-@@ -1525,6 +1536,7 @@ static int pcs_probe(struct platform_device *pdev)
- 	const struct of_device_id *match;
- 	struct resource *res;
- 	struct pcs_device *pcs;
-+	const struct pcs_soc_data *soc;
- 	int ret;
  
- 	match = of_match_device(pcs_of_match, &pdev->dev);
-@@ -1541,7 +1553,8 @@ static int pcs_probe(struct platform_device *pdev)
- 	INIT_LIST_HEAD(&pcs->pingroups);
- 	INIT_LIST_HEAD(&pcs->functions);
- 	INIT_LIST_HEAD(&pcs->gpiofuncs);
--	pcs->is_pinconf = match->data;
-+	soc = match->data;
-+	pcs->flags = soc->flags;
++	omap_mux_dbg_init();
++
++	/* see pinctrl-single-omap for the wake-up interrupt handling */
++	if (of_have_populated_dt())
++		return 0;
++
+ 	ret = request_irq(omap_prcm_event_to_irq("io"),
+ 		omap_hwmod_mux_handle_irq, IRQF_SHARED | IRQF_NO_SUSPEND,
+ 			"hwmod_io", omap_mux_late_init);
+@@ -818,8 +824,6 @@ int __init omap_mux_late_init(void)
+ 	if (ret)
+ 		pr_warning("mux: Failed to setup hwmod io irq %d\n", ret);
  
- 	PCS_GET_PROP_U32("pinctrl-single,register-width", &pcs->width,
- 			 "register width not specified\n");
-@@ -1610,7 +1623,7 @@ static int pcs_probe(struct platform_device *pdev)
- 	pcs->desc.name = DRIVER_NAME;
- 	pcs->desc.pctlops = &pcs_pinctrl_ops;
- 	pcs->desc.pmxops = &pcs_pinmux_ops;
--	if (pcs->is_pinconf)
-+	if (PCS_HAS_PINCONF)
- 		pcs->desc.confops = &pcs_pinconf_ops;
- 	pcs->desc.owner = THIS_MODULE;
- 
-@@ -1652,9 +1665,16 @@ static int pcs_remove(struct platform_device *pdev)
+-	omap_mux_dbg_init();
+-
  	return 0;
  }
  
-+static const struct pcs_soc_data pinctrl_single = {
-+};
+diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
+index c739631..1f047f4 100644
+--- a/arch/arm/mach-omap2/pdata-quirks.c
++++ b/arch/arm/mach-omap2/pdata-quirks.c
+@@ -14,6 +14,8 @@
+ #include <linux/of_platform.h>
+ #include <linux/wl12xx.h>
+ 
++#include <linux/platform_data/pinctrl-single.h>
 +
-+static const struct pcs_soc_data pinconf_single = {
-+	.flags = PCS_FEAT_PINCONF,
-+};
+ #include "common.h"
+ #include "common-board-devices.h"
+ #include "dss-common.h"
+@@ -100,7 +102,23 @@ static void __init omap5_uevm_legacy_init(void)
+ }
+ #endif
+ 
++static struct pcs_pdata pcs_pdata;
 +
- static struct of_device_id pcs_of_match[] = {
--	{ .compatible = "pinctrl-single", .data = (void *)false },
--	{ .compatible = "pinconf-single", .data = (void *)true },
-+	{ .compatible = "pinctrl-single", .data = &pinctrl_single },
-+	{ .compatible = "pinconf-single", .data = &pinconf_single },
- 	{ },
++void omap_pcs_legacy_init(int irq, void (*rearm)(void))
++{
++	pcs_pdata.irq = irq;
++	pcs_pdata.rearm = rearm;
++}
++
+ struct of_dev_auxdata omap_auxdata_lookup[] __initdata = {
++#ifdef CONFIG_ARCH_OMAP3
++	OF_DEV_AUXDATA("ti,omap3-padconf", 0x48002030, "48002030.pinmux", &pcs_pdata),
++	OF_DEV_AUXDATA("ti,omap3-padconf", 0x48002a00, "48002a00.pinmux", &pcs_pdata),
++#endif
++#ifdef CONFIG_ARCH_OMAP4
++	OF_DEV_AUXDATA("ti,omap4-padconf", 0x4a100040, "4a100040.pinmux", &pcs_pdata),
++	OF_DEV_AUXDATA("ti,omap4-padconf", 0x4a31e040, "4a31e040.pinmux", &pcs_pdata),
++#endif
+ 	{ /* sentinel */ },
  };
- MODULE_DEVICE_TABLE(of, pcs_of_match);
+ 
+diff --git a/arch/arm/mach-omap2/prm3xxx.h b/arch/arm/mach-omap2/prm3xxx.h
+index 277f717..f8eb833 100644
+--- a/arch/arm/mach-omap2/prm3xxx.h
++++ b/arch/arm/mach-omap2/prm3xxx.h
+@@ -144,7 +144,13 @@ extern u32 omap3_prm_vcvp_read(u8 offset);
+ extern void omap3_prm_vcvp_write(u32 val, u8 offset);
+ extern u32 omap3_prm_vcvp_rmw(u32 mask, u32 bits, u8 offset);
+ 
+-extern void omap3xxx_prm_reconfigure_io_chain(void);
++#ifdef CONFIG_ARCH_OMAP3
++void omap3xxx_prm_reconfigure_io_chain(void);
++#else
++static inline void omap3xxx_prm_reconfigure_io_chain(void)
++{
++}
++#endif
+ 
+ /* PRM interrupt-related functions */
+ extern void omap3xxx_prm_read_pending_irqs(unsigned long *events);
+diff --git a/arch/arm/mach-omap2/prm44xx_54xx.h b/arch/arm/mach-omap2/prm44xx_54xx.h
+index 7cd22ab..a085d9c 100644
+--- a/arch/arm/mach-omap2/prm44xx_54xx.h
++++ b/arch/arm/mach-omap2/prm44xx_54xx.h
+@@ -42,7 +42,13 @@ extern u32 omap4_prm_vcvp_read(u8 offset);
+ extern void omap4_prm_vcvp_write(u32 val, u8 offset);
+ extern u32 omap4_prm_vcvp_rmw(u32 mask, u32 bits, u8 offset);
+ 
+-extern void omap44xx_prm_reconfigure_io_chain(void);
++#if defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_SOC_OMAP5)
++void omap44xx_prm_reconfigure_io_chain(void);
++#else
++static inline void omap44xx_prm_reconfigure_io_chain(void)
++{
++}
++#endif
+ 
+ /* PRM interrupt-related functions */
+ extern void omap44xx_prm_read_pending_irqs(unsigned long *events);
+diff --git a/arch/arm/mach-omap2/prm_common.c b/arch/arm/mach-omap2/prm_common.c
+index 228b850..a2e1174 100644
+--- a/arch/arm/mach-omap2/prm_common.c
++++ b/arch/arm/mach-omap2/prm_common.c
+@@ -24,6 +24,7 @@
+ #include <linux/interrupt.h>
+ #include <linux/slab.h>
+ 
++#include "soc.h"
+ #include "prm2xxx_3xxx.h"
+ #include "prm2xxx.h"
+ #include "prm3xxx.h"
+@@ -322,6 +323,16 @@ int omap_prcm_register_chain_handler(struct omap_prcm_irq_setup *irq_setup)
+ 		prcm_irq_chips[i] = gc;
+ 	}
+ 
++	if (of_have_populated_dt()) {
++		int irq = omap_prcm_event_to_irq("io");
++		if (cpu_is_omap34xx())
++			omap_pcs_legacy_init(irq,
++				omap3xxx_prm_reconfigure_io_chain);
++		else
++			omap_pcs_legacy_init(irq,
++				omap44xx_prm_reconfigure_io_chain);
++	}
++
+ 	return 0;
+ 
+ err:
+
