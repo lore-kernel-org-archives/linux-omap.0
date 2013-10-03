@@ -1,29 +1,45 @@
-From: Aijaz Lending <yin01@aijaz527.onmicrosoft.com>
-Subject: looking for loan
-Date: Fri, 4 Oct 2013 01:33:30 +0530
-Message-ID: <41e3a874-225e-4fe4-904b-95e064df876a__32355.7519157932$1380830664$gmane$org@HKXPR02MB213.apcprd02.prod.outlook.com>
-Reply-To: <sg.loan.sg@outlook.com>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: [PATCH V5 0/6] ARM: OMAP3+: support cpufreq-cpu0 for device tree boot
+Date: Thu, 03 Oct 2013 13:13:15 -0700
+Message-ID: <87d2nmun8k.fsf@linaro.org>
+References: <1368039976-29648-1-git-send-email-nm@ti.com>
+	<87pprmuwxg.fsf@linaro.org> <524DA41C.7000809@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from emea01-db3-ndr.ptr.protection.outlook.com ([157.56.120.100]:50229
-	"EHLO emea01-db3-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1755215Ab3JCUEL convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Oct 2013 16:04:11 -0400
-Content-Description: Mail message body
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <524DA41C.7000809@ti.com> (Nishanth Menon's message of "Thu, 3
+	Oct 2013 12:06:36 -0500")
+Sender: linux-doc-owner@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: Benoit Cousson <bcousson@baylibre.com>, Mike Turquette <mturquette@linaro.org>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-doc@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Recipients <yin01@aijaz527.onmicrosoft.com>
 
-Do you have a firm or company that need loan to start up a business or need,personal loan, Debt consolidation? For more information,Contact us now for a guarantee loan with low interest rate. We will provide you with loan to meet your needs. For more information contact us with the following information's.
-Full name:
-country:
-Address:
-Phone Number:
-Amount needed:
-Duration of loan:
+Nishanth Menon <nm@ti.com> writes:
 
-sg.loan.sg@outlook.com
-Kind regards
+> fixing Benoit's mail ID.
+> On 10/03/2013 11:43 AM, Kevin Hilman wrote:
+>> Hi Nishanth,
+>> 
+>> Nishanth Menon <nm@ti.com> writes:
+>> 
+>>> The following version 5 of the series arose from trying to use
+>>> BeagleBoard-XM (OMAP3 variant) for doing CPU DVFS using cpufreq-cpu0.
+>>> This series enables the generic cpufreq-cpu0 driver to be used in
+>>> device tree enabled boot while maintaining support of the legacy
+>>> omap-cpufreq driver when used in non device tree enabled boot.
+>> 
+>> What's the status of this series?  Is it still waiting on the clock DT
+>> changes?
+>
+> yes - i do have a new series lined up at the moment here[1] - trying
+> to ensure everything is dandy before public post. ofcourse, we'd like
+> to ensure we have feedback on tero's series[2]. I am now working on
+> ensuring ABB regulator[3](again depends on Tero's series) fits on top
+> of Mike's voltage notifier series[4]
+>
+> So, yep, everything is blocked due to lack of feedback on Tero's
+> series [2].
+
+OK, thanks for the update. 
+
+Kevin
