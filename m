@@ -1,127 +1,104 @@
-From: Benoit Cousson <bcousson@baylibre.com>
-Subject: Re: [RFC 00/15] Device Tree schemas and validation
-Date: Thu, 03 Oct 2013 08:52:13 +0200
-Message-ID: <524D141D.3020807@baylibre.com>
-References: <1380041541-17529-1-git-send-email-bcousson@baylibre.com> <524A8289.3050107@baylibre.com> <524ACB76.1010001@gmail.com> <524AE4FB.4080906@baylibre.com> <CAL_JsqJ31TGFJCSeSOqgee=OLVfSUTAYdF4nSn7X2DiCequVAw@mail.gmail.com> <20131002135450.GH6506@voom.fritz.box>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v8 0/8] phy: omap-usb: Support multiple instances and new types
+Date: Thu, 3 Oct 2013 12:58:58 +0300
+Message-ID: <1380794346-30185-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:36091 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751191Ab3JCGwS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Oct 2013 02:52:18 -0400
-Received: by mail-wg0-f44.google.com with SMTP id b13so1929172wgh.11
-        for <linux-omap@vger.kernel.org>; Wed, 02 Oct 2013 23:52:17 -0700 (PDT)
-In-Reply-To: <20131002135450.GH6506@voom.fritz.box>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: balbi-l0cyMroinI0@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org
+Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, george.cherian-l0cyMroinI0@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, thomas.langer-th3ZBGNqt+7QT0dZR+AlfA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: David Gibson <david@gibson.dropbear.id.au>
-Cc: Rob Herring <robherring2@gmail.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Pawel Moll <pawel.moll@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Olof Johansson <olof@lixom.net>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Tomasz Figa <tomasz.figa@gmail.com>, Grant Likely <grant.likely@secretlab.ca>, Kevin Hilman <khilman@linaro.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, fparent@baylibre.com
 
-On 02/10/2013 15:54, David Gibson wrote:
-> On Tue, Oct 01, 2013 at 03:54:20PM -0500, Rob Herring wrote:
->> On Tue, Oct 1, 2013 at 10:06 AM, Benoit Cousson <bcousson@baylibre.com> wrote:
->>> Hi Rob,
->>>
->>>
->>> On 01/10/2013 15:17, Rob Herring wrote:
->>>>
->>>> On 10/01/2013 03:06 AM, Benoit Cousson wrote:
->>>>>
->>>>> + more DT maintainers folks
->>>>>
->>>>> Hi all,
->>>>>
->>>>> I know this is mostly boring user space code, but I was expecting a
->>>>> little bit of comments about at least the bindings syntax:-(
->>>>>
->>>>> I'd like to know if this is the right direction and if it worth pursuing
->>>>> in that direction.
->>>>>
->>>>> The idea was to have at least some base for further discussion during
->>>>> ARM KS 2013.
->>>>>
->>>>> I feel alone :-(
->>>>>
->>>>> If you have any comment, go ahead!
->>>>
->>>>
->>>> Thanks for taking this on!
->>>>
->>>> This is interesting approach using the dts syntax,
->>>
->>>
->>> Well, this was discussed a little bit on the list, and it has the big
->>> advantage of re-using the parser already included in DTC for free.
->>> In term or readability, it avoids to re-defining a brand new syntax for
->>> people who are already familiar with the DTS one.
->>>
->>>
->>>> but I worry that the
->>>> validation will only be as good as the schema written and the review of
->>>> the schema.
->>>
->>>
->>> Well, sure, but unfortunately, that will always be the case :-(
->>> The bindings definition being quite open, there is no easy way to ensure
->>> proper schema / bindings without careful review of the schema. There is no
->>> such thing as a free beer... Unfortunately :-)
->>>
->>>
->>>> I think the schema needs to define the binding rather than
->>>> define the checks. Then the schema can feed the validation checks.
->>>
->>>
->>>> This format does not seem to me as easily being able to generate
->>>> documentation from the schema which I believe is one of the goals.
->>>
->>>
->>> Indeed, but I think is it easy to generate any kind of readable format for
->>> the documentation purpose if needed from the actual format.
->>> Otherwise, we should consider a schema format based on kerneldoc type of
->>> syntax to improve readability. I'm just afraid it will become harder then to
->>> define complex schema.
->>>
->>> BTW, what kind of documentation are you expecting here? Is is a text that
->>> can be added on top of each schema?
->>
->> I would expect the schema to replace
->> Documentation/devicetree/bindings/* over time. I think the thing that
->> needs to be worked out here is how to add free form multi-line text.
->
-> I'm not convinced that's a realistic goal.  As I see it, the
-> fundamental difference between a binding document and a formal schema
-> is that a binding defines both the syntax required of a node, and its
-> semantics, whereas a schema defines only syntax - the semantics still
-> need to be defined somewhere.
->
+Hi,
 
-Mmm, I do not really understand what is missing in the following schema 
-in term of semantic compared to the original interrupt-controller bindings?
+This patchset does the following:
 
-     interrupt-controller {
-         description = "Identifies the node as an interrupt controller";
-         is-required;
-         type = "bool";
-     };
+* Get rid of omap_control_usb platform data as we support DT only.
 
-     #interrupt-cells {
-         description = "Specifies the number of cells needed to encode an
-                        interrupt source. The type shall be a <u32>
-                        and the value shall be 1.
-                        The cell contains the interrupt number
-                        in the range [0-128].";
-         is-required;
-         type = "integer";
-         value = <1>;
-     };
+* Restructure and add support for new PHY types. We now support the following
+four types
 
-As soon as you have a description you can keep the content of the 
-original binding. But on top of that, you do have the schema validation 
-information.
+ TYPE_OTGHS - if it has otghs_control mailbox register (e.g. on OMAP4)
+ TYPE_USB2 - if it has Power down bit in control_dev_conf register. e.g. USB2 PHY
+ TYPE_PIPE3 - if it has DPLL and individual Rx & Tx power control. e.g. USB3 PHY or SATA PHY
+ TYPE_DRA7USB2 - if it has both power down and power aux registers. e.g. USB2 PHY on DRA7
 
-I'm not sure to understand your point. Could you elaborate?
+* Get rid of "ti,type" DT property and introduce compatible strings for each type.
 
-Regards,
-Benoit
+* Have only one power control API "omap_control_usb_phy_power()" instead of a
+different one for each PHY type.
+
+* Get rid of omap_get_control_dev() so that we can support multiple instances
+of the control device. We take advantage of the fact that omap control USB device
+is only present on OMAP4 onwards and hence only supports DT boot. The users
+of control USB device can get a reference to it from the device node's phandle.
+
+Patches are based on greg/usb-next.
+
+Smoke tested on OMAP4 panda with MUSB in gadget mode (g_zero).
+
+You can find the patches in branch
+ usb-control-module
+in git tree
+ git://github.com/rogerq/linux.git
+
+v8:
+- Rebased on top of greg/usb-next to avoid conflicts
+- Removed patches 9 and 10 as they are not applicable
+
+v7:
+- Rebased on v3.12-rc1
+- Updated DT compatibility ID for better readability
+- Renamed TYPE_OMAP4 to TYPE_OTGHS, TYPE_USB3 to TYPE_PIPE3 and TYPE_DRA7 to
+  TYPE_DRA7USB2
+
+v6:
+- addressed review comment about usage of control_usb before allocation.
+
+v5:
+- fixed whitespace alignment issues.
+
+v4:
+- removed "ti,has-mailbox" from omap-usb binding document example.
+
+v3:
+- return -EINVAL instead of -ENODEV on probe failure.
+- pass device type data through of_device_id table.
+- get rid of "ti,mailbox" property and "has_mailbox" from musb platform data.
+
+v2:
+- get rid of "ti,type" property and introduce compatible strings for each device type.
+
+cheers,
+-roger
+
+Roger Quadros (8):
+  usb: phy: omap-control: Get rid of platform data
+  usb: phy: omap: Add new device types and remove
+    omap_control_usb3_phy_power()
+  usb: phy: omap-usb2: Don't use omap_get_control_dev()
+  usb: phy: omap-usb3: Don't use omap_get_control_dev()
+  usb: musb: omap2430: Don't use omap_get_control_dev()
+  ARM: dts: omap4: update omap-control-usb nodes
+  usb: phy: omap: get rid of omap_get_control_dev()
+  ARM: dts: omap5: update omap-control-usb node
+
+ Documentation/devicetree/bindings/usb/omap-usb.txt |   34 ++--
+ arch/arm/boot/dts/omap4.dtsi                       |   20 ++-
+ arch/arm/boot/dts/omap5.dtsi                       |   20 ++-
+ drivers/phy/phy-omap-usb2.c                        |   31 +++-
+ drivers/usb/musb/omap2430.c                        |   25 ++-
+ drivers/usb/phy/phy-omap-control.c                 |  208 ++++++++++---------
+ drivers/usb/phy/phy-omap-usb3.c                    |   32 +++-
+ include/linux/usb/musb.h                           |    2 -
+ include/linux/usb/omap_control_usb.h               |   33 ++--
+ 9 files changed, 220 insertions(+), 185 deletions(-)
+
+-- 
+1.7.4.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
