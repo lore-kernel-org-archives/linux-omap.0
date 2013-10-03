@@ -1,64 +1,62 @@
 From: Taras Kondratiuk <taras.kondratiuk@linaro.org>
-Subject: Re: [RFC PATCH] ARM: Flush L2 cache on soft_restart
-Date: Fri, 4 Oct 2013 01:32:14 +0300
-Message-ID: <CAArO44tgdqusadwRvKEh+wC9vvoYWcmUxHjBoi9+qTAT2-Ga7Q@mail.gmail.com>
-References: <1380713656-24752-1-git-send-email-taras.kondratiuk@linaro.org>
-	<20131002124902.GB29213@mudshark.cambridge.arm.com>
-	<CAArO44ufGbRxX8oWR8AFh5_iw0F4CodVp8M07e3FJ09EixpUOA@mail.gmail.com>
-	<20131002173131.GC30298@mudshark.cambridge.arm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Subject: [PATCH v2] mfd: twl6030: Fix endianness problem in IRQ handler
+Date: Fri,  4 Oct 2013 02:00:34 +0300
+Message-ID: <1380841234-19475-1-git-send-email-taras.kondratiuk@linaro.org>
+References: <1380712124-20666-1-git-send-email-taras.kondratiuk@linaro.org>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:38893 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755643Ab3JCWcQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Oct 2013 18:32:16 -0400
-Received: by mail-bk0-f46.google.com with SMTP id 6so1205478bkj.33
-        for <linux-omap@vger.kernel.org>; Thu, 03 Oct 2013 15:32:14 -0700 (PDT)
-In-Reply-To: <20131002173131.GC30298@mudshark.cambridge.arm.com>
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:59131 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751628Ab3JCXBH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Oct 2013 19:01:07 -0400
+Received: by mail-lb0-f174.google.com with SMTP id w6so2626805lbh.33
+        for <linux-omap@vger.kernel.org>; Thu, 03 Oct 2013 16:01:06 -0700 (PDT)
+In-Reply-To: <1380712124-20666-1-git-send-email-taras.kondratiuk@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>, Russell King <linux@arm.linux.org.uk>
-Cc: Vijay Kilari <vijay.kilari@gmail.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, Linaro Kernel <linaro-kernel@lists.linaro.org>
+To: Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-networking@linaro.org, Kim Phillips <kim.phillips@linaro.org>, Danke Xie <d.xie@sta.samsung.com>, Taras Kondratiuk <taras.kondratiuk@linaro.org>
 
-On 2 October 2013 20:31, Will Deacon <will.deacon@arm.com> wrote:
-> On Wed, Oct 02, 2013 at 06:19:30PM +0100, Taras Kondratiuk wrote:
->> On 2 October 2013 15:49, Will Deacon <will.deacon@arm.com> wrote:
->> > On Wed, Oct 02, 2013 at 12:34:16PM +0100, Taras Kondratiuk wrote:
->> >> diff --git a/arch/arm/kernel/process.c b/arch/arm/kernel/process.c
->> >> index 94f6b05..e359b62 100644
->> >> --- a/arch/arm/kernel/process.c
->> >> +++ b/arch/arm/kernel/process.c
->> >> @@ -103,9 +103,11 @@ void soft_restart(unsigned long addr)
->> >>       local_irq_disable();
->> >>       local_fiq_disable();
->> >>
->> >> -     /* Disable the L2 if we're the last man standing. */
->> >> -     if (num_online_cpus() == 1)
->> >> +     /* Flush and disable the L2 if we're the last man standing. */
->> >> +     if (num_online_cpus() == 1) {
->> >> +             outer_flush_all();
->> >>               outer_disable();
->> >
->> > l2x0_disable already contains a flush, so this doesn't change anything.
->>
->> Unfortunately not everybody uses l2x0_disable().
->> SoC's that use SMC calls for L2 cache maintenance have its own implementation
->> of outer_cache.disable which usually doesn't flush cache implicitly.
->
-> In which case, we should probably fix the disabling code to make a flush
-> then update callers not to bother with redundant flushing. The flushing
-> during the disable code is likely required anyway if there's any
-> synchronisation going on.
+From: Danke Xie <d.xie@sta.samsung.com>
 
-It makes sense, but a history of the current code looks a bit confusing.
-Implicit flush was added in l2x0_disable() as a "side effect" of
-commit 38a8914f9ac2379293944f613e6ca24b61373de8
-"ARM: 6987/1: l2x0: fix disabling function to avoid deadlock",
-while initially disable was just a disable.
+The current TWL 6030 IRQ handler assumes little endianness.
+This change makes it endian-neutral.
 
-Maybe it worth to explicitly document that .disable callback must flush cache?
+Signed-off-by: Danke Xie <d.xie@sta.samsung.com>
+Signed-off-by: Taras Kondratiuk <taras.kondratiuk@linaro.org>
+---
+v2: fixed sparse warning
+v1: https://patchwork.kernel.org/patch/2974331/
 
+drivers/mfd/twl6030-irq.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/mfd/twl6030-irq.c b/drivers/mfd/twl6030-irq.c
+index 517eda8..18a607e 100644
+--- a/drivers/mfd/twl6030-irq.c
++++ b/drivers/mfd/twl6030-irq.c
+@@ -176,8 +176,9 @@ static irqreturn_t twl6030_irq_thread(int irq, void *data)
+ 	int i, ret;
+ 	union {
+ 		u8 bytes[4];
+-		u32 int_sts;
++		__le32 int_sts;
+ 	} sts;
++	u32 int_sts; /* sts.int_sts converted to CPU endianness */
+ 	struct twl6030_irq *pdata = data;
+ 
+ 	/* read INT_STS_A, B and C in one shot using a burst read */
+@@ -196,8 +197,9 @@ static irqreturn_t twl6030_irq_thread(int irq, void *data)
+ 	if (sts.bytes[2] & 0x10)
+ 		sts.bytes[2] |= 0x08;
+ 
+-	for (i = 0; sts.int_sts; sts.int_sts >>= 1, i++)
+-		if (sts.int_sts & 0x1) {
++	int_sts = le32_to_cpu(sts.int_sts);
++	for (i = 0; int_sts; int_sts >>= 1, i++)
++		if (int_sts & 0x1) {
+ 			int module_irq =
+ 				irq_find_mapping(pdata->irq_domain,
+ 						 pdata->irq_mapping_tbl[i]);
 -- 
-Regards,
-Taras Kondratiuk
+1.7.9.5
+
