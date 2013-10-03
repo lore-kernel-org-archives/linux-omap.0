@@ -1,67 +1,55 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv3 0/2] ARM: dts: Add initial support for IGEP AQUILA
-Date: Thu, 3 Oct 2013 11:17:59 -0700
-Message-ID: <20131003181758.GS8949@atomide.com>
-References: <1378824949-18792-1-git-send-email-eballetbo@gmail.com>
- <CAAwP0s2NOswrZPdeM7GG2J3e+2JeQSKUpX3cki+CbF9G4KyTpA@mail.gmail.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 1/2] hwspinlock/omap: add support for dt nodes
+Date: Thu, 3 Oct 2013 11:19:09 -0700
+Message-ID: <20131003181909.GT8949@atomide.com>
+References: <1378230767-54931-1-git-send-email-s-anna@ti.com>
+ <20131003180546.GP8949@atomide.com>
+ <524DB48B.7020906@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:57984 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754359Ab3JCSSB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Oct 2013 14:18:01 -0400
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <CAAwP0s2NOswrZPdeM7GG2J3e+2JeQSKUpX3cki+CbF9G4KyTpA@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <524DB48B.7020906-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+Cc: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Javier Martinez Canillas <martinez.javier@gmail.com>
-Cc: Enric Balletbo i Serra <eballetbo@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Benoit Cousson <bcousson@baylibre.com>, Enric Balletbo i Serra <eballetbo@iseebcn.com>
 
-* Javier Martinez Canillas <martinez.javier@gmail.com> [130925 06:18]:
-> On Tue, Sep 10, 2013 at 4:55 PM, Enric Balletbo i Serra
-> <eballetbo@gmail.com> wrote:
-> > From: Enric Balletbo i Serra <eballetbo@iseebcn.com>
-> >
-> > Hi all,
-> >
-> > These two patches introduces initial support for the IGEP AM335x-based
-> > platforms. The first patch add support for IGEP COM AQUILA products, and the
-> > second patch add support for the development board.
-> >
-> > These patches apply on top of bcousson/for_3.12/dts repository.
-> >
-> > Changes since v2:
-> >   * Make it compatible with "isee,am335x-base0033", "isee,am335x-igep0033",
-> >     "ti,am33xx" since these boards are manufactured by ISEE not TI. (Javier)
-> > Changes since v1:
-> >   * Use &node to reference the nodes already defined in dtsi files. (Javier)
-> >
-> > Best regards,
-> >
-> > Enric Balletbo i Serra (2):
-> >   ARM: dts: AM33XX: Add support for IGEP COM AQUILA
-> >   ARM: dts: AM33XX: Add support for IGEP AQUILA EXPANSION board.
-> >
-> >  arch/arm/boot/dts/Makefile             |   1 +
-> >  arch/arm/boot/dts/am335x-base0033.dts  |  16 ++
-> >  arch/arm/boot/dts/am335x-igep0033.dtsi | 265 +++++++++++++++++++++++++++++++++
-> >  3 files changed, 282 insertions(+)
-> >  create mode 100644 arch/arm/boot/dts/am335x-base0033.dts
-> >  create mode 100644 arch/arm/boot/dts/am335x-igep0033.dtsi
-> >
-> > --
-> > 1.8.1.2
-> >
+* Suman Anna <s-anna-l0cyMroinI0@public.gmane.org> [131003 11:25]:
+> Tony,
 > 
-> Hi Benoit and Tony,
+> On 10/03/2013 01:05 PM, Tony Lindgren wrote:
+> > * Suman Anna <s-anna-l0cyMroinI0@public.gmane.org> [130903 11:00]:
+> >> HwSpinlock IP is present only on OMAP4 and other newer SoCs,
+> >> which are all device-tree boot only. This patch adds the
+> >> base support for parsing the DT nodes, and removes the code
+> >> dealing with the traditional platform device instantiation.
+> > 
+> > Great, this should be safe for Ohad to queue:
+> > 
+> > Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+> > 
 > 
-> Any comments on this series? I had already reviewed previous versions
-> of the DT and it looks good to me now.
-> 
-> It would be great if this can make it for 3.13.
+> There is a v2 of this series [1] that adds additional SoC support as
+> well. It currently has some comments [2] & [3] from Mark Rutland on the
+> DT bindings. I am looking into that at the moment and it may change this
+> patch as well (the DT parse portion of it in
+> drivers/hwspinlock/omap_hwspinlock).
 
-Looks good to me, I would assume Benoit will be looking at this
-shortly.
+OK, yeah I noticed there's some pending comments. Feel free to keep my
+ack for the arch/arm/mach-omap2 removal parts, those won't likely
+change.
+
+Regards,
 
 Tony
+ 
+> [1] http://marc.info/?l=linux-omap&m=137944644112727&w=2
+> [2] http://marc.info/?t=137944636400005&r=1&w=2
+> [3] http://marc.info/?t=137944636400004&r=1&w=2
+> 
+> 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
