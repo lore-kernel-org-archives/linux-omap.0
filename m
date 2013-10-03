@@ -1,146 +1,138 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [PATCH V5 0/6] ARM: OMAP3+: support cpufreq-cpu0 for device tree boot
-Date: Thu, 03 Oct 2013 09:43:55 -0700
-Message-ID: <87pprmuwxg.fsf@linaro.org>
-References: <1368039976-29648-1-git-send-email-nm@ti.com>
+From: Suman Anna <s-anna@ti.com>
+Subject: [PATCH] ARM: OMAP2+: hwmod: check for module address space during init
+Date: Thu, 3 Oct 2013 11:59:06 -0500
+Message-ID: <1380819546-53631-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <1368039976-29648-1-git-send-email-nm@ti.com> (Nishanth Menon's
-	message of "Wed, 8 May 2013 14:06:10 -0500")
-Sender: linux-doc-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Mike Turquette <mturquette@linaro.org>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-doc@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:44707 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753777Ab3JCQ75 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 3 Oct 2013 12:59:57 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Afzal Mohammed <afzal@ti.com>, Tero Kristo <t-kristo@ti.com>, Rajendra Nayak <rnayak@ti.com>, Nishant Menon <nm@ti.com>, linux-omap@vger.kernel.org, Suman Anna <s-anna@ti.com>
 
-Hi Nishanth,
+The hwmod init sequence involves initializing and idling all the
+hwmods during bootup. If a module class has sysconfig, the init
+sequence utilizes the module register base for performing any
+sysc configuration.
 
-Nishanth Menon <nm@ti.com> writes:
+The module address space is being removed from hwmod database and
+retrieved from the <reg> property of the corresponding DT node.
+If a hwmod does not have its corresponding DT node defined and the
+memory address space is not defined in the corresponding
+omap_hwmod_ocp_if, then the module register target address space
+would be NULL and any sysc programming would result in a NULL
+pointer dereference and a kernel boot hang.
 
-> The following version 5 of the series arose from trying to use
-> BeagleBoard-XM (OMAP3 variant) for doing CPU DVFS using cpufreq-cpu0.
-> This series enables the generic cpufreq-cpu0 driver to be used in
-> device tree enabled boot while maintaining support of the legacy
-> omap-cpufreq driver when used in non device tree enabled boot.
+Handle this scenario by checking for a valid module address space
+during the _init of each hwmod, and leaving it in the registered
+state if no module register address base is defined in either of
+the hwmod data or the DT data.
 
-What's the status of this series?  Is it still waiting on the clock DT
-changes?
+Signed-off-by: Suman Anna <s-anna@ti.com>
+---
+This patch helps break the dependencies between hwmod entries and
+corresponding DT entries (especially on OMAP5, where most of the
+address spaces are already cleaned up and the current data files
+have minimal entries) and fixes any boot issues due to missing
+addresses. See for reference,
+http://marc.info/?t=138005421400003&r=1&w=2
 
-Kevin
+Tested on BeagleXM, Panda4, BeagleBone Black and Panda5 using
+Tero's v7 clk DT patches and Benoit's for-3.13/dts on top of
+3.12-rc3
 
-> However, in order to enable complete SoC entitlement for OMAP
-> platforms, with this series, key features are still pending on device
-> tree adaptation for OMAP:
-> A) clock framework data transition to DT - this series provides an
-> driver to allow device tree definition of clock node.
-> B) On processors that use voltage controller, voltage processor
-> (VC/VP hardware loop using I2C_SR path) - we have started work on
-> transitioning them to regulator framework driven by DT.
-> C) Adaptive Body Bias[2] and SmartReflex AVS conversion to DT.
->
-> Note: Common Clock Framework(CCF) could also control regulators[3] and
-> AVS to ensure proper sequencing required for full DVFS sequencing.
-> Once these conversions are complete, there might be minimal cleanup
-> work to switch to the new data structure changes.
->
-> Key benefit of the series is to allow all relevant TI platforms now to
-> use a single cpufreq driver and equivalent frameworks in addition be
-> part of the transition to device tree.
->
-> NOTE on this series:
-> 1. omap-cpufreq will be used only in non device tree boot scenario. we
-> should delete this driver once the 100% DT conversion is complete.
-> 2. Generic cpufreq-cpu0 will be used only in device tree boot scenario
-> boot systems
-> 3. clock data movement as approached by Tero in [4] is not the
-> objective of this series
-> 4. meant for post 3.10-rc1 tag
->
-> Key changes in version 5 since version 4:
-> 	- rebase with master for 3.10-rc1 intermediate
-> 	- review comments incorporated
->
-> version 4 of the series:
-> 	http://marc.info/?l=linux-arm-kernel&m=136580742724210&w=2
-> 	available at:
-> 	https://github.com/nmenon/linux-2.6-playground/commits/push/cpufreq-cpu0-omap-all-v4
->
-> version 3 of the series:
-> 	http://marc.info/?l=linux-pm&m=136450759315742&w=2
-> 	available at:
-> 	https://github.com/nmenon/linux-2.6-playground/commits/push/cpufreq-cpu0-omap-all-v3
->
-> version 2 of the series:
-> 	http://marc.info/?t=136371570200003&r=1&w=2
-> 	available at:
-> 	https://github.com/nmenon/linux-2.6-playground/commits/push/cpufreq-cpu0-omap-all-v2
->
-> version 1 of the series:
-> 	http://marc.info/?t=136329485400005&r=1&w=2
-> 	available at:
-> 	https://github.com/nmenon/linux-2.6-playground/commits/push/cpufreq-cpu0-omap-all-v1
->
-> [1] Original discussion thread which triggered this series:
-> 	http://marc.info/?l=linux-pm&m=136304313700602&w=2
-> 	https://patchwork.kernel.org/patch/2251841/
-> 	https://patchwork.kernel.org/patch/2251851/
-> [2] ABB series: http://marc.info/?l=linux-omap&m=136751559523901&w=2 (ABB DTS merge pending)
-> [3] CCF DVFS patches:
-> https://patchwork.kernel.org/patch/2195431/
-> https://patchwork.kernel.org/patch/2195421/
-> https://patchwork.kernel.org/patch/2195451/
-> https://patchwork.kernel.org/patch/2195441/
-> https://patchwork.kernel.org/patch/2195461/
-> [4] http://marc.info/?t=136388745000001&r=1&w=2
->
-> Version 5 is now based on master since all requisite for-next branches have been merged.
-> 	master 5af43c2 Merge branch 'akpm' (incoming from Andrew)
->
-> Version 4 is also available at:
-> 	https://github.com/nmenon/linux-2.6-playground/commits/push/cpufreq-cpu0-omap-all-v5
-> 	git link: git://github.com/nmenon/linux-2.6-playground.git
-> 	branch: cpufreq-cpu0-omap-all-v5
->
-> Test coverage:
-> 	test script:  http://pastebin.com/GsavxiDe
-> 	(note - to allow testing, I followed the suggestion in https://lkml.org/lkml/2013/5/8/19 )
->
-> Platforms verified:
-> 	beaglebone(rev A6a) - AM33xx compatible - http://pastebin.com/zANKsYBp
-> 	beagleboard (rev C1D) - OMAP3430 compatible
-> 		- DT enabled boot:  http://pastebin.com/q4qZYVaK
-> 		- No DT enabled boot: http://pastebin.com/c1CbQmV5
-> 	omap3-beagle-xm -OMAP3630 compatible - http://pastebin.com/ibUABcA0
-> 	SDP4430 -(OMAP4430 ES2.2) - http://pastebin.com/wYwUc3fU
-> 	Pandaboard-ES -(OMAP4460 ES1.1) - http://pastebin.com/FB2RiFp2
->
-> Nishanth Menon (6):
->   clk: OMAP: introduce device tree binding to kernel clock data
-> [Clk driver probably belongs to mike's tree?]
->   ARM: dts: OMAP3: add clock nodes for CPU
->   ARM: dts: OMAP4: add clock nodes for CPU
->   ARM: dts: AM33XX: add clock nodes for CPU
-> [The above probably belong to Benoit's tree]
->   ARM: OMAP2+: AM33XX: add lateinit hook for calling pm late init
->   ARM: OMAP3+: use cpu0-cpufreq driver in device tree supported boot
-> [The above probably belong to Kevin/Tony's tree]
->
->  .../devicetree/bindings/clock/omap-clock.txt       |   40 +++++++++
->  arch/arm/boot/dts/am33xx.dtsi                      |    7 ++
->  arch/arm/boot/dts/omap3.dtsi                       |    7 ++
->  arch/arm/boot/dts/omap4.dtsi                       |    7 ++
->  arch/arm/mach-omap2/board-generic.c                |    1 +
->  arch/arm/mach-omap2/cclock33xx_data.c              |    1 -
->  arch/arm/mach-omap2/common.h                       |    1 +
->  arch/arm/mach-omap2/io.c                           |    6 ++
->  arch/arm/mach-omap2/pm.c                           |   11 ++-
->  drivers/clk/Makefile                               |    1 +
->  drivers/clk/omap/Makefile                          |    1 +
->  drivers/clk/omap/clk.c                             |   91 ++++++++++++++++++++
->  12 files changed, 170 insertions(+), 4 deletions(-)
->  create mode 100644 Documentation/devicetree/bindings/clock/omap-clock.txt
->  create mode 100644 drivers/clk/omap/Makefile
->  create mode 100644 drivers/clk/omap/clk.c
->
-> Regards,
-> Nishanth Menon
+ arch/arm/mach-omap2/omap_hwmod.c | 29 +++++++++++++++++++----------
+ 1 file changed, 19 insertions(+), 10 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index d9ee0ff..1d9edb3 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -2361,21 +2361,23 @@ static struct device_node *of_dev_hwmod_lookup(struct device_node *np,
+  * Cache the virtual address used by the MPU to access this IP block's
+  * registers.  This address is needed early so the OCP registers that
+  * are part of the device's address space can be ioremapped properly.
+- * No return value.
++ *
++ * Returns 0 on success, -EINVAL if an invalid hwmod is passed, and
++ * -ENOMEM on absent or invalid register target address space.
+  */
+-static void __init _init_mpu_rt_base(struct omap_hwmod *oh, void *data)
++static int __init _init_mpu_rt_base(struct omap_hwmod *oh, void *data)
+ {
+ 	struct omap_hwmod_addr_space *mem;
+ 	void __iomem *va_start = NULL;
+ 	struct device_node *np;
+ 
+ 	if (!oh)
+-		return;
++		return -EINVAL;
+ 
+ 	_save_mpu_port_index(oh);
+ 
+ 	if (oh->_int_flags & _HWMOD_NO_MPU_PORT)
+-		return;
++		return -ENOMEM;
+ 
+ 	mem = _find_mpu_rt_addr_space(oh);
+ 	if (!mem) {
+@@ -2384,7 +2386,7 @@ static void __init _init_mpu_rt_base(struct omap_hwmod *oh, void *data)
+ 
+ 		/* Extract the IO space from device tree blob */
+ 		if (!of_have_populated_dt())
+-			return;
++			return -ENOMEM;
+ 
+ 		np = of_dev_hwmod_lookup(of_find_node_by_name(NULL, "ocp"), oh);
+ 		if (np)
+@@ -2395,13 +2397,14 @@ static void __init _init_mpu_rt_base(struct omap_hwmod *oh, void *data)
+ 
+ 	if (!va_start) {
+ 		pr_err("omap_hwmod: %s: Could not ioremap\n", oh->name);
+-		return;
++		return -ENOMEM;
+ 	}
+ 
+ 	pr_debug("omap_hwmod: %s: MPU register target at va %p\n",
+ 		 oh->name, va_start);
+ 
+ 	oh->_mpu_rt_va = va_start;
++	return 0;
+ }
+ 
+ /**
+@@ -2414,8 +2417,8 @@ static void __init _init_mpu_rt_base(struct omap_hwmod *oh, void *data)
+  * registered at this point.  This is the first of two phases for
+  * hwmod initialization.  Code called here does not touch any hardware
+  * registers, it simply prepares internal data structures.  Returns 0
+- * upon success or if the hwmod isn't registered, or -EINVAL upon
+- * failure.
++ * upon success or if the hwmod isn't registered or if the hwmod's
++ * address space is not defined, or -EINVAL upon failure.
+  */
+ static int __init _init(struct omap_hwmod *oh, void *data)
+ {
+@@ -2424,8 +2427,14 @@ static int __init _init(struct omap_hwmod *oh, void *data)
+ 	if (oh->_state != _HWMOD_STATE_REGISTERED)
+ 		return 0;
+ 
+-	if (oh->class->sysc)
+-		_init_mpu_rt_base(oh, NULL);
++	if (oh->class->sysc) {
++		r = _init_mpu_rt_base(oh, NULL);
++		if (r < 0) {
++			WARN(1, "omap_hwmod: %s: doesn't have mpu register target base\n",
++				oh->name);
++			return 0;
++		}
++	}
+ 
+ 	r = _init_clocks(oh, NULL);
+ 	if (r < 0) {
+-- 
+1.8.4
+
