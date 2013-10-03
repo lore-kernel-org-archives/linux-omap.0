@@ -1,38 +1,39 @@
-From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: Re: [PATCH] ARM: dts: AM33XX: add ethernet alias's for am33xx
-Date: Wed, 2 Oct 2013 18:39:42 -0500
-Message-ID: <524CAEBE.5010305@ti.com>
-References: <1380736713-24678-1-git-send-email-dmurphy@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v3 03/10] ARM: OMAP2+: omap-usb-host: Get rid of
+ platform_data from struct usbhs_phy_data
+Date: Wed, 2 Oct 2013 21:03:12 -0700
+Message-ID: <20131003040311.GH8949@atomide.com>
+References: <1380012836-29900-1-git-send-email-rogerq@ti.com>
+ <1380012836-29900-4-git-send-email-rogerq@ti.com>
+ <524BF332.4080303@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1380736713-24678-1-git-send-email-dmurphy@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Dan Murphy <dmurphy@ti.com>, bcousson@baylibre.com
-Cc: tony@atomide.com, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <524BF332.4080303@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: balbi@ti.com, bcousson@baylibre.com, p.zabel@pengutronix.de, broonie@kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wednesday 02 October 2013 12:58 PM, Dan Murphy wrote:
-> Set the alias for ethernet0 and ethernet1 so that uBoot
-> can set the MAC address appropriately.
->
-> Currently uBoot cannot find the alias and there for does not set the
-> MAC address.
->
-> Signed-off-by: Dan Murphy <dmurphy@ti.com>
+* Roger Quadros <rogerq@ti.com> [131002 03:27]:
+> Hi Tony,
+> 
+> On 09/24/2013 11:53 AM, Roger Quadros wrote:
+> > The platform data bits can be inferred from the other members of
+> > struct usbhs_phy_data. So get rid of the platform_data member.
+> > 
+> > Build the platform data for the PHY device in usbhs_init_phys() instead.
+> > 
+> > Signed-off-by: Roger Quadros <rogerq@ti.com>
+> 
+> Could you please Ack this if OK?
 
-Tested this with beagle bone black.
+This should be OK for you guys to queue. You should coordinate
+the .dts changes with Benoit though. It might be best to have
+this branch as an immutable branch against -rc3 that we can
+all merge in as needed.
 
-Tested-by: Mugunthan V N <mugunthanvnm@ti.com>
+For this patch:
 
-Regards
-Mugunthan V N
+Acked-by: Tony Lindgren <tony@atomide.com>
