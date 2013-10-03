@@ -1,41 +1,49 @@
-From: Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] ARM: dts: AM33XX: add ethernet alias's for am33xx
-Date: Thu, 03 Oct 2013 16:37:48 +0200
-Message-ID: <524D813C.3070905@baylibre.com>
-References: <1380736713-24678-1-git-send-email-dmurphy@ti.com> <524CAEBE.5010305@ti.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v7 09/10] usb: dwc3: omap: manage "usb_otg_ss_refclk960m"
+ clock
+Date: Thu, 3 Oct 2013 17:54:14 +0300
+Message-ID: <524D8516.8000107@ti.com>
+References: <1379508542-22389-1-git-send-email-rogerq@ti.com> <1379508542-22389-10-git-send-email-rogerq@ti.com> <52403E02.4070208@ti.com> <20131002131113.GM1476@radagast> <524C22A1.30200@ti.com> <20131003122941.GD3230@radagast>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <524CAEBE.5010305-l0cyMroinI0@public.gmane.org>
+In-Reply-To: <20131003122941.GD3230@radagast>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dan Murphy <dmurphy-l0cyMroinI0@public.gmane.org>
-Cc: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+To: balbi-l0cyMroinI0@public.gmane.org
+Cc: bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, george.cherian-l0cyMroinI0@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, thomas.langer-th3ZBGNqt+7QT0dZR+AlfA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Dan,
+On 10/03/2013 03:29 PM, Felipe Balbi wrote:
+> Hi,
+> 
+> On Wed, Oct 02, 2013 at 04:41:53PM +0300, Roger Quadros wrote:
+>> On 10/02/2013 04:11 PM, Felipe Balbi wrote:
+>>> On Mon, Sep 23, 2013 at 04:11:30PM +0300, Roger Quadros wrote:
+>>>> Hi Felipe,
+>>>>
+>>>> On 09/18/2013 03:49 PM, Roger Quadros wrote:
+>>>>> "usb_otg_ss_refclk960m" is an optional functional clock to the
+>>>>> UBS_OTG_SS module. So manage it in the driver.
+>>>>>
+>>>>
+>>>> Just realized that "usb_otg_ss_refclk960m" is in fact functional clock to the 
+>>>> PHY and not USB_OTG_SS module. The name is misleading.
+>>>>
+>>>> So please ignore patch 9 and 10.
+>>>
+>>> ignored. All others are fine, right ?
+>>>
+>> Yes. But I might have to rebase this on top of Phy framework stuff.
+> 
+> alright, Greg already took the PHY framework, so maybe we need to just
+> give him my Acked-by and he takes the patches directly as I don't have
+> PYH framework.
+> 
+OK. I'll resend this series to Greg in a while.
 
-On 03/10/2013 01:39, Mugunthan V N wrote:
-> On Wednesday 02 October 2013 12:58 PM, Dan Murphy wrote:
->> Set the alias for ethernet0 and ethernet1 so that uBoot
->> can set the MAC address appropriately.
->>
->> Currently uBoot cannot find the alias and there for does not set the
->> MAC address.
->>
->> Signed-off-by: Dan Murphy <dmurphy-l0cyMroinI0@public.gmane.org>
->
-> Tested this with beagle bone black.
->
-> Tested-by: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
->
-> Regards
-> Mugunthan V N
-
-Thanks, pulled in my for_3.13/dts branch.
-
-Regards,
-Benoit
+cheers,
+-roger
 --
 To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
