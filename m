@@ -1,62 +1,46 @@
-From: Taras Kondratiuk <taras.kondratiuk@linaro.org>
-Subject: [PATCH v2] mfd: twl6030: Fix endianness problem in IRQ handler
-Date: Fri,  4 Oct 2013 02:00:34 +0300
-Message-ID: <1380841234-19475-1-git-send-email-taras.kondratiuk@linaro.org>
-References: <1380712124-20666-1-git-send-email-taras.kondratiuk@linaro.org>
+From: Joel Fernandes <joelf@ti.com>
+Subject: Re: [PATCH v2 0/9] ARM: dts: DT data for OMAP platforms for v3.13
+Date: Thu, 3 Oct 2013 21:00:27 -0500
+Message-ID: <524E213B.6030306@ti.com>
+References: <1380553986-15910-1-git-send-email-joelf@ti.com> <524D7038.9070303@baylibre.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lb0-f174.google.com ([209.85.217.174]:59131 "EHLO
-	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751628Ab3JCXBH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Oct 2013 19:01:07 -0400
-Received: by mail-lb0-f174.google.com with SMTP id w6so2626805lbh.33
-        for <linux-omap@vger.kernel.org>; Thu, 03 Oct 2013 16:01:06 -0700 (PDT)
-In-Reply-To: <1380712124-20666-1-git-send-email-taras.kondratiuk@linaro.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:43065 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753525Ab3JDCBE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 3 Oct 2013 22:01:04 -0400
+In-Reply-To: <524D7038.9070303@baylibre.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-networking@linaro.org, Kim Phillips <kim.phillips@linaro.org>, Danke Xie <d.xie@sta.samsung.com>, Taras Kondratiuk <taras.kondratiuk@linaro.org>
+To: Benoit Cousson <bcousson@baylibre.com>
+Cc: Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux MMC List <linux-mmc@vger.kernel.org>, Mark Rutland <mark.rutland@arm.com>, "swarren@wwwdotorg.org" <swarren@wwwdotorg.org>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Pawel Moll <Pawel.Moll@arm.com>Mark Rutland <mark.rutland@arm.com>
 
-From: Danke Xie <d.xie@sta.samsung.com>
+On 10/03/2013 08:25 AM, Benoit Cousson wrote:
+> + DT list and DT maintainers.
+> 
+> Hi Joel,
+> 
+> Thanks for the update. It looks good to me.
+> 
+> For the new bindings added below;
+> 
+>>   .../devicetree/bindings/crypto/omap-aes.txt        | 34 ++++++++++
+>>   .../devicetree/bindings/crypto/omap-sham.txt       | 31 +++++++++
+> 
+> I will need the acked-by from one of the DT maintainers.
 
-The current TWL 6030 IRQ handler assumes little endianness.
-This change makes it endian-neutral.
+Sure. To help with giving Ack for this, I'd like to also mention these patches
+were due for long time and reposted. The supporting code is already in the kernel.
 
-Signed-off-by: Danke Xie <d.xie@sta.samsung.com>
-Signed-off-by: Taras Kondratiuk <taras.kondratiuk@linaro.org>
----
-v2: fixed sparse warning
-v1: https://patchwork.kernel.org/patch/2974331/
+Also bindings were reviewed by Mark Rutland comments in the following thread
+were addressed:
+http://www.spinics.net/lists/arm-kernel/msg269006.html
 
-drivers/mfd/twl6030-irq.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+Mark, could you give Ack for these patches if they look OK?
 
-diff --git a/drivers/mfd/twl6030-irq.c b/drivers/mfd/twl6030-irq.c
-index 517eda8..18a607e 100644
---- a/drivers/mfd/twl6030-irq.c
-+++ b/drivers/mfd/twl6030-irq.c
-@@ -176,8 +176,9 @@ static irqreturn_t twl6030_irq_thread(int irq, void *data)
- 	int i, ret;
- 	union {
- 		u8 bytes[4];
--		u32 int_sts;
-+		__le32 int_sts;
- 	} sts;
-+	u32 int_sts; /* sts.int_sts converted to CPU endianness */
- 	struct twl6030_irq *pdata = data;
- 
- 	/* read INT_STS_A, B and C in one shot using a burst read */
-@@ -196,8 +197,9 @@ static irqreturn_t twl6030_irq_thread(int irq, void *data)
- 	if (sts.bytes[2] & 0x10)
- 		sts.bytes[2] |= 0x08;
- 
--	for (i = 0; sts.int_sts; sts.int_sts >>= 1, i++)
--		if (sts.int_sts & 0x1) {
-+	int_sts = le32_to_cpu(sts.int_sts);
-+	for (i = 0; int_sts; int_sts >>= 1, i++)
-+		if (int_sts & 0x1) {
- 			int module_irq =
- 				irq_find_mapping(pdata->irq_domain,
- 						 pdata->irq_mapping_tbl[i]);
--- 
-1.7.9.5
+thanks,
+
+-Joel
 
