@@ -1,146 +1,65 @@
-From: Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [PATCH v2 3/9] ARM: dts: Add SHAM data and documentation for
- AM33XX
-Date: Fri, 4 Oct 2013 15:26:45 +0100
-Message-ID: <20131004142644.GI6999@e106331-lin.cambridge.arm.com>
-References: <1380553986-15910-1-git-send-email-joelf@ti.com>
- <1380553986-15910-4-git-send-email-joelf@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH v5 1/3] usb: dwc3: msm: Add device tree binding
+ information
+Date: Fri, 4 Oct 2013 09:31:51 -0500
+Message-ID: <20131004143151.GD16059@radagast>
+References: <1377091786-5613-1-git-send-email-iivanov@mm-sol.com>
+ <1377091786-5613-2-git-send-email-iivanov@mm-sol.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="veXX9dWIonWZEC6h"
+Return-path: <linux-doc-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1380553986-15910-4-git-send-email-joelf@ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Joel Fernandes <joelf@ti.com>
-Cc: Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux MMC List <linux-mmc@vger.kernel.org>, Benoit Cousson <bcousson@baylibre.com>, Paul Walmsley <paul@pwsan.com>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, Pawel Moll <Pawel.Moll@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Rob Landley <rob@landley.net>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, "Mark A. Greer" <mgreer@animalcreek.com>, "open list:OPEN FIRMWARE AND..." <devicetree@vger.kernel.org>, "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
+In-Reply-To: <1377091786-5613-2-git-send-email-iivanov@mm-sol.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: "Ivan T. Ivanov" <iivanov@mm-sol.com>
+Cc: balbi@ti.com, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ian.campbell@citrix.com, rob@landley.net, gregkh@linuxfoundation.org, grant.likely@linaro.org, idos@codeaurora.org, mgautam@codeaurora.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-msm@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Sep 30, 2013 at 04:13:00PM +0100, Joel Fernandes wrote:
-> From: "Mark A. Greer" <mgreer@animalcreek.com>
-> 
-> Add the generic AM33XX SHAM module's device tree data and
-> enable it for the am335x-evm, am335x-evmsk, and am335x-bone
-> platforms.  Also add Documentation file describing the data
-> for the SHAM module.
-> 
-> [joelf@ti.com: Dropped interrupt-parrent property]
-> CC: Paul Walmsley <paul@pwsan.com>
-> Signed-off-by: Mark A. Greer <mgreer@animalcreek.com>
-> ---
->  .../devicetree/bindings/crypto/omap-sham.txt       | 31 ++++++++++++++++++++++
->  arch/arm/boot/dts/am335x-bone.dts                  |  4 +++
->  arch/arm/boot/dts/am335x-evm.dts                   |  4 +++
->  arch/arm/boot/dts/am335x-evmsk.dts                 |  4 +++
->  arch/arm/boot/dts/am33xx.dtsi                      |  9 +++++++
->  5 files changed, 52 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/crypto/omap-sham.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/crypto/omap-sham.txt b/Documentation/devicetree/bindings/crypto/omap-sham.txt
-> new file mode 100644
-> index 0000000..b97710f
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/crypto/omap-sham.txt
-> @@ -0,0 +1,31 @@
-> +OMAP SoC SHA crypto Module
-> +
-> +Required properties:
-> +
-> +- compatible : Should contain entries for this and backward compatible
-> +  SHAM versions:
-> +  - "ti,omap2-sham" for OMAP2 & OMAP3.
-> +  - "ti,omap4-sham" for OMAP4 and AM33XX.
-> +  Note that these two versions are incompatible.
-> +- ti,hwmods: Name of the hwmod associated with the SHAM module
-> +- reg : Offset and length of the register set for the module
-> +- interrupt-parent : the phandle for the interrupt controller that
-> +  services interrupts for this module.
+--veXX9dWIonWZEC6h
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I don't think this is strictly speaking necessary -- it's mostly going
-to be implicit (it is in the dtsi below). As this is a standard
-property, you don't need to document it here.
+On Wed, Aug 21, 2013 at 04:29:44PM +0300, Ivan T. Ivanov wrote:
+> From: "Ivan T. Ivanov" <iivanov@mm-sol.com>
+>=20
+> MSM USB3.0 core wrapper consist of USB3.0 IP from Synopsys
+> (SNPS) and HS, SS PHY's control and configuration registers.
+>=20
+> It could operate in device mode (SS, HS, FS) and host
+> mode (SS, HS, FS, LS).
+>=20
+> Signed-off-by: Ivan T. Ivanov <iivanov@mm-sol.com>
 
-> +- interrupts : the interrupt number for the SHAM module.
+these patches were sent *ages* and nobody from DT mailing list has
+reviewed. Unless someone steps up now, I'll be queueing these patches
+next week.
 
-Sorry, I missed this last time, but this should be interrupt-specifier
-rather than interrupt number.
+--=20
+balbi
 
-Otherwise, this looks good to me. With the fixups above:
+--veXX9dWIonWZEC6h
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-Acked-by: Mark Rutland <mark.rutland@arm.com>
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-> +
-> +Optional properties:
-> +- dmas: DMA specifier for the rx dma. See the DMA client binding,
-> +	Documentation/devicetree/bindings/dma/dma.txt
-> +- dma-names: DMA request name. Should be "rx" if a dma is present.
-> +
-> +Example:
-> +	/* AM335x */
-> +	sham: sham@53100000 {
-> +		compatible = "ti,omap4-sham";
-> +		ti,hwmods = "sham";
-> +		reg = <0x53100000 0x200>;
-> +		interrupt-parent = <&intc>;
-> +		interrupts = <109>;
-> +		dmas = <&edma 36>;
-> +		dma-names = "rx";
-> +	};
-> diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
-> index 0d63348..8a9802e 100644
-> --- a/arch/arm/boot/dts/am335x-bone.dts
-> +++ b/arch/arm/boot/dts/am335x-bone.dts
-> @@ -19,3 +19,7 @@
->  &mmc1 {
->  	vmmc-supply = <&ldo3_reg>;
->  };
-> +
-> +&sham {
-> +	status = "okay";
-> +};
-> diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
-> index 23b0a3e..d59e51c 100644
-> --- a/arch/arm/boot/dts/am335x-evm.dts
-> +++ b/arch/arm/boot/dts/am335x-evm.dts
-> @@ -522,3 +522,7 @@
->  	status = "okay";
->  	vmmc-supply = <&vmmc_reg>;
->  };
-> +
-> +&sham {
-> +	status = "okay";
-> +};
-> diff --git a/arch/arm/boot/dts/am335x-evmsk.dts b/arch/arm/boot/dts/am335x-evmsk.dts
-> index bc93895..d45a330 100644
-> --- a/arch/arm/boot/dts/am335x-evmsk.dts
-> +++ b/arch/arm/boot/dts/am335x-evmsk.dts
-> @@ -424,3 +424,7 @@
->  	status = "okay";
->  	vmmc-supply = <&vmmc_reg>;
->  };
-> +
-> +&sham {
-> +	status = "okay";
-> +};
-> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-> index 553adc6..299710b 100644
-> --- a/arch/arm/boot/dts/am33xx.dtsi
-> +++ b/arch/arm/boot/dts/am33xx.dtsi
-> @@ -710,5 +710,14 @@
->  			#size-cells = <1>;
->  			status = "disabled";
->  		};
-> +
-> +		sham: sham@53100000 {
-> +			compatible = "ti,omap4-sham";
-> +			ti,hwmods = "sham";
-> +			reg = <0x53100000 0x200>;
-> +			interrupts = <109>;
-> +			dmas = <&edma 36>;
-> +			dma-names = "rx";
-> +		};
->  	};
->  };
-> -- 
-> 1.8.1.2
-> 
-> 
+iQIcBAEBAgAGBQJSTtFXAAoJEIaOsuA1yqREnK4P/ib6IL8J9hQd/qnXfr3gP9I1
+rSP0ywocsezTucEuyww4ztcMir7LYwfAdZp9Mb0Tlzz5XVNuQOxQ+ndOyP/+sa1x
+rcDh+4sJ/KmH/6wgQX1ldDQoAyu0v84xcbDqW+317RORg1SxgOrTPDPQauJdm6Bi
+Dpe+KiRD2pukoEWPVLgVd2ZJHuSTthqy05tyFW7wnpWLwwZlZ4z2fLsAYQ4zfcdr
+N7BlG5X66ft334R96G1sdbefZ6WGK6R6sYoQc0l/TAgGcdyZnbFEZ++mL7i5iZs3
+Sx5/vQa8XHczGyduBjsdMZ+BPETBmBLT6ps4FLy6TciZ2u8a8DoVRrefc8+scFz+
+PK/E+M1de6XlmV/2Jdt5sS3MhBeiUph/A1p74rofgezzZQnckxB7Z+MBuuzdZ8BJ
+blEk9g1846sqqkdqqkxpoX+zYczQ+YiHA7AcP/TNgwMV7wquYINHzfHGkmXUpbBR
+PfhuKrjb+siSCI/mFxED+gNzOALvS8vYRjypokAOiG/r0D4GoOp2/UnatE6vs9rN
+ntE6HQ21OgjCC7WsivwkfBQpWnra1lww92+wUO6AtJN25POKJRHfSQ1sFPLCDlqj
+dbg4KUKb9ciqUotcBJMt0l0VPV6CGhI5JH180u83itaNdcpkr96owIdMBAHPzumW
+HIybjD38hZO2XggXRxqy
+=n24o
+-----END PGP SIGNATURE-----
+
+--veXX9dWIonWZEC6h--
