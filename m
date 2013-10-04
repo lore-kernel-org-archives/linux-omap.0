@@ -1,70 +1,58 @@
-From: Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
-Subject: Re: [PATCH v7 09/10] usb: dwc3: omap: manage "usb_otg_ss_refclk960m"
- clock
-Date: Fri, 4 Oct 2013 06:23:29 -0700
-Message-ID: <20131004132329.GA25648@kroah.com>
-References: <1379508542-22389-1-git-send-email-rogerq@ti.com>
- <1379508542-22389-10-git-send-email-rogerq@ti.com>
- <52403E02.4070208@ti.com>
- <20131002131113.GM1476@radagast>
- <524C22A1.30200@ti.com>
- <20131003122941.GD3230@radagast>
- <524D8516.8000107@ti.com>
- <20131003154144.GA18189@kroah.com>
- <524E9C70.8050303@ti.com>
+From: Benoit Cousson <bcousson@baylibre.com>
+Subject: Re: [PATCH v2 0/9] ARM: dts: DT data for OMAP platforms for v3.13
+Date: Fri, 04 Oct 2013 16:10:43 +0200
+Message-ID: <524ECC63.3050303@baylibre.com>
+References: <1380553986-15910-1-git-send-email-joelf@ti.com> <524D7038.9070303@baylibre.com> <524E213B.6030306@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <524E9C70.8050303-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Cc: balbi-l0cyMroinI0@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, george.cherian-l0cyMroinI0@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, thomas.langer-th3ZBGNqt+7QT0dZR+AlfA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <524E213B.6030306@ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Joel Fernandes <joelf@ti.com>
+Cc: Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux MMC List <linux-mmc@vger.kernel.org>, Mark Rutland <mark.rutland@arm.com>, "swarren@wwwdotorg.org" <swarren@wwwdotorg.org>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Pawel Moll <Pawel.Moll@arm.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Oct 04, 2013 at 01:46:08PM +0300, Roger Quadros wrote:
-> Greg,
-> 
-> On 10/03/2013 06:41 PM, Greg KH wrote:
-> > On Thu, Oct 03, 2013 at 05:54:14PM +0300, Roger Quadros wrote:
-> >> On 10/03/2013 03:29 PM, Felipe Balbi wrote:
-> >>> Hi,
-> >>>
-> >>> On Wed, Oct 02, 2013 at 04:41:53PM +0300, Roger Quadros wrote:
-> >>>> On 10/02/2013 04:11 PM, Felipe Balbi wrote:
-> >>>>> On Mon, Sep 23, 2013 at 04:11:30PM +0300, Roger Quadros wrote:
-> >>>>>> Hi Felipe,
-> >>>>>>
-> >>>>>> On 09/18/2013 03:49 PM, Roger Quadros wrote:
-> >>>>>>> "usb_otg_ss_refclk960m" is an optional functional clock to the
-> >>>>>>> UBS_OTG_SS module. So manage it in the driver.
-> >>>>>>>
-> >>>>>>
-> >>>>>> Just realized that "usb_otg_ss_refclk960m" is in fact functional clock to the 
-> >>>>>> PHY and not USB_OTG_SS module. The name is misleading.
-> >>>>>>
-> >>>>>> So please ignore patch 9 and 10.
-> >>>>>
-> >>>>> ignored. All others are fine, right ?
-> >>>>>
-> >>>> Yes. But I might have to rebase this on top of Phy framework stuff.
-> >>>
-> >>> alright, Greg already took the PHY framework, so maybe we need to just
-> >>> give him my Acked-by and he takes the patches directly as I don't have
-> >>> PYH framework.
-> >>>
-> >> OK. I'll resend this series to Greg in a while.
-> > 
-> > It looks like you did, but forgot Felipe's ack :(
-> > 
-> I was under the impression that Felipe will explicitly give his Ack there.
-> Should I resend with his Acked-bys?
+On 04/10/2013 04:00, Joel Fernandes wrote:
+> On 10/03/2013 08:25 AM, Benoit Cousson wrote:
+>> + DT list and DT maintainers.
+>>
+>> Hi Joel,
+>>
+>> Thanks for the update. It looks good to me.
+>>
+>> For the new bindings added below;
+>>
+>>>    .../devicetree/bindings/crypto/omap-aes.txt        | 34 ++++++++++
+>>>    .../devicetree/bindings/crypto/omap-sham.txt       | 31 +++++++++
+>>
+>> I will need the acked-by from one of the DT maintainers.
+>
+> Sure. To help with giving Ack for this, I'd like to also mention these patches
+> were due for long time and reposted. The supporting code is already in the kernel.
+>
+> Also bindings were reviewed by Mark Rutland comments in the following thread
+> were addressed:
+> http://www.spinics.net/lists/arm-kernel/msg269006.html
 
-No need, I took the patches yesterday, you should have seen the
-automated emails, right?
+OK, that's good news, at least it was already reviewed by Mark.
 
-greg k-h
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I'm fixing and pulling the series, and will add Mark's Acked-by as soon 
+as he will send it.
+
+Meanwhile some nits, I'm fixing myself this time :-)
+
+None of your subjects is following the same guideline and the repertory 
+guideline...
+
+   omap4: dts: Add node for AES
+   omap4: dts: Add node for DES3DES module
+   am33xx: dts: Fix AES interrupt number
+   ARM: am437x: dts: Add AES node for am437x
+   ARM: am437x: dts: Add DES node for am437x
+
+It should be ARM: dts: OMAPXXX or AMXXX...
+
+Regards,
+Benoit
+
