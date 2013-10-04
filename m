@@ -1,59 +1,88 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v7 09/10] usb: dwc3: omap: manage "usb_otg_ss_refclk960m"
- clock
-Date: Fri, 4 Oct 2013 13:46:08 +0300
-Message-ID: <524E9C70.8050303@ti.com>
-References: <1379508542-22389-1-git-send-email-rogerq@ti.com> <1379508542-22389-10-git-send-email-rogerq@ti.com> <52403E02.4070208@ti.com> <20131002131113.GM1476@radagast> <524C22A1.30200@ti.com> <20131003122941.GD3230@radagast> <524D8516.8000107@ti.com> <20131003154144.GA18189@kroah.com>
+From: Benoit Cousson <bcousson@baylibre.com>
+Subject: Re: [PATCHv3 0/2] ARM: dts: Add initial support for IGEP AQUILA
+Date: Fri, 04 Oct 2013 14:41:35 +0200
+Message-ID: <524EB77F.90205@baylibre.com>
+References: <1378824949-18792-1-git-send-email-eballetbo@gmail.com> <CAAwP0s2NOswrZPdeM7GG2J3e+2JeQSKUpX3cki+CbF9G4KyTpA@mail.gmail.com> <20131003181758.GS8949@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20131003154144.GA18189-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
-Cc: balbi-l0cyMroinI0@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, george.cherian-l0cyMroinI0@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, thomas.langer-th3ZBGNqt+7QT0dZR+AlfA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wg0-f47.google.com ([74.125.82.47]:59508 "EHLO
+	mail-wg0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753784Ab3JDMlj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Oct 2013 08:41:39 -0400
+Received: by mail-wg0-f47.google.com with SMTP id f12so3947691wgh.2
+        for <linux-omap@vger.kernel.org>; Fri, 04 Oct 2013 05:41:37 -0700 (PDT)
+In-Reply-To: <20131003181758.GS8949@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Javier Martinez Canillas <martinez.javier@gmail.com>, Enric Balletbo i Serra <eballetbo@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Enric Balletbo i Serra <eballetbo@iseebcn.com>
 
-Greg,
+Hi Enric,
 
-On 10/03/2013 06:41 PM, Greg KH wrote:
-> On Thu, Oct 03, 2013 at 05:54:14PM +0300, Roger Quadros wrote:
->> On 10/03/2013 03:29 PM, Felipe Balbi wrote:
->>> Hi,
+On 03/10/2013 20:17, Tony Lindgren wrote:
+> * Javier Martinez Canillas <martinez.javier@gmail.com> [130925 06:18]:
+>> On Tue, Sep 10, 2013 at 4:55 PM, Enric Balletbo i Serra
+>> <eballetbo@gmail.com> wrote:
+>>> From: Enric Balletbo i Serra <eballetbo@iseebcn.com>
 >>>
->>> On Wed, Oct 02, 2013 at 04:41:53PM +0300, Roger Quadros wrote:
->>>> On 10/02/2013 04:11 PM, Felipe Balbi wrote:
->>>>> On Mon, Sep 23, 2013 at 04:11:30PM +0300, Roger Quadros wrote:
->>>>>> Hi Felipe,
->>>>>>
->>>>>> On 09/18/2013 03:49 PM, Roger Quadros wrote:
->>>>>>> "usb_otg_ss_refclk960m" is an optional functional clock to the
->>>>>>> UBS_OTG_SS module. So manage it in the driver.
->>>>>>>
->>>>>>
->>>>>> Just realized that "usb_otg_ss_refclk960m" is in fact functional clock to the 
->>>>>> PHY and not USB_OTG_SS module. The name is misleading.
->>>>>>
->>>>>> So please ignore patch 9 and 10.
->>>>>
->>>>> ignored. All others are fine, right ?
->>>>>
->>>> Yes. But I might have to rebase this on top of Phy framework stuff.
+>>> Hi all,
 >>>
->>> alright, Greg already took the PHY framework, so maybe we need to just
->>> give him my Acked-by and he takes the patches directly as I don't have
->>> PYH framework.
+>>> These two patches introduces initial support for the IGEP AM335x-based
+>>> platforms. The first patch add support for IGEP COM AQUILA products, and the
+>>> second patch add support for the development board.
 >>>
->> OK. I'll resend this series to Greg in a while.
-> 
-> It looks like you did, but forgot Felipe's ack :(
-> 
-I was under the impression that Felipe will explicitly give his Ack there.
-Should I resend with his Acked-bys?
+>>> These patches apply on top of bcousson/for_3.12/dts repository.
+>>>
+>>> Changes since v2:
+>>>    * Make it compatible with "isee,am335x-base0033", "isee,am335x-igep0033",
+>>>      "ti,am33xx" since these boards are manufactured by ISEE not TI. (Javier)
+>>> Changes since v1:
+>>>    * Use &node to reference the nodes already defined in dtsi files. (Javier)
+>>>
+>>> Best regards,
+>>>
+>>> Enric Balletbo i Serra (2):
+>>>    ARM: dts: AM33XX: Add support for IGEP COM AQUILA
+>>>    ARM: dts: AM33XX: Add support for IGEP AQUILA EXPANSION board.
+>>>
+>>>   arch/arm/boot/dts/Makefile             |   1 +
+>>>   arch/arm/boot/dts/am335x-base0033.dts  |  16 ++
+>>>   arch/arm/boot/dts/am335x-igep0033.dtsi | 265 +++++++++++++++++++++++++++++++++
+>>>   3 files changed, 282 insertions(+)
+>>>   create mode 100644 arch/arm/boot/dts/am335x-base0033.dts
+>>>   create mode 100644 arch/arm/boot/dts/am335x-igep0033.dtsi
+>>>
+>>> --
+>>> 1.8.1.2
+>>>
+>>
+>> Hi Benoit and Tony,
+>>
+>> Any comments on this series? I had already reviewed previous versions
+>> of the DT and it looks good to me now.
+>>
+>> It would be great if this can make it for 3.13.
+>
+> Looks good to me, I would assume Benoit will be looking at this
+> shortly.
 
-cheers,
--roger
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I did :-)
+
+It looks good to me too, I've just fixed a conflict with my current 
+branch in the Makefile and fix a typo in the header:
+
++++ b/arch/arm/boot/dts/am335x-base0033.dts
+@@ -0,0 +1,16 @@
++/*
++ * am335x-base0033.dtsi - Device Tree file for IGEP AQUILA EXPANSION
+
+Should be am335x-base0033.dts. I fixed it for you. Please check if the 
+fix is ok in the branch.
+
+Pushed on my for_3.13/dts branch.
+
+Thanks,
+Benoit
+
