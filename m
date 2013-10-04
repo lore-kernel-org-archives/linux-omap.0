@@ -1,108 +1,87 @@
-From: Joel Fernandes <joelf@ti.com>
-Subject: Re: [PATCH v2 0/9] ARM: dts: DT data for OMAP platforms for v3.13
-Date: Fri, 4 Oct 2013 09:50:37 -0500
-Message-ID: <524ED5BD.2060504@ti.com>
-References: <1380553986-15910-1-git-send-email-joelf@ti.com> <524D7038.9070303@baylibre.com> <524E213B.6030306@ti.com> <524ECC63.3050303@baylibre.com>
+From: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCHv7 00/36] ARM: OMAP: clock data conversion to DT
+Date: Fri, 4 Oct 2013 18:34:39 +0300
+Message-ID: <524EE00F.7010208@ti.com>
+References: <1380098922-30340-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <524ECC63.3050303@baylibre.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Benoit Cousson <bcousson@baylibre.com>
-Cc: Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux MMC List <linux-mmc@vger.kernel.org>, Mark Rutland <mark.rutland@arm.com>, "swarren@wwwdotorg.org" <swarren@wwwdotorg.org>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Pawel Moll <Pawel.Moll@arm.com>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1380098922-30340-1-git-send-email-t-kristo-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, mturquette-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 10/04/2013 09:10 AM, Benoit Cousson wrote:
-> On 04/10/2013 04:00, Joel Fernandes wrote:
->> On 10/03/2013 08:25 AM, Benoit Cousson wrote:
->>> + DT list and DT maintainers.
->>>
->>> Hi Joel,
->>>
->>> Thanks for the update. It looks good to me.
->>>
->>> For the new bindings added below;
->>>
->>>>    .../devicetree/bindings/crypto/omap-aes.txt        | 34 ++++++++++
->>>>    .../devicetree/bindings/crypto/omap-sham.txt       | 31 +++++++++
->>>
->>> I will need the acked-by from one of the DT maintainers.
->>
->> Sure. To help with giving Ack for this, I'd like to also mention these patches
->> were due for long time and reposted. The supporting code is already in the
->> kernel.
->>
->> Also bindings were reviewed by Mark Rutland comments in the following thread
->> were addressed:
->> http://www.spinics.net/lists/arm-kernel/msg269006.html
-> 
-> OK, that's good news, at least it was already reviewed by Mark.
-> 
-> I'm fixing and pulling the series, and will add Mark's Acked-by as soon as he
-> will send it.
-> 
-> Meanwhile some nits, I'm fixing myself this time :-)
-> 
-> None of your subjects is following the same guideline and the repertory
-> guideline...
-> 
->   omap4: dts: Add node for AES
->   omap4: dts: Add node for DES3DES module
->   am33xx: dts: Fix AES interrupt number
->   ARM: am437x: dts: Add AES node for am437x
->   ARM: am437x: dts: Add DES node for am437x
-> 
-> It should be ARM: dts: OMAPXXX or AMXXX...
-> 
-> Regards,
-> Benoit
-> 
-On 10/04/2013 09:10 AM, Benoit Cousson wrote:> On 04/10/2013 04:00, Joel
-Fernandes wrote:
->> On 10/03/2013 08:25 AM, Benoit Cousson wrote:
->>> + DT list and DT maintainers.
->>>
->>> Hi Joel,
->>>
->>> Thanks for the update. It looks good to me.
->>>
->>> For the new bindings added below;
->>>
->>>>    .../devicetree/bindings/crypto/omap-aes.txt        | 34 ++++++++++
->>>>    .../devicetree/bindings/crypto/omap-sham.txt       | 31 +++++++++
->>>
->>> I will need the acked-by from one of the DT maintainers.
->>
->> Sure. To help with giving Ack for this, I'd like to also mention these patches
->> were due for long time and reposted. The supporting code is already in the
->> kernel.
->>
->> Also bindings were reviewed by Mark Rutland comments in the following thread
->> were addressed:
->> http://www.spinics.net/lists/arm-kernel/msg269006.html
->
-> OK, that's good news, at least it was already reviewed by Mark.
->
-> I'm fixing and pulling the series, and will add Mark's Acked-by as soon as he
-> will send it.
->
-> Meanwhile some nits, I'm fixing myself this time :-)
->
-> None of your subjects is following the same guideline and the repertory
-> guideline...
->
->   omap4: dts: Add node for AES
->   omap4: dts: Add node for DES3DES module
->   am33xx: dts: Fix AES interrupt number
->   ARM: am437x: dts: Add AES node for am437x
->   ARM: am437x: dts: Add DES node for am437x
->
-> It should be ARM: dts: OMAPXXX or AMXXX...
+Hi,
 
-Thanks & sorry about that.
-I think Mark came back with some more comments on 2 of those patches. I will
-work on those and repost.
+Just a gentle reminder, anybody have any comments on this series or 
+should we start queuing stuff?
 
--Joel
+-Tero
 
+On 09/25/2013 11:48 AM, Tero Kristo wrote:
+> Hi all,
+>
+> Version 7 contains following high level changes:
+> - Dropped support for basic bindings from Mike Turquette, instead using
+>    vendor specific bindings for all clocks
+> - Mux clock + divider clock vendor specific bindings get rid of use
+>    of the bit-masks, instead these are generated runtime based on parent
+>    clock / divider min/max info, see individual patches for details
+> - Added support for dummy_ck nodes, was missing from previous version
+> - Fixed support for omap3630
+> - Added support for new clock node type: ti,mux-gate-clock (using composite
+>    clock type)
+> - OMAP4 / OMAP5 only build fixes (compiler flag checks added to some files)
+> - most of the of_omap_* calls renamed to of_ti_*
+> - Rebased on top of v3.12-rc2
+>
+> Some detailed comments about patch level changes (if no mention, no major
+> changes):
+> - Patch #1:
+>    * removed use of reg-names property, instead registers mapped using
+>      compatible string
+>    * removed ti,modes property, instead uses DPLL mode flags now
+>    * separated AM33XX DPLLs under their own compatible strings
+> - Patch #4 & #5: new patches
+> - Patch #6: merged basic gate support from Mike to this patch as vendor
+>    specific gate clock support
+> - Patch #9 & #10: new patches
+> - Patch #11: dummy clocks added, USB / ABE DPLL setup ordering changed
+> - Patch #14: dummy clocks added
+> - Patch #20: dropped usage of reg-names property
+> - Patch #21: dummy clocks added
+> - Patch #22 & #23: new patches
+> - Patch #30: AM35XX clock data added to this patch
+> - Patch #31:
+>    * dummy clocks added
+>    * added missing 3630 clocks
+>
+> Test branch available here:
+> https://github.com/t-kristo/linux-pm.git
+> branch: mainline-3.12-rc2-ti-dt-clks-v7
+>
+> Testing done:
+> - am335x-bone : boot only
+> - omap5-sevm : boot only
+> - dra7-evm : boot only
+> - omap3-beagle : boot + suspend/resume (ret + off)
+> - omap4-panda-es : boot + suspend/resume
+>
+> Nishanth has also been doing some tests with omap3-beagle-xm with some WIP
+> versions of this branch, but not with this latest one. Nishanth, maybe you
+> can provide test results to this one also?
+>
+> -Tero
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
