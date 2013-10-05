@@ -1,130 +1,21 @@
-From: Joel Fernandes <joelf@ti.com>
-Subject: [PATCH v3 1/3] ARM: dts: AM33XX: Add SHAM data and documentation
-Date: Sat, 5 Oct 2013 14:04:35 -0500
-Message-ID: <1380999877-20884-2-git-send-email-joelf@ti.com>
-References: <1380999877-20884-1-git-send-email-joelf@ti.com>
+From: "arapov74" <wf@wfmaquinas.com.br>
+Subject: [RandText,uborka_temi: Specified TextBlock does not exists!]
+Date: Sat, 5 Oct 2013 21:06:11 +0200
+Message-ID: <608F382E2A3347CF90786429D905E658@tnjdtdt>
+Reply-To: "arapov74" <1212eremin@gotan.ch>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+	format=flowed;
+	charset="windows-1251";
+	reply-type=original
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:42295 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753031Ab3JETFJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 5 Oct 2013 15:05:09 -0400
-In-Reply-To: <1380999877-20884-1-git-send-email-joelf@ti.com>
+Received: from mail4.parma.ru ([217.24.112.46]:38450 "EHLO mail4.parma.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752354Ab3JETg0 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 5 Oct 2013 15:36:26 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Rutland <mark.rutland@arm.com>, Benoit Cousson <bcousson@baylibre.com>
-Cc: Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, devicetree@vger.kernel.org, Paul Walmsley <paul@pwsan.com>
+To: leedh@meds.queensu.ca, telepult@onego.ru, dnktestkiev@yahoo.com, a.terekhin@transtk.ru, linux-omap@vger.kernel.org
 
-From: "Mark A. Greer" <mgreer@animalcreek.com>
-
-Add the generic AM33XX SHAM module's device tree data and
-enable it for the am335x-evm, am335x-evmsk, and am335x-bone
-platforms.  Also add Documentation file describing the data
-for the SHAM module.
-
-[joelf@ti.com: Dropped interrupt-parrent property, documentation fixups]
-CC: Paul Walmsley <paul@pwsan.com>
-Signed-off-by: Mark A. Greer <mgreer@animalcreek.com>
-Acked-by: Mark Rutland <mark.rutland@arm.com>
----
- .../devicetree/bindings/crypto/omap-sham.txt       | 28 ++++++++++++++++++++++
- arch/arm/boot/dts/am335x-bone.dts                  |  4 ++++
- arch/arm/boot/dts/am335x-evm.dts                   |  4 ++++
- arch/arm/boot/dts/am335x-evmsk.dts                 |  4 ++++
- arch/arm/boot/dts/am33xx.dtsi                      |  9 +++++++
- 5 files changed, 49 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/crypto/omap-sham.txt
-
-diff --git a/Documentation/devicetree/bindings/crypto/omap-sham.txt b/Documentation/devicetree/bindings/crypto/omap-sham.txt
-new file mode 100644
-index 0000000..f839acd
---- /dev/null
-+++ b/Documentation/devicetree/bindings/crypto/omap-sham.txt
-@@ -0,0 +1,28 @@
-+OMAP SoC SHA crypto Module
-+
-+Required properties:
-+
-+- compatible : Should contain entries for this and backward compatible
-+  SHAM versions:
-+  - "ti,omap2-sham" for OMAP2 & OMAP3.
-+  - "ti,omap4-sham" for OMAP4 and AM33XX.
-+  Note that these two versions are incompatible.
-+- ti,hwmods: Name of the hwmod associated with the SHAM module
-+- reg : Offset and length of the register set for the module
-+- interrupts : the interrupt-specifier for the SHAM module.
-+
-+Optional properties:
-+- dmas: DMA specifiers for the rx dma. See the DMA client binding,
-+	Documentation/devicetree/bindings/dma/dma.txt
-+- dma-names: DMA request name. Should be "rx" if a dma is present.
-+
-+Example:
-+	/* AM335x */
-+	sham: sham@53100000 {
-+		compatible = "ti,omap4-sham";
-+		ti,hwmods = "sham";
-+		reg = <0x53100000 0x200>;
-+		interrupts = <109>;
-+		dmas = <&edma 36>;
-+		dma-names = "rx";
-+	};
-diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
-index 0d63348..8a9802e 100644
---- a/arch/arm/boot/dts/am335x-bone.dts
-+++ b/arch/arm/boot/dts/am335x-bone.dts
-@@ -19,3 +19,7 @@
- &mmc1 {
- 	vmmc-supply = <&ldo3_reg>;
- };
-+
-+&sham {
-+	status = "okay";
-+};
-diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
-index 23b0a3e..d59e51c 100644
---- a/arch/arm/boot/dts/am335x-evm.dts
-+++ b/arch/arm/boot/dts/am335x-evm.dts
-@@ -522,3 +522,7 @@
- 	status = "okay";
- 	vmmc-supply = <&vmmc_reg>;
- };
-+
-+&sham {
-+	status = "okay";
-+};
-diff --git a/arch/arm/boot/dts/am335x-evmsk.dts b/arch/arm/boot/dts/am335x-evmsk.dts
-index bc93895..d45a330 100644
---- a/arch/arm/boot/dts/am335x-evmsk.dts
-+++ b/arch/arm/boot/dts/am335x-evmsk.dts
-@@ -424,3 +424,7 @@
- 	status = "okay";
- 	vmmc-supply = <&vmmc_reg>;
- };
-+
-+&sham {
-+	status = "okay";
-+};
-diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index 553adc6..299710b 100644
---- a/arch/arm/boot/dts/am33xx.dtsi
-+++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -710,5 +710,14 @@
- 			#size-cells = <1>;
- 			status = "disabled";
- 		};
-+
-+		sham: sham@53100000 {
-+			compatible = "ti,omap4-sham";
-+			ti,hwmods = "sham";
-+			reg = <0x53100000 0x200>;
-+			interrupts = <109>;
-+			dmas = <&edma 36>;
-+			dma-names = "rx";
-+		};
- 	};
- };
--- 
-1.8.1.2
-
+[RandText,uborka-text: Specified TextBlock does not exists!]
