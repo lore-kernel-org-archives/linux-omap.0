@@ -1,144 +1,31 @@
-From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Subject: [PATCH v2 1/1] ARM: OMAP2+: pdata-quirks: add legacy display init for IGEPv2 board
-Date: Sat,  5 Oct 2013 05:26:01 +0200
-Message-ID: <1380943561-22631-1-git-send-email-javier.martinez@collabora.co.uk>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([93.93.135.160]:39225 "EHLO
-	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752167Ab3JED0n (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Oct 2013 23:26:43 -0400
-Sender: linux-omap-owner@vger.kernel.org
+From: Andreas Fenkart <afenkart@gmail.com>
+Subject: [PATCH v3 0/4] mmc: omap_hsmmc: SDIO irq
+Date: Sat,  5 Oct 2013 13:17:06 +0200
+Message-ID: <1380971830-21492-1-git-send-email-afenkart@gmail.com>
+Return-path: <linux-doc-owner@vger.kernel.org>
+Sender: linux-doc-owner@vger.kernel.org
+To: Chris Ball <cjb@laptop.org>
+Cc: Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, Felipe Balbi <balbi@ti.com>, Venkatraman S <svenkatr@ti.com>, Balaji T K <balajitk@ti.com>, zonque@gmail.com, devicetree-discuss@lists.ozlabs.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, Andreas Fenkart <afenkart@gmail.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Enric Balletbo i Serra <eballetbo@gmail.com>, bcousson@baylibre.com, tomi.valkeinen@ti.com, linux-omap@vger.kernel.org, Javier Martinez Canillas <javier.martinez@collabora.co.uk>
 
-IGEPv2 board has both an DVI and TFP410 video interfaces but
-DSS support for DeviceTree has not yet landed in mainline so
-is necessary to init the displays using legacy platform code.
+Changes:
+- split the subject patch into normal handling and
+  workaround for am335x
+- rebase
 
-Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
----
+Andreas Fenkart (3):
+  mmc: omap_hsmmc: Enable SDIO IRQ.
+  mmc: omap_hsmmc: Remux pins to support SDIO interrupt on AM335x
+  mmc: omap_hsmmc: debugfs for SDIO IRQ and GPIO remux
 
-Changes since v1:
- - Remove duplicate entry in pdata_quirks[] due silly copy & paste error.
-   Sorry for the noise.
+Tony Lindgren (1):
+  mmc: omap_hsmmc: Fix context save and restore for DT
 
- arch/arm/mach-omap2/dss-common.c   | 37 +++++++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/dss-common.h   |  1 +
- arch/arm/mach-omap2/pdata-quirks.c |  6 ++++++
- 3 files changed, 44 insertions(+)
+ .../devicetree/bindings/mmc/ti-omap-hsmmc.txt      |   42 +++
+ drivers/mmc/host/omap_hsmmc.c                      |  363 +++++++++++++++++---
+ include/linux/platform_data/mmc-omap.h             |    4 +
+ 3 files changed, 357 insertions(+), 52 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/dss-common.c b/arch/arm/mach-omap2/dss-common.c
-index bf89eff..0c1cf2e 100644
---- a/arch/arm/mach-omap2/dss-common.c
-+++ b/arch/arm/mach-omap2/dss-common.c
-@@ -39,6 +39,7 @@
- #define HDMI_GPIO_HPD  63 /* Hotplug detect */
- 
- #define PANDA_DVI_TFP410_POWER_DOWN_GPIO	0
-+#define IGEP2_DVI_TFP410_POWER_DOWN_GPIO	170
- 
- /* DVI Connector */
- static struct connector_dvi_platform_data omap4_panda_dvi_connector_pdata = {
-@@ -53,6 +54,18 @@ static struct platform_device omap4_panda_dvi_connector_device = {
- 	.dev.platform_data      = &omap4_panda_dvi_connector_pdata,
- };
- 
-+static struct connector_dvi_platform_data omap3_igep2_dvi_connector_pdata = {
-+	.name                   = "dvi",
-+	.source                 = "tfp410.0",
-+	.i2c_bus_num            = 3,
-+};
-+
-+static struct platform_device omap3_igep2_dvi_connector_device = {
-+	.name                   = "connector-dvi",
-+	.id                     = 0,
-+	.dev.platform_data      = &omap3_igep2_dvi_connector_pdata,
-+};
-+
- /* TFP410 DPI-to-DVI chip */
- static struct encoder_tfp410_platform_data omap4_panda_tfp410_pdata = {
- 	.name                   = "tfp410.0",
-@@ -67,6 +80,19 @@ static struct platform_device omap4_panda_tfp410_device = {
- 	.dev.platform_data      = &omap4_panda_tfp410_pdata,
- };
- 
-+static struct encoder_tfp410_platform_data omap3_igep2_tfp410_pdata = {
-+	.name                   = "tfp410.0",
-+	.source                 = "dpi.0",
-+	.data_lines             = 24,
-+	.power_down_gpio        = IGEP2_DVI_TFP410_POWER_DOWN_GPIO,
-+};
-+
-+static struct platform_device omap3_igep2_tfp410_device = {
-+	.name                   = "tfp410",
-+	.id                     = 0,
-+	.dev.platform_data      = &omap3_igep2_tfp410_pdata,
-+};
-+
- /* HDMI Connector */
- static struct connector_hdmi_platform_data omap4_panda_hdmi_connector_pdata = {
- 	.name                   = "hdmi",
-@@ -99,6 +125,10 @@ static struct omap_dss_board_info omap4_panda_dss_data = {
- 	.default_display_name = "dvi",
- };
- 
-+static struct omap_dss_board_info igep2_dss_data = {
-+	.default_display_name = "dvi",
-+};
-+
- void __init omap4_panda_display_init_of(void)
- {
- 	omap_display_init(&omap4_panda_dss_data);
-@@ -110,6 +140,13 @@ void __init omap4_panda_display_init_of(void)
- 	platform_device_register(&omap4_panda_hdmi_connector_device);
- }
- 
-+void __init omap3_igep2_display_init_of(void)
-+{
-+	omap_display_init(&igep2_dss_data);
-+
-+	platform_device_register(&omap3_igep2_tfp410_device);
-+	platform_device_register(&omap3_igep2_dvi_connector_device);
-+}
- 
- /* OMAP4 Blaze display data */
- 
-diff --git a/arch/arm/mach-omap2/dss-common.h b/arch/arm/mach-omap2/dss-common.h
-index c28fe3c..a9becf0 100644
---- a/arch/arm/mach-omap2/dss-common.h
-+++ b/arch/arm/mach-omap2/dss-common.h
-@@ -8,5 +8,6 @@
- 
- void __init omap4_panda_display_init_of(void);
- void __init omap_4430sdp_display_init_of(void);
-+void __init omap3_igep2_display_init_of(void);
- 
- #endif
-diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
-index 3d472db..9113e70 100644
---- a/arch/arm/mach-omap2/pdata-quirks.c
-+++ b/arch/arm/mach-omap2/pdata-quirks.c
-@@ -74,6 +74,11 @@ static void __init hsmmc2_internal_input_clk(void)
- 	reg |= OMAP2_MMCSDIO2ADPCLKISEL;
- 	omap_ctrl_writel(reg, OMAP343X_CONTROL_DEVCONF1);
- }
-+
-+static void __init omap3_igep0020_legacy_init(void)
-+{
-+	omap3_igep2_display_init_of();
-+}
- #endif /* CONFIG_ARCH_OMAP3 */
- 
- #ifdef CONFIG_ARCH_OMAP4
-@@ -103,6 +108,7 @@ static struct pdata_init pdata_quirks[] __initdata = {
- #ifdef CONFIG_ARCH_OMAP3
- 	{ "nokia,omap3-n9", hsmmc2_internal_input_clk, },
- 	{ "nokia,omap3-n950", hsmmc2_internal_input_clk, },
-+	{ "isee,omap3-igep0020", omap3_igep0020_legacy_init, },
- #endif
- #ifdef CONFIG_ARCH_OMAP4
- 	{ "ti,omap4-sdp", omap4_sdp_legacy_init, },
 -- 
-1.8.4.rc3
+1.7.10.4
 
