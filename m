@@ -1,35 +1,24 @@
-From: Sebastian Reichel <sre@debian.org>
-Subject: [RFCv3 5/7] HSI: hsi-char: fix driver for multiport scenarios
-Date: Sun,  6 Oct 2013 22:27:13 +0200
-Message-ID: <1381091235-18293-6-git-send-email-sre@debian.org>
-References: <1381091235-18293-1-git-send-email-sre@debian.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1381091235-18293-1-git-send-email-sre@debian.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@ring0.de>, Linus Walleij <linus.walleij@linaro.org>, Shubhrajyoti Datta <omaplinuxkernel@gmail.com>, Carlos Chinea <cch.devel@gmail.com>, Paul Walmsley <paul@pwsan.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Grant Likely <grant.likely@linaro.org>, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Rob Landley <rob@landley.net>, =?UTF-8?q?=27Beno=C3=AEt=20Cousson=27?= <bcousson@baylibre.com>, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, =?UTF-8?q?=27Pali=20Roh=C3=A1r=27?= <pali.rohar@gmail.com>, =?UTF-8?q?=27=D0=98=D0=B2=D0=B0=D0=B9=D0=BB=D0=BE=20=D0=94=D0=B8=D0=BC=D0=B8=D1=82=D1=80=D0=BE=D0=B2=27?= <freemangordon@abv.bg>, Joni Lapilainen <joni.lapilainen@gmail.com>, Sebastian Reichel <sre@debian.org>
+From: "Mr. M. Barlow" <curtisbarlow001@live.com>
+Subject: VERY URGENT..!
+Date: Sun, 06 Oct 2013 21:30:31 +0100
+Message-ID: <20131007033034.3BF5D4913D6__43557.0002453916$1381092223$gmane$org@mail.suza.ac.tz>
+Reply-To: curtisbarlow001@live.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail.suza.ac.tz ([41.204.150.68]:57960 "EHLO mail.suza.ac.tz"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754317Ab3JFUnR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 6 Oct 2013 16:43:17 -0400
+Content-Description: Mail message body
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Recipients <curtisbarlow001@live.com>
 
-Fix return code check of alloc_chrdev_region, which
-returns 0 on success.
+Hello, I am Mr. M. Barlow from Paris, France. I have been advised to contact you regarding my business investment in your country. For urgent response and more details, kindly get back to me via this E-mail: bc82022@gmail.com or Telephone number below. Thank you as I wait for your response.
 
-Signed-off-by: Sebastian Reichel <sre@debian.org>
----
- drivers/hsi/clients/hsi_char.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Mr. M. Barlow.
++33-753-194-496
 
-diff --git a/drivers/hsi/clients/hsi_char.c b/drivers/hsi/clients/hsi_char.c
-index e3302ed..5457690 100644
---- a/drivers/hsi/clients/hsi_char.c
-+++ b/drivers/hsi/clients/hsi_char.c
-@@ -706,7 +706,7 @@ static int hsc_probe(struct device *dev)
- 	if (!hsc_major) {
- 		ret = alloc_chrdev_region(&hsc_dev, hsc_baseminor,
- 						HSC_DEVS, devname);
--		if (ret > 0)
-+		if (ret == 0)
- 			hsc_major = MAJOR(hsc_dev);
- 	} else {
- 		hsc_dev = MKDEV(hsc_major, hsc_baseminor);
--- 
-1.8.4.rc3
+Sent from Orange Wireless BlackBerry Smartphone, France.
