@@ -1,7 +1,7 @@
 From: Sebastian Reichel <sre@debian.org>
-Subject: [RFCv3 3/7] HSI: method to unregister clients from an hsi port
-Date: Sun,  6 Oct 2013 22:27:11 +0200
-Message-ID: <1381091235-18293-4-git-send-email-sre@debian.org>
+Subject: [RFCv3 1/7] ARM: OMAP2+: hwmod-data: Add SSI information
+Date: Sun,  6 Oct 2013 22:27:09 +0200
+Message-ID: <1381091235-18293-2-git-send-email-sre@debian.org>
 References: <1381091235-18293-1-git-send-email-sre@debian.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1381091235-18293-1-git-send-email-sre@debian.org>
@@ -10,47 +10,79 @@ To: Sebastian Reichel <sre@ring0.de>, Linus Walleij <linus.walleij@linaro.org>, 
 Cc: Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Grant Likely <grant.likely@linaro.org>, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Rob Landley <rob@landley.net>, =?UTF-8?q?=27Beno=C3=AEt=20Cousson=27?= <bcousson@baylibre.com>, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, =?UTF-8?q?=27Pali=20Roh=C3=A1r=27?= <pali.rohar@gmail.com>, =?UTF-8?q?=27=D0=98=D0=B2=D0=B0=D0=B9=D0=BB=D0=BE=20=D0=94=D0=B8=D0=BC=D0=B8=D1=82=D1=80=D0=BE=D0=B2=27?= <freemangordon@abv.bg>, Joni Lapilainen <joni.lapilainen@gmail.com>, Sebastian Reichel <sre@debian.org>
 List-Id: linux-omap@vger.kernel.org
 
-This exports a method to unregister all clients from
-an hsi port.
+This patch adds Synchronous Serial Interface (SSI) hwmod support for
+OMAP34xx SoCs.
 
 Signed-off-by: Sebastian Reichel <sre@debian.org>
 ---
- drivers/hsi/hsi.c       | 10 ++++++++++
- include/linux/hsi/hsi.h |  1 +
- 2 files changed, 11 insertions(+)
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c | 48 ++++++++++++++++++++++++++++++
+ 1 file changed, 48 insertions(+)
 
-diff --git a/drivers/hsi/hsi.c b/drivers/hsi/hsi.c
-index 4384d7e..9dd7120 100644
---- a/drivers/hsi/hsi.c
-+++ b/drivers/hsi/hsi.c
-@@ -196,6 +196,16 @@ static void hsi_port_release(struct device *dev)
- }
+diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+index 0c3a427..9e56fab 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+@@ -3693,6 +3693,53 @@ static struct omap_hwmod_ocp_if omap3xxx_l4_core__aes = {
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
  
- /**
-+ * hsi_unregister_port - Unregister an HSI port
-+ * @port: The HSI port to unregister
++/*
++ * 'ssi' class
++ * synchronous serial interface (multichannel and full-duplex serial if)
 + */
-+void hsi_port_unregister_clients(struct hsi_port *port)
-+{
-+	device_for_each_child(&port->device, NULL, hsi_remove_client);
-+}
-+EXPORT_SYMBOL_GPL(hsi_port_unregister_clients);
 +
-+/**
-  * hsi_unregister_controller - Unregister an HSI controller
-  * @hsi: The HSI controller to register
-  */
-diff --git a/include/linux/hsi/hsi.h b/include/linux/hsi/hsi.h
-index fb07339..89cc6f2 100644
---- a/include/linux/hsi/hsi.h
-+++ b/include/linux/hsi/hsi.h
-@@ -284,6 +284,7 @@ int hsi_register_controller(struct hsi_controller *hsi);
- void hsi_unregister_controller(struct hsi_controller *hsi);
- void hsi_add_clients_from_dt(struct hsi_port *port,
- 						struct device_node *clients);
-+void hsi_port_unregister_clients(struct hsi_port *port);
++static struct omap_hwmod_class_sysconfig omap34xx_ssi_sysc = {
++	.rev_offs	= 0x0000,
++	.sysc_offs	= 0x0010,
++	.syss_offs	= 0x0014,
++	.sysc_flags	= (SYSC_HAS_AUTOIDLE | SYSC_HAS_EMUFREE |
++			   SYSC_HAS_MIDLEMODE | SYSC_HAS_SIDLEMODE |
++			   SYSC_HAS_SOFTRESET | SYSS_HAS_RESET_STATUS),
++	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
++			   SIDLE_SMART_WKUP | MSTANDBY_FORCE | MSTANDBY_NO |
++			   MSTANDBY_SMART | MSTANDBY_SMART_WKUP),
++	.sysc_fields	= &omap_hwmod_sysc_type1,
++};
++
++static struct omap_hwmod_class omap34xx_ssi_hwmod_class = {
++	.name	= "ssi",
++	.sysc	= &omap34xx_ssi_sysc,
++};
++
++static struct omap_hwmod omap34xx_ssi_hwmod = {
++	.name		= "ssi",
++	.class		= &omap34xx_ssi_hwmod_class,
++	.clkdm_name	= "core_l4_clkdm",
++	.main_clk	= "ssi_ssr_fck",
++	.prcm		= {
++		.omap2 = {
++			.prcm_reg_id		= 1,
++			.module_bit		= OMAP3430_EN_SSI_SHIFT,
++			.module_offs		= CORE_MOD,
++			.idlest_reg_id		= 1,
++			.idlest_idle_bit	= OMAP3430ES2_ST_SSI_IDLE_SHIFT,
++		},
++	},
++};
++
++/* L4 CORE -> SSI */
++static struct omap_hwmod_ocp_if omap34xx_l4_core__ssi = {
++	.master		= &omap3xxx_l4_core_hwmod,
++	.slave		= &omap34xx_ssi_hwmod,
++	.clk		= "ssi_ick",
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
+ static struct omap_hwmod_ocp_if *omap3xxx_hwmod_ocp_ifs[] __initdata = {
+ 	&omap3xxx_l3_main__l4_core,
+ 	&omap3xxx_l3_main__l4_per,
+@@ -3818,6 +3865,7 @@ static struct omap_hwmod_ocp_if *omap34xx_hwmod_ocp_ifs[] __initdata = {
+ #ifdef CONFIG_OMAP_IOMMU_IVA2
+ 	&omap3xxx_l3_main__mmu_iva,
+ #endif
++	&omap34xx_l4_core__ssi,
+ 	NULL
+ };
  
- static inline void hsi_controller_set_drvdata(struct hsi_controller *hsi,
- 								void *data)
 -- 
 1.8.4.rc3
