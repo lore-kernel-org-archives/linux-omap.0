@@ -1,72 +1,121 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: Odd behavior with dpll4_m4x2_ck on omap3 + DT
-Date: Mon, 7 Oct 2013 08:21:16 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1310070807320.20589@utopia.booyaka.com>
-References: <521DC143.2010506@ti.com> <521DC770.5050000@ti.com> <521DCD80.1060600@ti.com> <521DE1A6.6030005@ti.com> <522F0390.9050802@gmail.com> <522F0CC7.50501@ti.com> <522F0E3E.1080001@ti.com> <522F0F9B.9050705@ti.com> <522F1346.3020206@ti.com>
- <522F1BF9.5050006@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH 2/3] ARM: dts: omap3-igep0020: Add HS USB Host support
+Date: Mon, 7 Oct 2013 11:33:25 +0300
+Message-ID: <525271D5.9070009@ti.com>
+References: <1380931479-16142-1-git-send-email-javier.martinez@collabora.co.uk> <1380931479-16142-3-git-send-email-javier.martinez@collabora.co.uk>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:52736 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752149Ab3JGIVR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Oct 2013 04:21:17 -0400
-In-Reply-To: <522F1BF9.5050006@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:38039 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753929Ab3JGIdi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 7 Oct 2013 04:33:38 -0400
+In-Reply-To: <1380931479-16142-3-git-send-email-javier.martinez@collabora.co.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, Stefan Roese <stefan.roese@gmail.com>, linux-omap <linux-omap@vger.kernel.org>, Mike Turquette <mturquette@linaro.org>
+To: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Cc: bcousson@baylibre.com, Tony Lindgren <tony@atomide.com>, Enric Balletbo i Serra <eballetbo@gmail.com>, linux-omap@vger.kernel.org
 
-On Tue, 10 Sep 2013, Tero Kristo wrote:
+Hi Javier,
 
-> In theory, DPLLs can also be used in their bypass mode to feed customer nodes
-> clocks. I just think the check in the clkoutx2_recalc is wrong, and should be
-> enhanced to actually check what is the target mode for the clock once it is
-> enabled. Maybe something like this would work properly:
+On 10/05/2013 03:04 AM, Javier Martinez Canillas wrote:
+> Add device nodes for the HS USB Host port 1, USB PHY and its
+> required regulator and also pin mux setup for HS USB1 pins.
 > 
-> diff --git a/arch/arm/mach-omap2/dpll3xxx.c b/arch/arm/mach-omap2/dpll3xxx.c
-> index 3a0296c..ba218fb 100644
-> --- a/arch/arm/mach-omap2/dpll3xxx.c
-> +++ b/arch/arm/mach-omap2/dpll3xxx.c
-> @@ -658,14 +658,12 @@ unsigned long omap3_clkoutx2_recalc(struct clk_hw *hw,
+> Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+> ---
+>  arch/arm/boot/dts/omap3-igep.dtsi    | 22 ++++++++++++++++++++++
+>  arch/arm/boot/dts/omap3-igep0020.dts | 25 +++++++++++++++++++++++++
+>  2 files changed, 47 insertions(+)
 > 
->         dd = pclk->dpll_data;
-> 
-> -       WARN_ON(!dd->enable_mask);
-> -
-> -       v = __raw_readl(dd->control_reg) & dd->enable_mask;
-> -       v >>= __ffs(dd->enable_mask);
-> -       if ((v != OMAP3XXX_EN_DPLL_LOCKED) || (dd->flags & DPLL_J_TYPE))
-> +       if ((dd->flags & DPLL_J_TYPE) ||
-> +           __clk_get_rate(dd->clk_bypass) == __clk_get_rate(pclk))
->                 rate = parent_rate;
->         else
->                 rate = parent_rate * 2;
+> diff --git a/arch/arm/boot/dts/omap3-igep.dtsi b/arch/arm/boot/dts/omap3-igep.dtsi
+> index 0f92224..ec2ecd2 100644
+> --- a/arch/arm/boot/dts/omap3-igep.dtsi
+> +++ b/arch/arm/boot/dts/omap3-igep.dtsi
+> @@ -27,6 +27,11 @@
+>  };
+>  
+>  &omap3_pmx_core {
+> +	pinctrl-names = "default";
+> +	pinctrl-0 = <
+> +		&hsusbb1_pins
+> +	>;
 > +
->         return rate;
->  }
+>  	uart1_pins: pinmux_uart1_pins {
+>  		pinctrl-single,pins = <
+>  			0x152 (PIN_INPUT | MUX_MODE0)		/* uart1_rx.uart1_rx */
+> @@ -78,6 +83,23 @@
+>  		>;
+>  	};
+>  
+> +	hsusbb1_pins: pinmux_hsusbb1_pins {
+> +		pinctrl-single,pins = <
+> +			0x5aa (PIN_OUTPUT | MUX_MODE3)		/* etk_ctl.hsusb1_clk */
+> +			0x5a8 (PIN_OUTPUT | MUX_MODE3)		/* etk_clk.hsusb1_stp */
+> +			0x5bc (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d8.hsusb1_dir */
+> +			0x5be (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d9.hsusb1_nxt */
+> +			0x5ac (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d0.hsusb1_data0 */
+> +			0x5ae (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d1.hsusb1_data1 */
+> +			0x5b0 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d2.hsusb1_data2 */
+> +			0x5b2 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d3.hsusb1_data7 */
+> +			0x5b4 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d4.hsusb1_data4 */
+> +			0x5b6 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d5.hsusb1_data5 */
+> +			0x5b8 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d6.hsusb1_data6 */
+> +			0x5ba (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d7.hsusb1_data3 */
+> +		>;
+> +	};
+> +
+
+Is this pin config required for igep0030 as well? If not then you should move these pinmux
+definitions to omap3-igep0020.dts.
+
+All else looks good to me.
+
+>  	leds_pins: pinmux_leds_pins { };
+>  };
+>  
+> diff --git a/arch/arm/boot/dts/omap3-igep0020.dts b/arch/arm/boot/dts/omap3-igep0020.dts
+> index 903e944..180b186 100644
+> --- a/arch/arm/boot/dts/omap3-igep0020.dts
+> +++ b/arch/arm/boot/dts/omap3-igep0020.dts
+> @@ -55,6 +55,23 @@
+>  		regulator-name = "vdd33a";
+>  		regulator-always-on;
+>  	};
+> +
+> +       /* HS USB Port 1 Power */
+> +       hsusb1_power: hsusb1_power_reg {
+> +               compatible = "regulator-fixed";
+> +               regulator-name = "hsusb1_vbus";
+> +               regulator-min-microvolt = <3300000>;
+> +               regulator-max-microvolt = <3300000>;
+> +               gpio = <&twl_gpio 18 GPIO_ACTIVE_LOW>;	/* GPIO LEDA */
+> +               startup-delay-us = <70000>;
+> +       };
+> +
+> +	/* HS USB Host PHY on PORT 1 */
+> +	hsusb1_phy: hsusb1_phy {
+> +		compatible = "usb-nop-xceiv";
+> +		reset-gpios = <&gpio1 24 GPIO_ACTIVE_LOW>; /* gpio_24 */
+> +		vcc-supply = <&hsusb1_power>;
+> +	};
+>  };
+>  
+>  &leds_pins {
+> @@ -173,3 +190,11 @@
+>  	mode = <3>;
+>  	power = <50>;
+>  };
+> +
+> +&usbhshost {
+> +	port1-mode = "ehci-phy";
+> +};
+> +
+> +&usbhsehci {
+> +	phys = <&hsusb1_phy>;
+> +};
 > 
 
-[...]
-
-> Getting comment from someone like Paul would probably help here.
-
-Looks like this is a regression from the CCF port.
-
-Seems to me that the code above assumes that when the DPLL's rate is set 
-to the same rate as the bypass clock's rate, we can assume that the DPLL 
-is in bypass.  I wonder if that's valid in a case where a previous OS or 
-bootloader may have programmed the DPLL.
-
-Sounds to me like the best way to fix it would be to test whether this 
-code is intended to return the "target rate" (when the struct clk 
-representing the DPLL is disabled), versus the "current rate" (when the 
-struct clk representing the DPLL is enabled).  If it's the target rate, 
-then there's no point checking the current state of the hardware.  A check 
-similar to the above would probably be fine.  Otherwise, seems best to use 
-the existing code that does test the PLL state.
-
-
-
-- Paul
-
+cheers,
+-roger
