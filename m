@@ -1,184 +1,76 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/6] pinctrl: single: Prepare for supporting SoC
- specific features
-Date: Mon, 7 Oct 2013 10:35:31 -0700
-Message-ID: <20131007173531.GX8949@atomide.com>
-References: <20131003054104.8941.88857.stgit@localhost>
- <20131003054218.8941.19273.stgit@localhost>
+Subject: Re: [PATCHv7 00/36] ARM: OMAP: clock data conversion to DT
+Date: Mon, 7 Oct 2013 12:03:22 -0700
+Message-ID: <20131007190322.GY8949@atomide.com>
+References: <1380098922-30340-1-git-send-email-t-kristo@ti.com>
+ <524EE00F.7010208@ti.com>
+ <20131007021556.GV8949@atomide.com>
+ <52525642.8010307@ti.com>
+ <20131007154103.GW8949@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:13810 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1756007Ab3JGRfu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Oct 2013 13:35:50 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:47428 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756610Ab3JGTD2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Oct 2013 15:03:28 -0400
 Content-Disposition: inline
-In-Reply-To: <20131003054218.8941.19273.stgit@localhost>
+In-Reply-To: <20131007154103.GW8949@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org, Linus Walleij <linus.walleij@linaro.org>
-Cc: Grygorii Strashko <grygorii.strashko@ti.com>, linux-kernel@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@ti.com>, Prakash Manjunathappa <prakash.pm@ti.com>, Haojian Zhuang <haojian.zhuang@linaro.org>, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, nm@ti.com, rnayak@ti.com, bcousson@baylibre.com, mturquette@linaro.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-Hi Linus W,
+* Tony Lindgren <tony@atomide.com> [131007 08:49]:
+> * Tero Kristo <t-kristo@ti.com> [131006 23:43]:
+> > On 10/07/2013 05:15 AM, Tony Lindgren wrote:
+> > >* Tero Kristo <t-kristo@ti.com> [131004 08:42]:
+> > >>Hi,
+> > >>
+> > >>Just a gentle reminder, anybody have any comments on this series or
+> > >>should we start queuing stuff?
+> > >
+> > >Well omap4 seems to work for me just fine, and omap3 in legacy
+> > >mode. But looks like omap3 device tree based booting is breaking
+> > >after I pulled in your test branch. I get the following on
+> > >3630 based dm3730.
+> > 
+> > Uart4 breaks because of the issue with basic DT blobs. You need at
+> > least this patch:
+> > 
+> > http://linux-kernel.2935.n7.nabble.com/RFC-PATCH-ARM-OMAP3630-Add-generic-machine-descriptor-td722791.html
+> > 
+> > ... from Nishanth to get it to work right. Otherwise the clock init
+> > tries to use omap3430 clock data for omap3630 which leaves uart4
+> > nodes out.
+> 
+> OK thanks yes that solves it, I was missing the compatible flag
+> for my not quite ready test boards (3730-evm and zoom3).
+> I'll apply Nishant's fix with some changes.
+> 
+> Then for this series, once you have the necessary acks, can you
+> please split into following two separate immutable branches
+> against v3.12-rc3:
+> 
+> 1. clock code changes
+> 
+> 2. dts changes
+> 
+> Then those can be pulled in as needed by Benoit, Mike and I.
 
-Any comments on the pinctrl patches 3 - 5 in this series?
-
-These are badly needed to not break omap3 PM support when
-we're moving to device tree based booting.
-
-* Tony Lindgren <tony@atomide.com> [131002 22:50]:
-> Let's replace is_pinconf with flags and add struct pcs_soc_data
-> so we can support SoC specific features like pin wake-up events.
+And Paul too natuarlly if these patches conflict with stuff
+that's he's merging. And assuming Paul is OK with these patches
+in general.
+ 
+> For the whole series, I think this quite nicely removes some
+> nasty kernel data dependencies for omaps, so feel free to add:
+>
+> Acked-by: Tony Lindgren <tony@atomide.com>
 > 
-> Done in collaboration with Roger Quadros <rogerq@ti.com>.
+> Regards,
 > 
-> Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> Cc: Grygorii Strashko <grygorii.strashko@ti.com>
-> Cc: Prakash Manjunathappa <prakash.pm@ti.com>
-> Cc: Haojian Zhuang <haojian.zhuang@linaro.org>
-> Cc: Linus Walleij <linus.walleij@linaro.org>
-> Cc: linux-kernel@vger.kernel.org
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> ---
->  drivers/pinctrl/pinctrl-single.c |   38 +++++++++++++++++++++++++++++---------
->  1 file changed, 29 insertions(+), 9 deletions(-)
-> 
-> diff --git a/drivers/pinctrl/pinctrl-single.c b/drivers/pinctrl/pinctrl-single.c
-> index a82ace4..f88d3d1 100644
-> --- a/drivers/pinctrl/pinctrl-single.c
-> +++ b/drivers/pinctrl/pinctrl-single.c
-> @@ -150,19 +150,27 @@ struct pcs_name {
->  };
->  
->  /**
-> + * struct pcs_soc_data - SoC specific settings
-> + * @flags:	initial SoC specific PCS_FEAT_xxx values
-> + */
-> +struct pcs_soc_data {
-> +	unsigned flags;
-> +};
-> +
-> +/**
->   * struct pcs_device - pinctrl device instance
->   * @res:	resources
->   * @base:	virtual address of the controller
->   * @size:	size of the ioremapped area
->   * @dev:	device entry
->   * @pctl:	pin controller device
-> + * @flags:	mask of PCS_FEAT_xxx values
->   * @mutex:	mutex protecting the lists
->   * @width:	bits per mux register
->   * @fmask:	function register mask
->   * @fshift:	function register shift
->   * @foff:	value to turn mux off
->   * @fmax:	max number of functions in fmask
-> - * @is_pinconf:	whether supports pinconf
->   * @bits_per_pin:number of bits per pin
->   * @names:	array of register names for pins
->   * @pins:	physical pins on the SoC
-> @@ -183,6 +191,8 @@ struct pcs_device {
->  	unsigned size;
->  	struct device *dev;
->  	struct pinctrl_dev *pctl;
-> +	unsigned flags;
-> +#define PCS_FEAT_PINCONF	(1 << 0)
->  	struct mutex mutex;
->  	unsigned width;
->  	unsigned fmask;
-> @@ -190,7 +200,6 @@ struct pcs_device {
->  	unsigned foff;
->  	unsigned fmax;
->  	bool bits_per_mux;
-> -	bool is_pinconf;
->  	unsigned bits_per_pin;
->  	struct pcs_name *names;
->  	struct pcs_data pins;
-> @@ -206,6 +215,8 @@ struct pcs_device {
->  	void (*write)(unsigned val, void __iomem *reg);
->  };
->  
-> +#define PCS_HAS_PINCONF		(pcs->flags & PCS_FEAT_PINCONF)
-> +
->  static int pcs_pinconf_get(struct pinctrl_dev *pctldev, unsigned pin,
->  			   unsigned long *config);
->  static int pcs_pinconf_set(struct pinctrl_dev *pctldev, unsigned pin,
-> @@ -1060,7 +1071,7 @@ static int pcs_parse_pinconf(struct pcs_device *pcs, struct device_node *np,
->  	};
->  
->  	/* If pinconf isn't supported, don't parse properties in below. */
-> -	if (!pcs->is_pinconf)
-> +	if (!PCS_HAS_PINCONF)
->  		return 0;
->  
->  	/* cacluate how much properties are supported in current node */
-> @@ -1184,7 +1195,7 @@ static int pcs_parse_one_pinctrl_entry(struct pcs_device *pcs,
->  	(*map)->data.mux.group = np->name;
->  	(*map)->data.mux.function = np->name;
->  
-> -	if (pcs->is_pinconf) {
-> +	if (PCS_HAS_PINCONF) {
->  		res = pcs_parse_pinconf(pcs, np, function, map);
->  		if (res)
->  			goto free_pingroups;
-> @@ -1305,7 +1316,7 @@ static int pcs_parse_bits_in_pinctrl_entry(struct pcs_device *pcs,
->  	(*map)->data.mux.group = np->name;
->  	(*map)->data.mux.function = np->name;
->  
-> -	if (pcs->is_pinconf) {
-> +	if (PCS_HAS_PINCONF) {
->  		dev_err(pcs->dev, "pinconf not supported\n");
->  		goto free_pingroups;
->  	}
-> @@ -1525,6 +1536,7 @@ static int pcs_probe(struct platform_device *pdev)
->  	const struct of_device_id *match;
->  	struct resource *res;
->  	struct pcs_device *pcs;
-> +	const struct pcs_soc_data *soc;
->  	int ret;
->  
->  	match = of_match_device(pcs_of_match, &pdev->dev);
-> @@ -1541,7 +1553,8 @@ static int pcs_probe(struct platform_device *pdev)
->  	INIT_LIST_HEAD(&pcs->pingroups);
->  	INIT_LIST_HEAD(&pcs->functions);
->  	INIT_LIST_HEAD(&pcs->gpiofuncs);
-> -	pcs->is_pinconf = match->data;
-> +	soc = match->data;
-> +	pcs->flags = soc->flags;
->  
->  	PCS_GET_PROP_U32("pinctrl-single,register-width", &pcs->width,
->  			 "register width not specified\n");
-> @@ -1610,7 +1623,7 @@ static int pcs_probe(struct platform_device *pdev)
->  	pcs->desc.name = DRIVER_NAME;
->  	pcs->desc.pctlops = &pcs_pinctrl_ops;
->  	pcs->desc.pmxops = &pcs_pinmux_ops;
-> -	if (pcs->is_pinconf)
-> +	if (PCS_HAS_PINCONF)
->  		pcs->desc.confops = &pcs_pinconf_ops;
->  	pcs->desc.owner = THIS_MODULE;
->  
-> @@ -1652,9 +1665,16 @@ static int pcs_remove(struct platform_device *pdev)
->  	return 0;
->  }
->  
-> +static const struct pcs_soc_data pinctrl_single = {
-> +};
-> +
-> +static const struct pcs_soc_data pinconf_single = {
-> +	.flags = PCS_FEAT_PINCONF,
-> +};
-> +
->  static struct of_device_id pcs_of_match[] = {
-> -	{ .compatible = "pinctrl-single", .data = (void *)false },
-> -	{ .compatible = "pinconf-single", .data = (void *)true },
-> +	{ .compatible = "pinctrl-single", .data = &pinctrl_single },
-> +	{ .compatible = "pinconf-single", .data = &pinconf_single },
->  	{ },
->  };
->  MODULE_DEVICE_TABLE(of, pcs_of_match);
-> 
+> Tony
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
