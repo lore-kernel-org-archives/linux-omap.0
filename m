@@ -1,63 +1,49 @@
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH v4 4/4] v4l: ti-vpe: Add de-interlacer support in VPE
-Date: Mon, 07 Oct 2013 09:57:13 +0200
-Message-ID: <52526959.8020701@xs4all.nl>
-References: <1376996457-17275-1-git-send-email-archit@ti.com> <1378462346-10880-1-git-send-email-archit@ti.com> <1378462346-10880-5-git-send-email-archit@ti.com>
+From: "Ivan T. Ivanov" <iivanov@mm-sol.com>
+Subject: Re: [PATCH v5 1/3] usb: dwc3: msm: Add device tree binding
+ information
+Date: Mon, 07 Oct 2013 10:57:04 +0300
+Message-ID: <1381132624.24031.45.camel@iivanov-dev.int.mm-sol.com>
+References: <1377091786-5613-1-git-send-email-iivanov@mm-sol.com>
+	 <1377091786-5613-2-git-send-email-iivanov@mm-sol.com>
+	 <20131004143151.GD16059@radagast>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:1787 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751796Ab3JGH5W (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Oct 2013 03:57:22 -0400
-In-Reply-To: <1378462346-10880-5-git-send-email-archit@ti.com>
+Received: from ns.mm-sol.com ([212.124.72.66]:50873 "EHLO extserv.mm-sol.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752937Ab3JGH6Z (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 7 Oct 2013 03:58:25 -0400
+In-Reply-To: <20131004143151.GD16059@radagast>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Archit Taneja <archit@ti.com>
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com, linux-omap@vger.kernel.org, tomi.valkeinen@ti.com
+To: balbi@ti.com
+Cc: rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ian.campbell@citrix.com, rob@landley.net, gregkh@linuxfoundation.org, grant.likely@linaro.org, idos@codeaurora.org, mgautam@codeaurora.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-msm@vger.kernel.org
 
-On 09/06/2013 12:12 PM, Archit Taneja wrote:
-> Add support for the de-interlacer block in VPE.
-> 
-> For de-interlacer to work, we need to enable 2 more sets of VPE input ports
-> which fetch data from the 'last' and 'last to last' fields of the interlaced
-> video. Apart from that, we need to enable the Motion vector output and input
-> ports, and also allocate DMA buffers for them.
-> 
-> We need to make sure that two most recent fields in the source queue are
-> available and in the 'READY' state. Once a mem2mem context gets access to the
-> VPE HW(in device_run), it extracts the addresses of the 3 buffers, and provides
-> it to the data descriptors for the 3 sets of input ports((LUMA1, CHROMA1),
-> (LUMA2, CHROMA2), and (LUMA3, CHROMA3)) respectively for the 3 consecutive
-> fields. The motion vector and output port descriptors are configured and the
-> list is submitted to VPDMA.
-> 
-> Once the transaction is done, the v4l2 buffer corresponding to the oldest
-> field(the 3rd one) is changed to the state 'DONE', and the buffers corresponding
-> to 1st and 2nd fields become the 2nd and 3rd field for the next de-interlace
-> operation. This way, for each deinterlace operation, we have the 3 most recent
-> fields. After each transaction, we also swap the motion vector buffers, the new
-> input motion vector buffer contains the resultant motion information of all the
-> previous frames, and the new output motion vector buffer will be used to hold
-> the updated motion vector to capture the motion changes in the next field. The
-> motion vector buffers are allocated using the DMA allocation API.
-> 
-> The de-interlacer is removed from bypass mode, it requires some extra default
-> configurations which are now added. The chrominance upsampler coefficients are
-> added for interlaced frames. Some VPDMA parameters like frame start event and
-> line mode are configured for the 2 extra sets of input ports.
-> 
-> Signed-off-by: Archit Taneja <archit@ti.com>
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Felipe,
 
-Regards,
-
-	Hans
-
-> ---
->  drivers/media/platform/ti-vpe/vpe.c | 392 ++++++++++++++++++++++++++++++++----
->  1 file changed, 358 insertions(+), 34 deletions(-)
+On Fri, 2013-10-04 at 09:31 -0500, Felipe Balbi wrote: 
+> On Wed, Aug 21, 2013 at 04:29:44PM +0300, Ivan T. Ivanov wrote:
+> > From: "Ivan T. Ivanov" <iivanov@mm-sol.com>
+> > 
+> > MSM USB3.0 core wrapper consist of USB3.0 IP from Synopsys
+> > (SNPS) and HS, SS PHY's control and configuration registers.
+> > 
+> > It could operate in device mode (SS, HS, FS) and host
+> > mode (SS, HS, FS, LS).
+> > 
+> > Signed-off-by: Ivan T. Ivanov <iivanov@mm-sol.com>
 > 
+> these patches were sent *ages* and nobody from DT mailing list has
+> reviewed. Unless someone steps up now, I'll be queueing these patches
+> next week.
+> 
+
+Please take v6 of the patch set, which I have just posted. 
+They contain several fixes and I have also added ACK from
+Stephen Warren for DT part.
+
+Thanks, 
+Ivan
 
