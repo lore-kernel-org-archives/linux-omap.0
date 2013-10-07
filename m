@@ -1,140 +1,77 @@
-From: Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [RESEND PATCH v3 11/11] ARM/dts: am335x-evm: Add
- audio support for am335x-evm.dts
-Date: Mon, 7 Oct 2013 23:02:45 +0100
-Message-ID: <20131007220245.GE2976@kartoffel>
-References: <cover.1379590035.git.jsarha@ti.com>
- <cd7271a46f1c6937039b749ed105afa8057b9770.1379590036.git.jsarha@ti.com>
+From: Suman Anna <s-anna@ti.com>
+Subject: Re: [PATCH] ARM: OMAP2+: hwmod: check for module address space during
+ init
+Date: Mon, 7 Oct 2013 17:04:18 -0500
+Message-ID: <52532FE2.3070702@ti.com>
+References: <1380819546-53631-1-git-send-email-s-anna@ti.com> <5253257A.2070301@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-Content-Disposition: inline
-In-Reply-To: <cd7271a46f1c6937039b749ed105afa8057b9770.1379590036.git.jsarha@ti.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Jyri Sarha <jsarha@ti.com>
-Cc: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "liam.r.girdwood@linux.intel.com" <liam.r.girdwood@linux.intel.com>, "joelf@ti.com" <joelf@ti.com>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "peter.ujfalusi@ti.com" <peter.ujfalusi@ti.com>, Darren Etheridge <detheridge@ti.com>, "broonie@kernel.org" <broonie@kernel.org>, "bcousson@baylibre.com" <bcousson@baylibre.com>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:49129 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751653Ab3JGWFN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 7 Oct 2013 18:05:13 -0400
+In-Reply-To: <5253257A.2070301@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>, Paul Walmsley <paul@pwsan.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Afzal Mohammed <afzal@ti.com>, Tero Kristo <t-kristo@ti.com>, Rajendra Nayak <rnayak@ti.com>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 
-On Thu, Sep 26, 2013 at 08:18:36PM +0100, Jyri Sarha wrote:
-> From: Darren Etheridge <detheridge@ti.com>
+On 10/07/2013 04:19 PM, Nishanth Menon wrote:
+> On 10/03/2013 11:59 AM, Suman Anna wrote:
+>> The hwmod init sequence involves initializing and idling all the
+>> hwmods during bootup. If a module class has sysconfig, the init
+>> sequence utilizes the module register base for performing any
+>> sysc configuration.
+>>
+>> The module address space is being removed from hwmod database and
+>> retrieved from the <reg> property of the corresponding DT node.
+>> If a hwmod does not have its corresponding DT node defined and the
+>> memory address space is not defined in the corresponding
+>> omap_hwmod_ocp_if, then the module register target address space
+>> would be NULL and any sysc programming would result in a NULL
+>> pointer dereference and a kernel boot hang.
+>>
+>> Handle this scenario by checking for a valid module address space
+>> during the _init of each hwmod, and leaving it in the registered
+>> state if no module register address base is defined in either of
+>> the hwmod data or the DT data.
+>>
+>> Signed-off-by: Suman Anna <s-anna@ti.com>
+>> ---
+>> This patch helps break the dependencies between hwmod entries and
+>> corresponding DT entries (especially on OMAP5, where most of the
+>> address spaces are already cleaned up and the current data files
+>> have minimal entries) and fixes any boot issues due to missing
+>> addresses. See for reference,
+>> http://marc.info/?t=138005421400003&r=1&w=2
+>>
+>> Tested on BeagleXM, Panda4, BeagleBone Black and Panda5 using
+>> Tero's v7 clk DT patches and Benoit's for-3.13/dts on top of
+>> 3.12-rc3
+>>
+>>  arch/arm/mach-omap2/omap_hwmod.c | 29 +++++++++++++++++++----------
+>>  1 file changed, 19 insertions(+), 10 deletions(-)
 > 
-> Adds sound, tlv320aic3x, mcasp1, and am335x_evm_audio_pin nodes.
+> Mandatory to have this patch for OMAP5uEVM to boot after Tero's v7 [1]
+> series is merged else the delta between dts and hwmod entries cause
+> OMAP5 platforms to croak and die - at least worked around as seen in
+> [2] :(
 > 
-> Signed-off-by: Darren Etheridge <detheridge@ti.com>
-> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> Signed-off-by: Jyri Sarha <jsarha@ti.com>
-> ---
->  arch/arm/boot/dts/am335x-evm.dts |   56 ++++++++++++++++++++++++++++++++++++++
->  1 file changed, 56 insertions(+)
+> Tested-by: Nishanth Menon <nm@ti.com>
 > 
-> diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
-> index 3aee1a4..4a49229 100644
-> --- a/arch/arm/boot/dts/am335x-evm.dts
-> +++ b/arch/arm/boot/dts/am335x-evm.dts
-> @@ -149,6 +149,16 @@
->  				0x14c (PIN_INPUT_PULLDOWN | MUX_MODE7)
->  			>;
->  		};
-> +
-> +		am335x_evm_audio_pins: am335x_evm_audio_pins {
-> +			pinctrl-single,pins = <
-> +				0x10c (PIN_INPUT_PULLDOWN | MUX_MODE4) /* mii1_rx_dv.mcasp1_aclkx */
-> +				0x110 (PIN_INPUT_PULLDOWN | MUX_MODE4) /* mii1_txd3.mcasp1_fsx */
-> +				0x108 (PIN_OUTPUT_PULLDOWN | MUX_MODE4) /* mii1_col.mcasp1_axr2 */
-> +				0x144 (PIN_INPUT_PULLDOWN | MUX_MODE4) /* rmii1_ref_clk.mcasp1_axr3 */
-> +			>;
-> +		};
-> +
->  	};
->  
->  	ocp {
-> @@ -215,6 +225,19 @@
->  				compatible = "ti,tmp275";
->  				reg = <0x48>;
->  			};
-> +
-> +			tlv320aic3x: tlv320aic3x@1b {
-> +				compatible = "ti,tlv320aic3x";
-> +				reg = <0x1b>;
-> +				status = "okay";
-> +
-> +				/* Regulators */
-> +				AVDD-supply = <&vaux2_reg>;
-> +				IOVDD-supply = <&vaux2_reg>;
-> +				DRVDD-supply = <&vaux2_reg>;
-> +				DVDD-supply = <&vbat>;
-> +			};
-> +
->  		};
->  
->  		elm: elm@48080000 {
-> @@ -311,6 +334,20 @@
->  				};
->  			};
->  		};
-> +
-> +		sound {
-> +			compatible = "ti,da830-evm-audio";
-> +			ti,model = "DA830 EVM";
-> +			ti,audio-codec = <&tlv320aic3x>;
-> +			ti,mcasp-controller = <&mcasp1>;
-> +			ti,codec-clock-rate = <12000000>;
-> +			ti,audio-routing =
-> +				"Headphone Jack",       "HPLOUT",
-> +				"Headphone Jack",       "HPROUT",
-> +				"LINE1L",               "Line In",
-> +				"LINE1R",               "Line In";
-> +		};
-> +
->  	};
->  
->  	vbat: fixedregulator@0 {
-> @@ -378,6 +415,25 @@
->  
->  #include "tps65910.dtsi"
->  
-> +&mcasp1 {
-> +		pinctrl-names = "default";
-> +		pinctrl-0 = <&am335x_evm_audio_pins>;
+> [1] http://marc.info/?t=138009899400001&r=1&w=2
+> [2] OMAP5uEVM: http://pastebin.com/jtEMwTY5
+> 
 
-I didn't see mention of pinctrl added to the binding. It should be.
+This patch should also help Paul to be able to pick up the OMAP5
+hwspinlock hwmod data [3] and would yield a similar warning without
+its corresponding DT node as in Nishant's log [2]. Obviously, both
+hwmod and DT need to be present for the associated driver to work, but
+atleast it doesn't hang the boot.
 
-Thanks,
-Mark.
+regards
+Suman
 
-> +
-> +		status = "okay";
-> +
-> +		op-mode = <0>;          /* MCASP_IIS_MODE */
-> +		tdm-slots = <2>;
-> +		num-serializer = <16>;
-> +		serial-dir = <  /* 0: INACTIVE, 1: TX, 2: RX */
-> +			0 0 1 2
-> +			0 0 0 0
-> +			0 0 0 0
-> +			0 0 0 0
-> +		>;
-> +		tx-num-evt = <1>;
-> +		rx-num-evt = <1>;
-> +};
-> +
->  &tps {
->  	vcc1-supply = <&vbat>;
->  	vcc2-supply = <&vbat>;
-> -- 
-> 1.7.9.5
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe devicetree" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+[3] http://marc.info/?l=linux-omap&m=138055666108306&w=2
