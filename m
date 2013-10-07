@@ -1,142 +1,61 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH 1/2] Documentation: dt: OMAP: standardize SoC naming definition
-Date: Mon, 7 Oct 2013 11:49:42 -0500
-Message-ID: <1381164584-4008-2-git-send-email-nm@ti.com>
-References: <523C9D8B.2000701@ti.com>
- <1381164584-4008-1-git-send-email-nm@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH v3 1/3] ARM: dts: omap3-igep: Add USB OTG support
+Date: Mon, 7 Oct 2013 20:10:23 +0300
+Message-ID: <5252EAFF.1090505@ti.com>
+References: <1381158745-9557-1-git-send-email-javier.martinez@collabora.co.uk> <1381158745-9557-2-git-send-email-javier.martinez@collabora.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1381164584-4008-1-git-send-email-nm@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Felipe <balbi@ti.com>, Olof Johansson <olof@lixom.net>
-Cc: devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Nishanth Menon <nm@ti.com>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:40221 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755495Ab3JGRKc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Oct 2013 13:10:32 -0400
+In-Reply-To: <1381158745-9557-2-git-send-email-javier.martinez@collabora.co.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Javier Martinez Canillas <javier.martinez@collabora.co.uk>, bcousson@baylibre.com
+Cc: Tony Lindgren <tony@atomide.com>, Enric Balletbo i Serra <eballetbo@gmail.com>, linux-omap@vger.kernel.org
 
-SoC family definitions at the moment are reactive to board needs
-as a result, beagle-xm would matchup with ti,omap3 which invokes
-omap3430_init_early instead of omap3630_init_early. Obviously, this is
-the wrong behavior.
+On 10/07/2013 06:12 PM, Javier Martinez Canillas wrote:
+> Commit ad871c10b ("ARM: dts: OMAP: Add usb_otg and glue data to O
+> added USB OTG support for most OMAP boards but some OMAP3 boards
+> such as IGEP boards were not updated. This patch adds an USB OTG
+> device node to these board.
+> 
+> Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+> Tested-by: Enric Balletbo i Serra <eballetbo@gmail.com>
 
-Eventually, we will have descriptors match only with SoC types and
-should not contain anything specific to board handling.
+Reviewed-by: Roger Quadros <rogerq@ti.com>
 
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
- .../devicetree/bindings/arm/omap/omap.txt          |   45 ++++++++++++++++++++
- arch/arm/mach-omap2/board-generic.c                |   23 ++++++++++
- 2 files changed, 68 insertions(+)
+> ---
+> 
+> Changes since v2:
+>  - Add phys and phy-names properties as required by the new
+>    generic PHY framework; suggested by Roger Quadros
+> 
+> Changes since v1:
+>  - Add USB OTG support for both IGEPv2 and IGEP COM and not only to IGEPv2 
+> 
+>  arch/arm/boot/dts/omap3-igep.dtsi | 9 +++++++++
+>  1 file changed, 9 insertions(+)
+> 
+> diff --git a/arch/arm/boot/dts/omap3-igep.dtsi b/arch/arm/boot/dts/omap3-igep.dtsi
+> index 0f92224..ba1e58b 100644
+> --- a/arch/arm/boot/dts/omap3-igep.dtsi
+> +++ b/arch/arm/boot/dts/omap3-igep.dtsi
+> @@ -143,3 +143,12 @@
+>  &twl_gpio {
+>  	ti,use-leds;
+>  };
+> +
+> +&usb_otg_hs {
+> +	interface-type = <0>;
+> +	usb-phy = <&usb2_phy>;
+> +	phys = <&usb2_phy>;
+> +	phy-names = "usb2-phy";
+> +	mode = <3>;
+> +	power = <50>;
+> +};
+> 
 
-diff --git a/Documentation/devicetree/bindings/arm/omap/omap.txt b/Documentation/devicetree/bindings/arm/omap/omap.txt
-index 91b7049..28b20a2 100644
---- a/Documentation/devicetree/bindings/arm/omap/omap.txt
-+++ b/Documentation/devicetree/bindings/arm/omap/omap.txt
-@@ -30,6 +30,51 @@ spinlock@1 {
-     ti,hwmods = "spinlock";
- };
- 
-+SoC Type(optional):
-+- ti,gp	- General Purpose devices
-+- ti,hs	- High Security devices
-+
-+SoC Families:
-+
-+- OMAP2 generic - defaults to OMAP2420
-+  compatible = "ti,omap2"
-+- OMAP3 generic - defaults to OMAP3430
-+  compatible = "ti,omap3"
-+- OMAP4 generic - defaults to OMAP4430
-+  compatible = "ti,omap4"
-+- OMAP5 generic - defaults to OMAP5430
-+  compatible = "ti,omap5"
-+- DRA7 generic - defaults to DRA742
-+  compatible = "ti,dra7"
-+- AM43x generic - defaults to AM437x
-+  compatible = "ti,am43"
-+
-+SoCs:
-+
-+- OMAP2420
-+  compatible = "ti,omap2420", "ti,omap2"
-+- OMAP2430
-+  compatible = "ti,omap2430", "ti,omap2"
-+
-+- OMAP3430
-+  compatible = "ti,omap343x", "ti,omap3"
-+- OMAP3630
-+  compatible = "ti,omap363x", "ti,omap3"
-+- AM33xx
-+  compatible = "ti,am33xx", "ti,omap3"
-+
-+- OMAP4430
-+  compatible = "ti,omap443x", "ti,omap4"
-+- OMAP4460
-+  compatible = "ti,omap446x", "ti,omap4"
-+
-+- OMAP5430
-+  compatible = "ti,omap5430", "ti,omap5"
-+- OMAP5432
-+  compatible = "ti,omap5432", "ti,omap5"
-+
-+- DRA742
-+  compatible = "ti,dra7xx", "ti,dra7"
- 
- Boards:
- 
-diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
-index 39c7838..c78b070 100644
---- a/arch/arm/mach-omap2/board-generic.c
-+++ b/arch/arm/mach-omap2/board-generic.c
-@@ -113,6 +113,7 @@ MACHINE_END
- #ifdef CONFIG_ARCH_OMAP3
- static const char *omap3_boards_compat[] __initdata = {
- 	"ti,omap3",
-+	"ti,omap343x",
- 	NULL,
- };
- 
-@@ -129,6 +130,24 @@ DT_MACHINE_START(OMAP3_DT, "Generic OMAP3 (Flattened Device Tree)")
- 	.restart	= omap3xxx_restart,
- MACHINE_END
- 
-+static const char *omap36xx_boards_compat[] __initdata = {
-+	"ti,omap363x",
-+	NULL,
-+};
-+
-+DT_MACHINE_START(OMAP36xx_DT, "Generic OMAP363x (Flattened Device Tree)")
-+	.reserve	= omap_reserve,
-+	.map_io		= omap3_map_io,
-+	.init_early	= omap3630_init_early,
-+	.init_irq	= omap_intc_of_init,
-+	.handle_irq	= omap3_intc_handle_irq,
-+	.init_machine	= omap_generic_init,
-+	.init_late	= omap3_init_late,
-+	.init_time	= omap3_sync32k_timer_init,
-+	.dt_compat	= omap36xx_boards_compat,
-+	.restart	= omap3xxx_restart,
-+MACHINE_END
-+
- static const char *omap3_gp_boards_compat[] __initdata = {
- 	"ti,omap3-beagle",
- 	"timll,omap3-devkit8000",
-@@ -171,6 +190,8 @@ MACHINE_END
- #ifdef CONFIG_ARCH_OMAP4
- static const char *omap4_boards_compat[] __initdata = {
- 	"ti,omap4",
-+	"ti,omap4430",
-+	"ti,omap4460",
- 	NULL,
- };
- 
-@@ -191,6 +212,8 @@ MACHINE_END
- #ifdef CONFIG_SOC_OMAP5
- static const char *omap5_boards_compat[] __initdata = {
- 	"ti,omap5",
-+	"ti,omap5430",
-+	"ti,omap5432",
- 	NULL,
- };
- 
--- 
-1.7.9.5
