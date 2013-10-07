@@ -1,33 +1,60 @@
-From: <office1@Offer813.onmicrosoft.com>
-Subject: Congratulations !!!
-Date: Mon, 7 Oct 2013 12:08:08 +0530
-Message-ID: <673d85b0-0ba1-4fca-9f95-b7b6eedd3ce5@AMXPR03MB167.eurprd03.prod.outlook.com>
-Reply-To: <colaclaims13@msn.com>
+From: Archit Taneja <archit@ti.com>
+Subject: Re: [PATCH v4 0/4] v4l: VPE mem to mem driver
+Date: Mon, 7 Oct 2013 12:09:05 +0530
+Message-ID: <52525709.80201@ti.com>
+References: <1376996457-17275-1-git-send-email-archit@ti.com> <1378462346-10880-1-git-send-email-archit@ti.com> <5236AC66.8090201@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from emea01-db3-ndr.ptr.protection.outlook.com ([157.56.120.106]:36077
-	"EHLO emea01-db3-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751524Ab3JGGic convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Oct 2013 02:38:32 -0400
-Content-Description: Mail message body
+Received: from bear.ext.ti.com ([192.94.94.41]:51776 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751689Ab3JGGkF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 7 Oct 2013 02:40:05 -0400
+In-Reply-To: <5236AC66.8090201@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Recipients <office1@Offer813.onmicrosoft.com>
+To: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, tomi.valkeinen@ti.com
 
-Ticket Number: 7PWYZ2008
-Ballot Number: BT:12052008/20
-Draw:#1471
+Hi,
 
-Special Notification to you,You are receiving this email because you have just been picked for a total grand prize of One Million Dollars in the top 10 winners of the Coca-Cola Consumer`s Award for the year 2013: kindly send your:
+On Monday 16 September 2013 12:29 PM, Archit Taneja wrote:
+> Hi Hans, Laurent,
+>
+> On Friday 06 September 2013 03:42 PM, Archit Taneja wrote:
+>> VPE(Video Processing Engine) is an IP found on DRA7xx, this series
+>> adds VPE as a
+>> mem to mem v4l2 driver, and VPDMA as a helper library.
+>>
+>> The first version of the patch series described VPE in detail, you can
+>> have a
+>> look at it here:
+>>
+>> http://www.spinics.net/lists/linux-media/msg66518.html
+>>
+>> Changes in v4:
+>> - Control ID for the driver reserved in v4l2-controls.h
+>> - Some fixes/clean ups suggested by Hans.
+>> - A small hack done in VPE's probe to use a fixed 64K resource size, this
+>>    is needed as the DT bindings will split the addresses accross VPE
+>>    submodules, the driver currently works with register offsets from
+>> the top
+>>    level VPE base. The driver can be modified later to support multiple
+>>    ioremaps of the sub modules.
+>> - Addition of sync on channel descriptors for input DMA channels, this
+>>    ensures the VPDMA list is stalled in the rare case of an input
+>> channel's
+>>    DMA getting completed after all the output channel DMAs.
+>> - Removed the DT and hwmod patches from this series. DRA7xx support is
+>> not
+>>    yet got in the 3.12 merge window. Will deal with those separately.
+>
+> I incorporated your comments and suggestions from the previous series.
+> Wanted to know if you think it looks good enough to get merged now?
 
-Name:
-Address:
-Country:
-Phone Number:
+Ping. Any comments on this?
 
-To Mr. Bruce Morgan
-via Email: colaclaims13@msn.com
-Telephone Number:+44701006909
+Thanks,
+Archit
+
