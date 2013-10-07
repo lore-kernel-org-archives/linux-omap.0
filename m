@@ -1,43 +1,145 @@
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH v4 2/4] v4l: ti-vpe: Add helpers for creating VPDMA descriptors
-Date: Mon, 07 Oct 2013 09:46:36 +0200
-Message-ID: <525266DC.5020409@xs4all.nl>
-References: <1376996457-17275-1-git-send-email-archit@ti.com> <1378462346-10880-1-git-send-email-archit@ti.com> <1378462346-10880-3-git-send-email-archit@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <1378462346-10880-3-git-send-email-archit@ti.com>
-Sender: linux-media-owner@vger.kernel.org
-To: Archit Taneja <archit@ti.com>
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com, linux-omap@vger.kernel.org, tomi.valkeinen@ti.com
+From: "Ivan T. Ivanov" <iivanov-NEYub+7Iv8PQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v6 1/3] usb: dwc3: msm: Add device tree binding information
+Date: Mon,  7 Oct 2013 10:44:55 +0300
+Message-ID: <1381131897-13910-2-git-send-email-iivanov@mm-sol.com>
+References: <1381131897-13910-1-git-send-email-iivanov@mm-sol.com>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1381131897-13910-1-git-send-email-iivanov-NEYub+7Iv8PQT0dZR+AlfA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: balbi-l0cyMroinI0@public.gmane.org
+Cc: rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org, ian.campbell-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org, rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, idos-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, mgautam-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Ivan T. Ivanov" <iivanov-NEYub+7Iv8PQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 09/06/2013 12:12 PM, Archit Taneja wrote:
-> Create functions which the VPE driver can use to create a VPDMA descriptor and
-> add it to a VPDMA descriptor list. These functions take a pointer to an existing
-> list, and append the configuration/data/control descriptor header to the list.
-> 
-> In the case of configuration descriptors, the creation of a payload block may be
-> required(the payloads can hold VPE MMR values, or scaler coefficients). The
-> allocation of the payload buffer and it's content is left to the VPE driver.
-> However, the VPDMA library provides helper macros to create payload in the
-> correct format.
-> 
-> Add debug functions to dump the descriptors in a way such that it's easy to see
-> the values of different fields in the descriptors.
-> 
-> Signed-off-by: Archit Taneja <archit@ti.com>
+From: "Ivan T. Ivanov" <iivanov-NEYub+7Iv8PQT0dZR+AlfA@public.gmane.org>
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+MSM USB3.0 core wrapper consist of USB3.0 IP from Synopsys
+(SNPS) and HS, SS PHY's control and configuration registers.
 
-Regards,
+It could operate in device mode (SS, HS, FS) and host
+mode (SS, HS, FS, LS).
 
-	Hans
+Signed-off-by: Ivan T. Ivanov <iivanov-NEYub+7Iv8PQT0dZR+AlfA@public.gmane.org>
+Acked-by: Stephen Warren <swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+---
+ .../devicetree/bindings/usb/msm-ssusb.txt          |  105 ++++++++++++++++++++
+ 1 file changed, 105 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/usb/msm-ssusb.txt
 
-> ---
->  drivers/media/platform/ti-vpe/vpdma.c      | 268 +++++++++++++++
->  drivers/media/platform/ti-vpe/vpdma.h      |  48 +++
->  drivers/media/platform/ti-vpe/vpdma_priv.h | 522 +++++++++++++++++++++++++++++
->  3 files changed, 838 insertions(+)
-> 
+diff --git a/Documentation/devicetree/bindings/usb/msm-ssusb.txt b/Documentation/devicetree/bindings/usb/msm-ssusb.txt
+new file mode 100644
+index 0000000..a71bf00
+--- /dev/null
++++ b/Documentation/devicetree/bindings/usb/msm-ssusb.txt
+@@ -0,0 +1,105 @@
++MSM SuperSpeed DWC3 USB SoC controller
++
++
++MSM DW Highspeed USB PHY
++========================
++Required properities:
++- compatible:	should contain "qcom,dw-hsphy";
++- reg:			offset and length of the register set in the memory map
++- clocks:		A list of phandle + clock-specifier pairs for the
++				clocks listed in clock-names
++- clock-names:	Should contain the following:
++  "xo"			External reference clock
++  "sleep_a"		Sleep clock, used when USB3 core goes into low
++				power mode (U3).
++- v1p8-supply:	phandle to the regulator for the 1.8v supply to HSPHY.
++- v3p3-supply:	phandle to the regulator for the 3.3v supply to HSPHY.
++- vbus-supply:	phandle to the regulator for the vbus supply for host
++		mode.
++- vddcx-supply: phandle to the regulator for the vdd supply for HSPHY
++                digital circuit operation.
++
++MSM DW Superspeed USB PHY
++=========================
++Required properities:
++- compatible:	should contain "qcom,dw-ssphy";
++- reg:			offset and length of the register set in the memory map
++- clocks:		A list of phandle + clock-specifier pairs for the
++				clocks listed in clock-names
++- clock-names:	Should contain the following:
++  "xo"			External reference clock
++  "ref"			Reference clock - used in host mode.
++- v1p8-supply:	phandle to the regulator for the 1.8v supply to HSPHY.
++- vddcx-supply: phandle to the regulator for the vdd supply for HSPHY
++                digital circuit operation.
++
++MSM DWC3 controller wrapper
++===========================
++Required properties:
++- compatible:	should contain "qcom,dwc3"
++- reg:			offset and length of the TCSR register for routing USB
++				signals to either picoPHY0 or picoPHY1.
++- clocks:		A list of phandle + clock-specifier pairs for the
++				clocks listed in clock-names
++- clock-names:	Should contain the following:
++  "core"		Master/Core clock, have to be >= 125 MHz for SS
++				operation and >= 60MHz for HS operation
++  "iface"		System bus AXI clock
++  "sleep"		Sleep clock, used when USB3 core goes into low
++				power mode (U3).
++  "utmi"		Generated by HSPHY. Used to clock the low power
++				parts of thr HS Link layer.
++Optional regulator:
++- gdsc-supply:	phandle to the regulator from globally distributed
++				switch controller
++Required child node:
++A child node must exist to represent the core DWC3 IP block. The name of
++the node is not important. The content of the node is defined in dwc3.txt.
++
++Example device nodes:
++
++	dw_hsphy: phy@f92f8800 {
++		compatible = "qcom,dw-hsphy";
++		reg = <0xf92f8800 0x30>;
++
++		clocks = <&cxo>, <&usb2a_phy_sleep_cxc>;
++		clock-names = "xo", "sleep_a";
++
++		vbus-supply = <&supply>;
++		vddcx-supply = <&supply>;
++		v1p8-supply = <&supply>;
++		v3p3-supply = <&supply>;
++	};
++
++	dw_ssphy: phy@f92f8830 {
++		compatible = "qcom,dw-ssphy";
++		reg = <0xf92f8830 0x30>;
++
++		clocks = <&cxo>, <&usb30_mock_utmi_cxc>;
++		clock-names = "xo", "ref";
++
++		vddcx-supply = <&supply>;
++		v1p8-supply = <&supply>;
++	};
++
++	usb@fd4ab000 {
++		compatible = "qcom,dwc3";
++		#address-cells = <1>;
++		#size-cells = <1>;
++		reg = <0xfd4ab000 0x4>;
++
++		clocks = <&usb30_master_cxc>, <&sys_noc_usb3_axi_cxc>,
++				<&usb30_sleep_cxc>, <&usb30_mock_utmi_cxc>;
++		clock-names = "core", "iface", "sleep", "utmi";
++
++		gdsc-supply = <&supply>;
++
++		ranges;
++		dwc3@f9200000 {
++			compatible = "snps,dwc3";
++			reg = <0xf9200000 0xcd00>;
++			interrupts = <0 131>;
++			usb-phy = <&dw_hsphy>, <&dw_ssphy>;
++			tx-fifo-resize;
++		};
++	};
+-- 
+1.7.9.5
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
