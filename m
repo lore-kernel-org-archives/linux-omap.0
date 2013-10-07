@@ -1,87 +1,50 @@
 From: Taras Kondratiuk <taras.kondratiuk@linaro.org>
-Subject: [PATCH] ARM: OMAP4/highbank: Flush L2 cache before disabling
-Date: Mon,  7 Oct 2013 13:27:01 +0300
-Message-ID: <1381141621-29001-1-git-send-email-taras.kondratiuk@linaro.org>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ea0-f174.google.com ([209.85.215.174]:47391 "EHLO
-	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751796Ab3JGK1M (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Oct 2013 06:27:12 -0400
-Received: by mail-ea0-f174.google.com with SMTP id z15so3107179ead.5
-        for <linux-omap@vger.kernel.org>; Mon, 07 Oct 2013 03:27:11 -0700 (PDT)
-Sender: linux-omap-owner@vger.kernel.org
+Subject: [PATCH] i2c: omap: Clear ARDY bit twice
+Date: Mon,  7 Oct 2013 13:41:59 +0300
+Message-ID: <1381142519-29382-1-git-send-email-taras.kondratiuk@linaro.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: patches@linaro.org, steve.mcintyre@linaro.org, Grygorii Strashko <grygorii.strashko@ti.com>, Felipe Balbi <balbi@ti.com>, Richard woodruff <r-woodruff2@ti.com>, Tony Lindgren <tony@atomide.com>, Wolfram Sang <wsa@the-dreams.de>, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: patches@linaro.org, steve.mcintyre@linaro.org, Will Deacon <will.deacon@arm.com>, Russell King <linux@arm.linux.org.uk>, Rob Herring <rob.herring@calxeda.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linaro-kernel@lists.linaro.org, linux-omap@vger.kernel.org
 
-Kexec disables outer cache before jumping to reboot code, but it doesn't
-flush it explicitly. Flush is done implicitly inside of l2x0_disable().
-But some SoC's override default .disable handler and don't flush cache.
-This may lead to a corrupted memory during Kexec reboot on these platforms.
+Initially commit cb527ede1bf6ff2008a025606f25344b8ed7b4ac
+"i2c-omap: Double clear of ARDY status in IRQ handler"
+added a workaround for undocumented errata ProDB0017052.
+But then commit 1d7afc95946487945cc7f5019b41255b72224b70
+"i2c: omap: ack IRQ in parts" refactored code and missed
+one of ARDY clearings. So current code violates errata.
+It causes often i2c bus timeouts on my Pandaboard.
 
-This patch adds cache flush inside of OMAP4 and Highbank outer_cache.disable()
-handlers to make it consistent with default l2x0_disable().
-Also it removes redundant outer_flush_all() call just before outer_disable().
+This patch adds a second clearing in place.
 
-Acked-by: Rob Herring <rob.herring@calxeda.com>
-Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 Signed-off-by: Taras Kondratiuk <taras.kondratiuk@linaro.org>
 ---
-Based on v3.12-rc3
-
-RFC v2: https://patchwork.kernel.org/patch/2990231/
-        Make the fix specific to platforms that don't use l2x0_disable().
-RFC v1: https://patchwork.kernel.org/patch/2974431/
----
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: Russell King <linux@arm.linux.org.uk>
-Cc: Rob Herring <rob.herring@calxeda.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: linaro-kernel@lists.linaro.org
-Cc: linux-arm-kernel@lists.infradead.org
+Cc: Felipe Balbi <balbi@ti.com>
+Cc: Richard woodruff <r-woodruff2@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Wolfram Sang <wsa@the-dreams.de>
 Cc: linux-omap@vger.kernel.org
+Cc: linux-i2c@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
 ---
- arch/arm/mach-highbank/highbank.c  |    1 +
- arch/arm/mach-highbank/pm.c        |    1 -
- arch/arm/mach-omap2/omap4-common.c |    1 +
- 3 files changed, 2 insertions(+), 1 deletion(-)
+ drivers/i2c/busses/i2c-omap.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/arch/arm/mach-highbank/highbank.c b/arch/arm/mach-highbank/highbank.c
-index 8e63ccd..22e6f34 100644
---- a/arch/arm/mach-highbank/highbank.c
-+++ b/arch/arm/mach-highbank/highbank.c
-@@ -63,6 +63,7 @@ void highbank_set_cpu_jump(int cpu, void *jump_addr)
- 
- static void highbank_l2x0_disable(void)
- {
-+	outer_flush_all();
- 	/* Disable PL310 L2 Cache controller */
- 	highbank_smc1(0x102, 0x0);
- }
-diff --git a/arch/arm/mach-highbank/pm.c b/arch/arm/mach-highbank/pm.c
-index 04eddb4..9a5b8a7 100644
---- a/arch/arm/mach-highbank/pm.c
-+++ b/arch/arm/mach-highbank/pm.c
-@@ -28,7 +28,6 @@
- 
- static int highbank_suspend_finish(unsigned long val)
- {
--	outer_flush_all();
- 	outer_disable();
- 
- 	highbank_set_pwr_suspend();
-diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
-index 2840d1e..f6ccab61 100644
---- a/arch/arm/mach-omap2/omap4-common.c
-+++ b/arch/arm/mach-omap2/omap4-common.c
-@@ -163,6 +163,7 @@ void __iomem *omap4_get_l2cache_base(void)
- 
- static void omap4_l2x0_disable(void)
- {
-+	outer_flush_all();
- 	/* Disable PL310 L2 Cache controller */
- 	omap_smc1(0x102, 0x0);
- }
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index f5d6de0..d69826e 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -939,6 +939,9 @@ omap_i2c_isr_thread(int this_irq, void *dev_id)
+ 		/*
+ 		 * ProDB0017052: Clear ARDY bit twice
+ 		 */
++		if (stat & OMAP_I2C_STAT_ARDY)
++			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_ARDY);
++
+ 		if (stat & (OMAP_I2C_STAT_ARDY | OMAP_I2C_STAT_NACK |
+ 					OMAP_I2C_STAT_AL)) {
+ 			omap_i2c_ack_stat(dev, (OMAP_I2C_STAT_RRDY |
 -- 
 1.7.9.5
-
