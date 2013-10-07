@@ -1,60 +1,88 @@
-From: Archit Taneja <archit@ti.com>
-Subject: Re: [PATCH v4 0/4] v4l: VPE mem to mem driver
-Date: Mon, 7 Oct 2013 12:09:05 +0530
-Message-ID: <52525709.80201@ti.com>
-References: <1376996457-17275-1-git-send-email-archit@ti.com> <1378462346-10880-1-git-send-email-archit@ti.com> <5236AC66.8090201@ti.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH v4 1/4] v4l: ti-vpe: Create a vpdma helper library
+Date: Mon, 07 Oct 2013 09:46:17 +0200
+Message-ID: <525266C9.5070404@xs4all.nl>
+References: <1376996457-17275-1-git-send-email-archit@ti.com> <1378462346-10880-1-git-send-email-archit@ti.com> <1378462346-10880-2-git-send-email-archit@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:51776 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751689Ab3JGGkF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 7 Oct 2013 02:40:05 -0400
-In-Reply-To: <5236AC66.8090201@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <1378462346-10880-2-git-send-email-archit@ti.com>
+Sender: linux-media-owner@vger.kernel.org
+To: Archit Taneja <archit@ti.com>
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com, linux-omap@vger.kernel.org, tomi.valkeinen@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, tomi.valkeinen@ti.com
 
-Hi,
+On 09/06/2013 12:12 PM, Archit Taneja wrote:
+> The primary function of VPDMA is to move data between external memory and
+> internal processing modules(in our case, VPE) that source or sink data. VPDMA is
+> capable of buffering this data and then delivering the data as demanded to the
+> modules as programmed. The modules that source or sink data are referred to as
+> clients or ports. A channel is setup inside the VPDMA to connect a specific
+> memory buffer to a specific client. The VPDMA centralizes the DMA control
+> functions and buffering required to allow all the clients to minimize the
+> effect of long latency times.
+> 
+> Add the following to the VPDMA helper:
+> 
+> - A data struct which describe VPDMA channels. For now, these channels are the
+>   ones used only by VPE, the list of channels will increase when VIP(Video
+>   Input Port) also uses the VPDMA library. This channel information will be
+>   used to populate fields required by data descriptors.
+> 
+> - Data structs which describe the different data types supported by VPDMA. This
+>   data type information will be used to populate fields required by data
+>   descriptors and used by the VPE driver to map a V4L2 format to the
+>   corresponding VPDMA data type.
+> 
+> - Provide VPDMA register offset definitions, functions to read, write and modify
+>   VPDMA registers.
+> 
+> - Functions to create and submit a VPDMA list. A list is a group of descriptors
+>   that makes up a set of DMA transfers that need to be completed. Each
+>   descriptor will either perform a DMA transaction to fetch input buffers and
+>   write to output buffers(data descriptors), or configure the MMRs of sub blocks
+>   of VPE(configuration descriptors), or provide control information to VPDMA
+>   (control descriptors).
+> 
+> - Functions to allocate, map and unmap buffers needed for the descriptor list,
+>   payloads containing MMR values and scaler coefficients. These use the DMA
+>   mapping APIs to ensure exclusive access to VPDMA.
+> 
+> - Functions to enable VPDMA interrupts. VPDMA can trigger an interrupt on the
+>   VPE interrupt line when a descriptor list is parsed completely and the DMA
+>   transactions are completed. This requires masking the events in VPDMA
+>   registers and configuring some top level VPE interrupt registers.
+> 
+> - Enable some VPDMA specific parameters: frame start event(when to start DMA for
+>   a client) and line mode(whether each line fetched should be mirrored or not).
+> 
+> - Function to load firmware required by VPDMA. VPDMA requires a firmware for
+>   it's internal list manager. We add the required request_firmware apis to fetch
+>   this firmware from user space.
+> 
+> - Function to dump VPDMA registers.
+> 
+> - A function to initialize and create a VPDMA instance, this will be called by
+>   the VPE driver with it's platform device pointer, this function will take care
+>   of loading VPDMA firmware and returning a vpdma_data instance back to the VPE
+>   driver. The VIP driver will also call the same init function to initialize it's
+>   own VPDMA instance.
+> 
+> Signed-off-by: Archit Taneja <archit@ti.com>
 
-On Monday 16 September 2013 12:29 PM, Archit Taneja wrote:
-> Hi Hans, Laurent,
->
-> On Friday 06 September 2013 03:42 PM, Archit Taneja wrote:
->> VPE(Video Processing Engine) is an IP found on DRA7xx, this series
->> adds VPE as a
->> mem to mem v4l2 driver, and VPDMA as a helper library.
->>
->> The first version of the patch series described VPE in detail, you can
->> have a
->> look at it here:
->>
->> http://www.spinics.net/lists/linux-media/msg66518.html
->>
->> Changes in v4:
->> - Control ID for the driver reserved in v4l2-controls.h
->> - Some fixes/clean ups suggested by Hans.
->> - A small hack done in VPE's probe to use a fixed 64K resource size, this
->>    is needed as the DT bindings will split the addresses accross VPE
->>    submodules, the driver currently works with register offsets from
->> the top
->>    level VPE base. The driver can be modified later to support multiple
->>    ioremaps of the sub modules.
->> - Addition of sync on channel descriptors for input DMA channels, this
->>    ensures the VPDMA list is stalled in the rare case of an input
->> channel's
->>    DMA getting completed after all the output channel DMAs.
->> - Removed the DT and hwmod patches from this series. DRA7xx support is
->> not
->>    yet got in the 3.12 merge window. Will deal with those separately.
->
-> I incorporated your comments and suggestions from the previous series.
-> Wanted to know if you think it looks good enough to get merged now?
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Ping. Any comments on this?
+Regards,
 
-Thanks,
-Archit
+	Hans
 
+> ---
+>  drivers/media/platform/ti-vpe/vpdma.c      | 578 +++++++++++++++++++++++++++++
+>  drivers/media/platform/ti-vpe/vpdma.h      | 155 ++++++++
+>  drivers/media/platform/ti-vpe/vpdma_priv.h | 119 ++++++
+>  3 files changed, 852 insertions(+)
+>  create mode 100644 drivers/media/platform/ti-vpe/vpdma.c
+>  create mode 100644 drivers/media/platform/ti-vpe/vpdma.h
+>  create mode 100644 drivers/media/platform/ti-vpe/vpdma_priv.h
+> 
