@@ -1,125 +1,68 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH V3] ARM: OMAP3: Fix hardware detection for omap3630 when booted with device tree
-Date: Mon, 7 Oct 2013 15:43:49 -0500
-Message-ID: <1381178629-13488-1-git-send-email-nm@ti.com>
-References: <20131007192009.GA8949@atomide.com>
+Subject: Re: [PATCH] ARM: OMAP2+: hwmod: check for module address space during
+ init
+Date: Mon, 7 Oct 2013 16:19:54 -0500
+Message-ID: <5253257A.2070301@ti.com>
+References: <1380819546-53631-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:53064 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752682Ab3JGUob (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Oct 2013 16:44:31 -0400
-In-Reply-To: <20131007192009.GA8949@atomide.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:54847 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752748Ab3JGVT4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 7 Oct 2013 17:19:56 -0400
+In-Reply-To: <1380819546-53631-1-git-send-email-s-anna@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Felipe <balbi@ti.com>, Olof Johansson <olof@lixom.net>
-Cc: devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Nishanth Menon <nm@ti.com>
+To: Suman Anna <s-anna@ti.com>, Paul Walmsley <paul@pwsan.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Afzal Mohammed <afzal@ti.com>, Tero Kristo <t-kristo@ti.com>, Rajendra Nayak <rnayak@ti.com>, linux-omap@vger.kernel.org
 
-SoC family definitions at the moment are reactive to board needs
-as a result, beagle-xm would matchup with ti,omap3 which invokes
-omap3430_init_early instead of omap3630_init_early. Obviously, this is
-the wrong behavior.
+On 10/03/2013 11:59 AM, Suman Anna wrote:
+> The hwmod init sequence involves initializing and idling all the
+> hwmods during bootup. If a module class has sysconfig, the init
+> sequence utilizes the module register base for performing any
+> sysc configuration.
+> 
+> The module address space is being removed from hwmod database and
+> retrieved from the <reg> property of the corresponding DT node.
+> If a hwmod does not have its corresponding DT node defined and the
+> memory address space is not defined in the corresponding
+> omap_hwmod_ocp_if, then the module register target address space
+> would be NULL and any sysc programming would result in a NULL
+> pointer dereference and a kernel boot hang.
+> 
+> Handle this scenario by checking for a valid module address space
+> during the _init of each hwmod, and leaving it in the registered
+> state if no module register address base is defined in either of
+> the hwmod data or the DT data.
+> 
+> Signed-off-by: Suman Anna <s-anna@ti.com>
+> ---
+> This patch helps break the dependencies between hwmod entries and
+> corresponding DT entries (especially on OMAP5, where most of the
+> address spaces are already cleaned up and the current data files
+> have minimal entries) and fixes any boot issues due to missing
+> addresses. See for reference,
+> http://marc.info/?t=138005421400003&r=1&w=2
+> 
+> Tested on BeagleXM, Panda4, BeagleBone Black and Panda5 using
+> Tero's v7 clk DT patches and Benoit's for-3.13/dts on top of
+> 3.12-rc3
+> 
+>  arch/arm/mach-omap2/omap_hwmod.c | 29 +++++++++++++++++++----------
+>  1 file changed, 19 insertions(+), 10 deletions(-)
 
-With clock node dts conversion, we get the following warnings as a
-result and 3630 based platforms fails to boot (uart4 clocks are only
-present in OMAP3630 and not present in OMAP3430):
+Mandatory to have this patch for OMAP5uEVM to boot after Tero's v7 [1]
+series is merged else the delta between dts and hwmod entries cause
+OMAP5 platforms to croak and die - at least worked around as seen in
+[2] :(
 
-...
-omap_hwmod: uart4: cannot clk_get main_clk uart4_fck
-omap_hwmod: uart4: cannot _init_clocks
+Tested-by: Nishanth Menon <nm@ti.com>
 
-WARNING: CPU: 0 PID: 1 at arch/arm/mach-omap2/omap_hwmod.c:2434
-_init+0x6c/0x80()
-omap_hwmod: uart4: couldn't init clocks
-...
+[1] http://marc.info/?t=138009899400001&r=1&w=2
+[2] OMAP5uEVM: http://pastebin.com/jtEMwTY5
 
-WARNING: CPU: 0 PID: 1 at arch/arm/mach-omap2/omap_hwmod.c:2126
-_enable+0x254/0x280()
-omap_hwmod: timer12: enabled state can only be entered from
-initialized, idle, or disabled state
-...
-
-WARNING: CPU: 0 PID: 46 at arch/arm/mach-omap2/omap_hwmod.c:2224
-_idle+0xd4/0xf8()
-omap_hwmod: timer12: idle state can only be entered from enabled state
-
-WARNING: CPU: 0 PID: 1 at arch/arm/mach-omap2/omap_hwmod.c:2126
-_enable+0x254/0x280()
-omap_hwmod: uart4: enabled state can only be entered from
-initialized, idle, or disabled state
-
-So, add specific compatiblity for 3630 to allow match for Beagle-XM
-platform.
-
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
-
-Changes in V3 (since v2):
-	- Fix typo in dts :(
-
-V2: https://patchwork.kernel.org/patch/2999111/
-	- based on v3.12-rc4 tag
-	- Update based on Tony's review comments.
-
-V1: http://marc.info/?l=linux-omap&m=138117342909375&w=2
-
-RFC: https://patchwork.kernel.org/patch/2919661/
-
- arch/arm/boot/dts/omap3-beagle-xm.dts |    2 +-
- arch/arm/mach-omap2/board-generic.c   |   19 +++++++++++++++++++
- 2 files changed, 20 insertions(+), 1 deletion(-)
-
-diff --git a/arch/arm/boot/dts/omap3-beagle-xm.dts b/arch/arm/boot/dts/omap3-beagle-xm.dts
-index 0c514dc..2816bf6 100644
---- a/arch/arm/boot/dts/omap3-beagle-xm.dts
-+++ b/arch/arm/boot/dts/omap3-beagle-xm.dts
-@@ -11,7 +11,7 @@
- 
- / {
- 	model = "TI OMAP3 BeagleBoard xM";
--	compatible = "ti,omap3-beagle-xm", "ti,omap3-beagle", "ti,omap3";
-+	compatible = "ti,omap3-beagle-xm", "ti,omap36xx", "ti,omap3";
- 
- 	cpus {
- 		cpu@0 {
-diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
-index 39c7838..4fe5b9c 100644
---- a/arch/arm/mach-omap2/board-generic.c
-+++ b/arch/arm/mach-omap2/board-generic.c
-@@ -113,6 +113,7 @@ MACHINE_END
- #ifdef CONFIG_ARCH_OMAP3
- static const char *omap3_boards_compat[] __initdata = {
- 	"ti,omap3",
-+	"ti,omap343x",
- 	NULL,
- };
- 
-@@ -129,6 +130,24 @@ DT_MACHINE_START(OMAP3_DT, "Generic OMAP3 (Flattened Device Tree)")
- 	.restart	= omap3xxx_restart,
- MACHINE_END
- 
-+static const char *omap36xx_boards_compat[] __initdata = {
-+	"ti,omap36xx",
-+	NULL,
-+};
-+
-+DT_MACHINE_START(OMAP36XX_DT, "Generic OMAP36xx (Flattened Device Tree)")
-+	.reserve	= omap_reserve,
-+	.map_io		= omap3_map_io,
-+	.init_early	= omap3630_init_early,
-+	.init_irq	= omap_intc_of_init,
-+	.handle_irq	= omap3_intc_handle_irq,
-+	.init_machine	= omap_generic_init,
-+	.init_late	= omap3_init_late,
-+	.init_time	= omap3_sync32k_timer_init,
-+	.dt_compat	= omap36xx_boards_compat,
-+	.restart	= omap3xxx_restart,
-+MACHINE_END
-+
- static const char *omap3_gp_boards_compat[] __initdata = {
- 	"ti,omap3-beagle",
- 	"timll,omap3-devkit8000",
 -- 
-1.7.9.5
-
+Regards,
+Nishanth Menon
