@@ -1,48 +1,96 @@
 From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Subject: [PATCH v2 1/3] ARM: dts: omap3-igep: Add USB OTG support
-Date: Mon,  7 Oct 2013 11:55:38 +0200
-Message-ID: <1381139740-13495-2-git-send-email-javier.martinez@collabora.co.uk>
+Subject: [PATCH v2 2/3] ARM: dts: omap3-igep0020: Add HS USB Host support
+Date: Mon,  7 Oct 2013 11:55:39 +0200
+Message-ID: <1381139740-13495-3-git-send-email-javier.martinez@collabora.co.uk>
 References: <1381139740-13495-1-git-send-email-javier.martinez@collabora.co.uk>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([93.93.135.160]:40486 "EHLO
+Received: from bhuna.collabora.co.uk ([93.93.135.160]:40488 "EHLO
 	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754760Ab3JGJ4n (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Oct 2013 05:56:43 -0400
+	with ESMTP id S1754968Ab3JGJ4o (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Oct 2013 05:56:44 -0400
 In-Reply-To: <1381139740-13495-1-git-send-email-javier.martinez@collabora.co.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: bcousson@baylibre.com
 Cc: Tony Lindgren <tony@atomide.com>, Enric Balletbo i Serra <eballetbo@gmail.com>, Roger Quadros <rogerq@ti.com>, linux-omap@vger.kernel.org, Javier Martinez Canillas <javier.martinez@collabora.co.uk>
 
-Commit ad871c10b ("ARM: dts: OMAP: Add usb_otg and glue data to OMAP3+ boards")
-added USB OTG support for most OMAP boards but some OMAP3 boards
-such as IGEP boards were not updated. This patch adds an USB OTG
-device node to these board.
+Add device nodes for the HS USB Host port 1, USB PHY and its
+required regulator and also pin mux setup for HS USB1 pins.
 
 Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
 Tested-by: Enric Balletbo i Serra <eballetbo@gmail.com>
 ---
 
 Changes since v1:
- - Add USB OTG support for both IGEPv2 and IGEP COM and not only to IGEPv2
+ - Add HST USB port 1 pinmux setup in omap3-igep0020 instead of
+   omap3-igep.dtsi since is not used by IGEP COM; suggested by Roger Quadros
 
- arch/arm/boot/dts/omap3-igep.dtsi | 7 +++++++
- 1 file changed, 7 insertions(+)
+ arch/arm/boot/dts/omap3-igep0020.dts | 49 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 49 insertions(+)
 
-diff --git a/arch/arm/boot/dts/omap3-igep.dtsi b/arch/arm/boot/dts/omap3-igep.dtsi
-index 0f92224..4e2eda2 100644
---- a/arch/arm/boot/dts/omap3-igep.dtsi
-+++ b/arch/arm/boot/dts/omap3-igep.dtsi
-@@ -143,3 +143,10 @@
- &twl_gpio {
- 	ti,use-leds;
+diff --git a/arch/arm/boot/dts/omap3-igep0020.dts b/arch/arm/boot/dts/omap3-igep0020.dts
+index eedf0d8..35346f2 100644
+--- a/arch/arm/boot/dts/omap3-igep0020.dts
++++ b/arch/arm/boot/dts/omap3-igep0020.dts
+@@ -55,6 +55,47 @@
+ 		regulator-name = "vdd33a";
+ 		regulator-always-on;
+ 	};
++
++       /* HS USB Port 1 Power */
++       hsusb1_power: hsusb1_power_reg {
++               compatible = "regulator-fixed";
++               regulator-name = "hsusb1_vbus";
++               regulator-min-microvolt = <3300000>;
++               regulator-max-microvolt = <3300000>;
++               gpio = <&twl_gpio 18 GPIO_ACTIVE_LOW>;	/* GPIO LEDA */
++               startup-delay-us = <70000>;
++       };
++
++	/* HS USB Host PHY on PORT 1 */
++	hsusb1_phy: hsusb1_phy {
++		compatible = "usb-nop-xceiv";
++		reset-gpios = <&gpio1 24 GPIO_ACTIVE_LOW>; /* gpio_24 */
++		vcc-supply = <&hsusb1_power>;
++	};
++};
++
++&omap3_pmx_core {
++	pinctrl-names = "default";
++	pinctrl-0 = <
++		&hsusbb1_pins
++	>;
++
++	hsusbb1_pins: pinmux_hsusbb1_pins {
++		pinctrl-single,pins = <
++			0x5aa (PIN_OUTPUT | MUX_MODE3)		/* etk_ctl.hsusb1_clk */
++			0x5a8 (PIN_OUTPUT | MUX_MODE3)		/* etk_clk.hsusb1_stp */
++			0x5bc (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d8.hsusb1_dir */
++			0x5be (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d9.hsusb1_nxt */
++			0x5ac (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d0.hsusb1_data0 */
++			0x5ae (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d1.hsusb1_data1 */
++			0x5b0 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d2.hsusb1_data2 */
++			0x5b2 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d3.hsusb1_data7 */
++			0x5b4 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d4.hsusb1_data4 */
++			0x5b6 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d5.hsusb1_data5 */
++			0x5b8 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d6.hsusb1_data6 */
++			0x5ba (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d7.hsusb1_data3 */
++		>;
++	};
+ };
+ 
+ &leds_pins {
+@@ -166,3 +207,11 @@
+ 		smsc,save-mac-address;
+ 	};
  };
 +
-+&usb_otg_hs {
-+	interface-type = <0>;
-+	usb-phy = <&usb2_phy>;
-+	mode = <3>;
-+	power = <50>;
++&usbhshost {
++	port1-mode = "ehci-phy";
++};
++
++&usbhsehci {
++	phys = <&hsusb1_phy>;
 +};
 -- 
 1.8.4.rc3
