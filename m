@@ -1,45 +1,108 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH] ARM: dts: omap3-beagle: Adapt USB OTG to generic PHY framework
-Date: Mon, 7 Oct 2013 13:46:50 +0300
-Message-ID: <1381142810-14541-1-git-send-email-rogerq@ti.com>
+From: Mark Rutland <mark.rutland@arm.com>
+Subject: Re: [PATCH v7 1/6] mtd: nand: omap: combine different flavours of
+ 1-bit hamming ecc schemes
+Date: Mon, 7 Oct 2013 12:27:28 +0100
+Message-ID: <20131007112728.GA15365@e106331-lin.cambridge.arm.com>
+References: <1380916188-24206-1-git-send-email-pekon@ti.com>
+ <1380916188-24206-2-git-send-email-pekon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org
-Cc: balbi-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:43513 "EHLO
+	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751519Ab3JGL1f (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Oct 2013 07:27:35 -0400
+Content-Disposition: inline
+In-Reply-To: <1380916188-24206-2-git-send-email-pekon@ti.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Pekon Gupta <pekon@ti.com>
+Cc: "robherring2@gmail.com" <robherring2@gmail.com>, "olof@lixom.net" <olof@lixom.net>, "computersforpeace@gmail.com" <computersforpeace@gmail.com>, "dedekind1@gmail.com" <dedekind1@gmail.com>, Pawel Moll <Pawel.Moll@arm.com>, "ijc+devicetree@hellion.org.uk" <ijc+devicetree@hellion.org.uk>, "swarren@wwwdotorg.org" <swarren@wwwdotorg.org>, "dwmw2@infradead.org" <dwmw2@infradead.org>, "arnd@arndb.de" <arnd@arndb.de>, "tony@atomide.com" <tony@atomide.com>, "bcousson@baylibre.com" <bcousson@baylibre.com>, "avinashphilipk@gmail.com" <avinashphilipk@gmail.com>, "balbi@ti.com" <balbi@ti.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
 
-The generic PHY framewrok expects different properties than the
-old USB PHY framework. Supply those properties.
+On Fri, Oct 04, 2013 at 08:49:43PM +0100, Pekon Gupta wrote:
+> OMAP NAND driver currently supports multiple flavours of 1-bit Hamming
+> ecc-scheme, like:
+> - OMAP_ECC_HAMMING_CODE_DEFAULT
+> 	1-bit hamming ecc code using software library
+> - OMAP_ECC_HAMMING_CODE_HW
+> 	1-bit hamming ecc-code using GPMC h/w engine
+> - OMAP_ECC_HAMMING_CODE_HW_ROMCODE
+> 	1-bit hamming ecc-code using GPMC h/w engin with ecc-layout compatible
+> 	to ROM code.
+> 
+> This patch combines above multiple ecc-schemes into single implementation:
+> - OMAP_ECC_HAM1_CODE_HW
+> 	1-bit hamming ecc-code using GPMC h/w engine with ROM-code compatible
+> 	ecc-layout.
 
-Fixes USB OTG port on beagle after the Generic PHY framework was
-merged in greg/usb-next. [1]
+If I have my NAND formatted with one of the existing ECC schemes (e.g.
+OMAP_ECC_HAMMING_CODE_DEFAULT) will it work with the new
+OMAP_ECC_HAM1_CODE_HW scheme?
 
-[1] - https://lkml.org/lkml/2013/9/27/581
+Are they all compatible?
 
-Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
----
- arch/arm/boot/dts/omap3-beagle.dts |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+> 
+> Signed-off-by: Pekon Gupta <pekon@ti.com>
+> ---
+>  Documentation/devicetree/bindings/mtd/gpmc-nand.txt | 8 ++++----
+>  arch/arm/mach-omap2/board-flash.c                   | 2 +-
+>  arch/arm/mach-omap2/gpmc.c                          | 4 +---
+>  drivers/mtd/nand/omap2.c                            | 9 +++------
+>  include/linux/platform_data/mtd-nand-omap2.h        | 6 +-----
+>  5 files changed, 10 insertions(+), 19 deletions(-)
+> 
+> diff --git a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
+> index df338cb..25ee232 100644
+> --- a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
+> +++ b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
+> @@ -22,10 +22,10 @@ Optional properties:
+>  				width of 8 is assumed.
+>  
+>   - ti,nand-ecc-opt:		A string setting the ECC layout to use. One of:
+> -
+> -		"sw"		Software method (default)
+> -		"hw"		Hardware method
+> -		"hw-romcode"	gpmc hamming mode method & romcode layout
+> +		"sw"		<deprecated> use "ham1" instead
+> +		"hw"		<deprecated> use "ham1" instead
+> +		"hw-romcode"	<deprecated> use "ham1" instead
+> +		"ham1"		1-bit Hamming ecc code
+>  		"bch4"		4-bit BCH ecc code
+>  		"bch8"		8-bit BCH ecc code
+>  
+> diff --git a/arch/arm/mach-omap2/board-flash.c b/arch/arm/mach-omap2/board-flash.c
+> index fc20a61..ac82512 100644
+> --- a/arch/arm/mach-omap2/board-flash.c
+> +++ b/arch/arm/mach-omap2/board-flash.c
+> @@ -142,7 +142,7 @@ __init board_nand_init(struct mtd_partition *nand_parts, u8 nr_parts, u8 cs,
+>  	board_nand_data.nr_parts	= nr_parts;
+>  	board_nand_data.devsize		= nand_type;
+>  
+> -	board_nand_data.ecc_opt = OMAP_ECC_HAMMING_CODE_DEFAULT;
+> +	board_nand_data.ecc_opt = OMAP_ECC_BCH8_CODE_HW;
+>  	gpmc_nand_init(&board_nand_data, gpmc_t);
+>  }
+>  #endif /* CONFIG_MTD_NAND_OMAP2 || CONFIG_MTD_NAND_OMAP2_MODULE */
+> diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+> index 9f4795a..1c45b72 100644
+> --- a/arch/arm/mach-omap2/gpmc.c
+> +++ b/arch/arm/mach-omap2/gpmc.c
+> @@ -1342,9 +1342,7 @@ static void __maybe_unused gpmc_read_timings_dt(struct device_node *np,
+>  #ifdef CONFIG_MTD_NAND
+>  
+>  static const char * const nand_ecc_opts[] = {
+> -	[OMAP_ECC_HAMMING_CODE_DEFAULT]		= "sw",
+> -	[OMAP_ECC_HAMMING_CODE_HW]		= "hw",
+> -	[OMAP_ECC_HAMMING_CODE_HW_ROMCODE]	= "hw-romcode",
+> +	[OMAP_ECC_HAM1_CODE_HW]			= "ham1",
+>  	[OMAP_ECC_BCH4_CODE_HW]			= "bch4",
+>  	[OMAP_ECC_BCH8_CODE_HW]			= "bch8",
 
-diff --git a/arch/arm/boot/dts/omap3-beagle.dts b/arch/arm/boot/dts/omap3-beagle.dts
-index 7669c16..fa532aa 100644
---- a/arch/arm/boot/dts/omap3-beagle.dts
-+++ b/arch/arm/boot/dts/omap3-beagle.dts
-@@ -173,6 +173,8 @@
- &usb_otg_hs {
- 	interface-type = <0>;
- 	usb-phy = <&usb2_phy>;
-+	phys = <&usb2_phy>;
-+	phy-names = "usb2-phy";
- 	mode = <3>;
- 	power = <50>;
- };
--- 
-1.7.4.1
+Won't this break existing dts which have "sw", "hw", or "hw-romcode"?
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Someone may try to use a new kernel with an old dt, and we marked them
+as deprecated, not removed.
+
+Thanks,
+Mark.
