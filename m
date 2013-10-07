@@ -1,60 +1,50 @@
-From: Balaji T K <balajitk@ti.com>
-Subject: [PATCH 2/2] ARM: dts: dra7-evm: Add mmc2 node for eMMC support
-Date: Mon, 7 Oct 2013 21:55:04 +0530
-Message-ID: <1381163104-6318-2-git-send-email-balajitk@ti.com>
-References: <1381163104-6318-1-git-send-email-balajitk@ti.com>
+From: Joel Fernandes <joelf@ti.com>
+Subject: Re: [RFC] ARM: kernel: irq: Simplify allocation of stack frame
+Date: Mon, 7 Oct 2013 11:28:03 -0500
+Message-ID: <5252E113.3080301@ti.com>
+References: <1381098649-21417-1-git-send-email-joelf@ti.com>
+ <20131006224150.GA25647@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:37453 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755543Ab3JGQ0M (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 7 Oct 2013 12:26:12 -0400
-In-Reply-To: <1381163104-6318-1-git-send-email-balajitk@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20131006224150.GA25647@n2100.arm.linux.org.uk>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: =?ISO-8859-1?Q?Andr=E9_Hent?= =?ISO-8859-1?Q?schel?= <nerv@dawncrow.de>, Jonathan Austin <jonathan.austin@arm.com>, Nicolas Pitre <nico@linaro.org>, linux-kernel@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: bcousson@baylibre.com, devicetree@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Balaji T K <balajitk@ti.com>
 
-Add mmc2 dt node to dra7-evm board
-and model eMMC vcc as fixed regulator.
+On 10/06/2013 05:41 PM, Russell King - ARM Linux wrote:
+> On Sun, Oct 06, 2013 at 05:30:47PM -0500, Joel Fernandes wrote:
+>> On receiving IRQ exception in SVC mode, all the SVC mode registers are saved
+>> onto the stack very early on.
+>>
+>> The stack frame allocation code for IRQ entry during SVC mode (svc_entry) is
+>> hard to read as 4-less is allocated initially only to be allocated later
+>> implicity using the mov r3, [sp, #-4]! instruction. We make code easier to read
+>> by allocating the 4 bytes on the stack frame in the beginning itself and remove
+>> all instances where 4 bytes is adjusted.
+> 
+> You omit to say that this results in saving one additional register
+> unnecessarily in the stmia.  We could use a stmib there instead which
+> would avoid that issue while keeping the rest of the change.
+> 
 
-Signed-off-by: Balaji T K <balajitk@ti.com>
----
-Rebase to for_3.13/dts
-and removed ti,non-removable
+Hi Russel,
 
- arch/arm/boot/dts/dra7-evm.dts |   13 +++++++++++++
- 1 files changed, 13 insertions(+), 0 deletions(-)
+BTW I used ETM to check the number of cycles used to store the extra register
+with and without this patch and with both cases it takes 7 cycles.
 
-diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
-index 65cd15a..3abf5f4 100644
---- a/arch/arm/boot/dts/dra7-evm.dts
-+++ b/arch/arm/boot/dts/dra7-evm.dts
-@@ -17,6 +17,13 @@
- 		device_type = "memory";
- 		reg = <0x80000000 0x60000000>; /* 1536 MB */
- 	};
-+
-+	mmc2_3v3: fixedregulator-mmc2 {
-+		compatible = "regulator-fixed";
-+		regulator-name = "mmc2_3v3";
-+		regulator-min-microvolt = <3300000>;
-+		regulator-max-microvolt = <3300000>;
-+	};
- };
- 
- &dra7_pmx_core {
-@@ -256,3 +263,9 @@
- 	vmmc-supply = <&ldo1_reg>;
- 	bus-width = <4>;
- };
-+
-+&mmc2 {
-+	status = "okay";
-+	vmmc-supply = <&mmc2_3v3>;
-+	bus-width = <8>;
-+};
--- 
-1.7.5.4
+My platform uses Cortex-A8 (AM335x SoC).
 
+Thanks,
+
+-Joel
