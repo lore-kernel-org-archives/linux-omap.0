@@ -1,119 +1,53 @@
-From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Subject: Re: [PATCH 1/3] ARM: dts: omap3-igep0020: Add USB OTG support
-Date: Mon, 07 Oct 2013 18:05:37 +0200
-Message-ID: <5252DBD1.3030308@collabora.co.uk>
-References: <1380931479-16142-1-git-send-email-javier.martinez@collabora.co.uk> <1380931479-16142-2-git-send-email-javier.martinez@collabora.co.uk> <52529048.1040606@ti.com> <5252A0FE.5070809@collabora.co.uk> <5252A1EA.9020909@baylibre.com> <5252A2ED.2070600@collabora.co.uk> <5252A468.5070801@baylibre.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCHv7 00/36] ARM: OMAP: clock data conversion to DT
+Date: Mon, 7 Oct 2013 11:13:43 -0500
+Message-ID: <5252DDB7.9080603@ti.com>
+References: <1380098922-30340-1-git-send-email-t-kristo@ti.com> <524EE00F.7010208@ti.com> <20131007021556.GV8949@atomide.com> <52525642.8010307@ti.com> <20131007154103.GW8949@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([93.93.135.160]:40735 "EHLO
-	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750893Ab3JGQGS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Oct 2013 12:06:18 -0400
-In-Reply-To: <5252A468.5070801@baylibre.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:36838 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750954Ab3JGQOM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 7 Oct 2013 12:14:12 -0400
+In-Reply-To: <20131007154103.GW8949@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <bcousson@baylibre.com>
-Cc: Roger Quadros <rogerq@ti.com>, Tony Lindgren <tony@atomide.com>, Enric Balletbo i Serra <eballetbo@gmail.com>, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, rnayak@ti.com, bcousson@baylibre.com, mturquette@linaro.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-On Mon, Oct 7, 2013 at 2:09 PM, Benoit Cousson <bcousson@baylibre.com> wrote:
-> On 07/10/2013 14:02, Javier Martinez Canillas wrote:
->>
->> On 10/07/2013 01:58 PM, Benoit Cousson wrote:
->>>
->>> Hi Javier,
->>>
->>> On 07/10/2013 13:54, Javier Martinez Canillas wrote:
+On 10/07/2013 10:41 AM, Tony Lindgren wrote:
+> * Tero Kristo <t-kristo@ti.com> [131006 23:43]:
+>> On 10/07/2013 05:15 AM, Tony Lindgren wrote:
+>>> * Tero Kristo <t-kristo@ti.com> [131004 08:42]:
+>>>> Hi,
 >>>>
->>>> On 10/07/2013 12:43 PM, Roger Quadros wrote:
->>>>>
->>>>> Javier,
->>>>>
->>>>> On 10/05/2013 03:04 AM, Javier Martinez Canillas wrote:
->>>>>>
->>>>>> Commit ad871c10b ("ARM: dts: OMAP: Add usb_otg and glue data to OMAP3+
->>>>>> boards")
->>>>>> added USB OTG support for most OMAP boards but some OMAP3 boards
->>>>>> such as the IGEPv2 were not updated. This patch adds an USB OTG
->>>>>> device node to this board.
->>>>>>
->>>>>> Signed-off-by: Javier Martinez Canillas
->>>>>> <javier.martinez@collabora.co.uk>
->>>>>> ---
->>>>>>    arch/arm/boot/dts/omap3-igep0020.dts | 7 +++++++
->>>>>>    1 file changed, 7 insertions(+)
->>>>>>
->>>>>> diff --git a/arch/arm/boot/dts/omap3-igep0020.dts
->>>>>> b/arch/arm/boot/dts/omap3-igep0020.dts
->>>>>> index eedf0d8..903e944 100644
->>>>>> --- a/arch/arm/boot/dts/omap3-igep0020.dts
->>>>>> +++ b/arch/arm/boot/dts/omap3-igep0020.dts
->>>>>> @@ -166,3 +166,10 @@
->>>>>>                 smsc,save-mac-address;
->>>>>>         };
->>>>>>    };
->>>>>> +
->>>>>> +&usb_otg_hs {
->>>>>> +       interface-type = <0>;
->>>>>> +       usb-phy = <&usb2_phy>;
->>>>>
->>>>>
->>>>> With the PHY generic framework in Greg's usb-next branch [1], you will
->>>>> also need to add
->>>>>
->>>>> +       phys = <&usb2_phy>;
->>>>> +       phy-names = "usb2-phy";
->>>>>
->>>>>> +       mode = <3>;
->>>>>> +       power = <50>;
->>>>>> +};
->>>>>>
->>>>>
->>>>> So it would be good to test with the usb-next branch.
->>>>>
->>>>> cheers,
->>>>> -roger
->>>>>
->>>>> [1] - git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/usb.git
->>>>>
->>>>
->>>> Hi Roger,
->>>>
->>>> Thanks for the pointer, I'll add those properties and test using the PHY
->>>> generic
->>>> framework.
+>>>> Just a gentle reminder, anybody have any comments on this series or
+>>>> should we start queuing stuff?
 >>>
->>>
->>> Should I expect a v3 then?
->>>
+>>> Well omap4 seems to work for me just fine, and omap3 in legacy
+>>> mode. But looks like omap3 device tree based booting is breaking
+>>> after I pulled in your test branch. I get the following on
+>>> 3630 based dm3730.
 >>
->> Hi Benoit,
+>> Uart4 breaks because of the issue with basic DT blobs. You need at
+>> least this patch:
 >>
->> Yes, I'll test it and send a v3 in the next few hours, sorry for not being
->> clear
->> about that.
->
->
->
-> That's OK, I was applying your series when I saw your email ;-)
->
+>> http://linux-kernel.2935.n7.nabble.com/RFC-PATCH-ARM-OMAP3630-Add-generic-machine-descriptor-td722791.html
+>>
+>> ... from Nishanth to get it to work right. Otherwise the clock init
+>> tries to use omap3430 clock data for omap3630 which leaves uart4
+>> nodes out.
+> 
+> OK thanks yes that solves it, I was missing the compatible flag
+> for my not quite ready test boards (3730-evm and zoom3).
+> I'll apply Nishant's fix with some changes.
+> 
+I will post out an RFC based on Olof's suggestion in a few mins. will
+be nice to see any deltas needed.
 
-Yes, fortunately Roger pointed out that OMAP otg device node required additional
-properties to work with the new generic PHY framework that will land on v3.13.
-Otherwise it would only work until Greg send his pull request to Linus :)
 
-> I'm waiting for the next one.
->
-
-Great, I had already sent the v3 [1] that has the necessary changes for the PHY
-framework and tested it using usb-next
-
-> Thanks,
-> Benoit
->
-
-Thanks a lot and best regards,
-Javier
-
-[1]: http://www.mail-archive.com/linux-omap@vger.kernel.org/msg96583.html
+-- 
+Regards,
+Nishanth Menon
