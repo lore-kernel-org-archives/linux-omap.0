@@ -1,145 +1,231 @@
-From: "Ivan T. Ivanov" <iivanov-NEYub+7Iv8PQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v6 1/3] usb: dwc3: msm: Add device tree binding information
-Date: Mon,  7 Oct 2013 10:44:55 +0300
-Message-ID: <1381131897-13910-2-git-send-email-iivanov@mm-sol.com>
+From: "Ivan T. Ivanov" <iivanov@mm-sol.com>
+Subject: [PATCH v6 3/3] usb: dwc3: Add Qualcomm DWC3 glue layer driver
+Date: Mon,  7 Oct 2013 10:44:57 +0300
+Message-ID: <1381131897-13910-4-git-send-email-iivanov@mm-sol.com>
 References: <1381131897-13910-1-git-send-email-iivanov@mm-sol.com>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1381131897-13910-1-git-send-email-iivanov-NEYub+7Iv8PQT0dZR+AlfA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: balbi-l0cyMroinI0@public.gmane.org
-Cc: rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org, ian.campbell-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org, rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, idos-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, mgautam-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Ivan T. Ivanov" <iivanov-NEYub+7Iv8PQT0dZR+AlfA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1381131897-13910-1-git-send-email-iivanov@mm-sol.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: balbi@ti.com
+Cc: rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ian.campbell@citrix.com, rob@landley.net, gregkh@linuxfoundation.org, grant.likely@linaro.org, idos@codeaurora.org, mgautam@codeaurora.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-msm@vger.kernel.org, "Ivan T. Ivanov" <iivanov@mm-sol.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: "Ivan T. Ivanov" <iivanov-NEYub+7Iv8PQT0dZR+AlfA@public.gmane.org>
+From: "Ivan T. Ivanov" <iivanov@mm-sol.com>
 
-MSM USB3.0 core wrapper consist of USB3.0 IP from Synopsys
-(SNPS) and HS, SS PHY's control and configuration registers.
+DWC3 glue layer is hardware layer around Synopsys DesignWare
+USB3 core. Its purpose is to supply Synopsys IP with required
+clocks, voltages and interface it with the rest of the SoC.
 
-It could operate in device mode (SS, HS, FS) and host
-mode (SS, HS, FS, LS).
-
-Signed-off-by: Ivan T. Ivanov <iivanov-NEYub+7Iv8PQT0dZR+AlfA@public.gmane.org>
-Acked-by: Stephen Warren <swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Ivan T. Ivanov <iivanov@mm-sol.com>
 ---
- .../devicetree/bindings/usb/msm-ssusb.txt          |  105 ++++++++++++++++++++
- 1 file changed, 105 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/usb/msm-ssusb.txt
+ drivers/usb/dwc3/Kconfig    |    8 +++
+ drivers/usb/dwc3/Makefile   |    1 +
+ drivers/usb/dwc3/dwc3-msm.c |  168 +++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 177 insertions(+)
+ create mode 100644 drivers/usb/dwc3/dwc3-msm.c
 
-diff --git a/Documentation/devicetree/bindings/usb/msm-ssusb.txt b/Documentation/devicetree/bindings/usb/msm-ssusb.txt
+diff --git a/drivers/usb/dwc3/Kconfig b/drivers/usb/dwc3/Kconfig
+index 70fc430..4c7b5a4 100644
+--- a/drivers/usb/dwc3/Kconfig
++++ b/drivers/usb/dwc3/Kconfig
+@@ -59,6 +59,14 @@ config USB_DWC3_EXYNOS
+ 	  Recent Exynos5 SoCs ship with one DesignWare Core USB3 IP inside,
+ 	  say 'Y' or 'M' if you have one such device.
+ 
++config USB_DWC3_MSM
++       tristate "Qualcomm MSM/APQ Platforms"
++       default USB_DWC3
++       select USB_MSM_DWC3_PHYS
++       help
++         Recent Qualcomm SoCs ship with one DesignWare Core USB3 IP inside,
++         say 'Y' or 'M' if you have one such device.
++
+ config USB_DWC3_PCI
+ 	tristate "PCIe-based Platforms"
+ 	depends on PCI
+diff --git a/drivers/usb/dwc3/Makefile b/drivers/usb/dwc3/Makefile
+index dd17601..a90de66 100644
+--- a/drivers/usb/dwc3/Makefile
++++ b/drivers/usb/dwc3/Makefile
+@@ -31,4 +31,5 @@ endif
+ 
+ obj-$(CONFIG_USB_DWC3_OMAP)		+= dwc3-omap.o
+ obj-$(CONFIG_USB_DWC3_EXYNOS)		+= dwc3-exynos.o
++obj-$(CONFIG_USB_DWC3_MSM)		+= dwc3-msm.o
+ obj-$(CONFIG_USB_DWC3_PCI)		+= dwc3-pci.o
+diff --git a/drivers/usb/dwc3/dwc3-msm.c b/drivers/usb/dwc3/dwc3-msm.c
 new file mode 100644
-index 0000000..a71bf00
+index 0000000..1d73f92
 --- /dev/null
-+++ b/Documentation/devicetree/bindings/usb/msm-ssusb.txt
-@@ -0,0 +1,105 @@
-+MSM SuperSpeed DWC3 USB SoC controller
++++ b/drivers/usb/dwc3/dwc3-msm.c
+@@ -0,0 +1,168 @@
++/* Copyright (c) 2013, The Linux Foundation. All rights reserved.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 and
++ * only version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
 +
++#include <linux/clk.h>
++#include <linux/err.h>
++#include <linux/io.h>
++#include <linux/module.h>
++#include <linux/of.h>
++#include <linux/of_platform.h>
++#include <linux/platform_device.h>
++#include <linux/regulator/consumer.h>
++#include <linux/usb/phy.h>
 +
-+MSM DW Highspeed USB PHY
-+========================
-+Required properities:
-+- compatible:	should contain "qcom,dw-hsphy";
-+- reg:			offset and length of the register set in the memory map
-+- clocks:		A list of phandle + clock-specifier pairs for the
-+				clocks listed in clock-names
-+- clock-names:	Should contain the following:
-+  "xo"			External reference clock
-+  "sleep_a"		Sleep clock, used when USB3 core goes into low
-+				power mode (U3).
-+- v1p8-supply:	phandle to the regulator for the 1.8v supply to HSPHY.
-+- v3p3-supply:	phandle to the regulator for the 3.3v supply to HSPHY.
-+- vbus-supply:	phandle to the regulator for the vbus supply for host
-+		mode.
-+- vddcx-supply: phandle to the regulator for the vdd supply for HSPHY
-+                digital circuit operation.
++struct dwc3_msm {
++	struct device		*dev;
 +
-+MSM DW Superspeed USB PHY
-+=========================
-+Required properities:
-+- compatible:	should contain "qcom,dw-ssphy";
-+- reg:			offset and length of the register set in the memory map
-+- clocks:		A list of phandle + clock-specifier pairs for the
-+				clocks listed in clock-names
-+- clock-names:	Should contain the following:
-+  "xo"			External reference clock
-+  "ref"			Reference clock - used in host mode.
-+- v1p8-supply:	phandle to the regulator for the 1.8v supply to HSPHY.
-+- vddcx-supply: phandle to the regulator for the vdd supply for HSPHY
-+                digital circuit operation.
++	struct clk		*core_clk;
++	struct clk		*iface_clk;
++	struct clk		*sleep_clk;
++	struct clk		*utmi_clk;
 +
-+MSM DWC3 controller wrapper
-+===========================
-+Required properties:
-+- compatible:	should contain "qcom,dwc3"
-+- reg:			offset and length of the TCSR register for routing USB
-+				signals to either picoPHY0 or picoPHY1.
-+- clocks:		A list of phandle + clock-specifier pairs for the
-+				clocks listed in clock-names
-+- clock-names:	Should contain the following:
-+  "core"		Master/Core clock, have to be >= 125 MHz for SS
-+				operation and >= 60MHz for HS operation
-+  "iface"		System bus AXI clock
-+  "sleep"		Sleep clock, used when USB3 core goes into low
-+				power mode (U3).
-+  "utmi"		Generated by HSPHY. Used to clock the low power
-+				parts of thr HS Link layer.
-+Optional regulator:
-+- gdsc-supply:	phandle to the regulator from globally distributed
-+				switch controller
-+Required child node:
-+A child node must exist to represent the core DWC3 IP block. The name of
-+the node is not important. The content of the node is defined in dwc3.txt.
++	struct regulator	*gdsc;
++};
 +
-+Example device nodes:
++static int dwc3_msm_probe(struct platform_device *pdev)
++{
++	struct device_node *node = pdev->dev.of_node;
++	struct dwc3_msm *mdwc;
++	struct resource *res;
++	void __iomem *tcsr;
++	int ret = 0;
 +
-+	dw_hsphy: phy@f92f8800 {
-+		compatible = "qcom,dw-hsphy";
-+		reg = <0xf92f8800 0x30>;
++	mdwc = devm_kzalloc(&pdev->dev, sizeof(*mdwc), GFP_KERNEL);
++	if (!mdwc)
++		return -ENOMEM;
 +
-+		clocks = <&cxo>, <&usb2a_phy_sleep_cxc>;
-+		clock-names = "xo", "sleep_a";
++	platform_set_drvdata(pdev, mdwc);
 +
-+		vbus-supply = <&supply>;
-+		vddcx-supply = <&supply>;
-+		v1p8-supply = <&supply>;
-+		v3p3-supply = <&supply>;
-+	};
++	mdwc->dev = &pdev->dev;
 +
-+	dw_ssphy: phy@f92f8830 {
-+		compatible = "qcom,dw-ssphy";
-+		reg = <0xf92f8830 0x30>;
++	mdwc->gdsc = devm_regulator_get(mdwc->dev, "gdsc");
 +
-+		clocks = <&cxo>, <&usb30_mock_utmi_cxc>;
-+		clock-names = "xo", "ref";
++	mdwc->core_clk = devm_clk_get(mdwc->dev, "core");
++	if (IS_ERR(mdwc->core_clk)) {
++		dev_dbg(mdwc->dev, "failed to get core clock\n");
++		return PTR_ERR(mdwc->core_clk);
++	}
 +
-+		vddcx-supply = <&supply>;
-+		v1p8-supply = <&supply>;
-+	};
++	mdwc->iface_clk = devm_clk_get(mdwc->dev, "iface");
++	if (IS_ERR(mdwc->iface_clk)) {
++		dev_dbg(mdwc->dev, "failed to get iface clock\n");
++		return PTR_ERR(mdwc->iface_clk);
++	}
 +
-+	usb@fd4ab000 {
-+		compatible = "qcom,dwc3";
-+		#address-cells = <1>;
-+		#size-cells = <1>;
-+		reg = <0xfd4ab000 0x4>;
++	mdwc->sleep_clk = devm_clk_get(mdwc->dev, "sleep");
++	if (IS_ERR(mdwc->sleep_clk)) {
++		dev_dbg(mdwc->dev, "failed to get sleep clock\n");
++		return  PTR_ERR(mdwc->sleep_clk);
++	}
 +
-+		clocks = <&usb30_master_cxc>, <&sys_noc_usb3_axi_cxc>,
-+				<&usb30_sleep_cxc>, <&usb30_mock_utmi_cxc>;
-+		clock-names = "core", "iface", "sleep", "utmi";
++	mdwc->utmi_clk = devm_clk_get(mdwc->dev, "utmi");
++	if (IS_ERR(mdwc->utmi_clk)) {
++		dev_dbg(mdwc->dev, "failed to get utmi clock\n");
++		return  PTR_ERR(mdwc->utmi_clk);
++	}
 +
-+		gdsc-supply = <&supply>;
++	if (!IS_ERR(mdwc->gdsc)) {
++		ret = regulator_enable(mdwc->gdsc);
++		if (ret)
++			dev_err(mdwc->dev, "cannot enable gdsc\n");
++	}
 +
-+		ranges;
-+		dwc3@f9200000 {
-+			compatible = "snps,dwc3";
-+			reg = <0xf9200000 0xcd00>;
-+			interrupts = <0 131>;
-+			usb-phy = <&dw_hsphy>, <&dw_ssphy>;
-+			tx-fifo-resize;
-+		};
-+	};
++	/*
++	 * DWC3 Core requires its CORE CLK (aka master / bus clk) to
++	 * run at 125Mhz in SSUSB mode and >60MHZ for HSUSB mode.
++	 */
++	clk_set_rate(mdwc->core_clk, 125000000);
++	clk_prepare_enable(mdwc->core_clk);
++	clk_prepare_enable(mdwc->iface_clk);
++	clk_prepare_enable(mdwc->sleep_clk);
++	clk_prepare_enable(mdwc->utmi_clk);
++
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	tcsr = devm_ioremap_resource(mdwc->dev, res);
++	if (!tcsr) {
++		ret = PTR_ERR(tcsr);
++		goto dis_clks;
++	}
++
++	/*
++	 * Primary USB port is shared between USB2 and USB3 controllers.
++	 * By default this port is routed to USB2. Select primary port for
++	 * USB3, this will automatically move USB2 to secondary port.
++	 */
++	writel(0x1, tcsr);
++
++	ret = of_platform_populate(node, NULL, NULL, mdwc->dev);
++	if (ret) {
++		dev_dbg(mdwc->dev, "failed to add create dwc3 core\n");
++		writel(0x0, tcsr);
++		goto dis_clks;
++	}
++
++	return 0;
++
++dis_clks:
++	clk_disable_unprepare(mdwc->utmi_clk);
++	clk_disable_unprepare(mdwc->sleep_clk);
++	clk_disable_unprepare(mdwc->iface_clk);
++	clk_disable_unprepare(mdwc->core_clk);
++	if (!IS_ERR(mdwc->gdsc)) {
++		ret = regulator_disable(mdwc->gdsc);
++		if (ret)
++			dev_dbg(mdwc->dev, "cannot disable gdsc\n");
++	}
++
++	return ret;
++}
++
++static int dwc3_msm_remove(struct platform_device *pdev)
++{
++	struct dwc3_msm	*mdwc = platform_get_drvdata(pdev);
++	int ret;
++
++	clk_disable_unprepare(mdwc->utmi_clk);
++	clk_disable_unprepare(mdwc->sleep_clk);
++	clk_disable_unprepare(mdwc->iface_clk);
++	clk_disable_unprepare(mdwc->core_clk);
++
++	if (!IS_ERR(mdwc->gdsc)) {
++		ret = regulator_disable(mdwc->gdsc);
++		if (ret)
++			dev_dbg(mdwc->dev, "cannot disable gdsc\n");
++	}
++
++	return 0;
++}
++
++static const struct of_device_id of_dwc3_match[] = {
++	{ .compatible = "qcom,dwc3" },
++	{ /* Sentinel */ }
++};
++MODULE_DEVICE_TABLE(of, of_dwc3_match);
++
++static struct platform_driver dwc3_msm_driver = {
++	.probe		= dwc3_msm_probe,
++	.remove		= dwc3_msm_remove,
++	.driver		= {
++		.name	= "msm-dwc3",
++		.owner	= THIS_MODULE,
++		.of_match_table	= of_dwc3_match,
++	},
++};
++
++module_platform_driver(dwc3_msm_driver);
++
++MODULE_ALIAS("platform:msm-dwc3");
++MODULE_LICENSE("GPL v2");
++MODULE_DESCRIPTION("DesignWare USB3 MSM Glue Layer");
 -- 
 1.7.9.5
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
