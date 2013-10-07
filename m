@@ -1,203 +1,166 @@
-From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Subject: Re: [PATCH 2/3] ARM: dts: omap3-igep0020: Add HS USB Host support
-Date: Mon, 07 Oct 2013 11:13:05 +0200
-Message-ID: <52527B21.5040602@collabora.co.uk>
-References: <1380931479-16142-1-git-send-email-javier.martinez@collabora.co.uk> <1380931479-16142-3-git-send-email-javier.martinez@collabora.co.uk> <525271D5.9070009@ti.com> <525275C8.2050208@collabora.co.uk> <5252799A.5030301@ti.com>
+From: Archit Taneja <archit@ti.com>
+Subject: Re: [PATCH v4 3/4] v4l: ti-vpe: Add VPE mem to mem driver
+Date: Mon, 7 Oct 2013 14:46:47 +0530
+Message-ID: <52527BFF.3060603@ti.com>
+References: <1376996457-17275-1-git-send-email-archit@ti.com> <1378462346-10880-1-git-send-email-archit@ti.com> <1378462346-10880-4-git-send-email-archit@ti.com> <525268F9.90409@xs4all.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([93.93.135.160]:40444 "EHLO
-	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751556Ab3JGJNq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Oct 2013 05:13:46 -0400
-In-Reply-To: <5252799A.5030301@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:40404 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754699Ab3JGJRp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Oct 2013 05:17:45 -0400
+In-Reply-To: <525268F9.90409@xs4all.nl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: bcousson@baylibre.com, Tony Lindgren <tony@atomide.com>, Enric Balletbo i Serra <eballetbo@gmail.com>, linux-omap@vger.kernel.org, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com, linux-omap@vger.kernel.org, tomi.valkeinen@ti.com
 
-On 10/07/2013 11:06 AM, Roger Quadros wrote:
-> +devicetree
-> 
-> Javier,
-> 
-> On 10/07/2013 11:50 AM, Javier Martinez Canillas wrote:
->> On Mon, Oct 7, 2013 at 10:33 AM, Roger Quadros <rogerq@ti.com> wrote:
->>> Hi Javier,
->>>
->>> On 10/05/2013 03:04 AM, Javier Martinez Canillas wrote:
->>>> Add device nodes for the HS USB Host port 1, USB PHY and its
->>>> required regulator and also pin mux setup for HS USB1 pins.
->>>>
->>>> Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
->>>> ---
->>>>  arch/arm/boot/dts/omap3-igep.dtsi    | 22 ++++++++++++++++++++++
->>>>  arch/arm/boot/dts/omap3-igep0020.dts | 25 +++++++++++++++++++++++++
->>>>  2 files changed, 47 insertions(+)
->>>>
->>>> diff --git a/arch/arm/boot/dts/omap3-igep.dtsi
->> b/arch/arm/boot/dts/omap3-igep.dtsi
->>>> index 0f92224..ec2ecd2 100644
->>>> --- a/arch/arm/boot/dts/omap3-igep.dtsi
->>>> +++ b/arch/arm/boot/dts/omap3-igep.dtsi
->>>> @@ -27,6 +27,11 @@
->>>>  };
->>>>
->>>>  &omap3_pmx_core {
->>>> +     pinctrl-names = "default";
->>>> +     pinctrl-0 = <
->>>> +             &hsusbb1_pins
->>>> +     >;
->>>> +
->>>>       uart1_pins: pinmux_uart1_pins {
->>>>               pinctrl-single,pins = <
->>>>                       0x152 (PIN_INPUT | MUX_MODE0)           /*
->> uart1_rx.uart1_rx */
->>>> @@ -78,6 +83,23 @@
->>>>               >;
->>>>       };
->>>>
->>>> +     hsusbb1_pins: pinmux_hsusbb1_pins {
->>>> +             pinctrl-single,pins = <
->>>> +                     0x5aa (PIN_OUTPUT | MUX_MODE3)          /*
->> etk_ctl.hsusb1_clk */
->>>> +                     0x5a8 (PIN_OUTPUT | MUX_MODE3)          /*
->> etk_clk.hsusb1_stp */
->>>> +                     0x5bc (PIN_INPUT_PULLDOWN | MUX_MODE3)  /*
->> etk_d8.hsusb1_dir */
->>>> +                     0x5be (PIN_INPUT_PULLDOWN | MUX_MODE3)  /*
->> etk_d9.hsusb1_nxt */
->>>> +                     0x5ac (PIN_INPUT_PULLDOWN | MUX_MODE3)  /*
->> etk_d0.hsusb1_data0 */
->>>> +                     0x5ae (PIN_INPUT_PULLDOWN | MUX_MODE3)  /*
->> etk_d1.hsusb1_data1 */
->>>> +                     0x5b0 (PIN_INPUT_PULLDOWN | MUX_MODE3)  /*
->> etk_d2.hsusb1_data2 */
->>>> +                     0x5b2 (PIN_INPUT_PULLDOWN | MUX_MODE3)  /*
->> etk_d3.hsusb1_data7 */
->>>> +                     0x5b4 (PIN_INPUT_PULLDOWN | MUX_MODE3)  /*
->> etk_d4.hsusb1_data4 */
->>>> +                     0x5b6 (PIN_INPUT_PULLDOWN | MUX_MODE3)  /*
->> etk_d5.hsusb1_data5 */
->>>> +                     0x5b8 (PIN_INPUT_PULLDOWN | MUX_MODE3)  /*
->> etk_d6.hsusb1_data6 */
->>>> +                     0x5ba (PIN_INPUT_PULLDOWN | MUX_MODE3)  /*
->> etk_d7.hsusb1_data3 */
->>>> +             >;
->>>> +     };
->>>> +
->>>
->>> Is this pin config required for igep0030 as well? If not then you should move
->> these pinmux
->>> definitions to omap3-igep0020.dts.
->>>
->>> All else looks good to me.
->>>
->> 
->> Hi Roger,
->> 
->> Well that's a very good question indeed.
->> 
->> The thing is that the IGEP0030 is a Computer-on-Module [1] that is used in
->> conjunction with expansion boards and some of them have USB HOST support such as
->> IGEP Paris [2] and IGEP Berlin [3].
->> 
->> Support for this expansion boards is still not in mainline but there are plans
->> to add them using Device Tree overlays [4] once/if this land on mainline.
->> 
-> 
-> Why would your boards need Device Tree overlays? From the looks of it, the configuration
-> of SOM + base board don't seem to change at runtime.
-> 
+On Monday 07 October 2013 01:25 PM, Hans Verkuil wrote:
+> Hi Archit,
+>
+> I've got a few comments below...
+>
+> On 09/06/2013 12:12 PM, Archit Taneja wrote:
+>> VPE is a block which consists of a single memory to memory path which can
+>> perform chrominance up/down sampling, de-interlacing, scaling, and color space
+>> conversion of raster or tiled YUV420 coplanar, YUV422 coplanar or YUV422
+>> interleaved video formats.
+>>
+>> We create a mem2mem driver based primarily on the mem2mem-testdev example.
+>> The de-interlacer, scaler and color space converter are all bypassed for now
+>> to keep the driver simple. Chroma up/down sampler blocks are implemented, so
+>> conversion beteen different YUV formats is possible.
+>>
+>> Each mem2mem context allocates a buffer for VPE MMR values which it will use
+>> when it gets access to the VPE HW via the mem2mem queue, it also allocates
+>> a VPDMA descriptor list to which configuration and data descriptors are added.
+>>
+>> Based on the information received via v4l2 ioctls for the source and
+>> destination queues, the driver configures the values for the MMRs, and stores
+>> them in the buffer. There are also some VPDMA parameters like frame start and
+>> line mode which needs to be configured, these are configured by direct register
+>> writes via the VPDMA helper functions.
+>>
+>> The driver's device_run() mem2mem op will add each descriptor based on how the
+>> source and destination queues are set up for the given ctx, once the list is
+>> prepared, it's submitted to VPDMA, these descriptors when parsed by VPDMA will
+>> upload MMR registers, start DMA of video buffers on the various input and output
+>> clients/ports.
+>>
+>> When the list is parsed completely(and the DMAs on all the output ports done),
+>> an interrupt is generated which we use to notify that the source and destination
+>> buffers are done.
+>>
+>> The rest of the driver is quite similar to other mem2mem drivers, we use the
+>> multiplane v4l2 ioctls as the HW support coplanar formats.
+>>
+>> Signed-off-by: Archit Taneja <archit@ti.com>
+>> ---
+>>   drivers/media/platform/Kconfig           |   16 +
+>>   drivers/media/platform/Makefile          |    2 +
+>>   drivers/media/platform/ti-vpe/Makefile   |    5 +
+>>   drivers/media/platform/ti-vpe/vpe.c      | 1750 ++++++++++++++++++++++++++++++
+>>   drivers/media/platform/ti-vpe/vpe_regs.h |  496 +++++++++
+>>   include/uapi/linux/v4l2-controls.h       |    4 +
+>>   6 files changed, 2273 insertions(+)
+>>   create mode 100644 drivers/media/platform/ti-vpe/Makefile
+>>   create mode 100644 drivers/media/platform/ti-vpe/vpe.c
+>>   create mode 100644 drivers/media/platform/ti-vpe/vpe_regs.h
+>>
+>
+> <snip>
+>
+>> +
+>> +static int vpe_g_fmt(struct file *file, void *priv, struct v4l2_format *f)
+>> +{
+>> +	struct v4l2_pix_format_mplane *pix = &f->fmt.pix_mp;
+>> +	struct vpe_ctx *ctx = file2ctx(file);
+>> +	struct vb2_queue *vq;
+>> +	struct vpe_q_data *q_data;
+>> +	int i;
+>> +
+>> +	vq = v4l2_m2m_get_vq(ctx->m2m_ctx, f->type);
+>> +	if (!vq)
+>> +		return -EINVAL;
+>> +
+>> +	q_data = get_q_data(ctx, f->type);
+>> +
+>> +	pix->width = q_data->width;
+>> +	pix->height = q_data->height;
+>> +	pix->pixelformat = q_data->fmt->fourcc;
+>> +	pix->colorspace = q_data->colorspace;
+>> +	pix->num_planes = q_data->fmt->coplanar ? 2 : 1;
+>> +
+>> +	for (i = 0; i < pix->num_planes; i++) {
+>> +		pix->plane_fmt[i].bytesperline = q_data->bytesperline[i];
+>> +		pix->plane_fmt[i].sizeimage = q_data->sizeimage[i];
+>> +	}
+>> +
+>> +	return 0;
+>> +}
+>> +
+>> +static int __vpe_try_fmt(struct vpe_ctx *ctx, struct v4l2_format *f,
+>> +		       struct vpe_fmt *fmt, int type)
+>> +{
+>> +	struct v4l2_pix_format_mplane *pix = &f->fmt.pix_mp;
+>> +	struct v4l2_plane_pix_format *plane_fmt;
+>> +	int i;
+>> +
+>> +	if (!fmt || !(fmt->types & type)) {
+>> +		vpe_err(ctx->dev, "Fourcc format (0x%08x) invalid.\n",
+>> +			pix->pixelformat);
+>> +		return -EINVAL;
+>> +	}
+>> +
+>> +	pix->field = V4L2_FIELD_NONE;
+>> +
+>> +	v4l_bound_align_image(&pix->width, MIN_W, MAX_W, W_ALIGN,
+>> +			      &pix->height, MIN_H, MAX_H, H_ALIGN,
+>> +			      S_ALIGN);
+>> +
+>> +	pix->num_planes = fmt->coplanar ? 2 : 1;
+>> +	pix->pixelformat = fmt->fourcc;
+>> +	pix->colorspace = fmt->fourcc == V4L2_PIX_FMT_RGB24 ?
+>
+> You do this only for capture. Output sets the colorspace, so try_fmt should
+> leave the colorspace field untouched for the output direction.
+>
+>> +			V4L2_COLORSPACE_SRGB : V4L2_COLORSPACE_SMPTE170M;
 
-Indeed, a static configuration (DTS) would be enough now that I think about it.
+The input to the VPE block can be various YUV formats, and the VPE can 
+generate both RGB and YUV formats.
 
->> So, answering your question right now this is not required but I thought it
->> would be good to have it configured by default in case someone using an IGEP0030
->> and a expansion board wants to extend omap3-igep0030.dts to add support for its
->> expansion board.
-> 
-> I think all you need is a .dts file for each expansion board that extends
-> omap3-iegp0030.dts.
-> 
-> That way, the pinmux for USB host pins will come only in those boards that have the USB host port.
-> 
->> 
->> I've no strong opinion on this though and I can send a new patch with those pins
->> moved to omap3-igep0020.dts though if you think that would be better.
-> 
-> If you don't put it in omap3-igep0020.dts, how will you handle the case when a omap3-igep0030
-> SOM is used with an expansion board that doesn't have USB host port and uses it for something
-> else?
-> 
+So, I guess the output(V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) side has 
+choice only to set V4L2_COLORSPACE_SMPTE170M. And in the 
+capture(V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) capture side we have both 
+SRG and SMPTE170M options.
 
-You are right, will change and post a v2 of the patch-set, thanks a lot for your
-feedback!
+One thing I am not clear about is whether the userspace application has 
+to set the colorspace in the v4l2 format for OUTPUT or CAPTURE or both?
 
->> 
->>>>       leds_pins: pinmux_leds_pins { };
->>>>  };
->>>>
->>>> diff --git a/arch/arm/boot/dts/omap3-igep0020.dts
->> b/arch/arm/boot/dts/omap3-igep0020.dts
->>>> index 903e944..180b186 100644
->>>> --- a/arch/arm/boot/dts/omap3-igep0020.dts
->>>> +++ b/arch/arm/boot/dts/omap3-igep0020.dts
->>>> @@ -55,6 +55,23 @@
->>>>               regulator-name = "vdd33a";
->>>>               regulator-always-on;
->>>>       };
->>>> +
->>>> +       /* HS USB Port 1 Power */
->>>> +       hsusb1_power: hsusb1_power_reg {
->>>> +               compatible = "regulator-fixed";
->>>> +               regulator-name = "hsusb1_vbus";
->>>> +               regulator-min-microvolt = <3300000>;
->>>> +               regulator-max-microvolt = <3300000>;
->>>> +               gpio = <&twl_gpio 18 GPIO_ACTIVE_LOW>;        /* GPIO LEDA */
->>>> +               startup-delay-us = <70000>;
->>>> +       };
->>>> +
->>>> +     /* HS USB Host PHY on PORT 1 */
->>>> +     hsusb1_phy: hsusb1_phy {
->>>> +             compatible = "usb-nop-xceiv";
->>>> +             reset-gpios = <&gpio1 24 GPIO_ACTIVE_LOW>; /* gpio_24 */
->>>> +             vcc-supply = <&hsusb1_power>;
->>>> +     };
->>>>  };
->>>>
->>>>  &leds_pins {
->>>> @@ -173,3 +190,11 @@
->>>>       mode = <3>;
->>>>       power = <50>;
->>>>  };
->>>> +
->>>> +&usbhshost {
->>>> +     port1-mode = "ehci-phy";
->>>> +};
->>>> +
->>>> +&usbhsehci {
->>>> +     phys = <&hsusb1_phy>;
->>>> +};
->>>>
->>>
-> 
-> cheers,
-> -roger
-> 
->>> --
->> 
->> Thanks a lot and best regards,
->> Javier
->> 
->> [1]: http://www.isee.biz/products/processor-boards/igep-com-module
->> [2]: http://www.isee.biz/products/expansion-boards/product-igep-paris
->> [3]: http://www.isee.biz/products/expansion-boards/product-igep-berlin
->> [4]:
->> http://learn.adafruit.com/introduction-to-the-beaglebone-black-device-tree/device-tree-overlays
->> 
-> 
+ From what I understood, the code should be as below.
 
-Best regards,
-Javier
+For output:
+
+if (!pix->colorspace)
+	pix->colorspace = V4L2_COLORSPACE_SMPTE170M;
+
+And for capture:
+	pix->colorspace = fmt->fourcc == V4L2_PIX_FMT_RGB24 ?
+		V4L2_COLORSPACE_SRGB : V4L2_COLORSPACE_SMPTE170M;
+
+Does this look correct?
+
+>
+> Zero pix->priv as well:
+>
+> 	pix->priv = 0;
+
+pix here is of the type v4l2_pix_format_mplane, so there isn't a private 
+field here.
+
+Thanks,
+Archit
+
