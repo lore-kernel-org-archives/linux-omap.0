@@ -1,50 +1,39 @@
-From: Joel Fernandes <joelf@ti.com>
-Subject: Re: [RFC] ARM: kernel: irq: Simplify allocation of stack frame
-Date: Mon, 7 Oct 2013 11:28:03 -0500
-Message-ID: <5252E113.3080301@ti.com>
-References: <1381098649-21417-1-git-send-email-joelf@ti.com>
- <20131006224150.GA25647@n2100.arm.linux.org.uk>
+From: Nishanth Menon <nm@ti.com>
+Subject: [PATCH 0/2] ARM: dts: OMAP: standardize SoC specific bindings
+Date: Mon, 7 Oct 2013 11:49:41 -0500
+Message-ID: <1381164584-4008-1-git-send-email-nm@ti.com>
+References: <523C9D8B.2000701@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20131006224150.GA25647@n2100.arm.linux.org.uk>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: =?ISO-8859-1?Q?Andr=E9_Hent?= =?ISO-8859-1?Q?schel?= <nerv@dawncrow.de>, Jonathan Austin <jonathan.austin@arm.com>, Nicolas Pitre <nico@linaro.org>, linux-kernel@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <523C9D8B.2000701@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Felipe <balbi@ti.com>, Olof Johansson <olof@lixom.net>
+Cc: devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Nishanth Menon <nm@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 10/06/2013 05:41 PM, Russell King - ARM Linux wrote:
-> On Sun, Oct 06, 2013 at 05:30:47PM -0500, Joel Fernandes wrote:
->> On receiving IRQ exception in SVC mode, all the SVC mode registers are saved
->> onto the stack very early on.
->>
->> The stack frame allocation code for IRQ entry during SVC mode (svc_entry) is
->> hard to read as 4-less is allocated initially only to be allocated later
->> implicity using the mov r3, [sp, #-4]! instruction. We make code easier to read
->> by allocating the 4 bytes on the stack frame in the beginning itself and remove
->> all instances where 4 bytes is adjusted.
-> 
-> You omit to say that this results in saving one additional register
-> unnecessarily in the stmia.  We could use a stmib there instead which
-> would avoid that issue while keeping the rest of the change.
-> 
+This is a respin of [1] based on of Olof's comments to introduce a
+generic SoC binding. This standardizes the binding definitions for
+SoCs based on existing "implied" bindings and based on existing usage
+in arch/arm/mach-omap2/soc.h. Eventually we should be able to get rid
+of soc_is_xyz() functions and allow machine descriptors to seamlessly
+handle the deltas.
 
-Hi Russel,
+The series is based on [2] and was triggered primarily due to the bug
+seen with [3] - clock dts conversion.
 
-BTW I used ETM to check the number of cycles used to store the extra register
-with and without this patch and with both cases it takes 7 cycles.
+Nishanth Menon (2):
+  Documentation: dt: OMAP: standardize SoC naming definition
+  ARM: dts: omap3-beagle: use 3630 definitions
 
-My platform uses Cortex-A8 (AM335x SoC).
+ .../devicetree/bindings/arm/omap/omap.txt          |   45 ++++++++++++++++++++
+ arch/arm/boot/dts/omap3-beagle-xm.dts              |    2 +-
+ arch/arm/mach-omap2/board-generic.c                |   23 ++++++++++
+ 3 files changed, 69 insertions(+), 1 deletion(-)
 
-Thanks,
+[1] https://patchwork.kernel.org/patch/2919661/
+[2] https://git.kernel.org/cgit/linux/kernel/git/bcousson/linux-omap-dt.git/log/?h=for_3.13/dts
+[3] http://marc.info/?t=138009899400001&r=1&w=2
+-- 
+1.7.9.5
 
--Joel
