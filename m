@@ -1,156 +1,189 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [RESEND PATCH v3 03/11] ASoC: davinci-mcasp: Add DMA register
- locations to DT
-Date: Tue, 8 Oct 2013 13:07:05 +0300
-Message-ID: <5253D949.2040008@ti.com>
-References: <cover.1379590035.git.jsarha@ti.com> <66bdda0c0b75d737d649260b9ec10f9f870c20cd.1379590036.git.jsarha@ti.com> <20131007214718.GA2976@kartoffel> <5253CCD7.2080606@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH v2 1/6] ARM: OMAP5: hwmod data: Add USB Host and TLL modules
+Date: Tue, 8 Oct 2013 13:06:34 +0300
+Message-ID: <1381226799-29158-2-git-send-email-rogerq@ti.com>
+References: <1381226799-29158-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:54307 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:54313 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752015Ab3JHKHF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 8 Oct 2013 06:07:05 -0400
-In-Reply-To: <5253CCD7.2080606@ti.com>
+	id S1752747Ab3JHKHK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 8 Oct 2013 06:07:10 -0400
+In-Reply-To: <1381226799-29158-1-git-send-email-rogerq@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jyri Sarha <jsarha@ti.com>, Mark Rutland <mark.rutland@arm.com>
-Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "broonie@kernel.org" <broonie@kernel.org>, "liam.r.girdwood@linux.intel.com" <liam.r.girdwood@linux.intel.com>, "bcousson@baylibre.com" <bcousson@baylibre.com>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "joelf@ti.com" <joelf@ti.com>, "Hebbar, Gururaja" <gururaja.hebbar@ti.com>, Darren Etheridge <detheridge@ti.com>, Daniel Mack <zonque@gmail.com>
+To: bcousson@baylibre.com, tony@atomide.com
+Cc: balbi@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-Hi,
+Add hwmod data for High Speed USB host and TLL modules
 
-On 10/08/2013 12:13 PM, Jyri Sarha wrote:
->> I have some questions however. I took a look at the McASP (TMS320C60=
-00)=20
->> reference guide, and the registers appeared to all be in one contigu=
-ous
->> bank, and "mpu" and "dma" don't appear to be names of particular
->> registers or names of banks of particular registers. Am I looking in=
- the
->> wrong place? Is there up-to-date documentation I can look at?
->>=20
->> Why are these split across two reg entries, and which particular
->> registers do they actually cover?
->=20
-> The need for two different register properties does not come from McA=
-SP
-> IP, but from SoC design. On AM33XX the McASP registers are mapped for=
- MPU
-> through L4 bus, which is no accessible to the DMA controller. The McA=
-SP
-> data port registers are mapped trough L3 buss to a different address =
-for
-> DMA controller. Maybe the second register property could be called to=
- "dat"
-> instead of "dma" since only data port registers are mapped trough tha=
-t
-> address.
+CC: Paul Walmsley <paul@pwsan.com>
+Signed-off-by: Roger Quadros <rogerq@ti.com>
+---
+ arch/arm/mach-omap2/omap_hwmod_54xx_data.c |  135 ++++++++++++++++++++++++++++
+ 1 files changed, 135 insertions(+), 0 deletions(-)
 
-We have discussed this with Jyri and we are going to use 'dat' for the =
-data
-port address. The driver can configure the IP via the 'mpu' area but it=
- is
-preferred to use the 'dat' or data port of McASP when it comes to data.=
- It is
-possible to use the transmit/receive buffer registers in the 'mpu' area=
- but it
-get's complicated when more than one serializer is used.
+diff --git a/arch/arm/mach-omap2/omap_hwmod_54xx_data.c b/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
+index 1a21a81..1dd2c20 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
+@@ -1501,6 +1501,123 @@ static struct omap_hwmod omap54xx_uart6_hwmod = {
+ };
+ 
+ /*
++ * 'usb_host_hs' class
++ * high-speed multi-port usb host controller
++ */
++
++static struct omap_hwmod_class_sysconfig omap54xx_usb_host_hs_sysc = {
++	.rev_offs	= 0x0000,
++	.sysc_offs	= 0x0010,
++	.sysc_flags	= (SYSC_HAS_MIDLEMODE | SYSC_HAS_RESET_STATUS |
++			   SYSC_HAS_SIDLEMODE | SYSC_HAS_SOFTRESET),
++	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
++			   SIDLE_SMART_WKUP | MSTANDBY_FORCE | MSTANDBY_NO |
++			   MSTANDBY_SMART | MSTANDBY_SMART_WKUP),
++	.sysc_fields	= &omap_hwmod_sysc_type2,
++};
++
++static struct omap_hwmod_class omap54xx_usb_host_hs_hwmod_class = {
++	.name	= "usb_host_hs",
++	.sysc	= &omap54xx_usb_host_hs_sysc,
++};
++
++static struct omap_hwmod omap54xx_usb_host_hs_hwmod = {
++	.name		= "usb_host_hs",
++	.class		= &omap54xx_usb_host_hs_hwmod_class,
++	.clkdm_name	= "l3init_clkdm",
++	/*
++	 * Errata: USBHOST Configured In Smart-Idle Can Lead To a Deadlock
++	 * id: i660
++	 *
++	 * Description:
++	 * In the following configuration :
++	 * - USBHOST module is set to smart-idle mode
++	 * - PRCM asserts idle_req to the USBHOST module ( This typically
++	 *   happens when the system is going to a low power mode : all ports
++	 *   have been suspended, the master part of the USBHOST module has
++	 *   entered the standby state, and SW has cut the functional clocks)
++	 * - an USBHOST interrupt occurs before the module is able to answer
++	 *   idle_ack, typically a remote wakeup IRQ.
++	 * Then the USB HOST module will enter a deadlock situation where it
++	 * is no more accessible nor functional.
++	 *
++	 * Workaround:
++	 * Don't use smart idle; use only force idle, hence HWMOD_SWSUP_SIDLE
++	 */
++
++	/*
++	 * Errata: USB host EHCI may stall when entering smart-standby mode
++	 * Id: i571
++	 *
++	 * Description:
++	 * When the USBHOST module is set to smart-standby mode, and when it is
++	 * ready to enter the standby state (i.e. all ports are suspended and
++	 * all attached devices are in suspend mode), then it can wrongly assert
++	 * the Mstandby signal too early while there are still some residual OCP
++	 * transactions ongoing. If this condition occurs, the internal state
++	 * machine may go to an undefined state and the USB link may be stuck
++	 * upon the next resume.
++	 *
++	 * Workaround:
++	 * Don't use smart standby; use only force standby,
++	 * hence HWMOD_SWSUP_MSTANDBY
++	 */
++
++	/*
++	 * During system boot; If the hwmod framework resets the module
++	 * the module will have smart idle settings; which can lead to deadlock
++	 * (above Errata Id:i660); so, dont reset the module during boot;
++	 * Use HWMOD_INIT_NO_RESET.
++	 */
++
++	.flags		= HWMOD_SWSUP_SIDLE | HWMOD_SWSUP_MSTANDBY |
++			  HWMOD_INIT_NO_RESET,
++	.main_clk	= "l3init_60m_fclk",
++	.prcm = {
++		.omap4 = {
++			.clkctrl_offs = OMAP54XX_CM_L3INIT_USB_HOST_HS_CLKCTRL_OFFSET,
++			.context_offs = OMAP54XX_RM_L3INIT_USB_HOST_HS_CONTEXT_OFFSET,
++			.modulemode   = MODULEMODE_SWCTRL,
++		},
++	},
++};
++
++/*
++ * 'usb_tll_hs' class
++ * usb_tll_hs module is the adapter on the usb_host_hs ports
++ */
++
++static struct omap_hwmod_class_sysconfig omap54xx_usb_tll_hs_sysc = {
++	.rev_offs	= 0x0000,
++	.sysc_offs	= 0x0010,
++	.syss_offs	= 0x0014,
++	.sysc_flags	= (SYSC_HAS_AUTOIDLE | SYSC_HAS_CLOCKACTIVITY |
++			   SYSC_HAS_ENAWAKEUP | SYSC_HAS_SIDLEMODE |
++			   SYSC_HAS_SOFTRESET | SYSS_HAS_RESET_STATUS),
++	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
++	.sysc_fields	= &omap_hwmod_sysc_type1,
++};
++
++static struct omap_hwmod_class omap54xx_usb_tll_hs_hwmod_class = {
++	.name	= "usb_tll_hs",
++	.sysc	= &omap54xx_usb_tll_hs_sysc,
++};
++
++static struct omap_hwmod omap54xx_usb_tll_hs_hwmod = {
++	.name		= "usb_tll_hs",
++	.class		= &omap54xx_usb_tll_hs_hwmod_class,
++	.clkdm_name	= "l3init_clkdm",
++	.main_clk	= "l4_root_clk_div",
++	.prcm = {
++		.omap4 = {
++			.clkctrl_offs = OMAP54XX_CM_L3INIT_USB_TLL_HS_CLKCTRL_OFFSET,
++			.context_offs = OMAP54XX_RM_L3INIT_USB_TLL_HS_CONTEXT_OFFSET,
++			.modulemode   = MODULEMODE_HWCTRL,
++		},
++	},
++};
++
++/*
+  * 'usb_otg_ss' class
+  * 2.0 super speed (usb_otg_ss) controller
+  */
+@@ -2140,6 +2257,22 @@ static struct omap_hwmod_ocp_if omap54xx_l4_per__uart6 = {
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
++/* l4_cfg -> usb_host_hs */
++static struct omap_hwmod_ocp_if omap54xx_l4_cfg__usb_host_hs = {
++	.master		= &omap54xx_l4_cfg_hwmod,
++	.slave		= &omap54xx_usb_host_hs_hwmod,
++	.clk		= "l3_iclk_div",
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* l4_cfg -> usb_tll_hs */
++static struct omap_hwmod_ocp_if omap54xx_l4_cfg__usb_tll_hs = {
++	.master		= &omap54xx_l4_cfg_hwmod,
++	.slave		= &omap54xx_usb_tll_hs_hwmod,
++	.clk		= "l4_root_clk_div",
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
+ /* l4_cfg -> usb_otg_ss */
+ static struct omap_hwmod_ocp_if omap54xx_l4_cfg__usb_otg_ss = {
+ 	.master		= &omap54xx_l4_cfg_hwmod,
+@@ -2225,6 +2358,8 @@ static struct omap_hwmod_ocp_if *omap54xx_hwmod_ocp_ifs[] __initdata = {
+ 	&omap54xx_l4_per__uart4,
+ 	&omap54xx_l4_per__uart5,
+ 	&omap54xx_l4_per__uart6,
++	&omap54xx_l4_cfg__usb_host_hs,
++	&omap54xx_l4_cfg__usb_tll_hs,
+ 	&omap54xx_l4_cfg__usb_otg_ss,
+ 	&omap54xx_l4_wkup__wd_timer2,
+ 	NULL,
+-- 
+1.7.4.1
 
->>> - op-mode : I2S/DIT ops mode.
->>=20
->> What type is this?
->=20
-> That property selects whether McASP is working in I2S mode or in
-> Integrated Digital audio interface Transmitter (DIT) mode for S/PDIF,
-> IEC60958-1, AES-3 formats.
-
-Not sure but we might be able to handle this via standard ASoC way, via=
- the
-da_fmt so the machine driver will tell the mcasp driver what is the for=
-mat it
-needs to send the data. Adding SND_SOC_DAIFMT_SPDIF/IEC60958/AES3 to co=
-re will
-be needed.
-
->=20
->>=20
->> What are valid values?
->=20
-> 0 and 1. I'll document those. Thanks.
->=20
->>> - tdm-slots : Slots for TDM operation.
->>=20
->> Here too. This description is completely opaque.
->>=20
->=20
-> I am not absolutely sure here. I'll check the details and try to come=
- up
-> with a better description.
-
-Not sure about this either, my interpretation of what it means:
-number of channels to be sent via one serializer.
-as an example:
-We have 3 stereo codecs in the design
-all of them are connected to the same McASP instance but to be fed via
-different serializer:
-AXR0 - codec0
-AXR1 - codec1
-AXR2 - codec2
-
-Since the codecs are stereo -> tdm-slots =3D <2>; two channels/serializ=
-er
-
-If the stream is stereo we only ouput to codec0 via AXR0.
-If the stream is 4 channel, the first 2 channels will be via AXR0 to co=
-dec0
-the next 2 channles will be sent to codec1 via AXR1. and so on.
-
-I think it would be possible to extract this information from the seria=
-l-dir
-property + machine driver configured DAI_FMT and from the coming stream=
-=2E I2S,
-L/R justified is stereo, in DSP modes we can have more channels. In the
-serial-dir array we could count the AXR directions. Basically all the
-information which is needed to make this redundant are there.
-But we have the legacy davinci users at the same time and we do not wan=
-t to
-break eisting users.
-
-I think Daniel Mack (CCd) can clarify my understanding of the tdm-slots=
-=2E
-
->> It looks like some pins can be used as GPIO -- is there not a need f=
-or=20
->> something like pinctrl for configuring this?
->>=20
->=20
-> That is true, but since driver does not support it and there is no ex=
-ample
-> of GPIO usage, no guess work has been done about the required DT
-> properties.
-
-This is kind of complicated issue. Any of the McASP pins (CLK, FS, AXR,=
- etc)
-can be configured to be used as McASP pins or GPIO pins. This configura=
-tion is
-McASP IP specific, need to be done within McASP.
-pinctrl is overkill for this IMHO but we would need a gpio driver for M=
-cASP.
-If some driver requests a gpio in McASP we can just switch that pin to =
-GPIO
-mode, however this brings up quite a bit of questions:
-- embedd the gpio driver into the dai driver?
- - if the system does not have audio -> no GPIO driver for the rest?
-- separate driver for gpio functionality?
- - Sanity cheks all over the place on which pin is GPIO or McASP.
-
-and so forth.
-
---=20
-P=C3=A9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
