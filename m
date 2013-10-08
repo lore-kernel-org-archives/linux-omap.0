@@ -1,309 +1,156 @@
-From: Jyri Sarha <jsarha@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
 Subject: Re: [RESEND PATCH v3 03/11] ASoC: davinci-mcasp: Add DMA register
  locations to DT
-Date: Tue, 8 Oct 2013 12:13:59 +0300
-Message-ID: <5253CCD7.2080606@ti.com>
-References: <cover.1379590035.git.jsarha@ti.com> <66bdda0c0b75d737d649260b9ec10f9f870c20cd.1379590036.git.jsarha@ti.com> <20131007214718.GA2976@kartoffel>
+Date: Tue, 8 Oct 2013 13:07:05 +0300
+Message-ID: <5253D949.2040008@ti.com>
+References: <cover.1379590035.git.jsarha@ti.com> <66bdda0c0b75d737d649260b9ec10f9f870c20cd.1379590036.git.jsarha@ti.com> <20131007214718.GA2976@kartoffel> <5253CCD7.2080606@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:52244 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:54307 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754641Ab3JHJOO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 8 Oct 2013 05:14:14 -0400
-In-Reply-To: <20131007214718.GA2976@kartoffel>
+	id S1752015Ab3JHKHF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 8 Oct 2013 06:07:05 -0400
+In-Reply-To: <5253CCD7.2080606@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "peter.ujfalusi@ti.com" <peter.ujfalusi@ti.com>, "broonie@kernel.org" <broonie@kernel.org>, "liam.r.girdwood@linux.intel.com" <liam.r.girdwood@linux.intel.com>, "bcousson@baylibre.com" <bcousson@baylibre.com>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "joelf@ti.com" <joelf@ti.com>, "Hebbar, Gururaja" <gururaja.hebbar@ti.com>, Darren Etheridge <detheridge@ti.com>
+To: Jyri Sarha <jsarha@ti.com>, Mark Rutland <mark.rutland@arm.com>
+Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "broonie@kernel.org" <broonie@kernel.org>, "liam.r.girdwood@linux.intel.com" <liam.r.girdwood@linux.intel.com>, "bcousson@baylibre.com" <bcousson@baylibre.com>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "joelf@ti.com" <joelf@ti.com>, "Hebbar, Gururaja" <gururaja.hebbar@ti.com>, Darren Etheridge <detheridge@ti.com>, Daniel Mack <zonque@gmail.com>
 
-On 10/08/2013 12:47 AM, Mark Rutland wrote:
-> Hello,
-Hi!
-I am not the author of this driver so my knowledge may have gaps, when 
-it comes to details I have not touched yet. Anyway, I do my best to 
-address your comments.
+Hi,
 
-...
->> -- reg : Should contain McASP registers offset and length
->> +- reg : Should contain McASP registers address and length for mpu and
->> +	optionally for dma controller access.
->> +- reg-names : The mandatory reg-range must be named "mpu" and the optional DMA
->> +	      reg-range must be named "dma". For backward compatibility it is
->> +	      good to keep "mpu" first in the list.
->
-> I've never heard the term "reg-range" before. The should probably be something
-> like "reg entry". How about something like the following instead:
->
-Well, an address and length describes a "range", but if it is not 
-commonly used term, there is no need to use it here either.
+On 10/08/2013 12:13 PM, Jyri Sarha wrote:
+>> I have some questions however. I took a look at the McASP (TMS320C60=
+00)=20
+>> reference guide, and the registers appeared to all be in one contigu=
+ous
+>> bank, and "mpu" and "dma" don't appear to be names of particular
+>> registers or names of banks of particular registers. Am I looking in=
+ the
+>> wrong place? Is there up-to-date documentation I can look at?
+>>=20
+>> Why are these split across two reg entries, and which particular
+>> registers do they actually cover?
+>=20
+> The need for two different register properties does not come from McA=
+SP
+> IP, but from SoC design. On AM33XX the McASP registers are mapped for=
+ MPU
+> through L4 bus, which is no accessible to the DMA controller. The McA=
+SP
+> data port registers are mapped trough L3 buss to a different address =
+for
+> DMA controller. Maybe the second register property could be called to=
+ "dat"
+> instead of "dma" since only data port registers are mapped trough tha=
+t
+> address.
 
-> - reg: Should contain reg specifiers for the entries in the reg-names property.
->
-> - reg-names: Should contain:
-> 	     * "mpu" for the main registers (required). For compatibility with
-> 	       existing software, it is recommended this is the first entry.
-> 	     * "dma" for the DMA registers (optional).
->
-> That way we don't end up describing each reg entry twice.
+We have discussed this with Jyri and we are going to use 'dat' for the =
+data
+port address. The driver can configure the IP via the 'mpu' area but it=
+ is
+preferred to use the 'dat' or data port of McASP when it comes to data.=
+ It is
+possible to use the transmit/receive buffer registers in the 'mpu' area=
+ but it
+get's complicated when more than one serializer is used.
 
-The both contain the same information, but your version is certainly 
-easier to read. I'll take it. Thanks!
+>>> - op-mode : I2S/DIT ops mode.
+>>=20
+>> What type is this?
+>=20
+> That property selects whether McASP is working in I2S mode or in
+> Integrated Digital audio interface Transmitter (DIT) mode for S/PDIF,
+> IEC60958-1, AES-3 formats.
 
->
-> I have some questions however. I took a look at the McASP (TMS320C6000)
-> reference guide, and the registers appeared to all be in one contiguous bank,
-> and "mpu" and "dma" don't appear to be names of particular registers or names
-> of banks of particular registers. Am I looking in the wrong place? Is there
-> up-to-date documentation I can look at?
->
-> Why are these split across two reg entries, and which particular registers do
-> they actually cover?
+Not sure but we might be able to handle this via standard ASoC way, via=
+ the
+da_fmt so the machine driver will tell the mcasp driver what is the for=
+mat it
+needs to send the data. Adding SND_SOC_DAIFMT_SPDIF/IEC60958/AES3 to co=
+re will
+be needed.
 
-The need for two different register properties does not come from McASP 
-IP, but from SoC design. On AM33XX the McASP registers are mapped for 
-MPU through L4 bus, which is no accessible to the DMA controller. The 
-McASP data port registers are mapped trough L3 buss to a different 
-address for DMA controller. Maybe the second register property could be 
-called to "dat" instead of "dma" since only data port registers are 
-mapped trough that address.
+>=20
+>>=20
+>> What are valid values?
+>=20
+> 0 and 1. I'll document those. Thanks.
+>=20
+>>> - tdm-slots : Slots for TDM operation.
+>>=20
+>> Here too. This description is completely opaque.
+>>=20
+>=20
+> I am not absolutely sure here. I'll check the details and try to come=
+ up
+> with a better description.
 
->
-> I have some concern about the description of other properties too. If we're
-> going to amend the binding, they should be fixed up too.
->
->>   - interrupts : Interrupt number for McASP
->
-> The device also seems to be able to generate multiple interrupts -- which
-> interrupt does this actually cover?
->
-> The driver doesn't seem to use it (by a grep of irq|interrupt). Have I missed
-> something?
->
+Not sure about this either, my interpretation of what it means:
+number of channels to be sent via one serializer.
+as an example:
+We have 3 stereo codecs in the design
+all of them are connected to the same McASP instance but to be fed via
+different serializer:
+AXR0 - codec0
+AXR1 - codec1
+AXR2 - codec2
 
-No you have not. A later patch in this set make the interrupt property 
-optional and adds "tx" and "rx" interrupt-names:
-http://mailman.alsa-project.org/pipermail/alsa-devel/2013-September/066732.html
+Since the codecs are stereo -> tdm-slots =3D <2>; two channels/serializ=
+er
 
->>   - op-mode : I2S/DIT ops mode.
->
-> What type is this?
+If the stream is stereo we only ouput to codec0 via AXR0.
+If the stream is 4 channel, the first 2 channels will be via AXR0 to co=
+dec0
+the next 2 channles will be sent to codec1 via AXR1. and so on.
 
-That property selects whether McASP is working in I2S mode or in 
-Integrated Digital audio interface Transmitter (DIT) mode for S/PDIF, 
-IEC60958-1, AES-3 formats.
+I think it would be possible to extract this information from the seria=
+l-dir
+property + machine driver configured DAI_FMT and from the coming stream=
+=2E I2S,
+L/R justified is stereo, in DSP modes we can have more channels. In the
+serial-dir array we could count the AXR directions. Basically all the
+information which is needed to make this redundant are there.
+But we have the legacy davinci users at the same time and we do not wan=
+t to
+break eisting users.
 
->
-> What are valid values?
+I think Daniel Mack (CCd) can clarify my understanding of the tdm-slots=
+=2E
 
-0 and 1. I'll document those. Thanks.
+>> It looks like some pins can be used as GPIO -- is there not a need f=
+or=20
+>> something like pinctrl for configuring this?
+>>=20
+>=20
+> That is true, but since driver does not support it and there is no ex=
+ample
+> of GPIO usage, no guess work has been done about the required DT
+> properties.
 
->>   - tdm-slots : Slots for TDM operation.
->
-> Here too. This description is completely opaque.
->
+This is kind of complicated issue. Any of the McASP pins (CLK, FS, AXR,=
+ etc)
+can be configured to be used as McASP pins or GPIO pins. This configura=
+tion is
+McASP IP specific, need to be done within McASP.
+pinctrl is overkill for this IMHO but we would need a gpio driver for M=
+cASP.
+If some driver requests a gpio in McASP we can just switch that pin to =
+GPIO
+mode, however this brings up quite a bit of questions:
+- embedd the gpio driver into the dai driver?
+ - if the system does not have audio -> no GPIO driver for the rest?
+- separate driver for gpio functionality?
+ - Sanity cheks all over the place on which pin is GPIO or McASP.
 
-I am not absolutely sure here. I'll check the details and try to come up 
-with a better description.
+and so forth.
 
-Talking about num-serializer and serial-dir property here...
-
-> Taking a look at the version in kernel sources this appears to be a list of
-> values, in groups of four?
->
-> What is the format of this property?
->
->> @@ -15,7 +19,6 @@ Required properties:
->>   		to "num-serializer" parameter. Each entry is a number indication
->>   		serializer pin direction. (0 - INACTIVE, 1 - TX, 2 - RX)
->>
->> -
-
-The McASP can have up to 16 serializers for selecting data pin usage. 
-The numbers have been grouped into 4x4 matrix only for better 
-readability. BTW, the num-serializers property is redundant and it will 
-be removed in the next version of the patch series.
-
->>   Optional properties:
->>
->>   - ti,hwmods : Must be "mcasp<n>", n is controller instance starting 0
->> @@ -31,6 +34,7 @@ mcasp0: mcasp0@1d00000 {
->>   	#address-cells = <1>;
->>   	#size-cells = <0>;
->
-> Why does this have #address-cells and #size-cells? There are no children in the
-> example.
->
-
-I removed those from the actual dts file, but forgot to do so here. I'll 
-fix that. Thanks!
-
->>   	reg = <0x100000 0x3000>;
->> +	reg-names "mpu";
->>   	interrupts = <82 83>;
->>   	op-mode = <0>;		/* MCASP_IIS_MODE */
->>   	tdm-slots = <2>;
->
-> A few questions from a brief skim of the documentation:
->
-> There seem to be external clocks (AHCLKR and ACLKR), but they aren't described.
-> Are we always able to use an internal clock instead? Is no external reference
-> clock needed?
-
-As far as I understand the choice is to use either McASP internal clock 
-or codec provided clock. The selection is made by the machine/platform 
-driver by calling snd_soc_dai_set_fmt() and applying the required bits 
-in SND_SOC_DAIFMT_MASTER_MASK. I guess the choice may not always be HW 
-specific.
-
->
-> The err_release_clk label in the error path confuses me -- which clock(s) does
-> the preceding pm_runtime_get ensure remains active? One internal to the McASP?
->
-
-I guess that is really up to machine/platform driver that configures dapm.
-
-> It looks like some pins can be used as GPIO -- is there not a need for something
-> like pinctrl for configuring this?
->
-
-That is true, but since driver does not support it and there is no 
-example of GPIO usage, no guess work has been done about the required DT 
-properties.
-
-> Cheers,
-> Mark.
->
->> diff --git a/sound/soc/davinci/davinci-mcasp.c b/sound/soc/davinci/davinci-mcasp.c
->> index 32ddb7f..a056fc5 100644
->> --- a/sound/soc/davinci/davinci-mcasp.c
->> +++ b/sound/soc/davinci/davinci-mcasp.c
->> @@ -1001,18 +1001,40 @@ static const struct snd_soc_component_driver davinci_mcasp_component = {
->>   	.name		= "davinci-mcasp",
->>   };
->>
->> +/* Some HW specific values and defaults. The rest is filled in from DT. */
->> +static struct snd_platform_data dm646x_mcasp_pdata = {
->> +	.tx_dma_offset = 0x400,
->> +	.rx_dma_offset = 0x400,
->> +	.asp_chan_q = EVENTQ_0,
->> +	.version = MCASP_VERSION_1,
->> +};
->> +
->> +static struct snd_platform_data da830_mcasp_pdata = {
->> +	.tx_dma_offset = 0x2000,
->> +	.rx_dma_offset = 0x2000,
->> +	.asp_chan_q = EVENTQ_0,
->> +	.version = MCASP_VERSION_2,
->> +};
->> +
->> +static struct snd_platform_data omap2_mcasp_pdata = {
->> +	.tx_dma_offset = 0,
->> +	.rx_dma_offset = 0,
->> +	.asp_chan_q = EVENTQ_0,
->> +	.version = MCASP_VERSION_3,
->> +};
->> +
->>   static const struct of_device_id mcasp_dt_ids[] = {
->>   	{
->>   		.compatible = "ti,dm646x-mcasp-audio",
->> -		.data = (void *)MCASP_VERSION_1,
->> +		.data = &dm646x_mcasp_pdata,
->>   	},
->>   	{
->>   		.compatible = "ti,da830-mcasp-audio",
->> -		.data = (void *)MCASP_VERSION_2,
->> +		.data = &da830_mcasp_pdata,
->>   	},
->>   	{
->>   		.compatible = "ti,omap2-mcasp-audio",
->> -		.data = (void *)MCASP_VERSION_3,
->> +		.data = &omap2_mcasp_pdata,
->>   	},
->>   	{ /* sentinel */ }
->>   };
->> @@ -1035,20 +1057,13 @@ static struct snd_platform_data *davinci_mcasp_set_pdata_from_of(
->>   		pdata = pdev->dev.platform_data;
->>   		return pdata;
->>   	} else if (match) {
->> -		pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
->> -		if (!pdata) {
->> -			ret = -ENOMEM;
->> -			goto nodata;
->> -		}
->> +		pdata = (struct snd_platform_data *) match->data;
->>   	} else {
->>   		/* control shouldn't reach here. something is wrong */
->>   		ret = -EINVAL;
->>   		goto nodata;
->>   	}
->>
->> -	if (match->data)
->> -		pdata->version = (u8)((int)match->data);
->> -
->>   	ret = of_property_read_u32(np, "op-mode", &val);
->>   	if (ret >= 0)
->>   		pdata->op_mode = val;
->> @@ -1145,10 +1160,15 @@ static int davinci_mcasp_probe(struct platform_device *pdev)
->>   		return -EINVAL;
->>   	}
->>
->> -	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
->> +	mem = platform_get_resource_byname(pdev, IORESOURCE_MEM, "mpu");
->>   	if (!mem) {
->> -		dev_err(&pdev->dev, "no mem resource?\n");
->> -		return -ENODEV;
->> +		dev_warn(dev->dev,
->> +			 "\"mpu\" mem resource not found, using index 0\n");
->> +		mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
->> +		if (!mem) {
->> +			dev_err(&pdev->dev, "no mem resource?\n");
->> +			return -ENODEV;
->> +		}
->>   	}
->>
->>   	ioarea = devm_request_mem_region(&pdev->dev, mem->start,
->> @@ -1182,13 +1202,16 @@ static int davinci_mcasp_probe(struct platform_device *pdev)
->>   	dev->rxnumevt = pdata->rxnumevt;
->>   	dev->dev = &pdev->dev;
->>
->> +	dma = platform_get_resource_byname(pdev, IORESOURCE_MEM, "dma");
->> +	if (!dma)
->> +		dma = mem;
->> +
->>   	dma_data = &dev->dma_params[SNDRV_PCM_STREAM_PLAYBACK];
->>   	dma_data->asp_chan_q = pdata->asp_chan_q;
->>   	dma_data->ram_chan_q = pdata->ram_chan_q;
->>   	dma_data->sram_pool = pdata->sram_pool;
->>   	dma_data->sram_size = pdata->sram_size_playback;
->> -	dma_data->dma_addr = (dma_addr_t) (pdata->tx_dma_offset +
->> -							mem->start);
->> +	dma_data->dma_addr = dma->start + pdata->tx_dma_offset;
->>
->>   	/* first TX, then RX */
->>   	res = platform_get_resource(pdev, IORESOURCE_DMA, 0);
->> @@ -1205,8 +1228,7 @@ static int davinci_mcasp_probe(struct platform_device *pdev)
->>   	dma_data->ram_chan_q = pdata->ram_chan_q;
->>   	dma_data->sram_pool = pdata->sram_pool;
->>   	dma_data->sram_size = pdata->sram_size_capture;
->> -	dma_data->dma_addr = (dma_addr_t)(pdata->rx_dma_offset +
->> -							mem->start);
->> +	dma_data->dma_addr = dma->start + pdata->rx_dma_offset;
->>
->>   	res = platform_get_resource(pdev, IORESOURCE_DMA, 1);
->>   	if (!res) {
->> @@ -1266,4 +1288,3 @@ module_platform_driver(davinci_mcasp_driver);
->>   MODULE_AUTHOR("Steve Chen");
->>   MODULE_DESCRIPTION("TI DAVINCI McASP SoC Interface");
->>   MODULE_LICENSE("GPL");
->> -
->> --
->> 1.7.9.5
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe devicetree" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
-
+--=20
+P=C3=A9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
