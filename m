@@ -1,174 +1,199 @@
 From: Jyri Sarha <jsarha@ti.com>
-Subject: [PATCH v4 00/10] Fix AM335x-evm analog audio support
-Date: Tue, 8 Oct 2013 22:36:31 +0300
-Message-ID: <cover.1381259962.git.jsarha@ti.com>
-References: <cover.1379409268.git.jsarha@ti.com>
+Subject: [PATCH v4 03/10] ASoC: davinci-mcasp: Add location for data port registers to DT
+Date: Tue, 8 Oct 2013 22:36:34 +0300
+Message-ID: <1c99250c27b3d55218a4c243c0b010535b23b02f.1381259962.git.jsarha@ti.com>
+References: <cover.1381259962.git.jsarha@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:42664 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:37576 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754787Ab3JHTgx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 8 Oct 2013 15:36:53 -0400
-In-Reply-To: <cover.1379409268.git.jsarha@ti.com>
+	id S1754787Ab3JHTg4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 8 Oct 2013 15:36:56 -0400
+In-Reply-To: <cover.1381259962.git.jsarha@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: alsa-devel@alsa-project.org, devicetree@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, broonie@kernel.org, mark.rutland@arm.com, joelf@ti.com, Jyri Sarha <jsarha@ti.com>
+Cc: linux-omap@vger.kernel.org, broonie@kernel.org, mark.rutland@arm.com, joelf@ti.com, Jyri Sarha <jsarha@ti.com>, "Hebbar, Gururaja" <gururaja.hebbar@ti.com>, Darren Etheridge <detheridge@ti.com>
 
-The v3 version of patches can be found here:
-http://mailman.alsa-project.org/pipermail/alsa-devel/2013-September/066728.html
-The v2 version of patches can be found here:
-http://mailman.alsa-project.org/pipermail/alsa-devel/2013-September/066379.html
-The RFC version of patches can been found here:
-http://mailman.alsa-project.org/pipermail/alsa-devel/2013-September/066178.html
+This patch adds a separate register location for data port registers to
+mcasp DT bindings. On am33xx SoCs the McASP registers are mapped
+trough L4 interconnect, but data port registers are also mapped trough
+L3 bus to a different memory location.
 
-Changes since v3
-  - Rebased on top of v3.12-rc4
-  - Drop already applied patches:
-    - [PATCH v2 01/11] ASoC: davinci-evm: Move sysclk logic away from evm_hw_params
-    - [PATCH v2 06/11] ASoC: davinci: Add support for AM33xx SoC Audio
-    - [PATCH v2 07/11] ASoC: tlv320aic3x: Add regulators to DT bindings document
-    - [PATCH v2 08/11] ASoC: tlv320aic3x: Add codec pins to DT bindings document
-  - Add: ASoC: davinci: Fix AM33xx SoC Audio support
-    - Contains the fixes from Peter:
-      http://mailman.alsa-project.org/pipermail/alsa-devel/2013-September/066448.html
-    - Contents of this patch were squashed to "[PATCH v3 06/11] ASoC:
-      davinci: Add support for AM33xx SoC Audio", but since the patch v2 was
-      already applied the changes are here as a separate patch.
-  - Add: ASoC: davinci-mcasp: Remove redundant num-serializer DT parameter
-  - Change: ASoC: davinci-mcasp: Add DMA register locations to DT
-    to: ASoC: davinci-mcasp: Add location for data port registers to DT
-    - Use more accurate name for data port register location
-    - Improve commit message
-  - Change: ASoC: davinci-mcasp: Interrupts property to optional and add interrupt-names
-    to: ASoC: davinci-mcasp: Improve DT bindings document
-    - Remove #address-cells and #size-cells
-    - Bracket named interrupts tuples
-    - Add missing "for" to serial-dir description
-    - Improve tdm-slots description
-    - Improve op-mode description
-    - Add pinctrl-names and pinctrl-0 descriptions
-  - Change: ARM/dts: am335x-evm: Add audio support for am335x-evm.dts
-    - Use board specific name 'AM335x-EVM' for the soundcard.
-    - Use the board specific tlv320aic3106 codec. Use this name instead of generic
-      tlv320aic3x.
-    - Remove num-serializer property from mcasp node
-    - Remove blank lines
-  - Change: ARM/dts: am33xx: Add mcasp0 and mcasp1 device tree entries
-    - Bracket all named property tuples
-  - Add: ARM/dts: am335x-evmsk: Audio support
-  - The other patches in the set not mentioned here are identical to their
-    earlier version
+Signed-off-by: Hebbar, Gururaja <gururaja.hebbar@ti.com>
+Signed-off-by: Darren Etheridge <detheridge@ti.com>
+Signed-off-by: Jyri Sarha <jsarha@ti.com>
+---
+ .../bindings/sound/davinci-mcasp-audio.txt         |    8 ++-
+ sound/soc/davinci/davinci-mcasp.c                  |   61 +++++++++++++-------
+ 2 files changed, 47 insertions(+), 22 deletions(-)
 
-Changes since v2
-  [PATCH v2 01/11] ASoC: davinci-evm: Move sysclk logic away from evm_hw_params
-   - no change
-  [PATCH v2 02/11] ASoC: davinci-evm: Add device tree binding
-   - no change
-  [PATCH v2 03/11] ASoC: davinci-mcasp: Add DMA register locations to DT
-   - no change
-  [PATCH v2 04/11] ASoC: davinci-mcasp: Extract DMA channels directly from DT
-   - no change
-  [PATCH v2 05/11] ASoC: davinci-mcasp: Remove interrupt property from DT bindin
-   - restore binding but make it optional and add interrupt-names property
-  [PATCH v2 06/11] ASoC: davinci: Add support for AM33xx SoC Audio
-   - SND_DAVINCI_SOC help "Machine driver for ..." -> "Platform driver for ..."
-   - SND_AM33XX_SOC_EVM depends on SND_DAVINCI_SOC && SOC_AM33XX 
-   - SND_AM33XX_SOC_EVM does not selcet SND_DAVINCI_SOC
-  [PATCH v2 07/11] ASoC: tlv320aic3x: Add regulators to DT bindings document
-   - no change
-  [PATCH v2 08/11] ASoC: tlv320aic3x: Add codec pins to DT bindings document
-   - no change
-  [PATCH v2 09/11] ARM/dts: am33xx: Add mcasp0 and mcasp1 device tree entries
-   - restore interrupt property and add interrupt-names property
-  [PATCH v2 10/11] ARM/dts: am33xx: mcasp: Add new dma register location to reg-property
-   - no change
-  [PATCH v2 11/11] ARM/dts: am335x-evm: Add audio support for am335x-evm.dts
-   - no change
-
-Changes from RFC to v2
- - Dropped out "ASoC: davinci-mcasp: Add pinctrl support" since
-   driver core is taking care of this now.
- - Cleanup am33xx audio build
- - Add regulators to tlv320aic3x DT binding document
- - Remove dm365-voice-codec-audio DT support as it has never
-   been tested an probably does not work
- - Add output pins and Line In connector to davinci-evm-audio DT binding doc
- - Remove asp_chan_q and ram_chan_q properties from mcasp DT node
-   in DT mode mcasp is hardcoded to event queue 0 (highest priority)
- - Add pins to tlv320aic3x DT bindings document. If I misunderstood
-   Marks comment and this patch is not needed, then just leave it out
- Changes based on TI internal discussions
- - Move system clock rate logic away from from evm_hw_params soc-op
- - Remove unnecesary #if defined(CONFIG_OF) from davinci-evm.c
- - Make dma property DT binding document more exact
- - Add only "dma" reg location instead of separate "dma-tx" and "dma-rx"
- - Primarily look for "mpu" reg property, but fall back to index 0 if not found
- - Remove interrupt property from mcasp DT node as it is not used
- - Remove #address-cells and #size-cells mcasp properties as they are not needed
-
-The patch set depends on following patches:
-
-[PATCH v11 4/8] ARM: dts: add AM33XX EDMA support 
-     https://lkml.org/lkml/2013/6/18/49
-
-[PATCH v11 5/8] ARM: dts: add AM33XX SPI DMA support
-     https://lkml.org/lkml/2013/6/18/55
-
-[PATCH v2 01/11] ASoC: davinci-evm: Move sysclk logic away from evm_hw_params 
-     http://mailman.alsa-project.org/pipermail/alsa-devel/2013-September/066381.html
-
-[PATCH v2 06/11] ASoC: davinci: Add support for AM33xx SoC Audio 
-     http://mailman.alsa-project.org/pipermail/alsa-devel/2013-September/066385.html
-
-This set of patches fixes the basic audio support for am335x-evm and
-am335x-evmsk. It should be relatively simple to add the necessary
-nodes to relevant dts files to get BeagleBone + AudioCape working too.
-
-I have tried my best not to break the existing support for older
-davinci boards, but since I do not have those boards I can not be
-sure.
-
-Some commit comments refer to a dmaengine based davinci audio
-implementation which is planned for but nothing has been done yet.
-
-Best regards,
-Jyri
-
-Darren Etheridge (1):
-  ARM/dts: am335x-evm: Add audio support for am335x-evm.dts
-
-Hebbar, Gururaja (1):
-  ASoC: davinci-evm: Add device tree binding
-
-Jyri Sarha (5):
-  ASoC: davinci: Fix AM33xx SoC Audio support
-  ASoC: davinci-mcasp: Add location for data port registers to DT
-  ASoC: davinci-mcasp: Extract DMA channels directly from DT
-  ASoC: davinci-mcasp: Improve DT bindings document
-  ARM/dts: am33xx: mcasp: Add location for data port registers to
-    reg-property
-
-Pantelis Antoniou (1):
-  ARM/dts: am33xx: Add mcasp0 and mcasp1 device tree entries
-
-Peter Ujfalusi (2):
-  ASoC: davinci-mcasp: Remove redundant num-serializer DT parameter
-  ARM/dts: am335x-evmsk: Audio support
-
- .../bindings/sound/davinci-evm-audio.txt           |   58 +++++++++
- .../bindings/sound/davinci-mcasp-audio.txt         |   38 ++++--
- arch/arm/boot/dts/am335x-evm.dts                   |   54 +++++++++
- arch/arm/boot/dts/am335x-evmsk.dts                 |   51 ++++++++
- arch/arm/boot/dts/am33xx.dtsi                      |   29 +++++
- include/linux/platform_data/davinci_asp.h          |    2 +
- sound/soc/davinci/Kconfig                          |    4 +-
- sound/soc/davinci/davinci-evm.c                    |  120 +++++++++++++++++-
- sound/soc/davinci/davinci-mcasp.c                  |  128 ++++++++++++--------
- 9 files changed, 417 insertions(+), 67 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/sound/davinci-evm-audio.txt
-
+diff --git a/Documentation/devicetree/bindings/sound/davinci-mcasp-audio.txt b/Documentation/devicetree/bindings/sound/davinci-mcasp-audio.txt
+index 374e145..c2ab869 100644
+--- a/Documentation/devicetree/bindings/sound/davinci-mcasp-audio.txt
++++ b/Documentation/devicetree/bindings/sound/davinci-mcasp-audio.txt
+@@ -6,7 +6,11 @@ Required properties:
+ 	"ti,da830-mcasp-audio"	: for both DA830 & DA850 platforms
+ 	"ti,omap2-mcasp-audio"	: for OMAP2 platforms (TI81xx, AM33xx)
+ 
+-- reg : Should contain McASP registers offset and length
++- reg : Should contain reg specifiers for the entries in the reg-names property.
++- reg-names : Should contain:
++         * "mpu" for the main registers (required). For compatibility with
++           existing software, it is recommended this is the first entry.
++         * "dat" for separate data port register access (optional).
+ - interrupts : Interrupt number for McASP
+ - op-mode : I2S/DIT ops mode.
+ - tdm-slots : Slots for TDM operation.
+@@ -15,7 +19,6 @@ Required properties:
+ 		to "num-serializer" parameter. Each entry is a number indication
+ 		serializer pin direction. (0 - INACTIVE, 1 - TX, 2 - RX)
+ 
+-
+ Optional properties:
+ 
+ - ti,hwmods : Must be "mcasp<n>", n is controller instance starting 0
+@@ -31,6 +34,7 @@ mcasp0: mcasp0@1d00000 {
+ 	#address-cells = <1>;
+ 	#size-cells = <0>;
+ 	reg = <0x100000 0x3000>;
++	reg-names "mpu";
+ 	interrupts = <82 83>;
+ 	op-mode = <0>;		/* MCASP_IIS_MODE */
+ 	tdm-slots = <2>;
+diff --git a/sound/soc/davinci/davinci-mcasp.c b/sound/soc/davinci/davinci-mcasp.c
+index 32ddb7f..7fd37ff 100644
+--- a/sound/soc/davinci/davinci-mcasp.c
++++ b/sound/soc/davinci/davinci-mcasp.c
+@@ -1001,18 +1001,40 @@ static const struct snd_soc_component_driver davinci_mcasp_component = {
+ 	.name		= "davinci-mcasp",
+ };
+ 
++/* Some HW specific values and defaults. The rest is filled in from DT. */
++static struct snd_platform_data dm646x_mcasp_pdata = {
++	.tx_dma_offset = 0x400,
++	.rx_dma_offset = 0x400,
++	.asp_chan_q = EVENTQ_0,
++	.version = MCASP_VERSION_1,
++};
++
++static struct snd_platform_data da830_mcasp_pdata = {
++	.tx_dma_offset = 0x2000,
++	.rx_dma_offset = 0x2000,
++	.asp_chan_q = EVENTQ_0,
++	.version = MCASP_VERSION_2,
++};
++
++static struct snd_platform_data omap2_mcasp_pdata = {
++	.tx_dma_offset = 0,
++	.rx_dma_offset = 0,
++	.asp_chan_q = EVENTQ_0,
++	.version = MCASP_VERSION_3,
++};
++
+ static const struct of_device_id mcasp_dt_ids[] = {
+ 	{
+ 		.compatible = "ti,dm646x-mcasp-audio",
+-		.data = (void *)MCASP_VERSION_1,
++		.data = &dm646x_mcasp_pdata,
+ 	},
+ 	{
+ 		.compatible = "ti,da830-mcasp-audio",
+-		.data = (void *)MCASP_VERSION_2,
++		.data = &da830_mcasp_pdata,
+ 	},
+ 	{
+ 		.compatible = "ti,omap2-mcasp-audio",
+-		.data = (void *)MCASP_VERSION_3,
++		.data = &omap2_mcasp_pdata,
+ 	},
+ 	{ /* sentinel */ }
+ };
+@@ -1035,20 +1057,13 @@ static struct snd_platform_data *davinci_mcasp_set_pdata_from_of(
+ 		pdata = pdev->dev.platform_data;
+ 		return pdata;
+ 	} else if (match) {
+-		pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
+-		if (!pdata) {
+-			ret = -ENOMEM;
+-			goto nodata;
+-		}
++		pdata = (struct snd_platform_data *) match->data;
+ 	} else {
+ 		/* control shouldn't reach here. something is wrong */
+ 		ret = -EINVAL;
+ 		goto nodata;
+ 	}
+ 
+-	if (match->data)
+-		pdata->version = (u8)((int)match->data);
+-
+ 	ret = of_property_read_u32(np, "op-mode", &val);
+ 	if (ret >= 0)
+ 		pdata->op_mode = val;
+@@ -1124,7 +1139,7 @@ nodata:
+ static int davinci_mcasp_probe(struct platform_device *pdev)
+ {
+ 	struct davinci_pcm_dma_params *dma_data;
+-	struct resource *mem, *ioarea, *res;
++	struct resource *mem, *ioarea, *res, *dat;
+ 	struct snd_platform_data *pdata;
+ 	struct davinci_audio_dev *dev;
+ 	int ret;
+@@ -1145,10 +1160,15 @@ static int davinci_mcasp_probe(struct platform_device *pdev)
+ 		return -EINVAL;
+ 	}
+ 
+-	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	mem = platform_get_resource_byname(pdev, IORESOURCE_MEM, "mpu");
+ 	if (!mem) {
+-		dev_err(&pdev->dev, "no mem resource?\n");
+-		return -ENODEV;
++		dev_warn(dev->dev,
++			 "\"mpu\" mem resource not found, using index 0\n");
++		mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++		if (!mem) {
++			dev_err(&pdev->dev, "no mem resource?\n");
++			return -ENODEV;
++		}
+ 	}
+ 
+ 	ioarea = devm_request_mem_region(&pdev->dev, mem->start,
+@@ -1182,13 +1202,16 @@ static int davinci_mcasp_probe(struct platform_device *pdev)
+ 	dev->rxnumevt = pdata->rxnumevt;
+ 	dev->dev = &pdev->dev;
+ 
++	dat = platform_get_resource_byname(pdev, IORESOURCE_MEM, "dat");
++	if (!dat)
++		dat = mem;
++
+ 	dma_data = &dev->dma_params[SNDRV_PCM_STREAM_PLAYBACK];
+ 	dma_data->asp_chan_q = pdata->asp_chan_q;
+ 	dma_data->ram_chan_q = pdata->ram_chan_q;
+ 	dma_data->sram_pool = pdata->sram_pool;
+ 	dma_data->sram_size = pdata->sram_size_playback;
+-	dma_data->dma_addr = (dma_addr_t) (pdata->tx_dma_offset +
+-							mem->start);
++	dma_data->dma_addr = dat->start + pdata->tx_dma_offset;
+ 
+ 	/* first TX, then RX */
+ 	res = platform_get_resource(pdev, IORESOURCE_DMA, 0);
+@@ -1205,8 +1228,7 @@ static int davinci_mcasp_probe(struct platform_device *pdev)
+ 	dma_data->ram_chan_q = pdata->ram_chan_q;
+ 	dma_data->sram_pool = pdata->sram_pool;
+ 	dma_data->sram_size = pdata->sram_size_capture;
+-	dma_data->dma_addr = (dma_addr_t)(pdata->rx_dma_offset +
+-							mem->start);
++	dma_data->dma_addr = dat->start + pdata->rx_dma_offset;
+ 
+ 	res = platform_get_resource(pdev, IORESOURCE_DMA, 1);
+ 	if (!res) {
+@@ -1266,4 +1288,3 @@ module_platform_driver(davinci_mcasp_driver);
+ MODULE_AUTHOR("Steve Chen");
+ MODULE_DESCRIPTION("TI DAVINCI McASP SoC Interface");
+ MODULE_LICENSE("GPL");
+-
 -- 
 1.7.9.5
 
