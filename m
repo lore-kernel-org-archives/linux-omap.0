@@ -1,99 +1,27 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP4/highbank: Flush L2 cache before disabling
-Date: Tue, 8 Oct 2013 09:51:11 -0700
-Message-ID: <20131008165111.GD7773@atomide.com>
-References: <1381141621-29001-1-git-send-email-taras.kondratiuk@linaro.org>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [RFCv3 0/7] OMAP SSI driver
+Date: Tue, 8 Oct 2013 10:28:15 -0700
+Message-ID: <20131008172815.GA8313@atomide.com>
+References: <1381091235-18293-1-git-send-email-sre@debian.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:62528 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756389Ab3JHQv2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Oct 2013 12:51:28 -0400
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1381141621-29001-1-git-send-email-taras.kondratiuk@linaro.org>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1381091235-18293-1-git-send-email-sre-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sebastian Reichel <sre-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
+Cc: Sebastian Reichel <sre-GFxCN5SEZAc@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Shubhrajyoti Datta <omaplinuxkernel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Carlos Chinea <cch.devel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Rob Landley <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>, =?utf-8?Q?'Beno=C3=AEt?= Cousson' <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Pali =?utf-8?Q?Roh=C3=A1r'?= <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, =?utf-8?B?J9CY0LLQsNC50LvQviDQlNC40LzQuNGC0YDQvtCyJw==?= <freemangord>
 List-Id: linux-omap@vger.kernel.org
-To: Taras Kondratiuk <taras.kondratiuk@linaro.org>
-Cc: linux-arm-kernel@lists.infradead.org, patches@linaro.org, steve.mcintyre@linaro.org, Will Deacon <will.deacon@arm.com>, Russell King <linux@arm.linux.org.uk>, Rob Herring <rob.herring@calxeda.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linaro-kernel@lists.linaro.org, linux-omap@vger.kernel.org
 
-* Taras Kondratiuk <taras.kondratiuk@linaro.org> [131007 03:35]:
-> Kexec disables outer cache before jumping to reboot code, but it doesn't
-> flush it explicitly. Flush is done implicitly inside of l2x0_disable().
-> But some SoC's override default .disable handler and don't flush cache.
-> This may lead to a corrupted memory during Kexec reboot on these platforms.
+* Sebastian Reichel <sre-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org> [131006 13:36]:
+> Hi,
 > 
-> This patch adds cache flush inside of OMAP4 and Highbank outer_cache.disable()
-> handlers to make it consistent with default l2x0_disable().
-> Also it removes redundant outer_flush_all() call just before outer_disable().
+> Here is the third round of the OMAP SSI driver patches.
 
-Sounds correct to me:
+Thanks for updating these, they look good to me now:
 
-Acked-by: Tony Lindgren <tony@atomide.com>
-
-> Acked-by: Rob Herring <rob.herring@calxeda.com>
-> Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Signed-off-by: Taras Kondratiuk <taras.kondratiuk@linaro.org>
-> ---
-> Based on v3.12-rc3
-> 
-> RFC v2: https://patchwork.kernel.org/patch/2990231/
->         Make the fix specific to platforms that don't use l2x0_disable().
-> RFC v1: https://patchwork.kernel.org/patch/2974431/
-> ---
-> Cc: Will Deacon <will.deacon@arm.com>
-> Cc: Russell King <linux@arm.linux.org.uk>
-> Cc: Rob Herring <rob.herring@calxeda.com>
-> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Cc: linaro-kernel@lists.linaro.org
-> Cc: linux-arm-kernel@lists.infradead.org
-> Cc: linux-omap@vger.kernel.org
-> ---
->  arch/arm/mach-highbank/highbank.c  |    1 +
->  arch/arm/mach-highbank/pm.c        |    1 -
->  arch/arm/mach-omap2/omap4-common.c |    1 +
->  3 files changed, 2 insertions(+), 1 deletion(-)
-> 
-> diff --git a/arch/arm/mach-highbank/highbank.c b/arch/arm/mach-highbank/highbank.c
-> index 8e63ccd..22e6f34 100644
-> --- a/arch/arm/mach-highbank/highbank.c
-> +++ b/arch/arm/mach-highbank/highbank.c
-> @@ -63,6 +63,7 @@ void highbank_set_cpu_jump(int cpu, void *jump_addr)
->  
->  static void highbank_l2x0_disable(void)
->  {
-> +	outer_flush_all();
->  	/* Disable PL310 L2 Cache controller */
->  	highbank_smc1(0x102, 0x0);
->  }
-> diff --git a/arch/arm/mach-highbank/pm.c b/arch/arm/mach-highbank/pm.c
-> index 04eddb4..9a5b8a7 100644
-> --- a/arch/arm/mach-highbank/pm.c
-> +++ b/arch/arm/mach-highbank/pm.c
-> @@ -28,7 +28,6 @@
->  
->  static int highbank_suspend_finish(unsigned long val)
->  {
-> -	outer_flush_all();
->  	outer_disable();
->  
->  	highbank_set_pwr_suspend();
-> diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
-> index 2840d1e..f6ccab61 100644
-> --- a/arch/arm/mach-omap2/omap4-common.c
-> +++ b/arch/arm/mach-omap2/omap4-common.c
-> @@ -163,6 +163,7 @@ void __iomem *omap4_get_l2cache_base(void)
->  
->  static void omap4_l2x0_disable(void)
->  {
-> +	outer_flush_all();
->  	/* Disable PL310 L2 Cache controller */
->  	omap_smc1(0x102, 0x0);
->  }
-> -- 
-> 1.7.9.5
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
