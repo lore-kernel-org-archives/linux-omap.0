@@ -1,151 +1,62 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH V3] ARM: OMAP3: Fix hardware detection for omap3630 when
- booted with device tree
-Date: Tue, 8 Oct 2013 12:59:27 -0500
-Message-ID: <525447FF.3050106@ti.com>
-References: <20131007192009.GA8949@atomide.com> <1381178629-13488-1-git-send-email-nm@ti.com> <20131008000515.GA2097@earth.universe> <5253F3D6.5060403@ti.com> <20131008175818.GC8313@atomide.com>
+Subject: Re: [PATCH 2/2] ARM: dts: omap3-beagle: use 3630 definitions
+Date: Tue, 8 Oct 2013 13:01:26 -0500
+Message-ID: <52544876.8000904@ti.com>
+References: <523C9D8B.2000701@ti.com> <1381164584-4008-1-git-send-email-nm@ti.com> <1381164584-4008-3-git-send-email-nm@ti.com> <20131007192009.GA8949@atomide.com> <20131008174721.GH13128@radagast>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <20131008175818.GC8313@atomide.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: =?ISO-8859-1?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, Felipe <balbi@ti.com>, Olof Johansson <olof@lixom.net>, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:46207 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753442Ab3JHSBt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 8 Oct 2013 14:01:49 -0400
+In-Reply-To: <20131008174721.GH13128@radagast>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: balbi@ti.com, Tony Lindgren <tony@atomide.com>
+Cc: =?ISO-8859-1?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, Olof Johansson <olof@lixom.net>, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 10/08/2013 12:58 PM, Tony Lindgren wrote:
-> * Nishanth Menon <nm@ti.com> [131008 05:08]:
->> On 10/07/2013 07:05 PM, Sebastian Reichel wrote:
->>> On Mon, Oct 07, 2013 at 03:43:49PM -0500, Nishanth Menon wrote:
->>>> diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
->>>> index 39c7838..4fe5b9c 100644
->>>> --- a/arch/arm/mach-omap2/board-generic.c
->>>> +++ b/arch/arm/mach-omap2/board-generic.c
->>>> @@ -113,6 +113,7 @@ MACHINE_END
->>>>  #ifdef CONFIG_ARCH_OMAP3
->>>>  static const char *omap3_boards_compat[] __initdata = {
->>>>  	"ti,omap3",
->>>> +	"ti,omap343x",
->>>             ^^^^
->>> You used omap36xx everywhere, so I guess this should be
->>> "ti,omap34xx"?
+On 10/08/2013 12:47 PM, Felipe Balbi wrote:
+> Hi,
+> 
+> On Mon, Oct 07, 2013 at 12:20:09PM -0700, Tony Lindgren wrote:
+>> * Nishanth Menon <nm@ti.com> [131007 09:57]:
+>>> beagle-xm currently would matchup with ti,omap3 which invokes
+>>> omap3430_init_early instead of omap3630_init_early. So add
+>>> compatiblity for 3630 to allow match
+>>>
+>>> Signed-off-by: Nishanth Menon <nm@ti.com>
+>>> ---
+>>>  arch/arm/boot/dts/omap3-beagle-xm.dts |    2 +-
+>>>  1 file changed, 1 insertion(+), 1 deletion(-)
+>>>
+>>> diff --git a/arch/arm/boot/dts/omap3-beagle-xm.dts b/arch/arm/boot/dts/omap3-beagle-xm.dts
+>>> index 0f7cfc5..2079e22 100644
+>>> --- a/arch/arm/boot/dts/omap3-beagle-xm.dts
+>>> +++ b/arch/arm/boot/dts/omap3-beagle-xm.dts
+>>> @@ -11,7 +11,7 @@
+>>>  
+>>>  / {
+>>>  	model = "TI OMAP3 BeagleBoard xM";
+>>> -	compatible = "ti,omap3-beagle-xm", "ti,omap3-beagle", "ti,omap3";
+>>> +	compatible = "ti,omap3-beagle-xm", "ti,omap363x", "ti,omap3-beagle", "ti,omap3";
+>>>  
+>>>  	cpus {
+>>>  		cpu@0 {
 >>
->> 3630 has at least two variants:
->> http://www.ti.com/product/omap3621
->> http://www.ti.com/product/omap3630
+>> This compatible string looks hacky.. How about just make it
 >>
->> It got further spun off in 37xx family:
->> http://www.ti.com/product/dm3730 (DM3730 and DM3725)
+>> "ti,omap3-beagle-xm", "ti,omap363x", "ti,omap3";
 >>
->> 3430 is no longer in production - but just had a single version (at
->> least what I can remember).
->>
->> 3530 variant of 3430 on the other hand has a few:
->> http://processors.wiki.ti.com/index.php/OMAP3_Overview
->>
->>
->> I am ok to change to ti,omap34xx if folks think that is the right
->> thing to do. Personally, I might prefer to handle 35xx family slightly
->> differently considering deltas.
+>> How about just leave out "ti,omap3-beagle" here?
 > 
-> I've dropped that part as that's not needed for the fix AFAIK.
-> Here's what I've applied and pushed out to omap-for-v3.12/fixes.
+> ti,omap3-beagle was already part of the original file, we can definitely
+> remove but I'd expect us to maintain support for that string
+> indefinitely should anybody continue to use older dtbs.
 > 
-> Regards,
-> 
-> Tony
-> 
-> From: Nishanth Menon <nm@ti.com>
-> Date: Mon, 7 Oct 2013 15:43:49 -0500
-> Subject: [PATCH] ARM: OMAP3: Fix hardware detection for omap3630 when booted with device tree
-> 
-> SoC family definitions at the moment are reactive to board needs
-> as a result, beagle-xm would matchup with ti,omap3 which invokes
-> omap3430_init_early instead of omap3630_init_early. Obviously, this is
-> the wrong behavior.
-> 
-> With clock node dts conversion, we get the following warnings before
-> system hangs as a result and 3630 based platforms fails to boot
-> (uart4 clocks are only present in OMAP3630 and not present in
-> OMAP3430):
-> 
-> ...
-> omap_hwmod: uart4: cannot clk_get main_clk uart4_fck
-> omap_hwmod: uart4: cannot _init_clocks
-> 
-> WARNING: CPU: 0 PID: 1 at arch/arm/mach-omap2/omap_hwmod.c:2434
-> _init+0x6c/0x80()
-> omap_hwmod: uart4: couldn't init clocks
-> ...
-> 
-> WARNING: CPU: 0 PID: 1 at arch/arm/mach-omap2/omap_hwmod.c:2126
-> _enable+0x254/0x280()
-> omap_hwmod: timer12: enabled state can only be entered from
-> initialized, idle, or disabled state
-> ...
-> 
-> WARNING: CPU: 0 PID: 46 at arch/arm/mach-omap2/omap_hwmod.c:2224
-> _idle+0xd4/0xf8()
-> omap_hwmod: timer12: idle state can only be entered from enabled state
-> 
-> WARNING: CPU: 0 PID: 1 at arch/arm/mach-omap2/omap_hwmod.c:2126
-> _enable+0x254/0x280()
-> omap_hwmod: uart4: enabled state can only be entered from
-> initialized, idle, or disabled state
-> 
-> So, add specific compatiblity for 3630 to allow match for Beagle-XM
-> platform.
-> 
-> Signed-off-by: Nishanth Menon <nm@ti.com>
-> [tony@atomide.com: left out ti,omap343x, updated comments]
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> 
-> diff --git a/arch/arm/boot/dts/omap3-beagle-xm.dts b/arch/arm/boot/dts/omap3-beagle-xm.dts
-> index 0c514dc..2816bf6 100644
-> --- a/arch/arm/boot/dts/omap3-beagle-xm.dts
-> +++ b/arch/arm/boot/dts/omap3-beagle-xm.dts
-> @@ -11,7 +11,7 @@
->  
->  / {
->  	model = "TI OMAP3 BeagleBoard xM";
-> -	compatible = "ti,omap3-beagle-xm", "ti,omap3-beagle", "ti,omap3";
-> +	compatible = "ti,omap3-beagle-xm", "ti,omap36xx", "ti,omap3";
->  
->  	cpus {
->  		cpu@0 {
-> diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
-> index 39c7838..87162e1 100644
-> --- a/arch/arm/mach-omap2/board-generic.c
-> +++ b/arch/arm/mach-omap2/board-generic.c
-> @@ -129,6 +129,24 @@ DT_MACHINE_START(OMAP3_DT, "Generic OMAP3 (Flattened Device Tree)")
->  	.restart	= omap3xxx_restart,
->  MACHINE_END
->  
-> +static const char *omap36xx_boards_compat[] __initdata = {
-> +	"ti,omap36xx",
-> +	NULL,
-> +};
-> +
-> +DT_MACHINE_START(OMAP36XX_DT, "Generic OMAP36xx (Flattened Device Tree)")
-> +	.reserve	= omap_reserve,
-> +	.map_io		= omap3_map_io,
-> +	.init_early	= omap3630_init_early,
-> +	.init_irq	= omap_intc_of_init,
-> +	.handle_irq	= omap3_intc_handle_irq,
-> +	.init_machine	= omap_generic_init,
-> +	.init_late	= omap3_init_late,
-> +	.init_time	= omap3_sync32k_timer_init,
-> +	.dt_compat	= omap36xx_boards_compat,
-> +	.restart	= omap3xxx_restart,
-> +MACHINE_END
-> +
->  static const char *omap3_gp_boards_compat[] __initdata = {
->  	"ti,omap3-beagle",
->  	"timll,omap3-devkit8000",
-> 
-
-LGTM. Thanks for doing it.
+it already is supported (we still have a beagleboard) - the current
+patch rev does nothing to break existing code or bindings.
 
 -- 
 Regards,
