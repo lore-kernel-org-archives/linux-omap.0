@@ -1,104 +1,59 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH V4] ARM: OMAP5/DRA7: realtime_counter: Configure CNTFRQ
- register
-Date: Tue, 8 Oct 2013 18:05:22 -0400
-Message-ID: <525481A2.4020900@ti.com>
-References: <1379520162-31932-1-git-send-email-r.sricharan@ti.com>
- <524D44B9.30208@ti.com> <20131008214523.GU8313@atomide.com>
+From: Benoit Cousson <bcousson@baylibre.com>
+Subject: Re: [PATCH] ARM: dts: omap5-uevm: mark TWL6037 as system-power-controller
+Date: Wed, 09 Oct 2013 00:40:10 +0200
+Message-ID: <525489CA.10906@baylibre.com>
+References: <1379617896-15213-1-git-send-email-nm@ti.com> <52542813.7020208@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20131008214523.GU8313@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>, Sricharan R <r.sricharan@ti.com>
-Cc: nm@ti.com, mark.rutland@arm.com, marc.zyngier@arm.com, rnayak@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:38370 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755492Ab3JHWkO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Oct 2013 18:40:14 -0400
+Received: by mail-wi0-f178.google.com with SMTP id hn9so7459634wib.17
+        for <linux-omap@vger.kernel.org>; Tue, 08 Oct 2013 15:40:13 -0700 (PDT)
+In-Reply-To: <52542813.7020208@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Tuesday 08 October 2013 05:45 PM, Tony Lindgren wrote:
-> * Sricharan R <r.sricharan@ti.com> [131003 03:27]:
->> On Wednesday 18 September 2013 09:32 PM, Sricharan R wrote:
->>> --- a/arch/arm/boot/dts/omap5.dtsi
->>> +++ b/arch/arm/boot/dts/omap5.dtsi
->>> @@ -52,7 +52,6 @@
->>>  			     <GIC_PPI 14 (GIC_CPU_MASK_RAW(3) | IRQ_TYPE_LEVEL_LOW)>,
->>>  			     <GIC_PPI 11 (GIC_CPU_MASK_RAW(3) | IRQ_TYPE_LEVEL_LOW)>,
->>>  			     <GIC_PPI 10 (GIC_CPU_MASK_RAW(3) | IRQ_TYPE_LEVEL_LOW)>;
->>> -		clock-frequency = <6144000>;
->>>  	};
->>>  
->>>  	gic: interrupt-controller@48211000 {
-> 
-> Can the above be done later on in a separate clean-up patch?
-> If so I can drop that part as that removes a dependency to the
-> .dts patches queued by Benoit.
->
-This can be applied separately. 
+Hi Nishanth,
 
- 
->>> --- a/arch/arm/mach-omap2/omap-smp.c
->>> +++ b/arch/arm/mach-omap2/omap-smp.c
->>> @@ -41,6 +41,8 @@
->>>  
->>>  u16 pm44xx_errata;
->>>  
->>> +extern unsigned long arch_timer_freq;
->>> +
->>>  /* SCU base address */
->>>  static void __iomem *scu_base;
->>>  
-> 
-> No externs in *.c files please, checkpatch.pl and sparse should warn
-> about this.
-> 
->>  Are you planning to pull this patch and the below $subject patch as well? They are
->>  acked and tested.
+On 08/10/2013 17:43, Nishanth Menon wrote:
+> On 09/19/2013 02:11 PM, Nishanth Menon wrote:
+>> This allows the palmas pm_power_off to kick in on power off command
+>> and switch off the board.
 >>
->>  ARM: DRA7: realtime_counter: Add ratio registers for 20MHZ sys-clk frequency
+>> Signed-off-by: Nishanth Menon <nm@ti.com>
+>> ---
+>> Based on: (benoit's for_3.13/dts branch)
+>> https://git.kernel.org/cgit/linux/kernel/git/bcousson/linux-omap-dt.git/log/?h=for_3.13/dts
+>> This uses the support introduced by:
+>> http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=b81eec09a484c588ead035003ce7555ca8a9963a
 >>
->>   http://www.spinics.net/lists/linux-omap/msg97281.html
-> 
-> The 20MHz patch I've applied, just noticed the above things
-> when was about to apply this.
-> 
-Now re-looking at the patch, I think this extern stuff can be and
-should be avoided. It needs order change though like below. Not
-tested but should work.
+>>   arch/arm/boot/dts/omap5-uevm.dts |    1 +
+>>   1 file changed, 1 insertion(+)
+>>
+>> diff --git a/arch/arm/boot/dts/omap5-uevm.dts b/arch/arm/boot/dts/omap5-uevm.dts
+>> index da25a14..8227386 100644
+>> --- a/arch/arm/boot/dts/omap5-uevm.dts
+>> +++ b/arch/arm/boot/dts/omap5-uevm.dts
+>> @@ -271,6 +271,7 @@
+>>   		reg = <0x48>;
+>>   		interrupt-controller;
+>>   		#interrupt-cells = <2>;
+>> +		ti,system-power-controller;
+>>
+>>   		extcon_usb3: palmas_usb {
+>>   			compatible = "ti,palmas-usb-vid";
+>>
+> Gentle ping.
+> patchworks link: https://patchwork.kernel.org/patch/2913111/
 
-diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-index fa74a06..c8d8308 100644
---- a/arch/arm/mach-omap2/timer.c
-+++ b/arch/arm/mach-omap2/timer.c
-@@ -631,10 +631,9 @@ void __init omap4_local_timer_init(void)
- #ifdef CONFIG_SOC_OMAP5
- void __init omap5_realtime_timer_init(void)
- {
--	omap4_sync32k_timer_init();
- 	realtime_counter_init();
--
- 	clocksource_of_init();
-+	omap4_sync32k_timer_init();
- }
- #endif /* CONFIG_SOC_OMAP5 */
- 
-Then, the CNTFREQ programming needs to be moved to
-realtime_counter_init(). It should be actually part of that
-first place instead of timer_init().
+I've just applied it and pushed it to my branch.
 
-On secondary CPU then a simple asm accessor can
-read the CNTFREQ and pass that to SMC.
+Thanks,
+Benoit
 
-Sricharan,
-Can you try above and see if everything works as expected.
-If it does, please post an updated patch based on above.
-
-Regards,
-santosh
