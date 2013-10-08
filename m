@@ -1,81 +1,128 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH v4 1/2] ARM: OMAP: Add secure function omap_smc3()
-	which calling instruction smc #1
-Date: Tue, 8 Oct 2013 09:09:08 +0100
-Message-ID: <20131008080908.GA25039@n2100.arm.linux.org.uk>
-References: <20130904124303.GA2369@localhost.localdomain> <201309080943.30542@pali> <5253B08C.4020305@codethink.co.uk>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv7 00/36] ARM: OMAP: clock data conversion to DT
+Date: Tue, 8 Oct 2013 11:17:55 +0300
+Message-ID: <5253BFB3.9040807@ti.com>
+References: <1380098922-30340-1-git-send-email-t-kristo@ti.com>
+ <20131008054034.7445.48080@quantum>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <5253B08C.4020305@codethink.co.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ben Dooks <ben.dooks@codethink.co.uk>
-Cc: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Dave Martin <Dave.Martin@arm.com>, tony@atomide.com, nm@ti.com, aaro.koskinen@iki.fi, pdeschrijver@nvidia.com, linux-kernel@vger.kernel.org, =?utf-8?B?0JjQstCw0LnQu9C+INCU0LjQvNC40YLRgNC+0LI=?= <freemangordon@abv.bg>, santosh.shilimkar@ti.com, pavel@ucw.cz, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20131008054034.7445.48080@quantum>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Mike Turquette <mturquette@linaro.org>, linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, nm@ti.com, rnayak@ti.com, bcousson@baylibre.com
+Cc: devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Oct 08, 2013 at 09:13:16AM +0200, Ben Dooks wrote:
-> On 08/09/13 09:43, Pali Roh=E1r wrote:
->> Here is new version (v4) of omap secure part patch:
+On 10/08/2013 08:40 AM, Mike Turquette wrote:
+> Quoting Tero Kristo (2013-09-25 01:48:06)
+>> Hi all,
 >>
->> Other secure functions omap_smc1() and omap_smc2() calling instructi=
-on smc #0
->> but Nokia RX-51 board needs to call smc #1 for PPA access.
->>
->> Signed-off-by: Ivaylo Dimitrov<freemangordon@abv.bg>
->> Signed-off-by: Pali Roh=E1r<pali.rohar@gmail.com>
->> ---
->> diff --git a/arch/arm/mach-omap2/omap-secure.h b/arch/arm/mach-omap2=
-/omap-secure.h
->> index 0e72917..c4586f4 100644
->> --- a/arch/arm/mach-omap2/omap-secure.h
->> +++ b/arch/arm/mach-omap2/omap-secure.h
->> @@ -51,6 +51,7 @@
->>   extern u32 omap_secure_dispatcher(u32 idx, u32 flag, u32 nargs,
->>   				u32 arg1, u32 arg2, u32 arg3, u32 arg4);
->>   extern u32 omap_smc2(u32 id, u32 falg, u32 pargs);
->> +extern u32 omap_smc3(u32 id, u32 process, u32 flag, u32 pargs);
->>   extern phys_addr_t omap_secure_ram_mempool_base(void);
->>   extern int omap_secure_ram_reserve_memblock(void);
->>
->> diff --git a/arch/arm/mach-omap2/omap-smc.S b/arch/arm/mach-omap2/om=
-ap-smc.S
->> index f6441c1..fd90125 100644
->> --- a/arch/arm/mach-omap2/omap-smc.S
->> +++ b/arch/arm/mach-omap2/omap-smc.S
->> @@ -1,9 +1,11 @@
->>   /*
->> - * OMAP44xx secure APIs file.
->> + * OMAP34xx and OMAP44xx secure APIs file.
->>    *
->>    * Copyright (C) 2010 Texas Instruments, Inc.
->>    * Written by Santosh Shilimkar<santosh.shilimkar@ti.com>
->>    *
->> + * Copyright (C) 2012 Ivaylo Dimitrov<freemangordon@abv.bg>
->> + * Copyright (C) 2013 Pali Roh=E1r<pali.rohar@gmail.com>
->>    *
->>    * This program is free software,you can redistribute it and/or mo=
-dify
->>    * it under the terms of the GNU General Public License version 2 =
-as
->> @@ -54,6 +56,23 @@ ENTRY(omap_smc2)
->>   	ldmfd   sp!, {r4-r12, pc}
->>   ENDPROC(omap_smc2)
->>
->> +/**
->> + * u32 omap_smc3(u32 service_id, u32 process_id, u32 flag, u32 parg=
-s)
->> + * Low level common routine for secure HAL and PPA APIs via smc #1
->> + * r0 - @service_id: Secure Service ID
->> + * r1 - @process_id: Process ID
->> + * r2 - @flag: Flag to indicate the criticality of operation
->> + * r3 - @pargs: Physical address of parameter list
->> + */
->> +ENTRY(omap_smc3)
->> +	stmfd	sp!, {r4-r11, lr}
->> +	mov	r12, r0		@ Copy the secure service ID
+>> Version 7 contains following high level changes:
+>> - Dropped support for basic bindings from Mike Turquette, instead using
+>>    vendor specific bindings for all clocks
+>> - Mux clock + divider clock vendor specific bindings get rid of use
+>>    of the bit-masks, instead these are generated runtime based on parent
+>>    clock / divider min/max info, see individual patches for details
+>> - Added support for dummy_ck nodes, was missing from previous version
+>> - Fixed support for omap3630
+>> - Added support for new clock node type: ti,mux-gate-clock (using composite
+>>    clock type)
+>> - OMAP4 / OMAP5 only build fixes (compiler flag checks added to some files)
+>> - most of the of_omap_* calls renamed to of_ti_*
+>> - Rebased on top of v3.12-rc2
 >
-> I think you should save r12 in the call.
+> Hi Tero,
+>
+> I had one really minor request for one of the patches, otherwise I'm
+> pretty happy with this series and I can take in the clock parts for
+> 3.13. A few general comments:
 
-Not necessary.
+Yea, I'll add the is_enabled check to the APLL and repost.
+
+>
+> 1) I think I mentioned some time back that it would be
+> wise to put a disclaimer at the top of each DT binding description
+> stating something to the effect: "Binding status: Unstable - ABI
+> compatibility may be broken in the future". Are you OK merging these
+> bindings as-is without that kind of a disclaimer?
+
+Well, personally I don't mind, but if you think this would be good, I'll 
+add this to next rev.
+
+> 2) I hope to see the clockdomain stuff go away in the future. I'm OK to
+> take it for now to aid in this DT transition but I would like some
+> commitment that it will not stay in drivers/clk/omap forever. I guess
+> for clockdomain you'll need to figure out how to handle those in a
+> generic driver way.
+
+I think the clockdomain stuff should be possible to move to wherever CM 
+driver is going to move. drivers/power/omap/... or something maybe. I 
+have been starting some initial work on the CM driver cleanup for this 
+purpose.
+
+> 3) Same concern as above but for the DT clkdev alias stuff. I guess
+> you'll need to make all of the dependent drivers play nice with DT. Do
+> you plan to remove it within a reasonable timeframe? It would be a nice
+> reduction in LoC and more importantly it would mean that drivers were
+> using clkdev in a more-correct fashion.
+
+This is probably harder, I think Tony is better to comment here, but my 
+idea is that in the worst case we can just break non-conforming drivers 
+by dropping the clkdev tables if nothing else helps. :) Most of the 
+tables are currently needed by hwmod, and there are already patches 
+around for adding DT clock support for hwmods, so once these go in, we 
+can at least reduce the table sizes considerably already.
+
+-Tero
+
+>
+> Regards,
+> Mike
+>
+>>
+>> Some detailed comments about patch level changes (if no mention, no major
+>> changes):
+>> - Patch #1:
+>>    * removed use of reg-names property, instead registers mapped using
+>>      compatible string
+>>    * removed ti,modes property, instead uses DPLL mode flags now
+>>    * separated AM33XX DPLLs under their own compatible strings
+>> - Patch #4 & #5: new patches
+>> - Patch #6: merged basic gate support from Mike to this patch as vendor
+>>    specific gate clock support
+>> - Patch #9 & #10: new patches
+>> - Patch #11: dummy clocks added, USB / ABE DPLL setup ordering changed
+>> - Patch #14: dummy clocks added
+>> - Patch #20: dropped usage of reg-names property
+>> - Patch #21: dummy clocks added
+>> - Patch #22 & #23: new patches
+>> - Patch #30: AM35XX clock data added to this patch
+>> - Patch #31:
+>>    * dummy clocks added
+>>    * added missing 3630 clocks
+>>
+>> Test branch available here:
+>> https://github.com/t-kristo/linux-pm.git
+>> branch: mainline-3.12-rc2-ti-dt-clks-v7
+>>
+>> Testing done:
+>> - am335x-bone : boot only
+>> - omap5-sevm : boot only
+>> - dra7-evm : boot only
+>> - omap3-beagle : boot + suspend/resume (ret + off)
+>> - omap4-panda-es : boot + suspend/resume
+>>
+>> Nishanth has also been doing some tests with omap3-beagle-xm with some WIP
+>> versions of this branch, but not with this latest one. Nishanth, maybe you
+>> can provide test results to this one also?
+>>
+>> -Tero
