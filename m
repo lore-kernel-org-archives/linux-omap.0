@@ -1,73 +1,39 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: mach-omap1: Fix omap1510_fpga_init_irq() implicit
- declarations.
-Date: Tue, 8 Oct 2013 11:05:26 -0700
-Message-ID: <20131008180526.GD8313@atomide.com>
-References: <1381228141-16213-1-git-send-email-csmanjuvijay@gmail.com>
+Subject: Re: [PATCH] ARM: OMAP2+: hwmod: check for module address space
+ during init
+Date: Tue, 8 Oct 2013 11:09:36 -0700
+Message-ID: <20131008180936.GE8313@atomide.com>
+References: <1380819546-53631-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:26042 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754539Ab3JHSJj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Oct 2013 14:09:39 -0400
 Content-Disposition: inline
-In-Reply-To: <1381228141-16213-1-git-send-email-csmanjuvijay@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Majunath Goudar <csmanjuvijay@gmail.com>
-Cc: linux-arm-kernel@lists.infradead.org, nataraja.km@lge.com, Russell King <linux@arm.linux.org.uk>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+In-Reply-To: <1380819546-53631-1-git-send-email-s-anna@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Suman Anna <s-anna@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Afzal Mohammed <afzal@ti.com>, Tero Kristo <t-kristo@ti.com>, Rajendra Nayak <rnayak@ti.com>, Nishant Menon <nm@ti.com>, linux-omap@vger.kernel.org
 
-* Majunath Goudar <csmanjuvijay@gmail.com> [131008 03:37]:
-> This patch adds a omap1510_fpga_init_irq() inline dummy implementatio=
-ns
-> in arch/arm/mach-omap1/common.h. Without this patch,build system can
-> lead to issues. This was discovered during randconfig testing,in whic=
-h
-> other than CONFIG_ARCH_OMAP15XX was enabled the leading to the follow=
-ing
-> error:
->=20
-> CC      arch/arm/mach-omap1/board-innovator.o
-> arch/arm/mach-omap1/board-innovator.c: In function =E2=80=98innovator=
-_init=E2=80=99:
-> arch/arm/mach-omap1/board-innovator.c:377:3: error: implicit declarat=
-ion of
-> function =E2=80=98omap1510_fpga_init_irq=E2=80=99 [-Werror=3Dimplicit=
--function-declaration]
-> cc1: some warnings being treated as errors
-> make[1]: *** [arch/arm/mach-omap1/board-innovator.o] Error 1
-> make: *** [arch/arm/mach-omap1] Error 2
+* Suman Anna <s-anna@ti.com> [131003 10:07]:
+> The hwmod init sequence involves initializing and idling all the
+> hwmods during bootup. If a module class has sysconfig, the init
+> sequence utilizes the module register base for performing any
+> sysc configuration.
+> 
+> The module address space is being removed from hwmod database and
+> retrieved from the <reg> property of the corresponding DT node.
+> If a hwmod does not have its corresponding DT node defined and the
+> memory address space is not defined in the corresponding
+> omap_hwmod_ocp_if, then the module register target address space
+> would be NULL and any sysc programming would result in a NULL
+> pointer dereference and a kernel boot hang.
 
-Thanks, I'll apply this into omap-for-v3.13/fixes-not-urgent
-as it's been there for quite a while.
+Hmm so is this needed as a fix for the -rcy cycle?
+ 
+Other than that looks OK to me, Paul should queue or ack this one:
 
-Regards,
-
-Tony
-=20
-> Signed-off-by: Manjunath Goudar <csmanjuvijay@gmail.com>
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: Russell King <linux@arm.linux.org.uk>
-> Cc: linux-arm-kernel@lists.infradead.org
-> Cc: linux-kernel@vger.kernel.org
-> Cc: linux-omap@vger.kernel.org
-> ---
->  arch/arm/mach-omap1/common.h |    3 +++
->  1 file changed, 3 insertions(+)
->=20
-> diff --git a/arch/arm/mach-omap1/common.h b/arch/arm/mach-omap1/commo=
-n.h
-> index abec019..732f8ee 100644
-> --- a/arch/arm/mach-omap1/common.h
-> +++ b/arch/arm/mach-omap1/common.h
-> @@ -46,6 +46,9 @@ static inline void omap7xx_map_io(void)
->  void omap1510_fpga_init_irq(void);
->  void omap15xx_map_io(void);
->  #else
-> +static inline void omap1510_fpga_init_irq(void)
-> +{
-> +}
->  static inline void omap15xx_map_io(void)
->  {
->  }
-> --=20
-> 1.7.9.5
->=20
+Acked-by: Tony Lindgren <tony@atomide.com>
