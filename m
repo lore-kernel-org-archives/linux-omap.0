@@ -1,135 +1,259 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 4/6] pinctrl: single: Add support for wake-up interrupts
-Date: Tue, 8 Oct 2013 09:05:30 -0700
-Message-ID: <20131008160529.GA7773@atomide.com>
-References: <20131003054104.8941.88857.stgit@localhost>
- <20131003054221.8941.87801.stgit@localhost>
- <CACRpkda5-dxD+-4mgY6v90awxQhHpNePb5uhWHusb7jf-j5s-g@mail.gmail.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH v3 2/4] mmc: omap_hsmmc: Enable SDIO IRQ.
+Date: Tue, 8 Oct 2013 11:11:41 -0500
+Message-ID: <20131008161131.GD13128@radagast>
+References: <1380971830-21492-1-git-send-email-afenkart@gmail.com>
+ <1380971830-21492-3-git-send-email-afenkart@gmail.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="gDGSpKKIBgtShtf+"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:42145 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754128Ab3JHQMX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Oct 2013 12:12:23 -0400
 Content-Disposition: inline
-In-Reply-To: <CACRpkda5-dxD+-4mgY6v90awxQhHpNePb5uhWHusb7jf-j5s-g@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Haojian Zhuang <haojian.zhuang@marvell.com>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Jon Hunter <jgchunter@gmail.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Grygorii Strashko <grygorii.strashko@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Prakash Manjunathappa <prakash.pm@ti.com>, Haojian Zhuang <haojian.zhuang@linaro.org>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Linux-OMAP <linux-omap@vger.kernel.org>, Roger Quadros <rogerq@ti.com>
+In-Reply-To: <1380971830-21492-3-git-send-email-afenkart@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Andreas Fenkart <afenkart@gmail.com>
+Cc: Chris Ball <cjb@laptop.org>, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, Felipe Balbi <balbi@ti.com>, Balaji T K <balajitk@ti.com>, zonque@gmail.com, devicetree-discuss@lists.ozlabs.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
 
-* Linus Walleij <linus.walleij@linaro.org> [131008 05:18]:
-> On Thu, Oct 3, 2013 at 7:42 AM, Tony Lindgren <tony@atomide.com> wrote:
-> 
-> > This patch adds support for interrupts in a way that
-> > should be pretty generic, and works for the omaps that
-> > support wake-up interrupts. On omaps, there's an
-> > interrupt enable and interrupt status bit for each pin.
-> 
-> So to be clear: is this enable and status bit in the *same*
-> register as all other settings? Then it warrants having this
-> under pinctrl-single still and I feel a bit better about this.
+--gDGSpKKIBgtShtf+
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Yes there's a status bit on most omaps in the same register
-for each pin.
+Hi,
 
-There is a PRM interrupt that has wake-up events for internal
-domain wake-ups and io chain wake-ups. The PRM interrupt is
-already a chained IRQ. After we get the wake-up interrupt we
-need to check the pinctrl registers that have wake-up bit
-enabled for the wake-up status bit.
+On Sat, Oct 05, 2013 at 01:17:08PM +0200, Andreas Fenkart wrote:
+> For now, only support SDIO interrupt if we are booted with
+> DT. This is because some platforms need special quirks. And
+> we don't want to add new legacy mux platform init code
+> callbacks any longer as we are moving to DT based booting
+> anyways.
+>=20
+> Broken hardware, missing the swakueup line, should fallback
+> to polling, by setting 'ti,quirk-swakup-missing' in the
+> device tree. Otherwise pending SDIO IRQ are not detected
+> while in suspend. This affects am33xx processors.
+>=20
+> Signed-off-by: Andreas Fenkart <afenkart@gmail.com>
 
-> Second: how does this relate to the case where say
-> gpio-omap is using the same pins as a back-end (this
-> is a real usecase right)?
+I still think this patch needs to be splitted, see below.
 
-The GPIO is a separate hardware block on omaps and has
-it's own separate wake-up events.
+> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+> index 94d6dc8..53beac4 100644
+> --- a/drivers/mmc/host/omap_hsmmc.c
+> +++ b/drivers/mmc/host/omap_hsmmc.c
+> @@ -130,6 +130,7 @@ static void apply_clk_hack(struct device *dev)
+>  #define TC_EN			(1 << 1)
+>  #define BWR_EN			(1 << 4)
+>  #define BRR_EN			(1 << 5)
+> +#define CIRQ_EN			(1 << 8)
+>  #define ERR_EN			(1 << 15)
+>  #define CTO_EN			(1 << 16)
+>  #define CCRC_EN			(1 << 17)
+> @@ -210,6 +211,10 @@ struct omap_hsmmc_host {
+>  	int			reqs_blocked;
+>  	int			use_reg;
+>  	int			req_in_progress;
+> +	int                     flags;
+> +#define HSMMC_RUNTIME_SUSPENDED	(1 << 0)        /* Runtime suspended */
+> +#define HSMMC_SDIO_IRQ_ENABLED	(1 << 1)        /* SDIO irq enabled */
+> +
+>  	struct omap_hsmmc_next	next_data;
+>  	struct	omap_mmc_platform_data	*pdata;
+>  };
+> @@ -490,27 +495,40 @@ static void omap_hsmmc_stop_clock(struct omap_hsmmc=
+_host *host)
+>  static void omap_hsmmc_enable_irq(struct omap_hsmmc_host *host,
+>  				  struct mmc_command *cmd)
+>  {
+> -	unsigned int irq_mask;
+> +	u32 irq_mask =3D INT_EN_MASK;
+> +	unsigned long flags;
+> =20
+>  	if (host->use_dma)
+> -		irq_mask =3D INT_EN_MASK & ~(BRR_EN | BWR_EN);
+> -	else
+> -		irq_mask =3D INT_EN_MASK;
+> +		irq_mask &=3D ~(BRR_EN | BWR_EN);
 
-> So gpio-omap already supports gpio_to_irq() and
-> it does not support enable_irq_wake() on the GPIO
-> lines as well.
+is this a bugfix ? should it be sent as a separate patch ?
 
-Yeah those are specific to the GPIO block, and not related
-to this driver. The GPIO lines have their own wake-up
-mechanism that works for retention idle.
+> =20
+>  	/* Disable timeout for erases */
+>  	if (cmd->opcode =3D=3D MMC_ERASE)
+>  		irq_mask &=3D ~DTO_EN;
+> =20
+> +	spin_lock_irqsave(&host->irq_lock, flags);
 
-For off-idle, only for the first GPIO bank stays powered.
-The other GPIO banks get powered down in off-idle mode.
- 
-> How does this play together? Is it like the pins have a set
-> of wakeup IRQs and then the GPIO block has *another*
-> set of wakeup IRQs?
+why do you need this new locking here ? register acesses are atomic,
+right ? If you really do need the locking, should it be a separate patch
+as well ?
 
-Yes that's correct, they are completely separate.
- 
-> And if you do enable_irq_wake() on the GPIO line,
-> should this not fall through to the pinctrl driver, so we
-> should add pinctrl_gpio_enable_wake() and
-> pinctrl_gpio_disable_wake() just like we have
-> pinctrl_gpio_direction_input() and friends today,
-> so that this request falls through to the pinctrl driver
-> when a wakeup on a certain GPIO line is requested?
+>  	OMAP_HSMMC_WRITE(host->base, STAT, STAT_CLEAR);
+>  	OMAP_HSMMC_WRITE(host->base, ISE, irq_mask);
+> +
+> +	/* latch pending CIRQ, but don't signal */
+> +	if (host->flags & HSMMC_SDIO_IRQ_ENABLED)
+> +		irq_mask |=3D CIRQ_EN;
 
-That's not needed for most cases at this point, the GPIO
-block is already handling it's internal wake-up events.
+why do you need this ? Looks like it should be yet another patch.
+> =20
+>  static void omap_hsmmc_disable_irq(struct omap_hsmmc_host *host)
+>  {
+> -	OMAP_HSMMC_WRITE(host->base, ISE, 0);
+> -	OMAP_HSMMC_WRITE(host->base, IE, 0);
+> +	u32 irq_mask =3D 0;
+> +	unsigned long flags;
+> +
+> +	spin_lock_irqsave(&host->irq_lock, flags);
+> +	/* no transfer running, need to signal cirq if */
 
-Eventually we should also handle the corner case of
-GPIO wake-up line connected to a GPIO bank that's not
-the first bank for off-idle. For most low-power hardware
-designs that's not needed as the critial pins typically
-are placed in the first GPIO bank for this reason.
+if... ?
 
-But let's first figure out how we want to handle the mapping
-of wake-up interrupts to device interrupts in general.
+> +	if (host->flags & HSMMC_SDIO_IRQ_ENABLED)
+> +		irq_mask |=3D CIRQ_EN;
+> +	OMAP_HSMMC_WRITE(host->base, ISE, irq_mask);
 
-Most omap devices have a dedicated io chain wake-up line, so
-that's really the key thing to get working first.
- 
-> Now gpio-omap.c does not seem to use the pinctrl
-> back-end commands, instead of using e.g.
-> pinctrl_gpio_request() and GPIO to pin ranges it
-> seems to use this hack:
-> 
-> static void _enable_gpio_module(struct gpio_bank *bank, unsigned offset)
-> {
->         if (bank->regs->pinctrl) {
->                 void __iomem *reg = bank->base + bank->regs->pinctrl;
-> 
->                 /* Claim the pin for MPU */
->                 __raw_writel(__raw_readl(reg) | (1 << offset), reg);
->         }
-> 
-> Can't we please make the OMAP GPIO driver use the
-> pinctrl back-end with gpio ranges properly *before* we proceed
-> to doing this kind of stuff? I think it is already looking
-> like a bit of layered hacks :-(
+the whole fiddling with STAT and ISE registers look very bogus to me
+(even on current state before this patch). We shouldn't be clearing
+pending IRQ events here, right ? We could miss IRQs due to that.
 
-Heh, that's not true. And I can totally see where the confusion
-comes from :)
+> @@ -1067,8 +1085,12 @@ static irqreturn_t omap_hsmmc_irq(int irq, void *d=
+ev_id)
+>  	int status;
+> =20
+>  	status =3D OMAP_HSMMC_READ(host->base, STAT);
+> -	while (status & INT_EN_MASK && host->req_in_progress) {
+> -		omap_hsmmc_do_irq(host, status);
+> +	while (status & (INT_EN_MASK | CIRQ_EN)) {
 
-The naming "pinctrl" in the GPIO driver is a bit confusing and
-it's use predates the pinctrl framework and has been in the GPIO
-driver for probably 10 years or so.
+why don't enable CIRQ_EN in INT_EN_MASK directly ?
 
-The above does not have anything to do with the pinctrl
-framework or this pinctrl driver. That is to mux the GPIO pins
-inside the GPIO block between the ARM core and the DSP.
- 
-> Haojian is already using the pinctrl-single as backend to
-> another GPIO controller (I think it's pinctrl-pl061.c) so surely
-> this should be possible to do right.
+> +		if (host->req_in_progress)
+> +			omap_hsmmc_do_irq(host, status);
+> +
+> +		if (status & CIRQ_EN)
+> +			mmc_signal_sdio_irq(host->mmc);
+> =20
+>  		/* Flush posted write */
+>  		status =3D OMAP_HSMMC_READ(host->base, STAT);
+> @@ -1583,6 +1605,42 @@ static void omap_hsmmc_init_card(struct mmc_host *=
+mmc, struct mmc_card *card)
+>  		mmc_slot(host).init_card(card);
+>  }
+> =20
+> +static void omap_hsmmc_enable_sdio_irq(struct mmc_host *mmc, int enable)
+> +{
+> +	struct omap_hsmmc_host *host =3D mmc_priv(mmc);
+> +	u32 irq_mask;
+> +	unsigned long flags;
+> +
+> +	spin_lock_irqsave(&host->irq_lock, flags);
+> +
+> +	if (enable)
+> +		host->flags |=3D HSMMC_SDIO_IRQ_ENABLED;
+> +	else
+> +		host->flags &=3D ~HSMMC_SDIO_IRQ_ENABLED;
+> +
+> +	/* if statement here with followup patch */
+> +	{
+> +		irq_mask =3D OMAP_HSMMC_READ(host->base, ISE);
+> +		if (enable)
+> +			irq_mask |=3D CIRQ_EN;
+> +		else
+> +			irq_mask &=3D ~CIRQ_EN;
 
-Sure we can make the GPIO off-idle wake-up handling automatic
-for the GPIO not in the first bank, but that's really a separate
-patch.
- 
-> IIRC there are also other OMAP GPIO blocks so we need
-> to look at the large picture here, for all of them.
+perhaps combine this branch with previous one ?
 
-Sorry I don't know which other OMAP GPIO blocks you're talking
-about, care to be a bit more specific?
+> +		OMAP_HSMMC_WRITE(host->base, IE, irq_mask);
+> +
+> +		/*
+> +		 * if enable, piggy back on current request
+> +		 * but always disable
+> +		 */
+> +		if (!host->req_in_progress || !enable)
+> +			OMAP_HSMMC_WRITE(host->base, ISE, irq_mask);
+> +
+> +		/* flush posted write */
+> +		OMAP_HSMMC_READ(host->base, IE);
+> +	}
+> +
+> +	spin_unlock_irqrestore(&host->irq_lock, flags);
+> +}
+> +
+>  static void omap_hsmmc_conf_bus_power(struct omap_hsmmc_host *host)
+>  {
+>  	u32 hctl, capa, value;
+> @@ -1635,7 +1693,7 @@ static const struct mmc_host_ops omap_hsmmc_ops =3D=
+ {
+>  	.get_cd =3D omap_hsmmc_get_cd,
+>  	.get_ro =3D omap_hsmmc_get_ro,
+>  	.init_card =3D omap_hsmmc_init_card,
+> -	/* NYET -- enable_sdio_irq */
+> +	.enable_sdio_irq =3D omap_hsmmc_enable_sdio_irq,
+>  };
+> =20
+>  #ifdef CONFIG_DEBUG_FS
+> @@ -1833,6 +1891,7 @@ static int omap_hsmmc_probe(struct platform_device =
+*pdev)
+>  	host->dma_ch	=3D -1;
+>  	host->irq	=3D irq;
+>  	host->slot_id	=3D 0;
+> +	host->flags	=3D 0;
 
-All the omaps I've seen use the gpio-omap.c. The other GPIOs
-are typically on I2C chips.
+why do you need to zero-initialize flags here ? another bug ?
 
-Regards,
+> @@ -2023,6 +2082,22 @@ static int omap_hsmmc_probe(struct platform_device=
+ *pdev)
+>  		dev_warn(&pdev->dev,
+>  			"pins are not configured from the driver\n");
+> =20
+> +	/*
+> +	 * For now, only support SDIO interrupt if we are booted with
+> +	 * DT. This is because some platforms need special quirks. And
+> +	 * we don't want to add new legacy mux platform init code
+> +	 * callbacks any longer as we are moving to DT based booting
+> +	 * anyways.
+> +	 */
+> +	if (match) {
 
-Tony
+isn't if (dev->of.node) a better check here ?
+
+> +		mmc->caps |=3D MMC_CAP_SDIO_IRQ;
+> +		if (of_find_property(host->dev->of_node,
+> +				     "ti,quirk-swakeup-missing", NULL)) {
+
+looks like a SW configuration to me. Can't you figure this out by
+reading the revision register ?
+
+--=20
+balbi
+
+--gDGSpKKIBgtShtf+
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJSVC69AAoJEIaOsuA1yqRE41UQAKZeGqXWVCE6w/jXxSOie7Ao
+72qctozT7OgyGC6b7BbhYDR1VVBj/c3HYQ3o8iVDvUi/QCMHHGrif4m7QBWOxjcv
+EyydPwHg1IVywuIkzQGsOeMxiNM6+ZhWpFqpOIt0+ZpH+hx5VSzz+KiArC3ubIrS
+DsV+pFDe3AlZcuku16tCb9IOsTwsJdUoAZ87IFHpBygnGt6X3BXL4Y8c+TkR+xiX
+2L/DAWlSVCnqtnNl7LinfO+jFkGULQqo02NdL6DitH7kfKFx2OzSUWmnasR1OSC3
+a6qVyR9zYOQzHR2fUidGRJ6fEZMdgwGEkEsjqtIld0p4bm7G+FeOwwJVH5C3rvQG
+kKsTulA5It9aZ+lDTpsQRyHGDohUbx5vpV346VD7DINaa1nOrZ59qzqrvnsfm5VL
+KEczzktTWURP8tcuQjAQ7cJ+sVaL4Nj/+Le8zxtVwM5TIazyRR/GgoC1owYwFVqT
+KPDcZJxh7ZVJSgwWctPAGStF4eFzb7ujoHXFG6USpOfD6C6Z2T/PgTiKh8UViwZj
+KlrvBtPipyY17tIrWdMfGwvUjFJKSTUWbMvfUuSDBVsO1MemiwXrd9J+2G5tsOfS
+v3J7Ije4isS8rJZSWisOOJbbJYjUIOxtk6l7j0rQXff9BoTckWsHHZ4cz2cKZlZl
+exDJXTDStQjo8AEHpsQA
+=VwqB
+-----END PGP SIGNATURE-----
+
+--gDGSpKKIBgtShtf+--
