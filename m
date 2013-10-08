@@ -1,40 +1,43 @@
-From: Chen Baozi <baozich@gmail.com>
-Subject: Question about mmc4 initialization on OMAP5432
-Date: Wed, 09 Oct 2013 00:29:06 +0800
-Message-ID: <525432D2.9010907@gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCHv7 00/36] ARM: OMAP: clock data conversion to DT
+Date: Tue, 8 Oct 2013 09:47:35 -0700
+Message-ID: <20131008164735.GC7773@atomide.com>
+References: <1380098922-30340-1-git-send-email-t-kristo@ti.com>
+ <20131008054034.7445.48080@quantum>
+ <5253BFB3.9040807@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f48.google.com ([209.85.220.48]:49931 "EHLO
-	mail-pa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755149Ab3JHQ3L (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Oct 2013 12:29:11 -0400
-Received: by mail-pa0-f48.google.com with SMTP id bj1so9083159pad.21
-        for <linux-omap@vger.kernel.org>; Tue, 08 Oct 2013 09:29:10 -0700 (PDT)
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:53509 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754986Ab3JHQrl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Oct 2013 12:47:41 -0400
+Content-Disposition: inline
+In-Reply-To: <5253BFB3.9040807@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: Mike Turquette <mturquette@linaro.org>, linux-omap@vger.kernel.org, paul@pwsan.com, nm@ti.com, rnayak@ti.com, bcousson@baylibre.com, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-Hi all,
+* Tero Kristo <t-kristo@ti.com> [131008 01:26]:
+> On 10/08/2013 08:40 AM, Mike Turquette wrote:
+> 
+> >3) Same concern as above but for the DT clkdev alias stuff. I guess
+> >you'll need to make all of the dependent drivers play nice with DT. Do
+> >you plan to remove it within a reasonable timeframe? It would be a nice
+> >reduction in LoC and more importantly it would mean that drivers were
+> >using clkdev in a more-correct fashion.
+> 
+> This is probably harder, I think Tony is better to comment here, but
+> my idea is that in the worst case we can just break non-conforming
+> drivers by dropping the clkdev tables if nothing else helps. :) Most
+> of the tables are currently needed by hwmod, and there are already
+> patches around for adding DT clock support for hwmods, so once these
+> go in, we can at least reduce the table sizes considerably already.
 
-I have got a problem when booting dom0 kernel for Xen on OMAP5432 uEVM.
-With a recent patch, Xen hypervisor is avoid to map "disabled" device
-memory for dom0. In omap5-uevm.dts, we have got the &mmc4 node marked as
-"disabled". So the Xen won't populate <0x480d1000 0x400> memory region
-to the dom0. If dom0 is trying to access any memory address in this
-area, the hypervisor would be panic with a tranlation fault. However, it
-turns out that even the mmc4 is disabled in omap5-uevm.dts, Linux kernel
-is trying to access the 0x480d1010 when booting, which then leads a
-hypervisor panic as mentioned.
+It should be possible to remove these as we go as things become DT only.
+Probably the biggest blocker right now is making omap3 DT only.
 
-The only point I know right now is that the 0x480d1010 is accessed by
-the omap_hwmod_read(). However, what makes me confused is how the dom0
-kernel called omap_hwmod_read() to access 0x480d1010 while the mmc4 is
-disabled. I guess it might relate to hard coded omap_hwmod structure but
-have no idea what happen exactly when dom0 access the address due to the
-lack of calling stack information when booting Xen hypervisor.
+But let's not start breaking things intentionally!
 
-Thanks a lot.
-
-Chen Baozi
+Tony
