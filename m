@@ -1,48 +1,58 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v2 4/6] ARM: dts: omap5-uevm: Provide USB PHY clock
-Date: Tue, 8 Oct 2013 13:06:37 +0300
-Message-ID: <1381226799-29158-5-git-send-email-rogerq@ti.com>
-References: <1381226799-29158-1-git-send-email-rogerq@ti.com>
+From: Majunath Goudar <csmanjuvijay@gmail.com>
+Subject: [PATCH] ARM: mach-omap1: Fix omap1510_fpga_init_irq() implicit declarations.
+Date: Tue,  8 Oct 2013 15:59:01 +0530
+Message-ID: <1381228141-16213-1-git-send-email-csmanjuvijay@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:55000 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752704Ab3JHKHQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Oct 2013 06:07:16 -0400
-In-Reply-To: <1381226799-29158-1-git-send-email-rogerq@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: nataraja.km@lge.com, Majunath Goudar <csmanjuvijay@gmail.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: bcousson@baylibre.com, tony@atomide.com
-Cc: balbi@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 
-The HS USB 2 PHY gets its clock from AUXCLK1. Provide this
-information.
+This patch adds a omap1510_fpga_init_irq() inline dummy implementations
+in arch/arm/mach-omap1/common.h. Without this patch,build system can
+lead to issues. This was discovered during randconfig testing,in which
+other than CONFIG_ARCH_OMAP15XX was enabled the leading to the followin=
+g
+error:
 
-Signed-off-by: Roger Quadros <rogerq@ti.com>
+CC      arch/arm/mach-omap1/board-innovator.o
+arch/arm/mach-omap1/board-innovator.c: In function =E2=80=98innovator_i=
+nit=E2=80=99:
+arch/arm/mach-omap1/board-innovator.c:377:3: error: implicit declaratio=
+n of
+function =E2=80=98omap1510_fpga_init_irq=E2=80=99 [-Werror=3Dimplicit-f=
+unction-declaration]
+cc1: some warnings being treated as errors
+make[1]: *** [arch/arm/mach-omap1/board-innovator.o] Error 1
+make: *** [arch/arm/mach-omap1] Error 2
+
+Signed-off-by: Manjunath Goudar <csmanjuvijay@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.infradead.org
+Cc: linux-kernel@vger.kernel.org
+Cc: linux-omap@vger.kernel.org
 ---
- arch/arm/boot/dts/omap5-uevm.dts |    8 ++------
- 1 files changed, 2 insertions(+), 6 deletions(-)
+ arch/arm/mach-omap1/common.h |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/arch/arm/boot/dts/omap5-uevm.dts b/arch/arm/boot/dts/omap5-uevm.dts
-index 748f6bf..6a0d73c 100644
---- a/arch/arm/boot/dts/omap5-uevm.dts
-+++ b/arch/arm/boot/dts/omap5-uevm.dts
-@@ -31,12 +31,8 @@
- 	hsusb2_phy: hsusb2_phy {
- 		compatible = "usb-nop-xceiv";
- 		reset-gpios = <&gpio3 16 GPIO_ACTIVE_LOW>; /* gpio3_80 HUB_NRESET */
--	/**
--	  * FIXME
--	  * Put the right clock phandle here when available
--	  *	clocks = <&auxclk1>;
--	  *	clock-names = "main_clk";
--	  */
-+		clocks = <&auxclk1_ck>;
-+		clock-names = "main_clk";
- 		clock-frequency = <19200000>;
- 	};
- 
--- 
-1.7.4.1
-
+diff --git a/arch/arm/mach-omap1/common.h b/arch/arm/mach-omap1/common.=
+h
+index abec019..732f8ee 100644
+--- a/arch/arm/mach-omap1/common.h
++++ b/arch/arm/mach-omap1/common.h
+@@ -46,6 +46,9 @@ static inline void omap7xx_map_io(void)
+ void omap1510_fpga_init_irq(void);
+ void omap15xx_map_io(void);
+ #else
++static inline void omap1510_fpga_init_irq(void)
++{
++}
+ static inline void omap15xx_map_io(void)
+ {
+ }
+--=20
+1.7.9.5
