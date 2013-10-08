@@ -1,27 +1,59 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [RFCv3 0/7] OMAP SSI driver
-Date: Tue, 8 Oct 2013 10:28:15 -0700
-Message-ID: <20131008172815.GA8313@atomide.com>
-References: <1381091235-18293-1-git-send-email-sre@debian.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: mach-omap2: board-generic: fix undefined symbol
+Date: Tue, 8 Oct 2013 10:41:49 -0700
+Message-ID: <20131008174149.GB8313@atomide.com>
+References: <5253C759.5020406@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:27937 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755554Ab3JHRlw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Oct 2013 13:41:52 -0400
 Content-Disposition: inline
-In-Reply-To: <1381091235-18293-1-git-send-email-sre-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sebastian Reichel <sre-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
-Cc: Sebastian Reichel <sre-GFxCN5SEZAc@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Shubhrajyoti Datta <omaplinuxkernel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Carlos Chinea <cch.devel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Rob Landley <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>, =?utf-8?Q?'Beno=C3=AEt?= Cousson' <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Pali =?utf-8?Q?Roh=C3=A1r'?= <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, =?utf-8?B?J9CY0LLQsNC50LvQviDQlNC40LzQuNGC0YDQvtCyJw==?= <freemangord>
+In-Reply-To: <5253C759.5020406@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Simon Barth <simon.pe.barth@gmail.com>
+Cc: Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 
-* Sebastian Reichel <sre-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org> [131006 13:36]:
-> Hi,
+* Simon Barth <simon.pe.barth@gmail.com> [131008 01:58]:
+> Since dra7 reuses the  function 'omap5_realtime_timer_init' in
+> arch/arm/mach-omap2/board-generic.c as timer init function, it has to be
+> built for this SoC as well.
+
+Thanks applying into omap-for-v3.12/fixes.
+
+Regards,
+
+Tony
+ 
+> Signed-off-by: Simon Barth <Simon.Pe.Barth@gmail.com>
+> ---
+>  arch/arm/mach-omap2/timer.c |    4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
 > 
-> Here is the third round of the OMAP SSI driver patches.
-
-Thanks for updating these, they look good to me now:
-
-Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+> index fa74a06..ead48fa 100644
+> --- a/arch/arm/mach-omap2/timer.c
+> +++ b/arch/arm/mach-omap2/timer.c
+> @@ -628,7 +628,7 @@ void __init omap4_local_timer_init(void)
+>  #endif /* CONFIG_HAVE_ARM_TWD */
+>  #endif /* CONFIG_ARCH_OMAP4 */
+> 
+> -#ifdef CONFIG_SOC_OMAP5
+> +#if defined(CONFIG_SOC_OMAP5) || defined(CONFIG_SOC_DRA7XX)
+>  void __init omap5_realtime_timer_init(void)
+>  {
+>  	omap4_sync32k_timer_init();
+> @@ -636,7 +636,7 @@ void __init omap5_realtime_timer_init(void)
+> 
+>  	clocksource_of_init();
+>  }
+> -#endif /* CONFIG_SOC_OMAP5 */
+> +#endif /* CONFIG_SOC_OMAP5 || CONFIG_SOC_DRA7XX */
+> 
+>  /**
+>   * omap_timer_init - build and register timer device with an
+> -- 
+> 1.7.9.5
