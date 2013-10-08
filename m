@@ -1,53 +1,99 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: Question about mmc4 initialization on OMAP5432
-Date: Tue, 8 Oct 2013 12:48:26 -0400
-Message-ID: <5254375A.6050507@ti.com>
-References: <525432D2.9010907@gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: OMAP4/highbank: Flush L2 cache before disabling
+Date: Tue, 8 Oct 2013 09:51:11 -0700
+Message-ID: <20131008165111.GD7773@atomide.com>
+References: <1381141621-29001-1-git-send-email-taras.kondratiuk@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:43808 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755385Ab3JHQs2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Oct 2013 12:48:28 -0400
-In-Reply-To: <525432D2.9010907@gmail.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:62528 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756389Ab3JHQv2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Oct 2013 12:51:28 -0400
+Content-Disposition: inline
+In-Reply-To: <1381141621-29001-1-git-send-email-taras.kondratiuk@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Chen Baozi <baozich@gmail.com>
-Cc: linux-omap@vger.kernel.org
+To: Taras Kondratiuk <taras.kondratiuk@linaro.org>
+Cc: linux-arm-kernel@lists.infradead.org, patches@linaro.org, steve.mcintyre@linaro.org, Will Deacon <will.deacon@arm.com>, Russell King <linux@arm.linux.org.uk>, Rob Herring <rob.herring@calxeda.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linaro-kernel@lists.linaro.org, linux-omap@vger.kernel.org
 
-On Tuesday 08 October 2013 12:29 PM, Chen Baozi wrote:
-> Hi all,
+* Taras Kondratiuk <taras.kondratiuk@linaro.org> [131007 03:35]:
+> Kexec disables outer cache before jumping to reboot code, but it doesn't
+> flush it explicitly. Flush is done implicitly inside of l2x0_disable().
+> But some SoC's override default .disable handler and don't flush cache.
+> This may lead to a corrupted memory during Kexec reboot on these platforms.
 > 
-> I have got a problem when booting dom0 kernel for Xen on OMAP5432 uEVM.
-> With a recent patch, Xen hypervisor is avoid to map "disabled" device
-> memory for dom0. In omap5-uevm.dts, we have got the &mmc4 node marked as
-> "disabled". So the Xen won't populate <0x480d1000 0x400> memory region
-> to the dom0. If dom0 is trying to access any memory address in this
-> area, the hypervisor would be panic with a tranlation fault. However, it
-> turns out that even the mmc4 is disabled in omap5-uevm.dts, Linux kernel
-> is trying to access the 0x480d1010 when booting, which then leads a
-> hypervisor panic as mentioned.
+> This patch adds cache flush inside of OMAP4 and Highbank outer_cache.disable()
+> handlers to make it consistent with default l2x0_disable().
+> Also it removes redundant outer_flush_all() call just before outer_disable().
+
+Sounds correct to me:
+
+Acked-by: Tony Lindgren <tony@atomide.com>
+
+> Acked-by: Rob Herring <rob.herring@calxeda.com>
+> Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Signed-off-by: Taras Kondratiuk <taras.kondratiuk@linaro.org>
+> ---
+> Based on v3.12-rc3
 > 
-> The only point I know right now is that the 0x480d1010 is accessed by
-> the omap_hwmod_read(). However, what makes me confused is how the dom0
-> kernel called omap_hwmod_read() to access 0x480d1010 while the mmc4 is
-> disabled. I guess it might relate to hard coded omap_hwmod structure but
-> have no idea what happen exactly when dom0 access the address due to the
-> lack of calling stack information when booting Xen hypervisor.
+> RFC v2: https://patchwork.kernel.org/patch/2990231/
+>         Make the fix specific to platforms that don't use l2x0_disable().
+> RFC v1: https://patchwork.kernel.org/patch/2974431/
+> ---
+> Cc: Will Deacon <will.deacon@arm.com>
+> Cc: Russell King <linux@arm.linux.org.uk>
+> Cc: Rob Herring <rob.herring@calxeda.com>
+> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Cc: linaro-kernel@lists.linaro.org
+> Cc: linux-arm-kernel@lists.infradead.org
+> Cc: linux-omap@vger.kernel.org
+> ---
+>  arch/arm/mach-highbank/highbank.c  |    1 +
+>  arch/arm/mach-highbank/pm.c        |    1 -
+>  arch/arm/mach-omap2/omap4-common.c |    1 +
+>  3 files changed, 2 insertions(+), 1 deletion(-)
 > 
-There is no hard-coding rather a different requirement why
-hwmod accesses the IP space. DT disabled is will ensure that the device
-won't get created but hwmod bus initially tries to put all the
-supported IPs in sane hardware state by doing reset on those
-IPs.
-
-We have proposals to address than in future where such resets are
-moved with device/driver probe etc to avoid such issues. Actually
-MMC4 is more for SDIO kind of usecase so you might even get rid
-of that in your case.
-
-Regards,
-Santosh
-
+> diff --git a/arch/arm/mach-highbank/highbank.c b/arch/arm/mach-highbank/highbank.c
+> index 8e63ccd..22e6f34 100644
+> --- a/arch/arm/mach-highbank/highbank.c
+> +++ b/arch/arm/mach-highbank/highbank.c
+> @@ -63,6 +63,7 @@ void highbank_set_cpu_jump(int cpu, void *jump_addr)
+>  
+>  static void highbank_l2x0_disable(void)
+>  {
+> +	outer_flush_all();
+>  	/* Disable PL310 L2 Cache controller */
+>  	highbank_smc1(0x102, 0x0);
+>  }
+> diff --git a/arch/arm/mach-highbank/pm.c b/arch/arm/mach-highbank/pm.c
+> index 04eddb4..9a5b8a7 100644
+> --- a/arch/arm/mach-highbank/pm.c
+> +++ b/arch/arm/mach-highbank/pm.c
+> @@ -28,7 +28,6 @@
+>  
+>  static int highbank_suspend_finish(unsigned long val)
+>  {
+> -	outer_flush_all();
+>  	outer_disable();
+>  
+>  	highbank_set_pwr_suspend();
+> diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
+> index 2840d1e..f6ccab61 100644
+> --- a/arch/arm/mach-omap2/omap4-common.c
+> +++ b/arch/arm/mach-omap2/omap4-common.c
+> @@ -163,6 +163,7 @@ void __iomem *omap4_get_l2cache_base(void)
+>  
+>  static void omap4_l2x0_disable(void)
+>  {
+> +	outer_flush_all();
+>  	/* Disable PL310 L2 Cache controller */
+>  	omap_smc1(0x102, 0x0);
+>  }
+> -- 
+> 1.7.9.5
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
