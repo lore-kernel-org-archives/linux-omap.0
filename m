@@ -1,55 +1,174 @@
-From: leah42415@googlemail.com
-Subject: RE: Free SEO Trial For mail-archive.com
-Date: Wed, 9 Oct 2013 00:47:11 +0530
-Message-ID: <52545a35.e219440a.0e9b.ffffc4a6@mx.google.com>
-Reply-To: LANA12666@gmail.com
+From: Jyri Sarha <jsarha@ti.com>
+Subject: [PATCH v4 00/10] Fix AM335x-evm analog audio support
+Date: Tue, 8 Oct 2013 22:36:31 +0300
+Message-ID: <cover.1381259962.git.jsarha@ti.com>
+References: <cover.1379409268.git.jsarha@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pd0-f194.google.com ([209.85.192.194]:64693 "EHLO
-	mail-pd0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751948Ab3JHTRL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Oct 2013 15:17:11 -0400
-Received: by mail-pd0-f194.google.com with SMTP id x10so2614524pdj.5
-        for <linux-omap@vger.kernel.org>; Tue, 08 Oct 2013 12:17:10 -0700 (PDT)
+Received: from bear.ext.ti.com ([192.94.94.41]:42664 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754787Ab3JHTgx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 8 Oct 2013 15:36:53 -0400
+In-Reply-To: <cover.1379409268.git.jsarha@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: alsa-devel@alsa-project.org, devicetree@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, broonie@kernel.org, mark.rutland@arm.com, joelf@ti.com, Jyri Sarha <jsarha@ti.com>
 
-Good Morning Sir,
+The v3 version of patches can be found here:
+http://mailman.alsa-project.org/pipermail/alsa-devel/2013-September/066728.html
+The v2 version of patches can be found here:
+http://mailman.alsa-project.org/pipermail/alsa-devel/2013-September/066379.html
+The RFC version of patches can been found here:
+http://mailman.alsa-project.org/pipermail/alsa-devel/2013-September/066178.html
 
-Hope this email finds you in good health
+Changes since v3
+  - Rebased on top of v3.12-rc4
+  - Drop already applied patches:
+    - [PATCH v2 01/11] ASoC: davinci-evm: Move sysclk logic away from evm_hw_params
+    - [PATCH v2 06/11] ASoC: davinci: Add support for AM33xx SoC Audio
+    - [PATCH v2 07/11] ASoC: tlv320aic3x: Add regulators to DT bindings document
+    - [PATCH v2 08/11] ASoC: tlv320aic3x: Add codec pins to DT bindings document
+  - Add: ASoC: davinci: Fix AM33xx SoC Audio support
+    - Contains the fixes from Peter:
+      http://mailman.alsa-project.org/pipermail/alsa-devel/2013-September/066448.html
+    - Contents of this patch were squashed to "[PATCH v3 06/11] ASoC:
+      davinci: Add support for AM33xx SoC Audio", but since the patch v2 was
+      already applied the changes are here as a separate patch.
+  - Add: ASoC: davinci-mcasp: Remove redundant num-serializer DT parameter
+  - Change: ASoC: davinci-mcasp: Add DMA register locations to DT
+    to: ASoC: davinci-mcasp: Add location for data port registers to DT
+    - Use more accurate name for data port register location
+    - Improve commit message
+  - Change: ASoC: davinci-mcasp: Interrupts property to optional and add interrupt-names
+    to: ASoC: davinci-mcasp: Improve DT bindings document
+    - Remove #address-cells and #size-cells
+    - Bracket named interrupts tuples
+    - Add missing "for" to serial-dir description
+    - Improve tdm-slots description
+    - Improve op-mode description
+    - Add pinctrl-names and pinctrl-0 descriptions
+  - Change: ARM/dts: am335x-evm: Add audio support for am335x-evm.dts
+    - Use board specific name 'AM335x-EVM' for the soundcard.
+    - Use the board specific tlv320aic3106 codec. Use this name instead of generic
+      tlv320aic3x.
+    - Remove num-serializer property from mcasp node
+    - Remove blank lines
+  - Change: ARM/dts: am33xx: Add mcasp0 and mcasp1 device tree entries
+    - Bracket all named property tuples
+  - Add: ARM/dts: am335x-evmsk: Audio support
+  - The other patches in the set not mentioned here are identical to their
+    earlier version
 
-Does your website rank page 1 on major search engines like google & bing for your most converting keywords ? OR have your website lost rankings in last 1 year with Googles new algorithm changes? Google has launched 3 major updates in last 3 weeks resulting in many websites dropping in traffic and sales. 
+Changes since v2
+  [PATCH v2 01/11] ASoC: davinci-evm: Move sysclk logic away from evm_hw_params
+   - no change
+  [PATCH v2 02/11] ASoC: davinci-evm: Add device tree binding
+   - no change
+  [PATCH v2 03/11] ASoC: davinci-mcasp: Add DMA register locations to DT
+   - no change
+  [PATCH v2 04/11] ASoC: davinci-mcasp: Extract DMA channels directly from DT
+   - no change
+  [PATCH v2 05/11] ASoC: davinci-mcasp: Remove interrupt property from DT bindin
+   - restore binding but make it optional and add interrupt-names property
+  [PATCH v2 06/11] ASoC: davinci: Add support for AM33xx SoC Audio
+   - SND_DAVINCI_SOC help "Machine driver for ..." -> "Platform driver for ..."
+   - SND_AM33XX_SOC_EVM depends on SND_DAVINCI_SOC && SOC_AM33XX 
+   - SND_AM33XX_SOC_EVM does not selcet SND_DAVINCI_SOC
+  [PATCH v2 07/11] ASoC: tlv320aic3x: Add regulators to DT bindings document
+   - no change
+  [PATCH v2 08/11] ASoC: tlv320aic3x: Add codec pins to DT bindings document
+   - no change
+  [PATCH v2 09/11] ARM/dts: am33xx: Add mcasp0 and mcasp1 device tree entries
+   - restore interrupt property and add interrupt-names property
+  [PATCH v2 10/11] ARM/dts: am33xx: mcasp: Add new dma register location to reg-property
+   - no change
+  [PATCH v2 11/11] ARM/dts: am335x-evm: Add audio support for am335x-evm.dts
+   - no change
 
-For your information 85% of users searching the web will never find your website unless you're ranked on first page of Google, MSN and other major search engines. On the top of this with all these new google update around ( Penguin & Pandas ) its not easy to get page 1 and stay there for long to keep getting business from the web.
+Changes from RFC to v2
+ - Dropped out "ASoC: davinci-mcasp: Add pinctrl support" since
+   driver core is taking care of this now.
+ - Cleanup am33xx audio build
+ - Add regulators to tlv320aic3x DT binding document
+ - Remove dm365-voice-codec-audio DT support as it has never
+   been tested an probably does not work
+ - Add output pins and Line In connector to davinci-evm-audio DT binding doc
+ - Remove asp_chan_q and ram_chan_q properties from mcasp DT node
+   in DT mode mcasp is hardcoded to event queue 0 (highest priority)
+ - Add pins to tlv320aic3x DT bindings document. If I misunderstood
+   Marks comment and this patch is not needed, then just leave it out
+ Changes based on TI internal discussions
+ - Move system clock rate logic away from from evm_hw_params soc-op
+ - Remove unnecesary #if defined(CONFIG_OF) from davinci-evm.c
+ - Make dma property DT binding document more exact
+ - Add only "dma" reg location instead of separate "dma-tx" and "dma-rx"
+ - Primarily look for "mpu" reg property, but fall back to index 0 if not found
+ - Remove interrupt property from mcasp DT node as it is not used
+ - Remove #address-cells and #size-cells mcasp properties as they are not needed
 
-Why our program is very unique : 15 days free seo trial
+The patch set depends on following patches:
 
-We are presently offering a free 15 days SEO trial that has never been offered on the web so far. We will work on your website for 15 days and show you substantial growth in rankings for all keywords. You only move to paid service if satisfied with our service else you can opt out.
+[PATCH v11 4/8] ARM: dts: add AM33XX EDMA support 
+     https://lkml.org/lkml/2013/6/18/49
 
-OUR TOP SELLING PACKAGES
+[PATCH v11 5/8] ARM: dts: add AM33XX SPI DMA support
+     https://lkml.org/lkml/2013/6/18/55
 
-- Package A) 10 keywords optimized - $99 / M
-- Package B) 20 Keywords optimized - $149 / M
-- Package C) 30 keywords optimized - $199 / M
+[PATCH v2 01/11] ASoC: davinci-evm: Move sysclk logic away from evm_hw_params 
+     http://mailman.alsa-project.org/pipermail/alsa-devel/2013-September/066381.html
 
-COMPANY INFORMATION
+[PATCH v2 06/11] ASoC: davinci: Add support for AM33xx SoC Audio 
+     http://mailman.alsa-project.org/pipermail/alsa-devel/2013-September/066385.html
 
-We rank top 10 on Google for terms like Online SEO Company, online seo consultants and many more. We are working for hundreds of clients online and all rank top 10 for their best keywords. We would like to have a chance to rank your website page 1 for best keywords in your niche.
+This set of patches fixes the basic audio support for am335x-evm and
+am335x-evmsk. It should be relatively simple to add the necessary
+nodes to relevant dts files to get BeagleBone + AudioCape working too.
 
+I have tried my best not to break the existing support for older
+davinci boards, but since I do not have those boards I can not be
+sure.
 
-To opt-in for our free seo trial please email us back with the information below
+Some commit comments refer to a dmaengine based davinci audio
+implementation which is planned for but nothing has been done yet.
 
-- Package you would like to OPT for
-- "Website Address You want To Optimize"
-- Recommended keywords ( Optional )
-- SEO done previously ( Yes / No )
+Best regards,
+Jyri
 
-We guarantee you top 10 google listings in max 3 months of our program. We use the most ethical "white hat" Search Engine Optimization techniques to deliver rankings that will not get your website banned or penalized.
+Darren Etheridge (1):
+  ARM/dts: am335x-evm: Add audio support for am335x-evm.dts
 
+Hebbar, Gururaja (1):
+  ASoC: davinci-evm: Add device tree binding
 
-Reply Awaited
+Jyri Sarha (5):
+  ASoC: davinci: Fix AM33xx SoC Audio support
+  ASoC: davinci-mcasp: Add location for data port registers to DT
+  ASoC: davinci-mcasp: Extract DMA channels directly from DT
+  ASoC: davinci-mcasp: Improve DT bindings document
+  ARM/dts: am33xx: mcasp: Add location for data port registers to
+    reg-property
 
-Regards
-Julia M
-SEO Manager (TOB)
-B7 Green Avenue, Amritsar 143001 Punjab
+Pantelis Antoniou (1):
+  ARM/dts: am33xx: Add mcasp0 and mcasp1 device tree entries
+
+Peter Ujfalusi (2):
+  ASoC: davinci-mcasp: Remove redundant num-serializer DT parameter
+  ARM/dts: am335x-evmsk: Audio support
+
+ .../bindings/sound/davinci-evm-audio.txt           |   58 +++++++++
+ .../bindings/sound/davinci-mcasp-audio.txt         |   38 ++++--
+ arch/arm/boot/dts/am335x-evm.dts                   |   54 +++++++++
+ arch/arm/boot/dts/am335x-evmsk.dts                 |   51 ++++++++
+ arch/arm/boot/dts/am33xx.dtsi                      |   29 +++++
+ include/linux/platform_data/davinci_asp.h          |    2 +
+ sound/soc/davinci/Kconfig                          |    4 +-
+ sound/soc/davinci/davinci-evm.c                    |  120 +++++++++++++++++-
+ sound/soc/davinci/davinci-mcasp.c                  |  128 ++++++++++++--------
+ 9 files changed, 417 insertions(+), 67 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/sound/davinci-evm-audio.txt
+
+-- 
+1.7.9.5
+
