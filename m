@@ -1,43 +1,52 @@
-From: Benoit Cousson <bcousson@baylibre.com>
-Subject: Re: [PATCH v3 0/3] ARM: dts: omap3-igep: improvements for v3.13
-Date: Tue, 08 Oct 2013 17:39:47 +0200
-Message-ID: <52542743.2070304@baylibre.com>
-References: <1381158745-9557-1-git-send-email-javier.martinez@collabora.co.uk>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH] ARM: dts: omap5-uevm: mark TWL6037 as system-power-controller
+Date: Tue, 8 Oct 2013 10:43:15 -0500
+Message-ID: <52542813.7020208@ti.com>
+References: <1379617896-15213-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ea0-f178.google.com ([209.85.215.178]:56662 "EHLO
-	mail-ea0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751657Ab3JHPjw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Oct 2013 11:39:52 -0400
-Received: by mail-ea0-f178.google.com with SMTP id a15so4058039eae.23
-        for <linux-omap@vger.kernel.org>; Tue, 08 Oct 2013 08:39:51 -0700 (PDT)
-In-Reply-To: <1381158745-9557-1-git-send-email-javier.martinez@collabora.co.uk>
+Received: from bear.ext.ti.com ([192.94.94.41]:60817 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754541Ab3JHPnj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 8 Oct 2013 11:43:39 -0400
+In-Reply-To: <1379617896-15213-1-git-send-email-nm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Cc: Tony Lindgren <tony@atomide.com>, Enric Balletbo i Serra <eballetbo@gmail.com>, Roger Quadros <rogerq@ti.com>, linux-omap@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>, =?ISO-8859-1?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Javier
+On 09/19/2013 02:11 PM, Nishanth Menon wrote:
+> This allows the palmas pm_power_off to kick in on power off command
+> and switch off the board.
+> 
+> Signed-off-by: Nishanth Menon <nm@ti.com>
+> ---
+> Based on: (benoit's for_3.13/dts branch)
+> https://git.kernel.org/cgit/linux/kernel/git/bcousson/linux-omap-dt.git/log/?h=for_3.13/dts
+> This uses the support introduced by:
+> http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=b81eec09a484c588ead035003ce7555ca8a9963a
+> 
+>  arch/arm/boot/dts/omap5-uevm.dts |    1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/arch/arm/boot/dts/omap5-uevm.dts b/arch/arm/boot/dts/omap5-uevm.dts
+> index da25a14..8227386 100644
+> --- a/arch/arm/boot/dts/omap5-uevm.dts
+> +++ b/arch/arm/boot/dts/omap5-uevm.dts
+> @@ -271,6 +271,7 @@
+>  		reg = <0x48>;
+>  		interrupt-controller;
+>  		#interrupt-cells = <2>;
+> +		ti,system-power-controller;
+>  
+>  		extcon_usb3: palmas_usb {
+>  			compatible = "ti,palmas-usb-vid";
+> 
+Gentle ping.
+patchworks link: https://patchwork.kernel.org/patch/2913111/
 
-On 07/10/2013 17:12, Javier Martinez Canillas wrote:
-> Hi Benoit,
->
-> This series are some enhancements and cleanups for IGEP boards
-> that it would be great if can make it for v3.13.
->
-> This is a third version of the patch-set that addresses some issues
-> raised by Roger Quadros and is composed of the following patches:
->
-> [PATCH v3 1/3] ARM: dts: omap3-igep: Add USB OTG support
-> [PATCH v3 2/3] ARM: dts: omap3-igep0020: Add HS USB Host support
-> [PATCH v3 3/3] ARM: dts: omap3-igep0020: use standard constant for IRQ
->
-> The patches were tested using the new generic PHY framework that are
-> currently on usb-next branch and will be part of v3.13
-
-I've just pulled them into my branch.
-
-Thanks,
-Benoit
+-- 
+Regards,
+Nishanth Menon
