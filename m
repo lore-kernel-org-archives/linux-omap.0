@@ -1,57 +1,51 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH RFC 5/6] ARM: dts: AM335x: prcm node (for reset)
-Date: Tue, 8 Oct 2013 11:18:27 -0700
-Message-ID: <20131008181827.GH8313@atomide.com>
-References: <cover.1378129416.git.afzal@ti.com>
- <00675d65eef61eb4222e6a461ef479ebbd1d4787.1378129416.git.afzal@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2] RX-51: Add missing max_current to
+ rx51_lp5523_led_config
+Date: Tue, 8 Oct 2013 11:29:45 -0700
+Message-ID: <20131008182945.GI8313@atomide.com>
+References: <1379541145-25934-1-git-send-email-pali.rohar@gmail.com>
+ <201309200020.58671@pali>
+ <201309231450.12171@pali>
+ <201309231506.37942.joerg@openmoko.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <00675d65eef61eb4222e6a461ef479ebbd1d4787.1378129416.git.afzal-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Afzal Mohammed <afzal-l0cyMroinI0@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Ian Campbell <ian.campbell-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Philipp Zabel <p.zabel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+In-Reply-To: <201309231506.37942.joerg@openmoko.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: joerg Reisenweber <joerg@openmoko.org>
+Cc: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Afzal Mohammed <afzal-l0cyMroinI0@public.gmane.org> [130902 07:30]:
-> Add AM335x prcm node with reset binding.
+* joerg Reisenweber <joerg@openmoko.org> [130923 06:14]:
+> On Mon 23 September 2013 14:50:12 Pali Roh=C3=A1r wrote:
+> > Hi Tony,
+> >=20
+> > here is new version (v2) of patch which adding max_current values t=
+o rx51
+> > board data. According to joerg safe value for max_current is 100 (1=
+0 mA).
+> >=20
+> >=20
+> > RX-51: Add missing max_current to rx51_lp5523_led_config
+> >=20
+> > File drivers/leds/leds-lp55xx-common.c refuse to change led_current=
+ sysfs
+> > attribute if value is higher than max_current specified in board fi=
+le. By
+> > default global C variables are zero, so changing always failed. Thi=
+s patch
+> > adding missing max_current and setting it to max safe value 100 (10=
+ mA).
+=2E..
+=20
+> Reviewed and found logically and technically correct
+> Signed-off-by: Joerg Reisenweber <joerg AT openmoko DOT org>
 
-Please put the .dts changes into a separate series from
-driver changes so the driver maintainers don't accidentally
-queue also the .dts changes. This is to avoid pointless
-self-inflicted merge conflicts.
+Thanks, I'll apply this into omap-for-v3.12/fixes as it's a
+regression.
 
 Regards,
 
 Tony
- 
-> Signed-off-by: Afzal Mohammed <afzal-l0cyMroinI0@public.gmane.org>
-> ---
->  arch/arm/boot/dts/am33xx.dtsi | 6 ++++++
->  1 file changed, 6 insertions(+)
-> 
-> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-> index 4701e3c..c2ccf94 100644
-> --- a/arch/arm/boot/dts/am33xx.dtsi
-> +++ b/arch/arm/boot/dts/am33xx.dtsi
-> @@ -530,6 +530,12 @@
->  			#size-cells = <1>;
->  			status = "disabled";
->  		};
-> +
-> +		prcm: prcm@44e00000 {
-> +			compatible = "ti,am3352-prcm";
-> +			reg = <0x44e00000 0x1300>;
-> +			#reset-cells = <1>;
-> +		};
->  	};
->  
->  	clocks {
-> -- 
-> 1.8.3.4
-> 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
