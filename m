@@ -1,61 +1,74 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH V3] ARM: OMAP3: Fix hardware detection for omap3630 when
- booted with device tree
-Date: Tue, 8 Oct 2013 07:00:22 -0500
-Message-ID: <5253F3D6.5060403@ti.com>
-References: <20131007192009.GA8949@atomide.com>
- <1381178629-13488-1-git-send-email-nm@ti.com>
- <20131008000515.GA2097@earth.universe>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH 4/6] pinctrl: single: Add support for wake-up interrupts
+Date: Tue, 8 Oct 2013 14:10:27 +0200
+Message-ID: <CACRpkda5-dxD+-4mgY6v90awxQhHpNePb5uhWHusb7jf-j5s-g@mail.gmail.com>
+References: <20131003054104.8941.88857.stgit@localhost>
+	<20131003054221.8941.87801.stgit@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20131008000515.GA2097@earth.universe>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: =?ISO-8859-1?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Felipe <balbi@ti.com>, Olof Johansson <olof@lixom.net>, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20131003054221.8941.87801.stgit@localhost>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Haojian Zhuang <haojian.zhuang@marvell.com>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Jon Hunter <jgchunter@gmail.com>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Grygorii Strashko <grygorii.strashko@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Prakash Manjunathappa <prakash.pm@ti.com>, Haojian Zhuang <haojian.zhuang@linaro.org>, =?ISO-8859-1?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, Linux-OMAP <linux-omap@vger.kernel.org>, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 10/07/2013 07:05 PM, Sebastian Reichel wrote:
-> On Mon, Oct 07, 2013 at 03:43:49PM -0500, Nishanth Menon wrote:
->> diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
->> index 39c7838..4fe5b9c 100644
->> --- a/arch/arm/mach-omap2/board-generic.c
->> +++ b/arch/arm/mach-omap2/board-generic.c
->> @@ -113,6 +113,7 @@ MACHINE_END
->>  #ifdef CONFIG_ARCH_OMAP3
->>  static const char *omap3_boards_compat[] __initdata = {
->>  	"ti,omap3",
->> +	"ti,omap343x",
->             ^^^^
-> You used omap36xx everywhere, so I guess this should be
-> "ti,omap34xx"?
+On Thu, Oct 3, 2013 at 7:42 AM, Tony Lindgren <tony@atomide.com> wrote:
 
-3630 has at least two variants:
-http://www.ti.com/product/omap3621
-http://www.ti.com/product/omap3630
+> This patch adds support for interrupts in a way that
+> should be pretty generic, and works for the omaps that
+> support wake-up interrupts. On omaps, there's an
+> interrupt enable and interrupt status bit for each pin.
 
-It got further spun off in 37xx family:
-http://www.ti.com/product/dm3730 (DM3730 and DM3725)
+So to be clear: is this enable and status bit in the *same*
+register as all other settings? Then it warrants having this
+under pinctrl-single still and I feel a bit better about this.
 
-3430 is no longer in production - but just had a single version (at
-least what I can remember).
+Second: how does this relate to the case where say
+gpio-omap is using the same pins as a back-end (this
+is a real usecase right)?
 
-3530 variant of 3430 on the other hand has a few:
-http://processors.wiki.ti.com/index.php/OMAP3_Overview
+So gpio-omap already supports gpio_to_irq() and
+it does not support enable_irq_wake() on the GPIO
+lines as well.
 
+How does this play together? Is it like the pins have a set
+of wakeup IRQs and then the GPIO block has *another*
+set of wakeup IRQs?
 
-I am ok to change to ti,omap34xx if folks think that is the right
-thing to do. Personally, I might prefer to handle 35xx family slightly
-differently considering deltas.
+And if you do enable_irq_wake() on the GPIO line,
+should this not fall through to the pinctrl driver, so we
+should add pinctrl_gpio_enable_wake() and
+pinctrl_gpio_disable_wake() just like we have
+pinctrl_gpio_direction_input() and friends today,
+so that this request falls through to the pinctrl driver
+when a wakeup on a certain GPIO line is requested?
 
--- 
-Regards,
-Nishanth Menon
+Now gpio-omap.c does not seem to use the pinctrl
+back-end commands, instead of using e.g.
+pinctrl_gpio_request() and GPIO to pin ranges it
+seems to use this hack:
+
+static void _enable_gpio_module(struct gpio_bank *bank, unsigned offset)
+{
+        if (bank->regs->pinctrl) {
+                void __iomem *reg = bank->base + bank->regs->pinctrl;
+
+                /* Claim the pin for MPU */
+                __raw_writel(__raw_readl(reg) | (1 << offset), reg);
+        }
+
+Can't we please make the OMAP GPIO driver use the
+pinctrl back-end with gpio ranges properly *before* we proceed
+to doing this kind of stuff? I think it is already looking
+like a bit of layered hacks :-(
+
+Haojian is already using the pinctrl-single as backend to
+another GPIO controller (I think it's pinctrl-pl061.c) so surely
+this should be possible to do right.
+
+IIRC there are also other OMAP GPIO blocks so we need
+to look at the large picture here, for all of them.
+
+Yours,
+Linus Walleij
