@@ -1,107 +1,66 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: OMAP baseline test results for v3.12-rc4
-Date: Tue, 8 Oct 2013 21:41:24 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1310082140250.24955@utopia.booyaka.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH V4] ARM: OMAP5/DRA7: realtime_counter: Configure CNTFRQ
+ register
+Date: Tue, 8 Oct 2013 14:45:23 -0700
+Message-ID: <20131008214523.GU8313@atomide.com>
+References: <1379520162-31932-1-git-send-email-r.sricharan@ti.com>
+ <524D44B9.30208@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:37465 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753527Ab3JHVlZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Oct 2013 17:41:25 -0400
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:34917 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755498Ab3JHVp3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Oct 2013 17:45:29 -0400
+Content-Disposition: inline
+In-Reply-To: <524D44B9.30208@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: kernel-build-reports@lists.linaro.org, linux-arm-kernel@lists.infradead.org
+To: Sricharan R <r.sricharan@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, santosh.shilimkar@ti.com, rnayak@ti.com, nm@ti.com, marc.zyngier@arm.com, mark.rutland@arm.com
 
+* Sricharan R <r.sricharan@ti.com> [131003 03:27]:
+> On Wednesday 18 September 2013 09:32 PM, Sricharan R wrote:
+> > --- a/arch/arm/boot/dts/omap5.dtsi
+> > +++ b/arch/arm/boot/dts/omap5.dtsi
+> > @@ -52,7 +52,6 @@
+> >  			     <GIC_PPI 14 (GIC_CPU_MASK_RAW(3) | IRQ_TYPE_LEVEL_LOW)>,
+> >  			     <GIC_PPI 11 (GIC_CPU_MASK_RAW(3) | IRQ_TYPE_LEVEL_LOW)>,
+> >  			     <GIC_PPI 10 (GIC_CPU_MASK_RAW(3) | IRQ_TYPE_LEVEL_LOW)>;
+> > -		clock-frequency = <6144000>;
+> >  	};
+> >  
+> >  	gic: interrupt-controller@48211000 {
 
-Here are some basic OMAP test results for Linux v3.12-rc4.
-Logs and other details at:
+Can the above be done later on in a separate clean-up patch?
+If so I can drop that part as that removes a dependency to the
+.dts patches queued by Benoit.
 
-    http://www.pwsan.com/omap/testlogs/test_v3.12-rc4/20131007013715/
+> > --- a/arch/arm/mach-omap2/omap-smp.c
+> > +++ b/arch/arm/mach-omap2/omap-smp.c
+> > @@ -41,6 +41,8 @@
+> >  
+> >  u16 pm44xx_errata;
+> >  
+> > +extern unsigned long arch_timer_freq;
+> > +
+> >  /* SCU base address */
+> >  static void __iomem *scu_base;
+> >  
 
+No externs in *.c files please, checkpatch.pl and sparse should warn
+about this.
 
-Test summary
-------------
+>  Are you planning to pull this patch and the below $subject patch as well? They are
+>  acked and tested.
+> 
+>  ARM: DRA7: realtime_counter: Add ratio registers for 20MHZ sys-clk frequency
+> 
+>   http://www.spinics.net/lists/linux-omap/msg97281.html
 
-Build: zImage:
-    Pass ( 2/ 2): omap2plus_defconfig, omap2plus_defconfig_am33xx_only
+The 20MHz patch I've applied, just noticed the above things
+when was about to apply this.
 
-Build: uImage+dtb:
-    Pass ( 3/ 3): omap2plus_defconfig_am33xx_only/am335x-bone,
-		  omap2plus_defconfig/omap4-panda,
-		  omap2plus_defconfig/omap4-panda-es
+Regards,
 
-Build: uImage:
-    Pass (14/14): omap1_defconfig, omap1_defconfig_1510innovator_only,
-		  omap1_defconfig_5912osk_only, omap2plus_defconfig,
-		  omap2plus_defconfig_2430sdp_only,
-		  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm,
-		  omap2plus_defconfig_n800_only_a,
-		  omap2plus_defconfig_n800_multi_omap2xxx,
-		  omap2plus_defconfig_omap2_4_only,
-		  omap2plus_defconfig_omap3_4_only,
-		  rmk_omap3430_ldp_allnoconfig,
-		  rmk_omap3430_ldp_oldconfig,
-		  rmk_omap4430_sdp_allnoconfig
-
-Boot to userspace:
-    skip ( 1/ 1): 5912osk
-    Pass (11/11): 2430sdp, 3517evm, 3530es3beagle, 3730beaglexm,
-		  37xxevm, 4430es2panda, 4460pandaes, am335xbone,
-		  am335xbonelt, cmt3517, 4460varsomom
-
-PM: chip retention via suspend:
-    FAIL ( 3/ 7): 2430sdp, 4430es2panda, 4460varsomom
-    Pass ( 4/ 7): 3530es3beagle, 3730beaglexm, 37xxevm, 4460pandaes
-
-PM: chip retention via dynamic idle:
-    FAIL ( 4/ 7): 2430sdp, 4430es2panda, 4460pandaes, 4460varsomom
-    Pass ( 3/ 7): 3530es3beagle, 3730beaglexm, 37xxevm
-
-PM: chip off except CORE via suspend:
-    Pass ( 1/ 1): 3730beaglexm
-
-PM: chip off except CORE via dynamic idle:
-    Pass ( 1/ 1): 3730beaglexm
-
-PM: chip off via suspend:
-    FAIL ( 3/ 5): 4430es2panda, 4460pandaes, 4460varsomom
-    Pass ( 2/ 5): 3530es3beagle, 37xxevm
-
-PM: chip off via dynamic idle:
-    FAIL ( 3/ 5): 4430es2panda, 4460pandaes, 4460varsomom
-    Pass ( 2/ 5): 3530es3beagle, 37xxevm
-
-
-vmlinux object size
-(delta in bytes from test_v3.12-rc3 (15c03dd4859ab16f9212238f29dd315654aa94f6)):
-   text     data      bss    total  kernel
-  +2349      +40        0    +2389  omap1_defconfig
-  +2313      +40        0    +2353  omap1_defconfig_1510innovator_only
-  +2317      +16        0    +2333  omap1_defconfig_5912osk_only
-  +5734      +24        0    +5758  omap2plus_defconfig
-  +1414      +24        0    +1438  omap2plus_defconfig_2430sdp_only
-  +1638        0        0    +1638  omap2plus_defconfig_cpupm
-   +638        0        0     +638  omap2plus_defconfig_n800_multi_omap2xxx
-   +606        0        0     +606  omap2plus_defconfig_n800_only_a
-  +1638       -8        0    +1630  omap2plus_defconfig_no_pm
-  +1638        0        0    +1638  omap2plus_defconfig_omap2_4_only
-  +1638       -8        0    +1630  omap2plus_defconfig_omap3_4_only
-  +1336        0     -112    +1224  rmk_omap3430_ldp_allnoconfig
-   +994        0        0     +994  rmk_omap3430_ldp_oldconfig
-  +1288        0      -96    +1192  rmk_omap4430_sdp_allnoconfig
-
-Boot-time memory difference
-(delta in bytes from test_v3.12-rc3 (15c03dd4859ab16f9212238f29dd315654aa94f6))
-  avail  rsrvd   high  freed  board          kconfig
-    -8k     8k      .      .  2430sdp        omap2plus_defconfig
-    -8k     8k      .      .  3517evm        omap2plus_defconfig
-    -8k     8k      .      .  3530es3beagle  omap2plus_defconfig
-    -8k     8k      .      .  3730beaglexm   omap2plus_defconfig
-    -8k     8k      .      .  37xxevm        omap2plus_defconfig
-    -8k     8k      .      .  4430es2panda   omap2plus_defconfig
-    -8k     8k      .      .  4460pandaes    omap2plus_defconfig
-    -8k     8k      .      .  4460varsomom   omap2plus_defconfig
-    -8k     8k      .      .  am335xbonelt   omap2plus_defconfig_am33xx_only
-
+Tony
