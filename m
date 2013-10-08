@@ -1,77 +1,62 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: Re: [PATCH] ARM: OMAP2+: hwmod: check for module address space during
- init
-Date: Mon, 7 Oct 2013 17:04:18 -0500
-Message-ID: <52532FE2.3070702@ti.com>
-References: <1380819546-53631-1-git-send-email-s-anna@ti.com> <5253257A.2070301@ti.com>
+From: Sebastian Reichel <sre@debian.org>
+Subject: Re: [PATCH V3] ARM: OMAP3: Fix hardware detection for omap3630 when
+ booted with device tree
+Date: Tue, 8 Oct 2013 02:05:16 +0200
+Message-ID: <20131008000515.GA2097@earth.universe>
+References: <20131007192009.GA8949@atomide.com>
+ <1381178629-13488-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:49129 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751653Ab3JGWFN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 7 Oct 2013 18:05:13 -0400
-In-Reply-To: <5253257A.2070301@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="liOOAslEiF7prFVr"
+Return-path: <linux-doc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1381178629-13488-1-git-send-email-nm@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Felipe <balbi@ti.com>, Olof Johansson <olof@lixom.net>, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>, Paul Walmsley <paul@pwsan.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Afzal Mohammed <afzal@ti.com>, Tero Kristo <t-kristo@ti.com>, Rajendra Nayak <rnayak@ti.com>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 
-On 10/07/2013 04:19 PM, Nishanth Menon wrote:
-> On 10/03/2013 11:59 AM, Suman Anna wrote:
->> The hwmod init sequence involves initializing and idling all the
->> hwmods during bootup. If a module class has sysconfig, the init
->> sequence utilizes the module register base for performing any
->> sysc configuration.
->>
->> The module address space is being removed from hwmod database and
->> retrieved from the <reg> property of the corresponding DT node.
->> If a hwmod does not have its corresponding DT node defined and the
->> memory address space is not defined in the corresponding
->> omap_hwmod_ocp_if, then the module register target address space
->> would be NULL and any sysc programming would result in a NULL
->> pointer dereference and a kernel boot hang.
->>
->> Handle this scenario by checking for a valid module address space
->> during the _init of each hwmod, and leaving it in the registered
->> state if no module register address base is defined in either of
->> the hwmod data or the DT data.
->>
->> Signed-off-by: Suman Anna <s-anna@ti.com>
->> ---
->> This patch helps break the dependencies between hwmod entries and
->> corresponding DT entries (especially on OMAP5, where most of the
->> address spaces are already cleaned up and the current data files
->> have minimal entries) and fixes any boot issues due to missing
->> addresses. See for reference,
->> http://marc.info/?t=138005421400003&r=1&w=2
->>
->> Tested on BeagleXM, Panda4, BeagleBone Black and Panda5 using
->> Tero's v7 clk DT patches and Benoit's for-3.13/dts on top of
->> 3.12-rc3
->>
->>  arch/arm/mach-omap2/omap_hwmod.c | 29 +++++++++++++++++++----------
->>  1 file changed, 19 insertions(+), 10 deletions(-)
-> 
-> Mandatory to have this patch for OMAP5uEVM to boot after Tero's v7 [1]
-> series is merged else the delta between dts and hwmod entries cause
-> OMAP5 platforms to croak and die - at least worked around as seen in
-> [2] :(
-> 
-> Tested-by: Nishanth Menon <nm@ti.com>
-> 
-> [1] http://marc.info/?t=138009899400001&r=1&w=2
-> [2] OMAP5uEVM: http://pastebin.com/jtEMwTY5
-> 
 
-This patch should also help Paul to be able to pick up the OMAP5
-hwspinlock hwmod data [3] and would yield a similar warning without
-its corresponding DT node as in Nishant's log [2]. Obviously, both
-hwmod and DT need to be present for the associated driver to work, but
-atleast it doesn't hang the boot.
+--liOOAslEiF7prFVr
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-regards
-Suman
+On Mon, Oct 07, 2013 at 03:43:49PM -0500, Nishanth Menon wrote:
+> diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
+> index 39c7838..4fe5b9c 100644
+> --- a/arch/arm/mach-omap2/board-generic.c
+> +++ b/arch/arm/mach-omap2/board-generic.c
+> @@ -113,6 +113,7 @@ MACHINE_END
+>  #ifdef CONFIG_ARCH_OMAP3
+>  static const char *omap3_boards_compat[] __initdata = {
+>  	"ti,omap3",
+> +	"ti,omap343x",
+            ^^^^
+You used omap36xx everywhere, so I guess this should be
+"ti,omap34xx"?
 
-[3] http://marc.info/?l=linux-omap&m=138055666108306&w=2
+-- Sebastian
+
+--liOOAslEiF7prFVr
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.14 (GNU/Linux)
+
+iQIcBAEBCAAGBQJSU0w7AAoJENju1/PIO/qaieEP/jhUIVrxTJNRrBhvWUaYnaDj
+ZBQ48YhINc5kW0QhrbF91PHmdc/ndzFQ0jtHC+pNzFVrsCsTFu+07Ut4HY5tS41d
+hjSaUOlS0W821di2E744ypPZJHniM5T5yb/fLioQpa90nKc1OsDIhKiALo2myZk1
+AY+TFMmmmM+fg4RqjRpxbnM9e6isIenC4EqJU+tSc2CXJIjXAnkQ/wysF4fVgfS8
+chbjhpiQvTkHWxuIt14Xb1E58+r4hqb9iI4BOL6yqSsPA4v1eZxpDDpb2+K8NrYQ
+fwNMdn914rexIylHooSCzk9+9kGiWUqNR0EKs+MirnugK5yqeaoPTm3QGHljjkDB
+bvjvjSCGVS8H7kgxOj3sySCMqAEzO/Tl4XiMD+3tZMeoNnasYABpUZkD9fbFi4B8
+WM2Dn3MIfQ3wOGZAOMHXybya/GMRe/IlNvOV4eI31+h0BSSTjzqdUyrbp/dgZIuP
+2vjMVr9Lf0OilAqvC+9f/8ggsgkw64KhpFiZps0vKXfYeahVdyUBmadNbtfAE0Wz
+s0FtKa4fGSat/qpAGxih7FaGID+SPyV0QQAiRA8FA6lF11kjUxtCGldzn2jIfRCl
+2F3LGPwmI4rJaLNumRnnYt2k5XXU6zBx/T7uPbqGjjQlGJ5pO63Gyj7a9Vg8nUoh
+U0l04xz976EECfv3qZcD
+=a1qz
+-----END PGP SIGNATURE-----
+
+--liOOAslEiF7prFVr--
