@@ -1,82 +1,40 @@
-From: Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
-Subject: [PATCH] usb: musb: dsps: disable the otg_timer while going to sleep
-Date: Tue, 8 Oct 2013 12:44:16 +0200
-Message-ID: <20131008104416.GA5558@linutronix.de>
-References: <1380643921-20642-1-git-send-email-zonque@gmail.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [RFC PATCH 1/6] DRIVERS: IRQCHIP: IRQ-GIC: Add support for
+ routable irqs
+Date: Tue, 8 Oct 2013 13:23:00 +0200
+Message-ID: <CACRpkdac5iPqwv2Wb2uksn=cYtS0r=1+tSr4Cre2Xun0JBKzpA@mail.gmail.com>
+References: <1380549564-31045-1-git-send-email-r.sricharan@ti.com>
+	<1380549564-31045-2-git-send-email-r.sricharan@ti.com>
+	<524987A3.4090204@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1380643921-20642-1-git-send-email-zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, neumann-SRDuVqtxQLSzQB+pC5nmwQ@public.gmane.org, vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <524987A3.4090204@arm.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Marc Zyngier <marc.zyngier@arm.com>
+Cc: Sricharan R <r.sricharan@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "santosh.shilimkar@ti.com" <santosh.shilimkar@ti.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "tony@atomide.com" <tony@atomide.com>, "rnayak@ti.com" <rnayak@ti.com>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, Mark Rutland <Mark.Rutland@arm.com>
 List-Id: linux-omap@vger.kernel.org
 
-Testing with "freeze" I run into:
+On Mon, Sep 30, 2013 at 4:16 PM, Marc Zyngier <marc.zyngier@arm.com> wrote:
+> On 30/09/13 14:59, Sricharan R wrote:
+>> In some socs the gic can be preceded by a crossbar IP which
+>> routes the peripheral interrupts to the gic inputs. The peripheral
+>> interrupts are associated with a fixed crossbar input line and the
+>> crossbar routes that to one of the free gic input line.
+>>
+>> The DT entries for peripherals provides the fixed crossbar input line
+>> as its interrupt number and the mapping code should associate this with
+>> a free gic input line. This patch adds the support inside the gic irqchip
+>> to handle such routable irqs. The routable irqs are registered in a linear
+>> domain. The registered routable domain's callback should be implemented
+>> to get a free irq and to configure the IP to route it.
+>
+> Isn't this just another chained interrupt controller? How is it GIC
+> specific?
 
-| PM: Syncing filesystems ... done.
-| PM: Preparing system for freeze sleep
-| Freezing user space processes ... (elapsed 0.002 seconds) done.
-| Freezing remaining freezable tasks ... (elapsed 0.002 seconds) done.
-| PM: Entering freeze sleep
-| usb usb2: usb auto-resume
-| hub 2-0:1.0: hub_resume
-| hub 2-0:1.0: hub_suspend
-| usb usb2: bus suspend, wakeup 0
-| usb usb1: usb auto-resume
-| hub 1-0:1.0: hub_resume
-| hub 1-0:1.0: hub_suspend
-| usb usb1: bus suspend, wakeup 0
-| PM: suspend of devices complete after 54.622 msecs
-| PM: late suspend of devices complete after 4.782 msecs
-| PM: noirq suspend of devices complete after 4.990 msecs
-| Unhandled fault: external abort on non-linefetch (0x1008) at 0xf0442460
-| Internal error: : 1008 [#1] ARM
-| PC is at otg_timer+0x28/0x140 [musb_dsps]
+I thought so from the beginning but I was dead wrong, as pointed out
+by tglx it is basically a hardware .map function, so its usecase will map
+to the irqdomain .map/.unmap so to say.
 
-This is comming from first dsps_readb() in otg_timer(). The problem is
-that the device is already suspended (the clocks are off) and the timer
-tries to access register which fails.
-Since there is no need to keep this timer aroud while the device is
-going to suspend I suggest to remove the timer in suspend and queue it
-in the resume path.
-
-Signed-off-by: Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
----
-I don't have the "suspend" target in "state" just the "freezer" and with
-it I get into trouble in the otg_timer(). This triggers a few seconds
-after the suspend but since this depends on timming, it might trigger
-just a few secs after the suspend.
-What about the this?
-
- drivers/usb/musb/musb_dsps.c | 2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
-index ced2b76..61b3f3e 100644
---- a/drivers/usb/musb/musb_dsps.c
-+++ b/drivers/usb/musb/musb_dsps.c
-@@ -659,6 +659,7 @@ static int dsps_suspend(struct device *dev)
- 	glue->context.tx_mode = dsps_readl(mbase, wrp->tx_mode);
- 	glue->context.rx_mode = dsps_readl(mbase, wrp->rx_mode);
- 
-+	del_timer_sync(&glue->timer);
- 	return 0;
- }
- 
-@@ -679,6 +680,7 @@ static int dsps_resume(struct device *dev)
- 
- 	musb->port_reset_state = false;
- 	schedule_work(&musb->port_reset_work);
-+	mod_timer(&glue->timer, jiffies + wrp->poll_seconds * HZ);
- 
- 	return 0;
- }
--- 
-1.8.4.rc3
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Yours,
+Linus Walleij
