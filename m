@@ -1,116 +1,69 @@
-From: Jyri Sarha <jsarha@ti.com>
-Subject: [PATCH v4 10/10] ARM/dts: am335x-evmsk: Audio support
-Date: Tue, 8 Oct 2013 22:36:41 +0300
-Message-ID: <f389f285899dce8aa7651e79dc26d8f8748a4525.1381259962.git.jsarha@ti.com>
-References: <cover.1381259962.git.jsarha@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2 0/4] arm: omap: display: Ensure DRM/FB/V4L devices
+ are created if DSS is available
+Date: Tue, 8 Oct 2013 14:06:25 -0700
+Message-ID: <20131008210625.GP8313@atomide.com>
+References: <1379315911-24634-1-git-send-email-archit@ti.com>
+ <5236C63A.9000709@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:37588 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756420Ab3JHThE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 8 Oct 2013 15:37:04 -0400
-In-Reply-To: <cover.1381259962.git.jsarha@ti.com>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:10693 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1756501Ab3JHVG1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Oct 2013 17:06:27 -0400
+Content-Disposition: inline
+In-Reply-To: <5236C63A.9000709@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: alsa-devel@alsa-project.org, devicetree@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, broonie@kernel.org, mark.rutland@arm.com, joelf@ti.com, Peter Ujfalusi <peter.ujfalusi@ti.com>, Jyri Sarha <jsarha@ti.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Archit Taneja <archit@ti.com>, linux-omap@vger.kernel.org
 
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+* Tomi Valkeinen <tomi.valkeinen@ti.com> [130916 01:57]:
+> On 16/09/13 10:18, Archit Taneja wrote:
+> > Currently, omapdrm, omapfb and omap_vout platform devices are created and
+> > registered through omap_arch_initcalls. In a multiplatform config. It's
+> > possible that all the corresponding configs for the above drivers along with
+> > omapdss config are selected even if the hardware doesn't have a DSS IP.
+> > 
+> > If the image is booted on a AM33xx platform, the above drm, fb and v4l devices
+> > would be registered throuth the omap_arch_initcalls even if omapdss itself isn't
+> > registered. These platform devices don't cause any harm, but are unnecessary.
+> > 
+> > Move the registration of these devices into omap_display_init(), which registers
+> > omapdss devices and is called only if the platform has DSS hardware.
+> > 
+> > Also, the first patch prevents creation of a DMM device when omapdrm device is
+> > registered. With the removal of address and irq data from the omap4 hwmods, the
+> > probe of DMM driver fails and omapdrm isn't able to utilize the DMM hardware.
+> > This will be fixed when DMM DT nodes are added for omap4, omap5 and dra7x.
+> > 
+> > Changes in v2:
+> > - Move device creation for omapfb and omap_vout to omap_display_init too.
+> > - Keep the DMM DT conversion as a separate patch series since this series does
+> >   something different now.
+> > 
+> > Archit Taneja (4):
+> >   arm: omap: drm: Don't build device for DMM
+> >   arm: omap: display: Create omapdrm device inside omap_display_init
+> >   arm: omap: display: Create omapvrfb and omapfb devices inside
+> >     omap_display_init
+> >   arm: omap: display: Create omap_vout device inside omap_display_init
+> > 
+> >  arch/arm/mach-omap2/Makefile  |  6 +-----
+> >  arch/arm/mach-omap2/devices.c | 10 +++++-----
+> >  arch/arm/mach-omap2/display.c | 28 ++++++++++++++++++++++++++++
+> >  arch/arm/mach-omap2/display.h |  4 ++++
+> >  arch/arm/mach-omap2/drm.c     | 24 +++++-------------------
+> >  arch/arm/mach-omap2/fb.c      | 14 +++++++-------
+> >  6 files changed, 50 insertions(+), 36 deletions(-)
+> 
+> Acked-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> 
+> Tony, since there are no driver changes here, and it's unlikely that
+> we'd have a conflict between the dss driver changes and these changes, I
+> think it's best if this goes through linux-omap.
 
-AM335x EVM-SK have only support for audio playback (stereo jack on the
-board) via tlv320aic3106 codec connected to McASP1.
-Enable the support for audio playback on the board:
-- McASP1 configuration
-- tlv320aic3106 configuration
-- Machine driver.
+OK applying into omap-for-v3.13/display, thanks.
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Signed-off-by: Jyri Sarha <jsarha@ti.com>
----
- arch/arm/boot/dts/am335x-evmsk.dts |   51 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 51 insertions(+)
-
-diff --git a/arch/arm/boot/dts/am335x-evmsk.dts b/arch/arm/boot/dts/am335x-evmsk.dts
-index 4f339fa..27aa42f 100644
---- a/arch/arm/boot/dts/am335x-evmsk.dts
-+++ b/arch/arm/boot/dts/am335x-evmsk.dts
-@@ -158,6 +158,15 @@
- 				0x14c (PIN_INPUT_PULLDOWN | MUX_MODE7)
- 			>;
- 		};
-+
-+		mcasp1_pins: mcasp1_pins {
-+			pinctrl-single,pins = <
-+				0x10c (PIN_INPUT_PULLDOWN | MUX_MODE4) /* mii1_crs.mcasp1_aclkx */
-+				0x110 (PIN_INPUT_PULLDOWN | MUX_MODE4) /* mii1_rxerr.mcasp1_fsx */
-+				0x108 (PIN_OUTPUT_PULLDOWN | MUX_MODE4) /* mii1_col.mcasp1_axr2 */
-+				0x144 (PIN_INPUT_PULLDOWN | MUX_MODE4) /* rmii1_ref_clk.mcasp1_axr3 */
-+			>;
-+		};
- 	};
- 
- 	ocp {
-@@ -206,6 +215,18 @@
- 				st,max-limit-y = <550>;
- 				st,max-limit-z = <750>;
- 			};
-+
-+			tlv320aic3106: tlv320aic3106@1b {
-+				compatible = "ti,tlv320aic3106";
-+				reg = <0x1b>;
-+				status = "okay";
-+
-+				/* Regulators */
-+				AVDD-supply = <&vaux2_reg>;
-+				IOVDD-supply = <&vaux2_reg>;
-+				DRVDD-supply = <&vaux2_reg>;
-+				DVDD-supply = <&vbat>;
-+			};
- 		};
- 
- 		musb: usb@47400000 {
-@@ -233,6 +254,17 @@
- 				pinctrl-0 = <&ecap2_pins>;
- 			};
- 		};
-+
-+		sound {
-+			compatible = "ti,da830-evm-audio";
-+			ti,model = "AM335x-EVMSK";
-+			ti,audio-codec = <&tlv320aic3106>;
-+			ti,mcasp-controller = <&mcasp1>;
-+			ti,codec-clock-rate = <24576000>;
-+			ti,audio-routing =
-+				"Headphone Jack",       "HPLOUT",
-+				"Headphone Jack",       "HPROUT";
-+		};
- 	};
- 
- 	vbat: fixedregulator@0 {
-@@ -419,3 +451,22 @@
- 	phy_id = <&davinci_mdio>, <1>;
- 	phy-mode = "rgmii-txid";
- };
-+
-+&mcasp1 {
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&mcasp1_pins>;
-+
-+		status = "okay";
-+
-+		op-mode = <0>;          /* MCASP_IIS_MODE */
-+		tdm-slots = <2>;
-+		/* 16 serializer */
-+		serial-dir = <  /* 0: INACTIVE, 1: TX, 2: RX */
-+			0 0 1 2
-+			0 0 0 0
-+			0 0 0 0
-+			0 0 0 0
-+		>;
-+		tx-num-evt = <1>;
-+		rx-num-evt = <1>;
-+};
--- 
-1.7.9.5
-
+Tony
