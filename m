@@ -1,59 +1,90 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: mach-omap2: board-generic: fix undefined symbol
-Date: Tue, 8 Oct 2013 10:41:49 -0700
-Message-ID: <20131008174149.GB8313@atomide.com>
-References: <5253C759.5020406@gmail.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 2/2] ARM: dts: omap3-beagle: use 3630 definitions
+Date: Tue, 8 Oct 2013 12:47:21 -0500
+Message-ID: <20131008174721.GH13128@radagast>
+References: <523C9D8B.2000701@ti.com>
+ <1381164584-4008-1-git-send-email-nm@ti.com>
+ <1381164584-4008-3-git-send-email-nm@ti.com>
+ <20131007192009.GA8949@atomide.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:27937 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755554Ab3JHRlw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Oct 2013 13:41:52 -0400
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Q59ABw34pTSIagmi"
+Return-path: <linux-doc-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <5253C759.5020406@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20131007192009.GA8949@atomide.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Nishanth Menon <nm@ti.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Felipe <balbi@ti.com>, Olof Johansson <olof@lixom.net>, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Simon Barth <simon.pe.barth@gmail.com>
-Cc: Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 
-* Simon Barth <simon.pe.barth@gmail.com> [131008 01:58]:
-> Since dra7 reuses the  function 'omap5_realtime_timer_init' in
-> arch/arm/mach-omap2/board-generic.c as timer init function, it has to be
-> built for this SoC as well.
+--Q59ABw34pTSIagmi
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Thanks applying into omap-for-v3.12/fixes.
+Hi,
 
-Regards,
+On Mon, Oct 07, 2013 at 12:20:09PM -0700, Tony Lindgren wrote:
+> * Nishanth Menon <nm@ti.com> [131007 09:57]:
+> > beagle-xm currently would matchup with ti,omap3 which invokes
+> > omap3430_init_early instead of omap3630_init_early. So add
+> > compatiblity for 3630 to allow match
+> >=20
+> > Signed-off-by: Nishanth Menon <nm@ti.com>
+> > ---
+> >  arch/arm/boot/dts/omap3-beagle-xm.dts |    2 +-
+> >  1 file changed, 1 insertion(+), 1 deletion(-)
+> >=20
+> > diff --git a/arch/arm/boot/dts/omap3-beagle-xm.dts b/arch/arm/boot/dts/=
+omap3-beagle-xm.dts
+> > index 0f7cfc5..2079e22 100644
+> > --- a/arch/arm/boot/dts/omap3-beagle-xm.dts
+> > +++ b/arch/arm/boot/dts/omap3-beagle-xm.dts
+> > @@ -11,7 +11,7 @@
+> > =20
+> >  / {
+> >  	model =3D "TI OMAP3 BeagleBoard xM";
+> > -	compatible =3D "ti,omap3-beagle-xm", "ti,omap3-beagle", "ti,omap3";
+> > +	compatible =3D "ti,omap3-beagle-xm", "ti,omap363x", "ti,omap3-beagle"=
+, "ti,omap3";
+> > =20
+> >  	cpus {
+> >  		cpu@0 {
+>=20
+> This compatible string looks hacky.. How about just make it
+>=20
+> "ti,omap3-beagle-xm", "ti,omap363x", "ti,omap3";
+>=20
+> How about just leave out "ti,omap3-beagle" here?
 
-Tony
- 
-> Signed-off-by: Simon Barth <Simon.Pe.Barth@gmail.com>
-> ---
->  arch/arm/mach-omap2/timer.c |    4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-> index fa74a06..ead48fa 100644
-> --- a/arch/arm/mach-omap2/timer.c
-> +++ b/arch/arm/mach-omap2/timer.c
-> @@ -628,7 +628,7 @@ void __init omap4_local_timer_init(void)
->  #endif /* CONFIG_HAVE_ARM_TWD */
->  #endif /* CONFIG_ARCH_OMAP4 */
-> 
-> -#ifdef CONFIG_SOC_OMAP5
-> +#if defined(CONFIG_SOC_OMAP5) || defined(CONFIG_SOC_DRA7XX)
->  void __init omap5_realtime_timer_init(void)
->  {
->  	omap4_sync32k_timer_init();
-> @@ -636,7 +636,7 @@ void __init omap5_realtime_timer_init(void)
-> 
->  	clocksource_of_init();
->  }
-> -#endif /* CONFIG_SOC_OMAP5 */
-> +#endif /* CONFIG_SOC_OMAP5 || CONFIG_SOC_DRA7XX */
-> 
->  /**
->   * omap_timer_init - build and register timer device with an
-> -- 
-> 1.7.9.5
+ti,omap3-beagle was already part of the original file, we can definitely
+remove but I'd expect us to maintain support for that string
+indefinitely should anybody continue to use older dtbs.
+
+--=20
+balbi
+
+--Q59ABw34pTSIagmi
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJSVEUpAAoJEIaOsuA1yqRE+e4P/iuHK5dZhvKv6lLuXQ2KVOz+
+/IfwTBSGZ82mBCsZWXxvgvr95Px/3/Bn8jJ4dbVcmHhJgDfefbp0p4gm3d+lfdwK
+4xB+bjFhHq3T3o1qsAyN5b44ZPXy1RG+C5TSu1ZIQYPJVTZYDaztvphpuAfXBtpw
+AXokzaOBrlfrt1g7Qc0FAqyyjiYwMeLnhR6uCls+oWKN6M3GSvglcjOkeRX8wEzM
+OmPYoPTKX3hPbwL9Ino9s4NjymlntsbXWTso2+6teUIVjr9hr0ckAOFBcte4FoE5
+1rBztO9lyzfS1EyP91Qx1o1bVo7T5w2+QaKzXY+gccKfvsakaojO78rcxThGe7Uq
+CbFzk+bhCPUxXFKXVT45bHSMsfPj/qPHJ5ZxxE2zEeGaxnni50RIAyo82oxc+8T+
+709xSMuymK3qD/g8dw8C6MTwMsyZXU7rL6d3CKVsMzUnAkKn5GUNFelaztzTDs9c
+BZ0zD/xTBthrTIevUaTzBSIY8aUkME2TPZmS0MILsOeJwfHXC7A8VG/+V4scHVYr
+lOMFBe69RExzCE8Ifr8otMg88b08THdCuXO6/nR1tiVGNVOGUHgzFfwvsGbRSTmZ
+rSD9EXCZbbPnOS27xGVJVbSWZgkkEirKKRLAX99N+AJlfaHlEJyoHTVQm1KAEEpa
+EEGN+S5D3O7uo21UbuGS
+=9rTN
+-----END PGP SIGNATURE-----
+
+--Q59ABw34pTSIagmi--
