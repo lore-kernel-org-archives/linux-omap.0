@@ -1,128 +1,46 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv7 00/36] ARM: OMAP: clock data conversion to DT
-Date: Tue, 8 Oct 2013 11:17:55 +0300
-Message-ID: <5253BFB3.9040807@ti.com>
-References: <1380098922-30340-1-git-send-email-t-kristo@ti.com>
- <20131008054034.7445.48080@quantum>
+From: Simon Barth <simon.pe.barth@gmail.com>
+Subject: [PATCH] ARM: mach-omap2: board-generic: fix undefined symbol
+Date: Tue, 08 Oct 2013 10:50:33 +0200
+Message-ID: <5253C759.5020406@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20131008054034.7445.48080@quantum>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Mike Turquette <mturquette@linaro.org>, linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, nm@ti.com, rnayak@ti.com, bcousson@baylibre.com
-Cc: devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 10/08/2013 08:40 AM, Mike Turquette wrote:
-> Quoting Tero Kristo (2013-09-25 01:48:06)
->> Hi all,
->>
->> Version 7 contains following high level changes:
->> - Dropped support for basic bindings from Mike Turquette, instead using
->>    vendor specific bindings for all clocks
->> - Mux clock + divider clock vendor specific bindings get rid of use
->>    of the bit-masks, instead these are generated runtime based on parent
->>    clock / divider min/max info, see individual patches for details
->> - Added support for dummy_ck nodes, was missing from previous version
->> - Fixed support for omap3630
->> - Added support for new clock node type: ti,mux-gate-clock (using composite
->>    clock type)
->> - OMAP4 / OMAP5 only build fixes (compiler flag checks added to some files)
->> - most of the of_omap_* calls renamed to of_ti_*
->> - Rebased on top of v3.12-rc2
->
-> Hi Tero,
->
-> I had one really minor request for one of the patches, otherwise I'm
-> pretty happy with this series and I can take in the clock parts for
-> 3.13. A few general comments:
+Since dra7 reuses the  function 'omap5_realtime_timer_init' in
+arch/arm/mach-omap2/board-generic.c as timer init function, it has to be
+built for this SoC as well.
 
-Yea, I'll add the is_enabled check to the APLL and repost.
+Signed-off-by: Simon Barth <Simon.Pe.Barth@gmail.com>
+---
+ arch/arm/mach-omap2/timer.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
->
-> 1) I think I mentioned some time back that it would be
-> wise to put a disclaimer at the top of each DT binding description
-> stating something to the effect: "Binding status: Unstable - ABI
-> compatibility may be broken in the future". Are you OK merging these
-> bindings as-is without that kind of a disclaimer?
+diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+index fa74a06..ead48fa 100644
+--- a/arch/arm/mach-omap2/timer.c
++++ b/arch/arm/mach-omap2/timer.c
+@@ -628,7 +628,7 @@ void __init omap4_local_timer_init(void)
+ #endif /* CONFIG_HAVE_ARM_TWD */
+ #endif /* CONFIG_ARCH_OMAP4 */
 
-Well, personally I don't mind, but if you think this would be good, I'll 
-add this to next rev.
+-#ifdef CONFIG_SOC_OMAP5
++#if defined(CONFIG_SOC_OMAP5) || defined(CONFIG_SOC_DRA7XX)
+ void __init omap5_realtime_timer_init(void)
+ {
+ 	omap4_sync32k_timer_init();
+@@ -636,7 +636,7 @@ void __init omap5_realtime_timer_init(void)
 
-> 2) I hope to see the clockdomain stuff go away in the future. I'm OK to
-> take it for now to aid in this DT transition but I would like some
-> commitment that it will not stay in drivers/clk/omap forever. I guess
-> for clockdomain you'll need to figure out how to handle those in a
-> generic driver way.
+ 	clocksource_of_init();
+ }
+-#endif /* CONFIG_SOC_OMAP5 */
++#endif /* CONFIG_SOC_OMAP5 || CONFIG_SOC_DRA7XX */
 
-I think the clockdomain stuff should be possible to move to wherever CM 
-driver is going to move. drivers/power/omap/... or something maybe. I 
-have been starting some initial work on the CM driver cleanup for this 
-purpose.
-
-> 3) Same concern as above but for the DT clkdev alias stuff. I guess
-> you'll need to make all of the dependent drivers play nice with DT. Do
-> you plan to remove it within a reasonable timeframe? It would be a nice
-> reduction in LoC and more importantly it would mean that drivers were
-> using clkdev in a more-correct fashion.
-
-This is probably harder, I think Tony is better to comment here, but my 
-idea is that in the worst case we can just break non-conforming drivers 
-by dropping the clkdev tables if nothing else helps. :) Most of the 
-tables are currently needed by hwmod, and there are already patches 
-around for adding DT clock support for hwmods, so once these go in, we 
-can at least reduce the table sizes considerably already.
-
--Tero
-
->
-> Regards,
-> Mike
->
->>
->> Some detailed comments about patch level changes (if no mention, no major
->> changes):
->> - Patch #1:
->>    * removed use of reg-names property, instead registers mapped using
->>      compatible string
->>    * removed ti,modes property, instead uses DPLL mode flags now
->>    * separated AM33XX DPLLs under their own compatible strings
->> - Patch #4 & #5: new patches
->> - Patch #6: merged basic gate support from Mike to this patch as vendor
->>    specific gate clock support
->> - Patch #9 & #10: new patches
->> - Patch #11: dummy clocks added, USB / ABE DPLL setup ordering changed
->> - Patch #14: dummy clocks added
->> - Patch #20: dropped usage of reg-names property
->> - Patch #21: dummy clocks added
->> - Patch #22 & #23: new patches
->> - Patch #30: AM35XX clock data added to this patch
->> - Patch #31:
->>    * dummy clocks added
->>    * added missing 3630 clocks
->>
->> Test branch available here:
->> https://github.com/t-kristo/linux-pm.git
->> branch: mainline-3.12-rc2-ti-dt-clks-v7
->>
->> Testing done:
->> - am335x-bone : boot only
->> - omap5-sevm : boot only
->> - dra7-evm : boot only
->> - omap3-beagle : boot + suspend/resume (ret + off)
->> - omap4-panda-es : boot + suspend/resume
->>
->> Nishanth has also been doing some tests with omap3-beagle-xm with some WIP
->> versions of this branch, but not with this latest one. Nishanth, maybe you
->> can provide test results to this one also?
->>
->> -Tero
+ /**
+  * omap_timer_init - build and register timer device with an
+-- 
+1.7.9.5
