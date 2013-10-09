@@ -1,58 +1,75 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv8 29/36] ARM: OMAP3: hwmod: initialize clkdm from clkdm_name
-Date: Wed, 9 Oct 2013 18:31:00 +0300
-Message-ID: <1381332668-962-30-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv8 19/36] ARM: dts: DRA7: Add PCIe related clock nodes
+Date: Wed, 9 Oct 2013 18:30:50 +0300
+Message-ID: <1381332668-962-20-git-send-email-t-kristo@ti.com>
 References: <1381332668-962-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:41898 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:41896 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755337Ab3JIPeE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 9 Oct 2013 11:34:04 -0400
+	id S1755324Ab3JIPeD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 9 Oct 2013 11:34:03 -0400
 In-Reply-To: <1381332668-962-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, nm@ti.com, rnayak@ti.com, bcousson@baylibre.com, mturquette@linaro.org
-Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, J Keerthy <j-keerthy@ti.com>
 
-DT clocks are mostly missing clkdm info now, and this causes an issue with
-counter32k which makes its slave idlemode wrong and prevents core idle.
+From: J Keerthy <j-keerthy@ti.com>
 
-Fixed by initializing the hwmod clkdm pointers for omap3 also which makes
-sure the clkdm flag matching logic works properly.
+This patch adds optfclk_pciephy_clk and optfclk_pciephy_div_clk
+which are used by PCIe phy. It also adds a mux clock to choose
+the source of optfclk_pciephy_div_clk clock.
 
-This patch also changes the return value for _init_clkdm to 0 for
-incorrect clkdm_name, as this a warning, not a fatal error.
-
+Signed-off-by: J Keerthy <j-keerthy@ti.com>
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 Tested-by: Nishanth Menon <nm@ti.com>
 Acked-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/omap_hwmod.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/arm/boot/dts/dra7xx-clocks.dtsi |   27 ++++++++++++++++++++++++++-
+ 1 file changed, 26 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 5f8f587..ae33fae 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -1546,7 +1546,7 @@ static int _init_clkdm(struct omap_hwmod *oh)
- 	if (!oh->clkdm) {
- 		pr_warning("omap_hwmod: %s: could not associate to clkdm %s\n",
- 			oh->name, oh->clkdm_name);
--		return -EINVAL;
-+		return 0;
- 	}
+diff --git a/arch/arm/boot/dts/dra7xx-clocks.dtsi b/arch/arm/boot/dts/dra7xx-clocks.dtsi
+index 75d5e1b..d83afd3 100644
+--- a/arch/arm/boot/dts/dra7xx-clocks.dtsi
++++ b/arch/arm/boot/dts/dra7xx-clocks.dtsi
+@@ -1973,8 +1973,33 @@ vip3_gclk_mux: vip3_gclk_mux@4a009030 {
+ 	reg = <0x4a009030 0x4>;
+ };
  
- 	pr_debug("omap_hwmod: %s: associated to clkdm %s\n",
-@@ -4117,6 +4117,7 @@ void __init omap_hwmod_init(void)
- 		soc_ops.assert_hardreset = _omap2_assert_hardreset;
- 		soc_ops.deassert_hardreset = _omap2_deassert_hardreset;
- 		soc_ops.is_hardreset_asserted = _omap2_is_hardreset_asserted;
-+		soc_ops.init_clkdm = _init_clkdm;
- 	} else if (cpu_is_omap44xx() || soc_is_omap54xx() || soc_is_dra7xx()) {
- 		soc_ops.enable_module = _omap4_enable_module;
- 		soc_ops.disable_module = _omap4_disable_module;
++optfclk_pciephy_div: optfclk_pciephy_div@4a00821c {
++	compatible = "ti,divider-clock";
++	clocks = <&apll_pcie_ck>;
++	#clock-cells = <0>;
++	reg = <0x4a00821c 0x4>;
++	ti,bit-shift = <8>;
++	ti,max-div = <2>;
++};
++
++optfclk_pciephy_clk: optfclk_pciephy_clk@4a0093b0 {
++	compatible = "ti,gate-clock";
++	clocks = <&apll_pcie_ck>;
++	#clock-cells = <0>;
++	reg = <0x4a0093b0 0x4>;
++	ti,bit-shift = <9>;
++};
++
++optfclk_pciephy_div_clk: optfclk_pciephy_div_clk@4a0093b0 {
++	compatible = "ti,gate-clock";
++	clocks = <&optfclk_pciephy_div>;
++	#clock-cells = <0>;
++	reg = <0x4a0093b0 0x4>;
++	ti,bit-shift = <10>;
++};
++
+ dummy_ck: dummy_ck {
+ 	#clock-cells = <0>;
+ 	compatible = "fixed-clock";
+ 	clock-frequency = <0>;
+-};
+\ No newline at end of file
++};
 -- 
 1.7.9.5
 
