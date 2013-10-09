@@ -1,57 +1,121 @@
 From: Rajendra Nayak <rnayak@ti.com>
-Subject: [PATCH v2 0/5] OMAP: Add DT bindings to specify when devices should not be idled or reset
-Date: Wed, 9 Oct 2013 15:41:56 +0530
-Message-ID: <1381313521-10422-1-git-send-email-rnayak@ti.com>
+Subject: [PATCH v2 2/5] ARM: dts: omap: Add new bindings for OMAP
+Date: Wed, 9 Oct 2013 15:41:58 +0530
+Message-ID: <1381313521-10422-3-git-send-email-rnayak@ti.com>
+References: <1381313521-10422-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:55385 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752719Ab3JIKMc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 9 Oct 2013 06:12:32 -0400
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <1381313521-10422-1-git-send-email-rnayak@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
 To: bcousson@baylibre.com, paul@pwsan.com, tony@atomide.com
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>
+List-Id: linux-omap@vger.kernel.org
 
-Changes in v2:
-* Patches are split in such a way that DT and hwmod changes are kept in
-seperate patches so they can be pulled in by Benoit and Paul seperately.
-* Binding names are slightly updated to address the concern from Tony and Benoit [1]
-* Added a patch [5/5] to prevent GPIO reset on AM335x EVM-SK board, which
-was also the original motivation of this series since the board fails to
-boot from mainline despite support for AM335x and a am335x-evmsk.dts file
-existing in mainline for quite a while.
+On OMAP we have co-processor IPs, memory controllers,
+GPIOs which control regulators and power switches to
+PMIC, and SoC internal Bus IPs, some or most of which
+should either not be reset or idled or both at init.
+(In some cases there are erratas which prevent an IP
+from being reset)
+Have a way to pass this information from DT.
 
-We have devices like co-processors, SoC internal busses, memory controllers
-etc which should not be idled or reset. In some cases erratas around IP blocks
-prevent them from either being idled or reset. Have a way to pass this
-information from Device tree, and get rid of similar information that
-exists as part of the omap_hwmod data files for various DT only OMAP SoCs.
+Update the am33xx/omap4 and omap5 dtsi files with the
+new bindings for modules which either should not be
+idled. reset or both. A later patch would cleanup the
+same information that exists today as part of the hwmod
+data files.
 
-Boot tested on OMAP4 panda es, AM335x EVM and AM335x EVM-SK
-
-[1] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg94349.html
-
-Rajendra Nayak (5):
-  ARM: OMAP2+: hwmod: cleanup HWMOD_INIT_NO_RESET usage
-  ARM: dts: omap: Add new bindings for OMAP
-  ARM: OMAP2+: hwmod: Extract no-idle and no-reset info from DT
-  ARM: OMAP2+: hwmod: Cleanup usage of HWMOD_INIT_NO_RESET and
-    HWMOD_INIT_NO_IDLE
-  ARM: dts: AM335x-evmsk: Do not reset gpio0
-
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+---
  .../devicetree/bindings/arm/omap/omap.txt          |    3 ++-
- arch/arm/boot/dts/am335x-evmsk.dts                 |    4 ++++
  arch/arm/boot/dts/am33xx.dtsi                      |    2 ++
  arch/arm/boot/dts/omap4.dtsi                       |    3 +++
  arch/arm/boot/dts/omap5.dtsi                       |    2 ++
- arch/arm/mach-omap2/omap_hwmod.c                   |   23 ++++++++++++++------
- arch/arm/mach-omap2/omap_hwmod_33xx_data.c         |   22 +++++++++----------
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |    6 ++---
- arch/arm/mach-omap2/omap_hwmod_54xx_data.c         |    4 +---
- 9 files changed, 43 insertions(+), 26 deletions(-)
+ 4 files changed, 9 insertions(+), 1 deletion(-)
 
+diff --git a/Documentation/devicetree/bindings/arm/omap/omap.txt b/Documentation/devicetree/bindings/arm/omap/omap.txt
+index 91b7049..808c154 100644
+--- a/Documentation/devicetree/bindings/arm/omap/omap.txt
++++ b/Documentation/devicetree/bindings/arm/omap/omap.txt
+@@ -21,7 +21,8 @@ Required properties:
+ Optional properties:
+ - ti,no_idle_on_suspend: When present, it prevents the PM to idle the module
+   during suspend.
+-
++- ti,no-reset-on-init: When present, the module should not be reset at init
++- ti,no-idle-on-init: When present, the module should not be idled at init
+ 
+ Example:
+ 
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index f9c5da9..ec33ea0 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -607,6 +607,7 @@
+ 			reg = <0x44d00000 0x4000	/* M3 UMEM */
+ 			       0x44d80000 0x2000>;	/* M3 DMEM */
+ 			ti,hwmods = "wkup_m3";
++			ti,no-reset-on-init;
+ 		};
+ 
+ 		elm: elm@48080000 {
+@@ -637,6 +638,7 @@
+ 		gpmc: gpmc@50000000 {
+ 			compatible = "ti,am3352-gpmc";
+ 			ti,hwmods = "gpmc";
++			ti,no-idle-on-init;
+ 			reg = <0x50000000 0x2000>;
+ 			interrupts = <100>;
+ 			gpmc,num-cs = <7>;
+diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+index 22d9f2b..e8fe797 100644
+--- a/arch/arm/boot/dts/omap4.dtsi
++++ b/arch/arm/boot/dts/omap4.dtsi
+@@ -214,6 +214,7 @@
+ 			gpmc,num-cs = <8>;
+ 			gpmc,num-waitpins = <4>;
+ 			ti,hwmods = "gpmc";
++			ti,no-idle-on-init;
+ 		};
+ 
+ 		uart1: serial@4806a000 {
+@@ -492,6 +493,7 @@
+ 			reg = <0x4c000000 0x100>;
+ 			interrupts = <GIC_SPI 110 IRQ_TYPE_LEVEL_HIGH>;
+ 			ti,hwmods = "emif1";
++			ti,no-idle-on-init;
+ 			phy-type = <1>;
+ 			hw-caps-read-idle-ctrl;
+ 			hw-caps-ll-interface;
+@@ -503,6 +505,7 @@
+ 			reg = <0x4d000000 0x100>;
+ 			interrupts = <GIC_SPI 111 IRQ_TYPE_LEVEL_HIGH>;
+ 			ti,hwmods = "emif2";
++			ti,no-idle-on-init;
+ 			phy-type = <1>;
+ 			hw-caps-read-idle-ctrl;
+ 			hw-caps-ll-interface;
+diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+index 7cdea1b..a9d49df 100644
+--- a/arch/arm/boot/dts/omap5.dtsi
++++ b/arch/arm/boot/dts/omap5.dtsi
+@@ -607,6 +607,7 @@
+ 		emif1: emif@0x4c000000 {
+ 			compatible	= "ti,emif-4d5";
+ 			ti,hwmods	= "emif1";
++			ti,no-idle-on-init;
+ 			phy-type	= <2>; /* DDR PHY type: Intelli PHY */
+ 			reg = <0x4c000000 0x400>;
+ 			interrupts = <GIC_SPI 110 IRQ_TYPE_LEVEL_HIGH>;
+@@ -618,6 +619,7 @@
+ 		emif2: emif@0x4d000000 {
+ 			compatible	= "ti,emif-4d5";
+ 			ti,hwmods	= "emif2";
++			ti,no-idle-on-init;
+ 			phy-type	= <2>; /* DDR PHY type: Intelli PHY */
+ 			reg = <0x4d000000 0x400>;
+ 			interrupts = <GIC_SPI 111 IRQ_TYPE_LEVEL_HIGH>;
 -- 
 1.7.9.5
 
