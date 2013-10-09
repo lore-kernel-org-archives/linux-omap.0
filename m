@@ -1,115 +1,50 @@
-From: Jyri Sarha <jsarha@ti.com>
-Subject: [PATCH v4.2 09/10] ARM/dts: am335x-evm: Add audio support for am335x-evm.dts
-Date: Wed, 9 Oct 2013 17:32:54 +0300
-Message-ID: <1381329174-9556-1-git-send-email-jsarha@ti.com>
-References: <1381322701-8851-1-git-send-email-jsarha@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/1] ARM: OMAP2+: pdata-quirks: add legacy display init
+ for IGEPv2 board
+Date: Wed, 9 Oct 2013 07:52:30 -0700
+Message-ID: <20131009145230.GX8313@atomide.com>
+References: <1380941496-26899-1-git-send-email-javier.martinez@collabora.co.uk>
+ <20131008211108.GQ8313@atomide.com>
+ <5254F15B.5050207@ti.com>
+ <5255077A.4010702@collabora.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:36634 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753871Ab3JIOdJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Oct 2013 10:33:09 -0400
-In-Reply-To: <1381322701-8851-1-git-send-email-jsarha@ti.com>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:30922 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755255Ab3JIOwh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Oct 2013 10:52:37 -0400
+Content-Disposition: inline
+In-Reply-To: <5255077A.4010702@collabora.co.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: alsa-devel@alsa-project.org, devicetree@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, broonie@kernel.org, mark.rutland@arm.com, joelf@ti.com, Darren Etheridge <detheridge@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Jyri Sarha <jsarha@ti.com>
+To: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, Enric Balletbo i Serra <eballetbo@gmail.com>, bcousson@baylibre.com, linux-omap@vger.kernel.org
 
-From: Darren Etheridge <detheridge@ti.com>
+* Javier Martinez Canillas <javier.martinez@collabora.co.uk> [131009 00:45]:
+> On 10/09/2013 08:02 AM, Tomi Valkeinen wrote:
+> > Hi Tony,
+> > 
+> > On 09/10/13 00:11, Tony Lindgren wrote:
+> >> * Javier Martinez Canillas <javier.martinez@collabora.co.uk> [131004 20:00]:
+> >>> IGEPv2 board has both an DVI and TFP410 video interfaces but
+> >>> DSS support for DeviceTree has not yet landed in mainline so
+> >>> is necessary to init the displays using legacy platform code.
+> >> 
+> >> Thanks, applying into omap-for-v3.13/quirk.
+> > 
+> > Can you remove the patch from your branch? It had bug, and I had some
+> > questions related to it.
+> 
+> I noticed about the bug (a duplicated pdata_quirks) just after sending the patch
+> so I fixed on a v2 [1].
 
-Adds sound, tlv320aic3106, mcasp1, and am335x_evm_audio_pin nodes.
+OK dropping it as I did not push it out yet. Will apply the version
+with Tomi's ack.
 
-Signed-off-by: Darren Etheridge <detheridge@ti.com>
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Signed-off-by: Jyri Sarha <jsarha@ti.com>
----
- arch/arm/boot/dts/am335x-evm.dts |   51 ++++++++++++++++++++++++++++++++++++++
- 1 file changed, 51 insertions(+)
+Regards,
 
-diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
-index e8ec875..814b3e9 100644
---- a/arch/arm/boot/dts/am335x-evm.dts
-+++ b/arch/arm/boot/dts/am335x-evm.dts
-@@ -149,6 +149,16 @@
- 				0x14c (PIN_INPUT_PULLDOWN | MUX_MODE7)
- 			>;
- 		};
-+
-+		am335x_evm_audio_pins: am335x_evm_audio_pins {
-+			pinctrl-single,pins = <
-+				0x10c (PIN_INPUT_PULLDOWN | MUX_MODE4) /* mii1_rx_dv.mcasp1_aclkx */
-+				0x110 (PIN_INPUT_PULLDOWN | MUX_MODE4) /* mii1_txd3.mcasp1_fsx */
-+				0x108 (PIN_OUTPUT_PULLDOWN | MUX_MODE4) /* mii1_col.mcasp1_axr2 */
-+				0x144 (PIN_INPUT_PULLDOWN | MUX_MODE4) /* rmii1_ref_clk.mcasp1_axr3 */
-+			>;
-+		};
-+
- 	};
+Tony
  
- 	ocp {
-@@ -244,6 +254,18 @@
- 				compatible = "ti,tmp275";
- 				reg = <0x48>;
- 			};
-+
-+			tlv320aic3106: tlv320aic3106@1b {
-+				compatible = "ti,tlv320aic3106";
-+				reg = <0x1b>;
-+				status = "okay";
-+
-+				/* Regulators */
-+				AVDD-supply = <&vaux2_reg>;
-+				IOVDD-supply = <&vaux2_reg>;
-+				DRVDD-supply = <&vaux2_reg>;
-+				DVDD-supply = <&vbat>;
-+			};
- 		};
  
- 		elm: elm@48080000 {
-@@ -340,6 +362,19 @@
- 				};
- 			};
- 		};
-+
-+		sound {
-+			compatible = "ti,da830-evm-audio";
-+			ti,model = "AM335x-EVM";
-+			ti,audio-codec = <&tlv320aic3106>;
-+			ti,mcasp-controller = <&mcasp1>;
-+			ti,codec-clock-rate = <12000000>;
-+			ti,audio-routing =
-+				"Headphone Jack",       "HPLOUT",
-+				"Headphone Jack",       "HPROUT",
-+				"LINE1L",               "Line In",
-+				"LINE1R",               "Line In";
-+		};
- 	};
- 
- 	vbat: fixedregulator@0 {
-@@ -407,6 +442,22 @@
- 
- #include "tps65910.dtsi"
- 
-+&mcasp1 {
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&am335x_evm_audio_pins>;
-+
-+		status = "okay";
-+
-+		op-mode = <0>;          /* MCASP_IIS_MODE */
-+		tdm-slots = <2>;
-+		/* 4 serializers */
-+		serial-dir = <  /* 0: INACTIVE, 1: TX, 2: RX */
-+			0 0 1 2
-+		>;
-+		tx-num-evt = <1>;
-+		rx-num-evt = <1>;
-+};
-+
- &tps {
- 	vcc1-supply = <&vbat>;
- 	vcc2-supply = <&vbat>;
--- 
-1.7.9.5
-
+> [1]: http://www.spinics.net/lists/linux-omap/msg98257.html
