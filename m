@@ -1,43 +1,61 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 5/6] Revert "ARM: OMAP2+: Provide alias to USB PHY
- clock"
-Date: Wed, 9 Oct 2013 08:15:23 -0700
-Message-ID: <20131009151522.GA8313@atomide.com>
-References: <1381226799-29158-1-git-send-email-rogerq@ti.com>
- <1381226799-29158-6-git-send-email-rogerq@ti.com>
- <52550180.1000506@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: [PATCHv8 00/36] ARM: OMAP: DT clock conversion
+Date: Wed, 9 Oct 2013 18:30:31 +0300
+Message-ID: <1381332668-962-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <52550180.1000506@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: bcousson@baylibre.com, balbi@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:41761 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751462Ab3JIPc3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 9 Oct 2013 11:32:29 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, nm@ti.com, rnayak@ti.com, bcousson@baylibre.com, mturquette@linaro.org
+Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-* Roger Quadros <rogerq@ti.com> [131009 00:19]:
-> Hi Tony,
-> 
-> On 10/08/2013 01:06 PM, Roger Quadros wrote:
-> > This reverts commit 741532c4a995be11815cb72d4d7a48f442a22fea.
-> > 
-> > The proper clock reference is provided in device tree so we
-> > no longer need this.
-> 
-> Could you please Ack this one? I think it is best if it goes through Benoit's tree.
+Hi all,
 
-I could queue this into my board removal series that will be
-based on Benoit's branch if that works for you. And this
-also seems to depend on the omap-for-v3.13/quirk branch
-that moves all the legacy pdata handling into pdata-quirks.c.
+Version 8 has basically just some cosmetic changes + 2 functional ones.
 
-The reason for this is that we want to keep the .dts changes
-completely separate from the code changes to avoid dependencies
-that cause pointless merge conflicts. And the .dts files will
-be moved to live in a separate repo soonish, so it's good
-to be prepared for that.
+Functional changes:
+- patch #1: added support for am3-dpll-j-type-clock
+- patch #20: added support for is_enabled op to APLL
+- patch #34: fixed a typo in dpll_core_ck compatible string
 
-Regards,
+Cosmetic fixes:
+- new DT XXX_clk_init function names changed to XXX_dt_clk_init, this
+  makes it easier to split the patch set into 3 separately manageable
+  hunks
 
-Tony
+Despite these changes, I retained the Acked-by and Tested-by tags by
+Tony / Nishanth from version 7, as these do not impact functionality of
+the set. Feel free to yell now if you think this is wrong.
+
+I also did a quick testing round with the patches:
+- omap3-beagle: boot + suspend/resume : OK
+- am335x-bone: boot : OK
+- omap5-uevm: boot : OK
+- dra7-evm: boot : OK
+- omap4-panda-es: boot + suspend/resume : OK
+
+Separate branches for the maintainers also available here:
+
+https://github.com/t-kristo/linux-pm.git
+
+Branch with DTS only data: 3.12-rc3-dt-clks-for-benoit
+- based on top of 3.12-rc3 with Benoit's latest for_3.13 merged in
+
+Branch with clock driver patches: 3.12-rc3-dt-clks-for-mike
+- based on top of 3.12-rc3
+- does not compile due to lack of 1 dependency patch (for getting DT clock
+  parent count) which Mike has queued to his own branch though I believe
+
+Branch with all the stuff for mach-omap2: 3.12-rc3-dt-clks-for-tony
+- based on top of 3.12-rc3
+- merged both above branches to this
+- merged also a few temporary hacks to get some of my boards to work,
+  these have been discussed elsewhere but can act as a reference
+
+-Tero
+
