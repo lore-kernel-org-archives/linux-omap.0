@@ -1,113 +1,137 @@
-From: Jyri Sarha <jsarha@ti.com>
-Subject: [PATCH v4.2 10/10] ARM/dts: am335x-evmsk: Audio support
-Date: Wed, 9 Oct 2013 18:58:38 +0300
-Message-ID: <1381334318-12559-1-git-send-email-jsarha@ti.com>
-References: <f389f285899dce8aa7651e79dc26d8f8748a4525.1381259962.git.jsarha@ti.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [PATCH v2 2/5] ARM: dts: omap: Add new bindings for OMAP
+Date: Wed, 9 Oct 2013 22:11:14 +0530
+Message-ID: <5255872A.30702@ti.com>
+References: <1381313521-10422-1-git-send-email-rnayak@ti.com> <1381313521-10422-3-git-send-email-rnayak@ti.com> <525572A8.9060401@baylibre.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:41244 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751921Ab3JIP6v (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Oct 2013 11:58:51 -0400
-In-Reply-To: <f389f285899dce8aa7651e79dc26d8f8748a4525.1381259962.git.jsarha@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <525572A8.9060401@baylibre.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Benoit Cousson <bcousson@baylibre.com>
+Cc: paul@pwsan.com, tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: alsa-devel@alsa-project.org, devicetree@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, broonie@kernel.org, mark.rutland@arm.com, joelf@ti.com, Peter Ujfalusi <peter.ujfalusi@ti.com>, Jyri Sarha <jsarha@ti.com>
 
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+On Wednesday 09 October 2013 08:43 PM, Benoit Cousson wrote:
+> Hi Rajendra,
+> 
+> On 09/10/2013 12:11, Rajendra Nayak wrote:
+>> On OMAP we have co-processor IPs, memory controllers,
+>> GPIOs which control regulators and power switches to
+>> PMIC, and SoC internal Bus IPs, some or most of which
+>> should either not be reset or idled or both at init.
+>> (In some cases there are erratas which prevent an IP
+>> from being reset)
+>> Have a way to pass this information from DT.
+> 
+> Did you get some acked-by from the DT maintainers?
+> Every new bindings must be carefully reviewed now.
 
-AM335x EVM-SK have only support for audio playback (stereo jack on the
-board) via tlv320aic3106 codec connected to McASP1.
-Enable the support for audio playback on the board:
-- McASP1 configuration
-- tlv320aic3106 configuration
-- Machine driver.
+Nope, I haven't. The patches are on the list for a couple
+of months now.
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Signed-off-by: Jyri Sarha <jsarha@ti.com>
----
- arch/arm/boot/dts/am335x-evmsk.dts |   48 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 48 insertions(+)
-
-diff --git a/arch/arm/boot/dts/am335x-evmsk.dts b/arch/arm/boot/dts/am335x-evmsk.dts
-index 4f339fa..9e570fb 100644
---- a/arch/arm/boot/dts/am335x-evmsk.dts
-+++ b/arch/arm/boot/dts/am335x-evmsk.dts
-@@ -158,6 +158,15 @@
- 				0x14c (PIN_INPUT_PULLDOWN | MUX_MODE7)
- 			>;
- 		};
-+
-+		mcasp1_pins: mcasp1_pins {
-+			pinctrl-single,pins = <
-+				0x10c (PIN_INPUT_PULLDOWN | MUX_MODE4) /* mii1_crs.mcasp1_aclkx */
-+				0x110 (PIN_INPUT_PULLDOWN | MUX_MODE4) /* mii1_rxerr.mcasp1_fsx */
-+				0x108 (PIN_OUTPUT_PULLDOWN | MUX_MODE4) /* mii1_col.mcasp1_axr2 */
-+				0x144 (PIN_INPUT_PULLDOWN | MUX_MODE4) /* rmii1_ref_clk.mcasp1_axr3 */
-+			>;
-+		};
- 	};
- 
- 	ocp {
-@@ -206,6 +215,18 @@
- 				st,max-limit-y = <550>;
- 				st,max-limit-z = <750>;
- 			};
-+
-+			tlv320aic3106: tlv320aic3106@1b {
-+				compatible = "ti,tlv320aic3106";
-+				reg = <0x1b>;
-+				status = "okay";
-+
-+				/* Regulators */
-+				AVDD-supply = <&vaux2_reg>;
-+				IOVDD-supply = <&vaux2_reg>;
-+				DRVDD-supply = <&vaux2_reg>;
-+				DVDD-supply = <&vbat>;
-+			};
- 		};
- 
- 		musb: usb@47400000 {
-@@ -233,6 +254,17 @@
- 				pinctrl-0 = <&ecap2_pins>;
- 			};
- 		};
-+
-+		sound {
-+			compatible = "ti,da830-evm-audio";
-+			ti,model = "AM335x-EVMSK";
-+			ti,audio-codec = <&tlv320aic3106>;
-+			ti,mcasp-controller = <&mcasp1>;
-+			ti,codec-clock-rate = <24576000>;
-+			ti,audio-routing =
-+				"Headphone Jack",       "HPLOUT",
-+				"Headphone Jack",       "HPROUT";
-+		};
- 	};
- 
- 	vbat: fixedregulator@0 {
-@@ -419,3 +451,19 @@
- 	phy_id = <&davinci_mdio>, <1>;
- 	phy-mode = "rgmii-txid";
- };
-+
-+&mcasp1 {
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&mcasp1_pins>;
-+
-+		status = "okay";
-+
-+		op-mode = <0>;          /* MCASP_IIS_MODE */
-+		tdm-slots = <2>;
-+		/* 4 serializers */
-+		serial-dir = <  /* 0: INACTIVE, 1: TX, 2: RX */
-+			0 0 1 2
-+		>;
-+		tx-num-evt = <1>;
-+		rx-num-evt = <1>;
-+};
--- 
-1.7.9.5
+> 
+> Regards,
+> Benoit
+> 
+>>
+>> Update the am33xx/omap4 and omap5 dtsi files with the
+>> new bindings for modules which either should not be
+>> idled. reset or both. A later patch would cleanup the
+>> same information that exists today as part of the hwmod
+>> data files.
+>>
+>> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+>> ---
+>>   .../devicetree/bindings/arm/omap/omap.txt          |    3 ++-
+>>   arch/arm/boot/dts/am33xx.dtsi                      |    2 ++
+>>   arch/arm/boot/dts/omap4.dtsi                       |    3 +++
+>>   arch/arm/boot/dts/omap5.dtsi                       |    2 ++
+>>   4 files changed, 9 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/Documentation/devicetree/bindings/arm/omap/omap.txt b/Documentation/devicetree/bindings/arm/omap/omap.txt
+>> index 91b7049..808c154 100644
+>> --- a/Documentation/devicetree/bindings/arm/omap/omap.txt
+>> +++ b/Documentation/devicetree/bindings/arm/omap/omap.txt
+>> @@ -21,7 +21,8 @@ Required properties:
+>>   Optional properties:
+>>   - ti,no_idle_on_suspend: When present, it prevents the PM to idle the module
+>>     during suspend.
+>> -
+>> +- ti,no-reset-on-init: When present, the module should not be reset at init
+>> +- ti,no-idle-on-init: When present, the module should not be idled at init
+>>
+>>   Example:
+>>
+>> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+>> index f9c5da9..ec33ea0 100644
+>> --- a/arch/arm/boot/dts/am33xx.dtsi
+>> +++ b/arch/arm/boot/dts/am33xx.dtsi
+>> @@ -607,6 +607,7 @@
+>>               reg = <0x44d00000 0x4000    /* M3 UMEM */
+>>                      0x44d80000 0x2000>;    /* M3 DMEM */
+>>               ti,hwmods = "wkup_m3";
+>> +            ti,no-reset-on-init;
+>>           };
+>>
+>>           elm: elm@48080000 {
+>> @@ -637,6 +638,7 @@
+>>           gpmc: gpmc@50000000 {
+>>               compatible = "ti,am3352-gpmc";
+>>               ti,hwmods = "gpmc";
+>> +            ti,no-idle-on-init;
+>>               reg = <0x50000000 0x2000>;
+>>               interrupts = <100>;
+>>               gpmc,num-cs = <7>;
+>> diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+>> index 22d9f2b..e8fe797 100644
+>> --- a/arch/arm/boot/dts/omap4.dtsi
+>> +++ b/arch/arm/boot/dts/omap4.dtsi
+>> @@ -214,6 +214,7 @@
+>>               gpmc,num-cs = <8>;
+>>               gpmc,num-waitpins = <4>;
+>>               ti,hwmods = "gpmc";
+>> +            ti,no-idle-on-init;
+>>           };
+>>
+>>           uart1: serial@4806a000 {
+>> @@ -492,6 +493,7 @@
+>>               reg = <0x4c000000 0x100>;
+>>               interrupts = <GIC_SPI 110 IRQ_TYPE_LEVEL_HIGH>;
+>>               ti,hwmods = "emif1";
+>> +            ti,no-idle-on-init;
+>>               phy-type = <1>;
+>>               hw-caps-read-idle-ctrl;
+>>               hw-caps-ll-interface;
+>> @@ -503,6 +505,7 @@
+>>               reg = <0x4d000000 0x100>;
+>>               interrupts = <GIC_SPI 111 IRQ_TYPE_LEVEL_HIGH>;
+>>               ti,hwmods = "emif2";
+>> +            ti,no-idle-on-init;
+>>               phy-type = <1>;
+>>               hw-caps-read-idle-ctrl;
+>>               hw-caps-ll-interface;
+>> diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+>> index 7cdea1b..a9d49df 100644
+>> --- a/arch/arm/boot/dts/omap5.dtsi
+>> +++ b/arch/arm/boot/dts/omap5.dtsi
+>> @@ -607,6 +607,7 @@
+>>           emif1: emif@0x4c000000 {
+>>               compatible    = "ti,emif-4d5";
+>>               ti,hwmods    = "emif1";
+>> +            ti,no-idle-on-init;
+>>               phy-type    = <2>; /* DDR PHY type: Intelli PHY */
+>>               reg = <0x4c000000 0x400>;
+>>               interrupts = <GIC_SPI 110 IRQ_TYPE_LEVEL_HIGH>;
+>> @@ -618,6 +619,7 @@
+>>           emif2: emif@0x4d000000 {
+>>               compatible    = "ti,emif-4d5";
+>>               ti,hwmods    = "emif2";
+>> +            ti,no-idle-on-init;
+>>               phy-type    = <2>; /* DDR PHY type: Intelli PHY */
+>>               reg = <0x4d000000 0x400>;
+>>               interrupts = <GIC_SPI 111 IRQ_TYPE_LEVEL_HIGH>;
+>>
+> 
 
