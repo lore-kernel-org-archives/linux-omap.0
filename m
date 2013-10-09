@@ -1,193 +1,185 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv8 32/36] ARM: dts: AM35xx: use DT clock data
-Date: Wed, 9 Oct 2013 18:31:03 +0300
-Message-ID: <1381332668-962-33-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv8 36/36] CLK: TI: add am43xx clock init file
+Date: Wed, 9 Oct 2013 18:31:07 +0300
+Message-ID: <1381332668-962-37-git-send-email-t-kristo@ti.com>
 References: <1381332668-962-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:60286 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:52566 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755517Ab3JIPei (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 9 Oct 2013 11:34:38 -0400
+	id S1752198Ab3JIPe4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 9 Oct 2013 11:34:56 -0400
 In-Reply-To: <1381332668-962-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, nm@ti.com, rnayak@ti.com, bcousson@baylibre.com, mturquette@linaro.org
 Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-AM35xx now uses the clock data from device tree. Most of the data is
-shared with OMAP3xxx, but as there is some delta, a new base .dtsi
-file is also created for the SoC.
+clk-43xx.c now contains the clock init functionality for am43xx, including
+DT clock registration and adding of static clkdev entries.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 Tested-by: Nishanth Menon <nm@ti.com>
 Acked-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/boot/dts/am3517-evm.dts        |    2 +-
- arch/arm/boot/dts/am3517.dtsi           |  126 +++++++++++++++++++++++++++++++
- arch/arm/boot/dts/am3517_mt_ventoux.dts |    2 +-
- 3 files changed, 128 insertions(+), 2 deletions(-)
- create mode 100644 arch/arm/boot/dts/am3517.dtsi
+ drivers/clk/ti/Makefile   |    2 +-
+ drivers/clk/ti/clk-43xx.c |  120 +++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/clk/ti.h    |    1 +
+ 3 files changed, 122 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/clk/ti/clk-43xx.c
 
-diff --git a/arch/arm/boot/dts/am3517-evm.dts b/arch/arm/boot/dts/am3517-evm.dts
-index e99dfaf..9ff51d7 100644
---- a/arch/arm/boot/dts/am3517-evm.dts
-+++ b/arch/arm/boot/dts/am3517-evm.dts
-@@ -7,7 +7,7 @@
-  */
- /dts-v1/;
- 
--#include "omap34xx.dtsi"
-+#include "am3517.dtsi"
- 
- / {
- 	model = "TI AM3517 EVM (AM3517/05)";
-diff --git a/arch/arm/boot/dts/am3517.dtsi b/arch/arm/boot/dts/am3517.dtsi
+diff --git a/drivers/clk/ti/Makefile b/drivers/clk/ti/Makefile
+index df226bc..1137c1d 100644
+--- a/drivers/clk/ti/Makefile
++++ b/drivers/clk/ti/Makefile
+@@ -1,7 +1,7 @@
+ ifneq ($(CONFIG_OF),)
+ obj-y					+= clk.o dpll.o autoidle.o divider.o \
+ 					   fixed-factor.o gate.o clockdomain.o \
+-					   mux-gate.o mux.o apll.o
++					   mux-gate.o mux.o apll.o clk-43xx.o
+ obj-$(CONFIG_SOC_AM33XX)		+= clk-33xx.o
+ obj-$(CONFIG_ARCH_OMAP3)		+= interface.o clk-3xxx.o
+ obj-$(CONFIG_ARCH_OMAP4)		+= clk-44xx.o
+diff --git a/drivers/clk/ti/clk-43xx.c b/drivers/clk/ti/clk-43xx.c
 new file mode 100644
-index 0000000..6f6da91
+index 0000000..ea87caa
 --- /dev/null
-+++ b/arch/arm/boot/dts/am3517.dtsi
-@@ -0,0 +1,126 @@
++++ b/drivers/clk/ti/clk-43xx.c
+@@ -0,0 +1,120 @@
 +/*
-+ * Device Tree Source for AM3517 SoC
++ * AM43XX Clock init
 + *
-+ * Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.com/
++ * Copyright (C) 2013 Texas Instruments, Inc
++ *     Tero Kristo (t-kristo@ti.com)
 + *
-+ * This file is licensed under the terms of the GNU General Public License
-+ * version 2.  This program is licensed "as is" without any warranty of any
-+ * kind, whether express or implied.
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License as
++ * published by the Free Software Foundation version 2.
++ *
++ * This program is distributed "as is" WITHOUT ANY WARRANTY of any
++ * kind, whether express or implied; without even the implied warranty
++ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
++ * GNU General Public License for more details.
 + */
 +
-+#include "omap3.dtsi"
++#include <linux/kernel.h>
++#include <linux/list.h>
++#include <linux/clk-provider.h>
++#include <linux/clk/ti.h>
 +
-+/ {
-+	cpus {
-+		cpu@0 {
-+			/* OMAP343x/OMAP35xx variants OPP1-5 */
-+			operating-points = <
-+				/* kHz    uV */
-+				125000   975000
-+				250000  1075000
-+				500000  1200000
-+				550000  1270000
-+				600000  1350000
-+			>;
-+			clock-latency = <300000>; /* From legacy driver */
-+		};
-+	};
-+
-+	clocks {
-+		#address-cells = <1>;
-+		#size-cells = <1>;
-+		ranges;
-+		/include/ "am35xx-clocks.dtsi"
-+		/include/ "omap36xx-am35xx-omap3430es2plus-clocks.dtsi"
-+	};
-+
-+	clockdomains {
-+		dss_clkdm: dss_clkdm {
-+			compatible = "ti,clockdomain";
-+			clocks = <&dss_tv_fck>, <&dss1_alwon_fck_3430es2>,
-+				 <&dss_96m_fck>, <&dss2_alwon_fck>,
-+				 <&dss_ick_3430es2>;
-+		};
-+
-+		usbhost_clkdm: usbhost_clkdm {
-+			compatible = "ti,clockdomain";
-+			clocks = <&usbhost_48m_fck>, <&usbhost_ick>,
-+				 <&usbhost_120m_fck>;
-+		};
-+
-+		core_l4_clkdm: core_l4_clkdm {
-+			compatible = "ti,clockdomain";
-+			clocks = <&mmchs1_ick>, <&mmchs2_ick>, <&mcspi4_fck>,
-+				 <&i2c3_fck>, <&mcspi2_ick>, <&uart2_ick>,
-+				 <&mcspi3_ick>, <&i2c1_fck>, <&sha12_ick>,
-+				 <&mcspi3_fck>, <&uart4_fck_am35xx>,
-+				 <&uart2_fck>, <&mmchs2_fck>, <&usbtll_fck>,
-+				 <&mmchs3_ick>, <&i2c2_ick>, <&i2c1_ick>,
-+				 <&hdq_fck>, <&ts_fck>, <&uart1_ick>,
-+				 <&usbtll_ick>, <&hdq_ick>, <&mcbsp5_ick>,
-+				 <&aes2_ick>, <&mcspi1_ick>,
-+				 <&uart4_ick_am35xx>, <&mmchs1_fck>,
-+				 <&i2c3_ick>, <&mcspi1_fck>, <&mmchs3_fck>,
-+				 <&mcspi4_ick>, <&omapctrl_ick>, <&mcbsp1_ick>,
-+				 <&mcspi2_fck>, <&gpt10_ick>, <&cpefuse_fck>,
-+				 <&i2c2_fck>, <&gpt11_ick>, <&uart1_fck>;
-+		};
-+
-+		wkup_clkdm: wkup_clkdm {
-+			compatible = "ti,clockdomain";
-+			clocks = <&wdt1_ick>, <&omap_32ksync_ick>, <&wdt2_fck>,
-+				 <&gpio1_ick>, <&gpt12_ick>, <&gpt1_ick>,
-+				 <&wdt2_ick>, <&gpio1_dbck>;
-+		};
-+
-+		dpll4_clkdm: dpll4_clkdm {
-+			compatible = "ti,clockdomain";
-+			clocks = <&dpll4_ck>;
-+		};
-+
-+		core_l3_clkdm: core_l3_clkdm {
-+			compatible = "ti,clockdomain";
-+			clocks = <&sdrc_ick>, <&hsotgusb_fck_am35xx>,
-+				 <&hecc_ck>, <&hsotgusb_ick_am35xx>,
-+				 <&vpfe_ick>, <&emac_ick>, <&ipss_ick>;
-+		};
-+
-+		per_clkdm: per_clkdm {
-+			compatible = "ti,clockdomain";
-+			clocks = <&gpt2_ick>, <&uart3_fck>, <&gpio3_ick>,
-+				 <&mcbsp2_ick>, <&gpt6_ick>, <&gpio2_dbck>,
-+				 <&mcbsp4_ick>, <&gpio4_dbck>, <&gpt4_ick>,
-+				 <&gpio5_dbck>, <&mcbsp3_ick>, <&gpio3_dbck>,
-+				 <&gpt8_ick>, <&gpt5_ick>, <&gpio6_dbck>,
-+				 <&uart3_ick>, <&gpt7_ick>, <&gpio2_ick>,
-+				 <&gpio6_ick>, <&gpt9_ick>, <&gpt3_ick>,
-+				 <&gpio5_ick>, <&wdt3_fck>, <&gpio4_ick>,
-+				 <&wdt3_ick>, <&uart4_ick>;
-+		};
-+
-+		emu_clkdm: emu_clkdm {
-+			compatible = "ti,clockdomain";
-+			clocks = <&emu_src_ck>;
-+		};
-+
-+		sgx_clkdm: sgx_clkdm {
-+			compatible = "ti,clockdomain";
-+			clocks = <&sgx_ick>;
-+		};
-+
-+		dpll3_clkdm: dpll3_clkdm {
-+			compatible = "ti,clockdomain";
-+			clocks = <&dpll3_ck>;
-+		};
-+
-+		dpll5_clkdm: dpll5_clkdm {
-+			compatible = "ti,clockdomain";
-+			clocks = <&dpll5_ck>;
-+		};
-+
-+		dpll1_clkdm: dpll1_clkdm {
-+			compatible = "ti,clockdomain";
-+			clocks = <&dpll1_ck>;
-+		};
-+	};
++static struct ti_dt_clk am43xx_clks[] = {
++	DT_CLK(NULL, "clk_32768_ck", "clk_32768_ck"),
++	DT_CLK(NULL, "clk_rc32k_ck", "clk_rc32k_ck"),
++	DT_CLK(NULL, "virt_19200000_ck", "virt_19200000_ck"),
++	DT_CLK(NULL, "virt_24000000_ck", "virt_24000000_ck"),
++	DT_CLK(NULL, "virt_25000000_ck", "virt_25000000_ck"),
++	DT_CLK(NULL, "virt_26000000_ck", "virt_26000000_ck"),
++	DT_CLK(NULL, "sys_clkin_ck", "sys_clkin_ck"),
++	DT_CLK(NULL, "tclkin_ck", "tclkin_ck"),
++	DT_CLK(NULL, "dpll_core_ck", "dpll_core_ck"),
++	DT_CLK(NULL, "dpll_core_x2_ck", "dpll_core_x2_ck"),
++	DT_CLK(NULL, "dpll_core_m4_ck", "dpll_core_m4_ck"),
++	DT_CLK(NULL, "dpll_core_m5_ck", "dpll_core_m5_ck"),
++	DT_CLK(NULL, "dpll_core_m6_ck", "dpll_core_m6_ck"),
++	DT_CLK(NULL, "dpll_mpu_ck", "dpll_mpu_ck"),
++	DT_CLK(NULL, "dpll_mpu_m2_ck", "dpll_mpu_m2_ck"),
++	DT_CLK(NULL, "dpll_ddr_ck", "dpll_ddr_ck"),
++	DT_CLK(NULL, "dpll_ddr_m2_ck", "dpll_ddr_m2_ck"),
++	DT_CLK(NULL, "dpll_disp_ck", "dpll_disp_ck"),
++	DT_CLK(NULL, "dpll_disp_m2_ck", "dpll_disp_m2_ck"),
++	DT_CLK(NULL, "dpll_per_ck", "dpll_per_ck"),
++	DT_CLK(NULL, "dpll_per_m2_ck", "dpll_per_m2_ck"),
++	DT_CLK(NULL, "dpll_per_m2_div4_wkupdm_ck", "dpll_per_m2_div4_wkupdm_ck"),
++	DT_CLK(NULL, "dpll_per_m2_div4_ck", "dpll_per_m2_div4_ck"),
++	DT_CLK(NULL, "adc_tsc_fck", "adc_tsc_fck"),
++	DT_CLK(NULL, "clkdiv32k_ck", "clkdiv32k_ck"),
++	DT_CLK(NULL, "clkdiv32k_ick", "clkdiv32k_ick"),
++	DT_CLK(NULL, "dcan0_fck", "dcan0_fck"),
++	DT_CLK(NULL, "dcan1_fck", "dcan1_fck"),
++	DT_CLK(NULL, "pruss_ocp_gclk", "pruss_ocp_gclk"),
++	DT_CLK(NULL, "mcasp0_fck", "mcasp0_fck"),
++	DT_CLK(NULL, "mcasp1_fck", "mcasp1_fck"),
++	DT_CLK(NULL, "smartreflex0_fck", "smartreflex0_fck"),
++	DT_CLK(NULL, "smartreflex1_fck", "smartreflex1_fck"),
++	DT_CLK(NULL, "sha0_fck", "sha0_fck"),
++	DT_CLK(NULL, "aes0_fck", "aes0_fck"),
++	DT_CLK(NULL, "timer1_fck", "timer1_fck"),
++	DT_CLK(NULL, "timer2_fck", "timer2_fck"),
++	DT_CLK(NULL, "timer3_fck", "timer3_fck"),
++	DT_CLK(NULL, "timer4_fck", "timer4_fck"),
++	DT_CLK(NULL, "timer5_fck", "timer5_fck"),
++	DT_CLK(NULL, "timer6_fck", "timer6_fck"),
++	DT_CLK(NULL, "timer7_fck", "timer7_fck"),
++	DT_CLK(NULL, "wdt1_fck", "wdt1_fck"),
++	DT_CLK(NULL, "l3_gclk", "l3_gclk"),
++	DT_CLK(NULL, "dpll_core_m4_div2_ck", "dpll_core_m4_div2_ck"),
++	DT_CLK(NULL, "l4hs_gclk", "l4hs_gclk"),
++	DT_CLK(NULL, "l3s_gclk", "l3s_gclk"),
++	DT_CLK(NULL, "l4ls_gclk", "l4ls_gclk"),
++	DT_CLK(NULL, "clk_24mhz", "clk_24mhz"),
++	DT_CLK(NULL, "cpsw_125mhz_gclk", "cpsw_125mhz_gclk"),
++	DT_CLK(NULL, "cpsw_cpts_rft_clk", "cpsw_cpts_rft_clk"),
++	DT_CLK(NULL, "gpio0_dbclk_mux_ck", "gpio0_dbclk_mux_ck"),
++	DT_CLK(NULL, "gpio0_dbclk", "gpio0_dbclk"),
++	DT_CLK(NULL, "gpio1_dbclk", "gpio1_dbclk"),
++	DT_CLK(NULL, "gpio2_dbclk", "gpio2_dbclk"),
++	DT_CLK(NULL, "gpio3_dbclk", "gpio3_dbclk"),
++	DT_CLK(NULL, "gpio4_dbclk", "gpio4_dbclk"),
++	DT_CLK(NULL, "gpio5_dbclk", "gpio5_dbclk"),
++	DT_CLK(NULL, "mmc_clk", "mmc_clk"),
++	DT_CLK(NULL, "gfx_fclk_clksel_ck", "gfx_fclk_clksel_ck"),
++	DT_CLK(NULL, "gfx_fck_div_ck", "gfx_fck_div_ck"),
++	DT_CLK(NULL, "timer_32k_ck", "clkdiv32k_ick"),
++	DT_CLK(NULL, "timer_sys_ck", "sys_clkin_ck"),
++	DT_CLK(NULL, "sysclk_div", "sysclk_div"),
++	DT_CLK(NULL, "disp_clk", "disp_clk"),
++	DT_CLK(NULL, "clk_32k_mosc_ck", "clk_32k_mosc_ck"),
++	DT_CLK(NULL, "clk_32k_tpm_ck", "clk_32k_tpm_ck"),
++	DT_CLK(NULL, "dpll_extdev_ck", "dpll_extdev_ck"),
++	DT_CLK(NULL, "dpll_extdev_m2_ck", "dpll_extdev_m2_ck"),
++	DT_CLK(NULL, "mux_synctimer32k_ck", "mux_synctimer32k_ck"),
++	DT_CLK(NULL, "synctimer_32kclk", "synctimer_32kclk"),
++	DT_CLK(NULL, "timer8_fck", "timer8_fck"),
++	DT_CLK(NULL, "timer9_fck", "timer9_fck"),
++	DT_CLK(NULL, "timer10_fck", "timer10_fck"),
++	DT_CLK(NULL, "timer11_fck", "timer11_fck"),
++	DT_CLK(NULL, "cpsw_50m_clkdiv", "cpsw_50m_clkdiv"),
++	DT_CLK(NULL, "cpsw_5m_clkdiv", "cpsw_5m_clkdiv"),
++	DT_CLK(NULL, "dpll_ddr_x2_ck", "dpll_ddr_x2_ck"),
++	DT_CLK(NULL, "dpll_ddr_m4_ck", "dpll_ddr_m4_ck"),
++	DT_CLK(NULL, "dpll_per_clkdcoldo", "dpll_per_clkdcoldo"),
++	DT_CLK(NULL, "dll_aging_clk_div", "dll_aging_clk_div"),
++	DT_CLK(NULL, "div_core_25m_ck", "div_core_25m_ck"),
++	DT_CLK(NULL, "func_12m_clk", "func_12m_clk"),
++	DT_CLK(NULL, "vtp_clk_div", "vtp_clk_div"),
++	DT_CLK(NULL, "usbphy_32khz_clkmux", "usbphy_32khz_clkmux"),
++	{ .node_name = NULL },
 +};
-diff --git a/arch/arm/boot/dts/am3517_mt_ventoux.dts b/arch/arm/boot/dts/am3517_mt_ventoux.dts
-index fdf5ce6..d00e934 100644
---- a/arch/arm/boot/dts/am3517_mt_ventoux.dts
-+++ b/arch/arm/boot/dts/am3517_mt_ventoux.dts
-@@ -7,7 +7,7 @@
-  */
- /dts-v1/;
++
++int __init am43xx_dt_clk_init(void)
++{
++	of_clk_init(NULL);
++
++	ti_dt_clocks_register(am43xx_clks);
++
++	omap2_clk_disable_autoidle_all();
++
++	return 0;
++}
+diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
+index c845bd6..3ac9a5f 100644
+--- a/include/linux/clk/ti.h
++++ b/include/linux/clk/ti.h
+@@ -229,6 +229,7 @@ int omap4xxx_dt_clk_init(void);
+ int omap5xxx_dt_clk_init(void);
+ int dra7xx_dt_clk_init(void);
+ int am33xx_dt_clk_init(void);
++int am43xx_dt_clk_init(void);
  
--#include "omap34xx.dtsi"
-+#include "am3517.dtsi"
- 
- / {
- 	model = "TeeJet Mt.Ventoux";
+ #ifdef CONFIG_OF
+ void of_ti_clk_allow_autoidle_all(void);
 -- 
 1.7.9.5
 
