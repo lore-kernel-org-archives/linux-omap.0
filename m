@@ -1,146 +1,88 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv8 04/36] CLK: ti: add support for ti divider-clock
-Date: Wed, 9 Oct 2013 18:30:35 +0300
-Message-ID: <1381332668-962-5-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv8 05/36] clk: ti: add support for TI fixed factor clock
+Date: Wed, 9 Oct 2013 18:30:36 +0300
+Message-ID: <1381332668-962-6-git-send-email-t-kristo@ti.com>
 References: <1381332668-962-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:41781 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753074Ab3JIPcm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 9 Oct 2013 11:32:42 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:39977 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753074Ab3JIPcs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Oct 2013 11:32:48 -0400
 In-Reply-To: <1381332668-962-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, nm@ti.com, rnayak@ti.com, bcousson@baylibre.com, mturquette@linaro.org
 Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-This patch adds support for TI divider clock binding, which simply uses
-the basic clock divider to provide the features needed.
+This behaves exactly in similar manner to basic fixed-factor-clock, but
+adds a few properties on top for handling clock hardware autoidling.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 Tested-by: Nishanth Menon <nm@ti.com>
 Acked-by: Tony Lindgren <tony@atomide.com>
 ---
- .../devicetree/bindings/clock/ti/divider.txt       |   87 +++++++++++
- drivers/clk/ti/Makefile                            |    2 +-
- drivers/clk/ti/divider.c                           |  164 ++++++++++++++++++++
- include/linux/clk/ti.h                             |    2 +
- 4 files changed, 254 insertions(+), 1 deletion(-)
- create mode 100644 Documentation/devicetree/bindings/clock/ti/divider.txt
- create mode 100644 drivers/clk/ti/divider.c
+ .../bindings/clock/ti/fixed-factor-clock.txt       |   29 +++++++++
+ drivers/clk/ti/Makefile                            |    3 +-
+ drivers/clk/ti/fixed-factor.c                      |   62 ++++++++++++++++++++
+ 3 files changed, 93 insertions(+), 1 deletion(-)
+ create mode 100644 Documentation/devicetree/bindings/clock/ti/fixed-factor-clock.txt
+ create mode 100644 drivers/clk/ti/fixed-factor.c
 
-diff --git a/Documentation/devicetree/bindings/clock/ti/divider.txt b/Documentation/devicetree/bindings/clock/ti/divider.txt
+diff --git a/Documentation/devicetree/bindings/clock/ti/fixed-factor-clock.txt b/Documentation/devicetree/bindings/clock/ti/fixed-factor-clock.txt
 new file mode 100644
-index 0000000..a4e96a2
+index 0000000..beb77d1
 --- /dev/null
-+++ b/Documentation/devicetree/bindings/clock/ti/divider.txt
-@@ -0,0 +1,87 @@
-+Binding for TI divider clock
++++ b/Documentation/devicetree/bindings/clock/ti/fixed-factor-clock.txt
+@@ -0,0 +1,29 @@
++Binding for TI fixed factor rate clock sources.
 +
 +Binding status: Unstable - ABI compatibility may be broken in the future
 +
-+This binding uses the common clock binding[1].  It assumes a
-+register-mapped adjustable clock rate divider that does not gate and has
-+only one input clock or parent.  By default the value programmed into
-+the register is one less than the actual divisor value.  E.g:
++This binding uses the common clock binding[1].
 +
-+register value		actual divisor value
-+0			1
-+1			2
-+2			3
-+
-+This assumption may be modified by the following optional properties:
-+
-+ti,index-starts-at-one - valid divisor values start at 1, not the default
-+of 0.  E.g:
-+register value		actual divisor value
-+1			1
-+2			2
-+3			3
-+
-+ti,index-power-of-two - valid divisor values are powers of two.  E.g:
-+register value		actual divisor value
-+0			1
-+1			2
-+2			4
-+
-+Additionally an array of valid dividers may be supplied like so:
-+
-+	dividers = <4>, <8>, <0>, <16>;
-+
-+Which will map the resulting values to a divisor table by their index:
-+register value		actual divisor value
-+0			4
-+1			8
-+2			<invalid divisor, skipped>
-+3			16
-+
-+Any zero value in this array means the corresponding bit-value is invalid
-+and must not be used.
-+
-+The binding must also provide the register to control the divider and
-+unless the divider array is provided, min and max dividers. Optionally
-+the number of bits to shift that mask, if necessary. If the shift value
-+is missing it is the same as supplying a zero shift.
++[1] Documentation/devicetree/bindings/clock/clock-bindings.txt
 +
 +Required properties:
-+- compatible : shall be "divider-clock".
++- compatible : shall be "ti,fixed-factor-clock".
 +- #clock-cells : from common clock binding; shall be set to 0.
-+- clocks : link to phandle of parent clock
-+- reg : base address for register controlling adjustable divider
-+- ti,bit-mask : arbitrary bitmask for programming the adjustable divider
++- ti,clock-div: fixed divider.
++- ti,clock-mult: fixed multiplier.
++- clocks: parent clock.
 +
 +Optional properties:
-+- clock-output-names : from common clock binding.
-+- ti,dividers : array of integers defining divisors
-+- ti,bit-shift : number of bits to shift the divider value, defaults to 0
-+- ti,min-div : min divisor for dividing the input clock rate, only
-+  needed if the first divisor is offset from the default value (1)
-+- ti,max-div : max divisor for dividing the input clock rate, only needed
-+  if ti,dividers is not defined.
-+- ti,index-starts-at-one : valid divisor programming starts at 1, not zero
-+- ti,index-power-of-two : valid divisor programming must be a power of two
-+- ti,autoidle-shift : bit shift of the autoidle enable bit for the clock
-+- ti,autoidle-low : autoidle is enabled by setting the bit to 0
-+- ti,set-rate-parent : clk_set_rate is propagated to parent
++- ti,autoidle-shift: bit shift of the autoidle enable bit for the clock
++- reg: base address for the autoidle register of this clock
++- ti,autoidle-low: autoidle is enabled by setting the bit to 0
++- ti,set-rate-parent: clk_set_rate is propagated to parent
 +
-+Examples:
-+dpll_usb_m2_ck: dpll_usb_m2_ck@4a008190 {
-+	#clock-cells = <0>;
-+	compatible = "ti,divider-clock";
-+	clocks = <&dpll_usb_ck>;
-+	ti,max-div = <127>;
-+	reg = <0x4a008190 0x4>;
-+	ti,index-starts-at-one;
-+};
-+
-+aess_fclk: aess_fclk@4a004528 {
-+	#clock-cells = <0>;
-+	compatible = "ti,divider-clock";
-+	clocks = <&abe_clk>;
-+	ti,bit-shift = <24>;
-+	reg = <0x4a004528 0x4>;
-+	ti,max-div = <2>;
-+};
++Example:
++	clock {
++		compatible = "ti,fixed-factor-clock";
++		clocks = <&parentclk>;
++		#clock-cells = <0>;
++		ti,clock-div = <2>;
++		ti,clock-mult = <1>;
++	};
 diff --git a/drivers/clk/ti/Makefile b/drivers/clk/ti/Makefile
-index 533efb4..72a410b 100644
+index 72a410b..a9b986a 100644
 --- a/drivers/clk/ti/Makefile
 +++ b/drivers/clk/ti/Makefile
-@@ -1,3 +1,3 @@
+@@ -1,3 +1,4 @@
  ifneq ($(CONFIG_OF),)
--obj-y					+= clk.o dpll.o autoidle.o
-+obj-y					+= clk.o dpll.o autoidle.o divider.o
+-obj-y					+= clk.o dpll.o autoidle.o divider.o
++obj-y					+= clk.o dpll.o autoidle.o divider.o \
++					   fixed-factor.o
  endif
-diff --git a/drivers/clk/ti/divider.c b/drivers/clk/ti/divider.c
+diff --git a/drivers/clk/ti/fixed-factor.c b/drivers/clk/ti/fixed-factor.c
 new file mode 100644
-index 0000000..a97a5d6
+index 0000000..c3814ae
 --- /dev/null
-+++ b/drivers/clk/ti/divider.c
-@@ -0,0 +1,164 @@
++++ b/drivers/clk/ti/fixed-factor.c
+@@ -0,0 +1,62 @@
 +/*
-+ * TI Divider Clock
++ * TI Fixed Factor Clock
 + *
 + * Copyright (C) 2013 Texas Instruments, Inc.
 + *
@@ -163,159 +105,44 @@ index 0000000..a97a5d6
 +#include <linux/of_address.h>
 +#include <linux/clk/ti.h>
 +
-+struct clk_div_table __init *ti_clk_get_div_table(struct device_node *node)
-+{
-+	struct clk_div_table *table;
-+	const __be32 *divspec;
-+	u32 val;
-+	u32 num_div;
-+	u32 valid_div;
-+	int i;
-+
-+	divspec = of_get_property(node, "ti,dividers", &num_div);
-+
-+	if (!divspec)
-+		return NULL;
-+
-+	valid_div = 0;
-+
-+	/* Determine required size for divider table */
-+	for (i = 0; i < num_div; i++) {
-+		of_property_read_u32_index(node, "ti,dividers", i, &val);
-+		if (val)
-+			valid_div++;
-+	}
-+
-+	if (!valid_div) {
-+		pr_err("%s: no valid dividers for %s table\n", __func__,
-+		       node->name);
-+		return ERR_PTR(-EINVAL);
-+	}
-+
-+	table = kzalloc(sizeof(*table) * (valid_div + 1), GFP_KERNEL);
-+
-+	if (!table) {
-+		pr_err("%s: unable to allocate memory for %s table\n", __func__,
-+		       node->name);
-+		return ERR_PTR(-ENOMEM);
-+	}
-+
-+	valid_div = 0;
-+
-+	for (i = 0; i < num_div; i++) {
-+		of_property_read_u32_index(node, "dividers", i, &val);
-+		if (val) {
-+			table[valid_div].div = val;
-+			table[valid_div].val = i;
-+			valid_div++;
-+		}
-+	}
-+
-+	return table;
-+}
-+
 +/**
-+ * of_ti_divider_clk_setup() - Setup function for simple div rate clock
++ * of_ti_fixed_factor_clk_setup() - Setup function for TI fixed factor clock
 + */
-+static void __init of_ti_divider_clk_setup(struct device_node *node)
++static void __init of_ti_fixed_factor_clk_setup(struct device_node *node)
 +{
 +	struct clk *clk;
 +	const char *clk_name = node->name;
-+	void __iomem *reg;
 +	const char *parent_name;
-+	u8 clk_divider_flags = 0;
-+	u32 width = 0;
-+	u32 shift = 0;
-+	struct clk_div_table *table;
-+	int min_div, max_div, div;
-+	u32 val = 0;
++	u32 div, mult;
 +	u32 flags = 0;
 +
-+	parent_name = of_clk_get_parent_name(node, 0);
-+
-+	reg = of_iomap(node, 0);
-+	if (!reg) {
-+		pr_err("%s: no memory mapped for property reg\n", __func__);
++	if (of_property_read_u32(node, "ti,clock-div", &div)) {
++		pr_err("%s Fixed factor clock <%s> must have a clock-div property\n",
++		       __func__, node->name);
 +		return;
 +	}
 +
-+	of_property_read_u32(node, "ti,bit-shift", &shift);
-+
-+	if (of_property_read_bool(node, "ti,index-starts-at-one"))
-+		clk_divider_flags |= CLK_DIVIDER_ONE_BASED;
-+
-+	if (of_property_read_bool(node, "ti,index-power-of-two"))
-+		clk_divider_flags |= CLK_DIVIDER_POWER_OF_TWO;
++	if (of_property_read_u32(node, "ti,clock-mult", &mult)) {
++		pr_err("%s Fixed factor clock <%s> must have a clokc-mult property\n",
++		       __func__, node->name);
++		return;
++	}
 +
 +	if (of_property_read_bool(node, "ti,set-rate-parent"))
 +		flags |= CLK_SET_RATE_PARENT;
 +
-+	table = ti_clk_get_div_table(node);
++	parent_name = of_clk_get_parent_name(node, 0);
 +
-+	if (IS_ERR(table))
-+		return;
-+
-+	if (!table) {
-+		/* Clk divider table not provided, determine min/max divs */
-+		if (of_property_read_u32(node, "ti,min-div", &min_div)) {
-+			pr_debug("%s: ti,min-div not declared for %s, defaulting to 1\n", __func__,
-+				 node->name);
-+			min_div = 1;
-+		}
-+
-+		if (of_property_read_u32(node, "ti,max-div", &max_div)) {
-+			pr_err("%s: ti,max-div not declared for %s\n", __func__,
-+			       node->name);
-+			return;
-+		}
-+
-+		/* Determine bit width for the field */
-+		if (clk_divider_flags & CLK_DIVIDER_ONE_BASED)
-+			val = 1;
-+
-+		div = min_div;
-+
-+		while (div < max_div) {
-+			if (clk_divider_flags & CLK_DIVIDER_POWER_OF_TWO)
-+				div <<= 1;
-+			else
-+				div++;
-+			val++;
-+		}
-+	} else {
-+		div = 0;
-+
-+		while (table[div].val) {
-+			val = table[div].val;
-+			div++;
-+		}
-+	}
-+
-+	width = fls(val);
-+
-+	clk = clk_register_divider_table(NULL, clk_name, parent_name, flags,
-+					 reg, shift, width, clk_divider_flags,
-+					 table, NULL);
++	clk = clk_register_fixed_factor(NULL, clk_name, parent_name, flags,
++					mult, div);
 +
 +	if (!IS_ERR(clk)) {
 +		of_clk_add_provider(node, of_clk_src_simple_get, clk);
 +		of_ti_autoidle_setup(node);
 +	}
 +}
-+CLK_OF_DECLARE(divider_clk, "ti,divider-clock", of_ti_divider_clk_setup);
-diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
-index 6d552c1..7f58f11 100644
---- a/include/linux/clk/ti.h
-+++ b/include/linux/clk/ti.h
-@@ -182,6 +182,8 @@ int omap3_dpll4_set_rate(struct clk_hw *clk, unsigned long rate,
- void ti_dt_clocks_register(struct ti_dt_clk *oclks);
- void of_ti_autoidle_setup(struct device_node *node);
- 
-+struct clk_div_table *ti_clk_get_div_table(struct device_node *node);
-+
- #ifdef CONFIG_OF
- void of_ti_clk_allow_autoidle_all(void);
- void of_ti_clk_deny_autoidle_all(void);
++CLK_OF_DECLARE(ti_fixed_factor_clk, "ti,fixed-factor-clock",
++	       of_ti_fixed_factor_clk_setup);
 -- 
 1.7.9.5
 
