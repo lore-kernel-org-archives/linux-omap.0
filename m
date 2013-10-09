@@ -1,117 +1,73 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH V4] ARM: OMAP5/DRA7: realtime_counter: Configure CNTFRQ
- register
-Date: Wed, 9 Oct 2013 09:23:44 -0400
-Message-ID: <525558E0.3040901@ti.com>
-References: <1379520162-31932-1-git-send-email-r.sricharan@ti.com>
- <524D44B9.30208@ti.com> <20131008214523.GU8313@atomide.com>
- <525481A2.4020900@ti.com> <525556DD.7040200@ti.com> <5255575A.1040002@ti.com>
- <52555817.7070703@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 3/3] ARM: OMAP3: fix dpll4_m3_ck and dpll4_m4_ck dividers
+Date: Wed, 9 Oct 2013 16:33:43 +0300
+Message-ID: <52555B37.80407@ti.com>
+References: <1381324359-28825-1-git-send-email-tomi.valkeinen@ti.com> <1381324359-28825-3-git-send-email-tomi.valkeinen@ti.com> <525558AA.9050906@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <52555817.7070703@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Sricharan R <r.sricharan@ti.com>
-Cc: nm@ti.com, mark.rutland@arm.com, Tony Lindgren <tony@atomide.com>, rnayak@ti.com, marc.zyngier@arm.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="dqF29lv5L4uww5H3GNdcIn5v1v2V7Xi99"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:46587 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751927Ab3JINeH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 9 Oct 2013 09:34:07 -0400
+In-Reply-To: <525558AA.9050906@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Archit Taneja <archit@ti.com>
 
-On Wednesday 09 October 2013 09:20 AM, Sricharan R wrote:
-> On Wednesday 09 October 2013 06:47 PM, Santosh Shilimkar wrote:
->> On Wednesday 09 October 2013 09:15 AM, Sricharan R wrote:
->>> Santosh,
->>>
->>> On Wednesday 09 October 2013 03:35 AM, Santosh Shilimkar wrote:
->>>> On Tuesday 08 October 2013 05:45 PM, Tony Lindgren wrote:
->>>>> * Sricharan R <r.sricharan@ti.com> [131003 03:27]:
->>>>>> On Wednesday 18 September 2013 09:32 PM, Sricharan R wrote:
->>>>>>> --- a/arch/arm/boot/dts/omap5.dtsi
->>>>>>> +++ b/arch/arm/boot/dts/omap5.dtsi
->>>>>>> @@ -52,7 +52,6 @@
->>>>>>>  			     <GIC_PPI 14 (GIC_CPU_MASK_RAW(3) | IRQ_TYPE_LEVEL_LOW)>,
->>>>>>>  			     <GIC_PPI 11 (GIC_CPU_MASK_RAW(3) | IRQ_TYPE_LEVEL_LOW)>,
->>>>>>>  			     <GIC_PPI 10 (GIC_CPU_MASK_RAW(3) | IRQ_TYPE_LEVEL_LOW)>;
->>>>>>> -		clock-frequency = <6144000>;
->>>>>>>  	};
->>>>>>>  
->>>>>>>  	gic: interrupt-controller@48211000 {
->>>>> Can the above be done later on in a separate clean-up patch?
->>>>> If so I can drop that part as that removes a dependency to the
->>>>> .dts patches queued by Benoit.
->>>>>
->>>> This can be applied separately. 
->>>>
->>>>  
->>>>>>> --- a/arch/arm/mach-omap2/omap-smp.c
->>>>>>> +++ b/arch/arm/mach-omap2/omap-smp.c
->>>>>>> @@ -41,6 +41,8 @@
->>>>>>>  
->>>>>>>  u16 pm44xx_errata;
->>>>>>>  
->>>>>>> +extern unsigned long arch_timer_freq;
->>>>>>> +
->>>>>>>  /* SCU base address */
->>>>>>>  static void __iomem *scu_base;
->>>>>>>  
->>>>> No externs in *.c files please, checkpatch.pl and sparse should warn
->>>>> about this.
->>>>>
->>>>>>  Are you planning to pull this patch and the below $subject patch as well? They are
->>>>>>  acked and tested.
->>>>>>
->>>>>>  ARM: DRA7: realtime_counter: Add ratio registers for 20MHZ sys-clk frequency
->>>>>>
->>>>>>   http://www.spinics.net/lists/linux-omap/msg97281.html
->>>>> The 20MHz patch I've applied, just noticed the above things
->>>>> when was about to apply this.
->>>>>
->>>> Now re-looking at the patch, I think this extern stuff can be and
->>>> should be avoided. It needs order change though like below. Not
->>>> tested but should work.
->>>>
->>>> diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
->>>> index fa74a06..c8d8308 100644
->>>> --- a/arch/arm/mach-omap2/timer.c
->>>> +++ b/arch/arm/mach-omap2/timer.c
->>>> @@ -631,10 +631,9 @@ void __init omap4_local_timer_init(void)
->>>>  #ifdef CONFIG_SOC_OMAP5
->>>>  void __init omap5_realtime_timer_init(void)
->>>>  {
->>>> -	omap4_sync32k_timer_init();
->>>>  	realtime_counter_init();
->>>> -
->>>>  	clocksource_of_init();
->>>> +	omap4_sync32k_timer_init();
->>>>  }
->>>>  #endif /* CONFIG_SOC_OMAP5 */
->>>>  
->>>> Then, the CNTFREQ programming needs to be moved to
->>>> realtime_counter_init(). It should be actually part of that
->>>> first place instead of timer_init().
->>>>
->>>> On secondary CPU then a simple asm accessor can
->>>> read the CNTFREQ and pass that to SMC.
->>> Sorry,  I did not quite get you here. You mean an asm accessor to
->>>  the read the variable that is set in timer.c ?
->>>
->> Reading CNTFREQ CP15 directly....
+--dqF29lv5L4uww5H3GNdcIn5v1v2V7Xi99
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+On 09/10/13 16:22, Tero Kristo wrote:
+> On 10/09/2013 04:12 PM, Tomi Valkeinen wrote:
+>> dpll4_m3_ck and dpll4_m4_ck have divider bit fields which are 6 bits
+>> wide. However, only values from 1 to 32 are allowed. This means we hav=
+e
+>> to add a divider tables and list the dividers explicitly.
 >>
->   Sorry, Still not clear. CNTFREQ is per-cpu register. So when
->  the secondary cpu init happens on CPU1, then you mean we will have
->  to read it from CPU0 register and pass it for secondary ?
-> 
-Create a function within timer.c which sets the freq for a given CPU.
-On Boot CPU you figure out frequency and then just use that static
-variable.
+>> I believe the same issue is there for other dpll4_mx_ck clocks, but as=
 
-Regards,
-Santosh
+>> I'm not familiar with them, I didn't touch them.
+>=20
+> I think you can limit the max value with a mask only, no need to define=
+
+> new tables.
+
+The bit field is 6 bits wide, so the mask is correct. It's just that the
+biggest allowed value is 32, which takes 6 bits, not 63.
+
+Changing the mask to 5 bits would limit the divider to 31, wouldn't it?
+
+ Tomi
+
+
+
+--dqF29lv5L4uww5H3GNdcIn5v1v2V7Xi99
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJSVVs3AAoJEPo9qoy8lh71bMYQALJzI5h+CE0+ACZXSHf3i57u
+dyKUYbR/NQphzEFf3LSloTnr/kaSPAn/RV4mWe26OsjkfFRhaiN+V2+zojhb2mUB
+DIuGJuJZlpGIpqOGEY+uFEVVEeQcqBhwXjjIQW/W1wZGqM1z6DciG7eYHbf9QHxF
+R/B2eL5wAtE9q/25PSINUHQuY9ypG5JRvtiLEEcCr2ttZzqXH76lQSJ+tF1Wv0wI
+1DsIxM7jfkOoFJp491MTqicYffgvYz8kTfmlOlR9bs+iJz+/vFGCNi6+h+9o3Z7t
+2XXTjUsiBrk826HyVdkVCsde3c4AJNrFX7a7T2oml1WoAnE7vNuuBs2PX2INU0BL
+pt7tJsBk1Cxn/v6v0/X6oMSbW/RiuEKNMrtGNcQWxl0iFE9Vhe7EKzNzNApMgPdi
+/a4hVyo7CyyQD7b2g9A4Obcmr/9tYEYGWLc087FOemspyu0/B1UMyCGr3gF6pkt5
+9bQZfJgCYdv6FNscoSoQztnnCURmUjhsxP0uPDfaH31joCklxCzwysszv60kw3py
+SQjPNWy71xGrPAmCMNFO+mwhUXPYadyfI26BqE1corfrgdF2qcMZuq12IEHKk36h
+QTT9tOcI6/FPqEeVhsnBxZVtaXfwEbll5pMZuO1oqYwpXYn+0MNxHGkUPAHgtZgq
+dxL4fngW+nuB0Xh+AOXH
+=SJqg
+-----END PGP SIGNATURE-----
+
+--dqF29lv5L4uww5H3GNdcIn5v1v2V7Xi99--
