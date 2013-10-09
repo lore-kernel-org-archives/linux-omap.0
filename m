@@ -1,59 +1,65 @@
-From: Haojian Zhuang <haojian.zhuang@gmail.com>
-Subject: Re: [PATCH 3/6] pinctrl: single: Prepare for supporting SoC specific features
-Date: Wed, 9 Oct 2013 13:03:17 +0800
-Message-ID: <CAN1soZwXn5SSgTFQ11PJGK19ZQ==uKcPCF2COpEE_eiMAM13uw@mail.gmail.com>
-References: <20131003054104.8941.88857.stgit@localhost>
-	<20131003054218.8941.19273.stgit@localhost>
-	<20131007173531.GX8949@atomide.com>
-	<CACRpkdbx+vJEqz3KQ0EHGt0axRB4JeJh3FF4e+7snbR0HoqKRg@mail.gmail.com>
+From: Gururaja Hebbar <gururaja.hebbar@ti.com>
+Subject: Re: [PATCH v3] ARM: omap: edma: add suspend suspend/resume hooks
+Date: Wed, 9 Oct 2013 10:43:51 +0530
+Message-ID: <5254E60F.80009@ti.com>
+References: <1380639886-9526-1-git-send-email-zonque@gmail.com> <5254DB86.4000104@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CACRpkdbx+vJEqz3KQ0EHGt0axRB4JeJh3FF4e+7snbR0HoqKRg@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Tony Lindgren <tony@atomide.com>, Haojian Zhuang <haojian.zhuang@marvell.com>, Grygorii Strashko <grygorii.strashko@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Prakash Manjunathappa <prakash.pm@ti.com>, Haojian Zhuang <haojian.zhuang@linaro.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Roger Quadros <rogerq@ti.com>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:42730 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751245Ab3JIFPC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Oct 2013 01:15:02 -0400
+In-Reply-To: <5254DB86.4000104@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: joelf@ti.com, Daniel Mack <zonque@gmail.com>
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, neumann@teufel.de, bigeasy@linutronix.de, vinod.koul@intel.com, dan.j.williams@intel.com, balbi@ti.com
 
-On Tue, Oct 8, 2013 at 7:55 PM, Linus Walleij <linus.walleij@linaro.org> wrote:
-> On Mon, Oct 7, 2013 at 7:35 PM, Tony Lindgren <tony@atomide.com> wrote:
->
->> Hi Linus W,
+On Wednesday 09 October 2013 09:58 AM, Joel Fernandes wrote:
+> On 10/01/2013 10:04 AM, Daniel Mack wrote:
+>> This patch makes the edma driver resume correctly after suspend. Tested
+>> on an AM33xx platform with cyclic audio streams.
 >>
->> Any comments on the pinctrl patches 3 - 5 in this series?
->
-> I have no problems with this patch #3, as it is just changing syntax,
-> not semantics.
->
-> The problems start with patch #4.
->
-> I am tormented with mixed feelings about this, because from one point of
-> view I feel it is breaking the promise of pinctrl-single being a
-> driver for platforms
-> where a pin is controlled by a *single* register.
->
-> If this was pinctrl-foo.c I would not have been so much bothered,
-> but now it is something that was supposed to be self-contained and
-> simple, pertaining to a single register, starting to look like something
-> else.
->
-> This is a bit like: "oh yeah just one register controls the pins, but under
-> some circumstances I also want to mess with this register over here,
-> and then this register over there ..." etc.
->
-> I'd like Haojian to ACK this to proceed since he's also using this driver
-> now. Then I feel better on continuing down this road ...
->
-> Then I have a lesser comment on patch #4 since it makes it possible
-> for this pin controller to support wake-up interrupt, as I don't see how
-> this plays out with front-end GPIO controllers, but let's discuss that
-> in the context of that patch.
->
-> Yours,
-> Linus Walleij
->
+>> The code was shamelessly taken from an ancient BSP tree.
+>>
+>> Signed-off-by: Daniel Mack <zonque@gmail.com>
+>> ---
+>>  arch/arm/common/edma.c | 133 +++++++++++++++++++++++++++++++++++++++++++++++++
+>>  1 file changed, 133 insertions(+)
+>>
 
-I'm OK on both #3 & #4. So Acked-by: Haojian Zhuang <haojian.zhuang@gmail.com>
+..snip..
+..snip..
+> 
+>> +		edma_cc[j]->context.ch_map =
+>> +			kzalloc((sizeof(unsigned int) *
+>> +				 edma_cc[j]->num_channels), GFP_KERNEL);
+>> +		edma_cc[j]->context.que_num =
+>> +			kzalloc((sizeof(unsigned int) * 8), GFP_KERNEL);
+> 
+> Can these allocations be moved to the suspend path? For systems that don't
+> suspend/resume even once, I feel we shouldn't allocate memory that we don't use.
+> These allocations are better to do there.
 
-Regards
-Haojian
+AFAIK, Suspend/resume should be quick. Allocating and deallocating on
+every iterating would be useless and time consuming.
+
+Also this task is one time and quick.
+
+Are there any systems (Linux based for now) which doesn't
+suspend/resume? I believe the probability is very less.
+
+regards
+Gururaja
+
+> 
+> -Joel
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
