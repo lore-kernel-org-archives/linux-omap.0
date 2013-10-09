@@ -1,88 +1,57 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH v3 2/2] ARM: OMAP: igep0020: use display init from dss-common
-Date: Wed, 9 Oct 2013 12:27:13 +0300
-Message-ID: <52552171.6050002@ti.com>
-References: <1381310359-20668-1-git-send-email-javier.martinez@collabora.co.uk> <1381310359-20668-3-git-send-email-javier.martinez@collabora.co.uk>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: [PATCH v2 0/5] OMAP: Add DT bindings to specify when devices should not be idled or reset
+Date: Wed, 9 Oct 2013 15:41:56 +0530
+Message-ID: <1381313521-10422-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="cHihXmsdoM4Cjhhp8LIdt4AI70JA76RBw"
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:44779 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:55385 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751536Ab3JIJ1b (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 9 Oct 2013 05:27:31 -0400
-In-Reply-To: <1381310359-20668-3-git-send-email-javier.martinez@collabora.co.uk>
+	id S1752719Ab3JIKMc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 9 Oct 2013 06:12:32 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Tony Lindgren <tony@atomide.com>
-Cc: Enric Balletbo i Serra <eballetbo@gmail.com>, bcousson@baylibre.com, linux-omap@vger.kernel.org
+To: bcousson@baylibre.com, paul@pwsan.com, tony@atomide.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>
 
---cHihXmsdoM4Cjhhp8LIdt4AI70JA76RBw
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Changes in v2:
+* Patches are split in such a way that DT and hwmod changes are kept in
+seperate patches so they can be pulled in by Benoit and Paul seperately.
+* Binding names are slightly updated to address the concern from Tony and Benoit [1]
+* Added a patch [5/5] to prevent GPIO reset on AM335x EVM-SK board, which
+was also the original motivation of this series since the board fails to
+boot from mainline despite support for AM335x and a am335x-evmsk.dts file
+existing in mainline for quite a while.
 
-On 09/10/13 12:19, Javier Martinez Canillas wrote:
-> Now that display information and setup is made from dss-common
-> there is no need to have this code in the board file.
->=20
-> Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.u=
-k>
-> ---
->=20
-> Changes since v2:
->  - None, this is a new patch added for v3.
->=20
->  arch/arm/mach-omap2/board-igep0020.c | 41 +++-------------------------=
---------
->  1 file changed, 3 insertions(+), 38 deletions(-)
->=20
-> diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2=
-/board-igep0020.c
-> index 06dbb2d..d648d50 100644
-> --- a/arch/arm/mach-omap2/board-igep0020.c
-> +++ b/arch/arm/mach-omap2/board-igep0020.c
-> @@ -43,6 +43,7 @@
->  #include "board-flash.h"
->  #include "control.h"
->  #include "gpmc-onenand.h"
-> +#include "dss-common.h"
+We have devices like co-processors, SoC internal busses, memory controllers
+etc which should not be idled or reset. In some cases erratas around IP blocks
+prevent them from either being idled or reset. Have a way to pass this
+information from Device tree, and get rid of similar information that
+exists as part of the omap_hwmod data files for various DT only OMAP SoCs.
 
-I didn't try, but I think these can be now removed from the board file:
+Boot tested on OMAP4 panda es, AM335x EVM and AM335x EVM-SK
 
-#include <video/omapdss.h>
-#include <video/omap-panel-data.h>
+[1] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg94349.html
 
-For the series:
+Rajendra Nayak (5):
+  ARM: OMAP2+: hwmod: cleanup HWMOD_INIT_NO_RESET usage
+  ARM: dts: omap: Add new bindings for OMAP
+  ARM: OMAP2+: hwmod: Extract no-idle and no-reset info from DT
+  ARM: OMAP2+: hwmod: Cleanup usage of HWMOD_INIT_NO_RESET and
+    HWMOD_INIT_NO_IDLE
+  ARM: dts: AM335x-evmsk: Do not reset gpio0
 
-Acked-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+ .../devicetree/bindings/arm/omap/omap.txt          |    3 ++-
+ arch/arm/boot/dts/am335x-evmsk.dts                 |    4 ++++
+ arch/arm/boot/dts/am33xx.dtsi                      |    2 ++
+ arch/arm/boot/dts/omap4.dtsi                       |    3 +++
+ arch/arm/boot/dts/omap5.dtsi                       |    2 ++
+ arch/arm/mach-omap2/omap_hwmod.c                   |   23 ++++++++++++++------
+ arch/arm/mach-omap2/omap_hwmod_33xx_data.c         |   22 +++++++++----------
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |    6 ++---
+ arch/arm/mach-omap2/omap_hwmod_54xx_data.c         |    4 +---
+ 9 files changed, 43 insertions(+), 26 deletions(-)
 
- Tomi
+-- 
+1.7.9.5
 
-
-
---cHihXmsdoM4Cjhhp8LIdt4AI70JA76RBw
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJSVSFxAAoJEPo9qoy8lh715wYP/2y3nUCKM7JsdmjF06GIo35r
-EpS2ppR+tlxsjIDVeX87I7mclGwniNra4m1UQxtQTfSSKEIzj3+Ll5t5hFWB0Cv1
-6ry8Nugizymryi3DDlHZ/cHLYEzz+QO4N+36wB/HX3moduA+nWEd9mu7Lp5yXnSf
-9ZP4WStMP+219VM64QPuoXzgc59M0G1r86O8DP6uqzqgS/4HPTd77WZVrENo4kdB
-7iDBUAJZhmg20vAOjwB/lQM5yjTXzBu6WGbh7/cUuxZuWWnu1/0vH59tDOVQ+Ax2
-VaFXkZBpNEaUmgCu31xEUaLv1JBQenazvtZcGgbW8dYw31upYJUqkNkAB05NiKCR
-yjWlvZotd3RxU2F+bSlgOkI4LyHesWLJRDKQ7064GkOqgUNUKgYmEVZjbT+LRHuB
-TkH7X6bL6NQyEwqtQUGsdFj42cXqommv73NqCyD9bbg22weX1e+8de0/C/8p8R0l
-gbn76lf7ozXRWVdVkFJot16LfzHw0ID9SUcFCjlcxLLaJa6xyGfIEpVIkgho5k7J
-xzkqZPSA71xfvQKtroi8TYX93Qia6D7X0bXJyHyByfYpFlf1HhCaVJdyCd8ysL+l
-63hWmatgtZpxmj4W/GHQK3mOAF7RzxlNg5K6VpTA/rn8qbbfbBYC0MwCqdrsRCC/
-LjWKRV9NjQdhzDsYOrS9
-=UQFC
------END PGP SIGNATURE-----
-
---cHihXmsdoM4Cjhhp8LIdt4AI70JA76RBw--
