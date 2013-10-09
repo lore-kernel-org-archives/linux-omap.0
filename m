@@ -1,68 +1,46 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
 Subject: Re: [PATCH 1/1] ARM: OMAP2+: pdata-quirks: add legacy display init
  for IGEPv2 board
-Date: Wed, 9 Oct 2013 10:47:52 +0300
-Message-ID: <52550A28.4060508@ti.com>
-References: <1380941496-26899-1-git-send-email-javier.martinez@collabora.co.uk> <5254F0ED.5030800@ti.com> <5255094B.2060207@collabora.co.uk>
+Date: Wed, 09 Oct 2013 09:54:56 +0200
+Message-ID: <52550BD0.1060901@collabora.co.uk>
+References: <1380941496-26899-1-git-send-email-javier.martinez@collabora.co.uk> <5254F0ED.5030800@ti.com> <5255094B.2060207@collabora.co.uk> <52550A28.4060508@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="EFL8OgfxACXQGQXh02C6pt8ocB1LW7rSI"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:49023 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751508Ab3JIHsE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 9 Oct 2013 03:48:04 -0400
-In-Reply-To: <5255094B.2060207@collabora.co.uk>
+Received: from bhuna.collabora.co.uk ([93.93.135.160]:42052 "EHLO
+	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751508Ab3JIHzf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Oct 2013 03:55:35 -0400
+In-Reply-To: <52550A28.4060508@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
 Cc: Tony Lindgren <tony@atomide.com>, Enric Balletbo i Serra <eballetbo@gmail.com>, bcousson@baylibre.com, linux-omap@vger.kernel.org
 
---EFL8OgfxACXQGQXh02C6pt8ocB1LW7rSI
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+On 10/09/2013 09:47 AM, Tomi Valkeinen wrote:
+> On 09/10/13 10:44, Javier Martinez Canillas wrote:
+> 
+>> I can't do it yet because the two are still needed for different boot paths.
+>> Once the board DTS has all the hardware support that is currently available on
+>> the board file I'll delete the board file but until then I can't remove anything
+>> from the legacy code since that is what users are using right now.
+> 
+> Yes, right, I meant that move the code from the board file to
+> dss_common.c, and call the same display init code from both the board
+> file and from the quirks system.
+>
 
-On 09/10/13 10:44, Javier Martinez Canillas wrote:
+Sorry I misunderstood and yes you are right. I'll remove it from the board file
+and use the info in dss_common.c.
 
-> I can't do it yet because the two are still needed for different boot p=
-aths.
-> Once the board DTS has all the hardware support that is currently avail=
-able on
-> the board file I'll delete the board file but until then I can't remove=
- anything
-> from the legacy code since that is what users are using right now.
+If Tony drop the patch I can send a new version that does this or if he already
+sent a pull request I can do it as an incremental patch.
 
-Yes, right, I meant that move the code from the board file to
-dss_common.c, and call the same display init code from both the board
-file and from the quirks system.
+>  Tomi
+> 
+> 
 
- Tomi
+Thanks a lot and best regards,
+Javier
 
-
-
---EFL8OgfxACXQGQXh02C6pt8ocB1LW7rSI
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJSVQooAAoJEPo9qoy8lh71qiQP/3o5Iyr6loKydhjeHjq6y+I8
-rdcaEY6VE6Z9kfDFj1OXKk3Ywt3Vip5yX81t2bdrJO+p+CHSd6MROpljWSYJArSF
-kD4fexVngKwPRcpkQQwD1AkBRHB+yg2OuXBRQMGVq1tGfHGKFlgmNHIfSxDs2EMv
-DnEXas1X4em3AaIWNKfFE9V3yH7plY/s+v8Erz5qxEbAVx5rzGDyWX2qNogKF8b9
-D/MIaA12iLiXhLPs73Qc1TM6J7qesNGM7Wq2dZZYtyH54RyiPH4IIl32DMw9EdWn
-67NLKQp353+0O+wEWkKe5guGqKIc/Wo3Kd8CJtLMKHgewEynR1y/hRZ8tzu3ZaBm
-aZAyR/sq+YcpOwO4HPT88MEpmsfsM+d5fO6deQ7zYUABNZMOFmFNBUJvE31DHwzv
-x1NiOBmoqI6NYTTIruJgUEDUUeviR1jcrFN6vLCiHisuip7MdQCVdaHDYdGQeB+i
-aRl0lmKCuNmbTFgJvXwWPRiI+fUwTHsrxTyTrIsYJ1TxVbe1KVhDmIvHo9mB8jU7
-LU8XL23hfhchPWlKzvXAOAo1rBBW1maS0+A8S//xpEoouQjYWZPuFDENLhNHeaYM
-10PSHkI0XRr5+Hb2Hp2TKBbi65FJg1V3HCDOzhKVgCeLNiFe+FcfsriFZZ3QN/p1
-P+SDR6/YJHx3wZYghsqv
-=aI3w
------END PGP SIGNATURE-----
-
---EFL8OgfxACXQGQXh02C6pt8ocB1LW7rSI--
