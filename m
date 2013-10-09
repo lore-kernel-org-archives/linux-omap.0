@@ -1,32 +1,26 @@
-From: Sricharan R <r.sricharan@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
 Subject: Re: [PATCH V4] ARM: OMAP5/DRA7: realtime_counter: Configure CNTFRQ
  register
-Date: Wed, 9 Oct 2013 18:46:42 +0530
-Message-ID: <5255573A.8050805@ti.com>
-References: <1379520162-31932-1-git-send-email-r.sricharan@ti.com>
- <524D44B9.30208@ti.com> <20131008214523.GU8313@atomide.com>
- <525481A2.4020900@ti.com> <525556DD.7040200@ti.com>
+Date: Wed, 9 Oct 2013 09:17:14 -0400
+Message-ID: <5255575A.1040002@ti.com>
+References: <1379520162-31932-1-git-send-email-r.sricharan@ti.com> <524D44B9.30208@ti.com> <20131008214523.GU8313@atomide.com> <525481A2.4020900@ti.com> <525556DD.7040200@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:60980 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754239Ab3JINRl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Oct 2013 09:17:41 -0400
 In-Reply-To: <525556DD.7040200@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: nm@ti.com, mark.rutland@arm.com, Tony Lindgren <tony@atomide.com>, rnayak@ti.com, marc.zyngier@arm.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Sricharan R <r.sricharan@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, rnayak@ti.com, nm@ti.com, marc.zyngier@arm.com, mark.rutland@arm.com
 
-On Wednesday 09 October 2013 06:45 PM, Sricharan R wrote:
+On Wednesday 09 October 2013 09:15 AM, Sricharan R wrote:
 > Santosh,
->
+> 
 > On Wednesday 09 October 2013 03:35 AM, Santosh Shilimkar wrote:
 >> On Tuesday 08 October 2013 05:45 PM, Tony Lindgren wrote:
 >>> * Sricharan R <r.sricharan@ti.com> [131003 03:27]:
@@ -99,7 +93,6 @@ On Wednesday 09 October 2013 06:45 PM, Sricharan R wrote:
 >> read the CNTFREQ and pass that to SMC.
 > Sorry,  I did not quite get you here. You mean an asm accessor to
 >  the read the variable that is set in timer.c ?
- Also, is it not ok to move the extern to a .h file instead ?
+> 
+Reading CNTFREQ CP15 directly....
 
-Regards,
- Sricharan
