@@ -1,89 +1,49 @@
-From: Sebastian Reichel <sre@debian.org>
-Subject: [PATCH 2/2] ARM: dts: N900: TWL4030 Keypad Matrix definition
-Date: Wed,  9 Oct 2013 23:17:27 +0200
-Message-ID: <1381353447-32708-2-git-send-email-sre@debian.org>
-References: <1381353447-32708-1-git-send-email-sre@debian.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1381353447-32708-1-git-send-email-sre@debian.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@ring0.de>, linux-input@vger.kernel.org
-Cc: =?UTF-8?q?=27Beno=C3=AEt=20Cousson=27?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Rob Landley <rob@landley.net>, Russell King <linux@arm.linux.org.uk>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Grant Likely <grant.likely@linaro.org>, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Sebastian Reichel <sre@debian.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL] omap fixes against v3.12-rc3
+Date: Wed, 9 Oct 2013 14:26:24 -0700
+Message-ID: <20131009212624.GG8313@atomide.com>
+References: <20131008220324.GV8313@atomide.com>
+ <87d2netbvh.fsf@linaro.org>
+ <20131009205127.GF8313@atomide.com>
+ <CAGa+x85i5OXA2cNEAT+hZC-c01xq8ZwTbb4kse=Vw9pS6_i1Rw@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:34745 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751742Ab3JIV0b (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Oct 2013 17:26:31 -0400
+Content-Disposition: inline
+In-Reply-To: <CAGa+x85i5OXA2cNEAT+hZC-c01xq8ZwTbb4kse=Vw9pS6_i1Rw@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@linaro.org>
+Cc: "arm@kernel.org" <arm@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>
 
-Add Keyboard Matrix information to N900's DTS file.
-This patch maps the keys exactly as the original
-board code.
+* Kevin Hilman <khilman@linaro.org> [131009 14:17]:
+> On Wed, Oct 9, 2013 at 1:51 PM, Tony Lindgren <tony@atomide.com> wrote:
+> > * Kevin Hilman <khilman@linaro.org> [131009 13:50]:
+> >>
+> >> FWIW, my automated boot is doing only DT boots on all the OMAP
+> >> platforms.  However, it's only testing basic boot so far so there's not
+> >> a whole lot of driver testing yet (but it's coming soon.)
+> >
+> > OK cool. For omap3, off-idle with DT needs the pending
+> > pinctrl-single patches, and some yet unknown way of mapping
+> > wake-up events to device interrupts. But after that you
+> > can also do some PM related tests potentially :)
+> 
+> Yeah, a review/test of that series is already my TODO list.
 
-Signed-off-by: Sebastian Reichel <sre@debian.org>
----
- arch/arm/boot/dts/omap3-n900.dts | 55 ++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 55 insertions(+)
+Thanks, I would appreciate it if you could give it a quick try
+so we can make sure it does not cause regressions for the
+legacy booting.
 
-diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
-index 0fbb77e..d11ff6e 100644
---- a/arch/arm/boot/dts/omap3-n900.dts
-+++ b/arch/arm/boot/dts/omap3-n900.dts
-@@ -120,6 +120,61 @@
- #include "twl4030.dtsi"
- #include "twl4030_omap3.dtsi"
- 
-+&twl_keypad {
-+	linux,keymap = < 0x00000010 /* KEY_Q */
-+			 0x00010018 /* KEY_O */
-+			 0x00020019 /* KEY_P */
-+			 0x00030033 /* KEY_COMMA */
-+			 0x0004000e /* KEY_BACKSPACE */
-+			 0x0006001e /* KEY_A */
-+			 0x0007001f /* KEY_S */
-+
-+			 0x01000011 /* KEY_W */
-+			 0x01010020 /* KEY_D */
-+			 0x01020021 /* KEY_F */
-+			 0x01030022 /* KEY_G */
-+			 0x01040023 /* KEY_H */
-+			 0x01050024 /* KEY_J */
-+			 0x01060025 /* KEY_K */
-+			 0x01070026 /* KEY_L */
-+
-+			 0x02000012 /* KEY_E */
-+			 0x02010034 /* KEY_DOT */
-+			 0x02020067 /* KEY_UP */
-+			 0x0203001c /* KEY_ENTER */
-+			 0x0205002c /* KEY_Z */
-+			 0x0206002d /* KEY_X */
-+			 0x0207002e /* KEY_C */
-+			 0x02080043 /* KEY_F9 */
-+
-+			 0x03000013 /* KEY_R */
-+			 0x0301002f /* KEY_V */
-+			 0x03020030 /* KEY_B */
-+			 0x03030031 /* KEY_N */
-+			 0x03040032 /* KEY_M */
-+			 0x03050039 /* KEY_SPACE */
-+			 0x03060039 /* KEY_SPACE */
-+			 0x03070069 /* KEY_LEFT */
-+
-+			 0x04000014 /* KEY_T */
-+			 0x0401006c /* KEY_DOWN */
-+			 0x0402006a /* KEY_RIGHT */
-+			 0x0404001d /* KEY_LEFTCTRL */
-+			 0x04050064 /* KEY_RIGHTALT */
-+			 0x0406002a /* KEY_LEFTSHIFT */
-+			 0x04080044 /* KEY_F10 */
-+
-+			 0x05000015 /* KEY_Y */
-+			 0x05080057 /* KEY_F11 */
-+
-+			 0x06000016 /* KEY_U */
-+
-+			 0x07000017 /* KEY_I */
-+			 0x07010041 /* KEY_F7 */
-+			 0x07020042 /* KEY_F8 */
-+			 >;
-+};
-+
- &twl_gpio {
- 	ti,pullups	= <0x0>;
- 	ti,pulldowns	= <0x03ff3f>; /* BIT(0..5) | BIT(8..17) */
--- 
-1.8.4.rc3
+For the DT based booting, you need to currently seprately
+do a request_irq on the wake-up interrupts, I have a test
+driver that does that that I can email to you if you need
+it.
+
+Regards,
+
+Tony
