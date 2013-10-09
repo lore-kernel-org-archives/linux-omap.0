@@ -1,146 +1,63 @@
-From: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
-Subject: Re: [PATCHv2 2/9] hwspinlock/omap: add support for dt nodes
-Date: Wed, 9 Oct 2013 22:46:38 +0100
-Message-ID: <20131009214638.GB2322@kartoffel>
-References: <cover.1379445653.git.s-anna@ti.com>
- <0fd6a11880894260d627a50b1e35f363625e9b1d.1379445653.git.s-anna@ti.com>
- <AE597DCC-83D7-4BCD-8990-3D63540F32EA@codeaurora.org>
- <20131001084015.GH22259@e106331-lin.cambridge.arm.com>
- <524CEE9F.8060407@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: [PATCH V6 08/15] ARM: dts: dra7-evm: add smps123 supply for CPU
+Date: Wed, 9 Oct 2013 18:24:51 -0500
+Message-ID: <1381361098-8283-7-git-send-email-nm@ti.com>
+References: <1381354144-7134-1-git-send-email-nm@ti.com>
+ <1381361098-8283-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <524CEE9F.8060407-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-Cc: Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1381361098-8283-1-git-send-email-nm@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Kevin Hilman <khilman@linaro.org>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>
+Cc: Nishanth Menon <nm@ti.com>, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, J Keerthy <j-keerthy@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Oct 03, 2013 at 05:12:15AM +0100, Suman Anna wrote:
-> Hi Mark,
-> 
-> > On Fri, Sep 27, 2013 at 05:06:38PM +0100, Kumar Gala wrote:
-> >>
-> >> On Sep 17, 2013, at 2:30 PM, Suman Anna wrote:
-> >>
-> >>> HwSpinlock IP is present only on OMAP4 and other newer SoCs,
-> >>> which are all device-tree boot only. This patch adds the
-> >>> base support for parsing the DT nodes, and removes the code
-> >>> dealing with the traditional platform device instantiation.
-> >>>
-> >>> Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-> >>> ---
-> >>> .../devicetree/bindings/hwlock/omap-hwspinlock.txt | 31 +++++++++++
-> >>> arch/arm/mach-omap2/Makefile                       |  3 --
-> >>> arch/arm/mach-omap2/hwspinlock.c                   | 60 ----------------------
-> >>> drivers/hwspinlock/omap_hwspinlock.c               | 23 +++++++--
-> >>> 4 files changed, 50 insertions(+), 67 deletions(-)
-> >>> create mode 100644 Documentation/devicetree/bindings/hwlock/omap-hwspinlock.txt
-> >>> delete mode 100644 arch/arm/mach-omap2/hwspinlock.c
-> >>>
-> >>> diff --git a/Documentation/devicetree/bindings/hwlock/omap-hwspinlock.txt b/Documentation/devicetree/bindings/hwlock/omap-hwspinlock.txt
-> >>> new file mode 100644
-> >>> index 0000000..235b7c5
-> >>> --- /dev/null
-> >>> +++ b/Documentation/devicetree/bindings/hwlock/omap-hwspinlock.txt
-> >>> @@ -0,0 +1,31 @@
-> >>> +OMAP4+ HwSpinlock Driver
-> >>> +========================
-> >>> +
-> >>> +Required properties:
-> >>> +- compatible:		Currently supports only "ti,omap4-hwspinlock" for
-> >>> +				OMAP44xx, OMAP54xx, AM33xx, AM43xx, DRA7xx SoCs
-> > 
-> > "Currently supports" is not something I expect to see in a binding
-> > document. That sounds like a description of the driver rather than the
-> > binding.
-> > 
-> > How similar are these hardware modules? What are the differences?
-> 
-> The IP is almost the same, they all have the same revision id. The
-> number of locks (each represented by a register) though vary from one
-> SoC to another (OMAP4, OMAP5, DRA7 have same number of locks, and
-> AM33xx/AM43xx have a different number). The number of locks is directly
-> read by the driver from a module register. There is no separate .data
-> associated with the of_device_id table, so I used a single compatible
-> property for all the SoCs.
+From: J Keerthy <j-keerthy@ti.com>
 
-Ok. Probeability is good, it keeps these simpler :)
+regulator smps123 supply from Palmas PMIC powers CPU0 on DRA7 EVM.
 
-I think This can be reworded to say "should contain" rather than "currently
-supports only":
+[nm@ti.com: rebase to latest]
+Signed-off-by: Nishanth Menon <nm@ti.com>
+Signed-off-by: J Keerthy <j-keerthy@ti.com>
+---
+ arch/arm/boot/dts/dra7-evm.dts |    4 ++++
+ arch/arm/boot/dts/dra7.dtsi    |    2 +-
+ 2 files changed, 5 insertions(+), 1 deletion(-)
 
-- compatible:		Should contain "ti,omap4-hwspinlock" for
-			OMAP44xx, OMAP54xx, AM33xx, AM43xx, or DRA7xx SoCs
-
-That way the binding allows for a future backwards-compatible variant, and
-doesn't mention the current level of support in Linux.
-
-> 
-> > 
-> >>> +- reg:			Contains the hwspinlock register address range (base
-> >>> +			address and length)
-> > 
-> > Is there only one register bank for the hwlock module?
-> 
-> The lock registers start at a certain offset (0x800) within the module
-> register space, and the offsets for various registers are identical
-> between all SoCs.
-
-What are the other registers within the module? Are they shared with other
-devices, or are they simply unused by the hwspinlock driver?
-
-> 
-> > 
-> >>> +- ti,hwmods:		Name of the hwmod associated with the hwspinlock device
-> >>> +
-> >>> +Common hwlock properties:
-> >>> +The following describes the usage of the common hwlock properties (defined in
-> >>> +Documentation/devicetree/bindings/hwlock/hwlock.txt) on OMAP.
-> >>> +
-> >>> +- hwlock-base-id:	There are currently no OMAP SoCs with multiple
-> >>> +			hwspinlock devices. The OMAP driver uses a default
-> >>> +			base id value of 0 for the locks present within the
-> >>> +			single hwspinlock device on all SoCs.
-> > 
-> > 
-> > Driver details should not leak into bindngs...
-> 
-> OK, will remove the info on driver details.
-> 
-> > 
-> > As mentioned in the other patch, I don't think this is the way to handle
-> > this. I think we need a phandle + args representation.
-> 
-> This is an optional parameter for now and I was going to revise the
-> description based on comments from Kumar Gala on this thread, but I will
-> wait and adjust this based on the outcome on the first patch.
-
-Ok.
-
-> 
-> > 
-> >>> +- hwlock-num-locks:	This property is not required on OMAP SoCs, since the
-> >>> +			number of locks present within a device can be deduced
-> >>> +			from the SPINLOCK_SYSSTATUS device register.
-> > 
-> > Huh? Why define this property at all here if we don't need it and don't
-> > use it?
-> > 
-> > The common document should state that specific bindings may use it and
-> > should explicitly state if they do, rather than stating they don't...
-> 
-> Yeah, I wasn't sure how to go about the split between the common file
-> and the platform-specific bindings. I will clean this up and revise the
-> common bindings.
-
-Ok.
-
-Cheers,
-Mark.
-> 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
+index 3abf5f4..5babba0 100644
+--- a/arch/arm/boot/dts/dra7-evm.dts
++++ b/arch/arm/boot/dts/dra7-evm.dts
+@@ -269,3 +269,7 @@
+ 	vmmc-supply = <&mmc2_3v3>;
+ 	bus-width = <8>;
+ };
++
++&cpu0 {
++	cpu0-supply = <&smps123_reg>;
++};
+diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+index c98997b..02e430b 100644
+--- a/arch/arm/boot/dts/dra7.dtsi
++++ b/arch/arm/boot/dts/dra7.dtsi
+@@ -32,7 +32,7 @@
+ 		#address-cells = <1>;
+ 		#size-cells = <0>;
+ 
+-		cpu@0 {
++		cpu0: cpu@0 {
+ 			device_type = "cpu";
+ 			compatible = "arm,cortex-a15";
+ 			reg = <0>;
+-- 
+1.7.9.5
