@@ -1,61 +1,80 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH v4 09/10] ARM/dts: am335x-evm: Add audio support for am335x-evm.dts
-Date: Wed, 9 Oct 2013 11:12:11 +0300
-Message-ID: <52550FDB.4010401@ti.com>
-References: <cover.1381259962.git.jsarha@ti.com> <1acef783bb6add9598add8214edd70f15e66e4ad.1381259962.git.jsarha@ti.com>
+From: Benoit Cousson <bcousson@baylibre.com>
+Subject: Re: [PATCH 3/3] ARM: OMAP2+: Let DT say what devices should not to
+ idled or reset
+Date: Wed, 09 Oct 2013 10:19:01 +0200
+Message-ID: <52551175.3070705@baylibre.com>
+References: <1376983966-16490-1-git-send-email-rnayak@ti.com> <1376983966-16490-4-git-send-email-rnayak@ti.com> <alpine.DEB.2.02.1310090720230.30199@utopia.booyaka.com> <525507A4.9010308@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-15;
+	format=flowed
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:35071 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751952Ab3JIIMW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 9 Oct 2013 04:12:22 -0400
-In-Reply-To: <1acef783bb6add9598add8214edd70f15e66e4ad.1381259962.git.jsarha@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <525507A4.9010308@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jyri Sarha <jsarha@ti.com>, alsa-devel@alsa-project.org, devicetree@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, broonie@kernel.org, mark.rutland@arm.com, joelf@ti.com, Darren Etheridge <detheridge@ti.com>
 
-Hi Jyri,
+Hi Rajendra,
 
-On 10/08/2013 10:36 PM, Jyri Sarha wrote:
-> @@ -407,6 +442,25 @@
-> =20
->  #include "tps65910.dtsi"
-> =20
-> +&mcasp1 {
-> +		pinctrl-names =3D "default";
-> +		pinctrl-0 =3D <&am335x_evm_audio_pins>;
-> +
-> +		status =3D "okay";
-> +
-> +		op-mode =3D <0>;          /* MCASP_IIS_MODE */
-> +		tdm-slots =3D <2>;
-> +		/* 16 serializer */
-> +		serial-dir =3D <  /* 0: INACTIVE, 1: TX, 2: RX */
-> +			0 0 1 2
-> +			0 0 0 0
-> +			0 0 0 0
-> +			0 0 0 0
-> +		>;
+On 09/10/2013 09:37, Rajendra Nayak wrote:
+> On Wednesday 09 October 2013 12:54 PM, Paul Walmsley wrote:
+>> Hi Beno=EEt, Rajendra,
+>>
+>> On Tue, 20 Aug 2013, Rajendra Nayak wrote:
+>>
+>>> Now that we have DT bindings to specify which devices on the SoC sh=
+ould not
+>>> be reset or idled, get rid of the same information existing as part=
+ of the
+>>> hwmod data files and pass this info from DT instead.
+>>>
+>>> For GPMC, the HWMOD_INIT_NO_RESET flag seems to be added in hwmod n=
+ot due to
+>>> any errata around the GPMC IP, but rather because any timings
+>>> set by the bootloader are not being correctly programmed by the ker=
+nel.
+>>> This seems like something that needs to be fixed as part of GPMC dr=
+iver
+>>> in the kernel, and hence the flag is left as is in hwmod, which can=
+ be
+>>> removed once the driver does what its expected to.
+>>>
+>>> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+>>> ---
+>>>   arch/arm/boot/dts/am33xx.dtsi              |    2 ++
+>>>   arch/arm/boot/dts/omap4.dtsi               |    3 +++
+>>>   arch/arm/boot/dts/omap5.dtsi               |    2 ++
+>>>   arch/arm/mach-omap2/omap_hwmod_33xx_data.c |    4 ++--
+>>>   arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    4 +---
+>>>   arch/arm/mach-omap2/omap_hwmod_54xx_data.c |    2 --
+>>>   6 files changed, 10 insertions(+), 7 deletions(-)
+>>
+>> Looking at this one, maybe the best thing for this patch is for Raje=
+ndra
+>> to split it into two patches.  Beno=EEt can merge the DTS patch firs=
+t, then
+>> I can merge the hwmod side as a cleanup once the first one goes in. =
+ That
+>> will avoid conflicts from other DTS and hwmod changes going into the=
+ tree.
+>>
+>> Rajendra, when you do the split, please add in the DT documentation =
+part
+>> from patch 2.  Am going to strip that out from the second patch and =
+just
+>> merge the hwmod changes.
+>>
+>> Sound good?
+>
+> Sure Paul, I'll repost the complete series with proper splits such th=
+at its
+> easier for you and Benoit to pick them up independently.
 
-The McASP on AM335x have only 4 serializers.
+If you could do it soon, I'm about to send an early pull request to Ton=
+y=20
+to avoid the trouble we had last time.
 
-> +		tx-num-evt =3D <1>;
-> +		rx-num-evt =3D <1>;
-> +};
-> +
->  &tps {
->  	vcc1-supply =3D <&vbat>;
->  	vcc2-supply =3D <&vbat>;
->=20
+Thanks,
+Benoit
 
-
---=20
-P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
