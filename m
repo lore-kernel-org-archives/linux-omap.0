@@ -1,111 +1,88 @@
-From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Subject: [PATCH v3 2/2] ARM: OMAP: igep0020: use display init from dss-common
-Date: Wed,  9 Oct 2013 11:19:19 +0200
-Message-ID: <1381310359-20668-3-git-send-email-javier.martinez@collabora.co.uk>
-References: <1381310359-20668-1-git-send-email-javier.martinez@collabora.co.uk>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH v3 2/2] ARM: OMAP: igep0020: use display init from dss-common
+Date: Wed, 9 Oct 2013 12:27:13 +0300
+Message-ID: <52552171.6050002@ti.com>
+References: <1381310359-20668-1-git-send-email-javier.martinez@collabora.co.uk> <1381310359-20668-3-git-send-email-javier.martinez@collabora.co.uk>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="cHihXmsdoM4Cjhhp8LIdt4AI70JA76RBw"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([93.93.135.160]:42137 "EHLO
-	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752021Ab3JIJU0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Oct 2013 05:20:26 -0400
-In-Reply-To: <1381310359-20668-1-git-send-email-javier.martinez@collabora.co.uk>
+Received: from bear.ext.ti.com ([192.94.94.41]:44779 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751536Ab3JIJ1b (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 9 Oct 2013 05:27:31 -0400
+In-Reply-To: <1381310359-20668-3-git-send-email-javier.martinez@collabora.co.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Tomy Valkeinen <tomi.valkeinen@ti.com>, Enric Balletbo i Serra <eballetbo@gmail.com>, bcousson@baylibre.com, linux-omap@vger.kernel.org, Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+To: Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Tony Lindgren <tony@atomide.com>
+Cc: Enric Balletbo i Serra <eballetbo@gmail.com>, bcousson@baylibre.com, linux-omap@vger.kernel.org
 
-Now that display information and setup is made from dss-common
-there is no need to have this code in the board file.
+--cHihXmsdoM4Cjhhp8LIdt4AI70JA76RBw
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
----
+On 09/10/13 12:19, Javier Martinez Canillas wrote:
+> Now that display information and setup is made from dss-common
+> there is no need to have this code in the board file.
+>=20
+> Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.u=
+k>
+> ---
+>=20
+> Changes since v2:
+>  - None, this is a new patch added for v3.
+>=20
+>  arch/arm/mach-omap2/board-igep0020.c | 41 +++-------------------------=
+--------
+>  1 file changed, 3 insertions(+), 38 deletions(-)
+>=20
+> diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2=
+/board-igep0020.c
+> index 06dbb2d..d648d50 100644
+> --- a/arch/arm/mach-omap2/board-igep0020.c
+> +++ b/arch/arm/mach-omap2/board-igep0020.c
+> @@ -43,6 +43,7 @@
+>  #include "board-flash.h"
+>  #include "control.h"
+>  #include "gpmc-onenand.h"
+> +#include "dss-common.h"
 
-Changes since v2:
- - None, this is a new patch added for v3.
+I didn't try, but I think these can be now removed from the board file:
 
- arch/arm/mach-omap2/board-igep0020.c | 41 +++---------------------------------
- 1 file changed, 3 insertions(+), 38 deletions(-)
+#include <video/omapdss.h>
+#include <video/omap-panel-data.h>
 
-diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
-index 06dbb2d..d648d50 100644
---- a/arch/arm/mach-omap2/board-igep0020.c
-+++ b/arch/arm/mach-omap2/board-igep0020.c
-@@ -43,6 +43,7 @@
- #include "board-flash.h"
- #include "control.h"
- #include "gpmc-onenand.h"
-+#include "dss-common.h"
- 
- #define IGEP2_SMSC911X_CS       5
- #define IGEP2_SMSC911X_GPIO     176
-@@ -50,7 +51,6 @@
- #define IGEP2_GPIO_LED0_GREEN   26
- #define IGEP2_GPIO_LED0_RED     27
- #define IGEP2_GPIO_LED1_RED     28
--#define IGEP2_GPIO_DVI_PUP      170
- 
- #define IGEP2_RB_GPIO_WIFI_NPD     94
- #define IGEP2_RB_GPIO_WIFI_NRESET  95
-@@ -429,41 +429,6 @@ static struct twl4030_gpio_platform_data igep_twl4030_gpio_pdata = {
- 	.setup		= igep_twl_gpio_setup,
- };
- 
--static struct connector_dvi_platform_data omap3stalker_dvi_connector_pdata = {
--	.name                   = "dvi",
--	.source                 = "tfp410.0",
--	.i2c_bus_num            = 3,
--};
--
--static struct platform_device omap3stalker_dvi_connector_device = {
--	.name                   = "connector-dvi",
--	.id                     = 0,
--	.dev.platform_data      = &omap3stalker_dvi_connector_pdata,
--};
--
--static struct encoder_tfp410_platform_data omap3stalker_tfp410_pdata = {
--	.name                   = "tfp410.0",
--	.source                 = "dpi.0",
--	.data_lines             = 24,
--	.power_down_gpio        = IGEP2_GPIO_DVI_PUP,
--};
--
--static struct platform_device omap3stalker_tfp410_device = {
--	.name                   = "tfp410",
--	.id                     = 0,
--	.dev.platform_data      = &omap3stalker_tfp410_pdata,
--};
--
--static struct omap_dss_board_info igep2_dss_data = {
--	.default_display_name = "dvi",
--};
--
--static struct platform_device *igep_devices[] __initdata = {
--	&igep_vwlan_device,
--	&omap3stalker_tfp410_device,
--	&omap3stalker_dvi_connector_device,
--};
--
- static int igep2_keymap[] = {
- 	KEY(0, 0, KEY_LEFT),
- 	KEY(0, 1, KEY_RIGHT),
-@@ -663,7 +628,8 @@ static void __init igep_init(void)
- 
- 	/* Register I2C busses and drivers */
- 	igep_i2c_init();
--	platform_add_devices(igep_devices, ARRAY_SIZE(igep_devices));
-+	platform_device_register(&igep_vwlan_device);
-+	omap3_igep2_display_init_of();
- 	omap_serial_init();
- 	omap_sdrc_init(m65kxxxxam_sdrc_params,
- 				  m65kxxxxam_sdrc_params);
-@@ -681,7 +647,6 @@ static void __init igep_init(void)
- 	igep_wlan_bt_init();
- 
- 	if (machine_is_igep0020()) {
--		omap_display_init(&igep2_dss_data);
- 		igep2_init_smsc911x();
- 		usbhs_init_phys(igep2_phy_data, ARRAY_SIZE(igep2_phy_data));
- 		usbhs_init(&igep2_usbhs_bdata);
--- 
-1.8.4.rc3
+For the series:
 
+Acked-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+
+ Tomi
+
+
+
+--cHihXmsdoM4Cjhhp8LIdt4AI70JA76RBw
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJSVSFxAAoJEPo9qoy8lh715wYP/2y3nUCKM7JsdmjF06GIo35r
+EpS2ppR+tlxsjIDVeX87I7mclGwniNra4m1UQxtQTfSSKEIzj3+Ll5t5hFWB0Cv1
+6ry8Nugizymryi3DDlHZ/cHLYEzz+QO4N+36wB/HX3moduA+nWEd9mu7Lp5yXnSf
+9ZP4WStMP+219VM64QPuoXzgc59M0G1r86O8DP6uqzqgS/4HPTd77WZVrENo4kdB
+7iDBUAJZhmg20vAOjwB/lQM5yjTXzBu6WGbh7/cUuxZuWWnu1/0vH59tDOVQ+Ax2
+VaFXkZBpNEaUmgCu31xEUaLv1JBQenazvtZcGgbW8dYw31upYJUqkNkAB05NiKCR
+yjWlvZotd3RxU2F+bSlgOkI4LyHesWLJRDKQ7064GkOqgUNUKgYmEVZjbT+LRHuB
+TkH7X6bL6NQyEwqtQUGsdFj42cXqommv73NqCyD9bbg22weX1e+8de0/C/8p8R0l
+gbn76lf7ozXRWVdVkFJot16LfzHw0ID9SUcFCjlcxLLaJa6xyGfIEpVIkgho5k7J
+xzkqZPSA71xfvQKtroi8TYX93Qia6D7X0bXJyHyByfYpFlf1HhCaVJdyCd8ysL+l
+63hWmatgtZpxmj4W/GHQK3mOAF7RzxlNg5K6VpTA/rn8qbbfbBYC0MwCqdrsRCC/
+LjWKRV9NjQdhzDsYOrS9
+=UQFC
+-----END PGP SIGNATURE-----
+
+--cHihXmsdoM4Cjhhp8LIdt4AI70JA76RBw--
