@@ -1,25 +1,25 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+From: Sricharan R <r.sricharan@ti.com>
 Subject: Re: [PATCH V4] ARM: OMAP5/DRA7: realtime_counter: Configure CNTFRQ
  register
-Date: Wed, 9 Oct 2013 09:18:09 -0400
-Message-ID: <52555791.10906@ti.com>
-References: <1379520162-31932-1-git-send-email-r.sricharan@ti.com> <524D44B9.30208@ti.com> <20131008214523.GU8313@atomide.com> <525481A2.4020900@ti.com> <525556DD.7040200@ti.com> <5255573A.8050805@ti.com>
+Date: Wed, 9 Oct 2013 18:50:23 +0530
+Message-ID: <52555817.7070703@ti.com>
+References: <1379520162-31932-1-git-send-email-r.sricharan@ti.com> <524D44B9.30208@ti.com> <20131008214523.GU8313@atomide.com> <525481A2.4020900@ti.com> <525556DD.7040200@ti.com> <5255575A.1040002@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:45917 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:53209 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752616Ab3JINSf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 9 Oct 2013 09:18:35 -0400
-In-Reply-To: <5255573A.8050805@ti.com>
+	id S1753060Ab3JINUy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 9 Oct 2013 09:20:54 -0400
+In-Reply-To: <5255575A.1040002@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sricharan R <r.sricharan@ti.com>
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
 Cc: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, rnayak@ti.com, nm@ti.com, marc.zyngier@arm.com, mark.rutland@arm.com
 
-On Wednesday 09 October 2013 09:16 AM, Sricharan R wrote:
-> On Wednesday 09 October 2013 06:45 PM, Sricharan R wrote:
+On Wednesday 09 October 2013 06:47 PM, Santosh Shilimkar wrote:
+> On Wednesday 09 October 2013 09:15 AM, Sricharan R wrote:
 >> Santosh,
 >>
 >> On Wednesday 09 October 2013 03:35 AM, Santosh Shilimkar wrote:
@@ -94,7 +94,12 @@ On Wednesday 09 October 2013 09:16 AM, Sricharan R wrote:
 >>> read the CNTFREQ and pass that to SMC.
 >> Sorry,  I did not quite get you here. You mean an asm accessor to
 >>  the read the variable that is set in timer.c ?
->  Also, is it not ok to move the extern to a .h file instead ?
-> 
-I think you can avoid that variable export with above suggestion
+>>
+> Reading CNTFREQ CP15 directly....
+>
+  Sorry, Still not clear. CNTFREQ is per-cpu register. So when
+ the secondary cpu init happens on CPU1, then you mean we will have
+ to read it from CPU0 register and pass it for secondary ?
 
+Regards,
+ Sricharan
