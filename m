@@ -1,131 +1,43 @@
-From: Benoit Cousson <bcousson@baylibre.com>
-Subject: Re: [PATCH v2 2/5] ARM: dts: omap: Add new bindings for OMAP
-Date: Wed, 09 Oct 2013 17:13:44 +0200
-Message-ID: <525572A8.9060401@baylibre.com>
-References: <1381313521-10422-1-git-send-email-rnayak@ti.com> <1381313521-10422-3-git-send-email-rnayak@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2 5/6] Revert "ARM: OMAP2+: Provide alias to USB PHY
+ clock"
+Date: Wed, 9 Oct 2013 08:15:23 -0700
+Message-ID: <20131009151522.GA8313@atomide.com>
+References: <1381226799-29158-1-git-send-email-rogerq@ti.com>
+ <1381226799-29158-6-git-send-email-rogerq@ti.com>
+ <52550180.1000506@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <1381313521-10422-3-git-send-email-rnayak@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>, paul@pwsan.com, tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <52550180.1000506@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: bcousson@baylibre.com, balbi@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Rajendra,
+* Roger Quadros <rogerq@ti.com> [131009 00:19]:
+> Hi Tony,
+> 
+> On 10/08/2013 01:06 PM, Roger Quadros wrote:
+> > This reverts commit 741532c4a995be11815cb72d4d7a48f442a22fea.
+> > 
+> > The proper clock reference is provided in device tree so we
+> > no longer need this.
+> 
+> Could you please Ack this one? I think it is best if it goes through Benoit's tree.
 
-On 09/10/2013 12:11, Rajendra Nayak wrote:
-> On OMAP we have co-processor IPs, memory controllers,
-> GPIOs which control regulators and power switches to
-> PMIC, and SoC internal Bus IPs, some or most of which
-> should either not be reset or idled or both at init.
-> (In some cases there are erratas which prevent an IP
-> from being reset)
-> Have a way to pass this information from DT.
+I could queue this into my board removal series that will be
+based on Benoit's branch if that works for you. And this
+also seems to depend on the omap-for-v3.13/quirk branch
+that moves all the legacy pdata handling into pdata-quirks.c.
 
-Did you get some acked-by from the DT maintainers?
-Every new bindings must be carefully reviewed now.
+The reason for this is that we want to keep the .dts changes
+completely separate from the code changes to avoid dependencies
+that cause pointless merge conflicts. And the .dts files will
+be moved to live in a separate repo soonish, so it's good
+to be prepared for that.
 
 Regards,
-Benoit
 
->
-> Update the am33xx/omap4 and omap5 dtsi files with the
-> new bindings for modules which either should not be
-> idled. reset or both. A later patch would cleanup the
-> same information that exists today as part of the hwmod
-> data files.
->
-> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-> ---
->   .../devicetree/bindings/arm/omap/omap.txt          |    3 ++-
->   arch/arm/boot/dts/am33xx.dtsi                      |    2 ++
->   arch/arm/boot/dts/omap4.dtsi                       |    3 +++
->   arch/arm/boot/dts/omap5.dtsi                       |    2 ++
->   4 files changed, 9 insertions(+), 1 deletion(-)
->
-> diff --git a/Documentation/devicetree/bindings/arm/omap/omap.txt b/Documentation/devicetree/bindings/arm/omap/omap.txt
-> index 91b7049..808c154 100644
-> --- a/Documentation/devicetree/bindings/arm/omap/omap.txt
-> +++ b/Documentation/devicetree/bindings/arm/omap/omap.txt
-> @@ -21,7 +21,8 @@ Required properties:
->   Optional properties:
->   - ti,no_idle_on_suspend: When present, it prevents the PM to idle the module
->     during suspend.
-> -
-> +- ti,no-reset-on-init: When present, the module should not be reset at init
-> +- ti,no-idle-on-init: When present, the module should not be idled at init
->
->   Example:
->
-> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-> index f9c5da9..ec33ea0 100644
-> --- a/arch/arm/boot/dts/am33xx.dtsi
-> +++ b/arch/arm/boot/dts/am33xx.dtsi
-> @@ -607,6 +607,7 @@
->   			reg = <0x44d00000 0x4000	/* M3 UMEM */
->   			       0x44d80000 0x2000>;	/* M3 DMEM */
->   			ti,hwmods = "wkup_m3";
-> +			ti,no-reset-on-init;
->   		};
->
->   		elm: elm@48080000 {
-> @@ -637,6 +638,7 @@
->   		gpmc: gpmc@50000000 {
->   			compatible = "ti,am3352-gpmc";
->   			ti,hwmods = "gpmc";
-> +			ti,no-idle-on-init;
->   			reg = <0x50000000 0x2000>;
->   			interrupts = <100>;
->   			gpmc,num-cs = <7>;
-> diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-> index 22d9f2b..e8fe797 100644
-> --- a/arch/arm/boot/dts/omap4.dtsi
-> +++ b/arch/arm/boot/dts/omap4.dtsi
-> @@ -214,6 +214,7 @@
->   			gpmc,num-cs = <8>;
->   			gpmc,num-waitpins = <4>;
->   			ti,hwmods = "gpmc";
-> +			ti,no-idle-on-init;
->   		};
->
->   		uart1: serial@4806a000 {
-> @@ -492,6 +493,7 @@
->   			reg = <0x4c000000 0x100>;
->   			interrupts = <GIC_SPI 110 IRQ_TYPE_LEVEL_HIGH>;
->   			ti,hwmods = "emif1";
-> +			ti,no-idle-on-init;
->   			phy-type = <1>;
->   			hw-caps-read-idle-ctrl;
->   			hw-caps-ll-interface;
-> @@ -503,6 +505,7 @@
->   			reg = <0x4d000000 0x100>;
->   			interrupts = <GIC_SPI 111 IRQ_TYPE_LEVEL_HIGH>;
->   			ti,hwmods = "emif2";
-> +			ti,no-idle-on-init;
->   			phy-type = <1>;
->   			hw-caps-read-idle-ctrl;
->   			hw-caps-ll-interface;
-> diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-> index 7cdea1b..a9d49df 100644
-> --- a/arch/arm/boot/dts/omap5.dtsi
-> +++ b/arch/arm/boot/dts/omap5.dtsi
-> @@ -607,6 +607,7 @@
->   		emif1: emif@0x4c000000 {
->   			compatible	= "ti,emif-4d5";
->   			ti,hwmods	= "emif1";
-> +			ti,no-idle-on-init;
->   			phy-type	= <2>; /* DDR PHY type: Intelli PHY */
->   			reg = <0x4c000000 0x400>;
->   			interrupts = <GIC_SPI 110 IRQ_TYPE_LEVEL_HIGH>;
-> @@ -618,6 +619,7 @@
->   		emif2: emif@0x4d000000 {
->   			compatible	= "ti,emif-4d5";
->   			ti,hwmods	= "emif2";
-> +			ti,no-idle-on-init;
->   			phy-type	= <2>; /* DDR PHY type: Intelli PHY */
->   			reg = <0x4d000000 0x400>;
->   			interrupts = <GIC_SPI 111 IRQ_TYPE_LEVEL_HIGH>;
->
-
+Tony
