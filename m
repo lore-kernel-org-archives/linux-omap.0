@@ -1,25 +1,21 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH V6 05/15] ARM: OMAP2+: DRA7: add lateinit hook for calling pm late init
-Date: Wed, 9 Oct 2013 18:24:48 -0500
-Message-ID: <1381361098-8283-4-git-send-email-nm@ti.com>
+Subject: [PATCH V6 06/15] ARM: OMAP3+: use cpu0-cpufreq driver in device tree supported boot
+Date: Wed, 9 Oct 2013 18:24:49 -0500
+Message-ID: <1381361098-8283-5-git-send-email-nm@ti.com>
 References: <1381354144-7134-1-git-send-email-nm@ti.com>
  <1381361098-8283-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:52897 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756983Ab3JIXZf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 9 Oct 2013 19:25:35 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1381361098-8283-1-git-send-email-nm@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Kevin Hilman <khilman@linaro.org>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>
 Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-doc@vger.kernel.org, devicetree@vger.kernel.org, Nishanth Menon <nm@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Paul Walmsley <paul@pwsan.com>
+List-Id: linux-omap@vger.kernel.org
 
-Call OMAP2+ generic lateinit hook from DRA7 specific late init hook.
-This allows the generic late initializations such as cpufreq hooks
-to be active.
+With OMAP3+ and AM33xx supported SoC having defined CPU device tree
+entries with operating-points and clock nodes defined, we can now use
+the SoC generic cpufreq-cpu0 driver by registering appropriate device.
 
 Cc: Benoit Cousson <bcousson@baylibre.com>
 Cc: Kevin Hilman <khilman@deeprootsystems.com>
@@ -27,52 +23,40 @@ Cc: Paul Walmsley <paul@pwsan.com>
 Cc: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Nishanth Menon <nm@ti.com>
 ---
- arch/arm/mach-omap2/board-generic.c |    1 +
- arch/arm/mach-omap2/common.h        |    1 +
- arch/arm/mach-omap2/io.c            |    6 ++++++
- 3 files changed, 8 insertions(+)
+ arch/arm/mach-omap2/pm.c |   12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
-index 67dbae2..c0b0848 100644
---- a/arch/arm/mach-omap2/board-generic.c
-+++ b/arch/arm/mach-omap2/board-generic.c
-@@ -255,6 +255,7 @@ DT_MACHINE_START(DRA7XX_DT, "Generic DRA7XX (Flattened Device Tree)")
- 	.smp		= smp_ops(omap4_smp_ops),
- 	.map_io		= omap5_map_io,
- 	.init_early	= dra7xx_init_early,
-+	.init_late	= dra7xx_init_late,
- 	.init_irq	= omap_gic_of_init,
- 	.init_machine	= omap_generic_init,
- 	.init_time	= omap5_realtime_timer_init,
-diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
-index ceb208b..352fa9d 100644
---- a/arch/arm/mach-omap2/common.h
-+++ b/arch/arm/mach-omap2/common.h
-@@ -114,6 +114,7 @@ void am33xx_init_late(void);
- void omap5_init_late(void);
- int omap2_common_pm_late_init(void);
- void dra7xx_init_early(void);
-+void dra7xx_init_late(void);
+diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+index e742118..360b2da 100644
+--- a/arch/arm/mach-omap2/pm.c
++++ b/arch/arm/mach-omap2/pm.c
+@@ -266,7 +266,12 @@ static void __init omap4_init_voltages(void)
  
- #ifdef CONFIG_SOC_BUS
- void omap_soc_device_init(void);
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index 6226e0d..3b7b543 100644
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -702,6 +702,12 @@ void __init dra7xx_init_early(void)
- 	omap_hwmod_init_postsetup();
- 	omap_clk_init = dra7xx_dt_clk_init;
+ static inline void omap_init_cpufreq(void)
+ {
+-	struct platform_device_info devinfo = { .name = "omap-cpufreq", };
++	struct platform_device_info devinfo = { };
++
++	if (!of_have_populated_dt())
++		devinfo.name = "omap-cpufreq";
++	else
++		devinfo.name = "cpufreq-cpu0";
+ 	platform_device_register_full(&devinfo);
  }
+ 
+@@ -300,10 +305,11 @@ int __init omap2_common_pm_late_init(void)
+ 		/* Smartreflex device init */
+ 		omap_devinit_smartreflex();
+ 
+-		/* cpufreq dummy device instantiation */
+-		omap_init_cpufreq();
+ 	}
+ 
++	/* cpufreq dummy device instantiation */
++	omap_init_cpufreq();
 +
-+void __init dra7xx_init_late(void)
-+{
-+	omap2_common_pm_late_init();
-+}
-+
+ #ifdef CONFIG_SUSPEND
+ 	suspend_set_ops(&omap_pm_ops);
  #endif
- 
- 
 -- 
 1.7.9.5
-
