@@ -1,67 +1,61 @@
-From: Illia Smyrnov <illia.smyrnov@globallogic.com>
-Subject: [PATCH] spi: omap2-mcspi: Fix FIFO support for transmit-and-receive mode
-Date: Wed,  9 Oct 2013 15:05:08 +0300
-Message-ID: <1381320308-25258-1-git-send-email-illia.smyrnov@globallogic.com>
+From: <y@dflp33.itg.ti.com>
+Subject: [PATCH v4.1 08/10] ARM/dts: am33xx: mcasp: Add location for data port registers to reg-property
+Date: Wed, 9 Oct 2013 15:44:34 +0300
+Message-ID: <32448.7835089259$1381322718@news.gmane.org>
+References: <525513F8.1040103@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from exprod5og108.obsmtp.com ([64.18.0.186]:39487 "EHLO
-	exprod5og108.obsmtp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753549Ab3JIMFN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Oct 2013 08:05:13 -0400
-Received: by mail-ea0-f171.google.com with SMTP id n15so348837ead.30
-        for <linux-omap@vger.kernel.org>; Wed, 09 Oct 2013 05:05:11 -0700 (PDT)
+Received: from bear.ext.ti.com ([192.94.94.41]:51667 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751245Ab3JIMpC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 9 Oct 2013 08:45:02 -0400
+In-Reply-To: <525513F8.1040103@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: linux-spi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Illia Smyrnov <illia.smyrnov@ti.com>
+To: alsa-devel@alsa-project.org, devicetree@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, broonie@kernel.org, mark.rutland@arm.com, joelf@ti.com, Jyri Sarha <jsarha@ti.com>, "Hebbar, Gururaja" <gururaja.hebbar@ti.com>, Darren Etheridge <detheridge@ti.com>
 
-This patch fixes MCSPI FIFO buffer support when transmit-and-receive
-(full duplex) mode is used. In this mode FIFO can be used for RX or
-for TX or for both directions. If FIFO used for both directions the buffer
-is split into two 32-byte buffers - one for each direction.
-Also for full duplex mode both AEL and AFL need to be set in CHCONF0 register.
+From: Jyri Sarha <jsarha@ti.com>
 
-Signed-off-by: Illia Smyrnov <illia.smyrnov@globallogic.com>
+This patch adds a second tuple to reg property. The new property tuple
+describes the memory location for data port registers mapped trough
+L3 bus on am33xx. The both property tuples are named accordingly in
+the reg-names property.
+
+Signed-off-by: Hebbar, Gururaja <gururaja.hebbar@ti.com>
+Signed-off-by: Darren Etheridge <detheridge@ti.com>
+Signed-off-by: Jyri Sarha <jsarha@ti.com>
 ---
- drivers/spi/spi-omap2-mcspi.c |   12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+ arch/arm/boot/dts/am33xx.dtsi |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mcspi.c
-index ed4af47..32dca0c 100644
---- a/drivers/spi/spi-omap2-mcspi.c
-+++ b/drivers/spi/spi-omap2-mcspi.c
-@@ -276,7 +276,7 @@ static void omap2_mcspi_set_fifo(const struct spi_device *spi,
- 	struct omap2_mcspi_cs *cs = spi->controller_state;
- 	struct omap2_mcspi *mcspi;
- 	unsigned int wcnt;
--	int fifo_depth, bytes_per_word;
-+	int max_fifo_depth, fifo_depth, bytes_per_word;
- 	u32 chconf, xferlevel;
- 
- 	mcspi = spi_master_get_devdata(master);
-@@ -287,7 +287,12 @@ static void omap2_mcspi_set_fifo(const struct spi_device *spi,
- 		if (t->len % bytes_per_word != 0)
- 			goto disable_fifo;
- 
--		fifo_depth = gcd(t->len, OMAP2_MCSPI_MAX_FIFODEPTH);
-+		if (t->rx_buf != NULL && t->tx_buf != NULL)
-+			max_fifo_depth = OMAP2_MCSPI_MAX_FIFODEPTH / 2;
-+		else
-+			max_fifo_depth = OMAP2_MCSPI_MAX_FIFODEPTH;
-+
-+		fifo_depth = gcd(t->len, max_fifo_depth);
- 		if (fifo_depth < 2 || fifo_depth % bytes_per_word != 0)
- 			goto disable_fifo;
- 
-@@ -299,7 +304,8 @@ static void omap2_mcspi_set_fifo(const struct spi_device *spi,
- 		if (t->rx_buf != NULL) {
- 			chconf |= OMAP2_MCSPI_CHCONF_FFER;
- 			xferlevel |= (fifo_depth - 1) << 8;
--		} else {
-+		}
-+		if (t->tx_buf != NULL) {
- 			chconf |= OMAP2_MCSPI_CHCONF_FFET;
- 			xferlevel |= fifo_depth - 1;
- 		}
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index 22659e7..4a86762 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -671,7 +671,9 @@
+ 		mcasp0: mcasp@48038000 {
+ 			compatible = "ti,omap2-mcasp-audio";
+ 			ti,hwmods = "mcasp0";
+-			reg = <0x48038000 0x2000>;
++			reg = <0x48038000 0x2000>,
++			      <0x46000000 0x400000>;
++			reg-names = "mpu", "dat";
+ 			interrupts = <80>, <81>;
+ 			interrupts-names = "tx", "rx";
+ 			status = "disabled";
+@@ -683,7 +685,9 @@
+ 		mcasp1: mcasp@4803C000 {
+ 			compatible = "ti,omap2-mcasp-audio";
+ 			ti,hwmods = "mcasp1";
+-			reg = <0x4803C000 0x2000>;
++			reg = <0x4803C000 0x2000>,
++			      <0x46400000 0x400000>;
++			reg-names = "mpu", "dat";
+ 			interrupts = <82>, <83>;
+ 			interrupts-names = "tx", "rx";
+ 			status = "disabled";
 -- 
 1.7.9.5
 
