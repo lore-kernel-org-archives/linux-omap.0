@@ -1,80 +1,74 @@
-From: Benoit Cousson <bcousson@baylibre.com>
-Subject: Re: [PATCH 3/3] ARM: OMAP2+: Let DT say what devices should not to
- idled or reset
-Date: Wed, 09 Oct 2013 10:19:01 +0200
-Message-ID: <52551175.3070705@baylibre.com>
-References: <1376983966-16490-1-git-send-email-rnayak@ti.com> <1376983966-16490-4-git-send-email-rnayak@ti.com> <alpine.DEB.2.02.1310090720230.30199@utopia.booyaka.com> <525507A4.9010308@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH v4 08/10] ARM/dts: am33xx: mcasp: Add location for data
+ port registers to reg-property
+Date: Wed, 9 Oct 2013 11:29:44 +0300
+Message-ID: <525513F8.1040103@ti.com>
+References: <cover.1381259962.git.jsarha@ti.com> <37c7ee5f2eab24df86baba1bd36da66c5a637744.1381259962.git.jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15;
-	format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <525507A4.9010308@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:42335 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751942Ab3JII34 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 9 Oct 2013 04:29:56 -0400
+In-Reply-To: <37c7ee5f2eab24df86baba1bd36da66c5a637744.1381259962.git.jsarha@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jyri Sarha <jsarha@ti.com>, alsa-devel@alsa-project.org, devicetree@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, broonie@kernel.org, mark.rutland@arm.com, joelf@ti.com, "Hebbar, Gururaja" <gururaja.hebbar@ti.com>, Darren Etheridge <detheridge@ti.com>
 
-Hi Rajendra,
+On 10/08/2013 10:36 PM, Jyri Sarha wrote:
+> This patch adds a second tuple to reg property. The new property tupl=
+e
+> describes the memory location for data port registers mapped trough
+> L3 bus on am33xx. The both property tuples are named accordingly in
+> the reg-names property.
+>=20
+> Signed-off-by: Hebbar, Gururaja <gururaja.hebbar@ti.com>
+> Signed-off-by: Darren Etheridge <detheridge@ti.com>
+> Signed-off-by: Jyri Sarha <jsarha@ti.com>
+> ---
+>  arch/arm/boot/dts/am33xx.dtsi |    8 ++++++--
+>  1 file changed, 6 insertions(+), 2 deletions(-)
+>=20
+> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx=
+=2Edtsi
+> index 22659e7..c8ba19e 100644
+> --- a/arch/arm/boot/dts/am33xx.dtsi
+> +++ b/arch/arm/boot/dts/am33xx.dtsi
+> @@ -671,7 +671,9 @@
+>  		mcasp0: mcasp@48038000 {
+>  			compatible =3D "ti,omap2-mcasp-audio";
+>  			ti,hwmods =3D "mcasp0";
+> -			reg =3D <0x48038000 0x2000>;
+> +			reg =3D <0x48038000 0x2000>,
+> +			      <0x46400000 0x400000>;
 
-On 09/10/2013 09:37, Rajendra Nayak wrote:
-> On Wednesday 09 October 2013 12:54 PM, Paul Walmsley wrote:
->> Hi Beno=EEt, Rajendra,
->>
->> On Tue, 20 Aug 2013, Rajendra Nayak wrote:
->>
->>> Now that we have DT bindings to specify which devices on the SoC sh=
-ould not
->>> be reset or idled, get rid of the same information existing as part=
- of the
->>> hwmod data files and pass this info from DT instead.
->>>
->>> For GPMC, the HWMOD_INIT_NO_RESET flag seems to be added in hwmod n=
-ot due to
->>> any errata around the GPMC IP, but rather because any timings
->>> set by the bootloader are not being correctly programmed by the ker=
-nel.
->>> This seems like something that needs to be fixed as part of GPMC dr=
-iver
->>> in the kernel, and hence the flag is left as is in hwmod, which can=
- be
->>> removed once the driver does what its expected to.
->>>
->>> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
->>> ---
->>>   arch/arm/boot/dts/am33xx.dtsi              |    2 ++
->>>   arch/arm/boot/dts/omap4.dtsi               |    3 +++
->>>   arch/arm/boot/dts/omap5.dtsi               |    2 ++
->>>   arch/arm/mach-omap2/omap_hwmod_33xx_data.c |    4 ++--
->>>   arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    4 +---
->>>   arch/arm/mach-omap2/omap_hwmod_54xx_data.c |    2 --
->>>   6 files changed, 10 insertions(+), 7 deletions(-)
->>
->> Looking at this one, maybe the best thing for this patch is for Raje=
-ndra
->> to split it into two patches.  Beno=EEt can merge the DTS patch firs=
-t, then
->> I can merge the hwmod side as a cleanup once the first one goes in. =
- That
->> will avoid conflicts from other DTS and hwmod changes going into the=
- tree.
->>
->> Rajendra, when you do the split, please add in the DT documentation =
-part
->> from patch 2.  Am going to strip that out from the second patch and =
-just
->> merge the hwmod changes.
->>
->> Sound good?
->
-> Sure Paul, I'll repost the complete series with proper splits such th=
-at its
-> easier for you and Benoit to pick them up independently.
+mcasp0 data port is at 0x46000000. 0x46400000 is for mcasp1.
 
-If you could do it soon, I'm about to send an early pull request to Ton=
-y=20
-to avoid the trouble we had last time.
+> +			reg-names =3D "mpu", "dat";
+>  			interrupts =3D <80>, <81>;
+>  			interrupts-names =3D "tx", "rx";
+>  			status =3D "disabled";
+> @@ -683,7 +685,9 @@
+>  		mcasp1: mcasp@4803C000 {
+>  			compatible =3D "ti,omap2-mcasp-audio";
+>  			ti,hwmods =3D "mcasp1";
+> -			reg =3D <0x4803C000 0x2000>;
+> +			reg =3D <0x4803C000 0x2000>,
+> +			      <0x46400000 0x400000>;
+> +			reg-names =3D "mpu", "dat";
+>  			interrupts =3D <82>, <83>;
+>  			interrupts-names =3D "tx", "rx";
+>  			status =3D "disabled";
+>=20
 
-Thanks,
-Benoit
 
+--=20
+P=E9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
