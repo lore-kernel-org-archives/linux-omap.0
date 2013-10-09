@@ -1,48 +1,52 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv7 00/36] ARM: OMAP: clock data conversion to DT
-Date: Wed, 9 Oct 2013 12:24:21 -0700
-Message-ID: <20131009192420.GE8313@atomide.com>
-References: <1380098922-30340-1-git-send-email-t-kristo@ti.com>
- <524EE00F.7010208@ti.com>
- <20131007021556.GV8949@atomide.com>
- <52525642.8010307@ti.com>
- <20131007154103.GW8949@atomide.com>
- <20131007190322.GY8949@atomide.com>
- <alpine.DEB.2.02.1310091551540.30199@utopia.booyaka.com>
- <alpine.DEB.2.02.1310091858411.30199@utopia.booyaka.com>
+From: Joel Fernandes <joelf@ti.com>
+Subject: Re: [PATCH v3] ARM: omap: edma: add suspend suspend/resume hooks
+Date: Wed, 9 Oct 2013 15:14:58 -0500
+Message-ID: <5255B942.5000601@ti.com>
+References: <1380639886-9526-1-git-send-email-zonque@gmail.com> <5254DB86.4000104@ti.com>,<5254E60F.80009@ti.com> <F774F8C9-0A8F-4B27-8607-874FB0901A78@ti.com> <5254F54D.7060709@ti.com> <52550809.2000407@gmail.com> <52556467.7010400@ti.com>
+Reply-To: <joelf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:32805 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753074Ab3JITY1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Oct 2013 15:24:27 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.02.1310091858411.30199@utopia.booyaka.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:45281 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751458Ab3JIUPd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 9 Oct 2013 16:15:33 -0400
+In-Reply-To: <52556467.7010400@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Tero Kristo <t-kristo@ti.com>, mturquette@linaro.org, linux-omap@vger.kernel.org, nm@ti.com, khilman@linaro.org, pdeschrijver@nvidia.com, rnayak@ti.com, bcousson@baylibre.com, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, swarren@nvidia.com, mark.rutland@arm.com
+To: Daniel Mack <zonque@gmail.com>
+Cc: Gururaja Hebbar <gururaja.hebbar@ti.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "neumann@teufel.de" <neumann@teufel.de>, "bigeasy@linutronix.de" <bigeasy@linutronix.de>, "vinod.koul@intel.com" <vinod.koul@intel.com>, "dan.j.williams@intel.com" <dan.j.williams@intel.com>, "Balbi, Felipe" <balbi@ti.com>
 
-* Paul Walmsley <paul@pwsan.com> [131009 12:07]:
-> Eh, one correction:
+On 10/09/2013 09:12 AM, Joel Fernandes wrote:
+> On 10/09/2013 02:38 AM, Daniel Mack wrote:
+[..]
+>> (And the 'v3' in the subject is really my bad, sorry - I only sent one
+>> version of this patch ever).
+>>
+>> I can respin the patch on top of the proper driver once all the edma
+>> bits have eventually been moved to drivers/dma. Is anyone continuing
+>> Matt Porter's work on this?
 > 
-> On Wed, 9 Oct 2013, Paul Walmsley wrote:
-> 
-> > We could easily wind up with kernels that won't boot at all when used 
-> > with newer DT data.
-> 
-> This is a misstatement of the issue: the concern here is that newer 
-> kernels may not boot at all with older DT data - which could easily be in 
-> locked areas of the flash or firmware.
+> The work is waiting on conversion of the davinci-pcm ASoC driver to DMA Engine,
+> which once done can make exposing the private EDMA API in arch/arm/common/edma.c
+> obsolete and we can take it to drivers/dma. Some more work to be done in edma in
+> unifying the probe etc.
 
-That's easy to avoid by allowing any combination of DT defined clocks,
-loadable module clocks and /lib/firmware clocks depending on the use
-case.
+Forgot to mention, since ASoC DMAengine conversion is not going to happen any
+time soon considering the amount of work involved, I suggest you respin this
+patch on the common/edma code itself. That way we can keep suspend/resume
+working on these platforms that use EDMA till the actual conversion takes place.
 
-The older kernels have the clocks defined in DT, the newer kernels just
-need to parse them.
+I suggest though to recreate the state based on existing datastructures instead
+of allocating/saving additional memory.
 
-Regards,
+Hope you're also in agreement with my comments on your original patch on what
+needs to / need not be saved.
 
-Tony
+thanks,
+
+-Joel
+
+
+
