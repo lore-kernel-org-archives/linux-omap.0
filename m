@@ -1,37 +1,30 @@
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: Re: [PATCH 0/3] dma: cppi41: more suspend/resume patches
-Date: Wed, 9 Oct 2013 08:41:24 +0200
-Message-ID: <20131009064124.GA3529@linutronix.de>
-References: <1380634271-27588-1-git-send-email-zonque@gmail.com>
+From: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v2 1/6] ARM: OMAP5: hwmod data: Add USB Host and TLL
+ modules
+Date: Wed, 9 Oct 2013 07:03:17 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1310090703040.30199@utopia.booyaka.com>
+References: <1381226799-29158-1-git-send-email-rogerq@ti.com> <1381226799-29158-2-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from www.linutronix.de ([62.245.132.108]:46357 "EHLO
-	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754736Ab3JIGl1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Oct 2013 02:41:27 -0400
-Content-Disposition: inline
-In-Reply-To: <1380634271-27588-1-git-send-email-zonque@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1381226799-29158-2-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Cc: bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Daniel Mack <zonque@gmail.com>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, neumann@teufel.de, vinod.koul@intel.com, dan.j.williams@intel.com, balbi@ti.com
 
-* Daniel Mack | 2013-10-01 15:31:08 [+0200]:
+On Tue, 8 Oct 2013, Roger Quadros wrote:
 
->Patch #1 restores more registers on resume time.
->
->Patch #2 is a cosmetic cleanup that emerged while digging through the
->driver and gaining a basic idea of how it's implemented. Nothing fancy.
+> Add hwmod data for High Speed USB host and TLL modules
+> 
+> CC: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 
-I'm fine with those two.
+Thanks, queued.
 
->
->Patch #3, however, gives me headaches. I can't fully explain what's
->going on, but I can tell for sure that if fixes a problem that I stared
->on for many hours.
 
-I'm still trying to verify if it breaks something or not. So I haven't
-forgotten about this.
-
-Sebastian
+- Paul
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
