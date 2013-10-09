@@ -1,50 +1,59 @@
-From: Paul Walmsley <paul@pwsan.com>
+From: Roger Quadros <rogerq@ti.com>
 Subject: Re: [PATCH] ARM: OMAP4: clock: Initialize USB DPLL
-Date: Wed, 9 Oct 2013 07:05:16 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1310090704180.30199@utopia.booyaka.com>
-References: <1363873705-3224-1-git-send-email-rogerq@ti.com> <514B1553.6030701@ti.com>
+Date: Wed, 9 Oct 2013 10:09:32 +0300
+Message-ID: <5255012C.3050709@ti.com>
+References: <1363873705-3224-1-git-send-email-rogerq@ti.com> <514B1553.6030701@ti.com> <alpine.DEB.2.02.1310090704180.30199@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <514B1553.6030701@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: tony@atomide.com, balbi@ti.com, rnayak@ti.com, t-kristo@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:47643 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751942Ab3JIHJ6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 9 Oct 2013 03:09:58 -0400
+In-Reply-To: <alpine.DEB.2.02.1310090704180.30199@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: tony@atomide.com, balbi@ti.com, rnayak@ti.com, t-kristo@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 
-Hi Roger,
-
-On Thu, 21 Mar 2013, Roger Quadros wrote:
-
-> +Paul
+On 10/09/2013 10:05 AM, Paul Walmsley wrote:
+> Hi Roger,
 > 
-> On 03/21/2013 03:48 PM, Roger Quadros wrote:
-> > If the bootloader doesn't configure USB DPLL (e.g. in u-boot,
-> > disable CONFIG_USB_EHCI_OMAP), then we get all sorts of problems
-> > like
-> > - division by zero errors at boot [1]
-> > - USB DPLL fails to enter locked state
-> > - USB EHCI Host is non functional
-> > - Device can't enter OFF mode
-> > 
-> > Initializing the USB DPLL fixes all these issues.
+> On Thu, 21 Mar 2013, Roger Quadros wrote:
+> 
+>> +Paul
+>>
+>> On 03/21/2013 03:48 PM, Roger Quadros wrote:
+>>> If the bootloader doesn't configure USB DPLL (e.g. in u-boot,
+>>> disable CONFIG_USB_EHCI_OMAP), then we get all sorts of problems
+>>> like
+>>> - division by zero errors at boot [1]
+>>> - USB DPLL fails to enter locked state
+>>> - USB EHCI Host is non functional
+>>> - Device can't enter OFF mode
+>>>
+>>> Initializing the USB DPLL fixes all these issues.
+> 
+> Looks like I may have lost track of this - do we still need this one?
 
-Looks like I may have lost track of this - do we still need this one?
+No, this is already in with the typo fix. Thanks.
 
-Also:
+> 
+> Also:
+> 
+>>> diff --git a/arch/arm/mach-omap2/cclock44xx_data.c b/arch/arm/mach-omap2/cclock44xx_data.c
+>>> index bfc46c1..6127bb9 100644
+>>> --- a/arch/arm/mach-omap2/cclock44xx_data.c
+>>> +++ b/arch/arm/mach-omap2/cclock44xx_data.c
+>>> @@ -53,6 +53,12 @@
+>>>   */
+>>>  #define OMAP4_DPLL_ABE_DEFFREQ				98304000
+>>>  
+>>> +/*
+>>> + * OMAP4450 TRM Rev X, section "3.6.3.9.5 DPLL_USB Preferred Settings"
+> 
+> 4450?
 
-> > diff --git a/arch/arm/mach-omap2/cclock44xx_data.c b/arch/arm/mach-omap2/cclock44xx_data.c
-> > index bfc46c1..6127bb9 100644
-> > --- a/arch/arm/mach-omap2/cclock44xx_data.c
-> > +++ b/arch/arm/mach-omap2/cclock44xx_data.c
-> > @@ -53,6 +53,12 @@
-> >   */
-> >  #define OMAP4_DPLL_ABE_DEFFREQ				98304000
-> >  
-> > +/*
-> > + * OMAP4450 TRM Rev X, section "3.6.3.9.5 DPLL_USB Preferred Settings"
-
-4450?
-
-
-- Paul
+cheers,
+-roger
