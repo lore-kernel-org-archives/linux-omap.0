@@ -1,60 +1,58 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv8 17/36] ARM: dts: clk: Add apll related clocks
-Date: Wed, 9 Oct 2013 18:30:48 +0300
-Message-ID: <1381332668-962-18-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv8 29/36] ARM: OMAP3: hwmod: initialize clkdm from clkdm_name
+Date: Wed, 9 Oct 2013 18:31:00 +0300
+Message-ID: <1381332668-962-30-git-send-email-t-kristo@ti.com>
 References: <1381332668-962-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:52489 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:41898 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753165Ab3JIPd5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 9 Oct 2013 11:33:57 -0400
+	id S1755337Ab3JIPeE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 9 Oct 2013 11:34:04 -0400
 In-Reply-To: <1381332668-962-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, nm@ti.com, rnayak@ti.com, bcousson@baylibre.com, mturquette@linaro.org
-Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, J Keerthy <j-keerthy@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-From: J Keerthy <j-keerthy@ti.com>
+DT clocks are mostly missing clkdm info now, and this causes an issue with
+counter32k which makes its slave idlemode wrong and prevents core idle.
 
-The patch adds a mux node to choose the parent of apll_pcie_ck node.
+Fixed by initializing the hwmod clkdm pointers for omap3 also which makes
+sure the clkdm flag matching logic works properly.
 
-Signed-off-by: J Keerthy <j-keerthy@ti.com>
+This patch also changes the return value for _init_clkdm to 0 for
+incorrect clkdm_name, as this a warning, not a fatal error.
+
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 Tested-by: Nishanth Menon <nm@ti.com>
 Acked-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/boot/dts/dra7xx-clocks.dtsi |   14 +++++++++++---
- 1 file changed, 11 insertions(+), 3 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm/boot/dts/dra7xx-clocks.dtsi b/arch/arm/boot/dts/dra7xx-clocks.dtsi
-index 0d83f95..c830e15 100644
---- a/arch/arm/boot/dts/dra7xx-clocks.dtsi
-+++ b/arch/arm/boot/dts/dra7xx-clocks.dtsi
-@@ -315,11 +315,19 @@ dpll_pcie_ref_m2ldo_ck: dpll_pcie_ref_m2ldo_ck@4a008210 {
- 	ti,autoidle-low;
- };
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index 5f8f587..ae33fae 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -1546,7 +1546,7 @@ static int _init_clkdm(struct omap_hwmod *oh)
+ 	if (!oh->clkdm) {
+ 		pr_warning("omap_hwmod: %s: could not associate to clkdm %s\n",
+ 			oh->name, oh->clkdm_name);
+-		return -EINVAL;
++		return 0;
+ 	}
  
-+apll_pcie_in_clk_mux: apll_pcie_in_clk_mux@4ae06118 {
-+	compatible = "ti,mux-clock";
-+	clocks = <&dpll_pcie_ref_ck>, <&pciesref_acs_clk_ck>;
-+	#clock-cells = <0>;
-+	reg = <0x4a00821c 0x4>;
-+	ti,bit-shift = <7>;
-+};
-+
- apll_pcie_ck: apll_pcie_ck@4a008200 {
- 	#clock-cells = <0>;
--	compatible = "ti,omap4-dpll-clock";
--	clocks = <&dpll_pcie_ref_ck>, <&dpll_pcie_ref_ck>;
--	reg = <0x4a008200 0x4>, <0x4a008204 0x4>, <0x4a008208 0x4>, <0x4a00820c 0x4>;
-+	compatible = "ti,dra7-apll-clock";
-+	clocks = <&apll_pcie_in_clk_mux>, <&dpll_pcie_ref_ck>;
-+	reg = <0x4a00821c 0x4>, <0x4a008220 0x4>;
- };
- 
- apll_pcie_clkvcoldo: apll_pcie_clkvcoldo {
+ 	pr_debug("omap_hwmod: %s: associated to clkdm %s\n",
+@@ -4117,6 +4117,7 @@ void __init omap_hwmod_init(void)
+ 		soc_ops.assert_hardreset = _omap2_assert_hardreset;
+ 		soc_ops.deassert_hardreset = _omap2_deassert_hardreset;
+ 		soc_ops.is_hardreset_asserted = _omap2_is_hardreset_asserted;
++		soc_ops.init_clkdm = _init_clkdm;
+ 	} else if (cpu_is_omap44xx() || soc_is_omap54xx() || soc_is_dra7xx()) {
+ 		soc_ops.enable_module = _omap4_enable_module;
+ 		soc_ops.disable_module = _omap4_disable_module;
 -- 
 1.7.9.5
 
