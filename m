@@ -1,53 +1,115 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH 1/3] ARM: OMAP4: use CLK_SET_RATE_PARENT for dss_dss_clk
-Date: Wed, 9 Oct 2013 16:22:07 +0300
-Message-ID: <5255587F.5010601@ti.com>
-References: <1381324359-28825-1-git-send-email-tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 3/3] ARM: OMAP3: fix dpll4_m3_ck and dpll4_m4_ck dividers
+Date: Wed, 9 Oct 2013 16:22:50 +0300
+Message-ID: <525558AA.9050906@ti.com>
+References: <1381324359-28825-1-git-send-email-tomi.valkeinen@ti.com> <1381324359-28825-3-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:46056 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:53304 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751485Ab3JINWd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 9 Oct 2013 09:22:33 -0400
-In-Reply-To: <1381324359-28825-1-git-send-email-tomi.valkeinen@ti.com>
+	id S1754412Ab3JINXP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 9 Oct 2013 09:23:15 -0400
+In-Reply-To: <1381324359-28825-3-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>
 Cc: Archit Taneja <archit@ti.com>
 
 On 10/09/2013 04:12 PM, Tomi Valkeinen wrote:
-> Set CLK_SET_RATE_PARENT flag for dss_dss_clk so that the DSS's fclk can
-> be configured without the need to get the parent of the fclk.
+> dpll4_m3_ck and dpll4_m4_ck have divider bit fields which are 6 bits
+> wide. However, only values from 1 to 32 are allowed. This means we have
+> to add a divider tables and list the dividers explicitly.
+>
+> I believe the same issue is there for other dpll4_mx_ck clocks, but as
+> I'm not familiar with them, I didn't touch them.
 
-I wouldn't touch this file right now, as we are trying to move the clock 
-data over to DT. Legacy boot support probably requires to do this 
-update, but I would rather wait a bit and do the modifications to both 
-DT clock data and this file in the same patch. Same applies for other 
-patches also.
+I think you can limit the max value with a mask only, no need to define 
+new tables.
+
+Also similar comment regarding dts vs legacy clock data as for patch #1.
 
 -Tero
 
 >
 > Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 > ---
->   arch/arm/mach-omap2/cclock44xx_data.c | 3 ++-
->   1 file changed, 2 insertions(+), 1 deletion(-)
+>   arch/arm/mach-omap2/cclock3xxx_data.c | 44 +++++++++++++++++++++++++++++++----
+>   1 file changed, 40 insertions(+), 4 deletions(-)
 >
-> diff --git a/arch/arm/mach-omap2/cclock44xx_data.c b/arch/arm/mach-omap2/cclock44xx_data.c
-> index b237950..ec0dc0b 100644
-> --- a/arch/arm/mach-omap2/cclock44xx_data.c
-> +++ b/arch/arm/mach-omap2/cclock44xx_data.c
-> @@ -830,7 +830,8 @@ DEFINE_CLK_GATE(dss_tv_clk, "extalt_clkin_ck", &extalt_clkin_ck, 0x0,
->   		OMAP4430_CM_DSS_DSS_CLKCTRL,
->   		OMAP4430_OPTFCLKEN_TV_CLK_SHIFT, 0x0, NULL);
+> diff --git a/arch/arm/mach-omap2/cclock3xxx_data.c b/arch/arm/mach-omap2/cclock3xxx_data.c
+> index a51dd75..e94d635 100644
+> --- a/arch/arm/mach-omap2/cclock3xxx_data.c
+> +++ b/arch/arm/mach-omap2/cclock3xxx_data.c
+> @@ -381,6 +381,42 @@ static struct clk_hw_omap dpll4_ck_hw = {
 >
-> -DEFINE_CLK_GATE(dss_dss_clk, "dpll_per_m5x2_ck", &dpll_per_m5x2_ck, 0x0,
-> +DEFINE_CLK_GATE(dss_dss_clk, "dpll_per_m5x2_ck", &dpll_per_m5x2_ck,
-> +		CLK_SET_RATE_PARENT,
->   		OMAP4430_CM_DSS_DSS_CLKCTRL, OMAP4430_OPTFCLKEN_DSSCLK_SHIFT,
->   		0x0, NULL);
+>   DEFINE_STRUCT_CLK(dpll4_ck, dpll3_ck_parent_names, dpll4_ck_ops);
+>
+> +static const struct clk_div_table dpll4_mx_ck_div_table[] = {
+> +	{ .div = 1, .val = 1 },
+> +	{ .div = 2, .val = 2 },
+> +	{ .div = 3, .val = 3 },
+> +	{ .div = 4, .val = 4 },
+> +	{ .div = 5, .val = 5 },
+> +	{ .div = 6, .val = 6 },
+> +	{ .div = 7, .val = 7 },
+> +	{ .div = 8, .val = 8 },
+> +	{ .div = 9, .val = 9 },
+> +	{ .div = 10, .val = 10 },
+> +	{ .div = 11, .val = 11 },
+> +	{ .div = 12, .val = 12 },
+> +	{ .div = 13, .val = 13 },
+> +	{ .div = 14, .val = 14 },
+> +	{ .div = 15, .val = 15 },
+> +	{ .div = 16, .val = 16 },
+> +	{ .div = 17, .val = 17 },
+> +	{ .div = 18, .val = 18 },
+> +	{ .div = 19, .val = 19 },
+> +	{ .div = 20, .val = 20 },
+> +	{ .div = 21, .val = 21 },
+> +	{ .div = 22, .val = 22 },
+> +	{ .div = 23, .val = 23 },
+> +	{ .div = 24, .val = 24 },
+> +	{ .div = 25, .val = 25 },
+> +	{ .div = 26, .val = 26 },
+> +	{ .div = 27, .val = 27 },
+> +	{ .div = 28, .val = 28 },
+> +	{ .div = 29, .val = 29 },
+> +	{ .div = 30, .val = 30 },
+> +	{ .div = 31, .val = 31 },
+> +	{ .div = 32, .val = 32 },
+> +	{ .div = 0 },
+> +};
+> +
+>   DEFINE_CLK_DIVIDER(dpll4_m5_ck, "dpll4_ck", &dpll4_ck, 0x0,
+>   		   OMAP_CM_REGADDR(OMAP3430_CAM_MOD, CM_CLKSEL),
+>   		   OMAP3430_CLKSEL_CAM_SHIFT, OMAP3630_CLKSEL_CAM_WIDTH,
+> @@ -524,10 +560,10 @@ static const struct clksel_rate clkout2_src_54m_rates[] = {
+>   	{ .div = 0 }
+>   };
+>
+> -DEFINE_CLK_DIVIDER(dpll4_m3_ck, "dpll4_ck", &dpll4_ck, 0x0,
+> +DEFINE_CLK_DIVIDER_TABLE(dpll4_m3_ck, "dpll4_ck", &dpll4_ck, 0x0,
+>   		   OMAP_CM_REGADDR(OMAP3430_DSS_MOD, CM_CLKSEL),
+>   		   OMAP3430_CLKSEL_TV_SHIFT, OMAP3630_CLKSEL_TV_WIDTH,
+> -		   CLK_DIVIDER_ONE_BASED, NULL);
+> +		   0, dpll4_mx_ck_div_table, NULL);
+>
+>   static struct clk dpll4_m3x2_ck;
+>
+> @@ -847,10 +883,10 @@ static struct clk dpll3_m3x2_ck_3630 = {
+>
+>   DEFINE_CLK_FIXED_FACTOR(dpll3_x2_ck, "dpll3_ck", &dpll3_ck, 0x0, 2, 1);
+>
+> -DEFINE_CLK_DIVIDER(dpll4_m4_ck, "dpll4_ck", &dpll4_ck, 0x0,
+> +DEFINE_CLK_DIVIDER_TABLE(dpll4_m4_ck, "dpll4_ck", &dpll4_ck, 0x0,
+>   		   OMAP_CM_REGADDR(OMAP3430_DSS_MOD, CM_CLKSEL),
+>   		   OMAP3430_CLKSEL_DSS1_SHIFT, OMAP3630_CLKSEL_DSS1_WIDTH,
+> -		   CLK_DIVIDER_ONE_BASED, NULL);
+> +		   0, dpll4_mx_ck_div_table, NULL);
+>
+>   static struct clk dpll4_m4x2_ck;
 >
 >
 
