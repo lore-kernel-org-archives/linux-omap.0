@@ -1,19 +1,23 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH V6 04/15] ARM: OMAP2+: OMAP5: add lateinit hook for calling pm late init
-Date: Wed, 9 Oct 2013 18:24:47 -0500
-Message-ID: <1381361098-8283-3-git-send-email-nm@ti.com>
+Subject: [PATCH V6 05/15] ARM: OMAP2+: DRA7: add lateinit hook for calling pm late init
+Date: Wed, 9 Oct 2013 18:24:48 -0500
+Message-ID: <1381361098-8283-4-git-send-email-nm@ti.com>
 References: <1381354144-7134-1-git-send-email-nm@ti.com>
  <1381361098-8283-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-doc-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:52897 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756983Ab3JIXZf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 9 Oct 2013 19:25:35 -0400
 In-Reply-To: <1381361098-8283-1-git-send-email-nm@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: Kevin Hilman <khilman@linaro.org>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>
 Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-doc@vger.kernel.org, devicetree@vger.kernel.org, Nishanth Menon <nm@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Paul Walmsley <paul@pwsan.com>
-List-Id: linux-omap@vger.kernel.org
 
-Call OMAP2+ generic lateinit hook from AM specific late init hook.
+Call OMAP2+ generic lateinit hook from DRA7 specific late init hook.
 This allows the generic late initializations such as cpufreq hooks
 to be active.
 
@@ -29,46 +33,46 @@ Signed-off-by: Nishanth Menon <nm@ti.com>
  3 files changed, 8 insertions(+)
 
 diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
-index d4371c7..67dbae2 100644
+index 67dbae2..c0b0848 100644
 --- a/arch/arm/mach-omap2/board-generic.c
 +++ b/arch/arm/mach-omap2/board-generic.c
-@@ -220,6 +220,7 @@ DT_MACHINE_START(OMAP5_DT, "Generic OMAP5 (Flattened Device Tree)")
- 	.init_early	= omap5_init_early,
+@@ -255,6 +255,7 @@ DT_MACHINE_START(DRA7XX_DT, "Generic DRA7XX (Flattened Device Tree)")
+ 	.smp		= smp_ops(omap4_smp_ops),
+ 	.map_io		= omap5_map_io,
+ 	.init_early	= dra7xx_init_early,
++	.init_late	= dra7xx_init_late,
  	.init_irq	= omap_gic_of_init,
  	.init_machine	= omap_generic_init,
-+	.init_late	= omap5_init_late,
  	.init_time	= omap5_realtime_timer_init,
- 	.dt_compat	= omap5_boards_compat,
- 	.restart	= omap44xx_restart,
 diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
-index 09f6736..ceb208b 100644
+index ceb208b..352fa9d 100644
 --- a/arch/arm/mach-omap2/common.h
 +++ b/arch/arm/mach-omap2/common.h
-@@ -111,6 +111,7 @@ void omap3630_init_late(void);
- void am35xx_init_late(void);
- void ti81xx_init_late(void);
- void am33xx_init_late(void);
-+void omap5_init_late(void);
+@@ -114,6 +114,7 @@ void am33xx_init_late(void);
+ void omap5_init_late(void);
  int omap2_common_pm_late_init(void);
  void dra7xx_init_early(void);
++void dra7xx_init_late(void);
  
+ #ifdef CONFIG_SOC_BUS
+ void omap_soc_device_init(void);
 diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index 300eac0..6226e0d 100644
+index 6226e0d..3b7b543 100644
 --- a/arch/arm/mach-omap2/io.c
 +++ b/arch/arm/mach-omap2/io.c
-@@ -675,6 +675,12 @@ void __init omap5_init_early(void)
+@@ -702,6 +702,12 @@ void __init dra7xx_init_early(void)
  	omap_hwmod_init_postsetup();
- 	omap_clk_init = omap5xxx_dt_clk_init;
+ 	omap_clk_init = dra7xx_dt_clk_init;
  }
 +
-+void __init omap5_init_late(void)
++void __init dra7xx_init_late(void)
 +{
 +	omap2_common_pm_late_init();
 +}
 +
  #endif
  
- #ifdef CONFIG_SOC_DRA7XX
+ 
 -- 
 1.7.9.5
 
