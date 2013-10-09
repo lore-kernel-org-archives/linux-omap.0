@@ -1,47 +1,131 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/6] pinctrl: single: Prepare for supporting SoC
- specific features
-Date: Wed, 9 Oct 2013 08:10:15 -0700
-Message-ID: <20131009151015.GZ8313@atomide.com>
-References: <20131003054104.8941.88857.stgit@localhost>
- <20131003054218.8941.19273.stgit@localhost>
- <20131007173531.GX8949@atomide.com>
- <CACRpkdZ1CeSXJngo0gKpnag-=mT3FB-byJi3JSAWiS8hbHqBJA@mail.gmail.com>
+From: Benoit Cousson <bcousson@baylibre.com>
+Subject: Re: [PATCH v2 2/5] ARM: dts: omap: Add new bindings for OMAP
+Date: Wed, 09 Oct 2013 17:13:44 +0200
+Message-ID: <525572A8.9060401@baylibre.com>
+References: <1381313521-10422-1-git-send-email-rnayak@ti.com> <1381313521-10422-3-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CACRpkdZ1CeSXJngo0gKpnag-=mT3FB-byJi3JSAWiS8hbHqBJA@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Grygorii Strashko <grygorii.strashko@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Prakash Manjunathappa <prakash.pm@ti.com>, Haojian Zhuang <haojian.zhuang@linaro.org>, Linux-OMAP <linux-omap@vger.kernel.org>, Roger Quadros <rogerq@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <1381313521-10422-3-git-send-email-rnayak@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Rajendra Nayak <rnayak@ti.com>, paul@pwsan.com, tony@atomide.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Linus Walleij <linus.walleij@linaro.org> [131009 06:51]:
-> On Mon, Oct 7, 2013 at 7:35 PM, Tony Lindgren <tony@atomide.com> wrote:
-> 
-> > Hi Linus W,
-> >
-> > Any comments on the pinctrl patches 3 - 5 in this series?
-> 
-> Yes, after good explanations to my whimsical questions only this:
-> Acked-by: Linus Walleij <linus.walleij@linaro.org>
+Hi Rajendra,
 
-OK thanks :)
- 
-> I guess you'll take these patches through ARM SoC?
+On 09/10/2013 12:11, Rajendra Nayak wrote:
+> On OMAP we have co-processor IPs, memory controllers,
+> GPIOs which control regulators and power switches to
+> PMIC, and SoC internal Bus IPs, some or most of which
+> should either not be reset or idled or both at init.
+> (In some cases there are erratas which prevent an IP
+> from being reset)
+> Have a way to pass this information from DT.
 
-I was thinking I'll set up an immutable branch for the three
-pinctrl patches against -rc4 then both you and I can merge
-them in as needed. Does that work for you?
-
-I can also do a test merge with pinctrl/for-next also to make
-sure there are no conflicts.
-
-The rest of the patches should not be needed in the pinctrl
-branch, but I need them all in one branch to keep things
-working.
+Did you get some acked-by from the DT maintainers?
+Every new bindings must be carefully reviewed now.
 
 Regards,
+Benoit
 
-Tony
+>
+> Update the am33xx/omap4 and omap5 dtsi files with the
+> new bindings for modules which either should not be
+> idled. reset or both. A later patch would cleanup the
+> same information that exists today as part of the hwmod
+> data files.
+>
+> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+> ---
+>   .../devicetree/bindings/arm/omap/omap.txt          |    3 ++-
+>   arch/arm/boot/dts/am33xx.dtsi                      |    2 ++
+>   arch/arm/boot/dts/omap4.dtsi                       |    3 +++
+>   arch/arm/boot/dts/omap5.dtsi                       |    2 ++
+>   4 files changed, 9 insertions(+), 1 deletion(-)
+>
+> diff --git a/Documentation/devicetree/bindings/arm/omap/omap.txt b/Documentation/devicetree/bindings/arm/omap/omap.txt
+> index 91b7049..808c154 100644
+> --- a/Documentation/devicetree/bindings/arm/omap/omap.txt
+> +++ b/Documentation/devicetree/bindings/arm/omap/omap.txt
+> @@ -21,7 +21,8 @@ Required properties:
+>   Optional properties:
+>   - ti,no_idle_on_suspend: When present, it prevents the PM to idle the module
+>     during suspend.
+> -
+> +- ti,no-reset-on-init: When present, the module should not be reset at init
+> +- ti,no-idle-on-init: When present, the module should not be idled at init
+>
+>   Example:
+>
+> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+> index f9c5da9..ec33ea0 100644
+> --- a/arch/arm/boot/dts/am33xx.dtsi
+> +++ b/arch/arm/boot/dts/am33xx.dtsi
+> @@ -607,6 +607,7 @@
+>   			reg = <0x44d00000 0x4000	/* M3 UMEM */
+>   			       0x44d80000 0x2000>;	/* M3 DMEM */
+>   			ti,hwmods = "wkup_m3";
+> +			ti,no-reset-on-init;
+>   		};
+>
+>   		elm: elm@48080000 {
+> @@ -637,6 +638,7 @@
+>   		gpmc: gpmc@50000000 {
+>   			compatible = "ti,am3352-gpmc";
+>   			ti,hwmods = "gpmc";
+> +			ti,no-idle-on-init;
+>   			reg = <0x50000000 0x2000>;
+>   			interrupts = <100>;
+>   			gpmc,num-cs = <7>;
+> diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+> index 22d9f2b..e8fe797 100644
+> --- a/arch/arm/boot/dts/omap4.dtsi
+> +++ b/arch/arm/boot/dts/omap4.dtsi
+> @@ -214,6 +214,7 @@
+>   			gpmc,num-cs = <8>;
+>   			gpmc,num-waitpins = <4>;
+>   			ti,hwmods = "gpmc";
+> +			ti,no-idle-on-init;
+>   		};
+>
+>   		uart1: serial@4806a000 {
+> @@ -492,6 +493,7 @@
+>   			reg = <0x4c000000 0x100>;
+>   			interrupts = <GIC_SPI 110 IRQ_TYPE_LEVEL_HIGH>;
+>   			ti,hwmods = "emif1";
+> +			ti,no-idle-on-init;
+>   			phy-type = <1>;
+>   			hw-caps-read-idle-ctrl;
+>   			hw-caps-ll-interface;
+> @@ -503,6 +505,7 @@
+>   			reg = <0x4d000000 0x100>;
+>   			interrupts = <GIC_SPI 111 IRQ_TYPE_LEVEL_HIGH>;
+>   			ti,hwmods = "emif2";
+> +			ti,no-idle-on-init;
+>   			phy-type = <1>;
+>   			hw-caps-read-idle-ctrl;
+>   			hw-caps-ll-interface;
+> diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+> index 7cdea1b..a9d49df 100644
+> --- a/arch/arm/boot/dts/omap5.dtsi
+> +++ b/arch/arm/boot/dts/omap5.dtsi
+> @@ -607,6 +607,7 @@
+>   		emif1: emif@0x4c000000 {
+>   			compatible	= "ti,emif-4d5";
+>   			ti,hwmods	= "emif1";
+> +			ti,no-idle-on-init;
+>   			phy-type	= <2>; /* DDR PHY type: Intelli PHY */
+>   			reg = <0x4c000000 0x400>;
+>   			interrupts = <GIC_SPI 110 IRQ_TYPE_LEVEL_HIGH>;
+> @@ -618,6 +619,7 @@
+>   		emif2: emif@0x4d000000 {
+>   			compatible	= "ti,emif-4d5";
+>   			ti,hwmods	= "emif2";
+> +			ti,no-idle-on-init;
+>   			phy-type	= <2>; /* DDR PHY type: Intelli PHY */
+>   			reg = <0x4d000000 0x400>;
+>   			interrupts = <GIC_SPI 111 IRQ_TYPE_LEVEL_HIGH>;
+>
+
