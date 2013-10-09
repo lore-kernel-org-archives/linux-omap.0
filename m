@@ -1,51 +1,113 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv8 00/36] ARM: OMAP: DT clock conversion
-Date: Wed, 9 Oct 2013 08:48:04 -0700
-Message-ID: <20131009154804.GB8313@atomide.com>
-References: <1381332668-962-1-git-send-email-t-kristo@ti.com>
+From: Jyri Sarha <jsarha@ti.com>
+Subject: [PATCH v4.2 10/10] ARM/dts: am335x-evmsk: Audio support
+Date: Wed, 9 Oct 2013 18:58:38 +0300
+Message-ID: <1381334318-12559-1-git-send-email-jsarha@ti.com>
+References: <f389f285899dce8aa7651e79dc26d8f8748a4525.1381259962.git.jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:59066 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752705Ab3JIPsJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Oct 2013 11:48:09 -0400
-Content-Disposition: inline
-In-Reply-To: <1381332668-962-1-git-send-email-t-kristo@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:41244 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751921Ab3JIP6v (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Oct 2013 11:58:51 -0400
+In-Reply-To: <f389f285899dce8aa7651e79dc26d8f8748a4525.1381259962.git.jsarha@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, nm@ti.com, rnayak@ti.com, bcousson@baylibre.com, mturquette@linaro.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
+To: alsa-devel@alsa-project.org, devicetree@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, broonie@kernel.org, mark.rutland@arm.com, joelf@ti.com, Peter Ujfalusi <peter.ujfalusi@ti.com>, Jyri Sarha <jsarha@ti.com>
 
-* Tero Kristo <t-kristo@ti.com> [131009 08:40]:
-> 
-> Separate branches for the maintainers also available here:
-> 
-> https://github.com/t-kristo/linux-pm.git
-> 
-> Branch with DTS only data: 3.12-rc3-dt-clks-for-benoit
-> - based on top of 3.12-rc3 with Benoit's latest for_3.13 merged in
-> 
-> Branch with clock driver patches: 3.12-rc3-dt-clks-for-mike
-> - based on top of 3.12-rc3
-> - does not compile due to lack of 1 dependency patch (for getting DT clock
->   parent count) which Mike has queued to his own branch though I believe
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
 
-Maybe Mike can provide you an immutable commit on which
-to base your 3.12-rc3-dt-clks-for-mike?
+AM335x EVM-SK have only support for audio playback (stereo jack on the
+board) via tlv320aic3106 codec connected to McASP1.
+Enable the support for audio playback on the board:
+- McASP1 configuration
+- tlv320aic3106 configuration
+- Machine driver.
+
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Signed-off-by: Jyri Sarha <jsarha@ti.com>
+---
+ arch/arm/boot/dts/am335x-evmsk.dts |   48 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 48 insertions(+)
+
+diff --git a/arch/arm/boot/dts/am335x-evmsk.dts b/arch/arm/boot/dts/am335x-evmsk.dts
+index 4f339fa..9e570fb 100644
+--- a/arch/arm/boot/dts/am335x-evmsk.dts
++++ b/arch/arm/boot/dts/am335x-evmsk.dts
+@@ -158,6 +158,15 @@
+ 				0x14c (PIN_INPUT_PULLDOWN | MUX_MODE7)
+ 			>;
+ 		};
++
++		mcasp1_pins: mcasp1_pins {
++			pinctrl-single,pins = <
++				0x10c (PIN_INPUT_PULLDOWN | MUX_MODE4) /* mii1_crs.mcasp1_aclkx */
++				0x110 (PIN_INPUT_PULLDOWN | MUX_MODE4) /* mii1_rxerr.mcasp1_fsx */
++				0x108 (PIN_OUTPUT_PULLDOWN | MUX_MODE4) /* mii1_col.mcasp1_axr2 */
++				0x144 (PIN_INPUT_PULLDOWN | MUX_MODE4) /* rmii1_ref_clk.mcasp1_axr3 */
++			>;
++		};
+ 	};
  
-> Branch with all the stuff for mach-omap2: 3.12-rc3-dt-clks-for-tony
-> - based on top of 3.12-rc3
-> - merged both above branches to this
-> - merged also a few temporary hacks to get some of my boards to work,
->   these have been discussed elsewhere but can act as a reference
+ 	ocp {
+@@ -206,6 +215,18 @@
+ 				st,max-limit-y = <550>;
+ 				st,max-limit-z = <750>;
+ 			};
++
++			tlv320aic3106: tlv320aic3106@1b {
++				compatible = "ti,tlv320aic3106";
++				reg = <0x1b>;
++				status = "okay";
++
++				/* Regulators */
++				AVDD-supply = <&vaux2_reg>;
++				IOVDD-supply = <&vaux2_reg>;
++				DRVDD-supply = <&vaux2_reg>;
++				DVDD-supply = <&vbat>;
++			};
+ 		};
+ 
+ 		musb: usb@47400000 {
+@@ -233,6 +254,17 @@
+ 				pinctrl-0 = <&ecap2_pins>;
+ 			};
+ 		};
++
++		sound {
++			compatible = "ti,da830-evm-audio";
++			ti,model = "AM335x-EVMSK";
++			ti,audio-codec = <&tlv320aic3106>;
++			ti,mcasp-controller = <&mcasp1>;
++			ti,codec-clock-rate = <24576000>;
++			ti,audio-routing =
++				"Headphone Jack",       "HPLOUT",
++				"Headphone Jack",       "HPROUT";
++		};
+ 	};
+ 
+ 	vbat: fixedregulator@0 {
+@@ -419,3 +451,19 @@
+ 	phy_id = <&davinci_mdio>, <1>;
+ 	phy-mode = "rgmii-txid";
+ };
++
++&mcasp1 {
++		pinctrl-names = "default";
++		pinctrl-0 = <&mcasp1_pins>;
++
++		status = "okay";
++
++		op-mode = <0>;          /* MCASP_IIS_MODE */
++		tdm-slots = <2>;
++		/* 4 serializers */
++		serial-dir = <  /* 0: INACTIVE, 1: TX, 2: RX */
++			0 0 1 2
++		>;
++		tx-num-evt = <1>;
++		rx-num-evt = <1>;
++};
+-- 
+1.7.9.5
 
-I suggest you keep those temporary hacks in yet another
-temporary branch until I have some immutable commit with the hwmod
-changes etc pulled into in it. Then ideally you won't have to change
-your for-tony branch and it can be just merged on top of the branch
-with the dependencies.
-
-Regards,
-
-Tony
