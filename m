@@ -1,54 +1,72 @@
-From: Archit Taneja <archit@ti.com>
-Subject: Re: [PATCH v2 0/2] drm: omap: Fix omapdrm probe and module insertion/removal
- issues
-Date: Wed, 9 Oct 2013 19:26:23 +0530
-Message-ID: <52556087.6050401@ti.com>
-References: <1379502502-8781-1-git-send-email-archit@ti.com> <1381138693-23404-1-git-send-email-archit@ti.com>
+From: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v3] ARM: omap: edma: add suspend suspend/resume hooks
+Date: Wed, 9 Oct 2013 09:12:55 -0500
+Message-ID: <52556467.7010400@ti.com>
+References: <1380639886-9526-1-git-send-email-zonque@gmail.com> <5254DB86.4000104@ti.com>,<5254E60F.80009@ti.com> <F774F8C9-0A8F-4B27-8607-874FB0901A78@ti.com> <5254F54D.7060709@ti.com> <52550809.2000407@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:47526 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751462Ab3JIN5N (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 9 Oct 2013 09:57:13 -0400
-In-Reply-To: <1381138693-23404-1-git-send-email-archit@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <52550809.2000407-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Gururaja Hebbar <gururaja.hebbar-l0cyMroinI0@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "neumann-SRDuVqtxQLSzQB+pC5nmwQ@public.gmane.org" <neumann-SRDuVqtxQLSzQB+pC5nmwQ@public.gmane.org>, "bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org" <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, "vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: robdclark@gmail.com, tomi.valkeinen@ti.com
-Cc: dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org
 
-Hi Rob,
+On 10/09/2013 02:38 AM, Daniel Mack wrote:
+> Hi everyone,
+> 
+> On 09.10.2013 08:18, Gururaja Hebbar wrote:
+>> On Wednesday 09 October 2013 11:33 AM, Fernandes, Joel wrote:
+>>> Some temporary issues with my mua so forgive any artifacts in this
+>>> email.
+>>>
+>>> On Oct 9, 2013, at 12:14 AM, "Hebbar, Gururaja"
+>>> <gururaja.hebbar-l0cyMroinI0@public.gmane.org> wrote:
+>>>
+>>>> On Wednesday 09 October 2013 09:58 AM, Joel Fernandes wrote:
+>>>>> On 10/01/2013 10:04 AM, Daniel Mack wrote:
+> 
+>>>> AFAIK, Suspend/resume should be quick. Allocating and
+>>>> deallocating on every iterating would be useless and time
+>>>> consuming.
+>>>
+>>> Nobody said allocate and deallocate on every iteration. Allocate
+>>> once during the first suspend call and then don't have to allocate
+>>> on subsequent calls.
+>>
+>> I couldn't find any code which allocates parameters inside suspend. 
+> 
+> Me neighter :)
+> 
+> But on a general note, I wonder whether it's really worth discussing and
+> merging this patch. As I wrote in the cover letter, it's just a quick
+> and dirty solution that I copied from a very old BSP tree, and I know
+> that the file I'm patching here is going to be removed soon anyway.
+> Actually, the sooner the better.
 
-On Monday 07 October 2013 03:08 PM, Archit Taneja wrote:
-> With the new omapdss device model. The user(omapdrm/omapfb) of a omap_dss_device
-> has to call connect() to use the device. A connect() call can request to defer
-> probe if the device(or the previous entities in the chain) have missing
-> resources like a regulator or an I2C bus.
->
-> We make omapdrm defer probe by trying to first connect all panels, and request
-> for deferral if any panel requests for a defer. This makes sure that all the
-> panels are set up correctly when we finally proceed with omapdrm initialization.
->
-> In order for omapdrm module to be removed successfully, we need to disconnect
-> the panels which omapdrm connected. Another thing noticed was that omapdrm
-> insertion followed by some usage results in panels getting enabled.
->
-> Trying to remove omapdrm with a panel enabled results in failure while
-> disconnecting. This leaves omapdss panels in a bad state. I have added an
-> explicit panel disable in the omap_encoder_destroy() op, I needed some
-> suggestions on whether there is a better way to do this.
->
-> changes in v2:
-> - Add special case when no panels are available to connect.
-> - Make sure panels are diabled (and then disconnected) when omapdrm is removed
+OK, I realize its also unnecessary to allocate save anything. In your new
+version when you respin, please just recreate the state based on the in-memory
+kernel data structures already there. Ex, you know which channels were allocated
+so you just set those bits in the IESR.
 
-omapdrm fails when built-in in 3.12, the first patch fixes this. The 
-second one fixes issues seen with successive module insertion and removals.
+> (And the 'v3' in the subject is really my bad, sorry - I only sent one
+> version of this patch ever).
+> 
+> I can respin the patch on top of the proper driver once all the edma
+> bits have eventually been moved to drivers/dma. Is anyone continuing
+> Matt Porter's work on this?
 
-It'll be great if the first one can at least make it to 3.12. Could you 
-have a look at it?
+The work is waiting on conversion of the davinci-pcm ASoC driver to DMA Engine,
+which once done can make exposing the private EDMA API in arch/arm/common/edma.c
+obsolete and we can take it to drivers/dma. Some more work to be done in edma in
+unifying the probe etc.
 
-Thanks,
-Archit
+thanks,
 
+-Joel
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
