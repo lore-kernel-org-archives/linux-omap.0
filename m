@@ -1,185 +1,40 @@
 From: Rajendra Nayak <rnayak@ti.com>
-Subject: [PATCH v2 1/5] ARM: OMAP2+: hwmod: cleanup HWMOD_INIT_NO_RESET usage
-Date: Wed, 9 Oct 2013 15:41:57 +0530
-Message-ID: <1381313521-10422-2-git-send-email-rnayak@ti.com>
+Subject: [PATCH v2 5/5] ARM: dts: AM335x-evmsk: Do not reset gpio0
+Date: Wed, 9 Oct 2013 15:42:01 +0530
+Message-ID: <1381313521-10422-6-git-send-email-rnayak@ti.com>
 References: <1381313521-10422-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:46469 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753849Ab3JIKMh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 9 Oct 2013 06:12:37 -0400
+Return-path: <linux-doc-owner@vger.kernel.org>
 In-Reply-To: <1381313521-10422-1-git-send-email-rnayak@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: linux-doc-owner@vger.kernel.org
 To: bcousson@baylibre.com, paul@pwsan.com, tony@atomide.com
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>
+List-Id: linux-omap@vger.kernel.org
 
-For modules/IPs/hwmods which do not have
--1- sys->class->reset()
-and
--2- hardreset lines
-and
--3- No way to do an ocp reset (no sysc control)
-the flag 'HWMOD_INIT_NO_RESET' is not much useful.
+Do not reset GPIO0 at  boot-up because GPIO0 is used
+on AM335x EVM-SK to control VTT regulators on DDR3.
 
-Cleanup all such instances across various hwmod data files.
+Without this EVM-SK boards fail to boot-up because
+of DDR3 corruption.
 
 Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_33xx_data.c |   18 +++++++++---------
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    6 +++---
- arch/arm/mach-omap2/omap_hwmod_54xx_data.c |    6 +++---
- 3 files changed, 15 insertions(+), 15 deletions(-)
+ arch/arm/boot/dts/am335x-evmsk.dts |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-index 215894f..2815a91 100644
---- a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-@@ -52,7 +52,7 @@ static struct omap_hwmod am33xx_emif_hwmod = {
- 	.name		= "emif",
- 	.class		= &am33xx_emif_hwmod_class,
- 	.clkdm_name	= "l3_clkdm",
--	.flags		= (HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET),
-+	.flags		= HWMOD_INIT_NO_IDLE,
- 	.main_clk	= "dpll_ddr_m2_div2_ck",
- 	.prcm		= {
- 		.omap4	= {
-@@ -74,7 +74,7 @@ static struct omap_hwmod am33xx_l3_main_hwmod = {
- 	.name		= "l3_main",
- 	.class		= &am33xx_l3_hwmod_class,
- 	.clkdm_name	= "l3_clkdm",
--	.flags		= (HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET),
-+	.flags		= HWMOD_INIT_NO_IDLE,
- 	.main_clk	= "l3_gclk",
- 	.prcm		= {
- 		.omap4	= {
-@@ -96,7 +96,7 @@ static struct omap_hwmod am33xx_l3_instr_hwmod = {
- 	.name		= "l3_instr",
- 	.class		= &am33xx_l3_hwmod_class,
- 	.clkdm_name	= "l3_clkdm",
--	.flags		= (HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET),
-+	.flags		= HWMOD_INIT_NO_IDLE,
- 	.main_clk	= "l3_gclk",
- 	.prcm		= {
- 		.omap4	= {
-@@ -119,7 +119,7 @@ static struct omap_hwmod am33xx_l4_ls_hwmod = {
- 	.name		= "l4_ls",
- 	.class		= &am33xx_l4_hwmod_class,
- 	.clkdm_name	= "l4ls_clkdm",
--	.flags		= (HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET),
-+	.flags		= HWMOD_INIT_NO_IDLE,
- 	.main_clk	= "l4ls_gclk",
- 	.prcm		= {
- 		.omap4	= {
-@@ -134,7 +134,7 @@ static struct omap_hwmod am33xx_l4_hs_hwmod = {
- 	.name		= "l4_hs",
- 	.class		= &am33xx_l4_hwmod_class,
- 	.clkdm_name	= "l4hs_clkdm",
--	.flags		= (HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET),
-+	.flags		= HWMOD_INIT_NO_IDLE,
- 	.main_clk	= "l4hs_gclk",
- 	.prcm		= {
- 		.omap4	= {
-@@ -150,7 +150,7 @@ static struct omap_hwmod am33xx_l4_wkup_hwmod = {
- 	.name		= "l4_wkup",
- 	.class		= &am33xx_l4_hwmod_class,
- 	.clkdm_name	= "l4_wkup_clkdm",
--	.flags		= (HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET),
-+	.flags		= HWMOD_INIT_NO_IDLE,
- 	.prcm		= {
- 		.omap4	= {
- 			.clkctrl_offs	= AM33XX_CM_WKUP_L4WKUP_CLKCTRL_OFFSET,
-@@ -170,7 +170,7 @@ static struct omap_hwmod am33xx_mpu_hwmod = {
- 	.name		= "mpu",
- 	.class		= &am33xx_mpu_hwmod_class,
- 	.clkdm_name	= "mpu_clkdm",
--	.flags		= (HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET),
-+	.flags		= HWMOD_INIT_NO_IDLE,
- 	.main_clk	= "dpll_mpu_m2_ck",
- 	.prcm		= {
- 		.omap4	= {
-@@ -450,7 +450,7 @@ static struct omap_hwmod am33xx_ocmcram_hwmod = {
- 	.name		= "ocmcram",
- 	.class		= &am33xx_ocmcram_hwmod_class,
- 	.clkdm_name	= "l3_clkdm",
--	.flags		= (HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET),
-+	.flags		= HWMOD_INIT_NO_IDLE,
- 	.main_clk	= "l3_gclk",
- 	.prcm		= {
- 		.omap4	= {
-@@ -532,7 +532,7 @@ static struct omap_hwmod am33xx_control_hwmod = {
- 	.name		= "control",
- 	.class		= &am33xx_control_hwmod_class,
- 	.clkdm_name	= "l4_wkup_clkdm",
--	.flags		= (HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET),
-+	.flags		= HWMOD_INIT_NO_IDLE,
- 	.main_clk	= "dpll_core_m4_div2_ck",
- 	.prcm		= {
- 		.omap4	= {
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index 9c3b504..1e5b12c 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -914,7 +914,7 @@ static struct omap_hwmod omap44xx_emif1_hwmod = {
- 	.name		= "emif1",
- 	.class		= &omap44xx_emif_hwmod_class,
- 	.clkdm_name	= "l3_emif_clkdm",
--	.flags		= HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET,
-+	.flags		= HWMOD_INIT_NO_IDLE,
- 	.main_clk	= "ddrphy_ck",
- 	.prcm = {
- 		.omap4 = {
-@@ -930,7 +930,7 @@ static struct omap_hwmod omap44xx_emif2_hwmod = {
- 	.name		= "emif2",
- 	.class		= &omap44xx_emif_hwmod_class,
- 	.clkdm_name	= "l3_emif_clkdm",
--	.flags		= HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET,
-+	.flags		= HWMOD_INIT_NO_IDLE,
- 	.main_clk	= "ddrphy_ck",
- 	.prcm = {
- 		.omap4 = {
-@@ -2193,7 +2193,7 @@ static struct omap_hwmod omap44xx_mpu_hwmod = {
- 	.name		= "mpu",
- 	.class		= &omap44xx_mpu_hwmod_class,
- 	.clkdm_name	= "mpuss_clkdm",
--	.flags		= HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET,
-+	.flags		= HWMOD_INIT_NO_IDLE,
- 	.main_clk	= "dpll_mpu_m2_ck",
- 	.prcm = {
- 		.omap4 = {
-diff --git a/arch/arm/mach-omap2/omap_hwmod_54xx_data.c b/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
-index cde4155..e3caee1 100644
---- a/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
-@@ -352,7 +352,7 @@ static struct omap_hwmod omap54xx_emif1_hwmod = {
- 	.name		= "emif1",
- 	.class		= &omap54xx_emif_hwmod_class,
- 	.clkdm_name	= "emif_clkdm",
--	.flags		= HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET,
-+	.flags		= HWMOD_INIT_NO_IDLE,
- 	.main_clk	= "dpll_core_h11x2_ck",
- 	.prcm = {
- 		.omap4 = {
-@@ -368,7 +368,7 @@ static struct omap_hwmod omap54xx_emif2_hwmod = {
- 	.name		= "emif2",
- 	.class		= &omap54xx_emif_hwmod_class,
- 	.clkdm_name	= "emif_clkdm",
--	.flags		= HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET,
-+	.flags		= HWMOD_INIT_NO_IDLE,
- 	.main_clk	= "dpll_core_h11x2_ck",
- 	.prcm = {
- 		.omap4 = {
-@@ -1135,7 +1135,7 @@ static struct omap_hwmod omap54xx_mpu_hwmod = {
- 	.name		= "mpu",
- 	.class		= &omap54xx_mpu_hwmod_class,
- 	.clkdm_name	= "mpu_clkdm",
--	.flags		= HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET,
-+	.flags		= HWMOD_INIT_NO_IDLE,
- 	.main_clk	= "dpll_mpu_m2_ck",
- 	.prcm = {
- 		.omap4 = {
+diff --git a/arch/arm/boot/dts/am335x-evmsk.dts b/arch/arm/boot/dts/am335x-evmsk.dts
+index 4f339fa..0e44d29 100644
+--- a/arch/arm/boot/dts/am335x-evmsk.dts
++++ b/arch/arm/boot/dts/am335x-evmsk.dts
+@@ -419,3 +419,7 @@
+ 	phy_id = <&davinci_mdio>, <1>;
+ 	phy-mode = "rgmii-txid";
+ };
++
++&gpio0 {
++	ti,no-reset-on-init;
++};
 -- 
 1.7.9.5
 
