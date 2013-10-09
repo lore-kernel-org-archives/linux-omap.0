@@ -1,153 +1,37 @@
-From: Benoit Cousson <bcousson@baylibre.com>
-Subject: Re: [PATCH v2 2/5] ARM: dts: omap: Add new bindings for OMAP
-Date: Wed, 09 Oct 2013 18:45:54 +0200
-Message-ID: <52558842.6040409@baylibre.com>
-References: <1381313521-10422-1-git-send-email-rnayak@ti.com> <1381313521-10422-3-git-send-email-rnayak@ti.com> <525572A8.9060401@baylibre.com> <5255872A.30702@ti.com>
+From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCHv2 4/9] ARM: OMAP5: hwmod data: Add spinlock data
+Date: Wed, 9 Oct 2013 12:49:03 -0500
+Message-ID: <5255970F.1060307@ti.com>
+References: <cover.1379445653.git.s-anna@ti.com> <9812d9a19f9a52021dcae4b4fef50f10f2c21202.1379445653.git.s-anna@ti.com> <alpine.DEB.2.02.1310090712440.30199@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-we0-f170.google.com ([74.125.82.170]:57810 "EHLO
-	mail-we0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752195Ab3JIQp6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Oct 2013 12:45:58 -0400
-Received: by mail-we0-f170.google.com with SMTP id u57so1234984wes.1
-        for <linux-omap@vger.kernel.org>; Wed, 09 Oct 2013 09:45:57 -0700 (PDT)
-In-Reply-To: <5255872A.30702@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <alpine.DEB.2.02.1310090712440.30199-rwI8Ez+7Ko+d5PgPZx9QOdBPR1lH4CV8@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+Cc: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: paul@pwsan.com, tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, Mark Rutland <mark.rutland@arm.com>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>
 
-+ A couple of DT maintainers
-
-On 09/10/2013 18:41, Rajendra Nayak wrote:
-> On Wednesday 09 October 2013 08:43 PM, Benoit Cousson wrote:
->> Hi Rajendra,
+On 10/09/2013 02:12 AM, Paul Walmsley wrote:
+> On Tue, 17 Sep 2013, Suman Anna wrote:
+> 
+>> Add the hwmod data for the spinlock IP in OMAP5 SoC.
+>> This is needed to be able to enable the OMAP spinlock
+>> support for OMAP5.
 >>
->> On 09/10/2013 12:11, Rajendra Nayak wrote:
->>> On OMAP we have co-processor IPs, memory controllers,
->>> GPIOs which control regulators and power switches to
->>> PMIC, and SoC internal Bus IPs, some or most of which
->>> should either not be reset or idled or both at init.
->>> (In some cases there are erratas which prevent an IP
->>> from being reset)
->>> Have a way to pass this information from DT.
->>
->> Did you get some acked-by from the DT maintainers?
->> Every new bindings must be carefully reviewed now.
->
-> Nope, I haven't. The patches are on the list for a couple
-> of months now.
+>> Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+> 
+> Thanks, queued.  You can omit this one from future reposts of this series.
+> 
 
-Let's see if Mark and Rob are OK with that.
+Thanks. I will be reposting the series (soon), and will omit this patch
+and the AM335 sysc patch in the repost.
 
-Thanks,
-Benoit
+regards
+Suman
 
->
->>
->> Regards,
->> Benoit
->>
->>>
->>> Update the am33xx/omap4 and omap5 dtsi files with the
->>> new bindings for modules which either should not be
->>> idled. reset or both. A later patch would cleanup the
->>> same information that exists today as part of the hwmod
->>> data files.
->>>
->>> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
->>> ---
->>>    .../devicetree/bindings/arm/omap/omap.txt          |    3 ++-
->>>    arch/arm/boot/dts/am33xx.dtsi                      |    2 ++
->>>    arch/arm/boot/dts/omap4.dtsi                       |    3 +++
->>>    arch/arm/boot/dts/omap5.dtsi                       |    2 ++
->>>    4 files changed, 9 insertions(+), 1 deletion(-)
->>>
->>> diff --git a/Documentation/devicetree/bindings/arm/omap/omap.txt b/Documentation/devicetree/bindings/arm/omap/omap.txt
->>> index 91b7049..808c154 100644
->>> --- a/Documentation/devicetree/bindings/arm/omap/omap.txt
->>> +++ b/Documentation/devicetree/bindings/arm/omap/omap.txt
->>> @@ -21,7 +21,8 @@ Required properties:
->>>    Optional properties:
->>>    - ti,no_idle_on_suspend: When present, it prevents the PM to idle the module
->>>      during suspend.
->>> -
->>> +- ti,no-reset-on-init: When present, the module should not be reset at init
->>> +- ti,no-idle-on-init: When present, the module should not be idled at init
->>>
->>>    Example:
->>>
->>> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
->>> index f9c5da9..ec33ea0 100644
->>> --- a/arch/arm/boot/dts/am33xx.dtsi
->>> +++ b/arch/arm/boot/dts/am33xx.dtsi
->>> @@ -607,6 +607,7 @@
->>>                reg = <0x44d00000 0x4000    /* M3 UMEM */
->>>                       0x44d80000 0x2000>;    /* M3 DMEM */
->>>                ti,hwmods = "wkup_m3";
->>> +            ti,no-reset-on-init;
->>>            };
->>>
->>>            elm: elm@48080000 {
->>> @@ -637,6 +638,7 @@
->>>            gpmc: gpmc@50000000 {
->>>                compatible = "ti,am3352-gpmc";
->>>                ti,hwmods = "gpmc";
->>> +            ti,no-idle-on-init;
->>>                reg = <0x50000000 0x2000>;
->>>                interrupts = <100>;
->>>                gpmc,num-cs = <7>;
->>> diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
->>> index 22d9f2b..e8fe797 100644
->>> --- a/arch/arm/boot/dts/omap4.dtsi
->>> +++ b/arch/arm/boot/dts/omap4.dtsi
->>> @@ -214,6 +214,7 @@
->>>                gpmc,num-cs = <8>;
->>>                gpmc,num-waitpins = <4>;
->>>                ti,hwmods = "gpmc";
->>> +            ti,no-idle-on-init;
->>>            };
->>>
->>>            uart1: serial@4806a000 {
->>> @@ -492,6 +493,7 @@
->>>                reg = <0x4c000000 0x100>;
->>>                interrupts = <GIC_SPI 110 IRQ_TYPE_LEVEL_HIGH>;
->>>                ti,hwmods = "emif1";
->>> +            ti,no-idle-on-init;
->>>                phy-type = <1>;
->>>                hw-caps-read-idle-ctrl;
->>>                hw-caps-ll-interface;
->>> @@ -503,6 +505,7 @@
->>>                reg = <0x4d000000 0x100>;
->>>                interrupts = <GIC_SPI 111 IRQ_TYPE_LEVEL_HIGH>;
->>>                ti,hwmods = "emif2";
->>> +            ti,no-idle-on-init;
->>>                phy-type = <1>;
->>>                hw-caps-read-idle-ctrl;
->>>                hw-caps-ll-interface;
->>> diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
->>> index 7cdea1b..a9d49df 100644
->>> --- a/arch/arm/boot/dts/omap5.dtsi
->>> +++ b/arch/arm/boot/dts/omap5.dtsi
->>> @@ -607,6 +607,7 @@
->>>            emif1: emif@0x4c000000 {
->>>                compatible    = "ti,emif-4d5";
->>>                ti,hwmods    = "emif1";
->>> +            ti,no-idle-on-init;
->>>                phy-type    = <2>; /* DDR PHY type: Intelli PHY */
->>>                reg = <0x4c000000 0x400>;
->>>                interrupts = <GIC_SPI 110 IRQ_TYPE_LEVEL_HIGH>;
->>> @@ -618,6 +619,7 @@
->>>            emif2: emif@0x4d000000 {
->>>                compatible    = "ti,emif-4d5";
->>>                ti,hwmods    = "emif2";
->>> +            ti,no-idle-on-init;
->>>                phy-type    = <2>; /* DDR PHY type: Intelli PHY */
->>>                reg = <0x4d000000 0x400>;
->>>                interrupts = <GIC_SPI 111 IRQ_TYPE_LEVEL_HIGH>;
->>>
->>
->
-
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
