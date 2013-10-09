@@ -1,63 +1,73 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH V6 08/15] ARM: dts: dra7-evm: add smps123 supply for CPU
-Date: Wed, 9 Oct 2013 18:30:08 -0500
-Message-ID: <1381361414-8851-7-git-send-email-nm@ti.com>
+Subject: [PATCH V6 05/15] ARM: OMAP2+: DRA7: add lateinit hook for calling pm late init
+Date: Wed, 9 Oct 2013 18:30:05 -0500
+Message-ID: <1381361414-8851-4-git-send-email-nm@ti.com>
 References: <1381354144-7134-1-git-send-email-nm@ti.com>
  <1381361414-8851-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1381361414-8851-1-git-send-email-nm@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Kevin Hilman <khilman@linaro.org>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>
-Cc: Nishanth Menon <nm@ti.com>, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, J Keerthy <j-keerthy@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-doc@vger.kernel.org, devicetree@vger.kernel.org, Nishanth Menon <nm@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Paul Walmsley <paul@pwsan.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: J Keerthy <j-keerthy@ti.com>
+Call OMAP2+ generic lateinit hook from DRA7 specific late init hook.
+This allows the generic late initializations such as cpufreq hooks
+to be active.
 
-regulator smps123 supply from Palmas PMIC powers CPU0 on DRA7 EVM.
-
-[nm@ti.com: rebase to latest]
+Cc: Benoit Cousson <bcousson@baylibre.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Nishanth Menon <nm@ti.com>
-Signed-off-by: J Keerthy <j-keerthy@ti.com>
 ---
- arch/arm/boot/dts/dra7-evm.dts |    4 ++++
- arch/arm/boot/dts/dra7.dtsi    |    2 +-
- 2 files changed, 5 insertions(+), 1 deletion(-)
+ arch/arm/mach-omap2/board-generic.c |    1 +
+ arch/arm/mach-omap2/common.h        |    1 +
+ arch/arm/mach-omap2/io.c            |    6 ++++++
+ 3 files changed, 8 insertions(+)
 
-diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
-index 3abf5f4..5babba0 100644
---- a/arch/arm/boot/dts/dra7-evm.dts
-+++ b/arch/arm/boot/dts/dra7-evm.dts
-@@ -269,3 +269,7 @@
- 	vmmc-supply = <&mmc2_3v3>;
- 	bus-width = <8>;
- };
-+
-+&cpu0 {
-+	cpu0-supply = <&smps123_reg>;
-+};
-diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index c98997b..02e430b 100644
---- a/arch/arm/boot/dts/dra7.dtsi
-+++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -32,7 +32,7 @@
- 		#address-cells = <1>;
- 		#size-cells = <0>;
+diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
+index 67dbae2..c0b0848 100644
+--- a/arch/arm/mach-omap2/board-generic.c
++++ b/arch/arm/mach-omap2/board-generic.c
+@@ -255,6 +255,7 @@ DT_MACHINE_START(DRA7XX_DT, "Generic DRA7XX (Flattened Device Tree)")
+ 	.smp		= smp_ops(omap4_smp_ops),
+ 	.map_io		= omap5_map_io,
+ 	.init_early	= dra7xx_init_early,
++	.init_late	= dra7xx_init_late,
+ 	.init_irq	= omap_gic_of_init,
+ 	.init_machine	= omap_generic_init,
+ 	.init_time	= omap5_realtime_timer_init,
+diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
+index ceb208b..352fa9d 100644
+--- a/arch/arm/mach-omap2/common.h
++++ b/arch/arm/mach-omap2/common.h
+@@ -114,6 +114,7 @@ void am33xx_init_late(void);
+ void omap5_init_late(void);
+ int omap2_common_pm_late_init(void);
+ void dra7xx_init_early(void);
++void dra7xx_init_late(void);
  
--		cpu@0 {
-+		cpu0: cpu@0 {
- 			device_type = "cpu";
- 			compatible = "arm,cortex-a15";
- 			reg = <0>;
+ #ifdef CONFIG_SOC_BUS
+ void omap_soc_device_init(void);
+diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+index 6226e0d..3b7b543 100644
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -702,6 +702,12 @@ void __init dra7xx_init_early(void)
+ 	omap_hwmod_init_postsetup();
+ 	omap_clk_init = dra7xx_dt_clk_init;
+ }
++
++void __init dra7xx_init_late(void)
++{
++	omap2_common_pm_late_init();
++}
++
+ #endif
+ 
+ 
 -- 
 1.7.9.5
