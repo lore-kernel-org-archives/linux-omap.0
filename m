@@ -1,7 +1,7 @@
 From: Rajendra Nayak <rnayak@ti.com>
-Subject: [PATCH v2 5/5] ARM: dts: AM335x-evmsk: Do not reset gpio0
-Date: Wed, 9 Oct 2013 15:42:01 +0530
-Message-ID: <1381313521-10422-6-git-send-email-rnayak@ti.com>
+Subject: [PATCH v2 3/5] ARM: OMAP2+: hwmod: Extract no-idle and no-reset info from DT
+Date: Wed, 9 Oct 2013 15:41:59 +0530
+Message-ID: <1381313521-10422-4-git-send-email-rnayak@ti.com>
 References: <1381313521-10422-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,29 +12,80 @@ To: bcousson@baylibre.com, paul@pwsan.com, tony@atomide.com
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Do not reset GPIO0 at  boot-up because GPIO0 is used
-on AM335x EVM-SK to control VTT regulators on DDR3.
-
-Without this EVM-SK boards fail to boot-up because
-of DDR3 corruption.
+Now that we have DT bindings to specify which devices should not
+be reset and idled during init, make hwmod extract the information
+(and store them in internal flags) from Device tree.
 
 Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 ---
- arch/arm/boot/dts/am335x-evmsk.dts |    4 ++++
- 1 file changed, 4 insertions(+)
+ arch/arm/mach-omap2/omap_hwmod.c |   23 ++++++++++++++++-------
+ 1 file changed, 16 insertions(+), 7 deletions(-)
 
-diff --git a/arch/arm/boot/dts/am335x-evmsk.dts b/arch/arm/boot/dts/am335x-evmsk.dts
-index 4f339fa..0e44d29 100644
---- a/arch/arm/boot/dts/am335x-evmsk.dts
-+++ b/arch/arm/boot/dts/am335x-evmsk.dts
-@@ -419,3 +419,7 @@
- 	phy_id = <&davinci_mdio>, <1>;
- 	phy-mode = "rgmii-txid";
- };
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index d9ee0ff..b55923a 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -2363,11 +2363,11 @@ static struct device_node *of_dev_hwmod_lookup(struct device_node *np,
+  * are part of the device's address space can be ioremapped properly.
+  * No return value.
+  */
+-static void __init _init_mpu_rt_base(struct omap_hwmod *oh, void *data)
++static void __init _init_mpu_rt_base(struct omap_hwmod *oh, void *data,
++				     struct device_node *np)
+ {
+ 	struct omap_hwmod_addr_space *mem;
+ 	void __iomem *va_start = NULL;
+-	struct device_node *np;
+ 
+ 	if (!oh)
+ 		return;
+@@ -2383,12 +2383,10 @@ static void __init _init_mpu_rt_base(struct omap_hwmod *oh, void *data)
+ 			 oh->name);
+ 
+ 		/* Extract the IO space from device tree blob */
+-		if (!of_have_populated_dt())
++		if (!np)
+ 			return;
+ 
+-		np = of_dev_hwmod_lookup(of_find_node_by_name(NULL, "ocp"), oh);
+-		if (np)
+-			va_start = of_iomap(np, oh->mpu_rt_idx);
++		va_start = of_iomap(np, oh->mpu_rt_idx);
+ 	} else {
+ 		va_start = ioremap(mem->pa_start, mem->pa_end - mem->pa_start);
+ 	}
+@@ -2420,12 +2418,16 @@ static void __init _init_mpu_rt_base(struct omap_hwmod *oh, void *data)
+ static int __init _init(struct omap_hwmod *oh, void *data)
+ {
+ 	int r;
++	struct device_node *np = NULL;
+ 
+ 	if (oh->_state != _HWMOD_STATE_REGISTERED)
+ 		return 0;
+ 
++	if (of_have_populated_dt())
++		np = of_dev_hwmod_lookup(of_find_node_by_name(NULL, "ocp"), oh);
 +
-+&gpio0 {
-+	ti,no-reset-on-init;
-+};
+ 	if (oh->class->sysc)
+-		_init_mpu_rt_base(oh, NULL);
++		_init_mpu_rt_base(oh, NULL, np);
+ 
+ 	r = _init_clocks(oh, NULL);
+ 	if (r < 0) {
+@@ -2433,6 +2435,13 @@ static int __init _init(struct omap_hwmod *oh, void *data)
+ 		return -EINVAL;
+ 	}
+ 
++	if (np) {
++		if (of_find_property(np, "ti,no-reset-on-init", NULL))
++			oh->flags |= HWMOD_INIT_NO_RESET;
++		if (of_find_property(np, "ti,no-idle-on-init", NULL))
++			oh->flags |= HWMOD_INIT_NO_IDLE;
++	}
++
+ 	oh->_state = _HWMOD_STATE_INITIALIZED;
+ 
+ 	return 0;
 -- 
 1.7.9.5
 
