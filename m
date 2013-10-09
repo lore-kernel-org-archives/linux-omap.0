@@ -1,48 +1,47 @@
-From: Daniel Mack <zonque@gmail.com>
-Subject: Re: [PATCH 0/3] dma: cppi41: more suspend/resume patches
-Date: Wed, 09 Oct 2013 09:31:51 +0200
-Message-ID: <52550667.9010203@gmail.com>
-References: <1380634271-27588-1-git-send-email-zonque@gmail.com> <20131009064124.GA3529@linutronix.de> <5255047A.5010609@gmail.com> <52550583.5050506@linutronix.de>
+From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Subject: Re: [PATCH 1/1] ARM: OMAP2+: pdata-quirks: add legacy display init
+ for IGEPv2 board
+Date: Wed, 09 Oct 2013 09:36:26 +0200
+Message-ID: <5255077A.4010702@collabora.co.uk>
+References: <1380941496-26899-1-git-send-email-javier.martinez@collabora.co.uk> <20131008211108.GQ8313@atomide.com> <5254F15B.5050207@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f177.google.com ([209.85.212.177]:41324 "EHLO
-	mail-wi0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752103Ab3JIHby (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Oct 2013 03:31:54 -0400
-In-Reply-To: <52550583.5050506@linutronix.de>
+Received: from bhuna.collabora.co.uk ([93.93.135.160]:42026 "EHLO
+	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752055Ab3JIHhF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Oct 2013 03:37:05 -0400
+In-Reply-To: <5254F15B.5050207@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, neumann@teufel.de, vinod.koul@intel.com, dan.j.williams@intel.com, balbi@ti.com
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Enric Balletbo i Serra <eballetbo@gmail.com>, bcousson@baylibre.com, linux-omap@vger.kernel.org
 
-On 09.10.2013 09:28, Sebastian Andrzej Siewior wrote:
-> On 10/09/2013 09:23 AM, Daniel Mack wrote:
->> Ok, thank you very much for the update :) I can of course test
->> alternative patches if you have any.
->>
->> Could you actually reproduce the issue I described by sending your board
->> to suspend?
+On 10/09/2013 08:02 AM, Tomi Valkeinen wrote:
+> Hi Tony,
 > 
-> No, I don't have "mem", just "freeze".
+> On 09/10/13 00:11, Tony Lindgren wrote:
+>> * Javier Martinez Canillas <javier.martinez@collabora.co.uk> [131004 20:00]:
+>>> IGEPv2 board has both an DVI and TFP410 video interfaces but
+>>> DSS support for DeviceTree has not yet landed in mainline so
+>>> is necessary to init the displays using legacy platform code.
+>> 
+>> Thanks, applying into omap-for-v3.13/quirk.
+> 
+> Can you remove the patch from your branch? It had bug, and I had some
+> questions related to it.
+> 
+>  Tomi
+> 
+> 
 
-Sounds like you need to update your cm3 firmware. I built mine from this
-tree:
+Hi Tomi,
 
-      git://arago-project.org/git/projects/am33x-cm3.git
-      Branch "next3"
-      AM335xPSP_04.06.00.08-141-g1628306
+I noticed about the bug (a duplicated pdata_quirks) just after sending the patch
+so I fixed on a v2 [1].
 
-I can also send you my binary in PM if you want me to.
+Thanks a lot and best regards,
+Javier
 
-> I try to test if this is a
-> regression compared to my earlier testing. If not then it looks good I
-> would say.
-
-Ok.
-
-
-Thanks,
-Daniel
-
+[1]: http://www.spinics.net/lists/linux-omap/msg98257.html
