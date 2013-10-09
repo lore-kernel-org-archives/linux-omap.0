@@ -1,68 +1,84 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 1/1] ARM: OMAP2+: pdata-quirks: add legacy display init
- for IGEPv2 board
-Date: Wed, 9 Oct 2013 09:02:03 +0300
-Message-ID: <5254F15B.5050207@ti.com>
-References: <1380941496-26899-1-git-send-email-javier.martinez@collabora.co.uk> <20131008211108.GQ8313@atomide.com>
+From: "Fernandes, Joel" <joelf@ti.com>
+Subject: Re: [PATCH v3] ARM: omap: edma: add suspend suspend/resume hooks
+Date: Wed, 9 Oct 2013 06:03:58 +0000
+Message-ID: <F774F8C9-0A8F-4B27-8607-874FB0901A78@ti.com>
+References: <1380639886-9526-1-git-send-email-zonque@gmail.com>
+ <5254DB86.4000104@ti.com>,<5254E60F.80009@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="rVn8QJn2rq5m017rdtVKbuqUWknpVA3dt"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:45122 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:45220 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751915Ab3JIGCO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 9 Oct 2013 02:02:14 -0400
-In-Reply-To: <20131008211108.GQ8313@atomide.com>
+	id S1751867Ab3JIGEb convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Oct 2013 02:04:31 -0400
+In-Reply-To: <5254E60F.80009@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Enric Balletbo i Serra <eballetbo@gmail.com>, bcousson@baylibre.com, linux-omap@vger.kernel.org
+To: "Hebbar, Gururaja" <gururaja.hebbar@ti.com>
+Cc: Daniel Mack <zonque@gmail.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "neumann@teufel.de" <neumann@teufel.de>, "bigeasy@linutronix.de" <bigeasy@linutronix.de>, "vinod.koul@intel.com" <vinod.koul@intel.com>, "dan.j.williams@intel.com" <dan.j.williams@intel.com>, "Balbi, Felipe" <balbi@ti.com>
 
---rVn8QJn2rq5m017rdtVKbuqUWknpVA3dt
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Some temporary issues with my mua so forgive any artifacts in this email.
 
-Hi Tony,
+On Oct 9, 2013, at 12:14 AM, "Hebbar, Gururaja" <gururaja.hebbar@ti.com> wrote:
 
-On 09/10/13 00:11, Tony Lindgren wrote:
-> * Javier Martinez Canillas <javier.martinez@collabora.co.uk> [131004 20=
-:00]:
->> IGEPv2 board has both an DVI and TFP410 video interfaces but
->> DSS support for DeviceTree has not yet landed in mainline so
->> is necessary to init the displays using legacy platform code.
->=20
-> Thanks, applying into omap-for-v3.13/quirk.
+> On Wednesday 09 October 2013 09:58 AM, Joel Fernandes wrote:
+>> On 10/01/2013 10:04 AM, Daniel Mack wrote:
+>>> This patch makes the edma driver resume correctly after suspend. Tested
+>>> on an AM33xx platform with cyclic audio streams.
+>>> 
+>>> The code was shamelessly taken from an ancient BSP tree.
+>>> 
+>>> Signed-off-by: Daniel Mack <zonque@gmail.com>
+>>> ---
+>>> arch/arm/common/edma.c | 133 +++++++++++++++++++++++++++++++++++++++++++++++++
+>>> 1 file changed, 133 insertions(+)
+> 
+> ..snip..
+> ..snip..
+>> 
+>>> +        edma_cc[j]->context.ch_map =
+>>> +            kzalloc((sizeof(unsigned int) *
+>>> +                 edma_cc[j]->num_channels), GFP_KERNEL);
+>>> +        edma_cc[j]->context.que_num =
+>>> +            kzalloc((sizeof(unsigned int) * 8), GFP_KERNEL);
+>> 
+>> Can these allocations be moved to the suspend path? For systems that don't
+>> suspend/resume even once, I feel we shouldn't allocate memory that we don't use.
+>> These allocations are better to do there.
+> 
+> AFAIK, Suspend/resume should be quick. Allocating and deallocating on
+> every iterating would be useless and time consuming.
 
-Can you remove the patch from your branch? It had bug, and I had some
-questions related to it.
+Nobody said allocate and deallocate on every iteration. Allocate once during the first suspend call and then don't have to allocate on subsequent calls.
 
- Tomi
+As for suspend resume being quick, that argument can flipped the other way too, booting should be quick which is far more frequent than suspend/resume. Apart from the fact that we're not allocating useless memory we would never use.
 
+> 
+> Also this task is one time and quick.
 
+Exactly.
 
---rVn8QJn2rq5m017rdtVKbuqUWknpVA3dt
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+> 
+> Are there any systems (Linux based for now) which doesn't
+> suspend/resume? I believe the probability is very less.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+Nobody talked about suspend/resume not being supported in Linux so not sure what your argument is here.
 
-iQIcBAEBAgAGBQJSVPFbAAoJEPo9qoy8lh715GMP/2zyXhK3UtB0FstjRAluYGfP
-7t6obmmxGtw6VQNdtlfNrY/5mqmfCdmh85cwbbXXzZVi3cd6kVCaPfQOrz2PoT7p
-YZJ1RtkS+ftdfSz5tSDLcrPX2WXLeZGTxyfPY7Mldjp08G5kXCLTtzJgOchEAptB
-FAQFLmNehF8isEO/XXQOA8sxwev3vcXX+2kq5yxUne9NGYePAyv+/8ipXsvM9GOj
-u1XTjt0b6CTQzsAFbJyq2M5Z6METmXsN/3HAaceWoeLCNLxvWuhgGFy6cH8OL4cy
-jX24SNhD9aXF+JPTWq2JvuW4sqK2jJLCi8mxp76aHJHw2v1PvYrp2CJnjlrGvnQu
-5mpUL6NGC9UfmGElVW5e/5iYtggWPhWykWxEtddQEfo5MRyEBD6xcD5/Ie8ncsNy
-ZU40iMA/WPeeZ6Jhin8h3CLNk18YhQQ6qc8IA15E/Uzq4aVOLopBlmrzg/MLYWRG
-xF1eG4mxvEwGX7NUBegyn9imeoF0gxrIRThWQcfloojQeKdHdk++n4fiG+oXcr5j
-SiXAzQa2rrpHEdjB/GzBTgoFrTXCDPs6vGFROKYL9TuU3/HvdvWG1sAsi/l1YYwB
-vDb4/v7hYDR3KXukXdybft99gCqGyJe35ZUDD8Ji89zDn49CYVTrFoAm03rriOtC
-BoDvHLkcHRCGTrPOyUUG
-=oJcC
------END PGP SIGNATURE-----
+regards,
 
---rVn8QJn2rq5m017rdtVKbuqUWknpVA3dt--
+-Joel
+
+> 
+> regards
+> Gururaja
+> 
+>> 
+>> -Joel
+>> 
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
