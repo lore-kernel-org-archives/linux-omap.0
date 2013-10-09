@@ -1,74 +1,78 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH v4 08/10] ARM/dts: am33xx: mcasp: Add location for data
- port registers to reg-property
-Date: Wed, 9 Oct 2013 11:29:44 +0300
-Message-ID: <525513F8.1040103@ti.com>
-References: <cover.1381259962.git.jsarha@ti.com> <37c7ee5f2eab24df86baba1bd36da66c5a637744.1381259962.git.jsarha@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH] OMAPDSS: HDMI: Correctly compare timings
+Date: Wed, 9 Oct 2013 11:30:46 +0300
+Message-ID: <52551436.3090709@ti.com>
+References: <1380825919.12133.10.camel@asus>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="0ufaPdVOEOu5mPE6NXOdnTLBbt4PNGcfh"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:42335 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:35814 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751942Ab3JII34 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 9 Oct 2013 04:29:56 -0400
-In-Reply-To: <37c7ee5f2eab24df86baba1bd36da66c5a637744.1381259962.git.jsarha@ti.com>
+	id S1756747Ab3JIIas (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 9 Oct 2013 04:30:48 -0400
+In-Reply-To: <1380825919.12133.10.camel@asus>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jyri Sarha <jsarha@ti.com>, alsa-devel@alsa-project.org, devicetree@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, broonie@kernel.org, mark.rutland@arm.com, joelf@ti.com, "Hebbar, Gururaja" <gururaja.hebbar@ti.com>, Darren Etheridge <detheridge@ti.com>
+To: =?UTF-8?B?UmljaGFyZCBSw7ZqZm9ycw==?= <richard.rojfors@gmail.com>, linux-omap@vger.kernel.org
 
-On 10/08/2013 10:36 PM, Jyri Sarha wrote:
-> This patch adds a second tuple to reg property. The new property tupl=
-e
-> describes the memory location for data port registers mapped trough
-> L3 bus on am33xx. The both property tuples are named accordingly in
-> the reg-names property.
+--0ufaPdVOEOu5mPE6NXOdnTLBbt4PNGcfh
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+On 03/10/13 21:45, Richard R=C3=B6jfors wrote:
+> There is currently a copy and paste error where the hdmi vsync timings =
+are not
+> compared correctly, this patch fixes this.
 >=20
-> Signed-off-by: Hebbar, Gururaja <gururaja.hebbar@ti.com>
-> Signed-off-by: Darren Etheridge <detheridge@ti.com>
-> Signed-off-by: Jyri Sarha <jsarha@ti.com>
+> Signed-off-by: Richard R=C3=B6jfors <richard.rojfors@gmail.com>
 > ---
->  arch/arm/boot/dts/am33xx.dtsi |    8 ++++++--
->  1 file changed, 6 insertions(+), 2 deletions(-)
->=20
-> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx=
-=2Edtsi
-> index 22659e7..c8ba19e 100644
-> --- a/arch/arm/boot/dts/am33xx.dtsi
-> +++ b/arch/arm/boot/dts/am33xx.dtsi
-> @@ -671,7 +671,9 @@
->  		mcasp0: mcasp@48038000 {
->  			compatible =3D "ti,omap2-mcasp-audio";
->  			ti,hwmods =3D "mcasp0";
-> -			reg =3D <0x48038000 0x2000>;
-> +			reg =3D <0x48038000 0x2000>,
-> +			      <0x46400000 0x400000>;
-
-mcasp0 data port is at 0x46000000. 0x46400000 is for mcasp1.
-
-> +			reg-names =3D "mpu", "dat";
->  			interrupts =3D <80>, <81>;
->  			interrupts-names =3D "tx", "rx";
->  			status =3D "disabled";
-> @@ -683,7 +685,9 @@
->  		mcasp1: mcasp@4803C000 {
->  			compatible =3D "ti,omap2-mcasp-audio";
->  			ti,hwmods =3D "mcasp1";
-> -			reg =3D <0x4803C000 0x2000>;
-> +			reg =3D <0x4803C000 0x2000>,
-> +			      <0x46400000 0x400000>;
-> +			reg-names =3D "mpu", "dat";
->  			interrupts =3D <82>, <83>;
->  			interrupts-names =3D "tx", "rx";
->  			status =3D "disabled";
+> diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/dss/h=
+dmi.c
+> index 82a9640..e3ea2d5 100644
+> --- a/drivers/video/omap2/dss/hdmi.c
+> +++ b/drivers/video/omap2/dss/hdmi.c
+> @@ -391,7 +391,7 @@ static bool hdmi_timings_compare(struct omap_video_=
+timings *timing1,
+>  		timing2_hsync =3D timing2->hfp + timing2->hsw + timing2->hbp;
+>  		timing1_hsync =3D timing1->hfp + timing1->hsw + timing1->hbp;
+>  		timing2_vsync =3D timing2->vfp + timing2->vsw + timing2->vbp;
+> -		timing1_vsync =3D timing2->vfp + timing2->vsw + timing2->vbp;
+> +		timing1_vsync =3D timing1->vfp + timing1->vsw + timing1->vbp;
+> =20
+>  		DSSDBG("timing1_hsync =3D %d timing1_vsync =3D %d"\
+>  			"timing2_hsync =3D %d timing2_vsync =3D %d\n",
 >=20
 
+Thanks, queuing for 3.13.
 
---=20
-P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ Tomi
+
+
+
+--0ufaPdVOEOu5mPE6NXOdnTLBbt4PNGcfh
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJSVRQ2AAoJEPo9qoy8lh71aNUQAKAiHnHohVyOCNyg0cr+vAFy
+CpA2E96k3VLayR1Aaddv7tPs0RzlFcTi5z+GS8eABZZpUBIHN4Q07yRMbtdXfYQ5
+vf3EPe9c89Ac4l0Pjl0W26qB9KoO2/6xEfRr9+boE4LMOLEd5Jd80DMBQerXcT6I
+TI16wWFNgKVVnWHiaEXPmVJsvlsekYtSEXGk/s7BYj0LgfLuoOrrr98WVXN9yZLe
+3mjvoAlxeRF8/9ZYHqwGncaiQocvIoDdj2KydcEzI4fG53qkGmmgvVRjy3oNxLTu
+LbXqH/KJslZlrTfVfQejpdyUo8XChEChdgwmBx+xDRtcgmWU4OvMoo84avGLdAyo
+moMASiqzXD7L0qtySdPC4DqHmOt7yqLhJjnhFyuOOiH29ENZUPid/bwR/dhvHIB5
+OvcMKDgrJ5YKHkGuL185IELdPTYYFqlVOLLVmcUkV5GgN2bS5eWtjBAWvAViD+zK
+NuC2FSY81UGJuueVsNzJz9sY9DC5U1JXX2LSuEC9ONSk/eT+P8mOCZ6a7VJvmwOY
+dY//q/aXey1+N+7w5RMuFeUNt39HA+0PtNkMCGYWE6oAudTF+5px6G7hzLX5xT3a
+jnHe89DCZw3xS4Gn0oEuIyZpoh0xOdxsomnHhKGn4FYpc/J3jTOXUHt3vsDCWdAa
+y5lgWDEwmpgxolg7nApD
+=TOEi
+-----END PGP SIGNATURE-----
+
+--0ufaPdVOEOu5mPE6NXOdnTLBbt4PNGcfh--
