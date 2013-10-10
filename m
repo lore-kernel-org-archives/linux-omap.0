@@ -1,138 +1,66 @@
-From: Balaji T K <balajitk@ti.com>
-Subject: Re: [PATCH 14/27] mmc: omap_hsmmc: Move away from using deprecated
- APIs
-Date: Thu, 10 Oct 2013 19:36:31 +0530
-Message-ID: <5256B467.8080402@ti.com>
-References: <1380207292-16968-1-git-send-email-ulf.hansson@linaro.org> <1380207292-16968-15-git-send-email-ulf.hansson@linaro.org>
+From: Sebastian Reichel <sre@debian.org>
+Subject: Re: [RFCv3 1/7] ARM: OMAP2+: hwmod-data: Add SSI information
+Date: Thu, 10 Oct 2013 16:19:22 +0200
+Message-ID: <20131010141921.GE28657@earth.universe>
+References: <1381091235-18293-1-git-send-email-sre@debian.org>
+ <1381091235-18293-2-git-send-email-sre@debian.org>
+ <alpine.DEB.2.02.1310090542270.30199@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <1380207292-16968-15-git-send-email-ulf.hansson@linaro.org>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Ulf Hansson <ulf.hansson@linaro.org>
-Cc: linux-kernel@vger.kernel.org, linux-mmc@vger.kernel.org, Chris Ball <cjb@laptop.org>, linux-omap@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="FN+gV9K+162wdwwF"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from ring0.de ([91.143.88.219]:36441 "EHLO smtp.ring0.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755263Ab3JJOTx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 10 Oct 2013 10:19:53 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.02.1310090542270.30199@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Shubhrajyoti Datta <omaplinuxkernel@gmail.com>, Carlos Chinea <cch.devel@gmail.com>, Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Grant Likely <grant.likely@linaro.org>, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Rob Landley <rob@landley.net>, =?iso-8859-1?Q?'Beno=EEt?= Cousson' <bcousson@baylibre.com>, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, 'Pali =?iso-8859-1?Q?Roh=E1r'?= <pali.rohar@gmail.com>, =?utf-8?B?J9CY0LLQsNC50LvQviDQlNC40LzQuNGC0YDQvtCyJw==?= <freemangordon@abv.bg>, Joni
 
-On Thursday 26 September 2013 08:24 PM, Ulf Hansson wrote:
-> Suspend and resume of cards are being handled from the protocol layer
-> and consequently the mmc_suspend|resume_host APIs are deprecated.
->
-> This means we can simplify the suspend|resume callbacks by removing the
-> use of the deprecated APIs. Additional cleanup done for keeping track
-> suspended state.
->
-> Cc: Balaji T K <balajitk@ti.com>
-> Cc: linux-omap@vger.kernel.org
-> Signed-off-by: Ulf Hansson <ulf.hansson@linaro.org>
 
-Acked-by: Balaji T K <balajitk@ti.com>
+--FN+gV9K+162wdwwF
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> ---
->   drivers/mmc/host/omap_hsmmc.c |   37 +++----------------------------------
->   1 file changed, 3 insertions(+), 34 deletions(-)
->
-> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-> index 6ac63df..eb6fb28 100644
-> --- a/drivers/mmc/host/omap_hsmmc.c
-> +++ b/drivers/mmc/host/omap_hsmmc.c
-> @@ -170,7 +170,6 @@ struct omap_hsmmc_host {
->   	unsigned int		dma_sg_idx;
->   	unsigned char		bus_mode;
->   	unsigned char		power_mode;
-> -	int			suspended;
->   	int			irq;
->   	int			use_dma, dma_ch;
->   	struct dma_chan		*tx_chan;
-> @@ -1178,9 +1177,6 @@ static irqreturn_t omap_hsmmc_detect(int irq, void *dev_id)
->   	struct omap_mmc_slot_data *slot = &mmc_slot(host);
->   	int carddetect;
->
-> -	if (host->suspended)
-> -		return IRQ_HANDLED;
-> -
->   	sysfs_notify(&host->mmc->class_dev.kobj, NULL, "cover_switch");
->
->   	if (slot->card_detect)
-> @@ -1643,11 +1639,6 @@ static int omap_hsmmc_regs_show(struct seq_file *s, void *data)
->   	seq_printf(s, "mmc%d:\n ctx_loss:\t%d:%d\n\nregs:\n",
->   			mmc->index, host->context_loss, context_loss);
->
-> -	if (host->suspended) {
-> -		seq_printf(s, "host suspended, can't read registers\n");
-> -		return 0;
-> -	}
-> -
->   	pm_runtime_get_sync(host->dev);
->
->   	seq_printf(s, "CON:\t\t0x%08x\n",
-> @@ -2119,23 +2110,12 @@ static void omap_hsmmc_complete(struct device *dev)
->
->   static int omap_hsmmc_suspend(struct device *dev)
->   {
-> -	int ret = 0;
->   	struct omap_hsmmc_host *host = dev_get_drvdata(dev);
->
->   	if (!host)
->   		return 0;
->
-> -	if (host && host->suspended)
-> -		return 0;
-> -
->   	pm_runtime_get_sync(host->dev);
-> -	host->suspended = 1;
-> -	ret = mmc_suspend_host(host->mmc);
-> -
-> -	if (ret) {
-> -		host->suspended = 0;
-> -		goto err;
-> -	}
->
->   	if (!(host->mmc->pm_flags & MMC_PM_KEEP_POWER)) {
->   		omap_hsmmc_disable_irq(host);
-> @@ -2145,23 +2125,19 @@ static int omap_hsmmc_suspend(struct device *dev)
->
->   	if (host->dbclk)
->   		clk_disable_unprepare(host->dbclk);
-> -err:
-> +
->   	pm_runtime_put_sync(host->dev);
-> -	return ret;
-> +	return 0;
->   }
->
->   /* Routine to resume the MMC device */
->   static int omap_hsmmc_resume(struct device *dev)
->   {
-> -	int ret = 0;
->   	struct omap_hsmmc_host *host = dev_get_drvdata(dev);
->
->   	if (!host)
->   		return 0;
->
-> -	if (host && !host->suspended)
-> -		return 0;
-> -
->   	pm_runtime_get_sync(host->dev);
->
->   	if (host->dbclk)
-> @@ -2172,16 +2148,9 @@ static int omap_hsmmc_resume(struct device *dev)
->
->   	omap_hsmmc_protect_card(host);
->
-> -	/* Notify the core to resume the host */
-> -	ret = mmc_resume_host(host->mmc);
-> -	if (ret == 0)
-> -		host->suspended = 0;
-> -
->   	pm_runtime_mark_last_busy(host->dev);
->   	pm_runtime_put_autosuspend(host->dev);
-> -
-> -	return ret;
-> -
-> +	return 0;
->   }
->
->   #else
->
+On Wed, Oct 09, 2013 at 05:43:13AM +0000, Paul Walmsley wrote:
+> On Sun, 6 Oct 2013, Sebastian Reichel wrote:
+>=20
+> > This patch adds Synchronous Serial Interface (SSI) hwmod support for
+> > OMAP34xx SoCs.
+> >=20
+> > Signed-off-by: Sebastian Reichel <sre@debian.org>
+>=20
+> Thanks, queued this one for v3.13.  You can drop it from any future=20
+> reposts of this series.
 
+Thanks.
+
+-- Sebastian
+
+--FN+gV9K+162wdwwF
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.14 (GNU/Linux)
+
+iQIcBAEBCAAGBQJSVrdpAAoJENju1/PIO/qaXjMQAJyWFTugpaPfCNs57stTRki1
+3QB2FKlVafmwF3fen1fNcVnYOxOD+bx2ihkoizWZNdt/sh8W0C4vqJBkbHW1PiN0
+CmKQkilvgmEQ+q4QAC0jndT/PFVo3qlX1GrQrECU5LOGQ6v+jH5Q0u2TNcRU2KFI
+AT5VCenUhkpJ4l9sZzGLUGXB6Ysxjh98UPFdFE63y6NRyIRhLK2Vn3uwa/xR3/0G
+0QT1XKvHlBb2bRZ3dZU8nLIoMEJsr4zJot7fq/EkyRh2uV/+nFf+UbvGiODeoZZu
+RBhmiRYDRT4AgxyGklt6+uNO/fUGEDqCggTPJZeriKnhxAQKnELl+P56w8vL6aW9
+rWGQCMxSxEtpXsuE5LleyCNvZq721nBTiHFUMonHaWSde88eYUiRoFNx8m64Ah8g
+NZy2/bdKdHxUbv6PpKyTqA8XHuSi6dUus0rYXD43sp4okrjsOiNcQwbHl82D26Qr
+XhbnwFmr3FX93Ss/y7Ka0hoEgYPVOg1jKzIgpaV26Xp4V8YyFEa0/So3NfNoTh7U
+rUKW/7K5b/BvayFnaDvi+1/4jzloNqH7B+vg6QurQH9FSTAzGEgQbhXgm7RS9zPj
+S9ztGLstjtjFGjEL0Z90AI8F9vTqfuv42cAfSoB0vbNKtDodgqs0doSRUUEM/aMF
+C/1jq7zWeYs6KQlWL1C/
+=VL0e
+-----END PGP SIGNATURE-----
+
+--FN+gV9K+162wdwwF--
