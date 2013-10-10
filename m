@@ -1,48 +1,39 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/6] add support for omap wake-up interrupts via
- pinctrl-single, take2
-Date: Thu, 10 Oct 2013 15:47:45 -0700
-Message-ID: <20131010224744.GK29913@atomide.com>
-References: <20131003054104.8941.88857.stgit@localhost>
- <871u3spzm5.fsf@linaro.org>
+Subject: [PATCH 0/2] Minor omap2plus_defconfig updates for v3.13 merge window
+Date: Thu, 10 Oct 2013 16:04:36 -0700
+Message-ID: <20131010230325.8152.27727.stgit@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:43562 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:16492 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752057Ab3JJWru (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Oct 2013 18:47:50 -0400
-Content-Disposition: inline
-In-Reply-To: <871u3spzm5.fsf@linaro.org>
+	with ESMTP id S1751712Ab3JJXEk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Oct 2013 19:04:40 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@linaro.org>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org
 
-* Kevin Hilman <khilman@linaro.org> [131010 14:55]:
-> Tony Lindgren <tony@atomide.com> writes:
-> 
-> > Here's a respin of the pinctrl-single related patches to use chained
-> > irq as suggested by Linus W earlier. This series does not try to
-> > provide any generic automated solution yet, but works by doing a
-> > request_irq() for the wake-up pin, so it should be flexible enough for
-> > both manual control and automated solution.
-> 
-> > This series removes the last nasty blocker for making omap3 to be
-> > device tree only without causing nasty PM regressions.
-> 
-> Indeed, I gave this a spin on several OMAP3 platforms with legacy boot
-> and ran through a series of retention and off-mode tests for idle and
-> suspend with both UART and RTC wakeups.  No regressions found.  So...
-> 
-> Reviewed-by: Kevin Hilman <khilman@linaro.org>
-> Tested-by: Kevin Hilman <khilman@linaro.org>
-> 
-> on 3530/beagle, 3730/beagle-xM, 3530/Overo, 3730/Overo STORM
+Hi all,
 
-Thanks for testing, applying these into omap-for-v3.13/quirk
-because of the dependencies.
+As it's currently a bit of a pain to patch omap2plus_defconfig, let's
+run make savedefconfig on it as that also gets rid of about 30 lines
+from it. And let's add some WLAN modules and support for of_serial.
 
 Regards,
 
 Tony
+
+---
+
+Tony Lindgren (2):
+      ARM: OMAP2+: Run make savedefconfig on omap2plus_defconfig to shrink it
+      ARM: OMAP2+: Add WLAN modules and of_serial to omap2plus_defconfig
+
+
+ arch/arm/configs/omap2plus_defconfig |  101 +++++++++++++---------------------
+ 1 file changed, 39 insertions(+), 62 deletions(-)
+
+-- 
+Signature
