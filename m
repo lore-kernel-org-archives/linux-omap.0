@@ -1,140 +1,42 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: [PATCHv3 1/8] hwspinlock/core: maintain a list of registered hwspinlock banks
-Date: Thu, 10 Oct 2013 16:15:28 -0500
-Message-ID: <1381439735-52888-2-git-send-email-s-anna@ti.com>
-References: <1381439735-52888-1-git-send-email-s-anna@ti.com>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: [PATCH 0/6] add support for omap wake-up interrupts via pinctrl-single, take2
+Date: Thu, 10 Oct 2013 14:47:30 -0700
+Message-ID: <871u3spzm5.fsf@linaro.org>
+References: <20131003054104.8941.88857.stgit@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1381439735-52888-1-git-send-email-s-anna@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>, Mark Rutland <mark.rutland@arm.com>
-Cc: Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>, Kumar Gala <galak@codeaurora.org>, Paul Walmsley <paul@pwsan.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Suman Anna <s-anna@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pa0-f41.google.com ([209.85.220.41]:46699 "EHLO
+	mail-pa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757457Ab3JJVre (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Oct 2013 17:47:34 -0400
+Received: by mail-pa0-f41.google.com with SMTP id bj1so3371265pad.0
+        for <linux-omap@vger.kernel.org>; Thu, 10 Oct 2013 14:47:34 -0700 (PDT)
+In-Reply-To: <20131003054104.8941.88857.stgit@localhost> (Tony Lindgren's
+	message of "Wed, 02 Oct 2013 22:42:08 -0700")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-The hwspinlock_device structure is used for registering a bank of
-locks with the driver core. The structure already contains the
-necessary members to identify the bank of locks. The core does not
-maintain the hwspinlock_devices itself, but maintains only a radix
-tree for all the registered locks. A specific lock can be requested
-by users using a global lock id, and any device-specific fields
-can be retrieved through a reference to the hwspinlock_device in
-each lock.
+Tony Lindgren <tony@atomide.com> writes:
 
-The global lock id, however, is not friendly to be requested for
-users using the device-tree model. The device-tree representation
-will typically have each of the hwspinlock devices represented as
-a DT node, and a specific lock can be requested using the device's
-phandle and a lock specifier. Add support to the core therefore to
-maintain all the registered hwspinlock_devices, so that a device
-can be looked up and a specific lock belonging to the device
-requested through a phandle + args approach.
+> Here's a respin of the pinctrl-single related patches to use chained
+> irq as suggested by Linus W earlier. This series does not try to
+> provide any generic automated solution yet, but works by doing a
+> request_irq() for the wake-up pin, so it should be flexible enough for
+> both manual control and automated solution.
 
-Signed-off-by: Suman Anna <s-anna@ti.com>
----
- drivers/hwspinlock/hwspinlock_core.c     | 48 ++++++++++++++++++++++++++++++++
- drivers/hwspinlock/hwspinlock_internal.h |  2 ++
- 2 files changed, 50 insertions(+)
+> This series removes the last nasty blocker for making omap3 to be
+> device tree only without causing nasty PM regressions.
 
-diff --git a/drivers/hwspinlock/hwspinlock_core.c b/drivers/hwspinlock/hwspinlock_core.c
-index 461a0d7..00c49d3 100644
---- a/drivers/hwspinlock/hwspinlock_core.c
-+++ b/drivers/hwspinlock/hwspinlock_core.c
-@@ -59,6 +59,11 @@ static RADIX_TREE(hwspinlock_tree, GFP_KERNEL);
-  */
- static DEFINE_MUTEX(hwspinlock_tree_lock);
- 
-+/*
-+ * A linked list for maintaining all the registered hwspinlock devices.
-+ * The list is maintained in an ordered-list of the supported locks group.
-+ */
-+static LIST_HEAD(hwspinlock_devices);
- 
- /**
-  * __hwspin_trylock() - attempt to lock a specific hwspinlock
-@@ -307,6 +312,40 @@ out:
- 	return hwlock;
- }
- 
-+/*
-+ * Add a new hwspinlock device to the global list, keeping the list of
-+ * devices sorted by base order.
-+ *
-+ * Returns 0 on success, or -EBUSY if the new device overlaps with some
-+ * other device's lock space.
-+ */
-+static int hwspinlock_device_add(struct hwspinlock_device *bank)
-+{
-+	struct list_head *entry = &hwspinlock_devices;
-+	struct hwspinlock_device *_bank;
-+	int ret = 0;
-+
-+	list_for_each(entry, &hwspinlock_devices) {
-+		_bank = list_entry(entry, struct hwspinlock_device, list);
-+		if (_bank->base_id >= bank->base_id + bank->num_locks)
-+			break;
-+	}
-+
-+	if (entry != &hwspinlock_devices &&
-+	    entry->prev != &hwspinlock_devices) {
-+		_bank = list_entry(entry->prev, struct hwspinlock_device, list);
-+		if (_bank->base_id + _bank->num_locks > bank->base_id) {
-+			dev_err(bank->dev, "hwlock space overlap, cannot add device\n");
-+			ret = -EBUSY;
-+		}
-+	}
-+
-+	if (!ret)
-+		list_add_tail(&bank->list, entry);
-+
-+	return ret;
-+}
-+
- /**
-  * hwspin_lock_register() - register a new hw spinlock device
-  * @bank: the hwspinlock device, which usually provides numerous hw locks
-@@ -339,6 +378,12 @@ int hwspin_lock_register(struct hwspinlock_device *bank, struct device *dev,
- 	bank->base_id = base_id;
- 	bank->num_locks = num_locks;
- 
-+	mutex_lock(&hwspinlock_tree_lock);
-+	ret = hwspinlock_device_add(bank);
-+	mutex_unlock(&hwspinlock_tree_lock);
-+	if (ret)
-+		return ret;
-+
- 	for (i = 0; i < num_locks; i++) {
- 		hwlock = &bank->lock[i];
- 
-@@ -355,6 +400,9 @@ int hwspin_lock_register(struct hwspinlock_device *bank, struct device *dev,
- reg_failed:
- 	while (--i >= 0)
- 		hwspin_lock_unregister_single(base_id + i);
-+	mutex_lock(&hwspinlock_tree_lock);
-+	list_del(&bank->list);
-+	mutex_unlock(&hwspinlock_tree_lock);
- 	return ret;
- }
- EXPORT_SYMBOL_GPL(hwspin_lock_register);
-diff --git a/drivers/hwspinlock/hwspinlock_internal.h b/drivers/hwspinlock/hwspinlock_internal.h
-index d26f78b..aff560c 100644
---- a/drivers/hwspinlock/hwspinlock_internal.h
-+++ b/drivers/hwspinlock/hwspinlock_internal.h
-@@ -53,6 +53,7 @@ struct hwspinlock {
- 
- /**
-  * struct hwspinlock_device - a device which usually spans numerous hwspinlocks
-+ * @list: list element to link hwspinlock devices together
-  * @dev: underlying device, will be used to invoke runtime PM api
-  * @ops: platform-specific hwspinlock handlers
-  * @base_id: id index of the first lock in this device
-@@ -60,6 +61,7 @@ struct hwspinlock {
-  * @lock: dynamically allocated array of 'struct hwspinlock'
-  */
- struct hwspinlock_device {
-+	struct list_head list;
- 	struct device *dev;
- 	const struct hwspinlock_ops *ops;
- 	int base_id;
--- 
-1.8.4
+Indeed, I gave this a spin on several OMAP3 platforms with legacy boot
+and ran through a series of retention and off-mode tests for idle and
+suspend with both UART and RTC wakeups.  No regressions found.  So...
+
+Reviewed-by: Kevin Hilman <khilman@linaro.org>
+Tested-by: Kevin Hilman <khilman@linaro.org>
+
+on 3530/beagle, 3730/beagle-xM, 3530/Overo, 3730/Overo STORM
+
+Kevin
