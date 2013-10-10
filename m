@@ -1,78 +1,88 @@
-From: Sebastian Reichel <sre@ring0.de>
-Subject: Re: [RFCv3 0/7] OMAP SSI driver
-Date: Fri, 11 Oct 2013 00:22:10 +0200
-Message-ID: <20131010222210.GA7938@earth.universe>
-References: <1381091235-18293-1-git-send-email-sre@debian.org>
- <20131008172815.GA8313@atomide.com>
- <20131010172128.GF28657@earth.universe>
- <20131010182801.GB29989@blackmetal.musicnaut.iki.fi>
- <20131010200236.GA6603@earth.universe>
- <20131010201914.GC29989@blackmetal.musicnaut.iki.fi>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 3/6] pinctrl: single: Prepare for supporting SoC
+ specific features
+Date: Thu, 10 Oct 2013 15:41:57 -0700
+Message-ID: <20131010224157.GJ29913@atomide.com>
+References: <20131003054104.8941.88857.stgit@localhost>
+ <20131003054218.8941.19273.stgit@localhost>
+ <20131007173531.GX8949@atomide.com>
+ <CACRpkdZ1CeSXJngo0gKpnag-=mT3FB-byJi3JSAWiS8hbHqBJA@mail.gmail.com>
+ <20131009151015.GZ8313@atomide.com>
+ <CACRpkdbX6RqP=ikap_4pq3BOuEt_7ZWv4JwS2NfhDn2up841Pg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="PNTmBPCT7hxwcZjr"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20131010201914.GC29989@blackmetal.musicnaut.iki.fi>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>, Linus Walleij <linus.walleij@linaro.org>, Shubhrajyoti Datta <omaplinuxkernel@gmail.com>, Carlos Chinea <cch.devel@gmail.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, Russell King <linux@arm.linux.org.uk>, Grant Likely <grant.likely@linaro.org>, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Rob Landley <rob@landley.net>, =?iso-8859-1?Q?'Beno=EEt?= Cousson' <bcousson@baylibre.com>, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, 'Pali =?iso-8859-1?Q?Roh=E1r'?= <pali.rohar@gmail.com>, =?utf-8?B?J9CY0LLQsNC50LvQviDQlNC40LzQuNGC0YDQvtCyJw==?=
-List-Id: linux-omap@vger.kernel.org
-
-
---PNTmBPCT7hxwcZjr
 Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:33770 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751857Ab3JJWmC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Oct 2013 18:42:02 -0400
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <CACRpkdbX6RqP=ikap_4pq3BOuEt_7ZWv4JwS2NfhDn2up841Pg@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Grygorii Strashko <grygorii.strashko@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Prakash Manjunathappa <prakash.pm@ti.com>, Haojian Zhuang <haojian.zhuang@linaro.org>, Linux-OMAP <linux-omap@vger.kernel.org>, Roger Quadros <rogerq@ti.com>
 
-On Thu, Oct 10, 2013 at 11:19:14PM +0300, Aaro Koskinen wrote:
-> On Thu, Oct 10, 2013 at 10:02:36PM +0200, Sebastian Reichel wrote:
-> > P.S.: You can get a mainline kernel status matrix for the Nokia
-> >       N900 on this page: http://elinux.org/N900
->=20
-> Thanks for summary,
+* Linus Walleij <linus.walleij@linaro.org> [131010 08:43]:
+> On Wed, Oct 9, 2013 at 5:10 PM, Tony Lindgren <tony@atomide.com> wrote:
+> 
+> > I was thinking I'll set up an immutable branch for the three
+> > pinctrl patches against -rc4 then both you and I can merge
+> > them in as needed. Does that work for you?
+> 
+> Hm it's fair enough to have them in your tree if they do
+> not collide ... especially if you want to do some of my
+> suggested follow-up moving the ioring handling down into
+> pinctrl-single on top of that.
 
-You're welcome.
+OK, the PRM changes will have to wait until omap3 is DT only,
+probably not until v3.14.
+ 
+> > I can also do a test merge with pinctrl/for-next also to make
+> > sure there are no conflicts.
+> 
+> Sure, as long as that works you should be safe.
 
-> and the above page looks very useful. I wonder would it make sense
-> to add also N9/N950 there (some functionality is shared)?
+Seems to merge with no conflicts and build just fine. Here's
+the signed tag for the three pinctrl-single patches for you
+to pull in too in case you are planning to make some pinctrl
+wide changes. Let's consider those commits immutable now, if
+I need to fix something I will post them as separate patches.
 
-mh maybe. I haven't looked @ N9/N950 so far, since I don't own them.
-I would be interested in a N950, but I don't own one and it's almost
-impossible to get one :(
+Regards,
 
-Apart from that I'm not sure if it's a good idea to make the table
-even more complex. Maybe just add a new page?
+Tony
 
-> Also TWL4030 DT status could be updated, e.g. watchdog support
-> was done already last year with 8899b8d93ec64b7a8e54807a68a958e1206535e2.
 
-Yes. I only recently added the DT column and have not yet checked
-all the drivers. Probably it's also a good idea to split this
-column into "driver supports DT" and "DT file supports it".
 
--- Sebastian
+The following changes since commit d0e639c9e06d44e713170031fe05fb60ebe680af:
 
---PNTmBPCT7hxwcZjr
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+  Linux 3.12-rc4 (2013-10-06 14:00:20 -0700)
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
+are available in the git repository at:
 
-iQIcBAEBCAAGBQJSVyiRAAoJENju1/PIO/qaNL4QAIdGVPbzbRA2WqFoRtzh1tPi
-U0a23hlw9ehmQm8WUABapv43JGD9QRIlJcI+PK0RteedCjuHofZwftMUi1UKYzZD
-X0U3Gwz8nbBS1RuU8IRjiHQLVpzucNYfBt9qvyK863dhfxL2AA4PhdvhAXGqoNJj
-bQap7CPocvjJV1sqpiZOte3oEQUkrjx8UkWaxDmHWomuFyLjFIzDVXqAj3rxVp+9
-ghd3KvVeoquo2zrN/yWi3fAd13gc1iwibviBWgj4JopStcvtQLO9/BLG/BLNJRig
-w7kRH/SOJ34hGedxRycB+KdT00ZmBNYld9QZ05XGUwSxD8FvWigB31bTR4fJzJ9k
-8k28yYvBowh6Onh4+7dV8G+5uPjGcY+53ho+0wOc+VAFpS/LKl6CpOHYazxYN4jO
-oAU5HEgjJLbjrR/3+wXPbKyZhifWn5OpfceYXEI7hrt9CGB1t9IuAfFM5pRnVW8x
-qCLYRejlYjCsWFob6YwKw+H49kwHuRkQpB5re+ae3xwtr6jBMOSso8nNw4xQ4OtP
-U1Fc3c8bZtaq3pFN/p8z/TvgeHuUhGW55cMhndjS355WTMkzI/aNsZEzFxHa70EY
-Ftc9prFx2X9CjV//WHckIH8D+ffdJk6UYC7tyP0x/05uer6fye/xcwbvqJQw3iBM
-bSuilKIzvWr0+S/ycFBH
-=N0Yl
------END PGP SIGNATURE-----
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/pinctrl-single-for-linus-for-v3.13-signed
 
---PNTmBPCT7hxwcZjr--
+for you to fetch changes up to dc7743aa3c49fabbc6dc9edbcf7df74d776ac32e:
+
+  pinctrl: single: Add support for auxdata (2013-10-10 15:30:47 -0700)
+
+----------------------------------------------------------------
+Changes to pinctrl-single to allow handling the wake-up
+interrupts that most omaps have in each pinctrl register.
+
+As I need these merged also into the omap tree, it was
+agreed that I set them up into a separate branch for
+both pinctrl tree and linux-omap tree to merge as needed.
+
+----------------------------------------------------------------
+Tony Lindgren (3):
+      pinctrl: single: Prepare for supporting SoC specific features
+      pinctrl: single: Add support for wake-up interrupts
+      pinctrl: single: Add support for auxdata
+
+ .../devicetree/bindings/pinctrl/pinctrl-single.txt |  11 +
+ drivers/pinctrl/pinctrl-single.c                   | 383 ++++++++++++++++++++-
+ include/linux/platform_data/pinctrl-single.h       |  12 +
+ 3 files changed, 397 insertions(+), 9 deletions(-)
+ create mode 100644 include/linux/platform_data/pinctrl-single.h
