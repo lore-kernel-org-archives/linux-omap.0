@@ -1,7 +1,7 @@
 From: Suman Anna <s-anna@ti.com>
-Subject: [PATCHv3 4/8] hwspinlock/omap: enable module before reading SYSSTATUS register
-Date: Thu, 10 Oct 2013 16:15:31 -0500
-Message-ID: <1381439735-52888-5-git-send-email-s-anna@ti.com>
+Subject: [PATCHv3 7/8] ARM: dts: OMAP5: Add hwspinlock node
+Date: Thu, 10 Oct 2013 16:15:34 -0500
+Message-ID: <1381439735-52888-8-git-send-email-s-anna@ti.com>
 References: <1381439735-52888-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,71 +12,29 @@ To: Ohad Ben-Cohen <ohad@wizery.com>, Mark Rutland <mark.rutland@arm.com>
 Cc: Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>, Kumar Gala <galak@codeaurora.org>, Paul Walmsley <paul@pwsan.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Suman Anna <s-anna@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-The number of hwspinlocks are determined based on the value read
-from the IP block's SYSSTATUS register. However, the module may
-not be enabled and clocked, and the read may result in a bus error.
-
-This particular issue is seen rather easily on AM33XX, since the
-module wakeup is software controlled, and it is disabled out of
-reset. Make sure the module is enabled and clocked before reading
-the SYSSTATUS register.
+Add the hwspinlock device tree node for OMAP5 SoCs.
 
 Signed-off-by: Suman Anna <s-anna@ti.com>
 ---
- drivers/hwspinlock/omap_hwspinlock.c | 21 ++++++++++++++-------
- 1 file changed, 14 insertions(+), 7 deletions(-)
+ arch/arm/boot/dts/omap5.dtsi | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/drivers/hwspinlock/omap_hwspinlock.c b/drivers/hwspinlock/omap_hwspinlock.c
-index 349c5aa..9495d76 100644
---- a/drivers/hwspinlock/omap_hwspinlock.c
-+++ b/drivers/hwspinlock/omap_hwspinlock.c
-@@ -100,10 +100,23 @@ static int omap_hwspinlock_probe(struct platform_device *pdev)
- 	if (!io_base)
- 		return -ENOMEM;
+diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+index 86295d2..2a98a59 100644
+--- a/arch/arm/boot/dts/omap5.dtsi
++++ b/arch/arm/boot/dts/omap5.dtsi
+@@ -275,6 +275,12 @@
+ 			ti,hwmods = "i2c5";
+ 		};
  
-+	/*
-+	 * make sure the module is enabled and clocked before reading
-+	 * the module SYSSTATUS register
-+	 */
-+	pm_runtime_enable(&pdev->dev);
-+	pm_runtime_get_sync(&pdev->dev);
++		hwspinlock: spinlock@4a0f6000 {
++			compatible = "ti,omap4-hwspinlock";
++			reg = <0x4a0f6000 0x1000>;
++			ti,hwmods = "spinlock";
++		};
 +
- 	/* Determine number of locks */
- 	i = readl(io_base + SYSSTATUS_OFFSET);
- 	i >>= SPINLOCK_NUMLOCKS_BIT_OFFSET;
- 
-+	/*
-+	 * runtime PM will make sure the clock of this module is
-+	 * enabled again iff at least one lock is requested
-+	 */
-+	pm_runtime_put(&pdev->dev);
-+
- 	/* one of the four lsb's must be set, and nothing else */
- 	if (hweight_long(i & 0xf) != 1 || i > 8) {
- 		ret = -EINVAL;
-@@ -123,12 +136,6 @@ static int omap_hwspinlock_probe(struct platform_device *pdev)
- 	for (i = 0, hwlock = &bank->lock[0]; i < num_locks; i++, hwlock++)
- 		hwlock->priv = io_base + LOCK_BASE_OFFSET + sizeof(u32) * i;
- 
--	/*
--	 * runtime PM will make sure the clock of this module is
--	 * enabled iff at least one lock is requested
--	 */
--	pm_runtime_enable(&pdev->dev);
--
- 	ret = hwspin_lock_register(bank, &pdev->dev, &omap_hwspinlock_ops,
- 						base_id, num_locks);
- 	if (ret)
-@@ -137,9 +144,9 @@ static int omap_hwspinlock_probe(struct platform_device *pdev)
- 	return 0;
- 
- reg_fail:
--	pm_runtime_disable(&pdev->dev);
- 	kfree(bank);
- iounmap_base:
-+	pm_runtime_disable(&pdev->dev);
- 	iounmap(io_base);
- 	return ret;
- }
+ 		mcspi1: spi@48098000 {
+ 			compatible = "ti,omap4-mcspi";
+ 			reg = <0x48098000 0x200>;
 -- 
 1.8.4
