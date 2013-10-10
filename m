@@ -1,36 +1,28 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH 3/6] pinctrl: single: Prepare for supporting SoC specific features
-Date: Thu, 10 Oct 2013 17:35:44 +0200
-Message-ID: <CACRpkdbX6RqP=ikap_4pq3BOuEt_7ZWv4JwS2NfhDn2up841Pg@mail.gmail.com>
-References: <20131003054104.8941.88857.stgit@localhost>
-	<20131003054218.8941.19273.stgit@localhost>
-	<20131007173531.GX8949@atomide.com>
-	<CACRpkdZ1CeSXJngo0gKpnag-=mT3FB-byJi3JSAWiS8hbHqBJA@mail.gmail.com>
-	<20131009151015.GZ8313@atomide.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH V6 02/15] ARM: OMAP2+: AM33XX: add lateinit hook for
+ calling pm late init
+Date: Thu, 10 Oct 2013 10:45:51 -0500
+Message-ID: <CAGo_u6r-tfnWFP_FNAm5PdWctuPVvh8-XXDscCw+zKHj0FRM_A@mail.gmail.com>
+References: <1381354144-7134-1-git-send-email-nm@ti.com>
+	<1381361098-8283-1-git-send-email-nm@ti.com>
+	<52563BD8.1060703@ti.com>
+	<20131010133209.GA13105@kahuna>
+	<5256C5D2.9030302@ti.com>
+	<5256C686.6000301@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20131009151015.GZ8313@atomide.com>
+In-Reply-To: <5256C686.6000301@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Grygorii Strashko <grygorii.strashko@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Prakash Manjunathappa <prakash.pm@ti.com>, Haojian Zhuang <haojian.zhuang@linaro.org>, Linux-OMAP <linux-omap@vger.kernel.org>, Roger Quadros <rogerq@ti.com>
+To: Joel Fernandes <joelf@ti.com>
+Cc: dt list <devicetree@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@linaro.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, lkml <linux-kernel@vger.kernel.org>, Tero Kristo <t-kristo@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Benoit Cousson <bcousson@baylibre.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Oct 9, 2013 at 5:10 PM, Tony Lindgren <tony@atomide.com> wrote:
+On Thu, Oct 10, 2013 at 10:23 AM, Joel Fernandes <joelf@ti.com> wrote:
+> I see a function of that name already exists. I guess you can leave your patch
+> as is then and not have to do this.
 
-> I was thinking I'll set up an immutable branch for the three
-> pinctrl patches against -rc4 then both you and I can merge
-> them in as needed. Does that work for you?
 
-Hm it's fair enough to have them in your tree if they do
-not collide ... especially if you want to do some of my
-suggested follow-up moving the ioring handling down into
-pinctrl-single on top of that.
-
-> I can also do a test merge with pinctrl/for-next also to make
-> sure there are no conflicts.
-
-Sure, as long as that works you should be safe.
-
-Yours,
-Linus Walleij
+Can I consider that as an Acked-by :) ?
+Regards,
+Nishanth Menon
