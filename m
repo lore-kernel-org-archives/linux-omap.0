@@ -1,88 +1,180 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 2/8] ARM: OMAP2+: Add minimal 8250 support for GPMC
-Date: Thu, 10 Oct 2013 15:20:44 -0700
-Message-ID: <20131010222044.9063.71060.stgit@localhost>
+Subject: [PATCH 4/8] ARM: dts: Add common support for omap3-evm
+Date: Thu, 10 Oct 2013 15:20:51 -0700
+Message-ID: <20131010222051.9063.82848.stgit@localhost>
 References: <20131010221833.9063.49904.stgit@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:49133 "EHLO
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:49276 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753259Ab3JJWUs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Oct 2013 18:20:48 -0400
+	with ESMTP id S1753259Ab3JJWUw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Oct 2013 18:20:52 -0400
 In-Reply-To: <20131010221833.9063.49904.stgit@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
 Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org
 
-Just initialize things using the bootloader timings like
-we've been doing for the legacy booting too. It should be
-possible to patch in the GPMC timings for the based on the
-TL16CP743C/TL16C754C manual at:
+Looks like the main difference between the TMDSEVM3530 and
+TMDSEVM3730 is just the omap processor:
 
-http://www.ti.com/lit/ds/slls644g/slls644g.pdf
+http://www.ti.com/tool/tmdsevm3530
+http://www.ti.com/tool/tmdsevm3730
+
+So let's add a common file for the EVMs, and fix the description
+for the omap3-evm.dst as that's clearly for the TMDSEVM3530
+since it includes omap34xx.dtsi. It cannot support the TMDSEVM3730
+properly, and we need a separate file for that in the following
+patch.
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/gpmc.c |   38 ++++++++++++++++++++++++++++++++++++++
- 1 file changed, 38 insertions(+)
+ arch/arm/boot/dts/omap3-evm-common.dtsi |   60 +++++++++++++++++++++++++++++++
+ arch/arm/boot/dts/omap3-evm.dts         |   58 +-----------------------------
+ 2 files changed, 62 insertions(+), 56 deletions(-)
+ create mode 100644 arch/arm/boot/dts/omap3-evm-common.dtsi
 
-diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-index 579697a..51525fa 100644
---- a/arch/arm/mach-omap2/gpmc.c
-+++ b/arch/arm/mach-omap2/gpmc.c
-@@ -1521,6 +1521,42 @@ err:
- 	return ret;
- }
- 
+diff --git a/arch/arm/boot/dts/omap3-evm-common.dtsi b/arch/arm/boot/dts/omap3-evm-common.dtsi
+new file mode 100644
+index 0000000..75753bb
+--- /dev/null
++++ b/arch/arm/boot/dts/omap3-evm-common.dtsi
+@@ -0,0 +1,60 @@
 +/*
-+ * REVISIT: Add timing support from slls644g.pdf
++ * Common support for omap3 EVM boards
 + */
-+static int gpmc_probe_8250(struct platform_device *pdev,
-+				struct device_node *child)
-+{
-+	struct resource res;
-+	unsigned long base;
-+	int ret, cs;
 +
-+	if (of_property_read_u32(child, "reg", &cs) < 0) {
-+		dev_err(&pdev->dev, "%s has no 'reg' property\n",
-+			child->full_name);
-+		return -ENODEV;
-+	}
++/ {
++	cpus {
++		cpu@0 {
++			cpu0-supply = <&vcc>;
++		};
++	};
 +
-+	if (of_address_to_resource(child, 0, &res) < 0) {
-+		dev_err(&pdev->dev, "%s has malformed 'reg' property\n",
-+			child->full_name);
-+		return -ENODEV;
-+	}
++	leds {
++		compatible = "gpio-leds";
++		ledb {
++			label = "omap3evm::ledb";
++			gpios = <&twl_gpio 19 GPIO_ACTIVE_HIGH>; /* LEDB */
++			linux,default-trigger = "default-on";
++		};
++	};
++};
 +
-+	ret = gpmc_cs_request(cs, resource_size(&res), &base);
-+	if (ret < 0) {
-+		dev_err(&pdev->dev, "cannot request GPMC CS %d\n", cs);
-+		return ret;
-+	}
++&i2c1 {
++	clock-frequency = <2600000>;
 +
-+	if (of_platform_device_create(child, NULL, &pdev->dev))
-+		return 0;
++	twl: twl@48 {
++		reg = <0x48>;
++		interrupts = <7>; /* SYS_NIRQ cascaded to intc */
++		interrupt-parent = <&intc>;
++	};
++};
 +
-+	dev_err(&pdev->dev, "failed to create gpmc child %s\n", child->name);
++#include "twl4030.dtsi"
++#include "twl4030_omap3.dtsi"
 +
-+	return -ENODEV;
-+}
++&i2c2 {
++	clock-frequency = <400000>;
++};
 +
- static int gpmc_probe_dt(struct platform_device *pdev)
- {
- 	int ret;
-@@ -1564,6 +1600,8 @@ static int gpmc_probe_dt(struct platform_device *pdev)
- 		else if (of_node_cmp(child->name, "ethernet") == 0 ||
- 			 of_node_cmp(child->name, "nor") == 0)
- 			ret = gpmc_probe_generic_child(pdev, child);
-+		else if (of_node_cmp(child->name, "8250") == 0)
-+			ret = gpmc_probe_8250(pdev, child);
++&i2c3 {
++	clock-frequency = <400000>;
++
++	/*
++	 * TVP5146 Video decoder-in for analog input support.
++	 */
++	tvp5146@5c {
++		compatible = "ti,tvp5146m2";
++		reg = <0x5c>;
++	};
++};
++
++&twl_gpio {
++	ti,use-leds;
++};
++
++&usb_otg_hs {
++	interface-type = <0>;
++	usb-phy = <&usb2_phy>;
++	mode = <3>;
++	power = <50>;
++};
+diff --git a/arch/arm/boot/dts/omap3-evm.dts b/arch/arm/boot/dts/omap3-evm.dts
+index 7d4329d..e10dcd0 100644
+--- a/arch/arm/boot/dts/omap3-evm.dts
++++ b/arch/arm/boot/dts/omap3-evm.dts
+@@ -8,68 +8,14 @@
+ /dts-v1/;
  
- 		if (WARN(ret < 0, "%s: probing gpmc child %s failed\n",
- 			 __func__, child->full_name))
+ #include "omap34xx.dtsi"
++#include "omap3-evm-common.dtsi"
+ 
+ / {
+-	model = "TI OMAP3 EVM (OMAP3530, AM/DM37x)";
++	model = "TI OMAP35XX EVM (TMDSEVM3530)";
+ 	compatible = "ti,omap3-evm", "ti,omap3";
+ 
+-	cpus {
+-		cpu@0 {
+-			cpu0-supply = <&vcc>;
+-		};
+-	};
+-
+ 	memory {
+ 		device_type = "memory";
+ 		reg = <0x80000000 0x10000000>; /* 256 MB */
+ 	};
+-
+-	leds {
+-		compatible = "gpio-leds";
+-		ledb {
+-			label = "omap3evm::ledb";
+-			gpios = <&twl_gpio 19 GPIO_ACTIVE_HIGH>; /* LEDB */
+-			linux,default-trigger = "default-on";
+-		};
+-	};
+-};
+-
+-&i2c1 {
+-	clock-frequency = <2600000>;
+-
+-	twl: twl@48 {
+-		reg = <0x48>;
+-		interrupts = <7>; /* SYS_NIRQ cascaded to intc */
+-		interrupt-parent = <&intc>;
+-	};
+-};
+-
+-#include "twl4030.dtsi"
+-#include "twl4030_omap3.dtsi"
+-
+-&i2c2 {
+-	clock-frequency = <400000>;
+-};
+-
+-&i2c3 {
+-	clock-frequency = <400000>;
+-
+-	/*
+-	 * TVP5146 Video decoder-in for analog input support.
+-	 */
+-	tvp5146@5c {
+-		compatible = "ti,tvp5146m2";
+-		reg = <0x5c>;
+-	};
+-};
+-
+-&twl_gpio {
+-	ti,use-leds;
+-};
+-
+-&usb_otg_hs {
+-	interface-type = <0>;
+-	usb-phy = <&usb2_phy>;
+-	mode = <3>;
+-	power = <50>;
+ };
 
