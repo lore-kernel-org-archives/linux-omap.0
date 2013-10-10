@@ -1,90 +1,32 @@
-From: Sebastian Reichel <sre@ring0.de>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
 Subject: Re: [RFCv3 0/7] OMAP SSI driver
-Date: Thu, 10 Oct 2013 22:02:36 +0200
-Message-ID: <20131010200236.GA6603@earth.universe>
+Date: Thu, 10 Oct 2013 23:19:14 +0300
+Message-ID: <20131010201914.GC29989@blackmetal.musicnaut.iki.fi>
 References: <1381091235-18293-1-git-send-email-sre@debian.org>
  <20131008172815.GA8313@atomide.com>
  <20131010172128.GF28657@earth.universe>
  <20131010182801.GB29989@blackmetal.musicnaut.iki.fi>
+ <20131010200236.GA6603@earth.universe>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="J/dobhs11T7y2rNN"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20131010182801.GB29989@blackmetal.musicnaut.iki.fi>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>, Linus Walleij <linus.walleij@linaro.org>, Shubhrajyoti Datta <omaplinuxkernel@gmail.com>, Carlos Chinea <cch.devel@gmail.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, Russell King <linux@arm.linux.org.uk>, Grant Likely <grant.likely@linaro.org>, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Rob Landley <rob@landley.net>, =?iso-8859-1?Q?'Beno=EEt?= Cousson' <bcousson@baylibre.com>, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, 'Pali =?iso-8859-1?Q?Roh=E1r'?= <pali.rohar@gmail.com>, =?utf-8?B?J9CY0LLQsNC50LvQviDQlNC40LzQuNGC0YDQvtCyJw==?=
-List-Id: linux-omap@vger.kernel.org
-
-
---J/dobhs11T7y2rNN
 Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from filtteri6.pp.htv.fi ([213.243.153.189]:49968 "EHLO
+	filtteri6.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757416Ab3JJUTW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Oct 2013 16:19:22 -0400
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <20131010200236.GA6603@earth.universe>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+To: Stephen Rothwell <sfr@canb.auug.org.au>, Linus Walleij <linus.walleij@linaro.org>, Shubhrajyoti Datta <omaplinuxkernel@gmail.com>, Carlos Chinea <cch.devel@gmail.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, Russell King <linux@arm.linux.org.uk>, Grant Likely <grant.likely@linaro.org>, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Rob Landley <rob@landley.net>, =?iso-8859-1?Q?'Beno=EEt?= Cousson' <bcousson@baylibre.com>, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, 'Pali =?iso-8859-1?Q?Roh=E1r'?= <pali.rohar@gmail.com>
 
-On Thu, Oct 10, 2013 at 09:28:01PM +0300, Aaro Koskinen wrote:
-> On Thu, Oct 10, 2013 at 07:21:30PM +0200, Sebastian Reichel wrote:
-> > Any issues with this or any other suggestions how to proceed?
->=20
-> Maybe you could provide some brief instructions/description of how this
-> was tested?
+On Thu, Oct 10, 2013 at 10:02:36PM +0200, Sebastian Reichel wrote:
+> P.S.: You can get a mainline kernel status matrix for the Nokia
+>       N900 on this page: http://elinux.org/N900
 
-Sure. I used Carlos' original patch, which has been tested to be
-working. Then I checked with some debug prints and the debugfs
-support what the registers and resources should look like.
-Next I updated the patch to use the new kernel frameworks and
-made sure everything is behaves as before.
+Thanks for summary, and the above page looks very useful. I wonder
+would it make sense to add also N9/N950 there (some functionality is
+shared)? Also TWL4030 DT status could be updated, e.g. watchdog support
+was done already last year with 8899b8d93ec64b7a8e54807a68a958e1206535e2.
 
-For actually using the modem of the Nokia N900 three more drivers
-are needed in the mainline kernel in addtion to this one:
-
-1. cmt
-
- This is a small driver handling the modem's reset line, which
- is connected via a gpio pin to the system.
-
-2. ssi_protocol
-=20
- This is an hsi client driver, which actually talks with the modem
- and exports an phonet interface for userspace access. It makes
- use of the cmt driver.
-
- I plan on porting these to the new kernel frameworks next. If
- I'm not mistaken this should be enough to communicate with the
- modem.
-
-3. cmt_speech
-
- This is an hsi client driver, which takes care of interchanging
- speech data with the modem. This one is needed for calling. I
- will have a look at it once the basic stuff is working.
-
-P.S.: You can get a mainline kernel status matrix for the Nokia
-      N900 on this page: http://elinux.org/N900
-
--- Sebastian
-
---J/dobhs11T7y2rNN
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
-
-iQIcBAEBCAAGBQJSVwfcAAoJENju1/PIO/qaywsP/0tTaT+XX2/BpM8F97h3DtKU
-wO283p1MHuec9tmAIRBtF7ppflPb4LEd6tIMmtVRjEuxjVTlKRLCTD83h8oUS+zq
-/vfA8htcm5UBYu+uWadXtQa0tm1m3g+1KNROrLFK4wjQPEfIdFU8dGgFQFKMikI6
-tOE4J6bihvd+vTjJLjzrKouNgJSm9QCooCeRIcJufV685BRjNvvS3N8xK9EYDGIj
-Eor3k32aF72Yj5GwDJTDRs3T5La5JYJ5tu48OsI4LqkC2lZKoCe7fapRmx9OGSa4
-FcNq7jy2cBC/Y0KTv56POmDqQN+OqZmDf7s996CUwNUBkADE2eKq33RQ2Pq0Uary
-D5/dTEqQcCUmpuKu71aKwHJIy8ZZv3anOBb3PZiYbPw5984oRYUgpuSomd2AjRot
-jx2X2yPRnJxWCoZnbAvTSIjuoA54SViXlD3CtQD3gjgylXtFDMC4AapxQl7BlEkJ
-xVgj/cA0I+ZKjtU3DM7YE0XSDz+cwuA4sHP9RPKRfunxvFp/SYpRy9HCIoUy660N
-xRXWznOqmifzrgZ2JIXv4vJl60t9yfOT3UZmlVfTCKgmJm2/VUHC00hIeLyE4Snm
-rb/XPqd537OdOObtXxQeAlklTK7WmbheRzO4tfCOje6ohpkLUNUlpJ6AIuUn9dWQ
-f7yor2YZuWaNh4jVoO5B
-=9zts
------END PGP SIGNATURE-----
-
---J/dobhs11T7y2rNN--
+A.
