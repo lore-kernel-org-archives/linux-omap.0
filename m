@@ -1,96 +1,34 @@
-From: "Dr. H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: Re: [PATCH] omapdss: Add new panel driver for Topolly td028ttec1 LCD.
-Date: Thu, 10 Oct 2013 15:42:01 +0200
-Message-ID: <A7739B52-2632-4DD8-924D-B657A6BFE3ED@goldelico.com>
-References: <1381352915-17219-1-git-send-email-marek@goldelico.com> <525662F5.3090600@ti.com> <7FAC77D4-5E1E-4B11-B067-3A8233C69240@goldelico.com> <52568B40.4040802@ti.com> <04AC7291-38E4-421B-979C-BF03D52E94BD@goldelico.com> <525699EF.6090803@ti.com> <52569CE8.5070201@metafoo.de>
-Mime-Version: 1.0 (Apple Message framework v1085)
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <52569CE8.5070201@metafoo.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lars-Peter Clausen <lars@metafoo.de>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, Marek Belisko <marek@goldelico.com>, plagnioj@jcrosoft.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
+From: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 4/6] pinctrl: single: Add support for wake-up interrupts
+Date: Thu, 10 Oct 2013 16:04:16 +0200
+Message-ID: <CACRpkdZx5+OCcQytkpjd7_nz4hw6VXoXOS0LByKgJ8_cQjbA4g@mail.gmail.com>
+References: <20131003054104.8941.88857.stgit@localhost>
+	<20131003054221.8941.87801.stgit@localhost>
+	<5256AA7F.8030005@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <5256AA7F.8030005-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Prakash Manjunathappa <prakash.pm-l0cyMroinI0@public.gmane.org>, Haojian Zhuang <haojian.zhuang-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, =?ISO-8859-1?Q?Beno=EEt_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Linux-OMAP <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
+On Thu, Oct 10, 2013 at 3:24 PM, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> wrote:
 
-Am 10.10.2013 um 14:26 schrieb Lars-Peter Clausen:
+> I think pcs_irq_set_wake() is where need to control system wakeup behaviour for the irq.
+> This is where we should be able to change WAKEUP_EN bit of the pad
+> to enable/disable system wakeup for that pad and also call _reconfigure_io_chain().
 
-> On 10/10/2013 02:13 PM, Tomi Valkeinen wrote:
->> On 10/10/13 14:52, Dr. H. Nikolaus Schaller wrote:
->> 
->>> Yes, I agree and I am willing to help if someone comes up with such a SoC.
->>> At the moment we have connected it to the OMAP3 only.
->> 
->> True, but even without that kind of SoC, SPI bitbanging should be
->> handled by an SPI driver, not by the drivers that use the bus.
->> 
->>> I.e. I want not to do a lot of work for others who we just guess about that they
->>> might exist...
->> 
->> Yep. It's fine for me, it's not that much extra code in the panel driver.
->> 
->>>> The panel hardware has three wires, so the panel driver (if it does
->>>> handle the bus by bitbanging) can only refer to three gpios.
->>> 
->>> Hm. The panle hardware has 3 but the SoC (OMAP3) the driver
->>> is running on has 4.
->> 
->> Right, but this panel driver is a driver for the panel hardware. Not for
->> the SoC, or the SoC+panel combination. So the panel driver must only use
->> resources as seen by the panel hardware.
->> 
->>>> So either
->>>> the bus details should be hidden by using the normal spi framework, or
->>>> if the driver does the bitbanging, use the gpios as specified in the
->>>> panel spec. The panel driver cannot contain any board specific stuff.
->>> 
->>> The bitbang driver shown below can handle either 3 or 4 gpios (except
->>> for initialization).
->> 
->> It's not a bitbang driver, it's a panel driver. And anyway, if I
->> understood right, your use of 4 gpios was just a hack to try to make it
->> look like a normal 4-wire SPI bus. What you really have is 3 wires, 3
->> gpios. I don't see any reason to use 4 gpios, as two of them are the same.
+As an innocent bystander who has no clue what the _reconfigure_io_chain()
+is about can you tell me what this is all about?
 
-There is a protection resistor in the one defined as "output" so that
-protocol errors don't have two outputs work against each other.
+Is this another one of the OMAP forked paths where you must call back into
+the machine with a special callback from each and every driver?
 
->> 
->> Hmm, how does it work anyway. Did I understand it right, the panel's
->> 'DIN' pin is connected to two gpios on the SoC, and one of those gpios
->> is set as output, and the other as input?
-
-Yes.
-
->> So the SoC is always pulling
->> that line up or down, and the panel is also pulling it up or down when
->> it's sending data. I'm no HW guy but that sounds quite bad =).
-
-Yes, that is the strange thing with this protocol. It does a direction reversal
-after some time. I.e. the panel switches its input to output and the SoC has
-to be fast enough to do the same. Therefore, we have one output GPIO
-(protected by a resistor) and a separate input GPIO.
-
-Sometimes interfacing hardware is indeed strange.
-
->> 
->> I've never written or studied a bitbanging driver, but shouldn't there
->> be just one gpio used on the SoC for DIN, and it would be set to either
->> output or input mode, depending on if we are reading or writing?
-> 
-> Back in the OpenMoko days we used the panel in normal 4-wire SPI mode with
-> the GPIO bitbang SPI master. The bitbang code in this driver also looks like
-> normal 4 wire.
-
-
-Thanks for this hint!
-
-Maybe using a standard 4-wire SPI simply works if we only write data and
-make sure the panel is not sending anything...
-
-I still hesitate to break working code because it needs quite some time to debug
-and we don't even know if it ever works, i.e. sends us to swampy ground...
-
-BR,
-Nikolaus
+Yours,
+Linus Walleij
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
