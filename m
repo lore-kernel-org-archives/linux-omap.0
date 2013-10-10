@@ -1,75 +1,90 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 0/2] ARM: dts: AM4372: Add more nodes
-Date: Thu, 10 Oct 2013 14:18:17 -0500
-Message-ID: <20131010191817.GJ21240@radagast>
-References: <1381432494-20498-1-git-send-email-lokeshvutla@ti.com>
-Reply-To: <balbi@ti.com>
+From: Sebastian Reichel <sre@ring0.de>
+Subject: Re: [RFCv3 0/7] OMAP SSI driver
+Date: Thu, 10 Oct 2013 22:02:36 +0200
+Message-ID: <20131010200236.GA6603@earth.universe>
+References: <1381091235-18293-1-git-send-email-sre@debian.org>
+ <20131008172815.GA8313@atomide.com>
+ <20131010172128.GF28657@earth.universe>
+ <20131010182801.GB29989@blackmetal.musicnaut.iki.fi>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="OX7PPUk8qMPP4++R"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:51823 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752896Ab3JJTS6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Oct 2013 15:18:58 -0400
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="J/dobhs11T7y2rNN"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1381432494-20498-1-git-send-email-lokeshvutla@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20131010182801.GB29989@blackmetal.musicnaut.iki.fi>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>, Linus Walleij <linus.walleij@linaro.org>, Shubhrajyoti Datta <omaplinuxkernel@gmail.com>, Carlos Chinea <cch.devel@gmail.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, Russell King <linux@arm.linux.org.uk>, Grant Likely <grant.likely@linaro.org>, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Rob Landley <rob@landley.net>, =?iso-8859-1?Q?'Beno=EEt?= Cousson' <bcousson@baylibre.com>, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, 'Pali =?iso-8859-1?Q?Roh=E1r'?= <pali.rohar@gmail.com>, =?utf-8?B?J9CY0LLQsNC50LvQviDQlNC40LzQuNGC0YDQvtCyJw==?=
 List-Id: linux-omap@vger.kernel.org
-To: Lokesh Vutla <lokeshvutla@ti.com>
-Cc: bcousson@baylibre.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, mugunthanvnm@ti.com, sourav.poddar@ti.com, linux@arm.linux.org.uk, akpm@linux-foundation.org, rnayak@ti.com, afzal@ti.com, nsekhar@ti.com, r.sricharan@ti.com, balajitk@ti.com, balbi@ti.com
 
---OX7PPUk8qMPP4++R
+
+--J/dobhs11T7y2rNN
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi,
-
-On Fri, Oct 11, 2013 at 12:44:52AM +0530, Lokesh Vutla wrote:
-> This patch series add nodes for l2-cache-controller, EDMA, mailbox,
-> mmc, sham, and updates the properties for cpsw, i2c0, matrix-keypad.=20
+On Thu, Oct 10, 2013 at 09:28:01PM +0300, Aaro Koskinen wrote:
+> On Thu, Oct 10, 2013 at 07:21:30PM +0200, Sebastian Reichel wrote:
+> > Any issues with this or any other suggestions how to proceed?
 >=20
-> These patches are applied on top of Benoit's for_3.13/dts branch
-> git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git =
-for_3.13/dts
->=20
-> Testing:
-> Tested EDMA, mmc, sham, aes, des, i2c0, cpsw, matric-keypad on AM4372 EPO=
-S EVM
-> with the addition of following two series:
-> -> Tero's V8 of OMAP DT clock conversion
->   http://www.mail-archive.com/linux-omap@vger.kernel.org/msg96769.html
-> -> Afzal's V5 of AM43x PRCM basic support
->   http://www.mail-archive.com/linux-omap@vger.kernel.org/msg96275.html
+> Maybe you could provide some brief instructions/description of how this
+> was tested?
 
-one extra piece of info:
+Sure. I used Carlos' original patch, which has been tested to be
+working. Then I checked with some debug prints and the debugfs
+support what the registers and resources should look like.
+Next I updated the patch to use the new kernel frameworks and
+made sure everything is behaves as before.
 
-all these patches are fresh out of Wakeup, tested on top of v3.12-rc3.
+For actually using the modem of the Nokia N900 three more drivers
+are needed in the mainline kernel in addtion to this one:
 
---=20
-balbi
+1. cmt
 
---OX7PPUk8qMPP4++R
+ This is a small driver handling the modem's reset line, which
+ is connected via a gpio pin to the system.
+
+2. ssi_protocol
+=20
+ This is an hsi client driver, which actually talks with the modem
+ and exports an phonet interface for userspace access. It makes
+ use of the cmt driver.
+
+ I plan on porting these to the new kernel frameworks next. If
+ I'm not mistaken this should be enough to communicate with the
+ modem.
+
+3. cmt_speech
+
+ This is an hsi client driver, which takes care of interchanging
+ speech data with the modem. This one is needed for calling. I
+ will have a look at it once the basic stuff is working.
+
+P.S.: You can get a mainline kernel status matrix for the Nokia
+      N900 on this page: http://elinux.org/N900
+
+-- Sebastian
+
+--J/dobhs11T7y2rNN
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+Version: GnuPG v1.4.14 (GNU/Linux)
 
-iQIcBAEBAgAGBQJSVv15AAoJEIaOsuA1yqREGKUP/RqrumkwFY225CCS3NSuWfQH
-8z7r3cF+4Q9Ym64e2l2hnkM1F23Y+t4SGBH1tQE70y4NZnST3kKmKGaC7Z5wNY2g
-Q9PuyX7nEaxY8YK9OPU9dsQBkbYiawi81/a4acN8ELwhfL5YmYUthjMsInOuWs5L
-+RfbDVR42M6dvsbx5u8dpZfG/sqVB2kokVv++U/8b+vwxSydpaSm+7oljOFucuzD
-dHfupHZWmDkdP3yfLPICHCvf+5ByuJ/ny0hPAp3vPjkiVbgesorEccUKeSEEyXL0
-+UzaxToaUM58fXqfqE23K9YygcffEXCYWRpKOlsNj++u+TW9/HK+L4hgy7p0zURJ
-aKpfmwlz3nEHFEOrBAzvYX8g1g7DPE60wb0/uGZFSzKmV/Su0jnZnMooFsIgvsKM
-N940R244fUnCs1DSj2Doxe/I7f+J6FSOkmY0obKANtUW+20g3TbLi4BMAeNtYLqr
-nqm7fq75Bwzk9paHtvRrB5HscX6Xc6GhSc/WW5M+OtCP0ykiNOx0UclRQiuTlaXl
-jaAPLPGFj+Jekjw0iFi8sl4AXqNAhR225fIhmPDQi/lc+kQqDA5GTzUsoMtk9eZw
-/5wx8EMg67bGmlwnLDZGcas6CiccxG/mvEKn4KG0OHXfcV66DEL5OwFVw+7s3glp
-xYd/opsqDQrQm2ef19in
-=XrFj
+iQIcBAEBCAAGBQJSVwfcAAoJENju1/PIO/qaywsP/0tTaT+XX2/BpM8F97h3DtKU
+wO283p1MHuec9tmAIRBtF7ppflPb4LEd6tIMmtVRjEuxjVTlKRLCTD83h8oUS+zq
+/vfA8htcm5UBYu+uWadXtQa0tm1m3g+1KNROrLFK4wjQPEfIdFU8dGgFQFKMikI6
+tOE4J6bihvd+vTjJLjzrKouNgJSm9QCooCeRIcJufV685BRjNvvS3N8xK9EYDGIj
+Eor3k32aF72Yj5GwDJTDRs3T5La5JYJ5tu48OsI4LqkC2lZKoCe7fapRmx9OGSa4
+FcNq7jy2cBC/Y0KTv56POmDqQN+OqZmDf7s996CUwNUBkADE2eKq33RQ2Pq0Uary
+D5/dTEqQcCUmpuKu71aKwHJIy8ZZv3anOBb3PZiYbPw5984oRYUgpuSomd2AjRot
+jx2X2yPRnJxWCoZnbAvTSIjuoA54SViXlD3CtQD3gjgylXtFDMC4AapxQl7BlEkJ
+xVgj/cA0I+ZKjtU3DM7YE0XSDz+cwuA4sHP9RPKRfunxvFp/SYpRy9HCIoUy660N
+xRXWznOqmifzrgZ2JIXv4vJl60t9yfOT3UZmlVfTCKgmJm2/VUHC00hIeLyE4Snm
+rb/XPqd537OdOObtXxQeAlklTK7WmbheRzO4tfCOje6ohpkLUNUlpJ6AIuUn9dWQ
+f7yor2YZuWaNh4jVoO5B
+=9zts
 -----END PGP SIGNATURE-----
 
---OX7PPUk8qMPP4++R--
+--J/dobhs11T7y2rNN--
