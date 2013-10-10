@@ -1,46 +1,82 @@
-From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-Subject: [PATCHv3 6/8] ARM: dts: OMAP4: Add hwspinlock node
-Date: Thu, 10 Oct 2013 16:15:33 -0500
-Message-ID: <1381439735-52888-7-git-send-email-s-anna@ti.com>
+From: Suman Anna <s-anna@ti.com>
+Subject: [PATCHv3 4/8] hwspinlock/omap: enable module before reading SYSSTATUS register
+Date: Thu, 10 Oct 2013 16:15:31 -0500
+Message-ID: <1381439735-52888-5-git-send-email-s-anna@ti.com>
 References: <1381439735-52888-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1381439735-52888-1-git-send-email-s-anna-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1381439735-52888-1-git-send-email-s-anna@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ohad Ben-Cohen <ohad@wizery.com>, Mark Rutland <mark.rutland@arm.com>
+Cc: Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>, Kumar Gala <galak@codeaurora.org>, Paul Walmsley <paul@pwsan.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Suman Anna <s-anna@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Add the hwspinlock device tree node for OMAP4 family
-of SoCs.
+The number of hwspinlocks are determined based on the value read
+from the IP block's SYSSTATUS register. However, the module may
+not be enabled and clocked, and the read may result in a bus error.
 
-Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+This particular issue is seen rather easily on AM33XX, since the
+module wakeup is software controlled, and it is disabled out of
+reset. Make sure the module is enabled and clocked before reading
+the SYSSTATUS register.
+
+Signed-off-by: Suman Anna <s-anna@ti.com>
 ---
- arch/arm/boot/dts/omap4.dtsi | 6 ++++++
- 1 file changed, 6 insertions(+)
+ drivers/hwspinlock/omap_hwspinlock.c | 21 ++++++++++++++-------
+ 1 file changed, 14 insertions(+), 7 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-index 45708e1..74db751 100644
---- a/arch/arm/boot/dts/omap4.dtsi
-+++ b/arch/arm/boot/dts/omap4.dtsi
-@@ -248,6 +248,12 @@
- 			clock-frequency = <48000000>;
- 		};
+diff --git a/drivers/hwspinlock/omap_hwspinlock.c b/drivers/hwspinlock/omap_hwspinlock.c
+index 349c5aa..9495d76 100644
+--- a/drivers/hwspinlock/omap_hwspinlock.c
++++ b/drivers/hwspinlock/omap_hwspinlock.c
+@@ -100,10 +100,23 @@ static int omap_hwspinlock_probe(struct platform_device *pdev)
+ 	if (!io_base)
+ 		return -ENOMEM;
  
-+		hwspinlock: spinlock@4a0f6000 {
-+			compatible = "ti,omap4-hwspinlock";
-+			reg = <0x4a0f6000 0x1000>;
-+			ti,hwmods = "spinlock";
-+		};
++	/*
++	 * make sure the module is enabled and clocked before reading
++	 * the module SYSSTATUS register
++	 */
++	pm_runtime_enable(&pdev->dev);
++	pm_runtime_get_sync(&pdev->dev);
 +
- 		i2c1: i2c@48070000 {
- 			compatible = "ti,omap4-i2c";
- 			reg = <0x48070000 0x100>;
+ 	/* Determine number of locks */
+ 	i = readl(io_base + SYSSTATUS_OFFSET);
+ 	i >>= SPINLOCK_NUMLOCKS_BIT_OFFSET;
+ 
++	/*
++	 * runtime PM will make sure the clock of this module is
++	 * enabled again iff at least one lock is requested
++	 */
++	pm_runtime_put(&pdev->dev);
++
+ 	/* one of the four lsb's must be set, and nothing else */
+ 	if (hweight_long(i & 0xf) != 1 || i > 8) {
+ 		ret = -EINVAL;
+@@ -123,12 +136,6 @@ static int omap_hwspinlock_probe(struct platform_device *pdev)
+ 	for (i = 0, hwlock = &bank->lock[0]; i < num_locks; i++, hwlock++)
+ 		hwlock->priv = io_base + LOCK_BASE_OFFSET + sizeof(u32) * i;
+ 
+-	/*
+-	 * runtime PM will make sure the clock of this module is
+-	 * enabled iff at least one lock is requested
+-	 */
+-	pm_runtime_enable(&pdev->dev);
+-
+ 	ret = hwspin_lock_register(bank, &pdev->dev, &omap_hwspinlock_ops,
+ 						base_id, num_locks);
+ 	if (ret)
+@@ -137,9 +144,9 @@ static int omap_hwspinlock_probe(struct platform_device *pdev)
+ 	return 0;
+ 
+ reg_fail:
+-	pm_runtime_disable(&pdev->dev);
+ 	kfree(bank);
+ iounmap_base:
++	pm_runtime_disable(&pdev->dev);
+ 	iounmap(io_base);
+ 	return ret;
+ }
 -- 
 1.8.4
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
