@@ -1,51 +1,60 @@
-From: Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [RESEND PATCH v3 03/11] ASoC: davinci-mcasp: Add
- DMA register locations to DT
-Date: Thu, 10 Oct 2013 17:59:59 +0100
-Message-ID: <20131010165959.GB3910@e106331-lin.cambridge.arm.com>
-References: <cover.1379590035.git.jsarha@ti.com>
- <66bdda0c0b75d737d649260b9ec10f9f870c20cd.1379590036.git.jsarha@ti.com>
- <20131007214718.GA2976@kartoffel>
- <20131008004641.GV21581@sirena.org.uk>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH V5] ARM: OMAP5/DRA7: realtime_counter: Configure CNTFRQ
+ register
+Date: Thu, 10 Oct 2013 10:15:40 -0700
+Message-ID: <20131010171540.GG29913@atomide.com>
+References: <1381391028-4189-1-git-send-email-r.sricharan@ti.com>
+ <5256A7AE.6000605@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:30400 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755363Ab3JJRPp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Oct 2013 13:15:45 -0400
 Content-Disposition: inline
-In-Reply-To: <20131008004641.GV21581@sirena.org.uk>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Mark Brown <broonie@kernel.org>
-Cc: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "liam.r.girdwood@linux.intel.com" <liam.r.girdwood@linux.intel.com>, "joelf@ti.com" <joelf@ti.com>, "jsarha@ti.com" <jsarha@ti.com>, "Hebbar,
- Gururaja" <gururaja.hebbar@ti.com>, "peter.ujfalusi@ti.com" <peter.ujfalusi@ti.com>, Darren Etheridge <detheridge@ti.com>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "bcousson@baylibre.com" <bcousson@baylibre.com>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+In-Reply-To: <5256A7AE.6000605@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Sricharan R <r.sricharan@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, nm@ti.com, Rajendra Nayak <rnayak@ti.com>, Marc Zyngier <marc.zyngier@arm.com>, Mark Rutland <mark.rutland@arm.com>
 
-On Tue, Oct 08, 2013 at 01:46:41AM +0100, Mark Brown wrote:
-> On Mon, Oct 07, 2013 at 10:47:18PM +0100, Mark Rutland wrote:
-> > On Thu, Sep 26, 2013 at 08:18:28PM +0100, Jyri Sarha wrote:
+* Santosh Shilimkar <santosh.shilimkar@ti.com> [131010 06:20]:
+> On Thursday 10 October 2013 03:43 AM, Sricharan R wrote:
+> > From: R Sricharan <r.sricharan@ti.com>
+> > 
+> > The realtime counter called master counter, produces the count
+> > used by the private timer peripherals in the MPU_CLUSTER. The
+> > CNTFRQ per cpu register is used to denote the frequency of the counter.
+> > Currently the frequency value is passed from the
+> > DT file, but this is not scalable when we have other non-DT guest
+> > OS. This register must be set to the right value by the
+> > secure rom code. Setting this register helps in propagating the right
+> > frequency value across OSes.
+> > 
+> > More discussions and the reason for adding this in a non-DT
+> > way can be seen from below.
+> > http://www.mail-archive.com/linux-omap@vger.kernel.org/msg93832.html
+> > 
+> > So configuring this secure register for all the cpus here.
+> > 
+> > Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> > Cc: Nishanth Menon <nm@ti.com>
+> > Cc: Rajendra Nayak <rnayak@ti.com>
+> > Cc: Marc Zyngier <marc.zyngier@arm.com>
+> > Cc: Mark Rutland <mark.rutland@arm.com>
+> > Cc: Tony Lindgren <tony@atomide.com>
+> > Tested-by: Nishanth Menon <nm@ti.com>
+> > Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> > Signed-off-by: Sricharan R <r.sricharan@ti.com>
+> > ---
+> >  [V5] Removed the use of extern variable in omap-smp.c
+> >       as per suggestion from Santosh Shilimkar <santosh.shilimkar@ti.com>
+> > 
+> Thanks for the updates Sricharan. Looks fine now.
 > 
-> > >  - interrupts : Interrupt number for McASP
-> 
-> > The device also seems to be able to generate multiple interrupts -- which
-> > interrupt does this actually cover?
-> 
-> > The driver doesn't seem to use it (by a grep of irq|interrupt). Have I missed
-> > something?
-> 
-> No, they're not actually of much practical use to us at the minute but
-> it was generally felt better to include the information and not use it
-> so that if someone does come up with a use for them then the trees for
-> deployed systems already have the information.
+> Tony, Can you apply this version if you are fine with it.
 
-Sure, but if this device can generate multiple interrupts, we should
-make it possible to describe all of them, unambiguously.
+Yes thanks looks good to me now. Applying into omap-for-v3.13/soc.
 
-Thanks,
-Mark.
+Tony
