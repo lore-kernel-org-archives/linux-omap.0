@@ -1,47 +1,129 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v2 5/6] Revert "ARM: OMAP2+: Provide alias to USB PHY
- clock"
-Date: Thu, 10 Oct 2013 12:15:43 +0300
-Message-ID: <5256703F.1070806@ti.com>
-References: <1381226799-29158-1-git-send-email-rogerq@ti.com>
- <1381226799-29158-6-git-send-email-rogerq@ti.com> <52550180.1000506@ti.com>
- <20131009151522.GA8313@atomide.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v2 6/6] mfd: omap-usb: prepare/unprepare clock while enable/disable
+Date: Thu, 10 Oct 2013 12:31:05 +0300
+Message-ID: <525673D9.9060900@ti.com>
+References: <1381226799-29158-1-git-send-email-rogerq@ti.com> <1381226799-29158-7-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20131009151522.GA8313@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: devicetree@vger.kernel.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, bcousson@baylibre.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1381226799-29158-7-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Cc: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 10/09/2013 06:15 PM, Tony Lindgren wrote:
-> * Roger Quadros <rogerq@ti.com> [131009 00:19]:
->> Hi Tony,
->>
->> On 10/08/2013 01:06 PM, Roger Quadros wrote:
->>> This reverts commit 741532c4a995be11815cb72d4d7a48f442a22fea.
->>>
->>> The proper clock reference is provided in device tree so we
->>> no longer need this.
->>
->> Could you please Ack this one? I think it is best if it goes through Benoit's tree.
-> 
-> I could queue this into my board removal series that will be
-> based on Benoit's branch if that works for you. And this
-> also seems to depend on the omap-for-v3.13/quirk branch
-> that moves all the legacy pdata handling into pdata-quirks.c.
+Hi Samuel,
 
-OK Tony. Thanks.
+Could you please pick this one for 3.13 if OK? Thanks.
 
 cheers,
 -roger
+
+On 10/08/2013 01:06 PM, Roger Quadros wrote:
+> This should fix the following warning at boot on OMAP5 uEVM
+> [    8.783155] WARNING: CPU: 0 PID: 1 at drivers/clk/clk.c:883 __clk_enable+0x94/0xa4()
+> 
+> CC: Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+> CC: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+> CC: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+> ---
+>  drivers/mfd/omap-usb-host.c |   16 ++++++++--------
+>  drivers/mfd/omap-usb-tll.c  |    4 ++--
+>  2 files changed, 10 insertions(+), 10 deletions(-)
+> 
+> diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
+> index 29ee54d..a5b91f1 100644
+> --- a/drivers/mfd/omap-usb-host.c
+> +++ b/drivers/mfd/omap-usb-host.c
+> @@ -328,13 +328,13 @@ static int usbhs_runtime_resume(struct device *dev)
+>  	omap_tll_enable(pdata);
+>  
+>  	if (!IS_ERR(omap->ehci_logic_fck))
+> -		clk_enable(omap->ehci_logic_fck);
+> +		clk_prepare_enable(omap->ehci_logic_fck);
+>  
+>  	for (i = 0; i < omap->nports; i++) {
+>  		switch (pdata->port_mode[i]) {
+>  		case OMAP_EHCI_PORT_MODE_HSIC:
+>  			if (!IS_ERR(omap->hsic60m_clk[i])) {
+> -				r = clk_enable(omap->hsic60m_clk[i]);
+> +				r = clk_prepare_enable(omap->hsic60m_clk[i]);
+>  				if (r) {
+>  					dev_err(dev,
+>  					 "Can't enable port %d hsic60m clk:%d\n",
+> @@ -343,7 +343,7 @@ static int usbhs_runtime_resume(struct device *dev)
+>  			}
+>  
+>  			if (!IS_ERR(omap->hsic480m_clk[i])) {
+> -				r = clk_enable(omap->hsic480m_clk[i]);
+> +				r = clk_prepare_enable(omap->hsic480m_clk[i]);
+>  				if (r) {
+>  					dev_err(dev,
+>  					 "Can't enable port %d hsic480m clk:%d\n",
+> @@ -354,7 +354,7 @@ static int usbhs_runtime_resume(struct device *dev)
+>  
+>  		case OMAP_EHCI_PORT_MODE_TLL:
+>  			if (!IS_ERR(omap->utmi_clk[i])) {
+> -				r = clk_enable(omap->utmi_clk[i]);
+> +				r = clk_prepare_enable(omap->utmi_clk[i]);
+>  				if (r) {
+>  					dev_err(dev,
+>  					 "Can't enable port %d clk : %d\n",
+> @@ -382,15 +382,15 @@ static int usbhs_runtime_suspend(struct device *dev)
+>  		switch (pdata->port_mode[i]) {
+>  		case OMAP_EHCI_PORT_MODE_HSIC:
+>  			if (!IS_ERR(omap->hsic60m_clk[i]))
+> -				clk_disable(omap->hsic60m_clk[i]);
+> +				clk_disable_unprepare(omap->hsic60m_clk[i]);
+>  
+>  			if (!IS_ERR(omap->hsic480m_clk[i]))
+> -				clk_disable(omap->hsic480m_clk[i]);
+> +				clk_disable_unprepare(omap->hsic480m_clk[i]);
+>  		/* Fall through as utmi_clks were used in HSIC mode */
+>  
+>  		case OMAP_EHCI_PORT_MODE_TLL:
+>  			if (!IS_ERR(omap->utmi_clk[i]))
+> -				clk_disable(omap->utmi_clk[i]);
+> +				clk_disable_unprepare(omap->utmi_clk[i]);
+>  			break;
+>  		default:
+>  			break;
+> @@ -398,7 +398,7 @@ static int usbhs_runtime_suspend(struct device *dev)
+>  	}
+>  
+>  	if (!IS_ERR(omap->ehci_logic_fck))
+> -		clk_disable(omap->ehci_logic_fck);
+> +		clk_disable_unprepare(omap->ehci_logic_fck);
+>  
+>  	omap_tll_disable(pdata);
+>  
+> diff --git a/drivers/mfd/omap-usb-tll.c b/drivers/mfd/omap-usb-tll.c
+> index e59ac4c..1e57712 100644
+> --- a/drivers/mfd/omap-usb-tll.c
+> +++ b/drivers/mfd/omap-usb-tll.c
+> @@ -429,7 +429,7 @@ int omap_tll_enable(struct usbhs_omap_platform_data *pdata)
+>  			if (IS_ERR(tll->ch_clk[i]))
+>  				continue;
+>  
+> -			r = clk_enable(tll->ch_clk[i]);
+> +			r = clk_prepare_enable(tll->ch_clk[i]);
+>  			if (r) {
+>  				dev_err(tll_dev,
+>  				 "Error enabling ch %d clock: %d\n", i, r);
+> @@ -460,7 +460,7 @@ int omap_tll_disable(struct usbhs_omap_platform_data *pdata)
+>  	for (i = 0; i < tll->nch; i++) {
+>  		if (omap_usb_mode_needs_tll(pdata->port_mode[i])) {
+>  			if (!IS_ERR(tll->ch_clk[i]))
+> -				clk_disable(tll->ch_clk[i]);
+> +				clk_disable_unprepare(tll->ch_clk[i]);
+>  		}
+>  	}
+>  
+> 
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
