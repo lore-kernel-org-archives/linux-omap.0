@@ -1,59 +1,96 @@
-From: Vaibhav Bedia <vaibhav.bedia@gmail.com>
-Subject: Re: [PATCH V6 02/15] ARM: OMAP2+: AM33XX: add lateinit hook for
- calling pm late init
-Date: Thu, 10 Oct 2013 09:33:10 -0400
-Message-ID: <CANacCWyoWZHP07UXptM-oANKpvARRmB5zqsxQXfUJrdHhS=a9Q@mail.gmail.com>
-References: <1381354144-7134-1-git-send-email-nm@ti.com>
-	<1381361098-8283-1-git-send-email-nm@ti.com>
-	<52563BD8.1060703@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <52563BD8.1060703@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: joelf@ti.com
-Cc: Nishanth Menon <nm@ti.com>, devicetree@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@linaro.org>, linux-doc@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Tero Kristo <t-kristo@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Benoit Cousson <bcousson@baylibre.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
+From: "Dr. H. Nikolaus Schaller" <hns@goldelico.com>
+Subject: Re: [PATCH] omapdss: Add new panel driver for Topolly td028ttec1 LCD.
+Date: Thu, 10 Oct 2013 15:42:01 +0200
+Message-ID: <A7739B52-2632-4DD8-924D-B657A6BFE3ED@goldelico.com>
+References: <1381352915-17219-1-git-send-email-marek@goldelico.com> <525662F5.3090600@ti.com> <7FAC77D4-5E1E-4B11-B067-3A8233C69240@goldelico.com> <52568B40.4040802@ti.com> <04AC7291-38E4-421B-979C-BF03D52E94BD@goldelico.com> <525699EF.6090803@ti.com> <52569CE8.5070201@metafoo.de>
+Mime-Version: 1.0 (Apple Message framework v1085)
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <52569CE8.5070201@metafoo.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lars-Peter Clausen <lars@metafoo.de>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, Marek Belisko <marek@goldelico.com>, plagnioj@jcrosoft.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Joel.
 
-On Thu, Oct 10, 2013 at 1:32 AM, Joel Fernandes <joelf@ti.com> wrote:
-> On 10/09/2013 06:24 PM, Nishanth Menon wrote:
->> Call OMAP2+ generic lateinit hook from AM specific late init hook.
->> This allows the generic late initializations such as cpufreq hooks
->> to be active.
->>
->> Cc: Benoit Cousson <bcousson@baylibre.com>
->> Cc: Kevin Hilman <khilman@deeprootsystems.com>
->> Cc: Paul Walmsley <paul@pwsan.com>
->> Cc: Tony Lindgren <tony@atomide.com>
->> Signed-off-by: Nishanth Menon <nm@ti.com>
->> ---
->>  arch/arm/mach-omap2/board-generic.c |    1 +
->>  arch/arm/mach-omap2/common.h        |    1 +
->>  arch/arm/mach-omap2/io.c            |    6 ++++++
->>  3 files changed, 8 insertions(+)
->>
->> diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
->> index 87162e1..b474498 100644
->> --- a/arch/arm/mach-omap2/board-generic.c
->> +++ b/arch/arm/mach-omap2/board-generic.c
->> @@ -180,6 +180,7 @@ DT_MACHINE_START(AM33XX_DT, "Generic AM33XX (Flattened Device Tree)")
->>       .init_irq       = omap_intc_of_init,
->>       .handle_irq     = omap3_intc_handle_irq,
->>       .init_machine   = omap_generic_init,
->> +     .init_late      = am33xx_init_late,
->
-> Instead of adding a new a *_init_late function for every platform, perhaps
-> better to just do:
-> .init_late      = omap2_common_pm_late_init;
->
-> since that's the only function you're calling.
->
-For now...
+Am 10.10.2013 um 14:26 schrieb Lars-Peter Clausen:
 
-As the PM support gets added there will be other function calls
-and that can and is at times soc specific.
+> On 10/10/2013 02:13 PM, Tomi Valkeinen wrote:
+>> On 10/10/13 14:52, Dr. H. Nikolaus Schaller wrote:
+>> 
+>>> Yes, I agree and I am willing to help if someone comes up with such a SoC.
+>>> At the moment we have connected it to the OMAP3 only.
+>> 
+>> True, but even without that kind of SoC, SPI bitbanging should be
+>> handled by an SPI driver, not by the drivers that use the bus.
+>> 
+>>> I.e. I want not to do a lot of work for others who we just guess about that they
+>>> might exist...
+>> 
+>> Yep. It's fine for me, it's not that much extra code in the panel driver.
+>> 
+>>>> The panel hardware has three wires, so the panel driver (if it does
+>>>> handle the bus by bitbanging) can only refer to three gpios.
+>>> 
+>>> Hm. The panle hardware has 3 but the SoC (OMAP3) the driver
+>>> is running on has 4.
+>> 
+>> Right, but this panel driver is a driver for the panel hardware. Not for
+>> the SoC, or the SoC+panel combination. So the panel driver must only use
+>> resources as seen by the panel hardware.
+>> 
+>>>> So either
+>>>> the bus details should be hidden by using the normal spi framework, or
+>>>> if the driver does the bitbanging, use the gpios as specified in the
+>>>> panel spec. The panel driver cannot contain any board specific stuff.
+>>> 
+>>> The bitbang driver shown below can handle either 3 or 4 gpios (except
+>>> for initialization).
+>> 
+>> It's not a bitbang driver, it's a panel driver. And anyway, if I
+>> understood right, your use of 4 gpios was just a hack to try to make it
+>> look like a normal 4-wire SPI bus. What you really have is 3 wires, 3
+>> gpios. I don't see any reason to use 4 gpios, as two of them are the same.
 
-Regards,
-Vaibhav
+There is a protection resistor in the one defined as "output" so that
+protocol errors don't have two outputs work against each other.
+
+>> 
+>> Hmm, how does it work anyway. Did I understand it right, the panel's
+>> 'DIN' pin is connected to two gpios on the SoC, and one of those gpios
+>> is set as output, and the other as input?
+
+Yes.
+
+>> So the SoC is always pulling
+>> that line up or down, and the panel is also pulling it up or down when
+>> it's sending data. I'm no HW guy but that sounds quite bad =).
+
+Yes, that is the strange thing with this protocol. It does a direction reversal
+after some time. I.e. the panel switches its input to output and the SoC has
+to be fast enough to do the same. Therefore, we have one output GPIO
+(protected by a resistor) and a separate input GPIO.
+
+Sometimes interfacing hardware is indeed strange.
+
+>> 
+>> I've never written or studied a bitbanging driver, but shouldn't there
+>> be just one gpio used on the SoC for DIN, and it would be set to either
+>> output or input mode, depending on if we are reading or writing?
+> 
+> Back in the OpenMoko days we used the panel in normal 4-wire SPI mode with
+> the GPIO bitbang SPI master. The bitbang code in this driver also looks like
+> normal 4 wire.
+
+
+Thanks for this hint!
+
+Maybe using a standard 4-wire SPI simply works if we only write data and
+make sure the panel is not sending anything...
+
+I still hesitate to break working code because it needs quite some time to debug
+and we don't even know if it ever works, i.e. sends us to swampy ground...
+
+BR,
+Nikolaus
