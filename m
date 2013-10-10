@@ -1,254 +1,355 @@
 From: Lokesh Vutla <lokeshvutla@ti.com>
-Subject: [PATCH 2/2] ARM: dts: AM4372: Update Support for EPOS EVM
-Date: Fri, 11 Oct 2013 00:44:54 +0530
-Message-ID: <1381432494-20498-3-git-send-email-lokeshvutla@ti.com>
+Subject: [PATCH 1/2] ARM: dts: AM4372: Add more nodes
+Date: Fri, 11 Oct 2013 00:44:53 +0530
+Message-ID: <1381432494-20498-2-git-send-email-lokeshvutla@ti.com>
 References: <1381432494-20498-1-git-send-email-lokeshvutla@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:55909 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:43771 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755935Ab3JJTPh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 10 Oct 2013 15:15:37 -0400
+	id S1757297Ab3JJTPk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 10 Oct 2013 15:15:40 -0400
 In-Reply-To: <1381432494-20498-1-git-send-email-lokeshvutla@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: bcousson@baylibre.com, linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, mugunthanvnm@ti.com, sourav.poddar@ti.com, linux@arm.linux.org.uk, akpm@linux-foundation.org, rnayak@ti.com, afzal@ti.com, nsekhar@ti.com, r.sricharan@ti.com, balajitk@ti.com, balbi@ti.com, lokeshvutla@ti.com
 
-From: Mugunthan V N <mugunthanvnm@ti.com>
+Populate nodes for l2-cache-controller, EDMA, mailbox,
+mmc, sham.
 
--> Adding pinmux for cpsw, i2c0.
--> Enabling the modules that are present in AM4372 EPOS EVM
-These modules are tested on AM4372 EPOS EVM.
+And also updating dt properties for epwmss, aes, des.
+
+Few nodes are taken from a different tree that are added by
+Suman Anna <s-anna@ti.com> (Mailbox)
+Balaji T K <balajitk@ti.com> (MMC)
+Mugunthan V N <mugunthanvnm@ti.com> (Pinmux, Ethernet)
 
 Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
-Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
-Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
 ---
- arch/arm/boot/dts/am43x-epos-evm.dts |  168 ++++++++++++++++++++++++++++++++++
- include/dt-bindings/pinctrl/am43xx.h |   31 +++++++
- 2 files changed, 199 insertions(+)
- create mode 100644 include/dt-bindings/pinctrl/am43xx.h
+ arch/arm/boot/dts/am4372.dtsi |  210 ++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 209 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm/boot/dts/am43x-epos-evm.dts b/arch/arm/boot/dts/am43x-epos-evm.dts
-index 74174d4..fbf9c4c 100644
---- a/arch/arm/boot/dts/am43x-epos-evm.dts
-+++ b/arch/arm/boot/dts/am43x-epos-evm.dts
-@@ -11,8 +11,176 @@
- /dts-v1/;
+diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
+index a403172..c328d5c 100644
+--- a/arch/arm/boot/dts/am4372.dtsi
++++ b/arch/arm/boot/dts/am4372.dtsi
+@@ -19,6 +19,8 @@
  
- #include "am4372.dtsi"
-+#include <dt-bindings/pinctrl/am43xx.h>
-+#include <dt-bindings/gpio/gpio.h>
+ 	aliases {
+ 		serial0 = &uart0;
++		ethernet0 = &cpsw_emac0;
++		ethernet1 = &cpsw_emac1;
+ 	};
  
- / {
- 	model = "TI AM43x EPOS EVM";
- 	compatible = "ti,am43x-epos-evm","ti,am4372","ti,am43";
-+
-+	vmmcsd_fixed: fixedregulator-sd {
-+		compatible = "regulator-fixed";
-+		regulator-name = "vmmcsd_fixed";
-+		regulator-min-microvolt = <3300000>;
-+		regulator-max-microvolt = <3300000>;
-+		enable-active-high;
+ 	cpus {
+@@ -39,11 +41,42 @@
+ 		      <0x48240100 0x0100>;
+ 	};
+ 
++	l2-cache-controller@48242000 {
++		compatible = "arm,pl310-cache";
++		reg = <0x48242000 0x1000>;
++		cache-unified;
++		cache-level = <2>;
 +	};
 +
 +	am43xx_pinmux: pinmux@44e10800 {
-+		cpsw_default: cpsw_default {
-+			pinctrl-single,pins = <
-+				/* Slave 1 */
-+				0x10c (PIN_INPUT_PULLDOWN | MUX_MODE1)	/* mii1_crs.rmii1_crs */
-+				0x110 (PIN_INPUT_PULLDOWN | MUX_MODE1)	/* mii1_rxerr.rmii1_rxerr */
-+				0x114 (PIN_OUTPUT_PULLDOWN | MUX_MODE1)	/* mii1_txen.rmii1_txen */
-+				0x118 (PIN_INPUT_PULLDOWN | MUX_MODE1)	/* mii1_rxdv.rmii1_rxdv */
-+				0x124 (PIN_OUTPUT_PULLDOWN | MUX_MODE1)	/* mii1_txd1.rmii1_txd1 */
-+				0x128 (PIN_OUTPUT_PULLDOWN | MUX_MODE1)	/* mii1_txd0.rmii1_txd0 */
-+				0x13c (PIN_INPUT_PULLDOWN | MUX_MODE1)	/* mii1_rxd1.rmii1_rxd1 */
-+				0x140 (PIN_INPUT_PULLDOWN | MUX_MODE1)	/* mii1_rxd0.rmii1_rxd0 */
-+				0x144 (PIN_INPUT_PULLDOWN | MUX_MODE0)	/* rmii1_refclk.rmii1_refclk */
-+			>;
-+		};
-+
-+		cpsw_sleep: cpsw_sleep {
-+			pinctrl-single,pins = <
-+				/* Slave 1 reset value */
-+				0x10c (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+				0x110 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+				0x114 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+				0x118 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+				0x124 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+				0x128 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+				0x13c (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+				0x140 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+				0x144 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			>;
-+		};
-+
-+		davinci_mdio_default: davinci_mdio_default {
-+			pinctrl-single,pins = <
-+				/* MDIO */
-+				0x148 (PIN_INPUT_PULLUP | SLEWCTRL_FAST | MUX_MODE0)	/* mdio_data.mdio_data */
-+				0x14c (PIN_OUTPUT_PULLUP | MUX_MODE0)			/* mdio_clk.mdio_clk */
-+			>;
-+		};
-+
-+		davinci_mdio_sleep: davinci_mdio_sleep {
-+			pinctrl-single,pins = <
-+				/* MDIO reset value */
-+				0x148 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+				0x14c (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			>;
-+		};
-+
-+		i2c0_pins: pinmux_i2c0_pins {
-+			pinctrl-single,pins = <
-+				0x188 (PIN_INPUT_PULLUP | SLEWCTRL_FAST | MUX_MODE0)	/* i2c0_sda.i2c0_sda */
-+				0x18c (PIN_INPUT_PULLUP | SLEWCTRL_FAST | MUX_MODE0)	/* i2c0_scl.i2c0_scl */
-+			>;
-+		};
++		compatible = "pinctrl-single";
++		reg = <0x44e10800 0x31c>;
++		#address-cells = <1>;
++		#size-cells = <0>;
++		pinctrl-single,register-width = <32>;
++		pinctrl-single,function-mask = <0xffffffff>;
 +	};
 +
-+	matrix_keypad: matrix_keypad@0 {
-+			compatible = "gpio-matrix-keypad";
-+			debounce-delay-ms = <5>;
-+			col-scan-delay-us = <2>;
+ 	ocp {
+ 		compatible = "simple-bus";
+ 		#address-cells = <1>;
+ 		#size-cells = <1>;
+ 		ranges;
++		ti,hwmods = "l3_main";
 +
-+			row-gpios = <&gpio0 12 GPIO_ACTIVE_HIGH		/* Bank0, pin12 */
-+				     &gpio0 13 GPIO_ACTIVE_HIGH		/* Bank0, pin13 */
-+				     &gpio0 14 GPIO_ACTIVE_HIGH		/* Bank0, pin14 */
-+				     &gpio0 15 GPIO_ACTIVE_HIGH>;	/* Bank0, pin15 */
-+
-+			col-gpios = <&gpio3 9 GPIO_ACTIVE_HIGH		/* Bank3, pin9 */
-+				     &gpio3 10 GPIO_ACTIVE_HIGH		/* Bank3, pin10 */
-+				     &gpio2 18 GPIO_ACTIVE_HIGH		/* Bank2, pin18 */
-+				     &gpio2 19 GPIO_ACTIVE_HIGH>;	/* Bank2, pin19 */
-+
-+			linux,keymap = <0x00000201	/* P1 */
-+				0x01000204	/* P4 */
-+				0x02000207	/* P7 */
-+				0x0300020a	/* NUMERIC_STAR */
-+				0x00010202	/* P2 */
-+				0x01010205	/* P5 */
-+				0x02010208	/* P8 */
-+				0x03010200	/* P0 */
-+				0x00020203	/* P3 */
-+				0x01020206	/* P6 */
-+				0x02020209	/* P9 */
-+				0x0302020b	/* NUMERIC_POUND */
-+				0x00030067	/* UP */
-+				0x0103006a	/* RIGHT */
-+				0x0203006c	/* DOWN */
-+				0x03030069>;	/* LEFT */
++		edma: edma@49000000 {
++			compatible = "ti,edma3";
++			ti,hwmods = "tpcc", "tptc0", "tptc1", "tptc2";
++			reg =	<0x49000000 0x10000>,
++				<0x44e10f90 0x10>;
++			interrupts = <GIC_SPI 12 IRQ_TYPE_LEVEL_HIGH>,
++					<GIC_SPI 13 IRQ_TYPE_LEVEL_HIGH>,
++					<GIC_SPI 14 IRQ_TYPE_LEVEL_HIGH>;
++			#dma-cells = <1>;
++			dma-channels = <64>;
++			ti,edma-regions = <4>;
++			ti,edma-slots = <256>;
 +		};
-+};
+ 
+ 		uart0: serial@44e09000 {
+ 			compatible = "ti,am4372-uart","ti,omap2-uart";
+@@ -92,6 +125,18 @@
+ 			status = "disabled";
+ 		};
+ 
++		mailbox: mailbox@480C8000 {
++			compatible = "ti,omap4-mailbox";
++			reg = <0x480C8000 0x200>;
++			interrupts = <GIC_SPI 77 IRQ_TYPE_LEVEL_HIGH>;
++			ti,hwmods = "mailbox";
++			ti,mbox-num-users = <4>;
++			ti,mbox-num-fifos = <8>;
++			ti,mbox-names = "wkup_m3";
++			ti,mbox-data = <0 0 0 0>;
++			status = "disabled";
++		};
 +
-+&mmc1 {
-+	status = "okay";
-+	vmmc-supply = <&vmmcsd_fixed>;
-+	bus-width = <4>;
-+};
+ 		timer1: timer@44e31000 {
+ 			compatible = "ti,am4372-timer-1ms","ti,am335x-timer-1ms";
+ 			reg = <0x44e31000 0x400>;
+@@ -203,7 +248,6 @@
+ 			reg = <0x44e35000 0x1000>;
+ 			interrupts = <GIC_SPI 91 IRQ_TYPE_LEVEL_HIGH>;
+ 			ti,hwmods = "wd_timer2";
+-			status = "disabled";
+ 		};
+ 
+ 		gpio0: gpio@44e07000 {
+@@ -318,6 +362,40 @@
+ 			status = "disabled";
+ 		};
+ 
++		mmc1: mmc@48060000 {
++			compatible = "ti,omap4-hsmmc";
++			reg = <0x48060000 0x1000>;
++			ti,hwmods = "mmc1";
++			ti,dual-volt;
++			ti,needs-special-reset;
++			dmas = <&edma 24
++				&edma 25>;
++			dma-names = "tx", "rx";
++			interrupts = <GIC_SPI 64 IRQ_TYPE_LEVEL_HIGH>;
++			status = "disabled";
++		};
 +
-+&mac {
-+	pinctrl-names = "default", "sleep";
-+	pinctrl-0 = <&cpsw_default>;
-+	pinctrl-1 = <&cpsw_sleep>;
-+	status = "okay";
-+};
++		mmc2: mmc@481d8000 {
++			compatible = "ti,omap4-hsmmc";
++			reg = <0x481d8000 0x1000>;
++			ti,hwmods = "mmc2";
++			ti,needs-special-reset;
++			dmas = <&edma 2
++				&edma 3>;
++			dma-names = "tx", "rx";
++			interrupts = <GIC_SPI 28 IRQ_TYPE_LEVEL_HIGH>;
++			status = "disabled";
++		};
 +
-+&davinci_mdio {
-+	pinctrl-names = "default", "sleep";
-+	pinctrl-0 = <&davinci_mdio_default>;
-+	pinctrl-1 = <&davinci_mdio_sleep>;
-+	status = "okay";
-+};
++		mmc3: mmc@47810000 {
++			compatible = "ti,omap4-hsmmc";
++			reg = <0x47810000 0x1000>;
++			ti,hwmods = "mmc3";
++			ti,needs-special-reset;
++			interrupts = <GIC_SPI 29 IRQ_TYPE_LEVEL_HIGH>;
++			status = "disabled";
++		};
 +
-+&cpsw_emac0 {
-+	phy_id = <&davinci_mdio>, <16>;
-+	phy-mode = "rmii";
-+};
+ 		spi1: spi@481a0000 {
+ 			compatible = "ti,am4372-mcspi","ti,omap4-mcspi";
+ 			reg = <0x481a0000 0x400>;
+@@ -366,50 +444,173 @@
+ 				      GIC_SPI 41 IRQ_TYPE_LEVEL_HIGH
+ 				      GIC_SPI 42 IRQ_TYPE_LEVEL_HIGH
+ 				      GIC_SPI 43 IRQ_TYPE_LEVEL_HIGH>;
++			#address-cells = <1>;
++			#size-cells = <1>;
+ 			ti,hwmods = "cpgmac0";
+ 			status = "disabled";
++			cpdma_channels = <8>;
++			ale_entries = <1024>;
++			bd_ram_size = <0x2000>;
++			no_bd_ram = <0>;
++			rx_descs = <64>;
++			mac_control = <0x20>;
++			slaves = <2>;
++			active_slave = <0>;
++			cpts_clock_mult = <0x80000000>;
++			cpts_clock_shift = <29>;
++			ranges;
 +
-+&cpsw_emac1 {
-+	phy_id = <&davinci_mdio>, <1>;
-+	phy-mode = "rmii";
-+};
++			davinci_mdio: mdio@4a101000 {
++				compatible = "ti,am4372-mdio","ti,davinci_mdio";
++				reg = <0x4a101000 0x100>;
++				#address-cells = <1>;
++				#size-cells = <0>;
++				ti,hwmods = "davinci_mdio";
++				bus_freq = <1000000>;
++				status = "disabled";
++			};
 +
-+&i2c0 {
-+	status = "okay";
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&i2c0_pins>;
++			cpsw_emac0: slave@4a100200 {
++				/* Filled in by U-Boot */
++				mac-address = [ 00 00 00 00 00 00 ];
++			};
 +
-+	at24@50 {
-+		compatible = "at24,24c256";
-+		pagesize = <64>;
-+		reg = <0x50>;
-+	};
++			cpsw_emac1: slave@4a100300 {
++				/* Filled in by U-Boot */
++				mac-address = [ 00 00 00 00 00 00 ];
++			};
+ 		};
+ 
+ 		epwmss0: epwmss@48300000 {
+ 			compatible = "ti,am4372-pwmss","ti,am33xx-pwmss";
+ 			reg = <0x48300000 0x10>;
++			#address-cells = <1>;
++			#size-cells = <1>;
++			ranges;
+ 			ti,hwmods = "epwmss0";
+ 			status = "disabled";
 +
-+	pixcir_ts@5c {
-+		compatible = "pixcir,pixcir_ts";
-+		reg = <0x5c>;
-+		interrupt-parent = <&gpio1>;
-+		interrupts = <17 0>;
++			ecap0: ecap@48300100 {
++				compatible = "ti,am4372-ecap","ti,am33xx-ecap";
++				reg = <0x48300100 0x80>;
++				ti,hwmods = "ecap0";
++				status = "disabled";
++			};
 +
-+		attb-gpio = <&gpio1 17 GPIO_ACTIVE_HIGH>;
++			ehrpwm0: ehrpwm@48300200 {
++				compatible = "ti,am4372-ehrpwm","ti,am33xx-ehrpwm";
++				reg = <0x48300200 0x80>;
++				ti,hwmods = "ehrpwm0";
++				status = "disabled";
++			};
+ 		};
+ 
+ 		epwmss1: epwmss@48302000 {
+ 			compatible = "ti,am4372-pwmss","ti,am33xx-pwmss";
+ 			reg = <0x48302000 0x10>;
++			#address-cells = <1>;
++			#size-cells = <1>;
++			ranges;
+ 			ti,hwmods = "epwmss1";
+ 			status = "disabled";
 +
-+		x-size = <1024>;
-+		y-size = <768>;
-+	};
-+};
++			ecap1: ecap@48302100 {
++				compatible = "ti,am4372-ecap","ti,am33xx-ecap";
++				reg = <0x48302100 0x80>;
++				ti,hwmods = "ecap1";
++				status = "disabled";
++			};
 +
-+&gpio0 {
-+	status = "okay";
-+};
++			ehrpwm1: ehrpwm@48302200 {
++				compatible = "ti,am4372-ehrpwm","ti,am33xx-ehrpwm";
++				reg = <0x48302200 0x80>;
++				ti,hwmods = "ehrpwm1";
++				status = "disabled";
++			};
+ 		};
+ 
+ 		epwmss2: epwmss@48304000 {
+ 			compatible = "ti,am4372-pwmss","ti,am33xx-pwmss";
+ 			reg = <0x48304000 0x10>;
++			#address-cells = <1>;
++			#size-cells = <1>;
++			ranges;
+ 			ti,hwmods = "epwmss2";
+ 			status = "disabled";
 +
-+&gpio1 {
-+	status = "okay";
-+};
++			ecap2: ecap@48304100 {
++				compatible = "ti,am4372-ecap","ti,am33xx-ecap";
++				reg = <0x48304100 0x80>;
++				ti,hwmods = "ecap2";
++				status = "disabled";
++			};
 +
-+&gpio2 {
-+	status = "okay";
-+};
++			ehrpwm2: ehrpwm@48304200 {
++				compatible = "ti,am4372-ehrpwm","ti,am33xx-ehrpwm";
++				reg = <0x48304200 0x80>;
++				ti,hwmods = "ehrpwm2";
++				status = "disabled";
++			};
+ 		};
+ 
+ 		epwmss3: epwmss@48306000 {
+ 			compatible = "ti,am4372-pwmss","ti,am33xx-pwmss";
+ 			reg = <0x48306000 0x10>;
++			#address-cells = <1>;
++			#size-cells = <1>;
++			ranges;
+ 			ti,hwmods = "epwmss3";
+ 			status = "disabled";
 +
-+&gpio3 {
-+	status = "okay";
++			ehrpwm3: ehrpwm@48306200 {
++				compatible = "ti,am4372-ehrpwm","ti,am33xx-ehrpwm";
++				reg = <0x48306200 0x80>;
++				ti,hwmods = "ehrpwm3";
++				status = "disabled";
++			};
+ 		};
+ 
+ 		epwmss4: epwmss@48308000 {
+ 			compatible = "ti,am4372-pwmss","ti,am33xx-pwmss";
+ 			reg = <0x48308000 0x10>;
++			#address-cells = <1>;
++			#size-cells = <1>;
++			ranges;
+ 			ti,hwmods = "epwmss4";
+ 			status = "disabled";
++
++			ehrpwm4: ehrpwm@48308200 {
++				compatible = "ti,am4372-ehrpwm","ti,am33xx-ehrpwm";
++				reg = <0x48308200 0x80>;
++				ti,hwmods = "ehrpwm4";
++				status = "disabled";
++			};
+ 		};
+ 
+ 		epwmss5: epwmss@4830a000 {
+ 			compatible = "ti,am4372-pwmss","ti,am33xx-pwmss";
+ 			reg = <0x4830a000 0x10>;
++			#address-cells = <1>;
++			#size-cells = <1>;
++			ranges;
+ 			ti,hwmods = "epwmss5";
+ 			status = "disabled";
++
++			ehrpwm5: ehrpwm@4830a200 {
++				compatible = "ti,am4372-ehrpwm","ti,am33xx-ehrpwm";
++				reg = <0x4830a200 0x80>;
++				ti,hwmods = "ehrpwm5";
++				status = "disabled";
++			};
++		};
++
++		sham: sham@53100000 {
++			compatible = "ti,omap5-sham";
++			ti,hwmods = "sham";
++			reg = <0x53100000 0x300>;
++			dmas = <&edma 36>;
++			dma-names = "rx";
++			interrupts = <GIC_SPI 109 IRQ_TYPE_LEVEL_HIGH>;
+ 		};
+ 
+ 		aes: aes@53501000 {
+@@ -417,6 +618,9 @@
+ 			ti,hwmods = "aes";
+ 			reg = <0x53501000 0xa0>;
+ 			interrupts = <GIC_SPI 103 IRQ_TYPE_LEVEL_HIGH>;
++			dmas = <&edma 6
++				&edma 5>;
++			dma-names = "tx", "rx";
+ 		};
+ 
+ 		des: des@53701000 {
+@@ -424,6 +628,10 @@
+ 			ti,hwmods = "des";
+ 			reg = <0x53701000 0xa0>;
+ 			interrupts = <GIC_SPI 130 IRQ_TYPE_LEVEL_HIGH>;
++			dmas = <&edma 34
++				&edma 33>;
++			dma-names = "tx", "rx";
+ 		};
++
+ 	};
  };
-diff --git a/include/dt-bindings/pinctrl/am43xx.h b/include/dt-bindings/pinctrl/am43xx.h
-new file mode 100644
-index 0000000..eb6c366a
---- /dev/null
-+++ b/include/dt-bindings/pinctrl/am43xx.h
-@@ -0,0 +1,31 @@
-+/*
-+ * This header provides constants specific to AM43XX pinctrl bindings.
-+ */
-+
-+#ifndef _DT_BINDINGS_PINCTRL_AM43XX_H
-+#define _DT_BINDINGS_PINCTRL_AM43XX_H
-+
-+#define MUX_MODE0	0
-+#define MUX_MODE1	1
-+#define MUX_MODE2	2
-+#define MUX_MODE3	3
-+#define MUX_MODE4	4
-+#define MUX_MODE5	5
-+#define MUX_MODE6	6
-+#define MUX_MODE7	7
-+
-+#define PULL_DISABLE		(1 << 16)
-+#define PULL_UP			(1 << 17)
-+#define INPUT_EN		(1 << 18)
-+#define SLEWCTRL_FAST		(1 << 19)
-+#define DS0_PULL_UP_DOWN_EN	(1 << 27)
-+
-+#define PIN_OUTPUT		(PULL_DISABLE)
-+#define PIN_OUTPUT_PULLUP	(PULL_UP)
-+#define PIN_OUTPUT_PULLDOWN	0
-+#define PIN_INPUT		(INPUT_EN | PULL_DISABLE)
-+#define PIN_INPUT_PULLUP	(INPUT_EN | PULL_UP)
-+#define PIN_INPUT_PULLDOWN	(INPUT_EN)
-+
-+#endif
-+
 -- 
 1.7.9.5
 
