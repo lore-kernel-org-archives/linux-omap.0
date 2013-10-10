@@ -1,355 +1,75 @@
-From: Lokesh Vutla <lokeshvutla@ti.com>
-Subject: [PATCH 1/2] ARM: dts: AM4372: Add more nodes
-Date: Fri, 11 Oct 2013 00:44:53 +0530
-Message-ID: <1381432494-20498-2-git-send-email-lokeshvutla@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 0/2] ARM: dts: AM4372: Add more nodes
+Date: Thu, 10 Oct 2013 14:18:17 -0500
+Message-ID: <20131010191817.GJ21240@radagast>
 References: <1381432494-20498-1-git-send-email-lokeshvutla@ti.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="OX7PPUk8qMPP4++R"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:43771 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757297Ab3JJTPk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 10 Oct 2013 15:15:40 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:51823 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752896Ab3JJTS6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Oct 2013 15:18:58 -0400
+Content-Disposition: inline
 In-Reply-To: <1381432494-20498-1-git-send-email-lokeshvutla@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: bcousson@baylibre.com, linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, mugunthanvnm@ti.com, sourav.poddar@ti.com, linux@arm.linux.org.uk, akpm@linux-foundation.org, rnayak@ti.com, afzal@ti.com, nsekhar@ti.com, r.sricharan@ti.com, balajitk@ti.com, balbi@ti.com, lokeshvutla@ti.com
+To: Lokesh Vutla <lokeshvutla@ti.com>
+Cc: bcousson@baylibre.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, mugunthanvnm@ti.com, sourav.poddar@ti.com, linux@arm.linux.org.uk, akpm@linux-foundation.org, rnayak@ti.com, afzal@ti.com, nsekhar@ti.com, r.sricharan@ti.com, balajitk@ti.com, balbi@ti.com
 
-Populate nodes for l2-cache-controller, EDMA, mailbox,
-mmc, sham.
+--OX7PPUk8qMPP4++R
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-And also updating dt properties for epwmss, aes, des.
+Hi,
 
-Few nodes are taken from a different tree that are added by
-Suman Anna <s-anna@ti.com> (Mailbox)
-Balaji T K <balajitk@ti.com> (MMC)
-Mugunthan V N <mugunthanvnm@ti.com> (Pinmux, Ethernet)
+On Fri, Oct 11, 2013 at 12:44:52AM +0530, Lokesh Vutla wrote:
+> This patch series add nodes for l2-cache-controller, EDMA, mailbox,
+> mmc, sham, and updates the properties for cpsw, i2c0, matrix-keypad.=20
+>=20
+> These patches are applied on top of Benoit's for_3.13/dts branch
+> git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git =
+for_3.13/dts
+>=20
+> Testing:
+> Tested EDMA, mmc, sham, aes, des, i2c0, cpsw, matric-keypad on AM4372 EPO=
+S EVM
+> with the addition of following two series:
+> -> Tero's V8 of OMAP DT clock conversion
+>   http://www.mail-archive.com/linux-omap@vger.kernel.org/msg96769.html
+> -> Afzal's V5 of AM43x PRCM basic support
+>   http://www.mail-archive.com/linux-omap@vger.kernel.org/msg96275.html
 
-Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
----
- arch/arm/boot/dts/am4372.dtsi |  210 ++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 209 insertions(+), 1 deletion(-)
+one extra piece of info:
 
-diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
-index a403172..c328d5c 100644
---- a/arch/arm/boot/dts/am4372.dtsi
-+++ b/arch/arm/boot/dts/am4372.dtsi
-@@ -19,6 +19,8 @@
- 
- 	aliases {
- 		serial0 = &uart0;
-+		ethernet0 = &cpsw_emac0;
-+		ethernet1 = &cpsw_emac1;
- 	};
- 
- 	cpus {
-@@ -39,11 +41,42 @@
- 		      <0x48240100 0x0100>;
- 	};
- 
-+	l2-cache-controller@48242000 {
-+		compatible = "arm,pl310-cache";
-+		reg = <0x48242000 0x1000>;
-+		cache-unified;
-+		cache-level = <2>;
-+	};
-+
-+	am43xx_pinmux: pinmux@44e10800 {
-+		compatible = "pinctrl-single";
-+		reg = <0x44e10800 0x31c>;
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+		pinctrl-single,register-width = <32>;
-+		pinctrl-single,function-mask = <0xffffffff>;
-+	};
-+
- 	ocp {
- 		compatible = "simple-bus";
- 		#address-cells = <1>;
- 		#size-cells = <1>;
- 		ranges;
-+		ti,hwmods = "l3_main";
-+
-+		edma: edma@49000000 {
-+			compatible = "ti,edma3";
-+			ti,hwmods = "tpcc", "tptc0", "tptc1", "tptc2";
-+			reg =	<0x49000000 0x10000>,
-+				<0x44e10f90 0x10>;
-+			interrupts = <GIC_SPI 12 IRQ_TYPE_LEVEL_HIGH>,
-+					<GIC_SPI 13 IRQ_TYPE_LEVEL_HIGH>,
-+					<GIC_SPI 14 IRQ_TYPE_LEVEL_HIGH>;
-+			#dma-cells = <1>;
-+			dma-channels = <64>;
-+			ti,edma-regions = <4>;
-+			ti,edma-slots = <256>;
-+		};
- 
- 		uart0: serial@44e09000 {
- 			compatible = "ti,am4372-uart","ti,omap2-uart";
-@@ -92,6 +125,18 @@
- 			status = "disabled";
- 		};
- 
-+		mailbox: mailbox@480C8000 {
-+			compatible = "ti,omap4-mailbox";
-+			reg = <0x480C8000 0x200>;
-+			interrupts = <GIC_SPI 77 IRQ_TYPE_LEVEL_HIGH>;
-+			ti,hwmods = "mailbox";
-+			ti,mbox-num-users = <4>;
-+			ti,mbox-num-fifos = <8>;
-+			ti,mbox-names = "wkup_m3";
-+			ti,mbox-data = <0 0 0 0>;
-+			status = "disabled";
-+		};
-+
- 		timer1: timer@44e31000 {
- 			compatible = "ti,am4372-timer-1ms","ti,am335x-timer-1ms";
- 			reg = <0x44e31000 0x400>;
-@@ -203,7 +248,6 @@
- 			reg = <0x44e35000 0x1000>;
- 			interrupts = <GIC_SPI 91 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "wd_timer2";
--			status = "disabled";
- 		};
- 
- 		gpio0: gpio@44e07000 {
-@@ -318,6 +362,40 @@
- 			status = "disabled";
- 		};
- 
-+		mmc1: mmc@48060000 {
-+			compatible = "ti,omap4-hsmmc";
-+			reg = <0x48060000 0x1000>;
-+			ti,hwmods = "mmc1";
-+			ti,dual-volt;
-+			ti,needs-special-reset;
-+			dmas = <&edma 24
-+				&edma 25>;
-+			dma-names = "tx", "rx";
-+			interrupts = <GIC_SPI 64 IRQ_TYPE_LEVEL_HIGH>;
-+			status = "disabled";
-+		};
-+
-+		mmc2: mmc@481d8000 {
-+			compatible = "ti,omap4-hsmmc";
-+			reg = <0x481d8000 0x1000>;
-+			ti,hwmods = "mmc2";
-+			ti,needs-special-reset;
-+			dmas = <&edma 2
-+				&edma 3>;
-+			dma-names = "tx", "rx";
-+			interrupts = <GIC_SPI 28 IRQ_TYPE_LEVEL_HIGH>;
-+			status = "disabled";
-+		};
-+
-+		mmc3: mmc@47810000 {
-+			compatible = "ti,omap4-hsmmc";
-+			reg = <0x47810000 0x1000>;
-+			ti,hwmods = "mmc3";
-+			ti,needs-special-reset;
-+			interrupts = <GIC_SPI 29 IRQ_TYPE_LEVEL_HIGH>;
-+			status = "disabled";
-+		};
-+
- 		spi1: spi@481a0000 {
- 			compatible = "ti,am4372-mcspi","ti,omap4-mcspi";
- 			reg = <0x481a0000 0x400>;
-@@ -366,50 +444,173 @@
- 				      GIC_SPI 41 IRQ_TYPE_LEVEL_HIGH
- 				      GIC_SPI 42 IRQ_TYPE_LEVEL_HIGH
- 				      GIC_SPI 43 IRQ_TYPE_LEVEL_HIGH>;
-+			#address-cells = <1>;
-+			#size-cells = <1>;
- 			ti,hwmods = "cpgmac0";
- 			status = "disabled";
-+			cpdma_channels = <8>;
-+			ale_entries = <1024>;
-+			bd_ram_size = <0x2000>;
-+			no_bd_ram = <0>;
-+			rx_descs = <64>;
-+			mac_control = <0x20>;
-+			slaves = <2>;
-+			active_slave = <0>;
-+			cpts_clock_mult = <0x80000000>;
-+			cpts_clock_shift = <29>;
-+			ranges;
-+
-+			davinci_mdio: mdio@4a101000 {
-+				compatible = "ti,am4372-mdio","ti,davinci_mdio";
-+				reg = <0x4a101000 0x100>;
-+				#address-cells = <1>;
-+				#size-cells = <0>;
-+				ti,hwmods = "davinci_mdio";
-+				bus_freq = <1000000>;
-+				status = "disabled";
-+			};
-+
-+			cpsw_emac0: slave@4a100200 {
-+				/* Filled in by U-Boot */
-+				mac-address = [ 00 00 00 00 00 00 ];
-+			};
-+
-+			cpsw_emac1: slave@4a100300 {
-+				/* Filled in by U-Boot */
-+				mac-address = [ 00 00 00 00 00 00 ];
-+			};
- 		};
- 
- 		epwmss0: epwmss@48300000 {
- 			compatible = "ti,am4372-pwmss","ti,am33xx-pwmss";
- 			reg = <0x48300000 0x10>;
-+			#address-cells = <1>;
-+			#size-cells = <1>;
-+			ranges;
- 			ti,hwmods = "epwmss0";
- 			status = "disabled";
-+
-+			ecap0: ecap@48300100 {
-+				compatible = "ti,am4372-ecap","ti,am33xx-ecap";
-+				reg = <0x48300100 0x80>;
-+				ti,hwmods = "ecap0";
-+				status = "disabled";
-+			};
-+
-+			ehrpwm0: ehrpwm@48300200 {
-+				compatible = "ti,am4372-ehrpwm","ti,am33xx-ehrpwm";
-+				reg = <0x48300200 0x80>;
-+				ti,hwmods = "ehrpwm0";
-+				status = "disabled";
-+			};
- 		};
- 
- 		epwmss1: epwmss@48302000 {
- 			compatible = "ti,am4372-pwmss","ti,am33xx-pwmss";
- 			reg = <0x48302000 0x10>;
-+			#address-cells = <1>;
-+			#size-cells = <1>;
-+			ranges;
- 			ti,hwmods = "epwmss1";
- 			status = "disabled";
-+
-+			ecap1: ecap@48302100 {
-+				compatible = "ti,am4372-ecap","ti,am33xx-ecap";
-+				reg = <0x48302100 0x80>;
-+				ti,hwmods = "ecap1";
-+				status = "disabled";
-+			};
-+
-+			ehrpwm1: ehrpwm@48302200 {
-+				compatible = "ti,am4372-ehrpwm","ti,am33xx-ehrpwm";
-+				reg = <0x48302200 0x80>;
-+				ti,hwmods = "ehrpwm1";
-+				status = "disabled";
-+			};
- 		};
- 
- 		epwmss2: epwmss@48304000 {
- 			compatible = "ti,am4372-pwmss","ti,am33xx-pwmss";
- 			reg = <0x48304000 0x10>;
-+			#address-cells = <1>;
-+			#size-cells = <1>;
-+			ranges;
- 			ti,hwmods = "epwmss2";
- 			status = "disabled";
-+
-+			ecap2: ecap@48304100 {
-+				compatible = "ti,am4372-ecap","ti,am33xx-ecap";
-+				reg = <0x48304100 0x80>;
-+				ti,hwmods = "ecap2";
-+				status = "disabled";
-+			};
-+
-+			ehrpwm2: ehrpwm@48304200 {
-+				compatible = "ti,am4372-ehrpwm","ti,am33xx-ehrpwm";
-+				reg = <0x48304200 0x80>;
-+				ti,hwmods = "ehrpwm2";
-+				status = "disabled";
-+			};
- 		};
- 
- 		epwmss3: epwmss@48306000 {
- 			compatible = "ti,am4372-pwmss","ti,am33xx-pwmss";
- 			reg = <0x48306000 0x10>;
-+			#address-cells = <1>;
-+			#size-cells = <1>;
-+			ranges;
- 			ti,hwmods = "epwmss3";
- 			status = "disabled";
-+
-+			ehrpwm3: ehrpwm@48306200 {
-+				compatible = "ti,am4372-ehrpwm","ti,am33xx-ehrpwm";
-+				reg = <0x48306200 0x80>;
-+				ti,hwmods = "ehrpwm3";
-+				status = "disabled";
-+			};
- 		};
- 
- 		epwmss4: epwmss@48308000 {
- 			compatible = "ti,am4372-pwmss","ti,am33xx-pwmss";
- 			reg = <0x48308000 0x10>;
-+			#address-cells = <1>;
-+			#size-cells = <1>;
-+			ranges;
- 			ti,hwmods = "epwmss4";
- 			status = "disabled";
-+
-+			ehrpwm4: ehrpwm@48308200 {
-+				compatible = "ti,am4372-ehrpwm","ti,am33xx-ehrpwm";
-+				reg = <0x48308200 0x80>;
-+				ti,hwmods = "ehrpwm4";
-+				status = "disabled";
-+			};
- 		};
- 
- 		epwmss5: epwmss@4830a000 {
- 			compatible = "ti,am4372-pwmss","ti,am33xx-pwmss";
- 			reg = <0x4830a000 0x10>;
-+			#address-cells = <1>;
-+			#size-cells = <1>;
-+			ranges;
- 			ti,hwmods = "epwmss5";
- 			status = "disabled";
-+
-+			ehrpwm5: ehrpwm@4830a200 {
-+				compatible = "ti,am4372-ehrpwm","ti,am33xx-ehrpwm";
-+				reg = <0x4830a200 0x80>;
-+				ti,hwmods = "ehrpwm5";
-+				status = "disabled";
-+			};
-+		};
-+
-+		sham: sham@53100000 {
-+			compatible = "ti,omap5-sham";
-+			ti,hwmods = "sham";
-+			reg = <0x53100000 0x300>;
-+			dmas = <&edma 36>;
-+			dma-names = "rx";
-+			interrupts = <GIC_SPI 109 IRQ_TYPE_LEVEL_HIGH>;
- 		};
- 
- 		aes: aes@53501000 {
-@@ -417,6 +618,9 @@
- 			ti,hwmods = "aes";
- 			reg = <0x53501000 0xa0>;
- 			interrupts = <GIC_SPI 103 IRQ_TYPE_LEVEL_HIGH>;
-+			dmas = <&edma 6
-+				&edma 5>;
-+			dma-names = "tx", "rx";
- 		};
- 
- 		des: des@53701000 {
-@@ -424,6 +628,10 @@
- 			ti,hwmods = "des";
- 			reg = <0x53701000 0xa0>;
- 			interrupts = <GIC_SPI 130 IRQ_TYPE_LEVEL_HIGH>;
-+			dmas = <&edma 34
-+				&edma 33>;
-+			dma-names = "tx", "rx";
- 		};
-+
- 	};
- };
--- 
-1.7.9.5
+all these patches are fresh out of Wakeup, tested on top of v3.12-rc3.
 
+--=20
+balbi
+
+--OX7PPUk8qMPP4++R
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJSVv15AAoJEIaOsuA1yqREGKUP/RqrumkwFY225CCS3NSuWfQH
+8z7r3cF+4Q9Ym64e2l2hnkM1F23Y+t4SGBH1tQE70y4NZnST3kKmKGaC7Z5wNY2g
+Q9PuyX7nEaxY8YK9OPU9dsQBkbYiawi81/a4acN8ELwhfL5YmYUthjMsInOuWs5L
++RfbDVR42M6dvsbx5u8dpZfG/sqVB2kokVv++U/8b+vwxSydpaSm+7oljOFucuzD
+dHfupHZWmDkdP3yfLPICHCvf+5ByuJ/ny0hPAp3vPjkiVbgesorEccUKeSEEyXL0
++UzaxToaUM58fXqfqE23K9YygcffEXCYWRpKOlsNj++u+TW9/HK+L4hgy7p0zURJ
+aKpfmwlz3nEHFEOrBAzvYX8g1g7DPE60wb0/uGZFSzKmV/Su0jnZnMooFsIgvsKM
+N940R244fUnCs1DSj2Doxe/I7f+J6FSOkmY0obKANtUW+20g3TbLi4BMAeNtYLqr
+nqm7fq75Bwzk9paHtvRrB5HscX6Xc6GhSc/WW5M+OtCP0ykiNOx0UclRQiuTlaXl
+jaAPLPGFj+Jekjw0iFi8sl4AXqNAhR225fIhmPDQi/lc+kQqDA5GTzUsoMtk9eZw
+/5wx8EMg67bGmlwnLDZGcas6CiccxG/mvEKn4KG0OHXfcV66DEL5OwFVw+7s3glp
+xYd/opsqDQrQm2ef19in
+=XrFj
+-----END PGP SIGNATURE-----
+
+--OX7PPUk8qMPP4++R--
