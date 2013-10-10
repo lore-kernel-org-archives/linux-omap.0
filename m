@@ -1,34 +1,138 @@
-From: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 4/6] pinctrl: single: Add support for wake-up interrupts
-Date: Thu, 10 Oct 2013 16:04:16 +0200
-Message-ID: <CACRpkdZx5+OCcQytkpjd7_nz4hw6VXoXOS0LByKgJ8_cQjbA4g@mail.gmail.com>
-References: <20131003054104.8941.88857.stgit@localhost>
-	<20131003054221.8941.87801.stgit@localhost>
-	<5256AA7F.8030005@ti.com>
+From: Balaji T K <balajitk@ti.com>
+Subject: Re: [PATCH 14/27] mmc: omap_hsmmc: Move away from using deprecated
+ APIs
+Date: Thu, 10 Oct 2013 19:36:31 +0530
+Message-ID: <5256B467.8080402@ti.com>
+References: <1380207292-16968-1-git-send-email-ulf.hansson@linaro.org> <1380207292-16968-15-git-send-email-ulf.hansson@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5256AA7F.8030005-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Prakash Manjunathappa <prakash.pm-l0cyMroinI0@public.gmane.org>, Haojian Zhuang <haojian.zhuang-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, =?ISO-8859-1?Q?Beno=EEt_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Linux-OMAP <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <1380207292-16968-15-git-send-email-ulf.hansson@linaro.org>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Ulf Hansson <ulf.hansson@linaro.org>
+Cc: linux-kernel@vger.kernel.org, linux-mmc@vger.kernel.org, Chris Ball <cjb@laptop.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Oct 10, 2013 at 3:24 PM, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> wrote:
+On Thursday 26 September 2013 08:24 PM, Ulf Hansson wrote:
+> Suspend and resume of cards are being handled from the protocol layer
+> and consequently the mmc_suspend|resume_host APIs are deprecated.
+>
+> This means we can simplify the suspend|resume callbacks by removing the
+> use of the deprecated APIs. Additional cleanup done for keeping track
+> suspended state.
+>
+> Cc: Balaji T K <balajitk@ti.com>
+> Cc: linux-omap@vger.kernel.org
+> Signed-off-by: Ulf Hansson <ulf.hansson@linaro.org>
 
-> I think pcs_irq_set_wake() is where need to control system wakeup behaviour for the irq.
-> This is where we should be able to change WAKEUP_EN bit of the pad
-> to enable/disable system wakeup for that pad and also call _reconfigure_io_chain().
+Acked-by: Balaji T K <balajitk@ti.com>
 
-As an innocent bystander who has no clue what the _reconfigure_io_chain()
-is about can you tell me what this is all about?
+> ---
+>   drivers/mmc/host/omap_hsmmc.c |   37 +++----------------------------------
+>   1 file changed, 3 insertions(+), 34 deletions(-)
+>
+> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+> index 6ac63df..eb6fb28 100644
+> --- a/drivers/mmc/host/omap_hsmmc.c
+> +++ b/drivers/mmc/host/omap_hsmmc.c
+> @@ -170,7 +170,6 @@ struct omap_hsmmc_host {
+>   	unsigned int		dma_sg_idx;
+>   	unsigned char		bus_mode;
+>   	unsigned char		power_mode;
+> -	int			suspended;
+>   	int			irq;
+>   	int			use_dma, dma_ch;
+>   	struct dma_chan		*tx_chan;
+> @@ -1178,9 +1177,6 @@ static irqreturn_t omap_hsmmc_detect(int irq, void *dev_id)
+>   	struct omap_mmc_slot_data *slot = &mmc_slot(host);
+>   	int carddetect;
+>
+> -	if (host->suspended)
+> -		return IRQ_HANDLED;
+> -
+>   	sysfs_notify(&host->mmc->class_dev.kobj, NULL, "cover_switch");
+>
+>   	if (slot->card_detect)
+> @@ -1643,11 +1639,6 @@ static int omap_hsmmc_regs_show(struct seq_file *s, void *data)
+>   	seq_printf(s, "mmc%d:\n ctx_loss:\t%d:%d\n\nregs:\n",
+>   			mmc->index, host->context_loss, context_loss);
+>
+> -	if (host->suspended) {
+> -		seq_printf(s, "host suspended, can't read registers\n");
+> -		return 0;
+> -	}
+> -
+>   	pm_runtime_get_sync(host->dev);
+>
+>   	seq_printf(s, "CON:\t\t0x%08x\n",
+> @@ -2119,23 +2110,12 @@ static void omap_hsmmc_complete(struct device *dev)
+>
+>   static int omap_hsmmc_suspend(struct device *dev)
+>   {
+> -	int ret = 0;
+>   	struct omap_hsmmc_host *host = dev_get_drvdata(dev);
+>
+>   	if (!host)
+>   		return 0;
+>
+> -	if (host && host->suspended)
+> -		return 0;
+> -
+>   	pm_runtime_get_sync(host->dev);
+> -	host->suspended = 1;
+> -	ret = mmc_suspend_host(host->mmc);
+> -
+> -	if (ret) {
+> -		host->suspended = 0;
+> -		goto err;
+> -	}
+>
+>   	if (!(host->mmc->pm_flags & MMC_PM_KEEP_POWER)) {
+>   		omap_hsmmc_disable_irq(host);
+> @@ -2145,23 +2125,19 @@ static int omap_hsmmc_suspend(struct device *dev)
+>
+>   	if (host->dbclk)
+>   		clk_disable_unprepare(host->dbclk);
+> -err:
+> +
+>   	pm_runtime_put_sync(host->dev);
+> -	return ret;
+> +	return 0;
+>   }
+>
+>   /* Routine to resume the MMC device */
+>   static int omap_hsmmc_resume(struct device *dev)
+>   {
+> -	int ret = 0;
+>   	struct omap_hsmmc_host *host = dev_get_drvdata(dev);
+>
+>   	if (!host)
+>   		return 0;
+>
+> -	if (host && !host->suspended)
+> -		return 0;
+> -
+>   	pm_runtime_get_sync(host->dev);
+>
+>   	if (host->dbclk)
+> @@ -2172,16 +2148,9 @@ static int omap_hsmmc_resume(struct device *dev)
+>
+>   	omap_hsmmc_protect_card(host);
+>
+> -	/* Notify the core to resume the host */
+> -	ret = mmc_resume_host(host->mmc);
+> -	if (ret == 0)
+> -		host->suspended = 0;
+> -
+>   	pm_runtime_mark_last_busy(host->dev);
+>   	pm_runtime_put_autosuspend(host->dev);
+> -
+> -	return ret;
+> -
+> +	return 0;
+>   }
+>
+>   #else
+>
 
-Is this another one of the OMAP forked paths where you must call back into
-the machine with a special callback from each and every driver?
-
-Yours,
-Linus Walleij
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
