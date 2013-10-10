@@ -1,55 +1,27 @@
-From: isabelle07711@googlemail.com
-Subject: RE: Free SEO Trial For mail-archive.com
-Date: Thu, 10 Oct 2013 23:58:12 +0530
-Message-ID: <5256f1b9.c99f420a.0367.ffffd10c@mx.google.com>
-Reply-To: ALISA21171@gmail.com
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pb0-f66.google.com ([209.85.160.66]:42822 "EHLO
-	mail-pb0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753149Ab3JJS2L (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Oct 2013 14:28:11 -0400
-Received: by mail-pb0-f66.google.com with SMTP id md4so930883pbc.1
-        for <linux-omap@vger.kernel.org>; Thu, 10 Oct 2013 11:28:10 -0700 (PDT)
-Sender: linux-omap-owner@vger.kernel.org
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: Re: [RFCv3 0/7] OMAP SSI driver
+Date: Thu, 10 Oct 2013 21:28:01 +0300
+Message-ID: <20131010182801.GB29989@blackmetal.musicnaut.iki.fi>
+References: <1381091235-18293-1-git-send-email-sre@debian.org>
+ <20131008172815.GA8313@atomide.com>
+ <20131010172128.GF28657@earth.universe>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-doc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20131010172128.GF28657@earth.universe>
+Sender: linux-doc-owner@vger.kernel.org
+To: Stephen Rothwell <sfr@canb.auug.org.au>, Linus Walleij <linus.walleij@linaro.org>, Shubhrajyoti Datta <omaplinuxkernel@gmail.com>, Carlos Chinea <cch.devel@gmail.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, Russell King <linux@arm.linux.org.uk>, Grant Likely <grant.likely@linaro.org>, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Rob Landley <rob@landley.net>, =?iso-8859-1?Q?'Beno=EEt?= Cousson' <bcousson@baylibre.com>, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, 'Pali =?iso-8859-1?Q?Roh=E1r'?= <pali.rohar@gmail.com>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
 
-Good Morning Sir,
+Hi,
 
-Hope this email finds you in good health
+On Thu, Oct 10, 2013 at 07:21:30PM +0200, Sebastian Reichel wrote:
+> Any issues with this or any other suggestions how to proceed?
 
-Does your website rank page 1 on major search engines like google & bing for your most converting keywords ? OR have your website lost rankings in last 1 year with Googles new algorithm changes? Google has launched 3 major updates in last 3 weeks resulting in many websites dropping in traffic and sales. 
+Maybe you could provide some brief instructions/description of how this
+was tested?
 
-For your information 85% of users searching the web will never find your website unless you're ranked on first page of Google, MSN and other major search engines. On the top of this with all these new google update around ( Penguin & Pandas ) its not easy to get page 1 and stay there for long to keep getting business from the web.
+Thanks,
 
-Why our program is very unique : 15 days free seo trial
-
-We are presently offering a free 15 days SEO trial that has never been offered on the web so far. We will work on your website for 15 days and show you substantial growth in rankings for all keywords. You only move to paid service if satisfied with our service else you can opt out.
-
-OUR TOP SELLING PACKAGES
-
-- Package A) Local Business optimization - $149 / M
-- Package B) National Keywords optimization - $249 / M
-- Package C) Ecommerce Optimization $399 / M
-
-COMPANY INFORMATION
-
-We rank top 10 on Google for terms like Online SEO Company, online seo consultants and many more. We are working for hundreds of clients online and all rank top 10 for their best keywords. We would like to have a chance to rank your website page 1 for best keywords in your niche.
-
-
-To opt-in for our free seo trial please email us back with the information below
-
-- Package you would like to OPT for
-- "Website Address You want To Optimize"
-- Recommended keywords ( Optional )
-- SEO done previously ( Yes / No )
-
-We guarantee you top 10 google listings in max 3 months of our program. We use the most ethical "white hat" Search Engine Optimization techniques to deliver rankings that will not get your website banned or penalized.
-
-
-Reply Awaited
-
-Regards
-Julia M
-SEO Manager (TOB)
-B7 Green Avenue, Amritsar 143001 Punjab
+A.
