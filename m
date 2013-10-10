@@ -1,43 +1,71 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 4/6] pinctrl: single: Add support for wake-up interrupts
-Date: Thu, 10 Oct 2013 17:35:19 +0300
-Message-ID: <5256BB27.6010107@ti.com>
-References: <20131003054104.8941.88857.stgit@localhost> <20131003054221.8941.87801.stgit@localhost> <5256AA7F.8030005@ti.com> <CACRpkdZx5+OCcQytkpjd7_nz4hw6VXoXOS0LByKgJ8_cQjbA4g@mail.gmail.com>
+From: Joel Fernandes <joelf@ti.com>
+Subject: Re: [PATCH V6 02/15] ARM: OMAP2+: AM33XX: add lateinit hook for calling
+ pm late init
+Date: Thu, 10 Oct 2013 10:20:50 -0500
+Message-ID: <5256C5D2.9030302@ti.com>
+References: <1381354144-7134-1-git-send-email-nm@ti.com> <1381361098-8283-1-git-send-email-nm@ti.com> <52563BD8.1060703@ti.com> <20131010133209.GA13105@kahuna>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CACRpkdZx5+OCcQytkpjd7_nz4hw6VXoXOS0LByKgJ8_cQjbA4g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Prakash Manjunathappa <prakash.pm-l0cyMroinI0@public.gmane.org>, Haojian Zhuang <haojian.zhuang-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, =?ISO-8859-1?Q?Beno=EEt_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Linux-OMAP <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <20131010133209.GA13105@kahuna>
+Sender: linux-doc-owner@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: Kevin Hilman <khilman@linaro.org>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-doc@vger.kernel.org, devicetree@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, Paul Walmsley <paul@pwsan.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 10/10/2013 05:04 PM, Linus Walleij wrote:
-> On Thu, Oct 10, 2013 at 3:24 PM, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> wrote:
+On 10/10/2013 08:32 AM, Nishanth Menon wrote:
+> On 00:32-20131010, Joel Fernandes wrote:
+>> On 10/09/2013 06:24 PM, Nishanth Menon wrote:
+>>> Call OMAP2+ generic lateinit hook from AM specific late init hook.
+>>> This allows the generic late initializations such as cpufreq hooks
+>>> to be active.
+>>>
+>>> Cc: Benoit Cousson <bcousson@baylibre.com>
+>>> Cc: Kevin Hilman <khilman@deeprootsystems.com>
+>>> Cc: Paul Walmsley <paul@pwsan.com>
+>>> Cc: Tony Lindgren <tony@atomide.com>
+>>> Signed-off-by: Nishanth Menon <nm@ti.com>
+>>> ---
+>>>  arch/arm/mach-omap2/board-generic.c |    1 +
+>>>  arch/arm/mach-omap2/common.h        |    1 +
+>>>  arch/arm/mach-omap2/io.c            |    6 ++++++
+>>>  3 files changed, 8 insertions(+)
+>>>
+>>> diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
+>>> index 87162e1..b474498 100644
+>>> --- a/arch/arm/mach-omap2/board-generic.c
+>>> +++ b/arch/arm/mach-omap2/board-generic.c
+>>> @@ -180,6 +180,7 @@ DT_MACHINE_START(AM33XX_DT, "Generic AM33XX (Flattened Device Tree)")
+>>>  	.init_irq	= omap_intc_of_init,
+>>>  	.handle_irq	= omap3_intc_handle_irq,
+>>>  	.init_machine	= omap_generic_init,
+>>> +	.init_late	= am33xx_init_late,
+>>
+>> Instead of adding a new a *_init_late function for every platform, perhaps
+>> better to just do:
+>> .init_late	= omap2_common_pm_late_init;
+>>
+>> since that's the only function you're calling.
+>>
+>> Later if more functions are added, then it can be wrapped around.
 > 
->> I think pcs_irq_set_wake() is where need to control system wakeup behaviour for the irq.
->> This is where we should be able to change WAKEUP_EN bit of the pad
->> to enable/disable system wakeup for that pad and also call _reconfigure_io_chain().
+> And what benefit would that give us? we break consistency of functions
+> available in io.c, considering the work we have already done in
+> out-of-tree patches on ti-forks, we *do know* that there is more
+> incoming and has to be done anyways, I prefer having symmetric
+> functions and a placeholder that folks can add on to.
 > 
-> As an innocent bystander who has no clue what the _reconfigure_io_chain()
-> is about can you tell me what this is all about?
 
-The OMAP SoC has a mechanism to monitor and wakeup from a low power state by creating
-an IO ring of all the pads. But there is one bit in one of the control registers that
-needs to be toggled each time the pad configuration is changed to re-arm the IO ring.
-This is exactly what _reconfigure_io_chain() does.
-> 
-> Is this another one of the OMAP forked paths where you must call back into
-> the machine with a special callback from each and every driver?
+Ok, sure if you think such placeholders are right way and there's more code
+later to be added to init_late callbacks.
 
-_reconfigure_io_chain() is not available for public use and is not called by any driver yet.
-However, it somehow needs to be called from this pinctrl-single driver each time the
-wakeup configuration for any pad is changed.
+Adding 6 lines of identical code for every platform seems redundant, I'd just
+define an omap_common_late_init for all platforms for now, and then fork off for
+the future differences. That way we save on LOC and readability in the header as
+well. Your call.
 
-cheers,
--roger
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+thanks,
+
+-Joel
+
