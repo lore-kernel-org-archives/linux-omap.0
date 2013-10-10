@@ -1,180 +1,162 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 4/8] ARM: dts: Add common support for omap3-evm
-Date: Thu, 10 Oct 2013 15:20:51 -0700
-Message-ID: <20131010222051.9063.82848.stgit@localhost>
+Subject: [PATCH 3/8] ARM: dts: Shared file for omap GPMC connected smsc911x
+Date: Thu, 10 Oct 2013 15:20:49 -0700
+Message-ID: <20131010222049.9063.76211.stgit@localhost>
 References: <20131010221833.9063.49904.stgit@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:49276 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753259Ab3JJWUw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Oct 2013 18:20:52 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:48209 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753259Ab3JJWUu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Oct 2013 18:20:50 -0400
 In-Reply-To: <20131010221833.9063.49904.stgit@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
 Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org
 
-Looks like the main difference between the TMDSEVM3530 and
-TMDSEVM3730 is just the omap processor:
-
-http://www.ti.com/tool/tmdsevm3530
-http://www.ti.com/tool/tmdsevm3730
-
-So let's add a common file for the EVMs, and fix the description
-for the omap3-evm.dst as that's clearly for the TMDSEVM3530
-since it includes omap34xx.dtsi. It cannot support the TMDSEVM3730
-properly, and we need a separate file for that in the following
-patch.
+Looks like at least Igep, Zoom and EVM boards can use a
+common file for the GPMC connected smsc911x.
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/boot/dts/omap3-evm-common.dtsi |   60 +++++++++++++++++++++++++++++++
- arch/arm/boot/dts/omap3-evm.dts         |   58 +-----------------------------
- 2 files changed, 62 insertions(+), 56 deletions(-)
- create mode 100644 arch/arm/boot/dts/omap3-evm-common.dtsi
+ arch/arm/boot/dts/omap-gpmc-smsc911x.dtsi |   52 +++++++++++++++++++++++++++++
+ arch/arm/boot/dts/omap3-igep0020.dts      |   45 +------------------------
+ 2 files changed, 54 insertions(+), 43 deletions(-)
+ create mode 100644 arch/arm/boot/dts/omap-gpmc-smsc911x.dtsi
 
-diff --git a/arch/arm/boot/dts/omap3-evm-common.dtsi b/arch/arm/boot/dts/omap3-evm-common.dtsi
+diff --git a/arch/arm/boot/dts/omap-gpmc-smsc911x.dtsi b/arch/arm/boot/dts/omap-gpmc-smsc911x.dtsi
 new file mode 100644
-index 0000000..75753bb
+index 0000000..9c18adf
 --- /dev/null
-+++ b/arch/arm/boot/dts/omap3-evm-common.dtsi
-@@ -0,0 +1,60 @@
++++ b/arch/arm/boot/dts/omap-gpmc-smsc911x.dtsi
+@@ -0,0 +1,52 @@
 +/*
-+ * Common support for omap3 EVM boards
++ * Common file for GPMC connected smsc911x on omaps
++ *
++ * Note that the board specifc DTS file needs to specify
++ * ranges, pinctrl, reg, interrupt parent and interrupts.
 + */
 +
 +/ {
-+	cpus {
-+		cpu@0 {
-+			cpu0-supply = <&vcc>;
-+		};
++	vddvario: regulator-vddvario {
++		  compatible = "regulator-fixed";
++		  regulator-name = "vddvario";
++		  regulator-always-on;
 +	};
 +
-+	leds {
-+		compatible = "gpio-leds";
-+		ledb {
-+			label = "omap3evm::ledb";
-+			gpios = <&twl_gpio 19 GPIO_ACTIVE_HIGH>; /* LEDB */
-+			linux,default-trigger = "default-on";
-+		};
++	vdd33a: regulator-vdd33a {
++		compatible = "regulator-fixed";
++		regulator-name = "vdd33a";
++		regulator-always-on;
 +	};
 +};
 +
-+&i2c1 {
-+	clock-frequency = <2600000>;
-+
-+	twl: twl@48 {
-+		reg = <0x48>;
-+		interrupts = <7>; /* SYS_NIRQ cascaded to intc */
-+		interrupt-parent = <&intc>;
++&gpmc {
++	ethernet@gpmc {
++		compatible = "smsc,lan9221", "smsc,lan9115";
++		bank-width = <2>;
++		gpmc,mux-add-data;
++		gpmc,cs-on-ns = <0>;
++		gpmc,cs-rd-off-ns = <186>;
++		gpmc,cs-wr-off-ns = <186>;
++		gpmc,adv-on-ns = <12>;
++		gpmc,adv-rd-off-ns = <48>;
++		gpmc,adv-wr-off-ns = <48>;
++		gpmc,oe-on-ns = <54>;
++		gpmc,oe-off-ns = <168>;
++		gpmc,we-on-ns = <54>;
++		gpmc,we-off-ns = <168>;
++		gpmc,rd-cycle-ns = <186>;
++		gpmc,wr-cycle-ns = <186>;
++		gpmc,access-ns = <114>;
++		gpmc,page-burst-access-ns = <6>;
++		gpmc,bus-turnaround-ns = <12>;
++		gpmc,cycle2cycle-delay-ns = <18>;
++		gpmc,wr-data-mux-bus-ns = <90>;
++		gpmc,wr-access-ns = <186>;
++		gpmc,cycle2cycle-samecsen;
++		gpmc,cycle2cycle-diffcsen;
++		vmmc-supply = <&vddvario>;
++		vmmc_aux-supply = <&vdd33a>;
++		reg-io-width = <4>;
++		smsc,save-mac-address;
 +	};
 +};
-+
-+#include "twl4030.dtsi"
-+#include "twl4030_omap3.dtsi"
-+
-+&i2c2 {
-+	clock-frequency = <400000>;
-+};
-+
-+&i2c3 {
-+	clock-frequency = <400000>;
-+
-+	/*
-+	 * TVP5146 Video decoder-in for analog input support.
-+	 */
-+	tvp5146@5c {
-+		compatible = "ti,tvp5146m2";
-+		reg = <0x5c>;
-+	};
-+};
-+
-+&twl_gpio {
-+	ti,use-leds;
-+};
-+
-+&usb_otg_hs {
-+	interface-type = <0>;
-+	usb-phy = <&usb2_phy>;
-+	mode = <3>;
-+	power = <50>;
-+};
-diff --git a/arch/arm/boot/dts/omap3-evm.dts b/arch/arm/boot/dts/omap3-evm.dts
-index 7d4329d..e10dcd0 100644
---- a/arch/arm/boot/dts/omap3-evm.dts
-+++ b/arch/arm/boot/dts/omap3-evm.dts
-@@ -8,68 +8,14 @@
- /dts-v1/;
+diff --git a/arch/arm/boot/dts/omap3-igep0020.dts b/arch/arm/boot/dts/omap3-igep0020.dts
+index e8c4828..503d928 100644
+--- a/arch/arm/boot/dts/omap3-igep0020.dts
++++ b/arch/arm/boot/dts/omap3-igep0020.dts
+@@ -10,6 +10,7 @@
+  */
  
- #include "omap34xx.dtsi"
-+#include "omap3-evm-common.dtsi"
+ #include "omap3-igep.dtsi"
++#include "omap-gpmc-smsc911x.dtsi"
  
  / {
--	model = "TI OMAP3 EVM (OMAP3530, AM/DM37x)";
-+	model = "TI OMAP35XX EVM (TMDSEVM3530)";
- 	compatible = "ti,omap3-evm", "ti,omap3";
- 
--	cpus {
--		cpu@0 {
--			cpu0-supply = <&vcc>;
--		};
--	};
--
- 	memory {
- 		device_type = "memory";
- 		reg = <0x80000000 0x10000000>; /* 256 MB */
+ 	model = "IGEPv2";
+@@ -40,18 +41,6 @@
+ 			gpios = <&twl_gpio 19 GPIO_ACTIVE_LOW>;
+ 		};
  	};
 -
--	leds {
--		compatible = "gpio-leds";
--		ledb {
--			label = "omap3evm::ledb";
--			gpios = <&twl_gpio 19 GPIO_ACTIVE_HIGH>; /* LEDB */
--			linux,default-trigger = "default-on";
--		};
+-	vddvario: regulator-vddvario {
+-		  compatible = "regulator-fixed";
+-		  regulator-name = "vddvario";
+-		  regulator-always-on;
 -	};
--};
 -
--&i2c1 {
--	clock-frequency = <2600000>;
--
--	twl: twl@48 {
--		reg = <0x48>;
--		interrupts = <7>; /* SYS_NIRQ cascaded to intc */
--		interrupt-parent = <&intc>;
+-	vdd33a: regulator-vdd33a {
+-		compatible = "regulator-fixed";
+-		regulator-name = "vdd33a";
+-		regulator-always-on;
 -	};
--};
+ };
+ 
+ &i2c3 {
+@@ -117,41 +106,11 @@
+ 		};
+ 	};
+ 
+-	ethernet@5,0 {
++	ethernet@gpmc {
+ 		pinctrl-names = "default";
+ 		pinctrl-0 = <&smsc911x_pins>;
+-		compatible = "smsc,lan9221", "smsc,lan9115";
+ 		reg = <5 0 0xff>;
+-		bank-width = <2>;
 -
--#include "twl4030.dtsi"
--#include "twl4030_omap3.dtsi"
+-		gpmc,mux-add-data;
+-		gpmc,cs-on-ns = <0>;
+-		gpmc,cs-rd-off-ns = <186>;
+-		gpmc,cs-wr-off-ns = <186>;
+-		gpmc,adv-on-ns = <12>;
+-		gpmc,adv-rd-off-ns = <48>;
+-		gpmc,adv-wr-off-ns = <48>;
+-		gpmc,oe-on-ns = <54>;
+-		gpmc,oe-off-ns = <168>;
+-		gpmc,we-on-ns = <54>;
+-		gpmc,we-off-ns = <168>;
+-		gpmc,rd-cycle-ns = <186>;
+-		gpmc,wr-cycle-ns = <186>;
+-		gpmc,access-ns = <114>;
+-		gpmc,page-burst-access-ns = <6>;
+-		gpmc,bus-turnaround-ns = <12>;
+-		gpmc,cycle2cycle-delay-ns = <18>;
+-		gpmc,wr-data-mux-bus-ns = <90>;
+-		gpmc,wr-access-ns = <186>;
+-		gpmc,cycle2cycle-samecsen;
+-		gpmc,cycle2cycle-diffcsen;
 -
--&i2c2 {
--	clock-frequency = <400000>;
--};
+ 		interrupt-parent = <&gpio6>;
+ 		interrupts = <16 8>;
+-		vmmc-supply = <&vddvario>;
+-		vmmc_aux-supply = <&vdd33a>;
+-		reg-io-width = <4>;
 -
--&i2c3 {
--	clock-frequency = <400000>;
--
--	/*
--	 * TVP5146 Video decoder-in for analog input support.
--	 */
--	tvp5146@5c {
--		compatible = "ti,tvp5146m2";
--		reg = <0x5c>;
--	};
--};
--
--&twl_gpio {
--	ti,use-leds;
--};
--
--&usb_otg_hs {
--	interface-type = <0>;
--	usb-phy = <&usb2_phy>;
--	mode = <3>;
--	power = <50>;
+-		smsc,save-mac-address;
+ 	};
  };
 
