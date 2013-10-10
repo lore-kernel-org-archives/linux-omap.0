@@ -1,117 +1,72 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 8/8] ARM: OMAP2+: Remove legacy support for zoom platforms
-Date: Thu, 10 Oct 2013 15:21:00 -0700
-Message-ID: <20131010222100.9063.53820.stgit@localhost>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH 7/8] ARM: OMAP2+: Remove legacy booting support for omap3 EVM
+Date: Thu, 10 Oct 2013 15:20:58 -0700
+Message-ID: <20131010222058.9063.73566.stgit@localhost>
 References: <20131010221833.9063.49904.stgit@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:48469 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755844Ab3JJWVC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Oct 2013 18:21:02 -0400
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20131010221833.9063.49904.stgit@localhost>
-Sender: linux-omap-owner@vger.kernel.org
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org
 
-We now have pretty decent device tree based support for
-zoom platforms. It's not complete, but basics work for
-me so adding more features should be quite trivial.
+We now have pretty decent support with the device tree
+based booting. Patches to add more features are welcome.
 
-Looks like also 3630 sdp is zoom based, and looking
-at it's board file should also be trivial to support
-with the device tree based booting.
-
-Patches are welcome if people are still using these.
-
-Signed-off-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 ---
- arch/arm/mach-omap2/Kconfig                  |   20 -
- arch/arm/mach-omap2/Makefile                 |    9 -
- arch/arm/mach-omap2/board-3630sdp.c          |  225 ----------------
- arch/arm/mach-omap2/board-ldp.c              |    3 
- arch/arm/mach-omap2/board-zoom-debugboard.c  |  139 ----------
- arch/arm/mach-omap2/board-zoom-display.c     |   71 -----
- arch/arm/mach-omap2/board-zoom-peripherals.c |  360 --------------------------
- arch/arm/mach-omap2/board-zoom.c             |  159 -----------
- arch/arm/mach-omap2/board-zoom.h             |   10 -
- 9 files changed, 1 insertion(+), 995 deletions(-)
- delete mode 100644 arch/arm/mach-omap2/board-3630sdp.c
- delete mode 100644 arch/arm/mach-omap2/board-zoom-debugboard.c
- delete mode 100644 arch/arm/mach-omap2/board-zoom-display.c
- delete mode 100644 arch/arm/mach-omap2/board-zoom-peripherals.c
- delete mode 100644 arch/arm/mach-omap2/board-zoom.c
- delete mode 100644 arch/arm/mach-omap2/board-zoom.h
+ arch/arm/mach-omap2/Kconfig          |    6 
+ arch/arm/mach-omap2/Makefile         |    1 
+ arch/arm/mach-omap2/board-omap3evm.c |  756 ----------------------------------
+ 3 files changed, 763 deletions(-)
+ delete mode 100644 arch/arm/mach-omap2/board-omap3evm.c
 
 diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index 91a65b3..216154d 100644
+index f6a1db1..91a65b3 100644
 --- a/arch/arm/mach-omap2/Kconfig
 +++ b/arch/arm/mach-omap2/Kconfig
-@@ -317,20 +317,6 @@ config MACH_NOKIA_RX51
+@@ -256,12 +256,6 @@ config MACH_OVERO
  	default y
  	select OMAP_PACKAGE_CBB
  
--config MACH_OMAP_ZOOM2
--	bool "OMAP3 Zoom2 board"
+-config MACH_OMAP3EVM
+-	bool "OMAP 3530 EVM board"
 -	depends on ARCH_OMAP3
 -	default y
 -	select OMAP_PACKAGE_CBB
--	select REGULATOR_FIXED_VOLTAGE if REGULATOR
 -
--config MACH_OMAP_ZOOM3
--	bool "OMAP3630 Zoom3 board"
--	depends on ARCH_OMAP3
--	default y
--	select OMAP_PACKAGE_CBP
--	select REGULATOR_FIXED_VOLTAGE if REGULATOR
--
- config MACH_CM_T35
- 	bool "CompuLab CM-T35/CM-T3730 modules"
+ config MACH_OMAP3517EVM
+ 	bool "OMAP3517/ AM3517 EVM board"
  	depends on ARCH_OMAP3
-@@ -366,12 +352,6 @@ config MACH_SBC3530
- 	default y
- 	select OMAP_PACKAGE_CUS
- 
--config MACH_OMAP_3630SDP
--	bool "OMAP3630 SDP board"
--	depends on ARCH_OMAP3
--	default y
--	select OMAP_PACKAGE_CBP
--
- config MACH_TI8168EVM
- 	bool "TI8168 Evaluation Module"
- 	depends on SOC_TI81XX
 diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 7be6e3a..9d78b49 100644
+index f8d4a1b..7be6e3a 100644
 --- a/arch/arm/mach-omap2/Makefile
 +++ b/arch/arm/mach-omap2/Makefile
-@@ -249,15 +249,6 @@ obj-$(CONFIG_MACH_NOKIA_RM680)		+= board-rm680.o sdram-nokia.o
- obj-$(CONFIG_MACH_NOKIA_RX51)		+= board-rx51.o sdram-nokia.o
- obj-$(CONFIG_MACH_NOKIA_RX51)		+= board-rx51-peripherals.o
- obj-$(CONFIG_MACH_NOKIA_RX51)		+= board-rx51-video.o
--obj-$(CONFIG_MACH_OMAP_ZOOM2)		+= board-zoom.o board-zoom-peripherals.o
--obj-$(CONFIG_MACH_OMAP_ZOOM2)		+= board-zoom-display.o
--obj-$(CONFIG_MACH_OMAP_ZOOM2)		+= board-zoom-debugboard.o
--obj-$(CONFIG_MACH_OMAP_ZOOM3)		+= board-zoom.o board-zoom-peripherals.o
--obj-$(CONFIG_MACH_OMAP_ZOOM3)		+= board-zoom-display.o
--obj-$(CONFIG_MACH_OMAP_ZOOM3)		+= board-zoom-debugboard.o
--obj-$(CONFIG_MACH_OMAP_3630SDP)		+= board-3630sdp.o
--obj-$(CONFIG_MACH_OMAP_3630SDP)		+= board-zoom-peripherals.o
--obj-$(CONFIG_MACH_OMAP_3630SDP)		+= board-zoom-display.o
- obj-$(CONFIG_MACH_CM_T35)		+= board-cm-t35.o
- obj-$(CONFIG_MACH_CM_T3517)		+= board-cm-t3517.o
- obj-$(CONFIG_MACH_IGEP0020)		+= board-igep0020.o
-diff --git a/arch/arm/mach-omap2/board-3630sdp.c b/arch/arm/mach-omap2/board-3630sdp.c
+@@ -242,7 +242,6 @@ obj-$(CONFIG_MACH_OMAP_LDP)		+= board-ldp.o
+ obj-$(CONFIG_MACH_OMAP3530_LV_SOM)      += board-omap3logic.o
+ obj-$(CONFIG_MACH_OMAP3_TORPEDO)        += board-omap3logic.o
+ obj-$(CONFIG_MACH_OVERO)		+= board-overo.o
+-obj-$(CONFIG_MACH_OMAP3EVM)		+= board-omap3evm.o
+ obj-$(CONFIG_MACH_OMAP3_PANDORA)	+= board-omap3pandora.o
+ obj-$(CONFIG_MACH_OMAP_3430SDP)		+= board-3430sdp.o
+ obj-$(CONFIG_MACH_NOKIA_N8X0)		+= board-n8x0.o
+diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
 deleted file mode 100644
-index 20d6d81..0000000
---- a/arch/arm/mach-omap2/board-3630sdp.c
+index 1814387..0000000
+--- a/arch/arm/mach-omap2/board-omap3evm.c
 +++ /dev/null
-@@ -1,225 +0,0 @@
+@@ -1,756 +0,0 @@
 -/*
-- * Copyright (C) 2009 Texas Instruments Inc.
+- * linux/arch/arm/mach-omap2/board-omap3evm.c
+- *
+- * Copyright (C) 2008 Texas Instruments
+- *
+- * Modified from mach-omap2/board-3430sdp.c
+- *
+- * Initial code: Syed Mohammed Khasim
 - *
 - * This program is free software; you can redistribute it and/or modify
 - * it under the terms of the GNU General Public License version 2 as
@@ -121,598 +76,250 @@ index 20d6d81..0000000
 -#include <linux/kernel.h>
 -#include <linux/init.h>
 -#include <linux/platform_device.h>
--#include <linux/input.h>
+-#include <linux/delay.h>
+-#include <linux/err.h>
+-#include <linux/clk.h>
 -#include <linux/gpio.h>
--#include <linux/mtd/nand.h>
--
--#include <asm/mach-types.h>
--#include <asm/mach/arch.h>
--
--#include "common.h"
--#include "gpmc-smc91x.h"
--
--#include "board-zoom.h"
--
--#include "board-flash.h"
--#include "mux.h"
--#include "sdram-hynix-h8mbx00u0mer-0em.h"
--
--#if defined(CONFIG_SMC91X) || defined(CONFIG_SMC91X_MODULE)
--
--static struct omap_smc91x_platform_data board_smc91x_data = {
--	.cs             = 3,
--	.flags          = GPMC_MUX_ADD_DATA | IORESOURCE_IRQ_LOWLEVEL,
--};
--
--static void __init board_smc91x_init(void)
--{
--	board_smc91x_data.gpio_irq = 158;
--	gpmc_smc91x_init(&board_smc91x_data);
--}
--
--#else
--
--static inline void board_smc91x_init(void)
--{
--}
--
--#endif /* defined(CONFIG_SMC91X) || defined(CONFIG_SMC91X_MODULE) */
--
--static void enable_board_wakeup_source(void)
--{
--	/* T2 interrupt line (keypad) */
--	omap_mux_init_signal("sys_nirq",
--		OMAP_WAKEUP_EN | OMAP_PIN_INPUT_PULLUP);
--}
--
--static struct usbhs_phy_data phy_data[] __initdata = {
--	{
--		.port = 1,
--		.reset_gpio = 126,
--		.vcc_gpio = -EINVAL,
--	},
--	{
--		.port = 2,
--		.reset_gpio = 61,
--		.vcc_gpio = -EINVAL,
--	},
--};
--
--static struct usbhs_omap_platform_data usbhs_bdata __initdata = {
--
--	.port_mode[0] = OMAP_EHCI_PORT_MODE_PHY,
--	.port_mode[1] = OMAP_EHCI_PORT_MODE_PHY,
--};
--
--#ifdef CONFIG_OMAP_MUX
--static struct omap_board_mux board_mux[] __initdata = {
--	{ .reg_offset = OMAP_MUX_TERMINATOR },
--};
--#endif
--
--/*
-- * SDP3630 CS organization
-- * See also the Switch S8 settings in the comments.
-- */
--static char chip_sel_sdp[][GPMC_CS_NUM] = {
--	{PDC_NOR, PDC_NAND, PDC_ONENAND, DBG_MPDB, 0, 0, 0, 0}, /* S8:1111 */
--	{PDC_ONENAND, PDC_NAND, PDC_NOR, DBG_MPDB, 0, 0, 0, 0}, /* S8:1110 */
--	{PDC_NAND, PDC_ONENAND, PDC_NOR, DBG_MPDB, 0, 0, 0, 0}, /* S8:1101 */
--};
--
--static struct mtd_partition sdp_nor_partitions[] = {
--	/* bootloader (U-Boot, etc) in first sector */
--	{
--		.name		= "Bootloader-NOR",
--		.offset		= 0,
--		.size		= SZ_256K,
--		.mask_flags	= MTD_WRITEABLE, /* force read-only */
--	},
--	/* bootloader params in the next sector */
--	{
--		.name		= "Params-NOR",
--		.offset		= MTDPART_OFS_APPEND,
--		.size		= SZ_256K,
--		.mask_flags	= 0,
--	},
--	/* kernel */
--	{
--		.name		= "Kernel-NOR",
--		.offset		= MTDPART_OFS_APPEND,
--		.size		= SZ_2M,
--		.mask_flags	= 0
--	},
--	/* file system */
--	{
--		.name		= "Filesystem-NOR",
--		.offset		= MTDPART_OFS_APPEND,
--		.size		= MTDPART_SIZ_FULL,
--		.mask_flags	= 0
--	}
--};
--
--static struct mtd_partition sdp_onenand_partitions[] = {
--	{
--		.name		= "X-Loader-OneNAND",
--		.offset		= 0,
--		.size		= 4 * (64 * 2048),
--		.mask_flags	= MTD_WRITEABLE  /* force read-only */
--	},
--	{
--		.name		= "U-Boot-OneNAND",
--		.offset		= MTDPART_OFS_APPEND,
--		.size		= 2 * (64 * 2048),
--		.mask_flags	= MTD_WRITEABLE  /* force read-only */
--	},
--	{
--		.name		= "U-Boot Environment-OneNAND",
--		.offset		= MTDPART_OFS_APPEND,
--		.size		= 1 * (64 * 2048),
--	},
--	{
--		.name		= "Kernel-OneNAND",
--		.offset		= MTDPART_OFS_APPEND,
--		.size		= 16 * (64 * 2048),
--	},
--	{
--		.name		= "File System-OneNAND",
--		.offset		= MTDPART_OFS_APPEND,
--		.size		= MTDPART_SIZ_FULL,
--	},
--};
--
--static struct mtd_partition sdp_nand_partitions[] = {
--	/* All the partition sizes are listed in terms of NAND block size */
--	{
--		.name		= "X-Loader-NAND",
--		.offset		= 0,
--		.size		= 4 * (64 * 2048),
--		.mask_flags	= MTD_WRITEABLE,	/* force read-only */
--	},
--	{
--		.name		= "U-Boot-NAND",
--		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x80000 */
--		.size		= 10 * (64 * 2048),
--		.mask_flags	= MTD_WRITEABLE,	/* force read-only */
--	},
--	{
--		.name		= "Boot Env-NAND",
--
--		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x1c0000 */
--		.size		= 6 * (64 * 2048),
--	},
--	{
--		.name		= "Kernel-NAND",
--		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x280000 */
--		.size		= 40 * (64 * 2048),
--	},
--	{
--		.name		= "File System - NAND",
--		.size		= MTDPART_SIZ_FULL,
--		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x780000 */
--	},
--};
--
--static struct flash_partitions sdp_flash_partitions[] = {
--	{
--		.parts = sdp_nor_partitions,
--		.nr_parts = ARRAY_SIZE(sdp_nor_partitions),
--	},
--	{
--		.parts = sdp_onenand_partitions,
--		.nr_parts = ARRAY_SIZE(sdp_onenand_partitions),
--	},
--	{
--		.parts = sdp_nand_partitions,
--		.nr_parts = ARRAY_SIZE(sdp_nand_partitions),
--	},
--};
--
--static void __init omap_sdp_init(void)
--{
--	omap3_mux_init(board_mux, OMAP_PACKAGE_CBP);
--	zoom_peripherals_init();
--	omap_sdrc_init(h8mbx00u0mer0em_sdrc_params,
--				  h8mbx00u0mer0em_sdrc_params);
--	zoom_display_init();
--	board_smc91x_init();
--	board_flash_init(sdp_flash_partitions, chip_sel_sdp, NAND_BUSWIDTH_16);
--	enable_board_wakeup_source();
--
--	usbhs_init_phys(phy_data, ARRAY_SIZE(phy_data));
--	usbhs_init(&usbhs_bdata);
--}
--
--MACHINE_START(OMAP_3630SDP, "OMAP 3630SDP board")
--	.atag_offset	= 0x100,
--	.reserve	= omap_reserve,
--	.map_io		= omap3_map_io,
--	.init_early	= omap3630_init_early,
--	.init_irq	= omap3_init_irq,
--	.handle_irq	= omap3_intc_handle_irq,
--	.init_machine	= omap_sdp_init,
--	.init_late	= omap3630_init_late,
--	.init_time	= omap3_sync32k_timer_init,
--	.restart	= omap3xxx_restart,
--MACHINE_END
-diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
-index dd8da2c..4ec8d82 100644
---- a/arch/arm/mach-omap2/board-ldp.c
-+++ b/arch/arm/mach-omap2/board-ldp.c
-@@ -36,7 +36,6 @@
- #include <asm/mach/map.h>
- 
- #include "common.h"
--#include "board-zoom.h"
- #include "gpmc.h"
- #include "gpmc-smsc911x.h"
- 
-@@ -406,7 +405,7 @@ static void __init omap_ldp_init(void)
- 	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
- 	usb_musb_init(NULL);
- 	board_nand_init(ldp_nand_partitions, ARRAY_SIZE(ldp_nand_partitions),
--			ZOOM_NAND_CS, 0, nand_default_timings);
-+			0, 0, nand_default_timings);
- 
- 	omap_hsmmc_init(mmc);
- 	ldp_display_init();
-diff --git a/arch/arm/mach-omap2/board-zoom-debugboard.c b/arch/arm/mach-omap2/board-zoom-debugboard.c
-deleted file mode 100644
-index 42e5f23..0000000
---- a/arch/arm/mach-omap2/board-zoom-debugboard.c
-+++ /dev/null
-@@ -1,139 +0,0 @@
--/*
-- * Copyright (C) 2009 Texas Instruments Inc.
-- * Mikkel Christensen <mlc@ti.com>
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-- */
--
--#include <linux/kernel.h>
--#include <linux/init.h>
--#include <linux/gpio.h>
--#include <linux/serial_8250.h>
--#include <linux/smsc911x.h>
--#include <linux/interrupt.h>
--
--#include <linux/regulator/fixed.h>
--#include <linux/regulator/machine.h>
--
--#include "gpmc.h"
--#include "gpmc-smsc911x.h"
--
--#include "board-zoom.h"
--
--#include "soc.h"
--#include "common.h"
--
--#define ZOOM_SMSC911X_CS	7
--#define ZOOM_SMSC911X_GPIO	158
--#define ZOOM_QUADUART_CS	3
--#define ZOOM_QUADUART_GPIO	102
--#define ZOOM_QUADUART_RST_GPIO	152
--#define QUART_CLK		1843200
--#define DEBUG_BASE		0x08000000
--#define ZOOM_ETHR_START	DEBUG_BASE
--
--static struct omap_smsc911x_platform_data zoom_smsc911x_cfg = {
--	.cs             = ZOOM_SMSC911X_CS,
--	.gpio_irq       = ZOOM_SMSC911X_GPIO,
--	.gpio_reset     = -EINVAL,
--	.flags		= SMSC911X_USE_32BIT,
--};
--
--static inline void __init zoom_init_smsc911x(void)
--{
--	gpmc_smsc911x_init(&zoom_smsc911x_cfg);
--}
--
--static struct plat_serial8250_port serial_platform_data[] = {
--	{
--		.mapbase	= ZOOM_UART_BASE,
--		.flags		= UPF_BOOT_AUTOCONF|UPF_IOREMAP|UPF_SHARE_IRQ,
--		.irqflags	= IRQF_SHARED | IRQF_TRIGGER_RISING,
--		.iotype		= UPIO_MEM,
--		.regshift	= 1,
--		.uartclk	= QUART_CLK,
--	}, {
--		.flags		= 0
--	}
--};
--
--static struct platform_device zoom_debugboard_serial_device = {
--	.name			= "serial8250",
--	.id			= PLAT8250_DEV_PLATFORM,
--	.dev			= {
--		.platform_data	= serial_platform_data,
--	},
--};
--
--static inline void __init zoom_init_quaduart(void)
--{
--	int quart_cs;
--	unsigned long cs_mem_base;
--	int quart_gpio = 0;
--
--	if (gpio_request_one(ZOOM_QUADUART_RST_GPIO,
--				GPIOF_OUT_INIT_LOW,
--				"TL16CP754C GPIO") < 0) {
--		pr_err("Failed to request GPIO%d for TL16CP754C\n",
--			ZOOM_QUADUART_RST_GPIO);
--		return;
--	}
--
--	quart_cs = ZOOM_QUADUART_CS;
--
--	if (gpmc_cs_request(quart_cs, SZ_1M, &cs_mem_base) < 0) {
--		pr_err("Failed to request GPMC mem for Quad UART(TL16CP754C)\n");
--		return;
--	}
--
--	quart_gpio = ZOOM_QUADUART_GPIO;
--
--	if (gpio_request_one(quart_gpio, GPIOF_IN, "TL16CP754C GPIO") < 0)
--		printk(KERN_ERR "Failed to request GPIO%d for TL16CP754C\n",
--								quart_gpio);
--
--	serial_platform_data[0].irq = gpio_to_irq(102);
--}
--
--static inline int omap_zoom_debugboard_detect(void)
--{
--	int debug_board_detect = 0;
--	int ret = 1;
--
--	debug_board_detect = ZOOM_SMSC911X_GPIO;
--
--	if (gpio_request_one(debug_board_detect, GPIOF_IN,
--			     "Zoom debug board detect") < 0) {
--		pr_err("Failed to request GPIO%d for Zoom debug board detect\n",
--		       debug_board_detect);
--		return 0;
--	}
--
--	if (!gpio_get_value(debug_board_detect)) {
--		ret = 0;
--	}
--	gpio_free(debug_board_detect);
--	return ret;
--}
--
--static struct platform_device *zoom_devices[] __initdata = {
--	&zoom_debugboard_serial_device,
--};
--
--static struct regulator_consumer_supply dummy_supplies[] = {
--	REGULATOR_SUPPLY("vddvario", "smsc911x.0"),
--	REGULATOR_SUPPLY("vdd33a", "smsc911x.0"),
--};
--
--int __init zoom_debugboard_init(void)
--{
--	if (!omap_zoom_debugboard_detect())
--		return 0;
--
--	regulator_register_fixed(0, dummy_supplies, ARRAY_SIZE(dummy_supplies));
--	zoom_init_smsc911x();
--	zoom_init_quaduart();
--	return platform_add_devices(zoom_devices, ARRAY_SIZE(zoom_devices));
--}
-diff --git a/arch/arm/mach-omap2/board-zoom-display.c b/arch/arm/mach-omap2/board-zoom-display.c
-deleted file mode 100644
-index 3d8ecc1..0000000
---- a/arch/arm/mach-omap2/board-zoom-display.c
-+++ /dev/null
-@@ -1,71 +0,0 @@
--/*
-- * Copyright (C) 2010 Texas Instruments Inc.
-- *
-- * Modified from mach-omap2/board-zoom-peripherals.c
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-- */
--
--#include <linux/kernel.h>
--#include <linux/init.h>
--#include <linux/platform_device.h>
--#include <linux/gpio.h>
--#include <linux/spi/spi.h>
--#include <linux/platform_data/spi-omap2-mcspi.h>
--#include <video/omapdss.h>
--#include <video/omap-panel-data.h>
--
--#include "board-zoom.h"
--#include "soc.h"
--#include "common.h"
--
--#define LCD_PANEL_RESET_GPIO_PROD	96
--#define LCD_PANEL_RESET_GPIO_PILOT	55
--#define LCD_PANEL_QVGA_GPIO		56
--
--static struct panel_nec_nl8048hl11_platform_data zoom_lcd_pdata = {
--	.name                   = "lcd",
--	.source                 = "dpi.0",
--
--	.data_lines		= 24,
--
--	.res_gpio		= -1,	/* filled in code */
--	.qvga_gpio		= LCD_PANEL_QVGA_GPIO,
--};
--
--static struct omap_dss_board_info zoom_dss_data = {
--	.default_display_name = "lcd",
--};
--
--static void __init zoom_lcd_panel_init(void)
--{
--	zoom_lcd_pdata.res_gpio = (omap_rev() > OMAP3430_REV_ES3_0) ?
--			LCD_PANEL_RESET_GPIO_PROD :
--			LCD_PANEL_RESET_GPIO_PILOT;
--}
--
--static struct omap2_mcspi_device_config dss_lcd_mcspi_config = {
--	.turbo_mode		= 1,
--};
--
--static struct spi_board_info nec_8048_spi_board_info[] __initdata = {
--	[0] = {
--		.modalias		= "panel-nec-nl8048hl11",
--		.bus_num		= 1,
--		.chip_select		= 2,
--		.max_speed_hz		= 375000,
--		.controller_data	= &dss_lcd_mcspi_config,
--		.platform_data		= &zoom_lcd_pdata,
--	},
--};
--
--void __init zoom_display_init(void)
--{
--	omap_display_init(&zoom_dss_data);
--	zoom_lcd_panel_init();
--	spi_register_board_info(nec_8048_spi_board_info,
--				ARRAY_SIZE(nec_8048_spi_board_info));
--}
--
-diff --git a/arch/arm/mach-omap2/board-zoom-peripherals.c b/arch/arm/mach-omap2/board-zoom-peripherals.c
-deleted file mode 100644
-index a90375d..0000000
---- a/arch/arm/mach-omap2/board-zoom-peripherals.c
-+++ /dev/null
-@@ -1,360 +0,0 @@
--/*
-- * Copyright (C) 2009 Texas Instruments Inc.
-- *
-- * Modified from mach-omap2/board-zoom2.c
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-- */
--
--#include <linux/kernel.h>
--#include <linux/init.h>
--#include <linux/platform_device.h>
 -#include <linux/input.h>
 -#include <linux/input/matrix_keypad.h>
--#include <linux/gpio.h>
+-#include <linux/leds.h>
+-#include <linux/interrupt.h>
+-
+-#include <linux/mtd/mtd.h>
+-#include <linux/mtd/partitions.h>
+-#include <linux/mtd/nand.h>
+-
+-#include <linux/spi/spi.h>
+-#include <linux/spi/ads7846.h>
 -#include <linux/i2c/twl.h>
--#include <linux/regulator/machine.h>
--#include <linux/regulator/fixed.h>
+-#include <linux/usb/otg.h>
+-#include <linux/usb/musb.h>
+-#include <linux/usb/usb_phy_gen_xceiv.h>
+-#include <linux/smsc911x.h>
+-
 -#include <linux/wl12xx.h>
+-#include <linux/regulator/fixed.h>
+-#include <linux/regulator/machine.h>
 -#include <linux/mmc/host.h>
--#include <linux/platform_data/gpio-omap.h>
--#include <linux/platform_data/omap-twl4030.h>
+-#include <linux/export.h>
 -#include <linux/usb/phy.h>
--#include <linux/pwm.h>
--#include <linux/leds_pwm.h>
--#include <linux/pwm_backlight.h>
 -
 -#include <asm/mach-types.h>
 -#include <asm/mach/arch.h>
 -#include <asm/mach/map.h>
 -
+-#include <linux/platform_data/mtd-nand-omap2.h>
 -#include "common.h"
+-#include <linux/platform_data/spi-omap2-mcspi.h>
+-#include <video/omapdss.h>
+-#include <video/omap-panel-data.h>
 -
--#include "board-zoom.h"
--
+-#include "soc.h"
 -#include "mux.h"
+-#include "sdram-micron-mt46h32m32lf-6.h"
 -#include "hsmmc.h"
 -#include "common-board-devices.h"
+-#include "board-flash.h"
 -
--#define OMAP_ZOOM_WLAN_PMENA_GPIO	(101)
--#define OMAP_ZOOM_TSC2004_IRQ_GPIO	(153)
--#define OMAP_ZOOM_WLAN_IRQ_GPIO		(162)
+-#define	NAND_CS			0
 -
--/* Zoom2 has Qwerty keyboard*/
--static uint32_t board_keymap[] = {
--	KEY(0, 0, KEY_E),
--	KEY(0, 1, KEY_R),
--	KEY(0, 2, KEY_T),
--	KEY(0, 3, KEY_HOME),
--	KEY(0, 6, KEY_I),
--	KEY(0, 7, KEY_LEFTSHIFT),
--	KEY(1, 0, KEY_D),
--	KEY(1, 1, KEY_F),
--	KEY(1, 2, KEY_G),
--	KEY(1, 3, KEY_SEND),
--	KEY(1, 6, KEY_K),
--	KEY(1, 7, KEY_ENTER),
--	KEY(2, 0, KEY_X),
--	KEY(2, 1, KEY_C),
--	KEY(2, 2, KEY_V),
--	KEY(2, 3, KEY_END),
--	KEY(2, 6, KEY_DOT),
--	KEY(2, 7, KEY_CAPSLOCK),
--	KEY(3, 0, KEY_Z),
--	KEY(3, 1, KEY_KPPLUS),
--	KEY(3, 2, KEY_B),
--	KEY(3, 3, KEY_F1),
--	KEY(3, 6, KEY_O),
--	KEY(3, 7, KEY_SPACE),
--	KEY(4, 0, KEY_W),
--	KEY(4, 1, KEY_Y),
--	KEY(4, 2, KEY_U),
--	KEY(4, 3, KEY_F2),
--	KEY(4, 4, KEY_VOLUMEUP),
--	KEY(4, 6, KEY_L),
--	KEY(4, 7, KEY_LEFT),
--	KEY(5, 0, KEY_S),
--	KEY(5, 1, KEY_H),
--	KEY(5, 2, KEY_J),
--	KEY(5, 3, KEY_F3),
--	KEY(5, 4, KEY_UNKNOWN),
--	KEY(5, 5, KEY_VOLUMEDOWN),
--	KEY(5, 6, KEY_M),
--	KEY(5, 7, KEY_RIGHT),
--	KEY(6, 0, KEY_Q),
--	KEY(6, 1, KEY_A),
--	KEY(6, 2, KEY_N),
--	KEY(6, 3, KEY_BACKSPACE),
--	KEY(6, 6, KEY_P),
--	KEY(6, 7, KEY_UP),
--	KEY(7, 0, KEY_PROG1),	/*MACRO 1 <User defined> */
--	KEY(7, 1, KEY_PROG2),	/*MACRO 2 <User defined> */
--	KEY(7, 2, KEY_PROG3),	/*MACRO 3 <User defined> */
--	KEY(7, 3, KEY_PROG4),	/*MACRO 4 <User defined> */
--	KEY(7, 6, KEY_SELECT),
--	KEY(7, 7, KEY_DOWN)
+-#define OMAP3_EVM_TS_GPIO	175
+-#define OMAP3_EVM_EHCI_VBUS	22
+-#define OMAP3_EVM_EHCI_SELECT	61
+-
+-#define OMAP3EVM_ETHR_START	0x2c000000
+-#define OMAP3EVM_ETHR_SIZE	1024
+-#define OMAP3EVM_ETHR_ID_REV	0x50
+-#define OMAP3EVM_ETHR_GPIO_IRQ	176
+-#define OMAP3EVM_SMSC911X_CS	5
+-/*
+- * Eth Reset signal
+- *	64 = Generation 1 (<=RevD)
+- *	7 = Generation 2 (>=RevE)
+- */
+-#define OMAP3EVM_GEN1_ETHR_GPIO_RST	64
+-#define OMAP3EVM_GEN2_ETHR_GPIO_RST	7
+-
+-/*
+- * OMAP35x EVM revision
+- * Run time detection of EVM revision is done by reading Ethernet
+- * PHY ID -
+- *	GEN_1	= 0x01150000
+- *	GEN_2	= 0x92200000
+- */
+-enum {
+-	OMAP3EVM_BOARD_GEN_1 = 0,	/* EVM Rev between  A - D */
+-	OMAP3EVM_BOARD_GEN_2,		/* EVM Rev >= Rev E */
 -};
 -
--static struct matrix_keymap_data board_map_data = {
--	.keymap			= board_keymap,
--	.keymap_size		= ARRAY_SIZE(board_keymap),
+-static u8 omap3_evm_version;
+-
+-static u8 get_omap3_evm_rev(void)
+-{
+-	return omap3_evm_version;
+-}
+-
+-static void __init omap3_evm_get_revision(void)
+-{
+-	void __iomem *ioaddr;
+-	unsigned int smsc_id;
+-
+-	/* Ethernet PHY ID is stored at ID_REV register */
+-	ioaddr = ioremap_nocache(OMAP3EVM_ETHR_START, SZ_1K);
+-	if (!ioaddr)
+-		return;
+-	smsc_id = readl(ioaddr + OMAP3EVM_ETHR_ID_REV) & 0xFFFF0000;
+-	iounmap(ioaddr);
+-
+-	switch (smsc_id) {
+-	/*SMSC9115 chipset*/
+-	case 0x01150000:
+-		omap3_evm_version = OMAP3EVM_BOARD_GEN_1;
+-		break;
+-	/*SMSC 9220 chipset*/
+-	case 0x92200000:
+-	default:
+-		omap3_evm_version = OMAP3EVM_BOARD_GEN_2;
+-	}
+-}
+-
+-#if defined(CONFIG_SMSC911X) || defined(CONFIG_SMSC911X_MODULE)
+-#include "gpmc-smsc911x.h"
+-
+-static struct omap_smsc911x_platform_data smsc911x_cfg = {
+-	.cs             = OMAP3EVM_SMSC911X_CS,
+-	.gpio_irq       = OMAP3EVM_ETHR_GPIO_IRQ,
+-	.gpio_reset     = -EINVAL,
+-	.flags		= SMSC911X_USE_32BIT | SMSC911X_SAVE_MAC_ADDRESS,
 -};
 -
--static struct twl4030_keypad_data zoom_kp_twl4030_data = {
--	.keymap_data	= &board_map_data,
--	.rows		= 8,
--	.cols		= 8,
--	.rep		= 1,
+-static inline void __init omap3evm_init_smsc911x(void)
+-{
+-	/* Configure ethernet controller reset gpio */
+-	if (cpu_is_omap3430()) {
+-		if (get_omap3_evm_rev() == OMAP3EVM_BOARD_GEN_1)
+-			smsc911x_cfg.gpio_reset = OMAP3EVM_GEN1_ETHR_GPIO_RST;
+-		else
+-			smsc911x_cfg.gpio_reset = OMAP3EVM_GEN2_ETHR_GPIO_RST;
+-	}
+-
+-	gpmc_smsc911x_init(&smsc911x_cfg);
+-}
+-
+-#else
+-static inline void __init omap3evm_init_smsc911x(void) { return; }
+-#endif
+-
+-/*
+- * OMAP3EVM LCD Panel control signals
+- */
+-#define OMAP3EVM_LCD_PANEL_LR		2
+-#define OMAP3EVM_LCD_PANEL_UD		3
+-#define OMAP3EVM_LCD_PANEL_INI		152
+-#define OMAP3EVM_LCD_PANEL_QVGA		154
+-#define OMAP3EVM_LCD_PANEL_RESB		155
+-
+-#define OMAP3EVM_LCD_PANEL_ENVDD	153
+-#define OMAP3EVM_LCD_PANEL_BKLIGHT_GPIO	210
+-
+-/*
+- * OMAP3EVM DVI control signals
+- */
+-#define OMAP3EVM_DVI_PANEL_EN_GPIO	199
+-
+-#ifdef CONFIG_BROKEN
+-static void __init omap3_evm_display_init(void)
+-{
+-	int r;
+-
+-	r = gpio_request_one(OMAP3EVM_LCD_PANEL_ENVDD, GPIOF_OUT_INIT_LOW,
+-				"lcd_panel_envdd");
+-	if (r)
+-		pr_err("failed to get lcd_panel_envdd GPIO\n");
+-
+-	r = gpio_request_one(OMAP3EVM_LCD_PANEL_BKLIGHT_GPIO,
+-				GPIOF_OUT_INIT_LOW, "lcd_panel_bklight");
+-	if (r)
+-		pr_err("failed to get lcd_panel_bklight GPIO\n");
+-
+-	if (get_omap3_evm_rev() >= OMAP3EVM_BOARD_GEN_2)
+-		gpio_set_value_cansleep(OMAP3EVM_LCD_PANEL_BKLIGHT_GPIO, 0);
+-	else
+-		gpio_set_value_cansleep(OMAP3EVM_LCD_PANEL_BKLIGHT_GPIO, 1);
+-}
+-#endif
+-
+-static struct panel_sharp_ls037v7dw01_platform_data omap3_evm_lcd_pdata = {
+-	.name                   = "lcd",
+-	.source                 = "dpi.0",
+-
+-	.data_lines		= 18,
+-
+-	.resb_gpio		= OMAP3EVM_LCD_PANEL_RESB,
+-	.ini_gpio		= OMAP3EVM_LCD_PANEL_INI,
+-	.mo_gpio		= OMAP3EVM_LCD_PANEL_QVGA,
+-	.lr_gpio		= OMAP3EVM_LCD_PANEL_LR,
+-	.ud_gpio		= OMAP3EVM_LCD_PANEL_UD,
 -};
 -
--static struct regulator_consumer_supply zoom_vmmc1_supply[] = {
+-static struct platform_device omap3_evm_lcd_device = {
+-	.name                   = "panel-sharp-ls037v7dw01",
+-	.id                     = 0,
+-	.dev.platform_data      = &omap3_evm_lcd_pdata,
+-};
+-
+-static struct connector_dvi_platform_data omap3_evm_dvi_connector_pdata = {
+-	.name                   = "dvi",
+-	.source                 = "tfp410.0",
+-	.i2c_bus_num            = -1,
+-};
+-
+-static struct platform_device omap3_evm_dvi_connector_device = {
+-	.name                   = "connector-dvi",
+-	.id                     = 0,
+-	.dev.platform_data      = &omap3_evm_dvi_connector_pdata,
+-};
+-
+-static struct encoder_tfp410_platform_data omap3_evm_tfp410_pdata = {
+-	.name                   = "tfp410.0",
+-	.source                 = "dpi.0",
+-	.data_lines             = 24,
+-	.power_down_gpio        = OMAP3EVM_DVI_PANEL_EN_GPIO,
+-};
+-
+-static struct platform_device omap3_evm_tfp410_device = {
+-	.name                   = "tfp410",
+-	.id                     = 0,
+-	.dev.platform_data      = &omap3_evm_tfp410_pdata,
+-};
+-
+-static struct connector_atv_platform_data omap3_evm_tv_pdata = {
+-	.name = "tv",
+-	.source = "venc.0",
+-	.connector_type = OMAP_DSS_VENC_TYPE_SVIDEO,
+-	.invert_polarity = false,
+-};
+-
+-static struct platform_device omap3_evm_tv_connector_device = {
+-	.name                   = "connector-analog-tv",
+-	.id                     = 0,
+-	.dev.platform_data      = &omap3_evm_tv_pdata,
+-};
+-
+-static struct omap_dss_board_info omap3_evm_dss_data = {
+-	.default_display_name = "lcd",
+-};
+-
+-static struct regulator_consumer_supply omap3evm_vmmc1_supply[] = {
 -	REGULATOR_SUPPLY("vmmc", "omap_hsmmc.0"),
 -};
 -
--static struct regulator_consumer_supply zoom_vsim_supply[] = {
+-static struct regulator_consumer_supply omap3evm_vsim_supply[] = {
 -	REGULATOR_SUPPLY("vmmc_aux", "omap_hsmmc.0"),
 -};
 -
--static struct regulator_consumer_supply zoom_vmmc2_supply[] = {
--	REGULATOR_SUPPLY("vmmc", "omap_hsmmc.1"),
--};
--
--static struct regulator_consumer_supply zoom_vmmc3_supply[] = {
--	REGULATOR_SUPPLY("vmmc", "omap_hsmmc.2"),
--};
--
--/* VMMC1 for OMAP VDD_MMC1 (i/o) and MMC1 card */
--static struct regulator_init_data zoom_vmmc1 = {
+-/* VMMC1 for MMC1 pins CMD, CLK, DAT0..DAT3 (20 mA, plus card == max 220 mA) */
+-static struct regulator_init_data omap3evm_vmmc1 = {
 -	.constraints = {
 -		.min_uV			= 1850000,
 -		.max_uV			= 3150000,
@@ -722,27 +329,12 @@ index a90375d..0000000
 -					| REGULATOR_CHANGE_MODE
 -					| REGULATOR_CHANGE_STATUS,
 -	},
--	.num_consumer_supplies  = ARRAY_SIZE(zoom_vmmc1_supply),
--	.consumer_supplies      = zoom_vmmc1_supply,
+-	.num_consumer_supplies	= ARRAY_SIZE(omap3evm_vmmc1_supply),
+-	.consumer_supplies	= omap3evm_vmmc1_supply,
 -};
 -
--/* VMMC2 for MMC2 card */
--static struct regulator_init_data zoom_vmmc2 = {
--	.constraints = {
--		.min_uV			= 1850000,
--		.max_uV			= 1850000,
--		.apply_uV		= true,
--		.valid_modes_mask	= REGULATOR_MODE_NORMAL
--					| REGULATOR_MODE_STANDBY,
--		.valid_ops_mask		= REGULATOR_CHANGE_MODE
--					| REGULATOR_CHANGE_STATUS,
--	},
--	.num_consumer_supplies  = ARRAY_SIZE(zoom_vmmc2_supply),
--	.consumer_supplies      = zoom_vmmc2_supply,
--};
--
--/* VSIM for OMAP VDD_MMC1A (i/o for DAT4..DAT7) */
--static struct regulator_init_data zoom_vsim = {
+-/* VSIM for MMC1 pins DAT4..DAT7 (2 mA, plus card == max 50 mA) */
+-static struct regulator_init_data omap3evm_vsim = {
 -	.constraints = {
 -		.min_uV			= 1800000,
 -		.max_uV			= 3000000,
@@ -752,377 +344,479 @@ index a90375d..0000000
 -					| REGULATOR_CHANGE_MODE
 -					| REGULATOR_CHANGE_STATUS,
 -	},
--	.num_consumer_supplies  = ARRAY_SIZE(zoom_vsim_supply),
--	.consumer_supplies      = zoom_vsim_supply,
--};
--
--static struct regulator_init_data zoom_vmmc3 = {
--	.constraints = {
--		.valid_ops_mask	= REGULATOR_CHANGE_STATUS,
--	},
--	.num_consumer_supplies	= ARRAY_SIZE(zoom_vmmc3_supply),
--	.consumer_supplies	= zoom_vmmc3_supply,
--};
--
--static struct fixed_voltage_config zoom_vwlan = {
--	.supply_name		= "vwl1271",
--	.microvolts		= 1800000, /* 1.8V */
--	.gpio			= OMAP_ZOOM_WLAN_PMENA_GPIO,
--	.startup_delay		= 70000, /* 70msec */
--	.enable_high		= 1,
--	.enabled_at_boot	= 0,
--	.init_data		= &zoom_vmmc3,
--};
--
--static struct platform_device omap_vwlan_device = {
--	.name		= "reg-fixed-voltage",
--	.id		= 1,
--	.dev = {
--		.platform_data	= &zoom_vwlan,
--	},
--};
--
--static struct pwm_lookup zoom_pwm_lookup[] = {
--	PWM_LOOKUP("twl-pwm", 0, "leds_pwm", "zoom::keypad"),
--	PWM_LOOKUP("twl-pwm", 1, "pwm-backlight", "backlight"),
--};
--
--static struct led_pwm zoom_pwm_leds[] = {
--	{
--		.name		= "zoom::keypad",
--		.max_brightness	= 127,
--		.pwm_period_ns	= 7812500,
--	},
--};
--
--static struct led_pwm_platform_data zoom_pwm_data = {
--	.num_leds	= ARRAY_SIZE(zoom_pwm_leds),
--	.leds		= zoom_pwm_leds,
--};
--
--static struct platform_device zoom_leds_pwm = {
--	.name	= "leds_pwm",
--	.id	= -1,
--	.dev	= {
--		.platform_data = &zoom_pwm_data,
--	},
--};
--
--static struct platform_pwm_backlight_data zoom_backlight_data = {
--	.pwm_id = 1,
--	.max_brightness = 127,
--	.dft_brightness = 127,
--	.pwm_period_ns = 7812500,
--};
--
--static struct platform_device zoom_backlight_pwm = {
--	.name   = "pwm-backlight",
--	.id     = -1,
--	.dev    = {
--		.platform_data = &zoom_backlight_data,
--	},
--};
--
--static struct platform_device *zoom_devices[] __initdata = {
--	&omap_vwlan_device,
--	&zoom_leds_pwm,
--	&zoom_backlight_pwm,
--};
--
--static struct wl12xx_platform_data omap_zoom_wlan_data __initdata = {
--	.board_ref_clock = WL12XX_REFCLOCK_26, /* 26 MHz */
+-	.num_consumer_supplies	= ARRAY_SIZE(omap3evm_vsim_supply),
+-	.consumer_supplies	= omap3evm_vsim_supply,
 -};
 -
 -static struct omap2_hsmmc_info mmc[] = {
 -	{
--		.name		= "external",
 -		.mmc		= 1,
 -		.caps		= MMC_CAP_4_BIT_DATA,
--		.gpio_wp	= -EINVAL,
--		.power_saving	= true,
+-		.gpio_cd	= -EINVAL,
+-		.gpio_wp	= 63,
 -		.deferred	= true,
 -	},
--	{
--		.name		= "internal",
--		.mmc		= 2,
--		.caps		= MMC_CAP_4_BIT_DATA | MMC_CAP_8_BIT_DATA,
--		.gpio_cd	= -EINVAL,
--		.gpio_wp	= -EINVAL,
--		.nonremovable	= true,
--		.power_saving	= true,
--	},
+-#ifdef CONFIG_WILINK_PLATFORM_DATA
 -	{
 -		.name		= "wl1271",
--		.mmc		= 3,
+-		.mmc		= 2,
 -		.caps		= MMC_CAP_4_BIT_DATA | MMC_CAP_POWER_OFF_CARD,
 -		.gpio_wp	= -EINVAL,
 -		.gpio_cd	= -EINVAL,
 -		.nonremovable	= true,
 -	},
--	{}      /* Terminator */
+-#endif
+-	{}	/* Terminator */
 -};
 -
--static struct omap_tw4030_pdata omap_twl4030_audio_data = {
--	.voice_connected = true,
--	.custom_routing	= true,
--
--	.has_hs		= OMAP_TWL4030_LEFT | OMAP_TWL4030_RIGHT,
--	.has_hf		= OMAP_TWL4030_LEFT | OMAP_TWL4030_RIGHT,
--
--	.has_mainmic	= true,
--	.has_submic	= true,
--	.has_hsmic	= true,
--	.has_linein	= OMAP_TWL4030_LEFT | OMAP_TWL4030_RIGHT,
+-static struct gpio_led gpio_leds[] = {
+-	{
+-		.name			= "omap3evm::ledb",
+-		/* normally not visible (board underside) */
+-		.default_trigger	= "default-on",
+-		.gpio			= -EINVAL,	/* gets replaced */
+-		.active_low		= true,
+-	},
 -};
 -
--static int zoom_twl_gpio_setup(struct device *dev,
+-static struct gpio_led_platform_data gpio_led_info = {
+-	.leds		= gpio_leds,
+-	.num_leds	= ARRAY_SIZE(gpio_leds),
+-};
+-
+-static struct platform_device leds_gpio = {
+-	.name	= "leds-gpio",
+-	.id	= -1,
+-	.dev	= {
+-		.platform_data	= &gpio_led_info,
+-	},
+-};
+-
+-
+-static int omap3evm_twl_gpio_setup(struct device *dev,
 -		unsigned gpio, unsigned ngpio)
 -{
+-	int r, lcd_bl_en;
+-
 -	/* gpio + 0 is "mmc0_cd" (input/IRQ) */
 -	mmc[0].gpio_cd = gpio + 0;
 -	omap_hsmmc_late_init(mmc);
 -
--	/* Audio setup */
--	omap_twl4030_audio_data.jack_detect = gpio + 2;
--	omap_twl4030_audio_init("Zoom2", &omap_twl4030_audio_data);
+-	/*
+-	 * Most GPIOs are for USB OTG.  Some are mostly sent to
+-	 * the P2 connector; notably LEDA for the LCD backlight.
+-	 */
+-
+-	/* TWL4030_GPIO_MAX + 0 == ledA, LCD Backlight control */
+-	lcd_bl_en = get_omap3_evm_rev() >= OMAP3EVM_BOARD_GEN_2 ?
+-		GPIOF_OUT_INIT_HIGH : GPIOF_OUT_INIT_LOW;
+-	r = gpio_request_one(gpio + TWL4030_GPIO_MAX, lcd_bl_en, "EN_LCD_BKL");
+-	if (r)
+-		printk(KERN_ERR "failed to get/set lcd_bkl gpio\n");
+-
+-	/* gpio + 7 == DVI Enable */
+-	gpio_request_one(gpio + 7, GPIOF_OUT_INIT_LOW, "EN_DVI");
+-
+-	/* TWL4030_GPIO_MAX + 1 == ledB (out, active low LED) */
+-	gpio_leds[0].gpio = gpio + TWL4030_GPIO_MAX + 1;
+-
+-	platform_device_register(&leds_gpio);
+-
+-	/* Enable VBUS switch by setting TWL4030.GPIO2DIR as output
+-	 * for starting USB tranceiver
+-	 */
+-#ifdef CONFIG_TWL4030_CORE
+-	if (get_omap3_evm_rev() >= OMAP3EVM_BOARD_GEN_2) {
+-		u8 val;
+-
+-		twl_i2c_read_u8(TWL4030_MODULE_GPIO, &val, REG_GPIODATADIR1);
+-		val |= 0x04; /* TWL4030.GPIO2DIR BIT at GPIODATADIR1(0x9B) */
+-		twl_i2c_write_u8(TWL4030_MODULE_GPIO, val, REG_GPIODATADIR1);
+-	}
+-#endif
 -
 -	return 0;
 -}
 -
--static struct twl4030_gpio_platform_data zoom_gpio_data = {
--	.setup		= zoom_twl_gpio_setup,
+-static struct twl4030_gpio_platform_data omap3evm_gpio_data = {
+-	.use_leds	= true,
+-	.setup		= omap3evm_twl_gpio_setup,
 -};
 -
--static struct twl4030_platform_data zoom_twldata = {
+-static uint32_t board_keymap[] = {
+-	KEY(0, 0, KEY_LEFT),
+-	KEY(0, 1, KEY_DOWN),
+-	KEY(0, 2, KEY_ENTER),
+-	KEY(0, 3, KEY_M),
+-
+-	KEY(1, 0, KEY_RIGHT),
+-	KEY(1, 1, KEY_UP),
+-	KEY(1, 2, KEY_I),
+-	KEY(1, 3, KEY_N),
+-
+-	KEY(2, 0, KEY_A),
+-	KEY(2, 1, KEY_E),
+-	KEY(2, 2, KEY_J),
+-	KEY(2, 3, KEY_O),
+-
+-	KEY(3, 0, KEY_B),
+-	KEY(3, 1, KEY_F),
+-	KEY(3, 2, KEY_K),
+-	KEY(3, 3, KEY_P)
+-};
+-
+-static struct matrix_keymap_data board_map_data = {
+-	.keymap			= board_keymap,
+-	.keymap_size		= ARRAY_SIZE(board_keymap),
+-};
+-
+-static struct twl4030_keypad_data omap3evm_kp_data = {
+-	.keymap_data	= &board_map_data,
+-	.rows		= 4,
+-	.cols		= 4,
+-	.rep		= 1,
+-};
+-
+-/* ads7846 on SPI */
+-static struct regulator_consumer_supply omap3evm_vio_supply[] = {
+-	REGULATOR_SUPPLY("vcc", "spi1.0"),
+-};
+-
+-/* VIO for ads7846 */
+-static struct regulator_init_data omap3evm_vio = {
+-	.constraints = {
+-		.min_uV			= 1800000,
+-		.max_uV			= 1800000,
+-		.apply_uV		= true,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-	},
+-	.num_consumer_supplies	= ARRAY_SIZE(omap3evm_vio_supply),
+-	.consumer_supplies	= omap3evm_vio_supply,
+-};
+-
+-#ifdef CONFIG_WILINK_PLATFORM_DATA
+-
+-#define OMAP3EVM_WLAN_PMENA_GPIO	(150)
+-#define OMAP3EVM_WLAN_IRQ_GPIO		(149)
+-
+-static struct regulator_consumer_supply omap3evm_vmmc2_supply[] = {
+-	REGULATOR_SUPPLY("vmmc", "omap_hsmmc.1"),
+-};
+-
+-/* VMMC2 for driving the WL12xx module */
+-static struct regulator_init_data omap3evm_vmmc2 = {
+-	.constraints = {
+-		.valid_ops_mask	= REGULATOR_CHANGE_STATUS,
+-	},
+-	.num_consumer_supplies	= ARRAY_SIZE(omap3evm_vmmc2_supply),
+-	.consumer_supplies	= omap3evm_vmmc2_supply,
+-};
+-
+-static struct fixed_voltage_config omap3evm_vwlan = {
+-	.supply_name		= "vwl1271",
+-	.microvolts		= 1800000, /* 1.80V */
+-	.gpio			= OMAP3EVM_WLAN_PMENA_GPIO,
+-	.startup_delay		= 70000, /* 70ms */
+-	.enable_high		= 1,
+-	.enabled_at_boot	= 0,
+-	.init_data		= &omap3evm_vmmc2,
+-};
+-
+-static struct platform_device omap3evm_wlan_regulator = {
+-	.name		= "reg-fixed-voltage",
+-	.id		= 1,
+-	.dev = {
+-		.platform_data	= &omap3evm_vwlan,
+-	},
+-};
+-
+-struct wl12xx_platform_data omap3evm_wlan_data __initdata = {
+-	.board_ref_clock = WL12XX_REFCLOCK_38, /* 38.4 MHz */
+-};
+-#endif
+-
+-/* VAUX2 for USB */
+-static struct regulator_consumer_supply omap3evm_vaux2_supplies[] = {
+-	REGULATOR_SUPPLY("VDD_CSIPHY1", "omap3isp"),	/* OMAP ISP */
+-	REGULATOR_SUPPLY("VDD_CSIPHY2", "omap3isp"),	/* OMAP ISP */
+-	REGULATOR_SUPPLY("vcc", "usb_phy_gen_xceiv.2"),	/* hsusb port 2 */
+-	REGULATOR_SUPPLY("vaux2", NULL),
+-};
+-
+-static struct regulator_init_data omap3evm_vaux2 = {
+-	.constraints = {
+-		.min_uV		= 2800000,
+-		.max_uV		= 2800000,
+-		.apply_uV	= true,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-	},
+-	.num_consumer_supplies		= ARRAY_SIZE(omap3evm_vaux2_supplies),
+-	.consumer_supplies		= omap3evm_vaux2_supplies,
+-};
+-
+-static struct twl4030_platform_data omap3evm_twldata = {
 -	/* platform_data for children goes here */
--	.gpio		= &zoom_gpio_data,
--	.keypad		= &zoom_kp_twl4030_data,
--	.vmmc1          = &zoom_vmmc1,
--	.vmmc2          = &zoom_vmmc2,
--	.vsim           = &zoom_vsim,
+-	.keypad		= &omap3evm_kp_data,
+-	.gpio		= &omap3evm_gpio_data,
+-	.vio		= &omap3evm_vio,
+-	.vmmc1		= &omap3evm_vmmc1,
+-	.vsim		= &omap3evm_vsim,
 -};
 -
--static int __init omap_i2c_init(void)
+-static int __init omap3_evm_i2c_init(void)
 -{
--	omap3_pmic_get_config(&zoom_twldata,
--			TWL_COMMON_PDATA_USB | TWL_COMMON_PDATA_BCI |
--			TWL_COMMON_PDATA_MADC | TWL_COMMON_PDATA_AUDIO,
+-	omap3_pmic_get_config(&omap3evm_twldata,
+-			TWL_COMMON_PDATA_USB | TWL_COMMON_PDATA_MADC |
+-			TWL_COMMON_PDATA_AUDIO,
 -			TWL_COMMON_REGULATOR_VDAC | TWL_COMMON_REGULATOR_VPLL2);
 -
--	if (machine_is_omap_zoom2())
--		zoom_twldata.audio->codec->ramp_delay_value = 3; /* 161 ms */
+-	omap3evm_twldata.vdac->constraints.apply_uV = true;
+-	omap3evm_twldata.vpll2->constraints.apply_uV = true;
 -
--	omap_pmic_init(1, 2400, "twl5030", 7 + OMAP_INTC_START, &zoom_twldata);
+-	omap3_pmic_init("twl4030", &omap3evm_twldata);
 -	omap_register_i2c_bus(2, 400, NULL, 0);
 -	omap_register_i2c_bus(3, 400, NULL, 0);
 -	return 0;
 -}
 -
--static void enable_board_wakeup_source(void)
--{
--	/* T2 interrupt line (keypad) */
--	omap_mux_init_signal("sys_nirq",
--		OMAP_WAKEUP_EN | OMAP_PIN_INPUT_PULLUP);
--}
--
--void __init zoom_peripherals_init(void)
--{
--	int ret;
--
--	omap_zoom_wlan_data.irq = gpio_to_irq(OMAP_ZOOM_WLAN_IRQ_GPIO);
--	ret = wl12xx_set_platform_data(&omap_zoom_wlan_data);
--
--	if (ret)
--		pr_err("error setting wl12xx data: %d\n", ret);
--
--	omap_hsmmc_init(mmc);
--	omap_i2c_init();
--	pwm_add_table(zoom_pwm_lookup, ARRAY_SIZE(zoom_pwm_lookup));
--	platform_add_devices(zoom_devices, ARRAY_SIZE(zoom_devices));
--	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
--	usb_musb_init(NULL);
--	enable_board_wakeup_source();
--	omap_serial_init();
--}
-diff --git a/arch/arm/mach-omap2/board-zoom.c b/arch/arm/mach-omap2/board-zoom.c
-deleted file mode 100644
-index 1a3dd86..0000000
---- a/arch/arm/mach-omap2/board-zoom.c
-+++ /dev/null
-@@ -1,159 +0,0 @@
--/*
-- * Copyright (C) 2009-2010 Texas Instruments Inc.
-- * Mikkel Christensen <mlc@ti.com>
-- * Felipe Balbi <balbi@ti.com>
-- *
-- * Modified from mach-omap2/board-ldp.c
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-- */
--
--#include <linux/kernel.h>
--#include <linux/init.h>
--#include <linux/platform_device.h>
--#include <linux/input.h>
--#include <linux/gpio.h>
--#include <linux/i2c/twl.h>
--#include <linux/mtd/nand.h>
--
--#include <asm/mach-types.h>
--#include <asm/mach/arch.h>
--
--#include "common.h"
--
--#include "board-zoom.h"
--
--#include "board-flash.h"
--#include "mux.h"
--#include "sdram-micron-mt46h32m32lf-6.h"
--#include "sdram-hynix-h8mbx00u0mer-0em.h"
--
--#define ZOOM3_EHCI_RESET_GPIO		64
--
--#ifdef CONFIG_OMAP_MUX
--static struct omap_board_mux board_mux[] __initdata = {
--	/* WLAN IRQ - GPIO 162 */
--	OMAP3_MUX(MCBSP1_CLKX, OMAP_MUX_MODE4 | OMAP_PIN_INPUT),
--	/* WLAN POWER ENABLE - GPIO 101 */
--	OMAP3_MUX(CAM_D2, OMAP_MUX_MODE4 | OMAP_PIN_OUTPUT),
--	/* WLAN SDIO: MMC3 CMD */
--	OMAP3_MUX(MCSPI1_CS1, OMAP_MUX_MODE3 | OMAP_PIN_INPUT_PULLUP),
--	/* WLAN SDIO: MMC3 CLK */
--	OMAP3_MUX(ETK_CLK, OMAP_MUX_MODE2 | OMAP_PIN_INPUT_PULLUP),
--	/* WLAN SDIO: MMC3 DAT[0-3] */
--	OMAP3_MUX(ETK_D3, OMAP_MUX_MODE2 | OMAP_PIN_INPUT_PULLUP),
--	OMAP3_MUX(ETK_D4, OMAP_MUX_MODE2 | OMAP_PIN_INPUT_PULLUP),
--	OMAP3_MUX(ETK_D5, OMAP_MUX_MODE2 | OMAP_PIN_INPUT_PULLUP),
--	OMAP3_MUX(ETK_D6, OMAP_MUX_MODE2 | OMAP_PIN_INPUT_PULLUP),
--	{ .reg_offset = OMAP_MUX_TERMINATOR },
--};
--#endif
--
--static struct mtd_partition zoom_nand_partitions[] = {
--	/* All the partition sizes are listed in terms of NAND block size */
--	{
--		.name		= "X-Loader-NAND",
--		.offset		= 0,
--		.size		= 4 * (64 * 2048),	/* 512KB, 0x80000 */
--		.mask_flags	= MTD_WRITEABLE,	/* force read-only */
--	},
--	{
--		.name		= "U-Boot-NAND",
--		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x80000 */
--		.size		= 10 * (64 * 2048),	/* 1.25MB, 0x140000 */
--		.mask_flags	= MTD_WRITEABLE,	/* force read-only */
--	},
--	{
--		.name		= "Boot Env-NAND",
--		.offset		= MTDPART_OFS_APPEND,   /* Offset = 0x1c0000 */
--		.size		= 2 * (64 * 2048),	/* 256KB, 0x40000 */
--	},
--	{
--		.name		= "Kernel-NAND",
--		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x0200000*/
--		.size		= 240 * (64 * 2048),	/* 30M, 0x1E00000 */
--	},
--	{
--		.name		= "system",
--		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x2000000 */
--		.size		= 3328 * (64 * 2048),	/* 416M, 0x1A000000 */
--	},
--	{
--		.name		= "userdata",
--		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x1C000000*/
--		.size		= 256 * (64 * 2048),	/* 32M, 0x2000000 */
--	},
--	{
--		.name		= "cache",
--		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x1E000000*/
--		.size		= 256 * (64 * 2048),	/* 32M, 0x2000000 */
--	},
--};
--
 -static struct usbhs_phy_data phy_data[] __initdata = {
 -	{
 -		.port = 2,
--		.reset_gpio = ZOOM3_EHCI_RESET_GPIO,
+-		.reset_gpio = -1,	/* set at runtime */
 -		.vcc_gpio = -EINVAL,
 -	},
 -};
 -
 -static struct usbhs_omap_platform_data usbhs_bdata __initdata = {
--	.port_mode[1]		= OMAP_EHCI_PORT_MODE_PHY,
+-	.port_mode[1] = OMAP_EHCI_PORT_MODE_PHY,
 -};
 -
--static void __init omap_zoom_init(void)
+-#ifdef CONFIG_OMAP_MUX
+-static struct omap_board_mux omap35x_board_mux[] __initdata = {
+-	OMAP3_MUX(SYS_NIRQ, OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP |
+-				OMAP_PIN_OFF_INPUT_PULLUP | OMAP_PIN_OFF_OUTPUT_LOW |
+-				OMAP_PIN_OFF_WAKEUPENABLE),
+-	OMAP3_MUX(MCSPI1_CS1, OMAP_MUX_MODE4 | OMAP_PIN_INPUT_PULLUP |
+-				OMAP_PIN_OFF_INPUT_PULLUP | OMAP_PIN_OFF_OUTPUT_LOW |
+-				OMAP_PIN_OFF_WAKEUPENABLE),
+-	OMAP3_MUX(SYS_BOOT5, OMAP_MUX_MODE4 | OMAP_PIN_INPUT_PULLUP |
+-				OMAP_PIN_OFF_NONE),
+-	OMAP3_MUX(GPMC_WAIT2, OMAP_MUX_MODE4 | OMAP_PIN_INPUT_PULLUP |
+-				OMAP_PIN_OFF_NONE),
+-#ifdef CONFIG_WILINK_PLATFORM_DATA
+-	/* WLAN IRQ - GPIO 149 */
+-	OMAP3_MUX(UART1_RTS, OMAP_MUX_MODE4 | OMAP_PIN_INPUT),
+-
+-	/* WLAN POWER ENABLE - GPIO 150 */
+-	OMAP3_MUX(UART1_CTS, OMAP_MUX_MODE4 | OMAP_PIN_OUTPUT),
+-
+-	/* MMC2 SDIO pin muxes for WL12xx */
+-	OMAP3_MUX(SDMMC2_CLK, OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP),
+-	OMAP3_MUX(SDMMC2_CMD, OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP),
+-	OMAP3_MUX(SDMMC2_DAT0, OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP),
+-	OMAP3_MUX(SDMMC2_DAT1, OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP),
+-	OMAP3_MUX(SDMMC2_DAT2, OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP),
+-	OMAP3_MUX(SDMMC2_DAT3, OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP),
+-#endif
+-	{ .reg_offset = OMAP_MUX_TERMINATOR },
+-};
+-
+-static struct omap_board_mux omap36x_board_mux[] __initdata = {
+-	OMAP3_MUX(SYS_NIRQ, OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP |
+-				OMAP_PIN_OFF_INPUT_PULLUP | OMAP_PIN_OFF_OUTPUT_LOW |
+-				OMAP_PIN_OFF_WAKEUPENABLE),
+-	OMAP3_MUX(MCSPI1_CS1, OMAP_MUX_MODE4 | OMAP_PIN_INPUT_PULLUP |
+-				OMAP_PIN_OFF_INPUT_PULLUP | OMAP_PIN_OFF_OUTPUT_LOW |
+-				OMAP_PIN_OFF_WAKEUPENABLE),
+-	/* AM/DM37x EVM: DSS data bus muxed with sys_boot */
+-	OMAP3_MUX(DSS_DATA18, OMAP_MUX_MODE3 | OMAP_PIN_OFF_NONE),
+-	OMAP3_MUX(DSS_DATA19, OMAP_MUX_MODE3 | OMAP_PIN_OFF_NONE),
+-	OMAP3_MUX(DSS_DATA22, OMAP_MUX_MODE3 | OMAP_PIN_OFF_NONE),
+-	OMAP3_MUX(DSS_DATA21, OMAP_MUX_MODE3 | OMAP_PIN_OFF_NONE),
+-	OMAP3_MUX(DSS_DATA22, OMAP_MUX_MODE3 | OMAP_PIN_OFF_NONE),
+-	OMAP3_MUX(DSS_DATA23, OMAP_MUX_MODE3 | OMAP_PIN_OFF_NONE),
+-	OMAP3_MUX(SYS_BOOT0, OMAP_MUX_MODE3 | OMAP_PIN_OFF_NONE),
+-	OMAP3_MUX(SYS_BOOT1, OMAP_MUX_MODE3 | OMAP_PIN_OFF_NONE),
+-	OMAP3_MUX(SYS_BOOT3, OMAP_MUX_MODE3 | OMAP_PIN_OFF_NONE),
+-	OMAP3_MUX(SYS_BOOT4, OMAP_MUX_MODE3 | OMAP_PIN_OFF_NONE),
+-	OMAP3_MUX(SYS_BOOT5, OMAP_MUX_MODE3 | OMAP_PIN_OFF_NONE),
+-	OMAP3_MUX(SYS_BOOT6, OMAP_MUX_MODE3 | OMAP_PIN_OFF_NONE),
+-#ifdef CONFIG_WILINK_PLATFORM_DATA
+-	/* WLAN IRQ - GPIO 149 */
+-	OMAP3_MUX(UART1_RTS, OMAP_MUX_MODE4 | OMAP_PIN_INPUT),
+-
+-	/* WLAN POWER ENABLE - GPIO 150 */
+-	OMAP3_MUX(UART1_CTS, OMAP_MUX_MODE4 | OMAP_PIN_OUTPUT),
+-
+-	/* MMC2 SDIO pin muxes for WL12xx */
+-	OMAP3_MUX(SDMMC2_CLK, OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP),
+-	OMAP3_MUX(SDMMC2_CMD, OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP),
+-	OMAP3_MUX(SDMMC2_DAT0, OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP),
+-	OMAP3_MUX(SDMMC2_DAT1, OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP),
+-	OMAP3_MUX(SDMMC2_DAT2, OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP),
+-	OMAP3_MUX(SDMMC2_DAT3, OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP),
+-#endif
+-
+-	{ .reg_offset = OMAP_MUX_TERMINATOR },
+-};
+-#else
+-#define omap35x_board_mux	NULL
+-#define omap36x_board_mux	NULL
+-#endif
+-
+-static struct omap_musb_board_data musb_board_data = {
+-	.interface_type		= MUSB_INTERFACE_ULPI,
+-	.mode			= MUSB_OTG,
+-	.power			= 100,
+-};
+-
+-static struct gpio omap3_evm_ehci_gpios[] __initdata = {
+-	{ OMAP3_EVM_EHCI_VBUS,	 GPIOF_OUT_INIT_HIGH,  "enable EHCI VBUS" },
+-	{ OMAP3_EVM_EHCI_SELECT, GPIOF_OUT_INIT_LOW,   "select EHCI port" },
+-};
+-
+-static void __init omap3_evm_wl12xx_init(void)
 -{
--	if (machine_is_omap_zoom2()) {
--		omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
--	} else if (machine_is_omap_zoom3()) {
--		omap3_mux_init(board_mux, OMAP_PACKAGE_CBP);
--		omap_mux_init_gpio(ZOOM3_EHCI_RESET_GPIO, OMAP_PIN_OUTPUT);
+-#ifdef CONFIG_WILINK_PLATFORM_DATA
+-	int ret;
 -
--		usbhs_init_phys(phy_data, ARRAY_SIZE(phy_data));
--		usbhs_init(&usbhs_bdata);
--	}
--
--	board_nand_init(zoom_nand_partitions,
--			ARRAY_SIZE(zoom_nand_partitions), ZOOM_NAND_CS,
--			NAND_BUSWIDTH_16, nand_default_timings);
--	zoom_debugboard_init();
--	zoom_peripherals_init();
--
--	if (machine_is_omap_zoom2())
--		omap_sdrc_init(mt46h32m32lf6_sdrc_params,
--					  mt46h32m32lf6_sdrc_params);
--	else if (machine_is_omap_zoom3())
--		omap_sdrc_init(h8mbx00u0mer0em_sdrc_params,
--					  h8mbx00u0mer0em_sdrc_params);
--
--	zoom_display_init();
+-	/* WL12xx WLAN Init */
+-	omap3evm_wlan_data.irq = gpio_to_irq(OMAP3EVM_WLAN_IRQ_GPIO);
+-	ret = wl12xx_set_platform_data(&omap3evm_wlan_data);
+-	if (ret)
+-		pr_err("error setting wl12xx data: %d\n", ret);
+-	ret = platform_device_register(&omap3evm_wlan_regulator);
+-	if (ret)
+-		pr_err("error registering wl12xx device: %d\n", ret);
+-#endif
 -}
 -
--MACHINE_START(OMAP_ZOOM2, "OMAP Zoom2 board")
+-static struct regulator_consumer_supply dummy_supplies[] = {
+-	REGULATOR_SUPPLY("vddvario", "smsc911x.0"),
+-	REGULATOR_SUPPLY("vdd33a", "smsc911x.0"),
+-};
+-
+-static struct mtd_partition omap3evm_nand_partitions[] = {
+-	/* All the partition sizes are listed in terms of NAND block size */
+-	{
+-		.name           = "X-Loader",
+-		.offset         = 0,
+-		.size           = 4*(SZ_128K),
+-		.mask_flags     = MTD_WRITEABLE
+-	},
+-	{
+-		.name           = "U-Boot",
+-		.offset         = MTDPART_OFS_APPEND,
+-		.size           = 14*(SZ_128K),
+-		.mask_flags     = MTD_WRITEABLE
+-	},
+-	{
+-		.name           = "U-Boot Env",
+-		.offset         = MTDPART_OFS_APPEND,
+-		.size           = 2*(SZ_128K)
+-	},
+-	{
+-		.name           = "Kernel",
+-		.offset         = MTDPART_OFS_APPEND,
+-		.size           = 40*(SZ_128K)
+-	},
+-	{
+-		.name           = "File system",
+-		.size           = MTDPART_SIZ_FULL,
+-		.offset         = MTDPART_OFS_APPEND,
+-	},
+-};
+-
+-static void __init omap3_evm_init(void)
+-{
+-	struct omap_board_mux *obm;
+-
+-	omap3_evm_get_revision();
+-	regulator_register_fixed(0, dummy_supplies, ARRAY_SIZE(dummy_supplies));
+-
+-	obm = (cpu_is_omap3630()) ? omap36x_board_mux : omap35x_board_mux;
+-	omap3_mux_init(obm, OMAP_PACKAGE_CBB);
+-
+-	omap_mux_init_gpio(63, OMAP_PIN_INPUT);
+-	omap_hsmmc_init(mmc);
+-
+-	if (get_omap3_evm_rev() >= OMAP3EVM_BOARD_GEN_2)
+-		omap3evm_twldata.vaux2 = &omap3evm_vaux2;
+-
+-	omap3_evm_i2c_init();
+-
+-	omap_display_init(&omap3_evm_dss_data);
+-	platform_device_register(&omap3_evm_lcd_device);
+-	platform_device_register(&omap3_evm_tfp410_device);
+-	platform_device_register(&omap3_evm_dvi_connector_device);
+-	platform_device_register(&omap3_evm_tv_connector_device);
+-
+-	omap_serial_init();
+-	omap_sdrc_init(mt46h32m32lf6_sdrc_params, NULL);
+-
+-	/* OMAP3EVM uses ISP1504 phy and so register nop transceiver */
+-	usb_nop_xceiv_register();
+-
+-	if (get_omap3_evm_rev() >= OMAP3EVM_BOARD_GEN_2) {
+-		/* enable EHCI VBUS using GPIO22 */
+-		omap_mux_init_gpio(OMAP3_EVM_EHCI_VBUS, OMAP_PIN_INPUT_PULLUP);
+-		/* Select EHCI port on main board */
+-		omap_mux_init_gpio(OMAP3_EVM_EHCI_SELECT,
+-				   OMAP_PIN_INPUT_PULLUP);
+-		gpio_request_array(omap3_evm_ehci_gpios,
+-				   ARRAY_SIZE(omap3_evm_ehci_gpios));
+-
+-		/* setup EHCI phy reset config */
+-		omap_mux_init_gpio(21, OMAP_PIN_INPUT_PULLUP);
+-		phy_data[0].reset_gpio = 21;
+-
+-		/* EVM REV >= E can supply 500mA with EXTVBUS programming */
+-		musb_board_data.power = 500;
+-		musb_board_data.extvbus = 1;
+-	} else {
+-		/* setup EHCI phy reset on MDC */
+-		omap_mux_init_gpio(135, OMAP_PIN_OUTPUT);
+-		phy_data[0].reset_gpio = 135;
+-	}
+-	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
+-	usb_musb_init(&musb_board_data);
+-
+-	usbhs_init_phys(phy_data, ARRAY_SIZE(phy_data));
+-	usbhs_init(&usbhs_bdata);
+-	board_nand_init(omap3evm_nand_partitions,
+-			ARRAY_SIZE(omap3evm_nand_partitions), NAND_CS,
+-			NAND_BUSWIDTH_16, NULL);
+-
+-	omap_ads7846_init(1, OMAP3_EVM_TS_GPIO, 310, NULL);
+-	omap3evm_init_smsc911x();
+-#ifdef CONFIG_BROKEN
+-	omap3_evm_display_init();
+-#endif
+-	omap3_evm_wl12xx_init();
+-	omap_twl4030_audio_init("omap3evm", NULL);
+-}
+-
+-MACHINE_START(OMAP3EVM, "OMAP3 EVM")
+-	/* Maintainer: Syed Mohammed Khasim - Texas Instruments */
 -	.atag_offset	= 0x100,
 -	.reserve	= omap_reserve,
 -	.map_io		= omap3_map_io,
--	.init_early	= omap3430_init_early,
+-	.init_early	= omap35xx_init_early,
 -	.init_irq	= omap3_init_irq,
 -	.handle_irq	= omap3_intc_handle_irq,
--	.init_machine	= omap_zoom_init,
--	.init_late	= omap3430_init_late,
+-	.init_machine	= omap3_evm_init,
+-	.init_late	= omap35xx_init_late,
 -	.init_time	= omap3_sync32k_timer_init,
 -	.restart	= omap3xxx_restart,
 -MACHINE_END
--
--MACHINE_START(OMAP_ZOOM3, "OMAP Zoom3 board")
--	.atag_offset	= 0x100,
--	.reserve	= omap_reserve,
--	.map_io		= omap3_map_io,
--	.init_early	= omap3630_init_early,
--	.init_irq	= omap3_init_irq,
--	.handle_irq	= omap3_intc_handle_irq,
--	.init_machine	= omap_zoom_init,
--	.init_late	= omap3630_init_late,
--	.init_time	= omap3_sync32k_timer_init,
--	.restart	= omap3xxx_restart,
--MACHINE_END
-diff --git a/arch/arm/mach-omap2/board-zoom.h b/arch/arm/mach-omap2/board-zoom.h
-deleted file mode 100644
-index 2e94869..0000000
---- a/arch/arm/mach-omap2/board-zoom.h
-+++ /dev/null
-@@ -1,10 +0,0 @@
--/*
-- * Defines for zoom boards
-- */
--#include <video/omapdss.h>
--
--#define ZOOM_NAND_CS    0
--
--extern int __init zoom_debugboard_init(void);
--extern void __init zoom_peripherals_init(void);
--extern void __init zoom_display_init(void);
 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
