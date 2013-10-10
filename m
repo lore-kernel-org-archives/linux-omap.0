@@ -1,61 +1,37 @@
-From: Archit Taneja <archit@ti.com>
-Subject: [PATCH v3 2/2] drm: omap: Enable DT support for DMM
-Date: Thu, 10 Oct 2013 12:06:34 +0530
-Message-ID: <1381386994-24747-3-git-send-email-archit@ti.com>
-References: <1379063679-4869-1-git-send-email-archit@ti.com>
- <1381386994-24747-1-git-send-email-archit@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv7 00/36] ARM: OMAP: clock data conversion to DT
+Date: Thu, 10 Oct 2013 10:18:06 +0300
+Message-ID: <525654AE.7060009@ti.com>
+References: <1380098922-30340-1-git-send-email-t-kristo@ti.com> <524EE00F.7010208@ti.com> <20131007021556.GV8949@atomide.com> <52525642.8010307@ti.com> <20131007154103.GW8949@atomide.com> <20131007190322.GY8949@atomide.com> <alpine.DEB.2.02.1310091551540.30199@utopia.booyaka.com> <alpine.DEB.2.02.1310091858411.30199@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:48453 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751933Ab3JJGhh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Oct 2013 02:37:37 -0400
-In-Reply-To: <1381386994-24747-1-git-send-email-archit@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:42692 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750799Ab3JJHSk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 10 Oct 2013 03:18:40 -0400
+In-Reply-To: <alpine.DEB.2.02.1310091858411.30199@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: bcousson@baylibre.com, tony@atomide.com, tomi.valkeinen@ti.com, robdclark@gmail.com
-Cc: linux-doc@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Archit Taneja <archit@ti.com>, Andy Gross <andygro@gmail.com>, DRI Development <dri-devel@lists.freedesktop.org>
+To: Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, mturquette@linaro.org
+Cc: linux-omap@vger.kernel.org, nm@ti.com, khilman@linaro.org, pdeschrijver@nvidia.com, rnayak@ti.com, bcousson@baylibre.com, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, swarren@nvidia.com, mark.rutland@arm.com
 
-Enable use of DT for DMM/Tiler.
+On 10/09/2013 09:59 PM, Paul Walmsley wrote:
+> Eh, one correction:
+>
+> On Wed, 9 Oct 2013, Paul Walmsley wrote:
+>
+>> We could easily wind up with kernels that won't boot at all when used
+>> with newer DT data.
+>
+> This is a misstatement of the issue: the concern here is that newer
+> kernels may not boot at all with older DT data - which could easily be in
+> locked areas of the flash or firmware.
 
-Originally worked on by Andy Gross <andygro@gmail.com>
+I wonder who would be crazy enough to put DT data into a locked area, 
+and to what purpose. If you can update the kernel, there is no point 
+locking down DT data, this will just cause you unnecessary misery.
 
-Cc: Andy Gross <andygro@gmail.com>
-Cc: DRI Development <dri-devel@lists.freedesktop.org>
-Signed-off-by: Archit Taneja <archit@ti.com>
----
- drivers/gpu/drm/omapdrm/omap_dmm_tiler.c | 11 +++++++++++
- 1 file changed, 11 insertions(+)
-
-diff --git a/drivers/gpu/drm/omapdrm/omap_dmm_tiler.c b/drivers/gpu/drm/omapdrm/omap_dmm_tiler.c
-index acf6678..59f17de 100644
---- a/drivers/gpu/drm/omapdrm/omap_dmm_tiler.c
-+++ b/drivers/gpu/drm/omapdrm/omap_dmm_tiler.c
-@@ -968,12 +968,23 @@ static const struct dev_pm_ops omap_dmm_pm_ops = {
- };
- #endif
- 
-+#if defined(CONFIG_OF)
-+static const struct of_device_id dmm_of_match[] = {
-+	{ .compatible = "ti,omap4-dmm", },
-+	{ .compatible = "ti,omap5-dmm", },
-+	{},
-+};
-+#else
-+#define dmm_of_match NULL
-+#endif
-+
- struct platform_driver omap_dmm_driver = {
- 	.probe = omap_dmm_probe,
- 	.remove = omap_dmm_remove,
- 	.driver = {
- 		.owner = THIS_MODULE,
- 		.name = DMM_DRIVER_NAME,
-+		.of_match_table = dmm_of_match,
- #ifdef CONFIG_PM
- 		.pm = &omap_dmm_pm_ops,
- #endif
--- 
-1.8.1.2
+-Tero
 
