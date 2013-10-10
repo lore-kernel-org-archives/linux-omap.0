@@ -1,48 +1,45 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH] ARM: dts: omap4-panda-es: Do not reset gpio1
-Date: Thu, 10 Oct 2013 14:01:16 -0500
-Message-ID: <5256F97C.9080101@ti.com>
-References: <1381313521-10422-1-git-send-email-rnayak@ti.com>
- <1381423481-5920-1-git-send-email-nm@ti.com>
- <20131010164702.GF29913@atomide.com>
+From: Lokesh Vutla <lokeshvutla@ti.com>
+Subject: [PATCH 0/2] ARM: dts: AM4372: Add more nodes
+Date: Fri, 11 Oct 2013 00:44:52 +0530
+Message-ID: <1381432494-20498-1-git-send-email-lokeshvutla@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20131010164702.GF29913@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: devicetree@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>, linux-kernel@vger.kernel.org, =?ISO-8859-1?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:55908 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757245Ab3JJTPf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 10 Oct 2013 15:15:35 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: bcousson@baylibre.com, linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, mugunthanvnm@ti.com, sourav.poddar@ti.com, linux@arm.linux.org.uk, akpm@linux-foundation.org, rnayak@ti.com, afzal@ti.com, nsekhar@ti.com, r.sricharan@ti.com, balajitk@ti.com, balbi@ti.com, lokeshvutla@ti.com
 
-On 10/10/2013 11:47 AM, Tony Lindgren wrote:
-> * Nishanth Menon <nm@ti.com> [131010 09:53]:
->> Do not reset GPIO1 at boot-up because GPIO 7 in GPIO1 block is used on
->> OMAP4460 PandaBoard-ES to select voltage register in TPS62361 which
->> supplies VDD_MPU.
->>
->> Without this, OMAP4460 PandaBoard-ES boards fail to boot-up because
->> MPU voltage switches over to VSET0 voltage value (boot voltage) which
->> is not sufficient to operate the device at OPP100.
-> 
-> Is this needs as a fix for the -rc series?
+This patch series add nodes for l2-cache-controller, EDMA, mailbox, mmc, sham,
+and updates the properties for cpsw, i2c0, matrix-keypad. 
 
-Nope, this is not a regression recently introduced, has been in since
-day one of Panda-ES support. Further, we still have decision pending
-on the dependent series from Rajendra[1] - will be good to see it go
-in along with AM335x-EVM.
+These patches are applied on top of Benoit's for_3.13/dts branch
+git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git for_3.13/dts
 
+Testing:
+Tested EDMA, mmc, sham, aes, des, i2c0, cpsw, matric-keypad on AM4372 EPOS EVM
+with the addition of following two series:
+-> Tero's V8 of OMAP DT clock conversion
+  http://www.mail-archive.com/linux-omap@vger.kernel.org/msg96769.html
+-> Afzal's V5 of AM43x PRCM basic support
+  http://www.mail-archive.com/linux-omap@vger.kernel.org/msg96275.html
 
-[1] http://marc.info/?t=138131368300005&r=1&w=2
+Lokesh Vutla (1):
+  ARM: dts: AM4372: Add more nodes
+
+Mugunthan V N (1):
+  ARM: dts: AM4372: Update Support for EPOS EVM
+
+ arch/arm/boot/dts/am4372.dtsi        |  210 +++++++++++++++++++++++++++++++++-
+ arch/arm/boot/dts/am43x-epos-evm.dts |  168 +++++++++++++++++++++++++++
+ include/dt-bindings/pinctrl/am43xx.h |   31 +++++
+ 3 files changed, 408 insertions(+), 1 deletion(-)
+ create mode 100644 include/dt-bindings/pinctrl/am43xx.h
 
 -- 
-Regards,
-Nishanth Menon
+1.7.9.5
+
