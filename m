@@ -1,27 +1,40 @@
-From: info@bank.com
-Subject: LOAN OFFER
-Date: Thu, 10 Oct 2013 02:19:54 -0300
-Message-ID: <20131010021954.157773m93qauyvay__3672.59862036935$1381383477$gmane$org@mail.utfsm.cl>
-Reply-To: europanloan@foxmail.com
+From: Archit Taneja <archit@ti.com>
+Subject: [PATCH v3 0/2] DMM DT adaptation
+Date: Thu, 10 Oct 2013 12:06:32 +0530
+Message-ID: <1381386994-24747-1-git-send-email-archit@ti.com>
+References: <1379063679-4869-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
- charset=ISO-8859-1;
- DelSp="Yes";
- format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.utfsm.cl ([200.1.30.21]:42102 "EHLO mail.utfsm.cl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751491Ab3JJFh0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 10 Oct 2013 01:37:26 -0400
-Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <1379063679-4869-1-git-send-email-archit@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: bcousson@baylibre.com, tony@atomide.com, tomi.valkeinen@ti.com, robdclark@gmail.com
+Cc: linux-doc@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Archit Taneja <archit@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
+The DMM/Tiler block can used by omapdrm to allocate frame buffers. With the
+removal of address and irq data from the omap4 hwmods, the probe of DMM driver
+fails and omapdrm isn't able to utilize the DMM hardware.
 
-We are European Loan service,Do you need a Loan,contact Via  
-(europanloan@foxmail.com)
+Add DMM bindings for omap4 and omap5.
 
-----------------------------------------------------------------
-This message was sent using IMP, the Internet Messaging Program.
+Changes in v3:
+- Fix mistakes in documentation and remove aliases for dmm nodes.
+
+Changes in v2:
+- No changes, split out into a separate series containing only DT related parts.
+
+Archit Taneja (2):
+  arm: dts: omap4+: Add DMM bindings
+  drm: omap: Enable DT support for DMM
+
+ Documentation/devicetree/bindings/arm/omap/dmm.txt | 16 ++++++++++++++++
+ arch/arm/boot/dts/omap4.dtsi                       |  7 +++++++
+ arch/arm/boot/dts/omap5.dtsi                       |  7 +++++++
+ drivers/gpu/drm/omapdrm/omap_dmm_tiler.c           | 11 +++++++++++
+ 4 files changed, 41 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/arm/omap/dmm.txt
+
+-- 
+1.8.1.2
 
