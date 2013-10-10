@@ -1,75 +1,82 @@
-From: Joel Fernandes <joelf@ti.com>
-Subject: Re: [PATCH V6 02/15] ARM: OMAP2+: AM33XX: add lateinit hook for calling
- pm late init
-Date: Thu, 10 Oct 2013 10:23:50 -0500
-Message-ID: <5256C686.6000301@ti.com>
-References: <1381354144-7134-1-git-send-email-nm@ti.com> <1381361098-8283-1-git-send-email-nm@ti.com> <52563BD8.1060703@ti.com> <20131010133209.GA13105@kahuna> <5256C5D2.9030302@ti.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH 4/6] pinctrl: single: Add support for wake-up interrupts
+Date: Thu, 10 Oct 2013 17:32:47 +0200
+Message-ID: <CACRpkdY6NSR7gSc6=_nEr_BdTiEM0Mt9t4GoBSoP26ceVphDhA@mail.gmail.com>
+References: <20131003054104.8941.88857.stgit@localhost>
+	<20131003054221.8941.87801.stgit@localhost>
+	<5256AA7F.8030005@ti.com>
+	<CACRpkdZx5+OCcQytkpjd7_nz4hw6VXoXOS0LByKgJ8_cQjbA4g@mail.gmail.com>
+	<5256BB27.6010107@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <5256C5D2.9030302@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Kevin Hilman <khilman@linaro.org>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-doc@vger.kernel.org, devicetree@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, Paul Walmsley <paul@pwsan.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ie0-f172.google.com ([209.85.223.172]:61757 "EHLO
+	mail-ie0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755779Ab3JJPct (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Oct 2013 11:32:49 -0400
+Received: by mail-ie0-f172.google.com with SMTP id x13so5551003ief.17
+        for <linux-omap@vger.kernel.org>; Thu, 10 Oct 2013 08:32:48 -0700 (PDT)
+In-Reply-To: <5256BB27.6010107@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Grygorii Strashko <grygorii.strashko@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Prakash Manjunathappa <prakash.pm@ti.com>, Haojian Zhuang <haojian.zhuang@linaro.org>, =?ISO-8859-1?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, Linux-OMAP <linux-omap@vger.kernel.org>
 
-On 10/10/2013 10:20 AM, Joel Fernandes wrote:
-> On 10/10/2013 08:32 AM, Nishanth Menon wrote:
->> On 00:32-20131010, Joel Fernandes wrote:
->>> On 10/09/2013 06:24 PM, Nishanth Menon wrote:
->>>> Call OMAP2+ generic lateinit hook from AM specific late init hook.
->>>> This allows the generic late initializations such as cpufreq hooks
->>>> to be active.
->>>>
->>>> Cc: Benoit Cousson <bcousson@baylibre.com>
->>>> Cc: Kevin Hilman <khilman@deeprootsystems.com>
->>>> Cc: Paul Walmsley <paul@pwsan.com>
->>>> Cc: Tony Lindgren <tony@atomide.com>
->>>> Signed-off-by: Nishanth Menon <nm@ti.com>
->>>> ---
->>>>  arch/arm/mach-omap2/board-generic.c |    1 +
->>>>  arch/arm/mach-omap2/common.h        |    1 +
->>>>  arch/arm/mach-omap2/io.c            |    6 ++++++
->>>>  3 files changed, 8 insertions(+)
->>>>
->>>> diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
->>>> index 87162e1..b474498 100644
->>>> --- a/arch/arm/mach-omap2/board-generic.c
->>>> +++ b/arch/arm/mach-omap2/board-generic.c
->>>> @@ -180,6 +180,7 @@ DT_MACHINE_START(AM33XX_DT, "Generic AM33XX (Flattened Device Tree)")
->>>>  	.init_irq	= omap_intc_of_init,
->>>>  	.handle_irq	= omap3_intc_handle_irq,
->>>>  	.init_machine	= omap_generic_init,
->>>> +	.init_late	= am33xx_init_late,
->>>
->>> Instead of adding a new a *_init_late function for every platform, perhaps
->>> better to just do:
->>> .init_late	= omap2_common_pm_late_init;
->>>
->>> since that's the only function you're calling.
->>>
->>> Later if more functions are added, then it can be wrapped around.
->>
->> And what benefit would that give us? we break consistency of functions
->> available in io.c, considering the work we have already done in
->> out-of-tree patches on ti-forks, we *do know* that there is more
->> incoming and has to be done anyways, I prefer having symmetric
->> functions and a placeholder that folks can add on to.
->>
-> 
-> Ok, sure if you think such placeholders are right way and there's more code
-> later to be added to init_late callbacks.
-> 
-> Adding 6 lines of identical code for every platform seems redundant, I'd just
-> define an omap_common_late_init for all platforms for now, and then fork off for
-> the future differences. That way we save on LOC and readability in the header as
-> well. Your call.
+On Thu, Oct 10, 2013 at 4:35 PM, Roger Quadros <rogerq@ti.com> wrote:
+> On 10/10/2013 05:04 PM, Linus Walleij wrote:
 
-I see a function of that name already exists. I guess you can leave your patch
-as is then and not have to do this.
+>> As an innocent bystander who has no clue what the _reconfigure_io_chain()
+>> is about can you tell me what this is all about?
+>
+> The OMAP SoC has a mechanism to monitor and wakeup from a low power state by creating
+> an IO ring of all the pads. But there is one bit in one of the control registers that
+> needs to be toggled each time the pad configuration is changed to re-arm the IO ring.
+> This is exactly what _reconfigure_io_chain() does.
 
-regards,
+OK I get it, I checked the function in the machone.
 
--Joel
+>> Is this another one of the OMAP forked paths where you must call back into
+>> the machine with a special callback from each and every driver?
+>
+> _reconfigure_io_chain() is not available for public use and is not called by any driver yet.
+> However, it somehow needs to be called from this pinctrl-single driver each time the
+> wakeup configuration for any pad is changed.
 
+Actually this is one of those things where the complexity of the platform
+seems to start to leak into the nice picture of one-register-per-pin.
+
+If this was *not* pinctrl-single but pinctrl-omap.c, it would make sense to
+move this _reconfigure_io code and the PRM registers it is touching down
+into the pinctrl driver, because it seems like absolutely no-one else
+is using it.
+
+Both the other occurences seem to be in omap_hwmod.c, and seems
+to be related to pin muxing, which is now supposed to be handled by
+the pin control driver, right?
+
+I think the real solution to this would be something like:
+
+- Add the compatible strings "pinctrl-single-omap3" and
+"pinctrl-single-omap4" to drivers/pinctrl/pinctrl-single.c,
+
+- Pass an additional <&ampersand> resource for the prm
+ thing to the single driver in the OMAP platform.
+
+- Move this _reconfigure_io code out of the mach-omap2
+  machines and hwmod and down into the pinctrl-single driver,
+  it can be #ifdef ARCH_OMAP with stubs or whatever, the
+  important thing is that it lives with the pinctrl driver.
+
+This does the right thing and let the pinctrl driver handle the io ring,
+instead of artificially trying to hide that in the mach-omap2 directory
+which is only creating a mess of things.
+
+I know this is sort of breaking the promise of pinctrl-single.c only
+handling single registers but we just need to accept the fact that
+if this idea is not perfect, trying to hide the facts of life isn't any
+good either.
+
+What do you say about this Tony? Good/bad/Linus is a moron? ;-)
+
+Yours,
+Linus Walleij
