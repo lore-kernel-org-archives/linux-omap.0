@@ -1,210 +1,677 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv7 00/36] ARM: OMAP: clock data conversion to DT
-Date: Thu, 10 Oct 2013 11:17:42 +0300
-Message-ID: <525662A6.4080504@ti.com>
-References: <1380098922-30340-1-git-send-email-t-kristo@ti.com> <524EE00F.7010208@ti.com> <20131007021556.GV8949@atomide.com> <52525642.8010307@ti.com> <20131007154103.GW8949@atomide.com> <20131007190322.GY8949@atomide.com> <alpine.DEB.2.02.1310091551540.30199@utopia.booyaka.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH] omapdss: Add new panel driver for Topolly td028ttec1
+ LCD.
+Date: Thu, 10 Oct 2013 11:19:01 +0300
+Message-ID: <525662F5.3090600@ti.com>
+References: <1381352915-17219-1-git-send-email-marek@goldelico.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="xwP8kGPUAAUJjdXwnnQmLVTHRwOXMER5J"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:44959 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:55417 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752539Ab3JJISS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 10 Oct 2013 04:18:18 -0400
-In-Reply-To: <alpine.DEB.2.02.1310091551540.30199@utopia.booyaka.com>
+	id S1753957Ab3JJITK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 10 Oct 2013 04:19:10 -0400
+In-Reply-To: <1381352915-17219-1-git-send-email-marek@goldelico.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, mturquette@linaro.org
-Cc: linux-omap@vger.kernel.org, nm@ti.com, khilman@linaro.org, pdeschrijver@nvidia.com, rnayak@ti.com, bcousson@baylibre.com, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, swarren@nvidia.com, mark.rutland@arm.com
+To: Marek Belisko <marek@goldelico.com>
+Cc: plagnioj@jcrosoft.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, "H. Nikolaus Schaller" <hns@goldelico.com>
 
-Hey Paul,
+--xwP8kGPUAAUJjdXwnnQmLVTHRwOXMER5J
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-My dibs on this below.
+Hi,
 
-On 10/09/2013 09:55 PM, Paul Walmsley wrote:
-> On Mon, 7 Oct 2013, Tony Lindgren wrote:
->
->> And assuming Paul is OK with these patches in general.
->
-> Actually, I have several concerns with this series, as you and I
-> discussed.  Some of us have been talking them over with other folks for
-> the past few months to try to figure out what to do.  Most of the concerns
-> have fairly easy technical solutions, but we shouldn't merge these patches
-> until they're resolved.
->
-> The issues are:
->
-> 1. whether the clock data should go into DT
-> 2. what the right place for DT clock data is in the DT
-> 3. whether it makes sense to merge "experimental" DT bindings in this case
-> 4. where clockdomain data belongs
->
-> The first issue - and the one I'm least concerned about - is that, in my
-> view, it still does not make technical sense to move this data into DT.
-> This is chip-level hardware data that never needs to be changed by board
-> designers or end users.  Adding it to DT is going to result in a boot-time
-> cost (due to DT parse overhead) and additional memory consumption for very
-> little benefit, compared to an implementation that places this data into a
-> dynamically loadable module.  For some users, the boot-time bloat is a big
-> deal: the example that's been mentioned to me recently is an automotive
-> back-up camera that needs to cold-boot to complete functionality in a few
-> hundred microseconds.
+On 10/10/13 00:08, Marek Belisko wrote:
+> For communicating with driver is used gpio bitbanging because TD028 doe=
+s
+> not have a standard compliant SPI interface. It is a 3-wire thing with
+> direction reversal.
 
-Personally I share the concern, I don't see much point in using the DT 
-for any kind of purpose... it is just another binary compatibility 
-breaker in the picture in addition to boot-loader, and it basically does 
-not solve any _real_ problems either.
+Isn't that SPI_3WIRE?
 
-Boot time issues can be solved by adding alternative clock data sources 
-like Tony pointed out, granted, we don't have support for those yet, but 
-we need to start somewhere.
+> Communication with display is used only during panel enable/disable so =
+it's
+> not performance issue.
+>=20
+> Signed-off-by: Marek Belisko <marek@goldelico.com>
+> Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
+> ---
+>  drivers/video/omap2/displays-new/Kconfig           |   6 +
+>  drivers/video/omap2/displays-new/Makefile          |   1 +
+>  .../omap2/displays-new/panel-tpo-td028ttec1.c      | 537 +++++++++++++=
+++++++++
+>  include/video/omap-panel-data.h                    |  22 +
+>  4 files changed, 566 insertions(+)
+>  create mode 100644 drivers/video/omap2/displays-new/panel-tpo-td028tte=
+c1.c
+>=20
+> diff --git a/drivers/video/omap2/displays-new/Kconfig b/drivers/video/o=
+map2/displays-new/Kconfig
+> index 6c90885..3f86432 100644
+> --- a/drivers/video/omap2/displays-new/Kconfig
+> +++ b/drivers/video/omap2/displays-new/Kconfig
+> @@ -56,6 +56,11 @@ config DISPLAY_PANEL_SHARP_LS037V7DW01
+>          help
+>            LCD Panel used in TI's SDP3430 and EVM boards
+> =20
+> +config DISPLAY_PANEL_TPO_TD028TTEC1
+> +        tristate "TPO TD028TTEC1 LCD Panel"
+> +        help
+> +          LCD panel used by Openmoko.
+> +
+>  config DISPLAY_PANEL_TPO_TD043MTEA1
+>          tristate "TPO TD043MTEA1 LCD Panel"
+>          depends on SPI
+> @@ -70,4 +75,5 @@ config DISPLAY_PANEL_NEC_NL8048HL11
+>  		This NEC NL8048HL11 panel is TFT LCD used in the
+>  		Zoom2/3/3630 sdp boards.
+> =20
+> +
 
-> However, according to some other upstream maintainers, Linus's goal is to
-> move most of the device-specific static data out of the kernel tree, into
-> DT files (in the ARM case).  If that non-technical constraint is indeed
-> the dominant consideration, then I agree that moving this data to DT is
-> the only viable course of action.
+Extra change.
 
-Yeah... Personally I can't see any other way forward right now either as 
-I was basically given the option to use DT for this work or not do it at 
-all...
+>  endmenu
+> diff --git a/drivers/video/omap2/displays-new/Makefile b/drivers/video/=
+omap2/displays-new/Makefile
+> index 5aeb11b..0323a8a 100644
+> --- a/drivers/video/omap2/displays-new/Makefile
+> +++ b/drivers/video/omap2/displays-new/Makefile
+> @@ -8,5 +8,6 @@ obj-$(CONFIG_DISPLAY_PANEL_DSI_CM) +=3D panel-dsi-cm.o
+>  obj-$(CONFIG_DISPLAY_PANEL_SONY_ACX565AKM) +=3D panel-sony-acx565akm.o=
 
->
-> ...
->
-> The second issue concerns where the SoC clock nodes should go in the DT.
-> In these patches, the clock data has been encoded in a large "clocks" node
-> off the top level.  This is almost certainly not the right thing to do
-> from a device hardware point of view.  These clocks don't exist as
-> standalone devices with their own address spaces decoded on the
-> interconnect.  In all of the SoC cases that I'm aware of, clock control
-> registers are part of larger IP blocks.
->
-> For example, in the OMAP case, most of the system integration clock
-> control registers are part of the OMAP-specific PRCM block, PRM block, or
-> CM block.  Then there are other device-specific clocks, like DSS PLLs or
-> UART dividers.  The control registers for these are generally located in
-> the subsystem or device IP block itself, and are inaccessible when the
-> subsystem or IP block is disabled.  These device-specific clocks belong to
-> the IP block, not the SoC integration.  So, for example, if two SoCs use
-> the same IP block, then the clock registers, and their offsets from the IP
-> block address space base, are likely to be identical.
+>  obj-$(CONFIG_DISPLAY_PANEL_LGPHILIPS_LB035Q02) +=3D panel-lgphilips-lb=
+035q02.o
+>  obj-$(CONFIG_DISPLAY_PANEL_SHARP_LS037V7DW01) +=3D panel-sharp-ls037v7=
+dw01.o
+> +obj-$(CONFIG_DISPLAY_PANEL_TPO_TD028TTEC1) +=3D panel-tpo-td028ttec1.o=
 
-None of the clock registers defined in this set reside outside PRCM / 
-control module, so they are always accessible. IP block internal 
-dividers for UART and like, are defined and used only internally by the 
-device drivers.
+>  obj-$(CONFIG_DISPLAY_PANEL_TPO_TD043MTEA1) +=3D panel-tpo-td043mtea1.o=
 
->
-> So in my view, the right things to do here are to:
->
-> 1. associate SoC DT clock data with the device node that contains the
->     clock control registers
+>  obj-$(CONFIG_DISPLAY_PANEL_NEC_NL8048HL11) +=3D panel-nec-nl8048hl11.o=
 
-So, either "cm", "prcm", and maybe "control_module" instead of current 
-"clocks". How much do we benefit from this? This would get rid of need 
-to call of_iomap() for each register basically.
+> diff --git a/drivers/video/omap2/displays-new/panel-tpo-td028ttec1.c b/=
+drivers/video/omap2/displays-new/panel-tpo-td028ttec1.c
+> new file mode 100644
+> index 0000000..b63586e
+> --- /dev/null
+> +++ b/drivers/video/omap2/displays-new/panel-tpo-td028ttec1.c
+> @@ -0,0 +1,537 @@
+> +/*
+> + * Toppoly TD028TTEC1 panel support
+> + *
+> + * Copyright (C) 2008 Nokia Corporation
+> + * Author: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+> + *
+> + * Neo 1973 code (jbt6k74.c):
+> + * Copyright (C) 2006-2007 by OpenMoko, Inc.
+> + * Author: Harald Welte <laforge@openmoko.org>
+> + *
+> + * Ported and adapted from Neo 1973 U-Boot by:
+> + * H. Nikolaus Schaller <hns@goldelico.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modif=
+y it
+> + * under the terms of the GNU General Public License version 2 as publ=
+ished by
+> + * the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful, but=
+ WITHOUT
+> + * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY =
+or
+> + * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public Licen=
+se for
+> + * more details.
+> + *
+> + * You should have received a copy of the GNU General Public License a=
+long with
+> + * this program.  If not, see <http://www.gnu.org/licenses/>.
+> + */
+> +
+> +#include <linux/module.h>
+> +#include <linux/delay.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/gpio.h>
+> +#include <video/omapdss.h>
+> +#include <video/omap-panel-data.h>
+> +
+> +struct panel_drv_data {
+> +	struct omap_dss_device dssdev;
+> +	struct omap_dss_device *in;
+> +
+> +	int data_lines;
+> +
+> +	struct omap_video_timings videomode;
+> +
+> +	int cs_gpio;
+> +	int scl_gpio;
+> +	int din_gpio;
+> +	int dout_gpio;
 
->
-> 2. specify relative offsets for clock registers from the start of
->     the IP block address range, rather than absolute addresses for clock
->     registers
->
-> 3. place the responsibility for registering clocks into the IP block
->     drivers themselves
->
-> This naturally separates clocks into per-IP block DT files.  It also
-> provides the CCF with an easy way to ensure that the device that
-> encloses the clock is enabled and accessible by the CPU core, before
-> trying to access registers inside.
->
-> Similarly, non-SoC off-chip clock data (such as for dedicated I2C PLLs)
-> should also be associated with their I2C device node.
->
-> Making these changes to Tero's existing patches should be relatively
-> straightforward, based on what I've seen.
+Three wires, but four gpios? What am I missing here...
+
+> +	u_int16_t tx_buf[4];
+
+Hmm, what's wrong with "u16"?
+
+> +};
+> +
+> +static struct omap_video_timings td028ttec1_panel_timings =3D {
+> +	.x_res		=3D 480,
+> +	.y_res		=3D 640,
+> +	.pixel_clock	=3D 22153,
+> +	.hfp		=3D 24,
+> +	.hsw		=3D 8,
+> +	.hbp		=3D 8,
+> +	.vfp		=3D 4,
+> +	.vsw		=3D 2,
+> +	.vbp		=3D 2,
+> +
+> +	.vsync_level	=3D OMAPDSS_SIG_ACTIVE_LOW,
+> +	.hsync_level	=3D OMAPDSS_SIG_ACTIVE_LOW,
+> +
+> +	.data_pclk_edge	=3D OMAPDSS_DRIVE_SIG_FALLING_EDGE,
+> +	.de_level	=3D OMAPDSS_SIG_ACTIVE_HIGH,
+> +	.sync_pclk_edge	=3D OMAPDSS_DRIVE_SIG_OPPOSITE_EDGES,
+> +};
+> +
+> +#define JBT_COMMAND	0x000
+> +#define JBT_DATA	0x100
+> +
+> +/* 150uS minimum clock cycle, we have two of this plus our other
+> + * instructions */
+> +
+> +#define SPI_DELAY()	udelay(200)
+
+Would usleep_range work here?
+
+See Documentation/timers/timers-howto.txt
+
+> +static int jbt_spi_xfer(struct panel_drv_data *data, int wordnum, int =
+bitlen)
+
+Hmm, if it's not SPI, maybe it shouldn't be called SPI?
+
+> +{
+> +	u_int16_t tmpdout =3D 0;
+> +	int   i, j;
+> +
+> +	gpio_set_value(data->cs_gpio, 0);
+> +
+> +	for (i =3D 0; i < wordnum; i++) {
+> +		tmpdout =3D data->tx_buf[i];
+> +
+> +		for (j =3D 0; j < bitlen; j++) {
+> +			gpio_set_value(data->scl_gpio, 0);
+> +			if (tmpdout & (1 << (bitlen-1))) {
+> +				gpio_set_value(data->dout_gpio, 1);
+> +				if (gpio_get_value(data->din_gpio) =3D=3D 0)
+> +					return 1;
+> +			} else {
+> +				gpio_set_value(data->dout_gpio, 0);
+> +				if (gpio_get_value(data->din_gpio) !=3D 0)
+> +					return 1;
+> +			}
+> +			SPI_DELAY();
+> +			gpio_set_value(data->scl_gpio, 1);
+> +			SPI_DELAY();
+> +			tmpdout <<=3D 1;
+> +		}
+> +	}
+> +
+> +	gpio_set_value(data->cs_gpio, 1);
+> +
+> +	return 0;
+> +}
+> +
+> +#define JBT_COMMAND	0x000
+> +#define JBT_DATA	0x100
+> +
+> +int jbt_reg_write_nodata(struct panel_drv_data *ddata, u_int8_t reg)
+
+What's wrong with "u8"? Have I missed a memo? =3D)
+
+> +{
+> +	int rc;
+> +
+> +	ddata->tx_buf[0] =3D JBT_COMMAND | reg;
+> +
+> +	rc =3D jbt_spi_xfer(ddata, 1, 9);
+> +	if (rc)
+> +		dev_warn(ddata->dssdev.dev, "Failed to write reg: %x\n", reg);
+> +
+> +	return rc;
+> +}
+> +
+> +int jbt_reg_write(struct panel_drv_data *ddata, u_int8_t reg, u_int8_t=
+ data)
+> +{
+> +	int rc;
+> +
+> +	ddata->tx_buf[0] =3D JBT_COMMAND | reg;
+> +	ddata->tx_buf[1] =3D JBT_DATA | data;
+> +
+> +	rc =3D jbt_spi_xfer(ddata, 2, 9);
+> +	if (rc)
+> +		dev_warn(ddata->dssdev.dev, "Failed to write reg: %x\n", reg);
+> +
+> +	return rc;
+> +}
+> +
+> +int jbt_reg_write16(struct panel_drv_data *ddata, u_int8_t reg, u_int1=
+6_t data)
+> +{
+> +	int rc;
+> +
+> +	ddata->tx_buf[0] =3D JBT_COMMAND | reg;
+> +	ddata->tx_buf[1] =3D JBT_DATA | (data >> 8);
+> +	ddata->tx_buf[2] =3D JBT_DATA | (data & 0xff);
+> +
+> +	rc =3D jbt_spi_xfer(ddata, 3, 9);
+> +	if (rc)
+> +		dev_warn(ddata->dssdev.dev, "Failed to write reg: %x\n", reg);
+> +
+> +	return rc;
+> +}
+> +
+> +enum jbt_register {
+> +	JBT_REG_SLEEP_IN		=3D 0x10,
+> +	JBT_REG_SLEEP_OUT		=3D 0x11,
+> +
+> +	JBT_REG_DISPLAY_OFF		=3D 0x28,
+> +	JBT_REG_DISPLAY_ON		=3D 0x29,
+> +
+> +	JBT_REG_RGB_FORMAT		=3D 0x3a,
+> +	JBT_REG_QUAD_RATE		=3D 0x3b,
+> +
+> +	JBT_REG_POWER_ON_OFF		=3D 0xb0,
+> +	JBT_REG_BOOSTER_OP		=3D 0xb1,
+> +	JBT_REG_BOOSTER_MODE		=3D 0xb2,
+> +	JBT_REG_BOOSTER_FREQ		=3D 0xb3,
+> +	JBT_REG_OPAMP_SYSCLK		=3D 0xb4,
+> +	JBT_REG_VSC_VOLTAGE		=3D 0xb5,
+> +	JBT_REG_VCOM_VOLTAGE		=3D 0xb6,
+> +	JBT_REG_EXT_DISPL		=3D 0xb7,
+> +	JBT_REG_OUTPUT_CONTROL		=3D 0xb8,
+> +	JBT_REG_DCCLK_DCEV		=3D 0xb9,
+> +	JBT_REG_DISPLAY_MODE1		=3D 0xba,
+> +	JBT_REG_DISPLAY_MODE2		=3D 0xbb,
+> +	JBT_REG_DISPLAY_MODE		=3D 0xbc,
+> +	JBT_REG_ASW_SLEW		=3D 0xbd,
+> +	JBT_REG_DUMMY_DISPLAY		=3D 0xbe,
+> +	JBT_REG_DRIVE_SYSTEM		=3D 0xbf,
+> +
+> +	JBT_REG_SLEEP_OUT_FR_A		=3D 0xc0,
+> +	JBT_REG_SLEEP_OUT_FR_B		=3D 0xc1,
+> +	JBT_REG_SLEEP_OUT_FR_C		=3D 0xc2,
+> +	JBT_REG_SLEEP_IN_LCCNT_D	=3D 0xc3,
+> +	JBT_REG_SLEEP_IN_LCCNT_E	=3D 0xc4,
+> +	JBT_REG_SLEEP_IN_LCCNT_F	=3D 0xc5,
+> +	JBT_REG_SLEEP_IN_LCCNT_G	=3D 0xc6,
+> +
+> +	JBT_REG_GAMMA1_FINE_1		=3D 0xc7,
+> +	JBT_REG_GAMMA1_FINE_2		=3D 0xc8,
+> +	JBT_REG_GAMMA1_INCLINATION	=3D 0xc9,
+> +	JBT_REG_GAMMA1_BLUE_OFFSET	=3D 0xca,
+> +
+> +	JBT_REG_BLANK_CONTROL		=3D 0xcf,
+> +	JBT_REG_BLANK_TH_TV		=3D 0xd0,
+> +	JBT_REG_CKV_ON_OFF		=3D 0xd1,
+> +	JBT_REG_CKV_1_2			=3D 0xd2,
+> +	JBT_REG_OEV_TIMING		=3D 0xd3,
+> +	JBT_REG_ASW_TIMING_1		=3D 0xd4,
+> +	JBT_REG_ASW_TIMING_2		=3D 0xd5,
+> +
+> +	JBT_REG_HCLOCK_VGA		=3D 0xec,
+> +	JBT_REG_HCLOCK_QVGA		=3D 0xed,
+> +};
+> +
+> +#define to_panel_data(p) container_of(p, struct panel_drv_data, dssdev=
+)
+> +
+> +static int td028ttec1_panel_connect(struct omap_dss_device *dssdev)
+> +{
+> +	struct panel_drv_data *ddata =3D to_panel_data(dssdev);
+> +	struct omap_dss_device *in =3D ddata->in;
+> +	int r;
+> +
+> +	if (omapdss_device_is_connected(dssdev))
+> +		return 0;
+> +
+> +	r =3D in->ops.dpi->connect(in, dssdev);
+> +	if (r)
+> +		return r;
+> +
+> +	return 0;
+> +}
+> +
+> +static void td028ttec1_panel_disconnect(struct omap_dss_device *dssdev=
+)
+> +{
+> +	struct panel_drv_data *ddata =3D to_panel_data(dssdev);
+> +	struct omap_dss_device *in =3D ddata->in;
+> +
+> +	if (!omapdss_device_is_connected(dssdev))
+> +		return;
+> +
+> +	in->ops.dpi->disconnect(in, dssdev);
+> +}
+> +
+> +static int td028ttec1_panel_enable(struct omap_dss_device *dssdev)
+> +{
+> +	struct panel_drv_data *ddata =3D to_panel_data(dssdev);
+> +	struct omap_dss_device *in =3D ddata->in;
+> +	int r;
+> +
+> +	if (!omapdss_device_is_connected(dssdev))
+> +		return -ENODEV;
+> +
+> +	if (omapdss_device_is_enabled(dssdev))
+> +		return 0;
+> +
+> +	in->ops.dpi->set_data_lines(in, ddata->data_lines);
+> +	in->ops.dpi->set_timings(in, &ddata->videomode);
+> +
+> +	r =3D in->ops.dpi->enable(in);
+> +	if (r)
+> +		return r;
+> +
+> +	dev_dbg(dssdev->dev, "td028ttec1_panel_enable() - state %d\n",
+> +		dssdev->state);
+> +
+> +	/* three times command zero */
+> +	r |=3D jbt_reg_write_nodata(ddata, 0x00);
+> +	udelay(1000);
+
+These are big delays, and I guess the timing is not strict here, so
+maybe some sleep variant would be better.
+
+> +	r |=3D jbt_reg_write_nodata(ddata, 0x00);
+> +	udelay(1000);
+> +	r |=3D jbt_reg_write_nodata(ddata, 0x00);
+> +	udelay(1000);
+> +
+> +	/* deep standby out */
+> +	r |=3D jbt_reg_write(ddata, JBT_REG_POWER_ON_OFF, 0x17);
+> +
+> +	/* RGB I/F on, RAM write off, QVGA through, SIGCON enable */
+> +	r |=3D jbt_reg_write(ddata, JBT_REG_DISPLAY_MODE, 0x80);
+> +
+> +	/* Quad mode off */
+> +	r |=3D jbt_reg_write(ddata, JBT_REG_QUAD_RATE, 0x00);
+> +
+> +	/* AVDD on, XVDD on */
+> +	r |=3D jbt_reg_write(ddata, JBT_REG_POWER_ON_OFF, 0x16);
+> +
+> +	/* Output control */
+> +	r |=3D jbt_reg_write16(ddata, JBT_REG_OUTPUT_CONTROL, 0xfff9);
+> +
+> +	/* Sleep mode off */
+> +	r |=3D jbt_reg_write_nodata(ddata, JBT_REG_SLEEP_OUT);
+> +
+> +	/* at this point we have like 50% grey */
+> +
+> +	/* initialize register set */
+> +	r |=3D jbt_reg_write(ddata, JBT_REG_DISPLAY_MODE1, 0x01);
+> +	r |=3D jbt_reg_write(ddata, JBT_REG_DISPLAY_MODE2, 0x00);
+> +	r |=3D jbt_reg_write(ddata, JBT_REG_RGB_FORMAT, 0x60);
+> +	r |=3D jbt_reg_write(ddata, JBT_REG_DRIVE_SYSTEM, 0x10);
+> +	r |=3D jbt_reg_write(ddata, JBT_REG_BOOSTER_OP, 0x56);
+> +	r |=3D jbt_reg_write(ddata, JBT_REG_BOOSTER_MODE, 0x33);
+> +	r |=3D jbt_reg_write(ddata, JBT_REG_BOOSTER_FREQ, 0x11);
+> +	r |=3D jbt_reg_write(ddata, JBT_REG_BOOSTER_FREQ, 0x11);
+> +	r |=3D jbt_reg_write(ddata, JBT_REG_OPAMP_SYSCLK, 0x02);
+> +	r |=3D jbt_reg_write(ddata, JBT_REG_VSC_VOLTAGE, 0x2b);
+> +	r |=3D jbt_reg_write(ddata, JBT_REG_VCOM_VOLTAGE, 0x40);
+> +	r |=3D jbt_reg_write(ddata, JBT_REG_EXT_DISPL, 0x03);
+> +	r |=3D jbt_reg_write(ddata, JBT_REG_DCCLK_DCEV, 0x04);
+> +	/*
+> +	 * default of 0x02 in JBT_REG_ASW_SLEW responsible for 72Hz requireme=
+nt
+> +	 * to avoid red / blue flicker
+> +	 */
+> +	r |=3D jbt_reg_write(ddata, JBT_REG_ASW_SLEW, 0x04);
+> +	r |=3D jbt_reg_write(ddata, JBT_REG_DUMMY_DISPLAY, 0x00);
+> +
+> +	r |=3D jbt_reg_write(ddata, JBT_REG_SLEEP_OUT_FR_A, 0x11);
+> +	r |=3D jbt_reg_write(ddata, JBT_REG_SLEEP_OUT_FR_B, 0x11);
+> +	r |=3D jbt_reg_write(ddata, JBT_REG_SLEEP_OUT_FR_C, 0x11);
+> +	r |=3D jbt_reg_write16(ddata, JBT_REG_SLEEP_IN_LCCNT_D, 0x2040);
+> +	r |=3D jbt_reg_write16(ddata, JBT_REG_SLEEP_IN_LCCNT_E, 0x60c0);
+> +	r |=3D jbt_reg_write16(ddata, JBT_REG_SLEEP_IN_LCCNT_F, 0x1020);
+> +	r |=3D jbt_reg_write16(ddata, JBT_REG_SLEEP_IN_LCCNT_G, 0x60c0);
+> +
+> +	r |=3D jbt_reg_write16(ddata, JBT_REG_GAMMA1_FINE_1, 0x5533);
+> +	r |=3D jbt_reg_write(ddata, JBT_REG_GAMMA1_FINE_2, 0x00);
+> +	r |=3D jbt_reg_write(ddata, JBT_REG_GAMMA1_INCLINATION, 0x00);
+> +	r |=3D jbt_reg_write(ddata, JBT_REG_GAMMA1_BLUE_OFFSET, 0x00);
+> +	r |=3D jbt_reg_write(ddata, JBT_REG_GAMMA1_BLUE_OFFSET, 0x00);
+> +
+> +	r |=3D jbt_reg_write16(ddata, JBT_REG_HCLOCK_VGA, 0x1f0);
+> +	r |=3D jbt_reg_write(ddata, JBT_REG_BLANK_CONTROL, 0x02);
+> +	r |=3D jbt_reg_write16(ddata, JBT_REG_BLANK_TH_TV, 0x0804);
+> +	r |=3D jbt_reg_write16(ddata, JBT_REG_BLANK_TH_TV, 0x0804);
+> +
+> +	r |=3D jbt_reg_write(ddata, JBT_REG_CKV_ON_OFF, 0x01);
+> +	r |=3D jbt_reg_write16(ddata, JBT_REG_CKV_1_2, 0x0000);
+> +
+> +	r |=3D jbt_reg_write16(ddata, JBT_REG_OEV_TIMING, 0x0d0e);
+> +	r |=3D jbt_reg_write16(ddata, JBT_REG_ASW_TIMING_1, 0x11a4);
+> +	r |=3D jbt_reg_write(ddata, JBT_REG_ASW_TIMING_2, 0x0e);
+> +
+> +	r |=3D jbt_reg_write_nodata(ddata, JBT_REG_DISPLAY_ON);
+> +
+> +	dssdev->state =3D OMAP_DSS_DISPLAY_ACTIVE;
+> +
+> +	return r;
+> +}
+> +
+> +static void td028ttec1_panel_disable(struct omap_dss_device *dssdev)
+> +{
+> +	struct panel_drv_data *ddata =3D to_panel_data(dssdev);
+> +	struct omap_dss_device *in =3D ddata->in;
+> +
+> +	if (!omapdss_device_is_enabled(dssdev))
+> +		return;
+> +
+> +	dev_dbg(dssdev->dev, "td028ttec1_panel_disable()\n");
+> +
+> +	in->ops.dpi->disable(in);
+> +
+> +	jbt_reg_write_nodata(ddata, JBT_REG_DISPLAY_OFF);
+> +	jbt_reg_write16(ddata, JBT_REG_OUTPUT_CONTROL, 0x8002);
+> +	jbt_reg_write_nodata(ddata, JBT_REG_SLEEP_IN);
+> +	jbt_reg_write(ddata, JBT_REG_POWER_ON_OFF, 0x00);
+> +
+> +	dssdev->state =3D OMAP_DSS_DISPLAY_DISABLED;
+> +}
+> +
+> +static void td028ttec1_panel_set_timings(struct omap_dss_device *dssde=
+v,
+> +		struct omap_video_timings *timings)
+> +{
+> +	struct panel_drv_data *ddata =3D to_panel_data(dssdev);
+> +	struct omap_dss_device *in =3D ddata->in;
+> +
+> +	ddata->videomode =3D *timings;
+> +	dssdev->panel.timings =3D *timings;
+> +
+> +	in->ops.dpi->set_timings(in, timings);
+> +}
+> +
+> +static void td028ttec1_panel_get_timings(struct omap_dss_device *dssde=
+v,
+> +		struct omap_video_timings *timings)
+> +{
+> +	struct panel_drv_data *ddata =3D to_panel_data(dssdev);
+> +
+> +	*timings =3D ddata->videomode;
+> +}
+> +
+> +static int td028ttec1_panel_check_timings(struct omap_dss_device *dssd=
+ev,
+> +		struct omap_video_timings *timings)
+> +{
+> +	struct panel_drv_data *ddata =3D to_panel_data(dssdev);
+> +	struct omap_dss_device *in =3D ddata->in;
+> +
+> +	return in->ops.dpi->check_timings(in, timings);
+> +}
+> +
+> +static struct omap_dss_driver td028ttec1_ops =3D {
+> +	.connect	=3D td028ttec1_panel_connect,
+> +	.disconnect	=3D td028ttec1_panel_disconnect,
+> +
+> +	.enable		=3D td028ttec1_panel_enable,
+> +	.disable	=3D td028ttec1_panel_disable,
+> +
+> +	.set_timings	=3D td028ttec1_panel_set_timings,
+> +	.get_timings	=3D td028ttec1_panel_get_timings,
+> +	.check_timings	=3D td028ttec1_panel_check_timings,
+> +};
+> +
+> +static int td028ttec1_panel_probe_pdata(struct platform_device *pdev)
+> +{
+> +	const struct panel_tpo_td028tec1_platform_data *pdata;
+> +	struct panel_drv_data *ddata =3D platform_get_drvdata(pdev);
+> +	struct omap_dss_device *dssdev, *in;
+> +
+> +	pdata =3D dev_get_platdata(&pdev->dev);
+> +
+> +	in =3D omap_dss_find_output(pdata->source);
+> +	if (in =3D=3D NULL) {
+> +		dev_err(&pdev->dev, "failed to find video source '%s'\n",
+> +				pdata->source);
+> +		return -EPROBE_DEFER;
+> +	}
+> +
+> +	ddata->in =3D in;
+> +
+> +	ddata->data_lines =3D pdata->data_lines;
+> +
+> +	dssdev =3D &ddata->dssdev;
+> +	dssdev->name =3D pdata->name;
+> +
+> +	ddata->cs_gpio =3D pdata->cs_gpio;
+> +	ddata->scl_gpio =3D pdata->scl_gpio;
+> +	ddata->din_gpio =3D pdata->din_gpio;
+> +	ddata->dout_gpio =3D pdata->dout_gpio;
+> +
+> +	return 0;
+> +}
+> +
+> +static int td028ttec1_panel_probe(struct platform_device *pdev)
+> +{
+> +	struct panel_drv_data *ddata;
+> +	struct omap_dss_device *dssdev;
+> +	int r;
+> +
+> +	ddata =3D devm_kzalloc(&pdev->dev, sizeof(*ddata), GFP_KERNEL);
+> +	if (ddata =3D=3D NULL)
+> +		return -ENOMEM;
+> +
+> +	platform_set_drvdata(pdev, ddata);
+> +
+> +	if (dev_get_platdata(&pdev->dev)) {
+> +		r =3D td028ttec1_panel_probe_pdata(pdev);
+> +		if (r)
+> +			return r;
+> +	} else {
+> +		return -ENODEV;
+> +	}
+> +
+> +	if (gpio_is_valid(ddata->cs_gpio)) {
+> +		r =3D devm_gpio_request_one(&pdev->dev, ddata->cs_gpio,
+> +				GPIOF_OUT_INIT_HIGH, "lcd cs");
+> +		if (r)
+> +			goto err_gpio;
+> +	}
+> +
+> +	if (gpio_is_valid(ddata->scl_gpio)) {
+> +		r =3D devm_gpio_request_one(&pdev->dev, ddata->scl_gpio,
+> +				GPIOF_OUT_INIT_HIGH, "lcd scl");
+> +		if (r)
+> +			goto err_gpio;
+> +	}
+> +
+> +	if (gpio_is_valid(ddata->dout_gpio)) {
+> +		r =3D devm_gpio_request_one(&pdev->dev, ddata->dout_gpio,
+> +				GPIOF_OUT_INIT_LOW, "lcd dout");
+> +		if (r)
+> +			goto err_gpio;
+> +	}
+> +
+> +	if (gpio_is_valid(ddata->din_gpio)) {
+> +		r =3D devm_gpio_request_one(&pdev->dev, ddata->din_gpio,
+> +				GPIOF_IN, "lcd din");
+> +		if (r)
+> +			goto err_gpio;
+> +	}
+> +
+> +	/* according to data sheet: wait 50ms (Tpos of LCM). However, 50ms
+> +	 * seems unreliable with later LCM batches, increasing to 90ms */
+> +	mdelay(90);
+
+What is this delay for? Usually sleeps/delays should be between two "HW
+actions". Here there's nothing below this line that would count as such
+an action.
+
+> +	ddata->videomode =3D td028ttec1_panel_timings;
+> +
+> +	dssdev =3D &ddata->dssdev;
+> +	dssdev->dev =3D &pdev->dev;
+> +	dssdev->driver =3D &td028ttec1_ops;
+> +	dssdev->type =3D OMAP_DISPLAY_TYPE_DPI;
+> +	dssdev->owner =3D THIS_MODULE;
+> +	dssdev->panel.timings =3D ddata->videomode;
+> +	dssdev->phy.dpi.data_lines =3D ddata->data_lines;
+> +
+> +	r =3D omapdss_register_display(dssdev);
+> +	if (r) {
+> +		dev_err(&pdev->dev, "Failed to register panel\n");
+> +		goto err_reg;
+> +	}
+> +
+> +	return 0;
+> +
+> +err_reg:
+> +err_gpio:
+> +	omap_dss_put_device(ddata->in);
+> +	return r;
+> +}
+> +
+
+ Tomi
 
 
-For the set, it doesn't matter where the clock nodes reside, if someone 
-can point me out where to put them, they can be easily moved around. 
-Separating the individual clocks based on their IP mapping can probably 
-just be done by checking their register address.
-
-Anyway, I would like to have a concensus if something like this should 
-be done or not before starting to do the changes, as this is going to 
-change the layout of the clock data completely, and will require a 
-complete new testing + debugging round to be done, in addition to script 
-changes.
 
 
-> ...
->
-> Regarding the third issue: let's postulate for the moment that the clock
-> binding issues that I mention in #2 above are ignored (ha!), and that the
-> existing DT clock data is merged.  These bindings are currently marked as
-> "Unstable - ABI compatibility may be broken in the future".  What happens
-> if, when we meet to discuss clock bindings at the kernel summit, we decide
-> that significant changes are needed?  We could easily wind up with kernels
-> that won't boot at all when used with newer DT data.
->
-> Not to mention, merging such a large amount of code and data before the
-> bindings are stable will increase the risk of massive churn as the
-> bindings evolve towards stability.
->
-> So IMHO, the way to fix this is to consider the clock data to be IP-block
-> specific, as mentioned in #2.  Then there's no need for global clock
-> bindings for the SoC clock cases.
->
-> Otherwise, it seems prudent to at least wait until the global clock
-> bindings are no longer marked as unstable.  The whole DT migration was
-> predicated on the ideas of reducing churn in the Linux codebase, and
-> preserving forward compatibility for DT data.  We shouldn't discard these
-> goals just to merge something a little sooner.
+--xwP8kGPUAAUJjdXwnnQmLVTHRwOXMER5J
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
-Well, we can keep support for the vendor specific clock bindings in the 
-kernel and if generic bindings will eventually go forward, we can evolve 
-towards that. A pressing problem for this work to proceed is that we 
-need to get boot support for some new SoCs in rather sooner than again 
-wait two years and work with TI internal trees. And getting the boot 
-support quickly in, it seems the only way to get it done is via vendor 
-specific bindings, which are unstable in a sense that _if_ the generic 
-bindings go forward, we should start using those instead.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-> ...
->
-> The fourth issue is where the clockdomain data should go.  The basic issue
-> here is that the notion of "clockdomains" here is completely
-> OMAP-specific.  OMAP clockdomains demarcate a group of clocks or IP blocks
-> that share the same automatic idle behavior, controlled by their enclosing
-> IP block (e.g., PRCM, PRM, CM, etc.).  Clockdomains are also used in the
-> OMAP kernel code to link the clocks to their enclosing power domains,
-> voltage rail control, etc.
->
-> So since these are OMAP PRCM/CM/PRM-specific constructs, the right place
-> for OMAP clockdomain data is underneath the OMAP-specific CM/PRCM DT
-> nodes.  Again this should be an easy change to Tero's existing patches.
+iQIcBAEBAgAGBQJSVmL1AAoJEPo9qoy8lh71qmAP/3M6GV+xEJWQjjh5VsJIsDCW
+A3k2I5Zl7DOOImrw0+/n41pdSuS0tPcWrDvFZ0/93l3paBDY+t0HSlxZ1NerRjGE
+l9KzoW2qQv60JoizNw1ODPsTFRbeM7vAZIjxBSY4D6GZSUHVmpfC8WPm7d6rlwtb
+008WTshF5zrBOOvZD8RRJO22DrekF39AkGZ8sk4kh8nPnTDEOtfzCOfOzUzueEXs
+bhI9koXyUthq6fgo0skPD4yxGZmV8+Y4jS9BWdyppo7lLHGcLukL49x3xoEeq9BZ
+8zpmYZZutoXWn/6mvgU8dIt5rhNI94QgCDce/9JXP1QavYwp/bXUOgPoHeZcnRwK
+Trux1ztg4tH0+BDD+B93x6weAppOnoSY5Khz3+INBpr4fdFSZvdEWBgxxOam49bz
+C/n8WFovhc1Dv2l8msWdr0hR4LkpCIWssmiB3RKvqSY9SqQit/D4yqXq9ENSDVLk
+lrGB7rLANlSj6vbQbmqcuYJgvrjngpUbs0mLB9ZMe4gTzbE/ZteW+WJsNINsPeVn
+Efh3T2ksMM4p4kAGDDNh9eQ8pj55Yd9xRLxQToNIiXbeZXRtvvd1gamocF7v4Jms
+GPoGhLhAiSJbXMfXTW/OE/s4S3kcZiAbmRG28ExRn+K/AWAUoJmwUcKdCg3ww+R9
+E+msVkylaLi1i3wyyacA
+=y6Mh
+-----END PGP SIGNATURE-----
 
-Yea, does not matter where in the dts files these reside. Clockdomain 
-bindings / code implementation can be moved to wherever the CM code is 
-going to move, and this should not cause any changes to the clockdomain 
-binding definitions. Anyway, again I would like to have a clear 
-concensus if the bindings should move someplace else before doing the 
-changes.
-
--Tero
-
->
-> ...
->
-> So hey, if you've made it this far, thanks for reading.  My sense is that
-> implementing #2 and #4 are relatively straightforward.
->
-> Also, since this seems to have been a problem for some folks in the past,
-> I want to make clear that I think both Mike and Tero have been doing good
-> jobs on the CCF and OMAP clock patches so far.
->
-> regards
->
-> - Paul
->
-
+--xwP8kGPUAAUJjdXwnnQmLVTHRwOXMER5J--
