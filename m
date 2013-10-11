@@ -1,61 +1,65 @@
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH v5 3/4] v4l: ti-vpe: Add VPE mem to mem driver
-Date: Fri, 11 Oct 2013 09:46:25 +0200
-Message-ID: <5257ACD1.9010501@xs4all.nl>
-References: <1378462346-10880-1-git-send-email-archit@ti.com> <1381328975-18244-1-git-send-email-archit@ti.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH 4/6] pinctrl: single: Add support for wake-up interrupts
+Date: Fri, 11 Oct 2013 10:00:35 +0200
+Message-ID: <CACRpkdYF83ghUf60Wmrti53UJ1bWV30GW_P9GjWnsOcZHbsv+Q@mail.gmail.com>
+References: <20131003054104.8941.88857.stgit@localhost>
+	<20131003054221.8941.87801.stgit@localhost>
+	<5256AA7F.8030005@ti.com>
+	<20131010160018.GA29913@atomide.com>
+	<CACRpkdaG-PQA39XSjKUgM9TyeD7srgm_8s+NazrDKJ0gmNLcwg@mail.gmail.com>
+	<20131010162015.GC29913@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:3812 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751704Ab3JKHqf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Oct 2013 03:46:35 -0400
-In-Reply-To: <1381328975-18244-1-git-send-email-archit@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20131010162015.GC29913@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Roger Quadros <rogerq@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Grygorii Strashko <grygorii.strashko@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Prakash Manjunathappa <prakash.pm@ti.com>, Haojian Zhuang <haojian.zhuang@linaro.org>, =?ISO-8859-1?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, Linux-OMAP <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Archit Taneja <archit@ti.com>
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, laurent.pinchart@ideasonboard.com
 
-On 10/09/2013 04:29 PM, Archit Taneja wrote:
-> VPE is a block which consists of a single memory to memory path which can
-> perform chrominance up/down sampling, de-interlacing, scaling, and color space
-> conversion of raster or tiled YUV420 coplanar, YUV422 coplanar or YUV422
-> interleaved video formats.
-> 
-> We create a mem2mem driver based primarily on the mem2mem-testdev example.
-> The de-interlacer, scaler and color space converter are all bypassed for now
-> to keep the driver simple. Chroma up/down sampler blocks are implemented, so
-> conversion beteen different YUV formats is possible.
-> 
-> Each mem2mem context allocates a buffer for VPE MMR values which it will use
-> when it gets access to the VPE HW via the mem2mem queue, it also allocates
-> a VPDMA descriptor list to which configuration and data descriptors are added.
-> 
-> Based on the information received via v4l2 ioctls for the source and
-> destination queues, the driver configures the values for the MMRs, and stores
-> them in the buffer. There are also some VPDMA parameters like frame start and
-> line mode which needs to be configured, these are configured by direct register
-> writes via the VPDMA helper functions.
-> 
-> The driver's device_run() mem2mem op will add each descriptor based on how the
-> source and destination queues are set up for the given ctx, once the list is
-> prepared, it's submitted to VPDMA, these descriptors when parsed by VPDMA will
-> upload MMR registers, start DMA of video buffers on the various input and output
-> clients/ports.
-> 
-> When the list is parsed completely(and the DMAs on all the output ports done),
-> an interrupt is generated which we use to notify that the source and destination
-> buffers are done.
-> 
-> The rest of the driver is quite similar to other mem2mem drivers, we use the
-> multiplane v4l2 ioctls as the HW support coplanar formats.
-> 
-> Signed-off-by: Archit Taneja <archit@ti.com>
+On Thu, Oct 10, 2013 at 6:20 PM, Tony Lindgren <tony@atomide.com> wrote:
+> * Linus Walleij <linus.walleij@linaro.org> [131010 09:19]:
+>> On Thu, Oct 10, 2013 at 6:00 PM, Tony Lindgren <tony@atomide.com> wrote:
+>> > * Roger Quadros <rogerq@ti.com> [131010 06:32]:
+>> >>
+>> >> I tried testing this with the USB EHCI driver, but I'm not getting wake up interrupts
+>> >> while the system is still running and only the EHCI controller is runtime suspended.
+>> >>
+>> >> It seems we need to somehow call _reconfigure_io_chain() to update the daisy chain
+>> >> whenever the pad wakeup_enable bit is changed.
+>> >
+>> > Sounds like this is on omap3? Have you tried calling pcs_soc->rearm() in the
+>> > pcs_irq_handle() like the comments there suggest? At least for me that keeps
+>> > the wake-up interrupts continuously running on omap3 instead of just idle modes.
+>>
+>> If the rearm() function is calling this _reconfigure_io_chain my comments
+>> on the fact that this is something that should be handled by the pin
+>> control driver still apply I think ....
+>
+> Yes, except that the reconfigure_io_chain registers are in the PRM module, not in
+> the SCM module where the pinctrl registers are.. And that shared PRM interrupt is
+> used mostly for the internal domain wake-ups, so we should keep that in the PRM
+> driver.
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+That depends.
 
-Regards,
+One-iorange-equals-one-driver is a fallacy, especially given that MFD for
+memory-mapped things exist for a reason.
 
-	Hans
+What the pin control driver should do is control the pins. Whether the registers
+are spread out in the entire IO-memory does not matter. We did have one system
+which placed the IO-muxing together with each peripheral (!) and I did
+still want
+that to be handled by a single pinctrl driver picking out windows to all these
+IO-ranges.
 
+Things like the PRM which has (my guess) a gazillion registers related to its
+deep-core SoC stuff should be handled by things like
+drivers/mfd/syscon.c, which means it is dead simple for some other driver
+using "just this one register" in that range to get a handle at it and poke it
+using syscon_node_to_regmap() (just derference an ampersand ref)
+syscon_regmap_lookup_by_compatible() (use a compatible string)
+all returning a regmap * that you can use to poke these registers.
+
+Yours,
+Linus Walleij
