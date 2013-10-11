@@ -1,49 +1,177 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] ARM: OMAP: Device Tree for 3.13
-Date: Fri, 11 Oct 2013 11:03:24 -0700
-Message-ID: <20131011180324.GV29913@atomide.com>
-References: <52582A67.6050108@baylibre.com>
+From: Brian Norris <computersforpeace@gmail.com>
+Subject: Re: [PATCH v8 6/6] mtd: nand: omap: updated devm_xx for all
+ resource allocation and free calls
+Date: Fri, 11 Oct 2013 11:15:15 -0700
+Message-ID: <20131011181515.GJ23337@ld-irv-0074.broadcom.com>
+References: <1381498603-15715-1-git-send-email-pekon@ti.com>
+ <1381498603-15715-7-git-send-email-pekon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:25578 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752105Ab3JKSD3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Oct 2013 14:03:29 -0400
+Received: from mail-oa0-f48.google.com ([209.85.219.48]:50154 "EHLO
+	mail-oa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755784Ab3JKSPU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Oct 2013 14:15:20 -0400
 Content-Disposition: inline
-In-Reply-To: <52582A67.6050108@baylibre.com>
+In-Reply-To: <1381498603-15715-7-git-send-email-pekon@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <bcousson@baylibre.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
+To: Pekon Gupta <pekon@ti.com>
+Cc: mark.rutland@arm.com, robherring2@gmail.com, olof@lixom.net, dedekind1@gmail.com, Pawel.Moll@arm.com, ijc+devicetree@hellion.org.uk, swarren@wwwdotorg.org, dwmw2@infradead.org, arnd@arndb.de, tony@atomide.com, bcousson@baylibre.com, avinashphilipk@gmail.com, balbi@ti.com, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
 
-Hi Benoit,
+Hi Pekon,
 
-* Benoit Cousson <bcousson@baylibre.com> [131011 09:50]:
-> Add the minimal DTS support for DRA7xx based SoC core.
-> Add the initial support for N900 and gta04 phones.
-> Enable USB3 on OMAP5 evm board.
-> Add support for cryto accelerators
-> Add new IGEP AQUILA board
-> Add AM33XX EDMA support
-> Update HSUSB node to use the reset-gpios fmwk
+On Fri, Oct 11, 2013 at 07:06:43PM +0530, Pekon Gupta wrote:
+> "Managed Device Resource" or devm_xx calls takes care of automatic freeing
+> of the resource in case of:
+> - failure during driver probe
+> - failure during resource allocation
+> - detaching or unloading of driver module (rmmod)
+> Reference: Documentation/driver-model/devres.txt
+> 
+> Though OMAP NAND driver handles freeing of resource allocation in most of
+> the cases, but using devm_xx provides more clean and effortless approach
+> to handle all such cases.
 
-Looks good to me, but we're getting self-inflicted merge
-conflicts in two places now with Paul's hwmod changes,
-and my defconfig changes.
+Judging by your patch, I think you missed the point of the devm_*
+managed functions. They are useful because you don't need to do any of
+the cleanup (kfree(), iounmap(), etc.) yourself. I'll note the changes
+that are necessary below, but seeing as this is an add-on to your patch
+series, I may merge the rest of series without this, and if so, you can
+just resubmit this patch separately.
 
-Can you please respin without the following two patches:
+> Signed-off-by: Pekon Gupta <pekon@ti.com>
+> ---
+>  drivers/mtd/nand/omap2.c | 38 +++++++++++++++++++++-----------------
+>  1 file changed, 21 insertions(+), 17 deletions(-)
+> 
+> diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
+> index a783dae..0f2b0d1 100644
+> --- a/drivers/mtd/nand/omap2.c
+> +++ b/drivers/mtd/nand/omap2.c
+> @@ -1658,7 +1658,8 @@ static int omap_nand_probe(struct platform_device *pdev)
+>  		return -ENODEV;
+>  	}
+>  
+> -	info = kzalloc(sizeof(struct omap_nand_info), GFP_KERNEL);
+> +	info = devm_kzalloc(&pdev->dev, sizeof(struct omap_nand_info),
+> +				GFP_KERNEL);
+>  	if (!info)
+>  		return -ENOMEM;
+>  
+> @@ -1690,13 +1691,14 @@ static int omap_nand_probe(struct platform_device *pdev)
+>  	info->phys_base = res->start;
+>  	info->mem_size = resource_size(res);
+>  
+> -	if (!request_mem_region(info->phys_base, info->mem_size,
+> -				pdev->dev.driver->name)) {
+> +	if (!devm_request_mem_region(&pdev->dev, info->phys_base,
+> +				info->mem_size,	pdev->dev.driver->name)) {
+>  		err = -EBUSY;
+>  		goto out_free_info;
+>  	}
+>  
+> -	info->nand.IO_ADDR_R = ioremap(info->phys_base, info->mem_size);
+> +	info->nand.IO_ADDR_R = devm_ioremap(&pdev->dev, info->phys_base,
+> +						info->mem_size);
+>  	if (!info->nand.IO_ADDR_R) {
+>  		err = -ENOMEM;
+>  		goto out_release_mem_region;
+> @@ -1799,8 +1801,9 @@ static int omap_nand_probe(struct platform_device *pdev)
+>  			err = -ENODEV;
+>  			goto out_release_mem_region;
+>  		}
+> -		err = request_irq(info->gpmc_irq_fifo,	omap_nand_irq,
+> -					IRQF_SHARED, "gpmc-nand-fifo", info);
+> +		err = devm_request_irq(&pdev->dev, info->gpmc_irq_fifo,
+> +					omap_nand_irq, IRQF_SHARED,
+> +					"gpmc-nand-fifo", info);
+>  		if (err) {
+>  			dev_err(&pdev->dev, "requesting irq(%d) error:%d",
+>  						info->gpmc_irq_fifo, err);
+> @@ -1814,8 +1817,9 @@ static int omap_nand_probe(struct platform_device *pdev)
+>  			err = -ENODEV;
+>  			goto out_release_mem_region;
+>  		}
+> -		err = request_irq(info->gpmc_irq_count,	omap_nand_irq,
+> -					IRQF_SHARED, "gpmc-nand-count", info);
+> +		err = devm_request_irq(&pdev->dev, info->gpmc_irq_count,
+> +					omap_nand_irq, IRQF_SHARED,
+> +					"gpmc-nand-count", info);
+>  		if (err) {
+>  			dev_err(&pdev->dev, "requesting irq(%d) error:%d",
+>  						info->gpmc_irq_count, err);
+> @@ -2031,10 +2035,10 @@ out_release_mem_region:
+>  	if (info->dma)
+>  		dma_release_channel(info->dma);
+>  	if (info->gpmc_irq_count > 0)
+> -		free_irq(info->gpmc_irq_count, info);
+> +		devm_free_irq(&pdev->dev, info->gpmc_irq_count, info);
 
-49bcd824c1c0db32fe4de0c1ba3ee36defdb11ca ARM: configs: omap2plus_defconfig: enable dwc3 and dependencies
-736c4bb159c793b00331261438deb982cbac3c03 ARM: OMAP5: hwmod: add missing ocp2scp hwmod data
+Just drop the 'free'.
 
-I can pick the two patches above and apply after pulling in
-Paul's branch first.
+>  	if (info->gpmc_irq_fifo > 0)
+> -		free_irq(info->gpmc_irq_fifo, info);
+> -	release_mem_region(info->phys_base, info->mem_size);
+> +		devm_free_irq(&pdev->dev, info->gpmc_irq_fifo, info);
 
-However, if other branches are based on this, then we just
-need to deal with the merge conflicts, and there's no point
-in redoing your branch.
+Drop the 'free'.
 
-Regards,
+> +	devm_release_mem_region(&pdev->dev, info->phys_base, info->mem_size);
 
-Tony
+Drop this line.
+
+>  out_free_info:
+>  #ifdef CONFIG_MTD_NAND_ECC_BCH
+>  	if (info->nand.ecc.priv) {
+> @@ -2042,7 +2046,7 @@ out_free_info:
+>  		info->nand.ecc.priv = NULL;
+>  	}
+>  #endif
+> -	kfree(info);
+> +	devm_kfree(&pdev->dev, info);
+
+This line is also not needed.
+
+So in the end, the 'gotos' and error path of your probe function will be
+much simpler. You will only need to manage the info->dma DMA channel
+(i.e., dma_release_channel()).
+
+>  
+>  	return err;
+>  }
+> @@ -2062,15 +2066,15 @@ static int omap_nand_remove(struct platform_device *pdev)
+>  		dma_release_channel(info->dma);
+>  
+>  	if (info->gpmc_irq_count > 0)
+> -		free_irq(info->gpmc_irq_count, info);
+> +		devm_free_irq(&pdev->dev, info->gpmc_irq_count, info);
+
+This 'free' is also not needed.
+
+>  	if (info->gpmc_irq_fifo > 0)
+> -		free_irq(info->gpmc_irq_fifo, info);
+> +		devm_free_irq(&pdev->dev, info->gpmc_irq_fifo, info);
+
+Ditto.
+
+>  
+>  	/* Release NAND device, its internal structures and partitions */
+>  	nand_release(&info->mtd);
+> -	iounmap(info->nand.IO_ADDR_R);
+> -	release_mem_region(info->phys_base, info->mem_size);
+> -	kfree(info);
+> +	devm_iounmap(&pdev->dev, info->nand.IO_ADDR_R);
+> +	devm_release_mem_region(&pdev->dev, info->phys_base, info->mem_size);
+> +	devm_kfree(&pdev->dev, info);
+
+Ditto for all 3.
+
+Your 'remove' function will also be much shorter.
+
+>  	return 0;
+>  }
+>  
+
+Thanks,
+Brian
