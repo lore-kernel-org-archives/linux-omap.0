@@ -1,137 +1,61 @@
-From: Pekon Gupta <pekon@ti.com>
-Subject: [PATCH v8 6/6] mtd: nand: omap: updated devm_xx for all resource allocation and free calls
-Date: Fri, 11 Oct 2013 19:06:43 +0530
-Message-ID: <1381498603-15715-7-git-send-email-pekon@ti.com>
-References: <1381498603-15715-1-git-send-email-pekon@ti.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 4/6] pinctrl: single: Add support for wake-up interrupts
+Date: Fri, 11 Oct 2013 16:59:20 +0300
+Message-ID: <52580438.4040002@ti.com>
+References: <20131003054104.8941.88857.stgit@localhost> <20131003054221.8941.87801.stgit@localhost> <5256AA7F.8030005@ti.com> <20131010160018.GA29913@atomide.com> <5257BB8C.5080001@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:45498 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755769Ab3JKNjo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 11 Oct 2013 09:39:44 -0400
-In-Reply-To: <1381498603-15715-1-git-send-email-pekon@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <5257BB8C.5080001-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Prakash Manjunathappa <prakash.pm-l0cyMroinI0@public.gmane.org>, Haojian Zhuang <haojian.zhuang-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, =?ISO-8859-1?Q?Beno=EEt_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: mark.rutland@arm.com, robherring2@gmail.com, olof@lixom.net, computersforpeace@gmail.com, dedekind1@gmail.com
-Cc: Pawel.Moll@arm.com, ijc+devicetree@hellion.org.uk, swarren@wwwdotorg.org, dwmw2@infradead.org, arnd@arndb.de, tony@atomide.com, bcousson@baylibre.com, avinashphilipk@gmail.com, balbi@ti.com, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Pekon Gupta <pekon@ti.com>
 
-"Managed Device Resource" or devm_xx calls takes care of automatic freeing
-of the resource in case of:
-- failure during driver probe
-- failure during resource allocation
-- detaching or unloading of driver module (rmmod)
-Reference: Documentation/driver-model/devres.txt
+On 10/11/2013 11:49 AM, Roger Quadros wrote:
+> On 10/10/2013 07:00 PM, Tony Lindgren wrote:
+>> * Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> [131010 06:32]:
+>>>
+>>> I tried testing this with the USB EHCI driver, but I'm not getting wake up interrupts
+>>> while the system is still running and only the EHCI controller is runtime suspended.
+>>>
+>>> It seems we need to somehow call _reconfigure_io_chain() to update the daisy chain
+>>> whenever the pad wakeup_enable bit is changed.
+>>
+>> Sounds like this is on omap3? Have you tried calling pcs_soc->rearm() in the
+>> pcs_irq_handle() like the comments there suggest? At least for me that keeps
+>> the wake-up interrupts continuously running on omap3 instead of just idle modes.
+> 
+> Yes it is on OMAP3. I haven't tried with pcs_soc->rearm(). I will give it a try and
+> let you know.
+>>
+>> Now on omap4, I've noticed the wake up interrupts are on all the time based on tests
+>> with the serial driver.
+>>  
+>>> I think pcs_irq_set_wake() is where need to control system wakeup behaviour for the irq.
+>>> This is where we should be able to change WAKEUP_EN bit of the pad
+>>> to enable/disable system wakeup for that pad and also call _reconfigure_io_chain().
+>>
+>> Well the irq_set_wake() should only be needed for suspend and resume. For runtime PM
+>> the wake-events should be always enabled by default as pointed out by Alan Stern
+>> a while back.
+> 
+> Right, but we need to update the WAKEUP_EN bit in the pad control register for that
+> to work, no?. This is something we are not doing in the driver.
 
-Though OMAP NAND driver handles freeing of resource allocation in most of
-the cases, but using devm_xx provides more clean and effortless approach
-to handle all such cases.
+OK sorry, just figured out that we are doing it indeed in pcs_irq_set().
+Wasn't able to test it yet with USB. But I don't see any issues except that
+pcs_soc->rearm() needs to be called from pcs_irq_set() instead of from pcs_irq_unmask().
 
-Signed-off-by: Pekon Gupta <pekon@ti.com>
----
- drivers/mtd/nand/omap2.c | 38 +++++++++++++++++++++-----------------
- 1 file changed, 21 insertions(+), 17 deletions(-)
+After that you can add my
 
-diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-index a783dae..0f2b0d1 100644
---- a/drivers/mtd/nand/omap2.c
-+++ b/drivers/mtd/nand/omap2.c
-@@ -1658,7 +1658,8 @@ static int omap_nand_probe(struct platform_device *pdev)
- 		return -ENODEV;
- 	}
- 
--	info = kzalloc(sizeof(struct omap_nand_info), GFP_KERNEL);
-+	info = devm_kzalloc(&pdev->dev, sizeof(struct omap_nand_info),
-+				GFP_KERNEL);
- 	if (!info)
- 		return -ENOMEM;
- 
-@@ -1690,13 +1691,14 @@ static int omap_nand_probe(struct platform_device *pdev)
- 	info->phys_base = res->start;
- 	info->mem_size = resource_size(res);
- 
--	if (!request_mem_region(info->phys_base, info->mem_size,
--				pdev->dev.driver->name)) {
-+	if (!devm_request_mem_region(&pdev->dev, info->phys_base,
-+				info->mem_size,	pdev->dev.driver->name)) {
- 		err = -EBUSY;
- 		goto out_free_info;
- 	}
- 
--	info->nand.IO_ADDR_R = ioremap(info->phys_base, info->mem_size);
-+	info->nand.IO_ADDR_R = devm_ioremap(&pdev->dev, info->phys_base,
-+						info->mem_size);
- 	if (!info->nand.IO_ADDR_R) {
- 		err = -ENOMEM;
- 		goto out_release_mem_region;
-@@ -1799,8 +1801,9 @@ static int omap_nand_probe(struct platform_device *pdev)
- 			err = -ENODEV;
- 			goto out_release_mem_region;
- 		}
--		err = request_irq(info->gpmc_irq_fifo,	omap_nand_irq,
--					IRQF_SHARED, "gpmc-nand-fifo", info);
-+		err = devm_request_irq(&pdev->dev, info->gpmc_irq_fifo,
-+					omap_nand_irq, IRQF_SHARED,
-+					"gpmc-nand-fifo", info);
- 		if (err) {
- 			dev_err(&pdev->dev, "requesting irq(%d) error:%d",
- 						info->gpmc_irq_fifo, err);
-@@ -1814,8 +1817,9 @@ static int omap_nand_probe(struct platform_device *pdev)
- 			err = -ENODEV;
- 			goto out_release_mem_region;
- 		}
--		err = request_irq(info->gpmc_irq_count,	omap_nand_irq,
--					IRQF_SHARED, "gpmc-nand-count", info);
-+		err = devm_request_irq(&pdev->dev, info->gpmc_irq_count,
-+					omap_nand_irq, IRQF_SHARED,
-+					"gpmc-nand-count", info);
- 		if (err) {
- 			dev_err(&pdev->dev, "requesting irq(%d) error:%d",
- 						info->gpmc_irq_count, err);
-@@ -2031,10 +2035,10 @@ out_release_mem_region:
- 	if (info->dma)
- 		dma_release_channel(info->dma);
- 	if (info->gpmc_irq_count > 0)
--		free_irq(info->gpmc_irq_count, info);
-+		devm_free_irq(&pdev->dev, info->gpmc_irq_count, info);
- 	if (info->gpmc_irq_fifo > 0)
--		free_irq(info->gpmc_irq_fifo, info);
--	release_mem_region(info->phys_base, info->mem_size);
-+		devm_free_irq(&pdev->dev, info->gpmc_irq_fifo, info);
-+	devm_release_mem_region(&pdev->dev, info->phys_base, info->mem_size);
- out_free_info:
- #ifdef CONFIG_MTD_NAND_ECC_BCH
- 	if (info->nand.ecc.priv) {
-@@ -2042,7 +2046,7 @@ out_free_info:
- 		info->nand.ecc.priv = NULL;
- 	}
- #endif
--	kfree(info);
-+	devm_kfree(&pdev->dev, info);
- 
- 	return err;
- }
-@@ -2062,15 +2066,15 @@ static int omap_nand_remove(struct platform_device *pdev)
- 		dma_release_channel(info->dma);
- 
- 	if (info->gpmc_irq_count > 0)
--		free_irq(info->gpmc_irq_count, info);
-+		devm_free_irq(&pdev->dev, info->gpmc_irq_count, info);
- 	if (info->gpmc_irq_fifo > 0)
--		free_irq(info->gpmc_irq_fifo, info);
-+		devm_free_irq(&pdev->dev, info->gpmc_irq_fifo, info);
- 
- 	/* Release NAND device, its internal structures and partitions */
- 	nand_release(&info->mtd);
--	iounmap(info->nand.IO_ADDR_R);
--	release_mem_region(info->phys_base, info->mem_size);
--	kfree(info);
-+	devm_iounmap(&pdev->dev, info->nand.IO_ADDR_R);
-+	devm_release_mem_region(&pdev->dev, info->phys_base, info->mem_size);
-+	devm_kfree(&pdev->dev, info);
- 	return 0;
- }
- 
--- 
-1.8.1
+Reviewed-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 
+cheers,
+-roger
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
