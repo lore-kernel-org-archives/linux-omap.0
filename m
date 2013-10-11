@@ -1,57 +1,55 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/2] ARM: OMAP2+: Run make savedefconfig on
- omap2plus_defconfig to shrink it
-Date: Fri, 11 Oct 2013 08:59:49 -0700
-Message-ID: <20131011155949.GQ29913@atomide.com>
-References: <20131010230325.8152.27727.stgit@localhost>
- <20131010230440.8152.29871.stgit@localhost>
- <5257415A.7090600@ti.com>
- <20131011004411.GL29913@atomide.com>
+Subject: Re: [PATCH 4/6] pinctrl: single: Add support for wake-up interrupts
+Date: Fri, 11 Oct 2013 09:01:46 -0700
+Message-ID: <20131011160146.GR29913@atomide.com>
+References: <20131003054221.8941.87801.stgit@localhost>
+ <5256AA7F.8030005@ti.com>
+ <20131010160018.GA29913@atomide.com>
+ <CACRpkdaG-PQA39XSjKUgM9TyeD7srgm_8s+NazrDKJ0gmNLcwg@mail.gmail.com>
+ <20131010162015.GC29913@atomide.com>
+ <CACRpkdYF83ghUf60Wmrti53UJ1bWV30GW_P9GjWnsOcZHbsv+Q@mail.gmail.com>
+ <5257BD3E.5000707@ti.com>
+ <CACRpkdYJNaiAAHhYatd6g5_wVt0QEUxOvsk6nQn9o=_i5zfWrA@mail.gmail.com>
+ <20131011154352.GO29913@atomide.com>
+ <CACRpkdZhbadd5d4P+2B0_DktqK4CHzZPVJC8kPHZYUnp8TaxsA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:59968 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:10371 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757110Ab3JKP7w (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Oct 2013 11:59:52 -0400
+	with ESMTP id S1753823Ab3JKQBt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Oct 2013 12:01:49 -0400
 Content-Disposition: inline
-In-Reply-To: <20131011004411.GL29913@atomide.com>
+In-Reply-To: <CACRpkdZhbadd5d4P+2B0_DktqK4CHzZPVJC8kPHZYUnp8TaxsA@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mugunthan V N <mugunthanvnm@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: Roger Quadros <rogerq@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Grygorii Strashko <grygorii.strashko@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Prakash Manjunathappa <prakash.pm@ti.com>, Haojian Zhuang <haojian.zhuang@linaro.org>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Linux-OMAP <linux-omap@vger.kernel.org>
 
-* Tony Lindgren <tony@atomide.com> [131010 17:52]:
-> * Mugunthan V N <mugunthanvnm@ti.com> [131010 17:15]:
-> > On Thursday 10 October 2013 06:04 PM, Tony Lindgren wrote:
-> > > -CONFIG_TI_DAVINCI_MDIO=y
-> > > -CONFIG_TI_DAVINCI_CPDMA=y
-> > > -CONFIG_TI_CPSW=y
-> > > -CONFIG_AT803X_PHY=y
-> > Can you keep the above defines as AM335x EVM, Beagle bone, Beagle bone
-> > black can use ethernet with omap2plus_defconfig
+* Linus Walleij <linus.walleij@linaro.org> [131011 09:05]:
+> On Fri, Oct 11, 2013 at 5:43 PM, Tony Lindgren <tony@atomide.com> wrote:
+> > * Linus Walleij <linus.walleij@linaro.org> [131011 03:40]:
+> >> On Fri, Oct 11, 2013 at 10:56 AM, Roger Quadros <rogerq@ti.com> wrote:
+> >>
+> >> > The register handling is fine. But how do we deal with resource handling?
+> >> > e.g. the block that has the deep-core registers might need to be clocked or powered
+> >> > before the registers can be accessed.
+> >>
+> >> Yeah I saw this in the code there.
+> >>
+> >> In this case it seems syscon-type regmap access can be used to
+> >> read/write the registers, so maybe the pin controller also need to
+> >>  get a handle on some clock etc?
+> >
+> > Uhh, let's not go there.. The resource availability needs to be
+> > handled transparently in regmap code and the reg provider hardware
+> > module driver using runtime PM.
 > 
-> I think they should get automatically selected by
-> default with make omap2plus_defconfig, I don't think make
-> savedefconfig removes any selected features.
-> 
-> Maybe check it though with this patch?
+> OK we can surely discuss this with broonie, it makes sense to
+> have regmap be able to do its deed transparently.
 
-I've confirmed these are automatically selected after
-doing make omap2plus_defconfig. They seem to be selected by
-CONFIG_TI_CPSW=y that stays in the omap2plus_defconfig after
-doing make save_defconfig, looks like it just moves around a
-bit after doing make save_defconfig.
-
-BTW, why do we get edma warnings during boot on systems with no 
-edma like on omap4:
-
-edma-dma-engine edma-dma-engine.0: Can't allocate PaRAM dummy slot
-edma-dma-engine: probe of edma-dma-engine.0 failed with error -5
-omap-dma-engine 4a056000.dma-controller: OMAP DMA engine driver
-
-That's just confusing.
-
-Regards,
+Yes I think so too. Sounds like we need callbacks for the runtime PM
+checks to the "register provider" driver. Hwo knows, maybe those
+features are there already :)
 
 Tony
