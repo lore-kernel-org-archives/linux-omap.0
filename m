@@ -1,55 +1,48 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 4/6] pinctrl: single: Add support for wake-up interrupts
-Date: Fri, 11 Oct 2013 09:01:46 -0700
-Message-ID: <20131011160146.GR29913@atomide.com>
-References: <20131003054221.8941.87801.stgit@localhost>
- <5256AA7F.8030005@ti.com>
- <20131010160018.GA29913@atomide.com>
- <CACRpkdaG-PQA39XSjKUgM9TyeD7srgm_8s+NazrDKJ0gmNLcwg@mail.gmail.com>
- <20131010162015.GC29913@atomide.com>
- <CACRpkdYF83ghUf60Wmrti53UJ1bWV30GW_P9GjWnsOcZHbsv+Q@mail.gmail.com>
- <5257BD3E.5000707@ti.com>
- <CACRpkdYJNaiAAHhYatd6g5_wVt0QEUxOvsk6nQn9o=_i5zfWrA@mail.gmail.com>
- <20131011154352.GO29913@atomide.com>
- <CACRpkdZhbadd5d4P+2B0_DktqK4CHzZPVJC8kPHZYUnp8TaxsA@mail.gmail.com>
+Subject: Re: [PATCH V6 02/15] ARM: OMAP2+: AM33XX: add lateinit hook for
+ calling pm late init
+Date: Fri, 11 Oct 2013 09:11:17 -0700
+Message-ID: <20131011161116.GS29913@atomide.com>
+References: <1381354144-7134-1-git-send-email-nm@ti.com>
+ <1381361098-8283-1-git-send-email-nm@ti.com>
+ <52563BD8.1060703@ti.com>
+ <20131010133209.GA13105@kahuna>
+ <5256C5D2.9030302@ti.com>
+ <5256C686.6000301@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:10371 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:36589 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753823Ab3JKQBt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Oct 2013 12:01:49 -0400
+	with ESMTP id S1758405Ab3JKQLW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Oct 2013 12:11:22 -0400
 Content-Disposition: inline
-In-Reply-To: <CACRpkdZhbadd5d4P+2B0_DktqK4CHzZPVJC8kPHZYUnp8TaxsA@mail.gmail.com>
+In-Reply-To: <5256C686.6000301@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Roger Quadros <rogerq@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Grygorii Strashko <grygorii.strashko@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Prakash Manjunathappa <prakash.pm@ti.com>, Haojian Zhuang <haojian.zhuang@linaro.org>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Linux-OMAP <linux-omap@vger.kernel.org>
+To: Joel Fernandes <joelf@ti.com>
+Cc: Nishanth Menon <nm@ti.com>, Kevin Hilman <khilman@linaro.org>, Benoit Cousson <bcousson@baylibre.com>, Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-doc@vger.kernel.org, devicetree@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, Paul Walmsley <paul@pwsan.com>
 
-* Linus Walleij <linus.walleij@linaro.org> [131011 09:05]:
-> On Fri, Oct 11, 2013 at 5:43 PM, Tony Lindgren <tony@atomide.com> wrote:
-> > * Linus Walleij <linus.walleij@linaro.org> [131011 03:40]:
-> >> On Fri, Oct 11, 2013 at 10:56 AM, Roger Quadros <rogerq@ti.com> wrote:
-> >>
-> >> > The register handling is fine. But how do we deal with resource handling?
-> >> > e.g. the block that has the deep-core registers might need to be clocked or powered
-> >> > before the registers can be accessed.
-> >>
-> >> Yeah I saw this in the code there.
-> >>
-> >> In this case it seems syscon-type regmap access can be used to
-> >> read/write the registers, so maybe the pin controller also need to
-> >>  get a handle on some clock etc?
-> >
-> > Uhh, let's not go there.. The resource availability needs to be
-> > handled transparently in regmap code and the reg provider hardware
-> > module driver using runtime PM.
+* Joel Fernandes <joelf@ti.com> [131010 08:31]:
+> On 10/10/2013 10:20 AM, Joel Fernandes wrote:
+> > 
+> > Adding 6 lines of identical code for every platform seems redundant, I'd just
+> > define an omap_common_late_init for all platforms for now, and then fork off for
+> > the future differences. That way we save on LOC and readability in the header as
+> > well. Your call.
 > 
-> OK we can surely discuss this with broonie, it makes sense to
-> have regmap be able to do its deed transparently.
+> I see a function of that name already exists. I guess you can leave your patch
+> as is then and not have to do this.
 
-Yes I think so too. Sounds like we need callbacks for the runtime PM
-checks to the "register provider" driver. Hwo knows, maybe those
-features are there already :)
+Yeah but why not just call the common late_init function directly for the
+cases where we know it's never needed.
+
+If thoses will be populated in the later patches, then it's OK to add them.
+
+In any case, Nishant, can you please squash the late_init patches into a
+single patch and make sure it also applies on top of the omap-for-v3.13/quirk
+branch as there's been some changes to board-generic.c there.
+
+Regards,
 
 Tony
