@@ -1,37 +1,59 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCHv7 00/36] ARM: OMAP: clock data conversion to DT
-Date: Fri, 11 Oct 2013 22:26:08 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1310112223570.27397@utopia.booyaka.com>
-References: <1380098922-30340-1-git-send-email-t-kristo@ti.com> <524EE00F.7010208@ti.com> <20131007021556.GV8949@atomide.com> <52525642.8010307@ti.com> <20131007154103.GW8949@atomide.com> <20131007190322.GY8949@atomide.com> <alpine.DEB.2.02.1310091551540.30199@utopia.booyaka.com>
- <alpine.DEB.2.02.1310091858411.30199@utopia.booyaka.com> <525654AE.7060009@ti.com> <alpine.DEB.2.02.1310111749180.27397@utopia.booyaka.com> <5258421D.8030006@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL] ARM: OMAP2+: hwmod changes for v3.13
+Date: Fri, 11 Oct 2013 15:26:34 -0700
+Message-ID: <20131011222634.GB29913@atomide.com>
+References: <alpine.DEB.2.02.1310111659500.27397@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:60892 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751807Ab3JKW0K (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Oct 2013 18:26:10 -0400
-In-Reply-To: <5258421D.8030006@ti.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:47621 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752004Ab3JKW0h (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Oct 2013 18:26:37 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.02.1310111659500.27397@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, mturquette@linaro.org, linux-omap@vger.kernel.org, nm@ti.com, khilman@linaro.org, pdeschrijver@nvidia.com, rnayak@ti.com, bcousson@baylibre.com, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, swarren@nvidia.com, mark.rutland@arm.com
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Fri, 11 Oct 2013, Tero Kristo wrote:
+* Paul Walmsley <paul@pwsan.com> [131011 10:08]:
+> Hi Tony,
+> 
+> The following changes since commit d0e639c9e06d44e713170031fe05fb60ebe680af:
+> 
+>   Linux 3.12-rc4 (2013-10-06 14:00:20 -0700)
+> 
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/for-v3.13/hwmod
+> 
+> for you to fetch changes up to ace1e3ec4a2540c783e65884bb7be9cd45a0a295:
+> 
+>   ARM: AM33xx: hwmod: Add RNG module data (2013-10-09 09:02:51 -0600)
+> 
+> ----------------------------------------------------------------
+> Some OMAP hwmod changes for 3.13.  Significant changes here include:
+> 
+> - support for moving some of the hwmod flags to DT data
+> 
+> - support for the SSI, hardware spinlock, USB host/TLL, and RNG IP
+>   blocks for various OMAPs
+> 
+> - a fix that again decouples hwmod data changes from unrelated DT data
+>   patchsets
+> 
+> Basic test logs are available at:
+> 
+> http://www.pwsan.com/omap/testlogs/prcm_fixes_v3.13/20131009094936/
+> 
+> The summary reports that the 4460varsomom boots are failing, but this looks
+> incorrect - it's probably a bug in the validation scripts here.
 
-> Well, even if you sign something, you can still update it. Writing any
-> software to true OTP memory is one way to commit suicide IMO. How many nasty
-> bugs have you seen with ROM code? Also, if people want to make their custom
-> security solutions which are not supported by the kernel, why should the
-> kernel care about it? We don't know the details, and can't influence the
-> design, so we can't prepare for it anyway.
+OK I'll do a test on my panda es before sending out the branches
+and will apply that one hwmod patch Benoit had queued on top
+of this. So pulling into omap-for-v3.13/hwmod.
 
-The point is that newer kernels need to be compatible with older DT data: 
-that's the "stable ABI" criterion that's been discussed quite a bit.  The 
-worst-case scenario if the bindings are at a top-level node and not fully 
-cooked is that it can make it very difficult, if not impossible, to have 
-this forward compatibility for the DT data without having extremely nasty 
-hacks.
+Regards,
 
-
-- Paul
+Tony
