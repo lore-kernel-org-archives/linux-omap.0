@@ -1,67 +1,71 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: linux-next: manual merge of the omap_dss2 tree
-Date: Fri, 11 Oct 2013 08:18:34 +0300
-Message-ID: <52578A2A.10304@ti.com>
-References: <20131010175020.GS21581@sirena.org.uk>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH 1/2] ARM: dts: omap5-uevm: remove always_on, boot_on from
+ smps10_out1
+Date: Fri, 11 Oct 2013 11:43:55 +0530
+Message-ID: <52579723.6080209@ti.com>
+References: <1381402195-29257-1-git-send-email-kishon@ti.com>
+ <20131010141949.GA13277@kahuna>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="XNqRQXMNldPvDr7dARvo8RFQxgfO1pSIR"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20131010175020.GS21581@sirena.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
-Cc: Archit Taneja <archit@ti.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Thierry Reding <thierry.reding@gmail.com>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20131010141949.GA13277@kahuna>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Nishanth Menon <nm@ti.com>
+Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, linux@arm.linux.org.uk, pawel.moll@arm.com, ijc+devicetree@hellion.org.uk, tony@atomide.com, swarren@wwwdotorg.org, linux-kernel@vger.kernel.org, rob.herring@calxeda.com, bcousson@baylibre.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
---XNqRQXMNldPvDr7dARvo8RFQxgfO1pSIR
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+On Thursday 10 October 2013 07:49 PM, Nishanth Menon wrote:
+> On 16:19-20131010, Kishon Vijay Abraham I wrote:
+>> smps10 should be enabled only in the case of host mode. So stop
+>> doing always_on, boot_on from smps10_out1. The driver will enable it in =
+host
+>> mode.
+>>
+>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+>> ---
+>>  arch/arm/boot/dts/omap5-uevm.dts |    2 --
+>>  1 file changed, 2 deletions(-)
+>>
+>> diff --git a/arch/arm/boot/dts/omap5-uevm.dts b/arch/arm/boot/dts/omap5-=
+uevm.dts
+>> index d784b3a..e06a04a 100644
+>> --- a/arch/arm/boot/dts/omap5-uevm.dts
+>> +++ b/arch/arm/boot/dts/omap5-uevm.dts
+>> @@ -334,8 +334,6 @@
+>>  					regulator-name =3D "smps10_out1";
+>>  					regulator-min-microvolt =3D <5000000>;
+>>  					regulator-max-microvolt =3D <5000000>;
+>> -					regulator-always-on;
+>> -					regulator-boot-on;
+>>  				};
+>>  =
 
-Hi Mark, Jean-Christophe,
+>>  				ldo1_reg: ldo1 {
+>> -- =
 
-On 10/10/13 20:50, Mark Brown wrote:
-> Today's linux-next merge of the omap_dss2 tree got conflicts in
-> drivers/video/omap2/dss/hdmi4_core.[ch] caused by ef26958a (omapdss:
-> HDMI: Rename hdmi driver files to nicer names) interacting with a range=
+> Always good to get rid of regulator-always-on. Thanks for it.
+> =
 
-> of commits from Ricardo Neri in the fbdev tree and possibly some other
-> stuff.  git is unfortunately not giving me a useful diff right now :/
+> regulator-boot-on indicates that PMIC enables it by default as part of
+> OTP or some internal behavior -> Looking at the measurements done on
+> uEVM and OTP information -> regulator-boot-on should be kept here.
 
-Jean-Christophe has slightly different versions of my patches in his
-fbdev for-next branch, so they conflict with my updated versions.
+No. Actually I don=92t want PMIC to enable it by default. I want the palmas=
+-usb
+driver to handle it.
+Enabling it by default makes palmas-usb to detect VBUS interrupt. This shou=
+ld
+ideally be detected only when you connect a host cable.
+Btw I didn't exactly get why you want regulator-boot-on should be kept here.
 
-Jean-Christophe, I expected this to happen with the current way of you
-having a copy of my for-next branch in yours. Can I now take your
-atmel_lcdfb patches to my for-next, and you'll remove all patches from
-your for-next?
-
- Tomi
-
-
-
---XNqRQXMNldPvDr7dARvo8RFQxgfO1pSIR
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJSV4oqAAoJEPo9qoy8lh71j9EP/3p2wrXE1HG9AxVh7vTQfL+z
-k/ER29SY3vxgDBXgKwoVTAy8Ui1/h9wrx1gfOLYbJck3vjKMSfW1bjJn8Sx2TNZg
-0yImVz8jcJg1Hx7hfwaygFysRnyqniKHw2H0uVRUW8j0b0W9/6EwwAdruHBAcWN1
-xvUKTVMsOKzZqhtf7jr600Gn0XBffMaXOgd2vgRaSicaTFfJRe1NzbKynn52qKu0
-8GRHFrwEyhsatNPy5UEmtG/aKhQDrqNuEYXavi9/Puv/qB0W/fY84LvI0Sv7uDEM
-3/GQbvvm4pYcHaKJpGrhoI+B9GUmamOQ+S9crZPXp4sOCgM7J+6co9//QWaoVHb2
-62gs2a1lsSagc5H6wykChKRzv3KovVo+w8uzgLfvLSXIWU1FD1ze1gPAfbOX9OOy
-6v0KD1ApGxGUTSKUBUSpgTZ0Pq5qNFmxKSz7TofVMZezq7k8++rsMT3ywKJlAyNC
-y4VGWFa8TZUwgf9cSNrfm7bST1E9I2cqWxbl8ioM/RGFqpzAxFzy1OaFrLeHmKVh
-DIOXZa5lNfBJUO6YDY+O011h1HbdBTEYTktoN12370VtTKY8w2WepUnC3yA2mvkI
-Fcqf1NyU7IN0TCeFKR/NQh9vkbWpzVvcrlFuKjjrU2t+o6wZqVbtYN3BgJ3Vyv2Q
-nqeKKrSdBLbrlL/CK844
-=J0Qn
------END PGP SIGNATURE-----
-
---XNqRQXMNldPvDr7dARvo8RFQxgfO1pSIR--
+Thanks
+Kishon
