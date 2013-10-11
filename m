@@ -1,67 +1,52 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] ARM: OMAP: Device Tree for 3.13
-Date: Fri, 11 Oct 2013 14:42:01 -0700
-Message-ID: <20131011214201.GZ29913@atomide.com>
-References: <52582A67.6050108@baylibre.com>
- <20131011180324.GV29913@atomide.com>
- <52584BF7.8060100@baylibre.com>
+Subject: Re: [PATCH v8 6/6] mtd: nand: omap: updated devm_xx for all
+ resource allocation and free calls
+Date: Fri, 11 Oct 2013 14:46:54 -0700
+Message-ID: <20131011214653.GA29913@atomide.com>
+References: <1381498603-15715-1-git-send-email-pekon@ti.com>
+ <1381498603-15715-7-git-send-email-pekon@ti.com>
+ <20131011181515.GJ23337@ld-irv-0074.broadcom.com>
+ <20131011182840.GW29913@atomide.com>
+ <CAN8TOE9S63a1YdtzS+urTGBoMqrhq83cXXEeGinvQi9=dyUX1Q@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:22821 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:31192 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750799Ab3JKVmF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Oct 2013 17:42:05 -0400
+	with ESMTP id S1754599Ab3JKVrX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Oct 2013 17:47:23 -0400
 Content-Disposition: inline
-In-Reply-To: <52584BF7.8060100@baylibre.com>
+In-Reply-To: <CAN8TOE9S63a1YdtzS+urTGBoMqrhq83cXXEeGinvQi9=dyUX1Q@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <bcousson@baylibre.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
+To: Brian Norris <computersforpeace@gmail.com>
+Cc: Pekon Gupta <pekon@ti.com>, Mark Rutland <mark.rutland@arm.com>, robherring2@gmail.com, "olof@lixom.net" <olof@lixom.net>, Artem Bityutskiy <dedekind1@gmail.com>, Pawel Moll <Pawel.Moll@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Stephen Warren <swarren@wwwdotorg.org>, David Woodhouse <dwmw2@infradead.org>, Arnd Bergmann <arnd@arndb.de>, bcousson@baylibre.com, Avinash Philip <avinashphilipk@gmail.com>, "Balbi, Felipe" <balbi@ti.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
 
-* Benoit Cousson <bcousson@baylibre.com> [131011 12:13]:
-> Hi Tony,
-> 
-> On 11/10/2013 20:03, Tony Lindgren wrote:
-> >Hi Benoit,
+* Brian Norris <computersforpeace@gmail.com> [131011 12:35]:
+> On Fri, Oct 11, 2013 at 11:28 AM, Tony Lindgren <tony@atomide.com> wrote:
 > >
-> >* Benoit Cousson <bcousson@baylibre.com> [131011 09:50]:
-> >>Add the minimal DTS support for DRA7xx based SoC core.
-> >>Add the initial support for N900 and gta04 phones.
-> >>Enable USB3 on OMAP5 evm board.
-> >>Add support for cryto accelerators
-> >>Add new IGEP AQUILA board
-> >>Add AM33XX EDMA support
-> >>Update HSUSB node to use the reset-gpios fmwk
-> >
-> >Looks good to me, but we're getting self-inflicted merge
-> >conflicts in two places now with Paul's hwmod changes,
-> >and my defconfig changes.
+> > FYI, the .dts changes should be queued separately by Benoit to avoid
+> > pointless merge conflicts. The arch/arm/mach-omap2/gpmc.c changes I
+> > need to look, hopefully I can ack those for you today so you can take
+> > the code related changes into the MTD tree.
 > 
-> Damn!
+> Why are you replying to this patch, instead of the DTS?
 
-:)
+Because you said you might merrge some parts of the series and I've
+seen many merge cycles of pointless merge conflicts with driver
+maintainers merging .dts files along with the driver changes? :)
+
+Pekon, can please post the .dts changes entirely separately from
+the driver changes in the future?
  
-> >Can you please respin without the following two patches:
-> >
-> >49bcd824c1c0db32fe4de0c1ba3ee36defdb11ca ARM: configs: omap2plus_defconfig: enable dwc3 and dependencies
-> >736c4bb159c793b00331261438deb982cbac3c03 ARM: OMAP5: hwmod: add missing ocp2scp hwmod data
-> >
-> >I can pick the two patches above and apply after pulling in
-> >Paul's branch first.
-> 
-> OK, no problem.
-> 
-> >
-> >However, if other branches are based on this, then we just
-> >need to deal with the merge conflicts, and there's no point
-> >in redoing your branch.
-> 
-> Considering the patches, I don't see any dependency with the other
-> ones, as soon as they are pulled before the DTS changes.
-> 
-> I'll do that ASAP and repost.
+> Also, I don't think all of this code is ready. There are several
+> comments from weeks ago that Pekon hasn't addressed. It's possible the
+> DT binding changes can go in, but not some of the later patches, yet.
 
-OK thanks! I'll cherry pick the above two commits then.
+Yes that's up to you. I have not looked at the MTD parts and I
+appreciate the fact that you are reviewing that stuff. I've acked
+the arch/arm/*omap* parts so hopefully I'm out of the loop now.
+
+Regards,
 
 Tony
