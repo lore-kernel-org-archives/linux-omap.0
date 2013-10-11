@@ -1,533 +1,245 @@
 From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 3/7] drivers: phy: usb3/pipe3: Adapt pipe3 driver to Generic
- PHY Framework
-Date: Fri, 11 Oct 2013 18:02:28 +0300
-Message-ID: <52581304.9010205@ti.com>
-References: <1378136591-7463-1-git-send-email-kishon@ti.com> <1378136591-7463-4-git-send-email-kishon@ti.com> <5231A35D.7060006@ti.com> <5236749F.3070707@ti.com> <5236B537.1090902@ti.com>
+Subject: Re: [PATCH 2/7] usb: dwc3: adapt dwc3 core to use Generic PHY Framework
+Date: Fri, 11 Oct 2013 18:09:29 +0300
+Message-ID: <525814A9.7060106@ti.com>
+References: <1378136591-7463-1-git-send-email-kishon@ti.com> <1378136591-7463-3-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5236B537.1090902-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1378136591-7463-3-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
 Cc: balbi-l0cyMroinI0@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, s.nawrocki-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org, ian.campbell-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org, rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org, george.cherian-l0cyMroinI0@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 09/16/2013 10:37 AM, Roger Quadros wrote:
-> On 09/16/2013 06:01 AM, Kishon Vijay Abraham I wrote:
->> On Thursday 12 September 2013 04:49 PM, Roger Quadros wrote:
->>> Hi Kishon,
->>>
->>> On 09/02/2013 06:43 PM, Kishon Vijay Abraham I wrote:
->>>> Adapted omap-usb3 PHY driver to Generic PHY Framework and moved phy-omap-usb3
->>>> driver in drivers/usb/phy to drivers/phy and also renamed the file to
->>>> phy-omap-pipe3 since this same driver will be used for SATA PHY and
->>>> PCIE PHY.
->>>
->>> I would suggest to split the renaming and PHY adaptation into 2 separate patches.
->>
->> Alright.
->>>
->>>>
->>>> Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
->>>> ---
->>>>   Documentation/devicetree/bindings/usb/usb-phy.txt  |    5 +-
->>>>   drivers/phy/Kconfig                                |   10 +
->>>>   drivers/phy/Makefile                               |    1 +
->>>>   .../phy/phy-omap-usb3.c => phy/phy-omap-pipe3.c}   |  206 +++++++++++---------
->>>
->>> how about naming it to phy-ti-pipe3.c as it is used on OMAP as well as non-OMAP e.g. DRA7.
->>
->> hmm.. I thought it would be consistent with other PHY drivers (phy-omap-usb2). Moreover DRA7 is OMAP based platform ;-) Maybe we should reserve that for later?
-> 
-> OK. Up to you.
-> 
->>>
->>>>   drivers/usb/phy/Kconfig                            |   11 --
->>>>   drivers/usb/phy/Makefile                           |    1 -
->>>>   include/linux/phy/omap_pipe3.h                     |   52 +++++
->>>>   7 files changed, 177 insertions(+), 109 deletions(-)
->>>>   rename drivers/{usb/phy/phy-omap-usb3.c => phy/phy-omap-pipe3.c} (57%)
->>>>   create mode 100644 include/linux/phy/omap_pipe3.h
->>>>
->>>> diff --git a/Documentation/devicetree/bindings/usb/usb-phy.txt b/Documentation/devicetree/bindings/usb/usb-phy.txt
->>>> index c0245c8..36bdb17 100644
->>>> --- a/Documentation/devicetree/bindings/usb/usb-phy.txt
->>>> +++ b/Documentation/devicetree/bindings/usb/usb-phy.txt
->>>> @@ -21,10 +21,11 @@ usb2phy@4a0ad080 {
->>>>       #phy-cells = <0>;
->>>>   };
->>>>
->>>> -OMAP USB3 PHY
->>>> +OMAP PIPE3 PHY
->>>>
->>>>   Required properties:
->>>> - - compatible: Should be "ti,omap-usb3"
->>>> + - compatible: Should be "ti,omap-usb3", "ti,omap-pipe3", "ti,omap-sata"
->>>> +   or "ti,omap-pcie"
->>>>    - reg : Address and length of the register set for the device.
->>>>    - reg-names: The names of the register addresses corresponding to the registers
->>>>      filled in "reg".
->>>> diff --git a/drivers/phy/Kconfig b/drivers/phy/Kconfig
->>>> index ac239ac..5c2e7a0 100644
->>>> --- a/drivers/phy/Kconfig
->>>> +++ b/drivers/phy/Kconfig
->>>> @@ -27,6 +27,16 @@ config OMAP_USB2
->>>>         The USB OTG controller communicates with the comparator using this
->>>>         driver.
->>>>
->>>> +config OMAP_PIPE3
->>>> +    tristate "OMAP PIPE3 PHY Driver"
->>>> +    select GENERIC_PHY
->>>> +    select OMAP_CONTROL_USB
->>> how about
->>>     depends on OMAP_CONTROL_USB
->>
->> From whatever I could make out from comments of Greg in my Generic PHY Framework, it's better to do a select of dependent modules instead of depends on.
-> 
-> You can use select, provided the item you are selecting doesn't depend on anything else.
-> As OMAP_CONTROL_USB depends on ARCH_OMAP2PLUS, your configuration will fail if a user enables
-> OMAP_PIPE3 on non OMAP configuration.
-> 
-> Further, in this case since it is OMAP related driver, there is no point in showing/building it
-> if OMAP platform is not selected, so you at least need [depends on "ARCH_OMAP2PLUS"] to fix
-> both issue I mentioned.
-> 
->>>
->>> Also, if this is TI/OMAP it might as well depend on ARCH_OMAP.
->>>
->>>> +    help
->>>> +      Enable this to support the PIPE3 PHY that is part of SOC. This
->>>
->>> worth mentioning TI OMAP/DRA SoCs.
->>
->> right.
->>>
->>>> +      driver takes care of all the PHY functionality apart from comparator.
->>>> +      This driver interacts with the "OMAP Control PHY Driver" to power
->>>> +      on/off the PHY.
->>>> +
->>>>   config TWL4030_USB
->>>>       tristate "TWL4030 USB Transceiver Driver"
->>>>       depends on TWL4030_CORE && REGULATOR_TWL4030 && USB_MUSB_OMAP2PLUS
->>>> diff --git a/drivers/phy/Makefile b/drivers/phy/Makefile
->>>> index 0dd8a98..48bf9f2 100644
->>>> --- a/drivers/phy/Makefile
->>>> +++ b/drivers/phy/Makefile
->>>> @@ -4,4 +4,5 @@
->>>>
->>>>   obj-$(CONFIG_GENERIC_PHY)    += phy-core.o
->>>>   obj-$(CONFIG_OMAP_USB2)        += phy-omap-usb2.o
->>>> +obj-$(CONFIG_OMAP_PIPE3)    += phy-omap-pipe3.o
->>>>   obj-$(CONFIG_TWL4030_USB)    += phy-twl4030-usb.o
->>>> diff --git a/drivers/usb/phy/phy-omap-usb3.c b/drivers/phy/phy-omap-pipe3.c
->>>> similarity index 57%
->>>> rename from drivers/usb/phy/phy-omap-usb3.c
->>>> rename to drivers/phy/phy-omap-pipe3.c
->>>> index 4004f82..ee9a901 100644
->>>> --- a/drivers/usb/phy/phy-omap-usb3.c
->>>> +++ b/drivers/phy/phy-omap-pipe3.c
->>>> @@ -1,5 +1,5 @@
->>>>   /*
->>>> - * omap-usb3 - USB PHY, talking to dwc3 controller in OMAP.
->>>> + * omap-pipe3 - PHY driver for SATA, USB and PCIE in OMAP platforms
->>>>    *
->>>>    * Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.com
->>>>    * This program is free software; you can redistribute it and/or modify
->>>> @@ -19,7 +19,8 @@
->>>>   #include <linux/module.h>
->>>>   #include <linux/platform_device.h>
->>>>   #include <linux/slab.h>
->>>> -#include <linux/usb/omap_usb.h>
->>>> +#include <linux/phy/omap_pipe3.h>
->>>> +#include <linux/phy/phy.h>
->>>>   #include <linux/of.h>
->>>>   #include <linux/clk.h>
->>>>   #include <linux/err.h>
->>>> @@ -52,17 +53,17 @@
->>>>
->>>>   /*
->>>>    * This is an Empirical value that works, need to confirm the actual
->>>> - * value required for the USB3PHY_PLL_CONFIGURATION2.PLL_IDLE status
->>>> - * to be correctly reflected in the USB3PHY_PLL_STATUS register.
->>>> + * value required for the PIPE3PHY_PLL_CONFIGURATION2.PLL_IDLE status
->>>> + * to be correctly reflected in the PIPE3PHY_PLL_STATUS register.
->>>>    */
->>>>   # define PLL_IDLE_TIME  100;
->>>>
->>>> -struct usb_dpll_map {
->>>> +struct pipe3_dpll_map {
->>>>       unsigned long rate;
->>>> -    struct usb_dpll_params params;
->>>> +    struct pipe3_dpll_params params;
->>>>   };
->>>>
->>>> -static struct usb_dpll_map dpll_map[] = {
->>>> +static struct pipe3_dpll_map dpll_map[] = {
->>>>       {12000000, {1250, 5, 4, 20, 0} },    /* 12 MHz */
->>>>       {16800000, {3125, 20, 4, 20, 0} },    /* 16.8 MHz */
->>>>       {19200000, {1172, 8, 4, 20, 65537} },    /* 19.2 MHz */
->>>> @@ -71,7 +72,7 @@ static struct usb_dpll_map dpll_map[] = {
->>>>       {38400000, {3125, 47, 4, 20, 92843} },    /* 38.4 MHz */
->>>>   };
->>>>
->>>> -static struct usb_dpll_params *omap_usb3_get_dpll_params(unsigned long rate)
->>>> +static struct pipe3_dpll_params *omap_pipe3_get_dpll_params(unsigned long rate)
->>>>   {
->>>>       int i;
->>>>
->>>> @@ -83,110 +84,113 @@ static struct usb_dpll_params *omap_usb3_get_dpll_params(unsigned long rate)
->>>>       return 0;
->>>>   }
->>>>
->>>> -static int omap_usb3_suspend(struct usb_phy *x, int suspend)
->>>> +static int omap_pipe3_power_off(struct phy *x)
->>>>   {
->>>> -    struct omap_usb *phy = phy_to_omapusb(x);
->>>> -    int    val;
->>>> +    struct omap_pipe3 *phy = phy_get_drvdata(x);
->>>> +    int val;
->>>>       int timeout = PLL_IDLE_TIME;
->>>>
->>>> -    if (suspend && !phy->is_suspended) {
->>>> -        val = omap_usb_readl(phy->pll_ctrl_base, PLL_CONFIGURATION2);
->>>> -        val |= PLL_IDLE;
->>>> -        omap_usb_writel(phy->pll_ctrl_base, PLL_CONFIGURATION2, val);
->>>> -
->>>> -        do {
->>>> -            val = omap_usb_readl(phy->pll_ctrl_base, PLL_STATUS);
->>>> -            if (val & PLL_TICOPWDN)
->>>> -                break;
->>>> -            udelay(1);
->>>> -        } while (--timeout);
->>>> -
->>>> -        omap_control_usb_phy_power(phy->control_dev, 0);
->>>> -
->>>> -        phy->is_suspended    = 1;
->>>> -    } else if (!suspend && phy->is_suspended) {
->>>> -        phy->is_suspended    = 0;
->>>> -
->>>> -        val = omap_usb_readl(phy->pll_ctrl_base, PLL_CONFIGURATION2);
->>>> -        val &= ~PLL_IDLE;
->>>> -        omap_usb_writel(phy->pll_ctrl_base, PLL_CONFIGURATION2, val);
->>>> -
->>>> -        do {
->>>> -            val = omap_usb_readl(phy->pll_ctrl_base, PLL_STATUS);
->>>> -            if (!(val & PLL_TICOPWDN))
->>>> -                break;
->>>> -            udelay(1);
->>>> -        } while (--timeout);
->>>> -    }
->>>> +    val = omap_pipe3_readl(phy->pll_ctrl_base, PLL_CONFIGURATION2);
->>>> +    val |= PLL_IDLE;
->>>> +    omap_pipe3_writel(phy->pll_ctrl_base, PLL_CONFIGURATION2, val);
->>>> +
->>>> +    do {
->>>> +        val = omap_pipe3_readl(phy->pll_ctrl_base, PLL_STATUS);
->>>> +        if (val & PLL_TICOPWDN)
->>>> +            break;
->>>> +        udelay(1);
->>>
->>> Is it better to sleep instead of udelay?
->>
->> hmm.. yeah, I guess this function wont be called from interrupt context.
->>>
->>>> +    } while (--timeout);
->>>> +
->>>> +    omap_control_usb_phy_power(phy->control_dev, 0);
->>>> +
->>>> +    return 0;
->>>> +}
->>>> +
->>>> +static int omap_pipe3_power_on(struct phy *x)
->>>> +{
->>>> +    struct omap_pipe3 *phy = phy_get_drvdata(x);
->>>> +    int val;
->>>> +    int timeout = PLL_IDLE_TIME;
->>>> +
->>>> +    val = omap_pipe3_readl(phy->pll_ctrl_base, PLL_CONFIGURATION2);
->>>> +    val &= ~PLL_IDLE;
->>>> +    omap_pipe3_writel(phy->pll_ctrl_base, PLL_CONFIGURATION2, val);
->>>> +
->>>> +    do {
->>>> +        val = omap_pipe3_readl(phy->pll_ctrl_base, PLL_STATUS);
->>>> +        if (!(val & PLL_TICOPWDN))
->>>> +            break;
->>>> +        udelay(1);
->>>
->>> here too.
->>
->> Ok.
->>>
->>>> +    } while (--timeout);
->>>>
->>>>       return 0;
->>>>   }
->>>>
->>>> -static void omap_usb_dpll_relock(struct omap_usb *phy)
->>>> +static void omap_pipe3_dpll_relock(struct omap_pipe3 *phy)
->>>>   {
->>>>       u32        val;
->>>>       unsigned long    timeout;
->>>>
->>>> -    omap_usb_writel(phy->pll_ctrl_base, PLL_GO, SET_PLL_GO);
->>>> +    omap_pipe3_writel(phy->pll_ctrl_base, PLL_GO, SET_PLL_GO);
->>>>
->>>>       timeout = jiffies + msecs_to_jiffies(20);
->>>>       do {
->>>> -        val = omap_usb_readl(phy->pll_ctrl_base, PLL_STATUS);
->>>> +        val = omap_pipe3_readl(phy->pll_ctrl_base, PLL_STATUS);
->>>>           if (val & PLL_LOCK)
->>>>               break;
->>>>       } while (!WARN_ON(time_after(jiffies, timeout)));
->>>>   }
->>>>
->>>> -static int omap_usb_dpll_lock(struct omap_usb *phy)
->>>> +static int omap_pipe3_dpll_lock(struct omap_pipe3 *phy)
->>>>   {
->>>>       u32            val;
->>>>       unsigned long        rate;
->>>> -    struct usb_dpll_params *dpll_params;
->>>> +    struct pipe3_dpll_params *dpll_params;
->>>>
->>>>       rate = clk_get_rate(phy->sys_clk);
->>>> -    dpll_params = omap_usb3_get_dpll_params(rate);
->>>> +    dpll_params = omap_pipe3_get_dpll_params(rate);
->>>>       if (!dpll_params) {
->>>>           dev_err(phy->dev,
->>>>                 "No DPLL configuration for %lu Hz SYS CLK\n", rate);
->>>>           return -EINVAL;
->>>>       }
->>>>
->>>> -    val = omap_usb_readl(phy->pll_ctrl_base, PLL_CONFIGURATION1);
->>>> +    val = omap_pipe3_readl(phy->pll_ctrl_base, PLL_CONFIGURATION1);
->>>>       val &= ~PLL_REGN_MASK;
->>>>       val |= dpll_params->n << PLL_REGN_SHIFT;
->>>> -    omap_usb_writel(phy->pll_ctrl_base, PLL_CONFIGURATION1, val);
->>>> +    omap_pipe3_writel(phy->pll_ctrl_base, PLL_CONFIGURATION1, val);
->>>>
->>>> -    val = omap_usb_readl(phy->pll_ctrl_base, PLL_CONFIGURATION2);
->>>> +    val = omap_pipe3_readl(phy->pll_ctrl_base, PLL_CONFIGURATION2);
->>>>       val &= ~PLL_SELFREQDCO_MASK;
->>>>       val |= dpll_params->freq << PLL_SELFREQDCO_SHIFT;
->>>> -    omap_usb_writel(phy->pll_ctrl_base, PLL_CONFIGURATION2, val);
->>>> +    omap_pipe3_writel(phy->pll_ctrl_base, PLL_CONFIGURATION2, val);
->>>>
->>>> -    val = omap_usb_readl(phy->pll_ctrl_base, PLL_CONFIGURATION1);
->>>> +    val = omap_pipe3_readl(phy->pll_ctrl_base, PLL_CONFIGURATION1);
->>>>       val &= ~PLL_REGM_MASK;
->>>>       val |= dpll_params->m << PLL_REGM_SHIFT;
->>>> -    omap_usb_writel(phy->pll_ctrl_base, PLL_CONFIGURATION1, val);
->>>> +    omap_pipe3_writel(phy->pll_ctrl_base, PLL_CONFIGURATION1, val);
->>>>
->>>> -    val = omap_usb_readl(phy->pll_ctrl_base, PLL_CONFIGURATION4);
->>>> +    val = omap_pipe3_readl(phy->pll_ctrl_base, PLL_CONFIGURATION4);
->>>>       val &= ~PLL_REGM_F_MASK;
->>>>       val |= dpll_params->mf << PLL_REGM_F_SHIFT;
->>>> -    omap_usb_writel(phy->pll_ctrl_base, PLL_CONFIGURATION4, val);
->>>> +    omap_pipe3_writel(phy->pll_ctrl_base, PLL_CONFIGURATION4, val);
->>>>
->>>> -    val = omap_usb_readl(phy->pll_ctrl_base, PLL_CONFIGURATION3);
->>>> +    val = omap_pipe3_readl(phy->pll_ctrl_base, PLL_CONFIGURATION3);
->>>>       val &= ~PLL_SD_MASK;
->>>>       val |= dpll_params->sd << PLL_SD_SHIFT;
->>>> -    omap_usb_writel(phy->pll_ctrl_base, PLL_CONFIGURATION3, val);
->>>> +    omap_pipe3_writel(phy->pll_ctrl_base, PLL_CONFIGURATION3, val);
->>>>
->>>> -    omap_usb_dpll_relock(phy);
->>>> +    omap_pipe3_dpll_relock(phy);
->>>>
->>>>       return 0;
->>>>   }
->>>>
->>>> -static int omap_usb3_init(struct usb_phy *x)
->>>> +static int omap_pipe3_init(struct phy *x)
->>>>   {
->>>> -    struct omap_usb    *phy = phy_to_omapusb(x);
->>>> +    struct omap_pipe3 *phy = phy_get_drvdata(x);
->>>>       int ret;
->>>>
->>>> -    ret = omap_usb_dpll_lock(phy);
->>>> +    ret = omap_pipe3_dpll_lock(phy);
->>>>       if (ret)
->>>>           return ret;
->>>>
->>>> @@ -195,9 +199,18 @@ static int omap_usb3_init(struct usb_phy *x)
->>>>       return 0;
->>>>   }
->>>>
->>>> -static int omap_usb3_probe(struct platform_device *pdev)
->>>> +static struct phy_ops ops = {
->>>> +    .init        = omap_pipe3_init,
->>>> +    .power_on    = omap_pipe3_power_on,
->>>> +    .power_off    = omap_pipe3_power_off,
->>>> +    .owner        = THIS_MODULE,
->>>> +};
->>>> +
->>>> +static int omap_pipe3_probe(struct platform_device *pdev)
->>>>   {
->>>> -    struct omap_usb *phy;
->>>> +    struct omap_pipe3 *phy;
->>>> +    struct phy *generic_phy;
->>>> +    struct phy_provider *phy_provider;
->>>>       struct resource *res;
->>>>       struct device_node *node = pdev->dev.of_node;
->>>>       struct device_node *control_node;
->>>> @@ -208,7 +221,7 @@ static int omap_usb3_probe(struct platform_device *pdev)
->>>>
->>>>       phy = devm_kzalloc(&pdev->dev, sizeof(*phy), GFP_KERNEL);
->>>>       if (!phy) {
->>>> -        dev_err(&pdev->dev, "unable to alloc mem for OMAP USB3 PHY\n");
->>>> +        dev_err(&pdev->dev, "unable to alloc mem for OMAP PIPE3 PHY\n");
->>>>           return -ENOMEM;
->>>>       }
->>>>
->>>> @@ -219,13 +232,6 @@ static int omap_usb3_probe(struct platform_device *pdev)
->>>>
->>>>       phy->dev        = &pdev->dev;
->>>>
->>>> -    phy->phy.dev        = phy->dev;
->>>> -    phy->phy.label        = "omap-usb3";
->>>> -    phy->phy.init        = omap_usb3_init;
->>>> -    phy->phy.set_suspend    = omap_usb3_suspend;
->>>> -    phy->phy.type        = USB_PHY_TYPE_USB3;
->>>> -
->>>> -    phy->is_suspended    = 1;
->>>>       phy->wkupclk = devm_clk_get(phy->dev, "usb_phy_cm_clk32k");
->>>
->>> As this is no longer USB specific, we need to make the clock binding generic as well.
->>
->> right. Its also needed when we have the same driver work for sata and pcie. Maybe do that in a separate patch?
-> 
-> OK. up to you.
->>>
->>>>       if (IS_ERR(phy->wkupclk)) {
->>>>           dev_err(&pdev->dev, "unable to get usb_phy_cm_clk32k\n");
->>>> @@ -251,6 +257,11 @@ static int omap_usb3_probe(struct platform_device *pdev)
->>>>           dev_err(&pdev->dev, "Failed to get control device phandle\n");
->>>>           return -EINVAL;
->>>>       }
->>>> +    phy_provider = devm_of_phy_provider_register(phy->dev,
->>>> +            of_phy_simple_xlate);
->>>> +    if (IS_ERR(phy_provider))
->>>> +        return PTR_ERR(phy_provider);
->>>> +
->>>>       control_pdev = of_find_device_by_node(control_node);
->>>>       if (!control_pdev) {
->>>>           dev_err(&pdev->dev, "Failed to get control device\n");
->>>> @@ -260,23 +271,27 @@ static int omap_usb3_probe(struct platform_device *pdev)
->>>>       phy->control_dev = &control_pdev->dev;
->>>>
->>>>       omap_control_usb_phy_power(phy->control_dev, 0);
->>>> -    usb_add_phy_dev(&phy->phy);
->>>>
->>>>       platform_set_drvdata(pdev, phy);
->>>> -
->>>>       pm_runtime_enable(phy->dev);
->>>> +
->>>> +    generic_phy = devm_phy_create(phy->dev, &ops, NULL);
->>>> +    if (IS_ERR(generic_phy))
->>>> +        return PTR_ERR(generic_phy);
->>>> +
->>>> +    phy_set_drvdata(generic_phy, phy);
->>>> +
->>>>       pm_runtime_get(&pdev->dev);
->>>>
->>>>       return 0;
->>>>   }
->>>>
->>>> -static int omap_usb3_remove(struct platform_device *pdev)
->>>> +static int omap_pipe3_remove(struct platform_device *pdev)
->>>>   {
->>>> -    struct omap_usb *phy = platform_get_drvdata(pdev);
->>>> +    struct omap_pipe3 *phy = platform_get_drvdata(pdev);
->>>>
->>>>       clk_unprepare(phy->wkupclk);
->>>>       clk_unprepare(phy->optclk);
->>>> -    usb_remove_phy(&phy->phy);
->>>>       if (!pm_runtime_suspended(&pdev->dev))
->>>>           pm_runtime_put(&pdev->dev);
->>>>       pm_runtime_disable(&pdev->dev);
->>>> @@ -286,10 +301,9 @@ static int omap_usb3_remove(struct platform_device *pdev)
->>>>
->>>>   #ifdef CONFIG_PM_RUNTIME
->>>>
->>>> -static int omap_usb3_runtime_suspend(struct device *dev)
->>>> +static int omap_pipe3_runtime_suspend(struct device *dev)
->>>>   {
->>>> -    struct platform_device    *pdev = to_platform_device(dev);
->>>> -    struct omap_usb    *phy = platform_get_drvdata(pdev);
->>>> +    struct omap_pipe3    *phy = dev_get_drvdata(dev);
->>>>
->>>>       clk_disable(phy->wkupclk);
->>>>       clk_disable(phy->optclk);
->>>> @@ -297,11 +311,10 @@ static int omap_usb3_runtime_suspend(struct device *dev)
->>>>       return 0;
->>>>   }
->>>>
->>>> -static int omap_usb3_runtime_resume(struct device *dev)
->>>> +static int omap_pipe3_runtime_resume(struct device *dev)
->>>>   {
->>>>       u32 ret = 0;
->>>> -    struct platform_device    *pdev = to_platform_device(dev);
->>>> -    struct omap_usb    *phy = platform_get_drvdata(pdev);
->>>> +    struct omap_pipe3    *phy = dev_get_drvdata(dev);
->>>>
->>>>       ret = clk_enable(phy->optclk);
->>>>       if (ret) {
->>>> @@ -324,38 +337,41 @@ err1:
->>>>       return ret;
->>>>   }
->>>>
->>>> -static const struct dev_pm_ops omap_usb3_pm_ops = {
->>>> -    SET_RUNTIME_PM_OPS(omap_usb3_runtime_suspend, omap_usb3_runtime_resume,
->>>> -        NULL)
->>>> +static const struct dev_pm_ops omap_pipe3_pm_ops = {
->>>> +    SET_RUNTIME_PM_OPS(omap_pipe3_runtime_suspend,
->>>> +        omap_pipe3_runtime_resume, NULL)
->>>>   };
->>>>
->>>> -#define DEV_PM_OPS     (&omap_usb3_pm_ops)
->>>> +#define DEV_PM_OPS     (&omap_pipe3_pm_ops)
->>>>   #else
->>>>   #define DEV_PM_OPS     NULL
->>>>   #endif
->>>>
->>>>   #ifdef CONFIG_OF
->>>> -static const struct of_device_id omap_usb3_id_table[] = {
->>>> +static const struct of_device_id omap_pipe3_id_table[] = {
->>>> +    { .compatible = "ti,omap-pipe3" },
->>>
->>> why do you need "omap-pipe3", isn't sata, pcie and usb3 sufficient?
->>
->> I thought it would be better if everyone uses omap-pipe3 and added pcie, sata if there are any specific settings (for pcie or sata) that should be done.
-> 
-> We can always add specialized options later when needed. AFAIK just the
-> DPLL data is different among the different PHYs.
->>>
->>>> +    { .compatible = "ti,omap-sata" },
->>>> +    { .compatible = "ti,omap-pcie" },
->>>>       { .compatible = "ti,omap-usb3" },
-> 
-> I think compatible strings should be improved to indicate that it is a PHY.
-> 
-> e.g. "ti,omap-phy-sata" or just "ti,pipe3-phy-sata"
-> 
+Hi,
 
-Please remove "ti,omap-pcie" for now, you can add it later whenever you add
-dpll settings for pcie.
+On 09/02/2013 06:43 PM, Kishon Vijay Abraham I wrote:
+> Adapted dwc3 core to use the Generic PHY Framework. So for init, exit,
+> power_on and power_off the following APIs are used phy_init(), phy_exit(),
+> phy_power_on() and phy_power_off().
+> 
+> However using the old USB phy library wont be removed till the PHYs of all
+> other SoC's using dwc3 core is adapted to the Generic PHY Framework.
+> 
+> Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+> ---
+>  Documentation/devicetree/bindings/usb/dwc3.txt |    6 ++-
+>  drivers/usb/dwc3/Kconfig                       |    1 +
+>  drivers/usb/dwc3/core.c                        |   49 ++++++++++++++++++++++++
+>  drivers/usb/dwc3/core.h                        |    7 ++++
+>  4 files changed, 61 insertions(+), 2 deletions(-)
+> 
+> diff --git a/Documentation/devicetree/bindings/usb/dwc3.txt b/Documentation/devicetree/bindings/usb/dwc3.txt
+> index e807635..471366d 100644
+> --- a/Documentation/devicetree/bindings/usb/dwc3.txt
+> +++ b/Documentation/devicetree/bindings/usb/dwc3.txt
+> @@ -6,11 +6,13 @@ Required properties:
+>   - compatible: must be "snps,dwc3"
+>   - reg : Address and length of the register set for the device
+>   - interrupts: Interrupts used by the dwc3 controller.
+> +
+> +Optional properties:
+>   - usb-phy : array of phandle for the PHY device.  The first element
+>     in the array is expected to be a handle to the USB2/HS PHY and
+>     the second element is expected to be a handle to the USB3/SS PHY
+> -
+> -Optional properties:
+> + - phys: from the *Generic PHY* bindings
+> + - phy-names: from the *Generic PHY* bindings
+>   - tx-fifo-resize: determines if the FIFO *has* to be reallocated.
+>  
+>  This is usually a subnode to DWC3 glue to which it is connected.
+> diff --git a/drivers/usb/dwc3/Kconfig b/drivers/usb/dwc3/Kconfig
+> index cfc16dd..ad7ce83 100644
+> --- a/drivers/usb/dwc3/Kconfig
+> +++ b/drivers/usb/dwc3/Kconfig
+> @@ -3,6 +3,7 @@ config USB_DWC3
+>  	depends on (USB || USB_GADGET) && GENERIC_HARDIRQS && HAS_DMA
+>  	depends on EXTCON
+>  	select USB_PHY
+> +	select GENERIC_PHY
+>  	select USB_XHCI_PLATFORM if USB_SUPPORT && USB_XHCI_HCD
+>  	help
+>  	  Say Y or M here if your system has a Dual Role SuperSpeed
+> diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
+> index 428c29e..485d365 100644
+> --- a/drivers/usb/dwc3/core.c
+> +++ b/drivers/usb/dwc3/core.c
+> @@ -82,6 +82,12 @@ static void dwc3_core_soft_reset(struct dwc3 *dwc)
+>  
+>  	usb_phy_init(dwc->usb2_phy);
+>  	usb_phy_init(dwc->usb3_phy);
 
-Also, please change the newly added compatible strings to
+How about adding
++	if (dwc->usb2_phy)
++		usb_phy_init(dwc->usb2_phy);
++	if (dwc->usb3_phy)
++		usb_phy_init(dwc->usb3_phy);
 
-"ti,phy-pipe3-usb3" and "ti,phy-pipe3-sata"
+both usb phy and generic phy shouldn't be present together.
 
-Also you need to rearrange the patches so that the DT binding document is first
-moded from usb/ to phy/ and then the change is done for pipe3.
+> +
+> +	if (dwc->usb2_generic_phy)
+> +		phy_init(dwc->usb2_generic_phy);
+> +	if (dwc->usb3_generic_phy)
+> +		phy_init(dwc->usb3_generic_phy);
+> +
+>  	mdelay(100);
+>  
+>  	/* Clear USB3 PHY reset */
+> @@ -343,6 +349,11 @@ static void dwc3_core_exit(struct dwc3 *dwc)
+>  {
+>  	usb_phy_shutdown(dwc->usb2_phy);
+>  	usb_phy_shutdown(dwc->usb3_phy);
+
+here as well
+
+> +
+> +	if (dwc->usb2_generic_phy)
+> +		phy_power_off(dwc->usb2_generic_phy);
+> +	if (dwc->usb3_generic_phy)
+> +		phy_power_off(dwc->usb3_generic_phy);
+>  }
+>  
+>  #define DWC3_ALIGN_MASK		(16 - 1)
+> @@ -427,6 +438,23 @@ static int dwc3_probe(struct platform_device *pdev)
+>  		dwc->usb3_phy = devm_usb_get_phy(dev, USB_PHY_TYPE_USB3);
+>  	}
+>  
+> +	if (of_property_read_bool(node, "phys") || pdata->has_phy) {
+> +		dwc->usb2_generic_phy = devm_phy_get(dev, "usb2-phy");
+> +		if (IS_ERR(dwc->usb2_generic_phy)) {
+> +			dev_err(dev, "no usb2 phy configured yet");
+> +			return PTR_ERR(dwc->usb2_generic_phy);
+> +		}
+> +
+> +		dwc->usb3_generic_phy = devm_phy_get(dev, "usb3-phy");
+> +		if (IS_ERR(dwc->usb3_generic_phy)) {
+> +			dev_err(dev, "no usb3 phy configured yet");
+> +			return PTR_ERR(dwc->usb3_generic_phy);
+> +		}
+
+better to add
++		/* Don't use USB PHY if generic PHY was found */
++		dwc->usb2_phy = dwc->usb3_phy = NULL;
+
+> +	} else {
+
+not required as we've used kzalloc for dwc.
+
+> +		dwc->usb2_generic_phy = NULL;
+> +		dwc->usb3_generic_phy = NULL;
+> +	}
+> +
+>  	/* default to superspeed if no maximum_speed passed */
+>  	if (dwc->maximum_speed == USB_SPEED_UNKNOWN)
+>  		dwc->maximum_speed = USB_SPEED_SUPER;
+> @@ -450,6 +478,11 @@ static int dwc3_probe(struct platform_device *pdev)
+
+if (dwc->usb2_phy)
+
+>  	usb_phy_set_suspend(dwc->usb2_phy, 0);
+
+if (dwc->usb3_phy)
+
+>  	usb_phy_set_suspend(dwc->usb3_phy, 0);
+>  
+> +	if (dwc->usb2_generic_phy)
+> +		phy_power_on(dwc->usb2_generic_phy);
+> +	if (dwc->usb3_generic_phy)
+> +		phy_power_on(dwc->usb3_generic_phy);
+> +
+>  	spin_lock_init(&dwc->lock);
+>  	platform_set_drvdata(pdev, dwc);
+>  
+> @@ -576,6 +609,11 @@ static int dwc3_remove(struct platform_device *pdev)
+
+if (dwc->usb2_phy)
+>  	usb_phy_set_suspend(dwc->usb2_phy, 1);
+
+if (dwc->usb3_phy)
+>  	usb_phy_set_suspend(dwc->usb3_phy, 1);
+>  
+> +	if (dwc->usb2_generic_phy)
+> +		phy_power_off(dwc->usb2_generic_phy);
+> +	if (dwc->usb3_generic_phy)
+> +		phy_power_off(dwc->usb3_generic_phy);
+> +
+>  	pm_runtime_put(&pdev->dev);
+>  	pm_runtime_disable(&pdev->dev);
+>  
+> @@ -673,6 +711,11 @@ static int dwc3_suspend(struct device *dev)
+
+if (dwc->usb3_phy)
+>  	usb_phy_shutdown(dwc->usb3_phy);
+
+if (dwc->usb2_phy)
+>  	usb_phy_shutdown(dwc->usb2_phy);
+>  
+> +	if (dwc->usb2_generic_phy)
+> +		phy_exit(dwc->usb2_generic_phy);
+> +	if (dwc->usb3_generic_phy)
+> +		phy_exit(dwc->usb3_generic_phy);
+> +
+>  	return 0;
+>  }
+>  
+> @@ -683,6 +726,12 @@ static int dwc3_resume(struct device *dev)
+>  
+
+if (dwc->usb3_phy)
+>  	usb_phy_init(dwc->usb3_phy);
+
+if (dwc->usb2_phy)
+>  	usb_phy_init(dwc->usb2_phy);
+> +
+> +	if (dwc->usb2_generic_phy)
+> +		phy_init(dwc->usb2_generic_phy);
+> +	if (dwc->usb3_generic_phy)
+> +		phy_init(dwc->usb3_generic_phy);
+> +
+>  	msleep(100);
+>  
+>  	spin_lock_irqsave(&dwc->lock, flags);
+> diff --git a/drivers/usb/dwc3/core.h b/drivers/usb/dwc3/core.h
+> index f8af8d4..01ec7d7 100644
+> --- a/drivers/usb/dwc3/core.h
+> +++ b/drivers/usb/dwc3/core.h
+> @@ -31,6 +31,8 @@
+>  #include <linux/usb/gadget.h>
+>  #include <linux/usb/otg.h>
+>  
+> +#include <linux/phy/phy.h>
+> +
+>  /* Global constants */
+>  #define DWC3_EP0_BOUNCE_SIZE	512
+>  #define DWC3_ENDPOINTS_NUM	32
+> @@ -613,6 +615,8 @@ struct dwc3_scratchpad_array {
+>   * @dr_mode: requested mode of operation
+>   * @usb2_phy: pointer to USB2 PHY
+>   * @usb3_phy: pointer to USB3 PHY
+> + * @usb2_generic_phy: pointer to USB2 PHY
+> + * @usb3_generic_phy: pointer to USB3 PHY
+>   * @dcfg: saved contents of DCFG register
+>   * @gctl: saved contents of GCTL register
+>   * @is_selfpowered: true when we are selfpowered
+> @@ -665,6 +669,9 @@ struct dwc3 {
+>  	struct usb_phy		*usb2_phy;
+>  	struct usb_phy		*usb3_phy;
+>  
+> +	struct phy		*usb2_generic_phy;
+> +	struct phy		*usb3_generic_phy;
+> +
+>  	void __iomem		*regs;
+>  	size_t			regs_size;
+>  
+> 
 
 cheers,
 -roger
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
