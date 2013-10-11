@@ -1,51 +1,33 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH] pinctrl: single: call pcs_soc->rearm() whenever IRQ mask is changed
-Date: Fri, 11 Oct 2013 19:13:16 +0300
-Message-ID: <1381507996-15021-1-git-send-email-rogerq@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: [PATCH 00/11] ARM: OMAP2+: CM cleanup series
+Date: Fri, 11 Oct 2013 19:15:30 +0300
+Message-ID: <1381508141-15244-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:56789 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:54824 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756070Ab3JKQNn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 11 Oct 2013 12:13:43 -0400
+	id S1752244Ab3JKQQU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 11 Oct 2013 12:16:20 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linus.walleij@linaro.org, grygorii.strashko@ti.com, peter.ujfalusi@ti.com, haojian.zhuang@linaro.org, bcousson@baylibre.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+To: linux-omap@vger.kernel.org, khilman@linaro.org, paul@pwsan.com, tony@atomide.com
+Cc: linux-arm-kernel@lists.infradead.org
 
-On OMAPs the IO ring must be rearmed each time the pad wakeup
-configuration is changed. So call pcs_soc->rearm() from
-pcs_irq_set().
+Hi,
 
-Signed-off-by: Roger Quadros <rogerq@ti.com>
----
- drivers/pinctrl/pinctrl-single.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
+A small cleanup set for CM. This basically gets rid of the omap2_cm_*
+register accesses from the random code locations, and gathers these
+under cm2xxx.c and cm3xxx.c. This is done in preparation for creating
+a separate CM driver. The set also contains a couple of PRM cleanups
+which I decided to take care of at the same time due to overlapping
+code (PRCM interrupt handler + DSP reset.)
 
-diff --git a/drivers/pinctrl/pinctrl-single.c b/drivers/pinctrl/pinctrl-single.c
-index c2aada7..1800e47 100644
---- a/drivers/pinctrl/pinctrl-single.c
-+++ b/drivers/pinctrl/pinctrl-single.c
-@@ -1604,6 +1604,9 @@ static inline void pcs_irq_set(struct pcs_soc_data *pcs_soc,
- 		pcs->write(mask, pcswi->reg);
- 		raw_spin_unlock(&pcs->lock);
- 	}
-+
-+	if (pcs_soc->rearm)
-+		pcs_soc->rearm();
- }
- 
- /**
-@@ -1626,8 +1629,6 @@ static void pcs_irq_unmask(struct irq_data *d)
- 	struct pcs_soc_data *pcs_soc = irq_data_get_irq_chip_data(d);
- 
- 	pcs_irq_set(pcs_soc, d->irq, true);
--	if (pcs_soc->rearm)
--		pcs_soc->rearm();
- }
- 
- /**
--- 
-1.7.4.1
+TODO: cleanup dsp bridge code (arch/arm/mach-omap2/dsp.c.)
+
+Tested on OMAP3 beagle + 3.12-rc3.
+
+If someone could verify the omap2 changes, that would be nice.
+
+-Tero
 
