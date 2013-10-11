@@ -1,51 +1,63 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv7 00/36] ARM: OMAP: clock data conversion to DT
-Date: Fri, 11 Oct 2013 21:46:29 +0300
-Message-ID: <52584785.2020504@ti.com>
-References: <1380098922-30340-1-git-send-email-t-kristo@ti.com> <524EE00F.7010208@ti.com> <20131007021556.GV8949@atomide.com> <52525642.8010307@ti.com> <20131007154103.GW8949@atomide.com> <20131007190322.GY8949@atomide.com> <alpine.DEB.2.02.1310091551540.30199@utopia.booyaka.com> <alpine.DEB.2.02.1310091858411.30199@utopia.booyaka.com> <525654AE.7060009@ti.com> <alpine.DEB.2.02.1310111749180.27397@utopia.booyaka.com>
+From: Benoit Cousson <bcousson@baylibre.com>
+Subject: Re: [GIT PULL] ARM: OMAP: Device Tree for 3.13
+Date: Fri, 11 Oct 2013 21:05:27 +0200
+Message-ID: <52584BF7.8060100@baylibre.com>
+References: <52582A67.6050108@baylibre.com> <20131011180324.GV29913@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:35563 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751805Ab3JKSrD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 11 Oct 2013 14:47:03 -0400
-In-Reply-To: <alpine.DEB.2.02.1310111749180.27397@utopia.booyaka.com>
+Received: from mail-we0-f175.google.com ([74.125.82.175]:39607 "EHLO
+	mail-we0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754926Ab3JKTFc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Oct 2013 15:05:32 -0400
+Received: by mail-we0-f175.google.com with SMTP id t61so4561935wes.6
+        for <linux-omap@vger.kernel.org>; Fri, 11 Oct 2013 12:05:30 -0700 (PDT)
+In-Reply-To: <20131011180324.GV29913@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Tony Lindgren <tony@atomide.com>, mturquette@linaro.org, linux-omap@vger.kernel.org, nm@ti.com, khilman@linaro.org, pdeschrijver@nvidia.com, rnayak@ti.com, bcousson@baylibre.com, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, swarren@nvidia.com, mark.rutland@arm.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
 
-On 10/11/2013 08:54 PM, Paul Walmsley wrote:
-> On Thu, 10 Oct 2013, Tero Kristo wrote:
->
->> On 10/09/2013 09:59 PM, Paul Walmsley wrote:
->>> Eh, one correction:
->>>
->>> On Wed, 9 Oct 2013, Paul Walmsley wrote:
->>>
->>>> We could easily wind up with kernels that won't boot at all when used
->>>> with newer DT data.
->>>
->>> This is a misstatement of the issue: the concern here is that newer
->>> kernels may not boot at all with older DT data - which could easily be in
->>> locked areas of the flash or firmware.
->>
->> I wonder who would be crazy enough to put DT data into a locked area, and to
->> what purpose. If you can update the kernel, there is no point locking down DT
->> data, this will just cause you unnecessary misery.
->
-> The DT data will be used by bootloaders also :-(
->
-> In situations where the bootloaders are signed and locked, the security
-> people are also insisting that the DT data be signed and locked.
+Hi Tony,
 
-Oh yea, one additional note you probably have missed. Mike asked us to 
-fall back to vendor specific bindings at around v6 or so of this set. 
-Take a look at v8, we have dropped the use of generic bindings, we are 
-not trying to declare those with this set. This set introduces vendor 
-specific bindings only, and even these are claimed 'unstable', which 
-should be enough to discourage people from burning those to OTP type memory.
+On 11/10/2013 20:03, Tony Lindgren wrote:
+> Hi Benoit,
+>
+> * Benoit Cousson <bcousson@baylibre.com> [131011 09:50]:
+>> Add the minimal DTS support for DRA7xx based SoC core.
+>> Add the initial support for N900 and gta04 phones.
+>> Enable USB3 on OMAP5 evm board.
+>> Add support for cryto accelerators
+>> Add new IGEP AQUILA board
+>> Add AM33XX EDMA support
+>> Update HSUSB node to use the reset-gpios fmwk
+>
+> Looks good to me, but we're getting self-inflicted merge
+> conflicts in two places now with Paul's hwmod changes,
+> and my defconfig changes.
 
--Tero
+Damn!
+
+> Can you please respin without the following two patches:
+>
+> 49bcd824c1c0db32fe4de0c1ba3ee36defdb11ca ARM: configs: omap2plus_defconfig: enable dwc3 and dependencies
+> 736c4bb159c793b00331261438deb982cbac3c03 ARM: OMAP5: hwmod: add missing ocp2scp hwmod data
+>
+> I can pick the two patches above and apply after pulling in
+> Paul's branch first.
+
+OK, no problem.
+
+>
+> However, if other branches are based on this, then we just
+> need to deal with the merge conflicts, and there's no point
+> in redoing your branch.
+
+Considering the patches, I don't see any dependency with the other ones, 
+as soon as they are pulled before the DTS changes.
+
+I'll do that ASAP and repost.
+
+Benoit
+
