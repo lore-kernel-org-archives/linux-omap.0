@@ -1,56 +1,100 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+From: Tony Lindgren <tony@atomide.com>
 Subject: Re: [PATCH 4/6] pinctrl: single: Add support for wake-up interrupts
-Date: Fri, 11 Oct 2013 08:18:39 -0700
-Message-ID: <20131011151838.GM29913@atomide.com>
+Date: Fri, 11 Oct 2013 08:36:55 -0700
+Message-ID: <20131011153654.GN29913@atomide.com>
 References: <20131003054104.8941.88857.stgit@localhost>
  <20131003054221.8941.87801.stgit@localhost>
  <5256AA7F.8030005@ti.com>
  <20131010160018.GA29913@atomide.com>
- <5257BB8C.5080001@ti.com>
- <52580438.4040002@ti.com>
+ <CACRpkdaG-PQA39XSjKUgM9TyeD7srgm_8s+NazrDKJ0gmNLcwg@mail.gmail.com>
+ <20131010162015.GC29913@atomide.com>
+ <CACRpkdYF83ghUf60Wmrti53UJ1bWV30GW_P9GjWnsOcZHbsv+Q@mail.gmail.com>
+ <5257BD3E.5000707@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:14825 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1757484Ab3JKPhC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Oct 2013 11:37:02 -0400
 Content-Disposition: inline
-In-Reply-To: <52580438.4040002-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Prakash Manjunathappa <prakash.pm-l0cyMroinI0@public.gmane.org>, Haojian Zhuang <haojian.zhuang-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <5257BD3E.5000707@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Grygorii Strashko <grygorii.strashko@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Prakash Manjunathappa <prakash.pm@ti.com>, Haojian Zhuang <haojian.zhuang@linaro.org>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Linux-OMAP <linux-omap@vger.kernel.org>
 
-* Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> [131011 07:07]:
-> On 10/11/2013 11:49 AM, Roger Quadros wrote:
-> > On 10/10/2013 07:00 PM, Tony Lindgren wrote:
+* Roger Quadros <rogerq@ti.com> [131011 02:04]:
+> On 10/11/2013 11:00 AM, Linus Walleij wrote:
+> > On Thu, Oct 10, 2013 at 6:20 PM, Tony Lindgren <tony@atomide.com> wrote:
+> >> * Linus Walleij <linus.walleij@linaro.org> [131010 09:19]:
+> >>> On Thu, Oct 10, 2013 at 6:00 PM, Tony Lindgren <tony@atomide.com> wrote:
+> >>>> * Roger Quadros <rogerq@ti.com> [131010 06:32]:
+> >>>>>
+> >>>>> I tried testing this with the USB EHCI driver, but I'm not getting wake up interrupts
+> >>>>> while the system is still running and only the EHCI controller is runtime suspended.
+> >>>>>
+> >>>>> It seems we need to somehow call _reconfigure_io_chain() to update the daisy chain
+> >>>>> whenever the pad wakeup_enable bit is changed.
+> >>>>
+> >>>> Sounds like this is on omap3? Have you tried calling pcs_soc->rearm() in the
+> >>>> pcs_irq_handle() like the comments there suggest? At least for me that keeps
+> >>>> the wake-up interrupts continuously running on omap3 instead of just idle modes.
+> >>>
+> >>> If the rearm() function is calling this _reconfigure_io_chain my comments
+> >>> on the fact that this is something that should be handled by the pin
+> >>> control driver still apply I think ....
 > >>
-> >> Well the irq_set_wake() should only be needed for suspend and resume. For runtime PM
-> >> the wake-events should be always enabled by default as pointed out by Alan Stern
-> >> a while back.
+> >> Yes, except that the reconfigure_io_chain registers are in the PRM module, not in
+> >> the SCM module where the pinctrl registers are.. And that shared PRM interrupt is
+> >> used mostly for the internal domain wake-ups, so we should keep that in the PRM
+> >> driver.
 > > 
-> > Right, but we need to update the WAKEUP_EN bit in the pad control register for that
-> > to work, no?. This is something we are not doing in the driver.
+> > That depends.
+> > 
+> > One-iorange-equals-one-driver is a fallacy, especially given that MFD for
+> > memory-mapped things exist for a reason.
 > 
-> OK sorry, just figured out that we are doing it indeed in pcs_irq_set().
-> Wasn't able to test it yet with USB. But I don't see any issues except that
-> pcs_soc->rearm() needs to be called from pcs_irq_set() instead of from pcs_irq_unmask().
-
-Hmm that sounds like a different behaviour compared to what I'm seeing
-on omap3. Care to send a little fix on top of these patches so I can
-test it with my set up too? 
-
-It seems that the only difference would be that we're calling rearm()
-after both masking and unmasking, which seemed unnecessary to me earlier.
- 
-> After that you can add my
+> +1
 > 
-> Reviewed-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+> Another place I faced a similar problem was the OMAP control module, which contains
+> registers for a number of different non related peripherals. (e.g. PHY for USB, SATA,
+> Display clock, etc)
 
-Thanks, for testing, sorry I already pushed them out after Kevin
-ran his PM tests on them.
+Guys, we really need to keep the register access between hardware modules
+under control because the hardware blocks can live separate life from clocking
+and power state point of view.
+
+Regmap could be probably used for the register access across various hardware
+modules in a controlled way that is also aware of the clocking and PM state of
+the hardware modules in question. As long as it's done sanely, I'm OK with that.
+
+But for any other kind of random direct register tinkering between hardware
+modules, that's a no no.
+
+> > What the pin control driver should do is control the pins. Whether the registers
+> > are spread out in the entire IO-memory does not matter. We did have one system
+> > which placed the IO-muxing together with each peripheral (!) and I did
+> > still want
+> > that to be handled by a single pinctrl driver picking out windows to all these
+> > IO-ranges.
+> > 
+> > Things like the PRM which has (my guess) a gazillion registers related to its
+> > deep-core SoC stuff should be handled by things like
+> > drivers/mfd/syscon.c, which means it is dead simple for some other driver
+> > using "just this one register" in that range to get a handle at it and poke it
+> > using syscon_node_to_regmap() (just derference an ampersand ref)
+> > syscon_regmap_lookup_by_compatible() (use a compatible string)
+> > all returning a regmap * that you can use to poke these registers.
+> 
+> The register handling is fine. But how do we deal with resource handling?
+> e.g. the block that has the deep-core registers might need to be clocked or powered
+> before the registers can be accessed.
+
+Right, that's the key issue here. The register access would have to be conditional
+based on the hardware modules PM state. Otherwise we'll have hard to trace hangs
+and oopses.
 
 Regards,
 
 Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
