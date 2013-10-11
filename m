@@ -1,16 +1,17 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
 Subject: Re: [PATCH 1/2] ARM: dts: omap5-uevm: remove always_on, boot_on from
  smps10_out1
-Date: Fri, 11 Oct 2013 12:23:15 +0530
-Message-ID: <5257A05B.2070906@ti.com>
+Date: Fri, 11 Oct 2013 12:24:56 +0530
+Message-ID: <5257A0C0.8000701@ti.com>
 References: <1381402195-29257-1-git-send-email-kishon@ti.com>
  <20131010141949.GA13277@kahuna> <52579723.6080209@ti.com>
  <CAGo_u6odWJ9UKwgaVu2YZzZKuYbveBoGDf99L=rJoK1-9KJ0SA@mail.gmail.com>
+ <5257A05B.2070906@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <CAGo_u6odWJ9UKwgaVu2YZzZKuYbveBoGDf99L=rJoK1-9KJ0SA@mail.gmail.com>
+In-Reply-To: <5257A05B.2070906@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -24,60 +25,80 @@ To: Nishanth Menon <nm@ti.com>
 Cc: Mark Rutland <mark.rutland@arm.com>, dt list <devicetree@vger.kernel.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Pawel Moll <pawel.moll@arm.com>, "ijc+devicetree@hellion.org.uk" <ijc+devicetree@hellion.org.uk>, Tony Lindgren <tony@atomide.com>, Stephen Warren <swarren@wwwdotorg.org>, lkml <linux-kernel@vger.kernel.org>, Rob Herring <rob.herring@calxeda.com>, Benoit Cousson <bcousson@baylibre.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+On Friday 11 October 2013 12:23 PM, Kishon Vijay Abraham I wrote:
+> Hi,
+> =
 
-On Friday 11 October 2013 12:00 PM, Nishanth Menon wrote:
-> On Fri, Oct 11, 2013 at 1:13 AM, Kishon Vijay Abraham I <kishon@ti.com> w=
-rote:
+> On Friday 11 October 2013 12:00 PM, Nishanth Menon wrote:
+>> On Fri, Oct 11, 2013 at 1:13 AM, Kishon Vijay Abraham I <kishon@ti.com> =
+wrote:
+>>>
+>>>> regulator-boot-on indicates that PMIC enables it by default as part of
+>>>> OTP or some internal behavior -> Looking at the measurements done on
+>>>> uEVM and OTP information -> regulator-boot-on should be kept here.
+>>>
+>>> No. Actually I don=92t want PMIC to enable it by default. I want the pa=
+lmas-usb
+>>> driver to handle it.
+>>> Enabling it by default makes palmas-usb to detect VBUS interrupt. This =
+should
+>>> ideally be detected only when you connect a host cable.
+>>> Btw I didn't exactly get why you want regulator-boot-on should be kept =
+here.
 >>
->>> regulator-boot-on indicates that PMIC enables it by default as part of
->>> OTP or some internal behavior -> Looking at the measurements done on
->>> uEVM and OTP information -> regulator-boot-on should be kept here.
+>> binding description states:
+>> - regulator-boot-on: bootloader/firmware enabled regulator
+>> Further info: include/linux/regulator/machine.h
+>> * @boot_on: Set if the regulator is enabled when the system is initially
+>> *           started.  If the regulator is not enabled by the hardware or
+>> *           bootloader then it will be enabled when the constraints are
+>> *           applied.
 >>
->> No. Actually I don=92t want PMIC to enable it by default. I want the pal=
-mas-usb
->> driver to handle it.
->> Enabling it by default makes palmas-usb to detect VBUS interrupt. This s=
-hould
->> ideally be detected only when you connect a host cable.
->> Btw I didn't exactly get why you want regulator-boot-on should be kept h=
-ere.
+>> What that means is that it is enabled by firmware/bootloader (in our
+>> case One Time Program {OTP} inside Palmas) when the system switches on
+>> even before the kernel starts. and we know SMPS10 is autoenabled by
+>> Palmas OTP configuration even before first instruction in A15
+>> executes.
 > =
 
-> binding description states:
-> - regulator-boot-on: bootloader/firmware enabled regulator
-> Further info: include/linux/regulator/machine.h
-> * @boot_on: Set if the regulator is enabled when the system is initially
-> *           started.  If the regulator is not enabled by the hardware or
-> *           bootloader then it will be enabled when the constraints are
-> *           applied.
+> Not sure about that. Please note SMPS10 has two outputs OUT1 and OUT2 and=
+ I
+> tend to think that it might be OUT2 that's getting enabled by the OTP.
+>>
+>> I think you misunderstand this to mean that you'd like the regulator
+>> to be *switched on* automatically at kernel boot by regulator
+>> framework - there is no reasoning why we'd want such a binding since
+>> we'd expect drivers to do their job of requesting and enabling
+>> regulators on need..
 > =
 
-> What that means is that it is enabled by firmware/bootloader (in our
-> case One Time Program {OTP} inside Palmas) when the system switches on
-> even before the kernel starts. and we know SMPS10 is autoenabled by
-> Palmas OTP configuration even before first instruction in A15
-> executes.
-
-Not sure about that. Please note SMPS10 has two outputs OUT1 and OUT2 and I
-tend to think that it might be OUT2 that's getting enabled by the OTP.
+> The comment you just quoted tells it enables the regulator if its not ena=
+bled
+> by hardware. "If the regulator is not enabled by the hardware or bootload=
+er
+> then it will be enabled when the constraints are applied." At-least that'=
+s what
+> I understood from that comment.
 > =
 
-> I think you misunderstand this to mean that you'd like the regulator
-> to be *switched on* automatically at kernel boot by regulator
-> framework - there is no reasoning why we'd want such a binding since
-> we'd expect drivers to do their job of requesting and enabling
-> regulators on need..
+> Also from our experiments it doesn't look like SMPS10_OUT1 is enabled by =
+the
+> OTP and it gets enabled when we have *regulator-boot-on* constraints.
 
-The comment you just quoted tells it enables the regulator if its not enabl=
-ed
-by hardware. "If the regulator is not enabled by the hardware or bootloader
-then it will be enabled when the constraints are applied." At-least that's =
-what
-I understood from that comment.
+btw.. I think this is the code in regulator fw that's responsible for enabl=
+ing..
 
-Also from our experiments it doesn't look like SMPS10_OUT1 is enabled by the
-OTP and it gets enabled when we have *regulator-boot-on* constraints.
+	/* If the constraints say the regulator should be on at this point
+	 * and we have control then make sure it is enabled.
+	 */
+	if ((rdev->constraints->always_on || rdev->constraints->boot_on) &&
+	    ops->enable) {
+		ret =3D ops->enable(rdev);
+		if (ret < 0) {
+			rdev_err(rdev, "failed to enable\n");
+			goto out;
+		}
+	}
 
 Thanks
 Kishon
