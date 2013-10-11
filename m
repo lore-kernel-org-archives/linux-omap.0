@@ -1,87 +1,47 @@
-From: "Gupta, Pekon" <pekon@ti.com>
-Subject: RE: [PATCH v7 1/6] mtd: nand: omap: combine different flavours of
- 1-bit hamming ecc schemes
-Date: Fri, 11 Oct 2013 10:17:48 +0000
-Message-ID: <20980858CB6D3A4BAE95CA194937D5E73EA2122E@DBDE04.ent.ti.com>
-References: <1380916188-24206-1-git-send-email-pekon@ti.com>
- <1380916188-24206-2-git-send-email-pekon@ti.com>
- <20131007112728.GA15365@e106331-lin.cambridge.arm.com>
- <20980858CB6D3A4BAE95CA194937D5E73EA1F3DC@DBDE04.ent.ti.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH 4/6] pinctrl: single: Add support for wake-up interrupts
+Date: Fri, 11 Oct 2013 12:32:45 +0200
+Message-ID: <CACRpkdYJNaiAAHhYatd6g5_wVt0QEUxOvsk6nQn9o=_i5zfWrA@mail.gmail.com>
+References: <20131003054104.8941.88857.stgit@localhost>
+	<20131003054221.8941.87801.stgit@localhost>
+	<5256AA7F.8030005@ti.com>
+	<20131010160018.GA29913@atomide.com>
+	<CACRpkdaG-PQA39XSjKUgM9TyeD7srgm_8s+NazrDKJ0gmNLcwg@mail.gmail.com>
+	<20131010162015.GC29913@atomide.com>
+	<CACRpkdYF83ghUf60Wmrti53UJ1bWV30GW_P9GjWnsOcZHbsv+Q@mail.gmail.com>
+	<5257BD3E.5000707@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:57603 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756132Ab3JKKSd convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Oct 2013 06:18:33 -0400
-In-Reply-To: <20980858CB6D3A4BAE95CA194937D5E73EA1F3DC@DBDE04.ent.ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <5257BD3E.5000707@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Grygorii Strashko <grygorii.strashko@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Prakash Manjunathappa <prakash.pm@ti.com>, Haojian Zhuang <haojian.zhuang@linaro.org>, =?ISO-8859-1?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, Linux-OMAP <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: "computersforpeace@gmail.com" <computersforpeace@gmail.com>, "dwmw2@infradead.org" <dwmw2@infradead.org>, "dedekind1@gmail.com" <dedekind1@gmail.com>
-Cc: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "arnd@arndb.de" <arnd@arndb.de>, Pawel Moll <Pawel.Moll@arm.com>, "ijc+devicetree@hellion.org.uk" <ijc+devicetree@hellion.org.uk>, "tony@atomide.com" <tony@atomide.com>, "avinashphilipk@gmail.com" <avinashphilipk@gmail.com>, "Balbi, Felipe" <balbi@ti.com>, "robherring2@gmail.com" <robherring2@gmail.com>, "bcousson@baylibre.com" <bcousson@baylibre.com>, "swarren@wwwdotorg.org" <swarren@wwwdotorg.org>, "olof@lixom.net" <olof@lixom.net>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, Mark Rutland <mark.rutland@arm.com>
 
-Dear MTD Maintainers,
+On Fri, Oct 11, 2013 at 10:56 AM, Roger Quadros <rogerq@ti.com> wrote:
 
-> >
-> > If I have my NAND formatted with one of the existing ECC schemes (e.g.
-> > OMAP_ECC_HAMMING_CODE_DEFAULT) will it work with the new
-> > OMAP_ECC_HAM1_CODE_HW scheme?
-> >
-> > Are they all compatible?
-> >
-> Yes, they all are 1-bit hamming code, the only difference between
-> xx_Default and xx_HW was who was doing the ECC calculation.
-> For xx_DEFAULT: ECC calculation was done on CPU via s/w library
-> For xx_HW: ECC calculation was done by in-build h/w engine.
-> So, all HAMMING_xx can be replaced by HAM1_HW.
-> 
-> [snip]
-> 
-> > > @@ -1342,9 +1342,7 @@ static void __maybe_unused
-> > gpmc_read_timings_dt(struct device_node *np,
-> > >  #ifdef CONFIG_MTD_NAND
-> > >
-> > >  static const char * const nand_ecc_opts[] = {
-> > > -	[OMAP_ECC_HAMMING_CODE_DEFAULT]		= "sw",
-> > > -	[OMAP_ECC_HAMMING_CODE_HW]		= "hw",
-> > > -	[OMAP_ECC_HAMMING_CODE_HW_ROMCODE]	= "hw-
-> > romcode",
-> > > +	[OMAP_ECC_HAM1_CODE_HW]			= "ham1",
-> > >  	[OMAP_ECC_BCH4_CODE_HW]			= "bch4",
-> > >  	[OMAP_ECC_BCH8_CODE_HW]			= "bch8",
-> >
-> > Won't this break existing dts which have "sw", "hw", or "hw-romcode"?
-> >
-> > Someone may try to use a new kernel with an old dt, and we marked them
-> > as deprecated, not removed.
-> >
-> HAMMING_xx ECC scheme was used only on legacy platforms, when
-> BCH8 was not available, I have not seen anyone using this scheme
-> *from mainline kernel* from quite a long time. So, it's safe to remove them.
-> 
-> This is what was concluded as per below email.
-> http://lists.infradead.org/pipermail/linux-mtd/2013-September/048876.html
-> 
+> The register handling is fine. But how do we deal with resource handling?
+> e.g. the block that has the deep-core registers might need to be clocked or powered
+> before the registers can be accessed.
 
-This patch-series and its follow-on series has already missed many merge
-windows, And the above discussion has reached a stalled state (infinite loop)
-where, I cannot revert some DT binding updates to and fro to keep all legacy
-DT bindings backward compatible forever.
-However, I can assure that these DT updates make binding stable for long-term.
+Yeah I saw this in the code there.
 
-So now it's your discretion to whether to accept or leave following 2 series:
+In this case it seems syscon-type regmap access can be used to
+read/write the registers, so maybe the pin controller also need to
+get a handle on some clock etc?
 
-http://lists.infradead.org/pipermail/linux-mtd/2013-October/048983.html
+The general idea is however that large monolitic "drivers" for a
+certain IO-range such as arch/arm/mach-omap2/prm3xxx.c
+doesn't scale - we saw this with the Ux500 PRCMU driver in
+mfd/* to the point that our patches to extend it were NACK:ed
+until we refactor it. This stuff in mach-omap2 is in the same bad
+design pattern, and need to get out of it.
 
-http://lists.infradead.org/pipermail/linux-mtd/2013-October/049008.html
+The approach chosen for the Ux500 PRCMU was to distribute
+out the driver into the places where it's actually used, like the
+clock driver etc. The accessor functions to do some stuff over
+in the PRCMU was just adding a layer of cruft.
 
-
-AFAIK no-one is using Hamming based ecc-scheme on OMAP platforms
-*from mainline kernel*. So this DT update actually does not affect users
-I know of. Rather these patch series was intended for long term scalability
-and clean-up so that more OMAP users migrate to mainline kernel easily.
-
-
-with regards, pekon 
+Yours,
+Linus Walleij
