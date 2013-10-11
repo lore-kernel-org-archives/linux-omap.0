@@ -1,133 +1,89 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 05/11] ARM: OMAP3: CM/PM: add API for accessing module clock enable registers
-Date: Fri, 11 Oct 2013 19:15:35 +0300
-Message-ID: <1381508141-15244-6-git-send-email-t-kristo@ti.com>
+Subject: [PATCH 03/11] ARM: OMAP3: McBSP: do not access CM register directly
+Date: Fri, 11 Oct 2013 19:15:33 +0300
+Message-ID: <1381508141-15244-4-git-send-email-t-kristo@ti.com>
 References: <1381508141-15244-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:54830 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:54826 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754845Ab3JKQQZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 11 Oct 2013 12:16:25 -0400
+	id S1757212Ab3JKQQV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 11 Oct 2013 12:16:21 -0400
 In-Reply-To: <1381508141-15244-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, khilman@linaro.org, paul@pwsan.com, tony@atomide.com
-Cc: linux-arm-kernel@lists.infradead.org
+Cc: linux-arm-kernel@lists.infradead.org, Peter Ujfalusi <peter.ujfalusi@ti.com>
 
-PRCM chain handler needs these to properly acknowledge wakeup events.
-Currently this functionality is implemented as direct register accesses,
-but as the CM code should eventually move to its own driver, separate
-API calls are now added for this purpose. PM core code is also changed
-to use these APIs.
+McBSP driver require special hacks to enable/disable the autoidle feature
+for its interface clock for the proper function of the sidetone hardware.
+Currently the driver just writes CM registers directly, which should be
+avoided. Thus, changed the driver to use the new deny/allow_autoidle
+clock API calls.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- arch/arm/mach-omap2/cm3xxx.c |   28 ++++++++++++++++++++++++++++
- arch/arm/mach-omap2/cm3xxx.h |    2 ++
- arch/arm/mach-omap2/pm34xx.c |   16 ++++++++--------
- 3 files changed, 38 insertions(+), 8 deletions(-)
+ arch/arm/mach-omap2/mcbsp.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/cm3xxx.c b/arch/arm/mach-omap2/cm3xxx.c
-index f6f0288..f13742b 100644
---- a/arch/arm/mach-omap2/cm3xxx.c
-+++ b/arch/arm/mach-omap2/cm3xxx.c
-@@ -658,6 +658,34 @@ void omap3_cm_save_scratchpad_contents(u32 *ptr)
- 	*ptr++ = omap2_cm_read_mod_reg(MPU_MOD, OMAP3430_CM_CLKSEL2_PLL);
+diff --git a/arch/arm/mach-omap2/mcbsp.c b/arch/arm/mach-omap2/mcbsp.c
+index 5d87680..b4ac3af 100644
+--- a/arch/arm/mach-omap2/mcbsp.c
++++ b/arch/arm/mach-omap2/mcbsp.c
+@@ -25,6 +25,7 @@
+ 
+ #include "soc.h"
+ #include "omap_device.h"
++#include "clock.h"
+ 
+ /*
+  * FIXME: Find a mechanism to enable/disable runtime the McBSP ICLK autoidle.
+@@ -33,22 +34,18 @@
+ #include "cm3xxx.h"
+ #include "cm-regbits-34xx.h"
+ 
++static struct clk *mcbsp_iclks[5];
++
+ static int omap3_enable_st_clock(unsigned int id, bool enable)
+ {
+-	unsigned int w;
+-
+ 	/*
+ 	 * Sidetone uses McBSP ICLK - which must not idle when sidetones
+ 	 * are enabled or sidetones start sounding ugly.
+ 	 */
+-	w = omap2_cm_read_mod_reg(OMAP3430_PER_MOD, CM_AUTOIDLE);
+ 	if (enable)
+-		w &= ~(1 << (id - 2));
++		return omap2_clk_deny_idle(mcbsp_iclks[id]);
+ 	else
+-		w |= 1 << (id - 2);
+-	omap2_cm_write_mod_reg(w, OMAP3430_PER_MOD, CM_AUTOIDLE);
+-
+-	return 0;
++		return omap2_clk_allow_idle(mcbsp_iclks[id]);
  }
  
-+static u32 omap3_cm_access_module_clken(s16 module, u8 regs, bool fck, u32 val,
-+					bool write)
-+{
-+	u16 offset;
-+
-+	if (fck)
-+		offset = (regs == 3) ? OMAP3430ES2_CM_FCLKEN3 : CM_FCLKEN1;
-+	else
-+		offset = (regs == 3) ? CM_ICLKEN3 : CM_ICLKEN1;
-+
-+	if (write)
-+		omap2_cm_write_mod_reg(val, module, offset);
-+	else
-+		val = omap2_cm_read_mod_reg(module, offset);
-+
-+	return val;
-+}
-+
-+u32 omap3_cm_read_module_clken(s16 module, u8 regs, bool fck)
-+{
-+	return omap3_cm_access_module_clken(module, regs, fck, 0, false);
-+}
-+
-+u32 omap3_cm_write_module_clken(s16 module, u8 regs, bool fck, u32 val)
-+{
-+	return omap3_cm_access_module_clken(module, regs, fck, val, true);
-+}
-+
- /*
-  *
-  */
-diff --git a/arch/arm/mach-omap2/cm3xxx.h b/arch/arm/mach-omap2/cm3xxx.h
-index 8224c91..2481781 100644
---- a/arch/arm/mach-omap2/cm3xxx.h
-+++ b/arch/arm/mach-omap2/cm3xxx.h
-@@ -84,6 +84,8 @@ extern int omap3xxx_cm_split_idlest_reg(void __iomem *idlest_reg,
- extern void omap3_cm_save_context(void);
- extern void omap3_cm_restore_context(void);
- extern void omap3_cm_save_scratchpad_contents(u32 *ptr);
-+extern u32 omap3_cm_write_module_clken(s16 module, u8 regs, bool fck, u32 val);
-+extern u32 omap3_cm_read_module_clken(s16 module, u8 regs, bool fck);
+ static int __init omap_init_mcbsp(struct omap_hwmod *oh, void *unused)
+@@ -58,6 +55,7 @@ static int __init omap_init_mcbsp(struct omap_hwmod *oh, void *unused)
+ 	struct omap_hwmod *oh_device[2];
+ 	struct omap_mcbsp_platform_data *pdata = NULL;
+ 	struct platform_device *pdev;
++	char clk_name[11];
  
- extern int __init omap3xxx_cm_init(void);
+ 	sscanf(oh->name, "mcbsp%d", &id);
  
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 5a2d803..f3ba439 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -146,8 +146,6 @@ static int prcm_clear_mod_irqs(s16 module, u8 regs, u32 ignore_bits)
- {
- 	u32 wkst, fclk, iclk, clken;
- 	u16 wkst_off = (regs == 3) ? OMAP3430ES2_PM_WKST3 : PM_WKST1;
--	u16 fclk_off = (regs == 3) ? OMAP3430ES2_CM_FCLKEN3 : CM_FCLKEN1;
--	u16 iclk_off = (regs == 3) ? CM_ICLKEN3 : CM_ICLKEN1;
- 	u16 grpsel_off = (regs == 3) ?
- 		OMAP3430ES2_PM_MPUGRPSEL3 : OMAP3430_PM_MPUGRPSEL;
- 	int c = 0;
-@@ -156,25 +154,27 @@ static int prcm_clear_mod_irqs(s16 module, u8 regs, u32 ignore_bits)
- 	wkst &= omap2_prm_read_mod_reg(module, grpsel_off);
- 	wkst &= ~ignore_bits;
- 	if (wkst) {
--		iclk = omap2_cm_read_mod_reg(module, iclk_off);
--		fclk = omap2_cm_read_mod_reg(module, fclk_off);
-+		iclk = omap3_cm_read_module_clken(module, regs, false);
-+		fclk = omap3_cm_read_module_clken(module, regs, true);
- 		while (wkst) {
- 			clken = wkst;
--			omap2_cm_set_mod_reg_bits(clken, module, iclk_off);
-+			omap3_cm_write_module_clken(module, regs, false,
-+						    iclk | clken);
- 			/*
- 			 * For USBHOST, we don't know whether HOST1 or
- 			 * HOST2 woke us up, so enable both f-clocks
- 			 */
- 			if (module == OMAP3430ES2_USBHOST_MOD)
- 				clken |= 1 << OMAP3430ES2_EN_USBHOST2_SHIFT;
--			omap2_cm_set_mod_reg_bits(clken, module, fclk_off);
-+			omap3_cm_write_module_clken(module, regs, true,
-+						    fclk | clken);
- 			omap2_prm_write_mod_reg(wkst, module, wkst_off);
- 			wkst = omap2_prm_read_mod_reg(module, wkst_off);
- 			wkst &= ~ignore_bits;
- 			c++;
- 		}
--		omap2_cm_write_mod_reg(iclk, module, iclk_off);
--		omap2_cm_write_mod_reg(fclk, module, fclk_off);
-+		omap3_cm_write_module_clken(module, regs, false, iclk);
-+		omap3_cm_write_module_clken(module, regs, true, fclk);
+@@ -99,6 +97,8 @@ static int __init omap_init_mcbsp(struct omap_hwmod *oh, void *unused)
+ 		oh_device[1] = omap_hwmod_lookup((
+ 		(struct omap_mcbsp_dev_attr *)(oh->dev_attr))->sidetone);
+ 		pdata->enable_st_clock = omap3_enable_st_clock;
++		sprintf(clk_name, "mcbsp%d_ick", id);
++		mcbsp_iclks[id] = clk_get(NULL, clk_name);
+ 		count++;
  	}
- 
- 	return c;
+ 	pdev = omap_device_build_ss(name, id, oh_device, count, pdata,
 -- 
 1.7.9.5
 
