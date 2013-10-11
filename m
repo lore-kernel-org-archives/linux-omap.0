@@ -1,48 +1,51 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH V6 02/15] ARM: OMAP2+: AM33XX: add lateinit hook for
- calling pm late init
-Date: Fri, 11 Oct 2013 09:11:17 -0700
-Message-ID: <20131011161116.GS29913@atomide.com>
-References: <1381354144-7134-1-git-send-email-nm@ti.com>
- <1381361098-8283-1-git-send-email-nm@ti.com>
- <52563BD8.1060703@ti.com>
- <20131010133209.GA13105@kahuna>
- <5256C5D2.9030302@ti.com>
- <5256C686.6000301@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH] pinctrl: single: call pcs_soc->rearm() whenever IRQ mask is changed
+Date: Fri, 11 Oct 2013 19:13:16 +0300
+Message-ID: <1381507996-15021-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:36589 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758405Ab3JKQLW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Oct 2013 12:11:22 -0400
-Content-Disposition: inline
-In-Reply-To: <5256C686.6000301@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:56789 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756070Ab3JKQNn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 11 Oct 2013 12:13:43 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Joel Fernandes <joelf@ti.com>
-Cc: Nishanth Menon <nm@ti.com>, Kevin Hilman <khilman@linaro.org>, Benoit Cousson <bcousson@baylibre.com>, Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-doc@vger.kernel.org, devicetree@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, Paul Walmsley <paul@pwsan.com>
+To: tony@atomide.com
+Cc: linus.walleij@linaro.org, grygorii.strashko@ti.com, peter.ujfalusi@ti.com, haojian.zhuang@linaro.org, bcousson@baylibre.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 
-* Joel Fernandes <joelf@ti.com> [131010 08:31]:
-> On 10/10/2013 10:20 AM, Joel Fernandes wrote:
-> > 
-> > Adding 6 lines of identical code for every platform seems redundant, I'd just
-> > define an omap_common_late_init for all platforms for now, and then fork off for
-> > the future differences. That way we save on LOC and readability in the header as
-> > well. Your call.
-> 
-> I see a function of that name already exists. I guess you can leave your patch
-> as is then and not have to do this.
+On OMAPs the IO ring must be rearmed each time the pad wakeup
+configuration is changed. So call pcs_soc->rearm() from
+pcs_irq_set().
 
-Yeah but why not just call the common late_init function directly for the
-cases where we know it's never needed.
+Signed-off-by: Roger Quadros <rogerq@ti.com>
+---
+ drivers/pinctrl/pinctrl-single.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
-If thoses will be populated in the later patches, then it's OK to add them.
+diff --git a/drivers/pinctrl/pinctrl-single.c b/drivers/pinctrl/pinctrl-single.c
+index c2aada7..1800e47 100644
+--- a/drivers/pinctrl/pinctrl-single.c
++++ b/drivers/pinctrl/pinctrl-single.c
+@@ -1604,6 +1604,9 @@ static inline void pcs_irq_set(struct pcs_soc_data *pcs_soc,
+ 		pcs->write(mask, pcswi->reg);
+ 		raw_spin_unlock(&pcs->lock);
+ 	}
++
++	if (pcs_soc->rearm)
++		pcs_soc->rearm();
+ }
+ 
+ /**
+@@ -1626,8 +1629,6 @@ static void pcs_irq_unmask(struct irq_data *d)
+ 	struct pcs_soc_data *pcs_soc = irq_data_get_irq_chip_data(d);
+ 
+ 	pcs_irq_set(pcs_soc, d->irq, true);
+-	if (pcs_soc->rearm)
+-		pcs_soc->rearm();
+ }
+ 
+ /**
+-- 
+1.7.4.1
 
-In any case, Nishant, can you please squash the late_init patches into a
-single patch and make sure it also applies on top of the omap-for-v3.13/quirk
-branch as there's been some changes to board-generic.c there.
-
-Regards,
-
-Tony
