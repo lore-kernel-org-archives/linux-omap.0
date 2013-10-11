@@ -1,46 +1,63 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv7 00/36] ARM: OMAP: clock data conversion to DT
-Date: Fri, 11 Oct 2013 15:53:34 -0700
-Message-ID: <20131011225333.GD29913@atomide.com>
-References: <1380098922-30340-1-git-send-email-t-kristo@ti.com>
- <524EE00F.7010208@ti.com>
- <20131007021556.GV8949@atomide.com>
- <52525642.8010307@ti.com>
- <20131007154103.GW8949@atomide.com>
- <20131007190322.GY8949@atomide.com>
- <alpine.DEB.2.02.1310091551540.30199@utopia.booyaka.com>
- <525662A6.4080504@ti.com>
+Subject: Re: [PATCH 1/2] Input: twl4030_keypad - add device tree support
+Date: Fri, 11 Oct 2013 16:38:33 -0700
+Message-ID: <20131011233833.GE29913@atomide.com>
+References: <1381353447-32708-1-git-send-email-sre@debian.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:36504 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752860Ab3JKWxj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Oct 2013 18:53:39 -0400
+Return-path: <linux-doc-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <525662A6.4080504@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1381353447-32708-1-git-send-email-sre@debian.org>
+Sender: linux-doc-owner@vger.kernel.org
+To: Sebastian Reichel <sre@debian.org>
+Cc: Sebastian Reichel <sre@ring0.de>, linux-input@vger.kernel.org, =?utf-8?Q?'Beno=C3=AEt?= Cousson' <bcousson@baylibre.com>, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Rob Landley <rob@landley.net>, Russell King <linux@arm.linux.org.uk>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Grant Likely <grant.likely@linaro.org>, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, mturquette@linaro.org, linux-omap@vger.kernel.org, nm@ti.com, khilman@linaro.org, pdeschrijver@nvidia.com, rnayak@ti.com, bcousson@baylibre.com, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, swarren@nvidia.com, mark.rutland@arm.com
 
-* Tero Kristo <t-kristo@ti.com> [131010 01:25]:
-> On 10/09/2013 09:55 PM, Paul Walmsley wrote:
-> >So in my view, the right things to do here are to:
-> >
-> >1. associate SoC DT clock data with the device node that contains the
-> >    clock control registers
+* Sebastian Reichel <sre@debian.org> [131009 14:25]:
+> Add device tree support for twl4030 keypad driver and update the
+> Documentation with twl4030 keypad device tree binding information.
 > 
-> So, either "cm", "prcm", and maybe "control_module" instead of
-> current "clocks". How much do we benefit from this? This would get
-> rid of need to call of_iomap() for each register basically.
+> This patch also adds a twl4030 keypad node to the twl4030.dtsi file,
+> so that board files can just add the keymap.
+> 
+> Tested on Nokia N900.
 
-It seems that all you need to do for that is to set up two or three
-clock driver instances and have the clocks registered under them.
+Nice :) Just few cosmetic comments below.
+>  
+> +#ifdef CONFIG_OF
+> +static int twl4030_keypad_parse_dt(struct device *dev,
+> +				 struct twl4030_keypad *keypad_data)
+> +{
 
-Then later on those can be children of cm, prcm and scm core drivers
-as needed without much of an issue.
+I guess the way to go nowadays is to use #IS_ENABLED(CONFIG_OF) here
+and later on in this patch.
 
-Regards,
+> @@ -331,20 +358,12 @@ static int twl4030_kp_program(struct twl4030_keypad *kp)
+>  static int twl4030_kp_probe(struct platform_device *pdev)
+>  {
+>  	struct twl4030_keypad_data *pdata = pdev->dev.platform_data;
+> -	const struct matrix_keymap_data *keymap_data;
+> +	const struct matrix_keymap_data *keymap_data = NULL;
+>  	struct twl4030_keypad *kp;
+>  	struct input_dev *input;
+>  	u8 reg;
+>  	int error;
+>  
+> -	if (!pdata || !pdata->rows || !pdata->cols || !pdata->keymap_data ||
+> -	    pdata->rows > TWL4030_MAX_ROWS || pdata->cols > TWL4030_MAX_COLS) {
+> -		dev_err(&pdev->dev, "Invalid platform_data\n");
+> -		return -EINVAL;
+> -	}
+> -
+> -	keymap_data = pdata->keymap_data;
+> -
+>  	kp = kzalloc(sizeof(*kp), GFP_KERNEL);
+>  	input = input_allocate_device();
+>  	if (!kp || !input) {
 
-Tony
+I assume you have tested the above so it does not break things
+for legacy booting?
+
+Other than that:
+
+Acked-by: Tony Lindgren <tony@atomide.com>
