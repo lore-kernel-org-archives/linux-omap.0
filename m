@@ -1,55 +1,136 @@
-From: Lars-Peter Clausen <lars@metafoo.de>
-Subject: Re: [PATCH] omapdss: Add new panel driver for Topolly td028ttec1
- LCD.
-Date: Fri, 11 Oct 2013 09:08:50 +0200
-Message-ID: <5257A402.5030806@metafoo.de>
-References: <1381352915-17219-1-git-send-email-marek@goldelico.com> <525662F5.3090600@ti.com> <7FAC77D4-5E1E-4B11-B067-3A8233C69240@goldelico.com> <52568B40.4040802@ti.com> <04AC7291-38E4-421B-979C-BF03D52E94BD@goldelico.com> <525699EF.6090803@ti.com> <52569CE8.5070201@metafoo.de> <A7739B52-2632-4DD8-924D-B657A6BFE3ED@goldelico.com> <5256F8DF.2020801@metafoo.de> <5257815F.5070803@ti.com>
+From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 1/2] ARM: dts: omap5-uevm: remove always_on, boot_on from smps10_out1
+Date: Fri, 11 Oct 2013 02:27:02 -0500
+Message-ID: <CAGo_u6q-5v05nou+WSw_scWgUDHYXMELtaMGXu7Vk2Wx4pNqog@mail.gmail.com>
+References: <1381402195-29257-1-git-send-email-kishon@ti.com>
+	<20131010141949.GA13277@kahuna>
+	<52579723.6080209@ti.com>
+	<CAGo_u6odWJ9UKwgaVu2YZzZKuYbveBoGDf99L=rJoK1-9KJ0SA@mail.gmail.com>
+	<5257A05B.2070906@ti.com>
+	<5257A0C0.8000701@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5257815F.5070803@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: "Dr. H. Nikolaus Schaller" <hns@goldelico.com>, Marek Belisko <marek@goldelico.com>, plagnioj@jcrosoft.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <5257A0C0.8000701-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Cc: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, dt list <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, "ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org" <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 10/11/2013 06:41 AM, Tomi Valkeinen wrote:
-> On 10/10/13 21:58, Lars-Peter Clausen wrote:
->
->> According to the datasheet the the panel as a dedicated dout pin. Maybe
->> you did not connect it in your design, which means you won't be able to
->> read any data from the panel at all.
->
-> I don't see a dedicated dout in the datasheet...
-> http://dl.wolfgang-draxinger.net/openmoko/doc/TD028TTEC1.pdf
-
-Hm, ok, looks like the display controller used in the panel (the jbt6k74) has 
-separate DIN and DOUT, but the panel only has one pin. But the datasheet for 
-the panel is not exactly clear on whether it's DIN pin is both the DIN and DOUT 
-pin from the controller or, just DIN and DOUT not being connected at all.
-
->
->> Also your custom bitbang code looks a bit strange:
+On Fri, Oct 11, 2013 at 1:54 AM, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>=
+ wrote:
+> On Friday 11 October 2013 12:23 PM, Kishon Vijay Abraham I wrote:
+>> Hi,
 >>
->>      gpio_set_value(data->dout_gpio, 1);
->>      if (gpio_get_value(data->din_gpio) == 0)
->>          return 1;
+>> On Friday 11 October 2013 12:00 PM, Nishanth Menon wrote:
+>>> On Fri, Oct 11, 2013 at 1:13 AM, Kishon Vijay Abraham I <kishon@ti.=
+com> wrote:
+>>>>
+>>>>> regulator-boot-on indicates that PMIC enables it by default as pa=
+rt of
+>>>>> OTP or some internal behavior -> Looking at the measurements done=
+ on
+>>>>> uEVM and OTP information -> regulator-boot-on should be kept here=
+=2E
+>>>>
+>>>> No. Actually I don=92t want PMIC to enable it by default. I want t=
+he palmas-usb
+>>>> driver to handle it.
+>>>> Enabling it by default makes palmas-usb to detect VBUS interrupt. =
+This should
+>>>> ideally be detected only when you connect a host cable.
+>>>> Btw I didn't exactly get why you want regulator-boot-on should be =
+kept here.
+>>>
+>>> binding description states:
+>>> - regulator-boot-on: bootloader/firmware enabled regulator
+>>> Further info: include/linux/regulator/machine.h
+>>> * @boot_on: Set if the regulator is enabled when the system is init=
+ially
+>>> *           started.  If the regulator is not enabled by the hardwa=
+re or
+>>> *           bootloader then it will be enabled when the constraints=
+ are
+>>> *           applied.
+>>>
+>>> What that means is that it is enabled by firmware/bootloader (in ou=
+r
+>>> case One Time Program {OTP} inside Palmas) when the system switches=
+ on
+>>> even before the kernel starts. and we know SMPS10 is autoenabled by
+>>> Palmas OTP configuration even before first instruction in A15
+>>> executes.
 >>
->> You set the state on the dout pin and then read the din pin, if both do
->> not match you abort with an error. This suggest that, for whatever
->> reason, you feed the dout pin back into the din pin in your design. Btw.
->> this is also the only place where din is used in your driver.
+>> Not sure about that. Please note SMPS10 has two outputs OUT1 and OUT=
+2 and I
+>> tend to think that it might be OUT2 that's getting enabled by the OT=
+P.
+>>>
+>>> I think you misunderstand this to mean that you'd like the regulato=
+r
+>>> to be *switched on* automatically at kernel boot by regulator
+>>> framework - there is no reasoning why we'd want such a binding sinc=
+e
+>>> we'd expect drivers to do their job of requesting and enabling
+>>> regulators on need..
+>>
+>> The comment you just quoted tells it enables the regulator if its no=
+t enabled
+>> by hardware. "If the regulator is not enabled by the hardware or boo=
+tloader
+>> then it will be enabled when the constraints are applied." At-least =
+that's what
+>> I understood from that comment.
+>>
+>> Also from our experiments it doesn't look like SMPS10_OUT1 is enable=
+d by the
+>> OTP and it gets enabled when we have *regulator-boot-on* constraints=
+=2E
 >
-> Yes, he said the single "Serial interface data input/output" pin is
-> connected to both din and dout on the SoC. I guess the purpose of that
-> gpio_get_value() is to ensure that the panel is not pulling the line
-> when the SoC is writing to it. Not that I really understand how that can
-> work, but I'm not a HW guy =).
+> btw.. I think this is the code in regulator fw that's responsible for=
+ enabling..
+>
+>         /* If the constraints say the regulator should be on at this =
+point
+>          * and we have control then make sure it is enabled.
+>          */
+>         if ((rdev->constraints->always_on || rdev->constraints->boot_=
+on) &&
+>             ops->enable) {
+>                 ret =3D ops->enable(rdev);
+>                 if (ret < 0) {
+>                         rdev_err(rdev, "failed to enable\n");
+>                         goto out;
+>                 }
+>         }
 
-Hm, ok. I don't think the panel will ever actively drive the line. So in my 
-opinion using either the McBSP SPI master or the GPIO bitbang SPI master should 
-work just fine. You just wouldn't be able to read any register from the device. 
-But the driver is not attempting to do this, so it should be fine.
+Drat, you are right, I did not really dig deep. thanks for correcting
+my understanding here.
 
-- Lars
+I propose the following change in binding as it seems completely
+misleading to me.
+
+diff --git a/Documentation/devicetree/bindings/regulator/regulator.txt
+b/Documentation/devicetree/bindings/regulator/regulator.txt
+index 2bd8f09..d999f096 100644
+--- a/Documentation/devicetree/bindings/regulator/regulator.txt
++++ b/Documentation/devicetree/bindings/regulator/regulator.txt
+@@ -8,7 +8,9 @@ Optional properties:
+ - regulator-min-microamp: smallest current consumers may set
+ - regulator-max-microamp: largest current consumers may set
+ - regulator-always-on: boolean, regulator should never be disabled
+-- regulator-boot-on: bootloader/firmware enabled regulator
++- regulator-boot-on: regulator is enabled when the system is initially=
+ started.
++  If the regulator is not enabled by the hardware or bootloader then i=
+t will be
++  enabled when the constraints are applied.
+ - regulator-allow-bypass: allow the regulator to go into bypass mode
+ - <name>-supply: phandle to the parent supply/regulator node
+ - regulator-ramp-delay: ramp delay for regulator(in uV/uS)
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" i=
+n
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
