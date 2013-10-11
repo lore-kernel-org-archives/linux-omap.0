@@ -1,52 +1,52 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv7 00/36] ARM: OMAP: clock data conversion to DT
-Date: Fri, 11 Oct 2013 21:23:25 +0300
-Message-ID: <5258421D.8030006@ti.com>
-References: <1380098922-30340-1-git-send-email-t-kristo@ti.com> <524EE00F.7010208@ti.com> <20131007021556.GV8949@atomide.com> <52525642.8010307@ti.com> <20131007154103.GW8949@atomide.com> <20131007190322.GY8949@atomide.com> <alpine.DEB.2.02.1310091551540.30199@utopia.booyaka.com> <alpine.DEB.2.02.1310091858411.30199@utopia.booyaka.com> <525654AE.7060009@ti.com> <alpine.DEB.2.02.1310111749180.27397@utopia.booyaka.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v8 6/6] mtd: nand: omap: updated devm_xx for all
+ resource allocation and free calls
+Date: Fri, 11 Oct 2013 11:28:40 -0700
+Message-ID: <20131011182840.GW29913@atomide.com>
+References: <1381498603-15715-1-git-send-email-pekon@ti.com>
+ <1381498603-15715-7-git-send-email-pekon@ti.com>
+ <20131011181515.GJ23337@ld-irv-0074.broadcom.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:34558 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752558Ab3JKSX7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 11 Oct 2013 14:23:59 -0400
-In-Reply-To: <alpine.DEB.2.02.1310111749180.27397@utopia.booyaka.com>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:15488 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753438Ab3JKS3L (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Oct 2013 14:29:11 -0400
+Content-Disposition: inline
+In-Reply-To: <20131011181515.GJ23337@ld-irv-0074.broadcom.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Tony Lindgren <tony@atomide.com>, mturquette@linaro.org, linux-omap@vger.kernel.org, nm@ti.com, khilman@linaro.org, pdeschrijver@nvidia.com, rnayak@ti.com, bcousson@baylibre.com, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, swarren@nvidia.com, mark.rutland@arm.com
+To: Brian Norris <computersforpeace@gmail.com>
+Cc: Pekon Gupta <pekon@ti.com>, mark.rutland@arm.com, robherring2@gmail.com, olof@lixom.net, dedekind1@gmail.com, Pawel.Moll@arm.com, ijc+devicetree@hellion.org.uk, swarren@wwwdotorg.org, dwmw2@infradead.org, arnd@arndb.de, bcousson@baylibre.com, avinashphilipk@gmail.com, balbi@ti.com, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
 
-On 10/11/2013 08:54 PM, Paul Walmsley wrote:
-> On Thu, 10 Oct 2013, Tero Kristo wrote:
->
->> On 10/09/2013 09:59 PM, Paul Walmsley wrote:
->>> Eh, one correction:
->>>
->>> On Wed, 9 Oct 2013, Paul Walmsley wrote:
->>>
->>>> We could easily wind up with kernels that won't boot at all when used
->>>> with newer DT data.
->>>
->>> This is a misstatement of the issue: the concern here is that newer
->>> kernels may not boot at all with older DT data - which could easily be in
->>> locked areas of the flash or firmware.
->>
->> I wonder who would be crazy enough to put DT data into a locked area, and to
->> what purpose. If you can update the kernel, there is no point locking down DT
->> data, this will just cause you unnecessary misery.
->
-> The DT data will be used by bootloaders also :-(
->
-> In situations where the bootloaders are signed and locked, the security
-> people are also insisting that the DT data be signed and locked.
+* Brian Norris <computersforpeace@gmail.com> [131011 11:23]:
+> Hi Pekon,
+> 
+> On Fri, Oct 11, 2013 at 07:06:43PM +0530, Pekon Gupta wrote:
+> > "Managed Device Resource" or devm_xx calls takes care of automatic freeing
+> > of the resource in case of:
+> > - failure during driver probe
+> > - failure during resource allocation
+> > - detaching or unloading of driver module (rmmod)
+> > Reference: Documentation/driver-model/devres.txt
+> > 
+> > Though OMAP NAND driver handles freeing of resource allocation in most of
+> > the cases, but using devm_xx provides more clean and effortless approach
+> > to handle all such cases.
+> 
+> Judging by your patch, I think you missed the point of the devm_*
+> managed functions. They are useful because you don't need to do any of
+> the cleanup (kfree(), iounmap(), etc.) yourself. I'll note the changes
+> that are necessary below, but seeing as this is an add-on to your patch
+> series, I may merge the rest of series without this, and if so, you can
+> just resubmit this patch separately.
 
-Well, even if you sign something, you can still update it. Writing any 
-software to true OTP memory is one way to commit suicide IMO. How many 
-nasty bugs have you seen with ROM code? Also, if people want to make 
-their custom security solutions which are not supported by the kernel, 
-why should the kernel care about it? We don't know the details, and 
-can't influence the design, so we can't prepare for it anyway.
+FYI, the .dts changes should be queued separately by Benoit to avoid
+pointless merge conflicts. The arch/arm/mach-omap2/gpmc.c changes I
+need to look, hopefully I can ack those for you today so you can take
+the code related changes into the MTD tree.
 
--Tero
+Regards,
 
+Tony
