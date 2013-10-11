@@ -1,140 +1,75 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 04/11] ARM: OMAP3: CM/control: move CM scratchpad save to CM driver
-Date: Fri, 11 Oct 2013 19:15:34 +0300
-Message-ID: <1381508141-15244-5-git-send-email-t-kristo@ti.com>
+Subject: [PATCH 07/11] ARM: OMAP3: CM/PM: add new API for checking IVA2 idle status
+Date: Fri, 11 Oct 2013 19:15:37 +0300
+Message-ID: <1381508141-15244-8-git-send-email-t-kristo@ti.com>
 References: <1381508141-15244-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:56922 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:56925 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754845Ab3JKQQ2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 11 Oct 2013 12:16:28 -0400
+	id S1758558Ab3JKQQb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 11 Oct 2013 12:16:31 -0400
 In-Reply-To: <1381508141-15244-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, khilman@linaro.org, paul@pwsan.com, tony@atomide.com
 Cc: linux-arm-kernel@lists.infradead.org
 
-OMAP3 PM code for off-mode currently saves the scratchpad contents for CM
-registers within OMAP control module driver. However, as we are separating
-CM code into its own driver, this must be moved also. This patch adds a
-new API for saving the CM scratchpad contents and uses this from the high
-level scratchpad save function.
+OMAP3 PM code needs this functionality during the IVA2 reset, but is currently
+using direct CM register accesses for this purpose. Implement a new API so
+the PM code can use this instead.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/cm3xxx.c  |   22 +++++++++++++++++++++
- arch/arm/mach-omap2/cm3xxx.h  |    1 +
- arch/arm/mach-omap2/control.c |   43 ++++-------------------------------------
- 3 files changed, 27 insertions(+), 39 deletions(-)
+ arch/arm/mach-omap2/cm3xxx.c |    6 ++++++
+ arch/arm/mach-omap2/cm3xxx.h |    1 +
+ arch/arm/mach-omap2/pm34xx.c |    3 +--
+ 3 files changed, 8 insertions(+), 2 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/cm3xxx.c b/arch/arm/mach-omap2/cm3xxx.c
-index 9061c30..f6f0288 100644
+index 55bf939..b0509b9 100644
 --- a/arch/arm/mach-omap2/cm3xxx.c
 +++ b/arch/arm/mach-omap2/cm3xxx.c
-@@ -636,6 +636,28 @@ void omap3_cm_restore_context(void)
- 			       OMAP3_CM_CLKOUT_CTRL_OFFSET);
+@@ -696,6 +696,12 @@ void omap3_cm_force_iva_clk(bool enable)
+ 	omap2_cm_write_mod_reg(val, OMAP3430_IVA2_MOD, CM_FCLKEN);
  }
  
-+void omap3_cm_save_scratchpad_contents(u32 *ptr)
++bool omap3_cm_is_iva_active(void)
 +{
-+	*ptr++ = omap2_cm_read_mod_reg(CORE_MOD, CM_CLKSEL);
-+	*ptr++ = omap2_cm_read_mod_reg(WKUP_MOD, CM_CLKSEL);
-+	*ptr++ = omap2_cm_read_mod_reg(PLL_MOD, CM_CLKEN);
-+
-+	/*
-+	 * As per erratum i671, ROM code does not respect the PER DPLL
-+	 * programming scheme if CM_AUTOIDLE_PLL..AUTO_PERIPH_DPLL == 1.
-+	 * Then,  in anycase, clear these bits to avoid extra latencies.
-+	 */
-+	*ptr++ = omap2_cm_read_mod_reg(PLL_MOD, CM_AUTOIDLE) &
-+		~OMAP3430_AUTO_PERIPH_DPLL_MASK;
-+	*ptr++ = omap2_cm_read_mod_reg(PLL_MOD, OMAP3430_CM_CLKSEL1_PLL);
-+	*ptr++ = omap2_cm_read_mod_reg(PLL_MOD, OMAP3430_CM_CLKSEL2_PLL);
-+	*ptr++ = omap2_cm_read_mod_reg(PLL_MOD, OMAP3430_CM_CLKSEL3);
-+	*ptr++ = omap2_cm_read_mod_reg(MPU_MOD, OMAP3430_CM_CLKEN_PLL);
-+	*ptr++ = omap2_cm_read_mod_reg(MPU_MOD, OMAP3430_CM_AUTOIDLE_PLL);
-+	*ptr++ = omap2_cm_read_mod_reg(MPU_MOD, OMAP3430_CM_CLKSEL1_PLL);
-+	*ptr++ = omap2_cm_read_mod_reg(MPU_MOD, OMAP3430_CM_CLKSEL2_PLL);
++	return omap2_cm_read_mod_reg(OMAP3430_IVA2_MOD, OMAP3430_CM_CLKSTST) &
++		OMAP3430_CLKACTIVITY_IVA2_MASK;
 +}
 +
  /*
   *
   */
 diff --git a/arch/arm/mach-omap2/cm3xxx.h b/arch/arm/mach-omap2/cm3xxx.h
-index e8e146f..8224c91 100644
+index 61fdfc7..a944b5f 100644
 --- a/arch/arm/mach-omap2/cm3xxx.h
 +++ b/arch/arm/mach-omap2/cm3xxx.h
-@@ -83,6 +83,7 @@ extern int omap3xxx_cm_split_idlest_reg(void __iomem *idlest_reg,
- 
- extern void omap3_cm_save_context(void);
- extern void omap3_cm_restore_context(void);
-+extern void omap3_cm_save_scratchpad_contents(u32 *ptr);
+@@ -87,6 +87,7 @@ extern void omap3_cm_save_scratchpad_contents(u32 *ptr);
+ extern u32 omap3_cm_write_module_clken(s16 module, u8 regs, bool fck, u32 val);
+ extern u32 omap3_cm_read_module_clken(s16 module, u8 regs, bool fck);
+ extern void omap3_cm_force_iva_clk(bool enable);
++extern bool omap3_cm_is_iva_active(void);
  
  extern int __init omap3xxx_cm_init(void);
  
-diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
-index 31e0dfe..a597114 100644
---- a/arch/arm/mach-omap2/control.c
-+++ b/arch/arm/mach-omap2/control.c
-@@ -46,17 +46,7 @@ struct omap3_scratchpad {
- struct omap3_scratchpad_prcm_block {
- 	u32 prm_clksrc_ctrl;
- 	u32 prm_clksel;
--	u32 cm_clksel_core;
--	u32 cm_clksel_wkup;
--	u32 cm_clken_pll;
--	u32 cm_autoidle_pll;
--	u32 cm_clksel1_pll;
--	u32 cm_clksel2_pll;
--	u32 cm_clksel3_pll;
--	u32 cm_clken_pll_mpu;
--	u32 cm_autoidle_pll_mpu;
--	u32 cm_clksel1_pll_mpu;
--	u32 cm_clksel2_pll_mpu;
-+	u32 cm_contents[11];
- 	u32 prcm_block_size;
- };
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index ede058a..a73a012 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -415,8 +415,7 @@ static void __init omap3_iva_idle(void)
+ 	omap3_cm_force_iva_clk(false);
  
-@@ -347,34 +337,9 @@ void omap3_save_scratchpad_contents(void)
- 	prcm_block_contents.prm_clksel =
- 		omap2_prm_read_mod_reg(OMAP3430_CCR_MOD,
- 				       OMAP3_PRM_CLKSEL_OFFSET);
--	prcm_block_contents.cm_clksel_core =
--			omap2_cm_read_mod_reg(CORE_MOD, CM_CLKSEL);
--	prcm_block_contents.cm_clksel_wkup =
--			omap2_cm_read_mod_reg(WKUP_MOD, CM_CLKSEL);
--	prcm_block_contents.cm_clken_pll =
--			omap2_cm_read_mod_reg(PLL_MOD, CM_CLKEN);
--	/*
--	 * As per erratum i671, ROM code does not respect the PER DPLL
--	 * programming scheme if CM_AUTOIDLE_PLL..AUTO_PERIPH_DPLL == 1.
--	 * Then,  in anycase, clear these bits to avoid extra latencies.
--	 */
--	prcm_block_contents.cm_autoidle_pll =
--			omap2_cm_read_mod_reg(PLL_MOD, CM_AUTOIDLE) &
--			~OMAP3430_AUTO_PERIPH_DPLL_MASK;
--	prcm_block_contents.cm_clksel1_pll =
--			omap2_cm_read_mod_reg(PLL_MOD, OMAP3430_CM_CLKSEL1_PLL);
--	prcm_block_contents.cm_clksel2_pll =
--			omap2_cm_read_mod_reg(PLL_MOD, OMAP3430_CM_CLKSEL2_PLL);
--	prcm_block_contents.cm_clksel3_pll =
--			omap2_cm_read_mod_reg(PLL_MOD, OMAP3430_CM_CLKSEL3);
--	prcm_block_contents.cm_clken_pll_mpu =
--			omap2_cm_read_mod_reg(MPU_MOD, OMAP3430_CM_CLKEN_PLL);
--	prcm_block_contents.cm_autoidle_pll_mpu =
--			omap2_cm_read_mod_reg(MPU_MOD, OMAP3430_CM_AUTOIDLE_PLL);
--	prcm_block_contents.cm_clksel1_pll_mpu =
--			omap2_cm_read_mod_reg(MPU_MOD, OMAP3430_CM_CLKSEL1_PLL);
--	prcm_block_contents.cm_clksel2_pll_mpu =
--			omap2_cm_read_mod_reg(MPU_MOD, OMAP3430_CM_CLKSEL2_PLL);
-+
-+	omap3_cm_save_scratchpad_contents(prcm_block_contents.cm_contents);
-+
- 	prcm_block_contents.prcm_block_size = 0x0;
+ 	/* if no clock activity, nothing else to do */
+-	if (!(omap2_cm_read_mod_reg(OMAP3430_IVA2_MOD, OMAP3430_CM_CLKSTST) &
+-	      OMAP3430_CLKACTIVITY_IVA2_MASK))
++	if (!omap3_cm_is_iva_active())
+ 		return;
  
- 	/* Populate the SDRC block contents */
+ 	/* Reset IVA2 */
 -- 
 1.7.9.5
 
