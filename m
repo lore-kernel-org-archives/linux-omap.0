@@ -1,46 +1,51 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v8 1/6] mtd: nand: omap: combine different flavours of
- 1-bit hamming ecc schemes
-Date: Fri, 11 Oct 2013 11:33:45 -0700
-Message-ID: <20131011183344.GY29913@atomide.com>
-References: <1381498603-15715-1-git-send-email-pekon@ti.com>
- <1381498603-15715-2-git-send-email-pekon@ti.com>
- <20131011155535.GQ25706@radagast>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv7 00/36] ARM: OMAP: clock data conversion to DT
+Date: Fri, 11 Oct 2013 21:46:29 +0300
+Message-ID: <52584785.2020504@ti.com>
+References: <1380098922-30340-1-git-send-email-t-kristo@ti.com> <524EE00F.7010208@ti.com> <20131007021556.GV8949@atomide.com> <52525642.8010307@ti.com> <20131007154103.GW8949@atomide.com> <20131007190322.GY8949@atomide.com> <alpine.DEB.2.02.1310091551540.30199@utopia.booyaka.com> <alpine.DEB.2.02.1310091858411.30199@utopia.booyaka.com> <525654AE.7060009@ti.com> <alpine.DEB.2.02.1310111749180.27397@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:43507 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753092Ab3JKSeP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Oct 2013 14:34:15 -0400
-Content-Disposition: inline
-In-Reply-To: <20131011155535.GQ25706@radagast>
+Received: from comal.ext.ti.com ([198.47.26.152]:35563 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751805Ab3JKSrD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 11 Oct 2013 14:47:03 -0400
+In-Reply-To: <alpine.DEB.2.02.1310111749180.27397@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Pekon Gupta <pekon@ti.com>, mark.rutland@arm.com, robherring2@gmail.com, olof@lixom.net, computersforpeace@gmail.com, dedekind1@gmail.com, Pawel.Moll@arm.com, ijc+devicetree@hellion.org.uk, swarren@wwwdotorg.org, dwmw2@infradead.org, arnd@arndb.de, bcousson@baylibre.com, avinashphilipk@gmail.com, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Tony Lindgren <tony@atomide.com>, mturquette@linaro.org, linux-omap@vger.kernel.org, nm@ti.com, khilman@linaro.org, pdeschrijver@nvidia.com, rnayak@ti.com, bcousson@baylibre.com, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, swarren@nvidia.com, mark.rutland@arm.com
 
-* Felipe Balbi <balbi@ti.com> [131011 09:04]:
-> On Fri, Oct 11, 2013 at 07:06:38PM +0530, Pekon Gupta wrote:
-> > OMAP NAND driver currently supports multiple flavours of 1-bit Hamming
-> > ecc-scheme, like:
-> > - OMAP_ECC_HAMMING_CODE_DEFAULT
-> > 	1-bit hamming ecc code using software library
-> > - OMAP_ECC_HAMMING_CODE_HW
-> > 	1-bit hamming ecc-code using GPMC h/w engine
-> > - OMAP_ECC_HAMMING_CODE_HW_ROMCODE
-> > 	1-bit hamming ecc-code using GPMC h/w engin with ecc-layout compatible
-> > 	to ROM code.
-> > 
-> > This patch combines above multiple ecc-schemes into single implementation:
-> > - OMAP_ECC_HAM1_CODE_HW
-> > 	1-bit hamming ecc-code using GPMC h/w engine with ROM-code compatible
-> > 	ecc-layout.
-> > 
-> > Signed-off-by: Pekon Gupta <pekon@ti.com>
-> 
-> Reviewed-by: Felipe Balbi <balbi@ti.com>
+On 10/11/2013 08:54 PM, Paul Walmsley wrote:
+> On Thu, 10 Oct 2013, Tero Kristo wrote:
+>
+>> On 10/09/2013 09:59 PM, Paul Walmsley wrote:
+>>> Eh, one correction:
+>>>
+>>> On Wed, 9 Oct 2013, Paul Walmsley wrote:
+>>>
+>>>> We could easily wind up with kernels that won't boot at all when used
+>>>> with newer DT data.
+>>>
+>>> This is a misstatement of the issue: the concern here is that newer
+>>> kernels may not boot at all with older DT data - which could easily be in
+>>> locked areas of the flash or firmware.
+>>
+>> I wonder who would be crazy enough to put DT data into a locked area, and to
+>> what purpose. If you can update the kernel, there is no point locking down DT
+>> data, this will just cause you unnecessary misery.
+>
+> The DT data will be used by bootloaders also :-(
+>
+> In situations where the bootloaders are signed and locked, the security
+> people are also insisting that the DT data be signed and locked.
 
-This one looks safe to queue via the MTD tree for the arch/arm/*omap* parts:
+Oh yea, one additional note you probably have missed. Mike asked us to 
+fall back to vendor specific bindings at around v6 or so of this set. 
+Take a look at v8, we have dropped the use of generic bindings, we are 
+not trying to declare those with this set. This set introduces vendor 
+specific bindings only, and even these are claimed 'unstable', which 
+should be enough to discourage people from burning those to OTP type memory.
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+-Tero
