@@ -1,79 +1,105 @@
-From: "Dr. H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: Re: [PATCH] omapdss: Add new panel driver for Topolly td028ttec1 LCD.
-Date: Fri, 11 Oct 2013 11:50:55 +0200
-Message-ID: <B8F44C8A-362C-4E78-BE91-D9C0783B998B@goldelico.com>
-References: <1381352915-17219-1-git-send-email-marek@goldelico.com> <525662F5.3090600@ti.com> <7FAC77D4-5E1E-4B11-B067-3A8233C69240@goldelico.com> <52568B40.4040802@ti.com> <04AC7291-38E4-421B-979C-BF03D52E94BD@goldelico.com> <525699EF.6090803@ti.com> <52569CE8.5070201@metafoo.de> <A7739B52-2632-4DD8-924D-B657A6BFE3ED@goldelico.com> <5256F8DF.2020801@metafoo.de> <5257815F.5070803@ti.com> <5257A402.5030806@metafoo.de> <5570E6D7-4F66-40BE-A50C-6CCA8074BD83@goldelico.com> <5257B420.10808@ti.com> <CAAfyv36HSb4FOxaYnqcwBusqSuhtVnT0gEAoGgcW_rBkhWhf0A@mail.gmail.com> <5257BFA3.9090202@metafoo.de>
-Mime-Version: 1.0 (Apple Message framework v1085)
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH] omapdss: Add new panel driver for Topolly td028ttec1
+ LCD.
+Date: Fri, 11 Oct 2013 13:09:25 +0300
+Message-ID: <5257CE55.3090902@ti.com>
+References: <1381352915-17219-1-git-send-email-marek@goldelico.com> <525662F5.3090600@ti.com> <7FAC77D4-5E1E-4B11-B067-3A8233C69240@goldelico.com> <52568B40.4040802@ti.com> <04AC7291-38E4-421B-979C-BF03D52E94BD@goldelico.com> <525699EF.6090803@ti.com> <52569CE8.5070201@metafoo.de> <A7739B52-2632-4DD8-924D-B657A6BFE3ED@goldelico.com> <5256F8DF.2020801@metafoo.de> <5257815F.5070803@ti.com> <5257A402.5030806@metafoo.de> <5570E6D7-4F66-40BE-A50C-6CCA8074BD83@goldelico.com> <5257B420.10808@ti.com> <CAAfyv36HSb4FOxaYnqcwBusqSuhtVnT0gEAoGgcW_rBkhWhf0A@mail.gmail.com> <5257BFA3.9090202@metafoo.de> <B8F44C8A-362C-4E78-BE91-D9C0783B998B@goldelico.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="u3ULf2lU2iPNkLxvIBM23uOHliFiIcV4r"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5257BFA3.9090202@metafoo.de>
+In-Reply-To: <B8F44C8A-362C-4E78-BE91-D9C0783B998B@goldelico.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Lars-Peter Clausen <lars@metafoo.de>
-Cc: Belisko Marek <marek.belisko@gmail.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, LKML <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-fbdev@vger.kernel.org
+To: "Dr. H. Nikolaus Schaller" <hns@goldelico.com>, Lars-Peter Clausen <lars@metafoo.de>
+Cc: Belisko Marek <marek.belisko@gmail.com>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, LKML <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-fbdev@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi all,
+--u3ULf2lU2iPNkLxvIBM23uOHliFiIcV4r
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-Am 11.10.2013 um 11:06 schrieb Lars-Peter Clausen:
+On 11/10/13 12:50, Dr. H. Nikolaus Schaller wrote:
 
-> On 10/11/2013 10:59 AM, Belisko Marek wrote:
->> Hi Tomi,
->> 
->> On Fri, Oct 11, 2013 at 10:17 AM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
->>> On 11/10/13 10:42, Dr. H. Nikolaus Schaller wrote:
->>> 
->>>> I am not sure if there is a SPI driver for a McBSP port [1]? And to make that
->>>> work (reliably) and tested it might need a lot of work for us. At least I think
->>>> such a change (e.g. setting up clock polarity etc.) is not done in some minutes.
->>>> And the only feedback we have from the panel is "does not work"/"works". I.e.
->>>> if we are not lucky that it works immediately we have no real means to debug.
->>>> 
->>>> IMHO it also gives more flexibility to board designers to choose GPIOs instead
->>>> of enforcing some SPI interface by the driver (and encapsulate this arguable
->>>> protocol in the driver). Maybe some board has 3 spare GPIOs but neither
->>>> McBSPs nor McSPIs available.
->>> 
->>> This has been an interesting thread, I've learnt a lot =).
->>> 
->>> I still think the panel driver should not handle this, but there should
->>> be a separate spi bitbang driver for it.
->>> 
->>> I understand you're not enthusiastic going that way, as the current
->>> version works for you. However, when using DT, we need to think how to
->>> represent the hardware in the device tree data, and it has to be right
->>> from the beginning.
->>> 
->>> That's why I won't allow representing this panel as having 4 gpios in
->>> the DT data, because that is not correct. The panel has 3 pins. But
->>> then, the panel does allow reading, which could be implemented using 4
->>> gpios as you have done. This data should be in the spi-bitbang data, and
->>> the panel should just use the standard SPI framework.
->> I disagree. There are different drivers which pass in platform data
->> gpios (encoder-tfp410.c or encoder-tpd12s015.c)
->> and those must be covered by DT then. I cannot see problem why to have
->> for td028 panel 3 or 4 gpios defined in DT.
-> 
-> The problem is not representing it in the devicetree, but representing it
-> correctly. This is a SPI slave device, hence it should be presented in the
-> devicetree as a SPI slave device and not as a platform device with 4 GPIOs.
+> Hm. Is this a SPI or does it just look like one? Or is it some - otherw=
+ise
+> unknown - "3 wire serial interface". Or is it a "3(+1) GPIO slave devic=
+e"?
+> I am still not sure about this.
 
-Hm. Is this a SPI or does it just look like one? Or is it some - otherwise
-unknown - "3 wire serial interface". Or is it a "3(+1) GPIO slave device"?
-I am still not sure about this.
+Lars-Peter said "Back in the OpenMoko days we used the panel in normal
+4-wire SPI mode with the GPIO bitbang SPI master."
 
-If we really want to do it correctly, we may have to write a driver for that
-special serial protocol as well. If it turns out that we can't mis-use and tweak
-it into a standard SPI driver with bit-bang backend.
+I don't know much about SPI, so I can't answer to that. If the serial
+bus is indeed not any kind of more or less standard SPI version, but
+really a custom bus for this controller, then the case is a bit unclear.
 
-I simply fear that we get dependencies with the SPI subsystem and have
-to test, debug and maintain it. Maintaining the GPIO thing we currently have
-is easy.
+> If we really want to do it correctly, we may have to write a driver for=
+ that
+> special serial protocol as well. If it turns out that we can't mis-use =
+and tweak
+> it into a standard SPI driver with bit-bang backend.
+>=20
+> I simply fear that we get dependencies with the SPI subsystem and have
+> to test, debug and maintain it. Maintaining the GPIO thing we currently=
+ have
+> is easy.
+>=20
+> What would be against taking the GPIO approach first and then upgrade a=
+s soon
+> as someone raises his/her finger that he/she wants to really interface =
+this display
+> differently and is not happy with the 3/4 GPIOs? Either they come up wi=
+th a patch
+> or contact the driver author (=3Dme).
 
-What would be against taking the GPIO approach first and then upgrade as soon
-as someone raises his/her finger that he/she wants to really interface this display
-differently and is not happy with the 3/4 GPIOs? Either they come up with a patch
-or contact the driver author (=me).
+I don't have anything against that as long as we use only platform data.
 
-BR,
-Nikolaus
+But DT data is not an in-kernel API, it's an external API. Once we
+define that the DT data for this panel is something, that's it, we
+should stick to it. Of course, we can build compatibility layers for old
+DT data, but I would avoid that if at all possible.
+
+If we now create the DT data with gpios, and the panel as platform
+device, it'd be rather nasty change to make it a child of an spi bus. (I
+presume, I have never made such a change).
+
+And, as the gpios and platform device approach is clearly wrong way to
+describe the hardware, I'm quite against using that description in the
+DT data.
+
+That said, one option is to describe the hardware correctly in the DT
+data, but have a platform device for the panel, with panel driver doing
+the bitbanging. In that case it is possible to update the system to use
+SPI framework if needed, without changing the DT data. However, I'm not
+sure how easy that would be.
+
+ Tomi
+
+
+
+--u3ULf2lU2iPNkLxvIBM23uOHliFiIcV4r
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJSV85VAAoJEPo9qoy8lh71DgAP/AnqVBWIgsAhDTk+S/3r+ReD
+te5oZeuzHKREeVq5aY5MBXgWedUqrAI1bNip/pUox3g7b0v+fHSf2ONR80ijDynF
+YaKeA6MvGAOhmVrpKA3BOP4AK5DEfAK0KQk8tTfjT5Jufe9wk0F92XtqMKEzM50r
+mCy/WQ01IxIu7eqMuVGqwbs7uss13TlWqUSs1As9ri1Yhq3CufZY036QZppvDoG1
+P7Nbp+PovXyyGepUWban7s/z5+h8P0gISGDKMyLrqv3h3CACG4iG9DCcgK8jNiE8
+IFt8XTxk/Nhr/cK6t+QI6/wMsYzdz5tHcFjXMuei16fOgnipAmQGJ4AARRG9I1WG
+EhwKFty6qcbCsJOq2uN+DV9UrUXaW/a0NOj+Fe9Ai100RvJx0/dvyWukSZiPgGZk
+l+cpBGzCC0JkUo3bGXProu72SUZEG+HZnfcyT4rFWQDzJB8Uf0jKwjMw9Z3QOiZB
+LbKmHng2TFSqOQ42UkC1yvrMZEY4EWD2h1R4c70bgga3Z9OcPjHKNj7jVZhB4Ebn
+krP/V7HrAqnLbcWbY0Y70Tgysrd/NXdbmk1hs0rhJsl1m/XQb4knf2Sd5WYWXFQ6
+WeuFQBtuFtUPFKFv+aq8sK/9CZJkKcOO/AvmHAuptsrS8sfecuazplMVLuXAW666
+bV9RuamRmCguHoJYsiW2
+=a7eW
+-----END PGP SIGNATURE-----
+
+--u3ULf2lU2iPNkLxvIBM23uOHliFiIcV4r--
