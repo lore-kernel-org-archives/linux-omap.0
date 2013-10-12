@@ -1,82 +1,60 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH V5] ARM: OMAP5/DRA7: realtime_counter: Configure CNTFRQ
- register
-Date: Fri, 11 Oct 2013 20:37:05 -0400
-Message-ID: <525899B1.7040206@ti.com>
-References: <1381391028-4189-1-git-send-email-r.sricharan@ti.com> <5256A7AE.6000605@ti.com> <20131010171540.GG29913@atomide.com> <20131012003433.GJ29913@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL 1/6] omap non-urgent fixes for v3.13 merge window
+Date: Fri, 11 Oct 2013 18:44:57 -0700
+Message-ID: <2485.35692594505$1381542326@news.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:43558 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752638Ab3JLAhf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Oct 2013 20:37:35 -0400
-In-Reply-To: <20131012003433.GJ29913@atomide.com>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:20643 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751742Ab3JLBpG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Oct 2013 21:45:06 -0400
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Sricharan R <r.sricharan@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, nm@ti.com, Rajendra Nayak <rnayak@ti.com>, Marc Zyngier <marc.zyngier@arm.com>, Mark Rutland <mark.rutland@arm.com>
+To: arm@kernel.org, Arnd Bergmann <arnd@arndb.de>, Kevin Hilman <khilman@linaro.org>, Olof Johansson <olof@lixom.net>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Friday 11 October 2013 08:34 PM, Tony Lindgren wrote:
-> * Tony Lindgren <tony@atomide.com> [131010 10:23]:
->> * Santosh Shilimkar <santosh.shilimkar@ti.com> [131010 06:20]:
->>> On Thursday 10 October 2013 03:43 AM, Sricharan R wrote:
->>>> From: R Sricharan <r.sricharan@ti.com>
->>>>
->>>> The realtime counter called master counter, produces the count
->>>> used by the private timer peripherals in the MPU_CLUSTER. The
->>>> CNTFRQ per cpu register is used to denote the frequency of the counter.
->>>> Currently the frequency value is passed from the
->>>> DT file, but this is not scalable when we have other non-DT guest
->>>> OS. This register must be set to the right value by the
->>>> secure rom code. Setting this register helps in propagating the right
->>>> frequency value across OSes.
->>>>
->>>> More discussions and the reason for adding this in a non-DT
->>>> way can be seen from below.
->>>> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg93832.html
->>>>
->>>> So configuring this secure register for all the cpus here.
->>>>
->>>> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
->>>> Cc: Nishanth Menon <nm@ti.com>
->>>> Cc: Rajendra Nayak <rnayak@ti.com>
->>>> Cc: Marc Zyngier <marc.zyngier@arm.com>
->>>> Cc: Mark Rutland <mark.rutland@arm.com>
->>>> Cc: Tony Lindgren <tony@atomide.com>
->>>> Tested-by: Nishanth Menon <nm@ti.com>
->>>> Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
->>>> Signed-off-by: Sricharan R <r.sricharan@ti.com>
->>>> ---
->>>>  [V5] Removed the use of extern variable in omap-smp.c
->>>>       as per suggestion from Santosh Shilimkar <santosh.shilimkar@ti.com>
->>>>
->>> Thanks for the updates Sricharan. Looks fine now.
->>>
->>> Tony, Can you apply this version if you are fine with it.
->>
->> Yes thanks looks good to me now. Applying into omap-for-v3.13/soc.
-> 
-> Grr, had to apply the following fix on top of this for some configs.
-> 
-Looks like Sricharan missed some builds. Sorry for the trouble Tony.
+The following changes since commit 15c03dd4859ab16f9212238f29dd315654aa94f6:
 
-> 
-> 8< ---------------------------
-> 
-> From: Tony Lindgren <tony@atomide.com>
-> Date: Fri, 11 Oct 2013 17:28:04 -0700
-> Subject: [PATCH] ARM: OMAP2+: Fix build error for realtime counter init if not enabled
-> 
-> Otherwise we can get an error with some configs:
-> 
-> arch/arm/mach-omap2/timer.c:73: undefined reference to `omap_smc1'
-> 
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> 
-Looks fine to me. Thanks 
+  Linux 3.12-rc3 (2013-09-29 15:02:38 -0700)
 
-Regards,
-Santosh
+are available in the git repository at:
 
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.13/fixes-not-urgent-signed
+
+for you to fetch changes up to 8ff875e7f93e900e7a7e78f1c9c05a22b33c27cf:
+
+  ARM: mach-omap1: Fix omap1510_fpga_init_irq() implicit declarations. (2013-10-08 11:04:22 -0700)
+
+----------------------------------------------------------------
+Fixes for omaps that were not considered urgent for the -rc series.
+Just minor build fixes, removal of dead code, and a patch to
+use the die ID for increasing boot time entropy.
+
+----------------------------------------------------------------
+Bartlomiej Zolnierkiewicz (1):
+      ARM: OMAP1: fix incorrect placement of __initdata tag
+
+Linus Walleij (1):
+      ARM: OMAP2+: throw the die id into the entropy pool
+
+Majunath Goudar (1):
+      ARM: mach-omap1: Fix omap1510_fpga_init_irq() implicit declarations.
+
+Michael Opdenacker (1):
+      ARM: OMAP: remove deprecated IRQF_DISABLED
+
+ arch/arm/mach-omap1/common.h   |  3 +++
+ arch/arm/mach-omap1/fpga.c     |  3 +--
+ arch/arm/mach-omap1/gpio15xx.c |  8 ++++----
+ arch/arm/mach-omap1/gpio16xx.c | 22 +++++++++++-----------
+ arch/arm/mach-omap1/gpio7xx.c  | 30 +++++++++++++++---------------
+ arch/arm/mach-omap1/pm.c       |  1 -
+ arch/arm/mach-omap1/time.c     |  2 +-
+ arch/arm/mach-omap1/timer32k.c |  2 +-
+ arch/arm/mach-omap2/id.c       | 12 ++++++++++++
+ arch/arm/mach-omap2/timer.c    |  2 +-
+ arch/arm/plat-omap/dma.c       |  1 -
+ 11 files changed, 49 insertions(+), 37 deletions(-)
