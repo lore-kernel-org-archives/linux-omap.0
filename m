@@ -1,51 +1,63 @@
 From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH v6 11/11] ARM: OMAP2+: AM43x PRCM init
-Date: Sat, 12 Oct 2013 15:46:37 +0530
-Message-ID: <8c6433de33e6804078bf243f822a93a501e8c447.1381569236.git.afzal@ti.com>
-References: <cover.1381569236.git.afzal@ti.com>
+Subject: Re: [GIT PULL] ARM: OMAP2+: hwmod changes for v3.13
+Date: Sat, 12 Oct 2013 15:48:02 +0530
+Message-ID: <525921DA.8000708@ti.com>
+References: <alpine.DEB.2.02.1310111659500.27397@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:51199 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753753Ab3JLKRB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 12 Oct 2013 06:17:01 -0400
-In-Reply-To: <cover.1381569236.git.afzal@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:57922 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752800Ab3JLKS1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 12 Oct 2013 06:18:27 -0400
+In-Reply-To: <alpine.DEB.2.02.1310111659500.27397@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Paul Walmsley <paul@pwsan.com>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rajendra Nayak <rnayak@ti.com>, Ambresh K <ambresh@ti.com>
+To: Paul Walmsley <paul@pwsan.com>, tony@atomide.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-From: Ambresh K <ambresh@ti.com>
+Hi Paul,
 
-Initialise AM43x HWMOD, powerdomains and clockdomains.
+On Friday 11 October 2013 10:30 PM, Paul Walmsley wrote:
 
-Signed-off-by: Ambresh K <ambresh@ti.com>
-Signed-off-by: Afzal Mohammed <afzal@ti.com>
-Acked-by: Rajendra Nayak <rnayak@ti.com>
-Acked-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/mach-omap2/io.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+> The following changes since commit d0e639c9e06d44e713170031fe05fb60ebe680af:
+> 
+>   Linux 3.12-rc4 (2013-10-06 14:00:20 -0700)
+> 
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/for-v3.13/hwmod
+> 
+> for you to fetch changes up to ace1e3ec4a2540c783e65884bb7be9cd45a0a295:
+> 
+>   ARM: AM33xx: hwmod: Add RNG module data (2013-10-09 09:02:51 -0600)
+> 
+> - ----------------------------------------------------------------
+> Some OMAP hwmod changes for 3.13.  Significant changes here include:
+> 
+> - - support for moving some of the hwmod flags to DT data
+> 
+> - - support for the SSI, hardware spinlock, USB host/TLL, and RNG IP
+>   blocks for various OMAPs
+> 
+> - - a fix that again decouples hwmod data changes from unrelated DT data
+>   patchsets
+> 
+> Basic test logs are available at:
+> 
+> http://www.pwsan.com/omap/testlogs/prcm_fixes_v3.13/20131009094936/
+> 
+> The summary reports that the 4460varsomom boots are failing, but this looks
+> incorrect - it's probably a bug in the validation scripts here.
+> 
+> - ----------------------------------------------------------------
 
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index ff2113c..c90f647 100644
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -594,7 +594,13 @@ void __init am43xx_init_early(void)
- 				  NULL);
- 	omap2_set_globals_prm(AM33XX_L4_WK_IO_ADDRESS(AM43XX_PRCM_BASE));
- 	omap2_set_globals_cm(AM33XX_L4_WK_IO_ADDRESS(AM43XX_PRCM_BASE), NULL);
-+	omap_prm_base_init();
-+	omap_cm_base_init();
- 	omap3xxx_check_revision();
-+	am43xx_powerdomains_init();
-+	am43xx_clockdomains_init();
-+	am43xx_hwmod_init();
-+	omap_hwmod_init_postsetup();
- }
- #endif
- 
--- 
-1.8.3.4
+Can you please consider AM43x PRCM basic support also for the coming
+merge window. I have rebased the AM43x PRCM series over your
+"for-v3.13/hwmod" tag and posted as v6. The series has been Acked-by
+Tony and Rajendra. New version has been tested on real silicon in AM43x
+EPOS EVM (previous versions were tested on presilicon platform).
 
+Regards
+Afzal
