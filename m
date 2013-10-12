@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 3/6] omap hwmod changes for v3.13 merge window
-Date: Fri, 11 Oct 2013 18:44:58 -0700
-Message-ID: <E1VUoHI-0004fg-H7@merlin.infradead.org>
+Subject: [GIT PULL 6/6] omap soc changes for v3.13 merge window
+Date: Fri, 11 Oct 2013 18:44:59 -0700
+Message-ID: <E1VUoHS-0004gE-6x@merlin.infradead.org>
 References: <pull-1381542299-305003>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -28,57 +28,34 @@ The following changes since commit d0e639c9e06d44e713170031fe05fb60ebe680af:
 
 are available in the git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.13/hwmod-signed
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.13/soc-take2
 
-for you to fetch changes up to 254f57a92987b6cde6004f58d6b847813dfb9e0e:
+for you to fetch changes up to d5da94b88efebc375bfcbab6bb0e59a6e8a6571e:
 
-  ARM: OMAP5: hwmod: add missing ocp2scp hwmod data (2013-10-11 15:37:05 -0700)
-
-----------------------------------------------------------------
-omap hwmod related changes via Paul Walmsley <paul@pwsan.com>:
-
-Some OMAP hwmod changes for 3.13.  Significant changes here include:
-
-- support for moving some of the hwmod flags to DT data
-
-- support for the SSI, hardware spinlock, USB host/TLL, and RNG IP
-  blocks for various OMAPs
-
-- a fix that again decouples hwmod data changes from unrelated DT data
-  patchsets
-
-Basic test logs are available at:
-
-http://www.pwsan.com/omap/testlogs/prcm_fixes_v3.13/20131009094936/
+  ARM: OMAP2+: Fix build error for realtime counter init if not enabled (2013-10-11 17:28:04 -0700)
 
 ----------------------------------------------------------------
-Benoit Cousson (1):
-      ARM: OMAP5: hwmod: add missing ocp2scp hwmod data
+SoC related changes for omaps to support the realtime
+counter on newer omaps, and to fail early for omap5 es1.0
+SoCs that don't have any support merged for them in the
+mainline tree.
 
-Lokesh Vutla (1):
-      ARM: AM33xx: hwmod: Add RNG module data
+----------------------------------------------------------------
+Nishanth Menon (1):
+      ARM: OMAP5: id: Remove ES1.0 support
 
-Rajendra Nayak (2):
-      ARM: OMAP2+: hwmod: cleanup HWMOD_INIT_NO_RESET usage
-      ARM: OMAP2+: hwmod: Extract no-idle and no-reset info from DT
+R Sricharan (1):
+      ARM: OMAP5/DRA7: realtime_counter: Configure CNTFRQ register
 
-Roger Quadros (1):
-      ARM: OMAP5: hwmod data: Add USB Host and TLL modules
-
-Sebastian Reichel (1):
-      ARM: OMAP2+: hwmod data: Add SSI information
-
-Suman Anna (3):
-      ARM: OMAP2+: hwmod: check for module address space during init
-      ARM: OMAP5: hwmod data: Add spinlock data
-      ARM: AM33xx: hwmod_data: add the sysc configuration for spinlock
+Sricharan R (1):
+      ARM: OMAP2+: DRA7: realtime_counter: Add ratio registers for 20MHZ sys-clk frequency
 
 Tony Lindgren (1):
-      Merge tag 'for-v3.13/hwmod' of git://git.kernel.org/.../pjw/omap-pending into omap-for-v3.13/hwmod
+      ARM: OMAP2+: Fix build error for realtime counter init if not enabled
 
- arch/arm/mach-omap2/omap_hwmod.c           |  49 ++++--
- arch/arm/mach-omap2/omap_hwmod_33xx_data.c |  67 +++++++--
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |  48 ++++++
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   6 +-
- arch/arm/mach-omap2/omap_hwmod_54xx_data.c | 230 ++++++++++++++++++++++++++++-
- 5 files changed, 370 insertions(+), 30 deletions(-)
+ arch/arm/mach-omap2/id.c          |  8 ++++----
+ arch/arm/mach-omap2/omap-secure.h |  4 ++++
+ arch/arm/mach-omap2/omap-smp.c    |  7 +++++++
+ arch/arm/mach-omap2/soc.h         |  2 --
+ arch/arm/mach-omap2/timer.c       | 17 +++++++++++++++++
+ 5 files changed, 32 insertions(+), 6 deletions(-)
