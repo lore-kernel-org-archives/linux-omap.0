@@ -1,471 +1,179 @@
 From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH v6 04/11] ARM: OMAP2+: hwmod: AM335x: remove static register offs
-Date: Sat, 12 Oct 2013 15:45:36 +0530
-Message-ID: <771f8cd8bbd120d2d4e92f6b791ac7c6ae50e0da.1381569236.git.afzal@ti.com>
+Subject: [PATCH v6 05/11] ARM: OMAP2+: PRCM: AM43x definitions
+Date: Sat, 12 Oct 2013 15:45:45 +0530
+Message-ID: <ef9da361b278300d48e9f3cf3041c025bc820156.1381569236.git.afzal@ti.com>
 References: <cover.1381569236.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:57851 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753579Ab3JLKQE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 12 Oct 2013 06:16:04 -0400
+Received: from arroyo.ext.ti.com ([192.94.94.40]:56890 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753631Ab3JLKQJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 12 Oct 2013 06:16:09 -0400
 In-Reply-To: <cover.1381569236.git.afzal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: Paul Walmsley <paul@pwsan.com>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rajendra Nayak <rnayak@ti.com>
 
-Hwmod common to AM43x and AM335x has register offsets different. It is
-now updated based on SoC detection at run time, hence remove statically
-initialized ones.
+Add AM43x CMINST, CDOFFS, RM_RSTST & RM_RSTCTRL definitions - minimal
+ones that would be used.
 
 Signed-off-by: Afzal Mohammed <afzal@ti.com>
 Acked-by: Rajendra Nayak <rnayak@ti.com>
 Acked-by: Tony Lindgren <tony@atomide.com>
 ---
- .../mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c | 57 ----------------------
- 1 file changed, 57 deletions(-)
+ arch/arm/mach-omap2/prcm43xx.h | 141 +++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 141 insertions(+)
+ create mode 100644 arch/arm/mach-omap2/prcm43xx.h
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c
-index e66d02a..ffb371ff 100644
---- a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c
-@@ -44,7 +44,6 @@ struct omap_hwmod am33xx_l3_main_hwmod = {
- 	.main_clk	= "l3_gclk",
- 	.prcm		= {
- 		.omap4	= {
--			.clkctrl_offs	= AM33XX_CM_PER_L3_CLKCTRL_OFFSET,
- 			.modulemode	= MODULEMODE_SWCTRL,
- 		},
- 	},
-@@ -66,7 +65,6 @@ struct omap_hwmod am33xx_l3_instr_hwmod = {
- 	.main_clk	= "l3_gclk",
- 	.prcm		= {
- 		.omap4	= {
--			.clkctrl_offs	= AM33XX_CM_PER_L3_INSTR_CLKCTRL_OFFSET,
- 			.modulemode	= MODULEMODE_SWCTRL,
- 		},
- 	},
-@@ -89,7 +87,6 @@ struct omap_hwmod am33xx_l4_ls_hwmod = {
- 	.main_clk	= "l4ls_gclk",
- 	.prcm		= {
- 		.omap4	= {
--			.clkctrl_offs	= AM33XX_CM_PER_L4LS_CLKCTRL_OFFSET,
- 			.modulemode	= MODULEMODE_SWCTRL,
- 		},
- 	},
-@@ -103,7 +100,6 @@ struct omap_hwmod am33xx_l4_wkup_hwmod = {
- 	.flags		= HWMOD_INIT_NO_IDLE,
- 	.prcm		= {
- 		.omap4	= {
--			.clkctrl_offs	= AM33XX_CM_WKUP_L4WKUP_CLKCTRL_OFFSET,
- 			.modulemode	= MODULEMODE_SWCTRL,
- 		},
- 	},
-@@ -124,7 +120,6 @@ struct omap_hwmod am33xx_mpu_hwmod = {
- 	.main_clk	= "dpll_mpu_m2_ck",
- 	.prcm		= {
- 		.omap4	= {
--			.clkctrl_offs	= AM33XX_CM_MPU_MPU_CLKCTRL_OFFSET,
- 			.modulemode	= MODULEMODE_SWCTRL,
- 		},
- 	},
-@@ -159,8 +154,6 @@ struct omap_hwmod am33xx_pruss_hwmod = {
- 	.main_clk	= "pruss_ocp_gclk",
- 	.prcm		= {
- 		.omap4	= {
--			.clkctrl_offs	= AM33XX_CM_PER_PRUSS_CLKCTRL_OFFSET,
--			.rstctrl_offs	= AM33XX_RM_PER_RSTCTRL_OFFSET,
- 			.modulemode	= MODULEMODE_SWCTRL,
- 		},
- 	},
-@@ -185,9 +178,6 @@ struct omap_hwmod am33xx_gfx_hwmod = {
- 	.main_clk	= "gfx_fck_div_ck",
- 	.prcm		= {
- 		.omap4	= {
--			.clkctrl_offs	= AM33XX_CM_GFX_GFX_CLKCTRL_OFFSET,
--			.rstctrl_offs	= AM33XX_RM_GFX_RSTCTRL_OFFSET,
--			.rstst_offs	= AM33XX_RM_GFX_RSTST_OFFSET,
- 			.modulemode	= MODULEMODE_SWCTRL,
- 		},
- 	},
-@@ -232,7 +222,6 @@ struct omap_hwmod am33xx_aes0_hwmod = {
- 	.main_clk	= "aes0_fck",
- 	.prcm		= {
- 		.omap4	= {
--			.clkctrl_offs	= AM33XX_CM_PER_AES0_CLKCTRL_OFFSET,
- 			.modulemode	= MODULEMODE_SWCTRL,
- 		},
- 	},
-@@ -258,7 +247,6 @@ struct omap_hwmod am33xx_sha0_hwmod = {
- 	.main_clk	= "l3_gclk",
- 	.prcm		= {
- 		.omap4	= {
--			.clkctrl_offs	= AM33XX_CM_PER_SHA0_CLKCTRL_OFFSET,
- 			.modulemode	= MODULEMODE_SWCTRL,
- 		},
- 	},
-@@ -277,7 +265,6 @@ struct omap_hwmod am33xx_ocmcram_hwmod = {
- 	.main_clk	= "l3_gclk",
- 	.prcm		= {
- 		.omap4	= {
--			.clkctrl_offs	= AM33XX_CM_PER_OCMCRAM_CLKCTRL_OFFSET,
- 			.modulemode	= MODULEMODE_SWCTRL,
- 		},
- 	},
-@@ -296,7 +283,6 @@ struct omap_hwmod am33xx_smartreflex0_hwmod = {
- 	.main_clk	= "smartreflex0_fck",
- 	.prcm		= {
- 		.omap4	= {
--			.clkctrl_offs	= AM33XX_CM_WKUP_SMARTREFLEX0_CLKCTRL_OFFSET,
- 			.modulemode	= MODULEMODE_SWCTRL,
- 		},
- 	},
-@@ -310,7 +296,6 @@ struct omap_hwmod am33xx_smartreflex1_hwmod = {
- 	.main_clk	= "smartreflex1_fck",
- 	.prcm		= {
- 		.omap4	= {
--			.clkctrl_offs	= AM33XX_CM_WKUP_SMARTREFLEX1_CLKCTRL_OFFSET,
- 			.modulemode	= MODULEMODE_SWCTRL,
- 		},
- 	},
-@@ -352,7 +337,6 @@ struct omap_hwmod am33xx_cpgmac0_hwmod = {
- 	.mpu_rt_idx	= 1,
- 	.prcm		= {
- 		.omap4	= {
--			.clkctrl_offs	= AM33XX_CM_PER_CPGMAC0_CLKCTRL_OFFSET,
- 			.modulemode	= MODULEMODE_SWCTRL,
- 		},
- 	},
-@@ -387,7 +371,6 @@ struct omap_hwmod am33xx_dcan0_hwmod = {
- 	.main_clk	= "dcan0_fck",
- 	.prcm		= {
- 		.omap4	= {
--			.clkctrl_offs	= AM33XX_CM_PER_DCAN0_CLKCTRL_OFFSET,
- 			.modulemode	= MODULEMODE_SWCTRL,
- 		},
- 	},
-@@ -401,7 +384,6 @@ struct omap_hwmod am33xx_dcan1_hwmod = {
- 	.main_clk	= "dcan1_fck",
- 	.prcm		= {
- 		.omap4	= {
--			.clkctrl_offs	= AM33XX_CM_PER_DCAN1_CLKCTRL_OFFSET,
- 			.modulemode	= MODULEMODE_SWCTRL,
- 		},
- 	},
-@@ -431,7 +413,6 @@ struct omap_hwmod am33xx_elm_hwmod = {
- 	.main_clk	= "l4ls_gclk",
- 	.prcm		= {
- 		.omap4	= {
--			.clkctrl_offs	= AM33XX_CM_PER_ELM_CLKCTRL_OFFSET,
- 			.modulemode	= MODULEMODE_SWCTRL,
- 		},
- 	},
-@@ -473,7 +454,6 @@ struct omap_hwmod am33xx_epwmss0_hwmod = {
- 	.main_clk	= "l4ls_gclk",
- 	.prcm		= {
- 		.omap4	= {
--			.clkctrl_offs	= AM33XX_CM_PER_EPWMSS0_CLKCTRL_OFFSET,
- 			.modulemode	= MODULEMODE_SWCTRL,
- 		},
- 	},
-@@ -511,7 +491,6 @@ struct omap_hwmod am33xx_epwmss1_hwmod = {
- 	.main_clk	= "l4ls_gclk",
- 	.prcm		= {
- 		.omap4	= {
--			.clkctrl_offs	= AM33XX_CM_PER_EPWMSS1_CLKCTRL_OFFSET,
- 			.modulemode	= MODULEMODE_SWCTRL,
- 		},
- 	},
-@@ -549,7 +528,6 @@ struct omap_hwmod am33xx_epwmss2_hwmod = {
- 	.main_clk	= "l4ls_gclk",
- 	.prcm		= {
- 		.omap4	= {
--			.clkctrl_offs	= AM33XX_CM_PER_EPWMSS2_CLKCTRL_OFFSET,
- 			.modulemode	= MODULEMODE_SWCTRL,
- 		},
- 	},
-@@ -618,7 +596,6 @@ struct omap_hwmod am33xx_gpio1_hwmod = {
- 	.main_clk	= "l4ls_gclk",
- 	.prcm		= {
- 		.omap4	= {
--			.clkctrl_offs	= AM33XX_CM_PER_GPIO1_CLKCTRL_OFFSET,
- 			.modulemode	= MODULEMODE_SWCTRL,
- 		},
- 	},
-@@ -640,7 +617,6 @@ struct omap_hwmod am33xx_gpio2_hwmod = {
- 	.main_clk	= "l4ls_gclk",
- 	.prcm		= {
- 		.omap4	= {
--			.clkctrl_offs	= AM33XX_CM_PER_GPIO2_CLKCTRL_OFFSET,
- 			.modulemode	= MODULEMODE_SWCTRL,
- 		},
- 	},
-@@ -662,7 +638,6 @@ struct omap_hwmod am33xx_gpio3_hwmod = {
- 	.main_clk	= "l4ls_gclk",
- 	.prcm		= {
- 		.omap4	= {
--			.clkctrl_offs	= AM33XX_CM_PER_GPIO3_CLKCTRL_OFFSET,
- 			.modulemode	= MODULEMODE_SWCTRL,
- 		},
- 	},
-@@ -695,7 +670,6 @@ struct omap_hwmod am33xx_gpmc_hwmod = {
- 	.main_clk	= "l3s_gclk",
- 	.prcm		= {
- 		.omap4	= {
--			.clkctrl_offs	= AM33XX_CM_PER_GPMC_CLKCTRL_OFFSET,
- 			.modulemode	= MODULEMODE_SWCTRL,
- 		},
- 	},
-@@ -733,7 +707,6 @@ struct omap_hwmod am33xx_i2c1_hwmod = {
- 	.main_clk	= "dpll_per_m2_div4_wkupdm_ck",
- 	.prcm		= {
- 		.omap4	= {
--			.clkctrl_offs	= AM33XX_CM_WKUP_I2C0_CLKCTRL_OFFSET,
- 			.modulemode	= MODULEMODE_SWCTRL,
- 		},
- 	},
-@@ -749,7 +722,6 @@ struct omap_hwmod am33xx_i2c2_hwmod = {
- 	.main_clk	= "dpll_per_m2_div4_ck",
- 	.prcm		= {
- 		.omap4 = {
--			.clkctrl_offs	= AM33XX_CM_PER_I2C1_CLKCTRL_OFFSET,
- 			.modulemode	= MODULEMODE_SWCTRL,
- 		},
- 	},
-@@ -765,7 +737,6 @@ struct omap_hwmod am33xx_i2c3_hwmod = {
- 	.main_clk	= "dpll_per_m2_div4_ck",
- 	.prcm		= {
- 		.omap4	= {
--			.clkctrl_offs	= AM33XX_CM_PER_I2C2_CLKCTRL_OFFSET,
- 			.modulemode	= MODULEMODE_SWCTRL,
- 		},
- 	},
-@@ -798,7 +769,6 @@ struct omap_hwmod am33xx_mailbox_hwmod = {
- 	.main_clk	= "l4ls_gclk",
- 	.prcm = {
- 		.omap4 = {
--			.clkctrl_offs	= AM33XX_CM_PER_MAILBOX0_CLKCTRL_OFFSET,
- 			.modulemode	= MODULEMODE_SWCTRL,
- 		},
- 	},
-@@ -828,7 +798,6 @@ struct omap_hwmod am33xx_mcasp0_hwmod = {
- 	.main_clk	= "mcasp0_fck",
- 	.prcm		= {
- 		.omap4	= {
--			.clkctrl_offs	= AM33XX_CM_PER_MCASP0_CLKCTRL_OFFSET,
- 			.modulemode	= MODULEMODE_SWCTRL,
- 		},
- 	},
-@@ -842,7 +811,6 @@ struct omap_hwmod am33xx_mcasp1_hwmod = {
- 	.main_clk	= "mcasp1_fck",
- 	.prcm		= {
- 		.omap4	= {
--			.clkctrl_offs	= AM33XX_CM_PER_MCASP1_CLKCTRL_OFFSET,
- 			.modulemode	= MODULEMODE_SWCTRL,
- 		},
- 	},
-@@ -877,7 +845,6 @@ struct omap_hwmod am33xx_mmc0_hwmod = {
- 	.main_clk	= "mmc_clk",
- 	.prcm		= {
- 		.omap4	= {
--			.clkctrl_offs	= AM33XX_CM_PER_MMC0_CLKCTRL_OFFSET,
- 			.modulemode	= MODULEMODE_SWCTRL,
- 		},
- 	},
-@@ -896,7 +863,6 @@ struct omap_hwmod am33xx_mmc1_hwmod = {
- 	.main_clk	= "mmc_clk",
- 	.prcm		= {
- 		.omap4	= {
--			.clkctrl_offs	= AM33XX_CM_PER_MMC1_CLKCTRL_OFFSET,
- 			.modulemode	= MODULEMODE_SWCTRL,
- 		},
- 	},
-@@ -914,7 +880,6 @@ struct omap_hwmod am33xx_mmc2_hwmod = {
- 	.main_clk	= "mmc_clk",
- 	.prcm		= {
- 		.omap4	= {
--			.clkctrl_offs	= AM33XX_CM_PER_MMC2_CLKCTRL_OFFSET,
- 			.modulemode	= MODULEMODE_SWCTRL,
- 		},
- 	},
-@@ -946,7 +911,6 @@ struct omap_hwmod am33xx_rtc_hwmod = {
- 	.main_clk	= "clk_32768_ck",
- 	.prcm		= {
- 		.omap4	= {
--			.clkctrl_offs	= AM33XX_CM_RTC_RTC_CLKCTRL_OFFSET,
- 			.modulemode	= MODULEMODE_SWCTRL,
- 		},
- 	},
-@@ -981,7 +945,6 @@ struct omap_hwmod am33xx_spi0_hwmod = {
- 	.main_clk	= "dpll_per_m2_div4_ck",
- 	.prcm		= {
- 		.omap4	= {
--			.clkctrl_offs	= AM33XX_CM_PER_SPI0_CLKCTRL_OFFSET,
- 			.modulemode	= MODULEMODE_SWCTRL,
- 		},
- 	},
-@@ -996,7 +959,6 @@ struct omap_hwmod am33xx_spi1_hwmod = {
- 	.main_clk	= "dpll_per_m2_div4_ck",
- 	.prcm		= {
- 		.omap4	= {
--			.clkctrl_offs	= AM33XX_CM_PER_SPI1_CLKCTRL_OFFSET,
- 			.modulemode	= MODULEMODE_SWCTRL,
- 		},
- 	},
-@@ -1032,7 +994,6 @@ struct omap_hwmod am33xx_spinlock_hwmod = {
- 	.main_clk	= "l4ls_gclk",
- 	.prcm		= {
- 		.omap4	= {
--			.clkctrl_offs	= AM33XX_CM_PER_SPINLOCK_CLKCTRL_OFFSET,
- 			.modulemode	= MODULEMODE_SWCTRL,
- 		},
- 	},
-@@ -1078,7 +1039,6 @@ struct omap_hwmod am33xx_timer1_hwmod = {
- 	.main_clk	= "timer1_fck",
- 	.prcm		= {
- 		.omap4	= {
--			.clkctrl_offs	= AM33XX_CM_WKUP_TIMER1_CLKCTRL_OFFSET,
- 			.modulemode	= MODULEMODE_SWCTRL,
- 		},
- 	},
-@@ -1091,7 +1051,6 @@ struct omap_hwmod am33xx_timer2_hwmod = {
- 	.main_clk	= "timer2_fck",
- 	.prcm		= {
- 		.omap4	= {
--			.clkctrl_offs	= AM33XX_CM_PER_TIMER2_CLKCTRL_OFFSET,
- 			.modulemode	= MODULEMODE_SWCTRL,
- 		},
- 	},
-@@ -1104,7 +1063,6 @@ struct omap_hwmod am33xx_timer3_hwmod = {
- 	.main_clk	= "timer3_fck",
- 	.prcm		= {
- 		.omap4	= {
--			.clkctrl_offs	= AM33XX_CM_PER_TIMER3_CLKCTRL_OFFSET,
- 			.modulemode	= MODULEMODE_SWCTRL,
- 		},
- 	},
-@@ -1117,7 +1075,6 @@ struct omap_hwmod am33xx_timer4_hwmod = {
- 	.main_clk	= "timer4_fck",
- 	.prcm		= {
- 		.omap4	= {
--			.clkctrl_offs	= AM33XX_CM_PER_TIMER4_CLKCTRL_OFFSET,
- 			.modulemode	= MODULEMODE_SWCTRL,
- 		},
- 	},
-@@ -1130,7 +1087,6 @@ struct omap_hwmod am33xx_timer5_hwmod = {
- 	.main_clk	= "timer5_fck",
- 	.prcm		= {
- 		.omap4	= {
--			.clkctrl_offs	= AM33XX_CM_PER_TIMER5_CLKCTRL_OFFSET,
- 			.modulemode	= MODULEMODE_SWCTRL,
- 		},
- 	},
-@@ -1143,7 +1099,6 @@ struct omap_hwmod am33xx_timer6_hwmod = {
- 	.main_clk	= "timer6_fck",
- 	.prcm		= {
- 		.omap4	= {
--			.clkctrl_offs	= AM33XX_CM_PER_TIMER6_CLKCTRL_OFFSET,
- 			.modulemode	= MODULEMODE_SWCTRL,
- 		},
- 	},
-@@ -1156,7 +1111,6 @@ struct omap_hwmod am33xx_timer7_hwmod = {
- 	.main_clk	= "timer7_fck",
- 	.prcm		= {
- 		.omap4	= {
--			.clkctrl_offs	= AM33XX_CM_PER_TIMER7_CLKCTRL_OFFSET,
- 			.modulemode	= MODULEMODE_SWCTRL,
- 		},
- 	},
-@@ -1174,7 +1128,6 @@ struct omap_hwmod am33xx_tpcc_hwmod = {
- 	.main_clk	= "l3_gclk",
- 	.prcm		= {
- 		.omap4	= {
--			.clkctrl_offs	= AM33XX_CM_PER_TPCC_CLKCTRL_OFFSET,
- 			.modulemode	= MODULEMODE_SWCTRL,
- 		},
- 	},
-@@ -1204,7 +1157,6 @@ struct omap_hwmod am33xx_tptc0_hwmod = {
- 	.main_clk	= "l3_gclk",
- 	.prcm		= {
- 		.omap4	= {
--			.clkctrl_offs	= AM33XX_CM_PER_TPTC0_CLKCTRL_OFFSET,
- 			.modulemode	= MODULEMODE_SWCTRL,
- 		},
- 	},
-@@ -1219,7 +1171,6 @@ struct omap_hwmod am33xx_tptc1_hwmod = {
- 	.main_clk	= "l3_gclk",
- 	.prcm		= {
- 		.omap4	= {
--			.clkctrl_offs	= AM33XX_CM_PER_TPTC1_CLKCTRL_OFFSET,
- 			.modulemode	= MODULEMODE_SWCTRL,
- 		},
- 	},
-@@ -1234,7 +1185,6 @@ struct omap_hwmod am33xx_tptc2_hwmod = {
- 	.main_clk	= "l3_gclk",
- 	.prcm		= {
- 		.omap4	= {
--			.clkctrl_offs	= AM33XX_CM_PER_TPTC2_CLKCTRL_OFFSET,
- 			.modulemode	= MODULEMODE_SWCTRL,
- 		},
- 	},
-@@ -1265,7 +1215,6 @@ struct omap_hwmod am33xx_uart1_hwmod = {
- 	.main_clk	= "dpll_per_m2_div4_wkupdm_ck",
- 	.prcm		= {
- 		.omap4	= {
--			.clkctrl_offs	= AM33XX_CM_WKUP_UART0_CLKCTRL_OFFSET,
- 			.modulemode	= MODULEMODE_SWCTRL,
- 		},
- 	},
-@@ -1279,7 +1228,6 @@ struct omap_hwmod am33xx_uart2_hwmod = {
- 	.main_clk	= "dpll_per_m2_div4_ck",
- 	.prcm		= {
- 		.omap4	= {
--			.clkctrl_offs	= AM33XX_CM_PER_UART1_CLKCTRL_OFFSET,
- 			.modulemode	= MODULEMODE_SWCTRL,
- 		},
- 	},
-@@ -1294,7 +1242,6 @@ struct omap_hwmod am33xx_uart3_hwmod = {
- 	.main_clk	= "dpll_per_m2_div4_ck",
- 	.prcm		= {
- 		.omap4	= {
--			.clkctrl_offs	= AM33XX_CM_PER_UART2_CLKCTRL_OFFSET,
- 			.modulemode	= MODULEMODE_SWCTRL,
- 		},
- 	},
-@@ -1308,7 +1255,6 @@ struct omap_hwmod am33xx_uart4_hwmod = {
- 	.main_clk	= "dpll_per_m2_div4_ck",
- 	.prcm		= {
- 		.omap4	= {
--			.clkctrl_offs	= AM33XX_CM_PER_UART3_CLKCTRL_OFFSET,
- 			.modulemode	= MODULEMODE_SWCTRL,
- 		},
- 	},
-@@ -1322,7 +1268,6 @@ struct omap_hwmod am33xx_uart5_hwmod = {
- 	.main_clk	= "dpll_per_m2_div4_ck",
- 	.prcm		= {
- 		.omap4	= {
--			.clkctrl_offs	= AM33XX_CM_PER_UART4_CLKCTRL_OFFSET,
- 			.modulemode	= MODULEMODE_SWCTRL,
- 		},
- 	},
-@@ -1336,7 +1281,6 @@ struct omap_hwmod am33xx_uart6_hwmod = {
- 	.main_clk	= "dpll_per_m2_div4_ck",
- 	.prcm		= {
- 		.omap4	= {
--			.clkctrl_offs	= AM33XX_CM_PER_UART5_CLKCTRL_OFFSET,
- 			.modulemode	= MODULEMODE_SWCTRL,
- 		},
- 	},
-@@ -1372,7 +1316,6 @@ struct omap_hwmod am33xx_wd_timer1_hwmod = {
- 	.main_clk	= "wdt1_fck",
- 	.prcm		= {
- 		.omap4	= {
--			.clkctrl_offs	= AM33XX_CM_WKUP_WDT1_CLKCTRL_OFFSET,
- 			.modulemode	= MODULEMODE_SWCTRL,
- 		},
- 	},
+diff --git a/arch/arm/mach-omap2/prcm43xx.h b/arch/arm/mach-omap2/prcm43xx.h
+new file mode 100644
+index 0000000..f0636ec
+--- /dev/null
++++ b/arch/arm/mach-omap2/prcm43xx.h
+@@ -0,0 +1,141 @@
++/*
++ * AM43x PRCM defines
++ *
++ * Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.com/
++ *
++ * This file is licensed under the terms of the GNU General Public License
++ * version 2.  This program is licensed "as is" without any warranty of any
++ * kind, whether express or implied.
++ */
++
++#ifndef __ARCH_ARM_MACH_OMAP2_PRCM_43XX_H
++#define __ARCH_ARM_MACH_OMAP2_PRCM_43XX_H
++
++#define AM43XX_PRM_PARTITION				1
++#define AM43XX_CM_PARTITION				1
++
++/* PRM instances */
++#define AM43XX_PRM_OCP_SOCKET_INST			0x0000
++#define AM43XX_PRM_MPU_INST				0x0300
++#define AM43XX_PRM_GFX_INST				0x0400
++#define AM43XX_PRM_RTC_INST				0x0500
++#define AM43XX_PRM_TAMPER_INST				0x0600
++#define AM43XX_PRM_CEFUSE_INST				0x0700
++#define AM43XX_PRM_PER_INST				0x0800
++#define AM43XX_PRM_WKUP_INST				0x2000
++#define AM43XX_PRM_DEVICE_INST				0x4000
++
++/* RM RSTCTRL offsets */
++#define AM43XX_RM_PER_RSTCTRL_OFFSET			0x0010
++#define AM43XX_RM_GFX_RSTCTRL_OFFSET			0x0010
++#define AM43XX_RM_WKUP_RSTCTRL_OFFSET			0x0010
++
++/* RM RSTST offsets */
++#define AM43XX_RM_GFX_RSTST_OFFSET			0x0014
++#define AM43XX_RM_WKUP_RSTST_OFFSET			0x0014
++
++/* CM instances */
++#define AM43XX_CM_WKUP_INST				0x2800
++#define AM43XX_CM_DEVICE_INST				0x4100
++#define AM43XX_CM_DPLL_INST				0x4200
++#define AM43XX_CM_MPU_INST				0x8300
++#define AM43XX_CM_GFX_INST				0x8400
++#define AM43XX_CM_RTC_INST				0x8500
++#define AM43XX_CM_TAMPER_INST				0x8600
++#define AM43XX_CM_CEFUSE_INST				0x8700
++#define AM43XX_CM_PER_INST				0x8800
++
++/* CD offsets */
++#define AM43XX_CM_WKUP_L3_AON_CDOFFS			0x0000
++#define AM43XX_CM_WKUP_L3S_TSC_CDOFFS			0x0100
++#define AM43XX_CM_WKUP_L4_WKUP_AON_CDOFFS		0x0200
++#define AM43XX_CM_WKUP_WKUP_CDOFFS			0x0300
++#define AM43XX_CM_MPU_MPU_CDOFFS			0x0000
++#define AM43XX_CM_GFX_GFX_L3_CDOFFS			0x0000
++#define AM43XX_CM_RTC_RTC_CDOFFS			0x0000
++#define AM43XX_CM_TAMPER_TAMPER_CDOFFS			0x0000
++#define AM43XX_CM_CEFUSE_CEFUSE_CDOFFS			0x0000
++#define AM43XX_CM_PER_L3_CDOFFS				0x0000
++#define AM43XX_CM_PER_L3S_CDOFFS			0x0200
++#define AM43XX_CM_PER_ICSS_CDOFFS			0x0300
++#define AM43XX_CM_PER_L4LS_CDOFFS			0x0400
++#define AM43XX_CM_PER_EMIF_CDOFFS			0x0700
++#define AM43XX_CM_PER_DSS_CDOFFS			0x0a00
++#define AM43XX_CM_PER_CPSW_CDOFFS			0x0b00
++#define AM43XX_CM_PER_OCPWP_L3_CDOFFS			0x0c00
++
++/* CLK CTRL offsets */
++#define AM43XX_CM_PER_UART1_CLKCTRL_OFFSET		0x0580
++#define AM43XX_CM_PER_UART2_CLKCTRL_OFFSET		0x0588
++#define AM43XX_CM_PER_UART3_CLKCTRL_OFFSET		0x0590
++#define AM43XX_CM_PER_UART4_CLKCTRL_OFFSET		0x0598
++#define AM43XX_CM_PER_UART5_CLKCTRL_OFFSET		0x05a0
++#define AM43XX_CM_PER_DCAN0_CLKCTRL_OFFSET		0x0428
++#define AM43XX_CM_PER_DCAN1_CLKCTRL_OFFSET		0x0430
++#define AM43XX_CM_PER_ELM_CLKCTRL_OFFSET		0x0468
++#define AM43XX_CM_PER_EPWMSS0_CLKCTRL_OFFSET		0x0438
++#define AM43XX_CM_PER_EPWMSS1_CLKCTRL_OFFSET		0x0440
++#define AM43XX_CM_PER_EPWMSS2_CLKCTRL_OFFSET		0x0448
++#define AM43XX_CM_PER_GPIO1_CLKCTRL_OFFSET		0x0478
++#define AM43XX_CM_PER_GPIO2_CLKCTRL_OFFSET		0x0480
++#define AM43XX_CM_PER_GPIO3_CLKCTRL_OFFSET		0x0488
++#define AM43XX_CM_PER_I2C1_CLKCTRL_OFFSET		0x04a8
++#define AM43XX_CM_PER_I2C2_CLKCTRL_OFFSET		0x04b0
++#define AM43XX_CM_PER_MAILBOX0_CLKCTRL_OFFSET		0x04b8
++#define AM43XX_CM_PER_MMC0_CLKCTRL_OFFSET		0x04c0
++#define AM43XX_CM_PER_MMC1_CLKCTRL_OFFSET		0x04c8
++#define AM43XX_CM_PER_SPI0_CLKCTRL_OFFSET		0x0500
++#define AM43XX_CM_PER_SPI1_CLKCTRL_OFFSET		0x0508
++#define AM43XX_CM_PER_SPINLOCK_CLKCTRL_OFFSET		0x0528
++#define AM43XX_CM_PER_TIMER2_CLKCTRL_OFFSET		0x0530
++#define AM43XX_CM_PER_TIMER3_CLKCTRL_OFFSET		0x0538
++#define AM43XX_CM_PER_TIMER4_CLKCTRL_OFFSET		0x0540
++#define AM43XX_CM_PER_TIMER5_CLKCTRL_OFFSET		0x0548
++#define AM43XX_CM_PER_TIMER6_CLKCTRL_OFFSET		0x0550
++#define AM43XX_CM_PER_TIMER7_CLKCTRL_OFFSET		0x0558
++#define AM43XX_CM_WKUP_WKUP_M3_CLKCTRL_OFFSET		0x0228
++#define AM43XX_CM_WKUP_CONTROL_CLKCTRL_OFFSET		0x0360
++#define AM43XX_CM_WKUP_SMARTREFLEX0_CLKCTRL_OFFSET	0x0350
++#define AM43XX_CM_WKUP_SMARTREFLEX1_CLKCTRL_OFFSET	0x0358
++#define AM43XX_CM_WKUP_UART0_CLKCTRL_OFFSET		0x0348
++#define AM43XX_CM_WKUP_TIMER1_CLKCTRL_OFFSET		0x0328
++#define AM43XX_CM_WKUP_I2C0_CLKCTRL_OFFSET		0x0340
++#define AM43XX_CM_WKUP_GPIO0_CLKCTRL_OFFSET		0x0368
++#define AM43XX_CM_WKUP_ADC_TSC_CLKCTRL_OFFSET		0x0120
++#define AM43XX_CM_WKUP_WDT1_CLKCTRL_OFFSET		0x0338
++#define AM43XX_CM_WKUP_L4WKUP_CLKCTRL_OFFSET		0x0220
++#define AM43XX_CM_RTC_RTC_CLKCTRL_OFFSET		0x0020
++#define AM43XX_CM_PER_MMC2_CLKCTRL_OFFSET		0x0248
++#define AM43XX_CM_PER_GPMC_CLKCTRL_OFFSET		0x0220
++#define AM43XX_CM_PER_MCASP0_CLKCTRL_OFFSET		0x0238
++#define AM43XX_CM_PER_MCASP1_CLKCTRL_OFFSET		0x0240
++#define AM43XX_CM_PER_L4LS_CLKCTRL_OFFSET		0x0420
++#define AM43XX_CM_PER_L3_CLKCTRL_OFFSET			0x0020
++#define AM43XX_CM_PER_TPCC_CLKCTRL_OFFSET		0x0078
++#define AM43XX_CM_PER_TPTC0_CLKCTRL_OFFSET		0x0080
++#define AM43XX_CM_PER_TPTC1_CLKCTRL_OFFSET		0x0088
++#define AM43XX_CM_PER_TPTC2_CLKCTRL_OFFSET		0x0090
++#define AM43XX_CM_PER_CPGMAC0_CLKCTRL_OFFSET		0x0b20
++#define AM43XX_CM_PER_PRUSS_CLKCTRL_OFFSET		0x0320
++#define AM43XX_CM_GFX_GFX_CLKCTRL_OFFSET		0x0020
++#define AM43XX_CM_PER_L4HS_CLKCTRL_OFFSET		0x00a0
++#define AM43XX_CM_MPU_MPU_CLKCTRL_OFFSET		0x0020
++#define AM43XX_CM_PER_L3_INSTR_CLKCTRL_OFFSET		0x0040
++#define AM43XX_CM_PER_OCMCRAM_CLKCTRL_OFFSET		0x0050
++#define AM43XX_CM_PER_SHA0_CLKCTRL_OFFSET		0x0058
++#define AM43XX_CM_PER_AES0_CLKCTRL_OFFSET		0x0028
++#define AM43XX_CM_PER_TIMER8_CLKCTRL_OFFSET		0x0560
++#define AM43XX_CM_PER_TIMER9_CLKCTRL_OFFSET		0x0568
++#define AM43XX_CM_PER_TIMER10_CLKCTRL_OFFSET		0x0570
++#define AM43XX_CM_PER_TIMER11_CLKCTRL_OFFSET		0x0578
++#define AM43XX_CM_WKUP_SYNCTIMER_CLKCTRL_OFFSET		0x0230
++#define AM43XX_CM_PER_EPWMSS3_CLKCTRL_OFFSET		0x0450
++#define AM43XX_CM_PER_EPWMSS4_CLKCTRL_OFFSET		0x0458
++#define AM43XX_CM_PER_EPWMSS5_CLKCTRL_OFFSET		0x0460
++#define AM43XX_CM_PER_SPI2_CLKCTRL_OFFSET		0x0510
++#define AM43XX_CM_PER_SPI3_CLKCTRL_OFFSET		0x0518
++#define AM43XX_CM_PER_SPI4_CLKCTRL_OFFSET		0x0520
++#define AM43XX_CM_PER_GPIO4_CLKCTRL_OFFSET		0x0490
++#define AM43XX_CM_PER_GPIO5_CLKCTRL_OFFSET		0x0498
++
++#endif
 -- 
 1.8.3.4
 
