@@ -1,8 +1,8 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 2/6] omap pdata and dt preparation changes for v3.13 merge
+Subject: [GIT PULL 5/6] omap display and board pdata changes for v3.13 merge
  window
-Date: Fri, 11 Oct 2013 18:44:57 -0700
-Message-ID: <E1VUoH0-0004eO-No@merlin.infradead.org>
+Date: Fri, 11 Oct 2013 18:44:59 -0700
+Message-ID: <E1VUoH9-0004ep-7I@merlin.infradead.org>
 References: <pull-1381542299-305003>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -29,74 +29,43 @@ The following changes since commit d0e639c9e06d44e713170031fe05fb60ebe680af:
 
 are available in the git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.13/quirk-signed
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.13/board-signed
 
-for you to fetch changes up to 8d71528343c69ce387bd5fdb4fd8dc2b9f69d97c:
+for you to fetch changes up to 9e490f486ea9ce7644be913e03ee5ccdf1be20f7:
 
-  ARM: configs: omap2plus_defconfig: enable dwc3 and dependencies (2013-10-11 15:41:25 -0700)
-
-----------------------------------------------------------------
-Changes needed to prepare for making omap3 device tree only:
-
-- Always build in board-generic, and add pdata quirks and auxdata
-  support for it so we have all the pdata related quirks
-  in the same place.
-
-- Merge of the drivers/pinctrl changes that are needed for PM
-  to continue working on omap3 and also needed for other omaps
-  eventually. The three pinctrl related patches have been acked
-  by Linus Walleij and are pulled into both the pinctrl tree
-  and this branch.
-
-- Few defconfig related changes for drivers needed.
+  Merge branch 'omap-for-v3.13/n900' into omap-for-v3.13/board (2013-10-11 16:14:23 -0700)
 
 ----------------------------------------------------------------
-Aaro Koskinen (1):
-      ARM: OMAP2+: pdata-quirks: set internal clock source for MMC2 on N950/N9
 
-Felipe Balbi (1):
-      ARM: configs: omap2plus_defconfig: enable dwc3 and dependencies
+Platform data changes for omaps for the display subsystem and
+n900 secure mode changes. Note that the n900 secure mode changes
+will still be needed for device tree based booting also.
 
-Javier Martinez Canillas (2):
-      ARM: OMAP2+: pdata-quirks: add legacy display init for IGEPv2 board
-      ARM: OMAP2+: igep0020: use display init from dss-common
+----------------------------------------------------------------
+Archit Taneja (4):
+      ARM: OMAP2+: drm: Don't build device for DMM
+      ARM: OMAP2+: display: Create omapdrm device inside omap_display_init
+      ARM: OMAP2+: display: Create omapvrfb and omapfb devices inside omap_display_init
+      ARM: OMAP2+: display: Create omap_vout device inside omap_display_init
 
-Tony Lindgren (14):
-      ARM: OMAP2+: Always build in board-generic
-      ARM: OMAP2+: Add quirk support for legacy platform data init
-      ARM: OMAP2+: Use pdata quirk support for board-generic.c
-      ARM: OMAP2+: Use pdata quirks for wl12xx legacy init
-      pinctrl: single: Prepare for supporting SoC specific features
-      pinctrl: single: Add support for wake-up interrupts
-      pinctrl: single: Add support for auxdata
-      Merge tag 'pinctrl-single-for-linus-for-v3.13-signed' into omap-for-v3.13/quirk
-      ARM: OMAP2+: Add support for auxdata
-      ARM: OMAP: Move DT wake-up event handling over to use pinctrl-single-omap
-      ARM: OMAP2+: Use pdata quirks for wl12xx for omap3 evm and zoom3
-      ARM: OMAP2+: Add minimal 8250 support for GPMC
-      ARM: OMAP2+: Run make savedefconfig on omap2plus_defconfig to shrink it
-      ARM: OMAP2+: Add WLAN modules and of_serial to omap2plus_defconfig
+Pali Rohr (3):
+      ARM: OMAP3: Add secure function omap_smc3() which calling instruction smc #1
+      ARM: OMAP3: RX-51: ARM errata 430973 workaround
+      RX-51: Add support for OMAP3 ROM Random Number Generator
 
- .../devicetree/bindings/pinctrl/pinctrl-single.txt |  11 +
- arch/arm/boot/dts/omap3.dtsi                       |   4 +
- arch/arm/boot/dts/omap4.dtsi                       |   4 +
- arch/arm/configs/omap2plus_defconfig               | 109 +++---
- arch/arm/mach-omap2/Kconfig                        |  10 +-
- arch/arm/mach-omap2/Makefile                       |   2 +-
- arch/arm/mach-omap2/board-generic.c                |  36 +-
- arch/arm/mach-omap2/board-igep0020.c               |  41 +--
- arch/arm/mach-omap2/common.h                       |   3 +
- arch/arm/mach-omap2/devices.c                      |  38 --
- arch/arm/mach-omap2/dss-common.c                   |  44 +++
- arch/arm/mach-omap2/dss-common.h                   |   1 +
- arch/arm/mach-omap2/gpmc.c                         |  38 ++
- arch/arm/mach-omap2/mux.c                          |   8 +-
- arch/arm/mach-omap2/pdata-quirks.c                 | 174 ++++++++++
- arch/arm/mach-omap2/prm3xxx.h                      |   8 +-
- arch/arm/mach-omap2/prm44xx_54xx.h                 |   8 +-
- arch/arm/mach-omap2/prm_common.c                   |  11 +
- drivers/pinctrl/pinctrl-single.c                   | 383 ++++++++++++++++++++-
- include/linux/platform_data/pinctrl-single.h       |  12 +
- 20 files changed, 751 insertions(+), 194 deletions(-)
- create mode 100644 arch/arm/mach-omap2/pdata-quirks.c
- create mode 100644 include/linux/platform_data/pinctrl-single.h
+Tony Lindgren (1):
+      Merge branch 'omap-for-v3.13/n900' into omap-for-v3.13/board
+
+ arch/arm/mach-omap2/Makefile                 |  6 +--
+ arch/arm/mach-omap2/board-rx51-peripherals.c | 19 +++++++
+ arch/arm/mach-omap2/board-rx51.c             | 12 +++++
+ arch/arm/mach-omap2/cclock3xxx_data.c        |  1 +
+ arch/arm/mach-omap2/devices.c                | 10 ++--
+ arch/arm/mach-omap2/display.c                | 28 ++++++++++
+ arch/arm/mach-omap2/display.h                |  4 ++
+ arch/arm/mach-omap2/drm.c                    | 24 ++-------
+ arch/arm/mach-omap2/fb.c                     | 14 ++---
+ arch/arm/mach-omap2/omap-secure.c            | 76 ++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/omap-secure.h            | 13 +++++
+ arch/arm/mach-omap2/omap-smc.S               | 21 +++++++-
+ 12 files changed, 191 insertions(+), 37 deletions(-)
