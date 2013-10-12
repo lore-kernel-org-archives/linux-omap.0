@@ -1,63 +1,61 @@
-From: Afzal Mohammed <afzal@ti.com>
-Subject: Re: [GIT PULL] ARM: OMAP2+: hwmod changes for v3.13
-Date: Sat, 12 Oct 2013 15:48:02 +0530
-Message-ID: <525921DA.8000708@ti.com>
-References: <alpine.DEB.2.02.1310111659500.27397@utopia.booyaka.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH 00/11] ARM: OMAP2+: CM cleanup series
+Date: Sat, 12 Oct 2013 13:18:47 +0300
+Message-ID: <52592207.4070508@ti.com>
+References: <1381508141-15244-1-git-send-email-t-kristo@ti.com> <alpine.DEB.2.02.1310120139280.27397@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:57922 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752800Ab3JLKS1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 12 Oct 2013 06:18:27 -0400
-In-Reply-To: <alpine.DEB.2.02.1310111659500.27397@utopia.booyaka.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:56957 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752800Ab3JLKTN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 12 Oct 2013 06:19:13 -0400
+In-Reply-To: <alpine.DEB.2.02.1310120139280.27397@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>, tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, khilman@linaro.org, tony@atomide.com, linux-arm-kernel@lists.infradead.org
 
-Hi Paul,
+On 10/12/2013 05:19 AM, Paul Walmsley wrote:
+> Hi
+>
+> On Fri, 11 Oct 2013, Tero Kristo wrote:
+>
+>> A small cleanup set for CM. This basically gets rid of the omap2_cm_*
+>> register accesses from the random code locations, and gathers these
+>> under cm2xxx.c and cm3xxx.c. This is done in preparation for creating
+>> a separate CM driver. The set also contains a couple of PRM cleanups
+>> which I decided to take care of at the same time due to overlapping
+>> code (PRCM interrupt handler + DSP reset.)
+>>
+>> TODO: cleanup dsp bridge code (arch/arm/mach-omap2/dsp.c.)
+>>
+>> Tested on OMAP3 beagle + 3.12-rc3.
+>
+> Looks like at least one patch has a dependency on your DT clk patches:
+>
+> Importing patch "clk-ti-add-dt-alias-clock" ...
+> error: drivers/clk/ti/Makefile: does not exist in index
+> error: include/linux/clk/ti.h: does not exist in index
+> stg import: Diff does not apply cleanly
 
-On Friday 11 October 2013 10:30 PM, Paul Walmsley wrote:
+Hmm what? No it doesn't have any dependency. At most, there could be 
+merge conflicts between the two, as this is completely separated set.
 
-> The following changes since commit d0e639c9e06d44e713170031fe05fb60ebe680af:
-> 
->   Linux 3.12-rc4 (2013-10-06 14:00:20 -0700)
-> 
-> are available in the git repository at:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/for-v3.13/hwmod
-> 
-> for you to fetch changes up to ace1e3ec4a2540c783e65884bb7be9cd45a0a295:
-> 
->   ARM: AM33xx: hwmod: Add RNG module data (2013-10-09 09:02:51 -0600)
-> 
-> - ----------------------------------------------------------------
-> Some OMAP hwmod changes for 3.13.  Significant changes here include:
-> 
-> - - support for moving some of the hwmod flags to DT data
-> 
-> - - support for the SSI, hardware spinlock, USB host/TLL, and RNG IP
->   blocks for various OMAPs
-> 
-> - - a fix that again decouples hwmod data changes from unrelated DT data
->   patchsets
-> 
-> Basic test logs are available at:
-> 
-> http://www.pwsan.com/omap/testlogs/prcm_fixes_v3.13/20131009094936/
-> 
-> The summary reports that the 4460varsomom boots are failing, but this looks
-> incorrect - it's probably a bug in the validation scripts here.
-> 
-> - ----------------------------------------------------------------
+-Tero
 
-Can you please consider AM43x PRCM basic support also for the coming
-merge window. I have rebased the AM43x PRCM series over your
-"for-v3.13/hwmod" tag and posted as v6. The series has been Acked-by
-Tony and Rajendra. New version has been tested on real silicon in AM43x
-EPOS EVM (previous versions were tested on presilicon platform).
+>
+> Tried compiling the rest, but the build broke:
+>
+> arch/arm/mach-omap2/mcbsp.c: In function 'omap3_enable_st_clock':
+> arch/arm/mach-omap2/mcbsp.c:46:3: error: implicit declaration of function 'omap2_clk_deny_idle'
+> arch/arm/mach-omap2/mcbsp.c:48:3: error: implicit declaration of function 'omap2_clk_allow_idle'
+> make[1]: *** [arch/arm/mach-omap2/mcbsp.o] Error 1
+> make: *** [arch/arm/mach-omap2] Error 2
+> make: *** Waiting for unfinished jobs....
+>
+>
+> - Paul
+>
 
-Regards
-Afzal
