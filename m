@@ -1,61 +1,47 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH 00/11] ARM: OMAP2+: CM cleanup series
-Date: Sat, 12 Oct 2013 13:18:47 +0300
-Message-ID: <52592207.4070508@ti.com>
-References: <1381508141-15244-1-git-send-email-t-kristo@ti.com> <alpine.DEB.2.02.1310120139280.27397@utopia.booyaka.com>
+From: Afzal Mohammed <afzal@ti.com>
+Subject: Re: [PATCH v2] ARM: OMAP2+: wakeupgen: AM43x adaptation
+Date: Sat, 12 Oct 2013 15:52:06 +0530
+Message-ID: <525922CE.6080200@ti.com>
+References: <1381302753-7045-1-git-send-email-afzal@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:56957 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:34589 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752800Ab3JLKTN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 12 Oct 2013 06:19:13 -0400
-In-Reply-To: <alpine.DEB.2.02.1310120139280.27397@utopia.booyaka.com>
+	id S1752674Ab3JLKWc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 12 Oct 2013 06:22:32 -0400
+In-Reply-To: <1381302753-7045-1-git-send-email-afzal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, khilman@linaro.org, tony@atomide.com, linux-arm-kernel@lists.infradead.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Tony Lindgren <tony@atomide.com>
 
-On 10/12/2013 05:19 AM, Paul Walmsley wrote:
-> Hi
->
-> On Fri, 11 Oct 2013, Tero Kristo wrote:
->
->> A small cleanup set for CM. This basically gets rid of the omap2_cm_*
->> register accesses from the random code locations, and gathers these
->> under cm2xxx.c and cm3xxx.c. This is done in preparation for creating
->> a separate CM driver. The set also contains a couple of PRM cleanups
->> which I decided to take care of at the same time due to overlapping
->> code (PRCM interrupt handler + DSP reset.)
->>
->> TODO: cleanup dsp bridge code (arch/arm/mach-omap2/dsp.c.)
->>
->> Tested on OMAP3 beagle + 3.12-rc3.
->
-> Looks like at least one patch has a dependency on your DT clk patches:
->
-> Importing patch "clk-ti-add-dt-alias-clock" ...
-> error: drivers/clk/ti/Makefile: does not exist in index
-> error: include/linux/clk/ti.h: does not exist in index
-> stg import: Diff does not apply cleanly
+Hi Tony,
 
-Hmm what? No it doesn't have any dependency. At most, there could be 
-merge conflicts between the two, as this is completely separated set.
+On Wednesday 09 October 2013 12:42 PM, Afzal Mohammed wrote:
+> AM43x has 224 interrupts and 7 banks, make it as maximum values. Keep
+> default values as earlier, if am43x is detected, update interrupts and
+> banks accordingly.
+> 
+> Also AM43x has only one cpu, ensure that clearing bitmask at wakeupgen
+> is done only for the single existing cpu, existing code assumes that
+> there are two cpu's.
+> 
+> If bitmask is cleared in wakeupgen for the nonexistent second cpu,
+> an imprecise abort happens as soon as Kernel switches to user space.
+> It was rootcaused by Sekhar Nori <nsekhar@ti.com>.
+> 
+> Signed-off-by: Afzal Mohammed <afzal@ti.com>
+> ---
+> 
+> v2:
+> 1. make AM43x adaptation such that changes required for new SoC addition is less
+> 2. avoid usage of am43x local variable, use soc_is_am43xx() instead
 
--Tero
+Seems you missed this one, please consider this for the coming merge
+window. Without this AM43x would not boot to prompt.
 
->
-> Tried compiling the rest, but the build broke:
->
-> arch/arm/mach-omap2/mcbsp.c: In function 'omap3_enable_st_clock':
-> arch/arm/mach-omap2/mcbsp.c:46:3: error: implicit declaration of function 'omap2_clk_deny_idle'
-> arch/arm/mach-omap2/mcbsp.c:48:3: error: implicit declaration of function 'omap2_clk_allow_idle'
-> make[1]: *** [arch/arm/mach-omap2/mcbsp.o] Error 1
-> make: *** [arch/arm/mach-omap2] Error 2
-> make: *** Waiting for unfinished jobs....
->
->
-> - Paul
->
+Regards
+Afzal
 
