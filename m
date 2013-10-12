@@ -1,51 +1,44 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 00/11] ARM: OMAP2+: CM cleanup series
-Date: Sat, 12 Oct 2013 02:19:57 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1310120139280.27397@utopia.booyaka.com>
-References: <1381508141-15244-1-git-send-email-t-kristo@ti.com>
+From: Wei Yongjun <weiyj.lk@gmail.com>
+Subject: [PATCH -next] usb: phy: omap: remove redundant dev_err call in omap_control_usb_probe()
+Date: Sat, 12 Oct 2013 14:11:31 +0800
+Message-ID: <CAPgLHd83P9YG4ryEGcuxr8k9UPhiVz5L+AQzivpD+H_nzZ4pZg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:33484 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751318Ab3JLCT6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Oct 2013 22:19:58 -0400
-In-Reply-To: <1381508141-15244-1-git-send-email-t-kristo@ti.com>
+Received: from mail-bk0-f48.google.com ([209.85.214.48]:43923 "EHLO
+	mail-bk0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752690Ab3JLGLc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 12 Oct 2013 02:11:32 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, khilman@linaro.org, tony@atomide.com, linux-arm-kernel@lists.infradead.org
+To: balbi@ti.com, gregkh@linuxfoundation.org, grant.likely@linaro.org, rob.herring@calxeda.com
+Cc: yongjun_wei@trendmicro.com.cn, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 
-Hi
+From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 
-On Fri, 11 Oct 2013, Tero Kristo wrote:
+There is a error message within devm_ioremap_resource
+already, so remove the dev_err call to avoid redundant
+error message.
 
-> A small cleanup set for CM. This basically gets rid of the omap2_cm_*
-> register accesses from the random code locations, and gathers these
-> under cm2xxx.c and cm3xxx.c. This is done in preparation for creating
-> a separate CM driver. The set also contains a couple of PRM cleanups
-> which I decided to take care of at the same time due to overlapping
-> code (PRCM interrupt handler + DSP reset.)
-> 
-> TODO: cleanup dsp bridge code (arch/arm/mach-omap2/dsp.c.)
-> 
-> Tested on OMAP3 beagle + 3.12-rc3.
+Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+---
+ drivers/usb/phy/phy-omap-control.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-Looks like at least one patch has a dependency on your DT clk patches:
+diff --git a/drivers/usb/phy/phy-omap-control.c b/drivers/usb/phy/phy-omap-control.c
+index 09c5ace..1321e3f 100644
+--- a/drivers/usb/phy/phy-omap-control.c
++++ b/drivers/usb/phy/phy-omap-control.c
+@@ -253,10 +253,8 @@ static int omap_control_usb_probe(struct platform_device *pdev)
+ 		res = platform_get_resource_byname(pdev, IORESOURCE_MEM,
+ 				"power");
+ 		control_usb->power = devm_ioremap_resource(&pdev->dev, res);
+-		if (IS_ERR(control_usb->power)) {
+-			dev_err(&pdev->dev, "Couldn't get power register\n");
++		if (IS_ERR(control_usb->power))
+ 			return PTR_ERR(control_usb->power);
+-		}
+ 	}
+ 
+ 	if (control_usb->type == OMAP_CTRL_TYPE_PIPE3) {
 
-Importing patch "clk-ti-add-dt-alias-clock" ... 
-error: drivers/clk/ti/Makefile: does not exist in index
-error: include/linux/clk/ti.h: does not exist in index
-stg import: Diff does not apply cleanly
-
-Tried compiling the rest, but the build broke:
-
-arch/arm/mach-omap2/mcbsp.c: In function 'omap3_enable_st_clock':
-arch/arm/mach-omap2/mcbsp.c:46:3: error: implicit declaration of function 'omap2_clk_deny_idle'
-arch/arm/mach-omap2/mcbsp.c:48:3: error: implicit declaration of function 'omap2_clk_allow_idle'
-make[1]: *** [arch/arm/mach-omap2/mcbsp.o] Error 1
-make: *** [arch/arm/mach-omap2] Error 2
-make: *** Waiting for unfinished jobs....
-
-
-- Paul
