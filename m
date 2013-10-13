@@ -1,123 +1,41 @@
-From: Wolfram Sang <wsa@the-dreams.de>
-Subject: [PATCH 2/4] drivers/mmc/host: don't use devm_pinctrl_get_select_default() in probe
-Date: Sun, 13 Oct 2013 18:17:48 +0200
-Message-ID: <1381681071-6021-3-git-send-email-wsa@the-dreams.de>
-References: <1381681071-6021-1-git-send-email-wsa@the-dreams.de>
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <1381681071-6021-1-git-send-email-wsa@the-dreams.de>
-Sender: linux-mmc-owner@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Wolfram Sang <wsa@the-dreams.de>, Nicolas Pitre <nico@fluxnic.net>, Chris Ball <cjb@laptop.org>, Balaji T K <balajitk@ti.com>, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: Odd behavior with dpll4_m4x2_ck on omap3 + DT
+Date: Sun, 13 Oct 2013 20:17:51 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1310132012280.27397@utopia.booyaka.com>
+References: <521DC143.2010506@ti.com> <521DCD80.1060600@ti.com> <521DE1A6.6030005@ti.com> <522F0390.9050802@gmail.com> <522F0CC7.50501@ti.com> <522F0E3E.1080001@ti.com> <522F0F9B.9050705@ti.com> <522F1346.3020206@ti.com> <522F1BF9.5050006@ti.com>
+ <alpine.DEB.2.02.1310070807320.20589@utopia.booyaka.com> <20131008013537.7445.35847@quantum>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:37911 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755159Ab3JMURw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 13 Oct 2013 16:17:52 -0400
+In-Reply-To: <20131008013537.7445.35847@quantum>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Mike Turquette <mturquette@linaro.org>
+Cc: Tero Kristo <t-kristo@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Stefan Roese <stefan.roese@gmail.com>, linux-omap <linux-omap@vger.kernel.org>
 
-Since commit ab78029 (drivers/pinctrl: grab default handles from device core),
-we can rely on device core for setting the default pins. Compile tested only.
+On Mon, 7 Oct 2013, Mike Turquette wrote:
 
-Acked-by: Linus Walleij <linus.walleij@linaro.org> (personally at LCE13)
-Signed-off-by: Wolfram Sang <wsa@the-dreams.de>
----
- drivers/mmc/host/mvsdio.c          | 7 +------
- drivers/mmc/host/omap_hsmmc.c      | 7 -------
- drivers/mmc/host/sdhci-esdhc-imx.c | 8 --------
- 3 files changed, 1 insertion(+), 21 deletions(-)
+> Well it used to be that calling clk_set_rate(dpll, bypass_rate) would
+> put it in bypass, I don't know if that is still the case. But you are
+> right that having the implicit assumption that 'bypass rate' == 'DPLL in
+> bypass' is not safe since a bootloader could lock this PLL to the same
+> rate as it's bypass rate.
+> 
+> I hope that the bypass rate stuff does not get swept away in the changes
+> since it is an interesting way to save a little power.
 
-diff --git a/drivers/mmc/host/mvsdio.c b/drivers/mmc/host/mvsdio.c
-index 06c5b0b..8c9f448 100644
---- a/drivers/mmc/host/mvsdio.c
-+++ b/drivers/mmc/host/mvsdio.c
-@@ -25,7 +25,6 @@
- #include <linux/of_irq.h>
- #include <linux/mmc/host.h>
- #include <linux/mmc/slot-gpio.h>
--#include <linux/pinctrl/consumer.h>
- 
- #include <asm/sizes.h>
- #include <asm/unaligned.h>
-@@ -685,7 +684,7 @@ static int __init mvsd_probe(struct platform_device *pdev)
- 	const struct mbus_dram_target_info *dram;
- 	struct resource *r;
- 	int ret, irq;
--	struct pinctrl *pinctrl;
-+	int gpio_card_detect, gpio_write_protect;
- 
- 	r = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	irq = platform_get_irq(pdev, 0);
-@@ -702,10 +701,6 @@ static int __init mvsd_probe(struct platform_device *pdev)
- 	host->mmc = mmc;
- 	host->dev = &pdev->dev;
- 
--	pinctrl = devm_pinctrl_get_select_default(&pdev->dev);
--	if (IS_ERR(pinctrl))
--		dev_warn(&pdev->dev, "no pins associated\n");
--
- 	/*
- 	 * Some non-DT platforms do not pass a clock, and the clock
- 	 * frequency is passed through platform_data. On DT platforms,
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index 6ac63df..f6606cf 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -38,7 +38,6 @@
- #include <linux/io.h>
- #include <linux/gpio.h>
- #include <linux/regulator/consumer.h>
--#include <linux/pinctrl/consumer.h>
- #include <linux/pm_runtime.h>
- #include <linux/platform_data/mmc-omap.h>
- 
-@@ -1777,7 +1776,6 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
- 	const struct of_device_id *match;
- 	dma_cap_mask_t mask;
- 	unsigned tx_req, rx_req;
--	struct pinctrl *pinctrl;
- 
- 	match = of_match_device(of_match_ptr(omap_mmc_of_match), &pdev->dev);
- 	if (match) {
-@@ -1996,11 +1994,6 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
- 
- 	omap_hsmmc_disable_irq(host);
- 
--	pinctrl = devm_pinctrl_get_select_default(&pdev->dev);
--	if (IS_ERR(pinctrl))
--		dev_warn(&pdev->dev,
--			"pins are not configured from the driver\n");
--
- 	omap_hsmmc_protect_card(host);
- 
- 	mmc_add_host(mmc);
-diff --git a/drivers/mmc/host/sdhci-esdhc-imx.c b/drivers/mmc/host/sdhci-esdhc-imx.c
-index abc8cf0..0ac8b1a 100644
---- a/drivers/mmc/host/sdhci-esdhc-imx.c
-+++ b/drivers/mmc/host/sdhci-esdhc-imx.c
-@@ -25,7 +25,6 @@
- #include <linux/of.h>
- #include <linux/of_device.h>
- #include <linux/of_gpio.h>
--#include <linux/pinctrl/consumer.h>
- #include <linux/platform_data/mmc-esdhc-imx.h>
- #include "sdhci-pltfm.h"
- #include "sdhci-esdhc.h"
-@@ -80,7 +79,6 @@ struct pltfm_imx_data {
- 	int flags;
- 	u32 scratchpad;
- 	enum imx_esdhc_type devtype;
--	struct pinctrl *pinctrl;
- 	struct esdhc_platform_data boarddata;
- 	struct clk *clk_ipg;
- 	struct clk *clk_ahb;
-@@ -568,12 +566,6 @@ static int sdhci_esdhc_imx_probe(struct platform_device *pdev)
- 	clk_prepare_enable(imx_data->clk_ipg);
- 	clk_prepare_enable(imx_data->clk_ahb);
- 
--	imx_data->pinctrl = devm_pinctrl_get_select_default(&pdev->dev);
--	if (IS_ERR(imx_data->pinctrl)) {
--		err = PTR_ERR(imx_data->pinctrl);
--		goto disable_clk;
--	}
--
- 	host->quirks |= SDHCI_QUIRK_BROKEN_TIMEOUT_VAL;
- 
- 	if (is_imx25_esdhc(imx_data) || is_imx35_esdhc(imx_data))
--- 
-1.8.4.rc3
+Yeah, I don't think anyone's proposing to remove it, as far as I know.
 
+Am more concerned about any similar lurking problems in low-level clock 
+code that use the current state of the clock hardware to determine a 
+possible future rate.  Am hoping that this particular issue is simply due 
+to the state dependency between the CLKOUTX2 node and the PLL node.  
+Considering this issue, in retrospect, it probably would have been better 
+to merge the CLKOUTX2 node with the PLL.
+
+
+- Paul
