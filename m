@@ -1,37 +1,38 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] arm: omap2+: hwmod: Add qspi data for am437x.
-Date: Mon, 14 Oct 2013 19:34:01 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1310141933130.22465@utopia.booyaka.com>
-References: <1381773742-3931-1-git-send-email-sourav.poddar@ti.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:43481 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755326Ab3JNTeD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Oct 2013 15:34:03 -0400
-In-Reply-To: <1381773742-3931-1-git-send-email-sourav.poddar@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Marek Belisko <marek@goldelico.com>
+Subject: [PATCH 0/3] omapdss: venc: Add support for bypass and acbias.
+Date: Mon, 14 Oct 2013 23:02:32 +0200
+Message-ID: <1381784555-18344-1-git-send-email-marek@goldelico.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: tony@atomide.com, linux@arm.linux.org.uk, tomi.valkeinen@ti.com, plagnioj@jcrosoft.com
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-fbdev@vger.kernel.org, neilb@suse.de, hns@goldelico.com, Marek Belisko <marek@goldelico.com>
 List-Id: linux-omap@vger.kernel.org
-To: Sourav Poddar <sourav.poddar@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, tony@atomide.com, linux@arm.linux.org.uk, balbi@ti.com, nsekhar@ti.com, afzal@ti.com
 
-Hi
+This patches is adding bypass and acbias functionality to omapdss venc driver.
+In first patch we export updatin bypass and acbias in devconf1 register. Next patch
+add handling for updating in venc driver and last patch add driver for opa362 which
+is used on gta04 board and set bypass + acbias.
 
-On Mon, 14 Oct 2013, Sourav Poddar wrote:
+Marek Belisko (3):
+  arm: omap2: Export devconf1 bypass and acbias.
+  video: venc: Add new callback and handling for bypass and acbias
+    setup.
+  omapdss: Add OPA362 analog video amplifier driver.
 
-> Add hwmod data for qspi for AM437x.
-> 
-> Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
-> ---
-> This was tested on AM437x EPOS EVM with Afzal's v6 of AM43x PRCM
-> basic support and tero's DT clock series.
+ arch/arm/mach-omap2/Makefile                       |   2 +
+ arch/arm/mach-omap2/control.h                      |   2 +
+ arch/arm/mach-omap2/omap3-tvout.c                  |  36 +++
+ drivers/video/omap2/displays-new/Kconfig           |   6 +
+ drivers/video/omap2/displays-new/Makefile          |   1 +
+ .../video/omap2/displays-new/amplifier-opa362.c    | 294 +++++++++++++++++++++
+ drivers/video/omap2/dss/venc.c                     |  21 ++
+ include/linux/omap-tvout.h                         |  14 +
+ include/video/omap-panel-data.h                    |  17 ++
+ include/video/omapdss.h                            |   2 +
+ 10 files changed, 395 insertions(+)
+ create mode 100644 arch/arm/mach-omap2/omap3-tvout.c
+ create mode 100644 drivers/video/omap2/displays-new/amplifier-opa362.c
+ create mode 100644 include/linux/omap-tvout.h
 
-Could you please rebase this on top of George Cherian's patch:
-
-"[PATCH] ARM: OMAP2+: hwmod: Add USB hwmod data for AM437x."
-
-?
-
-
-- Paul
+-- 
+1.8.1.2
