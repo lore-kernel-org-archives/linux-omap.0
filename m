@@ -1,18 +1,18 @@
 From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [GIT PULL 1/6] omap non-urgent fixes for v3.13 merge window
-Date: Mon, 14 Oct 2013 15:27:18 -0700
-Message-ID: <87mwmb4hfd.fsf@linaro.org>
-References: <5258a9a0.0325310a.6fb0.ffffa19cSMTPIN_ADDED_BROKEN@mx.google.com>
+Subject: Re: [GIT PULL 2/6] omap pdata and dt preparation changes for v3.13 merge window
+Date: Mon, 14 Oct 2013 15:34:23 -0700
+Message-ID: <87iowz4h3k.fsf@linaro.org>
+References: <5258a9a2.c6b9e50a.3704.5f61SMTPIN_ADDED_MISSING@mx.google.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:57622 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757728Ab3JNW1V (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Oct 2013 18:27:21 -0400
-Received: by mail-pb0-f46.google.com with SMTP id rq2so7944918pbb.33
-        for <linux-omap@vger.kernel.org>; Mon, 14 Oct 2013 15:27:21 -0700 (PDT)
-In-Reply-To: <5258a9a0.0325310a.6fb0.ffffa19cSMTPIN_ADDED_BROKEN@mx.google.com>
+Received: from mail-pd0-f179.google.com ([209.85.192.179]:33783 "EHLO
+	mail-pd0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757399Ab3JNWe1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Oct 2013 18:34:27 -0400
+Received: by mail-pd0-f179.google.com with SMTP id v10so7945082pde.24
+        for <linux-omap@vger.kernel.org>; Mon, 14 Oct 2013 15:34:27 -0700 (PDT)
+In-Reply-To: <5258a9a2.c6b9e50a.3704.5f61SMTPIN_ADDED_MISSING@mx.google.com>
 	(Tony Lindgren's message of "Fri, 11 Oct 2013 18:44:57 -0700")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -21,25 +21,35 @@ Cc: arm@kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.ne
 
 Tony Lindgren <tony@atomide.com> writes:
 
-> The following changes since commit 15c03dd4859ab16f9212238f29dd315654aa94f6:
+> The following changes since commit d0e639c9e06d44e713170031fe05fb60ebe680af:
 >
->   Linux 3.12-rc3 (2013-09-29 15:02:38 -0700)
+>   Linux 3.12-rc4 (2013-10-06 14:00:20 -0700)
 >
 > are available in the git repository at:
 >
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.13/fixes-not-urgent-signed
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.13/quirk-signed
 >
-> for you to fetch changes up to 8ff875e7f93e900e7a7e78f1c9c05a22b33c27cf:
+> for you to fetch changes up to 8d71528343c69ce387bd5fdb4fd8dc2b9f69d97c:
 >
->   ARM: mach-omap1: Fix omap1510_fpga_init_irq() implicit declarations. (2013-10-08 11:04:22 -0700)
+>   ARM: configs: omap2plus_defconfig: enable dwc3 and dependencies (2013-10-11 15:41:25 -0700)
 >
 > ----------------------------------------------------------------
-> Fixes for omaps that were not considered urgent for the -rc series.
-> Just minor build fixes, removal of dead code, and a patch to
-> use the die ID for increasing boot time entropy.
+> Changes needed to prepare for making omap3 device tree only:
+>
+> - Always build in board-generic, and add pdata quirks and auxdata
+>   support for it so we have all the pdata related quirks
+>   in the same place.
+>
+> - Merge of the drivers/pinctrl changes that are needed for PM
+>   to continue working on omap3 and also needed for other omaps
+>   eventually. The three pinctrl related patches have been acked
+>   by Linus Walleij and are pulled into both the pinctrl tree
+>   and this branch.
+>
+> - Few defconfig related changes for drivers needed.
 >
 > ----------------------------------------------------------------
 
-Thanks, pulled into fixes-non-critical.
+Thanks, pulled into next/dt.
 
 Kevin
