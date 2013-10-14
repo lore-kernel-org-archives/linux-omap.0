@@ -1,18 +1,18 @@
 From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [GIT PULL 4/6] omap device tree changes for v3.13 merge window
-Date: Mon, 14 Oct 2013 15:36:54 -0700
-Message-ID: <87eh7n4gzd.fsf@linaro.org>
-References: <5258a9a8.493e310a.779b.1b15SMTPIN_ADDED_MISSING@mx.google.com>
+Subject: Re: [GIT PULL 3/6] omap hwmod changes for v3.13 merge window
+Date: Mon, 14 Oct 2013 15:44:44 -0700
+Message-ID: <87a9ib4gmb.fsf@linaro.org>
+References: <5258a9a6.4a17e00a.5fb3.ffff9bf3SMTPIN_ADDED_MISSING@mx.google.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pb0-f47.google.com ([209.85.160.47]:51171 "EHLO
-	mail-pb0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932218Ab3JNWg5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Oct 2013 18:36:57 -0400
-Received: by mail-pb0-f47.google.com with SMTP id rr4so7855682pbb.20
-        for <linux-omap@vger.kernel.org>; Mon, 14 Oct 2013 15:36:57 -0700 (PDT)
-In-Reply-To: <5258a9a8.493e310a.779b.1b15SMTPIN_ADDED_MISSING@mx.google.com>
+Received: from mail-pd0-f178.google.com ([209.85.192.178]:53233 "EHLO
+	mail-pd0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756531Ab3JNWos (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Oct 2013 18:44:48 -0400
+Received: by mail-pd0-f178.google.com with SMTP id w10so8044217pde.9
+        for <linux-omap@vger.kernel.org>; Mon, 14 Oct 2013 15:44:47 -0700 (PDT)
+In-Reply-To: <5258a9a6.4a17e00a.5fb3.ffff9bf3SMTPIN_ADDED_MISSING@mx.google.com>
 	(Tony Lindgren's message of "Fri, 11 Oct 2013 18:44:58 -0700")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -27,24 +27,33 @@ Tony Lindgren <tony@atomide.com> writes:
 >
 > are available in the git repository at:
 >
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.13/dt-signed
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.13/hwmod-signed
 >
-> for you to fetch changes up to c49f4984fd45be36502e903e7a5a6a4faff42931:
+> for you to fetch changes up to 254f57a92987b6cde6004f58d6b847813dfb9e0e:
 >
->   Merge tag 'for_3.13/dts_signed' of git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt into omap-for-v3.13/dt (2013-10-11 15:40:07 -0700)
+>   ARM: OMAP5: hwmod: add missing ocp2scp hwmod data (2013-10-11 15:37:05 -0700)
 >
 > ----------------------------------------------------------------
+> omap hwmod related changes via Paul Walmsley <paul@pwsan.com>:
 >
-> omap device tree related changes via Benoit Cousson <bcousson@baylibre.com>:
+> Some OMAP hwmod changes for 3.13.  Significant changes here include:
 >
-> Add the minimal DTS support for DRA7xx based SoC core.
-> Add the initial support for N900 and gta04 phones.
-> Enable USB3 on OMAP5 evm board.
-> Add support for cryto accelerators
-> Add new IGEP AQUILA board
-> Add AM33XX EDMA support
-> Update HSUSB node to use the reset-gpios fmwk
+> - support for moving some of the hwmod flags to DT data
+>
+> - support for the SSI, hardware spinlock, USB host/TLL, and RNG IP
+>   blocks for various OMAPs
+>
+> - a fix that again decouples hwmod data changes from unrelated DT data
+>   patchsets
+>
+> Basic test logs are available at:
+>
+> http://www.pwsan.com/omap/testlogs/prcm_fixes_v3.13/20131009094936/
+>
+> ----------------------------------------------------------------
 
-Thanks, pulled into next/dt.
+Pulled into next/soc,
+
+Thanks,
 
 Kevin
