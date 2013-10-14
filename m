@@ -1,18 +1,18 @@
 From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [GIT PULL 6/6] omap soc changes for v3.13 merge window
-Date: Mon, 14 Oct 2013 15:45:12 -0700
-Message-ID: <8761sz4glj.fsf@linaro.org>
-References: <5258a9ab.e703310a.12ff.2a82SMTPIN_ADDED_MISSING@mx.google.com>
+Subject: Re: [GIT PULL 5/6] omap display and board pdata changes for v3.13 merge window
+Date: Mon, 14 Oct 2013 15:48:54 -0700
+Message-ID: <871u3n4gfd.fsf@linaro.org>
+References: <5258a9a9.0325310a.6fb0.ffffa1b2SMTPIN_ADDED_MISSING@mx.google.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f43.google.com ([209.85.220.43]:52242 "EHLO
-	mail-pa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757846Ab3JNWpP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Oct 2013 18:45:15 -0400
-Received: by mail-pa0-f43.google.com with SMTP id hz1so8139778pad.2
-        for <linux-omap@vger.kernel.org>; Mon, 14 Oct 2013 15:45:15 -0700 (PDT)
-In-Reply-To: <5258a9ab.e703310a.12ff.2a82SMTPIN_ADDED_MISSING@mx.google.com>
+Received: from mail-pd0-f171.google.com ([209.85.192.171]:33390 "EHLO
+	mail-pd0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932082Ab3JNWs5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Oct 2013 18:48:57 -0400
+Received: by mail-pd0-f171.google.com with SMTP id z10so43144pdj.30
+        for <linux-omap@vger.kernel.org>; Mon, 14 Oct 2013 15:48:57 -0700 (PDT)
+In-Reply-To: <5258a9a9.0325310a.6fb0.ffffa1b2SMTPIN_ADDED_MISSING@mx.google.com>
 	(Tony Lindgren's message of "Fri, 11 Oct 2013 18:44:59 -0700")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -27,22 +27,20 @@ Tony Lindgren <tony@atomide.com> writes:
 >
 > are available in the git repository at:
 >
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.13/soc-take2
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.13/board-signed
 >
-> for you to fetch changes up to d5da94b88efebc375bfcbab6bb0e59a6e8a6571e:
+> for you to fetch changes up to 9e490f486ea9ce7644be913e03ee5ccdf1be20f7:
 >
->   ARM: OMAP2+: Fix build error for realtime counter init if not enabled (2013-10-11 17:28:04 -0700)
+>   Merge branch 'omap-for-v3.13/n900' into omap-for-v3.13/board (2013-10-11 16:14:23 -0700)
 >
 > ----------------------------------------------------------------
-> SoC related changes for omaps to support the realtime
-> counter on newer omaps, and to fail early for omap5 es1.0
-> SoCs that don't have any support merged for them in the
-> mainline tree.
+>
+> Platform data changes for omaps for the display subsystem and
+> n900 secure mode changes. Note that the n900 secure mode changes
+> will still be needed for device tree based booting also.
 >
 > ----------------------------------------------------------------
 
-Pulled into next/soc,
-
-Thanks,
+Thanks, pulled into next/boards.
 
 Kevin
