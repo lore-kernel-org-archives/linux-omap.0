@@ -1,263 +1,70 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH 2/7] usb: dwc3: adapt dwc3 core to use Generic PHY
- Framework
-Date: Mon, 14 Oct 2013 14:56:24 +0530
-Message-ID: <525BB8C0.1070802@ti.com>
-References: <1378136591-7463-1-git-send-email-kishon@ti.com>
- <1378136591-7463-3-git-send-email-kishon@ti.com> <525814A9.7060106@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH 3/7] drivers: phy: usb3/pipe3: Adapt pipe3 driver to Generic
+ PHY Framework
+Date: Mon, 14 Oct 2013 12:31:26 +0300
+Message-ID: <525BB9EE.3010709@ti.com>
+References: <1378136591-7463-1-git-send-email-kishon@ti.com> <1378136591-7463-4-git-send-email-kishon@ti.com> <5231A35D.7060006@ti.com> <5236749F.3070707@ti.com> <5236B537.1090902@ti.com> <52581304.9010205@ti.com> <525BB726.6040100@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <525814A9.7060106@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, george.cherian@ti.com, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, s.nawrocki@samsung.com, pawel.moll@arm.com, swarren@wwwdotorg.org, tony@atomide.com, gregkh@linuxfoundation.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, rob.herring@calxeda.com, linux-usb@vger.kernel.org, balbi@ti.com, bcousson@baylibre.com, galak@codeaurora.org, grant.likely@linaro.org, rob@landley.net, linux-arm-kernel@lists.infradead.org, ian.campbell@citrix.com
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:41896 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754656Ab3JNJcM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 14 Oct 2013 05:32:12 -0400
+In-Reply-To: <525BB726.6040100@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: balbi@ti.com, bcousson@baylibre.com, tony@atomide.com, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, linux@arm.linux.org.uk, grant.likely@linaro.org, s.nawrocki@samsung.com, galak@codeaurora.org, swarren@wwwdotorg.org, ian.campbell@citrix.com, rob@landley.net, george.cherian@ti.com, gregkh@linuxfoundation.org, linux-doc@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-usb@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 
-Hi Roger,
+Kishon,
 
-On Friday 11 October 2013 08:39 PM, Roger Quadros wrote:
-> Hi,
+On 10/14/2013 12:19 PM, Kishon Vijay Abraham I wrote:
+> Hi Roger,
 > 
-> On 09/02/2013 06:43 PM, Kishon Vijay Abraham I wrote:
->> Adapted dwc3 core to use the Generic PHY Framework. So for init, exit,
->> power_on and power_off the following APIs are used phy_init(), phy_exit(),
->> phy_power_on() and phy_power_off().
+> On Friday 11 October 2013 08:32 PM, Roger Quadros wrote:
+>> On 09/16/2013 10:37 AM, Roger Quadros wrote:
+>>> On 09/16/2013 06:01 AM, Kishon Vijay Abraham I wrote:
+>>>> On Thursday 12 September 2013 04:49 PM, Roger Quadros wrote:
+>>>>> Hi Kishon,
+>>>>>
+>>>>> On 09/02/2013 06:43 PM, Kishon Vijay Abraham I wrote:
+
+>>>>>>   #ifdef CONFIG_OF
+>>>>>> -static const struct of_device_id omap_usb3_id_table[] = {
+>>>>>> +static const struct of_device_id omap_pipe3_id_table[] = {
+>>>>>> +    { .compatible = "ti,omap-pipe3" },
+>>>>>
+>>>>> why do you need "omap-pipe3", isn't sata, pcie and usb3 sufficient?
+>>>>
+>>>> I thought it would be better if everyone uses omap-pipe3 and added pcie, sata if there are any specific settings (for pcie or sata) that should be done.
+>>>
+>>> We can always add specialized options later when needed. AFAIK just the
+>>> DPLL data is different among the different PHYs.
+>>>>>
+>>>>>> +    { .compatible = "ti,omap-sata" },
+>>>>>> +    { .compatible = "ti,omap-pcie" },
+>>>>>>       { .compatible = "ti,omap-usb3" },
+>>>
+>>> I think compatible strings should be improved to indicate that it is a PHY.
+>>>
+>>> e.g. "ti,omap-phy-sata" or just "ti,pipe3-phy-sata"
+>>>
 >>
->> However using the old USB phy library wont be removed till the PHYs of all
->> other SoC's using dwc3 core is adapted to the Generic PHY Framework.
+>> Please remove "ti,omap-pcie" for now, you can add it later whenever you add
+>> dpll settings for pcie.
 >>
->> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
->> ---
->>  Documentation/devicetree/bindings/usb/dwc3.txt |    6 ++-
->>  drivers/usb/dwc3/Kconfig                       |    1 +
->>  drivers/usb/dwc3/core.c                        |   49 ++++++++++++++++++++++++
->>  drivers/usb/dwc3/core.h                        |    7 ++++
->>  4 files changed, 61 insertions(+), 2 deletions(-)
+>> Also, please change the newly added compatible strings to
 >>
->> diff --git a/Documentation/devicetree/bindings/usb/dwc3.txt b/Documentation/devicetree/bindings/usb/dwc3.txt
->> index e807635..471366d 100644
->> --- a/Documentation/devicetree/bindings/usb/dwc3.txt
->> +++ b/Documentation/devicetree/bindings/usb/dwc3.txt
->> @@ -6,11 +6,13 @@ Required properties:
->>   - compatible: must be "snps,dwc3"
->>   - reg : Address and length of the register set for the device
->>   - interrupts: Interrupts used by the dwc3 controller.
->> +
->> +Optional properties:
->>   - usb-phy : array of phandle for the PHY device.  The first element
->>     in the array is expected to be a handle to the USB2/HS PHY and
->>     the second element is expected to be a handle to the USB3/SS PHY
->> -
->> -Optional properties:
->> + - phys: from the *Generic PHY* bindings
->> + - phy-names: from the *Generic PHY* bindings
->>   - tx-fifo-resize: determines if the FIFO *has* to be reallocated.
->>  
->>  This is usually a subnode to DWC3 glue to which it is connected.
->> diff --git a/drivers/usb/dwc3/Kconfig b/drivers/usb/dwc3/Kconfig
->> index cfc16dd..ad7ce83 100644
->> --- a/drivers/usb/dwc3/Kconfig
->> +++ b/drivers/usb/dwc3/Kconfig
->> @@ -3,6 +3,7 @@ config USB_DWC3
->>  	depends on (USB || USB_GADGET) && GENERIC_HARDIRQS && HAS_DMA
->>  	depends on EXTCON
->>  	select USB_PHY
->> +	select GENERIC_PHY
->>  	select USB_XHCI_PLATFORM if USB_SUPPORT && USB_XHCI_HCD
->>  	help
->>  	  Say Y or M here if your system has a Dual Role SuperSpeed
->> diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
->> index 428c29e..485d365 100644
->> --- a/drivers/usb/dwc3/core.c
->> +++ b/drivers/usb/dwc3/core.c
->> @@ -82,6 +82,12 @@ static void dwc3_core_soft_reset(struct dwc3 *dwc)
->>  
->>  	usb_phy_init(dwc->usb2_phy);
->>  	usb_phy_init(dwc->usb3_phy);
+>> "ti,phy-pipe3-usb3" and "ti,phy-pipe3-sata"
 > 
-> How about adding
-> +	if (dwc->usb2_phy)
-> +		usb_phy_init(dwc->usb2_phy);
-> +	if (dwc->usb3_phy)
-> +		usb_phy_init(dwc->usb3_phy);
+> No, I think we should have omap in the compatible since this PHY is specific to
+> OMAP.
 
-Thankfully that usb_phy_init will check if phy is NULL.
-> 
-> both usb phy and generic phy shouldn't be present together.
+DRA7x and an am43x are not OMAP so I was suggesting not to use it for new PHY types.
+We still preserve just "ti,omap-usb3" for backward compatibility.
 
-ok.
-> 
->> +
->> +	if (dwc->usb2_generic_phy)
->> +		phy_init(dwc->usb2_generic_phy);
->> +	if (dwc->usb3_generic_phy)
->> +		phy_init(dwc->usb3_generic_phy);
->> +
->>  	mdelay(100);
->>  
->>  	/* Clear USB3 PHY reset */
->> @@ -343,6 +349,11 @@ static void dwc3_core_exit(struct dwc3 *dwc)
->>  {
->>  	usb_phy_shutdown(dwc->usb2_phy);
->>  	usb_phy_shutdown(dwc->usb3_phy);
-> 
-> here as well
-> 
->> +
->> +	if (dwc->usb2_generic_phy)
->> +		phy_power_off(dwc->usb2_generic_phy);
->> +	if (dwc->usb3_generic_phy)
->> +		phy_power_off(dwc->usb3_generic_phy);
->>  }
->>  
->>  #define DWC3_ALIGN_MASK		(16 - 1)
->> @@ -427,6 +438,23 @@ static int dwc3_probe(struct platform_device *pdev)
->>  		dwc->usb3_phy = devm_usb_get_phy(dev, USB_PHY_TYPE_USB3);
->>  	}
->>  
->> +	if (of_property_read_bool(node, "phys") || pdata->has_phy) {
->> +		dwc->usb2_generic_phy = devm_phy_get(dev, "usb2-phy");
->> +		if (IS_ERR(dwc->usb2_generic_phy)) {
->> +			dev_err(dev, "no usb2 phy configured yet");
->> +			return PTR_ERR(dwc->usb2_generic_phy);
->> +		}
->> +
->> +		dwc->usb3_generic_phy = devm_phy_get(dev, "usb3-phy");
->> +		if (IS_ERR(dwc->usb3_generic_phy)) {
->> +			dev_err(dev, "no usb3 phy configured yet");
->> +			return PTR_ERR(dwc->usb3_generic_phy);
->> +		}
-> 
-> better to add
-> +		/* Don't use USB PHY if generic PHY was found */
-> +		dwc->usb2_phy = dwc->usb3_phy = NULL;
+cheers,
+-roger
 
-ok.
-> 
->> +	} else {
-> 
-> not required as we've used kzalloc for dwc.
-> 
->> +		dwc->usb2_generic_phy = NULL;
->> +		dwc->usb3_generic_phy = NULL;
->> +	}
->> +
->>  	/* default to superspeed if no maximum_speed passed */
->>  	if (dwc->maximum_speed == USB_SPEED_UNKNOWN)
->>  		dwc->maximum_speed = USB_SPEED_SUPER;
->> @@ -450,6 +478,11 @@ static int dwc3_probe(struct platform_device *pdev)
-> 
-> if (dwc->usb2_phy)
-> 
->>  	usb_phy_set_suspend(dwc->usb2_phy, 0);
-> 
-> if (dwc->usb3_phy)
-> 
->>  	usb_phy_set_suspend(dwc->usb3_phy, 0);
->>  
->> +	if (dwc->usb2_generic_phy)
->> +		phy_power_on(dwc->usb2_generic_phy);
->> +	if (dwc->usb3_generic_phy)
->> +		phy_power_on(dwc->usb3_generic_phy);
->> +
->>  	spin_lock_init(&dwc->lock);
->>  	platform_set_drvdata(pdev, dwc);
->>  
->> @@ -576,6 +609,11 @@ static int dwc3_remove(struct platform_device *pdev)
-> 
-> if (dwc->usb2_phy)
->>  	usb_phy_set_suspend(dwc->usb2_phy, 1);
-> 
-> if (dwc->usb3_phy)
->>  	usb_phy_set_suspend(dwc->usb3_phy, 1);
->>  
->> +	if (dwc->usb2_generic_phy)
->> +		phy_power_off(dwc->usb2_generic_phy);
->> +	if (dwc->usb3_generic_phy)
->> +		phy_power_off(dwc->usb3_generic_phy);
->> +
->>  	pm_runtime_put(&pdev->dev);
->>  	pm_runtime_disable(&pdev->dev);
->>  
->> @@ -673,6 +711,11 @@ static int dwc3_suspend(struct device *dev)
-> 
-> if (dwc->usb3_phy)
->>  	usb_phy_shutdown(dwc->usb3_phy);
-> 
-> if (dwc->usb2_phy)
->>  	usb_phy_shutdown(dwc->usb2_phy);
->>  
->> +	if (dwc->usb2_generic_phy)
->> +		phy_exit(dwc->usb2_generic_phy);
->> +	if (dwc->usb3_generic_phy)
->> +		phy_exit(dwc->usb3_generic_phy);
->> +
->>  	return 0;
->>  }
->>  
->> @@ -683,6 +726,12 @@ static int dwc3_resume(struct device *dev)
->>  
-> 
-> if (dwc->usb3_phy)
->>  	usb_phy_init(dwc->usb3_phy);
-> 
-> if (dwc->usb2_phy)
->>  	usb_phy_init(dwc->usb2_phy);
->> +
->> +	if (dwc->usb2_generic_phy)
->> +		phy_init(dwc->usb2_generic_phy);
->> +	if (dwc->usb3_generic_phy)
->> +		phy_init(dwc->usb3_generic_phy);
->> +
->>  	msleep(100);
->>  
->>  	spin_lock_irqsave(&dwc->lock, flags);
->> diff --git a/drivers/usb/dwc3/core.h b/drivers/usb/dwc3/core.h
->> index f8af8d4..01ec7d7 100644
->> --- a/drivers/usb/dwc3/core.h
->> +++ b/drivers/usb/dwc3/core.h
->> @@ -31,6 +31,8 @@
->>  #include <linux/usb/gadget.h>
->>  #include <linux/usb/otg.h>
->>  
->> +#include <linux/phy/phy.h>
->> +
->>  /* Global constants */
->>  #define DWC3_EP0_BOUNCE_SIZE	512
->>  #define DWC3_ENDPOINTS_NUM	32
->> @@ -613,6 +615,8 @@ struct dwc3_scratchpad_array {
->>   * @dr_mode: requested mode of operation
->>   * @usb2_phy: pointer to USB2 PHY
->>   * @usb3_phy: pointer to USB3 PHY
->> + * @usb2_generic_phy: pointer to USB2 PHY
->> + * @usb3_generic_phy: pointer to USB3 PHY
->>   * @dcfg: saved contents of DCFG register
->>   * @gctl: saved contents of GCTL register
->>   * @is_selfpowered: true when we are selfpowered
->> @@ -665,6 +669,9 @@ struct dwc3 {
->>  	struct usb_phy		*usb2_phy;
->>  	struct usb_phy		*usb3_phy;
->>  
->> +	struct phy		*usb2_generic_phy;
->> +	struct phy		*usb3_generic_phy;
->> +
->>  	void __iomem		*regs;
->>  	size_t			regs_size;
->>  
->>
-
-Do you have any suggestions on how to get only individual PHYs? like only
-usb2phy or usb3phy?
-
-Thanks
-Kishon
