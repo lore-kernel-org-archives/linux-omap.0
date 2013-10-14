@@ -1,7 +1,7 @@
 From: Marek Belisko <marek@goldelico.com>
-Subject: [PATCH 1/3] arm: omap2: Export devconf1 bypass and acbias.
-Date: Mon, 14 Oct 2013 23:02:33 +0200
-Message-ID: <1381784555-18344-2-git-send-email-marek@goldelico.com>
+Subject: [PATCH 2/3] video: venc: Add new callback and handling for bypass and acbias setup.
+Date: Mon, 14 Oct 2013 23:02:34 +0200
+Message-ID: <1381784555-18344-3-git-send-email-marek@goldelico.com>
 References: <1381784555-18344-1-git-send-email-marek@goldelico.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1381784555-18344-1-git-send-email-marek@goldelico.com>
@@ -10,104 +10,94 @@ To: tony@atomide.com, linux@arm.linux.org.uk, tomi.valkeinen@ti.com, plagnioj@jc
 Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-fbdev@vger.kernel.org, neilb@suse.de, hns@goldelico.com, Marek Belisko <marek@goldelico.com>
 List-Id: linux-omap@vger.kernel.org
 
-devconf1 reg access is localized only in mach-omap2 and we need to export
-updating of devconf1 from omapdss venc driver (bypass and acbias bits).
-Add simple api call which update only necessary bits.
+Add new callback to set bypass and acbias. During venc enble disable those
+bit are updated in devconf1 register.
 
 Signed-off-by: Marek Belisko <marek@goldelico.com>
 ---
- arch/arm/mach-omap2/Makefile      |  2 ++
- arch/arm/mach-omap2/control.h     |  2 ++
- arch/arm/mach-omap2/omap3-tvout.c | 36 ++++++++++++++++++++++++++++++++++++
- include/linux/omap-tvout.h        | 14 ++++++++++++++
- 4 files changed, 54 insertions(+)
- create mode 100644 arch/arm/mach-omap2/omap3-tvout.c
- create mode 100644 include/linux/omap-tvout.h
+ drivers/video/omap2/dss/venc.c | 21 +++++++++++++++++++++
+ include/video/omapdss.h        |  2 ++
+ 2 files changed, 23 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index afb457c..15e0f28 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -306,3 +306,5 @@ emac-$(CONFIG_TI_DAVINCI_EMAC)		:= am35xx-emac.o
- obj-y					+= $(emac-m) $(emac-y)
- 
- obj-y					+= common-board-devices.o twl-common.o dss-common.o
-+
-+obj-$(CONFIG_ARCH_OMAP3)		+= omap3-tvout.o
-diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
-index f7d7c2e..65277f1 100644
---- a/arch/arm/mach-omap2/control.h
-+++ b/arch/arm/mach-omap2/control.h
-@@ -279,6 +279,8 @@
- 
- /* CONTROL_DEVCONF1 bits */
- #define OMAP243X_MMC1_ACTIVE_OVERWRITE	(1 << 31)
-+#define OMAP2_TVOUTBYPASS		(1 << 18)
-+#define OMAP2_TVACEN			(1 << 11)
- #define OMAP2_MMCSDIO2ADPCLKISEL	(1 << 6) /* MMC2 loop back clock */
- #define OMAP2_MCBSP5_CLKS_MASK		(1 << 4) /* > 242x */
- #define OMAP2_MCBSP4_CLKS_MASK		(1 << 2) /* > 242x */
-diff --git a/arch/arm/mach-omap2/omap3-tvout.c b/arch/arm/mach-omap2/omap3-tvout.c
-new file mode 100644
-index 0000000..eaed225
---- /dev/null
-+++ b/arch/arm/mach-omap2/omap3-tvout.c
-@@ -0,0 +1,36 @@
-+/*
-+ * linux/arch/arm/mach-omap2/omap3-tvout.c
-+ *
-+ * Copyright (C) 2013 Golden Delicious Computers
-+ * Author: Marek Belisko <marek@goldelico.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/kernel.h>
+diff --git a/drivers/video/omap2/dss/venc.c b/drivers/video/omap2/dss/venc.c
+index 5f88ac4..17bd45b 100644
+--- a/drivers/video/omap2/dss/venc.c
++++ b/drivers/video/omap2/dss/venc.c
+@@ -34,6 +34,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/regulator/consumer.h>
+ #include <linux/pm_runtime.h>
 +#include <linux/omap-tvout.h>
+ 
+ #include <video/omapdss.h>
+ 
+@@ -303,6 +304,8 @@ static struct {
+ 	struct omap_video_timings timings;
+ 	enum omap_dss_venc_type type;
+ 	bool invert_polarity;
++	bool bypass;
++	bool acbias;
+ 
+ 	struct omap_dss_device output;
+ } venc;
+@@ -455,6 +458,9 @@ static int venc_power_on(struct omap_dss_device *dssdev)
+ 
+ 	venc_write_reg(VENC_OUTPUT_CONTROL, l);
+ 
++	/* apply bypass and acbias */
++	update_bypass_acbias(venc.bypass, venc.acbias);
 +
-+#include "soc.h"
-+#include "control.h"
+ 	dss_mgr_set_timings(mgr, &venc.timings);
+ 
+ 	r = regulator_enable(venc.vdda_dac_reg);
+@@ -485,6 +491,9 @@ static void venc_power_off(struct omap_dss_device *dssdev)
+ 	venc_write_reg(VENC_OUTPUT_CONTROL, 0);
+ 	dss_set_dac_pwrdn_bgz(0);
+ 
++	/* clear bypass and acbias */
++	update_bypass_acbias(false, false);
 +
-+void update_bypass_acbias(bool bypass, bool acbias)
+ 	dss_mgr_disable(mgr);
+ 
+ 	regulator_disable(venc.vdda_dac_reg);
+@@ -629,6 +638,17 @@ static void venc_invert_vid_out_polarity(struct omap_dss_device *dssdev,
+ 	mutex_unlock(&venc.venc_lock);
+ }
+ 
++static void venc_bypass_and_acbias(struct omap_dss_device *dssdev,
++		bool bypass, bool acbias)
 +{
-+#ifdef CONFIG_ARCH_OMAP3
-+	int val = omap_ctrl_readl(OMAP343X_CONTROL_DEVCONF1);
++	mutex_lock(&venc.venc_lock);
 +
-+	if (bypass)
-+		val |= OMAP2_TVOUTBYPASS;
-+	else
-+		val &= ~OMAP2_TVOUTBYPASS;
++	venc.bypass = bypass;
++	venc.acbias = acbias;
 +
-+	if (acbias)
-+		val |= OMAP2_TVACEN;
-+	else
-+		val &= ~OMAP2_TVACEN;
-+
-+	omap_ctrl_writel(val, OMAP343X_CONTROL_DEVCONF1);
-+#endif
++	mutex_unlock(&venc.venc_lock);
 +}
 +
-diff --git a/include/linux/omap-tvout.h b/include/linux/omap-tvout.h
-new file mode 100644
-index 0000000..25f676d
---- /dev/null
-+++ b/include/linux/omap-tvout.h
-@@ -0,0 +1,14 @@
-+/*
-+ * OMAP TV-out support
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+#ifndef __LINUX_OMAP_TVOUT_H
-+#define __LINUX_OMAP_TVOUT_H
-+
-+extern void update_bypass_acbias(bool bypass, bool acbias);
-+
-+#endif
-+
+ static int venc_init_regulator(void)
+ {
+ 	struct regulator *vdda_dac;
+@@ -777,6 +797,7 @@ static const struct omapdss_atv_ops venc_ops = {
+ 
+ 	.set_type = venc_set_type,
+ 	.invert_vid_out_polarity = venc_invert_vid_out_polarity,
++	.bypass_and_acbias = venc_bypass_and_acbias,
+ 
+ 	.set_wss = venc_set_wss,
+ 	.get_wss = venc_get_wss,
+diff --git a/include/video/omapdss.h b/include/video/omapdss.h
+index 3d7c51a..54a185f 100644
+--- a/include/video/omapdss.h
++++ b/include/video/omapdss.h
+@@ -607,6 +607,8 @@ struct omapdss_atv_ops {
+ 		enum omap_dss_venc_type type);
+ 	void (*invert_vid_out_polarity)(struct omap_dss_device *dssdev,
+ 		bool invert_polarity);
++	void (*bypass_and_acbias)(struct omap_dss_device *dssdev,
++		bool bypass, bool acbias);
+ 
+ 	int (*set_wss)(struct omap_dss_device *dssdev, u32 wss);
+ 	u32 (*get_wss)(struct omap_dss_device *dssdev);
 -- 
 1.8.1.2
