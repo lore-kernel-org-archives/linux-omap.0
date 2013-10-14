@@ -1,19 +1,19 @@
 From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [GIT PULL 2/6] omap pdata and dt preparation changes for v3.13 merge window
-Date: Mon, 14 Oct 2013 15:34:23 -0700
-Message-ID: <87iowz4h3k.fsf@linaro.org>
-References: <5258a9a2.c6b9e50a.3704.5f61SMTPIN_ADDED_MISSING@mx.google.com>
+Subject: Re: [GIT PULL 4/6] omap device tree changes for v3.13 merge window
+Date: Mon, 14 Oct 2013 15:36:54 -0700
+Message-ID: <87eh7n4gzd.fsf@linaro.org>
+References: <5258a9a8.493e310a.779b.1b15SMTPIN_ADDED_MISSING@mx.google.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pd0-f179.google.com ([209.85.192.179]:33783 "EHLO
-	mail-pd0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757399Ab3JNWe1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Oct 2013 18:34:27 -0400
-Received: by mail-pd0-f179.google.com with SMTP id v10so7945082pde.24
-        for <linux-omap@vger.kernel.org>; Mon, 14 Oct 2013 15:34:27 -0700 (PDT)
-In-Reply-To: <5258a9a2.c6b9e50a.3704.5f61SMTPIN_ADDED_MISSING@mx.google.com>
-	(Tony Lindgren's message of "Fri, 11 Oct 2013 18:44:57 -0700")
+Received: from mail-pb0-f47.google.com ([209.85.160.47]:51171 "EHLO
+	mail-pb0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932218Ab3JNWg5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Oct 2013 18:36:57 -0400
+Received: by mail-pb0-f47.google.com with SMTP id rr4so7855682pbb.20
+        for <linux-omap@vger.kernel.org>; Mon, 14 Oct 2013 15:36:57 -0700 (PDT)
+In-Reply-To: <5258a9a8.493e310a.779b.1b15SMTPIN_ADDED_MISSING@mx.google.com>
+	(Tony Lindgren's message of "Fri, 11 Oct 2013 18:44:58 -0700")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
@@ -27,28 +27,23 @@ Tony Lindgren <tony@atomide.com> writes:
 >
 > are available in the git repository at:
 >
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.13/quirk-signed
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.13/dt-signed
 >
-> for you to fetch changes up to 8d71528343c69ce387bd5fdb4fd8dc2b9f69d97c:
+> for you to fetch changes up to c49f4984fd45be36502e903e7a5a6a4faff42931:
 >
->   ARM: configs: omap2plus_defconfig: enable dwc3 and dependencies (2013-10-11 15:41:25 -0700)
->
-> ----------------------------------------------------------------
-> Changes needed to prepare for making omap3 device tree only:
->
-> - Always build in board-generic, and add pdata quirks and auxdata
->   support for it so we have all the pdata related quirks
->   in the same place.
->
-> - Merge of the drivers/pinctrl changes that are needed for PM
->   to continue working on omap3 and also needed for other omaps
->   eventually. The three pinctrl related patches have been acked
->   by Linus Walleij and are pulled into both the pinctrl tree
->   and this branch.
->
-> - Few defconfig related changes for drivers needed.
+>   Merge tag 'for_3.13/dts_signed' of git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt into omap-for-v3.13/dt (2013-10-11 15:40:07 -0700)
 >
 > ----------------------------------------------------------------
+>
+> omap device tree related changes via Benoit Cousson <bcousson@baylibre.com>:
+>
+> Add the minimal DTS support for DRA7xx based SoC core.
+> Add the initial support for N900 and gta04 phones.
+> Enable USB3 on OMAP5 evm board.
+> Add support for cryto accelerators
+> Add new IGEP AQUILA board
+> Add AM33XX EDMA support
+> Update HSUSB node to use the reset-gpios fmwk
 
 Thanks, pulled into next/dt.
 
