@@ -1,65 +1,159 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v2 0/7] Make dwc3 use Generic PHY Framework
-Date: Wed, 16 Oct 2013 01:24:10 +0530
-Message-ID: <1381866857-3861-1-git-send-email-kishon@ti.com>
+Subject: [PATCH v2 1/7] usb: dwc3: get "usb_phy" only if the platform indicates the presence of PHY's
+Date: Wed, 16 Oct 2013 01:24:11 +0530
+Message-ID: <1381866857-3861-2-git-send-email-kishon@ti.com>
+References: <1381866857-3861-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-doc-owner@vger.kernel.org>
-Sender: linux-doc-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1381866857-3861-1-git-send-email-kishon@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: kishon@ti.com, balbi@ti.com, gregkh@linuxfoundation.org
 Cc: rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ijc+devicetree@hellion.org.uk, rob@landley.net, bcousson@baylibre.com, tony@atomide.com, linux@arm.linux.org.uk, grant.likely@linaro.org, s.nawrocki@samsung.com, galak@codeaurora.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Felipe,
+There can be systems which does not have a external usb_phy, so get
+usb_phy only if dt data indicates the presence of PHY in the case of dt boot or
+if platform_data indicates the presence of PHY. Also remove checking if
+return value is -ENXIO since it's now changed to always enable usb_phy layer.
 
-Looks like most of the patches are dependent on Generic PHY Framework except
-the first one. Let me know if I have to take these patches with your ACK or
-you'll take it yourself.
-******************************************************************
-Modified dwc3 core to find PHYs only if the platform indicates that it has 
-to use a PHY. Adapted DWC3 and USB3 PHY to use Generic PHY framework. Also 
-changed the name of USB3 PHY driver to PIPE3 PHY driver since the same driver 
-has to be used for SATA and PCIE too.
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+---
+In usb_get_phy_by_phandle, index 0 always refers to usb2 phy and index 1 always
+refers to usb3 phy. Since we've lived so long with this, this patch will make
+an assumption that if only one entry is populated in *usb-phy* property, it will
+be usb2 phy and the next entry will be usb3 phy.
 
-Changes from v1:
-* The logic in which the driver detects the presence of PHYs has changed.
-* patch ordering has changed
-* udelay is replaced with usleep_range
-* A patch to remove set_suspend callback which was deferred from Generic
-PHY Framework series has been included.
+ drivers/usb/dwc3/Kconfig         |    1 +
+ drivers/usb/dwc3/core.c          |   72 ++++++++++++++++++++------------------
+ drivers/usb/dwc3/platform_data.h |    2 ++
+ 3 files changed, 41 insertions(+), 34 deletions(-)
 
-Kishon Vijay Abraham I (7):
-  usb: dwc3: get "usb_phy" only if the platform indicates the presence
-    of PHY's
-  usb: dwc3: adapt dwc3 core to use Generic PHY Framework
-  Documentation: dt bindings: move ..usb/usb-phy.txt to
-    ..phy/ti-phy.txt
-  drivers: phy: usb3/pipe3: Adapt pipe3 driver to Generic PHY Framework
-  usb: phy: omap-usb2: remove *set_suspend* callback from omap-usb2
-  phy: omap-usb2: move omap_usb.h from linux/usb/ to linux/phy/
-  arm/dts: added dt properties to adapt to the new phy framwork
-
- .../bindings/{usb/usb-phy.txt => phy/ti-phy.txt}   |    9 +-
- Documentation/devicetree/bindings/usb/dwc3.txt     |    6 +-
- arch/arm/boot/dts/omap5.dtsi                       |    5 +-
- drivers/phy/Kconfig                                |   10 +
- drivers/phy/Makefile                               |    1 +
- drivers/phy/phy-omap-usb2.c                        |   27 +--
- .../phy/phy-omap-usb3.c => phy/phy-ti-pipe3.c}     |  206 +++++++++++---------
- drivers/usb/dwc3/Kconfig                           |    2 +
- drivers/usb/dwc3/core.c                            |  124 ++++++++----
- drivers/usb/dwc3/core.h                            |    7 +
- drivers/usb/dwc3/platform_data.h                   |    4 +
- drivers/usb/phy/Kconfig                            |   11 --
- drivers/usb/phy/Makefile                           |    1 -
- include/linux/{usb => phy}/omap_usb.h              |    3 -
- include/linux/{usb/omap_usb.h => phy/ti_pipe3.h}   |   33 +---
- 15 files changed, 248 insertions(+), 201 deletions(-)
- rename Documentation/devicetree/bindings/{usb/usb-phy.txt => phy/ti-phy.txt} (86%)
- rename drivers/{usb/phy/phy-omap-usb3.c => phy/phy-ti-pipe3.c} (57%)
- copy include/linux/{usb => phy}/omap_usb.h (95%)
- rename include/linux/{usb/omap_usb.h => phy/ti_pipe3.h} (53%)
-
+diff --git a/drivers/usb/dwc3/Kconfig b/drivers/usb/dwc3/Kconfig
+index 70fc430..8e385b4 100644
+--- a/drivers/usb/dwc3/Kconfig
++++ b/drivers/usb/dwc3/Kconfig
+@@ -1,6 +1,7 @@
+ config USB_DWC3
+ 	tristate "DesignWare USB3 DRD Core Support"
+ 	depends on (USB || USB_GADGET) && HAS_DMA
++	select USB_PHY
+ 	select USB_XHCI_PLATFORM if USB_SUPPORT && USB_XHCI_HCD
+ 	help
+ 	  Say Y or M here if your system has a Dual Role SuperSpeed
+diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
+index 474162e..cb91d70 100644
+--- a/drivers/usb/dwc3/core.c
++++ b/drivers/usb/dwc3/core.c
+@@ -354,6 +354,7 @@ static int dwc3_probe(struct platform_device *pdev)
+ 	struct device_node	*node = dev->of_node;
+ 	struct resource		*res;
+ 	struct dwc3		*dwc;
++	int			count;
+ 
+ 	int			ret = -ENOMEM;
+ 
+@@ -387,16 +388,49 @@ static int dwc3_probe(struct platform_device *pdev)
+ 	if (node) {
+ 		dwc->maximum_speed = of_usb_get_maximum_speed(node);
+ 
+-		dwc->usb2_phy = devm_usb_get_phy_by_phandle(dev, "usb-phy", 0);
+-		dwc->usb3_phy = devm_usb_get_phy_by_phandle(dev, "usb-phy", 1);
++		count = of_count_phandle_with_args(node, "usb-phy", NULL);
++		switch (count) {
++		case 2:
++			dwc->usb3_phy = devm_usb_get_phy_by_phandle(dev,
++				"usb-phy", 1);
++			if (IS_ERR(dwc->usb3_phy)) {
++				dev_err(dev, "usb3 phy not found\n");
++				return PTR_ERR(dwc->usb3_phy);
++			}
++		case 1:
++			dwc->usb2_phy = devm_usb_get_phy_by_phandle(dev,
++				"usb-phy", 0);
++			if (IS_ERR(dwc->usb2_phy)) {
++				dev_err(dev, "usb2 phy not found\n");
++				return PTR_ERR(dwc->usb2_phy);
++			}
++			break;
++		default:
++			dev_err(dev, "usb phy nodes not configured\n");
++		}
+ 
+ 		dwc->needs_fifo_resize = of_property_read_bool(node, "tx-fifo-resize");
+ 		dwc->dr_mode = of_usb_get_dr_mode(node);
+ 	} else if (pdata) {
+ 		dwc->maximum_speed = pdata->maximum_speed;
+ 
+-		dwc->usb2_phy = devm_usb_get_phy(dev, USB_PHY_TYPE_USB2);
+-		dwc->usb3_phy = devm_usb_get_phy(dev, USB_PHY_TYPE_USB3);
++		if (pdata->usb2_phy) {
++			dwc->usb2_phy = devm_usb_get_phy(dev,
++				USB_PHY_TYPE_USB2);
++			if (IS_ERR(dwc->usb2_phy)) {
++				dev_err(dev, "usb2 phy not found\n");
++				return PTR_ERR(dwc->usb2_phy);
++			}
++		}
++
++		if (pdata->usb3_phy) {
++			dwc->usb3_phy = devm_usb_get_phy(dev,
++				USB_PHY_TYPE_USB3);
++			if (IS_ERR(dwc->usb3_phy)) {
++				dev_err(dev, "usb3 phy not found\n");
++				return PTR_ERR(dwc->usb3_phy);
++			}
++		}
+ 
+ 		dwc->needs_fifo_resize = pdata->tx_fifo_resize;
+ 		dwc->dr_mode = pdata->dr_mode;
+@@ -409,36 +443,6 @@ static int dwc3_probe(struct platform_device *pdev)
+ 	if (dwc->maximum_speed == USB_SPEED_UNKNOWN)
+ 		dwc->maximum_speed = USB_SPEED_SUPER;
+ 
+-	if (IS_ERR(dwc->usb2_phy)) {
+-		ret = PTR_ERR(dwc->usb2_phy);
+-
+-		/*
+-		 * if -ENXIO is returned, it means PHY layer wasn't
+-		 * enabled, so it makes no sense to return -EPROBE_DEFER
+-		 * in that case, since no PHY driver will ever probe.
+-		 */
+-		if (ret == -ENXIO)
+-			return ret;
+-
+-		dev_err(dev, "no usb2 phy configured\n");
+-		return -EPROBE_DEFER;
+-	}
+-
+-	if (IS_ERR(dwc->usb3_phy)) {
+-		ret = PTR_ERR(dwc->usb3_phy);
+-
+-		/*
+-		 * if -ENXIO is returned, it means PHY layer wasn't
+-		 * enabled, so it makes no sense to return -EPROBE_DEFER
+-		 * in that case, since no PHY driver will ever probe.
+-		 */
+-		if (ret == -ENXIO)
+-			return ret;
+-
+-		dev_err(dev, "no usb3 phy configured\n");
+-		return -EPROBE_DEFER;
+-	}
+-
+ 	dwc->xhci_resources[0].start = res->start;
+ 	dwc->xhci_resources[0].end = dwc->xhci_resources[0].start +
+ 					DWC3_XHCI_REGS_END;
+diff --git a/drivers/usb/dwc3/platform_data.h b/drivers/usb/dwc3/platform_data.h
+index 7db34f0..49ffa6d 100644
+--- a/drivers/usb/dwc3/platform_data.h
++++ b/drivers/usb/dwc3/platform_data.h
+@@ -24,4 +24,6 @@ struct dwc3_platform_data {
+ 	enum usb_device_speed maximum_speed;
+ 	enum usb_dr_mode dr_mode;
+ 	bool tx_fifo_resize;
++	bool usb2_phy;
++	bool usb3_phy;
+ };
 -- 
 1.7.10.4
-
