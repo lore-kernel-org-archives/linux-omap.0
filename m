@@ -1,75 +1,285 @@
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH v5 3/4] v4l: ti-vpe: Add VPE mem to mem driver
-Date: Tue, 15 Oct 2013 15:51:55 +0200
-Message-ID: <525D487B.1000903@xs4all.nl>
-References: <1378462346-10880-1-git-send-email-archit@ti.com> <1381328975-18244-1-git-send-email-archit@ti.com> <5257ACD1.9010501@xs4all.nl> <525D477F.10606@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 2/7] usb: dwc3: adapt dwc3 core to use Generic PHY
+ Framework
+Date: Tue, 15 Oct 2013 08:56:55 -0500
+Message-ID: <20131015135655.GK11380@radagast>
+References: <1378136591-7463-1-git-send-email-kishon@ti.com>
+ <1378136591-7463-3-git-send-email-kishon@ti.com>
+ <525814A9.7060106@ti.com> <525BB8C0.1070802@ti.com>
+ <525BC5A9.3060904@ti.com> <20131015115741.GD11380@radagast>
+ <525D30C2.8060208@ti.com> <20131015131934.GG11380@radagast>
+ <525D47C3.207@ti.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:4784 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758902Ab3JONwN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Oct 2013 09:52:13 -0400
-In-Reply-To: <525D477F.10606@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/mixed; boundary="===============8639001164387096335=="
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <525D47C3.207@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: mark.rutland@arm.com, linux-doc@vger.kernel.org, tony@atomide.com, Vivek Gautam <gautamvivek1987@gmail.com>, s.nawrocki@samsung.com, ian.campbell@citrix.com, linux@arm.linux.org.uk, Kishon Vijay Abraham I <kishon@ti.com>, grant.likely@linaro.org, devicetree@vger.kernel.org, george.cherian@ti.com, rob@landley.net, pawel.moll@arm.com, swarren@wwwdotorg.org, rob.herring@calxeda.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, bcousson@baylibre.com, galak@codeaurora.org
 List-Id: linux-omap@vger.kernel.org
-To: Kamil Debski <k.debski@samsung.com>
-Cc: Archit Taneja <archit@ti.com>, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, laurent.pinchart@ideasonboard.com
 
-Kamil,
+--===============8639001164387096335==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="f54savKjS/tSNRaU"
+Content-Disposition: inline
 
-Can you take this driver as m2m maintainer or should I take it?
+--f54savKjS/tSNRaU
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Regards,
+Hi,
 
-	Hans
+On Tue, Oct 15, 2013 at 04:48:51PM +0300, Roger Quadros wrote:
+> On 10/15/2013 04:19 PM, Felipe Balbi wrote:
+> > Hi,
+> >=20
+> > On Tue, Oct 15, 2013 at 03:10:42PM +0300, Roger Quadros wrote:
+> >>>>>>> @@ -665,6 +669,9 @@ struct dwc3 {
+> >>>>>>>  	struct usb_phy		*usb2_phy;
+> >>>>>>>  	struct usb_phy		*usb3_phy;
+> >>>>>>> =20
+> >>>>>>> +	struct phy		*usb2_generic_phy;
+> >>>>>>> +	struct phy		*usb3_generic_phy;
+> >>>>>>> +
+> >>>>>>>  	void __iomem		*regs;
+> >>>>>>>  	size_t			regs_size;
+> >>>>>>> =20
+> >>>>>>>
+> >>>>>
+> >>>>> Do you have any suggestions on how to get only individual PHYs? lik=
+e only
+> >>>>> usb2phy or usb3phy?
+> >>>>
+> >>>> My earlier understanding was that both PHYs are needed only if .spee=
+d is "super-speed"
+> >>>> and only usb2phy is needed for "high-speed". But as per Vivek's emai=
+l it seems
+> >>>> Samsung's exynos5 SoC doesn't need usb2phy for "super-speed".
+> >>>>
+> >>>> So to keeps things flexible, I can propose the following approach
+> >>>> - if speed =3D=3D 'high-speed' usb2phy must be present. usb3phy will=
+ be ignored if supplied.
+> >>>> - if speed =3D=3D 'super-speed' usb3phy must be present and usb2phy =
+is optional but must be
+> >>>> initialized if supplied.
+> >>>> - if speed is not specified, we default to 'super-speed'.
+> >>>>
+> >>>> Felipe, does this address the issue you were facing with OMAP5?
+> >>>
+> >>> on OMAP5 we cannot skip USB3 PHY initialization. But then it becomes a
+> >>> question of supporting a test feature (in OMAP5 case it would be cool=
+ to
+> >>> force controller to lower speeds for testing) or coping with a broken
+> >>> DTS.
+> >>>
+> >>
+> >> I don't think we can protect ourselves from all possible broken
+> >> configurations of DTS.
+> >> I would vote for simplicity and maximum flexibility.
+> >>
+> >> So IMO we should just depend on DTS to provide the phys that are
+> >> needed by the platform.
+> >> In the driver we initialize whatever PHY is provided and don't
+> >> complain if any or even all PHYs are missing.
+> >=20
+> > considering that DTS is an ABI, I really think eventually we *will* have
+> > broken DTBs burned into ROM and we will have to find ways to work with
+> > those too. Same thing already happens today with ACPI tables.
+> >=20
+> >> If this is not good enough then could you please suggest an
+> >> alternative? Thanks.
+> >=20
+> > The alternative would be to mandate nop xceiv for the "missing" PHY, but
+> > that doesn't solve anything, really, as DTS authors might still forget
+> > about the NOP xceiv and you can argue that forcing NOP xceiv would be a
+> > SW configuration.
+> >=20
+> > So, perhaps we go with the approach that all PHYs are optional, and
+> > here's my original patch which makes USB3 PHY optional:
+> >=20
+> > commit 979b84f96e4b7559b596b2933ae198aba267f260
+> > Author: Felipe Balbi <balbi@ti.com>
+> > Date:   Sun Jun 30 18:39:23 2013 +0300
+> >=20
+> >     usb: dwc3: core: make USB3 PHY optional
+> >    =20
+> >     If we want a port to work at any speed lower
+> >     than Superspeed, it makes no sense to even
+> >     initialize/power up the USB3 transceiver,
+> >     provided it won't be used.
+> >    =20
+> >     We can use the oportunity to save some power
+> >     and leave the superspeed transceiver powered
+> >     off.
+> >    =20
+> >     There is at least one such case which is
+> >     Texas Instruments' AM437x which has one
+> >     of its USB3 ports without a matching USB3
+> >     PHY (that port is hardwired to work on USB2
+> >     only).
+> >    =20
+> >     Signed-off-by: Felipe Balbi <balbi@ti.com>
+> >=20
+> > diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
+> > index 74f9cf0..7a5ab93 100644
+> > --- a/drivers/usb/dwc3/core.c
+> > +++ b/drivers/usb/dwc3/core.c
+> > @@ -387,16 +387,34 @@ static int dwc3_probe(struct platform_device *pde=
+v)
+> >  	if (node) {
+> >  		dwc->maximum_speed =3D of_usb_get_maximum_speed(node);
+> > =20
+> > -		dwc->usb2_phy =3D devm_usb_get_phy_by_phandle(dev, "usb-phy", 0);
+> > -		dwc->usb3_phy =3D devm_usb_get_phy_by_phandle(dev, "usb-phy", 1);
+> > +		switch (dwc->maximum_speed) {
+> > +		case USB_SPEED_SUPER:
+> > +			dwc->usb2_phy =3D devm_usb_get_phy_by_phandle(dev, "usb-phy", 0);
+> > +			dwc->usb3_phy =3D devm_usb_get_phy_by_phandle(dev, "usb-phy", 1);
+> > +			break;
+> > +		case USB_SPEED_HIGH:
+> > +		case USB_SPEED_FULL:
+> > +		case USB_SPEED_LOW:
+> > +			dwc->usb2_phy =3D devm_usb_get_phy_by_phandle(dev, "usb-phy", 0);
+> > +			break;
+> > +		}
+> > =20
+> >  		dwc->needs_fifo_resize =3D of_property_read_bool(node, "tx-fifo-resi=
+ze");
+> >  		dwc->dr_mode =3D of_usb_get_dr_mode(node);
+> >  	} else if (pdata) {
+> >  		dwc->maximum_speed =3D pdata->maximum_speed;
+> > =20
+> > -		dwc->usb2_phy =3D devm_usb_get_phy(dev, USB_PHY_TYPE_USB2);
+> > -		dwc->usb3_phy =3D devm_usb_get_phy(dev, USB_PHY_TYPE_USB3);
+> > +		switch (dwc->maximum_speed) {
+> > +		case USB_SPEED_SUPER:
+> > +			dwc->usb2_phy =3D devm_usb_get_phy(dev, USB_PHY_TYPE_USB2);
+> > +			dwc->usb3_phy =3D devm_usb_get_phy(dev, USB_PHY_TYPE_USB3);
+> > +			break;
+> > +		case USB_SPEED_HIGH:
+> > +		case USB_SPEED_FULL:
+> > +		case USB_SPEED_LOW:
+> > +			dwc->usb2_phy =3D devm_usb_get_phy(dev, USB_PHY_TYPE_USB2);
+> > +			break;
+> > +		}
+>=20
+> What if we try to get both PHYs irrespective of 'maximum_speed' but based
+> on presence of phandle/pdata. That way there is some control in the adapt=
+ation code (dts/pdata)
+> as to which PHYs needs to be initialized for that particular instance.
+>=20
+> This is because there doesn't seem to be a consensus between different de=
+signs.
+> e.g. omap5 needs both phys for 'high-speed' whereas exynos5250 needs just=
+ the
+> usb3 phy for 'super-speed'
 
-On 10/15/2013 03:47 PM, Archit Taneja wrote:
-> Hi Hans,
-> 
-> On Friday 11 October 2013 01:16 PM, Hans Verkuil wrote:
->> On 10/09/2013 04:29 PM, Archit Taneja wrote:
->>> VPE is a block which consists of a single memory to memory path which can
->>> perform chrominance up/down sampling, de-interlacing, scaling, and color space
->>> conversion of raster or tiled YUV420 coplanar, YUV422 coplanar or YUV422
->>> interleaved video formats.
->>>
->>> We create a mem2mem driver based primarily on the mem2mem-testdev example.
->>> The de-interlacer, scaler and color space converter are all bypassed for now
->>> to keep the driver simple. Chroma up/down sampler blocks are implemented, so
->>> conversion beteen different YUV formats is possible.
->>>
->>> Each mem2mem context allocates a buffer for VPE MMR values which it will use
->>> when it gets access to the VPE HW via the mem2mem queue, it also allocates
->>> a VPDMA descriptor list to which configuration and data descriptors are added.
->>>
->>> Based on the information received via v4l2 ioctls for the source and
->>> destination queues, the driver configures the values for the MMRs, and stores
->>> them in the buffer. There are also some VPDMA parameters like frame start and
->>> line mode which needs to be configured, these are configured by direct register
->>> writes via the VPDMA helper functions.
->>>
->>> The driver's device_run() mem2mem op will add each descriptor based on how the
->>> source and destination queues are set up for the given ctx, once the list is
->>> prepared, it's submitted to VPDMA, these descriptors when parsed by VPDMA will
->>> upload MMR registers, start DMA of video buffers on the various input and output
->>> clients/ports.
->>>
->>> When the list is parsed completely(and the DMAs on all the output ports done),
->>> an interrupt is generated which we use to notify that the source and destination
->>> buffers are done.
->>>
->>> The rest of the driver is quite similar to other mem2mem drivers, we use the
->>> multiplane v4l2 ioctls as the HW support coplanar formats.
->>>
->>> Signed-off-by: Archit Taneja <archit@ti.com>
->>
->> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
->>
-> 
-> Thanks for the Acks. Is it possible to queue these for 3.13?
-> 
-> Archit
-> 
+sure, can you write such a patch ? If it gets to my inbox in a couple
+hours I guess I can still review and take it upstream on v3.13,
+otherwise it's only on v3.14 :-(
 
+>=20
+> > =20
+> >  		dwc->needs_fifo_resize =3D pdata->tx_fifo_resize;
+> >  		dwc->dr_mode =3D pdata->dr_mode;
+> > @@ -424,19 +442,21 @@ static int dwc3_probe(struct platform_device *pde=
+v)
+> >  		return -EPROBE_DEFER;
+> >  	}
+> > =20
+> > -	if (IS_ERR(dwc->usb3_phy)) {
+> > -		ret =3D PTR_ERR(dwc->usb3_phy);
+> > +	if (dwc->maximum_speed =3D=3D USB_SPEED_SUPER) {
+> > +		if (IS_ERR(dwc->usb3_phy)) {
+> > +			ret =3D PTR_ERR(dwc->usb3_phy);
+> > =20
+> > -		/*
+> > -		 * if -ENXIO is returned, it means PHY layer wasn't
+> > -		 * enabled, so it makes no sense to return -EPROBE_DEFER
+> > -		 * in that case, since no PHY driver will ever probe.
+> > -		 */
+> > -		if (ret =3D=3D -ENXIO)
+> > -			return ret;
+> > +			/*
+> > +			 * if -ENXIO is returned, it means PHY layer wasn't
+> > +			 * enabled, so it makes no sense to return -EPROBE_DEFER
+> > +			 * in that case, since no PHY driver will ever probe.
+> > +			 */
+> > +			if (ret =3D=3D -ENXIO)
+> > +				return ret;
+> > =20
+> > -		dev_err(dev, "no usb3 phy configured\n");
+> > -		return -EPROBE_DEFER;
+> > +			dev_err(dev, "no usb3 phy configured\n");
+> > +			return -EPROBE_DEFER;
+> > +		}
+> >  	}
+> > =20
+> >  	dwc->xhci_resources[0].start =3D res->start;
+> >=20
+> >=20
+> > what you guys are saying though, is that every PHY should be optional.
+> >=20
+> > Do we have any device which doesn't provide USB2 PHY, only USB3 ? Dude,
+> > that's so non-standard! USB *must* be backwards compatible so I'd expect
+> > USB2 PHY to always be available.
+> >=20
+>=20
+> Maybe the USB2 PHY hardware is there on the Exynos5250 but it just
+> doesn't have discrete power control.  Vivek?
+
+I'd really like to hear that answer :-) But patch can come before that,
+though.
+
+cheers
+
+--=20
+balbi
+
+--f54savKjS/tSNRaU
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJSXUmnAAoJEIaOsuA1yqREPzgQAIx+n7uTfn/QwnQMZwWzPDNe
+CpR/wsrMmnKA7Z1wZVix8oQAgkVLEf0lkpPYiBafQ4W22+7eQMx1bWZzG2HPXTRk
+uuprV4QaMQhRx/22ODZZUtRRIrCxceRw7Kk7dAU4FEAisks/l0TheeYLVfpYHPal
+BMlWF10qHmWuh96Az44yR6uzVpuA0V/Z2zYBgKML60gFERaGyGcY3qw2iE4iyFns
+Y/PdAwBQEdottpgkvZLLFPgwzfjcSGWHqETaPi2z2kTF1A+8fGR7t0tnu8yL1hk3
+imn11EQjpuIVvlYYb/Kc5xvpMXcnmQKZrae7Y0at278Yz1WI9QRcJmIF2VhsdcXI
+gHl9v7qGx6zwPAul5EK50A3XYWPklVuv8X354XXp32gGufmNGgFWDyB2iCp/I/vN
+9OKgAtENovKLejRT3x9B/mBwiGfOp0EJNUgClBRUeYNfJZkg/Z3hyg4HP69vkFe5
+sropRlZy4iyc3AMzPIjIQipqJNVZEeLgbgZlpD3NLzv7OynnKyZL9JotnBbSYEep
+vRzwxm+Bl/6ALaganpPDRVDXSfZKj4mD5aDN+nsj2IvZZ3cQWWnbkj6YSQP3rvs8
+O5K4Zqt5kKx7IwSJyKe/MK9tK0ObuDNo6yDyqMMARg9BEkLs//fT3ueAgiNajJ3a
+39E4+zLZjubQ2t8myvT5
+=E26e
+-----END PGP SIGNATURE-----
+
+--f54savKjS/tSNRaU--
+
+
+--===============8639001164387096335==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+--===============8639001164387096335==--
