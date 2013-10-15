@@ -1,73 +1,116 @@
-From: Benoit Cousson <bcousson@baylibre.com>
-Subject: Re: [PATCH] ARM: dts: omap4-panda-es: Do not reset gpio1
-Date: Tue, 15 Oct 2013 09:28:30 +0200
-Message-ID: <525CEE9E.9020507@baylibre.com>
-References: <1381313521-10422-1-git-send-email-rnayak@ti.com> <1381423481-5920-1-git-send-email-nm@ti.com>
+From: Sricharan R <r.sricharan@ti.com>
+Subject: Re: [RFC PATCH 0/6] DRIVERS: IRQCHIP: Add support for crossbar IP
+Date: Tue, 15 Oct 2013 13:05:46 +0530
+Message-ID: <525CF052.4060508@ti.com>
+References: <1380549564-31045-1-git-send-email-r.sricharan@ti.com> <52499441.1030403@gmail.com> <524AAE69.8060703@ti.com> <524AD290.207@gmail.com> <524AD4B7.7040700@ti.com> <524AE1FA.2050104@gmail.com> <524AE536.5080307@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1381423481-5920-1-git-send-email-nm@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Rajendra Nayak <rnayak@ti.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:48055 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752508Ab3JOHge (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 15 Oct 2013 03:36:34 -0400
+In-Reply-To: <524AE536.5080307@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Rob Herring <robherring2@gmail.com>, tglx@linutronix.de, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linus.walleij@linaro.org, linux@arm.linux.org.uk, tony@atomide.com, rnayak@ti.com, marc.zyngier@arm.com, grant.likely@linaro.org, mark.rutland@arm.com
 
-Hi Nishanth,
+Hi Thomas,
 
-On 10/10/2013 18:44, Nishanth Menon wrote:
-> Do not reset GPIO1 at boot-up because GPIO 7 in GPIO1 block is used o=
-n
-> OMAP4460 PandaBoard-ES to select voltage register in TPS62361 which
-> supplies VDD_MPU.
+On Tuesday 01 October 2013 08:37 PM, Santosh Shilimkar wrote:
+> On Tuesday 01 October 2013 10:53 AM, Rob Herring wrote:
+>> On 10/01/2013 08:57 AM, Santosh Shilimkar wrote:
+>>> On Tuesday 01 October 2013 09:48 AM, Rob Herring wrote:
+>>>> On 10/01/2013 06:13 AM, Sricharan R wrote:
+>>>>> Hi,
+>>>>>
+>>>>> On Monday 30 September 2013 08:39 PM, Rob Herring wrote:
+>>>>>> On 09/30/2013 08:59 AM, Sricharan R wrote:
+>>>>>>> Some socs have a large number of interrupts requests to service
+>>>>>>> the needs of its many peripherals and subsystems. All of the interrupt
+>>>>>>> requests lines from the subsystems are not needed at the same
+>>>>>>> time, so they have to be muxed to the controllers appropriately.
+>>>>>>> In such places a interrupt controllers are preceded by an
+>>>>>>> IRQ CROSSBAR that provides flexibility in muxing the device interrupt
+>>>>>>> requests to the controller inputs.
+>>>>>>>
+>>>>>>> This series models the peripheral interrupts that can be routed through
+>>>>>>> the crossbar to the GIC as 'routable-irqs'. The routable irqs are added
+>>>>>>> in a separate linear domain inside the GIC. The registered routable domain's
+>>>>>>> callback are invoked as a part of the GIC's callback, which in turn should
+>>>>>>> allocate a free irq line and configure the IP accordingly. So every peripheral
+>>>>>>> in the dts files mentions the fixed crossbar number as its interrupt. A free
+>>>>>>> gic line for that gets allocated and configured when the peripheral's interrupt
+>>>>>>> is mapped.
+>>>>>>>
+>>>>>>> The minimal crossbar driver to track and allocate free GIC lines and configure the
+>>>>>>> crossbar is added here, along with the DT bindings.
+>>>>>> Seems like interrupt-map property is what you need here.
+>>>>>>
+>>>>>> http://devicetree.org/Device_Tree_Usage#Advanced_Interrupt_Mapping
+>>>>>>
+>>>>>> Versatile Express also has an example.
+>>>>>    OK, but the idea was not to tie up the crossbar<->interrupt numbers at the
+>>>>>    DTS level, but to assign it dynamically during runtime. This was one of the
+>>>>>   comments that came up with first crossbar support patches, which was assigning a
+>>>>>   interrupt line to crossbar number in the DTS and setting it up in crossbar probe.
+>>>> Is there an actual usecase on a single h/w design that you run out of
+>>>> interrupts and it is a user decision which interrupts to use?
+>>>>
+>>> Yes. There are 240 peripheral interrupts connected out of which 160 can
+>>> be used in this specific case. 
+>> Yes, I understand the SOC connections. That does not answer my question.
+>> The 240 interrupts are likely to be limited to fewer by board design,
+>> pinmuxing, etc.
+>>
+> yes limited by different board designs ...
 >
-> Without this, OMAP4460 PandaBoard-ES boards fail to boot-up because
-> MPU voltage switches over to VSET0 voltage value (boot voltage) which
-> is not sufficient to operate the device at OPP100.
->
-> Signed-off-by: Nishanth Menon <nm@ti.com>
-> ---
-> As explained here: http://marc.info/?l=3Du-boot&m=3D133066647800872&w=
-=3D2
->
-> GPIO1 reset causes PandaBoard-ES to stop functioning.
-> This depends on Patch series from Rajendra:
-> http://marc.info/?l=3Dlinux-doc&m=3D138131355520116&w=3D2
-> Applies on Benoit's for_13/dts branch:
-> https://git.kernel.org/cgit/linux/kernel/git/bcousson/linux-omap-dt.g=
-it/log/?h=3Dfor_3.13/dts
+>> How do you handle the 161st interrupt request? Will never happen? Just
+>> rely on the random driver probe ordering?
+>>
+> Well the board dts are expected to provide the peripheral support info to optimise it.
+> If a board actually has more than 160 peripherals available then in that
+> case the 161 interrupt will not be mapped. 
+>  
+>>>> You could fill in the interrupt-map at run-time. It would have to be
+>>>> early (bootloader or early kernel init) and can't be at request_irq time.
+>>>>
+>>> Well all options are tried before coming up to the $subject solution.
+>>> It was suggested by Thomas in the last review.
+>>>  
+>>>>>     https://lkml.org/lkml/2013/7/18/416
+>>>>>
+>>>>>    Since this approach of assigning in DTS was opposed, we moved to IRQCHIP and
+>>>>>    that did not go as well. Finally was asked to handle this as a part of GIC driver with
+>>>>>    a separate domain.
+>>>>>    
+>>>>>   http://www.spinics.net/lists/linux-omap/msg97085.html
+>>>> This has nothing to do with the GIC, so it does not belong there.
+>>>>
+>>> Well the router makes connections from peripheral to GIC. Thomas can
+>>> better explain it but I think since its doing irq routing for GIC on
+>>> a given hardware, I don't see any issue having some generic map/unmap
+>>> function in GIC. The actual implementation is still outside of GIC.
+>> I read Thomas' reply as don't put this crap in his code.
+>>
+> That was for the IRQCHIP based approach and as part of that review
+> Thomas suggested why not irqdomain and suggested a prototype code
+> as well.
+>  
+>> You can call it generic, but it is not. It is specific to the GIC and
+>> looks like an abuse of irqdomains to me. Look where the function
+>> declaration for register_routable_domain_ops is.
+>>
+> I am not sure why you call it abuse of irqdomain since the map/unmap
+> are exactly the interfaces where the logical to physical irq
+> connections are made. Look at existing GIC code as well. I still
+> let Thomas give his expert comment whether it is abusive because it
+> it was, am sure he wouldn't have suggested that.
+  Is this inline with what you were suggesting and
+  is this approach fine ?
 
-I've just applied it after Rajendra's series.
+Regards,
+ Sricharan
 
-Thanks,
-Benoit
-
-
->
-> Tested on PandaBoard-ES without the u-boot uenv hack
->
->   arch/arm/boot/dts/omap4-panda-es.dts |    4 ++++
->   1 file changed, 4 insertions(+)
->
-> diff --git a/arch/arm/boot/dts/omap4-panda-es.dts b/arch/arm/boot/dts=
-/omap4-panda-es.dts
-> index 56c4354..816d1c9 100644
-> --- a/arch/arm/boot/dts/omap4-panda-es.dts
-> +++ b/arch/arm/boot/dts/omap4-panda-es.dts
-> @@ -62,3 +62,7 @@
->   		gpios =3D <&gpio1 8 GPIO_ACTIVE_HIGH>;
->   	};
->   };
-> +
-> +&gpio1 {
-> +	 ti,no-reset-on-init;
-> +};
->
-
-
---=20
-Beno=EEt Cousson
-BayLibre
-Embedded Linux Technology Lab
-www.baylibre.com
