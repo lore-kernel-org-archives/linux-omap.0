@@ -1,221 +1,279 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v2 2/7] usb: dwc3: adapt dwc3 core to use Generic PHY Framework
-Date: Wed, 16 Oct 2013 01:24:12 +0530
-Message-ID: <1381866857-3861-3-git-send-email-kishon@ti.com>
-References: <1381866857-3861-1-git-send-email-kishon@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1381866857-3861-1-git-send-email-kishon@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: kishon@ti.com, balbi@ti.com, gregkh@linuxfoundation.org
-Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, linux-usb@vger.kernel.org, linux@arm.linux.org.uk, bcousson@baylibre.com, pawel.moll@arm.com, ijc+devicetree@hellion.org.uk, tony@atomide.com, swarren@wwwdotorg.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, rob.herring@calxeda.com, rob@landley.net, galak@codeaurora.org, grant.likely@linaro.org, s.nawrocki@samsung.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: [PATCH v3] ARM: dts: add minimal DT support for Nokia N950 & N9 phones
+Date: Tue, 15 Oct 2013 23:36:09 +0300
+Message-ID: <1381869369-14626-1-git-send-email-aaro.koskinen@iki.fi>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from filtteri6.pp.htv.fi ([213.243.153.189]:50719 "EHLO
+	filtteri6.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933813Ab3JOUgZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Oct 2013 16:36:25 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>
+Cc: Tony Lindgren <tony@atomide.com>, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>
 
-Adapted dwc3 core to use the Generic PHY Framework. So for init, exit,
-power_on and power_off the following APIs are used phy_init(), phy_exit(),
-phy_power_on() and phy_power_off().
+Add minimal DT support for Nokia N950 & N9 phones. The same functionality
+that is provided by the current board file should work: serial console,
+USB, OneNAND and MMC.
 
-However using the old USB phy library wont be removed till the PHYs of all
-other SoC's using dwc3 core is adapted to the Generic PHY Framework.
-
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+Acked-by: Tony Lindgren <tony@atomide.com>
 ---
- Documentation/devicetree/bindings/usb/dwc3.txt |    6 ++-
- drivers/usb/dwc3/Kconfig                       |    1 +
- drivers/usb/dwc3/core.c                        |   52 ++++++++++++++++++++++++
- drivers/usb/dwc3/core.h                        |    7 ++++
- drivers/usb/dwc3/platform_data.h               |    2 +
- 5 files changed, 66 insertions(+), 2 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/usb/dwc3.txt b/Documentation/devicetree/bindings/usb/dwc3.txt
-index e807635..471366d 100644
---- a/Documentation/devicetree/bindings/usb/dwc3.txt
-+++ b/Documentation/devicetree/bindings/usb/dwc3.txt
-@@ -6,11 +6,13 @@ Required properties:
-  - compatible: must be "snps,dwc3"
-  - reg : Address and length of the register set for the device
-  - interrupts: Interrupts used by the dwc3 controller.
+	v3: Added Tony's ACK & properties for generic USB PHY framework.
+
+	Previous version: http://marc.info/?t=138005105700010&r=1&w=2
+
+ arch/arm/boot/dts/Makefile           |   2 +
+ arch/arm/boot/dts/omap3-n9.dts       |  18 ++++
+ arch/arm/boot/dts/omap3-n950-n9.dtsi | 174 +++++++++++++++++++++++++++++++++++
+ arch/arm/boot/dts/omap3-n950.dts     |  18 ++++
+ 4 files changed, 212 insertions(+)
+ create mode 100644 arch/arm/boot/dts/omap3-n9.dts
+ create mode 100644 arch/arm/boot/dts/omap3-n950-n9.dtsi
+ create mode 100644 arch/arm/boot/dts/omap3-n950.dts
+
+diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
+index 9df7d2c..62d0f4d 100644
+--- a/arch/arm/boot/dts/Makefile
++++ b/arch/arm/boot/dts/Makefile
+@@ -177,6 +177,8 @@ dtb-$(CONFIG_ARCH_OMAP2PLUS) += omap2420-h4.dtb \
+ 	omap3-gta04.dtb \
+ 	omap3-igep0020.dtb \
+ 	omap3-igep0030.dtb \
++	omap3-n9.dtb \
++	omap3-n950.dtb \
+ 	omap4-panda.dtb \
+ 	omap4-panda-a4.dtb \
+ 	omap4-panda-es.dtb \
+diff --git a/arch/arm/boot/dts/omap3-n9.dts b/arch/arm/boot/dts/omap3-n9.dts
+new file mode 100644
+index 0000000..39828ce
+--- /dev/null
++++ b/arch/arm/boot/dts/omap3-n9.dts
+@@ -0,0 +1,18 @@
++/*
++ * omap3-n9.dts - Device Tree file for Nokia N9
++ *
++ * Written by: Aaro Koskinen <aaro.koskinen@iki.fi>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
 +
-+Optional properties:
-  - usb-phy : array of phandle for the PHY device.  The first element
-    in the array is expected to be a handle to the USB2/HS PHY and
-    the second element is expected to be a handle to the USB3/SS PHY
--
--Optional properties:
-+ - phys: from the *Generic PHY* bindings
-+ - phy-names: from the *Generic PHY* bindings
-  - tx-fifo-resize: determines if the FIFO *has* to be reallocated.
- 
- This is usually a subnode to DWC3 glue to which it is connected.
-diff --git a/drivers/usb/dwc3/Kconfig b/drivers/usb/dwc3/Kconfig
-index 8e385b4..64eed6f 100644
---- a/drivers/usb/dwc3/Kconfig
-+++ b/drivers/usb/dwc3/Kconfig
-@@ -2,6 +2,7 @@ config USB_DWC3
- 	tristate "DesignWare USB3 DRD Core Support"
- 	depends on (USB || USB_GADGET) && HAS_DMA
- 	select USB_PHY
-+	select GENERIC_PHY
- 	select USB_XHCI_PLATFORM if USB_SUPPORT && USB_XHCI_HCD
- 	help
- 	  Say Y or M here if your system has a Dual Role SuperSpeed
-diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
-index cb91d70..28bfa5b 100644
---- a/drivers/usb/dwc3/core.c
-+++ b/drivers/usb/dwc3/core.c
-@@ -82,6 +82,12 @@ static void dwc3_core_soft_reset(struct dwc3 *dwc)
- 
- 	usb_phy_init(dwc->usb2_phy);
- 	usb_phy_init(dwc->usb3_phy);
++/dts-v1/;
 +
-+	if (dwc->usb2_generic_phy)
-+		phy_init(dwc->usb2_generic_phy);
-+	if (dwc->usb3_generic_phy)
-+		phy_init(dwc->usb3_generic_phy);
++#include "omap3-n950-n9.dtsi"
 +
- 	mdelay(100);
- 
- 	/* Clear USB3 PHY reset */
-@@ -343,6 +349,11 @@ static void dwc3_core_exit(struct dwc3 *dwc)
- {
- 	usb_phy_shutdown(dwc->usb2_phy);
- 	usb_phy_shutdown(dwc->usb3_phy);
++/ {
++	model = "Nokia N9";
++	compatible = "nokia,omap3-n9", "ti,omap3";
++};
+diff --git a/arch/arm/boot/dts/omap3-n950-n9.dtsi b/arch/arm/boot/dts/omap3-n950-n9.dtsi
+new file mode 100644
+index 0000000..94eb77d
+--- /dev/null
++++ b/arch/arm/boot/dts/omap3-n950-n9.dtsi
+@@ -0,0 +1,174 @@
++/*
++ * omap3-n950-n9.dtsi - Device Tree file for Nokia N950 & N9 (common stuff)
++ *
++ * Written by: Aaro Koskinen <aaro.koskinen@iki.fi>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
 +
-+	if (dwc->usb2_generic_phy)
-+		phy_power_off(dwc->usb2_generic_phy);
-+	if (dwc->usb3_generic_phy)
-+		phy_power_off(dwc->usb3_generic_phy);
- }
- 
- #define DWC3_ALIGN_MASK		(16 - 1)
-@@ -439,6 +450,26 @@ static int dwc3_probe(struct platform_device *pdev)
- 		dwc->usb3_phy = devm_usb_get_phy(dev, USB_PHY_TYPE_USB3);
- 	}
- 
-+	count = of_property_match_string(node, "phy-names", "usb2-phy");
-+	if (count >= 0 || (pdata && pdata->usb2_generic_phy)) {
-+		dwc->usb2_generic_phy = devm_phy_get(dev, "usb2-phy");
-+		if (IS_ERR(dwc->usb2_generic_phy)) {
-+			dev_err(dev, "no usb2 phy configured yet");
-+			return PTR_ERR(dwc->usb2_generic_phy);
-+		}
-+		dwc->usb2_phy = NULL;
-+	}
++#include "omap36xx.dtsi"
 +
-+	count = of_property_match_string(node, "phy-names", "usb3-phy");
-+	if (count >= 0 || (pdata && pdata->usb3_generic_phy)) {
-+		dwc->usb3_generic_phy = devm_phy_get(dev, "usb3-phy");
-+		if (IS_ERR(dwc->usb3_generic_phy)) {
-+			dev_err(dev, "no usb3 phy configured yet");
-+			return PTR_ERR(dwc->usb3_generic_phy);
-+		}
-+		dwc->usb3_phy = NULL;
-+	}
++/ {
++	cpus {
++		cpu@0 {
++			cpu0-supply = <&vcc>;
++		};
++	};
 +
- 	/* default to superspeed if no maximum_speed passed */
- 	if (dwc->maximum_speed == USB_SPEED_UNKNOWN)
- 		dwc->maximum_speed = USB_SPEED_SUPER;
-@@ -462,6 +493,11 @@ static int dwc3_probe(struct platform_device *pdev)
- 	usb_phy_set_suspend(dwc->usb2_phy, 0);
- 	usb_phy_set_suspend(dwc->usb3_phy, 0);
- 
-+	if (dwc->usb2_generic_phy)
-+		phy_power_on(dwc->usb2_generic_phy);
-+	if (dwc->usb3_generic_phy)
-+		phy_power_on(dwc->usb3_generic_phy);
++	memory {
++		device_type = "memory";
++		reg = <0x80000000 0x40000000>; /* 1 GB */
++	};
 +
- 	spin_lock_init(&dwc->lock);
- 	platform_set_drvdata(pdev, dwc);
- 
-@@ -588,6 +624,11 @@ static int dwc3_remove(struct platform_device *pdev)
- 	usb_phy_set_suspend(dwc->usb2_phy, 1);
- 	usb_phy_set_suspend(dwc->usb3_phy, 1);
- 
-+	if (dwc->usb2_generic_phy)
-+		phy_power_off(dwc->usb2_generic_phy);
-+	if (dwc->usb3_generic_phy)
-+		phy_power_off(dwc->usb3_generic_phy);
++	vemmc: fixedregulator@0 {
++		compatible = "regulator-fixed";
++		regulator-name = "VEMMC";
++		regulator-min-microvolt = <2900000>;
++		regulator-max-microvolt = <2900000>;
++		gpio = <&gpio5 29 0>; /* gpio line 157 */
++		startup-delay-us = <150>;
++		enable-active-high;
++	};
++};
 +
- 	pm_runtime_put(&pdev->dev);
- 	pm_runtime_disable(&pdev->dev);
- 
-@@ -685,6 +726,11 @@ static int dwc3_suspend(struct device *dev)
- 	usb_phy_shutdown(dwc->usb3_phy);
- 	usb_phy_shutdown(dwc->usb2_phy);
- 
-+	if (dwc->usb2_generic_phy)
-+		phy_exit(dwc->usb2_generic_phy);
-+	if (dwc->usb3_generic_phy)
-+		phy_exit(dwc->usb3_generic_phy);
++&omap3_pmx_core {
++	mmc2_pins: pinmux_mmc2_pins {
++		pinctrl-single,pins = <
++			0x128 (PIN_INPUT_PULLUP | MUX_MODE0) /* sdmmc2_clk */
++			0x12a (PIN_INPUT_PULLUP | MUX_MODE0) /* sdmmc2_cmd */
++			0x12c (PIN_INPUT_PULLUP | MUX_MODE0) /* sdmmc2_dat0 */
++			0x12e (PIN_INPUT_PULLUP | MUX_MODE0) /* sdmmc2_dat1 */
++			0x130 (PIN_INPUT_PULLUP | MUX_MODE0) /* sdmmc2_dat2 */
++			0x132 (PIN_INPUT_PULLUP | MUX_MODE0) /* sdmmc2_dat3 */
++		>;
++	};
++};
 +
- 	return 0;
- }
- 
-@@ -695,6 +741,12 @@ static int dwc3_resume(struct device *dev)
- 
- 	usb_phy_init(dwc->usb3_phy);
- 	usb_phy_init(dwc->usb2_phy);
++&i2c1 {
++	clock-frequency = <2900000>;
 +
-+	if (dwc->usb2_generic_phy)
-+		phy_init(dwc->usb2_generic_phy);
-+	if (dwc->usb3_generic_phy)
-+		phy_init(dwc->usb3_generic_phy);
++	twl: twl@48 {
++		reg = <0x48>;
++		interrupts = <7>; /* SYS_NIRQ cascaded to intc */
++		interrupt-parent = <&intc>;
++	};
++};
 +
- 	msleep(100);
- 
- 	spin_lock_irqsave(&dwc->lock, flags);
-diff --git a/drivers/usb/dwc3/core.h b/drivers/usb/dwc3/core.h
-index f8af8d4..01ec7d7 100644
---- a/drivers/usb/dwc3/core.h
-+++ b/drivers/usb/dwc3/core.h
-@@ -31,6 +31,8 @@
- #include <linux/usb/gadget.h>
- #include <linux/usb/otg.h>
- 
-+#include <linux/phy/phy.h>
++/include/ "twl4030.dtsi"
 +
- /* Global constants */
- #define DWC3_EP0_BOUNCE_SIZE	512
- #define DWC3_ENDPOINTS_NUM	32
-@@ -613,6 +615,8 @@ struct dwc3_scratchpad_array {
-  * @dr_mode: requested mode of operation
-  * @usb2_phy: pointer to USB2 PHY
-  * @usb3_phy: pointer to USB3 PHY
-+ * @usb2_generic_phy: pointer to USB2 PHY
-+ * @usb3_generic_phy: pointer to USB3 PHY
-  * @dcfg: saved contents of DCFG register
-  * @gctl: saved contents of GCTL register
-  * @is_selfpowered: true when we are selfpowered
-@@ -665,6 +669,9 @@ struct dwc3 {
- 	struct usb_phy		*usb2_phy;
- 	struct usb_phy		*usb3_phy;
- 
-+	struct phy		*usb2_generic_phy;
-+	struct phy		*usb3_generic_phy;
++&twl {
++	compatible = "ti,twl5031";
++};
 +
- 	void __iomem		*regs;
- 	size_t			regs_size;
- 
-diff --git a/drivers/usb/dwc3/platform_data.h b/drivers/usb/dwc3/platform_data.h
-index 49ffa6d..fc62a0f 100644
---- a/drivers/usb/dwc3/platform_data.h
-+++ b/drivers/usb/dwc3/platform_data.h
-@@ -26,4 +26,6 @@ struct dwc3_platform_data {
- 	bool tx_fifo_resize;
- 	bool usb2_phy;
- 	bool usb3_phy;
-+	bool usb2_generic_phy;
-+	bool usb3_generic_phy;
- };
++&twl_gpio {
++	ti,pullups	= <0x000001>; /* BIT(0) */
++	ti,pulldowns	= <0x008106>; /* BIT(1) | BIT(2) | BIT(8) | BIT(15) */
++};
++
++&i2c2 {
++	clock-frequency = <400000>;
++};
++
++&i2c3 {
++	clock-frequency = <400000>;
++};
++
++&mmc1 {
++	status = "disabled";
++};
++
++&mmc2 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&mmc2_pins>;
++	vmmc-supply = <&vemmc>;
++	bus-width = <4>;
++	ti,non-removable;
++};
++
++&mmc3 {
++	status = "disabled";
++};
++
++&usb_otg_hs {
++	interface-type = <0>;
++	usb-phy = <&usb2_phy>;
++	phys = <&usb2_phy>;
++	phy-names = "usb2-phy";
++	mode = <3>;
++	power = <50>;
++};
++
++&gpmc {
++	ranges = <0 0 0x04000000 0x20000000>;
++
++	onenand@0,0 {
++		#address-cells = <1>;
++		#size-cells = <1>;
++		reg = <0 0 0x20000000>;
++
++		gpmc,sync-read;
++		gpmc,sync-write;
++		gpmc,burst-length = <16>;
++		gpmc,burst-read;
++		gpmc,burst-wrap;
++		gpmc,burst-write;
++		gpmc,device-width = <2>;
++		gpmc,mux-add-data = <2>;
++		gpmc,cs-on-ns = <0>;
++		gpmc,cs-rd-off-ns = <87>;
++		gpmc,cs-wr-off-ns = <87>;
++		gpmc,adv-on-ns = <0>;
++		gpmc,adv-rd-off-ns = <10>;
++		gpmc,adv-wr-off-ns = <10>;
++		gpmc,oe-on-ns = <15>;
++		gpmc,oe-off-ns = <87>;
++		gpmc,we-on-ns = <0>;
++		gpmc,we-off-ns = <87>;
++		gpmc,rd-cycle-ns = <112>;
++		gpmc,wr-cycle-ns = <112>;
++		gpmc,access-ns = <81>;
++		gpmc,page-burst-access-ns = <15>;
++		gpmc,bus-turnaround-ns = <0>;
++		gpmc,cycle2cycle-delay-ns = <0>;
++		gpmc,wait-monitoring-ns = <0>;
++		gpmc,clk-activation-ns = <5>;
++		gpmc,wr-data-mux-bus-ns = <30>;
++		gpmc,wr-access-ns = <81>;
++		gpmc,sync-clk-ps = <15000>;
++
++		/*
++		 * MTD partition table corresponding to Nokia's MeeGo 1.2
++		 * Harmattan release.
++		 */
++		partition@0 {
++			label = "bootloader";
++			reg = <0x00000000 0x00100000>;
++		};
++		partition@1 {
++			label = "config";
++			reg = <0x00100000 0x002c0000>;
++		};
++		partition@2 {
++			label = "kernel";
++			reg = <0x003c0000 0x01000000>;
++		};
++		partition@3 {
++			label = "log";
++			reg = <0x013c0000 0x00200000>;
++		};
++		partition@4 {
++			label = "var";
++			reg = <0x015c0000 0x1ca40000>;
++		};
++		partition@5 {
++			label = "moslo";
++			reg = <0x1e000000 0x02000000>;
++		};
++		partition@6 {
++			label = "omap2-onenand";
++			reg = <0x00000000 0x20000000>;
++		};
++	};
++};
+diff --git a/arch/arm/boot/dts/omap3-n950.dts b/arch/arm/boot/dts/omap3-n950.dts
+new file mode 100644
+index 0000000..b076a52
+--- /dev/null
++++ b/arch/arm/boot/dts/omap3-n950.dts
+@@ -0,0 +1,18 @@
++/*
++ * omap3-n950.dts - Device Tree file for Nokia N950
++ *
++ * Written by: Aaro Koskinen <aaro.koskinen@iki.fi>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++/dts-v1/;
++
++#include "omap3-n950-n9.dtsi"
++
++/ {
++	model = "Nokia N950";
++	compatible = "nokia,omap3-n950", "ti,omap3";
++};
 -- 
-1.7.10.4
+1.8.4.rc3
+
