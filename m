@@ -1,81 +1,65 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 5/8] ARM: dts: Add basic support for TMDSEVM3730
- (Mistral AM/DM37x EVM)
-Date: Tue, 15 Oct 2013 11:43:32 -0700
-Message-ID: <20131015184306.GC11234@atomide.com>
-References: <20131010221833.9063.49904.stgit@localhost>
- <20131010222053.9063.81702.stgit@localhost>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH v2 0/7] Make dwc3 use Generic PHY Framework
+Date: Wed, 16 Oct 2013 01:24:10 +0530
+Message-ID: <1381866857-3861-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:56837 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759361Ab3JOSne (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Oct 2013 14:43:34 -0400
-Content-Disposition: inline
-In-Reply-To: <20131010222053.9063.81702.stgit@localhost>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-doc-owner@vger.kernel.org>
+Sender: linux-doc-owner@vger.kernel.org
+To: kishon@ti.com, balbi@ti.com, gregkh@linuxfoundation.org
+Cc: rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ijc+devicetree@hellion.org.uk, rob@landley.net, bcousson@baylibre.com, tony@atomide.com, linux@arm.linux.org.uk, grant.likely@linaro.org, s.nawrocki@samsung.com, galak@codeaurora.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [131010 15:29]:
-> I've tested the serial, MMC, smsc911x, wl12xx, and off-idle support
-> with the pinctrl patches, so it probably works better than the
-> board-*.c files ever did. Also the board-omap3evm.c file is broken
-> for the DSS, and has been for a while. Patches are welcome to fix
-> it in this .dts file, let's just drop the board-*.c file for this.
+Felipe,
 
-Oops, the NAND I did not test and the copied partition map is
-different from the board file. Here's the updated partition map.
-I've tested the NAND using ubifs on the last partition.
+Looks like most of the patches are dependent on Generic PHY Framework except
+the first one. Let me know if I have to take these patches with your ACK or
+you'll take it yourself.
+******************************************************************
+Modified dwc3 core to find PHYs only if the platform indicates that it has 
+to use a PHY. Adapted DWC3 and USB3 PHY to use Generic PHY framework. Also 
+changed the name of USB3 PHY driver to PIPE3 PHY driver since the same driver 
+has to be used for SATA and PCIE too.
 
-I'm folding in the following fix as I did not push it out yet.
+Changes from v1:
+* The logic in which the driver detects the presence of PHYs has changed.
+* patch ordering has changed
+* udelay is replaced with usleep_range
+* A patch to remove set_suspend callback which was deferred from Generic
+PHY Framework series has been included.
 
-Regards,
+Kishon Vijay Abraham I (7):
+  usb: dwc3: get "usb_phy" only if the platform indicates the presence
+    of PHY's
+  usb: dwc3: adapt dwc3 core to use Generic PHY Framework
+  Documentation: dt bindings: move ..usb/usb-phy.txt to
+    ..phy/ti-phy.txt
+  drivers: phy: usb3/pipe3: Adapt pipe3 driver to Generic PHY Framework
+  usb: phy: omap-usb2: remove *set_suspend* callback from omap-usb2
+  phy: omap-usb2: move omap_usb.h from linux/usb/ to linux/phy/
+  arm/dts: added dt properties to adapt to the new phy framwork
 
-Tony
+ .../bindings/{usb/usb-phy.txt => phy/ti-phy.txt}   |    9 +-
+ Documentation/devicetree/bindings/usb/dwc3.txt     |    6 +-
+ arch/arm/boot/dts/omap5.dtsi                       |    5 +-
+ drivers/phy/Kconfig                                |   10 +
+ drivers/phy/Makefile                               |    1 +
+ drivers/phy/phy-omap-usb2.c                        |   27 +--
+ .../phy/phy-omap-usb3.c => phy/phy-ti-pipe3.c}     |  206 +++++++++++---------
+ drivers/usb/dwc3/Kconfig                           |    2 +
+ drivers/usb/dwc3/core.c                            |  124 ++++++++----
+ drivers/usb/dwc3/core.h                            |    7 +
+ drivers/usb/dwc3/platform_data.h                   |    4 +
+ drivers/usb/phy/Kconfig                            |   11 --
+ drivers/usb/phy/Makefile                           |    1 -
+ include/linux/{usb => phy}/omap_usb.h              |    3 -
+ include/linux/{usb/omap_usb.h => phy/ti_pipe3.h}   |   33 +---
+ 15 files changed, 248 insertions(+), 201 deletions(-)
+ rename Documentation/devicetree/bindings/{usb/usb-phy.txt => phy/ti-phy.txt} (86%)
+ rename drivers/{usb/phy/phy-omap-usb3.c => phy/phy-ti-pipe3.c} (57%)
+ copy include/linux/{usb => phy}/omap_usb.h (95%)
+ rename include/linux/{usb/omap_usb.h => phy/ti_pipe3.h} (53%)
 
+-- 
+1.7.10.4
 
---- a/arch/arm/boot/dts/omap3-evm-37xx.dts
-+++ b/arch/arm/boot/dts/omap3-evm-37xx.dts
-@@ -94,7 +94,7 @@
- 		 <5 0 0x2c000000 0x01000000>;
- 
- 	nand@0,0 {
--		linux,mtd-name= "micron,mt29c4g96maz";
-+		linux,mtd-name= "hynix,h8kds0un0mer-4em";
- 		reg = <0 0 0>;
- 		nand-bus-width = <16>;
- 		ti,nand-ecc-opt = "bch8";
-@@ -118,24 +118,24 @@
- 		#size-cells = <1>;
- 
- 		partition@0 {
--			label = "SPL";
--			reg = <0 0x100000>;
-+			label = "X-Loader";
-+			reg = <0 0x80000>;
- 		};
- 		partition@0x80000 {
- 			label = "U-Boot";
--			reg = <0x100000 0x180000>;
-+			reg = <0x80000 0x1c0000>;
- 		};
- 		partition@0x1c0000 {
- 			label = "Environment";
--			reg = <0x280000 0x100000>;
-+			reg = <0x240000 0x40000>;
- 		};
- 		partition@0x280000 {
- 			label = "Kernel";
--			reg = <0x380000 0x300000>;
-+			reg = <0x280000 0x500000>;
- 		};
- 		partition@0x780000 {
- 			label = "Filesystem";
--			reg = <0x680000 0x1f980000>;
-+			reg = <0x780000 0x1f880000>;
- 		};
- 	};
- 
