@@ -1,7 +1,7 @@
 From: Kamil Debski <k.debski@samsung.com>
 Subject: RE: [PATCH v5 3/4] v4l: ti-vpe: Add VPE mem to mem driver
-Date: Tue, 15 Oct 2013 16:13:49 +0200
-Message-ID: <05c301cec9b0$c598b6f0$50ca24d0$%debski@samsung.com>
+Date: Tue, 15 Oct 2013 17:54:48 +0200
+Message-ID: <05c401cec9be$e0fbf160$a2f3d420$%debski@samsung.com>
 References: <1378462346-10880-1-git-send-email-archit@ti.com>
  <1381328975-18244-1-git-send-email-archit@ti.com> <5257ACD1.9010501@xs4all.nl>
  <525D477F.10606@ti.com> <525D487B.1000903@xs4all.nl>
@@ -16,27 +16,12 @@ To: 'Hans Verkuil' <hverkuil@xs4all.nl>
 Cc: 'Archit Taneja' <archit@ti.com>, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, laurent.pinchart@ideasonboard.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Hans,
+Hi Archit,
 
-Now, I am a bit busy with... USB. I have to admit I have a backlog of
-patches to look through and prepare a tree for Mauro.
-I wanted to do this on Thursday or Friday. Is it ok? BTW if you see any m2m
-patches in patchwork feel free to delegate them to me.
+Please find my comment below.
 
-Best wishes,
--- 
-Kamil Debski
-Linux Kernel Developer
-Samsung R&D Institute Poland
-
-
-> -----Original Message-----
 > From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
 > Sent: Tuesday, October 15, 2013 3:52 PM
-> To: Kamil Debski
-> Cc: Archit Taneja; linux-media@vger.kernel.org; linux-
-> omap@vger.kernel.org; laurent.pinchart@ideasonboard.com
-> Subject: Re: [PATCH v5 3/4] v4l: ti-vpe: Add VPE mem to mem driver
 > 
 > Kamil,
 > 
@@ -98,6 +83,12 @@ Samsung R&D Institute Poland
 > >>
 > >
 > > Thanks for the Acks. Is it possible to queue these for 3.13?
-> >
-> > Archit
-> >
+
+Yep, it is possible. But [v4,4/4] v4l: ti-vpe: Add de-interlacer support in
+VPE does
+not apply after applying [v5,3/4] v4l: ti-vpe: Add VPE mem to mem driver.
+
+Please send a v5 with all patches.
+
+Best wishes,
+Kamil
