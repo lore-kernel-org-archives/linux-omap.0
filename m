@@ -1,50 +1,80 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH] ARM: dts: OMAP5: Add i2c aliases
-Date: Tue, 15 Oct 2013 12:00:04 -0500
-Message-ID: <1381856405-30970-1-git-send-email-nm@ti.com>
+From: Pekon Gupta <pekon@ti.com>
+Subject: [PATCH 1/1] arm: omap: gpmc: remove detection of ecc-capability based on SoC name
+Date: Tue, 15 Oct 2013 23:22:39 +0530
+Message-ID: <1381859559-15281-1-git-send-email-pekon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:44574 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:37199 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932228Ab3JORAd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 15 Oct 2013 13:00:33 -0400
+	id S933185Ab3JORw7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 15 Oct 2013 13:52:59 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Nishanth Menon <nm@ti.com>
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, afzal@ti.com, Pekon Gupta <pekon@ti.com>
 
-Currently, i2c1 and i2c5 defer probe due to pinctrl dependencies.
-This changes the i2c ID each bus is registered with in i2c-dev
-interface.
+Legacy OMAP SoC like OMAP2xxx, OMAP3xxx do not have in-build ELM h/w engine,
+so they cannot support h/w based BCH ECC error-detection. Thus,
+gpmc_hwecc_bch_capable() check was added in following commit to find-out
+which SoC have in-built ELM h/w to support hardware based ecc-correction.
 
-As a result of this, many userspace tools break and there is no
-consistent manner to fix the same if the i2c dev interface have no
-consistent numbering. Provide alias to allow ordering the i2c devices
-correctly.
+commit 3852ccd66a9bcb2aa6f46bce5442b6d8d08e5b5d
+Author:     Afzal Mohammed <afzal@ti.com>
+AuthorDate: 2012-10-01
 
-Signed-off-by: Nishanth Menon <nm@ti.com>
+But with DT based kernel, presence of ELM h/w engine on SoC is parsed from DT
+data part of .dtsi file, which is unique for each device. Hence hard-coded
+check for each device can be dropped.
+
+Signed-off-by: Pekon Gupta <pekon@ti.com>
 ---
+ arch/arm/mach-omap2/gpmc-nand.c | 25 -------------------------
+ 1 file changed, 25 deletions(-)
 
- arch/arm/boot/dts/omap5.dtsi |    5 +++++
- 1 file changed, 5 insertions(+)
-
-diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-index e18ee7e..8970deb 100644
---- a/arch/arm/boot/dts/omap5.dtsi
-+++ b/arch/arm/boot/dts/omap5.dtsi
-@@ -21,6 +21,11 @@
- 	interrupt-parent = <&gic>;
+diff --git a/arch/arm/mach-omap2/gpmc-nand.c b/arch/arm/mach-omap2/gpmc-nand.c
+index 662c7fd..2b03eba 100644
+--- a/arch/arm/mach-omap2/gpmc-nand.c
++++ b/arch/arm/mach-omap2/gpmc-nand.c
+@@ -43,28 +43,6 @@ static struct platform_device gpmc_nand_device = {
+ 	.resource	= gpmc_nand_resource,
+ };
  
- 	aliases {
-+		i2c0 = &i2c1;
-+		i2c1 = &i2c2;
-+		i2c2 = &i2c3;
-+		i2c3 = &i2c4;
-+		i2c4 = &i2c5;
- 		serial0 = &uart1;
- 		serial1 = &uart2;
- 		serial2 = &uart3;
+-static bool gpmc_hwecc_bch_capable(enum omap_ecc ecc_opt)
+-{
+-	/* support only OMAP3 class */
+-	if (!cpu_is_omap34xx() && !soc_is_am33xx()) {
+-		pr_err("BCH ecc is not supported on this CPU\n");
+-		return 0;
+-	}
+-
+-	/*
+-	 * For now, assume 4-bit mode is only supported on OMAP3630 ES1.x, x>=1
+-	 * and AM33xx derivates. Other chips may be added if confirmed to work.
+-	 */
+-	if ((ecc_opt == OMAP_ECC_BCH4_CODE_HW) &&
+-	    (!cpu_is_omap3630() || (GET_OMAP_REVISION() == 0)) &&
+-	    (!soc_is_am33xx())) {
+-		pr_err("BCH 4-bit mode is not supported on this CPU\n");
+-		return 0;
+-	}
+-
+-	return 1;
+-}
+-
+ int gpmc_nand_init(struct omap_nand_platform_data *gpmc_nand_data,
+ 		   struct gpmc_timings *gpmc_t)
+ {
+@@ -127,9 +105,6 @@ int gpmc_nand_init(struct omap_nand_platform_data *gpmc_nand_data,
+ 
+ 	gpmc_update_nand_reg(&gpmc_nand_data->reg, gpmc_nand_data->cs);
+ 
+-	if (!gpmc_hwecc_bch_capable(gpmc_nand_data->ecc_opt))
+-		return -EINVAL;
+-
+ 	err = platform_device_register(&gpmc_nand_device);
+ 	if (err < 0) {
+ 		dev_err(dev, "Unable to register NAND device\n");
 -- 
-1.7.9.5
+1.8.1
 
