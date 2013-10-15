@@ -1,180 +1,114 @@
-From: Benoit Cousson <bcousson@baylibre.com>
-Subject: Re: [PATCH v2 2/5] ARM: dts: omap: Add new bindings for OMAP
-Date: Tue, 15 Oct 2013 09:27:10 +0200
-Message-ID: <525CEE4E.6010601@baylibre.com>
-References: <1381313521-10422-1-git-send-email-rnayak@ti.com> <1381313521-10422-3-git-send-email-rnayak@ti.com> <525572A8.9060401@baylibre.com> <5255872A.30702@ti.com> <52558842.6040409@baylibre.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [GIT PULL 3/6] omap hwmod changes for v3.13 merge window
+Date: Tue, 15 Oct 2013 07:28:17 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1310150720030.4461@utopia.booyaka.com>
+References: <5258a9a6.4a17e00a.5fb3.ffff9bf3SMTPIN_ADDED_MISSING@mx.google.com> <87a9ib4gmb.fsf@linaro.org> <20131015041130.GB25997@quad.lixom.net> <CAGa+x84a2b4DWqu0YT=NVt_SMYpyPkL1ZdzTXnocoZZjNzi9mw@mail.gmail.com>
+ <CAOesGMiob0maOAG0pirB_0Rj2EeA-2ao++ZGf4Zg7SVbcmcOpA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <52558842.6040409@baylibre.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: paul@pwsan.com, tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, Mark Rutland <mark.rutland@arm.com>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:47552 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750946Ab3JOH2S (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Oct 2013 03:28:18 -0400
+In-Reply-To: <CAOesGMiob0maOAG0pirB_0Rj2EeA-2ao++ZGf4Zg7SVbcmcOpA@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Olof Johansson <olof@lixom.net>
+Cc: Kevin Hilman <khilman@linaro.org>, Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, "arm@kernel.org" <arm@kernel.org>, Arnd Bergmann <arnd@arndb.de>, s-anna@ti.com, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 
-Hi Rajendra,
+Hi folks
 
-On 09/10/2013 18:45, Benoit Cousson wrote:
-> + A couple of DT maintainers
->
-> On 09/10/2013 18:41, Rajendra Nayak wrote:
->> On Wednesday 09 October 2013 08:43 PM, Benoit Cousson wrote:
->>> Hi Rajendra,
->>>
->>> On 09/10/2013 12:11, Rajendra Nayak wrote:
->>>> On OMAP we have co-processor IPs, memory controllers,
->>>> GPIOs which control regulators and power switches to
->>>> PMIC, and SoC internal Bus IPs, some or most of which
->>>> should either not be reset or idled or both at init.
->>>> (In some cases there are erratas which prevent an IP
->>>> from being reset)
->>>> Have a way to pass this information from DT.
->>>
->>> Did you get some acked-by from the DT maintainers?
->>> Every new bindings must be carefully reviewed now.
->>
->> Nope, I haven't. The patches are on the list for a couple
->> of months now.
->
-> Let's see if Mark and Rob are OK with that.
+On Mon, 14 Oct 2013, Olof Johansson wrote:
 
-OK, I've just applied it after a small change in the subject:
+> On Mon, Oct 14, 2013 at 9:25 PM, Kevin Hilman <khilman@linaro.org> wrote:
+> >
+> > On Oct 14, 2013 9:12 PM, "Olof Johansson" <olof@lixom.net> wrote:
+> >>
+> >> On Mon, Oct 14, 2013 at 03:44:44PM -0700, Kevin Hilman wrote:
+> >> > Tony Lindgren <tony@atomide.com> writes:
+> >> >
+> >> > > The following changes since commit
+> >> > > d0e639c9e06d44e713170031fe05fb60ebe680af:
+> >> > >
+> >> > >   Linux 3.12-rc4 (2013-10-06 14:00:20 -0700)
+> >> > >
+> >> > > are available in the git repository at:
+> >> > >
+> >> > >   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap
+> >> > > tags/omap-for-v3.13/hwmod-signed
+> >> > >
+> >> > > for you to fetch changes up to
+> >> > > 254f57a92987b6cde6004f58d6b847813dfb9e0e:
+> >> > >
+> >> > >   ARM: OMAP5: hwmod: add missing ocp2scp hwmod data (2013-10-11
+> >> > > 15:37:05 -0700)
+> >> > >
+> >> > > ----------------------------------------------------------------
+> >> > > omap hwmod related changes via Paul Walmsley <paul@pwsan.com>:
+> >> > >
+> >> > > Some OMAP hwmod changes for 3.13.  Significant changes here include:
+> >> > >
+> >> > > - support for moving some of the hwmod flags to DT data
+> >> > >
+> >> > > - support for the SSI, hardware spinlock, USB host/TLL, and RNG IP
+> >> > >   blocks for various OMAPs
+> >> > >
+> >> > > - a fix that again decouples hwmod data changes from unrelated DT data
+> >> > >   patchsets
+> >> > >
+> >> > > Basic test logs are available at:
+> >> > >
+> >> > > http://www.pwsan.com/omap/testlogs/prcm_fixes_v3.13/20131009094936/
+> >> > >
+> >> > > ----------------------------------------------------------------
+> >> >
+> >> > Pulled into next/soc,
+> >> >
+> >> > Thanks,
+> >> >
+> >> > Kevin
+> >>
+> >> Hm, looks like my BBB hit this on v3.12-rc4-493-g1a9df23, which is pushed
+> >> to
+> >> to-build but not for-next yet. I'm guessing this might be what Kevin
+> >> pinged me
+> >> about on IRC today but I was out and unavailable most of the day.
+> >
+> > Hmmm... mine seems to have booted fine on that build...
+> > http://lists.linaro.org/pipermail/kernel-build-reports/2013-October/000666.html
+> 
+> Well, it's a WARN_ON() not a panic, so my script probably shouldn't
+> have aborted the boot (and your script should have reported it :-).
+> Check your local log to see if you have something in there?
 
-  ARM: dts: omap: Add reset/idle on init bindings for OMAP
+The boot warnings can be seen here: (which is linked via the pull 
+request above):
 
-Is that OK for you?
+http://www.pwsan.com/omap/testlogs/prcm_fixes_v3.13/20131009094936/boot/am335xbonelt/am335x-bone/am335xbonelt_log.txt
 
-Thanks,
-Benoit
+...
 
->
-> Thanks,
-> Benoit
->
->>
->>>
->>> Regards,
->>> Benoit
->>>
->>>>
->>>> Update the am33xx/omap4 and omap5 dtsi files with the
->>>> new bindings for modules which either should not be
->>>> idled. reset or both. A later patch would cleanup the
->>>> same information that exists today as part of the hwmod
->>>> data files.
->>>>
->>>> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
->>>> ---
->>>>    .../devicetree/bindings/arm/omap/omap.txt          |    3 ++-
->>>>    arch/arm/boot/dts/am33xx.dtsi                      |    2 ++
->>>>    arch/arm/boot/dts/omap4.dtsi                       |    3 +++
->>>>    arch/arm/boot/dts/omap5.dtsi                       |    2 ++
->>>>    4 files changed, 9 insertions(+), 1 deletion(-)
->>>>
->>>> diff --git a/Documentation/devicetree/bindings/arm/omap/omap.txt
->>>> b/Documentation/devicetree/bindings/arm/omap/omap.txt
->>>> index 91b7049..808c154 100644
->>>> --- a/Documentation/devicetree/bindings/arm/omap/omap.txt
->>>> +++ b/Documentation/devicetree/bindings/arm/omap/omap.txt
->>>> @@ -21,7 +21,8 @@ Required properties:
->>>>    Optional properties:
->>>>    - ti,no_idle_on_suspend: When present, it prevents the PM to id=
-le
->>>> the module
->>>>      during suspend.
->>>> -
->>>> +- ti,no-reset-on-init: When present, the module should not be res=
-et
->>>> at init
->>>> +- ti,no-idle-on-init: When present, the module should not be idle=
-d
->>>> at init
->>>>
->>>>    Example:
->>>>
->>>> diff --git a/arch/arm/boot/dts/am33xx.dtsi
->>>> b/arch/arm/boot/dts/am33xx.dtsi
->>>> index f9c5da9..ec33ea0 100644
->>>> --- a/arch/arm/boot/dts/am33xx.dtsi
->>>> +++ b/arch/arm/boot/dts/am33xx.dtsi
->>>> @@ -607,6 +607,7 @@
->>>>                reg =3D <0x44d00000 0x4000    /* M3 UMEM */
->>>>                       0x44d80000 0x2000>;    /* M3 DMEM */
->>>>                ti,hwmods =3D "wkup_m3";
->>>> +            ti,no-reset-on-init;
->>>>            };
->>>>
->>>>            elm: elm@48080000 {
->>>> @@ -637,6 +638,7 @@
->>>>            gpmc: gpmc@50000000 {
->>>>                compatible =3D "ti,am3352-gpmc";
->>>>                ti,hwmods =3D "gpmc";
->>>> +            ti,no-idle-on-init;
->>>>                reg =3D <0x50000000 0x2000>;
->>>>                interrupts =3D <100>;
->>>>                gpmc,num-cs =3D <7>;
->>>> diff --git a/arch/arm/boot/dts/omap4.dtsi
->>>> b/arch/arm/boot/dts/omap4.dtsi
->>>> index 22d9f2b..e8fe797 100644
->>>> --- a/arch/arm/boot/dts/omap4.dtsi
->>>> +++ b/arch/arm/boot/dts/omap4.dtsi
->>>> @@ -214,6 +214,7 @@
->>>>                gpmc,num-cs =3D <8>;
->>>>                gpmc,num-waitpins =3D <4>;
->>>>                ti,hwmods =3D "gpmc";
->>>> +            ti,no-idle-on-init;
->>>>            };
->>>>
->>>>            uart1: serial@4806a000 {
->>>> @@ -492,6 +493,7 @@
->>>>                reg =3D <0x4c000000 0x100>;
->>>>                interrupts =3D <GIC_SPI 110 IRQ_TYPE_LEVEL_HIGH>;
->>>>                ti,hwmods =3D "emif1";
->>>> +            ti,no-idle-on-init;
->>>>                phy-type =3D <1>;
->>>>                hw-caps-read-idle-ctrl;
->>>>                hw-caps-ll-interface;
->>>> @@ -503,6 +505,7 @@
->>>>                reg =3D <0x4d000000 0x100>;
->>>>                interrupts =3D <GIC_SPI 111 IRQ_TYPE_LEVEL_HIGH>;
->>>>                ti,hwmods =3D "emif2";
->>>> +            ti,no-idle-on-init;
->>>>                phy-type =3D <1>;
->>>>                hw-caps-read-idle-ctrl;
->>>>                hw-caps-ll-interface;
->>>> diff --git a/arch/arm/boot/dts/omap5.dtsi
->>>> b/arch/arm/boot/dts/omap5.dtsi
->>>> index 7cdea1b..a9d49df 100644
->>>> --- a/arch/arm/boot/dts/omap5.dtsi
->>>> +++ b/arch/arm/boot/dts/omap5.dtsi
->>>> @@ -607,6 +607,7 @@
->>>>            emif1: emif@0x4c000000 {
->>>>                compatible    =3D "ti,emif-4d5";
->>>>                ti,hwmods    =3D "emif1";
->>>> +            ti,no-idle-on-init;
->>>>                phy-type    =3D <2>; /* DDR PHY type: Intelli PHY *=
-/
->>>>                reg =3D <0x4c000000 0x400>;
->>>>                interrupts =3D <GIC_SPI 110 IRQ_TYPE_LEVEL_HIGH>;
->>>> @@ -618,6 +619,7 @@
->>>>            emif2: emif@0x4d000000 {
->>>>                compatible    =3D "ti,emif-4d5";
->>>>                ti,hwmods    =3D "emif2";
->>>> +            ti,no-idle-on-init;
->>>>                phy-type    =3D <2>; /* DDR PHY type: Intelli PHY *=
-/
->>>>                reg =3D <0x4d000000 0x400>;
->>>>                interrupts =3D <GIC_SPI 111 IRQ_TYPE_LEVEL_HIGH>;
->>>>
->>>
->>
->
+omap_hwmod: spinlock: doesn't have mpu register target base
+
+...
+
+omap_hwmod: rng: doesn't have mpu register target base
+
+...
+
+The spinlock warning on AM335x will be resolved when this patch is merged:
+
+https://lkml.org/lkml/2013/10/10/650
+
+The rng warning will be resolved when this patch is merged:
+
+http://marc.info/?l=linux-arm-kernel&m=137778078331134&w=2
 
 
---=20
-Beno=EEt Cousson
-BayLibre
-Embedded Linux Technology Lab
-www.baylibre.com
+The WARN_ON() seems a bit heavy-handed, and I'd support replacing it with 
+a pr_warn(); but on the other hand, it certainly seems to have attracted 
+attention to a problem that prevents these devices from being usable :-)
+
+
+- Paul
