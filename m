@@ -1,114 +1,73 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [GIT PULL 3/6] omap hwmod changes for v3.13 merge window
-Date: Tue, 15 Oct 2013 07:28:17 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1310150720030.4461@utopia.booyaka.com>
-References: <5258a9a6.4a17e00a.5fb3.ffff9bf3SMTPIN_ADDED_MISSING@mx.google.com> <87a9ib4gmb.fsf@linaro.org> <20131015041130.GB25997@quad.lixom.net> <CAGa+x84a2b4DWqu0YT=NVt_SMYpyPkL1ZdzTXnocoZZjNzi9mw@mail.gmail.com>
- <CAOesGMiob0maOAG0pirB_0Rj2EeA-2ao++ZGf4Zg7SVbcmcOpA@mail.gmail.com>
+From: Benoit Cousson <bcousson@baylibre.com>
+Subject: Re: [PATCH] ARM: dts: omap4-panda-es: Do not reset gpio1
+Date: Tue, 15 Oct 2013 09:28:30 +0200
+Message-ID: <525CEE9E.9020507@baylibre.com>
+References: <1381313521-10422-1-git-send-email-rnayak@ti.com> <1381423481-5920-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:47552 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750946Ab3JOH2S (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Oct 2013 03:28:18 -0400
-In-Reply-To: <CAOesGMiob0maOAG0pirB_0Rj2EeA-2ao++ZGf4Zg7SVbcmcOpA@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1381423481-5920-1-git-send-email-nm@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: Rajendra Nayak <rnayak@ti.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Olof Johansson <olof@lixom.net>
-Cc: Kevin Hilman <khilman@linaro.org>, Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, "arm@kernel.org" <arm@kernel.org>, Arnd Bergmann <arnd@arndb.de>, s-anna@ti.com, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 
-Hi folks
+Hi Nishanth,
 
-On Mon, 14 Oct 2013, Olof Johansson wrote:
+On 10/10/2013 18:44, Nishanth Menon wrote:
+> Do not reset GPIO1 at boot-up because GPIO 7 in GPIO1 block is used o=
+n
+> OMAP4460 PandaBoard-ES to select voltage register in TPS62361 which
+> supplies VDD_MPU.
+>
+> Without this, OMAP4460 PandaBoard-ES boards fail to boot-up because
+> MPU voltage switches over to VSET0 voltage value (boot voltage) which
+> is not sufficient to operate the device at OPP100.
+>
+> Signed-off-by: Nishanth Menon <nm@ti.com>
+> ---
+> As explained here: http://marc.info/?l=3Du-boot&m=3D133066647800872&w=
+=3D2
+>
+> GPIO1 reset causes PandaBoard-ES to stop functioning.
+> This depends on Patch series from Rajendra:
+> http://marc.info/?l=3Dlinux-doc&m=3D138131355520116&w=3D2
+> Applies on Benoit's for_13/dts branch:
+> https://git.kernel.org/cgit/linux/kernel/git/bcousson/linux-omap-dt.g=
+it/log/?h=3Dfor_3.13/dts
 
-> On Mon, Oct 14, 2013 at 9:25 PM, Kevin Hilman <khilman@linaro.org> wrote:
-> >
-> > On Oct 14, 2013 9:12 PM, "Olof Johansson" <olof@lixom.net> wrote:
-> >>
-> >> On Mon, Oct 14, 2013 at 03:44:44PM -0700, Kevin Hilman wrote:
-> >> > Tony Lindgren <tony@atomide.com> writes:
-> >> >
-> >> > > The following changes since commit
-> >> > > d0e639c9e06d44e713170031fe05fb60ebe680af:
-> >> > >
-> >> > >   Linux 3.12-rc4 (2013-10-06 14:00:20 -0700)
-> >> > >
-> >> > > are available in the git repository at:
-> >> > >
-> >> > >   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap
-> >> > > tags/omap-for-v3.13/hwmod-signed
-> >> > >
-> >> > > for you to fetch changes up to
-> >> > > 254f57a92987b6cde6004f58d6b847813dfb9e0e:
-> >> > >
-> >> > >   ARM: OMAP5: hwmod: add missing ocp2scp hwmod data (2013-10-11
-> >> > > 15:37:05 -0700)
-> >> > >
-> >> > > ----------------------------------------------------------------
-> >> > > omap hwmod related changes via Paul Walmsley <paul@pwsan.com>:
-> >> > >
-> >> > > Some OMAP hwmod changes for 3.13.  Significant changes here include:
-> >> > >
-> >> > > - support for moving some of the hwmod flags to DT data
-> >> > >
-> >> > > - support for the SSI, hardware spinlock, USB host/TLL, and RNG IP
-> >> > >   blocks for various OMAPs
-> >> > >
-> >> > > - a fix that again decouples hwmod data changes from unrelated DT data
-> >> > >   patchsets
-> >> > >
-> >> > > Basic test logs are available at:
-> >> > >
-> >> > > http://www.pwsan.com/omap/testlogs/prcm_fixes_v3.13/20131009094936/
-> >> > >
-> >> > > ----------------------------------------------------------------
-> >> >
-> >> > Pulled into next/soc,
-> >> >
-> >> > Thanks,
-> >> >
-> >> > Kevin
-> >>
-> >> Hm, looks like my BBB hit this on v3.12-rc4-493-g1a9df23, which is pushed
-> >> to
-> >> to-build but not for-next yet. I'm guessing this might be what Kevin
-> >> pinged me
-> >> about on IRC today but I was out and unavailable most of the day.
-> >
-> > Hmmm... mine seems to have booted fine on that build...
-> > http://lists.linaro.org/pipermail/kernel-build-reports/2013-October/000666.html
-> 
-> Well, it's a WARN_ON() not a panic, so my script probably shouldn't
-> have aborted the boot (and your script should have reported it :-).
-> Check your local log to see if you have something in there?
+I've just applied it after Rajendra's series.
 
-The boot warnings can be seen here: (which is linked via the pull 
-request above):
-
-http://www.pwsan.com/omap/testlogs/prcm_fixes_v3.13/20131009094936/boot/am335xbonelt/am335x-bone/am335xbonelt_log.txt
-
-...
-
-omap_hwmod: spinlock: doesn't have mpu register target base
-
-...
-
-omap_hwmod: rng: doesn't have mpu register target base
-
-...
-
-The spinlock warning on AM335x will be resolved when this patch is merged:
-
-https://lkml.org/lkml/2013/10/10/650
-
-The rng warning will be resolved when this patch is merged:
-
-http://marc.info/?l=linux-arm-kernel&m=137778078331134&w=2
+Thanks,
+Benoit
 
 
-The WARN_ON() seems a bit heavy-handed, and I'd support replacing it with 
-a pr_warn(); but on the other hand, it certainly seems to have attracted 
-attention to a problem that prevents these devices from being usable :-)
+>
+> Tested on PandaBoard-ES without the u-boot uenv hack
+>
+>   arch/arm/boot/dts/omap4-panda-es.dts |    4 ++++
+>   1 file changed, 4 insertions(+)
+>
+> diff --git a/arch/arm/boot/dts/omap4-panda-es.dts b/arch/arm/boot/dts=
+/omap4-panda-es.dts
+> index 56c4354..816d1c9 100644
+> --- a/arch/arm/boot/dts/omap4-panda-es.dts
+> +++ b/arch/arm/boot/dts/omap4-panda-es.dts
+> @@ -62,3 +62,7 @@
+>   		gpios =3D <&gpio1 8 GPIO_ACTIVE_HIGH>;
+>   	};
+>   };
+> +
+> +&gpio1 {
+> +	 ti,no-reset-on-init;
+> +};
+>
 
 
-- Paul
+--=20
+Beno=EEt Cousson
+BayLibre
+Embedded Linux Technology Lab
+www.baylibre.com
