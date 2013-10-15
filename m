@@ -1,116 +1,283 @@
-From: Sricharan R <r.sricharan@ti.com>
-Subject: Re: [RFC PATCH 0/6] DRIVERS: IRQCHIP: Add support for crossbar IP
-Date: Tue, 15 Oct 2013 13:05:46 +0530
-Message-ID: <525CF052.4060508@ti.com>
-References: <1380549564-31045-1-git-send-email-r.sricharan@ti.com> <52499441.1030403@gmail.com> <524AAE69.8060703@ti.com> <524AD290.207@gmail.com> <524AD4B7.7040700@ti.com> <524AE1FA.2050104@gmail.com> <524AE536.5080307@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH 2/7] usb: dwc3: adapt dwc3 core to use Generic PHY Framework
+Date: Tue, 15 Oct 2013 10:57:16 +0300
+Message-ID: <525CF55C.4060604@ti.com>
+References: <1378136591-7463-1-git-send-email-kishon@ti.com> <1378136591-7463-3-git-send-email-kishon@ti.com> <525814A9.7060106@ti.com> <525BB8C0.1070802@ti.com> <525BC5A9.3060904@ti.com> <525CD324.8030107@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:48055 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752508Ab3JOHge (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 15 Oct 2013 03:36:34 -0400
-In-Reply-To: <524AE536.5080307@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <525CD324.8030107@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: balbi@ti.com, Vivek Gautam <gautamvivek1987@gmail.com>, bcousson@baylibre.com, tony@atomide.com, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, linux@arm.linux.org.uk, grant.likely@linaro.org, s.nawrocki@samsung.com, galak@codeaurora.org, swarren@wwwdotorg.org, ian.campbell@citrix.com, rob@landley.net, george.cherian@ti.com, gregkh@linuxfoundation.org, linux-doc@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-usb@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Rob Herring <robherring2@gmail.com>, tglx@linutronix.de, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linus.walleij@linaro.org, linux@arm.linux.org.uk, tony@atomide.com, rnayak@ti.com, marc.zyngier@arm.com, grant.likely@linaro.org, mark.rutland@arm.com
 
-Hi Thomas,
-
-On Tuesday 01 October 2013 08:37 PM, Santosh Shilimkar wrote:
-> On Tuesday 01 October 2013 10:53 AM, Rob Herring wrote:
->> On 10/01/2013 08:57 AM, Santosh Shilimkar wrote:
->>> On Tuesday 01 October 2013 09:48 AM, Rob Herring wrote:
->>>> On 10/01/2013 06:13 AM, Sricharan R wrote:
->>>>> Hi,
+On 10/15/2013 08:31 AM, Kishon Vijay Abraham I wrote:
+> Hi Roger,
+> 
+> On Monday 14 October 2013 03:51 PM, Roger Quadros wrote:
+>> +Vivek
+>>
+>> On 10/14/2013 12:26 PM, Kishon Vijay Abraham I wrote:
+>>> Hi Roger,
+>>>
+>>> On Friday 11 October 2013 08:39 PM, Roger Quadros wrote:
+>>>> Hi,
+>>>>
+>>>> On 09/02/2013 06:43 PM, Kishon Vijay Abraham I wrote:
+>>>>> Adapted dwc3 core to use the Generic PHY Framework. So for init, exit,
+>>>>> power_on and power_off the following APIs are used phy_init(), phy_exit(),
+>>>>> phy_power_on() and phy_power_off().
 >>>>>
->>>>> On Monday 30 September 2013 08:39 PM, Rob Herring wrote:
->>>>>> On 09/30/2013 08:59 AM, Sricharan R wrote:
->>>>>>> Some socs have a large number of interrupts requests to service
->>>>>>> the needs of its many peripherals and subsystems. All of the interrupt
->>>>>>> requests lines from the subsystems are not needed at the same
->>>>>>> time, so they have to be muxed to the controllers appropriately.
->>>>>>> In such places a interrupt controllers are preceded by an
->>>>>>> IRQ CROSSBAR that provides flexibility in muxing the device interrupt
->>>>>>> requests to the controller inputs.
->>>>>>>
->>>>>>> This series models the peripheral interrupts that can be routed through
->>>>>>> the crossbar to the GIC as 'routable-irqs'. The routable irqs are added
->>>>>>> in a separate linear domain inside the GIC. The registered routable domain's
->>>>>>> callback are invoked as a part of the GIC's callback, which in turn should
->>>>>>> allocate a free irq line and configure the IP accordingly. So every peripheral
->>>>>>> in the dts files mentions the fixed crossbar number as its interrupt. A free
->>>>>>> gic line for that gets allocated and configured when the peripheral's interrupt
->>>>>>> is mapped.
->>>>>>>
->>>>>>> The minimal crossbar driver to track and allocate free GIC lines and configure the
->>>>>>> crossbar is added here, along with the DT bindings.
->>>>>> Seems like interrupt-map property is what you need here.
->>>>>>
->>>>>> http://devicetree.org/Device_Tree_Usage#Advanced_Interrupt_Mapping
->>>>>>
->>>>>> Versatile Express also has an example.
->>>>>    OK, but the idea was not to tie up the crossbar<->interrupt numbers at the
->>>>>    DTS level, but to assign it dynamically during runtime. This was one of the
->>>>>   comments that came up with first crossbar support patches, which was assigning a
->>>>>   interrupt line to crossbar number in the DTS and setting it up in crossbar probe.
->>>> Is there an actual usecase on a single h/w design that you run out of
->>>> interrupts and it is a user decision which interrupts to use?
->>>>
->>> Yes. There are 240 peripheral interrupts connected out of which 160 can
->>> be used in this specific case. 
->> Yes, I understand the SOC connections. That does not answer my question.
->> The 240 interrupts are likely to be limited to fewer by board design,
->> pinmuxing, etc.
->>
-> yes limited by different board designs ...
->
->> How do you handle the 161st interrupt request? Will never happen? Just
->> rely on the random driver probe ordering?
->>
-> Well the board dts are expected to provide the peripheral support info to optimise it.
-> If a board actually has more than 160 peripherals available then in that
-> case the 161 interrupt will not be mapped. 
->  
->>>> You could fill in the interrupt-map at run-time. It would have to be
->>>> early (bootloader or early kernel init) and can't be at request_irq time.
->>>>
->>> Well all options are tried before coming up to the $subject solution.
->>> It was suggested by Thomas in the last review.
->>>  
->>>>>     https://lkml.org/lkml/2013/7/18/416
+>>>>> However using the old USB phy library wont be removed till the PHYs of all
+>>>>> other SoC's using dwc3 core is adapted to the Generic PHY Framework.
 >>>>>
->>>>>    Since this approach of assigning in DTS was opposed, we moved to IRQCHIP and
->>>>>    that did not go as well. Finally was asked to handle this as a part of GIC driver with
->>>>>    a separate domain.
->>>>>    
->>>>>   http://www.spinics.net/lists/linux-omap/msg97085.html
->>>> This has nothing to do with the GIC, so it does not belong there.
+>>>>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+>>>>> ---
+>>>>>  Documentation/devicetree/bindings/usb/dwc3.txt |    6 ++-
+>>>>>  drivers/usb/dwc3/Kconfig                       |    1 +
+>>>>>  drivers/usb/dwc3/core.c                        |   49 ++++++++++++++++++++++++
+>>>>>  drivers/usb/dwc3/core.h                        |    7 ++++
+>>>>>  4 files changed, 61 insertions(+), 2 deletions(-)
+>>>>>
+>>>>> diff --git a/Documentation/devicetree/bindings/usb/dwc3.txt b/Documentation/devicetree/bindings/usb/dwc3.txt
+>>>>> index e807635..471366d 100644
+>>>>> --- a/Documentation/devicetree/bindings/usb/dwc3.txt
+>>>>> +++ b/Documentation/devicetree/bindings/usb/dwc3.txt
+>>>>> @@ -6,11 +6,13 @@ Required properties:
+>>>>>   - compatible: must be "snps,dwc3"
+>>>>>   - reg : Address and length of the register set for the device
+>>>>>   - interrupts: Interrupts used by the dwc3 controller.
+>>>>> +
+>>>>> +Optional properties:
+>>>>>   - usb-phy : array of phandle for the PHY device.  The first element
+>>>>>     in the array is expected to be a handle to the USB2/HS PHY and
+>>>>>     the second element is expected to be a handle to the USB3/SS PHY
+>>>>> -
+>>>>> -Optional properties:
+>>>>> + - phys: from the *Generic PHY* bindings
+>>>>> + - phy-names: from the *Generic PHY* bindings
+>>>>>   - tx-fifo-resize: determines if the FIFO *has* to be reallocated.
+>>>>>  
+>>>>>  This is usually a subnode to DWC3 glue to which it is connected.
+>>>>> diff --git a/drivers/usb/dwc3/Kconfig b/drivers/usb/dwc3/Kconfig
+>>>>> index cfc16dd..ad7ce83 100644
+>>>>> --- a/drivers/usb/dwc3/Kconfig
+>>>>> +++ b/drivers/usb/dwc3/Kconfig
+>>>>> @@ -3,6 +3,7 @@ config USB_DWC3
+>>>>>  	depends on (USB || USB_GADGET) && GENERIC_HARDIRQS && HAS_DMA
+>>>>>  	depends on EXTCON
+>>>>>  	select USB_PHY
+>>>>> +	select GENERIC_PHY
+>>>>>  	select USB_XHCI_PLATFORM if USB_SUPPORT && USB_XHCI_HCD
+>>>>>  	help
+>>>>>  	  Say Y or M here if your system has a Dual Role SuperSpeed
+>>>>> diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
+>>>>> index 428c29e..485d365 100644
+>>>>> --- a/drivers/usb/dwc3/core.c
+>>>>> +++ b/drivers/usb/dwc3/core.c
+>>>>> @@ -82,6 +82,12 @@ static void dwc3_core_soft_reset(struct dwc3 *dwc)
+>>>>>  
+>>>>>  	usb_phy_init(dwc->usb2_phy);
+>>>>>  	usb_phy_init(dwc->usb3_phy);
 >>>>
->>> Well the router makes connections from peripheral to GIC. Thomas can
->>> better explain it but I think since its doing irq routing for GIC on
->>> a given hardware, I don't see any issue having some generic map/unmap
->>> function in GIC. The actual implementation is still outside of GIC.
->> I read Thomas' reply as don't put this crap in his code.
+>>>> How about adding
+>>>> +	if (dwc->usb2_phy)
+>>>> +		usb_phy_init(dwc->usb2_phy);
+>>>> +	if (dwc->usb3_phy)
+>>>> +		usb_phy_init(dwc->usb3_phy);
+>>>
+>>> Thankfully that usb_phy_init will check if phy is NULL.
+>>>>
+>>>> both usb phy and generic phy shouldn't be present together.
+>>>
+>>> ok.
+>>>>
+>>>>> +
+>>>>> +	if (dwc->usb2_generic_phy)
+>>>>> +		phy_init(dwc->usb2_generic_phy);
+>>>>> +	if (dwc->usb3_generic_phy)
+>>>>> +		phy_init(dwc->usb3_generic_phy);
+>>>>> +
+>>>>>  	mdelay(100);
+>>>>>  
+>>>>>  	/* Clear USB3 PHY reset */
+>>>>> @@ -343,6 +349,11 @@ static void dwc3_core_exit(struct dwc3 *dwc)
+>>>>>  {
+>>>>>  	usb_phy_shutdown(dwc->usb2_phy);
+>>>>>  	usb_phy_shutdown(dwc->usb3_phy);
+>>>>
+>>>> here as well
+>>>>
+>>>>> +
+>>>>> +	if (dwc->usb2_generic_phy)
+>>>>> +		phy_power_off(dwc->usb2_generic_phy);
+>>>>> +	if (dwc->usb3_generic_phy)
+>>>>> +		phy_power_off(dwc->usb3_generic_phy);
+>>>>>  }
+>>>>>  
+>>>>>  #define DWC3_ALIGN_MASK		(16 - 1)
+>>>>> @@ -427,6 +438,23 @@ static int dwc3_probe(struct platform_device *pdev)
+>>>>>  		dwc->usb3_phy = devm_usb_get_phy(dev, USB_PHY_TYPE_USB3);
+>>>>>  	}
+>>>>>  
+>>>>> +	if (of_property_read_bool(node, "phys") || pdata->has_phy) {
+>>>>> +		dwc->usb2_generic_phy = devm_phy_get(dev, "usb2-phy");
+>>>>> +		if (IS_ERR(dwc->usb2_generic_phy)) {
+>>>>> +			dev_err(dev, "no usb2 phy configured yet");
+>>>>> +			return PTR_ERR(dwc->usb2_generic_phy);
+>>>>> +		}
+>>>>> +
+>>>>> +		dwc->usb3_generic_phy = devm_phy_get(dev, "usb3-phy");
+>>>>> +		if (IS_ERR(dwc->usb3_generic_phy)) {
+>>>>> +			dev_err(dev, "no usb3 phy configured yet");
+>>>>> +			return PTR_ERR(dwc->usb3_generic_phy);
+>>>>> +		}
+>>>>
+>>>> better to add
+>>>> +		/* Don't use USB PHY if generic PHY was found */
+>>>> +		dwc->usb2_phy = dwc->usb3_phy = NULL;
+>>>
+>>> ok.
+>>>>
+>>>>> +	} else {
+>>>>
+>>>> not required as we've used kzalloc for dwc.
+>>>>
+>>>>> +		dwc->usb2_generic_phy = NULL;
+>>>>> +		dwc->usb3_generic_phy = NULL;
+>>>>> +	}
+>>>>> +
+>>>>>  	/* default to superspeed if no maximum_speed passed */
+>>>>>  	if (dwc->maximum_speed == USB_SPEED_UNKNOWN)
+>>>>>  		dwc->maximum_speed = USB_SPEED_SUPER;
+>>>>> @@ -450,6 +478,11 @@ static int dwc3_probe(struct platform_device *pdev)
+>>>>
+>>>> if (dwc->usb2_phy)
+>>>>
+>>>>>  	usb_phy_set_suspend(dwc->usb2_phy, 0);
+>>>>
+>>>> if (dwc->usb3_phy)
+>>>>
+>>>>>  	usb_phy_set_suspend(dwc->usb3_phy, 0);
+>>>>>  
+>>>>> +	if (dwc->usb2_generic_phy)
+>>>>> +		phy_power_on(dwc->usb2_generic_phy);
+>>>>> +	if (dwc->usb3_generic_phy)
+>>>>> +		phy_power_on(dwc->usb3_generic_phy);
+>>>>> +
+>>>>>  	spin_lock_init(&dwc->lock);
+>>>>>  	platform_set_drvdata(pdev, dwc);
+>>>>>  
+>>>>> @@ -576,6 +609,11 @@ static int dwc3_remove(struct platform_device *pdev)
+>>>>
+>>>> if (dwc->usb2_phy)
+>>>>>  	usb_phy_set_suspend(dwc->usb2_phy, 1);
+>>>>
+>>>> if (dwc->usb3_phy)
+>>>>>  	usb_phy_set_suspend(dwc->usb3_phy, 1);
+>>>>>  
+>>>>> +	if (dwc->usb2_generic_phy)
+>>>>> +		phy_power_off(dwc->usb2_generic_phy);
+>>>>> +	if (dwc->usb3_generic_phy)
+>>>>> +		phy_power_off(dwc->usb3_generic_phy);
+>>>>> +
+>>>>>  	pm_runtime_put(&pdev->dev);
+>>>>>  	pm_runtime_disable(&pdev->dev);
+>>>>>  
+>>>>> @@ -673,6 +711,11 @@ static int dwc3_suspend(struct device *dev)
+>>>>
+>>>> if (dwc->usb3_phy)
+>>>>>  	usb_phy_shutdown(dwc->usb3_phy);
+>>>>
+>>>> if (dwc->usb2_phy)
+>>>>>  	usb_phy_shutdown(dwc->usb2_phy);
+>>>>>  
+>>>>> +	if (dwc->usb2_generic_phy)
+>>>>> +		phy_exit(dwc->usb2_generic_phy);
+>>>>> +	if (dwc->usb3_generic_phy)
+>>>>> +		phy_exit(dwc->usb3_generic_phy);
+>>>>> +
+>>>>>  	return 0;
+>>>>>  }
+>>>>>  
+>>>>> @@ -683,6 +726,12 @@ static int dwc3_resume(struct device *dev)
+>>>>>  
+>>>>
+>>>> if (dwc->usb3_phy)
+>>>>>  	usb_phy_init(dwc->usb3_phy);
+>>>>
+>>>> if (dwc->usb2_phy)
+>>>>>  	usb_phy_init(dwc->usb2_phy);
+>>>>> +
+>>>>> +	if (dwc->usb2_generic_phy)
+>>>>> +		phy_init(dwc->usb2_generic_phy);
+>>>>> +	if (dwc->usb3_generic_phy)
+>>>>> +		phy_init(dwc->usb3_generic_phy);
+>>>>> +
+>>>>>  	msleep(100);
+>>>>>  
+>>>>>  	spin_lock_irqsave(&dwc->lock, flags);
+>>>>> diff --git a/drivers/usb/dwc3/core.h b/drivers/usb/dwc3/core.h
+>>>>> index f8af8d4..01ec7d7 100644
+>>>>> --- a/drivers/usb/dwc3/core.h
+>>>>> +++ b/drivers/usb/dwc3/core.h
+>>>>> @@ -31,6 +31,8 @@
+>>>>>  #include <linux/usb/gadget.h>
+>>>>>  #include <linux/usb/otg.h>
+>>>>>  
+>>>>> +#include <linux/phy/phy.h>
+>>>>> +
+>>>>>  /* Global constants */
+>>>>>  #define DWC3_EP0_BOUNCE_SIZE	512
+>>>>>  #define DWC3_ENDPOINTS_NUM	32
+>>>>> @@ -613,6 +615,8 @@ struct dwc3_scratchpad_array {
+>>>>>   * @dr_mode: requested mode of operation
+>>>>>   * @usb2_phy: pointer to USB2 PHY
+>>>>>   * @usb3_phy: pointer to USB3 PHY
+>>>>> + * @usb2_generic_phy: pointer to USB2 PHY
+>>>>> + * @usb3_generic_phy: pointer to USB3 PHY
+>>>>>   * @dcfg: saved contents of DCFG register
+>>>>>   * @gctl: saved contents of GCTL register
+>>>>>   * @is_selfpowered: true when we are selfpowered
+>>>>> @@ -665,6 +669,9 @@ struct dwc3 {
+>>>>>  	struct usb_phy		*usb2_phy;
+>>>>>  	struct usb_phy		*usb3_phy;
+>>>>>  
+>>>>> +	struct phy		*usb2_generic_phy;
+>>>>> +	struct phy		*usb3_generic_phy;
+>>>>> +
+>>>>>  	void __iomem		*regs;
+>>>>>  	size_t			regs_size;
+>>>>>  
+>>>>>
+>>>
+>>> Do you have any suggestions on how to get only individual PHYs? like only
+>>> usb2phy or usb3phy?
 >>
-> That was for the IRQCHIP based approach and as part of that review
-> Thomas suggested why not irqdomain and suggested a prototype code
-> as well.
->  
->> You can call it generic, but it is not. It is specific to the GIC and
->> looks like an abuse of irqdomains to me. Look where the function
->> declaration for register_routable_domain_ops is.
+>> My earlier understanding was that both PHYs are needed only if .speed is "super-speed"
+>> and only usb2phy is needed for "high-speed". But as per Vivek's email it seems
+>> Samsung's exynos5 SoC doesn't need usb2phy for "super-speed".
 >>
-> I am not sure why you call it abuse of irqdomain since the map/unmap
-> are exactly the interfaces where the logical to physical irq
-> connections are made. Look at existing GIC code as well. I still
-> let Thomas give his expert comment whether it is abusive because it
-> it was, am sure he wouldn't have suggested that.
-  Is this inline with what you were suggesting and
-  is this approach fine ?
+>> So to keeps things flexible, I can propose the following approach
+>> - if speed == 'high-speed' usb2phy must be present. usb3phy will be ignored if supplied.
+>> - if speed == 'super-speed' usb3phy must be present and usb2phy is optional but must be
+>> initialized if supplied.
+>> - if speed is not specified, we default to 'super-speed'.
+>>
+>> Felipe, does this address the issue you were facing with OMAP5?
+> 
+> IIRC, even if the speed is high speed, you still need to power on the USB3 PHY.
+> Or else even high speed mode wasn't working in OMAP5.
 
-Regards,
- Sricharan
+Maybe for OMAP5 we can somehow indicate to dwc3 core code that only 'super-speed' mode
+is supported by the platform. I'm not aware of any OMAP5 platform using the USB port as 'high-speed'.
 
+So there needs to be some mechanism for dwc3-<platform>.c to indicate to dwc3-core.c the
+speeds supported by the platform. e.g. via of_dev_auxdata through of_platform_populate()?
+
+If such data is not supplied, we assume that both speeds are supported.
+
+cheers,
+-roger
