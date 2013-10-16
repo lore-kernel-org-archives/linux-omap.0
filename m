@@ -1,148 +1,78 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH V7 2/8] ARM: OMAP2+: add missing lateinit hook for calling pm late init
-Date: Wed, 16 Oct 2013 10:39:02 -0500
-Message-ID: <1381937948-27057-3-git-send-email-nm@ti.com>
-References: <1381937948-27057-1-git-send-email-nm@ti.com>
+From: Jyri Sarha <jsarha@ti.com>
+Subject: Re: [RESEND PATCH v3 03/11] ASoC: davinci-mcasp: Add
+ DMA register locations to DT
+Date: Wed, 16 Oct 2013 19:53:57 +0300
+Message-ID: <525EC4A5.5070400@ti.com>
+References: <cover.1379590035.git.jsarha@ti.com>
+ <66bdda0c0b75d737d649260b9ec10f9f870c20cd.1379590036.git.jsarha@ti.com>
+ <20131007214718.GA2976@kartoffel> <20131008004641.GV21581@sirena.org.uk>
+ <20131010165959.GB3910@e106331-lin.cambridge.arm.com>
+ <5256E417.7010403@ti.com>
+ <20131016150438.GN19196@e106331-lin.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1381937948-27057-1-git-send-email-nm@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Nishanth Menon <nm@ti.com>, Paul Walmsley <paul@pwsan.com>
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20131016150438.GN19196@e106331-lin.cambridge.arm.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Mark Rutland <mark.rutland@arm.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "joelf@ti.com" <joelf@ti.com>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "Hebbar,
+ Gururaja" <gururaja.hebbar@ti.com>, "liam.r.girdwood@linux.intel.com" <liam.r.girdwood@linux.intel.com>, Darren Etheridge <detheridge@ti.com>, Mark Brown <broonie@kernel.org>, "bcousson@baylibre.com" <bcousson@baylibre.com>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-AM335x, AM43xx, OMAP5 and DRA7 have missing late init hook. Introduce
-SoC specific hook with a call to OMAP2+ generic lateinit hook. This
-allows the generic late initializations such as cpufreq hooks to be
-active.
+On 10/16/2013 06:04 PM, Mark Rutland wrote:
+> On Thu, Oct 10, 2013 at 06:29:59PM +0100, Peter Ujfalusi wrote:
+>> On 10/10/2013 07:59 PM, Mark Rutland wrote:
+>>>> No, they're not actually of much practical use to us at the minute but
+>>>> it was generally felt better to include the information and not use it
+>>>> so that if someone does come up with a use for them then the trees for
+>>>> deployed systems already have the information.
+>>>
+>>> Sure, but if this device can generate multiple interrupts, we should
+>>> make it possible to describe all of them, unambiguously.
+>>
+>> This is why Jyri added them to the DT. They are not used by the Linux driver,
+>> but the HW have interrupt lines (two of them: TX and RX).
+>
+> The binding only describes a single interrupt, and even if multiple
+> interrupts were listed, there's no way to disambiguate them (e.g.
+> interrupt-names).
+>
+> It would be nice to remedy this.
+>
 
-Based on out-of-tree patches that need to be introduced in
-mainline, this introduction allows us to provide the foundation for
-further SoC specific features as they are developed.
+This has been fixed in a later patch in the same series here:
 
-Cc: Benoit Cousson <bcousson@baylibre.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
- arch/arm/mach-omap2/board-generic.c |    4 ++++
- arch/arm/mach-omap2/common.h        |    4 ++++
- arch/arm/mach-omap2/io.c            |   20 ++++++++++++++++++++
- 3 files changed, 28 insertions(+)
+[RESEND PATCH v3 05/11] ASoC: davinci-mcasp: Interrupts property to 
+optional and add interrupt-names
+http://mailman.alsa-project.org/pipermail/alsa-devel/2013-September/066732.html
 
-diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
-index 3017a9d..e366064 100644
---- a/arch/arm/mach-omap2/board-generic.c
-+++ b/arch/arm/mach-omap2/board-generic.c
-@@ -128,6 +128,7 @@ DT_MACHINE_START(AM33XX_DT, "Generic AM33XX (Flattened Device Tree)")
- 	.init_irq	= omap_intc_of_init,
- 	.handle_irq	= omap3_intc_handle_irq,
- 	.init_machine	= omap_generic_init,
-+	.init_late	= am33xx_init_late,
- 	.init_time	= omap3_gptimer_timer_init,
- 	.dt_compat	= am33xx_boards_compat,
- 	.restart	= am33xx_restart,
-@@ -167,6 +168,7 @@ DT_MACHINE_START(OMAP5_DT, "Generic OMAP5 (Flattened Device Tree)")
- 	.init_early	= omap5_init_early,
- 	.init_irq	= omap_gic_of_init,
- 	.init_machine	= omap_generic_init,
-+	.init_late	= omap5_init_late,
- 	.init_time	= omap5_realtime_timer_init,
- 	.dt_compat	= omap5_boards_compat,
- 	.restart	= omap44xx_restart,
-@@ -182,6 +184,7 @@ static const char *am43_boards_compat[] __initdata = {
- DT_MACHINE_START(AM43_DT, "Generic AM43 (Flattened Device Tree)")
- 	.map_io		= am33xx_map_io,
- 	.init_early	= am43xx_init_early,
-+	.init_late	= am43xx_init_late,
- 	.init_irq	= omap_gic_of_init,
- 	.init_machine	= omap_generic_init,
- 	.init_time	= omap3_sync32k_timer_init,
-@@ -200,6 +203,7 @@ DT_MACHINE_START(DRA7XX_DT, "Generic DRA7XX (Flattened Device Tree)")
- 	.smp		= smp_ops(omap4_smp_ops),
- 	.map_io		= omap5_map_io,
- 	.init_early	= dra7xx_init_early,
-+	.init_late	= dra7xx_init_late,
- 	.init_irq	= omap_gic_of_init,
- 	.init_machine	= omap_generic_init,
- 	.init_time	= omap5_realtime_timer_init,
-diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
-index c6aebf0..f7644fe 100644
---- a/arch/arm/mach-omap2/common.h
-+++ b/arch/arm/mach-omap2/common.h
-@@ -98,6 +98,7 @@ void am35xx_init_early(void);
- void ti81xx_init_early(void);
- void am33xx_init_early(void);
- void am43xx_init_early(void);
-+void am43xx_init_late(void);
- void omap4430_init_early(void);
- void omap5_init_early(void);
- void omap3_init_late(void);	/* Do not use this one */
-@@ -109,8 +110,11 @@ void omap35xx_init_late(void);
- void omap3630_init_late(void);
- void am35xx_init_late(void);
- void ti81xx_init_late(void);
-+void am33xx_init_late(void);
-+void omap5_init_late(void);
- int omap2_common_pm_late_init(void);
- void dra7xx_init_early(void);
-+void dra7xx_init_late(void);
- 
- #ifdef CONFIG_SOC_BUS
- void omap_soc_device_init(void);
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index ff2113c..a2cbb44 100644
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -583,6 +583,11 @@ void __init am33xx_init_early(void)
- 	omap_hwmod_init_postsetup();
- 	omap_clk_init = am33xx_clk_init;
- }
-+
-+void __init am33xx_init_late(void)
-+{
-+	omap_common_late_init();
-+}
- #endif
- 
- #ifdef CONFIG_SOC_AM43XX
-@@ -596,6 +601,11 @@ void __init am43xx_init_early(void)
- 	omap2_set_globals_cm(AM33XX_L4_WK_IO_ADDRESS(AM43XX_PRCM_BASE), NULL);
- 	omap3xxx_check_revision();
- }
-+
-+void __init am43xx_init_late(void)
-+{
-+	omap_common_late_init();
-+}
- #endif
- 
- #ifdef CONFIG_ARCH_OMAP4
-@@ -651,6 +661,11 @@ void __init omap5_init_early(void)
- 	omap54xx_hwmod_init();
- 	omap_hwmod_init_postsetup();
- }
-+
-+void __init omap5_init_late(void)
-+{
-+	omap_common_late_init();
-+}
- #endif
- 
- #ifdef CONFIG_SOC_DRA7XX
-@@ -671,6 +686,11 @@ void __init dra7xx_init_early(void)
- 	dra7xx_hwmod_init();
- 	omap_hwmod_init_postsetup();
- }
-+
-+void __init dra7xx_init_late(void)
-+{
-+	omap_common_late_init();
-+}
- #endif
- 
- 
--- 
-1.7.9.5
+However the v3 series is already obsolete. The latest posted series is 
+v4. There the patch patch bellow inculdes interrupt names, plus some 
+other improvements based on your comments earlier:
+
+[PATCH v4 05/10] ASoC: davinci-mcasp: Improve DT bindings document
+http://mailman.alsa-project.org/pipermail/alsa-devel/2013-October/067100.html
+
+There is already couple of updates even to v4 series of the patches, here:
+
+[PATCH v4.1 08/10] ARM/dts: am33xx: mcasp: Add location for data port 
+registers to reg-property
+http://mailman.alsa-project.org/pipermail/alsa-devel/2013-October/067125.html
+
+[PATCH v4.2 09/10] ARM/dts: am335x-evm: Add audio support for am335x-evm.dts
+http://mailman.alsa-project.org/pipermail/alsa-devel/2013-October/067133.html
+
+[PATCH v4.2 10/10] ARM/dts: am335x-evmsk: Audio support 
+http://mailman.alsa-project.org/pipermail/alsa-devel/2013-October/067140.html
+
+Best regards,
+Jyri
