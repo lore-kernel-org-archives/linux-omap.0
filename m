@@ -1,48 +1,53 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH V2 0/2] ARM: dts: OMAP2+: add i2c aliases
-Date: Wed, 16 Oct 2013 15:21:02 -0500
-Message-ID: <1381954864-24410-1-git-send-email-nm@ti.com>
+Subject: [PATCH V2 2/2] ARM: dts: AM33xx+: Add i2c aliases
+Date: Wed, 16 Oct 2013 15:21:04 -0500
+Message-ID: <1381954864-24410-3-git-send-email-nm@ti.com>
 References: <525E8D91.5090400@ti.com>
+ <1381954864-24410-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <525E8D91.5090400@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1381954864-24410-1-git-send-email-nm@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Rajendra Nayak <rnayak@ti.com>, Tony Lindgren <tony@atomide.com>
-Cc: Nishanth Menon <nm@ti.com>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Nishanth Menon <nm@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Add i2c aliases for OMAP and AM processor dts nodes to ensure proper
-i2c ordering. Based on Benoit's for_13/dts branch[1]
+Provide alias to allow ordering the i2c devices correctly.
 
-Changes in V2:
-	- Following Rajendra's suggestion, done for all OMAP and AM
-	  series SoCs, where i2c is defined.
-
-V1: https://patchwork.kernel.org/patch/3046671/
-
-Nishanth Menon (2):
-  ARM: dts: OMAP3+: Add i2c aliases
-  ARM: dts: AM33xx+: Add i2c aliases
-
+Signed-off-by: Nishanth Menon <nm@ti.com>
+---
  arch/arm/boot/dts/am33xx.dtsi |    3 +++
  arch/arm/boot/dts/am4372.dtsi |    3 +++
- arch/arm/boot/dts/dra7.dtsi   |    5 +++++
- arch/arm/boot/dts/omap3.dtsi  |    3 +++
- arch/arm/boot/dts/omap4.dtsi  |    4 ++++
- arch/arm/boot/dts/omap5.dtsi  |    5 +++++
- 6 files changed, 23 insertions(+)
+ 2 files changed, 6 insertions(+)
 
-[1] https://git.kernel.org/cgit/linux/kernel/git/bcousson/linux-omap-dt.git/log/?h=for_3.13/dts
-
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index 09f16a0..defc0d5 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -18,6 +18,9 @@
+ 	interrupt-parent = <&intc>;
+ 
+ 	aliases {
++		i2c0 = &i2c0;
++		i2c1 = &i2c1;
++		i2c2 = &i2c2;
+ 		serial0 = &uart0;
+ 		serial1 = &uart1;
+ 		serial2 = &uart2;
+diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
+index 4944b1a..c7c3160 100644
+--- a/arch/arm/boot/dts/am4372.dtsi
++++ b/arch/arm/boot/dts/am4372.dtsi
+@@ -18,6 +18,9 @@
+ 
+ 
+ 	aliases {
++		i2c0 = &i2c0;
++		i2c1 = &i2c1;
++		i2c2 = &i2c2;
+ 		serial0 = &uart0;
+ 	};
+ 
 -- 
 1.7.9.5
