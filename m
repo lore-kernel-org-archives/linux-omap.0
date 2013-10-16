@@ -1,57 +1,113 @@
-From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Subject: Re: [PATCH 1/1] gpio/omap: use gpiolib API to mark a GPIO used as
- an IRQ
-Date: Wed, 16 Oct 2013 10:25:40 +0200
-Message-ID: <525E4D84.4030504@collabora.co.uk>
-References: <1381884450-2358-1-git-send-email-javier.martinez@collabora.co.uk> <CACRpkdYWtgExaaFZ_nV_yX43FXpMCeskjGtKMyVySd+awuepOQ@mail.gmail.com>
+From: Lokesh Vutla <lokeshvutla@ti.com>
+Subject: Re: [RESEND PATCH V2 1/2] ARM: dts: AM33xx: Add RNG node
+Date: Wed, 16 Oct 2013 16:46:41 +0530
+Message-ID: <525E7599.8010504@ti.com>
+References: <1377780731-3648-1-git-send-email-lokeshvutla@ti.com> <1377780731-3648-2-git-send-email-lokeshvutla@ti.com> <52594DF0.1050002@ti.com> <525CE564.6010605@baylibre.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([93.93.135.160]:47392 "EHLO
-	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755193Ab3JPI0Z (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Oct 2013 04:26:25 -0400
-In-Reply-To: <CACRpkdYWtgExaaFZ_nV_yX43FXpMCeskjGtKMyVySd+awuepOQ@mail.gmail.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:39165 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1760492Ab3JPLRS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 16 Oct 2013 07:17:18 -0400
+In-Reply-To: <525CE564.6010605@baylibre.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@linaro.org>, Stephen Warren <swarren@wwwdotorg.org>, Lars Poeschel <larsi@wh2.tu-dresden.de>, Enric Balletbo i Serra <eballetbo@gmail.com>, Tony Lindgren <tony@atomide.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>
+To: Benoit Cousson <bcousson@baylibre.com>
+Cc: paul@pwsan.com, tony@atomide.com, rnayak@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, rob.herring@calxeda.com, mark.rutland@arm.com
 
-On 10/16/2013 10:06 AM, Linus Walleij wrote:
-> On Wed, Oct 16, 2013 at 2:47 AM, Javier Martinez Canillas
-> <javier.martinez@collabora.co.uk> wrote:
++ Rob and Mark
+On Tuesday 15 October 2013 12:19 PM, Benoit Cousson wrote:
+> Hi Lokesh,
 > 
->> The OMAP GPIO driver keeps track about GPIO pins that are
->> used as IRQ lines for two reasons:
->>
->> 1) To prevent GPIO banks to be disabled while one of their
->>    GPIO pins are only used as an interrupt line.
->>
->> 2) To not allow another caller to set the GPIO pin as output.
->>
->> Now gpiolib has an API to mark GPIO pins as used as IRQ lines
->> so the GPIO core only allows to set as output GPIO pins not
->> tied to an IRQ. So there is no need to have custom code for 2).
->>
->> The IRQ usage still has to be maintained locally for 1) though.
->>
->> Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+> On 12/10/2013 15:26, Lokesh Vutla wrote:
+>> Hi Benoit,
+>> On Thursday 29 August 2013 06:22 PM, Lokesh Vutla wrote:
+>>> Add the AM33xx RNG module's device tree data.
+>>> Also add Documentation file describing the data
+>>> for the RNG module.
+Can you please review this patch..
+
+Thanks and regards,
+Lokesh
+>> Seems you missed this patch. Please consider this for this merge window.
 > 
-> Patch applied. I had to merge in v3.12-rc4 to get the dependency
-> fixes, so I guess you did something similar when developing
-> this...
->
-
-Thanks and yes since this is not a critical bug it was meant to be for v3.13 on
-top of fac7fa162 ("gpio/omap: auto-setup a GPIO when used as an IRQ") and after
-you have merged your flag-irqs branch.
-
-Sorry for not explicitly mentioning this dependency.
-
-> Yours,
-> Linus Walleij
+> Indeed I missed it. Sorry :-(
+> 
+>> Patch 2/2 is already taken by Paul.
+>> Without this patch AM335x boot will crash as I mentioned in my cover letter.
+>>
+>> Thanks and regards,
+>> Lokesh
+>>>
+>>> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+>>> ---
+>>> Changes since V1:
+>>> - Drop "status=disabled" entry in dt node, Since
+>>>    RNG is present on all AM33xx platforms.
+>>>
+>>>   .../devicetree/bindings/hwrng/omap_rng.txt         |   22 ++++++++++++++++++++
+>>>   arch/arm/boot/dts/am33xx.dtsi                      |    7 +++++++
+>>>   2 files changed, 29 insertions(+)
+>>>   create mode 100644 Documentation/devicetree/bindings/hwrng/omap_rng.txt
+> 
+> I do not see the acked-by for the binding part. You do need that for any new bindings nowadays.
+> 
+>>>
+>>> diff --git a/Documentation/devicetree/bindings/hwrng/omap_rng.txt b/Documentation/devicetree/bindings/hwrng/omap_rng.txt
+>>> new file mode 100644
+>>> index 0000000..6a62acd
+>>> --- /dev/null
+>>> +++ b/Documentation/devicetree/bindings/hwrng/omap_rng.txt
+>>> @@ -0,0 +1,22 @@
+>>> +OMAP SoC HWRNG Module
+>>> +
+>>> +Required properties:
+>>> +
+>>> +- compatible : Should contain entries for this and backward compatible
+>>> +  RNG versions:
+>>> +  - "ti,omap2-rng" for OMAP2.
+>>> +  - "ti,omap4-rng" for OMAP4, OMAP5 and AM33XX.
+>>> +  Note that these two versions are incompatible.
+>>> +- ti,hwmods: Name of the hwmod associated with the RNG module
+>>> +- reg : Offset and length of the register set for the module
+>>> +- interrupts : the interrupt number for the RNG module.
+>>> +        Only used for "ti,omap4-rng".
+>>> +
+>>> +Example:
+>>> +/* AM335x */
+>>> +rng: rng@48310000 {
+>>> +    compatible = "ti,omap4-rng";
+>>> +    ti,hwmods = "rng";
+>>> +    reg = <0x48310000 0x2000>;
+>>> +    interrupts = <111>;
+>>> +};
+>>> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+>>> index 38b446b..26ebe30 100644
+>>> --- a/arch/arm/boot/dts/am33xx.dtsi
+>>> +++ b/arch/arm/boot/dts/am33xx.dtsi
+>>> @@ -530,5 +530,12 @@
+>>>               #size-cells = <1>;
+>>>               status = "disabled";
+>>>           };
+>>> +
+>>> +        rng: rng@48310000 {
+>>> +            compatible = "ti,omap4-rng";
+>>> +            ti,hwmods = "rng";
+>>> +            reg = <0x48310000 0x2000>;
+>>> +            interrupts = <111>;
+>>> +        };
+>>>       };
+>>>   };
+>>>
+>>
+> 
+> It looks good to me, but it does not apply on my branch.
+> Please rebase it and repost with the proper acked-by.
+> 
+> Thanks,
+> Benoit
+> 
 > 
 
-Best regards,
-Javier
