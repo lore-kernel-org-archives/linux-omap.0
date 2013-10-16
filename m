@@ -1,953 +1,926 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [PATCH v5 1/4] v4l: ti-vpe: Create a vpdma helper library
-Date: Wed, 16 Oct 2013 11:06:45 +0530
-Message-ID: <1381901808-25119-2-git-send-email-archit@ti.com>
+Subject: [PATCH v5 2/4] v4l: ti-vpe: Add helpers for creating VPDMA descriptors
+Date: Wed, 16 Oct 2013 11:06:46 +0530
+Message-ID: <1381901808-25119-3-git-send-email-archit@ti.com>
 References: <1378462346-10880-1-git-send-email-archit@ti.com>
  <1381901808-25119-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-media-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:55404 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752835Ab3JPFhz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 16 Oct 2013 01:37:55 -0400
 In-Reply-To: <1381901808-25119-1-git-send-email-archit@ti.com>
-Sender: linux-media-owner@vger.kernel.org
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: k.debski@samsung.com
 Cc: hverkuil@xs4all.nl, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
-List-Id: linux-omap@vger.kernel.org
 
-The primary function of VPDMA is to move data between external memory and
-internal processing modules(in our case, VPE) that source or sink data. VPDMA is
-capable of buffering this data and then delivering the data as demanded to the
-modules as programmed. The modules that source or sink data are referred to as
-clients or ports. A channel is setup inside the VPDMA to connect a specific
-memory buffer to a specific client. The VPDMA centralizes the DMA control
-functions and buffering required to allow all the clients to minimize the
-effect of long latency times.
+Create functions which the VPE driver can use to create a VPDMA descriptor and
+add it to a VPDMA descriptor list. These functions take a pointer to an existing
+list, and append the configuration/data/control descriptor header to the list.
 
-Add the following to the VPDMA helper:
+In the case of configuration descriptors, the creation of a payload block may be
+required(the payloads can hold VPE MMR values, or scaler coefficients). The
+allocation of the payload buffer and it's content is left to the VPE driver.
+However, the VPDMA library provides helper macros to create payload in the
+correct format.
 
-- A data struct which describe VPDMA channels. For now, these channels are the
-  ones used only by VPE, the list of channels will increase when VIP(Video
-  Input Port) also uses the VPDMA library. This channel information will be
-  used to populate fields required by data descriptors.
-
-- Data structs which describe the different data types supported by VPDMA. This
-  data type information will be used to populate fields required by data
-  descriptors and used by the VPE driver to map a V4L2 format to the
-  corresponding VPDMA data type.
-
-- Provide VPDMA register offset definitions, functions to read, write and modify
-  VPDMA registers.
-
-- Functions to create and submit a VPDMA list. A list is a group of descriptors
-  that makes up a set of DMA transfers that need to be completed. Each
-  descriptor will either perform a DMA transaction to fetch input buffers and
-  write to output buffers(data descriptors), or configure the MMRs of sub blocks
-  of VPE(configuration descriptors), or provide control information to VPDMA
-  (control descriptors).
-
-- Functions to allocate, map and unmap buffers needed for the descriptor list,
-  payloads containing MMR values and scaler coefficients. These use the DMA
-  mapping APIs to ensure exclusive access to VPDMA.
-
-- Functions to enable VPDMA interrupts. VPDMA can trigger an interrupt on the
-  VPE interrupt line when a descriptor list is parsed completely and the DMA
-  transactions are completed. This requires masking the events in VPDMA
-  registers and configuring some top level VPE interrupt registers.
-
-- Enable some VPDMA specific parameters: frame start event(when to start DMA for
-  a client) and line mode(whether each line fetched should be mirrored or not).
-
-- Function to load firmware required by VPDMA. VPDMA requires a firmware for
-  it's internal list manager. We add the required request_firmware apis to fetch
-  this firmware from user space.
-
-- Function to dump VPDMA registers.
-
-- A function to initialize and create a VPDMA instance, this will be called by
-  the VPE driver with it's platform device pointer, this function will take care
-  of loading VPDMA firmware and returning a vpdma_data instance back to the VPE
-  driver. The VIP driver will also call the same init function to initialize it's
-  own VPDMA instance.
+Add debug functions to dump the descriptors in a way such that it's easy to see
+the values of different fields in the descriptors.
 
 Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- drivers/media/platform/ti-vpe/vpdma.c      | 578 +++++++++++++++++++++++++++++
- drivers/media/platform/ti-vpe/vpdma.h      | 155 ++++++++
- drivers/media/platform/ti-vpe/vpdma_priv.h | 119 ++++++
- 3 files changed, 852 insertions(+)
- create mode 100644 drivers/media/platform/ti-vpe/vpdma.c
- create mode 100644 drivers/media/platform/ti-vpe/vpdma.h
- create mode 100644 drivers/media/platform/ti-vpe/vpdma_priv.h
+ drivers/media/platform/ti-vpe/vpdma.c      | 268 +++++++++++++++
+ drivers/media/platform/ti-vpe/vpdma.h      |  48 +++
+ drivers/media/platform/ti-vpe/vpdma_priv.h | 522 +++++++++++++++++++++++++++++
+ 3 files changed, 838 insertions(+)
 
 diff --git a/drivers/media/platform/ti-vpe/vpdma.c b/drivers/media/platform/ti-vpe/vpdma.c
-new file mode 100644
-index 0000000..42db12c
---- /dev/null
+index 42db12c..af0a5ff 100644
+--- a/drivers/media/platform/ti-vpe/vpdma.c
 +++ b/drivers/media/platform/ti-vpe/vpdma.c
-@@ -0,0 +1,578 @@
+@@ -21,6 +21,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/sched.h>
+ #include <linux/slab.h>
++#include <linux/videodev2.h>
+ 
+ #include "vpdma.h"
+ #include "vpdma_priv.h"
+@@ -416,6 +417,273 @@ int vpdma_submit_descs(struct vpdma_data *vpdma, struct vpdma_desc_list *list)
+ 	return 0;
+ }
+ 
++static void dump_cfd(struct vpdma_cfd *cfd)
++{
++	int class;
++
++	class = cfd_get_class(cfd);
++
++	pr_debug("config descriptor of payload class: %s\n",
++		class == CFD_CLS_BLOCK ? "simple block" :
++		"address data block");
++
++	if (class == CFD_CLS_BLOCK)
++		pr_debug("word0: dst_addr_offset = 0x%08x\n",
++			cfd->dest_addr_offset);
++
++	if (class == CFD_CLS_BLOCK)
++		pr_debug("word1: num_data_wrds = %d\n", cfd->block_len);
++
++	pr_debug("word2: payload_addr = 0x%08x\n", cfd->payload_addr);
++
++	pr_debug("word3: pkt_type = %d, direct = %d, class = %d, dest = %d, "
++		"payload_len = %d\n", cfd_get_pkt_type(cfd),
++		cfd_get_direct(cfd), class, cfd_get_dest(cfd),
++		cfd_get_payload_len(cfd));
++}
++
 +/*
-+ * VPDMA helper library
-+ *
-+ * Copyright (c) 2013 Texas Instruments Inc.
-+ *
-+ * David Griego, <dagriego@biglakesoftware.com>
-+ * Dale Farnsworth, <dale@farnsworth.org>
-+ * Archit Taneja, <archit@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License version 2 as published by
-+ * the Free Software Foundation.
++ * append a configuration descriptor to the given descriptor list, where the
++ * payload is in the form of a simple data block specified in the descriptor
++ * header, this is used to upload scaler coefficients to the scaler module
 + */
++void vpdma_add_cfd_block(struct vpdma_desc_list *list, int client,
++		struct vpdma_buf *blk, u32 dest_offset)
++{
++	struct vpdma_cfd *cfd;
++	int len = blk->size;
 +
-+#include <linux/delay.h>
-+#include <linux/dma-mapping.h>
-+#include <linux/err.h>
-+#include <linux/firmware.h>
-+#include <linux/io.h>
-+#include <linux/module.h>
-+#include <linux/platform_device.h>
-+#include <linux/sched.h>
-+#include <linux/slab.h>
++	WARN_ON(blk->dma_addr & VPDMA_DESC_ALIGN);
 +
-+#include "vpdma.h"
-+#include "vpdma_priv.h"
++	cfd = list->next;
++	WARN_ON((void *)(cfd + 1) > (list->buf.addr + list->buf.size));
 +
-+#define VPDMA_FIRMWARE	"vpdma-1b8.bin"
++	cfd->dest_addr_offset = dest_offset;
++	cfd->block_len = len;
++	cfd->payload_addr = (u32) blk->dma_addr;
++	cfd->ctl_payload_len = cfd_pkt_payload_len(CFD_INDIRECT, CFD_CLS_BLOCK,
++				client, len >> 4);
 +
-+const struct vpdma_data_format vpdma_yuv_fmts[] = {
-+	[VPDMA_DATA_FMT_Y444] = {
-+		.data_type	= DATA_TYPE_Y444,
-+		.depth		= 8,
-+	},
-+	[VPDMA_DATA_FMT_Y422] = {
-+		.data_type	= DATA_TYPE_Y422,
-+		.depth		= 8,
-+	},
-+	[VPDMA_DATA_FMT_Y420] = {
-+		.data_type	= DATA_TYPE_Y420,
-+		.depth		= 8,
-+	},
-+	[VPDMA_DATA_FMT_C444] = {
-+		.data_type	= DATA_TYPE_C444,
-+		.depth		= 8,
-+	},
-+	[VPDMA_DATA_FMT_C422] = {
-+		.data_type	= DATA_TYPE_C422,
-+		.depth		= 8,
-+	},
-+	[VPDMA_DATA_FMT_C420] = {
-+		.data_type	= DATA_TYPE_C420,
-+		.depth		= 4,
-+	},
-+	[VPDMA_DATA_FMT_YC422] = {
-+		.data_type	= DATA_TYPE_YC422,
-+		.depth		= 16,
-+	},
-+	[VPDMA_DATA_FMT_YC444] = {
-+		.data_type	= DATA_TYPE_YC444,
-+		.depth		= 24,
-+	},
-+	[VPDMA_DATA_FMT_CY422] = {
-+		.data_type	= DATA_TYPE_CY422,
-+		.depth		= 16,
-+	},
++	list->next = cfd + 1;
++
++	dump_cfd(cfd);
++}
++
++/*
++ * append a configuration descriptor to the given descriptor list, where the
++ * payload is in the address data block format, this is used to a configure a
++ * discontiguous set of MMRs
++ */
++void vpdma_add_cfd_adb(struct vpdma_desc_list *list, int client,
++		struct vpdma_buf *adb)
++{
++	struct vpdma_cfd *cfd;
++	unsigned int len = adb->size;
++
++	WARN_ON(len & VPDMA_ADB_SIZE_ALIGN);
++	WARN_ON(adb->dma_addr & VPDMA_DESC_ALIGN);
++
++	cfd = list->next;
++	BUG_ON((void *)(cfd + 1) > (list->buf.addr + list->buf.size));
++
++	cfd->w0 = 0;
++	cfd->w1 = 0;
++	cfd->payload_addr = (u32) adb->dma_addr;
++	cfd->ctl_payload_len = cfd_pkt_payload_len(CFD_INDIRECT, CFD_CLS_ADB,
++				client, len >> 4);
++
++	list->next = cfd + 1;
++
++	dump_cfd(cfd);
 +};
 +
-+const struct vpdma_data_format vpdma_rgb_fmts[] = {
-+	[VPDMA_DATA_FMT_RGB565] = {
-+		.data_type	= DATA_TYPE_RGB16_565,
-+		.depth		= 16,
-+	},
-+	[VPDMA_DATA_FMT_ARGB16_1555] = {
-+		.data_type	= DATA_TYPE_ARGB_1555,
-+		.depth		= 16,
-+	},
-+	[VPDMA_DATA_FMT_ARGB16] = {
-+		.data_type	= DATA_TYPE_ARGB_4444,
-+		.depth		= 16,
-+	},
-+	[VPDMA_DATA_FMT_RGBA16_5551] = {
-+		.data_type	= DATA_TYPE_RGBA_5551,
-+		.depth		= 16,
-+	},
-+	[VPDMA_DATA_FMT_RGBA16] = {
-+		.data_type	= DATA_TYPE_RGBA_4444,
-+		.depth		= 16,
-+	},
-+	[VPDMA_DATA_FMT_ARGB24] = {
-+		.data_type	= DATA_TYPE_ARGB24_6666,
-+		.depth		= 24,
-+	},
-+	[VPDMA_DATA_FMT_RGB24] = {
-+		.data_type	= DATA_TYPE_RGB24_888,
-+		.depth		= 24,
-+	},
-+	[VPDMA_DATA_FMT_ARGB32] = {
-+		.data_type	= DATA_TYPE_ARGB32_8888,
-+		.depth		= 32,
-+	},
-+	[VPDMA_DATA_FMT_RGBA24] = {
-+		.data_type	= DATA_TYPE_RGBA24_6666,
-+		.depth		= 24,
-+	},
-+	[VPDMA_DATA_FMT_RGBA32] = {
-+		.data_type	= DATA_TYPE_RGBA32_8888,
-+		.depth		= 32,
-+	},
-+	[VPDMA_DATA_FMT_BGR565] = {
-+		.data_type	= DATA_TYPE_BGR16_565,
-+		.depth		= 16,
-+	},
-+	[VPDMA_DATA_FMT_ABGR16_1555] = {
-+		.data_type	= DATA_TYPE_ABGR_1555,
-+		.depth		= 16,
-+	},
-+	[VPDMA_DATA_FMT_ABGR16] = {
-+		.data_type	= DATA_TYPE_ABGR_4444,
-+		.depth		= 16,
-+	},
-+	[VPDMA_DATA_FMT_BGRA16_5551] = {
-+		.data_type	= DATA_TYPE_BGRA_5551,
-+		.depth		= 16,
-+	},
-+	[VPDMA_DATA_FMT_BGRA16] = {
-+		.data_type	= DATA_TYPE_BGRA_4444,
-+		.depth		= 16,
-+	},
-+	[VPDMA_DATA_FMT_ABGR24] = {
-+		.data_type	= DATA_TYPE_ABGR24_6666,
-+		.depth		= 24,
-+	},
-+	[VPDMA_DATA_FMT_BGR24] = {
-+		.data_type	= DATA_TYPE_BGR24_888,
-+		.depth		= 24,
-+	},
-+	[VPDMA_DATA_FMT_ABGR32] = {
-+		.data_type	= DATA_TYPE_ABGR32_8888,
-+		.depth		= 32,
-+	},
-+	[VPDMA_DATA_FMT_BGRA24] = {
-+		.data_type	= DATA_TYPE_BGRA24_6666,
-+		.depth		= 24,
-+	},
-+	[VPDMA_DATA_FMT_BGRA32] = {
-+		.data_type	= DATA_TYPE_BGRA32_8888,
-+		.depth		= 32,
-+	},
-+};
-+
-+const struct vpdma_data_format vpdma_misc_fmts[] = {
-+	[VPDMA_DATA_FMT_MV] = {
-+		.data_type	= DATA_TYPE_MV,
-+		.depth		= 4,
-+	},
-+};
-+
-+struct vpdma_channel_info {
-+	int num;		/* VPDMA channel number */
-+	int cstat_offset;	/* client CSTAT register offset */
-+};
-+
-+static const struct vpdma_channel_info chan_info[] = {
-+	[VPE_CHAN_LUMA1_IN] = {
-+		.num		= VPE_CHAN_NUM_LUMA1_IN,
-+		.cstat_offset	= VPDMA_DEI_LUMA1_CSTAT,
-+	},
-+	[VPE_CHAN_CHROMA1_IN] = {
-+		.num		= VPE_CHAN_NUM_CHROMA1_IN,
-+		.cstat_offset	= VPDMA_DEI_CHROMA1_CSTAT,
-+	},
-+	[VPE_CHAN_LUMA2_IN] = {
-+		.num		= VPE_CHAN_NUM_LUMA2_IN,
-+		.cstat_offset	= VPDMA_DEI_LUMA2_CSTAT,
-+	},
-+	[VPE_CHAN_CHROMA2_IN] = {
-+		.num		= VPE_CHAN_NUM_CHROMA2_IN,
-+		.cstat_offset	= VPDMA_DEI_CHROMA2_CSTAT,
-+	},
-+	[VPE_CHAN_LUMA3_IN] = {
-+		.num		= VPE_CHAN_NUM_LUMA3_IN,
-+		.cstat_offset	= VPDMA_DEI_LUMA3_CSTAT,
-+	},
-+	[VPE_CHAN_CHROMA3_IN] = {
-+		.num		= VPE_CHAN_NUM_CHROMA3_IN,
-+		.cstat_offset	= VPDMA_DEI_CHROMA3_CSTAT,
-+	},
-+	[VPE_CHAN_MV_IN] = {
-+		.num		= VPE_CHAN_NUM_MV_IN,
-+		.cstat_offset	= VPDMA_DEI_MV_IN_CSTAT,
-+	},
-+	[VPE_CHAN_MV_OUT] = {
-+		.num		= VPE_CHAN_NUM_MV_OUT,
-+		.cstat_offset	= VPDMA_DEI_MV_OUT_CSTAT,
-+	},
-+	[VPE_CHAN_LUMA_OUT] = {
-+		.num		= VPE_CHAN_NUM_LUMA_OUT,
-+		.cstat_offset	= VPDMA_VIP_UP_Y_CSTAT,
-+	},
-+	[VPE_CHAN_CHROMA_OUT] = {
-+		.num		= VPE_CHAN_NUM_CHROMA_OUT,
-+		.cstat_offset	= VPDMA_VIP_UP_UV_CSTAT,
-+	},
-+	[VPE_CHAN_RGB_OUT] = {
-+		.num		= VPE_CHAN_NUM_RGB_OUT,
-+		.cstat_offset	= VPDMA_VIP_UP_Y_CSTAT,
-+	},
-+};
-+
-+static u32 read_reg(struct vpdma_data *vpdma, int offset)
++/*
++ * control descriptor format change based on what type of control descriptor it
++ * is, we only use 'sync on channel' control descriptors for now, so assume it's
++ * that
++ */
++static void dump_ctd(struct vpdma_ctd *ctd)
 +{
-+	return ioread32(vpdma->base + offset);
-+}
++	pr_debug("control descriptor\n");
 +
-+static void write_reg(struct vpdma_data *vpdma, int offset, u32 value)
-+{
-+	iowrite32(value, vpdma->base + offset);
-+}
-+
-+static int read_field_reg(struct vpdma_data *vpdma, int offset,
-+		u32 mask, int shift)
-+{
-+	return (read_reg(vpdma, offset) & (mask << shift)) >> shift;
-+}
-+
-+static void write_field_reg(struct vpdma_data *vpdma, int offset, u32 field,
-+		u32 mask, int shift)
-+{
-+	u32 val = read_reg(vpdma, offset);
-+
-+	val &= ~(mask << shift);
-+	val |= (field & mask) << shift;
-+
-+	write_reg(vpdma, offset, val);
-+}
-+
-+void vpdma_dump_regs(struct vpdma_data *vpdma)
-+{
-+	struct device *dev = &vpdma->pdev->dev;
-+
-+#define DUMPREG(r) dev_dbg(dev, "%-35s %08x\n", #r, read_reg(vpdma, VPDMA_##r))
-+
-+	dev_dbg(dev, "VPDMA Registers:\n");
-+
-+	DUMPREG(PID);
-+	DUMPREG(LIST_ADDR);
-+	DUMPREG(LIST_ATTR);
-+	DUMPREG(LIST_STAT_SYNC);
-+	DUMPREG(BG_RGB);
-+	DUMPREG(BG_YUV);
-+	DUMPREG(SETUP);
-+	DUMPREG(MAX_SIZE1);
-+	DUMPREG(MAX_SIZE2);
-+	DUMPREG(MAX_SIZE3);
-+
-+	/*
-+	 * dumping registers of only group0 and group3, because VPE channels
-+	 * lie within group0 and group3 registers
-+	 */
-+	DUMPREG(INT_CHAN_STAT(0));
-+	DUMPREG(INT_CHAN_MASK(0));
-+	DUMPREG(INT_CHAN_STAT(3));
-+	DUMPREG(INT_CHAN_MASK(3));
-+	DUMPREG(INT_CLIENT0_STAT);
-+	DUMPREG(INT_CLIENT0_MASK);
-+	DUMPREG(INT_CLIENT1_STAT);
-+	DUMPREG(INT_CLIENT1_MASK);
-+	DUMPREG(INT_LIST0_STAT);
-+	DUMPREG(INT_LIST0_MASK);
-+
-+	/*
-+	 * these are registers specific to VPE clients, we can make this
-+	 * function dump client registers specific to VPE or VIP based on
-+	 * who is using it
-+	 */
-+	DUMPREG(DEI_CHROMA1_CSTAT);
-+	DUMPREG(DEI_LUMA1_CSTAT);
-+	DUMPREG(DEI_CHROMA2_CSTAT);
-+	DUMPREG(DEI_LUMA2_CSTAT);
-+	DUMPREG(DEI_CHROMA3_CSTAT);
-+	DUMPREG(DEI_LUMA3_CSTAT);
-+	DUMPREG(DEI_MV_IN_CSTAT);
-+	DUMPREG(DEI_MV_OUT_CSTAT);
-+	DUMPREG(VIP_UP_Y_CSTAT);
-+	DUMPREG(VIP_UP_UV_CSTAT);
-+	DUMPREG(VPI_CTL_CSTAT);
++	pr_debug("word3: pkt_type = %d, source = %d, ctl_type = %d\n",
++		ctd_get_pkt_type(ctd), ctd_get_source(ctd), ctd_get_ctl(ctd));
 +}
 +
 +/*
-+ * Allocate a DMA buffer
++ * append a 'sync on channel' type control descriptor to the given descriptor
++ * list, this descriptor stalls the VPDMA list till the time DMA is completed
++ * on the specified channel
 + */
-+int vpdma_alloc_desc_buf(struct vpdma_buf *buf, size_t size)
++void vpdma_add_sync_on_channel_ctd(struct vpdma_desc_list *list,
++		enum vpdma_channel chan)
 +{
-+	buf->size = size;
-+	buf->mapped = false;
-+	buf->addr = kzalloc(size, GFP_KERNEL);
-+	if (!buf->addr)
-+		return -ENOMEM;
++	struct vpdma_ctd *ctd;
 +
-+	WARN_ON((u32) buf->addr & VPDMA_DESC_ALIGN);
++	ctd = list->next;
++	WARN_ON((void *)(ctd + 1) > (list->buf.addr + list->buf.size));
 +
-+	return 0;
++	ctd->w0 = 0;
++	ctd->w1 = 0;
++	ctd->w2 = 0;
++	ctd->type_source_ctl = ctd_type_source_ctl(chan_info[chan].num,
++				CTD_TYPE_SYNC_ON_CHANNEL);
++
++	list->next = ctd + 1;
++
++	dump_ctd(ctd);
 +}
 +
-+void vpdma_free_desc_buf(struct vpdma_buf *buf)
++static void dump_dtd(struct vpdma_dtd *dtd)
 +{
-+	WARN_ON(buf->mapped);
-+	kfree(buf->addr);
-+	buf->addr = NULL;
-+	buf->size = 0;
-+}
++	int dir, chan;
 +
-+/*
-+ * map descriptor/payload DMA buffer, enabling DMA access
-+ */
-+int vpdma_map_desc_buf(struct vpdma_data *vpdma, struct vpdma_buf *buf)
-+{
-+	struct device *dev = &vpdma->pdev->dev;
++	dir = dtd_get_dir(dtd);
++	chan = dtd_get_chan(dtd);
 +
-+	WARN_ON(buf->mapped);
-+	buf->dma_addr = dma_map_single(dev, buf->addr, buf->size,
-+				DMA_TO_DEVICE);
-+	if (dma_mapping_error(dev, buf->dma_addr)) {
-+		dev_err(dev, "failed to map buffer\n");
-+		return -EINVAL;
-+	}
++	pr_debug("%s data transfer descriptor for channel %d\n",
++		dir == DTD_DIR_OUT ? "outbound" : "inbound", chan);
 +
-+	buf->mapped = true;
++	pr_debug("word0: data_type = %d, notify = %d, field = %d, 1D = %d, "
++		"even_ln_skp = %d, odd_ln_skp = %d, line_stride = %d\n",
++		dtd_get_data_type(dtd), dtd_get_notify(dtd), dtd_get_field(dtd),
++		dtd_get_1d(dtd), dtd_get_even_line_skip(dtd),
++		dtd_get_odd_line_skip(dtd), dtd_get_line_stride(dtd));
 +
-+	return 0;
-+}
++	if (dir == DTD_DIR_IN)
++		pr_debug("word1: line_length = %d, xfer_height = %d\n",
++			dtd_get_line_length(dtd), dtd_get_xfer_height(dtd));
 +
-+/*
-+ * unmap descriptor/payload DMA buffer, disabling DMA access and
-+ * allowing the main processor to acces the data
-+ */
-+void vpdma_unmap_desc_buf(struct vpdma_data *vpdma, struct vpdma_buf *buf)
-+{
-+	struct device *dev = &vpdma->pdev->dev;
++	pr_debug("word2: start_addr = 0x%08x\n", dtd->start_addr);
 +
-+	if (buf->mapped)
-+		dma_unmap_single(dev, buf->dma_addr, buf->size, DMA_TO_DEVICE);
++	pr_debug("word3: pkt_type = %d, mode = %d, dir = %d, chan = %d, "
++		"pri = %d, next_chan = %d\n", dtd_get_pkt_type(dtd),
++		dtd_get_mode(dtd), dir, chan, dtd_get_priority(dtd),
++		dtd_get_next_chan(dtd));
 +
-+	buf->mapped = false;
-+}
-+
-+/*
-+ * create a descriptor list, the user of this list will append configuration,
-+ * control and data descriptors to this list, this list will be submitted to
-+ * VPDMA. VPDMA's list parser will go through each descriptor and perform the
-+ * required DMA operations
-+ */
-+int vpdma_create_desc_list(struct vpdma_desc_list *list, size_t size, int type)
-+{
-+	int r;
-+
-+	r = vpdma_alloc_desc_buf(&list->buf, size);
-+	if (r)
-+		return r;
-+
-+	list->next = list->buf.addr;
-+
-+	list->type = type;
-+
-+	return 0;
-+}
-+
-+/*
-+ * once a descriptor list is parsed by VPDMA, we reset the list by emptying it,
-+ * to allow new descriptors to be added to the list.
-+ */
-+void vpdma_reset_desc_list(struct vpdma_desc_list *list)
-+{
-+	list->next = list->buf.addr;
-+}
-+
-+/*
-+ * free the buffer allocated fot the VPDMA descriptor list, this should be
-+ * called when the user doesn't want to use VPDMA any more.
-+ */
-+void vpdma_free_desc_list(struct vpdma_desc_list *list)
-+{
-+	vpdma_free_desc_buf(&list->buf);
-+
-+	list->next = NULL;
-+}
-+
-+static bool vpdma_list_busy(struct vpdma_data *vpdma, int list_num)
-+{
-+	return read_reg(vpdma, VPDMA_LIST_STAT_SYNC) & BIT(list_num + 16);
-+}
-+
-+/*
-+ * submit a list of DMA descriptors to the VPE VPDMA, do not wait for completion
-+ */
-+int vpdma_submit_descs(struct vpdma_data *vpdma, struct vpdma_desc_list *list)
-+{
-+	/* we always use the first list */
-+	int list_num = 0;
-+	int list_size;
-+
-+	if (vpdma_list_busy(vpdma, list_num))
-+		return -EBUSY;
-+
-+	/* 16-byte granularity */
-+	list_size = (list->next - list->buf.addr) >> 4;
-+
-+	write_reg(vpdma, VPDMA_LIST_ADDR, (u32) list->buf.dma_addr);
-+
-+	write_reg(vpdma, VPDMA_LIST_ATTR,
-+			(list_num << VPDMA_LIST_NUM_SHFT) |
-+			(list->type << VPDMA_LIST_TYPE_SHFT) |
-+			list_size);
-+
-+	return 0;
-+}
-+
-+/* set or clear the mask for list complete interrupt */
-+void vpdma_enable_list_complete_irq(struct vpdma_data *vpdma, int list_num,
-+		bool enable)
-+{
-+	u32 val;
-+
-+	val = read_reg(vpdma, VPDMA_INT_LIST0_MASK);
-+	if (enable)
-+		val |= (1 << (list_num * 2));
++	if (dir == DTD_DIR_IN)
++		pr_debug("word4: frame_width = %d, frame_height = %d\n",
++			dtd_get_frame_width(dtd), dtd_get_frame_height(dtd));
 +	else
-+		val &= ~(1 << (list_num * 2));
-+	write_reg(vpdma, VPDMA_INT_LIST0_MASK, val);
-+}
++		pr_debug("word4: desc_write_addr = 0x%08x, write_desc = %d, "
++			"drp_data = %d, use_desc_reg = %d\n",
++			dtd_get_desc_write_addr(dtd), dtd_get_write_desc(dtd),
++			dtd_get_drop_data(dtd), dtd_get_use_desc(dtd));
 +
-+/* clear previosuly occured list intterupts in the LIST_STAT register */
-+void vpdma_clear_list_stat(struct vpdma_data *vpdma)
-+{
-+	write_reg(vpdma, VPDMA_INT_LIST0_STAT,
-+		read_reg(vpdma, VPDMA_INT_LIST0_STAT));
-+}
++	if (dir == DTD_DIR_IN)
++		pr_debug("word5: hor_start = %d, ver_start = %d\n",
++			dtd_get_h_start(dtd), dtd_get_v_start(dtd));
++	else
++		pr_debug("word5: max_width %d, max_height %d\n",
++			dtd_get_max_width(dtd), dtd_get_max_height(dtd));
 +
-+/*
-+ * configures the output mode of the line buffer for the given client, the
-+ * line buffer content can either be mirrored(each line repeated twice) or
-+ * passed to the client as is
-+ */
-+void vpdma_set_line_mode(struct vpdma_data *vpdma, int line_mode,
-+		enum vpdma_channel chan)
-+{
-+	int client_cstat = chan_info[chan].cstat_offset;
-+
-+	write_field_reg(vpdma, client_cstat, line_mode,
-+		VPDMA_CSTAT_LINE_MODE_MASK, VPDMA_CSTAT_LINE_MODE_SHIFT);
++	pr_debug("word6: client specfic attr0 = 0x%08x\n", dtd->client_attr0);
++	pr_debug("word7: client specfic attr1 = 0x%08x\n", dtd->client_attr1);
 +}
 +
 +/*
-+ * configures the event which should trigger VPDMA transfer for the given
-+ * client
++ * append an outbound data transfer descriptor to the given descriptor list,
++ * this sets up a 'client to memory' VPDMA transfer for the given VPDMA channel
 + */
-+void vpdma_set_frame_start_event(struct vpdma_data *vpdma,
-+		enum vpdma_frame_start_event fs_event,
-+		enum vpdma_channel chan)
++void vpdma_add_out_dtd(struct vpdma_desc_list *list, struct v4l2_rect *c_rect,
++		const struct vpdma_data_format *fmt, dma_addr_t dma_addr,
++		enum vpdma_channel chan, u32 flags)
 +{
-+	int client_cstat = chan_info[chan].cstat_offset;
++	int priority = 0;
++	int field = 0;
++	int notify = 1;
++	int channel, next_chan;
++	int depth = fmt->depth;
++	int stride;
++	struct vpdma_dtd *dtd;
 +
-+	write_field_reg(vpdma, client_cstat, fs_event,
-+		VPDMA_CSTAT_FRAME_START_MASK, VPDMA_CSTAT_FRAME_START_SHIFT);
++	channel = next_chan = chan_info[chan].num;
++
++	if (fmt->data_type == DATA_TYPE_C420)
++		depth = 8;
++
++	stride = (depth * c_rect->width) >> 3;
++	dma_addr += (c_rect->left * depth) >> 3;
++
++	dtd = list->next;
++	WARN_ON((void *)(dtd + 1) > (list->buf.addr + list->buf.size));
++
++	dtd->type_ctl_stride = dtd_type_ctl_stride(fmt->data_type,
++					notify,
++					field,
++					!!(flags & VPDMA_DATA_FRAME_1D),
++					!!(flags & VPDMA_DATA_EVEN_LINE_SKIP),
++					!!(flags & VPDMA_DATA_ODD_LINE_SKIP),
++					stride);
++	dtd->w1 = 0;
++	dtd->start_addr = (u32) dma_addr;
++	dtd->pkt_ctl = dtd_pkt_ctl(!!(flags & VPDMA_DATA_MODE_TILED),
++				DTD_DIR_OUT, channel, priority, next_chan);
++	dtd->desc_write_addr = dtd_desc_write_addr(0, 0, 0, 0);
++	dtd->max_width_height = dtd_max_width_height(MAX_OUT_WIDTH_1920,
++					MAX_OUT_HEIGHT_1080);
++	dtd->client_attr0 = 0;
++	dtd->client_attr1 = 0;
++
++	list->next = dtd + 1;
++
++	dump_dtd(dtd);
 +}
 +
-+static void vpdma_firmware_cb(const struct firmware *f, void *context)
++/*
++ * append an inbound data transfer descriptor to the given descriptor list,
++ * this sets up a 'memory to client' VPDMA transfer for the given VPDMA channel
++ */
++void vpdma_add_in_dtd(struct vpdma_desc_list *list, int frame_width,
++		int frame_height, struct v4l2_rect *c_rect,
++		const struct vpdma_data_format *fmt, dma_addr_t dma_addr,
++		enum vpdma_channel chan, int field, u32 flags)
 +{
-+	struct vpdma_data *vpdma = context;
-+	struct vpdma_buf fw_dma_buf;
-+	int i, r;
++	int priority = 0;
++	int notify = 1;
++	int depth = fmt->depth;
++	int channel, next_chan;
++	int stride;
++	int height = c_rect->height;
++	struct vpdma_dtd *dtd;
 +
-+	dev_dbg(&vpdma->pdev->dev, "firmware callback\n");
++	channel = next_chan = chan_info[chan].num;
 +
-+	if (!f || !f->data) {
-+		dev_err(&vpdma->pdev->dev, "couldn't get firmware\n");
-+		return;
++	if (fmt->data_type == DATA_TYPE_C420) {
++		height >>= 1;
++		frame_height >>= 1;
++		depth = 8;
 +	}
 +
-+	/* already initialized */
-+	if (read_field_reg(vpdma, VPDMA_LIST_ATTR, VPDMA_LIST_RDY_MASK,
-+			VPDMA_LIST_RDY_SHFT)) {
-+		vpdma->ready = true;
-+		return;
-+	}
++	stride = (depth * c_rect->width) >> 3;
++	dma_addr += (c_rect->left * depth) >> 3;
 +
-+	r = vpdma_alloc_desc_buf(&fw_dma_buf, f->size);
-+	if (r) {
-+		dev_err(&vpdma->pdev->dev,
-+			"failed to allocate dma buffer for firmware\n");
-+		goto rel_fw;
-+	}
++	dtd = list->next;
++	WARN_ON((void *)(dtd + 1) > (list->buf.addr + list->buf.size));
 +
-+	memcpy(fw_dma_buf.addr, f->data, f->size);
++	dtd->type_ctl_stride = dtd_type_ctl_stride(fmt->data_type,
++					notify,
++					field,
++					!!(flags & VPDMA_DATA_FRAME_1D),
++					!!(flags & VPDMA_DATA_EVEN_LINE_SKIP),
++					!!(flags & VPDMA_DATA_ODD_LINE_SKIP),
++					stride);
 +
-+	vpdma_map_desc_buf(vpdma, &fw_dma_buf);
++	dtd->xfer_length_height = dtd_xfer_length_height(c_rect->width, height);
++	dtd->start_addr = (u32) dma_addr;
++	dtd->pkt_ctl = dtd_pkt_ctl(!!(flags & VPDMA_DATA_MODE_TILED),
++				DTD_DIR_IN, channel, priority, next_chan);
++	dtd->frame_width_height = dtd_frame_width_height(frame_width,
++					frame_height);
++	dtd->start_h_v = dtd_start_h_v(c_rect->left, c_rect->top);
++	dtd->client_attr0 = 0;
++	dtd->client_attr1 = 0;
 +
-+	write_reg(vpdma, VPDMA_LIST_ADDR, (u32) fw_dma_buf.dma_addr);
++	list->next = dtd + 1;
 +
-+	for (i = 0; i < 100; i++) {		/* max 1 second */
-+		msleep_interruptible(10);
-+
-+		if (read_field_reg(vpdma, VPDMA_LIST_ATTR, VPDMA_LIST_RDY_MASK,
-+				VPDMA_LIST_RDY_SHFT))
-+			break;
-+	}
-+
-+	if (i == 100) {
-+		dev_err(&vpdma->pdev->dev, "firmware upload failed\n");
-+		goto free_buf;
-+	}
-+
-+	vpdma->ready = true;
-+
-+free_buf:
-+	vpdma_unmap_desc_buf(vpdma, &fw_dma_buf);
-+
-+	vpdma_free_desc_buf(&fw_dma_buf);
-+rel_fw:
-+	release_firmware(f);
++	dump_dtd(dtd);
 +}
 +
-+static int vpdma_load_firmware(struct vpdma_data *vpdma)
-+{
-+	int r;
-+	struct device *dev = &vpdma->pdev->dev;
-+
-+	r = request_firmware_nowait(THIS_MODULE, 1,
-+		(const char *) VPDMA_FIRMWARE, dev, GFP_KERNEL, vpdma,
-+		vpdma_firmware_cb);
-+	if (r) {
-+		dev_err(dev, "firmware not available %s\n", VPDMA_FIRMWARE);
-+		return r;
-+	} else {
-+		dev_info(dev, "loading firmware %s\n", VPDMA_FIRMWARE);
-+	}
-+
-+	return 0;
-+}
-+
-+struct vpdma_data *vpdma_create(struct platform_device *pdev)
-+{
-+	struct resource *res;
-+	struct vpdma_data *vpdma;
-+	int r;
-+
-+	dev_dbg(&pdev->dev, "vpdma_create\n");
-+
-+	vpdma = devm_kzalloc(&pdev->dev, sizeof(*vpdma), GFP_KERNEL);
-+	if (!vpdma) {
-+		dev_err(&pdev->dev, "couldn't alloc vpdma_dev\n");
-+		return ERR_PTR(-ENOMEM);
-+	}
-+
-+	vpdma->pdev = pdev;
-+
-+	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "vpdma");
-+	if (res == NULL) {
-+		dev_err(&pdev->dev, "missing platform resources data\n");
-+		return ERR_PTR(-ENODEV);
-+	}
-+
-+	vpdma->base = devm_ioremap(&pdev->dev, res->start, resource_size(res));
-+	if (!vpdma->base) {
-+		dev_err(&pdev->dev, "failed to ioremap\n");
-+		return ERR_PTR(-ENOMEM);
-+	}
-+
-+	r = vpdma_load_firmware(vpdma);
-+	if (r) {
-+		pr_err("failed to load firmware %s\n", VPDMA_FIRMWARE);
-+		return ERR_PTR(r);
-+	}
-+
-+	return vpdma;
-+}
-+MODULE_FIRMWARE(VPDMA_FIRMWARE);
+ /* set or clear the mask for list complete interrupt */
+ void vpdma_enable_list_complete_irq(struct vpdma_data *vpdma, int list_num,
+ 		bool enable)
 diff --git a/drivers/media/platform/ti-vpe/vpdma.h b/drivers/media/platform/ti-vpe/vpdma.h
-new file mode 100644
-index 0000000..8056689
---- /dev/null
+index 8056689..eaa2a71 100644
+--- a/drivers/media/platform/ti-vpe/vpdma.h
 +++ b/drivers/media/platform/ti-vpe/vpdma.h
-@@ -0,0 +1,155 @@
-+/*
-+ * Copyright (c) 2013 Texas Instruments Inc.
-+ *
-+ * David Griego, <dagriego@biglakesoftware.com>
-+ * Dale Farnsworth, <dale@farnsworth.org>
-+ * Archit Taneja, <archit@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License version 2 as published by
-+ * the Free Software Foundation.
-+ */
-+
-+#ifndef __TI_VPDMA_H_
-+#define __TI_VPDMA_H_
+@@ -124,6 +124,39 @@ enum vpdma_channel {
+ 	VPE_CHAN_RGB_OUT,
+ };
+ 
++/* flags for VPDMA data descriptors */
++#define VPDMA_DATA_ODD_LINE_SKIP	(1 << 0)
++#define VPDMA_DATA_EVEN_LINE_SKIP	(1 << 1)
++#define VPDMA_DATA_FRAME_1D		(1 << 2)
++#define VPDMA_DATA_MODE_TILED		(1 << 3)
 +
 +/*
-+ * A vpdma_buf tracks the size, DMA address and mapping status of each
-+ * driver DMA area.
++ * client identifiers used for configuration descriptors
 + */
-+struct vpdma_buf {
-+	void			*addr;
-+	dma_addr_t		dma_addr;
-+	size_t			size;
-+	bool			mapped;
++#define CFD_MMR_CLIENT		0
++#define CFD_SC_CLIENT		4
++
++/* Address data block header format */
++struct vpdma_adb_hdr {
++	u32			offset;
++	u32			nwords;
++	u32			reserved0;
++	u32			reserved1;
 +};
 +
-+struct vpdma_desc_list {
-+	struct vpdma_buf buf;
-+	void *next;
-+	int type;
-+};
++/* helpers for creating ADB headers for config descriptors MMRs as client */
++#define ADB_ADDR(dma_buf, str, fld)	((dma_buf)->addr + offsetof(str, fld))
++#define MMR_ADB_ADDR(buf, str, fld)	ADB_ADDR(&(buf), struct str, fld)
 +
-+struct vpdma_data {
-+	void __iomem		*base;
++#define VPDMA_SET_MMR_ADB_HDR(buf, str, hdr, regs, offset_a)	\
++	do {							\
++		struct vpdma_adb_hdr *h;			\
++		struct str *adb = NULL;				\
++		h = MMR_ADB_ADDR(buf, str, hdr);		\
++		h->offset = (offset_a);				\
++		h->nwords = sizeof(adb->regs) >> 2;		\
++	} while (0)
 +
-+	struct platform_device	*pdev;
-+
-+	/* tells whether vpdma firmware is loaded or not */
-+	bool ready;
-+};
-+
-+struct vpdma_data_format {
-+	int data_type;
-+	u8 depth;
-+};
-+
-+#define VPDMA_DESC_ALIGN		16	/* 16-byte descriptor alignment */
-+
-+#define VPDMA_DTD_DESC_SIZE		32	/* 8 words */
-+#define VPDMA_CFD_CTD_DESC_SIZE		16	/* 4 words */
-+
-+#define VPDMA_LIST_TYPE_NORMAL		0
-+#define VPDMA_LIST_TYPE_SELF_MODIFYING	1
-+#define VPDMA_LIST_TYPE_DOORBELL	2
-+
-+enum vpdma_yuv_formats {
-+	VPDMA_DATA_FMT_Y444 = 0,
-+	VPDMA_DATA_FMT_Y422,
-+	VPDMA_DATA_FMT_Y420,
-+	VPDMA_DATA_FMT_C444,
-+	VPDMA_DATA_FMT_C422,
-+	VPDMA_DATA_FMT_C420,
-+	VPDMA_DATA_FMT_YC422,
-+	VPDMA_DATA_FMT_YC444,
-+	VPDMA_DATA_FMT_CY422,
-+};
-+
-+enum vpdma_rgb_formats {
-+	VPDMA_DATA_FMT_RGB565 = 0,
-+	VPDMA_DATA_FMT_ARGB16_1555,
-+	VPDMA_DATA_FMT_ARGB16,
-+	VPDMA_DATA_FMT_RGBA16_5551,
-+	VPDMA_DATA_FMT_RGBA16,
-+	VPDMA_DATA_FMT_ARGB24,
-+	VPDMA_DATA_FMT_RGB24,
-+	VPDMA_DATA_FMT_ARGB32,
-+	VPDMA_DATA_FMT_RGBA24,
-+	VPDMA_DATA_FMT_RGBA32,
-+	VPDMA_DATA_FMT_BGR565,
-+	VPDMA_DATA_FMT_ABGR16_1555,
-+	VPDMA_DATA_FMT_ABGR16,
-+	VPDMA_DATA_FMT_BGRA16_5551,
-+	VPDMA_DATA_FMT_BGRA16,
-+	VPDMA_DATA_FMT_ABGR24,
-+	VPDMA_DATA_FMT_BGR24,
-+	VPDMA_DATA_FMT_ABGR32,
-+	VPDMA_DATA_FMT_BGRA24,
-+	VPDMA_DATA_FMT_BGRA32,
-+};
-+
-+enum vpdma_misc_formats {
-+	VPDMA_DATA_FMT_MV = 0,
-+};
-+
-+extern const struct vpdma_data_format vpdma_yuv_fmts[];
-+extern const struct vpdma_data_format vpdma_rgb_fmts[];
-+extern const struct vpdma_data_format vpdma_misc_fmts[];
-+
-+enum vpdma_frame_start_event {
-+	VPDMA_FSEVENT_HDMI_FID = 0,
-+	VPDMA_FSEVENT_DVO2_FID,
-+	VPDMA_FSEVENT_HDCOMP_FID,
-+	VPDMA_FSEVENT_SD_FID,
-+	VPDMA_FSEVENT_LM_FID0,
-+	VPDMA_FSEVENT_LM_FID1,
-+	VPDMA_FSEVENT_LM_FID2,
-+	VPDMA_FSEVENT_CHANNEL_ACTIVE,
-+};
-+
-+/*
-+ * VPDMA channel numbers
-+ */
-+enum vpdma_channel {
-+	VPE_CHAN_LUMA1_IN,
-+	VPE_CHAN_CHROMA1_IN,
-+	VPE_CHAN_LUMA2_IN,
-+	VPE_CHAN_CHROMA2_IN,
-+	VPE_CHAN_LUMA3_IN,
-+	VPE_CHAN_CHROMA3_IN,
-+	VPE_CHAN_MV_IN,
-+	VPE_CHAN_MV_OUT,
-+	VPE_CHAN_LUMA_OUT,
-+	VPE_CHAN_CHROMA_OUT,
-+	VPE_CHAN_RGB_OUT,
-+};
-+
-+/* vpdma descriptor buffer allocation and management */
-+int vpdma_alloc_desc_buf(struct vpdma_buf *buf, size_t size);
-+void vpdma_free_desc_buf(struct vpdma_buf *buf);
-+int vpdma_map_desc_buf(struct vpdma_data *vpdma, struct vpdma_buf *buf);
-+void vpdma_unmap_desc_buf(struct vpdma_data *vpdma, struct vpdma_buf *buf);
-+
-+/* vpdma descriptor list funcs */
-+int vpdma_create_desc_list(struct vpdma_desc_list *list, size_t size, int type);
-+void vpdma_reset_desc_list(struct vpdma_desc_list *list);
-+void vpdma_free_desc_list(struct vpdma_desc_list *list);
-+int vpdma_submit_descs(struct vpdma_data *vpdma, struct vpdma_desc_list *list);
-+
-+/* vpdma list interrupt management */
-+void vpdma_enable_list_complete_irq(struct vpdma_data *vpdma, int list_num,
-+		bool enable);
-+void vpdma_clear_list_stat(struct vpdma_data *vpdma);
-+
-+/* vpdma client configuration */
-+void vpdma_set_line_mode(struct vpdma_data *vpdma, int line_mode,
+ /* vpdma descriptor buffer allocation and management */
+ int vpdma_alloc_desc_buf(struct vpdma_buf *buf, size_t size);
+ void vpdma_free_desc_buf(struct vpdma_buf *buf);
+@@ -136,6 +169,21 @@ void vpdma_reset_desc_list(struct vpdma_desc_list *list);
+ void vpdma_free_desc_list(struct vpdma_desc_list *list);
+ int vpdma_submit_descs(struct vpdma_data *vpdma, struct vpdma_desc_list *list);
+ 
++/* helpers for creating vpdma descriptors */
++void vpdma_add_cfd_block(struct vpdma_desc_list *list, int client,
++		struct vpdma_buf *blk, u32 dest_offset);
++void vpdma_add_cfd_adb(struct vpdma_desc_list *list, int client,
++		struct vpdma_buf *adb);
++void vpdma_add_sync_on_channel_ctd(struct vpdma_desc_list *list,
 +		enum vpdma_channel chan);
-+void vpdma_set_frame_start_event(struct vpdma_data *vpdma,
-+		enum vpdma_frame_start_event fs_event, enum vpdma_channel chan);
++void vpdma_add_out_dtd(struct vpdma_desc_list *list, struct v4l2_rect *c_rect,
++		const struct vpdma_data_format *fmt, dma_addr_t dma_addr,
++		enum vpdma_channel chan, u32 flags);
++void vpdma_add_in_dtd(struct vpdma_desc_list *list, int frame_width,
++		int frame_height, struct v4l2_rect *c_rect,
++		const struct vpdma_data_format *fmt, dma_addr_t dma_addr,
++		enum vpdma_channel chan, int field, u32 flags);
 +
-+void vpdma_dump_regs(struct vpdma_data *vpdma);
-+
-+/* initialize vpdma, passed with VPE's platform device pointer */
-+struct vpdma_data *vpdma_create(struct platform_device *pdev);
-+
-+#endif
+ /* vpdma list interrupt management */
+ void vpdma_enable_list_complete_irq(struct vpdma_data *vpdma, int list_num,
+ 		bool enable);
 diff --git a/drivers/media/platform/ti-vpe/vpdma_priv.h b/drivers/media/platform/ti-vpe/vpdma_priv.h
-new file mode 100644
-index 0000000..8ff51a3
---- /dev/null
+index 8ff51a3..f0e9a80 100644
+--- a/drivers/media/platform/ti-vpe/vpdma_priv.h
 +++ b/drivers/media/platform/ti-vpe/vpdma_priv.h
-@@ -0,0 +1,119 @@
+@@ -116,4 +116,526 @@
+ #define	VPE_CHAN_NUM_CHROMA_OUT		103
+ #define	VPE_CHAN_NUM_RGB_OUT		106
+ 
 +/*
-+ * Copyright (c) 2013 Texas Instruments Inc.
-+ *
-+ * David Griego, <dagriego@biglakesoftware.com>
-+ * Dale Farnsworth, <dale@farnsworth.org>
-+ * Archit Taneja, <archit@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License version 2 as published by
-+ * the Free Software Foundation.
++ * a VPDMA address data block payload for a configuration descriptor needs to
++ * have each sub block length as a multiple of 16 bytes. Therefore, the overall
++ * size of the payload also needs to be a multiple of 16 bytes. The sub block
++ * lengths should be ensured to be aligned by the VPDMA user.
 + */
-+
-+#ifndef _TI_VPDMA_PRIV_H_
-+#define _TI_VPDMA_PRIV_H_
++#define VPDMA_ADB_SIZE_ALIGN		0x0f
 +
 +/*
-+ * VPDMA Register offsets
++ * data transfer descriptor
 + */
++struct vpdma_dtd {
++	u32			type_ctl_stride;
++	union {
++		u32		xfer_length_height;
++		u32		w1;
++	};
++	dma_addr_t		start_addr;
++	u32			pkt_ctl;
++	union {
++		u32		frame_width_height;	/* inbound */
++		dma_addr_t	desc_write_addr;	/* outbound */
++	};
++	union {
++		u32		start_h_v;		/* inbound */
++		u32		max_width_height;	/* outbound */
++	};
++	u32			client_attr0;
++	u32			client_attr1;
++};
 +
-+/* Top level */
-+#define VPDMA_PID		0x00
-+#define VPDMA_LIST_ADDR		0x04
-+#define VPDMA_LIST_ATTR		0x08
-+#define VPDMA_LIST_STAT_SYNC	0x0c
-+#define VPDMA_BG_RGB		0x18
-+#define VPDMA_BG_YUV		0x1c
-+#define VPDMA_SETUP		0x30
-+#define VPDMA_MAX_SIZE1		0x34
-+#define VPDMA_MAX_SIZE2		0x38
-+#define VPDMA_MAX_SIZE3		0x3c
++/* Data Transfer Descriptor specifics */
++#define DTD_NO_NOTIFY		0
++#define DTD_NOTIFY		1
 +
-+/* Interrupts */
-+#define VPDMA_INT_CHAN_STAT(grp)	(0x40 + grp * 8)
-+#define VPDMA_INT_CHAN_MASK(grp)	(VPDMA_INT_CHAN_STAT(grp) + 4)
-+#define VPDMA_INT_CLIENT0_STAT		0x78
-+#define VPDMA_INT_CLIENT0_MASK		0x7c
-+#define VPDMA_INT_CLIENT1_STAT		0x80
-+#define VPDMA_INT_CLIENT1_MASK		0x84
-+#define VPDMA_INT_LIST0_STAT		0x88
-+#define VPDMA_INT_LIST0_MASK		0x8c
++#define DTD_PKT_TYPE		0xa
++#define DTD_DIR_IN		0
++#define DTD_DIR_OUT		1
 +
-+#define VPDMA_PERFMON(i)		(0x200 + i * 4)
++/* type_ctl_stride */
++#define DTD_DATA_TYPE_MASK	0x3f
++#define DTD_DATA_TYPE_SHFT	26
++#define DTD_NOTIFY_MASK		0x01
++#define DTD_NOTIFY_SHFT		25
++#define DTD_FIELD_MASK		0x01
++#define DTD_FIELD_SHFT		24
++#define DTD_1D_MASK		0x01
++#define DTD_1D_SHFT		23
++#define DTD_EVEN_LINE_SKIP_MASK	0x01
++#define DTD_EVEN_LINE_SKIP_SHFT	20
++#define DTD_ODD_LINE_SKIP_MASK	0x01
++#define DTD_ODD_LINE_SKIP_SHFT	16
++#define DTD_LINE_STRIDE_MASK	0xffff
++#define DTD_LINE_STRIDE_SHFT	0
 +
-+/* VPE specific client registers */
-+#define VPDMA_DEI_CHROMA1_CSTAT		0x0300
-+#define VPDMA_DEI_LUMA1_CSTAT		0x0304
-+#define VPDMA_DEI_LUMA2_CSTAT		0x0308
-+#define VPDMA_DEI_CHROMA2_CSTAT		0x030c
-+#define VPDMA_DEI_LUMA3_CSTAT		0x0310
-+#define VPDMA_DEI_CHROMA3_CSTAT		0x0314
-+#define VPDMA_DEI_MV_IN_CSTAT		0x0330
-+#define VPDMA_DEI_MV_OUT_CSTAT		0x033c
-+#define VPDMA_VIP_UP_Y_CSTAT		0x0390
-+#define VPDMA_VIP_UP_UV_CSTAT		0x0394
-+#define VPDMA_VPI_CTL_CSTAT		0x03d0
++/* xfer_length_height */
++#define DTD_LINE_LENGTH_MASK	0xffff
++#define DTD_LINE_LENGTH_SHFT	16
++#define DTD_XFER_HEIGHT_MASK	0xffff
++#define DTD_XFER_HEIGHT_SHFT	0
 +
-+/* Reg field info for VPDMA_CLIENT_CSTAT registers */
-+#define VPDMA_CSTAT_LINE_MODE_MASK	0x03
-+#define VPDMA_CSTAT_LINE_MODE_SHIFT	8
-+#define VPDMA_CSTAT_FRAME_START_MASK	0xf
-+#define VPDMA_CSTAT_FRAME_START_SHIFT	10
++/* pkt_ctl */
++#define DTD_PKT_TYPE_MASK	0x1f
++#define DTD_PKT_TYPE_SHFT	27
++#define DTD_MODE_MASK		0x01
++#define DTD_MODE_SHFT		26
++#define DTD_DIR_MASK		0x01
++#define DTD_DIR_SHFT		25
++#define DTD_CHAN_MASK		0x01ff
++#define DTD_CHAN_SHFT		16
++#define DTD_PRI_MASK		0x0f
++#define DTD_PRI_SHFT		9
++#define DTD_NEXT_CHAN_MASK	0x01ff
++#define DTD_NEXT_CHAN_SHFT	0
 +
-+#define VPDMA_LIST_NUM_MASK		0x07
-+#define VPDMA_LIST_NUM_SHFT		24
-+#define VPDMA_LIST_STOP_SHFT		20
-+#define VPDMA_LIST_RDY_MASK		0x01
-+#define VPDMA_LIST_RDY_SHFT		19
-+#define VPDMA_LIST_TYPE_MASK		0x03
-+#define VPDMA_LIST_TYPE_SHFT		16
-+#define VPDMA_LIST_SIZE_MASK		0xffff
++/* frame_width_height */
++#define DTD_FRAME_WIDTH_MASK	0xffff
++#define DTD_FRAME_WIDTH_SHFT	16
++#define DTD_FRAME_HEIGHT_MASK	0xffff
++#define DTD_FRAME_HEIGHT_SHFT	0
 +
-+/* VPDMA data type values for data formats */
-+#define DATA_TYPE_Y444				0x0
-+#define DATA_TYPE_Y422				0x1
-+#define DATA_TYPE_Y420				0x2
-+#define DATA_TYPE_C444				0x4
-+#define DATA_TYPE_C422				0x5
-+#define DATA_TYPE_C420				0x6
-+#define DATA_TYPE_YC422				0x7
-+#define DATA_TYPE_YC444				0x8
-+#define DATA_TYPE_CY422				0x23
++/* start_h_v */
++#define DTD_H_START_MASK	0xffff
++#define DTD_H_START_SHFT	16
++#define DTD_V_START_MASK	0xffff
++#define DTD_V_START_SHFT	0
 +
-+#define DATA_TYPE_RGB16_565			0x0
-+#define DATA_TYPE_ARGB_1555			0x1
-+#define DATA_TYPE_ARGB_4444			0x2
-+#define DATA_TYPE_RGBA_5551			0x3
-+#define DATA_TYPE_RGBA_4444			0x4
-+#define DATA_TYPE_ARGB24_6666			0x5
-+#define DATA_TYPE_RGB24_888			0x6
-+#define DATA_TYPE_ARGB32_8888			0x7
-+#define DATA_TYPE_RGBA24_6666			0x8
-+#define DATA_TYPE_RGBA32_8888			0x9
-+#define DATA_TYPE_BGR16_565			0x10
-+#define DATA_TYPE_ABGR_1555			0x11
-+#define DATA_TYPE_ABGR_4444			0x12
-+#define DATA_TYPE_BGRA_5551			0x13
-+#define DATA_TYPE_BGRA_4444			0x14
-+#define DATA_TYPE_ABGR24_6666			0x15
-+#define DATA_TYPE_BGR24_888			0x16
-+#define DATA_TYPE_ABGR32_8888			0x17
-+#define DATA_TYPE_BGRA24_6666			0x18
-+#define DATA_TYPE_BGRA32_8888			0x19
++#define DTD_DESC_START_SHIFT	5
++#define DTD_WRITE_DESC_MASK	0x01
++#define DTD_WRITE_DESC_SHIFT	2
++#define DTD_DROP_DATA_MASK	0x01
++#define DTD_DROP_DATA_SHIFT	1
++#define DTD_USE_DESC_MASK	0x01
++#define DTD_USE_DESC_SHIFT	0
 +
-+#define DATA_TYPE_MV				0x3
++/* max_width_height */
++#define DTD_MAX_WIDTH_MASK	0x07
++#define DTD_MAX_WIDTH_SHFT	4
++#define DTD_MAX_HEIGHT_MASK	0x07
++#define DTD_MAX_HEIGHT_SHFT	0
 +
-+/* VPDMA channel numbers(only VPE channels for now) */
-+#define	VPE_CHAN_NUM_LUMA1_IN		0
-+#define	VPE_CHAN_NUM_CHROMA1_IN		1
-+#define	VPE_CHAN_NUM_LUMA2_IN		2
-+#define	VPE_CHAN_NUM_CHROMA2_IN		3
-+#define	VPE_CHAN_NUM_LUMA3_IN		4
-+#define	VPE_CHAN_NUM_CHROMA3_IN		5
-+#define	VPE_CHAN_NUM_MV_IN		12
-+#define	VPE_CHAN_NUM_MV_OUT		15
-+#define	VPE_CHAN_NUM_LUMA_OUT		102
-+#define	VPE_CHAN_NUM_CHROMA_OUT		103
-+#define	VPE_CHAN_NUM_RGB_OUT		106
++/* max width configurations */
++ /* unlimited width */
++#define	MAX_OUT_WIDTH_UNLIMITED		0
++/* as specified in max_size1 reg */
++#define MAX_OUT_WIDTH_REG1		1
++/* as specified in max_size2 reg */
++#define MAX_OUT_WIDTH_REG2		2
++/* as specified in max_size3 reg */
++#define	MAX_OUT_WIDTH_REG3		3
++/* maximum of 352 pixels as width */
++#define MAX_OUT_WIDTH_352		4
++/* maximum of 768 pixels as width */
++#define	MAX_OUT_WIDTH_768		5
++/* maximum of 1280 pixels width */
++#define	MAX_OUT_WIDTH_1280		6
++/* maximum of 1920 pixels as width */
++#define	MAX_OUT_WIDTH_1920		7
 +
-+#endif
++/* max height configurations */
++ /* unlimited height */
++#define	MAX_OUT_HEIGHT_UNLIMITED	0
++/* as specified in max_size1 reg */
++#define MAX_OUT_HEIGHT_REG1		1
++/* as specified in max_size2 reg */
++#define MAX_OUT_HEIGHT_REG2		2
++/* as specified in max_size3 reg */
++#define	MAX_OUT_HEIGHT_REG3		3
++/* maximum of 288 lines as height */
++#define MAX_OUT_HEIGHT_288		4
++/* maximum of 576 lines as height */
++#define	MAX_OUT_HEIGHT_576		5
++/* maximum of 720 lines as height */
++#define	MAX_OUT_HEIGHT_720		6
++/* maximum of 1080 lines as height */
++#define	MAX_OUT_HEIGHT_1080		7
++
++static inline u32 dtd_type_ctl_stride(int type, bool notify, int field,
++			bool one_d, bool even_line_skip, bool odd_line_skip,
++			int line_stride)
++{
++	return (type << DTD_DATA_TYPE_SHFT) | (notify << DTD_NOTIFY_SHFT) |
++		(field << DTD_FIELD_SHFT) | (one_d << DTD_1D_SHFT) |
++		(even_line_skip << DTD_EVEN_LINE_SKIP_SHFT) |
++		(odd_line_skip << DTD_ODD_LINE_SKIP_SHFT) |
++		line_stride;
++}
++
++static inline u32 dtd_xfer_length_height(int line_length, int xfer_height)
++{
++	return (line_length << DTD_LINE_LENGTH_SHFT) | xfer_height;
++}
++
++static inline u32 dtd_pkt_ctl(bool mode, bool dir, int chan, int pri,
++			int next_chan)
++{
++	return (DTD_PKT_TYPE << DTD_PKT_TYPE_SHFT) | (mode << DTD_MODE_SHFT) |
++		(dir << DTD_DIR_SHFT) | (chan << DTD_CHAN_SHFT) |
++		(pri << DTD_PRI_SHFT) | next_chan;
++}
++
++static inline u32 dtd_frame_width_height(int width, int height)
++{
++	return (width << DTD_FRAME_WIDTH_SHFT) | height;
++}
++
++static inline u32 dtd_desc_write_addr(unsigned int addr, bool write_desc,
++			bool drop_data, bool use_desc)
++{
++	return (addr << DTD_DESC_START_SHIFT) |
++		(write_desc << DTD_WRITE_DESC_SHIFT) |
++		(drop_data << DTD_DROP_DATA_SHIFT) |
++		use_desc;
++}
++
++static inline u32 dtd_start_h_v(int h_start, int v_start)
++{
++	return (h_start << DTD_H_START_SHFT) | v_start;
++}
++
++static inline u32 dtd_max_width_height(int max_width, int max_height)
++{
++	return (max_width << DTD_MAX_WIDTH_SHFT) | max_height;
++}
++
++static inline int dtd_get_data_type(struct vpdma_dtd *dtd)
++{
++	return dtd->type_ctl_stride >> DTD_DATA_TYPE_SHFT;
++}
++
++static inline bool dtd_get_notify(struct vpdma_dtd *dtd)
++{
++	return (dtd->type_ctl_stride >> DTD_NOTIFY_SHFT) & DTD_NOTIFY_MASK;
++}
++
++static inline int dtd_get_field(struct vpdma_dtd *dtd)
++{
++	return (dtd->type_ctl_stride >> DTD_FIELD_SHFT) & DTD_FIELD_MASK;
++}
++
++static inline bool dtd_get_1d(struct vpdma_dtd *dtd)
++{
++	return (dtd->type_ctl_stride >> DTD_1D_SHFT) & DTD_1D_MASK;
++}
++
++static inline bool dtd_get_even_line_skip(struct vpdma_dtd *dtd)
++{
++	return (dtd->type_ctl_stride >> DTD_EVEN_LINE_SKIP_SHFT)
++		& DTD_EVEN_LINE_SKIP_MASK;
++}
++
++static inline bool dtd_get_odd_line_skip(struct vpdma_dtd *dtd)
++{
++	return (dtd->type_ctl_stride >> DTD_ODD_LINE_SKIP_SHFT)
++		& DTD_ODD_LINE_SKIP_MASK;
++}
++
++static inline int dtd_get_line_stride(struct vpdma_dtd *dtd)
++{
++	return dtd->type_ctl_stride & DTD_LINE_STRIDE_MASK;
++}
++
++static inline int dtd_get_line_length(struct vpdma_dtd *dtd)
++{
++	return dtd->xfer_length_height >> DTD_LINE_LENGTH_SHFT;
++}
++
++static inline int dtd_get_xfer_height(struct vpdma_dtd *dtd)
++{
++	return dtd->xfer_length_height & DTD_XFER_HEIGHT_MASK;
++}
++
++static inline int dtd_get_pkt_type(struct vpdma_dtd *dtd)
++{
++	return dtd->pkt_ctl >> DTD_PKT_TYPE_SHFT;
++}
++
++static inline bool dtd_get_mode(struct vpdma_dtd *dtd)
++{
++	return (dtd->pkt_ctl >> DTD_MODE_SHFT) & DTD_MODE_MASK;
++}
++
++static inline bool dtd_get_dir(struct vpdma_dtd *dtd)
++{
++	return (dtd->pkt_ctl >> DTD_DIR_SHFT) & DTD_DIR_MASK;
++}
++
++static inline int dtd_get_chan(struct vpdma_dtd *dtd)
++{
++	return (dtd->pkt_ctl >> DTD_CHAN_SHFT) & DTD_CHAN_MASK;
++}
++
++static inline int dtd_get_priority(struct vpdma_dtd *dtd)
++{
++	return (dtd->pkt_ctl >> DTD_PRI_SHFT) & DTD_PRI_MASK;
++}
++
++static inline int dtd_get_next_chan(struct vpdma_dtd *dtd)
++{
++	return (dtd->pkt_ctl >> DTD_NEXT_CHAN_SHFT) & DTD_NEXT_CHAN_MASK;
++}
++
++static inline int dtd_get_frame_width(struct vpdma_dtd *dtd)
++{
++	return dtd->frame_width_height >> DTD_FRAME_WIDTH_SHFT;
++}
++
++static inline int dtd_get_frame_height(struct vpdma_dtd *dtd)
++{
++	return dtd->frame_width_height & DTD_FRAME_HEIGHT_MASK;
++}
++
++static inline int dtd_get_desc_write_addr(struct vpdma_dtd *dtd)
++{
++	return dtd->desc_write_addr >> DTD_DESC_START_SHIFT;
++}
++
++static inline bool dtd_get_write_desc(struct vpdma_dtd *dtd)
++{
++	return (dtd->desc_write_addr >> DTD_WRITE_DESC_SHIFT) &
++							DTD_WRITE_DESC_MASK;
++}
++
++static inline bool dtd_get_drop_data(struct vpdma_dtd *dtd)
++{
++	return (dtd->desc_write_addr >> DTD_DROP_DATA_SHIFT) &
++							DTD_DROP_DATA_MASK;
++}
++
++static inline bool dtd_get_use_desc(struct vpdma_dtd *dtd)
++{
++	return dtd->desc_write_addr & DTD_USE_DESC_MASK;
++}
++
++static inline int dtd_get_h_start(struct vpdma_dtd *dtd)
++{
++	return dtd->start_h_v >> DTD_H_START_SHFT;
++}
++
++static inline int dtd_get_v_start(struct vpdma_dtd *dtd)
++{
++	return dtd->start_h_v & DTD_V_START_MASK;
++}
++
++static inline int dtd_get_max_width(struct vpdma_dtd *dtd)
++{
++	return (dtd->max_width_height >> DTD_MAX_WIDTH_SHFT) &
++							DTD_MAX_WIDTH_MASK;
++}
++
++static inline int dtd_get_max_height(struct vpdma_dtd *dtd)
++{
++	return (dtd->max_width_height >> DTD_MAX_HEIGHT_SHFT) &
++							DTD_MAX_HEIGHT_MASK;
++}
++
++/*
++ * configuration descriptor
++ */
++struct vpdma_cfd {
++	union {
++		u32	dest_addr_offset;
++		u32	w0;
++	};
++	union {
++		u32	block_len;		/* in words */
++		u32	w1;
++	};
++	u32		payload_addr;
++	u32		ctl_payload_len;	/* in words */
++};
++
++/* Configuration descriptor specifics */
++
++#define CFD_PKT_TYPE		0xb
++
++#define CFD_DIRECT		1
++#define CFD_INDIRECT		0
++#define CFD_CLS_ADB		0
++#define CFD_CLS_BLOCK		1
++
++/* block_len */
++#define CFD__BLOCK_LEN_MASK	0xffff
++#define CFD__BLOCK_LEN_SHFT	0
++
++/* ctl_payload_len */
++#define CFD_PKT_TYPE_MASK	0x1f
++#define CFD_PKT_TYPE_SHFT	27
++#define CFD_DIRECT_MASK		0x01
++#define CFD_DIRECT_SHFT		26
++#define CFD_CLASS_MASK		0x03
++#define CFD_CLASS_SHFT		24
++#define CFD_DEST_MASK		0xff
++#define CFD_DEST_SHFT		16
++#define CFD_PAYLOAD_LEN_MASK	0xffff
++#define CFD_PAYLOAD_LEN_SHFT	0
++
++static inline u32 cfd_pkt_payload_len(bool direct, int cls, int dest,
++		int payload_len)
++{
++	return (CFD_PKT_TYPE << CFD_PKT_TYPE_SHFT) |
++		(direct << CFD_DIRECT_SHFT) |
++		(cls << CFD_CLASS_SHFT) |
++		(dest << CFD_DEST_SHFT) |
++		payload_len;
++}
++
++static inline int cfd_get_pkt_type(struct vpdma_cfd *cfd)
++{
++	return cfd->ctl_payload_len >> CFD_PKT_TYPE_SHFT;
++}
++
++static inline bool cfd_get_direct(struct vpdma_cfd *cfd)
++{
++	return (cfd->ctl_payload_len >> CFD_DIRECT_SHFT) & CFD_DIRECT_MASK;
++}
++
++static inline bool cfd_get_class(struct vpdma_cfd *cfd)
++{
++	return (cfd->ctl_payload_len >> CFD_CLASS_SHFT) & CFD_CLASS_MASK;
++}
++
++static inline int cfd_get_dest(struct vpdma_cfd *cfd)
++{
++	return (cfd->ctl_payload_len >> CFD_DEST_SHFT) & CFD_DEST_MASK;
++}
++
++static inline int cfd_get_payload_len(struct vpdma_cfd *cfd)
++{
++	return cfd->ctl_payload_len & CFD_PAYLOAD_LEN_MASK;
++}
++
++/*
++ * control descriptor
++ */
++struct vpdma_ctd {
++	union {
++		u32	timer_value;
++		u32	list_addr;
++		u32	w0;
++	};
++	union {
++		u32	pixel_line_count;
++		u32	list_size;
++		u32	w1;
++	};
++	union {
++		u32	event;
++		u32	fid_ctl;
++		u32	w2;
++	};
++	u32		type_source_ctl;
++};
++
++/* control descriptor types */
++#define CTD_TYPE_SYNC_ON_CLIENT		0
++#define CTD_TYPE_SYNC_ON_LIST		1
++#define CTD_TYPE_SYNC_ON_EXT		2
++#define CTD_TYPE_SYNC_ON_LM_TIMER	3
++#define CTD_TYPE_SYNC_ON_CHANNEL	4
++#define CTD_TYPE_CHNG_CLIENT_IRQ	5
++#define CTD_TYPE_SEND_IRQ		6
++#define CTD_TYPE_RELOAD_LIST		7
++#define CTD_TYPE_ABORT_CHANNEL		8
++
++#define CTD_PKT_TYPE		0xc
++
++/* timer_value */
++#define CTD_TIMER_VALUE_MASK	0xffff
++#define CTD_TIMER_VALUE_SHFT	0
++
++/* pixel_line_count */
++#define CTD_PIXEL_COUNT_MASK	0xffff
++#define CTD_PIXEL_COUNT_SHFT	16
++#define CTD_LINE_COUNT_MASK	0xffff
++#define CTD_LINE_COUNT_SHFT	0
++
++/* list_size */
++#define CTD_LIST_SIZE_MASK	0xffff
++#define CTD_LIST_SIZE_SHFT	0
++
++/* event */
++#define CTD_EVENT_MASK		0x0f
++#define CTD_EVENT_SHFT		0
++
++/* fid_ctl */
++#define CTD_FID2_MASK		0x03
++#define CTD_FID2_SHFT		4
++#define CTD_FID1_MASK		0x03
++#define CTD_FID1_SHFT		2
++#define CTD_FID0_MASK		0x03
++#define CTD_FID0_SHFT		0
++
++/* type_source_ctl */
++#define CTD_PKT_TYPE_MASK	0x1f
++#define CTD_PKT_TYPE_SHFT	27
++#define CTD_SOURCE_MASK		0xff
++#define CTD_SOURCE_SHFT		16
++#define CTD_CONTROL_MASK	0x0f
++#define CTD_CONTROL_SHFT	0
++
++static inline u32 ctd_pixel_line_count(int pixel_count, int line_count)
++{
++	return (pixel_count << CTD_PIXEL_COUNT_SHFT) | line_count;
++}
++
++static inline u32 ctd_set_fid_ctl(int fid0, int fid1, int fid2)
++{
++	return (fid2 << CTD_FID2_SHFT) | (fid1 << CTD_FID1_SHFT) | fid0;
++}
++
++static inline u32 ctd_type_source_ctl(int source, int control)
++{
++	return (CTD_PKT_TYPE << CTD_PKT_TYPE_SHFT) |
++		(source << CTD_SOURCE_SHFT) | control;
++}
++
++static inline u32 ctd_get_pixel_count(struct vpdma_ctd *ctd)
++{
++	return ctd->pixel_line_count >> CTD_PIXEL_COUNT_SHFT;
++}
++
++static inline int ctd_get_line_count(struct vpdma_ctd *ctd)
++{
++	return ctd->pixel_line_count & CTD_LINE_COUNT_MASK;
++}
++
++static inline int ctd_get_event(struct vpdma_ctd *ctd)
++{
++	return ctd->event & CTD_EVENT_MASK;
++}
++
++static inline int ctd_get_fid2_ctl(struct vpdma_ctd *ctd)
++{
++	return (ctd->fid_ctl >> CTD_FID2_SHFT) & CTD_FID2_MASK;
++}
++
++static inline int ctd_get_fid1_ctl(struct vpdma_ctd *ctd)
++{
++	return (ctd->fid_ctl >> CTD_FID1_SHFT) & CTD_FID1_MASK;
++}
++
++static inline int ctd_get_fid0_ctl(struct vpdma_ctd *ctd)
++{
++	return ctd->fid_ctl & CTD_FID2_MASK;
++}
++
++static inline int ctd_get_pkt_type(struct vpdma_ctd *ctd)
++{
++	return ctd->type_source_ctl >> CTD_PKT_TYPE_SHFT;
++}
++
++static inline int ctd_get_source(struct vpdma_ctd *ctd)
++{
++	return (ctd->type_source_ctl >> CTD_SOURCE_SHFT) & CTD_SOURCE_MASK;
++}
++
++static inline int ctd_get_ctl(struct vpdma_ctd *ctd)
++{
++	return ctd->type_source_ctl & CTD_CONTROL_MASK;
++}
++
+ #endif
 -- 
 1.8.1.2
+
