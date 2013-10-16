@@ -1,78 +1,34 @@
-From: Manish Badarkhe <badarkhe.manish@gmail.com>
+From: Nishanth Menon <nm@ti.com>
 Subject: Re: [PATCH] PM/AVS: SmartReflex: fix fake probe success on debugfs fail
-Date: Wed, 16 Oct 2013 19:54:52 +0530
-Message-ID: <CAKDJKT7W-1S_KzZ5XEYJQuMnQEu17xbRjeNmZgj=-73Z0Kz_Qg@mail.gmail.com>
+Date: Wed, 16 Oct 2013 09:43:01 -0500
+Message-ID: <CAGo_u6rNJyzxtxn=0o-RC4487O+QuL5xE+vb+sP8_QxMg7g4yw@mail.gmail.com>
 References: <1381923650-7556-1-git-send-email-manishv.b@ti.com>
 	<525E9380.7090905@ti.com>
+	<CAKDJKT7W-1S_KzZ5XEYJQuMnQEu17xbRjeNmZgj=-73Z0Kz_Qg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <525E9380.7090905@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: "Vishwanathrao Badarkhe, Manish" <manishv.b@ti.com>, linux-pm@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org, khilman@kernel.org, Anton Vorontsov <anton@enomsg.org>, David Woodhouse <dwmw2@infradead.org>
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <CAKDJKT7W-1S_KzZ5XEYJQuMnQEu17xbRjeNmZgj=-73Z0Kz_Qg@mail.gmail.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Manish Badarkhe <badarkhe.manish@gmail.com>
+Cc: "Vishwanathrao Badarkhe, Manish" <manishv.b@ti.com>, linux-pm@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, khilman@kernel.org, Anton Vorontsov <anton@enomsg.org>, David Woodhouse <dwmw2@infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Nishanth
-
-On Wed, Oct 16, 2013 at 6:54 PM, Nishanth Menon <nm@ti.com> wrote:
-> On 10/16/2013 06:40 AM, Vishwanathrao Badarkhe, Manish wrote:
->> From: "Vishwanathrao Badarkhe, Manish" <manishv.b@ti.com>
->>
->> Currently, probe returns success(0) on "debugfs_create_dir"
->> function call failed. Return proper error on "debugfs_create_dir"
->> call failed.
->>
->> Signed-off-by: Vishwanathrao Badarkhe, Manish <manishv.b@ti.com>
->> ---
->> Not tested on any EVM. Bug has been found while doing static review.
->> Please confirm.
+On Wed, Oct 16, 2013 at 9:24 AM, Manish Badarkhe
+<badarkhe.manish@gmail.com> wrote:
 >
+>>
+>> IMHO, fail of creation of debugfs is not reason enough to fail the
+>> probe - further, this code needs a major revamp to work with device tree.
 >
-> IMHO, fail of creation of debugfs is not reason enough to fail the
-> probe - further, this code needs a major revamp to work with device tree.
+> Yes, fail of debugfs creation should not be enough reason to fail probe. But as
+> per current implementation of code, on debugfs failure smart reflex node is
+> getting deleted and probe get failed. This patch not made any changes in
+> logic of code but only makes proper use of  "IS_ERR_OR_NULL".
 
-Yes, fail of debugfs creation should not be enough reason to fail probe. But as
-per current implementation of code, on debugfs failure smart reflex node is
-getting deleted and probe get failed. This patch not made any changes in
-logic of code but only makes proper use of  "IS_ERR_OR_NULL".
-
-
->> :100644 100644 db9973b... 7b101c1... M        drivers/power/avs/smartreflex.c
->>  drivers/power/avs/smartreflex.c |    6 +++---
->>  1 file changed, 3 insertions(+), 3 deletions(-)
->>
->> diff --git a/drivers/power/avs/smartreflex.c b/drivers/power/avs/smartreflex.c
->> index db9973b..7b101c1 100644
->> --- a/drivers/power/avs/smartreflex.c
->> +++ b/drivers/power/avs/smartreflex.c
->> @@ -921,7 +921,7 @@ static int __init omap_sr_probe(struct platform_device *pdev)
->>       if (!sr_dbg_dir) {
->>               sr_dbg_dir = debugfs_create_dir("smartreflex", NULL);
->>               if (IS_ERR_OR_NULL(sr_dbg_dir)) {
->> -                     ret = PTR_ERR(sr_dbg_dir);
->> +                     ret = sr_dbg_dir ? PTR_ERR(sr_dbg_dir) : -EIO;
->>                       pr_err("%s:sr debugfs dir creation failed(%d)\n",
->>                               __func__, ret);
->>                       goto err_list_del;
->> @@ -932,7 +932,7 @@ static int __init omap_sr_probe(struct platform_device *pdev)
->>       if (IS_ERR_OR_NULL(sr_info->dbg_dir)) {
->>               dev_err(&pdev->dev, "%s: Unable to create debugfs directory\n",
->>                       __func__);
->> -             ret = PTR_ERR(sr_info->dbg_dir);
->> +             ret = sr_info->dbg_dir ? PTR_ERR(sr_info->dbg_dir) : -EIO;
->>               goto err_debugfs;
->>       }
->>
->> @@ -947,7 +947,7 @@ static int __init omap_sr_probe(struct platform_device *pdev)
->>       if (IS_ERR_OR_NULL(nvalue_dir)) {
->>               dev_err(&pdev->dev, "%s: Unable to create debugfs directory"
->>                       "for n-values\n", __func__);
->> -             ret = PTR_ERR(nvalue_dir);
->> +             ret = nvalue_dir ? PTR_ERR(nvalue_dir) : -EIO;
->>               goto err_debugfs;
->>       }
->>
-
-Regards
-Manish Baarkhe
+Thanks for the clarification, it was not obvious from the commit
+message. Further, I would rather prefer to see a proper cleanup that
+handles error completely, since IS_ERR_OR_NULL is not really
+recommended anymore.
+Regards,
+Nishanth Menon
