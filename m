@@ -1,61 +1,61 @@
-From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH V7 6/8] ARM: dts: OMAP5: Add CPU OPP table
-Date: Wed, 16 Oct 2013 10:39:06 -0500
-Message-ID: <1381937948-27057-7-git-send-email-nm@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: [PATCH V7 1/8] ARM: OMAP3+: do not register non-dt OPP tables for
+ device tree boot
+Date: Wed, 16 Oct 2013 10:39:01 -0500
+Message-ID: <1381937948-27057-2-git-send-email-nm@ti.com>
 References: <1381937948-27057-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1381937948-27057-1-git-send-email-nm-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, J Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1381937948-27057-1-git-send-email-nm@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>
+Cc: Nishanth Menon <nm@ti.com>, devicetree@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-From: J Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+OMAP3+ supports both device tree and non-device tree boot.
+Device tree bindings for OMAP3+ is supposed to be added via dts following:
+Documentation/devicetree/bindings/power/opp.txt
 
-Add DT OPP table for OMAP54xx family of devices. This data is
-decoded by OF with of_init_opp_table() helper function.
+Since we now have device tree entries for OMAP3+ cpu OPPs,
+The current code wrongly adds duplicate OPPs. So, dont register OPPs
+when booting using device tree.
 
-The data is based on OMAP543x ES2.0 DM Operating Condition Addendum
-Version 0.6(April 2013)
-
-NOTE: The voltage and frequency values work well only on NOM samples
-and are supposed to work properly only with ABB/AVS for ALL OPPs.
-
-TODO: Add SPEED BIN OPP after ABB and AVS support so the cpufreq works
-on all samples seamlessly. Clock node is pending alignment for clock
-dts conversion
-
-[nm-l0cyMroinI0@public.gmane.org: sync to latest and fixes]
-Signed-off-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-Signed-off-by: J Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Nishanth Menon <nm@ti.com>
 ---
- arch/arm/boot/dts/omap5.dtsi |    7 +++++++
- 1 file changed, 7 insertions(+)
+ arch/arm/mach-omap2/opp.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-index 40aac32..69874de 100644
---- a/arch/arm/boot/dts/omap5.dtsi
-+++ b/arch/arm/boot/dts/omap5.dtsi
-@@ -37,6 +37,13 @@
- 			device_type = "cpu";
- 			compatible = "arm,cortex-a15";
- 			reg = <0x0>;
+diff --git a/arch/arm/mach-omap2/opp.c b/arch/arm/mach-omap2/opp.c
+index bd41d59..82fd8c7 100644
+--- a/arch/arm/mach-omap2/opp.c
++++ b/arch/arm/mach-omap2/opp.c
+@@ -17,6 +17,7 @@
+  * GNU General Public License for more details.
+  */
+ #include <linux/module.h>
++#include <linux/of.h>
+ #include <linux/opp.h>
+ #include <linux/cpu.h>
+ 
+@@ -40,6 +41,9 @@ int __init omap_init_opp_table(struct omap_opp_def *opp_def,
+ {
+ 	int i, r;
+ 
++	if (of_have_populated_dt())
++		return -EINVAL;
 +
-+			operating-points = <
-+				/* kHz    uV */
-+				500000  880000
-+				1000000 1060000
-+				1500000 1250000
-+			>;
- 		};
- 		cpu@1 {
- 			device_type = "cpu";
+ 	if (!opp_def || !opp_def_size) {
+ 		pr_err("%s: invalid params!\n", __func__);
+ 		return -EINVAL;
 -- 
 1.7.9.5
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
