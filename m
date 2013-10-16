@@ -1,97 +1,60 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH v2 1/7] usb: dwc3: get "usb_phy" only if the platform
- indicates the presence of PHY's
-Date: Wed, 16 Oct 2013 18:40:30 +0530
-Message-ID: <525E9046.3090209@ti.com>
-References: <1381866857-3861-1-git-send-email-kishon@ti.com> <1381866857-3861-2-git-send-email-kishon@ti.com> <525E8E93.9010503@ti.com>
+Subject: Re: [PATCH v2 2/2] ARM: dts: omap5: Add dr_mode for dwc3
+Date: Wed, 16 Oct 2013 18:47:08 +0530
+Message-ID: <525E91D4.30509@ti.com>
+References: <52580F34.8030809@ti.com>
+ <1381816199-7966-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <525E8E93.9010503@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: balbi@ti.com, gregkh@linuxfoundation.org, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ijc+devicetree@hellion.org.uk, rob@landley.net, bcousson@baylibre.com, tony@atomide.com, linux@arm.linux.org.uk, grant.likely@linaro.org, s.nawrocki@samsung.com, galak@codeaurora.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1381816199-7966-1-git-send-email-kishon@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, George Cherian <george.cherian@ti.com>, linux@arm.linux.org.uk, pawel.moll@arm.com, swarren@wwwdotorg.org, tony@atomide.com, ijc+devicetree@hellion.org.uk, linux-kernel@vger.kernel.org, rob.herring@calxeda.com, bcousson@baylibre.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rogerq@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi roger,
+Benoit,
 
-On Wednesday 16 October 2013 06:33 PM, Roger Quadros wrote:
-> Hi Kishon,
+On Tuesday 15 October 2013 11:19 AM, Kishon Vijay Abraham I wrote:
+> From: George Cherian <george.cherian@ti.com>
 > 
-> On 10/15/2013 10:54 PM, Kishon Vijay Abraham I wrote:
->> There can be systems which does not have a external usb_phy, so get
->> usb_phy only if dt data indicates the presence of PHY in the case of dt boot or
->> if platform_data indicates the presence of PHY. Also remove checking if
->> return value is -ENXIO since it's now changed to always enable usb_phy layer.
->>
->> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
->> ---
->> In usb_get_phy_by_phandle, index 0 always refers to usb2 phy and index 1 always
->> refers to usb3 phy. Since we've lived so long with this, this patch will make
->> an assumption that if only one entry is populated in *usb-phy* property, it will
->> be usb2 phy and the next entry will be usb3 phy.
->>
->>  drivers/usb/dwc3/Kconfig         |    1 +
->>  drivers/usb/dwc3/core.c          |   72 ++++++++++++++++++++------------------
->>  drivers/usb/dwc3/platform_data.h |    2 ++
->>  3 files changed, 41 insertions(+), 34 deletions(-)
->>
->> diff --git a/drivers/usb/dwc3/Kconfig b/drivers/usb/dwc3/Kconfig
->> index 70fc430..8e385b4 100644
->> --- a/drivers/usb/dwc3/Kconfig
->> +++ b/drivers/usb/dwc3/Kconfig
->> @@ -1,6 +1,7 @@
->>  config USB_DWC3
->>  	tristate "DesignWare USB3 DRD Core Support"
->>  	depends on (USB || USB_GADGET) && HAS_DMA
->> +	select USB_PHY
->>  	select USB_XHCI_PLATFORM if USB_SUPPORT && USB_XHCI_HCD
->>  	help
->>  	  Say Y or M here if your system has a Dual Role SuperSpeed
->> diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
->> index 474162e..cb91d70 100644
->> --- a/drivers/usb/dwc3/core.c
->> +++ b/drivers/usb/dwc3/core.c
->> @@ -354,6 +354,7 @@ static int dwc3_probe(struct platform_device *pdev)
->>  	struct device_node	*node = dev->of_node;
->>  	struct resource		*res;
->>  	struct dwc3		*dwc;
->> +	int			count;
->>  
->>  	int			ret = -ENOMEM;
->>  
->> @@ -387,16 +388,49 @@ static int dwc3_probe(struct platform_device *pdev)
->>  	if (node) {
->>  		dwc->maximum_speed = of_usb_get_maximum_speed(node);
->>  
->> -		dwc->usb2_phy = devm_usb_get_phy_by_phandle(dev, "usb-phy", 0);
->> -		dwc->usb3_phy = devm_usb_get_phy_by_phandle(dev, "usb-phy", 1);
->> +		count = of_count_phandle_with_args(node, "usb-phy", NULL);
->> +		switch (count) {
->> +		case 2:
->> +			dwc->usb3_phy = devm_usb_get_phy_by_phandle(dev,
->> +				"usb-phy", 1);
->> +			if (IS_ERR(dwc->usb3_phy)) {
->> +				dev_err(dev, "usb3 phy not found\n");
->> +				return PTR_ERR(dwc->usb3_phy);
->> +			}
->> +		case 1:
->> +			dwc->usb2_phy = devm_usb_get_phy_by_phandle(dev,
->> +				"usb-phy", 0);
->> +			if (IS_ERR(dwc->usb2_phy)) {
->> +				dev_err(dev, "usb2 phy not found\n");
->> +				return PTR_ERR(dwc->usb2_phy);
->> +			}
->> +			break;
+> Added dr_mode property in dwc3 and set its default mode to device.
+> Currently dwc3 driver doesn't have support for OTG mode. So explicitly
+> setting to peripheral even dwc3 is a OTG controller since OMAP5 has
+> already got an EHCI host.
 > 
-> In the Exynos case, there is only 1 phy and it is the USB3 phy. This code
-> will wrongly treat it as usb2_phy.
+> Signed-off-by: George Cherian <george.cherian@ti.com>
+> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 
-That was the case even before this patch no? Unfortunately the old USB PHY
-library doesn't have APIs to get PHYs in a better way. If we try modifying the
-USB PHY library, it'll be kind of duplicating what is already there in the
-Generic PHY library. I'd rather prefer Exynos guys to use the new framework.
+Can you take this patch for 3.13?
 
 Thanks
 Kishon
+> ---
+> Changes from v1:
+> Changed the commit log to explain why dr_mode was not set to OTG.
+>  arch/arm/boot/dts/omap5.dtsi |    1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+> index 6d0a1d5..ef598af 100644
+> --- a/arch/arm/boot/dts/omap5.dtsi
+> +++ b/arch/arm/boot/dts/omap5.dtsi
+> @@ -652,6 +652,7 @@
+>  				reg = <0x4a030000 0x10000>;
+>  				interrupts = <GIC_SPI 92 IRQ_TYPE_LEVEL_HIGH>;
+>  				usb-phy = <&usb2_phy>, <&usb3_phy>;
+> +				dr_mode = "peripheral";
+>  				tx-fifo-resize;
+>  			};
+>  		};
+> 
