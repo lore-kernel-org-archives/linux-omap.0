@@ -1,123 +1,53 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH V7 8/8] ARM: dts: OMAP3: add clock nodes for CPU
-Date: Wed, 16 Oct 2013 10:39:08 -0500
-Message-ID: <1381937948-27057-9-git-send-email-nm@ti.com>
+Subject: [PATCH V7 5/8] ARM: dts: dra7-evm: add smps123 supply for CPU
+Date: Wed, 16 Oct 2013 10:39:05 -0500
+Message-ID: <1381937948-27057-6-git-send-email-nm@ti.com>
 References: <1381937948-27057-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:35218 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760805Ab3JPPjo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Oct 2013 11:39:44 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1381937948-27057-1-git-send-email-nm@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Nishanth Menon <nm@ti.com>, J Keerthy <j-keerthy@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, J Keerthy <j-keerthy@ti.com>, Nishanth Menon <nm@ti.com>
+List-Id: linux-omap@vger.kernel.org
 
-OMAP34xx and OMAP36xx platforms use dpll1 clock. Add same to common
-definition.
+From: J Keerthy <j-keerthy@ti.com>
 
-AM33XX, OMAP443x, OMAP446x and OMAP447x platforms use dpll_mpu clock
-Add same to common definition.
+regulator smps123 supply from Palmas PMIC powers CPU0 on DRA7 EVM.
 
-OMAP5, DRA7 platforms use dpll_mpu_ck clock for CPU. Add same to common
-definition.
-
-Cc: Benoit Cousson <bcousson@baylibre.com>
-[nm@ti.com: keep in sync with clock node changes]
-[j-keerthy@ti.com: OMAP5 and DRA7 nodes]
-Signed-off-by: J Keerthy <j-keerthy@ti.com>
+[nm@ti.com: rebase to latest]
 Signed-off-by: Nishanth Menon <nm@ti.com>
+Signed-off-by: J Keerthy <j-keerthy@ti.com>
 ---
- arch/arm/boot/dts/am33xx.dtsi |    4 ++++
- arch/arm/boot/dts/dra7.dtsi   |    5 +++++
- arch/arm/boot/dts/omap3.dtsi  |    5 +++++
- arch/arm/boot/dts/omap4.dtsi  |    5 +++++
- arch/arm/boot/dts/omap5.dtsi  |    6 ++++++
- 5 files changed, 25 insertions(+)
+ arch/arm/boot/dts/dra7-evm.dts |    4 ++++
+ arch/arm/boot/dts/dra7.dtsi    |    2 +-
+ 2 files changed, 5 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index 2a994d6..09f16a0 100644
---- a/arch/arm/boot/dts/am33xx.dtsi
-+++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -55,6 +55,10 @@
- 				275000  1125000
- 			>;
- 			voltage-tolerance = <2>; /* 2 percentage */
+diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
+index 3abf5f4..5babba0 100644
+--- a/arch/arm/boot/dts/dra7-evm.dts
++++ b/arch/arm/boot/dts/dra7-evm.dts
+@@ -269,3 +269,7 @@
+ 	vmmc-supply = <&mmc2_3v3>;
+ 	bus-width = <8>;
+ };
 +
-+			clocks = <&dpll_mpu_ck>;
-+			clock-names = "cpu";
-+
- 			clock-latency = <300000>; /* From omap-cpufreq driver */
- 		};
- 	};
++&cpu0 {
++	cpu0-supply = <&smps123_reg>;
++};
 diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index 92cbe3b..e723b52 100644
+index c98997b..02e430b 100644
 --- a/arch/arm/boot/dts/dra7.dtsi
 +++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -42,6 +42,11 @@
- 				1000000	1060000
- 				1176000	1160000
- 				>;
-+
-+			clocks = <&dpll_mpu_ck>;
-+			clock-names = "cpu";
-+
-+			clock-latency = <300000>; /* From omap-cpufreq driver */
- 		};
- 		cpu@1 {
- 			device_type = "cpu";
-diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
-index 7f5d8a8..4f3778a 100644
---- a/arch/arm/boot/dts/omap3.dtsi
-+++ b/arch/arm/boot/dts/omap3.dtsi
-@@ -32,6 +32,11 @@
- 			compatible = "arm,cortex-a8";
- 			device_type = "cpu";
- 			reg = <0x0>;
-+
-+			clocks = <&dpll1_ck>;
-+			clock-names = "cpu";
-+
-+			clock-latency = <300000>; /* From omap-cpufreq driver */
- 		};
- 	};
+@@ -32,7 +32,7 @@
+ 		#address-cells = <1>;
+ 		#size-cells = <0>;
  
-diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-index 17a3618..decff2a 100644
---- a/arch/arm/boot/dts/omap4.dtsi
-+++ b/arch/arm/boot/dts/omap4.dtsi
-@@ -32,6 +32,11 @@
+-		cpu@0 {
++		cpu0: cpu@0 {
  			device_type = "cpu";
- 			next-level-cache = <&L2>;
- 			reg = <0x0>;
-+
-+			clocks = <&dpll_mpu_ck>;
-+			clock-names = "cpu";
-+
-+			clock-latency = <300000>; /* From omap-cpufreq driver */
- 		};
- 		cpu@1 {
- 			compatible = "arm,cortex-a9";
-diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-index 69874de..e18ee7e 100644
---- a/arch/arm/boot/dts/omap5.dtsi
-+++ b/arch/arm/boot/dts/omap5.dtsi
-@@ -44,6 +44,12 @@
- 				1000000 1060000
- 				1500000 1250000
- 			>;
-+
-+			clocks = <&dpll_mpu_ck>;
-+			clock-names = "cpu";
-+
-+			clock-latency = <300000>; /* From omap-cpufreq driver */
-+
- 		};
- 		cpu@1 {
- 			device_type = "cpu";
+ 			compatible = "arm,cortex-a15";
+ 			reg = <0>;
 -- 
 1.7.9.5
-
