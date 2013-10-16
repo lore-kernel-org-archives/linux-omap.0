@@ -1,7 +1,7 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH V7 3/8] ARM: OMAP3+: use cpu0-cpufreq driver in device tree supported boot
-Date: Wed, 16 Oct 2013 10:39:03 -0500
-Message-ID: <1381937948-27057-4-git-send-email-nm@ti.com>
+Subject: [PATCH V7 4/8] ARM: dts: omap5-uevm: add smps123 supply for CPU
+Date: Wed, 16 Oct 2013 10:39:04 -0500
+Message-ID: <1381937948-27057-5-git-send-email-nm@ti.com>
 References: <1381937948-27057-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -9,53 +9,43 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1381937948-27057-1-git-send-email-nm@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Nishanth Menon <nm@ti.com>, Paul Walmsley <paul@pwsan.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Nishanth Menon <nm@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-With OMAP3+ and AM33xx supported SoC having defined CPU device tree
-entries with operating-points and clock nodes defined, we can now use
-the SoC generic cpufreq-cpu0 driver by registering appropriate device.
+regulator smps123 supply from Palmas PMIC powers CPU0 on OMAP5uEVM.
 
-Cc: Benoit Cousson <bcousson@baylibre.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Tony Lindgren <tony@atomide.com>
+Based on a patch by J Keerthy <j-keerthy@ti.com>
+
 Signed-off-by: Nishanth Menon <nm@ti.com>
 ---
- arch/arm/mach-omap2/pm.c |   12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+ arch/arm/boot/dts/omap5-uevm.dts |    4 ++++
+ arch/arm/boot/dts/omap5.dtsi     |    2 +-
+ 2 files changed, 5 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
-index e742118..360b2da 100644
---- a/arch/arm/mach-omap2/pm.c
-+++ b/arch/arm/mach-omap2/pm.c
-@@ -266,7 +266,12 @@ static void __init omap4_init_voltages(void)
- 
- static inline void omap_init_cpufreq(void)
- {
--	struct platform_device_info devinfo = { .name = "omap-cpufreq", };
-+	struct platform_device_info devinfo = { };
+diff --git a/arch/arm/boot/dts/omap5-uevm.dts b/arch/arm/boot/dts/omap5-uevm.dts
+index d784b3a..3188511 100644
+--- a/arch/arm/boot/dts/omap5-uevm.dts
++++ b/arch/arm/boot/dts/omap5-uevm.dts
+@@ -503,3 +503,7 @@
+         pinctrl-names = "default";
+         pinctrl-0 = <&uart5_pins>;
+ };
 +
-+	if (!of_have_populated_dt())
-+		devinfo.name = "omap-cpufreq";
-+	else
-+		devinfo.name = "cpufreq-cpu0";
- 	platform_device_register_full(&devinfo);
- }
++&cpu0 {
++	cpu0-supply = <&smps123_reg>;
++};
+diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+index 0098a17..40aac32 100644
+--- a/arch/arm/boot/dts/omap5.dtsi
++++ b/arch/arm/boot/dts/omap5.dtsi
+@@ -33,7 +33,7 @@
+ 		#address-cells = <1>;
+ 		#size-cells = <0>;
  
-@@ -300,10 +305,11 @@ int __init omap2_common_pm_late_init(void)
- 		/* Smartreflex device init */
- 		omap_devinit_smartreflex();
- 
--		/* cpufreq dummy device instantiation */
--		omap_init_cpufreq();
- 	}
- 
-+	/* cpufreq dummy device instantiation */
-+	omap_init_cpufreq();
-+
- #ifdef CONFIG_SUSPEND
- 	suspend_set_ops(&omap_pm_ops);
- #endif
+-		cpu@0 {
++		cpu0: cpu@0 {
+ 			device_type = "cpu";
+ 			compatible = "arm,cortex-a15";
+ 			reg = <0x0>;
 -- 
 1.7.9.5
