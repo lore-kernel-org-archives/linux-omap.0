@@ -1,926 +1,766 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [PATCH v5 2/4] v4l: ti-vpe: Add helpers for creating VPDMA descriptors
-Date: Wed, 16 Oct 2013 11:06:46 +0530
-Message-ID: <1381901808-25119-3-git-send-email-archit@ti.com>
+Subject: [PATCH v5 4/4] v4l: ti-vpe: Add de-interlacer support in VPE
+Date: Wed, 16 Oct 2013 11:06:48 +0530
+Message-ID: <1381901808-25119-5-git-send-email-archit@ti.com>
 References: <1378462346-10880-1-git-send-email-archit@ti.com>
  <1381901808-25119-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:55404 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752835Ab3JPFhz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 16 Oct 2013 01:37:55 -0400
+Return-path: <linux-media-owner@vger.kernel.org>
 In-Reply-To: <1381901808-25119-1-git-send-email-archit@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: linux-media-owner@vger.kernel.org
 To: k.debski@samsung.com
 Cc: hverkuil@xs4all.nl, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
+List-Id: linux-omap@vger.kernel.org
 
-Create functions which the VPE driver can use to create a VPDMA descriptor and
-add it to a VPDMA descriptor list. These functions take a pointer to an existing
-list, and append the configuration/data/control descriptor header to the list.
+Add support for the de-interlacer block in VPE.
 
-In the case of configuration descriptors, the creation of a payload block may be
-required(the payloads can hold VPE MMR values, or scaler coefficients). The
-allocation of the payload buffer and it's content is left to the VPE driver.
-However, the VPDMA library provides helper macros to create payload in the
-correct format.
+For de-interlacer to work, we need to enable 2 more sets of VPE input ports
+which fetch data from the 'last' and 'last to last' fields of the interlaced
+video. Apart from that, we need to enable the Motion vector output and input
+ports, and also allocate DMA buffers for them.
 
-Add debug functions to dump the descriptors in a way such that it's easy to see
-the values of different fields in the descriptors.
+We need to make sure that two most recent fields in the source queue are
+available and in the 'READY' state. Once a mem2mem context gets access to the
+VPE HW(in device_run), it extracts the addresses of the 3 buffers, and provides
+it to the data descriptors for the 3 sets of input ports((LUMA1, CHROMA1),
+(LUMA2, CHROMA2), and (LUMA3, CHROMA3)) respectively for the 3 consecutive
+fields. The motion vector and output port descriptors are configured and the
+list is submitted to VPDMA.
+
+Once the transaction is done, the v4l2 buffer corresponding to the oldest
+field(the 3rd one) is changed to the state 'DONE', and the buffers corresponding
+to 1st and 2nd fields become the 2nd and 3rd field for the next de-interlace
+operation. This way, for each deinterlace operation, we have the 3 most recent
+fields. After each transaction, we also swap the motion vector buffers, the new
+input motion vector buffer contains the resultant motion information of all the
+previous frames, and the new output motion vector buffer will be used to hold
+the updated motion vector to capture the motion changes in the next field. The
+motion vector buffers are allocated using the DMA allocation API.
+
+The de-interlacer is removed from bypass mode, it requires some extra default
+configurations which are now added. The chrominance upsampler coefficients are
+added for interlaced frames. Some VPDMA parameters like frame start event and
+line mode are configured for the 2 extra sets of input ports.
 
 Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- drivers/media/platform/ti-vpe/vpdma.c      | 268 +++++++++++++++
- drivers/media/platform/ti-vpe/vpdma.h      |  48 +++
- drivers/media/platform/ti-vpe/vpdma_priv.h | 522 +++++++++++++++++++++++++++++
- 3 files changed, 838 insertions(+)
+ drivers/media/platform/ti-vpe/vpe.c | 392 ++++++++++++++++++++++++++++++++----
+ 1 file changed, 358 insertions(+), 34 deletions(-)
 
-diff --git a/drivers/media/platform/ti-vpe/vpdma.c b/drivers/media/platform/ti-vpe/vpdma.c
-index 42db12c..af0a5ff 100644
---- a/drivers/media/platform/ti-vpe/vpdma.c
-+++ b/drivers/media/platform/ti-vpe/vpdma.c
-@@ -21,6 +21,7 @@
- #include <linux/platform_device.h>
- #include <linux/sched.h>
- #include <linux/slab.h>
-+#include <linux/videodev2.h>
+diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
+index 3bd9ca6..4e58069 100644
+--- a/drivers/media/platform/ti-vpe/vpe.c
++++ b/drivers/media/platform/ti-vpe/vpe.c
+@@ -69,6 +69,8 @@
+ #define VPE_CHROMA	1
  
- #include "vpdma.h"
- #include "vpdma_priv.h"
-@@ -416,6 +417,273 @@ int vpdma_submit_descs(struct vpdma_data *vpdma, struct vpdma_desc_list *list)
- 	return 0;
- }
+ /* per m2m context info */
++#define VPE_MAX_SRC_BUFS	3	/* need 3 src fields to de-interlace */
++
+ #define VPE_DEF_BUFS_PER_JOB	1	/* default one buffer per batch job */
  
-+static void dump_cfd(struct vpdma_cfd *cfd)
-+{
-+	int class;
-+
-+	class = cfd_get_class(cfd);
-+
-+	pr_debug("config descriptor of payload class: %s\n",
-+		class == CFD_CLS_BLOCK ? "simple block" :
-+		"address data block");
-+
-+	if (class == CFD_CLS_BLOCK)
-+		pr_debug("word0: dst_addr_offset = 0x%08x\n",
-+			cfd->dest_addr_offset);
-+
-+	if (class == CFD_CLS_BLOCK)
-+		pr_debug("word1: num_data_wrds = %d\n", cfd->block_len);
-+
-+	pr_debug("word2: payload_addr = 0x%08x\n", cfd->payload_addr);
-+
-+	pr_debug("word3: pkt_type = %d, direct = %d, class = %d, dest = %d, "
-+		"payload_len = %d\n", cfd_get_pkt_type(cfd),
-+		cfd_get_direct(cfd), class, cfd_get_dest(cfd),
-+		cfd_get_payload_len(cfd));
-+}
-+
-+/*
-+ * append a configuration descriptor to the given descriptor list, where the
-+ * payload is in the form of a simple data block specified in the descriptor
-+ * header, this is used to upload scaler coefficients to the scaler module
-+ */
-+void vpdma_add_cfd_block(struct vpdma_desc_list *list, int client,
-+		struct vpdma_buf *blk, u32 dest_offset)
-+{
-+	struct vpdma_cfd *cfd;
-+	int len = blk->size;
-+
-+	WARN_ON(blk->dma_addr & VPDMA_DESC_ALIGN);
-+
-+	cfd = list->next;
-+	WARN_ON((void *)(cfd + 1) > (list->buf.addr + list->buf.size));
-+
-+	cfd->dest_addr_offset = dest_offset;
-+	cfd->block_len = len;
-+	cfd->payload_addr = (u32) blk->dma_addr;
-+	cfd->ctl_payload_len = cfd_pkt_payload_len(CFD_INDIRECT, CFD_CLS_BLOCK,
-+				client, len >> 4);
-+
-+	list->next = cfd + 1;
-+
-+	dump_cfd(cfd);
-+}
-+
-+/*
-+ * append a configuration descriptor to the given descriptor list, where the
-+ * payload is in the address data block format, this is used to a configure a
-+ * discontiguous set of MMRs
-+ */
-+void vpdma_add_cfd_adb(struct vpdma_desc_list *list, int client,
-+		struct vpdma_buf *adb)
-+{
-+	struct vpdma_cfd *cfd;
-+	unsigned int len = adb->size;
-+
-+	WARN_ON(len & VPDMA_ADB_SIZE_ALIGN);
-+	WARN_ON(adb->dma_addr & VPDMA_DESC_ALIGN);
-+
-+	cfd = list->next;
-+	BUG_ON((void *)(cfd + 1) > (list->buf.addr + list->buf.size));
-+
-+	cfd->w0 = 0;
-+	cfd->w1 = 0;
-+	cfd->payload_addr = (u32) adb->dma_addr;
-+	cfd->ctl_payload_len = cfd_pkt_payload_len(CFD_INDIRECT, CFD_CLS_ADB,
-+				client, len >> 4);
-+
-+	list->next = cfd + 1;
-+
-+	dump_cfd(cfd);
+ /*
+@@ -111,6 +113,38 @@ static const struct vpe_us_coeffs us_coeffs[] = {
+ 		0x00C8, 0x0348, 0x0018, 0x3FD8, 0x3FB8, 0x0378, 0x00E8, 0x3FE8,
+ 		0x00C8, 0x0348, 0x0018, 0x3FD8, 0x3FB8, 0x0378, 0x00E8, 0x3FE8,
+ 	},
++	{
++		/* Coefficients for Top Field Interlaced input */
++		0x0051, 0x03D5, 0x3FE3, 0x3FF7, 0x3FB5, 0x02E9, 0x018F, 0x3FD3,
++		/* Coefficients for Bottom Field Interlaced input */
++		0x016B, 0x0247, 0x00B1, 0x3F9D, 0x3FCF, 0x03DB, 0x005D, 0x3FF9,
++	},
 +};
 +
 +/*
-+ * control descriptor format change based on what type of control descriptor it
-+ * is, we only use 'sync on channel' control descriptors for now, so assume it's
-+ * that
++ * the following registers are for configuring some of the parameters of the
++ * motion and edge detection blocks inside DEI, these generally remain the same,
++ * these could be passed later via userspace if some one needs to tweak these.
 + */
-+static void dump_ctd(struct vpdma_ctd *ctd)
-+{
-+	pr_debug("control descriptor\n");
-+
-+	pr_debug("word3: pkt_type = %d, source = %d, ctl_type = %d\n",
-+		ctd_get_pkt_type(ctd), ctd_get_source(ctd), ctd_get_ctl(ctd));
-+}
++struct vpe_dei_regs {
++	unsigned long mdt_spacial_freq_thr_reg;		/* VPE_DEI_REG2 */
++	unsigned long edi_config_reg;			/* VPE_DEI_REG3 */
++	unsigned long edi_lut_reg0;			/* VPE_DEI_REG4 */
++	unsigned long edi_lut_reg1;			/* VPE_DEI_REG5 */
++	unsigned long edi_lut_reg2;			/* VPE_DEI_REG6 */
++	unsigned long edi_lut_reg3;			/* VPE_DEI_REG7 */
++};
 +
 +/*
-+ * append a 'sync on channel' type control descriptor to the given descriptor
-+ * list, this descriptor stalls the VPDMA list till the time DMA is completed
-+ * on the specified channel
++ * default expert DEI register values, unlikely to be modified.
 + */
-+void vpdma_add_sync_on_channel_ctd(struct vpdma_desc_list *list,
-+		enum vpdma_channel chan)
-+{
-+	struct vpdma_ctd *ctd;
-+
-+	ctd = list->next;
-+	WARN_ON((void *)(ctd + 1) > (list->buf.addr + list->buf.size));
-+
-+	ctd->w0 = 0;
-+	ctd->w1 = 0;
-+	ctd->w2 = 0;
-+	ctd->type_source_ctl = ctd_type_source_ctl(chan_info[chan].num,
-+				CTD_TYPE_SYNC_ON_CHANNEL);
-+
-+	list->next = ctd + 1;
-+
-+	dump_ctd(ctd);
-+}
-+
-+static void dump_dtd(struct vpdma_dtd *dtd)
-+{
-+	int dir, chan;
-+
-+	dir = dtd_get_dir(dtd);
-+	chan = dtd_get_chan(dtd);
-+
-+	pr_debug("%s data transfer descriptor for channel %d\n",
-+		dir == DTD_DIR_OUT ? "outbound" : "inbound", chan);
-+
-+	pr_debug("word0: data_type = %d, notify = %d, field = %d, 1D = %d, "
-+		"even_ln_skp = %d, odd_ln_skp = %d, line_stride = %d\n",
-+		dtd_get_data_type(dtd), dtd_get_notify(dtd), dtd_get_field(dtd),
-+		dtd_get_1d(dtd), dtd_get_even_line_skip(dtd),
-+		dtd_get_odd_line_skip(dtd), dtd_get_line_stride(dtd));
-+
-+	if (dir == DTD_DIR_IN)
-+		pr_debug("word1: line_length = %d, xfer_height = %d\n",
-+			dtd_get_line_length(dtd), dtd_get_xfer_height(dtd));
-+
-+	pr_debug("word2: start_addr = 0x%08x\n", dtd->start_addr);
-+
-+	pr_debug("word3: pkt_type = %d, mode = %d, dir = %d, chan = %d, "
-+		"pri = %d, next_chan = %d\n", dtd_get_pkt_type(dtd),
-+		dtd_get_mode(dtd), dir, chan, dtd_get_priority(dtd),
-+		dtd_get_next_chan(dtd));
-+
-+	if (dir == DTD_DIR_IN)
-+		pr_debug("word4: frame_width = %d, frame_height = %d\n",
-+			dtd_get_frame_width(dtd), dtd_get_frame_height(dtd));
-+	else
-+		pr_debug("word4: desc_write_addr = 0x%08x, write_desc = %d, "
-+			"drp_data = %d, use_desc_reg = %d\n",
-+			dtd_get_desc_write_addr(dtd), dtd_get_write_desc(dtd),
-+			dtd_get_drop_data(dtd), dtd_get_use_desc(dtd));
-+
-+	if (dir == DTD_DIR_IN)
-+		pr_debug("word5: hor_start = %d, ver_start = %d\n",
-+			dtd_get_h_start(dtd), dtd_get_v_start(dtd));
-+	else
-+		pr_debug("word5: max_width %d, max_height %d\n",
-+			dtd_get_max_width(dtd), dtd_get_max_height(dtd));
-+
-+	pr_debug("word6: client specfic attr0 = 0x%08x\n", dtd->client_attr0);
-+	pr_debug("word7: client specfic attr1 = 0x%08x\n", dtd->client_attr1);
-+}
-+
-+/*
-+ * append an outbound data transfer descriptor to the given descriptor list,
-+ * this sets up a 'client to memory' VPDMA transfer for the given VPDMA channel
-+ */
-+void vpdma_add_out_dtd(struct vpdma_desc_list *list, struct v4l2_rect *c_rect,
-+		const struct vpdma_data_format *fmt, dma_addr_t dma_addr,
-+		enum vpdma_channel chan, u32 flags)
-+{
-+	int priority = 0;
-+	int field = 0;
-+	int notify = 1;
-+	int channel, next_chan;
-+	int depth = fmt->depth;
-+	int stride;
-+	struct vpdma_dtd *dtd;
-+
-+	channel = next_chan = chan_info[chan].num;
-+
-+	if (fmt->data_type == DATA_TYPE_C420)
-+		depth = 8;
-+
-+	stride = (depth * c_rect->width) >> 3;
-+	dma_addr += (c_rect->left * depth) >> 3;
-+
-+	dtd = list->next;
-+	WARN_ON((void *)(dtd + 1) > (list->buf.addr + list->buf.size));
-+
-+	dtd->type_ctl_stride = dtd_type_ctl_stride(fmt->data_type,
-+					notify,
-+					field,
-+					!!(flags & VPDMA_DATA_FRAME_1D),
-+					!!(flags & VPDMA_DATA_EVEN_LINE_SKIP),
-+					!!(flags & VPDMA_DATA_ODD_LINE_SKIP),
-+					stride);
-+	dtd->w1 = 0;
-+	dtd->start_addr = (u32) dma_addr;
-+	dtd->pkt_ctl = dtd_pkt_ctl(!!(flags & VPDMA_DATA_MODE_TILED),
-+				DTD_DIR_OUT, channel, priority, next_chan);
-+	dtd->desc_write_addr = dtd_desc_write_addr(0, 0, 0, 0);
-+	dtd->max_width_height = dtd_max_width_height(MAX_OUT_WIDTH_1920,
-+					MAX_OUT_HEIGHT_1080);
-+	dtd->client_attr0 = 0;
-+	dtd->client_attr1 = 0;
-+
-+	list->next = dtd + 1;
-+
-+	dump_dtd(dtd);
-+}
-+
-+/*
-+ * append an inbound data transfer descriptor to the given descriptor list,
-+ * this sets up a 'memory to client' VPDMA transfer for the given VPDMA channel
-+ */
-+void vpdma_add_in_dtd(struct vpdma_desc_list *list, int frame_width,
-+		int frame_height, struct v4l2_rect *c_rect,
-+		const struct vpdma_data_format *fmt, dma_addr_t dma_addr,
-+		enum vpdma_channel chan, int field, u32 flags)
-+{
-+	int priority = 0;
-+	int notify = 1;
-+	int depth = fmt->depth;
-+	int channel, next_chan;
-+	int stride;
-+	int height = c_rect->height;
-+	struct vpdma_dtd *dtd;
-+
-+	channel = next_chan = chan_info[chan].num;
-+
-+	if (fmt->data_type == DATA_TYPE_C420) {
-+		height >>= 1;
-+		frame_height >>= 1;
-+		depth = 8;
-+	}
-+
-+	stride = (depth * c_rect->width) >> 3;
-+	dma_addr += (c_rect->left * depth) >> 3;
-+
-+	dtd = list->next;
-+	WARN_ON((void *)(dtd + 1) > (list->buf.addr + list->buf.size));
-+
-+	dtd->type_ctl_stride = dtd_type_ctl_stride(fmt->data_type,
-+					notify,
-+					field,
-+					!!(flags & VPDMA_DATA_FRAME_1D),
-+					!!(flags & VPDMA_DATA_EVEN_LINE_SKIP),
-+					!!(flags & VPDMA_DATA_ODD_LINE_SKIP),
-+					stride);
-+
-+	dtd->xfer_length_height = dtd_xfer_length_height(c_rect->width, height);
-+	dtd->start_addr = (u32) dma_addr;
-+	dtd->pkt_ctl = dtd_pkt_ctl(!!(flags & VPDMA_DATA_MODE_TILED),
-+				DTD_DIR_IN, channel, priority, next_chan);
-+	dtd->frame_width_height = dtd_frame_width_height(frame_width,
-+					frame_height);
-+	dtd->start_h_v = dtd_start_h_v(c_rect->left, c_rect->top);
-+	dtd->client_attr0 = 0;
-+	dtd->client_attr1 = 0;
-+
-+	list->next = dtd + 1;
-+
-+	dump_dtd(dtd);
-+}
-+
- /* set or clear the mask for list complete interrupt */
- void vpdma_enable_list_complete_irq(struct vpdma_data *vpdma, int list_num,
- 		bool enable)
-diff --git a/drivers/media/platform/ti-vpe/vpdma.h b/drivers/media/platform/ti-vpe/vpdma.h
-index 8056689..eaa2a71 100644
---- a/drivers/media/platform/ti-vpe/vpdma.h
-+++ b/drivers/media/platform/ti-vpe/vpdma.h
-@@ -124,6 +124,39 @@ enum vpdma_channel {
- 	VPE_CHAN_RGB_OUT,
++static const struct vpe_dei_regs dei_regs = {
++	0x020C0804u,
++	0x0118100Fu,
++	0x08040200u,
++	0x1010100Cu,
++	0x10101010u,
++	0x10101010u,
  };
  
-+/* flags for VPDMA data descriptors */
-+#define VPDMA_DATA_ODD_LINE_SKIP	(1 << 0)
-+#define VPDMA_DATA_EVEN_LINE_SKIP	(1 << 1)
-+#define VPDMA_DATA_FRAME_1D		(1 << 2)
-+#define VPDMA_DATA_MODE_TILED		(1 << 3)
-+
-+/*
-+ * client identifiers used for configuration descriptors
-+ */
-+#define CFD_MMR_CLIENT		0
-+#define CFD_SC_CLIENT		4
-+
-+/* Address data block header format */
-+struct vpdma_adb_hdr {
-+	u32			offset;
-+	u32			nwords;
-+	u32			reserved0;
-+	u32			reserved1;
-+};
-+
-+/* helpers for creating ADB headers for config descriptors MMRs as client */
-+#define ADB_ADDR(dma_buf, str, fld)	((dma_buf)->addr + offsetof(str, fld))
-+#define MMR_ADB_ADDR(buf, str, fld)	ADB_ADDR(&(buf), struct str, fld)
-+
-+#define VPDMA_SET_MMR_ADB_HDR(buf, str, hdr, regs, offset_a)	\
-+	do {							\
-+		struct vpdma_adb_hdr *h;			\
-+		struct str *adb = NULL;				\
-+		h = MMR_ADB_ADDR(buf, str, hdr);		\
-+		h->offset = (offset_a);				\
-+		h->nwords = sizeof(adb->regs) >> 2;		\
-+	} while (0)
-+
- /* vpdma descriptor buffer allocation and management */
- int vpdma_alloc_desc_buf(struct vpdma_buf *buf, size_t size);
- void vpdma_free_desc_buf(struct vpdma_buf *buf);
-@@ -136,6 +169,21 @@ void vpdma_reset_desc_list(struct vpdma_desc_list *list);
- void vpdma_free_desc_list(struct vpdma_desc_list *list);
- int vpdma_submit_descs(struct vpdma_data *vpdma, struct vpdma_desc_list *list);
+ /*
+@@ -118,6 +152,7 @@ static const struct vpe_us_coeffs us_coeffs[] = {
+  */
+ struct vpe_port_data {
+ 	enum vpdma_channel channel;	/* VPDMA channel */
++	u8	vb_index;		/* input frame f, f-1, f-2 index */
+ 	u8	vb_part;		/* plane index for co-panar formats */
+ };
  
-+/* helpers for creating vpdma descriptors */
-+void vpdma_add_cfd_block(struct vpdma_desc_list *list, int client,
-+		struct vpdma_buf *blk, u32 dest_offset);
-+void vpdma_add_cfd_adb(struct vpdma_desc_list *list, int client,
-+		struct vpdma_buf *adb);
-+void vpdma_add_sync_on_channel_ctd(struct vpdma_desc_list *list,
-+		enum vpdma_channel chan);
-+void vpdma_add_out_dtd(struct vpdma_desc_list *list, struct v4l2_rect *c_rect,
-+		const struct vpdma_data_format *fmt, dma_addr_t dma_addr,
-+		enum vpdma_channel chan, u32 flags);
-+void vpdma_add_in_dtd(struct vpdma_desc_list *list, int frame_width,
-+		int frame_height, struct v4l2_rect *c_rect,
-+		const struct vpdma_data_format *fmt, dma_addr_t dma_addr,
-+		enum vpdma_channel chan, int field, u32 flags);
-+
- /* vpdma list interrupt management */
- void vpdma_enable_list_complete_irq(struct vpdma_data *vpdma, int list_num,
- 		bool enable);
-diff --git a/drivers/media/platform/ti-vpe/vpdma_priv.h b/drivers/media/platform/ti-vpe/vpdma_priv.h
-index 8ff51a3..f0e9a80 100644
---- a/drivers/media/platform/ti-vpe/vpdma_priv.h
-+++ b/drivers/media/platform/ti-vpe/vpdma_priv.h
-@@ -116,4 +116,526 @@
- #define	VPE_CHAN_NUM_CHROMA_OUT		103
- #define	VPE_CHAN_NUM_RGB_OUT		106
+@@ -126,6 +161,12 @@ struct vpe_port_data {
+  */
+ #define VPE_PORT_LUMA1_IN	0
+ #define VPE_PORT_CHROMA1_IN	1
++#define VPE_PORT_LUMA2_IN	2
++#define VPE_PORT_CHROMA2_IN	3
++#define VPE_PORT_LUMA3_IN	4
++#define VPE_PORT_CHROMA3_IN	5
++#define VPE_PORT_MV_IN		6
++#define VPE_PORT_MV_OUT		7
+ #define VPE_PORT_LUMA_OUT	8
+ #define VPE_PORT_CHROMA_OUT	9
+ #define VPE_PORT_RGB_OUT	10
+@@ -133,12 +174,40 @@ struct vpe_port_data {
+ static const struct vpe_port_data port_data[11] = {
+ 	[VPE_PORT_LUMA1_IN] = {
+ 		.channel	= VPE_CHAN_LUMA1_IN,
++		.vb_index	= 0,
+ 		.vb_part	= VPE_LUMA,
+ 	},
+ 	[VPE_PORT_CHROMA1_IN] = {
+ 		.channel	= VPE_CHAN_CHROMA1_IN,
++		.vb_index	= 0,
++		.vb_part	= VPE_CHROMA,
++	},
++	[VPE_PORT_LUMA2_IN] = {
++		.channel	= VPE_CHAN_LUMA2_IN,
++		.vb_index	= 1,
++		.vb_part	= VPE_LUMA,
++	},
++	[VPE_PORT_CHROMA2_IN] = {
++		.channel	= VPE_CHAN_CHROMA2_IN,
++		.vb_index	= 1,
++		.vb_part	= VPE_CHROMA,
++	},
++	[VPE_PORT_LUMA3_IN] = {
++		.channel	= VPE_CHAN_LUMA3_IN,
++		.vb_index	= 2,
++		.vb_part	= VPE_LUMA,
++	},
++	[VPE_PORT_CHROMA3_IN] = {
++		.channel	= VPE_CHAN_CHROMA3_IN,
++		.vb_index	= 2,
+ 		.vb_part	= VPE_CHROMA,
+ 	},
++	[VPE_PORT_MV_IN] = {
++		.channel	= VPE_CHAN_MV_IN,
++	},
++	[VPE_PORT_MV_OUT] = {
++		.channel	= VPE_CHAN_MV_OUT,
++	},
+ 	[VPE_PORT_LUMA_OUT] = {
+ 		.channel	= VPE_CHAN_LUMA_OUT,
+ 		.vb_part	= VPE_LUMA,
+@@ -210,6 +279,7 @@ struct vpe_q_data {
+ 	unsigned int		height;				/* frame height */
+ 	unsigned int		bytesperline[VPE_MAX_PLANES];	/* bytes per line in memory */
+ 	enum v4l2_colorspace	colorspace;
++	enum v4l2_field		field;				/* supported field value */
+ 	unsigned int		flags;
+ 	unsigned int		sizeimage[VPE_MAX_PLANES];	/* image size in memory */
+ 	struct v4l2_rect	c_rect;				/* crop/compose rectangle */
+@@ -219,6 +289,7 @@ struct vpe_q_data {
+ /* vpe_q_data flag bits */
+ #define	Q_DATA_FRAME_1D		(1 << 0)
+ #define	Q_DATA_MODE_TILED	(1 << 1)
++#define	Q_DATA_INTERLACED	(1 << 2)
  
-+/*
-+ * a VPDMA address data block payload for a configuration descriptor needs to
-+ * have each sub block length as a multiple of 16 bytes. Therefore, the overall
-+ * size of the payload also needs to be a multiple of 16 bytes. The sub block
-+ * lengths should be ensured to be aligned by the VPDMA user.
+ enum {
+ 	Q_DATA_SRC = 0,
+@@ -270,6 +341,7 @@ struct vpe_ctx {
+ 	struct v4l2_m2m_ctx	*m2m_ctx;
+ 	struct v4l2_ctrl_handler hdl;
+ 
++	unsigned int		field;			/* current field */
+ 	unsigned int		sequence;		/* current frame/field seq */
+ 	unsigned int		aborting;		/* abort after next irq */
+ 
+@@ -277,13 +349,19 @@ struct vpe_ctx {
+ 	unsigned int		bufs_completed;		/* bufs done in this batch */
+ 
+ 	struct vpe_q_data	q_data[2];		/* src & dst queue data */
+-	struct vb2_buffer	*src_vb;
++	struct vb2_buffer	*src_vbs[VPE_MAX_SRC_BUFS];
+ 	struct vb2_buffer	*dst_vb;
+ 
++	dma_addr_t		mv_buf_dma[2];		/* dma addrs of motion vector in/out bufs */
++	void			*mv_buf[2];		/* virtual addrs of motion vector bufs */
++	size_t			mv_buf_size;		/* current motion vector buffer size */
+ 	struct vpdma_buf	mmr_adb;		/* shadow reg addr/data block */
+ 	struct vpdma_desc_list	desc_list;		/* DMA descriptor list */
+ 
++	bool			deinterlacing;		/* using de-interlacer */
+ 	bool			load_mmrs;		/* have new shadow reg values */
++
++	unsigned int		src_mv_buf_selector;
+ };
+ 
+ 
+@@ -359,8 +437,7 @@ struct vpe_mmr_adb {
+ 	struct vpdma_adb_hdr	us3_hdr;
+ 	u32			us3_regs[8];
+ 	struct vpdma_adb_hdr	dei_hdr;
+-	u32			dei_regs[1];
+-	u32			dei_pad[3];
++	u32			dei_regs[8];
+ 	struct vpdma_adb_hdr	sc_hdr;
+ 	u32			sc_regs[1];
+ 	u32			sc_pad[3];
+@@ -386,6 +463,80 @@ static void init_adb_hdrs(struct vpe_ctx *ctx)
+ };
+ 
+ /*
++ * Allocate or re-allocate the motion vector DMA buffers
++ * There are two buffers, one for input and one for output.
++ * However, the roles are reversed after each field is processed.
++ * In other words, after each field is processed, the previous
++ * output (dst) MV buffer becomes the new input (src) MV buffer.
 + */
-+#define VPDMA_ADB_SIZE_ALIGN		0x0f
-+
-+/*
-+ * data transfer descriptor
-+ */
-+struct vpdma_dtd {
-+	u32			type_ctl_stride;
-+	union {
-+		u32		xfer_length_height;
-+		u32		w1;
-+	};
-+	dma_addr_t		start_addr;
-+	u32			pkt_ctl;
-+	union {
-+		u32		frame_width_height;	/* inbound */
-+		dma_addr_t	desc_write_addr;	/* outbound */
-+	};
-+	union {
-+		u32		start_h_v;		/* inbound */
-+		u32		max_width_height;	/* outbound */
-+	};
-+	u32			client_attr0;
-+	u32			client_attr1;
-+};
-+
-+/* Data Transfer Descriptor specifics */
-+#define DTD_NO_NOTIFY		0
-+#define DTD_NOTIFY		1
-+
-+#define DTD_PKT_TYPE		0xa
-+#define DTD_DIR_IN		0
-+#define DTD_DIR_OUT		1
-+
-+/* type_ctl_stride */
-+#define DTD_DATA_TYPE_MASK	0x3f
-+#define DTD_DATA_TYPE_SHFT	26
-+#define DTD_NOTIFY_MASK		0x01
-+#define DTD_NOTIFY_SHFT		25
-+#define DTD_FIELD_MASK		0x01
-+#define DTD_FIELD_SHFT		24
-+#define DTD_1D_MASK		0x01
-+#define DTD_1D_SHFT		23
-+#define DTD_EVEN_LINE_SKIP_MASK	0x01
-+#define DTD_EVEN_LINE_SKIP_SHFT	20
-+#define DTD_ODD_LINE_SKIP_MASK	0x01
-+#define DTD_ODD_LINE_SKIP_SHFT	16
-+#define DTD_LINE_STRIDE_MASK	0xffff
-+#define DTD_LINE_STRIDE_SHFT	0
-+
-+/* xfer_length_height */
-+#define DTD_LINE_LENGTH_MASK	0xffff
-+#define DTD_LINE_LENGTH_SHFT	16
-+#define DTD_XFER_HEIGHT_MASK	0xffff
-+#define DTD_XFER_HEIGHT_SHFT	0
-+
-+/* pkt_ctl */
-+#define DTD_PKT_TYPE_MASK	0x1f
-+#define DTD_PKT_TYPE_SHFT	27
-+#define DTD_MODE_MASK		0x01
-+#define DTD_MODE_SHFT		26
-+#define DTD_DIR_MASK		0x01
-+#define DTD_DIR_SHFT		25
-+#define DTD_CHAN_MASK		0x01ff
-+#define DTD_CHAN_SHFT		16
-+#define DTD_PRI_MASK		0x0f
-+#define DTD_PRI_SHFT		9
-+#define DTD_NEXT_CHAN_MASK	0x01ff
-+#define DTD_NEXT_CHAN_SHFT	0
-+
-+/* frame_width_height */
-+#define DTD_FRAME_WIDTH_MASK	0xffff
-+#define DTD_FRAME_WIDTH_SHFT	16
-+#define DTD_FRAME_HEIGHT_MASK	0xffff
-+#define DTD_FRAME_HEIGHT_SHFT	0
-+
-+/* start_h_v */
-+#define DTD_H_START_MASK	0xffff
-+#define DTD_H_START_SHFT	16
-+#define DTD_V_START_MASK	0xffff
-+#define DTD_V_START_SHFT	0
-+
-+#define DTD_DESC_START_SHIFT	5
-+#define DTD_WRITE_DESC_MASK	0x01
-+#define DTD_WRITE_DESC_SHIFT	2
-+#define DTD_DROP_DATA_MASK	0x01
-+#define DTD_DROP_DATA_SHIFT	1
-+#define DTD_USE_DESC_MASK	0x01
-+#define DTD_USE_DESC_SHIFT	0
-+
-+/* max_width_height */
-+#define DTD_MAX_WIDTH_MASK	0x07
-+#define DTD_MAX_WIDTH_SHFT	4
-+#define DTD_MAX_HEIGHT_MASK	0x07
-+#define DTD_MAX_HEIGHT_SHFT	0
-+
-+/* max width configurations */
-+ /* unlimited width */
-+#define	MAX_OUT_WIDTH_UNLIMITED		0
-+/* as specified in max_size1 reg */
-+#define MAX_OUT_WIDTH_REG1		1
-+/* as specified in max_size2 reg */
-+#define MAX_OUT_WIDTH_REG2		2
-+/* as specified in max_size3 reg */
-+#define	MAX_OUT_WIDTH_REG3		3
-+/* maximum of 352 pixels as width */
-+#define MAX_OUT_WIDTH_352		4
-+/* maximum of 768 pixels as width */
-+#define	MAX_OUT_WIDTH_768		5
-+/* maximum of 1280 pixels width */
-+#define	MAX_OUT_WIDTH_1280		6
-+/* maximum of 1920 pixels as width */
-+#define	MAX_OUT_WIDTH_1920		7
-+
-+/* max height configurations */
-+ /* unlimited height */
-+#define	MAX_OUT_HEIGHT_UNLIMITED	0
-+/* as specified in max_size1 reg */
-+#define MAX_OUT_HEIGHT_REG1		1
-+/* as specified in max_size2 reg */
-+#define MAX_OUT_HEIGHT_REG2		2
-+/* as specified in max_size3 reg */
-+#define	MAX_OUT_HEIGHT_REG3		3
-+/* maximum of 288 lines as height */
-+#define MAX_OUT_HEIGHT_288		4
-+/* maximum of 576 lines as height */
-+#define	MAX_OUT_HEIGHT_576		5
-+/* maximum of 720 lines as height */
-+#define	MAX_OUT_HEIGHT_720		6
-+/* maximum of 1080 lines as height */
-+#define	MAX_OUT_HEIGHT_1080		7
-+
-+static inline u32 dtd_type_ctl_stride(int type, bool notify, int field,
-+			bool one_d, bool even_line_skip, bool odd_line_skip,
-+			int line_stride)
++static int realloc_mv_buffers(struct vpe_ctx *ctx, size_t size)
 +{
-+	return (type << DTD_DATA_TYPE_SHFT) | (notify << DTD_NOTIFY_SHFT) |
-+		(field << DTD_FIELD_SHFT) | (one_d << DTD_1D_SHFT) |
-+		(even_line_skip << DTD_EVEN_LINE_SKIP_SHFT) |
-+		(odd_line_skip << DTD_ODD_LINE_SKIP_SHFT) |
-+		line_stride;
++	struct device *dev = ctx->dev->v4l2_dev.dev;
++
++	if (ctx->mv_buf_size == size)
++		return 0;
++
++	if (ctx->mv_buf[0])
++		dma_free_coherent(dev, ctx->mv_buf_size, ctx->mv_buf[0],
++			ctx->mv_buf_dma[0]);
++
++	if (ctx->mv_buf[1])
++		dma_free_coherent(dev, ctx->mv_buf_size, ctx->mv_buf[1],
++			ctx->mv_buf_dma[1]);
++
++	if (size == 0)
++		return 0;
++
++	ctx->mv_buf[0] = dma_alloc_coherent(dev, size, &ctx->mv_buf_dma[0],
++				GFP_KERNEL);
++	if (!ctx->mv_buf[0]) {
++		vpe_err(ctx->dev, "failed to allocate motion vector buffer\n");
++		return -ENOMEM;
++	}
++
++	ctx->mv_buf[1] = dma_alloc_coherent(dev, size, &ctx->mv_buf_dma[1],
++				GFP_KERNEL);
++	if (!ctx->mv_buf[1]) {
++		vpe_err(ctx->dev, "failed to allocate motion vector buffer\n");
++		dma_free_coherent(dev, size, ctx->mv_buf[0],
++			ctx->mv_buf_dma[0]);
++
++		return -ENOMEM;
++	}
++
++	ctx->mv_buf_size = size;
++	ctx->src_mv_buf_selector = 0;
++
++	return 0;
 +}
 +
-+static inline u32 dtd_xfer_length_height(int line_length, int xfer_height)
++static void free_mv_buffers(struct vpe_ctx *ctx)
 +{
-+	return (line_length << DTD_LINE_LENGTH_SHFT) | xfer_height;
-+}
-+
-+static inline u32 dtd_pkt_ctl(bool mode, bool dir, int chan, int pri,
-+			int next_chan)
-+{
-+	return (DTD_PKT_TYPE << DTD_PKT_TYPE_SHFT) | (mode << DTD_MODE_SHFT) |
-+		(dir << DTD_DIR_SHFT) | (chan << DTD_CHAN_SHFT) |
-+		(pri << DTD_PRI_SHFT) | next_chan;
-+}
-+
-+static inline u32 dtd_frame_width_height(int width, int height)
-+{
-+	return (width << DTD_FRAME_WIDTH_SHFT) | height;
-+}
-+
-+static inline u32 dtd_desc_write_addr(unsigned int addr, bool write_desc,
-+			bool drop_data, bool use_desc)
-+{
-+	return (addr << DTD_DESC_START_SHIFT) |
-+		(write_desc << DTD_WRITE_DESC_SHIFT) |
-+		(drop_data << DTD_DROP_DATA_SHIFT) |
-+		use_desc;
-+}
-+
-+static inline u32 dtd_start_h_v(int h_start, int v_start)
-+{
-+	return (h_start << DTD_H_START_SHFT) | v_start;
-+}
-+
-+static inline u32 dtd_max_width_height(int max_width, int max_height)
-+{
-+	return (max_width << DTD_MAX_WIDTH_SHFT) | max_height;
-+}
-+
-+static inline int dtd_get_data_type(struct vpdma_dtd *dtd)
-+{
-+	return dtd->type_ctl_stride >> DTD_DATA_TYPE_SHFT;
-+}
-+
-+static inline bool dtd_get_notify(struct vpdma_dtd *dtd)
-+{
-+	return (dtd->type_ctl_stride >> DTD_NOTIFY_SHFT) & DTD_NOTIFY_MASK;
-+}
-+
-+static inline int dtd_get_field(struct vpdma_dtd *dtd)
-+{
-+	return (dtd->type_ctl_stride >> DTD_FIELD_SHFT) & DTD_FIELD_MASK;
-+}
-+
-+static inline bool dtd_get_1d(struct vpdma_dtd *dtd)
-+{
-+	return (dtd->type_ctl_stride >> DTD_1D_SHFT) & DTD_1D_MASK;
-+}
-+
-+static inline bool dtd_get_even_line_skip(struct vpdma_dtd *dtd)
-+{
-+	return (dtd->type_ctl_stride >> DTD_EVEN_LINE_SKIP_SHFT)
-+		& DTD_EVEN_LINE_SKIP_MASK;
-+}
-+
-+static inline bool dtd_get_odd_line_skip(struct vpdma_dtd *dtd)
-+{
-+	return (dtd->type_ctl_stride >> DTD_ODD_LINE_SKIP_SHFT)
-+		& DTD_ODD_LINE_SKIP_MASK;
-+}
-+
-+static inline int dtd_get_line_stride(struct vpdma_dtd *dtd)
-+{
-+	return dtd->type_ctl_stride & DTD_LINE_STRIDE_MASK;
-+}
-+
-+static inline int dtd_get_line_length(struct vpdma_dtd *dtd)
-+{
-+	return dtd->xfer_length_height >> DTD_LINE_LENGTH_SHFT;
-+}
-+
-+static inline int dtd_get_xfer_height(struct vpdma_dtd *dtd)
-+{
-+	return dtd->xfer_length_height & DTD_XFER_HEIGHT_MASK;
-+}
-+
-+static inline int dtd_get_pkt_type(struct vpdma_dtd *dtd)
-+{
-+	return dtd->pkt_ctl >> DTD_PKT_TYPE_SHFT;
-+}
-+
-+static inline bool dtd_get_mode(struct vpdma_dtd *dtd)
-+{
-+	return (dtd->pkt_ctl >> DTD_MODE_SHFT) & DTD_MODE_MASK;
-+}
-+
-+static inline bool dtd_get_dir(struct vpdma_dtd *dtd)
-+{
-+	return (dtd->pkt_ctl >> DTD_DIR_SHFT) & DTD_DIR_MASK;
-+}
-+
-+static inline int dtd_get_chan(struct vpdma_dtd *dtd)
-+{
-+	return (dtd->pkt_ctl >> DTD_CHAN_SHFT) & DTD_CHAN_MASK;
-+}
-+
-+static inline int dtd_get_priority(struct vpdma_dtd *dtd)
-+{
-+	return (dtd->pkt_ctl >> DTD_PRI_SHFT) & DTD_PRI_MASK;
-+}
-+
-+static inline int dtd_get_next_chan(struct vpdma_dtd *dtd)
-+{
-+	return (dtd->pkt_ctl >> DTD_NEXT_CHAN_SHFT) & DTD_NEXT_CHAN_MASK;
-+}
-+
-+static inline int dtd_get_frame_width(struct vpdma_dtd *dtd)
-+{
-+	return dtd->frame_width_height >> DTD_FRAME_WIDTH_SHFT;
-+}
-+
-+static inline int dtd_get_frame_height(struct vpdma_dtd *dtd)
-+{
-+	return dtd->frame_width_height & DTD_FRAME_HEIGHT_MASK;
-+}
-+
-+static inline int dtd_get_desc_write_addr(struct vpdma_dtd *dtd)
-+{
-+	return dtd->desc_write_addr >> DTD_DESC_START_SHIFT;
-+}
-+
-+static inline bool dtd_get_write_desc(struct vpdma_dtd *dtd)
-+{
-+	return (dtd->desc_write_addr >> DTD_WRITE_DESC_SHIFT) &
-+							DTD_WRITE_DESC_MASK;
-+}
-+
-+static inline bool dtd_get_drop_data(struct vpdma_dtd *dtd)
-+{
-+	return (dtd->desc_write_addr >> DTD_DROP_DATA_SHIFT) &
-+							DTD_DROP_DATA_MASK;
-+}
-+
-+static inline bool dtd_get_use_desc(struct vpdma_dtd *dtd)
-+{
-+	return dtd->desc_write_addr & DTD_USE_DESC_MASK;
-+}
-+
-+static inline int dtd_get_h_start(struct vpdma_dtd *dtd)
-+{
-+	return dtd->start_h_v >> DTD_H_START_SHFT;
-+}
-+
-+static inline int dtd_get_v_start(struct vpdma_dtd *dtd)
-+{
-+	return dtd->start_h_v & DTD_V_START_MASK;
-+}
-+
-+static inline int dtd_get_max_width(struct vpdma_dtd *dtd)
-+{
-+	return (dtd->max_width_height >> DTD_MAX_WIDTH_SHFT) &
-+							DTD_MAX_WIDTH_MASK;
-+}
-+
-+static inline int dtd_get_max_height(struct vpdma_dtd *dtd)
-+{
-+	return (dtd->max_width_height >> DTD_MAX_HEIGHT_SHFT) &
-+							DTD_MAX_HEIGHT_MASK;
++	realloc_mv_buffers(ctx, 0);
 +}
 +
 +/*
-+ * configuration descriptor
++ * While de-interlacing, we keep the two most recent input buffers
++ * around.  This function frees those two buffers when we have
++ * finished processing the current stream.
 + */
-+struct vpdma_cfd {
-+	union {
-+		u32	dest_addr_offset;
-+		u32	w0;
-+	};
-+	union {
-+		u32	block_len;		/* in words */
-+		u32	w1;
-+	};
-+	u32		payload_addr;
-+	u32		ctl_payload_len;	/* in words */
-+};
-+
-+/* Configuration descriptor specifics */
-+
-+#define CFD_PKT_TYPE		0xb
-+
-+#define CFD_DIRECT		1
-+#define CFD_INDIRECT		0
-+#define CFD_CLS_ADB		0
-+#define CFD_CLS_BLOCK		1
-+
-+/* block_len */
-+#define CFD__BLOCK_LEN_MASK	0xffff
-+#define CFD__BLOCK_LEN_SHFT	0
-+
-+/* ctl_payload_len */
-+#define CFD_PKT_TYPE_MASK	0x1f
-+#define CFD_PKT_TYPE_SHFT	27
-+#define CFD_DIRECT_MASK		0x01
-+#define CFD_DIRECT_SHFT		26
-+#define CFD_CLASS_MASK		0x03
-+#define CFD_CLASS_SHFT		24
-+#define CFD_DEST_MASK		0xff
-+#define CFD_DEST_SHFT		16
-+#define CFD_PAYLOAD_LEN_MASK	0xffff
-+#define CFD_PAYLOAD_LEN_SHFT	0
-+
-+static inline u32 cfd_pkt_payload_len(bool direct, int cls, int dest,
-+		int payload_len)
++static void free_vbs(struct vpe_ctx *ctx)
 +{
-+	return (CFD_PKT_TYPE << CFD_PKT_TYPE_SHFT) |
-+		(direct << CFD_DIRECT_SHFT) |
-+		(cls << CFD_CLASS_SHFT) |
-+		(dest << CFD_DEST_SHFT) |
-+		payload_len;
-+}
++	struct vpe_dev *dev = ctx->dev;
++	unsigned long flags;
 +
-+static inline int cfd_get_pkt_type(struct vpdma_cfd *cfd)
-+{
-+	return cfd->ctl_payload_len >> CFD_PKT_TYPE_SHFT;
-+}
++	if (ctx->src_vbs[2] == NULL)
++		return;
 +
-+static inline bool cfd_get_direct(struct vpdma_cfd *cfd)
-+{
-+	return (cfd->ctl_payload_len >> CFD_DIRECT_SHFT) & CFD_DIRECT_MASK;
-+}
-+
-+static inline bool cfd_get_class(struct vpdma_cfd *cfd)
-+{
-+	return (cfd->ctl_payload_len >> CFD_CLASS_SHFT) & CFD_CLASS_MASK;
-+}
-+
-+static inline int cfd_get_dest(struct vpdma_cfd *cfd)
-+{
-+	return (cfd->ctl_payload_len >> CFD_DEST_SHFT) & CFD_DEST_MASK;
-+}
-+
-+static inline int cfd_get_payload_len(struct vpdma_cfd *cfd)
-+{
-+	return cfd->ctl_payload_len & CFD_PAYLOAD_LEN_MASK;
++	spin_lock_irqsave(&dev->lock, flags);
++	if (ctx->src_vbs[2]) {
++		v4l2_m2m_buf_done(ctx->src_vbs[2], VB2_BUF_STATE_DONE);
++		v4l2_m2m_buf_done(ctx->src_vbs[1], VB2_BUF_STATE_DONE);
++	}
++	spin_unlock_irqrestore(&dev->lock, flags);
 +}
 +
 +/*
-+ * control descriptor
-+ */
-+struct vpdma_ctd {
-+	union {
-+		u32	timer_value;
-+		u32	list_addr;
-+		u32	w0;
-+	};
-+	union {
-+		u32	pixel_line_count;
-+		u32	list_size;
-+		u32	w1;
-+	};
-+	union {
-+		u32	event;
-+		u32	fid_ctl;
-+		u32	w2;
-+	};
-+	u32		type_source_ctl;
-+};
+  * Enable or disable the VPE clocks
+  */
+ static void vpe_set_clock_enable(struct vpe_dev *dev, bool on)
+@@ -426,6 +577,7 @@ static void vpe_top_vpdma_reset(struct vpe_dev *dev)
+ static void set_us_coefficients(struct vpe_ctx *ctx)
+ {
+ 	struct vpe_mmr_adb *mmr_adb = ctx->mmr_adb.addr;
++	struct vpe_q_data *s_q_data = &ctx->q_data[Q_DATA_SRC];
+ 	u32 *us1_reg = &mmr_adb->us1_regs[0];
+ 	u32 *us2_reg = &mmr_adb->us2_regs[0];
+ 	u32 *us3_reg = &mmr_adb->us3_regs[0];
+@@ -433,6 +585,9 @@ static void set_us_coefficients(struct vpe_ctx *ctx)
+ 
+ 	cp = &us_coeffs[0].anchor_fid0_c0;
+ 
++	if (s_q_data->flags & Q_DATA_INTERLACED)	/* interlaced */
++		cp += sizeof(us_coeffs[0]) / sizeof(*cp);
 +
-+/* control descriptor types */
-+#define CTD_TYPE_SYNC_ON_CLIENT		0
-+#define CTD_TYPE_SYNC_ON_LIST		1
-+#define CTD_TYPE_SYNC_ON_EXT		2
-+#define CTD_TYPE_SYNC_ON_LM_TIMER	3
-+#define CTD_TYPE_SYNC_ON_CHANNEL	4
-+#define CTD_TYPE_CHNG_CLIENT_IRQ	5
-+#define CTD_TYPE_SEND_IRQ		6
-+#define CTD_TYPE_RELOAD_LIST		7
-+#define CTD_TYPE_ABORT_CHANNEL		8
+ 	end_cp = cp + sizeof(us_coeffs[0]) / sizeof(*cp);
+ 
+ 	while (cp < end_cp) {
+@@ -473,14 +628,28 @@ static void set_cfg_and_line_modes(struct vpe_ctx *ctx)
+ 
+ 	/* regs for now */
+ 	vpdma_set_line_mode(ctx->dev->vpdma, line_mode, VPE_CHAN_CHROMA1_IN);
++	vpdma_set_line_mode(ctx->dev->vpdma, line_mode, VPE_CHAN_CHROMA2_IN);
++	vpdma_set_line_mode(ctx->dev->vpdma, line_mode, VPE_CHAN_CHROMA3_IN);
+ 
+ 	/* frame start for input luma */
+ 	vpdma_set_frame_start_event(ctx->dev->vpdma, VPDMA_FSEVENT_CHANNEL_ACTIVE,
+ 		VPE_CHAN_LUMA1_IN);
++	vpdma_set_frame_start_event(ctx->dev->vpdma, VPDMA_FSEVENT_CHANNEL_ACTIVE,
++		VPE_CHAN_LUMA2_IN);
++	vpdma_set_frame_start_event(ctx->dev->vpdma, VPDMA_FSEVENT_CHANNEL_ACTIVE,
++		VPE_CHAN_LUMA3_IN);
+ 
+ 	/* frame start for input chroma */
+ 	vpdma_set_frame_start_event(ctx->dev->vpdma, VPDMA_FSEVENT_CHANNEL_ACTIVE,
+ 		VPE_CHAN_CHROMA1_IN);
++	vpdma_set_frame_start_event(ctx->dev->vpdma, VPDMA_FSEVENT_CHANNEL_ACTIVE,
++		VPE_CHAN_CHROMA2_IN);
++	vpdma_set_frame_start_event(ctx->dev->vpdma, VPDMA_FSEVENT_CHANNEL_ACTIVE,
++		VPE_CHAN_CHROMA3_IN);
 +
-+#define CTD_PKT_TYPE		0xc
++	/* frame start for MV in client */
++	vpdma_set_frame_start_event(ctx->dev->vpdma, VPDMA_FSEVENT_CHANNEL_ACTIVE,
++		VPE_CHAN_MV_IN);
+ 
+ 	ctx->load_mmrs = true;
+ }
+@@ -524,13 +693,14 @@ static void set_dst_registers(struct vpe_ctx *ctx)
+ /*
+  * Set the de-interlacer shadow register values
+  */
+-static void set_dei_regs_bypass(struct vpe_ctx *ctx)
++static void set_dei_regs(struct vpe_ctx *ctx)
+ {
+ 	struct vpe_mmr_adb *mmr_adb = ctx->mmr_adb.addr;
+ 	struct vpe_q_data *s_q_data = &ctx->q_data[Q_DATA_SRC];
+ 	unsigned int src_h = s_q_data->c_rect.height;
+ 	unsigned int src_w = s_q_data->c_rect.width;
+ 	u32 *dei_mmr0 = &mmr_adb->dei_regs[0];
++	bool deinterlace = true;
+ 	u32 val = 0;
+ 
+ 	/*
+@@ -539,7 +709,13 @@ static void set_dei_regs_bypass(struct vpe_ctx *ctx)
+ 	 * for both progressive and interlace content in interlace bypass mode.
+ 	 * It has been recommended not to use progressive bypass mode.
+ 	 */
+-	val = VPE_DEI_INTERLACE_BYPASS;
++	if ((!ctx->deinterlacing && (s_q_data->flags & Q_DATA_INTERLACED)) ||
++			!(s_q_data->flags & Q_DATA_INTERLACED)) {
++		deinterlace = false;
++		val = VPE_DEI_INTERLACE_BYPASS;
++	}
 +
-+/* timer_value */
-+#define CTD_TIMER_VALUE_MASK	0xffff
-+#define CTD_TIMER_VALUE_SHFT	0
-+
-+/* pixel_line_count */
-+#define CTD_PIXEL_COUNT_MASK	0xffff
-+#define CTD_PIXEL_COUNT_SHFT	16
-+#define CTD_LINE_COUNT_MASK	0xffff
-+#define CTD_LINE_COUNT_SHFT	0
-+
-+/* list_size */
-+#define CTD_LIST_SIZE_MASK	0xffff
-+#define CTD_LIST_SIZE_SHFT	0
-+
-+/* event */
-+#define CTD_EVENT_MASK		0x0f
-+#define CTD_EVENT_SHFT		0
-+
-+/* fid_ctl */
-+#define CTD_FID2_MASK		0x03
-+#define CTD_FID2_SHFT		4
-+#define CTD_FID1_MASK		0x03
-+#define CTD_FID1_SHFT		2
-+#define CTD_FID0_MASK		0x03
-+#define CTD_FID0_SHFT		0
-+
-+/* type_source_ctl */
-+#define CTD_PKT_TYPE_MASK	0x1f
-+#define CTD_PKT_TYPE_SHFT	27
-+#define CTD_SOURCE_MASK		0xff
-+#define CTD_SOURCE_SHFT		16
-+#define CTD_CONTROL_MASK	0x0f
-+#define CTD_CONTROL_SHFT	0
-+
-+static inline u32 ctd_pixel_line_count(int pixel_count, int line_count)
++	src_h = deinterlace ? src_h * 2 : src_h;
+ 
+ 	val |= (src_h << VPE_DEI_HEIGHT_SHIFT) |
+ 		(src_w << VPE_DEI_WIDTH_SHIFT) |
+@@ -550,6 +726,22 @@ static void set_dei_regs_bypass(struct vpe_ctx *ctx)
+ 	ctx->load_mmrs = true;
+ }
+ 
++static void set_dei_shadow_registers(struct vpe_ctx *ctx)
 +{
-+	return (pixel_count << CTD_PIXEL_COUNT_SHFT) | line_count;
++	struct vpe_mmr_adb *mmr_adb = ctx->mmr_adb.addr;
++	u32 *dei_mmr = &mmr_adb->dei_regs[0];
++	const struct vpe_dei_regs *cur = &dei_regs;
++
++	dei_mmr[2]  = cur->mdt_spacial_freq_thr_reg;
++	dei_mmr[3]  = cur->edi_config_reg;
++	dei_mmr[4]  = cur->edi_lut_reg0;
++	dei_mmr[5]  = cur->edi_lut_reg1;
++	dei_mmr[6]  = cur->edi_lut_reg2;
++	dei_mmr[7]  = cur->edi_lut_reg3;
++
++	ctx->load_mmrs = true;
 +}
 +
-+static inline u32 ctd_set_fid_ctl(int fid0, int fid1, int fid2)
+ static void set_csc_coeff_bypass(struct vpe_ctx *ctx)
+ {
+ 	struct vpe_mmr_adb *mmr_adb = ctx->mmr_adb.addr;
+@@ -578,10 +770,35 @@ static void set_sc_regs_bypass(struct vpe_ctx *ctx)
+  */
+ static int set_srcdst_params(struct vpe_ctx *ctx)
+ {
++	struct vpe_q_data *s_q_data =  &ctx->q_data[Q_DATA_SRC];
++	struct vpe_q_data *d_q_data =  &ctx->q_data[Q_DATA_DST];
++	size_t mv_buf_size;
++	int ret;
++
+ 	ctx->sequence = 0;
++	ctx->field = V4L2_FIELD_TOP;
++
++	if ((s_q_data->flags & Q_DATA_INTERLACED) &&
++			!(d_q_data->flags & Q_DATA_INTERLACED)) {
++		const struct vpdma_data_format *mv =
++			&vpdma_misc_fmts[VPDMA_DATA_FMT_MV];
++
++		ctx->deinterlacing = 1;
++		mv_buf_size =
++			(s_q_data->width * s_q_data->height * mv->depth) >> 3;
++	} else {
++		ctx->deinterlacing = 0;
++		mv_buf_size = 0;
++	}
++
++	free_vbs(ctx);
++
++	ret = realloc_mv_buffers(ctx, mv_buf_size);
++	if (ret)
++		return ret;
+ 
+ 	set_cfg_and_line_modes(ctx);
+-	set_dei_regs_bypass(ctx);
++	set_dei_regs(ctx);
+ 	set_csc_coeff_bypass(ctx);
+ 	set_sc_regs_bypass(ctx);
+ 
+@@ -608,6 +825,9 @@ static int job_ready(void *priv)
+ 	struct vpe_ctx *ctx = priv;
+ 	int needed = ctx->bufs_per_job;
+ 
++	if (ctx->deinterlacing && ctx->src_vbs[2] == NULL)
++		needed += 2;	/* need additional two most recent fields */
++
+ 	if (v4l2_m2m_num_src_bufs_ready(ctx->m2m_ctx) < needed)
+ 		return 0;
+ 
+@@ -735,17 +955,25 @@ static void add_out_dtd(struct vpe_ctx *ctx, int port)
+ 	struct v4l2_rect *c_rect = &q_data->c_rect;
+ 	struct vpe_fmt *fmt = q_data->fmt;
+ 	const struct vpdma_data_format *vpdma_fmt;
+-	int plane = fmt->coplanar ? p_data->vb_part : 0;
++	int mv_buf_selector = !ctx->src_mv_buf_selector;
+ 	dma_addr_t dma_addr;
+ 	u32 flags = 0;
+ 
+-	vpdma_fmt = fmt->vpdma_fmt[plane];
+-	dma_addr = vb2_dma_contig_plane_dma_addr(vb, plane);
+-	if (!dma_addr) {
+-		vpe_err(ctx->dev,
+-			"acquiring output buffer(%d) dma_addr failed\n",
+-			port);
+-		return;
++	if (port == VPE_PORT_MV_OUT) {
++		vpdma_fmt = &vpdma_misc_fmts[VPDMA_DATA_FMT_MV];
++		dma_addr = ctx->mv_buf_dma[mv_buf_selector];
++	} else {
++		/* to incorporate interleaved formats */
++		int plane = fmt->coplanar ? p_data->vb_part : 0;
++
++		vpdma_fmt = fmt->vpdma_fmt[plane];
++		dma_addr = vb2_dma_contig_plane_dma_addr(vb, plane);
++		if (!dma_addr) {
++			vpe_err(ctx->dev,
++				"acquiring output buffer(%d) dma_addr failed\n",
++				port);
++			return;
++		}
+ 	}
+ 
+ 	if (q_data->flags & Q_DATA_FRAME_1D)
+@@ -761,23 +989,31 @@ static void add_in_dtd(struct vpe_ctx *ctx, int port)
+ {
+ 	struct vpe_q_data *q_data = &ctx->q_data[Q_DATA_SRC];
+ 	const struct vpe_port_data *p_data = &port_data[port];
+-	struct vb2_buffer *vb = ctx->src_vb;
++	struct vb2_buffer *vb = ctx->src_vbs[p_data->vb_index];
+ 	struct v4l2_rect *c_rect = &q_data->c_rect;
+ 	struct vpe_fmt *fmt = q_data->fmt;
+ 	const struct vpdma_data_format *vpdma_fmt;
+-	int plane = fmt->coplanar ? p_data->vb_part : 0;
+-	int field = 0;
++	int mv_buf_selector = ctx->src_mv_buf_selector;
++	int field = vb->v4l2_buf.field == V4L2_FIELD_BOTTOM;
+ 	dma_addr_t dma_addr;
+ 	u32 flags = 0;
+ 
+-	vpdma_fmt = fmt->vpdma_fmt[plane];
++	if (port == VPE_PORT_MV_IN) {
++		vpdma_fmt = &vpdma_misc_fmts[VPDMA_DATA_FMT_MV];
++		dma_addr = ctx->mv_buf_dma[mv_buf_selector];
++	} else {
++		/* to incorporate interleaved formats */
++		int plane = fmt->coplanar ? p_data->vb_part : 0;
+ 
+-	dma_addr = vb2_dma_contig_plane_dma_addr(vb, plane);
+-	if (!dma_addr) {
+-		vpe_err(ctx->dev,
+-			"acquiring input buffer(%d) dma_addr failed\n",
+-			port);
+-		return;
++		vpdma_fmt = fmt->vpdma_fmt[plane];
++
++		dma_addr = vb2_dma_contig_plane_dma_addr(vb, plane);
++		if (!dma_addr) {
++			vpe_err(ctx->dev,
++				"acquiring input buffer(%d) dma_addr failed\n",
++				port);
++			return;
++		}
+ 	}
+ 
+ 	if (q_data->flags & Q_DATA_FRAME_1D)
+@@ -795,7 +1031,8 @@ static void add_in_dtd(struct vpe_ctx *ctx, int port)
+ static void enable_irqs(struct vpe_ctx *ctx)
+ {
+ 	write_reg(ctx->dev, VPE_INT0_ENABLE0_SET, VPE_INT0_LIST0_COMPLETE);
+-	write_reg(ctx->dev, VPE_INT0_ENABLE1_SET, VPE_DS1_UV_ERROR_INT);
++	write_reg(ctx->dev, VPE_INT0_ENABLE1_SET, VPE_DEI_ERROR_INT |
++				VPE_DS1_UV_ERROR_INT);
+ 
+ 	vpdma_enable_list_complete_irq(ctx->dev->vpdma, 0, true);
+ }
+@@ -818,8 +1055,15 @@ static void device_run(void *priv)
+ 	struct vpe_ctx *ctx = priv;
+ 	struct vpe_q_data *d_q_data = &ctx->q_data[Q_DATA_DST];
+ 
+-	ctx->src_vb = v4l2_m2m_src_buf_remove(ctx->m2m_ctx);
+-	WARN_ON(ctx->src_vb == NULL);
++	if (ctx->deinterlacing && ctx->src_vbs[2] == NULL) {
++		ctx->src_vbs[2] = v4l2_m2m_src_buf_remove(ctx->m2m_ctx);
++		WARN_ON(ctx->src_vbs[2] == NULL);
++		ctx->src_vbs[1] = v4l2_m2m_src_buf_remove(ctx->m2m_ctx);
++		WARN_ON(ctx->src_vbs[1] == NULL);
++	}
++
++	ctx->src_vbs[0] = v4l2_m2m_src_buf_remove(ctx->m2m_ctx);
++	WARN_ON(ctx->src_vbs[0] == NULL);
+ 	ctx->dst_vb = v4l2_m2m_dst_buf_remove(ctx->m2m_ctx);
+ 	WARN_ON(ctx->dst_vb == NULL);
+ 
+@@ -831,28 +1075,67 @@ static void device_run(void *priv)
+ 		ctx->load_mmrs = false;
+ 	}
+ 
++	/* output data descriptors */
++	if (ctx->deinterlacing)
++		add_out_dtd(ctx, VPE_PORT_MV_OUT);
++
+ 	add_out_dtd(ctx, VPE_PORT_LUMA_OUT);
+ 	if (d_q_data->fmt->coplanar)
+ 		add_out_dtd(ctx, VPE_PORT_CHROMA_OUT);
+ 
++	/* input data descriptors */
++	if (ctx->deinterlacing) {
++		add_in_dtd(ctx, VPE_PORT_LUMA3_IN);
++		add_in_dtd(ctx, VPE_PORT_CHROMA3_IN);
++
++		add_in_dtd(ctx, VPE_PORT_LUMA2_IN);
++		add_in_dtd(ctx, VPE_PORT_CHROMA2_IN);
++	}
++
+ 	add_in_dtd(ctx, VPE_PORT_LUMA1_IN);
+ 	add_in_dtd(ctx, VPE_PORT_CHROMA1_IN);
+ 
++	if (ctx->deinterlacing)
++		add_in_dtd(ctx, VPE_PORT_MV_IN);
++
+ 	/* sync on channel control descriptors for input ports */
+ 	vpdma_add_sync_on_channel_ctd(&ctx->desc_list, VPE_CHAN_LUMA1_IN);
+ 	vpdma_add_sync_on_channel_ctd(&ctx->desc_list, VPE_CHAN_CHROMA1_IN);
+ 
++	if (ctx->deinterlacing) {
++		vpdma_add_sync_on_channel_ctd(&ctx->desc_list,
++			VPE_CHAN_LUMA2_IN);
++		vpdma_add_sync_on_channel_ctd(&ctx->desc_list,
++			VPE_CHAN_CHROMA2_IN);
++
++		vpdma_add_sync_on_channel_ctd(&ctx->desc_list,
++			VPE_CHAN_LUMA3_IN);
++		vpdma_add_sync_on_channel_ctd(&ctx->desc_list,
++			VPE_CHAN_CHROMA3_IN);
++
++		vpdma_add_sync_on_channel_ctd(&ctx->desc_list, VPE_CHAN_MV_IN);
++	}
++
+ 	/* sync on channel control descriptors for output ports */
+ 	vpdma_add_sync_on_channel_ctd(&ctx->desc_list, VPE_CHAN_LUMA_OUT);
+ 	if (d_q_data->fmt->coplanar)
+ 		vpdma_add_sync_on_channel_ctd(&ctx->desc_list, VPE_CHAN_CHROMA_OUT);
+ 
++	if (ctx->deinterlacing)
++		vpdma_add_sync_on_channel_ctd(&ctx->desc_list, VPE_CHAN_MV_OUT);
++
+ 	enable_irqs(ctx);
+ 
+ 	vpdma_map_desc_buf(ctx->dev->vpdma, &ctx->desc_list.buf);
+ 	vpdma_submit_descs(ctx->dev->vpdma, &ctx->desc_list);
+ }
+ 
++static void dei_error(struct vpe_ctx *ctx)
 +{
-+	return (fid2 << CTD_FID2_SHFT) | (fid1 << CTD_FID1_SHFT) | fid0;
++	dev_warn(ctx->dev->v4l2_dev.dev,
++		"received DEI error interrupt\n");
 +}
 +
-+static inline u32 ctd_type_source_ctl(int source, int control)
-+{
-+	return (CTD_PKT_TYPE << CTD_PKT_TYPE_SHFT) |
-+		(source << CTD_SOURCE_SHFT) | control;
-+}
+ static void ds1_uv_error(struct vpe_ctx *ctx)
+ {
+ 	dev_warn(ctx->dev->v4l2_dev.dev,
+@@ -863,6 +1146,7 @@ static irqreturn_t vpe_irq(int irq_vpe, void *data)
+ {
+ 	struct vpe_dev *dev = (struct vpe_dev *)data;
+ 	struct vpe_ctx *ctx;
++	struct vpe_q_data *d_q_data;
+ 	struct vb2_buffer *s_vb, *d_vb;
+ 	struct v4l2_buffer *s_buf, *d_buf;
+ 	unsigned long flags;
+@@ -886,9 +1170,15 @@ static irqreturn_t vpe_irq(int irq_vpe, void *data)
+ 		goto handled;
+ 	}
+ 
+-	if (irqst1 & VPE_DS1_UV_ERROR_INT) {
+-		irqst1 &= ~VPE_DS1_UV_ERROR_INT;
+-		ds1_uv_error(ctx);
++	if (irqst1) {
++		if (irqst1 & VPE_DEI_ERROR_INT) {
++			irqst1 &= ~VPE_DEI_ERROR_INT;
++			dei_error(ctx);
++		}
++		if (irqst1 & VPE_DS1_UV_ERROR_INT) {
++			irqst1 &= ~VPE_DS1_UV_ERROR_INT;
++			ds1_uv_error(ctx);
++		}
+ 	}
+ 
+ 	if (irqst0) {
+@@ -911,10 +1201,13 @@ static irqreturn_t vpe_irq(int irq_vpe, void *data)
+ 
+ 	vpdma_reset_desc_list(&ctx->desc_list);
+ 
++	 /* the previous dst mv buffer becomes the next src mv buffer */
++	ctx->src_mv_buf_selector = !ctx->src_mv_buf_selector;
 +
-+static inline u32 ctd_get_pixel_count(struct vpdma_ctd *ctd)
-+{
-+	return ctd->pixel_line_count >> CTD_PIXEL_COUNT_SHFT;
-+}
+ 	if (ctx->aborting)
+ 		goto finished;
+ 
+-	s_vb = ctx->src_vb;
++	s_vb = ctx->src_vbs[0];
+ 	d_vb = ctx->dst_vb;
+ 	s_buf = &s_vb->v4l2_buf;
+ 	d_buf = &d_vb->v4l2_buf;
+@@ -924,16 +1217,35 @@ static irqreturn_t vpe_irq(int irq_vpe, void *data)
+ 		d_buf->flags |= V4L2_BUF_FLAG_TIMECODE;
+ 		d_buf->timecode = s_buf->timecode;
+ 	}
+-
+ 	d_buf->sequence = ctx->sequence;
++	d_buf->field = ctx->field;
 +
-+static inline int ctd_get_line_count(struct vpdma_ctd *ctd)
-+{
-+	return ctd->pixel_line_count & CTD_LINE_COUNT_MASK;
-+}
++	d_q_data = &ctx->q_data[Q_DATA_DST];
++	if (d_q_data->flags & Q_DATA_INTERLACED) {
++		if (ctx->field == V4L2_FIELD_BOTTOM) {
++			ctx->sequence++;
++			ctx->field = V4L2_FIELD_TOP;
++		} else {
++			WARN_ON(ctx->field != V4L2_FIELD_TOP);
++			ctx->field = V4L2_FIELD_BOTTOM;
++		}
++	} else {
++		ctx->sequence++;
++	}
+ 
+-	ctx->sequence++;
++	if (ctx->deinterlacing)
++		s_vb = ctx->src_vbs[2];
+ 
+ 	spin_lock_irqsave(&dev->lock, flags);
+ 	v4l2_m2m_buf_done(s_vb, VB2_BUF_STATE_DONE);
+ 	v4l2_m2m_buf_done(d_vb, VB2_BUF_STATE_DONE);
+ 	spin_unlock_irqrestore(&dev->lock, flags);
+ 
++	if (ctx->deinterlacing) {
++		ctx->src_vbs[2] = ctx->src_vbs[1];
++		ctx->src_vbs[1] = ctx->src_vbs[0];
++	}
 +
-+static inline int ctd_get_event(struct vpdma_ctd *ctd)
-+{
-+	return ctd->event & CTD_EVENT_MASK;
-+}
+ 	ctx->bufs_completed++;
+ 	if (ctx->bufs_completed < ctx->bufs_per_job) {
+ 		device_run(ctx);
+@@ -1012,6 +1324,7 @@ static int vpe_g_fmt(struct file *file, void *priv, struct v4l2_format *f)
+ 	pix->width = q_data->width;
+ 	pix->height = q_data->height;
+ 	pix->pixelformat = q_data->fmt->fourcc;
++	pix->field = q_data->field;
+ 
+ 	if (V4L2_TYPE_IS_OUTPUT(f->type)) {
+ 		pix->colorspace = q_data->colorspace;
+@@ -1047,7 +1360,8 @@ static int __vpe_try_fmt(struct vpe_ctx *ctx, struct v4l2_format *f,
+ 		return -EINVAL;
+ 	}
+ 
+-	pix->field = V4L2_FIELD_NONE;
++	if (pix->field != V4L2_FIELD_NONE && pix->field != V4L2_FIELD_ALTERNATE)
++		pix->field = V4L2_FIELD_NONE;
+ 
+ 	v4l_bound_align_image(&pix->width, MIN_W, MAX_W, W_ALIGN,
+ 			      &pix->height, MIN_H, MAX_H, H_ALIGN,
+@@ -1124,6 +1438,7 @@ static int __vpe_s_fmt(struct vpe_ctx *ctx, struct v4l2_format *f)
+ 	q_data->width		= pix->width;
+ 	q_data->height		= pix->height;
+ 	q_data->colorspace	= pix->colorspace;
++	q_data->field		= pix->field;
+ 
+ 	for (i = 0; i < pix->num_planes; i++) {
+ 		plane_fmt = &pix->plane_fmt[i];
+@@ -1137,6 +1452,11 @@ static int __vpe_s_fmt(struct vpe_ctx *ctx, struct v4l2_format *f)
+ 	q_data->c_rect.width	= q_data->width;
+ 	q_data->c_rect.height	= q_data->height;
+ 
++	if (q_data->field == V4L2_FIELD_ALTERNATE)
++		q_data->flags |= Q_DATA_INTERLACED;
++	else
++		q_data->flags &= ~Q_DATA_INTERLACED;
 +
-+static inline int ctd_get_fid2_ctl(struct vpdma_ctd *ctd)
-+{
-+	return (ctd->fid_ctl >> CTD_FID2_SHFT) & CTD_FID2_MASK;
-+}
-+
-+static inline int ctd_get_fid1_ctl(struct vpdma_ctd *ctd)
-+{
-+	return (ctd->fid_ctl >> CTD_FID1_SHFT) & CTD_FID1_MASK;
-+}
-+
-+static inline int ctd_get_fid0_ctl(struct vpdma_ctd *ctd)
-+{
-+	return ctd->fid_ctl & CTD_FID2_MASK;
-+}
-+
-+static inline int ctd_get_pkt_type(struct vpdma_ctd *ctd)
-+{
-+	return ctd->type_source_ctl >> CTD_PKT_TYPE_SHFT;
-+}
-+
-+static inline int ctd_get_source(struct vpdma_ctd *ctd)
-+{
-+	return (ctd->type_source_ctl >> CTD_SOURCE_SHFT) & CTD_SOURCE_MASK;
-+}
-+
-+static inline int ctd_get_ctl(struct vpdma_ctd *ctd)
-+{
-+	return ctd->type_source_ctl & CTD_CONTROL_MASK;
-+}
-+
- #endif
+ 	vpe_dbg(ctx->dev, "Setting format for type %d, wxh: %dx%d, fmt: %d bpl_y %d",
+ 		f->type, q_data->width, q_data->height, q_data->fmt->fourcc,
+ 		q_data->bytesperline[VPE_LUMA]);
+@@ -1451,6 +1771,7 @@ static int vpe_open(struct file *file)
+ 	s_q_data->sizeimage[VPE_LUMA] = (s_q_data->width * s_q_data->height *
+ 			s_q_data->fmt->vpdma_fmt[VPE_LUMA]->depth) >> 3;
+ 	s_q_data->colorspace = V4L2_COLORSPACE_SMPTE240M;
++	s_q_data->field = V4L2_FIELD_NONE;
+ 	s_q_data->c_rect.left = 0;
+ 	s_q_data->c_rect.top = 0;
+ 	s_q_data->c_rect.width = s_q_data->width;
+@@ -1459,6 +1780,7 @@ static int vpe_open(struct file *file)
+ 
+ 	ctx->q_data[Q_DATA_DST] = *s_q_data;
+ 
++	set_dei_shadow_registers(ctx);
+ 	set_src_registers(ctx);
+ 	set_dst_registers(ctx);
+ 	ret = set_srcdst_params(ctx);
+@@ -1513,6 +1835,8 @@ static int vpe_release(struct file *file)
+ 	vpe_dbg(dev, "releasing instance %p\n", ctx);
+ 
+ 	mutex_lock(&dev->dev_mutex);
++	free_vbs(ctx);
++	free_mv_buffers(ctx);
+ 	vpdma_free_desc_list(&ctx->desc_list);
+ 	vpdma_free_desc_buf(&ctx->mmr_adb);
+ 
 -- 
 1.8.1.2
-
