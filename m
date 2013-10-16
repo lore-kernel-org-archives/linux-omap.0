@@ -1,51 +1,84 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH V7 4/8] ARM: dts: omap5-uevm: add smps123 supply for CPU
-Date: Wed, 16 Oct 2013 10:39:04 -0500
-Message-ID: <1381937948-27057-5-git-send-email-nm@ti.com>
-References: <1381937948-27057-1-git-send-email-nm@ti.com>
+Subject: [PATCH V7 0/8] ARM: OMAP3+: support cpufreq-cpu0 for device tree boot
+Date: Wed, 16 Oct 2013 10:39:00 -0500
+Message-ID: <1381937948-27057-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1381937948-27057-1-git-send-email-nm@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Nishanth Menon <nm@ti.com>
+Cc: Nishanth Menon <nm@ti.com>, devicetree@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-regulator smps123 supply from Palmas PMIC powers CPU0 on OMAP5uEVM.
+Hi,
 
-Based on a patch by J Keerthy <j-keerthy@ti.com>
+This series enables the use of cpufreq-cpu0 generic driver for all
+OMAP and related derivatives. Only patch#8 in the series, which
+introduces CPU clock nodes, depends on Tero's V8 patch series for clock
+nodes[1]
 
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
- arch/arm/boot/dts/omap5-uevm.dts |    4 ++++
- arch/arm/boot/dts/omap5.dtsi     |    2 +-
- 2 files changed, 5 insertions(+), 1 deletion(-)
+I will stop copy pasting the series complete history and point at [2].
 
-diff --git a/arch/arm/boot/dts/omap5-uevm.dts b/arch/arm/boot/dts/omap5-uevm.dts
-index d784b3a..3188511 100644
---- a/arch/arm/boot/dts/omap5-uevm.dts
-+++ b/arch/arm/boot/dts/omap5-uevm.dts
-@@ -503,3 +503,7 @@
-         pinctrl-names = "default";
-         pinctrl-0 = <&uart5_pins>;
- };
-+
-+&cpu0 {
-+	cpu0-supply = <&smps123_reg>;
-+};
-diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-index 0098a17..40aac32 100644
---- a/arch/arm/boot/dts/omap5.dtsi
-+++ b/arch/arm/boot/dts/omap5.dtsi
-@@ -33,7 +33,7 @@
- 		#address-cells = <1>;
- 		#size-cells = <0>;
- 
--		cpu@0 {
-+		cpu0: cpu@0 {
- 			device_type = "cpu";
- 			compatible = "arm,cortex-a15";
- 			reg = <0x0>;
+Main changes since V6[3]:
+- squashed patches for a minimal set
+- i have organized the series such that 1 to 7 can immediately be merged
+  if desired:
+	- patches 1,2,3 can go to Tony's omap-for-v3.13/quirk [4]
+	- patches 4-7 can go to Benoit's for_3.13/dts [5]
+	- patch 8 needs to depend on [1] and should eventually go to [5]
+
+NOTES: obviously without clock nodes cpufreq will not function.
+
+Test Script: http://pastebin.com/VvJPjsne
+
+Test-log:
+BeagleBoard-XM (OMAP36xx): http://pastebin.com/XZDNaHPf
+PandaBoard-ES (OMAP4460): http://pastebin.com/qQCmA2ng
+BeagleBone-Black(AM335x): http://pastebin.com/98FX4uYW
+OMAP5uEVM (OMAP5432): http://pastebin.com/NXj3L636
+DRA7-EVM (DRA7xx): http://pastebin.com/0kKT3TXy
+
+J Keerthy (3):
+  ARM: dts: dra7-evm: add smps123 supply for CPU
+  ARM: dts: OMAP5: Add CPU OPP table
+  ARM: dts: DRA7: Add CPU OPP table
+
+Nishanth Menon (5):
+  ARM: OMAP3+: do not register non-dt OPP tables for device tree boot
+  ARM: OMAP2+: add missing lateinit hook for calling pm late init
+  ARM: OMAP3+: use cpu0-cpufreq driver in device tree supported boot
+  ARM: dts: omap5-uevm: add smps123 supply for CPU
+  ARM: dts: OMAP3: add clock nodes for CPU
+
+[1] http://marc.info/?t=138133284200006&r=1&w=2
+[2] http://marc.info/?l=linux-arm-kernel&m=136804009618594&w=2
+[3] http://marc.info/?l=devicetree&m=138135419203492&w=2
+[4] https://git.kernel.org/cgit/linux/kernel/git/tmlind/linux-omap.git/log/?h=omap-for-v3.13/quirk
+
+ arch/arm/boot/dts/am33xx.dtsi       |    4 ++++
+ arch/arm/boot/dts/dra7-evm.dts      |    4 ++++
+ arch/arm/boot/dts/dra7.dtsi         |   13 ++++++++++++-
+ arch/arm/boot/dts/omap3.dtsi        |    5 +++++
+ arch/arm/boot/dts/omap4.dtsi        |    5 +++++
+ arch/arm/boot/dts/omap5-uevm.dts    |    4 ++++
+ arch/arm/boot/dts/omap5.dtsi        |   15 ++++++++++++++-
+ arch/arm/mach-omap2/board-generic.c |    4 ++++
+ arch/arm/mach-omap2/common.h        |    4 ++++
+ arch/arm/mach-omap2/io.c            |   20 ++++++++++++++++++++
+ arch/arm/mach-omap2/opp.c           |    4 ++++
+ arch/arm/mach-omap2/pm.c            |   12 +++++++++---
+ 12 files changed, 89 insertions(+), 5 deletions(-)
+
+Regards,
+Nishanth Menon
 -- 
 1.7.9.5
