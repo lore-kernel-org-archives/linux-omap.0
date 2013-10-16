@@ -1,113 +1,58 @@
-From: Lokesh Vutla <lokeshvutla@ti.com>
-Subject: Re: [RESEND PATCH V2 1/2] ARM: dts: AM33xx: Add RNG node
-Date: Wed, 16 Oct 2013 16:46:41 +0530
-Message-ID: <525E7599.8010504@ti.com>
-References: <1377780731-3648-1-git-send-email-lokeshvutla@ti.com> <1377780731-3648-2-git-send-email-lokeshvutla@ti.com> <52594DF0.1050002@ti.com> <525CE564.6010605@baylibre.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [PATCH] ARM: dts: OMAP5: Add i2c aliases
+Date: Wed, 16 Oct 2013 17:07:42 +0530
+Message-ID: <525E7A86.4090507@ti.com>
+References: <1381856405-30970-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:39165 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:49828 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760492Ab3JPLRS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 16 Oct 2013 07:17:18 -0400
-In-Reply-To: <525CE564.6010605@baylibre.com>
+	id S933974Ab3JPLiK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 16 Oct 2013 07:38:10 -0400
+In-Reply-To: <1381856405-30970-1-git-send-email-nm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <bcousson@baylibre.com>
-Cc: paul@pwsan.com, tony@atomide.com, rnayak@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, rob.herring@calxeda.com, mark.rutland@arm.com
+To: Nishanth Menon <nm@ti.com>
+Cc: =?ISO-8859-1?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-+ Rob and Mark
-On Tuesday 15 October 2013 12:19 PM, Benoit Cousson wrote:
-> Hi Lokesh,
+On Tuesday 15 October 2013 10:30 PM, Nishanth Menon wrote:
+> Currently, i2c1 and i2c5 defer probe due to pinctrl dependencies.
+> This changes the i2c ID each bus is registered with in i2c-dev
+> interface.
 > 
-> On 12/10/2013 15:26, Lokesh Vutla wrote:
->> Hi Benoit,
->> On Thursday 29 August 2013 06:22 PM, Lokesh Vutla wrote:
->>> Add the AM33xx RNG module's device tree data.
->>> Also add Documentation file describing the data
->>> for the RNG module.
-Can you please review this patch..
+> As a result of this, many userspace tools break and there is no
+> consistent manner to fix the same if the i2c dev interface have no
+> consistent numbering. Provide alias to allow ordering the i2c devices
+> correctly.
 
-Thanks and regards,
-Lokesh
->> Seems you missed this patch. Please consider this for this merge window.
+This looks good Nishanth. Shouldn't we just go ahead and fix these for
+all OMAPs/AMxx devices which would have the same problem as OMAP5 ;)
+
+Acked-by: Rajendra Nayak <rnayak@ti.com> 
 > 
-> Indeed I missed it. Sorry :-(
+> Signed-off-by: Nishanth Menon <nm@ti.com>
+> ---
 > 
->> Patch 2/2 is already taken by Paul.
->> Without this patch AM335x boot will crash as I mentioned in my cover letter.
->>
->> Thanks and regards,
->> Lokesh
->>>
->>> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
->>> ---
->>> Changes since V1:
->>> - Drop "status=disabled" entry in dt node, Since
->>>    RNG is present on all AM33xx platforms.
->>>
->>>   .../devicetree/bindings/hwrng/omap_rng.txt         |   22 ++++++++++++++++++++
->>>   arch/arm/boot/dts/am33xx.dtsi                      |    7 +++++++
->>>   2 files changed, 29 insertions(+)
->>>   create mode 100644 Documentation/devicetree/bindings/hwrng/omap_rng.txt
+>  arch/arm/boot/dts/omap5.dtsi |    5 +++++
+>  1 file changed, 5 insertions(+)
 > 
-> I do not see the acked-by for the binding part. You do need that for any new bindings nowadays.
-> 
->>>
->>> diff --git a/Documentation/devicetree/bindings/hwrng/omap_rng.txt b/Documentation/devicetree/bindings/hwrng/omap_rng.txt
->>> new file mode 100644
->>> index 0000000..6a62acd
->>> --- /dev/null
->>> +++ b/Documentation/devicetree/bindings/hwrng/omap_rng.txt
->>> @@ -0,0 +1,22 @@
->>> +OMAP SoC HWRNG Module
->>> +
->>> +Required properties:
->>> +
->>> +- compatible : Should contain entries for this and backward compatible
->>> +  RNG versions:
->>> +  - "ti,omap2-rng" for OMAP2.
->>> +  - "ti,omap4-rng" for OMAP4, OMAP5 and AM33XX.
->>> +  Note that these two versions are incompatible.
->>> +- ti,hwmods: Name of the hwmod associated with the RNG module
->>> +- reg : Offset and length of the register set for the module
->>> +- interrupts : the interrupt number for the RNG module.
->>> +        Only used for "ti,omap4-rng".
->>> +
->>> +Example:
->>> +/* AM335x */
->>> +rng: rng@48310000 {
->>> +    compatible = "ti,omap4-rng";
->>> +    ti,hwmods = "rng";
->>> +    reg = <0x48310000 0x2000>;
->>> +    interrupts = <111>;
->>> +};
->>> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
->>> index 38b446b..26ebe30 100644
->>> --- a/arch/arm/boot/dts/am33xx.dtsi
->>> +++ b/arch/arm/boot/dts/am33xx.dtsi
->>> @@ -530,5 +530,12 @@
->>>               #size-cells = <1>;
->>>               status = "disabled";
->>>           };
->>> +
->>> +        rng: rng@48310000 {
->>> +            compatible = "ti,omap4-rng";
->>> +            ti,hwmods = "rng";
->>> +            reg = <0x48310000 0x2000>;
->>> +            interrupts = <111>;
->>> +        };
->>>       };
->>>   };
->>>
->>
-> 
-> It looks good to me, but it does not apply on my branch.
-> Please rebase it and repost with the proper acked-by.
-> 
-> Thanks,
-> Benoit
-> 
+> diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+> index e18ee7e..8970deb 100644
+> --- a/arch/arm/boot/dts/omap5.dtsi
+> +++ b/arch/arm/boot/dts/omap5.dtsi
+> @@ -21,6 +21,11 @@
+>  	interrupt-parent = <&gic>;
+>  
+>  	aliases {
+> +		i2c0 = &i2c1;
+> +		i2c1 = &i2c2;
+> +		i2c2 = &i2c3;
+> +		i2c3 = &i2c4;
+> +		i2c4 = &i2c5;
+>  		serial0 = &uart1;
+>  		serial1 = &uart2;
+>  		serial2 = &uart3;
 > 
 
