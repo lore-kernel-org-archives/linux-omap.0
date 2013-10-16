@@ -1,61 +1,61 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH V7 1/8] ARM: OMAP3+: do not register non-dt OPP tables for
- device tree boot
-Date: Wed, 16 Oct 2013 10:39:01 -0500
-Message-ID: <1381937948-27057-2-git-send-email-nm@ti.com>
+Subject: [PATCH V7 3/8] ARM: OMAP3+: use cpu0-cpufreq driver in device tree supported boot
+Date: Wed, 16 Oct 2013 10:39:03 -0500
+Message-ID: <1381937948-27057-4-git-send-email-nm@ti.com>
 References: <1381937948-27057-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1381937948-27057-1-git-send-email-nm@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>
-Cc: Nishanth Menon <nm@ti.com>, devicetree@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Nishanth Menon <nm@ti.com>, Paul Walmsley <paul@pwsan.com>
 List-Id: linux-omap@vger.kernel.org
 
-OMAP3+ supports both device tree and non-device tree boot.
-Device tree bindings for OMAP3+ is supposed to be added via dts following:
-Documentation/devicetree/bindings/power/opp.txt
+With OMAP3+ and AM33xx supported SoC having defined CPU device tree
+entries with operating-points and clock nodes defined, we can now use
+the SoC generic cpufreq-cpu0 driver by registering appropriate device.
 
-Since we now have device tree entries for OMAP3+ cpu OPPs,
-The current code wrongly adds duplicate OPPs. So, dont register OPPs
-when booting using device tree.
-
+Cc: Benoit Cousson <bcousson@baylibre.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Nishanth Menon <nm@ti.com>
 ---
- arch/arm/mach-omap2/opp.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ arch/arm/mach-omap2/pm.c |   12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/opp.c b/arch/arm/mach-omap2/opp.c
-index bd41d59..82fd8c7 100644
---- a/arch/arm/mach-omap2/opp.c
-+++ b/arch/arm/mach-omap2/opp.c
-@@ -17,6 +17,7 @@
-  * GNU General Public License for more details.
-  */
- #include <linux/module.h>
-+#include <linux/of.h>
- #include <linux/opp.h>
- #include <linux/cpu.h>
+diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+index e742118..360b2da 100644
+--- a/arch/arm/mach-omap2/pm.c
++++ b/arch/arm/mach-omap2/pm.c
+@@ -266,7 +266,12 @@ static void __init omap4_init_voltages(void)
  
-@@ -40,6 +41,9 @@ int __init omap_init_opp_table(struct omap_opp_def *opp_def,
+ static inline void omap_init_cpufreq(void)
  {
- 	int i, r;
- 
-+	if (of_have_populated_dt())
-+		return -EINVAL;
+-	struct platform_device_info devinfo = { .name = "omap-cpufreq", };
++	struct platform_device_info devinfo = { };
 +
- 	if (!opp_def || !opp_def_size) {
- 		pr_err("%s: invalid params!\n", __func__);
- 		return -EINVAL;
++	if (!of_have_populated_dt())
++		devinfo.name = "omap-cpufreq";
++	else
++		devinfo.name = "cpufreq-cpu0";
+ 	platform_device_register_full(&devinfo);
+ }
+ 
+@@ -300,10 +305,11 @@ int __init omap2_common_pm_late_init(void)
+ 		/* Smartreflex device init */
+ 		omap_devinit_smartreflex();
+ 
+-		/* cpufreq dummy device instantiation */
+-		omap_init_cpufreq();
+ 	}
+ 
++	/* cpufreq dummy device instantiation */
++	omap_init_cpufreq();
++
+ #ifdef CONFIG_SUSPEND
+ 	suspend_set_ops(&omap_pm_ops);
+ #endif
 -- 
 1.7.9.5
