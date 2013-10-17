@@ -1,84 +1,169 @@
-From: Archit Taneja <archit@ti.com>
-Subject: [PATCH 6/6] omapdss: hdmi4/hdmi5: set regulator voltage to required level
-Date: Thu, 17 Oct 2013 16:56:42 +0530
-Message-ID: <1382009202-18984-7-git-send-email-archit@ti.com>
-References: <1382009202-18984-1-git-send-email-archit@ti.com>
+From: jean-philippe francois <jp.francois@cynove.com>
+Subject: Re: [PATCH v9 7/9] mtd: nand: omap: use drivers/mtd/nand/nand_bch.c
+ wrapper for BCH ECC instead of lib/bch.c
+Date: Thu, 17 Oct 2013 14:42:17 +0200
+Message-ID: <CAGGh5h3PU0PR1SMa_aWUvPxccWS9A+Rxp7pm0U8u6fBnPcOvjw@mail.gmail.com>
+References: <1381816197-20477-1-git-send-email-pekon@ti.com>
+	<1381816197-20477-8-git-send-email-pekon@ti.com>
+	<20131017022237.GC23337@ld-irv-0074.broadcom.com>
+	<20980858CB6D3A4BAE95CA194937D5E73EA27C63@DBDE04.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:50828 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753222Ab3JQL1w (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 17 Oct 2013 07:27:52 -0400
-In-Reply-To: <1382009202-18984-1-git-send-email-archit@ti.com>
+Received: from mail-wi0-f173.google.com ([209.85.212.173]:40159 "EHLO
+	mail-wi0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754843Ab3JQMmS convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Oct 2013 08:42:18 -0400
+In-Reply-To: <20980858CB6D3A4BAE95CA194937D5E73EA27C63@DBDE04.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tomi.valkeinen@ti.com
-Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>, Somnath Mukherjee <somnath@ti.com>
+To: "Gupta, Pekon" <pekon@ti.com>
+Cc: Brian Norris <computersforpeace@gmail.com>, "mark.rutland@arm.com" <mark.rutland@arm.com>, "olof@lixom.net" <olof@lixom.net>, "dedekind1@gmail.com" <dedekind1@gmail.com>, "tony@atomide.com" <tony@atomide.com>, "bcousson@baylibre.com" <bcousson@baylibre.com>, "robherring2@gmail.com" <robherring2@gmail.com>, "Pawel.Moll@arm.com" <Pawel.Moll@arm.com>, "ijc+devicetree@hellion.org.uk" <ijc+devicetree@hellion.org.uk>, "swarren@wwwdotorg.org" <swarren@wwwdotorg.org>, "dwmw2@infradead.org" <dwmw2@infradead.org>, "arnd@arndb.de" <arnd@arndb.de>, "avinashphilipk@gmail.com" <avinashphilipk@gmail.com>, "Balbi, Felipe" <balbi@ti.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Ivan Djelic <ivan.djelic@parrot.com>
 
-It's not sufficient to request the regulator. We need to set the IO voltage as
-well if the min and max voltage values of the regulator differ.
+2013/10/17 Gupta, Pekon <pekon@ti.com>:
+>> From: Brian Norris [mailto:computersforpeace@gmail.com]
+>> > On Tue, Oct 15, 2013 at 11:19:55AM +0530, Pekon Gupta wrote:
+> [snip]
+>
+>> > diff --git a/drivers/mtd/nand/Kconfig b/drivers/mtd/nand/Kconfig
+>> > index d885298..5836039 100644
+>> > --- a/drivers/mtd/nand/Kconfig
+>> > +++ b/drivers/mtd/nand/Kconfig
+>> > @@ -96,35 +96,13 @@ config MTD_NAND_OMAP2
+>> >
+>> >  config MTD_NAND_OMAP_BCH
+>> >     depends on MTD_NAND && MTD_NAND_OMAP2 && ARCH_OMAP3
+>> > -   tristate "Enable support for hardware BCH error correction"
+>> > +   tristate "Support hardware based BCH error correction"
+>> >     default n
+>> >     select BCH
+>> > -   select BCH_CONST_PARAMS
+>>
+>> Do you know what will happen now if someone configures
+>> BCH_CONST_PARAMS?
+>> Would this cause problems?
+>>
+> As per comments in lib/bch.c
+> ---------------------------
+> * Option CONFIG_BCH_CONST_PARAMS can be used to force fixed values of
+>  * parameters m and t; thus allowing extra compiler optimizations and=
+ providing
+>  * better (up to 2x) encoding performance. Using this option makes se=
+nse when
+>  * (m,t) are fixed and known in advance, e.g. when using BCH error co=
+rrection
+>  * on a particular NAND flash device.
+> ---------------------------
+> 'BCH_CONST_PARAMS' is required for optimization when BCH algorithm
+> is fixed. But in omap-nand case selection of type of BCH algorithm
+> (BCH4 or BCH8) comes from DT binding "ti,nand-ecc-opts".
+>
+> If enabled (CONFIG_BCH_CONST_PARAMS) will optimize lib/bch.c
+> for BCH8 algorithm by default, so
+> CASE: if BCH8 is selected by DT, then no issues
+> CASE: if BCH4 is selected  then nand_bch_init() fails with following =
+error
+> + if (!info->nand.ecc.priv) {
+>                 pr_err("nand: error: unable to use s/w BCH library\n"=
+);
+>                 err =3D -EINVAL;
+>                 goto out_release_mem_region;
+> }
+>
+> [snip]
+>
+>> >  if MTD_NAND_OMAP_BCH
+>> >  config BCH_CONST_M
+>>
+>> Do you need to to also kill of the Kconfig stuff for BCH_CONST_M and
+>> BCH_CONST_T, which were tied to the MTD_NAND_OMAP_BCH4 and
+>> MTD_NAND_OMAP_BCH8 configs you just removed?
+>>
+> Thanks, good catch. I dint really notice.
+> So, the driver is now updated to separate out two flavours of BCHx sc=
+heme.
+> (a) OMAP_ECC_BCHx_CODE_HW: which uses ELM hardware
+> (b) OMAP_ECC_BCHx_CODE_HW_DETECTION_SW: which uses lib/bch.c
+> These BCH_CONST_M and BCH_CONST_T now belongs to (b) family only.
+> -  if MTD_NAND_OMAP_BCH
+> + if MTD_NAND_ECC_BCH
+>        config BCH_CONST_M
+> (I'll update that)..
+>
+>
+>> > diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
+> [snip]
+>> > -           info->bch =3D init_bch(nand_chip->ecc.bytes,
+>> > -                                   nand_chip->ecc.strength,
+>> > -                                   OMAP_ECC_BCH8_POLYNOMIAL);
+>> > -           if (!info->bch) {
+>> > +           info->nand.ecc.priv     =3D nand_bch_init(mtd,
+>> > +                                           info->nand.ecc.size,
+>> > +                                           info->nand.ecc.bytes,
+>> > +                                           &info->nand.ecc.layout=
+);
+>>
+>> Are you sure nand_bch_init() is a proper drop-in replacement for the
+>> implementation you had based on init_bch()? It looks to me like they=
+ at
+>> least use a differnt polynomial value (0x201b vs. 0). Is this a prob=
+lem
+>> for backwards compatibility?
+>>
+> It's not the polynomial value =3D 0. Rather 0x201b is selected in bot=
+h cases
+> Refer below code.
+> ---------------
+> When init_bch(m,t, 0) is called from nand_bch_init() then,
+> lib/bch.c @@ init_bch(int m, int t, unsigned int prim_poly)
+> (a)     /* default primitive polynomials */
+>         static const unsigned int prim_poly_tab[] =3D {
+>                 0x25, 0x43, 0x83, 0x11d, 0x211, 0x409, 0x805, 0x1053,=
+ 0x201b,
+>                 0x402b, 0x8003,
+>         };
+> (b)     /* select a primitive polynomial for generating GF(2^m) */
+>         if (prim_poly =3D=3D 0)
+>                 prim_poly =3D prim_poly_tab[m-min_m];
+> (c) And, const int min_m =3D 5;
+>
+> So, for BCH8 m=3D13, min_m=3D5; So
+> prim_poly =3D prim_poly_tab[13-5] =3D prim_poly_tab[8] =3D 0x201b
+> ---------------
+>
+> Hence, there is no change in polynomial, it's just that instead of
+> hard-coding the value, polynomial selection depends on 'm' and 't'.
+>
+>
+>
+>> [...]
+>>
+>> A related question: do we have any current users of this driver that=
+ can
+>> provide testing results for this series? Or is this work just tested
+>> with new hardware?
+>>
+> Got a tested-by: jp.francois@cynove.com for BCH4
+> But that was in May,2013 :-)
+> http://lists.infradead.org/pipermail/linux-mtd/2013-May/047065.html
+>
+>
+> with regards, pekon
 
-However, if the regulator on a platform doesn't permit the range we requested
-for, or is a fixed voltage regulator, we just give a warning that we didn't get
-voltage range we requested for. The recommended voltage range for vdda_hdmi as
-per the HDMI PHY spec is 1.8V to 1.98V for OMAP4 and 1.5V to 1.8V for OMAP5.
+Yes, but I am currently stuck on 3.10, and I need to migrate my out of =
+tree
+board file to a device tree, and I currently have no bandwidth for this=
+, so I
+won't be able to test the whole serie, but may be some parts are
+testable independently ?
 
-Originally worked on by Somnath Mukherjee <somnath@ti.com>
+I will take a look and tell you.
 
-Cc: Somnath Mukherjee <somnath@ti.com>
-Signed-off-by: Archit Taneja <archit@ti.com>
----
- drivers/video/omap2/dss/hdmi4.c | 5 +++++
- drivers/video/omap2/dss/hdmi5.c | 5 +++++
- 2 files changed, 10 insertions(+)
-
-diff --git a/drivers/video/omap2/dss/hdmi4.c b/drivers/video/omap2/dss/hdmi4.c
-index e140096..95638b8 100644
---- a/drivers/video/omap2/dss/hdmi4.c
-+++ b/drivers/video/omap2/dss/hdmi4.c
-@@ -83,6 +83,7 @@ static void hdmi_runtime_put(void)
- 
- static int hdmi_init_regulator(void)
- {
-+	int r;
- 	struct regulator *reg;
- 
- 	if (hdmi.vdda_hdmi_dac_reg != NULL)
-@@ -99,6 +100,10 @@ static int hdmi_init_regulator(void)
- 		return PTR_ERR(reg);
- 	}
- 
-+	r = regulator_set_voltage(reg, 1800000, 1980000);
-+	if (r)
-+		DSSWARN("can't set regulator voltage");
-+
- 	hdmi.vdda_hdmi_dac_reg = reg;
- 
- 	return 0;
-diff --git a/drivers/video/omap2/dss/hdmi5.c b/drivers/video/omap2/dss/hdmi5.c
-index 5a1cfd6..aa91f4e 100644
---- a/drivers/video/omap2/dss/hdmi5.c
-+++ b/drivers/video/omap2/dss/hdmi5.c
-@@ -85,6 +85,7 @@ static void hdmi_runtime_put(void)
- 
- static int hdmi_init_regulator(void)
- {
-+	int r;
- 	struct regulator *reg;
- 
- 	if (hdmi.vdda_hdmi_dac_reg != NULL)
-@@ -96,6 +97,10 @@ static int hdmi_init_regulator(void)
- 		return PTR_ERR(reg);
- 	}
- 
-+	r = regulator_set_voltage(reg, 1500000, 1800000);
-+	if (r)
-+		DSSWARN("can't set regulator voltage");
-+
- 	hdmi.vdda_hdmi_dac_reg = reg;
- 
- 	return 0;
--- 
-1.8.1.2
-
+Regards,
+Jean-Philippe Fran=C3=A7ois
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
