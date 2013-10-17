@@ -1,115 +1,188 @@
-From: Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [PATCH 1/6] mmc: omap_hsmmc: start using generic non-removable
- DT binding
-Date: Thu, 17 Oct 2013 16:25:53 +0100
-Message-ID: <20131017152553.GI24056@e106331-lin.cambridge.arm.com>
-References: <1381936707-10336-1-git-send-email-balajitk@ti.com>
- <1381936707-10336-2-git-send-email-balajitk@ti.com>
- <20131017083856.GA24056@e106331-lin.cambridge.arm.com>
- <525FC1BC.9080207@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH v2 1/7] usb: dwc3: get "usb_phy" only if the platform
+ indicates the presence of PHY's
+Date: Thu, 17 Oct 2013 11:38:28 -0500
+Message-ID: <20131017163828.GH11611@gimli>
+References: <1381866857-3861-1-git-send-email-kishon@ti.com>
+ <1381866857-3861-2-git-send-email-kishon@ti.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="pMCBjikF2xGw87uL"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <525FC1BC.9080207@ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Balaji T K <balajitk@ti.com>
-Cc: "bcousson@baylibre.com" <bcousson@baylibre.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "cjb@laptop.org" <cjb@laptop.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "uri.y@variscite.com" <uri.y@variscite.com>, Sekhar Nori <nsekhar@ti.com>
+In-Reply-To: <1381866857-3861-2-git-send-email-kishon@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: balbi@ti.com, gregkh@linuxfoundation.org, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ijc+devicetree@hellion.org.uk, rob@landley.net, bcousson@baylibre.com, tony@atomide.com, linux@arm.linux.org.uk, grant.likely@linaro.org, s.nawrocki@samsung.com, galak@codeaurora.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Oct 17, 2013 at 11:53:48AM +0100, Balaji T K wrote:
-> On Thursday 17 October 2013 02:08 PM, Mark Rutland wrote:
-> > On Wed, Oct 16, 2013 at 04:18:22PM +0100, Balaji T K wrote:
-> >> From: Sekhar Nori <nsekhar@ti.com>
-> >>
-> >> add generic "non-removable" binding support for omap_hsmmc
-> >>
-> >> Signed-off-by: Sekhar Nori <nsekhar@ti.com>
-> >> Signed-off-by: Balaji T K <balajitk@ti.com>
-> >> ---
-> >>   .../devicetree/bindings/mmc/ti-omap-hsmmc.txt      |    2 +-
-> >>   drivers/mmc/host/omap_hsmmc.c                      |    3 +++
-> >>   2 files changed, 4 insertions(+), 1 deletions(-)
-> >>
-> >> diff --git a/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt b/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
-> >> index 8c8908a..3b95719 100644
-> >> --- a/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
-> >> +++ b/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
-> >> @@ -17,7 +17,7 @@ Optional properties:
-> >>   ti,dual-volt: boolean, supports dual voltage cards
-> >>   <supply-name>-supply: phandle to the regulator device tree node
-> >>   "supply-name" examples are "vmmc", "vmmc_aux" etc
-> >> -ti,non-removable: non-removable slot (like eMMC)
-> >> +ti,non-removable: non-removable eMMC with always on vccq and configurable vcc
-> >
-> > Why this change?
-> >
-> Hi,
-> 
-> earlier ti,non-removable was used for all eMMC and SDIO card, now it will
-> be used only for eMMC with always on vccq and configurable vcc.
+--pMCBjikF2xGw87uL
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Please expand the commit message to mention this. It wasn't clear why
-adding support for a property meant modifying the description of
-another.
+Hi,
 
-> 
-> > What do "vccq" and "vcc" correspond to? The regulators are called "vmmc"
-> > and "vmmc_aux"...
-> >
-> 
-> vccq and vcc are supply names of eMMC part
+On Wed, Oct 16, 2013 at 01:24:11AM +0530, Kishon Vijay Abraham I wrote:
+> There can be systems which does not have a external usb_phy, so get
+> usb_phy only if dt data indicates the presence of PHY in the case of dt b=
+oot or
+> if platform_data indicates the presence of PHY. Also remove checking if
+> return value is -ENXIO since it's now changed to always enable usb_phy la=
+yer.
+>=20
+> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 
-The binding has vmmc-supply and vmmc_aux-supply. How do {vmmc,vmmc_aux}
-and {vcc,vccq} relate? That should be clarified in the binding document,
-something like:
+I'm fine with this patch, but one comment below:
 
-- vmmc-supply: phandle of the regulator for the VCC input
-- vmmc_aux-supply: phandle of the regulator for the VCCQ input
+> @@ -387,16 +388,49 @@ static int dwc3_probe(struct platform_device *pdev)
+>  	if (node) {
+>  		dwc->maximum_speed =3D of_usb_get_maximum_speed(node);
+> =20
+> -		dwc->usb2_phy =3D devm_usb_get_phy_by_phandle(dev, "usb-phy", 0);
+> -		dwc->usb3_phy =3D devm_usb_get_phy_by_phandle(dev, "usb-phy", 1);
+> +		count =3D of_count_phandle_with_args(node, "usb-phy", NULL);
+> +		switch (count) {
+> +		case 2:
+> +			dwc->usb3_phy =3D devm_usb_get_phy_by_phandle(dev,
+> +				"usb-phy", 1);
+> +			if (IS_ERR(dwc->usb3_phy)) {
+> +				dev_err(dev, "usb3 phy not found\n");
+> +				return PTR_ERR(dwc->usb3_phy);
+> +			}
+> +		case 1:
+> +			dwc->usb2_phy =3D devm_usb_get_phy_by_phandle(dev,
+> +				"usb-phy", 0);
+> +			if (IS_ERR(dwc->usb2_phy)) {
+> +				dev_err(dev, "usb2 phy not found\n");
+> +				return PTR_ERR(dwc->usb2_phy);
+> +			}
+> +			break;
+> +		default:
+> +			dev_err(dev, "usb phy nodes not configured\n");
+> +		}
+> =20
+>  		dwc->needs_fifo_resize =3D of_property_read_bool(node, "tx-fifo-resize=
+");
+>  		dwc->dr_mode =3D of_usb_get_dr_mode(node);
+>  	} else if (pdata) {
+>  		dwc->maximum_speed =3D pdata->maximum_speed;
+> =20
+> -		dwc->usb2_phy =3D devm_usb_get_phy(dev, USB_PHY_TYPE_USB2);
+> -		dwc->usb3_phy =3D devm_usb_get_phy(dev, USB_PHY_TYPE_USB3);
+> +		if (pdata->usb2_phy) {
+> +			dwc->usb2_phy =3D devm_usb_get_phy(dev,
+> +				USB_PHY_TYPE_USB2);
+> +			if (IS_ERR(dwc->usb2_phy)) {
+> +				dev_err(dev, "usb2 phy not found\n");
+> +				return PTR_ERR(dwc->usb2_phy);
+> +			}
+> +		}
+> +
+> +		if (pdata->usb3_phy) {
+> +			dwc->usb3_phy =3D devm_usb_get_phy(dev,
+> +				USB_PHY_TYPE_USB3);
+> +			if (IS_ERR(dwc->usb3_phy)) {
+> +				dev_err(dev, "usb3 phy not found\n");
+> +				return PTR_ERR(dwc->usb3_phy);
+> +			}
+> +		}
+> =20
+>  		dwc->needs_fifo_resize =3D pdata->tx_fifo_resize;
+>  		dwc->dr_mode =3D pdata->dr_mode;
+> @@ -409,36 +443,6 @@ static int dwc3_probe(struct platform_device *pdev)
+>  	if (dwc->maximum_speed =3D=3D USB_SPEED_UNKNOWN)
+>  		dwc->maximum_speed =3D USB_SPEED_SUPER;
+> =20
+> -	if (IS_ERR(dwc->usb2_phy)) {
+> -		ret =3D PTR_ERR(dwc->usb2_phy);
+> -
+> -		/*
+> -		 * if -ENXIO is returned, it means PHY layer wasn't
+> -		 * enabled, so it makes no sense to return -EPROBE_DEFER
+> -		 * in that case, since no PHY driver will ever probe.
+> -		 */
+> -		if (ret =3D=3D -ENXIO)
+> -			return ret;
+> -
+> -		dev_err(dev, "no usb2 phy configured\n");
+> -		return -EPROBE_DEFER;
+> -	}
+> -
+> -	if (IS_ERR(dwc->usb3_phy)) {
+> -		ret =3D PTR_ERR(dwc->usb3_phy);
+> -
+> -		/*
+> -		 * if -ENXIO is returned, it means PHY layer wasn't
+> -		 * enabled, so it makes no sense to return -EPROBE_DEFER
+> -		 * in that case, since no PHY driver will ever probe.
+> -		 */
+> -		if (ret =3D=3D -ENXIO)
+> -			return ret;
+> -
+> -		dev_err(dev, "no usb3 phy configured\n");
+> -		return -EPROBE_DEFER;
+> -	}
 
-> 
-> > Why is no mention of "non-removable" added, given that it's added to the
-> > code?
-> 
-> Because this file makes a reference to mmc.txt and the core properties described
-> by mmc.txt are not added in ti-omap-hsmmc.txt
+the idea for doing the error checking here was actually to avoid
+duplicating it in all previous cases, as you did. Please keep the error
+checking here and you're good to go.
 
-There is room for confusion here. While "non-removable" is a generic
-property, it would be good to contrast "non-removable" and
-"ti,non-removable" in the binding as they imply different things.
+> -
+>  	dwc->xhci_resources[0].start =3D res->start;
+>  	dwc->xhci_resources[0].end =3D dwc->xhci_resources[0].start +
+>  					DWC3_XHCI_REGS_END;
+> diff --git a/drivers/usb/dwc3/platform_data.h b/drivers/usb/dwc3/platform=
+_data.h
+> index 7db34f0..49ffa6d 100644
+> --- a/drivers/usb/dwc3/platform_data.h
+> +++ b/drivers/usb/dwc3/platform_data.h
+> @@ -24,4 +24,6 @@ struct dwc3_platform_data {
+>  	enum usb_device_speed maximum_speed;
+>  	enum usb_dr_mode dr_mode;
+>  	bool tx_fifo_resize;
+> +	bool usb2_phy;
+> +	bool usb3_phy;
 
-> 
-> >
-> > Is one preferred over the other? That should be noted.
-> >
-> >>   ti,needs-special-reset: Requires a special softreset sequence
-> >>   ti,needs-special-hs-handling: HSMMC IP needs special setting for handling High Speed
-> >>   dmas: List of DMA specifiers with the controller specific format
-> >> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-> >> index 6ac63df..5992048 100644
-> >> --- a/drivers/mmc/host/omap_hsmmc.c
-> >> +++ b/drivers/mmc/host/omap_hsmmc.c
-> >> @@ -1738,6 +1738,9 @@ static struct omap_mmc_platform_data *of_get_hsmmc_pdata(struct device *dev)
-> >>   	pdata->slots[0].switch_pin = cd_gpio;
-> >>   	pdata->slots[0].gpio_wp = wp_gpio;
-> >>
-> >> +	if (of_find_property(np, "non-removable", NULL)) {
-> >> +		pdata->slots[0].nonremovable = true;
-> >> +	}
-> >
-> > This wasn't mentioned in the binding, and it seems to have different
-> > semantics to "ti,non-removable". Why is it different?
-> >
-> 
-> When ti,non-removable was added, Only OMAP platform that had eMMC was that on OMAP4
-> where power to eMMC cannot be switched off without sending CMD5 sleep command,
-> so no_regulator_off_init was needed to get it detected during boot.
-> 
-> Now start using generic non-removable for all removable cards which do not
-> have such limitation.
+This would look better as a quirks flag, then we could:
 
-OK. I think this would be much clearer with something in the binding
-contrasting the two properties.
+unsigned long quirks;
+#define DWC3_QUIRK_NO_USB3_PHY	BIT(0)
+#define DWC3_QUIRK_NO_USB2_PHY	BIT(1)
 
-Thanks,
-Mark.
+=2E..
+
+if (!test_bit(DWC3_QUIRK_NO_USB3_PHY), &dwc->quirks &&
+	dwc->has_usb3_phy) {
+	grab_usb3_phy();
+}
+
+cheers
+
+--=20
+balbi
+
+--pMCBjikF2xGw87uL
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.15 (GNU/Linux)
+
+iQIcBAEBAgAGBQJSYBKDAAoJEIaOsuA1yqREpSAQAK58qSjzBkKsgfkFlv8ryg1E
+39FEmmRPE0Md5D62NrdBZsG1Rxg6eNkw5rMOWa8V5/6WG2khKQSPXyFpxIcIZZrv
+yEDWNnUg80PSPqThorGPvxhLrf01aOSEs+fXBM1/oXG3Bkb4K59f7xWIMCITfdEu
+55ZF4/sTKA6QrHKTDhigrbpXiTunSqKUaOhoUVHYvHcl2pfbx9V46vXS3Gd2azh8
+elRr3QnKuDNGbpMCCco4G69+81uXFKCrHVbQ1GHrT0CtnEYWqpWqW1ryvknqlrgy
+IQdZPLWYffudNq1nohbADxwhjQLfsMdubfW5Ai292Z8bPiGW/MCLOlXIHIJ2yJWR
+CSf/PcttvHgIISABjzvRgBF0grS8U5+bDwCeZOysihWvbcUpcwYwFcx0ZPUo4GoY
+3AXcY21FD6k82V/U+1ojRWq1++Q75j3SqzneIMsDay/W25nqO3Zi9Xz+lImdLgNm
+F8snr0kVyYD8epH6oWKLP6uQH+V/vVCYqP2DGSzW6n6NIDfva1zj5gelFWsTgvgL
+McetN7YNlTgB/YiuqiXXpK8oq9uRaUq/FiqWXnNsxFEBqcCIysVbgWZDndrJ8OXx
+5pmFhEc8VOaxbH3+Lv7cbNk4Sg7mnHyBKPZcvr1FSxsYztJFE5W7YYcMkpkcU2+Y
+Hx5OfP23gsQqmBX/jzaW
+=286k
+-----END PGP SIGNATURE-----
+
+--pMCBjikF2xGw87uL--
