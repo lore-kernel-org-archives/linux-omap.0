@@ -1,39 +1,80 @@
-From: Markus Pargmann <mpa@pengutronix.de>
-Subject: [PATCH] ARM: omap2: irq, AM33XX add missing register check
-Date: Thu, 17 Oct 2013 09:18:38 +0200
-Message-ID: <1381994318-10207-1-git-send-email-mpa@pengutronix.de>
+From: Mark Rutland <mark.rutland@arm.com>
+Subject: Re: [PATCH 1/6] mmc: omap_hsmmc: start using generic non-removable
+ DT binding
+Date: Thu, 17 Oct 2013 09:38:56 +0100
+Message-ID: <20131017083856.GA24056@e106331-lin.cambridge.arm.com>
+References: <1381936707-10336-1-git-send-email-balajitk@ti.com>
+ <1381936707-10336-2-git-send-email-balajitk@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:42457 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750863Ab3JQHT2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Oct 2013 03:19:28 -0400
+Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:41013 "EHLO
+	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751591Ab3JQIjD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 17 Oct 2013 04:39:03 -0400
+Content-Disposition: inline
+In-Reply-To: <1381936707-10336-2-git-send-email-balajitk@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel@pengutronix.de, Markus Pargmann <mpa@pengutronix.de>
+To: Balaji T K <balajitk@ti.com>
+Cc: "bcousson@baylibre.com" <bcousson@baylibre.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "cjb@laptop.org" <cjb@laptop.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "uri.y@variscite.com" <uri.y@variscite.com>, Sekhar Nori <nsekhar@ti.com>
 
-am33xx has a INTC_PENDING_IRQ3 register that is not checked for pending
-interrupts. This patch adds AM33XX to the ifdef of SOCs that have to
-check this register.
+On Wed, Oct 16, 2013 at 04:18:22PM +0100, Balaji T K wrote:
+> From: Sekhar Nori <nsekhar@ti.com>
+> 
+> add generic "non-removable" binding support for omap_hsmmc
+> 
+> Signed-off-by: Sekhar Nori <nsekhar@ti.com>
+> Signed-off-by: Balaji T K <balajitk@ti.com>
+> ---
+>  .../devicetree/bindings/mmc/ti-omap-hsmmc.txt      |    2 +-
+>  drivers/mmc/host/omap_hsmmc.c                      |    3 +++
+>  2 files changed, 4 insertions(+), 1 deletions(-)
+> 
+> diff --git a/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt b/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
+> index 8c8908a..3b95719 100644
+> --- a/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
+> +++ b/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
+> @@ -17,7 +17,7 @@ Optional properties:
+>  ti,dual-volt: boolean, supports dual voltage cards
+>  <supply-name>-supply: phandle to the regulator device tree node
+>  "supply-name" examples are "vmmc", "vmmc_aux" etc
+> -ti,non-removable: non-removable slot (like eMMC)
+> +ti,non-removable: non-removable eMMC with always on vccq and configurable vcc
 
-Signed-off-by: Markus Pargmann <mpa@pengutronix.de>
----
- arch/arm/mach-omap2/irq.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Why this change?
 
-diff --git a/arch/arm/mach-omap2/irq.c b/arch/arm/mach-omap2/irq.c
-index 3926f37..e022a86 100644
---- a/arch/arm/mach-omap2/irq.c
-+++ b/arch/arm/mach-omap2/irq.c
-@@ -233,7 +233,7 @@ static inline void omap_intc_handle_irq(void __iomem *base_addr, struct pt_regs
- 			goto out;
- 
- 		irqnr = readl_relaxed(base_addr + 0xd8);
--#ifdef CONFIG_SOC_TI81XX
-+#if IS_ENABLED(CONFIG_SOC_TI81XX) || IS_ENABLED(CONFIG_SOC_AM33XX)
- 		if (irqnr)
- 			goto out;
- 		irqnr = readl_relaxed(base_addr + 0xf8);
--- 
-1.8.4.rc3
+What do "vccq" and "vcc" correspond to? The regulators are called "vmmc"
+and "vmmc_aux"...
+
+Why is no mention of "non-removable" added, given that it's added to the
+code?
+
+Is one preferred over the other? That should be noted.
+
+>  ti,needs-special-reset: Requires a special softreset sequence
+>  ti,needs-special-hs-handling: HSMMC IP needs special setting for handling High Speed
+>  dmas: List of DMA specifiers with the controller specific format
+> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+> index 6ac63df..5992048 100644
+> --- a/drivers/mmc/host/omap_hsmmc.c
+> +++ b/drivers/mmc/host/omap_hsmmc.c
+> @@ -1738,6 +1738,9 @@ static struct omap_mmc_platform_data *of_get_hsmmc_pdata(struct device *dev)
+>  	pdata->slots[0].switch_pin = cd_gpio;
+>  	pdata->slots[0].gpio_wp = wp_gpio;
+>  
+> +	if (of_find_property(np, "non-removable", NULL)) {
+> +		pdata->slots[0].nonremovable = true;
+> +	}
+
+This wasn't mentioned in the binding, and it seems to have different
+semantics to "ti,non-removable". Why is it different?
+
+>  	if (of_find_property(np, "ti,non-removable", NULL)) {
+>  		pdata->slots[0].nonremovable = true;
+>  		pdata->slots[0].no_regulator_off_init = true;
+
+Cheers,
+Mark.
 
