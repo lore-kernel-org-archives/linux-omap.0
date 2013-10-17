@@ -1,122 +1,94 @@
-From: Brian Norris <computersforpeace@gmail.com>
-Subject: Re: [PATCH v9 4/9] mtd: nand: omap: enable auto-detection of
- bus-width for omap-nand drivers
-Date: Thu, 17 Oct 2013 11:30:16 -0700
-Message-ID: <20131017183016.GG23337@ld-irv-0074.broadcom.com>
-References: <1381816197-20477-1-git-send-email-pekon@ti.com>
- <1381816197-20477-5-git-send-email-pekon@ti.com>
- <20131016222248.GZ23337@ld-irv-0074.broadcom.com>
- <20980858CB6D3A4BAE95CA194937D5E73EA27917@DBDE04.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL 1/2] omap board removal for some omap3 boards for v3.13 merge window
+Date: Thu, 17 Oct 2013 13:00:21 -0700
+Message-ID: <33340.6729776927$1382040037@news.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ie0-f178.google.com ([209.85.223.178]:34289 "EHLO
-	mail-ie0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1762397Ab3JQSaV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Oct 2013 14:30:21 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:42445 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759244Ab3JQUA1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Oct 2013 16:00:27 -0400
 Content-Disposition: inline
-In-Reply-To: <20980858CB6D3A4BAE95CA194937D5E73EA27917@DBDE04.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gupta, Pekon" <pekon@ti.com>
-Cc: "mark.rutland@arm.com" <mark.rutland@arm.com>, "olof@lixom.net" <olof@lixom.net>, "dedekind1@gmail.com" <dedekind1@gmail.com>, "tony@atomide.com" <tony@atomide.com>, "bcousson@baylibre.com" <bcousson@baylibre.com>, "robherring2@gmail.com" <robherring2@gmail.com>, "Pawel.Moll@arm.com" <Pawel.Moll@arm.com>, "ijc+devicetree@hellion.org.uk" <ijc+devicetree@hellion.org.uk>, "swarren@wwwdotorg.org" <swarren@wwwdotorg.org>, "dwmw2@infradead.org" <dwmw2@infradead.org>, "arnd@arndb.de" <arnd@arndb.de>, "avinashphilipk@gmail.com" <avinashphilipk@gmail.com>, "Balbi, Felipe" <balbi@ti.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
+To: arm@kernel.org, Arnd Bergmann <arnd@arndb.de>, Kevin Hilman <khilman@linaro.org>, Olof Johansson <olof@lixom.net>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Thu, Oct 17, 2013 at 04:42:23AM +0000, Pekon Gupta wrote:
-> > From: Brian Norris [mailto:computersforpeace@gmail.com]
-> > > On Tue, Oct 15, 2013 at 11:19:52AM +0530, Pekon Gupta wrote:
-> > > Autodetection of NAND device bus-width was added in generic NAND
-> > driver as
-> [...]
-> > > @@ -1904,6 +1903,21 @@ static int omap_nand_probe(struct
-> > platform_device *pdev)
-> > >  		nand_chip->chip_delay = 50;
-> > >  	}
-> > >
-> > > +	/* scan for NAND device connected to chip controller */
-> > > +	if (nand_scan_ident(mtd, 1, NULL)) {
-> > > +		err = -ENXIO;
-> > > +		goto out_release_mem_region;
-> > > +	}
-> > > +	if ((nand_chip->options & NAND_BUSWIDTH_16) !=
-> > > +			(pdata->devsize & NAND_BUSWIDTH_16)) {
-> > > +		pr_err("%s: detected %s device but driver configured for
-> > %s\n",
-> > > +			DRIVER_NAME,
-> > > +			(nand_chip->options & NAND_BUSWIDTH_16) ?
-> > "x16" : "x8",
-> > > +			(pdata->devsize & NAND_BUSWIDTH_16) ? "x16" :
-> > "x8");
-> > 
-> > I'm not sure on the policy choice here; if you're using BUSWIDTH_AUTO,
-> > do you even want to try to configure the buswidth by platform data?
-> > You're not really getting the full use out of NAND_BUSWIDTH_AUTO because
-> > the platform data has to guess the same buswidth that nand_base.c
-> > determines. This is worse than the previous behavior, in which you would
-> > try both buswidths if the specified type failed.
-> > 
-> > IOW, what are you trying to achieve with auto-buswidth? Automatic
-> > determination of the buswidth or just automatic validation? What do you
-> > achieve with platform data's selection of buswidth? Specification of the
-> > buswidth or just a hint? Do the goals conflict? Perhaps you can just
-> > warn, and not error out if the two selections don't match? Or maybe you
-> > really wanted to replace the platform data selection mechanism entirely
-> > with auto-buswidth?
-> > 
-> This is 'automatic validation' of value set in DT binding "nand-bus-width"
+The following changes since commit f41509ad0d4c11d0911630440749d409ce2aa1aa:
 
-You mean you intend for the patched driver to simply validate, not
-configure the buswidth?
+  Merge branches 'omap-for-v3.13/dt' and 'omap-for-v3.13/quirk' into omap-for-v3.13/board-removal (2013-10-14 11:33:07 -0700)
 
-> So this approach is other way round, where controller is configured
-> based on DT binding "nand-bus-width" and then it checks whether
-> device actual buswidth matches DT binding value or not.
+are available in the git repository at:
 
-If this is the case, then you really don't want to use
-NAND_BUSWIDTH_AUTO. The default nand_base.c just *validates* the
-pre-selected buswidth and exits with an error, in much the same way that
-you're doing here (you're just duplicating the functionality).
-NAND_BUSWIDTH_AUTO is useful if you want to turn control of the buswidth
-configuration entirely over to nand_base.c.
 
-> - GPMC controller is pre-configured to support "x8" or "x16" device based
->    on DT binding "nand-bus-width".
->    Reference: $LINUX/arch/arm/mach-omap2/gpmc.c
->   @@gpmc_probe_nand_child()
-> 	val = of_get_nand_bus_width(child);
-> 
-> - But, bus-width of NAND device is only known during NAND driver
->    Probe in nand_scan_ident().
-> 
-> Going forward when all NAND devices are compliant to ONFI,
-> then we can deprecate "nand-bus-width".
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.13/board-removal-signed
 
-Buswidth auto-detection is not actually restricted to ONFI. nand_base.c
-has (corretly, AFAIK) been detecting buswidths for a long time, using
-some form of ID decode detection. But it was just that: detection. It
-did not actually configure the buswidth, since it left that
-responsibility to the low-level driver to get right.
+for you to fetch changes up to f0c09b7c3b4e6b2fe501b3e888797b470de8320c:
 
-Another thing to consider: I think this current patch is a regression
-from previous behavior. Previously, you would run nand_scan_ident()
-twice if the first one failed; once with the platform-configured
-buswidth and once with the opposite. But now, you only run
-nand_scan_ident() once, and then you quit if it detects differently than
-you expected.
+  ARM: OMAP2+: Remove legacy support for zoom platforms (2013-10-15 17:38:21 -0700)
 
-My opinion: the platform- and device-tree-provided buswidth is
-unnecessary; it was previouisly only a suggestion which your driver
-would readily discard, and it isn't really needed now. You can probably
-get by with just NAND_BUSWIDTH_AUTO and (at most) a warning if the
-auto-configured buswidth is different than the platform specified.
+----------------------------------------------------------------
+Changes needed to drop legacy booting support for some
+omap3 boards.
 
-But the real point: you need to clearly communicate what you are
-choosing in this patch. Either you want to
+Note that that these are based on a merge of the
+following for the dependencies:
 
- (1) strictly follow the buswidth provided by the platform or
+- v3.12-rc5 for fixes to pinctrl mask
+- omap-for-v3.13/dt-signed to avoid pointless merge conflicts
+- omap-for-v3.13/quirk-signed for legacy pdata handling
 
- (2) use the nand_base.c BUSWIDTH_AUTO automatic configuration.
+----------------------------------------------------------------
+Aaro Koskinen (2):
+      ARM: dts: add minimal DT support for Nokia N950 & N9 phones
+      ARM: OMAP2: delete board-rm680
 
-Trying to mix both (as your patch currently does) just makes everything
-worse.
+Tony Lindgren (6):
+      ARM: dts: Shared file for omap GPMC connected smsc911x
+      ARM: dts: Add common support for omap3-evm
+      ARM: dts: Add basic support for TMDSEVM3730 (Mistral AM/DM37x EVM)
+      ARM: dts: Add basic support for zoom3
+      ARM: OMAP2+: Remove legacy booting support for omap3 EVM
+      ARM: OMAP2+: Remove legacy support for zoom platforms
 
-Brian
+ arch/arm/boot/dts/Makefile                   |   4 +
+ arch/arm/boot/dts/omap-gpmc-smsc911x.dtsi    |  52 ++
+ arch/arm/boot/dts/omap-zoom-common.dtsi      |  33 ++
+ arch/arm/boot/dts/omap3-evm-37xx.dts         | 146 ++++++
+ arch/arm/boot/dts/omap3-evm-common.dtsi      |  96 ++++
+ arch/arm/boot/dts/omap3-evm.dts              |  58 +-
+ arch/arm/boot/dts/omap3-igep0020.dts         |  45 +-
+ arch/arm/boot/dts/omap3-n9.dts               |  18 +
+ arch/arm/boot/dts/omap3-n950-n9.dtsi         | 174 ++++++
+ arch/arm/boot/dts/omap3-n950.dts             |  18 +
+ arch/arm/boot/dts/omap3-zoom3.dts            | 217 ++++++++
+ arch/arm/mach-omap2/Kconfig                  |  33 --
+ arch/arm/mach-omap2/Makefile                 |  11 -
+ arch/arm/mach-omap2/board-3630sdp.c          | 225 --------
+ arch/arm/mach-omap2/board-ldp.c              |   3 +-
+ arch/arm/mach-omap2/board-omap3evm.c         | 756 ---------------------------
+ arch/arm/mach-omap2/board-rm680.c            | 167 ------
+ arch/arm/mach-omap2/board-zoom-debugboard.c  | 139 -----
+ arch/arm/mach-omap2/board-zoom-display.c     |  71 ---
+ arch/arm/mach-omap2/board-zoom-peripherals.c | 360 -------------
+ arch/arm/mach-omap2/board-zoom.c             | 159 ------
+ arch/arm/mach-omap2/board-zoom.h             |  10 -
+ 22 files changed, 763 insertions(+), 2032 deletions(-)
+ create mode 100644 arch/arm/boot/dts/omap-gpmc-smsc911x.dtsi
+ create mode 100644 arch/arm/boot/dts/omap-zoom-common.dtsi
+ create mode 100644 arch/arm/boot/dts/omap3-evm-37xx.dts
+ create mode 100644 arch/arm/boot/dts/omap3-evm-common.dtsi
+ create mode 100644 arch/arm/boot/dts/omap3-n9.dts
+ create mode 100644 arch/arm/boot/dts/omap3-n950-n9.dtsi
+ create mode 100644 arch/arm/boot/dts/omap3-n950.dts
+ create mode 100644 arch/arm/boot/dts/omap3-zoom3.dts
+ delete mode 100644 arch/arm/mach-omap2/board-3630sdp.c
+ delete mode 100644 arch/arm/mach-omap2/board-omap3evm.c
+ delete mode 100644 arch/arm/mach-omap2/board-rm680.c
+ delete mode 100644 arch/arm/mach-omap2/board-zoom-debugboard.c
+ delete mode 100644 arch/arm/mach-omap2/board-zoom-display.c
+ delete mode 100644 arch/arm/mach-omap2/board-zoom-peripherals.c
+ delete mode 100644 arch/arm/mach-omap2/board-zoom.c
+ delete mode 100644 arch/arm/mach-omap2/board-zoom.h
