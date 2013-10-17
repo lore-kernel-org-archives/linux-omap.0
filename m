@@ -1,61 +1,122 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] ARM: OMAP2: add AM43xx hwmod and PRCM support
-Date: Thu, 17 Oct 2013 11:01:30 -0700
-Message-ID: <20131017180129.GD15154@atomide.com>
-References: <alpine.DEB.2.02.1310162145180.6538@utopia.booyaka.com>
+From: Brian Norris <computersforpeace@gmail.com>
+Subject: Re: [PATCH v9 4/9] mtd: nand: omap: enable auto-detection of
+ bus-width for omap-nand drivers
+Date: Thu, 17 Oct 2013 11:30:16 -0700
+Message-ID: <20131017183016.GG23337@ld-irv-0074.broadcom.com>
+References: <1381816197-20477-1-git-send-email-pekon@ti.com>
+ <1381816197-20477-5-git-send-email-pekon@ti.com>
+ <20131016222248.GZ23337@ld-irv-0074.broadcom.com>
+ <20980858CB6D3A4BAE95CA194937D5E73EA27917@DBDE04.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:53101 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757365Ab3JQSBd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Oct 2013 14:01:33 -0400
+Received: from mail-ie0-f178.google.com ([209.85.223.178]:34289 "EHLO
+	mail-ie0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1762397Ab3JQSaV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Oct 2013 14:30:21 -0400
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.02.1310162145180.6538@utopia.booyaka.com>
+In-Reply-To: <20980858CB6D3A4BAE95CA194937D5E73EA27917@DBDE04.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: "Gupta, Pekon" <pekon@ti.com>
+Cc: "mark.rutland@arm.com" <mark.rutland@arm.com>, "olof@lixom.net" <olof@lixom.net>, "dedekind1@gmail.com" <dedekind1@gmail.com>, "tony@atomide.com" <tony@atomide.com>, "bcousson@baylibre.com" <bcousson@baylibre.com>, "robherring2@gmail.com" <robherring2@gmail.com>, "Pawel.Moll@arm.com" <Pawel.Moll@arm.com>, "ijc+devicetree@hellion.org.uk" <ijc+devicetree@hellion.org.uk>, "swarren@wwwdotorg.org" <swarren@wwwdotorg.org>, "dwmw2@infradead.org" <dwmw2@infradead.org>, "arnd@arndb.de" <arnd@arndb.de>, "avinashphilipk@gmail.com" <avinashphilipk@gmail.com>, "Balbi, Felipe" <balbi@ti.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
 
-* Paul Walmsley <paul@pwsan.com> [131016 14:46]:
-> Hi Tony,
-> 
-> The following changes since commit ace1e3ec4a2540c783e65884bb7be9cd45a0a295:
-> 
->   ARM: AM33xx: hwmod: Add RNG module data (2013-10-09 09:02:51 -0600)
-> 
-> are available in the git repository at:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/for-v3.13/am43xx-support
-> 
-> for you to fetch changes up to 70b0d5f5838e0c9dfecabefe4ff43b5a2e7c1e8b:
-> 
->   ARM: OMAP2: hwmod: Add qspi data for am437x. (2013-10-15 23:49:43 -0600)
-> 
-> ----------------------------------------------------------------
-> Add hwmod and PRCM data for the TI AM43xx family of SoCs.
-> 
-> Under normal circumstances, these patches would not be merged.
-> The hwmod and PRCM data should be moved out either to DT data or
-> to drivers/.  Also, the current implementation trades off lines
-> of diff by dynamically rewriting static data at runtime, which is
-> a bad practice - it causes future maintenance headaches.
-> However, after speaking with my upstream, it sounds like it's
-> better to merge these patches in their current state, due to long
-> term considerations.
-> 
-> Basic test logs are here:
-> 
-> http://www.pwsan.com/omap/testlogs/am43xx_support_v3.13/20131015213706/
-> 
-> Due to the lack of an AM43xx board and any available public
-> documentation, it's impossible for me to review or test that
-> platform in any meaningful way.  But at least the tests above
-> verify that the patches don't affect existing platforms -
-> particularly AM33xx.
+On Thu, Oct 17, 2013 at 04:42:23AM +0000, Pekon Gupta wrote:
+> > From: Brian Norris [mailto:computersforpeace@gmail.com]
+> > > On Tue, Oct 15, 2013 at 11:19:52AM +0530, Pekon Gupta wrote:
+> > > Autodetection of NAND device bus-width was added in generic NAND
+> > driver as
+> [...]
+> > > @@ -1904,6 +1903,21 @@ static int omap_nand_probe(struct
+> > platform_device *pdev)
+> > >  		nand_chip->chip_delay = 50;
+> > >  	}
+> > >
+> > > +	/* scan for NAND device connected to chip controller */
+> > > +	if (nand_scan_ident(mtd, 1, NULL)) {
+> > > +		err = -ENXIO;
+> > > +		goto out_release_mem_region;
+> > > +	}
+> > > +	if ((nand_chip->options & NAND_BUSWIDTH_16) !=
+> > > +			(pdata->devsize & NAND_BUSWIDTH_16)) {
+> > > +		pr_err("%s: detected %s device but driver configured for
+> > %s\n",
+> > > +			DRIVER_NAME,
+> > > +			(nand_chip->options & NAND_BUSWIDTH_16) ?
+> > "x16" : "x8",
+> > > +			(pdata->devsize & NAND_BUSWIDTH_16) ? "x16" :
+> > "x8");
+> > 
+> > I'm not sure on the policy choice here; if you're using BUSWIDTH_AUTO,
+> > do you even want to try to configure the buswidth by platform data?
+> > You're not really getting the full use out of NAND_BUSWIDTH_AUTO because
+> > the platform data has to guess the same buswidth that nand_base.c
+> > determines. This is worse than the previous behavior, in which you would
+> > try both buswidths if the specified type failed.
+> > 
+> > IOW, what are you trying to achieve with auto-buswidth? Automatic
+> > determination of the buswidth or just automatic validation? What do you
+> > achieve with platform data's selection of buswidth? Specification of the
+> > buswidth or just a hint? Do the goals conflict? Perhaps you can just
+> > warn, and not error out if the two selections don't match? Or maybe you
+> > really wanted to replace the platform data selection mechanism entirely
+> > with auto-buswidth?
+> > 
+> This is 'automatic validation' of value set in DT binding "nand-bus-width"
 
-Thanks, I've pulled this into omap-for-v3.13/hwmod.
+You mean you intend for the patched driver to simply validate, not
+configure the buswidth?
 
-Regards,
+> So this approach is other way round, where controller is configured
+> based on DT binding "nand-bus-width" and then it checks whether
+> device actual buswidth matches DT binding value or not.
 
-Tony
+If this is the case, then you really don't want to use
+NAND_BUSWIDTH_AUTO. The default nand_base.c just *validates* the
+pre-selected buswidth and exits with an error, in much the same way that
+you're doing here (you're just duplicating the functionality).
+NAND_BUSWIDTH_AUTO is useful if you want to turn control of the buswidth
+configuration entirely over to nand_base.c.
+
+> - GPMC controller is pre-configured to support "x8" or "x16" device based
+>    on DT binding "nand-bus-width".
+>    Reference: $LINUX/arch/arm/mach-omap2/gpmc.c
+>   @@gpmc_probe_nand_child()
+> 	val = of_get_nand_bus_width(child);
+> 
+> - But, bus-width of NAND device is only known during NAND driver
+>    Probe in nand_scan_ident().
+> 
+> Going forward when all NAND devices are compliant to ONFI,
+> then we can deprecate "nand-bus-width".
+
+Buswidth auto-detection is not actually restricted to ONFI. nand_base.c
+has (corretly, AFAIK) been detecting buswidths for a long time, using
+some form of ID decode detection. But it was just that: detection. It
+did not actually configure the buswidth, since it left that
+responsibility to the low-level driver to get right.
+
+Another thing to consider: I think this current patch is a regression
+from previous behavior. Previously, you would run nand_scan_ident()
+twice if the first one failed; once with the platform-configured
+buswidth and once with the opposite. But now, you only run
+nand_scan_ident() once, and then you quit if it detects differently than
+you expected.
+
+My opinion: the platform- and device-tree-provided buswidth is
+unnecessary; it was previouisly only a suggestion which your driver
+would readily discard, and it isn't really needed now. You can probably
+get by with just NAND_BUSWIDTH_AUTO and (at most) a warning if the
+auto-configured buswidth is different than the platform specified.
+
+But the real point: you need to clearly communicate what you are
+choosing in this patch. Either you want to
+
+ (1) strictly follow the buswidth provided by the platform or
+
+ (2) use the nand_base.c BUSWIDTH_AUTO automatic configuration.
+
+Trying to mix both (as your patch currently does) just makes everything
+worse.
+
+Brian
