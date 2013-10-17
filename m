@@ -1,124 +1,201 @@
-From: Brian Norris <computersforpeace@gmail.com>
-Subject: Re: [PATCH v9 4/9] mtd: nand: omap: enable auto-detection of
- bus-width for omap-nand drivers
-Date: Thu, 17 Oct 2013 14:43:49 -0700
-Message-ID: <20131017214349.GH23337@ld-irv-0074.broadcom.com>
-References: <1381816197-20477-1-git-send-email-pekon@ti.com>
- <1381816197-20477-5-git-send-email-pekon@ti.com>
- <20131016222248.GZ23337@ld-irv-0074.broadcom.com>
- <20980858CB6D3A4BAE95CA194937D5E73EA27917@DBDE04.ent.ti.com>
- <20131017183016.GG23337@ld-irv-0074.broadcom.com>
- <20980858CB6D3A4BAE95CA194937D5E73EA280A4@DBDE04.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH] ARM: dts: Add missing reg, interrupt and dma entries for
+ omap3
+Date: Thu, 17 Oct 2013 15:15:22 -0700
+Message-ID: <20131017221522.GE15154@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-oa0-f45.google.com ([209.85.219.45]:44122 "EHLO
-	mail-oa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1762374Ab3JQVny (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Oct 2013 17:43:54 -0400
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:26658 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1757872Ab3JQWPZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Oct 2013 18:15:25 -0400
 Content-Disposition: inline
-In-Reply-To: <20980858CB6D3A4BAE95CA194937D5E73EA280A4@DBDE04.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gupta, Pekon" <pekon@ti.com>
-Cc: "mark.rutland@arm.com" <mark.rutland@arm.com>, "olof@lixom.net" <olof@lixom.net>, "dedekind1@gmail.com" <dedekind1@gmail.com>, "tony@atomide.com" <tony@atomide.com>, "bcousson@baylibre.com" <bcousson@baylibre.com>, "robherring2@gmail.com" <robherring2@gmail.com>, "Pawel.Moll@arm.com" <Pawel.Moll@arm.com>, "ijc+devicetree@hellion.org.uk" <ijc+devicetree@hellion.org.uk>, "swarren@wwwdotorg.org" <swarren@wwwdotorg.org>, "dwmw2@infradead.org" <dwmw2@infradead.org>, "arnd@arndb.de" <arnd@arndb.de>, "avinashphilipk@gmail.com" <avinashphilipk@gmail.com>, "Balbi, Felipe" <balbi@ti.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-On Thu, Oct 17, 2013 at 09:00:27PM +0000, Pekon Gupta wrote:
-> > From: Brian Norris [mailto:computersforpeace@gmail.com]
-> > > On Thu, Oct 17, 2013 at 04:42:23AM +0000, Pekon Gupta wrote:
-> > > > From: Brian Norris [mailto:computersforpeace@gmail.com]
-> > > > > On Tue, Oct 15, 2013 at 11:19:52AM +0530, Pekon Gupta wrote:
-> [snip]
-> > > So this approach is other way round, where controller is configured
-> > > based on DT binding "nand-bus-width" and then it checks whether
-> > > device actual buswidth matches DT binding value or not.
-> > 
-> > If this is the case, then you really don't want to use
-> > NAND_BUSWIDTH_AUTO. The default nand_base.c just *validates* the
-> > pre-selected buswidth and exits with an error, in much the same way that
-> > you're doing here (you're just duplicating the functionality).
-> > NAND_BUSWIDTH_AUTO is useful if you want to turn control of the
-> > buswidth
-> > configuration entirely over to nand_base.c.
-> > 
-> > > - GPMC controller is pre-configured to support "x8" or "x16" device based
-> > >    on DT binding "nand-bus-width".
-> > >    Reference: $LINUX/arch/arm/mach-omap2/gpmc.c
-> > >   @@gpmc_probe_nand_child()
-> > > 	val = of_get_nand_bus_width(child);
-> > >
-> > > - But, bus-width of NAND device is only known during NAND driver
-> > >    Probe in nand_scan_ident().
-> > >
-> > > Going forward when all NAND devices are compliant to ONFI,
-> > > then we can deprecate "nand-bus-width".
-> > 
-> > Buswidth auto-detection is not actually restricted to ONFI. nand_base.c
-> > has (corretly, AFAIK) been detecting buswidths for a long time, using
-> > some form of ID decode detection. But it was just that: detection. It
-> > did not actually configure the buswidth, since it left that
-> > responsibility to the low-level driver to get right.
-> > 
-> > Another thing to consider: I think this current patch is a regression
-> > from previous behavior. Previously, you would run nand_scan_ident()
-> > twice if the first one failed; once with the platform-configured
-> > buswidth and once with the opposite. But now, you only run
-> > nand_scan_ident() once, and then you quit if it detects differently than
-> > you expected.
-> > 
-> Actually having nand_scan_ident() called again if first time it fails, is 
-> _not_ the right way, it was a quick-fix work-around.
-> It should not have been approved..
+Looks like omap3 is still relying on hwmod data for some basic
+device tree information. Let's add the information to omap3.dtsi
+so we can remove the related hwmod data once omap3 is DT only.
 
-OK, fair enough. I agree.
+Cc: Benoit Cousson <bcousson@baylibre.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-> > My opinion: the platform- and device-tree-provided buswidth is
-> > unnecessary; it was previouisly only a suggestion which your driver
-> > would readily discard, and it isn't really needed now. You can probably
-> > get by with just NAND_BUSWIDTH_AUTO and (at most) a warning if the
-> > auto-configured buswidth is different than the platform specified.
-> > 
-> > But the real point: you need to clearly communicate what you are
-> > choosing in this patch. Either you want to
-> > 
-> >  (1) strictly follow the buswidth provided by the platform or
-> > 
-> >  (2) use the nand_base.c BUSWIDTH_AUTO automatic configuration.
-> > 
-> Ideally, I would like to go with (2), but that would need other changes
-> in-order to re-configure GPMC with newly parsed ONFI data, which
-> can be a separate patch-set.
-
-What exactly needs changed to support this? It looks like this omap2
-NAND driver doesn't make assumptions about 8-bit vs. 16-bit until after
-nand_scan_ident(). But maybe there is something I missed.
-
-> Thus, I would drop this patch for now. And go with (1),
-
-OK, but to drop this patch entirely would still not be (1); it would
-still leave the possibility of calling nand_scan_ident() twice, and it
-puts you in a middle ground between (1) and (2). That's fine if it works
-for you, but I just want to acknowledge that now: this driver requires
-changes to become either (1) or (2).
-
-Does your series need a rebase if we're removing this patch? Or you're
-rewriting/simplifying it to the following two points? (Perhaps it's
-best to separate this portion to its own patch (set) and discussion,
-since it is independent of your ECC rewrite.)
-
-> with following
-> updates in  omap_nand_probe().
-> 
-> (a) perform nand_scan_ident() in "x8" mode, so that ONFI params are
->     read and device-info (chip->writesize, chip->oobsize) are populated.
-
-OK.
-
-> (b) Then switch to "x8" or "x16" mode based on "nand-bus-width"
->     as passed from GPMC driver to NAND driver via platform-data.
->    And re-populate mtd->byte, mtd-read_buf, mtd->write_buf.
-
-I'm not sure if switching buswidth after nand_scan_ident() is really
-supported, but I'll hold off until I see the code you're proposing.
-
-Brian
+--- a/arch/arm/boot/dts/omap3.dtsi
++++ b/arch/arm/boot/dts/omap3.dtsi
+@@ -37,6 +37,7 @@
+ 
+ 	pmu {
+ 		compatible = "arm,cortex-a8-pmu";
++		reg = <0x54000000 0x800000>;
+ 		interrupts = <3>;
+ 		ti,hwmods = "debugss";
+ 	};
+@@ -71,6 +72,8 @@
+ 	 */
+ 	ocp {
+ 		compatible = "simple-bus";
++		reg = <0x68000000 0x10000>;
++		interrupts = <9 10>;
+ 		#address-cells = <1>;
+ 		#size-cells = <1>;
+ 		ranges;
+@@ -193,24 +196,40 @@
+ 
+ 		uart1: serial@4806a000 {
+ 			compatible = "ti,omap3-uart";
++			reg = <0x4806a000 0x2000>;
++			interrupts = <72>;
++			dmas = <&sdma 49 &sdma 50>;
++			dma-names = "tx", "rx";
+ 			ti,hwmods = "uart1";
+ 			clock-frequency = <48000000>;
+ 		};
+ 
+ 		uart2: serial@4806c000 {
+ 			compatible = "ti,omap3-uart";
++			reg = <0x4806c000 0x400>;
++			interrupts = <73>;
++			dmas = <&sdma 51 &sdma 52>;
++			dma-names = "tx", "rx";
+ 			ti,hwmods = "uart2";
+ 			clock-frequency = <48000000>;
+ 		};
+ 
+ 		uart3: serial@49020000 {
+ 			compatible = "ti,omap3-uart";
++			reg = <0x49020000 0x400>;
++			interrupts = <74>;
++			dmas = <&sdma 53 &sdma 54>;
++			dma-names = "tx", "rx";
+ 			ti,hwmods = "uart3";
+ 			clock-frequency = <48000000>;
+ 		};
+ 
+ 		i2c1: i2c@48070000 {
+ 			compatible = "ti,omap3-i2c";
++			reg = <0x48070000 0x80>;
++			interrupts = <56>;
++			dmas = <&sdma 27 &sdma 28>;
++			dma-names = "tx", "rx";
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
+ 			ti,hwmods = "i2c1";
+@@ -218,6 +237,10 @@
+ 
+ 		i2c2: i2c@48072000 {
+ 			compatible = "ti,omap3-i2c";
++			reg = <0x48072000 0x80>;
++			interrupts = <57>;
++			dmas = <&sdma 29 &sdma 30>;
++			dma-names = "tx", "rx";
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
+ 			ti,hwmods = "i2c2";
+@@ -225,6 +248,10 @@
+ 
+ 		i2c3: i2c@48060000 {
+ 			compatible = "ti,omap3-i2c";
++			reg = <0x48060000 0x80>;
++			interrupts = <61>;
++			dmas = <&sdma 25 &sdma 26>;
++			dma-names = "tx", "rx";
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
+ 			ti,hwmods = "i2c3";
+@@ -232,6 +259,8 @@
+ 
+ 		mcspi1: spi@48098000 {
+ 			compatible = "ti,omap2-mcspi";
++			reg = <0x48098000 0x100>;
++			interrupts = <65>;
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
+ 			ti,hwmods = "mcspi1";
+@@ -250,6 +279,8 @@
+ 
+ 		mcspi2: spi@4809a000 {
+ 			compatible = "ti,omap2-mcspi";
++			reg = <0x4809a000 0x100>;
++			interrupts = <66>;
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
+ 			ti,hwmods = "mcspi2";
+@@ -263,6 +294,8 @@
+ 
+ 		mcspi3: spi@480b8000 {
+ 			compatible = "ti,omap2-mcspi";
++			reg = <0x480b8000 0x100>;
++			interrupts = <91>;
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
+ 			ti,hwmods = "mcspi3";
+@@ -276,6 +309,8 @@
+ 
+ 		mcspi4: spi@480ba000 {
+ 			compatible = "ti,omap2-mcspi";
++			reg = <0x480ba000 0x100>;
++			interrupts = <48>;
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
+ 			ti,hwmods = "mcspi4";
+@@ -284,8 +319,17 @@
+ 			dma-names = "tx0", "rx0";
+ 		};
+ 
++		hdqw1w: 1w@480b2000 {
++			compatible = "ti,omap3-1w";
++			reg = <0x480b2000 0x1000>;
++			interrupts = <58>;
++			ti,hwmods = "hdq1w";
++		};
++
+ 		mmc1: mmc@4809c000 {
+ 			compatible = "ti,omap3-hsmmc";
++			reg = <0x4809c000 0x200>;
++			interrupts = <83>;
+ 			ti,hwmods = "mmc1";
+ 			ti,dual-volt;
+ 			dmas = <&sdma 61>, <&sdma 62>;
+@@ -294,6 +338,8 @@
+ 
+ 		mmc2: mmc@480b4000 {
+ 			compatible = "ti,omap3-hsmmc";
++			reg = <0x480b4000 0x200>;
++			interrupts = <86>;
+ 			ti,hwmods = "mmc2";
+ 			dmas = <&sdma 47>, <&sdma 48>;
+ 			dma-names = "tx", "rx";
+@@ -301,6 +347,8 @@
+ 
+ 		mmc3: mmc@480ad000 {
+ 			compatible = "ti,omap3-hsmmc";
++			reg = <0x480ad000 0x200>;
++			interrupts = <94>;
+ 			ti,hwmods = "mmc3";
+ 			dmas = <&sdma 77>, <&sdma 78>;
+ 			dma-names = "tx", "rx";
+@@ -308,6 +356,7 @@
+ 
+ 		wdt2: wdt@48314000 {
+ 			compatible = "ti,omap3-wdt";
++			reg = <0x48314000 0x80>;
+ 			ti,hwmods = "wd_timer2";
+ 		};
+ 
+diff --git a/arch/arm/boot/dts/omap36xx.dtsi b/arch/arm/boot/dts/omap36xx.dtsi
+index f8b3765..380c22e 100644
+--- a/arch/arm/boot/dts/omap36xx.dtsi
++++ b/arch/arm/boot/dts/omap36xx.dtsi
+@@ -31,6 +31,10 @@
+ 	ocp {
+ 		uart4: serial@49042000 {
+ 			compatible = "ti,omap3-uart";
++			reg = <0x49042000 0x400>;
++			interrupts = <80>;
++			dmas = <&sdma 81 &sdma 82>;
++			dma-names = "tx", "rx";
+ 			ti,hwmods = "uart4";
+ 			clock-frequency = <48000000>;
+ 		};
