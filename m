@@ -1,67 +1,43 @@
 From: Jyri Sarha <jsarha@ti.com>
-Subject: [PATCH v5 08/12] ARM/dts: am33xx: Add mcasp0 and mcasp1 device tree entries
-Date: Fri, 18 Oct 2013 18:37:47 +0300
-Message-ID: <8bf7af0d55f9637959f5414ed95fe26e477c2700.1382110090.git.jsarha@ti.com>
+Subject: [PATCH v5 12/12] arm: omap2plus_defconfig: enable AM33xx SOC EVM audio
+Date: Fri, 18 Oct 2013 18:37:51 +0300
+Message-ID: <76cb8bb177b100603b5a1471b633a409b7e132f0.1382110090.git.jsarha@ti.com>
 References: <cover.1382110089.git.jsarha@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:48897 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756258Ab3JRPiM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 18 Oct 2013 11:38:12 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:37543 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756297Ab3JRPiQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Oct 2013 11:38:16 -0400
 In-Reply-To: <cover.1382110089.git.jsarha@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: alsa-devel@alsa-project.org, devicetree@vger.kernel.org, bcousson@baylibre.com, mark.rutland@arm.com
-Cc: linux-omap@vger.kernel.org, broonie@kernel.org, joelf@ti.com, Pantelis Antoniou <panto@antoniou-consulting.com>, Darren Etheridge <detheridge@ti.com>, Jyri Sarha <jsarha@ti.com>
+Cc: linux-omap@vger.kernel.org, broonie@kernel.org, joelf@ti.com, Jyri Sarha <jsarha@ti.com>
 
-From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Modifying the omap2plus_defconfig to enable the audio support for
+AM335x EVM and other AM33xx based devices with TLV320AIC3X connected
+to McASP.
 
-Add missing mcasp entries in the am33xx.dtsi include file.
-
-Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
-Signed-off-by: Darren Etheridge <detheridge@ti.com>
 Signed-off-by: Jyri Sarha <jsarha@ti.com>
 ---
- arch/arm/boot/dts/am33xx.dtsi |   25 +++++++++++++++++++++++++
- 1 file changed, 25 insertions(+)
+ arch/arm/configs/omap2plus_defconfig |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index 9ce85e5..72c416d 100644
---- a/arch/arm/boot/dts/am33xx.dtsi
-+++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -667,5 +667,30 @@
- 			#size-cells = <1>;
- 			status = "disabled";
- 		};
-+
-+		mcasp0: mcasp@48038000 {
-+			compatible = "ti,am33xx-mcasp-audio";
-+			ti,hwmods = "mcasp0";
-+			reg = <0x48038000 0x2000>;
-+			interrupts = <80>, <81>;
-+			interrupts-names = "tx", "rx";
-+			status = "disabled";
-+			dmas = <&edma 8>,
-+				<&edma 9>;
-+			dma-names = "tx", "rx";
-+		};
-+
-+		mcasp1: mcasp@4803C000 {
-+			compatible = "ti,am33xx-mcasp-audio";
-+			ti,hwmods = "mcasp1";
-+			reg = <0x4803C000 0x2000>;
-+			interrupts = <82>, <83>;
-+			interrupts-names = "tx", "rx";
-+			status = "disabled";
-+			dmas = <&edma 10>,
-+				<&edma 11>;
-+			dma-names = "tx", "rx";
-+		};
-+
- 	};
- };
+diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
+index 254cf05..4443b92 100644
+--- a/arch/arm/configs/omap2plus_defconfig
++++ b/arch/arm/configs/omap2plus_defconfig
+@@ -210,6 +210,8 @@ CONFIG_SND_DEBUG=y
+ CONFIG_SND_USB_AUDIO=m
+ CONFIG_SND_SOC=m
+ CONFIG_SND_OMAP_SOC=m
++CONFIG_SND_AM33XX_SOC_EVM=m
++CONFIG_SND_DAVINCI_SOC=m
+ CONFIG_SND_OMAP_SOC_OMAP_TWL4030=m
+ CONFIG_SND_OMAP_SOC_OMAP_ABE_TWL6040=m
+ CONFIG_SND_OMAP_SOC_OMAP3_PANDORA=m
 -- 
 1.7.9.5
 
