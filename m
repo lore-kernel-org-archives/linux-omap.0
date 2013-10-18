@@ -1,46 +1,64 @@
-From: Balaji T K <balajitk@ti.com>
-Subject: [PATCH 5/5] mmc: omap_hsmmc: remove unused no_off
-Date: Mon, 21 Oct 2013 00:25:22 +0530
-Message-ID: <1382295322-18995-5-git-send-email-balajitk@ti.com>
-References: <1382295322-18995-1-git-send-email-balajitk@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain
+From: Eric Witcher <ewitcher@mindspring.com>
+Subject: [PATCH] ARM: dts: omap5-uevm: fix mcspi node pin descriptions
+Date: Fri, 18 Oct 2013 02:42:34 -0400
+Message-ID: <1382078554-31628-1-git-send-email-ewitcher@mindspring.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:43129 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751654Ab3JTSzl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 20 Oct 2013 14:55:41 -0400
-In-Reply-To: <1382295322-18995-1-git-send-email-balajitk@ti.com>
+Received: from elasmtp-mealy.atl.sa.earthlink.net ([209.86.89.69]:38496 "EHLO
+	elasmtp-mealy.atl.sa.earthlink.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751783Ab3JTVCu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Sun, 20 Oct 2013 17:02:50 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-mmc@vger.kernel.org, cjb@laptop.org, tony@atomide.com
-Cc: linux-omap@vger.kernel.org, Balaji T K <balajitk@ti.com>
+To: nm@ti.com, bcousson@baylibre.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
 
-With lazy disable gone, no_off is not used any more in omap_hsmmc
+Correct mcspi pin descriptions to match corresponding node name and
+add chip select number to be consistent with OMAP5 TRM.
 
-Signed-off-by: Balaji T K <balajitk@ti.com>
+Signed-off-by: Eric Witcher <ewitcher@mindspring.com>
 ---
- drivers/mmc/host/omap_hsmmc.c |    7 -------
- 1 files changed, 0 insertions(+), 7 deletions(-)
+ arch/arm/boot/dts/omap5-uevm.dts | 18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index 60db34d..1646347 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -1829,13 +1829,6 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
+diff --git a/arch/arm/boot/dts/omap5-uevm.dts b/arch/arm/boot/dts/omap5-uevm.dts
+index d784b3a..90c7843 100644
+--- a/arch/arm/boot/dts/omap5-uevm.dts
++++ b/arch/arm/boot/dts/omap5-uevm.dts
+@@ -131,25 +131,25 @@
+ 			0xbc (PIN_INPUT | MUX_MODE0)		/*  mcspi2_clk */
+ 			0xbe (PIN_INPUT | MUX_MODE0)		/*  mcspi2_simo */
+ 			0xc0 (PIN_INPUT_PULLUP | MUX_MODE0)	/*  mcspi2_somi */
+-			0xc2 (PIN_OUTPUT | MUX_MODE0)		/*  mcspi2_cs */
++			0xc2 (PIN_OUTPUT | MUX_MODE0)		/*  mcspi2_cs0 */
+ 		>;
+ 	};
  
- 	mmc->ops	= &omap_hsmmc_ops;
+ 	mcspi3_pins: pinmux_mcspi3_pins {
+ 		pinctrl-single,pins = <
+-			0x78 (PIN_INPUT | MUX_MODE1)		/*  mcspi2_somi */
+-			0x7a (PIN_INPUT | MUX_MODE1)		/*  mcspi2_cs */
+-			0x7c (PIN_INPUT | MUX_MODE1)		/*  mcspi2_simo */
+-			0x7e (PIN_INPUT | MUX_MODE1)		/*  mcspi2_clk */
++			0x78 (PIN_INPUT | MUX_MODE1)		/*  mcspi3_somi */
++			0x7a (PIN_INPUT | MUX_MODE1)		/*  mcspi3_cs0 */
++			0x7c (PIN_INPUT | MUX_MODE1)		/*  mcspi3_simo */
++			0x7e (PIN_INPUT | MUX_MODE1)		/*  mcspi3_clk */
+ 		>;
+ 	};
  
--	/*
--	 * If regulator_disable can only put vcc_aux to sleep then there is
--	 * no off state.
--	 */
--	if (mmc_slot(host).vcc_aux_disable_is_sleep)
--		mmc_slot(host).no_off = 1;
--
- 	mmc->f_min = OMAP_MMC_MIN_CLOCK;
+ 	mcspi4_pins: pinmux_mcspi4_pins {
+ 		pinctrl-single,pins = <
+-			0x164 (PIN_INPUT | MUX_MODE1)		/*  mcspi2_clk */
+-			0x168 (PIN_INPUT | MUX_MODE1)		/*  mcspi2_simo */
+-			0x16a (PIN_INPUT | MUX_MODE1)		/*  mcspi2_somi */
+-			0x16c (PIN_INPUT | MUX_MODE1)		/*  mcspi2_cs */
++			0x164 (PIN_INPUT | MUX_MODE1)		/*  mcspi4_clk */
++			0x168 (PIN_INPUT | MUX_MODE1)		/*  mcspi4_simo */
++			0x16a (PIN_INPUT | MUX_MODE1)		/*  mcspi4_somi */
++			0x16c (PIN_INPUT | MUX_MODE1)		/*  mcspi4_cs0 */
+ 		>;
+ 	};
  
- 	if (pdata->max_freq > 0)
 -- 
-1.7.5.4
+1.7.11.7
 
