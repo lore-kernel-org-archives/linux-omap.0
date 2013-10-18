@@ -1,88 +1,100 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL 1/2] omap board removal for some omap3 boards for
- v3.13 merge window
-Date: Fri, 18 Oct 2013 10:18:40 -0700
-Message-ID: <20131018171839.GR15154@atomide.com>
-References: <526041db.41abe00a.33b7.00a1SMTPIN_ADDED_BROKEN@mx.google.com>
- <87hacews6o.fsf@linaro.org>
- <20131018152450.GI15154@atomide.com>
- <CAGa+x87ykteWQ_T_-q6ANnPa4yCD3EF1uBKZ-hRYaPTJh_7x0A@mail.gmail.com>
+Subject: [GIT PULL 1/1] omap board removal for some omap3 boards for v3.13 merge window
+Date: Fri, 18 Oct 2013 10:49:54 -0700
+Message-ID: <7989.29307279668$1382118609@news.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:25986 "EHLO
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:45149 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1756434Ab3JRRSq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Oct 2013 13:18:46 -0400
+	with ESMTP id S1756515Ab3JRRt7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Oct 2013 13:49:59 -0400
 Content-Disposition: inline
-In-Reply-To: <CAGa+x87ykteWQ_T_-q6ANnPa4yCD3EF1uBKZ-hRYaPTJh_7x0A@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@linaro.org>
-Cc: "arm@kernel.org" <arm@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>
+To: arm@kernel.org, Arnd Bergmann <arnd@arndb.de>, Kevin Hilman <khilman@linaro.org>, Olof Johansson <olof@lixom.net>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Kevin Hilman <khilman@linaro.org> [131018 10:14]:
-> On Fri, Oct 18, 2013 at 8:24 AM, Tony Lindgren <tony@atomide.com> wrote:
-> > * Kevin Hilman <khilman@linaro.org> [131018 07:49]:
-> >> Hi Tony,
-> >>
-> >> Tony Lindgren <tony@atomide.com> writes:
-> >>
-> >> > The following changes since commit f41509ad0d4c11d0911630440749d409ce2aa1aa:
-> >> >
-> >> >   Merge branches 'omap-for-v3.13/dt' and 'omap-for-v3.13/quirk' into omap-for-v3.13/board-removal (2013-10-14 11:33:07 -0700)
-> >> >
-> >> > are available in the git repository at:
-> >> >
-> >> >
-> >> >   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.13/board-removal-signed
-> >> >
-> >> > for you to fetch changes up to f0c09b7c3b4e6b2fe501b3e888797b470de8320c:
-> >> >
-> >> >   ARM: OMAP2+: Remove legacy support for zoom platforms (2013-10-15 17:38:21 -0700)
-> >> >
-> >> > ----------------------------------------------------------------
-> >> > Changes needed to drop legacy booting support for some
-> >> > omap3 boards.
-> >> >
-> >> > Note that that these are based on a merge of the
-> >> > following for the dependencies:
-> >> >
-> >> > - v3.12-rc5 for fixes to pinctrl mask
-> >> > - omap-for-v3.13/dt-signed to avoid pointless merge conflicts
-> >> > - omap-for-v3.13/quirk-signed for legacy pdata handling
-> >> >
-> >> > ----------------------------------------------------------------
-> >> > Aaro Koskinen (2):
-> >> >       ARM: dts: add minimal DT support for Nokia N950 & N9 phones
-> >> >       ARM: OMAP2: delete board-rm680
-> >> >
-> >> > Tony Lindgren (6):
-> >> >       ARM: dts: Shared file for omap GPMC connected smsc911x
-> >> >       ARM: dts: Add common support for omap3-evm
-> >> >       ARM: dts: Add basic support for TMDSEVM3730 (Mistral AM/DM37x EVM)
-> >> >       ARM: dts: Add basic support for zoom3
-> >>
-> >> This patch introduces a build failure when compiling the DTBs:
-> >>
-> >>   [...]
-> >>   DTC     arch/arm/boot/dts/omap3-zoom3.dtb
-> >> ERROR (phandle_references): Reference to non-existent node or label "wl12xx_gpio"
-> >
-> > Oops sorry, looks like the common support for omap3-evm has a
-> > pinctrl entry that should be in the omap3-evm-37xx only. I guess
-> > I did not run make dtbs after adding the omap3-evm-37xx parts.
-> > The patch below fixes it for me.
-> >
-> > Do you want a new pull request or just the fix below?
-> 
-> Thanks for the fix.
-> 
-> I'd prefer a new pull req so we don't have a broken build in the
-> middle of the series.
+The following changes since commit f41509ad0d4c11d0911630440749d409ce2aa1aa:
 
-OK will apply Javier's patch also and send a new pull req.
+  Merge branches 'omap-for-v3.13/dt' and 'omap-for-v3.13/quirk' into omap-for-v3.13/board-removal (2013-10-14 11:33:07 -0700)
 
-Regards,
+are available in the git repository at:
 
-Tony
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.13/board-removal-signed-take2
+
+for you to fetch changes up to 06ff74fd197aa8205443cf64b94383802602e320:
+
+  ARM: OMAP2+: remove legacy support for IGEP boards (2013-10-18 10:25:46 -0700)
+
+----------------------------------------------------------------
+Changes needed to drop legacy booting support for some
+omap3 boards.
+
+Note that that these are based on a merge of the
+following for the dependencies:
+
+- v3.12-rc5 for fixes to pinctrl mask
+- omap-for-v3.13/dt-signed to avoid pointless merge conflicts
+- omap-for-v3.13/quirk-signed for legacy pdata handling
+
+----------------------------------------------------------------
+Aaro Koskinen (2):
+      ARM: dts: add minimal DT support for Nokia N950 & N9 phones
+      ARM: OMAP2: delete board-rm680
+
+Javier Martinez Canillas (1):
+      ARM: OMAP2+: remove legacy support for IGEP boards
+
+Tony Lindgren (6):
+      ARM: dts: Shared file for omap GPMC connected smsc911x
+      ARM: dts: Add common support for omap3-evm
+      ARM: dts: Add basic support for TMDSEVM3730 (Mistral AM/DM37x EVM)
+      ARM: dts: Add basic support for zoom3
+      ARM: OMAP2+: Remove legacy booting support for omap3 EVM
+      ARM: OMAP2+: Remove legacy support for zoom platforms
+
+ MAINTAINERS                                  |   2 +-
+ arch/arm/boot/dts/Makefile                   |   4 +
+ arch/arm/boot/dts/omap-gpmc-smsc911x.dtsi    |  52 ++
+ arch/arm/boot/dts/omap-zoom-common.dtsi      |  33 ++
+ arch/arm/boot/dts/omap3-evm-37xx.dts         | 151 ++++++
+ arch/arm/boot/dts/omap3-evm-common.dtsi      |  94 ++++
+ arch/arm/boot/dts/omap3-evm.dts              |  58 +-
+ arch/arm/boot/dts/omap3-igep0020.dts         |  45 +-
+ arch/arm/boot/dts/omap3-n9.dts               |  18 +
+ arch/arm/boot/dts/omap3-n950-n9.dtsi         | 174 ++++++
+ arch/arm/boot/dts/omap3-n950.dts             |  18 +
+ arch/arm/boot/dts/omap3-zoom3.dts            | 217 ++++++++
+ arch/arm/mach-omap2/Kconfig                  |  46 --
+ arch/arm/mach-omap2/Makefile                 |  12 -
+ arch/arm/mach-omap2/board-3630sdp.c          | 225 --------
+ arch/arm/mach-omap2/board-igep0020.c         | 683 ------------------------
+ arch/arm/mach-omap2/board-ldp.c              |   3 +-
+ arch/arm/mach-omap2/board-omap3evm.c         | 756 ---------------------------
+ arch/arm/mach-omap2/board-rm680.c            | 167 ------
+ arch/arm/mach-omap2/board-zoom-debugboard.c  | 139 -----
+ arch/arm/mach-omap2/board-zoom-display.c     |  71 ---
+ arch/arm/mach-omap2/board-zoom-peripherals.c | 360 -------------
+ arch/arm/mach-omap2/board-zoom.c             | 159 ------
+ arch/arm/mach-omap2/board-zoom.h             |  10 -
+ 24 files changed, 767 insertions(+), 2730 deletions(-)
+ create mode 100644 arch/arm/boot/dts/omap-gpmc-smsc911x.dtsi
+ create mode 100644 arch/arm/boot/dts/omap-zoom-common.dtsi
+ create mode 100644 arch/arm/boot/dts/omap3-evm-37xx.dts
+ create mode 100644 arch/arm/boot/dts/omap3-evm-common.dtsi
+ create mode 100644 arch/arm/boot/dts/omap3-n9.dts
+ create mode 100644 arch/arm/boot/dts/omap3-n950-n9.dtsi
+ create mode 100644 arch/arm/boot/dts/omap3-n950.dts
+ create mode 100644 arch/arm/boot/dts/omap3-zoom3.dts
+ delete mode 100644 arch/arm/mach-omap2/board-3630sdp.c
+ delete mode 100644 arch/arm/mach-omap2/board-igep0020.c
+ delete mode 100644 arch/arm/mach-omap2/board-omap3evm.c
+ delete mode 100644 arch/arm/mach-omap2/board-rm680.c
+ delete mode 100644 arch/arm/mach-omap2/board-zoom-debugboard.c
+ delete mode 100644 arch/arm/mach-omap2/board-zoom-display.c
+ delete mode 100644 arch/arm/mach-omap2/board-zoom-peripherals.c
+ delete mode 100644 arch/arm/mach-omap2/board-zoom.c
+ delete mode 100644 arch/arm/mach-omap2/board-zoom.h
