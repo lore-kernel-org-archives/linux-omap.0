@@ -1,119 +1,41 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL 1/2] omap board removal for some omap3 boards for
- v3.13 merge window
-Date: Fri, 18 Oct 2013 08:24:50 -0700
-Message-ID: <20131018152450.GI15154@atomide.com>
-References: <526041db.41abe00a.33b7.00a1SMTPIN_ADDED_BROKEN@mx.google.com>
- <87hacews6o.fsf@linaro.org>
+Subject: Re: [PATCH 4/6] pinctrl: single: Add support for wake-up interrupts
+Date: Fri, 18 Oct 2013 08:35:42 -0700
+Message-ID: <20131018153541.GJ15154@atomide.com>
+References: <20131010160018.GA29913@atomide.com>
+ <CACRpkdaG-PQA39XSjKUgM9TyeD7srgm_8s+NazrDKJ0gmNLcwg@mail.gmail.com>
+ <20131010162015.GC29913@atomide.com>
+ <CACRpkdYF83ghUf60Wmrti53UJ1bWV30GW_P9GjWnsOcZHbsv+Q@mail.gmail.com>
+ <5257BD3E.5000707@ti.com>
+ <CACRpkdYJNaiAAHhYatd6g5_wVt0QEUxOvsk6nQn9o=_i5zfWrA@mail.gmail.com>
+ <20131011154352.GO29913@atomide.com>
+ <CACRpkdZhbadd5d4P+2B0_DktqK4CHzZPVJC8kPHZYUnp8TaxsA@mail.gmail.com>
+ <20131011160146.GR29913@atomide.com>
+ <5260E606.2030903@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:41495 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756208Ab3JRPZQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Oct 2013 11:25:16 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <87hacews6o.fsf@linaro.org>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <5260E606.2030903@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Balaji T K <balajitk@ti.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Roger Quadros <rogerq@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Grygorii Strashko <grygorii.strashko@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Haojian Zhuang <haojian.zhuang@linaro.org>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Linux-OMAP <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@linaro.org>
-Cc: arm@kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Kevin Hilman <khilman@linaro.org> [131018 07:49]:
-> Hi Tony,
+* Balaji T K <balajitk@ti.com> [131018 00:41]:
 > 
-> Tony Lindgren <tony@atomide.com> writes:
-> 
-> > The following changes since commit f41509ad0d4c11d0911630440749d409ce2aa1aa:
-> >
-> >   Merge branches 'omap-for-v3.13/dt' and 'omap-for-v3.13/quirk' into omap-for-v3.13/board-removal (2013-10-14 11:33:07 -0700)
-> >
-> > are available in the git repository at:
-> >
-> >
-> >   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.13/board-removal-signed
-> >
-> > for you to fetch changes up to f0c09b7c3b4e6b2fe501b3e888797b470de8320c:
-> >
-> >   ARM: OMAP2+: Remove legacy support for zoom platforms (2013-10-15 17:38:21 -0700)
-> >
-> > ----------------------------------------------------------------
-> > Changes needed to drop legacy booting support for some
-> > omap3 boards.
-> >
-> > Note that that these are based on a merge of the
-> > following for the dependencies:
-> >
-> > - v3.12-rc5 for fixes to pinctrl mask
-> > - omap-for-v3.13/dt-signed to avoid pointless merge conflicts
-> > - omap-for-v3.13/quirk-signed for legacy pdata handling
-> >
-> > ----------------------------------------------------------------
-> > Aaro Koskinen (2):
-> >       ARM: dts: add minimal DT support for Nokia N950 & N9 phones
-> >       ARM: OMAP2: delete board-rm680
-> >
-> > Tony Lindgren (6):
-> >       ARM: dts: Shared file for omap GPMC connected smsc911x
-> >       ARM: dts: Add common support for omap3-evm
-> >       ARM: dts: Add basic support for TMDSEVM3730 (Mistral AM/DM37x EVM)
-> >       ARM: dts: Add basic support for zoom3
-> 
-> This patch introduces a build failure when compiling the DTBs:
-> 
->   [...]
->   DTC     arch/arm/boot/dts/omap3-zoom3.dtb
-> ERROR (phandle_references): Reference to non-existent node or label "wl12xx_gpio"
+> Any conclusion on using regmap for omap control module non-mux registers ?
 
-Oops sorry, looks like the common support for omap3-evm has a
-pinctrl entry that should be in the omap3-evm-37xx only. I guess
-I did not run make dtbs after adding the omap3-evm-37xx parts.
-The patch below fixes it for me.
+I don't think anybody has even started looking into a SCM driver
+yet considering there are tons of other issues to sort out.
 
-Do you want a new pull request or just the fix below?
+If you're thinking about implementing the MMC PBIAS driver, I would
+just implement it as a standalone driver. It seems that the PBIAS
+interface to the MMC driver can be just regulator framework.
+
+Then when we have the SCM driver available, this driver can be
+updated to coordinate things with the core SCM driver.
 
 Regards,
 
 Tony
-
-8< -----------------------------------------
-From: Tony Lindgren <tony@atomide.com>
-Date: Fri, 18 Oct 2013 08:16:25 -0700
-Subject: [PATCH] ARM: dts: Fix build error for omap3-evm after adding common file
-
-Commit c4856107 ((ARM: dts: Add basic support for TMDSEVM3730
-(Mistral AM/DM37x EVM)) added a pinctrl entry to the common file
-for evm that should be only in the omap3-evm-37xx. This causes:
-
-ERROR (phandle_references): Reference to non-existent node or label "wl12xx_gpio"
-
-Fix it by moving the entry to omap3-evm-37xx.
-
-Reported-by: Kevin Hilman <khilman@linaro.org>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-
---- a/arch/arm/boot/dts/omap3-evm-37xx.dts
-+++ b/arch/arm/boot/dts/omap3-evm-37xx.dts
-@@ -19,6 +19,11 @@
- 		device_type = "memory";
- 		reg = <0x80000000 0x10000000>; /* 256 MB */
- 	};
-+
-+	wl12xx_vmmc: wl12xx_vmmc {
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&wl12xx_gpio>;
-+	};
- };
- 
- &omap3_pmx_core {
---- a/arch/arm/boot/dts/omap3-evm-common.dtsi
-+++ b/arch/arm/boot/dts/omap3-evm-common.dtsi
-@@ -21,8 +21,6 @@
- 	};
- 
- 	wl12xx_vmmc: wl12xx_vmmc {
--		pinctrl-names = "default";
--		pinctrl-0 = <&wl12xx_gpio>;
- 		compatible = "regulator-fixed";
- 		regulator-name = "vwl1271";
- 		regulator-min-microvolt = <1800000>;
