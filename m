@@ -1,199 +1,276 @@
-From: Jyri Sarha <jsarha@ti.com>
-Subject: [PATCH v5 03/12] ASoC: davinci-mcasp: Add location for data port registers to DT
-Date: Fri, 18 Oct 2013 18:37:42 +0300
-Message-ID: <2d590a299670bb4f39251a95d7f4898034109bd7.1382110090.git.jsarha@ti.com>
+From: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v5 02/12] ASoC: davinci-evm: Add device tree binding
+Date: Fri, 18 Oct 2013 18:37:41 +0300
+Message-ID: <66c21e66320e30453e6deded0f37ef582b4fba7c.1382110089.git.jsarha@ti.com>
 References: <cover.1382110089.git.jsarha@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:37524 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756113Ab3JRPiI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Oct 2013 11:38:08 -0400
-In-Reply-To: <cover.1382110089.git.jsarha@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <cover.1382110089.git.jsarha-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, joelf-l0cyMroinI0@public.gmane.org, "Hebbar, Gururaja" <gururaja.hebbar-l0cyMroinI0@public.gmane.org>, Darren Etheridge <detheridge-l0cyMroinI0@public.gmane.org>, Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: alsa-devel@alsa-project.org, devicetree@vger.kernel.org, bcousson@baylibre.com, mark.rutland@arm.com
-Cc: linux-omap@vger.kernel.org, broonie@kernel.org, joelf@ti.com, Jyri Sarha <jsarha@ti.com>, "Hebbar, Gururaja" <gururaja.hebbar@ti.com>, Darren Etheridge <detheridge@ti.com>
 
-This patch adds a separate register location for data port registers to
-mcasp DT bindings. On am33xx SoCs the McASP registers are mapped
-trough L4 interconnect, but data port registers are also mapped trough
-L3 bus to a different memory location.
+From: "Hebbar, Gururaja" <gururaja.hebbar-l0cyMroinI0@public.gmane.org>
 
-Signed-off-by: Hebbar, Gururaja <gururaja.hebbar@ti.com>
-Signed-off-by: Darren Etheridge <detheridge@ti.com>
-Signed-off-by: Jyri Sarha <jsarha@ti.com>
+Device tree support for Davinci Machine driver
+
+When the board boots with device tree, the driver will receive card,
+codec, dai interface details (like the card name, DAPM routing map,
+phandle for the audio components described in the dts file, codec mclk
+speed). The card will be set up based on this information. Since the
+routing is provided via DT we can mark the card fully routed so core
+can take care of disconnecting the unused pins.
+
+Signed-off-by: Hebbar, Gururaja <gururaja.hebbar-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Darren Etheridge <detheridge-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
 ---
- .../bindings/sound/davinci-mcasp-audio.txt         |    8 ++-
- sound/soc/davinci/davinci-mcasp.c                  |   61 +++++++++++++-------
- 2 files changed, 47 insertions(+), 22 deletions(-)
+ .../bindings/sound/davinci-evm-audio.txt           |   58 ++++++++++
+ sound/soc/davinci/davinci-evm.c                    |  120 +++++++++++++++++++-
+ 2 files changed, 176 insertions(+), 2 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/sound/davinci-evm-audio.txt
 
-diff --git a/Documentation/devicetree/bindings/sound/davinci-mcasp-audio.txt b/Documentation/devicetree/bindings/sound/davinci-mcasp-audio.txt
-index 374e145..c2ab869 100644
---- a/Documentation/devicetree/bindings/sound/davinci-mcasp-audio.txt
-+++ b/Documentation/devicetree/bindings/sound/davinci-mcasp-audio.txt
-@@ -6,7 +6,11 @@ Required properties:
- 	"ti,da830-mcasp-audio"	: for both DA830 & DA850 platforms
- 	"ti,omap2-mcasp-audio"	: for OMAP2 platforms (TI81xx, AM33xx)
- 
--- reg : Should contain McASP registers offset and length
-+- reg : Should contain reg specifiers for the entries in the reg-names property.
-+- reg-names : Should contain:
-+         * "mpu" for the main registers (required). For compatibility with
-+           existing software, it is recommended this is the first entry.
-+         * "dat" for separate data port register access (optional).
- - interrupts : Interrupt number for McASP
- - op-mode : I2S/DIT ops mode.
- - tdm-slots : Slots for TDM operation.
-@@ -15,7 +19,6 @@ Required properties:
- 		to "num-serializer" parameter. Each entry is a number indication
- 		serializer pin direction. (0 - INACTIVE, 1 - TX, 2 - RX)
- 
--
- Optional properties:
- 
- - ti,hwmods : Must be "mcasp<n>", n is controller instance starting 0
-@@ -31,6 +34,7 @@ mcasp0: mcasp0@1d00000 {
- 	#address-cells = <1>;
- 	#size-cells = <0>;
- 	reg = <0x100000 0x3000>;
-+	reg-names "mpu";
- 	interrupts = <82 83>;
- 	op-mode = <0>;		/* MCASP_IIS_MODE */
- 	tdm-slots = <2>;
-diff --git a/sound/soc/davinci/davinci-mcasp.c b/sound/soc/davinci/davinci-mcasp.c
-index 32ddb7f..7fd37ff 100644
---- a/sound/soc/davinci/davinci-mcasp.c
-+++ b/sound/soc/davinci/davinci-mcasp.c
-@@ -1001,18 +1001,40 @@ static const struct snd_soc_component_driver davinci_mcasp_component = {
- 	.name		= "davinci-mcasp",
- };
- 
-+/* Some HW specific values and defaults. The rest is filled in from DT. */
-+static struct snd_platform_data dm646x_mcasp_pdata = {
-+	.tx_dma_offset = 0x400,
-+	.rx_dma_offset = 0x400,
-+	.asp_chan_q = EVENTQ_0,
-+	.version = MCASP_VERSION_1,
-+};
+diff --git a/Documentation/devicetree/bindings/sound/davinci-evm-audio.txt b/Documentation/devicetree/bindings/sound/davinci-evm-audio.txt
+new file mode 100644
+index 0000000..e6b61ff
+--- /dev/null
++++ b/Documentation/devicetree/bindings/sound/davinci-evm-audio.txt
+@@ -0,0 +1,58 @@
++* Texas Instruments SoC audio setups with TLV320AIC3X Codec
 +
-+static struct snd_platform_data da830_mcasp_pdata = {
-+	.tx_dma_offset = 0x2000,
-+	.rx_dma_offset = 0x2000,
-+	.asp_chan_q = EVENTQ_0,
-+	.version = MCASP_VERSION_2,
-+};
++Required properties:
++- compatible : "ti,da830-evm-audio" : forDM365/DA8xx/OMAPL1x/AM33xx
++- ti,model : The user-visible name of this sound complex.
++- ti,audio-codec : The phandle of the TLV320AIC3x audio codec
++- ti,mcasp-controller : The phandle of the McASP controller
++- ti,codec-clock-rate : The Codec Clock rate (in Hz) applied to the Codec
++- ti,audio-routing : A list of the connections between audio components.
++  Each entry is a pair of strings, the first being the connection's sink,
++  the second being the connection's source. Valid names for sources and
++  sinks are the codec's pins, and the jacks on the board:
 +
-+static struct snd_platform_data omap2_mcasp_pdata = {
-+	.tx_dma_offset = 0,
-+	.rx_dma_offset = 0,
-+	.asp_chan_q = EVENTQ_0,
-+	.version = MCASP_VERSION_3,
-+};
++  TLV320AIC3X pins:
 +
- static const struct of_device_id mcasp_dt_ids[] = {
- 	{
- 		.compatible = "ti,dm646x-mcasp-audio",
--		.data = (void *)MCASP_VERSION_1,
-+		.data = &dm646x_mcasp_pdata,
- 	},
- 	{
- 		.compatible = "ti,da830-mcasp-audio",
--		.data = (void *)MCASP_VERSION_2,
-+		.data = &da830_mcasp_pdata,
- 	},
- 	{
- 		.compatible = "ti,omap2-mcasp-audio",
--		.data = (void *)MCASP_VERSION_3,
-+		.data = &omap2_mcasp_pdata,
- 	},
- 	{ /* sentinel */ }
- };
-@@ -1035,20 +1057,13 @@ static struct snd_platform_data *davinci_mcasp_set_pdata_from_of(
- 		pdata = pdev->dev.platform_data;
- 		return pdata;
- 	} else if (match) {
--		pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
--		if (!pdata) {
--			ret = -ENOMEM;
--			goto nodata;
--		}
-+		pdata = (struct snd_platform_data *) match->data;
- 	} else {
- 		/* control shouldn't reach here. something is wrong */
- 		ret = -EINVAL;
- 		goto nodata;
- 	}
++  * LLOUT
++  * RLOUT
++  * MONO_LOUT
++  * HPLOUT
++  * HPROUT
++  * HPLCOM
++  * HPRCOM
++  * MIC3L
++  * MIC3R
++  * LINE1L
++  * LINE2L
++  * LINE1R
++  * LINE2R
++
++  Board connectors:
++
++  * Headphone Jack
++  * Line Out
++  * Mic Jack
++  * Line In
++
++
++Example:
++
++sound {
++	compatible = "ti,da830-evm-audio";
++	ti,model = "DA830 EVM";
++	ti,audio-codec = <&tlv320aic3x>;
++	ti,mcasp-controller = <&mcasp1>;
++	ti,codec-clock-rate = <12000000>;
++	ti,audio-routing =
++		"Headphone Jack",       "HPLOUT",
++		"Headphone Jack",       "HPROUT",
++		"Line Out",             "LLOUT",
++		"Line Out",             "RLOUT",
++		"MIC3L",                "Mic Bias 2V",
++		"MIC3R",                "Mic Bias 2V",
++		"Mic Bias 2V",          "Mic Jack",
++		"LINE1L",               "Line In",
++		"LINE2L",               "Line In",
++		"LINE1R",               "Line In",
++		"LINE2R",               "Line In";
++};
+diff --git a/sound/soc/davinci/davinci-evm.c b/sound/soc/davinci/davinci-evm.c
+index 2f8161c..340a68d 100644
+--- a/sound/soc/davinci/davinci-evm.c
++++ b/sound/soc/davinci/davinci-evm.c
+@@ -16,6 +16,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/platform_data/edma.h>
+ #include <linux/i2c.h>
++#include <linux/of_platform.h>
+ #include <sound/core.h>
+ #include <sound/pcm.h>
+ #include <sound/soc.h>
+@@ -23,6 +24,8 @@
+ #include <asm/dma.h>
+ #include <asm/mach-types.h>
  
--	if (match->data)
--		pdata->version = (u8)((int)match->data);
--
- 	ret = of_property_read_u32(np, "op-mode", &val);
- 	if (ret >= 0)
- 		pdata->op_mode = val;
-@@ -1124,7 +1139,7 @@ nodata:
- static int davinci_mcasp_probe(struct platform_device *pdev)
++#include <linux/edma.h>
++
+ #include "davinci-pcm.h"
+ #include "davinci-i2s.h"
+ #include "davinci-mcasp.h"
+@@ -121,13 +124,22 @@ static int evm_aic3x_init(struct snd_soc_pcm_runtime *rtd)
  {
- 	struct davinci_pcm_dma_params *dma_data;
--	struct resource *mem, *ioarea, *res;
-+	struct resource *mem, *ioarea, *res, *dat;
- 	struct snd_platform_data *pdata;
- 	struct davinci_audio_dev *dev;
- 	int ret;
-@@ -1145,10 +1160,15 @@ static int davinci_mcasp_probe(struct platform_device *pdev)
- 		return -EINVAL;
- 	}
+ 	struct snd_soc_codec *codec = rtd->codec;
+ 	struct snd_soc_dapm_context *dapm = &codec->dapm;
++	struct device_node *np = codec->card->dev->of_node;
++	int ret;
  
--	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	mem = platform_get_resource_byname(pdev, IORESOURCE_MEM, "mpu");
- 	if (!mem) {
--		dev_err(&pdev->dev, "no mem resource?\n");
--		return -ENODEV;
-+		dev_warn(dev->dev,
-+			 "\"mpu\" mem resource not found, using index 0\n");
-+		mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+		if (!mem) {
-+			dev_err(&pdev->dev, "no mem resource?\n");
-+			return -ENODEV;
-+		}
- 	}
+ 	/* Add davinci-evm specific widgets */
+ 	snd_soc_dapm_new_controls(dapm, aic3x_dapm_widgets,
+ 				  ARRAY_SIZE(aic3x_dapm_widgets));
  
- 	ioarea = devm_request_mem_region(&pdev->dev, mem->start,
-@@ -1182,13 +1202,16 @@ static int davinci_mcasp_probe(struct platform_device *pdev)
- 	dev->rxnumevt = pdata->rxnumevt;
- 	dev->dev = &pdev->dev;
+-	/* Set up davinci-evm specific audio path audio_map */
+-	snd_soc_dapm_add_routes(dapm, audio_map, ARRAY_SIZE(audio_map));
++	if (np) {
++		ret = snd_soc_of_parse_audio_routing(codec->card,
++							"ti,audio-routing");
++		if (ret)
++			return ret;
++	} else {
++		/* Set up davinci-evm specific audio path audio_map */
++		snd_soc_dapm_add_routes(dapm, audio_map, ARRAY_SIZE(audio_map));
++	}
  
-+	dat = platform_get_resource_byname(pdev, IORESOURCE_MEM, "dat");
-+	if (!dat)
-+		dat = mem;
+ 	/* not connected */
+ 	snd_soc_dapm_disable_pin(dapm, "MONO_LOUT");
+@@ -312,6 +324,98 @@ static struct snd_soc_card da850_snd_soc_card = {
+ 	.drvdata = &da850_snd_soc_card_drvdata,
+ };
+ 
++#if defined(CONFIG_OF)
 +
- 	dma_data = &dev->dma_params[SNDRV_PCM_STREAM_PLAYBACK];
- 	dma_data->asp_chan_q = pdata->asp_chan_q;
- 	dma_data->ram_chan_q = pdata->ram_chan_q;
- 	dma_data->sram_pool = pdata->sram_pool;
- 	dma_data->sram_size = pdata->sram_size_playback;
--	dma_data->dma_addr = (dma_addr_t) (pdata->tx_dma_offset +
--							mem->start);
-+	dma_data->dma_addr = dat->start + pdata->tx_dma_offset;
++/*
++ * The struct is used as place holder. It will be completely
++ * filled with data from dt node.
++ */
++static struct snd_soc_dai_link evm_dai_tlv320aic3x = {
++	.name		= "TLV320AIC3X",
++	.stream_name	= "AIC3X",
++	.codec_dai_name	= "tlv320aic3x-hifi",
++	.ops            = &evm_ops,
++	.init           = evm_aic3x_init,
++};
++
++static const struct of_device_id davinci_evm_dt_ids[] = {
++	{
++		.compatible = "ti,da830-evm-audio",
++		.data = (void *) &evm_dai_tlv320aic3x,
++	},
++	{ /* sentinel */ }
++};
++MODULE_DEVICE_TABLE(of, davinci_evm_dt_ids);
++
++/* davinci evm audio machine driver */
++static struct snd_soc_card evm_soc_card = {
++	.owner = THIS_MODULE,
++	.num_links = 1,
++};
++
++static int davinci_evm_probe(struct platform_device *pdev)
++{
++	struct device_node *np = pdev->dev.of_node;
++	const struct of_device_id *match =
++		of_match_device(of_match_ptr(davinci_evm_dt_ids), &pdev->dev);
++	struct snd_soc_dai_link *dai = (struct snd_soc_dai_link *) match->data;
++	struct snd_soc_card_drvdata_davinci *drvdata = NULL;
++	int ret = 0;
++
++	evm_soc_card.dai_link = dai;
++
++	dai->codec_of_node = of_parse_phandle(np, "ti,audio-codec", 0);
++	if (!dai->codec_of_node)
++		return -EINVAL;
++
++	dai->cpu_of_node = of_parse_phandle(np, "ti,mcasp-controller", 0);
++	if (!dai->cpu_of_node)
++		return -EINVAL;
++
++	dai->platform_of_node = dai->cpu_of_node;
++
++	evm_soc_card.dev = &pdev->dev;
++	ret = snd_soc_of_parse_card_name(&evm_soc_card, "ti,model");
++	if (ret)
++		return ret;
++
++	drvdata = devm_kzalloc(&pdev->dev, sizeof(*drvdata), GFP_KERNEL);
++	if (!drvdata)
++		return -ENOMEM;
++
++	ret = of_property_read_u32(np, "ti,codec-clock-rate", &drvdata->sysclk);
++	if (ret < 0)
++		return -EINVAL;
++
++	snd_soc_card_set_drvdata(&evm_soc_card, drvdata);
++	ret = snd_soc_register_card(&evm_soc_card);
++
++	if (ret)
++		dev_err(&pdev->dev, "snd_soc_register_card failed (%d)\n", ret);
++
++	return ret;
++}
++
++static int davinci_evm_remove(struct platform_device *pdev)
++{
++	struct snd_soc_card *card = platform_get_drvdata(pdev);
++
++	snd_soc_unregister_card(card);
++
++	return 0;
++}
++
++static struct platform_driver davinci_evm_driver = {
++	.probe		= davinci_evm_probe,
++	.remove		= davinci_evm_remove,
++	.driver		= {
++		.name	= "davinci_evm",
++		.owner	= THIS_MODULE,
++		.of_match_table = of_match_ptr(davinci_evm_dt_ids),
++	},
++};
++#endif
++
+ static struct platform_device *evm_snd_device;
  
- 	/* first TX, then RX */
- 	res = platform_get_resource(pdev, IORESOURCE_DMA, 0);
-@@ -1205,8 +1228,7 @@ static int davinci_mcasp_probe(struct platform_device *pdev)
- 	dma_data->ram_chan_q = pdata->ram_chan_q;
- 	dma_data->sram_pool = pdata->sram_pool;
- 	dma_data->sram_size = pdata->sram_size_capture;
--	dma_data->dma_addr = (dma_addr_t)(pdata->rx_dma_offset +
--							mem->start);
-+	dma_data->dma_addr = dat->start + pdata->rx_dma_offset;
+ static int __init evm_init(void)
+@@ -320,6 +424,13 @@ static int __init evm_init(void)
+ 	int index;
+ 	int ret;
  
- 	res = platform_get_resource(pdev, IORESOURCE_DMA, 1);
- 	if (!res) {
-@@ -1266,4 +1288,3 @@ module_platform_driver(davinci_mcasp_driver);
- MODULE_AUTHOR("Steve Chen");
- MODULE_DESCRIPTION("TI DAVINCI McASP SoC Interface");
- MODULE_LICENSE("GPL");
--
++	/*
++	 * If dtb is there, the devices will be created dynamically.
++	 * Only register platfrom driver structure.
++	 */
++	if (of_have_populated_dt())
++		return platform_driver_register(&davinci_evm_driver);
++
+ 	if (machine_is_davinci_evm()) {
+ 		evm_snd_dev_data = &dm6446_snd_soc_card_evm;
+ 		index = 0;
+@@ -355,6 +466,11 @@ static int __init evm_init(void)
+ 
+ static void __exit evm_exit(void)
+ {
++	if (of_have_populated_dt()) {
++		platform_driver_unregister(&davinci_evm_driver);
++		return;
++	}
++
+ 	platform_device_unregister(evm_snd_device);
+ }
+ 
 -- 
 1.7.9.5
 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
