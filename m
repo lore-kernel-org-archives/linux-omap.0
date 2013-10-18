@@ -1,63 +1,76 @@
-From: Balaji T K <balajitk@ti.com>
-Subject: Re: [PATCH 4/6] pinctrl: single: Add support for wake-up interrupts
-Date: Fri, 18 Oct 2013 21:29:16 +0530
-Message-ID: <52615AD4.7040306@ti.com>
-References: <20131010160018.GA29913@atomide.com>
- <CACRpkdaG-PQA39XSjKUgM9TyeD7srgm_8s+NazrDKJ0gmNLcwg@mail.gmail.com>
- <20131010162015.GC29913@atomide.com>
- <CACRpkdYF83ghUf60Wmrti53UJ1bWV30GW_P9GjWnsOcZHbsv+Q@mail.gmail.com>
- <5257BD3E.5000707@ti.com>
- <CACRpkdYJNaiAAHhYatd6g5_wVt0QEUxOvsk6nQn9o=_i5zfWrA@mail.gmail.com>
- <20131011154352.GO29913@atomide.com>
- <CACRpkdZhbadd5d4P+2B0_DktqK4CHzZPVJC8kPHZYUnp8TaxsA@mail.gmail.com>
- <20131011160146.GR29913@atomide.com> <5260E606.2030903@ti.com>
- <20131018153541.GJ15154@atomide.com>
+From: Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH] ARM: dts: omap3-beagle: Adapt USB OTG to generic PHY
+ framework
+Date: Fri, 18 Oct 2013 17:59:56 +0200
+Message-ID: <52615AFC.5070203@baylibre.com>
+References: <1381142810-14541-1-git-send-email-rogerq@ti.com> <526122C4.4090702@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20131018153541.GJ15154@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Grygorii Strashko <grygorii.strashko@ti.com>, Linus Walleij <linus.walleij@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Haojian Zhuang <haojian.zhuang@linaro.org>, =?UTF-8?B?QmVub8OudCBDb3Vzc28=?= =?UTF-8?B?bg==?= <bcousson@baylibre.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Roger Quadros <rogerq@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <526122C4.4090702-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Cc: balbi-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Stefan Roese <sr-ynQEQJNshbs@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Friday 18 October 2013 09:05 PM, Tony Lindgren wrote:
-> * Balaji T K <balajitk@ti.com> [131018 00:41]:
+Hi Roger,
+
+On 18/10/2013 14:00, Roger Quadros wrote:
+> Hi Benoit,
+>
+> Could you please include this one for 3.13?
+> Without this OTG port will be broken for beagle. Thanks.
+>
+
+I've just applied it.
+
+Thanks,
+Benoit
+
+> cheers,
+> -roger
+>
+> On 10/07/2013 01:46 PM, Roger Quadros wrote:
+>> The generic PHY framewrok expects different properties than the
+>> old USB PHY framework. Supply those properties.
 >>
->> Any conclusion on using regmap for omap control module non-mux registers ?
+>> Fixes USB OTG port on beagle after the Generic PHY framework was
+>> merged in greg/usb-next. [1]
+>>
+>> [1] - https://lkml.org/lkml/2013/9/27/581
+>>
+>> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+>> ---
+>>   arch/arm/boot/dts/omap3-beagle.dts |    2 ++
+>>   1 files changed, 2 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/arch/arm/boot/dts/omap3-beagle.dts b/arch/arm/boot/dts/=
+omap3-beagle.dts
+>> index 7669c16..fa532aa 100644
+>> --- a/arch/arm/boot/dts/omap3-beagle.dts
+>> +++ b/arch/arm/boot/dts/omap3-beagle.dts
+>> @@ -173,6 +173,8 @@
+>>   &usb_otg_hs {
+>>   	interface-type =3D <0>;
+>>   	usb-phy =3D <&usb2_phy>;
+>> +	phys =3D <&usb2_phy>;
+>> +	phy-names =3D "usb2-phy";
+>>   	mode =3D <3>;
+>>   	power =3D <50>;
+>>   };
+>>
 >
-> I don't think anybody has even started looking into a SCM driver
-> yet considering there are tons of other issues to sort out.
->
-> If you're thinking about implementing the MMC PBIAS driver, I would
-> just implement it as a standalone driver. It seems that the PBIAS
-> interface to the MMC driver can be just regulator framework.
->
-Hi Tony,
-
-I am testing pbias regulator, Just thinking whether it should be
-using regmap api or direct readl/writel
 
 
-> Then when we have the SCM driver available, this driver can be
-> updated to coordinate things with the core SCM driver.
-
-Do you see regmap getting used for the SCM driver ?
-
-Thanks and Regards,
-Balaji T K
-
->
-> Regards,
->
-> Tony
->
+--=20
+Beno=EEt Cousson
+BayLibre
+Embedded Linux Technology Lab
+www.baylibre.com
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" i=
+n
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
