@@ -1,48 +1,33 @@
-From: Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Subject: Re: [PATCH v3 0/5] usb: musb_dsps: support for suspend and resume
-Date: Fri, 18 Oct 2013 12:02:25 +0200
-Message-ID: <52610731.309@gmail.com>
-References: <1382089175-13487-1-git-send-email-zonque@gmail.com> <52610696.7020900@linutronix.de>
+Date: Fri, 18 Oct 2013 12:05:20 +0200
+Message-ID: <526107E0.2070206@linutronix.de>
+References: <1382089175-13487-1-git-send-email-zonque@gmail.com> <52610696.7020900@linutronix.de> <52610731.309@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <52610696.7020900-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, neumann-SRDuVqtxQLSzQB+pC5nmwQ@public.gmane.org, vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from www.linutronix.de ([62.245.132.108]:39631 "EHLO
+	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752467Ab3JRKFW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Oct 2013 06:05:22 -0400
+In-Reply-To: <52610731.309@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Daniel Mack <zonque@gmail.com>
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, neumann@teufel.de, vinod.koul@intel.com, dan.j.williams@intel.com, balbi@ti.com
 
-On 10/18/2013 11:59 AM, Sebastian Andrzej Siewior wrote:
-> On 10/18/2013 11:39 AM, Daniel Mack wrote:
->> v3 of my musb_dsps suspend patches.
->>
->> With these patches applied, I can successfully bring an AM335x board
->> to suspend with a USB media connected, and access it again after
->> resume.
->>
->> This works for both PIO mode and CPPI41 enabled configurations,
->> together with Sebasitian's and my cppi41 patches recently posted.
->>
->> Felipe, this work was rebased and now applies cleanly on top of
->> your current 'next' branch. IOW, on top of "usb: musb: cppi41: allow
->> to defer probing if DMA isn't yet available".
+On 10/18/2013 12:02 PM, Daniel Mack wrote:
+> As mentioned, that doesn't hit me anymore with the current patch stack.
 > 
-> Sounds good. What happend to the patch series where you used a
-> workqueue do defer some sleeping code that caused "sleeping while
-> atomic" warnings?
+> That doesn't mean we should ignore that issue, of course, we're still
+> sleeping while atomic. But I removed the patch from the series for now,
+> so we can address that separately.
 
-As mentioned, that doesn't hit me anymore with the current patch stack.
+Ach okay, I though you found a different solution.
 
-That doesn't mean we should ignore that issue, of course, we're still
-sleeping while atomic. But I removed the patch from the series for now,
-so we can address that separately.
+> 
+> Thanks,
+> Daniel
 
-
-Thanks,
-Daniel
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Sebastian
