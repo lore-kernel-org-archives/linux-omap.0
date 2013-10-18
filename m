@@ -1,50 +1,85 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] serial: omap: Add support for optional wake-up
- interrupt
-Date: Fri, 18 Oct 2013 09:45:35 -0700
-Message-ID: <20131018164535.GQ15154@atomide.com>
-References: <20131017232820.GG15154@atomide.com>
- <20131018161916.GF18921@gimli>
- <20131018163740.GP15154@atomide.com>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: [GIT PULL 1/2] omap board removal for some omap3 boards for v3.13
+ merge window
+Date: Fri, 18 Oct 2013 10:13:59 -0700
+Message-ID: <CAGa+x87ykteWQ_T_-q6ANnPa4yCD3EF1uBKZ-hRYaPTJh_7x0A@mail.gmail.com>
+References: <526041db.41abe00a.33b7.00a1SMTPIN_ADDED_BROKEN@mx.google.com>
+	<87hacews6o.fsf@linaro.org>
+	<20131018152450.GI15154@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:47312 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753043Ab3JRQpk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Oct 2013 12:45:40 -0400
-Content-Disposition: inline
-In-Reply-To: <20131018163740.GP15154@atomide.com>
+Received: from mail-we0-f174.google.com ([74.125.82.174]:34526 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756640Ab3JRROA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Oct 2013 13:14:00 -0400
+Received: by mail-we0-f174.google.com with SMTP id u56so4086160wes.33
+        for <linux-omap@vger.kernel.org>; Fri, 18 Oct 2013 10:13:59 -0700 (PDT)
+In-Reply-To: <20131018152450.GI15154@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: linux-serial@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, Roger Quadros <rogerq@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: "arm@kernel.org" <arm@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>
 
-* Tony Lindgren <tony@atomide.com> [131018 09:38]:
-> * Felipe Balbi <balbi@ti.com> [131018 09:19]:
-> > > @@ -786,7 +813,10 @@ static void serial_omap_shutdown(struct uart_port *port)
-> > >  
-> > >  	pm_runtime_mark_last_busy(up->dev);
-> > >  	pm_runtime_put_autosuspend(up->dev);
-> > > -	free_irq(up->port.irq, up);
-> > > +
-> > > +	for (i = 0; i < ARRAY_SIZE(up->irqs); i++)
-> > > +		if (up->irqs[i])
-> > > +			devm_free_irq(up->port.dev, up->irqs[i], up);
-> > 
-> > do you need this at all if you're using devm_* ?
-> 
-> So it seems, startup and shutdown are managed by serial_core and
-> that's what at least clps711x.c serial driver is doing.
+On Fri, Oct 18, 2013 at 8:24 AM, Tony Lindgren <tony@atomide.com> wrote:
+> * Kevin Hilman <khilman@linaro.org> [131018 07:49]:
+>> Hi Tony,
+>>
+>> Tony Lindgren <tony@atomide.com> writes:
+>>
+>> > The following changes since commit f41509ad0d4c11d0911630440749d409ce2aa1aa:
+>> >
+>> >   Merge branches 'omap-for-v3.13/dt' and 'omap-for-v3.13/quirk' into omap-for-v3.13/board-removal (2013-10-14 11:33:07 -0700)
+>> >
+>> > are available in the git repository at:
+>> >
+>> >
+>> >   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.13/board-removal-signed
+>> >
+>> > for you to fetch changes up to f0c09b7c3b4e6b2fe501b3e888797b470de8320c:
+>> >
+>> >   ARM: OMAP2+: Remove legacy support for zoom platforms (2013-10-15 17:38:21 -0700)
+>> >
+>> > ----------------------------------------------------------------
+>> > Changes needed to drop legacy booting support for some
+>> > omap3 boards.
+>> >
+>> > Note that that these are based on a merge of the
+>> > following for the dependencies:
+>> >
+>> > - v3.12-rc5 for fixes to pinctrl mask
+>> > - omap-for-v3.13/dt-signed to avoid pointless merge conflicts
+>> > - omap-for-v3.13/quirk-signed for legacy pdata handling
+>> >
+>> > ----------------------------------------------------------------
+>> > Aaro Koskinen (2):
+>> >       ARM: dts: add minimal DT support for Nokia N950 & N9 phones
+>> >       ARM: OMAP2: delete board-rm680
+>> >
+>> > Tony Lindgren (6):
+>> >       ARM: dts: Shared file for omap GPMC connected smsc911x
+>> >       ARM: dts: Add common support for omap3-evm
+>> >       ARM: dts: Add basic support for TMDSEVM3730 (Mistral AM/DM37x EVM)
+>> >       ARM: dts: Add basic support for zoom3
+>>
+>> This patch introduces a build failure when compiling the DTBs:
+>>
+>>   [...]
+>>   DTC     arch/arm/boot/dts/omap3-zoom3.dtb
+>> ERROR (phandle_references): Reference to non-existent node or label "wl12xx_gpio"
+>
+> Oops sorry, looks like the common support for omap3-evm has a
+> pinctrl entry that should be in the omap3-evm-37xx only. I guess
+> I did not run make dtbs after adding the omap3-evm-37xx parts.
+> The patch below fixes it for me.
+>
+> Do you want a new pull request or just the fix below?
 
-And that means devm_* in this case does not really help us
-here..
+Thanks for the fix.
 
-I guess we could keep the IRQ requested from probe, but
-there's probably a reason why it's done in startup/shutdown.
+I'd prefer a new pull req so we don't have a broken build in the
+middle of the series.
 
-So I'll just drop the devm_* changes for now.
+Thanks,
 
-Regards,
-
-Tony
+Kevin
