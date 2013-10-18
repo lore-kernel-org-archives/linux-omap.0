@@ -1,140 +1,113 @@
-From: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v5 04/12] ASoC: davinci-mcasp: Extract DMA channels directly from DT
-Date: Fri, 18 Oct 2013 18:37:43 +0300
-Message-ID: <a9fde78982a12aa2d21194f08e4aae5cb25b37a6.1382110090.git.jsarha@ti.com>
+From: Jyri Sarha <jsarha@ti.com>
+Subject: [PATCH v5 11/12] ARM/dts: am335x-evmsk: Audio support
+Date: Fri, 18 Oct 2013 18:37:50 +0300
+Message-ID: <d4261eb9f47a699bf331586b085a4ec174064f1c.1382110090.git.jsarha@ti.com>
 References: <cover.1382110089.git.jsarha@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cover.1382110089.git.jsarha-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, joelf-l0cyMroinI0@public.gmane.org, Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:48904 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756284Ab3JRPiQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 18 Oct 2013 11:38:16 -0400
+In-Reply-To: <cover.1382110089.git.jsarha@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: alsa-devel@alsa-project.org, devicetree@vger.kernel.org, bcousson@baylibre.com, mark.rutland@arm.com
+Cc: linux-omap@vger.kernel.org, broonie@kernel.org, joelf@ti.com, Peter Ujfalusi <peter.ujfalusi@ti.com>, Jyri Sarha <jsarha@ti.com>
 
-Extract DMA channels directly from DT as they can not be found from
-platform resources anymore. This is a work-around until davinci audio
-driver is updated to use dmaengine.
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
 
-Signed-off-by: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
+AM335x EVM-SK have only support for audio playback (stereo jack on the
+board) via tlv320aic3106 codec connected to McASP1.
+Enable the support for audio playback on the board:
+- McASP1 configuration
+- tlv320aic3106 configuration
+- Machine driver.
+
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Signed-off-by: Jyri Sarha <jsarha@ti.com>
 ---
- .../bindings/sound/davinci-mcasp-audio.txt         |    5 +++
- include/linux/platform_data/davinci_asp.h          |    2 +
- sound/soc/davinci/davinci-mcasp.c                  |   45 ++++++++++++++------
- 3 files changed, 38 insertions(+), 14 deletions(-)
+ arch/arm/boot/dts/am335x-evmsk.dts |   48 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 48 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/sound/davinci-mcasp-audio.txt b/Documentation/devicetree/bindings/sound/davinci-mcasp-audio.txt
-index c2ab869..c3ccde7 100644
---- a/Documentation/devicetree/bindings/sound/davinci-mcasp-audio.txt
-+++ b/Documentation/devicetree/bindings/sound/davinci-mcasp-audio.txt
-@@ -18,6 +18,11 @@ Required properties:
- - serial-dir : A list of serializer pin mode. The list number should be equal
- 		to "num-serializer" parameter. Each entry is a number indication
- 		serializer pin direction. (0 - INACTIVE, 1 - TX, 2 - RX)
-+- dmas: two element list of DMA controller phandles and DMA request line
-+        ordered pairs.
-+- dma-names: identifier string for each DMA request line in the dmas property.
-+	     These strings correspond 1:1 with the ordered pairs in dmas. The dma
-+	     identifiers must be "rx" and "tx".
+diff --git a/arch/arm/boot/dts/am335x-evmsk.dts b/arch/arm/boot/dts/am335x-evmsk.dts
+index 4f339fa..9e570fb 100644
+--- a/arch/arm/boot/dts/am335x-evmsk.dts
++++ b/arch/arm/boot/dts/am335x-evmsk.dts
+@@ -158,6 +158,15 @@
+ 				0x14c (PIN_INPUT_PULLDOWN | MUX_MODE7)
+ 			>;
+ 		};
++
++		mcasp1_pins: mcasp1_pins {
++			pinctrl-single,pins = <
++				0x10c (PIN_INPUT_PULLDOWN | MUX_MODE4) /* mii1_crs.mcasp1_aclkx */
++				0x110 (PIN_INPUT_PULLDOWN | MUX_MODE4) /* mii1_rxerr.mcasp1_fsx */
++				0x108 (PIN_OUTPUT_PULLDOWN | MUX_MODE4) /* mii1_col.mcasp1_axr2 */
++				0x144 (PIN_INPUT_PULLDOWN | MUX_MODE4) /* rmii1_ref_clk.mcasp1_axr3 */
++			>;
++		};
+ 	};
  
- Optional properties:
+ 	ocp {
+@@ -206,6 +215,18 @@
+ 				st,max-limit-y = <550>;
+ 				st,max-limit-z = <750>;
+ 			};
++
++			tlv320aic3106: tlv320aic3106@1b {
++				compatible = "ti,tlv320aic3106";
++				reg = <0x1b>;
++				status = "okay";
++
++				/* Regulators */
++				AVDD-supply = <&vaux2_reg>;
++				IOVDD-supply = <&vaux2_reg>;
++				DRVDD-supply = <&vaux2_reg>;
++				DVDD-supply = <&vbat>;
++			};
+ 		};
  
-diff --git a/include/linux/platform_data/davinci_asp.h b/include/linux/platform_data/davinci_asp.h
-index 8db5ae0..689a856 100644
---- a/include/linux/platform_data/davinci_asp.h
-+++ b/include/linux/platform_data/davinci_asp.h
-@@ -84,6 +84,8 @@ struct snd_platform_data {
- 	u8 version;
- 	u8 txnumevt;
- 	u8 rxnumevt;
-+	int tx_dma_channel;
-+	int rx_dma_channel;
+ 		musb: usb@47400000 {
+@@ -233,6 +254,17 @@
+ 				pinctrl-0 = <&ecap2_pins>;
+ 			};
+ 		};
++
++		sound {
++			compatible = "ti,da830-evm-audio";
++			ti,model = "AM335x-EVMSK";
++			ti,audio-codec = <&tlv320aic3106>;
++			ti,mcasp-controller = <&mcasp1>;
++			ti,codec-clock-rate = <24576000>;
++			ti,audio-routing =
++				"Headphone Jack",       "HPLOUT",
++				"Headphone Jack",       "HPROUT";
++		};
+ 	};
+ 
+ 	vbat: fixedregulator@0 {
+@@ -419,3 +451,19 @@
+ 	phy_id = <&davinci_mdio>, <1>;
+ 	phy-mode = "rgmii-txid";
  };
- 
- enum {
-diff --git a/sound/soc/davinci/davinci-mcasp.c b/sound/soc/davinci/davinci-mcasp.c
-index 7fd37ff..2583802 100644
---- a/sound/soc/davinci/davinci-mcasp.c
-+++ b/sound/soc/davinci/davinci-mcasp.c
-@@ -1047,6 +1047,7 @@ static struct snd_platform_data *davinci_mcasp_set_pdata_from_of(
- 	struct snd_platform_data *pdata = NULL;
- 	const struct of_device_id *match =
- 			of_match_device(mcasp_dt_ids, &pdev->dev);
-+	struct of_phandle_args dma_spec;
- 
- 	const u32 *of_serial_dir32;
- 	u8 *of_serial_dir;
-@@ -1109,6 +1110,28 @@ static struct snd_platform_data *davinci_mcasp_set_pdata_from_of(
- 		pdata->serial_dir = of_serial_dir;
- 	}
- 
-+	ret = of_property_match_string(np, "dma-names", "tx");
-+	if (ret < 0)
-+		goto nodata;
 +
-+	ret = of_parse_phandle_with_args(np, "dmas", "#dma-cells", ret,
-+					 &dma_spec);
-+	if (ret < 0)
-+		goto nodata;
++&mcasp1 {
++		pinctrl-names = "default";
++		pinctrl-0 = <&mcasp1_pins>;
 +
-+	pdata->tx_dma_channel = dma_spec.args[0];
++		status = "okay";
 +
-+	ret = of_property_match_string(np, "dma-names", "rx");
-+	if (ret < 0)
-+		goto nodata;
-+
-+	ret = of_parse_phandle_with_args(np, "dmas", "#dma-cells", ret,
-+					 &dma_spec);
-+	if (ret < 0)
-+		goto nodata;
-+
-+	pdata->rx_dma_channel = dma_spec.args[0];
-+
- 	ret = of_property_read_u32(np, "tx-num-evt", &val);
- 	if (ret >= 0)
- 		pdata->txnumevt = val;
-@@ -1213,15 +1236,11 @@ static int davinci_mcasp_probe(struct platform_device *pdev)
- 	dma_data->sram_size = pdata->sram_size_playback;
- 	dma_data->dma_addr = dat->start + pdata->tx_dma_offset;
- 
--	/* first TX, then RX */
- 	res = platform_get_resource(pdev, IORESOURCE_DMA, 0);
--	if (!res) {
--		dev_err(&pdev->dev, "no DMA resource\n");
--		ret = -ENODEV;
--		goto err_release_clk;
--	}
--
--	dma_data->channel = res->start;
-+	if (res)
-+		dma_data->channel = res->start;
-+	else
-+		dma_data->channel = pdata->tx_dma_channel;
- 
- 	dma_data = &dev->dma_params[SNDRV_PCM_STREAM_CAPTURE];
- 	dma_data->asp_chan_q = pdata->asp_chan_q;
-@@ -1231,13 +1250,11 @@ static int davinci_mcasp_probe(struct platform_device *pdev)
- 	dma_data->dma_addr = dat->start + pdata->rx_dma_offset;
- 
- 	res = platform_get_resource(pdev, IORESOURCE_DMA, 1);
--	if (!res) {
--		dev_err(&pdev->dev, "no DMA resource\n");
--		ret = -ENODEV;
--		goto err_release_clk;
--	}
-+	if (res)
-+		dma_data->channel = res->start;
-+	else
-+		dma_data->channel = pdata->rx_dma_channel;
- 
--	dma_data->channel = res->start;
- 	dev_set_drvdata(&pdev->dev, dev);
- 	ret = snd_soc_register_component(&pdev->dev, &davinci_mcasp_component,
- 					 &davinci_mcasp_dai[pdata->op_mode], 1);
++		op-mode = <0>;          /* MCASP_IIS_MODE */
++		tdm-slots = <2>;
++		/* 4 serializers */
++		serial-dir = <  /* 0: INACTIVE, 1: TX, 2: RX */
++			0 0 1 2
++		>;
++		tx-num-evt = <1>;
++		rx-num-evt = <1>;
++};
 -- 
 1.7.9.5
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
