@@ -1,123 +1,210 @@
-From: Doug Anderson <dianders@chromium.org>
-Subject: [PATCH v3 1/3] mmc: core: Support the optional init_card() callback
- for MMC and SD
-Date: Fri, 18 Oct 2013 14:56:00 -0700
-Message-ID: <1382133362-31747-2-git-send-email-dianders@chromium.org>
-References: <1382126905-14654-1-git-send-email-dianders@chromium.org>
- <1382133362-31747-1-git-send-email-dianders@chromium.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] serial: omap: Add support for optional wake-up
+ interrupt
+Date: Fri, 18 Oct 2013 15:56:07 -0700
+Message-ID: <20131018225606.GT15154@atomide.com>
+References: <20131017232820.GG15154@atomide.com>
+ <20131018161916.GF18921@gimli>
+ <20131018163740.GP15154@atomide.com>
+ <20131018164535.GQ15154@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1382133362-31747-1-git-send-email-dianders@chromium.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Jaehoon Chung <jh80.chung@samsung.com>, Seungwon Jeon <tgih.jun@samsung.com>, Chris Ball <cjb@laptop.org>
-Cc: Johan Rudholm <jrudholm@gmail.com>, Ulf Hansson <ulf.hansson@linaro.org>, James Hogan <james.hogan@imgtec.com>, Russell King <linux@arm.linux.org.uk>, Daniel Mack <daniel@caiaq.de>, Bing Zhao <bzhao@marvell.com>, Grant Grundler <grundler@chromium.org>, linux-kernel@vger.kernel.org, Sascha Hauer <s.hauer@pengutronix.de>, linux-mmc@vger.kernel.org, Tomasz Figa <tomasz.figa@gmail.com>, Doug Anderson <dianders@chromium.org>, Olof Johansson <olof@lixom.net>, Tony Lindgren <tony@atomide.com>, Alim Akhtar <alim.akhtar@samsung.com>, Abhilash Kesavan <a.kesavan@samsung.com>, linux-omap@vger.kernel.org, Sonny Rao <sonnyrao@chromium.org>, Namjae Jeon <linkinjeon@gmail.com>, linux-arm-kernel@lists.infradead.org, Kevin Liu <kliu5@marvell.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-serial-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20131018164535.GQ15154@atomide.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: linux-serial@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-In (3fcb027 ARM: MXC: mxcmmc: work around a bug in the SDHC busy line
-handling) the optional init_card() callback was added.  According to
-the original change it was "for now only called from
-mmc_sdio_init_card()".
+* Tony Lindgren <tony@atomide.com> [131018 09:45]:
+> * Tony Lindgren <tony@atomide.com> [131018 09:38]:
+> > * Felipe Balbi <balbi@ti.com> [131018 09:19]:
+> > > > @@ -786,7 +813,10 @@ static void serial_omap_shutdown(struct uart_port *port)
+> > > >  
+> > > >  	pm_runtime_mark_last_busy(up->dev);
+> > > >  	pm_runtime_put_autosuspend(up->dev);
+> > > > -	free_irq(up->port.irq, up);
+> > > > +
+> > > > +	for (i = 0; i < ARRAY_SIZE(up->irqs); i++)
+> > > > +		if (up->irqs[i])
+> > > > +			devm_free_irq(up->port.dev, up->irqs[i], up);
+> > > 
+> > > do you need this at all if you're using devm_* ?
+> > 
+> > So it seems, startup and shutdown are managed by serial_core and
+> > that's what at least clps711x.c serial driver is doing.
+> 
+> And that means devm_* in this case does not really help us
+> here..
+> 
+> I guess we could keep the IRQ requested from probe, but
+> there's probably a reason why it's done in startup/shutdown.
+> 
+> So I'll just drop the devm_* changes for now.
 
-This callback really ought to be called from the SD and MMC init
-functions as well.  One current user of this callback
-(mxcmci_init_card) will not work as expected if you insert an SDIO
-card, then eject it and put a normal SD card in.  Specifically the
-normal SD card will not get to run with 4-bit data.
+Here's an updated simplified version. I also got rid of the
+for loops as the wake-up interrupt is optional and it made the
+code a bit of a pain to read.
 
-I'd like to use the init_card() callback to handle a similar quirk on
-dw_mmc when using SDIO Interrupts (the "low power" feature of the card
-needs to be disabled), so that will add a second user of the function.
+Regards,
 
-As part of this change fixup the one place that relied on the callback
-only happening for SDIO cards.
+Tony
 
-Signed-off-by: Doug Anderson <dianders@chromium.org>
-Reviewed-by: Grant Grundler <grundler@chromium.org>
----
-Changes in v3:
-- Add fixup to pandora_wl1251_init_card().
 
-Changes in v2:
-- New for this version.
+8< ----------------------------------------
+From: Tony Lindgren <tony@atomide.com>
+Date: Wed, 16 Oct 2013 10:27:28 -0700
+Subject: [PATCH] serial: omap: Add support for optional wake-up interrupt
 
- arch/arm/mach-omap2/board-omap3pandora.c | 14 ++++++++------
- drivers/mmc/core/mmc.c                   |  6 ++++++
- drivers/mmc/core/sd.c                    |  7 ++++++-
- 3 files changed, 20 insertions(+), 7 deletions(-)
+With the recent pinctrl-single changes, omaps can treat
+wake-up events from deeper idle states as interrupts.
 
-diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-omap2/board-omap3pandora.c
-index de1bc6b..6404595 100644
---- a/arch/arm/mach-omap2/board-omap3pandora.c
-+++ b/arch/arm/mach-omap2/board-omap3pandora.c
-@@ -254,12 +254,14 @@ static void pandora_wl1251_init_card(struct mmc_card *card)
- 	 * We have TI wl1251 attached to MMC3. Pass this information to
- 	 * SDIO core because it can't be probed by normal methods.
- 	 */
--	card->quirks |= MMC_QUIRK_NONSTD_SDIO;
--	card->cccr.wide_bus = 1;
--	card->cis.vendor = 0x104c;
--	card->cis.device = 0x9066;
--	card->cis.blksize = 512;
--	card->cis.max_dtr = 20000000;
-+	if (card->type == MMC_TYPE_SDIO || card->type == MMC_TYPE_SD_COMBO) {
-+		card->quirks |= MMC_QUIRK_NONSTD_SDIO;
-+		card->cccr.wide_bus = 1;
-+		card->cis.vendor = 0x104c;
-+		card->cis.device = 0x9066;
-+		card->cis.blksize = 512;
-+		card->cis.max_dtr = 20000000;
+There's a separate "io chain" controller on most omaps
+that stays enabled when the device hits off-idle and the
+regular interrupt controller is powered off.
+
+Let's add support for the optional second interrupt for
+wake-up events. And then serial-omap can manage the
+wake-up interrupt from it's runtime PM calls to avoid
+spurious interrupts during runtime.
+
+Note that the wake interrupt is board specific as it
+uses the UART RX pin, and for omap3, there are six pin
+options for UART3 RX pin.
+
+Also Note that the legacy platform based booting handles
+the wake-ups in the legacy mux driver and does not need to
+pass the wake-up interrupt to the driver.
+
+And finally, to pass the wake-up interrupt in the dts file,
+either interrupt-map or the pending interrupts-extended
+property needs to be passed. It's probably best to use
+interrupts-extended when it's available.
+
+Cc: Felipe Balbi <balbi@ti.com>
+Cc: Kevin Hilman <khilman@linaro.org>
+Cc: Linus Walleij <linus.walleij@linaro.org>
+Cc: Roger Quadros <rogerq@ti.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+--- a/drivers/tty/serial/omap-serial.c
++++ b/drivers/tty/serial/omap-serial.c
+@@ -39,6 +39,7 @@
+ #include <linux/irq.h>
+ #include <linux/pm_runtime.h>
+ #include <linux/of.h>
++#include <linux/of_irq.h>
+ #include <linux/gpio.h>
+ #include <linux/of_gpio.h>
+ #include <linux/platform_data/serial-omap.h>
+@@ -134,6 +135,7 @@ struct uart_omap_port {
+ 	struct uart_port	port;
+ 	struct uart_omap_dma	uart_dma;
+ 	struct device		*dev;
++	int			wakeirq;
+ 
+ 	unsigned char		ier;
+ 	unsigned char		lcr;
+@@ -214,10 +216,23 @@ static int serial_omap_get_context_loss_count(struct uart_omap_port *up)
+ 	return pdata->get_context_loss_count(up->dev);
+ }
+ 
++static inline void serial_omap_enable_wakeirq(struct uart_omap_port *up,
++				       bool enable)
++{
++	if (!up->wakeirq)
++		return;
++
++	if (enable)
++		enable_irq(up->wakeirq);
++	else
++		disable_irq(up->wakeirq);
++}
++
+ static void serial_omap_enable_wakeup(struct uart_omap_port *up, bool enable)
+ {
+ 	struct omap_uart_port_info *pdata = dev_get_platdata(up->dev);
+ 
++	serial_omap_enable_wakeirq(up, enable);
+ 	if (!pdata || !pdata->enable_wakeup)
+ 		return;
+ 
+@@ -699,6 +714,20 @@ static int serial_omap_startup(struct uart_port *port)
+ 	if (retval)
+ 		return retval;
+ 
++	/* Optional wake-up IRQ */
++	if (up->wakeirq) {
++		retval = request_irq(up->wakeirq, serial_omap_irq,
++				     up->port.irqflags, up->name, up);
++		if (retval) {
++			free_irq(up->port.irq, up);
++			return retval;
++		}
++		disable_irq(up->wakeirq);
++	} else {
++		dev_info(up->port.dev, "no wakeirq for uart%d\n",
++			 up->port.line);
 +	}
++
+ 	dev_dbg(up->port.dev, "serial_omap_startup+%d\n", up->port.line);
+ 
+ 	pm_runtime_get_sync(up->dev);
+@@ -787,6 +816,8 @@ static void serial_omap_shutdown(struct uart_port *port)
+ 	pm_runtime_mark_last_busy(up->dev);
+ 	pm_runtime_put_autosuspend(up->dev);
+ 	free_irq(up->port.irq, up);
++	if (up->wakeirq)
++		free_irq(up->wakeirq, up);
  }
  
- static struct omap2_hsmmc_info omap3pandora_mmc[] = {
-diff --git a/drivers/mmc/core/mmc.c b/drivers/mmc/core/mmc.c
-index 6d02012..7ad75c0 100644
---- a/drivers/mmc/core/mmc.c
-+++ b/drivers/mmc/core/mmc.c
-@@ -940,6 +940,12 @@ static int mmc_init_card(struct mmc_host *host, u32 ocr,
+ static void serial_omap_uart_qos_work(struct work_struct *work)
+@@ -1572,11 +1603,23 @@ static int serial_omap_probe(struct platform_device *pdev)
+ 	struct uart_omap_port	*up;
+ 	struct resource		*mem, *irq;
+ 	struct omap_uart_port_info *omap_up_info = dev_get_platdata(&pdev->dev);
+-	int ret;
++	int ret, uartirq = 0, wakeirq = 0;
+ 
++	/* The optional wakeirq may be specified in the board dts file */
+ 	if (pdev->dev.of_node) {
++		uartirq = irq_of_parse_and_map(pdev->dev.of_node, 0);
++		if (!uartirq)
++			return -EPROBE_DEFER;
++		wakeirq = irq_of_parse_and_map(pdev->dev.of_node, 1);
+ 		omap_up_info = of_get_uart_port_info(&pdev->dev);
+ 		pdev->dev.platform_data = omap_up_info;
++	} else {
++		irq = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
++		if (!irq) {
++			dev_err(&pdev->dev, "no irq resource?\n");
++			return -ENODEV;
++		}
++		uartirq = irq->start;
  	}
  
- 	/*
-+	 * Call the optional HC's init_card function to handle quirks.
-+	 */
-+	if (host->ops->init_card)
-+		host->ops->init_card(host, card);
-+
-+	/*
- 	 * For native busses:  set card RCA and quit open drain mode.
- 	 */
- 	if (!mmc_host_is_spi(host)) {
-diff --git a/drivers/mmc/core/sd.c b/drivers/mmc/core/sd.c
-index 5e8823d..59e2318 100644
---- a/drivers/mmc/core/sd.c
-+++ b/drivers/mmc/core/sd.c
-@@ -940,6 +940,12 @@ static int mmc_sd_init_card(struct mmc_host *host, u32 ocr,
+ 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+@@ -1585,12 +1628,6 @@ static int serial_omap_probe(struct platform_device *pdev)
+ 		return -ENODEV;
  	}
  
- 	/*
-+	 * Call the optional HC's init_card function to handle quirks.
-+	 */
-+	if (host->ops->init_card)
-+		host->ops->init_card(host, card);
-+
-+	/*
- 	 * For native busses:  get card RCA and quit open drain mode.
- 	 */
- 	if (!mmc_host_is_spi(host)) {
-@@ -1286,4 +1292,3 @@ err:
- 
- 	return err;
- }
+-	irq = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
+-	if (!irq) {
+-		dev_err(&pdev->dev, "no irq resource?\n");
+-		return -ENODEV;
+-	}
 -
--- 
-1.8.4
+ 	if (!devm_request_mem_region(&pdev->dev, mem->start, resource_size(mem),
+ 				pdev->dev.driver->name)) {
+ 		dev_err(&pdev->dev, "memory region already claimed\n");
+@@ -1624,7 +1661,8 @@ static int serial_omap_probe(struct platform_device *pdev)
+ 	up->port.dev = &pdev->dev;
+ 	up->port.type = PORT_OMAP;
+ 	up->port.iotype = UPIO_MEM;
+-	up->port.irq = irq->start;
++	up->port.irq = uartirq;
++	up->wakeirq = wakeirq;
+ 
+ 	up->port.regshift = 2;
+ 	up->port.fifosize = 64;
