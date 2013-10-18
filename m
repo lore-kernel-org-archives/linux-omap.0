@@ -1,74 +1,119 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [GIT PULL 2/2] omap changes for am43xx hwmod for v3.13 merge window
-Date: Fri, 18 Oct 2013 07:53:22 -0700
-Message-ID: <87d2n2wrz1.fsf@linaro.org>
-References: <526041df.4740e50a.3954.5084SMTPIN_ADDED_MISSING@mx.google.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL 1/2] omap board removal for some omap3 boards for
+ v3.13 merge window
+Date: Fri, 18 Oct 2013 08:24:50 -0700
+Message-ID: <20131018152450.GI15154@atomide.com>
+References: <526041db.41abe00a.33b7.00a1SMTPIN_ADDED_BROKEN@mx.google.com>
+ <87hacews6o.fsf@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pd0-f170.google.com ([209.85.192.170]:60375 "EHLO
-	mail-pd0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755632Ab3JROx1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Oct 2013 10:53:27 -0400
-Received: by mail-pd0-f170.google.com with SMTP id x10so4779222pdj.15
-        for <linux-omap@vger.kernel.org>; Fri, 18 Oct 2013 07:53:25 -0700 (PDT)
-In-Reply-To: <526041df.4740e50a.3954.5084SMTPIN_ADDED_MISSING@mx.google.com>
-	(Tony Lindgren's message of "Thu, 17 Oct 2013 13:00:21 -0700")
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:41495 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756208Ab3JRPZQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Oct 2013 11:25:16 -0400
+Content-Disposition: inline
+In-Reply-To: <87hacews6o.fsf@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
+To: Kevin Hilman <khilman@linaro.org>
 Cc: arm@kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Tony Lindgren <tony@atomide.com> writes:
+* Kevin Hilman <khilman@linaro.org> [131018 07:49]:
+> Hi Tony,
+> 
+> Tony Lindgren <tony@atomide.com> writes:
+> 
+> > The following changes since commit f41509ad0d4c11d0911630440749d409ce2aa1aa:
+> >
+> >   Merge branches 'omap-for-v3.13/dt' and 'omap-for-v3.13/quirk' into omap-for-v3.13/board-removal (2013-10-14 11:33:07 -0700)
+> >
+> > are available in the git repository at:
+> >
+> >
+> >   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.13/board-removal-signed
+> >
+> > for you to fetch changes up to f0c09b7c3b4e6b2fe501b3e888797b470de8320c:
+> >
+> >   ARM: OMAP2+: Remove legacy support for zoom platforms (2013-10-15 17:38:21 -0700)
+> >
+> > ----------------------------------------------------------------
+> > Changes needed to drop legacy booting support for some
+> > omap3 boards.
+> >
+> > Note that that these are based on a merge of the
+> > following for the dependencies:
+> >
+> > - v3.12-rc5 for fixes to pinctrl mask
+> > - omap-for-v3.13/dt-signed to avoid pointless merge conflicts
+> > - omap-for-v3.13/quirk-signed for legacy pdata handling
+> >
+> > ----------------------------------------------------------------
+> > Aaro Koskinen (2):
+> >       ARM: dts: add minimal DT support for Nokia N950 & N9 phones
+> >       ARM: OMAP2: delete board-rm680
+> >
+> > Tony Lindgren (6):
+> >       ARM: dts: Shared file for omap GPMC connected smsc911x
+> >       ARM: dts: Add common support for omap3-evm
+> >       ARM: dts: Add basic support for TMDSEVM3730 (Mistral AM/DM37x EVM)
+> >       ARM: dts: Add basic support for zoom3
+> 
+> This patch introduces a build failure when compiling the DTBs:
+> 
+>   [...]
+>   DTC     arch/arm/boot/dts/omap3-zoom3.dtb
+> ERROR (phandle_references): Reference to non-existent node or label "wl12xx_gpio"
 
-> The following changes since commit 254f57a92987b6cde6004f58d6b847813dfb9e0e:
->
->   ARM: OMAP5: hwmod: add missing ocp2scp hwmod data (2013-10-11 15:37:05 -0700)
->
-> are available in the git repository at:
->
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.13/am43xx-hwmod-signed
->
-> for you to fetch changes up to 811e7c87340b75dce5c488d9496075b00853942b:
->
->   Merge tag 'for-v3.13/am43xx-support' of git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending into omap-for-v3.13/hwmod (2013-10-17 10:37:27 -0700)
->
-> ----------------------------------------------------------------
->
-> Changes needed for am43xx for the hwmod data.
->
-> This will be the last new set of hwmod data for any SoC
-> as future SoCs will use a driver and device tree based
-> approach. But before that can be dealt with, we need to
-> first sort out the pending driver/clk issues.
->
-> Queued by Paul Walmsley <paul@pwsan.com>:
->
-> Add hwmod and PRCM data for the TI AM43xx family of SoCs.
->
-> Under normal circumstances, these patches would not be merged.
-> The hwmod and PRCM data should be moved out either to DT data or
-> to drivers/.  Also, the current implementation trades off lines
-> of diff by dynamically rewriting static data at runtime, which is
-> a bad practice - it causes future maintenance headaches.
-> However, after speaking with my upstream, it sounds like it's
-> better to merge these patches in their current state, due to long
-> term considerations.
->
-> Basic test logs are here:
->
-> http://www.pwsan.com/omap/testlogs/am43xx_support_v3.13/20131015213706/
->
-> Due to the lack of an AM43xx board and any available public
-> documentation, it's impossible for me to review or test that
-> platform in any meaningful way.  But at least the tests above
-> verify that the patches don't affect existing platforms -
-> particularly AM33xx.
->
-> ----------------------------------------------------------------
+Oops sorry, looks like the common support for omap3-evm has a
+pinctrl entry that should be in the omap3-evm-37xx only. I guess
+I did not run make dtbs after adding the omap3-evm-37xx parts.
+The patch below fixes it for me.
 
-Pulled into next/soc.
+Do you want a new pull request or just the fix below?
 
-Thanks,
+Regards,
 
-Kevin
+Tony
+
+8< -----------------------------------------
+From: Tony Lindgren <tony@atomide.com>
+Date: Fri, 18 Oct 2013 08:16:25 -0700
+Subject: [PATCH] ARM: dts: Fix build error for omap3-evm after adding common file
+
+Commit c4856107 ((ARM: dts: Add basic support for TMDSEVM3730
+(Mistral AM/DM37x EVM)) added a pinctrl entry to the common file
+for evm that should be only in the omap3-evm-37xx. This causes:
+
+ERROR (phandle_references): Reference to non-existent node or label "wl12xx_gpio"
+
+Fix it by moving the entry to omap3-evm-37xx.
+
+Reported-by: Kevin Hilman <khilman@linaro.org>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+--- a/arch/arm/boot/dts/omap3-evm-37xx.dts
++++ b/arch/arm/boot/dts/omap3-evm-37xx.dts
+@@ -19,6 +19,11 @@
+ 		device_type = "memory";
+ 		reg = <0x80000000 0x10000000>; /* 256 MB */
+ 	};
++
++	wl12xx_vmmc: wl12xx_vmmc {
++		pinctrl-names = "default";
++		pinctrl-0 = <&wl12xx_gpio>;
++	};
+ };
+ 
+ &omap3_pmx_core {
+--- a/arch/arm/boot/dts/omap3-evm-common.dtsi
++++ b/arch/arm/boot/dts/omap3-evm-common.dtsi
+@@ -21,8 +21,6 @@
+ 	};
+ 
+ 	wl12xx_vmmc: wl12xx_vmmc {
+-		pinctrl-names = "default";
+-		pinctrl-0 = <&wl12xx_gpio>;
+ 		compatible = "regulator-fixed";
+ 		regulator-name = "vwl1271";
+ 		regulator-min-microvolt = <1800000>;
