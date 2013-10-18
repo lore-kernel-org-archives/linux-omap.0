@@ -1,58 +1,57 @@
-From: "Gupta, Pekon" <pekon@ti.com>
-Subject: RE: [PATCH v9 1/9] mtd: nand: omap: combine different flavours of
- 1-bit hamming ecc schemes
-Date: Fri, 18 Oct 2013 11:48:31 +0000
-Message-ID: <20980858CB6D3A4BAE95CA194937D5E73EA284F4@DBDE04.ent.ti.com>
-References: <1381816197-20477-1-git-send-email-pekon@ti.com>
- <1381816197-20477-2-git-send-email-pekon@ti.com>
- <20131018105917.GE29779@e106331-lin.cambridge.arm.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH] ARM: dts: omap3-beagle: Adapt USB OTG to generic PHY
+ framework
+Date: Fri, 18 Oct 2013 15:00:04 +0300
+Message-ID: <526122C4.4090702@ti.com>
+References: <1381142810-14541-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:52467 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751481Ab3JRLtQ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Oct 2013 07:49:16 -0400
-In-Reply-To: <20131018105917.GE29779@e106331-lin.cambridge.arm.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1381142810-14541-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org
+Cc: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, balbi-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Stefan Roese <sr-ynQEQJNshbs@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: "olof@lixom.net" <olof@lixom.net>, "computersforpeace@gmail.com" <computersforpeace@gmail.com>, "dedekind1@gmail.com" <dedekind1@gmail.com>, "tony@atomide.com" <tony@atomide.com>, "bcousson@baylibre.com" <bcousson@baylibre.com>, "robherring2@gmail.com" <robherring2@gmail.com>, Pawel Moll <Pawel.Moll@arm.com>, "ijc+devicetree@hellion.org.uk" <ijc+devicetree@hellion.org.uk>, "swarren@wwwdotorg.org" <swarren@wwwdotorg.org>, "dwmw2@infradead.org" <dwmw2@infradead.org>, "arnd@arndb.de" <arnd@arndb.de>, "avinashphilipk@gmail.com" <avinashphilipk@gmail.com>, "Balbi, Felipe" <balbi@ti.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
 
-Hi Mark,
+Hi Benoit,
 
-> From: Mark Rutland
-> [...]
+Could you please include this one for 3.13?
+Without this OTG port will be broken for beagle. Thanks.
+
+cheers,
+-roger
+
+On 10/07/2013 01:46 PM, Roger Quadros wrote:
+> The generic PHY framewrok expects different properties than the
+> old USB PHY framework. Supply those properties.
 > 
-> > diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-
-> omap2/gpmc.c
-> > index 579697a..c9fb353 100644
-> > --- a/arch/arm/mach-omap2/gpmc.c
-> > +++ b/arch/arm/mach-omap2/gpmc.c
-> > @@ -1342,9 +1342,7 @@ static void __maybe_unused
-> gpmc_read_timings_dt(struct device_node *np,
-> >  #ifdef CONFIG_MTD_NAND
-> >
-> >  static const char * const nand_ecc_opts[] = {
-> > -	[OMAP_ECC_HAMMING_CODE_DEFAULT]		= "sw",
-> > -	[OMAP_ECC_HAMMING_CODE_HW]		= "hw",
-> > -	[OMAP_ECC_HAMMING_CODE_HW_ROMCODE]	= "hw-
-> romcode",
-> > +	[OMAP_ECC_HAM1_CODE_HW]			= "ham1",
-> >  	[OMAP_ECC_BCH4_CODE_HW]			= "bch4",
-> >  	[OMAP_ECC_BCH8_CODE_HW]			= "bch8",
-> >  };
+> Fixes USB OTG port on beagle after the Generic PHY framework was
+> merged in greg/usb-next. [1]
 > 
-> As the parsing isn't updated until the next patch, doesn't this
-> temporarily break DTBs with the deprecated ti,nand-ecc-opt values?
+> [1] - https://lkml.org/lkml/2013/9/27/581
 > 
-Ok then I'll swap the [Patch 1/9] and [Patch 2/9] so that DT parsing updates
-(with backward compatibility) happen before the deprecation of DT values.
-This way old DT binding would work all through.
+> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+> ---
+>  arch/arm/boot/dts/omap3-beagle.dts |    2 ++
+>  1 files changed, 2 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/boot/dts/omap3-beagle.dts b/arch/arm/boot/dts/omap3-beagle.dts
+> index 7669c16..fa532aa 100644
+> --- a/arch/arm/boot/dts/omap3-beagle.dts
+> +++ b/arch/arm/boot/dts/omap3-beagle.dts
+> @@ -173,6 +173,8 @@
+>  &usb_otg_hs {
+>  	interface-type = <0>;
+>  	usb-phy = <&usb2_phy>;
+> +	phys = <&usb2_phy>;
+> +	phy-names = "usb2-phy";
+>  	mode = <3>;
+>  	power = <50>;
+>  };
+> 
 
-And as DT parsing is kept backward compatible, so .dts changes would not
-break the DTBs even if updated in separate patch.
-
-with regards, pekon
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
