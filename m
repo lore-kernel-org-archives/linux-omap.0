@@ -1,54 +1,48 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [GIT PULL 1/1] omap board removal for some omap3 boards for v3.13 merge window
-Date: Fri, 18 Oct 2013 11:42:38 -0700
-Message-ID: <87ob6mv2sh.fsf@linaro.org>
-References: <526174c7.410be00a.37ba.ffffbc8eSMTPIN_ADDED_BROKEN@mx.google.com>
-Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pb0-f44.google.com ([209.85.160.44]:56079 "EHLO
-	mail-pb0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756738Ab3JRSml (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Oct 2013 14:42:41 -0400
-Received: by mail-pb0-f44.google.com with SMTP id xa7so4198010pbc.17
-        for <linux-omap@vger.kernel.org>; Fri, 18 Oct 2013 11:42:41 -0700 (PDT)
-In-Reply-To: <526174c7.410be00a.37ba.ffffbc8eSMTPIN_ADDED_BROKEN@mx.google.com>
-	(Tony Lindgren's message of "Fri, 18 Oct 2013 10:49:54 -0700")
-Sender: linux-omap-owner@vger.kernel.org
+From: Doug Anderson <dianders@chromium.org>
+Subject: [PATCH v3 0/3] Prevent races when doing read-modify-write of INTMASK
+Date: Fri, 18 Oct 2013 14:55:59 -0700
+Message-ID: <1382133362-31747-1-git-send-email-dianders@chromium.org>
+References: <1382126905-14654-1-git-send-email-dianders@chromium.org>
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <1382126905-14654-1-git-send-email-dianders@chromium.org>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Jaehoon Chung <jh80.chung@samsung.com>, Seungwon Jeon <tgih.jun@samsung.com>, Chris Ball <cjb@laptop.org>
+Cc: James Hogan <james.hogan@imgtec.com>, Grant Grundler <grundler@chromium.org>, Alim Akhtar <alim.akhtar@samsung.com>, Abhilash Kesavan <a.kesavan@samsung.com>, Tomasz Figa <tomasz.figa@gmail.com>, Olof Johansson <olof@lixom.net>, Sonny Rao <sonnyrao@chromium.org>, Bing Zhao <bzhao@marvell.com>, Daniel Mack <daniel@caiaq.de>, Sascha Hauer <s.hauer@pengutronix.de>, Doug Anderson <dianders@chromium.org>, Namjae Jeon <linkinjeon@gmail.com>, linux-omap@vger.kernel.org, Kevin Liu <kliu5@marvell.com>, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, Johan Rudholm <jrudholm@gmail.com>, Ulf Hansson <ulf.hansson@linaro.org>, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: arm@kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Tony Lindgren <tony@atomide.com> writes:
+Bing Zhao at Marvell discovered a race in the way that dw_mmc was
+doing a read-modify-write of the INTMASK register.  This 2-patch
+series attempts to fix the problem using a simple spinlock.  In order
+to do so cleanly, we include a patch to tidy up the way that we
+disable low power mode when using SDIO interrupts.
 
-> The following changes since commit f41509ad0d4c11d0911630440749d409ce2aa1aa:
->
->   Merge branches 'omap-for-v3.13/dt' and 'omap-for-v3.13/quirk' into omap-for-v3.13/board-removal (2013-10-14 11:33:07 -0700)
->
-> are available in the git repository at:
->
->
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.13/board-removal-signed-take2
->
-> for you to fetch changes up to 06ff74fd197aa8205443cf64b94383802602e320:
->
->   ARM: OMAP2+: remove legacy support for IGEP boards (2013-10-18 10:25:46 -0700)
->
-> ----------------------------------------------------------------
-> Changes needed to drop legacy booting support for some
-> omap3 boards.
->
-> Note that that these are based on a merge of the
-> following for the dependencies:
->
-> - v3.12-rc5 for fixes to pinctrl mask
-> - omap-for-v3.13/dt-signed to avoid pointless merge conflicts
-> - omap-for-v3.13/quirk-signed for legacy pdata handling
->
-> ----------------------------------------------------------------
+This patch series was not tested on ToT Linux other than basic
+compiling and booting, since we don't have the whole Marvell SDIO
+stack up and running in mainline yet.  This series is based on
+mmc-next (e76b855 mmc: sdhci-esdhc-imx: set actual_clock in clock
+setting) merged atop mainlinx Linux.
 
-Pulled into next/dt since the the dependencies are also in next/dt.
+Changes in v3:
+- Add fixup to pandora_wl1251_init_card().
 
-Thanks for the respin,
+Changes in v2:
+- Core patch new for this version.
+- Fixed "|" to "&".
+- intmask_lock renamed to irq_lock
 
-Kevin
+Doug Anderson (3):
+  mmc: core: Support the optional init_card() callback for MMC and SD
+  mmc: dw_mmc: Cleanup disable of low power mode w/ SDIO interrupts
+  mmc: dw_mmc: Protect read-modify-write of INTMASK with a lock
+
+ arch/arm/mach-omap2/board-omap3pandora.c | 14 +++---
+ drivers/mmc/core/mmc.c                   |  6 +++
+ drivers/mmc/core/sd.c                    |  7 ++-
+ drivers/mmc/host/dw_mmc.c                | 79 +++++++++++++++++++-------------
+ drivers/mmc/host/dw_mmc.h                |  1 +
+ include/linux/mmc/dw_mmc.h               |  6 +++
+ 6 files changed, 74 insertions(+), 39 deletions(-)
+
+-- 
+1.8.4
+
