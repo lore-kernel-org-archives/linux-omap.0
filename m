@@ -1,76 +1,88 @@
 From: Daniel Mack <zonque@gmail.com>
-Subject: [PATCH v3 1/5] usb: musb: call musb_port_suspend from musb_bus_suspend
-Date: Fri, 18 Oct 2013 11:39:31 +0200
-Message-ID: <1382089175-13487-2-git-send-email-zonque@gmail.com>
+Subject: [PATCH v3 2/5] usb: musb: conditionally save and restore the context on suspend
+Date: Fri, 18 Oct 2013 11:39:32 +0200
+Message-ID: <1382089175-13487-3-git-send-email-zonque@gmail.com>
 References: <1382089175-13487-1-git-send-email-zonque@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ea0-f174.google.com ([209.85.215.174]:61125 "EHLO
-	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752009Ab3JRJjq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Oct 2013 05:39:46 -0400
+Received: from mail-ee0-f53.google.com ([74.125.83.53]:33154 "EHLO
+	mail-ee0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752009Ab3JRJjr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Oct 2013 05:39:47 -0400
 In-Reply-To: <1382089175-13487-1-git-send-email-zonque@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-usb@vger.kernel.org
 Cc: linux-omap@vger.kernel.org, neumann@teufel.de, bigeasy@linutronix.de, vinod.koul@intel.com, dan.j.williams@intel.com, balbi@ti.com, Daniel Mack <zonque@gmail.com>
 
-Make musb_port_suspend() externally available, and call it when to host
-goes into suspend. This allows the core to go into suspend while a
-device is connected.
+It appears not all platforms featuring a musb core need to save the musb
+core registers at suspend time and restore them on resume.
+
+The dsps platform does, however. So add a bit in struct
+musb_hdrc_platform_data to let platforms specify their need of such
+action being taken.
 
 Signed-off-by: Daniel Mack <zonque@gmail.com>
 ---
- drivers/usb/musb/musb_host.c    | 2 ++
- drivers/usb/musb/musb_host.h    | 2 ++
- drivers/usb/musb/musb_virthub.c | 2 +-
- 3 files changed, 5 insertions(+), 1 deletion(-)
+ drivers/usb/musb/musb_core.c | 17 ++++++++++++++++-
+ include/linux/usb/musb.h     |  1 +
+ 2 files changed, 17 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/usb/musb/musb_host.c b/drivers/usb/musb/musb_host.c
-index 9a2b8c8..2b60596 100644
---- a/drivers/usb/musb/musb_host.c
-+++ b/drivers/usb/musb/musb_host.c
-@@ -2433,6 +2433,8 @@ static int musb_bus_suspend(struct usb_hcd *hcd)
- 	struct musb	*musb = hcd_to_musb(hcd);
- 	u8		devctl;
+diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+index e5ad77d..fea6ecd 100644
+--- a/drivers/usb/musb/musb_core.c
++++ b/drivers/usb/musb/musb_core.c
+@@ -2200,6 +2200,7 @@ static int musb_suspend(struct device *dev)
+ {
+ 	struct musb	*musb = dev_to_musb(dev);
+ 	unsigned long	flags;
++	struct musb_hdrc_platform_data *plat = dev_get_platdata(dev);
  
-+	musb_port_suspend(musb, true);
+ 	spin_lock_irqsave(&musb->lock, flags);
+ 
+@@ -2213,16 +2214,30 @@ static int musb_suspend(struct device *dev)
+ 		 */
+ 	}
+ 
++	if (plat->restore_after_suspend)
++		musb_save_context(musb);
 +
- 	if (!is_host_active(musb))
- 		return 0;
+ 	spin_unlock_irqrestore(&musb->lock, flags);
+ 	return 0;
+ }
  
-diff --git a/drivers/usb/musb/musb_host.h b/drivers/usb/musb/musb_host.h
-index 960d735..e660af9 100644
---- a/drivers/usb/musb/musb_host.h
-+++ b/drivers/usb/musb/musb_host.h
-@@ -92,6 +92,7 @@ extern void musb_host_rx(struct musb *, u8);
- extern void musb_root_disconnect(struct musb *musb);
- extern void musb_host_resume_root_hub(struct musb *musb);
- extern void musb_host_poke_root_hub(struct musb *musb);
-+extern void musb_port_suspend(struct musb *musb, bool do_suspend);
- #else
- static inline struct musb *hcd_to_musb(struct usb_hcd *hcd)
+ static int musb_resume_noirq(struct device *dev)
  {
-@@ -121,6 +122,7 @@ static inline void musb_root_disconnect(struct musb *musb)	{}
- static inline void musb_host_resume_root_hub(struct musb *musb)	{}
- static inline void musb_host_poll_rh_status(struct musb *musb)	{}
- static inline void musb_host_poke_root_hub(struct musb *musb)	{}
-+static inline void musb_port_suspend(struct musb *musb, bool do_suspend) {}
- #endif
+-	/* for static cmos like DaVinci, register values were preserved
++	struct musb	*musb = dev_to_musb(dev);
++	struct musb_hdrc_platform_data *plat = dev_get_platdata(dev);
++
++	/*
++	 * For static cmos like DaVinci, register values were preserved
+ 	 * unless for some reason the whole soc powered down or the USB
+ 	 * module got reset through the PSC (vs just being disabled).
++	 *
++	 * The plaform data tells us about the necessity of saving and
++	 * restoring the context across a suspend cycle.
+ 	 */
++
++	if (plat->restore_after_suspend)
++		musb_restore_context(musb);
++
+ 	return 0;
+ }
  
- struct usb_hcd;
-diff --git a/drivers/usb/musb/musb_virthub.c b/drivers/usb/musb/musb_virthub.c
-index 9af6bba..e977441 100644
---- a/drivers/usb/musb/musb_virthub.c
-+++ b/drivers/usb/musb/musb_virthub.c
-@@ -44,7 +44,7 @@
+diff --git a/include/linux/usb/musb.h b/include/linux/usb/musb.h
+index 053c268..296be6c 100644
+--- a/include/linux/usb/musb.h
++++ b/include/linux/usb/musb.h
+@@ -100,6 +100,7 @@ struct musb_hdrc_platform_data {
+ 	u8		mode;
  
- #include "musb_core.h"
+ 	u8		has_mailbox:1;
++	u8		restore_after_suspend:1;
  
--static void musb_port_suspend(struct musb *musb, bool do_suspend)
-+void musb_port_suspend(struct musb *musb, bool do_suspend)
- {
- 	struct usb_otg	*otg = musb->xceiv->otg;
- 	u8		power;
+ 	/* for clk_get() */
+ 	const char	*clock;
 -- 
 1.8.3.1
 
