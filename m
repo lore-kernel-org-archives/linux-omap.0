@@ -1,80 +1,55 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] set data enable logic level to low
-Date: Fri, 18 Oct 2013 11:01:35 +0300
-Message-ID: <5260EADF.3020804@ti.com>
-References: <1381704273-31540-1-git-send-email-roel.kluin@gmail.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="GSmfgdwrHODDvlJ1e6GXXn8rs1hwK1Vuf"
+From: Daniel Mack <zonque@gmail.com>
+Subject: [PATCH v3 0/5] usb: musb_dsps: support for suspend and resume
+Date: Fri, 18 Oct 2013 11:39:30 +0200
+Message-ID: <1382089175-13487-1-git-send-email-zonque@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:44361 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751107Ab3JRIBl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 18 Oct 2013 04:01:41 -0400
-In-Reply-To: <1381704273-31540-1-git-send-email-roel.kluin@gmail.com>
+Received: from mail-ea0-f178.google.com ([209.85.215.178]:39427 "EHLO
+	mail-ea0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752009Ab3JRJjn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Oct 2013 05:39:43 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Roel Kluin <roel.kluin@gmail.com>
-Cc: Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-usb@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, neumann@teufel.de, bigeasy@linutronix.de, vinod.koul@intel.com, dan.j.williams@intel.com, balbi@ti.com, Daniel Mack <zonque@gmail.com>
 
---GSmfgdwrHODDvlJ1e6GXXn8rs1hwK1Vuf
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+v3 of my musb_dsps suspend patches.
 
-On 14/10/13 01:44, Roel Kluin wrote:
-> Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-> ---
->  drivers/video/omap2/dss/display.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->=20
-> diff --git a/drivers/video/omap2/dss/display.c b/drivers/video/omap2/ds=
-s/display.c
-> index fafe7c9..669a81f 100644
-> --- a/drivers/video/omap2/dss/display.c
-> +++ b/drivers/video/omap2/dss/display.c
-> @@ -266,7 +266,7 @@ void videomode_to_omap_video_timings(const struct v=
-ideomode *vm,
->  		OMAPDSS_SIG_ACTIVE_LOW;
->  	ovt->de_level =3D vm->flags & DISPLAY_FLAGS_DE_HIGH ?
->  		OMAPDSS_SIG_ACTIVE_HIGH :
-> -		OMAPDSS_SIG_ACTIVE_HIGH;
-> +		OMAPDSS_SIG_ACTIVE_LOW;
->  	ovt->data_pclk_edge =3D vm->flags & DISPLAY_FLAGS_PIXDATA_POSEDGE ?
->  		OMAPDSS_DRIVE_SIG_RISING_EDGE :
->  		OMAPDSS_DRIVE_SIG_FALLING_EDGE;
->=20
+With these patches applied, I can successfully bring an AM335x board
+to suspend with a USB media connected, and access it again after
+resume.
 
-Thanks. Next time, please write a patch description and prefix patch
-subject with appropriate string. In this case "OMAPDSS: ..." would be fin=
-e.
+This works for both PIO mode and CPPI41 enabled configurations,
+together with Sebasitian's and my cppi41 patches recently posted.
 
- Tomi
+Felipe, this work was rebased and now applies cleanly on top of
+your current 'next' branch. IOW, on top of "usb: musb: cppi41: allow
+to defer probing if DMA isn't yet available".
 
 
+Thanks,
+Daniel
 
---GSmfgdwrHODDvlJ1e6GXXn8rs1hwK1Vuf
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+v2 -> v3
+	* dropped "usb: musb: move port reset to worker" which is
+	  not crucial for this series.
+	* added another cosmetic cleanup patch (#5)
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+Daniel Mack (5):
+  usb: musb: call musb_port_suspend from musb_bus_suspend
+  usb: musb: conditionally save and restore the context on suspend
+  usb: musb: dsps: add {tx,rx}_mode to wrapper
+  usb: musb: dsps: add support for suspend and resume
+  usb: musb: dsps: indentation and whitespace fixes
 
-iQIcBAEBAgAGBQJSYOrfAAoJEPo9qoy8lh71+i4QALD0NIffphcNESvrrpK4LxA9
-dnk2oTNT/Wx75sjb1gJzBC4ML69M/BkjlGrViOJAX+Klm0nJJMsraap9mjSrkDCj
-humNB9kXHbFmqihiQ1PVFwXJ3QBh84XXCkXo0nT4pAPnFj2CmKP4Ej1Jps3E46vd
-93i1KzIhaKGE90V1Fo8w1b8OShymTHXU/ySFOGjhfuk6z9bneY3BwPAOnwmrz4qe
-W6Pf9uZMgJYmZ6y8dOedn5rp8A5bx3E/zG6Rq/mAigXKE0fVaIJDPtEFgkif5lXd
-0sx3CjMHYZP0pezkYcEu1tNvV0fvxVQ398X/EHwCbvt0qE1Oj1+N+quzGYfC75Bv
-gt7YewAS0NBW+RacMHMe/0FvvAau9rVAXycoI/7+eTzJHGrU5pxAbxdwE2jcUwE+
-v5pm/0sBY611HjgG9MBwJOLz62/liSBskZsMUHWzsV0M9+02ne7I8o+HrVgAlxv0
-CGv1/AGTYKuli6aFog0sCbMF/qbqOwJUsHONu4IZRNVgl3cV6rh8dvPBJGHOhgwE
-zPZYfDFk4Mo/uDrLgyIOnmkvUzqvHVUsK7ARaBvS/keOqRsSK5dfPbubC+9OyWwI
-O8kweGQxlQTnoMCe+tfw9VojJ2haK/y7trfZkCPE25da8cStEsiNFTAVc/ETQM1h
-aZGOOg+/L7EUgutiCd6Z
-=jZ7y
------END PGP SIGNATURE-----
+ drivers/usb/musb/musb_core.c    | 17 +++++++-
+ drivers/usb/musb/musb_core.h    |  1 +
+ drivers/usb/musb/musb_dsps.c    | 86 +++++++++++++++++++++++++++++++++++------
+ drivers/usb/musb/musb_host.c    |  2 +
+ drivers/usb/musb/musb_host.h    |  4 ++
+ drivers/usb/musb/musb_virthub.c |  4 +-
+ include/linux/usb/musb.h        |  1 +
+ 7 files changed, 100 insertions(+), 15 deletions(-)
 
---GSmfgdwrHODDvlJ1e6GXXn8rs1hwK1Vuf--
+-- 
+1.8.3.1
+
