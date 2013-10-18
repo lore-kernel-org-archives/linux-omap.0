@@ -1,177 +1,80 @@
-From: NeilBrown <neilb@suse.de>
-Subject: Re: [PATCH v3 3/4] mmc: omap_hsmmc: Remux pins to support SDIO
- interrupt on AM335x
-Date: Fri, 18 Oct 2013 18:45:52 +1100
-Message-ID: <20131018184552.1c65117d@notabene.brown>
-References: <1380971830-21492-1-git-send-email-afenkart@gmail.com>
-	<1380971830-21492-4-git-send-email-afenkart@gmail.com>
-	<20131018172053.70cf2c2b@notabene.brown>
-	<5260E374.6050804@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH] set data enable logic level to low
+Date: Fri, 18 Oct 2013 11:01:35 +0300
+Message-ID: <5260EADF.3020804@ti.com>
+References: <1381704273-31540-1-git-send-email-roel.kluin@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=PGP-SHA1;
- boundary="Sig_/HqFK.ZmhUn3b7+9jrSjaGRm"; protocol="application/pgp-signature"
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <5260E374.6050804@ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Balaji T K <balajitk@ti.com>
-Cc: Andreas Fenkart <afenkart@gmail.com>, Chris Ball <cjb@laptop.org>, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, Felipe Balbi <balbi@ti.com>, zonque@gmail.com, devicetree-discuss@lists.ozlabs.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="GSmfgdwrHODDvlJ1e6GXXn8rs1hwK1Vuf"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:44361 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751107Ab3JRIBl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 18 Oct 2013 04:01:41 -0400
+In-Reply-To: <1381704273-31540-1-git-send-email-roel.kluin@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Roel Kluin <roel.kluin@gmail.com>
+Cc: Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org
 
---Sig_/HqFK.ZmhUn3b7+9jrSjaGRm
-Content-Type: text/plain; charset=US-ASCII
+--GSmfgdwrHODDvlJ1e6GXXn8rs1hwK1Vuf
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, 18 Oct 2013 12:59:56 +0530 Balaji T K <balajitk@ti.com> wrote:
-
-> On Friday 18 October 2013 11:50 AM, NeilBrown wrote:
-> > On Sat,  5 Oct 2013 13:17:09 +0200 Andreas Fenkart <afenkart@gmail.com>=
- wrote:
-> >
-> >> The am335x can't detect pending cirq in PM runtime suspend.
-> >> This patch reconfigures dat1 as a GPIO before going to suspend.
-> >> SDIO interrupts are detected with the GPIO, while in runtime
-> >> suspend, standard detection of the module block otherwise.
-> >>
-> >> Signed-off-by: Andreas Fenkart <afenkart@gmail.com>
-> >>
-> >> diff --git a/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt b=
-/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
-> >> index 1136e6b..146f3ad 100644
-> >> --- a/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
-> >> +++ b/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
-> >> @@ -21,8 +21,11 @@ ti,non-removable: non-removable slot (like eMMC)
-> >>   ti,needs-special-reset: Requires a special softreset sequence
-> >>   ti,needs-special-hs-handling: HSMMC IP needs special setting for han=
-dling High Speed
-> >>   ti,quirk-swakup-missing: SOC missing the swakeup line, will not dete=
-ct
-> >> -SDIO irq while in suspend. Fallback to polling. Affected chips are
-> >> -am335x,
-> >> +SDIO irq while in suspend. The workaround is to reconfigure the dat1 =
-line as a
-> >> +GPIO upon suspend. Beyond this option and the GPIO config, you also n=
-eed to set
-> >> +named pinctrl states "default", "active" and "idle ", see example bel=
-ow.  The
-> >> +MMC driver will then then toggle between default and idle during the =
-runtime
-> >> +Affected chips are am335x,
-> >>
-> >>                               ------
-> >>                               | PRCM |
-> >> @@ -49,3 +52,24 @@ Example:
-> >>   		vmmc-supply =3D <&vmmc>; /* phandle to regulator node */
-> >>   		ti,non-removable;
-> >>   	};
-> >> +
-> >> +[am335x with with gpio for sdio irq]
-> >> +
-> >> +	mmc1_cirq_pin: pinmux_cirq_pin {
-> >> +		pinctrl-single,pins =3D <
-> >> +			0x0f8 0x3f	/* MMC0_DAT1 as GPIO2_28 */
-> >> +		>;
-> >> +	};
-> >> +
-> >> +	mmc1: mmc@48060000 {
-> >> +		ti,non-removable;
-> >> +		bus-width =3D <4>;
-> >> +		vmmc-supply =3D <&ldo2_reg>;
-> >> +		vmmc_aux-supply =3D <&vmmc>;
-> >> +	        ti,quirk-swakeup-missing;
-> >> +		pinctrl-names =3D "default", "active", "idle";
-> >> +		pinctrl-0 =3D <&mmc1_pins>;
-> >> +		pinctrl-1 =3D <&mmc1_pins>;
-> >> +		pinctrl-2 =3D <&mmc1_cirq_pin>;
-> >> +		ti,cirq-gpio =3D <&gpio3 28 0>;
-> >> +	};
-> >
-> >
-> > hi,
-> >   I've been trying to get SD irq to work on my  OMAP3 DM3730.
-> > I seems to need the magic to catch interrupts while FCLK is off, as
-> > the only way I can get it to work at the moment is to keep FCLK on.
-> >
-> > I discovered your patch and tried it out, but it doesn't seem to work f=
-or me.
-> >
-> > I have a Libertas WIFI chip attached to the second mmc (which is someti=
-mes
-> > called mmc1, and sometimes mmc2 - very confusing!).
-> > I added:
-> > 	mmc2_cirq_pin: pinmux_cirq_pin {
-> > 		pinctrl-single,pins =3D <
-> > 			0x012e (PIN_INPUT_PULLUP | MUX_MODE4)	/* MMC2_DAT1 as GPIO5_5 */
-> > 		>;
-> > 	};
-> >
-> > and
-> >
-> > &mmc2 {
-> > 	ti,quirk-swakeup-missing;
-> > 	pinctrl-names =3D "default", "active", "idle";
-> > 	pinctrl-0 =3D <&mmc2_pins>;
-> > 	pinctrl-1 =3D <&mmc2_pins>;
-> > 	pinctrl-2 =3D <&mmc2_cirq_pin>;
-> > 	ti,cirq-gpio =3D <&gpio5 5 0>; /* GPIO133 =3D 128+5 */
-> > };
-> >
-> > to my dts file but it doesn't make any apparent difference.
-> >
-> > Any idea what I might be doing wrong?
-> > (the base kernel I am applying patches to is from 8th Oct,
-> >   commit 0e7a3ed04f0cd4311096d691888f88569310ee6c)
-> >
-> > BTW,
-> >   - with the default polling, I get about 1Mb/sec with iperf
-> >   - with sd-irq enabled and FCLK kept on the whole time, I get 4Mb/sec
-> >   - with sd-irq enable, FCLK kept on, and the 5ms polling also
-> >     running, I get over 5Mb/sec!
-> > Still much less than the 40Mb/sec that I would like to get...
-> >
-> (removing svenkatr@ti.com)
+On 14/10/13 01:44, Roel Kluin wrote:
+> Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+> ---
+>  drivers/video/omap2/dss/display.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 >=20
-> Hi,
+> diff --git a/drivers/video/omap2/dss/display.c b/drivers/video/omap2/ds=
+s/display.c
+> index fafe7c9..669a81f 100644
+> --- a/drivers/video/omap2/dss/display.c
+> +++ b/drivers/video/omap2/dss/display.c
+> @@ -266,7 +266,7 @@ void videomode_to_omap_video_timings(const struct v=
+ideomode *vm,
+>  		OMAPDSS_SIG_ACTIVE_LOW;
+>  	ovt->de_level =3D vm->flags & DISPLAY_FLAGS_DE_HIGH ?
+>  		OMAPDSS_SIG_ACTIVE_HIGH :
+> -		OMAPDSS_SIG_ACTIVE_HIGH;
+> +		OMAPDSS_SIG_ACTIVE_LOW;
+>  	ovt->data_pclk_edge =3D vm->flags & DISPLAY_FLAGS_PIXDATA_POSEDGE ?
+>  		OMAPDSS_DRIVE_SIG_RISING_EDGE :
+>  		OMAPDSS_DRIVE_SIG_FALLING_EDGE;
 >=20
-> Can you check if you have bus-width property set ?
-> 	bus-width =3D <4>;
->=20
->
-Yes I do.
-as well as the settings above I have:
 
-	vmmc-supply =3D <&vaux4>;
-	bus-width =3D <4>;
-	ti,non-removable;
-	cap-power-off-card;
+Thanks. Next time, please write a patch description and prefix patch
+subject with appropriate string. In this case "OMAPDSS: ..." would be fin=
+e.
+
+ Tomi
 
 
-vaux4 is from a twl4030 and powers the wifi chip.
-'cap-power-off-card' I added support for myself to so the card would power
-off when not in use.
 
-Thanks,
-NeilBrown
-
---Sig_/HqFK.ZmhUn3b7+9jrSjaGRm
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
+--GSmfgdwrHODDvlJ1e6GXXn8rs1hwK1Vuf
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.19 (GNU/Linux)
+Version: GnuPG v1.4.12 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIVAwUBUmDnPTnsnt1WYoG5AQIxRg//Ydrldz3H2v7xltx8IUe0h2b66/HbTZJr
-gTgJE5KxLeiLajAQPr5Rvm+ohAzWrdkyYnLjA+vAmOI2JA0cCwn9jJ9PDyov5CcH
-he2lscxDzxrXz7Ae7JxRPWYDQwlvMkQbNDE+BTuUZCCg4PGxPP4lvyGJRGIc32Fh
-+o8mr+99UHCREjA79gi7tol913mzoCHU5hSfkV/jCz4lURcn2rMrrmMsc+0Ie54e
-WVRRM2ZBDYyWvzLobcd558oy3dSJmuSO1SLah0TtdSyfodDfFapnyn1rVGPL9Uc0
-0PYnD2vBC7Vd1xZ/EPbcSf25CY3kUC52u0ukvJ8rp494ZbSvdLsK/PKWQX9t2yTe
-Jpw6WYHHSOweDjHXO4C30E+qoa904zuQqCmVhda3utawIySeOxWLG9kbW1OFJI+w
-0ixBQGYLFE5CoR3nw45/EWvCUGf/w0PDcNKM9mTfbeBhjNXbzdB6MO1acjRn2ba+
-3pM949IMpc8CHBpIgzleYw7Hw7CuEe4zCBylQKZrkII4wDYQ4lQpcH49rINbw3l3
-2R7RUgRB8PzSTC7hb7DMpH4O4XnywKIaGlUT00GL1eaeFC30WdjIk2IkvYTVZOjR
-lYBTRCecccTP+AdSOcoWsZBQqGbx7N4gOP0t9niPMYPj5lKSCFT9T/q1EvHRGxrd
-fEXC8MZrZxk=
-=G1I7
+iQIcBAEBAgAGBQJSYOrfAAoJEPo9qoy8lh71+i4QALD0NIffphcNESvrrpK4LxA9
+dnk2oTNT/Wx75sjb1gJzBC4ML69M/BkjlGrViOJAX+Klm0nJJMsraap9mjSrkDCj
+humNB9kXHbFmqihiQ1PVFwXJ3QBh84XXCkXo0nT4pAPnFj2CmKP4Ej1Jps3E46vd
+93i1KzIhaKGE90V1Fo8w1b8OShymTHXU/ySFOGjhfuk6z9bneY3BwPAOnwmrz4qe
+W6Pf9uZMgJYmZ6y8dOedn5rp8A5bx3E/zG6Rq/mAigXKE0fVaIJDPtEFgkif5lXd
+0sx3CjMHYZP0pezkYcEu1tNvV0fvxVQ398X/EHwCbvt0qE1Oj1+N+quzGYfC75Bv
+gt7YewAS0NBW+RacMHMe/0FvvAau9rVAXycoI/7+eTzJHGrU5pxAbxdwE2jcUwE+
+v5pm/0sBY611HjgG9MBwJOLz62/liSBskZsMUHWzsV0M9+02ne7I8o+HrVgAlxv0
+CGv1/AGTYKuli6aFog0sCbMF/qbqOwJUsHONu4IZRNVgl3cV6rh8dvPBJGHOhgwE
+zPZYfDFk4Mo/uDrLgyIOnmkvUzqvHVUsK7ARaBvS/keOqRsSK5dfPbubC+9OyWwI
+O8kweGQxlQTnoMCe+tfw9VojJ2haK/y7trfZkCPE25da8cStEsiNFTAVc/ETQM1h
+aZGOOg+/L7EUgutiCd6Z
+=jZ7y
 -----END PGP SIGNATURE-----
 
---Sig_/HqFK.ZmhUn3b7+9jrSjaGRm--
+--GSmfgdwrHODDvlJ1e6GXXn8rs1hwK1Vuf--
