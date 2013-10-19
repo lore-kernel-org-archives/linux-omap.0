@@ -1,47 +1,34 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] urgent omap related x86 pinctrl build fix for v3.13 merge
- window
-Date: Fri, 18 Oct 2013 17:26:32 -0700
-Message-ID: <7726.74662662229$1382142435@news.gmane.org>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [GIT PULL] urgent omap related x86 pinctrl build fix for v3.13
+ merge window
+Date: Fri, 18 Oct 2013 17:32:56 -0700
+Message-ID: <CAOesGMgEOZT9MygxDfYgHa2qOQU77ibW4zKZO1cwVD-g7RpMgQ@mail.gmail.com>
+References: <5261d1f8.c348b40a.5cc9.08f4SMTPIN_ADDED_BROKEN@mx.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: arm@kernel.org, Arnd Bergmann <arnd@arndb.de>, Kevin Hilman <khilman@linaro.org>, Olof Johansson <olof@lixom.net>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-qa0-f42.google.com ([209.85.216.42]:34965 "EHLO
+	mail-qa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752930Ab3JSAc4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Oct 2013 20:32:56 -0400
+Received: by mail-qa0-f42.google.com with SMTP id w8so1205048qac.1
+        for <linux-omap@vger.kernel.org>; Fri, 18 Oct 2013 17:32:56 -0700 (PDT)
+In-Reply-To: <5261d1f8.c348b40a.5cc9.08f4SMTPIN_ADDED_BROKEN@mx.google.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "arm@kernel.org" <arm@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Kevin Hilman <khilman@linaro.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-The following changes since commit dc7743aa3c49fabbc6dc9edbcf7df74d776ac32e:
+On Fri, Oct 18, 2013 at 5:26 PM, Tony Lindgren <tony@atomide.com> wrote:
+> The following changes since commit dc7743aa3c49fabbc6dc9edbcf7df74d776ac32e:
+>
+>   pinctrl: single: Add support for auxdata (2013-10-10 15:30:47 -0700)
+>
+> are available in the git repository at:
+>
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.13/pinctrl-fix
 
-  pinctrl: single: Add support for auxdata (2013-10-10 15:30:47 -0700)
+Pulled (into next/dt with the branch that introduced the problem)
 
-are available in the git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.13/pinctrl-fix
-
-for you to fetch changes up to 1b9c0fb365cbb1154f4e7997061db972cbf58300:
-
-  pinctrl: single: Fix build when not built on ARM (2013-10-18 16:43:06 -0700)
-
-----------------------------------------------------------------
-Looks like I managed to break the x86 build for some
-configs. Here's a fix for that on top of the pinctrl
-changes already merged with the signed tag
-omap-for-v3.13/quirk-signed.
-
-----------------------------------------------------------------
-Tony Lindgren (1):
-      pinctrl: single: Fix build when not built on ARM
-
- drivers/pinctrl/pinctrl-single.c | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+-Olof
