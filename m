@@ -1,131 +1,122 @@
-From: Pekon Gupta <pekon-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v10 02/10] mtd: nand: omap: combine different flavours of 1-bit hamming ecc schemes
-Date: Sat, 19 Oct 2013 14:14:06 +0530
-Message-ID: <1382172254-12448-3-git-send-email-pekon@ti.com>
+From: Pekon Gupta <pekon@ti.com>
+Subject: [PATCH v10 04/10] mtd: nand: omap: fix device scan: NAND_CMD_READID, NAND_CMD_RESET, CMD_CMD_PARAM use only x8 bus
+Date: Sat, 19 Oct 2013 14:14:08 +0530
+Message-ID: <1382172254-12448-5-git-send-email-pekon@ti.com>
 References: <1382172254-12448-1-git-send-email-pekon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1382172254-12448-1-git-send-email-pekon-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: mark.rutland-5wv7dgnIgG8@public.gmane.org, olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org, computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, dedekind1-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
-Cc: robherring2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, Pawel.Moll-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, avinashphilipk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jp.francois-JOfcSVQZ0GHQT0dZR+AlfA@public.gmane.org, ivan.djelic-ITF29qwbsa/QT0dZR+AlfA@public.gmane.org, Pekon Gupta <pekon-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:52864 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751572Ab3JSIpb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 19 Oct 2013 04:45:31 -0400
+In-Reply-To: <1382172254-12448-1-git-send-email-pekon@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: mark.rutland@arm.com, olof@lixom.net, computersforpeace@gmail.com, dedekind1@gmail.com
+Cc: robherring2@gmail.com, Pawel.Moll@arm.com, ijc+devicetree@hellion.org.uk, swarren@wwwdotorg.org, dwmw2@infradead.org, arnd@arndb.de, tony@atomide.com, bcousson@baylibre.com, avinashphilipk@gmail.com, balbi@ti.com, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, jp.francois@cynove.com, ivan.djelic@parrot.com, Pekon Gupta <pekon@ti.com>
 
-OMAP NAND driver currently supports multiple flavours of 1-bit Hamming
-ecc-scheme, like:
-- OMAP_ECC_HAMMING_CODE_DEFAULT
-	1-bit hamming ecc code using software library
-- OMAP_ECC_HAMMING_CODE_HW
-	1-bit hamming ecc-code using GPMC h/w engine
-- OMAP_ECC_HAMMING_CODE_HW_ROMCODE
-	1-bit hamming ecc-code using GPMC h/w engin with ecc-layout compatible
-	to ROM code.
+As per comments below, NAND_CMD_RESET, NAND_CMD_READID, and NAND_CMD_PARAM would
+work only in x8 mode.
+    commit 64b37b2a63eb2f80b65c7185f0013f8ffc637ae3
+    Author:     Matthieu CASTET <matthieu.castet@parrot.com>
+    AuthorDate: 2012-11-06
+    Note that nand_scan_ident send command (NAND_CMD_RESET, NAND_CMD_READID, NAND_CMD_PARAM), address and read data
+    The ONFI specificication is not very clear for x16 device if high byte of address should be driven to 0,
+    but according to [1] it should be ok to not drive it during autodetection.
 
-This patch combines above multiple ecc-schemes into single implementation:
-- OMAP_ECC_HAM1_CODE_HW
-	1-bit hamming ecc-code using GPMC h/w engine with ROM-code compatible
-	ecc-layout.
+    [1]
+    3.3.2. Target Initialization
 
-Signed-off-by: Pekon Gupta <pekon-l0cyMroinI0@public.gmane.org>
-Reviewed-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+    [...]
+    The Read ID and Read Parameter Page commands only use the lower 8-bits of the data bus.
+    The host shall not issue commands that use a word data width on x16 devices until the host
+    determines the device supports a 16-bit data bus width in the parameter page.
+
+Thus this patch run nand_scan_ident() with driver configured as x8 device.
+Once the NAND device is detected, and its ONFI params are read, the driver
+is re-configured based on device-width as passed by DT bindinig 'nand-bus-width'
+
+In-case there is a mis-match between the DT binding 'nand-bus-width' and actual
+device-width detected during nand_get_flash_type() then probe returns failure.
+
+All other low-level callback updates happen after the device detection.
+
+Signed-off-by: Pekon Gupta <pekon@ti.com>
 ---
- Documentation/devicetree/bindings/mtd/gpmc-nand.txt | 8 ++++----
- arch/arm/mach-omap2/board-flash.c                   | 2 +-
- drivers/mtd/nand/omap2.c                            | 9 +++------
- include/linux/platform_data/mtd-nand-omap2.h        | 7 +------
- 4 files changed, 9 insertions(+), 17 deletions(-)
+ drivers/mtd/nand/omap2.c | 45 +++++++++++++++++++++++++++++++++------------
+ 1 file changed, 33 insertions(+), 12 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
-index bfe07e1..5e1f31b 100644
---- a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
-+++ b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
-@@ -22,10 +22,10 @@ Optional properties:
- 				width of 8 is assumed.
- 
-  - ti,nand-ecc-opt:		A string setting the ECC layout to use. One of:
--
--		"sw"		Software method (default)
--		"hw"		Hardware method
--		"hw-romcode"	gpmc hamming mode method & romcode layout
-+		"sw"		<deprecated> use "ham1" instead
-+		"hw"		<deprecated> use "ham1" instead
-+		"hw-romcode"	<deprecated> use "ham1" instead
-+		"ham1"		1-bit Hamming ecc code
- 		"bch4"		4-bit BCH ecc code
- 		"bch8"		8-bit BCH ecc code
- 
-diff --git a/arch/arm/mach-omap2/board-flash.c b/arch/arm/mach-omap2/board-flash.c
-index fc20a61..ac82512 100644
---- a/arch/arm/mach-omap2/board-flash.c
-+++ b/arch/arm/mach-omap2/board-flash.c
-@@ -142,7 +142,7 @@ __init board_nand_init(struct mtd_partition *nand_parts, u8 nr_parts, u8 cs,
- 	board_nand_data.nr_parts	= nr_parts;
- 	board_nand_data.devsize		= nand_type;
- 
--	board_nand_data.ecc_opt = OMAP_ECC_HAMMING_CODE_DEFAULT;
-+	board_nand_data.ecc_opt = OMAP_ECC_BCH8_CODE_HW;
- 	gpmc_nand_init(&board_nand_data, gpmc_t);
- }
- #endif /* CONFIG_MTD_NAND_OMAP2 || CONFIG_MTD_NAND_OMAP2_MODULE */
 diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-index 4ecf0e5..8d521aa 100644
+index 5596368..d29edda 100644
 --- a/drivers/mtd/nand/omap2.c
 +++ b/drivers/mtd/nand/omap2.c
-@@ -1993,10 +1993,7 @@ static int omap_nand_probe(struct platform_device *pdev)
+@@ -1856,7 +1856,6 @@ static int omap_nand_probe(struct platform_device *pdev)
+ 	mtd->name		= dev_name(&pdev->dev);
+ 	mtd->owner		= THIS_MODULE;
+ 	nand_chip		= &info->nand;
+-	nand_chip->options	= pdata->devsize;
+ 	nand_chip->options	|= NAND_SKIP_BBTSCAN;
+ #ifdef CONFIG_MTD_NAND_OMAP_BCH
+ 	info->of_node		= pdata->of_node;
+@@ -1904,6 +1903,39 @@ static int omap_nand_probe(struct platform_device *pdev)
+ 		nand_chip->chip_delay = 50;
  	}
  
- 	/* select the ecc type */
--	if (pdata->ecc_opt == OMAP_ECC_HAMMING_CODE_DEFAULT)
--		info->nand.ecc.mode = NAND_ECC_SOFT;
--	else if ((pdata->ecc_opt == OMAP_ECC_HAMMING_CODE_HW) ||
--		(pdata->ecc_opt == OMAP_ECC_HAMMING_CODE_HW_ROMCODE)) {
-+	if (pdata->ecc_opt == OMAP_ECC_HAM1_CODE_HW) {
- 		info->nand.ecc.bytes            = 3;
- 		info->nand.ecc.size             = 512;
- 		info->nand.ecc.strength         = 1;
-@@ -2025,7 +2022,7 @@ static int omap_nand_probe(struct platform_device *pdev)
- 	}
- 
- 	/* rom code layout */
--	if (pdata->ecc_opt == OMAP_ECC_HAMMING_CODE_HW_ROMCODE) {
-+	if (pdata->ecc_opt == OMAP_ECC_HAM1_CODE_HW) {
- 
- 		if (info->nand.options & NAND_BUSWIDTH_16)
- 			offset = 2;
-@@ -2033,7 +2030,7 @@ static int omap_nand_probe(struct platform_device *pdev)
- 			offset = 1;
- 			info->nand.badblock_pattern = &bb_descrip_flashbased;
++	/* scan NAND device connected to chip controller */
++	/* configure driver in x8 mode to read ONFI parameter page, as
++	 * NAND_CMD_READID & NAND_CMD_PARAM may not work in x16 mode */
++	nand_chip->options &= ~NAND_BUSWIDTH_16;
++	if (nand_scan_ident(mtd, 1, NULL)) {
++		/* nand_scan_ident failed */
++		if (pdata->devsize) {
++			/* may be because of mis-match of device-width,
++			 * platform data (DT binding) also says its x16 device
++			 * So re-scan with proper device-width */
++			nand_chip->options |= pdata->devsize;
++			if (nand_scan_ident(mtd, 1, NULL)) {
++				err = -ENXIO;
++				goto out_release_mem_region;
++			}
++		} else {
++			/* some genuine failure, because even platform-data
++			 * (DT binding) says that bus-width is x8 */
++			err = -ENXIO;
++			goto out_release_mem_region;
++		}
++	} else {
++		/* nand_scan_ident passed with x8 mode */
++		if (pdata->devsize) {
++			/* but platform-data (DT binding) say its x16 device */
++			pr_err("%s: incorrect bus-width config\n", DRIVER_NAME);
++			err = -EINVAL;
++			err = -ENXIO;
++			goto out_release_mem_region;
++		}
++	}
++
++	/* re-populate low-level callbacks based on xfer modes */
+ 	switch (pdata->xfer_type) {
+ 	case NAND_OMAP_PREFETCH_POLLED:
+ 		nand_chip->read_buf   = omap_read_buf_pref;
+@@ -2011,17 +2043,6 @@ static int omap_nand_probe(struct platform_device *pdev)
  		}
--		omap_oobinfo.eccbytes = 3 * (info->mtd.oobsize/16);
-+		omap_oobinfo.eccbytes = 3 * (info->mtd.writesize / 512);
- 		for (i = 0; i < omap_oobinfo.eccbytes; i++)
- 			omap_oobinfo.eccpos[i] = i+offset;
+ 	}
  
-diff --git a/include/linux/platform_data/mtd-nand-omap2.h b/include/linux/platform_data/mtd-nand-omap2.h
-index e4128f1..4da5bfa 100644
---- a/include/linux/platform_data/mtd-nand-omap2.h
-+++ b/include/linux/platform_data/mtd-nand-omap2.h
-@@ -23,13 +23,8 @@ enum nand_io {
- };
+-	/* DIP switches on some boards change between 8 and 16 bit
+-	 * bus widths for flash.  Try the other width if the first try fails.
+-	 */
+-	if (nand_scan_ident(mtd, 1, NULL)) {
+-		nand_chip->options ^= NAND_BUSWIDTH_16;
+-		if (nand_scan_ident(mtd, 1, NULL)) {
+-			err = -ENXIO;
+-			goto out_release_mem_region;
+-		}
+-	}
+-
+ 	/* rom code layout */
+ 	if (pdata->ecc_opt == OMAP_ECC_HAM1_CODE_HW) {
  
- enum omap_ecc {
--		/* 1-bit ecc: stored at end of spare area */
--	OMAP_ECC_HAMMING_CODE_DEFAULT = 0, /* Default, s/w method */
--	OMAP_ECC_HAMMING_CODE_HW, /* gpmc to detect the error */
--		/* 1-bit ecc: stored at beginning of spare area as romcode */
--	OMAP_ECC_HAMMING_CODE_HW_ROMCODE, /* gpmc method & romcode layout */
- 	/* 1-bit  ECC calculation by GPMC, Error detection by Software */
--	OMAP_ECC_HAM1_CODE_HW,
-+	OMAP_ECC_HAM1_CODE_HW = 0,
- 	/* 4-bit  ECC calculation by GPMC, Error detection by Software */
- 	OMAP_ECC_BCH4_CODE_HW_DETECTION_SW,
- 	/* 4-bit  ECC calculation by GPMC, Error detection by ELM */
 -- 
 1.8.1
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
