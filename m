@@ -1,90 +1,45 @@
-From: Benoit Cousson <bcousson@baylibre.com>
-Subject: Re: [PATCH v5 DTS 0/4] Fix AM335x-evm analog audio support
-Date: Sun, 20 Oct 2013 19:14:30 +0200
-Message-ID: <52640F76.7060208@baylibre.com>
-References: <52615C70.30307@baylibre.com> <cover.1382288454.git.jsarha@ti.com>
+From: Balaji T K <balajitk@ti.com>
+Subject: [PATCH v2 0/6] mmc: omap_hsmmc: start using generic non-removable DT binding
+Date: Mon, 21 Oct 2013 00:19:53 +0530
+Message-ID: <1382294999-18790-1-git-send-email-balajitk@ti.com>
+References: <1381936707-10336-1-git-send-email-balajitk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f178.google.com ([209.85.212.178]:35644 "EHLO
-	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751085Ab3JTROe (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 20 Oct 2013 13:14:34 -0400
-Received: by mail-wi0-f178.google.com with SMTP id hn9so2985279wib.5
-        for <linux-omap@vger.kernel.org>; Sun, 20 Oct 2013 10:14:33 -0700 (PDT)
-In-Reply-To: <cover.1382288454.git.jsarha@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <1381936707-10336-1-git-send-email-balajitk@ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: bcousson@baylibre.com, devicetree@vger.kernel.org, linux-mmc@vger.kernel.org, cjb@laptop.org, uri.y@variscite.com, mark.rutland@arm.com
+Cc: linux-omap@vger.kernel.org, Balaji T K <balajitk@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Jyri Sarha <jsarha@ti.com>, alsa-devel@alsa-project.org, devicetree@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, broonie@kernel.org, joelf@ti.com
 
-Hi Jyri,
+start using generic non-removable DT binding and few cleanups for
+am335x-boneblack.dts and omap4-var-som.dts. Dropped changes for omap4-sdp and
+omap4-panda-common.dtsi from Sekhar Nori's series [1] as non-removable already
+exist for mmc5 on omap4-sdp and omap4-panda-common.dtsi
+and ti,non-removable is needed for eMMC detection during boot on omap4-sdp.
 
-On 20/10/2013 19:04, Jyri Sarha wrote:
-> Hi Benoit,
-> I rebased the DTS patches on top of
-> git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.=
-git
-> for_3.13/dts -branch
-> and tested the result. Hope that was the right branch.
+[1]
+http://comments.gmane.org/gmane.linux.kernel.mmc/22424
 
-Yes, thanks for the update.
+Balaji T K (3):
+  ARM: dts: dra7-evm: mark eMMC as non removable
+  ARM: dts: am335x-boneblack: remove unused ti,vcc-aux-disable-is-sleep
+  ARM: dts: omap4-var-som: fix bus-width
 
-I've just applied the patches.
+Sekhar Nori (3):
+  mmc: omap_hsmmc: start using generic non-removable DT binding
+  ARM: dts: OMAP4/5: start using generic binding for non-removable mmc
+    cards
+  ARM: dts: am335x-boneblack: mark eMMC as non removable
 
-Regards,
-Benoit
+ .../devicetree/bindings/mmc/ti-omap-hsmmc.txt      |    4 +++-
+ arch/arm/boot/dts/am335x-boneblack.dts             |    2 +-
+ arch/arm/boot/dts/dra7-evm.dts                     |    1 +
+ arch/arm/boot/dts/omap4-var-som.dts                |    4 ++--
+ arch/arm/boot/dts/omap5-uevm.dts                   |    4 ++--
+ drivers/mmc/host/omap_hsmmc.c                      |    2 ++
+ 6 files changed, 11 insertions(+), 6 deletions(-)
 
->
-> The DTS patches can also be pulled from:
-> git://git.ti.com/~jyrisarha/ti-linux-kernel/jyrisarhas-audio-video-li=
-nux-feature-tree.git
-> for_bcousson/for_3.13/dts -branch
->
-> The non DTS patches rebased on top of v3.12-rc5 can be pulled from he=
-re:
-> git://git.ti.com/~jyrisarha/ti-linux-kernel/jyrisarhas-audio-video-li=
-nux-feature-tree.git
-> v3.12-rc5-am33xx-audio-patch-v5-no-dts -branch
->
-> The the full patch series can be found here:
-> http://mailman.alsa-project.org/pipermail/alsa-devel/2013-October/067=
-443.html
->
-> Best regards,
-> Jyri
->
-> Darren Etheridge (1):
->    ARM/dts: am335x-evm: Add audio support for am335x-evm.dts
->
-> Jyri Sarha (1):
->    ARM/dts: am33xx: mcasp: Add location for data port registers to
->      reg-property
->
-> Pantelis Antoniou (1):
->    ARM/dts: am33xx: Add mcasp0 and mcasp1 device tree entries
->
-> Peter Ujfalusi (1):
->    ARM/dts: am335x-evmsk: Audio support
->
->   arch/arm/boot/dts/am335x-evm.dts   |   50 +++++++++++++++++++++++++=
-+++++++++++
->   arch/arm/boot/dts/am335x-evmsk.dts |   48 +++++++++++++++++++++++++=
-+++++++++
->   arch/arm/boot/dts/am33xx.dtsi      |   28 ++++++++++++++++++++
->   3 files changed, 126 insertions(+)
->
+-- 
+1.7.5.4
 
-
---=20
-Beno=EEt Cousson
-BayLibre
-Embedded Linux Technology Lab
-www.baylibre.com
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
