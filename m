@@ -1,49 +1,59 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] ARM: OMAP2+: CM/SCM: clean up direct register
- accesses
-Date: Sun, 20 Oct 2013 09:36:09 -0700
-Message-ID: <20131020163609.GX15154@atomide.com>
-References: <alpine.DEB.2.02.1310191709220.11676@utopia.booyaka.com>
+From: Jyri Sarha <jsarha@ti.com>
+Subject: [PATCH v5 DTS 0/4] Fix AM335x-evm analog audio support
+Date: Sun, 20 Oct 2013 20:04:07 +0300
+Message-ID: <cover.1382288454.git.jsarha@ti.com>
+References: <52615C70.30307@baylibre.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:29970 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751231Ab3JTQgM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 20 Oct 2013 12:36:12 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.02.1310191709220.11676@utopia.booyaka.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:40795 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750950Ab3JTREX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 20 Oct 2013 13:04:23 -0400
+In-Reply-To: <52615C70.30307@baylibre.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: alsa-devel@alsa-project.org, devicetree@vger.kernel.org, bcousson@baylibre.com
+Cc: linux-omap@vger.kernel.org, broonie@kernel.org, joelf@ti.com, Jyri Sarha <jsarha@ti.com>
 
-* Paul Walmsley <paul@pwsan.com> [131019 10:11]:
-> Hi Tony,
-> 
-> The following changes since commit d0e639c9e06d44e713170031fe05fb60ebe680af:
-> 
->   Linux 3.12-rc4 (2013-10-06 14:00:20 -0700)
-> 
-> are available in the git repository at:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/for-v3.13/cm-scm-cleanup-a
-> 
-> for you to fetch changes up to 49e03402327ab69a26f604398982ef14123900a2:
-> 
->   ARM: OMAP3: control: add API for setting IVA bootmode (2013-10-19 10:11:52 -0600)
-> 
-> ----------------------------------------------------------------
-> Move some of the OMAP2+ CM and System Control Module direct
-> register accesses into CM- and System Control
-> Module-specific "drivers" underneath arch/arm/mach-omap2/.  This
-> is a prerequisite for moving this code out of arch/arm/mach-omap2/ into
-> drivers/.
-> 
-> Basic test logs are available here:
-> 
-> http://www.pwsan.com/omap/testlogs/cm_scm_cleanup_a_v3.13/20131019101809/
+Hi Benoit,
+I rebased the DTS patches on top of 
+git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git 
+for_3.13/dts -branch
+and tested the result. Hope that was the right branch.
 
-Thanks, pulling into omap-for-v3.13/cm-scm-cleanup.
+The DTS patches can also be pulled from:
+git://git.ti.com/~jyrisarha/ti-linux-kernel/jyrisarhas-audio-video-linux-feature-tree.git
+for_bcousson/for_3.13/dts -branch
 
-Tony
+The non DTS patches rebased on top of v3.12-rc5 can be pulled from here:
+git://git.ti.com/~jyrisarha/ti-linux-kernel/jyrisarhas-audio-video-linux-feature-tree.git
+v3.12-rc5-am33xx-audio-patch-v5-no-dts -branch
+
+The the full patch series can be found here:
+http://mailman.alsa-project.org/pipermail/alsa-devel/2013-October/067443.html
+
+Best regards,
+Jyri
+
+Darren Etheridge (1):
+  ARM/dts: am335x-evm: Add audio support for am335x-evm.dts
+
+Jyri Sarha (1):
+  ARM/dts: am33xx: mcasp: Add location for data port registers to
+    reg-property
+
+Pantelis Antoniou (1):
+  ARM/dts: am33xx: Add mcasp0 and mcasp1 device tree entries
+
+Peter Ujfalusi (1):
+  ARM/dts: am335x-evmsk: Audio support
+
+ arch/arm/boot/dts/am335x-evm.dts   |   50 ++++++++++++++++++++++++++++++++++++
+ arch/arm/boot/dts/am335x-evmsk.dts |   48 ++++++++++++++++++++++++++++++++++
+ arch/arm/boot/dts/am33xx.dtsi      |   28 ++++++++++++++++++++
+ 3 files changed, 126 insertions(+)
+
+-- 
+1.7.9.5
+
