@@ -1,89 +1,69 @@
-From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: [net PATCH 1/1] drivers: net: cpsw: fix kernel warn during iperf test with interrupt pacing
-Date: Sun, 20 Oct 2013 12:32:26 +0530
-Message-ID: <1382252546-16382-1-git-send-email-mugunthanvnm@ti.com>
+From: Javier Martinez Canillas <martinez.javier@gmail.com>
+Subject: Re: [PATCH 0/3] ARM: dts: omap3-igep MMC updates for v3.13
+Date: Sun, 20 Oct 2013 13:09:07 +0200
+Message-ID: <CAAwP0s0hK3ExXatt+sfs96G-5rxhWvmVxCmFBGt5mLPu=dXyPg@mail.gmail.com>
+References: <1382212448-31094-1-git-send-email-eballetbo@gmail.com> <CAAwP0s1nZySOeTBpuE12j=RS+oN4jdRdK-hn9Gsecr86_S6p6Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:54349 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750970Ab3JTHCp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 20 Oct 2013 03:02:45 -0400
+Received: from mail-ie0-f171.google.com ([209.85.223.171]:54363 "EHLO
+	mail-ie0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751144Ab3JTLJ2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 20 Oct 2013 07:09:28 -0400
+Received: by mail-ie0-f171.google.com with SMTP id tp5so9616891ieb.16
+        for <linux-omap@vger.kernel.org>; Sun, 20 Oct 2013 04:09:27 -0700 (PDT)
+In-Reply-To: <CAAwP0s1nZySOeTBpuE12j=RS+oN4jdRdK-hn9Gsecr86_S6p6Q@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: netdev@vger.kernel.org
-Cc: davem@davemloft.net, linux-omap@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>, Sebastian Siewior <bigeasy@linutronix.de>
+To: Enric Balletbo i Serra <eballetbo@gmail.com>, Benoit Cousson <bcousson@baylibre.com>
+Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-When interrupt pacing is enabled, receive/transmit statistics are not
-updated properly by hardware which leads to ISR return with IRQ_NONE
-and inturn kernel disables the interrupt. This patch removed the checking
-of receive/transmit statistics from ISR.
+On Sun, Oct 20, 2013 at 1:25 AM, Javier Martinez Canillas
+<martinez.javier@gmail.com> wrote:
+> [cc'ing current Benoit's address instead of the old one]
+>
+> On Sat, Oct 19, 2013 at 9:54 PM, Enric Balletbo i Serra
+> <eballetbo@gmail.com> wrote:
+>> Hi Benoit,
+>>
+>> This series are some updates for IGEP boards that would be great if can make
+>> it for v3.13 (not sure if merge window is already closed as I saw your last
+>> pull request).
+>>
+>> The first patch is fix for mmc1 that should be configured for 4 bits not 8,
+>> the second patch add support for the WiFi module connected to MMC2 SDIO
+>> interface, and the third patch, updates the default processor to AM/DM37x
+>> as most of the boards uses this processor instead of the old OMAP353x.
+>>
+>> Best regards,
+>>
+>
+> Hi Enric,
+>
+> Thanks a lot for this patch-set. I don't have access to my IGEP board
+> right now so I can't give a try but will do as soon as possible.
+>
+> I've just two minors nits that I commented on the individual patches
+> but I'm not sure if those justifies a v2 so:
+>
+> Reviewed-by: Javier Martinez Canillas <javier@collabora.co.uk>
 
-This patch is verified with AM335x Beagle Bone Black and below is the
-kernel warn when interrupt pacing is enabled.
+I also could test these patches and are working correctly.
 
-[  104.298254] irq 58: nobody cared (try booting with the "irqpoll" option)
-[  104.305356] CPU: 0 PID: 1073 Comm: iperf Not tainted 3.12.0-rc3-00342-g77d4015 #3
-[  104.313284] [<c001bb84>] (unwind_backtrace+0x0/0xf0) from [<c0017db0>] (show_stack+0x10/0x14)
-[  104.322282] [<c0017db0>] (show_stack+0x10/0x14) from [<c0507920>] (dump_stack+0x78/0x94)
-[  104.330816] [<c0507920>] (dump_stack+0x78/0x94) from [<c0088c1c>] (__report_bad_irq+0x20/0xc0)
-[  104.339889] [<c0088c1c>] (__report_bad_irq+0x20/0xc0) from [<c008912c>] (note_interrupt+0x1dc/0x23c)
-[  104.349505] [<c008912c>] (note_interrupt+0x1dc/0x23c) from [<c0086d74>] (handle_irq_event_percpu+0xc4/0x238)
-[  104.359851] [<c0086d74>] (handle_irq_event_percpu+0xc4/0x238) from [<c0086f24>] (handle_irq_event+0x3c/0x5c)
-[  104.370198] [<c0086f24>] (handle_irq_event+0x3c/0x5c) from [<c008991c>] (handle_level_irq+0xac/0x10c)
-[  104.379907] [<c008991c>] (handle_level_irq+0xac/0x10c) from [<c00866d8>] (generic_handle_irq+0x20/0x30)
-[  104.389812] [<c00866d8>] (generic_handle_irq+0x20/0x30) from [<c0014ce8>] (handle_IRQ+0x4c/0xb0)
-[  104.399066] [<c0014ce8>] (handle_IRQ+0x4c/0xb0) from [<c000856c>] (omap3_intc_handle_irq+0x60/0x74)
-[  104.408598] [<c000856c>] (omap3_intc_handle_irq+0x60/0x74) from [<c050d8e4>] (__irq_svc+0x44/0x5c)
-[  104.418021] Exception stack(0xde4f7c00 to 0xde4f7c48)
-[  104.423345] 7c00: 00000001 00000000 00000000 dd002140 60000013 de006e54 00000002 00000000
-[  104.431952] 7c20: de345748 00000040 c11c8588 00018ee0 00000000 de4f7c48 c009dfc8 c050d300
-[  104.440553] 7c40: 60000013 ffffffff
-[  104.444237] [<c050d8e4>] (__irq_svc+0x44/0x5c) from [<c050d300>] (_raw_spin_unlock_irqrestore+0x34/0x44)
-[  104.454220] [<c050d300>] (_raw_spin_unlock_irqrestore+0x34/0x44) from [<c00868c0>] (__irq_put_desc_unlock+0x14/0x38)
-[  104.465295] [<c00868c0>] (__irq_put_desc_unlock+0x14/0x38) from [<c0088068>] (enable_irq+0x4c/0x74)
-[  104.474829] [<c0088068>] (enable_irq+0x4c/0x74) from [<c03abd24>] (cpsw_poll+0xb8/0xdc)
-[  104.483276] [<c03abd24>] (cpsw_poll+0xb8/0xdc) from [<c044ef68>] (net_rx_action+0xc0/0x1e8)
-[  104.492085] [<c044ef68>] (net_rx_action+0xc0/0x1e8) from [<c0048a90>] (__do_softirq+0x100/0x27c)
-[  104.501338] [<c0048a90>] (__do_softirq+0x100/0x27c) from [<c0048cd0>] (do_softirq+0x68/0x70)
-[  104.510224] [<c0048cd0>] (do_softirq+0x68/0x70) from [<c0048e8c>] (local_bh_enable+0xd0/0xe4)
-[  104.519211] [<c0048e8c>] (local_bh_enable+0xd0/0xe4) from [<c048c774>] (tcp_rcv_established+0x450/0x648)
-[  104.529201] [<c048c774>] (tcp_rcv_established+0x450/0x648) from [<c0494904>] (tcp_v4_do_rcv+0x154/0x474)
-[  104.539195] [<c0494904>] (tcp_v4_do_rcv+0x154/0x474) from [<c043d750>] (release_sock+0xac/0x1ac)
-[  104.548448] [<c043d750>] (release_sock+0xac/0x1ac) from [<c04844e8>] (tcp_recvmsg+0x4d0/0xa8c)
-[  104.557528] [<c04844e8>] (tcp_recvmsg+0x4d0/0xa8c) from [<c04a8720>] (inet_recvmsg+0xcc/0xf0)
-[  104.566507] [<c04a8720>] (inet_recvmsg+0xcc/0xf0) from [<c0439744>] (sock_recvmsg+0x90/0xb0)
-[  104.575394] [<c0439744>] (sock_recvmsg+0x90/0xb0) from [<c043b778>] (SyS_recvfrom+0x88/0xd8)
-[  104.584280] [<c043b778>] (SyS_recvfrom+0x88/0xd8) from [<c043b7e0>] (sys_recv+0x18/0x20)
-[  104.592805] [<c043b7e0>] (sys_recv+0x18/0x20) from [<c0013da0>] (ret_fast_syscall+0x0/0x48)
-[  104.601587] handlers:
-[  104.603992] [<c03acd94>] cpsw_interrupt
-[  104.608040] Disabling IRQ #58
+Tested-by: Javier Martinez Canillas <javier@collabora.co.uk>
 
-Cc: Sebastian Siewior <bigeasy@linutronix.de>
-Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
----
- drivers/net/ethernet/ti/cpsw.c | 7 -------
- 1 file changed, 7 deletions(-)
-
-diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-index fccd9d4..cc3ce55 100644
---- a/drivers/net/ethernet/ti/cpsw.c
-+++ b/drivers/net/ethernet/ti/cpsw.c
-@@ -639,13 +639,6 @@ void cpsw_rx_handler(void *token, int len, int status)
- static irqreturn_t cpsw_interrupt(int irq, void *dev_id)
- {
- 	struct cpsw_priv *priv = dev_id;
--	u32 rx, tx, rx_thresh;
--
--	rx_thresh = __raw_readl(&priv->wr_regs->rx_thresh_stat);
--	rx = __raw_readl(&priv->wr_regs->rx_stat);
--	tx = __raw_readl(&priv->wr_regs->tx_stat);
--	if (!rx_thresh && !rx && !tx)
--		return IRQ_NONE;
- 
- 	cpsw_intr_disable(priv);
- 	if (priv->irq_enabled == true) {
--- 
-1.8.4.1.516.g1d25dd4
-
+>
+>> Enric Balletbo i Serra (3):
+>>   ARM: dts: omap3-igep: Fix bus-width for mmc1.
+>>   ARM: dts: omap3-igep: Add support for LBEE1USJYC WiFi connected to
+>>     SDIO.
+>>   ARM: dts: omap3-igep*: Update to use the TI AM/DM37x processor.
+>>
+>>  arch/arm/boot/dts/omap3-igep.dtsi    | 55 ++++++++++++++++++++++++++++++------
+>>  arch/arm/boot/dts/omap3-igep0020.dts |  4 +--
+>>  arch/arm/boot/dts/omap3-igep0030.dts |  4 +--
+>>  3 files changed, 51 insertions(+), 12 deletions(-)
+>>
+>> --
+>> 1.8.1.2
+>>
