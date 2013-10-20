@@ -1,69 +1,92 @@
-From: Javier Martinez Canillas <martinez.javier@gmail.com>
-Subject: Re: [PATCH 0/3] ARM: dts: omap3-igep MMC updates for v3.13
-Date: Sun, 20 Oct 2013 13:09:07 +0200
-Message-ID: <CAAwP0s0hK3ExXatt+sfs96G-5rxhWvmVxCmFBGt5mLPu=dXyPg@mail.gmail.com>
-References: <1382212448-31094-1-git-send-email-eballetbo@gmail.com> <CAAwP0s1nZySOeTBpuE12j=RS+oN4jdRdK-hn9Gsecr86_S6p6Q@mail.gmail.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH] RFC: interrupt consistency check for OF GPIO IRQs
+Date: Sun, 20 Oct 2013 14:41:41 +0200
+Message-ID: <1805938.y3dym69kEh@avalon>
+References: <1375101368-17645-1-git-send-email-linus.walleij@linaro.org> <5231E44C.9070800@ahsoftware.de> <20130918003632.CBF48C42BC5@trevor.secretlab.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ie0-f171.google.com ([209.85.223.171]:54363 "EHLO
-	mail-ie0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751144Ab3JTLJ2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 20 Oct 2013 07:09:28 -0400
-Received: by mail-ie0-f171.google.com with SMTP id tp5so9616891ieb.16
-        for <linux-omap@vger.kernel.org>; Sun, 20 Oct 2013 04:09:27 -0700 (PDT)
-In-Reply-To: <CAAwP0s1nZySOeTBpuE12j=RS+oN4jdRdK-hn9Gsecr86_S6p6Q@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20130918003632.CBF48C42BC5@trevor.secretlab.ca>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Grant Likely <grant.likely@linaro.org>
+Cc: Alexander Holler <holler@ahsoftware.de>, Stephen Warren <swarren@wwwdotorg.org>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Linus Walleij <linus.walleij@linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Enric Balletbo i Serra <eballetbo@gmail.com>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@linaro.org>, Balaji T K <balajitk@ti.com>, Tony Lindgren <tony@atomide.com>, Jon Hunter <jgchunter@gmail.com>
 List-Id: linux-omap@vger.kernel.org
-To: Enric Balletbo i Serra <eballetbo@gmail.com>, Benoit Cousson <bcousson@baylibre.com>
-Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Sun, Oct 20, 2013 at 1:25 AM, Javier Martinez Canillas
-<martinez.javier@gmail.com> wrote:
-> [cc'ing current Benoit's address instead of the old one]
->
-> On Sat, Oct 19, 2013 at 9:54 PM, Enric Balletbo i Serra
-> <eballetbo@gmail.com> wrote:
->> Hi Benoit,
->>
->> This series are some updates for IGEP boards that would be great if can make
->> it for v3.13 (not sure if merge window is already closed as I saw your last
->> pull request).
->>
->> The first patch is fix for mmc1 that should be configured for 4 bits not 8,
->> the second patch add support for the WiFi module connected to MMC2 SDIO
->> interface, and the third patch, updates the default processor to AM/DM37x
->> as most of the boards uses this processor instead of the old OMAP353x.
->>
->> Best regards,
->>
->
-> Hi Enric,
->
-> Thanks a lot for this patch-set. I don't have access to my IGEP board
-> right now so I can't give a try but will do as soon as possible.
->
-> I've just two minors nits that I commented on the individual patches
-> but I'm not sure if those justifies a v2 so:
->
-> Reviewed-by: Javier Martinez Canillas <javier@collabora.co.uk>
+Hi Grant,
 
-I also could test these patches and are working correctly.
+On Tuesday 17 September 2013 17:36:32 Grant Likely wrote:
+> On Thu, 12 Sep 2013 17:57:00 +0200, Alexander Holler wrote:
+> > Am 12.09.2013 17:19, schrieb Stephen Warren:
+> > > IRQs, DMA channels, and GPIOs are all different things. Their bindings
+> > > are defined independently. While it's good to define new types of
+> > > bindings consistently with other bindings, this hasn't always happened,
+> > > so you can make zero assumptions about the IRQ bindings by reading the
+> > > documentation for any other kind of binding.
+> > > 
+> > > Multiple interrupts are defined as follows:
+> > > 	// Optional; otherwise inherited from parent/grand-parent/...
+> > > 	interrupt-parent = <&gpio6>;
+> > > 	// Must be in a fixed order, unless binding defines that the
+> > > 	// optional interrupt-names property is to be used.
+> > > 	interrupts = <1 IRQF_TRIGGER_HIGH> <2 IRQF_TRIGGER_LOW>;
+> > > 	// Optional; binding for device defines whether it must
+> > > 	// be present
+> > > 	interrupt-names = "foo", "bar";
+> > > 
+> > > If you need multiple interrupts, each with a different parent, you need
+> > > to use an interrupt-map property (Google it for a more complete
+> > > explanation I guess). Unlike "interrupts", "interrupt-map" has a phandle
+> > > in each entry, and hence each entry can refer to a different IRQ
+> > > controller. You end up defining a dummy interrupt controller node (which
+> > > may be the leaf node with multiple IRQ outputs, which then points at
+> > > itself as the interrupt parent), pointing the leaf node's
+> > > interrupt-parent at that node, and then having interrupt-map "demux" the
+> > > N interrupt outputs to the various interrupt controllers.
+> > 
+> > What a mess. I assume that is the price that bindings don't have to
+> > change.
+> > 
+> > Thanks for clarifying that,
+> > 
+> > Alexander Holler
+> 
+> Actually, I think it is solveable but doing so requires a new binding
+> for interrupts. I took a shot at implementing it earlier this week and
+> I've got working patches that I'll be posting soon. I created a new
+> "interrupts-extended" property that uses a phandle+args type of
+> binding like this:
+> 
+> intc1: intc@1000 {
+> 	interrupt-controller;
+> 	#interrupt-cells = <1>;
+> };
+> 
+> intc2: intc@2000 {
+> 	interrupt-controller;
+> 	#interrupt-cells = <2>;
+> };
+> 
+> device@3000 {
+> 	interrupts-extended = <&intc1 5> <&intc2 3 4> <&intc1 6>;
+> };
+> 
+> 'interrupts-extended' will be proposed as a directly replacement of the
+> 'interrupts' property and it will eliminate the need for an
+> interrupt-map property. A node will be allowed to have one or the other,
+> but not both.
+> 
+> I'll write up a proper binding document and post for review.
 
-Tested-by: Javier Martinez Canillas <javier@collabora.co.uk>
+Any progress on this ? I'll need to use multiple interrupts with different 
+parents in the near future, I can take this over if needed.
 
->
->> Enric Balletbo i Serra (3):
->>   ARM: dts: omap3-igep: Fix bus-width for mmc1.
->>   ARM: dts: omap3-igep: Add support for LBEE1USJYC WiFi connected to
->>     SDIO.
->>   ARM: dts: omap3-igep*: Update to use the TI AM/DM37x processor.
->>
->>  arch/arm/boot/dts/omap3-igep.dtsi    | 55 ++++++++++++++++++++++++++++++------
->>  arch/arm/boot/dts/omap3-igep0020.dts |  4 +--
->>  arch/arm/boot/dts/omap3-igep0030.dts |  4 +--
->>  3 files changed, 51 insertions(+), 12 deletions(-)
->>
->> --
->> 1.8.1.2
->>
+I've also been thinking that we could possibly reuse the "interrupts" property 
+without defining a new "interrupts-extended". When parsing the property the 
+code would use the current DT bindings if an interrupt-parent is present, and 
+the new DT bindings if it isn't.
+
+-- 
+Regards,
+
+Laurent Pinchart
