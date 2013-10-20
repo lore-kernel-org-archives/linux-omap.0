@@ -1,113 +1,90 @@
-From: Jyri Sarha <jsarha@ti.com>
-Subject: [PATCH v5 DTS 4/4] ARM/dts: am335x-evmsk: Audio support
-Date: Sun, 20 Oct 2013 20:04:11 +0300
-Message-ID: <b87ebe5f14a0b729fdcc0c58e8920dc2554c5721.1382288457.git.jsarha@ti.com>
-References: <cover.1382288454.git.jsarha@ti.com>
+From: Benoit Cousson <bcousson@baylibre.com>
+Subject: Re: [PATCH v5 DTS 0/4] Fix AM335x-evm analog audio support
+Date: Sun, 20 Oct 2013 19:14:30 +0200
+Message-ID: <52640F76.7060208@baylibre.com>
+References: <52615C70.30307@baylibre.com> <cover.1382288454.git.jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:53388 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750950Ab3JTREb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 20 Oct 2013 13:04:31 -0400
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:35644 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751085Ab3JTROe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 20 Oct 2013 13:14:34 -0400
+Received: by mail-wi0-f178.google.com with SMTP id hn9so2985279wib.5
+        for <linux-omap@vger.kernel.org>; Sun, 20 Oct 2013 10:14:33 -0700 (PDT)
 In-Reply-To: <cover.1382288454.git.jsarha@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: alsa-devel@alsa-project.org, devicetree@vger.kernel.org, bcousson@baylibre.com
-Cc: linux-omap@vger.kernel.org, broonie@kernel.org, joelf@ti.com, Peter Ujfalusi <peter.ujfalusi@ti.com>, Jyri Sarha <jsarha@ti.com>
+To: Jyri Sarha <jsarha@ti.com>, alsa-devel@alsa-project.org, devicetree@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, broonie@kernel.org, joelf@ti.com
 
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Hi Jyri,
 
-AM335x EVM-SK have only support for audio playback (stereo jack on the
-board) via tlv320aic3106 codec connected to McASP1.
-Enable the support for audio playback on the board:
-- McASP1 configuration
-- tlv320aic3106 configuration
-- Machine driver.
+On 20/10/2013 19:04, Jyri Sarha wrote:
+> Hi Benoit,
+> I rebased the DTS patches on top of
+> git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.=
+git
+> for_3.13/dts -branch
+> and tested the result. Hope that was the right branch.
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Signed-off-by: Jyri Sarha <jsarha@ti.com>
----
- arch/arm/boot/dts/am335x-evmsk.dts |   48 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 48 insertions(+)
+Yes, thanks for the update.
 
-diff --git a/arch/arm/boot/dts/am335x-evmsk.dts b/arch/arm/boot/dts/am335x-evmsk.dts
-index 1a7e0d9..03febf8 100644
---- a/arch/arm/boot/dts/am335x-evmsk.dts
-+++ b/arch/arm/boot/dts/am335x-evmsk.dts
-@@ -115,6 +115,17 @@
- 		brightness-levels = <0 58 61 66 75 90 125 170 255>;
- 		default-brightness-level = <8>;
- 	};
-+
-+	sound {
-+		compatible = "ti,da830-evm-audio";
-+		ti,model = "AM335x-EVMSK";
-+		ti,audio-codec = <&tlv320aic3106>;
-+		ti,mcasp-controller = <&mcasp1>;
-+		ti,codec-clock-rate = <24576000>;
-+		ti,audio-routing =
-+			"Headphone Jack",       "HPLOUT",
-+			"Headphone Jack",       "HPROUT";
-+	};
- };
- 
- &am33xx_pinmux {
-@@ -244,6 +255,15 @@
- 			0x14c (PIN_INPUT_PULLDOWN | MUX_MODE7)
- 		>;
- 	};
-+
-+	mcasp1_pins: mcasp1_pins {
-+		pinctrl-single,pins = <
-+			0x10c (PIN_INPUT_PULLDOWN | MUX_MODE4) /* mii1_crs.mcasp1_aclkx */
-+			0x110 (PIN_INPUT_PULLDOWN | MUX_MODE4) /* mii1_rxerr.mcasp1_fsx */
-+			0x108 (PIN_OUTPUT_PULLDOWN | MUX_MODE4) /* mii1_col.mcasp1_axr2 */
-+			0x144 (PIN_INPUT_PULLDOWN | MUX_MODE4) /* rmii1_ref_clk.mcasp1_axr3 */
-+		>;
-+	};
- };
- 
- &uart0 {
-@@ -291,6 +311,18 @@
- 		st,max-limit-y = <550>;
- 		st,max-limit-z = <750>;
- 	};
-+
-+	tlv320aic3106: tlv320aic3106@1b {
-+		compatible = "ti,tlv320aic3106";
-+		reg = <0x1b>;
-+		status = "okay";
-+
-+		/* Regulators */
-+		AVDD-supply = <&vaux2_reg>;
-+		IOVDD-supply = <&vaux2_reg>;
-+		DRVDD-supply = <&vaux2_reg>;
-+		DVDD-supply = <&vbat>;
-+	};
- };
- 
- &usb {
-@@ -437,3 +469,19 @@
- &gpio0 {
- 	ti,no-reset-on-init;
- };
-+
-+&mcasp1 {
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&mcasp1_pins>;
-+
-+		status = "okay";
-+
-+		op-mode = <0>;          /* MCASP_IIS_MODE */
-+		tdm-slots = <2>;
-+		/* 4 serializers */
-+		serial-dir = <  /* 0: INACTIVE, 1: TX, 2: RX */
-+			0 0 1 2
-+		>;
-+		tx-num-evt = <1>;
-+		rx-num-evt = <1>;
-+};
--- 
-1.7.9.5
+I've just applied the patches.
 
+Regards,
+Benoit
+
+>
+> The DTS patches can also be pulled from:
+> git://git.ti.com/~jyrisarha/ti-linux-kernel/jyrisarhas-audio-video-li=
+nux-feature-tree.git
+> for_bcousson/for_3.13/dts -branch
+>
+> The non DTS patches rebased on top of v3.12-rc5 can be pulled from he=
+re:
+> git://git.ti.com/~jyrisarha/ti-linux-kernel/jyrisarhas-audio-video-li=
+nux-feature-tree.git
+> v3.12-rc5-am33xx-audio-patch-v5-no-dts -branch
+>
+> The the full patch series can be found here:
+> http://mailman.alsa-project.org/pipermail/alsa-devel/2013-October/067=
+443.html
+>
+> Best regards,
+> Jyri
+>
+> Darren Etheridge (1):
+>    ARM/dts: am335x-evm: Add audio support for am335x-evm.dts
+>
+> Jyri Sarha (1):
+>    ARM/dts: am33xx: mcasp: Add location for data port registers to
+>      reg-property
+>
+> Pantelis Antoniou (1):
+>    ARM/dts: am33xx: Add mcasp0 and mcasp1 device tree entries
+>
+> Peter Ujfalusi (1):
+>    ARM/dts: am335x-evmsk: Audio support
+>
+>   arch/arm/boot/dts/am335x-evm.dts   |   50 +++++++++++++++++++++++++=
++++++++++++
+>   arch/arm/boot/dts/am335x-evmsk.dts |   48 +++++++++++++++++++++++++=
++++++++++
+>   arch/arm/boot/dts/am33xx.dtsi      |   28 ++++++++++++++++++++
+>   3 files changed, 126 insertions(+)
+>
+
+
+--=20
+Beno=EEt Cousson
+BayLibre
+Embedded Linux Technology Lab
+www.baylibre.com
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
