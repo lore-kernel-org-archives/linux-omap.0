@@ -1,59 +1,113 @@
 From: Jyri Sarha <jsarha@ti.com>
-Subject: [PATCH v5 DTS 2/4] ARM/dts: am33xx: mcasp: Add location for data port registers to reg-property
-Date: Sun, 20 Oct 2013 20:04:09 +0300
-Message-ID: <c3bd6043ada6dfaf6a27f9a679a1628197ae712b.1382288457.git.jsarha@ti.com>
+Subject: [PATCH v5 DTS 4/4] ARM/dts: am335x-evmsk: Audio support
+Date: Sun, 20 Oct 2013 20:04:11 +0300
+Message-ID: <b87ebe5f14a0b729fdcc0c58e8920dc2554c5721.1382288457.git.jsarha@ti.com>
 References: <cover.1382288454.git.jsarha@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:53387 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:53388 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751261Ab3JTREa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 20 Oct 2013 13:04:30 -0400
+	with ESMTP id S1750950Ab3JTREb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 20 Oct 2013 13:04:31 -0400
 In-Reply-To: <cover.1382288454.git.jsarha@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: alsa-devel@alsa-project.org, devicetree@vger.kernel.org, bcousson@baylibre.com
-Cc: linux-omap@vger.kernel.org, broonie@kernel.org, joelf@ti.com, Jyri Sarha <jsarha@ti.com>, "Hebbar, Gururaja" <gururaja.hebbar@ti.com>, Darren Etheridge <detheridge@ti.com>
+Cc: linux-omap@vger.kernel.org, broonie@kernel.org, joelf@ti.com, Peter Ujfalusi <peter.ujfalusi@ti.com>, Jyri Sarha <jsarha@ti.com>
 
-This patch adds a second tuple to reg property. The new property tuple
-describes the memory location for data port registers mapped trough
-L3 bus on am33xx. The both property tuples are named accordingly in
-the reg-names property.
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
 
-Signed-off-by: Hebbar, Gururaja <gururaja.hebbar@ti.com>
-Signed-off-by: Darren Etheridge <detheridge@ti.com>
+AM335x EVM-SK have only support for audio playback (stereo jack on the
+board) via tlv320aic3106 codec connected to McASP1.
+Enable the support for audio playback on the board:
+- McASP1 configuration
+- tlv320aic3106 configuration
+- Machine driver.
+
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 Signed-off-by: Jyri Sarha <jsarha@ti.com>
 ---
- arch/arm/boot/dts/am33xx.dtsi |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ arch/arm/boot/dts/am335x-evmsk.dts |   48 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 48 insertions(+)
 
-diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index 861382f..3465d4b 100644
---- a/arch/arm/boot/dts/am33xx.dtsi
-+++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -746,7 +746,9 @@
- 		mcasp0: mcasp@48038000 {
- 			compatible = "ti,am33xx-mcasp-audio";
- 			ti,hwmods = "mcasp0";
--			reg = <0x48038000 0x2000>;
-+			reg = <0x48038000 0x2000>,
-+			      <0x46000000 0x400000>;
-+			reg-names = "mpu", "dat";
- 			interrupts = <80>, <81>;
- 			interrupts-names = "tx", "rx";
- 			status = "disabled";
-@@ -758,7 +760,9 @@
- 		mcasp1: mcasp@4803C000 {
- 			compatible = "ti,am33xx-mcasp-audio";
- 			ti,hwmods = "mcasp1";
--			reg = <0x4803C000 0x2000>;
-+			reg = <0x4803C000 0x2000>,
-+			      <0x46400000 0x400000>;
-+			reg-names = "mpu", "dat";
- 			interrupts = <82>, <83>;
- 			interrupts-names = "tx", "rx";
- 			status = "disabled";
+diff --git a/arch/arm/boot/dts/am335x-evmsk.dts b/arch/arm/boot/dts/am335x-evmsk.dts
+index 1a7e0d9..03febf8 100644
+--- a/arch/arm/boot/dts/am335x-evmsk.dts
++++ b/arch/arm/boot/dts/am335x-evmsk.dts
+@@ -115,6 +115,17 @@
+ 		brightness-levels = <0 58 61 66 75 90 125 170 255>;
+ 		default-brightness-level = <8>;
+ 	};
++
++	sound {
++		compatible = "ti,da830-evm-audio";
++		ti,model = "AM335x-EVMSK";
++		ti,audio-codec = <&tlv320aic3106>;
++		ti,mcasp-controller = <&mcasp1>;
++		ti,codec-clock-rate = <24576000>;
++		ti,audio-routing =
++			"Headphone Jack",       "HPLOUT",
++			"Headphone Jack",       "HPROUT";
++	};
+ };
+ 
+ &am33xx_pinmux {
+@@ -244,6 +255,15 @@
+ 			0x14c (PIN_INPUT_PULLDOWN | MUX_MODE7)
+ 		>;
+ 	};
++
++	mcasp1_pins: mcasp1_pins {
++		pinctrl-single,pins = <
++			0x10c (PIN_INPUT_PULLDOWN | MUX_MODE4) /* mii1_crs.mcasp1_aclkx */
++			0x110 (PIN_INPUT_PULLDOWN | MUX_MODE4) /* mii1_rxerr.mcasp1_fsx */
++			0x108 (PIN_OUTPUT_PULLDOWN | MUX_MODE4) /* mii1_col.mcasp1_axr2 */
++			0x144 (PIN_INPUT_PULLDOWN | MUX_MODE4) /* rmii1_ref_clk.mcasp1_axr3 */
++		>;
++	};
+ };
+ 
+ &uart0 {
+@@ -291,6 +311,18 @@
+ 		st,max-limit-y = <550>;
+ 		st,max-limit-z = <750>;
+ 	};
++
++	tlv320aic3106: tlv320aic3106@1b {
++		compatible = "ti,tlv320aic3106";
++		reg = <0x1b>;
++		status = "okay";
++
++		/* Regulators */
++		AVDD-supply = <&vaux2_reg>;
++		IOVDD-supply = <&vaux2_reg>;
++		DRVDD-supply = <&vaux2_reg>;
++		DVDD-supply = <&vbat>;
++	};
+ };
+ 
+ &usb {
+@@ -437,3 +469,19 @@
+ &gpio0 {
+ 	ti,no-reset-on-init;
+ };
++
++&mcasp1 {
++		pinctrl-names = "default";
++		pinctrl-0 = <&mcasp1_pins>;
++
++		status = "okay";
++
++		op-mode = <0>;          /* MCASP_IIS_MODE */
++		tdm-slots = <2>;
++		/* 4 serializers */
++		serial-dir = <  /* 0: INACTIVE, 1: TX, 2: RX */
++			0 0 1 2
++		>;
++		tx-num-evt = <1>;
++		rx-num-evt = <1>;
++};
 -- 
 1.7.9.5
 
