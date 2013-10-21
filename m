@@ -1,66 +1,74 @@
-From: Stephen Warren <swarren@wwwdotorg.org>
-Subject: Re: [PATCH] RFC: interrupt consistency check for OF GPIO IRQs
-Date: Sun, 20 Oct 2013 22:35:04 +0100
-Message-ID: <52644C88.5060608@wwwdotorg.org>
-References: <1375101368-17645-1-git-send-email-linus.walleij@linaro.org> <5231E44C.9070800@ahsoftware.de> <20130918003632.CBF48C42BC5@trevor.secretlab.ca> <1805938.y3dym69kEh@avalon>
+From: Vinod Koul <vinod.koul@intel.com>
+Subject: Re: [PATCH 2/3] dma: edma: Add support for Cyclic DMA
+Date: Mon, 21 Oct 2013 12:23:19 +0530
+Message-ID: <20131021065319.GM14013@intel.com>
+References: <1379977515-3794-1-git-send-email-joelf@ti.com>
+ <1379977515-3794-3-git-send-email-joelf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from avon.wwwdotorg.org ([70.85.31.133]:43070 "EHLO
-	avon.wwwdotorg.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751800Ab3JTVfQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 20 Oct 2013 17:35:16 -0400
-In-Reply-To: <1805938.y3dym69kEh@avalon>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1379977515-3794-3-git-send-email-joelf@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Joel Fernandes <joelf@ti.com>
+Cc: Matt Porter <matt@ohporter.com>, Mark Brown <broonie@linaro.org>, Russell King <linux@arm.linux.org.uk>, Dan Williams <djbw@fb.com>, Jyri Sarha <jsarha@ti.com>, Lars Peter-Clausen <lars@metafoo.de>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux DaVinci Kernel List <davinci-linux-open-source@linux.davincidsp.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, alsa-devel@alsa-project.org
 List-Id: linux-omap@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Grant Likely <grant.likely@linaro.org>
-Cc: Alexander Holler <holler@ahsoftware.de>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Linus Walleij <linus.walleij@linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Enric Balletbo i Serra <eballetbo@gmail.com>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@linaro.org>, Balaji T K <balajitk@ti.com>, Tony Lindgren <tony@atomide.com>, Jon Hunter <jgchunter@gmail.com>
 
-On 10/20/2013 01:41 PM, Laurent Pinchart wrote:
-> Hi Grant,
-> 
-> On Tuesday 17 September 2013 17:36:32 Grant Likely wrote:
->> On Thu, 12 Sep 2013 17:57:00 +0200, Alexander Holler wrote:
->>> Am 12.09.2013 17:19, schrieb Stephen Warren:
->>>> IRQs, DMA channels, and GPIOs are all different things. Their bindings
->>>> are defined independently. While it's good to define new types of
->>>> bindings consistently with other bindings, this hasn't always happened,
->>>> so you can make zero assumptions about the IRQ bindings by reading the
->>>> documentation for any other kind of binding.
->>>>
->>>> Multiple interrupts are defined as follows:
->>>> 	// Optional; otherwise inherited from parent/grand-parent/...
->>>> 	interrupt-parent = <&gpio6>;
->>>> 	// Must be in a fixed order, unless binding defines that the
->>>> 	// optional interrupt-names property is to be used.
->>>> 	interrupts = <1 IRQF_TRIGGER_HIGH> <2 IRQF_TRIGGER_LOW>;
->>>> 	// Optional; binding for device defines whether it must
->>>> 	// be present
->>>> 	interrupt-names = "foo", "bar";
->>>>
->>>> If you need multiple interrupts, each with a different parent, you need
->>>> to use an interrupt-map property...
-...
->> Actually, I think it is solveable but doing so requires a new binding
->> for interrupts. I took a shot at implementing it earlier this week and
->> I've got working patches that I'll be posting soon. I created a new
->> "interrupts-extended" property that uses a phandle+args type of
->> binding like this:
-...
->> device@3000 {
->> 	interrupts-extended = <&intc1 5> <&intc2 3 4> <&intc1 6>;
->> };
-...
-> Any progress on this ? I'll need to use multiple interrupts with different 
-> parents in the near future, I can take this over if needed.
-> 
-> I've also been thinking that we could possibly reuse the "interrupts" property 
-> without defining a new "interrupts-extended". When parsing the property the 
-> code would use the current DT bindings if an interrupt-parent is present, and 
-> the new DT bindings if it isn't.
+On Mon, Sep 23, 2013 at 06:05:14PM -0500, Joel Fernandes wrote:
+ 
+> @@ -449,6 +455,138 @@ static struct dma_async_tx_descriptor *edma_prep_slave_sg(
+>  	return vchan_tx_prep(&echan->vchan, &edesc->vdesc, tx_flags);
+>  }
+>  
+> +static struct dma_async_tx_descriptor *edma_prep_dma_cyclic(
+> +	struct dma_chan *chan, dma_addr_t buf_addr, size_t buf_len,
+> +	size_t period_len, enum dma_transfer_direction direction,
+> +	unsigned long tx_flags, void *context)
+> +{
+> +	struct edma_chan *echan = to_edma_chan(chan);
+> +	struct device *dev = chan->device->dev;
+> +	struct edma_desc *edesc;
+> +	dma_addr_t src_addr, dst_addr;
+> +	enum dma_slave_buswidth dev_width;
+> +	u32 burst;
+> +	int i, ret, nr_periods;
+> +
+> +	if (unlikely(!echan || !buf_len || !period_len))
+> +		return NULL;
+> +
+> +	if (direction == DMA_DEV_TO_MEM) {
+> +		src_addr = echan->cfg.src_addr;
+> +		dst_addr = buf_addr;
+> +		dev_width = echan->cfg.src_addr_width;
+> +		burst = echan->cfg.src_maxburst;
+> +	} else if (direction == DMA_MEM_TO_DEV) {
+> +		src_addr = buf_addr;
+> +		dst_addr = echan->cfg.dst_addr;
+> +		dev_width = echan->cfg.dst_addr_width;
+> +		burst = echan->cfg.dst_maxburst;
+> +	} else {
+> +		dev_err(dev, "%s: bad direction?\n", __func__);
+> +		return NULL;
+> +	}
+> +
+> +	if (dev_width == DMA_SLAVE_BUSWIDTH_UNDEFINED) {
+> +		dev_err(dev, "Undefined slave buswidth\n");
+> +		return NULL;
+> +	}
+> +
+> +	if (unlikely(buf_len % period_len)) {
+> +		dev_err(dev, "Period should be multiple of Buffer length\n");
+> +		return NULL;
+> +	}
+> +
+> +	nr_periods = (buf_len / period_len) + 1;
+?
 
-interrupt-parents doesn't have to be present in individual nodes; it can
-be inherited from the parent. That means you'd have to convert whole
-sub-trees at once. It seems much more flexible to use a new property and
-hence make it explicit what format the data is in.
+consider the case of buf = period_len, above makes nr_period = 2.
+
+Or buf len 100, period len 50, makes nr_period = 3
+
+Both doesnt seem right to me?
+
+--
+~Vinod
