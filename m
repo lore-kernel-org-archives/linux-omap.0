@@ -1,52 +1,56 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH V2 0/2] ARM: dts: OMAP2+: add i2c aliases
-Date: Mon, 21 Oct 2013 14:48:00 +0530
-Message-ID: <5264F148.7030705@ti.com>
-References: <525E8D91.5090400@ti.com>
- <1381954864-24410-1-git-send-email-nm@ti.com>
+From: Sebastian Reichel <sre@ring0.de>
+Subject: Re: [RFCv3 0/7] OMAP SSI driver
+Date: Mon, 21 Oct 2013 11:23:09 +0200
+Message-ID: <20131021092309.GA13414@earth.universe>
+References: <1381091235-18293-1-git-send-email-sre@debian.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1381954864-24410-1-git-send-email-nm@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Nishanth Menon <nm@ti.com>
-Cc: devicetree@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, =?ISO-8859-1?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="liOOAslEiF7prFVr"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1381091235-18293-1-git-send-email-sre@debian.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>, Shubhrajyoti Datta <omaplinuxkernel@gmail.com>, Carlos Chinea <cch.devel@gmail.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Grant Likely <grant.likely@linaro.org>, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Rob Landley <rob@landley.net>, =?iso-8859-1?Q?'Beno=EEt?= Cousson' <bcousson@baylibre.com>, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, 'Pali =?iso-8859-1?Q?Roh=E1r'?= <pali.rohar@gmail.com>, =?utf-8?B?J9CY0LLQsNC50LvQviDQlNC40LzQuNGC0YDQvtCyJw==?= <freemangordon@abv.bg>, Joni Lapilainen <joni.lapilainen@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Thursday 17 October 2013 01:51 AM, Nishanth Menon wrote:
-> Add i2c aliases for OMAP and AM processor dts nodes to ensure proper
-> i2c ordering. Based on Benoit's for_13/dts branch[1]
-> 
-> Changes in V2:
-> 	- Following Rajendra's suggestion, done for all OMAP and AM
-> 	  series SoCs, where i2c is defined.
 
-Thanks Nishanth.
-Acked-by: Rajendra Nayak <rnayak@ti.com>
+--liOOAslEiF7prFVr
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-> 
-> V1: https://patchwork.kernel.org/patch/3046671/
-> 
-> Nishanth Menon (2):
->   ARM: dts: OMAP3+: Add i2c aliases
->   ARM: dts: AM33xx+: Add i2c aliases
-> 
->  arch/arm/boot/dts/am33xx.dtsi |    3 +++
->  arch/arm/boot/dts/am4372.dtsi |    3 +++
->  arch/arm/boot/dts/dra7.dtsi   |    5 +++++
->  arch/arm/boot/dts/omap3.dtsi  |    3 +++
->  arch/arm/boot/dts/omap4.dtsi  |    4 ++++
->  arch/arm/boot/dts/omap5.dtsi  |    5 +++++
->  6 files changed, 23 insertions(+)
-> 
-> [1] https://git.kernel.org/cgit/linux/kernel/git/bcousson/linux-omap-dt.git/log/?h=for_3.13/dts
-> 
+Hi,
+
+On Sun, Oct 06, 2013 at 10:27:08PM +0200, Sebastian Reichel wrote:
+> Here is the third round of the OMAP SSI driver patches.
+
+ping!
+
+I'm still waiting for feedback from DT maintainers.
+Can you review the changes and Ack them or tell me how to proceed?
+
+-- Sebastian
+
+--liOOAslEiF7prFVr
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.15 (GNU/Linux)
+
+iQIcBAEBCAAGBQJSZPJ9AAoJENju1/PIO/qa9gIQAJV5q894NhVlyrSUN3etVhbs
+d7RwL64q44Qv4Gjl5pxIJJV4+E9LvFhLvgmdx5OggB0mxDrCaI63IELjMKVpWgDT
+Wpugy/FOZ+OJD9REwSVKNyG5qLSlFCekv6Eck+M+g3hkOefy2MySiTx1qDjaAzL4
+pmiDceZCvK4sCN3EmUsE7IRfYrGEEHJAFzev6z+SnX6yijTeWya07S8g/9L3+6R+
+3E1BOXt9f6pSL0AOM5hYhnn148dNkE2DZ9O3xswG4HX2z+FpZSztwn1rtg16dCAX
+p3eWL8S04nSe6FDqVUWX9CwFl7l0g0rgwPralW0RqoAHdq/+143bDqRE513vfHVu
+I/Ch8T/t7F54r5AeAYKVTcAxkALy4zNiboxpnBzuuURVIVghTve9mUpC6iPeJ8Be
+KbtR9s5R3mAUpmhX+0W/6dCkp/3FppOPwNPv8AgsUplu/XqmcyoVOLeNzXXHYeC1
+KMBouivaJNASvI8kTF0N9L3Jtg95fhcaytVAZ9WlEB9jt9i7blpXNucTB4LuBGeu
+Xu4ez+6ApFqsBa05tYBol4T2iWSmD/WsjrLIz9RvIeK+UdLYL9cAbnhsa7jkh/YV
++0AnxRz0FfKu0sdRy0tobgXFqXJ4kxiIw4Oo4uztLkjXhnjXdlSqNvlC2Nqfv5S+
+y6t0ab9/DAl2ziJyd1zz
+=FAnh
+-----END PGP SIGNATURE-----
+
+--liOOAslEiF7prFVr--
