@@ -1,174 +1,129 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v2 2/7] usb: dwc3: adapt dwc3 core to use Generic PHY
- Framework
-Date: Mon, 21 Oct 2013 15:13:08 +0300
-Message-ID: <52651A54.3020403@ti.com>
-References: <1381866857-3861-1-git-send-email-kishon@ti.com> <1381866857-3861-3-git-send-email-kishon@ti.com> <525E9232.9050502@ti.com> <525E9A11.7080501@ti.com> <525EA171.9010402@ti.com> <52651614.5040309@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH] serial: omap: Add support for optional wake-up interrupt
+Date: Mon, 21 Oct 2013 07:21:16 -0500
+Message-ID: <20131021122116.GL18921@gimli>
+References: <20131017232820.GG15154@atomide.com>
+ <20131018161916.GF18921@gimli>
+ <20131018163740.GP15154@atomide.com>
+ <20131018164535.GQ15154@atomide.com>
+ <20131018225606.GT15154@atomide.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:34421 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753188Ab3JUMN7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Oct 2013 08:13:59 -0400
-In-Reply-To: <52651614.5040309@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="5LiOUhUlsRX0HDkW"
+Return-path: <linux-serial-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20131018225606.GT15154@atomide.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Felipe Balbi <balbi@ti.com>, linux-serial@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: balbi@ti.com, gregkh@linuxfoundation.org, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ijc+devicetree@hellion.org.uk, rob@landley.net, bcousson@baylibre.com, tony@atomide.com, linux@arm.linux.org.uk, grant.likely@linaro.org, s.nawrocki@samsung.com, galak@codeaurora.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org
 
-On 10/21/2013 02:55 PM, Kishon Vijay Abraham I wrote:
-> Hi,
-> 
-> On Wednesday 16 October 2013 07:53 PM, Roger Quadros wrote:
->> On 10/16/2013 04:52 PM, Kishon Vijay Abraham I wrote:
->>> Hi,
->>>
->>> On Wednesday 16 October 2013 06:48 PM, Roger Quadros wrote:
->>>> Hi,
->>>>
->>>> On 10/15/2013 10:54 PM, Kishon Vijay Abraham I wrote:
->>>>> Adapted dwc3 core to use the Generic PHY Framework. So for init, exit,
->>>>> power_on and power_off the following APIs are used phy_init(), phy_exit(),
->>>>> phy_power_on() and phy_power_off().
->>>>>
->>>>> However using the old USB phy library wont be removed till the PHYs of all
->>>>> other SoC's using dwc3 core is adapted to the Generic PHY Framework.
->>>>>
->>>>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
->>>>> ---
->>>>>  Documentation/devicetree/bindings/usb/dwc3.txt |    6 ++-
->>>>>  drivers/usb/dwc3/Kconfig                       |    1 +
->>>>>  drivers/usb/dwc3/core.c                        |   52 ++++++++++++++++++++++++
->>>>>  drivers/usb/dwc3/core.h                        |    7 ++++
->>>>>  drivers/usb/dwc3/platform_data.h               |    2 +
->>>>>  5 files changed, 66 insertions(+), 2 deletions(-)
->>>>>
->>>>> diff --git a/Documentation/devicetree/bindings/usb/dwc3.txt b/Documentation/devicetree/bindings/usb/dwc3.txt
->>>>> index e807635..471366d 100644
->>>>> --- a/Documentation/devicetree/bindings/usb/dwc3.txt
->>>>> +++ b/Documentation/devicetree/bindings/usb/dwc3.txt
->>>>> @@ -6,11 +6,13 @@ Required properties:
->>>>>   - compatible: must be "snps,dwc3"
->>>>>   - reg : Address and length of the register set for the device
->>>>>   - interrupts: Interrupts used by the dwc3 controller.
->>>>> +
->>>>> +Optional properties:
->>>>>   - usb-phy : array of phandle for the PHY device.  The first element
->>>>>     in the array is expected to be a handle to the USB2/HS PHY and
->>>>>     the second element is expected to be a handle to the USB3/SS PHY
->>>>> -
->>>>> -Optional properties:
->>>>> + - phys: from the *Generic PHY* bindings
->>>>> + - phy-names: from the *Generic PHY* bindings
->>>>>   - tx-fifo-resize: determines if the FIFO *has* to be reallocated.
->>>>>  
->>>>>  This is usually a subnode to DWC3 glue to which it is connected.
->>>>> diff --git a/drivers/usb/dwc3/Kconfig b/drivers/usb/dwc3/Kconfig
->>>>> index 8e385b4..64eed6f 100644
->>>>> --- a/drivers/usb/dwc3/Kconfig
->>>>> +++ b/drivers/usb/dwc3/Kconfig
->>>>> @@ -2,6 +2,7 @@ config USB_DWC3
->>>>>  	tristate "DesignWare USB3 DRD Core Support"
->>>>>  	depends on (USB || USB_GADGET) && HAS_DMA
->>>>>  	select USB_PHY
->>>>> +	select GENERIC_PHY
->>>>>  	select USB_XHCI_PLATFORM if USB_SUPPORT && USB_XHCI_HCD
->>>>>  	help
->>>>>  	  Say Y or M here if your system has a Dual Role SuperSpeed
->>>>> diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
->>>>> index cb91d70..28bfa5b 100644
->>>>> --- a/drivers/usb/dwc3/core.c
->>>>> +++ b/drivers/usb/dwc3/core.c
->>>>> @@ -82,6 +82,12 @@ static void dwc3_core_soft_reset(struct dwc3 *dwc)
->>>>>  
->>>>>  	usb_phy_init(dwc->usb2_phy);
->>>>>  	usb_phy_init(dwc->usb3_phy);
->>>>> +
->>>>> +	if (dwc->usb2_generic_phy)
->>>>> +		phy_init(dwc->usb2_generic_phy);
->>>>> +	if (dwc->usb3_generic_phy)
->>>>> +		phy_init(dwc->usb3_generic_phy);
->>>>> +
->>>>
->>>> dwc3_core_soft_reset() is called from dwc3_core_init() which is called from
->>>> dwc3_probe() but before the PHYs are initialized.
->>>>
->>>> This will cause phy power_on() to be called before phy_init() which is wrong.
->>>>
->>
->> You overlooked the above?
-> 
-> No. Forgot to comment back.
-> Yeah, you are right.. that should be fixed.
->>
->>>>>  	mdelay(100);
->>>>>  
->>>>>  	/* Clear USB3 PHY reset */
->>>>> @@ -343,6 +349,11 @@ static void dwc3_core_exit(struct dwc3 *dwc)
->>>>>  {
->>>>>  	usb_phy_shutdown(dwc->usb2_phy);
->>>>>  	usb_phy_shutdown(dwc->usb3_phy);
->>>>> +
->>>>> +	if (dwc->usb2_generic_phy)
->>>>> +		phy_power_off(dwc->usb2_generic_phy);
->>>>> +	if (dwc->usb3_generic_phy)
->>>>> +		phy_power_off(dwc->usb3_generic_phy);
->>>>>  }
->>>>>  
->>>>>  #define DWC3_ALIGN_MASK		(16 - 1)
->>>>> @@ -439,6 +450,26 @@ static int dwc3_probe(struct platform_device *pdev)
->>>>>  		dwc->usb3_phy = devm_usb_get_phy(dev, USB_PHY_TYPE_USB3);
->>>>>  	}
->>>>>  
->>>>> +	count = of_property_match_string(node, "phy-names", "usb2-phy");
->>>>> +	if (count >= 0 || (pdata && pdata->usb2_generic_phy)) {
->>>>> +		dwc->usb2_generic_phy = devm_phy_get(dev, "usb2-phy");
->>>>> +		if (IS_ERR(dwc->usb2_generic_phy)) {
->>>>> +			dev_err(dev, "no usb2 phy configured yet");
->>>>> +			return PTR_ERR(dwc->usb2_generic_phy);
->>>>> +		}
->>>>> +		dwc->usb2_phy = NULL;
->>>>> +	}
->>>>> +
->>>>> +	count = of_property_match_string(node, "phy-names", "usb3-phy");
->>>>> +	if (count >= 0 || (pdata && pdata->usb3_generic_phy)) {
->>>>> +		dwc->usb3_generic_phy = devm_phy_get(dev, "usb3-phy");
->>>>> +		if (IS_ERR(dwc->usb3_generic_phy)) {
->>>>> +			dev_err(dev, "no usb3 phy configured yet");
->>>>> +			return PTR_ERR(dwc->usb3_generic_phy);
->>>>> +		}
->>>>> +		dwc->usb3_phy = NULL;
->>>>> +	}
->>>>> +
->>>>
->>>> There are a couple of issues here.
->>>> - The above code must be executed only if it node is valid.
->>>
->>> of_property_match_string will give a error value if the node is not present.
->>> *count >= 0* can take care of this.
->>
->> OK. 
->>
->>>> - We must either get both PHYs via old method or via new method and not support mix matching
->>>> them. e.g. it is possible with this code that usb2_phy is set and usb3_generic_phy is set.
->>>
->>> Why? As long as both the frameworks co-exist (and we support both in dwc3), I
->>> don't see any reason why we shouldn't allow it. We can avoid adding a few more
->>> checks by leaving it the way it is currently.
->>
->> Because it just doesn't seem elegant. Why would you want to even allow both types of PHY
->> to be used simultaneously?
-> 
-> We actually don't allow both types of PHYs to be used simultaneously.  We set
-> usb2_phy/usb3_phy to NULL, if we had got the the generic PHY.
-> If you just doesn't even want to get PHY by the second method if we have got
-> PHY by the first method, then we might need to add more *if* checks which IMO
-> don't make it any elegant either.
-> Having a clean dt data wont have both types of PHYs anyway.
+--5LiOUhUlsRX0HDkW
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-OK.
+On Fri, Oct 18, 2013 at 03:56:07PM -0700, Tony Lindgren wrote:
+> * Tony Lindgren <tony@atomide.com> [131018 09:45]:
+> > * Tony Lindgren <tony@atomide.com> [131018 09:38]:
+> > > * Felipe Balbi <balbi@ti.com> [131018 09:19]:
+> > > > > @@ -786,7 +813,10 @@ static void serial_omap_shutdown(struct uart=
+_port *port)
+> > > > > =20
+> > > > >  	pm_runtime_mark_last_busy(up->dev);
+> > > > >  	pm_runtime_put_autosuspend(up->dev);
+> > > > > -	free_irq(up->port.irq, up);
+> > > > > +
+> > > > > +	for (i =3D 0; i < ARRAY_SIZE(up->irqs); i++)
+> > > > > +		if (up->irqs[i])
+> > > > > +			devm_free_irq(up->port.dev, up->irqs[i], up);
+> > > >=20
+> > > > do you need this at all if you're using devm_* ?
+> > >=20
+> > > So it seems, startup and shutdown are managed by serial_core and
+> > > that's what at least clps711x.c serial driver is doing.
+> >=20
+> > And that means devm_* in this case does not really help us
+> > here..
+> >=20
+> > I guess we could keep the IRQ requested from probe, but
+> > there's probably a reason why it's done in startup/shutdown.
+> >=20
+> > So I'll just drop the devm_* changes for now.
+>=20
+> Here's an updated simplified version. I also got rid of the
+> for loops as the wake-up interrupt is optional and it made the
+> code a bit of a pain to read.
+>=20
+> Regards,
+>=20
+> Tony
+>=20
+>=20
+> 8< ----------------------------------------
+> From: Tony Lindgren <tony@atomide.com>
+> Date: Wed, 16 Oct 2013 10:27:28 -0700
+> Subject: [PATCH] serial: omap: Add support for optional wake-up interrupt
+>=20
+> With the recent pinctrl-single changes, omaps can treat
+> wake-up events from deeper idle states as interrupts.
+>=20
+> There's a separate "io chain" controller on most omaps
+> that stays enabled when the device hits off-idle and the
+> regular interrupt controller is powered off.
+>=20
+> Let's add support for the optional second interrupt for
+> wake-up events. And then serial-omap can manage the
+> wake-up interrupt from it's runtime PM calls to avoid
+> spurious interrupts during runtime.
+>=20
+> Note that the wake interrupt is board specific as it
+> uses the UART RX pin, and for omap3, there are six pin
+> options for UART3 RX pin.
+>=20
+> Also Note that the legacy platform based booting handles
+> the wake-ups in the legacy mux driver and does not need to
+> pass the wake-up interrupt to the driver.
+>=20
+> And finally, to pass the wake-up interrupt in the dts file,
+> either interrupt-map or the pending interrupts-extended
+> property needs to be passed. It's probably best to use
+> interrupts-extended when it's available.
+>=20
+> Cc: Felipe Balbi <balbi@ti.com>
+> Cc: Kevin Hilman <khilman@linaro.org>
+> Cc: Linus Walleij <linus.walleij@linaro.org>
+> Cc: Roger Quadros <rogerq@ti.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-cheers,
--roger
+looks much nicer
+
+Reviewed-by: Felipe Balbi <balbi@ti.com>
+
+--=20
+balbi
+
+--5LiOUhUlsRX0HDkW
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.15 (GNU/Linux)
+
+iQIcBAEBAgAGBQJSZRw8AAoJEIaOsuA1yqREd00P/0jqtKrwyZ5ognT7FbSLh+R3
+vRVD7ykDlwp7wcLRPkPuvvR1PKq+zJRHfiPegcYIXQ61NP5B0V0PCPATxf04rU6r
+/x9Qd1ugbpnopwrB1Su/9L61plomdnsvWpAwFUcu6SKAzBQ3saQu97D989dlu3mX
+jzi7wRClO0yvfR15iRwPlB1sG0Y3XnX9r58xDIefvsrljyUvkThJe1QNHpYbCUuv
+yCK5LjbYEXUq9fGnJQaM3ZylDfrnVPhyhUFDdGKTCruY/sdzzABcbi0K5W7ahJVE
+LcdAYiHeH58a5aRnIQ/4W5OYsQhdUzyjtKPDT6Ji1B2aYKF6g1/DpKPZ885BQpcB
+oy0dtIcyePge/Y9S0EkEx5dJv5r6n9iF8NTkvxm41gR3cz0L9b6o2flTGjjGoD5+
+eXDfFhyAFpsqka5TclJ2vVFLZS9idh0+jG65ZM3rOanO6MBixSEfp8IwbIdfrISN
+hJ8b/Atj+OJHywP/dbWfL8NioiyyARTZ0nM2mQo85JyXnTxTJhEyyj+Mh+5w/XI7
+G8rZwx4GxOr+p6PPDA67IOLEjPgSdfB5mYTkJvQH5wk1oPozvvAGEeEOsojCH+Yy
+ARtA6QicMkPeHvJFtUs+zuCN+bn8XCvsVjYUev/sDmxkp6hzzWRLudQGKOc6jzwR
+oAHLPCOnoPBPaAYQF6AN
+=b8H+
+-----END PGP SIGNATURE-----
+
+--5LiOUhUlsRX0HDkW--
