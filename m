@@ -1,48 +1,85 @@
-From: Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
-Subject: Re: [PATCH] ARM: dts: am4372: Add McASP nodes
-Date: Mon, 21 Oct 2013 23:01:15 +0400
-Message-ID: <526579FB.10005@cogentembedded.com>
-References: <1382348758-1083-1-git-send-email-peter.ujfalusi@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: [PATCH 1/2] input: touchscreen: fix spelling mistake in TSC/ADC DT binding
+Date: Mon, 21 Oct 2013 15:13:23 -0500
+Message-ID: <1382386404-6659-2-git-send-email-balbi@ti.com>
+References: <1382386404-6659-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1382348758-1083-1-git-send-email-peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:60418 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751185Ab3JUUNQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 21 Oct 2013 16:13:16 -0400
+In-Reply-To: <1382386404-6659-1-git-send-email-balbi@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: dmitry.torokhov@gmail.com
+Cc: rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ijc+devicetree@hellion.org.uk, rob@landley.net, bcousson@baylibre.com, Tony Lindgren <tony@atomide.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, devicetree@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-input@vger.kernel.org, Felipe Balbi <balbi@ti.com>
 
-Hello.
+There was a spelling mistake on TSC/ADC binding where
+"coordinate" was spelled as "coordiante".
 
-On 10/21/2013 01:45 PM, Peter Ujfalusi wrote:
+We can't simply fix the error due to DT being an ABI,
+the approach taken was to first use correct spelling
+and if that fails, fallback to miss-spelled version.
 
-> Add nodes for McASP0 and McASP1 for AM43xx.
+It's unfortunate that has creeped into the tree.
 
-> Signed-off-by: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-> ---
->   arch/arm/boot/dts/am4372.dtsi | 27 +++++++++++++++++++++++++++
->   1 file changed, 27 insertions(+)
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+---
+ .../devicetree/bindings/input/touchscreen/ti-tsc-adc.txt         | 2 +-
+ arch/arm/boot/dts/am335x-evm.dts                                 | 2 +-
+ drivers/input/touchscreen/ti_am335x_tsc.c                        | 9 ++++++++-
+ 3 files changed, 10 insertions(+), 3 deletions(-)
 
-> diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
-> index c328d5c..defaad1 100644
-> --- a/arch/arm/boot/dts/am4372.dtsi
-> +++ b/arch/arm/boot/dts/am4372.dtsi
-> @@ -633,5 +633,32 @@
->   			dma-names = "tx", "rx";
->   		};
->
-> +		mcasp0: mcasp@48038000 {
+diff --git a/Documentation/devicetree/bindings/input/touchscreen/ti-tsc-adc.txt b/Documentation/devicetree/bindings/input/touchscreen/ti-tsc-adc.txt
+index 491c97b..878549b 100644
+--- a/Documentation/devicetree/bindings/input/touchscreen/ti-tsc-adc.txt
++++ b/Documentation/devicetree/bindings/input/touchscreen/ti-tsc-adc.txt
+@@ -6,7 +6,7 @@ Required properties:
+ 	ti,wires: Wires refer to application modes i.e. 4/5/8 wire touchscreen
+ 		  support on the platform.
+ 	ti,x-plate-resistance: X plate resistance
+-	ti,coordiante-readouts: The sequencer supports a total of 16
++	ti,coordinate-readouts: The sequencer supports a total of 16
+ 				programmable steps each step is used to
+ 				read a single coordinate. A single
+                                 readout is enough but multiple reads can
+diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
+index e8ec875..c5b73bc 100644
+--- a/arch/arm/boot/dts/am335x-evm.dts
++++ b/arch/arm/boot/dts/am335x-evm.dts
+@@ -509,7 +509,7 @@
+ 	tsc {
+ 		ti,wires = <4>;
+ 		ti,x-plate-resistance = <200>;
+-		ti,coordiante-readouts = <5>;
++		ti,coordinate-readouts = <5>;
+ 		ti,wire-config = <0x00 0x11 0x22 0x33>;
+ 	};
+ 
+diff --git a/drivers/input/touchscreen/ti_am335x_tsc.c b/drivers/input/touchscreen/ti_am335x_tsc.c
+index e1c5300..b61df9d 100644
+--- a/drivers/input/touchscreen/ti_am335x_tsc.c
++++ b/drivers/input/touchscreen/ti_am335x_tsc.c
+@@ -348,9 +348,16 @@ static int titsc_parse_dt(struct platform_device *pdev,
+ 	if (err < 0)
+ 		return err;
+ 
+-	err = of_property_read_u32(node, "ti,coordiante-readouts",
++	/*
++	 * try with new binding first. If it fails, still try with
++	 * bogus, miss-spelled version.
++	 */
++	err = of_property_read_u32(node, "ti,coordinate-readouts",
+ 			&ts_dev->coordinate_readouts);
+ 	if (err < 0)
++		err = of_property_read_u32(node, "ti,coordiante-readouts",
++				&ts_dev->coordinate_readouts);
++	if (err < 0)
+ 		return err;
+ 
+ 	return of_property_read_u32_array(node, "ti,wire-config",
+-- 
+1.8.4.GIT
 
-    According to ePAPR spec [1], "the name of a node should be somewhat 
-generic, reflecting the function of the device and not its
-precise programming model". In this case probably "sound"?
-
-[1] http://www.power.org/resources/downloads/Power_ePAPR_APPROVED_v1.0.pdf
-
-WBR, Sergei
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
