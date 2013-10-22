@@ -1,68 +1,49 @@
-From: Benoit Cousson <bcousson@baylibre.com>
-Subject: Re: [PATCH] ARM: dts: am4372: Add McASP nodes
-Date: Tue, 22 Oct 2013 10:33:01 +0200
-Message-ID: <5266383D.7090709@baylibre.com>
-References: <1382348758-1083-1-git-send-email-peter.ujfalusi@ti.com> <526579FB.10005@cogentembedded.com> <52662D3B.5050204@ti.com>
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: Re: [PATCH 1/2] input: touchscreen: fix spelling mistake in TSC/ADC
+ DT binding
+Date: Tue, 22 Oct 2013 10:42:00 +0200
+Message-ID: <52663A58.9070706@linutronix.de>
+References: <1382386404-6659-1-git-send-email-balbi@ti.com> <1382386404-6659-2-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <52662D3B.5050204@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>, Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>, Tony Lindgren <tony@atomide.com>
-Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, Jyri Sarha <jsarha@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from www.linutronix.de ([62.245.132.108]:52392 "EHLO
+	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750988Ab3JVImO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Oct 2013 04:42:14 -0400
+In-Reply-To: <1382386404-6659-2-git-send-email-balbi@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: dmitry.torokhov@gmail.com, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ijc+devicetree@hellion.org.uk, rob@landley.net, bcousson@baylibre.com, Tony Lindgren <tony@atomide.com>, devicetree@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-input@vger.kernel.org
 
-On 22/10/2013 09:46, Peter Ujfalusi wrote:
-> Hi,
->
-> On 10/21/2013 10:01 PM, Sergei Shtylyov wrote:
->
->>> diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am43=
-72.dtsi
->>> index c328d5c..defaad1 100644
->>> --- a/arch/arm/boot/dts/am4372.dtsi
->>> +++ b/arch/arm/boot/dts/am4372.dtsi
->>> @@ -633,5 +633,32 @@
->>>                dma-names =3D "tx", "rx";
->>>            };
->>>
->>> +        mcasp0: mcasp@48038000 {
->>
->>     According to ePAPR spec [1], "the name of a node should be somew=
-hat
->> generic, reflecting the function of the device and not its
->> precise programming model". In this case probably "sound"?
->
-> We use the 'sound' node name for the sound card itself. The case with=
- McASP is
-> a bit complicated. It can operate in I2S mode (and similar protocols =
-like RJM,
-> LJM, TDM) or it can interface with S/PDIF, IEC60958-1, AES-3 codecs.
-> The mode we put McASP depends on the external components, so the same=
- McASP
-> can be used in I2S mode in one board while on the other it can be S/P=
-DIF.
-> It would have been convenient if I could use 'i2s' as node name but i=
-t is not
-> true for McASP (Tegra, Exynos for example have I2S, AC97, S/PDIF as s=
-eparate IP).
->
-> IMHO the 'mcasp' is still the best node name for this IP. McASP stand=
-s for:
-> 'Multichannel Audio Serial Port' and this is pretty much what McASP i=
-s.
+On 10/21/2013 10:13 PM, Felipe Balbi wrote:
+> diff --git a/drivers/input/touchscreen/ti_am335x_tsc.c b/drivers/input/touchscreen/ti_am335x_tsc.c
+> index e1c5300..b61df9d 100644
+> --- a/drivers/input/touchscreen/ti_am335x_tsc.c
+> +++ b/drivers/input/touchscreen/ti_am335x_tsc.c
+> @@ -348,9 +348,16 @@ static int titsc_parse_dt(struct platform_device *pdev,
+>  	if (err < 0)
+>  		return err;
+>  
+> -	err = of_property_read_u32(node, "ti,coordiante-readouts",
+> +	/*
+> +	 * try with new binding first. If it fails, still try with
+> +	 * bogus, miss-spelled version.
+> +	 */
+> +	err = of_property_read_u32(node, "ti,coordinate-readouts",
+>  			&ts_dev->coordinate_readouts);
+>  	if (err < 0)
+> +		err = of_property_read_u32(node, "ti,coordiante-readouts",
+> +				&ts_dev->coordinate_readouts);
+> +	if (err < 0)
+>  		return err;
 
-Yes, I do agree, there are tons of nodes that cannot have generic name.=
-=20
-Moreover, we are already using that name in few OMAP dts, so for=20
-consistency, let's keep that name.
+Thanks, very good. Do we keep this fallback for ever or just for a year
+or two?
 
-Benoit
+>  
+>  	return of_property_read_u32_array(node, "ti,wire-config",
 
---=20
-Beno=EEt Cousson
-BayLibre
-Embedded Linux Technology Lab
-www.baylibre.com
+Sebastian
