@@ -1,134 +1,49 @@
 From: Brian Norris <computersforpeace@gmail.com>
-Subject: Re: [PATCH v9 7/9] mtd: nand: omap: use drivers/mtd/nand/nand_bch.c
- wrapper for BCH ECC instead of lib/bch.c
-Date: Tue, 22 Oct 2013 13:24:50 -0700
-Message-ID: <CAN8TOE-AdHJvst5wf8X-Eo5AKu0mNU5v-p_NzpKUiPHku2uOsQ@mail.gmail.com>
-References: <1381816197-20477-1-git-send-email-pekon@ti.com>
-	<1381816197-20477-8-git-send-email-pekon@ti.com>
-	<20131017022237.GC23337@ld-irv-0074.broadcom.com>
-	<20980858CB6D3A4BAE95CA194937D5E73EA27C63@DBDE04.ent.ti.com>
+Subject: Re: [PATCH v10 00/10] mtd:nand:omap2: clean-up of supported ECC
+ schemes
+Date: Tue, 22 Oct 2013 13:30:09 -0700
+Message-ID: <20131022203009.GM23337@ld-irv-0074.broadcom.com>
+References: <1382172254-12448-1-git-send-email-pekon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vc0-f182.google.com ([209.85.220.182]:51253 "EHLO
-	mail-vc0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751149Ab3JVUYw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Oct 2013 16:24:52 -0400
-In-Reply-To: <20980858CB6D3A4BAE95CA194937D5E73EA27C63@DBDE04.ent.ti.com>
+Received: from mail-ob0-f178.google.com ([209.85.214.178]:34973 "EHLO
+	mail-ob0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751149Ab3JVUaO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Oct 2013 16:30:14 -0400
+Content-Disposition: inline
+In-Reply-To: <1382172254-12448-1-git-send-email-pekon@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gupta, Pekon" <pekon@ti.com>
-Cc: "mark.rutland@arm.com" <mark.rutland@arm.com>, "olof@lixom.net" <olof@lixom.net>, "dedekind1@gmail.com" <dedekind1@gmail.com>, "tony@atomide.com" <tony@atomide.com>, "bcousson@baylibre.com" <bcousson@baylibre.com>, "robherring2@gmail.com" <robherring2@gmail.com>, "Pawel.Moll@arm.com" <Pawel.Moll@arm.com>, "ijc+devicetree@hellion.org.uk" <ijc+devicetree@hellion.org.uk>, "swarren@wwwdotorg.org" <swarren@wwwdotorg.org>, "dwmw2@infradead.org" <dwmw2@infradead.org>, "arnd@arndb.de" <arnd@arndb.de>, "avinashphilipk@gmail.com" <avinashphilipk@gmail.com>, "Balbi, Felipe" <balbi@ti.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Ivan Djelic <ivan.djelic@parrot.com>, "jp.francois@cynove.com" <jp.francois@cynove.com>
+To: Pekon Gupta <pekon@ti.com>
+Cc: mark.rutland@arm.com, olof@lixom.net, dedekind1@gmail.com, robherring2@gmail.com, Pawel.Moll@arm.com, ijc+devicetree@hellion.org.uk, swarren@wwwdotorg.org, dwmw2@infradead.org, arnd@arndb.de, tony@atomide.com, bcousson@baylibre.com, avinashphilipk@gmail.com, balbi@ti.com, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, jp.francois@cynove.com, ivan.djelic@parrot.com
 
-On Thu, Oct 17, 2013 at 3:14 AM, Gupta, Pekon <pekon@ti.com> wrote:
->> From: Brian Norris [mailto:computersforpeace@gmail.com]
->> > On Tue, Oct 15, 2013 at 11:19:55AM +0530, Pekon Gupta wrote:
-> [snip]
->
->> > diff --git a/drivers/mtd/nand/Kconfig b/drivers/mtd/nand/Kconfig
->> > index d885298..5836039 100644
->> > --- a/drivers/mtd/nand/Kconfig
->> > +++ b/drivers/mtd/nand/Kconfig
->> > @@ -96,35 +96,13 @@ config MTD_NAND_OMAP2
->> >
->> >  config MTD_NAND_OMAP_BCH
->> >     depends on MTD_NAND && MTD_NAND_OMAP2 && ARCH_OMAP3
->> > -   tristate "Enable support for hardware BCH error correction"
->> > +   tristate "Support hardware based BCH error correction"
->> >     default n
->> >     select BCH
->> > -   select BCH_CONST_PARAMS
->>
->> Do you know what will happen now if someone configures
->> BCH_CONST_PARAMS?
->> Would this cause problems?
->>
-> As per comments in lib/bch.c
-> ---------------------------
-> * Option CONFIG_BCH_CONST_PARAMS can be used to force fixed values of
->  * parameters m and t; thus allowing extra compiler optimizations and providing
->  * better (up to 2x) encoding performance. Using this option makes sense when
->  * (m,t) are fixed and known in advance, e.g. when using BCH error correction
->  * on a particular NAND flash device.
-> ---------------------------
-> 'BCH_CONST_PARAMS' is required for optimization when BCH algorithm
-> is fixed. But in omap-nand case selection of type of BCH algorithm
-> (BCH4 or BCH8) comes from DT binding "ti,nand-ecc-opts".
->
-> If enabled (CONFIG_BCH_CONST_PARAMS) will optimize lib/bch.c
-> for BCH8 algorithm by default, so
-> CASE: if BCH8 is selected by DT, then no issues
-> CASE: if BCH4 is selected  then nand_bch_init() fails with following error
-> + if (!info->nand.ecc.priv) {
->                 pr_err("nand: error: unable to use s/w BCH library\n");
->                 err = -EINVAL;
->                 goto out_release_mem_region;
-> }
+On Sat, Oct 19, 2013 at 02:14:04PM +0530, Pekon Gupta wrote:
+> 
+> *changes v9 -> v10*
+> [PATCH 1/10], [PATCH 2/10]
+>   swapped [PATCH v9 1/9] and [PATCH v9 2/9] so that DT parsing updates
+>   (with backward compatibility) happen before the deprecation of DT values.
+>   This way DTB does not break functionally between the patches.
+> [PATCH 3/10] <no update>
+> [PATCH 4/10] 
+>   dropped [PATCH v9 4/9] introducing NAND_BUSWIDTH_AUTO, instead
+>   using DT 'nand-bus-width' for device bus-width
 
-Ah, so lib/bch.c handles this gracefully enough:
+As mentioned in reply to the patch, I don't think this patch belongs in
+this series now, and it is still not adequate (the original code there
+is wrong in some ways, but your changes are not clearly better).
 
-#if defined(CONFIG_BCH_CONST_PARAMS)
-        if ((m != (CONFIG_BCH_CONST_M)) || (t != (CONFIG_BCH_CONST_T))) {
-                printk(KERN_ERR "bch encoder/decoder was configured to support "
-                       "parameters m=%d, t=%d only!\n",
-                       CONFIG_BCH_CONST_M, CONFIG_BCH_CONST_T);
-                goto fail;
-        }
-#endif
+> [PATCH 5/10] <no update>
+> [PATCH 6/10] <no update>
+> [PATCH 7/10] 
+>   separated out drivers/mtd/nand/Kconfig updates into separate [PATCH v10 10/10]
+>   cleanup: s/info->nand\./nand_chip->
+> [PATCH 8/10] <no update>
+> [PATCH 9/10] cleanup: s/out_release_mem_region/return_error
+> [PATCH 10/10] <new> spawned from [PATCH v9 8/9] for Kconfig updates
 
->> > diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-> [snip]
->> > -           info->bch = init_bch(nand_chip->ecc.bytes,
->> > -                                   nand_chip->ecc.strength,
->> > -                                   OMAP_ECC_BCH8_POLYNOMIAL);
->> > -           if (!info->bch) {
->> > +           info->nand.ecc.priv     = nand_bch_init(mtd,
->> > +                                           info->nand.ecc.size,
->> > +                                           info->nand.ecc.bytes,
->> > +                                           &info->nand.ecc.layout);
->>
->> Are you sure nand_bch_init() is a proper drop-in replacement for the
->> implementation you had based on init_bch()? It looks to me like they at
->> least use a differnt polynomial value (0x201b vs. 0). Is this a problem
->> for backwards compatibility?
->>
-> It's not the polynomial value = 0. Rather 0x201b is selected in both cases
-> Refer below code.
-> ---------------
-> When init_bch(m,t, 0) is called from nand_bch_init() then,
-> lib/bch.c @@ init_bch(int m, int t, unsigned int prim_poly)
-> (a)     /* default primitive polynomials */
->         static const unsigned int prim_poly_tab[] = {
->                 0x25, 0x43, 0x83, 0x11d, 0x211, 0x409, 0x805, 0x1053, 0x201b,
->                 0x402b, 0x8003,
->         };
-> (b)     /* select a primitive polynomial for generating GF(2^m) */
->         if (prim_poly == 0)
->                 prim_poly = prim_poly_tab[m-min_m];
-> (c) And, const int min_m = 5;
->
-> So, for BCH8 m=13, min_m=5; So
-> prim_poly = prim_poly_tab[13-5] = prim_poly_tab[8] = 0x201b
-> ---------------
->
-> Hence, there is no change in polynomial, it's just that instead of
-> hard-coding the value, polynomial selection depends on 'm' and 't'.
+Otherwise, the series looks good.
 
-I missed that. Thanks for pointing it out.
-
->> [...]
->>
->> A related question: do we have any current users of this driver that can
->> provide testing results for this series? Or is this work just tested
->> with new hardware?
->>
-> Got a tested-by: jp.francois@cynove.com for BCH4
-> But that was in May,2013 :-)
-> http://lists.infradead.org/pipermail/linux-mtd/2013-May/047065.html
-
-OK, well that's good to know. I suppose the operation of the driver
-probably hasn't changed a lot in the meantime, just the DT bindings
-and a few other smaller details. But we still can't call it
-"Tested-by:" in its current form.
-
+Thanks,
 Brian
