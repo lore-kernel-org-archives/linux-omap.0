@@ -1,62 +1,59 @@
 From: Sebastian Reichel <sre@debian.org>
-Subject: [PATCH] DTS: ARM: OMAP3-N900: Add UART support
-Date: Tue, 22 Oct 2013 13:05:13 +0200
-Message-ID: <1382439913-16534-1-git-send-email-sre@debian.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Subject: [PATCH] DTS: ARM: OMAP3-N900: Add support for SD cards
+Date: Tue, 22 Oct 2013 13:43:58 +0200
+Message-ID: <1382442238-24637-1-git-send-email-sre@debian.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from ring0.de ([91.143.88.219]:35786 "EHLO smtp.ring0.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752342Ab3JVLoK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 22 Oct 2013 07:44:10 -0400
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: Sebastian Reichel <sre@ring0.de>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>
 Cc: Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Sebastian Reichel <sre@debian.org>
-List-Id: linux-omap@vger.kernel.org
 
-Add UART support to Nokia N900.
+Add support for external SD card slot.
 
 Signed-off-by: Sebastian Reichel <sre@debian.org>
 ---
- arch/arm/boot/dts/omap3-n900.dts | 28 ++++++++++++++++++++++++++++
- 1 file changed, 28 insertions(+)
+ arch/arm/boot/dts/omap3-n900.dts | 17 ++++++++++++++++-
+ 1 file changed, 16 insertions(+), 1 deletion(-)
 
 diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
-index 2374b9a..99d0668 100644
+index 99d0668..ab62afa 100644
 --- a/arch/arm/boot/dts/omap3-n900.dts
 +++ b/arch/arm/boot/dts/omap3-n900.dts
-@@ -31,6 +31,20 @@
- &omap3_pmx_core {
- 	pinctrl-names = "default";
- 
-+	uart2_pins: pinmux_uart2_pins {
+@@ -65,6 +65,17 @@
+ 			0x194 (PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c3_sda */
+ 		>;
+ 	};
++
++	mmc1_pins: pinmux_mmc1_pins {
 +		pinctrl-single,pins = <
-+			0x14a (PIN_INPUT | MUX_MODE0)		/* uart2_rx */
-+			0x148 (PIN_OUTPUT | MUX_MODE0)		/* uart2_tx */
++			0x114 (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc1_clk */
++			0x116 (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc1_cmd */
++			0x118 (PIN_INPUT_PULLUP | MUX_MODE0) 	/* sdmmc1_dat0 */
++			0x11a (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc1_dat1 */
++			0x11c (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc1_dat2 */
++			0x11e (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc1_dat3 */
 +		>;
 +	};
-+
-+	uart3_pins: pinmux_uart3_pins {
-+		pinctrl-single,pins = <
-+			0x16e (PIN_INPUT | MUX_MODE0)		/* uart3_rx */
-+			0x170 (PIN_OUTPUT | MUX_MODE0)		/* uart3_tx */
-+		>;
-+	};
-+
- 	i2c1_pins: pinmux_i2c1_pins {
- 		pinctrl-single,pins = <
- 			0x18a (PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c1_scl */
-@@ -125,3 +139,17 @@
- 	mode = <2>;
- 	power = <50>;
  };
-+
-+&uart1 {
-+	status = "disabled";
-+};
-+
-+&uart2 {
+ 
+ &i2c1 {
+@@ -103,7 +114,11 @@
+ };
+ 
+ &mmc1 {
+-	status = "disabled";
 +	pinctrl-names = "default";
-+	pinctrl-0 = <&uart2_pins>;
-+};
-+
-+&uart3 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&uart3_pins>;
-+};
++	pinctrl-0 = <&mmc1_pins>;
++	vmmc-supply = <&vmmc1>;
++	bus-width = <4>;
++	cd-gpios = <&gpio6 0 GPIO_ACTIVE_HIGH>; /* 160 */
+ };
+ 
+ &mmc2 {
 -- 
 1.8.4.rc3
+
