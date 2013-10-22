@@ -1,49 +1,81 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH] typo fixes (coordiante -> coordinate) in am335x
-Date: Tue, 22 Oct 2013 10:05:52 +0100
-Message-ID: <20131022090552.GE19112@lee--X1>
-References: <1373901928-19605-1-git-send-email-zubair.lutfullah@gmail.com>
- <20130821075828.GZ7656@atomide.com>
- <1382198544.22609.8.camel@polaris.local>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: [PATCH 2/4] dma: cppi41: use cppi41_pop_desc() where possible
+Date: Tue, 22 Oct 2013 12:14:04 +0200
+Message-ID: <1382436846-9057-3-git-send-email-bigeasy@linutronix.de>
+References: <1382436846-9057-1-git-send-email-bigeasy@linutronix.de>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1382198544.22609.8.camel@polaris.local>
+In-Reply-To: <1382436846-9057-1-git-send-email-bigeasy@linutronix.de>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jan =?iso-8859-1?Q?L=FCbbe?= <jlu@pengutronix.de>, Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, Samuel Ortiz <sameo@linux.intel.com>, Zubair Lutfullah <zubair.lutfullah@gmail.com>, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-input@vger.kernel.org
+To: Vinod Koul <vinod.koul@intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org, Daniel Mack <zonque@gmail.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 List-Id: linux-omap@vger.kernel.org
 
-On Sat, 19 Oct 2013, Jan L=C3=BCbbe wrote:
+From: Daniel Mack <zonque@gmail.com>
 
-> On Wed, 2013-08-21 at 00:58 -0700, Tony Lindgren wrote:
-> > * Zubair Lutfullah <zubair.lutfullah@gmail.com> [130715 08:33]:
-> > > Did a grep for coordiante and replaced them all
-> > > with coordinate.
-> > >=20
-> > > This applies to the mfd-next tree.
-> >=20
-> > This should be safe to apply via the MFD tree as a non-critical
-> > fix assuming the bootloaders are not yet using this:
-> >=20
-> > Acked-by: Tony Lindgren <tony@atomide.com>
->=20
-> It seems this didn't get applied. It fixes the touchscreen on a
-> BeagleBone black with the 7" LCD and we should avoid having people us=
-e
-> the wrong binding.
->=20
-> Samuel or Lee: Could you take this patch?
+Use cppi41_pop_desc() when appropriate instead of open-coding the same
+functionality again. That makes the code more readable. The function has
+to be moved some lines up for this change.
 
-This is the first time this patch has been sent to me.
+Signed-off-by: Daniel Mack <zonque@gmail.com>
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+---
+ drivers/dma/cppi41.c | 23 +++++++++++------------
+ 1 file changed, 11 insertions(+), 12 deletions(-)
 
-I need Dmitry's input (no pun intended) on how he's like to deal with
-this. At a bare minimum I'd like his Ack.
-
---=20
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org =E2=94=82 Open source software for ARM SoCs
-=46ollow Linaro: Facebook | Twitter | Blog
+diff --git a/drivers/dma/cppi41.c b/drivers/dma/cppi41.c
+index e53292d..42d1c58 100644
+--- a/drivers/dma/cppi41.c
++++ b/drivers/dma/cppi41.c
+@@ -266,6 +266,15 @@ static u32 pd_trans_len(u32 val)
+ 	return val & ((1 << (DESC_LENGTH_BITS_NUM + 1)) - 1);
+ }
+ 
++static u32 cppi41_pop_desc(struct cppi41_dd *cdd, unsigned queue_num)
++{
++	u32 desc;
++
++	desc = cppi_readl(cdd->qmgr_mem + QMGR_QUEUE_D(queue_num));
++	desc &= ~0x1f;
++	return desc;
++}
++
+ static irqreturn_t cppi41_irq(int irq, void *data)
+ {
+ 	struct cppi41_dd *cdd = data;
+@@ -303,8 +312,7 @@ static irqreturn_t cppi41_irq(int irq, void *data)
+ 			q_num = __fls(val);
+ 			val &= ~(1 << q_num);
+ 			q_num += 32 * i;
+-			desc = cppi_readl(cdd->qmgr_mem + QMGR_QUEUE_D(q_num));
+-			desc &= ~0x1f;
++			desc = cppi41_pop_desc(cdd, q_num);
+ 			c = desc_to_chan(cdd, desc);
+ 			if (WARN_ON(!c)) {
+ 				pr_err("%s() q %d desc %08x\n", __func__,
+@@ -520,15 +528,6 @@ static void cppi41_compute_td_desc(struct cppi41_desc *d)
+ 	d->pd0 = DESC_TYPE_TEARD << DESC_TYPE;
+ }
+ 
+-static u32 cppi41_pop_desc(struct cppi41_dd *cdd, unsigned queue_num)
+-{
+-	u32 desc;
+-
+-	desc = cppi_readl(cdd->qmgr_mem + QMGR_QUEUE_D(queue_num));
+-	desc &= ~0x1f;
+-	return desc;
+-}
+-
+ static int cppi41_tear_down_chan(struct cppi41_channel *c)
+ {
+ 	struct cppi41_dd *cdd = c->cdd;
+@@ -612,7 +611,7 @@ static int cppi41_tear_down_chan(struct cppi41_channel *c)
+ 
+ 	WARN_ON(!c->td_retry);
+ 	if (!c->td_desc_seen) {
+-		desc_phys = cppi_readl(cdd->qmgr_mem + QMGR_QUEUE_D(c->q_num));
++		desc_phys = cppi41_pop_desc(cdd, c->q_num);
+ 		WARN_ON(!desc_phys);
+ 	}
+ 
+-- 
+1.8.4.rc3
