@@ -1,49 +1,87 @@
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: Re: [PATCH 1/2] input: touchscreen: fix spelling mistake in TSC/ADC
- DT binding
-Date: Tue, 22 Oct 2013 10:42:00 +0200
-Message-ID: <52663A58.9070706@linutronix.de>
-References: <1382386404-6659-1-git-send-email-balbi@ti.com> <1382386404-6659-2-git-send-email-balbi@ti.com>
+From: Benoit Cousson <bcousson@baylibre.com>
+Subject: Re: [PATCH] ARM: dts: igep0033: Add mmc1 node for SDCARD support.
+Date: Tue, 22 Oct 2013 10:57:25 +0200
+Message-ID: <52663DF5.5020401@baylibre.com>
+References: <1382216119-14125-1-git-send-email-eballetbo@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from www.linutronix.de ([62.245.132.108]:52392 "EHLO
-	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750988Ab3JVImO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Oct 2013 04:42:14 -0400
-In-Reply-To: <1382386404-6659-2-git-send-email-balbi@ti.com>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:55071 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750988Ab3JVI50 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Oct 2013 04:57:26 -0400
+Received: by mail-bk0-f46.google.com with SMTP id 6so1174239bkj.19
+        for <linux-omap@vger.kernel.org>; Tue, 22 Oct 2013 01:57:25 -0700 (PDT)
+In-Reply-To: <1382216119-14125-1-git-send-email-eballetbo@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: dmitry.torokhov@gmail.com, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ijc+devicetree@hellion.org.uk, rob@landley.net, bcousson@baylibre.com, Tony Lindgren <tony@atomide.com>, devicetree@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-input@vger.kernel.org
+To: Enric Balletbo i Serra <eballetbo@gmail.com>, Tony Lindgren <tony@atomide.com>, Javier Martinez Canillas <martinez.javier@gmail.com>, linux-omap@vger.kernel.org
 
-On 10/21/2013 10:13 PM, Felipe Balbi wrote:
-> diff --git a/drivers/input/touchscreen/ti_am335x_tsc.c b/drivers/input/touchscreen/ti_am335x_tsc.c
-> index e1c5300..b61df9d 100644
-> --- a/drivers/input/touchscreen/ti_am335x_tsc.c
-> +++ b/drivers/input/touchscreen/ti_am335x_tsc.c
-> @@ -348,9 +348,16 @@ static int titsc_parse_dt(struct platform_device *pdev,
->  	if (err < 0)
->  		return err;
->  
-> -	err = of_property_read_u32(node, "ti,coordiante-readouts",
-> +	/*
-> +	 * try with new binding first. If it fails, still try with
-> +	 * bogus, miss-spelled version.
-> +	 */
-> +	err = of_property_read_u32(node, "ti,coordinate-readouts",
->  			&ts_dev->coordinate_readouts);
->  	if (err < 0)
-> +		err = of_property_read_u32(node, "ti,coordiante-readouts",
-> +				&ts_dev->coordinate_readouts);
-> +	if (err < 0)
->  		return err;
+Hi Enric,
 
-Thanks, very good. Do we keep this fallback for ever or just for a year
-or two?
+On 19/10/2013 22:55, Enric Balletbo i Serra wrote:
+> Add mmc1 dt node to IGEP COM AQUILA board.
 
->  
->  	return of_property_read_u32_array(node, "ti,wire-config",
+I've just applied it.
 
-Sebastian
+Please note that since we are already at -rc6 and since all the=20
+maintainers are actually visiting Edinburgh for KS and ELCE, I doubt al=
+l=20
+the latest patches will reach 3.13 :-(
+
+Thanks,
+Benoit
+
+
+> Signed-off-by: Enric Balletbo i Serra <eballetbo@gmail.com>
+> ---
+>   arch/arm/boot/dts/am335x-igep0033.dtsi | 13 +++++++++++++
+>   1 file changed, 13 insertions(+)
+>
+> diff --git a/arch/arm/boot/dts/am335x-igep0033.dtsi b/arch/arm/boot/d=
+ts/am335x-igep0033.dtsi
+> index 06eba07..6196244 100644
+> --- a/arch/arm/boot/dts/am335x-igep0033.dtsi
+> +++ b/arch/arm/boot/dts/am335x-igep0033.dtsi
+> @@ -44,6 +44,13 @@
+>   		regulator-max-microvolt =3D <5000000>;
+>   		regulator-boot-on;
+>   	};
+> +
+> +	vmmc: fixedregulator@0 {
+> +		compatible =3D "regulator-fixed";
+> +		regulator-name =3D "vmmc";
+> +		regulator-min-microvolt =3D <3300000>;
+> +		regulator-max-microvolt =3D <3300000>;
+> +	};
+>   };
+>
+>   &am33xx_pinmux {
+> @@ -180,6 +187,12 @@
+>   	};
+>   };
+>
+> +&mmc1 {
+> +	status =3D "okay";
+> +	vmmc-supply =3D <&vmmc>;
+> +	bus-width =3D <4>;
+> +};
+> +
+>   &uart0 {
+>   	status =3D "okay";
+>   	pinctrl-names =3D "default";
+>
+
+
+--=20
+Beno=EEt Cousson
+BayLibre
+Embedded Linux Technology Lab
+www.baylibre.com
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
