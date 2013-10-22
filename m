@@ -1,7 +1,7 @@
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: [PATCH 2/4] dma: cppi41: use cppi41_pop_desc() where possible
-Date: Tue, 22 Oct 2013 12:14:04 +0200
-Message-ID: <1382436846-9057-3-git-send-email-bigeasy@linutronix.de>
+Subject: [PATCH 1/4] dma: cppi41: restore more registers
+Date: Tue, 22 Oct 2013 12:14:03 +0200
+Message-ID: <1382436846-9057-2-git-send-email-bigeasy@linutronix.de>
 References: <1382436846-9057-1-git-send-email-bigeasy@linutronix.de>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1382436846-9057-1-git-send-email-bigeasy@linutronix.de>
@@ -12,70 +12,61 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Daniel Mack <zonque@gmail.com>
 
-Use cppi41_pop_desc() when appropriate instead of open-coding the same
-functionality again. That makes the code more readable. The function has
-to be moved some lines up for this change.
+With active users over suspend/resume cycles, it turns out that
+more registers, in particular DMA_TDFDQ and RXHPCRA0, have to be
+restored on resume.
 
 Signed-off-by: Daniel Mack <zonque@gmail.com>
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 ---
- drivers/dma/cppi41.c | 23 +++++++++++------------
- 1 file changed, 11 insertions(+), 12 deletions(-)
+ drivers/dma/cppi41.c | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
 diff --git a/drivers/dma/cppi41.c b/drivers/dma/cppi41.c
-index e53292d..42d1c58 100644
+index 167c022..e53292d 100644
 --- a/drivers/dma/cppi41.c
 +++ b/drivers/dma/cppi41.c
-@@ -266,6 +266,15 @@ static u32 pd_trans_len(u32 val)
- 	return val & ((1 << (DESC_LENGTH_BITS_NUM + 1)) - 1);
- }
- 
-+static u32 cppi41_pop_desc(struct cppi41_dd *cdd, unsigned queue_num)
-+{
-+	u32 desc;
+@@ -141,6 +141,9 @@ struct cppi41_dd {
+ 	const struct chan_queues *queues_rx;
+ 	const struct chan_queues *queues_tx;
+ 	struct chan_queues td_queue;
 +
-+	desc = cppi_readl(cdd->qmgr_mem + QMGR_QUEUE_D(queue_num));
-+	desc &= ~0x1f;
-+	return desc;
-+}
++	/* context for suspend/resume */
++	unsigned int dma_tdfdq;
+ };
+ 
+ #define FIST_COMPLETION_QUEUE	93
+@@ -1050,6 +1053,7 @@ static int cppi41_suspend(struct device *dev)
+ {
+ 	struct cppi41_dd *cdd = dev_get_drvdata(dev);
+ 
++	cdd->dma_tdfdq = cppi_readl(cdd->ctrl_mem + DMA_TDFDQ);
+ 	cppi_writel(0, cdd->usbss_mem + USBSS_IRQ_CLEARR);
+ 	disable_sched(cdd);
+ 
+@@ -1059,12 +1063,23 @@ static int cppi41_suspend(struct device *dev)
+ static int cppi41_resume(struct device *dev)
+ {
+ 	struct cppi41_dd *cdd = dev_get_drvdata(dev);
++	struct cppi41_channel *c;
+ 	int i;
+ 
+ 	for (i = 0; i < DESCS_AREAS; i++)
+ 		cppi_writel(cdd->descs_phys, cdd->qmgr_mem + QMGR_MEMBASE(i));
+ 
++	list_for_each_entry(c, &cdd->ddev.channels, chan.device_node)
++		if (!c->is_tx)
++			cppi_writel(c->q_num, c->gcr_reg + RXHPCRA0);
 +
- static irqreturn_t cppi41_irq(int irq, void *data)
- {
- 	struct cppi41_dd *cdd = data;
-@@ -303,8 +312,7 @@ static irqreturn_t cppi41_irq(int irq, void *data)
- 			q_num = __fls(val);
- 			val &= ~(1 << q_num);
- 			q_num += 32 * i;
--			desc = cppi_readl(cdd->qmgr_mem + QMGR_QUEUE_D(q_num));
--			desc &= ~0x1f;
-+			desc = cppi41_pop_desc(cdd, q_num);
- 			c = desc_to_chan(cdd, desc);
- 			if (WARN_ON(!c)) {
- 				pr_err("%s() q %d desc %08x\n", __func__,
-@@ -520,15 +528,6 @@ static void cppi41_compute_td_desc(struct cppi41_desc *d)
- 	d->pd0 = DESC_TYPE_TEARD << DESC_TYPE;
- }
+ 	init_sched(cdd);
++
++	cppi_writel(cdd->dma_tdfdq, cdd->ctrl_mem + DMA_TDFDQ);
++	cppi_writel(cdd->scratch_phys, cdd->qmgr_mem + QMGR_LRAM0_BASE);
++	cppi_writel(QMGR_SCRATCH_SIZE, cdd->qmgr_mem + QMGR_LRAM_SIZE);
++	cppi_writel(0, cdd->qmgr_mem + QMGR_LRAM1_BASE);
++
+ 	cppi_writel(USBSS_IRQ_PD_COMP, cdd->usbss_mem + USBSS_IRQ_ENABLER);
  
--static u32 cppi41_pop_desc(struct cppi41_dd *cdd, unsigned queue_num)
--{
--	u32 desc;
--
--	desc = cppi_readl(cdd->qmgr_mem + QMGR_QUEUE_D(queue_num));
--	desc &= ~0x1f;
--	return desc;
--}
--
- static int cppi41_tear_down_chan(struct cppi41_channel *c)
- {
- 	struct cppi41_dd *cdd = c->cdd;
-@@ -612,7 +611,7 @@ static int cppi41_tear_down_chan(struct cppi41_channel *c)
- 
- 	WARN_ON(!c->td_retry);
- 	if (!c->td_desc_seen) {
--		desc_phys = cppi_readl(cdd->qmgr_mem + QMGR_QUEUE_D(c->q_num));
-+		desc_phys = cppi41_pop_desc(cdd, c->q_num);
- 		WARN_ON(!desc_phys);
- 	}
- 
+ 	return 0;
 -- 
 1.8.4.rc3
