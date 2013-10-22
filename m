@@ -1,72 +1,35 @@
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: [PATCH 1/4] dma: cppi41: restore more registers
-Date: Tue, 22 Oct 2013 12:14:03 +0200
-Message-ID: <1382436846-9057-2-git-send-email-bigeasy@linutronix.de>
+Subject: [PATCH 4/4] dma: cppi41: return code > 0 of pm_runtime_get_sync() is not an error
+Date: Tue, 22 Oct 2013 12:14:06 +0200
+Message-ID: <1382436846-9057-5-git-send-email-bigeasy@linutronix.de>
 References: <1382436846-9057-1-git-send-email-bigeasy@linutronix.de>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1382436846-9057-1-git-send-email-bigeasy@linutronix.de>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Vinod Koul <vinod.koul@intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org, Daniel Mack <zonque@gmail.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Dan Williams <dan.j.williams@intel.com>, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 List-Id: linux-omap@vger.kernel.org
 
-From: Daniel Mack <zonque@gmail.com>
+Return code of pm_runtime_get_sync() > 0 is not an error and may happen.
+Noticed during rmmod & modprobe testing.
 
-With active users over suspend/resume cycles, it turns out that
-more registers, in particular DMA_TDFDQ and RXHPCRA0, have to be
-restored on resume.
-
-Signed-off-by: Daniel Mack <zonque@gmail.com>
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 ---
- drivers/dma/cppi41.c | 15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+ drivers/dma/cppi41.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/dma/cppi41.c b/drivers/dma/cppi41.c
-index 167c022..e53292d 100644
+index 561de4f..c706d21 100644
 --- a/drivers/dma/cppi41.c
 +++ b/drivers/dma/cppi41.c
-@@ -141,6 +141,9 @@ struct cppi41_dd {
- 	const struct chan_queues *queues_rx;
- 	const struct chan_queues *queues_tx;
- 	struct chan_queues td_queue;
-+
-+	/* context for suspend/resume */
-+	unsigned int dma_tdfdq;
- };
+@@ -956,7 +956,7 @@ static int cppi41_dma_probe(struct platform_device *pdev)
  
- #define FIST_COMPLETION_QUEUE	93
-@@ -1050,6 +1053,7 @@ static int cppi41_suspend(struct device *dev)
- {
- 	struct cppi41_dd *cdd = dev_get_drvdata(dev);
+ 	pm_runtime_enable(dev);
+ 	ret = pm_runtime_get_sync(dev);
+-	if (ret)
++	if (ret < 0)
+ 		goto err_get_sync;
  
-+	cdd->dma_tdfdq = cppi_readl(cdd->ctrl_mem + DMA_TDFDQ);
- 	cppi_writel(0, cdd->usbss_mem + USBSS_IRQ_CLEARR);
- 	disable_sched(cdd);
- 
-@@ -1059,12 +1063,23 @@ static int cppi41_suspend(struct device *dev)
- static int cppi41_resume(struct device *dev)
- {
- 	struct cppi41_dd *cdd = dev_get_drvdata(dev);
-+	struct cppi41_channel *c;
- 	int i;
- 
- 	for (i = 0; i < DESCS_AREAS; i++)
- 		cppi_writel(cdd->descs_phys, cdd->qmgr_mem + QMGR_MEMBASE(i));
- 
-+	list_for_each_entry(c, &cdd->ddev.channels, chan.device_node)
-+		if (!c->is_tx)
-+			cppi_writel(c->q_num, c->gcr_reg + RXHPCRA0);
-+
- 	init_sched(cdd);
-+
-+	cppi_writel(cdd->dma_tdfdq, cdd->ctrl_mem + DMA_TDFDQ);
-+	cppi_writel(cdd->scratch_phys, cdd->qmgr_mem + QMGR_LRAM0_BASE);
-+	cppi_writel(QMGR_SCRATCH_SIZE, cdd->qmgr_mem + QMGR_LRAM_SIZE);
-+	cppi_writel(0, cdd->qmgr_mem + QMGR_LRAM1_BASE);
-+
- 	cppi_writel(USBSS_IRQ_PD_COMP, cdd->usbss_mem + USBSS_IRQ_ENABLER);
- 
- 	return 0;
+ 	cdd->queues_rx = glue_info->queues_rx;
 -- 
 1.8.4.rc3
