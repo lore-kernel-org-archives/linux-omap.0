@@ -1,35 +1,51 @@
-From: Anton Vorontsov <anton@enomsg.org>
-Subject: Re: [PATCH 2/4] power: isp1704_charger: Fix driver to work with
- changes introduced in v3.5
-Date: Tue, 22 Oct 2013 14:03:38 -0700
-Message-ID: <20131022210337.GA6148@teo>
-References: <1378630239-10006-1-git-send-email-pali.rohar@gmail.com>
- <1378630239-10006-3-git-send-email-pali.rohar@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Sebastian Reichel <sre@debian.org>
+Subject: [PATCH 00/14] DTS: ARM: OMAP3-N900: Add misc. HW
+Date: Wed, 23 Oct 2013 00:49:29 +0200
+Message-ID: <1382482183-14426-1-git-send-email-sre@debian.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1378630239-10006-3-git-send-email-pali.rohar@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, David Woodhouse <dwmw2@infradead.org>, Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, freemangordon@abv.bg, aaro.koskinen@iki.fi, pavel@ucw.cz
+To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Sebastian Reichel <sre@debian.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Sun, Sep 08, 2013 at 10:50:37AM +0200, Pali Roh=C3=A1r wrote:
-> * omap musb driver does not report USB_EVENT_ENUMERATED event anymore
-> * omap musb driver reporting USB_EVENT_VBUS when charger is connected
-> * read last event from phy->last_event (instead from ulpi register)
-> * do not call wall charger detection more times
->=20
-> Signed-off-by: Pali Roh=C3=A1r <pali.rohar@gmail.com>
+This patchset adds misc. hardware elements to the Nokia N900 DTS
+file. Apart from the last two patches the kernel drivers in 3.12
+are already capable of handling the DT entries.
 
-Applied, thanks a lot!
+The series is based on bcousson/linux-omap-dt.git:for_3.13/dts.
 
-(Per others' review comments I am assuming that the second isp1704 patc=
-h
-will be reworked to support device-tree, so I am not applying it.)
+Additional notes:
 
-Thanks,
+* LP5523 support depends on [0], which goes through the
+  Bryan Wu's tree.
+* TWL4030 supports depends on [1], which is not yet queued.
+* Apart from those two I did not include any patches, which
+  also need changes in the drivers.
 
-Anton
+[0] https://lkml.org/lkml/2013/10/22/166
+[1] https://lkml.org/lkml/2013/10/22/147
+
+-- Sebastian
+
+Sebastian Reichel (14):
+  DTS: ARM: OMAP3-N900: Add pinctrl for i2c devices
+  DTS: ARM: OMAP3-N900: Fix i2c bus speed
+  DTS: ARM: OMAP3-N900: Add UART support
+  DTS: ARM: OMAP3-N900: Add support for SD cards
+  DTS: ARM: OMAP3-N900: GPIO key definitions
+  DTS: ARM: OMAP3-N900: Add vibrator device
+  DTS: ARM: OMAP3-N900: Add LP5523 support
+  DTS: TWL4030: Add missing regulators
+  DTS: ARM: OMAP3-N900: Specify regulator info
+  DTS: ARM: OMAP3-N900: Add NAND support
+  DTS: ARM: OMAP3-N900: Mux RX51_LCD_RESET_GPIO in DTS
+  DTS: ARM: OMAP3-N900: Add TLV320AIC3X support
+  DTS: ARM: OMAP3-N900: Add LP5523 support
+  DTS: TWL4030: Add power button support
+
+ arch/arm/boot/dts/omap3-n900.dts | 396 ++++++++++++++++++++++++++++++++++++++-
+ arch/arm/boot/dts/twl4030.dtsi   |  49 ++++-
+ 2 files changed, 438 insertions(+), 7 deletions(-)
+
+-- 
+1.8.4.rc3
