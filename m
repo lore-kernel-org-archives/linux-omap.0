@@ -1,59 +1,84 @@
-From: Sebastian Reichel <sre@debian.org>
-Subject: [PATCH] DTS: ARM: OMAP3-N900: Add support for SD cards
-Date: Tue, 22 Oct 2013 13:43:58 +0200
-Message-ID: <1382442238-24637-1-git-send-email-sre@debian.org>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ring0.de ([91.143.88.219]:35786 "EHLO smtp.ring0.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752342Ab3JVLoK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 22 Oct 2013 07:44:10 -0400
-Sender: linux-omap-owner@vger.kernel.org
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 1/2] input: touchscreen: fix spelling mistake in TSC/ADC
+ DT binding
+Date: Tue, 22 Oct 2013 07:02:53 -0500
+Message-ID: <20131022120253.GD9340@gimli>
+References: <1382386404-6659-1-git-send-email-balbi@ti.com>
+ <1382386404-6659-2-git-send-email-balbi@ti.com>
+ <52663A58.9070706@linutronix.de>
+Reply-To: <balbi@ti.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="jTMWTj4UTAEmbWeb"
+Return-path: <linux-input-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <52663A58.9070706@linutronix.de>
+Sender: linux-input-owner@vger.kernel.org
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Felipe Balbi <balbi@ti.com>, dmitry.torokhov@gmail.com, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ijc+devicetree@hellion.org.uk, rob@landley.net, bcousson@baylibre.com, Tony Lindgren <tony@atomide.com>, devicetree@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-input@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sebastian Reichel <sre@ring0.de>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>
-Cc: Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Sebastian Reichel <sre@debian.org>
 
-Add support for external SD card slot.
+--jTMWTj4UTAEmbWeb
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Sebastian Reichel <sre@debian.org>
----
- arch/arm/boot/dts/omap3-n900.dts | 17 ++++++++++++++++-
- 1 file changed, 16 insertions(+), 1 deletion(-)
+Hi,
 
-diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
-index 99d0668..ab62afa 100644
---- a/arch/arm/boot/dts/omap3-n900.dts
-+++ b/arch/arm/boot/dts/omap3-n900.dts
-@@ -65,6 +65,17 @@
- 			0x194 (PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c3_sda */
- 		>;
- 	};
-+
-+	mmc1_pins: pinmux_mmc1_pins {
-+		pinctrl-single,pins = <
-+			0x114 (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc1_clk */
-+			0x116 (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc1_cmd */
-+			0x118 (PIN_INPUT_PULLUP | MUX_MODE0) 	/* sdmmc1_dat0 */
-+			0x11a (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc1_dat1 */
-+			0x11c (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc1_dat2 */
-+			0x11e (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc1_dat3 */
-+		>;
-+	};
- };
- 
- &i2c1 {
-@@ -103,7 +114,11 @@
- };
- 
- &mmc1 {
--	status = "disabled";
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&mmc1_pins>;
-+	vmmc-supply = <&vmmc1>;
-+	bus-width = <4>;
-+	cd-gpios = <&gpio6 0 GPIO_ACTIVE_HIGH>; /* 160 */
- };
- 
- &mmc2 {
--- 
-1.8.4.rc3
+On Tue, Oct 22, 2013 at 10:42:00AM +0200, Sebastian Andrzej Siewior wrote:
+> On 10/21/2013 10:13 PM, Felipe Balbi wrote:
+> > diff --git a/drivers/input/touchscreen/ti_am335x_tsc.c b/drivers/input/=
+touchscreen/ti_am335x_tsc.c
+> > index e1c5300..b61df9d 100644
+> > --- a/drivers/input/touchscreen/ti_am335x_tsc.c
+> > +++ b/drivers/input/touchscreen/ti_am335x_tsc.c
+> > @@ -348,9 +348,16 @@ static int titsc_parse_dt(struct platform_device *=
+pdev,
+> >  	if (err < 0)
+> >  		return err;
+> > =20
+> > -	err =3D of_property_read_u32(node, "ti,coordiante-readouts",
+> > +	/*
+> > +	 * try with new binding first. If it fails, still try with
+> > +	 * bogus, miss-spelled version.
+> > +	 */
+> > +	err =3D of_property_read_u32(node, "ti,coordinate-readouts",
+> >  			&ts_dev->coordinate_readouts);
+> >  	if (err < 0)
+> > +		err =3D of_property_read_u32(node, "ti,coordiante-readouts",
+> > +				&ts_dev->coordinate_readouts);
+> > +	if (err < 0)
+> >  		return err;
+>=20
+> Thanks, very good. Do we keep this fallback for ever or just for a year
+> or two?
 
+That's for DT maintainers to decide but considering DT is an ABI, I
+guess we need to keep for 30 years or so :-p
+
+--=20
+balbi
+
+--jTMWTj4UTAEmbWeb
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.15 (GNU/Linux)
+
+iQIcBAEBAgAGBQJSZmltAAoJEIaOsuA1yqRERcIQAKOJhR2abNPihxEOg0lnKb7O
+f/8UI3L7RdHadFGBzjP5pxZ2BIwdc78ro9MNwlEeQV61etvnLSjqbGvQv5yuulR3
+HtkIWltn/ILlUSb0tTXecxlN53EyTpRw0d+uFSsv4r/Op1HLBxt39W0Uv8GajQfO
+4cAGhWELOOt3u8/rHE/zG4dBhAXwJ/HNIakebOAoXmyworZLvGxf0xLCVpFopYKB
+EHw8wJDK6CEiV+SeZOzToelAkTYbCdqNRdwFdXpufRWkYRBvan+1bFW9fkW3FscM
+kab3YZpO9DkV4mZvGaF45mfwo+6VhHEnYWz0fsdc1jdLoe0eiZMHrsPrTDpFB4+j
++wC4ToBzEgOJPn6QG0pcgztzbIRXsPVi7/y8kXzyrfG/IGncfFrt+Cm6roxq886g
+4qLjc6zdQtrnhb2xOO8OriPbxptJULzUyst/dzPYGhCAfLCR8VMI70dMrvKLtOaj
+DvbYVWuZsUu+ODFvDD5XWQgxfCXm8vaqbUGX12XUtbKGiraJP5RfT4yShM8j5wbH
+Kc2XSklu3r8tsZVzx9UcHVcxiovX9k2Q2mIgqm9d84RnWsPKjff0oNl7fsnabnvl
+v1JN5kNvf7SfXJJY6ayBm4QkJDqWhRwSuuvooHpdivavMqz+22Gr9UKt59NnbzH+
+APDN6p1u/zPmn58sCtAq
+=C9jL
+-----END PGP SIGNATURE-----
+
+--jTMWTj4UTAEmbWeb--
