@@ -1,109 +1,89 @@
-From: Benoit Cousson <bcousson@baylibre.com>
-Subject: [GIT PULL] ARM: OMAP: Some more Device Tree for 3.13
-Date: Tue, 22 Oct 2013 12:25:49 +0200
-Message-ID: <526652AD.8060806@baylibre.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: Sebastian Reichel <sre@debian.org>
+Subject: [PATCH] DTS: ARM: OMAP3-N900: Add pinctrl for i2c devices
+Date: Tue, 22 Oct 2013 13:00:26 +0200
+Message-ID: <1382439626-16093-1-git-send-email-sre@debian.org>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bk0-f44.google.com ([209.85.214.44]:55014 "EHLO
-	mail-bk0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751878Ab3JVKZw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Oct 2013 06:25:52 -0400
-Received: by mail-bk0-f44.google.com with SMTP id mz10so1219427bkb.17
-        for <linux-omap@vger.kernel.org>; Tue, 22 Oct 2013 03:25:51 -0700 (PDT)
+Received: from ring0.de ([91.143.88.219]:35559 "EHLO smtp.ring0.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751784Ab3JVLBL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 22 Oct 2013 07:01:11 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
+To: Sebastian Reichel <sre@ring0.de>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>
+Cc: Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Sebastian Reichel <sre@debian.org>
 
-Hi Tony,
+Add pin muxing support for the Nokia N900 i2c controllers.
 
-Please pull the branch for few more OMAP Device Tree for v3.13 or later.
+Signed-off-by: Sebastian Reichel <sre@debian.org>
+---
+ arch/arm/boot/dts/omap3-n900.dts | 35 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 35 insertions(+)
 
-Thanks,
-Benoit
+diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
+index d64fa04..57f5a2a 100644
+--- a/arch/arm/boot/dts/omap3-n900.dts
++++ b/arch/arm/boot/dts/omap3-n900.dts
+@@ -28,7 +28,35 @@
+ 
+ };
+ 
++&omap3_pmx_core {
++	pinctrl-names = "default";
++
++	i2c1_pins: pinmux_i2c1_pins {
++		pinctrl-single,pins = <
++			0x18a (PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c1_scl */
++			0x18c (PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c1_sda */
++		>;
++	};
++
++	i2c2_pins: pinmux_i2c2_pins {
++		pinctrl-single,pins = <
++			0x18e (PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c2_scl */
++			0x190 (PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c2_sda */
++		>;
++	};
++
++	i2c3_pins: pinmux_i2c3_pins {
++		pinctrl-single,pins = <
++			0x192 (PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c3_scl */
++			0x194 (PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c3_sda */
++		>;
++	};
++};
++
+ &i2c1 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&i2c1_pins>;
++
+ 	clock-frequency = <2200000>;
+ 
+ 	twl: twl@48 {
+@@ -39,6 +67,7 @@
+ };
+ 
+ #include "twl4030.dtsi"
++#include "twl4030_omap3.dtsi"
+ 
+ &twl_gpio {
+ 	ti,pullups	= <0x0>;
+@@ -46,10 +75,16 @@
+ };
+ 
+ &i2c2 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&i2c2_pins>;
++
+ 	clock-frequency = <400000>;
+ };
+ 
+ &i2c3 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&i2c3_pins>;
++
+ 	clock-frequency = <100000>;
+ };
+ 
+-- 
+1.8.4.rc3
 
-
-The following changes since commit 6cf02dbb4b71f1c0c9acec89ae2df3b2318135f4:
-
-  ARM: dts: dra7-evm: Add mmc2 node for eMMC support (2013-10-11 21:15:02 +0200)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git tags/for_3.13_late/dts_signed
-
-for you to fetch changes up to 6a96867844895008558810853c7838af39dd317c:
-
-  ARM: dts: AM33xx+: Add i2c aliases (2013-10-22 11:05:42 +0200)
-
-----------------------------------------------------------------
-Add i2c aliases
-Add McASP and audio support
-Add reset/idle on init bindings for OMAP
-Add more nodes for AM4272
-
-----------------------------------------------------------------
-Darren Etheridge (1):
-      ARM: dts: am335x-evm: Add audio support for am335x-evm.dts
-
-Enric Balletbo i Serra (1):
-      ARM: dts: igep0033: Add mmc1 node for SDCARD support.
-
-George Cherian (1):
-      ARM: dts: OMAP5: Add dr_mode for dwc3
-
-Jyri Sarha (1):
-      ARM: dts: AM33XX: mcasp: Add location for data port registers to reg-property
-
-Kishon Vijay Abraham I (1):
-      ARM: dts: omap5-uevm: remove always_on, boot_on from smps10_out1
-
-Lokesh Vutla (1):
-      ARM: dts: AM4372: Add L2, EDMA, mailbox, MMC and SHAM nodes
-
-Mugunthan V N (1):
-      ARM: dts: AM4372: Update Support for EPOS EVM
-
-Nishanth Menon (3):
-      ARM: dts: omap4-panda-es: Do not reset gpio1
-      ARM: dts: OMAP3+: Add i2c aliases
-      ARM: dts: AM33xx+: Add i2c aliases
-
-Pantelis Antoniou (1):
-      ARM: dts: AM33XX: Add mcasp0 and mcasp1 device tree entries
-
-Peter Ujfalusi (2):
-      ARM: dts: am335x-evmsk: Audio support
-      ARM: dts: AM4372: Add McASP nodes
-
-Rajendra Nayak (2):
-      ARM: dts: omap: Add reset/idle on init bindings for OMAP
-      ARM: dts: am335x-evmsk: Do not reset gpio0
-
-Roger Quadros (2):
-      ARM: dts: omap3: Adapt USB OTG to generic PHY framework
-      ARM: dts: omap3-beagle: Adapt USB OTG to generic PHY framework
-
-Sricharan R (1):
-      ARM: dts: OMAP5: Remove clock-frequency field for cpu timers
-
- .../devicetree/bindings/arm/omap/omap.txt          |   3 +-
- arch/arm/boot/dts/am335x-evm.dts                   |  50 +++++
- arch/arm/boot/dts/am335x-evmsk.dts                 |  52 +++++
- arch/arm/boot/dts/am335x-igep0033.dtsi             |  13 ++
- arch/arm/boot/dts/am33xx.dtsi                      |  33 +++
- arch/arm/boot/dts/am4372.dtsi                      | 240 ++++++++++++++++++++-
- arch/arm/boot/dts/am43x-epos-evm.dts               | 168 +++++++++++++++
- arch/arm/boot/dts/dra7.dtsi                        |   5 +
- arch/arm/boot/dts/omap3-beagle.dts                 |   2 +
- arch/arm/boot/dts/omap3-gta04.dts                  |   2 +
- arch/arm/boot/dts/omap3-n900.dts                   |   2 +
- arch/arm/boot/dts/omap3.dtsi                       |   3 +
- arch/arm/boot/dts/omap4-panda-es.dts               |   4 +
- arch/arm/boot/dts/omap4.dtsi                       |   7 +
- arch/arm/boot/dts/omap5-uevm.dts                   |   2 -
- arch/arm/boot/dts/omap5.dtsi                       |   9 +-
- include/dt-bindings/pinctrl/am43xx.h               |  31 +++
- 17 files changed, 621 insertions(+), 5 deletions(-)
- create mode 100644 include/dt-bindings/pinctrl/am43xx.h
