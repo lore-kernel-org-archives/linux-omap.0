@@ -1,7 +1,7 @@
 From: Sebastian Reichel <sre@debian.org>
-Subject: [PATCH 11/14] DTS: ARM: OMAP3-N900: Mux RX51_LCD_RESET_GPIO in DTS
-Date: Wed, 23 Oct 2013 00:49:40 +0200
-Message-ID: <1382482183-14426-12-git-send-email-sre@debian.org>
+Subject: [PATCH 13/14] DTS: ARM: OMAP3-N900: Add LP5523 support
+Date: Wed, 23 Oct 2013 00:49:42 +0200
+Message-ID: <1382482183-14426-14-git-send-email-sre@debian.org>
 References: <1382482183-14426-1-git-send-email-sre@debian.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1382482183-14426-1-git-send-email-sre@debian.org>
@@ -10,40 +10,84 @@ To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <to
 Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Sebastian Reichel <sre@debian.org>
 List-Id: linux-omap@vger.kernel.org
 
-Add RX51_LCD_RESET_GPIO pin mux information to
-display.
+Add support for LP5523 device.
 
 Signed-off-by: Sebastian Reichel <sre@debian.org>
 ---
- arch/arm/boot/dts/omap3-n900.dts | 9 +++++++++
- 1 file changed, 9 insertions(+)
+ arch/arm/boot/dts/omap3-n900.dts | 61 ++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 61 insertions(+)
 
 diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
-index 999a80c..5afbd28 100644
+index 98797e5..c4f20bf 100644
 --- a/arch/arm/boot/dts/omap3-n900.dts
 +++ b/arch/arm/boot/dts/omap3-n900.dts
-@@ -124,6 +124,12 @@
- 			0x11e (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc1_dat3 */
- 		>;
+@@ -276,6 +276,67 @@
+ 		DVDD-supply = <&vio>;
  	};
+ 
++	lp5523: lp5523@32 {
++		compatible = "national,lp5523";
++		reg = <0x32>;
++		clock-mode = /bits/ 8 <0>; /* LP55XX_CLOCK_AUTO */
++		enable-gpio = <&gpio2 9 GPIO_ACTIVE_HIGH>; /* 41 */
 +
-+	display_pins: pinmux_display_pins {
-+		pinctrl-single,pins = <
-+			0x0d4 (PIN_OUTPUT | MUX_MODE4)		/* RX51_LCD_RESET_GPIO */
-+		>;
++		chan0 {
++			chan-name = "lp5523:kb1";
++			led-cur = /bits/ 8 <50>;
++			max-cur = /bits/ 8 <100>;
++		};
++
++		chan1 {
++			chan-name = "lp5523:kb2";
++			led-cur = /bits/ 8 <50>;
++			max-cur = /bits/ 8 <100>;
++		};
++
++		chan2 {
++			chan-name = "lp5523:kb3";
++			led-cur = /bits/ 8 <50>;
++			max-cur = /bits/ 8 <100>;
++		};
++
++		chan3 {
++			chan-name = "lp5523:kb4";
++			led-cur = /bits/ 8 <50>;
++			max-cur = /bits/ 8 <100>;
++		};
++
++		chan4 {
++			chan-name = "lp5523:b";
++			led-cur = /bits/ 8 <50>;
++			max-cur = /bits/ 8 <100>;
++		};
++
++		chan5 {
++			chan-name = "lp5523:g";
++			led-cur = /bits/ 8 <50>;
++			max-cur = /bits/ 8 <100>;
++		};
++
++		chan6 {
++			chan-name = "lp5523:r";
++			led-cur = /bits/ 8 <50>;
++			max-cur = /bits/ 8 <100>;
++		};
++
++		chan7 {
++			chan-name = "lp5523:kb5";
++			led-cur = /bits/ 8 <50>;
++			max-cur = /bits/ 8 <100>;
++		};
++
++		chan8 {
++			chan-name = "lp5523:kb6";
++			led-cur = /bits/ 8 <50>;
++			max-cur = /bits/ 8 <100>;
++		};
 +	};
- };
- 
- &i2c1 {
-@@ -361,6 +367,9 @@
- 		compatible = "acx565akm";
- 		spi-max-frequency = <6000000>;
- 		reg = <2>;
 +
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&display_pins>;
- 	};
- };
- 
+ 	bq27200: bq27200@55 {
+ 		compatible = "ti,bq27200";
+ 		reg = <0x55>;
 -- 
 1.8.4.rc3
