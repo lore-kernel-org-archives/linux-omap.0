@@ -1,182 +1,134 @@
 From: Brian Norris <computersforpeace@gmail.com>
-Subject: Re: [PATCH v10 04/10] mtd: nand: omap: fix device scan:
- NAND_CMD_READID, NAND_CMD_RESET, CMD_CMD_PARAM use only x8 bus
-Date: Tue, 22 Oct 2013 13:16:24 -0700
-Message-ID: <20131022201624.GL23337@ld-irv-0074.broadcom.com>
-References: <1382172254-12448-1-git-send-email-pekon@ti.com>
- <1382172254-12448-5-git-send-email-pekon@ti.com>
+Subject: Re: [PATCH v9 7/9] mtd: nand: omap: use drivers/mtd/nand/nand_bch.c
+ wrapper for BCH ECC instead of lib/bch.c
+Date: Tue, 22 Oct 2013 13:24:50 -0700
+Message-ID: <CAN8TOE-AdHJvst5wf8X-Eo5AKu0mNU5v-p_NzpKUiPHku2uOsQ@mail.gmail.com>
+References: <1381816197-20477-1-git-send-email-pekon@ti.com>
+	<1381816197-20477-8-git-send-email-pekon@ti.com>
+	<20131017022237.GC23337@ld-irv-0074.broadcom.com>
+	<20980858CB6D3A4BAE95CA194937D5E73EA27C63@DBDE04.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-oa0-f49.google.com ([209.85.219.49]:47336 "EHLO
-	mail-oa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754066Ab3JVUQa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Oct 2013 16:16:30 -0400
-Content-Disposition: inline
-In-Reply-To: <1382172254-12448-5-git-send-email-pekon@ti.com>
+Received: from mail-vc0-f182.google.com ([209.85.220.182]:51253 "EHLO
+	mail-vc0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751149Ab3JVUYw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Oct 2013 16:24:52 -0400
+In-Reply-To: <20980858CB6D3A4BAE95CA194937D5E73EA27C63@DBDE04.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Pekon Gupta <pekon@ti.com>
-Cc: mark.rutland@arm.com, olof@lixom.net, dedekind1@gmail.com, robherring2@gmail.com, Pawel.Moll@arm.com, ijc+devicetree@hellion.org.uk, swarren@wwwdotorg.org, dwmw2@infradead.org, arnd@arndb.de, tony@atomide.com, bcousson@baylibre.com, avinashphilipk@gmail.com, balbi@ti.com, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, jp.francois@cynove.com, ivan.djelic@parrot.com
+To: "Gupta, Pekon" <pekon@ti.com>
+Cc: "mark.rutland@arm.com" <mark.rutland@arm.com>, "olof@lixom.net" <olof@lixom.net>, "dedekind1@gmail.com" <dedekind1@gmail.com>, "tony@atomide.com" <tony@atomide.com>, "bcousson@baylibre.com" <bcousson@baylibre.com>, "robherring2@gmail.com" <robherring2@gmail.com>, "Pawel.Moll@arm.com" <Pawel.Moll@arm.com>, "ijc+devicetree@hellion.org.uk" <ijc+devicetree@hellion.org.uk>, "swarren@wwwdotorg.org" <swarren@wwwdotorg.org>, "dwmw2@infradead.org" <dwmw2@infradead.org>, "arnd@arndb.de" <arnd@arndb.de>, "avinashphilipk@gmail.com" <avinashphilipk@gmail.com>, "Balbi, Felipe" <balbi@ti.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Ivan Djelic <ivan.djelic@parrot.com>, "jp.francois@cynove.com" <jp.francois@cynove.com>
 
-Hi Pekon,
+On Thu, Oct 17, 2013 at 3:14 AM, Gupta, Pekon <pekon@ti.com> wrote:
+>> From: Brian Norris [mailto:computersforpeace@gmail.com]
+>> > On Tue, Oct 15, 2013 at 11:19:55AM +0530, Pekon Gupta wrote:
+> [snip]
+>
+>> > diff --git a/drivers/mtd/nand/Kconfig b/drivers/mtd/nand/Kconfig
+>> > index d885298..5836039 100644
+>> > --- a/drivers/mtd/nand/Kconfig
+>> > +++ b/drivers/mtd/nand/Kconfig
+>> > @@ -96,35 +96,13 @@ config MTD_NAND_OMAP2
+>> >
+>> >  config MTD_NAND_OMAP_BCH
+>> >     depends on MTD_NAND && MTD_NAND_OMAP2 && ARCH_OMAP3
+>> > -   tristate "Enable support for hardware BCH error correction"
+>> > +   tristate "Support hardware based BCH error correction"
+>> >     default n
+>> >     select BCH
+>> > -   select BCH_CONST_PARAMS
+>>
+>> Do you know what will happen now if someone configures
+>> BCH_CONST_PARAMS?
+>> Would this cause problems?
+>>
+> As per comments in lib/bch.c
+> ---------------------------
+> * Option CONFIG_BCH_CONST_PARAMS can be used to force fixed values of
+>  * parameters m and t; thus allowing extra compiler optimizations and providing
+>  * better (up to 2x) encoding performance. Using this option makes sense when
+>  * (m,t) are fixed and known in advance, e.g. when using BCH error correction
+>  * on a particular NAND flash device.
+> ---------------------------
+> 'BCH_CONST_PARAMS' is required for optimization when BCH algorithm
+> is fixed. But in omap-nand case selection of type of BCH algorithm
+> (BCH4 or BCH8) comes from DT binding "ti,nand-ecc-opts".
+>
+> If enabled (CONFIG_BCH_CONST_PARAMS) will optimize lib/bch.c
+> for BCH8 algorithm by default, so
+> CASE: if BCH8 is selected by DT, then no issues
+> CASE: if BCH4 is selected  then nand_bch_init() fails with following error
+> + if (!info->nand.ecc.priv) {
+>                 pr_err("nand: error: unable to use s/w BCH library\n");
+>                 err = -EINVAL;
+>                 goto out_release_mem_region;
+> }
 
-On Sat, Oct 19, 2013 at 02:14:08PM +0530, Pekon Gupta wrote:
-> As per comments below, NAND_CMD_RESET, NAND_CMD_READID, and NAND_CMD_PARAM would
-> work only in x8 mode.
->     commit 64b37b2a63eb2f80b65c7185f0013f8ffc637ae3
->     Author:     Matthieu CASTET <matthieu.castet@parrot.com>
->     AuthorDate: 2012-11-06
->     Note that nand_scan_ident send command (NAND_CMD_RESET, NAND_CMD_READID, NAND_CMD_PARAM), address and read data
->     The ONFI specificication is not very clear for x16 device if high byte of address should be driven to 0,
->     but according to [1] it should be ok to not drive it during autodetection.
-> 
->     [1]
->     3.3.2. Target Initialization
-> 
->     [...]
->     The Read ID and Read Parameter Page commands only use the lower 8-bits of the data bus.
->     The host shall not issue commands that use a word data width on x16 devices until the host
->     determines the device supports a 16-bit data bus width in the parameter page.
-> 
-> Thus this patch run nand_scan_ident() with driver configured as x8 device.
+Ah, so lib/bch.c handles this gracefully enough:
 
-So are you saying that the driver currently doesn't work if you started
-in x16 buswidth? Are you having problems with a particular setup? What
-sort of devices are you testing?
+#if defined(CONFIG_BCH_CONST_PARAMS)
+        if ((m != (CONFIG_BCH_CONST_M)) || (t != (CONFIG_BCH_CONST_T))) {
+                printk(KERN_ERR "bch encoder/decoder was configured to support "
+                       "parameters m=%d, t=%d only!\n",
+                       CONFIG_BCH_CONST_M, CONFIG_BCH_CONST_T);
+                goto fail;
+        }
+#endif
 
-Running nand_scan_ident() with x8 when the device is actualy x16 will
-just cause nand_scan_ident() to abort with an error. It doesn't help you
-with the fact that RESET/READID/PARAM need special 8-bit handling on x16
-devices, so you're not solving the problem alluded to by Matthieu.
+>> > diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
+> [snip]
+>> > -           info->bch = init_bch(nand_chip->ecc.bytes,
+>> > -                                   nand_chip->ecc.strength,
+>> > -                                   OMAP_ECC_BCH8_POLYNOMIAL);
+>> > -           if (!info->bch) {
+>> > +           info->nand.ecc.priv     = nand_bch_init(mtd,
+>> > +                                           info->nand.ecc.size,
+>> > +                                           info->nand.ecc.bytes,
+>> > +                                           &info->nand.ecc.layout);
+>>
+>> Are you sure nand_bch_init() is a proper drop-in replacement for the
+>> implementation you had based on init_bch()? It looks to me like they at
+>> least use a differnt polynomial value (0x201b vs. 0). Is this a problem
+>> for backwards compatibility?
+>>
+> It's not the polynomial value = 0. Rather 0x201b is selected in both cases
+> Refer below code.
+> ---------------
+> When init_bch(m,t, 0) is called from nand_bch_init() then,
+> lib/bch.c @@ init_bch(int m, int t, unsigned int prim_poly)
+> (a)     /* default primitive polynomials */
+>         static const unsigned int prim_poly_tab[] = {
+>                 0x25, 0x43, 0x83, 0x11d, 0x211, 0x409, 0x805, 0x1053, 0x201b,
+>                 0x402b, 0x8003,
+>         };
+> (b)     /* select a primitive polynomial for generating GF(2^m) */
+>         if (prim_poly == 0)
+>                 prim_poly = prim_poly_tab[m-min_m];
+> (c) And, const int min_m = 5;
+>
+> So, for BCH8 m=13, min_m=5; So
+> prim_poly = prim_poly_tab[13-5] = prim_poly_tab[8] = 0x201b
+> ---------------
+>
+> Hence, there is no change in polynomial, it's just that instead of
+> hard-coding the value, polynomial selection depends on 'm' and 't'.
 
-> Once the NAND device is detected, and its ONFI params are read, the driver
-> is re-configured based on device-width as passed by DT bindinig 'nand-bus-width'
-> 
-> In-case there is a mis-match between the DT binding 'nand-bus-width' and actual
-> device-width detected during nand_get_flash_type() then probe returns failure.
-> 
-> All other low-level callback updates happen after the device detection.
-> 
-> Signed-off-by: Pekon Gupta <pekon@ti.com>
+I missed that. Thanks for pointing it out.
 
-What is your patch trying to solve? It seems like it's just a distortion
-of the same code that existed previously. It tries running
-nand_scan_ident() in one buswidth configuration, and then it tries the
-other if it failed. You still aren't doing either of the options we
-talked about previously. I'll repeat them:
+>> [...]
+>>
+>> A related question: do we have any current users of this driver that can
+>> provide testing results for this series? Or is this work just tested
+>> with new hardware?
+>>
+> Got a tested-by: jp.francois@cynove.com for BCH4
+> But that was in May,2013 :-)
+> http://lists.infradead.org/pipermail/linux-mtd/2013-May/047065.html
 
-(1) You specify the buswidth given by device-tree/platform-data; if this
-    is incorrect, you fail
-
-(2) You auto-configure using NAND_BUSWIDTH_AUTO, and you use that to
-    validate the platform data; you just warn if the buswidth provided
-    by device-tree/platform-data was incorrect
-
-Am I sensing that you are having some implementation problem with one of
-these? You really shouldn't need to run nand_scan_ident() twice.
-
-Or perhaps the "solution" in this patch is just that you're moving
-around the reassignment of the callback functions? If so, this is not
-obvious... see below.
-
-> ---
->  drivers/mtd/nand/omap2.c | 45 +++++++++++++++++++++++++++++++++------------
->  1 file changed, 33 insertions(+), 12 deletions(-)
-> 
-> diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-> index 5596368..d29edda 100644
-> --- a/drivers/mtd/nand/omap2.c
-> +++ b/drivers/mtd/nand/omap2.c
-> @@ -1856,7 +1856,6 @@ static int omap_nand_probe(struct platform_device *pdev)
->  	mtd->name		= dev_name(&pdev->dev);
->  	mtd->owner		= THIS_MODULE;
->  	nand_chip		= &info->nand;
-> -	nand_chip->options	= pdata->devsize;
->  	nand_chip->options	|= NAND_SKIP_BBTSCAN;
->  #ifdef CONFIG_MTD_NAND_OMAP_BCH
->  	info->of_node		= pdata->of_node;
-> @@ -1904,6 +1903,39 @@ static int omap_nand_probe(struct platform_device *pdev)
->  		nand_chip->chip_delay = 50;
->  	}
->  
-> +	/* scan NAND device connected to chip controller */
-
-Why is this comment separated from the comment below it? Either give a
-newline between them (if they're really separate) or make it a single
-comment block.
-
-> +	/* configure driver in x8 mode to read ONFI parameter page, as
-> +	 * NAND_CMD_READID & NAND_CMD_PARAM may not work in x16 mode */
-> +	nand_chip->options &= ~NAND_BUSWIDTH_16;
-> +	if (nand_scan_ident(mtd, 1, NULL)) {
-> +		/* nand_scan_ident failed */
-> +		if (pdata->devsize) {
-> +			/* may be because of mis-match of device-width,
-> +			 * platform data (DT binding) also says its x16 device
-> +			 * So re-scan with proper device-width */
-> +			nand_chip->options |= pdata->devsize;
-> +			if (nand_scan_ident(mtd, 1, NULL)) {
-> +				err = -ENXIO;
-> +				goto out_release_mem_region;
-> +			}
-> +		} else {
-> +			/* some genuine failure, because even platform-data
-> +			 * (DT binding) says that bus-width is x8 */
-> +			err = -ENXIO;
-> +			goto out_release_mem_region;
-> +		}
-> +	} else {
-> +		/* nand_scan_ident passed with x8 mode */
-> +		if (pdata->devsize) {
-> +			/* but platform-data (DT binding) say its x16 device */
-> +			pr_err("%s: incorrect bus-width config\n", DRIVER_NAME);
-
-You only print this message in one case (detect x8, but DT said x16) and
-not the other (detect x16, but DT said x8). This is a result of your
-unnecessarily complicated logic here.
-
-> +			err = -EINVAL;
-> +			err = -ENXIO;
-> +			goto out_release_mem_region;
-> +		}
-> +	}
-> +
-> +	/* re-populate low-level callbacks based on xfer modes */
-
-So am I to understand that the main purpose of this patch is not about
-the detection of the buswidth type, but about the (re)assignment of the
-callback functions? If so, you aren't making it very clear. (I wasn't
-paying too much attention to the fact that this code block is being
-moved across all the callback assignments.) The above code is just a
-more verbose way of doing the same thing as the code you're replacing,
-with an extra check to compare with the device-tree/platform-data.
-
->  	switch (pdata->xfer_type) {
->  	case NAND_OMAP_PREFETCH_POLLED:
->  		nand_chip->read_buf   = omap_read_buf_pref;
-> @@ -2011,17 +2043,6 @@ static int omap_nand_probe(struct platform_device *pdev)
->  		}
->  	}
->  
-> -	/* DIP switches on some boards change between 8 and 16 bit
-> -	 * bus widths for flash.  Try the other width if the first try fails.
-> -	 */
-> -	if (nand_scan_ident(mtd, 1, NULL)) {
-> -		nand_chip->options ^= NAND_BUSWIDTH_16;
-> -		if (nand_scan_ident(mtd, 1, NULL)) {
-> -			err = -ENXIO;
-> -			goto out_release_mem_region;
-> -		}
-> -	}
-> -
->  	/* rom code layout */
->  	if (pdata->ecc_opt == OMAP_ECC_HAM1_CODE_HW) {
->  
-
-Anyway, I'm just going to have to flat out NAK this patch for now.
-Please rework the series without this patch and we can continue
-discussion of this patch independently (for one, this thread does not
-need to CC all of the device-tree folks).
+OK, well that's good to know. I suppose the operation of the driver
+probably hasn't changed a lot in the meantime, just the DT bindings
+and a few other smaller details. But we still can't call it
+"Tested-by:" in its current form.
 
 Brian
