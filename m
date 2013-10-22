@@ -1,42 +1,122 @@
-From: Sebastian Reichel <sre@debian.org>
-Subject: [PATCH 07/14] DTS: ARM: OMAP3-N900: Add LP5523 support
-Date: Wed, 23 Oct 2013 00:49:36 +0200
-Message-ID: <1382482183-14426-8-git-send-email-sre@debian.org>
+From: Sebastian Reichel <sre-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
+Subject: [PATCH 09/14] DTS: ARM: OMAP3-N900: Specify regulator info
+Date: Wed, 23 Oct 2013 00:49:38 +0200
+Message-ID: <1382482183-14426-10-git-send-email-sre@debian.org>
 References: <1382482183-14426-1-git-send-email-sre@debian.org>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ring0.de ([91.143.88.219]:38637 "EHLO smtp.ring0.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755335Ab3JVWuO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 22 Oct 2013 18:50:14 -0400
-In-Reply-To: <1382482183-14426-1-git-send-email-sre@debian.org>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1382482183-14426-1-git-send-email-sre-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sebastian Reichel <sre-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Sebastian Reichel <sre@debian.org>
 
-Add support for LP5523 device.
+Add regulator names and voltage information to
+the Nokia N900 DTS file.
 
-Signed-off-by: Sebastian Reichel <sre@debian.org>
+Signed-off-by: Sebastian Reichel <sre-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
 ---
- arch/arm/boot/dts/omap3-n900.dts | 5 +++++
- 1 file changed, 5 insertions(+)
+ arch/arm/boot/dts/omap3-n900.dts | 84 ++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 84 insertions(+)
 
 diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
-index a02f64f..c7e0d2d 100644
+index c7e0d2d..0a45af3 100644
 --- a/arch/arm/boot/dts/omap3-n900.dts
 +++ b/arch/arm/boot/dts/omap3-n900.dts
-@@ -159,6 +159,11 @@
- 	pinctrl-0 = <&i2c2_pins>;
+@@ -142,6 +142,90 @@
+ #include "twl4030.dtsi"
+ #include "twl4030_omap3.dtsi"
  
- 	clock-frequency = <100000>;
++&vaux1 {
++	regulator-name = "V28";
++	regulator-min-microvolt = <2800000>;
++	regulator-max-microvolt = <2800000>;
++	regulator-always-on; /* due battery cover sensor */
++};
 +
-+	bq27200: bq27200@55 {
-+		compatible = "ti,bq27200";
-+		reg = <0x55>;
-+	};
- };
- 
- &i2c3 {
++&vaux2 {
++	regulator-name = "VCSI";
++	regulator-min-microvolt = <1800000>;
++	regulator-max-microvolt = <1800000>;
++};
++
++&vaux3 {
++	regulator-name = "VMMC2_30";
++	regulator-min-microvolt = <2800000>;
++	regulator-max-microvolt = <3000000>;
++};
++
++&vaux4 {
++	regulator-name = "VCAM_ANA_28";
++	regulator-min-microvolt = <2800000>;
++	regulator-max-microvolt = <2800000>;
++};
++
++&vmmc1 {
++	regulator-name = "VMMC1";
++	regulator-min-microvolt = <1850000>;
++	regulator-max-microvolt = <3150000>;
++};
++
++&vmmc2 {
++	regulator-name = "V28_A";
++	regulator-min-microvolt = <2800000>;
++	regulator-max-microvolt = <3000000>;
++	regulator-always-on; /* due VIO leak to AIC34 VDDs */
++};
++
++&vpll1 {
++	regulator-name = "VPLL";
++	regulator-min-microvolt = <1800000>;
++	regulator-max-microvolt = <1800000>;
++	regulator-always-on;
++};
++
++&vpll2 {
++	regulator-name = "VSDI_CSI";
++	regulator-min-microvolt = <1800000>;
++	regulator-max-microvolt = <1800000>;
++	regulator-always-on;
++};
++
++&vsim {
++	regulator-name = "VMMC2_IO_18";
++	regulator-min-microvolt = <1800000>;
++	regulator-max-microvolt = <1800000>;
++};
++
++&vio {
++	regulator-name = "VIO";
++	regulator-min-microvolt = <1800000>;
++	regulator-max-microvolt = <1800000>;
++
++};
++
++&vintana1 {
++	regulator-name = "VINTANA1";
++	/* fixed to 1500000 */
++	regulator-always-on;
++};
++
++&vintana2 {
++	regulator-name = "VINTANA2";
++	regulator-min-microvolt = <2750000>;
++	regulator-max-microvolt = <2750000>;
++	regulator-always-on;
++};
++
++&vintdig {
++	regulator-name = "VINTDIG";
++	/* fixed to 1500000 */
++	regulator-always-on;
++};
++
+ &twl {
+ 	twl_audio: audio {
+ 		compatible = "ti,twl4030-audio";
 -- 
 1.8.4.rc3
 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
