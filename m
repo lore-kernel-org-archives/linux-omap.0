@@ -1,122 +1,104 @@
-From: Sebastian Reichel <sre-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
-Subject: [PATCH 09/14] DTS: ARM: OMAP3-N900: Specify regulator info
-Date: Wed, 23 Oct 2013 00:49:38 +0200
-Message-ID: <1382482183-14426-10-git-send-email-sre@debian.org>
+From: Sebastian Reichel <sre@debian.org>
+Subject: [PATCH 10/14] DTS: ARM: OMAP3-N900: Add NAND support
+Date: Wed, 23 Oct 2013 00:49:39 +0200
+Message-ID: <1382482183-14426-11-git-send-email-sre@debian.org>
 References: <1382482183-14426-1-git-send-email-sre@debian.org>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1382482183-14426-1-git-send-email-sre-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sebastian Reichel <sre-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1382482183-14426-1-git-send-email-sre@debian.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Sebastian Reichel <sre@debian.org>
 List-Id: linux-omap@vger.kernel.org
 
-Add regulator names and voltage information to
-the Nokia N900 DTS file.
+This patch adds supports for Nokia N900 NAND memory.
 
-Signed-off-by: Sebastian Reichel <sre-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
+Signed-off-by: Sebastian Reichel <sre@debian.org>
 ---
- arch/arm/boot/dts/omap3-n900.dts | 84 ++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 84 insertions(+)
+ arch/arm/boot/dts/omap3-n900.dts | 72 ++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 72 insertions(+)
 
 diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
-index c7e0d2d..0a45af3 100644
+index 0a45af3..999a80c 100644
 --- a/arch/arm/boot/dts/omap3-n900.dts
 +++ b/arch/arm/boot/dts/omap3-n900.dts
-@@ -142,6 +142,90 @@
- #include "twl4030.dtsi"
- #include "twl4030_omap3.dtsi"
+@@ -273,6 +273,78 @@
+ 	status = "disabled";
+ };
  
-+&vaux1 {
-+	regulator-name = "V28";
-+	regulator-min-microvolt = <2800000>;
-+	regulator-max-microvolt = <2800000>;
-+	regulator-always-on; /* due battery cover sensor */
++&gpmc {
++	ranges = <0 0 0x04000000 0x10000000>; /* 256MB */
++
++	/* gpio-irq for dma: 65 */
++
++	onenand@0,0 {
++		#address-cells = <1>;
++		#size-cells = <1>;
++		reg = <0 0 0x10000000>;
++
++		gpmc,sync-read;
++		gpmc,sync-write;
++		gpmc,burst-length = <16>;
++		gpmc,burst-read;
++		gpmc,burst-wrap;
++		gpmc,burst-write;
++		gpmc,device-width = <2>; /* GPMC_DEVWIDTH_16BIT */
++		gpmc,mux-add-data = <2>; /* GPMC_MUX_AD */
++		gpmc,cs-on-ns = <0>;
++		gpmc,cs-rd-off-ns = <87>;
++		gpmc,cs-wr-off-ns = <87>;
++		gpmc,adv-on-ns = <0>;
++		gpmc,adv-rd-off-ns = <10>;
++		gpmc,adv-wr-off-ns = <10>;
++		gpmc,oe-on-ns = <15>;
++		gpmc,oe-off-ns = <87>;
++		gpmc,we-on-ns = <0>;
++		gpmc,we-off-ns = <87>;
++		gpmc,rd-cycle-ns = <112>;
++		gpmc,wr-cycle-ns = <112>;
++		gpmc,access-ns = <81>;
++		gpmc,page-burst-access-ns = <15>;
++		gpmc,bus-turnaround-ns = <0>;
++		gpmc,cycle2cycle-delay-ns = <0>;
++		gpmc,wait-monitoring-ns = <0>;
++		gpmc,clk-activation-ns = <5>;
++		gpmc,wr-data-mux-bus-ns = <30>;
++		gpmc,wr-access-ns = <81>;
++		gpmc,sync-clk-ps = <15000>;
++
++		/*
++		 * MTD partition table corresponding to Nokia's
++		 * Maemo 5 (Fremantle) release.
++		 */
++		partition@0 {
++			label = "bootloader";
++			reg = <0x00000000 0x00020000>;
++			read-only;
++		};
++		partition@1 {
++			label = "config";
++			reg = <0x00020000 0x00060000>;
++		};
++		partition@2 {
++			label = "log";
++			reg = <0x00080000 0x00040000>;
++		};
++		partition@3 {
++			label = "kernel";
++			reg = <0x000c0000 0x00200000>;
++		};
++		partition@4 {
++			label = "initfs";
++			reg = <0x002c0000 0x00200000>;
++		};
++		partition@5 {
++			label = "rootfs";
++			reg = <0x004c0000 0x0fb40000>;
++		};
++	};
 +};
 +
-+&vaux2 {
-+	regulator-name = "VCSI";
-+	regulator-min-microvolt = <1800000>;
-+	regulator-max-microvolt = <1800000>;
-+};
-+
-+&vaux3 {
-+	regulator-name = "VMMC2_30";
-+	regulator-min-microvolt = <2800000>;
-+	regulator-max-microvolt = <3000000>;
-+};
-+
-+&vaux4 {
-+	regulator-name = "VCAM_ANA_28";
-+	regulator-min-microvolt = <2800000>;
-+	regulator-max-microvolt = <2800000>;
-+};
-+
-+&vmmc1 {
-+	regulator-name = "VMMC1";
-+	regulator-min-microvolt = <1850000>;
-+	regulator-max-microvolt = <3150000>;
-+};
-+
-+&vmmc2 {
-+	regulator-name = "V28_A";
-+	regulator-min-microvolt = <2800000>;
-+	regulator-max-microvolt = <3000000>;
-+	regulator-always-on; /* due VIO leak to AIC34 VDDs */
-+};
-+
-+&vpll1 {
-+	regulator-name = "VPLL";
-+	regulator-min-microvolt = <1800000>;
-+	regulator-max-microvolt = <1800000>;
-+	regulator-always-on;
-+};
-+
-+&vpll2 {
-+	regulator-name = "VSDI_CSI";
-+	regulator-min-microvolt = <1800000>;
-+	regulator-max-microvolt = <1800000>;
-+	regulator-always-on;
-+};
-+
-+&vsim {
-+	regulator-name = "VMMC2_IO_18";
-+	regulator-min-microvolt = <1800000>;
-+	regulator-max-microvolt = <1800000>;
-+};
-+
-+&vio {
-+	regulator-name = "VIO";
-+	regulator-min-microvolt = <1800000>;
-+	regulator-max-microvolt = <1800000>;
-+
-+};
-+
-+&vintana1 {
-+	regulator-name = "VINTANA1";
-+	/* fixed to 1500000 */
-+	regulator-always-on;
-+};
-+
-+&vintana2 {
-+	regulator-name = "VINTANA2";
-+	regulator-min-microvolt = <2750000>;
-+	regulator-max-microvolt = <2750000>;
-+	regulator-always-on;
-+};
-+
-+&vintdig {
-+	regulator-name = "VINTDIG";
-+	/* fixed to 1500000 */
-+	regulator-always-on;
-+};
-+
- &twl {
- 	twl_audio: audio {
- 		compatible = "ti,twl4030-audio";
+ &mcspi1 {
+ 	/*
+ 	 * For some reason, touchscreen is necessary for screen to work at
 -- 
 1.8.4.rc3
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
