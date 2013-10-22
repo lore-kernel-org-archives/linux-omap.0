@@ -1,7 +1,7 @@
 From: Sebastian Reichel <sre@debian.org>
-Subject: [PATCH 12/14] DTS: ARM: OMAP3-N900: Add TLV320AIC3X support
-Date: Wed, 23 Oct 2013 00:49:41 +0200
-Message-ID: <1382482183-14426-13-git-send-email-sre@debian.org>
+Subject: [PATCH 04/14] DTS: ARM: OMAP3-N900: Add support for SD cards
+Date: Wed, 23 Oct 2013 00:49:33 +0200
+Message-ID: <1382482183-14426-5-git-send-email-sre@debian.org>
 References: <1382482183-14426-1-git-send-email-sre@debian.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1382482183-14426-1-git-send-email-sre@debian.org>
@@ -10,49 +10,47 @@ To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <to
 Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Sebastian Reichel <sre@debian.org>
 List-Id: linux-omap@vger.kernel.org
 
-This patch adds support for Nokia N900 TLV320AIC3X chips.
+Add support for external SD card slot.
 
 Signed-off-by: Sebastian Reichel <sre@debian.org>
 ---
- arch/arm/boot/dts/omap3-n900.dts | 26 ++++++++++++++++++++++++++
- 1 file changed, 26 insertions(+)
+ arch/arm/boot/dts/omap3-n900.dts | 17 ++++++++++++++++-
+ 1 file changed, 16 insertions(+), 1 deletion(-)
 
 diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
-index 5afbd28..98797e5 100644
+index 9226268..01a437e 100644
 --- a/arch/arm/boot/dts/omap3-n900.dts
 +++ b/arch/arm/boot/dts/omap3-n900.dts
-@@ -250,6 +250,32 @@
- 
- 	clock-frequency = <100000>;
- 
-+	tlv320aic3x: tlv320aic3x@18 {
-+		compatible = "ti,tlv320aic3x";
-+		reg = <0x18>;
-+		gpio-reset = <&gpio2 28 GPIO_ACTIVE_HIGH>; /* 60 */
-+		ai3x-gpio-func = <
-+			0 /* AIC3X_GPIO1_FUNC_DISABLED */
-+			5 /* AIC3X_GPIO2_FUNC_DIGITAL_MIC_INPUT */
+@@ -65,6 +65,17 @@
+ 			0x194 (PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c3_sda */
+ 		>;
+ 	};
++
++	mmc1_pins: pinmux_mmc1_pins {
++		pinctrl-single,pins = <
++			0x114 (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc1_clk */
++			0x116 (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc1_cmd */
++			0x118 (PIN_INPUT_PULLUP | MUX_MODE0) 	/* sdmmc1_dat0 */
++			0x11a (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc1_dat1 */
++			0x11c (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc1_dat2 */
++			0x11e (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc1_dat3 */
 +		>;
-+
-+		AVDD-supply = <&vmmc2>;
-+		DRVDD-supply = <&vmmc2>;
-+		IOVDD-supply = <&vio>;
-+		DVDD-supply = <&vio>;
 +	};
-+
-+	tlv320aic3x_aux: tlv320aic3x@19 {
-+		compatible = "ti,tlv320aic3x";
-+		reg = <0x19>;
-+		gpio-reset = <&gpio2 28 GPIO_ACTIVE_HIGH>; /* 60 */
-+
-+		AVDD-supply = <&vmmc2>;
-+		DRVDD-supply = <&vmmc2>;
-+		IOVDD-supply = <&vio>;
-+		DVDD-supply = <&vio>;
-+	};
-+
- 	bq27200: bq27200@55 {
- 		compatible = "ti,bq27200";
- 		reg = <0x55>;
+ };
+ 
+ &i2c1 {
+@@ -103,7 +114,11 @@
+ };
+ 
+ &mmc1 {
+-	status = "disabled";
++	pinctrl-names = "default";
++	pinctrl-0 = <&mmc1_pins>;
++	vmmc-supply = <&vmmc1>;
++	bus-width = <4>;
++	cd-gpios = <&gpio6 0 GPIO_ACTIVE_HIGH>; /* 160 */
+ };
+ 
+ &mmc2 {
 -- 
 1.8.4.rc3
