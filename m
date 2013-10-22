@@ -1,89 +1,109 @@
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: [PATCH 3/4] dma: cppi41: redo descriptor collection in abort case
-Date: Tue, 22 Oct 2013 12:14:05 +0200
-Message-ID: <1382436846-9057-4-git-send-email-bigeasy@linutronix.de>
-References: <1382436846-9057-1-git-send-email-bigeasy@linutronix.de>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1382436846-9057-1-git-send-email-bigeasy@linutronix.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Vinod Koul <vinod.koul@intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+From: Benoit Cousson <bcousson@baylibre.com>
+Subject: [GIT PULL] ARM: OMAP: Some more Device Tree for 3.13
+Date: Tue, 22 Oct 2013 12:25:49 +0200
+Message-ID: <526652AD.8060806@baylibre.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-bk0-f44.google.com ([209.85.214.44]:55014 "EHLO
+	mail-bk0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751878Ab3JVKZw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Oct 2013 06:25:52 -0400
+Received: by mail-bk0-f44.google.com with SMTP id mz10so1219427bkb.17
+        for <linux-omap@vger.kernel.org>; Tue, 22 Oct 2013 03:25:51 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
 
-Most of the logic here is try and error since what actually happens does
-not match the trm or I miss read it.
-My first assumption was that the queue on which the tear-down descriptor
-completes (their own complete queue vs "active descriptor" complete
-queue) depends on the transfer direction. This seems not to be true
-because I manage to trigger
-|  WARN_ON(c->desc_phys != desc_phys);
-and the other few were fine means the tear-down descriptor was valid but
-on different queue.
+Hi Tony,
 
-This patch changes the logic here to look on both queues for the
-descriptor.
+Please pull the branch for few more OMAP Device Tree for v3.13 or later.
 
-Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
----
- drivers/dma/cppi41.c | 42 ++++++++++++++++--------------------------
- 1 file changed, 16 insertions(+), 26 deletions(-)
+Thanks,
+Benoit
 
-diff --git a/drivers/dma/cppi41.c b/drivers/dma/cppi41.c
-index 42d1c58..561de4f 100644
---- a/drivers/dma/cppi41.c
-+++ b/drivers/dma/cppi41.c
-@@ -563,36 +563,26 @@ static int cppi41_tear_down_chan(struct cppi41_channel *c)
- 		c->td_retry = 100;
- 	}
- 
--	if (!c->td_seen) {
--		unsigned td_comp_queue;
-+	if (!c->td_seen || !c->td_desc_seen) {
- 
--		if (c->is_tx)
--			td_comp_queue =  cdd->td_queue.complete;
--		else
--			td_comp_queue =  c->q_comp_num;
-+		desc_phys = cppi41_pop_desc(cdd, cdd->td_queue.complete);
-+		if (!desc_phys)
-+			desc_phys = cppi41_pop_desc(cdd, c->q_comp_num);
- 
--		desc_phys = cppi41_pop_desc(cdd, td_comp_queue);
--		if (desc_phys) {
--			__iormb();
-+		if (desc_phys == c->desc_phys) {
-+			c->td_desc_seen = 1;
-+
-+		} else if (desc_phys == td_desc_phys) {
-+			u32 pd0;
- 
--			if (desc_phys == td_desc_phys) {
--				u32 pd0;
--				pd0 = td->pd0;
--				WARN_ON((pd0 >> DESC_TYPE) != DESC_TYPE_TEARD);
--				WARN_ON(!c->is_tx && !(pd0 & TD_DESC_IS_RX));
--				WARN_ON((pd0 & 0x1f) != c->port_num);
--			} else {
--				WARN_ON_ONCE(1);
--			}
--			c->td_seen = 1;
--		}
--	}
--	if (!c->td_desc_seen) {
--		desc_phys = cppi41_pop_desc(cdd, c->q_comp_num);
--		if (desc_phys) {
- 			__iormb();
--			WARN_ON(c->desc_phys != desc_phys);
--			c->td_desc_seen = 1;
-+			pd0 = td->pd0;
-+			WARN_ON((pd0 >> DESC_TYPE) != DESC_TYPE_TEARD);
-+			WARN_ON(!c->is_tx && !(pd0 & TD_DESC_IS_RX));
-+			WARN_ON((pd0 & 0x1f) != c->port_num);
-+			c->td_seen = 1;
-+		} else if (desc_phys) {
-+			WARN_ON_ONCE(1);
- 		}
- 	}
- 	c->td_retry--;
--- 
-1.8.4.rc3
+
+The following changes since commit 6cf02dbb4b71f1c0c9acec89ae2df3b2318135f4:
+
+  ARM: dts: dra7-evm: Add mmc2 node for eMMC support (2013-10-11 21:15:02 +0200)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git tags/for_3.13_late/dts_signed
+
+for you to fetch changes up to 6a96867844895008558810853c7838af39dd317c:
+
+  ARM: dts: AM33xx+: Add i2c aliases (2013-10-22 11:05:42 +0200)
+
+----------------------------------------------------------------
+Add i2c aliases
+Add McASP and audio support
+Add reset/idle on init bindings for OMAP
+Add more nodes for AM4272
+
+----------------------------------------------------------------
+Darren Etheridge (1):
+      ARM: dts: am335x-evm: Add audio support for am335x-evm.dts
+
+Enric Balletbo i Serra (1):
+      ARM: dts: igep0033: Add mmc1 node for SDCARD support.
+
+George Cherian (1):
+      ARM: dts: OMAP5: Add dr_mode for dwc3
+
+Jyri Sarha (1):
+      ARM: dts: AM33XX: mcasp: Add location for data port registers to reg-property
+
+Kishon Vijay Abraham I (1):
+      ARM: dts: omap5-uevm: remove always_on, boot_on from smps10_out1
+
+Lokesh Vutla (1):
+      ARM: dts: AM4372: Add L2, EDMA, mailbox, MMC and SHAM nodes
+
+Mugunthan V N (1):
+      ARM: dts: AM4372: Update Support for EPOS EVM
+
+Nishanth Menon (3):
+      ARM: dts: omap4-panda-es: Do not reset gpio1
+      ARM: dts: OMAP3+: Add i2c aliases
+      ARM: dts: AM33xx+: Add i2c aliases
+
+Pantelis Antoniou (1):
+      ARM: dts: AM33XX: Add mcasp0 and mcasp1 device tree entries
+
+Peter Ujfalusi (2):
+      ARM: dts: am335x-evmsk: Audio support
+      ARM: dts: AM4372: Add McASP nodes
+
+Rajendra Nayak (2):
+      ARM: dts: omap: Add reset/idle on init bindings for OMAP
+      ARM: dts: am335x-evmsk: Do not reset gpio0
+
+Roger Quadros (2):
+      ARM: dts: omap3: Adapt USB OTG to generic PHY framework
+      ARM: dts: omap3-beagle: Adapt USB OTG to generic PHY framework
+
+Sricharan R (1):
+      ARM: dts: OMAP5: Remove clock-frequency field for cpu timers
+
+ .../devicetree/bindings/arm/omap/omap.txt          |   3 +-
+ arch/arm/boot/dts/am335x-evm.dts                   |  50 +++++
+ arch/arm/boot/dts/am335x-evmsk.dts                 |  52 +++++
+ arch/arm/boot/dts/am335x-igep0033.dtsi             |  13 ++
+ arch/arm/boot/dts/am33xx.dtsi                      |  33 +++
+ arch/arm/boot/dts/am4372.dtsi                      | 240 ++++++++++++++++++++-
+ arch/arm/boot/dts/am43x-epos-evm.dts               | 168 +++++++++++++++
+ arch/arm/boot/dts/dra7.dtsi                        |   5 +
+ arch/arm/boot/dts/omap3-beagle.dts                 |   2 +
+ arch/arm/boot/dts/omap3-gta04.dts                  |   2 +
+ arch/arm/boot/dts/omap3-n900.dts                   |   2 +
+ arch/arm/boot/dts/omap3.dtsi                       |   3 +
+ arch/arm/boot/dts/omap4-panda-es.dts               |   4 +
+ arch/arm/boot/dts/omap4.dtsi                       |   7 +
+ arch/arm/boot/dts/omap5-uevm.dts                   |   2 -
+ arch/arm/boot/dts/omap5.dtsi                       |   9 +-
+ include/dt-bindings/pinctrl/am43xx.h               |  31 +++
+ 17 files changed, 621 insertions(+), 5 deletions(-)
+ create mode 100644 include/dt-bindings/pinctrl/am43xx.h
