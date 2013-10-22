@@ -1,84 +1,73 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 1/2] input: touchscreen: fix spelling mistake in TSC/ADC
- DT binding
-Date: Tue, 22 Oct 2013 07:02:53 -0500
-Message-ID: <20131022120253.GD9340@gimli>
-References: <1382386404-6659-1-git-send-email-balbi@ti.com>
- <1382386404-6659-2-git-send-email-balbi@ti.com>
- <52663A58.9070706@linutronix.de>
-Reply-To: <balbi@ti.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH v5 05/12] ASoC: davinci-mcasp: Change
+ compatible property model to more accurate
+Date: Tue, 22 Oct 2013 13:14:02 +0100
+Message-ID: <20131022121402.GD9388@sirena.org.uk>
+References: <cover.1382110089.git.jsarha@ti.com>
+ <5a00f98be6143547dedd0d3d73c3aa1fbbc2895c.1382110090.git.jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="jTMWTj4UTAEmbWeb"
-Return-path: <linux-input-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <52663A58.9070706@linutronix.de>
-Sender: linux-input-owner@vger.kernel.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Felipe Balbi <balbi@ti.com>, dmitry.torokhov@gmail.com, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ijc+devicetree@hellion.org.uk, rob@landley.net, bcousson@baylibre.com, Tony Lindgren <tony@atomide.com>, devicetree@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-input@vger.kernel.org
+Content-Type: multipart/mixed; boundary="===============6293776965235411198=="
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <5a00f98be6143547dedd0d3d73c3aa1fbbc2895c.1382110090.git.jsarha@ti.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Jyri Sarha <jsarha@ti.com>
+Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, alsa-devel@alsa-project.org, joelf@ti.com, bcousson@baylibre.com, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
---jTMWTj4UTAEmbWeb
+
+--===============6293776965235411198==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="llIrKcgUOe3dCx0c"
+Content-Disposition: inline
+
+
+--llIrKcgUOe3dCx0c
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-Hi,
+On Fri, Oct 18, 2013 at 06:37:44PM +0300, Jyri Sarha wrote:
+> Change the model omap2-mcasp-audio in compatible property to
+> am33xx-mcasp-audio as omap2 does not have mcasp.
 
-On Tue, Oct 22, 2013 at 10:42:00AM +0200, Sebastian Andrzej Siewior wrote:
-> On 10/21/2013 10:13 PM, Felipe Balbi wrote:
-> > diff --git a/drivers/input/touchscreen/ti_am335x_tsc.c b/drivers/input/=
-touchscreen/ti_am335x_tsc.c
-> > index e1c5300..b61df9d 100644
-> > --- a/drivers/input/touchscreen/ti_am335x_tsc.c
-> > +++ b/drivers/input/touchscreen/ti_am335x_tsc.c
-> > @@ -348,9 +348,16 @@ static int titsc_parse_dt(struct platform_device *=
-pdev,
-> >  	if (err < 0)
-> >  		return err;
-> > =20
-> > -	err =3D of_property_read_u32(node, "ti,coordiante-readouts",
-> > +	/*
-> > +	 * try with new binding first. If it fails, still try with
-> > +	 * bogus, miss-spelled version.
-> > +	 */
-> > +	err =3D of_property_read_u32(node, "ti,coordinate-readouts",
-> >  			&ts_dev->coordinate_readouts);
-> >  	if (err < 0)
-> > +		err =3D of_property_read_u32(node, "ti,coordiante-readouts",
-> > +				&ts_dev->coordinate_readouts);
-> > +	if (err < 0)
-> >  		return err;
->=20
-> Thanks, very good. Do we keep this fallback for ever or just for a year
-> or two?
+Applied, thanks.
 
-That's for DT maintainers to decide but considering DT is an ABI, I
-guess we need to keep for 30 years or so :-p
-
---=20
-balbi
-
---jTMWTj4UTAEmbWeb
+--llIrKcgUOe3dCx0c
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.15 (GNU/Linux)
+Version: GnuPG v2.0.22 (GNU/Linux)
 
-iQIcBAEBAgAGBQJSZmltAAoJEIaOsuA1yqRERcIQAKOJhR2abNPihxEOg0lnKb7O
-f/8UI3L7RdHadFGBzjP5pxZ2BIwdc78ro9MNwlEeQV61etvnLSjqbGvQv5yuulR3
-HtkIWltn/ILlUSb0tTXecxlN53EyTpRw0d+uFSsv4r/Op1HLBxt39W0Uv8GajQfO
-4cAGhWELOOt3u8/rHE/zG4dBhAXwJ/HNIakebOAoXmyworZLvGxf0xLCVpFopYKB
-EHw8wJDK6CEiV+SeZOzToelAkTYbCdqNRdwFdXpufRWkYRBvan+1bFW9fkW3FscM
-kab3YZpO9DkV4mZvGaF45mfwo+6VhHEnYWz0fsdc1jdLoe0eiZMHrsPrTDpFB4+j
-+wC4ToBzEgOJPn6QG0pcgztzbIRXsPVi7/y8kXzyrfG/IGncfFrt+Cm6roxq886g
-4qLjc6zdQtrnhb2xOO8OriPbxptJULzUyst/dzPYGhCAfLCR8VMI70dMrvKLtOaj
-DvbYVWuZsUu+ODFvDD5XWQgxfCXm8vaqbUGX12XUtbKGiraJP5RfT4yShM8j5wbH
-Kc2XSklu3r8tsZVzx9UcHVcxiovX9k2Q2mIgqm9d84RnWsPKjff0oNl7fsnabnvl
-v1JN5kNvf7SfXJJY6ayBm4QkJDqWhRwSuuvooHpdivavMqz+22Gr9UKt59NnbzH+
-APDN6p1u/zPmn58sCtAq
-=C9jL
+iQIcBAEBAgAGBQJSZmwBAAoJELSic+t+oim96+AQAJBBIyYJv9m8yoeAQlu5s/hJ
+iRYPoW/WMEO3WUlbWhJMnYYuAE1wAYg0O9hLRNmSZaoeOSxP5FtvUYQrfaDGoShf
+rPddw5rNGabqmGBMW4prAkuZFXWQDGSt+vz3qgxNDAUU3QVCdfnRvDcorfGI1po/
+HIRU8glMGkJl7oWUlzc+m3vPcBZgaZ+X5rAwLKqw5SxGVsHb67zMo1A4ispC0m8C
+x5Mabj0LADRK3GH2DZNUKuo5fSVx4x9+hRPjl0VnUSuT4qkf0OtusOZFY0TjX3fp
+Nchl1h5fZzQM1rUlML5Yog2PTjMwoTnOR66I7ikPo5Aah4AeMbBdYD2XbsZFVyUs
+0d7ruAXDonFHQhRpvyO+bBOnzFYphaEdt6aKM73OhYBVnvjDVQ/DjvyLvwrt6rnx
+NxDhcfIs7vNimFqq7aqvqTrJkFH1LkVdnWS4LRCoKoupLrzy4evUMi9mvUyE8GQw
+guUJceWDzuvmzOZTUs+O/4Hb7zSIV3XJ8bdifyvTmwvZNwuH6E9AsNOxw4JBSwX1
+d93fLh5MsmRcXfczqMwe/Znb3t+oGE+eQxsMZhzzjE0d37Kxf50/ACXOzZe0CniQ
+j0+ptSzIQkCbmRMaM2ainkIHZ4ieRuIeA51N0GUnFP/4Nzeo9myDxI/7yBGmGlgY
+JlaE9T2y4otm80mIRZ1g
+=iVl9
 -----END PGP SIGNATURE-----
 
---jTMWTj4UTAEmbWeb--
+--llIrKcgUOe3dCx0c--
+
+--===============6293776965235411198==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--===============6293776965235411198==--
