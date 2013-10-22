@@ -1,72 +1,39 @@
-From: Sebastian Reichel <sre@debian.org>
-Subject: [PATCH 3/4] Input: twl4030-pwrbutton: simplify driver using devm_*
-Date: Tue, 22 Oct 2013 14:55:03 +0200
-Message-ID: <1382446504-27837-4-git-send-email-sre@debian.org>
-References: <1382446504-27837-1-git-send-email-sre@debian.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL] ARM: OMAP: Some more Device Tree for 3.13
+Date: Tue, 22 Oct 2013 06:00:14 -0700
+Message-ID: <20131022130013.GI15154@atomide.com>
+References: <526652AD.8060806@baylibre.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1382446504-27837-1-git-send-email-sre@debian.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Sebastian Reichel <sre@ring0.de>, linux-input@vger.kernel.org
-Cc: Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Russell King <linux@arm.linux.org.uk>, Rob Landley <rob@landley.net>, Pawel Moll <pawel.moll@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Tony Lindgren <tony@atomide.com>, Sebastian Reichel <sre@debian.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, Rob Herring <rob.herring@calxeda.com>, =?UTF-8?q?=27Beno=C3=AEt=20Cousson=27?= <bcousson@baylibre.com>, Grant Likely <grant.likely@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:16757 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751372Ab3JVNAS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Oct 2013 09:00:18 -0400
+Content-Disposition: inline
+In-Reply-To: <526652AD.8060806@baylibre.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Benoit Cousson <bcousson@baylibre.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
 
-Use managed irq resource to simplify the driver.
+* Benoit Cousson <bcousson@baylibre.com> [131022 03:26]:
+> Hi Tony,
+> 
+> Please pull the branch for few more OMAP Device Tree for v3.13 or later.
+> 
+> Thanks,
+> Benoit
+> 
+> 
+> The following changes since commit 6cf02dbb4b71f1c0c9acec89ae2df3b2318135f4:
+> 
+>   ARM: dts: dra7-evm: Add mmc2 node for eMMC support (2013-10-11 21:15:02 +0200)
+> 
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git tags/for_3.13_late/dts_signed
 
-Signed-off-by: Sebastian Reichel <sre@debian.org>
----
- drivers/input/misc/twl4030-pwrbutton.c | 8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+Thanks pulled into omap-for-v3.13/dt and pushed out.
 
-diff --git a/drivers/input/misc/twl4030-pwrbutton.c b/drivers/input/misc/twl4030-pwrbutton.c
-index 4e7a810..4ab9243 100644
---- a/drivers/input/misc/twl4030-pwrbutton.c
-+++ b/drivers/input/misc/twl4030-pwrbutton.c
-@@ -70,7 +70,7 @@ static int twl4030_pwrbutton_probe(struct platform_device *pdev)
- 	pwr->phys = "twl4030_pwrbutton/input0";
- 	pwr->dev.parent = &pdev->dev;
- 
--	err = request_threaded_irq(irq, NULL, powerbutton_irq,
-+	err = devm_request_threaded_irq(&pwr->dev, irq, NULL, powerbutton_irq,
- 			IRQF_TRIGGER_FALLING | IRQF_TRIGGER_RISING,
- 			"twl4030_pwrbutton", pwr);
- 	if (err < 0) {
-@@ -81,15 +81,13 @@ static int twl4030_pwrbutton_probe(struct platform_device *pdev)
- 	err = input_register_device(pwr);
- 	if (err) {
- 		dev_err(&pdev->dev, "Can't register power button: %d\n", err);
--		goto free_irq;
-+		goto free_input_dev;
- 	}
- 
- 	platform_set_drvdata(pdev, pwr);
- 
- 	return 0;
- 
--free_irq:
--	free_irq(irq, pwr);
- free_input_dev:
- 	input_free_device(pwr);
- 	return err;
-@@ -98,9 +96,7 @@ free_input_dev:
- static int __exit twl4030_pwrbutton_remove(struct platform_device *pdev)
- {
- 	struct input_dev *pwr = platform_get_drvdata(pdev);
--	int irq = platform_get_irq(pdev, 0);
- 
--	free_irq(irq, pwr);
- 	input_unregister_device(pwr);
- 
- 	return 0;
--- 
-1.8.4.rc3
+Tony 
