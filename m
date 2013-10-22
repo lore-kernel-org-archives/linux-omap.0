@@ -1,180 +1,92 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH v2] serial: omap: Add support for optional wake-up
-Date: Tue, 22 Oct 2013 06:49:48 -0700
-Message-ID: <20131022134947.GK15154@atomide.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 1/4] Input: twl4030-pwrbutton - add device tree support
+Date: Tue, 22 Oct 2013 08:50:40 -0500
+Message-ID: <20131022135040.GN9340@gimli>
+References: <1382446504-27837-1-git-send-email-sre@debian.org>
+ <1382446504-27837-2-git-send-email-sre@debian.org>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:13888 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750861Ab3JVNtu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Oct 2013 09:49:50 -0400
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="XFI+TFG+M3u0jUjZ"
+Return-path: <linux-input-owner@vger.kernel.org>
 Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1382446504-27837-2-git-send-email-sre@debian.org>
+Sender: linux-input-owner@vger.kernel.org
+To: Sebastian Reichel <sre@debian.org>
+Cc: Sebastian Reichel <sre@ring0.de>, linux-input@vger.kernel.org, =?iso-8859-1?Q?'Beno=EEt?= Cousson' <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Rob Landley <rob@landley.net>, Russell King <linux@arm.linux.org.uk>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Grant Likely <grant.likely@linaro.org>, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, Roger Quadros <rogerq@ti.com>
 
-With the recent pinctrl-single changes, omaps can treat
-wake-up events from deeper idle states as interrupts.
+--XFI+TFG+M3u0jUjZ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-There's a separate "io chain" controller on most omaps
-that stays enabled when the device hits off-idle and the
-regular interrupt controller is powered off.
+Hi,
 
-Let's add support for the optional second interrupt for
-wake-up events. And then serial-omap can manage the
-wake-up interrupt from it's runtime PM calls to avoid
-spurious interrupts during runtime.
+On Tue, Oct 22, 2013 at 02:55:01PM +0200, Sebastian Reichel wrote:
+> Add device tree support for twl4030 power button driver.
+>=20
+> Signed-off-by: Sebastian Reichel <sre@debian.org>
+> ---
+>  drivers/input/misc/twl4030-pwrbutton.c | 19 +++++++++++++++----
+>  1 file changed, 15 insertions(+), 4 deletions(-)
+>=20
+> diff --git a/drivers/input/misc/twl4030-pwrbutton.c b/drivers/input/misc/=
+twl4030-pwrbutton.c
+> index b9a05fd..e450947 100644
+> --- a/drivers/input/misc/twl4030-pwrbutton.c
+> +++ b/drivers/input/misc/twl4030-pwrbutton.c
+> @@ -52,7 +52,7 @@ static irqreturn_t powerbutton_irq(int irq, void *_pwr)
+>  	return IRQ_HANDLED;
+>  }
+> =20
+> -static int __init twl4030_pwrbutton_probe(struct platform_device *pdev)
+> +static int twl4030_pwrbutton_probe(struct platform_device *pdev)
+>  {
+>  	struct input_dev *pwr;
+>  	int irq =3D platform_get_irq(pdev, 0);
+> @@ -106,16 +106,27 @@ static int __exit twl4030_pwrbutton_remove(struct p=
+latform_device *pdev)
+>  	return 0;
+>  }
+> =20
+> +#if IS_ENABLED(CONFIG_OF)
+> +static const struct of_device_id twl4030_pwrbutton_dt_match_table[] =3D {
+> +       { .compatible =3D "ti,twl4030-pwrbutton" },
+> +       {},
+> +};
+> +MODULE_DEVICE_TABLE(of, twl4030_pwrbutton_dt_match_table);
+> +#define twl4030_pwrbutton_dt_match of_match_ptr(twl4030_pwrbutton_dt_mat=
+ch_table)
+> +#else
+> +#define twl4030_pwrbutton_dt_match NULL
+> +#endif
 
-Note that the wake interrupt is board specific as it
-uses the UART RX pin, and for omap3, there are six pin
-options for UART3 RX pin.
+you don't ned this trickery.. just always device the match table.
 
-Also Note that the legacy platform based booting handles
-the wake-ups in the legacy mux driver and does not need to
-pass the wake-up interrupt to the driver.
+--=20
+balbi
 
-And finally, to pass the wake-up interrupt in the dts file,
-either interrupt-map or the pending interrupts-extended
-property needs to be passed. It's probably best to use
-interrupts-extended when it's available.
+--XFI+TFG+M3u0jUjZ
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-Cc: Felipe Balbi <balbi@ti.com>
-Cc: Kevin Hilman <khilman@linaro.org>
-Cc: Linus Walleij <linus.walleij@linaro.org>
-Reviewed-by: Felipe Balbi <balbi@ti.com>
-Reviewed-by: Roger Quadros <rogerq@ti.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.15 (GNU/Linux)
 
----
+iQIcBAEBAgAGBQJSZoKvAAoJEIaOsuA1yqREH5EP/RS0Nl8ppNk75V08SuxgTsWZ
+rCJvBEVX8CQEz2Qc2uEswR1N5YxR47BCjyY4yY2Rx2joUGY+t8jXtiuH+4c/luc5
+HOnOS2JbO8AYlRAjqFaLi/vTdfCVw8O7hsL5yGdHYQoHDdZCf2ts0FR4aenryVZG
+LRZwXnRIR8KVIsk+yuIMA71ngvpsdBUa5j05RZuNzxyfTqU84ENawBZs31kRVbTQ
+v49BJiWHbUtFVpVUgukMTw/WC6Dqzi1x3A4FcbgEFrDhpd+TOQYCencLJPdsIfiE
+J7WUmfVA2X5A86Kl9u6TFAgS5p+yo4kOtgnTG9k1QO1LqAGJQu4to1fHd93P99mH
+lLEqkLEcjYyxUdOYVLynJT3wRrkkt+8rpCa21mk5ie30Rv7EmHp8arQBcq2Ls39d
+j/4QZ4zCeq+m/VNSfKaQeA/aJ7PrD9pOPWlolzxwBAPl2fapxIIRsy8LCvQuM+A8
+jXe2iht2ZKUQKHrQJASNcuaboAo/Xe0k9GrYMYTO9mcVEpa6gaqEctPZ9lxlY/3M
+PMNQVqeLCG5DoFv+LCLB68CXYnse8H85ZN2GZEJ/jC8Tuc+u6HVn4UeCqq/6gaoG
+TR8NnvkAWKqFuSaJkZMkmb6VlZ5V+mOreLm4M5x5ADWE2IXpS2NScm0wuACJSZiC
+tPSwYj0hmOYAyZ6b+5kK
+=Uejm
+-----END PGP SIGNATURE-----
 
-Updated to simplify based on the review comments.
-
-Greg, care to queue this for v3.13 if not too late?
-
-This removes a dependency for omaps for having runtime
-PM working with serial port using device tree, so we
-can start moving to device tree only booting for omap3
-for v3.14.
-
---- a/drivers/tty/serial/omap-serial.c
-+++ b/drivers/tty/serial/omap-serial.c
-@@ -39,6 +39,7 @@
- #include <linux/irq.h>
- #include <linux/pm_runtime.h>
- #include <linux/of.h>
-+#include <linux/of_irq.h>
- #include <linux/gpio.h>
- #include <linux/of_gpio.h>
- #include <linux/platform_data/serial-omap.h>
-@@ -134,6 +135,7 @@ struct uart_omap_port {
- 	struct uart_port	port;
- 	struct uart_omap_dma	uart_dma;
- 	struct device		*dev;
-+	int			wakeirq;
- 
- 	unsigned char		ier;
- 	unsigned char		lcr;
-@@ -214,10 +216,23 @@ static int serial_omap_get_context_loss_count(struct uart_omap_port *up)
- 	return pdata->get_context_loss_count(up->dev);
- }
- 
-+static inline void serial_omap_enable_wakeirq(struct uart_omap_port *up,
-+				       bool enable)
-+{
-+	if (!up->wakeirq)
-+		return;
-+
-+	if (enable)
-+		enable_irq(up->wakeirq);
-+	else
-+		disable_irq(up->wakeirq);
-+}
-+
- static void serial_omap_enable_wakeup(struct uart_omap_port *up, bool enable)
- {
- 	struct omap_uart_port_info *pdata = dev_get_platdata(up->dev);
- 
-+	serial_omap_enable_wakeirq(up, enable);
- 	if (!pdata || !pdata->enable_wakeup)
- 		return;
- 
-@@ -699,6 +714,20 @@ static int serial_omap_startup(struct uart_port *port)
- 	if (retval)
- 		return retval;
- 
-+	/* Optional wake-up IRQ */
-+	if (up->wakeirq) {
-+		retval = request_irq(up->wakeirq, serial_omap_irq,
-+				     up->port.irqflags, up->name, up);
-+		if (retval) {
-+			free_irq(up->port.irq, up);
-+			return retval;
-+		}
-+		disable_irq(up->wakeirq);
-+	} else {
-+		dev_info(up->port.dev, "no wakeirq for uart%d\n",
-+			 up->port.line);
-+	}
-+
- 	dev_dbg(up->port.dev, "serial_omap_startup+%d\n", up->port.line);
- 
- 	pm_runtime_get_sync(up->dev);
-@@ -787,6 +816,8 @@ static void serial_omap_shutdown(struct uart_port *port)
- 	pm_runtime_mark_last_busy(up->dev);
- 	pm_runtime_put_autosuspend(up->dev);
- 	free_irq(up->port.irq, up);
-+	if (up->wakeirq)
-+		free_irq(up->wakeirq, up);
- }
- 
- static void serial_omap_uart_qos_work(struct work_struct *work)
-@@ -1572,11 +1603,23 @@ static int serial_omap_probe(struct platform_device *pdev)
- 	struct uart_omap_port	*up;
- 	struct resource		*mem, *irq;
- 	struct omap_uart_port_info *omap_up_info = dev_get_platdata(&pdev->dev);
--	int ret;
-+	int ret, uartirq = 0, wakeirq = 0;
- 
-+	/* The optional wakeirq may be specified in the board dts file */
- 	if (pdev->dev.of_node) {
-+		uartirq = irq_of_parse_and_map(pdev->dev.of_node, 0);
-+		if (!uartirq)
-+			return -EPROBE_DEFER;
-+		wakeirq = irq_of_parse_and_map(pdev->dev.of_node, 1);
- 		omap_up_info = of_get_uart_port_info(&pdev->dev);
- 		pdev->dev.platform_data = omap_up_info;
-+	} else {
-+		irq = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
-+		if (!irq) {
-+			dev_err(&pdev->dev, "no irq resource?\n");
-+			return -ENODEV;
-+		}
-+		uartirq = irq->start;
- 	}
- 
- 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-@@ -1585,12 +1628,6 @@ static int serial_omap_probe(struct platform_device *pdev)
- 		return -ENODEV;
- 	}
- 
--	irq = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
--	if (!irq) {
--		dev_err(&pdev->dev, "no irq resource?\n");
--		return -ENODEV;
--	}
--
- 	if (!devm_request_mem_region(&pdev->dev, mem->start, resource_size(mem),
- 				pdev->dev.driver->name)) {
- 		dev_err(&pdev->dev, "memory region already claimed\n");
-@@ -1624,7 +1661,8 @@ static int serial_omap_probe(struct platform_device *pdev)
- 	up->port.dev = &pdev->dev;
- 	up->port.type = PORT_OMAP;
- 	up->port.iotype = UPIO_MEM;
--	up->port.irq = irq->start;
-+	up->port.irq = uartirq;
-+	up->wakeirq = wakeirq;
- 
- 	up->port.regshift = 2;
- 	up->port.fifosize = 64;
+--XFI+TFG+M3u0jUjZ--
