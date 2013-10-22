@@ -1,42 +1,75 @@
-From: Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [PATCH v6 2/3] usb: phy: Add Qualcomm SS-USB and HS-USB drivers
- for DW PHY's
-Date: Tue, 22 Oct 2013 15:32:43 +0100
-Message-ID: <20131022143242.GA4691@kartoffel>
-References: <1381131897-13910-1-git-send-email-iivanov@mm-sol.com>
- <1381131897-13910-3-git-send-email-iivanov@mm-sol.com>
- <52527D38.1070505@mm-sol.com>
- <1381246952.24031.83.camel@iivanov-dev.int.mm-sol.com>
+From: Sebastian Reichel <sre@debian.org>
+Subject: Re: [RFCv3 7/7] ARM: dts: N900: Add SSI information
+Date: Tue, 22 Oct 2013 16:44:14 +0200
+Message-ID: <20131022144413.GA31867@earth.universe>
+References: <1381091235-18293-1-git-send-email-sre@debian.org>
+ <1381091235-18293-8-git-send-email-sre@debian.org>
+ <5266742D.9050604@baylibre.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="7AUc2qLy4jB3hD7Z"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from ring0.de ([91.143.88.219]:36648 "EHLO smtp.ring0.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752762Ab3JVOoY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 22 Oct 2013 10:44:24 -0400
 Content-Disposition: inline
-In-Reply-To: <1381246952.24031.83.camel@iivanov-dev.int.mm-sol.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Ivan T. Ivanov" <iivanov@mm-sol.com>
-Cc: Stanimir Varbanov <svarbanov@mm-sol.com>, "balbi@ti.com" <balbi@ti.com>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, Pawel Moll <Pawel.Moll@arm.com>, "swarren@wwwdotorg.org" <swarren@wwwdotorg.org>, "ian.campbell@citrix.com" <ian.campbell@citrix.com>, "rob@landley.net" <rob@landley.net>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "idos@codeaurora.org" <idos@codeaurora.org>, "mgautam@codeaurora.org" <mgautam@codeaurora.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>
+In-Reply-To: <5266742D.9050604@baylibre.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Benoit Cousson <bcousson@baylibre.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Shubhrajyoti Datta <omaplinuxkernel@gmail.com>, Carlos Chinea <cch.devel@gmail.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Grant Likely <grant.likely@linaro.org>, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Rob Landley <rob@landley.net>, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, 'Pali =?iso-8859-1?Q?Roh=E1r'?= <pali.rohar@gmail.com>, =?utf-8?B?J9CY0LLQsNC50LvQviDQlNC40LzQuNGC0YDQvtCyJw==?= <freemangordon@abv.bg>, Joni Lapilainen <joni.lapilainen@gmail.com>
 
-[...]
 
-> > > +   phy->sleep_a_clk = devm_clk_get(phy->dev, "sleep_a");
-> >
-> > What means the "_a" in clock name?
-> 
-> They are 2 PHY's on 8074 chip. This drivers is supposed to
-> operate on PHY 0, thus sleep_a. PHY 1 is using sleep_b. Take a look
-> here http://www.spinics.net/lists/arm-kernel/msg276945.html
+--7AUc2qLy4jB3hD7Z
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-When you say two PHYs, do you mean the HS PHY and the SS PHY?
+Hi Benoit,
 
-Or are there two HS PHYs? If so, would the other HS PHY have a sleep_b clock?
+On Tue, Oct 22, 2013 at 02:48:45PM +0200, Benoit Cousson wrote:
+> Thanks to Tony, I've just realized that I missed all your patches,
+> that for some reason ended-up in my junk folder :-(
 
-The clock-names property should describe the clocks from the view of the device
-itself. As we're describing the PHY in isolation, rather than a big block that
-contains the PHY, the presesnce or absence of other PHYs should not affect the
-name. If the "_a" suffix is only to differentiate the instance of PHY, it
-should be dropped.
+oh :( Can you check why they ended up in junk? I would like to
+prevent more mails going there.
 
-Thanks,
-Mark.
+> That being said, I cannot apply any of your DTS patches! What base
+> branch are you using?
+
+Currently torvalds/master with pavel's n900 patch and some more
+patches from me.
+
+> Could you repost all your pending DTS patches in one series rebased
+> on top of my for_3.13/dts?
+
+Sure. DT maintainers haven't given feedback since the last patchset
+[0]. Do you want to wait for feedback from them?
+
+[0] https://lkml.org/lkml/2013/9/23/529
+
+-- Sebastian
+
+--7AUc2qLy4jB3hD7Z
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.15 (GNU/Linux)
+
+iQIcBAEBCAAGBQJSZo89AAoJENju1/PIO/qanvYP/AziPMIxUU/F7i8hwk/TfJQk
+XnTPEALj2pb0XWf53osh8BibTPNn++8BVlfb2b3NuZG3d726W6VLiAf3413C7d2x
+Wz9zLO17X6oaxPIVwVSSPZp6cOAJorkzGQTkcQot/3bviWZ7+ALEhs1OMCk5oa9D
+Xj0TOcm304nX+UzwHvEalrCIk5X0CbPXlYfx12qFh7v849+pXYuMOVM51H/65ipU
+4ROjbLoxHl9l9k5PoiTQoHxzF3aVANbBpu8v2/3E4hfvwY7Pf9Up0Vc0vHFdQ6G3
+G5CRNa3U2PofFNg1tgyiJHcnofmJR0BfsM3iIhw5IzO/hwOkTLT3U8uYH1hgeMP8
+m4d6Gbmp/ufdcceuk2Pur3/k0eSHID52eVpdqEMFa/vIQDqCxO1gjk6/x6wypHkc
+22JkkYu+33XiPPGWeONM1U9hgbyxGVIwAsHj92IW/BkgqBhDdQTBsSjqoPI/o12Z
+6D95uivxW6rTrR8dmYehuElw4TJ+TzCZ7/ks4EXWzKwlHtSDqayFO1LlNe2f7qyj
+xjwfTvWML5p2gO83pw+P60HUbo4IkGXIHY3tvpQhA5U7aPUQnX4X4i24f03G8Znf
+VSvHjJDFg9irTdInwT9k+BCDsaIm3/nAIlDs/s8rfed/WkQDzp42rLIiy1q2xlql
+Tyebt/6/MSY934V9p8ZO
+=imvT
+-----END PGP SIGNATURE-----
+
+--7AUc2qLy4jB3hD7Z--
