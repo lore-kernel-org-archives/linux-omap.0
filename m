@@ -1,52 +1,62 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 02/11] ARM: OMAP3: clock: add API to enable/disable
- autoidle for a single clock
-Date: Tue, 22 Oct 2013 01:14:10 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1310220113530.6442@utopia.booyaka.com>
-References: <1381508141-15244-1-git-send-email-t-kristo@ti.com> <1381508141-15244-3-git-send-email-t-kristo@ti.com> <alpine.DEB.2.02.1310191712450.11676@utopia.booyaka.com> <20131021122610.11944.71616@quantum>
- <alpine.DEB.2.02.1310211250370.13878@utopia.booyaka.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH] ARM: dts: am4372: Add McASP nodes
+Date: Tue, 22 Oct 2013 10:46:03 +0300
+Message-ID: <52662D3B.5050204@ti.com>
+References: <1382348758-1083-1-git-send-email-peter.ujfalusi@ti.com>
+ <526579FB.10005@cogentembedded.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:58050 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752243Ab3JVBOL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Oct 2013 21:14:11 -0400
-In-Reply-To: <alpine.DEB.2.02.1310211250370.13878@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <526579FB.10005@cogentembedded.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Jyri Sarha <jsarha@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Mike Turquette <mturquette@linaro.org>
-Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, khilman@linaro.org, tony@atomide.com, linux-arm-kernel@lists.infradead.org
 
-On Mon, 21 Oct 2013, Paul Walmsley wrote:
+Hi,
 
-> On Mon, 21 Oct 2013, Mike Turquette wrote:
-> 
-> > Quoting Paul Walmsley (2013-10-19 10:16:50)
-> > > On Fri, 11 Oct 2013, Tero Kristo wrote:
-> > > 
-> > > > Some drivers require direct access to the autoidle functionality of the
-> > > > interface clocks. Added clock APIs for these, so that the drivers do not
-> > > > need to access CM registers directly.
-> > > > 
-> > > > Signed-off-by: Tero Kristo <t-kristo@ti.com>
-> > > 
-> > > Thanks, queued.  Please coordinate with Mike to get 
-> > > allow_idle/deny_idle-type interfaces into the Common Clock Framework, so 
-> > > these can be replaced with standard CCF-type allow_idle() & deny_idle() 
-> > > functions.  That interface should include use-counting so multiple callers 
-> > > can use allow_idle() and deny_idle() without stomping on each other.
-> > 
-> > Where and when are these functions called? IIRC these are only accessed
-> > at boot/init time, though I may be wrong. If they are a boot-time thing
-> > then the .init callback provided in struct clk may be sufficient.
-> 
-> They are called dynamically at runtime when the McBSP goes active and 
-> inactive.  It's in the next patch in this series.  I'm fairly sure at 
-> least one other IP block needs this workaround also.
+On 10/21/2013 10:01 PM, Sergei Shtylyov wrote:
 
-By the way, here's that patch:
+>> diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dt=
+si
+>> index c328d5c..defaad1 100644
+>> --- a/arch/arm/boot/dts/am4372.dtsi
+>> +++ b/arch/arm/boot/dts/am4372.dtsi
+>> @@ -633,5 +633,32 @@
+>>               dma-names =3D "tx", "rx";
+>>           };
+>>
+>> +        mcasp0: mcasp@48038000 {
+> =
 
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg97004.html
+>    According to ePAPR spec [1], "the name of a node should be somewhat
+> generic, reflecting the function of the device and not its
+> precise programming model". In this case probably "sound"?
 
-- Paul
+We use the 'sound' node name for the sound card itself. The case with McASP=
+ is
+a bit complicated. It can operate in I2S mode (and similar protocols like R=
+JM,
+LJM, TDM) or it can interface with S/PDIF, IEC60958-1, AES-3 codecs.
+The mode we put McASP depends on the external components, so the same McASP
+can be used in I2S mode in one board while on the other it can be S/PDIF.
+It would have been convenient if I could use 'i2s' as node name but it is n=
+ot
+true for McASP (Tegra, Exynos for example have I2S, AC97, S/PDIF as separat=
+e IP).
+
+IMHO the 'mcasp' is still the best node name for this IP. McASP stands for:
+'Multichannel Audio Serial Port' and this is pretty much what McASP is.
+
+-- =
+
+P=E9ter
