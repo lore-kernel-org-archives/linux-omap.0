@@ -1,58 +1,62 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH v5 03/12] ASoC: davinci-mcasp: Add location for data port
- registers to DT
-Date: Tue, 22 Oct 2013 12:04:54 +0100
-Message-ID: <20131022110454.GB9388@sirena.org.uk>
-References: <cover.1382110089.git.jsarha@ti.com>
- <2d590a299670bb4f39251a95d7f4898034109bd7.1382110090.git.jsarha@ti.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="NDin8bjvE/0mNLFQ"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cassiel.sirena.org.uk ([80.68.93.111]:43468 "EHLO
-	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751950Ab3JVLFN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Oct 2013 07:05:13 -0400
-Content-Disposition: inline
-In-Reply-To: <2d590a299670bb4f39251a95d7f4898034109bd7.1382110090.git.jsarha@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Sebastian Reichel <sre@debian.org>
+Subject: [PATCH] DTS: ARM: OMAP3-N900: Add UART support
+Date: Tue, 22 Oct 2013 13:05:13 +0200
+Message-ID: <1382439913-16534-1-git-send-email-sre@debian.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Reichel <sre@ring0.de>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>
+Cc: Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Sebastian Reichel <sre@debian.org>
 List-Id: linux-omap@vger.kernel.org
-To: Jyri Sarha <jsarha@ti.com>
-Cc: alsa-devel@alsa-project.org, devicetree@vger.kernel.org, bcousson@baylibre.com, mark.rutland@arm.com, linux-omap@vger.kernel.org, joelf@ti.com, "Hebbar, Gururaja" <gururaja.hebbar@ti.com>, Darren Etheridge <detheridge@ti.com>
 
+Add UART support to Nokia N900.
 
---NDin8bjvE/0mNLFQ
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Signed-off-by: Sebastian Reichel <sre@debian.org>
+---
+ arch/arm/boot/dts/omap3-n900.dts | 28 ++++++++++++++++++++++++++++
+ 1 file changed, 28 insertions(+)
 
-On Fri, Oct 18, 2013 at 06:37:42PM +0300, Jyri Sarha wrote:
-> This patch adds a separate register location for data port registers to
-> mcasp DT bindings. On am33xx SoCs the McASP registers are mapped
-> trough L4 interconnect, but data port registers are also mapped trough
-> L3 bus to a different memory location.
-
-Applied, thanks.
-
---NDin8bjvE/0mNLFQ
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
-
-iQIcBAEBAgAGBQJSZlvSAAoJELSic+t+oim9IL0P/0vXy3T9PNCDwg13Ufmd7s9s
-G8wZEl094+CX13av5IN240n40xl/GkgRzFYuD5xZu33dLAGaP9khTeobxWJko8mf
-cBSjaM7aAS0vEs62/fqQhTkKPwKaN2Pduom4RrsJmr7BkKpHHKsSTUJ6cHHqInnO
-GnwhBhTSSrzpf2aJSuQL7lm7ZOKGT/fik1rt4CkIgI2y9bVg/RLybTQM4apMTVVJ
-lYTgbs3yAxb+p5k75I2+pfjtXWZ0cC2/wo9693VFlLDASgAvW5MtisWRvPRO0iPk
-HegspbTEwUTLCrUdB1/ezVvrw6UzKPP8oYuTrP0afdgkT5aLqfZ2fZT9fWJSeIfD
-TQZdt76gBjsfXnvovjS+b0yBzqspNi1ok6jUXums1yHCxGnpqjwboyVAuOuCCdvJ
-tSNumJ7t9GdnRwr0jQOeFa287NHCIkrqp/CJdPie9vi3uCyPGUAzF2vy030RN1wG
-gjLnKMVnSAwcBjyb7LBDdiV3vJ3rnzLs/u8S67Jvw0IQ6PMufug8ge99CyV+pLsS
-RLMqR0eDJPsFU2ZHzhNRQTE+KrvNzO5m7uElqo/NHWZQ3W4rOfjrSr2p4BuxGSi2
-REVO6Zf+LDbGefKoi1/Kj6MCXahquu0fb/8BeiI3ctgAl3j8/3hiViEL8azTJyc1
-tnaRCpCM4omD7w7vNzDC
-=BIoO
------END PGP SIGNATURE-----
-
---NDin8bjvE/0mNLFQ--
+diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
+index 2374b9a..99d0668 100644
+--- a/arch/arm/boot/dts/omap3-n900.dts
++++ b/arch/arm/boot/dts/omap3-n900.dts
+@@ -31,6 +31,20 @@
+ &omap3_pmx_core {
+ 	pinctrl-names = "default";
+ 
++	uart2_pins: pinmux_uart2_pins {
++		pinctrl-single,pins = <
++			0x14a (PIN_INPUT | MUX_MODE0)		/* uart2_rx */
++			0x148 (PIN_OUTPUT | MUX_MODE0)		/* uart2_tx */
++		>;
++	};
++
++	uart3_pins: pinmux_uart3_pins {
++		pinctrl-single,pins = <
++			0x16e (PIN_INPUT | MUX_MODE0)		/* uart3_rx */
++			0x170 (PIN_OUTPUT | MUX_MODE0)		/* uart3_tx */
++		>;
++	};
++
+ 	i2c1_pins: pinmux_i2c1_pins {
+ 		pinctrl-single,pins = <
+ 			0x18a (PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c1_scl */
+@@ -125,3 +139,17 @@
+ 	mode = <2>;
+ 	power = <50>;
+ };
++
++&uart1 {
++	status = "disabled";
++};
++
++&uart2 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&uart2_pins>;
++};
++
++&uart3 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&uart3_pins>;
++};
+-- 
+1.8.4.rc3
