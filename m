@@ -1,343 +1,59 @@
-From: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 2/3] dma: edma: Add support for Cyclic DMA
-Date: Tue, 22 Oct 2013 10:30:43 -0500
-Message-ID: <52669A23.2080805@ti.com>
-References: <1379977515-3794-1-git-send-email-joelf@ti.com>
-	<1379977515-3794-3-git-send-email-joelf@ti.com>
-	<20131021065319.GM14013@intel.com>
+From: "Ivan T. Ivanov" <iivanov@mm-sol.com>
+Subject: Re: [PATCH v6 2/3] usb: phy: Add Qualcomm SS-USB and HS-USB drivers
+ for DW PHY's
+Date: Tue, 22 Oct 2013 18:39:23 +0300
+Message-ID: <1382456363.2837.10.camel@iivanov-dev.int.mm-sol.com>
+References: <1381131897-13910-1-git-send-email-iivanov@mm-sol.com>
+	 <1381131897-13910-3-git-send-email-iivanov@mm-sol.com>
+	 <52527D38.1070505@mm-sol.com>
+	 <1381246952.24031.83.camel@iivanov-dev.int.mm-sol.com>
+	 <20131022143242.GA4691@kartoffel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-In-Reply-To: <20131021065319.GM14013-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
-List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
-List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
-Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
-To: Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Lars Peter-Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, Mark Brown <broonie-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>, Dan Williams <djbw-b10kYP2dOMg@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <20131022143242.GA4691@kartoffel>
+Sender: linux-doc-owner@vger.kernel.org
+To: Mark Rutland <mark.rutland@arm.com>
+Cc: Stanimir Varbanov <svarbanov@mm-sol.com>, "balbi@ti.com" <balbi@ti.com>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, Pawel Moll <Pawel.Moll@arm.com>, "swarren@wwwdotorg.org" <swarren@wwwdotorg.org>, "ian.campbell@citrix.com" <ian.campbell@citrix.com>, "rob@landley.net" <rob@landley.net>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "idos@codeaurora.org" <idos@codeaurora.org>, "mgautam@codeaurora.org" <mgautam@codeaurora.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 10/21/2013 01:53 AM, Vinod Koul wrote:
-> On Mon, Sep 23, 2013 at 06:05:14PM -0500, Joel Fernandes wrote:
->  
->> @@ -449,6 +455,138 @@ static struct dma_async_tx_descriptor *edma_prep_slave_sg(
->>  	return vchan_tx_prep(&echan->vchan, &edesc->vdesc, tx_flags);
->>  }
->>  
->> +static struct dma_async_tx_descriptor *edma_prep_dma_cyclic(
->> +	struct dma_chan *chan, dma_addr_t buf_addr, size_t buf_len,
->> +	size_t period_len, enum dma_transfer_direction direction,
->> +	unsigned long tx_flags, void *context)
->> +{
->> +	struct edma_chan *echan = to_edma_chan(chan);
->> +	struct device *dev = chan->device->dev;
->> +	struct edma_desc *edesc;
->> +	dma_addr_t src_addr, dst_addr;
->> +	enum dma_slave_buswidth dev_width;
->> +	u32 burst;
->> +	int i, ret, nr_periods;
->> +
->> +	if (unlikely(!echan || !buf_len || !period_len))
->> +		return NULL;
->> +
->> +	if (direction == DMA_DEV_TO_MEM) {
->> +		src_addr = echan->cfg.src_addr;
->> +		dst_addr = buf_addr;
->> +		dev_width = echan->cfg.src_addr_width;
->> +		burst = echan->cfg.src_maxburst;
->> +	} else if (direction == DMA_MEM_TO_DEV) {
->> +		src_addr = buf_addr;
->> +		dst_addr = echan->cfg.dst_addr;
->> +		dev_width = echan->cfg.dst_addr_width;
->> +		burst = echan->cfg.dst_maxburst;
->> +	} else {
->> +		dev_err(dev, "%s: bad direction?\n", __func__);
->> +		return NULL;
->> +	}
->> +
->> +	if (dev_width == DMA_SLAVE_BUSWIDTH_UNDEFINED) {
->> +		dev_err(dev, "Undefined slave buswidth\n");
->> +		return NULL;
->> +	}
->> +
->> +	if (unlikely(buf_len % period_len)) {
->> +		dev_err(dev, "Period should be multiple of Buffer length\n");
->> +		return NULL;
->> +	}
->> +
->> +	nr_periods = (buf_len / period_len) + 1;
-> ?
+
+Hi, 
+
+On Tue, 2013-10-22 at 15:32 +0100, Mark Rutland wrote: 
+> [...]
 > 
-> consider the case of buf = period_len, above makes nr_period = 2.
+> > > > +   phy->sleep_a_clk = devm_clk_get(phy->dev, "sleep_a");
+> > >
+> > > What means the "_a" in clock name?
+> > 
+> > They are 2 PHY's on 8074 chip. This drivers is supposed to
+> > operate on PHY 0, thus sleep_a. PHY 1 is using sleep_b. Take a look
+> > here http://www.spinics.net/lists/arm-kernel/msg276945.html
 > 
-> Or buf len 100, period len 50, makes nr_period = 3
+> When you say two PHYs, do you mean the HS PHY and the SS PHY?
 > 
-> Both doesnt seem right to me?
+> Or are there two HS PHYs? If so, would the other HS PHY have a sleep_b clock?
 
-I guess that variable name is misleading.
+I think that this is the case.
 
-nr_periods is actually the total no.of slots needed to process the request. Its
-value is 1 greater than the total number of periods.
+> 
+> The clock-names property should describe the clocks from the view of the device
+> itself. As we're describing the PHY in isolation, rather than a big block that
+> contains the PHY, the presesnce or absence of other PHYs should not affect the
+> name. If the "_a" suffix is only to differentiate the instance of PHY, it
+> should be dropped.
 
-This is because the channel uses one dedicated slot that it continuously
-refreshed (not read-only). The other slots are read-only, and are continuously
-copied into the dedicated channel's slot.
 
-Below is the updated patch where I changed the nr_periods variable name to
-nslots for clarity.
+Ok. This was left from earlier platform code. I will change it.
 
----8<---
-From: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v2] dma: edma: Add support for Cyclic DMA
+Thanks,
+Ivan
 
-Using the PaRAM configuration function that we split for reuse by the
-different DMA types, we implement Cyclic DMA support.
-For the cyclic case, we pass different configuration parameters to this
-function, and handle all the Cyclic-specific functionality separately.
+> 
+> Thanks,
+> Mark.
+> --
 
-Callbacks to the DMA users are handled using vchan_cyclic_callback in
-the virt-dma layer. Linking is handled the same way as the slave SG case
-except for the last slot where we link it back to the first one in a
-cyclic fashion.
 
-For continuity, we check for cases where no.of periods is great than the
-MAX number of slots the driver can allocate for a particular descriptor
-and error out on such cases.
-
-Signed-off-by: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>
----
-v2 changes:
- - changed variable name- nr_periods to nslots, to make the context more clear.
-
- drivers/dma/edma.c | 160 ++++++++++++++++++++++++++++++++++++++++++++++++++---
- 1 file changed, 152 insertions(+), 8 deletions(-)
-
-diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
-index 9b6004f..0fef450 100644
---- a/drivers/dma/edma.c
-+++ b/drivers/dma/edma.c
-@@ -54,6 +54,7 @@
- struct edma_desc {
- 	struct virt_dma_desc		vdesc;
- 	struct list_head		node;
-+	int				cyclic;
- 	int				absync;
- 	int				pset_nr;
- 	int				processed;
-@@ -167,8 +168,13 @@ static void edma_execute(struct edma_chan *echan)
- 	 * then setup a link to the dummy slot, this results in all future
- 	 * events being absorbed and that's OK because we're done
- 	 */
--	if (edesc->processed == edesc->pset_nr)
--		edma_link(echan->slot[nslots-1], echan->ecc->dummy_slot);
-+	if (edesc->processed == edesc->pset_nr) {
-+		if (edesc->cyclic)
-+			edma_link(echan->slot[nslots-1], echan->slot[1]);
-+		else
-+			edma_link(echan->slot[nslots-1],
-+				  echan->ecc->dummy_slot);
-+	}
-
- 	edma_resume(echan->ch_num);
-
-@@ -253,6 +259,7 @@ static int edma_control(struct dma_chan *chan, enum
-dma_ctrl_cmd cmd,
- /*
-  * A PaRAM set configuration abstraction used by other modes
-  * @chan: Channel who's PaRAM set we're configuring
-+ * @pset: PaRAM set to initialize and setup.
-  * @src_addr: Source address of the DMA
-  * @dst_addr: Destination address of the DMA
-  * @burst: In units of dev_width, how much to send
-@@ -448,6 +455,138 @@ static struct dma_async_tx_descriptor *edma_prep_slave_sg(
- 	return vchan_tx_prep(&echan->vchan, &edesc->vdesc, tx_flags);
- }
-
-+static struct dma_async_tx_descriptor *edma_prep_dma_cyclic(
-+	struct dma_chan *chan, dma_addr_t buf_addr, size_t buf_len,
-+	size_t period_len, enum dma_transfer_direction direction,
-+	unsigned long tx_flags, void *context)
-+{
-+	struct edma_chan *echan = to_edma_chan(chan);
-+	struct device *dev = chan->device->dev;
-+	struct edma_desc *edesc;
-+	dma_addr_t src_addr, dst_addr;
-+	enum dma_slave_buswidth dev_width;
-+	u32 burst;
-+	int i, ret, nslots;
-+
-+	if (unlikely(!echan || !buf_len || !period_len))
-+		return NULL;
-+
-+	if (direction == DMA_DEV_TO_MEM) {
-+		src_addr = echan->cfg.src_addr;
-+		dst_addr = buf_addr;
-+		dev_width = echan->cfg.src_addr_width;
-+		burst = echan->cfg.src_maxburst;
-+	} else if (direction == DMA_MEM_TO_DEV) {
-+		src_addr = buf_addr;
-+		dst_addr = echan->cfg.dst_addr;
-+		dev_width = echan->cfg.dst_addr_width;
-+		burst = echan->cfg.dst_maxburst;
-+	} else {
-+		dev_err(dev, "%s: bad direction?\n", __func__);
-+		return NULL;
-+	}
-+
-+	if (dev_width == DMA_SLAVE_BUSWIDTH_UNDEFINED) {
-+		dev_err(dev, "Undefined slave buswidth\n");
-+		return NULL;
-+	}
-+
-+	if (unlikely(buf_len % period_len)) {
-+		dev_err(dev, "Period should be multiple of Buffer length\n");
-+		return NULL;
-+	}
-+
-+	nslots = (buf_len / period_len) + 1;
-+
-+	/*
-+	 * Cyclic DMA users such as audio cannot tolerate delays introduced
-+	 * by cases where the number of periods is more than the maximum
-+	 * number of SGs the EDMA driver can handle at a time. For DMA types
-+	 * such as Slave SGs, such delays are tolerable and synchronized,
-+	 * but the synchronization is difficult to achieve with Cyclic and
-+	 * cannot be guaranteed, so we error out early.
-+	 */
-+	if (nslots > MAX_NR_SG)
-+		return NULL;
-+
-+	edesc = kzalloc(sizeof(*edesc) + nslots *
-+		sizeof(edesc->pset[0]), GFP_ATOMIC);
-+	if (!edesc) {
-+		dev_dbg(dev, "Failed to allocate a descriptor\n");
-+		return NULL;
-+	}
-+
-+	edesc->cyclic = 1;
-+	edesc->pset_nr = nslots;
-+
-+	dev_dbg(dev, "%s: nslots=%d\n", __func__, nslots);
-+	dev_dbg(dev, "%s: period_len=%d\n", __func__, period_len);
-+	dev_dbg(dev, "%s: buf_len=%d\n", __func__, buf_len);
-+
-+	for (i = 0; i < nslots; i++) {
-+		/* Allocate a PaRAM slot, if needed */
-+		if (echan->slot[i] < 0) {
-+			echan->slot[i] =
-+				edma_alloc_slot(EDMA_CTLR(echan->ch_num),
-+						EDMA_SLOT_ANY);
-+			if (echan->slot[i] < 0) {
-+				dev_err(dev, "Failed to allocate slot\n");
-+				return NULL;
-+			}
-+		}
-+
-+		if (i == nslots - 1) {
-+			memcpy(&edesc->pset[i], &edesc->pset[0],
-+			       sizeof(edesc->pset[0]));
-+			break;
-+		}
-+
-+		ret = edma_config_pset(chan, &edesc->pset[i], src_addr,
-+				       dst_addr, burst, dev_width, period_len,
-+				       direction);
-+		if (ret < 0)
-+			return NULL;
-+
-+		if (direction == DMA_DEV_TO_MEM)
-+			dst_addr += period_len;
-+		else
-+			src_addr += period_len;
-+
-+		dev_dbg(dev, "%s: Configure period %d of buf:\n", __func__, i);
-+		dev_dbg(dev,
-+			"\n pset[%d]:\n"
-+			"  chnum\t%d\n"
-+			"  slot\t%d\n"
-+			"  opt\t%08x\n"
-+			"  src\t%08x\n"
-+			"  dst\t%08x\n"
-+			"  abcnt\t%08x\n"
-+			"  ccnt\t%08x\n"
-+			"  bidx\t%08x\n"
-+			"  cidx\t%08x\n"
-+			"  lkrld\t%08x\n",
-+			i, echan->ch_num, echan->slot[i],
-+			edesc->pset[i].opt,
-+			edesc->pset[i].src,
-+			edesc->pset[i].dst,
-+			edesc->pset[i].a_b_cnt,
-+			edesc->pset[i].ccnt,
-+			edesc->pset[i].src_dst_bidx,
-+			edesc->pset[i].src_dst_cidx,
-+			edesc->pset[i].link_bcntrld);
-+
-+		edesc->absync = ret;
-+
-+		/*
-+		 * Enable interrupts for every period because callback
-+		 * has to be called for every period.
-+		 */
-+		edesc->pset[i].opt |= TCINTEN;
-+	}
-+
-+	return vchan_tx_prep(&echan->vchan, &edesc->vdesc, tx_flags);
-+}
-+
- static void edma_callback(unsigned ch_num, u16 ch_status, void *data)
- {
- 	struct edma_chan *echan = data;
-@@ -456,24 +595,28 @@ static void edma_callback(unsigned ch_num, u16 ch_status,
-void *data)
- 	unsigned long flags;
- 	struct edmacc_param p;
-
--	/* Pause the channel */
--	edma_pause(echan->ch_num);
-+	edesc = echan->edesc;
-+
-+	/* Pause the channel for non-cyclic */
-+	if (!edesc || (edesc && !edesc->cyclic))
-+		edma_pause(echan->ch_num);
-
- 	switch (ch_status) {
- 	case DMA_COMPLETE:
- 		spin_lock_irqsave(&echan->vchan.lock, flags);
-
--		edesc = echan->edesc;
- 		if (edesc) {
--			if (edesc->processed == edesc->pset_nr) {
-+			if (edesc->cyclic) {
-+				vchan_cyclic_callback(&edesc->vdesc);
-+			} else if (edesc->processed == edesc->pset_nr) {
- 				dev_dbg(dev, "Transfer complete, stopping channel %d\n", ch_num);
- 				edma_stop(echan->ch_num);
- 				vchan_cookie_complete(&edesc->vdesc);
-+				edma_execute(echan);
- 			} else {
- 				dev_dbg(dev, "Intermediate transfer complete on channel %d\n", ch_num);
-+				edma_execute(echan);
- 			}
--
--			edma_execute(echan);
- 		}
-
- 		spin_unlock_irqrestore(&echan->vchan.lock, flags);
-@@ -671,6 +814,7 @@ static void edma_dma_init(struct edma_cc *ecc, struct
-dma_device *dma,
- 			  struct device *dev)
- {
- 	dma->device_prep_slave_sg = edma_prep_slave_sg;
-+	dma->device_prep_dma_cyclic = edma_prep_dma_cyclic;
- 	dma->device_alloc_chan_resources = edma_alloc_chan_resources;
- 	dma->device_free_chan_resources = edma_free_chan_resources;
- 	dma->device_issue_pending = edma_issue_pending;
--- 
-1.8.1.2
