@@ -1,7 +1,7 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 2/2] ARM: dts: omap5-uevm: Remove pinmux for dmic pins
-Date: Wed, 23 Oct 2013 12:32:20 +0300
-Message-ID: <1382520740-11197-3-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH 1/2] ARM: dts: omap5-uevm: Correct twl6040 reset GPIO pinmux
+Date: Wed, 23 Oct 2013 12:32:19 +0300
+Message-ID: <1382520740-11197-2-git-send-email-peter.ujfalusi@ti.com>
 References: <1382520740-11197-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -15,41 +15,26 @@ List-Id: linux-omap@vger.kernel.org
 When the omap5-evm.dts file has been renamed to omap5-uevm.dts and the sEVM
 support got deprecated in favor of uEVM (or Panda5) the content was not
 validated.
-Panda5 does not have support for digital microphones so remove the pinmux
-section for it.
+On uEVM the twl6040 reset GPIO is from gpio5_141 and not via gpio5_145, which
+was the case in sEVM.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- arch/arm/boot/dts/omap5-uevm.dts | 10 ----------
- 1 file changed, 10 deletions(-)
+ arch/arm/boot/dts/omap5-uevm.dts | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/arch/arm/boot/dts/omap5-uevm.dts b/arch/arm/boot/dts/omap5-uevm.dts
-index 8432409..72dd7bc 100644
+index e06a04a..8432409 100644
 --- a/arch/arm/boot/dts/omap5-uevm.dts
 +++ b/arch/arm/boot/dts/omap5-uevm.dts
-@@ -62,7 +62,6 @@
- 	pinctrl-0 = <
- 			&twl6040_pins
- 			&mcpdm_pins
--			&dmic_pins
- 			&mcbsp1_pins
- 			&mcbsp2_pins
- 			&usbhost_pins
-@@ -85,15 +84,6 @@
+@@ -71,7 +71,7 @@
+ 
+ 	twl6040_pins: pinmux_twl6040_pins {
+ 		pinctrl-single,pins = <
+-			0x18a (PIN_OUTPUT | MUX_MODE6)	/* perslimbus2_clock.gpio5_145 */
++			0x17e (PIN_OUTPUT | MUX_MODE6)	/* mcspi1_somi.gpio5_141 */
  		>;
  	};
  
--	dmic_pins: pinmux_dmic_pins {
--		pinctrl-single,pins = <
--			0x144 (PIN_INPUT | MUX_MODE0)		/* abedmic_din1.abedmic_din1 */
--			0x146 (PIN_INPUT | MUX_MODE0)		/* abedmic_din2.abedmic_din2 */
--			0x148 (PIN_INPUT | MUX_MODE0)		/* abedmic_din3.abedmic_din3 */
--			0x14a (PIN_OUTPUT | MUX_MODE0)		/* abedmic_clk1.abedmic_clk1 */
--		>;
--	};
--
- 	mcbsp1_pins: pinmux_mcbsp1_pins {
- 		pinctrl-single,pins = <
- 			0x14c (PIN_INPUT | MUX_MODE1)		/* abedmic_clk2.abemcbsp1_fsx */
 -- 
 1.8.4
