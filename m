@@ -1,264 +1,157 @@
-From: Jyri Sarha <jsarha@ti.com>
-Subject: [PATCH v6 2/4] ASoC: davinci-evm: Add device tree binding
-Date: Wed, 23 Oct 2013 15:30:14 +0300
-Message-ID: <5ee719e9e2b156e80214bfce42157ae27e792be5.1382529191.git.jsarha@ti.com>
-References: <cover.1382529191.git.jsarha@ti.com>
+From: "Gupta, Pekon" <pekon@ti.com>
+Subject: RE: [PATCH v10 04/10] mtd: nand: omap: fix device scan:
+ NAND_CMD_READID, NAND_CMD_RESET, CMD_CMD_PARAM use only x8 bus
+Date: Wed, 23 Oct 2013 12:30:16 +0000
+Message-ID: <20980858CB6D3A4BAE95CA194937D5E73EA2A049@DBDE04.ent.ti.com>
+References: <1382172254-12448-1-git-send-email-pekon@ti.com>
+ <1382172254-12448-5-git-send-email-pekon@ti.com>
+ <20131022201624.GL23337@ld-irv-0074.broadcom.com>
+ <20980858CB6D3A4BAE95CA194937D5E73EA29DB8@DBDE04.ent.ti.com>
+ <5267690C.9080005@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:34378 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:48081 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753427Ab3JWMai (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 23 Oct 2013 08:30:38 -0400
-In-Reply-To: <cover.1382529191.git.jsarha@ti.com>
+	id S1753511Ab3JWMbQ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Oct 2013 08:31:16 -0400
+In-Reply-To: <5267690C.9080005@gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: alsa-devel@alsa-project.org, broonie@kernel.org
-Cc: linux-omap@vger.kernel.org, joelf@ti.com, tony@atomide.com, "Hebbar, Gururaja" <gururaja.hebbar@ti.com>, Darren Etheridge <detheridge@ti.com>, Jyri Sarha <jsarha@ti.com>
+To: Brian Norris <computersforpeace@gmail.com>
+Cc: "mark.rutland@arm.com" <mark.rutland@arm.com>, "olof@lixom.net" <olof@lixom.net>, "dedekind1@gmail.com" <dedekind1@gmail.com>, "robherring2@gmail.com" <robherring2@gmail.com>, "Pawel.Moll@arm.com" <Pawel.Moll@arm.com>, "ijc+devicetree@hellion.org.uk" <ijc+devicetree@hellion.org.uk>, "swarren@wwwdotorg.org" <swarren@wwwdotorg.org>, "dwmw2@infradead.org" <dwmw2@infradead.org>, "arnd@arndb.de" <arnd@arndb.de>, "tony@atomide.com" <tony@atomide.com>, "bcousson@baylibre.com" <bcousson@baylibre.com>, "avinashphilipk@gmail.com" <avinashphilipk@gmail.com>, "Balbi, Felipe" <balbi@ti.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "jp.francois@cynove.com" <jp.francois@cynove.com>, "ivan.djelic@parrot.com" <ivan.djelic@parrot.com>
 
-From: "Hebbar, Gururaja" <gururaja.hebbar@ti.com>
+Hi Brian,
 
-Device tree support for Davinci Machine driver
+> From: Brian Norris [mailto:computersforpeace@gmail.com]
+> > On 10/22/2013 10:07 PM, Gupta, Pekon wrote:
+> >> From: Brian Norris [mailto:computersforpeace@gmail.com]
+> >> On Sat, Oct 19, 2013 at 02:14:08PM +0530, Pekon Gupta wrote:
 
-When the board boots with device tree, the driver will receive card,
-codec, dai interface details (like the card name, DAPM routing map,
-phandle for the audio components described in the dts file, codec mclk
-speed). The card will be set up based on this information. Since the
-routing is provided via DT we can mark the card fully routed so core
-can take care of disconnecting the unused pins.
+[...]
 
-Signed-off-by: Hebbar, Gururaja <gururaja.hebbar@ti.com>
-Signed-off-by: Darren Etheridge <detheridge@ti.com>
-Signed-off-by: Jyri Sarha <jsarha@ti.com>
----
- .../bindings/sound/davinci-evm-audio.txt           |   42 +++++++
- sound/soc/davinci/davinci-evm.c                    |  124 +++++++++++++++++++-
- 2 files changed, 164 insertions(+), 2 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/sound/davinci-evm-audio.txt
+>> So are you saying that the driver currently doesn't work if you started
+>> in x16 buswidth? Are you having problems with a particular setup? What
+>> sort of devices are you testing?
+>>
+...
+> Since you didn't answer the other 2 questions there: are you testing any
+> x16 devices?
+> 
 
-diff --git a/Documentation/devicetree/bindings/sound/davinci-evm-audio.txt b/Documentation/devicetree/bindings/sound/davinci-evm-audio.txt
-new file mode 100644
-index 0000000..865178d
---- /dev/null
-+++ b/Documentation/devicetree/bindings/sound/davinci-evm-audio.txt
-@@ -0,0 +1,42 @@
-+* Texas Instruments SoC audio setups with TLV320AIC3X Codec
-+
-+Required properties:
-+- compatible : "ti,da830-evm-audio" : forDM365/DA8xx/OMAPL1x/AM33xx
-+- ti,model : The user-visible name of this sound complex.
-+- ti,audio-codec : The phandle of the TLV320AIC3x audio codec
-+- ti,mcasp-controller : The phandle of the McASP controller
-+- ti,codec-clock-rate : The Codec Clock rate (in Hz) applied to the Codec
-+- ti,audio-routing : A list of the connections between audio components.
-+  Each entry is a pair of strings, the first being the connection's sink,
-+  the second being the connection's source. Valid names for sources and
-+  sinks are the codec's pins, and the jacks on the board:
-+
-+  Board connectors:
-+
-+  * Headphone Jack
-+  * Line Out
-+  * Mic Jack
-+  * Line In
-+
-+
-+Example:
-+
-+sound {
-+	compatible = "ti,da830-evm-audio";
-+	ti,model = "DA830 EVM";
-+	ti,audio-codec = <&tlv320aic3x>;
-+	ti,mcasp-controller = <&mcasp1>;
-+	ti,codec-clock-rate = <12000000>;
-+	ti,audio-routing =
-+		"Headphone Jack",       "HPLOUT",
-+		"Headphone Jack",       "HPROUT",
-+		"Line Out",             "LLOUT",
-+		"Line Out",             "RLOUT",
-+		"MIC3L",                "Mic Bias 2V",
-+		"MIC3R",                "Mic Bias 2V",
-+		"Mic Bias 2V",          "Mic Jack",
-+		"LINE1L",               "Line In",
-+		"LINE2L",               "Line In",
-+		"LINE1R",               "Line In",
-+		"LINE2R",               "Line In";
-+};
-diff --git a/sound/soc/davinci/davinci-evm.c b/sound/soc/davinci/davinci-evm.c
-index 2f8161c..623eb5e 100644
---- a/sound/soc/davinci/davinci-evm.c
-+++ b/sound/soc/davinci/davinci-evm.c
-@@ -16,6 +16,7 @@
- #include <linux/platform_device.h>
- #include <linux/platform_data/edma.h>
- #include <linux/i2c.h>
-+#include <linux/of_platform.h>
- #include <sound/core.h>
- #include <sound/pcm.h>
- #include <sound/soc.h>
-@@ -23,6 +24,8 @@
- #include <asm/dma.h>
- #include <asm/mach-types.h>
- 
-+#include <linux/edma.h>
-+
- #include "davinci-pcm.h"
- #include "davinci-i2s.h"
- #include "davinci-mcasp.h"
-@@ -121,13 +124,22 @@ static int evm_aic3x_init(struct snd_soc_pcm_runtime *rtd)
- {
- 	struct snd_soc_codec *codec = rtd->codec;
- 	struct snd_soc_dapm_context *dapm = &codec->dapm;
-+	struct device_node *np = codec->card->dev->of_node;
-+	int ret;
- 
- 	/* Add davinci-evm specific widgets */
- 	snd_soc_dapm_new_controls(dapm, aic3x_dapm_widgets,
- 				  ARRAY_SIZE(aic3x_dapm_widgets));
- 
--	/* Set up davinci-evm specific audio path audio_map */
--	snd_soc_dapm_add_routes(dapm, audio_map, ARRAY_SIZE(audio_map));
-+	if (np) {
-+		ret = snd_soc_of_parse_audio_routing(codec->card,
-+							"ti,audio-routing");
-+		if (ret)
-+			return ret;
-+	} else {
-+		/* Set up davinci-evm specific audio path audio_map */
-+		snd_soc_dapm_add_routes(dapm, audio_map, ARRAY_SIZE(audio_map));
-+	}
- 
- 	/* not connected */
- 	snd_soc_dapm_disable_pin(dapm, "MONO_LOUT");
-@@ -312,6 +324,98 @@ static struct snd_soc_card da850_snd_soc_card = {
- 	.drvdata = &da850_snd_soc_card_drvdata,
- };
- 
-+#if defined(CONFIG_OF)
-+
-+/*
-+ * The struct is used as place holder. It will be completely
-+ * filled with data from dt node.
-+ */
-+static struct snd_soc_dai_link evm_dai_tlv320aic3x = {
-+	.name		= "TLV320AIC3X",
-+	.stream_name	= "AIC3X",
-+	.codec_dai_name	= "tlv320aic3x-hifi",
-+	.ops            = &evm_ops,
-+	.init           = evm_aic3x_init,
-+};
-+
-+static const struct of_device_id davinci_evm_dt_ids[] = {
-+	{
-+		.compatible = "ti,da830-evm-audio",
-+		.data = (void *) &evm_dai_tlv320aic3x,
-+	},
-+	{ /* sentinel */ }
-+};
-+MODULE_DEVICE_TABLE(of, davinci_evm_dt_ids);
-+
-+/* davinci evm audio machine driver */
-+static struct snd_soc_card evm_soc_card = {
-+	.owner = THIS_MODULE,
-+	.num_links = 1,
-+};
-+
-+static int davinci_evm_probe(struct platform_device *pdev)
-+{
-+	struct device_node *np = pdev->dev.of_node;
-+	const struct of_device_id *match =
-+		of_match_device(of_match_ptr(davinci_evm_dt_ids), &pdev->dev);
-+	struct snd_soc_dai_link *dai = (struct snd_soc_dai_link *) match->data;
-+	struct snd_soc_card_drvdata_davinci *drvdata = NULL;
-+	int ret = 0;
-+
-+	evm_soc_card.dai_link = dai;
-+
-+	dai->codec_of_node = of_parse_phandle(np, "ti,audio-codec", 0);
-+	if (!dai->codec_of_node)
-+		return -EINVAL;
-+
-+	dai->cpu_of_node = of_parse_phandle(np, "ti,mcasp-controller", 0);
-+	if (!dai->cpu_of_node)
-+		return -EINVAL;
-+
-+	dai->platform_of_node = dai->cpu_of_node;
-+
-+	evm_soc_card.dev = &pdev->dev;
-+	ret = snd_soc_of_parse_card_name(&evm_soc_card, "ti,model");
-+	if (ret)
-+		return ret;
-+
-+	drvdata = devm_kzalloc(&pdev->dev, sizeof(*drvdata), GFP_KERNEL);
-+	if (!drvdata)
-+		return -ENOMEM;
-+
-+	ret = of_property_read_u32(np, "ti,codec-clock-rate", &drvdata->sysclk);
-+	if (ret < 0)
-+		return -EINVAL;
-+
-+	snd_soc_card_set_drvdata(&evm_soc_card, drvdata);
-+	ret = devm_snd_soc_register_card(&pdev->dev, &evm_soc_card);
-+
-+	if (ret)
-+		dev_err(&pdev->dev, "snd_soc_register_card failed (%d)\n", ret);
-+
-+	return ret;
-+}
-+
-+static int davinci_evm_remove(struct platform_device *pdev)
-+{
-+	struct snd_soc_card *card = platform_get_drvdata(pdev);
-+
-+	snd_soc_unregister_card(card);
-+
-+	return 0;
-+}
-+
-+static struct platform_driver davinci_evm_driver = {
-+	.probe		= davinci_evm_probe,
-+	.remove		= davinci_evm_remove,
-+	.driver		= {
-+		.name	= "davinci_evm",
-+		.owner	= THIS_MODULE,
-+		.of_match_table = of_match_ptr(davinci_evm_dt_ids),
-+	},
-+};
-+#endif
-+
- static struct platform_device *evm_snd_device;
- 
- static int __init evm_init(void)
-@@ -320,6 +424,15 @@ static int __init evm_init(void)
- 	int index;
- 	int ret;
- 
-+	/*
-+	 * If dtb is there, the devices will be created dynamically.
-+	 * Only register platfrom driver structure.
-+	 */
-+#if defined(CONFIG_OF)
-+	if (of_have_populated_dt())
-+		return platform_driver_register(&davinci_evm_driver);
-+#endif
-+
- 	if (machine_is_davinci_evm()) {
- 		evm_snd_dev_data = &dm6446_snd_soc_card_evm;
- 		index = 0;
-@@ -355,6 +468,13 @@ static int __init evm_init(void)
- 
- static void __exit evm_exit(void)
- {
-+#if defined(CONFIG_OF)
-+	if (of_have_populated_dt()) {
-+		platform_driver_unregister(&davinci_evm_driver);
-+		return;
-+	}
-+#endif
-+
- 	platform_device_unregister(evm_snd_device);
- }
- 
--- 
-1.7.9.5
+Ans-1: Yes, I'm testing on following boards:
+  (a) AM335x-EVM which has x8 Micron device.
+  http://www.ti.com/tool/tmdxevm3358
+  (b) beaglebone with 'NAND cape', which has x16 Micron device.
+  http://beagleboardtoys.info/index.php?title=BeagleBone_4Gb_16-Bit_NAND_Module
+  (c) AM437x board (which has 4K page NAND from Macronix).
+  (d) Also would be testing on DRA7xx again having Micron Device.
 
+Ans-2:
+Its not the setup but rather constrain in nand_base.c which prevents
+reading of ONFI params in x16 mode. Please read below..
+
+Ans-3:
+Mostly are either x8 or x16 SLC NAND device.
+
+
+[...]
+
+> You NEVER need to call nand_scan_ident() twice for the same chip.
+> Period. I will reject any patch that retains this pattern. It is wrong,
+> and I seriously doubt the code does what you think it does when you do this.
+> 
+> I think nand_scan_ident() may have a weak point where it won't support
+> ONFI properly for x16 devices. I believe NAND_BUSWIDTH_AUTO was added
+> to
+> help with this fact. (I don't have any x16 devices to test it.) But if
+> this is a problem for you, fix it. Don't work around it.
+> 
+So, here comes the conflict.. 
+If I'm _not_ using NAND_BUSWIDTH_AUTO, how should I read the ONFI 
+params on x16 device ? I don't think there is any way because of following
+code in generic nand_base.c
+@@ nand_flash_onfi_detect()
+/*
+ * ONFI must be probed in 8-bit mode or with NAND_BUSWIDTH_AUTO, not
+ * with NAND_BUSWIDTH_16
+ */
+if (chip->options & NAND_BUSWIDTH_16) {
+	pr_err("ONFI cannot be probed in 16-bit mode; aborting\n");
+	return 0;
+}
+
+Introduced in commit..
+commit 0ce82b7f7b7373b16ecf7b5725e21e2975204500
+Author:     Matthieu CASTET <matthieu.castet@parrot.com>
+AuthorDate: 2013-01-16
+
+And, I think this commit has implicitly made NAND_BUSWIDTH_AUTO
+*mandatory* to be supported by every driver for interfacing with
+x16 NAND devices. Isn't it ?
+(unless you add every x16 device present in market to nand_flash_id[])
+
+ [...]
+
+> nand_base is designed (and it's documented in the comments) that the
+> driver must set the buswidth correctly BEFORE calling nand_scan_ident().
+> You may not use nand_scan_ident() as a trial-and-error identification
+> function.
+> 
+> So, to properly do (1), you should only have something like this, just
+> like all the other NAND drivers:
+> 
+>   nand_chip->options = pdata->devsize & NAND_BUSWIDTH_16;
+> 
+>   ret = nand_scan_ident(...);
+>   if (ret) {
+>       // exit with error code...
+>   }
+> 
+For a x16 device.. This would *always* fail for x16 device, unless device
+is listed in nand_flash_id[]. isn't  it ?
+because you cannot read ONFI params in x16 mode, and your device is
+not listed in nand_flash_ids[], so your device would not get identified.
+
+And I sincerely don't know how other NAND drivers are probing
+x16 NAND devices _without_ enabling NAND_BUSWIDTH_AUTO.
+(may be by adding every supported NAND device to nand_flash_id[]
+look-up table, which is not recommended).
+
+
+> If there is a problem with this, then you have to fix your driver or
+> nand_scan_ident(). Perhaps you have to adjust your readbuf() or
+> cmdfunc() callbacks to do this. But do not add complicated workaround
+> logic in your driver.
+> 
+chip->cmdfunc() and chip->readbufs() are all fine. Rather I let the
+generic driver set them for nand_scan_ident().
+So, all this calling nand_scan_ident() twice was done because of
+previously mentioned reasons..
+
+
+> [snipping the rest]
+> 
+> I read your patch, and I gave you my review. I will not accept this
+> patch, nor any patch that works around nand_scan_ident() by calling it
+> twice. Fix the framework if the framework is giving you problems.
+> 
+It's a chicken and egg problem, 
+I have no solution but all I can say is the above commit, which converted
+WARNING into ERROR, until all drivers adapt to NAND_BUSWIDTH_AUTO.
+
+Anyway I have to do nand_scan_ident() somewhere before populating
+the chip->ecc.layout and other fields.. so can't drop the patch..
+But I'll put your suggestion, instead of my mine.
+
+> I believe that this patch is not integral to the rest of the series, so
+> I will repeat: separate this patch out so I can take the rest of this
+> series without it.
+> 
+I'll replace the patch with your suggestions,
+So, that you have both versions. Please pick whichever you like :-)
+
+
+with regards, pekon
