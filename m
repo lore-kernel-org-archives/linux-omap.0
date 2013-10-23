@@ -1,7 +1,8 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 3/4] omap late cpufreq changes for v3.13 merge window
-Date: Wed, 23 Oct 2013 07:36:43 -0700
-Message-ID: <E1VYzYt-0008Mq-Kk@merlin.infradead.org>
+Subject: [GIT PULL 2/4] omap late clock and system control module cleanup for
+ v3.13 merge window
+Date: Wed, 23 Oct 2013 07:36:42 -0700
+Message-ID: <E1VYzZ1-0008NO-No@merlin.infradead.org>
 References: <pull-1382539003-174282>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,33 +23,55 @@ To: arm@kernel.org, Arnd Bergmann <arnd@arndb.de>, Kevin Hilman <khilman@linaro.
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The following changes since commit 06ff74fd197aa8205443cf64b94383802602e320:
+The following changes since commit d0e639c9e06d44e713170031fe05fb60ebe680af:
 
-  ARM: OMAP2+: remove legacy support for IGEP boards (2013-10-18 10:25:46 -0700)
+  Linux 3.12-rc4 (2013-10-06 14:00:20 -0700)
 
 are available in the git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.13/cpufreq-late
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.13/cm-scm-cleanup-signed
 
-for you to fetch changes up to 60c5fc86d01154e2a005bf701f495426ebc81f73:
+for you to fetch changes up to 54b89756a14aa1043507ce0811b4b6c02c5dddcc:
 
-  ARM: OMAP3+: use cpu0-cpufreq driver in device tree supported boot (2013-10-22 08:10:09 -0700)
-
-----------------------------------------------------------------
-Few patches to make cpufreq work for omap3 with device tree.
-
-Note that this branch has a dependency to the patches merged
-with omap-for-v3.13/board-removal-signed-take2.
+  Merge tag 'for-v3.13/cm-scm-cleanup-a' of git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending into omap-for-v3.13/cm-scm-cleanup (2013-10-20 08:55:19 -0700)
 
 ----------------------------------------------------------------
-Nishanth Menon (3):
-      ARM: OMAP3+: do not register non-dt OPP tables for device tree boot
-      ARM: OMAP2+: add missing lateinit hook for calling pm late init
-      ARM: OMAP3+: use cpu0-cpufreq driver in device tree supported boot
 
- arch/arm/mach-omap2/board-generic.c |  4 ++++
- arch/arm/mach-omap2/common.h        |  4 ++++
- arch/arm/mach-omap2/io.c            | 20 ++++++++++++++++++++
- arch/arm/mach-omap2/opp.c           |  4 ++++
- arch/arm/mach-omap2/pm.c            | 12 +++++++++---
- 5 files changed, 41 insertions(+), 3 deletions(-)
+Via Paul Walmsley <paul@pwsan.com>:
+
+Move some of the OMAP2+ CM and System Control Module direct
+register accesses into CM- and System Control
+Module-specific "drivers" underneath arch/arm/mach-omap2/.  This
+is a prerequisite for moving this code out of arch/arm/mach-omap2/ into
+drivers/.
+
+Basic test logs are available here:
+
+http://www.pwsan.com/omap/testlogs/cm_scm_cleanup_a_v3.13/20131019101809/
+
+----------------------------------------------------------------
+Tero Kristo (5):
+      ARM: OMAP2: CM/PM: remove direct register accesses outside CM code
+      ARM: OMAP3: clock: add API to enable/disable autoidle for a single clock
+      ARM: OMAP3: McBSP: do not access CM register directly
+      ARM: OMAP3: CM/control: move CM scratchpad save to CM driver
+      ARM: OMAP3: control: add API for setting IVA bootmode
+
+Tony Lindgren (1):
+      Merge tag 'for-v3.13/cm-scm-cleanup-a' of git://git.kernel.org/.../pjw/omap-pending into omap-for-v3.13/cm-scm-cleanup
+
+ arch/arm/mach-omap2/clkt2xxx_apll.c          |  4 +-
+ arch/arm/mach-omap2/clkt2xxx_dpllcore.c      | 11 ++---
+ arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c | 24 +++-------
+ arch/arm/mach-omap2/clock.c                  | 38 ++++++++++++++++
+ arch/arm/mach-omap2/clock.h                  |  2 +
+ arch/arm/mach-omap2/cm2xxx.c                 | 67 ++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/cm2xxx.h                 |  8 ++++
+ arch/arm/mach-omap2/cm3xxx.c                 | 22 +++++++++
+ arch/arm/mach-omap2/cm3xxx.h                 |  1 +
+ arch/arm/mach-omap2/control.c                | 54 +++++++---------------
+ arch/arm/mach-omap2/control.h                |  1 +
+ arch/arm/mach-omap2/mcbsp.c                  | 16 +++----
+ arch/arm/mach-omap2/pm24xx.c                 | 24 +---------
+ arch/arm/mach-omap2/pm34xx.c                 |  3 +-
+ 14 files changed, 177 insertions(+), 98 deletions(-)
