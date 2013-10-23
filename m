@@ -1,58 +1,56 @@
 From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH v6 1/4] ASoC: davinci: Add support for AM33xx SoC Audio
-Date: Wed, 23 Oct 2013 16:40:15 +0100
-Message-ID: <20131023154015.GA31415@sirena.org.uk>
+Subject: Re: [PATCH v6 3/4] ASoC: davinci-mcasp: Remove last reference to
+ num-serializer in DT doc
+Date: Wed, 23 Oct 2013 16:40:32 +0100
+Message-ID: <20131023154032.GB31415@sirena.org.uk>
 References: <cover.1382529191.git.jsarha@ti.com>
- <f1892d46be8790665faabc7e992abd43a020d4b1.1382529191.git.jsarha@ti.com>
+ <88fa99eb10f10771a22678ce39333ea9389712c2.1382529191.git.jsarha@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="xHFwDpU9dbj6ez1V"
+	protocol="application/pgp-signature"; boundary="GID0FwUMdk1T2AWN"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cassiel.sirena.org.uk ([80.68.93.111]:56500 "EHLO
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:56509 "EHLO
 	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750847Ab3JWPk0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Oct 2013 11:40:26 -0400
+	with ESMTP id S1751222Ab3JWPk5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Oct 2013 11:40:57 -0400
 Content-Disposition: inline
-In-Reply-To: <f1892d46be8790665faabc7e992abd43a020d4b1.1382529191.git.jsarha@ti.com>
+In-Reply-To: <88fa99eb10f10771a22678ce39333ea9389712c2.1382529191.git.jsarha@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Jyri Sarha <jsarha@ti.com>
-Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, joelf@ti.com, tony@atomide.com, "Hebbar, Gururaja" <gururaja.hebbar@ti.com>, Darren Etheridge <detheridge@ti.com>
+Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, joelf@ti.com, tony@atomide.com
 
 
---xHFwDpU9dbj6ez1V
+--GID0FwUMdk1T2AWN
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Wed, Oct 23, 2013 at 03:30:13PM +0300, Jyri Sarha wrote:
-> From: "Hebbar, Gururaja" <gururaja.hebbar@ti.com>
->=20
-> AM33xx uses same McASP IP as the Davinci Platform. This patch updates
-> Kconfig and makefile to enable build for McASP, PCM & Codec drivers.
+On Wed, Oct 23, 2013 at 03:30:15PM +0300, Jyri Sarha wrote:
+> Remove last reference to num-serializer in davinci-mcasp devicetree
+> binding document.
 
 Applied, thanks.
 
---xHFwDpU9dbj6ez1V
+--GID0FwUMdk1T2AWN
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2.0.22 (GNU/Linux)
 
-iQIcBAEBAgAGBQJSZ+3XAAoJELSic+t+oim9ivsP/Ag2REdcAzik50wXgBIuhCrr
-oUbtNRiz9zfyDqbWrzBYzYPzNvzt1zBwK6iCZFNCoHOEvd3ulNcnhu7q6qKn4eH+
-NZYZEJYg3W78QcVhvyepN0XjEuFfUaV8VHAQX9+OIPDjVaiqY5eiJhiSlyHBwyT5
-hM+NeQySuErj0oJj6mapR5EsROzQmYiDWk30/jlK0rbZw3RlGpGQ35uFjMv2/rQg
-qAXC+bm4DpDjR7Y4Z1sMchZOOPcw4jkiO283lvtfWCvR3JY6Hk4mB84206EA1X8w
-zym9330mVFrZ8PMLjUkUBy2Gi4/uRPXA6gLqLwDkpYrbeOCbnqIQkRXC9DNTs3hZ
-7AtGKmbMVC7f0pD9Zm8hECM6w6ZqJREbBBcFs5koI/fplsLCL8/gcg4ZbEKv+5zp
-+nJdpXOqAFvHvhFyRzJWkQNyC2ZqFvPIAckl/Cd3v9MdUUp/ZyMBsr4dW6he+2Qp
-zoVL120HnJ+djmNPZdMVOfAvk/Mf7tnV/ZyTD9aWtfm6xe0hYSxM46wCzuiioQu1
-QjPSPYRPk/xblLt3t1OcT+g0vL+485iere51svEPjta2TWVilxfmKT95R43uG2VA
-QH1wzWgE6pIiXggCTtQ288ow3fc9Dq1W6EmxY+M9l7bI5s2S2yzzorV1+jalSILw
-b2yCWLF0VwhI56uiizAj
-=gPTY
+iQIcBAEBAgAGBQJSZ+3tAAoJELSic+t+oim9nZkQAJuZDcVGdYvs3+Vk9JPDJyjW
+qLkjxThSm4ScZl0YvGgBqwi7zvU+piMrnJhji4FU2FMNOqps6G68/iRBoWEtIV4h
+ulxVrIF3DZFZJEOnlV9NQmPHMRf7oHO/u0LyUHRkwXlvOur45VQNEMG4YAzCEHWc
+gQDoIVaRMD565DEA5H7u+KOKEKc0fyz84X9ey/KxC7qYx3sljMDWIxnXMslIxvbp
+whK9c8FKlacuzoXa4z/vVyhp2+0NXJ+mHfdg5N2RcmXw3nky0dHMa35RGRrFcifV
+IVbu97UV1OLHCnEB7BpSGdDF7WK1a7pw0FzgreNU/W/57wEhyzQM4Rbg6se5VBZs
+QSHJN4SSPXtu2mLY89vFkut81z7aXsh0pnR5SZJzG5pdB0YkbmdaPbMMmpFsSsC1
+oEaHPkDoeqgVqlUrln1a84YNMORN/kW/E5wMS+VrmaMZkVNiiO8KDDNvm8MhnHQ0
+cQijmIAh6AIwgviHn6eaRIBYKJf/SR8MnLh7HdEoBDhIvDqB9Hqu8+1tBrhA9D0d
+MUQlb/JERcYvHZIJp5pe9DsF0reEF24LVonIug0kBJPZf3RB4h+A73te1Ioadix7
+4L50YaLQYNxnKO3ZjpomZ9PT8PIDn1TNVRLA8gyCsqLT6xlRwGdLkyzuQIU2Ux/B
+F7C96d0qi0h3yvZ6oKwP
+=XIOq
 -----END PGP SIGNATURE-----
 
---xHFwDpU9dbj6ez1V--
+--GID0FwUMdk1T2AWN--
