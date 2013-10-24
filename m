@@ -1,75 +1,101 @@
-From: Grant Likely <grant.likely@linaro.org>
-Subject: Re: [PATCH] twl4030_charger: add devicetree support.
-Date: Thu, 24 Oct 2013 11:06:52 +0100
-Message-ID: <20131024100652.6B31DC4039D@trevor.secretlab.ca>
-References: <20131024165005.78bc8740@notabene.brown> <1C8E8D31-1261-45ED-BBD0-161DFD627ACF@codeaurora.org>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f51.google.com ([74.125.82.51]:41590 "EHLO
-	mail-wg0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754160Ab3JXKG4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Oct 2013 06:06:56 -0400
-Received: by mail-wg0-f51.google.com with SMTP id l18so2081729wgh.30
-        for <linux-omap@vger.kernel.org>; Thu, 24 Oct 2013 03:06:55 -0700 (PDT)
-In-Reply-To: <1C8E8D31-1261-45ED-BBD0-161DFD627ACF@codeaurora.org>
-Sender: linux-omap-owner@vger.kernel.org
+From: Sricharan R <r.sricharan@ti.com>
+Subject: Re: [RFC PATCH 1/6] DRIVERS: IRQCHIP: IRQ-GIC: Add support for routable
+ irqs
+Date: Thu, 24 Oct 2013 15:51:37 +0530
+Message-ID: <5268F4B1.30203@ti.com>
+References: <1380549564-31045-1-git-send-email-r.sricharan@ti.com> <1380549564-31045-2-git-send-email-r.sricharan@ti.com> <alpine.DEB.2.02.1310241104430.4983@ionos.tec.linutronix.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.02.1310241104430.4983@ionos.tec.linutronix.de>
+Sender: linux-doc-owner@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linus.walleij@linaro.org, santosh.shilimkar@ti.com, linux@arm.linux.org.uk, tony@atomide.com, rnayak@ti.com, marc.zyngier@arm.com, grant.likely@linaro.org, rob.herring@calxeda.com, mark.rutland@arm.com
 List-Id: linux-omap@vger.kernel.org
-To: Kumar Gala <galak@codeaurora.org>, NeilBrown <neilb@suse.de>
-Cc: Anton Vorontsov <anton@enomsg.org>, David Woodhouse <dwmw2@infradead.org>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Belisko Marek <marek.belisko@gmail.com>, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>
 
-On Thu, 24 Oct 2013 04:44:03 -0500, Kumar Gala <galak@codeaurora.org> wrote:
-> 
-> On Oct 24, 2013, at 12:50 AM, NeilBrown wrote:
-> 
-> > 
-> > [my first device-tree related patch.  Please let me know what I got wrong so
-> > I wont repeat the mistake in all the others I have queued]
-> > 
-> > This allows the charger to be enabled with devicetree, and
-> > allows the parameters for charging the backup battery to be set.
-> > 
-> > Signed-off-by: NeilBrown <neilb@suse.de>
-> > 
-> > diff --git a/Documentation/devicetree/bindings/power/twl-charger.txt b/Documentation/devicetree/bindings/power/twl-charger.txt
-> > new file mode 100644
-> > index 0000000..8afaa9a
-> > --- /dev/null
-> > +++ b/Documentation/devicetree/bindings/power/twl-charger.txt
-> > @@ -0,0 +1,20 @@
-> > +TWL BCI (Battery Charger Interface)
-> > +
-> > +Required properties:
-> > +- compatible:
-> > +  - "ti,twl4030-bci"
-> > +- interrupts: two interrupt lines from the TWL SIH (secondary
-> > +  interrupt handler) - interrupts 9 and 2.
-> > +
-> > +Optional properties:
-> > +- bb-uvolt: microvolts for charging the backup battery.
-> > +- bb-uamp: microamps for charging the backup battery.
-> 
-> prop should have vendor prefix.
-> 
-> ti,bb-uvolt, ti,bb-uamp
+Hi Thomas,
 
-Agreed. Otherwise:
+Thanks a lot for reviewing this.
 
-Acked-by: Grant Likely <grant.likely@linaro.org>
+On Thursday 24 October 2013 02:42 PM, Thomas Gleixner wrote:
+> On Mon, 30 Sep 2013, Sricharan R wrote:
+>> diff --git a/drivers/irqchip/irq-gic.c b/drivers/irqchip/irq-gic.c
+>> index 1760ceb..c5778ab 100644
+>> --- a/drivers/irqchip/irq-gic.c
+>> +++ b/drivers/irqchip/irq-gic.c
+>> @@ -72,6 +72,8 @@ struct gic_chip_data {
+>>  
+>>  static DEFINE_RAW_SPINLOCK(irq_controller_lock);
+>>  
+>> +const struct irq_domain_ops *gic_routable_irq_domain_ops;
+>> +
+>>  /*
+>>   * The GIC mapping of CPU interfaces does not necessarily match
+>>   * the logical CPU numbering.  Let's use a mapping as returned
+>> @@ -675,11 +677,26 @@ static int gic_irq_domain_map(struct irq_domain *d, unsigned int irq,
+>>  		irq_set_chip_and_handler(irq, &gic_chip,
+>>  					 handle_fasteoi_irq);
+>>  		set_irq_flags(irq, IRQF_VALID | IRQF_PROBE);
+>> +
+>> +		if (gic_routable_irq_domain_ops &&
+>> +		    gic_routable_irq_domain_ops->map)
+>> +			gic_routable_irq_domain_ops->map(d, irq, hw);
+> Shudder. Why are you sprinkling these if (ops && ops->fun)
+> conditionals all over the place instead of having a default ops
+> implementation which handles the non crossbar case by proper empty
+> functions. That code is not on a hot path so it does not matter at
+> all.
+>
+ Ok, Understand. Will add default ops to avoid these checks.
+>>  	}
+>>  	irq_set_chip_data(irq, d->host_data);
+>>  	return 0;
+>>  }
+>>  
+>> +static void gic_irq_domain_unmap(struct irq_domain *d, unsigned int irq)
+>> +{
+>> +	irq_hw_number_t hw = irq_get_irq_data(irq)->hwirq;
+>> +
+>> +	if (hw > 32) {
+> Groan. This wants to be in the ops->unmap function. It's not related
+> to the GIC core code.
+ Ok, will move this to unmap ops of the crossbar.
+>> +		if (gic_routable_irq_domain_ops &&
+>> +		    gic_routable_irq_domain_ops->unmap)
+>> +			gic_routable_irq_domain_ops->unmap(d, irq);
+>> +	}
+>> +}
+>> +
+>>  static int gic_irq_domain_xlate(struct irq_domain *d,
+>>  				struct device_node *controller,
+>>  				const u32 *intspec, unsigned int intsize,
+>> @@ -694,8 +711,15 @@ static int gic_irq_domain_xlate(struct irq_domain *d,
+>>  	*out_hwirq = intspec[1] + 16;
+>>  
+>>  	/* For SPIs, we need to add 16 more to get the GIC irq ID number */
+>> -	if (!intspec[0])
+>> -		*out_hwirq += 16;
+>> +	if (!intspec[0]) {
+>> +		if (gic_routable_irq_domain_ops &&
+>> +		    gic_routable_irq_domain_ops->xlate)
+>> +			*out_hwirq = gic_routable_irq_domain_ops->xlate(d,
+>> +						controller, intspec, intsize,
+>> +						out_hwirq, out_type);
+>> +		else
+>> +			*out_hwirq += 16;
+>> +	}
+> So if you have a default xlate ops implementation then this boils down to
+>
+>       if (!intspec[0])
+> 		*out_hwirq = routing_ops->xlate()
+>
+> And the default (non crossbar) implementation would be:
+>
+>     	return *out_hwirq + 16;
+>     
+ Ok. This is better. Will change here.
 
-> 
-> - k
-> 
-> > +
-> > +Examples:
-> > +
-> > +bci {
-> > +   compatible = "ti,twl4030-bci";
-> > +   interrupts = <9>, <2>;
-> > +   bb-uvolt = <3200000>;
-> > +   bb-uamp = <150>;
-> > +};
-> 
-> -- 
-> Employee of Qualcomm Innovation Center, Inc.
-> Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, hosted by The Linux Foundation
-> 
 
+Regards,
+ Sricharan
