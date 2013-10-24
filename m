@@ -1,85 +1,71 @@
 From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-Subject: Re: [PATCH v10 10/10] mtd: nand: omap: remove selection of BCH
- ecc-scheme via KConfig
-Date: Thu, 24 Oct 2013 17:05:57 -0300
-Message-ID: <20131024200556.GA2520@localhost>
-References: <1382172254-12448-1-git-send-email-pekon@ti.com>
- <1382172254-12448-11-git-send-email-pekon@ti.com>
- <20131023134450.GE2458@localhost>
- <20980858CB6D3A4BAE95CA194937D5E73EA2A130@DBDE04.ent.ti.com>
- <20131023141352.GG2458@localhost>
- <CAAwP0s0M=KruCVUana+5Nfm-0nkMGTg1OAatKzCrDeHOXuqd6A@mail.gmail.com>
+Subject: Re: [PATCH v11 04/10] mtd: nand: omap: use DT specified bus-width
+ only for scanning NAND device
+Date: Thu, 24 Oct 2013 18:27:15 -0300
+Message-ID: <20131024212714.GB2520@localhost>
+References: <1382619026-4182-1-git-send-email-pekon@ti.com>
+ <1382619026-4182-5-git-send-email-pekon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from top.free-electrons.com ([176.31.233.9]:52241 "EHLO
+Received: from top.free-electrons.com ([176.31.233.9]:52451 "EHLO
 	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755925Ab3JXUGI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Oct 2013 16:06:08 -0400
+	with ESMTP id S1752724Ab3JXV12 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Oct 2013 17:27:28 -0400
 Content-Disposition: inline
-In-Reply-To: <CAAwP0s0M=KruCVUana+5Nfm-0nkMGTg1OAatKzCrDeHOXuqd6A@mail.gmail.com>
+In-Reply-To: <1382619026-4182-5-git-send-email-pekon@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Javier Martinez Canillas <martinez.javier@gmail.com>
-Cc: "Gupta, Pekon" <pekon@ti.com>, "mark.rutland@arm.com" <mark.rutland@arm.com>, "olof@lixom.net" <olof@lixom.net>, "computersforpeace@gmail.com" <computersforpeace@gmail.com>, "dedekind1@gmail.com" <dedekind1@gmail.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "Pawel.Moll@arm.com" <Pawel.Moll@arm.com>, "arnd@arndb.de" <arnd@arndb.de>, "swarren@wwwdotorg.org" <swarren@wwwdotorg.org>, "tony@atomide.com" <tony@atomide.com>, "jp.francois@cynove.com" <jp.francois@cynove.com>, "ijc+devicetree@hellion.org.uk" <ijc+devicetree@hellion.org.uk>, "avinashphilipk@gmail.com" <avinashphilipk@gmail.com>, "Balbi, Felipe" <balbi@ti.com>, "robherring2@gmail.com" <robherring2@gmail.com>, "bcousson@baylibre.com" <bcousson@baylibre.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "ivan.djelic@parrot.com" <ivan.djelic@parrot.com>, linux-omap@vger.ke
+To: Pekon Gupta <pekon@ti.com>
+Cc: mark.rutland@arm.com, olof@lixom.net, computersforpeace@gmail.com, dedekind1@gmail.com, devicetree@vger.kernel.org, Pawel.Moll@arm.com, arnd@arndb.de, swarren@wwwdotorg.org, tony@atomide.com, jp.francois@cynove.com, ijc+devicetree@hellion.org.uk, avinashphilipk@gmail.com, balbi@ti.com, robherring2@gmail.com, bcousson@baylibre.com, linux-mtd@lists.infradead.org, ivan.djelic@parrot.com, linux-omap@vger.kernel.org, dwmw2@infradead.org
 
-Javier,
+On Thu, Oct 24, 2013 at 06:20:20PM +0530, Pekon Gupta wrote:
+> This patch:
+> - calls nand_scan_ident() using bus-width as passed by DT
+> - removes double calls to nand_scan_ident(), incase first call fails
+>   then omap_nand_probe just returns error.
+>=20
+> Signed-off-by: Pekon Gupta <pekon@ti.com>
+> ---
+>  drivers/mtd/nand/omap2.c | 21 +++++++++------------
+>  1 file changed, 9 insertions(+), 12 deletions(-)
+>=20
+> diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
+> index 5596368..f464321 100644
+> --- a/drivers/mtd/nand/omap2.c
+> +++ b/drivers/mtd/nand/omap2.c
+> @@ -1856,7 +1856,6 @@ static int omap_nand_probe(struct platform_devi=
+ce *pdev)
+>  	mtd->name		=3D dev_name(&pdev->dev);
+>  	mtd->owner		=3D THIS_MODULE;
+>  	nand_chip		=3D &info->nand;
+> -	nand_chip->options	=3D pdata->devsize;
+>  	nand_chip->options	|=3D NAND_SKIP_BBTSCAN;
+>  #ifdef CONFIG_MTD_NAND_OMAP_BCH
+>  	info->of_node		=3D pdata->of_node;
+> @@ -1904,6 +1903,15 @@ static int omap_nand_probe(struct platform_dev=
+ice *pdev)
+>  		nand_chip->chip_delay =3D 50;
+>  	}
+> =20
+> +	/* scan NAND device connected to chip controller */
+> +	nand_chip->options |=3D pdata->devsize & NAND_BUSWIDTH_16;
 
-On Thu, Oct 24, 2013 at 09:49:09PM +0200, Javier Martinez Canillas wrot=
-e:
-> Hi Ezequiel
->=20
-> On Wed, Oct 23, 2013 at 4:13 PM, Ezequiel Garcia
-> <ezequiel.garcia@free-electrons.com> wrote:
-> > Pekon,
-> >
-> > On Wed, Oct 23, 2013 at 01:55:58PM +0000, Gupta, Pekon wrote:
-> >> >
-> >> > I'm wondering how are you testing this in your SOC_AM33XX board =
-(which
-> >> > is not ARCH_OMAP3). You probably have ARCH_OMAP3 always selected=
-?
-> >> >
-> >> Yes, omap2plus_defconfig is a super set..
-> >> arch/arm/configs/omap2plus_defconfig automatically enables ARCH_OM=
-AP3.
-> >>
-> >
-> > Yes, but I always remove what I won't use to reduce build time.
-> >
-> > And  now that you bring this issue. IMHO, the AM33xx family is goin=
-g
-> > to be more and more widely used, so maybe introducing an am33xx_def=
-config
-> > makes sense.
-> >
-> > Or is the trend to have the least possible amount of defconfigs?
->=20
-> I'm not familiar with AM33xx so I don't know how similar is to OMAP3
-> but we used to have different defconfigs for each OMAP board before
-> and consolidated everything in only two defconfigs: omap1_defconfig t=
-o
-> be used for all OMAP1 devices and omap2plus_defconfig to be used for
-> all OMAP2+ (i.e: OMAP{2,3,4,5}) devices.
->=20
-> Those have all the common kconfig options and board vendors can
-> customize to fit their needs and have a delta with something like:
->=20
-> $ ./scripts/kconfig/merge_config.sh
-> arch/arm/configs/omap2plus_defconfig /foo/bar/igep_defconfig
->=20
-> Again I'm not familiar with AM33xx but what I do know is that we
-> should keep defconfigs to a minimum.
->=20
+Hm.. this only works if the device is listed in nand_flash_ids[] array,
+so that ONFI detection is not used. To make ONFI detection work I think=
+ you
+need to do as Brian suggested and use NAND_BUSWIDTH_AUTO.
 
-=46air enough.
+(Odd: why is there no current user of that auto-width option?)
 
-It's just a bit annoying to have a bigger-than-minimal kernel,
-and I get tired of stripping the options.
+Anyway, I really think we should fix this now and independently
+of the evolution of this ECC DT binding discussion.
+That way you can keep sending a smaller ECC DT binding patchset and
+make reviewers focus on what's really important in each case.
 
-But I can't ask the kernel to hold my favorite picks either:
-we have enough churn already ;-)
+I have a few fixes (based on your work) and I'll send them now, after
+I complete the tests. We can continue our discussion there.
 --=20
 Ezequiel Garc=C3=ADa, Free Electrons
 Embedded Linux, Kernel and Android Engineering
