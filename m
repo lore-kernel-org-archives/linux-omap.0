@@ -1,295 +1,89 @@
-From: Pekon Gupta <pekon@ti.com>
-Subject: [PATCH v11 09/10] mtd: nand: omap: updated devm_xx for all resource allocation and free calls
-Date: Thu, 24 Oct 2013 18:20:25 +0530
-Message-ID: <1382619026-4182-10-git-send-email-pekon@ti.com>
+From: Pekon Gupta <pekon-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v11 10/10] mtd: nand: omap: remove selection of BCH ecc-scheme via KConfig
+Date: Thu, 24 Oct 2013 18:20:26 +0530
+Message-ID: <1382619026-4182-11-git-send-email-pekon@ti.com>
 References: <1382619026-4182-1-git-send-email-pekon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:60705 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755225Ab3JXMwL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 24 Oct 2013 08:52:11 -0400
-In-Reply-To: <1382619026-4182-1-git-send-email-pekon@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1382619026-4182-1-git-send-email-pekon-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: mark.rutland-5wv7dgnIgG8@public.gmane.org, olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org, computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, dedekind1-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+Cc: robherring2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, Pawel.Moll-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, avinashphilipk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jp.francois-JOfcSVQZ0GHQT0dZR+AlfA@public.gmane.org, ivan.djelic-ITF29qwbsa/QT0dZR+AlfA@public.gmane.org, Pekon Gupta <pekon-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: mark.rutland@arm.com, olof@lixom.net, computersforpeace@gmail.com, dedekind1@gmail.com
-Cc: robherring2@gmail.com, Pawel.Moll@arm.com, ijc+devicetree@hellion.org.uk, swarren@wwwdotorg.org, dwmw2@infradead.org, arnd@arndb.de, tony@atomide.com, bcousson@baylibre.com, avinashphilipk@gmail.com, balbi@ti.com, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, jp.francois@cynove.com, ivan.djelic@parrot.com, Pekon Gupta <pekon@ti.com>
 
-"Managed Device Resource" or devm_xx calls takes care of automatic freeing
-of the resource in case of:
-- failure during driver probe
-- failure during resource allocation
-- detaching or unloading of driver module (rmmod)
-Reference: Documentation/driver-model/devres.txt
+With OMAP NAND driver updates, selection of ecc-scheme:
+*DT enabled kernel*
+ 	depends on ti,nand-ecc-opt and ti,elm-id DT bindings.
+*Non DT enabled kernel*
+	depends on elm_dev and ecc-scheme passed along with platform-data
+	from board file.
 
-Though OMAP NAND driver handles freeing of resource allocation in most of
-the cases, but using devm_xx provides more clean and effortless approach
-to handle all such cases.
+So, selection of ecc-scheme (BCH8 or BCH4) from KConfig can be removed
 
-- simplifies label for exiting probe during error
-  s/out_release_mem_region/return_error
-
-Signed-off-by: Pekon Gupta <pekon@ti.com>
+Signed-off-by: Pekon Gupta <pekon-l0cyMroinI0@public.gmane.org>
 ---
- drivers/mtd/nand/omap2.c | 85 ++++++++++++++++++++----------------------------
- 1 file changed, 35 insertions(+), 50 deletions(-)
+ drivers/mtd/nand/Kconfig | 40 ++++++----------------------------------
+ 1 file changed, 6 insertions(+), 34 deletions(-)
 
-diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-index 93aa35c..ec40b8d 100644
---- a/drivers/mtd/nand/omap2.c
-+++ b/drivers/mtd/nand/omap2.c
-@@ -1642,7 +1642,8 @@ static int omap_nand_probe(struct platform_device *pdev)
- 		return -ENODEV;
- 	}
+diff --git a/drivers/mtd/nand/Kconfig b/drivers/mtd/nand/Kconfig
+index d885298..93ae6a6 100644
+--- a/drivers/mtd/nand/Kconfig
++++ b/drivers/mtd/nand/Kconfig
+@@ -96,43 +96,15 @@ config MTD_NAND_OMAP2
  
--	info = kzalloc(sizeof(struct omap_nand_info), GFP_KERNEL);
-+	info = devm_kzalloc(&pdev->dev, sizeof(struct omap_nand_info),
-+				GFP_KERNEL);
- 	if (!info)
- 		return -ENOMEM;
- 
-@@ -1667,22 +1668,23 @@ static int omap_nand_probe(struct platform_device *pdev)
- 	if (res == NULL) {
- 		err = -EINVAL;
- 		dev_err(&pdev->dev, "error getting memory resource\n");
--		goto out_free_info;
-+		goto return_error;
- 	}
- 
- 	info->phys_base = res->start;
- 	info->mem_size = resource_size(res);
- 
--	if (!request_mem_region(info->phys_base, info->mem_size,
--				pdev->dev.driver->name)) {
-+	if (!devm_request_mem_region(&pdev->dev, info->phys_base,
-+				info->mem_size,	pdev->dev.driver->name)) {
- 		err = -EBUSY;
--		goto out_free_info;
-+		goto return_error;
- 	}
- 
--	nand_chip->IO_ADDR_R = ioremap(info->phys_base, info->mem_size);
-+	nand_chip->IO_ADDR_R = devm_ioremap(&pdev->dev, info->phys_base,
-+						info->mem_size);
- 	if (!nand_chip->IO_ADDR_R) {
- 		err = -ENOMEM;
--		goto out_release_mem_region;
-+		goto return_error;
- 	}
- 
- 	nand_chip->controller = &info->controller;
-@@ -1710,14 +1712,14 @@ static int omap_nand_probe(struct platform_device *pdev)
- 	if (nand_scan_ident(mtd, 1, NULL)) {
- 		pr_err("nand device scan failed, may be bus-width mismatch\n");
- 		err = -ENXIO;
--		goto out_release_mem_region;
-+		goto return_error;
- 	}
- 
- 	/* check for small page devices */
- 	if ((mtd->oobsize < 64) && (pdata->ecc_opt != OMAP_ECC_HAM1_CODE_HW)) {
- 		pr_err("small page devices are not supported\n");
- 		err = -EINVAL;
--		goto out_release_mem_region;
-+		goto return_error;
- 	}
- 
- 	/* re-populate low-level callbacks based on xfer modes */
-@@ -1745,7 +1747,7 @@ static int omap_nand_probe(struct platform_device *pdev)
- 		if (!info->dma) {
- 			dev_err(&pdev->dev, "DMA engine request failed\n");
- 			err = -ENXIO;
--			goto out_release_mem_region;
-+			goto return_error;
- 		} else {
- 			struct dma_slave_config cfg;
- 
-@@ -1760,7 +1762,7 @@ static int omap_nand_probe(struct platform_device *pdev)
- 			if (err) {
- 				dev_err(&pdev->dev, "DMA engine slave config failed: %d\n",
- 					err);
--				goto out_release_mem_region;
-+				goto return_error;
- 			}
- 			nand_chip->read_buf   = omap_read_buf_dma_pref;
- 			nand_chip->write_buf  = omap_write_buf_dma_pref;
-@@ -1772,30 +1774,32 @@ static int omap_nand_probe(struct platform_device *pdev)
- 		if (info->gpmc_irq_fifo <= 0) {
- 			dev_err(&pdev->dev, "error getting fifo irq\n");
- 			err = -ENODEV;
--			goto out_release_mem_region;
-+			goto return_error;
- 		}
--		err = request_irq(info->gpmc_irq_fifo,	omap_nand_irq,
--					IRQF_SHARED, "gpmc-nand-fifo", info);
-+		err = devm_request_irq(&pdev->dev, info->gpmc_irq_fifo,
-+					omap_nand_irq, IRQF_SHARED,
-+					"gpmc-nand-fifo", info);
- 		if (err) {
- 			dev_err(&pdev->dev, "requesting irq(%d) error:%d",
- 						info->gpmc_irq_fifo, err);
- 			info->gpmc_irq_fifo = 0;
--			goto out_release_mem_region;
-+			goto return_error;
- 		}
- 
- 		info->gpmc_irq_count = platform_get_irq(pdev, 1);
- 		if (info->gpmc_irq_count <= 0) {
- 			dev_err(&pdev->dev, "error getting count irq\n");
- 			err = -ENODEV;
--			goto out_release_mem_region;
-+			goto return_error;
- 		}
--		err = request_irq(info->gpmc_irq_count,	omap_nand_irq,
--					IRQF_SHARED, "gpmc-nand-count", info);
-+		err = devm_request_irq(&pdev->dev, info->gpmc_irq_count,
-+					omap_nand_irq, IRQF_SHARED,
-+					"gpmc-nand-count", info);
- 		if (err) {
- 			dev_err(&pdev->dev, "requesting irq(%d) error:%d",
- 						info->gpmc_irq_count, err);
- 			info->gpmc_irq_count = 0;
--			goto out_release_mem_region;
-+			goto return_error;
- 		}
- 
- 		nand_chip->read_buf  = omap_read_buf_irq_pref;
-@@ -1807,7 +1811,7 @@ static int omap_nand_probe(struct platform_device *pdev)
- 		dev_err(&pdev->dev,
- 			"xfer_type(%d) not supported!\n", pdata->xfer_type);
- 		err = -EINVAL;
--		goto out_release_mem_region;
-+		goto return_error;
- 	}
- 
- 	/* populate MTD interface based on ECC scheme */
-@@ -1865,7 +1869,7 @@ static int omap_nand_probe(struct platform_device *pdev)
- #else
- 		pr_err("nand: error: CONFIG_MTD_NAND_ECC_BCH not enabled\n");
- 		err = -EINVAL;
--		goto out_release_mem_region;
-+		goto return_error;
- #endif
- 
- 	case OMAP_ECC_BCH4_CODE_HW:
-@@ -1892,13 +1896,13 @@ static int omap_nand_probe(struct platform_device *pdev)
- 		if (is_elm_present(info, pdata->elm_of_node, BCH4_ECC) < 0) {
- 			pr_err("nand: error: could not initialize ELM\n");
- 			err = -ENODEV;
--			goto out_release_mem_region;
-+			goto return_error;
- 		}
- 		break;
- #else
- 		pr_err("nand: error: CONFIG_MTD_NAND_OMAP_BCH not enabled\n");
- 		err = -EINVAL;
--		goto out_release_mem_region;
-+		goto return_error;
- #endif
- 
- 	case OMAP_ECC_BCH8_CODE_HW_DETECTION_SW:
-@@ -1926,13 +1930,13 @@ static int omap_nand_probe(struct platform_device *pdev)
- 		if (!nand_chip->ecc.priv) {
- 			pr_err("nand: error: unable to use s/w BCH library\n");
- 			err = -EINVAL;
--			goto out_release_mem_region;
-+			goto return_error;
- 		}
- 		break;
- #else
- 		pr_err("nand: error: CONFIG_MTD_NAND_ECC_BCH not enabled\n");
- 		err = -EINVAL;
--		goto out_release_mem_region;
-+		goto return_error;
- #endif
- 
- 	case OMAP_ECC_BCH8_CODE_HW:
-@@ -1951,7 +1955,7 @@ static int omap_nand_probe(struct platform_device *pdev)
- 		/* This ECC scheme requires ELM H/W block */
- 		if (is_elm_present(info, pdata->elm_of_node, BCH8_ECC) < 0) {
- 			pr_err("nand: error: could not initialize ELM\n");
--			goto out_release_mem_region;
-+			goto return_error;
- 		}
- 		/* define ECC layout */
- 		ecclayout->eccbytes		= nand_chip->ecc.bytes *
-@@ -1964,13 +1968,13 @@ static int omap_nand_probe(struct platform_device *pdev)
- #else
- 		pr_err("nand: error: CONFIG_MTD_NAND_OMAP_BCH not enabled\n");
- 		err = -EINVAL;
--		goto out_release_mem_region;
-+		goto return_error;
- #endif
- 
- 	default:
- 		pr_err("nand: error: invalid or unsupported ECC scheme\n");
- 		err = -EINVAL;
--		goto out_release_mem_region;
-+		goto return_error;
- 	}
- 
- 	/* populate remaining ECC layout data */
-@@ -1983,13 +1987,13 @@ static int omap_nand_probe(struct platform_device *pdev)
- 		pr_err("not enough OOB bytes required = %d, available=%d\n",
- 					   ecclayout->eccbytes, mtd->oobsize);
- 		err = -EINVAL;
--		goto out_release_mem_region;
-+		goto return_error;
- 	}
- 
- 	/* second phase scan */
- 	if (nand_scan_tail(mtd)) {
- 		err = -ENXIO;
--		goto out_release_mem_region;
-+		goto return_error;
- 	}
- 
- 	ppdata.of_node = pdata->of_node;
-@@ -2000,21 +2004,13 @@ static int omap_nand_probe(struct platform_device *pdev)
- 
- 	return 0;
- 
--out_release_mem_region:
-+return_error:
- 	if (info->dma)
- 		dma_release_channel(info->dma);
--	if (info->gpmc_irq_count > 0)
--		free_irq(info->gpmc_irq_count, info);
--	if (info->gpmc_irq_fifo > 0)
--		free_irq(info->gpmc_irq_fifo, info);
--	release_mem_region(info->phys_base, info->mem_size);
--out_free_info:
- 	if (nand_chip->ecc.priv) {
- 		nand_bch_free(nand_chip->ecc.priv);
- 		nand_chip->ecc.priv = NULL;
- 	}
--	kfree(info);
+ config MTD_NAND_OMAP_BCH
+ 	depends on MTD_NAND && MTD_NAND_OMAP2 && ARCH_OMAP3
+-	tristate "Enable support for hardware BCH error correction"
++	tristate "Support hardware based BCH error correction"
+ 	default n
+ 	select BCH
+-	select BCH_CONST_PARAMS
+ 	help
+-	 Support for hardware BCH error correction.
 -
- 	return err;
- }
+-choice
+-	prompt "BCH error correction capability"
+-	depends on MTD_NAND_OMAP_BCH
+-
+-config MTD_NAND_OMAP_BCH8
+-	bool "8 bits / 512 bytes (recommended)"
+-	help
+-	 Support correcting up to 8 bitflips per 512-byte block.
+-	 This will use 13 bytes of spare area per 512 bytes of page data.
+-	 This is the recommended mode, as 4-bit mode does not work
+-	 on some OMAP3 revisions, due to a hardware bug.
+-
+-config MTD_NAND_OMAP_BCH4
+-	bool "4 bits / 512 bytes"
+-	help
+-	 Support correcting up to 4 bitflips per 512-byte block.
+-	 This will use 7 bytes of spare area per 512 bytes of page data.
+-	 Note that this mode does not work on some OMAP3 revisions, due to a
+-	 hardware bug. Please check your OMAP datasheet before selecting this
+-	 mode.
+-
+-endchoice
+-
+-if MTD_NAND_OMAP_BCH
+-config BCH_CONST_M
+-	default 13
+-config BCH_CONST_T
+-	default 4 if MTD_NAND_OMAP_BCH4
+-	default 8 if MTD_NAND_OMAP_BCH8
+-endif
++	  This config enables the ELM hardware engine, which can be used to
++	  locate and correct errors when using BCH ECC scheme. This offloads
++	  the cpu from doing ECC error searching and correction. However some
++	  legacy OMAP families like OMAP2xxx, OMAP3xxx do not have ELM engine
++	  so they should not enable this config symbol.
  
-@@ -2028,20 +2024,9 @@ static int omap_nand_remove(struct platform_device *pdev)
- 		nand_bch_free(nand_chip->ecc.priv);
- 		nand_chip->ecc.priv = NULL;
- 	}
--
- 	if (info->dma)
- 		dma_release_channel(info->dma);
--
--	if (info->gpmc_irq_count > 0)
--		free_irq(info->gpmc_irq_count, info);
--	if (info->gpmc_irq_fifo > 0)
--		free_irq(info->gpmc_irq_fifo, info);
--
--	/* Release NAND device, its internal structures and partitions */
- 	nand_release(mtd);
--	iounmap(nand_chip->IO_ADDR_R);
--	release_mem_region(info->phys_base, info->mem_size);
--	kfree(info);
- 	return 0;
- }
- 
+ config MTD_NAND_IDS
+ 	tristate
 -- 
 1.8.1
 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
