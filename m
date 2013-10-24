@@ -1,89 +1,65 @@
-From: Pekon Gupta <pekon-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v11 10/10] mtd: nand: omap: remove selection of BCH ecc-scheme via KConfig
-Date: Thu, 24 Oct 2013 18:20:26 +0530
-Message-ID: <1382619026-4182-11-git-send-email-pekon@ti.com>
+From: Pekon Gupta <pekon@ti.com>
+Subject: [PATCH v11 08/10] ARM: dts: AM33xx: updated default ECC scheme in nand-ecc-opt
+Date: Thu, 24 Oct 2013 18:20:24 +0530
+Message-ID: <1382619026-4182-9-git-send-email-pekon@ti.com>
 References: <1382619026-4182-1-git-send-email-pekon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1382619026-4182-1-git-send-email-pekon-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: mark.rutland-5wv7dgnIgG8@public.gmane.org, olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org, computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, dedekind1-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
-Cc: robherring2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, Pawel.Moll-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, avinashphilipk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jp.francois-JOfcSVQZ0GHQT0dZR+AlfA@public.gmane.org, ivan.djelic-ITF29qwbsa/QT0dZR+AlfA@public.gmane.org, Pekon Gupta <pekon-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:60897 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754854Ab3JXM5E (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 24 Oct 2013 08:57:04 -0400
+In-Reply-To: <1382619026-4182-1-git-send-email-pekon@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: mark.rutland@arm.com, olof@lixom.net, computersforpeace@gmail.com, dedekind1@gmail.com
+Cc: robherring2@gmail.com, Pawel.Moll@arm.com, ijc+devicetree@hellion.org.uk, swarren@wwwdotorg.org, dwmw2@infradead.org, arnd@arndb.de, tony@atomide.com, bcousson@baylibre.com, avinashphilipk@gmail.com, balbi@ti.com, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, jp.francois@cynove.com, ivan.djelic@parrot.com, Pekon Gupta <pekon@ti.com>
 
-With OMAP NAND driver updates, selection of ecc-scheme:
-*DT enabled kernel*
- 	depends on ti,nand-ecc-opt and ti,elm-id DT bindings.
-*Non DT enabled kernel*
-	depends on elm_dev and ecc-scheme passed along with platform-data
-	from board file.
+Updated DTS to replace deprecated binding with newer values
+Refer: Documentation/devicetree/bindings/mtd/gpmc-nand.txt
 
-So, selection of ecc-scheme (BCH8 or BCH4) from KConfig can be removed
-
-Signed-off-by: Pekon Gupta <pekon-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Pekon Gupta <pekon@ti.com>
+Reviewed-by: Felipe Balbi <balbi@ti.com>
 ---
- drivers/mtd/nand/Kconfig | 40 ++++++----------------------------------
- 1 file changed, 6 insertions(+), 34 deletions(-)
+ arch/arm/boot/dts/am335x-evm.dts   | 3 +--
+ arch/arm/boot/dts/omap3430-sdp.dts | 2 +-
+ 2 files changed, 2 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/mtd/nand/Kconfig b/drivers/mtd/nand/Kconfig
-index d885298..93ae6a6 100644
---- a/drivers/mtd/nand/Kconfig
-+++ b/drivers/mtd/nand/Kconfig
-@@ -96,43 +96,15 @@ config MTD_NAND_OMAP2
+diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
+index e8ec875..1aee6ac 100644
+--- a/arch/arm/boot/dts/am335x-evm.dts
++++ b/arch/arm/boot/dts/am335x-evm.dts
+@@ -269,7 +269,6 @@
+ 				reg = <0 0 0>; /* CS0, offset 0 */
+ 				nand-bus-width = <8>;
+ 				ti,nand-ecc-opt = "bch8";
+-				gpmc,device-nand = "true";
+ 				gpmc,device-width = <1>;
+ 				gpmc,sync-clk-ps = <0>;
+ 				gpmc,cs-on-ns = <0>;
+@@ -296,7 +295,7 @@
  
- config MTD_NAND_OMAP_BCH
- 	depends on MTD_NAND && MTD_NAND_OMAP2 && ARCH_OMAP3
--	tristate "Enable support for hardware BCH error correction"
-+	tristate "Support hardware based BCH error correction"
- 	default n
- 	select BCH
--	select BCH_CONST_PARAMS
- 	help
--	 Support for hardware BCH error correction.
--
--choice
--	prompt "BCH error correction capability"
--	depends on MTD_NAND_OMAP_BCH
--
--config MTD_NAND_OMAP_BCH8
--	bool "8 bits / 512 bytes (recommended)"
--	help
--	 Support correcting up to 8 bitflips per 512-byte block.
--	 This will use 13 bytes of spare area per 512 bytes of page data.
--	 This is the recommended mode, as 4-bit mode does not work
--	 on some OMAP3 revisions, due to a hardware bug.
--
--config MTD_NAND_OMAP_BCH4
--	bool "4 bits / 512 bytes"
--	help
--	 Support correcting up to 4 bitflips per 512-byte block.
--	 This will use 7 bytes of spare area per 512 bytes of page data.
--	 Note that this mode does not work on some OMAP3 revisions, due to a
--	 hardware bug. Please check your OMAP datasheet before selecting this
--	 mode.
--
--endchoice
--
--if MTD_NAND_OMAP_BCH
--config BCH_CONST_M
--	default 13
--config BCH_CONST_T
--	default 4 if MTD_NAND_OMAP_BCH4
--	default 8 if MTD_NAND_OMAP_BCH8
--endif
-+	  This config enables the ELM hardware engine, which can be used to
-+	  locate and correct errors when using BCH ECC scheme. This offloads
-+	  the cpu from doing ECC error searching and correction. However some
-+	  legacy OMAP families like OMAP2xxx, OMAP3xxx do not have ELM engine
-+	  so they should not enable this config symbol.
+ 				#address-cells = <1>;
+ 				#size-cells = <1>;
+-				elm_id = <&elm>;
++				ti,elm-id = <&elm>;
  
- config MTD_NAND_IDS
- 	tristate
+ 				/* MTD partition table */
+ 				partition@0 {
+diff --git a/arch/arm/boot/dts/omap3430-sdp.dts b/arch/arm/boot/dts/omap3430-sdp.dts
+index e2249bc..501f863 100644
+--- a/arch/arm/boot/dts/omap3430-sdp.dts
++++ b/arch/arm/boot/dts/omap3430-sdp.dts
+@@ -105,7 +105,7 @@
+ 		reg = <1 0 0x08000000>;
+ 		nand-bus-width = <8>;
+ 
+-		ti,nand-ecc-opt = "sw";
++		ti,nand-ecc-opt = "ham1";
+ 		gpmc,cs-on-ns = <0>;
+ 		gpmc,cs-rd-off-ns = <36>;
+ 		gpmc,cs-wr-off-ns = <36>;
 -- 
 1.8.1
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
