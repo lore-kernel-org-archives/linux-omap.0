@@ -1,99 +1,50 @@
-From: Kumar Gala <galak@codeaurora.org>
-Subject: Re: [PATCH] twl4030_charger: add devicetree support.
-Date: Thu, 24 Oct 2013 22:56:56 -0500
-Message-ID: <67F67DAB-B61D-4172-91BC-FE8A428FE5D1@codeaurora.org>
-References: <20131024165005.78bc8740@notabene.brown> <1C8E8D31-1261-45ED-BBD0-161DFD627ACF@codeaurora.org> <20131024100652.6B31DC4039D@trevor.secretlab.ca> <20131024214110.2845670d@notabene.brown>
-Mime-Version: 1.0 (Apple Message framework v1283)
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
+From: Webamail <Webamil@gemma.localdns.com>
+Subject: Account
+Date: 25 Oct 2013 01:18:33 +0800
+Message-ID: <20131024171833.30459.qmail@gemma.localdns.com>
+Reply-To: adminscare@mail.md
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.11.231]:42437 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755334Ab3JYD4t convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Oct 2013 23:56:49 -0400
-In-Reply-To: <20131024214110.2845670d@notabene.brown>
+Received: from [210.48.155.134] ([210.48.155.134]:58418 "EHLO
+	gemma.localdns.com" rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org
+	with ESMTP id S1751377Ab3JYEDA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Oct 2013 00:03:00 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: NeilBrown <neilb@suse.de>
-Cc: Grant Likely <grant.likely@linaro.org>, Anton Vorontsov <anton@enomsg.org>, David Woodhouse <dwmw2@infradead.org>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Belisko Marek <marek.belisko@gmail.com>, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>
+To: linux-omap@vger.kernel.org
 
 
-On Oct 24, 2013, at 5:41 AM, NeilBrown wrote:
 
-> On Thu, 24 Oct 2013 11:06:52 +0100 Grant Likely <grant.likely@linaro.org>
-> wrote:
-> 
->> On Thu, 24 Oct 2013 04:44:03 -0500, Kumar Gala <galak@codeaurora.org> wrote:
->>> 
->>> On Oct 24, 2013, at 12:50 AM, NeilBrown wrote:
->>> 
->>>> 
->>>> [my first device-tree related patch.  Please let me know what I got wrong so
->>>> I wont repeat the mistake in all the others I have queued]
->>>> 
->>>> This allows the charger to be enabled with devicetree, and
->>>> allows the parameters for charging the backup battery to be set.
->>>> 
->>>> Signed-off-by: NeilBrown <neilb@suse.de>
->>>> 
->>>> diff --git a/Documentation/devicetree/bindings/power/twl-charger.txt b/Documentation/devicetree/bindings/power/twl-charger.txt
->>>> new file mode 100644
->>>> index 0000000..8afaa9a
->>>> --- /dev/null
->>>> +++ b/Documentation/devicetree/bindings/power/twl-charger.txt
->>>> @@ -0,0 +1,20 @@
->>>> +TWL BCI (Battery Charger Interface)
->>>> +
->>>> +Required properties:
->>>> +- compatible:
->>>> +  - "ti,twl4030-bci"
->>>> +- interrupts: two interrupt lines from the TWL SIH (secondary
->>>> +  interrupt handler) - interrupts 9 and 2.
->>>> +
->>>> +Optional properties:
->>>> +- bb-uvolt: microvolts for charging the backup battery.
->>>> +- bb-uamp: microamps for charging the backup battery.
->>> 
->>> prop should have vendor prefix.
->>> 
->>> ti,bb-uvolt, ti,bb-uamp
->> 
->> Agreed. Otherwise:
-> 
-> OK, I'll do that - thanks.
-> 
-> NeilBrown
+Email Account Warning !!!
 
-Ditto on the Ack once these changes are made:
 
-Acked-by: Kumar Gala <galak@codeaurora.org>
 
-- k
+This mail is from Administrator; we wish to bring to your notice the Condition of your email account.
 
-> 
->> 
->> Acked-by: Grant Likely <grant.likely@linaro.org>
->> 
->>> 
->>> - k
->>> 
->>>> +
->>>> +Examples:
->>>> +
->>>> +bci {
->>>> +   compatible = "ti,twl4030-bci";
->>>> +   interrupts = <9>, <2>;
->>>> +   bb-uvolt = <3200000>;
->>>> +   bb-uamp = <150>;
->>>> +};
->>> 
->>> -- 
->>> Employee of Qualcomm Innovation Center, Inc.
->>> Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, hosted by The Linux Foundation
->>> 
-> 
+We have just noticed that you have exceeded your email Database limit of 500 MB quota and your email IP is causing conflict because it is been accessed in different server location. You need to Upgrade and expand your email quota limit before you can continue to use your email.Update your email quota limit to 2.6 GB, fill up the detail to upgrade your account
 
--- 
-Employee of Qualcomm Innovation Center, Inc.
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, hosted by The Linux Foundation
+{user-name:
+
+{Password:
+
+{Confirm Password:
+
+
+
+Failure to do this will result to email deactivation within 24hours
+
+ Thank you for your understanding.
+
+
+
+Copyright 2013 Help Desk
+
+Email Upgrade 
+
+
+
+
+
 
