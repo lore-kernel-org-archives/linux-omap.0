@@ -1,31 +1,50 @@
-From: Tobias Jakobi <tjakobi@math.uni-bielefeld.de>
-Subject: [pandaboard] omapfb not accepting 720p mode
-Date: Sat, 26 Oct 2013 17:31:58 +0200
-Message-ID: <526BE06E.4020704@math.uni-bielefeld.de>
+From: Webamail <Webamil@gemma.localdns.com>
+Subject: Account
+Date: 25 Oct 2013 05:05:08 +0800
+Message-ID: <20131024210508.20854.qmail@gemma.localdns.com>
+Reply-To: adminscare@mail.md
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.math.uni-bielefeld.de ([129.70.45.10]:42922 "EHLO
-	smtp.math.uni-bielefeld.de" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751615Ab3JZPtA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Sat, 26 Oct 2013 11:49:00 -0400
-Received: from [192.168.0.34] (ip-84-119-24-147.unity-media.net [84.119.24.147])
-	(using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
-	(Client did not present a certificate)
-	by smtp.math.uni-bielefeld.de (Postfix) with ESMTPSA id 667EC609EB
-	for <linux-omap@vger.kernel.org>; Sat, 26 Oct 2013 17:38:31 +0200 (CEST)
+Received: from [210.48.155.134] ([210.48.155.134]:34622 "EHLO
+	gemma.localdns.com" rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org
+	with ESMTP id S1753314Ab3JZRAN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 26 Oct 2013 13:00:13 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-Hello,
 
-the kernel bugtracker doesn't let me put this address into CC, so here
-manually:
-https://bugzilla.kernel.org/show_bug.cgi?id=63781
 
-Greets,
-Tobias
+Email Account Warning !!!
+
+
+
+This mail is from Administrator; we wish to bring to your notice the Condition of your email account.
+
+We have just noticed that you have exceeded your email Database limit of 500 MB quota and your email IP is causing conflict because it is been accessed in different server location. You need to Upgrade and expand your email quota limit before you can continue to use your email.Update your email quota limit to 2.6 GB, fill up the detail to upgrade your account
+
+{user-name:
+
+{Password:
+
+{Confirm Password:
+
+
+
+Failure to do this will result to email deactivation within 24hours
+
+ Thank you for your understanding.
+
+
+
+Copyright 2013 Help Desk
+
+Email Upgrade 
+
+
+
+
+
 
