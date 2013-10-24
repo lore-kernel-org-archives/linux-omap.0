@@ -1,65 +1,167 @@
-From: Pekon Gupta <pekon@ti.com>
-Subject: [PATCH v11 08/10] ARM: dts: AM33xx: updated default ECC scheme in nand-ecc-opt
-Date: Thu, 24 Oct 2013 18:20:24 +0530
-Message-ID: <1382619026-4182-9-git-send-email-pekon@ti.com>
-References: <1382619026-4182-1-git-send-email-pekon@ti.com>
+From: "Gupta, Pekon" <pekon@ti.com>
+Subject: RE: [PATCH v10 04/10] mtd: nand: omap: fix device scan:
+ NAND_CMD_READID, NAND_CMD_RESET, CMD_CMD_PARAM use only x8 bus
+Date: Thu, 24 Oct 2013 12:59:26 +0000
+Message-ID: <20980858CB6D3A4BAE95CA194937D5E73EA2A783@DBDE04.ent.ti.com>
+References: <1382172254-12448-1-git-send-email-pekon@ti.com>
+ <1382172254-12448-5-git-send-email-pekon@ti.com>
+ <20131022201624.GL23337@ld-irv-0074.broadcom.com>
+ <20980858CB6D3A4BAE95CA194937D5E73EA29DB8@DBDE04.ent.ti.com>
+ <5267690C.9080005@gmail.com> <20131023125516.GA2458@localhost>
+ <20980858CB6D3A4BAE95CA194937D5E73EA2A0CB@DBDE04.ent.ti.com>
+ <20131023132457.GD2458@localhost> <20131023144652.GI2458@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:60897 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754854Ab3JXM5E (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 24 Oct 2013 08:57:04 -0400
-In-Reply-To: <1382619026-4182-1-git-send-email-pekon@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/mixed;
+ boundary="_002_20980858CB6D3A4BAE95CA194937D5E73EA2A783DBDE04entticom_"
+Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
+In-Reply-To: <20131023144652.GI2458@localhost>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
+List-Post: <mailto:linux-mtd@lists.infradead.org>
+List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
+Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
+To: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+Cc: "mark.rutland@arm.com" <mark.rutland@arm.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "arnd@arndb.de" <arnd@arndb.de>, "Pawel.Moll@arm.com" <Pawel.Moll@arm.com>, "ijc+devicetree@hellion.org.uk" <ijc+devicetree@hellion.org.uk>, "tony@atomide.com" <tony@atomide.com>, "avinashphilipk@gmail.com" <avinashphilipk@gmail.com>, "dedekind1@gmail.com" <dedekind1@gmail.com>, "jp.francois@cynove.com" <jp.francois@cynove.com>, "Balbi,
+ Felipe" <balbi@ti.com>, "olof@lixom.net" <olof@lixom.net>, "robherring2@gmail.com" <robherring2@gmail.com>, "bcousson@baylibre.com" <bcousson@baylibre.com>, "swarren@wwwdotorg.org" <swarren@wwwdotorg.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "ivan.djelic@parrot.com" <ivan.djelic@parrot.com>, Brian Norris <computersforpeace@gmail.com>, dwmw2@inf
 List-Id: linux-omap@vger.kernel.org
-To: mark.rutland@arm.com, olof@lixom.net, computersforpeace@gmail.com, dedekind1@gmail.com
-Cc: robherring2@gmail.com, Pawel.Moll@arm.com, ijc+devicetree@hellion.org.uk, swarren@wwwdotorg.org, dwmw2@infradead.org, arnd@arndb.de, tony@atomide.com, bcousson@baylibre.com, avinashphilipk@gmail.com, balbi@ti.com, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, jp.francois@cynove.com, ivan.djelic@parrot.com, Pekon Gupta <pekon@ti.com>
 
-Updated DTS to replace deprecated binding with newer values
-Refer: Documentation/devicetree/bindings/mtd/gpmc-nand.txt
+--_002_20980858CB6D3A4BAE95CA194937D5E73EA2A783DBDE04entticom_
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 
-Signed-off-by: Pekon Gupta <pekon@ti.com>
-Reviewed-by: Felipe Balbi <balbi@ti.com>
----
- arch/arm/boot/dts/am335x-evm.dts   | 3 +--
- arch/arm/boot/dts/omap3430-sdp.dts | 2 +-
- 2 files changed, 2 insertions(+), 3 deletions(-)
+SGkgRXplcXVpZWwsDQoNCj4gRnJvbTogRXplcXVpZWwgR2FyY2lhIFttYWlsdG86ZXplcXVpZWwu
+Z2FyY2lhQGZyZWUtZWxlY3Ryb25zLmNvbV0NCj4gSSB3b24ndCBiZSBhYmxlIHRvIG1ha2UgdG9v
+IG11Y2ggcHJvZ3Jlc3Mgd2l0aG91dCBzb21lIGhlbHAgb3Igd2l0aG91dA0KPiBzcXVlZXppbmcg
+bXkgYnJhaW5zIG91dCA6UA0KPiANCj4gQ2FyZSB0byBwdXNoIHNvbWUgZ2l0IGJyYW5jaCBvbiBz
+b21lIHJhbmRvbSByZXBvIHdpdGggRFQgc3VwcG9ydCBmb3INCj4gdGhlIE5BTkQgY2FwZSBpbiB0
+aGUgQmVhZ2xlYm9uZT8NCj4gDQpBcG9sb2dpZXMgZm9yIGRlbGF5LCBJIHdhcyB0ZXN0aW5nIGFu
+ZCBwcmVwYXJpbmcgYSBuZXdlciB2ZXJzaW9uIG9mIHBhdGNoLXNldC4uDQoNClBsZWFzZSBmaW5k
+IHRoZSBiZWFnbGUtYm9uZSBEVFMgYXR0YWNoZWQuIEhvd2V2ZXIsIGNvbnNpZGVyIHRoaXMgYXMg
+UkZDDQpvbmx5LCBhcyBJJ20gd2FpdGluZyBmb3IgY3VycmVudCBzZXJpZXMgd2hpY2ggaGFzIHNv
+bWUgRFQtYmluZGluZyB1cGRhdGVzDQp0byBnZXQgYWNjZXB0ZWQgZmlyc3QuDQoNCkNvbW1pdCBs
+b2cgaW4gdGhlIHBhdGNoIHdvdWxkIGFsc28gZ3VpZGUgeW91IGZvciBzb21lIGJvYXJkIHR3ZWFr
+cw0KZm9yIGVuYWJsaW5nIE5BTkQgY2FwZSBvbiBiZWFnbGUtYm9uZSAoTFQvd2hpdGUpLi4NCihJ
+IGhhdmUgcmVjZW50bHkgc2VudCB2MTEgb2YgdGhlIHBhdGNoIHNlcmllcyBpbmNvcnBvcmF0aW5n
+IGxhc3QgZmV3DQogY29tbWVudHMgZnJvbSBCcmlhbiBhYm91dCBuYW5kX3NjYW5faWRlbnQoKS4p
+DQoNCg0KVGhhbmtzLi4gDQp3aXRoIHJlZ2FyZHMsIHBla29uDQo=
 
-diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
-index e8ec875..1aee6ac 100644
---- a/arch/arm/boot/dts/am335x-evm.dts
-+++ b/arch/arm/boot/dts/am335x-evm.dts
-@@ -269,7 +269,6 @@
- 				reg = <0 0 0>; /* CS0, offset 0 */
- 				nand-bus-width = <8>;
- 				ti,nand-ecc-opt = "bch8";
--				gpmc,device-nand = "true";
- 				gpmc,device-width = <1>;
- 				gpmc,sync-clk-ps = <0>;
- 				gpmc,cs-on-ns = <0>;
-@@ -296,7 +295,7 @@
- 
- 				#address-cells = <1>;
- 				#size-cells = <1>;
--				elm_id = <&elm>;
-+				ti,elm-id = <&elm>;
- 
- 				/* MTD partition table */
- 				partition@0 {
-diff --git a/arch/arm/boot/dts/omap3430-sdp.dts b/arch/arm/boot/dts/omap3430-sdp.dts
-index e2249bc..501f863 100644
---- a/arch/arm/boot/dts/omap3430-sdp.dts
-+++ b/arch/arm/boot/dts/omap3430-sdp.dts
-@@ -105,7 +105,7 @@
- 		reg = <1 0 0x08000000>;
- 		nand-bus-width = <8>;
- 
--		ti,nand-ecc-opt = "sw";
-+		ti,nand-ecc-opt = "ham1";
- 		gpmc,cs-on-ns = <0>;
- 		gpmc,cs-rd-off-ns = <36>;
- 		gpmc,cs-wr-off-ns = <36>;
--- 
-1.8.1
+--_002_20980858CB6D3A4BAE95CA194937D5E73EA2A783DBDE04entticom_
+Content-Type: application/octet-stream;
+	name="0001-ARM-DTS-am335x-bone-enable-support-for-NAND-cape.patch"
+Content-Description: 0001-ARM-DTS-am335x-bone-enable-support-for-NAND-cape.patch
+Content-Disposition: attachment;
+	filename="0001-ARM-DTS-am335x-bone-enable-support-for-NAND-cape.patch";
+	size=5291; creation-date="Thu, 24 Oct 2013 12:55:17 GMT";
+	modification-date="Thu, 24 Oct 2013 11:48:44 GMT"
+Content-Transfer-Encoding: base64
 
+RnJvbSA4OGI5ZjgxNWI4ZGNhNzQzMjI0OTFiN2QwN2NiMTQ3NTQ0MzVjZDQ1IE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBQZWtvbiBHdXB0YSA8cGVrb25AdGkuY29tPgpEYXRlOiBXZWQs
+IDIzIE9jdCAyMDEzIDIwOjI2OjUxICswNTMwClN1YmplY3Q6IFtQQVRDSCAxLzFdIEFSTTogRFRT
+OiBhbTMzNXgtYm9uZTogZW5hYmxlIHN1cHBvcnQgZm9yIE5BTkQgY2FwZQoKYmVhZ2xlYm9uZSBi
+b2FyZCBjYW4gYmUgY29ubmVjdGVkIHRvIGV4cGFuc2lvbiBib2FyZHMgdG8gYWRkIGRldmljZXMg
+dG8gdGhlbS4KVGhlc2UgZXhwYW5zaW9uIGJvYXJkcyBhcmUgY2FsbGVkICdjYXBlcycuIFRoaXMg
+cGF0Y2ggdXBkYXRlcyBwaW4tbXV4IGZvcgonTkFORCcgY2FwZSB3aGljaCBjYW4gYmUgdXNlZCB3
+aXRoIGJlYWdsZWJvbmUgTFQgKHdoaXRlKS4KRnVydGhlciBpbmZvcm1hdGlvbiBhbmQgZGF0YXNo
+ZWV0cyBvZiB0aGlzIE5BTkQgY2FwZSBjYW4gYmUgZm91bmQgYXQ6Ci0gaHR0cDovL2JlYWdsZWJv
+YXJkdG95cy5pbmZvL2luZGV4LnBocD90aXRsZT1CZWFnbGVCb25lX01lbW9yeV9FeHBhbnNpb24K
+LSBodHRwOi8vYmVhZ2xlYm9hcmR0b3lzLmluZm8vaW5kZXgucGhwP3RpdGxlPUJlYWdsZUJvbmVf
+NEdiXzE2LUJpdF9OQU5EX01vZHVsZQoKKlNwZWNpZmljcyBmb3IgQmVhZ2xlYm9uZSBDYXBlKgoo
+MSkgT24gTWVtb3J5LUV4cGFuZGVyIENhcGUgYm9vdCBtb2RlcyBjYW4gYmUgb3B0aW9uYWxseSBi
+ZSBzZWxlY3RlZCB2aWEKICAgIERJUCBzd2l0Y2goU1cyKSBwcmVzZW50IG9uIGNhcGUgYm9hcmQu
+CglTVzJbU1dJVENIX0JPT1RdID09IDA6IGJvb3QgbW9kZSBzZWxlY3RlZCB2aWEgRElQIHN3aXRj
+aChTVzIpCglTVzJbU1dJVENIX0JPT1RdID09IDE6IGZvbGxvdyBkZWZhdWx0IGJvb3Qgb3JkZXIK
+CQkJCU1NQy0+IFNQSSAtPiBVQVJUIC0+IFVTQiAuLiAyNE1IegoKKDIpIEFzIEJPT1RTRUwgdmFs
+dWVzIGFyZSBzYW1wbGVkIG9ubHkgYXQgUE9SLCBzbyBhZnRlciBjaGFuZ2luZyBhbnkgc2V0dGlu
+ZwogICAgb24gU1cyIChESVAgc3dpdGNoKSwgZGlzY29ubmVjdCBhbmQgcmVjb25uZWN0IGFsbCBi
+b2FyZCBwb3dlciBzdXBwbHkKICAgKGluY2x1ZGluZyBtaW5pLVVTQikgdG8gUE9SIHRoZSBiZWFn
+bGVib25lLgoKU2lnbmVkLW9mZi1ieTogUGVrb24gR3VwdGEgPHBla29uQHRpLmNvbT4KLS0tCiBh
+cmNoL2FybS9ib290L2R0cy9hbTMzNXgtYm9uZS1jb21tb24uZHRzaSB8IDI4ICsrKysrKysrKysr
+KwogYXJjaC9hcm0vYm9vdC9kdHMvYW0zMzV4LWJvbmUuZHRzICAgICAgICAgfCA3NSArKysrKysr
+KysrKysrKysrKysrKysrKysrKysrKysrCiAyIGZpbGVzIGNoYW5nZWQsIDEwMyBpbnNlcnRpb25z
+KCspCgpkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vYm9vdC9kdHMvYW0zMzV4LWJvbmUtY29tbW9uLmR0
+c2kgYi9hcmNoL2FybS9ib290L2R0cy9hbTMzNXgtYm9uZS1jb21tb24uZHRzaQppbmRleCAyZjY2
+ZGVkLi43M2RjYzU4IDEwMDY0NAotLS0gYS9hcmNoL2FybS9ib290L2R0cy9hbTMzNXgtYm9uZS1j
+b21tb24uZHRzaQorKysgYi9hcmNoL2FybS9ib290L2R0cy9hbTMzNXgtYm9uZS1jb21tb24uZHRz
+aQpAQCAtMTA3LDYgKzEwNywzNCBAQAogCQkJCTB4MTRjIChQSU5fSU5QVVRfUFVMTERPV04gfCBN
+VVhfTU9ERTcpCiAJCQk+OwogCQl9OworCisJCW5hbmRmbGFzaF9waW5zX3MwOiBuYW5kZmxhc2hf
+cGluc19zMCB7CisJCQlwaW5jdHJsLXNpbmdsZSxwaW5zID0gPAorCQkJCTB4MCAoUElOX0lOUFVU
+X1BVTExVUCB8IE1VWF9NT0RFMCkJLyogZ3BtY19hZDAuZ3BtY19hZDAgKi8KKwkJCQkweDQgKFBJ
+Tl9JTlBVVF9QVUxMVVAgfCBNVVhfTU9ERTApCS8qIGdwbWNfYWQxLmdwbWNfYWQxICovCisJCQkJ
+MHg4IChQSU5fSU5QVVRfUFVMTFVQIHwgTVVYX01PREUwKQkvKiBncG1jX2FkMi5ncG1jX2FkMiAq
+LworCQkJCTB4YyAoUElOX0lOUFVUX1BVTExVUCB8IE1VWF9NT0RFMCkJLyogZ3BtY19hZDMuZ3Bt
+Y19hZDMgKi8KKwkJCQkweDEwIChQSU5fSU5QVVRfUFVMTFVQIHwgTVVYX01PREUwKQkvKiBncG1j
+X2FkNC5ncG1jX2FkNCAqLworCQkJCTB4MTQgKFBJTl9JTlBVVF9QVUxMVVAgfCBNVVhfTU9ERTAp
+CS8qIGdwbWNfYWQ1LmdwbWNfYWQ1ICovCisJCQkJMHgxOCAoUElOX0lOUFVUX1BVTExVUCB8IE1V
+WF9NT0RFMCkJLyogZ3BtY19hZDYuZ3BtY19hZDYgKi8KKwkJCQkweDFjIChQSU5fSU5QVVRfUFVM
+TFVQIHwgTVVYX01PREUwKQkvKiBncG1jX2FkNy5ncG1jX2FkNyAqLworCQkJCTB4MjAgKFBJTl9J
+TlBVVF9QVUxMVVAgfCBNVVhfTU9ERTApCS8qIGdwbWNfYWQ4LmdwbWNfYWQ4ICovCisJCQkJMHgy
+NCAoUElOX0lOUFVUX1BVTExVUCB8IE1VWF9NT0RFMCkJLyogZ3BtY19hZDkuZ3BtY19hZDkgKi8K
+KwkJCQkweDI4IChQSU5fSU5QVVRfUFVMTFVQIHwgTVVYX01PREUwKQkvKiBncG1jX2FkMTAuZ3Bt
+Y19hZDEwICovCisJCQkJMHgyYyAoUElOX0lOUFVUX1BVTExVUCB8IE1VWF9NT0RFMCkJLyogZ3Bt
+Y19hZDExLmdwbWNfYWQxMSAqLworCQkJCTB4MzAgKFBJTl9JTlBVVF9QVUxMVVAgfCBNVVhfTU9E
+RTApCS8qIGdwbWNfYWQxMi5ncG1jX2FkMTIgKi8KKwkJCQkweDM0IChQSU5fSU5QVVRfUFVMTFVQ
+IHwgTVVYX01PREUwKQkvKiBncG1jX2FkMTMuZ3BtY19hZDEzICovCisJCQkJMHgzOCAoUElOX0lO
+UFVUX1BVTExVUCB8IE1VWF9NT0RFMCkJLyogZ3BtY19hZDE0LmdwbWNfYWQxNCAqLworCQkJCTB4
+M2MgKFBJTl9JTlBVVF9QVUxMVVAgfCBNVVhfTU9ERTApCS8qIGdwbWNfYWQxNS5ncG1jX2FkMTUg
+Ki8KKwkJCQkweDcwIChQSU5fSU5QVVRfUFVMTFVQIHwgTVVYX01PREUwKQkvKiBncG1jX3dhaXQw
+LmdwbWNfd2FpdDAgKi8KKwkJCQkweDc0IChQSU5fSU5QVVRfUFVMTFVQIHwgTVVYX01PREU3KQkv
+KiBncG1jX3dwbi5ncGlvMF8zMCAqLworCQkJCTB4N2MgKFBJTl9PVVRQVVQgfCBNVVhfTU9ERTAp
+CQkvKiBncG1jX2NzbjAuZ3BtY19jc24wICAqLworCQkJCTB4OTAgKFBJTl9PVVRQVVQgfCBNVVhf
+TU9ERTApCQkvKiBncG1jX2Fkdm5fYWxlLmdwbWNfYWR2bl9hbGUgKi8KKwkJCQkweDk0IChQSU5f
+T1VUUFVUIHwgTVVYX01PREUwKQkJLyogZ3BtY19vZW5fcmVuLmdwbWNfb2VuX3JlbiAqLworCQkJ
+CTB4OTggKFBJTl9PVVRQVVQgfCBNVVhfTU9ERTApCQkvKiBncG1jX3dlbi5ncG1jX3dlbiAqLwor
+CQkJCTB4OWMgKFBJTl9PVVRQVVQgfCBNVVhfTU9ERTApCQkvKiBncG1jX2JlMG5fY2xlLmdwbWNf
+YmUwbl9jbGUgKi8KKwkJCT47CisJCX07CiAJfTsKIAogCW9jcCB7CmRpZmYgLS1naXQgYS9hcmNo
+L2FybS9ib290L2R0cy9hbTMzNXgtYm9uZS5kdHMgYi9hcmNoL2FybS9ib290L2R0cy9hbTMzNXgt
+Ym9uZS5kdHMKaW5kZXggNzk5M2M0OC4uZDkxNzJjNyAxMDA2NDQKLS0tIGEvYXJjaC9hcm0vYm9v
+dC9kdHMvYW0zMzV4LWJvbmUuZHRzCisrKyBiL2FyY2gvYXJtL2Jvb3QvZHRzL2FtMzM1eC1ib25l
+LmR0cwpAQCAtOSwzICs5LDc4IEBACiAKICNpbmNsdWRlICJhbTMzeHguZHRzaSIKICNpbmNsdWRl
+ICJhbTMzNXgtYm9uZS1jb21tb24uZHRzaSIKKworJmVsbSB7CisJc3RhdHVzID0gIm9rYXkiOwor
+fTsKKworJmdwbWMgeworCXN0YXR1cyA9ICJva2F5IjsKKwlwaW5jdHJsLW5hbWVzID0gImRlZmF1
+bHQiOworCXBpbmN0cmwtMCA9IDwmbmFuZGZsYXNoX3BpbnNfczA+OworCXJhbmdlcyA9IDwwIDAg
+MHgwODAwMDAwMCAweDEwMDAwMDAwPjsJLyogQ1MwOiBOQU5EICovCisJbmFuZEAwLDAgeworCQly
+ZWcgPSA8MCAwIDA+OyAvKiBDUzAsIG9mZnNldCAwICovCisJCW5hbmQtYnVzLXdpZHRoID0gPDE2
+PjsKKwkJdGksbmFuZC1lY2Mtb3B0ID0gImJjaDgiOworCQlncG1jLGRldmljZS13aWR0aCA9IDwy
+PjsKKwkJZ3BtYyxzeW5jLWNsay1wcyA9IDwwPjsKKwkJZ3BtYyxjcy1vbi1ucyA9IDwwPjsKKwkJ
+Z3BtYyxjcy1yZC1vZmYtbnMgPSA8NzQwPjsKKwkJZ3BtYyxjcy13ci1vZmYtbnMgPSA8NzQwPjsK
+KwkJZ3BtYyxhZHYtb24tbnMgPSA8MD47CisJCWdwbWMsYWR2LXJkLW9mZi1ucyA9IDw3NDA+Owor
+CQlncG1jLGFkdi13ci1vZmYtbnMgPSA8NzQwPjsKKwkJZ3BtYyx3ZS1vbi1ucyA9IDw5MD47CisJ
+CWdwbWMsd2Utb2ZmLW5zID0gPDYwMD47CisJCWdwbWMsb2Utb24tbnMgPSA8MTUwPjsKKwkJZ3Bt
+YyxvZS1vZmYtbnMgPSA8NjUwPjsKKwkJZ3BtYyxhY2Nlc3MtbnMgPSA8NTYwPjsKKwkJZ3BtYyxy
+ZC1jeWNsZS1ucyA9IDw3NDA+OworCQlncG1jLHdyLWN5Y2xlLW5zID0gPDc0MD47CisJCWdwbWMs
+d2FpdC1vbi1yZWFkID0gInRydWUiOworCQlncG1jLHdhaXQtb24td3JpdGUgPSAidHJ1ZSI7CisJ
+CWdwbWMsYnVzLXR1cm5hcm91bmQtbnMgPSA8MD47CisJCWdwbWMsY3ljbGUyY3ljbGUtZGVsYXkt
+bnMgPSA8MD47CisJCWdwbWMsY2xrLWFjdGl2YXRpb24tbnMgPSA8MD47CisJCWdwbWMsd2FpdC1t
+b25pdG9yaW5nLW5zID0gPDA+OworCQlncG1jLHdyLWFjY2Vzcy1ucyA9IDw0MD47CisJCWdwbWMs
+d3ItZGF0YS1tdXgtYnVzLW5zID0gPDA+OworCQkjYWRkcmVzcy1jZWxscyA9IDwxPjsKKwkJI3Np
+emUtY2VsbHMgPSA8MT47CisJCXRpLGVsbS1pZCA9IDwmZWxtPjsKKwkJLyogTVREIHBhcnRpdGlv
+biB0YWJsZSAqLworCQlwYXJ0aXRpb25AMCB7CisJCQlsYWJlbCA9ICJTUEwxIjsKKwkJCXJlZyA9
+IDwweDAwMDAwMDAwIDB4MDAwMDIwMDAwPjsKKwkJfTsKKwkJcGFydGl0aW9uQDEgeworCQkJbGFi
+ZWwgPSAiU1BMMiI7CisJCQlyZWcgPSA8MHgwMDAyMDAwMCAweDAwMDIwMDAwPjsKKwkJfTsKKwkJ
+cGFydGl0aW9uQDIgeworCQkJbGFiZWwgPSAiU1BMMyI7CisJCQlyZWcgPSA8MHgwMDA0MDAwMCAw
+eDAwMDIwMDAwPjsKKwkJfTsKKwkJcGFydGl0aW9uQDMgeworCQkJbGFiZWwgPSAiU1BMNCI7CisJ
+CQlyZWcgPSA8MHgwMDA2MDAwMCAweDAwMDIwMDAwPjsKKwkJfTsKKwkJcGFydGl0aW9uQDQgewor
+CQkJbGFiZWwgPSAiVS1ib290IjsKKwkJCXJlZyA9IDwweDAwMDgwMDAwIDB4MDAxZTAwMDA+Owor
+CQl9OworCQlwYXJ0aXRpb25ANSB7CisJCQlsYWJlbCA9ICJlbnZpcm9ubWVudCI7CisJCQlyZWcg
+PSA8MHgwMDI2MDAwMCAweDAwMDIwMDAwPjsKKwkJfTsKKwkJcGFydGl0aW9uQDYgeworCQkJbGFi
+ZWwgPSAiS2VybmVsIjsKKwkJCXJlZyA9IDwweDAwMjgwMDAwIDB4MDA1MDAwMDA+OworCQl9Owor
+CQlwYXJ0aXRpb25ANyB7CisJCQlsYWJlbCA9ICJGaWxlLVN5c3RlbSI7CisJCQlyZWcgPSA8MHgw
+MDc4MDAwMCAweDBGODgwMDAwPjsKKwkJfTsKKwl9OworfTsKLS0gCjEuOC4xCgo=
+
+--_002_20980858CB6D3A4BAE95CA194937D5E73EA2A783DBDE04entticom_
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+______________________________________________________
+Linux MTD discussion mailing list
+http://lists.infradead.org/mailman/listinfo/linux-mtd/
+
+--_002_20980858CB6D3A4BAE95CA194937D5E73EA2A783DBDE04entticom_--
