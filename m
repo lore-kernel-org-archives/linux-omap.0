@@ -1,70 +1,29 @@
-From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-Subject: Re: [PATCH v11 00/10] [PATCH v10 00/10] mtd:nand:omap2: clean-up of
- supported ECC schemes
-Date: Thu, 24 Oct 2013 10:52:59 -0300
-Message-ID: <20131024135258.GC9958@localhost>
-References: <1382619026-4182-1-git-send-email-pekon@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 1/3] ARM: OMAP4: use CLK_SET_RATE_PARENT for
+ dss_dss_clk
+Date: Thu, 24 Oct 2013 15:13:15 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1310241512480.6544@utopia.booyaka.com>
+References: <1381324359-28825-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from top.free-electrons.com ([176.31.233.9]:50751 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754722Ab3JXNxK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Oct 2013 09:53:10 -0400
-Content-Disposition: inline
-In-Reply-To: <1382619026-4182-1-git-send-email-pekon@ti.com>
+Received: from utopia.booyaka.com ([74.50.51.50]:45583 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753877Ab3JXPNQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Oct 2013 11:13:16 -0400
+In-Reply-To: <1381324359-28825-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Pekon Gupta <pekon@ti.com>
-Cc: mark.rutland@arm.com, olof@lixom.net, computersforpeace@gmail.com, dedekind1@gmail.com, devicetree@vger.kernel.org, Pawel.Moll@arm.com, arnd@arndb.de, swarren@wwwdotorg.org, tony@atomide.com, jp.francois@cynove.com, ijc+devicetree@hellion.org.uk, avinashphilipk@gmail.com, balbi@ti.com, robherring2@gmail.com, bcousson@baylibre.com, linux-mtd@lists.infradead.org, ivan.djelic@parrot.com, linux-omap@vger.kernel.org, dwmw2@infradead.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Archit Taneja <archit@ti.com>, t-kristo@ti.com
 
-Hi Pekon,
+On Wed, 9 Oct 2013, Tomi Valkeinen wrote:
 
-Just as suggestion, I think you should reconsider your 'upstream strate=
-gy'.
+> Set CLK_SET_RATE_PARENT flag for dss_dss_clk so that the DSS's fclk can
+> be configured without the need to get the parent of the fclk.
+> 
+> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-On Thu, Oct 24, 2013 at 06:20:16PM +0530, Pekon Gupta wrote:
-[..]
->=20
-> Pekon Gupta (10):
->   ARM: OMAP2+: cleaned-up DT support of various ECC schemes
->   mtd: nand: omap: combine different flavours of 1-bit hamming ecc sc=
-hemes
->   mtd: nand: omap: cleanup: replace local references with generic fra=
-mework names
+Thanks, queued.
 
-IMHO, this patch about the dobule nand_scan_ident():
->   mtd: nand: omap: use DT specified bus-width only for scanning NAND =
-device
-
-is a fix unrelated to this series and can be pushed independently.
-Maybe you can try to send it as a one-patch fix?
-
->   mtd:nand:omap2: clean-up BCHx_HW and BCHx_SW ECC configurations in =
-device_probe
->   mtd: nand: omap: clean-up ecc layout for BCH ecc schemes
->   mtd: nand: omap: use drivers/mtd/nand/nand_bch.c wrapper for BCH EC=
-C instead of lib/bch.c
->   ARM: dts: AM33xx: updated default ECC scheme in nand-ecc-opt
-
-And also this patch:
->   mtd: nand: omap: updated devm_xx for all resource allocation and fr=
-ee calls
-
-doesn't seem to belong to this series.
-
-I think tou could send those two independently and ask Brian to merge t=
-hem earlier
-if appropriate.
-
-But again, this is just a suggestion.
---=20
-Ezequiel Garc=C3=ADa, Free Electrons
-Embedded Linux, Kernel and Android Engineering
-http://free-electrons.com
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+- Paul
