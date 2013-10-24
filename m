@@ -1,71 +1,70 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/3] ARM: OMAP4: use CLK_SET_RATE_PARENT for dss_dss_clk
-Date: Thu, 24 Oct 2013 06:42:25 -0700
-Message-ID: <20131024134225.GY15154@atomide.com>
-References: <1381324359-28825-1-git-send-email-tomi.valkeinen@ti.com>
- <5268D44D.5010205@ti.com>
- <52691F41.1030900@ti.com>
- <20131024132835.GX15154@atomide.com>
- <5269213F.8020801@ti.com>
+From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+Subject: Re: [PATCH v11 00/10] [PATCH v10 00/10] mtd:nand:omap2: clean-up of
+ supported ECC schemes
+Date: Thu, 24 Oct 2013 10:52:59 -0300
+Message-ID: <20131024135258.GC9958@localhost>
+References: <1382619026-4182-1-git-send-email-pekon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:28197 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754544Ab3JXNm2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Oct 2013 09:42:28 -0400
+Received: from top.free-electrons.com ([176.31.233.9]:50751 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754722Ab3JXNxK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Oct 2013 09:53:10 -0400
 Content-Disposition: inline
-In-Reply-To: <5269213F.8020801@ti.com>
+In-Reply-To: <1382619026-4182-1-git-send-email-pekon@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>, Paul Walmsley <paul@pwsan.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Archit Taneja <archit@ti.com>
+To: Pekon Gupta <pekon@ti.com>
+Cc: mark.rutland@arm.com, olof@lixom.net, computersforpeace@gmail.com, dedekind1@gmail.com, devicetree@vger.kernel.org, Pawel.Moll@arm.com, arnd@arndb.de, swarren@wwwdotorg.org, tony@atomide.com, jp.francois@cynove.com, ijc+devicetree@hellion.org.uk, avinashphilipk@gmail.com, balbi@ti.com, robherring2@gmail.com, bcousson@baylibre.com, linux-mtd@lists.infradead.org, ivan.djelic@parrot.com, linux-omap@vger.kernel.org, dwmw2@infradead.org
 
-* Tero Kristo <t-kristo@ti.com> [131024 06:32]:
-> On 10/24/2013 04:28 PM, Tony Lindgren wrote:
-> >* Tero Kristo <t-kristo@ti.com> [131024 06:23]:
-> >>On 10/24/2013 11:03 AM, Tomi Valkeinen wrote:
-> >>>Hi Tony, Tero,
-> >>>
-> >>>On 09/10/13 16:12, Tomi Valkeinen wrote:
-> >>>>Set CLK_SET_RATE_PARENT flag for dss_dss_clk so that the DSS's fclk can
-> >>>>be configured without the need to get the parent of the fclk.
-> >>>>
-> >>>>Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> >>>>---
-> >>>>  arch/arm/mach-omap2/cclock44xx_data.c | 3 ++-
-> >>>>  1 file changed, 2 insertions(+), 1 deletion(-)
-> >>>>
-> >>>>diff --git a/arch/arm/mach-omap2/cclock44xx_data.c b/arch/arm/mach-omap2/cclock44xx_data.c
-> >>>>index b237950..ec0dc0b 100644
-> >>>>--- a/arch/arm/mach-omap2/cclock44xx_data.c
-> >>>>+++ b/arch/arm/mach-omap2/cclock44xx_data.c
-> >>>>@@ -830,7 +830,8 @@ DEFINE_CLK_GATE(dss_tv_clk, "extalt_clkin_ck", &extalt_clkin_ck, 0x0,
-> >>>>  		OMAP4430_CM_DSS_DSS_CLKCTRL,
-> >>>>  		OMAP4430_OPTFCLKEN_TV_CLK_SHIFT, 0x0, NULL);
-> >>>>
-> >>>>-DEFINE_CLK_GATE(dss_dss_clk, "dpll_per_m5x2_ck", &dpll_per_m5x2_ck, 0x0,
-> >>>>+DEFINE_CLK_GATE(dss_dss_clk, "dpll_per_m5x2_ck", &dpll_per_m5x2_ck,
-> >>>>+		CLK_SET_RATE_PARENT,
-> >>>>  		OMAP4430_CM_DSS_DSS_CLKCTRL, OMAP4430_OPTFCLKEN_DSSCLK_SHIFT,
-> >>>>  		0x0, NULL);
-> >>>
-> >>>I was discussing with Tero about these three patches, and he was ok with
-> >>>them being merged.
-> >>>
-> >>>Tony, it'd be great to have these for 3.13, so that I can start cleaning
-> >>>up the DSS driver's fclk management.
-> >>
-> >>Yea, am ok with these, I can incorporate the changes to my DT clk series.
-> >
-> >OK. If you have fixes that should go in earlier, please put those into
-> >a separate branch.
-> 
-> This is for Paul I guess, I meant I will do the changes needed for
-> the DT series to get same fixes there.
+Hi Pekon,
 
-OK, Paul care to take a look and queue or ack if it looks OK to you?
+Just as suggestion, I think you should reconsider your 'upstream strate=
+gy'.
 
-Regards,
+On Thu, Oct 24, 2013 at 06:20:16PM +0530, Pekon Gupta wrote:
+[..]
+>=20
+> Pekon Gupta (10):
+>   ARM: OMAP2+: cleaned-up DT support of various ECC schemes
+>   mtd: nand: omap: combine different flavours of 1-bit hamming ecc sc=
+hemes
+>   mtd: nand: omap: cleanup: replace local references with generic fra=
+mework names
 
-Tony
+IMHO, this patch about the dobule nand_scan_ident():
+>   mtd: nand: omap: use DT specified bus-width only for scanning NAND =
+device
+
+is a fix unrelated to this series and can be pushed independently.
+Maybe you can try to send it as a one-patch fix?
+
+>   mtd:nand:omap2: clean-up BCHx_HW and BCHx_SW ECC configurations in =
+device_probe
+>   mtd: nand: omap: clean-up ecc layout for BCH ecc schemes
+>   mtd: nand: omap: use drivers/mtd/nand/nand_bch.c wrapper for BCH EC=
+C instead of lib/bch.c
+>   ARM: dts: AM33xx: updated default ECC scheme in nand-ecc-opt
+
+And also this patch:
+>   mtd: nand: omap: updated devm_xx for all resource allocation and fr=
+ee calls
+
+doesn't seem to belong to this series.
+
+I think tou could send those two independently and ask Brian to merge t=
+hem earlier
+if appropriate.
+
+But again, this is just a suggestion.
+--=20
+Ezequiel Garc=C3=ADa, Free Electrons
+Embedded Linux, Kernel and Android Engineering
+http://free-electrons.com
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
