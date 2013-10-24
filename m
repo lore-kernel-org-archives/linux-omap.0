@@ -1,36 +1,33 @@
 From: Sricharan R <r.sricharan@ti.com>
-Subject: Re: [RFC PATCH 2/6] DRIVERS: IRQCHIP: CROSSBAR: Add support for Crossbar
- IP
-Date: Thu, 24 Oct 2013 16:13:17 +0530
-Message-ID: <5268F9C5.3090106@ti.com>
-References: <1380549564-31045-1-git-send-email-r.sricharan@ti.com> <1380549564-31045-3-git-send-email-r.sricharan@ti.com> <2FD881B8-1A59-418E-AF9C-EF5B9C5D0623@codeaurora.org>
+Subject: Re: [RFC PATCH 1/6] DRIVERS: IRQCHIP: IRQ-GIC: Add support for routable
+ irqs
+Date: Thu, 24 Oct 2013 16:14:16 +0530
+Message-ID: <5268FA00.1010902@ti.com>
+References: <1380549564-31045-1-git-send-email-r.sricharan@ti.com> <1380549564-31045-2-git-send-email-r.sricharan@ti.com> <D170CC15-C746-412F-A683-E8A73EFB8133@codeaurora.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <2FD881B8-1A59-418E-AF9C-EF5B9C5D0623@codeaurora.org>
+In-Reply-To: <D170CC15-C746-412F-A683-E8A73EFB8133@codeaurora.org>
 Sender: linux-doc-owner@vger.kernel.org
 To: Kumar Gala <galak@codeaurora.org>
 Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, tglx@linutronix.de, linus.walleij@linaro.org, santosh.shilimkar@ti.com, linux@arm.linux.org.uk, tony@atomide.com, rnayak@ti.com, marc.zyngier@arm.com, grant.likely@linaro.org, rob.herring@calxeda.com, mark.rutland@arm.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Kumar,
-
-On Thursday 24 October 2013 03:03 PM, Kumar Gala wrote:
+On Thursday 24 October 2013 03:08 PM, Kumar Gala wrote:
 > On Sep 30, 2013, at 8:59 AM, Sricharan R wrote:
 >
->> Some socs have a large number of interrupts requests to service
->> the needs of its many peripherals and subsystems. All of the
->> interrupt lines from the subsystems are not needed at the same
->> time, so they have to be muxed to the irq-controller appropriately.
->> In such places a interrupt controllers are preceded by an CROSSBAR
->> that provides flexibility in muxing the device requests to the controller
->> inputs.
+>> In some socs the gic can be preceded by a crossbar IP which
+>> routes the peripheral interrupts to the gic inputs. The peripheral
+>> interrupts are associated with a fixed crossbar input line and the
+>> crossbar routes that to one of the free gic input line.
 >>
->> This driver takes care a allocating a free irq and then configuring the
->> crossbar IP as a part of the mpu's irqchip callbacks. crossbar_init should
->> be called right before the irqchip_init, so that it is setup to handle the
->> irqchip callbacks.
+>> The DT entries for peripherals provides the fixed crossbar input line
+>> as its interrupt number and the mapping code should associate this with
+>> a free gic input line. This patch adds the support inside the gic irqchip
+>> to handle such routable irqs. The routable irqs are registered in a linear
+>> domain. The registered routable domain's callback should be implemented
+>> to get a free irq and to configure the IP to route it.
 >>
 >> Cc: Thomas Gleixner <tglx@linutronix.de>
 >> Cc: Linus Walleij <linus.walleij@linaro.org>
@@ -43,62 +40,29 @@ On Thursday 24 October 2013 03:03 PM, Kumar Gala wrote:
 >> Cc: Rob Herring <rob.herring@calxeda.com>
 >> Signed-off-by: Sricharan R <r.sricharan@ti.com>
 >> ---
->> .../devicetree/bindings/arm/omap/crossbar.txt      |   27 +++
->> drivers/irqchip/Kconfig                            |    8 +
->> drivers/irqchip/Makefile                           |    1 +
->> drivers/irqchip/irq-crossbar.c                     |  195 ++++++++++++++++++++
->> include/linux/irqchip/irq-crossbar.h               |   11 ++
->> 5 files changed, 242 insertions(+)
->> create mode 100644 Documentation/devicetree/bindings/arm/omap/crossbar.txt
->> create mode 100644 drivers/irqchip/irq-crossbar.c
->> create mode 100644 include/linux/irqchip/irq-crossbar.h
+>> Documentation/devicetree/bindings/arm/gic.txt |    5 +++
+>> arch/arm/boot/dts/dra7.dtsi                   |    1 +
+>> drivers/irqchip/irq-gic.c                     |   57 +++++++++++++++++++++----
+>> include/linux/irqchip/arm-gic.h               |    8 +++-
+>> 4 files changed, 61 insertions(+), 10 deletions(-)
 >>
->> diff --git a/Documentation/devicetree/bindings/arm/omap/crossbar.txt b/Documentation/devicetree/bindings/arm/omap/crossbar.txt
->> new file mode 100644
->> index 0000000..cdec2cd
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/arm/omap/crossbar.txt
->> @@ -0,0 +1,27 @@
->> +Some socs have a large number of interrupts requests to service
->> +the needs of its many peripherals and subsystems. All of the
->> +interrupt lines from the subsystems are not needed at the same
->> +time, so they have to be muxed to the irq-controller appropriately.
->> +In such places a interrupt controllers are preceded by an CROSSBAR
->> +that provides flexibility in muxing the device requests to the controller
->> +inputs.
->> +
->> +Required properties:
->> +- compatible : Should be "ti,irq-crossbar"
->> +- reg: Base address and the size of the crossbar registers.
->> +- max-irqs: Total number of irqs available at the interrupt controller.
-> Should be 'ti,max-irqs
- Ok, will correct.
->> +- reg-size: Size of a individual register in bytes. Every individual
->> +	    register is assumed to be of same size. Valid sizes are 1, 2, 4.
-> Is this something that really needs to be encoded in the dts?
->
-> If we keep it should be ti,reg-size
-Currently, this is the only IP with a fixed register-size.
- So this can be in the driver also. I thought keeping it
-DT will avoid any hard-coding in driver.
->> +- irqs-reserved: List of the reserved irq lines that are not muxed using
->> +		 crossbar. These interrupt lines are reserved in the soc,
->> +		 so crossbar bar driver should not consider them as free
->> +		 lines.
->> +
-> ti,irqs-reserved
-Ok, will correct
->> +Examples:
->> +		crossbar_mpu: @4a020000 {
-> Did you mean for there to be a label and no node name?
->
- ya, name is missing. Will add.
->> +			compatible = "ti,irq-crossbar";
->> +			reg = <0x4a002a48 0x130>;
->> +			max-irqs = <160>;
->> +			reg-size = <2>;
->> +			irqs-reserved = <0 1 2 3 5 6 131 132 139 140>;
->> +		};
+>> diff --git a/Documentation/devicetree/bindings/arm/gic.txt b/Documentation/devicetree/bindings/arm/gic.txt
+>> index 3dfb0c0..2d8c680 100644
+>> --- a/Documentation/devicetree/bindings/arm/gic.txt
+>> +++ b/Documentation/devicetree/bindings/arm/gic.txt
+>> @@ -49,6 +49,11 @@ Optional
+>>   regions, used when the GIC doesn't have banked registers. The offset is
+>>   cpu-offset * cpu-nr.
+>>
+>> +- routable-irqs	: Total number of gic irq inputs which are not directly
+>> +		  connected from the peripherals, but are routed dynamically
+>> +		  by a crossbar/multiplexer preceding the GIC. The GIC irq
+>> +		  input line is assigned dynamically when the corresponding
+>> +		  peripheral's crossbar line is mapped.
+> arm,routable-irqs
+ ok will change here as well.
+
+ Thanks for reviewing.
 
 Regards,
  Sricharan
