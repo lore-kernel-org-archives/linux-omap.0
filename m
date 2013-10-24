@@ -1,90 +1,236 @@
 From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-Subject: [PATCH 0/5] Assorted OMAP2 NAND clean-ups
-Date: Thu, 24 Oct 2013 19:12:12 -0300
-Message-ID: <1382652737-20239-1-git-send-email-ezequiel.garcia@free-electrons.com>
+Subject: [PATCH 1/5] ARM: am335x-bone: Add support for 16-bit NAND cape
+Date: Thu, 24 Oct 2013 19:12:13 -0300
+Message-ID: <1382652737-20239-2-git-send-email-ezequiel.garcia@free-electrons.com>
+References: <1382652737-20239-1-git-send-email-ezequiel.garcia@free-electrons.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from top.free-electrons.com ([176.31.233.9]:52583 "EHLO
+Received: from top.free-electrons.com ([176.31.233.9]:52588 "EHLO
 	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753359Ab3JXWM0 (ORCPT
+	with ESMTP id S1753828Ab3JXWM0 (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Oct 2013 18:12:26 -0400
+In-Reply-To: <1382652737-20239-1-git-send-email-ezequiel.garcia@free-electrons.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org
 Cc: Brian Norris <computersforpeace@gmail.com>, Pekon Gupta <pekon@ti.com>, Felipe Balbi <balbi@ti.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
 
-Hello everyone,
+From: Pekon Gupta <pekon@ti.com>
 
-As it was discussed recently in the mailing list, the omap2-nand driver currently
-has an issue preventing proper ONFI detection of 16-bit devices (other drivers
-may suffer from this same issue).
+Add GPMC timing configurations and NAND partitions for the Beaglebone
+"NAND cape". Further information and datasheets of this cape can be found at:
+- http://beagleboardtoys.info/index.php?title=BeagleBone_Memory_Expansion
+- http://beagleboardtoys.info/index.php?title=BeagleBone_4Gb_16-Bit_NAND_Module
 
-In an attempt to address such issue, patch 2/5 "mtd: nand: omap2: Fix device
-detection path" uses NAND_BUSWIDTH_AUTO (actually discarding any DT property)
-and leaves the bus width detection the NAND core code.
-
-I've based the patch in previously sent work by Pekon Gupta, did some work and
-added my name on it. I hope it's fine to handle the authorship like this.
-Otherwise, feel free to tell.
-
-This has been tested in a Beaglebone black (AM335x) board with a 16-bit Micron
-NAND device, both ONFI and array-based detections work fine:
-
-[    1.253200] omap-gpmc 50000000.gpmc: GPMC revision 6.0
-[    1.260638] NAND device: Manufacturer ID: 0x2c, Chip ID: 0xcc (Micron MT29F4G16ABADAH4)
-[    1.269110] NAND device: 512MiB, SLC, page size: 2048, OOB size: 64
-[    1.275721] Missing elm_id property, fall back to Software BCH
-[    1.283546] enabling NAND BCH ecc with 8-bit correction
-[    1.290219] 8 ofpart partitions found on MTD device omap2-nand.0
-[    1.296591] Creating 8 MTD partitions on "omap2-nand.0":
-[    1.302192] 0x000000000000-0x000000020000 : "SPL1"
-[    1.309884] 0x000000020000-0x000000040000 : "SPL2"
-[    1.316332] 0x000000040000-0x000000060000 : "SPL3"
-[    1.322599] 0x000000060000-0x000000080000 : "SPL4"
-[    1.328877] 0x000000080000-0x000000260000 : "U-boot"
-[    1.336763] 0x000000260000-0x000000280000 : "environment"
-[    1.343575] 0x000000280000-0x000000780000 : "Kernel"
-[    1.354074] 0x000000780000-0x000010000000 : "File-System"
-
-Also, a quick run of nandtest ends successfully:
-
-$ nandtest /dev/mtd7
-ECC corrections: 0
-ECC failures   : 0
-Bad blocks     : 2
-BBT blocks     : 0
-Bad block at 0x00000000
-Bad block at 0x00520000
-[...]
-Finished pass 1 successfully
-
-The first patch 1/5 is included just for reference of the DT GPMC configuration
-currently in use, together with required pinmuxing, in case anyone feels like
-testing. It's not intended to be merged, since it doesn't belong to the Beaglebone
-board itself, but instead it's an attached daughter board.
-
-The other patches are just minor cleanups I came across while looking at the code.
-As usual, the patchset applies on top of latest l2-mtd's master branch.
-
-Pekon, Brian: Do you think this solution might work for 8-bit and 16-bit devices?
-
-Feel free to comment or provide any feedback!
-
-Ezequiel Garcia (3):
-  mtd: nand: omap2: Fix OMAP_BCH option dependency
-  mtd: nand: omap2: Use devm_kzalloc
-  mtd: nand: omap2: Use devm_ioremap_resource
-
-Pekon Gupta (2):
-  ARM: am335x-bone: Add support for 16-bit NAND cape
-  mtd: nand: omap2: Fix device detection path
+Signed-off-by: Pekon Gupta <pekon@ti.com>
+Signed-off-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+---
+This patch is not really intended for inclusion. I'm just adding it
+to the series for reference and in case anyone wants to test.
 
  arch/arm/boot/dts/am335x-bone-common.dtsi | 28 ++++++++++++
  arch/arm/boot/dts/am335x-bone.dts         | 75 +++++++++++++++++++++++++++++++
  arch/arm/boot/dts/am335x-boneblack.dts    | 69 ++++++++++++++++++++++++++++
- drivers/mtd/nand/Kconfig                  |  2 +-
- drivers/mtd/nand/omap2.c                  | 52 +++++----------------
- 5 files changed, 185 insertions(+), 41 deletions(-)
+ 3 files changed, 172 insertions(+)
 
+diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
+index 2f66ded..73dcc58 100644
+--- a/arch/arm/boot/dts/am335x-bone-common.dtsi
++++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
+@@ -107,6 +107,34 @@
+ 				0x14c (PIN_INPUT_PULLDOWN | MUX_MODE7)
+ 			>;
+ 		};
++
++		nandflash_pins_s0: nandflash_pins_s0 {
++			pinctrl-single,pins = <
++				0x0 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad0.gpmc_ad0 */
++				0x4 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad1.gpmc_ad1 */
++				0x8 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad2.gpmc_ad2 */
++				0xc (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad3.gpmc_ad3 */
++				0x10 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad4.gpmc_ad4 */
++				0x14 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad5.gpmc_ad5 */
++				0x18 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad6.gpmc_ad6 */
++				0x1c (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad7.gpmc_ad7 */
++				0x20 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad8.gpmc_ad8 */
++				0x24 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad9.gpmc_ad9 */
++				0x28 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad10.gpmc_ad10 */
++				0x2c (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad11.gpmc_ad11 */
++				0x30 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad12.gpmc_ad12 */
++				0x34 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad13.gpmc_ad13 */
++				0x38 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad14.gpmc_ad14 */
++				0x3c (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_ad15.gpmc_ad15 */
++				0x70 (PIN_INPUT_PULLUP | MUX_MODE0)	/* gpmc_wait0.gpmc_wait0 */
++				0x74 (PIN_INPUT_PULLUP | MUX_MODE7)	/* gpmc_wpn.gpio0_30 */
++				0x7c (PIN_OUTPUT | MUX_MODE0)		/* gpmc_csn0.gpmc_csn0  */
++				0x90 (PIN_OUTPUT | MUX_MODE0)		/* gpmc_advn_ale.gpmc_advn_ale */
++				0x94 (PIN_OUTPUT | MUX_MODE0)		/* gpmc_oen_ren.gpmc_oen_ren */
++				0x98 (PIN_OUTPUT | MUX_MODE0)		/* gpmc_wen.gpmc_wen */
++				0x9c (PIN_OUTPUT | MUX_MODE0)		/* gpmc_be0n_cle.gpmc_be0n_cle */
++			>;
++		};
+ 	};
+ 
+ 	ocp {
+diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
+index 7993c48..d9172c7 100644
+--- a/arch/arm/boot/dts/am335x-bone.dts
++++ b/arch/arm/boot/dts/am335x-bone.dts
+@@ -9,3 +9,78 @@
+ 
+ #include "am33xx.dtsi"
+ #include "am335x-bone-common.dtsi"
++
++&elm {
++	status = "okay";
++};
++
++&gpmc {
++	status = "okay";
++	pinctrl-names = "default";
++	pinctrl-0 = <&nandflash_pins_s0>;
++	ranges = <0 0 0x08000000 0x10000000>;	/* CS0: NAND */
++	nand@0,0 {
++		reg = <0 0 0>; /* CS0, offset 0 */
++		nand-bus-width = <16>;
++		ti,nand-ecc-opt = "bch8";
++		gpmc,device-width = <2>;
++		gpmc,sync-clk-ps = <0>;
++		gpmc,cs-on-ns = <0>;
++		gpmc,cs-rd-off-ns = <740>;
++		gpmc,cs-wr-off-ns = <740>;
++		gpmc,adv-on-ns = <0>;
++		gpmc,adv-rd-off-ns = <740>;
++		gpmc,adv-wr-off-ns = <740>;
++		gpmc,we-on-ns = <90>;
++		gpmc,we-off-ns = <600>;
++		gpmc,oe-on-ns = <150>;
++		gpmc,oe-off-ns = <650>;
++		gpmc,access-ns = <560>;
++		gpmc,rd-cycle-ns = <740>;
++		gpmc,wr-cycle-ns = <740>;
++		gpmc,wait-on-read = "true";
++		gpmc,wait-on-write = "true";
++		gpmc,bus-turnaround-ns = <0>;
++		gpmc,cycle2cycle-delay-ns = <0>;
++		gpmc,clk-activation-ns = <0>;
++		gpmc,wait-monitoring-ns = <0>;
++		gpmc,wr-access-ns = <40>;
++		gpmc,wr-data-mux-bus-ns = <0>;
++		#address-cells = <1>;
++		#size-cells = <1>;
++		ti,elm-id = <&elm>;
++		/* MTD partition table */
++		partition@0 {
++			label = "SPL1";
++			reg = <0x00000000 0x000020000>;
++		};
++		partition@1 {
++			label = "SPL2";
++			reg = <0x00020000 0x00020000>;
++		};
++		partition@2 {
++			label = "SPL3";
++			reg = <0x00040000 0x00020000>;
++		};
++		partition@3 {
++			label = "SPL4";
++			reg = <0x00060000 0x00020000>;
++		};
++		partition@4 {
++			label = "U-boot";
++			reg = <0x00080000 0x001e0000>;
++		};
++		partition@5 {
++			label = "environment";
++			reg = <0x00260000 0x00020000>;
++		};
++		partition@6 {
++			label = "Kernel";
++			reg = <0x00280000 0x00500000>;
++		};
++		partition@7 {
++			label = "File-System";
++			reg = <0x00780000 0x0F880000>;
++		};
++	};
++};
+diff --git a/arch/arm/boot/dts/am335x-boneblack.dts b/arch/arm/boot/dts/am335x-boneblack.dts
+index 197cadf..e30f58a 100644
+--- a/arch/arm/boot/dts/am335x-boneblack.dts
++++ b/arch/arm/boot/dts/am335x-boneblack.dts
+@@ -15,3 +15,72 @@
+ 	regulator-max-microvolt = <1800000>;
+ 	regulator-always-on;
+ };
++
++&elm {
++	status = "okay";
++};
++
++&gpmc {
++	status = "okay";
++	pinctrl-names = "default";
++	pinctrl-0 = <&nandflash_pins_s0>;
++	ranges = <0 0 0x08000000 0x10000000>;	/* CS0: NAND */
++	nand@0,0 {
++		reg = <0 0 0>; /* CS0, offset 0 */
++		nand-bus-width = <16>;
++		ti,nand-ecc-opt = "bch8";
++
++		gpmc,device-width = <2>;
++		gpmc,sync-clk-ps = <0>;
++		gpmc,cs-on-ns = <0>;
++		gpmc,cs-rd-off-ns = <44>;
++		gpmc,cs-wr-off-ns = <44>;
++		gpmc,adv-on-ns = <6>;
++		gpmc,adv-rd-off-ns = <34>;
++		gpmc,adv-wr-off-ns = <44>;
++		gpmc,we-off-ns = <40>;
++		gpmc,oe-off-ns = <54>;
++		gpmc,access-ns = <64>;
++		gpmc,rd-cycle-ns = <82>;
++		gpmc,wr-cycle-ns = <82>;
++		gpmc,wr-access-ns = <40>;
++		gpmc,wr-data-mux-bus-ns = <0>;
++
++		#address-cells = <1>;
++		#size-cells = <1>;
++		ti,elm-id = <&elm>;
++		/* MTD partition table */
++		partition@0 {
++			label = "SPL1";
++			reg = <0x00000000 0x000020000>;
++		};
++		partition@1 {
++			label = "SPL2";
++			reg = <0x00020000 0x00020000>;
++		};
++		partition@2 {
++			label = "SPL3";
++			reg = <0x00040000 0x00020000>;
++		};
++		partition@3 {
++			label = "SPL4";
++			reg = <0x00060000 0x00020000>;
++		};
++		partition@4 {
++			label = "U-boot";
++			reg = <0x00080000 0x001e0000>;
++		};
++		partition@5 {
++			label = "environment";
++			reg = <0x00260000 0x00020000>;
++		};
++		partition@6 {
++			label = "Kernel";
++			reg = <0x00280000 0x00500000>;
++		};
++		partition@7 {
++			label = "File-System";
++			reg = <0x00780000 0x0F880000>;
++		};
++	};
++};
 -- 
 1.8.1.5
 
