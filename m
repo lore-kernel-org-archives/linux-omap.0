@@ -1,77 +1,90 @@
 From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-Subject: Re: [PATCH v11 04/10] mtd: nand: omap: use DT specified bus-width
- only for scanning NAND device
-Date: Thu, 24 Oct 2013 18:27:15 -0300
-Message-ID: <20131024212714.GB2520@localhost>
-References: <1382619026-4182-1-git-send-email-pekon@ti.com>
- <1382619026-4182-5-git-send-email-pekon@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Subject: [PATCH 0/5] Assorted OMAP2 NAND clean-ups
+Date: Thu, 24 Oct 2013 19:12:12 -0300
+Message-ID: <1382652737-20239-1-git-send-email-ezequiel.garcia@free-electrons.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from top.free-electrons.com ([176.31.233.9]:52451 "EHLO
+Received: from top.free-electrons.com ([176.31.233.9]:52583 "EHLO
 	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752724Ab3JXV12 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Oct 2013 17:27:28 -0400
-Content-Disposition: inline
-In-Reply-To: <1382619026-4182-5-git-send-email-pekon@ti.com>
+	with ESMTP id S1753359Ab3JXWM0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Oct 2013 18:12:26 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Pekon Gupta <pekon@ti.com>
-Cc: mark.rutland@arm.com, olof@lixom.net, computersforpeace@gmail.com, dedekind1@gmail.com, devicetree@vger.kernel.org, Pawel.Moll@arm.com, arnd@arndb.de, swarren@wwwdotorg.org, tony@atomide.com, jp.francois@cynove.com, ijc+devicetree@hellion.org.uk, avinashphilipk@gmail.com, balbi@ti.com, robherring2@gmail.com, bcousson@baylibre.com, linux-mtd@lists.infradead.org, ivan.djelic@parrot.com, linux-omap@vger.kernel.org, dwmw2@infradead.org
+To: linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org
+Cc: Brian Norris <computersforpeace@gmail.com>, Pekon Gupta <pekon@ti.com>, Felipe Balbi <balbi@ti.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
 
-On Thu, Oct 24, 2013 at 06:20:20PM +0530, Pekon Gupta wrote:
-> This patch:
-> - calls nand_scan_ident() using bus-width as passed by DT
-> - removes double calls to nand_scan_ident(), incase first call fails
->   then omap_nand_probe just returns error.
->=20
-> Signed-off-by: Pekon Gupta <pekon@ti.com>
-> ---
->  drivers/mtd/nand/omap2.c | 21 +++++++++------------
->  1 file changed, 9 insertions(+), 12 deletions(-)
->=20
-> diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-> index 5596368..f464321 100644
-> --- a/drivers/mtd/nand/omap2.c
-> +++ b/drivers/mtd/nand/omap2.c
-> @@ -1856,7 +1856,6 @@ static int omap_nand_probe(struct platform_devi=
-ce *pdev)
->  	mtd->name		=3D dev_name(&pdev->dev);
->  	mtd->owner		=3D THIS_MODULE;
->  	nand_chip		=3D &info->nand;
-> -	nand_chip->options	=3D pdata->devsize;
->  	nand_chip->options	|=3D NAND_SKIP_BBTSCAN;
->  #ifdef CONFIG_MTD_NAND_OMAP_BCH
->  	info->of_node		=3D pdata->of_node;
-> @@ -1904,6 +1903,15 @@ static int omap_nand_probe(struct platform_dev=
-ice *pdev)
->  		nand_chip->chip_delay =3D 50;
->  	}
-> =20
-> +	/* scan NAND device connected to chip controller */
-> +	nand_chip->options |=3D pdata->devsize & NAND_BUSWIDTH_16;
+Hello everyone,
 
-Hm.. this only works if the device is listed in nand_flash_ids[] array,
-so that ONFI detection is not used. To make ONFI detection work I think=
- you
-need to do as Brian suggested and use NAND_BUSWIDTH_AUTO.
+As it was discussed recently in the mailing list, the omap2-nand driver currently
+has an issue preventing proper ONFI detection of 16-bit devices (other drivers
+may suffer from this same issue).
 
-(Odd: why is there no current user of that auto-width option?)
+In an attempt to address such issue, patch 2/5 "mtd: nand: omap2: Fix device
+detection path" uses NAND_BUSWIDTH_AUTO (actually discarding any DT property)
+and leaves the bus width detection the NAND core code.
 
-Anyway, I really think we should fix this now and independently
-of the evolution of this ECC DT binding discussion.
-That way you can keep sending a smaller ECC DT binding patchset and
-make reviewers focus on what's really important in each case.
+I've based the patch in previously sent work by Pekon Gupta, did some work and
+added my name on it. I hope it's fine to handle the authorship like this.
+Otherwise, feel free to tell.
 
-I have a few fixes (based on your work) and I'll send them now, after
-I complete the tests. We can continue our discussion there.
---=20
-Ezequiel Garc=C3=ADa, Free Electrons
-Embedded Linux, Kernel and Android Engineering
-http://free-electrons.com
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This has been tested in a Beaglebone black (AM335x) board with a 16-bit Micron
+NAND device, both ONFI and array-based detections work fine:
+
+[    1.253200] omap-gpmc 50000000.gpmc: GPMC revision 6.0
+[    1.260638] NAND device: Manufacturer ID: 0x2c, Chip ID: 0xcc (Micron MT29F4G16ABADAH4)
+[    1.269110] NAND device: 512MiB, SLC, page size: 2048, OOB size: 64
+[    1.275721] Missing elm_id property, fall back to Software BCH
+[    1.283546] enabling NAND BCH ecc with 8-bit correction
+[    1.290219] 8 ofpart partitions found on MTD device omap2-nand.0
+[    1.296591] Creating 8 MTD partitions on "omap2-nand.0":
+[    1.302192] 0x000000000000-0x000000020000 : "SPL1"
+[    1.309884] 0x000000020000-0x000000040000 : "SPL2"
+[    1.316332] 0x000000040000-0x000000060000 : "SPL3"
+[    1.322599] 0x000000060000-0x000000080000 : "SPL4"
+[    1.328877] 0x000000080000-0x000000260000 : "U-boot"
+[    1.336763] 0x000000260000-0x000000280000 : "environment"
+[    1.343575] 0x000000280000-0x000000780000 : "Kernel"
+[    1.354074] 0x000000780000-0x000010000000 : "File-System"
+
+Also, a quick run of nandtest ends successfully:
+
+$ nandtest /dev/mtd7
+ECC corrections: 0
+ECC failures   : 0
+Bad blocks     : 2
+BBT blocks     : 0
+Bad block at 0x00000000
+Bad block at 0x00520000
+[...]
+Finished pass 1 successfully
+
+The first patch 1/5 is included just for reference of the DT GPMC configuration
+currently in use, together with required pinmuxing, in case anyone feels like
+testing. It's not intended to be merged, since it doesn't belong to the Beaglebone
+board itself, but instead it's an attached daughter board.
+
+The other patches are just minor cleanups I came across while looking at the code.
+As usual, the patchset applies on top of latest l2-mtd's master branch.
+
+Pekon, Brian: Do you think this solution might work for 8-bit and 16-bit devices?
+
+Feel free to comment or provide any feedback!
+
+Ezequiel Garcia (3):
+  mtd: nand: omap2: Fix OMAP_BCH option dependency
+  mtd: nand: omap2: Use devm_kzalloc
+  mtd: nand: omap2: Use devm_ioremap_resource
+
+Pekon Gupta (2):
+  ARM: am335x-bone: Add support for 16-bit NAND cape
+  mtd: nand: omap2: Fix device detection path
+
+ arch/arm/boot/dts/am335x-bone-common.dtsi | 28 ++++++++++++
+ arch/arm/boot/dts/am335x-bone.dts         | 75 +++++++++++++++++++++++++++++++
+ arch/arm/boot/dts/am335x-boneblack.dts    | 69 ++++++++++++++++++++++++++++
+ drivers/mtd/nand/Kconfig                  |  2 +-
+ drivers/mtd/nand/omap2.c                  | 52 +++++----------------
+ 5 files changed, 185 insertions(+), 41 deletions(-)
+
+-- 
+1.8.1.5
+
