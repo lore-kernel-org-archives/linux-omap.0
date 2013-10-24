@@ -1,71 +1,67 @@
 From: Kumar Gala <galak@codeaurora.org>
-Subject: Re: [RFC PATCH 1/6] DRIVERS: IRQCHIP: IRQ-GIC: Add support for routable irqs
-Date: Thu, 24 Oct 2013 04:38:23 -0500
-Message-ID: <D170CC15-C746-412F-A683-E8A73EFB8133@codeaurora.org>
-References: <1380549564-31045-1-git-send-email-r.sricharan@ti.com> <1380549564-31045-2-git-send-email-r.sricharan@ti.com>
+Subject: Re: [PATCH] twl4030_charger: add devicetree support.
+Date: Thu, 24 Oct 2013 04:44:03 -0500
+Message-ID: <1C8E8D31-1261-45ED-BBD0-161DFD627ACF@codeaurora.org>
+References: <20131024165005.78bc8740@notabene.brown>
 Mime-Version: 1.0 (Apple Message framework v1283)
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <1380549564-31045-2-git-send-email-r.sricharan@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Sricharan R <r.sricharan@ti.com>
-Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, tglx@linutronix.de, linus.walleij@linaro.org, santosh.shilimkar@ti.com, linux@arm.linux.org.uk, tony@atomide.com, rnayak@ti.com, marc.zyngier@arm.com, grant.likely@linaro.org, rob.herring@calxeda.com, mark.rutland@arm.com
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.codeaurora.org ([198.145.11.231]:35705 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753932Ab3JXJoA convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Oct 2013 05:44:00 -0400
+In-Reply-To: <20131024165005.78bc8740@notabene.brown>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: NeilBrown <neilb@suse.de>
+Cc: Anton Vorontsov <anton@enomsg.org>, David Woodhouse <dwmw2@infradead.org>, Grant Likely <grant.likely@linaro.org>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Belisko Marek <marek.belisko@gmail.com>, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>
 
 
-On Sep 30, 2013, at 8:59 AM, Sricharan R wrote:
+On Oct 24, 2013, at 12:50 AM, NeilBrown wrote:
 
-> In some socs the gic can be preceded by a crossbar IP which
-> routes the peripheral interrupts to the gic inputs. The peripheral
-> interrupts are associated with a fixed crossbar input line and the
-> crossbar routes that to one of the free gic input line.
 > 
-> The DT entries for peripherals provides the fixed crossbar input line
-> as its interrupt number and the mapping code should associate this with
-> a free gic input line. This patch adds the support inside the gic irqchip
-> to handle such routable irqs. The routable irqs are registered in a linear
-> domain. The registered routable domain's callback should be implemented
-> to get a free irq and to configure the IP to route it.
+> [my first device-tree related patch.  Please let me know what I got wrong so
+> I wont repeat the mistake in all the others I have queued]
 > 
-> Cc: Thomas Gleixner <tglx@linutronix.de>
-> Cc: Linus Walleij <linus.walleij@linaro.org>
-> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Cc: Russell King <linux@arm.linux.org.uk>
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: Rajendra Nayak <rnayak@ti.com>
-> Cc: Marc Zyngier <marc.zyngier@arm.com>
-> Cc: Grant Likely <grant.likely@linaro.org>
-> Cc: Rob Herring <rob.herring@calxeda.com>
-> Signed-off-by: Sricharan R <r.sricharan@ti.com>
-> ---
-> Documentation/devicetree/bindings/arm/gic.txt |    5 +++
-> arch/arm/boot/dts/dra7.dtsi                   |    1 +
-> drivers/irqchip/irq-gic.c                     |   57 +++++++++++++++++++++----
-> include/linux/irqchip/arm-gic.h               |    8 +++-
-> 4 files changed, 61 insertions(+), 10 deletions(-)
+> This allows the charger to be enabled with devicetree, and
+> allows the parameters for charging the backup battery to be set.
 > 
-> diff --git a/Documentation/devicetree/bindings/arm/gic.txt b/Documentation/devicetree/bindings/arm/gic.txt
-> index 3dfb0c0..2d8c680 100644
-> --- a/Documentation/devicetree/bindings/arm/gic.txt
-> +++ b/Documentation/devicetree/bindings/arm/gic.txt
-> @@ -49,6 +49,11 @@ Optional
->   regions, used when the GIC doesn't have banked registers. The offset is
->   cpu-offset * cpu-nr.
+> Signed-off-by: NeilBrown <neilb@suse.de>
 > 
-> +- routable-irqs	: Total number of gic irq inputs which are not directly
-> +		  connected from the peripherals, but are routed dynamically
-> +		  by a crossbar/multiplexer preceding the GIC. The GIC irq
-> +		  input line is assigned dynamically when the corresponding
-> +		  peripheral's crossbar line is mapped.
+> diff --git a/Documentation/devicetree/bindings/power/twl-charger.txt b/Documentation/devicetree/bindings/power/twl-charger.txt
+> new file mode 100644
+> index 0000000..8afaa9a
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/power/twl-charger.txt
+> @@ -0,0 +1,20 @@
+> +TWL BCI (Battery Charger Interface)
+> +
+> +Required properties:
+> +- compatible:
+> +  - "ti,twl4030-bci"
+> +- interrupts: two interrupt lines from the TWL SIH (secondary
+> +  interrupt handler) - interrupts 9 and 2.
+> +
+> +Optional properties:
+> +- bb-uvolt: microvolts for charging the backup battery.
+> +- bb-uamp: microamps for charging the backup battery.
 
-arm,routable-irqs
+prop should have vendor prefix.
 
-> Example:
-> 
-> 	intc: interrupt-controller@fff11000 {
+ti,bb-uvolt, ti,bb-uamp
 
 - k
+
+> +
+> +Examples:
+> +
+> +bci {
+> +   compatible = "ti,twl4030-bci";
+> +   interrupts = <9>, <2>;
+> +   bb-uvolt = <3200000>;
+> +   bb-uamp = <150>;
+> +};
 
 -- 
 Employee of Qualcomm Innovation Center, Inc.
