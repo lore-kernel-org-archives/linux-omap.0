@@ -1,103 +1,93 @@
-From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-Subject: Re: [PATCH v2 4/5] mtd: nand: omap2: Use devm_kzalloc
-Date: Fri, 25 Oct 2013 07:42:47 -0300
-Message-ID: <20131025104246.GA2489@localhost>
-References: <1382696277-9063-1-git-send-email-ezequiel.garcia@free-electrons.com>
- <1382696277-9063-5-git-send-email-ezequiel.garcia@free-electrons.com>
- <20980858CB6D3A4BAE95CA194937D5E73EA2AD60@DBDE04.ent.ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH 3/3] ARM: OMAP2: omap4-sdp: remove unneeded gpios from
+ dss-common
+Date: Fri, 25 Oct 2013 05:54:34 -0500
+Message-ID: <526A4DEA.3050505@ti.com>
+References: <1382695658-18757-1-git-send-email-tomi.valkeinen@ti.com>
+ <1382695658-18757-3-git-send-email-tomi.valkeinen@ti.com>
+ <526A4585.30403@ti.com> <526A4708.7010309@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from top.free-electrons.com ([176.31.233.9]:54264 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752511Ab3JYKmx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Oct 2013 06:42:53 -0400
-Content-Disposition: inline
-In-Reply-To: <20980858CB6D3A4BAE95CA194937D5E73EA2AD60@DBDE04.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <526A4708.7010309@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+Cc: Archit Taneja <archit@ti.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gupta, Pekon" <pekon@ti.com>
-Cc: Brian Norris <computersforpeace@gmail.com>, "Balbi, Felipe" <balbi@ti.com>, "marek.belisko@gmail.com" <marek.belisko@gmail.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Fri, Oct 25, 2013 at 10:25:02AM +0000, Gupta, Pekon wrote:
-> Hi,
->=20
-> >=20
-> > This simplifies the error path and makes the code less error-prone.
-> >=20
-> > Signed-off-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-> > ---
-> >  drivers/mtd/nand/omap2.c | 5 +----
-> >  1 file changed, 1 insertion(+), 4 deletions(-)
-> >=20
-> > diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-> > index e01a936..d3155b2 100644
-> > --- a/drivers/mtd/nand/omap2.c
-> > +++ b/drivers/mtd/nand/omap2.c
-> > @@ -1837,7 +1837,7 @@ static int omap_nand_probe(struct
-> > platform_device *pdev)
-> >  		return -ENODEV;
-> >  	}
-> >=20
-> > -	info =3D kzalloc(sizeof(struct omap_nand_info), GFP_KERNEL);
-> > +	info =3D devm_kzalloc(&pdev->dev, sizeof(*info), GFP_KERNEL);
-> >  	if (!info)
-> >  		return -ENOMEM;
-> >=20
-> > @@ -2067,8 +2067,6 @@ out_release_mem_region:
-> >  		free_irq(info->gpmc_irq_fifo, info);
-> >  	release_mem_region(info->phys_base, info->mem_size);
-> >  out_free_info:
-> > -	kfree(info);
-> > -
-> >  	return err;
-> >  }
-> >=20
-> > @@ -2091,7 +2089,6 @@ static int omap_nand_remove(struct
-> > platform_device *pdev)
-> >  	nand_release(&info->mtd);
-> >  	iounmap(info->nand.IO_ADDR_R);
-> >  	release_mem_region(info->phys_base, info->mem_size);
-> > -	kfree(info);
-> >  	return 0;
-> >  }
-> >=20
-> > --
-> > 1.8.1.5
->=20
-> I think these changes are already done as part of following patch..
-> http://lists.infradead.org/pipermail/linux-mtd/2013-October/049418.ht=
-ml
->=20
-> Did your rebase on my patch-set ?
->=20
+On 10/25/2013 05:25 AM, Tomi Valkeinen wrote:
+> On 25/10/13 13:18, Nishanth Menon wrote:
+> 
+>>>  void __init omap_4430sdp_display_init_of(void)
+>>>  {
+>>> -	int r;
+>>> -
+>>> -	r = gpio_request_one(DISPLAY_SEL_GPIO, GPIOF_OUT_INIT_HIGH,
+>>> -			"display_sel");
+>>> -	if (r)
+>>> -		pr_err("%s: Could not get display_sel GPIO\n", __func__);
+>>> -
+>>> -	r = gpio_request_one(DLP_POWER_ON_GPIO, GPIOF_OUT_INIT_LOW,
+>>> -		"DLP POWER ON");
+>>> -	if (r)
+>>> -		pr_err("%s: Could not get DLP POWER ON GPIO\n", __func__);
+>>> -
+>>>  	omap_display_init(&sdp4430_dss_data);
+>>>  
+>>>  	platform_device_register(&sdp4430_lcd_device);
+>>>
+>> would you not be depending on the weak IO pull done using mux to drive
+>> these GPIO pins since the GPIO is not requested and held?
+> 
+> Yes. Is that not enough?
 
-Hm.. well the problem with that patch is that it's in the middle of an
-unrelated series. As I already told you, I think you should have pushed
-that as a one-patch fix. Have you seen that suggestion?
+It depend on what the signal draw is and io drive strength which
+varies - original intent of weak pulls were to have a non-active
+default state which are overriden by GPIOs as needed. Else we would
+not be having strong pulls here in pads.
 
-On the other side, you're fixing too many things in that single patch,
-for my taste. Maybe I'm not the smarter developer, but going through
-that patch is not easy to catch if there's no mistake done.
+Typical padmux drive strength for OMAP4460 is around 100uA, min is
+around 50uA. meanwhile as Documentation/gpio.txt generically states,
+the buffers driving at 1.8v on OMAP4460 could be around 6mA or upto
+8mA. Again, these depend on the specific pin in discussion and Data
+manual explain is larger detail
 
-Usually if it's possible to split a patch (maintaining consistency) it =
-makes
-the reviewing process easier.
-If you'd rather send this devm_xxx change yourself that's fine by me,
-but *please* split the patch in two and write proper commit messages.
+Lower current is fine if the switch is ok with it and risk for
+transients are reasonably safe. However, board designs generally
+assume the stronger GPIO drive strength.
 
-Anyway: this is just a silly change, the important one is the other
-nand_scan_ident() fix. Could you help me review that?
+>> Could we not use Documentation/devicetree/bindings/gpio/gpio.txt
+>> binding to map to the right GPIO and drive it using the GPIO module?
+> 
+> Hmm, what do you mean?
+> 
+> I do mux the pins to gpios, but there's nothing in the kernel that would
+> use those gpios. That's why we had the hack above, but I'd love to get
+> rid of it.
+> 
+> Can I set the pins to GPIO mode, and set the GPIO to high/low in the .dts?
+> 
+> If things were perfect, we probably would have a driver for the "switch"
+> part. I have no idea what kind of driver that would be, though, so at
+> the moment we've just gone with the use-LCD2-by-default route.
 
-I'm interested in knowing how will that work with 8-bit and 16-bit devi=
-ces.
---=20
-Ezequiel Garc=C3=ADa, Free Electrons
-Embedded Linux, Kernel and Android Engineering
-http://free-electrons.com
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I meant you could, in theory provide the gpio numbers and pull
+directions in dts and allow the init to drive them as needed.
+
+Something like:
+drivers/i2c/busses/i2c-gpio.c as a reference and use
+of_get_named_gpio/of_get_gpio to pick themup..
+
+
+-- 
+Regards,
+Nishanth Menon
