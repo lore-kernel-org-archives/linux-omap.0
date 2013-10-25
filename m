@@ -1,101 +1,76 @@
-From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-Subject: Re: [PATCH v2 4/5] mtd: nand: omap2: Use devm_kzalloc
-Date: Fri, 25 Oct 2013 08:19:07 -0300
-Message-ID: <20131025111906.GC2489@localhost>
-References: <1382696277-9063-1-git-send-email-ezequiel.garcia@free-electrons.com>
- <1382696277-9063-5-git-send-email-ezequiel.garcia@free-electrons.com>
- <20980858CB6D3A4BAE95CA194937D5E73EA2AD60@DBDE04.ent.ti.com>
- <20131025104246.GA2489@localhost>
- <20980858CB6D3A4BAE95CA194937D5E73EA2AE0F@DBDE04.ent.ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH 3/3] ARM: OMAP2: omap4-sdp: remove unneeded gpios from
+ dss-common
+Date: Fri, 25 Oct 2013 06:21:17 -0500
+Message-ID: <526A542D.8060801@ti.com>
+References: <1382695658-18757-1-git-send-email-tomi.valkeinen@ti.com> <1382695658-18757-3-git-send-email-tomi.valkeinen@ti.com> <526A4585.30403@ti.com> <526A4708.7010309@ti.com> <526A4DEA.3050505@ti.com> <526A526D.3010108@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from top.free-electrons.com ([176.31.233.9]:54516 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751466Ab3JYLTS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Oct 2013 07:19:18 -0400
-Content-Disposition: inline
-In-Reply-To: <20980858CB6D3A4BAE95CA194937D5E73EA2AE0F@DBDE04.ent.ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:42636 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751542Ab3JYLVk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 25 Oct 2013 07:21:40 -0400
+In-Reply-To: <526A526D.3010108@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gupta, Pekon" <pekon@ti.com>
-Cc: Brian Norris <computersforpeace@gmail.com>, "Balbi, Felipe" <balbi@ti.com>, "marek.belisko@gmail.com" <marek.belisko@gmail.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, Archit Taneja <archit@ti.com>
 
-On Fri, Oct 25, 2013 at 11:09:14AM +0000, Gupta, Pekon wrote:
-> > From: Ezequiel Garcia [mailto:ezequiel.garcia@free-electrons.com]
-> >=20
-> > Hm.. well the problem with that patch is that it's in the middle of=
- an
-> > unrelated series. As I already told you, I think you should have pu=
-shed
-> > that as a one-patch fix. Have you seen that suggestion?
-> >=20
-> Yes, I know.. actually the original patch series, when it started som=
-ewhere
-> April (or before) is very different from the version v11 now :-).
-> This devm_ update was added in middle of v6-v7 version change
-> (Most of the changes since first version of this patchset is captured=
- in=20
-> Cover-letter).
->=20
->=20
+On 10/25/2013 06:13 AM, Tomi Valkeinen wrote:
+> On 25/10/13 13:54, Nishanth Menon wrote:
 
-Well, in order to *avoid* having a patchset flowing for 5 months and 11
-revisions you coudl try to keep series small. You could have that singl=
-e
-fix merged if you send it alone. Not sure why you insist in *not* doing
-that.
+[..]
+> 
+>>>> Could we not use Documentation/devicetree/bindings/gpio/gpio.txt
+>>>> binding to map to the right GPIO and drive it using the GPIO module?
+>>>
+>>> Hmm, what do you mean?
+>>>
+>>> I do mux the pins to gpios, but there's nothing in the kernel that would
+>>> use those gpios. That's why we had the hack above, but I'd love to get
+>>> rid of it.
+>>>
+>>> Can I set the pins to GPIO mode, and set the GPIO to high/low in the .dts?
+>>>
+>>> If things were perfect, we probably would have a driver for the "switch"
+>>> part. I have no idea what kind of driver that would be, though, so at
+>>> the moment we've just gone with the use-LCD2-by-default route.
+>>
+>> I meant you could, in theory provide the gpio numbers and pull
+>> directions in dts and allow the init to drive them as needed.
+>>
+>> Something like:
+>> drivers/i2c/busses/i2c-gpio.c as a reference and use
+>> of_get_named_gpio/of_get_gpio to pick themup..
+> 
+> I'm still not quite following... What init are you referring to?
+> 
+> The problem here is that the gpios don't really belong to anyone in the
+> kernel, as we don't have a driver for the switch.
+> 
+> Or did you mean that we'd still have the code in dss-common.c, but just
+> get the gpio numbers from the .dts instead? That makes sense, although
+> I'd want to get rid of that code altogether.
+> 
+> Should we have support in the gpio-controller to define default values
+> for gpios? I don't think we can rely on the boot loader to set things
+> correctly.
+> 
 
-> > On the other side, you're fixing too many things in that single pat=
-ch,
-> > for my taste. Maybe I'm not the smarter developer, but going throug=
-h
-> > that patch is not easy to catch if there's no mistake done.
-> >=20
-> > Usually if it's possible to split a patch (maintaining consistency)=
- it makes
-> > the reviewing process easier.
-> > If you'd rather send this devm_xxx change yourself that's fine by m=
-e,
-> >=20
-> Ahh nothing like that.. Brian had already reviewed these couple of ti=
-mes
+I am unfortunately, not in a position to know how you plan to
+architect dss_common or the various panels associated with it. if you
+model these as panels and a generic driver which controls the panel
+could request and control pins and gpios as needed I suppose.
 
-Ah, good. In that case you should add "Reviewed-by" if Brian already
-reviewed it. IMHO, the patch could be cleaner and the commit message
-could be better.
+gpio controller cannot drive default pull direction, that is the job
+of the driver using the gpio.
 
-> And it was only [Patch 04/10] which was last one remaining..
+Simplest example that I can think of to use to point as reference is [1]
 
-Yes, and because you added *another* patch to the series you keep
-spinning patchset versions.
-
-> I just said it because this might show up in merge conflict .. or rej=
-ects..
->=20
-> > but *please* split the patch in two and write proper commit message=
-s.
-> >=20
-> > Anyway: this is just a silly change, the important one is the other
-> > nand_scan_ident() fix. Could you help me review that?
-> >=20
-> > I'm interested in knowing how will that work with 8-bit and 16-bit =
-devices.
-> > --
-> Yes, I'm just preparing the scenario where BUSWIDTH_AUTO would fail..
-> unless you do GPMC driver changes also.. same issue was found by
-> Matthieu CASTET (matthieu.castet@parrot.com)
-> (please see my other mail)
->=20
-
-OK, let's try to focus in that patch alone, I'd like to move forward.
---=20
-Ezequiel Garc=C3=ADa, Free Electrons
-Embedded Linux, Kernel and Android Engineering
-http://free-electrons.com
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+[1]
+http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/drivers/leds/leds-gpio.c#n173
+-- 
+Regards,
+Nishanth Menon
