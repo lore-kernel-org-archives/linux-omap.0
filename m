@@ -1,43 +1,91 @@
-From: Wei Yongjun <weiyj.lk@gmail.com>
-Subject: [PATCH] ARM: OMAP2+: smsc911x: fix return value check in gpmc_smsc911x_init()
-Date: Fri, 25 Oct 2013 17:31:51 +0800
-Message-ID: <CAPgLHd9V0=GHGYgfuL7cCkzmZT7HVzuNg0iwwsOcipbnJ90bVw@mail.gmail.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: [PATCH 1/3] ARM: dts: omap4-panda: add DPI pinmuxing
+Date: Fri, 25 Oct 2013 13:07:36 +0300
+Message-ID: <1382695658-18757-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ea0-f170.google.com ([209.85.215.170]:48451 "EHLO
-	mail-ea0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751967Ab3JYJbw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Oct 2013 05:31:52 -0400
-Received: by mail-ea0-f170.google.com with SMTP id q10so360458eaj.15
-        for <linux-omap@vger.kernel.org>; Fri, 25 Oct 2013 02:31:51 -0700 (PDT)
+Received: from devils.ext.ti.com ([198.47.26.153]:55964 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753001Ab3JYKIO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Oct 2013 06:08:14 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: khilman@deeprootsystems.com, tony@atomide.com, linux@arm.linux.org.uk
-Cc: yongjun_wei@trendmicro.com.cn, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, Archit Taneja <archit@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+New u-boot versions no longer set the pinmuxing for Panda's DPI output,
+and the muxing has to be done in the .dts file.
 
-In case of error, the function platform_device_register_resndata()
-returns ERR_PTR() and never returns NULL. The NULL test in the return
-value check should be replaced with IS_ERR().
+Add pinmuxing for DPI and TFP410. Without these, the DVI output on Panda
+does not work with recent u-boot.
 
-Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- arch/arm/mach-omap2/gpmc-smsc911x.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm/boot/dts/omap4-panda-common.dtsi | 43 +++++++++++++++++++++++++++++++
+ 1 file changed, 43 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/gpmc-smsc911x.c b/arch/arm/mach-omap2/gpmc-smsc911x.c
-index ef99011..2757504 100644
---- a/arch/arm/mach-omap2/gpmc-smsc911x.c
-+++ b/arch/arm/mach-omap2/gpmc-smsc911x.c
-@@ -83,7 +83,7 @@ void __init gpmc_smsc911x_init(struct omap_smsc911x_platform_data *gpmc_cfg)
- 	pdev = platform_device_register_resndata(NULL, "smsc911x", gpmc_cfg->id,
- 		 gpmc_smsc911x_resources, ARRAY_SIZE(gpmc_smsc911x_resources),
- 		 &gpmc_smsc911x_config, sizeof(gpmc_smsc911x_config));
--	if (!pdev) {
-+	if (IS_ERR(pdev)) {
- 		pr_err("Unable to register platform device\n");
- 		gpio_free(gpmc_cfg->gpio_reset);
- 		goto free2;
+diff --git a/arch/arm/boot/dts/omap4-panda-common.dtsi b/arch/arm/boot/dts/omap4-panda-common.dtsi
+index faa95b5..fcb8856 100644
+--- a/arch/arm/boot/dts/omap4-panda-common.dtsi
++++ b/arch/arm/boot/dts/omap4-panda-common.dtsi
+@@ -129,6 +129,8 @@
+ 			&twl6040_pins
+ 			&mcpdm_pins
+ 			&mcbsp1_pins
++			&dss_dpi_pins
++			&tfp410_pins
+ 			&dss_hdmi_pins
+ 			&tpd12s015_pins
+ 			&hsusbb1_pins
+@@ -166,6 +168,47 @@
+ 		>;
+ 	};
+ 
++	dss_dpi_pins: pinmux_dss_dpi_pins {
++		pinctrl-single,pins = <
++			0x122 (PIN_OUTPUT | MUX_MODE5)	/* dispc2_data23 */
++			0x124 (PIN_OUTPUT | MUX_MODE5) 	/* dispc2_data22 */
++			0x126 (PIN_OUTPUT | MUX_MODE5)	/* dispc2_data21 */
++			0x128 (PIN_OUTPUT | MUX_MODE5)	/* dispc2_data20 */
++			0x12a (PIN_OUTPUT | MUX_MODE5)	/* dispc2_data19 */
++			0x12c (PIN_OUTPUT | MUX_MODE5)	/* dispc2_data18 */
++			0x12e (PIN_OUTPUT | MUX_MODE5)	/* dispc2_data15 */
++			0x130 (PIN_OUTPUT | MUX_MODE5)	/* dispc2_data14 */
++			0x132 (PIN_OUTPUT | MUX_MODE5)	/* dispc2_data13 */
++			0x134 (PIN_OUTPUT | MUX_MODE5)	/* dispc2_data12 */
++			0x136 (PIN_OUTPUT | MUX_MODE5)	/* dispc2_data11 */
++
++			0x174 (PIN_OUTPUT | MUX_MODE5)	/* dispc2_data10 */
++			0x176 (PIN_OUTPUT | MUX_MODE5)	/* dispc2_data9 */
++			0x178 (PIN_OUTPUT | MUX_MODE5)	/* dispc2_data16 */
++			0x17a (PIN_OUTPUT | MUX_MODE5)	/* dispc2_data17 */
++			0x17c (PIN_OUTPUT | MUX_MODE5)	/* dispc2_hsync */
++			0x17e (PIN_OUTPUT | MUX_MODE5)	/* dispc2_pclk */
++			0x180 (PIN_OUTPUT | MUX_MODE5)	/* dispc2_vsync */
++			0x182 (PIN_OUTPUT | MUX_MODE5)	/* dispc2_de */
++			0x184 (PIN_OUTPUT | MUX_MODE5)	/* dispc2_data8 */
++			0x186 (PIN_OUTPUT | MUX_MODE5)	/* dispc2_data7 */
++			0x188 (PIN_OUTPUT | MUX_MODE5)	/* dispc2_data6 */
++			0x18a (PIN_OUTPUT | MUX_MODE5)	/* dispc2_data5 */
++			0x18c (PIN_OUTPUT | MUX_MODE5)	/* dispc2_data4 */
++			0x18e (PIN_OUTPUT | MUX_MODE5)	/* dispc2_data3 */
++
++			0x190 (PIN_OUTPUT | MUX_MODE5)	/* dispc2_data2 */
++			0x192 (PIN_OUTPUT | MUX_MODE5)	/* dispc2_data1 */
++			0x194 (PIN_OUTPUT | MUX_MODE5)	/* dispc2_data0 */
++		>;
++	};
++
++	tfp410_pins: pinmux_tfp410_pins {
++		pinctrl-single,pins = <
++			0x144 (PIN_OUTPUT | MUX_MODE3)	/* gpio_0 */
++		>;
++	};
++
+ 	dss_hdmi_pins: pinmux_dss_hdmi_pins {
+ 		pinctrl-single,pins = <
+ 			0x5a (PIN_INPUT_PULLUP | MUX_MODE0)	/* hdmi_cec.hdmi_cec */
+-- 
+1.8.1.2
 
