@@ -1,57 +1,91 @@
-From: "Gupta, Pekon" <pekon@ti.com>
-Subject: RE: [PATCH v2 0/5] Assorted OMAP2 NAND clean-ups
-Date: Fri, 25 Oct 2013 11:15:57 +0000
-Message-ID: <20980858CB6D3A4BAE95CA194937D5E73EA2AE2A@DBDE04.ent.ti.com>
-References: <1382696277-9063-1-git-send-email-ezequiel.garcia@free-electrons.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 3/3] ARM: OMAP2: omap4-sdp: remove unneeded gpios from
+ dss-common
+Date: Fri, 25 Oct 2013 14:17:14 +0300
+Message-ID: <526A533A.6080903@ti.com>
+References: <1382695658-18757-1-git-send-email-tomi.valkeinen@ti.com> <1382695658-18757-3-git-send-email-tomi.valkeinen@ti.com> <526A4585.30403@ti.com> <526A4708.7010309@ti.com> <526A4DEA.3050505@ti.com> <526A528C.2020204@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="jKw6pxCpMlrOiJQrgkriuXJ1QW5NgAX1S"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:42472 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753176Ab3JYLQ0 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Oct 2013 07:16:26 -0400
-In-Reply-To: <1382696277-9063-1-git-send-email-ezequiel.garcia@free-electrons.com>
-Content-Language: en-US
+Received: from devils.ext.ti.com ([198.47.26.153]:58318 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751201Ab3JYLRp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Oct 2013 07:17:45 -0400
+In-Reply-To: <526A528C.2020204@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-Cc: Brian Norris <computersforpeace@gmail.com>, "Balbi, Felipe" <balbi@ti.com>, "marek.belisko@gmail.com" <marek.belisko@gmail.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+Cc: Archit Taneja <archit@ti.com>, linux-arm-kernel@lists.infradead.org
 
-Hi,
+--jKw6pxCpMlrOiJQrgkriuXJ1QW5NgAX1S
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-> -----Original Message-----
-> From: Ezequiel Garcia [mailto:ezequiel.garcia@free-electrons.com]
-[...]
+On 25/10/13 14:14, Nishanth Menon wrote:
 
-> Pekon, Brian: Do you think this solution might work for 8-bit and 16-bit
-> devices?
-> 
-I think NAND_BUSWIDTH_AUTO (without GPMC changes) would fail in
-following scenarios..
+> one additional angle before I forget - this is something we do as part
+> of power optimization - to identify pins which are programmed for a
+> pull in non-functional scenario as it has direct impact on idle power
+> numbers.
+>=20
+> For example patch #3 in this series
+> &omap4_pmx_core {
+> pinctrl-0
+> ...
+> 	&lcd2_pins
+> ..
+> }
+> &lcd2_pins
+>=20
+> lcd2_pins: pinmux_lcd2_pins {
+> +		pinctrl-single,pins =3D <
+> +			0x20 (PIN_OUTPUT_PULLDOWN | MUX_MODE3)	/* gpio_40 */
+> +			0x46 (PIN_OUTPUT_PULLUP | MUX_MODE3)	/* gpio_59 */
+> +			0x56 (PIN_OUTPUT_PULLDOWN | MUX_MODE3)	/* gpio_104 */
+> +		>;
+>=20
+> 3 pins are driven around 300uA at boot, even with display OFF -> which
+> means wasted current that could have been optimized by hooking the pin
+> to the dts node corresponding to the device and used by the driver
+> appropriately.
+>=20
+> Unfortunately, folks feel simplifying the driver is traditionally a
+> better alternative but with a 400 odd pins on a typical SoC of today,
+> these defaults add up and end user tends to suffer with bad overall
+> power numbers :(..
 
-Case-1: configuring gpmc,device-width=1 from DT when using x16 device.
-As your NAND driver is using NAND_BUSWIDTH_AUTO, it should
-ignore this DT config, and based on ONFI params it should work as x16
+Good point. I guess that also makes my point of having default values
+for GPIOs a bit silly. Driving the GPIO high by default would be ever
+worse than the mux pull-up, I believe.
 
-Case-2: configuring gpmc,device-width=2 from DT when using x8 device.
-As your NAND driver is using NAND_BUSWIDTH_AUTO, it should
-ignore this DT config, and based on ONFI params it should work as x8
-
-NAND device may get detected correctly, but try doing write and read
-to NAND, and I think, it would fail for Case-2 at-least.. 
-Can you please check ?
+ Tomi
 
 
-> I've been going through the GPMC code again, and it looks like some cleaning
-> is needed
-> there two, but that's a different story!
-> 
-Actually having NAND_BUSWIDTH_AUTO would require change in GPMC
-driver also.. please refer my comments in.. 
-http://lists.infradead.org/pipermail/linux-mtd/2013-October/049284.html
 
-reason of failure is given above...
+--jKw6pxCpMlrOiJQrgkriuXJ1QW5NgAX1S
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-with regards, pekon
+iQIcBAEBAgAGBQJSalM6AAoJEPo9qoy8lh71JEEQAI+OORcKAXlSDkDmqMMecdLK
+ATNTcm4vkB+5NeuCxXdlTkw884fCqFkrCj+Xmtwjz5BKw7/RJfDblHhaOgMEPOYH
+xXSGMgasai8J7TgFeJP0NdIkjsksKn+YXMUujdGvMQUEut4Hdwk7OHTW4/Z1MSjR
+tdefIN/k9Rnn8p8sgjkjgbrgUCXQhC8Kx6M3O/BeAkUKyrZfiw7YbAs8YHTuSm13
+wKP/QaUZj1ryo7nWLpNcp8hLsTF+D6pWopgncYfkl49AT2yWIC6pLv74Lkh0IJY/
+5nESjFIWcJUBZERH17k7fJlVS2nMm+cSsOvK80v3mQ6f9nwpITi1uKKt8MJWzgK1
+nrB1HMYSGRu5Lp7GCDDIBbvF0WTBMeaz1XtvwTDDviMTBCYt1r3sHgQcweHbeDhK
+5/q66u5HUbIFQ8+bbhp27t0EMG/ASU4cCHmucm8eavaqYeJi+W0D8duUFNENpI2Y
+ihj5ikzHbR7X61ybbAmjmqroY0mJrIZZRNooVZDJq6aw7uthN+r0SZe+v552nBdE
+Y2gARm+UhUI1njyNtUQe7JZ88bvl++IMbAe7bWaplwfIhSxs7FCxMOgrzWanXZ5u
+x4NRcjwlv+Vof/1boUkul1knvpuYMI9pKIy+M21peZ3rUAWigbYN/QNr5g4+bRKo
+EA/JS6xsOyDspNZmGQSI
+=HIRi
+-----END PGP SIGNATURE-----
+
+--jKw6pxCpMlrOiJQrgkriuXJ1QW5NgAX1S--
