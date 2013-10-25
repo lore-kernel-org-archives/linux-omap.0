@@ -1,82 +1,56 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
 Subject: Re: [PATCH 3/3] ARM: OMAP2: omap4-sdp: remove unneeded gpios from
  dss-common
-Date: Fri, 25 Oct 2013 14:33:26 +0300
-Message-ID: <526A5706.5010803@ti.com>
-References: <1382695658-18757-1-git-send-email-tomi.valkeinen@ti.com> <1382695658-18757-3-git-send-email-tomi.valkeinen@ti.com> <526A4585.30403@ti.com> <526A4708.7010309@ti.com> <526A4DEA.3050505@ti.com> <526A526D.3010108@ti.com> <526A542D.8060801@ti.com>
+Date: Fri, 25 Oct 2013 14:46:01 +0300
+Message-ID: <526A59F9.3010104@ti.com>
+References: <1382695658-18757-1-git-send-email-tomi.valkeinen@ti.com> <1382695658-18757-3-git-send-email-tomi.valkeinen@ti.com> <526A4585.30403@ti.com> <526A4708.7010309@ti.com> <526A4DEA.3050505@ti.com> <526A528C.2020204@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
 	protocol="application/pgp-signature";
-	boundary="OU8GVJ1AgjxfUhRBVIBq9BWU8UGThDt4F"
+	boundary="S9V9ibJW4FHPUHh46Qt4dWkiTfJLESJnh"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:43040 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:55204 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751524Ab3JYLdu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 25 Oct 2013 07:33:50 -0400
-In-Reply-To: <526A542D.8060801@ti.com>
+	id S1751502Ab3JYLq0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 25 Oct 2013 07:46:26 -0400
+In-Reply-To: <526A528C.2020204@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org, Archit Taneja <archit@ti.com>
+Cc: Archit Taneja <archit@ti.com>, linux-arm-kernel@lists.infradead.org
 
---OU8GVJ1AgjxfUhRBVIBq9BWU8UGThDt4F
+--S9V9ibJW4FHPUHh46Qt4dWkiTfJLESJnh
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 
-On 25/10/13 14:21, Nishanth Menon wrote:
+On 25/10/13 14:14, Nishanth Menon wrote:
 
->> The problem here is that the gpios don't really belong to anyone in th=
-e
->> kernel, as we don't have a driver for the switch.
->>
->> Or did you mean that we'd still have the code in dss-common.c, but jus=
-t
->> get the gpio numbers from the .dts instead? That makes sense, although=
-
->> I'd want to get rid of that code altogether.
->>
->> Should we have support in the gpio-controller to define default values=
-
->> for gpios? I don't think we can rely on the boot loader to set things
->> correctly.
->>
+> lcd2_pins: pinmux_lcd2_pins {
+> +		pinctrl-single,pins =3D <
+> +			0x20 (PIN_OUTPUT_PULLDOWN | MUX_MODE3)	/* gpio_40 */
+> +			0x46 (PIN_OUTPUT_PULLUP | MUX_MODE3)	/* gpio_59 */
+> +			0x56 (PIN_OUTPUT_PULLDOWN | MUX_MODE3)	/* gpio_104 */
+> +		>;
 >=20
-> I am unfortunately, not in a position to know how you plan to
-> architect dss_common or the various panels associated with it. if you
+> 3 pins are driven around 300uA at boot, even with display OFF -> which
+> means wasted current that could have been optimized by hooking the pin
+> to the dts node corresponding to the device and used by the driver
+> appropriately.
 
-The dss-common.c is just a hack, needed during the transition to DT.
-It's supposed to go away as soon as we have proper DT support for DSS.
+One more clarification question.
 
-In this case it has just been a convenient place to set the gpios at
-boot time. The gpios are not touched after that.
+The gpio 40 is used to enable powers for the picodlp. Shouldn't that one
+have a pinctrl pull-down in any case? If it's left floating, and the
+driver is not compiled in or doesn't start, the powers could get enabled
+depending on sunspot, right?
 
-> model these as panels and a generic driver which controls the panel
-> could request and control pins and gpios as needed I suppose.
->=20
-> gpio controller cannot drive default pull direction, that is the job
-> of the driver using the gpio.
-
-I agree. But what to do when there is no driver that uses the gpio, but
-the gpio still affects the drivers? That's more or less the situation her=
-e.
-
-The SDP board has an LCD and a PicoDLP projector, and the board
-designers have shared resources between those, meaning only one can be
-used at a time.
-
-Having the GPIO pulled down means that LCD2 won't have backlight
-(although the gpio doesn't actually enable the backlight, it just
-handles the routing if I'm not mistaken) , but PicoDLP will have
-something (parallel video datalines, if I recall right).
-
-I can't add that GPIO to either the LCD driver or the PicoDLP driver, as
-it's not a property of either of them.
+And I guess the same goes for all gpios used to enable something.
 
  Tomi
 
 
 
---OU8GVJ1AgjxfUhRBVIBq9BWU8UGThDt4F
+--S9V9ibJW4FHPUHh46Qt4dWkiTfJLESJnh
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -85,19 +59,19 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v1.4.12 (GNU/Linux)
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBAgAGBQJSalcGAAoJEPo9qoy8lh71pIIP/12q4uVvtiQgRUA7efYCq85W
-dmAt7Z+ZX5FEHUIX9vaFLaJTwKa4z50pKcBG8VEhhOVNA4YEXB7GpPqFxk+lguNS
-w29Y1TN2WfkRXgiSWIApndoVFDik6z9JWRJe+mP/GG+e9hTeUn8sdk4VoE0qImJt
-/GB2yhpzvwTCBjOR6iaPRB5SMuYokER4dxfJky9HiZt05zZru+SYbqECeawLlRfJ
-RI+13j+ic1lWqOeDu/PPKnFdZzzowHYI6eRkA+kyisDri7Fzy2v+tN6EUI55ciNR
-84+d+uz9GmHjjc23nS0gQvdMiF9HidmyeqTVSbTD3P1AxgqTc55mAe6Z3SL03iSb
-D2CBe18kDrtdDoAbJXauvS/l3r3NogqkKtfEocG4BMd4B23jf7y293NQeCwhKo2L
-Zy4r/APJyz1OgYO8c0J0YlZohEur/Mm0GbueJdPIJ8ZdhzIU92unwYZpeds899bS
-DWZvaGw+5nRnvUHIi1cUeBr6MekeBZOfo86gMY1JFiK7mxKq29Uu4Ao3AxcNq9QP
-Z/IAlgM+ZE1SwKQdOrVZW8AzjkB6PxFKkJUVdu6vi6pZLrFNyfjfYoMELpbTAYYl
-JIysyWWQ6NLhWVotxAisjCQGo3iqhLUGbBuRfiD6MATeYVhQfIi8coW3TrHGTKB8
-gmxkTjzttCu0KTKA93Yb
-=lWL0
+iQIcBAEBAgAGBQJSaln5AAoJEPo9qoy8lh71SLAP/iUefJYaRA2pieqbplKniwx9
+gqW+YHdfeyKiFp2s/OTMKJBBxULnSp7VguHtYAqzCfKwtuA79nX6eGj7QYRfEJLM
+9LF4KOQWbk2LP4Ye6iTFiFcHeZMHNQhZZS2do1NhyIvzbO5+YktouMgPT+WOBLSa
+9KVcB9ipYhTiNos+cI2yDEsgCN3KULz7J3Myv83OyNPBYKsSpcDHdT8i7IBL3Pjb
+cFAQwf3ChB7dZak4UlUdDqOc8Lw1YlfRNQEgi0rcFKssdOgsYl0exhlACiUbXox1
+ok//rTttoSAb7VloRhvfouXi/IMqLkqyDiZcye6zNK9CcFc/8t2CDXhRHYTDCLAG
+PvaYHo/LwMrkYARWADxNdx7bqpob3zwMWvvHwGaP3NuKESUjV38hbXS4GRpi1SGp
+6IizBhEh2rFTYvmoOHusLlqDq8wOo/kKytcO86Iz95D+zrANHS9cm/6tCaVxwl30
+tovS+l41+8+hGCXT0szKti/4N8RhfwJn5Gj3fodb+mwv+mOe0NjMH87zAssk/rcE
+IotijYrV7PLuAn9EZ2sYLrXWl86cB9xP1JWwPzDtGn/rcSfhZK2ato+7XNzch6VZ
+sAUJdXynoZqXeVx2z1shdOU3bc4mGPw4VKP2dD5SzOMbh2NlDh825rdzziTcknrp
+RdlN1ctIPjjkZI0y6RJM
+=H4pj
 -----END PGP SIGNATURE-----
 
---OU8GVJ1AgjxfUhRBVIBq9BWU8UGThDt4F--
+--S9V9ibJW4FHPUHh46Qt4dWkiTfJLESJnh--
