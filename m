@@ -1,77 +1,96 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 3/3] ARM: OMAP2: omap4-sdp: remove unneeded gpios from
- dss-common
-Date: Fri, 25 Oct 2013 14:46:01 +0300
-Message-ID: <526A59F9.3010104@ti.com>
-References: <1382695658-18757-1-git-send-email-tomi.valkeinen@ti.com> <1382695658-18757-3-git-send-email-tomi.valkeinen@ti.com> <526A4585.30403@ti.com> <526A4708.7010309@ti.com> <526A4DEA.3050505@ti.com> <526A528C.2020204@ti.com>
+From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+Subject: Re: [PATCH v2 0/5] Assorted OMAP2 NAND clean-ups
+Date: Fri, 25 Oct 2013 08:48:37 -0300
+Message-ID: <20131025114836.GD2489@localhost>
+References: <1382696277-9063-1-git-send-email-ezequiel.garcia@free-electrons.com>
+ <20980858CB6D3A4BAE95CA194937D5E73EA2AE2A@DBDE04.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="S9V9ibJW4FHPUHh46Qt4dWkiTfJLESJnh"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:55204 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751502Ab3JYLq0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 25 Oct 2013 07:46:26 -0400
-In-Reply-To: <526A528C.2020204@ti.com>
+Received: from top.free-electrons.com ([176.31.233.9]:54689 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753142Ab3JYLsn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Oct 2013 07:48:43 -0400
+Content-Disposition: inline
+In-Reply-To: <20980858CB6D3A4BAE95CA194937D5E73EA2AE2A@DBDE04.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
-Cc: Archit Taneja <archit@ti.com>, linux-arm-kernel@lists.infradead.org
+To: "Gupta, Pekon" <pekon@ti.com>
+Cc: Brian Norris <computersforpeace@gmail.com>, "Balbi, Felipe" <balbi@ti.com>, "marek.belisko@gmail.com" <marek.belisko@gmail.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
---S9V9ibJW4FHPUHh46Qt4dWkiTfJLESJnh
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Pekon,
 
-On 25/10/13 14:14, Nishanth Menon wrote:
-
-> lcd2_pins: pinmux_lcd2_pins {
-> +		pinctrl-single,pins =3D <
-> +			0x20 (PIN_OUTPUT_PULLDOWN | MUX_MODE3)	/* gpio_40 */
-> +			0x46 (PIN_OUTPUT_PULLUP | MUX_MODE3)	/* gpio_59 */
-> +			0x56 (PIN_OUTPUT_PULLDOWN | MUX_MODE3)	/* gpio_104 */
-> +		>;
+On Fri, Oct 25, 2013 at 11:15:57AM +0000, Gupta, Pekon wrote:
+> Hi,
 >=20
-> 3 pins are driven around 300uA at boot, even with display OFF -> which
-> means wasted current that could have been optimized by hooking the pin
-> to the dts node corresponding to the device and used by the driver
-> appropriately.
+> > -----Original Message-----
+> > From: Ezequiel Garcia [mailto:ezequiel.garcia@free-electrons.com]
+> [...]
+>=20
+> > Pekon, Brian: Do you think this solution might work for 8-bit and 1=
+6-bit
+> > devices?
+> >=20
+> I think NAND_BUSWIDTH_AUTO (without GPMC changes) would fail in
+> following scenarios..
+>=20
+> Case-1: configuring gpmc,device-width=3D1 from DT when using x16 devi=
+ce.
 
-One more clarification question.
+=2E.. which is wrong. That's why we have a DT property to configure tha=
+t.
+The GPMC *must* be properly configured.
 
-The gpio 40 is used to enable powers for the picodlp. Shouldn't that one
-have a pinctrl pull-down in any case? If it's left floating, and the
-driver is not compiled in or doesn't start, the powers could get enabled
-depending on sunspot, right?
+> As your NAND driver is using NAND_BUSWIDTH_AUTO, it should
+> ignore this DT config, and based on ONFI params it should work as x16
+>=20
 
-And I guess the same goes for all gpios used to enable something.
+Hm.. I don't think so. The auto-stuff is just for the NAND driver, not
+for the memory controller. I don't know much about hardware, but in my =
+mind
+I imagine them as different controllers.
 
- Tomi
+> Case-2: configuring gpmc,device-width=3D2 from DT when using x8 devic=
+e.
 
+=2E.. which is also wrong.
 
+Once again, you're mis-configuring the GPMC. We cannot expect the NAND
+driver to work properly if the GPMC is not properly initialized, don't
+you think?
 
---S9V9ibJW4FHPUHh46Qt4dWkiTfJLESJnh
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+> Actually having NAND_BUSWIDTH_AUTO would require change in GPMC
+> driver also.. please refer my comments in..=20
+> http://lists.infradead.org/pipermail/linux-mtd/2013-October/049284.ht=
+ml
+>=20
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+Well, I think the approach should be different and much simpler: GPMC
+*must* be properly configured and then NAND can do ONFI detection
+starting in 8-bit and then switching to 16-bit if needed.
 
-iQIcBAEBAgAGBQJSaln5AAoJEPo9qoy8lh71SLAP/iUefJYaRA2pieqbplKniwx9
-gqW+YHdfeyKiFp2s/OTMKJBBxULnSp7VguHtYAqzCfKwtuA79nX6eGj7QYRfEJLM
-9LF4KOQWbk2LP4Ye6iTFiFcHeZMHNQhZZS2do1NhyIvzbO5+YktouMgPT+WOBLSa
-9KVcB9ipYhTiNos+cI2yDEsgCN3KULz7J3Myv83OyNPBYKsSpcDHdT8i7IBL3Pjb
-cFAQwf3ChB7dZak4UlUdDqOc8Lw1YlfRNQEgi0rcFKssdOgsYl0exhlACiUbXox1
-ok//rTttoSAb7VloRhvfouXi/IMqLkqyDiZcye6zNK9CcFc/8t2CDXhRHYTDCLAG
-PvaYHo/LwMrkYARWADxNdx7bqpob3zwMWvvHwGaP3NuKESUjV38hbXS4GRpi1SGp
-6IizBhEh2rFTYvmoOHusLlqDq8wOo/kKytcO86Iz95D+zrANHS9cm/6tCaVxwl30
-tovS+l41+8+hGCXT0szKti/4N8RhfwJn5Gj3fodb+mwv+mOe0NjMH87zAssk/rcE
-IotijYrV7PLuAn9EZ2sYLrXWl86cB9xP1JWwPzDtGn/rcSfhZK2ato+7XNzch6VZ
-sAUJdXynoZqXeVx2z1shdOU3bc4mGPw4VKP2dD5SzOMbh2NlDh825rdzziTcknrp
-RdlN1ctIPjjkZI0y6RJM
-=H4pj
------END PGP SIGNATURE-----
+This is what this patch is doing: it _fixes_ the NAND driver ONFI detec=
+tion,
+_provided_ the GPMC is well-prepared.
 
---S9V9ibJW4FHPUHh46Qt4dWkiTfJLESJnh--
+You seem to think that GPMC + NAND should be able to automagically dete=
+ct
+the device and work, but I don't think that's even physically possible,=
+ for
+the reasons you have just exposed.
+
+I think this fix is simple enough.
+
+BTW: The GPMC code ignores the DT value in 'gpmc,device-width' and uses
+'nand-bus-width' instead, but that's a different bug and a different fi=
+x :)
+--=20
+Ezequiel Garc=C3=ADa, Free Electrons
+Embedded Linux, Kernel and Android Engineering
+http://free-electrons.com
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
