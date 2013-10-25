@@ -1,47 +1,68 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC/PATCH] arm: omap2plus_defconfig: enable more drivers
-Date: Fri, 25 Oct 2013 07:44:26 -0700
-Message-ID: <20131025144426.GA15154@atomide.com>
-References: <1382710831-5758-1-git-send-email-balbi@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH 3/3] ARM: OMAP2: omap4-sdp: remove unneeded gpios from
+ dss-common
+Date: Fri, 25 Oct 2013 10:24:50 -0500
+Message-ID: <526A8D42.5090209@ti.com>
+References: <1382695658-18757-1-git-send-email-tomi.valkeinen@ti.com> <1382695658-18757-3-git-send-email-tomi.valkeinen@ti.com> <526A4585.30403@ti.com> <526A4708.7010309@ti.com> <526A4DEA.3050505@ti.com> <526A528C.2020204@ti.com> <526A59F9.3010104@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:32491 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753349Ab3JYOo2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Oct 2013 10:44:28 -0400
-Content-Disposition: inline
-In-Reply-To: <1382710831-5758-1-git-send-email-balbi@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:35997 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752086Ab3JYPZP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 25 Oct 2013 11:25:15 -0400
+In-Reply-To: <526A59F9.3010104@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+Cc: Archit Taneja <archit@ti.com>, linux-arm-kernel@lists.infradead.org
 
-* Felipe Balbi <balbi@ti.com> [131025 07:20]:
-> enable a few more drivers as modules on omap2plus_defconfig,
-> this helps us getting more platforms working out of the box
-> by just building omap2plus_defconfig.
+On 10/25/2013 06:46 AM, Tomi Valkeinen wrote:
+> On 25/10/13 14:14, Nishanth Menon wrote:
 > 
-> Signed-off-by: Felipe Balbi <balbi@ti.com>
-> ---
+>> lcd2_pins: pinmux_lcd2_pins {
+>> +		pinctrl-single,pins = <
+>> +			0x20 (PIN_OUTPUT_PULLDOWN | MUX_MODE3)	/* gpio_40 */
+>> +			0x46 (PIN_OUTPUT_PULLUP | MUX_MODE3)	/* gpio_59 */
+>> +			0x56 (PIN_OUTPUT_PULLDOWN | MUX_MODE3)	/* gpio_104 */
+>> +		>;
+>>
+>> 3 pins are driven around 300uA at boot, even with display OFF -> which
+>> means wasted current that could have been optimized by hooking the pin
+>> to the dts node corresponding to the device and used by the driver
+>> appropriately.
 > 
-> Hi Tony,
+> One more clarification question.
 > 
-> would you consider enabling these drivers ? I didn't, yet,
-> make sure that these drivers won't cause PM regressions. Wanted
-> to make sure you'd be ok enabling so many of them.
+> The gpio 40 is used to enable powers for the picodlp. Shouldn't that one
+> have a pinctrl pull-down in any case? If it's left floating, and the
+> driver is not compiled in or doesn't start, the powers could get enabled
+> depending on sunspot, right?
+> 
+> And I guess the same goes for all gpios used to enable something.
+> 
+Fair question. The selection of pull up, gpio control needs to be
+balanced.
+if the peripheral in question has a regulator controlled supply, none
+of the pins would matter - driver can adequately sequence this to
+ensure there are no weird side-effects. in such a scenario, i'd have a
+default MODE3 with no pulls, sequence as follows:
+a) control gpio to required default level (disabled)
+b) control regulator
+c) set GPIO to enable.
 
-Sure, we should have all common drivers enabled, preferrably as
-loadable modules where possible.
+if the peripheral in question is always on and controlled with just a
+enable pin, it is safer to keep the pin muxed with weak pull.
 
-Probably at least MUSB gadgets need to be loadable modulees as at
-least I have my test setup in a rack with USB cables connected
-all the time. That way the PM tests can be done without the USB
-modules loaded.
+If the enable has no real functional impact without setting another
+pin (say power_on), or if any transient glitches on the line has no
+functional impact, I might go with no pull configuration.
 
-Or maybe we can just PM runtime suspend the USB drivers for PM
-tests?
 
+It all depends on the schematics and peripherals involved w.r.t how
+you'd optimally select the configuration.
+
+-- 
 Regards,
-
-Tony
+Nishanth Menon
