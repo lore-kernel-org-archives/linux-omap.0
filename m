@@ -1,91 +1,101 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 3/3] ARM: OMAP2: omap4-sdp: remove unneeded gpios from
- dss-common
-Date: Fri, 25 Oct 2013 14:17:14 +0300
-Message-ID: <526A533A.6080903@ti.com>
-References: <1382695658-18757-1-git-send-email-tomi.valkeinen@ti.com> <1382695658-18757-3-git-send-email-tomi.valkeinen@ti.com> <526A4585.30403@ti.com> <526A4708.7010309@ti.com> <526A4DEA.3050505@ti.com> <526A528C.2020204@ti.com>
+From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+Subject: Re: [PATCH v2 4/5] mtd: nand: omap2: Use devm_kzalloc
+Date: Fri, 25 Oct 2013 08:19:07 -0300
+Message-ID: <20131025111906.GC2489@localhost>
+References: <1382696277-9063-1-git-send-email-ezequiel.garcia@free-electrons.com>
+ <1382696277-9063-5-git-send-email-ezequiel.garcia@free-electrons.com>
+ <20980858CB6D3A4BAE95CA194937D5E73EA2AD60@DBDE04.ent.ti.com>
+ <20131025104246.GA2489@localhost>
+ <20980858CB6D3A4BAE95CA194937D5E73EA2AE0F@DBDE04.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="jKw6pxCpMlrOiJQrgkriuXJ1QW5NgAX1S"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:58318 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751201Ab3JYLRp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Oct 2013 07:17:45 -0400
-In-Reply-To: <526A528C.2020204@ti.com>
+Received: from top.free-electrons.com ([176.31.233.9]:54516 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751466Ab3JYLTS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Oct 2013 07:19:18 -0400
+Content-Disposition: inline
+In-Reply-To: <20980858CB6D3A4BAE95CA194937D5E73EA2AE0F@DBDE04.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
-Cc: Archit Taneja <archit@ti.com>, linux-arm-kernel@lists.infradead.org
+To: "Gupta, Pekon" <pekon@ti.com>
+Cc: Brian Norris <computersforpeace@gmail.com>, "Balbi, Felipe" <balbi@ti.com>, "marek.belisko@gmail.com" <marek.belisko@gmail.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
---jKw6pxCpMlrOiJQrgkriuXJ1QW5NgAX1S
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-On 25/10/13 14:14, Nishanth Menon wrote:
-
-> one additional angle before I forget - this is something we do as part
-> of power optimization - to identify pins which are programmed for a
-> pull in non-functional scenario as it has direct impact on idle power
-> numbers.
+On Fri, Oct 25, 2013 at 11:09:14AM +0000, Gupta, Pekon wrote:
+> > From: Ezequiel Garcia [mailto:ezequiel.garcia@free-electrons.com]
+> >=20
+> > Hm.. well the problem with that patch is that it's in the middle of=
+ an
+> > unrelated series. As I already told you, I think you should have pu=
+shed
+> > that as a one-patch fix. Have you seen that suggestion?
+> >=20
+> Yes, I know.. actually the original patch series, when it started som=
+ewhere
+> April (or before) is very different from the version v11 now :-).
+> This devm_ update was added in middle of v6-v7 version change
+> (Most of the changes since first version of this patchset is captured=
+ in=20
+> Cover-letter).
 >=20
-> For example patch #3 in this series
-> &omap4_pmx_core {
-> pinctrl-0
-> ...
-> 	&lcd2_pins
-> ..
-> }
-> &lcd2_pins
 >=20
-> lcd2_pins: pinmux_lcd2_pins {
-> +		pinctrl-single,pins =3D <
-> +			0x20 (PIN_OUTPUT_PULLDOWN | MUX_MODE3)	/* gpio_40 */
-> +			0x46 (PIN_OUTPUT_PULLUP | MUX_MODE3)	/* gpio_59 */
-> +			0x56 (PIN_OUTPUT_PULLDOWN | MUX_MODE3)	/* gpio_104 */
-> +		>;
+
+Well, in order to *avoid* having a patchset flowing for 5 months and 11
+revisions you coudl try to keep series small. You could have that singl=
+e
+fix merged if you send it alone. Not sure why you insist in *not* doing
+that.
+
+> > On the other side, you're fixing too many things in that single pat=
+ch,
+> > for my taste. Maybe I'm not the smarter developer, but going throug=
+h
+> > that patch is not easy to catch if there's no mistake done.
+> >=20
+> > Usually if it's possible to split a patch (maintaining consistency)=
+ it makes
+> > the reviewing process easier.
+> > If you'd rather send this devm_xxx change yourself that's fine by m=
+e,
+> >=20
+> Ahh nothing like that.. Brian had already reviewed these couple of ti=
+mes
+
+Ah, good. In that case you should add "Reviewed-by" if Brian already
+reviewed it. IMHO, the patch could be cleaner and the commit message
+could be better.
+
+> And it was only [Patch 04/10] which was last one remaining..
+
+Yes, and because you added *another* patch to the series you keep
+spinning patchset versions.
+
+> I just said it because this might show up in merge conflict .. or rej=
+ects..
 >=20
-> 3 pins are driven around 300uA at boot, even with display OFF -> which
-> means wasted current that could have been optimized by hooking the pin
-> to the dts node corresponding to the device and used by the driver
-> appropriately.
+> > but *please* split the patch in two and write proper commit message=
+s.
+> >=20
+> > Anyway: this is just a silly change, the important one is the other
+> > nand_scan_ident() fix. Could you help me review that?
+> >=20
+> > I'm interested in knowing how will that work with 8-bit and 16-bit =
+devices.
+> > --
+> Yes, I'm just preparing the scenario where BUSWIDTH_AUTO would fail..
+> unless you do GPMC driver changes also.. same issue was found by
+> Matthieu CASTET (matthieu.castet@parrot.com)
+> (please see my other mail)
 >=20
-> Unfortunately, folks feel simplifying the driver is traditionally a
-> better alternative but with a 400 odd pins on a typical SoC of today,
-> these defaults add up and end user tends to suffer with bad overall
-> power numbers :(..
 
-Good point. I guess that also makes my point of having default values
-for GPIOs a bit silly. Driving the GPIO high by default would be ever
-worse than the mux pull-up, I believe.
-
- Tomi
-
-
-
---jKw6pxCpMlrOiJQrgkriuXJ1QW5NgAX1S
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJSalM6AAoJEPo9qoy8lh71JEEQAI+OORcKAXlSDkDmqMMecdLK
-ATNTcm4vkB+5NeuCxXdlTkw884fCqFkrCj+Xmtwjz5BKw7/RJfDblHhaOgMEPOYH
-xXSGMgasai8J7TgFeJP0NdIkjsksKn+YXMUujdGvMQUEut4Hdwk7OHTW4/Z1MSjR
-tdefIN/k9Rnn8p8sgjkjgbrgUCXQhC8Kx6M3O/BeAkUKyrZfiw7YbAs8YHTuSm13
-wKP/QaUZj1ryo7nWLpNcp8hLsTF+D6pWopgncYfkl49AT2yWIC6pLv74Lkh0IJY/
-5nESjFIWcJUBZERH17k7fJlVS2nMm+cSsOvK80v3mQ6f9nwpITi1uKKt8MJWzgK1
-nrB1HMYSGRu5Lp7GCDDIBbvF0WTBMeaz1XtvwTDDviMTBCYt1r3sHgQcweHbeDhK
-5/q66u5HUbIFQ8+bbhp27t0EMG/ASU4cCHmucm8eavaqYeJi+W0D8duUFNENpI2Y
-ihj5ikzHbR7X61ybbAmjmqroY0mJrIZZRNooVZDJq6aw7uthN+r0SZe+v552nBdE
-Y2gARm+UhUI1njyNtUQe7JZ88bvl++IMbAe7bWaplwfIhSxs7FCxMOgrzWanXZ5u
-x4NRcjwlv+Vof/1boUkul1knvpuYMI9pKIy+M21peZ3rUAWigbYN/QNr5g4+bRKo
-EA/JS6xsOyDspNZmGQSI
-=HIRi
------END PGP SIGNATURE-----
-
---jKw6pxCpMlrOiJQrgkriuXJ1QW5NgAX1S--
+OK, let's try to focus in that patch alone, I'd like to move forward.
+--=20
+Ezequiel Garc=C3=ADa, Free Electrons
+Embedded Linux, Kernel and Android Engineering
+http://free-electrons.com
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
