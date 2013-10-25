@@ -1,36 +1,43 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH v4 0/2] ARM: dts: Beaglebone MMC fixes
-Date: Fri, 25 Oct 2013 04:10:54 -0500
-Message-ID: <526A359E.1000605@ti.com>
-References: <1379010935-25943-1-git-send-email-koen@dominion.thruhere.net> <5238596F.9080806@baylibre.com> <20131025090443.GB5474@netboy>
+From: Wei Yongjun <weiyj.lk@gmail.com>
+Subject: [PATCH] ARM: OMAP2+: smsc911x: fix return value check in gpmc_smsc911x_init()
+Date: Fri, 25 Oct 2013 17:31:51 +0800
+Message-ID: <CAPgLHd9V0=GHGYgfuL7cCkzmZT7HVzuNg0iwwsOcipbnJ90bVw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:48962 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751967Ab3JYJLf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 25 Oct 2013 05:11:35 -0400
-In-Reply-To: <20131025090443.GB5474@netboy>
+Received: from mail-ea0-f170.google.com ([209.85.215.170]:48451 "EHLO
+	mail-ea0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751967Ab3JYJbw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Oct 2013 05:31:52 -0400
+Received: by mail-ea0-f170.google.com with SMTP id q10so360458eaj.15
+        for <linux-omap@vger.kernel.org>; Fri, 25 Oct 2013 02:31:51 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Richard Cochran <richardcochran@gmail.com>, Benoit Cousson <bcousson@baylibre.com>
-Cc: Koen Kooi <koen@dominion.thruhere.net>, linux-kernel@vger.kernel.org, tony@atomide.com, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ijc+devicetree@hellion.org.uk, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: khilman@deeprootsystems.com, tony@atomide.com, linux@arm.linux.org.uk
+Cc: yongjun_wei@trendmicro.com.cn, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 10/25/2013 04:04 AM, Richard Cochran wrote:
-> On Tue, Sep 17, 2013 at 03:30:23PM +0200, Benoit Cousson wrote:
->>
->> I've just applied it on top of Joel's one.
-> 
-> Benoit,
-> 
-> Can you tell me where to find your git tree so that I can follow these
-> patches' progress?
-> 
+From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 
-https://git.kernel.org/cgit/linux/kernel/git/bcousson/linux-omap-dt.git/log/?h=for_3.13/dts
+In case of error, the function platform_device_register_resndata()
+returns ERR_PTR() and never returns NULL. The NULL test in the return
+value check should be replaced with IS_ERR().
 
+Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+---
+ arch/arm/mach-omap2/gpmc-smsc911x.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
--- 
-Regards,
-Nishanth Menon
+diff --git a/arch/arm/mach-omap2/gpmc-smsc911x.c b/arch/arm/mach-omap2/gpmc-smsc911x.c
+index ef99011..2757504 100644
+--- a/arch/arm/mach-omap2/gpmc-smsc911x.c
++++ b/arch/arm/mach-omap2/gpmc-smsc911x.c
+@@ -83,7 +83,7 @@ void __init gpmc_smsc911x_init(struct omap_smsc911x_platform_data *gpmc_cfg)
+ 	pdev = platform_device_register_resndata(NULL, "smsc911x", gpmc_cfg->id,
+ 		 gpmc_smsc911x_resources, ARRAY_SIZE(gpmc_smsc911x_resources),
+ 		 &gpmc_smsc911x_config, sizeof(gpmc_smsc911x_config));
+-	if (!pdev) {
++	if (IS_ERR(pdev)) {
+ 		pr_err("Unable to register platform device\n");
+ 		gpio_free(gpmc_cfg->gpio_reset);
+ 		goto free2;
+
