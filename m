@@ -1,91 +1,75 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 1/3] ARM: dts: omap4-panda: add DPI pinmuxing
-Date: Fri, 25 Oct 2013 13:07:36 +0300
-Message-ID: <1382695658-18757-1-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 2/3] ARM: dts: omap4-sdp: add LCD pinmuxing
+Date: Fri, 25 Oct 2013 13:07:37 +0300
+Message-ID: <1382695658-18757-2-git-send-email-tomi.valkeinen@ti.com>
+References: <1382695658-18757-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:55964 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753001Ab3JYKIO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Oct 2013 06:08:14 -0400
+Received: from bear.ext.ti.com ([192.94.94.41]:40333 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753010Ab3JYKIQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 25 Oct 2013 06:08:16 -0400
+In-Reply-To: <1382695658-18757-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 Cc: linux-arm-kernel@lists.infradead.org, Archit Taneja <archit@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-New u-boot versions no longer set the pinmuxing for Panda's DPI output,
-and the muxing has to be done in the .dts file.
+Add pinmuxing for the LCD panels.
 
-Add pinmuxing for DPI and TFP410. Without these, the DVI output on Panda
-does not work with recent u-boot.
+Both panels have a reset GPIO, but the second one has some extra
+complexity: some boards have a PicoDLP projector, which shares resources
+with the LCD2. We don't currently support switching between the PicoDL
+and the LCD2, so we use pin pull-ups and pull-downs to select the LCD2.
+
+GPIO40 is pulled down, which disables the PicoDLP power. GPIO59 is
+pulled up, which selects the LCD2.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- arch/arm/boot/dts/omap4-panda-common.dtsi | 43 +++++++++++++++++++++++++++++++
- 1 file changed, 43 insertions(+)
+ arch/arm/boot/dts/omap4-sdp.dts | 21 +++++++++++++++++++++
+ 1 file changed, 21 insertions(+)
 
-diff --git a/arch/arm/boot/dts/omap4-panda-common.dtsi b/arch/arm/boot/dts/omap4-panda-common.dtsi
-index faa95b5..fcb8856 100644
---- a/arch/arm/boot/dts/omap4-panda-common.dtsi
-+++ b/arch/arm/boot/dts/omap4-panda-common.dtsi
-@@ -129,6 +129,8 @@
- 			&twl6040_pins
- 			&mcpdm_pins
- 			&mcbsp1_pins
-+			&dss_dpi_pins
-+			&tfp410_pins
+diff --git a/arch/arm/boot/dts/omap4-sdp.dts b/arch/arm/boot/dts/omap4-sdp.dts
+index 7951b4e..ed14a7a 100644
+--- a/arch/arm/boot/dts/omap4-sdp.dts
++++ b/arch/arm/boot/dts/omap4-sdp.dts
+@@ -166,6 +166,8 @@
+ 			&mcbsp2_pins
  			&dss_hdmi_pins
  			&tpd12s015_pins
- 			&hsusbb1_pins
-@@ -166,6 +168,47 @@
++			&lcd1_pins
++			&lcd2_pins
+ 	>;
+ 
+ 	uart2_pins: pinmux_uart2_pins {
+@@ -268,6 +270,25 @@
  		>;
  	};
  
-+	dss_dpi_pins: pinmux_dss_dpi_pins {
++	lcd1_pins: pinmux_lcd1_pins {
 +		pinctrl-single,pins = <
-+			0x122 (PIN_OUTPUT | MUX_MODE5)	/* dispc2_data23 */
-+			0x124 (PIN_OUTPUT | MUX_MODE5) 	/* dispc2_data22 */
-+			0x126 (PIN_OUTPUT | MUX_MODE5)	/* dispc2_data21 */
-+			0x128 (PIN_OUTPUT | MUX_MODE5)	/* dispc2_data20 */
-+			0x12a (PIN_OUTPUT | MUX_MODE5)	/* dispc2_data19 */
-+			0x12c (PIN_OUTPUT | MUX_MODE5)	/* dispc2_data18 */
-+			0x12e (PIN_OUTPUT | MUX_MODE5)	/* dispc2_data15 */
-+			0x130 (PIN_OUTPUT | MUX_MODE5)	/* dispc2_data14 */
-+			0x132 (PIN_OUTPUT | MUX_MODE5)	/* dispc2_data13 */
-+			0x134 (PIN_OUTPUT | MUX_MODE5)	/* dispc2_data12 */
-+			0x136 (PIN_OUTPUT | MUX_MODE5)	/* dispc2_data11 */
-+
-+			0x174 (PIN_OUTPUT | MUX_MODE5)	/* dispc2_data10 */
-+			0x176 (PIN_OUTPUT | MUX_MODE5)	/* dispc2_data9 */
-+			0x178 (PIN_OUTPUT | MUX_MODE5)	/* dispc2_data16 */
-+			0x17a (PIN_OUTPUT | MUX_MODE5)	/* dispc2_data17 */
-+			0x17c (PIN_OUTPUT | MUX_MODE5)	/* dispc2_hsync */
-+			0x17e (PIN_OUTPUT | MUX_MODE5)	/* dispc2_pclk */
-+			0x180 (PIN_OUTPUT | MUX_MODE5)	/* dispc2_vsync */
-+			0x182 (PIN_OUTPUT | MUX_MODE5)	/* dispc2_de */
-+			0x184 (PIN_OUTPUT | MUX_MODE5)	/* dispc2_data8 */
-+			0x186 (PIN_OUTPUT | MUX_MODE5)	/* dispc2_data7 */
-+			0x188 (PIN_OUTPUT | MUX_MODE5)	/* dispc2_data6 */
-+			0x18a (PIN_OUTPUT | MUX_MODE5)	/* dispc2_data5 */
-+			0x18c (PIN_OUTPUT | MUX_MODE5)	/* dispc2_data4 */
-+			0x18e (PIN_OUTPUT | MUX_MODE5)	/* dispc2_data3 */
-+
-+			0x190 (PIN_OUTPUT | MUX_MODE5)	/* dispc2_data2 */
-+			0x192 (PIN_OUTPUT | MUX_MODE5)	/* dispc2_data1 */
-+			0x194 (PIN_OUTPUT | MUX_MODE5)	/* dispc2_data0 */
++			0x52 (PIN_OUTPUT_PULLDOWN | MUX_MODE3)	/* gpio_102 */
 +		>;
 +	};
 +
-+	tfp410_pins: pinmux_tfp410_pins {
++	/*
++	 * GPIO 59 is used to switch between LCD2 and PicoDLP. We don't support
++	 * the switching, so set the pin to PULLUP which enables the LCD2.
++	 * GPIO 40 enables power to PicoDLP. Use PULLDOWN to disable power.
++	 */
++	lcd2_pins: pinmux_lcd2_pins {
 +		pinctrl-single,pins = <
-+			0x144 (PIN_OUTPUT | MUX_MODE3)	/* gpio_0 */
++			0x20 (PIN_OUTPUT_PULLDOWN | MUX_MODE3)	/* gpio_40 */
++			0x46 (PIN_OUTPUT_PULLUP | MUX_MODE3)	/* gpio_59 */
++			0x56 (PIN_OUTPUT_PULLDOWN | MUX_MODE3)	/* gpio_104 */
 +		>;
 +	};
 +
- 	dss_hdmi_pins: pinmux_dss_hdmi_pins {
+ 	i2c1_pins: pinmux_i2c1_pins {
  		pinctrl-single,pins = <
- 			0x5a (PIN_INPUT_PULLUP | MUX_MODE0)	/* hdmi_cec.hdmi_cec */
+ 			0xe2 (PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c1_scl */
 -- 
 1.8.1.2
 
