@@ -1,394 +1,287 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv9 18/43] CLK: TI: add dra7 clock init file
-Date: Fri, 25 Oct 2013 18:57:12 +0300
-Message-ID: <1382716658-6964-19-git-send-email-t-kristo@ti.com>
+From: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
+Subject: [PATCHv9 20/43] CLK: TI: add interface clock support for OMAP3
+Date: Fri, 25 Oct 2013 18:57:14 +0300
+Message-ID: <1382716658-6964-21-git-send-email-t-kristo@ti.com>
 References: <1382716658-6964-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:37612 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751542Ab3JYP7Z (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 25 Oct 2013 11:59:25 -0400
-In-Reply-To: <1382716658-6964-1-git-send-email-t-kristo@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1382716658-6964-1-git-send-email-t-kristo-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org, mturquette-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, nm@ti.com, bcousson@baylibre.com, rnayak@ti.com, mturquette@linaro.org
-Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-clk-7xx.c now contains the clock init functionality for dra7, including
-DT clock registration and adding of static clkdev entries.
+OMAP3 has interface clocks in addition to functional clocks, which
+require special handling for the autoidle and idle status register
+offsets mainly.
 
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
-Tested-by: Nishanth Menon <nm@ti.com>
-Acked-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
 ---
- drivers/clk/ti/Makefile  |    1 +
- drivers/clk/ti/clk-7xx.c |  332 ++++++++++++++++++++++++++++++++++++++++++++++
- include/linux/clk/ti.h   |    1 +
- 3 files changed, 334 insertions(+)
- create mode 100644 drivers/clk/ti/clk-7xx.c
+ .../devicetree/bindings/clock/ti/interface.txt     |   54 ++++++++
+ arch/arm/mach-omap2/clock.h                        |    5 -
+ drivers/clk/ti/Makefile                            |    1 +
+ drivers/clk/ti/interface.c                         |  139 ++++++++++++++++++++
+ include/linux/clk/ti.h                             |    5 +
+ 5 files changed, 199 insertions(+), 5 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/clock/ti/interface.txt
+ create mode 100644 drivers/clk/ti/interface.c
 
+diff --git a/Documentation/devicetree/bindings/clock/ti/interface.txt b/Documentation/devicetree/bindings/clock/ti/interface.txt
+new file mode 100644
+index 0000000..064e8ca
+--- /dev/null
++++ b/Documentation/devicetree/bindings/clock/ti/interface.txt
+@@ -0,0 +1,54 @@
++Binding for Texas Instruments interface clock.
++
++Binding status: Unstable - ABI compatibility may be broken in the future
++
++This binding uses the common clock binding[1]. This clock is
++quite much similar to the basic gate-clock [2], however,
++it supports a number of additional features, including
++companion clock finding (match corresponding functional gate
++clock) and hardware autoidle enable / disable.
++
++[1] Documentation/devicetree/bindings/clock/clock-bindings.txt
++[2] Documentation/devicetree/bindings/clock/gate-clock.txt
++
++Required properties:
++- compatible : shall be one of:
++  "ti,omap3-interface-clock" - basic OMAP3 interface clock
++  "ti,omap3-no-wait-interface-clock" - interface clock which has no hardware
++				       capability for waiting clock to be ready
++  "ti,omap3-hsotgusb-interface-clock" - interface clock with USB specific HW
++					handling
++  "ti,omap3-dss-interface-clock" - interface clock with DSS specific HW handling
++  "ti,omap3-ssi-interface-clock" - interface clock with SSI specific HW handling
++  "ti,am35xx-interface-clock" - interface clock with AM35xx specific HW handling
++- #clock-cells : from common clock binding; shall be set to 0
++- clocks : link to phandle of parent clock
++- reg : base address for the control register
++
++Optional properties:
++- ti,bit-shift : bit shift for the bit enabling/disabling the clock (default 0)
++
++Examples:
++	aes1_ick: aes1_ick@48004a14 {
++		#clock-cells = <0>;
++		compatible = "ti,omap3-interface-clock";
++		clocks = <&security_l4_ick2>;
++		reg = <0x48004a14 0x4>;
++		ti,bit-shift = <3>;
++	};
++
++	cam_ick: cam_ick@48004f10 {
++		#clock-cells = <0>;
++		compatible = "ti,omap3-no-wait-interface-clock";
++		clocks = <&l4_ick>;
++		reg = <0x48004f10 0x4>;
++		ti,bit-shift = <0>;
++	};
++
++	ssi_ick_3430es2: ssi_ick_3430es2@48004a10 {
++		#clock-cells = <0>;
++		compatible = "ti,omap3-ssi-interface-clock";
++		clocks = <&ssi_l4_ick>;
++		reg = <0x48004a10 0x4>;
++		ti,bit-shift = <0>;
++	};
+diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
+index b33f1e8..d1b227e 100644
+--- a/arch/arm/mach-omap2/clock.h
++++ b/arch/arm/mach-omap2/clock.h
+@@ -266,13 +266,8 @@ extern const struct clksel_rate gfx_l3_rates[];
+ extern const struct clksel_rate dsp_ick_rates[];
+ extern struct clk dummy_ck;
+ 
+-extern const struct clk_hw_omap_ops clkhwops_iclk;
+ extern const struct clk_hw_omap_ops clkhwops_omap3430es2_ssi_wait;
+-extern const struct clk_hw_omap_ops clkhwops_omap3430es2_iclk_ssi_wait;
+-extern const struct clk_hw_omap_ops clkhwops_omap3430es2_iclk_dss_usbhost_wait;
+-extern const struct clk_hw_omap_ops clkhwops_omap3430es2_iclk_hsotgusb_wait;
+ extern const struct clk_hw_omap_ops clkhwops_omap3430es2_hsotgusb_wait;
+-extern const struct clk_hw_omap_ops clkhwops_am35xx_ipss_wait;
+ extern const struct clk_hw_omap_ops clkhwops_apll54;
+ extern const struct clk_hw_omap_ops clkhwops_apll96;
+ extern const struct clk_hw_omap_ops clkhwops_omap2xxx_dpll;
 diff --git a/drivers/clk/ti/Makefile b/drivers/clk/ti/Makefile
-index 3d71e1e..f8ae4b5 100644
+index 7eb6f2b..e42a703 100644
 --- a/drivers/clk/ti/Makefile
 +++ b/drivers/clk/ti/Makefile
-@@ -4,4 +4,5 @@ obj-y					+= clk.o dpll.o autoidle.o divider.o \
+@@ -3,6 +3,7 @@ obj-y					+= clk.o dpll.o autoidle.o divider.o \
+ 					   fixed-factor.o gate.o clockdomain.o \
  					   composite.o mux.o apll.o
+ obj-$(CONFIG_SOC_AM33XX)		+= clk-33xx.o
++obj-$(CONFIG_ARCH_OMAP3)		+= interface.o
  obj-$(CONFIG_ARCH_OMAP4)		+= clk-44xx.o
  obj-$(CONFIG_SOC_OMAP5)			+= clk-54xx.o
-+obj-$(CONFIG_SOC_DRA7XX)		+= clk-7xx.o
- endif
-diff --git a/drivers/clk/ti/clk-7xx.c b/drivers/clk/ti/clk-7xx.c
+ obj-$(CONFIG_SOC_DRA7XX)		+= clk-7xx.o
+diff --git a/drivers/clk/ti/interface.c b/drivers/clk/ti/interface.c
 new file mode 100644
-index 0000000..9977653
+index 0000000..c5f25d9
 --- /dev/null
-+++ b/drivers/clk/ti/clk-7xx.c
-@@ -0,0 +1,332 @@
++++ b/drivers/clk/ti/interface.c
+@@ -0,0 +1,139 @@
 +/*
-+ * DRA7 Clock init
++ * OMAP interface clock support
 + *
 + * Copyright (C) 2013 Texas Instruments, Inc.
 + *
-+ * Tero Kristo (t-kristo@ti.com)
++ * Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
 + *
 + * This program is free software; you can redistribute it and/or modify
 + * it under the terms of the GNU General Public License version 2 as
 + * published by the Free Software Foundation.
++ *
++ * This program is distributed "as is" WITHOUT ANY WARRANTY of any
++ * kind, whether express or implied; without even the implied warranty
++ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
 + */
 +
-+#include <linux/kernel.h>
-+#include <linux/list.h>
-+#include <linux/clk-private.h>
-+#include <linux/clkdev.h>
++#include <linux/clk-provider.h>
++#include <linux/slab.h>
++#include <linux/of.h>
++#include <linux/of_address.h>
 +#include <linux/clk/ti.h>
 +
-+#define DRA7_DPLL_ABE_DEFFREQ				361267200
-+#define DRA7_DPLL_GMAC_DEFFREQ				1000000000
-+
-+
-+static struct ti_dt_clk dra7xx_clks[] = {
-+	DT_CLK(NULL, "atl_clkin0_ck", "atl_clkin0_ck"),
-+	DT_CLK(NULL, "atl_clkin1_ck", "atl_clkin1_ck"),
-+	DT_CLK(NULL, "atl_clkin2_ck", "atl_clkin2_ck"),
-+	DT_CLK(NULL, "atlclkin3_ck", "atlclkin3_ck"),
-+	DT_CLK(NULL, "hdmi_clkin_ck", "hdmi_clkin_ck"),
-+	DT_CLK(NULL, "mlb_clkin_ck", "mlb_clkin_ck"),
-+	DT_CLK(NULL, "mlbp_clkin_ck", "mlbp_clkin_ck"),
-+	DT_CLK(NULL, "pciesref_acs_clk_ck", "pciesref_acs_clk_ck"),
-+	DT_CLK(NULL, "ref_clkin0_ck", "ref_clkin0_ck"),
-+	DT_CLK(NULL, "ref_clkin1_ck", "ref_clkin1_ck"),
-+	DT_CLK(NULL, "ref_clkin2_ck", "ref_clkin2_ck"),
-+	DT_CLK(NULL, "ref_clkin3_ck", "ref_clkin3_ck"),
-+	DT_CLK(NULL, "rmii_clk_ck", "rmii_clk_ck"),
-+	DT_CLK(NULL, "sdvenc_clkin_ck", "sdvenc_clkin_ck"),
-+	DT_CLK(NULL, "secure_32k_clk_src_ck", "secure_32k_clk_src_ck"),
-+	DT_CLK(NULL, "sys_32k_ck", "sys_32k_ck"),
-+	DT_CLK(NULL, "virt_12000000_ck", "virt_12000000_ck"),
-+	DT_CLK(NULL, "virt_13000000_ck", "virt_13000000_ck"),
-+	DT_CLK(NULL, "virt_16800000_ck", "virt_16800000_ck"),
-+	DT_CLK(NULL, "virt_19200000_ck", "virt_19200000_ck"),
-+	DT_CLK(NULL, "virt_20000000_ck", "virt_20000000_ck"),
-+	DT_CLK(NULL, "virt_26000000_ck", "virt_26000000_ck"),
-+	DT_CLK(NULL, "virt_27000000_ck", "virt_27000000_ck"),
-+	DT_CLK(NULL, "virt_38400000_ck", "virt_38400000_ck"),
-+	DT_CLK(NULL, "sys_clkin1", "sys_clkin1"),
-+	DT_CLK(NULL, "sys_clkin2", "sys_clkin2"),
-+	DT_CLK(NULL, "usb_otg_clkin_ck", "usb_otg_clkin_ck"),
-+	DT_CLK(NULL, "video1_clkin_ck", "video1_clkin_ck"),
-+	DT_CLK(NULL, "video1_m2_clkin_ck", "video1_m2_clkin_ck"),
-+	DT_CLK(NULL, "video2_clkin_ck", "video2_clkin_ck"),
-+	DT_CLK(NULL, "video2_m2_clkin_ck", "video2_m2_clkin_ck"),
-+	DT_CLK(NULL, "abe_dpll_sys_clk_mux", "abe_dpll_sys_clk_mux"),
-+	DT_CLK(NULL, "abe_dpll_bypass_clk_mux", "abe_dpll_bypass_clk_mux"),
-+	DT_CLK(NULL, "abe_dpll_clk_mux", "abe_dpll_clk_mux"),
-+	DT_CLK(NULL, "dpll_abe_ck", "dpll_abe_ck"),
-+	DT_CLK(NULL, "dpll_abe_x2_ck", "dpll_abe_x2_ck"),
-+	DT_CLK(NULL, "dpll_abe_m2x2_ck", "dpll_abe_m2x2_ck"),
-+	DT_CLK(NULL, "abe_24m_fclk", "abe_24m_fclk"),
-+	DT_CLK(NULL, "abe_clk", "abe_clk"),
-+	DT_CLK(NULL, "aess_fclk", "aess_fclk"),
-+	DT_CLK(NULL, "abe_giclk_div", "abe_giclk_div"),
-+	DT_CLK(NULL, "abe_lp_clk_div", "abe_lp_clk_div"),
-+	DT_CLK(NULL, "abe_sys_clk_div", "abe_sys_clk_div"),
-+	DT_CLK(NULL, "adc_gfclk_mux", "adc_gfclk_mux"),
-+	DT_CLK(NULL, "dpll_pcie_ref_ck", "dpll_pcie_ref_ck"),
-+	DT_CLK(NULL, "dpll_pcie_ref_m2ldo_ck", "dpll_pcie_ref_m2ldo_ck"),
-+	DT_CLK(NULL, "apll_pcie_ck", "apll_pcie_ck"),
-+	DT_CLK(NULL, "apll_pcie_clkvcoldo", "apll_pcie_clkvcoldo"),
-+	DT_CLK(NULL, "apll_pcie_clkvcoldo_div", "apll_pcie_clkvcoldo_div"),
-+	DT_CLK(NULL, "apll_pcie_m2_ck", "apll_pcie_m2_ck"),
-+	DT_CLK(NULL, "sys_clk1_dclk_div", "sys_clk1_dclk_div"),
-+	DT_CLK(NULL, "sys_clk2_dclk_div", "sys_clk2_dclk_div"),
-+	DT_CLK(NULL, "dpll_abe_m2_ck", "dpll_abe_m2_ck"),
-+	DT_CLK(NULL, "per_abe_x1_dclk_div", "per_abe_x1_dclk_div"),
-+	DT_CLK(NULL, "dpll_abe_m3x2_ck", "dpll_abe_m3x2_ck"),
-+	DT_CLK(NULL, "dpll_core_ck", "dpll_core_ck"),
-+	DT_CLK(NULL, "dpll_core_x2_ck", "dpll_core_x2_ck"),
-+	DT_CLK(NULL, "dpll_core_h12x2_ck", "dpll_core_h12x2_ck"),
-+	DT_CLK(NULL, "mpu_dpll_hs_clk_div", "mpu_dpll_hs_clk_div"),
-+	DT_CLK(NULL, "dpll_mpu_ck", "dpll_mpu_ck"),
-+	DT_CLK(NULL, "dpll_mpu_m2_ck", "dpll_mpu_m2_ck"),
-+	DT_CLK(NULL, "mpu_dclk_div", "mpu_dclk_div"),
-+	DT_CLK(NULL, "dsp_dpll_hs_clk_div", "dsp_dpll_hs_clk_div"),
-+	DT_CLK(NULL, "dpll_dsp_ck", "dpll_dsp_ck"),
-+	DT_CLK(NULL, "dpll_dsp_m2_ck", "dpll_dsp_m2_ck"),
-+	DT_CLK(NULL, "dsp_gclk_div", "dsp_gclk_div"),
-+	DT_CLK(NULL, "iva_dpll_hs_clk_div", "iva_dpll_hs_clk_div"),
-+	DT_CLK(NULL, "dpll_iva_ck", "dpll_iva_ck"),
-+	DT_CLK(NULL, "dpll_iva_m2_ck", "dpll_iva_m2_ck"),
-+	DT_CLK(NULL, "iva_dclk", "iva_dclk"),
-+	DT_CLK(NULL, "dpll_gpu_ck", "dpll_gpu_ck"),
-+	DT_CLK(NULL, "dpll_gpu_m2_ck", "dpll_gpu_m2_ck"),
-+	DT_CLK(NULL, "gpu_dclk", "gpu_dclk"),
-+	DT_CLK(NULL, "dpll_core_m2_ck", "dpll_core_m2_ck"),
-+	DT_CLK(NULL, "core_dpll_out_dclk_div", "core_dpll_out_dclk_div"),
-+	DT_CLK(NULL, "dpll_ddr_ck", "dpll_ddr_ck"),
-+	DT_CLK(NULL, "dpll_ddr_m2_ck", "dpll_ddr_m2_ck"),
-+	DT_CLK(NULL, "emif_phy_dclk_div", "emif_phy_dclk_div"),
-+	DT_CLK(NULL, "dpll_gmac_ck", "dpll_gmac_ck"),
-+	DT_CLK(NULL, "dpll_gmac_m2_ck", "dpll_gmac_m2_ck"),
-+	DT_CLK(NULL, "gmac_250m_dclk_div", "gmac_250m_dclk_div"),
-+	DT_CLK(NULL, "video2_dclk_div", "video2_dclk_div"),
-+	DT_CLK(NULL, "video1_dclk_div", "video1_dclk_div"),
-+	DT_CLK(NULL, "hdmi_dclk_div", "hdmi_dclk_div"),
-+	DT_CLK(NULL, "per_dpll_hs_clk_div", "per_dpll_hs_clk_div"),
-+	DT_CLK(NULL, "dpll_per_ck", "dpll_per_ck"),
-+	DT_CLK(NULL, "dpll_per_m2_ck", "dpll_per_m2_ck"),
-+	DT_CLK(NULL, "func_96m_aon_dclk_div", "func_96m_aon_dclk_div"),
-+	DT_CLK(NULL, "usb_dpll_hs_clk_div", "usb_dpll_hs_clk_div"),
-+	DT_CLK(NULL, "dpll_usb_ck", "dpll_usb_ck"),
-+	DT_CLK(NULL, "dpll_usb_m2_ck", "dpll_usb_m2_ck"),
-+	DT_CLK(NULL, "l3init_480m_dclk_div", "l3init_480m_dclk_div"),
-+	DT_CLK(NULL, "usb_otg_dclk_div", "usb_otg_dclk_div"),
-+	DT_CLK(NULL, "sata_dclk_div", "sata_dclk_div"),
-+	DT_CLK(NULL, "dpll_pcie_ref_m2_ck", "dpll_pcie_ref_m2_ck"),
-+	DT_CLK(NULL, "pcie2_dclk_div", "pcie2_dclk_div"),
-+	DT_CLK(NULL, "pcie_dclk_div", "pcie_dclk_div"),
-+	DT_CLK(NULL, "emu_dclk_div", "emu_dclk_div"),
-+	DT_CLK(NULL, "secure_32k_dclk_div", "secure_32k_dclk_div"),
-+	DT_CLK(NULL, "eve_dpll_hs_clk_div", "eve_dpll_hs_clk_div"),
-+	DT_CLK(NULL, "dpll_eve_ck", "dpll_eve_ck"),
-+	DT_CLK(NULL, "dpll_eve_m2_ck", "dpll_eve_m2_ck"),
-+	DT_CLK(NULL, "eve_dclk_div", "eve_dclk_div"),
-+	DT_CLK(NULL, "clkoutmux0_clk_mux", "clkoutmux0_clk_mux"),
-+	DT_CLK(NULL, "clkoutmux1_clk_mux", "clkoutmux1_clk_mux"),
-+	DT_CLK(NULL, "clkoutmux2_clk_mux", "clkoutmux2_clk_mux"),
-+	DT_CLK(NULL, "custefuse_sys_gfclk_div", "custefuse_sys_gfclk_div"),
-+	DT_CLK(NULL, "dpll_core_h13x2_ck", "dpll_core_h13x2_ck"),
-+	DT_CLK(NULL, "dpll_core_h14x2_ck", "dpll_core_h14x2_ck"),
-+	DT_CLK(NULL, "dpll_core_h22x2_ck", "dpll_core_h22x2_ck"),
-+	DT_CLK(NULL, "dpll_core_h23x2_ck", "dpll_core_h23x2_ck"),
-+	DT_CLK(NULL, "dpll_core_h24x2_ck", "dpll_core_h24x2_ck"),
-+	DT_CLK(NULL, "dpll_ddr_x2_ck", "dpll_ddr_x2_ck"),
-+	DT_CLK(NULL, "dpll_ddr_h11x2_ck", "dpll_ddr_h11x2_ck"),
-+	DT_CLK(NULL, "dpll_dsp_x2_ck", "dpll_dsp_x2_ck"),
-+	DT_CLK(NULL, "dpll_dsp_m3x2_ck", "dpll_dsp_m3x2_ck"),
-+	DT_CLK(NULL, "dpll_gmac_x2_ck", "dpll_gmac_x2_ck"),
-+	DT_CLK(NULL, "dpll_gmac_h11x2_ck", "dpll_gmac_h11x2_ck"),
-+	DT_CLK(NULL, "dpll_gmac_h12x2_ck", "dpll_gmac_h12x2_ck"),
-+	DT_CLK(NULL, "dpll_gmac_h13x2_ck", "dpll_gmac_h13x2_ck"),
-+	DT_CLK(NULL, "dpll_gmac_m3x2_ck", "dpll_gmac_m3x2_ck"),
-+	DT_CLK(NULL, "dpll_per_x2_ck", "dpll_per_x2_ck"),
-+	DT_CLK(NULL, "dpll_per_h11x2_ck", "dpll_per_h11x2_ck"),
-+	DT_CLK(NULL, "dpll_per_h12x2_ck", "dpll_per_h12x2_ck"),
-+	DT_CLK(NULL, "dpll_per_h13x2_ck", "dpll_per_h13x2_ck"),
-+	DT_CLK(NULL, "dpll_per_h14x2_ck", "dpll_per_h14x2_ck"),
-+	DT_CLK(NULL, "dpll_per_m2x2_ck", "dpll_per_m2x2_ck"),
-+	DT_CLK(NULL, "dpll_usb_clkdcoldo", "dpll_usb_clkdcoldo"),
-+	DT_CLK(NULL, "eve_clk", "eve_clk"),
-+	DT_CLK(NULL, "func_128m_clk", "func_128m_clk"),
-+	DT_CLK(NULL, "func_12m_fclk", "func_12m_fclk"),
-+	DT_CLK(NULL, "func_24m_clk", "func_24m_clk"),
-+	DT_CLK(NULL, "func_48m_fclk", "func_48m_fclk"),
-+	DT_CLK(NULL, "func_96m_fclk", "func_96m_fclk"),
-+	DT_CLK(NULL, "gmii_m_clk_div", "gmii_m_clk_div"),
-+	DT_CLK(NULL, "hdmi_clk2_div", "hdmi_clk2_div"),
-+	DT_CLK(NULL, "hdmi_div_clk", "hdmi_div_clk"),
-+	DT_CLK(NULL, "hdmi_dpll_clk_mux", "hdmi_dpll_clk_mux"),
-+	DT_CLK(NULL, "l3_iclk_div", "l3_iclk_div"),
-+	DT_CLK(NULL, "l3init_60m_fclk", "l3init_60m_fclk"),
-+	DT_CLK(NULL, "l4_root_clk_div", "l4_root_clk_div"),
-+	DT_CLK(NULL, "mlb_clk", "mlb_clk"),
-+	DT_CLK(NULL, "mlbp_clk", "mlbp_clk"),
-+	DT_CLK(NULL, "per_abe_x1_gfclk2_div", "per_abe_x1_gfclk2_div"),
-+	DT_CLK(NULL, "timer_sys_clk_div", "timer_sys_clk_div"),
-+	DT_CLK(NULL, "video1_clk2_div", "video1_clk2_div"),
-+	DT_CLK(NULL, "video1_div_clk", "video1_div_clk"),
-+	DT_CLK(NULL, "video1_dpll_clk_mux", "video1_dpll_clk_mux"),
-+	DT_CLK(NULL, "video2_clk2_div", "video2_clk2_div"),
-+	DT_CLK(NULL, "video2_div_clk", "video2_div_clk"),
-+	DT_CLK(NULL, "video2_dpll_clk_mux", "video2_dpll_clk_mux"),
-+	DT_CLK(NULL, "wkupaon_iclk_mux", "wkupaon_iclk_mux"),
-+	DT_CLK(NULL, "dss_32khz_clk", "dss_32khz_clk"),
-+	DT_CLK(NULL, "dss_48mhz_clk", "dss_48mhz_clk"),
-+	DT_CLK(NULL, "dss_dss_clk", "dss_dss_clk"),
-+	DT_CLK(NULL, "dss_hdmi_clk", "dss_hdmi_clk"),
-+	DT_CLK(NULL, "dss_video1_clk", "dss_video1_clk"),
-+	DT_CLK(NULL, "dss_video2_clk", "dss_video2_clk"),
-+	DT_CLK(NULL, "gpio1_dbclk", "gpio1_dbclk"),
-+	DT_CLK(NULL, "gpio2_dbclk", "gpio2_dbclk"),
-+	DT_CLK(NULL, "gpio3_dbclk", "gpio3_dbclk"),
-+	DT_CLK(NULL, "gpio4_dbclk", "gpio4_dbclk"),
-+	DT_CLK(NULL, "gpio5_dbclk", "gpio5_dbclk"),
-+	DT_CLK(NULL, "gpio6_dbclk", "gpio6_dbclk"),
-+	DT_CLK(NULL, "gpio7_dbclk", "gpio7_dbclk"),
-+	DT_CLK(NULL, "gpio8_dbclk", "gpio8_dbclk"),
-+	DT_CLK(NULL, "mmc1_clk32k", "mmc1_clk32k"),
-+	DT_CLK(NULL, "mmc2_clk32k", "mmc2_clk32k"),
-+	DT_CLK(NULL, "mmc3_clk32k", "mmc3_clk32k"),
-+	DT_CLK(NULL, "mmc4_clk32k", "mmc4_clk32k"),
-+	DT_CLK(NULL, "sata_ref_clk", "sata_ref_clk"),
-+	DT_CLK(NULL, "usb_otg_ss1_refclk960m", "usb_otg_ss1_refclk960m"),
-+	DT_CLK(NULL, "usb_otg_ss2_refclk960m", "usb_otg_ss2_refclk960m"),
-+	DT_CLK(NULL, "usb_phy1_always_on_clk32k", "usb_phy1_always_on_clk32k"),
-+	DT_CLK(NULL, "usb_phy2_always_on_clk32k", "usb_phy2_always_on_clk32k"),
-+	DT_CLK(NULL, "usb_phy3_always_on_clk32k", "usb_phy3_always_on_clk32k"),
-+	DT_CLK(NULL, "atl_dpll_clk_mux", "atl_dpll_clk_mux"),
-+	DT_CLK(NULL, "atl_gfclk_mux", "atl_gfclk_mux"),
-+	DT_CLK(NULL, "dcan1_sys_clk_mux", "dcan1_sys_clk_mux"),
-+	DT_CLK(NULL, "gmac_gmii_ref_clk_div", "gmac_gmii_ref_clk_div"),
-+	DT_CLK(NULL, "gmac_rft_clk_mux", "gmac_rft_clk_mux"),
-+	DT_CLK(NULL, "gpu_core_gclk_mux", "gpu_core_gclk_mux"),
-+	DT_CLK(NULL, "gpu_hyd_gclk_mux", "gpu_hyd_gclk_mux"),
-+	DT_CLK(NULL, "ipu1_gfclk_mux", "ipu1_gfclk_mux"),
-+	DT_CLK(NULL, "l3instr_ts_gclk_div", "l3instr_ts_gclk_div"),
-+	DT_CLK(NULL, "mcasp1_ahclkr_mux", "mcasp1_ahclkr_mux"),
-+	DT_CLK(NULL, "mcasp1_ahclkx_mux", "mcasp1_ahclkx_mux"),
-+	DT_CLK(NULL, "mcasp1_aux_gfclk_mux", "mcasp1_aux_gfclk_mux"),
-+	DT_CLK(NULL, "mcasp2_ahclkr_mux", "mcasp2_ahclkr_mux"),
-+	DT_CLK(NULL, "mcasp2_ahclkx_mux", "mcasp2_ahclkx_mux"),
-+	DT_CLK(NULL, "mcasp2_aux_gfclk_mux", "mcasp2_aux_gfclk_mux"),
-+	DT_CLK(NULL, "mcasp3_ahclkx_mux", "mcasp3_ahclkx_mux"),
-+	DT_CLK(NULL, "mcasp3_aux_gfclk_mux", "mcasp3_aux_gfclk_mux"),
-+	DT_CLK(NULL, "mcasp4_ahclkx_mux", "mcasp4_ahclkx_mux"),
-+	DT_CLK(NULL, "mcasp4_aux_gfclk_mux", "mcasp4_aux_gfclk_mux"),
-+	DT_CLK(NULL, "mcasp5_ahclkx_mux", "mcasp5_ahclkx_mux"),
-+	DT_CLK(NULL, "mcasp5_aux_gfclk_mux", "mcasp5_aux_gfclk_mux"),
-+	DT_CLK(NULL, "mcasp6_ahclkx_mux", "mcasp6_ahclkx_mux"),
-+	DT_CLK(NULL, "mcasp6_aux_gfclk_mux", "mcasp6_aux_gfclk_mux"),
-+	DT_CLK(NULL, "mcasp7_ahclkx_mux", "mcasp7_ahclkx_mux"),
-+	DT_CLK(NULL, "mcasp7_aux_gfclk_mux", "mcasp7_aux_gfclk_mux"),
-+	DT_CLK(NULL, "mcasp8_ahclk_mux", "mcasp8_ahclk_mux"),
-+	DT_CLK(NULL, "mcasp8_aux_gfclk_mux", "mcasp8_aux_gfclk_mux"),
-+	DT_CLK(NULL, "mmc1_fclk_mux", "mmc1_fclk_mux"),
-+	DT_CLK(NULL, "mmc1_fclk_div", "mmc1_fclk_div"),
-+	DT_CLK(NULL, "mmc2_fclk_mux", "mmc2_fclk_mux"),
-+	DT_CLK(NULL, "mmc2_fclk_div", "mmc2_fclk_div"),
-+	DT_CLK(NULL, "mmc3_gfclk_mux", "mmc3_gfclk_mux"),
-+	DT_CLK(NULL, "mmc3_gfclk_div", "mmc3_gfclk_div"),
-+	DT_CLK(NULL, "mmc4_gfclk_mux", "mmc4_gfclk_mux"),
-+	DT_CLK(NULL, "mmc4_gfclk_div", "mmc4_gfclk_div"),
-+	DT_CLK(NULL, "qspi_gfclk_mux", "qspi_gfclk_mux"),
-+	DT_CLK(NULL, "qspi_gfclk_div", "qspi_gfclk_div"),
-+	DT_CLK(NULL, "timer10_gfclk_mux", "timer10_gfclk_mux"),
-+	DT_CLK(NULL, "timer11_gfclk_mux", "timer11_gfclk_mux"),
-+	DT_CLK(NULL, "timer13_gfclk_mux", "timer13_gfclk_mux"),
-+	DT_CLK(NULL, "timer14_gfclk_mux", "timer14_gfclk_mux"),
-+	DT_CLK(NULL, "timer15_gfclk_mux", "timer15_gfclk_mux"),
-+	DT_CLK(NULL, "timer16_gfclk_mux", "timer16_gfclk_mux"),
-+	DT_CLK(NULL, "timer1_gfclk_mux", "timer1_gfclk_mux"),
-+	DT_CLK(NULL, "timer2_gfclk_mux", "timer2_gfclk_mux"),
-+	DT_CLK(NULL, "timer3_gfclk_mux", "timer3_gfclk_mux"),
-+	DT_CLK(NULL, "timer4_gfclk_mux", "timer4_gfclk_mux"),
-+	DT_CLK(NULL, "timer5_gfclk_mux", "timer5_gfclk_mux"),
-+	DT_CLK(NULL, "timer6_gfclk_mux", "timer6_gfclk_mux"),
-+	DT_CLK(NULL, "timer7_gfclk_mux", "timer7_gfclk_mux"),
-+	DT_CLK(NULL, "timer8_gfclk_mux", "timer8_gfclk_mux"),
-+	DT_CLK(NULL, "timer9_gfclk_mux", "timer9_gfclk_mux"),
-+	DT_CLK(NULL, "uart10_gfclk_mux", "uart10_gfclk_mux"),
-+	DT_CLK(NULL, "uart1_gfclk_mux", "uart1_gfclk_mux"),
-+	DT_CLK(NULL, "uart2_gfclk_mux", "uart2_gfclk_mux"),
-+	DT_CLK(NULL, "uart3_gfclk_mux", "uart3_gfclk_mux"),
-+	DT_CLK(NULL, "uart4_gfclk_mux", "uart4_gfclk_mux"),
-+	DT_CLK(NULL, "uart5_gfclk_mux", "uart5_gfclk_mux"),
-+	DT_CLK(NULL, "uart6_gfclk_mux", "uart6_gfclk_mux"),
-+	DT_CLK(NULL, "uart7_gfclk_mux", "uart7_gfclk_mux"),
-+	DT_CLK(NULL, "uart8_gfclk_mux", "uart8_gfclk_mux"),
-+	DT_CLK(NULL, "uart9_gfclk_mux", "uart9_gfclk_mux"),
-+	DT_CLK(NULL, "vip1_gclk_mux", "vip1_gclk_mux"),
-+	DT_CLK(NULL, "vip2_gclk_mux", "vip2_gclk_mux"),
-+	DT_CLK(NULL, "vip3_gclk_mux", "vip3_gclk_mux"),
-+	DT_CLK(NULL, "gpmc_ck", "dummy_ck"),
-+	DT_CLK("omap_i2c.1", "ick", "dummy_ck"),
-+	DT_CLK("omap_i2c.2", "ick", "dummy_ck"),
-+	DT_CLK("omap_i2c.3", "ick", "dummy_ck"),
-+	DT_CLK("omap_i2c.4", "ick", "dummy_ck"),
-+	DT_CLK(NULL, "mailboxes_ick", "dummy_ck"),
-+	DT_CLK("omap_hsmmc.0", "ick", "dummy_ck"),
-+	DT_CLK("omap_hsmmc.1", "ick", "dummy_ck"),
-+	DT_CLK("omap_hsmmc.2", "ick", "dummy_ck"),
-+	DT_CLK("omap_hsmmc.3", "ick", "dummy_ck"),
-+	DT_CLK("omap_hsmmc.4", "ick", "dummy_ck"),
-+	DT_CLK("omap-mcbsp.1", "ick", "dummy_ck"),
-+	DT_CLK("omap-mcbsp.2", "ick", "dummy_ck"),
-+	DT_CLK("omap-mcbsp.3", "ick", "dummy_ck"),
-+	DT_CLK("omap-mcbsp.4", "ick", "dummy_ck"),
-+	DT_CLK("omap2_mcspi.1", "ick", "dummy_ck"),
-+	DT_CLK("omap2_mcspi.2", "ick", "dummy_ck"),
-+	DT_CLK("omap2_mcspi.3", "ick", "dummy_ck"),
-+	DT_CLK("omap2_mcspi.4", "ick", "dummy_ck"),
-+	DT_CLK(NULL, "uart1_ick", "dummy_ck"),
-+	DT_CLK(NULL, "uart2_ick", "dummy_ck"),
-+	DT_CLK(NULL, "uart3_ick", "dummy_ck"),
-+	DT_CLK(NULL, "uart4_ick", "dummy_ck"),
-+	DT_CLK("usbhs_omap", "usbhost_ick", "dummy_ck"),
-+	DT_CLK("usbhs_omap", "usbtll_fck", "dummy_ck"),
-+	DT_CLK("omap_wdt", "ick", "dummy_ck"),
-+	DT_CLK(NULL, "timer_32k_ck", "sys_32k_ck"),
-+	DT_CLK("4ae18000.timer", "timer_sys_ck", "sys_clkin2"),
-+	DT_CLK("48032000.timer", "timer_sys_ck", "sys_clkin2"),
-+	DT_CLK("48034000.timer", "timer_sys_ck", "sys_clkin2"),
-+	DT_CLK("48036000.timer", "timer_sys_ck", "sys_clkin2"),
-+	DT_CLK("4803e000.timer", "timer_sys_ck", "sys_clkin2"),
-+	DT_CLK("48086000.timer", "timer_sys_ck", "sys_clkin2"),
-+	DT_CLK("48088000.timer", "timer_sys_ck", "sys_clkin2"),
-+	DT_CLK("48820000.timer", "timer_sys_ck", "timer_sys_clk_div"),
-+	DT_CLK("48822000.timer", "timer_sys_ck", "timer_sys_clk_div"),
-+	DT_CLK("48824000.timer", "timer_sys_ck", "timer_sys_clk_div"),
-+	DT_CLK("48826000.timer", "timer_sys_ck", "timer_sys_clk_div"),
-+	DT_CLK(NULL, "sys_clkin", "sys_clkin1"),
-+	{ .node_name = NULL },
++static const struct clk_ops ti_interface_clk_ops = {
++	.init		= &omap2_init_clk_clkdm,
++	.enable		= &omap2_dflt_clk_enable,
++	.disable	= &omap2_dflt_clk_disable,
++	.is_enabled	= &omap2_dflt_clk_is_enabled,
 +};
 +
-+int __init dra7xx_dt_clk_init(void)
++static int __init _of_ti_interface_clk_setup(struct device_node *node,
++					     const struct clk_hw_omap_ops *ops,
++					     struct regmap *regmap)
 +{
-+	int rc;
-+	struct clk *abe_dpll_mux, *sys_clkin2, *dpll_ck;
++	struct clk *clk;
++	struct clk_init_data init = { NULL };
++	struct clk_hw_omap *clk_hw;
++	const char *clk_name = node->name;
++	const char *parent_name;
++	u32 val;
++	int ret = 0;
 +
-+	ti_dt_clocks_register(dra7xx_clks);
++	clk_hw = kzalloc(sizeof(*clk_hw), GFP_KERNEL);
++	if (!clk_hw) {
++		pr_err("%s: could not allocate clk_hw_omap\n", __func__);
++		return -ENOMEM;
++	}
 +
-+	omap2_clk_disable_autoidle_all();
++	clk_hw->hw.init = &init;
++	clk_hw->ops = ops;
 +
-+	abe_dpll_mux = clk_get_sys(NULL, "abe_dpll_sys_clk_mux");
-+	sys_clkin2 = clk_get_sys(NULL, "sys_clkin2");
-+	dpll_ck = clk_get_sys(NULL, "dpll_abe_ck");
++	if (!of_property_read_u32(node, "reg", &val))
++		clk_hw->enable_reg = (void *)val;
 +
-+	rc = clk_set_parent(abe_dpll_mux, sys_clkin2);
-+	if (!rc)
-+		rc = clk_set_rate(dpll_ck, DRA7_DPLL_ABE_DEFFREQ);
-+	if (rc)
-+		pr_err("%s: failed to configure ABE DPLL!\n", __func__);
++	clk_hw->regmap = regmap;
 +
-+	dpll_ck = clk_get_sys(NULL, "dpll_gmac_ck");
-+	rc = clk_set_rate(dpll_ck, DRA7_DPLL_GMAC_DEFFREQ);
-+	if (rc)
-+		pr_err("%s: failed to configure GMAC DPLL!\n", __func__);
++	if (!of_property_read_u32(node, "ti,bit-shift", &val))
++		clk_hw->enable_bit = val;
 +
-+	return rc;
++	of_property_read_string(node, "clock-output-names", &clk_name);
++
++	init.name = clk_name;
++	init.ops = &ti_interface_clk_ops;
++	init.flags = 0;
++
++	parent_name = of_clk_get_parent_name(node, 0);
++	if (!parent_name) {
++		pr_err("%s: %s must have a parent\n", __func__, clk_name);
++		ret = -EINVAL;
++		goto cleanup;
++	}
++
++	init.num_parents = 1;
++	init.parent_names = &parent_name;
++
++	clk = clk_register(NULL, &clk_hw->hw);
++
++	if (!IS_ERR(clk)) {
++		of_clk_add_provider(node, of_clk_src_simple_get, clk);
++		omap2_init_clk_hw_omap_clocks(clk);
++		return 0;
++	}
++	ret = PTR_ERR(clk);
++
++cleanup:
++	kfree(clk_hw);
++	return ret;
 +}
++
++static int __init of_ti_interface_clk_setup(struct device_node *node,
++					    struct regmap *regmap)
++{
++	return _of_ti_interface_clk_setup(node, &clkhwops_iclk_wait, regmap);
++}
++CLK_OF_DECLARE(ti_interface_clk, "ti,omap3-interface-clock",
++	       of_ti_interface_clk_setup);
++
++static int __init of_ti_no_wait_interface_clk_setup(struct device_node *node,
++						    struct regmap *regmap)
++{
++	return _of_ti_interface_clk_setup(node, &clkhwops_iclk, regmap);
++}
++CLK_OF_DECLARE(ti_no_wait_interface_clk, "ti,omap3-no-wait-interface-clock",
++	       of_ti_no_wait_interface_clk_setup);
++
++static int __init of_ti_hsotgusb_interface_clk_setup(struct device_node *node,
++						     struct regmap *regmap)
++{
++	return _of_ti_interface_clk_setup(node, &clkhwops_omap3430es2_iclk_hsotgusb_wait, regmap);
++}
++CLK_OF_DECLARE(ti_hsotgusb_interface_clk, "ti,omap3-hsotgusb-interface-clock",
++	       of_ti_hsotgusb_interface_clk_setup);
++
++static int __init of_ti_dss_interface_clk_setup(struct device_node *node,
++						struct regmap *regmap)
++{
++	return _of_ti_interface_clk_setup(node, &clkhwops_omap3430es2_iclk_dss_usbhost_wait, regmap);
++}
++CLK_OF_DECLARE(ti_dss_interface_clk, "ti,omap3-dss-interface-clock",
++	       of_ti_dss_interface_clk_setup);
++
++static int __init of_ti_ssi_interface_clk_setup(struct device_node *node,
++						struct regmap *regmap)
++{
++	return _of_ti_interface_clk_setup(node,
++					  &clkhwops_omap3430es2_iclk_ssi_wait,
++					  regmap);
++}
++CLK_OF_DECLARE(ti_ssi_interface_clk, "ti,omap3-ssi-interface-clock",
++	       of_ti_ssi_interface_clk_setup);
++
++static int __init of_ti_am35xx_interface_clk_setup(struct device_node *node,
++						   struct regmap *regmap)
++{
++	return _of_ti_interface_clk_setup(node, &clkhwops_am35xx_ipss_wait,
++					  regmap);
++}
++CLK_OF_DECLARE(ti_am35xx_interface_clk, "ti,am35xx-interface-clock",
++	       of_ti_am35xx_interface_clk_setup);
 diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
-index 55bcc83..c4a8824 100644
+index de0cffc..a197704 100644
 --- a/include/linux/clk/ti.h
 +++ b/include/linux/clk/ti.h
-@@ -226,6 +226,7 @@ int ti_clk_add_component(struct device_node *node, struct clk_hw *hw, int type);
+@@ -243,6 +243,11 @@ extern const struct clk_hw_omap_ops clkhwops_omap4_dpllmx;
+ extern const struct clk_hw_omap_ops clkhwops_wait;
+ extern const struct clk_hw_omap_ops clkhwops_omap3430es2_dss_usbhost_wait;
+ extern const struct clk_hw_omap_ops clkhwops_am35xx_ipss_module_wait;
++extern const struct clk_hw_omap_ops clkhwops_am35xx_ipss_wait;
++extern const struct clk_hw_omap_ops clkhwops_iclk;
+ extern const struct clk_hw_omap_ops clkhwops_iclk_wait;
++extern const struct clk_hw_omap_ops clkhwops_omap3430es2_iclk_ssi_wait;
++extern const struct clk_hw_omap_ops clkhwops_omap3430es2_iclk_dss_usbhost_wait;
++extern const struct clk_hw_omap_ops clkhwops_omap3430es2_iclk_hsotgusb_wait;
  
- int omap4xxx_dt_clk_init(void);
- int omap5xxx_dt_clk_init(void);
-+int dra7xx_dt_clk_init(void);
- 
- #ifdef CONFIG_OF
- void of_ti_clk_allow_autoidle_all(void);
+ #endif
 -- 
 1.7.9.5
 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
