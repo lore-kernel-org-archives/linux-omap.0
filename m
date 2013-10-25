@@ -1,70 +1,103 @@
-From: Archit Taneja <archit@ti.com>
-Subject: Re: [PATCH 6/6] experimental: arm: dts: dra7xx: Add a DT node for
- VPE
-Date: Fri, 25 Oct 2013 16:05:05 +0530
-Message-ID: <526A4959.1040405@ti.com>
-References: <1375452223-30524-1-git-send-email-archit@ti.com> <1375452223-30524-7-git-send-email-archit@ti.com> <16994189.3ZRYT6i8Y5@avalon>
+From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+Subject: Re: [PATCH v2 4/5] mtd: nand: omap2: Use devm_kzalloc
+Date: Fri, 25 Oct 2013 07:42:47 -0300
+Message-ID: <20131025104246.GA2489@localhost>
+References: <1382696277-9063-1-git-send-email-ezequiel.garcia@free-electrons.com>
+ <1382696277-9063-5-git-send-email-ezequiel.garcia@free-electrons.com>
+ <20980858CB6D3A4BAE95CA194937D5E73EA2AD60@DBDE04.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <16994189.3ZRYT6i8Y5@avalon>
-Sender: linux-media-owner@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, dagriego@biglakesoftware.com, dale@farnsworth.org, pawel@osciak.com, m.szyprowski@samsung.com, hverkuil@xs4all.nl, tomi.valkeinen@ti.com, Rajendra Nayak <rnayak@ti.com>, Sricharan R <r.sricharan@ti.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from top.free-electrons.com ([176.31.233.9]:54264 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752511Ab3JYKmx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Oct 2013 06:42:53 -0400
+Content-Disposition: inline
+In-Reply-To: <20980858CB6D3A4BAE95CA194937D5E73EA2AD60@DBDE04.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Gupta, Pekon" <pekon@ti.com>
+Cc: Brian Norris <computersforpeace@gmail.com>, "Balbi, Felipe" <balbi@ti.com>, "marek.belisko@gmail.com" <marek.belisko@gmail.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Laurent,
+On Fri, Oct 25, 2013 at 10:25:02AM +0000, Gupta, Pekon wrote:
+> Hi,
+>=20
+> >=20
+> > This simplifies the error path and makes the code less error-prone.
+> >=20
+> > Signed-off-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+> > ---
+> >  drivers/mtd/nand/omap2.c | 5 +----
+> >  1 file changed, 1 insertion(+), 4 deletions(-)
+> >=20
+> > diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
+> > index e01a936..d3155b2 100644
+> > --- a/drivers/mtd/nand/omap2.c
+> > +++ b/drivers/mtd/nand/omap2.c
+> > @@ -1837,7 +1837,7 @@ static int omap_nand_probe(struct
+> > platform_device *pdev)
+> >  		return -ENODEV;
+> >  	}
+> >=20
+> > -	info =3D kzalloc(sizeof(struct omap_nand_info), GFP_KERNEL);
+> > +	info =3D devm_kzalloc(&pdev->dev, sizeof(*info), GFP_KERNEL);
+> >  	if (!info)
+> >  		return -ENOMEM;
+> >=20
+> > @@ -2067,8 +2067,6 @@ out_release_mem_region:
+> >  		free_irq(info->gpmc_irq_fifo, info);
+> >  	release_mem_region(info->phys_base, info->mem_size);
+> >  out_free_info:
+> > -	kfree(info);
+> > -
+> >  	return err;
+> >  }
+> >=20
+> > @@ -2091,7 +2089,6 @@ static int omap_nand_remove(struct
+> > platform_device *pdev)
+> >  	nand_release(&info->mtd);
+> >  	iounmap(info->nand.IO_ADDR_R);
+> >  	release_mem_region(info->phys_base, info->mem_size);
+> > -	kfree(info);
+> >  	return 0;
+> >  }
+> >=20
+> > --
+> > 1.8.1.5
+>=20
+> I think these changes are already done as part of following patch..
+> http://lists.infradead.org/pipermail/linux-mtd/2013-October/049418.ht=
+ml
+>=20
+> Did your rebase on my patch-set ?
+>=20
 
-Sorry about the late response, I had scrapped the DT patch out of the 
-VPE series since there were dependencies on crossbar drivers and some 
-other baseport stuff. Comments below.
+Hm.. well the problem with that patch is that it's in the middle of an
+unrelated series. As I already told you, I think you should have pushed
+that as a one-patch fix. Have you seen that suggestion?
 
-On Friday 09 August 2013 03:41 AM, Laurent Pinchart wrote:
-> Hi Archit,
->
-> Thank you for the patch.
->
-> On Friday 02 August 2013 19:33:43 Archit Taneja wrote:
->> Add a DT node for VPE in dra7.dtsi. This is experimental because we might
->> need to split the VPE address space a bit more, and also because the IRQ
->> line described is accessible the IRQ crossbar driver is added for DRA7XX.
->>
->> Cc: Rajendra Nayak <rnayak@ti.com>
->> Cc: Sricharan R <r.sricharan@ti.com>
->> Signed-off-by: Archit Taneja <archit@ti.com>
->> ---
->>   arch/arm/boot/dts/dra7.dtsi | 11 +++++++++++
->
-> Documentation is missing :-) As this is an experimental patch you can probably
-> document the bindings later.
+On the other side, you're fixing too many things in that single patch,
+for my taste. Maybe I'm not the smarter developer, but going through
+that patch is not easy to catch if there's no mistake done.
 
-Yes, I will work on that.
+Usually if it's possible to split a patch (maintaining consistency) it =
+makes
+the reviewing process easier.
+If you'd rather send this devm_xxx change yourself that's fine by me,
+but *please* split the patch in two and write proper commit messages.
 
->
->>   1 file changed, 11 insertions(+)
->>
->> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
->> index ce9a0f0..3237972 100644
->> --- a/arch/arm/boot/dts/dra7.dtsi
->> +++ b/arch/arm/boot/dts/dra7.dtsi
->> @@ -484,6 +484,17 @@
->>   			dmas = <&sdma 70>, <&sdma 71>;
->>   			dma-names = "tx0", "rx0";
->>   		};
->> +
->> +		vpe {
->> +			compatible = "ti,vpe";
->> +			ti,hwmods = "vpe";
->> +			reg = <0x489d0000 0xd000>, <0x489dd000 0x400>;
->> +			reg-names = "vpe", "vpdma";
->> +			interrupts = <0 159 0x4>;
->> +			#address-cells = <1>;
->> +			#size-cells = <0>;
->
-> Are #address-cells and #size-cells really needed ?
+Anyway: this is just a silly change, the important one is the other
+nand_scan_ident() fix. Could you help me review that?
 
-These aren't needed, vpe derives the address info from it's parent(ocp). 
-I didn't know that the child nodes inherit these params from the parent.
-
-Archit
+I'm interested in knowing how will that work with 8-bit and 16-bit devi=
+ces.
+--=20
+Ezequiel Garc=C3=ADa, Free Electrons
+Embedded Linux, Kernel and Android Engineering
+http://free-electrons.com
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
