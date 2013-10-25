@@ -1,152 +1,117 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv9 05/43] CLK: TI: add DT alias clock registration mechanism
-Date: Fri, 25 Oct 2013 18:56:59 +0300
-Message-ID: <1382716658-6964-6-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv9 06/43] CLK: ti: add init support for clock IP blocks
+Date: Fri, 25 Oct 2013 18:57:00 +0300
+Message-ID: <1382716658-6964-7-git-send-email-t-kristo@ti.com>
 References: <1382716658-6964-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:37550 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752313Ab3JYP6f (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 25 Oct 2013 11:58:35 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:40929 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752313Ab3JYP6j (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Oct 2013 11:58:39 -0400
 In-Reply-To: <1382716658-6964-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, nm@ti.com, bcousson@baylibre.com, rnayak@ti.com, mturquette@linaro.org
 Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-Some devices require their clocks to be available with a specific
-dev-id con-id mapping. With DT, the clocks can be found by default
-only with their name, or alternatively through the device node of
-the consumer. With drivers, that don't support DT fully yet, add
-mechanism to register specific clock names.
+ti_dt_clk_init_provider() can now be used to initialize the contents of
+a single clock IP block. This parses all the clocks under the IP block
+and calls the corresponding init function for them.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
-Tested-by: Nishanth Menon <nm@ti.com>
-Acked-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/clk/ti/Makefile |    2 +-
- drivers/clk/ti/clk.c    |   52 +++++++++++++++++++++++++++++++++++++++++++++++
- include/linux/clk/ti.h  |   23 +++++++++++++++++++++
- 3 files changed, 76 insertions(+), 1 deletion(-)
- create mode 100644 drivers/clk/ti/clk.c
+ drivers/clk/ti/clk.c   |   59 ++++++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/clk/ti.h |    1 +
+ 2 files changed, 60 insertions(+)
 
-diff --git a/drivers/clk/ti/Makefile b/drivers/clk/ti/Makefile
-index 93177987..05af5d8 100644
---- a/drivers/clk/ti/Makefile
-+++ b/drivers/clk/ti/Makefile
-@@ -1,3 +1,3 @@
- ifneq ($(CONFIG_OF),)
--obj-y					+= dpll.o
-+obj-y					+= clk.o dpll.o
- endif
 diff --git a/drivers/clk/ti/clk.c b/drivers/clk/ti/clk.c
-new file mode 100644
-index 0000000..ad58b01
---- /dev/null
+index ad58b01..7f030d7 100644
+--- a/drivers/clk/ti/clk.c
 +++ b/drivers/clk/ti/clk.c
-@@ -0,0 +1,52 @@
-+/*
-+ * TI clock support
-+ *
-+ * Copyright (C) 2013 Texas Instruments, Inc.
-+ *
-+ * Tero Kristo <t-kristo@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed "as is" WITHOUT ANY WARRANTY of any
-+ * kind, whether express or implied; without even the implied warranty
-+ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
+@@ -19,6 +19,9 @@
+ #include <linux/clkdev.h>
+ #include <linux/clk/ti.h>
+ #include <linux/of.h>
++#include <linux/list.h>
 +
-+#include <linux/clk-provider.h>
-+#include <linux/clkdev.h>
-+#include <linux/clk/ti.h>
-+#include <linux/of.h>
++extern struct of_device_id __clk_of_table[];
+ 
+ /**
+  * ti_dt_clocks_register - register DT duplicate clocks during boot
+@@ -50,3 +53,59 @@ void __init ti_dt_clocks_register(struct ti_dt_clk oclks[])
+ 		}
+ 	}
+ }
 +
-+/**
-+ * ti_dt_clocks_register - register DT duplicate clocks during boot
-+ * @oclks: list of clocks to register
-+ *
-+ * Register duplicate or non-standard DT clock entries during boot. By
-+ * default, DT clocks are found based on their node name. If any
-+ * additional con-id / dev-id -> clock mapping is required, use this
-+ * function to list these.
-+ */
-+void __init ti_dt_clocks_register(struct ti_dt_clk oclks[])
++typedef int (*ti_of_clk_init_cb_t)(struct device_node *, struct regmap *);
++
++struct clk_init_item {
++	struct regmap *regmap;
++	struct device_node *np;
++	ti_of_clk_init_cb_t init_cb;
++	struct list_head node;
++};
++
++static LIST_HEAD(retry_list);
++
++void __init ti_dt_clk_init_provider(struct device_node *parent,
++				    struct regmap *regmap)
 +{
-+	struct ti_dt_clk *c;
-+	struct device_node *node;
-+	struct clk *clk;
-+	struct of_phandle_args clkspec;
++	const struct of_device_id *match;
++	struct device_node *np;
++	ti_of_clk_init_cb_t clk_init_cb;
++	struct clk_init_item *retry;
++	struct clk_init_item *tmp;
++	int ret;
 +
-+	for (c = oclks; c->node_name != NULL; c++) {
-+		node = of_find_node_by_name(NULL, c->node_name);
-+		clkspec.np = node;
-+		clk = of_clk_get_from_provider(&clkspec);
++	for_each_child_of_node(parent, np) {
++		match = of_match_node(__clk_of_table, np);
++		if (!match)
++			continue;
++		clk_init_cb = match->data;
++		pr_debug("%s: initializing: %s\n", __func__, np->name);
++		ret = clk_init_cb(np, regmap);
++		if (ret == -EAGAIN) {
++			pr_debug("%s: adding to again list...\n", np->name);
++			retry = kzalloc(sizeof(*retry), GFP_KERNEL);
++			retry->np = np;
++			retry->regmap = regmap;
++			retry->init_cb = clk_init_cb;
++			list_add(&retry->node, &retry_list);
++		} else if (ret) {
++			pr_err("%s: clock init failed for %s (%d)!\n", __func__,
++			       np->name, ret);
++		}
++	}
 +
-+		if (!IS_ERR(clk)) {
-+			c->lk.clk = clk;
-+			clkdev_add(&c->lk);
++	list_for_each_entry_safe(retry, tmp, &retry_list, node) {
++		pr_debug("%s: retry-init: %s\n", __func__, retry->np->name);
++		ret = retry->init_cb(retry->np, retry->regmap);
++		if (ret == -EAGAIN) {
++			pr_debug("%s failed again?\n", retry->np->name);
 +		} else {
-+			pr_warn("%s: failed to lookup clock node %s\n",
-+				__func__, c->node_name);
++			if (ret)
++				pr_err("%s: clock init failed for %s (%d)!\n",
++				       __func__, retry->np->name, ret);
++			list_del(&retry->node);
++			kfree(retry);
 +		}
 +	}
 +}
 diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
-index c187023..9786752 100644
+index 9786752..7ab02fa 100644
 --- a/include/linux/clk/ti.h
 +++ b/include/linux/clk/ti.h
-@@ -15,6 +15,8 @@
- #ifndef __LINUX_CLK_TI_H__
- #define __LINUX_CLK_TI_H__
- 
-+#include <linux/clkdev.h>
-+
- /**
-  * struct dpll_data - DPLL registers and integration data
-  * @mult_div1_reg: register containing the DPLL M and N bitfields
-@@ -135,6 +137,25 @@ struct clk_hw_omap {
- /* DPLL Type and DCO Selection Flags */
- #define DPLL_J_TYPE		0x1
- 
-+/**
-+ * struct ti_dt_clk - OMAP DT clock alias declarations
-+ * @lk: clock lookup definition
-+ * @node_name: clock DT node to map to
-+ */
-+struct ti_dt_clk {
-+	struct clk_lookup		lk;
-+	char				*node_name;
-+};
-+
-+#define DT_CLK(dev, con, name)		\
-+	{				\
-+		.lk = {			\
-+			.dev_id = dev,	\
-+			.con_id = con,	\
-+		},			\
-+		.node_name = name,	\
-+	}
-+
- void omap2_init_clk_hw_omap_clocks(struct clk *clk);
- int omap3_noncore_dpll_enable(struct clk_hw *hw);
- void omap3_noncore_dpll_disable(struct clk_hw *hw);
-@@ -155,6 +176,8 @@ unsigned long omap3_clkoutx2_recalc(struct clk_hw *hw,
- int omap3_dpll4_set_rate(struct clk_hw *clk, unsigned long rate,
+@@ -177,6 +177,7 @@ int omap3_dpll4_set_rate(struct clk_hw *clk, unsigned long rate,
  			 unsigned long parent_rate);
  
-+void ti_dt_clocks_register(struct ti_dt_clk *oclks);
-+
+ void ti_dt_clocks_register(struct ti_dt_clk *oclks);
++void ti_dt_clk_init_provider(struct device_node *np, struct regmap *regmap);
+ 
  extern const struct clk_hw_omap_ops clkhwops_omap3_dpll;
  extern const struct clk_hw_omap_ops clkhwops_omap4_dpllmx;
- 
 -- 
 1.7.9.5
 
