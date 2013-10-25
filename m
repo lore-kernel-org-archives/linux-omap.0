@@ -1,335 +1,314 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv9 17/43] CLK: TI: DRA7: Add APLL support
-Date: Fri, 25 Oct 2013 18:57:11 +0300
-Message-ID: <1382716658-6964-18-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv9 15/43] CLK: TI: add omap5 clock init file
+Date: Fri, 25 Oct 2013 18:57:09 +0300
+Message-ID: <1382716658-6964-16-git-send-email-t-kristo@ti.com>
 References: <1382716658-6964-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:36357 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754577Ab3JYP7Q (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 25 Oct 2013 11:59:16 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:40966 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754466Ab3JYP7N (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Oct 2013 11:59:13 -0400
 In-Reply-To: <1382716658-6964-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, nm@ti.com, bcousson@baylibre.com, rnayak@ti.com, mturquette@linaro.org
-Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, J Keerthy <j-keerthy@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-From: J Keerthy <j-keerthy@ti.com>
+clk-54xx.c now contains the clock init functionality for omap5, including
+DT clock registration and adding of static clkdev entries.
 
-The patch adds support for DRA7 PCIe APLL. The APLL
-sources the optional functional clocks for PCIe module.
-
-APLL stands for Analog PLL. This is different when comapred
-with DPLL meaning Digital PLL, the phase detection is done
-using an analog circuit.
-
-Signed-off-by: J Keerthy <j-keerthy@ti.com>
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Tested-by: Nishanth Menon <nm@ti.com>
+Acked-by: Tony Lindgren <tony@atomide.com>
 ---
- .../devicetree/bindings/clock/ti/apll.txt          |   31 +++
- drivers/clk/ti/Makefile                            |    2 +-
- drivers/clk/ti/apll.c                              |  239 ++++++++++++++++++++
- 3 files changed, 271 insertions(+), 1 deletion(-)
- create mode 100644 Documentation/devicetree/bindings/clock/ti/apll.txt
- create mode 100644 drivers/clk/ti/apll.c
+ arch/arm/mach-omap2/io.c  |    1 +
+ drivers/clk/ti/Makefile   |    1 +
+ drivers/clk/ti/clk-54xx.c |  239 +++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/clk/ti.h    |    1 +
+ 4 files changed, 242 insertions(+)
+ create mode 100644 drivers/clk/ti/clk-54xx.c
 
-diff --git a/Documentation/devicetree/bindings/clock/ti/apll.txt b/Documentation/devicetree/bindings/clock/ti/apll.txt
-new file mode 100644
-index 0000000..7faf5a6
---- /dev/null
-+++ b/Documentation/devicetree/bindings/clock/ti/apll.txt
-@@ -0,0 +1,31 @@
-+Binding for Texas Instruments APLL clock.
-+
-+Binding status: Unstable - ABI compatibility may be broken in the future
-+
-+This binding uses the common clock binding[1].  It assumes a
-+register-mapped APLL with usually two selectable input clocks
-+(reference clock and bypass clock), with analog phase locked
-+loop logic for multiplying the input clock to a desired output
-+clock. This clock also typically supports different operation
-+modes (locked, low power stop etc.) APLL mostly behaves like
-+a subtype of a DPLL [2], although a simplified one at that.
-+
-+[1] Documentation/devicetree/bindings/clock/clock-bindings.txt
-+[2] Documentation/devicetree/bindings/clock/ti/dpll.txt
-+
-+Required properties:
-+- compatible : shall be "ti,dra7-apll-clock"
-+- #clock-cells : from common clock binding; shall be set to 0.
-+- clocks : link phandles of parent clocks (clk-ref and clk-bypass)
-+- reg : address and length of the register set for controlling the APLL.
-+  It contains the information of registers in the following order:
-+	"control" - contains the control register base address
-+	"idlest" - contains the idlest register base address
-+
-+Examples:
-+	apll_pcie_ck: apll_pcie_ck@4a008200 {
-+		#clock-cells = <0>;
-+		clocks = <&apll_pcie_in_clk_mux>, <&dpll_pcie_ref_ck>;
-+		reg = <0x4a00821c 0x4>, <0x4a008220 0x4>;
-+		compatible = "ti,dra7-apll-clock";
-+	};
+diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+index ff2113c..e360ddf 100644
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -650,6 +650,7 @@ void __init omap5_init_early(void)
+ 	omap54xx_clockdomains_init();
+ 	omap54xx_hwmod_init();
+ 	omap_hwmod_init_postsetup();
++	omap_clk_init = omap5xxx_dt_clk_init;
+ }
+ #endif
+ 
 diff --git a/drivers/clk/ti/Makefile b/drivers/clk/ti/Makefile
-index 935e5d2..3d71e1e 100644
+index 381f1f8..935e5d2 100644
 --- a/drivers/clk/ti/Makefile
 +++ b/drivers/clk/ti/Makefile
-@@ -1,7 +1,7 @@
- ifneq ($(CONFIG_OF),)
- obj-y					+= clk.o dpll.o autoidle.o divider.o \
+@@ -3,4 +3,5 @@ obj-y					+= clk.o dpll.o autoidle.o divider.o \
  					   fixed-factor.o gate.o clockdomain.o \
--					   composite.o mux.o
-+					   composite.o mux.o apll.o
+ 					   composite.o mux.o
  obj-$(CONFIG_ARCH_OMAP4)		+= clk-44xx.o
- obj-$(CONFIG_SOC_OMAP5)			+= clk-54xx.o
++obj-$(CONFIG_SOC_OMAP5)			+= clk-54xx.o
  endif
-diff --git a/drivers/clk/ti/apll.c b/drivers/clk/ti/apll.c
+diff --git a/drivers/clk/ti/clk-54xx.c b/drivers/clk/ti/clk-54xx.c
 new file mode 100644
-index 0000000..18dbbee
+index 0000000..c876e6e
 --- /dev/null
-+++ b/drivers/clk/ti/apll.c
++++ b/drivers/clk/ti/clk-54xx.c
 @@ -0,0 +1,239 @@
 +/*
-+ * OMAP APLL clock support
++ * OMAP5 Clock init
 + *
 + * Copyright (C) 2013 Texas Instruments, Inc.
 + *
-+ * J Keerthy <j-keerthy@ti.com>
++ * Tero Kristo (t-kristo@ti.com)
 + *
 + * This program is free software; you can redistribute it and/or modify
 + * it under the terms of the GNU General Public License version 2 as
 + * published by the Free Software Foundation.
-+ *
-+ * This program is distributed "as is" WITHOUT ANY WARRANTY of any
-+ * kind, whether express or implied; without even the implied warranty
-+ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
 + */
 +
-+#include <linux/clk-provider.h>
-+#include <linux/module.h>
-+#include <linux/slab.h>
++#include <linux/kernel.h>
++#include <linux/list.h>
++#include <linux/clk-private.h>
++#include <linux/clkdev.h>
 +#include <linux/io.h>
-+#include <linux/err.h>
-+#include <linux/string.h>
-+#include <linux/log2.h>
-+#include <linux/of.h>
-+#include <linux/of_address.h>
 +#include <linux/clk/ti.h>
-+#include <linux/delay.h>
 +
-+#define APLL_FORCE_LOCK 0x1
-+#define APLL_AUTO_IDLE	0x2
-+#define MAX_APLL_WAIT_TRIES		1000000
++#define OMAP5_DPLL_ABE_DEFFREQ				98304000
 +
-+static int dra7_apll_enable(struct clk_hw *hw)
-+{
-+	struct clk_hw_omap *clk = to_clk_hw_omap(hw);
-+	int r = 0, i = 0;
-+	struct dpll_data *ad;
-+	const char *clk_name;
-+	u8 state = 1;
-+	u32 v;
-+
-+	ad = clk->dpll_data;
-+	if (!ad)
-+		return -EINVAL;
-+
-+	clk_name = __clk_get_name(clk->hw.clk);
-+
-+	state <<= __ffs(ad->idlest_mask);
-+
-+	/* Check is already locked */
-+	regmap_read(clk->regmap, (u32)ad->idlest_reg, &v);
-+
-+	if ((v & ad->idlest_mask) == state)
-+		return r;
-+
-+	regmap_read(clk->regmap, (u32)ad->control_reg, &v);
-+	v &= ~ad->enable_mask;
-+	v |= APLL_FORCE_LOCK << __ffs(ad->enable_mask);
-+	regmap_write(clk->regmap, (u32)ad->control_reg, v);
-+
-+	state <<= __ffs(ad->idlest_mask);
-+
-+	while (1) {
-+		v = regmap_read(clk->regmap, (u32)ad->idlest_reg, &v);
-+		if ((v & ad->idlest_mask) == state)
-+			break;
-+		if (i > MAX_APLL_WAIT_TRIES)
-+			break;
-+		i++;
-+		udelay(1);
-+	}
-+
-+	if (i == MAX_APLL_WAIT_TRIES) {
-+		pr_warn("clock: %s failed transition to '%s'\n",
-+			clk_name, (state) ? "locked" : "bypassed");
-+	} else {
-+		pr_debug("clock: %s transition to '%s' in %d loops\n",
-+			 clk_name, (state) ? "locked" : "bypassed", i);
-+
-+		r = 0;
-+	}
-+
-+	return r;
-+}
-+
-+static void dra7_apll_disable(struct clk_hw *hw)
-+{
-+	struct clk_hw_omap *clk = to_clk_hw_omap(hw);
-+	struct dpll_data *ad;
-+	u8 state = 1;
-+	u32 v;
-+
-+	ad = clk->dpll_data;
-+
-+	state <<= __ffs(ad->idlest_mask);
-+
-+	regmap_read(clk->regmap, (u32)ad->control_reg, &v);
-+	v &= ~ad->enable_mask;
-+	v |= APLL_AUTO_IDLE << __ffs(ad->enable_mask);
-+	regmap_write(clk->regmap, (u32)ad->control_reg, v);
-+}
-+
-+static int dra7_apll_is_enabled(struct clk_hw *hw)
-+{
-+	struct clk_hw_omap *clk = to_clk_hw_omap(hw);
-+	struct dpll_data *ad;
-+	u32 v;
-+
-+	ad = clk->dpll_data;
-+
-+	regmap_read(clk->regmap, (u32)ad->control_reg, &v);
-+	v &= ad->enable_mask;
-+
-+	v >>= __ffs(ad->enable_mask);
-+
-+	return v == APLL_AUTO_IDLE ? 0 : 1;
-+}
-+
-+static u8 dra7_init_apll_parent(struct clk_hw *hw)
-+{
-+	return 0;
-+}
-+
-+static const struct clk_ops apll_ck_ops = {
-+	.enable		= &dra7_apll_enable,
-+	.disable	= &dra7_apll_disable,
-+	.is_enabled	= &dra7_apll_is_enabled,
-+	.get_parent	= &dra7_init_apll_parent,
++static struct ti_dt_clk omap54xx_clks[] = {
++	DT_CLK(NULL, "pad_clks_src_ck", "pad_clks_src_ck"),
++	DT_CLK(NULL, "pad_clks_ck", "pad_clks_ck"),
++	DT_CLK(NULL, "secure_32k_clk_src_ck", "secure_32k_clk_src_ck"),
++	DT_CLK(NULL, "slimbus_src_clk", "slimbus_src_clk"),
++	DT_CLK(NULL, "slimbus_clk", "slimbus_clk"),
++	DT_CLK(NULL, "sys_32k_ck", "sys_32k_ck"),
++	DT_CLK(NULL, "virt_12000000_ck", "virt_12000000_ck"),
++	DT_CLK(NULL, "virt_13000000_ck", "virt_13000000_ck"),
++	DT_CLK(NULL, "virt_16800000_ck", "virt_16800000_ck"),
++	DT_CLK(NULL, "virt_19200000_ck", "virt_19200000_ck"),
++	DT_CLK(NULL, "virt_26000000_ck", "virt_26000000_ck"),
++	DT_CLK(NULL, "virt_27000000_ck", "virt_27000000_ck"),
++	DT_CLK(NULL, "virt_38400000_ck", "virt_38400000_ck"),
++	DT_CLK(NULL, "sys_clkin", "sys_clkin"),
++	DT_CLK(NULL, "xclk60mhsp1_ck", "xclk60mhsp1_ck"),
++	DT_CLK(NULL, "xclk60mhsp2_ck", "xclk60mhsp2_ck"),
++	DT_CLK(NULL, "abe_dpll_bypass_clk_mux", "abe_dpll_bypass_clk_mux"),
++	DT_CLK(NULL, "abe_dpll_clk_mux", "abe_dpll_clk_mux"),
++	DT_CLK(NULL, "dpll_abe_ck", "dpll_abe_ck"),
++	DT_CLK(NULL, "dpll_abe_x2_ck", "dpll_abe_x2_ck"),
++	DT_CLK(NULL, "dpll_abe_m2x2_ck", "dpll_abe_m2x2_ck"),
++	DT_CLK(NULL, "abe_24m_fclk", "abe_24m_fclk"),
++	DT_CLK(NULL, "abe_clk", "abe_clk"),
++	DT_CLK(NULL, "abe_iclk", "abe_iclk"),
++	DT_CLK(NULL, "abe_lp_clk_div", "abe_lp_clk_div"),
++	DT_CLK(NULL, "dpll_abe_m3x2_ck", "dpll_abe_m3x2_ck"),
++	DT_CLK(NULL, "dpll_core_ck", "dpll_core_ck"),
++	DT_CLK(NULL, "dpll_core_x2_ck", "dpll_core_x2_ck"),
++	DT_CLK(NULL, "dpll_core_h21x2_ck", "dpll_core_h21x2_ck"),
++	DT_CLK(NULL, "c2c_fclk", "c2c_fclk"),
++	DT_CLK(NULL, "c2c_iclk", "c2c_iclk"),
++	DT_CLK(NULL, "custefuse_sys_gfclk_div", "custefuse_sys_gfclk_div"),
++	DT_CLK(NULL, "dpll_core_h11x2_ck", "dpll_core_h11x2_ck"),
++	DT_CLK(NULL, "dpll_core_h12x2_ck", "dpll_core_h12x2_ck"),
++	DT_CLK(NULL, "dpll_core_h13x2_ck", "dpll_core_h13x2_ck"),
++	DT_CLK(NULL, "dpll_core_h14x2_ck", "dpll_core_h14x2_ck"),
++	DT_CLK(NULL, "dpll_core_h22x2_ck", "dpll_core_h22x2_ck"),
++	DT_CLK(NULL, "dpll_core_h23x2_ck", "dpll_core_h23x2_ck"),
++	DT_CLK(NULL, "dpll_core_h24x2_ck", "dpll_core_h24x2_ck"),
++	DT_CLK(NULL, "dpll_core_m2_ck", "dpll_core_m2_ck"),
++	DT_CLK(NULL, "dpll_core_m3x2_ck", "dpll_core_m3x2_ck"),
++	DT_CLK(NULL, "iva_dpll_hs_clk_div", "iva_dpll_hs_clk_div"),
++	DT_CLK(NULL, "dpll_iva_ck", "dpll_iva_ck"),
++	DT_CLK(NULL, "dpll_iva_x2_ck", "dpll_iva_x2_ck"),
++	DT_CLK(NULL, "dpll_iva_h11x2_ck", "dpll_iva_h11x2_ck"),
++	DT_CLK(NULL, "dpll_iva_h12x2_ck", "dpll_iva_h12x2_ck"),
++	DT_CLK(NULL, "mpu_dpll_hs_clk_div", "mpu_dpll_hs_clk_div"),
++	DT_CLK(NULL, "dpll_mpu_ck", "dpll_mpu_ck"),
++	DT_CLK(NULL, "dpll_mpu_m2_ck", "dpll_mpu_m2_ck"),
++	DT_CLK(NULL, "per_dpll_hs_clk_div", "per_dpll_hs_clk_div"),
++	DT_CLK(NULL, "dpll_per_ck", "dpll_per_ck"),
++	DT_CLK(NULL, "dpll_per_x2_ck", "dpll_per_x2_ck"),
++	DT_CLK(NULL, "dpll_per_h11x2_ck", "dpll_per_h11x2_ck"),
++	DT_CLK(NULL, "dpll_per_h12x2_ck", "dpll_per_h12x2_ck"),
++	DT_CLK(NULL, "dpll_per_h14x2_ck", "dpll_per_h14x2_ck"),
++	DT_CLK(NULL, "dpll_per_m2_ck", "dpll_per_m2_ck"),
++	DT_CLK(NULL, "dpll_per_m2x2_ck", "dpll_per_m2x2_ck"),
++	DT_CLK(NULL, "dpll_per_m3x2_ck", "dpll_per_m3x2_ck"),
++	DT_CLK(NULL, "dpll_unipro1_ck", "dpll_unipro1_ck"),
++	DT_CLK(NULL, "dpll_unipro1_clkdcoldo", "dpll_unipro1_clkdcoldo"),
++	DT_CLK(NULL, "dpll_unipro1_m2_ck", "dpll_unipro1_m2_ck"),
++	DT_CLK(NULL, "dpll_unipro2_ck", "dpll_unipro2_ck"),
++	DT_CLK(NULL, "dpll_unipro2_clkdcoldo", "dpll_unipro2_clkdcoldo"),
++	DT_CLK(NULL, "dpll_unipro2_m2_ck", "dpll_unipro2_m2_ck"),
++	DT_CLK(NULL, "usb_dpll_hs_clk_div", "usb_dpll_hs_clk_div"),
++	DT_CLK(NULL, "dpll_usb_ck", "dpll_usb_ck"),
++	DT_CLK(NULL, "dpll_usb_clkdcoldo", "dpll_usb_clkdcoldo"),
++	DT_CLK(NULL, "dpll_usb_m2_ck", "dpll_usb_m2_ck"),
++	DT_CLK(NULL, "dss_syc_gfclk_div", "dss_syc_gfclk_div"),
++	DT_CLK(NULL, "func_128m_clk", "func_128m_clk"),
++	DT_CLK(NULL, "func_12m_fclk", "func_12m_fclk"),
++	DT_CLK(NULL, "func_24m_clk", "func_24m_clk"),
++	DT_CLK(NULL, "func_48m_fclk", "func_48m_fclk"),
++	DT_CLK(NULL, "func_96m_fclk", "func_96m_fclk"),
++	DT_CLK(NULL, "l3_iclk_div", "l3_iclk_div"),
++	DT_CLK(NULL, "gpu_l3_iclk", "gpu_l3_iclk"),
++	DT_CLK(NULL, "l3init_60m_fclk", "l3init_60m_fclk"),
++	DT_CLK(NULL, "wkupaon_iclk_mux", "wkupaon_iclk_mux"),
++	DT_CLK(NULL, "l3instr_ts_gclk_div", "l3instr_ts_gclk_div"),
++	DT_CLK(NULL, "l4_root_clk_div", "l4_root_clk_div"),
++	DT_CLK(NULL, "dss_32khz_clk", "dss_32khz_clk"),
++	DT_CLK(NULL, "dss_48mhz_clk", "dss_48mhz_clk"),
++	DT_CLK(NULL, "dss_dss_clk", "dss_dss_clk"),
++	DT_CLK(NULL, "dss_sys_clk", "dss_sys_clk"),
++	DT_CLK(NULL, "gpio1_dbclk", "gpio1_dbclk"),
++	DT_CLK(NULL, "gpio2_dbclk", "gpio2_dbclk"),
++	DT_CLK(NULL, "gpio3_dbclk", "gpio3_dbclk"),
++	DT_CLK(NULL, "gpio4_dbclk", "gpio4_dbclk"),
++	DT_CLK(NULL, "gpio5_dbclk", "gpio5_dbclk"),
++	DT_CLK(NULL, "gpio6_dbclk", "gpio6_dbclk"),
++	DT_CLK(NULL, "gpio7_dbclk", "gpio7_dbclk"),
++	DT_CLK(NULL, "gpio8_dbclk", "gpio8_dbclk"),
++	DT_CLK(NULL, "iss_ctrlclk", "iss_ctrlclk"),
++	DT_CLK(NULL, "lli_txphy_clk", "lli_txphy_clk"),
++	DT_CLK(NULL, "lli_txphy_ls_clk", "lli_txphy_ls_clk"),
++	DT_CLK(NULL, "mmc1_32khz_clk", "mmc1_32khz_clk"),
++	DT_CLK(NULL, "sata_ref_clk", "sata_ref_clk"),
++	DT_CLK(NULL, "slimbus1_slimbus_clk", "slimbus1_slimbus_clk"),
++	DT_CLK(NULL, "usb_host_hs_hsic480m_p1_clk", "usb_host_hs_hsic480m_p1_clk"),
++	DT_CLK(NULL, "usb_host_hs_hsic480m_p2_clk", "usb_host_hs_hsic480m_p2_clk"),
++	DT_CLK(NULL, "usb_host_hs_hsic480m_p3_clk", "usb_host_hs_hsic480m_p3_clk"),
++	DT_CLK(NULL, "usb_host_hs_hsic60m_p1_clk", "usb_host_hs_hsic60m_p1_clk"),
++	DT_CLK(NULL, "usb_host_hs_hsic60m_p2_clk", "usb_host_hs_hsic60m_p2_clk"),
++	DT_CLK(NULL, "usb_host_hs_hsic60m_p3_clk", "usb_host_hs_hsic60m_p3_clk"),
++	DT_CLK(NULL, "usb_host_hs_utmi_p1_clk", "usb_host_hs_utmi_p1_clk"),
++	DT_CLK(NULL, "usb_host_hs_utmi_p2_clk", "usb_host_hs_utmi_p2_clk"),
++	DT_CLK(NULL, "usb_host_hs_utmi_p3_clk", "usb_host_hs_utmi_p3_clk"),
++	DT_CLK(NULL, "usb_otg_ss_refclk960m", "usb_otg_ss_refclk960m"),
++	DT_CLK(NULL, "usb_phy_cm_clk32k", "usb_phy_cm_clk32k"),
++	DT_CLK(NULL, "usb_tll_hs_usb_ch0_clk", "usb_tll_hs_usb_ch0_clk"),
++	DT_CLK(NULL, "usb_tll_hs_usb_ch1_clk", "usb_tll_hs_usb_ch1_clk"),
++	DT_CLK(NULL, "usb_tll_hs_usb_ch2_clk", "usb_tll_hs_usb_ch2_clk"),
++	DT_CLK(NULL, "aess_fclk", "aess_fclk"),
++	DT_CLK(NULL, "dmic_sync_mux_ck", "dmic_sync_mux_ck"),
++	DT_CLK(NULL, "dmic_gfclk", "dmic_gfclk"),
++	DT_CLK(NULL, "fdif_fclk", "fdif_fclk"),
++	DT_CLK(NULL, "gpu_core_gclk_mux", "gpu_core_gclk_mux"),
++	DT_CLK(NULL, "gpu_hyd_gclk_mux", "gpu_hyd_gclk_mux"),
++	DT_CLK(NULL, "hsi_fclk", "hsi_fclk"),
++	DT_CLK(NULL, "mcasp_sync_mux_ck", "mcasp_sync_mux_ck"),
++	DT_CLK(NULL, "mcasp_gfclk", "mcasp_gfclk"),
++	DT_CLK(NULL, "mcbsp1_sync_mux_ck", "mcbsp1_sync_mux_ck"),
++	DT_CLK(NULL, "mcbsp1_gfclk", "mcbsp1_gfclk"),
++	DT_CLK(NULL, "mcbsp2_sync_mux_ck", "mcbsp2_sync_mux_ck"),
++	DT_CLK(NULL, "mcbsp2_gfclk", "mcbsp2_gfclk"),
++	DT_CLK(NULL, "mcbsp3_sync_mux_ck", "mcbsp3_sync_mux_ck"),
++	DT_CLK(NULL, "mcbsp3_gfclk", "mcbsp3_gfclk"),
++	DT_CLK(NULL, "mmc1_fclk_mux", "mmc1_fclk_mux"),
++	DT_CLK(NULL, "mmc1_fclk", "mmc1_fclk"),
++	DT_CLK(NULL, "mmc2_fclk_mux", "mmc2_fclk_mux"),
++	DT_CLK(NULL, "mmc2_fclk", "mmc2_fclk"),
++	DT_CLK(NULL, "timer10_gfclk_mux", "timer10_gfclk_mux"),
++	DT_CLK(NULL, "timer11_gfclk_mux", "timer11_gfclk_mux"),
++	DT_CLK(NULL, "timer1_gfclk_mux", "timer1_gfclk_mux"),
++	DT_CLK(NULL, "timer2_gfclk_mux", "timer2_gfclk_mux"),
++	DT_CLK(NULL, "timer3_gfclk_mux", "timer3_gfclk_mux"),
++	DT_CLK(NULL, "timer4_gfclk_mux", "timer4_gfclk_mux"),
++	DT_CLK(NULL, "timer5_gfclk_mux", "timer5_gfclk_mux"),
++	DT_CLK(NULL, "timer6_gfclk_mux", "timer6_gfclk_mux"),
++	DT_CLK(NULL, "timer7_gfclk_mux", "timer7_gfclk_mux"),
++	DT_CLK(NULL, "timer8_gfclk_mux", "timer8_gfclk_mux"),
++	DT_CLK(NULL, "timer9_gfclk_mux", "timer9_gfclk_mux"),
++	DT_CLK(NULL, "utmi_p1_gfclk", "utmi_p1_gfclk"),
++	DT_CLK(NULL, "utmi_p2_gfclk", "utmi_p2_gfclk"),
++	DT_CLK(NULL, "auxclk0_src_ck", "auxclk0_src_ck"),
++	DT_CLK(NULL, "auxclk0_ck", "auxclk0_ck"),
++	DT_CLK(NULL, "auxclkreq0_ck", "auxclkreq0_ck"),
++	DT_CLK(NULL, "auxclk1_src_ck", "auxclk1_src_ck"),
++	DT_CLK(NULL, "auxclk1_ck", "auxclk1_ck"),
++	DT_CLK(NULL, "auxclkreq1_ck", "auxclkreq1_ck"),
++	DT_CLK(NULL, "auxclk2_src_ck", "auxclk2_src_ck"),
++	DT_CLK(NULL, "auxclk2_ck", "auxclk2_ck"),
++	DT_CLK(NULL, "auxclkreq2_ck", "auxclkreq2_ck"),
++	DT_CLK(NULL, "auxclk3_src_ck", "auxclk3_src_ck"),
++	DT_CLK(NULL, "auxclk3_ck", "auxclk3_ck"),
++	DT_CLK(NULL, "auxclkreq3_ck", "auxclkreq3_ck"),
++	DT_CLK(NULL, "gpmc_ck", "dummy_ck"),
++	DT_CLK("omap_i2c.1", "ick", "dummy_ck"),
++	DT_CLK("omap_i2c.2", "ick", "dummy_ck"),
++	DT_CLK("omap_i2c.3", "ick", "dummy_ck"),
++	DT_CLK("omap_i2c.4", "ick", "dummy_ck"),
++	DT_CLK(NULL, "mailboxes_ick", "dummy_ck"),
++	DT_CLK("omap_hsmmc.0", "ick", "dummy_ck"),
++	DT_CLK("omap_hsmmc.1", "ick", "dummy_ck"),
++	DT_CLK("omap_hsmmc.2", "ick", "dummy_ck"),
++	DT_CLK("omap_hsmmc.3", "ick", "dummy_ck"),
++	DT_CLK("omap_hsmmc.4", "ick", "dummy_ck"),
++	DT_CLK("omap-mcbsp.1", "ick", "dummy_ck"),
++	DT_CLK("omap-mcbsp.2", "ick", "dummy_ck"),
++	DT_CLK("omap-mcbsp.3", "ick", "dummy_ck"),
++	DT_CLK("omap-mcbsp.4", "ick", "dummy_ck"),
++	DT_CLK("omap2_mcspi.1", "ick", "dummy_ck"),
++	DT_CLK("omap2_mcspi.2", "ick", "dummy_ck"),
++	DT_CLK("omap2_mcspi.3", "ick", "dummy_ck"),
++	DT_CLK("omap2_mcspi.4", "ick", "dummy_ck"),
++	DT_CLK(NULL, "uart1_ick", "dummy_ck"),
++	DT_CLK(NULL, "uart2_ick", "dummy_ck"),
++	DT_CLK(NULL, "uart3_ick", "dummy_ck"),
++	DT_CLK(NULL, "uart4_ick", "dummy_ck"),
++	DT_CLK("usbhs_omap", "usbhost_ick", "dummy_ck"),
++	DT_CLK("usbhs_omap", "usbtll_fck", "dummy_ck"),
++	DT_CLK("omap_wdt", "ick", "dummy_ck"),
++	DT_CLK(NULL, "timer_32k_ck", "sys_32k_ck"),
++	DT_CLK("omap_timer.1", "sys_ck", "sys_clkin"),
++	DT_CLK("omap_timer.2", "sys_ck", "sys_clkin"),
++	DT_CLK("omap_timer.3", "sys_ck", "sys_clkin"),
++	DT_CLK("omap_timer.4", "sys_ck", "sys_clkin"),
++	DT_CLK("omap_timer.9", "sys_ck", "sys_clkin"),
++	DT_CLK("omap_timer.10", "sys_ck", "sys_clkin"),
++	DT_CLK("omap_timer.11", "sys_ck", "sys_clkin"),
++	DT_CLK("omap_timer.5", "sys_ck", "dss_syc_gfclk_div"),
++	DT_CLK("omap_timer.6", "sys_ck", "dss_syc_gfclk_div"),
++	DT_CLK("omap_timer.7", "sys_ck", "dss_syc_gfclk_div"),
++	DT_CLK("omap_timer.8", "sys_ck", "dss_syc_gfclk_div"),
++	{ .node_name = NULL },
 +};
 +
-+static struct clk *omap_clk_register_apll(struct device *dev, const char *name,
-+		const char **parent_names, int num_parents, unsigned long flags,
-+		struct dpll_data *dpll_data, const char *clkdm_name,
-+		const struct clk_ops *ops, struct regmap *regmap)
++int __init omap5xxx_dt_clk_init(void)
 +{
-+	struct clk *clk;
-+	struct clk_init_data init = { NULL };
-+	struct clk_hw_omap *clk_hw;
++	int rc;
++	struct clk *abe_dpll_ref, *abe_dpll, *sys_32k_ck;
 +
-+	clk_hw = kzalloc(sizeof(*clk_hw), GFP_KERNEL);
-+	if (!clk_hw) {
-+		pr_err("%s: could not allocate clk_hw_omap\n", __func__);
-+		return ERR_PTR(-ENOMEM);
-+	}
++	ti_dt_clocks_register(omap54xx_clks);
 +
-+	clk_hw->dpll_data = dpll_data;
-+	clk_hw->hw.init = &init;
-+	clk_hw->regmap = regmap;
++	omap2_clk_disable_autoidle_all();
 +
-+	init.name = name;
-+	init.ops = ops;
-+	init.flags = flags;
-+	init.parent_names = parent_names;
-+	init.num_parents = num_parents;
++	abe_dpll_ref = clk_get_sys(NULL, "abe_dpll_clk_mux");
++	sys_32k_ck = clk_get_sys(NULL, "sys_32k_ck");
++	rc = clk_set_parent(abe_dpll_ref, sys_32k_ck);
++	abe_dpll = clk_get_sys(NULL, "dpll_abe_ck");
++	if (!rc)
++		rc = clk_set_rate(abe_dpll, OMAP5_DPLL_ABE_DEFFREQ);
++	if (rc)
++		pr_err("%s: failed to configure ABE DPLL!\n", __func__);
 +
-+	/* register the clock */
-+	clk = clk_register(dev, &clk_hw->hw);
-+
-+	return clk;
++	return 0;
 +}
-+
-+static int __init of_dra7_apll_setup(struct device_node *node,
-+				     struct regmap *regmap)
-+{
-+	const struct clk_ops *ops;
-+	struct clk *clk;
-+	const char *clk_name = node->name;
-+	int num_parents;
-+	const char **parent_names = NULL;
-+	u8 apll_flags = 0;
-+	struct dpll_data *ad;
-+	u32 idlest_mask = 0x1;
-+	u32 autoidle_mask = 0x3;
-+	int i;
-+	int ret;
-+
-+	ops = &apll_ck_ops;
-+	ad = kzalloc(sizeof(*ad), GFP_KERNEL);
-+	if (!ad) {
-+		pr_err("%s: could not allocate dpll_data\n", __func__);
-+		return -ENOMEM;
-+	}
-+
-+	of_property_read_string(node, "clock-output-names", &clk_name);
-+
-+	num_parents = of_clk_get_parent_count(node);
-+	if (num_parents < 1) {
-+		pr_err("%s: omap dpll %s must have parent(s)\n",
-+		       __func__, node->name);
-+		ret = -EINVAL;
-+		goto cleanup;
-+	}
-+
-+	parent_names = kzalloc(sizeof(char *) * num_parents, GFP_KERNEL);
-+
-+	for (i = 0; i < num_parents; i++)
-+		parent_names[i] = of_clk_get_parent_name(node, i);
-+
-+	ad->clk_ref = of_clk_get(node, 0);
-+	ad->clk_bypass = of_clk_get(node, 1);
-+
-+	if (IS_ERR(ad->clk_ref)) {
-+		pr_debug("%s: ti,clk-ref for %s not found\n", __func__,
-+			 clk_name);
-+		ret = -EAGAIN;
-+		goto cleanup;
-+	}
-+
-+	if (IS_ERR(ad->clk_bypass)) {
-+		pr_debug("%s: ti,clk-bypass for %s not found\n", __func__,
-+			 clk_name);
-+		ret = -EAGAIN;
-+		goto cleanup;
-+	}
-+
-+	of_property_read_u32_index(node, "reg", 0, (u32 *)&ad->control_reg);
-+	of_property_read_u32_index(node, "reg", 1, (u32 *)&ad->idlest_reg);
-+
-+	ad->idlest_mask = idlest_mask;
-+	ad->enable_mask = autoidle_mask;
-+
-+	clk = omap_clk_register_apll(NULL, clk_name, parent_names,
-+				num_parents, apll_flags, ad,
-+				NULL, ops, regmap);
-+
-+	if (!IS_ERR(clk)) {
-+		of_clk_add_provider(node, of_clk_src_simple_get, clk);
-+		return 0;
-+	}
-+
-+	return PTR_ERR(clk);
-+
-+cleanup:
-+	kfree(parent_names);
-+	kfree(ad);
-+	return ret;
-+}
-+CLK_OF_DECLARE(dra7_apll_clock, "ti,dra7-apll-clock", of_dra7_apll_setup);
+diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
+index 81e1307..55bcc83 100644
+--- a/include/linux/clk/ti.h
++++ b/include/linux/clk/ti.h
+@@ -225,6 +225,7 @@ int of_ti_autoidle_setup(struct device_node *node, struct regmap *regmap);
+ int ti_clk_add_component(struct device_node *node, struct clk_hw *hw, int type);
+ 
+ int omap4xxx_dt_clk_init(void);
++int omap5xxx_dt_clk_init(void);
+ 
+ #ifdef CONFIG_OF
+ void of_ti_clk_allow_autoidle_all(void);
 -- 
 1.7.9.5
 
