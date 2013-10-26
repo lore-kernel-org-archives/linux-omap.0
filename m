@@ -1,23 +1,31 @@
-From: "Mr. X" <jul217@juy793.onmicrosoft.com>
-Subject: my subject
-Date: Sat, 26 Oct 2013 14:09:07 +0530
-Message-ID: <1eb07249-eefb-4f74-bacb-7c8cb36b5ef8__3314.46717395938$1382797210$gmane$org@SIXPR06MB079.apcprd06.prod.outlook.com>
-Reply-To: <guaranteeloancompany1@gmail.com>
+From: Tobias Jakobi <tjakobi@math.uni-bielefeld.de>
+Subject: [pandaboard] omapfb not accepting 720p mode
+Date: Sat, 26 Oct 2013 17:31:58 +0200
+Message-ID: <526BE06E.4020704@math.uni-bielefeld.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from emea01-db3-ndr.ptr.protection.outlook.com ([157.56.120.105]:13828
-	"EHLO emea01-db3-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751963Ab3JZOT5 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 26 Oct 2013 10:19:57 -0400
-Content-Description: Mail message body
+Received: from smtp.math.uni-bielefeld.de ([129.70.45.10]:42922 "EHLO
+	smtp.math.uni-bielefeld.de" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751615Ab3JZPtA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Sat, 26 Oct 2013 11:49:00 -0400
+Received: from [192.168.0.34] (ip-84-119-24-147.unity-media.net [84.119.24.147])
+	(using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+	(Client did not present a certificate)
+	by smtp.math.uni-bielefeld.de (Postfix) with ESMTPSA id 667EC609EB
+	for <linux-omap@vger.kernel.org>; Sat, 26 Oct 2013 17:38:31 +0200 (CEST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Recipients <jul217@juy793.onmicrosoft.com>
+To: linux-omap@vger.kernel.org
 
+Hello,
 
-Need a Loan, Loans from $5000 - $10,000,000 00. Get your no obligation FREE quote now! Repayments up to 54 Months. No Collateral, Money paid into your account within 24 hours after approval. For more Info contact us today  guaranteeloancompany1@gmail.com
+the kernel bugtracker doesn't let me put this address into CC, so here
+manually:
+https://bugzilla.kernel.org/show_bug.cgi?id=63781
 
+Greets,
+Tobias
 
