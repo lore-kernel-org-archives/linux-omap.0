@@ -1,43 +1,23 @@
-From: Jan =?ISO-8859-1?Q?L=FCbbe?= <jlu@pengutronix.de>
-Subject: Re: [PATCHv9 30/43] ARM: dts: am33xx clock data
-Date: Sat, 26 Oct 2013 02:36:24 +0200
-Message-ID: <1382747784.6200.4.camel@polaris.local>
-References: <1382716658-6964-1-git-send-email-t-kristo@ti.com>
-	 <1382716658-6964-31-git-send-email-t-kristo@ti.com>
+From: "Mr. X" <jul217@juy793.onmicrosoft.com>
+Subject: my subject
+Date: Sat, 26 Oct 2013 14:09:07 +0530
+Message-ID: <67e3e83a-686b-427f-b2b2-caf15a367e71__49805.5340176963$1382776791$gmane$org@HKNPR06MB067.apcprd06.prod.outlook.com>
+Reply-To: <guaranteeloancompany1@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:36174 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751658Ab3JZAge (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Oct 2013 20:36:34 -0400
-In-Reply-To: <1382716658-6964-31-git-send-email-t-kristo@ti.com>
+Received: from emea01-am1-ndr.ptr.protection.outlook.com ([157.56.116.102]:14807
+	"EHLO emea01-am1-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752323Ab3JZIjl convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 26 Oct 2013 04:39:41 -0400
+Content-Description: Mail message body
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, nm@ti.com, bcousson@baylibre.com, rnayak@ti.com, mturquette@linaro.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Recipients <jul217@juy793.onmicrosoft.com>
 
-On Fri, 2013-10-25 at 18:57 +0300, Tero Kristo wrote:
-> +       mcasp0_fck: mcasp0_fck {
-> +               #clock-cells = <0>;
-> +               compatible = "fixed-factor-clock";
-> +               clocks = <&sys_clkin_ck>;
-> +               clock-mult = <1>;
-> +               clock-div = <1>;
-> +       };
-> +
-> +       mcasp1_fck: mcasp1_fck {
-> +               #clock-cells = <0>;
-> +               compatible = "fixed-factor-clock";
-> +               clocks = <&sys_clkin_ck>;
-> +               clock-mult = <1>;
-> +               clock-div = <1>;
-> +       };
 
-What is you use case for these clocks with a fixed factor of 1? Wouldn't
-it be simpler to just use sys_clkin_ck from the devices?
+Need a Loan, Loans from $5000 - $10,000,000 00. Get your no obligation FREE quote now! Repayments up to 54 Months. No Collateral, Money paid into your account within 24 hours after approval. For more Info contact us today  guaranteeloancompany1@gmail.com
 
-Regards,
-Jan
 
