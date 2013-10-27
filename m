@@ -1,57 +1,74 @@
-From: =?UTF-8?B?QWxleGFuZGVyIFNoaXlhbg==?= <shc_work@mail.ru>
-Subject: =?UTF-8?B?UmU6IFtQQVRDSCAyLzRdIHdsMTI1MTogbW92ZSBwb3dlciBHUElPIGhhbmRs?=
- =?UTF-8?B?aW5nIGludG8gdGhlIGRyaXZlcg==?=
-Date: Sun, 27 Oct 2013 20:24:16 +0400
-Message-ID: <1382891056.102746625@f315.i.mail.ru>
-References: <1382890469-25286-1-git-send-email-sre@debian.org>
- <1382890469-25286-3-git-send-email-sre@debian.org>
-Reply-To: =?UTF-8?B?QWxleGFuZGVyIFNoaXlhbg==?= <shc_work@mail.ru>
+From: Sebastian Reichel <sre@ring0.de>
+Subject: Re: [PATCHv2 1/3] Input: twl4030-keypad - add device tree support
+Date: Sun, 27 Oct 2013 17:31:27 +0100
+Message-ID: <20131027163126.GA25517@earth.universe>
+References: <1382446042-27099-1-git-send-email-sre@debian.org>
+ <1382446042-27099-2-git-send-email-sre@debian.org>
+ <20131027111715.GA2437@xo-6d-61-c0.localdomain>
+ <20131027114026.GB14091@earth.universe>
+ <20131027114753.GB14901@amd.pavel.ucw.cz>
+ <20131027122347.GE15154@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1382890469-25286-3-git-send-email-sre@debian.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: =?UTF-8?B?U2ViYXN0aWFuIFJlaWNoZWw=?= <sre@debian.org>
-Cc: =?UTF-8?B?TWFyayBSdXRsYW5k?= <mark.rutland@arm.com>, linux-doc@vger.kernel.org, =?UTF-8?B?VG9ueSBMaW5kZ3Jlbg==?= <tony@atomide.com>, =?UTF-8?B?UnVzc2VsbCBLaW5n?= <linux@arm.linux.org.uk>, =?UTF-8?B?U2FjaGluIEthbWF0?= <sachin.kamat@linaro.org>, =?UTF-8?B?U3RlcGhlbiBXYXJyZW4=?= <swarren@wwwdotorg.org>, =?UTF-8?B?U2ViYXN0aWFuIFJlaWNoZWw=?= <sre@ring0.de>, =?UTF-8?B?THVjaWFubyBDb2VsaG8=?= <luca@coelho.fi>, devicetree@vger.kernel.org, =?UTF-8?B?UGF3ZWwgTW9sbA==?= <pawel.moll@arm.com>, =?UTF-8?B?SWFuIENhbXBiZWxs?= <ijc+devicetree@hellion.org.uk>, =?UTF-8?B?Sm9obiBXLiBMaW52aWxsZQ==?= <linville@tuxdriver.com>, =?UTF-8?B?Um9iIEhlcnJpbmc=?= <rob.herring@calxeda.com>, =?UTF-8?B?QmlsbCBQZW1iZXJ0b24=?= <wfp5p@virginia.edu>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, =?UTF-8?B?R3JlZyBLcm9haC1IYXJ0bWFu?= <gregkh@linuxfoundation.org>, linux-wireless@vger.kernel.o
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="dDRMvlgZJXvWKvBx"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20131027122347.GE15154@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Pavel Machek <pavel@ucw.cz>, linux-input@vger.kernel.org, 'Beno?t Cousson' <bcousson@baylibre.com>, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Rob Landley <rob@landley.net>, Russell King <linux@arm.linux.org.uk>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Grant Likely <grant.likely@linaro.org>, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-> Move the power GPIO handling from the board code into
-> the driver. This is a dependency for device tree support.
-> 
-> Signed-off-by: Sebastian Reichel <sre@debian.org>
-> ---
->  arch/arm/mach-omap2/board-omap3pandora.c     |  2 ++
->  arch/arm/mach-omap2/board-rx51-peripherals.c | 11 ++--------
->  drivers/net/wireless/ti/wl1251/sdio.c        | 21 +++++++++++++-----
->  drivers/net/wireless/ti/wl1251/spi.c         | 33 ++++++++++++++++++----------
->  drivers/net/wireless/ti/wl1251/wl1251.h      |  2 +-
->  include/linux/wl12xx.h                       |  2 +-
->  6 files changed, 43 insertions(+), 28 deletions(-)
-...
-> diff --git a/include/linux/wl12xx.h b/include/linux/wl12xx.h
-> index b516b4f..a9c723b 100644
-> --- a/include/linux/wl12xx.h
-> +++ b/include/linux/wl12xx.h
-> @@ -49,7 +49,7 @@ enum {
->  };
->  
->  struct wl1251_platform_data {
-> -	void (*set_power)(bool enable);
-> +	int power_gpio;
->  	/* SDIO only: IRQ number if WLAN_IRQ line is used, 0 for SDIO IRQs */
->  	int irq;
->  	bool use_eeprom;
-> -- 
 
-What a reason for not using regulator API here with GPIO-based regulator?
+--dDRMvlgZJXvWKvBx
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
----
+On Sun, Oct 27, 2013 at 05:23:48AM -0700, Tony Lindgren wrote:
+> * Pavel Machek <pavel@ucw.cz> [131027 04:48]:
+> > > > > +#if IS_ENABLED(CONFIG_OF)
+> > > > I'm probably missing something here, but why not #ifdef CONFIG_OF?
+> > >=20
+> > > I have been told for other drivers, that IS_ENABLED() is
+> > > the prefered way to check for configuration these days.
+> >=20
+> > CONFIG_OF can not be module, using IS_ENABLED() on it is just wrong.
+>=20
+> Good point. Looks like there's IS_BUILTIN that's for boolean options.
+
+Using IS_ENABLED for boolean options is supposed to be supported
+according to the comment above IS_BUILTIN:
+
+/*
+ * IS_BUILTIN(CONFIG_FOO) evaluates to 1 if CONFIG_FOO is set to 'y', 0
+ * otherwise. For boolean options, this is equivalent to
+ * IS_ENABLED(CONFIG_FOO).
+ */
+#define IS_BUILTIN(option) config_enabled(option)
+
+-- Sebastian
+
+--dDRMvlgZJXvWKvBx
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.15 (GNU/Linux)
+
+iQIcBAEBCAAGBQJSbT/eAAoJENju1/PIO/qakkwP/A16K3L2a3ZV6ytDoFG1lMG9
+xfKPgI6Y6GZRjU9a4EUPE/qV/NS7BEQl0VUyxVgEYJ4NOCxnSIM/RibTxGlmV5mj
+TJz8116axWAsS5mKgQx+zxw/r+dXh2RuZe0ClE2kh2k+ba50iDc7QMRtJlbTumaW
+TPcUsGY+2lHVVSQjlTdRpq6v4IcsrOTVYrYTUfPdk6ichUJiqtheCni39zBLvCZ/
+Eat//nBa5UW3iajcn3uX2xkwVBiTZNNjFGPQJqmjqGDF4EltkTm5db+EdmdFtrma
+I8a8M7lOrhpIva9uEMwz/NC1FPho5l35Vp0emUFWIHqmIDjD8i3dk6s2gnOrFKZ/
+n+8k15Ed22nhw5JWoCwdh9bIu2u9drr/6m2JI0YSWagw99+oCtqScNG5KjQmSMgn
+YdiAbrOvAFpbj4scu8ntmpj6baUs8FMXFEf+zbclJwgSh+T6AYf6er1hziHUKqrt
+WIXR6+AoDYoiX0z8zFoaecx2TDT1B4mjbCUSyenFvwO8mlpyVDigFaBcCgy/Jjfk
++1aYeXqqa4RjeD7a5VWTJf4cMnxe41W8PW3OJxDnXhFMSbhKLYhMTmorkvLS4qsd
+uSysrO7i/YGn7TDypBWIimjRIl/nwisHdleRipSvKXloPn3vMxVGCYqM4CE/LpSW
+Vjoarfs0iyeDNS6KVpGm
+=iXiI
+-----END PGP SIGNATURE-----
+
+--dDRMvlgZJXvWKvBx--
