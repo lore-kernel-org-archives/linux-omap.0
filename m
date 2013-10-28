@@ -1,53 +1,67 @@
-From: Archit Taneja <archit@ti.com>
-Subject: Re: [pandaboard] omapfb not accepting 720p mode
-Date: Mon, 28 Oct 2013 15:36:19 +0530
-Message-ID: <526E371B.4060806@ti.com>
-References: <526BE06E.4020704@math.uni-bielefeld.de> <526E05BE.8090808@ti.com> <526E2FC1.6030607@math.uni-bielefeld.de>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv9 30/43] ARM: dts: am33xx clock data
+Date: Mon, 28 Oct 2013 12:12:11 +0200
+Message-ID: <526E387B.7010306@ti.com>
+References: <1382716658-6964-1-git-send-email-t-kristo@ti.com>		
+ <1382716658-6964-31-git-send-email-t-kristo@ti.com>	
+ <1382747784.6200.4.camel@polaris.local> <526BB9A2.2050108@ti.com>
+ <1382954349.11504.213.camel@coredoba.hi.pengutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:54747 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755714Ab3J1KHM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Oct 2013 06:07:12 -0400
-In-Reply-To: <526E2FC1.6030607@math.uni-bielefeld.de>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"; Format="flowed"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1382954349.11504.213.camel@coredoba.hi.pengutronix.de>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: =?UTF-8?B?SmFuIEzDvGJiZQ==?= <jlu@pengutronix.de>
+Cc: nm@ti.com, devicetree@vger.kernel.org, paul@pwsan.com, mturquette@linaro.org, tony@atomide.com, rnayak@ti.com, bcousson@baylibre.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Tobias Jakobi <tjakobi@math.uni-bielefeld.de>, linux-omap@vger.kernel.org
 
-Hi,
-
-On Monday 28 October 2013 03:04 PM, Tobias Jakobi wrote:
-> Archit Taneja wrote:
->> The issue seems like we can't allocate buffers for 720p.
->>
->> Can you make sure if CONFIG_DMA_CMA is set in your config? And you
->> could set CMA_SIZE_MBYTES to a larger valuem say 50M.
->>
->> Archit
->>
-> Hello Archit,
->
-> yes, CMA is activated and with my latest config I've got 32MB allocated.
-> I'll try to further increase the amount and check some other (larger)
-> resolutions with don't require CVT (1280x1024 e.g.).
->
-> Also I may be wrong, but isn't allocation done after the parsing?
-> The first message "cannot parse default modes" comes from
-> omapfb_parse_def_modes returning an error. Which could be triggered by
-> either the mode syntax being messed up (not the case for me I think),
-> kstrdup failing (not very likely) or omapfb_set_def_mode failing. And
-> from what I can see, omapfb_set_def_mode does some timing
-> calculations/conversions, sets these timings and nothing more.
-
-You are right about the allocation coming after parsing the modes.
-
-The problem is that our naming conventions for displays had changed 
-sometime back. Could you change the name 'hdmi' to 'connector-hdmi', 
-like below:
-
-connector-hdmi:mode-string
-
-Archit
-
+T24gMTAvMjgvMjAxMyAxMTo1OSBBTSwgSmFuIEzDvGJiZSB3cm90ZToKPiBPbiBTYXQsIDIwMTMt
+MTAtMjYgYXQgMTU6NDYgKzAzMDAsIFRlcm8gS3Jpc3RvIHdyb3RlOgo+PiBPbiAxMC8yNi8yMDEz
+IDAzOjM2IEFNLCBKYW4gTMO8YmJlIHdyb3RlOgo+Pj4gT24gRnJpLCAyMDEzLTEwLTI1IGF0IDE4
+OjU3ICswMzAwLCBUZXJvIEtyaXN0byB3cm90ZToKPj4+PiArICAgICAgIG1jYXNwMF9mY2s6IG1j
+YXNwMF9mY2sgewo+Pj4+ICsgICAgICAgICAgICAgICAjY2xvY2stY2VsbHMgPSA8MD47Cj4+Pj4g
+KyAgICAgICAgICAgICAgIGNvbXBhdGlibGUgPSAiZml4ZWQtZmFjdG9yLWNsb2NrIjsKPj4+PiAr
+ICAgICAgICAgICAgICAgY2xvY2tzID0gPCZzeXNfY2xraW5fY2s+Owo+Pj4+ICsgICAgICAgICAg
+ICAgICBjbG9jay1tdWx0ID0gPDE+Owo+Pj4+ICsgICAgICAgICAgICAgICBjbG9jay1kaXYgPSA8
+MT47Cj4+Pj4gKyAgICAgICB9Owo+Pj4+ICsKPj4+PiArICAgICAgIG1jYXNwMV9mY2s6IG1jYXNw
+MV9mY2sgewo+Pj4+ICsgICAgICAgICAgICAgICAjY2xvY2stY2VsbHMgPSA8MD47Cj4+Pj4gKyAg
+ICAgICAgICAgICAgIGNvbXBhdGlibGUgPSAiZml4ZWQtZmFjdG9yLWNsb2NrIjsKPj4+PiArICAg
+ICAgICAgICAgICAgY2xvY2tzID0gPCZzeXNfY2xraW5fY2s+Owo+Pj4+ICsgICAgICAgICAgICAg
+ICBjbG9jay1tdWx0ID0gPDE+Owo+Pj4+ICsgICAgICAgICAgICAgICBjbG9jay1kaXYgPSA8MT47
+Cj4+Pj4gKyAgICAgICB9Owo+Pj4KPj4+IFdoYXQgaXMgeW91IHVzZSBjYXNlIGZvciB0aGVzZSBj
+bG9ja3Mgd2l0aCBhIGZpeGVkIGZhY3RvciBvZiAxPyBXb3VsZG4ndAo+Pj4gaXQgYmUgc2ltcGxl
+ciB0byBqdXN0IHVzZSBzeXNfY2xraW5fY2sgZnJvbSB0aGUgZGV2aWNlcz8KPj4KPj4gVGhpcyBp
+cyBqdXN0IGtpbmQgb2YgYSBkdW1teSBjbG9jayBub2RlIGZvciB0aGUgZHJpdmVyIHVzZSwgc28g
+dGhhdCBpdAo+PiBpcyBzaW1wbGVyIGZvciB0aGVtIHRvIGZpbmQgdGhlaXIgY2xvY2tzLiBJZiB0
+aGVzZSBhcmUgZHJvcHBlZCwgdGhlCj4+IGRyaXZlcnMgbmVlZCB0byBrbm93IHRoYXQgaW5zdGVh
+ZCBvZiB0aGVpciBvbGQgb3duIG1jYXNwWF9mY2ssIHRoZXkgbm93Cj4+IG5lZWQgdG8gZGlyZWN0
+bHkgY29ubmVjdCB0byBzeXNfY2xraW5fY2suIFRoaXMgYWxzbyBhbGxvd3MgdG8gdHJhY2sKPj4g
+dXNlY291bnRzIGZvciB0aGUgY2xvY2tzIGJldHRlciwgaWYgeW91IGRvbid0IGhhdmUgdGhlIG1j
+YXNwWF9mY2s6cyBmb3IKPj4gZXhhbXBsZSwgeW91IHdpbGwganVzdCBoYXZlIGEgdXNlY291bnQg
+b2YgMjUgZm9yIHRoZSBzeXNfY2xraW5fY2ssIGJ1dAo+PiBkb24ndCByZWFsbHkga25vdyB3aG8g
+aXMgdXNpbmcgaXQuIEFsc28sIG90aGVyIFNvQ3MgbW9zdCBsaWtlbHkgaGF2ZSB0aGUKPj4gc2Ft
+ZSBuYW1lIGluIHVzZSwgc28ganVzdCB0byBrZWVwIHRoZSBjbG9jayBkYXRhIGNvbXBhdGlibGUg
+YWNyb3NzIFNvQ3MuCj4+Cj4+IFRoZXNlIGZpbGVzIGFyZSBhbHNvIGNvbXBsZXRlbHkgYXV0b2dl
+bmVyYXRlZCBmcm9tIHRoZSBleGlzdGluZyBjbG9jawo+PiBkYXRhIHVuZGVyIG1hY2gtb21hcDIs
+IGFuZCB0aGVzZSBub2RlcyBleGlzdCB0aGVyZS4KPj4KPj4gQnV0IHllYSwgbm8gaGFyZCByZXF1
+aXJlbWVudC4KPgo+IFdlIHNob3VsZG4ndCBhZGQgZHVtbXkgY2xvY2tzIHRvIHNpbXBsaWZ5IGRl
+YnVnZ2luZywgbWF5YmUgd2UgbmVlZCBzb21lCj4gdXNlciB0cmFja2luZyBpbiB0aGUgY29yZSBj
+bGsgY29kZT8KClllYSBtaWdodCBiZSBnb29kIHRvIGhhdmUgc29tZXRoaW5nIGxpa2UgdGhpcyBh
+cyBjb25maWd1cmFibGUgb3B0aW9uIGluIAp0aGUgZnV0dXJlLCBzbyB5b3Ugd291bGQga25vdyB3
+aG8gaGFzIGVuYWJsZWQgYSBjZXJ0YWluIGNsb2NrLiBDdXJyZW50bHkgCmNsb2NrIEFQSXMgZG9u
+J3QgcmVhbGx5IHByb3ZpZGUgd2F5IHRvIHRlbGwgdXNlcnMgYXBhcnQgZnJvbSBlYWNoIG90aGVy
+LiAKTWlrZSwgYW55IHRob3VnaHRzIG9uIHRoaXM/Cgo+Cj4gQXMgdGhlcmUgYXJlIG9ubHkgZmV3
+IG9mIHRoZXNlIGZhY3RvciAxIGNsb2NrcywgSSdtIGZpbmUgd2l0aCBrZWVwaW5nCj4gdGhlbSBm
+b3IgY29uc2lzdGVuY3kgaGVyZS4KClRoYW5rcy4gOikKCi1UZXJvCgpfX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcg
+bGlzdApsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmlu
+ZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1hcm0ta2VybmVsCg==
