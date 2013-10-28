@@ -1,55 +1,53 @@
 From: Mark Brown <broonie@kernel.org>
-Subject: Re: [RFC 1/4] ASoC: omap: rx51: Use snd_soc_register_card
-Date: Mon, 28 Oct 2013 09:00:15 -0700
-Message-ID: <20131028160015.GA13643@sirena.org.uk>
+Subject: Re: [RFC 3/4] ASoC: Allow Aux Codecs to be specified using DT
+Date: Mon, 28 Oct 2013 09:37:21 -0700
+Message-ID: <20131028163721.GJ13643@sirena.org.uk>
 References: <1382909086-10493-1-git-send-email-sre@debian.org>
- <1382909086-10493-2-git-send-email-sre@debian.org>
+ <1382909086-10493-4-git-send-email-sre@debian.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="T4sUOijqQbZv57TR"
+	protocol="application/pgp-signature"; boundary="aznLbwQ42o7LEaqN"
 Return-path: <linux-doc-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1382909086-10493-2-git-send-email-sre@debian.org>
+In-Reply-To: <1382909086-10493-4-git-send-email-sre@debian.org>
 Sender: linux-doc-owner@vger.kernel.org
 To: Sebastian Reichel <sre@debian.org>
-Cc: Sebastian Reichel <sre@ring0.de>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Rob Landley <rob@landley.net>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>, Liam Girdwood <lgirdwood@gmail.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Grant Likely <grant.likely@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
+Cc: Sebastian Reichel <sre@ring0.de>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Rob Landley <rob@landley.net>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>, Liam Girdwood <lgirdwood@gmail.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Grant Likely <grant.likely@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
 List-Id: linux-omap@vger.kernel.org
 
 
---T4sUOijqQbZv57TR
-Content-Type: text/plain; charset=iso-8859-1
+--aznLbwQ42o7LEaqN
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Sun, Oct 27, 2013 at 10:24:43PM +0100, Sebastian Reichel wrote:
-> From: Pali Roh=E1r <pali.rohar@gmail.com>
->=20
-> This patch converts the rx51 ASoC module to use
-> snd_soc_register_card. It also adds module alias
-> to support driver autoloading.
+On Sun, Oct 27, 2013 at 10:24:45PM +0100, Sebastian Reichel wrote:
+> This patch adds support for specifying auxiliary codecs and
+> codec configuration via device tree phandles.
 
-You should really use devm_snd_soc_register_card() here.
+This doesn't apply against current git, please check and resend.
+Please also consider your CC list more carefully, there's an awful lot
+of people on this...
 
---T4sUOijqQbZv57TR
+--aznLbwQ42o7LEaqN
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2.0.22 (GNU/Linux)
 
-iQIcBAEBAgAGBQJSbooGAAoJELSic+t+oim95JIP/iM6CcdgQoi38u29uqn9Wngk
-Ybk5NgxgSlgX5BEsPmh38fD2V4Vx+BrY6gPrMM0ibBCuWQGKDmsZRIvfdkbYxiXD
-tysn3aKwrR+cL3AFteb6K3QByYo8JigxZoubvN/mRO+6EOt/k+I8RcA5uV+IwVXB
-kkPKSibo6aBlnFj6kwqNaiEmhhVLfszIifgAuaibh9+MGjUkj304ZiID/0/Qww3n
-55dZkUnqG2+co+fRgIR+95wq/gQKjN4AwiP91bEt50NpdcjMcNcxBUzjjgXdzJ7Q
-a+gKjwlivR3SwsU3KRcrVDHnk4FmHXMZaNk9H/T7CNN5oKq4HTpCeNQcBYQD/5KV
-/vvxDCQpBuGy/uAS5+5HP4UzNVLJDDkxi10NxXZbp1mJt1WIp4juCxFiMybnpNwU
-wlpUFXoq9SKRvfDfvf/PcakO5CFkKSgbztkQxj+8dzbI1yRiKYQRvNDXZ/bbSD4+
-E36g/xJJIU4l4ASPWYFHDmKIquypCli10zphQuKGkGD2OKK9X1xta9E7SqN7XvB5
-zaDlkMndHss677LWiyQ+DzQIVmkL0e5OQrI/r/Vt8Qyf5Y/Es0NkZ25DLACPtfFu
-oDJrGyINpVhZKNpIw4IasoVpdufy3yysZoOwHvLWAN5YMwlofNRb7Ktld8NKpVxU
-V10ybJaRt9O2qlAb0+cV
-=S7Vd
+iQIcBAEBAgAGBQJSbpK9AAoJELSic+t+oim9xrsP/igxKF053ju1GVHtJe9sO1bE
+UXnFGI7XeXTR287X+/9onRmKyH0dwjDdgcj0XkPBBLmDX7+LRpOdfQX6f/YZZdo7
+X+Sx4jcAmI3qQ/BMNpkGrUilxADj6q8BX3fP9HjrijY+CholSOUnAgr8q4bUlgyC
+pOLS2A7Jrcbb+KT0PR2fn0BKuH2pKzref/aPisFI088csN69HD2sbU99tmsbn65p
+fWcpt/YW4MwbPnHtHMGey2h2wWv3rPWC/uE63WEyXfVJbHhE4z3mTh/iNaAsnjL+
+VRDI+E6xpR+sb2dJszQ4BEDxem0Axjs2Lk3dub8myPfeOm6EiW5bsB0C23ZUJXPS
+85/3YB7JnJlS57OSbkH8scE1IDPjiv3Q2fEwcqXK3BazEE7rqBufgm7nGG/Oa1B0
+D6WafLfYybsNIwxuG/N6ZHWm58AwdYy6nIEfTvZ8SA7O3AH8r4MZopJXCkhfGNeS
+ctd518x0u4lEvoxgjflwO3ov6xwPsBw3ULM6IwLf8OMMp6Y8R1bMgIT50uZW0LMV
+NRKoQLnjSJscYdViCcVf076uXb2FrKnq0ZE0mo3jRQteRew7g7nmelFPMy1LnXOu
+bZaGuEk5XJ5lvLTaqQKIqJYZq/HuFHDjaIvCv6ks7urAJPd56rGKWYUQ2/tTQkdL
+gDW95no7fIY7h8HT6cWy
+=T9sN
 -----END PGP SIGNATURE-----
 
---T4sUOijqQbZv57TR--
+--aznLbwQ42o7LEaqN--
