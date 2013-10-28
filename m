@@ -1,58 +1,87 @@
-From: Sebastian Reichel <sre@debian.org>
-Subject: [RFC 2/4] ARM: OMAP: rx51: Register audio device
-Date: Sun, 27 Oct 2013 22:24:44 +0100
-Message-ID: <1382909086-10493-3-git-send-email-sre@debian.org>
-References: <1382909086-10493-1-git-send-email-sre@debian.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1382909086-10493-1-git-send-email-sre@debian.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@ring0.de>, Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Rob Landley <rob@landley.net>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Grant Likely <grant.likely@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>, Sebastian Reichel <sre@debian.org>
+From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+Subject: [PATCH 1/3] omap2: gpmc: Move initialization outside the gpmc_t condition
+Date: Sun, 27 Oct 2013 21:51:46 -0300
+Message-ID: <1382921508-5104-2-git-send-email-ezequiel.garcia@free-electrons.com>
+References: <1382921508-5104-1-git-send-email-ezequiel.garcia@free-electrons.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from top.free-electrons.com ([176.31.233.9]:59912 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755279Ab3J1AwB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 27 Oct 2013 20:52:01 -0400
+In-Reply-To: <1382921508-5104-1-git-send-email-ezequiel.garcia@free-electrons.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Javier Martinez Canillas <martinez.javier@gmail.com>, Enric Balletbo Serra <eballetbo@gmail.com>, Pekon Gupta <pekon@ti.com>, Tony Lindgren <tony@atomide.com>, linux-mtd@lists.infradead.org, Jon Hunter <jgchunter@gmail.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
 
-=46rom: Pali Roh=C3=A1r <pali.rohar@gmail.com>
+This commit moves a bunch of initialization previously enclosed
+under a 'if (gpmc_t)' check, to be outside such condition.
 
-This patch adds support for the audio chip to the legacy
-boardcode of the Nokia N900.
+These initializations are not related to gpmc_t (timings) in any way
+so it's nonsense to enclose them under such check.
 
-Signed-off-by: Pali Roh=C3=A1r <pali.rohar@gmail.com>
-Signed-off-by: Sebastian Reichel <sre@debian.org>
+Signed-off-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
 ---
- arch/arm/mach-omap2/board-rx51-peripherals.c | 11 +++++++++++
- 1 file changed, 11 insertions(+)
+ arch/arm/mach-omap2/gpmc-nand.c | 40 ++++++++++++++++++++--------------------
+ 1 file changed, 20 insertions(+), 20 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/ma=
-ch-omap2/board-rx51-peripherals.c
-index 68dc998..65e3627 100644
---- a/arch/arm/mach-omap2/board-rx51-peripherals.c
-+++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
-@@ -1205,6 +1205,16 @@ error:
- 	 */
- }
-=20
-+static struct platform_device rx51_audio_device =3D {
-+	.name	=3D "rx51-audio",
-+	.id	=3D -1,
-+};
-+
-+static void __init rx51_init_audio(void)
-+{
-+	platform_device_register(&rx51_audio_device);
-+}
-+
- static struct tsc2005_platform_data tsc2005_pdata =3D {
- 	.ts_pressure_max	=3D 2048,
- 	.ts_pressure_fudge	=3D 2,
-@@ -1287,6 +1297,7 @@ void __init rx51_peripherals_init(void)
- 	gpmc_onenand_init(board_onenand_data);
- 	board_smc91x_init();
- 	rx51_add_gpio_keys();
-+	rx51_init_audio();
- 	rx51_init_wl1251();
- 	rx51_init_tsc2005();
- 	rx51_init_si4713();
---=20
-1.8.4.rc3
+diff --git a/arch/arm/mach-omap2/gpmc-nand.c b/arch/arm/mach-omap2/gpmc-nand.c
+index 662c7fd..d66b856 100644
+--- a/arch/arm/mach-omap2/gpmc-nand.c
++++ b/arch/arm/mach-omap2/gpmc-nand.c
+@@ -98,32 +98,32 @@ int gpmc_nand_init(struct omap_nand_platform_data *gpmc_nand_data,
+ 			dev_err(dev, "Unable to set gpmc timings: %d\n", err);
+ 			return err;
+ 		}
++	}
+ 
+-		if (gpmc_nand_data->of_node) {
+-			gpmc_read_settings_dt(gpmc_nand_data->of_node, &s);
+-		} else {
+-			/* Enable RD PIN Monitoring Reg */
+-			if (gpmc_nand_data->dev_ready) {
+-				s.wait_on_read = true;
+-				s.wait_on_write = true;
+-			}
++	if (gpmc_nand_data->of_node) {
++		gpmc_read_settings_dt(gpmc_nand_data->of_node, &s);
++	} else {
++		/* Enable RD PIN Monitoring Reg */
++		if (gpmc_nand_data->dev_ready) {
++			s.wait_on_read = true;
++			s.wait_on_write = true;
+ 		}
++	}
+ 
+-		s.device_nand = true;
++	s.device_nand = true;
+ 
+-		if (gpmc_nand_data->devsize == NAND_BUSWIDTH_16)
+-			s.device_width = GPMC_DEVWIDTH_16BIT;
+-		else
+-			s.device_width = GPMC_DEVWIDTH_8BIT;
++	if (gpmc_nand_data->devsize == NAND_BUSWIDTH_16)
++		s.device_width = GPMC_DEVWIDTH_16BIT;
++	else
++		s.device_width = GPMC_DEVWIDTH_8BIT;
+ 
+-		err = gpmc_cs_program_settings(gpmc_nand_data->cs, &s);
+-		if (err < 0)
+-			goto out_free_cs;
++	err = gpmc_cs_program_settings(gpmc_nand_data->cs, &s);
++	if (err < 0)
++		goto out_free_cs;
+ 
+-		err = gpmc_configure(GPMC_CONFIG_WP, 0);
+-		if (err < 0)
+-			goto out_free_cs;
+-	}
++	err = gpmc_configure(GPMC_CONFIG_WP, 0);
++	if (err < 0)
++		goto out_free_cs;
+ 
+ 	gpmc_update_nand_reg(&gpmc_nand_data->reg, gpmc_nand_data->cs);
+ 
+-- 
+1.8.1.5
+
