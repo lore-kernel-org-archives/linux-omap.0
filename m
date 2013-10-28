@@ -1,67 +1,42 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv9 30/43] ARM: dts: am33xx clock data
-Date: Mon, 28 Oct 2013 12:12:11 +0200
-Message-ID: <526E387B.7010306@ti.com>
-References: <1382716658-6964-1-git-send-email-t-kristo@ti.com>		
- <1382716658-6964-31-git-send-email-t-kristo@ti.com>	
- <1382747784.6200.4.camel@polaris.local> <526BB9A2.2050108@ti.com>
- <1382954349.11504.213.camel@coredoba.hi.pengutronix.de>
+From: Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v3 0/5] usb: musb_dsps: support for suspend and resume
+Date: Mon, 28 Oct 2013 12:06:25 +0100
+Message-ID: <526E4531.8020301@gmail.com>
+References: <1382089175-13487-1-git-send-email-zonque@gmail.com> <52610696.7020900@linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1382954349.11504.213.camel@coredoba.hi.pengutronix.de>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: =?UTF-8?B?SmFuIEzDvGJiZQ==?= <jlu@pengutronix.de>
-Cc: nm@ti.com, devicetree@vger.kernel.org, paul@pwsan.com, mturquette@linaro.org, tony@atomide.com, rnayak@ti.com, bcousson@baylibre.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <52610696.7020900-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, balbi-l0cyMroinI0@public.gmane.org
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, neumann-SRDuVqtxQLSzQB+pC5nmwQ@public.gmane.org, vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-T24gMTAvMjgvMjAxMyAxMTo1OSBBTSwgSmFuIEzDvGJiZSB3cm90ZToKPiBPbiBTYXQsIDIwMTMt
-MTAtMjYgYXQgMTU6NDYgKzAzMDAsIFRlcm8gS3Jpc3RvIHdyb3RlOgo+PiBPbiAxMC8yNi8yMDEz
-IDAzOjM2IEFNLCBKYW4gTMO8YmJlIHdyb3RlOgo+Pj4gT24gRnJpLCAyMDEzLTEwLTI1IGF0IDE4
-OjU3ICswMzAwLCBUZXJvIEtyaXN0byB3cm90ZToKPj4+PiArICAgICAgIG1jYXNwMF9mY2s6IG1j
-YXNwMF9mY2sgewo+Pj4+ICsgICAgICAgICAgICAgICAjY2xvY2stY2VsbHMgPSA8MD47Cj4+Pj4g
-KyAgICAgICAgICAgICAgIGNvbXBhdGlibGUgPSAiZml4ZWQtZmFjdG9yLWNsb2NrIjsKPj4+PiAr
-ICAgICAgICAgICAgICAgY2xvY2tzID0gPCZzeXNfY2xraW5fY2s+Owo+Pj4+ICsgICAgICAgICAg
-ICAgICBjbG9jay1tdWx0ID0gPDE+Owo+Pj4+ICsgICAgICAgICAgICAgICBjbG9jay1kaXYgPSA8
-MT47Cj4+Pj4gKyAgICAgICB9Owo+Pj4+ICsKPj4+PiArICAgICAgIG1jYXNwMV9mY2s6IG1jYXNw
-MV9mY2sgewo+Pj4+ICsgICAgICAgICAgICAgICAjY2xvY2stY2VsbHMgPSA8MD47Cj4+Pj4gKyAg
-ICAgICAgICAgICAgIGNvbXBhdGlibGUgPSAiZml4ZWQtZmFjdG9yLWNsb2NrIjsKPj4+PiArICAg
-ICAgICAgICAgICAgY2xvY2tzID0gPCZzeXNfY2xraW5fY2s+Owo+Pj4+ICsgICAgICAgICAgICAg
-ICBjbG9jay1tdWx0ID0gPDE+Owo+Pj4+ICsgICAgICAgICAgICAgICBjbG9jay1kaXYgPSA8MT47
-Cj4+Pj4gKyAgICAgICB9Owo+Pj4KPj4+IFdoYXQgaXMgeW91IHVzZSBjYXNlIGZvciB0aGVzZSBj
-bG9ja3Mgd2l0aCBhIGZpeGVkIGZhY3RvciBvZiAxPyBXb3VsZG4ndAo+Pj4gaXQgYmUgc2ltcGxl
-ciB0byBqdXN0IHVzZSBzeXNfY2xraW5fY2sgZnJvbSB0aGUgZGV2aWNlcz8KPj4KPj4gVGhpcyBp
-cyBqdXN0IGtpbmQgb2YgYSBkdW1teSBjbG9jayBub2RlIGZvciB0aGUgZHJpdmVyIHVzZSwgc28g
-dGhhdCBpdAo+PiBpcyBzaW1wbGVyIGZvciB0aGVtIHRvIGZpbmQgdGhlaXIgY2xvY2tzLiBJZiB0
-aGVzZSBhcmUgZHJvcHBlZCwgdGhlCj4+IGRyaXZlcnMgbmVlZCB0byBrbm93IHRoYXQgaW5zdGVh
-ZCBvZiB0aGVpciBvbGQgb3duIG1jYXNwWF9mY2ssIHRoZXkgbm93Cj4+IG5lZWQgdG8gZGlyZWN0
-bHkgY29ubmVjdCB0byBzeXNfY2xraW5fY2suIFRoaXMgYWxzbyBhbGxvd3MgdG8gdHJhY2sKPj4g
-dXNlY291bnRzIGZvciB0aGUgY2xvY2tzIGJldHRlciwgaWYgeW91IGRvbid0IGhhdmUgdGhlIG1j
-YXNwWF9mY2s6cyBmb3IKPj4gZXhhbXBsZSwgeW91IHdpbGwganVzdCBoYXZlIGEgdXNlY291bnQg
-b2YgMjUgZm9yIHRoZSBzeXNfY2xraW5fY2ssIGJ1dAo+PiBkb24ndCByZWFsbHkga25vdyB3aG8g
-aXMgdXNpbmcgaXQuIEFsc28sIG90aGVyIFNvQ3MgbW9zdCBsaWtlbHkgaGF2ZSB0aGUKPj4gc2Ft
-ZSBuYW1lIGluIHVzZSwgc28ganVzdCB0byBrZWVwIHRoZSBjbG9jayBkYXRhIGNvbXBhdGlibGUg
-YWNyb3NzIFNvQ3MuCj4+Cj4+IFRoZXNlIGZpbGVzIGFyZSBhbHNvIGNvbXBsZXRlbHkgYXV0b2dl
-bmVyYXRlZCBmcm9tIHRoZSBleGlzdGluZyBjbG9jawo+PiBkYXRhIHVuZGVyIG1hY2gtb21hcDIs
-IGFuZCB0aGVzZSBub2RlcyBleGlzdCB0aGVyZS4KPj4KPj4gQnV0IHllYSwgbm8gaGFyZCByZXF1
-aXJlbWVudC4KPgo+IFdlIHNob3VsZG4ndCBhZGQgZHVtbXkgY2xvY2tzIHRvIHNpbXBsaWZ5IGRl
-YnVnZ2luZywgbWF5YmUgd2UgbmVlZCBzb21lCj4gdXNlciB0cmFja2luZyBpbiB0aGUgY29yZSBj
-bGsgY29kZT8KClllYSBtaWdodCBiZSBnb29kIHRvIGhhdmUgc29tZXRoaW5nIGxpa2UgdGhpcyBh
-cyBjb25maWd1cmFibGUgb3B0aW9uIGluIAp0aGUgZnV0dXJlLCBzbyB5b3Ugd291bGQga25vdyB3
-aG8gaGFzIGVuYWJsZWQgYSBjZXJ0YWluIGNsb2NrLiBDdXJyZW50bHkgCmNsb2NrIEFQSXMgZG9u
-J3QgcmVhbGx5IHByb3ZpZGUgd2F5IHRvIHRlbGwgdXNlcnMgYXBhcnQgZnJvbSBlYWNoIG90aGVy
-LiAKTWlrZSwgYW55IHRob3VnaHRzIG9uIHRoaXM/Cgo+Cj4gQXMgdGhlcmUgYXJlIG9ubHkgZmV3
-IG9mIHRoZXNlIGZhY3RvciAxIGNsb2NrcywgSSdtIGZpbmUgd2l0aCBrZWVwaW5nCj4gdGhlbSBm
-b3IgY29uc2lzdGVuY3kgaGVyZS4KClRoYW5rcy4gOikKCi1UZXJvCgpfX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcg
-bGlzdApsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmlu
-ZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1hcm0ta2VybmVsCg==
+On 10/18/2013 11:59 AM, Sebastian Andrzej Siewior wrote:
+> On 10/18/2013 11:39 AM, Daniel Mack wrote:
+>> v3 of my musb_dsps suspend patches.
+>>
+>> With these patches applied, I can successfully bring an AM335x board
+>> to suspend with a USB media connected, and access it again after
+>> resume.
+>>
+>> This works for both PIO mode and CPPI41 enabled configurations,
+>> together with Sebasitian's and my cppi41 patches recently posted.
+>>
+>> Felipe, this work was rebased and now applies cleanly on top of
+>> your current 'next' branch. IOW, on top of "usb: musb: cppi41: allow
+>> to defer probing if DMA isn't yet available".
+> 
+> Sounds good.
+
+Felipe, do you think that series is good to be taken for 3.13?
+
+
+Thanks,
+Daniel
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
