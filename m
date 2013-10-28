@@ -1,101 +1,84 @@
-From: Tomasz Figa <tomasz.figa@gmail.com>
-Subject: Re: [PATCH 4/4] wl1251: spi: add device tree support
-Date: Mon, 28 Oct 2013 23:38:36 +0100
-Message-ID: <4893578.SBstXOAcJY@flatron>
-References: <1382890469-25286-1-git-send-email-sre@debian.org> <1382890469-25286-5-git-send-email-sre@debian.org> <FF34C626-4A49-43B1-B0AD-DC6146ABBB11@codeaurora.org>
+From: Sebastian Reichel <sre@ring0.de>
+Subject: Re: [PATCH 2/4] wl1251: move power GPIO handling into the driver
+Date: Tue, 29 Oct 2013 00:26:26 +0100
+Message-ID: <20131028232624.GA950@earth.universe>
+References: <1382890469-25286-1-git-send-email-sre@debian.org>
+ <1382890469-25286-3-git-send-email-sre@debian.org>
+ <1382891056.102746625@f315.i.mail.ru>
+ <20131027201218.GA4414@earth.universe>
+ <CANOLnONKcC1i19ypb4rh2Rff3WsVhhuUhNvZvYwDV2-ZNtjVxQ@mail.gmail.com>
+ <20131028192354.GA18208@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="uAKRQypu60I7Lcqm"
 Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <FF34C626-4A49-43B1-B0AD-DC6146ABBB11@codeaurora.org>
+Content-Disposition: inline
+In-Reply-To: <20131028192354.GA18208@sirena.org.uk>
 Sender: linux-doc-owner@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Kumar Gala <galak@codeaurora.org>, Sebastian Reichel <sre@debian.org>, Mark Rutland <mark.rutland@arm.com>, linux-doc@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Sachin Kamat <sachin.kamat@linaro.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Sebastian Reichel <sre@ring0.de>, Luciano Coelho <luca@coelho.fi>, devicetree@vger.kernel.org, Pawel Moll <pawel.moll@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, "John W. Linville" <linville@tuxdriver.com>, Rob Herring <rob.herring@calxeda.com>, Bill Pemberton <wfp5p@virginia.edu>, linux-omap@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-wireless@vger.kernel.org, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Rob Landley <rob@landley.net>, netdev@vger.kernel.org
+To: Mark Brown <broonie@kernel.org>
+Cc: Grazvydas Ignotas <notasas@gmail.com>, Alexander Shiyan <shc_work@mail.ru>, Luciano Coelho <luca@coelho.fi>, Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, Pawel Moll <pawel.moll@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Stephen Warren <swarren@wwwdotorg.org>, linux-doc@vger.kernel.org, "John W. Linville" <linville@tuxdriver.com>, Rob Herring <rob.herring@calxeda.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Sachin Kamat <sachin.kamat@linaro.org>, Bill Pemberton <wfp5p@virginia.edu>, Felipe Balbi <balbi@ti.com>, Rob Landley <rob@landley.net>, netdev@vger.kernel.org, "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Monday 28 of October 2013 01:37:34 Kumar Gala wrote:
-> On Oct 27, 2013, at 11:14 AM, Sebastian Reichel wrote:
-> > Add device tree support for the spi variant of wl1251
-> > and document the binding.
-> > 
-> > Signed-off-by: Sebastian Reichel <sre@debian.org>
-> > ---
-> > .../devicetree/bindings/net/wireless/ti,wl1251.txt | 36
-> > ++++++++++++++++++++++ drivers/net/wireless/ti/wl1251/spi.c          
-> >     | 23 ++++++++++---- 2 files changed, 53 insertions(+), 6
-> > deletions(-)
-> > create mode 100644
-> > Documentation/devicetree/bindings/net/wireless/ti,wl1251.txt
-> > 
-> > diff --git
-> > a/Documentation/devicetree/bindings/net/wireless/ti,wl1251.txt
-> > b/Documentation/devicetree/bindings/net/wireless/ti,wl1251.txt new
-> > file mode 100644
-> > index 0000000..5f8a154
-> > --- /dev/null
-> > +++ b/Documentation/devicetree/bindings/net/wireless/ti,wl1251.txt
-> > @@ -0,0 +1,36 @@
-> > +* Texas Instruments wl1251 controller
-> > +
-> > +The wl1251 chip can be connected via SPI or via SDIO. The linux
-> > +kernel currently only supports device tree for the SPI variant.
-> > +
-> 
-> From the binding I have no idea what this chip actually does, also we
-> don't normally reference linux kernel support in bindings specs (so
-> please remove it).
-> 
-> However, what would expect the SDIO binding to look like?  Or more
-> specifically, how would you distinguish the SPI vs SDIO
-> binding/connection?  I'm wondering if the compatible should be
-> something like "ti,wl1251-spi" and than the sdio can be
-> "ti,wl1251-sdio"
 
-Well, you can easily distinguish an SDIO device from an SPI device by its 
-parent node, but...
+--uAKRQypu60I7Lcqm
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-The binding for SDIO might require different set of properties (other than 
-ones inherited from generic SDIO or SPI bindings) than one for SPI. So 
-probably different compatible values might be justified.
+Hi,
 
-Did we already have such case before? (maybe some I2C + SPI devices?)
+On Mon, Oct 28, 2013 at 12:23:54PM -0700, Mark Brown wrote:
+> On Mon, Oct 28, 2013 at 07:29:52PM +0200, Grazvydas Ignotas wrote:
+>=20
+> > When wl12xx family of chips is connected through SDIO, we already have
+> > that pin set up as a regulator controlled with the help of mmc
+> > subsystem. When time comes to communicate with the chip, mmc subsystem
+> > sees this as yet another SD card and looks for associated regulator
+> > for it, and the board file has that set up as a fixed regulator
+> > controlling that pin (see pandora_vmmc3 in
+> > arch/arm/mach-omap2/board-omap3pandora.c). To prevent poweroff after
+> > first SDIO communications are over, pm_runtime calls are used in
+> > drivers/net/wireless/ti/wl1251/sdio.c .
+>=20
+> Is this actually controlling VMMC though, or is it some other control?
+> If it's not controlling VMMC then it shouldn't say that it is.
+>=20
+> > I don't know if something similar can be done done in SPI case, but
+> > I'm sure this is not the first your-so-called regulator misuse.
+>=20
+> It's not the first but that doesn't make controlling something other
+> than a regulator through the regulator API any less broken.
 
-> > +Required properties:
-> > +- compatible : Should be "ti,wl1251"
-> 
-> reg is not listed as a required prop.
+I gave it a second try to find out details for this pin:
 
-It is implied by SPI bindings, but it might be a good idea to have this 
-stated here as well.
+1. The pin is named PMEN in the Nokia N900 schematics
+2. PMEN is described as "Power management enable - system shutdown"
+   in a crippled datasheet of the wl1253, which I found in the internet.
 
-> 
-> > +- interrupts : Should contain interrupt line
-> > +- interrupt-parent : Should be the phandle for the interrupt
-> > +  controller that services interrupts for this device
-> > +- vio-supply : phandle to regulator providing VIO
-> > +- power-gpio : GPIO connected to chip's PMEN pin
-> 
-> should be vendor prefixed: ti,power-gpio
+I don't think this is supposed to be handled by the regulator API.
 
-Hmm, out of curiosity, is it a rule for this kind of properties? I can see 
-both cases with and without prefixes when grepping for "-gpios" in 
-Documentation/devicetree/bindings. We should really have such things 
-written down somewhere.
+-- Sebastian
 
-> 
-> > +- For additional required properties on SPI, please consult
-> > +  Documentation/devicetree/bindings/spi/spi-bus.txt
-> > +
-> > +Optional properties:
-> > +- ti,use-eeprom : If found, configuration will be loaded from eeprom.
-> 
-> can you be a bit more specific on what cfg will be loaded.  Also, is
-> this property a boolean, if so how do I know which eeprom the cfg is
-> loaded from (is it one that is directly connected to the wl1251?
+--uAKRQypu60I7Lcqm
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-Maybe one from ti,has-eeprom or ti,config-eeprom would be better name for 
-this property?
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.15 (GNU/Linux)
 
-Best regards,
-Tomasz
+iQIcBAEBCAAGBQJSbvKgAAoJENju1/PIO/qa9/4P/3bgI8we1v7yHBUBlbrUZ/qn
+9aIlsdohRsCHxuW5eTOTIEV3zXuEczUy//fijue0OK0nMXg3OI2xk7YPyj5Lncuh
+IiV1dYLfy0vQN9iMersFJJDdeR21t07jn8x9Cq+X+lA8SJsMMLIVYqaX+PyTE8+U
+ERNEjWsOuTfAmOxZXysFJPWF/xJ1gN1TygZ9WfncDxD4dZlBd6PMmWYSWbvpa4nr
+yOSSCuThLpQfwTYad/PqLZlwKwdS/V0zG56Lf9jyAPv2Qx7JmrSl+KvIi8aGsD03
+NXnjTOv0P8EeVXy9NVwpoT50qyOVq0qE9PNkuVMqkwgk20MDrE5YpSgha8BYn9E4
+Ia8RLEUCY86h4/EuxuUhDbio80HlYpjcVC72/dPWO66ZJ8BvkP9vbwm7wR04R607
+vcPjlHgxCUJSVTMoszstNOrO+JBq4IO3w1VTrE3cMF0Ge17pvj+x5/mt1aYzIC3R
+z2s9XCjh0AiHI1DpBUi8iBwHNRYK2EnrJNW560C5FKf70PTUwvP+K83H/2tBUn79
+M762U1cxOkb8ikgoeSsmdPDf/H5tsRRbUW4/4IX8yf8VPKLAGz9u2G6XFt4JDAQO
+2g2yh6MeAOq6T8DPFv3DnUEmyXK9Hn00dMs3VowgdIhmCh/Vamn1HXY5f9bnVMD6
+u+xk0uvWdCm39RJFUJQD
+=uEvP
+-----END PGP SIGNATURE-----
 
+--uAKRQypu60I7Lcqm--
