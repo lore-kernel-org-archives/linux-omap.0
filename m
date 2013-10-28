@@ -1,79 +1,55 @@
-From: Javier Martinez Canillas <javier@dowhile0.org>
-Subject: Re: [PATCH 1/6] ARM: OMAP2+: Remove board-4430sdp.c
-Date: Mon, 28 Oct 2013 15:25:54 +0100
-Message-ID: <CABxcv==91JA9Fb_LUBX57YCgwYwgx6FMGdw39==1tGtDPtUKYA@mail.gmail.com>
-References: <20130517191304.468.73487.stgit@localhost>
-	<20130517191751.468.89202.stgit@localhost>
-	<20130520095447.GR21614@n2100.arm.linux.org.uk>
-	<20130706131057.GU21614@n2100.arm.linux.org.uk>
-	<20130706133627.GV21614@n2100.arm.linux.org.uk>
-	<20130708093410.GT5523@atomide.com>
-	<20130708142103.GX21614@n2100.arm.linux.org.uk>
-	<51ECFDFD.60102@ti.com>
-	<CAAwP0s2pGM6RRhkzhZ+_8BsCKP0posFrn7buTwUzLWWC5apE2A@mail.gmail.com>
-	<526E6765.3030403@ti.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [RFC 1/4] ASoC: omap: rx51: Use snd_soc_register_card
+Date: Mon, 28 Oct 2013 09:00:15 -0700
+Message-ID: <20131028160015.GA13643@sirena.org.uk>
+References: <1382909086-10493-1-git-send-email-sre@debian.org>
+ <1382909086-10493-2-git-send-email-sre@debian.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-we0-f177.google.com ([74.125.82.177]:61696 "EHLO
-	mail-we0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755037Ab3J1OZz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Oct 2013 10:25:55 -0400
-Received: by mail-we0-f177.google.com with SMTP id x55so6437738wes.8
-        for <linux-omap@vger.kernel.org>; Mon, 28 Oct 2013 07:25:54 -0700 (PDT)
-In-Reply-To: <526E6765.3030403@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="T4sUOijqQbZv57TR"
+Return-path: <linux-doc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1382909086-10493-2-git-send-email-sre@debian.org>
+Sender: linux-doc-owner@vger.kernel.org
+To: Sebastian Reichel <sre@debian.org>
+Cc: Sebastian Reichel <sre@ring0.de>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Rob Landley <rob@landley.net>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>, Liam Girdwood <lgirdwood@gmail.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Grant Likely <grant.likely@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Javier Martinez Canillas <martinez.javier@gmail.com>, Enric Balletbo Serra <eballetbo@gmail.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, arm@kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Mon, Oct 28, 2013 at 2:32 PM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
-> On 27/10/13 15:26, Javier Martinez Canillas wrote:
->
->> When booting with DT the omapfb's probe is deferred several times but
->> it always fails on dpi_connect() due not being able to get the
->> VDDS_DSI regulator:
->
-> The problem with DT boot is that the VDDS_DSI is not linked to the DPI
-> device. For omap4, we have a few hacks to go around this (see dsi.c,
-> dsi_regulator_init()).
->
 
-I see, I'll add a dpi_regulator_init() to
-drivers/video/omap2/dss/dpi.c to workaround this.
+--T4sUOijqQbZv57TR
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
->> So I tried adding this to my DT with no luck.
->>
->> diff --git a/arch/arm/boot/dts/omap3-igep0020.dts
->> b/arch/arm/boot/dts/omap3-igep0020.dts
->> index 17a6fc1..eaae935 100644
->> --- a/arch/arm/boot/dts/omap3-igep0020.dts
->> +++ b/arch/arm/boot/dts/omap3-igep0020.dts
->> @@ -256,3 +256,8 @@
->>  &usbhsehci {
->>         phys = <&hsusb1_phy>;
->>  };
->> +
->> +&vpll2 {
->> +        supply-dev = "omapdss_dpi.0";
->> +        supply = "vdds_dsi";
->> +};
->
-> I didn't see "supply-dev" defined in dt bindings documentation, is that
-> supposed to work? If it should work, then the problem could be solved
-> with the above. Otherwise I guess we must add more hacks to omapdss
-> driver, to all places where it uses regulator_get...
->
+On Sun, Oct 27, 2013 at 10:24:43PM +0100, Sebastian Reichel wrote:
+> From: Pali Roh=E1r <pali.rohar@gmail.com>
+>=20
+> This patch converts the rx51 ASoC module to use
+> snd_soc_register_card. It also adds module alias
+> to support driver autoloading.
 
-Yes I didn't find on the DT binding documentation either but saw it
-before on a DTS someone shared on linux-omap so I thought it was just
-a matter of outdated documentation. But I guess it was the other way
-around, that DTS was for a vendor kernel which added that supply-dev
-property.
+You should really use devm_snd_soc_register_card() here.
 
->  Tomi
->
->
+--T4sUOijqQbZv57TR
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-Thanks a lot for your help!
-Javier
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
+
+iQIcBAEBAgAGBQJSbooGAAoJELSic+t+oim95JIP/iM6CcdgQoi38u29uqn9Wngk
+Ybk5NgxgSlgX5BEsPmh38fD2V4Vx+BrY6gPrMM0ibBCuWQGKDmsZRIvfdkbYxiXD
+tysn3aKwrR+cL3AFteb6K3QByYo8JigxZoubvN/mRO+6EOt/k+I8RcA5uV+IwVXB
+kkPKSibo6aBlnFj6kwqNaiEmhhVLfszIifgAuaibh9+MGjUkj304ZiID/0/Qww3n
+55dZkUnqG2+co+fRgIR+95wq/gQKjN4AwiP91bEt50NpdcjMcNcxBUzjjgXdzJ7Q
+a+gKjwlivR3SwsU3KRcrVDHnk4FmHXMZaNk9H/T7CNN5oKq4HTpCeNQcBYQD/5KV
+/vvxDCQpBuGy/uAS5+5HP4UzNVLJDDkxi10NxXZbp1mJt1WIp4juCxFiMybnpNwU
+wlpUFXoq9SKRvfDfvf/PcakO5CFkKSgbztkQxj+8dzbI1yRiKYQRvNDXZ/bbSD4+
+E36g/xJJIU4l4ASPWYFHDmKIquypCli10zphQuKGkGD2OKK9X1xta9E7SqN7XvB5
+zaDlkMndHss677LWiyQ+DzQIVmkL0e5OQrI/r/Vt8Qyf5Y/Es0NkZ25DLACPtfFu
+oDJrGyINpVhZKNpIw4IasoVpdufy3yysZoOwHvLWAN5YMwlofNRb7Ktld8NKpVxU
+V10ybJaRt9O2qlAb0+cV
+=S7Vd
+-----END PGP SIGNATURE-----
+
+--T4sUOijqQbZv57TR--
