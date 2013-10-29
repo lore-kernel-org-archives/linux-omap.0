@@ -1,139 +1,108 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 1/3] ARM: dts: omap4-panda: add DPI pinmuxing
-Date: Tue, 29 Oct 2013 12:15:54 +0200
-Message-ID: <526F8ADA.3030003@ti.com>
-References: <1382695658-18757-1-git-send-email-tomi.valkeinen@ti.com>
+From: Sebastian Reichel <sre@debian.org>
+Subject: Re: [PATCHv2 1/3] Input: twl4030-keypad - add device tree support
+Date: Tue, 29 Oct 2013 11:25:28 +0100
+Message-ID: <20131029102527.GA10530@earth.universe>
+References: <1382446042-27099-1-git-send-email-sre@debian.org>
+ <1382446042-27099-2-git-send-email-sre@debian.org>
+ <5137C017-2515-427C-865F-B938CC24B210@codeaurora.org>
+ <20131029010608.GA5353@earth.universe>
+ <14DEC9DA-8C77-4F73-AF3A-6C0D20C6C1AB@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="EDsDRAx4bjShFdHUoOwk91nChTG3tQ9nj"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:57057 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751339Ab3J2KQU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Oct 2013 06:16:20 -0400
-In-Reply-To: <1382695658-18757-1-git-send-email-tomi.valkeinen@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="k1lZvvs/B4yU6o8G"
+Return-path: <linux-input-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <14DEC9DA-8C77-4F73-AF3A-6C0D20C6C1AB@codeaurora.org>
+Sender: linux-input-owner@vger.kernel.org
+To: Kumar Gala <galak@codeaurora.org>
+Cc: linux-input@vger.kernel.org, =?iso-8859-1?Q?=22'Beno=EEt_Cousson'=22?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Rob Landley <rob@landley.net>, Russell King <linux@arm.linux.org.uk>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Grant Likely <grant.likely@linaro.org>, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org, Archit Taneja <archit@ti.com>
 
---EDsDRAx4bjShFdHUoOwk91nChTG3tQ9nj
-Content-Type: text/plain; charset=ISO-8859-1
+
+--k1lZvvs/B4yU6o8G
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi Tony,
-
-On 25/10/13 13:07, Tomi Valkeinen wrote:
-> New u-boot versions no longer set the pinmuxing for Panda's DPI output,=
-
-> and the muxing has to be done in the .dts file.
+On Tue, Oct 29, 2013 at 03:33:31AM -0500, Kumar Gala wrote:
+> On Oct 28, 2013, at 8:06 PM, Sebastian Reichel wrote:
+> > On Mon, Oct 28, 2013 at 01:42:47AM -0500, Kumar Gala wrote:
+> >>> +This binding is based on the matrix-keymap binding with the following
+> >>> +changes:
+> >>=20
+> >> Maybe be a bit more specific and say 'based on the input/matrix-keymap=
+=2Etxt binding'..
+> >=20
+> > OK.
+> >=20
+> >>> + * keypad,num-rows and keypad,num-columns are required.
+> >>=20
+> >> Is linux,keymap required from matrix-keymap.txt?
+> >=20
+> > Yes, matrix-keymap.txt contains descriptions for the following:
+> >=20
+> > required:
+> > - linux,keymap
 >=20
-> Add pinmuxing for DPI and TFP410. Without these, the DVI output on Pand=
-a
-> does not work with recent u-boot.
+> So you don't say that linux,keymap is required for twl4030-keypad
+> (wasn't clear if you assumed that or not).
+
+It's already required by matrix-keypad, so I assumed the requirement
+is inherited by twl4030-keypad. The other matrix-keymap based
+bindings assume the same.
+
+keypad,num-rows and keypad,num-columns are only stated explicitly,
+because they are optional in matrix-keymap, but required by
+twl4030-keympad.
+
+> > optional:
+> > - keypad,num-rows
+> > - keypad,num-columns
+> >=20
+> >>> +Optional Properties specific to linux:
+> >>> +- linux,keypad-no-autorepeat: do no enable autorepeat feature.
+> >>=20
+> >> Does it make sense to update the matrix-keymap.txt binding to add
+> >> 'linux,keypad-no-autorepeat' there?
+> >=20
+> > At least according to devicetree documentation there are
+> > keymap-matrix.txt based drivers, which do not support
+> > "linux,keypad-no-autorepeat".
 >=20
-> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-
-The two latter patches in this series needs more work and can be
-dropped, but this one should be applied to make Panda work properly with
-new u-boots.
-
- Tomi
-
-> ---
->  arch/arm/boot/dts/omap4-panda-common.dtsi | 43 +++++++++++++++++++++++=
-++++++++
->  1 file changed, 43 insertions(+)
+> Which is why it could be optional in keymap-matrix.txt.  I dont
+> know anything about keymap/keypad's just asking the question?
 >=20
-> diff --git a/arch/arm/boot/dts/omap4-panda-common.dtsi b/arch/arm/boot/=
-dts/omap4-panda-common.dtsi
-> index faa95b5..fcb8856 100644
-> --- a/arch/arm/boot/dts/omap4-panda-common.dtsi
-> +++ b/arch/arm/boot/dts/omap4-panda-common.dtsi
-> @@ -129,6 +129,8 @@
->  			&twl6040_pins
->  			&mcpdm_pins
->  			&mcbsp1_pins
-> +			&dss_dpi_pins
-> +			&tfp410_pins
->  			&dss_hdmi_pins
->  			&tpd12s015_pins
->  			&hsusbb1_pins
-> @@ -166,6 +168,47 @@
->  		>;
->  	};
-> =20
-> +	dss_dpi_pins: pinmux_dss_dpi_pins {
-> +		pinctrl-single,pins =3D <
-> +			0x122 (PIN_OUTPUT | MUX_MODE5)	/* dispc2_data23 */
-> +			0x124 (PIN_OUTPUT | MUX_MODE5) 	/* dispc2_data22 */
-> +			0x126 (PIN_OUTPUT | MUX_MODE5)	/* dispc2_data21 */
-> +			0x128 (PIN_OUTPUT | MUX_MODE5)	/* dispc2_data20 */
-> +			0x12a (PIN_OUTPUT | MUX_MODE5)	/* dispc2_data19 */
-> +			0x12c (PIN_OUTPUT | MUX_MODE5)	/* dispc2_data18 */
-> +			0x12e (PIN_OUTPUT | MUX_MODE5)	/* dispc2_data15 */
-> +			0x130 (PIN_OUTPUT | MUX_MODE5)	/* dispc2_data14 */
-> +			0x132 (PIN_OUTPUT | MUX_MODE5)	/* dispc2_data13 */
-> +			0x134 (PIN_OUTPUT | MUX_MODE5)	/* dispc2_data12 */
-> +			0x136 (PIN_OUTPUT | MUX_MODE5)	/* dispc2_data11 */
-> +
-> +			0x174 (PIN_OUTPUT | MUX_MODE5)	/* dispc2_data10 */
-> +			0x176 (PIN_OUTPUT | MUX_MODE5)	/* dispc2_data9 */
-> +			0x178 (PIN_OUTPUT | MUX_MODE5)	/* dispc2_data16 */
-> +			0x17a (PIN_OUTPUT | MUX_MODE5)	/* dispc2_data17 */
-> +			0x17c (PIN_OUTPUT | MUX_MODE5)	/* dispc2_hsync */
-> +			0x17e (PIN_OUTPUT | MUX_MODE5)	/* dispc2_pclk */
-> +			0x180 (PIN_OUTPUT | MUX_MODE5)	/* dispc2_vsync */
-> +			0x182 (PIN_OUTPUT | MUX_MODE5)	/* dispc2_de */
-> +			0x184 (PIN_OUTPUT | MUX_MODE5)	/* dispc2_data8 */
-> +			0x186 (PIN_OUTPUT | MUX_MODE5)	/* dispc2_data7 */
-> +			0x188 (PIN_OUTPUT | MUX_MODE5)	/* dispc2_data6 */
-> +			0x18a (PIN_OUTPUT | MUX_MODE5)	/* dispc2_data5 */
-> +			0x18c (PIN_OUTPUT | MUX_MODE5)	/* dispc2_data4 */
-> +			0x18e (PIN_OUTPUT | MUX_MODE5)	/* dispc2_data3 */
-> +
-> +			0x190 (PIN_OUTPUT | MUX_MODE5)	/* dispc2_data2 */
-> +			0x192 (PIN_OUTPUT | MUX_MODE5)	/* dispc2_data1 */
-> +			0x194 (PIN_OUTPUT | MUX_MODE5)	/* dispc2_data0 */
-> +		>;
-> +	};
-> +
-> +	tfp410_pins: pinmux_tfp410_pins {
-> +		pinctrl-single,pins =3D <
-> +			0x144 (PIN_OUTPUT | MUX_MODE3)	/* gpio_0 */
-> +		>;
-> +	};
-> +
->  	dss_hdmi_pins: pinmux_dss_hdmi_pins {
->  		pinctrl-single,pins =3D <
->  			0x5a (PIN_INPUT_PULLUP | MUX_MODE0)	/* hdmi_cec.hdmi_cec */
->=20
+> It seems as if linux,keypad-no-autorepeat is intended to mean the
+> same thing (if relevant to the device) across all drivers.  Is
+> that correct?  If so it seems like moving it to be specified in a
+> generic input binding makes sense, just not sure if
+> keymap-matrix.txt is that place or not.
 
+Yes, when supported it means the same. I can add it to
+keymap-matrix.txt.
 
+-- Sebastian
 
---EDsDRAx4bjShFdHUoOwk91nChTG3tQ9nj
+--k1lZvvs/B4yU6o8G
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+Version: GnuPG v1.4.15 (GNU/Linux)
 
-iQIcBAEBAgAGBQJSb4raAAoJEPo9qoy8lh715mEP/0vPez1P7RUIym0xO9RcMcHi
-YWHO6cGF7VZdvLpTengRrWB6dqqf6xXrD9RKvQ4KtVrRDhBgUKHh5xg3FHNEeLut
-VniQ2dI1mjwvo/TUmJxAgT5XM+9eybYLaz6Ztc84BzvXQ3l4SsqvR41bBy7NcNxl
-8OElklcBsTcTcuboGSm1yKAPNy5iFIQecJGOKQhU5gAkbe7w6PGDu9aDwgn/EGmk
-PsYQjsXWgcKybu0AOyU3x3tClpk5m1hXTq2FHbfVZhQtKqiAE7HLQeya62udoOEB
-3G/ImTuJ27H0O/yZvVtVjNYmgJKNDoWUYZFBgVDF+M9DO9dobsu7n5sEn42YHYF6
-AddlWiu2djijqEvKGrCb0h/wKl3xz8ByWwAR2D1CqCUfqZ/4WorUP7s5evQXtnph
-cfUOgrAnf0XBVdDEhPPMhXaUAnvrd8vrLYFzrMW13R2vM2F3/UCYogabcsVlx9n7
-bxq31ubMmvWaorcYuB5SGY9QQeX0AIIxPykRB29JzHdoftiM/QLEPvGt9HyVwxX8
-3lqELmkdgNtbirghXgoddhzrjBvZF97WgM0SGAm9OyFQMTH4iOqz2EVMTdb7Fn0T
-bLE1on6FxkdwOdqZI4zZzHMU5rAXM6141G/CXRM85o0vsmN2FTTtBm6gfI85uBea
-+a15W+ARYruYmm266lDD
-=o1Gx
+iQIcBAEBCAAGBQJSb40XAAoJENju1/PIO/qahGoP/1DAToS7oOCrQFVKlQ52Wk7f
+BV2abfnWS1wxzv4VL+PdWTF2uidtanqzyD5zAG1L9eOQct43gWZncpp0Pf2xsuZS
+6NXQMov1g+qzO754EoShcC/Hefhu3zspxMFkckpdAG9R8Y0cQFqwscnnCBMLjCD9
+YwxnCqCLA/k261FmjLmV3D/aS6IOnC9Htx1VVu0/BhUYJTt2d0jNxeUzV59XTz48
+3p8Ib5ZxvtcV/nZgwH+UAPO5C8NuRurd3AabRLZz8W+2WlOnkEbDeUWmJyowIzNF
+PoJYHgosqOHO/Zfbzaodl2F4ZjB9mQgPsWLqoA6c/mmPnbT80Tj1PHzBr9YoTqn9
+zy6uVDf+kFU5HdJqatoOl4GQVWf+E2I5rxYc9FymXnejtQXpRkQ8+fs1mvZJ95zC
+Ffbhl9Gh2ccPdXjEjntyvcGNgB8vr2rTAOLwzoJKZHOv7vKPA+Rcl5yXd7PK4eUy
+y3J8NFlL5kwuWpfl1W+dwjl9DLE7x52WVAzUqZe7+XOYNoTTucZKsrT/ux1FI3+X
+XE7ml3v5clvcuZAroSUVnfZRXsJvG5H7x9GGuJ9POu4M8DHr4l2Az3KLSWg5vr8h
+aemiJ1mndAn8DPZJWx7woAWB5+Wm8JeVcN6/qfOAx1VOhMt+7uP+UFdZR4QQRj+S
+ZEwcMTUhSYox1W5NA06T
+=aZwS
 -----END PGP SIGNATURE-----
 
---EDsDRAx4bjShFdHUoOwk91nChTG3tQ9nj--
+--k1lZvvs/B4yU6o8G--
