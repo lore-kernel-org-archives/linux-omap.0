@@ -1,96 +1,38 @@
-From: "Gupta, Pekon" <pekon@ti.com>
-Subject: RE: [PATCH v2 0/5] Assorted OMAP2 NAND clean-ups
-Date: Tue, 29 Oct 2013 20:14:34 +0000
-Message-ID: <20980858CB6D3A4BAE95CA194937D5E73EA2BADF@DBDE04.ent.ti.com>
-References: <1382696277-9063-1-git-send-email-ezequiel.garcia@free-electrons.com>
- <20980858CB6D3A4BAE95CA194937D5E73EA2AE2A@DBDE04.ent.ti.com>
- <20131025114836.GD2489@localhost>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCHv3 6/8] ARM: dts: OMAP4: Add hwspinlock node
+Date: Tue, 29 Oct 2013 13:59:35 -0700
+Message-ID: <20131029205935.GG15154@atomide.com>
+References: <1381439735-52888-1-git-send-email-s-anna@ti.com>
+ <1381439735-52888-7-git-send-email-s-anna@ti.com>
+ <20131011234125.GG29913@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:35905 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752803Ab3J2UPH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 29 Oct 2013 16:15:07 -0400
-In-Reply-To: <20131025114836.GD2489@localhost>
-Content-Language: en-US
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:18488 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752803Ab3J2U7l (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Oct 2013 16:59:41 -0400
+Content-Disposition: inline
+In-Reply-To: <20131011234125.GG29913@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-Cc: Brian Norris <computersforpeace@gmail.com>, "Balbi, Felipe" <balbi@ti.com>, "marek.belisko@gmail.com" <marek.belisko@gmail.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Suman Anna <s-anna@ti.com>
+Cc: Ohad Ben-Cohen <ohad@wizery.com>, Mark Rutland <mark.rutland@arm.com>, Benoit Cousson <bcousson@baylibre.com>, Kumar Gala <galak@codeaurora.org>, Paul Walmsley <paul@pwsan.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
 
-SGkgRXplcXVpZWwgR2FyY2lhLA0KDQpTb3JyeSBJJ20gYml0IG91dCBvZiBteSBwbGFjZS4uIHNv
-IG5vdCBhYmxlIHRvIHN5bmMgb2Z0ZW4gd2l0aCBtYWlscy4uDQpIb3dldmVyIHBseiBzZWUgbXkg
-cmVwbGllcyBiZWxvdy4uDQoNClsuLi5dDQoNCj4gPg0KPiA+ID4gUGVrb24sIEJyaWFuOiBEbyB5
-b3UgdGhpbmsgdGhpcyBzb2x1dGlvbiBtaWdodCB3b3JrIGZvciA4LWJpdCBhbmQgMTYtYml0DQo+
-ID4gPiBkZXZpY2VzPw0KPiA+ID4NCj4gPiBJIHRoaW5rIE5BTkRfQlVTV0lEVEhfQVVUTyAod2l0
-aG91dCBHUE1DIGNoYW5nZXMpIHdvdWxkIGZhaWwgaW4NCj4gPiBmb2xsb3dpbmcgc2NlbmFyaW9z
-Li4NCj4gPg0KPiA+IENhc2UtMTogY29uZmlndXJpbmcgZ3BtYyxkZXZpY2Utd2lkdGg9MSBmcm9t
-IERUIHdoZW4gdXNpbmcgeDE2IGRldmljZS4NCj4gDQo+IC4uLiB3aGljaCBpcyB3cm9uZy4gVGhh
-dCdzIHdoeSB3ZSBoYXZlIGEgRFQgcHJvcGVydHkgdG8gY29uZmlndXJlIHRoYXQuDQo+IFRoZSBH
-UE1DICptdXN0KiBiZSBwcm9wZXJseSBjb25maWd1cmVkLg0KPiANCk5vLCBJIHRoaW5rIHRoZSBt
-YWluIGludGVudGlvbiBvZiB1c2luZyBOQU5EX0JVU1dJRFRIX0FVVE8gaXMgdGhhdA0KeW91ciBj
-b250cm9sbGVyIHNob3VsZCBub3QgZGVwZW5kIG9uIERUIG9yIGFueSBvdGhlciB1c2VyLWlucHV0
-IHRvIGRldGVjdA0KTkFORCBidXMtd2lkdGgsICh3aGV0aGVyIGl0cyBncG1jLGRldmljZS13aWR0
-aCBvciBhbnl0aGluZyBlbHNlKS4NCg0KDQo+ID4gQXMgeW91ciBOQU5EIGRyaXZlciBpcyB1c2lu
-ZyBOQU5EX0JVU1dJRFRIX0FVVE8sIGl0IHNob3VsZA0KPiA+IGlnbm9yZSB0aGlzIERUIGNvbmZp
-ZywgYW5kIGJhc2VkIG9uIE9ORkkgcGFyYW1zIGl0IHNob3VsZCB3b3JrIGFzIHgxNg0KPiA+DQo+
-IA0KPiBIbS4uIEkgZG9uJ3QgdGhpbmsgc28uIFRoZSBhdXRvLXN0dWZmIGlzIGp1c3QgZm9yIHRo
-ZSBOQU5EIGRyaXZlciwgbm90DQo+IGZvciB0aGUgbWVtb3J5IGNvbnRyb2xsZXIuIEkgZG9uJ3Qg
-a25vdyBtdWNoIGFib3V0IGhhcmR3YXJlLCBidXQgaW4gbXkNCj4gbWluZA0KPiBJIGltYWdpbmUg
-dGhlbSBhcyBkaWZmZXJlbnQgY29udHJvbGxlcnMuDQo+IA0KVEkncyBHUE1DIGhhcmR3YXJlIGVu
-Z2luZSBjYW4gZG8gbXVjaCBtb3JlIHRoYW4gc3VwcG9ydGluZyBvbmx5DQpOQU5EIGRldmljZXMs
-IHRoZXJlZm9yZSB0aGVyZSBpcyBhbiBpbmRlcGVuZGVudCBHUE1DIGRyaXZlciwgYW5kDQpkZXBl
-bmRlbnQgTkFORCBkcml2ZXIuIA0KU28gd2hlbiBhIE5BTkQgZGV2aWNlIGlzIGNvbm5lY3RlZCBh
-bGwgR1BNQyBkcml2ZXIgZG9lcyBpcyBpbml0aWFsaXplcw0KR1BNQyBoYXJkd2FyZSBiYXNlZCBv
-biBzdGF0aWMgRFQgYmluZGluZ3MsIGFuZCBwYXNzIHRoZSBjb250cm9sIHRvDQpOQU5EIGRyaXZl
-ci4gQnV0IHRoZXJlIHNob3VsZCBiZSBhIG1lY2hhbmlzbSB0byBvdmVycmlkZSB0aGVzZQ0Kc3Rh
-dGljIERUIGNvbmZpZ3VyYXRpb25zIGRvbmUgaW4gR1BNQyBkcml2ZXIgYnkgTkFORCBkcml2ZXIu
-DQooaXQgaXMgdGhpcyBwaWVjZSB3aGljaCBpcyBtaXNzaW5nIHRvZGF5KS4NCg0KDQo+ID4gQ2Fz
-ZS0yOiBjb25maWd1cmluZyBncG1jLGRldmljZS13aWR0aD0yIGZyb20gRFQgd2hlbiB1c2luZyB4
-OCBkZXZpY2UuDQo+IA0KPiAuLi4gd2hpY2ggaXMgYWxzbyB3cm9uZy4NCj4gDQo+IE9uY2UgYWdh
-aW4sIHlvdSdyZSBtaXMtY29uZmlndXJpbmcgdGhlIEdQTUMuIFdlIGNhbm5vdCBleHBlY3QgdGhl
-IE5BTkQNCj4gZHJpdmVyIHRvIHdvcmsgcHJvcGVybHkgaWYgdGhlIEdQTUMgaXMgbm90IHByb3Bl
-cmx5IGluaXRpYWxpemVkLCBkb24ndA0KPiB5b3UgdGhpbms/DQo+IA0KPiA+IEFjdHVhbGx5IGhh
-dmluZyBOQU5EX0JVU1dJRFRIX0FVVE8gd291bGQgcmVxdWlyZSBjaGFuZ2UgaW4gR1BNQw0KPiA+
-IGRyaXZlciBhbHNvLi4gcGxlYXNlIHJlZmVyIG15IGNvbW1lbnRzIGluLi4NCj4gPiBodHRwOi8v
-bGlzdHMuaW5mcmFkZWFkLm9yZy9waXBlcm1haWwvbGludXgtbXRkLzIwMTMtT2N0b2Jlci8wNDky
-ODQuaHRtbA0KPiA+DQo+IA0KPiBXZWxsLCBJIHRoaW5rIHRoZSBhcHByb2FjaCBzaG91bGQgYmUg
-ZGlmZmVyZW50IGFuZCBtdWNoIHNpbXBsZXI6IEdQTUMNCj4gKm11c3QqIGJlIHByb3Blcmx5IGNv
-bmZpZ3VyZWQgYW5kIHRoZW4gTkFORCBjYW4gZG8gT05GSSBkZXRlY3Rpb24NCj4gc3RhcnRpbmcg
-aW4gOC1iaXQgYW5kIHRoZW4gc3dpdGNoaW5nIHRvIDE2LWJpdCBpZiBuZWVkZWQuDQo+IA0KPiBU
-aGlzIGlzIHdoYXQgdGhpcyBwYXRjaCBpcyBkb2luZzogaXQgX2ZpeGVzXyB0aGUgTkFORCBkcml2
-ZXIgT05GSSBkZXRlY3Rpb24sDQo+IF9wcm92aWRlZF8gdGhlIEdQTUMgaXMgd2VsbC1wcmVwYXJl
-ZC4NCj4gDQo+IFlvdSBzZWVtIHRvIHRoaW5rIHRoYXQgR1BNQyArIE5BTkQgc2hvdWxkIGJlIGFi
-bGUgdG8gYXV0b21hZ2ljYWxseSBkZXRlY3QNCj4gdGhlIGRldmljZSBhbmQgd29yaywgYnV0IEkg
-ZG9uJ3QgdGhpbmsgdGhhdCdzIGV2ZW4gcGh5c2ljYWxseSBwb3NzaWJsZSwgZm9yDQo+IHRoZSBy
-ZWFzb25zIHlvdSBoYXZlIGp1c3QgZXhwb3NlZC4NCj4gDQo+IEkgdGhpbmsgdGhpcyBmaXggaXMg
-c2ltcGxlIGVub3VnaC4NCj4gDQpObywgSSBzdGlsbCB0aGluayB0aGVyZSBzaG91bGQgYmUgYSB3
-YXkgdG8gdGVsbCB0aGUgdXNlciB0aGF0IHRoZXJlIGlzIGENCm1pcy1tYXRjaCBiZXR3ZWVuIGJ1
-cy13aWR0aCBjb25maWd1cmVkIGluIERULCBhbmQgdGhhdCBkZXRlY3RlZA0KYnkgT05GSSBwcm9i
-ZS4gSWYgaXQgd2FzIHN0cmFpZ2h0IGZvcndhcmQsIHRoaXMgd291bGQgaGF2ZSBiZWVuIGFscmVh
-ZHkNCmFjY2VwdGVkIGVhcmxpZXIgOi0pDQoNCmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL3Bp
-cGVybWFpbC9saW51eC1tdGQvMjAxMy1PY3RvYmVyLzA0OTE1NC5odG1sDQoNCihyZWFkIHRoZSBj
-b21tZW50cyBmcm9tIEJyaWFuIGJ5IGZvbGxvd2luZyBhYm92ZSBwYXRjaCB0aHJlYWQpDQoNClBy
-b2JsZW0gaXMgaWYgdGhlcmUgaXMgYSBtaXMtbWF0Y2ggaW4geW91ciBidXMtd2lkdGggZHVlIHRv
-IGluY29ycmVjdA0KR1BNQyBEVCBiaW5kaW5nIGNvbmZpZ3VyYXRpb25zLCBzdGlsbCBOQU5EIHBy
-b2JlIGFuZCBldmVyeXRoaW5nIHdpbGwNCnBhc3MgY29ycmVjdGx5LCBiZWNhdXNlIG5hbmRfc2Nh
-bl9pZGVudCgpIHVzZXMgcmVhZF9ieXRlKCkgd2hpY2gNCnJldHVybnMgc2FtZSBmb3IgYm90aCB4
-OCBhbmQgeDE2IGRldmljZXMuDQpZb3Ugd2lsbCBmaW5kIGlzc3VlcyB3aGVuIHlvdSBhY3R1YWxs
-eSBkbyBwYWdlIHJlYWRzIGFuZCB3cml0ZXMuIEFuZA0KdGhpcyBpcyB3aGVyZSB5b3Ugd291bGQg
-c2VlIGNvcnJ1cHRlZCBoYWxmLXBhZ2UgZGF0YS4gQW5kIHVzZXINCndvdWxkIGJlIGNsdWVsZXNz
-IG9uIHdoeSBoZSBpcyBzZWVpbmcgc3VjaCBlcnJhdGljIGJlaGF2aW9yLg0KDQpUaGlzIGlzIHdo
-eSBJIGFkZGVkIGNoZWNrcyBmb3IgbWlzbWF0Y2ggb2YgRFQgYmluZGluZyByaWdodCBkdXJpbmcN
-Cm5hbmQgcHJvYmUoKSwgaW4gYWJvdmUgbWVudGlvbmVkIHBhdGNoLiBJIGNvdWxkIGp1c3QgcmVt
-b3ZlIGNhbGxpbmcNCm5hbmRfc2Nhbl9pZGVudCgpIHNlY29uZC10aW1lIGFuZCBpdCBiZWNvbWVz
-IHlvdXIgcGF0Y2gsIGJ1dCB0aGVuDQppdCB3b3VsZCBiZSBqdXN0IHZhbGlkYXRpbmcgdGhlIERU
-IHNldHRpbmcsIG5vdCBwdXJlIGF1dG8tZGV0ZWN0aW9uLg0KDQoNCj4gDQo+IEJUVzogVGhlIEdQ
-TUMgY29kZSBpZ25vcmVzIHRoZSBEVCB2YWx1ZSBpbiAnZ3BtYyxkZXZpY2Utd2lkdGgnIGFuZCB1
-c2VzDQo+ICduYW5kLWJ1cy13aWR0aCcgaW5zdGVhZCwgYnV0IHRoYXQncyBhIGRpZmZlcmVudCBi
-dWcgYW5kIGEgZGlmZmVyZW50IGZpeCA6KQ0KPiANCkkgdGhpbmsgeW91IG1lYW4gdGhlIG9wcG9z
-aWUuLiBHUE1DIGRyaXZlciB1c2VzIGdwbWMsZGV2aWNlLXdpZHRoLi4NClJlZmVyOiAkS0VSTkVM
-L2FyY2gvYXJtL21hY2gtb21hcDIvZ3BtYy5jDQpAQGdwbWNfcmVhZF9zZXR0aW5nc19kdCguLi4p
-DQoJb2ZfcHJvcGVydHlfcmVhZF91MzIobnAsICJncG1jLGRldmljZS13aWR0aCIsICZwLT5kZXZp
-Y2Vfd2lkdGgpOw0KDQonbmFuZC1idXMtd2lkdGgnIGlzIG5vdCB1c2VkIGFueXdoZXJlIGluc3Rl
-YWQuLg0KDQoNCndpdGggcmVnYXJkcywgcGVrb24NCg==
+* Tony Lindgren <tony@atomide.com> [131011 16:49]:
+> * Suman Anna <s-anna@ti.com> [131010 14:24]:
+> > Add the hwspinlock device tree node for OMAP4 family
+> > of SoCs.
+> 
+> Suman, can you please post the .dts changes separately from
+> the driver changes next time so driver maintainers don't
+> accidentally pick them up. That leads to unnecessary merge
+> conflicts with the .dts files.
+
+Actually I'll pick patches 6 - 8 of this series into
+omap-for-v3.13/dt branch as that fixes some boot time warnings
+we're seeing without them.
+
+Regards,
+
+Tony
