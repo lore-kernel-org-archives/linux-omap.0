@@ -1,81 +1,96 @@
-From: Matt Sealey <neko@bakuhatsu.net>
-Subject: Re: [PATCHv9 05/43] CLK: TI: add DT alias clock registration mechanism
-Date: Tue, 29 Oct 2013 12:50:43 -0500
-Message-ID: <CAHCPf3uPhkVhdn3Db06YZfrwQuA7khdZEXiZ+pqJ06J9YdBoLg@mail.gmail.com>
-References: <1382716658-6964-1-git-send-email-t-kristo@ti.com>
-	<1382716658-6964-6-git-send-email-t-kristo@ti.com>
+From: "Gupta, Pekon" <pekon@ti.com>
+Subject: RE: [PATCH v2 0/5] Assorted OMAP2 NAND clean-ups
+Date: Tue, 29 Oct 2013 20:14:34 +0000
+Message-ID: <20980858CB6D3A4BAE95CA194937D5E73EA2BADF@DBDE04.ent.ti.com>
+References: <1382696277-9063-1-git-send-email-ezequiel.garcia@free-electrons.com>
+ <20980858CB6D3A4BAE95CA194937D5E73EA2AE2A@DBDE04.ent.ti.com>
+ <20131025114836.GD2489@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pb0-f43.google.com ([209.85.160.43]:55610 "EHLO
-	mail-pb0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758407Ab3J2Run (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Oct 2013 13:50:43 -0400
-Received: by mail-pb0-f43.google.com with SMTP id md4so186570pbc.16
-        for <linux-omap@vger.kernel.org>; Tue, 29 Oct 2013 10:50:43 -0700 (PDT)
-In-Reply-To: <1382716658-6964-6-git-send-email-t-kristo@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:35905 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752803Ab3J2UPH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 29 Oct 2013 16:15:07 -0400
+In-Reply-To: <20131025114836.GD2489@localhost>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, Tony Lindgren <tony@atomide.com>, nm@ti.com, bcousson@baylibre.com, rnayak@ti.com, Mike Turquette <mturquette@linaro.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+Cc: Brian Norris <computersforpeace@gmail.com>, "Balbi, Felipe" <balbi@ti.com>, "marek.belisko@gmail.com" <marek.belisko@gmail.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Fri, Oct 25, 2013 at 10:56 AM, Tero Kristo <t-kristo@ti.com> wrote:
-> Some devices require their clocks to be available with a specific
-> dev-id con-id mapping. With DT, the clocks can be found by default
-> only with their name, or alternatively through the device node of
-> the consumer. With drivers, that don't support DT fully yet, add
-> mechanism to register specific clock names.
->
-> Signed-off-by: Tero Kristo <t-kristo@ti.com>
-> Tested-by: Nishanth Menon <nm@ti.com>
-> Acked-by: Tony Lindgren <tony@atomide.com>
-
-You guys are wonderful, by the way ;)
-
-> +void __init ti_dt_clocks_register(struct ti_dt_clk oclks[])
-> +{
-> +       struct ti_dt_clk *c;
-> +       struct device_node *node;
-> +       struct clk *clk;
-> +       struct of_phandle_args clkspec;
-> +
-> +       for (c = oclks; c->node_name != NULL; c++) {
-> +               node = of_find_node_by_name(NULL, c->node_name);
-> +               clkspec.np = node;
-> +               clk = of_clk_get_from_provider(&clkspec);
-> +
-> +               if (!IS_ERR(clk)) {
-> +                       c->lk.clk = clk;
-> +                       clkdev_add(&c->lk);
-> +               } else {
-> +                       pr_warn("%s: failed to lookup clock node %s\n",
-> +                               __func__, c->node_name);
-> +               }
-> +       }
-> +}
-
-I have one question here, what makes this part of the patch
-TI-specific at all except the definition of the structure ti_dt_clk?
-Mapping DT clocks to generic clkdev legacy namings seems like it would
-be a necessary evil across *all* SoC platforms.
-
-I would say there is a good case for this being generic and used by
-all platforms waiting for con->id/dev->id to be moved to DT-awareness,
-the structure itself is very generic within clkdev as long as the
-drivers conformed anyway (and if they didn't, none of this helps) and
-I don't think it really needs to be a TI-only thing. The next thing
-that's going to happen when another platform arrives that wants to do
-the same thing is duplication or consolidation - so it would probably
-be a good idea to make this generic to start.
-
-While there the names could be a bit more descriptive -
-dt_clk_name_lookup_map_register(), struct dt_clk_name_lookup_map,
-DT_CLK_LOOKUP_MAP() ..? The current namespace makes it look like this
-is the absolute correct thing to do under all circumstances, but in
-fact this is purely for mapping the old way to the new, better way..
-in the event a brand new platform arrives, with all new drivers (or
-only compliant drivers), none of this code should be implemented for
-it and it should be presented this way.
-
-Thanks,
-Matt Sealey <neko@bakuhatsu.net>
+SGkgRXplcXVpZWwgR2FyY2lhLA0KDQpTb3JyeSBJJ20gYml0IG91dCBvZiBteSBwbGFjZS4uIHNv
+IG5vdCBhYmxlIHRvIHN5bmMgb2Z0ZW4gd2l0aCBtYWlscy4uDQpIb3dldmVyIHBseiBzZWUgbXkg
+cmVwbGllcyBiZWxvdy4uDQoNClsuLi5dDQoNCj4gPg0KPiA+ID4gUGVrb24sIEJyaWFuOiBEbyB5
+b3UgdGhpbmsgdGhpcyBzb2x1dGlvbiBtaWdodCB3b3JrIGZvciA4LWJpdCBhbmQgMTYtYml0DQo+
+ID4gPiBkZXZpY2VzPw0KPiA+ID4NCj4gPiBJIHRoaW5rIE5BTkRfQlVTV0lEVEhfQVVUTyAod2l0
+aG91dCBHUE1DIGNoYW5nZXMpIHdvdWxkIGZhaWwgaW4NCj4gPiBmb2xsb3dpbmcgc2NlbmFyaW9z
+Li4NCj4gPg0KPiA+IENhc2UtMTogY29uZmlndXJpbmcgZ3BtYyxkZXZpY2Utd2lkdGg9MSBmcm9t
+IERUIHdoZW4gdXNpbmcgeDE2IGRldmljZS4NCj4gDQo+IC4uLiB3aGljaCBpcyB3cm9uZy4gVGhh
+dCdzIHdoeSB3ZSBoYXZlIGEgRFQgcHJvcGVydHkgdG8gY29uZmlndXJlIHRoYXQuDQo+IFRoZSBH
+UE1DICptdXN0KiBiZSBwcm9wZXJseSBjb25maWd1cmVkLg0KPiANCk5vLCBJIHRoaW5rIHRoZSBt
+YWluIGludGVudGlvbiBvZiB1c2luZyBOQU5EX0JVU1dJRFRIX0FVVE8gaXMgdGhhdA0KeW91ciBj
+b250cm9sbGVyIHNob3VsZCBub3QgZGVwZW5kIG9uIERUIG9yIGFueSBvdGhlciB1c2VyLWlucHV0
+IHRvIGRldGVjdA0KTkFORCBidXMtd2lkdGgsICh3aGV0aGVyIGl0cyBncG1jLGRldmljZS13aWR0
+aCBvciBhbnl0aGluZyBlbHNlKS4NCg0KDQo+ID4gQXMgeW91ciBOQU5EIGRyaXZlciBpcyB1c2lu
+ZyBOQU5EX0JVU1dJRFRIX0FVVE8sIGl0IHNob3VsZA0KPiA+IGlnbm9yZSB0aGlzIERUIGNvbmZp
+ZywgYW5kIGJhc2VkIG9uIE9ORkkgcGFyYW1zIGl0IHNob3VsZCB3b3JrIGFzIHgxNg0KPiA+DQo+
+IA0KPiBIbS4uIEkgZG9uJ3QgdGhpbmsgc28uIFRoZSBhdXRvLXN0dWZmIGlzIGp1c3QgZm9yIHRo
+ZSBOQU5EIGRyaXZlciwgbm90DQo+IGZvciB0aGUgbWVtb3J5IGNvbnRyb2xsZXIuIEkgZG9uJ3Qg
+a25vdyBtdWNoIGFib3V0IGhhcmR3YXJlLCBidXQgaW4gbXkNCj4gbWluZA0KPiBJIGltYWdpbmUg
+dGhlbSBhcyBkaWZmZXJlbnQgY29udHJvbGxlcnMuDQo+IA0KVEkncyBHUE1DIGhhcmR3YXJlIGVu
+Z2luZSBjYW4gZG8gbXVjaCBtb3JlIHRoYW4gc3VwcG9ydGluZyBvbmx5DQpOQU5EIGRldmljZXMs
+IHRoZXJlZm9yZSB0aGVyZSBpcyBhbiBpbmRlcGVuZGVudCBHUE1DIGRyaXZlciwgYW5kDQpkZXBl
+bmRlbnQgTkFORCBkcml2ZXIuIA0KU28gd2hlbiBhIE5BTkQgZGV2aWNlIGlzIGNvbm5lY3RlZCBh
+bGwgR1BNQyBkcml2ZXIgZG9lcyBpcyBpbml0aWFsaXplcw0KR1BNQyBoYXJkd2FyZSBiYXNlZCBv
+biBzdGF0aWMgRFQgYmluZGluZ3MsIGFuZCBwYXNzIHRoZSBjb250cm9sIHRvDQpOQU5EIGRyaXZl
+ci4gQnV0IHRoZXJlIHNob3VsZCBiZSBhIG1lY2hhbmlzbSB0byBvdmVycmlkZSB0aGVzZQ0Kc3Rh
+dGljIERUIGNvbmZpZ3VyYXRpb25zIGRvbmUgaW4gR1BNQyBkcml2ZXIgYnkgTkFORCBkcml2ZXIu
+DQooaXQgaXMgdGhpcyBwaWVjZSB3aGljaCBpcyBtaXNzaW5nIHRvZGF5KS4NCg0KDQo+ID4gQ2Fz
+ZS0yOiBjb25maWd1cmluZyBncG1jLGRldmljZS13aWR0aD0yIGZyb20gRFQgd2hlbiB1c2luZyB4
+OCBkZXZpY2UuDQo+IA0KPiAuLi4gd2hpY2ggaXMgYWxzbyB3cm9uZy4NCj4gDQo+IE9uY2UgYWdh
+aW4sIHlvdSdyZSBtaXMtY29uZmlndXJpbmcgdGhlIEdQTUMuIFdlIGNhbm5vdCBleHBlY3QgdGhl
+IE5BTkQNCj4gZHJpdmVyIHRvIHdvcmsgcHJvcGVybHkgaWYgdGhlIEdQTUMgaXMgbm90IHByb3Bl
+cmx5IGluaXRpYWxpemVkLCBkb24ndA0KPiB5b3UgdGhpbms/DQo+IA0KPiA+IEFjdHVhbGx5IGhh
+dmluZyBOQU5EX0JVU1dJRFRIX0FVVE8gd291bGQgcmVxdWlyZSBjaGFuZ2UgaW4gR1BNQw0KPiA+
+IGRyaXZlciBhbHNvLi4gcGxlYXNlIHJlZmVyIG15IGNvbW1lbnRzIGluLi4NCj4gPiBodHRwOi8v
+bGlzdHMuaW5mcmFkZWFkLm9yZy9waXBlcm1haWwvbGludXgtbXRkLzIwMTMtT2N0b2Jlci8wNDky
+ODQuaHRtbA0KPiA+DQo+IA0KPiBXZWxsLCBJIHRoaW5rIHRoZSBhcHByb2FjaCBzaG91bGQgYmUg
+ZGlmZmVyZW50IGFuZCBtdWNoIHNpbXBsZXI6IEdQTUMNCj4gKm11c3QqIGJlIHByb3Blcmx5IGNv
+bmZpZ3VyZWQgYW5kIHRoZW4gTkFORCBjYW4gZG8gT05GSSBkZXRlY3Rpb24NCj4gc3RhcnRpbmcg
+aW4gOC1iaXQgYW5kIHRoZW4gc3dpdGNoaW5nIHRvIDE2LWJpdCBpZiBuZWVkZWQuDQo+IA0KPiBU
+aGlzIGlzIHdoYXQgdGhpcyBwYXRjaCBpcyBkb2luZzogaXQgX2ZpeGVzXyB0aGUgTkFORCBkcml2
+ZXIgT05GSSBkZXRlY3Rpb24sDQo+IF9wcm92aWRlZF8gdGhlIEdQTUMgaXMgd2VsbC1wcmVwYXJl
+ZC4NCj4gDQo+IFlvdSBzZWVtIHRvIHRoaW5rIHRoYXQgR1BNQyArIE5BTkQgc2hvdWxkIGJlIGFi
+bGUgdG8gYXV0b21hZ2ljYWxseSBkZXRlY3QNCj4gdGhlIGRldmljZSBhbmQgd29yaywgYnV0IEkg
+ZG9uJ3QgdGhpbmsgdGhhdCdzIGV2ZW4gcGh5c2ljYWxseSBwb3NzaWJsZSwgZm9yDQo+IHRoZSBy
+ZWFzb25zIHlvdSBoYXZlIGp1c3QgZXhwb3NlZC4NCj4gDQo+IEkgdGhpbmsgdGhpcyBmaXggaXMg
+c2ltcGxlIGVub3VnaC4NCj4gDQpObywgSSBzdGlsbCB0aGluayB0aGVyZSBzaG91bGQgYmUgYSB3
+YXkgdG8gdGVsbCB0aGUgdXNlciB0aGF0IHRoZXJlIGlzIGENCm1pcy1tYXRjaCBiZXR3ZWVuIGJ1
+cy13aWR0aCBjb25maWd1cmVkIGluIERULCBhbmQgdGhhdCBkZXRlY3RlZA0KYnkgT05GSSBwcm9i
+ZS4gSWYgaXQgd2FzIHN0cmFpZ2h0IGZvcndhcmQsIHRoaXMgd291bGQgaGF2ZSBiZWVuIGFscmVh
+ZHkNCmFjY2VwdGVkIGVhcmxpZXIgOi0pDQoNCmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL3Bp
+cGVybWFpbC9saW51eC1tdGQvMjAxMy1PY3RvYmVyLzA0OTE1NC5odG1sDQoNCihyZWFkIHRoZSBj
+b21tZW50cyBmcm9tIEJyaWFuIGJ5IGZvbGxvd2luZyBhYm92ZSBwYXRjaCB0aHJlYWQpDQoNClBy
+b2JsZW0gaXMgaWYgdGhlcmUgaXMgYSBtaXMtbWF0Y2ggaW4geW91ciBidXMtd2lkdGggZHVlIHRv
+IGluY29ycmVjdA0KR1BNQyBEVCBiaW5kaW5nIGNvbmZpZ3VyYXRpb25zLCBzdGlsbCBOQU5EIHBy
+b2JlIGFuZCBldmVyeXRoaW5nIHdpbGwNCnBhc3MgY29ycmVjdGx5LCBiZWNhdXNlIG5hbmRfc2Nh
+bl9pZGVudCgpIHVzZXMgcmVhZF9ieXRlKCkgd2hpY2gNCnJldHVybnMgc2FtZSBmb3IgYm90aCB4
+OCBhbmQgeDE2IGRldmljZXMuDQpZb3Ugd2lsbCBmaW5kIGlzc3VlcyB3aGVuIHlvdSBhY3R1YWxs
+eSBkbyBwYWdlIHJlYWRzIGFuZCB3cml0ZXMuIEFuZA0KdGhpcyBpcyB3aGVyZSB5b3Ugd291bGQg
+c2VlIGNvcnJ1cHRlZCBoYWxmLXBhZ2UgZGF0YS4gQW5kIHVzZXINCndvdWxkIGJlIGNsdWVsZXNz
+IG9uIHdoeSBoZSBpcyBzZWVpbmcgc3VjaCBlcnJhdGljIGJlaGF2aW9yLg0KDQpUaGlzIGlzIHdo
+eSBJIGFkZGVkIGNoZWNrcyBmb3IgbWlzbWF0Y2ggb2YgRFQgYmluZGluZyByaWdodCBkdXJpbmcN
+Cm5hbmQgcHJvYmUoKSwgaW4gYWJvdmUgbWVudGlvbmVkIHBhdGNoLiBJIGNvdWxkIGp1c3QgcmVt
+b3ZlIGNhbGxpbmcNCm5hbmRfc2Nhbl9pZGVudCgpIHNlY29uZC10aW1lIGFuZCBpdCBiZWNvbWVz
+IHlvdXIgcGF0Y2gsIGJ1dCB0aGVuDQppdCB3b3VsZCBiZSBqdXN0IHZhbGlkYXRpbmcgdGhlIERU
+IHNldHRpbmcsIG5vdCBwdXJlIGF1dG8tZGV0ZWN0aW9uLg0KDQoNCj4gDQo+IEJUVzogVGhlIEdQ
+TUMgY29kZSBpZ25vcmVzIHRoZSBEVCB2YWx1ZSBpbiAnZ3BtYyxkZXZpY2Utd2lkdGgnIGFuZCB1
+c2VzDQo+ICduYW5kLWJ1cy13aWR0aCcgaW5zdGVhZCwgYnV0IHRoYXQncyBhIGRpZmZlcmVudCBi
+dWcgYW5kIGEgZGlmZmVyZW50IGZpeCA6KQ0KPiANCkkgdGhpbmsgeW91IG1lYW4gdGhlIG9wcG9z
+aWUuLiBHUE1DIGRyaXZlciB1c2VzIGdwbWMsZGV2aWNlLXdpZHRoLi4NClJlZmVyOiAkS0VSTkVM
+L2FyY2gvYXJtL21hY2gtb21hcDIvZ3BtYy5jDQpAQGdwbWNfcmVhZF9zZXR0aW5nc19kdCguLi4p
+DQoJb2ZfcHJvcGVydHlfcmVhZF91MzIobnAsICJncG1jLGRldmljZS13aWR0aCIsICZwLT5kZXZp
+Y2Vfd2lkdGgpOw0KDQonbmFuZC1idXMtd2lkdGgnIGlzIG5vdCB1c2VkIGFueXdoZXJlIGluc3Rl
+YWQuLg0KDQoNCndpdGggcmVnYXJkcywgcGVrb24NCg==
