@@ -1,58 +1,38 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] omap dt fixes for v3.13 merge window
-Date: Tue, 29 Oct 2013 16:09:38 -0700
-Message-ID: <118.677263572131$1383088224@news.gmane.org>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [GIT PULL] omap dt fixes for v3.13 merge window
+Date: Tue, 29 Oct 2013 16:13:02 -0700
+Message-ID: <CAOesGMha7qW_4gnEEDktSpMjdd-r_T4OdeXYh1MnOYu4KW1mow@mail.gmail.com>
+References: <52704038.857c420a.6ab0.15e1SMTPIN_ADDED_BROKEN@mx.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: arm@kernel.org
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-qc0-f180.google.com ([209.85.216.180]:49622 "EHLO
+	mail-qc0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751292Ab3J2XND (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Oct 2013 19:13:03 -0400
+Received: by mail-qc0-f180.google.com with SMTP id e9so370966qcy.11
+        for <linux-omap@vger.kernel.org>; Tue, 29 Oct 2013 16:13:02 -0700 (PDT)
+In-Reply-To: <52704038.857c420a.6ab0.15e1SMTPIN_ADDED_BROKEN@mx.google.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "arm@kernel.org" <arm@kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>
 
-The following changes since commit b4887e16375be312cf64642ac1d826186cb836bf:
+On Tue, Oct 29, 2013 at 4:09 PM, Tony Lindgren <tony@atomide.com> wrote:
+> The following changes since commit b4887e16375be312cf64642ac1d826186cb836bf:
+>
+>   Merge tag 'for_3.13_super_late/dts_signed' of git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt into omap-for-v3.13/dt (2013-10-23 03:12:45 -0700)
+>
+> are available in the git repository at:
+>
+>
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.13/dt-fixes-for-merge-window
+>
+> for you to fetch changes up to 0352bd1f04b706904b26d13f6d8792e7ff6b7eb6:
+>
+>   ARM: dts: omap4-panda: add DPI pinmuxing (2013-10-29 14:24:34 -0700)
 
-  Merge tag 'for_3.13_super_late/dts_signed' of git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt into omap-for-v3.13/dt (2013-10-23 03:12:45 -0700)
-
-are available in the git repository at:
+Pulled, thanks.
 
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.13/dt-fixes-for-merge-window
-
-for you to fetch changes up to 0352bd1f04b706904b26d13f6d8792e7ff6b7eb6:
-
-  ARM: dts: omap4-panda: add DPI pinmuxing (2013-10-29 14:24:34 -0700)
-
-----------------------------------------------------------------
-Few device tree changes that fix boot time warnings and
-make panda display work with recent u-boot.
-
-----------------------------------------------------------------
-Lokesh Vutla (1):
-      ARM: dts: AM33xx: Add RNG node
-
-Suman Anna (3):
-      ARM: dts: OMAP4: Add hwspinlock node
-      ARM: dts: OMAP5: Add hwspinlock node
-      ARM: dts: AM33XX: Add hwspinlock node
-
-Tomi Valkeinen (1):
-      ARM: dts: omap4-panda: add DPI pinmuxing
-
- .../devicetree/bindings/hwrng/omap_rng.txt         | 22 +++++++++++
- arch/arm/boot/dts/am33xx.dtsi                      | 13 +++++++
- arch/arm/boot/dts/omap4-panda-common.dtsi          | 43 ++++++++++++++++++++++
- arch/arm/boot/dts/omap4.dtsi                       |  6 +++
- arch/arm/boot/dts/omap5.dtsi                       |  6 +++
- 5 files changed, 90 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/hwrng/omap_rng.txt
+-Olof
