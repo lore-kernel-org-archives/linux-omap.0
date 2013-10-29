@@ -1,36 +1,54 @@
-From: Joel Fernandes <joelf@ti.com>
-Subject: [PATCH] crypto: omap-aes: Fix CTR mode counter length
-Date: Tue, 29 Oct 2013 17:37:38 -0500
-Message-ID: <1383086258-22186-1-git-send-email-joelf@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL] omap dt fixes for v3.13 merge window
+Date: Tue, 29 Oct 2013 16:09:38 -0700
+Message-ID: <43633.153770543$1383088192@news.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-crypto@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Herbert Xu <herbert@gondor.hengli.com.au>, Joel Fernandes <joelf@ti.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:31084 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751182Ab3J2XJn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Oct 2013 19:09:43 -0400
+Content-Disposition: inline
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: arm@kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-NIST vectors for CTR mode in testmgr.h assume the entire IV as the counter. To
-get correct results that match the output of these vectors, we need to set the
-counter length correctly.
+The following changes since commit b4887e16375be312cf64642ac1d826186cb836bf:
 
-Signed-off-by: Joel Fernandes <joelf@ti.com>
----
- drivers/crypto/omap-aes.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+  Merge tag 'for_3.13_super_late/dts_signed' of git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt into omap-for-v3.13/dt (2013-10-23 03:12:45 -0700)
 
-diff --git a/drivers/crypto/omap-aes.c b/drivers/crypto/omap-aes.c
-index ce791c2..19055a1 100644
---- a/drivers/crypto/omap-aes.c
-+++ b/drivers/crypto/omap-aes.c
-@@ -275,7 +275,7 @@ static int omap_aes_write_ctrl(struct omap_aes_dev *dd)
- 	if (dd->flags & FLAGS_CBC)
- 		val |= AES_REG_CTRL_CBC;
- 	if (dd->flags & FLAGS_CTR) {
--		val |= AES_REG_CTRL_CTR | AES_REG_CTRL_CTR_WIDTH_32;
-+		val |= AES_REG_CTRL_CTR | AES_REG_CTRL_CTR_WIDTH_128;
- 		mask = AES_REG_CTRL_CTR | AES_REG_CTRL_CTR_WIDTH_MASK;
- 	}
- 	if (dd->flags & FLAGS_ENCRYPT)
--- 
-1.8.1.2
+are available in the git repository at:
+
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.13/dt-fixes-for-merge-window
+
+for you to fetch changes up to 0352bd1f04b706904b26d13f6d8792e7ff6b7eb6:
+
+  ARM: dts: omap4-panda: add DPI pinmuxing (2013-10-29 14:24:34 -0700)
+
+----------------------------------------------------------------
+Few device tree changes that fix boot time warnings and
+make panda display work with recent u-boot.
+
+----------------------------------------------------------------
+Lokesh Vutla (1):
+      ARM: dts: AM33xx: Add RNG node
+
+Suman Anna (3):
+      ARM: dts: OMAP4: Add hwspinlock node
+      ARM: dts: OMAP5: Add hwspinlock node
+      ARM: dts: AM33XX: Add hwspinlock node
+
+Tomi Valkeinen (1):
+      ARM: dts: omap4-panda: add DPI pinmuxing
+
+ .../devicetree/bindings/hwrng/omap_rng.txt         | 22 +++++++++++
+ arch/arm/boot/dts/am33xx.dtsi                      | 13 +++++++
+ arch/arm/boot/dts/omap4-panda-common.dtsi          | 43 ++++++++++++++++++++++
+ arch/arm/boot/dts/omap4.dtsi                       |  6 +++
+ arch/arm/boot/dts/omap5.dtsi                       |  6 +++
+ 5 files changed, 90 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/hwrng/omap_rng.txt
