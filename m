@@ -1,124 +1,71 @@
-From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-Subject: Re: [PATCH v2 0/5] Assorted OMAP2 NAND clean-ups
-Date: Tue, 29 Oct 2013 14:12:10 -0300
-Message-ID: <20131029171209.GA20207@localhost>
-References: <1382696277-9063-1-git-send-email-ezequiel.garcia@free-electrons.com>
- <20980858CB6D3A4BAE95CA194937D5E73EA2AE2A@DBDE04.ent.ti.com>
- <20131025114836.GD2489@localhost>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from top.free-electrons.com ([176.31.233.9]:39943 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751243Ab3J2RMO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Oct 2013 13:12:14 -0400
-Content-Disposition: inline
-In-Reply-To: <20131025114836.GD2489@localhost>
-Sender: linux-omap-owner@vger.kernel.org
+From: Kumar Gala <galak@codeaurora.org>
+Subject: Re: [PATCH v3 2/4] mmc: omap_hsmmc: Enable SDIO IRQ.
+Date: Tue, 29 Oct 2013 12:16:44 -0500
+Message-ID: <EA1946E5-E119-4D4D-B99F-E96878DEC049@codeaurora.org>
+References: <1380971830-21492-1-git-send-email-afenkart@gmail.com> <1380971830-21492-3-git-send-email-afenkart@gmail.com>
+Mime-Version: 1.0 (Apple Message framework v1283)
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <1380971830-21492-3-git-send-email-afenkart@gmail.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Andreas Fenkart <afenkart@gmail.com>
+Cc: Chris Ball <cjb@laptop.org>, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, Felipe Balbi <balbi@ti.com>, Venkatraman S <svenkatr@ti.com>, Balaji T K <balajitk@ti.com>, zonque@gmail.com, devicetree-discuss@lists.ozlabs.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gupta, Pekon" <pekon@ti.com>
-Cc: Brian Norris <computersforpeace@gmail.com>, "Balbi, Felipe" <balbi@ti.com>, "marek.belisko@gmail.com" <marek.belisko@gmail.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hey Pekon,
 
-On Fri, Oct 25, 2013 at 08:48:36AM -0300, Ezequiel Garcia wrote:
-> Pekon,
->=20
-> On Fri, Oct 25, 2013 at 11:15:57AM +0000, Gupta, Pekon wrote:
-> > Hi,
-> >=20
-> > > -----Original Message-----
-> > > From: Ezequiel Garcia [mailto:ezequiel.garcia@free-electrons.com]
-> > [...]
-> >=20
-> > > Pekon, Brian: Do you think this solution might work for 8-bit and=
- 16-bit
-> > > devices?
-> > >=20
-> > I think NAND_BUSWIDTH_AUTO (without GPMC changes) would fail in
-> > following scenarios..
-> >=20
-> > Case-1: configuring gpmc,device-width=3D1 from DT when using x16 de=
-vice.
->=20
-> ... which is wrong. That's why we have a DT property to configure tha=
-t.
-> The GPMC *must* be properly configured.
->=20
-> > As your NAND driver is using NAND_BUSWIDTH_AUTO, it should
-> > ignore this DT config, and based on ONFI params it should work as x=
-16
-> >=20
->=20
-> Hm.. I don't think so. The auto-stuff is just for the NAND driver, no=
-t
-> for the memory controller. I don't know much about hardware, but in m=
-y mind
-> I imagine them as different controllers.
->=20
-> > Case-2: configuring gpmc,device-width=3D2 from DT when using x8 dev=
-ice.
->=20
-> ... which is also wrong.
->=20
-> Once again, you're mis-configuring the GPMC. We cannot expect the NAN=
-D
-> driver to work properly if the GPMC is not properly initialized, don'=
-t
-> you think?
->=20
-> > Actually having NAND_BUSWIDTH_AUTO would require change in GPMC
-> > driver also.. please refer my comments in..=20
-> > http://lists.infradead.org/pipermail/linux-mtd/2013-October/049284.=
-html
-> >=20
->=20
-> Well, I think the approach should be different and much simpler: GPMC
-> *must* be properly configured and then NAND can do ONFI detection
-> starting in 8-bit and then switching to 16-bit if needed.
->=20
-> This is what this patch is doing: it _fixes_ the NAND driver ONFI det=
-ection,
-> _provided_ the GPMC is well-prepared.
->=20
-> You seem to think that GPMC + NAND should be able to automagically de=
-tect
-> the device and work, but I don't think that's even physically possibl=
-e, for
-> the reasons you have just exposed.
->=20
+On Oct 5, 2013, at 6:17 AM, Andreas Fenkart wrote:
 
-Sorry to insist: any comments about this?
+> For now, only support SDIO interrupt if we are booted with
+> DT. This is because some platforms need special quirks. And
+> we don't want to add new legacy mux platform init code
+> callbacks any longer as we are moving to DT based booting
+> anyways.
+> 
+> Broken hardware, missing the swakueup line, should fallback
+> to polling, by setting 'ti,quirk-swakup-missing' in the
+> device tree. Otherwise pending SDIO IRQ are not detected
+> while in suspend. This affects am33xx processors.
+> 
+> Signed-off-by: Andreas Fenkart <afenkart@gmail.com>
+> 
+> diff --git a/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt b/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
+> index ed271fc..1136e6b 100644
+> --- a/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
+> +++ b/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
+> @@ -20,6 +20,24 @@ ti,dual-volt: boolean, supports dual voltage cards
+> ti,non-removable: non-removable slot (like eMMC)
+> ti,needs-special-reset: Requires a special softreset sequence
+> ti,needs-special-hs-handling: HSMMC IP needs special setting for handling High Speed
+> +ti,quirk-swakup-missing: SOC missing the swakeup line, will not detect
+> +SDIO irq while in suspend. Fallback to polling. Affected chips are
+> +am335x,
+> +
+> +                            ------
+> +                            | PRCM |
+> +                             ------
+> +                              ^ |
+> +                      swakeup | | fclk
+> +                              | v
+> +      ------                -------               -----
+> +     | card | -- CIRQ -->  | hsmmc | -- IRQ -->  | CPU |
+> +      ------                -------               -----
+> +
+> +In suspend the fclk is off and the module is disfunctional. Even
+> +register reads will fail. A small logic in the host will request fclk
+> +restore, when an external event is detected. Once the clock is
+> +restored, the host detects the event normally.
+> 
+> Example:
+> 	mmc1: mmc@0x4809c000 {
 
-If you have access to the AM335xEVM (which has an 8-bit NAND, as far as=
- I know)
-and also to the Beaglebone 16-bit NAND cape, then you can test this pat=
-chset
-with all the different combinations: 8-bit vs. 16-bit and array-based v=
-s.
-ONFI-based detection.
+For the DT-Binding portion:
 
-If it works, then problem solved. If it doesn't, I'm sure we can find a
-solution. The driver is currently buggy, so we need to address this soo=
-ner
-or later.
+Acked-by: Kumar Gala <galak@codeaurora.org>
 
-In addition, the outcome of our discussion will probably be helpful for=
- other
-drivers/controllers, since this ONFI issue is likely to be common.
+- k
 
-If you can do the testing, that would be great: keep in mind that the
-GPMC must be correctly configured at all times. You can use my recent
-GPMC patchset for that (which also need some testing).
+-- 
+Employee of Qualcomm Innovation Center, Inc.
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, hosted by The Linux Foundation
 
-Thanks in advance,
---=20
-Ezequiel Garc=C3=ADa, Free Electrons
-Embedded Linux, Kernel and Android Engineering
-http://free-electrons.com
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
