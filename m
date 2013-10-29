@@ -1,108 +1,477 @@
-From: Sebastian Reichel <sre@debian.org>
-Subject: Re: [PATCHv2 1/3] Input: twl4030-keypad - add device tree support
-Date: Tue, 29 Oct 2013 11:25:28 +0100
-Message-ID: <20131029102527.GA10530@earth.universe>
-References: <1382446042-27099-1-git-send-email-sre@debian.org>
- <1382446042-27099-2-git-send-email-sre@debian.org>
- <5137C017-2515-427C-865F-B938CC24B210@codeaurora.org>
- <20131029010608.GA5353@earth.universe>
- <14DEC9DA-8C77-4F73-AF3A-6C0D20C6C1AB@codeaurora.org>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH v2] omapdss: Add new panel driver for Topolly td028ttec1
+ LCD.
+Date: Tue, 29 Oct 2013 13:07:25 +0200
+Message-ID: <526F96ED.906@ti.com>
+References: <1382019258-21000-1-git-send-email-marek@goldelico.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="k1lZvvs/B4yU6o8G"
-Return-path: <linux-input-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <14DEC9DA-8C77-4F73-AF3A-6C0D20C6C1AB@codeaurora.org>
-Sender: linux-input-owner@vger.kernel.org
-To: Kumar Gala <galak@codeaurora.org>
-Cc: linux-input@vger.kernel.org, =?iso-8859-1?Q?=22'Beno=EEt_Cousson'=22?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Rob Landley <rob@landley.net>, Russell King <linux@arm.linux.org.uk>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Grant Likely <grant.likely@linaro.org>, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="iXjLGFov2aTQBSfAQacKKcTSjd2wrjFGN"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1382019258-21000-1-git-send-email-marek@goldelico.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Marek Belisko <marek@goldelico.com>
+Cc: plagnioj@jcrosoft.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, "H. Nikolaus Schaller" <hns@goldelico.com>
 List-Id: linux-omap@vger.kernel.org
 
-
---k1lZvvs/B4yU6o8G
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+--iXjLGFov2aTQBSfAQacKKcTSjd2wrjFGN
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Oct 29, 2013 at 03:33:31AM -0500, Kumar Gala wrote:
-> On Oct 28, 2013, at 8:06 PM, Sebastian Reichel wrote:
-> > On Mon, Oct 28, 2013 at 01:42:47AM -0500, Kumar Gala wrote:
-> >>> +This binding is based on the matrix-keymap binding with the following
-> >>> +changes:
-> >>=20
-> >> Maybe be a bit more specific and say 'based on the input/matrix-keymap=
-=2Etxt binding'..
-> >=20
-> > OK.
-> >=20
-> >>> + * keypad,num-rows and keypad,num-columns are required.
-> >>=20
-> >> Is linux,keymap required from matrix-keymap.txt?
-> >=20
-> > Yes, matrix-keymap.txt contains descriptions for the following:
-> >=20
-> > required:
-> > - linux,keymap
+On 17/10/13 17:14, Marek Belisko wrote:
+> Signed-off-by: Marek Belisko <marek@goldelico.com>
+> Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
+> ---
 >=20
-> So you don't say that linux,keymap is required for twl4030-keypad
-> (wasn't clear if you assumed that or not).
-
-It's already required by matrix-keypad, so I assumed the requirement
-is inherited by twl4030-keypad. The other matrix-keymap based
-bindings assume the same.
-
-keypad,num-rows and keypad,num-columns are only stated explicitly,
-because they are optional in matrix-keymap, but required by
-twl4030-keympad.
-
-> > optional:
-> > - keypad,num-rows
-> > - keypad,num-columns
-> >=20
-> >>> +Optional Properties specific to linux:
-> >>> +- linux,keypad-no-autorepeat: do no enable autorepeat feature.
-> >>=20
-> >> Does it make sense to update the matrix-keymap.txt binding to add
-> >> 'linux,keypad-no-autorepeat' there?
-> >=20
-> > At least according to devicetree documentation there are
-> > keymap-matrix.txt based drivers, which do not support
-> > "linux,keypad-no-autorepeat".
+> changes from v1:
+> - reworked to be spi driver instead platform with custom spi bitbang
+>   this configuration was tested with spi_gpio bitbang driver on gta04 b=
+oard
+>   and works fine (thanks Tomi and Lars-Peter for comments)
+> - address previous comments
 >=20
-> Which is why it could be optional in keymap-matrix.txt.  I dont
-> know anything about keymap/keypad's just asking the question?
+>  drivers/video/omap2/displays-new/Kconfig           |   6 +
+>  drivers/video/omap2/displays-new/Makefile          |   1 +
+>  .../omap2/displays-new/panel-tpo-td028ttec1.c      | 486 +++++++++++++=
+++++++++
+>  include/video/omap-panel-data.h                    |  13 +
+>  4 files changed, 506 insertions(+)
+>  create mode 100644 drivers/video/omap2/displays-new/panel-tpo-td028tte=
+c1.c
 >=20
-> It seems as if linux,keypad-no-autorepeat is intended to mean the
-> same thing (if relevant to the device) across all drivers.  Is
-> that correct?  If so it seems like moving it to be specified in a
-> generic input binding makes sense, just not sure if
-> keymap-matrix.txt is that place or not.
+> diff --git a/drivers/video/omap2/displays-new/Kconfig b/drivers/video/o=
+map2/displays-new/Kconfig
+> index 6c90885..1054249 100644
+> --- a/drivers/video/omap2/displays-new/Kconfig
+> +++ b/drivers/video/omap2/displays-new/Kconfig
+> @@ -56,6 +56,12 @@ config DISPLAY_PANEL_SHARP_LS037V7DW01
+>          help
+>            LCD Panel used in TI's SDP3430 and EVM boards
+> =20
+> +config DISPLAY_PANEL_TPO_TD028TTEC1
+> +        tristate "TPO TD028TTEC1 LCD Panel"
+> +        depends on SPI
+> +        help
+> +          LCD panel used in Openmoko.
+> +
+>  config DISPLAY_PANEL_TPO_TD043MTEA1
+>          tristate "TPO TD043MTEA1 LCD Panel"
+>          depends on SPI
+> diff --git a/drivers/video/omap2/displays-new/Makefile b/drivers/video/=
+omap2/displays-new/Makefile
+> index 5aeb11b..0323a8a 100644
+> --- a/drivers/video/omap2/displays-new/Makefile
+> +++ b/drivers/video/omap2/displays-new/Makefile
+> @@ -8,5 +8,6 @@ obj-$(CONFIG_DISPLAY_PANEL_DSI_CM) +=3D panel-dsi-cm.o
+>  obj-$(CONFIG_DISPLAY_PANEL_SONY_ACX565AKM) +=3D panel-sony-acx565akm.o=
 
-Yes, when supported it means the same. I can add it to
-keymap-matrix.txt.
+>  obj-$(CONFIG_DISPLAY_PANEL_LGPHILIPS_LB035Q02) +=3D panel-lgphilips-lb=
+035q02.o
+>  obj-$(CONFIG_DISPLAY_PANEL_SHARP_LS037V7DW01) +=3D panel-sharp-ls037v7=
+dw01.o
+> +obj-$(CONFIG_DISPLAY_PANEL_TPO_TD028TTEC1) +=3D panel-tpo-td028ttec1.o=
 
--- Sebastian
+>  obj-$(CONFIG_DISPLAY_PANEL_TPO_TD043MTEA1) +=3D panel-tpo-td043mtea1.o=
 
---k1lZvvs/B4yU6o8G
+>  obj-$(CONFIG_DISPLAY_PANEL_NEC_NL8048HL11) +=3D panel-nec-nl8048hl11.o=
+
+> diff --git a/drivers/video/omap2/displays-new/panel-tpo-td028ttec1.c b/=
+drivers/video/omap2/displays-new/panel-tpo-td028ttec1.c
+> new file mode 100644
+> index 0000000..5a44d30
+> --- /dev/null
+> +++ b/drivers/video/omap2/displays-new/panel-tpo-td028ttec1.c
+> @@ -0,0 +1,486 @@
+> +/*
+> + * Toppoly TD028TTEC1 panel support
+> + *
+> + * Copyright (C) 2008 Nokia Corporation
+> + * Author: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+> + *
+> + * Neo 1973 code (jbt6k74.c):
+> + * Copyright (C) 2006-2007 by OpenMoko, Inc.
+> + * Author: Harald Welte <laforge@openmoko.org>
+> + *
+> + * Ported and adapted from Neo 1973 U-Boot by:
+> + * H. Nikolaus Schaller <hns@goldelico.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modif=
+y it
+> + * under the terms of the GNU General Public License version 2 as publ=
+ished by
+> + * the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful, but=
+ WITHOUT
+> + * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY =
+or
+> + * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public Licen=
+se for
+> + * more details.
+> + *
+> + * You should have received a copy of the GNU General Public License a=
+long with
+> + * this program.  If not, see <http://www.gnu.org/licenses/>.
+> + */
+> +
+> +#include <linux/module.h>
+> +#include <linux/delay.h>
+> +#include <linux/spi/spi.h>
+> +#include <linux/gpio.h>
+> +#include <video/omapdss.h>
+> +#include <video/omap-panel-data.h>
+> +
+> +struct panel_drv_data {
+> +	struct omap_dss_device dssdev;
+> +	struct omap_dss_device *in;
+> +
+> +	int data_lines;
+> +
+> +	struct omap_video_timings videomode;
+> +
+> +	struct spi_device *spi_dev;
+> +
+> +	u16 tx_buf[4];
+
+Is there some particular reason to have tx_buf in the driver data? It
+looks to me that it would fit better as a local variable for the funcs
+that need it.
+
+> +};
+> +
+> +static struct omap_video_timings td028ttec1_panel_timings =3D {
+> +	.x_res		=3D 480,
+> +	.y_res		=3D 640,
+> +	.pixel_clock	=3D 22153,
+> +	.hfp		=3D 24,
+> +	.hsw		=3D 8,
+> +	.hbp		=3D 8,
+> +	.vfp		=3D 4,
+> +	.vsw		=3D 2,
+> +	.vbp		=3D 2,
+> +
+> +	.vsync_level	=3D OMAPDSS_SIG_ACTIVE_LOW,
+> +	.hsync_level	=3D OMAPDSS_SIG_ACTIVE_LOW,
+> +
+> +	.data_pclk_edge	=3D OMAPDSS_DRIVE_SIG_FALLING_EDGE,
+> +	.de_level	=3D OMAPDSS_SIG_ACTIVE_HIGH,
+> +	.sync_pclk_edge	=3D OMAPDSS_DRIVE_SIG_OPPOSITE_EDGES,
+> +};
+> +
+> +#define JBT_COMMAND	0x000
+> +#define JBT_DATA	0x100
+> +
+> +int jbt_reg_write_nodata(struct panel_drv_data *ddata, u8 reg)
+> +{
+> +	int rc;
+> +
+> +	ddata->tx_buf[0] =3D JBT_COMMAND | reg;
+> +	rc =3D spi_write(ddata->spi_dev, (u8 *)ddata->tx_buf,
+> +			1*sizeof(u16));
+> +	if (rc !=3D 0)
+> +		dev_err(&ddata->spi_dev->dev,
+> +			"jbt_reg_write_nodata spi_write ret %d\n", rc);
+> +
+> +	return rc;
+> +}
+> +
+> +int jbt_reg_write(struct panel_drv_data *ddata, u8 reg, u8 data)
+
+Perhaps name this jbt_reg_write8 to be in line with the jbt_reg_write16.
+Or is it obvious that the function without a suffix works on bytes?
+
+Just a side note, on DSI side I have used suffixes _0, _1, _2 to
+represent transmission without data, with one byte and with 2 bytes.
+
+> +{
+> +	int rc;
+> +
+> +	ddata->tx_buf[0] =3D JBT_COMMAND | reg;
+> +	ddata->tx_buf[1] =3D JBT_DATA | data;
+> +	rc =3D spi_write(ddata->spi_dev, (u8 *)ddata->tx_buf,
+> +			2*sizeof(u16));
+> +	if (rc !=3D 0)
+> +		dev_err(&ddata->spi_dev->dev,
+> +			"jbt_reg_write spi_write ret %d\n", rc);
+> +
+> +	return rc;
+> +}
+> +
+> +int jbt_reg_write16(struct panel_drv_data *ddata, u8 reg, u16 data)
+> +{
+> +	int rc;
+> +
+> +	ddata->tx_buf[0] =3D JBT_COMMAND | reg;
+> +	ddata->tx_buf[1] =3D JBT_DATA | (data >> 8);
+> +	ddata->tx_buf[2] =3D JBT_DATA | (data & 0xff);
+> +
+> +	rc =3D spi_write(ddata->spi_dev, (u8 *)ddata->tx_buf,
+> +			3*sizeof(u16));
+> +
+> +	if (rc !=3D 0)
+> +		dev_err(&ddata->spi_dev->dev,
+> +			"jbt_reg_write16 spi_write ret %d\n", rc);
+> +
+> +	return rc;
+> +}
+> +
+> +enum jbt_register {
+> +	JBT_REG_SLEEP_IN		=3D 0x10,
+> +	JBT_REG_SLEEP_OUT		=3D 0x11,
+> +
+> +	JBT_REG_DISPLAY_OFF		=3D 0x28,
+> +	JBT_REG_DISPLAY_ON		=3D 0x29,
+> +
+> +	JBT_REG_RGB_FORMAT		=3D 0x3a,
+> +	JBT_REG_QUAD_RATE		=3D 0x3b,
+> +
+> +	JBT_REG_POWER_ON_OFF		=3D 0xb0,
+> +	JBT_REG_BOOSTER_OP		=3D 0xb1,
+> +	JBT_REG_BOOSTER_MODE		=3D 0xb2,
+> +	JBT_REG_BOOSTER_FREQ		=3D 0xb3,
+> +	JBT_REG_OPAMP_SYSCLK		=3D 0xb4,
+> +	JBT_REG_VSC_VOLTAGE		=3D 0xb5,
+> +	JBT_REG_VCOM_VOLTAGE		=3D 0xb6,
+> +	JBT_REG_EXT_DISPL		=3D 0xb7,
+> +	JBT_REG_OUTPUT_CONTROL		=3D 0xb8,
+> +	JBT_REG_DCCLK_DCEV		=3D 0xb9,
+> +	JBT_REG_DISPLAY_MODE1		=3D 0xba,
+> +	JBT_REG_DISPLAY_MODE2		=3D 0xbb,
+> +	JBT_REG_DISPLAY_MODE		=3D 0xbc,
+> +	JBT_REG_ASW_SLEW		=3D 0xbd,
+> +	JBT_REG_DUMMY_DISPLAY		=3D 0xbe,
+> +	JBT_REG_DRIVE_SYSTEM		=3D 0xbf,
+> +
+> +	JBT_REG_SLEEP_OUT_FR_A		=3D 0xc0,
+> +	JBT_REG_SLEEP_OUT_FR_B		=3D 0xc1,
+> +	JBT_REG_SLEEP_OUT_FR_C		=3D 0xc2,
+> +	JBT_REG_SLEEP_IN_LCCNT_D	=3D 0xc3,
+> +	JBT_REG_SLEEP_IN_LCCNT_E	=3D 0xc4,
+> +	JBT_REG_SLEEP_IN_LCCNT_F	=3D 0xc5,
+> +	JBT_REG_SLEEP_IN_LCCNT_G	=3D 0xc6,
+> +
+> +	JBT_REG_GAMMA1_FINE_1		=3D 0xc7,
+> +	JBT_REG_GAMMA1_FINE_2		=3D 0xc8,
+> +	JBT_REG_GAMMA1_INCLINATION	=3D 0xc9,
+> +	JBT_REG_GAMMA1_BLUE_OFFSET	=3D 0xca,
+> +
+> +	JBT_REG_BLANK_CONTROL		=3D 0xcf,
+> +	JBT_REG_BLANK_TH_TV		=3D 0xd0,
+> +	JBT_REG_CKV_ON_OFF		=3D 0xd1,
+> +	JBT_REG_CKV_1_2			=3D 0xd2,
+> +	JBT_REG_OEV_TIMING		=3D 0xd3,
+> +	JBT_REG_ASW_TIMING_1		=3D 0xd4,
+> +	JBT_REG_ASW_TIMING_2		=3D 0xd5,
+> +
+> +	JBT_REG_HCLOCK_VGA		=3D 0xec,
+> +	JBT_REG_HCLOCK_QVGA		=3D 0xed,
+> +};
+> +
+> +#define to_panel_data(p) container_of(p, struct panel_drv_data, dssdev=
+)
+> +
+> +static int td028ttec1_panel_connect(struct omap_dss_device *dssdev)
+> +{
+> +	struct panel_drv_data *ddata =3D to_panel_data(dssdev);
+> +	struct omap_dss_device *in =3D ddata->in;
+> +	int r;
+> +
+> +	if (omapdss_device_is_connected(dssdev))
+> +		return 0;
+> +
+> +	r =3D in->ops.dpi->connect(in, dssdev);
+> +	if (r)
+> +		return r;
+> +
+> +	return 0;
+> +}
+> +
+> +static void td028ttec1_panel_disconnect(struct omap_dss_device *dssdev=
+)
+> +{
+> +	struct panel_drv_data *ddata =3D to_panel_data(dssdev);
+> +	struct omap_dss_device *in =3D ddata->in;
+> +
+> +	if (!omapdss_device_is_connected(dssdev))
+> +		return;
+> +
+> +	in->ops.dpi->disconnect(in, dssdev);
+> +}
+> +
+> +static int td028ttec1_panel_enable(struct omap_dss_device *dssdev)
+> +{
+> +	struct panel_drv_data *ddata =3D to_panel_data(dssdev);
+> +	struct omap_dss_device *in =3D ddata->in;
+> +	int r;
+> +
+> +	if (!omapdss_device_is_connected(dssdev))
+> +		return -ENODEV;
+> +
+> +	if (omapdss_device_is_enabled(dssdev))
+> +		return 0;
+> +
+> +	in->ops.dpi->set_data_lines(in, ddata->data_lines);
+> +	in->ops.dpi->set_timings(in, &ddata->videomode);
+> +
+> +	r =3D in->ops.dpi->enable(in);
+> +	if (r)
+> +		return r;
+> +
+> +	dev_dbg(dssdev->dev, "td028ttec1_panel_enable() - state %d\n",
+> +		dssdev->state);
+> +
+> +	/*
+> +	 * according to data sheet: wait 50ms (Tpos of LCM). However, 50ms
+> +	 * seems unreliable with later LCM batches, increasing to 90ms
+> +	 */
+> +	msleep(90);
+
+Wait for what?
+
+> +
+> +	/* three times command zero */
+> +	r |=3D jbt_reg_write_nodata(ddata, 0x00);
+> +	msleep(1000);
+> +	r |=3D jbt_reg_write_nodata(ddata, 0x00);
+> +	msleep(1000);
+> +	r |=3D jbt_reg_write_nodata(ddata, 0x00);
+> +	msleep(1000);
+
+Three _seconds_? That's a huge delay when enabling a panel. Is this
+really required?
+
+> +
+> +	if (r) {
+> +		dev_warn(dssdev->dev, "transfer error\n");
+> +		goto transfer_err;
+> +	}
+> +
+> +	/* deep standby out */
+> +	r |=3D jbt_reg_write(ddata, JBT_REG_POWER_ON_OFF, 0x17);
+> +
+> +	/* RGB I/F on, RAM write off, QVGA through, SIGCON enable */
+> +	r |=3D jbt_reg_write(ddata, JBT_REG_DISPLAY_MODE, 0x80);
+> +
+> +	/* Quad mode off */
+> +	r |=3D jbt_reg_write(ddata, JBT_REG_QUAD_RATE, 0x00);
+> +
+> +	/* AVDD on, XVDD on */
+> +	r |=3D jbt_reg_write(ddata, JBT_REG_POWER_ON_OFF, 0x16);
+> +
+> +	/* Output control */
+> +	r |=3D jbt_reg_write16(ddata, JBT_REG_OUTPUT_CONTROL, 0xfff9);
+> +
+> +	/* Sleep mode off */
+> +	r |=3D jbt_reg_write_nodata(ddata, JBT_REG_SLEEP_OUT);
+> +
+> +	/* at this point we have like 50% grey */
+> +
+> +	/* initialize register set */
+> +	r |=3D jbt_reg_write(ddata, JBT_REG_DISPLAY_MODE1, 0x01);
+> +	r |=3D jbt_reg_write(ddata, JBT_REG_DISPLAY_MODE2, 0x00);
+> +	r |=3D jbt_reg_write(ddata, JBT_REG_RGB_FORMAT, 0x60);
+> +	r |=3D jbt_reg_write(ddata, JBT_REG_DRIVE_SYSTEM, 0x10);
+> +	r |=3D jbt_reg_write(ddata, JBT_REG_BOOSTER_OP, 0x56);
+> +	r |=3D jbt_reg_write(ddata, JBT_REG_BOOSTER_MODE, 0x33);
+> +	r |=3D jbt_reg_write(ddata, JBT_REG_BOOSTER_FREQ, 0x11);
+> +	r |=3D jbt_reg_write(ddata, JBT_REG_BOOSTER_FREQ, 0x11);
+> +	r |=3D jbt_reg_write(ddata, JBT_REG_OPAMP_SYSCLK, 0x02);
+> +	r |=3D jbt_reg_write(ddata, JBT_REG_VSC_VOLTAGE, 0x2b);
+> +	r |=3D jbt_reg_write(ddata, JBT_REG_VCOM_VOLTAGE, 0x40);
+> +	r |=3D jbt_reg_write(ddata, JBT_REG_EXT_DISPL, 0x03);
+> +	r |=3D jbt_reg_write(ddata, JBT_REG_DCCLK_DCEV, 0x04);
+> +	/*
+> +	 * default of 0x02 in JBT_REG_ASW_SLEW responsible for 72Hz requireme=
+nt
+> +	 * to avoid red / blue flicker
+> +	 */
+> +	r |=3D jbt_reg_write(ddata, JBT_REG_ASW_SLEW, 0x04);
+> +	r |=3D jbt_reg_write(ddata, JBT_REG_DUMMY_DISPLAY, 0x00);
+> +
+> +	r |=3D jbt_reg_write(ddata, JBT_REG_SLEEP_OUT_FR_A, 0x11);
+> +	r |=3D jbt_reg_write(ddata, JBT_REG_SLEEP_OUT_FR_B, 0x11);
+> +	r |=3D jbt_reg_write(ddata, JBT_REG_SLEEP_OUT_FR_C, 0x11);
+> +	r |=3D jbt_reg_write16(ddata, JBT_REG_SLEEP_IN_LCCNT_D, 0x2040);
+> +	r |=3D jbt_reg_write16(ddata, JBT_REG_SLEEP_IN_LCCNT_E, 0x60c0);
+> +	r |=3D jbt_reg_write16(ddata, JBT_REG_SLEEP_IN_LCCNT_F, 0x1020);
+> +	r |=3D jbt_reg_write16(ddata, JBT_REG_SLEEP_IN_LCCNT_G, 0x60c0);
+> +
+> +	r |=3D jbt_reg_write16(ddata, JBT_REG_GAMMA1_FINE_1, 0x5533);
+> +	r |=3D jbt_reg_write(ddata, JBT_REG_GAMMA1_FINE_2, 0x00);
+> +	r |=3D jbt_reg_write(ddata, JBT_REG_GAMMA1_INCLINATION, 0x00);
+> +	r |=3D jbt_reg_write(ddata, JBT_REG_GAMMA1_BLUE_OFFSET, 0x00);
+> +
+> +	r |=3D jbt_reg_write16(ddata, JBT_REG_HCLOCK_VGA, 0x1f0);
+> +	r |=3D jbt_reg_write(ddata, JBT_REG_BLANK_CONTROL, 0x02);
+> +	r |=3D jbt_reg_write16(ddata, JBT_REG_BLANK_TH_TV, 0x0804);
+> +
+> +	r |=3D jbt_reg_write(ddata, JBT_REG_CKV_ON_OFF, 0x01);
+> +	r |=3D jbt_reg_write16(ddata, JBT_REG_CKV_1_2, 0x0000);
+> +
+> +	r |=3D jbt_reg_write16(ddata, JBT_REG_OEV_TIMING, 0x0d0e);
+> +	r |=3D jbt_reg_write16(ddata, JBT_REG_ASW_TIMING_1, 0x11a4);
+> +	r |=3D jbt_reg_write(ddata, JBT_REG_ASW_TIMING_2, 0x0e);
+> +
+> +	r |=3D jbt_reg_write_nodata(ddata, JBT_REG_DISPLAY_ON);
+> +
+> +	dssdev->state =3D OMAP_DSS_DISPLAY_ACTIVE;
+> +
+> +transfer_err:
+> +
+> +	return r ? -EIO : 0;
+> +}
+> +
+> +static void td028ttec1_panel_disable(struct omap_dss_device *dssdev)
+> +{
+> +	struct panel_drv_data *ddata =3D to_panel_data(dssdev);
+> +	struct omap_dss_device *in =3D ddata->in;
+> +
+> +	if (!omapdss_device_is_enabled(dssdev))
+> +		return;
+> +
+> +	dev_dbg(dssdev->dev, "td028ttec1_panel_disable()\n");
+> +
+> +	in->ops.dpi->disable(in);
+> +
+> +	jbt_reg_write_nodata(ddata, JBT_REG_DISPLAY_OFF);
+> +	jbt_reg_write16(ddata, JBT_REG_OUTPUT_CONTROL, 0x8002);
+> +	jbt_reg_write_nodata(ddata, JBT_REG_SLEEP_IN);
+> +	jbt_reg_write(ddata, JBT_REG_POWER_ON_OFF, 0x00);
+
+I don't know about this particular panel, but usually you should first
+send a DISPLAY_OFF command, and only afterwards disable the DPI output.
+Otherwise the panels I know will show garbage on the screen, as the
+video stream has ended.
+
+That would also be reverse of the enable sequence.
+
+ Tomi
+
+
+
+--iXjLGFov2aTQBSfAQacKKcTSjd2wrjFGN
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.15 (GNU/Linux)
+Version: GnuPG v1.4.12 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJSb40XAAoJENju1/PIO/qahGoP/1DAToS7oOCrQFVKlQ52Wk7f
-BV2abfnWS1wxzv4VL+PdWTF2uidtanqzyD5zAG1L9eOQct43gWZncpp0Pf2xsuZS
-6NXQMov1g+qzO754EoShcC/Hefhu3zspxMFkckpdAG9R8Y0cQFqwscnnCBMLjCD9
-YwxnCqCLA/k261FmjLmV3D/aS6IOnC9Htx1VVu0/BhUYJTt2d0jNxeUzV59XTz48
-3p8Ib5ZxvtcV/nZgwH+UAPO5C8NuRurd3AabRLZz8W+2WlOnkEbDeUWmJyowIzNF
-PoJYHgosqOHO/Zfbzaodl2F4ZjB9mQgPsWLqoA6c/mmPnbT80Tj1PHzBr9YoTqn9
-zy6uVDf+kFU5HdJqatoOl4GQVWf+E2I5rxYc9FymXnejtQXpRkQ8+fs1mvZJ95zC
-Ffbhl9Gh2ccPdXjEjntyvcGNgB8vr2rTAOLwzoJKZHOv7vKPA+Rcl5yXd7PK4eUy
-y3J8NFlL5kwuWpfl1W+dwjl9DLE7x52WVAzUqZe7+XOYNoTTucZKsrT/ux1FI3+X
-XE7ml3v5clvcuZAroSUVnfZRXsJvG5H7x9GGuJ9POu4M8DHr4l2Az3KLSWg5vr8h
-aemiJ1mndAn8DPZJWx7woAWB5+Wm8JeVcN6/qfOAx1VOhMt+7uP+UFdZR4QQRj+S
-ZEwcMTUhSYox1W5NA06T
-=aZwS
+iQIcBAEBAgAGBQJSb5btAAoJEPo9qoy8lh71c94P/3/YGvBg9GHzg32X35JYAMto
+CFCHiPVts5b/pLHz9uGfdsisolcjxLZaoK7uBoA0Ml8v3xO5p/kkZHR/loV/gkD/
+HaZodaUYlSHseySWtYhzFfExEw7BgcNhR6JiSA0e/FV54Q06Qi+uAk9OmB2QXKzt
+qF26D0m2XFfmp4uWEyHn0/DX1+g0zMR7L5ZSQG/D6HAWMwYLRbh03Iv0WTYD+3Ko
+SDijIK0sSFGBs0b1JB4TeRrlOjiPpJ2MGOzgCgZwI7v16TtQLNBA1l3kA74KGUBo
++gtAmYGb2Igf/ho32D+UOD3gMVEZhFXBeUvgnQmJhwjBH3Ued9DYNVSJMpvQqWPv
+QoAE+GZTOxbky3YCleECNFGT0LEgrrALTpIwycBB62iQfzgNYOaOgMmAwWL+isTI
+Iy0yNbkTbyy7wrVnw0S9QWjqxyoQc8y7A1LpGOxOenW+szmUsbEdbGfq1HSpqJo0
+mHuS7H2cBGNt8a2bXFy1w7OsaAifHcfGQaMMly/soVuEXI7rCQX+s+93pV/Kzb32
+XpVnkDNloy0pHx0Na/gLmQs2mGUK/qgtl3NFlNWSIGcEDHvqqW0RY767aNXF1ZFX
+g6XXeXHahmTP/B14y/4i+tPC1CbU7dia+Fg4oP++BcA5dC2eI96xLfLbJLdz/Pbq
+QLUTCFjXuAa1jBwY8NNb
+=xeh+
 -----END PGP SIGNATURE-----
 
---k1lZvvs/B4yU6o8G--
+--iXjLGFov2aTQBSfAQacKKcTSjd2wrjFGN--
