@@ -1,64 +1,110 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH 2/4] wl1251: move power GPIO handling into the driver
-Date: Mon, 28 Oct 2013 18:33:18 -0700
-Message-ID: <20131029013318.GC16686@sirena.org.uk>
-References: <1382890469-25286-1-git-send-email-sre@debian.org>
- <1382890469-25286-3-git-send-email-sre@debian.org>
- <1382891056.102746625@f315.i.mail.ru>
- <20131027201218.GA4414@earth.universe>
- <CANOLnONKcC1i19ypb4rh2Rff3WsVhhuUhNvZvYwDV2-ZNtjVxQ@mail.gmail.com>
- <20131028192354.GA18208@sirena.org.uk>
- <20131028232624.GA950@earth.universe>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: OMAP baseline test results for v3.12-rc7
+Date: Tue, 29 Oct 2013 02:17:38 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1310290215030.30631@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="WfZ7S8PLGjBY9Voh"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cassiel.sirena.org.uk ([80.68.93.111]:47024 "EHLO
-	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756824Ab3J2BeO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Oct 2013 21:34:14 -0400
-Content-Disposition: inline
-In-Reply-To: <20131028232624.GA950@earth.universe>
+Received: from utopia.booyaka.com ([74.50.51.50]:37351 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753496Ab3J2CRj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Oct 2013 22:17:39 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grazvydas Ignotas <notasas@gmail.com>, Alexander Shiyan <shc_work@mail.ru>, Luciano Coelho <luca@coelho.fi>, Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, Pawel Moll <pawel.moll@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Stephen Warren <swarren@wwwdotorg.org>, linux-doc@vger.kernel.org, "John W. Linville" <linville@tuxdriver.com>, Rob Herring <rob.herring@calxeda.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Sachin Kamat <sachin.kamat@linaro.org>, Bill Pemberton <wfp5p@virginia.edu>, Felipe Balbi <balbi@ti.com>, Rob Landley <rob@landley.net>, netdev@vger.kernel.org, "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org
 
 
---WfZ7S8PLGjBY9Voh
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Here are some basic OMAP test results for Linux v3.12-rc7.
+Logs and other details at:
 
-On Tue, Oct 29, 2013 at 12:26:26AM +0100, Sebastian Reichel wrote:
+    http://www.pwsan.com/omap/testlogs/test_v3.12-rc7/20131027214535/
 
-> 1. The pin is named PMEN in the Nokia N900 schematics
-> 2. PMEN is described as "Power management enable - system shutdown"
->    in a crippled datasheet of the wl1253, which I found in the internet.
 
-> I don't think this is supposed to be handled by the regulator API.
+Test summary
+------------
 
-I agree, this sounds like a GPIO that the driver should be understanding
-directly to me.
+Build: uImage+dtb:
+    Pass ( 3/ 3): omap2plus_defconfig_am33xx_only/am335x-bone,
+		  omap2plus_defconfig/omap4-panda,
+		  omap2plus_defconfig/omap4-panda-es
 
---WfZ7S8PLGjBY9Voh
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Build: zImage:
+    Pass ( 2/ 2): omap2plus_defconfig, omap2plus_defconfig_am33xx_only
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
+Build: uImage:
+    Pass (14/14): omap1_defconfig, omap1_defconfig_1510innovator_only,
+		  omap1_defconfig_5912osk_only, omap2plus_defconfig,
+		  omap2plus_defconfig_2430sdp_only,
+		  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm,
+		  omap2plus_defconfig_n800_only_a,
+		  omap2plus_defconfig_n800_multi_omap2xxx,
+		  omap2plus_defconfig_omap2_4_only,
+		  omap2plus_defconfig_omap3_4_only,
+		  rmk_omap3430_ldp_allnoconfig,
+		  rmk_omap3430_ldp_oldconfig,
+		  rmk_omap4430_sdp_allnoconfig
 
-iQIcBAEBAgAGBQJSbxBWAAoJELSic+t+oim9OnIQAILP4+u0yOy43NV8KK9USROC
-7wUy2+YEkaMlbhhXvevCaK7dhqFAmmj9RZPWKcOfZn2IAIQGqkalKfizqgEVvCi7
-CH9VrZ92LlFgp0Nlln4xI17IOzki5pILLGWx2dJZzCnXLCqyH8IYgdXM7sooHSVS
-xLhu9JF6nqx5mRU3TuGBkZddW+JBzPnOwGAuTS+tZdI2RrBLJbLeCjJKpYQnizRP
-ok+PjAQl1gduS8ycLDLhgy0a0vr6uW0ER8jUFC2uFxDn4APusi7Z1VSfg72ugpw5
-/R3Z3Bfaj2uVS8phCbASyQu2k0BsocF2G45LSGrMM/dUvtaR5AGriuqWc24diJur
-/xvzS70IFWkMzwuGTkO67kPQySkMZSwaQ56pzoqE51tV1R2yrBzPo2qWdtzXcrQX
-JEP2L4144SmjlkkDOYVME5ccFSG5kpI7qlssjG6dz52ik9sKOtIKvr19ap0PukYg
-Jm6WFoqNyco3sibEdJI9lfOXSHTemfTVNoLnRsARHoA20RDkxBxAqr+CKVi0axJF
-QkFMyQQg4jyUIFp7m4RVM3t04hrJjw2o5juPh0tqUIYtE1iU0SAxNJ6gCKpTva2N
-TDwdQUBf5rd/ln6NsJYqpCCUe9+kxB6jgCYx8PPqp+C+tfjbCvt1qnFX8pJJ+P1k
-8vCuursNrJWXmYEfx8L4
-=V5WW
------END PGP SIGNATURE-----
+Boot to userspace:
+    skip ( 1/ 1): 5912osk
+    Pass (11/11): 2430sdp, 3517evm, 3530es3beagle, 3730beaglexm,
+		  37xxevm, 4430es2panda, 4460pandaes, am335xbone,
+		  am335xbonelt, cmt3517, 4460varsomom
 
---WfZ7S8PLGjBY9Voh--
+PM: chip retention via suspend:
+    FAIL ( 3/ 7): 2430sdp, 4430es2panda, 4460varsomom
+    Pass ( 4/ 7): 3530es3beagle, 3730beaglexm, 37xxevm, 4460pandaes
+
+PM: chip retention via dynamic idle:
+    FAIL ( 4/ 7): 2430sdp, 4430es2panda, 4460pandaes, 4460varsomom
+    Pass ( 3/ 7): 3530es3beagle, 3730beaglexm, 37xxevm
+
+PM: chip off except CORE via suspend:
+    Pass ( 1/ 1): 3730beaglexm
+
+PM: chip off except CORE via dynamic idle:
+    Pass ( 1/ 1): 3730beaglexm
+
+PM: chip off via suspend:
+    FAIL ( 3/ 5): 4430es2panda, 4460pandaes, 4460varsomom
+    Pass ( 2/ 5): 3530es3beagle, 37xxevm
+
+PM: chip off via dynamic idle:
+    FAIL ( 3/ 5): 4430es2panda, 4460pandaes, 4460varsomom
+    Pass ( 2/ 5): 3530es3beagle, 37xxevm
+
+
+vmlinux object size
+(delta in bytes from test_v3.12-rc6 
+(31d141e3a666269a3b6fcccddb0351caf7454240)):
+   text     data      bss    total  kernel
+   +664      +32        0     +696  omap1_defconfig
+   +696      +32        0     +728  omap1_defconfig_1510innovator_only
+   +696      +32        0     +728  omap1_defconfig_5912osk_only
+   +984      +64        0    +1048  omap2plus_defconfig
+   +808      +96        0     +904  omap2plus_defconfig_2430sdp_only
+   +984      +64        0    +1048  omap2plus_defconfig_cpupm
+   +176      +96        0     +272  omap2plus_defconfig_n800_multi_omap2xxx
+   +176      +64        0     +240  omap2plus_defconfig_n800_only_a
+   +984      +64        0    +1048  omap2plus_defconfig_no_pm
+   +984      +64        0    +1048  omap2plus_defconfig_omap2_4_only
+  +5080      +64        0    +5144  omap2plus_defconfig_omap3_4_only
+   +208      +32      -32     +208  rmk_omap3430_ldp_allnoconfig
+   +800      +64        0     +864  rmk_omap3430_ldp_oldconfig
+   +160      +64      -16     +208  rmk_omap4430_sdp_allnoconfig
+
+Boot-time memory difference
+(delta in bytes from test_v3.12-rc6 
+(31d141e3a666269a3b6fcccddb0351caf7454240))
+  avail  rsrvd   high  freed  board          kconfig
+   -12k    12k      .      .  2430sdp        omap2plus_defconfig
+   -12k    12k      .      .  3517evm        omap2plus_defconfig
+   -12k    12k      .      .  3530es3beagle  omap2plus_defconfig
+   -12k    12k      .      .  3730beaglexm   omap2plus_defconfig
+   -12k    12k      .      .  37xxevm        omap2plus_defconfig
+    -8k     8k      .      .  4430es2panda   omap2plus_defconfig
+    -8k     8k      .      .  4460pandaes    omap2plus_defconfig
+    -8k     8k      .      .  4460varsomom   omap2plus_defconfig
+    -8k     8k      .      .  am335xbone     omap2plus_defconfig_am33xx_only
+   -12k    12k      .      .  am335xbonelt   omap2plus_defconfig_am33xx_only
+
