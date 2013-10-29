@@ -1,120 +1,60 @@
 From: Kumar Gala <galak@codeaurora.org>
-Subject: Re: [PATCH 4/4] wl1251: spi: add device tree support
-Date: Tue, 29 Oct 2013 03:28:39 -0500
-Message-ID: <11FD245D-02A1-4E29-A23A-66A1D64210DC@codeaurora.org>
-References: <1382890469-25286-1-git-send-email-sre@debian.org>
- <1382890469-25286-5-git-send-email-sre@debian.org>
- <FF34C626-4A49-43B1-B0AD-DC6146ABBB11@codeaurora.org>
- <4893578.SBstXOAcJY@flatron>
+Subject: Re: [PATCHv2 1/3] Input: twl4030-keypad - add device tree support
+Date: Tue, 29 Oct 2013 03:33:31 -0500
+Message-ID: <14DEC9DA-8C77-4F73-AF3A-6C0D20C6C1AB@codeaurora.org>
+References: <1382446042-27099-1-git-send-email-sre@debian.org> <1382446042-27099-2-git-send-email-sre@debian.org> <5137C017-2515-427C-865F-B938CC24B210@codeaurora.org> <20131029010608.GA5353@earth.universe>
 Mime-Version: 1.0 (Apple Message framework v1283)
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <4893578.SBstXOAcJY@flatron>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tomasz Figa <tomasz.figa@gmail.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, linux-doc@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Sebastian Reichel <sre@debian.org>, Russell King <linux@arm.linux.org.uk>, Sachin Kamat <sachin.kamat@linaro.org>, Stephen Warren <swarren@wwwdotorg.org>, Sebastian Reichel <sre@ring0.de>, Luciano Coelho <luca@coelho.fi>, devicetree@vger.kernel.org, Pawel Moll <pawel.moll@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, "John W. Linville" <linville@tuxdriver.com>, Rob Herring <rob.herring@calxeda.com>, Bill Pemberton <wfp5p@virginia.edu>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-wireless@vger.kernel.org, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Rob Landley <rob@landley.net>, netdev@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <20131029010608.GA5353@earth.universe>
+Sender: linux-doc-owner@vger.kernel.org
+To: Sebastian Reichel <sre@debian.org>
+Cc: linux-input@vger.kernel.org, =?iso-8859-1?Q?=22=27Beno=EEt_Cousson=27=22?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Rob Landley <rob@landley.net>, Russell King <linux@arm.linux.org.uk>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Grant Likely <grant.likely@linaro.org>, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 
-On Oct 28, 2013, at 5:38 PM, Tomasz Figa wrote:
+On Oct 28, 2013, at 8:06 PM, Sebastian Reichel wrote:
 
-> On Monday 28 of October 2013 01:37:34 Kumar Gala wrote:
->> On Oct 27, 2013, at 11:14 AM, Sebastian Reichel wrote:
->>> Add device tree support for the spi variant of wl1251
->>> and document the binding.
->>> 
->>> Signed-off-by: Sebastian Reichel <sre@debian.org>
->>> ---
->>> .../devicetree/bindings/net/wireless/ti,wl1251.txt | 36
->>> ++++++++++++++++++++++ drivers/net/wireless/ti/wl1251/spi.c          
->>>    | 23 ++++++++++---- 2 files changed, 53 insertions(+), 6
->>> deletions(-)
->>> create mode 100644
->>> Documentation/devicetree/bindings/net/wireless/ti,wl1251.txt
->>> 
->>> diff --git
->>> a/Documentation/devicetree/bindings/net/wireless/ti,wl1251.txt
->>> b/Documentation/devicetree/bindings/net/wireless/ti,wl1251.txt new
->>> file mode 100644
->>> index 0000000..5f8a154
->>> --- /dev/null
->>> +++ b/Documentation/devicetree/bindings/net/wireless/ti,wl1251.txt
->>> @@ -0,0 +1,36 @@
->>> +* Texas Instruments wl1251 controller
->>> +
->>> +The wl1251 chip can be connected via SPI or via SDIO. The linux
->>> +kernel currently only supports device tree for the SPI variant.
->>> +
+> On Mon, Oct 28, 2013 at 01:42:47AM -0500, Kumar Gala wrote:
+>>> +This binding is based on the matrix-keymap binding with the following
+>>> +changes:
 >> 
->> From the binding I have no idea what this chip actually does, also we
->> don't normally reference linux kernel support in bindings specs (so
->> please remove it).
+>> Maybe be a bit more specific and say 'based on the input/matrix-keymap.txt binding'..
+> 
+> OK.
+> 
+>>> + * keypad,num-rows and keypad,num-columns are required.
 >> 
->> However, what would expect the SDIO binding to look like?  Or more
->> specifically, how would you distinguish the SPI vs SDIO
->> binding/connection?  I'm wondering if the compatible should be
->> something like "ti,wl1251-spi" and than the sdio can be
->> "ti,wl1251-sdio"
+>> Is linux,keymap required from matrix-keymap.txt?
 > 
-> Well, you can easily distinguish an SDIO device from an SPI device by its 
-> parent node, but...
+> Yes, matrix-keymap.txt contains descriptions for the following:
 > 
-> The binding for SDIO might require different set of properties (other than 
-> ones inherited from generic SDIO or SPI bindings) than one for SPI. So 
-> probably different compatible values might be justified.
-> 
-> Did we already have such case before? (maybe some I2C + SPI devices?)
-> 
->>> +Required properties:
->>> +- compatible : Should be "ti,wl1251"
->> 
->> reg is not listed as a required prop.
-> 
-> It is implied by SPI bindings, but it might be a good idea to have this 
-> stated here as well.
-> 
->> 
->>> +- interrupts : Should contain interrupt line
->>> +- interrupt-parent : Should be the phandle for the interrupt
->>> +  controller that services interrupts for this device
->>> +- vio-supply : phandle to regulator providing VIO
->>> +- power-gpio : GPIO connected to chip's PMEN pin
->> 
->> should be vendor prefixed: ti,power-gpio
-> 
-> Hmm, out of curiosity, is it a rule for this kind of properties? I can see 
-> both cases with and without prefixes when grepping for "-gpios" in 
-> Documentation/devicetree/bindings. We should really have such things 
-> written down somewhere.
+> required:
+> - linux,keymap
 
-Agreed, it should be part of the various docs we are suppose to produce for review and binding creation guidelines.
+So you don't say that linux,keymap is required for twl4030-keypad (wasn't clear if you assumed that or not).
 
->>> +- For additional required properties on SPI, please consult
->>> +  Documentation/devicetree/bindings/spi/spi-bus.txt
->>> +
->>> +Optional properties:
->>> +- ti,use-eeprom : If found, configuration will be loaded from eeprom.
->> 
->> can you be a bit more specific on what cfg will be loaded.  Also, is
->> this property a boolean, if so how do I know which eeprom the cfg is
->> loaded from (is it one that is directly connected to the wl1251?
+> optional:
+> - keypad,num-rows
+> - keypad,num-columns
 > 
-> Maybe one from ti,has-eeprom or ti,config-eeprom would be better name for 
-> this property?
+>>> +Optional Properties specific to linux:
+>>> +- linux,keypad-no-autorepeat: do no enable autorepeat feature.
+>> 
+>> Does it make sense to update the matrix-keymap.txt binding to add
+>> 'linux,keypad-no-autorepeat' there?
+> 
+> At least according to devicetree documentation there are
+> keymap-matrix.txt based drivers, which do not support
+> "linux,keypad-no-autorepeat".
 
-Probably, ti,wl1251-has-eeprom or something like that would be better.  However, I'm not going to get too caught up on names of properties.
+Which is why it could be optional in keymap-matrix.txt.  I dont know anything about keymap/keypad's just asking the question?
+
+It seems as if linux,keypad-no-autorepeat is intended to mean the same thing (if relevant to the device) across all drivers.  Is that correct?  If so it seems like moving it to be specified in a generic input binding makes sense, just not sure if keymap-matrix.txt is that place or not.
 
 - k
-
 -- 
 Employee of Qualcomm Innovation Center, Inc.
 Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, hosted by The Linux Foundation
+
