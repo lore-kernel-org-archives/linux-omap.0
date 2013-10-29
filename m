@@ -1,175 +1,81 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v3 2/4] mmc: omap_hsmmc: Enable SDIO IRQ.
-Date: Tue, 29 Oct 2013 12:22:29 -0500
-Message-ID: <20131029172229.GA12193@gimli>
-References: <1380971830-21492-1-git-send-email-afenkart@gmail.com>
- <1380971830-21492-3-git-send-email-afenkart@gmail.com>
- <20131008161131.GD13128@radagast>
- <CALtMJECWCqBy4UCtuSZ7WtXaizjmgdaxW7pn5uL0ymuXPn=61A@mail.gmail.com>
-Reply-To: <balbi@ti.com>
+From: Matt Sealey <neko@bakuhatsu.net>
+Subject: Re: [PATCHv9 05/43] CLK: TI: add DT alias clock registration mechanism
+Date: Tue, 29 Oct 2013 12:50:43 -0500
+Message-ID: <CAHCPf3uPhkVhdn3Db06YZfrwQuA7khdZEXiZ+pqJ06J9YdBoLg@mail.gmail.com>
+References: <1382716658-6964-1-git-send-email-t-kristo@ti.com>
+	<1382716658-6964-6-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="pf9I7BMVVzbSWLtt"
-Return-path: <linux-doc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CALtMJECWCqBy4UCtuSZ7WtXaizjmgdaxW7pn5uL0ymuXPn=61A@mail.gmail.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Andreas Fenkart <afenkart@gmail.com>
-Cc: Felipe Balbi <balbi@ti.com>, Chris Ball <cjb@laptop.org>, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, Balaji T K <balajitk@ti.com>, Daniel Mack <zonque@gmail.com>, devicetree-discuss@lists.ozlabs.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mmc <linux-mmc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pb0-f43.google.com ([209.85.160.43]:55610 "EHLO
+	mail-pb0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758407Ab3J2Run (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Oct 2013 13:50:43 -0400
+Received: by mail-pb0-f43.google.com with SMTP id md4so186570pbc.16
+        for <linux-omap@vger.kernel.org>; Tue, 29 Oct 2013 10:50:43 -0700 (PDT)
+In-Reply-To: <1382716658-6964-6-git-send-email-t-kristo@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, Tony Lindgren <tony@atomide.com>, nm@ti.com, bcousson@baylibre.com, rnayak@ti.com, Mike Turquette <mturquette@linaro.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
---pf9I7BMVVzbSWLtt
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Fri, Oct 25, 2013 at 10:56 AM, Tero Kristo <t-kristo@ti.com> wrote:
+> Some devices require their clocks to be available with a specific
+> dev-id con-id mapping. With DT, the clocks can be found by default
+> only with their name, or alternatively through the device node of
+> the consumer. With drivers, that don't support DT fully yet, add
+> mechanism to register specific clock names.
+>
+> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> Tested-by: Nishanth Menon <nm@ti.com>
+> Acked-by: Tony Lindgren <tony@atomide.com>
 
-Hi,
+You guys are wonderful, by the way ;)
 
-On Tue, Oct 29, 2013 at 04:06:58PM +0100, Andreas Fenkart wrote:
-> >> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsm=
-mc.c
-> >> index 94d6dc8..53beac4 100644
-> >> --- a/drivers/mmc/host/omap_hsmmc.c
-> >> +++ b/drivers/mmc/host/omap_hsmmc.c
-> >> @@ -130,6 +130,7 @@ static void apply_clk_hack(struct device *dev)
-> >>  #define TC_EN                        (1 << 1)
-> >>  #define BWR_EN                       (1 << 4)
-> >>  #define BRR_EN                       (1 << 5)
-> >> +#define CIRQ_EN                      (1 << 8)
-> >>  #define ERR_EN                       (1 << 15)
-> >>  #define CTO_EN                       (1 << 16)
-> >>  #define CCRC_EN                      (1 << 17)
-> >> @@ -210,6 +211,10 @@ struct omap_hsmmc_host {
-> >>       int                     reqs_blocked;
-> >>       int                     use_reg;
-> >>       int                     req_in_progress;
-> >> +     int                     flags;
-> >> +#define HSMMC_RUNTIME_SUSPENDED      (1 << 0)        /* Runtime suspe=
-nded */
-> >> +#define HSMMC_SDIO_IRQ_ENABLED       (1 << 1)        /* SDIO irq enab=
-led */
-> >> +
-> >>       struct omap_hsmmc_next  next_data;
-> >>       struct  omap_mmc_platform_data  *pdata;
-> >>  };
-> >> @@ -490,27 +495,40 @@ static void omap_hsmmc_stop_clock(struct omap_hs=
-mmc_host *host)
-> >>  static void omap_hsmmc_enable_irq(struct omap_hsmmc_host *host,
-> >>                                 struct mmc_command *cmd)
-> >>  {
-> >> -     unsigned int irq_mask;
-> >> +     u32 irq_mask =3D INT_EN_MASK;
-> >> +     unsigned long flags;
-> >>
-> >>       if (host->use_dma)
-> >> -             irq_mask =3D INT_EN_MASK & ~(BRR_EN | BWR_EN);
-> >> -     else
-> >> -             irq_mask =3D INT_EN_MASK;
-> >> +             irq_mask &=3D ~(BRR_EN | BWR_EN);
-> >
-> > is this a bugfix ? should it be sent as a separate patch ?
->=20
-> maybe the u32, but otherwise it's just shorter... shall I drop it.
+> +void __init ti_dt_clocks_register(struct ti_dt_clk oclks[])
+> +{
+> +       struct ti_dt_clk *c;
+> +       struct device_node *node;
+> +       struct clk *clk;
+> +       struct of_phandle_args clkspec;
+> +
+> +       for (c = oclks; c->node_name != NULL; c++) {
+> +               node = of_find_node_by_name(NULL, c->node_name);
+> +               clkspec.np = node;
+> +               clk = of_clk_get_from_provider(&clkspec);
+> +
+> +               if (!IS_ERR(clk)) {
+> +                       c->lk.clk = clk;
+> +                       clkdev_add(&c->lk);
+> +               } else {
+> +                       pr_warn("%s: failed to lookup clock node %s\n",
+> +                               __func__, c->node_name);
+> +               }
+> +       }
+> +}
 
-no, now I saw what you did ;-)
+I have one question here, what makes this part of the patch
+TI-specific at all except the definition of the structure ti_dt_clk?
+Mapping DT clocks to generic clkdev legacy namings seems like it would
+be a necessary evil across *all* SoC platforms.
 
-> >>
-> >>       /* Disable timeout for erases */
-> >>       if (cmd->opcode =3D=3D MMC_ERASE)
-> >>               irq_mask &=3D ~DTO_EN;
-> >>
-> >> +     spin_lock_irqsave(&host->irq_lock, flags);
-> >
-> > why do you need this new locking here ? register acesses are atomic,
-> > right ? If you really do need the locking, should it be a separate patch
-> > as well ?
->=20
-> because host->flags can be accessed from irq context as well
+I would say there is a good case for this being generic and used by
+all platforms waiting for con->id/dev->id to be moved to DT-awareness,
+the structure itself is very generic within clkdev as long as the
+drivers conformed anyway (and if they didn't, none of this helps) and
+I don't think it really needs to be a TI-only thing. The next thing
+that's going to happen when another platform arrives that wants to do
+the same thing is duplication or consolidation - so it would probably
+be a good idea to make this generic to start.
 
-fair point :-)
+While there the names could be a bit more descriptive -
+dt_clk_name_lookup_map_register(), struct dt_clk_name_lookup_map,
+DT_CLK_LOOKUP_MAP() ..? The current namespace makes it look like this
+is the absolute correct thing to do under all circumstances, but in
+fact this is purely for mapping the old way to the new, better way..
+in the event a brand new platform arrives, with all new drivers (or
+only compliant drivers), none of this code should be implemented for
+it and it should be presented this way.
 
-> >>  static void omap_hsmmc_disable_irq(struct omap_hsmmc_host *host)
-> >>  {
-> >> -     OMAP_HSMMC_WRITE(host->base, ISE, 0);
-> >> -     OMAP_HSMMC_WRITE(host->base, IE, 0);
-> >> +     u32 irq_mask =3D 0;
-> >> +     unsigned long flags;
-> >> +
-> >> +     spin_lock_irqsave(&host->irq_lock, flags);
-> >> +     /* no transfer running, need to signal cirq if */
-> >
-> > if... ?
-> >
-> >> +     if (host->flags & HSMMC_SDIO_IRQ_ENABLED)
-> >> +             irq_mask |=3D CIRQ_EN;
-> >> +     OMAP_HSMMC_WRITE(host->base, ISE, irq_mask);
-> >
-> > the whole fiddling with STAT and ISE registers look very bogus to me
-> > (even on current state before this patch). We shouldn't be clearing
-> > pending IRQ events here, right ? We could miss IRQs due to that.
->=20
-> sdio_claim_host excludes multiple users and  typical users are using sync=
-hronous
-> communication, issue a transfer, wait till it's done, then release the ho=
-st.
-> Hence when we come here, the content of ISE/STAT is a leftover from
-> the previous transfer.
-> Probably the intent here is to reset the registers in defined state,
-> maybe it wasn't needed
-> but it doesn't hurt either.
->=20
-> It's conservative... I don't like to change it, along the side of my
-> sdio irq patches.
-> If I did lots of such changes, surely I would create a regression.
->=20
-> On the other side If I was up to optimize the driver, then I would do thi=
-s.
-
-sure, that was an unrelated comment, just exposing some possible problem
-with that approach :-)
-
-> >> @@ -1067,8 +1085,12 @@ static irqreturn_t omap_hsmmc_irq(int irq, void=
- *dev_id)
-> >>       int status;
-> >>
-> >>       status =3D OMAP_HSMMC_READ(host->base, STAT);
-> >> -     while (status & INT_EN_MASK && host->req_in_progress) {
-> >> -             omap_hsmmc_do_irq(host, status);
-> >> +     while (status & (INT_EN_MASK | CIRQ_EN)) {
-> >
-> > why don't enable CIRQ_EN in INT_EN_MASK directly ?
->=20
-> INT_EN_MASK is also used when bootstrapping the card in
-> send_init_stream, but there
-> you don't want to enable sdio irqs. So I would have to mask it there,
-> so this is the smaller
-> change.
-
-true, fair enough.
-
---=20
-balbi
-
---pf9I7BMVVzbSWLtt
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.15 (GNU/Linux)
-
-iQIcBAEBAgAGBQJSb+7VAAoJEIaOsuA1yqRE3WMP/20QG0jXuDVKwm6DYI+w61Zd
-x6SLspLlHAE8xzNEr5eWxk9BUKCEdRZi5EWhykP2sEZiHyDrFABqJ3dEPfyNwoHm
-pWVtbN0Yew4b45TC/sR4SgLfSkcq/EsPemDxyEIvtpP7ERdGVMhM1yK1IrW833Ez
-Qld7iXLFDQCwsm8Lj9rgTV0yuE6ohB5G7sSy0TGDHYe5ufmb8uLwAUVj6EpTyh22
-W+vXOm8kcDYyRZqJbKQIcN4aS7RzWq9eLLtbYBy6kq33sUg6Cq8EQ/r1T12dQEXp
-ZlwXmkb7O2Oo6B8IZNPPqM+mbLUaKRas3iyviOUJLtOGev80AVhKF4j5KCrJ6Yw2
-cTGFSfvRfgmx5cgUpICeVPR6+OHYcUH1SKmdA5oXc7UECrlv4t2ZYfZU9CFRfe7U
-sU3C/tL+J0aiOOifbdzr2slV/by2kPTe2rBMU8SsuajBq0D81JpHsVaw+AzeBZmw
-8VXs9WNfzQv06mQFUf96FR0e0xt/6hojWQBm/1I4AEgRCimOnSfUQOemBmoSBn1k
-IiKdRo3YdeEsHqYJHZWApUaFK2jKiyhN+TNV144kP4AeArV6fTCxqbCCD6UTZuS6
-5P5isKy7N5ZKMRmkqpg/jUoRn8fUU4mxF1HSQWGst/PDq3ELBA8jzPRE5Hv8jU+p
-t2z4bFHgLVkW5XmH1MVv
-=NMMz
------END PGP SIGNATURE-----
-
---pf9I7BMVVzbSWLtt--
+Thanks,
+Matt Sealey <neko@bakuhatsu.net>
