@@ -1,66 +1,91 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv9 00/43] ARM: TI SoC clock DT conversion
-Date: Wed, 30 Oct 2013 10:23:15 +0200
-Message-ID: <5270C1F3.6000409@ti.com>
-References: <1382716658-6964-1-git-send-email-t-kristo@ti.com> <526FDFF4.9030806@ti.com>
+Subject: Re: [PATCHv9 05/43] CLK: TI: add DT alias clock registration mechanism
+Date: Wed, 30 Oct 2013 10:29:28 +0200
+Message-ID: <5270C368.9000701@ti.com>
+References: <1382716658-6964-1-git-send-email-t-kristo@ti.com>	<1382716658-6964-6-git-send-email-t-kristo@ti.com>
+ <CAHCPf3uPhkVhdn3Db06YZfrwQuA7khdZEXiZ+pqJ06J9YdBoLg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:32997 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752142Ab3J3IYe (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 30 Oct 2013 04:24:34 -0400
-In-Reply-To: <526FDFF4.9030806@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <CAHCPf3uPhkVhdn3Db06YZfrwQuA7khdZEXiZ+pqJ06J9YdBoLg@mail.gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Matt Sealey <neko@bakuhatsu.net>
+Cc: nm@ti.com, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, paul@pwsan.com, Mike Turquette <mturquette@linaro.org>, Tony Lindgren <tony@atomide.com>, rnayak@ti.com, bcousson@baylibre.com, linux-omap@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, bcousson@baylibre.com, rnayak@ti.com, mturquette@linaro.org
-Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-On 10/29/2013 06:19 PM, Nishanth Menon wrote:
-> On 10/25/2013 10:56 AM, Tero Kristo wrote:
-> <snip>
->> Testing done:
->> - omap3-beagle: boot + suspend/resume (ret + off)
->> - omap4-panda-es: boot + suspend/resume
->> - omap5-uevm: boot
->> - dra7-evm: boot
->> - am335x-bone: boot
+On 10/29/2013 07:50 PM, Matt Sealey wrote:
+> On Fri, Oct 25, 2013 at 10:56 AM, Tero Kristo <t-kristo@ti.com> wrote:
+>> Some devices require their clocks to be available with a specific
+>> dev-id con-id mapping. With DT, the clocks can be found by default
+>> only with their name, or alternatively through the device node of
+>> the consumer. With drivers, that don't support DT fully yet, add
+>> mechanism to register specific clock names.
 >>
->> Test branches available:
->>
->> tree: https://github.com/t-kristo/linux-pm.git
+>> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+>> Tested-by: Nishanth Menon <nm@ti.com>
+>> Acked-by: Tony Lindgren <tony@atomide.com>
 >
-> <snip>
->> Fully functioning test branch: 3.12-rc6-dt-clks-v9
->>
-> ^^ I tested this branch (boot testing):
-> Beagle-XM: http://pastebin.com/50A1qtFq (crashes + clkdm issues, dpll5
-> failed to transition)
+> You guys are wonderful, by the way ;)
+>
+>> +void __init ti_dt_clocks_register(struct ti_dt_clk oclks[])
+>> +{
+>> +       struct ti_dt_clk *c;
+>> +       struct device_node *node;
+>> +       struct clk *clk;
+>> +       struct of_phandle_args clkspec;
+>> +
+>> +       for (c = oclks; c->node_name != NULL; c++) {
+>> +               node = of_find_node_by_name(NULL, c->node_name);
+>> +               clkspec.np = node;
+>> +               clk = of_clk_get_from_provider(&clkspec);
+>> +
+>> +               if (!IS_ERR(clk)) {
+>> +                       c->lk.clk = clk;
+>> +                       clkdev_add(&c->lk);
+>> +               } else {
+>> +                       pr_warn("%s: failed to lookup clock node %s\n",
+>> +                               __func__, c->node_name);
+>> +               }
+>> +       }
+>> +}
+>
+> I have one question here, what makes this part of the patch
+> TI-specific at all except the definition of the structure ti_dt_clk?
+> Mapping DT clocks to generic clkdev legacy namings seems like it would
+> be a necessary evil across *all* SoC platforms.
+>
+> I would say there is a good case for this being generic and used by
+> all platforms waiting for con->id/dev->id to be moved to DT-awareness,
+> the structure itself is very generic within clkdev as long as the
+> drivers conformed anyway (and if they didn't, none of this helps) and
+> I don't think it really needs to be a TI-only thing. The next thing
+> that's going to happen when another platform arrives that wants to do
+> the same thing is duplication or consolidation - so it would probably
+> be a good idea to make this generic to start.
+>
+> While there the names could be a bit more descriptive -
+> dt_clk_name_lookup_map_register(), struct dt_clk_name_lookup_map,
+> DT_CLK_LOOKUP_MAP() ..? The current namespace makes it look like this
+> is the absolute correct thing to do under all circumstances, but in
+> fact this is purely for mapping the old way to the new, better way..
+> in the event a brand new platform arrives, with all new drivers (or
+> only compliant drivers), none of this code should be implemented for
+> it and it should be presented this way.
 
-I just sent you a private email with a patch to try out, should fix the 
-boot crash at least hopefully. Basically I forgot to convert one part of 
-the kernel to the new regmap stuff for omap36xx.
+An earlier implementation of this patch (or at least a patch that tries 
+to accomplish the same as this does, add support for legacy devices) did 
+try to add generic solution. There was some discussion on it and I 
+decided to drop it due to bad feedback.
 
-clkdm issues are caused by wrong data in omap_hwmod_3xxx_data.c, USB 
-nodes are listing l3_init_clkdm for them, but this only exists on 
-omap4+. Seems like some copy paste bug introduced by someone.
-
-dpll5 part I am not too sure, can you check if the same happens with 
-non-dt boot?
-
-> Panda-ES: http://pastebin.com/dWMp7D1z (bandgap_fclk not found)
-> OMAP5-UEVM: http://pastebin.com/pHEx6Yzg (omap-gpmc 50000000.gpmc:
-> error: clk_get)
-
-Again, I don't think this is related to this series, but rather to 
-missing/wrong hwmod data.
+See: http://www.spinics.net/lists/linux-omap/msg95147.html
 
 -Tero
-
-> DRA7-EVM: http://pastebin.com/uYNQ6Sss
-> BeagleBone-Black: http://pastebin.com/biGXS2vi
-> AM335x-evm: http://pastebin.com/K7qwJpCb
->
->
-
