@@ -1,341 +1,102 @@
-From: Sricharan R <r.sricharan@ti.com>
-Subject: [PATCH V2 2/7] DRIVERS: IRQCHIP: CROSSBAR: Add support for Crossbar IP
-Date: Wed, 30 Oct 2013 20:27:15 +0530
-Message-ID: <1383145040-15852-3-git-send-email-r.sricharan@ti.com>
-References: <1383145040-15852-1-git-send-email-r.sricharan@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCHv9 00/43] ARM: TI SoC clock DT conversion
+Date: Wed, 30 Oct 2013 10:00:34 -0500
+Message-ID: <52711F12.1090008@ti.com>
+References: <1382716658-6964-1-git-send-email-t-kristo@ti.com> <526FDFF4.9030806@ti.com> <5270C1F3.6000409@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1383145040-15852-1-git-send-email-r.sricharan@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linus.walleij@linaro.org, linux@arm.linux.org.uk, tony@atomide.com, rnayak@ti.com, marc.zyngier@arm.com, grant.likely@linaro.org, mark.rutland@arm.com, robherring2@gmail.com, tglx@linutronix.de, santosh.shilimkar@ti.com, r.sricharan@ti.com
-Cc: Rob Herring <rob.herring@calxeda.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:45477 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754598Ab3J3PBD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 30 Oct 2013 11:01:03 -0400
+In-Reply-To: <5270C1F3.6000409@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, bcousson@baylibre.com, rnayak@ti.com, mturquette@linaro.org
+Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-Some socs have a large number of interrupts requests to service
-the needs of its many peripherals and subsystems. All of the
-interrupt lines from the subsystems are not needed at the same
-time, so they have to be muxed to the irq-controller appropriately.
-In such places a interrupt controllers are preceded by an CROSSBAR
-that provides flexibility in muxing the device requests to the controller
-inputs.
+On 10/30/2013 03:23 AM, Tero Kristo wrote:
+> On 10/29/2013 06:19 PM, Nishanth Menon wrote:
+>> On 10/25/2013 10:56 AM, Tero Kristo wrote:
+>> <snip>
+>>> Testing done:
+>>> - omap3-beagle: boot + suspend/resume (ret + off)
+>>> - omap4-panda-es: boot + suspend/resume
+>>> - omap5-uevm: boot
+>>> - dra7-evm: boot
+>>> - am335x-bone: boot
+>>>
+>>> Test branches available:
+>>>
+>>> tree: https://github.com/t-kristo/linux-pm.git
+>>
+>> <snip>
+>>> Fully functioning test branch: 3.12-rc6-dt-clks-v9
+>>>
+>> ^^ I tested this branch (boot testing):
+>> Beagle-XM: http://pastebin.com/50A1qtFq (crashes + clkdm issues, dpll5
+>> failed to transition)
+> 
+> I just sent you a private email with a patch to try out, should fix the 
+> boot crash at least hopefully. Basically I forgot to convert one part of 
+> the kernel to the new regmap stuff for omap36xx.
 
-This driver takes care a allocating a free irq and then configuring the
-crossbar IP as a part of the mpu's irqchip callbacks. crossbar_init should
-be called right before the irqchip_init, so that it is setup to handle the
-irqchip callbacks.
+it does bootup yes.
+> 
+> clkdm issues are caused by wrong data in omap_hwmod_3xxx_data.c, USB 
+> nodes are listing l3_init_clkdm for them, but this only exists on 
+> omap4+. Seems like some copy paste bug introduced by someone.
+> 
+> dpll5 part I am not too sure, can you check if the same happens with 
+> non-dt boot?
 
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Linus Walleij <linus.walleij@linaro.org>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Russell King <linux@arm.linux.org.uk>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Rajendra Nayak <rnayak@ti.com>
-Cc: Marc Zyngier <marc.zyngier@arm.com>
-Cc: Grant Likely <grant.likely@linaro.org>
-Cc: Rob Herring <rob.herring@calxeda.com>
-Signed-off-by: Sricharan R <r.sricharan@ti.com>
----
- [V2] Addressed Thomas Gleixner <tglx@linutronix.de> comments
-      and renamed the bindings as per Kumar Gala <galak@codeaurora.org>
-      comments.
+no-dt: http://pastebin.com/bYP9fTzH
+dt: http://pastebin.com/xHup4L9Y
 
- .../devicetree/bindings/arm/omap/crossbar.txt      |   27 +++
- drivers/irqchip/Kconfig                            |    8 +
- drivers/irqchip/Makefile                           |    1 +
- drivers/irqchip/irq-crossbar.c                     |  206 ++++++++++++++++++++
- include/linux/irqchip/irq-crossbar.h               |   11 ++
- 5 files changed, 253 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/arm/omap/crossbar.txt
- create mode 100644 drivers/irqchip/irq-crossbar.c
- create mode 100644 include/linux/irqchip/irq-crossbar.h
+dpll5 warning seems to be only in dt-boot?
 
-diff --git a/Documentation/devicetree/bindings/arm/omap/crossbar.txt b/Documentation/devicetree/bindings/arm/omap/crossbar.txt
-new file mode 100644
-index 0000000..fb88585
---- /dev/null
-+++ b/Documentation/devicetree/bindings/arm/omap/crossbar.txt
-@@ -0,0 +1,27 @@
-+Some socs have a large number of interrupts requests to service
-+the needs of its many peripherals and subsystems. All of the
-+interrupt lines from the subsystems are not needed at the same
-+time, so they have to be muxed to the irq-controller appropriately.
-+In such places a interrupt controllers are preceded by an CROSSBAR
-+that provides flexibility in muxing the device requests to the controller
-+inputs.
-+
-+Required properties:
-+- compatible : Should be "ti,irq-crossbar"
-+- reg: Base address and the size of the crossbar registers.
-+- ti,max-irqs: Total number of irqs available at the interrupt controller.
-+- ti,reg-size: Size of a individual register in bytes. Every individual
-+	    register is assumed to be of same size. Valid sizes are 1, 2, 4.
-+- ti,irqs-reserved: List of the reserved irq lines that are not muxed using
-+		 crossbar. These interrupt lines are reserved in the soc,
-+		 so crossbar bar driver should not consider them as free
-+		 lines.
-+
-+Examples:
-+		crossbar_mpu: @4a020000 {
-+			compatible = "ti,irq-crossbar";
-+			reg = <0x4a002a48 0x130>;
-+			ti,max-irqs = <160>;
-+			ti,reg-size = <2>;
-+			ti,irqs-reserved = <0 1 2 3 5 6 131 132 139 140>;
-+		};
-diff --git a/drivers/irqchip/Kconfig b/drivers/irqchip/Kconfig
-index 3792a1a..2efcde6 100644
---- a/drivers/irqchip/Kconfig
-+++ b/drivers/irqchip/Kconfig
-@@ -61,3 +61,11 @@ config VERSATILE_FPGA_IRQ_NR
-        int
-        default 4
-        depends on VERSATILE_FPGA_IRQ
-+
-+config IRQ_CROSSBAR
-+	bool
-+	help
-+	  Support for a CROSSBAR ip that preceeds the main interrupt controller.
-+	  The primary irqchip invokes the crossbar's callback which inturn allocates
-+	  a free irq and configures the IP. Thus the peripheral interrupts are
-+	  routed to one of the free irqchip interrupt lines.
-diff --git a/drivers/irqchip/Makefile b/drivers/irqchip/Makefile
-index c60b901..2edead9 100644
---- a/drivers/irqchip/Makefile
-+++ b/drivers/irqchip/Makefile
-@@ -22,3 +22,4 @@ obj-$(CONFIG_RENESAS_IRQC)		+= irq-renesas-irqc.o
- obj-$(CONFIG_VERSATILE_FPGA_IRQ)	+= irq-versatile-fpga.o
- obj-$(CONFIG_ARCH_VT8500)		+= irq-vt8500.o
- obj-$(CONFIG_TB10X_IRQC)		+= irq-tb10x.o
-+obj-$(CONFIG_IRQ_CROSSBAR)		+= irq-crossbar.o
-diff --git a/drivers/irqchip/irq-crossbar.c b/drivers/irqchip/irq-crossbar.c
-new file mode 100644
-index 0000000..2d355e4
---- /dev/null
-+++ b/drivers/irqchip/irq-crossbar.c
-@@ -0,0 +1,206 @@
-+/*
-+ *  drivers/irqchip/irq-crossbar.c
-+ *
-+ *  Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.com
-+ *  Author: Sricharan R <r.sricharan@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ */
-+#include <linux/err.h>
-+#include <linux/io.h>
-+#include <linux/of_address.h>
-+#include <linux/of_irq.h>
-+#include <linux/slab.h>
-+#include <linux/irqchip/arm-gic.h>
-+
-+#define IRQ_FREE	-1
-+#define GIC_IRQ_START	32
-+
-+/*
-+ * @int_max: maximum number of supported interrupts
-+ * @irq_map: array of interrupts to crossbar number mapping
-+ * @crossbar_base: crossbar base address
-+ * @register_offsets: offsets for each irq number
-+ */
-+struct crossbar_device {
-+	uint int_max;
-+	uint *irq_map;
-+	void __iomem *crossbar_base;
-+	int *register_offsets;
-+	void (*write) (int, int);
-+};
-+
-+static struct crossbar_device *cb;
-+
-+static inline void crossbar_writel(int irq_no, int cb_no)
-+{
-+	writel(cb_no, cb->crossbar_base + cb->register_offsets[irq_no]);
-+}
-+
-+static inline void crossbar_writew(int irq_no, int cb_no)
-+{
-+	writew(cb_no, cb->crossbar_base + cb->register_offsets[irq_no]);
-+}
-+
-+static inline void crossbar_writeb(int irq_no, int cb_no)
-+{
-+	writeb(cb_no, cb->crossbar_base + cb->register_offsets[irq_no]);
-+}
-+
-+static inline const u32 allocate_free_irq(int cb_no)
-+{
-+	int i;
-+
-+	for (i = 0; i < cb->int_max; i++) {
-+		if (cb->irq_map[i] == IRQ_FREE) {
-+			cb->irq_map[i] = cb_no;
-+			return i;
-+		}
-+	}
-+
-+	return -ENODEV;
-+}
-+
-+static int crossbar_domain_map(struct irq_domain *d, unsigned int irq,
-+			       irq_hw_number_t hw)
-+{
-+	cb->write(hw - GIC_IRQ_START, cb->irq_map[hw - GIC_IRQ_START]);
-+	return 0;
-+}
-+
-+static void crossbar_domain_unmap(struct irq_domain *d, unsigned int irq)
-+{
-+	irq_hw_number_t hw = irq_get_irq_data(irq)->hwirq;
-+
-+	if (hw > GIC_IRQ_START)
-+		cb->irq_map[hw - GIC_IRQ_START] = IRQ_FREE;
-+}
-+
-+static int crossbar_domain_xlate(struct irq_domain *d,
-+				 struct device_node *controller,
-+				 const u32 *intspec, unsigned int intsize,
-+				 unsigned long *out_hwirq,
-+				 unsigned int *out_type)
-+{
-+	unsigned long ret = 0;
-+
-+	ret = allocate_free_irq(intspec[1]);
-+
-+	if (IS_ERR_VALUE(ret))
-+		return ret;
-+
-+	*out_hwirq = ret + GIC_IRQ_START;
-+	return 0;
-+}
-+
-+const struct irq_domain_ops routable_irq_domain_ops = {
-+	.map = crossbar_domain_map,
-+	.unmap = crossbar_domain_unmap,
-+	.xlate = crossbar_domain_xlate
-+};
-+
-+static int __init crossbar_of_init(struct device_node *node)
-+{
-+	int i, size, max, reserved = 0, entry;
-+	const __be32 *irqsr;
-+
-+	cb = kzalloc(sizeof(struct cb_device *), GFP_KERNEL);
-+
-+	if (!cb)
-+		return -ENOMEM;
-+
-+	cb->crossbar_base = of_iomap(node, 0);
-+	if (!cb->crossbar_base)
-+		goto err1;
-+
-+	of_property_read_u32(node, "ti,max-irqs", &max);
-+	cb->irq_map = kzalloc(max * sizeof(int), GFP_KERNEL);
-+	if (!cb->irq_map)
-+		goto err2;
-+
-+	cb->int_max = max;
-+
-+	for (i = 0; i < max; i++)
-+		cb->irq_map[i] = IRQ_FREE;
-+
-+	/* Get and mark reserved irqs */
-+	irqsr = of_get_property(node, "ti,irqs-reserved", &size);
-+	if (irqsr) {
-+		size /= sizeof(__be32);
-+
-+		for (i = 0; i < size; i++) {
-+			entry = be32_to_cpup(irqsr + i);
-+			if (entry > max) {
-+				pr_err("Invalid reserved entry\n");
-+				goto err3;
-+			}
-+			cb->irq_map[entry] = 0;
-+		}
-+	}
-+
-+	cb->register_offsets = kzalloc(max * sizeof(int), GFP_KERNEL);
-+	if (!cb->register_offsets)
-+		goto err3;
-+
-+	of_property_read_u32(node, "ti,reg-size", &size);
-+
-+	switch (size) {
-+	case 1:
-+		cb->write = crossbar_writeb;
-+		break;
-+	case 2:
-+		cb->write = crossbar_writew;
-+		break;
-+	case 4:
-+		cb->write = crossbar_writel;
-+		break;
-+	default:
-+		pr_err("Invalid reg-size property\n");
-+		goto err4;
-+		break;
-+	}
-+
-+	/*
-+	 * Register offsets are not linear because of the
-+	 * reserved irqs. so find and store the offsets once.
-+	 */
-+	for (i = 0; i < max; i++) {
-+		if (!cb->irq_map[i])
-+			continue;
-+
-+		cb->register_offsets[i] = reserved;
-+		reserved += size;
-+	}
-+
-+	register_routable_domain_ops(&routable_irq_domain_ops);
-+	return 0;
-+
-+err4:
-+	kfree(cb->register_offsets);
-+err3:
-+	kfree(cb->irq_map);
-+err2:
-+	iounmap(cb->crossbar_base);
-+err1:
-+	kfree(cb);
-+	return -ENOMEM;
-+}
-+
-+static const struct of_device_id crossbar_match[] __initconst = {
-+	{ .compatible = "ti,irq-crossbar" },
-+	{}
-+};
-+
-+int crossbar_init(void)
-+{
-+	struct device_node *np;
-+	np = of_find_matching_node(NULL, crossbar_match);
-+	if (!np)
-+		return -ENODEV;
-+
-+	crossbar_of_init(np);
-+	return 0;
-+}
-diff --git a/include/linux/irqchip/irq-crossbar.h b/include/linux/irqchip/irq-crossbar.h
-new file mode 100644
-index 0000000..ad2f744
---- /dev/null
-+++ b/include/linux/irqchip/irq-crossbar.h
-@@ -0,0 +1,11 @@
-+/*
-+ *  drivers/irqchip/irq-crossbar.h
-+ *
-+ *  Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.com
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ */
-+int crossbar_init(void);
+> 
+>> Panda-ES: http://pastebin.com/dWMp7D1z (bandgap_fclk not found)
+>> OMAP5-UEVM: http://pastebin.com/pHEx6Yzg (omap-gpmc 50000000.gpmc:
+>> error: clk_get)
+> 
+> Again, I don't think this is related to this series, but rather to 
+> missing/wrong hwmod data.
+
+seems the bandgap_fclk stuff is generated from
+drivers/thermal/ti-soc-thermal/omap4-thermal-data.c
+
+anyways..
+> 
+> -Tero
+> 
+>> DRA7-EVM: http://pastebin.com/uYNQ6Sss
+>> BeagleBone-Black: http://pastebin.com/biGXS2vi
+>> AM335x-evm: http://pastebin.com/K7qwJpCb
+>>
+>>
+> 
+
+Btw, I also noticed the following section mimatches:
+WARNING: vmlinux.o(.text+0x2abd4): Section mismatch in reference from
+the function prcm_probe() to the (unknown reference) .init.data:(unknown)
+The function prcm_probe() references
+the (unknown reference) __initdata (unknown).
+This is often because prcm_probe lacks a __initdata
+annotation or the annotation of (unknown) is wrong.
+
+WARNING: vmlinux.o(.data+0x3e30): Section mismatch in reference from
+the variable prcm_driver to the (unknown reference) .init.data:(unknown)
+The variable prcm_driver references
+the (unknown reference) __initdata (unknown)
+If the reference is valid then annotate the
+variable with __init* or __refdata (see linux/init.h) or name the
+variable:
+*_template, *_timer, *_sht, *_ops, *_probe, *_probe_one, *_console
+
+
 -- 
-1.7.9.5
+Regards,
+Nishanth Menon
