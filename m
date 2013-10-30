@@ -1,85 +1,181 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCHv9 00/43] ARM: TI SoC clock DT conversion
-Date: Wed, 30 Oct 2013 15:10:01 -0500
-Message-ID: <52716799.6040002@ti.com>
-References: <1382716658-6964-1-git-send-email-t-kristo@ti.com> <526FDFF4.9030806@ti.com> <5270C1F3.6000409@ti.com> <52711F12.1090008@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+From: Daniel Mack <zonque@gmail.com>
+Subject: [PATCH v4] ARM: omap: edma: add suspend suspend/resume hooks
+Date: Wed, 30 Oct 2013 21:21:08 +0100
+Message-ID: <1383164468-4610-1-git-send-email-zonque@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:57328 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752966Ab3J3UKk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Oct 2013 16:10:40 -0400
-In-Reply-To: <52711F12.1090008@ti.com>
+Received: from mail-bk0-f49.google.com ([209.85.214.49]:33561 "EHLO
+	mail-bk0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751508Ab3J3UVR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Oct 2013 16:21:17 -0400
+Received: by mail-bk0-f49.google.com with SMTP id w14so777284bkz.8
+        for <linux-omap@vger.kernel.org>; Wed, 30 Oct 2013 13:21:16 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, bcousson@baylibre.com, rnayak@ti.com, mturquette@linaro.org
-Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
+To: linux-omap@vger.kernel.org, joelf@ti.com, gururaja.hebbar@ti.com, balajitk@ti.com
+Cc: s.neumann@raumfeld.com, mporter@ti.com, nsekhar@ti.com, Russ.Dill@ti.com, linux-arm-kernel@lists.infradead.org, Daniel Mack <zonque@gmail.com>
 
-On 10/30/2013 10:00 AM, Nishanth Menon wrote:
-> On 10/30/2013 03:23 AM, Tero Kristo wrote:
->> On 10/29/2013 06:19 PM, Nishanth Menon wrote:
->>> On 10/25/2013 10:56 AM, Tero Kristo wrote:
->>> <snip>
->>>> Testing done:
->>>> - omap3-beagle: boot + suspend/resume (ret + off)
->>>> - omap4-panda-es: boot + suspend/resume
->>>> - omap5-uevm: boot
->>>> - dra7-evm: boot
->>>> - am335x-bone: boot
->>>>
->>>> Test branches available:
->>>>
->>>> tree: https://github.com/t-kristo/linux-pm.git
->>>
->>> <snip>
->>>> Fully functioning test branch: 3.12-rc6-dt-clks-v9
->>>>
->>> ^^ I tested this branch (boot testing):
->>> Beagle-XM: http://pastebin.com/50A1qtFq (crashes + clkdm issues, dpll5
->>> failed to transition)
->>
->> I just sent you a private email with a patch to try out, should fix the 
->> boot crash at least hopefully. Basically I forgot to convert one part of 
->> the kernel to the new regmap stuff for omap36xx.
-> 
-> it does bootup yes.
->>
->> clkdm issues are caused by wrong data in omap_hwmod_3xxx_data.c, USB 
->> nodes are listing l3_init_clkdm for them, but this only exists on 
->> omap4+. Seems like some copy paste bug introduced by someone.
->>
->> dpll5 part I am not too sure, can you check if the same happens with 
->> non-dt boot?
-> 
-> no-dt: http://pastebin.com/bYP9fTzH
-> dt: http://pastebin.com/xHup4L9Y
-> 
-> dpll5 warning seems to be only in dt-boot?
-> 
+This patch makes the edma driver resume correctly after suspend. Tested
+on an AM33xx platform with cyclic audio streams and omap_hsmmc.
 
-Tracked this down: you were missing the following - looks like the
-conversion script might be missing converting the flags clock data
-over to dts?
+All information can be reconstructed by already known runtime
+information.
 
-diff --git
-a/arch/arm/boot/dts/omap36xx-am35xx-omap3430es2plus-clocks.dtsi
-b/arch/arm/boot/dts/omap36xx-am35xx-omap3430es2plus-clocks.dtsi
-index 7e37e3e..c9b77c8 100644
---- a/arch/arm/boot/dts/omap36xx-am35xx-omap3430es2plus-clocks.dtsi
-+++ b/arch/arm/boot/dts/omap36xx-am35xx-omap3430es2plus-clocks.dtsi
-@@ -30,6 +30,7 @@
-                compatible = "ti,omap3-dpll-clock";
-                clocks = <&sys_ck>, <&sys_ck>;
-                reg = <0x0d04>, <0x0d24>, <0x0d34>, <0x0d4c>;
-+               ti,low-power-stop;
-        };
+As we now use some functions that were previously only used from __init
+context, annotations had to be dropped.
 
-        dpll5_m2_ck: dpll5_m2_ck {
+Signed-off-by: Daniel Mack <zonque@gmail.com>
+---
+There was actually only a v3 ever, I made a mistake when formating the
+first version of this patch. To prevent confusion though, I named this
+one v4.
+
+v3 -> v4:
+	* dropped extra allocations, and reconstruct register values
+	  from already known driver states.
 
 
 
+Hi Joel, Gururaja, Balaji,
+
+thanks a lot for your feedback. I successfully tested this version with
+davinci mcasp as well as omap_hsmmc. I'd appreciate another round of
+reviews :)
+
+
+Thanks,
+Daniel
+
+ arch/arm/common/edma.c | 82 ++++++++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 79 insertions(+), 3 deletions(-)
+
+diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
+index 8e1a024..f15cdb9 100644
+--- a/arch/arm/common/edma.c
++++ b/arch/arm/common/edma.c
+@@ -239,6 +239,8 @@ struct edma {
+ 	/* list of channels with no even trigger; terminated by "-1" */
+ 	const s8	*noevent;
+ 
++	struct edma_soc_info *info;
++
+ 	/* The edma_inuse bit for each PaRAM slot is clear unless the
+ 	 * channel is in use ... by ARM or DSP, for QDMA, or whatever.
+ 	 */
+@@ -290,13 +292,13 @@ static void map_dmach_queue(unsigned ctlr, unsigned ch_no,
+ 			~(0x7 << bit), queue_no << bit);
+ }
+ 
+-static void __init map_queue_tc(unsigned ctlr, int queue_no, int tc_no)
++static void map_queue_tc(unsigned ctlr, int queue_no, int tc_no)
+ {
+ 	int bit = queue_no * 4;
+ 	edma_modify(ctlr, EDMA_QUETCMAP, ~(0x7 << bit), ((tc_no & 0x7) << bit));
+ }
+ 
+-static void __init assign_priority_to_queue(unsigned ctlr, int queue_no,
++static void assign_priority_to_queue(unsigned ctlr, int queue_no,
+ 		int priority)
+ {
+ 	int bit = queue_no * 4;
+@@ -315,7 +317,7 @@ static void __init assign_priority_to_queue(unsigned ctlr, int queue_no,
+  * included in that particular EDMA variant (Eg : dm646x)
+  *
+  */
+-static void __init map_dmach_param(unsigned ctlr)
++static void map_dmach_param(unsigned ctlr)
+ {
+ 	int i;
+ 	for (i = 0; i < EDMA_MAX_DMACH; i++)
+@@ -1785,15 +1787,89 @@ static int edma_probe(struct platform_device *pdev)
+ 			edma_write_array2(j, EDMA_DRAE, i, 1, 0x0);
+ 			edma_write_array(j, EDMA_QRAE, i, 0x0);
+ 		}
++		edma_cc[j]->info = info[j];
+ 		arch_num_cc++;
+ 	}
+ 
+ 	return 0;
+ }
+ 
++static int edma_pm_suspend(struct device *dev)
++{
++	int j;
++
++	pm_runtime_get_sync(dev);
++
++	for (j = 0; j < arch_num_cc; j++) {
++		struct edma *ecc = edma_cc[j];
++
++		disable_irq(ecc->irq_res_start);
++		disable_irq(ecc->irq_res_end);
++	}
++
++	pm_runtime_put_sync(dev);
++
++	return 0;
++}
++
++static int edma_pm_resume(struct device *dev)
++{
++	int i, j;
++
++	pm_runtime_get_sync(dev);
++
++	for (j = 0; j < arch_num_cc; j++) {
++		struct edma *cc = edma_cc[j];
++
++		s8 (*queue_priority_mapping)[2];
++		s8 (*queue_tc_mapping)[2];
++
++		queue_tc_mapping = cc->info->queue_tc_mapping;
++		queue_priority_mapping = cc->info->queue_priority_mapping;
++
++		/* Event queue to TC mapping */
++		for (i = 0; queue_tc_mapping[i][0] != -1; i++)
++			map_queue_tc(j, queue_tc_mapping[i][0],
++					queue_tc_mapping[i][1]);
++
++		/* Event queue priority mapping */
++		for (i = 0; queue_priority_mapping[i][0] != -1; i++)
++			assign_priority_to_queue(j,
++						queue_priority_mapping[i][0],
++						queue_priority_mapping[i][1]);
++
++		/* Map the channel to param entry if channel mapping logic
++		 * exist
++		 */
++		if (edma_read(j, EDMA_CCCFG) & CHMAP_EXIST)
++			map_dmach_param(j);
++
++		for (i = 0; i < cc->num_channels; i++)
++			if (test_bit(i, cc->edma_inuse)) {
++				/* ensure access through shadow region 0 */
++				edma_or_array2(j, EDMA_DRAE, 0, i >> 5,
++						BIT(i & 0x1f));
++
++				setup_dma_interrupt(i,
++						    cc->intr_data[i].callback,
++						    cc->intr_data[i].data);
++			}
++
++		enable_irq(cc->irq_res_start);
++		enable_irq(cc->irq_res_end);
++	}
++
++	pm_runtime_put_sync(dev);
++
++	return 0;
++}
++
++static SIMPLE_DEV_PM_OPS(edma_pm_ops, edma_pm_suspend, edma_pm_resume);
++
+ static struct platform_driver edma_driver = {
+ 	.driver = {
+ 		.name	= "edma",
++		.pm	= &edma_pm_ops,
+ 		.of_match_table = edma_of_ids,
+ 	},
+ 	.probe = edma_probe,
 -- 
-Regards,
-Nishanth Menon
+1.8.3.1
+
