@@ -1,53 +1,24 @@
-From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-Subject: [PATCH 1/1] mtd: nand: omap2: Fix device detection path
-Date: Wed, 30 Oct 2013 06:53:08 -0300
-Message-ID: <1383126788-27426-2-git-send-email-ezequiel.garcia@free-electrons.com>
-References: <1383126788-27426-1-git-send-email-ezequiel.garcia@free-electrons.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from top.free-electrons.com ([176.31.233.9]:43386 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752784Ab3J3JxN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Oct 2013 05:53:13 -0400
-In-Reply-To: <1383126788-27426-1-git-send-email-ezequiel.garcia@free-electrons.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Grant Likely <grant.likely@linaro.org>
+Subject: Re: [PATCHv2 1/3] Input: twl4030-keypad - add device tree support
+Date: Wed, 30 Oct 2013 06:53:07 -0700
+Message-ID: <20131030135307.D8CE1C402A0@trevor.secretlab.ca>
+References: <1382446042-27099-1-git-send-email-sre@debian.org> <1382446042-27099-2-git-send-email-sre@debian.org> <20131027111715.GA2437@xo-6d-61-c0.localdomain> <20131027114026.GB14091@earth.universe> <20131027114753.GB14901@amd.pavel.ucw.cz>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20131027114753.GB14901@amd.pavel.ucw.cz>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>, linux-input@vger.kernel.org, 'Beno?t Cousson' <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Rob Landley <rob@landley.net>, Russell King <linux@arm.linux.org.uk>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org
-Cc: Felipe Balbi <balbi@ti.com>, Pekon Gupta <pekon@ti.com>, Brian Norris <computersforpeace@gmail.com>, marek.belisko@gmail.com, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
 
-Because the device bus can be 8-bit or 16-bit width, yet ONFI detection
-cannot work in 16-bit mode, we need to set the NAND_BUSWIDTH_AUTO option
-which allows proper initialization configuration.
+On Sun, 27 Oct 2013 12:47:53 +0100, Pavel Machek <pavel@ucw.cz> wrote:
+> > > > +#if IS_ENABLED(CONFIG_OF)
+> > > I'm probably missing something here, but why not #ifdef CONFIG_OF?
+> > 
+> > I have been told for other drivers, that IS_ENABLED() is
+> > the prefered way to check for configuration these days.
+> 
+> CONFIG_OF can not be module, using IS_ENABLED() on it is just wrong.
 
-Once the bus width is detected, nand_scan_ident() updates the nand_chip struct
-'option' field to use the appropriate read/write functions and configure
-the ECC engine.
+That makes no sense. There is absolutely nothing wrong with using
+IS_ENABLED() for CONFIG_OF.
 
-Signed-off-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
----
- drivers/mtd/nand/omap2.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
-
-diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-index ec40b8d..c71206b 100644
---- a/drivers/mtd/nand/omap2.c
-+++ b/drivers/mtd/nand/omap2.c
-@@ -1662,7 +1662,7 @@ static int omap_nand_probe(struct platform_device *pdev)
- 	mtd->owner		= THIS_MODULE;
- 	nand_chip		= &info->nand;
- 	nand_chip->ecc.priv	= NULL;
--	nand_chip->options	|= NAND_SKIP_BBTSCAN;
-+	nand_chip->options	|= NAND_SKIP_BBTSCAN | NAND_BUSWIDTH_AUTO;
- 
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	if (res == NULL) {
-@@ -1708,7 +1708,6 @@ static int omap_nand_probe(struct platform_device *pdev)
- 	}
- 
- 	/* scan NAND device connected to chip controller */
--	nand_chip->options |= pdata->devsize & NAND_BUSWIDTH_16;
- 	if (nand_scan_ident(mtd, 1, NULL)) {
- 		pr_err("nand device scan failed, may be bus-width mismatch\n");
- 		err = -ENXIO;
--- 
-1.8.1.5
-
+g.
