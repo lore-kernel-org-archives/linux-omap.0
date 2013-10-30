@@ -1,7 +1,7 @@
 From: Sricharan R <r.sricharan@ti.com>
-Subject: [PATCH V2 1/7] DRIVERS: IRQCHIP: IRQ-GIC: Add support for routable irqs
-Date: Wed, 30 Oct 2013 20:27:14 +0530
-Message-ID: <1383145040-15852-2-git-send-email-r.sricharan@ti.com>
+Subject: [PATCH V2 4/7] ARM: DTS: DRA: Replace peripheral interrupt numbers with crossbar inputs
+Date: Wed, 30 Oct 2013 20:27:17 +0530
+Message-ID: <1383145040-15852-5-git-send-email-r.sricharan@ti.com>
 References: <1383145040-15852-1-git-send-email-r.sricharan@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -9,222 +9,400 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1383145040-15852-1-git-send-email-r.sricharan@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linus.walleij@linaro.org, linux@arm.linux.org.uk, tony@atomide.com, rnayak@ti.com, marc.zyngier@arm.com, grant.likely@linaro.org, mark.rutland@arm.com, robherring2@gmail.com, tglx@linutronix.de, santosh.shilimkar@ti.com, r.sricharan@ti.com
-Cc: Rob Herring <rob.herring@calxeda.com>
+Cc: Benoit Cousson <bcousson@baylibre.com>
 List-Id: linux-omap@vger.kernel.org
 
-In some socs the gic can be preceded by a crossbar IP which
-routes the peripheral interrupts to the gic inputs. The peripheral
-interrupts are associated with a fixed crossbar input line and the
-crossbar routes that to one of the free gic input line.
+Now with the crossbar IP in picture, the peripherals do not have the
+fixed interrupt lines. Instead they rely on the crossbar irqchip to
+allocate and map a free interrupt line to its crossbar input. So replacing
+all the peripheral interrupt numbers with its fixed crossbar input lines.
 
-The DT entries for peripherals provides the fixed crossbar input line
-as its interrupt number and the mapping code should associate this with
-a free gic input line. This patch adds the support inside the gic irqchip
-to handle such routable irqs. The routable irqs are registered in a linear
-domain. The registered routable domain's callback should be implemented
-to get a free irq and to configure the IP to route it.
-
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Linus Walleij <linus.walleij@linaro.org>
+Cc: Benoit Cousson <bcousson@baylibre.com>
 Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Russell King <linux@arm.linux.org.uk>
-Cc: Tony Lindgren <tony@atomide.com>
 Cc: Rajendra Nayak <rnayak@ti.com>
-Cc: Marc Zyngier <marc.zyngier@arm.com>
-Cc: Grant Likely <grant.likely@linaro.org>
-Cc: Rob Herring <rob.herring@calxeda.com>
+Cc: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Sricharan R <r.sricharan@ti.com>
 ---
- [V2] Added default routable-irqs functions to avoid
-      unnessecary if checks as per Thomas Gleixner comments
-      and renamed routable-irq binding as per
-      Kumar Gala <galak@codeaurora.org> comments.
+ arch/arm/boot/dts/dra7.dtsi |   93 +++++++++++++++++++++++--------------------
+ 1 file changed, 50 insertions(+), 43 deletions(-)
 
- Documentation/devicetree/bindings/arm/gic.txt |    6 ++
- drivers/irqchip/irq-gic.c                     |   83 ++++++++++++++++++++++---
- include/linux/irqchip/arm-gic.h               |    8 ++-
- 3 files changed, 87 insertions(+), 10 deletions(-)
-
-diff --git a/Documentation/devicetree/bindings/arm/gic.txt b/Documentation/devicetree/bindings/arm/gic.txt
-index 3dfb0c0..5357745 100644
---- a/Documentation/devicetree/bindings/arm/gic.txt
-+++ b/Documentation/devicetree/bindings/arm/gic.txt
-@@ -49,6 +49,11 @@ Optional
-   regions, used when the GIC doesn't have banked registers. The offset is
-   cpu-offset * cpu-nr.
+diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+index 008396f..afb89f1 100644
+--- a/arch/arm/boot/dts/dra7.dtsi
++++ b/arch/arm/boot/dts/dra7.dtsi
+@@ -136,10 +136,10 @@
+ 		sdma: dma-controller@4a056000 {
+ 			compatible = "ti,omap4430-sdma";
+ 			reg = <0x4a056000 0x1000>;
+-			interrupts = <0 12 0x4>,
+-				     <0 13 0x4>,
+-				     <0 14 0x4>,
+-				     <0 15 0x4>;
++			interrupts = <0 7 0x4>,
++				     <0 8 0x4>,
++				     <0 9 0x4>,
++				     <0 10 0x4>;
+ 			#dma-cells = <1>;
+ 			#dma-channels = <32>;
+ 			#dma-requests = <127>;
+@@ -150,7 +150,7 @@
+ 		gpio1: gpio@4ae10000 {
+ 			compatible = "ti,omap4-gpio";
+ 			reg = <0x4ae10000 0x200>;
+-			interrupts = <0 29 0x4>;
++			interrupts = <0 24 0x4>;
+ 			ti,hwmods = "gpio1";
+ 			clocks = <&wkupaon_iclk_mux>, <&gpio1_dbclk>;
+ 			clock-names = "fck", "dbclk";
+@@ -163,7 +163,7 @@
+ 		gpio2: gpio@48055000 {
+ 			compatible = "ti,omap4-gpio";
+ 			reg = <0x48055000 0x200>;
+-			interrupts = <0 30 0x4>;
++			interrupts = <0 25 0x4>;
+ 			ti,hwmods = "gpio2";
+ 			clocks = <&l3_iclk_div>, <&gpio2_dbclk>;
+ 			clock-names = "fck", "dbclk";
+@@ -176,7 +176,7 @@
+ 		gpio3: gpio@48057000 {
+ 			compatible = "ti,omap4-gpio";
+ 			reg = <0x48057000 0x200>;
+-			interrupts = <0 31 0x4>;
++			interrupts = <0 26 0x4>;
+ 			ti,hwmods = "gpio3";
+ 			clocks = <&l3_iclk_div>, <&gpio3_dbclk>;
+ 			clock-names = "fck", "dbclk";
+@@ -189,7 +189,7 @@
+ 		gpio4: gpio@48059000 {
+ 			compatible = "ti,omap4-gpio";
+ 			reg = <0x48059000 0x200>;
+-			interrupts = <0 32 0x4>;
++			interrupts = <0 27 0x4>;
+ 			ti,hwmods = "gpio4";
+ 			clocks = <&l3_iclk_div>, <&gpio4_dbclk>;
+ 			clock-names = "fck", "dbclk";
+@@ -202,7 +202,7 @@
+ 		gpio5: gpio@4805b000 {
+ 			compatible = "ti,omap4-gpio";
+ 			reg = <0x4805b000 0x200>;
+-			interrupts = <0 33 0x4>;
++			interrupts = <0 28 0x4>;
+ 			ti,hwmods = "gpio5";
+ 			clocks = <&l3_iclk_div>, <&gpio5_dbclk>;
+ 			clock-names = "fck", "dbclk";
+@@ -215,7 +215,7 @@
+ 		gpio6: gpio@4805d000 {
+ 			compatible = "ti,omap4-gpio";
+ 			reg = <0x4805d000 0x200>;
+-			interrupts = <0 34 0x4>;
++			interrupts = <0 29 0x4>;
+ 			ti,hwmods = "gpio6";
+ 			clocks = <&l3_iclk_div>, <&gpio6_dbclk>;
+ 			clock-names = "fck", "dbclk";
+@@ -228,7 +228,7 @@
+ 		gpio7: gpio@48051000 {
+ 			compatible = "ti,omap4-gpio";
+ 			reg = <0x48051000 0x200>;
+-			interrupts = <0 35 0x4>;
++			interrupts = <0 30 0x4>;
+ 			ti,hwmods = "gpio7";
+ 			clocks = <&l3_iclk_div>, <&gpio7_dbclk>;
+ 			clock-names = "fck", "dbclk";
+@@ -241,7 +241,7 @@
+ 		gpio8: gpio@48053000 {
+ 			compatible = "ti,omap4-gpio";
+ 			reg = <0x48053000 0x200>;
+-			interrupts = <0 121 0x4>;
++			interrupts = <0 116 0x4>;
+ 			ti,hwmods = "gpio8";
+ 			clocks = <&l3_iclk_div>, <&gpio8_dbclk>;
+ 			clock-names = "fck", "dbclk";
+@@ -254,7 +254,7 @@
+ 		uart1: serial@4806a000 {
+ 			compatible = "ti,omap4-uart";
+ 			reg = <0x4806a000 0x100>;
+-			interrupts = <0 72 0x4>;
++			interrupts = <0 67 0x4>;
+ 			ti,hwmods = "uart1";
+ 			clocks = <&uart1_gfclk_mux>;
+ 			clock-names = "fck";
+@@ -265,7 +265,7 @@
+ 		uart2: serial@4806c000 {
+ 			compatible = "ti,omap4-uart";
+ 			reg = <0x4806c000 0x100>;
+-			interrupts = <0 73 0x4>;
++			interrupts = <0 68 0x4>;
+ 			ti,hwmods = "uart2";
+ 			clocks = <&uart2_gfclk_mux>;
+ 			clock-names = "fck";
+@@ -276,7 +276,7 @@
+ 		uart3: serial@48020000 {
+ 			compatible = "ti,omap4-uart";
+ 			reg = <0x48020000 0x100>;
+-			interrupts = <0 74 0x4>;
++			interrupts = <0 69 0x4>;
+ 			ti,hwmods = "uart3";
+ 			clocks = <&uart3_gfclk_mux>;
+ 			clock-names = "fck";
+@@ -287,7 +287,7 @@
+ 		uart4: serial@4806e000 {
+ 			compatible = "ti,omap4-uart";
+ 			reg = <0x4806e000 0x100>;
+-			interrupts = <0 70 0x4>;
++			interrupts = <0 65 0x4>;
+ 			ti,hwmods = "uart4";
+ 			clocks = <&uart4_gfclk_mux>;
+ 			clock-names = "fck";
+@@ -298,7 +298,7 @@
+ 		uart5: serial@48066000 {
+ 			compatible = "ti,omap4-uart";
+ 			reg = <0x48066000 0x100>;
+-			interrupts = <0 105 0x4>;
++			interrupts = <0 100 0x4>;
+ 			ti,hwmods = "uart5";
+ 			clocks = <&uart5_gfclk_mux>;
+ 			clock-names = "fck";
+@@ -309,7 +309,7 @@
+ 		uart6: serial@48068000 {
+ 			compatible = "ti,omap4-uart";
+ 			reg = <0x48068000 0x100>;
+-			interrupts = <0 106 0x4>;
++			interrupts = <0 101 0x4>;
+ 			ti,hwmods = "uart6";
+ 			clocks = <&uart6_gfclk_mux>;
+ 			clock-names = "fck";
+@@ -352,7 +352,7 @@
+ 		timer1: timer@4ae18000 {
+ 			compatible = "ti,omap5430-timer";
+ 			reg = <0x4ae18000 0x80>;
+-			interrupts = <0 37 0x4>;
++			interrupts = <0 32 0x4>;
+ 			ti,hwmods = "timer1";
+ 			clocks = <&timer1_gfclk_mux>;
+ 			clock-names = "fck";
+@@ -362,7 +362,7 @@
+ 		timer2: timer@48032000 {
+ 			compatible = "ti,omap5430-timer";
+ 			reg = <0x48032000 0x80>;
+-			interrupts = <0 38 0x4>;
++			interrupts = <0 33 0x4>;
+ 			ti,hwmods = "timer2";
+ 			clocks = <&timer2_gfclk_mux>;
+ 			clock-names = "fck";
+@@ -371,7 +371,7 @@
+ 		timer3: timer@48034000 {
+ 			compatible = "ti,omap5430-timer";
+ 			reg = <0x48034000 0x80>;
+-			interrupts = <0 39 0x4>;
++			interrupts = <0 34 0x4>;
+ 			ti,hwmods = "timer3";
+ 			clocks = <&timer3_gfclk_mux>;
+ 			clock-names = "fck";
+@@ -380,7 +380,7 @@
+ 		timer4: timer@48036000 {
+ 			compatible = "ti,omap5430-timer";
+ 			reg = <0x48036000 0x80>;
+-			interrupts = <0 40 0x4>;
++			interrupts = <0 35 0x4>;
+ 			ti,hwmods = "timer4";
+ 			clocks = <&timer4_gfclk_mux>;
+ 			clock-names = "fck";
+@@ -389,7 +389,7 @@
+ 		timer5: timer@48820000 {
+ 			compatible = "ti,omap5430-timer";
+ 			reg = <0x48820000 0x80>;
+-			interrupts = <0 41 0x4>;
++			interrupts = <0 36 0x4>;
+ 			ti,hwmods = "timer5";
+ 			clocks = <&timer5_gfclk_mux>;
+ 			clock-names = "fck";
+@@ -399,7 +399,7 @@
+ 		timer6: timer@48822000 {
+ 			compatible = "ti,omap5430-timer";
+ 			reg = <0x48822000 0x80>;
+-			interrupts = <0 42 0x4>;
++			interrupts = <0 37 0x4>;
+ 			ti,hwmods = "timer6";
+ 			clocks = <&timer6_gfclk_mux>;
+ 			clock-names = "fck";
+@@ -410,7 +410,7 @@
+ 		timer7: timer@48824000 {
+ 			compatible = "ti,omap5430-timer";
+ 			reg = <0x48824000 0x80>;
+-			interrupts = <0 43 0x4>;
++			interrupts = <0 38 0x4>;
+ 			ti,hwmods = "timer7";
+ 			clocks = <&timer7_gfclk_mux>;
+ 			clock-names = "fck";
+@@ -420,7 +420,7 @@
+ 		timer8: timer@48826000 {
+ 			compatible = "ti,omap5430-timer";
+ 			reg = <0x48826000 0x80>;
+-			interrupts = <0 44 0x4>;
++			interrupts = <0 39 0x4>;
+ 			ti,hwmods = "timer8";
+ 			clocks = <&timer8_gfclk_mux>;
+ 			clock-names = "fck";
+@@ -431,7 +431,7 @@
+ 		timer9: timer@4803e000 {
+ 			compatible = "ti,omap5430-timer";
+ 			reg = <0x4803e000 0x80>;
+-			interrupts = <0 45 0x4>;
++			interrupts = <0 40 0x4>;
+ 			ti,hwmods = "timer9";
+ 			clocks = <&timer9_gfclk_mux>;
+ 			clock-names = "fck";
+@@ -440,7 +440,7 @@
+ 		timer10: timer@48086000 {
+ 			compatible = "ti,omap5430-timer";
+ 			reg = <0x48086000 0x80>;
+-			interrupts = <0 46 0x4>;
++			interrupts = <0 41 0x4>;
+ 			ti,hwmods = "timer10";
+ 			clocks = <&timer10_gfclk_mux>;
+ 			clock-names = "fck";
+@@ -449,7 +449,7 @@
+ 		timer11: timer@48088000 {
+ 			compatible = "ti,omap5430-timer";
+ 			reg = <0x48088000 0x80>;
+-			interrupts = <0 47 0x4>;
++			interrupts = <0 42 0x4>;
+ 			ti,hwmods = "timer11";
+ 			clocks = <&timer11_gfclk_mux>;
+ 			clock-names = "fck";
+@@ -487,16 +487,23 @@
+ 		wdt2: wdt@4ae14000 {
+ 			compatible = "ti,omap4-wdt";
+ 			reg = <0x4ae14000 0x80>;
+-			interrupts = <0 80 0x4>;
++			interrupts = <0 75 0x4>;
+ 			ti,hwmods = "wd_timer2";
+ 			clocks = <&sys_32k_ck>;
+ 			clock-names = "fck";
+ 		};
  
-+- arm,routable-irqs : Total number of gic irq inputs which are not directly
-+		  connected from the peripherals, but are routed dynamically
-+		  by a crossbar/multiplexer preceding the GIC. The GIC irq
-+		  input line is assigned dynamically when the corresponding
-+		  peripheral's crossbar line is mapped.
- Example:
- 
- 	intc: interrupt-controller@fff11000 {
-@@ -56,6 +61,7 @@ Example:
- 		#interrupt-cells = <3>;
- 		#address-cells = <1>;
- 		interrupt-controller;
-+		arm,routable-irqs = <160>;
- 		reg = <0xfff11000 0x1000>,
- 		      <0xfff10100 0x100>;
- 	};
-diff --git a/drivers/irqchip/irq-gic.c b/drivers/irqchip/irq-gic.c
-index d0e9480..978be2e 100644
---- a/drivers/irqchip/irq-gic.c
-+++ b/drivers/irqchip/irq-gic.c
-@@ -681,16 +681,25 @@ static int gic_irq_domain_map(struct irq_domain *d, unsigned int irq,
- 		irq_set_chip_and_handler(irq, &gic_chip,
- 					 handle_fasteoi_irq);
- 		set_irq_flags(irq, IRQF_VALID | IRQF_PROBE);
++		dmm: dmm@4e000000 {
++			compatible = "ti,omap5-dmm";
++			reg = <0x4e000000 0x800>;
++			interrupts = <0 108 0x4>;
++			ti,hwmods = "dmm";
++		};
 +
-+		gic_routable_irq_domain_ops->map(d, irq, hw);
- 	}
- 	irq_set_chip_data(irq, d->host_data);
- 	return 0;
- }
- 
-+static void gic_irq_domain_unmap(struct irq_domain *d, unsigned int irq)
-+{
-+	gic_routable_irq_domain_ops->unmap(d, irq);
-+}
-+
- static int gic_irq_domain_xlate(struct irq_domain *d,
- 				struct device_node *controller,
- 				const u32 *intspec, unsigned int intsize,
- 				unsigned long *out_hwirq, unsigned int *out_type)
- {
-+	unsigned long ret = 0;
-+
- 	if (d->of_node != controller)
- 		return -EINVAL;
- 	if (intsize < 3)
-@@ -700,11 +709,22 @@ static int gic_irq_domain_xlate(struct irq_domain *d,
- 	*out_hwirq = intspec[1] + 16;
- 
- 	/* For SPIs, we need to add 16 more to get the GIC irq ID number */
--	if (!intspec[0])
-+	if (!intspec[0]) {
- 		*out_hwirq += 16;
- 
-+		ret = gic_routable_irq_domain_ops->xlate(d, controller,
-+							 intspec,
-+							 intsize,
-+							 out_hwirq,
-+							 out_type);
-+
-+		if (IS_ERR_VALUE(ret))
-+			return ret;
-+	}
-+
- 	*out_type = intspec[2] & IRQ_TYPE_SENSE_MASK;
--	return 0;
-+
-+	return ret;
- }
- 
- #ifdef CONFIG_SMP
-@@ -728,9 +748,40 @@ static struct notifier_block gic_cpu_notifier = {
- 
- const struct irq_domain_ops gic_irq_domain_ops = {
- 	.map = gic_irq_domain_map,
-+	.unmap = gic_irq_domain_unmap,
- 	.xlate = gic_irq_domain_xlate,
- };
- 
-+/* Default functions for routable irq domain */
-+static int gic_routable_irq_domain_map(struct irq_domain *d, unsigned int irq,
-+			      irq_hw_number_t hw)
-+{
-+	return 0;
-+}
-+
-+static void gic_routable_irq_domain_unmap(struct irq_domain *d,
-+					  unsigned int irq)
-+{
-+}
-+
-+static int gic_routable_irq_domain_xlate(struct irq_domain *d,
-+				struct device_node *controller,
-+				const u32 *intspec, unsigned int intsize,
-+				unsigned long *out_hwirq,
-+				unsigned int *out_type)
-+{
-+	return 0;
-+}
-+
-+const struct irq_domain_ops gic_default_routable_irq_domain_ops = {
-+	.map = gic_routable_irq_domain_map,
-+	.unmap = gic_routable_irq_domain_unmap,
-+	.xlate = gic_routable_irq_domain_xlate,
-+};
-+
-+const struct irq_domain_ops *gic_routable_irq_domain_ops =
-+					&gic_default_routable_irq_domain_ops;
-+
- void __init gic_init_bases(unsigned int gic_nr, int irq_start,
- 			   void __iomem *dist_base, void __iomem *cpu_base,
- 			   u32 percpu_offset, struct device_node *node)
-@@ -738,6 +789,7 @@ void __init gic_init_bases(unsigned int gic_nr, int irq_start,
- 	irq_hw_number_t hwirq_base;
- 	struct gic_chip_data *gic;
- 	int gic_irqs, irq_base, i;
-+	int nr_routable_irqs;
- 
- 	BUG_ON(gic_nr >= MAX_GIC_NR);
- 
-@@ -803,14 +855,27 @@ void __init gic_init_bases(unsigned int gic_nr, int irq_start,
- 	gic->gic_irqs = gic_irqs;
- 
- 	gic_irqs -= hwirq_base; /* calculate # of irqs to allocate */
--	irq_base = irq_alloc_descs(irq_start, 16, gic_irqs, numa_node_id());
--	if (IS_ERR_VALUE(irq_base)) {
--		WARN(1, "Cannot allocate irq_descs @ IRQ%d, assuming pre-allocated\n",
--		     irq_start);
--		irq_base = irq_start;
-+
-+	if (of_property_read_u32(node, "arm,routable-irqs", &nr_routable_irqs)) {
-+		irq_base = irq_alloc_descs(irq_start, 16, gic_irqs,
-+					   numa_node_id());
-+		if (IS_ERR_VALUE(irq_base)) {
-+			WARN(1, "Cannot allocate irq_descs @ IRQ%d, assuming pre-allocated\n",
-+			     irq_start);
-+			irq_base = irq_start;
-+		}
-+
-+		gic->domain = irq_domain_add_legacy(node, gic_irqs, irq_base,
-+					hwirq_base, &gic_irq_domain_ops, gic);
-+	} else {
-+		if (WARN_ON(!gic_routable_irq_domain_ops))
-+			return;
-+
-+		gic->domain = irq_domain_add_linear(node, nr_routable_irqs,
-+						    &gic_irq_domain_ops,
-+						    gic);
- 	}
--	gic->domain = irq_domain_add_legacy(node, gic_irqs, irq_base,
--				    hwirq_base, &gic_irq_domain_ops, gic);
-+
- 	if (WARN_ON(!gic->domain))
- 		return;
- 
-diff --git a/include/linux/irqchip/arm-gic.h b/include/linux/irqchip/arm-gic.h
-index 0e5d9ec..c5f9529 100644
---- a/include/linux/irqchip/arm-gic.h
-+++ b/include/linux/irqchip/arm-gic.h
-@@ -74,6 +74,12 @@ static inline void gic_init(unsigned int nr, int start,
- 	gic_init_bases(nr, start, dist, cpu, 0, NULL);
- }
- 
--#endif /* __ASSEMBLY */
-+extern const struct irq_domain_ops *gic_routable_irq_domain_ops;
-+static inline void __init register_routable_domain_ops
-+					(const struct irq_domain_ops *ops)
-+{
-+	gic_routable_irq_domain_ops = ops;
-+}
- 
-+#endif /* __ASSEMBLY */
- #endif
+ 		i2c1: i2c@48070000 {
+ 			compatible = "ti,omap4-i2c";
+ 			reg = <0x48070000 0x100>;
+-			interrupts = <0 56 0x4>;
++			interrupts = <0 51 0x4>;
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
+ 			ti,hwmods = "i2c1";
+@@ -508,7 +515,7 @@
+ 		i2c2: i2c@48072000 {
+ 			compatible = "ti,omap4-i2c";
+ 			reg = <0x48072000 0x100>;
+-			interrupts = <0 57 0x4>;
++			interrupts = <0 52 0x4>;
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
+ 			ti,hwmods = "i2c2";
+@@ -520,7 +527,7 @@
+ 		i2c3: i2c@48060000 {
+ 			compatible = "ti,omap4-i2c";
+ 			reg = <0x48060000 0x100>;
+-			interrupts = <0 61 0x4>;
++			interrupts = <0 56 0x4>;
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
+ 			ti,hwmods = "i2c3";
+@@ -532,7 +539,7 @@
+ 		i2c4: i2c@4807a000 {
+ 			compatible = "ti,omap4-i2c";
+ 			reg = <0x4807a000 0x100>;
+-			interrupts = <0 62 0x4>;
++			interrupts = <0 57 0x4>;
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
+ 			ti,hwmods = "i2c4";
+@@ -544,7 +551,7 @@
+ 		i2c5: i2c@4807c000 {
+ 			compatible = "ti,omap4-i2c";
+ 			reg = <0x4807c000 0x100>;
+-			interrupts = <0 60 0x4>;
++			interrupts = <0 55 0x4>;
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
+ 			ti,hwmods = "i2c5";
+@@ -556,7 +563,7 @@
+ 		mmc1: mmc@4809c000 {
+ 			compatible = "ti,omap4-hsmmc";
+ 			reg = <0x4809c000 0x400>;
+-			interrupts = <0 83 0x4>;
++			interrupts = <0 78 0x4>;
+ 			ti,hwmods = "mmc1";
+ 			clocks = <&mmc1_fclk_div>, <&mmc1_clk32k>;
+ 			clock-names = "fck", "clk32k";
+@@ -570,7 +577,7 @@
+ 		mmc2: mmc@480b4000 {
+ 			compatible = "ti,omap4-hsmmc";
+ 			reg = <0x480b4000 0x400>;
+-			interrupts = <0 86 0x4>;
++			interrupts = <0 81 0x4>;
+ 			ti,hwmods = "mmc2";
+ 			clocks = <&mmc2_fclk_div>, <&mmc2_clk32k>;
+ 			clock-names = "fck", "clk32k";
+@@ -583,7 +590,7 @@
+ 		mmc3: mmc@480ad000 {
+ 			compatible = "ti,omap4-hsmmc";
+ 			reg = <0x480ad000 0x400>;
+-			interrupts = <0 94 0x4>;
++			interrupts = <0 89 0x4>;
+ 			ti,hwmods = "mmc3";
+ 			clocks = <&mmc3_gfclk_div>, <&mmc3_clk32k>;
+ 			clock-names = "fck", "clk32k";
+@@ -596,7 +603,7 @@
+ 		mmc4: mmc@480d1000 {
+ 			compatible = "ti,omap4-hsmmc";
+ 			reg = <0x480d1000 0x400>;
+-			interrupts = <0 96 0x4>;
++			interrupts = <0 91 0x4>;
+ 			ti,hwmods = "mmc4";
+ 			clocks = <&mmc4_gfclk_div>, <&mmc4_clk32k>;
+ 			clock-names = "fck", "clk32k";
+@@ -609,7 +616,7 @@
+ 		mcspi1: spi@48098000 {
+ 			compatible = "ti,omap4-mcspi";
+ 			reg = <0x48098000 0x200>;
+-			interrupts = <0 65 0x4>;
++			interrupts = <0 60 0x4>;
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
+ 			ti,hwmods = "mcspi1";
+@@ -632,7 +639,7 @@
+ 		mcspi2: spi@4809a000 {
+ 			compatible = "ti,omap4-mcspi";
+ 			reg = <0x4809a000 0x200>;
+-			interrupts = <0 66 0x4>;
++			interrupts = <0 61 0x4>;
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
+ 			ti,hwmods = "mcspi2";
+@@ -650,7 +657,7 @@
+ 		mcspi3: spi@480b8000 {
+ 			compatible = "ti,omap4-mcspi";
+ 			reg = <0x480b8000 0x200>;
+-			interrupts = <0 91 0x4>;
++			interrupts = <0 86 0x4>;
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
+ 			ti,hwmods = "mcspi3";
+@@ -665,7 +672,7 @@
+ 		mcspi4: spi@480ba000 {
+ 			compatible = "ti,omap4-mcspi";
+ 			reg = <0x480ba000 0x200>;
+-			interrupts = <0 48 0x4>;
++			interrupts = <0 43 0x4>;
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
+ 			ti,hwmods = "mcspi4";
 -- 
 1.7.9.5
