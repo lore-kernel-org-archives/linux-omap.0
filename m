@@ -1,164 +1,76 @@
-From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-Subject: Re: [PATCH v2 0/5] Assorted OMAP2 NAND clean-ups
-Date: Tue, 29 Oct 2013 21:16:14 -0300
-Message-ID: <20131030001613.GB2527@localhost>
-References: <1382696277-9063-1-git-send-email-ezequiel.garcia@free-electrons.com>
- <20980858CB6D3A4BAE95CA194937D5E73EA2AE2A@DBDE04.ent.ti.com>
- <20131025114836.GD2489@localhost>
- <20980858CB6D3A4BAE95CA194937D5E73EA2BADF@DBDE04.ent.ti.com>
+From: Brian Norris <computersforpeace@gmail.com>
+Subject: Re: [PATCH v11 00/10] [PATCH v10 00/10] mtd:nand:omap2: clean-up of
+ supported ECC schemes
+Date: Tue, 29 Oct 2013 23:59:57 -0400
+Message-ID: <CAN8TOE_KQxW4-6KgjQDczyB31wmYB_y9Tirxa34GWQGgY39sNQ@mail.gmail.com>
+References: <1382619026-4182-1-git-send-email-pekon@ti.com>
+	<20131024135258.GC9958@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from top.free-electrons.com ([176.31.233.9]:41765 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751292Ab3J3AQR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Oct 2013 20:16:17 -0400
-Content-Disposition: inline
-In-Reply-To: <20980858CB6D3A4BAE95CA194937D5E73EA2BADF@DBDE04.ent.ti.com>
+Received: from mail-vc0-f173.google.com ([209.85.220.173]:42605 "EHLO
+	mail-vc0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751379Ab3J3D77 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Oct 2013 23:59:59 -0400
+In-Reply-To: <20131024135258.GC9958@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gupta, Pekon" <pekon@ti.com>
-Cc: Brian Norris <computersforpeace@gmail.com>, "Balbi, Felipe" <balbi@ti.com>, "marek.belisko@gmail.com" <marek.belisko@gmail.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+Cc: Pekon Gupta <pekon@ti.com>, Mark Rutland <mark.rutland@arm.com>, "olof@lixom.net" <olof@lixom.net>, Artem Bityutskiy <dedekind1@gmail.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Pawel Moll <Pawel.Moll@arm.com>, Arnd Bergmann <arnd@arndb.de>, Stephen Warren <swarren@wwwdotorg.org>, "tony@atomide.com" <tony@atomide.com>, "jp.francois@cynove.com" <jp.francois@cynove.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Avinash Philip <avinashphilipk@gmail.com>, "Balbi, Felipe" <balbi@ti.com>, Rob Herring <robherring2@gmail.com>, Benoit Cousson <bcousson@baylibre.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, Ivan Djelic <ivan.djelic@parrot.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, David Woodhouse <dwmw2@infradead.org>
 
-Hey Pekon,
+On Thu, Oct 24, 2013 at 9:52 AM, Ezequiel Garcia
+<ezequiel.garcia@free-electrons.com> wrote:
+> Just as suggestion, I think you should reconsider your 'upstream strategy'.
+>
+> On Thu, Oct 24, 2013 at 06:20:16PM +0530, Pekon Gupta wrote:
+> [..]
+>>
+>> Pekon Gupta (10):
+>>   ARM: OMAP2+: cleaned-up DT support of various ECC schemes
+>>   mtd: nand: omap: combine different flavours of 1-bit hamming ecc schemes
+>>   mtd: nand: omap: cleanup: replace local references with generic framework names
+>
+> IMHO, this patch about the dobule nand_scan_ident():
+>>   mtd: nand: omap: use DT specified bus-width only for scanning NAND device
+>
+> is a fix unrelated to this series and can be pushed independently.
+> Maybe you can try to send it as a one-patch fix?
+>
+>>   mtd:nand:omap2: clean-up BCHx_HW and BCHx_SW ECC configurations in device_probe
+>>   mtd: nand: omap: clean-up ecc layout for BCH ecc schemes
+>>   mtd: nand: omap: use drivers/mtd/nand/nand_bch.c wrapper for BCH ECC instead of lib/bch.c
+>>   ARM: dts: AM33xx: updated default ECC scheme in nand-ecc-opt
+>
+> And also this patch:
+>>   mtd: nand: omap: updated devm_xx for all resource allocation and free calls
+>
+> doesn't seem to belong to this series.
+>
+> I think tou could send those two independently and ask Brian to merge them earlier
+> if appropriate.
+>
+> But again, this is just a suggestion.
 
-On Tue, Oct 29, 2013 at 08:14:34PM +0000, Gupta, Pekon wrote:
->=20
-> Sorry I'm bit out of my place.. so not able to sync often with mails.=
-=2E
-> However plz see my replies below..
->=20
+I agree with Ezequiel's thoughts, since the excessive amount of noise
+in this patch series has delayed it significantly. But at this point,
+I think it has stabilized; we have reviews from the DT folks (thanks
+guys; please comment if you have an official "ack" to give), and I
+think we've retained backwards compatibility properly; I've combed
+through it a few times over the months; we have a third-party tester;
+and at this point, I'm sure we're all sick of this.
 
-Sure, no problem. Thanks for taking the time to discuss this!
+So, without further delay: pushed all patches except path 8 to l2-mtd.git.
 
-[..]
-> >=20
-> > You seem to think that GPMC + NAND should be able to automagically =
-detect
-> > the device and work, but I don't think that's even physically possi=
-ble, for
-> > the reasons you have just exposed.
-> >=20
-> > I think this fix is simple enough.
-> >=20
-> No, I still think there should be a way to tell the user that there i=
-s a
-> mis-match between bus-width configured in DT, and that detected
-> by ONFI probe. If it was straight forward, this would have been alrea=
-dy
-> accepted earlier :-)
->=20
-> http://lists.infradead.org/pipermail/linux-mtd/2013-October/049154.ht=
-ml
->=20
-> (read the comments from Brian by following above patch thread)
->=20
+Tony, you mentioned the DTS update in patch 8 going in via an ARM
+tree? This patch is not urgent, and it should probably wait until we
+know what release the rest of the series makes it into. This may
+depend on David Woodhouse's recommendation, but I'm not sure this
+series will have enough time baking in linux-next before entering
+mainline in 3.13 (the merge window is approaching).
 
-Hmm... Well, I think your whole point of view is:
+Pekon/Ezequiel/others: please feel free to send any follow up cleanups
+for this driver. I'll take a look at what Ezequiel has already sent
+out and see if it's still applicable on top.
 
-1. Mixing what's NAND controller and what's GPMC controller.
-They are two different controllers, which means two different
-drivers, and different parameters.
-
-So from this perspective, trying to 'fix' GPMC configuration
-from the NAND driver is a completely bad idea.
-
-2. Trying to over-report the status to the user. The GPMC _must_
-be properly configured before anything else. These NAND aren't plug
-and play, so the 'user' knows the bus width anyway. If the user
-has misconfigured the GPMC, then it's fine for things to not work.
-
-Keep in mind the DT is not a configuration tool, but rather it's a
-way to describe hardware. So, hardware parameters as bus width needs
-to be properly described.
-
-I've followed the above patch and, as far as I can read, Brian says: (q=
-uoting)
-
-""
-My opinion: the platform- and device-tree-provided buswidth is
-unnecessary; it was previouisly only a suggestion which your driver
-would readily discard, and it isn't really needed now. You can probably
-get by with just NAND_BUSWIDTH_AUTO and (at most) a warning if the
-auto-configured buswidth is different than the platform specified.
-
-But the real point: you need to clearly communicate what you are
-choosing in this patch. Either you want to
-
- (1) strictly follow the buswidth provided by the platform or
-
- (2) use the nand_base.c BUSWIDTH_AUTO automatic configuration.
-
-Trying to mix both (as your patch currently does) just makes
-everything worse.
-""
-
-Note that, in the above, Brian is talking about the NAND buswidth,
-(not the GPMC). As he suggests, the proper thing to do is to simply
-use BUSWIDTH_AUTO and discard any other parameter.
-
-> >=20
-> > BTW: The GPMC code ignores the DT value in 'gpmc,device-width' and =
-uses
-> > 'nand-bus-width' instead, but that's a different bug and a differen=
-t fix :)
-> >=20
-> I think you mean the opposie.. GPMC driver uses gpmc,device-width..
-> Refer: $KERNEL/arch/arm/mach-omap2/gpmc.c
-> @@gpmc_read_settings_dt(...)
-> 	of_property_read_u32(np, "gpmc,device-width", &p->device_width);
->=20
-> 'nand-bus-width' is not used anywhere instead..
->=20
-
-No, I meant just that: the current GPMC driver _ignores_ the DT value f=
-or
-gpmc,device-width and overrides it with the 'nand-bus-width'.
-See below for a stripped version of gpmc_nand_init():
-
-int gpmc_nand_init(struct omap_nand_platform_data *gpmc_nand_data,
-		   struct gpmc_timings *gpmc_t)
-{
-[...]
-		if (gpmc_nand_data->of_node) {
-			gpmc_read_settings_dt(gpmc_nand_data->of_node, &s);
-		} else {
-			/* .... */
-		}
-
-		s.device_nand =3D true;
-
-		if (gpmc_nand_data->devsize =3D=3D NAND_BUSWIDTH_16)
-			s.device_width =3D GPMC_DEVWIDTH_16BIT;
-		else
-			s.device_width =3D GPMC_DEVWIDTH_8BIT;
-}
-
-The code first reads 'device_width' from gpmc_read_settings_dt(), and t=
-hen
-overrides it with the NAND buswidth value! Once again, the above repeat=
-s
-the 'mixing parameter' scheme you are suggesting.
-
-(I've already submitted a patchset fixing this. See here:
-http://www.spinics.net/lists/arm-kernel/msg282594.html)
-
-I think our current discussion can be summarized as this:
-
-  * Should we fix the GPMC buswidth configuration, using the
-    auto-detected NAND buswidth?
-
-IMO, the answer is "NO!", as it results in fucked-up design.
-
-But it's a _design_ choice, there's no technical reason why you can't
-export some GPMC configuration function and call it from the driver.
---=20
-Ezequiel Garc=C3=ADa, Free Electrons
-Embedded Linux, Kernel and Android Engineering
-http://free-electrons.com
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+Brian
