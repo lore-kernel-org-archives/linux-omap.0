@@ -1,192 +1,122 @@
-From: NeilBrown <neilb@suse.de>
-Subject: [PATCH] twl4030_charger: add devicetree support.
-Date: Thu, 31 Oct 2013 17:05:50 +1100
-Message-ID: <20131031170550.686cdf1e@notabene.brown>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv9 00/43] ARM: TI SoC clock DT conversion
+Date: Thu, 31 Oct 2013 11:10:45 +0200
+Message-ID: <52721E95.4080806@ti.com>
+References: <1382716658-6964-1-git-send-email-t-kristo@ti.com> <526FDFF4.9030806@ti.com> <5270C1F3.6000409@ti.com> <52711F12.1090008@ti.com> <52716799.6040002@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=PGP-SHA1;
- boundary="Sig_//15NQXHAOSs8nREDBBW8Oss"; protocol="application/pgp-signature"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:49568 "EHLO mx2.suse.de"
+Received: from comal.ext.ti.com ([198.47.26.152]:51360 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751873Ab3JaGGL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 31 Oct 2013 02:06:11 -0400
+	id S1750712Ab3JaJLY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 31 Oct 2013 05:11:24 -0400
+In-Reply-To: <52716799.6040002@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Anton Vorontsov <anton@enomsg.org>, David Woodhouse <dwmw2@infradead.org>, Grant Likely <grant.likely@linaro.org>
-Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Belisko Marek <marek.belisko@gmail.com>, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>
+To: Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, bcousson@baylibre.com, rnayak@ti.com, mturquette@linaro.org
+Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
---Sig_//15NQXHAOSs8nREDBBW8Oss
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+On 10/30/2013 10:10 PM, Nishanth Menon wrote:
+> On 10/30/2013 10:00 AM, Nishanth Menon wrote:
+>> On 10/30/2013 03:23 AM, Tero Kristo wrote:
+>>> On 10/29/2013 06:19 PM, Nishanth Menon wrote:
+>>>> On 10/25/2013 10:56 AM, Tero Kristo wrote:
+>>>> <snip>
+>>>>> Testing done:
+>>>>> - omap3-beagle: boot + suspend/resume (ret + off)
+>>>>> - omap4-panda-es: boot + suspend/resume
+>>>>> - omap5-uevm: boot
+>>>>> - dra7-evm: boot
+>>>>> - am335x-bone: boot
+>>>>>
+>>>>> Test branches available:
+>>>>>
+>>>>> tree: https://github.com/t-kristo/linux-pm.git
+>>>>
+>>>> <snip>
+>>>>> Fully functioning test branch: 3.12-rc6-dt-clks-v9
+>>>>>
+>>>> ^^ I tested this branch (boot testing):
+>>>> Beagle-XM: http://pastebin.com/50A1qtFq (crashes + clkdm issues, dpll5
+>>>> failed to transition)
+>>>
+>>> I just sent you a private email with a patch to try out, should fix the
+>>> boot crash at least hopefully. Basically I forgot to convert one part of
+>>> the kernel to the new regmap stuff for omap36xx.
+>>
+>> it does bootup yes.
+>>>
+>>> clkdm issues are caused by wrong data in omap_hwmod_3xxx_data.c, USB
+>>> nodes are listing l3_init_clkdm for them, but this only exists on
+>>> omap4+. Seems like some copy paste bug introduced by someone.
+>>>
+>>> dpll5 part I am not too sure, can you check if the same happens with
+>>> non-dt boot?
+>>
+>> no-dt: http://pastebin.com/bYP9fTzH
+>> dt: http://pastebin.com/xHup4L9Y
+>>
+>> dpll5 warning seems to be only in dt-boot?
+>>
+>
+> Tracked this down: you were missing the following - looks like the
+> conversion script might be missing converting the flags clock data
+> over to dts?
+>
+> diff --git
+> a/arch/arm/boot/dts/omap36xx-am35xx-omap3430es2plus-clocks.dtsi
+> b/arch/arm/boot/dts/omap36xx-am35xx-omap3430es2plus-clocks.dtsi
+> index 7e37e3e..c9b77c8 100644
+> --- a/arch/arm/boot/dts/omap36xx-am35xx-omap3430es2plus-clocks.dtsi
+> +++ b/arch/arm/boot/dts/omap36xx-am35xx-omap3430es2plus-clocks.dtsi
+> @@ -30,6 +30,7 @@
+>                  compatible = "ti,omap3-dpll-clock";
+>                  clocks = <&sys_ck>, <&sys_ck>;
+>                  reg = <0x0d04>, <0x0d24>, <0x0d34>, <0x0d4c>;
+> +               ti,low-power-stop;
+>          };
+>
+>          dpll5_m2_ck: dpll5_m2_ck {
+>
+>
+>
 
+Yea, seems I introduced the problem with the conversion script changes. 
+The valid fix for this is actually at the end of this mail (this fixes 
+both of the problems introduced, and also completes the fix you did), I 
+will add the fixes to the next rev. Question to Mike/Paul/Tony/Benoit, 
+shall I resend the complete series or only the two patches that will be 
+changed?
 
-This allows the charger to be enabled with devicetree, and
-allows the parameters for charging the backup battery to be set.
+----
+diff --git 
+a/arch/arm/boot/dts/omap36xx-am35xx-omap3430es2plus-clocks.dtsi 
+b/arch/arm/boot/dts/omap36xx-am35xx-omap3430es2plus-clocks.dtsi
+index 7e37e3e..08db6d8 100644
+--- a/arch/arm/boot/dts/omap36xx-am35xx-omap3430es2plus-clocks.dtsi
++++ b/arch/arm/boot/dts/omap36xx-am35xx-omap3430es2plus-clocks.dtsi
+@@ -30,6 +30,8 @@
+                 compatible = "ti,omap3-dpll-clock";
+                 clocks = <&sys_ck>, <&sys_ck>;
+                 reg = <0x0d04>, <0x0d24>, <0x0d34>, <0x0d4c>;
++               ti,low-power-stop;
++               ti,lock;
+         };
 
-Signed-off-by: NeilBrown <neilb@suse.de>
-Acked-by: Kumar Gala <galak@codeaurora.org>
-Acked-by: Grant Likely <grant.likely@linaro.org>
+         dpll5_m2_ck: dpll5_m2_ck {
+diff --git a/arch/arm/boot/dts/omap3xxx-clocks.dtsi 
+b/arch/arm/boot/dts/omap3xxx-clocks.dtsi
+index 417bb03..e834b1c 100644
+--- a/arch/arm/boot/dts/omap3xxx-clocks.dtsi
++++ b/arch/arm/boot/dts/omap3xxx-clocks.dtsi
+@@ -335,8 +335,6 @@ cm: cm@48004000 {
+                 compatible = "ti,omap3-dpll-clock";
+                 clocks = <&sys_ck>, <&dpll1_fck>;
+                 reg = <0x0904>, <0x0924>, <0x0934>, <0x0940>;
+-               ti,lock;
+-               ti,low-power-bypass;
+         };
 
---
-This version with correct property names and some Acked-by's.
-- NB
+         dpll1_x2_ck: dpll1_x2_ck {
 
-diff --git a/Documentation/devicetree/bindings/power/twl-charger.txt b/Docu=
-mentation/devicetree/bindings/power/twl-charger.txt
-new file mode 100644
-index 000000000000..d5c706216df5
---- /dev/null
-+++ b/Documentation/devicetree/bindings/power/twl-charger.txt
-@@ -0,0 +1,20 @@
-+TWL BCI (Battery Charger Interface)
-+
-+Required properties:
-+- compatible:
-+  - "ti,twl4030-bci"
-+- interrupts: two interrupt lines from the TWL SIH (secondary
-+  interrupt handler) - interrupts 9 and 2.
-+
-+Optional properties:
-+- ti,bb-uvolt: microvolts for charging the backup battery.
-+- ti,bb-uamp: microamps for charging the backup battery.
-+
-+Examples:
-+
-+bci {
-+   compatible =3D "ti,twl4030-bci";
-+   interrupts =3D <9>, <2>;
-+   ti,bb-uvolt =3D <3200000>;
-+   ti,bb-uamp =3D <150>;
-+};
-diff --git a/arch/arm/boot/dts/twl4030.dtsi b/arch/arm/boot/dts/twl4030.dtsi
-index ae6a17aed9ee..5a12540b1d0f 100644
---- a/arch/arm/boot/dts/twl4030.dtsi
-+++ b/arch/arm/boot/dts/twl4030.dtsi
-@@ -19,6 +19,12 @@
- 		interrupts =3D <11>;
- 	};
-=20
-+	charger: bci {
-+		compatible =3D "ti,twl4030-bci";
-+		interrupts =3D <9>, <2>;
-+		bci3v1-supply =3D <&vusb3v1>;
-+	};
-+
- 	watchdog {
- 		compatible =3D "ti,twl4030-wdt";
- 	};
-diff --git a/drivers/power/twl4030_charger.c b/drivers/power/twl4030_charge=
-r.c
-index d98abe911e37..f14108844e1a 100644
---- a/drivers/power/twl4030_charger.c
-+++ b/drivers/power/twl4030_charger.c
-@@ -495,10 +495,38 @@ static enum power_supply_property twl4030_charger_pro=
-ps[] =3D {
- 	POWER_SUPPLY_PROP_CURRENT_NOW,
- };
-=20
-+#ifdef CONFIG_OF
-+static const struct twl4030_bci_platform_data *
-+twl4030_bci_parse_dt(struct device *dev)
-+{
-+	struct device_node *np =3D dev->of_node;
-+	struct twl4030_bci_platform_data *pdata;
-+	u32 num;
-+
-+	if (!np)
-+		return NULL;
-+	pdata =3D devm_kzalloc(dev, sizeof(*pdata), GFP_KERNEL);
-+	if (!pdata)
-+		return pdata;
-+
-+	if (of_property_read_u32(np, "ti,bb-uvolt", &num) =3D=3D 0)
-+		pdata->bb_uvolt =3D num;
-+	if (of_property_read_u32(np, "ti,bb-uamp", &num) =3D=3D 0)
-+		pdata->bb_uamp =3D num;
-+	return pdata;
-+}
-+#else
-+static inline const struct twl4030_bci_platform_data *
-+twl4030_bci_parse_dt(struct device *dev)
-+{
-+	return NULL;
-+}
-+#endif
-+
- static int __init twl4030_bci_probe(struct platform_device *pdev)
- {
- 	struct twl4030_bci *bci;
--	struct twl4030_bci_platform_data *pdata =3D pdev->dev.platform_data;
-+	const struct twl4030_bci_platform_data *pdata =3D pdev->dev.platform_data;
- 	int ret;
- 	u32 reg;
-=20
-@@ -506,6 +534,9 @@ static int __init twl4030_bci_probe(struct platform_dev=
-ice *pdev)
- 	if (bci =3D=3D NULL)
- 		return -ENOMEM;
-=20
-+	if (!pdata)
-+		pdata =3D twl4030_bci_parse_dt(&pdev->dev);
-+
- 	bci->dev =3D &pdev->dev;
- 	bci->irq_chg =3D platform_get_irq(pdev, 0);
- 	bci->irq_bci =3D platform_get_irq(pdev, 1);
-@@ -581,8 +612,11 @@ static int __init twl4030_bci_probe(struct platform_de=
-vice *pdev)
-=20
- 	twl4030_charger_enable_ac(true);
- 	twl4030_charger_enable_usb(bci, true);
--	twl4030_charger_enable_backup(pdata->bb_uvolt,
--				      pdata->bb_uamp);
-+	if (pdata)
-+		twl4030_charger_enable_backup(pdata->bb_uvolt,
-+					      pdata->bb_uamp);
-+	else
-+		twl4030_charger_enable_backup(0, 0);
-=20
- 	return 0;
-=20
-@@ -631,10 +665,17 @@ static int __exit twl4030_bci_remove(struct platform_=
-device *pdev)
- 	return 0;
- }
-=20
-+static const struct of_device_id twl_bci_of_match[] =3D {
-+	{.compatible =3D "ti,twl4030-bci", },
-+	{ }
-+};
-+MODULE_DEVICE_TABLE(of, twl_bci_of_match);
-+
- static struct platform_driver twl4030_bci_driver =3D {
- 	.driver	=3D {
- 		.name	=3D "twl4030_bci",
- 		.owner	=3D THIS_MODULE,
-+		.of_match_table =3D of_match_ptr(twl_bci_of_match),
- 	},
- 	.remove	=3D __exit_p(twl4030_bci_remove),
- };
-
---Sig_//15NQXHAOSs8nREDBBW8Oss
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.19 (GNU/Linux)
-
-iQIVAwUBUnHzPjnsnt1WYoG5AQJHww//f3wIKV41ucIlg9fsH6dju6tWCAk8TQHo
-i3iX5+klWen1JSqMBBEJjsy6QWz9MMg7lY68TqBmhNoYKSy0F9cURpta65YEDjV6
-5Aerw9Dx9Kfev2zrScADGEK02mayftWYS2kCWX5l3/cUCZG4feZFpYy1tfOZIobd
-1m+2F9enfJN887mhSrHV54ybulsOXp7nkhE4AEHk5OWCNO32I/fV3IxpH3/HbNCC
-53SlQX+4WlKs7rNV6wDhp9pZcJ0xtXJ+F3wahNGP0za4OQ9L8lHQfi3dsifnte6f
-4LsMZzgGdec4OUfTUv15rh40vw3/GCAjplcEk580IINZAFdUNZYmMK1bb/PEC0BQ
-pMNAIwu/FcYUl/BrJpyImprncpJnVjUCo1bG0oULuhWlF9zWNM8sqBEecdsBtw1q
-Wr2/5iO2D+NoBDalhiZOxYk9cVOcjKWNImECrJ7/qWBOsvTz5ZnL9eZB0Qw8uguq
-jSwV4u0CdvxAyCvVbMEGMQSnHkNUCajsuSjuVZtrsDBuZ8pnVofJv79WVjysUTxg
-iHXjEfzGlD8/SBxF23GbaZ4u0zofbeB/+fAg5qWYbzAomH6th12GzcbUcivl/17H
-AFnNRBEGi+u/N1E3V9oGRwZEdr0XDQ4/zAju6aztm2QzEyxJULxcGpERJs13Bzf3
-iqY8Px4FRSQ=
-=eDaa
------END PGP SIGNATURE-----
-
---Sig_//15NQXHAOSs8nREDBBW8Oss--
