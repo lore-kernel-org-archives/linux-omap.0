@@ -1,32 +1,59 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [RFC 4/4] ASoC: RX-51: Add DT support to sound driver
-Date: Thu, 31 Oct 2013 07:44:22 -0700
-Message-ID: <CACRpkdb1dAiDCeZkOiZ6inbDruaUwLgk3joWwuQmSRNZ9WkDGw@mail.gmail.com>
-References: <1382909086-10493-1-git-send-email-sre@debian.org>
-	<1382909086-10493-5-git-send-email-sre@debian.org>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 19/51] DMA-API: media: dt3155v4l: replace
+	dma_set_mask()+dma_set_coherent_mask() with new helper
+Date: Thu, 31 Oct 2013 14:49:30 +0000
+Message-ID: <20131031144929.GC25039@n2100.arm.linux.org.uk>
+References: <20130919212235.GD12758@n2100.arm.linux.org.uk> <E1VMm13-0007hO-9l@rmk-PC.arm.linux.org.uk> <5249673B.5020705@xs4all.nl> <20131031094640.205840a2@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-oa0-f46.google.com ([209.85.219.46]:37049 "EHLO
-	mail-oa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754576Ab3JaOoX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 31 Oct 2013 10:44:23 -0400
-Received: by mail-oa0-f46.google.com with SMTP id g12so3174558oah.33
-        for <linux-omap@vger.kernel.org>; Thu, 31 Oct 2013 07:44:22 -0700 (PDT)
-In-Reply-To: <1382909086-10493-5-git-send-email-sre@debian.org>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-crypto-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20131031094640.205840a2@samsung.com>
+Sender: linux-crypto-owner@vger.kernel.org
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, alsa-devel@alsa-project.org, linux-doc@vger.kernel.org, linux-mmc@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-nvme@lists.infradead.org, linux-ide@vger.kernel.org, devel@driverdev.osuosl.org, linux-samsung-soc@vger.kernel.org, linux-scsi@vger.kernel.org, e1000-devel@lists.sourceforge.net, b43-dev@lists.infradead.org, linux-media@vger.kernel.org, devicetree@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Solarflare linux maintainers <linux-net-drivers@solarflare.com>, netdev@vger.kernel.org, linux-usb@vger.kernel.org, linux-wireless@vger.kernel.org, linux-crypto@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, uclinux-dist-devel@blackfin.uclinux.org, linuxppc-dev@lists.ozlabs.org
 List-Id: linux-omap@vger.kernel.org
-To: Sebastian Reichel <sre@debian.org>
-Cc: Sebastian Reichel <sre@ring0.de>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Rob Landley <rob@landley.net>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Grant Likely <grant.likely@linaro.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux-OMAP <linux-omap@vger.>
 
-On Sun, Oct 27, 2013 at 2:24 PM, Sebastian Reichel <sre@debian.org> wrote:
+On Thu, Oct 31, 2013 at 09:46:40AM -0200, Mauro Carvalho Chehab wrote:
+> Hi Russell,
+> 
+> Em Mon, 30 Sep 2013 13:57:47 +0200
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> 
+> > On 09/19/2013 11:44 PM, Russell King wrote:
+> > > Replace the following sequence:
+> > > 
+> > > 	dma_set_mask(dev, mask);
+> > > 	dma_set_coherent_mask(dev, mask);
+> > > 
+> > > with a call to the new helper dma_set_mask_and_coherent().
+> > > 
+> > > Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+> > 
+> > Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Somehow, I lost your original post (I got unsubscribed on a few days 
+> from all vger mailing lists at the end of september).
+> 
+> I suspect that you want to sent this via your tree, right?
 
-> +- eci-sw-gpio: GPIO for ECI SW
-> +- speaker-amp-gpio: GPIO for Speaker Amp
+Yes please.
 
-Can you please spell out the acronyms? ECI? SW? Amp?
+> If so:
+> 
+> Acked-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
 
-I guess SW=switch, Amp=amplifier, but ECI beats me.
+Added, thanks.
 
-Yours,
-Linus Walleij
+> > > -	err = dma_set_mask(&pdev->dev, DMA_BIT_MASK(32));
+> > > -	if (err)
+> > > -		return -ENODEV;
+> > > -	err = dma_set_coherent_mask(&pdev->dev, DMA_BIT_MASK(32));
+> > > +	err = dma_set_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(32));
+> > >  	if (err)
+> > >  		return -ENODEV;
+
+One thing I've just noticed is that return should be "return err" not
+"return -ENODEV" - are you okay for me to change that in this patch?
+
+Thanks.
