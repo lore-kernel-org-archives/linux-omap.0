@@ -1,89 +1,75 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH v3] omapdss: Add new panel driver for Topolly td028ttec1
- LCD.
-Date: Thu, 31 Oct 2013 12:32:01 +0200
-Message-ID: <527231A1.5010402@ti.com>
-References: <1383085540-8063-1-git-send-email-marek@goldelico.com>
+From: "R, Sricharan" <r.sricharan@ti.com>
+Subject: RE: [PATCH V2 1/7] DRIVERS: IRQCHIP: IRQ-GIC: Add support for
+ routable irqs
+Date: Thu, 31 Oct 2013 10:50:04 +0000
+Message-ID: <F934AE11CE617240AE4A874A49F629E4832564@DBDE04.ent.ti.com>
+References: <1383145040-15852-1-git-send-email-r.sricharan@ti.com>
+ <1383145040-15852-2-git-send-email-r.sricharan@ti.com>,<alpine.DEB.2.02.1310301608380.24686@ionos.tec.linutronix.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="5LK1iAkfBTwtKSd7FXgBWg1p7qIi6U2Xx"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1383085540-8063-1-git-send-email-marek@goldelico.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Marek Belisko <marek@goldelico.com>
-Cc: plagnioj@jcrosoft.com, hns@goldelico.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:35040 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753292Ab3JaKuz convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 31 Oct 2013 06:50:55 -0400
+In-Reply-To: <alpine.DEB.2.02.1310301608380.24686@ionos.tec.linutronix.de>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linus.walleij@linaro.org" <linus.walleij@linaro.org>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "tony@atomide.com" <tony@atomide.com>, "Nayak, Rajendra" <rnayak@ti.com>, "marc.zyngier@arm.com" <marc.zyngier@arm.com>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "mark.rutland@arm.com" <mark.rutland@arm.com>, "robherring2@gmail.com" <robherring2@gmail.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Rob Herring <rob.herring@calxeda.com>
 
---5LK1iAkfBTwtKSd7FXgBWg1p7qIi6U2Xx
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Hi Thomas,
+  Sorry for top posting. My mailer is not allowing me any formatting.
 
-On 2013-10-30 00:25, Marek Belisko wrote:
-> Signed-off-by: Marek Belisko <marek@goldelico.com>
-> Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
-> ---
-> changes from v2:
-> - move tx_buf from driver data to functions where it's used
-> - update write functions names (to reflect how many bytes are transferr=
-ed)
-> - update delays from 1s to 1ms (probably typo)
-> - remove unnecessary 90ms sleep (tested and works fine)
-> - disable dpi output after disable panel
->=20
-> changes from v1:
-> - reworked to be spi driver instead platform with custom spi bitbang
->   this configuration was tested with spi_gpio bitbang driver on gta04 b=
-oard
->   and works fine (thanks Tomi and Lars-Peter for comments)
-> - address previous comments
->=20
->  drivers/video/omap2/displays-new/Kconfig           |   6 +
->  drivers/video/omap2/displays-new/Makefile          |   1 +
->  .../omap2/displays-new/panel-tpo-td028ttec1.c      | 480 +++++++++++++=
-++++++++
->  include/video/omap-panel-data.h                    |  13 +
->  4 files changed, 500 insertions(+)
->  create mode 100644 drivers/video/omap2/displays-new/panel-tpo-td028tte=
-c1.c
+  I agree with both of your comments below.
+  I will post V3 for this.
 
-Sparse gave these warnings:
+Regards,
+ Sricharan
 
-drivers/video/omap2/displays-new/panel-tpo-td028ttec1.c:67:5: warning:
-symbol 'jbt_ret_write_0' was not declared. Should it be static?
-drivers/video/omap2/displays-new/panel-tpo-td028ttec1.c:81:5: warning:
-symbol 'jbt_reg_write_1' was not declared. Should it be static?
-drivers/video/omap2/displays-new/panel-tpo-td028ttec1.c:97:5: warning:
-symbol 'jbt_reg_write_2' was not declared. Should it be static?
+________________________________________
+From: Thomas Gleixner [tglx@linutronix.de]
+Sent: Wednesday, October 30, 2013 8:45 PM
+To: R, Sricharan
+Cc: linux-kernel@vger.kernel.org; devicetree@vger.kernel.org; linux-doc@vger.kernel.org; linux-arm-kernel@lists.infradead.org; linux-omap@vger.kernel.org; linus.walleij@linaro.org; linux@arm.linux.org.uk; tony@atomide.com; Nayak, Rajendra; marc.zyngier@arm.com; grant.likely@linaro.org; mark.rutland@arm.com; robherring2@gmail.com; Shilimkar, Santosh; Rob Herring
+Subject: Re: [PATCH V2 1/7] DRIVERS: IRQCHIP: IRQ-GIC: Add support for routable irqs
 
-I fixed them and queued the patch for 3.13.
+On Wed, 30 Oct 2013, Sricharan R wrote:
+> @@ -700,11 +709,22 @@ static int gic_irq_domain_xlate(struct irq_domain *d,
+>       *out_hwirq = intspec[1] + 16;
+>
+>       /* For SPIs, we need to add 16 more to get the GIC irq ID number */
+> -     if (!intspec[0])
+> +     if (!intspec[0]) {
+>               *out_hwirq += 16;
 
- Tomi
+Minor nit. This should be in the default implementation. The crossbar
+implementation will fill out_hwirq in its own way and is not
+interested in the +16 operation at all.
 
+> +             ret = gic_routable_irq_domain_ops->xlate(d, controller,
+> +                                                      intspec,
+> +                                                      intsize,
+> +                                                      out_hwirq,
+> +                                                      out_type);
+> +
 
+> +             gic->domain = irq_domain_add_legacy(node, gic_irqs, irq_base,
+> +                                     hwirq_base, &gic_irq_domain_ops, gic);
+> +     } else {
+> +             if (WARN_ON(!gic_routable_irq_domain_ops))
+> +                     return;
 
---5LK1iAkfBTwtKSd7FXgBWg1p7qIi6U2Xx
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+This warning is pointless, because you have default ops now.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+> +
+> +             gic->domain = irq_domain_add_linear(node, nr_routable_irqs,
+> +                                                 &gic_irq_domain_ops,
+> +                                                 gic);
+>       }
 
-iQIcBAEBAgAGBQJScjGmAAoJEPo9qoy8lh710WUQAIQ5cxjfLdeR8QjGnG+uTyAs
-3Z3sVmafIWSVMvelQPaNzH5yceqijJLpul6FcNCjgiZ3yGKo14nE4BrT/IdR8qyO
-xskam6h0+Dq0sbqs/02aiNlJ3VLiwlXVQqmmfK/LKxJDPr+lxl/SNYrXj1wHKTGX
-EEnNSr/1h33G0EbK+0VZwaLe/Az9L8Cw8JjUwSiC8KS3cARp5nOM3aJQ1zgpTsJW
-v7BPVkHHHUKTLSFoUaa6ieWZYWuArzRMO3UfiSAysSrZDWNLDykF1waFp0ra5y9A
-xcLKT+bCwSWbmcr6jMRpzHr/vOdx6fPArK81aZ57jheIhy6zxClT9wrfAbgd9DJP
-HnGJXTwO1eXbPoc8joq47zZavPHPj9T5iMfdXgy5PQ4eGptrklswiX2YfySwNUFF
-HBG3Ff1ubLcdPcwk92IsAKAxzfkVlHlZ0JguIAAjkwMwDjBAd9uAsnG4SAz1Q6Fd
-eCNOTZwwLBSQmLTfQV8fbkTP8ieJkveGVbNDqeu8WpF6fIPhhBDxn/frjd5kme6x
-hiGVGoW2KqkJoD/LjkKOddUDJFuw7LIJnDCCNswL3DJq2c5DYvpHWzJNwPN3qe3Y
-18QQbDKtcZlIQK8nhGh5AVQv7v0pZc9tz7bYsfSY+IhoftL2cbiUsr2KfFoQ8MDS
-RP11ACwzcVLwtWUKoKvK
-=LY3Z
------END PGP SIGNATURE-----
+Thanks,
 
---5LK1iAkfBTwtKSd7FXgBWg1p7qIi6U2Xx--
+        tglx
