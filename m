@@ -1,122 +1,73 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv9 00/43] ARM: TI SoC clock DT conversion
-Date: Thu, 31 Oct 2013 11:10:45 +0200
-Message-ID: <52721E95.4080806@ti.com>
-References: <1382716658-6964-1-git-send-email-t-kristo@ti.com> <526FDFF4.9030806@ti.com> <5270C1F3.6000409@ti.com> <52711F12.1090008@ti.com> <52716799.6040002@ti.com>
+Subject: Re: [PATCHv9 05/43] CLK: TI: add DT alias clock registration mechanism
+Date: Thu, 31 Oct 2013 11:18:03 +0200
+Message-ID: <5272204B.2030106@ti.com>
+References: <1382716658-6964-1-git-send-email-t-kristo@ti.com>	<1382716658-6964-6-git-send-email-t-kristo@ti.com>	<CAHCPf3uPhkVhdn3Db06YZfrwQuA7khdZEXiZ+pqJ06J9YdBoLg@mail.gmail.com>	<5270C368.9000701@ti.com> <CAHCPf3vcdriV3n2BvG2+saJFH6hR_gEFU=BhTBa0yqZUUWcg1A@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:51360 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:34648 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750712Ab3JaJLY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 31 Oct 2013 05:11:24 -0400
-In-Reply-To: <52716799.6040002@ti.com>
+	id S1751785Ab3JaJSe (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 31 Oct 2013 05:18:34 -0400
+In-Reply-To: <CAHCPf3vcdriV3n2BvG2+saJFH6hR_gEFU=BhTBa0yqZUUWcg1A@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, bcousson@baylibre.com, rnayak@ti.com, mturquette@linaro.org
-Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
+To: Matt Sealey <neko@bakuhatsu.net>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>, Benoit Cousson <bcousson@baylibre.com>, rnayak@ti.com, Mike Turquette <mturquette@linaro.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On 10/30/2013 10:10 PM, Nishanth Menon wrote:
-> On 10/30/2013 10:00 AM, Nishanth Menon wrote:
->> On 10/30/2013 03:23 AM, Tero Kristo wrote:
->>> On 10/29/2013 06:19 PM, Nishanth Menon wrote:
->>>> On 10/25/2013 10:56 AM, Tero Kristo wrote:
->>>> <snip>
->>>>> Testing done:
->>>>> - omap3-beagle: boot + suspend/resume (ret + off)
->>>>> - omap4-panda-es: boot + suspend/resume
->>>>> - omap5-uevm: boot
->>>>> - dra7-evm: boot
->>>>> - am335x-bone: boot
->>>>>
->>>>> Test branches available:
->>>>>
->>>>> tree: https://github.com/t-kristo/linux-pm.git
->>>>
->>>> <snip>
->>>>> Fully functioning test branch: 3.12-rc6-dt-clks-v9
->>>>>
->>>> ^^ I tested this branch (boot testing):
->>>> Beagle-XM: http://pastebin.com/50A1qtFq (crashes + clkdm issues, dpll5
->>>> failed to transition)
+On 10/30/2013 07:38 PM, Matt Sealey wrote:
+> On Wed, Oct 30, 2013 at 3:29 AM, Tero Kristo <t-kristo@ti.com> wrote:
+>> On 10/29/2013 07:50 PM, Matt Sealey wrote:
 >>>
->>> I just sent you a private email with a patch to try out, should fix the
->>> boot crash at least hopefully. Basically I forgot to convert one part of
->>> the kernel to the new regmap stuff for omap36xx.
->>
->> it does bootup yes.
+>>> I have one question here, what makes this part of the patch
+>>> TI-specific at all except the definition of the structure ti_dt_clk?
+>>> Mapping DT clocks to generic clkdev legacy namings seems like it would
+>>> be a necessary evil across *all* SoC platforms.
 >>>
->>> clkdm issues are caused by wrong data in omap_hwmod_3xxx_data.c, USB
->>> nodes are listing l3_init_clkdm for them, but this only exists on
->>> omap4+. Seems like some copy paste bug introduced by someone.
->>>
->>> dpll5 part I am not too sure, can you check if the same happens with
->>> non-dt boot?
+>>> I would say there is a good case for this being generic
 >>
->> no-dt: http://pastebin.com/bYP9fTzH
->> dt: http://pastebin.com/xHup4L9Y
+>> An earlier implementation of this patch (or at least a patch that tries to
+>> accomplish the same as this does, add support for legacy devices) did try to
+>> add generic solution. There was some discussion on it and I decided to drop
+>> it due to bad feedback.
 >>
->> dpll5 warning seems to be only in dt-boot?
->>
+>> See: http://www.spinics.net/lists/linux-omap/msg95147.html
 >
-> Tracked this down: you were missing the following - looks like the
-> conversion script might be missing converting the flags clock data
-> over to dts?
+> I don't see anything that says this should not be generic, just that
+> it was implemented relatively poorly at the time...
 >
-> diff --git
-> a/arch/arm/boot/dts/omap36xx-am35xx-omap3430es2plus-clocks.dtsi
-> b/arch/arm/boot/dts/omap36xx-am35xx-omap3430es2plus-clocks.dtsi
-> index 7e37e3e..c9b77c8 100644
-> --- a/arch/arm/boot/dts/omap36xx-am35xx-omap3430es2plus-clocks.dtsi
-> +++ b/arch/arm/boot/dts/omap36xx-am35xx-omap3430es2plus-clocks.dtsi
-> @@ -30,6 +30,7 @@
->                  compatible = "ti,omap3-dpll-clock";
->                  clocks = <&sys_ck>, <&sys_ck>;
->                  reg = <0x0d04>, <0x0d24>, <0x0d34>, <0x0d4c>;
-> +               ti,low-power-stop;
->          };
+> I agree with Tomasz, find_by_name in device trees is basically evil
+> (it's only supposed to be used if you already know the name because
+> something else passed it to you, and just want it's phandle, but names
+> CAN be ambiguous. The real fix is always pass phandles and not strings
+> of the name property), but that's not to say this thing needs to be
+> TI-specific..
 >
->          dpll5_m2_ck: dpll5_m2_ck {
->
->
->
+> Ah well. If it ends up getting used elsewhere, it can be quickly
+> patched into a generic version anyway, so.. yay!
 
-Yea, seems I introduced the problem with the conversion script changes. 
-The valid fix for this is actually at the end of this mail (this fixes 
-both of the problems introduced, and also completes the fix you did), I 
-will add the fixes to the next rev. Question to Mike/Paul/Tony/Benoit, 
-shall I resend the complete series or only the two patches that will be 
-changed?
+Yeah, this can be converted to generic version easily if need be. The 
+thing with this patch is also that it is kind of temporary solution, it 
+should not be needed anymore once all the drivers are converted to DT.
 
-----
-diff --git 
-a/arch/arm/boot/dts/omap36xx-am35xx-omap3430es2plus-clocks.dtsi 
-b/arch/arm/boot/dts/omap36xx-am35xx-omap3430es2plus-clocks.dtsi
-index 7e37e3e..08db6d8 100644
---- a/arch/arm/boot/dts/omap36xx-am35xx-omap3430es2plus-clocks.dtsi
-+++ b/arch/arm/boot/dts/omap36xx-am35xx-omap3430es2plus-clocks.dtsi
-@@ -30,6 +30,8 @@
-                 compatible = "ti,omap3-dpll-clock";
-                 clocks = <&sys_ck>, <&sys_ck>;
-                 reg = <0x0d04>, <0x0d24>, <0x0d34>, <0x0d4c>;
-+               ti,low-power-stop;
-+               ti,lock;
-         };
+>
+> I'm really interested in this all going in - but I would love to see
+> where this is just all patched into a tree already. Pulling things out
+> against a bunch of trees gave me more merge failures and weird
+> happenings than I care to deal with. Is there a TI clock development
+> tree with all this in somewhere publically accessible? I'd like to get
+> a feel for how the DT looks and what's going on, I can't "see" it from
+> the patches. Once it's there.. I'll spend a week or 5 doing all of the
+> i.MX chips and you'll have a second test case for any problems :)
 
-         dpll5_m2_ck: dpll5_m2_ck {
-diff --git a/arch/arm/boot/dts/omap3xxx-clocks.dtsi 
-b/arch/arm/boot/dts/omap3xxx-clocks.dtsi
-index 417bb03..e834b1c 100644
---- a/arch/arm/boot/dts/omap3xxx-clocks.dtsi
-+++ b/arch/arm/boot/dts/omap3xxx-clocks.dtsi
-@@ -335,8 +335,6 @@ cm: cm@48004000 {
-                 compatible = "ti,omap3-dpll-clock";
-                 clocks = <&sys_ck>, <&dpll1_fck>;
-                 reg = <0x0904>, <0x0924>, <0x0934>, <0x0940>;
--               ti,lock;
--               ti,low-power-bypass;
-         };
+Did you try the fully integrated test tree I mentioned in the cover letter?
 
-         dpll1_x2_ck: dpll1_x2_ck {
+tree: https://github.com/t-kristo/linux-pm.git
+branch: 3.12-rc6-dt-clks-v9
+
+This has everything in it, and compiles cleanly.
+
+-Tero
 
