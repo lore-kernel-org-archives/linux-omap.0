@@ -1,83 +1,106 @@
-From: Mauro Carvalho Chehab <m.chehab-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 19/51] DMA-API: media: dt3155v4l: replace
- dma_set_mask()+dma_set_coherent_mask() with new helper
-Date: Thu, 31 Oct 2013 09:46:40 -0200
-Message-ID: <20131031094640.205840a2@samsung.com>
-References: <20130919212235.GD12758@n2100.arm.linux.org.uk>
- <E1VMm13-0007hO-9l@rmk-PC.arm.linux.org.uk> <5249673B.5020705@xs4all.nl>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCHv9 00/43] ARM: TI SoC clock DT conversion
+Date: Thu, 31 Oct 2013 08:55:00 -0500
+Message-ID: <52726134.8040505@ti.com>
+References: <1382716658-6964-1-git-send-email-t-kristo@ti.com> <526FDFF4.9030806@ti.com> <5270C1F3.6000409@ti.com> <52711F12.1090008@ti.com> <52716799.6040002@ti.com> <52721E95.4080806@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-reply-to: <5249673B.5020705-qWit8jRvyhVmR6Xm/wNWPw@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hans Verkuil <hverkuil-qWit8jRvyhVmR6Xm/wNWPw@public.gmane.org>
-Cc: Russell King <rmk+kernel-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, b43-dev-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, e1000-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-crypto-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-ide-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Solarflare linux maintainers <linux-net-drivers-s/n/eUQHGBpZroRs9YW3xA@public.gmane.org>, uclinux-dist-devel-ZG0+EudsQA8dtHy/vicBwGD2FQJk+8+b@public.gmane.org, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Russell King <rmk+kernel@ar>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:47570 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754425Ab3JaNzd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 31 Oct 2013 09:55:33 -0400
+In-Reply-To: <52721E95.4080806@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, bcousson@baylibre.com, rnayak@ti.com, mturquette@linaro.org
+Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-Hi Russell,
-
-Em Mon, 30 Sep 2013 13:57:47 +0200
-Hans Verkuil <hverkuil-qWit8jRvyhVmR6Xm/wNWPw@public.gmane.org> escreveu:
-
-> On 09/19/2013 11:44 PM, Russell King wrote:
-> > Replace the following sequence:
-> > 
-> > 	dma_set_mask(dev, mask);
-> > 	dma_set_coherent_mask(dev, mask);
-> > 
-> > with a call to the new helper dma_set_mask_and_coherent().
-> > 
-> > Signed-off-by: Russell King <rmk+kernel-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
+On 10/31/2013 04:10 AM, Tero Kristo wrote:
+> On 10/30/2013 10:10 PM, Nishanth Menon wrote:
+>> On 10/30/2013 10:00 AM, Nishanth Menon wrote:
+>>> On 10/30/2013 03:23 AM, Tero Kristo wrote:
+>>>> On 10/29/2013 06:19 PM, Nishanth Menon wrote:
+>>>>> On 10/25/2013 10:56 AM, Tero Kristo wrote:
+>>>>> <snip>
+>>>>>> Testing done:
+>>>>>> - omap3-beagle: boot + suspend/resume (ret + off)
+>>>>>> - omap4-panda-es: boot + suspend/resume
+>>>>>> - omap5-uevm: boot
+>>>>>> - dra7-evm: boot
+>>>>>> - am335x-bone: boot
+>>>>>>
+>>>>>> Test branches available:
+>>>>>>
+>>>>>> tree: https://github.com/t-kristo/linux-pm.git
+>>>>>
+>>>>> <snip>
+>>>>>> Fully functioning test branch: 3.12-rc6-dt-clks-v9
+>>>>>>
+>>>>> ^^ I tested this branch (boot testing):
+>>>>> Beagle-XM: http://pastebin.com/50A1qtFq (crashes + clkdm issues, dpll5
+>>>>> failed to transition)
+>>>>
+>>>> I just sent you a private email with a patch to try out, should fix the
+>>>> boot crash at least hopefully. Basically I forgot to convert one part of
+>>>> the kernel to the new regmap stuff for omap36xx.
+>>>
+>>> it does bootup yes.
+>>>>
+>>>> clkdm issues are caused by wrong data in omap_hwmod_3xxx_data.c, USB
+>>>> nodes are listing l3_init_clkdm for them, but this only exists on
+>>>> omap4+. Seems like some copy paste bug introduced by someone.
+>>>>
+>>>> dpll5 part I am not too sure, can you check if the same happens with
+>>>> non-dt boot?
+>>>
+>>> no-dt: http://pastebin.com/bYP9fTzH
+>>> dt: http://pastebin.com/xHup4L9Y
+>>>
+>>> dpll5 warning seems to be only in dt-boot?
+>>>
+>>
+>> Tracked this down: you were missing the following - looks like the
+>> conversion script might be missing converting the flags clock data
+>> over to dts?
+>>
+>> diff --git
+>> a/arch/arm/boot/dts/omap36xx-am35xx-omap3430es2plus-clocks.dtsi
+>> b/arch/arm/boot/dts/omap36xx-am35xx-omap3430es2plus-clocks.dtsi
+>> index 7e37e3e..c9b77c8 100644
+>> --- a/arch/arm/boot/dts/omap36xx-am35xx-omap3430es2plus-clocks.dtsi
+>> +++ b/arch/arm/boot/dts/omap36xx-am35xx-omap3430es2plus-clocks.dtsi
+>> @@ -30,6 +30,7 @@
+>>                  compatible = "ti,omap3-dpll-clock";
+>>                  clocks = <&sys_ck>, <&sys_ck>;
+>>                  reg = <0x0d04>, <0x0d24>, <0x0d34>, <0x0d4c>;
+>> +               ti,low-power-stop;
+>>          };
+>>
+>>          dpll5_m2_ck: dpll5_m2_ck {
+>>
+>>
+>>
 > 
-> Acked-by: Hans Verkuil <hans.verkuil-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+> Yea, seems I introduced the problem with the conversion script changes. 
+> The valid fix for this is actually at the end of this mail (this fixes 
+> both of the problems introduced, and also completes the fix you did), I 
+> will add the fixes to the next rev. 
 
-Somehow, I lost your original post (I got unsubscribed on a few days 
-from all vger mailing lists at the end of september).
+One debug feedback:
+reg = <0x0d04>, <0x0d24>, <0x0d34>, <0x0d4c>;
+clocks = <&sys_ck>, <&sys_ck>;
 
-I suspect that you want to sent this via your tree, right?
-If so:
+we used indexing for varied register and clocks. however the register
+meaning per index changes based on type of DPLL. This was one painful
+thing to track down when debugging. the only robust option to debug
+was to use prints as part of register write/reads to ensure that right
+sequence was being followed.
 
-Acked-by: Mauro Carvalho Chehab <m.chehab-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
-
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> > ---
-> >  drivers/staging/media/dt3155v4l/dt3155v4l.c |    5 +----
-> >  1 files changed, 1 insertions(+), 4 deletions(-)
-> > 
-> > diff --git a/drivers/staging/media/dt3155v4l/dt3155v4l.c b/drivers/staging/media/dt3155v4l/dt3155v4l.c
-> > index 90d6ac4..081407b 100644
-> > --- a/drivers/staging/media/dt3155v4l/dt3155v4l.c
-> > +++ b/drivers/staging/media/dt3155v4l/dt3155v4l.c
-> > @@ -901,10 +901,7 @@ dt3155_probe(struct pci_dev *pdev, const struct pci_device_id *id)
-> >  	int err;
-> >  	struct dt3155_priv *pd;
-> >  
-> > -	err = dma_set_mask(&pdev->dev, DMA_BIT_MASK(32));
-> > -	if (err)
-> > -		return -ENODEV;
-> > -	err = dma_set_coherent_mask(&pdev->dev, DMA_BIT_MASK(32));
-> > +	err = dma_set_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(32));
-> >  	if (err)
-> >  		return -ENODEV;
-> >  	pd = kzalloc(sizeof(*pd), GFP_KERNEL);
-> > 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+I understand based on review comments for dtb size, we have removed
+the names, but we lost sane debug capability as well with that.
 
 -- 
-
-Cheers,
-Mauro
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+Nishanth Menon
