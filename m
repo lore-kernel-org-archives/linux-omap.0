@@ -1,144 +1,84 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCHv9 06/43] CLK: ti: add init support for clock IP blocks
-Date: Thu, 31 Oct 2013 10:42:16 -0500
-Message-ID: <52727A58.9010903@ti.com>
-References: <1382716658-6964-1-git-send-email-t-kristo@ti.com> <1382716658-6964-7-git-send-email-t-kristo@ti.com>
+Subject: Re: [PATCHv9 01/43] clk: Add support for regmap register read/write
+Date: Thu, 31 Oct 2013 10:46:12 -0500
+Message-ID: <52727B44.4020102@ti.com>
+References: <1382716658-6964-1-git-send-email-t-kristo@ti.com> <1382716658-6964-2-git-send-email-t-kristo@ti.com> <52726342.6030406@ti.com> <52726BD5.3080704@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:51748 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:51945 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751638Ab3JaPmn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 31 Oct 2013 11:42:43 -0400
-In-Reply-To: <1382716658-6964-7-git-send-email-t-kristo@ti.com>
+	id S1751189Ab3JaPqh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 31 Oct 2013 11:46:37 -0400
+In-Reply-To: <52726BD5.3080704@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, bcousson@baylibre.com, rnayak@ti.com, mturquette@linaro.org
 Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-On 10/25/2013 10:57 AM, Tero Kristo wrote:
-> ti_dt_clk_init_provider() can now be used to initialize the contents of
-> a single clock IP block. This parses all the clocks under the IP block
-> and calls the corresponding init function for them.
+On 10/31/2013 09:40 AM, Tero Kristo wrote:
+> On 10/31/2013 04:03 PM, Nishanth Menon wrote:
+>> On 10/25/2013 10:56 AM, Tero Kristo wrote:
+>> [...]
+>>> diff --git a/include/linux/clk-provider.h b/include/linux/clk-provider.h
+>>> index 7e59253..63ff78c 100644
+>>> --- a/include/linux/clk-provider.h
+>>> +++ b/include/linux/clk-provider.h
+>>
+>> [...]
+>>> -static inline u32 clk_readl(u32 __iomem *reg)
+>>> +static inline u32 clk_readl(u32 __iomem *reg, struct regmap *regmap)
+>>>   {
+>>> -	return readl(reg);
+>>> +	u32 val;
+>>> +
+>>> +	if (regmap)
+>>> +		regmap_read(regmap, (u32)reg, &val);
+>>> +	else
+>>> +		val = readl(reg);
+>>> +	return val;
+>>>   }
+>>>
+>>> -static inline void clk_writel(u32 val, u32 __iomem *reg)
+>>> +static inline void clk_writel(u32 val, u32 __iomem *reg, struct regmap *regmap)
+>>>   {
+>>> -	writel(val, reg);
+>>> +	if (regmap)
+>>> +		regmap_write(regmap, (u32)reg, val);
+>>> +	else
+>>> +		writel(val, reg);
+>>>   }
+>>>
+>>>   #endif /* CONFIG_COMMON_CLK */
+>>>
+>>
+>> Might it not be better to introduce regmap variants?
+>> static inline void clk_regmap_writel(u32 val, u32 reg, struct regmap
+>> *regmap)
+>> and corresponding readl? that allows cleaner readability for clk
+>> drivers that use regmap and those that dont.
 > 
-> Signed-off-by: Tero Kristo <t-kristo@ti.com>
-> ---
->  drivers/clk/ti/clk.c   |   59 ++++++++++++++++++++++++++++++++++++++++++++++++
->  include/linux/clk/ti.h |    1 +
->  2 files changed, 60 insertions(+)
+> Well, doing that will introduce a lot of redundant code, as the checks 
+> for the presence of regmap must be copied all over the place. With this 
+> patch, all the generic clock drivers support internally both regmap or 
+> non-regmap register accesses.
 > 
-> diff --git a/drivers/clk/ti/clk.c b/drivers/clk/ti/clk.c
-> index ad58b01..7f030d7 100644
-> --- a/drivers/clk/ti/clk.c
-> +++ b/drivers/clk/ti/clk.c
-> @@ -19,6 +19,9 @@
->  #include <linux/clkdev.h>
->  #include <linux/clk/ti.h>
->  #include <linux/of.h>
-> +#include <linux/list.h>
-> +
-> +extern struct of_device_id __clk_of_table[];
->  
->  /**
->   * ti_dt_clocks_register - register DT duplicate clocks during boot
-> @@ -50,3 +53,59 @@ void __init ti_dt_clocks_register(struct ti_dt_clk oclks[])
->  		}
->  	}
->  }
-> +
-> +typedef int (*ti_of_clk_init_cb_t)(struct device_node *, struct regmap *);
-> +
-> +struct clk_init_item {
-> +	struct regmap *regmap;
-> +	struct device_node *np;
-> +	ti_of_clk_init_cb_t init_cb;
-> +	struct list_head node;
-> +};
-> +
-> +static LIST_HEAD(retry_list);
-> +
-> +void __init ti_dt_clk_init_provider(struct device_node *parent,
-> +				    struct regmap *regmap)
-> +{
-> +	const struct of_device_id *match;
-> +	struct device_node *np;
-> +	ti_of_clk_init_cb_t clk_init_cb;
-> +	struct clk_init_item *retry;
-> +	struct clk_init_item *tmp;
-> +	int ret;
-> +
-> +	for_each_child_of_node(parent, np) {
-> +		match = of_match_node(__clk_of_table, np);
-> +		if (!match)
-> +			continue;
-> +		clk_init_cb = match->data;
 
-I must admit I am confused here.
-a) of_clk_init (in the generic clk.c) uses of_clk_init_cb_t as match
-data. The prototype of the generic of_clk_init_cb_t is typedef void
-(*of_clk_init_cb_t)(struct device_node *);
-b) both of_clk_init and ti_dt_clk_init_provider looks up clock nodes
-from __clk_of_table
+using function pointers might be an appropriate solution. in general a
+low level reg access api that uses two different approaches sounds a
+little.. umm.. fishy..
 
-I assume we need ti_dt_clk_init_provider to be always called with
-clock list, as a result of_clk_init(NULL); will never be invoked. This
-is counter productive as you have have generic non SoC clock providers
-as well who would have been invoked with of_clk_init(NULL);
-
-I do strongly encourage using of_clk_init(NULL) and not having to
-switch the clk_init call back with SoC specific one as it forces
-un-intended dependency.
-
-
-Further such as SoC specific callback should have been in a header.
-> +		pr_debug("%s: initializing: %s\n", __func__, np->name);
-
-
-one further comment - using pr_fmt will save us from using __func__
-for every pr_* message :(
-
-> +		ret = clk_init_cb(np, regmap);
-> +		if (ret == -EAGAIN) {
-> +			pr_debug("%s: adding to again list...\n", np->name);
-> +			retry = kzalloc(sizeof(*retry), GFP_KERNEL);
-> +			retry->np = np;
-> +			retry->regmap = regmap;
-> +			retry->init_cb = clk_init_cb;
-> +			list_add(&retry->node, &retry_list);
-> +		} else if (ret) {
-> +			pr_err("%s: clock init failed for %s (%d)!\n", __func__,
-> +			       np->name, ret);
-> +		}
-> +	}
-> +
-> +	list_for_each_entry_safe(retry, tmp, &retry_list, node) {
-> +		pr_debug("%s: retry-init: %s\n", __func__, retry->np->name);
-> +		ret = retry->init_cb(retry->np, retry->regmap);
-> +		if (ret == -EAGAIN) {
-> +			pr_debug("%s failed again?\n", retry->np->name);
-> +		} else {
-> +			if (ret)
-> +				pr_err("%s: clock init failed for %s (%d)!\n",
-> +				       __func__, retry->np->name, ret);
-> +			list_del(&retry->node);
-> +			kfree(retry);
-> +		}
-> +	}
-> +}
-> diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
-> index 9786752..7ab02fa 100644
-> --- a/include/linux/clk/ti.h
-> +++ b/include/linux/clk/ti.h
-> @@ -177,6 +177,7 @@ int omap3_dpll4_set_rate(struct clk_hw *clk, unsigned long rate,
->  			 unsigned long parent_rate);
->  
->  void ti_dt_clocks_register(struct ti_dt_clk *oclks);
-> +void ti_dt_clk_init_provider(struct device_node *np, struct regmap *regmap);
->  
->  extern const struct clk_hw_omap_ops clkhwops_omap3_dpll;
->  extern const struct clk_hw_omap_ops clkhwops_omap4_dpllmx;
+>> regmap can also return error value that could also be handled as a result.
 > 
+> True, however if the regmap fails for the clock code, not sure what we 
+> can do but panic. If this code is expanded, it is probably better to not 
+> inline it anymore.
+> 
+let the compiler deal with that decision. regmap operation fail should
+be percollated back to initiator of the request. in some cases that
+will be ir-recoverable, but on other cases panic might be the right
+answer - at the low level we are in no position to make that distinction.
 
 
 -- 
