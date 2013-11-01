@@ -1,168 +1,233 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv9 06/43] CLK: ti: add init support for clock IP blocks
-Date: Fri, 1 Nov 2013 11:12:53 +0200
-Message-ID: <52737095.10900@ti.com>
-References: <1382716658-6964-1-git-send-email-t-kristo@ti.com> <1382716658-6964-7-git-send-email-t-kristo@ti.com> <52727A58.9010903@ti.com>
+Subject: Re: [PATCHv9 07/43] CLK: TI: add autoidle support
+Date: Fri, 1 Nov 2013 11:18:45 +0200
+Message-ID: <527371F5.9080702@ti.com>
+References: <1382716658-6964-1-git-send-email-t-kristo@ti.com> <1382716658-6964-8-git-send-email-t-kristo@ti.com> <52727FDA.7060009@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:33922 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:34120 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751485Ab3KAJNZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Nov 2013 05:13:25 -0400
-In-Reply-To: <52727A58.9010903@ti.com>
+	with ESMTP id S1753075Ab3KAJTO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Nov 2013 05:19:14 -0400
+In-Reply-To: <52727FDA.7060009@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, bcousson@baylibre.com, rnayak@ti.com, mturquette@linaro.org
 Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-On 10/31/2013 05:42 PM, Nishanth Menon wrote:
+On 10/31/2013 06:05 PM, Nishanth Menon wrote:
 > On 10/25/2013 10:57 AM, Tero Kristo wrote:
->> ti_dt_clk_init_provider() can now be used to initialize the contents of
->> a single clock IP block. This parses all the clocks under the IP block
->> and calls the corresponding init function for them.
+>> TI clk driver now routes some of the basic clocks through own
+>> registration routine to allow autoidle support. This routine just
+>> checks a couple of device node properties and adds autoidle support
+>> if required, and just passes the registration forward to basic clocks.
 >>
 >> Signed-off-by: Tero Kristo <t-kristo@ti.com>
 >> ---
->>   drivers/clk/ti/clk.c   |   59 ++++++++++++++++++++++++++++++++++++++++++++++++
->>   include/linux/clk/ti.h |    1 +
->>   2 files changed, 60 insertions(+)
+>>   arch/arm/mach-omap2/clock.c |    6 +++
+>>   drivers/clk/ti/Makefile     |    2 +-
+>>   drivers/clk/ti/autoidle.c   |  109 +++++++++++++++++++++++++++++++++++++++++++
+>>   include/linux/clk/ti.h      |    9 ++++
+>>   4 files changed, 125 insertions(+), 1 deletion(-)
+>>   create mode 100644 drivers/clk/ti/autoidle.c
 >>
->> diff --git a/drivers/clk/ti/clk.c b/drivers/clk/ti/clk.c
->> index ad58b01..7f030d7 100644
->> --- a/drivers/clk/ti/clk.c
->> +++ b/drivers/clk/ti/clk.c
->> @@ -19,6 +19,9 @@
->>   #include <linux/clkdev.h>
->>   #include <linux/clk/ti.h>
->>   #include <linux/of.h>
->> +#include <linux/list.h>
+>> diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
+>> index 0c38ca9..223f432b 100644
+>> --- a/arch/arm/mach-omap2/clock.c
+>> +++ b/arch/arm/mach-omap2/clock.c
+>> @@ -520,6 +520,9 @@ int omap2_clk_enable_autoidle_all(void)
+>>   	list_for_each_entry(c, &clk_hw_omap_clocks, node)
+>>   		if (c->ops && c->ops->allow_idle)
+>>   			c->ops->allow_idle(c);
 >> +
->> +extern struct of_device_id __clk_of_table[];
->>
->>   /**
->>    * ti_dt_clocks_register - register DT duplicate clocks during boot
->> @@ -50,3 +53,59 @@ void __init ti_dt_clocks_register(struct ti_dt_clk oclks[])
->>   		}
->>   	}
+>> +	of_ti_clk_allow_autoidle_all();
+>> +
+>>   	return 0;
 >>   }
+>>
+>> @@ -539,6 +542,9 @@ int omap2_clk_disable_autoidle_all(void)
+>>   	list_for_each_entry(c, &clk_hw_omap_clocks, node)
+>>   		if (c->ops && c->ops->deny_idle)
+>>   			c->ops->deny_idle(c);
 >> +
->> +typedef int (*ti_of_clk_init_cb_t)(struct device_node *, struct regmap *);
+>> +	of_ti_clk_deny_autoidle_all();
 >> +
->> +struct clk_init_item {
->> +	struct regmap *regmap;
->> +	struct device_node *np;
->> +	ti_of_clk_init_cb_t init_cb;
->> +	struct list_head node;
+>>   	return 0;
+>>   }
+>>
+>> diff --git a/drivers/clk/ti/Makefile b/drivers/clk/ti/Makefile
+>> index 05af5d8..533efb4 100644
+>> --- a/drivers/clk/ti/Makefile
+>> +++ b/drivers/clk/ti/Makefile
+>> @@ -1,3 +1,3 @@
+>>   ifneq ($(CONFIG_OF),)
+>> -obj-y					+= clk.o dpll.o
+>> +obj-y					+= clk.o dpll.o autoidle.o
+>>   endif
+>> diff --git a/drivers/clk/ti/autoidle.c b/drivers/clk/ti/autoidle.c
+>> new file mode 100644
+>> index 0000000..efa2a3e
+>> --- /dev/null
+>> +++ b/drivers/clk/ti/autoidle.c
+>> @@ -0,0 +1,109 @@
+>> +/*
+>> + * TI clock autoidle support
+>> + *
+>> + * Copyright (C) 2013 Texas Instruments, Inc.
+>> + *
+>> + * Tero Kristo <t-kristo@ti.com>
+>> + *
+>> + * This program is free software; you can redistribute it and/or modify
+>> + * it under the terms of the GNU General Public License version 2 as
+>> + * published by the Free Software Foundation.
+>> + *
+>> + * This program is distributed "as is" WITHOUT ANY WARRANTY of any
+>> + * kind, whether express or implied; without even the implied warranty
+>> + * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+>> + * GNU General Public License for more details.
+>> + */
+>> +
+>> +#include <linux/clk-provider.h>
+>> +#include <linux/slab.h>
+>> +#include <linux/io.h>
+>> +#include <linux/of.h>
+>> +#include <linux/of_address.h>
+>> +#include <linux/clk/ti.h>
+>> +
+>> +struct clk_ti_autoidle {
+>> +	u32			reg;
+>> +	struct regmap		*regmap;
+>> +	u8			shift;
+>> +	u8			flags;
+>> +	const char		*name;
+>> +	struct list_head	node;
 >> +};
 >> +
->> +static LIST_HEAD(retry_list);
+>> +#define AUTOIDLE_LOW		0x1
 >> +
->> +void __init ti_dt_clk_init_provider(struct device_node *parent,
->> +				    struct regmap *regmap)
+>> +static LIST_HEAD(autoidle_clks);
+>> +
+>> +static void ti_allow_autoidle(struct clk_ti_autoidle *clk)
 >> +{
->> +	const struct of_device_id *match;
->> +	struct device_node *np;
->> +	ti_of_clk_init_cb_t clk_init_cb;
->> +	struct clk_init_item *retry;
->> +	struct clk_init_item *tmp;
->> +	int ret;
+>> +	u32 val;
 >> +
->> +	for_each_child_of_node(parent, np) {
->> +		match = of_match_node(__clk_of_table, np);
->> +		if (!match)
->> +			continue;
->> +		clk_init_cb = match->data;
->
-> I must admit I am confused here.
+>> +	regmap_read(clk->regmap, clk->reg, &val);
+>> +
+>> +	if (clk->flags & AUTOIDLE_LOW)
+>> +		val &= ~(1 << clk->shift);
+>> +	else
+>> +		val |= (1 << clk->shift);
+>> +
+>> +	regmap_write(clk->regmap, clk->reg, val);
+> regmap_update_bits ?
 
-Yea this patch is something I am not quite comfortable myself yet and 
-would like improvement ideas....
+Hmm yea that would work.
 
-> a) of_clk_init (in the generic clk.c) uses of_clk_init_cb_t as match
-> data. The prototype of the generic of_clk_init_cb_t is typedef void
-> (*of_clk_init_cb_t)(struct device_node *);
-> b) both of_clk_init and ti_dt_clk_init_provider looks up clock nodes
-> from __clk_of_table
+>> +}
+>> +
+>> +static void ti_deny_autoidle(struct clk_ti_autoidle *clk)
+>> +{
+>> +	u32 val;
+>> +
+>> +	regmap_read(clk->regmap, clk->reg, &val);
+>> +
+>> +	if (clk->flags & AUTOIDLE_LOW)
+>> +		val |= (1 << clk->shift);
+>> +	else
+>> +		val &= ~(1 << clk->shift);
+>> +
+>> +	regmap_write(clk->regmap, clk->reg, val);
+> regmap_update_bits ?
 
-__clk_of_table contains the function pointers for the clock init 
-functions, not clock nodes.
-
->
-> I assume we need ti_dt_clk_init_provider to be always called with
-> clock list, as a result of_clk_init(NULL); will never be invoked. This
-> is counter productive as you have have generic non SoC clock providers
-> as well who would have been invoked with of_clk_init(NULL);
-
-Can't call of_clk_init(NULL) anymore, as Paul wants to map the clock 
-nodes under respective IP blocks. Two reasons here:
-
-a) This requires me to pass some info from the IP block (CM1/CM2/PRM) to 
-the clock init functions, basically the pointer to the memory map region 
-(regmap.)
-b) of_clk_init(NULL) will initialize all the clock nodes in the system, 
-irrespective of the hierarchy considerations.
-
-Only thing that can be done, is to make the API introduced in this patch 
-a generic API and call it something like of_clk_init_children().
+Same.
 
 >
-> I do strongly encourage using of_clk_init(NULL) and not having to
-> switch the clk_init call back with SoC specific one as it forces
-> un-intended dependency.
+> and ofcourse error handling for regmap ops..
 
-Can't do this as mentioned above.
+What do you propose to do in error case? Panic, WARN() or just printk?
 
 >
+>> +}
+>> +
+>> +void of_ti_clk_allow_autoidle_all(void)
+>> +{
+>> +	struct clk_ti_autoidle *c;
+>> +
+>> +	list_for_each_entry(c, &autoidle_clks, node)
+>> +		ti_allow_autoidle(c);
+>> +}
+>> +
+>> +void of_ti_clk_deny_autoidle_all(void)
+>> +{
+>> +	struct clk_ti_autoidle *c;
+>> +
+>> +	list_for_each_entry(c, &autoidle_clks, node)
+>> +		ti_deny_autoidle(c);
+>> +}
+>> +
+>> +int __init of_ti_autoidle_setup(struct device_node *node,
+>> +				struct regmap *regmap)
 >
-> Further such as SoC specific callback should have been in a header.
->> +		pr_debug("%s: initializing: %s\n", __func__, np->name);
->
->
-> one further comment - using pr_fmt will save us from using __func__
-> for every pr_* message :(
+> will be nice if you could kernel-doc all public functions at the very
+> least.
 
-Hmm good comment, will fix that for next rev.
+Ok, I can try to do that for next. :P
 
 >
->> +		ret = clk_init_cb(np, regmap);
->> +		if (ret == -EAGAIN) {
->> +			pr_debug("%s: adding to again list...\n", np->name);
->> +			retry = kzalloc(sizeof(*retry), GFP_KERNEL);
->> +			retry->np = np;
->> +			retry->regmap = regmap;
->> +			retry->init_cb = clk_init_cb;
->> +			list_add(&retry->node, &retry_list);
->> +		} else if (ret) {
->> +			pr_err("%s: clock init failed for %s (%d)!\n", __func__,
->> +			       np->name, ret);
->> +		}
+>> +{
+>> +	u32 shift;
+>> +	struct clk_ti_autoidle *clk;
+>> +
+>> +	if (of_property_read_u32(node, "ti,autoidle-shift", &shift))
+>> +		return 0;
+>> +
+>> +	clk = kzalloc(sizeof(*clk), GFP_KERNEL);
+>> +
+>> +	if (!clk) {
+>> +		pr_err("%s: kzalloc failed\n", __func__);
+>> +		return -ENOMEM;
 >> +	}
 >> +
->> +	list_for_each_entry_safe(retry, tmp, &retry_list, node) {
->> +		pr_debug("%s: retry-init: %s\n", __func__, retry->np->name);
->> +		ret = retry->init_cb(retry->np, retry->regmap);
->> +		if (ret == -EAGAIN) {
->> +			pr_debug("%s failed again?\n", retry->np->name);
->> +		} else {
->> +			if (ret)
->> +				pr_err("%s: clock init failed for %s (%d)!\n",
->> +				       __func__, retry->np->name, ret);
->> +			list_del(&retry->node);
->> +			kfree(retry);
->> +		}
->> +	}
+>> +	clk->shift = shift;
+>> +	clk->name = node->name;
+>> +	of_property_read_u32(node, "reg", &clk->reg);
+>
+> dt binding?
+> what happens if someone forgets this?
+
+You get zero offset.
+
+I can add a check for this though.
+
+>
+>> +	clk->regmap = regmap;
+>> +
+>> +	if (of_property_read_bool(node, "ti,invert-autoidle-bit"))
+>> +		clk->flags |= AUTOIDLE_LOW;
+>> +
+>> +	list_add(&clk->node, &autoidle_clks);
+>> +
+>> +	return 0;
 >> +}
 >> diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
->> index 9786752..7ab02fa 100644
+>> index 7ab02fa..e45005c 100644
 >> --- a/include/linux/clk/ti.h
 >> +++ b/include/linux/clk/ti.h
->> @@ -177,6 +177,7 @@ int omap3_dpll4_set_rate(struct clk_hw *clk, unsigned long rate,
->>   			 unsigned long parent_rate);
+>> @@ -178,6 +178,15 @@ int omap3_dpll4_set_rate(struct clk_hw *clk, unsigned long rate,
 >>
 >>   void ti_dt_clocks_register(struct ti_dt_clk *oclks);
->> +void ti_dt_clk_init_provider(struct device_node *np, struct regmap *regmap);
+>>   void ti_dt_clk_init_provider(struct device_node *np, struct regmap *regmap);
+>> +int of_ti_autoidle_setup(struct device_node *node, struct regmap *regmap);
+>> +
+>> +#ifdef CONFIG_OF
+>> +void of_ti_clk_allow_autoidle_all(void);
+>> +void of_ti_clk_deny_autoidle_all(void);
+>> +#else
+>> +static inline void of_ti_clk_allow_autoidle_all(void) { }
+>> +static inline void of_ti_clk_deny_autoidle_all(void) { }
+>> +#endif
 >>
 >>   extern const struct clk_hw_omap_ops clkhwops_omap3_dpll;
 >>   extern const struct clk_hw_omap_ops clkhwops_omap4_dpllmx;
