@@ -1,79 +1,115 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv9 07/43] CLK: TI: add autoidle support
-Date: Fri, 1 Nov 2013 11:18:45 +0200
-Message-ID: <527371F5.9080702@ti.com>
-References: <1382716658-6964-1-git-send-email-t-kristo@ti.com> <1382716658-6964-8-git-send-email-t-kristo@ti.com> <52727FDA.7060009@ti.com>
+Subject: Re: [PATCHv9 08/43] clk: ti: add composite clock support
+Date: Fri, 1 Nov 2013 11:35:55 +0200
+Message-ID: <527375FB.2000905@ti.com>
+References: <1382716658-6964-1-git-send-email-t-kristo@ti.com> <1382716658-6964-9-git-send-email-t-kristo@ti.com> <527284DC.2070701@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:34120 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753075Ab3KAJTO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Nov 2013 05:19:14 -0400
-In-Reply-To: <52727FDA.7060009@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:56220 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751380Ab3KAJg1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 1 Nov 2013 05:36:27 -0400
+In-Reply-To: <527284DC.2070701@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, bcousson@baylibre.com, rnayak@ti.com, mturquette@linaro.org
 Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-On 10/31/2013 06:05 PM, Nishanth Menon wrote:
+On 10/31/2013 06:27 PM, Nishanth Menon wrote:
 > On 10/25/2013 10:57 AM, Tero Kristo wrote:
->> TI clk driver now routes some of the basic clocks through own
->> registration routine to allow autoidle support. This routine just
->> checks a couple of device node properties and adds autoidle support
->> if required, and just passes the registration forward to basic clocks.
+>> This is a multipurpose clock node, which contains support for multiple
+>> sub-clocks. Uses basic composite clock type to implement the actual
+>> functionality, and TI specific gate, mux and divider clocks.
 >>
 >> Signed-off-by: Tero Kristo <t-kristo@ti.com>
 >> ---
->>   arch/arm/mach-omap2/clock.c |    6 +++
->>   drivers/clk/ti/Makefile     |    2 +-
->>   drivers/clk/ti/autoidle.c   |  109 +++++++++++++++++++++++++++++++++++++++++++
->>   include/linux/clk/ti.h      |    9 ++++
->>   4 files changed, 125 insertions(+), 1 deletion(-)
->>   create mode 100644 drivers/clk/ti/autoidle.c
+>>   .../devicetree/bindings/clock/ti/composite.txt     |   54 +++++
+>>   drivers/clk/ti/Makefile                            |    2 +-
+>>   drivers/clk/ti/composite.c                         |  222 ++++++++++++++++++++
+>>   include/linux/clk/ti.h                             |    8 +
+>>   4 files changed, 285 insertions(+), 1 deletion(-)
+>>   create mode 100644 Documentation/devicetree/bindings/clock/ti/composite.txt
+>>   create mode 100644 drivers/clk/ti/composite.c
 >>
->> diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
->> index 0c38ca9..223f432b 100644
->> --- a/arch/arm/mach-omap2/clock.c
->> +++ b/arch/arm/mach-omap2/clock.c
->> @@ -520,6 +520,9 @@ int omap2_clk_enable_autoidle_all(void)
->>   	list_for_each_entry(c, &clk_hw_omap_clocks, node)
->>   		if (c->ops && c->ops->allow_idle)
->>   			c->ops->allow_idle(c);
+>> diff --git a/Documentation/devicetree/bindings/clock/ti/composite.txt b/Documentation/devicetree/bindings/clock/ti/composite.txt
+>> new file mode 100644
+>> index 0000000..5f43c47
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/clock/ti/composite.txt
+>> @@ -0,0 +1,54 @@
+>> +Binding for TI composite clock.
 >> +
->> +	of_ti_clk_allow_autoidle_all();
+>> +Binding status: Unstable - ABI compatibility may be broken in the future
 >> +
->>   	return 0;
->>   }
->>
->> @@ -539,6 +542,9 @@ int omap2_clk_disable_autoidle_all(void)
->>   	list_for_each_entry(c, &clk_hw_omap_clocks, node)
->>   		if (c->ops && c->ops->deny_idle)
->>   			c->ops->deny_idle(c);
+>> +This binding uses the common clock binding[1]. It assumes a
+>> +register-mapped composite clock with multiple different sub-types;
 >> +
->> +	of_ti_clk_deny_autoidle_all();
+>> +a multiplexer clock with multiple input clock signals or parents, one
+>> +of which can be selected as output, this behaves exactly as [2]
 >> +
->>   	return 0;
->>   }
->>
+>> +an adjustable clock rate divider, this behaves exactly as [3]
+>> +
+>> +a gating function which can be used to enable and disable the output
+>> +clock, this behaves exactly as [4]
+>> +
+>> +The binding must provide a list of the component clocks that shall be
+>> +merged to this clock. The component clocks shall be of one of the
+>> +"ti,*composite*-clock" types.
+>> +
+>> +[1] Documentation/devicetree/bindings/clock/clock-bindings.txt
+>> +[2] Documentation/devicetree/bindings/clock/ti/mux.txt
+>> +[3] Documentation/devicetree/bindings/clock/ti/divider.txt
+>> +[4] Documentation/devicetree/bindings/clock/ti/gate.txt
+>> +
+>> +Required properties:
+>> +- compatible : shall be: "ti,composite-clock"
+>> +- clocks : link phandles of component clocks
+>> +- #clock-cells : from common clock binding; shall be set to 0.
+>> +
+>> +Examples:
+>> +
+>> +usb_l4_gate_ick: usb_l4_gate_ick {
+>> +	#clock-cells = <0>;
+>> +	compatible = "ti,composite-interface-clock";
+>> +	clocks = <&l4_ick>;
+>> +	ti,bit-shift = <5>;
+>> +	reg = <0x0a10>;
+>> +};
+>> +
+>> +usb_l4_div_ick: usb_l4_div_ick {
+>> +	#clock-cells = <0>;
+>> +	compatible = "ti,composite-divider-clock";
+>> +	clocks = <&l4_ick>;
+>> +	ti,bit-shift = <4>;
+>> +	ti,max-div = <1>;
+>> +	reg = <0x0a40>;
+>> +	ti,index-starts-at-one;
+>> +};
+>> +
+>> +usb_l4_ick: usb_l4_ick {
+>> +	#clock-cells = <0>;
+>> +	compatible = "ti,composite-clock";
+>> +	clocks = <&usb_l4_gate_ick>, <&usb_l4_div_ick>;
+>> +};
 >> diff --git a/drivers/clk/ti/Makefile b/drivers/clk/ti/Makefile
->> index 05af5d8..533efb4 100644
+>> index 533efb4..a4a7595 100644
 >> --- a/drivers/clk/ti/Makefile
 >> +++ b/drivers/clk/ti/Makefile
 >> @@ -1,3 +1,3 @@
 >>   ifneq ($(CONFIG_OF),)
->> -obj-y					+= clk.o dpll.o
->> +obj-y					+= clk.o dpll.o autoidle.o
+>> -obj-y					+= clk.o dpll.o autoidle.o
+>> +obj-y					+= clk.o dpll.o autoidle.o composite.o
 >>   endif
->> diff --git a/drivers/clk/ti/autoidle.c b/drivers/clk/ti/autoidle.c
+>> diff --git a/drivers/clk/ti/composite.c b/drivers/clk/ti/composite.c
 >> new file mode 100644
->> index 0000000..efa2a3e
+>> index 0000000..9ce7e54
 >> --- /dev/null
->> +++ b/drivers/clk/ti/autoidle.c
->> @@ -0,0 +1,109 @@
+>> +++ b/drivers/clk/ti/composite.c
+>> @@ -0,0 +1,222 @@
 >> +/*
->> + * TI clock autoidle support
+>> + * TI composite clock support
 >> + *
 >> + * Copyright (C) 2013 Texas Instruments, Inc.
 >> + *
@@ -95,142 +131,296 @@ On 10/31/2013 06:05 PM, Nishanth Menon wrote:
 >> +#include <linux/of.h>
 >> +#include <linux/of_address.h>
 >> +#include <linux/clk/ti.h>
+>> +#include <linux/list.h>
 >> +
->> +struct clk_ti_autoidle {
->> +	u32			reg;
->> +	struct regmap		*regmap;
->> +	u8			shift;
->> +	u8			flags;
->> +	const char		*name;
->> +	struct list_head	node;
+>> +#define to_clk_divider(_hw) container_of(_hw, struct clk_divider, hw)
+>> +
+>> +static unsigned long ti_composite_recalc_rate(struct clk_hw *hw,
+>> +					      unsigned long parent_rate)
+>> +{
+>> +	return clk_divider_ops.recalc_rate(hw, parent_rate);
+>> +}
+>> +
+>> +static long ti_composite_round_rate(struct clk_hw *hw, unsigned long rate,
+>> +				    unsigned long *prate)
+>> +{
+>> +	return -EINVAL;
+>> +}
+>> +
+>> +static int ti_composite_set_rate(struct clk_hw *hw, unsigned long rate,
+>> +				 unsigned long parent_rate)
+>> +{
+>> +	return -EINVAL;
+>> +}
+>> +
+>> +static const struct clk_ops ti_composite_divider_ops = {
+>> +	.recalc_rate	= &ti_composite_recalc_rate,
+>> +	.round_rate	= &ti_composite_round_rate,
+>> +	.set_rate	= &ti_composite_set_rate,
 >> +};
 >> +
->> +#define AUTOIDLE_LOW		0x1
+>> +static const struct clk_ops ti_composite_gate_ops = {
+>> +	.enable		= &omap2_dflt_clk_enable,
+>> +	.disable	= &omap2_dflt_clk_disable,
+>> +	.is_enabled	= &omap2_dflt_clk_is_enabled,
+>> +};
 >> +
->> +static LIST_HEAD(autoidle_clks);
+>> +struct component_clk {
+>> +	int num_parents;
+>> +	const char **parent_names;
+>> +	struct device_node *node;
+>> +	int type;
+>> +	struct clk_hw *hw;
+>> +	struct list_head link;
+>> +};
 >> +
->> +static void ti_allow_autoidle(struct clk_ti_autoidle *clk)
->> +{
->> +	u32 val;
->> +
->> +	regmap_read(clk->regmap, clk->reg, &val);
->> +
->> +	if (clk->flags & AUTOIDLE_LOW)
->> +		val &= ~(1 << clk->shift);
->> +	else
->> +		val |= (1 << clk->shift);
->> +
->> +	regmap_write(clk->regmap, clk->reg, val);
-> regmap_update_bits ?
+>> +static const char * __initdata component_clk_types[] = {
+> [CLK_COMPONENT_TYPE_MAX]?
 
-Hmm yea that would work.
-
->> +}
->> +
->> +static void ti_deny_autoidle(struct clk_ti_autoidle *clk)
->> +{
->> +	u32 val;
->> +
->> +	regmap_read(clk->regmap, clk->reg, &val);
->> +
->> +	if (clk->flags & AUTOIDLE_LOW)
->> +		val |= (1 << clk->shift);
->> +	else
->> +		val &= ~(1 << clk->shift);
->> +
->> +	regmap_write(clk->regmap, clk->reg, val);
-> regmap_update_bits ?
-
-Same.
+Yea can add a enum for that, good for the rest of the points listed for 
+this.
 
 >
-> and ofcourse error handling for regmap ops..
-
-What do you propose to do in error case? Panic, WARN() or just printk?
-
->
+>> +	"mux", "gate", "divider",
+>> +};
+>> +
+>> +static LIST_HEAD(component_clks);
+>> +
+>> +static struct component_clk *_lookup_component(struct device_node *node, int i)
+>> +{
+>> +	int rc;
+>> +	struct of_phandle_args clkspec;
+>> +	struct component_clk *comp;
+>> +
+>> +	rc = of_parse_phandle_with_args(node, "clocks", "#clock-cells", i,
+>> +					&clkspec);
+>> +	if (rc)
+>> +		return NULL;
+>> +
+>> +	list_for_each_entry(comp, &component_clks, link) {
+>> +		if (comp->node == clkspec.np)
+>> +			return comp;
+>> +	}
+>> +	return NULL;
 >> +}
 >> +
->> +void of_ti_clk_allow_autoidle_all(void)
+>> +static inline struct clk_hw *_get_hw(struct component_clk *clk)
 >> +{
->> +	struct clk_ti_autoidle *c;
+>> +	if (clk)
+>> +		return clk->hw;
 >> +
->> +	list_for_each_entry(c, &autoidle_clks, node)
->> +		ti_allow_autoidle(c);
+>> +	return NULL;
 >> +}
 >> +
->> +void of_ti_clk_deny_autoidle_all(void)
+>> +static int __init of_ti_composite_clk_setup(struct device_node *node,
+>> +					    struct regmap *regmap)
 >> +{
->> +	struct clk_ti_autoidle *c;
+>> +	int num_clks;
+>> +	int i;
+>> +	struct clk *clk;
+>> +	struct component_clk *comp;
+>> +	struct component_clk *clks[3] = { NULL };
+> sizeof(component_clk_types) or CLK_COMPONENT_TYPE_MAX instead of 3?
+
+TYPE_MAX sounds good to me.
+
+>> +	const char *name = node->name;
+>> +	int num_parents = 0;
+>> +	const char **parent_names = NULL;
+>> +	int ret = 0;
 >> +
->> +	list_for_each_entry(c, &autoidle_clks, node)
->> +		ti_deny_autoidle(c);
+>> +	/* Number of component clocks to be put inside this clock */
+>> +	num_clks = of_clk_get_parent_count(node);
+>> +
+>> +	if (num_clks < 1) {
+>> +		pr_err("%s: ti composite clk %s must have component(s)\n",
+>> +		       __func__, name);
+>
+> using pr_fmt will reduce the pr_err code.
+
+True.
+
+>
+>> +		return -EINVAL;
+>> +	}
+>> +
+>> +	/* Check for presence of each component clock */
+>> +	for (i = 0; i < num_clks; i++) {
+>> +		comp = _lookup_component(node, i);
+>> +		if (!comp)
+>> +			return -EAGAIN;
+>> +		if (clks[comp->type] != NULL) {
+>> +			pr_err("%s: duplicate component types for %s (%s)!\n",
+>> +			       __func__, name, component_clk_types[comp->type]);
+>> +			return -EINVAL;
+> would you not want to do a cleanup of the list here?
+
+Might be a good idea yea.
+
+>
+>> +		}
+>> +		clks[comp->type] = comp;
+>> +	}
+>> +
+>> +	/* All components exists, proceed with registration */
+>> +	for (i = 0; i < 3; i++) {
+> CLK_COMPONENT_TYPE_MAX instead
+
+Yup.
+
+>> +		if (!clks[i])
+>> +			continue;
+>> +		if (clks[i]->num_parents) {
+>> +			num_parents = clks[i]->num_parents;
+>> +			parent_names = clks[i]->parent_names;
+>> +		}
+>> +	}
+>> +
+>> +	/* Enforce mux parents if exists */
+>> +	comp = clks[CLK_COMPONENT_TYPE_MUX];
+>> +	if (comp) {
+>> +		num_parents = comp->num_parents;
+>> +		parent_names = comp->parent_names;
+>> +	}
+> you could move the for loop in the else case and reduce the loops to
+> CLK_COMPONENT_TYPE_MUX+1 to CLK_COMPONENT_TYPE_MAX.
+
+Oh yea, good idea, wonder why I overlooked this.
+
+>
+>> +
+>> +	if (!num_parents) {
+>> +		pr_err("%s: no parents found for %s!\n", __func__,
+>> +		       name);
+>> +		return -EINVAL;
+>
+> would you not want to do a cleanup of the list here?
+
+Again, I think yes we would want to.
+
+>
+>> +	}
+>> +
+>> +	clk = clk_register_composite(NULL, name, parent_names, num_parents,
+>> +				     _get_hw(clks[CLK_COMPONENT_TYPE_MUX]),
+>> +				     &clk_mux_ops,
+>> +				     _get_hw(clks[CLK_COMPONENT_TYPE_DIVIDER]),
+>> +				     &ti_composite_divider_ops,
+>> +				     _get_hw(clks[CLK_COMPONENT_TYPE_GATE]),
+>> +				     &ti_composite_gate_ops, 0);
+>> +
+>> +	if (!IS_ERR(clk)) {
+>> +		of_clk_add_provider(node, of_clk_src_simple_get, clk);
+>> +		goto cleanup;
+>> +	}
+>> +
+>> +	ret = PTR_ERR(clk);
+>> +cleanup:
+>> +	/* Free component clock list entries */
+>> +	for (i = 0; i < 3; i++) {
+>> +		if (!clks[i])
+>> +			continue;
+>> +		list_del(&clks[i]->link);
+>> +		kfree(clks[i]);
+>> +	}
+>
+> could you not just do a kfree(clks[i]) and set the component_clks to NULL?
+>
+> Further, if there are only 3 clocks that can ever be present and we do
+> not allow for duplicates types, could we not do those checks in
+> ti_clk_add_component instead of having a harder recovery in setup of
+> composite clk?
+
+The list is shared between all composite clocks, as we don't have 
+knowledge into which clock each component will go to at the time of the 
+component registration. Consider this setup (comp = component):
+
+comp-a1
+comp-a2
+composite-a : comp-a1 + comp-a2
+comp-b1
+comp-b2
+comp-b3
+composite-b : comp-b1 + comp-b2 + comp-b3
+
+Depending on clock init order, we will potentially have 5 components in 
+the list at max, which of 2 + 2 are of same type.
+
+>
+>> +
+>> +	return ret;
 >> +}
+>> +CLK_OF_DECLARE(ti_composite_clock, "ti,composite-clock",
+>> +	       of_ti_composite_clk_setup);
 >> +
->> +int __init of_ti_autoidle_setup(struct device_node *node,
->> +				struct regmap *regmap)
->
-> will be nice if you could kernel-doc all public functions at the very
-> least.
-
-Ok, I can try to do that for next. :P
-
->
+>> +int __init ti_clk_add_component(struct device_node *node, struct clk_hw *hw,
+>> +				int type)
 >> +{
->> +	u32 shift;
->> +	struct clk_ti_autoidle *clk;
+>> +	int num_parents;
+>> +	const char **parent_names;
+>> +	struct component_clk *clk;
+>> +	int i;
 >> +
->> +	if (of_property_read_u32(node, "ti,autoidle-shift", &shift))
->> +		return 0;
+>> +	num_parents = of_clk_get_parent_count(node);
+>> +
+>> +	if (num_parents < 1) {
+>> +		pr_err("%s: component-clock %s must have parent(s)\n", __func__,
+>> +		       node->name);
+>> +		return -EINVAL;
+>> +	}
+>> +
+>> +	parent_names = kzalloc((sizeof(char *) * num_parents), GFP_KERNEL);
+>> +	if (!parent_names)
+>> +		return -ENOMEM;
+>> +
+>> +	for (i = 0; i < num_parents; i++)
+>> +		parent_names[i] = of_clk_get_parent_name(node, i);
 >> +
 >> +	clk = kzalloc(sizeof(*clk), GFP_KERNEL);
->> +
 >> +	if (!clk) {
->> +		pr_err("%s: kzalloc failed\n", __func__);
+>> +		kfree(parent_names);
 >> +		return -ENOMEM;
 >> +	}
 >> +
->> +	clk->shift = shift;
->> +	clk->name = node->name;
->> +	of_property_read_u32(node, "reg", &clk->reg);
->
-> dt binding?
-> what happens if someone forgets this?
-
-You get zero offset.
-
-I can add a check for this though.
-
->
->> +	clk->regmap = regmap;
->> +
->> +	if (of_property_read_bool(node, "ti,invert-autoidle-bit"))
->> +		clk->flags |= AUTOIDLE_LOW;
->> +
->> +	list_add(&clk->node, &autoidle_clks);
+>> +	clk->num_parents = num_parents;
+>> +	clk->parent_names = parent_names;
+>> +	clk->hw = hw;
+>> +	clk->node = node;
+>> +	clk->type = type;
+>> +	list_add(&clk->link, &component_clks);
 >> +
 >> +	return 0;
 >> +}
 >> diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
->> index 7ab02fa..e45005c 100644
+>> index e45005c..96c9725 100644
 >> --- a/include/linux/clk/ti.h
 >> +++ b/include/linux/clk/ti.h
->> @@ -178,6 +178,15 @@ int omap3_dpll4_set_rate(struct clk_hw *clk, unsigned long rate,
+>> @@ -137,6 +137,13 @@ struct clk_hw_omap {
+>>   /* DPLL Type and DCO Selection Flags */
+>>   #define DPLL_J_TYPE		0x1
 >>
+>> +/* Composite clock component types */
+>> +enum {
+>> +	CLK_COMPONENT_TYPE_MUX = 0,
+>> +	CLK_COMPONENT_TYPE_GATE,
+>> +	CLK_COMPONENT_TYPE_DIVIDER
+> adding a CLK_COMPONENT_TYPE_MAX will allow a better implementation
+
+Yea, and need to move MUX as last entry for one of the above comments.
+
+>> +};
+>> +
+>>   /**
+>>    * struct ti_dt_clk - OMAP DT clock alias declarations
+>>    * @lk: clock lookup definition
+>> @@ -179,6 +186,7 @@ int omap3_dpll4_set_rate(struct clk_hw *clk, unsigned long rate,
 >>   void ti_dt_clocks_register(struct ti_dt_clk *oclks);
 >>   void ti_dt_clk_init_provider(struct device_node *np, struct regmap *regmap);
->> +int of_ti_autoidle_setup(struct device_node *node, struct regmap *regmap);
->> +
->> +#ifdef CONFIG_OF
->> +void of_ti_clk_allow_autoidle_all(void);
->> +void of_ti_clk_deny_autoidle_all(void);
->> +#else
->> +static inline void of_ti_clk_allow_autoidle_all(void) { }
->> +static inline void of_ti_clk_deny_autoidle_all(void) { }
->> +#endif
+>>   int of_ti_autoidle_setup(struct device_node *node, struct regmap *regmap);
+>> +int ti_clk_add_component(struct device_node *node, struct clk_hw *hw, int type);
 >>
->>   extern const struct clk_hw_omap_ops clkhwops_omap3_dpll;
->>   extern const struct clk_hw_omap_ops clkhwops_omap4_dpllmx;
+>>   #ifdef CONFIG_OF
+>>   void of_ti_clk_allow_autoidle_all(void);
 >>
 >
 >
