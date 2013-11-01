@@ -1,63 +1,42 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCHv9 09/43] CLK: ti: add support for ti divider-clock
-Date: Fri, 1 Nov 2013 14:35:31 -0500
-Message-ID: <52740283.8040201@ti.com>
-References: <1382716658-6964-1-git-send-email-t-kristo@ti.com> <1382716658-6964-10-git-send-email-t-kristo@ti.com> <52729B50.5060503@ti.com> <527378FF.6020905@ti.com> <52737A73.5010700@ti.com>
+From: "Gupta, Pekon" <pekon@ti.com>
+Subject: RE: [PATCH v11 00/10] [PATCH v10 00/10] mtd:nand:omap2: clean-up of
+ supported ECC schemes
+Date: Fri, 1 Nov 2013 20:10:55 +0000
+Message-ID: <20980858CB6D3A4BAE95CA194937D5E73EA2DAD3@DBDE04.ent.ti.com>
+References: <1382619026-4182-1-git-send-email-pekon@ti.com>
+ <20131024135258.GC9958@localhost>
+ <CAN8TOE_KQxW4-6KgjQDczyB31wmYB_y9Tirxa34GWQGgY39sNQ@mail.gmail.com>
+ <20131031212348.GK15154@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:52779 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:60909 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752343Ab3KATf7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 1 Nov 2013 15:35:59 -0400
-In-Reply-To: <52737A73.5010700@ti.com>
+	id S1751785Ab3KAUMH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Nov 2013 16:12:07 -0400
+In-Reply-To: <20131031212348.GK15154@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, bcousson@baylibre.com, rnayak@ti.com, mturquette@linaro.org
-Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Brian Norris <computersforpeace@gmail.com>
+Cc: Mark Rutland <mark.rutland@arm.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Arnd Bergmann <arnd@arndb.de>, Pawel Moll <Pawel.Moll@arm.com>, Artem Bityutskiy <dedekind1@gmail.com>, Avinash Philip <avinashphilipk@gmail.com>, Stephen Warren <swarren@wwwdotorg.org>, "jp.francois@cynove.com" <jp.francois@cynove.com>, "Balbi, Felipe" <balbi@ti.com>, Rob Herring <robherring2@gmail.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, "olof@lixom.net" <olof@lixom.net>, Benoit Cousson <bcousson@baylibre.com>, Ivan Djelic <ivan.djelic@parrot.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, David Woodhouse <dwmw2@infradead.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>
 
-On 11/01/2013 04:54 AM, Tero Kristo wrote:
-> On 11/01/2013 11:48 AM, Tero Kristo wrote:
->> On 10/31/2013 08:02 PM, Nishanth Menon wrote:
->>> On 10/25/2013 10:57 AM, Tero Kristo wrote:
+Hi Tony,
 
-[...]
->>>> diff --git a/drivers/clk/ti/divider.c b/drivers/clk/ti/divider.c
->>>> new file mode 100644
->>>> index 0000000..787bc8f
->>>> --- /dev/null
->>>> +++ b/drivers/clk/ti/divider.c
-
-[...]
->>>> +    if (!IS_ERR(clk)) {
->>>> +        of_clk_add_provider(node, of_clk_src_simple_get, clk);
->>>> +        ret = of_ti_autoidle_setup(node, regmap);
->>>
->>> if this fails, table will be freed though, we have added provider and
->>> registerd table_regmap, no?
->>
->> Provider and regmap are shared for the whole IP block (CM/PRM whatever.)
->> Those are only initialized once.
+> From: Tony Lindgren
+> > * Brian Norris <computersforpeace@gmail.com> [131029 21:00]:
+> > Tony, you mentioned the DTS update in patch 8 going in via an ARM
+> > tree? This patch is not urgent, and it should probably wait until we
+> > know what release the rest of the series makes it into. This may
+> > depend on David Woodhouse's recommendation, but I'm not sure this
+> > series will have enough time baking in linux-next before entering
+> > mainline in 3.13 (the merge window is approaching).
 > 
-> Some minor confusion here in my comment, sorry about that.
+> Yes Benoit or I can apply that patch if Pekon pings me or resends
+> that patch when it's OK to merge it.
 > 
-> Regmap is shared for the whole IP block and initialized only once, we 
-> can't remove it here as it is not owned by this clock. For 
-> clock-provider / unregister part, I don't want to clean those up as 1) 
-> unregister doesn't currently do anything 2) autoidle setup is not 
-> critical failure, it just breaks PM. I can add error print for it though.
+Yes, I'll keep track of this and would resend you and Benoit the .dts patch
+separately when this these binding updates are merged in kernel.
 
-Would IP blocks driven by clocks work with the autoidle configuration
-broken? I believe we will be writing to DPLL_XYZ_GATE_CTRL? the usage
-I believe is around
-of_ti_clk_deny_autoidle_all/of_ti_clk_allow_autoidle_all which gets
-invoked in omap2_clk_disable_autoidle_all part of xyz SoC init call.
-is'nt the reason we do that to ensure we have no potential race when
-clocks dissapear on their own without explicit control in critical
-configuration paths?
-
-
--- 
-Regards,
-Nishanth Menon
+with regards, pekon
