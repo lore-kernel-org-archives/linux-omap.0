@@ -1,18 +1,17 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCHv9 38/43] ARM: OMAP2+: PRM: add support for initializing
- PRCM clock modules from DT
-Date: Fri, 1 Nov 2013 16:07:36 -0500
-Message-ID: <52741818.2000507@ti.com>
-References: <1382716658-6964-1-git-send-email-t-kristo@ti.com> <1382716658-6964-39-git-send-email-t-kristo@ti.com>
+Subject: Re: [PATCHv9 33/43] ARM: dts: am43xx clock data
+Date: Fri, 1 Nov 2013 16:16:28 -0500
+Message-ID: <52741A2C.1000707@ti.com>
+References: <1382716658-6964-1-git-send-email-t-kristo@ti.com> <1382716658-6964-34-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:35783 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753060Ab3KAVIC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 1 Nov 2013 17:08:02 -0400
-In-Reply-To: <1382716658-6964-39-git-send-email-t-kristo@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:34798 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752603Ab3KAVQz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Nov 2013 17:16:55 -0400
+In-Reply-To: <1382716658-6964-34-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, bcousson@baylibre.com, rnayak@ti.com, mturquette@linaro.org
@@ -20,46 +19,42 @@ Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
 On 10/25/2013 10:57 AM, Tero Kristo wrote:
 [...]
-> diff --git a/arch/arm/mach-omap2/prm_common.c b/arch/arm/mach-omap2/prm_common.c
-> index 228b850..6fa74c6 100644
-> --- a/arch/arm/mach-omap2/prm_common.c
-> +++ b/arch/arm/mach-omap2/prm_common.c
-
-[...]
+> diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
+> index 974d103..1fb3ac2 100644
+> --- a/arch/arm/boot/dts/am4372.dtsi
+> +++ b/arch/arm/boot/dts/am4372.dtsi
+> @@ -67,6 +67,8 @@
+>  		ranges;
+>  		ti,hwmods = "l3_main";
+>  
+> +		/include/ "am43xx-clocks.dtsi"
+> +
+>  		edma: edma@49000000 {
+>  			compatible = "ti,edma3";
+>  			ti,hwmods = "tpcc", "tptc0", "tptc1", "tptc2";
+> diff --git a/arch/arm/boot/dts/am43xx-clocks.dtsi b/arch/arm/boot/dts/am43xx-clocks.dtsi
+> new file mode 100644
+> index 0000000..1cc5071
+> --- /dev/null
+> +++ b/arch/arm/boot/dts/am43xx-clocks.dtsi
+> @@ -0,0 +1,666 @@
 > +/*
-> + * XXX: implementation for the regmap read/write should be moved to
-> + * individual PRCM IP drivers, once those are available.
+> + * Device Tree Source for AM43xx clock data
+> + *
+> + * Copyright (C) 2013 Texas Instruments, Inc.
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
 > + */
-> +static int ti_clk_regmap_read(void *context, unsigned int reg,
-> +			      unsigned int *val)
-> +{
-> +	void __iomem *mem = context;
-> +	*val = __raw_readl(mem + reg);
-> +	return 0;
-> +}
-> +
-> +static int ti_clk_regmap_write(void *context, unsigned int reg,
-> +			       unsigned int val)
-> +{
-> +	void __iomem *mem = context;
-> +	__raw_writel(val, mem + reg);
-> +	return 0;
-> +}
-> +
-> +static struct regmap_config ti_clk_regmap_config = {
-> +	.reg_bits = 32,
-> +	.reg_stride = 4,
-> +	.val_bits = 32,
-> +	.reg_read = ti_clk_regmap_read,
-> +	.reg_write = ti_clk_regmap_write,
-> +	.fast_io = true,
-> +	.cache_type = REGCACHE_NONE,
-> +	.reg_format_endian = REGMAP_ENDIAN_NATIVE,
-> +	.val_format_endian = REGMAP_ENDIAN_NATIVE,
-> +};
+> +scrm: scrm@44e10000 {
+> +	compatible = "ti,scrm";
+> +	#address-cells = <1>;
+> +	#size-cells = <0>;
+> +	reg = <0x44e10000 0x2000>;
 
-why not use regmap_mmio?
-
+here and other dts -> could we keep the scrm, prm, cm devices in
+SoC.dtsi? and clocks.dtsi just contains the clock nodes?
 
 [...]
 
