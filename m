@@ -1,59 +1,109 @@
-From: Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [PATCH v4 2/2] drm: omap: Enable DT support for DMM
-Date: Thu, 31 Oct 2013 17:40:22 -0700
-Message-ID: <20131101004020.GA8413@kartoffel>
-References: <1379063679-4869-1-git-send-email-archit@ti.com>
- <1381820660-5501-1-git-send-email-archit@ti.com>
- <1381820660-5501-3-git-send-email-archit@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv9 01/43] clk: Add support for regmap register read/write
+Date: Fri, 1 Nov 2013 10:57:28 +0200
+Message-ID: <52736CF8.2010001@ti.com>
+References: <1382716658-6964-1-git-send-email-t-kristo@ti.com> <1382716658-6964-2-git-send-email-t-kristo@ti.com> <52726342.6030406@ti.com> <52726BD5.3080704@ti.com> <52727B44.4020102@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-doc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1381820660-5501-3-git-send-email-archit@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Archit Taneja <archit@ti.com>
-Cc: "bcousson@baylibre.com" <bcousson@baylibre.com>, "tony@atomide.com" <tony@atomide.com>, "tomi.valkeinen@ti.com" <tomi.valkeinen@ti.com>, "robdclark@gmail.com" <robdclark@gmail.com>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Andy Gross <andygro@gmail.com>, DRI Development <dri-devel@lists.freedesktop.org>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:35171 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754737Ab3KAI6O (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 1 Nov 2013 04:58:14 -0400
+In-Reply-To: <52727B44.4020102@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, bcousson@baylibre.com, rnayak@ti.com, mturquette@linaro.org
+Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-On Tue, Oct 15, 2013 at 08:04:20AM +0100, Archit Taneja wrote:
-> Enable use of DT for DMM/Tiler.
-> 
-> Originally worked on by Andy Gross <andygro@gmail.com>
-> 
-> Cc: Andy Gross <andygro@gmail.com>
-> Cc: DRI Development <dri-devel@lists.freedesktop.org>
-> Signed-off-by: Archit Taneja <archit@ti.com>
-> ---
->  drivers/gpu/drm/omapdrm/omap_dmm_tiler.c | 11 +++++++++++
->  1 file changed, 11 insertions(+)
-> 
-> diff --git a/drivers/gpu/drm/omapdrm/omap_dmm_tiler.c b/drivers/gpu/drm/omapdrm/omap_dmm_tiler.c
-> index acf6678..59f17de 100644
-> --- a/drivers/gpu/drm/omapdrm/omap_dmm_tiler.c
-> +++ b/drivers/gpu/drm/omapdrm/omap_dmm_tiler.c
-> @@ -968,12 +968,23 @@ static const struct dev_pm_ops omap_dmm_pm_ops = {
->  };
->  #endif
->  
-> +#if defined(CONFIG_OF)
-> +static const struct of_device_id dmm_of_match[] = {
-> +	{ .compatible = "ti,omap4-dmm", },
-> +	{ .compatible = "ti,omap5-dmm", },
-> +	{},
-> +};
-> +#else
-> +#define dmm_of_match NULL
-> +#endif
-> +
->  struct platform_driver omap_dmm_driver = {
->  	.probe = omap_dmm_probe,
->  	.remove = omap_dmm_remove,
->  	.driver = {
->  		.owner = THIS_MODULE,
->  		.name = DMM_DRIVER_NAME,
-> +		.of_match_table = dmm_of_match,
+On 10/31/2013 05:46 PM, Nishanth Menon wrote:
+> On 10/31/2013 09:40 AM, Tero Kristo wrote:
+>> On 10/31/2013 04:03 PM, Nishanth Menon wrote:
+>>> On 10/25/2013 10:56 AM, Tero Kristo wrote:
+>>> [...]
+>>>> diff --git a/include/linux/clk-provider.h b/include/linux/clk-provider.h
+>>>> index 7e59253..63ff78c 100644
+>>>> --- a/include/linux/clk-provider.h
+>>>> +++ b/include/linux/clk-provider.h
+>>>
+>>> [...]
+>>>> -static inline u32 clk_readl(u32 __iomem *reg)
+>>>> +static inline u32 clk_readl(u32 __iomem *reg, struct regmap *regmap)
+>>>>    {
+>>>> -	return readl(reg);
+>>>> +	u32 val;
+>>>> +
+>>>> +	if (regmap)
+>>>> +		regmap_read(regmap, (u32)reg, &val);
+>>>> +	else
+>>>> +		val = readl(reg);
+>>>> +	return val;
+>>>>    }
+>>>>
+>>>> -static inline void clk_writel(u32 val, u32 __iomem *reg)
+>>>> +static inline void clk_writel(u32 val, u32 __iomem *reg, struct regmap *regmap)
+>>>>    {
+>>>> -	writel(val, reg);
+>>>> +	if (regmap)
+>>>> +		regmap_write(regmap, (u32)reg, val);
+>>>> +	else
+>>>> +		writel(val, reg);
+>>>>    }
+>>>>
+>>>>    #endif /* CONFIG_COMMON_CLK */
+>>>>
+>>>
+>>> Might it not be better to introduce regmap variants?
+>>> static inline void clk_regmap_writel(u32 val, u32 reg, struct regmap
+>>> *regmap)
+>>> and corresponding readl? that allows cleaner readability for clk
+>>> drivers that use regmap and those that dont.
+>>
+>> Well, doing that will introduce a lot of redundant code, as the checks
+>> for the presence of regmap must be copied all over the place. With this
+>> patch, all the generic clock drivers support internally both regmap or
+>> non-regmap register accesses.
+>>
+>
+> using function pointers might be an appropriate solution. in general a
+> low level reg access api that uses two different approaches sounds a
+> little.. umm.. fishy..
 
-If you use of_match_ptr(dmm_of_match) here you don't need the #else case above.
+Initial work I did for v9 had clk_reg_ops struct in place which pretty 
+much did this, however Mike recommended looking at the regmap so I did. 
+I could put the reg_ops struct back and just have it use internally 
+regmap if that would be better, but I guess we need comment from Mike 
+how he wants this to be done.
 
-Thanks,
-Mark.
+We could have:
+
+struct clk_reg_ops {
+	int (*clk_readl)(u32 addr, u32 *val);
+	int (*clk_writel)(u32 addr, u32 val);
+};
+
+struct clk_foo {
+	...
+	void __iomem *reg;
+	struct clk_reg_ops *regops;
+};
+
+>
+>>> regmap can also return error value that could also be handled as a result.
+>>
+>> True, however if the regmap fails for the clock code, not sure what we
+>> can do but panic. If this code is expanded, it is probably better to not
+>> inline it anymore.
+>>
+> let the compiler deal with that decision. regmap operation fail should
+> be percollated back to initiator of the request. in some cases that
+> will be ir-recoverable, but on other cases panic might be the right
+> answer - at the low level we are in no position to make that distinction.
+
+Currently, none of the clock drivers handle failures for regmap 
+operations, I can of course add some sort of support for this given what 
+we do with above point and what the API for the register accesses ends 
+up like.
+
+-Tero
