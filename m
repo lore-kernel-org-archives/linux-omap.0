@@ -1,17 +1,17 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCHv9 33/43] ARM: dts: am43xx clock data
-Date: Fri, 1 Nov 2013 16:16:28 -0500
-Message-ID: <52741A2C.1000707@ti.com>
-References: <1382716658-6964-1-git-send-email-t-kristo@ti.com> <1382716658-6964-34-git-send-email-t-kristo@ti.com>
+Subject: Re: [PATCHv9 32/43] ARM: dts: AM35xx: use DT clock data
+Date: Fri, 1 Nov 2013 16:18:15 -0500
+Message-ID: <52741A97.3070103@ti.com>
+References: <1382716658-6964-1-git-send-email-t-kristo@ti.com> <1382716658-6964-33-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:34798 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752603Ab3KAVQz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Nov 2013 17:16:55 -0400
-In-Reply-To: <1382716658-6964-34-git-send-email-t-kristo@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:36140 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752852Ab3KAVSk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 1 Nov 2013 17:18:40 -0400
+In-Reply-To: <1382716658-6964-33-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, bcousson@baylibre.com, rnayak@ti.com, mturquette@linaro.org
@@ -19,44 +19,47 @@ Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
 On 10/25/2013 10:57 AM, Tero Kristo wrote:
 [...]
-> diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
-> index 974d103..1fb3ac2 100644
-> --- a/arch/arm/boot/dts/am4372.dtsi
-> +++ b/arch/arm/boot/dts/am4372.dtsi
-> @@ -67,6 +67,8 @@
->  		ranges;
->  		ti,hwmods = "l3_main";
->  
-> +		/include/ "am43xx-clocks.dtsi"
-> +
->  		edma: edma@49000000 {
->  			compatible = "ti,edma3";
->  			ti,hwmods = "tpcc", "tptc0", "tptc1", "tptc2";
-> diff --git a/arch/arm/boot/dts/am43xx-clocks.dtsi b/arch/arm/boot/dts/am43xx-clocks.dtsi
+
+> diff --git a/arch/arm/boot/dts/am3517.dtsi b/arch/arm/boot/dts/am3517.dtsi
 > new file mode 100644
-> index 0000000..1cc5071
+> index 0000000..c555443
 > --- /dev/null
-> +++ b/arch/arm/boot/dts/am43xx-clocks.dtsi
-> @@ -0,0 +1,666 @@
+> +++ b/arch/arm/boot/dts/am3517.dtsi
+> @@ -0,0 +1,31 @@
 > +/*
-> + * Device Tree Source for AM43xx clock data
+> + * Device Tree Source for AM3517 SoC
 > + *
-> + * Copyright (C) 2013 Texas Instruments, Inc.
+> + * Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.com/
 > + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
+> + * This file is licensed under the terms of the GNU General Public License
+> + * version 2.  This program is licensed "as is" without any warranty of any
+> + * kind, whether express or implied.
 > + */
-> +scrm: scrm@44e10000 {
-> +	compatible = "ti,scrm";
-> +	#address-cells = <1>;
-> +	#size-cells = <0>;
-> +	reg = <0x44e10000 0x2000>;
+> +
+> +#include "omap3.dtsi"
+> +
+> +/ {
+> +	cpus {
+> +		cpu@0 {
+> +			/* OMAP343x/OMAP35xx variants OPP1-5 */
 
-here and other dts -> could we keep the scrm, prm, cm devices in
-SoC.dtsi? and clocks.dtsi just contains the clock nodes?
+^^ you could fix the comment since this is OMAP35xx variant :)
 
-[...]
+> +			operating-points = <
+> +				/* kHz    uV */
+> +				125000   975000
+> +				250000  1075000
+> +				500000  1200000
+> +				550000  1270000
+> +				600000  1350000
+> +			>;
+> +			clock-latency = <300000>; /* From legacy driver */
+> +		};
+> +	};
+> +};
+
+[..]
+
 
 -- 
 Regards,
