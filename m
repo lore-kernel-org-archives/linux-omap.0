@@ -1,49 +1,59 @@
-From: Joel Fernandes <joelf@ti.com>
-Subject: [RFC] ARM: OMAP: DRA7xx: Make L4SEC clock domain SWSUP only
-Date: Thu, 31 Oct 2013 18:44:59 -0500
-Message-ID: <1383263099-3315-1-git-send-email-joelf@ti.com>
+From: Mark Rutland <mark.rutland@arm.com>
+Subject: Re: [PATCH v4 2/2] drm: omap: Enable DT support for DMM
+Date: Thu, 31 Oct 2013 17:40:22 -0700
+Message-ID: <20131101004020.GA8413@kartoffel>
+References: <1379063679-4869-1-git-send-email-archit@ti.com>
+ <1381820660-5501-1-git-send-email-archit@ti.com>
+ <1381820660-5501-3-git-send-email-archit@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:42914 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751978Ab3JaXqs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 31 Oct 2013 19:46:48 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-doc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1381820660-5501-3-git-send-email-archit@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Archit Taneja <archit@ti.com>
+Cc: "bcousson@baylibre.com" <bcousson@baylibre.com>, "tony@atomide.com" <tony@atomide.com>, "tomi.valkeinen@ti.com" <tomi.valkeinen@ti.com>, "robdclark@gmail.com" <robdclark@gmail.com>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Andy Gross <andygro@gmail.com>, DRI Development <dri-devel@lists.freedesktop.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Joel Fernandes <joelf@ti.com>
 
-Using HWSUP for l4sec clock domain is causing warnings in HWMOD code for DRA7.
-Based on some observations, once the clock domain goes into an IDLE state
-(because of no activity etc), the IDLEST for the module goes to '0x2' value
-which means Interface IDLE condition. So far so go, however once the MODULEMODE
-is set to disabled for the particular IP, the IDLEST for the module should go
-to '0x3', per the HW AUTO IDLE protocol. However this is not observed and there
-is no reason per the protocl for the transition to not happen. This could
-potentially be a bug in the HW AUTO state-machine.
+On Tue, Oct 15, 2013 at 08:04:20AM +0100, Archit Taneja wrote:
+> Enable use of DT for DMM/Tiler.
+> 
+> Originally worked on by Andy Gross <andygro@gmail.com>
+> 
+> Cc: Andy Gross <andygro@gmail.com>
+> Cc: DRI Development <dri-devel@lists.freedesktop.org>
+> Signed-off-by: Archit Taneja <archit@ti.com>
+> ---
+>  drivers/gpu/drm/omapdrm/omap_dmm_tiler.c | 11 +++++++++++
+>  1 file changed, 11 insertions(+)
+> 
+> diff --git a/drivers/gpu/drm/omapdrm/omap_dmm_tiler.c b/drivers/gpu/drm/omapdrm/omap_dmm_tiler.c
+> index acf6678..59f17de 100644
+> --- a/drivers/gpu/drm/omapdrm/omap_dmm_tiler.c
+> +++ b/drivers/gpu/drm/omapdrm/omap_dmm_tiler.c
+> @@ -968,12 +968,23 @@ static const struct dev_pm_ops omap_dmm_pm_ops = {
+>  };
+>  #endif
+>  
+> +#if defined(CONFIG_OF)
+> +static const struct of_device_id dmm_of_match[] = {
+> +	{ .compatible = "ti,omap4-dmm", },
+> +	{ .compatible = "ti,omap5-dmm", },
+> +	{},
+> +};
+> +#else
+> +#define dmm_of_match NULL
+> +#endif
+> +
+>  struct platform_driver omap_dmm_driver = {
+>  	.probe = omap_dmm_probe,
+>  	.remove = omap_dmm_remove,
+>  	.driver = {
+>  		.owner = THIS_MODULE,
+>  		.name = DMM_DRIVER_NAME,
+> +		.of_match_table = dmm_of_match,
 
-Work around for this is to use SWSUP only for the particular clockdomain. With
-this all the transitions of IDLEST happen correctly and warnings don't occur.
+If you use of_match_ptr(dmm_of_match) here you don't need the #else case above.
 
-Signed-off-by: Joel Fernandes <joelf@ti.com>
---
- arch/arm/mach-omap2/clockdomains7xx_data.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/arch/arm/mach-omap2/clockdomains7xx_data.c b/arch/arm/mach-omap2/clockdomains7xx_data.c
-index 57d5df0..13bda1b1 100644
---- a/arch/arm/mach-omap2/clockdomains7xx_data.c
-+++ b/arch/arm/mach-omap2/clockdomains7xx_data.c
-@@ -409,7 +409,7 @@ static struct clockdomain l4sec_7xx_clkdm = {
- 	.dep_bit	  = DRA7XX_L4SEC_STATDEP_SHIFT,
- 	.wkdep_srcs	  = l4sec_wkup_sleep_deps,
- 	.sleepdep_srcs	  = l4sec_wkup_sleep_deps,
--	.flags		  = CLKDM_CAN_HWSUP_SWSUP,
-+	.flags		  = CLKDM_CAN_SWSUP,
- };
- 
- static struct clockdomain l3main1_7xx_clkdm = {
--- 
-1.8.1.2
-
+Thanks,
+Mark.
