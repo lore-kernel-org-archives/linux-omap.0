@@ -1,270 +1,139 @@
-From: Jyri Sarha <jsarha@ti.com>
-Subject: [PATCH RFC] clk: add gpio controlled clock
-Date: Fri, 1 Nov 2013 16:01:20 +0200
-Message-ID: <c52a7910c6ce33ceed0f38b89953527eee06b0b5.1383312867.git.jsarha@ti.com>
-References: <cover.1383312867.git.jsarha@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCHv9 06/43] CLK: ti: add init support for clock IP blocks
+Date: Fri, 1 Nov 2013 14:13:55 -0500
+Message-ID: <5273FD73.7000208@ti.com>
+References: <1382716658-6964-1-git-send-email-t-kristo@ti.com> <1382716658-6964-7-git-send-email-t-kristo@ti.com> <52727A58.9010903@ti.com> <52737095.10900@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:38806 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:59782 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751162Ab3KAOBu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 1 Nov 2013 10:01:50 -0400
-In-Reply-To: <cover.1383312867.git.jsarha@ti.com>
+	id S1751071Ab3KATOX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 1 Nov 2013 15:14:23 -0400
+In-Reply-To: <52737095.10900@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Cc: mturquette@linaro.org, Jyri Sarha <jsarha@ti.com>
+To: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, bcousson@baylibre.com, rnayak@ti.com, mturquette@linaro.org
+Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-The added clk-gpio is a basic clock that can be enabled and disabled
-trough a gpio output. The DT binding document for the clock is also
-added.
+On 11/01/2013 04:12 AM, Tero Kristo wrote:
+> On 10/31/2013 05:42 PM, Nishanth Menon wrote:
+>> On 10/25/2013 10:57 AM, Tero Kristo wrote:
+>>> ti_dt_clk_init_provider() can now be used to initialize the contents of
+>>> a single clock IP block. This parses all the clocks under the IP block
+>>> and calls the corresponding init function for them.
+>>>
+>>> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+>>> ---
+>>>   drivers/clk/ti/clk.c   |   59 ++++++++++++++++++++++++++++++++++++++++++++++++
+>>>   include/linux/clk/ti.h |    1 +
+>>>   2 files changed, 60 insertions(+)
+>>>
+>>> diff --git a/drivers/clk/ti/clk.c b/drivers/clk/ti/clk.c
+>>> index ad58b01..7f030d7 100644
+>>> --- a/drivers/clk/ti/clk.c
+>>> +++ b/drivers/clk/ti/clk.c
+>>> @@ -19,6 +19,9 @@
+>>>   #include <linux/clkdev.h>
+>>>   #include <linux/clk/ti.h>
+>>>   #include <linux/of.h>
+>>> +#include <linux/list.h>
+>>> +
+>>> +extern struct of_device_id __clk_of_table[];
+>>>
+>>>   /**
+>>>    * ti_dt_clocks_register - register DT duplicate clocks during boot
+>>> @@ -50,3 +53,59 @@ void __init ti_dt_clocks_register(struct ti_dt_clk oclks[])
+>>>   		}
+>>>   	}
+>>>   }
+>>> +
+>>> +typedef int (*ti_of_clk_init_cb_t)(struct device_node *, struct regmap *);
+>>> +
+>>> +struct clk_init_item {
+>>> +	struct regmap *regmap;
+>>> +	struct device_node *np;
+>>> +	ti_of_clk_init_cb_t init_cb;
+>>> +	struct list_head node;
+>>> +};
+>>> +
+>>> +static LIST_HEAD(retry_list);
+>>> +
+>>> +void __init ti_dt_clk_init_provider(struct device_node *parent,
+>>> +				    struct regmap *regmap)
+>>> +{
+>>> +	const struct of_device_id *match;
+>>> +	struct device_node *np;
+>>> +	ti_of_clk_init_cb_t clk_init_cb;
+>>> +	struct clk_init_item *retry;
+>>> +	struct clk_init_item *tmp;
+>>> +	int ret;
+>>> +
+>>> +	for_each_child_of_node(parent, np) {
+>>> +		match = of_match_node(__clk_of_table, np);
+>>> +		if (!match)
+>>> +			continue;
+>>> +		clk_init_cb = match->data;
+>>
+>> I must admit I am confused here.
+> 
+> Yea this patch is something I am not quite comfortable myself yet and 
+> would like improvement ideas....
+> 
+>> a) of_clk_init (in the generic clk.c) uses of_clk_init_cb_t as match
+>> data. The prototype of the generic of_clk_init_cb_t is typedef void
+>> (*of_clk_init_cb_t)(struct device_node *);
+>> b) both of_clk_init and ti_dt_clk_init_provider looks up clock nodes
+>> from __clk_of_table
+> 
+> __clk_of_table contains the function pointers for the clock init 
+> functions, not clock nodes.
 
-Signed-off-by: Jyri Sarha <jsarha@ti.com>
----
- .../devicetree/bindings/clock/gpio-clock.txt       |   21 +++
- drivers/clk/Makefile                               |    1 +
- drivers/clk/clk-gpio.c                             |  154 ++++++++++++++++++++
- include/linux/clk-provider.h                       |   25 ++++
- 4 files changed, 201 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/clock/gpio-clock.txt
- create mode 100644 drivers/clk/clk-gpio.c
+yes, apologies, should have stated the prototypes of functions in a
+single __clk_of_table should not be two different argument list. The
+reason is as follows: CLK_OF_DECLARE fills up that list. there can be
+generic drivers such as [1] which might be registered, OR in the case
+of MULTI_ARCH - multiple other SoC drivers would have registered
+there. There is a bunch of stuff we could mess up here.
 
-diff --git a/Documentation/devicetree/bindings/clock/gpio-clock.txt b/Documentation/devicetree/bindings/clock/gpio-clock.txt
-new file mode 100644
-index 0000000..54fea39
---- /dev/null
-+++ b/Documentation/devicetree/bindings/clock/gpio-clock.txt
-@@ -0,0 +1,21 @@
-+Binding for simple gpio controlled clock.
-+
-+This binding uses the common clock binding[1].
-+
-+[1] Documentation/devicetree/bindings/clock/clock-bindings.txt
-+
-+Required properties:
-+- compatible : shall be "gpio-clock".
-+- #clock-cells : from common clock binding; shall be set to 0.
-+- enable-gpios : GPIO reference for enabling and disabling the clock.
-+
-+Optional properties:
-+- clocks: Maximum of one parent clock is supported.
-+
-+Example:
-+	clock {
-+		compatible = "gpio-clock";
-+		clocks = <&parentclk>;
-+		#clock-cells = <0>;
-+		enable-gpios = <&gpio 1 GPIO_ACTIVE_HIGH>;
-+	};
-diff --git a/drivers/clk/Makefile b/drivers/clk/Makefile
-index 7d74d06..81b65a3 100644
---- a/drivers/clk/Makefile
-+++ b/drivers/clk/Makefile
-@@ -8,6 +8,7 @@ obj-$(CONFIG_COMMON_CLK)	+= clk-fixed-rate.o
- obj-$(CONFIG_COMMON_CLK)	+= clk-gate.o
- obj-$(CONFIG_COMMON_CLK)	+= clk-mux.o
- obj-$(CONFIG_COMMON_CLK)	+= clk-composite.o
-+obj-$(CONFIG_COMMON_CLK)	+= clk-gpio.o
- 
- # SoCs specific
- obj-$(CONFIG_ARCH_BCM2835)	+= clk-bcm2835.o
-diff --git a/drivers/clk/clk-gpio.c b/drivers/clk/clk-gpio.c
-new file mode 100644
-index 0000000..54f21d9
---- /dev/null
-+++ b/drivers/clk/clk-gpio.c
-@@ -0,0 +1,154 @@
-+/*
-+ * Copyright (C) 2012 Texas Instruments
-+ * Author: Jyri Sarha <jsarha@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * Gpio controlled clock implementation
-+ */
-+
-+#include <linux/clk-provider.h>
-+#include <linux/module.h>
-+#include <linux/slab.h>
-+#include <linux/gpio.h>
-+#include <linux/of_gpio.h>
-+#include <linux/err.h>
-+
-+/**
-+ * DOC: basic gpio controlled clock which can be enabled and disabled
-+ *      with gpio output
-+ * Traits of this clock:
-+ * prepare - clk_(un)prepare only ensures parent is (un)prepared
-+ * enable - clk_enable and clk_disable are functional & control gpio
-+ * rate - inherits rate from parent.  No clk_set_rate support
-+ * parent - fixed parent.  No clk_set_parent support
-+ */
-+
-+#define to_clk_gpio(_hw) container_of(_hw, struct clk_gpio, hw)
-+
-+static int clk_gpio_enable(struct clk_hw *hw)
-+{
-+	struct clk_gpio *gpio = to_clk_gpio(hw);
-+	int value = gpio->active_low ? 0 : 1;
-+
-+	gpio_set_value(gpio->gpio, value);
-+
-+	return 0;
-+}
-+
-+static void clk_gpio_disable(struct clk_hw *hw)
-+{
-+	struct clk_gpio *gpio = to_clk_gpio(hw);
-+	int value = gpio->active_low ? 1 : 0;
-+
-+	gpio_set_value(gpio->gpio, value);
-+}
-+
-+static int clk_gpio_is_enabled(struct clk_hw *hw)
-+{
-+	struct clk_gpio *gpio = to_clk_gpio(hw);
-+	int value = gpio_get_value(gpio->gpio);
-+
-+	return gpio->active_low ? !value : value;
-+}
-+
-+const struct clk_ops clk_gpio_ops = {
-+	.enable = clk_gpio_enable,
-+	.disable = clk_gpio_disable,
-+	.is_enabled = clk_gpio_is_enabled,
-+};
-+EXPORT_SYMBOL_GPL(clk_gpio_ops);
-+
-+/**
-+ * clk_register_gpio - register a gpip clock with the clock framework
-+ * @dev: device that is registering this clock
-+ * @name: name of this clock
-+ * @parent_name: name of this clock's parent
-+ * @flags: framework-specific flags for this clock
-+ * @gpio: gpio to control this clock
-+ * @active_low: gpio polarity
-+ */
-+struct clk *clk_register_gpio(struct device *dev, const char *name,
-+		const char *parent_name, unsigned long flags,
-+		unsigned int gpio, bool active_low)
-+{
-+	struct clk_gpio *clk_gpio;
-+	struct clk *clk;
-+	struct clk_init_data init = { NULL };
-+	unsigned long gpio_flags;
-+	int err;
-+
-+	if (active_low)
-+		gpio_flags = GPIOF_OUT_INIT_LOW;
-+	else
-+		gpio_flags = GPIOF_OUT_INIT_HIGH;
-+
-+	err = gpio_request_one(gpio, gpio_flags, name);
-+	if (err) {
-+		pr_err("%s: Error requesting clock control gpio %u\n",
-+		       __func__, gpio);
-+		return ERR_PTR(-EINVAL);
-+	}
-+
-+	clk_gpio = kzalloc(sizeof(struct clk_gpio), GFP_KERNEL);
-+	if (!clk_gpio) {
-+		pr_err("%s: could not allocate gpio clk\n", __func__);
-+		gpio_free(gpio);
-+		return ERR_PTR(-ENOMEM);
-+	}
-+
-+	init.name = name;
-+	init.ops = &clk_gpio_ops;
-+	init.flags = flags | CLK_IS_BASIC;
-+	init.parent_names = (parent_name ? &parent_name : NULL);
-+	init.num_parents = (parent_name ? 1 : 0);
-+
-+	clk_gpio->gpio = gpio;
-+	clk_gpio->active_low = active_low;
-+	clk_gpio->hw.init = &init;
-+
-+	clk = clk_register(dev, &clk_gpio->hw);
-+
-+	if (IS_ERR(clk)) {
-+		gpio_free(gpio);
-+		kfree(clk_gpio);
-+	}
-+
-+	return clk;
-+}
-+EXPORT_SYMBOL_GPL(clk_register_gpio);
-+
-+#ifdef CONFIG_OF
-+/**
-+ * of_gpio_clk_setup() - Setup function for gpio controlled clock
-+ */
-+void __init of_gpio_clk_setup(struct device_node *node)
-+{
-+	struct clk *clk;
-+	const char *clk_name = node->name;
-+	const char *parent_name;
-+	enum of_gpio_flags gpio_flags;
-+	int gpio;
-+	bool active_low;
-+
-+	gpio = of_get_named_gpio_flags(node, "enable-gpios", 0, &gpio_flags);
-+	if (gpio < 0) {
-+		pr_err("%s: GPIO clock <%s> must have a enable-gpios property\n",
-+		       __func__, node);
-+		return;
-+	}
-+
-+	active_low = gpio_flags & OF_GPIO_ACTIVE_LOW;
-+
-+	parent_name = of_clk_get_parent_name(node, 0);
-+
-+	clk = clk_register_gpio(NULL, clk_name, parent_name, 0,
-+				gpio, active_low);
-+	if (!IS_ERR(clk))
-+		of_clk_add_provider(node, of_clk_src_simple_get, clk);
-+}
-+EXPORT_SYMBOL_GPL(of_gpio_clk_setup);
-+CLK_OF_DECLARE(gpio_clk, "gpio-clock", of_gpio_clk_setup);
-+#endif
-diff --git a/include/linux/clk-provider.h b/include/linux/clk-provider.h
-index 3493c76..f861568 100644
---- a/include/linux/clk-provider.h
-+++ b/include/linux/clk-provider.h
-@@ -439,6 +439,31 @@ struct clk *clk_register_composite(struct device *dev, const char *name,
- 		struct clk_hw *gate_hw, const struct clk_ops *gate_ops,
- 		unsigned long flags);
- 
-+/***
-+ * struct clk_gpio - gpio controlled clock
-+ *
-+ * @hw:		handle between common and hardware-specific interfaces
-+ * @gpio:	gpio
-+ * @active_low:	gpio polarity
-+ *
-+ * Clock with a gpio control for enabling and disabling the parent clock.
-+ * Implements .enable, .disable and .is_enabled
-+ */
-+
-+struct clk_gpio {
-+	struct clk_hw	hw;
-+	unsigned int	gpio;
-+	bool		active_low;
-+};
-+
-+extern const struct clk_ops clk_gpio_ops;
-+
-+struct clk *clk_register_gpio(struct device *dev, const char *name,
-+		const char *parent_name, unsigned long flags,
-+		unsigned int gpio, bool active_low);
-+
-+void of_gpio_clk_setup(struct device_node *node);
-+
- /**
-  * clk_register - allocate a new clock, register it and return an opaque cookie
-  * @dev: device that is registering this clock
+If we do not have a choice, if we would like to maintain a different
+prototype based init list, we should probably do it in a different
+structure - example __clk_of_table_regmap or something similar..
+
+
+> 
+>>
+>> I assume we need ti_dt_clk_init_provider to be always called with
+>> clock list, as a result of_clk_init(NULL); will never be invoked. This
+>> is counter productive as you have have generic non SoC clock providers
+>> as well who would have been invoked with of_clk_init(NULL);
+> 
+> Can't call of_clk_init(NULL) anymore, as Paul wants to map the clock 
+> nodes under respective IP blocks. Two reasons here:
+> 
+> a) This requires me to pass some info from the IP block (CM1/CM2/PRM) to 
+> the clock init functions, basically the pointer to the memory map region 
+> (regmap.)
+> b) of_clk_init(NULL) will initialize all the clock nodes in the system, 
+> irrespective of the hierarchy considerations.
+> 
+> Only thing that can be done, is to make the API introduced in this patch 
+> a generic API and call it something like of_clk_init_children().
+
+you still can do that:
+
+of_prcm_init->ti_dt_clk_init_provider-> instead of matching nodes from
+__clk_of_table, you can make it __clk_of_regmap_table -> the
+CLK_OF_DECLARE will not be good enough here ofcourse, but this will
+probably belong to a generic regmap enabled clock support framework -
+i dont see much that is TI specific in drivers/clk/ti/clk.c and it
+makes sense to be part of generic clock framework handling as generic
+clock framework will receive regmap support based on previous patches.
+that allows for other platforms to use regmap based clk drivers as well.
+
+
+[1] http://marc.info/?l=linux-omap&m=138331451210184&w=2
 -- 
-1.7.9.5
-
+Regards,
+Nishanth Menon
