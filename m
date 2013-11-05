@@ -1,240 +1,48 @@
-From: Sricharan R <r.sricharan@ti.com>
-Subject: [PATCH V3 1/7] DRIVERS: IRQCHIP: IRQ-GIC: Add support for routable
- irqs
-Date: Tue, 5 Nov 2013 18:44:11 +0530
-Message-ID: <1383657257-3458-2-git-send-email-r.sricharan@ti.com>
+From: Sricharan R <r.sricharan-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH V3 5/7] ARM: DTS: DRA7: Add routable-irqs property for gic node
+Date: Tue, 5 Nov 2013 18:44:15 +0530
+Message-ID: <1383657257-3458-6-git-send-email-r.sricharan@ti.com>
 References: <1383657257-3458-1-git-send-email-r.sricharan@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1383657257-3458-1-git-send-email-r.sricharan@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linus.walleij@linaro.org, linux@arm.linux.org.uk, tony@atomide.com, rnayak@ti.com, marc.zyngier@arm.com, grant.likely@linaro.org, mark.rutland@arm.com, robherring2@gmail.com, tglx@linutronix.de, santosh.shilimkar@ti.com, galak@codeaurora.org, r.sricharan@ti.com
-Cc: Rob Herring <rob.herring@calxeda.com>
+Content-Type: text/plain
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1383657257-3458-1-git-send-email-r.sricharan-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org, marc.zyngier-5wv7dgnIgG8@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, robherring2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, santosh.shilimkar-l0cyMroinI0@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, r.sricharan-l0cyMroinI0@public.gmane.org
+Cc: Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-In some socs the gic can be preceded by a crossbar IP which
-routes the peripheral interrupts to the gic inputs. The peripheral
-interrupts are associated with a fixed crossbar input line and the
-crossbar routes that to one of the free gic input line.
+There is a IRQ crossbar device in the soc, which maps the
+irq requests from the peripherals to the mpu interrupt
+controller's inputs. The gic provides the support for such
+IPs in the form of routable-irqs. So adding the property
+here to gic node.
 
-The DT entries for peripherals provides the fixed crossbar input line
-as its interrupt number and the mapping code should associate this with
-a free gic input line. This patch adds the support inside the gic irqchip
-to handle such routable irqs. The routable irqs are registered in a linear
-domain. The registered routable domain's callback should be implemented
-to get a free irq and to configure the IP to route it.
-
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Linus Walleij <linus.walleij@linaro.org>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Russell King <linux@arm.linux.org.uk>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Rajendra Nayak <rnayak@ti.com>
-Cc: Marc Zyngier <marc.zyngier@arm.com>
-Cc: Grant Likely <grant.likely@linaro.org>
-Cc: Rob Herring <rob.herring@calxeda.com>
-Signed-off-by: Sricharan R <r.sricharan@ti.com>
+Cc: Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Cc: Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
+Cc: Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Signed-off-by: Sricharan R <r.sricharan-l0cyMroinI0@public.gmane.org>
 ---
- [V2] Added default routable-irqs functions to avoid
-      unnecessary if checks as per Thomas Gleixner comments
-      and renamed routable-irq binding as per
-      Kumar Gala <galak@codeaurora.org> comments.
+ arch/arm/boot/dts/dra7.dtsi |    1 +
+ 1 file changed, 1 insertion(+)
 
- [V3] Addressed unnecessary warn-on and updated default
-      xlate function as per Thomas Gleixner comments
-
- Documentation/devicetree/bindings/arm/gic.txt |    6 ++
- drivers/irqchip/irq-gic.c                     |   81 ++++++++++++++++++++++---
- include/linux/irqchip/arm-gic.h               |    8 ++-
- 3 files changed, 84 insertions(+), 11 deletions(-)
-
-diff --git a/Documentation/devicetree/bindings/arm/gic.txt b/Documentation/devicetree/bindings/arm/gic.txt
-index 3dfb0c0..5357745 100644
---- a/Documentation/devicetree/bindings/arm/gic.txt
-+++ b/Documentation/devicetree/bindings/arm/gic.txt
-@@ -49,6 +49,11 @@ Optional
-   regions, used when the GIC doesn't have banked registers. The offset is
-   cpu-offset * cpu-nr.
- 
-+- arm,routable-irqs : Total number of gic irq inputs which are not directly
-+		  connected from the peripherals, but are routed dynamically
-+		  by a crossbar/multiplexer preceding the GIC. The GIC irq
-+		  input line is assigned dynamically when the corresponding
-+		  peripheral's crossbar line is mapped.
- Example:
- 
- 	intc: interrupt-controller@fff11000 {
-@@ -56,6 +61,7 @@ Example:
- 		#interrupt-cells = <3>;
- 		#address-cells = <1>;
+diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+index 8b93b7a..fd58a09 100644
+--- a/arch/arm/boot/dts/dra7.dtsi
++++ b/arch/arm/boot/dts/dra7.dtsi
+@@ -67,6 +67,7 @@
+ 		compatible = "arm,cortex-a15-gic";
  		interrupt-controller;
+ 		#interrupt-cells = <3>;
 +		arm,routable-irqs = <160>;
- 		reg = <0xfff11000 0x1000>,
- 		      <0xfff10100 0x100>;
- 	};
-diff --git a/drivers/irqchip/irq-gic.c b/drivers/irqchip/irq-gic.c
-index d0e9480..07be228 100644
---- a/drivers/irqchip/irq-gic.c
-+++ b/drivers/irqchip/irq-gic.c
-@@ -681,16 +681,25 @@ static int gic_irq_domain_map(struct irq_domain *d, unsigned int irq,
- 		irq_set_chip_and_handler(irq, &gic_chip,
- 					 handle_fasteoi_irq);
- 		set_irq_flags(irq, IRQF_VALID | IRQF_PROBE);
-+
-+		gic_routable_irq_domain_ops->map(d, irq, hw);
- 	}
- 	irq_set_chip_data(irq, d->host_data);
- 	return 0;
- }
- 
-+static void gic_irq_domain_unmap(struct irq_domain *d, unsigned int irq)
-+{
-+	gic_routable_irq_domain_ops->unmap(d, irq);
-+}
-+
- static int gic_irq_domain_xlate(struct irq_domain *d,
- 				struct device_node *controller,
- 				const u32 *intspec, unsigned int intsize,
- 				unsigned long *out_hwirq, unsigned int *out_type)
- {
-+	unsigned long ret = 0;
-+
- 	if (d->of_node != controller)
- 		return -EINVAL;
- 	if (intsize < 3)
-@@ -700,11 +709,20 @@ static int gic_irq_domain_xlate(struct irq_domain *d,
- 	*out_hwirq = intspec[1] + 16;
- 
- 	/* For SPIs, we need to add 16 more to get the GIC irq ID number */
--	if (!intspec[0])
--		*out_hwirq += 16;
-+	if (!intspec[0]) {
-+		ret = gic_routable_irq_domain_ops->xlate(d, controller,
-+							 intspec,
-+							 intsize,
-+							 out_hwirq,
-+							 out_type);
-+
-+		if (IS_ERR_VALUE(ret))
-+			return ret;
-+	}
- 
- 	*out_type = intspec[2] & IRQ_TYPE_SENSE_MASK;
--	return 0;
-+
-+	return ret;
- }
- 
- #ifdef CONFIG_SMP
-@@ -728,9 +746,41 @@ static struct notifier_block gic_cpu_notifier = {
- 
- const struct irq_domain_ops gic_irq_domain_ops = {
- 	.map = gic_irq_domain_map,
-+	.unmap = gic_irq_domain_unmap,
- 	.xlate = gic_irq_domain_xlate,
- };
- 
-+/* Default functions for routable irq domain */
-+static int gic_routable_irq_domain_map(struct irq_domain *d, unsigned int irq,
-+			      irq_hw_number_t hw)
-+{
-+	return 0;
-+}
-+
-+static void gic_routable_irq_domain_unmap(struct irq_domain *d,
-+					  unsigned int irq)
-+{
-+}
-+
-+static int gic_routable_irq_domain_xlate(struct irq_domain *d,
-+				struct device_node *controller,
-+				const u32 *intspec, unsigned int intsize,
-+				unsigned long *out_hwirq,
-+				unsigned int *out_type)
-+{
-+	*out_hwirq += 16;
-+	return 0;
-+}
-+
-+const struct irq_domain_ops gic_default_routable_irq_domain_ops = {
-+	.map = gic_routable_irq_domain_map,
-+	.unmap = gic_routable_irq_domain_unmap,
-+	.xlate = gic_routable_irq_domain_xlate,
-+};
-+
-+const struct irq_domain_ops *gic_routable_irq_domain_ops =
-+					&gic_default_routable_irq_domain_ops;
-+
- void __init gic_init_bases(unsigned int gic_nr, int irq_start,
- 			   void __iomem *dist_base, void __iomem *cpu_base,
- 			   u32 percpu_offset, struct device_node *node)
-@@ -738,6 +788,7 @@ void __init gic_init_bases(unsigned int gic_nr, int irq_start,
- 	irq_hw_number_t hwirq_base;
- 	struct gic_chip_data *gic;
- 	int gic_irqs, irq_base, i;
-+	int nr_routable_irqs;
- 
- 	BUG_ON(gic_nr >= MAX_GIC_NR);
- 
-@@ -803,14 +854,24 @@ void __init gic_init_bases(unsigned int gic_nr, int irq_start,
- 	gic->gic_irqs = gic_irqs;
- 
- 	gic_irqs -= hwirq_base; /* calculate # of irqs to allocate */
--	irq_base = irq_alloc_descs(irq_start, 16, gic_irqs, numa_node_id());
--	if (IS_ERR_VALUE(irq_base)) {
--		WARN(1, "Cannot allocate irq_descs @ IRQ%d, assuming pre-allocated\n",
--		     irq_start);
--		irq_base = irq_start;
-+
-+	if (of_property_read_u32(node, "arm,routable-irqs", &nr_routable_irqs)) {
-+		irq_base = irq_alloc_descs(irq_start, 16, gic_irqs,
-+					   numa_node_id());
-+		if (IS_ERR_VALUE(irq_base)) {
-+			WARN(1, "Cannot allocate irq_descs @ IRQ%d, assuming pre-allocated\n",
-+			     irq_start);
-+			irq_base = irq_start;
-+		}
-+
-+		gic->domain = irq_domain_add_legacy(node, gic_irqs, irq_base,
-+					hwirq_base, &gic_irq_domain_ops, gic);
-+	} else {
-+		gic->domain = irq_domain_add_linear(node, nr_routable_irqs,
-+						    &gic_irq_domain_ops,
-+						    gic);
- 	}
--	gic->domain = irq_domain_add_legacy(node, gic_irqs, irq_base,
--				    hwirq_base, &gic_irq_domain_ops, gic);
-+
- 	if (WARN_ON(!gic->domain))
- 		return;
- 
-diff --git a/include/linux/irqchip/arm-gic.h b/include/linux/irqchip/arm-gic.h
-index 0e5d9ec..c5f9529 100644
---- a/include/linux/irqchip/arm-gic.h
-+++ b/include/linux/irqchip/arm-gic.h
-@@ -74,6 +74,12 @@ static inline void gic_init(unsigned int nr, int start,
- 	gic_init_bases(nr, start, dist, cpu, 0, NULL);
- }
- 
--#endif /* __ASSEMBLY */
-+extern const struct irq_domain_ops *gic_routable_irq_domain_ops;
-+static inline void __init register_routable_domain_ops
-+					(const struct irq_domain_ops *ops)
-+{
-+	gic_routable_irq_domain_ops = ops;
-+}
- 
-+#endif /* __ASSEMBLY */
- #endif
+ 		reg = <0x48211000 0x1000>,
+ 		      <0x48212000 0x1000>,
+ 		      <0x48214000 0x2000>,
 -- 
 1.7.9.5
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
