@@ -1,60 +1,67 @@
-From: Archit Taneja <archit@ti.com>
-Subject: Re: [PATCH v4 2/2] drm: omap: Enable DT support for DMM
-Date: Tue, 5 Nov 2013 11:20:42 +0530
-Message-ID: <52788732.4030609@ti.com>
-References: <1379063679-4869-1-git-send-email-archit@ti.com> <1381820660-5501-1-git-send-email-archit@ti.com> <1381820660-5501-3-git-send-email-archit@ti.com> <20131101004020.GA8413@kartoffel>
+From: Belisko Marek <marek.belisko@gmail.com>
+Subject: Re: [PATCH 0/3] omapdss: venc: Add support for bypass and acbias.
+Date: Tue, 5 Nov 2013 08:24:08 +0100
+Message-ID: <CAAfyv34j+YhEjtHyf7zg5oBoCV5ROEXow8VV0PQNHLTF5uDZJg@mail.gmail.com>
+References: <1381784555-18344-1-git-send-email-marek@goldelico.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <20131101004020.GA8413@kartoffel>
-Sender: linux-doc-owner@vger.kernel.org
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: "bcousson@baylibre.com" <bcousson@baylibre.com>, "tony@atomide.com" <tony@atomide.com>, "tomi.valkeinen@ti.com" <tomi.valkeinen@ti.com>, "robdclark@gmail.com" <robdclark@gmail.com>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Andy Gross <andygro@gmail.com>, DRI Development <dri-devel@lists.freedesktop.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-qc0-f173.google.com ([209.85.216.173]:38245 "EHLO
+	mail-qc0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751848Ab3KEHYJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Nov 2013 02:24:09 -0500
+In-Reply-To: <1381784555-18344-1-git-send-email-marek@goldelico.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
+Cc: linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, linux-fbdev@vger.kernel.org, NeilBrown <neilb@suse.de>, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>, Marek Belisko <marek@goldelico.com>
 
-On Friday 01 November 2013 06:10 AM, Mark Rutland wrote:
-> On Tue, Oct 15, 2013 at 08:04:20AM +0100, Archit Taneja wrote:
->> Enable use of DT for DMM/Tiler.
->>
->> Originally worked on by Andy Gross <andygro@gmail.com>
->>
->> Cc: Andy Gross <andygro@gmail.com>
->> Cc: DRI Development <dri-devel@lists.freedesktop.org>
->> Signed-off-by: Archit Taneja <archit@ti.com>
->> ---
->>   drivers/gpu/drm/omapdrm/omap_dmm_tiler.c | 11 +++++++++++
->>   1 file changed, 11 insertions(+)
->>
->> diff --git a/drivers/gpu/drm/omapdrm/omap_dmm_tiler.c b/drivers/gpu/drm/omapdrm/omap_dmm_tiler.c
->> index acf6678..59f17de 100644
->> --- a/drivers/gpu/drm/omapdrm/omap_dmm_tiler.c
->> +++ b/drivers/gpu/drm/omapdrm/omap_dmm_tiler.c
->> @@ -968,12 +968,23 @@ static const struct dev_pm_ops omap_dmm_pm_ops = {
->>   };
->>   #endif
->>
->> +#if defined(CONFIG_OF)
->> +static const struct of_device_id dmm_of_match[] = {
->> +	{ .compatible = "ti,omap4-dmm", },
->> +	{ .compatible = "ti,omap5-dmm", },
->> +	{},
->> +};
->> +#else
->> +#define dmm_of_match NULL
->> +#endif
->> +
->>   struct platform_driver omap_dmm_driver = {
->>   	.probe = omap_dmm_probe,
->>   	.remove = omap_dmm_remove,
->>   	.driver = {
->>   		.owner = THIS_MODULE,
->>   		.name = DMM_DRIVER_NAME,
->> +		.of_match_table = dmm_of_match,
+Hi,
+
+ping.
+
+On Mon, Oct 14, 2013 at 11:02 PM, Marek Belisko <marek@goldelico.com> wrote:
+> This patches is adding bypass and acbias functionality to omapdss venc driver.
+> In first patch we export updatin bypass and acbias in devconf1 register. Next patch
+> add handling for updating in venc driver and last patch add driver for opa362 which
+> is used on gta04 board and set bypass + acbias.
+Is there a chance to get this series to 3.13? Thanks.
 >
-> If you use of_match_ptr(dmm_of_match) here you don't need the #else case above.
+> Marek Belisko (3):
+>   arm: omap2: Export devconf1 bypass and acbias.
+>   video: venc: Add new callback and handling for bypass and acbias
+>     setup.
+>   omapdss: Add OPA362 analog video amplifier driver.
+>
+>  arch/arm/mach-omap2/Makefile                       |   2 +
+>  arch/arm/mach-omap2/control.h                      |   2 +
+>  arch/arm/mach-omap2/omap3-tvout.c                  |  36 +++
+>  drivers/video/omap2/displays-new/Kconfig           |   6 +
+>  drivers/video/omap2/displays-new/Makefile          |   1 +
+>  .../video/omap2/displays-new/amplifier-opa362.c    | 294 +++++++++++++++++++++
+>  drivers/video/omap2/dss/venc.c                     |  21 ++
+>  include/linux/omap-tvout.h                         |  14 +
+>  include/video/omap-panel-data.h                    |  17 ++
+>  include/video/omapdss.h                            |   2 +
+>  10 files changed, 395 insertions(+)
+>  create mode 100644 arch/arm/mach-omap2/omap3-tvout.c
+>  create mode 100644 drivers/video/omap2/displays-new/amplifier-opa362.c
+>  create mode 100644 include/linux/omap-tvout.h
+>
+> --
+> 1.8.1.2
+>
 
-Thanks for the tip. I'll make this update.
+Marek
 
-Archit
+-- 
+as simple and primitive as possible
+-------------------------------------------------
+Marek Belisko - OPEN-NANDRA
+Freelance Developer
 
+Ruska Nova Ves 219 | Presov, 08005 Slovak Republic
+Tel: +421 915 052 184
+skype: marekwhite
+twitter: #opennandra
+web: http://open-nandra.com
