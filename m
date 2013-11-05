@@ -1,43 +1,38 @@
-From: Jyri Sarha <jsarha@ti.com>
-Subject: [PATCH RESEND] arm: omap2plus_defconfig: enable AM33xx SOC EVM audio
-Date: Tue, 5 Nov 2013 10:42:38 +0200
-Message-ID: <481115f4e0c15e22f0fa61f1f013fd2851e2737a.1383639261.git.jsarha@ti.com>
-References: <cover.1383639261.git.jsarha@ti.com>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: [PATCH 1/4] wl1251: split wl251 platform data to a separate
+ structure
+Date: Tue, 5 Nov 2013 13:13:53 +0100
+Message-ID: <20131105121353.GB30670@amd.pavel.ucw.cz>
+References: <1382890469-25286-1-git-send-email-sre@debian.org>
+ <1382890469-25286-2-git-send-email-sre@debian.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:39900 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751006Ab3KEImp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Nov 2013 03:42:45 -0500
-In-Reply-To: <cover.1383639261.git.jsarha@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1382890469-25286-2-git-send-email-sre-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sebastian Reichel <sre-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
+Cc: Sebastian Reichel <sre-GFxCN5SEZAc@public.gmane.org>, Luciano Coelho <luca-XPOmlcxoEMv1KXRcyAk9cg@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Rob Landley <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, "John W. Linville" <linville-2XuSBdqkA4R54TAoqtyWWQ@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Sachin Kamat <sachin.kamat-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Bill Pemberton <wfp5p-4Ng6DfrEGID2fBVCVOL8/A@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Luciano Coelho <coelho-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, tony@atomide.com
-Cc: Jyri Sarha <jsarha@ti.com>
 
-Modifying the omap2plus_defconfig to enable the audio support for
-AM335x EVM and other AM33xx based devices with TLV320AIC3X connected
-to McASP.
+On Sun 2013-10-27 17:14:26, Sebastian Reichel wrote:
+> From: Luciano Coelho <coelho-l0cyMroinI0@public.gmane.org>
+> 
+> Move the wl1251 part of the wl12xx platform data structure into a new
+> structure specifically for wl1251.  Change the platform data built-in
+> block and board files accordingly.
+> 
+> Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+> Signed-off-by: Luciano Coelho <coelho-l0cyMroinI0@public.gmane.org>
+> Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+> Reviewed-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 
-Signed-off-by: Jyri Sarha <jsarha@ti.com>
----
- arch/arm/configs/omap2plus_defconfig |    2 ++
- 1 file changed, 2 insertions(+)
+Reviewed-by: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
 
-diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
-index 254cf05..4443b92 100644
---- a/arch/arm/configs/omap2plus_defconfig
-+++ b/arch/arm/configs/omap2plus_defconfig
-@@ -210,6 +210,8 @@ CONFIG_SND_DEBUG=y
- CONFIG_SND_USB_AUDIO=m
- CONFIG_SND_SOC=m
- CONFIG_SND_OMAP_SOC=m
-+CONFIG_SND_AM33XX_SOC_EVM=m
-+CONFIG_SND_DAVINCI_SOC=m
- CONFIG_SND_OMAP_SOC_OMAP_TWL4030=m
- CONFIG_SND_OMAP_SOC_OMAP_ABE_TWL6040=m
- CONFIG_SND_OMAP_SOC_OMAP3_PANDORA=m
 -- 
-1.7.9.5
-
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
