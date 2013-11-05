@@ -1,34 +1,84 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: [PATCH 3/4] wl1251: spi: add vio regulator support
-Date: Tue, 5 Nov 2013 14:12:32 +0100
-Message-ID: <20131105131232.GD30670@amd.pavel.ucw.cz>
-References: <1382890469-25286-1-git-send-email-sre@debian.org>
- <1382890469-25286-4-git-send-email-sre@debian.org>
+From: Sricharan R <r.sricharan@ti.com>
+Subject: [PATCH V3 0/7] DRIVERS: IRQCHIP: Add support for crossbar IP
+Date: Tue, 5 Nov 2013 18:44:10 +0530
+Message-ID: <1383657257-3458-1-git-send-email-r.sricharan@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1382890469-25286-4-git-send-email-sre-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sebastian Reichel <sre-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
-Cc: Sebastian Reichel <sre-GFxCN5SEZAc@public.gmane.org>, Luciano Coelho <luca-XPOmlcxoEMv1KXRcyAk9cg@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Rob Landley <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, "John W. Linville" <linville-2XuSBdqkA4R54TAoqtyWWQ@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Sachin Kamat <sachin.kamat-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Bill Pemberton <wfp5p-4Ng6DfrEGID2fBVCVOL8/A@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-doc-owner@vger.kernel.org>
+Sender: linux-doc-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linus.walleij@linaro.org, linux@arm.linux.org.uk, tony@atomide.com, rnayak@ti.com, marc.zyngier@arm.com, grant.likely@linaro.org, mark.rutland@arm.com, robherring2@gmail.com, tglx@linutronix.de, santosh.shilimkar@ti.com, galak@codeaurora.org, r.sricharan@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On Sun 2013-10-27 17:14:28, Sebastian Reichel wrote:
-> This patch adds support for requesting the regulator powering
-> the vio pin.
-> 
-> The patch also adds the regulator for the all boards using the
-> wl1251 in spi mode (only the Nokia N900).
-> 
-> Signed-off-by: Sebastian Reichel <sre-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
+Some socs have a large number of interrupts requests to service
+the needs of its many peripherals and subsystems. All of the interrupt
+requests lines from the subsystems are not needed at the same
+time, so they have to be muxed to the controllers appropriately.
+In such places a interrupt controllers are preceded by an
+IRQ CROSSBAR that provides flexibility in muxing the device interrupt
+requests to the controller inputs.
 
-Reviewed-by: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+This series models the peripheral interrupts that can be routed through
+the crossbar to the GIC as 'routable-irqs'. The routable irqs are added
+in a separate linear domain inside the GIC. The registered routable domain's
+callback are invoked as a part of the GIC's callback, which in turn should
+allocate a free irq line and configure the IP accordingly. So every peripheral
+in the dts files mentions the fixed crossbar number as its interrupt. A free
+gic line for that gets allocated and configured when the peripheral interrupts
+are mapped.
+
+The minimal crossbar driver to track and allocate free GIC lines and configure the
+crossbar is added here, along with the DT bindings.
+
+V3:
+   Addressed few more comments from Thomas Gleixner <tglx@linutronix.de>
+
+   Rebased patches 3,4,5,7 which updates the DTS file on top of below branch
+	   git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git
+	   for_3.13/dts
+
+   Rebased patches 1,2,6 on top of 3.12 mainline
+   Updated Commit tags
+
+V2:
+   Addressed Thomas Gleixner <tglx@linutronix.de> comments and
+   Kumar Gala <galak@codeaurora.org>
+
+   Split updating the DRA7.dtsi file for adding the routable-irqs
+
+Previous discussions that led to this is at
+	https://lkml.org/lkml/2013/9/18/540
+
+The V1,V2 post of these patches is at
+      [V1]  https://lkml.org/lkml/2013/9/30/283
+      [V2]  http://www.spinics.net/lists/linux-omap/msg99540.html
+
+Sricharan R (7):
+  DRIVERS: IRQCHIP: IRQ-GIC: Add support for routable irqs
+  DRIVERS: IRQCHIP: CROSSBAR: Add support for Crossbar IP
+  ARM: DTS: DRA: Add crossbar device binding
+  ARM: DTS: DRA: Replace peripheral interrupt numbers with crossbar
+    inputs
+  ARM: DTS: DRA7: Add routable-irqs property for gic node
+  ARM: OMAP4+: Correct Wakeup-gen code to use physical irq number
+  ARM: DRA: Enable Crossbar IP support for DRA7XX
+
+ Documentation/devicetree/bindings/arm/gic.txt      |    6 +
+ .../devicetree/bindings/arm/omap/crossbar.txt      |   27 +++
+ arch/arm/boot/dts/dra7.dtsi                        |   95 +++++----
+ arch/arm/mach-omap2/Kconfig                        |    1 +
+ arch/arm/mach-omap2/omap-wakeupgen.c               |    4 +-
+ arch/arm/mach-omap2/omap4-common.c                 |    4 +
+ drivers/irqchip/Kconfig                            |    8 +
+ drivers/irqchip/Makefile                           |    1 +
+ drivers/irqchip/irq-crossbar.c                     |  206 ++++++++++++++++++++
+ drivers/irqchip/irq-gic.c                          |   81 +++++++-
+ include/linux/irqchip/arm-gic.h                    |    8 +-
+ include/linux/irqchip/irq-crossbar.h               |   11 ++
+ 12 files changed, 396 insertions(+), 56 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/arm/omap/crossbar.txt
+ create mode 100644 drivers/irqchip/irq-crossbar.c
+ create mode 100644 include/linux/irqchip/irq-crossbar.h
 
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+1.7.9.5
+
