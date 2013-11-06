@@ -1,45 +1,64 @@
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: re: ARM: OMAP: mcbsp: Make wakeup control generic
-Date: Wed, 6 Nov 2013 19:18:10 +0300
-Message-ID: <20131106161810.GM15603@elgon.mountain>
+From: Joel Fernandes <joelf@ti.com>
+Subject: Re: [PATCH v4] ARM: omap: edma: add suspend suspend/resume hooks
+Date: Wed, 6 Nov 2013 11:36:32 -0600
+Message-ID: <527A7E20.4040107@ti.com>
+References: <1383164468-4610-1-git-send-email-zonque@gmail.com>
+ <CANacCWz_ahKaACbAHuue1XwaN3gutBA7Z6W+=zWBn8LvLwDM5w@mail.gmail.com>
+Reply-To: joelf@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from aserp1040.oracle.com ([141.146.126.69]:37393 "EHLO
-	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751960Ab3KFQSb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Nov 2013 11:18:31 -0500
-Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <CANacCWz_ahKaACbAHuue1XwaN3gutBA7Z6W+=zWBn8LvLwDM5w@mail.gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Vaibhav Bedia <vaibhav.bedia@gmail.com>
+Cc: Nishanth Menon <nm@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, balajitk@ti.com, s.neumann@raumfeld.com, Sekhar Nori <nsekhar@ti.com>, gururaja.hebbar@ti.com, Russ Dill <Russ.Dill@ti.com>, Daniel Mack <zonque@gmail.com>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Matt Porter <matt@ohporter.com>
 List-Id: linux-omap@vger.kernel.org
-To: jarkko.nikula@bitmer.com
-Cc: linux-omap@vger.kernel.org
 
-Hello Jarkko Nikula,
+Hi Vaibhav,
 
-This is a semi-automatic email about new static checker warnings.
+On 10/31/2013 05:25 PM, Vaibhav Bedia wrote:
+> Hi Daniel,
+> 
+> On Wed, Oct 30, 2013 at 4:21 PM, Daniel Mack <zonque@gmail.com> wrote:
+> [...]
+>> +
+>> +static SIMPLE_DEV_PM_OPS(edma_pm_ops, edma_pm_suspend, edma_pm_resume);
+>> +
+>>  static struct platform_driver edma_driver = {
+>>         .driver = {
+>>                 .name   = "edma",
+>> +               .pm     = &edma_pm_ops,
+>>                 .of_match_table = edma_of_ids,
+>>         },
+> 
+> A while back we discovered a nasty race condition here that had us move the EDMA
+> PM callbacks to the noirq phase. IIRC the MMC driver was resuming
+> before the EDMA
+> driver had a chance to run and that was leading to a deadlock. I am
+> not sure how to force
+> this scenario but i do remember spending time debugging this on a
+> random codebase.
+> Maybe some else has some better ideas on how to force this race condition...
 
-The patch 1a6458847dd2: "ARM: OMAP: mcbsp: Make wakeup control 
-generic" from Sep 26, 2011, leads to the following Smatch complaint:
+I think you're talking about the patch at [1] which is not upstream. A quick
+question with my limited knowledge of suspend/resume- How can there be pending
+I/O operations between suspend/resume cycles? The sync is done before suspend,
+so I don't understand how one is receiving a response from the card after resume
+before EDMA can resume? I'd imagine that until all devices are resumed, there
+will be no I/O operation issued. Let me know your thoughts.
 
-sound/soc/omap/mcbsp.c:590 omap_mcbsp_free()
-	 error: we previously assumed 'mcbsp->pdata' could be null (see line 586)
+thanks,
 
-sound/soc/omap/mcbsp.c
-   585	
-   586		if (mcbsp->pdata && mcbsp->pdata->ops && mcbsp->pdata->ops->free)
-                    ^^^^^^^^^^^^
-Existing check.
+-Joel
 
-   587			mcbsp->pdata->ops->free(mcbsp->id - 1);
-   588	
-   589		/* Disable wakeup behavior */
-   590		if (mcbsp->pdata->has_wakeup)
-                    ^^^^^^^^^^^^^^^^^^^^^^^^
-Patch introduces an unchecked dereference.
-
-   591			MCBSP_WRITE(mcbsp, WAKEUPEN, 0);
-   592	
-
-regards,
-dan carpenter
+[1]
+https://www.gitorious.org/x0148406-public/linux-kernel/commit/b81bf04091986fa3893f31955564594567be3b61
