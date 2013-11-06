@@ -1,68 +1,42 @@
-From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-Subject: Re: [PATCH 0/3] omap2: Assorted GPMC cleanups
-Date: Wed, 6 Nov 2013 16:16:23 -0300
-Message-ID: <20131106191622.GA3162@localhost>
-References: <1382921508-5104-1-git-send-email-ezequiel.garcia@free-electrons.com>
+From: Alexander Shiyan <shc_work@mail.ru>
+Subject: [PATCH 3/3] ARM: omap2: Remove non-existent LOCAL_TIMERS
+Date: Thu,  7 Nov 2013 00:06:31 +0400
+Message-ID: <1383768391-11570-1-git-send-email-shc_work@mail.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from top.free-electrons.com ([176.31.233.9]:47622 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751768Ab3KFTQZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Nov 2013 14:16:25 -0500
-Content-Disposition: inline
-In-Reply-To: <1382921508-5104-1-git-send-email-ezequiel.garcia@free-electrons.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, Alexander Shiyan <shc_work@mail.ru>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Javier Martinez Canillas <martinez.javier@gmail.com>, Enric Balletbo Serra <eballetbo@gmail.com>, Pekon Gupta <pekon@ti.com>, Tony Lindgren <tony@atomide.com>, linux-mtd@lists.infradead.org, Jon Hunter <jgchunter@gmail.com>
 
-On Sun, Oct 27, 2013 at 09:51:45PM -0300, Ezequiel Garcia wrote:
-> (I'm CCing the MTD list, because GPMC is the memory controller
-> used for NOR, NAND and OneNAND devices).
->=20
-> Hi all,
->=20
-> Just a small patchset containing two small cleanups and a minor fix
-> for the GPMC memory controller. The first two are cleanups and can
-> be considered as preparation work for the fix.
->=20
-> The fix is patch 3/3: "Move legacy GPMC width setting". It makes
-> explicit use of the DT property "gpmc,device-width" and removes the
-> subsequent (and redundant) setting of the GPMC width, based in the
-> NAND bus widht.
->=20
-> Tested in AM335x (using DT) so I'd appreciate if someone can test usi=
-ng
-> a board-file, on a device with NAND flash.
->=20
-> Jon: If you happen to read this, I'd like if you could take a look at
-> patch 1/3, since you were the last to touch that part of the code.
->=20
-> Thanks!
->=20
-> Ezequiel Garcia (3):
->   omap2: gpmc: Move initialization outside the gpmc_t condition
->   omap2: gpmc: Introduce gpmc_set_legacy()
->   omap2: gpmc: Move legacy GPMC width setting
->=20
->  arch/arm/mach-omap2/gpmc-nand.c | 50 +++++++++++++++++++++++--------=
-----------
->  1 file changed, 28 insertions(+), 22 deletions(-)
->=20
 
-Any comments about this?
+Signed-off-by: Alexander Shiyan <shc_work@mail.ru>
+---
+ arch/arm/mach-omap2/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Pekon? Maybe you can comment or otherwise ack the patches?
-
-Thanks!
---=20
-Ezequiel Garc=C3=ADa, Free Electrons
-Embedded Linux, Kernel and Android Engineering
-http://free-electrons.com
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index dc21df1..c5c7c9c 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -54,7 +54,7 @@ config SOC_OMAP5
+ 	select ARM_GIC
+ 	select CPU_V7
+ 	select HAVE_ARM_SCU if SMP
+-	select HAVE_ARM_TWD if LOCAL_TIMERS
++	select HAVE_ARM_TWD if SMP
+ 	select HAVE_SMP
+ 	select HAVE_ARM_ARCH_TIMER
+ 	select ARM_ERRATA_798181 if SMP
+-- 
+1.8.1.5
