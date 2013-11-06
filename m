@@ -1,64 +1,68 @@
-From: Joel Fernandes <joelf@ti.com>
-Subject: Re: [PATCH v4] ARM: omap: edma: add suspend suspend/resume hooks
-Date: Wed, 6 Nov 2013 11:36:32 -0600
-Message-ID: <527A7E20.4040107@ti.com>
-References: <1383164468-4610-1-git-send-email-zonque@gmail.com>
- <CANacCWz_ahKaACbAHuue1XwaN3gutBA7Z6W+=zWBn8LvLwDM5w@mail.gmail.com>
-Reply-To: joelf@ti.com
+From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+Subject: Re: [PATCH 0/3] omap2: Assorted GPMC cleanups
+Date: Wed, 6 Nov 2013 16:16:23 -0300
+Message-ID: <20131106191622.GA3162@localhost>
+References: <1382921508-5104-1-git-send-email-ezequiel.garcia@free-electrons.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <CANacCWz_ahKaACbAHuue1XwaN3gutBA7Z6W+=zWBn8LvLwDM5w@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Vaibhav Bedia <vaibhav.bedia@gmail.com>
-Cc: Nishanth Menon <nm@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, balajitk@ti.com, s.neumann@raumfeld.com, Sekhar Nori <nsekhar@ti.com>, gururaja.hebbar@ti.com, Russ Dill <Russ.Dill@ti.com>, Daniel Mack <zonque@gmail.com>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Matt Porter <matt@ohporter.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from top.free-electrons.com ([176.31.233.9]:47622 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751768Ab3KFTQZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Nov 2013 14:16:25 -0500
+Content-Disposition: inline
+In-Reply-To: <1382921508-5104-1-git-send-email-ezequiel.garcia@free-electrons.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Javier Martinez Canillas <martinez.javier@gmail.com>, Enric Balletbo Serra <eballetbo@gmail.com>, Pekon Gupta <pekon@ti.com>, Tony Lindgren <tony@atomide.com>, linux-mtd@lists.infradead.org, Jon Hunter <jgchunter@gmail.com>
 
-Hi Vaibhav,
+On Sun, Oct 27, 2013 at 09:51:45PM -0300, Ezequiel Garcia wrote:
+> (I'm CCing the MTD list, because GPMC is the memory controller
+> used for NOR, NAND and OneNAND devices).
+>=20
+> Hi all,
+>=20
+> Just a small patchset containing two small cleanups and a minor fix
+> for the GPMC memory controller. The first two are cleanups and can
+> be considered as preparation work for the fix.
+>=20
+> The fix is patch 3/3: "Move legacy GPMC width setting". It makes
+> explicit use of the DT property "gpmc,device-width" and removes the
+> subsequent (and redundant) setting of the GPMC width, based in the
+> NAND bus widht.
+>=20
+> Tested in AM335x (using DT) so I'd appreciate if someone can test usi=
+ng
+> a board-file, on a device with NAND flash.
+>=20
+> Jon: If you happen to read this, I'd like if you could take a look at
+> patch 1/3, since you were the last to touch that part of the code.
+>=20
+> Thanks!
+>=20
+> Ezequiel Garcia (3):
+>   omap2: gpmc: Move initialization outside the gpmc_t condition
+>   omap2: gpmc: Introduce gpmc_set_legacy()
+>   omap2: gpmc: Move legacy GPMC width setting
+>=20
+>  arch/arm/mach-omap2/gpmc-nand.c | 50 +++++++++++++++++++++++--------=
+----------
+>  1 file changed, 28 insertions(+), 22 deletions(-)
+>=20
 
-On 10/31/2013 05:25 PM, Vaibhav Bedia wrote:
-> Hi Daniel,
-> 
-> On Wed, Oct 30, 2013 at 4:21 PM, Daniel Mack <zonque@gmail.com> wrote:
-> [...]
->> +
->> +static SIMPLE_DEV_PM_OPS(edma_pm_ops, edma_pm_suspend, edma_pm_resume);
->> +
->>  static struct platform_driver edma_driver = {
->>         .driver = {
->>                 .name   = "edma",
->> +               .pm     = &edma_pm_ops,
->>                 .of_match_table = edma_of_ids,
->>         },
-> 
-> A while back we discovered a nasty race condition here that had us move the EDMA
-> PM callbacks to the noirq phase. IIRC the MMC driver was resuming
-> before the EDMA
-> driver had a chance to run and that was leading to a deadlock. I am
-> not sure how to force
-> this scenario but i do remember spending time debugging this on a
-> random codebase.
-> Maybe some else has some better ideas on how to force this race condition...
+Any comments about this?
 
-I think you're talking about the patch at [1] which is not upstream. A quick
-question with my limited knowledge of suspend/resume- How can there be pending
-I/O operations between suspend/resume cycles? The sync is done before suspend,
-so I don't understand how one is receiving a response from the card after resume
-before EDMA can resume? I'd imagine that until all devices are resumed, there
-will be no I/O operation issued. Let me know your thoughts.
+Pekon? Maybe you can comment or otherwise ack the patches?
 
-thanks,
-
--Joel
-
-[1]
-https://www.gitorious.org/x0148406-public/linux-kernel/commit/b81bf04091986fa3893f31955564594567be3b61
+Thanks!
+--=20
+Ezequiel Garc=C3=ADa, Free Electrons
+Embedded Linux, Kernel and Android Engineering
+http://free-electrons.com
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
