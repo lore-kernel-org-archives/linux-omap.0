@@ -1,46 +1,76 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: [PATCH] ARM: OMAPFB: panel-sony-acx565akm: fix bad unlock balance
-Date: Wed,  6 Nov 2013 23:24:30 +0200
-Message-ID: <1383773070-15114-1-git-send-email-aaro.koskinen@iki.fi>
-Return-path: <stable-owner@vger.kernel.org>
-Sender: stable-owner@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
-Cc: Eduardo Valentin <eduardo.valentin@ti.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, stable@vger.kernel.org
+From: "Gupta, Pekon" <pekon@ti.com>
+Subject: RE: [PATCH 0/1] Fix OMAP2 NAND ONFI device detection
+Date: Wed, 6 Nov 2013 22:00:09 +0000
+Message-ID: <20980858CB6D3A4BAE95CA194937D5E73EA31BB3@DBDE04.ent.ti.com>
+References: <1383126788-27426-1-git-send-email-ezequiel.garcia@free-electrons.com>
+ <20131030191414.GA16668@norris.computersforpeace.net>
+ <20980858CB6D3A4BAE95CA194937D5E73EA2D41D@DBDE04.ent.ti.com>
+ <20131030231956.GA2489@localhost>
+ <20980858CB6D3A4BAE95CA194937D5E73EA31B19@DBDE04.ent.ti.com>
+ <20131106211833.GB12624@localhost>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:45389 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753923Ab3KFWAk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 6 Nov 2013 17:00:40 -0500
+In-Reply-To: <20131106211833.GB12624@localhost>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+Cc: Brian Norris <computersforpeace@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "Balbi, Felipe" <balbi@ti.com>, "marek.belisko@gmail.com" <marek.belisko@gmail.com>
 
-When booting Nokia N900 smartphone with v3.12 + omap2plus_defconfig
-(LOCKDEP enabled) and CONFIG_DISPLAY_PANEL_SONY_ACX565AKM enabled,
-the following BUG is seen during the boot:
-
-[    7.302154] =====================================
-[    7.307128] [ BUG: bad unlock balance detected! ]
-[    7.312103] 3.12.0-los.git-2093492-00120-g5e01dc7 #3 Not tainted
-[    7.318450] -------------------------------------
-[    7.323425] kworker/u2:1/12 is trying to release lock (&ddata->mutex) at:
-[    7.330657] [<c031b760>] acx565akm_enable+0x12c/0x18c
-[    7.335998] but there are no more locks to release!
-
-Fix by removing the extra mutex_unlock().
-
-Reported-by: Eduardo Valentin <eduardo.valentin@ti.com>
-Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: stable@vger.kernel.org
----
- drivers/video/omap2/displays-new/panel-sony-acx565akm.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/video/omap2/displays-new/panel-sony-acx565akm.c b/drivers/video/omap2/displays-new/panel-sony-acx565akm.c
-index e6d56f7..72fe2a8 100644
---- a/drivers/video/omap2/displays-new/panel-sony-acx565akm.c
-+++ b/drivers/video/omap2/displays-new/panel-sony-acx565akm.c
-@@ -616,7 +616,7 @@ static int acx565akm_enable(struct omap_dss_device *dssdev)
- 
- 	mutex_lock(&ddata->mutex);
- 	r = acx565akm_panel_power_on(dssdev);
--	mutex_unlock(&ddata->mutex);
-+	/* NOTE: acx565akm_panel_power_on() will unlock the mutex. */
- 
- 	if (r)
- 		return r;
--- 
-1.8.4.2
+PiBGcm9tOiBFemVxdWllbCBHYXJjaWENClsuLi5dDQoNCj4gQnV0OiBvbiB0aGUgb3RoZXIgaGFu
+ZCwgSSdkIHJlYWxseSBsaWtlIHlvdSB0byBjb252aW5jZSBtZSBhcyB0bw0KPiB3aHkgaXMgaXQg
+c28gYmFkIHRvIHJlcXVpcmUgdGhlIERUQiB0byBoYXZlIHRoZSBwcm9wZXIgR1BNQyBidXMgd2lk
+dGguDQo+IA0KTm8gaXRzIG5vdCBhdCBhbGwgYmFkLCBhbGwgSSB3YW50IGlzIGVpdGhlciBvZiB0
+aGUgb25lIHdheSAobm90IG1peHR1cmUgb2YgYm90aCkuDQotIEVpdGhlciBkZXBlbmQgb24gRFQg
+Y29tcGxldGVseSAod2hpY2ggaXMgY3VycmVudCBjYXNlIGZvciBhbGwgZHJpdmVycykNCi0gT1Ig
+ZGVwZW5kIG9uIE9ORkkgYW5kIG5hbmRfZmxhc2hfaWRbXSBmb3IgYnVzLXdpZHRoIGRldGVjdGlv
+bi4NCg0KDQo+IE9uY2UgYWdhaW46DQo+IDEuIHRoZSBOQU5EIGRldmljZXMgYXJlbid0IGhvdC1w
+bHVnZ2FibGUNCj4gMi4gdGhlICJ1c2VyIiAod2hvIGlzIGFjdHVhbGx5IGFuIGVuZ2luZWVyLCBu
+b3Qgc29tZSByZWd1bGFyIGR1bW15IHVzZXIpDQo+IGtub3dzIHBlcmZlY3RseSB3ZWxsIHRoZSB3
+aWR0aCBvZiB0aGUgZGV2aWNlLg0KPiANCj4gV2hhdCdzIHRoZSBwcm9ibGVtIHdpdGggZGVzY3Jp
+YmluZyB0aGUgaGFyZHdhcmUgaW4gdGhlIERUIGFuZCBzYXZpbmcgdXMNCj4gbG90cyBvZiBydW50
+aW1lIHJlLWNvbmZpZ3VyYXRpb24gdHJvdWJsZT8NCg0KSSBhZ3JlZSB3aXRoIGJvdGggeW91ciBh
+cmd1bWVudHMgYWJvdmUuDQpTbyBzaG91bGRuJ3Qgd2Uga2lsbCBOQU5EX0JVU1dJRFRIX0FVVE8g
+Pw0KQW5kIHByb2JhYmx5IHRoZXJlZm9yZSAgTkFORF9CVVNXSURUSF9BVVRPIGlzbid0IHRoYXQg
+cG9wdWxhci4NCg0KTm93IHdoYXQgcmVtYWlucyBpcyBPTkZJIHByb2JlLCB3aGljaCBzaG91bGQg
+YWx3YXlzIGhhcHBlbiBpbiB4OCBtb2RlLg0KU28gZm9yIHRoYXQgYmVsb3cgcGF0Y2ggc2hvdWxk
+IGJlIHN1ZmZpY2llbnQgLi4NCg0KLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQ0KZGlmZiAtLWdpdCBh
+L2RyaXZlcnMvbXRkL25hbmQvbmFuZF9iYXNlLmMgYi9kcml2ZXJzL210ZC9uYW5kL25hbmRfYmFz
+ZS5jDQppbmRleCBlYzFkYjFlLi5kMTIyMGZiIDEwMDY0NA0KLS0tIGEvZHJpdmVycy9tdGQvbmFu
+ZC9uYW5kX2Jhc2UuYw0KKysrIGIvZHJpdmVycy9tdGQvbmFuZC9uYW5kX2Jhc2UuYw0KQEAgLTI5
+NDIsMTQgKzI5NDIsOCBAQCBzdGF0aWMgaW50IG5hbmRfZmxhc2hfZGV0ZWN0X29uZmkoc3RydWN0
+IG10ZF9pbmZvICptdGQsIHN0cnVjdCBuYW5kX2NoaXAgKmNoaXAsDQogICAgICAgICAgICAgICAg
+Y2hpcC0+cmVhZF9ieXRlKG10ZCkgIT0gJ0YnIHx8IGNoaXAtPnJlYWRfYnl0ZShtdGQpICE9ICdJ
+JykNCiAgICAgICAgICAgICAgICByZXR1cm4gMDsNCg0KLSAgICAgICAvKg0KLSAgICAgICAgKiBP
+TkZJIG11c3QgYmUgcHJvYmVkIGluIDgtYml0IG1vZGUgb3Igd2l0aCBOQU5EX0JVU1dJRFRIX0FV
+VE8sIG5vdA0KLSAgICAgICAgKiB3aXRoIE5BTkRfQlVTV0lEVEhfMTYNCi0gICAgICAgICovDQot
+ICAgICAgIGlmIChjaGlwLT5vcHRpb25zICYgTkFORF9CVVNXSURUSF8xNikgew0KLSAgICAgICAg
+ICAgICAgIHByX2VycigiT05GSSBjYW5ub3QgYmUgcHJvYmVkIGluIDE2LWJpdCBtb2RlOyBhYm9y
+dGluZ1xuIik7DQotICAgICAgICAgICAgICAgcmV0dXJuIDA7DQotICAgICAgIH0NCisgICAgICAg
+LyogT05GSSBtdXN0IGJlIHByb2JlZCBpbiA4LWJpdCBtb2RlIG9ubHkgKi8NCisgICAgICAgbmFu
+ZF9zZXRfZGVmYXVsdHMoY2hpcCwgMCk7DQoNCiAgICAgICAgY2hpcC0+Y21kZnVuYyhtdGQsIE5B
+TkRfQ01EX1BBUkFNLCAwLCAtMSk7DQogICAgICAgIGZvciAoaSA9IDA7IGkgPCAzOyBpKyspIHsN
+CkBAIC0yOTYyLDcgKzI5NTYsNyBAQCBzdGF0aWMgaW50IG5hbmRfZmxhc2hfZGV0ZWN0X29uZmko
+c3RydWN0IG10ZF9pbmZvICptdGQsIHN0cnVjdCBuYW5kX2NoaXAgKmNoaXAsDQoNCiAgICAgICAg
+aWYgKGkgPT0gMykgew0KICAgICAgICAgICAgICAgIHByX2VycigiQ291bGQgbm90IGZpbmQgdmFs
+aWQgT05GSSBwYXJhbWV0ZXIgcGFnZTsgYWJvcnRpbmdcbiIpOw0KLSAgICAgICAgICAgICAgIHJl
+dHVybiAwOw0KKyAgICAgICAgICAgICAgIGdvdG8gcmV0dXJuX2Vycm9yOw0KICAgICAgICB9DQoN
+CiAgICAgICAgLyogQ2hlY2sgdmVyc2lvbiAqLw0KQEAgLTI5ODAsNyArMjk3NCw3IEBAIHN0YXRp
+YyBpbnQgbmFuZF9mbGFzaF9kZXRlY3Rfb25maShzdHJ1Y3QgbXRkX2luZm8gKm10ZCwgc3RydWN0
+IG5hbmRfY2hpcCAqY2hpcCwNCg0KICAgICAgICBpZiAoIWNoaXAtPm9uZmlfdmVyc2lvbikgew0K
+ICAgICAgICAgICAgICAgIHByX2luZm8oIiVzOiB1bnN1cHBvcnRlZCBPTkZJIHZlcnNpb246ICVk
+XG4iLCBfX2Z1bmNfXywgdmFsKTsNCi0gICAgICAgICAgICAgICByZXR1cm4gMDsNCisgICAgICAg
+ICAgICAgICBnb3RvIHJldHVybl9lcnJvcjsNCiAgICAgICAgfQ0KDQogICAgICAgIHNhbml0aXpl
+X3N0cmluZyhwLT5tYW51ZmFjdHVyZXIsIHNpemVvZihwLT5tYW51ZmFjdHVyZXIpKTsNCkBAIC0z
+MDMzLDYgKzMwMjcsMTIgQEAgc3RhdGljIGludCBuYW5kX2ZsYXNoX2RldGVjdF9vbmZpKHN0cnVj
+dCBtdGRfaW5mbyAqbXRkLCBzdHJ1Y3QgbmFuZF9jaGlwICpjaGlwLA0KICAgICAgICB9DQoNCiAg
+ICAgICAgcmV0dXJuIDE7DQorDQorcmV0dXJuX2Vycm9yOg0KKyAgICAgICAvKiByZXZlcnQgb3Jp
+Z2luYWwgYnVzLXdpZHRoICovDQorICAgICAgIG5hbmRfc2V0X2RlZmF1bHRzKCBjaGlwLT5vcHRp
+b25zICYgTkFORF9CVVNXSURUSF8xNik7DQorICAgICAgIHJldHVybiAwOw0KKw0KIH0NCg0KIC8q
+DQotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tIA0KDQoNCndpdGggcmVnYXJkcywgcGVrb24NCg==
