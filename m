@@ -1,69 +1,78 @@
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: re: ARM: OMAP2+: Powerdomain: Remove the need to always have a
- voltdm associated to a pwrdm
-Date: Wed, 6 Nov 2013 23:36:12 +0300
-Message-ID: <20131106203612.GC22627@elgon.mountain>
+From: "Gupta, Pekon" <pekon@ti.com>
+Subject: RE: [PATCH 0/1] Fix OMAP2 NAND ONFI device detection
+Date: Wed, 6 Nov 2013 20:54:56 +0000
+Message-ID: <20980858CB6D3A4BAE95CA194937D5E73EA31B19@DBDE04.ent.ti.com>
+References: <1383126788-27426-1-git-send-email-ezequiel.garcia@free-electrons.com>
+ <20131030191414.GA16668@norris.computersforpeace.net>
+ <20980858CB6D3A4BAE95CA194937D5E73EA2D41D@DBDE04.ent.ti.com>
+ <20131030231956.GA2489@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from aserp1040.oracle.com ([141.146.126.69]:46644 "EHLO
-	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756017Ab3KFUgW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Nov 2013 15:36:22 -0500
-Content-Disposition: inline
+Received: from bear.ext.ti.com ([192.94.94.41]:49978 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755711Ab3KFUz2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 6 Nov 2013 15:55:28 -0500
+In-Reply-To: <20131030231956.GA2489@localhost>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: rnayak@ti.com
-Cc: linux-omap@vger.kernel.org
+To: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+Cc: Brian Norris <computersforpeace@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "Balbi, Felipe" <balbi@ti.com>, "marek.belisko@gmail.com" <marek.belisko@gmail.com>
 
-Hello Rajendra Nayak,
-
-This is a semi-automatic email about new static checker warnings.
-
-The patch cd8abed1da91: "ARM: OMAP2+: Powerdomain: Remove the need to 
-always have a voltdm associated to a pwrdm" from Jun 17, 2013, leads 
-to the following Smatch complaint:
-
-arch/arm/mach-omap2/powerdomain.c:131 _pwrdm_register()
-	 error: we previously assumed 'arch_pwrdm' could be null (see line 105)
-
-arch/arm/mach-omap2/powerdomain.c
-   104	
-   105		if (arch_pwrdm && arch_pwrdm->pwrdm_has_voltdm)
-                    ^^^^^^^^^^
-Patch introduces new check.
-
-   106			if (!arch_pwrdm->pwrdm_has_voltdm())
-   107				goto skip_voltdm;
-   108	
-   109		voltdm = voltdm_lookup(pwrdm->voltdm.name);
-   110		if (!voltdm) {
-   111			pr_err("powerdomain: %s: voltagedomain %s does not exist\n",
-   112			       pwrdm->name, pwrdm->voltdm.name);
-   113			return -EINVAL;
-   114		}
-   115		pwrdm->voltdm.ptr = voltdm;
-   116		INIT_LIST_HEAD(&pwrdm->voltdm_node);
-   117		voltdm_add_pwrdm(voltdm, pwrdm);
-   118	skip_voltdm:
-   119		spin_lock_init(&pwrdm->_lock);
-   120	
-   121		list_add(&pwrdm->node, &pwrdm_list);
-   122	
-   123		/* Initialize the powerdomain's state counter */
-   124		for (i = 0; i < PWRDM_MAX_PWRSTS; i++)
-   125			pwrdm->state_counter[i] = 0;
-   126	
-   127		pwrdm->ret_logic_off_counter = 0;
-   128		for (i = 0; i < pwrdm->banks; i++)
-   129			pwrdm->ret_mem_off_counter[i] = 0;
-   130	
-   131		arch_pwrdm->pwrdm_wait_transition(pwrdm);
-                ^^^^^^^^^^^^
-Existing unchecked dereference.
-
-   132		pwrdm->state = pwrdm_read_pwrst(pwrdm);
-   133		pwrdm->state_counter[pwrdm->state] = 1;
-
-regards,
-dan carpenter
+PiBGcm9tOiBFemVxdWllbCBHYXJjaWEgW21haWx0bzplemVxdWllbC5nYXJjaWFAZnJlZS1lbGVj
+dHJvbnMuY29tXQ0KPiA+IE9uIFdlZCwgT2N0IDMwLCAyMDEzIGF0IDA5OjE4OjUzUE0gKzAwMDAs
+IEd1cHRhLCBQZWtvbiB3cm90ZToNCj4gPiA+DQo+ID4gPiBJJ20gbm90IHN1cmUsIG9mIGNvdXJz
+ZSwgYnV0IEkgZG9uJ3Qgc2VlIHdoeSBub3QuIEl0J3MgbW9yZSBsaWtlbHkgdG8NCj4gPiA+IGJy
+ZWFrIGZvciB4MTYgdGhhbiBpdCBpcyBmb3IgeDguDQo+ID4gPg0KPiA+IEFub3RoZXIgcXVlc3Rp
+b24gaGVyZSBpcyAuLg0KPiA+IFRoZSBhYm92ZSBwYXRjaCBhc3N1bWVzIHRoYXQgdXNlciBoYXMg
+Y29uZmlndXJlZCBHUE1DIGJ1cy13aWR0aA0KPiA+IGNvcnJlY3RseSwgc28gaWYgdXNlciBpcyBh
+bHJlYWR5IHByb3ZpZGluZyBHUE1DIGJ1cy13aWR0aCBpbmZvcm1hdGlvbg0KPiA+IHZpYSBEVCwg
+dGhlbiBkbyB3ZSByZWFsbHkgbmVlZCB0byBkZXRlY3QgTkFORCBkZXZpY2UgYnVzLXdpZHRoIGFn
+YWluDQo+ID4gdXNpbmcgTkFORF9CVVNXSURUSF9BVVRPID8NCj4gPg0KPiANCj4gSG0uLiBJIHRo
+aW5rIHlvdSdyZSBmb3JnZXR0aW5nIHRoZSBvcmlnaW5hbCBtb3RpdmF0aW9uIGZvciB0aGlzIHBh
+dGNoLA0KPiB3aGljaCB3YXMgaW5pdGlhbGx5IGV4cGxhaW5lZCBieSB5b3UgOi0pIFRoZSBwcm9i
+bGVtIGlzIE9ORkkgZG9lc24ndCB3b3JrDQo+IGluIDE2LWJpdCBtb2RlLg0KPiANCj4gTGV0IG1l
+IGNsYXJpZnkuIFNpbmNlIEdQTUMgYW5kIE5BTkQgd2lkdGhzICptdXN0KiBtYXRjaCAob3RoZXJ3
+aXNlLCBpdA0KPiB3b3VsZG4ndCBtYWtlIG11Y2ggc2Vuc2UsIHJpZ2h0Pykgd2UgZG9uJ3QgcmVh
+bGx5IG5lZWQgdG8gYXV0b2RldGVjdCB0aGUNCj4gTkFORCB3aWR0aC4NCj4gDQo+IEhvd2V2ZXIs
+IHNpbmNlIE9ORkkgZG9lc24ndCB3b3JrIGluIDE2LWJpdCBtb2RlLCB3ZSB3b3VsZCBoYXZlIHRv
+IGRvDQo+IHNvbWV0aGluZyBsaWtlIHRoaXMgKHVudGVzdGVkIHBzZXVkbyBjb2RlKToNCj4gDQo+
+ICAgbmFuZF9zY2FuX2lkZW50KC4uLik7DQo+IA0KPiAgIGlmIChwbGF0Zm9ybV9kYXRhLT5kZXZz
+aXplID09IDE2KQ0KPiAgIAluYW5kX2NoaXAtPm9wdGlvbnMgfD0gTkFORF9CVVNXSURUSF8xNjsN
+Cj4gDQo+IEFuZCBpbiBzb21lIGNhc2VzIHdlIG1pZ2h0IGV2ZW4gZ2V0IGF3YXkgd2l0aCBzdWNo
+IHNvbHV0aW9uLiBIb3dldmVyLA0KPiB3ZSBjYW4ndCBndWFyYW50ZWUgbmFuZF9zY2FuX2lkZW50
+KCkgZG9lc24ndCBuZWVkIHRvIHN3aXRoIHRvIDE2LWJpdCBtb2RlDQo+IGluc2lkZSB0byBwZXJm
+b3JtIG90aGVyIGNvbW1hbmRzIChtYXliZSBzb21lIE9ORkkgZXh0ZW5kZWQgcGFyYW1ldGVyDQo+
+IHBhZ2UpLg0KPiANCj4gVGhlcmVmb3JlLCBhbmQgZ2l2ZW4gdGhlIHdpZHRoIGNhbiBiZSBhdXRv
+ZGV0ZWN0ZWQgaW4gYW55IGNhc2UgKGFycmF5DQo+IG9yIE9ORkkgYmFzZWQgY2Fycnkgc3VjaCBp
+bmZvcm1hdGlvbikgaXQncyBtdWNoIGNsZWFuZXIgdG8gc2ltcGx5IGRvOg0KPiANCj4gICBuYW5k
+X2NoaXAtPm9wdGlvbnMgfD0gTkFORF9CVVNXSURUSF9BVVRPTUFHSUM7DQo+ICAgbmFuZF9zY2Fu
+X2lkZW50KC4uLik7DQo+IA0KPiBTZWU/IE11Y2ggY2xlYW5lciwgbm8/DQo+IA0KYnV0IHN0aWxs
+IGRlcGVuZGVudCBvbiBEVCBwcm9wZXJ0eSBmb3IgR1BNQyBjb25maWd1cmF0aW9ucy4uLg0KSSBw
+cmVmZXJyZWQgTkFORCBidXMtd2lkdGggZGV0ZWN0aW9uIHRvIGJlIGNvbXBsZXRlbHkgaW5kZXBl
+bmRlbnQNCm9mICdhbnknIERUIHByb3BlcnR5Lg0KDQoNCj4gQW5kIHJlbWVtYmVyOiB0aGUgZmFj
+dCB0aGF0IHdlIG11c3Qga25vdyB0aGUgZGV2aWNlIHdpZHRoIHRvIGNvbmZpZ3VyZQ0KPiB0aGUg
+R1BNQyBjb3JyZWN0bHkgKHdoaWNoIGJlaW5nIGEgaGFyZHdhcmUgcGFyYW1ldGVyIGJlbG9uZ3Mg
+dG8gdGhlIERUKQ0KPiBpcyBPTUFQIHNwZWNpZmljLiBPdGhlciBTb0NzIG1pZ2h0IG5vdCBoYXZl
+IHN1Y2ggbWVtb3J5IGNvbnRyb2xsZXINCj4gYW5kIHRodXMgd29uJ3QgbmVlZCBzdWNoIGtub3ds
+ZWRnZSBiZWZvcmUgaGFuZCwgYWx0aG91Z2ggdGhhdCBzb3VuZHMNCj4gdW5saWtlbHkgdG8gbWUu
+DQo+IA0KPiBUaGUgb3V0Y29tZSBvZiB0aGlzIGRpc2N1c3Npb24gc2VlbXMgdG8gYmUgdGhhdCBu
+byBkcml2ZXIgc2hvdWxkIGV2ZXINCj4gbmVlZCB0byBzcGVjaWZ5IHRoZSAnbmFuZC1idXMtd2lk
+dGgnIERUIHByb3BlcnR5LCBhcyBCcmlhbg0KPiBwcmV2aW91c2x5IHN1Z2dlc3RlZCwgcmlnaHQ/
+DQo+IA0KUmlnaHQuLiBBbmQgdGhpcyBpcyB3aGVyZSBJJ20gc3VnZ2VzdGluZyB0aGF0IGluLW9y
+ZGVyIHRvIGNvbXBsZXRlbHkNCmVsaW1pbmF0ZSB0aGUgZGVwZW5kZW5jeSBvbiAnbmFuZC1idXMt
+d2lkdGgnIERUIHByb3BlcnR5LCB5b3UgbmVlZA0KdG8gYWxzbyB1cGRhdGUgR1BNQyBkcml2ZXIs
+IHNvIHRoYXQgaXRzIHJlZ2lzdGVycyBjYW4gYmUgcmUtY29uZmlndXJlZCB3aXRoDQpjb3JyZWN0
+IE5BTkQgYnVzLXdpZHRoIGFmdGVyIG5hbmRfc2Nhbl9pZGVudCgpLg0KDQoNCj4gSSBtdXN0IGFk
+bWl0IEknbSBhIGJpdCBwdXp6bGVkIGJ5IHNlZWluZyBtb3N0IGRyaXZlcnMgc2V0dGluZyAxNi1i
+aXQNCj4gYmVmb3JlIGNhbGxpbmcgbmFuZF9zY2FuX2lkZW50KCkuIEkgZ3Vlc3Mgbm9uZSBvZiB0
+aGVtIHJlbGllcyBvbiBPTkZJPw0KPiANCk1heSBiZSwgYnV0IGdvaW5nIGZvcndhcmQgd2Ugc2hv
+dWxkIG1ha2UgTkFORF9CVVNXSURUSF9BVVRPDQphcyBhIG1hbmRhdG9yeSBvcHRpb24sIGJlY2F1
+c2UgbW9zdCBvZiB0aGUgTkFORCBkZXZpY2VzIGhhdmUgYWRvcHRlZA0KdG8gT05GSSwgYW5kIHJl
+bWFpbmluZyBsZWdhY3kgKGlmIGFueSkgYXJlIHBhcnQgb2YgbmFuZF9mbGFzaF9pZFtdIHRhYmxl
+Lg0KU28gZWl0aGVyIHdheSB0aGUgZGV2aWNlIHdvdWxkIGdldCBkZXRlY3RlZCwgaWYgeW91IHN0
+YXJ0IHdpdGggeDgNCihsb3dlc3QgbWluaW11bSBjYXBhYmlsaXR5IGJ1cy13aWR0aCkuIFRodXMg
+dGhlcmUgaXMgbm8gbmVlZCBmb3IgdXNlcg0KdG8gc3BlY2lmeSBOQU5EIGRldmljZSBidXMtd2lk
+dGggcHJvcGVydHkgdmlhIERULg0KDQoNCndpdGggcmVnYXJkcywgcGVrb24NCg==
