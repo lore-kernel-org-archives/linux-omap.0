@@ -1,96 +1,32 @@
 From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [RFC 3/4] ASoC: Allow Aux Codecs to be specified using DT
-Date: Wed, 6 Nov 2013 15:25:59 +0100
-Message-ID: <20131106142559.GC15551@amd.pavel.ucw.cz>
+Subject: Re: [RFC 4/4] ASoC: RX-51: Add DT support to sound driver
+Date: Wed, 6 Nov 2013 15:32:48 +0100
+Message-ID: <20131106143248.GD15551@amd.pavel.ucw.cz>
 References: <1382909086-10493-1-git-send-email-sre@debian.org>
- <1382909086-10493-4-git-send-email-sre@debian.org>
+ <1382909086-10493-5-git-send-email-sre@debian.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-doc-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1382909086-10493-4-git-send-email-sre@debian.org>
-Sender: linux-doc-owner@vger.kernel.org
+In-Reply-To: <1382909086-10493-5-git-send-email-sre@debian.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Sebastian Reichel <sre@debian.org>
 Cc: Sebastian Reichel <sre@ring0.de>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Rob Landley <rob@landley.net>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Grant Likely <grant.likely@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
 List-Id: linux-omap@vger.kernel.org
 
 Hi!
 
-> This patch adds support for specifying auxiliary codecs and
-> codec configuration via device tree phandles.
-> 
-> This change adds new fields to snd_soc_aux_dev and snd_soc_codec_conf
-> and adds support for the changes to SoC core methods.
-> 
-> Signed-off-by: Sebastian Reichel <sre@debian.org>
-> ---
->  include/sound/soc.h  | 13 +++++++++-
->  sound/soc/soc-core.c | 68 ++++++++++++++++++++++++++++++++++++----------------
->  2 files changed, 59 insertions(+), 22 deletions(-)
+> This patch adds device tree support to the Nokia N900 audio driver.
 
-> @@ -1527,15 +1529,23 @@ static void soc_unregister_ac97_dai_link(struct snd_soc_codec *codec)
->  static int soc_check_aux_dev(struct snd_soc_card *card, int num)
->  {
->  	struct snd_soc_aux_dev *aux_dev = &card->aux_dev[num];
-> +	const char *codecname = aux_dev->codec_name;
->  	struct snd_soc_codec *codec;
->  
->  	/* find CODEC from registered CODECs*/
->  	list_for_each_entry(codec, &codec_list, list) {
-> -		if (!strcmp(codec->name, aux_dev->codec_name))
-> +		if (aux_dev->codec_of_node &&
-> +				codec->dev->of_node == aux_dev->codec_of_node)
-> +			return 0;
-> +		if (aux_dev->codec_name &&
-> +				!strcmp(codec->name, aux_dev->codec_name))
->  			return 0;
+Note, N900 audio driver.
 
-You can use codecname here.
+> +- compatible: "nokia,rx51-audio"
 
-> -		if (!strcmp(codec->name, aux_dev->codec_name)) {
-> -			if (codec->probed) {
-> -				dev_err(codec->dev,
-> -					"ASoC: codec already probed");
-> -				ret = -EBUSY;
-> -				goto out;
-> -			}
-> -			goto found;
-> +		if (aux_dev->codec_of_node &&
-> +				codec->dev->of_node != aux_dev->codec_of_node)
-> +			continue;
-> +		if (aux_dev->codec_name &&
-> +				strcmp(codec->name, aux_dev->codec_name))
-> +			continue;
+Still, it is rx51-audio. If it is feasible, could we move away from
+rx51 naming and into n900 naming that is familiar to mere humans?
 
-So in (error) case of ! aux_dev->codec_of_node && ! aux_dev->codec_name 
-we match first possible codec?
-
-Given code similarity between this and the one above, should there be
-helper function that does the comparison (or even walks the list)?
-
-> @@ -1644,12 +1663,19 @@ static int snd_soc_instantiate_card(struct snd_soc_card *card)
->  		/* check to see if we need to override the compress_type */
->  		for (i = 0; i < card->num_configs; ++i) {
->  			codec_conf = &card->codec_conf[i];
-> -			if (!strcmp(codec->name, codec_conf->dev_name)) {
-> -				compress_type = codec_conf->compress_type;
-> -				if (compress_type && compress_type
-> -				    != codec->compress_type)
-> -					break;
-> -			}
-> +
-> +			if (codec_conf->of_node &&
-> +				codec->dev->of_node != codec_conf->of_node)
-> +				continue;
-> +
-> +			if (codec_conf->dev_name &&
-> +				strcmp(codec->name, codec_conf->dev_name))
-> +				continue;
-> +
-
-..third copy of codec matching.
-
-Thanks for doing all the good work,
+We can rename the sources later, but I guess we should get dts binding
+right first time...
 									Pavel
 -- 
 (english) http://www.livejournal.com/~pavelmachek
