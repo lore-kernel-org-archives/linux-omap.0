@@ -1,78 +1,136 @@
-From: "Gupta, Pekon" <pekon@ti.com>
-Subject: RE: [PATCH 0/1] Fix OMAP2 NAND ONFI device detection
-Date: Wed, 6 Nov 2013 20:54:56 +0000
-Message-ID: <20980858CB6D3A4BAE95CA194937D5E73EA31B19@DBDE04.ent.ti.com>
+From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+Subject: Re: [PATCH 0/1] Fix OMAP2 NAND ONFI device detection
+Date: Wed, 6 Nov 2013 18:18:34 -0300
+Message-ID: <20131106211833.GB12624@localhost>
 References: <1383126788-27426-1-git-send-email-ezequiel.garcia@free-electrons.com>
  <20131030191414.GA16668@norris.computersforpeace.net>
  <20980858CB6D3A4BAE95CA194937D5E73EA2D41D@DBDE04.ent.ti.com>
  <20131030231956.GA2489@localhost>
+ <20980858CB6D3A4BAE95CA194937D5E73EA31B19@DBDE04.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:49978 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755711Ab3KFUz2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 6 Nov 2013 15:55:28 -0500
-In-Reply-To: <20131030231956.GA2489@localhost>
-Content-Language: en-US
+Received: from top.free-electrons.com ([176.31.233.9]:48037 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S932090Ab3KFVSa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Nov 2013 16:18:30 -0500
+Content-Disposition: inline
+In-Reply-To: <20980858CB6D3A4BAE95CA194937D5E73EA31B19@DBDE04.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+To: "Gupta, Pekon" <pekon@ti.com>
 Cc: Brian Norris <computersforpeace@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "Balbi, Felipe" <balbi@ti.com>, "marek.belisko@gmail.com" <marek.belisko@gmail.com>
 
-PiBGcm9tOiBFemVxdWllbCBHYXJjaWEgW21haWx0bzplemVxdWllbC5nYXJjaWFAZnJlZS1lbGVj
-dHJvbnMuY29tXQ0KPiA+IE9uIFdlZCwgT2N0IDMwLCAyMDEzIGF0IDA5OjE4OjUzUE0gKzAwMDAs
-IEd1cHRhLCBQZWtvbiB3cm90ZToNCj4gPiA+DQo+ID4gPiBJJ20gbm90IHN1cmUsIG9mIGNvdXJz
-ZSwgYnV0IEkgZG9uJ3Qgc2VlIHdoeSBub3QuIEl0J3MgbW9yZSBsaWtlbHkgdG8NCj4gPiA+IGJy
-ZWFrIGZvciB4MTYgdGhhbiBpdCBpcyBmb3IgeDguDQo+ID4gPg0KPiA+IEFub3RoZXIgcXVlc3Rp
-b24gaGVyZSBpcyAuLg0KPiA+IFRoZSBhYm92ZSBwYXRjaCBhc3N1bWVzIHRoYXQgdXNlciBoYXMg
-Y29uZmlndXJlZCBHUE1DIGJ1cy13aWR0aA0KPiA+IGNvcnJlY3RseSwgc28gaWYgdXNlciBpcyBh
-bHJlYWR5IHByb3ZpZGluZyBHUE1DIGJ1cy13aWR0aCBpbmZvcm1hdGlvbg0KPiA+IHZpYSBEVCwg
-dGhlbiBkbyB3ZSByZWFsbHkgbmVlZCB0byBkZXRlY3QgTkFORCBkZXZpY2UgYnVzLXdpZHRoIGFn
-YWluDQo+ID4gdXNpbmcgTkFORF9CVVNXSURUSF9BVVRPID8NCj4gPg0KPiANCj4gSG0uLiBJIHRo
-aW5rIHlvdSdyZSBmb3JnZXR0aW5nIHRoZSBvcmlnaW5hbCBtb3RpdmF0aW9uIGZvciB0aGlzIHBh
-dGNoLA0KPiB3aGljaCB3YXMgaW5pdGlhbGx5IGV4cGxhaW5lZCBieSB5b3UgOi0pIFRoZSBwcm9i
-bGVtIGlzIE9ORkkgZG9lc24ndCB3b3JrDQo+IGluIDE2LWJpdCBtb2RlLg0KPiANCj4gTGV0IG1l
-IGNsYXJpZnkuIFNpbmNlIEdQTUMgYW5kIE5BTkQgd2lkdGhzICptdXN0KiBtYXRjaCAob3RoZXJ3
-aXNlLCBpdA0KPiB3b3VsZG4ndCBtYWtlIG11Y2ggc2Vuc2UsIHJpZ2h0Pykgd2UgZG9uJ3QgcmVh
-bGx5IG5lZWQgdG8gYXV0b2RldGVjdCB0aGUNCj4gTkFORCB3aWR0aC4NCj4gDQo+IEhvd2V2ZXIs
-IHNpbmNlIE9ORkkgZG9lc24ndCB3b3JrIGluIDE2LWJpdCBtb2RlLCB3ZSB3b3VsZCBoYXZlIHRv
-IGRvDQo+IHNvbWV0aGluZyBsaWtlIHRoaXMgKHVudGVzdGVkIHBzZXVkbyBjb2RlKToNCj4gDQo+
-ICAgbmFuZF9zY2FuX2lkZW50KC4uLik7DQo+IA0KPiAgIGlmIChwbGF0Zm9ybV9kYXRhLT5kZXZz
-aXplID09IDE2KQ0KPiAgIAluYW5kX2NoaXAtPm9wdGlvbnMgfD0gTkFORF9CVVNXSURUSF8xNjsN
-Cj4gDQo+IEFuZCBpbiBzb21lIGNhc2VzIHdlIG1pZ2h0IGV2ZW4gZ2V0IGF3YXkgd2l0aCBzdWNo
-IHNvbHV0aW9uLiBIb3dldmVyLA0KPiB3ZSBjYW4ndCBndWFyYW50ZWUgbmFuZF9zY2FuX2lkZW50
-KCkgZG9lc24ndCBuZWVkIHRvIHN3aXRoIHRvIDE2LWJpdCBtb2RlDQo+IGluc2lkZSB0byBwZXJm
-b3JtIG90aGVyIGNvbW1hbmRzIChtYXliZSBzb21lIE9ORkkgZXh0ZW5kZWQgcGFyYW1ldGVyDQo+
-IHBhZ2UpLg0KPiANCj4gVGhlcmVmb3JlLCBhbmQgZ2l2ZW4gdGhlIHdpZHRoIGNhbiBiZSBhdXRv
-ZGV0ZWN0ZWQgaW4gYW55IGNhc2UgKGFycmF5DQo+IG9yIE9ORkkgYmFzZWQgY2Fycnkgc3VjaCBp
-bmZvcm1hdGlvbikgaXQncyBtdWNoIGNsZWFuZXIgdG8gc2ltcGx5IGRvOg0KPiANCj4gICBuYW5k
-X2NoaXAtPm9wdGlvbnMgfD0gTkFORF9CVVNXSURUSF9BVVRPTUFHSUM7DQo+ICAgbmFuZF9zY2Fu
-X2lkZW50KC4uLik7DQo+IA0KPiBTZWU/IE11Y2ggY2xlYW5lciwgbm8/DQo+IA0KYnV0IHN0aWxs
-IGRlcGVuZGVudCBvbiBEVCBwcm9wZXJ0eSBmb3IgR1BNQyBjb25maWd1cmF0aW9ucy4uLg0KSSBw
-cmVmZXJyZWQgTkFORCBidXMtd2lkdGggZGV0ZWN0aW9uIHRvIGJlIGNvbXBsZXRlbHkgaW5kZXBl
-bmRlbnQNCm9mICdhbnknIERUIHByb3BlcnR5Lg0KDQoNCj4gQW5kIHJlbWVtYmVyOiB0aGUgZmFj
-dCB0aGF0IHdlIG11c3Qga25vdyB0aGUgZGV2aWNlIHdpZHRoIHRvIGNvbmZpZ3VyZQ0KPiB0aGUg
-R1BNQyBjb3JyZWN0bHkgKHdoaWNoIGJlaW5nIGEgaGFyZHdhcmUgcGFyYW1ldGVyIGJlbG9uZ3Mg
-dG8gdGhlIERUKQ0KPiBpcyBPTUFQIHNwZWNpZmljLiBPdGhlciBTb0NzIG1pZ2h0IG5vdCBoYXZl
-IHN1Y2ggbWVtb3J5IGNvbnRyb2xsZXINCj4gYW5kIHRodXMgd29uJ3QgbmVlZCBzdWNoIGtub3ds
-ZWRnZSBiZWZvcmUgaGFuZCwgYWx0aG91Z2ggdGhhdCBzb3VuZHMNCj4gdW5saWtlbHkgdG8gbWUu
-DQo+IA0KPiBUaGUgb3V0Y29tZSBvZiB0aGlzIGRpc2N1c3Npb24gc2VlbXMgdG8gYmUgdGhhdCBu
-byBkcml2ZXIgc2hvdWxkIGV2ZXINCj4gbmVlZCB0byBzcGVjaWZ5IHRoZSAnbmFuZC1idXMtd2lk
-dGgnIERUIHByb3BlcnR5LCBhcyBCcmlhbg0KPiBwcmV2aW91c2x5IHN1Z2dlc3RlZCwgcmlnaHQ/
-DQo+IA0KUmlnaHQuLiBBbmQgdGhpcyBpcyB3aGVyZSBJJ20gc3VnZ2VzdGluZyB0aGF0IGluLW9y
-ZGVyIHRvIGNvbXBsZXRlbHkNCmVsaW1pbmF0ZSB0aGUgZGVwZW5kZW5jeSBvbiAnbmFuZC1idXMt
-d2lkdGgnIERUIHByb3BlcnR5LCB5b3UgbmVlZA0KdG8gYWxzbyB1cGRhdGUgR1BNQyBkcml2ZXIs
-IHNvIHRoYXQgaXRzIHJlZ2lzdGVycyBjYW4gYmUgcmUtY29uZmlndXJlZCB3aXRoDQpjb3JyZWN0
-IE5BTkQgYnVzLXdpZHRoIGFmdGVyIG5hbmRfc2Nhbl9pZGVudCgpLg0KDQoNCj4gSSBtdXN0IGFk
-bWl0IEknbSBhIGJpdCBwdXp6bGVkIGJ5IHNlZWluZyBtb3N0IGRyaXZlcnMgc2V0dGluZyAxNi1i
-aXQNCj4gYmVmb3JlIGNhbGxpbmcgbmFuZF9zY2FuX2lkZW50KCkuIEkgZ3Vlc3Mgbm9uZSBvZiB0
-aGVtIHJlbGllcyBvbiBPTkZJPw0KPiANCk1heSBiZSwgYnV0IGdvaW5nIGZvcndhcmQgd2Ugc2hv
-dWxkIG1ha2UgTkFORF9CVVNXSURUSF9BVVRPDQphcyBhIG1hbmRhdG9yeSBvcHRpb24sIGJlY2F1
-c2UgbW9zdCBvZiB0aGUgTkFORCBkZXZpY2VzIGhhdmUgYWRvcHRlZA0KdG8gT05GSSwgYW5kIHJl
-bWFpbmluZyBsZWdhY3kgKGlmIGFueSkgYXJlIHBhcnQgb2YgbmFuZF9mbGFzaF9pZFtdIHRhYmxl
-Lg0KU28gZWl0aGVyIHdheSB0aGUgZGV2aWNlIHdvdWxkIGdldCBkZXRlY3RlZCwgaWYgeW91IHN0
-YXJ0IHdpdGggeDgNCihsb3dlc3QgbWluaW11bSBjYXBhYmlsaXR5IGJ1cy13aWR0aCkuIFRodXMg
-dGhlcmUgaXMgbm8gbmVlZCBmb3IgdXNlcg0KdG8gc3BlY2lmeSBOQU5EIGRldmljZSBidXMtd2lk
-dGggcHJvcGVydHkgdmlhIERULg0KDQoNCndpdGggcmVnYXJkcywgcGVrb24NCg==
+On Wed, Nov 06, 2013 at 08:54:56PM +0000, Gupta, Pekon wrote:
+> > From: Ezequiel Garcia [mailto:ezequiel.garcia@free-electrons.com]
+> > > On Wed, Oct 30, 2013 at 09:18:53PM +0000, Gupta, Pekon wrote:
+> > > >
+> > > > I'm not sure, of course, but I don't see why not. It's more lik=
+ely to
+> > > > break for x16 than it is for x8.
+> > > >
+> > > Another question here is ..
+> > > The above patch assumes that user has configured GPMC bus-width
+> > > correctly, so if user is already providing GPMC bus-width informa=
+tion
+> > > via DT, then do we really need to detect NAND device bus-width ag=
+ain
+> > > using NAND_BUSWIDTH_AUTO ?
+> > >
+> >=20
+> > Hm.. I think you're forgetting the original motivation for this pat=
+ch,
+> > which was initially explained by you :-) The problem is ONFI doesn'=
+t work
+> > in 16-bit mode.
+> >=20
+> > Let me clarify. Since GPMC and NAND widths *must* match (otherwise,=
+ it
+> > wouldn't make much sense, right?) we don't really need to autodetec=
+t the
+> > NAND width.
+> >=20
+> > However, since ONFI doesn't work in 16-bit mode, we would have to d=
+o
+> > something like this (untested pseudo code):
+> >=20
+> >   nand_scan_ident(...);
+> >=20
+> >   if (platform_data->devsize =3D=3D 16)
+> >   	nand_chip->options |=3D NAND_BUSWIDTH_16;
+> >=20
+> > And in some cases we might even get away with such solution. Howeve=
+r,
+> > we can't guarantee nand_scan_ident() doesn't need to swith to 16-bi=
+t mode
+> > inside to perform other commands (maybe some ONFI extended paramete=
+r
+> > page).
+> >=20
+> > Therefore, and given the width can be autodetected in any case (arr=
+ay
+> > or ONFI based carry such information) it's much cleaner to simply d=
+o:
+> >=20
+> >   nand_chip->options |=3D NAND_BUSWIDTH_AUTOMAGIC;
+> >   nand_scan_ident(...);
+> >=20
+> > See? Much cleaner, no?
+> >=20
+> but still dependent on DT property for GPMC configurations...
+> I preferred NAND bus-width detection to be completely independent
+> of 'any' DT property.
+>=20
+
+I think we're still mixing GPMC and NAND, and I don't think it's sane.
+
+> > And remember: the fact that we must know the device width to config=
+ure
+> > the GPMC correctly (which being a hardware parameter belongs to the=
+ DT)
+> > is OMAP specific. Other SoCs might not have such memory controller
+> > and thus won't need such knowledge before hand, although that sound=
+s
+> > unlikely to me.
+> >=20
+> > The outcome of this discussion seems to be that no driver should ev=
+er
+> > need to specify the 'nand-bus-width' DT property, as Brian
+> > previously suggested, right?
+> >=20
+> Right.. And this is where I'm suggesting that in-order to completely
+> eliminate the dependency on 'nand-bus-width' DT property, you need
+> to also update GPMC driver, so that its registers can be re-configure=
+d with
+> correct NAND bus-width after nand_scan_ident().
+>=20
+
+
+Well, as I said: I don't think there's any technical reason why you
+can't just export a GPMC function to re-configure it from the NAND
+driver. I just think it's ugly, and not useful.
+
+So, I think you (or me, or anybody else) can push an RFC/PATCH to see
+how ugly would that really be. Maybe it's not so bad.
+
+But: on the other hand, I'd really like you to convince me as to
+why is it so bad to require the DTB to have the proper GPMC bus width.
+
+Once again:
+1. the NAND devices aren't hot-pluggable
+2. the "user" (who is actually an engineer, not some regular dummy user=
+)
+knows perfectly well the width of the device.
+
+What's the problem with describing the hardware in the DT and saving us
+lots of runtime re-configuration trouble?
+--=20
+Ezequiel Garc=C3=ADa, Free Electrons
+Embedded Linux, Kernel and Android Engineering
+http://free-electrons.com
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
