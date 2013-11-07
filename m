@@ -1,64 +1,56 @@
-From: Nishanth Menon <nm@ti.com>
+From: Daniel Mack <zonque@gmail.com>
 Subject: Re: [PATCH v4] ARM: omap: edma: add suspend suspend/resume hooks
-Date: Thu, 7 Nov 2013 09:34:31 -0600
-Message-ID: <527BB307.7090401@ti.com>
-References: <1383164468-4610-1-git-send-email-zonque@gmail.com>
+Date: Thu, 07 Nov 2013 16:36:42 +0100
+Message-ID: <527BB38A.1060609@gmail.com>
+References: <1383164468-4610-1-git-send-email-zonque@gmail.com> <CANacCWz_ahKaACbAHuue1XwaN3gutBA7Z6W+=zWBn8LvLwDM5w@mail.gmail.com> <527A7E20.4040107@ti.com> <527B95E3.9060802@ti.com> <527B9673.60400@gmail.com> <527BAF63.10308@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1383164468-4610-1-git-send-email-zonque@gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Daniel Mack <zonque@gmail.com>, linux-omap@vger.kernel.org, joelf@ti.com, gururaja.hebbar@ti.com, balajitk@ti.com
-Cc: nsekhar@ti.com, s.neumann@raumfeld.com, linux-arm-kernel@lists.infradead.org, Russ.Dill@ti.com
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-bk0-f41.google.com ([209.85.214.41]:65476 "EHLO
+	mail-bk0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751701Ab3KGPgp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Nov 2013 10:36:45 -0500
+Received: by mail-bk0-f41.google.com with SMTP id na10so350250bkb.14
+        for <linux-omap@vger.kernel.org>; Thu, 07 Nov 2013 07:36:43 -0800 (PST)
+In-Reply-To: <527BAF63.10308@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>, Gururaja Hebbar <gururaja.hebbar@ti.com>, joelf@ti.com, Vaibhav Bedia <vaibhav.bedia@gmail.com>
+Cc: Matt Porter <matt@ohporter.com>, balajitk@ti.com, s.neumann@raumfeld.com, Sekhar Nori <nsekhar@ti.com>, Russ Dill <Russ.Dill@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
 
-On 10/30/2013 03:21 PM, Daniel Mack wrote:
-[...]
-> diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
-> index 8e1a024..f15cdb9 100644
-> --- a/arch/arm/common/edma.c
-> +++ b/arch/arm/common/edma.c
+On 11/07/2013 04:18 PM, Nishanth Menon wrote:
+> Tested this on a vendor V3.12 tag based kernel:
+> 
+> Test patch: http://pastebin.com/AmnktQ7B
+> test: echo -n "1">/sys/power/pm_print_times; rtcwake -d /dev/rtc0 -m
+> mem -s 5
+> 
+> 
+> with the current patch: http://pastebin.com/RujarRLV
+> suspend_late and resume_early: http://pastebin.com/RujarRLV
 
-[...]
+These two are identical.
 
-> +static int edma_pm_suspend(struct device *dev)
-> +{
-> +	int j;
-> +
-> +	pm_runtime_get_sync(dev);
-> +
-error checks?
-> +	for (j = 0; j < arch_num_cc; j++) {
-> +		struct edma *ecc = edma_cc[j];
-> +
-> +		disable_irq(ecc->irq_res_start);
-> +		disable_irq(ecc->irq_res_end);
-> +	}
-> +
-> +	pm_runtime_put_sync(dev);
-> +
-> +	return 0;
-> +}
-> +
-> +static int edma_pm_resume(struct device *dev)
-> +{
-> +	int i, j;
-> +
-> +	pm_runtime_get_sync(dev);
-error checks?
+> suspend_noirq and resume_noirq: http://pastebin.com/nKfbm7Mj
 
-[...]
+And I can't see any difference between this one and the first one,
+except for slightly different timings. Am I missing anything?
+
+> one needs to be careful of the sequence - donot forget that
+> omap_device also does stuff in the background to every SoC device in
+> noirq - sequence is paramount. you would want to ensure edma is saving
+> after every single dependent device is done with it's stuff and
+> guarenteed to never request any further transaction, and resume is
+> done before any of the dependent devices need edma. but edma is also a
+> peripheral that omap_device and generic runtime pm framework deals
+> with - so ensure sequences consider that as well.
+
+So, what would you say which sequence is correct then? :)
 
 
--- 
-Regards,
-Nishanth Menon
+Thanks,
+Daniel
+
+
+
