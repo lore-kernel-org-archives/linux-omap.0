@@ -1,83 +1,173 @@
-From: Joel Fernandes <joelf@ti.com>
-Subject: Re: [PATCH v4] ARM: omap: edma: add suspend suspend/resume hooks
-Date: Thu, 7 Nov 2013 15:39:22 -0600
-Message-ID: <527C088A.8080701@ti.com>
-References: <1383164468-4610-1-git-send-email-zonque@gmail.com>
- <527BC118.1050609@ti.com> <527BCFD8.9010207@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <527BCFD8.9010207@gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Daniel Mack <zonque@gmail.com>
-Cc: balajitk@ti.com, nsekhar@ti.com, s.neumann@raumfeld.com, gururaja.hebbar@ti.com, Russ.Dill@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+From: Daniel Mack <zonque@gmail.com>
+Subject: [PATCH v5] ARM: omap: edma: add suspend suspend/resume hooks
+Date: Thu,  7 Nov 2013 23:32:29 +0100
+Message-ID: <1383863549-7438-1-git-send-email-zonque@gmail.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-bk0-f48.google.com ([209.85.214.48]:43620 "EHLO
+	mail-bk0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753394Ab3KGWch (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Nov 2013 17:32:37 -0500
+Received: by mail-bk0-f48.google.com with SMTP id u10so482265bkz.35
+        for <linux-omap@vger.kernel.org>; Thu, 07 Nov 2013 14:32:35 -0800 (PST)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, joelf@ti.com, gururaja.hebbar@ti.com, balajitk@ti.com
+Cc: s.neumann@raumfeld.com, mporter@ti.com, nsekhar@ti.com, Russ.Dill@ti.com, nm@ti.com, vaibhav.bedia@gmail.com, linux-arm-kernel@lists.infradead.org, Daniel Mack <zonque@gmail.com>
 
-On 11/07/2013 11:37 AM, Daniel Mack wrote:
-[..]
->> I know ti,edma-regions property is not currently being used, but we should>>
-future proof this by setting up DRAE for like done in probe:
->>
->>                 for (i = 0; i < info[j]->n_region; i++) {
->>                         edma_write_array2(j, EDMA_DRAE, i, 0, 0x0);
->>                         edma_write_array2(j, EDMA_DRAE, i, 1, 0x0);
->>                         edma_write_array(j, EDMA_QRAE, i, 0x0);
->>                 }
->
-> That doesn't work for me. I'm running long-time tests here on a device
-> which has a mwifiex connected to omap_hsmmc. The test procedure includes:
->
-> a) a script on the device that puts the device to sleep some seconds
-> after it has been woken up
->
-> b) a script on a host that wakes up the device with wake-on-lan every 10
-> seconds
->
-> c) a flood ping that checks whether the device is responding
->
->
-> That precedure is running since a couple of hourse here, and it works
-> well with both by v3 and v4 patches. Moving the functions to
-> .suspend/resume _noirq doesn't seem to break anything.
->
-> Setting QRAE to 0 as you mentioned above, however, makes the device fail
-> at resume.
+This patch makes the edma driver resume correctly after suspend. Tested
+on an AM33xx platform with cyclic audio streams and omap_hsmmc.
 
-Yes, I recall that. It definitely shouldn't be done.
+All information can be reconstructed by already known runtime
+information.
 
->>> +static SIMPLE_DEV_PM_OPS(edma_pm_ops, edma_pm_suspend, edma_pm_resume);
->>
->> I agree with Nishanth here, it is better to do this in .suspend/resume _noirq
->> stage to rule out any ordering bugs that may show up in the future, since such
->> an issue already showed up in earlier testing.
->
-> Alright, I already did that.
+As we now use some functions that were previously only used from __init
+context, annotations had to be dropped.
 
-Cool, can you post the updated patch? I'll run some more tests too..
+Signed-off-by: Daniel Mack <zonque@gmail.com>
+---
+Ok, here is v5.
 
->> I would appreciate it if you can make these 2 changes and post a v5. Thanks for
->> a lot for all the hardwork.
->
-> No problem at all :)
->
->> Acked-by: Joel Fernandes <joelf@ti.com>
->
-> Still sure about that? What about your follow-up to your own reply?
->
+v4 -> v5:
 
-Yes, the Ack definitely stands for the changes you made since the last revision.
-Only thing left is to fix the ordering, Let's do that (you seem to have already
-done it) and test this a bit more.
+	* dropped pm_runtime_* function calls entirely
+	* moved the function pointers to .suspend/resume _noirq
 
-Glad you're working on this, thanks!
+Again, thanks for the reviews. I'm still uncertain which function order
+is most appropriate though.
 
--Joel
+
+Thanks,
+Daniel
+
+
+
+ arch/arm/common/edma.c | 78 ++++++++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 75 insertions(+), 3 deletions(-)
+
+diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
+index 8e1a024..7deacde 100644
+--- a/arch/arm/common/edma.c
++++ b/arch/arm/common/edma.c
+@@ -239,6 +239,8 @@ struct edma {
+ 	/* list of channels with no even trigger; terminated by "-1" */
+ 	const s8	*noevent;
+ 
++	struct edma_soc_info *info;
++
+ 	/* The edma_inuse bit for each PaRAM slot is clear unless the
+ 	 * channel is in use ... by ARM or DSP, for QDMA, or whatever.
+ 	 */
+@@ -290,13 +292,13 @@ static void map_dmach_queue(unsigned ctlr, unsigned ch_no,
+ 			~(0x7 << bit), queue_no << bit);
+ }
+ 
+-static void __init map_queue_tc(unsigned ctlr, int queue_no, int tc_no)
++static void map_queue_tc(unsigned ctlr, int queue_no, int tc_no)
+ {
+ 	int bit = queue_no * 4;
+ 	edma_modify(ctlr, EDMA_QUETCMAP, ~(0x7 << bit), ((tc_no & 0x7) << bit));
+ }
+ 
+-static void __init assign_priority_to_queue(unsigned ctlr, int queue_no,
++static void assign_priority_to_queue(unsigned ctlr, int queue_no,
+ 		int priority)
+ {
+ 	int bit = queue_no * 4;
+@@ -315,7 +317,7 @@ static void __init assign_priority_to_queue(unsigned ctlr, int queue_no,
+  * included in that particular EDMA variant (Eg : dm646x)
+  *
+  */
+-static void __init map_dmach_param(unsigned ctlr)
++static void map_dmach_param(unsigned ctlr)
+ {
+ 	int i;
+ 	for (i = 0; i < EDMA_MAX_DMACH; i++)
+@@ -1785,15 +1787,85 @@ static int edma_probe(struct platform_device *pdev)
+ 			edma_write_array2(j, EDMA_DRAE, i, 1, 0x0);
+ 			edma_write_array(j, EDMA_QRAE, i, 0x0);
+ 		}
++		edma_cc[j]->info = info[j];
+ 		arch_num_cc++;
+ 	}
+ 
+ 	return 0;
+ }
+ 
++static int edma_pm_suspend(struct device *dev)
++{
++	int j;
++
++	for (j = 0; j < arch_num_cc; j++) {
++		struct edma *ecc = edma_cc[j];
++
++		disable_irq(ecc->irq_res_start);
++		disable_irq(ecc->irq_res_end);
++	}
++
++	return 0;
++}
++
++static int edma_pm_resume(struct device *dev)
++{
++	int i, j;
++
++	for (j = 0; j < arch_num_cc; j++) {
++		struct edma *cc = edma_cc[j];
++
++		s8 (*queue_priority_mapping)[2];
++		s8 (*queue_tc_mapping)[2];
++
++		queue_tc_mapping = cc->info->queue_tc_mapping;
++		queue_priority_mapping = cc->info->queue_priority_mapping;
++
++		/* Event queue to TC mapping */
++		for (i = 0; queue_tc_mapping[i][0] != -1; i++)
++			map_queue_tc(j, queue_tc_mapping[i][0],
++					queue_tc_mapping[i][1]);
++
++		/* Event queue priority mapping */
++		for (i = 0; queue_priority_mapping[i][0] != -1; i++)
++			assign_priority_to_queue(j,
++						queue_priority_mapping[i][0],
++						queue_priority_mapping[i][1]);
++
++		/* Map the channel to param entry if channel mapping logic
++		 * exist
++		 */
++		if (edma_read(j, EDMA_CCCFG) & CHMAP_EXIST)
++			map_dmach_param(j);
++
++		for (i = 0; i < cc->num_channels; i++) {
++			if (test_bit(i, cc->edma_inuse)) {
++				/* ensure access through shadow region 0 */
++				edma_or_array2(j, EDMA_DRAE, 0, i >> 5,
++						BIT(i & 0x1f));
++
++				setup_dma_interrupt(i,
++						    cc->intr_data[i].callback,
++						    cc->intr_data[i].data);
++			}
++		}
++
++		enable_irq(cc->irq_res_start);
++		enable_irq(cc->irq_res_end);
++	}
++
++	return 0;
++}
++
++static const struct dev_pm_ops edma_pm_ops = {
++	.suspend	= edma_pm_suspend,
++	.resume_noirq	= edma_pm_resume,
++};
++
+ static struct platform_driver edma_driver = {
+ 	.driver = {
+ 		.name	= "edma",
++		.pm	= &edma_pm_ops,
+ 		.of_match_table = edma_of_ids,
+ 	},
+ 	.probe = edma_probe,
+-- 
+1.8.4.2
+
