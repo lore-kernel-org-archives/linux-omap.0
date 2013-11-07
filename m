@@ -1,108 +1,25 @@
-From: Joel Fernandes <joelf@ti.com>
-Subject: Re: [PATCH v4] ARM: omap: edma: add suspend suspend/resume hooks
-Date: Thu, 7 Nov 2013 10:49:16 -0600
-Message-ID: <527BC48C.9020907@ti.com>
-References: <1383164468-4610-1-git-send-email-zonque@gmail.com>
- <527BC118.1050609@ti.com>
+From: "olenka_20yasko" <reservations@yi-ban.co.uk>
+Subject: =?iso-8859-5?B?4NDh4efY4uvS0NXi1SDf4NXR69LQ4uwg3+DV0t7h?=
+	=?iso-8859-5?B?5d7U3dXZ6NjcIN/e2+7R3tLd2Nre3D8=?=
+Date: Thu, 7 Nov 2013 17:17:23 +0100
+Message-ID: <74F4B6A3B60B4D8C9F687B555547DC36@jarakr>
+Reply-To: "olenka_20yasko" <oleg268@astralink.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <527BC118.1050609@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Daniel Mack <zonque@gmail.com>
-Cc: balajitk@ti.com, nsekhar@ti.com, s.neumann@raumfeld.com, gururaja.hebbar@ti.com, Russ.Dill@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain;
+	charset="iso-8859-5";
+Content-Transfer-Encoding: base64
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bosmailout11.eigbox.net ([66.96.185.11]:40008 "EHLO
+	bosmailout11.eigbox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750797Ab3KGQ5f (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Nov 2013 11:57:35 -0500
+Received: from bosmailscan02.eigbox.net ([10.20.15.2])
+	by bosmailout11.eigbox.net with esmtp (Exim)
+	id 1VeSHJ-0004R3-Ec
+	for linux-omap@vger.kernel.org; Thu, 07 Nov 2013 11:17:53 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, a.terekhin@transtk.ru, dnktestkiev@yahoo.com, telepult@onego.ru, leedh@meds.queensu.ca
 
-On 11/07/2013 10:34 AM, Joel Fernandes wrote:
-> Hi Daniel,
-> 
-> Thanks for your followup patch on this. It looks much better now using existing
-> functions to save/restore the state.
-> 
-> On 10/30/2013 03:21 PM, Daniel Mack wrote:
->> This patch makes the edma driver resume correctly after suspend. Tested
->> on an AM33xx platform with cyclic audio streams and omap_hsmmc.
->>
->> All information can be reconstructed by already known runtime
->> information.
->>
->> As we now use some functions that were previously only used from __init
->> context, annotations had to be dropped.
->>
->> Signed-off-by: Daniel Mack <zonque@gmail.com>
->> ---
->> There was actually only a v3 ever, I made a mistake when formating the
->> first version of this patch. To prevent confusion though, I named this
->> one v4.
->>
->> v3 -> v4:
->> 	* dropped extra allocations, and reconstruct register values
->> 	  from already known driver states.
->>
->>
->>
->> Hi Joel, Gururaja, Balaji,
->>
->> thanks a lot for your feedback. I successfully tested this version with
->> davinci mcasp as well as omap_hsmmc. I'd appreciate another round of
->> reviews :)
->>
->>
->> Thanks,
->> Daniel
->>
->>  arch/arm/common/edma.c | 82 ++++++++++++++++++++++++++++++++++++++++++++++++--
->>  1 file changed, 79 insertions(+), 3 deletions(-)
->>
->> diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
-> [..]
->> +static int edma_pm_resume(struct device *dev)
->> +{
->> +	int i, j;
->> +
->> +	pm_runtime_get_sync(dev);
->> +
->> +	for (j = 0; j < arch_num_cc; j++) {
->> +		struct edma *cc = edma_cc[j];
->> +
->> +		s8 (*queue_priority_mapping)[2];
->> +		s8 (*queue_tc_mapping)[2];
->> +
->> +		queue_tc_mapping = cc->info->queue_tc_mapping;
->> +		queue_priority_mapping = cc->info->queue_priority_mapping;
->> +
->> +		/* Event queue to TC mapping */
->> +		for (i = 0; queue_tc_mapping[i][0] != -1; i++)
->> +			map_queue_tc(j, queue_tc_mapping[i][0],
->> +					queue_tc_mapping[i][1]);
->> +
->> +		/* Event queue priority mapping */
->> +		for (i = 0; queue_priority_mapping[i][0] != -1; i++)
->> +			assign_priority_to_queue(j,
->> +						queue_priority_mapping[i][0],
->> +						queue_priority_mapping[i][1]);
-> 
-> I know ti,edma-regions property is not currently being used, but we should
-> future proof this by setting up DRAE for like done in probe:
-> 
->                 for (i = 0; i < info[j]->n_region; i++) {
->                         edma_write_array2(j, EDMA_DRAE, i, 0, 0x0);
->                         edma_write_array2(j, EDMA_DRAE, i, 1, 0x0);
->                         edma_write_array(j, EDMA_QRAE, i, 0x0);
->                 }
-
-Please ignore this comment I posted earlier. That is not all required to do.
-Should've looked closer. Sorry about it.
-
-cheers,
-
--Joel
+s9Dg0N3i2ODe0tDd3evZIN/j4uwg0uHi0OLsIN3Q2Nvj5+jY3CDR3tnk4NXd1N7cIGh0dHA6Ly9n
+b28uZ2wvWTVJS25wDQo=
