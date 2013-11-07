@@ -1,145 +1,144 @@
-From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-Subject: Re: [PATCH 0/1] Fix OMAP2 NAND ONFI device detection
-Date: Wed, 6 Nov 2013 19:38:02 -0300
-Message-ID: <20131106223801.GA20184@localhost>
-References: <1383126788-27426-1-git-send-email-ezequiel.garcia@free-electrons.com>
- <20131030191414.GA16668@norris.computersforpeace.net>
- <20980858CB6D3A4BAE95CA194937D5E73EA2D41D@DBDE04.ent.ti.com>
- <20131030231956.GA2489@localhost>
- <20980858CB6D3A4BAE95CA194937D5E73EA31B19@DBDE04.ent.ti.com>
- <20131106211833.GB12624@localhost>
- <20980858CB6D3A4BAE95CA194937D5E73EA31BB3@DBDE04.ent.ti.com>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: [RFC 3/4] ASoC: Allow Aux Codecs to be specified using DT
+Date: Thu, 7 Nov 2013 13:26:55 +0100
+Message-ID: <20131107122655.GA7110@amd.pavel.ucw.cz>
+References: <1382909086-10493-1-git-send-email-sre@debian.org>
+ <1382909086-10493-4-git-send-email-sre@debian.org>
+ <20131106142559.GC15551@amd.pavel.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from top.free-electrons.com ([176.31.233.9]:48344 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750729Ab3KFWh6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Nov 2013 17:37:58 -0500
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20980858CB6D3A4BAE95CA194937D5E73EA31BB3@DBDE04.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20131106142559.GC15551-tWAi6jLit6GreWDznjuHag@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sebastian Reichel <sre-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
+Cc: Sebastian Reichel <sre-GFxCN5SEZAc@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Rob Landley <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Jaroslav Kysela <perex-/Fr2/VpizcU@public.gmane.org>, Takashi Iwai <tiwai-l3A5Bk7waGM@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Jarkko Nikula <jarkko.nikula-FVTvWyuFUl3QT0dZR+AlfA@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gupta, Pekon" <pekon@ti.com>
-Cc: Brian Norris <computersforpeace@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "Balbi, Felipe" <balbi@ti.com>, "marek.belisko@gmail.com" <marek.belisko@gmail.com>
 
-On Wed, Nov 06, 2013 at 10:00:09PM +0000, Gupta, Pekon wrote:
-> > From: Ezequiel Garcia
-> [...]
->=20
-> > But: on the other hand, I'd really like you to convince me as to
-> > why is it so bad to require the DTB to have the proper GPMC bus wid=
-th.
-> >=20
-> No its not at all bad, all I want is either of the one way (not mixtu=
-re of both).
-> - Either depend on DT completely (which is current case for all drive=
-rs)
-> - OR depend on ONFI and nand_flash_id[] for bus-width detection.
->=20
->=20
-> > Once again:
-> > 1. the NAND devices aren't hot-pluggable
-> > 2. the "user" (who is actually an engineer, not some regular dummy =
-user)
-> > knows perfectly well the width of the device.
-> >=20
-> > What's the problem with describing the hardware in the DT and savin=
-g us
-> > lots of runtime re-configuration trouble?
->=20
-> I agree with both your arguments above.
-> So shouldn't we kill NAND_BUSWIDTH_AUTO ?
-> And probably therefore  NAND_BUSWIDTH_AUTO isn't that popular.
->=20
-> Now what remains is ONFI probe, which should always happen in x8 mode=
-=2E
-> So for that below patch should be sufficient ..
->=20
+Hi!
 
-Hm.. that might work. Maybe you should submit this as RFC/PATCH to catc=
-h
-the attention of some more people. And we can keep discussing on this
-new idea...
 
-I should get an 8-bit module for the BBB, so this means I'll be able
-to run 8-bit and 16-bit tests.
+> So in (error) case of ! aux_dev->codec_of_node && ! aux_dev->codec_name 
+> we match first possible codec?
+> 
+> Given code similarity between this and the one above, should there be
+> helper function that does the comparison (or even walks the list)?
 
-> ----------------------
-> diff --git a/drivers/mtd/nand/nand_base.c b/drivers/mtd/nand/nand_bas=
-e.c
-> index ec1db1e..d1220fb 100644
-> --- a/drivers/mtd/nand/nand_base.c
-> +++ b/drivers/mtd/nand/nand_base.c
-> @@ -2942,14 +2942,8 @@ static int nand_flash_detect_onfi(struct mtd_i=
-nfo *mtd, struct nand_chip *chip,
->                 chip->read_byte(mtd) !=3D 'F' || chip->read_byte(mtd)=
- !=3D 'I')
->                 return 0;
->=20
-> -       /*
-> -        * ONFI must be probed in 8-bit mode or with NAND_BUSWIDTH_AU=
-TO, not
-> -        * with NAND_BUSWIDTH_16
-> -        */
-> -       if (chip->options & NAND_BUSWIDTH_16) {
-> -               pr_err("ONFI cannot be probed in 16-bit mode; abortin=
-g\n");
-> -               return 0;
-> -       }
-> +       /* ONFI must be probed in 8-bit mode only */
-> +       nand_set_defaults(chip, 0);
->=20
->         chip->cmdfunc(mtd, NAND_CMD_PARAM, 0, -1);
->         for (i =3D 0; i < 3; i++) {
-> @@ -2962,7 +2956,7 @@ static int nand_flash_detect_onfi(struct mtd_in=
-fo *mtd, struct nand_chip *chip,
->=20
->         if (i =3D=3D 3) {
->                 pr_err("Could not find valid ONFI parameter page; abo=
-rting\n");
-> -               return 0;
-> +               goto return_error;
->         }
->=20
->         /* Check version */
-> @@ -2980,7 +2974,7 @@ static int nand_flash_detect_onfi(struct mtd_in=
-fo *mtd, struct nand_chip *chip,
->=20
->         if (!chip->onfi_version) {
->                 pr_info("%s: unsupported ONFI version: %d\n", __func_=
-_, val);
-> -               return 0;
-> +               goto return_error;
->         }
->=20
->         sanitize_string(p->manufacturer, sizeof(p->manufacturer));
-> @@ -3033,6 +3027,12 @@ static int nand_flash_detect_onfi(struct mtd_i=
-nfo *mtd, struct nand_chip *chip,
->         }
->=20
->         return 1;
-> +
-> +return_error:
-> +       /* revert original bus-width */
-> +       nand_set_defaults( chip->options & NAND_BUSWIDTH_16);
-> +       return 0;
-> +
->  }
->=20
->  /*
-> -------------------------=20
->=20
->=20
-> with regards, pekon
+Something like this? soc_probe_aux_dev now looks better... (Only
+compile tested).
 
---=20
-Ezequiel Garc=C3=ADa, Free Electrons
-Embedded Linux, Kernel and Android Engineering
-http://free-electrons.com
+Signed-off-by: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+
+diff --git a/sound/soc/soc-core.c b/sound/soc/soc-core.c
+index 392f479..3097e17 100644
+--- a/sound/soc/soc-core.c
++++ b/sound/soc/soc-core.c
+@@ -1526,69 +1526,65 @@ static void soc_unregister_ac97_dai_link(struct snd_soc_codec *codec)
+ }
+ #endif
+ 
+-static int soc_check_aux_dev(struct snd_soc_card *card, int num)
++struct snd_soc_codec *soc_find_matching_codec(struct snd_soc_card *card, int num)
+ {
+ 	struct snd_soc_aux_dev *aux_dev = &card->aux_dev[num];
+-	const char *codecname = aux_dev->codec_name;
+ 	struct snd_soc_codec *codec;
+ 
+-	/* find CODEC from registered CODECs*/
++	/* find CODEC from registered CODECs */
+ 	list_for_each_entry(codec, &codec_list, list) {
+-		if (aux_dev->codec_of_node &&
+-				codec->dev->of_node == aux_dev->codec_of_node)
+-			return 0;
+-		if (aux_dev->codec_name &&
+-				!strcmp(codec->name, aux_dev->codec_name))
+-			return 0;
++		if (aux_dev->codec_of_node && 
++		    (codec->dev->of_node != aux_dev->codec_of_node))
++			continue;
++		if (aux_dev->codec_name && strcmp(codec->name, aux_dev->codec_name))
++			continue;
++		return codec;
+ 	}
++	return NULL;
++}
+ 
++static int soc_check_aux_dev(struct snd_soc_card *card, int num)
++{
++	struct snd_soc_aux_dev *aux_dev = &card->aux_dev[num];
++	const char *codecname = aux_dev->codec_name;
++	struct snd_soc_codec *codec = soc_find_matching_codec(card, num);
++
++	if (codec)
++		return 0;
+ 	if (aux_dev->codec_of_node)
+ 		codecname = of_node_full_name(aux_dev->codec_of_node);
+ 
+ 	dev_err(card->dev, "ASoC: %s not registered\n", codecname);
+-
+ 	return -EPROBE_DEFER;
+ }
+ 
++
+ static int soc_probe_aux_dev(struct snd_soc_card *card, int num)
+ {
+ 	struct snd_soc_aux_dev *aux_dev = &card->aux_dev[num];
+-	struct snd_soc_codec *codec;
+ 	const char *codecname = aux_dev->codec_name;
+ 	int ret = -ENODEV;
++	struct snd_soc_codec *codec = soc_find_matching_codec(card, num);
+ 
+-	/* find CODEC from registered CODECs*/
+-	list_for_each_entry(codec, &codec_list, list) {
+-		if (aux_dev->codec_of_node &&
+-				codec->dev->of_node != aux_dev->codec_of_node)
+-			continue;
+-		if (aux_dev->codec_name &&
+-				strcmp(codec->name, aux_dev->codec_name))
+-			continue;
++	if (!codec) {
++		if (aux_dev->codec_of_node)
++			codecname = of_node_full_name(aux_dev->codec_of_node);
+ 
+-		if (codec->probed) {
+-			dev_err(codec->dev, "ASoC: codec already probed");
+-			ret = -EBUSY;
+-			goto out;
+-		}
+-		goto found;
++		/* codec not found */
++		dev_err(card->dev, "ASoC: codec %s not found", codecname);
++		return -EPROBE_DEFER;
+ 	}
+ 
+-	if (aux_dev->codec_of_node)
+-		codecname = of_node_full_name(aux_dev->codec_of_node);
+-
+-	/* codec not found */
+-	dev_err(card->dev, "ASoC: codec %s not found", codecname);
+-	return -EPROBE_DEFER;
++	if (codec->probed) {
++		dev_err(codec->dev, "ASoC: codec already probed");
++		return -EBUSY;
++	}
+ 
+-found:
+ 	ret = soc_probe_codec(card, codec);
+ 	if (ret < 0)
+ 		return ret;
+ 
+ 	ret = soc_post_component_init(card, codec, num, 1);
+-
+-out:
+ 	return ret;
+ }
+ 
+
+
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
