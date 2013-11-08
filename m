@@ -1,64 +1,58 @@
 From: Daniel Mack <zonque@gmail.com>
-Subject: Re: [PATCH v4] ARM: omap: edma: add suspend suspend/resume hooks
-Date: Fri, 08 Nov 2013 08:51:14 +0100
-Message-ID: <527C97F2.2080702@gmail.com>
-References: <1383164468-4610-1-git-send-email-zonque@gmail.com> <527BC118.1050609@ti.com> <527BCFD8.9010207@gmail.com> <527C636D.4040007@ti.com>
+Subject: Re: [PATCH v5] ARM: omap: edma: add suspend suspend/resume hooks
+Date: Fri, 08 Nov 2013 08:59:33 +0100
+Message-ID: <527C99E5.9020305@gmail.com>
+References: <1383863549-7438-1-git-send-email-zonque@gmail.com> <87siv7pxpp.fsf@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bk0-f43.google.com ([209.85.214.43]:36030 "EHLO
-	mail-bk0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751282Ab3KHHv0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Nov 2013 02:51:26 -0500
-Received: by mail-bk0-f43.google.com with SMTP id mz13so626098bkb.30
-        for <linux-omap@vger.kernel.org>; Thu, 07 Nov 2013 23:51:24 -0800 (PST)
-In-Reply-To: <527C636D.4040007@ti.com>
+Received: from mail-bk0-f49.google.com ([209.85.214.49]:54719 "EHLO
+	mail-bk0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751078Ab3KHH7h (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Nov 2013 02:59:37 -0500
+Received: by mail-bk0-f49.google.com with SMTP id w14so714389bkz.22
+        for <linux-omap@vger.kernel.org>; Thu, 07 Nov 2013 23:59:36 -0800 (PST)
+In-Reply-To: <87siv7pxpp.fsf@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Gururaja Hebbar <gururaja.hebbar@ti.com>, Joel Fernandes <joelf@ti.com>
-Cc: linux-omap@vger.kernel.org, balajitk@ti.com, nsekhar@ti.com, s.neumann@raumfeld.com, Russ.Dill@ti.com, linux-arm-kernel@lists.infradead.org
+To: Kevin Hilman <khilman@linaro.org>
+Cc: linux-omap@vger.kernel.org, joelf@ti.com, gururaja.hebbar@ti.com, balajitk@ti.com, s.neumann@raumfeld.com, mporter@ti.com, nsekhar@ti.com, Russ.Dill@ti.com, nm@ti.com, vaibhav.bedia@gmail.com, linux-arm-kernel@lists.infradead.org
 
-On 11/08/2013 05:07 AM, Gururaja Hebbar wrote:
-> On Thursday 07 November 2013 11:07 PM, Daniel Mack wrote:
+On 11/08/2013 01:02 AM, Kevin Hilman wrote:
+> Daniel Mack <zonque@gmail.com> writes:
 
->> I'm running long-time tests here on a device
->> which has a mwifiex connected to omap_hsmmc. The test procedure includes:
->>
->> a) a script on the device that puts the device to sleep some seconds
->> after it has been woken up
->> 
->> b) a script on a host that wakes up the device with wake-on-lan every 10
->> seconds
->>
->> c) a flood ping that checks whether the device is responding
+>> +	.resume_noirq	= edma_pm_resume,
+>> +};
 > 
-> can you share above 2 (b & C) test scripts? (pastebin or inline if small)
+> Also, I believe it was already suggested by Nishanth, but the late/early
+> callbacks are probably more appropriate here than the noirq callbacks.
+> Unless there's a *really* good reason to use the noirq callbacks, they
+> should be avoided.
 
-Of course. It's very hand-baked and simple:
+Ok, no problem to change that. Regarding the function ordering,
+late/early didn't show any lockup in my tests yet.
 
-a)
+> That being said, I wonder if the whole approach here is the right one.
+> I know you're basing your stuff on some TI tree, but that doesn't make
+> it the right way (usually, it's the opposite, but I digress...)  ;)
 
-# wpa_supplicant is started and and the ip address ist set
+:)
 
-while [ true ]; do
-        ethtool -s eth0 wol g
-        echo mem >/sys/power/state
-        ethtool -s eth0 wol d
-        sleep 7
-done
+Well, I was primarily looking for a solution to bring the edma back to
+life after suspend. As I wrote in the first version of this patch that I
+sent, I didn't even intent that patch to go mainline at all, given that
+arch/arm/common/edma.c woill go away soon.
 
-b)
+> IMO, EDMA should be done like we currently do I2C and not implement
+> suspend/resume at all.  Instead, the driver should do runtime PM done on
+> a per xfer basis.  Then when suspend comes along, all that needs to be
+> done is ensure all in-flight xfers are done, then runtime PM will kick
+> in.
 
-while [ true ]; do
-	sudo etherwake -i em1 BC:6A:29:84:0A:62
-	sleep 5
-done
-
-c)
-
-ping -s 32768 -i 0.1 192.168.178.222
-
+I see your point in general, but isn't runtime PM there to actually save
+power at runtime? Does disabling unused channels in the EDMA really
+reduce the consumption of that IP block?
 
 
 Daniel
