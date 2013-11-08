@@ -1,58 +1,37 @@
-From: Joel Fernandes <joelf@ti.com>
-Subject: Re: [PATCH v5] ARM: omap: edma: add suspend suspend/resume hooks
-Date: Thu, 7 Nov 2013 22:58:24 -0600
-Message-ID: <527C6F70.1010103@ti.com>
-References: <1383863549-7438-1-git-send-email-zonque@gmail.com>
- <87siv7pxpp.fsf@linaro.org>
+From: Lokesh Vutla <lokeshvutla@ti.com>
+Subject: [PATCH] ARM: dts: doc: Document missing compatible property for omap-sham driver
+Date: Fri, 8 Nov 2013 11:07:36 +0530
+Message-ID: <1383889056-17336-1-git-send-email-lokeshvutla@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <87siv7pxpp.fsf@linaro.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Kevin Hilman <khilman@linaro.org>
-Cc: nm@ti.com, balajitk@ti.com, s.neumann@raumfeld.com, nsekhar@ti.com, gururaja.hebbar@ti.com, Daniel Mack <zonque@gmail.com>, Russ.Dill@ti.com, vaibhav.bedia@gmail.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-doc-owner@vger.kernel.org>
+Sender: linux-doc-owner@vger.kernel.org
+To: devicetree@vger.kernel.org
+Cc: santosh.shilimkar@ti.com, rnayak@ti.com, linux-omap@vger.kernel.org, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, rob@landley.net, bcousson@baylibre.com, linux-doc@vger.kernel.org, joelf@ti.com, lokeshvutla@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Kevin,
+A new compatible property "ti,omap5-sham" is added to the omap-sham driver
+recently to support SHA/MD5 for OMAP5,DRA7 and AM43XX. Documenting the
+same.
 
-On 11/07/2013 06:02 PM, Kevin Hilman wrote:
-> Daniel Mack <zonque@gmail.com> writes:
-[..]
->> +	.resume_noirq	= edma_pm_resume,
->> +};
-> 
-> Also, I believe it was already suggested by Nishanth, but the late/early
-> callbacks are probably more appropriate here than the noirq callbacks.
-> Unless there's a *really* good reason to use the noirq callbacks, they
-> should be avoided.
-> 
-> That being said, I wonder if the whole approach here is the right one.
-> I know you're basing your stuff on some TI tree, but that doesn't make
-> it the right way (usually, it's the opposite, but I digress...)  ;)
-> 
-> IMO, EDMA should be done like we currently do I2C and not implement
-> suspend/resume at all.  Instead, the driver should do runtime PM done on
+Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+---
+ .../devicetree/bindings/crypto/omap-sham.txt       |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-But a potential problem with this is powering edma on or off between xfers may
-slow things down quite a bit because xfers happen so much often and there is
-some overhead in the pm_runtime calls which adds up overtime when dealing with
-something as frequent as EDMA. Also we would lose the global EDMA context right
-so we'd have to restore the context every time during runtime PM (?).
+diff --git a/Documentation/devicetree/bindings/crypto/omap-sham.txt b/Documentation/devicetree/bindings/crypto/omap-sham.txt
+index f839acd..ad91155 100644
+--- a/Documentation/devicetree/bindings/crypto/omap-sham.txt
++++ b/Documentation/devicetree/bindings/crypto/omap-sham.txt
+@@ -6,7 +6,7 @@ Required properties:
+   SHAM versions:
+   - "ti,omap2-sham" for OMAP2 & OMAP3.
+   - "ti,omap4-sham" for OMAP4 and AM33XX.
+-  Note that these two versions are incompatible.
++  - "ti,omap5-sham" for OMAP5, DRA7 and AM43XX.
+ - ti,hwmods: Name of the hwmod associated with the SHAM module
+ - reg : Offset and length of the register set for the module
+ - interrupts : the interrupt-specifier for the SHAM module.
+-- 
+1.7.9.5
 
-I had a patch that also made AES driver not pm_runtime_get/put specially when
-the next crypto request was imminent. But instead adopted a softer approach
-where the pm_runtime_put call would happen at a time when we are sure we're at
-the end of all requests. This resulted in quite a speed up.
-
-thanks,
-
--Joel
