@@ -1,45 +1,127 @@
-From: Sourav Poddar <sourav.poddar@ti.com>
-Subject: Re: [RESEND][PATCH] ARM: OMAP: devicetree: fix SPI node compatible
- property syntax items
-Date: Fri, 8 Nov 2013 09:18:56 +0530
-Message-ID: <527C5F28.40007@ti.com>
-References: <1383831938-9402-1-git-send-email-ewitcher@mindspring.com>
+From: Gururaja Hebbar <gururaja.hebbar@ti.com>
+Subject: Re: [PATCH v4] ARM: omap: edma: add suspend suspend/resume hooks
+Date: Fri, 8 Nov 2013 09:37:09 +0530
+Message-ID: <527C636D.4040007@ti.com>
+References: <1383164468-4610-1-git-send-email-zonque@gmail.com>
+ <527BC118.1050609@ti.com> <527BCFD8.9010207@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:39072 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753652Ab3KHDtF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 7 Nov 2013 22:49:05 -0500
-In-Reply-To: <1383831938-9402-1-git-send-email-ewitcher@mindspring.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <527BCFD8.9010207@gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Daniel Mack <zonque@gmail.com>, Joel Fernandes <joelf@ti.com>
+Cc: balajitk@ti.com, nsekhar@ti.com, s.neumann@raumfeld.com, Russ.Dill@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Eric Witcher <ewitcher@mindspring.com>
-Cc: robherring2@gmail.com, bcousson@baylibre.com, matt.porter@linaro.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-On Thursday 07 November 2013 07:15 PM, Eric Witcher wrote:
-> Correct the SPI node compatible property items to match example code and
-> match current DTS usage.
->
-> Signed-off-by: Eric Witcher<ewitcher@mindspring.com>
-> ---
->   Documentation/devicetree/bindings/spi/omap-spi.txt | 4 ++--
->   1 file changed, 2 insertions(+), 2 deletions(-)
->
-> diff --git a/Documentation/devicetree/bindings/spi/omap-spi.txt b/Documentation/devicetree/bindings/spi/omap-spi.txt
-> index 4c85c4c..2ba5f9c 100644
-> --- a/Documentation/devicetree/bindings/spi/omap-spi.txt
-> +++ b/Documentation/devicetree/bindings/spi/omap-spi.txt
-> @@ -2,8 +2,8 @@ OMAP2+ McSPI device
->
->   Required properties:
->   - compatible :
-> -  - "ti,omap2-spi" for OMAP2&  OMAP3.
-> -  - "ti,omap4-spi" for OMAP4+.
-> +  - "ti,omap2-mcspi" for OMAP2&  OMAP3.
-> +  - "ti,omap4-mcspi" for OMAP4+.
->   - ti,spi-num-cs : Number of chipselect supported  by the instance.
->   - ti,hwmods: Name of the hwmod associated to the McSPI
->   - ti,pindir-d0-out-d1-in: Select the D0 pin as output and D1 as
-Acked-by: Sourav Poddar <sourav.poddar@ti.com>
+On Thursday 07 November 2013 11:07 PM, Daniel Mack wrote:
+> Hi Joel,
+> 
+> On 11/07/2013 05:34 PM, Joel Fernandes wrote:
+>> Thanks for your followup patch on this. It looks much better now using existing
+>> functions to save/restore the state.
+> 
+> Yes, thanks for the suggesting it in the first place.
+> 
+>> On 10/30/2013 03:21 PM, Daniel Mack wrote:
+>>> diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
+>> [..]
+>>> +static int edma_pm_resume(struct device *dev)
+>>> +{
+>>> +	int i, j;
+>>> +
+>>> +	pm_runtime_get_sync(dev);
+>>> +
+>>> +	for (j = 0; j < arch_num_cc; j++) {
+>>> +		struct edma *cc = edma_cc[j];
+>>> +
+>>> +		s8 (*queue_priority_mapping)[2];
+>>> +		s8 (*queue_tc_mapping)[2];
+>>> +
+>>> +		queue_tc_mapping = cc->info->queue_tc_mapping;
+>>> +		queue_priority_mapping = cc->info->queue_priority_mapping;
+>>> +
+>>> +		/* Event queue to TC mapping */
+>>> +		for (i = 0; queue_tc_mapping[i][0] != -1; i++)
+>>> +			map_queue_tc(j, queue_tc_mapping[i][0],
+>>> +					queue_tc_mapping[i][1]);
+>>> +
+>>> +		/* Event queue priority mapping */
+>>> +		for (i = 0; queue_priority_mapping[i][0] != -1; i++)
+>>> +			assign_priority_to_queue(j,
+>>> +						queue_priority_mapping[i][0],
+>>> +						queue_priority_mapping[i][1]);
+>>
+>> I know ti,edma-regions property is not currently being used, but we should
+>> future proof this by setting up DRAE for like done in probe:
+>>
+>>                 for (i = 0; i < info[j]->n_region; i++) {
+>>                         edma_write_array2(j, EDMA_DRAE, i, 0, 0x0);
+>>                         edma_write_array2(j, EDMA_DRAE, i, 1, 0x0);
+>>                         edma_write_array(j, EDMA_QRAE, i, 0x0);
+>>                 }
+> 
+> That doesn't work for me. I'm running long-time tests here on a device
+> which has a mwifiex connected to omap_hsmmc. The test procedure includes:
+> 
+> a) a script on the device that puts the device to sleep some seconds
+> after it has been woken up
+
+
+
+> 
+> b) a script on a host that wakes up the device with wake-on-lan every 10
+> seconds
+> 
+> c) a flood ping that checks whether the device is responding
+
+can you share above 2 (b & C) test scripts? (pastebin or inline if small)
+
+thanks in advance
+
+regards
+Gururaja
+
+
+> 
+> 
+> That precedure is running since a couple of hourse here, and it works
+> well with both by v3 and v4 patches. Moving the functions to
+> .suspend/resume _noirq doesn't seem to break anything.
+> 
+> Setting QRAE to 0 as you mentioned above, however, makes the device fail
+> at resume.
+> 
+>>> +static SIMPLE_DEV_PM_OPS(edma_pm_ops, edma_pm_suspend, edma_pm_resume);
+>>
+>> I agree with Nishanth here, it is better to do this in .suspend/resume _noirq
+>> stage to rule out any ordering bugs that may show up in the future, since such
+>> an issue already showed up in earlier testing.
+> 
+> Alright, I already did that.
+> 
+>> I would appreciate it if you can make these 2 changes and post a v5. Thanks for
+>> a lot for all the hardwork.
+> 
+> No problem at all :)
+> 
+>> Acked-by: Joel Fernandes <joelf@ti.com>
+> 
+> Still sure about that? What about your follow-up to your own reply?
+> 
+> 
+> Many thanks for all the feedback!
+> 
+> Daniel
+> 
+> 
+> 
+> 
