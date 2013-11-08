@@ -1,61 +1,65 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [PATCH v5] ARM: omap: edma: add suspend suspend/resume hooks
-Date: Thu, 7 Nov 2013 22:28:01 -0800
-Message-ID: <CAGa+x85W_N9FCYu=dWTG8OgURr9Fo6oZ2KpW_XY9j_xZr8bBrg@mail.gmail.com>
-References: <1383863549-7438-1-git-send-email-zonque@gmail.com>
-	<87siv7pxpp.fsf@linaro.org>
-	<527C6F70.1010103@ti.com>
+From: Daniel Mack <zonque@gmail.com>
+Subject: Re: [PATCH v4] ARM: omap: edma: add suspend suspend/resume hooks
+Date: Fri, 08 Nov 2013 08:51:14 +0100
+Message-ID: <527C97F2.2080702@gmail.com>
+References: <1383164468-4610-1-git-send-email-zonque@gmail.com> <527BC118.1050609@ti.com> <527BCFD8.9010207@gmail.com> <527C636D.4040007@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f49.google.com ([74.125.82.49]:57830 "EHLO
-	mail-wg0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750786Ab3KHG2D (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Nov 2013 01:28:03 -0500
-Received: by mail-wg0-f49.google.com with SMTP id x12so1487165wgg.28
-        for <linux-omap@vger.kernel.org>; Thu, 07 Nov 2013 22:28:01 -0800 (PST)
-In-Reply-To: <527C6F70.1010103@ti.com>
+Received: from mail-bk0-f43.google.com ([209.85.214.43]:36030 "EHLO
+	mail-bk0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751282Ab3KHHv0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Nov 2013 02:51:26 -0500
+Received: by mail-bk0-f43.google.com with SMTP id mz13so626098bkb.30
+        for <linux-omap@vger.kernel.org>; Thu, 07 Nov 2013 23:51:24 -0800 (PST)
+In-Reply-To: <527C636D.4040007@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Joel Fernandes <joelf@ti.com>
-Cc: Daniel Mack <zonque@gmail.com>, linux-omap <linux-omap@vger.kernel.org>, Gururaja Hebbar <gururaja.hebbar@ti.com>, balajitk@ti.com, s.neumann@raumfeld.com, Sekhar Nori <nsekhar@ti.com>, Russ Dill <Russ.Dill@ti.com>, Nishanth Menon <nm@ti.com>, Vaibhav Bedia <vaibhav.bedia@gmail.com>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
+To: Gururaja Hebbar <gururaja.hebbar@ti.com>, Joel Fernandes <joelf@ti.com>
+Cc: linux-omap@vger.kernel.org, balajitk@ti.com, nsekhar@ti.com, s.neumann@raumfeld.com, Russ.Dill@ti.com, linux-arm-kernel@lists.infradead.org
 
-Hi Joel,
+On 11/08/2013 05:07 AM, Gururaja Hebbar wrote:
+> On Thursday 07 November 2013 11:07 PM, Daniel Mack wrote:
 
-On Thu, Nov 7, 2013 at 8:58 PM, Joel Fernandes <joelf@ti.com> wrote:
-
-> On 11/07/2013 06:02 PM, Kevin Hilman wrote:
->> Daniel Mack <zonque@gmail.com> writes:
-> [..]
->>> +    .resume_noirq   = edma_pm_resume,
->>> +};
+>> I'm running long-time tests here on a device
+>> which has a mwifiex connected to omap_hsmmc. The test procedure includes:
 >>
->> Also, I believe it was already suggested by Nishanth, but the late/early
->> callbacks are probably more appropriate here than the noirq callbacks.
->> Unless there's a *really* good reason to use the noirq callbacks, they
->> should be avoided.
+>> a) a script on the device that puts the device to sleep some seconds
+>> after it has been woken up
+>> 
+>> b) a script on a host that wakes up the device with wake-on-lan every 10
+>> seconds
 >>
->> That being said, I wonder if the whole approach here is the right one.
->> I know you're basing your stuff on some TI tree, but that doesn't make
->> it the right way (usually, it's the opposite, but I digress...)  ;)
->>
->> IMO, EDMA should be done like we currently do I2C and not implement
->> suspend/resume at all.  Instead, the driver should do runtime PM done on
->
-> But a potential problem with this is powering edma on or off between xfers may
-> slow things down quite a bit because xfers happen so much often and there is
-> some overhead in the pm_runtime calls which adds up overtime when dealing with
-> something as frequent as EDMA. Also we would lose the global EDMA context right
-> so we'd have to restore the context every time during runtime PM (?).
+>> c) a flood ping that checks whether the device is responding
+> 
+> can you share above 2 (b & C) test scripts? (pastebin or inline if small)
 
-Have a look at the autosuspend feature of runtime PM.  (c.f.
-Documentation/power/pm_runtime.txt)
+Of course. It's very hand-baked and simple:
 
-> I had a patch that also made AES driver not pm_runtime_get/put specially when
-> the next crypto request was imminent. But instead adopted a softer approach
-> where the pm_runtime_put call would happen at a time when we are sure we're at
-> the end of all requests. This resulted in quite a speed up.
+a)
 
-Sounds like you partially re-invented autosuspend.
+# wpa_supplicant is started and and the ip address ist set
 
-Kevin
+while [ true ]; do
+        ethtool -s eth0 wol g
+        echo mem >/sys/power/state
+        ethtool -s eth0 wol d
+        sleep 7
+done
+
+b)
+
+while [ true ]; do
+	sudo etherwake -i em1 BC:6A:29:84:0A:62
+	sleep 5
+done
+
+c)
+
+ping -s 32768 -i 0.1 192.168.178.222
+
+
+
+Daniel
+
