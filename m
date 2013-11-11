@@ -1,57 +1,42 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/3] omapdss: venc: Add support for bypass and acbias.
-Date: Mon, 11 Nov 2013 08:54:04 -0800
-Message-ID: <20131111165404.GO15154@atomide.com>
-References: <1381784555-18344-1-git-send-email-marek@goldelico.com>
- <CAAfyv34j+YhEjtHyf7zg5oBoCV5ROEXow8VV0PQNHLTF5uDZJg@mail.gmail.com>
- <5280DBA6.50303@ti.com>
- <FB10035C-B13C-4A03-BE9C-0576806F2577@goldelico.com>
- <5280E617.3000004@ti.com>
- <F97741D2-FC6F-4DBD-A0DD-E35304501993@goldelico.com>
+Subject: Re: [PATCH] ARM: dts: Add missing reg, interrupt and dma entries
+ for omap3
+Date: Mon, 11 Nov 2013 08:56:39 -0800
+Message-ID: <20131111165638.GP15154@atomide.com>
+References: <20131017221522.GE15154@atomide.com>
+ <20131110234717.GA29968@earth.universe>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:22704 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753782Ab3KKQ4p (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Nov 2013 11:56:45 -0500
 Content-Disposition: inline
-In-Reply-To: <F97741D2-FC6F-4DBD-A0DD-E35304501993@goldelico.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "Dr. H. Nikolaus Schaller" <hns@goldelico.com>
-Cc: linux-fbdev@vger.kernel.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, NeilBrown <neilb@suse.de>, Belisko Marek <marek.belisko@gmail.com>, LKML <linux-kernel@vger.kernel.org>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Marek Belisko <marek@goldelico.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
+In-Reply-To: <20131110234717.GA29968@earth.universe>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-* Dr. H. Nikolaus Schaller <hns@goldelico.com> [131111 06:30]:
-> Am 11.11.2013 um 15:13 schrieb Tomi Valkeinen:
-> > On 2013-11-11 15:57, Dr. H. Nikolaus Schaller wrote:
-> >
-> > The display.c file is not strictly DSS stuff, but DSS related "glue" for
-> > the SoC. For example, the muxing of the DSI pads is also done on the
-> > CONTROL module, and it's also in display.c.
-> > 
-> > The file is getting a bit large, so I'm not against splitting it. But I
-> > don't think there's point to add omap3-tvout.c file, which most likely
-> > will ever contain only that one function.
+* Sebastian Reichel <sre@ring0.de> [131110 15:48]:
+> Hi Tony,
 > 
-> Yes that is very likely true.
+> On Thu, Oct 17, 2013 at 03:15:22PM -0700, Tony Lindgren wrote:
+> > Looks like omap3 is still relying on hwmod data for some basic
+> > device tree information. Let's add the information to omap3.dtsi
+> > so we can remove the related hwmod data once omap3 is DT only.
 > 
-> The problem is that there is no other official API to modify the DEFCONF1
-> register. Therefore we introduced this (propsal).
-> 
-> Our first idea was a readDEFCONF1() and writeDEFCONF1() and use the
-> constants (bit patterns) you suggested below.
+> This patch fixes a regression in omap3 DT boot introduced by
+> commit 2a0b965cfb6efc667228831fc3a30308b4f94a87. This commit
+> assumes, that interrupts are specified via DT data if booted
+> via DT.
 
-I posted something about accessing the ctrl module regs to the first
-patch in the series. It's best to set it up as a separate driver for
-now and then maybe handle it with pinctrl-single,bits when DSS is
-device tree enabled.
+Yes sorry about that, this should have been merged as a fix
+earlier to avoid breaking things during the merge window.
+Looks like I only tested 2a0b965cfb6efc667228831fc3a30308b4f94a87
+separately on omap4 or something and forgot about the dependency.
 
 Regards,
 
 Tony
+
