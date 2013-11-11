@@ -1,22 +1,18 @@
 From: Belisko Marek <marek.belisko@gmail.com>
 Subject: Re: [PATCH 1/3] arm: omap2: Export devconf1 bypass and acbias.
-Date: Mon, 11 Nov 2013 23:00:26 +0100
-Message-ID: <CAAfyv37LRb_Q=UZVgtKdOAz_r6_qThewAU90W7nrqHdB5fDA_g@mail.gmail.com>
+Date: Mon, 11 Nov 2013 23:20:22 +0100
+Message-ID: <CAAfyv34CyviSt_Jaygr-CYSQdZOBHz14awT3U8=2ZBT14s896g@mail.gmail.com>
 References: <1381784555-18344-1-git-send-email-marek@goldelico.com>
 	<1381784555-18344-2-git-send-email-marek@goldelico.com>
 	<20131111164917.GN15154@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-oa0-f43.google.com ([209.85.219.43]:59524 "EHLO
-	mail-oa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751109Ab3KKWA1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Nov 2013 17:00:27 -0500
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20131111164917.GN15154@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, linux-fbdev@vger.kernel.org, NeilBrown <neilb@suse.de>, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>
+List-Id: linux-omap@vger.kernel.org
 
 Hi Tony,
 
@@ -47,14 +43,12 @@ On Mon, Nov 11, 2013 at 5:49 PM, Tony Lindgren <tony@atomide.com> wrote:
 >
 > If this is truly a pinmux, you could already access this
 > using pinctrl-single,bits device tree driver.
+AFAIK it's not pinmux it's register where we update bits. Or am I
+missing something?
 >
 > But I guess that won't work yet, so it's best to set this
 > up as a separate driver like we've done for the USB PHY
 > registers.
-Can you please point me to that driver directly? I cannot see benefit
-of new driver as as it will be only dummy driver
-with export_symbol_gpl of upper function. Can it sit then in dss
-directory or somewhere else? Thanks.
 >
 > Regards,
 >
