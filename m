@@ -1,118 +1,67 @@
-From: "Dr. H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: Re: [PATCH 0/3] omapdss: venc: Add support for bypass and acbias.
-Date: Mon, 11 Nov 2013 15:39:57 +0100
-Message-ID: <37D5EFEB-D329-4652-A88D-8423276359B4@goldelico.com>
-References: <1381784555-18344-1-git-send-email-marek@goldelico.com> <CAAfyv34j+YhEjtHyf7zg5oBoCV5ROEXow8VV0PQNHLTF5uDZJg@mail.gmail.com> <5280DBA6.50303@ti.com> <FB10035C-B13C-4A03-BE9C-0576806F2577@goldelico.com> <5280E617.3000004@ti.com>
-Mime-Version: 1.0 (Apple Message framework v1085)
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mo-p00-ob.rzone.de ([81.169.146.162]:39487 "EHLO
-	mo-p00-ob.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753469Ab3KKOkN convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Nov 2013 09:40:13 -0500
-In-Reply-To: <5280E617.3000004@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Rob Herring <robherring2@gmail.com>
+Subject: Re: [PATCH 2/2] ARM: dts: doc: Document missing binding for ti-sdma controller
+Date: Mon, 11 Nov 2013 09:56:06 -0600
+Message-ID: <CAL_JsqKfHPcycgH7oZeGYpnuEV-PBH1q_11O8=gC_50X_vWJsA@mail.gmail.com>
+References: <1383907129-7325-1-git-send-email-r.sricharan@ti.com>
+	<1383907129-7325-2-git-send-email-r.sricharan@ti.com>
+	<CAL_JsqLT0zOMDEQD5gkvTN2KYD2D--=pM6xgwQqPQOmkgcQBVg@mail.gmail.com>
+	<527E224E.5020405@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <527E224E.5020405@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Sricharan R <r.sricharan@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, linux-doc@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Benoit Cousson <bcousson@baylibre.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Belisko Marek <marek.belisko@gmail.com>, Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, linux-fbdev@vger.kernel.org, NeilBrown <neilb@suse.de>, Marek Belisko <marek@goldelico.com>
 
+On Sat, Nov 9, 2013 at 5:53 AM, Sricharan R <r.sricharan@ti.com> wrote:
+> Hi Rob,
+>
+> On Saturday 09 November 2013 03:24 AM, Rob Herring wrote:
+>> On Fri, Nov 8, 2013 at 4:38 AM, Sricharan R <r.sricharan@ti.com> wrote:
+>>> The binding and support for system DMA module present in OMAP2+ Socs
+>>> and DRA7 with dma-engine is already present. So adding the missing
+>>> documentation for the same.
+>>>
+>>> Cc: Benoit Cousson <bcousson@baylibre.com>
+>>> Signed-off-by: Sricharan R <r.sricharan@ti.com>
+>>> ---
+>>>  Documentation/devicetree/bindings/dma/ti-sdma.txt |   28 +++++++++++++++++++++
+>>>  1 file changed, 28 insertions(+)
+>>>  create mode 100644 Documentation/devicetree/bindings/dma/ti-sdma.txt
+>>>
+>>> diff --git a/Documentation/devicetree/bindings/dma/ti-sdma.txt b/Documentation/devicetree/bindings/dma/ti-sdma.txt
+>>> new file mode 100644
+>>> index 0000000..7fb2342
+>>> --- /dev/null
+>>> +++ b/Documentation/devicetree/bindings/dma/ti-sdma.txt
+>>> @@ -0,0 +1,28 @@
+>>> +TI SDMA
+>>> +
+>>> +Required Properties:
+>>> +- compatible : Should be "ti,omap2420-sdma", "ti,omap2430-sdma" for OMAP2
+>>> +               Should be "ti,omap3430-sdma", "ti,omap3630-sdma" for OMAP3
+>>> +               Should be "ti,omap4430-sdma" for OMAP4, OMAP5 and DRA7
+>>> +- reg: Memory map for accessing module
+>>> +- interrupts: Interrupt request number from the dma controller to
+>> s/dma/DMA/
+>>
+>>> +             interrupt controller
+>>> +- dma-cells: Should be set to <1>
+>>> +- dma-channels: Total number of logical DMA channels supported by the
+>>> +               controller
+>>> +- dma-requests: Total number of dma request signals supported by the
+>> s/dma/DMA/
+>  Ok, will correct case.
+>>> +               controller
+>> These should have the # included.
+>  Sorry, i do not follow this ?
 
-Am 11.11.2013 um 15:13 schrieb Tomi Valkeinen:
+You are missing the # in the property names as the example has:
 
-> On 2013-11-11 15:57, Dr. H. Nikolaus Schaller wrote:
->> Hi Tomi,
->> 
->> Am 11.11.2013 um 14:29 schrieb Tomi Valkeinen:
->> 
->>> Hi,
->>> 
->>> On 2013-11-05 09:24, Belisko Marek wrote:
->>>> Hi,
->>>> 
->>>> ping.
->>>> 
->>>> On Mon, Oct 14, 2013 at 11:02 PM, Marek Belisko <marek@goldelico.com> wrote:
->>>>> This patches is adding bypass and acbias functionality to omapdss venc driver.
->>>>> In first patch we export updatin bypass and acbias in devconf1 register. Next patch
->>>>> add handling for updating in venc driver and last patch add driver for opa362 which
->>>>> is used on gta04 board and set bypass + acbias.
->>>> Is there a chance to get this series to 3.13? Thanks.
->>> 
->>> Sorry, I haven't had time to do much reviewing.
->>> 
->>> The code in omap3-tvout.c should be included in the display.c file,
->>> which already contains some things like muxing.
->> 
->> Ok, that might be better - but we were not sure where to place code to
->> modify the DEVCONF1 registers. It is not directly DSS related but a special
->> control of the OMAP3 SoC. Therefore we think it is better located in omap3-tvout.c
-> 
-> The display.c file is not strictly DSS stuff, but DSS related "glue" for
-> the SoC. For example, the muxing of the DSI pads is also done on the
-> CONTROL module, and it's also in display.c.
-> 
-> The file is getting a bit large, so I'm not against splitting it. But I
-> don't think there's point to add omap3-tvout.c file, which most likely
-> will ever contain only that one function.
-> 
->>> Also, func(bool, bool)
->>> style functions are rather confusing to read. Maybe an enum would be
->>> better, so you'd instead have something like:
->>> 
->>> func(OMAP_VENC_TVOUTBYPASS | OMAP_VENC_TVACEN)
->> 
->> We have no special preference on that.
-> 
-> It's just about readability. Which one tells you better what the code does:
-> 
-> func(true, true);
-> 
-> or
-> 
-> func(OMAP_VENC_TVOUTBYPASS | OMAP_VENC_TVACEN);
-> 
->>> But the main issue is: while this series probably works well, I really
->>> don't like it that the OPA driver needs to pass bypass and acbias. It
->>> shouldn't know anything about such things. I'm just not certain how to
->>> implement that with the current omapdss driver.
->> 
->> Well, it must know bypass and acbias because it requires the OMAP
->> CPU to be configured accordingly. I.e. it is the one who pushes the
->> button. Or we get a problem that people might misconfigure it.
-> 
-> While the omapdss display drivers are currently OMAP specific, I want to
-> (or at least try to) keep them platform independent. Afaik, acbias and
-> bypass are OMAP VENC specific things, not something that every SoC with
-> an analog TV-out have. Thus, the OPA driver should not know about them,
-> and it should be something that only the DSS glue code in mach-omap2/
-> and the venc driver know about.
++       #dma-cells = <1>;
++       #dma-channels = <32>;
++       #dma-requests = <64>;
 
-What about calling it prepare_venc_for_external_amplifier (or similar). Then,
-venc.c can hide that really has to be done and call whatever SoC API is
-needed to program DEFCONF1?
-
-> 
->> I would see it similar as a driver must be able to control power. Here
->> it must be able to control bypass and acbias in a special way that it works.
-> 
-> The difference is that on all possible SoCs where you could add OPA
-> chip, you'll need to manage the power for OPA, and it's done in a common
-> way. Whereas the bypass and acbias are OMAP specific things.
-> 
->>> I'll try to find time to think about this more, but I don't think I can
->>> merge this for 3.13.
->> 
->> Please take your time.
->> 
->> And please also consider the approach to merge it into 3.13 as it is
->> and we can then fix it in the weeks while release candidates are pushed.
-> 
-> If it was purely omapdss code, I could possibly take it. But it contains
-> arch/arm code also, and I don't want to cause needless changes on code
-> that I do not maintain.
-> 
-> Tomi
-> 
-> 
-
+Rob
