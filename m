@@ -1,67 +1,72 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 0/3] omapdss: venc: Add support for bypass and acbias.
-Date: Mon, 11 Nov 2013 15:29:10 +0200
-Message-ID: <5280DBA6.50303@ti.com>
-References: <1381784555-18344-1-git-send-email-marek@goldelico.com> <CAAfyv34j+YhEjtHyf7zg5oBoCV5ROEXow8VV0PQNHLTF5uDZJg@mail.gmail.com>
+Subject: Re: [PATCH] ARM: OMAPFB: panel-sony-acx565akm: fix bad unlock balance
+Date: Mon, 11 Nov 2013 15:37:37 +0200
+Message-ID: <5280DDA1.304@ti.com>
+References: <1383773070-15114-1-git-send-email-aaro.koskinen@iki.fi>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
 	protocol="application/pgp-signature";
-	boundary="uT8p3dMaVFhkCoRJa5DBOdlfE1WFnvCgv"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:33449 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753442Ab3KKN3y (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 11 Nov 2013 08:29:54 -0500
-In-Reply-To: <CAAfyv34j+YhEjtHyf7zg5oBoCV5ROEXow8VV0PQNHLTF5uDZJg@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+	boundary="awI1fkDkr69ApOfIR6Aw8NIK3NtIcSTsj"
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <1383773070-15114-1-git-send-email-aaro.koskinen@iki.fi>
+Sender: stable-owner@vger.kernel.org
+To: Aaro Koskinen <aaro.koskinen@iki.fi>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
+Cc: Eduardo Valentin <eduardo.valentin@ti.com>, stable@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Belisko Marek <marek.belisko@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, linux-fbdev@vger.kernel.org, NeilBrown <neilb@suse.de>, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>, Marek Belisko <marek@goldelico.com>
 
---uT8p3dMaVFhkCoRJa5DBOdlfE1WFnvCgv
-Content-Type: text/plain; charset=UTF-8
+--awI1fkDkr69ApOfIR6Aw8NIK3NtIcSTsj
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 
-Hi,
-
-On 2013-11-05 09:24, Belisko Marek wrote:
-> Hi,
+On 2013-11-06 23:24, Aaro Koskinen wrote:
+> When booting Nokia N900 smartphone with v3.12 + omap2plus_defconfig
+> (LOCKDEP enabled) and CONFIG_DISPLAY_PANEL_SONY_ACX565AKM enabled,
+> the following BUG is seen during the boot:
 >=20
-> ping.
+> [    7.302154] =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> [    7.307128] [ BUG: bad unlock balance detected! ]
+> [    7.312103] 3.12.0-los.git-2093492-00120-g5e01dc7 #3 Not tainted
+> [    7.318450] -------------------------------------
+> [    7.323425] kworker/u2:1/12 is trying to release lock (&ddata->mutex=
+) at:
+> [    7.330657] [<c031b760>] acx565akm_enable+0x12c/0x18c
+> [    7.335998] but there are no more locks to release!
 >=20
-> On Mon, Oct 14, 2013 at 11:02 PM, Marek Belisko <marek@goldelico.com> w=
-rote:
->> This patches is adding bypass and acbias functionality to omapdss venc=
- driver.
->> In first patch we export updatin bypass and acbias in devconf1 registe=
-r. Next patch
->> add handling for updating in venc driver and last patch add driver for=
- opa362 which
->> is used on gta04 board and set bypass + acbias.
-> Is there a chance to get this series to 3.13? Thanks.
+> Fix by removing the extra mutex_unlock().
+>=20
+> Reported-by: Eduardo Valentin <eduardo.valentin@ti.com>
+> Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+> Cc: stable@vger.kernel.org
+> ---
+>  drivers/video/omap2/displays-new/panel-sony-acx565akm.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>=20
+> diff --git a/drivers/video/omap2/displays-new/panel-sony-acx565akm.c b/=
+drivers/video/omap2/displays-new/panel-sony-acx565akm.c
+> index e6d56f7..72fe2a8 100644
+> --- a/drivers/video/omap2/displays-new/panel-sony-acx565akm.c
+> +++ b/drivers/video/omap2/displays-new/panel-sony-acx565akm.c
+> @@ -616,7 +616,7 @@ static int acx565akm_enable(struct omap_dss_device =
+*dssdev)
+> =20
+>  	mutex_lock(&ddata->mutex);
+>  	r =3D acx565akm_panel_power_on(dssdev);
+> -	mutex_unlock(&ddata->mutex);
+> +	/* NOTE: acx565akm_panel_power_on() will unlock the mutex. */
+> =20
+>  	if (r)
+>  		return r;
+>=20
 
-Sorry, I haven't had time to do much reviewing.
-
-The code in omap3-tvout.c should be included in the display.c file,
-which already contains some things like muxing. Also, func(bool, bool)
-style functions are rather confusing to read. Maybe an enum would be
-better, so you'd instead have something like:
-
-func(OMAP_VENC_TVOUTBYPASS | OMAP_VENC_TVACEN)
-
-But the main issue is: while this series probably works well, I really
-don't like it that the OPA driver needs to pass bypass and acbias. It
-shouldn't know anything about such things. I'm just not certain how to
-implement that with the current omapdss driver.
-
-I'll try to find time to think about this more, but I don't think I can
-merge this for 3.13.
+Hm why would you fix it like this? Why not remove the mutex_unlock from
+acx565akm_panel_power_on()? Looks to me like that one is the buggy one.
 
  Tomi
 
 
 
---uT8p3dMaVFhkCoRJa5DBOdlfE1WFnvCgv
+--awI1fkDkr69ApOfIR6Aw8NIK3NtIcSTsj
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -70,19 +75,19 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v1.4.14 (GNU/Linux)
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBAgAGBQJSgNumAAoJEPo9qoy8lh71fkAQAKtYe/77ezfI7KXDURRdjqBW
-xHV1k6+uzQ8WTCZlb8bGSRnmP2wEmfCQ9o5rQGPoNT0d7fYONfmms5UhM4LFGDHw
-n7tcknLe0NjTQjlEicIQcdeYSOPmnlwTs4Ehl2xxcB6a6R5rNSTogoWIxwI+joyR
-jRP6dOzK9Bd0SFBr7kcrUCuwSl6OUpB+9aPCP9btu4yZKdpDorsiHFaWlS5IhgMm
-fHfLqvYYMSVZlJ0orAhRG6Q7YQ3jjPv21aFVGGLqyf+koiamARMd7mEAJXYEtoIk
-dfuxKa2V4ansD1vfz30Y9nmNrj4TDtnV0YITPsO7RPPgWKNwEq9tYH9Uu9KY4TPa
-z4i5yyKSXuExUayFRDqozKkd8gvgJn1POsOHvpRZeB3/g8JpmGKCUABNK67P/2x4
-fIzidRPyjBFET5p3DxanqeX0lRnBFRGD3guMf+2VVKwe4L7nuK0b+8xa4CoU09zM
-uZWomZS5/sZ0DLD20Ms6BeUtDMCzboUTmkxsdMmj/BUt60v2ElXJ2quKTjilJX7V
-42fgfhYtbqOzSMG8jN5JLjp9g/YJBJ4lhCu78z6P76doJQ34VZjgNkhqHjkb/cHi
-l5DBVqvmc73E5X0Nu3hwvSiU18Fu7FLRdTRRxRbFFJkuAhc6dRu1RL9wgKFAJj7M
-gyIjjDBD2hnkFG4n/dLJ
-=BZwM
+iQIcBAEBAgAGBQJSgN2hAAoJEPo9qoy8lh71gLYP/iBZOiEpbDmNn69QwGFpufDb
+l77JHgGgYpNrJTiGVVuhUl60AbeHZ8JA3IsE9DmClF59MvqemKSJIkDSAwyFS5c+
+n8kR3Q5uxJ6ZY0TZrbD+lWgAIhgW9YHYRuBY1HPKYzCpnW3U1oHKb6K+XW1GJY5x
+ktemJ6xRbNzLtTaohE+X5O2rGWOi77MwtYoYSkvx5FiBMuTRdmtnf79Q2Ez+UvMT
+FY5+3stP64pYbUf4N5R3dWK5fC2dEAZUefqCdOjjgZRzbUB4lBFLhN5pVwNEPNaD
+nCEvxHPymkvRXztKRlYkkjyYqSppqZUPRGRsZl/Mok7T1NjNXifRxkOzDCpV9k/N
+Mo6ibsvriXoidER/dqodBToezPOfXx1idk93C25aunbOul4MpgQe5cdulQ53w3bM
+7dqSHj4G32Jz5sig/NJeZkUIJ5J86TpyCx2Bmus1p1giRWG7qpvpEtSR1cHMxyv0
+TU3zxIR5YaZ+TtLTOmwgkSnKinYRe4a9IIKxtYLsAsS0vxtx4qzG+RcFnMwkvzZn
+3uy5ije8quUDntbV8Cqm6wdxqY5d/X0cGXB3Ul0RNEQR9Tay8J556a4EKEJYzfeE
+qtWDLs0/ePFjCnW0QBYFzNpsunJFDiVbaCgRLs39a6sjE2/zRBOOwhXswrpc5JRA
+1QWbZRJbXnVWsyF71EuS
+=BLQS
 -----END PGP SIGNATURE-----
 
---uT8p3dMaVFhkCoRJa5DBOdlfE1WFnvCgv--
+--awI1fkDkr69ApOfIR6Aw8NIK3NtIcSTsj--
