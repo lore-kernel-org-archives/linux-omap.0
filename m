@@ -1,69 +1,80 @@
-From: Andreas Fenkart <afenkart@gmail.com>
-Subject: [PATCH 3/3] mmc: omap_hsmmc: Extend debugfs for SDIO IRQ, GPIO and pinmux.
-Date: Mon, 11 Nov 2013 21:06:45 +0100
-Message-ID: <1384200405-8402-4-git-send-email-afenkart@gmail.com>
-References: <1384200405-8402-1-git-send-email-afenkart@gmail.com>
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <1384200405-8402-1-git-send-email-afenkart@gmail.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Chris Ball <cjb@laptop.org>
-Cc: Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, Felipe Balbi <balbi@ti.com>, Balaji T K <balajitk@ti.com>, zonque@gmail.com, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, Andreas Fenkart <afenkart@gmail.com>
+From: Maxime Ripard <maxime.ripard@free-electrons.com>
+Subject: Re: [PATCH] clk: add flags to distinguish xtal clocks
+Date: Mon, 11 Nov 2013 21:54:01 +0100
+Message-ID: <20131111205401.GZ26440@lukather>
+References: <1382528150.21526.25.camel@porter.coelho.fi>
+ <1383933648-28595-1-git-send-email-balbi@ti.com>
+ <20131110113716.GN26440@lukather>
+ <20131111194247.GB19212@saruman.home>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="OHFW44Kv8gQ39vd8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20131111194247.GB19212@saruman.home>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: mturquette@linaro.org, james.hogan@imgtec.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, luca@coelho.fi, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-Add SDIO IRQ entries to debugfs entry. Note that PSTATE shows current
-state of data lines, incl. SDIO IRQ pending
 
-Signed-off-by: Andreas Fenkart <afenkart@gmail.com>
----
- drivers/mmc/host/omap_hsmmc.c |   19 ++++++++++++++++++-
- 1 file changed, 18 insertions(+), 1 deletion(-)
+--OHFW44Kv8gQ39vd8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index 5a7fb4b..c4f71d0 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -81,6 +81,7 @@ static void apply_clk_hack(struct device *dev)
- #define OMAP_HSMMC_RSP54	0x0118
- #define OMAP_HSMMC_RSP76	0x011C
- #define OMAP_HSMMC_DATA		0x0120
-+#define OMAP_HSMMC_PSTATE	0x0124
- #define OMAP_HSMMC_HCTL		0x0128
- #define OMAP_HSMMC_SYSCTL	0x012C
- #define OMAP_HSMMC_STAT		0x0130
-@@ -1794,6 +1795,20 @@ static int omap_hsmmc_regs_show(struct seq_file *s, void *data)
- {
- 	struct mmc_host *mmc = s->private;
- 	struct omap_hsmmc_host *host = mmc_priv(mmc);
-+	bool suspended;
-+
-+	seq_puts(s, "\n");
-+	seq_printf(s, "sdio irq\t%s\n", ((host->flags & HSMMC_SDIO_IRQ_ENABLED)
-+					 ? "enabled" : "disabled"));
-+	suspended = host->dev->power.runtime_status != RPM_ACTIVE;
-+	if (host->flags & HSMMC_SWAKEUP_QUIRK) {
-+		seq_printf(s, "pinmux config\t%s\n", (suspended ?
-+						      "gpio" : "sdio"));
-+		if (suspended)
-+			seq_printf(s, "sdio irq pin\t%s\n",
-+				   gpio_get_value(mmc_slot(host).gpio_cirq) ?
-+				   "high" : "low");
-+	}
- 
- 	if (host->suspended) {
- 		seq_printf(s, "host suspended, can't read registers\n");
-@@ -1801,9 +1816,11 @@ static int omap_hsmmc_regs_show(struct seq_file *s, void *data)
- 	}
- 
- 	pm_runtime_get_sync(host->dev);
--
-+	seq_puts(s, "\nregs:\n");
- 	seq_printf(s, "CON:\t\t0x%08x\n",
- 			OMAP_HSMMC_READ(host->base, CON));
-+	seq_printf(s, "PSTATE:\t\t0x%08x\n",
-+		   OMAP_HSMMC_READ(host->base, PSTATE));
- 	seq_printf(s, "HCTL:\t\t0x%08x\n",
- 			OMAP_HSMMC_READ(host->base, HCTL));
- 	seq_printf(s, "SYSCTL:\t\t0x%08x\n",
--- 
-1.7.10.4
+On Mon, Nov 11, 2013 at 01:42:47PM -0600, Felipe Balbi wrote:
+> > > +	if (of_property_read_bool(node, "clock-xtal"))
+> > > +		flags |=3D CLK_IS_TYPE_XTAL;
+> > > +
+> >=20
+> > Introducing a new compatible instead of a property would make more
+> > sense here I think.
+> >=20
+> > Do you have a reason not to do so?
+>=20
+> As you can see, this is original work from Luca but I disagree that
+> adding a new compatible makes more sense. This still related to a fixed
+> rate clock, we're just giving it one extra metadata which will
+> differentiate between crystal and oscilator fixed rate clocks.
 
+I don't know, I think it's more a matter of consistency.
+
+If we turn the problem the other way around. Let's say we have a
+crystal that for some reason can't be used with clk-fixed-rate. You'd
+add a new driver for it, with a compatible of its own, and you'd put
+that XTAL flag in there, without any extra metadata in the DT, right?
+
+And I'm pretty sure having a compatible like "clk-xtal" would make it
+pretty obvious that it's still a fixed rate clock.
+
+Maxime
+
+--=20
+Maxime Ripard, Free Electrons
+Embedded Linux, Kernel and Android engineering
+http://free-electrons.com
+
+--OHFW44Kv8gQ39vd8
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJSgUPpAAoJEBx+YmzsjxAgHcgP/RBickPG2EHTBEAxjK6uVhUr
+EN83m2U51xOtcREqH3PfwZOyWi3e2UOjujzgF8UA67gFzlF2p1Rei5Wr8r5cyTUx
+LA34E01QrNliNXxA6C8uym6i4JmhLDxzUPgqgks77FRp5kzlikISNqIFSSpNby1c
+GANbyNvV7j+8YIwXtg9AzQyl2xBaTMiUDgFVnYiPfarQXZtYCXLBc2iQezEdxqbo
+rdhjOl/J8lKtj62SUQmtShkURRk3xcg0S/ZhY6I6FiQCcE+pXb6ZiGnce78XYmTL
+0c/4spuKdGMVYhKNpiec1SyN5L2yvF4zR06WfVMJtR1r89Jn08OfKzyTcqNj0Pn1
+5974vCBGFevvDbEg0Waebn9rgPbtn1Xw5jg7cC31qHCmzZ9+STxfoMu0q0iDRoCx
+EqGBcvE5KWLllEMOWB7kxr1UX6NuzJ2y4AOIP8eAroXxXs5iyPcq5RnBOkLiHFtI
+LYMG/deLbqa9+ACcBze8Mxi9cVri5lzB9Ku5JbeaG1odnNuOraOoXDpEGz2BmxBu
+pYInB7MO6NNqoNQ0fDwDlG7YMKiwmMjmuHI85a8Iql/jrxpy7/HBPC+yC6C/8euv
+3ek2+Fy//IG0ddqVRLA5af0IpIC09tazrbfVXaqtS3et4H1DNmNSLugM1gJUWBID
+Y0h+q6xaLFh20NY0inqj
+=yPrt
+-----END PGP SIGNATURE-----
+
+--OHFW44Kv8gQ39vd8--
