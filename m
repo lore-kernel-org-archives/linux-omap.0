@@ -1,107 +1,75 @@
-From: Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [PATCH] doc: devicetree: Add bindings documentation for
- omap-des driver
-Date: Mon, 11 Nov 2013 17:38:04 +0000
-Message-ID: <20131111173804.GN21201@e106331-lin.cambridge.arm.com>
-References: <1383871035-16608-1-git-send-email-joelf@ti.com>
- <20131111110106.GC21201@e106331-lin.cambridge.arm.com>
- <5281103F.8050407@ti.com>
+From: Sebastian Reichel <sre@ring0.de>
+Subject: Re: [PATCH] ARM: dts: Add missing reg, interrupt and dma entries for
+ omap3
+Date: Mon, 11 Nov 2013 18:48:40 +0100
+Message-ID: <20131111174839.GA15331@earth.universe>
+References: <20131017221522.GE15154@atomide.com>
+ <20131110234717.GA29968@earth.universe>
+ <20131111165638.GP15154@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-doc-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="xHFwDpU9dbj6ez1V"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from ring0.de ([91.143.88.219]:41941 "EHLO smtp.ring0.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753694Ab3KKRsw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 11 Nov 2013 12:48:52 -0500
 Content-Disposition: inline
-In-Reply-To: <5281103F.8050407@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Joel Fernandes <joelf@ti.com>
-Cc: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "santosh.shilimkar@ti.com" <santosh.shilimkar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, Pawel Moll <Pawel.Moll@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Rob Landley <rob@landley.net>, DOCUMENTATION <linux-doc@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
+In-Reply-To: <20131111165638.GP15154@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-On Mon, Nov 11, 2013 at 05:13:35PM +0000, Joel Fernandes wrote:
-> On 11/11/2013 05:01 AM, Mark Rutland wrote:
-> > Hi Joel,
-> > 
-> > I realise I'm a little late in replying to this, but there are a few
-> > things that would be nice to fix up.
-> > 
-> > On Fri, Nov 08, 2013 at 12:37:09AM +0000, Joel Fernandes wrote:
-> >> Add documentation for the generic OMAP DES crypto module describing the device
-> >> tree bindings.
-> >>
-> >> Signed-off-by: Joel Fernandes <joelf@ti.com>
-> >> ---
-> >>  .../devicetree/bindings/crypto/omap-des.txt        | 28 ++++++++++++++++++++++
-> >>  1 file changed, 28 insertions(+)
-> >>  create mode 100644 Documentation/devicetree/bindings/crypto/omap-des.txt
-> >>
-> >> diff --git a/Documentation/devicetree/bindings/crypto/omap-des.txt b/Documentation/devicetree/bindings/crypto/omap-des.txt
-> >> new file mode 100644
-> >> index 0000000..0637647
-> >> --- /dev/null
-> >> +++ b/Documentation/devicetree/bindings/crypto/omap-des.txt
-> >> @@ -0,0 +1,28 @@
-> >> +OMAP SoC DES crypto Module
-> >> +
-> >> +Required properties:
-> >> +
-> >> +- compatible : Should be "ti,omap4-des"
-> > 
-> > Nit: s/Should be/Should contain/
-> 
-> ok
-> 
-> > 
-> >> +- ti,hwmods: Name of the hwmod associated with the DES module
-> >> +- reg : Offset and length of the register set for the module
-> >> +- interrupts : the interrupt-specifier for the DES module
-> > 
-> > Just to check: there's only one interrupt?
-> 
-> Yes.
-> 
-> >> +- clocks : phandle to the functional clock node of the DES module
-> >> +- clock-names : Name of the functional clock
-> > 
-> > What name is expected here? The intent of clock-names is to describe
-> > which clock input lines the clocks are wired to, so this should be
-> > well-defined.
-> > 
-> > From the looks of the example, the clock input is called "fck". Is that
-> > correct?
-> 
-> Yes. The clock name is used by PM code to get the clock for the particular
-> device. Yes the code assumes it to be "fck", I can change doc to be so.
-> 
-> > When you have clock-names, the nicest thing to do is to define clocks
-> > in terms of clock-names. Something like:
-> > 
-> > - clocks: A phandle + clock-specifier pair for each entry in
-> >   clock-names.
-> > 
-> > - clock-names: Should contain:
-> >   * "fck" for the functional clock
-> > 
-> > Which implies that the correct way to find clocks is to look in
-> > clock-names first to find the clock's index, rather than grabbing the
-> > clock by index. This makes it far easier to add/remove/change clocks in
-> > future.
-> 
-> Ok. I'll reword documentation of clocks as above.
-> 
-> > 
-> >> +
-> >> +Optional properties:
-> >> +- dmas: DMA specifiers for tx and rx dma. See the DMA client binding,
-> >> +	Documentation/devicetree/bindings/dma/dma.txt
-> > 
-> > Similarly here it would be nice to have dmas refer to dma-names for
-> > the description of which dmas exist.
-> 
-> Ok, will make the above 3 changes and resubmit, if its ok will add your Reviewed-by.
 
-That would be fine by me.
+--xHFwDpU9dbj6ez1V
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-With the changes:
+On Mon, Nov 11, 2013 at 08:56:39AM -0800, Tony Lindgren wrote:
+> * Sebastian Reichel <sre@ring0.de> [131110 15:48]:
+> > Hi Tony,
+> >=20
+> > On Thu, Oct 17, 2013 at 03:15:22PM -0700, Tony Lindgren wrote:
+> > > Looks like omap3 is still relying on hwmod data for some basic
+> > > device tree information. Let's add the information to omap3.dtsi
+> > > so we can remove the related hwmod data once omap3 is DT only.
+> >=20
+> > This patch fixes a regression in omap3 DT boot introduced by
+> > commit 2a0b965cfb6efc667228831fc3a30308b4f94a87. This commit
+> > assumes, that interrupts are specified via DT data if booted
+> > via DT.
+>=20
+> Yes sorry about that, this should have been merged as a fix
+> earlier to avoid breaking things during the merge window.
+> Looks like I only tested 2a0b965cfb6efc667228831fc3a30308b4f94a87
+> separately on omap4 or something and forgot about the dependency.
 
-Reviewed-by: Mark Rutland <mark.rutland@arm.com>
+No problem, but I think its currently not queued for 3.13.
 
-Mark.
+-- Sebastian
+
+--xHFwDpU9dbj6ez1V
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.15 (GNU/Linux)
+
+iQIcBAEBCAAGBQJSgRh2AAoJENju1/PIO/qauWwP/RuGEgozg7gKhH9vV1yztkiA
+QOdjpN3zNh0KxCvTMq+uW2NUdIm+kHz1SgCKB9T9Ure63zhcaqd36v2tYVpHYj1p
++1yY1HrCjT9IWlaDEcDmy8hOEF9bzdSQEP2Cg9v/BFaF6+kWNwVlsBtF/99yRS66
+tqryi/vMf4I+oBQ7wM2NASO4BUfQvHO5LhQUFfuDN2qFt82GUQL5bwPHzeNpWocx
+bEkAJUbxe8Pb582K5kZyhQjxxWEdRQkcI2ZCxDgJ/wmOKkx9RPJvPOqY4OxLdwju
+tMcJvGI9dJh3VPpKQaUYAkS6XCF/mOi3hW1/OL+9aLx8Pf0VSqS4N2Ubwci72hGR
+Mo01+/shiaVVgxyo5qgltXzv4xcgFqeM7t64g3egtXN+DYWgNtDrhL5vrvnah/Pb
+vRJ9azYJbqj76yn4r0F3Cq+0pruht3+7664ze+BIaCHFh6oVD82Ko+AJfoLUSiMQ
+kr61mldqBgpz0XGh4y1tspY733FQsaWtbdxV/H5z1nevuMwhuAsn653XbjZnCEcv
+XELX1Kh1IlXS1aCDMt/QSCiIKxuBjwk62rQQ5YOMsOL2dY+n1FkyK7TuV1prebT8
+kxCNkHcY5Pp3wFnoFFHmc+bI0YBrUm/XtHlm01hjfIWtG99IftGwsF8vgJokYdME
+kuMcgyeXFo3VASlOOrUy
+=Vzv6
+-----END PGP SIGNATURE-----
+
+--xHFwDpU9dbj6ez1V--
