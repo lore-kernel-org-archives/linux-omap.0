@@ -1,93 +1,80 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] ARM: OMAPFB: panel-sony-acx565akm: fix bad unlock balance
-Date: Mon, 11 Nov 2013 15:37:37 +0200
-Message-ID: <5280DDA1.304@ti.com>
-References: <1383773070-15114-1-git-send-email-aaro.koskinen@iki.fi>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="awI1fkDkr69ApOfIR6Aw8NIK3NtIcSTsj"
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <1383773070-15114-1-git-send-email-aaro.koskinen@iki.fi>
-Sender: stable-owner@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
-Cc: Eduardo Valentin <eduardo.valentin@ti.com>, stable@vger.kernel.org
+From: "Dr. H. Nikolaus Schaller" <hns@goldelico.com>
+Subject: Re: [PATCH 0/3] omapdss: venc: Add support for bypass and acbias.
+Date: Mon, 11 Nov 2013 14:57:30 +0100
+Message-ID: <FB10035C-B13C-4A03-BE9C-0576806F2577@goldelico.com>
+References: <1381784555-18344-1-git-send-email-marek@goldelico.com> <CAAfyv34j+YhEjtHyf7zg5oBoCV5ROEXow8VV0PQNHLTF5uDZJg@mail.gmail.com> <5280DBA6.50303@ti.com>
+Mime-Version: 1.0 (Apple Message framework v1085)
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mo-p00-ob.rzone.de ([81.169.146.161]:17116 "EHLO
+	mo-p00-ob.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754119Ab3KKN5i convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Nov 2013 08:57:38 -0500
+In-Reply-To: <5280DBA6.50303@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Belisko Marek <marek.belisko@gmail.com>, Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, linux-fbdev@vger.kernel.org, NeilBrown <neilb@suse.de>, Marek Belisko <marek@goldelico.com>
 
---awI1fkDkr69ApOfIR6Aw8NIK3NtIcSTsj
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Hi Tomi,
 
-On 2013-11-06 23:24, Aaro Koskinen wrote:
-> When booting Nokia N900 smartphone with v3.12 + omap2plus_defconfig
-> (LOCKDEP enabled) and CONFIG_DISPLAY_PANEL_SONY_ACX565AKM enabled,
-> the following BUG is seen during the boot:
->=20
-> [    7.302154] =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> [    7.307128] [ BUG: bad unlock balance detected! ]
-> [    7.312103] 3.12.0-los.git-2093492-00120-g5e01dc7 #3 Not tainted
-> [    7.318450] -------------------------------------
-> [    7.323425] kworker/u2:1/12 is trying to release lock (&ddata->mutex=
-) at:
-> [    7.330657] [<c031b760>] acx565akm_enable+0x12c/0x18c
-> [    7.335998] but there are no more locks to release!
->=20
-> Fix by removing the extra mutex_unlock().
->=20
-> Reported-by: Eduardo Valentin <eduardo.valentin@ti.com>
-> Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
-> Cc: stable@vger.kernel.org
-> ---
->  drivers/video/omap2/displays-new/panel-sony-acx565akm.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->=20
-> diff --git a/drivers/video/omap2/displays-new/panel-sony-acx565akm.c b/=
-drivers/video/omap2/displays-new/panel-sony-acx565akm.c
-> index e6d56f7..72fe2a8 100644
-> --- a/drivers/video/omap2/displays-new/panel-sony-acx565akm.c
-> +++ b/drivers/video/omap2/displays-new/panel-sony-acx565akm.c
-> @@ -616,7 +616,7 @@ static int acx565akm_enable(struct omap_dss_device =
-*dssdev)
-> =20
->  	mutex_lock(&ddata->mutex);
->  	r =3D acx565akm_panel_power_on(dssdev);
-> -	mutex_unlock(&ddata->mutex);
-> +	/* NOTE: acx565akm_panel_power_on() will unlock the mutex. */
-> =20
->  	if (r)
->  		return r;
->=20
+Am 11.11.2013 um 14:29 schrieb Tomi Valkeinen:
 
-Hm why would you fix it like this? Why not remove the mutex_unlock from
-acx565akm_panel_power_on()? Looks to me like that one is the buggy one.
+> Hi,
+> 
+> On 2013-11-05 09:24, Belisko Marek wrote:
+>> Hi,
+>> 
+>> ping.
+>> 
+>> On Mon, Oct 14, 2013 at 11:02 PM, Marek Belisko <marek@goldelico.com> wrote:
+>>> This patches is adding bypass and acbias functionality to omapdss venc driver.
+>>> In first patch we export updatin bypass and acbias in devconf1 register. Next patch
+>>> add handling for updating in venc driver and last patch add driver for opa362 which
+>>> is used on gta04 board and set bypass + acbias.
+>> Is there a chance to get this series to 3.13? Thanks.
+> 
+> Sorry, I haven't had time to do much reviewing.
+> 
+> The code in omap3-tvout.c should be included in the display.c file,
+> which already contains some things like muxing.
 
- Tomi
+Ok, that might be better - but we were not sure where to place code to
+modify the DEVCONF1 registers. It is not directly DSS related but a special
+control of the OMAP3 SoC. Therefore we think it is better located in omap3-tvout.c
 
+> Also, func(bool, bool)
+> style functions are rather confusing to read. Maybe an enum would be
+> better, so you'd instead have something like:
+> 
+> func(OMAP_VENC_TVOUTBYPASS | OMAP_VENC_TVACEN)
 
+We have no special preference on that.
 
---awI1fkDkr69ApOfIR6Aw8NIK3NtIcSTsj
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+> 
+> But the main issue is: while this series probably works well, I really
+> don't like it that the OPA driver needs to pass bypass and acbias. It
+> shouldn't know anything about such things. I'm just not certain how to
+> implement that with the current omapdss driver.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+Well, it must know bypass and acbias because it requires the OMAP
+CPU to be configured accordingly. I.e. it is the one who pushes the
+button. Or we get a problem that people might misconfigure it.
 
-iQIcBAEBAgAGBQJSgN2hAAoJEPo9qoy8lh71gLYP/iBZOiEpbDmNn69QwGFpufDb
-l77JHgGgYpNrJTiGVVuhUl60AbeHZ8JA3IsE9DmClF59MvqemKSJIkDSAwyFS5c+
-n8kR3Q5uxJ6ZY0TZrbD+lWgAIhgW9YHYRuBY1HPKYzCpnW3U1oHKb6K+XW1GJY5x
-ktemJ6xRbNzLtTaohE+X5O2rGWOi77MwtYoYSkvx5FiBMuTRdmtnf79Q2Ez+UvMT
-FY5+3stP64pYbUf4N5R3dWK5fC2dEAZUefqCdOjjgZRzbUB4lBFLhN5pVwNEPNaD
-nCEvxHPymkvRXztKRlYkkjyYqSppqZUPRGRsZl/Mok7T1NjNXifRxkOzDCpV9k/N
-Mo6ibsvriXoidER/dqodBToezPOfXx1idk93C25aunbOul4MpgQe5cdulQ53w3bM
-7dqSHj4G32Jz5sig/NJeZkUIJ5J86TpyCx2Bmus1p1giRWG7qpvpEtSR1cHMxyv0
-TU3zxIR5YaZ+TtLTOmwgkSnKinYRe4a9IIKxtYLsAsS0vxtx4qzG+RcFnMwkvzZn
-3uy5ije8quUDntbV8Cqm6wdxqY5d/X0cGXB3Ul0RNEQR9Tay8J556a4EKEJYzfeE
-qtWDLs0/ePFjCnW0QBYFzNpsunJFDiVbaCgRLs39a6sjE2/zRBOOwhXswrpc5JRA
-1QWbZRJbXnVWsyF71EuS
-=BLQS
------END PGP SIGNATURE-----
+I would see it similar as a driver must be able to control power. Here
+it must be able to control bypass and acbias in a special way that it works.
 
---awI1fkDkr69ApOfIR6Aw8NIK3NtIcSTsj--
+> I'll try to find time to think about this more, but I don't think I can
+> merge this for 3.13.
+
+Please take your time.
+
+And please also consider the approach to merge it into 3.13 as it is
+and we can then fix it in the weeks while release candidates are pushed.
+
+But that is your decision.
+
+BR and thanks,
+Nikolaus
+
