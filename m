@@ -1,58 +1,66 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] pinctrl: single: call pcs_soc->rearm() whenever IRQ
- mask is changed
-Date: Tue, 12 Nov 2013 11:56:11 -0800
-Message-ID: <20131112195611.GT15154@atomide.com>
-References: <1381507996-15021-1-git-send-email-rogerq@ti.com>
- <CACRpkdb7iUypffB7O7-RhQhVf5WkjYdVCNLRz=BgySG4FET-xQ@mail.gmail.com>
- <20131011172337.GU29913@atomide.com>
- <CACRpkdbo_TwX79hnJ5mCo8D4TSDd6OUzaOsFa8MgzjLy-H2U4Q@mail.gmail.com>
+From: "Mark A. Greer" <mgreer@animalcreek.com>
+Subject: [PATCH] crypto: omap-sham - Only release DMA channel if successfully
+ requested
+Date: Tue, 12 Nov 2013 13:12:27 -0700
+Message-ID: <1384287147-19656-1-git-send-email-mgreer@animalcreek.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:48841 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752756Ab3KLT4X (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Nov 2013 14:56:23 -0500
-Content-Disposition: inline
-In-Reply-To: <CACRpkdbo_TwX79hnJ5mCo8D4TSDd6OUzaOsFa8MgzjLy-H2U4Q@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-crypto@vger.kernel.org
+Cc: Herbert Xu <herbert@gondor.apana.org.au>, Joel Fernandes <joelf@ti.com>, "Mark A. Greer" <mgreer@animalcreek.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, Dan Carpenter <dan.carpenter@oracle.com>
 List-Id: linux-omap@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Roger Quadros <rogerq@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Haojian Zhuang <haojian.zhuang@linaro.org>, Benoit Cousson <bcousson@baylibre.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux-OMAP <linux-omap@vger.kernel.org>
 
-* Linus Walleij <linus.walleij@linaro.org> [131112 10:45]:
-> On Fri, Oct 11, 2013 at 7:23 PM, Tony Lindgren <tony@atomide.com> wrote:
-> > * Linus Walleij <linus.walleij@linaro.org> [131011 09:27]:
-> >> On Fri, Oct 11, 2013 at 6:13 PM, Roger Quadros <rogerq@ti.com> wrote:
-> >>
-> >> > On OMAPs the IO ring must be rearmed each time the pad wakeup
-> >> > configuration is changed. So call pcs_soc->rearm() from
-> >> > pcs_irq_set().
-> >> >
-> >> > Signed-off-by: Roger Quadros <rogerq@ti.com>
-> >>
-> >> If Tony needs to apply this with the other patches: Acked-by.
-> >
-> > Just replied with a slightly modified version of Roger's patch
-> > suggesting you pull in the signed tag I posted for you yesterday
-> > and then you can pick up Roger's fix into the pinctrl tree :)
-> 
-> Hm now that I go over these old mails in my inbox I start to
-> worry that I missed something here, I have no memory of pulling
-> a tag for OMAP... is this all in the state
-> it needs to be for OMAP?
+In omap_sham_probe() and omap_sham_remove(), 'dd->dma_lch'
+is released without checking to see if it was successfully
+requested or not.  This is a bug and was identified and
+reported by Dan Carpenter here:
 
-The other pinctrl-single related patches are now merged to mainline:
+	http://www.spinics.net/lists/devicetree/msg11023.html
 
-1b9c0fb365cbb1154f4e7997061db972cbf58300 pinctrl: single: Fix build when not built on ARM
-dc7743aa3c49fabbc6dc9edbcf7df74d776ac32e pinctrl: single: Add support for auxdata
-3e6cee1786a13cb2308609b5f8c020e1754e37cf pinctrl: single: Add support for wake-up interrupts
-02e483f66deb6bd8df6af450726574614eb53be3 pinctrl: single: Prepare for supporting SoC specific features
+Add code to only release 'dd->dma_lch' when its not NULL
+(that is, when it was successfully requested).
 
-The fix from Roger is still missing. You can go ahead and queue
-it, or if you prefer me to do it I can add it to my fixes.
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+CC: Joel Fernandes <joelf@ti.com>
+Signed-off-by: Mark A. Greer <mgreer@animalcreek.com>
+---
+ drivers/crypto/omap-sham.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-Regards,
-
-Tony
+diff --git a/drivers/crypto/omap-sham.c b/drivers/crypto/omap-sham.c
+index e28104b..c6ad7d6 100644
+--- a/drivers/crypto/omap-sham.c
++++ b/drivers/crypto/omap-sham.c
+@@ -1970,7 +1970,8 @@ err_algs:
+ 			crypto_unregister_ahash(
+ 					&dd->pdata->algs_info[i].algs_list[j]);
+ 	pm_runtime_disable(dev);
+-	dma_release_channel(dd->dma_lch);
++	if (dd->dma_lch)
++		dma_release_channel(dd->dma_lch);
+ data_err:
+ 	dev_err(dev, "initialization failed.\n");
+ 
+@@ -1994,7 +1995,9 @@ static int omap_sham_remove(struct platform_device *pdev)
+ 					&dd->pdata->algs_info[i].algs_list[j]);
+ 	tasklet_kill(&dd->done_task);
+ 	pm_runtime_disable(&pdev->dev);
+-	dma_release_channel(dd->dma_lch);
++
++	if (dd->dma_lch)
++		dma_release_channel(dd->dma_lch);
+ 
+ 	return 0;
+ }
+-- 
+1.8.3.4
