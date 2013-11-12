@@ -1,67 +1,130 @@
 From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-Subject: Re: [PATCH v2 3/5] mtd: nand: omap2: Fix OMAP_BCH option dependency
-Date: Tue, 12 Nov 2013 17:45:56 -0300
-Message-ID: <20131112204555.GA20260@localhost>
-References: <1382696277-9063-1-git-send-email-ezequiel.garcia@free-electrons.com>
- <1382696277-9063-4-git-send-email-ezequiel.garcia@free-electrons.com>
- <20980858CB6D3A4BAE95CA194937D5E73EA2AE93@DBDE04.ent.ti.com>
+Subject: Re: [PATCH 2/2] ARM: OMAP2+: move gpmc headers to
+ include/linux/platform_data
+Date: Tue, 12 Nov 2013 17:51:48 -0300
+Message-ID: <20131112205147.GB20260@localhost>
+References: <1384014842-4288-1-git-send-email-javier.martinez@collabora.co.uk>
+ <1384014842-4288-2-git-send-email-javier.martinez@collabora.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from top.free-electrons.com ([176.31.233.9]:44338 "EHLO
+Received: from top.free-electrons.com ([176.31.233.9]:44371 "EHLO
 	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753677Ab3KLUqD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Nov 2013 15:46:03 -0500
+	with ESMTP id S1752905Ab3KLUvu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Nov 2013 15:51:50 -0500
 Content-Disposition: inline
-In-Reply-To: <20980858CB6D3A4BAE95CA194937D5E73EA2AE93@DBDE04.ent.ti.com>
+In-Reply-To: <1384014842-4288-2-git-send-email-javier.martinez@collabora.co.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-Cc: Brian Norris <computersforpeace@gmail.com>, "Balbi, Felipe" <balbi@ti.com>, "marek.belisko@gmail.com" <marek.belisko@gmail.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Pekon Gupta <pekon@ti.com>
+To: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Fri, Oct 25, 2013 at 11:26:06AM +0000, Gupta, Pekon wrote:
-> > From: Ezequiel Garcia [mailto:ezequiel.garcia@free-electrons.com]
-> > Subject: [PATCH v2 3/5] mtd: nand: omap2: Fix OMAP_BCH option
-> > dependency
-> >=20
-> > This option does not need to depend in MTD_NAND, for it's enclosed
-> > under it. Also, it's wrong to make it depend in ARCH_OMAP3 only
-> > since the controller is used in a wider range of SoCs.
-> >=20
-> > Instead, just leave the dependency on the OMAP2 driver option.
-> >=20
-> > Signed-off-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-> > ---
-> >  drivers/mtd/nand/Kconfig | 2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> >=20
-> > diff --git a/drivers/mtd/nand/Kconfig b/drivers/mtd/nand/Kconfig
-> > index d885298..8187466 100644
-> > --- a/drivers/mtd/nand/Kconfig
-> > +++ b/drivers/mtd/nand/Kconfig
-> > @@ -95,7 +95,7 @@ config MTD_NAND_OMAP2
-> >  	  platforms.
-> >=20
-> >  config MTD_NAND_OMAP_BCH
-> > -	depends on MTD_NAND && MTD_NAND_OMAP2 && ARCH_OMAP3
-> > +	depends on MTD_NAND_OMAP2
-> >  	tristate "Enable support for hardware BCH error correction"
-> >  	default n
-> >  	select BCH
-> > --
-> > 1.8.1.5
+Hey Javier,
+
+On Sat, Nov 09, 2013 at 05:34:02PM +0100, Javier Martinez Canillas wrot=
+e:
+> The OMAP2+ General-Purpose Memory Controller (GPMC) driver
+> should eventually be moved from arch/arm/mach-omap2 to
+> drivers/memory. Unfortunately this is not trivial since it
+> includes headers files that still resides under mach-omap2
+> and can't be moved easilly.
 >=20
-> Acked-by: Pekon Gupta <pekon@ti.com>
+> This patch is the first step for taking the gpmc driver
+> outside arch/arm/mach-omap2 by moving its related headers
+> files to include/linux/platform_data.
+>=20
+> Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co=
+=2Euk>
+> ---
+>=20
+> Hi Tony,
+>=20
+> I wonder what's your plan to move drivers outside of mach-omap2.
+> Currently this driver still includes soc.h and omap_device.h
+> that are on mach-omap2.
+>=20
+> If we want to move out these two headers files then also omap
+> hwmod and per SoC family headers have to be moved out mach-omap2.
+>=20
+> Do you want me to do a follow-up patch-set to move all these
+> headers out of mach-omap2 so the gpmc and other drivers can
+> be moved to drivers/?=20
+>=20
+> Is include/linux/platform_data the right place to put these
+> headers or there is a better place for them?
+>=20
+> Thanks a lot and best regards,
+> Javier
+>=20
+>  arch/arm/mach-omap2/board-2430sdp.c              |   5 +-
+>  arch/arm/mach-omap2/board-3430sdp.c              |   4 +-
+>  arch/arm/mach-omap2/board-cm-t35.c               |   6 +-
+>  arch/arm/mach-omap2/board-cm-t3517.c             |   4 +-
+>  arch/arm/mach-omap2/board-devkit8000.c           |   2 +-
+>  arch/arm/mach-omap2/board-flash.c                |   6 +-
+>  arch/arm/mach-omap2/board-flash.h                |   2 +-
+>  arch/arm/mach-omap2/board-h4.c                   |   5 +-
+>  arch/arm/mach-omap2/board-ldp.c                  |   4 +-
+>  arch/arm/mach-omap2/board-n8x0.c                 |   3 +-
+>  arch/arm/mach-omap2/board-omap3beagle.c          |   2 +-
+>  arch/arm/mach-omap2/board-omap3logic.c           |   5 +-
+>  arch/arm/mach-omap2/board-omap3pandora.c         |   3 +-
+>  arch/arm/mach-omap2/board-omap3stalker.c         |   4 +-
+>  arch/arm/mach-omap2/board-omap3touchbook.c       |   2 +-
+>  arch/arm/mach-omap2/board-overo.c                |   4 +-
+>  arch/arm/mach-omap2/board-rx51-peripherals.c     |   6 +-
+>  arch/arm/mach-omap2/board-rx51.c                 |   2 +-
+>  arch/arm/mach-omap2/gpmc-nand.c                  |   4 +-
+>  arch/arm/mach-omap2/gpmc-nand.h                  |  27 ---
+>  arch/arm/mach-omap2/gpmc-onenand.c               |   4 +-
+>  arch/arm/mach-omap2/gpmc-onenand.h               |  24 ---
+>  arch/arm/mach-omap2/gpmc-smc91x.c                |   4 +-
+>  arch/arm/mach-omap2/gpmc-smc91x.h                |  42 -----
+>  arch/arm/mach-omap2/gpmc-smsc911x.c              |   4 +-
+>  arch/arm/mach-omap2/gpmc-smsc911x.h              |  35 ----
+>  arch/arm/mach-omap2/gpmc.c                       |   7 +-
+>  arch/arm/mach-omap2/gpmc.h                       | 231 -------------=
+----------
+>  arch/arm/mach-omap2/pm34xx.c                     |   2 +-
+>  arch/arm/mach-omap2/usb-tusb6010.c               |   3 +-
+>  include/linux/platform_data/gpmc-nand-omap.h     |  27 +++
+>  include/linux/platform_data/gpmc-omap.h          | 231 +++++++++++++=
+++++++++++
+>  include/linux/platform_data/gpmc-onenand-omap.h  |  25 +++
+>  include/linux/platform_data/gpmc-smc91x-omap.h   |  42 +++++
+>  include/linux/platform_data/gpmc-smsc911x-omap.h |  35 ++++
+>  35 files changed, 403 insertions(+), 413 deletions(-)
+>  delete mode 100644 arch/arm/mach-omap2/gpmc-nand.h
+>  delete mode 100644 arch/arm/mach-omap2/gpmc-onenand.h
+>  delete mode 100644 arch/arm/mach-omap2/gpmc-smc91x.h
+>  delete mode 100644 arch/arm/mach-omap2/gpmc-smsc911x.h
+>  delete mode 100644 arch/arm/mach-omap2/gpmc.h
+>  create mode 100644 include/linux/platform_data/gpmc-nand-omap.h
+>  create mode 100644 include/linux/platform_data/gpmc-omap.h
+>  create mode 100644 include/linux/platform_data/gpmc-onenand-omap.h
+>  create mode 100644 include/linux/platform_data/gpmc-smc91x-omap.h
+>  create mode 100644 include/linux/platform_data/gpmc-smsc911x-omap.h
+>=20
 
-Brian,
+I'm not too convinced about the above diffstat. Maybe you can try a
+a better approach of making the move by: 1) renaming/moving a file,
+using 'git format-patch -M' and 2) then make the necessary changes
+in the new place.
 
-I almost forgot about this one, and I just came across the issue
-while configuring my board.
+Or, if the above ends up not fully bisectable you can try first (2)
+then (1).
 
-I believe this one is simple enough to be pulled in for v3.14
-(it could be in v3.13, but it's already too late).
+What bothers me most is seeing things like this:
 
-Or maybe you're not taking stuff for v3.14 yet...
+  arch/arm/mach-omap2/gpmc-nand.h                  |  27 ---
+  arch/arm/mach-omap2/gpmc.h                       | 231 --------------=
+---------
+  include/linux/platform_data/gpmc-nand-omap.h     |  27 +++
+  include/linux/platform_data/gpmc-omap.h          | 231 ++++++++++++++=
++++++++++
+
+What do you think?
 --=20
 Ezequiel Garc=C3=ADa, Free Electrons
 Embedded Linux, Kernel and Android Engineering
