@@ -1,72 +1,84 @@
-From: Sricharan R <r.sricharan@ti.com>
-Subject: Re: [PATCH V3 7/7] ARM: DRA: Enable Crossbar IP support for DRA7XX
-Date: Tue, 12 Nov 2013 11:17:21 +0530
-Message-ID: <5281C0E9.8020104@ti.com>
-References: <1383657257-3458-1-git-send-email-r.sricharan@ti.com> <1383657257-3458-8-git-send-email-r.sricharan@ti.com> <5281BF70.4050708@ti.com>
+From: Luca Coelho <luca@coelho.fi>
+Subject: Re: [PATCH] clk: add flags to distinguish xtal clocks
+Date: Tue, 12 Nov 2013 10:05:49 +0200
+Message-ID: <1384243549.12583.36.camel@porter.coelho.fi>
+References: <1382528150.21526.25.camel@porter.coelho.fi>
+	 <1383933648-28595-1-git-send-email-balbi@ti.com>
+	 <20131110113716.GN26440@lukather> <20131111194247.GB19212@saruman.home>
+	 <1384199456.12583.27.camel@porter.coelho.fi>
+	 <20131111205910.GA26440@lukather>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:41677 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751066Ab3KLFsV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Nov 2013 00:48:21 -0500
-In-Reply-To: <5281BF70.4050708@ti.com>
+Received: from emh01.mail.saunalahti.fi ([62.142.5.107]:51803 "EHLO
+	emh01.mail.saunalahti.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750979Ab3KLIG0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Nov 2013 03:06:26 -0500
+In-Reply-To: <20131111205910.GA26440@lukather>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linus.walleij@linaro.org, linux@arm.linux.org.uk, tony@atomide.com, marc.zyngier@arm.com, grant.likely@linaro.org, mark.rutland@arm.com, robherring2@gmail.com, tglx@linutronix.de, santosh.shilimkar@ti.com, galak@codeaurora.org
+To: Maxime Ripard <maxime.ripard@free-electrons.com>
+Cc: balbi@ti.com, mturquette@linaro.org, james.hogan@imgtec.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
-Hi Rajendra,
+On Mon, 2013-11-11 at 21:59 +0100, Maxime Ripard wrote:
+> Hi Luca,
+> 
+> On Mon, Nov 11, 2013 at 09:50:56PM +0200, Luca Coelho wrote:
+> > On Mon, 2013-11-11 at 13:42 -0600, Felipe Balbi wrote:
+> > > > > +	if (of_property_read_bool(node, "clock-xtal"))
+> > > > > +		flags |= CLK_IS_TYPE_XTAL;
+> > > > > +
+> > > > 
+> > > > Introducing a new compatible instead of a property would make more
+> > > > sense here I think.
+> > > > 
+> > > > Do you have a reason not to do so?
+> > > 
+> > > As you can see, this is original work from Luca but I disagree that
+> > > adding a new compatible makes more sense. This still related to a fixed
+> > > rate clock, we're just giving it one extra metadata which willAnd t
+> > > differentiate between crystal and oscilator fixed rate clocks.
+> > 
+> > I agree with Felipe.  This was discussed before [1].  While still at TI,
+> > I tried to figure out the exact need for the firmware to know whether it
+> > was an oscillator or not.  It was mostly because the stabilization time
+> > and such things differ with oscillators, but I wasn't able to find out
+> > how exactly this affected things.
+> > 
+> > In any case, as I concluded earlier (but it's not really my call), being
+> > a crystal or an oscillator *is* a characteristic of the hardware,
+> > regardless of whether that information is useful or not.  In the WiLink
+> > case it is, at least it can differentiate the clocks that are used in
+> > the HW modules it uses.
+> > 
+> > So IMHO it doesn't really hurt and it's not really against the DT
+> > principles.
+> 
+> Just to be clear, I'm not against your patch. If you need this to make
+> your driver work, then it's fine for me. Mike will probably know
+> better if we actually need some extra metadata.
 
-On Tuesday 12 November 2013 11:11 AM, Rajendra Nayak wrote:
-> On Tuesday 05 November 2013 06:44 PM, Sricharan R wrote:
->> Enable the crossbar IP support for DRA7xx soc.
->>
->> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
->> Cc: Rajendra Nayak <rnayak@ti.com>
->> Cc: Tony Lindgren <tony@atomide.com>
->> Signed-off-by: Sricharan R <r.sricharan@ti.com>
->> ---
->>  arch/arm/mach-omap2/Kconfig        |    1 +
->>  arch/arm/mach-omap2/omap4-common.c |    4 ++++
->>  2 files changed, 5 insertions(+)
->>
->> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
->> index b5fb5f7..2086c65 100644
->> --- a/arch/arm/mach-omap2/Kconfig
->> +++ b/arch/arm/mach-omap2/Kconfig
->> @@ -141,6 +141,7 @@ config SOC_DRA7XX
->>  	select ARM_GIC
->>  	select HAVE_SMP
->>  	select COMMON_CLK
->> +	select IRQ_CROSSBAR
->>  
->>  comment "OMAP Core Type"
->>  	depends on ARCH_OMAP2
->> diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
->> index 5791143..274cbfa 100644
->> --- a/arch/arm/mach-omap2/omap4-common.c
->> +++ b/arch/arm/mach-omap2/omap4-common.c
->> @@ -22,6 +22,7 @@
->>  #include <linux/of_platform.h>
->>  #include <linux/export.h>
->>  #include <linux/irqchip/arm-gic.h>
->> +#include <linux/irqchip/irq-crossbar.h>
->>  #include <linux/of_address.h>
->>  #include <linux/reboot.h>
->>  
->> @@ -282,9 +283,12 @@ void __init omap_gic_of_init(void)
->>  
->>  skip_errata_init:
->>  	omap_wakeupgen_init();
->> +	if (soc_is_dra7xx())
->> +		crossbar_init();
-> Its good if this is called irqcrossbar_init() to avoid confusion
-> with the dma crossbar which also exists in dra7 devices.
->
- Ya makes sense. Will change this.
+:)
 
-Regards,
- Sricharan
+I understand, we should really try to make this as clean as possible, DT
+should really be a good description of the hardware.
+
+
+> What I'm not really convinced about is *how* you carry that metadata
+> in the DT, that's all, nothing more.
+
+Okay, I get you.  My point is that being a crystal or not *is* a
+characteristic of the clock, so I think it could be part of the flags
+that describe it.
+
+In any case, it's not really my call.  This is about the clock and it's
+not even my home turf (wireless). ;)
+
+Thanks for your comments.  And I'm sorry if the tone of my previous
+email sounded harsh, it was not supposed to. :)
+
+--
+Cheers,
+Luca.
 
