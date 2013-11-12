@@ -1,106 +1,99 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH V2] ARM: OMAP2+: omap_device: maintain sane runtime pm status
- around suspend/resume
-Date: Tue, 12 Nov 2013 17:08:30 -0600
-Message-ID: <1384297710-29694-1-git-send-email-nm@ti.com>
+From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+Subject: Re: [PATCH v2 3/5] mtd: nand: omap2: Fix OMAP_BCH option dependency
+Date: Tue, 12 Nov 2013 20:10:38 -0300
+Message-ID: <20131112231037.GA26497@localhost>
+References: <1382696277-9063-1-git-send-email-ezequiel.garcia@free-electrons.com>
+ <1382696277-9063-4-git-send-email-ezequiel.garcia@free-electrons.com>
+ <20980858CB6D3A4BAE95CA194937D5E73EA2AE93@DBDE04.ent.ti.com>
+ <20131112204555.GA20260@localhost>
+ <20131112225647.GM20061@ld-irv-0074.broadcom.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>, paul@pwsan.com
-Cc: Nishanth Menon <nm@ti.com>, khilman@linaro.org, rnayak@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from top.free-electrons.com ([176.31.233.9]:45057 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755239Ab3KLXKn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Nov 2013 18:10:43 -0500
+Content-Disposition: inline
+In-Reply-To: <20131112225647.GM20061@ld-irv-0074.broadcom.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Brian Norris <computersforpeace@gmail.com>
+Cc: "Balbi, Felipe" <balbi@ti.com>, "marek.belisko@gmail.com" <marek.belisko@gmail.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Pekon Gupta <pekon@ti.com>
 
-OMAP device hooks around suspend|resume_noirq ensures that hwmod
-devices are forced to idle using omap_device_idle/enable as part of
-the last stage of suspend activity.
+On Tue, Nov 12, 2013 at 02:56:47PM -0800, Brian Norris wrote:
+> On Tue, Nov 12, 2013 at 05:45:56PM -0300, Ezequiel Garcia wrote:
+> > On Fri, Oct 25, 2013 at 11:26:06AM +0000, Gupta, Pekon wrote:
+> > > > From: Ezequiel Garcia [mailto:ezequiel.garcia@free-electrons.co=
+m]
+> > > > Subject: [PATCH v2 3/5] mtd: nand: omap2: Fix OMAP_BCH option
+> > > > dependency
+> > > >=20
+> > > > This option does not need to depend in MTD_NAND, for it's enclo=
+sed
+> > > > under it. Also, it's wrong to make it depend in ARCH_OMAP3 only
+> > > > since the controller is used in a wider range of SoCs.
+> > > >=20
+> > > > Instead, just leave the dependency on the OMAP2 driver option.
+> > > >=20
+> > > > Signed-off-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.=
+com>
+> > > > ---
+> > > >  drivers/mtd/nand/Kconfig | 2 +-
+> > > >  1 file changed, 1 insertion(+), 1 deletion(-)
+> > > >=20
+> > > > diff --git a/drivers/mtd/nand/Kconfig b/drivers/mtd/nand/Kconfi=
+g
+> > > > index d885298..8187466 100644
+> > > > --- a/drivers/mtd/nand/Kconfig
+> > > > +++ b/drivers/mtd/nand/Kconfig
+> > > > @@ -95,7 +95,7 @@ config MTD_NAND_OMAP2
+> > > >  	  platforms.
+> > > >=20
+> > > >  config MTD_NAND_OMAP_BCH
+> > > > -	depends on MTD_NAND && MTD_NAND_OMAP2 && ARCH_OMAP3
+> > > > +	depends on MTD_NAND_OMAP2
+> > > >  	tristate "Enable support for hardware BCH error correction"
+> > > >  	default n
+> > > >  	select BCH
+> > > > --
+> > > > 1.8.1.5
+> > >=20
+> > > Acked-by: Pekon Gupta <pekon@ti.com>
+> >=20
+> > Brian,
+> >=20
+> > I almost forgot about this one, and I just came across the issue
+> > while configuring my board.
+> >=20
+> > I believe this one is simple enough to be pulled in for v3.14
+> > (it could be in v3.13, but it's already too late).
+> >=20
+> > Or maybe you're not taking stuff for v3.14 yet...
+>=20
+> Thanks for the reminder. The rest of the series has been discussed
+> separately or is otherwise superceded by other patch series, right?
+>=20
 
-For a device such as i2c who uses autosuspend, it is possible to enter
-the suspend path with dev->power.runtime_status = RPM_ACTIVE.
+The rest of the series can be divided in two groups:
 
-As part of the suspend flow, the generic runtime logic would increment
-it's dev->power.disable_depth to 1. This should prevent further
-pm_runtime_get_sync from succeeding once the runtime_status has been
-set to RPM_SUSPENDED.
+1. Trivial stuff: I'll sent re-based patches on top of v3.13-rc1
+or maybe Pekon will take care of it. It's not a big deal.
 
-Now, as part of the suspend_noirq handler in omap_device, we force the
-following: if the device status is !suspended, we force the device
-to idle using omap_device_idle (clocks are cut etc..). This ensures
-that from a hardware perspective, the device is "suspended". However,
-runtime_status is left to be active.
+2. The ONFI detection stuff: it's not trivial and it's still under
+discussion in separate threads. The last work was suggested by Pekon
+in his last mail, and I guess he'll post a separate patch soon.
 
-*if* an operation is attempted after this point to
-pm_runtime_get_sync, runtime framework depends on runtime_status to
-indicate accurately the device status, and since it sees it to be
-ACTIVE, it assumes the module is functional and returns a non-error
-value. As a result the user will see pm_runtime_get succeed, however a
-register access will crash due to the lack of clocks.
+> Applied this one patch to l2-mtd.git, branch 'next'. Thanks.
 
-To prevent this from happening, we should ensure that runtime_status
-exactly indicates the device status. As a result of this change
-any further calls to pm_runtime_get* would return -EACCES (since
-disable_depth is 1). On resume, we restore the clocks and runtime
-status exactly as we suspended with.
-
-Reported-by: J Keerthy <j-keerthy@ti.com>
-Signed-off-by: Nishanth Menon <nm@ti.com>
-Acked-by: Rajendra Nayak <rnayak@ti.com>
-Acked-by: Kevin Hilman <khilman@linaro.org>
----
-Changes in V2 (resend):
-	- dropped the unnecessary flag for runtime status restore
-	- picked up kevin's ack from https://patchwork.kernel.org/patch/3168371/
-
-v1: https://patchwork.kernel.org/patch/3154501/
-
-patch baseline: V3.12 tag (also applies on linux-next next-20131107 tag)
-
-Logs from 3.12 based vendor kernel:
-Before: http://pastebin.com/m5KxnB7a
-After: http://pastebin.com/8AfX4e7r
-The discussion on cpufreq side of the story which triggered this scenario:
-http://marc.info/?l=linux-pm&m=138263811321921&w=2
-
-Tested on TI vendor kernel (with dt boot):
-AM335x: evm, BBB, sk, BBW
-OMAP5uEVM, DRA7-evm
-
- arch/arm/mach-omap2/omap_device.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
-index b69dd9a..f97b34b 100644
---- a/arch/arm/mach-omap2/omap_device.c
-+++ b/arch/arm/mach-omap2/omap_device.c
-@@ -621,6 +621,7 @@ static int _od_suspend_noirq(struct device *dev)
- 
- 	if (!ret && !pm_runtime_status_suspended(dev)) {
- 		if (pm_generic_runtime_suspend(dev) == 0) {
-+			pm_runtime_set_suspended(dev);
- 			omap_device_idle(pdev);
- 			od->flags |= OMAP_DEVICE_SUSPENDED;
- 		}
-@@ -634,10 +635,10 @@ static int _od_resume_noirq(struct device *dev)
- 	struct platform_device *pdev = to_platform_device(dev);
- 	struct omap_device *od = to_omap_device(pdev);
- 
--	if ((od->flags & OMAP_DEVICE_SUSPENDED) &&
--	    !pm_runtime_status_suspended(dev)) {
-+	if (od->flags & OMAP_DEVICE_SUSPENDED) {
- 		od->flags &= ~OMAP_DEVICE_SUSPENDED;
- 		omap_device_enable(pdev);
-+		pm_runtime_set_active(dev);
- 		pm_generic_runtime_resume(dev);
- 	}
- 
--- 
-1.7.9.5
+Great, thanks.
+--=20
+Ezequiel Garc=C3=ADa, Free Electrons
+Embedded Linux, Kernel and Android Engineering
+http://free-electrons.com
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
