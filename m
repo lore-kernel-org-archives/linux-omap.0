@@ -1,165 +1,131 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [PATCH] ARM: OMAP2+: omap_device: maintain sane runtime pm status around suspend/resume
-Date: Tue, 12 Nov 2013 13:26:47 -0800
-Message-ID: <878uwtnwfc.fsf@linaro.org>
-References: <1383857942-23630-1-git-send-email-nm@ti.com>
-	<87iow3rd3y.fsf@linaro.org> <527C2B78.2070201@ti.com>
-	<874n7npw1e.fsf@linaro.org> <20131111162358.GA6451@kahuna>
+From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Subject: Re: [PATCH 2/2] ARM: OMAP2+: move gpmc headers to include/linux/platform_data
+Date: Tue, 12 Nov 2013 22:56:55 +0100
+Message-ID: <5282A427.9070300@collabora.co.uk>
+References: <1384014842-4288-1-git-send-email-javier.martinez@collabora.co.uk> <1384014842-4288-2-git-send-email-javier.martinez@collabora.co.uk> <20131112205147.GB20260@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pd0-f175.google.com ([209.85.192.175]:33790 "EHLO
-	mail-pd0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754796Ab3KLV0w (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Nov 2013 16:26:52 -0500
-Received: by mail-pd0-f175.google.com with SMTP id r10so2153730pdi.34
-        for <linux-omap@vger.kernel.org>; Tue, 12 Nov 2013 13:26:52 -0800 (PST)
-In-Reply-To: <20131111162358.GA6451@kahuna> (Nishanth Menon's message of "Mon,
-	11 Nov 2013 10:23:58 -0600")
+Received: from bhuna.collabora.co.uk ([93.93.135.160]:57820 "EHLO
+	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932467Ab3KLV5t (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Nov 2013 16:57:49 -0500
+In-Reply-To: <20131112205147.GB20260@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, paul@pwsan.com, rnayak@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+To: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Nishanth Menon <nm@ti.com> writes:
+On 11/12/2013 09:51 PM, Ezequiel Garcia wrote:
+> Hey Javier,
+>
 
-> On 16:38-20131107, Kevin Hilman wrote:
-> [...]
->> That's debatable I guess.  The ideal world is that runtime PM hides all
->> of this, but I'm not sure it's achievable in all cases.
->> 
-> Agreed. some drivers like edma need to save and restore context around
-> suspend.
-> [...]
->
->> No, that sysfs knob is for disabling runtime PM.  We still want the
->> device to hit low-power state in system suspend.  Solving that problem
->> is half the reason we have this omap_device noirq mess in the first
->> place.
->> 
->> You need to test this by disabling runtime PM from userspace and ensure
->> that the low power state is still hit during suspend.
->> 
-> Done and it still does work, makes sense since it just ensures that
-> runtime PM's dev->power.runtime_status is set to RPM_SUSPENDED instead
-> of RPM_ACTIVE for devices that depend on autosuspend.
->
-> Logs (based on vendor kernel which has relevant out of tree patches to
-> enable suspend resume - still in the works):
-> AM335x-BBB: http://pastie.org/8472182
-> OMAP5-uEVM: http://pastie.org/8472183
->
->> >>
->> >>> +				/* NOTE: *might* indicate driver race */
->> >>
->> >> Yes, a driver race which should then be fixed in the driver.
->> >
->> > true if this is a non-autosuspend device, in auto suspend devices,
->> > this could be a regular phenomenon if timeout is pretty large.. but
->> > atleast that should allow debug.
->> 
->> Agreed.  I wasn't thinking about the autosuspend case.  Thanks for
->> clarifying.
->> 
->> >>
->> >>> +				dev_dbg(dev, "%s: Force suspending\n",
->> >>> +					__func__);
->> >>> +				pm_runtime_set_suspended(dev);
->> >>> +				od->flags |= OMAP_DEVICE_SUSPEND_FORCED;
->> >>
->> >> Not sure why you need an additonal flag.  Why not just always do this
->> >> and use the existin OMAP_DEVICE_SUSPENDED flag.
->> >
->> > restore of runtime data structure state is only needed for specific
->> > devices - not all..
->> 
->> The question is why do you a flag in addition to OMAP_DEVICE_SUSPEND.
->> Whenever that flag is set, omap_device has gone behind your back, and
->> the runtime PM status should be kept in sync.
->
-> Yes, you are right, originally, I had intended this to indicate devices
-> that needed to be runtime_status updated, but then, now I realize that
-> it is true for all devices that have OMAP_DEVICE_SUSPEND set. It can be
-> applied without an additional flag. Do see if the updated patch is more
-> sensible:
+Hi Ezequiel, thanks a lot for your feedback.
 
-Yes, the updated version looks much more sensible.  Please repost in its
-own thread so it gets a better chance at broader review, and feel free
-to add
+> On Sat, Nov 09, 2013 at 05:34:02PM +0100, Javier Martinez Canillas wrote:
+>> The OMAP2+ General-Purpose Memory Controller (GPMC) driver
+>> should eventually be moved from arch/arm/mach-omap2 to
+>> drivers/memory. Unfortunately this is not trivial since it
+>> includes headers files that still resides under mach-omap2
+>> and can't be moved easilly.
+>> 
+>> This patch is the first step for taking the gpmc driver
+>> outside arch/arm/mach-omap2 by moving its related headers
+>> files to include/linux/platform_data.
+>> 
+>> Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+>> ---
+>> 
+>> Hi Tony,
+>> 
+>> I wonder what's your plan to move drivers outside of mach-omap2.
+>> Currently this driver still includes soc.h and omap_device.h
+>> that are on mach-omap2.
+>> 
+>> If we want to move out these two headers files then also omap
+>> hwmod and per SoC family headers have to be moved out mach-omap2.
+>> 
+>> Do you want me to do a follow-up patch-set to move all these
+>> headers out of mach-omap2 so the gpmc and other drivers can
+>> be moved to drivers/? 
+>> 
+>> Is include/linux/platform_data the right place to put these
+>> headers or there is a better place for them?
+>> 
+>> Thanks a lot and best regards,
+>> Javier
+>> 
+>>  arch/arm/mach-omap2/board-2430sdp.c              |   5 +-
+>>  arch/arm/mach-omap2/board-3430sdp.c              |   4 +-
+>>  arch/arm/mach-omap2/board-cm-t35.c               |   6 +-
+>>  arch/arm/mach-omap2/board-cm-t3517.c             |   4 +-
+>>  arch/arm/mach-omap2/board-devkit8000.c           |   2 +-
+>>  arch/arm/mach-omap2/board-flash.c                |   6 +-
+>>  arch/arm/mach-omap2/board-flash.h                |   2 +-
+>>  arch/arm/mach-omap2/board-h4.c                   |   5 +-
+>>  arch/arm/mach-omap2/board-ldp.c                  |   4 +-
+>>  arch/arm/mach-omap2/board-n8x0.c                 |   3 +-
+>>  arch/arm/mach-omap2/board-omap3beagle.c          |   2 +-
+>>  arch/arm/mach-omap2/board-omap3logic.c           |   5 +-
+>>  arch/arm/mach-omap2/board-omap3pandora.c         |   3 +-
+>>  arch/arm/mach-omap2/board-omap3stalker.c         |   4 +-
+>>  arch/arm/mach-omap2/board-omap3touchbook.c       |   2 +-
+>>  arch/arm/mach-omap2/board-overo.c                |   4 +-
+>>  arch/arm/mach-omap2/board-rx51-peripherals.c     |   6 +-
+>>  arch/arm/mach-omap2/board-rx51.c                 |   2 +-
+>>  arch/arm/mach-omap2/gpmc-nand.c                  |   4 +-
+>>  arch/arm/mach-omap2/gpmc-nand.h                  |  27 ---
+>>  arch/arm/mach-omap2/gpmc-onenand.c               |   4 +-
+>>  arch/arm/mach-omap2/gpmc-onenand.h               |  24 ---
+>>  arch/arm/mach-omap2/gpmc-smc91x.c                |   4 +-
+>>  arch/arm/mach-omap2/gpmc-smc91x.h                |  42 -----
+>>  arch/arm/mach-omap2/gpmc-smsc911x.c              |   4 +-
+>>  arch/arm/mach-omap2/gpmc-smsc911x.h              |  35 ----
+>>  arch/arm/mach-omap2/gpmc.c                       |   7 +-
+>>  arch/arm/mach-omap2/gpmc.h                       | 231 -----------------------
+>>  arch/arm/mach-omap2/pm34xx.c                     |   2 +-
+>>  arch/arm/mach-omap2/usb-tusb6010.c               |   3 +-
+>>  include/linux/platform_data/gpmc-nand-omap.h     |  27 +++
+>>  include/linux/platform_data/gpmc-omap.h          | 231 +++++++++++++++++++++++
+>>  include/linux/platform_data/gpmc-onenand-omap.h  |  25 +++
+>>  include/linux/platform_data/gpmc-smc91x-omap.h   |  42 +++++
+>>  include/linux/platform_data/gpmc-smsc911x-omap.h |  35 ++++
+>>  35 files changed, 403 insertions(+), 413 deletions(-)
+>>  delete mode 100644 arch/arm/mach-omap2/gpmc-nand.h
+>>  delete mode 100644 arch/arm/mach-omap2/gpmc-onenand.h
+>>  delete mode 100644 arch/arm/mach-omap2/gpmc-smc91x.h
+>>  delete mode 100644 arch/arm/mach-omap2/gpmc-smsc911x.h
+>>  delete mode 100644 arch/arm/mach-omap2/gpmc.h
+>>  create mode 100644 include/linux/platform_data/gpmc-nand-omap.h
+>>  create mode 100644 include/linux/platform_data/gpmc-omap.h
+>>  create mode 100644 include/linux/platform_data/gpmc-onenand-omap.h
+>>  create mode 100644 include/linux/platform_data/gpmc-smc91x-omap.h
+>>  create mode 100644 include/linux/platform_data/gpmc-smsc911x-omap.h
+>> 
+> 
+> I'm not too convinced about the above diffstat. Maybe you can try a
+> a better approach of making the move by: 1) renaming/moving a file,
+> using 'git format-patch -M' and 2) then make the necessary changes
+> in the new place.
+> 
+> Or, if the above ends up not fully bisectable you can try first (2)
+> then (1).
+>
+> What bothers me most is seeing things like this:
+> 
+>   arch/arm/mach-omap2/gpmc-nand.h                  |  27 ---
+>   arch/arm/mach-omap2/gpmc.h                       | 231 -----------------------
+>   include/linux/platform_data/gpmc-nand-omap.h     |  27 +++
+>   include/linux/platform_data/gpmc-omap.h          | 231 +++++++++++++++++++++++
+> 
+> What do you think?
+> 
 
-Acked-by: Kevin Hilman <khilman@linaro.org>
+Agreed, I completely forgot about -M when generating the patches.
 
-Kevin
+I'll wait to see what Tony thinks about this approach to take the gpmc driver
+outside of mach-omap2 and send a v2 addressing the issues you pointed out.
 
-> -- >8 --
-> From 96b5a7b89fef4ba55bca48bae83e5536d697c6c4 Mon Sep 17 00:00:00 2001
-> From: Nishanth Menon <nm@ti.com>
-> Date: Thu, 24 Oct 2013 09:12:42 -0500
-> Subject: [PATCH V2] ARM: OMAP2+: omap_device: maintain sane runtime pm status
->  around suspend/resume
->
-> OMAP device hooks around suspend|resume_noirq ensures that hwmod
-> devices are forced to idle using omap_device_idle/enable as part of
-> the last stage of suspend activity.
->
-> For a device such as i2c who uses autosuspend, it is possible to enter
-> the suspend path with dev->power.runtime_status = RPM_ACTIVE.
->
-> As part of the suspend flow, the generic runtime logic would increment
-> it's dev->power.disable_depth to 1. This should prevent further
-> pm_runtime_get_sync from succeeding once the runtime_status has been
-> set to RPM_SUSPENDED.
->
-> Now, as part of the suspend_noirq handler in omap_device, we force the
-> following: if the device status is !suspended, we force the device
-> to idle using omap_device_idle (clocks are cut etc..). This ensures
-> that from a hardware perspective, the device is "suspended". However,
-> runtime_status is left to be active.
->
-> *if* an operation is attempted after this point to
-> pm_runtime_get_sync, runtime framework depends on runtime_status to
-> indicate accurately the device status, and since it sees it to be
-> ACTIVE, it assumes the module is functional and returns a non-error
-> value. As a result the user will see pm_runtime_get succeed, however a
-> register access will crash due to the lack of clocks.
->
-> To prevent this from happening, we should ensure that runtime_status
-> exactly indicates the device status. As a result of this change
-> any further calls to pm_runtime_get* would return -EACCES (since
-> disable_depth is 1). On resume, we restore the clocks and runtime
-> status exactly as we suspended with.
->
-> Reported-by: J Keerthy <j-keerthy@ti.com>
-> Signed-off-by: Nishanth Menon <nm@ti.com>
-> Acked-by: Rajendra Nayak <rnayak@ti.com>
-> ---
->  arch/arm/mach-omap2/omap_device.c |    5 +++--
->  1 file changed, 3 insertions(+), 2 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
-> index b69dd9a..f97b34b 100644
-> --- a/arch/arm/mach-omap2/omap_device.c
-> +++ b/arch/arm/mach-omap2/omap_device.c
-> @@ -621,6 +621,7 @@ static int _od_suspend_noirq(struct device *dev)
->  
->  	if (!ret && !pm_runtime_status_suspended(dev)) {
->  		if (pm_generic_runtime_suspend(dev) == 0) {
-> +			pm_runtime_set_suspended(dev);
->  			omap_device_idle(pdev);
->  			od->flags |= OMAP_DEVICE_SUSPENDED;
->  		}
-> @@ -634,10 +635,10 @@ static int _od_resume_noirq(struct device *dev)
->  	struct platform_device *pdev = to_platform_device(dev);
->  	struct omap_device *od = to_omap_device(pdev);
->  
-> -	if ((od->flags & OMAP_DEVICE_SUSPENDED) &&
-> -	    !pm_runtime_status_suspended(dev)) {
-> +	if (od->flags & OMAP_DEVICE_SUSPENDED) {
->  		od->flags &= ~OMAP_DEVICE_SUSPENDED;
->  		omap_device_enable(pdev);
-> +		pm_runtime_set_active(dev);
->  		pm_generic_runtime_resume(dev);
->  	}
->  
-> -- 
-> 1.7.9.5
+Best regards,
+Javier
