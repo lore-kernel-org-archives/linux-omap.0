@@ -1,20 +1,24 @@
 From: Eduardo Valentin <eduardo.valentin@ti.com>
-Subject: [PATCHv5 15/20] arm: dts: add omap5 CORE thermal data
-Date: Tue, 12 Nov 2013 15:46:17 -0400
-Message-ID: <1384285582-16933-16-git-send-email-eduardo.valentin@ti.com>
+Subject: [PATCHv5 14/20] arm: dts: add omap5 GPU thermal data
+Date: Tue, 12 Nov 2013 15:46:16 -0400
+Message-ID: <1384285582-16933-15-git-send-email-eduardo.valentin@ti.com>
 References: <1384285582-16933-1-git-send-email-eduardo.valentin@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-pm-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:52578 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757115Ab3KLTub (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 12 Nov 2013 14:50:31 -0500
 In-Reply-To: <1384285582-16933-1-git-send-email-eduardo.valentin@ti.com>
-Sender: linux-pm-owner@vger.kernel.org
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com
 Cc: wni@nvidia.com, grant.likely@linaro.org, durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-List-Id: linux-omap@vger.kernel.org
 
 This patch changes a dtsi file to contain the thermal data
-for CORE domain on OMAP5 and later SoCs. This data will
+for GPU domain on OMAP5 and later SoCs. This data will
 enable a thermal shutdown at 125C.
 
 This thermal data can be reused across TI SoC devices.
@@ -36,20 +40,20 @@ Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
 Change from v4:
 - Using string constants instead of macros on trip types
 
- arch/arm/boot/dts/omap5-core-thermal.dtsi | 28 +++++++++++++++++++++++=
-+++++
+ arch/arm/boot/dts/omap5-gpu-thermal.dtsi | 28 ++++++++++++++++++++++++=
+++++
  1 file changed, 28 insertions(+)
- create mode 100644 arch/arm/boot/dts/omap5-core-thermal.dtsi
+ create mode 100644 arch/arm/boot/dts/omap5-gpu-thermal.dtsi
 
-diff --git a/arch/arm/boot/dts/omap5-core-thermal.dtsi b/arch/arm/boot/=
-dts/omap5-core-thermal.dtsi
+diff --git a/arch/arm/boot/dts/omap5-gpu-thermal.dtsi b/arch/arm/boot/d=
+ts/omap5-gpu-thermal.dtsi
 new file mode 100644
-index 0000000..19212ac
+index 0000000..1b87aca
 --- /dev/null
-+++ b/arch/arm/boot/dts/omap5-core-thermal.dtsi
++++ b/arch/arm/boot/dts/omap5-gpu-thermal.dtsi
 @@ -0,0 +1,28 @@
 +/*
-+ * Device Tree Source for OMAP543x SoC CORE thermal
++ * Device Tree Source for OMAP543x SoC GPU thermal
 + *
 + * Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.c=
 om/
@@ -64,15 +68,15 @@ f any
 +
 +#include <dt-bindings/thermal/thermal.h>
 +
-+core_thermal: core_thermal {
++gpu_thermal: gpu_thermal {
 +	polling-delay-passive =3D <250>; /* milliseconds */
 +	polling-delay =3D <1000>; /* milliseconds */
 +
 +			/* sensor       ID */
-+	thermal-sensors =3D <&bandgap     2>;
++	thermal-sensors =3D <&bandgap     1>;
 +
 +	trips {
-+		core_crit: core_crit {
++		gpu_crit: gpu_crit {
 +			temperature =3D <125000>; /* milliCelsius */
 +			hysteresis =3D <2000>; /* milliCelsius */
 +			type =3D "critical";
@@ -82,3 +86,8 @@ f any
 --=20
 1.8.2.1.342.gfa7285d
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
