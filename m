@@ -1,111 +1,103 @@
-From: Balaji T K <balajitk@ti.com>
-Subject: Re: [PATCH 1/3] mmc: omap_hsmmc: Enable SDIO IRQ.
-Date: Tue, 12 Nov 2013 22:52:38 +0530
-Message-ID: <528263DE.2030001@ti.com>
-References: <1384200405-8402-1-git-send-email-afenkart@gmail.com> <1384200405-8402-2-git-send-email-afenkart@gmail.com>
+From: "Anna, Suman" <s-anna-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCHv3 0/8]  omap hwspinlock dt support
+Date: Tue, 12 Nov 2013 12:16:42 -0600
+Message-ID: <5282708A.30601@ti.com>
+References: <1381439735-52888-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <1384200405-8402-2-git-send-email-afenkart@gmail.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Andreas Fenkart <afenkart@gmail.com>
-Cc: Chris Ball <cjb@laptop.org>, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, Felipe Balbi <balbi@ti.com>, zonque@gmail.com, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1381439735-52888-1-git-send-email-s-anna-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Tuesday 12 November 2013 01:36 AM, Andreas Fenkart wrote:
-> For now, only support SDIO interrupt if we are booted with
-> DT. This is because some platforms need special quirks. And
-> we don't want to add new legacy mux platform init code
-> callbacks any longer as we are moving to DT based booting
-> anyways.
+
+> Hi,
 >
-> Broken hardware, missing the swakueup line, should fallback
-> to polling, by setting 'ti,quirk-swakup-missing' in the
-> device tree. Otherwise pending SDIO IRQ are not detected
-> while in suspend. This affects am33xx processors.
+> This is an updated series addressing the review comments from the
+> v2 series. The hwmod patches have been dropped from the repost
+> as per Paul's request, they have already been queued.
+
+Mark,
+
+Any comments on this series? Tony has picked up the OMAP DTS patches for 
+3.13, and so
+the "ti,omap4-hwspinlock" compatible string is showing up as 
+undocumented in linux-next.
+How do you want me to proceed here? I will be separating out the 
+bindings into separate patches
+in the future.
+
+regards
+Suman
+
 >
-> For the DT-Binding portion:
-> Reviewed-by: Grant Likely <grant.likely@secretlab.ca>
-> Acked-by: Kumar Gala <galak@codeaurora.org>
-> Signed-off-by: Andreas Fenkart <afenkart@gmail.com>
-> ---
->   .../devicetree/bindings/mmc/ti-omap-hsmmc.txt      |   18 ++++
->   drivers/mmc/host/omap_hsmmc.c                      |   86 ++++++++++++++++++--
->   2 files changed, 95 insertions(+), 9 deletions(-)
+> The series is tested on top of v3.12-rc4 + Benoit's 3.13 DTS branch and
+> Tero's clock series, along with the queued hwmod patches.
+>
+> Changes in v3:
+> - Removed the DT property hwlock-base-id and associated OF helper
+> - Added changes in core to support requesting a specific hwlock using
+>    phandle + args approach
+> - Revised both the common and OMAP DT bindings document
+> - OMAP AM335 support patches are unchanged from v2.
+> - OMAP DTS patches are unchanged from v2.
+>
+> v2
+> - Added a new common DT binding documentation and OF helpers (Patch1),
+>    addressing the review comments from v1 [2]. The MSM support [1] needs
+>    to be reworked on top of this common patch.
+> - Revised OMAP DT parse support to use the new OF helper (Patch2)
+> - OMAP5 hwspinlock support including the hwmod entry and DT node (Patches 4, 5)
+> - Add AM335x support to OMAP hwspinlock driver, including a fix
+>    needed in driver given that AM335 spinlock module requires s/w wakeup
+>    (Patches 6, 7)
+> - AM335 DT node for spinlock, and a hwmod change to enable smart-idle
+>    for AM335 (Patches 8, 9). The sysc patch is not essential for AM335
+>    spinlock functionality, but is needed for smart-idling the IP when
+>    the module is enabled.
+> - OMAP4 DT node patch is unchanged (Patch 3)
+> http://marc.info/?l=linux-omap&m=137944644112727&w=2
+>
+> v1:
+> - Add DT parse support to OMAP hwspinlock driver
+> - Add OMAP4 DT node and bindings information
+> http://marc.info/?l=linux-omap&m=137823082308009&w=2
+>
+> [1] https://lkml.org/lkml/2013/8/14/528
+> [2] http://marc.info/?t=137823090300005&r=1&w=2
+>
+> Suman Anna (8):
+>    hwspinlock/core: maintain a list of registered hwspinlock banks
+>    hwspinlock/core: add common dt bindings and OF helpers
+>    hwspinlock/omap: add support for dt nodes
+>    hwspinlock/omap: enable module before reading SYSSTATUS register
+>    hwspinlock/omap: support AM33xx
+>    ARM: dts: OMAP4: Add hwspinlock node
+>    ARM: dts: OMAP5: Add hwspinlock node
+>    ARM: dts: AM33XX: Add hwspinlock node
+>
+>   .../devicetree/bindings/hwlock/hwlock.txt          |  49 ++++++++
+>   .../devicetree/bindings/hwlock/omap-hwspinlock.txt |  19 +++
+>   arch/arm/boot/dts/am33xx.dtsi                      |   6 +
+>   arch/arm/boot/dts/omap4.dtsi                       |   6 +
+>   arch/arm/boot/dts/omap5.dtsi                       |   6 +
+>   arch/arm/mach-omap2/Makefile                       |   3 -
+>   arch/arm/mach-omap2/hwspinlock.c                   |  60 ----------
+>   drivers/hwspinlock/Kconfig                         |   2 +-
+>   drivers/hwspinlock/hwspinlock_core.c               | 133 ++++++++++++++++++++-
+>   drivers/hwspinlock/hwspinlock_internal.h           |   2 +
+>   drivers/hwspinlock/omap_hwspinlock.c               |  38 ++++--
+>   include/linux/hwspinlock.h                         |  19 ++-
+>   12 files changed, 263 insertions(+), 80 deletions(-)
+>   create mode 100644 Documentation/devicetree/bindings/hwlock/hwlock.txt
+>   create mode 100644 Documentation/devicetree/bindings/hwlock/omap-hwspinlock.txt
+>   delete mode 100644 arch/arm/mach-omap2/hwspinlock.c
 >
 
-> +static void omap_hsmmc_enable_sdio_irq(struct mmc_host *mmc, int enable)
-> +{
-> +	struct omap_hsmmc_host *host = mmc_priv(mmc);
-> +	u32 irq_mask;
-> +	unsigned long flags;
-> +
-> +	spin_lock_irqsave(&host->irq_lock, flags);
-> +
-Hi Andreas,
-
-Thanks for the patch,
-You don't check for runtime pm status here before read/write to HSMMC registers,
-can you please explain ?
-
-> +	irq_mask = OMAP_HSMMC_READ(host->base, ISE);
-> +	if (enable) {
-> +		host->flags |= HSMMC_SDIO_IRQ_ENABLED;
-> +		irq_mask |= CIRQ_EN;
-> +	} else {
-> +		host->flags &= ~HSMMC_SDIO_IRQ_ENABLED;
-> +		irq_mask &= ~CIRQ_EN;
-> +	}
-> +	OMAP_HSMMC_WRITE(host->base, IE, irq_mask);
-> +
-> +	/*
-> +	 * if enable, piggy back detection on current request
-> +	 * but always disable immediately
-> +	 */
-> +	if (!host->req_in_progress || !enable)
-> +		OMAP_HSMMC_WRITE(host->base, ISE, irq_mask);
-> +
-> +	/* flush posted write */
-> +	OMAP_HSMMC_READ(host->base, IE);
-> +
-> +	spin_unlock_irqrestore(&host->irq_lock, flags);
-> +}
-> +
->   static void omap_hsmmc_conf_bus_power(struct omap_hsmmc_host *host)
->   {
->   	u32 hctl, capa, value;
-> @@ -1635,7 +1687,7 @@ static const struct mmc_host_ops omap_hsmmc_ops = {
->   	.get_cd = omap_hsmmc_get_cd,
->   	.get_ro = omap_hsmmc_get_ro,
->   	.init_card = omap_hsmmc_init_card,
-> -	/* NYET -- enable_sdio_irq */
-> +	.enable_sdio_irq = omap_hsmmc_enable_sdio_irq,
->   };
->
->   #ifdef CONFIG_DEBUG_FS
-> @@ -2021,6 +2073,22 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
->   		dev_warn(&pdev->dev,
->   			"pins are not configured from the driver\n");
->
-> +	/*
-> +	 * For now, only support SDIO interrupt if we are booted with
-> +	 * DT. This is because some platforms need special quirks. And
-> +	 * we don't want to add new legacy mux platform init code
-> +	 * callbacks any longer as we are moving to DT based booting
-> +	 * anyways.
-> +	 */
-> +	if (pdev->dev.of_node) {
-> +		mmc->caps |= MMC_CAP_SDIO_IRQ;
-> +		if (of_find_property(host->dev->of_node,
-> +				     "ti,quirk-swakeup-missing", NULL)) {
-> +			/* no wakeup from deeper power states, use polling */
-> +			mmc->caps &= ~MMC_CAP_SDIO_IRQ;
-> +		}
-> +	}
-> +
->   	omap_hsmmc_protect_card(host);
->
->   	mmc_add_host(mmc);
->
-
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
