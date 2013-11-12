@@ -1,84 +1,63 @@
-From: Luca Coelho <luca@coelho.fi>
-Subject: Re: [PATCH] clk: add flags to distinguish xtal clocks
-Date: Tue, 12 Nov 2013 10:05:49 +0200
-Message-ID: <1384243549.12583.36.camel@porter.coelho.fi>
-References: <1382528150.21526.25.camel@porter.coelho.fi>
-	 <1383933648-28595-1-git-send-email-balbi@ti.com>
-	 <20131110113716.GN26440@lukather> <20131111194247.GB19212@saruman.home>
-	 <1384199456.12583.27.camel@porter.coelho.fi>
-	 <20131111205910.GA26440@lukather>
+From: Vinod Koul <vinod.koul@intel.com>
+Subject: Re: cppi41: pending patches
+Date: Tue, 12 Nov 2013 14:29:07 +0530
+Message-ID: <20131112085907.GL8834@intel.com>
+References: <1382436846-9057-1-git-send-email-bigeasy@linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from emh01.mail.saunalahti.fi ([62.142.5.107]:51803 "EHLO
-	emh01.mail.saunalahti.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750979Ab3KLIG0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Nov 2013 03:06:26 -0500
-In-Reply-To: <20131111205910.GA26440@lukather>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1382436846-9057-1-git-send-email-bigeasy@linutronix.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Dan Williams <dan.j.williams@intel.com>, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Maxime Ripard <maxime.ripard@free-electrons.com>
-Cc: balbi@ti.com, mturquette@linaro.org, james.hogan@imgtec.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
-On Mon, 2013-11-11 at 21:59 +0100, Maxime Ripard wrote:
-> Hi Luca,
+On Tue, Oct 22, 2013 at 12:14:02PM +0200, Sebastian Andrzej Siewior wrote:
+> Hi Vinod,
 > 
-> On Mon, Nov 11, 2013 at 09:50:56PM +0200, Luca Coelho wrote:
-> > On Mon, 2013-11-11 at 13:42 -0600, Felipe Balbi wrote:
-> > > > > +	if (of_property_read_bool(node, "clock-xtal"))
-> > > > > +		flags |= CLK_IS_TYPE_XTAL;
-> > > > > +
-> > > > 
-> > > > Introducing a new compatible instead of a property would make more
-> > > > sense here I think.
-> > > > 
-> > > > Do you have a reason not to do so?
-> > > 
-> > > As you can see, this is original work from Luca but I disagree that
-> > > adding a new compatible makes more sense. This still related to a fixed
-> > > rate clock, we're just giving it one extra metadata which willAnd t
-> > > differentiate between crystal and oscilator fixed rate clocks.
-> > 
-> > I agree with Felipe.  This was discussed before [1].  While still at TI,
-> > I tried to figure out the exact need for the firmware to know whether it
-> > was an oscillator or not.  It was mostly because the stabilization time
-> > and such things differ with oscillators, but I wasn't able to find out
-> > how exactly this affected things.
-> > 
-> > In any case, as I concluded earlier (but it's not really my call), being
-> > a crystal or an oscillator *is* a characteristic of the hardware,
-> > regardless of whether that information is useful or not.  In the WiLink
-> > case it is, at least it can differentiate the clocks that are used in
-> > the HW modules it uses.
-> > 
-> > So IMHO it doesn't really hurt and it's not really against the DT
-> > principles.
+> this series contains patches which are floating on the mainling list so
+> I hope it is easier to collect them. It contains two of Daniel's which
+> were not yet applied and two of mine.
+> The patch "redo descriptor collection in abort case" was posted earlier
+> and tested by Daniel, in this version here I removed an unused variable.
 > 
-> Just to be clear, I'm not against your patch. If you need this to make
-> your driver work, then it's fine for me. Mike will probably know
-> better if we actually need some extra metadata.
-
-:)
-
-I understand, we should really try to make this as clean as possible, DT
-should really be a good description of the hardware.
-
-
-> What I'm not really convinced about is *how* you carry that metadata
-> in the DT, that's all, nothing more.
-
-Okay, I get you.  My point is that being a crystal or not *is* a
-characteristic of the clock, so I think it could be part of the flags
-that describe it.
-
-In any case, it's not really my call.  This is about the clock and it's
-not even my home turf (wireless). ;)
-
-Thanks for your comments.  And I'm sorry if the tone of my previous
-email sounded harsh, it was not supposed to. :)
+> The patches are also available in a git tree based on your next tree prior
+> the the "dma_complete" merge because DMA_COMPLETE & DMA_SUCCESS contain a
+> diferent value.
+Applied, thanks
 
 --
-Cheers,
-Luca.
+~Vinod
+> 
+> The following changes since commit cc94dac27e15df9211394467e13fdfa2366e3593:
+> 
+>   Merge branch 'for-linus' into next (2013-10-21 12:57:31 +0530)
+> 
+> are available in the git repository at:
+> 
+> 
+>   git://breakpoint.cc/bigeasy/linux tags/cppi41-next
+> 
+> for you to fetch changes up to e389973c52dbea967a9254798600c35c8f94b2c3:
+> 
+>   dma: cppi41: return code > 0 of pm_runtime_get_sync() is not an error (2013-10-22 12:00:45 +0200)
+> 
+> ----------------------------------------------------------------
+> A handfull of cppi41 patches including pm support by Daniel Mack.
+> 
+> ----------------------------------------------------------------
+> Daniel Mack (2):
+>       dma: cppi41: restore more registers
+>       dma: cppi41: use cppi41_pop_desc() where possible
+> 
+> Sebastian Andrzej Siewior (2):
+>       dma: cppi41: redo descriptor collection in abort case
+>       dma: cppi41: return code > 0 of pm_runtime_get_sync() is not an error
+> 
+>  drivers/dma/cppi41.c | 82 +++++++++++++++++++++++++++-------------------------
+>  1 file changed, 43 insertions(+), 39 deletions(-)
+> 
+> Sebastian
 
+-- 
