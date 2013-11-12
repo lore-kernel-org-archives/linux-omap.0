@@ -1,66 +1,73 @@
-From: "Mark A. Greer" <mgreer@animalcreek.com>
-Subject: [PATCH] crypto: omap-sham - Only release DMA channel if successfully
- requested
-Date: Tue, 12 Nov 2013 13:12:27 -0700
-Message-ID: <1384287147-19656-1-git-send-email-mgreer@animalcreek.com>
+From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+Subject: Re: [PATCH v2 3/5] mtd: nand: omap2: Fix OMAP_BCH option dependency
+Date: Tue, 12 Nov 2013 17:45:56 -0300
+Message-ID: <20131112204555.GA20260@localhost>
+References: <1382696277-9063-1-git-send-email-ezequiel.garcia@free-electrons.com>
+ <1382696277-9063-4-git-send-email-ezequiel.garcia@free-electrons.com>
+ <20980858CB6D3A4BAE95CA194937D5E73EA2AE93@DBDE04.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-crypto@vger.kernel.org
-Cc: Herbert Xu <herbert@gondor.apana.org.au>, Joel Fernandes <joelf@ti.com>, "Mark A. Greer" <mgreer@animalcreek.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, Dan Carpenter <dan.carpenter@oracle.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from top.free-electrons.com ([176.31.233.9]:44338 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753677Ab3KLUqD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Nov 2013 15:46:03 -0500
+Content-Disposition: inline
+In-Reply-To: <20980858CB6D3A4BAE95CA194937D5E73EA2AE93@DBDE04.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+Cc: Brian Norris <computersforpeace@gmail.com>, "Balbi, Felipe" <balbi@ti.com>, "marek.belisko@gmail.com" <marek.belisko@gmail.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Pekon Gupta <pekon@ti.com>
 
-In omap_sham_probe() and omap_sham_remove(), 'dd->dma_lch'
-is released without checking to see if it was successfully
-requested or not.  This is a bug and was identified and
-reported by Dan Carpenter here:
+On Fri, Oct 25, 2013 at 11:26:06AM +0000, Gupta, Pekon wrote:
+> > From: Ezequiel Garcia [mailto:ezequiel.garcia@free-electrons.com]
+> > Subject: [PATCH v2 3/5] mtd: nand: omap2: Fix OMAP_BCH option
+> > dependency
+> >=20
+> > This option does not need to depend in MTD_NAND, for it's enclosed
+> > under it. Also, it's wrong to make it depend in ARCH_OMAP3 only
+> > since the controller is used in a wider range of SoCs.
+> >=20
+> > Instead, just leave the dependency on the OMAP2 driver option.
+> >=20
+> > Signed-off-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+> > ---
+> >  drivers/mtd/nand/Kconfig | 2 +-
+> >  1 file changed, 1 insertion(+), 1 deletion(-)
+> >=20
+> > diff --git a/drivers/mtd/nand/Kconfig b/drivers/mtd/nand/Kconfig
+> > index d885298..8187466 100644
+> > --- a/drivers/mtd/nand/Kconfig
+> > +++ b/drivers/mtd/nand/Kconfig
+> > @@ -95,7 +95,7 @@ config MTD_NAND_OMAP2
+> >  	  platforms.
+> >=20
+> >  config MTD_NAND_OMAP_BCH
+> > -	depends on MTD_NAND && MTD_NAND_OMAP2 && ARCH_OMAP3
+> > +	depends on MTD_NAND_OMAP2
+> >  	tristate "Enable support for hardware BCH error correction"
+> >  	default n
+> >  	select BCH
+> > --
+> > 1.8.1.5
+>=20
+> Acked-by: Pekon Gupta <pekon@ti.com>
 
-	http://www.spinics.net/lists/devicetree/msg11023.html
+Brian,
 
-Add code to only release 'dd->dma_lch' when its not NULL
-(that is, when it was successfully requested).
+I almost forgot about this one, and I just came across the issue
+while configuring my board.
 
-Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-CC: Joel Fernandes <joelf@ti.com>
-Signed-off-by: Mark A. Greer <mgreer@animalcreek.com>
----
- drivers/crypto/omap-sham.c | 7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+I believe this one is simple enough to be pulled in for v3.14
+(it could be in v3.13, but it's already too late).
 
-diff --git a/drivers/crypto/omap-sham.c b/drivers/crypto/omap-sham.c
-index e28104b..c6ad7d6 100644
---- a/drivers/crypto/omap-sham.c
-+++ b/drivers/crypto/omap-sham.c
-@@ -1970,7 +1970,8 @@ err_algs:
- 			crypto_unregister_ahash(
- 					&dd->pdata->algs_info[i].algs_list[j]);
- 	pm_runtime_disable(dev);
--	dma_release_channel(dd->dma_lch);
-+	if (dd->dma_lch)
-+		dma_release_channel(dd->dma_lch);
- data_err:
- 	dev_err(dev, "initialization failed.\n");
- 
-@@ -1994,7 +1995,9 @@ static int omap_sham_remove(struct platform_device *pdev)
- 					&dd->pdata->algs_info[i].algs_list[j]);
- 	tasklet_kill(&dd->done_task);
- 	pm_runtime_disable(&pdev->dev);
--	dma_release_channel(dd->dma_lch);
-+
-+	if (dd->dma_lch)
-+		dma_release_channel(dd->dma_lch);
- 
- 	return 0;
- }
--- 
-1.8.3.4
+Or maybe you're not taking stuff for v3.14 yet...
+--=20
+Ezequiel Garc=C3=ADa, Free Electrons
+Embedded Linux, Kernel and Android Engineering
+http://free-electrons.com
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
