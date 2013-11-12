@@ -1,237 +1,111 @@
-From: Michael Trimarchi <michael-dyjBcgdgk7Pe9wHmmfpqLFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH 1/3] mmc: omap_hsmmc: Enable SDIO IRQ.
-Date: Tue, 12 Nov 2013 12:23:28 +0100
-Message-ID: <CAOf5uwm9s2S4YxsAAa3h0fG3RyZgd4f9pqMu=thra1Wdzm8BNA@mail.gmail.com>
-References: <1384200405-8402-1-git-send-email-afenkart@gmail.com>
-	<1384200405-8402-2-git-send-email-afenkart@gmail.com>
+From: Afzal Mohammed <afzal@ti.com>
+Subject: [PATCH] ARM: dts: AM437x GP EVM support
+Date: Tue, 12 Nov 2013 16:54:26 +0530
+Message-ID: <1384255468-2453-1-git-send-email-afzal@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1384200405-8402-2-git-send-email-afenkart-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Andreas Fenkart <afenkart-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Chris Ball <cjb-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>, Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:60301 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752164Ab3KLLZW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 12 Nov 2013 06:25:22 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org
+Cc: Lokesh Vutla <lokeshvutla@ti.com>, Sourav Poddar <sourav.poddar@ti.com>, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Rob Landley <rob@landley.net>, Russell King <linux@arm.linux.org.uk>, Benoit Cousson <bcousson@baylibre.com>, Rajendra Nayak <rnayak@ti.com>
 
-Hi Andreas
+From: Lokesh Vutla <lokeshvutla@ti.com>
 
-On Mon, Nov 11, 2013 at 9:06 PM, Andreas Fenkart <afenkart-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-> For now, only support SDIO interrupt if we are booted with
-> DT. This is because some platforms need special quirks. And
-> we don't want to add new legacy mux platform init code
-> callbacks any longer as we are moving to DT based booting
-> anyways.
->
-> Broken hardware, missing the swakueup line, should fallback
-> to polling, by setting 'ti,quirk-swakup-missing' in the
-> device tree. Otherwise pending SDIO IRQ are not detected
-> while in suspend. This affects am33xx processors.
->
-> For the DT-Binding portion:
-> Reviewed-by: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
-> Acked-by: Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-> Signed-off-by: Andreas Fenkart <afenkart-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> ---
+AM437x GP EVM DTS with pinmux information to make I2C on EVM usable.
 
-I think that you should add patch revision, change log description.
+Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
+Signed-off-by: Afzal Mohammed <afzal@ti.com>
+---
+ .../devicetree/bindings/arm/omap/omap.txt          |  3 ++
+ arch/arm/boot/dts/Makefile                         |  1 +
+ arch/arm/boot/dts/am437x-gp-evm.dts                | 47 ++++++++++++++++++++++
+ 3 files changed, 51 insertions(+)
+ create mode 100644 arch/arm/boot/dts/am437x-gp-evm.dts
 
-Michael
+diff --git a/Documentation/devicetree/bindings/arm/omap/omap.txt b/Documentation/devicetree/bindings/arm/omap/omap.txt
+index 808c154..be5f365 100644
+--- a/Documentation/devicetree/bindings/arm/omap/omap.txt
++++ b/Documentation/devicetree/bindings/arm/omap/omap.txt
+@@ -61,5 +61,8 @@ Boards:
+ - AM43x EPOS EVM
+   compatible = "ti,am43x-epos-evm", "ti,am4372", "ti,am43"
+ 
++- AM437x GP EVM
++  compatible = "ti,am437x-gp-evm", "ti,am4372", "ti,am43"
++
+ - DRA7 EVM:  Software Developement Board for DRA7XX
+   compatible = "ti,dra7-evm", "ti,dra7"
+diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
+index d57c1a6..85626e4 100644
+--- a/arch/arm/boot/dts/Makefile
++++ b/arch/arm/boot/dts/Makefile
+@@ -203,6 +203,7 @@ dtb-$(CONFIG_ARCH_OMAP2PLUS) += omap2420-h4.dtb \
+ 	am3517-evm.dtb \
+ 	am3517_mt_ventoux.dtb \
+ 	am43x-epos-evm.dtb \
++	am437x-gp-evm.dtb \
+ 	dra7-evm.dtb
+ dtb-$(CONFIG_ARCH_ORION5X) += orion5x-lacie-ethernet-disk-mini-v2.dtb
+ dtb-$(CONFIG_ARCH_PRIMA2) += prima2-evb.dtb
+diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts b/arch/arm/boot/dts/am437x-gp-evm.dts
+new file mode 100644
+index 0000000..11d93ba
+--- /dev/null
++++ b/arch/arm/boot/dts/am437x-gp-evm.dts
+@@ -0,0 +1,47 @@
++/*
++ * Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.com/
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++/* AM437x GP EVM */
++
++/dts-v1/;
++
++#include "am4372.dtsi"
++#include <dt-bindings/pinctrl/am43xx.h>
++
++/ {
++	model = "TI AM437x GP EVM";
++	compatible = "ti,am437x-gp-evm","ti,am4372","ti,am43";
++};
++
++&am43xx_pinmux {
++	i2c0_pins: i2c0_pins {
++		pinctrl-single,pins = <
++			0x188 (PIN_INPUT_PULLUP | SLEWCTRL_FAST | MUX_MODE0)  /* i2c0_sda.i2c0_sda */
++			0x18c (PIN_INPUT_PULLUP | SLEWCTRL_FAST | MUX_MODE0)  /* i2c0_scl.i2c0_scl */
++		>;
++	};
++
++	i2c1_pins: i2c1_pins {
++		pinctrl-single,pins = <
++			0x15c (PIN_INPUT_PULLUP | SLEWCTRL_FAST | MUX_MODE2)  /* spi0_cs0.i2c1_scl */
++			0x158 (PIN_INPUT_PULLUP | SLEWCTRL_FAST | MUX_MODE2)  /* spi0_d1.i2c1_sda  */
++		>;
++	};
++};
++
++&i2c0 {
++        status = "okay";
++        pinctrl-names = "default";
++        pinctrl-0 = <&i2c0_pins>;
++};
++
++&i2c1 {
++        status = "okay";
++        pinctrl-names = "default";
++        pinctrl-0 = <&i2c1_pins>;
++};
+-- 
+1.8.3.4
 
->  .../devicetree/bindings/mmc/ti-omap-hsmmc.txt      |   18 ++++
->  drivers/mmc/host/omap_hsmmc.c                      |   86 ++++++++++++++++++--
->  2 files changed, 95 insertions(+), 9 deletions(-)
->
-> diff --git a/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt b/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
-> index ed271fc..1136e6b 100644
-> --- a/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
-> +++ b/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
-> @@ -20,6 +20,24 @@ ti,dual-volt: boolean, supports dual voltage cards
->  ti,non-removable: non-removable slot (like eMMC)
->  ti,needs-special-reset: Requires a special softreset sequence
->  ti,needs-special-hs-handling: HSMMC IP needs special setting for handling High Speed
-> +ti,quirk-swakup-missing: SOC missing the swakeup line, will not detect
-> +SDIO irq while in suspend. Fallback to polling. Affected chips are
-> +am335x,
-> +
-> +                            ------
-> +                            | PRCM |
-> +                             ------
-> +                              ^ |
-> +                      swakeup | | fclk
-> +                              | v
-> +      ------                -------               -----
-> +     | card | -- CIRQ -->  | hsmmc | -- IRQ -->  | CPU |
-> +      ------                -------               -----
-> +
-> +In suspend the fclk is off and the module is disfunctional. Even
-> +register reads will fail. A small logic in the host will request fclk
-> +restore, when an external event is detected. Once the clock is
-> +restored, the host detects the event normally.
->
->  Example:
->         mmc1: mmc@0x4809c000 {
-> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-> index b392130..6b0ec55 100644
-> --- a/drivers/mmc/host/omap_hsmmc.c
-> +++ b/drivers/mmc/host/omap_hsmmc.c
-> @@ -130,6 +130,7 @@ static void apply_clk_hack(struct device *dev)
->  #define TC_EN                  (1 << 1)
->  #define BWR_EN                 (1 << 4)
->  #define BRR_EN                 (1 << 5)
-> +#define CIRQ_EN                        (1 << 8)
->  #define ERR_EN                 (1 << 15)
->  #define CTO_EN                 (1 << 16)
->  #define CCRC_EN                        (1 << 17)
-> @@ -210,6 +211,9 @@ struct omap_hsmmc_host {
->         int                     reqs_blocked;
->         int                     use_reg;
->         int                     req_in_progress;
-> +       int                     flags;
-> +#define HSMMC_SDIO_IRQ_ENABLED (1 << 0)        /* SDIO irq enabled */
-> +
->         struct omap_hsmmc_next  next_data;
->         struct  omap_mmc_platform_data  *pdata;
->  };
-> @@ -490,27 +494,40 @@ static void omap_hsmmc_stop_clock(struct omap_hsmmc_host *host)
->  static void omap_hsmmc_enable_irq(struct omap_hsmmc_host *host,
->                                   struct mmc_command *cmd)
->  {
-> -       unsigned int irq_mask;
-> +       u32 irq_mask = INT_EN_MASK;
-> +       unsigned long flags;
->
->         if (host->use_dma)
-> -               irq_mask = INT_EN_MASK & ~(BRR_EN | BWR_EN);
-> -       else
-> -               irq_mask = INT_EN_MASK;
-> +               irq_mask &= ~(BRR_EN | BWR_EN);
->
->         /* Disable timeout for erases */
->         if (cmd->opcode == MMC_ERASE)
->                 irq_mask &= ~DTO_EN;
->
-> +       spin_lock_irqsave(&host->irq_lock, flags);
->         OMAP_HSMMC_WRITE(host->base, STAT, STAT_CLEAR);
->         OMAP_HSMMC_WRITE(host->base, ISE, irq_mask);
-> +
-> +       /* latch pending CIRQ, but don't signal */
-> +       if (host->flags & HSMMC_SDIO_IRQ_ENABLED)
-> +               irq_mask |= CIRQ_EN;
->         OMAP_HSMMC_WRITE(host->base, IE, irq_mask);
-> +       spin_unlock_irqrestore(&host->irq_lock, flags);
->  }
->
->  static void omap_hsmmc_disable_irq(struct omap_hsmmc_host *host)
->  {
-> -       OMAP_HSMMC_WRITE(host->base, ISE, 0);
-> -       OMAP_HSMMC_WRITE(host->base, IE, 0);
-> +       u32 irq_mask = 0;
-> +       unsigned long flags;
-> +
-> +       spin_lock_irqsave(&host->irq_lock, flags);
-> +       /* no transfer running, need to signal cirq if enabled */
-> +       if (host->flags & HSMMC_SDIO_IRQ_ENABLED)
-> +               irq_mask |= CIRQ_EN;
-> +       OMAP_HSMMC_WRITE(host->base, ISE, irq_mask);
-> +       OMAP_HSMMC_WRITE(host->base, IE, irq_mask);
->         OMAP_HSMMC_WRITE(host->base, STAT, STAT_CLEAR);
-> +       spin_unlock_irqrestore(&host->irq_lock, flags);
->  }
->
->  /* Calculate divisor for the given clock frequency */
-> @@ -1067,8 +1084,12 @@ static irqreturn_t omap_hsmmc_irq(int irq, void *dev_id)
->         int status;
->
->         status = OMAP_HSMMC_READ(host->base, STAT);
-> -       while (status & INT_EN_MASK && host->req_in_progress) {
-> -               omap_hsmmc_do_irq(host, status);
-> +       while (status & (INT_EN_MASK | CIRQ_EN)) {
-> +               if (host->req_in_progress)
-> +                       omap_hsmmc_do_irq(host, status);
-> +
-> +               if (status & CIRQ_EN)
-> +                       mmc_signal_sdio_irq(host->mmc);
->
->                 /* Flush posted write */
->                 status = OMAP_HSMMC_READ(host->base, STAT);
-> @@ -1583,6 +1604,37 @@ static void omap_hsmmc_init_card(struct mmc_host *mmc, struct mmc_card *card)
->                 mmc_slot(host).init_card(card);
->  }
->
-> +static void omap_hsmmc_enable_sdio_irq(struct mmc_host *mmc, int enable)
-> +{
-> +       struct omap_hsmmc_host *host = mmc_priv(mmc);
-> +       u32 irq_mask;
-> +       unsigned long flags;
-> +
-> +       spin_lock_irqsave(&host->irq_lock, flags);
-> +
-> +       irq_mask = OMAP_HSMMC_READ(host->base, ISE);
-> +       if (enable) {
-> +               host->flags |= HSMMC_SDIO_IRQ_ENABLED;
-> +               irq_mask |= CIRQ_EN;
-> +       } else {
-> +               host->flags &= ~HSMMC_SDIO_IRQ_ENABLED;
-> +               irq_mask &= ~CIRQ_EN;
-> +       }
-> +       OMAP_HSMMC_WRITE(host->base, IE, irq_mask);
-> +
-> +       /*
-> +        * if enable, piggy back detection on current request
-> +        * but always disable immediately
-> +        */
-> +       if (!host->req_in_progress || !enable)
-> +               OMAP_HSMMC_WRITE(host->base, ISE, irq_mask);
-> +
-> +       /* flush posted write */
-> +       OMAP_HSMMC_READ(host->base, IE);
-> +
-> +       spin_unlock_irqrestore(&host->irq_lock, flags);
-> +}
-> +
->  static void omap_hsmmc_conf_bus_power(struct omap_hsmmc_host *host)
->  {
->         u32 hctl, capa, value;
-> @@ -1635,7 +1687,7 @@ static const struct mmc_host_ops omap_hsmmc_ops = {
->         .get_cd = omap_hsmmc_get_cd,
->         .get_ro = omap_hsmmc_get_ro,
->         .init_card = omap_hsmmc_init_card,
-> -       /* NYET -- enable_sdio_irq */
-> +       .enable_sdio_irq = omap_hsmmc_enable_sdio_irq,
->  };
->
->  #ifdef CONFIG_DEBUG_FS
-> @@ -2021,6 +2073,22 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
->                 dev_warn(&pdev->dev,
->                         "pins are not configured from the driver\n");
->
-> +       /*
-> +        * For now, only support SDIO interrupt if we are booted with
-> +        * DT. This is because some platforms need special quirks. And
-> +        * we don't want to add new legacy mux platform init code
-> +        * callbacks any longer as we are moving to DT based booting
-> +        * anyways.
-> +        */
-> +       if (pdev->dev.of_node) {
-> +               mmc->caps |= MMC_CAP_SDIO_IRQ;
-> +               if (of_find_property(host->dev->of_node,
-> +                                    "ti,quirk-swakeup-missing", NULL)) {
-> +                       /* no wakeup from deeper power states, use polling */
-> +                       mmc->caps &= ~MMC_CAP_SDIO_IRQ;
-> +               }
-> +       }
-> +
->         omap_hsmmc_protect_card(host);
->
->         mmc_add_host(mmc);
-> --
-> 1.7.10.4
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
