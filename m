@@ -1,103 +1,46 @@
-From: "Anna, Suman" <s-anna-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCHv3 0/8]  omap hwspinlock dt support
-Date: Tue, 12 Nov 2013 12:16:42 -0600
-Message-ID: <5282708A.30601@ti.com>
-References: <1381439735-52888-1-git-send-email-s-anna@ti.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH] pinctrl: single: call pcs_soc->rearm() whenever IRQ mask
+ is changed
+Date: Tue, 12 Nov 2013 19:44:32 +0100
+Message-ID: <CACRpkdbo_TwX79hnJ5mCo8D4TSDd6OUzaOsFa8MgzjLy-H2U4Q@mail.gmail.com>
+References: <1381507996-15021-1-git-send-email-rogerq@ti.com>
+	<CACRpkdb7iUypffB7O7-RhQhVf5WkjYdVCNLRz=BgySG4FET-xQ@mail.gmail.com>
+	<20131011172337.GU29913@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1381439735-52888-1-git-send-email-s-anna-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ob0-f181.google.com ([209.85.214.181]:42897 "EHLO
+	mail-ob0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751972Ab3KLSoc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Nov 2013 13:44:32 -0500
+Received: by mail-ob0-f181.google.com with SMTP id uz6so5076727obc.40
+        for <linux-omap@vger.kernel.org>; Tue, 12 Nov 2013 10:44:32 -0800 (PST)
+In-Reply-To: <20131011172337.GU29913@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Roger Quadros <rogerq@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Haojian Zhuang <haojian.zhuang@linaro.org>, Benoit Cousson <bcousson@baylibre.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux-OMAP <linux-omap@vger.kernel.org>
 
+On Fri, Oct 11, 2013 at 7:23 PM, Tony Lindgren <tony@atomide.com> wrote:
+> * Linus Walleij <linus.walleij@linaro.org> [131011 09:27]:
+>> On Fri, Oct 11, 2013 at 6:13 PM, Roger Quadros <rogerq@ti.com> wrote:
+>>
+>> > On OMAPs the IO ring must be rearmed each time the pad wakeup
+>> > configuration is changed. So call pcs_soc->rearm() from
+>> > pcs_irq_set().
+>> >
+>> > Signed-off-by: Roger Quadros <rogerq@ti.com>
+>>
+>> If Tony needs to apply this with the other patches: Acked-by.
+>
+> Just replied with a slightly modified version of Roger's patch
+> suggesting you pull in the signed tag I posted for you yesterday
+> and then you can pick up Roger's fix into the pinctrl tree :)
 
-> Hi,
->
-> This is an updated series addressing the review comments from the
-> v2 series. The hwmod patches have been dropped from the repost
-> as per Paul's request, they have already been queued.
+Hm now that I go over these old mails in my inbox I start to
+worry that I missed something here, I have no memory of pulling
+a tag for OMAP... is this all in the state
+it needs to be for OMAP?
 
-Mark,
-
-Any comments on this series? Tony has picked up the OMAP DTS patches for 
-3.13, and so
-the "ti,omap4-hwspinlock" compatible string is showing up as 
-undocumented in linux-next.
-How do you want me to proceed here? I will be separating out the 
-bindings into separate patches
-in the future.
-
-regards
-Suman
-
->
-> The series is tested on top of v3.12-rc4 + Benoit's 3.13 DTS branch and
-> Tero's clock series, along with the queued hwmod patches.
->
-> Changes in v3:
-> - Removed the DT property hwlock-base-id and associated OF helper
-> - Added changes in core to support requesting a specific hwlock using
->    phandle + args approach
-> - Revised both the common and OMAP DT bindings document
-> - OMAP AM335 support patches are unchanged from v2.
-> - OMAP DTS patches are unchanged from v2.
->
-> v2
-> - Added a new common DT binding documentation and OF helpers (Patch1),
->    addressing the review comments from v1 [2]. The MSM support [1] needs
->    to be reworked on top of this common patch.
-> - Revised OMAP DT parse support to use the new OF helper (Patch2)
-> - OMAP5 hwspinlock support including the hwmod entry and DT node (Patches 4, 5)
-> - Add AM335x support to OMAP hwspinlock driver, including a fix
->    needed in driver given that AM335 spinlock module requires s/w wakeup
->    (Patches 6, 7)
-> - AM335 DT node for spinlock, and a hwmod change to enable smart-idle
->    for AM335 (Patches 8, 9). The sysc patch is not essential for AM335
->    spinlock functionality, but is needed for smart-idling the IP when
->    the module is enabled.
-> - OMAP4 DT node patch is unchanged (Patch 3)
-> http://marc.info/?l=linux-omap&m=137944644112727&w=2
->
-> v1:
-> - Add DT parse support to OMAP hwspinlock driver
-> - Add OMAP4 DT node and bindings information
-> http://marc.info/?l=linux-omap&m=137823082308009&w=2
->
-> [1] https://lkml.org/lkml/2013/8/14/528
-> [2] http://marc.info/?t=137823090300005&r=1&w=2
->
-> Suman Anna (8):
->    hwspinlock/core: maintain a list of registered hwspinlock banks
->    hwspinlock/core: add common dt bindings and OF helpers
->    hwspinlock/omap: add support for dt nodes
->    hwspinlock/omap: enable module before reading SYSSTATUS register
->    hwspinlock/omap: support AM33xx
->    ARM: dts: OMAP4: Add hwspinlock node
->    ARM: dts: OMAP5: Add hwspinlock node
->    ARM: dts: AM33XX: Add hwspinlock node
->
->   .../devicetree/bindings/hwlock/hwlock.txt          |  49 ++++++++
->   .../devicetree/bindings/hwlock/omap-hwspinlock.txt |  19 +++
->   arch/arm/boot/dts/am33xx.dtsi                      |   6 +
->   arch/arm/boot/dts/omap4.dtsi                       |   6 +
->   arch/arm/boot/dts/omap5.dtsi                       |   6 +
->   arch/arm/mach-omap2/Makefile                       |   3 -
->   arch/arm/mach-omap2/hwspinlock.c                   |  60 ----------
->   drivers/hwspinlock/Kconfig                         |   2 +-
->   drivers/hwspinlock/hwspinlock_core.c               | 133 ++++++++++++++++++++-
->   drivers/hwspinlock/hwspinlock_internal.h           |   2 +
->   drivers/hwspinlock/omap_hwspinlock.c               |  38 ++++--
->   include/linux/hwspinlock.h                         |  19 ++-
->   12 files changed, 263 insertions(+), 80 deletions(-)
->   create mode 100644 Documentation/devicetree/bindings/hwlock/hwlock.txt
->   create mode 100644 Documentation/devicetree/bindings/hwlock/omap-hwspinlock.txt
->   delete mode 100644 arch/arm/mach-omap2/hwspinlock.c
->
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Yours,
+Linus Walleij
