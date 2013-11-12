@@ -1,46 +1,72 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH] pinctrl: single: call pcs_soc->rearm() whenever IRQ mask
- is changed
-Date: Tue, 12 Nov 2013 19:44:32 +0100
-Message-ID: <CACRpkdbo_TwX79hnJ5mCo8D4TSDd6OUzaOsFa8MgzjLy-H2U4Q@mail.gmail.com>
-References: <1381507996-15021-1-git-send-email-rogerq@ti.com>
-	<CACRpkdb7iUypffB7O7-RhQhVf5WkjYdVCNLRz=BgySG4FET-xQ@mail.gmail.com>
-	<20131011172337.GU29913@atomide.com>
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+Subject: [PATCHv5 09/20] arm: dts: add omap4 CPU thermal data
+Date: Tue, 12 Nov 2013 15:46:11 -0400
+Message-ID: <1384285582-16933-10-git-send-email-eduardo.valentin@ti.com>
+References: <1384285582-16933-1-git-send-email-eduardo.valentin@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ob0-f181.google.com ([209.85.214.181]:42897 "EHLO
-	mail-ob0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751972Ab3KLSoc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Nov 2013 13:44:32 -0500
-Received: by mail-ob0-f181.google.com with SMTP id uz6so5076727obc.40
-        for <linux-omap@vger.kernel.org>; Tue, 12 Nov 2013 10:44:32 -0800 (PST)
-In-Reply-To: <20131011172337.GU29913@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1384285582-16933-1-git-send-email-eduardo.valentin@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com
+Cc: devicetree@vger.kernel.org, wni@nvidia.com, durgadoss.r@intel.com, linux-pm@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, Eduardo Valentin <eduardo.valentin@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, grant.likely@linaro.org, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Roger Quadros <rogerq@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Haojian Zhuang <haojian.zhuang@linaro.org>, Benoit Cousson <bcousson@baylibre.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux-OMAP <linux-omap@vger.kernel.org>
 
-On Fri, Oct 11, 2013 at 7:23 PM, Tony Lindgren <tony@atomide.com> wrote:
-> * Linus Walleij <linus.walleij@linaro.org> [131011 09:27]:
->> On Fri, Oct 11, 2013 at 6:13 PM, Roger Quadros <rogerq@ti.com> wrote:
->>
->> > On OMAPs the IO ring must be rearmed each time the pad wakeup
->> > configuration is changed. So call pcs_soc->rearm() from
->> > pcs_irq_set().
->> >
->> > Signed-off-by: Roger Quadros <rogerq@ti.com>
->>
->> If Tony needs to apply this with the other patches: Acked-by.
->
-> Just replied with a slightly modified version of Roger's patch
-> suggesting you pull in the signed tag I posted for you yesterday
-> and then you can pick up Roger's fix into the pinctrl tree :)
-
-Hm now that I go over these old mails in my inbox I start to
-worry that I missed something here, I have no memory of pulling
-a tag for OMAP... is this all in the state
-it needs to be for OMAP?
-
-Yours,
-Linus Walleij
+VGhpcyBwYXRjaCBjaGFuZ2VzIGEgZHRzaSBmaWxlIHRvIGNvbnRhaW4gdGhlIHRoZXJtYWwgZGF0
+YQpmb3IgTVBVIGRvbWFpbiBvbiBPTUFQNCBhbmQgbGF0ZXIgU29Dcy4gVGhpcyBkYXRhIHdpbGwK
+ZW5hYmxlIHRoZSBwYXNzaXZlIGNvb2xpbmcgd2l0aCBDUFVmcmVxIGNvb2xpbmcgZGV2aWNlCmF0
+IDEwMEMgYW5kIHRoZSBzeXN0ZW0gd2lsbCBkbyBhIHRoZXJtYWwgc2h1dGRvd24gYXQgMTI1Qy4K
+ClRoaXMgdGhlcm1hbCBkYXRhIGNhbiBiZSByZXVzZWQgYWNyb3NzIFRJIFNvQyBkZXZpY2VzLgoK
+Q2M6ICJCZW5vw650IENvdXNzb24iIDxiY291c3NvbkBiYXlsaWJyZS5jb20+CkNjOiBUb255IExp
+bmRncmVuIDx0b255QGF0b21pZGUuY29tPgpDYzogUm9iIEhlcnJpbmcgPHJvYi5oZXJyaW5nQGNh
+bHhlZGEuY29tPgpDYzogUGF3ZWwgTW9sbCA8cGF3ZWwubW9sbEBhcm0uY29tPgpDYzogTWFyayBS
+dXRsYW5kIDxtYXJrLnJ1dGxhbmRAYXJtLmNvbT4KQ2M6IFN0ZXBoZW4gV2FycmVuIDxzd2FycmVu
+QHd3d2RvdG9yZy5vcmc+CkNjOiBJYW4gQ2FtcGJlbGwgPGlhbi5jYW1wYmVsbEBjaXRyaXguY29t
+PgpDYzogUnVzc2VsbCBLaW5nIDxsaW51eEBhcm0ubGludXgub3JnLnVrPgpDYzogbGludXgtb21h
+cEB2Z2VyLmtlcm5lbC5vcmcKQ2M6IGRldmljZXRyZWVAdmdlci5rZXJuZWwub3JnCkNjOiBsaW51
+eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKQ2M6IGxpbnV4LWtlcm5lbEB2Z2VyLmtl
+cm5lbC5vcmcKU2lnbmVkLW9mZi1ieTogRWR1YXJkbyBWYWxlbnRpbiA8ZWR1YXJkby52YWxlbnRp
+bkB0aS5jb20+Ci0tLQpDaGFuZ2UgZnJvbSB2NDoKLSBVc2luZyBzdHJpbmcgY29uc3RhbnRzIGlu
+c3RlYWQgb2YgbWFjcm9zIG9uIHRyaXAgdHlwZXMKCiBhcmNoL2FybS9ib290L2R0cy9vbWFwNC1j
+cHUtdGhlcm1hbC5kdHNpIHwgNDEgKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysKIDEg
+ZmlsZSBjaGFuZ2VkLCA0MSBpbnNlcnRpb25zKCspCiBjcmVhdGUgbW9kZSAxMDA2NDQgYXJjaC9h
+cm0vYm9vdC9kdHMvb21hcDQtY3B1LXRoZXJtYWwuZHRzaQoKZGlmZiAtLWdpdCBhL2FyY2gvYXJt
+L2Jvb3QvZHRzL29tYXA0LWNwdS10aGVybWFsLmR0c2kgYi9hcmNoL2FybS9ib290L2R0cy9vbWFw
+NC1jcHUtdGhlcm1hbC5kdHNpCm5ldyBmaWxlIG1vZGUgMTAwNjQ0CmluZGV4IDAwMDAwMDAuLmNi
+OTQ1OGYKLS0tIC9kZXYvbnVsbAorKysgYi9hcmNoL2FybS9ib290L2R0cy9vbWFwNC1jcHUtdGhl
+cm1hbC5kdHNpCkBAIC0wLDAgKzEsNDEgQEAKKy8qCisgKiBEZXZpY2UgVHJlZSBTb3VyY2UgZm9y
+IE9NQVA0LzUgU29DIENQVSB0aGVybWFsCisgKgorICogQ29weXJpZ2h0IChDKSAyMDEzIFRleGFz
+IEluc3RydW1lbnRzIEluY29ycG9yYXRlZCAtIGh0dHA6Ly93d3cudGkuY29tLworICogQ29udGFj
+dDogRWR1YXJkbyBWYWxlbnRpbiA8ZWR1YXJkby52YWxlbnRpbkB0aS5jb20+CisgKgorICogVGhp
+cyBmaWxlIGlzIGxpY2Vuc2VkIHVuZGVyIHRoZSB0ZXJtcyBvZiB0aGUgR05VIEdlbmVyYWwgUHVi
+bGljIExpY2Vuc2UKKyAqIHZlcnNpb24gMi4gIFRoaXMgcHJvZ3JhbSBpcyBsaWNlbnNlZCAiYXMg
+aXMiIHdpdGhvdXQgYW55IHdhcnJhbnR5IG9mIGFueQorICoga2luZCwgd2hldGhlciBleHByZXNz
+IG9yIGltcGxpZWQuCisgKi8KKworI2luY2x1ZGUgPGR0LWJpbmRpbmdzL3RoZXJtYWwvdGhlcm1h
+bC5oPgorCitjcHVfdGhlcm1hbDogY3B1X3RoZXJtYWwgeworCXBvbGxpbmctZGVsYXktcGFzc2l2
+ZSA9IDwyNTA+OyAvKiBtaWxsaXNlY29uZHMgKi8KKwlwb2xsaW5nLWRlbGF5ID0gPDEwMDA+OyAv
+KiBtaWxsaXNlY29uZHMgKi8KKworCQkJLyogc2Vuc29yICAgICAgIElEICovCisgICAgICAgIHRo
+ZXJtYWwtc2Vuc29ycyA9IDwmYmFuZGdhcCAgICAgMD47CisKKyAgICAgICAgdHJpcHMgeworICAg
+ICAgICAgICAgICAgIGNwdV9hbGVydDA6IGNwdV9hbGVydCB7CisgICAgICAgICAgICAgICAgICAg
+ICAgICB0ZW1wZXJhdHVyZSA9IDwxMDAwMDA+OyAvKiBtaWxsaWNlbHNpdXMgKi8KKyAgICAgICAg
+ICAgICAgICAgICAgICAgIGh5c3RlcmVzaXMgPSA8MjAwMD47IC8qIG1pbGxpY2Vsc2l1cyAqLwor
+ICAgICAgICAgICAgICAgICAgICAgICAgdHlwZSA9ICJwYXNzaXZlIjsKKyAgICAgICAgICAgICAg
+ICB9OworICAgICAgICAgICAgICAgIGNwdV9jcml0OiBjcHVfY3JpdCB7CisgICAgICAgICAgICAg
+ICAgICAgICAgICB0ZW1wZXJhdHVyZSA9IDwxMjUwMDA+OyAvKiBtaWxsaWNlbHNpdXMgKi8KKyAg
+ICAgICAgICAgICAgICAgICAgICAgIGh5c3RlcmVzaXMgPSA8MjAwMD47IC8qIG1pbGxpY2Vsc2l1
+cyAqLworICAgICAgICAgICAgICAgICAgICAgICAgdHlwZSA9ICJjcml0aWNhbCI7CisgICAgICAg
+ICAgICAgICAgfTsKKyAgICAgICAgfTsKKworCWNvb2xpbmctbWFwcyB7CisJCW1hcDAgeworCQkJ
+dHJpcCA9IDwmY3B1X2FsZXJ0MD47CisJCQljb29saW5nLWRldmljZSA9CisJCQkJPCZjcHUwIFRI
+RVJNQUxfTk9fTElNSVQgVEhFUk1BTF9OT19MSU1JVD47CisJCX07CisJfTsKK307Ci0tIAoxLjgu
+Mi4xLjM0Mi5nZmE3Mjg1ZAoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1rZXJuZWxA
+bGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xp
+c3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
