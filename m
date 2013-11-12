@@ -1,55 +1,57 @@
 From: Eduardo Valentin <eduardo.valentin@ti.com>
-Subject: [PATCHv5 11/20] arm: dts: add omap4460 thermal data
-Date: Tue, 12 Nov 2013 15:46:13 -0400
-Message-ID: <1384285582-16933-12-git-send-email-eduardo.valentin@ti.com>
+Subject: [PATCHv5 13/20] arm: dts: add cooling properties on omap4460 cpu node
+Date: Tue, 12 Nov 2013 15:46:15 -0400
+Message-ID: <1384285582-16933-14-git-send-email-eduardo.valentin@ti.com>
 References: <1384285582-16933-1-git-send-email-eduardo.valentin@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1384285582-16933-1-git-send-email-eduardo.valentin@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: swarren@wwwdotorg.org, pawel.moll@arm.com, mark.rutland@arm.com, ian.campbell@citrix.com, rob.herring@calxeda.com, linux@roeck-us.net, rui.zhang@intel.com
-Cc: devicetree@vger.kernel.org, wni@nvidia.com, durgadoss.r@intel.com, linux-pm@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, Eduardo Valentin <eduardo.valentin@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, grant.likely@linaro.org, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: wni@nvidia.com, grant.likely@linaro.org, durgadoss.r@intel.com, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-VGhpcyBwYXRjaCBjaGFuZ2VzIHRoZSBkdHNpIGVudHJ5IG9uIG9tYXA0NDYwIHRvIGNvbnRhaW4K
-dGhlIHRoZXJtYWwgZGF0YS4gVGhpcyBkYXRhIHdpbGwgZW5hYmxlIHRoZSBwYXNzaXZlCmNvb2xp
-bmcgd2l0aCBDUFVmcmVxIGNvb2xpbmcgZGV2aWNlIGF0IDEwMEMgYW5kIHRoZQpzeXN0ZW0gd2ls
-bCBkbyBhIHRoZXJtYWwgc2h1dGRvd24gYXQgMTI1Qy4KCkNjOiAiQmVub8OudCBDb3Vzc29uIiA8
-YmNvdXNzb25AYmF5bGlicmUuY29tPgpDYzogVG9ueSBMaW5kZ3JlbiA8dG9ueUBhdG9taWRlLmNv
-bT4KQ2M6IFJvYiBIZXJyaW5nIDxyb2IuaGVycmluZ0BjYWx4ZWRhLmNvbT4KQ2M6IFBhd2VsIE1v
-bGwgPHBhd2VsLm1vbGxAYXJtLmNvbT4KQ2M6IE1hcmsgUnV0bGFuZCA8bWFyay5ydXRsYW5kQGFy
-bS5jb20+CkNjOiBTdGVwaGVuIFdhcnJlbiA8c3dhcnJlbkB3d3dkb3Rvcmcub3JnPgpDYzogSWFu
-IENhbXBiZWxsIDxpYW4uY2FtcGJlbGxAY2l0cml4LmNvbT4KQ2M6IFJ1c3NlbGwgS2luZyA8bGlu
-dXhAYXJtLmxpbnV4Lm9yZy51az4KQ2M6IGxpbnV4LW9tYXBAdmdlci5rZXJuZWwub3JnCkNjOiBk
-ZXZpY2V0cmVlQHZnZXIua2VybmVsLm9yZwpDYzogbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZy
-YWRlYWQub3JnCkNjOiBsaW51eC1rZXJuZWxAdmdlci5rZXJuZWwub3JnClNpZ25lZC1vZmYtYnk6
-IEVkdWFyZG8gVmFsZW50aW4gPGVkdWFyZG8udmFsZW50aW5AdGkuY29tPgotLS0KIGFyY2gvYXJt
-L2Jvb3QvZHRzL29tYXA0NDYwLmR0c2kgfCAxMCArKysrKysrKy0tCiAxIGZpbGUgY2hhbmdlZCwg
-OCBpbnNlcnRpb25zKCspLCAyIGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2FyY2gvYXJtL2Jv
-b3QvZHRzL29tYXA0NDYwLmR0c2kgYi9hcmNoL2FybS9ib290L2R0cy9vbWFwNDQ2MC5kdHNpCmlu
-ZGV4IGMyZjBmMzkuLjRkOTNhYmEgMTAwNjQ0Ci0tLSBhL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXA0
-NDYwLmR0c2kKKysrIGIvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDQ0NjAuZHRzaQpAQCAtMTIsNyAr
-MTIsNyBAQAogLyB7CiAJY3B1cyB7CiAJCS8qIE9NQVA0NDZ4ICdzdGFuZGFyZCBkZXZpY2UnIHZh
-cmlhbnRzIE9QUDUwIHRvIE9QUFR1cmJvICovCi0JCWNwdUAwIHsKKwkJY3B1MDogY3B1QDAgewog
-CQkJb3BlcmF0aW5nLXBvaW50cyA9IDwKIAkJCQkvKiBrSHogICAgdVYgKi8KIAkJCQkzNTAwMDAg
-IDEwMjUwMDAKQEAgLTMwLDEyICszMCwxOCBAQAogCQl0aSxod21vZHMgPSAiZGVidWdzcyI7CiAJ
-fTsKIAotCWJhbmRnYXAgeworCXRoZXJtYWwtem9uZXN7CisJCSNpbmNsdWRlICJvbWFwNC1jcHUt
-dGhlcm1hbC5kdHNpIgorCX07CisKKwliYW5kZ2FwOiBiYW5kZ2FwIHsKIAkJcmVnID0gPDB4NGEw
-MDIyNjAgMHg0CiAJCSAgICAgICAweDRhMDAyMzJDIDB4NAogCQkgICAgICAgMHg0YTAwMjM3OCAw
-eDE4PjsKIAkJY29tcGF0aWJsZSA9ICJ0aSxvbWFwNDQ2MC1iYW5kZ2FwIjsKIAkJaW50ZXJydXB0
-cyA9IDwwIDEyNiBJUlFfVFlQRV9MRVZFTF9ISUdIPjsgLyogdGFsZXJ0ICovCiAJCWdwaW9zID0g
-PCZncGlvMyAyMiAwPjsgLyogdHNodXQgKi8KKworCQkjdGhlcm1hbC1zZW5zb3ItY2VsbHMgPSA8
-MD47CiAJfTsKIH07Ci0tIAoxLjguMi4xLjM0Mi5nZmE3Mjg1ZAoKCl9fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBs
-aXN0CmxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5m
-cmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
+OMAP4460 devices can reach high temperatures and thus
+needs to have cpufreq-cooling on systems running on it.
+
+This patch adds the required cooling device properties
+so that cpufreq-cpu0 driver loads the cooling device.
+
+Cc: "Beno=C3=AEt Cousson" <bcousson@baylibre.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Rob Herring <rob.herring@calxeda.com>
+Cc: Pawel Moll <pawel.moll@arm.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Stephen Warren <swarren@wwwdotorg.org>
+Cc: Ian Campbell <ian.campbell@citrix.com>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org
+Cc: devicetree@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
+Cc: linux-kernel@vger.kernel.org
+Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
+---
+ arch/arm/boot/dts/omap4460.dtsi | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/arch/arm/boot/dts/omap4460.dtsi b/arch/arm/boot/dts/omap44=
+60.dtsi
+index 4d93aba..dc22719 100644
+--- a/arch/arm/boot/dts/omap4460.dtsi
++++ b/arch/arm/boot/dts/omap4460.dtsi
+@@ -20,6 +20,11 @@
+ 				920000  1313000
+ 			>;
+ 			clock-latency =3D <300000>; /* From legacy driver */
++
++			/* cooling options */
++			cooling-min-level =3D <0>;
++			cooling-max-level =3D <2>;
++			#cooling-cells =3D <2>; /* min followed by max */
+ 		};
+ 	};
+=20
+--=20
+1.8.2.1.342.gfa7285d
