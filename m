@@ -1,84 +1,67 @@
-From: Sricharan R <r.sricharan@ti.com>
-Subject: Re: [PATCH V3 7/7] ARM: DRA: Enable Crossbar IP support for DRA7XX
-Date: Wed, 13 Nov 2013 21:05:13 +0530
-Message-ID: <52839C31.7070709@ti.com>
-References: <1383657257-3458-1-git-send-email-r.sricharan@ti.com> <1383657257-3458-8-git-send-email-r.sricharan@ti.com> <5281BF70.4050708@ti.com> <5281C0E9.8020104@ti.com> <52839B9C.8090707@ti.com>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: [PATCH V2] ARM: OMAP2+: omap_device: maintain sane runtime pm status around suspend/resume
+Date: Wed, 13 Nov 2013 07:45:12 -0800
+Message-ID: <87vbzwl307.fsf@linaro.org>
+References: <1384297710-29694-1-git-send-email-nm@ti.com>
+	<20131113125149.GB28192@saruman.home> <52839306.7050701@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:47352 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753522Ab3KMPgC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 13 Nov 2013 10:36:02 -0500
-In-Reply-To: <52839B9C.8090707@ti.com>
+Received: from mail-pa0-f44.google.com ([209.85.220.44]:38029 "EHLO
+	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756218Ab3KMPpP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Nov 2013 10:45:15 -0500
+Received: by mail-pa0-f44.google.com with SMTP id hz1so594533pad.31
+        for <linux-omap@vger.kernel.org>; Wed, 13 Nov 2013 07:45:15 -0800 (PST)
+In-Reply-To: <52839306.7050701@ti.com> (Nishanth Menon's message of "Wed, 13
+	Nov 2013 08:56:06 -0600")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Nishanth Menon <nm@ti.com>
-Cc: Rajendra Nayak <rnayak@ti.com>, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linus.walleij@linaro.org, linux@arm.linux.org.uk, tony@atomide.com, marc.zyngier@arm.com, grant.likely@linaro.org, mark.rutland@arm.com, robherring2@gmail.com, tglx@linutronix.de, santosh.shilimkar@ti.com, galak@codeaurora.org
+Cc: balbi@ti.com, Tony Lindgren <tony@atomide.com>, paul@pwsan.com, rnayak@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 
-On Wednesday 13 November 2013 09:02 PM, Nishanth Menon wrote:
-> On 11/11/2013 11:47 PM, Sricharan R wrote:
->> Hi Rajendra,
->>
->> On Tuesday 12 November 2013 11:11 AM, Rajendra Nayak wrote:
->>> On Tuesday 05 November 2013 06:44 PM, Sricharan R wrote:
->>>> Enable the crossbar IP support for DRA7xx soc.
->>>>
->>>> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
->>>> Cc: Rajendra Nayak <rnayak@ti.com>
->>>> Cc: Tony Lindgren <tony@atomide.com>
->>>> Signed-off-by: Sricharan R <r.sricharan@ti.com>
->>>> ---
->>>>  arch/arm/mach-omap2/Kconfig        |    1 +
->>>>  arch/arm/mach-omap2/omap4-common.c |    4 ++++
->>>>  2 files changed, 5 insertions(+)
->>>>
->>>> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
->>>> index b5fb5f7..2086c65 100644
->>>> --- a/arch/arm/mach-omap2/Kconfig
->>>> +++ b/arch/arm/mach-omap2/Kconfig
->>>> @@ -141,6 +141,7 @@ config SOC_DRA7XX
->>>>  	select ARM_GIC
->>>>  	select HAVE_SMP
->>>>  	select COMMON_CLK
->>>> +	select IRQ_CROSSBAR
->>>>  
->>>>  comment "OMAP Core Type"
->>>>  	depends on ARCH_OMAP2
->>>> diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
->>>> index 5791143..274cbfa 100644
->>>> --- a/arch/arm/mach-omap2/omap4-common.c
->>>> +++ b/arch/arm/mach-omap2/omap4-common.c
->>>> @@ -22,6 +22,7 @@
->>>>  #include <linux/of_platform.h>
->>>>  #include <linux/export.h>
->>>>  #include <linux/irqchip/arm-gic.h>
->>>> +#include <linux/irqchip/irq-crossbar.h>
->>>>  #include <linux/of_address.h>
->>>>  #include <linux/reboot.h>
->>>>  
->>>> @@ -282,9 +283,12 @@ void __init omap_gic_of_init(void)
->>>>  
->>>>  skip_errata_init:
->>>>  	omap_wakeupgen_init();
->>>> +	if (soc_is_dra7xx())
->>>> +		crossbar_init();
->>> Its good if this is called irqcrossbar_init() to avoid confusion
->>> with the dma crossbar which also exists in dra7 devices.
->>>
->>  Ya makes sense. Will change this.
-> Also why not call it without explicit soc check? there is already
-> parse for of_find_matching_node(NULL, crossbar_match); to see if we
-> have a match in the crossbar_init. OR call it from dra7 init without
-> SoC check dependency?
->
-> Rationale - with more TI SoCs trending towards crossbar, we dont need
-> to keep adding to the soc_is checks, further, we intend to remove
-> soc_is checks in it's entirety..
->
->
-Oh yes. I missed this. Thanks for pointing. Will correct.
+Nishanth Menon <nm@ti.com> writes:
 
-Regards,
- Sricharan
+> On 11/13/2013 06:51 AM, Felipe Balbi wrote:
+>> Hi,
+>> 
+>> On Tue, Nov 12, 2013 at 05:08:30PM -0600, Nishanth Menon wrote:
+>>> diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
+>>> index b69dd9a..f97b34b 100644
+>>> --- a/arch/arm/mach-omap2/omap_device.c
+>>> +++ b/arch/arm/mach-omap2/omap_device.c
+>>> @@ -621,6 +621,7 @@ static int _od_suspend_noirq(struct device *dev)
+>>>  
+>>>  	if (!ret && !pm_runtime_status_suspended(dev)) {
+>>>  		if (pm_generic_runtime_suspend(dev) == 0) {
+>>> +			pm_runtime_set_suspended(dev);
+>> 
+>> don't you have to disable pm_runtime around status changes ? Or is
+>> pm_runtime already disabled by the time we get here ?
+>
+> pm_runtime is already disabled by the time no_irq suspend is invoked.
+>
+>> 
+>>> @@ -634,10 +635,10 @@ static int _od_resume_noirq(struct device *dev)
+>>>  	struct platform_device *pdev = to_platform_device(dev);
+>>>  	struct omap_device *od = to_omap_device(pdev);
+>>>  
+>>> -	if ((od->flags & OMAP_DEVICE_SUSPENDED) &&
+>>> -	    !pm_runtime_status_suspended(dev)) {
+>>> +	if (od->flags & OMAP_DEVICE_SUSPENDED) {
+>>>  		od->flags &= ~OMAP_DEVICE_SUSPENDED;
+>>>  		omap_device_enable(pdev);
+>>> +		pm_runtime_set_active(dev);
+>> 
+>> ditto, also pm_runtime_set_active() may fail.
+>> 
+> again, pm_runtime is not yet active here yet - we just restore the pm
+> runtime state with which we went down with -> and that is not expected
+> to fail either - So, how about just adding a WARN if our expectation
+> of balanced operation was somehow broken in the future with changes to
+> runtime framework?
+
+And also a note in the changelog (or comment at the WARN) about the
+assumption that runtime PM is disabled at this point.
+
+Kevin
