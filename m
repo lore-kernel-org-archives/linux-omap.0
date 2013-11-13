@@ -1,72 +1,37 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH V2] ARM: OMAP2+: omap_device: maintain sane runtime pm
- status around suspend/resume
-Date: Wed, 13 Nov 2013 09:28:07 -0600
-Message-ID: <52839A87.3020408@ti.com>
-References: <1384297710-29694-1-git-send-email-nm@ti.com> <20131113125149.GB28192@saruman.home> <52839306.7050701@ti.com> <20131113152001.GC29226@saruman.home>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH V3 4/7] ARM: DTS: DRA: Replace peripheral interrupt numbers
+ with crossbar inputs
+Date: Wed, 13 Nov 2013 10:29:08 -0500
+Message-ID: <52839AC4.5090103@ti.com>
+References: <1383657257-3458-1-git-send-email-r.sricharan@ti.com> <1383657257-3458-5-git-send-email-r.sricharan@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20131113152001.GC29226@saruman.home>
-Sender: linux-kernel-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: Tony Lindgren <tony@atomide.com>, paul@pwsan.com, rnayak@ti.com, khilman@linaro.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <1383657257-3458-5-git-send-email-r.sricharan@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Sricharan R <r.sricharan@ti.com>
+Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linus.walleij@linaro.org, linux@arm.linux.org.uk, tony@atomide.com, rnayak@ti.com, marc.zyngier@arm.com, grant.likely@linaro.org, mark.rutland@arm.com, robherring2@gmail.com, tglx@linutronix.de, galak@codeaurora.org, Benoit Cousson <bcousson@baylibre.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 11/13/2013 09:20 AM, Felipe Balbi wrote:
-> On Wed, Nov 13, 2013 at 08:56:06AM -0600, Nishanth Menon wrote:
->> On 11/13/2013 06:51 AM, Felipe Balbi wrote:
->>> Hi,
->>>
->>> On Tue, Nov 12, 2013 at 05:08:30PM -0600, Nishanth Menon wrote:
->>>> diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
->>>> index b69dd9a..f97b34b 100644
->>>> --- a/arch/arm/mach-omap2/omap_device.c
->>>> +++ b/arch/arm/mach-omap2/omap_device.c
->>>> @@ -621,6 +621,7 @@ static int _od_suspend_noirq(struct device *dev)
->>>>  
->>>>  	if (!ret && !pm_runtime_status_suspended(dev)) {
->>>>  		if (pm_generic_runtime_suspend(dev) == 0) {
->>>> +			pm_runtime_set_suspended(dev);
->>>
->>> don't you have to disable pm_runtime around status changes ? Or is
->>> pm_runtime already disabled by the time we get here ?
->>
->> pm_runtime is already disabled by the time no_irq suspend is invoked.
->>
->>>
->>>> @@ -634,10 +635,10 @@ static int _od_resume_noirq(struct device *dev)
->>>>  	struct platform_device *pdev = to_platform_device(dev);
->>>>  	struct omap_device *od = to_omap_device(pdev);
->>>>  
->>>> -	if ((od->flags & OMAP_DEVICE_SUSPENDED) &&
->>>> -	    !pm_runtime_status_suspended(dev)) {
->>>> +	if (od->flags & OMAP_DEVICE_SUSPENDED) {
->>>>  		od->flags &= ~OMAP_DEVICE_SUSPENDED;
->>>>  		omap_device_enable(pdev);
->>>> +		pm_runtime_set_active(dev);
->>>
->>> ditto, also pm_runtime_set_active() may fail.
->>>
->> again, pm_runtime is not yet active here yet - we just restore the pm
->> runtime state with which we went down with -> and that is not expected
->> to fail either - So, how about just adding a WARN if our expectation
->> of balanced operation was somehow broken in the future with changes to
->> runtime framework?
+On Tuesday 05 November 2013 08:14 AM, Sricharan R wrote:
+> Now with the crossbar IP in picture, the peripherals do not have the
+> fixed interrupt lines. Instead they rely on the crossbar irqchip to
+> allocate and map a free interrupt line to its crossbar input. So replacing
+> all the peripheral interrupt numbers with its fixed crossbar input lines.
 > 
-> you mean:
+> Cc: Benoit Cousson <bcousson@baylibre.com>
+> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Cc: Rajendra Nayak <rnayak@ti.com>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Signed-off-by: Sricharan R <r.sricharan@ti.com>
+> ---
+>  arch/arm/boot/dts/dra7.dtsi |   86 +++++++++++++++++++++----------------------
+>  1 file changed, 43 insertions(+), 43 deletions(-)
 > 
-> WARN(pm_runtime_set_active(dev));  ?
+You probably need to split the series with dts and drivers/irqchip/*
+changes.
 
-yes
+For patch itself,
+Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-> 
-> sounds good
-
-Thanks. Will post a v3 tomorrow morning to give a chance for
-discussions on further comments if any.
-
--- 
-Regards,
-Nishanth Menon
