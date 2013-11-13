@@ -1,54 +1,103 @@
-From: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
-Subject: Re: [PATCHv3 0/8]  omap hwspinlock dt support
-Date: Wed, 13 Nov 2013 09:36:22 +0000
-Message-ID: <20131113093622.GA21713@e106331-lin.cambridge.arm.com>
-References: <1381439735-52888-1-git-send-email-s-anna@ti.com>
- <5282708A.30601@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH] ARM: dts: AM437x GP EVM support
+Date: Wed, 13 Nov 2013 06:44:23 -0600
+Message-ID: <20131113124423.GA28192@saruman.home>
+References: <1384255468-2453-1-git-send-email-afzal@ti.com>
+ <20131112142206.GD31721@saruman.home> <5283247D.7010106@ti.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <5282708A.30601-l0cyMroinI0@public.gmane.org>
-Content-Language: en-US
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Anna, Suman" <s-anna-l0cyMroinI0@public.gmane.org>
-Cc: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: multipart/mixed; boundary="===============1129387236546886123=="
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <5283247D.7010106@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Afzal Mohammed <afzal@ti.com>
+Cc: Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, Ian Campbell <ijc+devicetree@hellion.org.uk>, Rajendra Nayak <rnayak@ti.com>, Russell King <linux@arm.linux.org.uk>, Benoit Cousson <bcousson@baylibre.com>, Pawel Moll <pawel.moll@arm.com>, linux-doc@vger.kernel.org, Lokesh Vutla <lokeshvutla@ti.com>, Stephen Warren <swarren@wwwdotorg.org>, balbi@ti.com, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, Sourav Poddar <sourav.poddar@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Nov 12, 2013 at 06:16:42PM +0000, Anna, Suman wrote:
-> 
-> > Hi,
-> >
-> > This is an updated series addressing the review comments from the
-> > v2 series. The hwmod patches have been dropped from the repost
-> > as per Paul's request, they have already been queued.
-> 
-> Mark,
+--===============1129387236546886123==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="+QahgC5+KEYLbs62"
+Content-Disposition: inline
 
-Hi Suman,
+--+QahgC5+KEYLbs62
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> 
-> Any comments on this series? Tony has picked up the OMAP DTS patches for 
-> 3.13, and so
-> the "ti,omap4-hwspinlock" compatible string is showing up as 
-> undocumented in linux-next.
-> How do you want me to proceed here? I will be separating out the 
-> bindings into separate patches
-> in the future.
+On Wed, Nov 13, 2013 at 12:34:29PM +0530, Afzal Mohammed wrote:
+> Hi Felipe,
+>=20
+> On Tuesday 12 November 2013 07:52 PM, Felipe Balbi wrote:
+> > On Tue, Nov 12, 2013 at 04:54:26PM +0530, Afzal Mohammed wrote:
+> >> From: Lokesh Vutla <lokeshvutla@ti.com>
+>=20
+> >> AM437x GP EVM DTS with pinmux information to make I2C on EVM usable.
+> >>
+> >> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+> >> Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
+> >> Signed-off-by: Afzal Mohammed <afzal@ti.com>
+>=20
+> > could you instead send the much more complete version we already have
+> > at [1] ? It's pointless to repatch all of that in this file if we *know*
+> > those are already working.
+>=20
+> By taking those changes and testing on mainline, I couldn't get mmc
+> working and was not confident about ethernet changes, I2C changes were
+> verified and boot test was done (with DT clock series). I posted only
+> the changes that I felt confident.
+>=20
+> Basic DT file and I2C are dependency for others, it was necessary to
+> remove dependencies at the earliest.
 
-The only thing I note that I'm not so keen on is that the
-hwlock-specifier is always one cell, rather than using a #hwlock-cells
-property on the provider (even if we required it to be <1> for the
-moment and just failed if it wasn't).
+fair enough, still sounds weird not to send the full DTS considering
+it won't cause regressions, it just exposes an existing failure WRT
+AM437x support upstream.
 
-If possible, I would like an amendment to always use #hwlock-cells, but
-otherwise this looks fine to me. Feel free to add my Ack:
+--=20
+balbi
 
-Acked-by: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
+--+QahgC5+KEYLbs62
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-Thanks,
-Mark.
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.15 (GNU/Linux)
+
+iQIcBAEBAgAGBQJSg3QnAAoJEIaOsuA1yqREiUMQAKPxc2/8SpAHQCG2uOn+ACyC
+UZkvYfkzE8hf4n/GkL1S8m/q1ytuQUm+nFw86WCID2hT+Jtlf1hRXtbNzpm92vwP
+KlJXT16A5OHvr2jA4OwXVg7TklJQLCaymWUed0lKdRLy2Q4esSbdmJJ2IEjsAd0S
+95TsCfX49CnXE11BG4kcnDr2M6RbUr3Xdu2CwW/NThBu0B0r7yrDfjxP9AJkXSjx
+uce3arVk1df4p00RXhT75Hd8J8hGx9zrcKDU7unQViFKyJKfzYu/zmwMLCm6ttBz
+qER8pzH2zV4PjfjlyKxSCxs8NCvGKumdW7Bm3JThTD9lEbJ75Z3Cvrpb/ZEoq+An
+JpVtD+82uquNOyoLRmTC5GazP+5zP4RcnD8FF+q/J/d58ffvnC0sBPQleFjyoSXd
+TMpSRM74hjCzY8VeX+06/TqYMcCU+bwrzxkRIdhWGiKniTOSuJjBzyjENoxVEtFf
+v6aCshI8itaiXpEQbnF0GYUV+sBMT6D9d7NPjLqXTuctMjsxnbEqabieF8E8Fcye
+36axIyf4WnmFmHQPg1I6pSJSmKMd/56dYx7/YdIaIgu9YcH0yb2FXv8M8bixNt7a
+QRJx23qgcYpIi1FiVPpOiNJjm2Wjpfb1HfrkCHnE8qPDajlaLPv5EvH+TVvN78bt
+6BlYS7dKpFON6ORoFBV4
+=k3JU
+-----END PGP SIGNATURE-----
+
+--+QahgC5+KEYLbs62--
+
+
+--===============1129387236546886123==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+--===============1129387236546886123==--
