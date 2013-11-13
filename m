@@ -1,35 +1,45 @@
-From: Anton Vorontsov <anton@enomsg.org>
-Subject: Re: [PATCH] twl4030_charger: add devicetree support.
-Date: Tue, 12 Nov 2013 22:40:19 -0800
-Message-ID: <20131113064019.GB31149@teo>
-References: <20131031170550.686cdf1e@notabene.brown>
+From: Afzal Mohammed <afzal@ti.com>
+Subject: Re: [PATCH] ARM: dts: AM437x GP EVM support
+Date: Wed, 13 Nov 2013 12:34:29 +0530
+Message-ID: <5283247D.7010106@ti.com>
+References: <1384255468-2453-1-git-send-email-afzal@ti.com> <20131112142206.GD31721@saruman.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f43.google.com ([209.85.220.43]:45376 "EHLO
-	mail-pa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751394Ab3KMGkm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Nov 2013 01:40:42 -0500
-Received: by mail-pa0-f43.google.com with SMTP id fa1so4373385pad.16
-        for <linux-omap@vger.kernel.org>; Tue, 12 Nov 2013 22:40:42 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <20131031170550.686cdf1e@notabene.brown>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <20131112142206.GD31721@saruman.home>
+Sender: linux-doc-owner@vger.kernel.org
+To: balbi@ti.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, Lokesh Vutla <lokeshvutla@ti.com>, Sourav Poddar <sourav.poddar@ti.com>, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Rob Landley <rob@landley.net>, Russell King <linux@arm.linux.org.uk>, Benoit Cousson <bcousson@baylibre.com>, Rajendra Nayak <rnayak@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: NeilBrown <neilb@suse.de>
-Cc: David Woodhouse <dwmw2@infradead.org>, Grant Likely <grant.likely@linaro.org>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Belisko Marek <marek.belisko@gmail.com>, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>
 
-On Thu, Oct 31, 2013 at 05:05:50PM +1100, NeilBrown wrote:
-> 
-> This allows the charger to be enabled with devicetree, and
-> allows the parameters for charging the backup battery to be set.
-> 
-> Signed-off-by: NeilBrown <neilb@suse.de>
-> Acked-by: Kumar Gala <galak@codeaurora.org>
-> Acked-by: Grant Likely <grant.likely@linaro.org>
-> 
-> --
-> This version with correct property names and some Acked-by's.
-> - NB
+Hi Felipe,
 
-Applied, thank you!
+On Tuesday 12 November 2013 07:52 PM, Felipe Balbi wrote:
+> On Tue, Nov 12, 2013 at 04:54:26PM +0530, Afzal Mohammed wrote:
+>> From: Lokesh Vutla <lokeshvutla@ti.com>
+
+>> AM437x GP EVM DTS with pinmux information to make I2C on EVM usable.
+>>
+>> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+>> Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
+>> Signed-off-by: Afzal Mohammed <afzal@ti.com>
+
+> could you instead send the much more complete version we already have
+> at [1] ? It's pointless to repatch all of that in this file if we *know*
+> those are already working.
+
+By taking those changes and testing on mainline, I couldn't get mmc
+working and was not confident about ethernet changes, I2C changes were
+verified and boot test was done (with DT clock series). I posted only
+the changes that I felt confident.
+
+Basic DT file and I2C are dependency for others, it was necessary to
+remove dependencies at the earliest.
+
+Regards
+Afzal
+
+> [1] http://git.ti.com/cgit/cgit.cgi/ti-linux-kernel/ti-linux-kernel.git/tree/arch/arm/boot/dts/am437x-gp-evm.dts?h=ti-linux-3.12.y
+
+
