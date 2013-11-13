@@ -1,47 +1,82 @@
-From: Sricharan R <r.sricharan@ti.com>
-Subject: Re: [PATCH V3 1/7] DRIVERS: IRQCHIP: IRQ-GIC: Add support for routable
- irqs
-Date: Wed, 13 Nov 2013 21:02:04 +0530
-Message-ID: <52839B74.4010600@ti.com>
-References: <1383657257-3458-1-git-send-email-r.sricharan@ti.com> <1383657257-3458-2-git-send-email-r.sricharan@ti.com> <528399B2.8010308@ti.com>
+From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH V3 7/7] ARM: DRA: Enable Crossbar IP support for DRA7XX
+Date: Wed, 13 Nov 2013 09:32:44 -0600
+Message-ID: <52839B9C.8090707@ti.com>
+References: <1383657257-3458-1-git-send-email-r.sricharan@ti.com> <1383657257-3458-8-git-send-email-r.sricharan@ti.com> <5281BF70.4050708@ti.com> <5281C0E9.8020104@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <528399B2.8010308@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linus.walleij@linaro.org, linux@arm.linux.org.uk, tony@atomide.com, rnayak@ti.com, marc.zyngier@arm.com, grant.likely@linaro.org, mark.rutland@arm.com, robherring2@gmail.com, tglx@linutronix.de, galak@codeaurora.org, Rob Herring <rob.herring@calxeda.com>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <5281C0E9.8020104-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sricharan R <r.sricharan-l0cyMroinI0@public.gmane.org>, Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, marc.zyngier-5wv7dgnIgG8@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, robherring2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, santosh.shilimkar-l0cyMroinI0@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-On Wednesday 13 November 2013 08:54 PM, Santosh Shilimkar wrote:
-> On Tuesday 05 November 2013 08:14 AM, Sricharan R wrote:
->> In some socs the gic can be preceded by a crossbar IP which
->> routes the peripheral interrupts to the gic inputs. The peripheral
->> interrupts are associated with a fixed crossbar input line and the
->> crossbar routes that to one of the free gic input line.
+On 11/11/2013 11:47 PM, Sricharan R wrote:
+> Hi Rajendra,
+> 
+> On Tuesday 12 November 2013 11:11 AM, Rajendra Nayak wrote:
+>> On Tuesday 05 November 2013 06:44 PM, Sricharan R wrote:
+>>> Enable the crossbar IP support for DRA7xx soc.
+>>>
+>>> Cc: Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
+>>> Cc: Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>
+>>> Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+>>> Signed-off-by: Sricharan R <r.sricharan-l0cyMroinI0@public.gmane.org>
+>>> ---
+>>>  arch/arm/mach-omap2/Kconfig        |    1 +
+>>>  arch/arm/mach-omap2/omap4-common.c |    4 ++++
+>>>  2 files changed, 5 insertions(+)
+>>>
+>>> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+>>> index b5fb5f7..2086c65 100644
+>>> --- a/arch/arm/mach-omap2/Kconfig
+>>> +++ b/arch/arm/mach-omap2/Kconfig
+>>> @@ -141,6 +141,7 @@ config SOC_DRA7XX
+>>>  	select ARM_GIC
+>>>  	select HAVE_SMP
+>>>  	select COMMON_CLK
+>>> +	select IRQ_CROSSBAR
+>>>  
+>>>  comment "OMAP Core Type"
+>>>  	depends on ARCH_OMAP2
+>>> diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
+>>> index 5791143..274cbfa 100644
+>>> --- a/arch/arm/mach-omap2/omap4-common.c
+>>> +++ b/arch/arm/mach-omap2/omap4-common.c
+>>> @@ -22,6 +22,7 @@
+>>>  #include <linux/of_platform.h>
+>>>  #include <linux/export.h>
+>>>  #include <linux/irqchip/arm-gic.h>
+>>> +#include <linux/irqchip/irq-crossbar.h>
+>>>  #include <linux/of_address.h>
+>>>  #include <linux/reboot.h>
+>>>  
+>>> @@ -282,9 +283,12 @@ void __init omap_gic_of_init(void)
+>>>  
+>>>  skip_errata_init:
+>>>  	omap_wakeupgen_init();
+>>> +	if (soc_is_dra7xx())
+>>> +		crossbar_init();
+>> Its good if this is called irqcrossbar_init() to avoid confusion
+>> with the dma crossbar which also exists in dra7 devices.
 >>
->> The DT entries for peripherals provides the fixed crossbar input line
->> as its interrupt number and the mapping code should associate this with
->> a free gic input line. This patch adds the support inside the gic irqchip
->> to handle such routable irqs. The routable irqs are registered in a linear
->> domain. The registered routable domain's callback should be implemented
->> to get a free irq and to configure the IP to route it.
->>
->> Cc: Thomas Gleixner <tglx@linutronix.de>
->> Cc: Linus Walleij <linus.walleij@linaro.org>
->> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
->> Cc: Russell King <linux@arm.linux.org.uk>
->> Cc: Tony Lindgren <tony@atomide.com>
->> Cc: Rajendra Nayak <rnayak@ti.com>
->> Cc: Marc Zyngier <marc.zyngier@arm.com>
->> Cc: Grant Likely <grant.likely@linaro.org>
->> Cc: Rob Herring <rob.herring@calxeda.com>
->> Signed-off-by: Sricharan R <r.sricharan@ti.com>
->> ---
-> Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Thanks Santosh. Will repost all with the minor changes suggested.
+>  Ya makes sense. Will change this.
+Also why not call it without explicit soc check? there is already
+parse for of_find_matching_node(NULL, crossbar_match); to see if we
+have a match in the crossbar_init. OR call it from dra7 init without
+SoC check dependency?
 
+Rationale - with more TI SoCs trending towards crossbar, we dont need
+to keep adding to the soc_is checks, further, we intend to remove
+soc_is checks in it's entirety..
+
+
+-- 
 Regards,
- Sricharan
+Nishanth Menon
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
