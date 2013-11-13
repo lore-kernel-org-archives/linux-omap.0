@@ -1,41 +1,68 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH V3 7/7] ARM: DRA: Enable Crossbar IP support for DRA7XX
-Date: Wed, 13 Nov 2013 11:04:46 -0500
-Message-ID: <5283A31E.4070302@ti.com>
-References: <1383657257-3458-1-git-send-email-r.sricharan@ti.com>
- <1383657257-3458-8-git-send-email-r.sricharan@ti.com>
- <5281BF70.4050708@ti.com> <5281C0E9.8020104@ti.com> <52839B9C.8090707@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH V2] ARM: OMAP2+: omap_device: maintain sane runtime pm
+ status around suspend/resume
+Date: Wed, 13 Nov 2013 10:19:46 -0600
+Message-ID: <CAGo_u6q69_uOaps8=+hA1xXgVz75trK6u3oXQyvWNOrO_DK8rg@mail.gmail.com>
+References: <1384297710-29694-1-git-send-email-nm@ti.com>
+	<20131113125149.GB28192@saruman.home>
+	<52839306.7050701@ti.com>
+	<87vbzwl307.fsf@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <52839B9C.8090707@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Nishanth Menon <nm@ti.com>
-Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, linux@arm.linux.org.uk, linux-doc@vger.kernel.org, tony@atomide.com, linus.walleij@linaro.org, Rajendra Nayak <rnayak@ti.com>, linux-kernel@vger.kernel.org, Sricharan R <r.sricharan@ti.com>, galak@codeaurora.org, marc.zyngier@arm.com, tglx@linutronix.de, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, grant.likely@linaro.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <87vbzwl307.fsf@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kevin Hilman <khilman@linaro.org>
+Cc: balbi@ti.com, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Rajendra Nayak <rnayak@ti.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, lkml <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Wednesday 13 November 2013 10:32 AM, Nishanth Menon wrote:
-> On 11/11/2013 11:47 PM, Sricharan R wrote:
-[..]
+On Wed, Nov 13, 2013 at 9:45 AM, Kevin Hilman <khilman@linaro.org> wrote:
+> Nishanth Menon <nm@ti.com> writes:
+>
+>> On 11/13/2013 06:51 AM, Felipe Balbi wrote:
+>>> Hi,
+>>>
+>>> On Tue, Nov 12, 2013 at 05:08:30PM -0600, Nishanth Menon wrote:
+>>>> diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
+>>>> index b69dd9a..f97b34b 100644
+>>>> --- a/arch/arm/mach-omap2/omap_device.c
+>>>> +++ b/arch/arm/mach-omap2/omap_device.c
+>>>> @@ -621,6 +621,7 @@ static int _od_suspend_noirq(struct device *dev)
+>>>>
+>>>>     if (!ret && !pm_runtime_status_suspended(dev)) {
+>>>>             if (pm_generic_runtime_suspend(dev) == 0) {
+>>>> +                   pm_runtime_set_suspended(dev);
+>>>
+>>> don't you have to disable pm_runtime around status changes ? Or is
+>>> pm_runtime already disabled by the time we get here ?
+>>
+>> pm_runtime is already disabled by the time no_irq suspend is invoked.
+>>
+>>>
+>>>> @@ -634,10 +635,10 @@ static int _od_resume_noirq(struct device *dev)
+>>>>     struct platform_device *pdev = to_platform_device(dev);
+>>>>     struct omap_device *od = to_omap_device(pdev);
+>>>>
+>>>> -   if ((od->flags & OMAP_DEVICE_SUSPENDED) &&
+>>>> -       !pm_runtime_status_suspended(dev)) {
+>>>> +   if (od->flags & OMAP_DEVICE_SUSPENDED) {
+>>>>             od->flags &= ~OMAP_DEVICE_SUSPENDED;
+>>>>             omap_device_enable(pdev);
+>>>> +           pm_runtime_set_active(dev);
+>>>
+>>> ditto, also pm_runtime_set_active() may fail.
+>>>
+>> again, pm_runtime is not yet active here yet - we just restore the pm
+>> runtime state with which we went down with -> and that is not expected
+>> to fail either - So, how about just adding a WARN if our expectation
+>> of balanced operation was somehow broken in the future with changes to
+>> runtime framework?
+>
+> And also a note in the changelog (or comment at the WARN) about the
+> assumption that runtime PM is disabled at this point.
 
-> 
-> Rationale - with more TI SoCs trending towards crossbar, we dont need
-> to keep adding to the soc_is checks, further, we intend to remove
-> soc_is checks in it's entirety..
-> 
-Just for record, and thats what am pushing the TI hardware folks is not to
-build default IRQ configuration considering the software will clean-up the
-mess. So hope is that we don't have to use this infrastructure always but
-only for exceptional cases.
+Ofcourse. will do.
 
+--
 Regards,
-Santosh
+Nishanth Menon
