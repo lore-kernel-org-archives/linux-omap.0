@@ -1,82 +1,58 @@
-From: Maxime Ripard <maxime.ripard@free-electrons.com>
-Subject: Re: [PATCH] clk: add flags to distinguish xtal clocks
-Date: Wed, 13 Nov 2013 15:40:10 +0100
-Message-ID: <20131113144010.GB3538@lukather>
-References: <1382528150.21526.25.camel@porter.coelho.fi>
- <1383933648-28595-1-git-send-email-balbi@ti.com>
- <20131110113716.GN26440@lukather>
- <20131111194247.GB19212@saruman.home>
- <1384199456.12583.27.camel@porter.coelho.fi>
- <20131111205910.GA26440@lukather>
- <1384243549.12583.36.camel@porter.coelho.fi>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH V2] ARM: OMAP2+: omap_device: maintain sane runtime pm
+ status around suspend/resume
+Date: Wed, 13 Nov 2013 08:56:06 -0600
+Message-ID: <52839306.7050701@ti.com>
+References: <1384297710-29694-1-git-send-email-nm@ti.com> <20131113125149.GB28192@saruman.home>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="98e8jtXdkpgskNou"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from top.free-electrons.com ([176.31.233.9]:48586 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755562Ab3KMOpD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Nov 2013 09:45:03 -0500
-Content-Disposition: inline
-In-Reply-To: <1384243549.12583.36.camel@porter.coelho.fi>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20131113125149.GB28192@saruman.home>
+Sender: linux-kernel-owner@vger.kernel.org
+To: balbi@ti.com
+Cc: Tony Lindgren <tony@atomide.com>, paul@pwsan.com, rnayak@ti.com, khilman@linaro.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Luca Coelho <luca@coelho.fi>
-Cc: balbi@ti.com, mturquette@linaro.org, james.hogan@imgtec.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
+On 11/13/2013 06:51 AM, Felipe Balbi wrote:
+> Hi,
+> 
+> On Tue, Nov 12, 2013 at 05:08:30PM -0600, Nishanth Menon wrote:
+>> diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
+>> index b69dd9a..f97b34b 100644
+>> --- a/arch/arm/mach-omap2/omap_device.c
+>> +++ b/arch/arm/mach-omap2/omap_device.c
+>> @@ -621,6 +621,7 @@ static int _od_suspend_noirq(struct device *dev)
+>>  
+>>  	if (!ret && !pm_runtime_status_suspended(dev)) {
+>>  		if (pm_generic_runtime_suspend(dev) == 0) {
+>> +			pm_runtime_set_suspended(dev);
+> 
+> don't you have to disable pm_runtime around status changes ? Or is
+> pm_runtime already disabled by the time we get here ?
 
---98e8jtXdkpgskNou
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+pm_runtime is already disabled by the time no_irq suspend is invoked.
 
-On Tue, Nov 12, 2013 at 10:05:49AM +0200, Luca Coelho wrote:
-> > What I'm not really convinced about is *how* you carry that metadata
-> > in the DT, that's all, nothing more.
->=20
-> Okay, I get you.  My point is that being a crystal or not *is* a
-> characteristic of the clock, so I think it could be part of the flags
-> that describe it.
+> 
+>> @@ -634,10 +635,10 @@ static int _od_resume_noirq(struct device *dev)
+>>  	struct platform_device *pdev = to_platform_device(dev);
+>>  	struct omap_device *od = to_omap_device(pdev);
+>>  
+>> -	if ((od->flags & OMAP_DEVICE_SUSPENDED) &&
+>> -	    !pm_runtime_status_suspended(dev)) {
+>> +	if (od->flags & OMAP_DEVICE_SUSPENDED) {
+>>  		od->flags &= ~OMAP_DEVICE_SUSPENDED;
+>>  		omap_device_enable(pdev);
+>> +		pm_runtime_set_active(dev);
+> 
+> ditto, also pm_runtime_set_active() may fail.
+> 
+again, pm_runtime is not yet active here yet - we just restore the pm
+runtime state with which we went down with -> and that is not expected
+to fail either - So, how about just adding a WARN if our expectation
+of balanced operation was somehow broken in the future with changes to
+runtime framework?
 
-Yeah, but then, a crystal has a slightly different behaviour and
-property than a oscillator, therefore the two aren't fully
-"compatible" with each other.
-
-> In any case, it's not really my call.  This is about the clock and it's
-> not even my home turf (wireless). ;)
->=20
-> Thanks for your comments.  And I'm sorry if the tone of my previous
-> email sounded harsh, it was not supposed to. :)
-
-That's fine, don't worry :)
-
-Maxime
-
---=20
-Maxime Ripard, Free Electrons
-Embedded Linux, Kernel and Android engineering
-http://free-electrons.com
-
---98e8jtXdkpgskNou
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJSg49KAAoJEBx+YmzsjxAgU84P/1O/d3IWpeJCVsC++OVhgene
-Jn6x2Wa6Vn1kP67Ppe49gxacIEr2frrGJMUti2F3/mHhCCZdFqxGMbEGUMZCwj/8
-zQdlkz8/VwJQEjdLf3Kcl4p0ElYTINPsun0fHc0IJEVBRk3sRNBw2o6J6g4fbuWo
-UIkdnpNTHgV1Hru7uDzfWuOlsB1uh4cTCqXr8KBkXIdm54EQ0sD80T5SR4kv5A5h
-SSRZV5G8GkTjldx75etkLUQy/xmzPnBl1ftAq/2bSm/KME25vde8GSP5YUmfIfYF
-W4Cf1Z9aFFcUZwHlAXl6yTfMNZcq/XjdNegHgTrKOcs+B0GpMYeieIiZfti2aQ/P
-+lKJhXxOYsutVveMJaAUpoQw+GoTBAoWUXVNFc6SLZ9fmVjTwqGUpJZXtkvZVTKv
-GhudIlFR/5sYYCLRcj3FGAx4JX2VEm9614DYALW0usL/8a6GMsThKWIKaF0QI93t
-Uzafw3rZqeJoDBjaDDNkActGz3iSgzEHX4ilm9Lphx59oO+XL/5ZwFpiKOYUVThx
-80kJPAkiQ4Qy41D4bBWRyaAkaMKkV17yr6f6HGi22DvD9a3naaMvrVTj6Il4rRX3
-dboZEz+zyWKgY9f2Fe0aGL/QOwTwdJbvVZJgWSPrZ5/h5Xgb6K2D1si90OdMvva6
-AhY4hUYgGMMA70G1xWD0
-=o6It
------END PGP SIGNATURE-----
-
---98e8jtXdkpgskNou--
+-- 
+Regards,
+Nishanth Menon
