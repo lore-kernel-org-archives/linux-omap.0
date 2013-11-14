@@ -1,16 +1,16 @@
 From: Sricharan R <r.sricharan@ti.com>
-Subject: Re: [PATCH V4 2/4] DRIVERS: IRQCHIP: CROSSBAR: Add support for
- Crossbar IP
-Date: Thu, 14 Nov 2013 22:11:41 +0530
-Message-ID: <5284FD45.6090109@ti.com>
+Subject: Re: [PATCH V4 1/4] DRIVERS: IRQCHIP: IRQ-GIC: Add support for routable
+ irqs
+Date: Thu, 14 Nov 2013 22:16:36 +0530
+Message-ID: <5284FE6C.9040901@ti.com>
 References: <1384431530-2166-1-git-send-email-r.sricharan@ti.com>
- <1384431530-2166-3-git-send-email-r.sricharan@ti.com>
- <20131114141225.GB28328@e106331-lin.cambridge.arm.com>
+ <1384431530-2166-2-git-send-email-r.sricharan@ti.com>
+ <20131114140103.GA28328@e106331-lin.cambridge.arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20131114141225.GB28328@e106331-lin.cambridge.arm.com>
+In-Reply-To: <20131114140103.GA28328@e106331-lin.cambridge.arm.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -26,20 +26,19 @@ List-Id: linux-omap@vger.kernel.org
 
 Hi Mark,
 
-On Thursday 14 November 2013 07:42 PM, Mark Rutland wrote:
-> On Thu, Nov 14, 2013 at 12:18:48PM +0000, Sricharan R wrote:
->> Some socs have a large number of interrupts requests to service
->> the needs of its many peripherals and subsystems. All of the
->> interrupt lines from the subsystems are not needed at the same
->> time, so they have to be muxed to the irq-controller appropriately.
->> In such places a interrupt controllers are preceded by an CROSSBAR
->> that provides flexibility in muxing the device requests to the controller
->> inputs.
+On Thursday 14 November 2013 07:31 PM, Mark Rutland wrote:
+> On Thu, Nov 14, 2013 at 12:18:47PM +0000, Sricharan R wrote:
+>> In some socs the gic can be preceded by a crossbar IP which
+>> routes the peripheral interrupts to the gic inputs. The peripheral
+>> interrupts are associated with a fixed crossbar input line and the
+>> crossbar routes that to one of the free gic input line.
 >>
->> This driver takes care a allocating a free irq and then configuring the
->> crossbar IP as a part of the mpu's irqchip callbacks. crossbar_init should
->> be called right before the irqchip_init, so that it is setup to handle the
->> irqchip callbacks.
+>> The DT entries for peripherals provides the fixed crossbar input line
+>> as its interrupt number and the mapping code should associate this with
+>> a free gic input line. This patch adds the support inside the gic irqchip
+>> to handle such routable irqs. The routable irqs are registered in a linear
+>> domain. The registered routable domain's callback should be implemented
+>> to get a free irq and to configure the IP to route it.
 >>
 >> Cc: Thomas Gleixner <tglx@linutronix.de>
 >> Cc: Linus Walleij <linus.walleij@linaro.org>
@@ -51,94 +50,79 @@ On Thursday 14 November 2013 07:42 PM, Mark Rutland wrote:
 >> Cc: Grant Likely <grant.likely@linaro.org>
 >> Cc: Rob Herring <rob.herring@calxeda.com>
 >> Signed-off-by: Sricharan R <r.sricharan@ti.com>
->> Acked-by: Kumar Gala <galak@codeaurora.org> (for DT binding portion)
 >> Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 >> ---
->>  [V2] Addressed Thomas Gleixner <tglx@linutronix.de> comments
->>       and renamed the bindings as per Kumar Gala <galak@codeaurora.org>
->>       comments.
->>  [V3] Changed static inline const to static inline int and removed
->>       unnecessary variable initialization as per
->>       Thomas Gleixner <tglx@linutronix.de>. Updated commit tags
->>  [V4] Renamed crossbar_init as irqcrossbar_init as per
->>       Rajendra Nayak <rnayak@ti.com> suggestion.
+>>  [V2] Added default routable-irqs functions to avoid
+>>       unnecessary if checks as per Thomas Gleixner comments
+>>       and renamed routable-irq binding as per
+>>       Kumar Gala <galak@codeaurora.org> comments.
 >>
->>  .../devicetree/bindings/arm/omap/crossbar.txt      |   27 +++
->>  drivers/irqchip/Kconfig                            |    8 +
->>  drivers/irqchip/Makefile                           |    1 +
->>  drivers/irqchip/irq-crossbar.c                     |  206 ++++++++++++++++++++
->>  include/linux/irqchip/irq-crossbar.h               |   11 ++
->>  5 files changed, 253 insertions(+)
->>  create mode 100644 Documentation/devicetree/bindings/arm/omap/crossbar.txt
->>  create mode 100644 drivers/irqchip/irq-crossbar.c
->>  create mode 100644 include/linux/irqchip/irq-crossbar.h
+>>  [V3] Addressed unnecessary warn-on and updated default
+>>       xlate function as per Thomas Gleixner comments
 >>
->> diff --git a/Documentation/devicetree/bindings/arm/omap/crossbar.txt b/Documentation/devicetree/bindings/arm/omap/crossbar.txt
->> new file mode 100644
->> index 0000000..fb88585
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/arm/omap/crossbar.txt
->> @@ -0,0 +1,27 @@
->> +Some socs have a large number of interrupts requests to service
->> +the needs of its many peripherals and subsystems. All of the
->> +interrupt lines from the subsystems are not needed at the same
->> +time, so they have to be muxed to the irq-controller appropriately.
->> +In such places a interrupt controllers are preceded by an CROSSBAR
->> +that provides flexibility in muxing the device requests to the controller
->> +inputs.
->> +
->> +Required properties:
->> +- compatible : Should be "ti,irq-crossbar"
->> +- reg: Base address and the size of the crossbar registers.
->> +- ti,max-irqs: Total number of irqs available at the interrupt controller.
->> +- ti,reg-size: Size of a individual register in bytes. Every individual
->> +	    register is assumed to be of same size. Valid sizes are 1, 2, 4.
->> +- ti,irqs-reserved: List of the reserved irq lines that are not muxed using
->> +		 crossbar. These interrupt lines are reserved in the soc,
->> +		 so crossbar bar driver should not consider them as free
->> +		 lines.
-> The combination of the ti,max-irqs and ti,irqs-reserved properties seems
-> backwards to me. Why can we not describe the set of IRQs that _can_ be
-> used?
- Total set of irqs that are usable is max - reserved. Since reserved irqs
- are not continuous, we have to give the list. During the init we count
- the total number of reserved and get the usable one.
->> +
->> +Examples:
->> +		crossbar_mpu: @4a020000 {
->> +			compatible = "ti,irq-crossbar";
->> +			reg = <0x4a002a48 0x130>;
->> +			ti,max-irqs = <160>;
->> +			ti,reg-size = <2>;
->> +			ti,irqs-reserved = <0 1 2 3 5 6 131 132 139 140>;
->> +		};
-> [...]
+>>  Documentation/devicetree/bindings/arm/gic.txt |    6 ++
+>>  drivers/irqchip/irq-gic.c                     |   81 ++++++++++++++++++++++---
+>>  include/linux/irqchip/arm-gic.h               |    7 ++-
+>>  3 files changed, 83 insertions(+), 11 deletions(-)
+>>
+>> diff --git a/Documentation/devicetree/bindings/arm/gic.txt b/Documentation/devicetree/bindings/arm/gic.txt
+>> index 3dfb0c0..5357745 100644
+>> --- a/Documentation/devicetree/bindings/arm/gic.txt
+>> +++ b/Documentation/devicetree/bindings/arm/gic.txt
+>> @@ -49,6 +49,11 @@ Optional
+>>    regions, used when the GIC doesn't have banked registers. The offset is
+>>    cpu-offset * cpu-nr.
+>>  
+>> +- arm,routable-irqs : Total number of gic irq inputs which are not directly
+>> +		  connected from the peripherals, but are routed dynamically
+>> +		  by a crossbar/multiplexer preceding the GIC. The GIC irq
+>> +		  input line is assigned dynamically when the corresponding
+>> +		  peripheral's crossbar line is mapped.
+> I'm not keen on the design of the arm,routable-irqs property. The set of
+> IRQs which the crossbar IP can use is a property of which IRQ lines it
+> has routed to the GIC. I don't see why that should be considered a
+> property of the GIC; it's a property of the crossbar IP's attachment to
+> the GIC.
 >
->> +	/* Get and mark reserved irqs */
->> +	irqsr = of_get_property(node, "ti,irqs-reserved", &size);
->> +	if (irqsr) {
->> +		size /= sizeof(__be32);
->> +
->> +		for (i = 0; i < size; i++) {
->> +			entry = be32_to_cpup(irqsr + i);
->> +			if (entry > max) {
->> +				pr_err("Invalid reserved entry\n");
->> +				goto err3;
->> +			}
->> +			cb->irq_map[entry] = 0;
->> +		}
->> +	}
-> Don't deal with the raw DTB. Use of_property_read_u32_index.
- Ok, i will correct this.
->> +
->> +	cb->register_offsets = kzalloc(max * sizeof(int), GFP_KERNEL);
->> +	if (!cb->register_offsets)
->> +		goto err3;
->> +
->> +	of_property_read_u32(node, "ti,reg-size", &size);
-> If "ti,reg-size" isn't present, size is uninitialized. Please check the
-> return value of of_property_read_u32.
-Ok, will correct this.
+> Given we already have a mechanism for describing the attachment (i.e.
+> the interrupts property) where the property appears on the node for the
+> device generating/propagating the interrupt, I don't see why we should
+> do differently here.
+ We did try using interrupts=<> property for all peripherals and
+ mapping them as crossbar's parent. But that approach of representing
+ crossbar as a interrupt parent was not accepted, since the crossbar
+ was just routing the interrupts from peripherals to GIC and nothing more.
+ Also  mapping all the interrupts using interrupt-map like property by a fixed way
+ in DTS itself was considered hacky
+> Listing 160 interrupts in the crossbar node is clearly something we
+> don't want to have to do.  If we had a property that we could use to
+> define a range (or multiple ranges) of interrupts, then the crossbar
+> driver could go and request those ranges from its interrupt-parent (the
+> GIC) and the GIC driver could reserve/allocate the irqdomain at that
+> time.
+Again, this kind of approach of crossbar requesting irqs from GIC
+was tried earlier and it did not go anywhere. Subsequently after lot of
+discussions this design was considered the best one.
+
+http://www.spinics.net/lists/linux-omap/msg97085.html
+> This feels like a point-hack, counter in style to the vast majority of
+> provider/consumer bindings. It only allows for one multiplexer before
+> the GIC. What if we had multiple multiplexers feeding into the GIC?
+> Describing the attachment on the multiplexer allows that to be handled,
+> describing that on the GIC does not.
+ This is case where the interrupts to GIC is not coming from full irqchip,
+ but just a router and support added in the GIC helps to handle
+ such cases. In the case of more than one multiplexer, the crossbar
+ driver should really take care of handling the downward muxes and
+ crossbar like driver can be expanded to handle if such a scenario happens.
+> Describing the attachement on the multiplexer would also prevent the
+> duplication of information (i.e. the max-irqs property in the crossbar
+> binding).
+>
+> Thanks,
+> Mark.
+Here max-irqs is the total number of output lines of the crossbar itself and
+its property.
 
 Regards,
  Sricharan
