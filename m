@@ -1,66 +1,48 @@
-From: Sebastian Reichel <sre@debian.org>
-Subject: Re: [PATCH 1/4] wl1251: split wl251 platform data to a separate
- structure
-Date: Thu, 14 Nov 2013 23:03:33 +0000
-Message-ID: <20131114230330.GB6383@earth.universe>
-References: <1382890469-25286-1-git-send-email-sre@debian.org>
- <1382890469-25286-2-git-send-email-sre@debian.org>
- <20131114185132.GQ10317@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH 9/8] i2c: Fix device tree binding for i2c-cbus-gpio
+Date: Thu, 14 Nov 2013 15:08:42 -0800
+Message-ID: <20131114230842.GU10317@atomide.com>
+References: <1384396537-3486-1-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="V0207lvV8h4k8FAm"
-Return-path: <linux-doc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20131114185132.GQ10317@atomide.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Luciano Coelho <luca@coelho.fi>, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Rob Landley <rob@landley.net>, Russell King <linux@arm.linux.org.uk>, "John W. Linville" <linville@tuxdriver.com>, Felipe Balbi <balbi@ti.com>, Sachin Kamat <sachin.kamat@linaro.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Bill Pemberton <wfp5p@virginia.edu>, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-wireless@vger.kernel.org, netdev@vger.kernel.org, Luciano Coelho <coelho@ti.com>
-List-Id: linux-omap@vger.kernel.org
-
-
---V0207lvV8h4k8FAm
 Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:23254 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752612Ab3KNXIs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Nov 2013 18:08:48 -0500
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <1384396537-3486-1-git-send-email-tony@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Cc: linux-i2c@vger.kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>, Wolfram Sang <wsa@the-dreams.de>
 
-On Thu, Nov 14, 2013 at 10:51:33AM -0800, Tony Lindgren wrote:
-> [...]
->
-> If this is not going into v3.13, these will cause conflicts
-> with the mach-omap2/board-*.c files for v3.14.
->=20
-> So it might be best to do a minimal header patch first that
-> can be merged in by both linux-omap and wireless trees.
+Looks like we're missing two lines needed to make it
+work properly with device tree.
 
-I guess this patch is pretty minimal. It also seems to be acked by
-the involved Maintainers, so maybe just merge Patch 1 without the
-other patches?
+Cc: linux-i2c@vger.kernel.org
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: Wolfram Sang <wsa@the-dreams.de>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
 
-This does not solve the problem with the struct modification from
-the second patch, but I guess it's the more intrusive patch.
+Wolfram, I found one more bug booting omaps with device tree.
 
--- Sebastian
-
---V0207lvV8h4k8FAm
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.15 (GNU/Linux)
-
-iQIcBAEBCAAGBQJShVbCAAoJENju1/PIO/qa3ygP+QFNNsOwF5PZp0uSpTuxh3II
-kdL4jIoihLkpJ1dgG6rMsJIqyHAk09XUd5TZjsKandyiv1XCSLzEbC6S3X6kBT15
-/gxWHWUYMCDx7l21DFG5/zaEVCtGMalg2kxX9rClbcEdv1uJtVzw2qywyccWGNmp
-N/D84+/Xu7P6n+AJvdJOMqGT1hMcerZCDc0x/8Ggcu9GMc+Ok6uYNwuoVPWhJbot
-iP7+p9A+tz8n6RwLCmIF45TzDjXbx2dSh66qTChpV5LdOxunCXJe5GchEFbfAorx
-3sEIddHZzC4yT3ArTqm/liyCIOUrVXcw0Hjal05XK+5lFKDSLZSGme6UTT0BzfsJ
-wmrnD3Yo49PZrxYzfzonm8kpJ6YjHWX/b7kLQyY2U2W9f/StCE/WAwImp5Fj/SRC
-ZthE7CNdj8L4OdciRSWgIrs8ttpkSIUhIkQ+0LZH6k/gfQWXD+uSdKJXH7zYnByd
-63SgS+Rj9aaIpNyYTXOuWymeRFhh5Zw7wItrLxhZCZMOkcZ0fFMEqDo+zpNHCB4+
-rblAhOdhDjJxpiOivWprhIUptYDl7VwePRG3XUrJaULDYM9S3rEY45MWCZ83QhkZ
-xmSQm2t5voPfTvTnXKYZhj9WHdKGGCKz/sSaz2Y0c1cZ4qA5FpjKbVqPezovCvaM
-rztAFbkFtnT9Tf9BvnZJ
-=yaNn
------END PGP SIGNATURE-----
-
---V0207lvV8h4k8FAm--
+--- a/drivers/i2c/busses/i2c-cbus-gpio.c
++++ b/drivers/i2c/busses/i2c-cbus-gpio.c
+@@ -246,6 +246,7 @@ static int cbus_i2c_probe(struct platform_device *pdev)
+ 	adapter->owner		= THIS_MODULE;
+ 	adapter->class		= I2C_CLASS_HWMON;
+ 	adapter->dev.parent	= &pdev->dev;
++	adapter->dev.of_node	= pdev->dev.of_node;
+ 	adapter->nr		= pdev->id;
+ 	adapter->timeout	= HZ;
+ 	adapter->algo		= &cbus_i2c_algo;
+@@ -289,6 +290,7 @@ static struct platform_driver cbus_i2c_driver = {
+ 	.driver	= {
+ 		.owner	= THIS_MODULE,
+ 		.name	= "i2c-cbus-gpio",
++		.of_match_table = of_match_ptr(i2c_cbus_dt_ids),
+ 	},
+ };
+ module_platform_driver(cbus_i2c_driver);
