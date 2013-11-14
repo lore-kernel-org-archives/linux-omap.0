@@ -1,31 +1,21 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 3/8] mmc: omap: Fix I2C dependency and make driver usable with device tree
-Date: Wed, 13 Nov 2013 18:35:32 -0800
-Message-ID: <1384396537-3486-4-git-send-email-tony@atomide.com>
+Subject: [PATCH 6/8] gpio: twl4030: Fix passing of pdata in the device tree case
+Date: Wed, 13 Nov 2013 18:35:35 -0800
+Message-ID: <1384396537-3486-7-git-send-email-tony@atomide.com>
 References: <1384396537-3486-1-git-send-email-tony@atomide.com>
-Return-path: <linux-mmc-owner@vger.kernel.org>
+Return-path: <linux-gpio-owner@vger.kernel.org>
 In-Reply-To: <1384396537-3486-1-git-send-email-tony@atomide.com>
-Sender: linux-mmc-owner@vger.kernel.org
+Sender: linux-gpio-owner@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Cc: Chris Ball <cjb@laptop.org>, linux-mmc@vger.kernel.org
+Cc: Linus Walleij <linus.walleij@linaro.org>, linux-gpio@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Some features can be configured by the companion I2C chips,
-which may not be available at the probe time. Fix the issue
-by returning -EPROBE_DEFER when the MMC controller slots
-are not configured.
+We still have some legacy code needing the callback functions
+that won't work properly without platform data. To use platform
+data for twl4030-gpio, we need to not trash the possible data.
 
-While at it, let's also add minimal device tree support so
-omap24xx platforms can use this driver without legacy mode
-since we claim to support device tree for mach-omap2 based
-systems.
-
-Although adding the minimal device tree support is not strictly
-a fix, it does remove one of the last blockers for dropping a
-bunch of legacy platform data for mach-omap2.
-
-Cc: Chris Ball <cjb@laptop.org>
-Cc: linux-mmc@vger.kernel.org
+Cc: Linus Walleij <linus.walleij@linaro.org>
+Cc: linux-gpio@vger.kernel.org
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
 
@@ -34,51 +24,42 @@ along with the other patches in this series as my later patches
 depend on patches in this series.
 
 ---
- drivers/mmc/host/omap.c | 10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+ drivers/gpio/gpio-twl4030.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
-index ed56868..43c66ad 100644
---- a/drivers/mmc/host/omap.c
-+++ b/drivers/mmc/host/omap.c
-@@ -22,6 +22,7 @@
- #include <linux/delay.h>
- #include <linux/spinlock.h>
- #include <linux/timer.h>
-+#include <linux/of.h>
- #include <linux/omap-dma.h>
- #include <linux/mmc/host.h>
- #include <linux/mmc/card.h>
-@@ -1330,7 +1331,7 @@ static int mmc_omap_probe(struct platform_device *pdev)
- 	}
- 	if (pdata->nr_slots == 0) {
- 		dev_err(&pdev->dev, "no slots\n");
--		return -ENXIO;
-+		return -EPROBE_DEFER;
- 	}
+diff --git a/drivers/gpio/gpio-twl4030.c b/drivers/gpio/gpio-twl4030.c
+index 5738d5a..e6ecbe3 100644
+--- a/drivers/gpio/gpio-twl4030.c
++++ b/drivers/gpio/gpio-twl4030.c
+@@ -436,7 +436,8 @@ static int gpio_twl4030_debounce(u32 debounce, u8 mmc_cd)
  
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-@@ -1553,6 +1554,12 @@ static int mmc_omap_resume(struct platform_device *pdev)
- #define mmc_omap_resume		NULL
- #endif
+ static int gpio_twl4030_remove(struct platform_device *pdev);
  
-+#if IS_BUILTIN(CONFIG_OF)
-+static const struct of_device_id mmc_omap_match[] = {
-+	{ .compatible = "ti,omap2420-mmc", },
-+	{ },
-+};
-+#endif
- static struct platform_driver mmc_omap_driver = {
- 	.probe		= mmc_omap_probe,
- 	.remove		= mmc_omap_remove,
-@@ -1561,6 +1568,7 @@ static struct platform_driver mmc_omap_driver = {
- 	.driver		= {
- 		.name	= DRIVER_NAME,
- 		.owner	= THIS_MODULE,
-+		.of_match_table = of_match_ptr(mmc_omap_match),
- 	},
- };
+-static struct twl4030_gpio_platform_data *of_gpio_twl4030(struct device *dev)
++static struct twl4030_gpio_platform_data *of_gpio_twl4030(struct device *dev,
++				struct twl4030_gpio_platform_data *pdata)
+ {
+ 	struct twl4030_gpio_platform_data *omap_twl_info;
  
+@@ -444,6 +445,9 @@ static struct twl4030_gpio_platform_data *of_gpio_twl4030(struct device *dev)
+ 	if (!omap_twl_info)
+ 		return NULL;
+ 
++	if (pdata)
++		memcpy(omap_twl_info, pdata, sizeof(*omap_twl_info));
++
+ 	omap_twl_info->use_leds = of_property_read_bool(dev->of_node,
+ 			"ti,use-leds");
+ 
+@@ -501,7 +505,7 @@ no_irqs:
+ 	mutex_init(&priv->mutex);
+ 
+ 	if (node)
+-		pdata = of_gpio_twl4030(&pdev->dev);
++		pdata = of_gpio_twl4030(&pdev->dev, pdata);
+ 
+ 	if (pdata == NULL) {
+ 		dev_err(&pdev->dev, "Platform data is missing\n");
 -- 
 1.8.1.1
 
