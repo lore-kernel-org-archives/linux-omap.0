@@ -1,37 +1,79 @@
-From: Paolo Pisati <p.pisati@gmail.com>
-Subject: 3.12: omap4: cpuidle: solid hangs at boot
-Date: Thu, 14 Nov 2013 12:04:45 +0100
-Message-ID: <20131114110445.GB4594@luxor.wired.org>
+From: Mark Rutland <mark.rutland@arm.com>
+Subject: Re: [PATCH 3/8] mmc: omap: Fix I2C dependency and make driver
+ usable with device tree
+Date: Thu, 14 Nov 2013 11:05:33 +0000
+Message-ID: <20131114110533.GD16396@e106331-lin.cambridge.arm.com>
+References: <1384396537-3486-1-git-send-email-tony@atomide.com>
+ <1384396537-3486-4-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f49.google.com ([74.125.82.49]:44919 "EHLO
-	mail-wg0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752624Ab3KNLEt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Nov 2013 06:04:49 -0500
-Received: by mail-wg0-f49.google.com with SMTP id x13so1751519wgg.16
-        for <linux-omap@vger.kernel.org>; Thu, 14 Nov 2013 03:04:48 -0800 (PST)
-Received: from gmail.com (2-230-238-136.ip204.fastwebnet.it. [2.230.238.136])
-        by mx.google.com with ESMTPSA id s3sm97909152eeo.3.2013.11.14.03.04.46
-        for <linux-omap@vger.kernel.org>
-        (version=TLSv1.2 cipher=RC4-SHA bits=128/128);
-        Thu, 14 Nov 2013 03:04:47 -0800 (PST)
+Return-path: <linux-mmc-owner@vger.kernel.org>
 Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1384396537-3486-4-git-send-email-tony@atomide.com>
+Content-Language: en-US
+Sender: linux-mmc-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Chris Ball <cjb@laptop.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>
 
-Vanilla 3.12 multi_v7_defconfig + cpu_idle result in a solid hang on my pandaes
-board: has anyone experienced it before? is cpu_idle safe on omap4?
+On Thu, Nov 14, 2013 at 02:35:32AM +0000, Tony Lindgren wrote:
+> Some features can be configured by the companion I2C chips,
+> which may not be available at the probe time. Fix the issue
+> by returning -EPROBE_DEFER when the MMC controller slots
+> are not configured.
+> 
+> While at it, let's also add minimal device tree support so
+> omap24xx platforms can use this driver without legacy mode
+> since we claim to support device tree for mach-omap2 based
+> systems.
+> 
+> Although adding the minimal device tree support is not strictly
+> a fix, it does remove one of the last blockers for dropping a
+> bunch of legacy platform data for mach-omap2.
+> 
+> Cc: Chris Ball <cjb@laptop.org>
+> Cc: linux-mmc@vger.kernel.org
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> ---
+> 
+> If this looks OK, I'd like to merge this as a fix via arm-soc tree
+> along with the other patches in this series as my later patches
+> depend on patches in this series.
+> 
+> ---
+>  drivers/mmc/host/omap.c | 10 +++++++++-
+>  1 file changed, 9 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
+> index ed56868..43c66ad 100644
+> --- a/drivers/mmc/host/omap.c
+> +++ b/drivers/mmc/host/omap.c
+> @@ -22,6 +22,7 @@
+>  #include <linux/delay.h>
+>  #include <linux/spinlock.h>
+>  #include <linux/timer.h>
+> +#include <linux/of.h>
+>  #include <linux/omap-dma.h>
+>  #include <linux/mmc/host.h>
+>  #include <linux/mmc/card.h>
+> @@ -1330,7 +1331,7 @@ static int mmc_omap_probe(struct platform_device *pdev)
+>  	}
+>  	if (pdata->nr_slots == 0) {
+>  		dev_err(&pdev->dev, "no slots\n");
+> -		return -ENXIO;
+> +		return -EPROBE_DEFER;
+>  	}
+>  
+>  	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> @@ -1553,6 +1554,12 @@ static int mmc_omap_resume(struct platform_device *pdev)
+>  #define mmc_omap_resume		NULL
+>  #endif
+>  
+> +#if IS_BUILTIN(CONFIG_OF)
+> +static const struct of_device_id mmc_omap_match[] = {
+> +	{ .compatible = "ti,omap2420-mmc", },
 
-same kernel boots fine on omap3 and some other arm boards fwiw.
-if you want to reproduce it:
+Missing binding document.
 
-config: http://people.canonical.com/~ppisati/3.12_armv7multi_cpuidle/config
-
-zImage: http://people.canonical.com/~ppisati/3.12_armv7multi_cpuidle/zImage
-
-boot log: http://paste.ubuntu.com/6415293/
--- 
-bye,
-p.
+Thanks,
+Mark.
