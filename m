@@ -1,39 +1,28 @@
-From: Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [PATCH 3/8] mmc: omap: Fix I2C dependency and make driver
- usable with device tree
-Date: Thu, 14 Nov 2013 11:05:33 +0000
-Message-ID: <20131114110533.GD16396@e106331-lin.cambridge.arm.com>
+From: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
+Subject: Re: [PATCH 4/8] i2c: omap: Fix missing device tree flags for omap2
+Date: Thu, 14 Nov 2013 11:07:21 +0000
+Message-ID: <20131114110721.GE16396@e106331-lin.cambridge.arm.com>
 References: <1384396537-3486-1-git-send-email-tony@atomide.com>
- <1384396537-3486-4-git-send-email-tony@atomide.com>
+ <1384396537-3486-5-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1384396537-3486-4-git-send-email-tony@atomide.com>
+In-Reply-To: <1384396537-3486-5-git-send-email-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 Content-Language: en-US
-Sender: linux-mmc-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Chris Ball <cjb@laptop.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Nov 14, 2013 at 02:35:32AM +0000, Tony Lindgren wrote:
-> Some features can be configured by the companion I2C chips,
-> which may not be available at the probe time. Fix the issue
-> by returning -EPROBE_DEFER when the MMC controller slots
-> are not configured.
+On Thu, Nov 14, 2013 at 02:35:33AM +0000, Tony Lindgren wrote:
+> As we claim to support device tree for mach-omap2, we
+> should have the necessary flags in the driver to make it
+> usable.
 > 
-> While at it, let's also add minimal device tree support so
-> omap24xx platforms can use this driver without legacy mode
-> since we claim to support device tree for mach-omap2 based
-> systems.
-> 
-> Although adding the minimal device tree support is not strictly
-> a fix, it does remove one of the last blockers for dropping a
-> bunch of legacy platform data for mach-omap2.
-> 
-> Cc: Chris Ball <cjb@laptop.org>
-> Cc: linux-mmc@vger.kernel.org
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> Cc: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
+> Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 > ---
 > 
 > If this looks OK, I'd like to merge this as a fix via arm-soc tree
@@ -41,39 +30,22 @@ On Thu, Nov 14, 2013 at 02:35:32AM +0000, Tony Lindgren wrote:
 > depend on patches in this series.
 > 
 > ---
->  drivers/mmc/host/omap.c | 10 +++++++++-
->  1 file changed, 9 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
-> index ed56868..43c66ad 100644
-> --- a/drivers/mmc/host/omap.c
-> +++ b/drivers/mmc/host/omap.c
-> @@ -22,6 +22,7 @@
->  #include <linux/delay.h>
->  #include <linux/spinlock.h>
->  #include <linux/timer.h>
-> +#include <linux/of.h>
->  #include <linux/omap-dma.h>
->  #include <linux/mmc/host.h>
->  #include <linux/mmc/card.h>
-> @@ -1330,7 +1331,7 @@ static int mmc_omap_probe(struct platform_device *pdev)
->  	}
->  	if (pdata->nr_slots == 0) {
->  		dev_err(&pdev->dev, "no slots\n");
-> -		return -ENXIO;
-> +		return -EPROBE_DEFER;
->  	}
->  
->  	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> @@ -1553,6 +1554,12 @@ static int mmc_omap_resume(struct platform_device *pdev)
->  #define mmc_omap_resume		NULL
->  #endif
->  
-> +#if IS_BUILTIN(CONFIG_OF)
-> +static const struct of_device_id mmc_omap_match[] = {
-> +	{ .compatible = "ti,omap2420-mmc", },
+>  drivers/i2c/busses/i2c-omap.c | 22 ++++++++++++++++++++++
+>  1 file changed, 22 insertions(+)
 
-Missing binding document.
+[...]
+
+> +	{
+> +		.compatible = "ti,omap2430-i2c",
+> +		.data = &omap2430_pdata,
+> +	},
+> +	{
+> +		.compatible = "ti,omap2420-i2c",
+> +		.data = &omap2420_pdata,
+
+Please update Documentation/devicetree/bindings/i2c/i2c-omap.txt
+
+Otherwise, this is fine.
 
 Thanks,
 Mark.
