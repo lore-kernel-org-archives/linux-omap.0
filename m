@@ -1,16 +1,14 @@
-From: Sricharan R <r.sricharan@ti.com>
-Subject: Re: [PATCH V4 1/4] DRIVERS: IRQCHIP: IRQ-GIC: Add support for routable
- irqs
-Date: Thu, 14 Nov 2013 22:16:36 +0530
-Message-ID: <5284FE6C.9040901@ti.com>
-References: <1384431530-2166-1-git-send-email-r.sricharan@ti.com>
- <1384431530-2166-2-git-send-email-r.sricharan@ti.com>
- <20131114140103.GA28328@e106331-lin.cambridge.arm.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: [PATCH V3] ARM: OMAP2+: omap_device: maintain sane runtime pm status
+ around suspend/resume
+Date: Thu, 14 Nov 2013 11:05:16 -0600
+Message-ID: <1384448716-3186-1-git-send-email-nm@ti.com>
+References: <1384297710-29694-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20131114140103.GA28328@e106331-lin.cambridge.arm.com>
+In-Reply-To: <1384297710-29694-1-git-send-email-nm@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -20,109 +18,91 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: "nm@ti.com" <nm@ti.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "linus.walleij@linaro.org" <linus.walleij@linaro.org>, "rnayak@ti.com" <rnayak@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, Marc Zyngier <Marc.Zyngier@arm.com>, "bcousson@baylibre.com" <bcousson@baylibre.com>, "galak@codeaurora.org" <galak@codeaurora.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Tony Lindgren <tony@atomide.com>, paul@pwsan.com
+Cc: Nishanth Menon <nm@ti.com>, khilman@linaro.org, rnayak@ti.com, linux-kernel@vger.kernel.org, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Mark,
+OMAP device hooks around suspend|resume_noirq ensures that hwmod
+devices are forced to idle using omap_device_idle/enable as part of
+the last stage of suspend activity.
 
-On Thursday 14 November 2013 07:31 PM, Mark Rutland wrote:
-> On Thu, Nov 14, 2013 at 12:18:47PM +0000, Sricharan R wrote:
->> In some socs the gic can be preceded by a crossbar IP which
->> routes the peripheral interrupts to the gic inputs. The peripheral
->> interrupts are associated with a fixed crossbar input line and the
->> crossbar routes that to one of the free gic input line.
->>
->> The DT entries for peripherals provides the fixed crossbar input line
->> as its interrupt number and the mapping code should associate this with
->> a free gic input line. This patch adds the support inside the gic irqchip
->> to handle such routable irqs. The routable irqs are registered in a linear
->> domain. The registered routable domain's callback should be implemented
->> to get a free irq and to configure the IP to route it.
->>
->> Cc: Thomas Gleixner <tglx@linutronix.de>
->> Cc: Linus Walleij <linus.walleij@linaro.org>
->> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
->> Cc: Russell King <linux@arm.linux.org.uk>
->> Cc: Tony Lindgren <tony@atomide.com>
->> Cc: Rajendra Nayak <rnayak@ti.com>
->> Cc: Marc Zyngier <marc.zyngier@arm.com>
->> Cc: Grant Likely <grant.likely@linaro.org>
->> Cc: Rob Herring <rob.herring@calxeda.com>
->> Signed-off-by: Sricharan R <r.sricharan@ti.com>
->> Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
->> ---
->>  [V2] Added default routable-irqs functions to avoid
->>       unnecessary if checks as per Thomas Gleixner comments
->>       and renamed routable-irq binding as per
->>       Kumar Gala <galak@codeaurora.org> comments.
->>
->>  [V3] Addressed unnecessary warn-on and updated default
->>       xlate function as per Thomas Gleixner comments
->>
->>  Documentation/devicetree/bindings/arm/gic.txt |    6 ++
->>  drivers/irqchip/irq-gic.c                     |   81 ++++++++++++++++++++++---
->>  include/linux/irqchip/arm-gic.h               |    7 ++-
->>  3 files changed, 83 insertions(+), 11 deletions(-)
->>
->> diff --git a/Documentation/devicetree/bindings/arm/gic.txt b/Documentation/devicetree/bindings/arm/gic.txt
->> index 3dfb0c0..5357745 100644
->> --- a/Documentation/devicetree/bindings/arm/gic.txt
->> +++ b/Documentation/devicetree/bindings/arm/gic.txt
->> @@ -49,6 +49,11 @@ Optional
->>    regions, used when the GIC doesn't have banked registers. The offset is
->>    cpu-offset * cpu-nr.
->>  
->> +- arm,routable-irqs : Total number of gic irq inputs which are not directly
->> +		  connected from the peripherals, but are routed dynamically
->> +		  by a crossbar/multiplexer preceding the GIC. The GIC irq
->> +		  input line is assigned dynamically when the corresponding
->> +		  peripheral's crossbar line is mapped.
-> I'm not keen on the design of the arm,routable-irqs property. The set of
-> IRQs which the crossbar IP can use is a property of which IRQ lines it
-> has routed to the GIC. I don't see why that should be considered a
-> property of the GIC; it's a property of the crossbar IP's attachment to
-> the GIC.
->
-> Given we already have a mechanism for describing the attachment (i.e.
-> the interrupts property) where the property appears on the node for the
-> device generating/propagating the interrupt, I don't see why we should
-> do differently here.
- We did try using interrupts=<> property for all peripherals and
- mapping them as crossbar's parent. But that approach of representing
- crossbar as a interrupt parent was not accepted, since the crossbar
- was just routing the interrupts from peripherals to GIC and nothing more.
- Also  mapping all the interrupts using interrupt-map like property by a fixed way
- in DTS itself was considered hacky
-> Listing 160 interrupts in the crossbar node is clearly something we
-> don't want to have to do.  If we had a property that we could use to
-> define a range (or multiple ranges) of interrupts, then the crossbar
-> driver could go and request those ranges from its interrupt-parent (the
-> GIC) and the GIC driver could reserve/allocate the irqdomain at that
-> time.
-Again, this kind of approach of crossbar requesting irqs from GIC
-was tried earlier and it did not go anywhere. Subsequently after lot of
-discussions this design was considered the best one.
+For a device such as i2c who uses autosuspend, it is possible to enter
+the suspend path with dev->power.runtime_status = RPM_ACTIVE.
 
-http://www.spinics.net/lists/linux-omap/msg97085.html
-> This feels like a point-hack, counter in style to the vast majority of
-> provider/consumer bindings. It only allows for one multiplexer before
-> the GIC. What if we had multiple multiplexers feeding into the GIC?
-> Describing the attachment on the multiplexer allows that to be handled,
-> describing that on the GIC does not.
- This is case where the interrupts to GIC is not coming from full irqchip,
- but just a router and support added in the GIC helps to handle
- such cases. In the case of more than one multiplexer, the crossbar
- driver should really take care of handling the downward muxes and
- crossbar like driver can be expanded to handle if such a scenario happens.
-> Describing the attachement on the multiplexer would also prevent the
-> duplication of information (i.e. the max-irqs property in the crossbar
-> binding).
->
-> Thanks,
-> Mark.
-Here max-irqs is the total number of output lines of the crossbar itself and
-its property.
+As part of the suspend flow, the generic runtime logic would increment
+it's dev->power.disable_depth to 1. This should prevent further
+pm_runtime_get_sync from succeeding once the runtime_status has been
+set to RPM_SUSPENDED.
 
-Regards,
- Sricharan
+Now, as part of the suspend_noirq handler in omap_device, we force the
+following: if the device status is !suspended, we force the device
+to idle using omap_device_idle (clocks are cut etc..). This ensures
+that from a hardware perspective, the device is "suspended". However,
+runtime_status is left to be active.
+
+*if* an operation is attempted after this point to
+pm_runtime_get_sync, runtime framework depends on runtime_status to
+indicate accurately the device status, and since it sees it to be
+ACTIVE, it assumes the module is functional and returns a non-error
+value. As a result the user will see pm_runtime_get succeed, however a
+register access will crash due to the lack of clocks.
+
+To prevent this from happening, we should ensure that runtime_status
+exactly indicates the device status. As a result of this change
+any further calls to pm_runtime_get* would return -EACCES (since
+disable_depth is 1). On resume, we restore the clocks and runtime
+status exactly as we suspended with. These operations are not expected
+to fail as we update the states after the core runtime framework has
+suspended itself and restore before the core runtime framework has
+resumed.
+
+Reported-by: J Keerthy <j-keerthy@ti.com>
+Signed-off-by: Nishanth Menon <nm@ti.com>
+Acked-by: Rajendra Nayak <rnayak@ti.com>
+Acked-by: Kevin Hilman <khilman@linaro.org>
+---
+Changes in V3:
+	- Added WARN in case of unexpected failure of runtime pm status restore
+v2: https://patchwork.kernel.org/patch/3176501/
+v1: https://patchwork.kernel.org/patch/3154501/
+
+patch baseline: V3.12 tag (also applies on linux-next next-20131107 tag)
+
+ arch/arm/mach-omap2/omap_device.c |   13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
+index b69dd9a..53f0735 100644
+--- a/arch/arm/mach-omap2/omap_device.c
++++ b/arch/arm/mach-omap2/omap_device.c
+@@ -621,6 +621,7 @@ static int _od_suspend_noirq(struct device *dev)
+ 
+ 	if (!ret && !pm_runtime_status_suspended(dev)) {
+ 		if (pm_generic_runtime_suspend(dev) == 0) {
++			pm_runtime_set_suspended(dev);
+ 			omap_device_idle(pdev);
+ 			od->flags |= OMAP_DEVICE_SUSPENDED;
+ 		}
+@@ -634,10 +635,18 @@ static int _od_resume_noirq(struct device *dev)
+ 	struct platform_device *pdev = to_platform_device(dev);
+ 	struct omap_device *od = to_omap_device(pdev);
+ 
+-	if ((od->flags & OMAP_DEVICE_SUSPENDED) &&
+-	    !pm_runtime_status_suspended(dev)) {
++	if (od->flags & OMAP_DEVICE_SUSPENDED) {
+ 		od->flags &= ~OMAP_DEVICE_SUSPENDED;
+ 		omap_device_enable(pdev);
++		/*
++		 * XXX: we run before core runtime pm has resumed itself. At
++		 * this point in time, we just restore the runtime pm state and
++		 * considering symmetric operations in resume, we donot expect
++		 * to fail. If we failed, something changed in core runtime_pm
++		 * framework OR some device driver messed things up, hence, WARN
++		 */
++		WARN(pm_runtime_set_active(dev),
++		     "Could not set %s runtime state active\n", dev_name(dev));
+ 		pm_generic_runtime_resume(dev);
+ 	}
+ 
+-- 
+1.7.9.5
