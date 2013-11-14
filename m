@@ -1,68 +1,37 @@
-From: Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [PATCH 1/8] net: smc91x: Fix device tree based configuration
- so it's usable
-Date: Thu, 14 Nov 2013 11:03:24 +0000
-Message-ID: <20131114110324.GC16396@e106331-lin.cambridge.arm.com>
-References: <1384396537-3486-1-git-send-email-tony@atomide.com>
- <1384396537-3486-2-git-send-email-tony@atomide.com>
+From: Paolo Pisati <p.pisati@gmail.com>
+Subject: 3.12: omap4: cpuidle: solid hangs at boot
+Date: Thu, 14 Nov 2013 12:04:45 +0100
+Message-ID: <20131114110445.GB4594@luxor.wired.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:54251 "EHLO
-	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752929Ab3KNLD4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 14 Nov 2013 06:03:56 -0500
+Received: from mail-wg0-f49.google.com ([74.125.82.49]:44919 "EHLO
+	mail-wg0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752624Ab3KNLEt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Nov 2013 06:04:49 -0500
+Received: by mail-wg0-f49.google.com with SMTP id x13so1751519wgg.16
+        for <linux-omap@vger.kernel.org>; Thu, 14 Nov 2013 03:04:48 -0800 (PST)
+Received: from gmail.com (2-230-238-136.ip204.fastwebnet.it. [2.230.238.136])
+        by mx.google.com with ESMTPSA id s3sm97909152eeo.3.2013.11.14.03.04.46
+        for <linux-omap@vger.kernel.org>
+        (version=TLSv1.2 cipher=RC4-SHA bits=128/128);
+        Thu, 14 Nov 2013 03:04:47 -0800 (PST)
 Content-Disposition: inline
-In-Reply-To: <1384396537-3486-2-git-send-email-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Nicolas Pitre <nico@fluxnic.net>, "David S. Miller" <davem@davemloft.net>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
+To: linux-omap <linux-omap@vger.kernel.org>
 
-On Thu, Nov 14, 2013 at 02:35:30AM +0000, Tony Lindgren wrote:
-> Commit 89ce376c6bdc (drivers/net: Use of_match_ptr() macro in smc91x.c)
-> added minimal device tree support to smc91x, but it's not working on
-> many platforms because of the lack of some key configuration bits.
-> 
-> Fix the issue by parsing the necessary configuration like the
-> smc911x driver is doing.
-> 
-> Cc: Nicolas Pitre <nico@fluxnic.net>
-> Cc: "David S. Miller" <davem@davemloft.net>
-> Cc: netdev@vger.kernel.org
-> Cc: devicetree@vger.kernel.org
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> ---
-> 
-> If this looks OK, I'd like to merge this as a fix via arm-soc tree
-> along with the other patches in this series as my later patches
-> depend on patches in this series.
-> 
-> ---
->  .../devicetree/bindings/net/smsc-lan91c111.txt     |  4 ++
->  drivers/net/ethernet/smsc/smc91x.c                 | 52 +++++++++++++++++-----
->  2 files changed, 46 insertions(+), 10 deletions(-)
-> 
-> diff --git a/Documentation/devicetree/bindings/net/smsc-lan91c111.txt b/Documentation/devicetree/bindings/net/smsc-lan91c111.txt
-> index 953049b..53d69e3 100644
-> --- a/Documentation/devicetree/bindings/net/smsc-lan91c111.txt
-> +++ b/Documentation/devicetree/bindings/net/smsc-lan91c111.txt
-> @@ -8,3 +8,7 @@ Required properties:
->  Optional properties:
->  - phy-device : phandle to Ethernet phy
->  - local-mac-address : Ethernet mac address to use
-> +- reg-io-width : Specify the size (in bytes) of the IO accesses that
-> +  should be performed on the device.  Valid value for SMSC LAN is
-> +  1, 2 or 4.  If it's omitted or invalid, the size would be 2.
+Vanilla 3.12 multi_v7_defconfig + cpu_idle result in a solid hang on my pandaes
+board: has anyone experienced it before? is cpu_idle safe on omap4?
 
-In the driver the supported access sizes are not mutually exclusive.  It
-would be nice for the binding to have the same property.
+same kernel boots fine on omap3 and some other arm boards fwiw.
+if you want to reproduce it:
 
-> +- smsc,nowait : Setup for fast register access with no waits
+config: http://people.canonical.com/~ppisati/3.12_armv7multi_cpuidle/config
 
-I'm confused by what this means. When would this be selected, and when
-wouldn't it be?
+zImage: http://people.canonical.com/~ppisati/3.12_armv7multi_cpuidle/zImage
 
-Thanks,
-Mark.
+boot log: http://paste.ubuntu.com/6415293/
+-- 
+bye,
+p.
