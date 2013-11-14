@@ -1,108 +1,126 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH V3] ARM: OMAP2+: omap_device: maintain sane runtime pm status
- around suspend/resume
-Date: Thu, 14 Nov 2013 11:05:16 -0600
-Message-ID: <1384448716-3186-1-git-send-email-nm@ti.com>
-References: <1384297710-29694-1-git-send-email-nm@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 3/8] mmc: omap: Fix I2C dependency and make driver
+ usable with device tree
+Date: Thu, 14 Nov 2013 09:25:27 -0800
+Message-ID: <20131114172527.GD10317@atomide.com>
+References: <1384396537-3486-1-git-send-email-tony@atomide.com>
+ <1384396537-3486-4-git-send-email-tony@atomide.com>
+ <20131114110533.GD16396@e106331-lin.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1384297710-29694-1-git-send-email-nm@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>, paul@pwsan.com
-Cc: Nishanth Menon <nm@ti.com>, khilman@linaro.org, rnayak@ti.com, linux-kernel@vger.kernel.org, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:49971 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754113Ab3KNRZe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Nov 2013 12:25:34 -0500
+Content-Disposition: inline
+In-Reply-To: <20131114110533.GD16396@e106331-lin.cambridge.arm.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Mark Rutland <mark.rutland@arm.com>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Chris Ball <cjb@laptop.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>
 
-OMAP device hooks around suspend|resume_noirq ensures that hwmod
-devices are forced to idle using omap_device_idle/enable as part of
-the last stage of suspend activity.
+* Mark Rutland <mark.rutland@arm.com> [131114 03:06]:
+>
+> Missing binding document.
 
-For a device such as i2c who uses autosuspend, it is possible to enter
-the suspend path with dev->power.runtime_status = RPM_ACTIVE.
+Here's this one updated with a minimal binding document. The
+ti,hwmods is still needed until we have removed the dependencies
+to hwmod code for omaps.
 
-As part of the suspend flow, the generic runtime logic would increment
-it's dev->power.disable_depth to 1. This should prevent further
-pm_runtime_get_sync from succeeding once the runtime_status has been
-set to RPM_SUSPENDED.
+Regards,
 
-Now, as part of the suspend_noirq handler in omap_device, we force the
-following: if the device status is !suspended, we force the device
-to idle using omap_device_idle (clocks are cut etc..). This ensures
-that from a hardware perspective, the device is "suspended". However,
-runtime_status is left to be active.
+Tony
 
-*if* an operation is attempted after this point to
-pm_runtime_get_sync, runtime framework depends on runtime_status to
-indicate accurately the device status, and since it sees it to be
-ACTIVE, it assumes the module is functional and returns a non-error
-value. As a result the user will see pm_runtime_get succeed, however a
-register access will crash due to the lack of clocks.
 
-To prevent this from happening, we should ensure that runtime_status
-exactly indicates the device status. As a result of this change
-any further calls to pm_runtime_get* would return -EACCES (since
-disable_depth is 1). On resume, we restore the clocks and runtime
-status exactly as we suspended with. These operations are not expected
-to fail as we update the states after the core runtime framework has
-suspended itself and restore before the core runtime framework has
-resumed.
+From: Tony Lindgren <tony@atomide.com>
+Date: Wed, 13 Nov 2013 16:36:37 -0800
+Subject: [PATCH] mmc: omap: Fix I2C dependency and make driver usable with device tree
 
-Reported-by: J Keerthy <j-keerthy@ti.com>
-Signed-off-by: Nishanth Menon <nm@ti.com>
-Acked-by: Rajendra Nayak <rnayak@ti.com>
-Acked-by: Kevin Hilman <khilman@linaro.org>
----
-Changes in V3:
-	- Added WARN in case of unexpected failure of runtime pm status restore
-v2: https://patchwork.kernel.org/patch/3176501/
-v1: https://patchwork.kernel.org/patch/3154501/
+Some features can be configured by the companion I2C chips,
+which may not be available at the probe time. Fix the issue
+by returning -EPROBE_DEFER when the MMC controller slots
+are not configured.
 
-patch baseline: V3.12 tag (also applies on linux-next next-20131107 tag)
+While at it, let's also add minimal device tree support so
+omap24xx platforms can use this driver without legacy mode
+since we claim to support device tree for mach-omap2 based
+systems.
 
- arch/arm/mach-omap2/omap_device.c |   13 +++++++++++--
- 1 file changed, 11 insertions(+), 2 deletions(-)
+Although adding the minimal device tree support is not strictly
+a fix, it does remove one of the last blockers for dropping a
+bunch of legacy platform data for mach-omap2.
 
-diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
-index b69dd9a..53f0735 100644
---- a/arch/arm/mach-omap2/omap_device.c
-+++ b/arch/arm/mach-omap2/omap_device.c
-@@ -621,6 +621,7 @@ static int _od_suspend_noirq(struct device *dev)
- 
- 	if (!ret && !pm_runtime_status_suspended(dev)) {
- 		if (pm_generic_runtime_suspend(dev) == 0) {
-+			pm_runtime_set_suspended(dev);
- 			omap_device_idle(pdev);
- 			od->flags |= OMAP_DEVICE_SUSPENDED;
- 		}
-@@ -634,10 +635,18 @@ static int _od_resume_noirq(struct device *dev)
- 	struct platform_device *pdev = to_platform_device(dev);
- 	struct omap_device *od = to_omap_device(pdev);
- 
--	if ((od->flags & OMAP_DEVICE_SUSPENDED) &&
--	    !pm_runtime_status_suspended(dev)) {
-+	if (od->flags & OMAP_DEVICE_SUSPENDED) {
- 		od->flags &= ~OMAP_DEVICE_SUSPENDED;
- 		omap_device_enable(pdev);
-+		/*
-+		 * XXX: we run before core runtime pm has resumed itself. At
-+		 * this point in time, we just restore the runtime pm state and
-+		 * considering symmetric operations in resume, we donot expect
-+		 * to fail. If we failed, something changed in core runtime_pm
-+		 * framework OR some device driver messed things up, hence, WARN
-+		 */
-+		WARN(pm_runtime_set_active(dev),
-+		     "Could not set %s runtime state active\n", dev_name(dev));
- 		pm_generic_runtime_resume(dev);
+Cc: Chris Ball <cjb@laptop.org>
+Cc: linux-mmc@vger.kernel.org
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
++++ b/Documentation/devicetree/bindings/mmc/ti-omap.txt
+@@ -0,0 +1,27 @@
++* TI MMC host controller for OMAP1 and 2420
++
++The MMC Host Controller on TI OMAP1 and 2420 family provides
++an interface for MMC, SD, and SDIO types of memory cards.
++
++This file documents differences between the core properties described
++by mmc.txt and the properties used by the omap mmc driver.
++
++Note that this driver will not work with omap2430 or later omaps,
++please see the omap hsmmc driver for the current omaps.
++
++Required properties:
++- compatible: Must be "ti,omap2420-mmc", for OMAP2420 controllers
++- ti,hwmods: For 2420, must be "msdi<n>", where n is controller
++  instance starting 1
++
++Examples:
++
++	msdi1: mmc@4809c000 {
++		compatible = "ti,omap2420-mmc";
++		ti,hwmods = "msdi1";
++		reg = <0x4809c000 0x80>;
++		interrupts = <83>;
++		dmas = <&sdma 61 &sdma 62>;
++		dma-names = "tx", "rx";
++	};
++
+--- a/drivers/mmc/host/omap.c
++++ b/drivers/mmc/host/omap.c
+@@ -22,6 +22,7 @@
+ #include <linux/delay.h>
+ #include <linux/spinlock.h>
+ #include <linux/timer.h>
++#include <linux/of.h>
+ #include <linux/omap-dma.h>
+ #include <linux/mmc/host.h>
+ #include <linux/mmc/card.h>
+@@ -1330,7 +1331,7 @@ static int mmc_omap_probe(struct platform_device *pdev)
+ 	}
+ 	if (pdata->nr_slots == 0) {
+ 		dev_err(&pdev->dev, "no slots\n");
+-		return -ENXIO;
++		return -EPROBE_DEFER;
  	}
  
--- 
-1.7.9.5
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+@@ -1553,6 +1554,12 @@ static int mmc_omap_resume(struct platform_device *pdev)
+ #define mmc_omap_resume		NULL
+ #endif
+ 
++#if IS_BUILTIN(CONFIG_OF)
++static const struct of_device_id mmc_omap_match[] = {
++	{ .compatible = "ti,omap2420-mmc", },
++	{ },
++};
++#endif
+ static struct platform_driver mmc_omap_driver = {
+ 	.probe		= mmc_omap_probe,
+ 	.remove		= mmc_omap_remove,
+@@ -1561,6 +1568,7 @@ static struct platform_driver mmc_omap_driver = {
+ 	.driver		= {
+ 		.name	= DRIVER_NAME,
+ 		.owner	= THIS_MODULE,
++		.of_match_table = of_match_ptr(mmc_omap_match),
+ 	},
+ };
+ 
