@@ -1,79 +1,61 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 1/2] isp1704_charger: Add DT support
-Date: Thu, 14 Nov 2013 09:52:27 -0800
-Message-ID: <20131114175227.GH10317@atomide.com>
-References: <1384432734-1490-1-git-send-email-sre@debian.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 4/8] i2c: omap: Fix missing device tree flags for omap2
+Date: Thu, 14 Nov 2013 09:53:45 -0800
+Message-ID: <20131114175344.GI10317@atomide.com>
+References: <1384396537-3486-1-git-send-email-tony@atomide.com>
+ <1384396537-3486-5-git-send-email-tony@atomide.com>
+ <20131114065830.GA2738@katana> <20131114173429.GF10317@atomide.com>
+ <20131114174913.GJ11022@katana>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <1384432734-1490-1-git-send-email-sre-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sebastian Reichel <sre-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
-Cc: Anton Vorontsov <anton-9xeibp6oKSgdnm+yROfE0A@public.gmane.org>, David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <20131114174913.GJ11022@katana>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Wolfram Sang <wsa@the-dreams.de>
+Cc: linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Sebastian Reichel <sre-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org> [131114 04:40]:
-> This patch introduces device tree support to the isp1704
-> charger driver. Adding support involved moving the handling
-> of the enable GPIO from board code into the driver.
+* Wolfram Sang <wsa@the-dreams.de> [131114 09:49]:
 > 
-> Signed-off-by: Sebastian Reichel <sre-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
-> ---
->  arch/arm/mach-omap2/board-rx51-peripherals.c | 10 +----
->  drivers/power/isp1704_charger.c              | 56 +++++++++++++++++++++++++---
->  include/linux/power/isp1704_charger.h        |  2 +-
->  3 files changed, 52 insertions(+), 16 deletions(-)
+> > > It would have been helpful if the message "PATCH [0/x]" would have been
+> > > sent to the i2c-list also.
+> > 
+> > Thanks, next time I'll try check the cc list in the cover letter
+> > manually after running git format patch. I guess there's no way
+> > to deal with that in an automated way.
 > 
-> diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
-> index a791fef..2986d16 100644
-> --- a/arch/arm/mach-omap2/board-rx51-peripherals.c
-> +++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
-> @@ -273,13 +273,8 @@ static struct platform_device rx51_battery_device = {
->  	.id	= -1,
->  };
->  
-> -static void rx51_charger_set_power(bool on)
-> -{
-> -	gpio_set_value(RX51_USB_TRANSCEIVER_RST_GPIO, on);
-> -}
-> -
->  static struct isp1704_charger_data rx51_charger_data = {
-> -	.set_power	= rx51_charger_set_power,
-> +	.enable_gpio	= RX51_USB_TRANSCEIVER_RST_GPIO,
->  };
->  
->  static struct platform_device rx51_charger_device = {
-> @@ -291,9 +286,6 @@ static struct platform_device rx51_charger_device = {
->  
->  static void __init rx51_charger_init(void)
->  {
-> -	WARN_ON(gpio_request_one(RX51_USB_TRANSCEIVER_RST_GPIO,
-> -		GPIOF_OUT_INIT_HIGH, "isp1704_reset"));
-> -
->  	platform_device_register(&rx51_battery_device);
->  	platform_device_register(&rx51_charger_device);
->  }
+> I use this hackish script as --cc-cmd with git:
+> 
+> #! /bin/sh
+> #
+> # cocci_cc - send cover letter to all mailing lists referenced in a patch series
+> # done by Wolfram Sang in 2012 - WTFPLv2
+> 
+> name=${1##*/}
+> num=${name%%-*}
+> 
+> if [ "$num" = "0000" ]; then
+> 	dir=${1%/*}
+> 	for f in $dir/*; do
+> 		patchname=${f##*/}
+> 		[ "${patchname%%-*}" = "0000" ] && continue
+> 		scripts/get_maintainer.pl --no-m $f
+> 	done | sort -u
+> else
+> 	scripts/get_maintainer.pl $1
+> fi
+> 
 
-Can you please separate out the changes to board-rx51-peripherals.c
-as they have a huge chance of merge conflicts for v3.14 when
-we're planning to flip omap3 to be device tree only?
-
-To remove the dependency, how about add .enable_gpio to the
-isp1704_charger.h and to the board-rx51-peripherals.c without
-removing .set_power in the first patch?
-
-Then we can set up an immutable branch that can be merged both
-to linux-omap tree and Anton's tree to avoid merge conflicts.
-
-Then the rest of the patches can go via Anton's tree and you
-can just have .set_power do nothing, and then it can be
-removed later on when no longer used at all.
-
-Regards,
+Cool thanks :) I'll give it a try next time.
 
 Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
