@@ -1,51 +1,61 @@
-From: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
-Subject: Re: [PATCH 4/8] i2c: omap: Fix missing device tree flags for omap2
-Date: Thu, 14 Nov 2013 11:07:21 +0000
-Message-ID: <20131114110721.GE16396@e106331-lin.cambridge.arm.com>
-References: <1384396537-3486-1-git-send-email-tony@atomide.com>
- <1384396537-3486-5-git-send-email-tony@atomide.com>
+From: Mark Rutland <mark.rutland@arm.com>
+Subject: Re: [PATCH 1/2] input: touchscreen: fix spelling mistake in
+ TSC/ADC DT binding
+Date: Thu, 14 Nov 2013 11:19:59 +0000
+Message-ID: <20131114111958.GG16396@e106331-lin.cambridge.arm.com>
+References: <1382386404-6659-1-git-send-email-balbi@ti.com>
+ <1382386404-6659-2-git-send-email-balbi@ti.com>
+ <52663A58.9070706@linutronix.de>
+ <20131022120253.GD9340@gimli>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-input-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1384396537-3486-5-git-send-email-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Content-Language: en-US
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
+In-Reply-To: <20131022120253.GD9340@gimli>
+Sender: linux-input-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>, "dmitry.torokhov@gmail.com" <dmitry.torokhov@gmail.com>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, Pawel Moll <Pawel.Moll@arm.com>, "swarren@wwwdotorg.org" <swarren@wwwdotorg.org>, "ijc+devicetree@hellion.org.uk" <ijc+devicetree@hellion.org.uk>, "rob@landley.net" <rob@landley.net>, "bcousson@baylibre.com" <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Nov 14, 2013 at 02:35:33AM +0000, Tony Lindgren wrote:
-> As we claim to support device tree for mach-omap2, we
-> should have the necessary flags in the driver to make it
-> usable.
+On Tue, Oct 22, 2013 at 01:02:53PM +0100, Felipe Balbi wrote:
+> Hi,
 > 
-> Cc: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
-> Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-> ---
+> On Tue, Oct 22, 2013 at 10:42:00AM +0200, Sebastian Andrzej Siewior wrote:
+> > On 10/21/2013 10:13 PM, Felipe Balbi wrote:
+> > > diff --git a/drivers/input/touchscreen/ti_am335x_tsc.c b/drivers/input/touchscreen/ti_am335x_tsc.c
+> > > index e1c5300..b61df9d 100644
+> > > --- a/drivers/input/touchscreen/ti_am335x_tsc.c
+> > > +++ b/drivers/input/touchscreen/ti_am335x_tsc.c
+> > > @@ -348,9 +348,16 @@ static int titsc_parse_dt(struct platform_device *pdev,
+> > >  	if (err < 0)
+> > >  		return err;
+> > >  
+> > > -	err = of_property_read_u32(node, "ti,coordiante-readouts",
+> > > +	/*
+> > > +	 * try with new binding first. If it fails, still try with
+> > > +	 * bogus, miss-spelled version.
+> > > +	 */
+> > > +	err = of_property_read_u32(node, "ti,coordinate-readouts",
+> > >  			&ts_dev->coordinate_readouts);
+> > >  	if (err < 0)
+> > > +		err = of_property_read_u32(node, "ti,coordiante-readouts",
+> > > +				&ts_dev->coordinate_readouts);
+> > > +	if (err < 0)
+> > >  		return err;
+> > 
+> > Thanks, very good. Do we keep this fallback for ever or just for a year
+> > or two?
 > 
-> If this looks OK, I'd like to merge this as a fix via arm-soc tree
-> along with the other patches in this series as my later patches
-> depend on patches in this series.
-> 
-> ---
->  drivers/i2c/busses/i2c-omap.c | 22 ++++++++++++++++++++++
->  1 file changed, 22 insertions(+)
+> That's for DT maintainers to decide but considering DT is an ABI, I
+> guess we need to keep for 30 years or so :-p
 
-[...]
+We keep it as long as we have to. If no-one's relying on the typo by the
+next merge window, I see no reason we'd have to keep support for the
+typo beyond that. If someone's shipped a device with a dtb with the typo
+hard-coded into some ROM, that's another matter...
 
-> +	{
-> +		.compatible = "ti,omap2430-i2c",
-> +		.data = &omap2430_pdata,
-> +	},
-> +	{
-> +		.compatible = "ti,omap2420-i2c",
-> +		.data = &omap2420_pdata,
+It might be worth printing a warning in the case of the typo'd version,
+suggesting correcting the DT. That will encourage anyone with a broken
+dt to get a fixed one.
 
-Please update Documentation/devicetree/bindings/i2c/i2c-omap.txt
-
-Otherwise, this is fine.
-
-Thanks,
 Mark.
