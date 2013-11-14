@@ -1,78 +1,120 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2] doc: devicetree: Add bindings documentation for
- omap-des driver
-Date: Thu, 14 Nov 2013 11:01:51 -0800
-Message-ID: <20131114190150.GT10317@atomide.com>
-References: <1384199386-14504-1-git-send-email-joelf@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH V3] ARM: OMAP2+: omap_device: maintain sane runtime pm
+ status around suspend/resume
+Date: Thu, 14 Nov 2013 13:30:05 -0600
+Message-ID: <528524BD.9010005@ti.com>
+References: <1384297710-29694-1-git-send-email-nm@ti.com> <1384448716-3186-1-git-send-email-nm@ti.com> <20131114185558.GB16529@saruman.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-doc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1384199386-14504-1-git-send-email-joelf@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Joel Fernandes <joelf@ti.com>
-Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Mark Rutland <mark.rutland@arm.com>, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Rob Landley <rob@landley.net>, "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:33330 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754344Ab3KNTad (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 14 Nov 2013 14:30:33 -0500
+In-Reply-To: <20131114185558.GB16529@saruman.home>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: balbi@ti.com
+Cc: Tony Lindgren <tony@atomide.com>, paul@pwsan.com, rnayak@ti.com, khilman@linaro.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 
-* Joel Fernandes <joelf@ti.com> [131111 11:50]:
-> Add documentation for the generic OMAP DES crypto modul describing the device
-> tree bindings.
+On 11/14/2013 12:55 PM, Felipe Balbi wrote:
+> Hi,
 > 
-> Reviewed-by: Mark Rutland <mark.rutland@arm.com>
-> Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Signed-off-by: Joel Fernandes <joelf@ti.com>
+> On Thu, Nov 14, 2013 at 11:05:16AM -0600, Nishanth Menon wrote:
+>> OMAP device hooks around suspend|resume_noirq ensures that hwmod
+>> devices are forced to idle using omap_device_idle/enable as part of
+>> the last stage of suspend activity.
+>>
+>> For a device such as i2c who uses autosuspend, it is possible to enter
+>> the suspend path with dev->power.runtime_status = RPM_ACTIVE.
+>>
+>> As part of the suspend flow, the generic runtime logic would increment
+>> it's dev->power.disable_depth to 1. This should prevent further
+>> pm_runtime_get_sync from succeeding once the runtime_status has been
+>> set to RPM_SUSPENDED.
+>>
+>> Now, as part of the suspend_noirq handler in omap_device, we force the
+>> following: if the device status is !suspended, we force the device
+>> to idle using omap_device_idle (clocks are cut etc..). This ensures
+>> that from a hardware perspective, the device is "suspended". However,
+>> runtime_status is left to be active.
+>>
+>> *if* an operation is attempted after this point to
+>> pm_runtime_get_sync, runtime framework depends on runtime_status to
+>> indicate accurately the device status, and since it sees it to be
+>> ACTIVE, it assumes the module is functional and returns a non-error
+>> value. As a result the user will see pm_runtime_get succeed, however a
+>> register access will crash due to the lack of clocks.
+>>
+>> To prevent this from happening, we should ensure that runtime_status
+>> exactly indicates the device status. As a result of this change
+>> any further calls to pm_runtime_get* would return -EACCES (since
+>> disable_depth is 1). On resume, we restore the clocks and runtime
+>> status exactly as we suspended with. These operations are not expected
+>> to fail as we update the states after the core runtime framework has
+>> suspended itself and restore before the core runtime framework has
+>> resumed.
+>>
+>> Reported-by: J Keerthy <j-keerthy@ti.com>
+>> Signed-off-by: Nishanth Menon <nm@ti.com>
+>> Acked-by: Rajendra Nayak <rnayak@ti.com>
+>> Acked-by: Kevin Hilman <khilman@linaro.org>
+>> ---
+>> Changes in V3:
+>> 	- Added WARN in case of unexpected failure of runtime pm status restore
+>> v2: https://patchwork.kernel.org/patch/3176501/
+>> v1: https://patchwork.kernel.org/patch/3154501/
+>>
+>> patch baseline: V3.12 tag (also applies on linux-next next-20131107 tag)
+>>
+>>  arch/arm/mach-omap2/omap_device.c |   13 +++++++++++--
+>>  1 file changed, 11 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
+>> index b69dd9a..53f0735 100644
+>> --- a/arch/arm/mach-omap2/omap_device.c
+>> +++ b/arch/arm/mach-omap2/omap_device.c
+>> @@ -621,6 +621,7 @@ static int _od_suspend_noirq(struct device *dev)
+>>  
+>>  	if (!ret && !pm_runtime_status_suspended(dev)) {
+>>  		if (pm_generic_runtime_suspend(dev) == 0) {
+>> +			pm_runtime_set_suspended(dev);
+>>  			omap_device_idle(pdev);
+>>  			od->flags |= OMAP_DEVICE_SUSPENDED;
+>>  		}
+>> @@ -634,10 +635,18 @@ static int _od_resume_noirq(struct device *dev)
+>>  	struct platform_device *pdev = to_platform_device(dev);
+>>  	struct omap_device *od = to_omap_device(pdev);
+>>  
+>> -	if ((od->flags & OMAP_DEVICE_SUSPENDED) &&
+>> -	    !pm_runtime_status_suspended(dev)) {
+>> +	if (od->flags & OMAP_DEVICE_SUSPENDED) {
+>>  		od->flags &= ~OMAP_DEVICE_SUSPENDED;
+>>  		omap_device_enable(pdev);
+>> +		/*
+>> +		 * XXX: we run before core runtime pm has resumed itself. At
+>> +		 * this point in time, we just restore the runtime pm state and
+>> +		 * considering symmetric operations in resume, we donot expect
+>> +		 * to fail. If we failed, something changed in core runtime_pm
+>> +		 * framework OR some device driver messed things up, hence, WARN
+>> +		 */
+>> +		WARN(pm_runtime_set_active(dev),
+>> +		     "Could not set %s runtime state active\n", dev_name(dev));
+> 
+> if you want to print the device name, how about dev_WARN() ?
+> 
+> no strong feelings though:
 
-Thanks applying into omap-for-v3.13/fixes.
+I would like to stick with WARN as dev_WARN would probably need an
+condition check.. unless someone has a strong opinion, I dont see it
+adding value here.
 
-Tony
+> 
+> Reviewed-by: Felipe Balbi <balbi@ti.com>
+> 
 
-> ---
-> v2 changes: Update documentation for clocks, clock-names and dma-names.
-> 
->  .../devicetree/bindings/crypto/omap-des.txt        | 30 ++++++++++++++++++++++
->  1 file changed, 30 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/crypto/omap-des.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/crypto/omap-des.txt b/Documentation/devicetree/bindings/crypto/omap-des.txt
-> new file mode 100644
-> index 0000000..e8c63bf
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/crypto/omap-des.txt
-> @@ -0,0 +1,30 @@
-> +OMAP SoC DES crypto Module
-> +
-> +Required properties:
-> +
-> +- compatible : Should contain "ti,omap4-des"
-> +- ti,hwmods: Name of the hwmod associated with the DES module
-> +- reg : Offset and length of the register set for the module
-> +- interrupts : the interrupt-specifier for the DES module
-> +- clocks : A phandle to the functional clock node of the DES module
-> +           corresponding to each entry in clock-names
-> +- clock-names : Name of the functional clock, should be "fck"
-> +
-> +Optional properties:
-> +- dmas: DMA specifiers for tx and rx dma. See the DMA client binding,
-> +	Documentation/devicetree/bindings/dma/dma.txt
-> +	Each entry corresponds to an entry in dma-names
-> +- dma-names: DMA request names should include "tx" and "rx" if present
-> +
-> +Example:
-> +	/* DRA7xx SoC */
-> +	des: des@480a5000 {
-> +		compatible = "ti,omap4-des";
-> +		ti,hwmods = "des";
-> +		reg = <0x480a5000 0xa0>;
-> +		interrupts = <GIC_SPI 82 IRQ_TYPE_LEVEL_HIGH>;
-> +		dmas = <&sdma 117>, <&sdma 116>;
-> +		dma-names = "tx", "rx";
-> +		clocks = <&l3_iclk_div>;
-> +		clock-names = "fck";
-> +	};
-> -- 
-> 1.8.1.2
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+-- 
+Regards,
+Nishanth Menon
