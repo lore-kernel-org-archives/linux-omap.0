@@ -1,68 +1,54 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH V2] ARM: OMAP2+: omap_device: maintain sane runtime pm
- status around suspend/resume
-Date: Wed, 13 Nov 2013 10:19:46 -0600
-Message-ID: <CAGo_u6q69_uOaps8=+hA1xXgVz75trK6u3oXQyvWNOrO_DK8rg@mail.gmail.com>
-References: <1384297710-29694-1-git-send-email-nm@ti.com>
-	<20131113125149.GB28192@saruman.home>
-	<52839306.7050701@ti.com>
-	<87vbzwl307.fsf@linaro.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <87vbzwl307.fsf@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kevin Hilman <khilman@linaro.org>
-Cc: balbi@ti.com, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Rajendra Nayak <rnayak@ti.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, lkml <linux-kernel@vger.kernel.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH 0/8] Various omap device tree usability fixes for v3.13 merge window
+Date: Wed, 13 Nov 2013 18:35:29 -0800
+Message-ID: <1384396537-3486-1-git-send-email-tony@atomide.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:46257 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751617Ab3KNCfn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Nov 2013 21:35:43 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Wed, Nov 13, 2013 at 9:45 AM, Kevin Hilman <khilman@linaro.org> wrote:
-> Nishanth Menon <nm@ti.com> writes:
->
->> On 11/13/2013 06:51 AM, Felipe Balbi wrote:
->>> Hi,
->>>
->>> On Tue, Nov 12, 2013 at 05:08:30PM -0600, Nishanth Menon wrote:
->>>> diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
->>>> index b69dd9a..f97b34b 100644
->>>> --- a/arch/arm/mach-omap2/omap_device.c
->>>> +++ b/arch/arm/mach-omap2/omap_device.c
->>>> @@ -621,6 +621,7 @@ static int _od_suspend_noirq(struct device *dev)
->>>>
->>>>     if (!ret && !pm_runtime_status_suspended(dev)) {
->>>>             if (pm_generic_runtime_suspend(dev) == 0) {
->>>> +                   pm_runtime_set_suspended(dev);
->>>
->>> don't you have to disable pm_runtime around status changes ? Or is
->>> pm_runtime already disabled by the time we get here ?
->>
->> pm_runtime is already disabled by the time no_irq suspend is invoked.
->>
->>>
->>>> @@ -634,10 +635,10 @@ static int _od_resume_noirq(struct device *dev)
->>>>     struct platform_device *pdev = to_platform_device(dev);
->>>>     struct omap_device *od = to_omap_device(pdev);
->>>>
->>>> -   if ((od->flags & OMAP_DEVICE_SUSPENDED) &&
->>>> -       !pm_runtime_status_suspended(dev)) {
->>>> +   if (od->flags & OMAP_DEVICE_SUSPENDED) {
->>>>             od->flags &= ~OMAP_DEVICE_SUSPENDED;
->>>>             omap_device_enable(pdev);
->>>> +           pm_runtime_set_active(dev);
->>>
->>> ditto, also pm_runtime_set_active() may fail.
->>>
->> again, pm_runtime is not yet active here yet - we just restore the pm
->> runtime state with which we went down with -> and that is not expected
->> to fail either - So, how about just adding a WARN if our expectation
->> of balanced operation was somehow broken in the future with changes to
->> runtime framework?
->
-> And also a note in the changelog (or comment at the WARN) about the
-> assumption that runtime PM is disabled at this point.
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
-Ofcourse. will do.
+Hi all,
 
---
+Here are some patches to fix various issue for device tree based
+booting for omaps that I've ran into recently while working on
+removing legacy platform data for mach-omap2.
+
 Regards,
-Nishanth Menon
+
+Tony
+
+
+Tony Lindgren (8):
+  net: smc91x: Fix device tree based configuration so it's usable
+  mmc: omap: Fix DMA configuration to not rely on device id
+  mmc: omap: Fix I2C dependency and make driver usable with device tree
+  i2c: omap: Fix missing device tree flags for omap2
+  gpio: twl4030: Fix regression for twl gpio output
+  gpio: twl4030: Fix passing of pdata in the device tree case
+  ARM: OMAP2+: Fix GPMC and simplify bootloader timings for 8250 and
+    smc91x
+  ARM: dts: Fix omap2 specific dtsi files by adding the missing entries
+
+ .../devicetree/bindings/net/smsc-lan91c111.txt     |  4 +
+ arch/arm/boot/dts/omap-zoom-common.dtsi            |  2 +-
+ arch/arm/boot/dts/omap2.dtsi                       | 96 ++++++++++++++++++++++
+ arch/arm/boot/dts/omap2420.dtsi                    | 23 ++++++
+ arch/arm/boot/dts/omap2430.dtsi                    | 49 +++++++++++
+ arch/arm/mach-omap2/gpmc.c                         | 58 +++++--------
+ drivers/gpio/gpio-twl4030.c                        | 13 ++-
+ drivers/i2c/busses/i2c-omap.c                      | 22 +++++
+ drivers/mmc/host/omap.c                            | 42 +++++-----
+ drivers/net/ethernet/smsc/smc91x.c                 | 52 +++++++++---
+ 10 files changed, 285 insertions(+), 76 deletions(-)
+
+-- 
+1.8.1.1
+
