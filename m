@@ -1,61 +1,83 @@
-From: Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [PATCH 1/2] input: touchscreen: fix spelling mistake in
- TSC/ADC DT binding
-Date: Thu, 14 Nov 2013 11:19:59 +0000
-Message-ID: <20131114111958.GG16396@e106331-lin.cambridge.arm.com>
-References: <1382386404-6659-1-git-send-email-balbi@ti.com>
- <1382386404-6659-2-git-send-email-balbi@ti.com>
- <52663A58.9070706@linutronix.de>
- <20131022120253.GD9340@gimli>
+From: Sricharan R <r.sricharan@ti.com>
+Subject: [PATCH V4 0/4] DRIVERS: IRQCHIP: Add support for crossbar IP
+Date: Thu, 14 Nov 2013 17:48:46 +0530
+Message-ID: <1384431530-2166-1-git-send-email-r.sricharan@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-input-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20131022120253.GD9340@gimli>
-Sender: linux-input-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>, "dmitry.torokhov@gmail.com" <dmitry.torokhov@gmail.com>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, Pawel Moll <Pawel.Moll@arm.com>, "swarren@wwwdotorg.org" <swarren@wwwdotorg.org>, "ijc+devicetree@hellion.org.uk" <ijc+devicetree@hellion.org.uk>, "rob@landley.net" <rob@landley.net>, "bcousson@baylibre.com" <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: r.sricharan@ti.com, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linus.walleij@linaro.org, linux@arm.linux.org.uk, tony@atomide.com, rnayak@ti.com, marc.zyngier@arm.com, grant.likely@linaro.org, mark.rutland@arm.com, robherring2@gmail.com, tglx@linutronix.de, galak@codeaurora.org, rob.herring@calxeda.com, nm@ti.com, bcousson@baylibre.com
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Oct 22, 2013 at 01:02:53PM +0100, Felipe Balbi wrote:
-> Hi,
-> 
-> On Tue, Oct 22, 2013 at 10:42:00AM +0200, Sebastian Andrzej Siewior wrote:
-> > On 10/21/2013 10:13 PM, Felipe Balbi wrote:
-> > > diff --git a/drivers/input/touchscreen/ti_am335x_tsc.c b/drivers/input/touchscreen/ti_am335x_tsc.c
-> > > index e1c5300..b61df9d 100644
-> > > --- a/drivers/input/touchscreen/ti_am335x_tsc.c
-> > > +++ b/drivers/input/touchscreen/ti_am335x_tsc.c
-> > > @@ -348,9 +348,16 @@ static int titsc_parse_dt(struct platform_device *pdev,
-> > >  	if (err < 0)
-> > >  		return err;
-> > >  
-> > > -	err = of_property_read_u32(node, "ti,coordiante-readouts",
-> > > +	/*
-> > > +	 * try with new binding first. If it fails, still try with
-> > > +	 * bogus, miss-spelled version.
-> > > +	 */
-> > > +	err = of_property_read_u32(node, "ti,coordinate-readouts",
-> > >  			&ts_dev->coordinate_readouts);
-> > >  	if (err < 0)
-> > > +		err = of_property_read_u32(node, "ti,coordiante-readouts",
-> > > +				&ts_dev->coordinate_readouts);
-> > > +	if (err < 0)
-> > >  		return err;
-> > 
-> > Thanks, very good. Do we keep this fallback for ever or just for a year
-> > or two?
-> 
-> That's for DT maintainers to decide but considering DT is an ABI, I
-> guess we need to keep for 30 years or so :-p
+Some socs have a large number of interrupts requests to service
+the needs of its many peripherals and subsystems. All of the interrupt
+requests lines from the subsystems are not needed at the same
+time, so they have to be muxed to the controllers appropriately.
+In such places a interrupt controllers are preceded by an
+IRQ CROSSBAR that provides flexibility in muxing the device interrupt
+requests to the controller inputs.
 
-We keep it as long as we have to. If no-one's relying on the typo by the
-next merge window, I see no reason we'd have to keep support for the
-typo beyond that. If someone's shipped a device with a dtb with the typo
-hard-coded into some ROM, that's another matter...
+This series models the peripheral interrupts that can be routed through
+the crossbar to the GIC as 'routable-irqs'. The routable irqs are added
+in a separate linear domain inside the GIC. The registered routable domain's
+callback are invoked as a part of the GIC's callback, which in turn should
+allocate a free irq line and configure the IP accordingly. So every peripheral
+in the dts files mentions the fixed crossbar number as its interrupt. A free
+gic line for that gets allocated and configured when the peripheral interrupts
+are mapped.
 
-It might be worth printing a warning in the case of the typo'd version,
-suggesting correcting the DT. That will encourage anyone with a broken
-dt to get a fixed one.
+The minimal crossbar driver to track and allocate free GIC lines and configure the
+crossbar is added here, along with the DT bindings.
 
-Mark.
+V4:
+   Addressed a couple of comments and split the DTS file updates in to
+   a separate series.
+
+V3:
+   Addressed few more comments from Thomas Gleixner <tglx@linutronix.de>
+
+   Rebased patches 3,4,5,7 which updates the DTS file on top of below branch
+	   git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git
+	   for_3.13/dts
+
+   Rebased patches 1,2,6 on top of 3.12 mainline
+   Updated Commit tags
+
+V2:
+   Addressed Thomas Gleixner <tglx@linutronix.de> comments and
+   Kumar Gala <galak@codeaurora.org>
+
+   Split updating the DRA7.dtsi file for adding the routable-irqs
+
+Previous discussions that led to this is at
+	https://lkml.org/lkml/2013/9/18/540
+
+The V1,V2,V3 post of these patches is at
+      [V1]  https://lkml.org/lkml/2013/9/30/283
+      [V2]  http://www.spinics.net/lists/linux-omap/msg99540.html
+      [V3]  http://www.kernelhub.org/?msg=356470&p=2
+
+Sricharan R (4):
+  DRIVERS: IRQCHIP: IRQ-GIC: Add support for routable irqs
+  DRIVERS: IRQCHIP: CROSSBAR: Add support for Crossbar IP
+  ARM: OMAP4+: Correct Wakeup-gen code to use physical irq number
+  ARM: DRA: Enable Crossbar IP support for DRA7XX
+
+ Documentation/devicetree/bindings/arm/gic.txt      |    6 +
+ .../devicetree/bindings/arm/omap/crossbar.txt      |   27 +++
+ arch/arm/mach-omap2/Kconfig                        |    1 +
+ arch/arm/mach-omap2/omap-wakeupgen.c               |    4 +-
+ arch/arm/mach-omap2/omap4-common.c                 |    3 +
+ drivers/irqchip/Kconfig                            |    8 +
+ drivers/irqchip/Makefile                           |    1 +
+ drivers/irqchip/irq-crossbar.c                     |  206 ++++++++++++++++++++
+ drivers/irqchip/irq-gic.c                          |   81 +++++++-
+ include/linux/irqchip/arm-gic.h                    |    7 +-
+ include/linux/irqchip/irq-crossbar.h               |   11 ++
+ 11 files changed, 342 insertions(+), 13 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/arm/omap/crossbar.txt
+ create mode 100644 drivers/irqchip/irq-crossbar.c
+ create mode 100644 include/linux/irqchip/irq-crossbar.h
+
+-- 
+1.7.9.5
