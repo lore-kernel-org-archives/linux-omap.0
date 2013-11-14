@@ -1,141 +1,95 @@
-From: Andreas Fenkart <afenkart@gmail.com>
-Subject: Re: [PATCH 1/3] mmc: omap_hsmmc: Enable SDIO IRQ.
-Date: Thu, 14 Nov 2013 10:09:03 +0100
-Message-ID: <CALtMJED37AaHQPVyVsJ8yXs8P9kQmPKqS41sz=hsR6Onj0NzmA@mail.gmail.com>
-References: <1384200405-8402-1-git-send-email-afenkart@gmail.com>
-	<1384200405-8402-2-git-send-email-afenkart@gmail.com>
-	<528263DE.2030001@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH 5/8] gpio: twl4030: Fix regression for twl gpio output
+Date: Thu, 14 Nov 2013 11:45:51 +0200
+Message-ID: <52849BCF.6060203@ti.com>
+References: <1384396537-3486-1-git-send-email-tony@atomide.com> <1384396537-3486-6-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <528263DE.2030001@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Balaji T K <balajitk@ti.com>
-Cc: Chris Ball <cjb@laptop.org>, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, Felipe Balbi <balbi@ti.com>, Daniel Mack <zonque@gmail.com>, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-mmc <linux-mmc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <1384396537-3486-6-git-send-email-tony@atomide.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Cc: Linus Walleij <linus.walleij@linaro.org>, linux-gpio@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-2013/11/12 Balaji T K <balajitk@ti.com>:
-> On Tuesday 12 November 2013 01:36 AM, Andreas Fenkart wrote:
->>
->> For now, only support SDIO interrupt if we are booted with
->> DT. This is because some platforms need special quirks. And
->> we don't want to add new legacy mux platform init code
->> callbacks any longer as we are moving to DT based booting
->> anyways.
->>
->> Broken hardware, missing the swakueup line, should fallback
->> to polling, by setting 'ti,quirk-swakup-missing' in the
->> device tree. Otherwise pending SDIO IRQ are not detected
->> while in suspend. This affects am33xx processors.
->>
->> For the DT-Binding portion:
->> Reviewed-by: Grant Likely <grant.likely@secretlab.ca>
->> Acked-by: Kumar Gala <galak@codeaurora.org>
->> Signed-off-by: Andreas Fenkart <afenkart@gmail.com>
->> ---
->>   .../devicetree/bindings/mmc/ti-omap-hsmmc.txt      |   18 ++++
->>   drivers/mmc/host/omap_hsmmc.c                      |   86
->> ++++++++++++++++++--
->>   2 files changed, 95 insertions(+), 9 deletions(-)
->>
->
->> +static void omap_hsmmc_enable_sdio_irq(struct mmc_host *mmc, int enable)
->> +{
->> +       struct omap_hsmmc_host *host = mmc_priv(mmc);
->> +       u32 irq_mask;
->> +       unsigned long flags;
->> +
->> +       spin_lock_irqsave(&host->irq_lock, flags);
->> +
->
-> Hi Andreas,
->
-> Thanks for the patch,
-> You don't check for runtime pm status here before read/write to HSMMC
-> registers,
-> can you please explain ?
+Hi Tony,
+
+On 11/14/2013 04:35 AM, Tony Lindgren wrote:
+> Commit c111feabe2e2 (gpio: twl4030: Cache the direction and output
+> states in private data) improved things in general, but caused a
+> regression for setting the GPIO output direction.
+>=20
+> The change reorganized twl_direction_out() and twl_set() and swapped
+> the function names around in the process. While doing that, a bug got
+> introduced that's not obvious while reading the patch as it appears
+> as no change to the code.
+>=20
+> The bug is we now call function twl4030_set_gpio_dataout() twice in
+> both twl_direction_out() and twl_set(). Instead, we should first
+> call twl_direction_out() in twl_direction_out() followed by
+> twl4030_set_gpio_dataout() in twl_set().
+>=20
+> This regression probably has gone unnoticed for a long time as the
+> bootloader may have set the GPIO direction properly in many cases.
+> This fixes at least the LCD panel not turning on omap3 LDP for
+> example.
+
+Thanks for catching this. I have a recollection that I have tested the =
+GPIO
+and it appeared to be working fine..
+
+Reviewed-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+
+> Cc: Linus Walleij <linus.walleij@linaro.org>
+> Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> Cc: linux-gpio@vger.kernel.org
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> ---
+>=20
+> If this looks OK, I'd like to merge this as a fix via arm-soc tree
+> along with the other patches in this series as my later patches
+> depend on patches in this series.
+>=20
+> ---
+>  drivers/gpio/gpio-twl4030.c | 5 +++--
+>  1 file changed, 3 insertions(+), 2 deletions(-)
+>=20
+> diff --git a/drivers/gpio/gpio-twl4030.c b/drivers/gpio/gpio-twl4030.=
+c
+> index 0c7e891..5738d5a 100644
+> --- a/drivers/gpio/gpio-twl4030.c
+> +++ b/drivers/gpio/gpio-twl4030.c
+> @@ -354,17 +354,18 @@ static void twl_set(struct gpio_chip *chip, uns=
+igned offset, int value)
+>  static int twl_direction_out(struct gpio_chip *chip, unsigned offset=
+, int value)
+>  {
+>  	struct gpio_twl4030_priv *priv =3D to_gpio_twl4030(chip);
+> +	int ret =3D -EINVAL;
+> =20
+>  	mutex_lock(&priv->mutex);
+>  	if (offset < TWL4030_GPIO_MAX)
+> -		twl4030_set_gpio_dataout(offset, value);
+> +		ret =3D twl4030_set_gpio_direction(offset, 0);
+> =20
+>  	priv->direction |=3D BIT(offset);
+>  	mutex_unlock(&priv->mutex);
+> =20
+>  	twl_set(chip, offset, value);
+> =20
+> -	return 0;
+> +	return ret;
+>  }
+> =20
+>  static int twl_to_irq(struct gpio_chip *chip, unsigned offset)
+>=20
 
 
-The fclk  must be running when you end up here.
-- sdio_irq_thread calls mmc_claim_host which calls pm_runtime_get in turn.
-- upper level drivers (e.g. wifi) call mmc_claim_host before interacting with
-  the host.
-- in interrupt context, fclk must be on otherwise irq detection wouldn't work.
-
-FYI:
-In a previous patch for am335x with swakeup line missing, this function was
-called from gpio irq context directly. There it could have happened that the
-fclk was not running and your register accesses caused a SIGBUS.
-With this version of the patch the gpio irg handler only wakes up the the host
-with pm_request_resume. Actual sdio irq processing is done in a 2nd interrupt
-triggered by mmc host itself. This models the behaviour, when your chip has
-the swakeup line.
-Assuming SDIO irq while in pm_suspend is rare followed by burst of SDIO
-irqs. Then the additional delay of the 2nd interrupt would vanish in
-the measuring
-noise. Hence I chose this solution because it's simpler and less error prone.
-
->
->
->> +       irq_mask = OMAP_HSMMC_READ(host->base, ISE);
->> +       if (enable) {
->> +               host->flags |= HSMMC_SDIO_IRQ_ENABLED;
->> +               irq_mask |= CIRQ_EN;
->> +       } else {
->> +               host->flags &= ~HSMMC_SDIO_IRQ_ENABLED;
->> +               irq_mask &= ~CIRQ_EN;
->> +       }
->> +       OMAP_HSMMC_WRITE(host->base, IE, irq_mask);
->> +
->> +       /*
->> +        * if enable, piggy back detection on current request
->> +        * but always disable immediately
->> +        */
->> +       if (!host->req_in_progress || !enable)
->> +               OMAP_HSMMC_WRITE(host->base, ISE, irq_mask);
->> +
->> +       /* flush posted write */
->> +       OMAP_HSMMC_READ(host->base, IE);
->> +
->> +       spin_unlock_irqrestore(&host->irq_lock, flags);
->> +}
->> +
->>   static void omap_hsmmc_conf_bus_power(struct omap_hsmmc_host *host)
->>   {
->>         u32 hctl, capa, value;
->> @@ -1635,7 +1687,7 @@ static const struct mmc_host_ops omap_hsmmc_ops = {
->>         .get_cd = omap_hsmmc_get_cd,
->>         .get_ro = omap_hsmmc_get_ro,
->>         .init_card = omap_hsmmc_init_card,
->> -       /* NYET -- enable_sdio_irq */
->> +       .enable_sdio_irq = omap_hsmmc_enable_sdio_irq,
->>   };
->>
->>   #ifdef CONFIG_DEBUG_FS
->> @@ -2021,6 +2073,22 @@ static int omap_hsmmc_probe(struct platform_device
->> *pdev)
->>                 dev_warn(&pdev->dev,
->>                         "pins are not configured from the driver\n");
->>
->> +       /*
->> +        * For now, only support SDIO interrupt if we are booted with
->> +        * DT. This is because some platforms need special quirks. And
->> +        * we don't want to add new legacy mux platform init code
->> +        * callbacks any longer as we are moving to DT based booting
->> +        * anyways.
->> +        */
->> +       if (pdev->dev.of_node) {
->> +               mmc->caps |= MMC_CAP_SDIO_IRQ;
->> +               if (of_find_property(host->dev->of_node,
->> +                                    "ti,quirk-swakeup-missing", NULL)) {
->> +                       /* no wakeup from deeper power states, use polling
->> */
->> +                       mmc->caps &= ~MMC_CAP_SDIO_IRQ;
->> +               }
->> +       }
->> +
->>         omap_hsmmc_protect_card(host);
->>
->>         mmc_add_host(mmc);
->>
->
+--=20
+P=E9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-gpio" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
