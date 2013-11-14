@@ -1,49 +1,76 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: dts: doc: Document missing compatible property
- for omap-sham driver
-Date: Thu, 14 Nov 2013 10:59:16 -0800
-Message-ID: <20131114185916.GS10317@atomide.com>
-References: <1383889056-17336-1-git-send-email-lokeshvutla@ti.com>
+Subject: Re: [PATCH v2] doc: devicetree: Add bindings documentation for
+ omap-des driver
+Date: Thu, 14 Nov 2013 11:01:51 -0800
+Message-ID: <20131114190150.GT10317@atomide.com>
+References: <1384199386-14504-1-git-send-email-joelf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-doc-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1383889056-17336-1-git-send-email-lokeshvutla@ti.com>
+In-Reply-To: <1384199386-14504-1-git-send-email-joelf@ti.com>
 Sender: linux-doc-owner@vger.kernel.org
-To: Lokesh Vutla <lokeshvutla@ti.com>
-Cc: devicetree@vger.kernel.org, santosh.shilimkar@ti.com, rnayak@ti.com, linux-omap@vger.kernel.org, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, rob@landley.net, bcousson@baylibre.com, linux-doc@vger.kernel.org, joelf@ti.com
+To: Joel Fernandes <joelf@ti.com>
+Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Mark Rutland <mark.rutland@arm.com>, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Rob Landley <rob@landley.net>, "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Lokesh Vutla <lokeshvutla@ti.com> [131107 21:38]:
-> A new compatible property "ti,omap5-sham" is added to the omap-sham driver
-> recently to support SHA/MD5 for OMAP5,DRA7 and AM43XX. Documenting the
-> same.
+* Joel Fernandes <joelf@ti.com> [131111 11:50]:
+> Add documentation for the generic OMAP DES crypto modul describing the device
+> tree bindings.
 > 
-> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+> Reviewed-by: Mark Rutland <mark.rutland@arm.com>
+> Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Signed-off-by: Joel Fernandes <joelf@ti.com>
 
 Thanks applying into omap-for-v3.13/fixes.
 
 Tony
 
 > ---
->  .../devicetree/bindings/crypto/omap-sham.txt       |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+> v2 changes: Update documentation for clocks, clock-names and dma-names.
 > 
-> diff --git a/Documentation/devicetree/bindings/crypto/omap-sham.txt b/Documentation/devicetree/bindings/crypto/omap-sham.txt
-> index f839acd..ad91155 100644
-> --- a/Documentation/devicetree/bindings/crypto/omap-sham.txt
-> +++ b/Documentation/devicetree/bindings/crypto/omap-sham.txt
-> @@ -6,7 +6,7 @@ Required properties:
->    SHAM versions:
->    - "ti,omap2-sham" for OMAP2 & OMAP3.
->    - "ti,omap4-sham" for OMAP4 and AM33XX.
-> -  Note that these two versions are incompatible.
-> +  - "ti,omap5-sham" for OMAP5, DRA7 and AM43XX.
->  - ti,hwmods: Name of the hwmod associated with the SHAM module
->  - reg : Offset and length of the register set for the module
->  - interrupts : the interrupt-specifier for the SHAM module.
+>  .../devicetree/bindings/crypto/omap-des.txt        | 30 ++++++++++++++++++++++
+>  1 file changed, 30 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/crypto/omap-des.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/crypto/omap-des.txt b/Documentation/devicetree/bindings/crypto/omap-des.txt
+> new file mode 100644
+> index 0000000..e8c63bf
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/crypto/omap-des.txt
+> @@ -0,0 +1,30 @@
+> +OMAP SoC DES crypto Module
+> +
+> +Required properties:
+> +
+> +- compatible : Should contain "ti,omap4-des"
+> +- ti,hwmods: Name of the hwmod associated with the DES module
+> +- reg : Offset and length of the register set for the module
+> +- interrupts : the interrupt-specifier for the DES module
+> +- clocks : A phandle to the functional clock node of the DES module
+> +           corresponding to each entry in clock-names
+> +- clock-names : Name of the functional clock, should be "fck"
+> +
+> +Optional properties:
+> +- dmas: DMA specifiers for tx and rx dma. See the DMA client binding,
+> +	Documentation/devicetree/bindings/dma/dma.txt
+> +	Each entry corresponds to an entry in dma-names
+> +- dma-names: DMA request names should include "tx" and "rx" if present
+> +
+> +Example:
+> +	/* DRA7xx SoC */
+> +	des: des@480a5000 {
+> +		compatible = "ti,omap4-des";
+> +		ti,hwmods = "des";
+> +		reg = <0x480a5000 0xa0>;
+> +		interrupts = <GIC_SPI 82 IRQ_TYPE_LEVEL_HIGH>;
+> +		dmas = <&sdma 117>, <&sdma 116>;
+> +		dma-names = "tx", "rx";
+> +		clocks = <&l3_iclk_div>;
+> +		clock-names = "fck";
+> +	};
 > -- 
-> 1.7.9.5
+> 1.8.1.2
 > 
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
