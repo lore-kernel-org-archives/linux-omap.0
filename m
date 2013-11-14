@@ -1,120 +1,84 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH V3] ARM: OMAP2+: omap_device: maintain sane runtime pm
- status around suspend/resume
-Date: Thu, 14 Nov 2013 13:30:05 -0600
-Message-ID: <528524BD.9010005@ti.com>
-References: <1384297710-29694-1-git-send-email-nm@ti.com> <1384448716-3186-1-git-send-email-nm@ti.com> <20131114185558.GB16529@saruman.home>
+From: Sebastian Reichel <sre-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 1/2] isp1704_charger: Add DT support
+Date: Thu, 14 Nov 2013 22:34:19 +0000
+Message-ID: <20131114223416.GA6383@earth.universe>
+References: <1384432734-1490-1-git-send-email-sre@debian.org>
+ <201311141905.11046@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:33330 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754344Ab3KNTad (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 14 Nov 2013 14:30:33 -0500
-In-Reply-To: <20131114185558.GB16529@saruman.home>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="fUYQa+Pmc3FrFX/N"
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <201311141905.11046@pali>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Anton Vorontsov <anton-9xeibp6oKSgdnm+yROfE0A@public.gmane.org>, David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: Tony Lindgren <tony@atomide.com>, paul@pwsan.com, rnayak@ti.com, khilman@linaro.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
-
-On 11/14/2013 12:55 PM, Felipe Balbi wrote:
-> Hi,
-> 
-> On Thu, Nov 14, 2013 at 11:05:16AM -0600, Nishanth Menon wrote:
->> OMAP device hooks around suspend|resume_noirq ensures that hwmod
->> devices are forced to idle using omap_device_idle/enable as part of
->> the last stage of suspend activity.
->>
->> For a device such as i2c who uses autosuspend, it is possible to enter
->> the suspend path with dev->power.runtime_status = RPM_ACTIVE.
->>
->> As part of the suspend flow, the generic runtime logic would increment
->> it's dev->power.disable_depth to 1. This should prevent further
->> pm_runtime_get_sync from succeeding once the runtime_status has been
->> set to RPM_SUSPENDED.
->>
->> Now, as part of the suspend_noirq handler in omap_device, we force the
->> following: if the device status is !suspended, we force the device
->> to idle using omap_device_idle (clocks are cut etc..). This ensures
->> that from a hardware perspective, the device is "suspended". However,
->> runtime_status is left to be active.
->>
->> *if* an operation is attempted after this point to
->> pm_runtime_get_sync, runtime framework depends on runtime_status to
->> indicate accurately the device status, and since it sees it to be
->> ACTIVE, it assumes the module is functional and returns a non-error
->> value. As a result the user will see pm_runtime_get succeed, however a
->> register access will crash due to the lack of clocks.
->>
->> To prevent this from happening, we should ensure that runtime_status
->> exactly indicates the device status. As a result of this change
->> any further calls to pm_runtime_get* would return -EACCES (since
->> disable_depth is 1). On resume, we restore the clocks and runtime
->> status exactly as we suspended with. These operations are not expected
->> to fail as we update the states after the core runtime framework has
->> suspended itself and restore before the core runtime framework has
->> resumed.
->>
->> Reported-by: J Keerthy <j-keerthy@ti.com>
->> Signed-off-by: Nishanth Menon <nm@ti.com>
->> Acked-by: Rajendra Nayak <rnayak@ti.com>
->> Acked-by: Kevin Hilman <khilman@linaro.org>
->> ---
->> Changes in V3:
->> 	- Added WARN in case of unexpected failure of runtime pm status restore
->> v2: https://patchwork.kernel.org/patch/3176501/
->> v1: https://patchwork.kernel.org/patch/3154501/
->>
->> patch baseline: V3.12 tag (also applies on linux-next next-20131107 tag)
->>
->>  arch/arm/mach-omap2/omap_device.c |   13 +++++++++++--
->>  1 file changed, 11 insertions(+), 2 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
->> index b69dd9a..53f0735 100644
->> --- a/arch/arm/mach-omap2/omap_device.c
->> +++ b/arch/arm/mach-omap2/omap_device.c
->> @@ -621,6 +621,7 @@ static int _od_suspend_noirq(struct device *dev)
->>  
->>  	if (!ret && !pm_runtime_status_suspended(dev)) {
->>  		if (pm_generic_runtime_suspend(dev) == 0) {
->> +			pm_runtime_set_suspended(dev);
->>  			omap_device_idle(pdev);
->>  			od->flags |= OMAP_DEVICE_SUSPENDED;
->>  		}
->> @@ -634,10 +635,18 @@ static int _od_resume_noirq(struct device *dev)
->>  	struct platform_device *pdev = to_platform_device(dev);
->>  	struct omap_device *od = to_omap_device(pdev);
->>  
->> -	if ((od->flags & OMAP_DEVICE_SUSPENDED) &&
->> -	    !pm_runtime_status_suspended(dev)) {
->> +	if (od->flags & OMAP_DEVICE_SUSPENDED) {
->>  		od->flags &= ~OMAP_DEVICE_SUSPENDED;
->>  		omap_device_enable(pdev);
->> +		/*
->> +		 * XXX: we run before core runtime pm has resumed itself. At
->> +		 * this point in time, we just restore the runtime pm state and
->> +		 * considering symmetric operations in resume, we donot expect
->> +		 * to fail. If we failed, something changed in core runtime_pm
->> +		 * framework OR some device driver messed things up, hence, WARN
->> +		 */
->> +		WARN(pm_runtime_set_active(dev),
->> +		     "Could not set %s runtime state active\n", dev_name(dev));
-> 
-> if you want to print the device name, how about dev_WARN() ?
-> 
-> no strong feelings though:
-
-I would like to stick with WARN as dev_WARN would probably need an
-condition check.. unless someone has a strong opinion, I dont see it
-adding value here.
-
-> 
-> Reviewed-by: Felipe Balbi <balbi@ti.com>
-> 
 
 
--- 
-Regards,
-Nishanth Menon
+--fUYQa+Pmc3FrFX/N
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Thu, Nov 14, 2013 at 07:05:06PM +0100, Pali Roh=E1r wrote:
+> On Thursday 14 November 2013 13:38:53 Sebastian Reichel wrote:
+> > diff --git a/drivers/power/isp1704_charger.c
+> > b/drivers/power/isp1704_charger.c index fc04d19..db96778
+> > 100644
+> > --- a/drivers/power/isp1704_charger.c
+> > +++ b/drivers/power/isp1704_charger.c
+> > @@ -28,6 +28,8 @@
+> >  #include <linux/platform_device.h>
+> >  #include <linux/power_supply.h>
+> >  #include <linux/delay.h>
+> > +#include <linux/of.h>
+> > +#include <linux/of_gpio.h>
+> >=20
+> >  #include <linux/usb/otg.h>
+> >  #include <linux/usb/ulpi.h>
+> > @@ -89,8 +91,8 @@ static void isp1704_charger_set_power(struct
+> > isp1704_charger *isp, bool on) {
+> >  	struct isp1704_charger_data	*board =3D
+> > isp->dev->platform_data;
+> >=20
+> > -	if (board && board->set_power)
+> > -		board->set_power(on);
+> > +	if (board)
+> > +		gpio_set_value(board->enable_gpio, on);
+> >  }
+> >=20
+>=20
+> You need to check if enable_gpio in board data was defined or not.
+
+The device is not successful probed without valid enable_gpio.
+
+-- Sebastian
+
+--fUYQa+Pmc3FrFX/N
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.15 (GNU/Linux)
+
+iQIcBAEBCAAGBQJShU/oAAoJENju1/PIO/qaJZUQAINRQ/q/vCl0i6J63Z5988fk
+4WbcLre2IXWTTf8QV8U+8Qp0Z3ahF8zw7pFlpY9V2jcGINYqdylNyCPMaklmGgVR
+GG65jQ50GeLrfq0F2c9Sh2SmbkT46zFZAoBJX6Wc+vQP+jVQFURptHuVZXDPlwol
+3opslaPYLYxrprmSwOAyk0cJPGjvROTKkhCu22ItVdPhoXIBOADQs/mBvHbpCSQE
+hxNaNNCsdRZLOQNAU/Y/QG7VWyOBCUGlX19tqHxwFH9a+Gc5RaP6MbaFUwjQAUWW
+n8bwtNB3Hs8LWKMYctW/mV95RS66gPN8sl8WOnbDwtMDTHQt24QfeoTxNxEIv0I+
+8Q3E3MUn99gpffv+ODr1pb1uJcHslpYM9+h592eYwAVczI85JVkgx+XRDIz8+mac
+2pggzH8lLpM7BFJAIf/XYRBgeLtyyrexGbrpbfN9be6G3nUmpSvOtRD06s4w0Nsn
+rf9WS9GArNrfexKtJY7dNEUQ8oi0rXqILNKswxfA3YmH96j4410vfYGSnRK9r0VT
+hvo7BELlrljf81RxBsCGaQsdTm0cQSzHhBSHBdTD0Ig6hgXtLVZfuBP7D2wefLm2
+UllfgHzMk2eZGTic6C97m18k/i5Yw1TgjV2MYODGw8ROQ5ksswi4+Ffkrdt7BUGp
++n09mmZJkpG2ixn2muSO
+=8jvX
+-----END PGP SIGNATURE-----
+
+--fUYQa+Pmc3FrFX/N--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
