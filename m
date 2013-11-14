@@ -1,48 +1,54 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP: devicetree: fix SPI node compatible
- property syntax items
-Date: Thu, 14 Nov 2013 10:36:09 -0800
-Message-ID: <20131114183609.GM10317@atomide.com>
-References: <1382090468-6011-1-git-send-email-ewitcher@mindspring.com>
+Subject: Re: [GIT PULL] ARM: OMAP2+: clock fixes for v3.13
+Date: Thu, 14 Nov 2013 10:39:56 -0800
+Message-ID: <20131114183956.GO10317@atomide.com>
+References: <alpine.DEB.2.02.1310241550050.10391@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:32173 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754832Ab3KNSgL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Nov 2013 13:36:11 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:24849 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753017Ab3KNSj6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Nov 2013 13:39:58 -0500
 Content-Disposition: inline
-In-Reply-To: <1382090468-6011-1-git-send-email-ewitcher@mindspring.com>
+In-Reply-To: <alpine.DEB.2.02.1310241550050.10391@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Eric Witcher <ewitcher@mindspring.com>
-Cc: bcousson@baylibre.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Eric Witcher <ewitcher@mindspring.com> [131022 21:14]:
-> Correct the SPI node compatible property items to match example code and
-> match current DTS usage.
+* Paul Walmsley <paul@pwsan.com> [131024 09:01]:
+> Hi Tony,
 > 
-> Signed-off-by: Eric Witcher <ewitcher@mindspring.com>
-> ---
->  Documentation/devicetree/bindings/spi/omap-spi.txt | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
+> The following changes since commit 272b98c6455f00884f0350f775c5342358ebb73f:
 > 
-> diff --git a/Documentation/devicetree/bindings/spi/omap-spi.txt b/Documentation/devicetree/bindings/spi/omap-spi.txt
-> index 4c85c4c..2ba5f9c 100644
-> --- a/Documentation/devicetree/bindings/spi/omap-spi.txt
-> +++ b/Documentation/devicetree/bindings/spi/omap-spi.txt
-> @@ -2,8 +2,8 @@ OMAP2+ McSPI device
->  
->  Required properties:
->  - compatible :
-> -  - "ti,omap2-spi" for OMAP2 & OMAP3.
-> -  - "ti,omap4-spi" for OMAP4+.
-> +  - "ti,omap2-mcspi" for OMAP2 & OMAP3.
-> +  - "ti,omap4-mcspi" for OMAP4+.
->  - ti,spi-num-cs : Number of chipselect supported  by the instance.
->  - ti,hwmods: Name of the hwmod associated to the McSPI
->  - ti,pindir-d0-out-d1-in: Select the D0 pin as output and D1 as
+>   Linux 3.12-rc1 (2013-09-16 16:17:51 -0400)
+> 
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/for-v3.13/clock-fixes-a
+> 
+> for you to fetch changes up to 4ff7e3b65c8e1d8062365296b738fd262cfc2e9c:
+> 
+>   ARM: OMAP3: fix dpll4_m3_ck and dpll4_m4_ck dividers (2013-10-24 09:07:23 -0600)
+> 
+> ----------------------------------------------------------------
+> Several OMAP2+ DSS-related clock fixes for v3.13 from Tomi Valkeinen.
+> 
+> Basic test logs at:
+> 
+>    http://www.pwsan.com/omap/testlogs/clock_fixes_v3.13/20131024090906/
 
-Applying into omap-for-v3.13/fixes thanks.
+Thanks pulling into omap-for-v3.13/fixes.
 
 Tony
+ 
+> ----------------------------------------------------------------
+> Tomi Valkeinen (3):
+>       ARM: OMAP4: use CLK_SET_RATE_PARENT for dss_dss_clk
+>       ARM: OMAP3: use CLK_SET_RATE_PARENT for dss clocks
+>       ARM: OMAP3: fix dpll4_m3_ck and dpll4_m4_ck dividers
+> 
+>  arch/arm/mach-omap2/cclock3xxx_data.c | 58 +++++++++++++++++++++++++++++------
+>  arch/arm/mach-omap2/cclock44xx_data.c |  3 +-
+>  2 files changed, 51 insertions(+), 10 deletions(-)
