@@ -1,2220 +1,1530 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 10/11] ARM: OMAP2+: Remove legacy mux code for omap2
-Date: Thu, 14 Nov 2013 16:09:57 -0800
-Message-ID: <1384474198-20756-11-git-send-email-tony@atomide.com>
+Subject: [PATCH 11/11] ARM: OMAP2+: Remove legacy hwmod entries for omap2
+Date: Thu, 14 Nov 2013 16:09:58 -0800
+Message-ID: <1384474198-20756-12-git-send-email-tony@atomide.com>
 References: <1384474198-20756-1-git-send-email-tony@atomide.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:42395 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:42428 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754512Ab3KOAKL (ORCPT
+	with ESMTP id S1754608Ab3KOAKL (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Nov 2013 19:10:11 -0500
 In-Reply-To: <1384474198-20756-1-git-send-email-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Cc: Paul Walmsley <paul@pwsan.com>
 
-This is no longer needed as pins can be muxed using
-pinctrl-single.
+These now come from device tree except for DSS and DMA that
+still uses hwmod to initialize. That will get fixed when we
+DSS gets device tree bindings and we move completely to the
+dmaengine API.
 
+Cc: Paul Walmsley <paul@pwsan.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/Makefile  |   2 -
- arch/arm/mach-omap2/mux.h     |   2 -
- arch/arm/mach-omap2/mux2420.c | 690 ------------------------------------
- arch/arm/mach-omap2/mux2420.h | 282 ---------------
- arch/arm/mach-omap2/mux2430.c | 793 ------------------------------------------
- arch/arm/mach-omap2/mux2430.h | 370 --------------------
- 6 files changed, 2139 deletions(-)
- delete mode 100644 arch/arm/mach-omap2/mux2420.c
- delete mode 100644 arch/arm/mach-omap2/mux2420.h
- delete mode 100644 arch/arm/mach-omap2/mux2430.c
- delete mode 100644 arch/arm/mach-omap2/mux2430.h
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c         | 137 -----------
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c         | 266 ---------------------
+ .../mach-omap2/omap_hwmod_2xxx_interconnect_data.c | 155 ------------
+ arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |  68 ------
+ arch/arm/mach-omap2/omap_hwmod_common_data.h       |   5 -
+ 5 files changed, 631 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index e0d5bcb..1b6f1de 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -66,8 +66,6 @@ obj-$(CONFIG_SOC_OMAP5)			+= omap4-restart.o
- obj-$(CONFIG_SOC_DRA7XX)		+= omap4-restart.o
+diff --git a/arch/arm/mach-omap2/omap_hwmod_2420_data.c b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
+index d8b9d60..2f15979 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_2420_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
+@@ -108,8 +108,6 @@ static struct omap_i2c_dev_attr i2c_dev_attr = {
+ /* I2C1 */
+ static struct omap_hwmod omap2420_i2c1_hwmod = {
+ 	.name		= "i2c1",
+-	.mpu_irqs	= omap2_i2c1_mpu_irqs,
+-	.sdma_reqs	= omap2_i2c1_sdma_reqs,
+ 	.main_clk	= "i2c1_fck",
+ 	.prcm		= {
+ 		.omap2 = {
+@@ -133,8 +131,6 @@ static struct omap_hwmod omap2420_i2c1_hwmod = {
+ /* I2C2 */
+ static struct omap_hwmod omap2420_i2c2_hwmod = {
+ 	.name		= "i2c2",
+-	.mpu_irqs	= omap2_i2c2_mpu_irqs,
+-	.sdma_reqs	= omap2_i2c2_sdma_reqs,
+ 	.main_clk	= "i2c2_fck",
+ 	.prcm		= {
+ 		.omap2 = {
+@@ -179,16 +175,9 @@ static struct omap_mbox_pdata omap2420_mailbox_attrs = {
+ 	.info		= omap2420_mailbox_info,
+ };
  
- # Pin multiplexing
--obj-$(CONFIG_SOC_OMAP2420)		+= mux2420.o
--obj-$(CONFIG_SOC_OMAP2430)		+= mux2430.o
- obj-$(CONFIG_ARCH_OMAP3)		+= mux34xx.o
+-static struct omap_hwmod_irq_info omap2420_mailbox_irqs[] = {
+-	{ .name = "dsp", .irq = 26 + OMAP_INTC_START, },
+-	{ .name = "iva", .irq = 34 + OMAP_INTC_START, },
+-	{ .irq = -1 },
+-};
+-
+ static struct omap_hwmod omap2420_mailbox_hwmod = {
+ 	.name		= "mailbox",
+ 	.class		= &omap2xxx_mailbox_hwmod_class,
+-	.mpu_irqs	= omap2420_mailbox_irqs,
+ 	.main_clk	= "mailboxes_ick",
+ 	.prcm		= {
+ 		.omap2 = {
+@@ -217,17 +206,9 @@ static struct omap_hwmod_opt_clk mcbsp_opt_clks[] = {
+ };
  
- # SMS/SDRC
-diff --git a/arch/arm/mach-omap2/mux.h b/arch/arm/mach-omap2/mux.h
-index 16f78a9..a722330 100644
---- a/arch/arm/mach-omap2/mux.h
-+++ b/arch/arm/mach-omap2/mux.h
-@@ -7,8 +7,6 @@
-  * published by the Free Software Foundation.
+ /* mcbsp1 */
+-static struct omap_hwmod_irq_info omap2420_mcbsp1_irqs[] = {
+-	{ .name = "tx", .irq = 59 + OMAP_INTC_START, },
+-	{ .name = "rx", .irq = 60 + OMAP_INTC_START, },
+-	{ .irq = -1 },
+-};
+-
+ static struct omap_hwmod omap2420_mcbsp1_hwmod = {
+ 	.name		= "mcbsp1",
+ 	.class		= &omap2420_mcbsp_hwmod_class,
+-	.mpu_irqs	= omap2420_mcbsp1_irqs,
+-	.sdma_reqs	= omap2_mcbsp1_sdma_reqs,
+ 	.main_clk	= "mcbsp1_fck",
+ 	.prcm		= {
+ 		.omap2 = {
+@@ -243,17 +224,9 @@ static struct omap_hwmod omap2420_mcbsp1_hwmod = {
+ };
+ 
+ /* mcbsp2 */
+-static struct omap_hwmod_irq_info omap2420_mcbsp2_irqs[] = {
+-	{ .name = "tx", .irq = 62 + OMAP_INTC_START, },
+-	{ .name = "rx", .irq = 63 + OMAP_INTC_START, },
+-	{ .irq = -1 },
+-};
+-
+ static struct omap_hwmod omap2420_mcbsp2_hwmod = {
+ 	.name		= "mcbsp2",
+ 	.class		= &omap2420_mcbsp_hwmod_class,
+-	.mpu_irqs	= omap2420_mcbsp2_irqs,
+-	.sdma_reqs	= omap2_mcbsp2_sdma_reqs,
+ 	.main_clk	= "mcbsp2_fck",
+ 	.prcm		= {
+ 		.omap2 = {
+@@ -283,22 +256,9 @@ static struct omap_hwmod_class omap2420_msdi_hwmod_class = {
+ };
+ 
+ /* msdi1 */
+-static struct omap_hwmod_irq_info omap2420_msdi1_irqs[] = {
+-	{ .irq = 83 + OMAP_INTC_START, },
+-	{ .irq = -1 },
+-};
+-
+-static struct omap_hwmod_dma_info omap2420_msdi1_sdma_reqs[] = {
+-	{ .name = "tx", .dma_req = 61 }, /* OMAP24XX_DMA_MMC1_TX */
+-	{ .name = "rx", .dma_req = 62 }, /* OMAP24XX_DMA_MMC1_RX */
+-	{ .dma_req = -1 }
+-};
+-
+ static struct omap_hwmod omap2420_msdi1_hwmod = {
+ 	.name		= "msdi1",
+ 	.class		= &omap2420_msdi_hwmod_class,
+-	.mpu_irqs	= omap2420_msdi1_irqs,
+-	.sdma_reqs	= omap2420_msdi1_sdma_reqs,
+ 	.main_clk	= "mmc_fck",
+ 	.prcm		= {
+ 		.omap2 = {
+@@ -315,7 +275,6 @@ static struct omap_hwmod omap2420_msdi1_hwmod = {
+ /* HDQ1W/1-wire */
+ static struct omap_hwmod omap2420_hdq1w_hwmod = {
+ 	.name		= "hdq1w",
+-	.mpu_irqs	= omap2_hdq1w_mpu_irqs,
+ 	.main_clk	= "hdq_fck",
+ 	.prcm		= {
+ 		.omap2 = {
+@@ -338,7 +297,6 @@ static struct omap_hwmod_ocp_if omap2420_l4_core__i2c1 = {
+ 	.master		= &omap2xxx_l4_core_hwmod,
+ 	.slave		= &omap2420_i2c1_hwmod,
+ 	.clk		= "i2c1_ick",
+-	.addr		= omap2_i2c1_addr_space,
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+@@ -347,7 +305,6 @@ static struct omap_hwmod_ocp_if omap2420_l4_core__i2c2 = {
+ 	.master		= &omap2xxx_l4_core_hwmod,
+ 	.slave		= &omap2420_i2c2_hwmod,
+ 	.clk		= "i2c2_ick",
+-	.addr		= omap2_i2c2_addr_space,
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+@@ -367,111 +324,51 @@ static struct omap_hwmod_ocp_if omap2420_l3__dsp = {
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+-static struct omap_hwmod_addr_space omap2420_timer1_addrs[] = {
+-	{
+-		.pa_start	= 0x48028000,
+-		.pa_end		= 0x48028000 + SZ_1K - 1,
+-		.flags		= ADDR_TYPE_RT
+-	},
+-	{ }
+-};
+-
+ /* l4_wkup -> timer1 */
+ static struct omap_hwmod_ocp_if omap2420_l4_wkup__timer1 = {
+ 	.master		= &omap2xxx_l4_wkup_hwmod,
+ 	.slave		= &omap2xxx_timer1_hwmod,
+ 	.clk		= "gpt1_ick",
+-	.addr		= omap2420_timer1_addrs,
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+ /* l4_wkup -> wd_timer2 */
+-static struct omap_hwmod_addr_space omap2420_wd_timer2_addrs[] = {
+-	{
+-		.pa_start	= 0x48022000,
+-		.pa_end		= 0x4802207f,
+-		.flags		= ADDR_TYPE_RT
+-	},
+-	{ }
+-};
+-
+ static struct omap_hwmod_ocp_if omap2420_l4_wkup__wd_timer2 = {
+ 	.master		= &omap2xxx_l4_wkup_hwmod,
+ 	.slave		= &omap2xxx_wd_timer2_hwmod,
+ 	.clk		= "mpu_wdt_ick",
+-	.addr		= omap2420_wd_timer2_addrs,
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+ /* l4_wkup -> gpio1 */
+-static struct omap_hwmod_addr_space omap2420_gpio1_addr_space[] = {
+-	{
+-		.pa_start	= 0x48018000,
+-		.pa_end		= 0x480181ff,
+-		.flags		= ADDR_TYPE_RT
+-	},
+-	{ }
+-};
+-
+ static struct omap_hwmod_ocp_if omap2420_l4_wkup__gpio1 = {
+ 	.master		= &omap2xxx_l4_wkup_hwmod,
+ 	.slave		= &omap2xxx_gpio1_hwmod,
+ 	.clk		= "gpios_ick",
+-	.addr		= omap2420_gpio1_addr_space,
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+ /* l4_wkup -> gpio2 */
+-static struct omap_hwmod_addr_space omap2420_gpio2_addr_space[] = {
+-	{
+-		.pa_start	= 0x4801a000,
+-		.pa_end		= 0x4801a1ff,
+-		.flags		= ADDR_TYPE_RT
+-	},
+-	{ }
+-};
+-
+ static struct omap_hwmod_ocp_if omap2420_l4_wkup__gpio2 = {
+ 	.master		= &omap2xxx_l4_wkup_hwmod,
+ 	.slave		= &omap2xxx_gpio2_hwmod,
+ 	.clk		= "gpios_ick",
+-	.addr		= omap2420_gpio2_addr_space,
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+ /* l4_wkup -> gpio3 */
+-static struct omap_hwmod_addr_space omap2420_gpio3_addr_space[] = {
+-	{
+-		.pa_start	= 0x4801c000,
+-		.pa_end		= 0x4801c1ff,
+-		.flags		= ADDR_TYPE_RT
+-	},
+-	{ }
+-};
+-
+ static struct omap_hwmod_ocp_if omap2420_l4_wkup__gpio3 = {
+ 	.master		= &omap2xxx_l4_wkup_hwmod,
+ 	.slave		= &omap2xxx_gpio3_hwmod,
+ 	.clk		= "gpios_ick",
+-	.addr		= omap2420_gpio3_addr_space,
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+ /* l4_wkup -> gpio4 */
+-static struct omap_hwmod_addr_space omap2420_gpio4_addr_space[] = {
+-	{
+-		.pa_start	= 0x4801e000,
+-		.pa_end		= 0x4801e1ff,
+-		.flags		= ADDR_TYPE_RT
+-	},
+-	{ }
+-};
+-
+ static struct omap_hwmod_ocp_if omap2420_l4_wkup__gpio4 = {
+ 	.master		= &omap2xxx_l4_wkup_hwmod,
+ 	.slave		= &omap2xxx_gpio4_hwmod,
+ 	.clk		= "gpios_ick",
+-	.addr		= omap2420_gpio4_addr_space,
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+@@ -496,7 +393,6 @@ static struct omap_hwmod_ocp_if omap2420_l4_core__dma_system = {
+ static struct omap_hwmod_ocp_if omap2420_l4_core__mailbox = {
+ 	.master		= &omap2xxx_l4_core_hwmod,
+ 	.slave		= &omap2420_mailbox_hwmod,
+-	.addr		= omap2_mailbox_addrs,
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+@@ -505,7 +401,6 @@ static struct omap_hwmod_ocp_if omap2420_l4_core__mcbsp1 = {
+ 	.master		= &omap2xxx_l4_core_hwmod,
+ 	.slave		= &omap2420_mcbsp1_hwmod,
+ 	.clk		= "mcbsp1_ick",
+-	.addr		= omap2_mcbsp1_addrs,
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+@@ -514,25 +409,14 @@ static struct omap_hwmod_ocp_if omap2420_l4_core__mcbsp2 = {
+ 	.master		= &omap2xxx_l4_core_hwmod,
+ 	.slave		= &omap2420_mcbsp2_hwmod,
+ 	.clk		= "mcbsp2_ick",
+-	.addr		= omap2xxx_mcbsp2_addrs,
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+-static struct omap_hwmod_addr_space omap2420_msdi1_addrs[] = {
+-	{
+-		.pa_start	= 0x4809c000,
+-		.pa_end		= 0x4809c000 + SZ_128 - 1,
+-		.flags		= ADDR_TYPE_RT,
+-	},
+-	{ }
+-};
+-
+ /* l4_core -> msdi1 */
+ static struct omap_hwmod_ocp_if omap2420_l4_core__msdi1 = {
+ 	.master		= &omap2xxx_l4_core_hwmod,
+ 	.slave		= &omap2420_msdi1_hwmod,
+ 	.clk		= "mmc_ick",
+-	.addr		= omap2420_msdi1_addrs,
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+@@ -541,36 +425,16 @@ static struct omap_hwmod_ocp_if omap2420_l4_core__hdq1w = {
+ 	.master		= &omap2xxx_l4_core_hwmod,
+ 	.slave		= &omap2420_hdq1w_hwmod,
+ 	.clk		= "hdq_ick",
+-	.addr		= omap2_hdq1w_addr_space,
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ 	.flags		= OMAP_FIREWALL_L4 | OCPIF_SWSUP_IDLE,
+ };
+ 
+ 
+ /* l4_wkup -> 32ksync_counter */
+-static struct omap_hwmod_addr_space omap2420_counter_32k_addrs[] = {
+-	{
+-		.pa_start	= 0x48004000,
+-		.pa_end		= 0x4800401f,
+-		.flags		= ADDR_TYPE_RT
+-	},
+-	{ }
+-};
+-
+-static struct omap_hwmod_addr_space omap2420_gpmc_addrs[] = {
+-	{
+-		.pa_start	= 0x6800a000,
+-		.pa_end		= 0x6800afff,
+-		.flags		= ADDR_TYPE_RT
+-	},
+-	{ }
+-};
+-
+ static struct omap_hwmod_ocp_if omap2420_l4_wkup__counter_32k = {
+ 	.master		= &omap2xxx_l4_wkup_hwmod,
+ 	.slave		= &omap2xxx_counter_32k_hwmod,
+ 	.clk		= "sync_32k_ick",
+-	.addr		= omap2420_counter_32k_addrs,
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+@@ -578,7 +442,6 @@ static struct omap_hwmod_ocp_if omap2420_l3__gpmc = {
+ 	.master		= &omap2xxx_l3_main_hwmod,
+ 	.slave		= &omap2xxx_gpmc_hwmod,
+ 	.clk		= "core_l3_ck",
+-	.addr		= omap2420_gpmc_addrs,
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+diff --git a/arch/arm/mach-omap2/omap_hwmod_2430_data.c b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
+index 5b90834..6d1b609 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_2430_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
+@@ -86,8 +86,6 @@ static struct omap_i2c_dev_attr i2c_dev_attr = {
+ static struct omap_hwmod omap2430_i2c1_hwmod = {
+ 	.name		= "i2c1",
+ 	.flags		= HWMOD_16BIT_REG,
+-	.mpu_irqs	= omap2_i2c1_mpu_irqs,
+-	.sdma_reqs	= omap2_i2c1_sdma_reqs,
+ 	.main_clk	= "i2chs1_fck",
+ 	.prcm		= {
+ 		.omap2 = {
+@@ -114,8 +112,6 @@ static struct omap_hwmod omap2430_i2c1_hwmod = {
+ static struct omap_hwmod omap2430_i2c2_hwmod = {
+ 	.name		= "i2c2",
+ 	.flags		= HWMOD_16BIT_REG,
+-	.mpu_irqs	= omap2_i2c2_mpu_irqs,
+-	.sdma_reqs	= omap2_i2c2_sdma_reqs,
+ 	.main_clk	= "i2chs2_fck",
+ 	.prcm		= {
+ 		.omap2 = {
+@@ -131,15 +127,9 @@ static struct omap_hwmod omap2430_i2c2_hwmod = {
+ };
+ 
+ /* gpio5 */
+-static struct omap_hwmod_irq_info omap243x_gpio5_irqs[] = {
+-	{ .irq = 33 + OMAP_INTC_START, }, /* INT_24XX_GPIO_BANK5 */
+-	{ .irq = -1 },
+-};
+-
+ static struct omap_hwmod omap2430_gpio5_hwmod = {
+ 	.name		= "gpio5",
+ 	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
+-	.mpu_irqs	= omap243x_gpio5_irqs,
+ 	.main_clk	= "gpio5_fck",
+ 	.prcm		= {
+ 		.omap2 = {
+@@ -182,15 +172,9 @@ static struct omap_mbox_pdata omap2430_mailbox_attrs = {
+ 	.info		= omap2430_mailbox_info,
+ };
+ 
+-static struct omap_hwmod_irq_info omap2430_mailbox_irqs[] = {
+-	{ .irq = 26 + OMAP_INTC_START, },
+-	{ .irq = -1 },
+-};
+-
+ static struct omap_hwmod omap2430_mailbox_hwmod = {
+ 	.name		= "mailbox",
+ 	.class		= &omap2xxx_mailbox_hwmod_class,
+-	.mpu_irqs	= omap2430_mailbox_irqs,
+ 	.main_clk	= "mailboxes_ick",
+ 	.prcm		= {
+ 		.omap2 = {
+@@ -205,27 +189,12 @@ static struct omap_hwmod omap2430_mailbox_hwmod = {
+ };
+ 
+ /* mcspi3 */
+-static struct omap_hwmod_irq_info omap2430_mcspi3_mpu_irqs[] = {
+-	{ .irq = 91 + OMAP_INTC_START, },
+-	{ .irq = -1 },
+-};
+-
+-static struct omap_hwmod_dma_info omap2430_mcspi3_sdma_reqs[] = {
+-	{ .name = "tx0", .dma_req = 15 }, /* DMA_SPI3_TX0 */
+-	{ .name = "rx0", .dma_req = 16 }, /* DMA_SPI3_RX0 */
+-	{ .name = "tx1", .dma_req = 23 }, /* DMA_SPI3_TX1 */
+-	{ .name = "rx1", .dma_req = 24 }, /* DMA_SPI3_RX1 */
+-	{ .dma_req = -1 }
+-};
+-
+ static struct omap2_mcspi_dev_attr omap_mcspi3_dev_attr = {
+ 	.num_chipselect = 2,
+ };
+ 
+ static struct omap_hwmod omap2430_mcspi3_hwmod = {
+ 	.name		= "mcspi3",
+-	.mpu_irqs	= omap2430_mcspi3_mpu_irqs,
+-	.sdma_reqs	= omap2430_mcspi3_sdma_reqs,
+ 	.main_clk	= "mcspi3_fck",
+ 	.prcm		= {
+ 		.omap2 = {
+@@ -259,16 +228,8 @@ static struct omap_hwmod_class usbotg_class = {
+ };
+ 
+ /* usb_otg_hs */
+-static struct omap_hwmod_irq_info omap2430_usbhsotg_mpu_irqs[] = {
+-
+-	{ .name = "mc", .irq = 92 + OMAP_INTC_START, },
+-	{ .name = "dma", .irq = 93 + OMAP_INTC_START, },
+-	{ .irq = -1 },
+-};
+-
+ static struct omap_hwmod omap2430_usbhsotg_hwmod = {
+ 	.name		= "usb_otg_hs",
+-	.mpu_irqs	= omap2430_usbhsotg_mpu_irqs,
+ 	.main_clk	= "usbhs_ick",
+ 	.prcm		= {
+ 		.omap2 = {
+@@ -313,19 +274,9 @@ static struct omap_hwmod_opt_clk mcbsp_opt_clks[] = {
+ };
+ 
+ /* mcbsp1 */
+-static struct omap_hwmod_irq_info omap2430_mcbsp1_irqs[] = {
+-	{ .name = "tx",		.irq = 59 + OMAP_INTC_START, },
+-	{ .name = "rx",		.irq = 60 + OMAP_INTC_START, },
+-	{ .name = "ovr",	.irq = 61 + OMAP_INTC_START, },
+-	{ .name = "common",	.irq = 64 + OMAP_INTC_START, },
+-	{ .irq = -1 },
+-};
+-
+ static struct omap_hwmod omap2430_mcbsp1_hwmod = {
+ 	.name		= "mcbsp1",
+ 	.class		= &omap2430_mcbsp_hwmod_class,
+-	.mpu_irqs	= omap2430_mcbsp1_irqs,
+-	.sdma_reqs	= omap2_mcbsp1_sdma_reqs,
+ 	.main_clk	= "mcbsp1_fck",
+ 	.prcm		= {
+ 		.omap2 = {
+@@ -341,18 +292,9 @@ static struct omap_hwmod omap2430_mcbsp1_hwmod = {
+ };
+ 
+ /* mcbsp2 */
+-static struct omap_hwmod_irq_info omap2430_mcbsp2_irqs[] = {
+-	{ .name = "tx",		.irq = 62 + OMAP_INTC_START, },
+-	{ .name = "rx",		.irq = 63 + OMAP_INTC_START, },
+-	{ .name = "common",	.irq = 16 + OMAP_INTC_START, },
+-	{ .irq = -1 },
+-};
+-
+ static struct omap_hwmod omap2430_mcbsp2_hwmod = {
+ 	.name		= "mcbsp2",
+ 	.class		= &omap2430_mcbsp_hwmod_class,
+-	.mpu_irqs	= omap2430_mcbsp2_irqs,
+-	.sdma_reqs	= omap2_mcbsp2_sdma_reqs,
+ 	.main_clk	= "mcbsp2_fck",
+ 	.prcm		= {
+ 		.omap2 = {
+@@ -368,18 +310,9 @@ static struct omap_hwmod omap2430_mcbsp2_hwmod = {
+ };
+ 
+ /* mcbsp3 */
+-static struct omap_hwmod_irq_info omap2430_mcbsp3_irqs[] = {
+-	{ .name = "tx",		.irq = 89 + OMAP_INTC_START, },
+-	{ .name = "rx",		.irq = 90 + OMAP_INTC_START, },
+-	{ .name = "common",	.irq = 17 + OMAP_INTC_START, },
+-	{ .irq = -1 },
+-};
+-
+ static struct omap_hwmod omap2430_mcbsp3_hwmod = {
+ 	.name		= "mcbsp3",
+ 	.class		= &omap2430_mcbsp_hwmod_class,
+-	.mpu_irqs	= omap2430_mcbsp3_irqs,
+-	.sdma_reqs	= omap2_mcbsp3_sdma_reqs,
+ 	.main_clk	= "mcbsp3_fck",
+ 	.prcm		= {
+ 		.omap2 = {
+@@ -395,24 +328,9 @@ static struct omap_hwmod omap2430_mcbsp3_hwmod = {
+ };
+ 
+ /* mcbsp4 */
+-static struct omap_hwmod_irq_info omap2430_mcbsp4_irqs[] = {
+-	{ .name = "tx",		.irq = 54 + OMAP_INTC_START, },
+-	{ .name = "rx",		.irq = 55 + OMAP_INTC_START, },
+-	{ .name = "common",	.irq = 18 + OMAP_INTC_START, },
+-	{ .irq = -1 },
+-};
+-
+-static struct omap_hwmod_dma_info omap2430_mcbsp4_sdma_chs[] = {
+-	{ .name = "rx", .dma_req = 20 },
+-	{ .name = "tx", .dma_req = 19 },
+-	{ .dma_req = -1 }
+-};
+-
+ static struct omap_hwmod omap2430_mcbsp4_hwmod = {
+ 	.name		= "mcbsp4",
+ 	.class		= &omap2430_mcbsp_hwmod_class,
+-	.mpu_irqs	= omap2430_mcbsp4_irqs,
+-	.sdma_reqs	= omap2430_mcbsp4_sdma_chs,
+ 	.main_clk	= "mcbsp4_fck",
+ 	.prcm		= {
+ 		.omap2 = {
+@@ -428,24 +346,9 @@ static struct omap_hwmod omap2430_mcbsp4_hwmod = {
+ };
+ 
+ /* mcbsp5 */
+-static struct omap_hwmod_irq_info omap2430_mcbsp5_irqs[] = {
+-	{ .name = "tx",		.irq = 81 + OMAP_INTC_START, },
+-	{ .name = "rx",		.irq = 82 + OMAP_INTC_START, },
+-	{ .name = "common",	.irq = 19 + OMAP_INTC_START, },
+-	{ .irq = -1 },
+-};
+-
+-static struct omap_hwmod_dma_info omap2430_mcbsp5_sdma_chs[] = {
+-	{ .name = "rx", .dma_req = 22 },
+-	{ .name = "tx", .dma_req = 21 },
+-	{ .dma_req = -1 }
+-};
+-
+ static struct omap_hwmod omap2430_mcbsp5_hwmod = {
+ 	.name		= "mcbsp5",
+ 	.class		= &omap2430_mcbsp_hwmod_class,
+-	.mpu_irqs	= omap2430_mcbsp5_irqs,
+-	.sdma_reqs	= omap2430_mcbsp5_sdma_chs,
+ 	.main_clk	= "mcbsp5_fck",
+ 	.prcm		= {
+ 		.omap2 = {
+@@ -478,17 +381,6 @@ static struct omap_hwmod_class omap2430_mmc_class = {
+ };
+ 
+ /* MMC/SD/SDIO1 */
+-static struct omap_hwmod_irq_info omap2430_mmc1_mpu_irqs[] = {
+-	{ .irq = 83 + OMAP_INTC_START, },
+-	{ .irq = -1 },
+-};
+-
+-static struct omap_hwmod_dma_info omap2430_mmc1_sdma_reqs[] = {
+-	{ .name = "tx",	.dma_req = 61 }, /* DMA_MMC1_TX */
+-	{ .name = "rx",	.dma_req = 62 }, /* DMA_MMC1_RX */
+-	{ .dma_req = -1 }
+-};
+-
+ static struct omap_hwmod_opt_clk omap2430_mmc1_opt_clks[] = {
+ 	{ .role = "dbck", .clk = "mmchsdb1_fck" },
+ };
+@@ -500,8 +392,6 @@ static struct omap_mmc_dev_attr mmc1_dev_attr = {
+ static struct omap_hwmod omap2430_mmc1_hwmod = {
+ 	.name		= "mmc1",
+ 	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
+-	.mpu_irqs	= omap2430_mmc1_mpu_irqs,
+-	.sdma_reqs	= omap2430_mmc1_sdma_reqs,
+ 	.opt_clks	= omap2430_mmc1_opt_clks,
+ 	.opt_clks_cnt	= ARRAY_SIZE(omap2430_mmc1_opt_clks),
+ 	.main_clk	= "mmchs1_fck",
+@@ -519,17 +409,6 @@ static struct omap_hwmod omap2430_mmc1_hwmod = {
+ };
+ 
+ /* MMC/SD/SDIO2 */
+-static struct omap_hwmod_irq_info omap2430_mmc2_mpu_irqs[] = {
+-	{ .irq = 86 + OMAP_INTC_START, },
+-	{ .irq = -1 },
+-};
+-
+-static struct omap_hwmod_dma_info omap2430_mmc2_sdma_reqs[] = {
+-	{ .name = "tx",	.dma_req = 47 }, /* DMA_MMC2_TX */
+-	{ .name = "rx",	.dma_req = 48 }, /* DMA_MMC2_RX */
+-	{ .dma_req = -1 }
+-};
+-
+ static struct omap_hwmod_opt_clk omap2430_mmc2_opt_clks[] = {
+ 	{ .role = "dbck", .clk = "mmchsdb2_fck" },
+ };
+@@ -537,8 +416,6 @@ static struct omap_hwmod_opt_clk omap2430_mmc2_opt_clks[] = {
+ static struct omap_hwmod omap2430_mmc2_hwmod = {
+ 	.name		= "mmc2",
+ 	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
+-	.mpu_irqs	= omap2430_mmc2_mpu_irqs,
+-	.sdma_reqs	= omap2430_mmc2_sdma_reqs,
+ 	.opt_clks	= omap2430_mmc2_opt_clks,
+ 	.opt_clks_cnt	= ARRAY_SIZE(omap2430_mmc2_opt_clks),
+ 	.main_clk	= "mmchs2_fck",
+@@ -557,7 +434,6 @@ static struct omap_hwmod omap2430_mmc2_hwmod = {
+ /* HDQ1W/1-wire */
+ static struct omap_hwmod omap2430_hdq1w_hwmod = {
+ 	.name		= "hdq1w",
+-	.mpu_irqs	= omap2_hdq1w_mpu_irqs,
+ 	.main_clk	= "hdq_fck",
+ 	.prcm		= {
+ 		.omap2 = {
+@@ -589,7 +465,6 @@ static struct omap_hwmod_ocp_if omap2430_l4_core__i2c1 = {
+ 	.master		= &omap2xxx_l4_core_hwmod,
+ 	.slave		= &omap2430_i2c1_hwmod,
+ 	.clk		= "i2c1_ick",
+-	.addr		= omap2_i2c1_addr_space,
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+@@ -598,25 +473,14 @@ static struct omap_hwmod_ocp_if omap2430_l4_core__i2c2 = {
+ 	.master		= &omap2xxx_l4_core_hwmod,
+ 	.slave		= &omap2430_i2c2_hwmod,
+ 	.clk		= "i2c2_ick",
+-	.addr		= omap2_i2c2_addr_space,
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+-static struct omap_hwmod_addr_space omap2430_usbhsotg_addrs[] = {
+-	{
+-		.pa_start	= OMAP243X_HS_BASE,
+-		.pa_end		= OMAP243X_HS_BASE + SZ_4K - 1,
+-		.flags		= ADDR_TYPE_RT
+-	},
+-	{ }
+-};
+-
+ /*  l4_core ->usbhsotg  interface */
+ static struct omap_hwmod_ocp_if omap2430_l4_core__usbhsotg = {
+ 	.master		= &omap2xxx_l4_core_hwmod,
+ 	.slave		= &omap2430_usbhsotg_hwmod,
+ 	.clk		= "usb_l4_ick",
+-	.addr		= omap2430_usbhsotg_addrs,
+ 	.user		= OCP_USER_MPU,
+ };
+ 
+@@ -625,7 +489,6 @@ static struct omap_hwmod_ocp_if omap2430_l4_core__mmc1 = {
+ 	.master		= &omap2xxx_l4_core_hwmod,
+ 	.slave		= &omap2430_mmc1_hwmod,
+ 	.clk		= "mmchs1_ick",
+-	.addr		= omap2430_mmc1_addr_space,
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+@@ -634,7 +497,6 @@ static struct omap_hwmod_ocp_if omap2430_l4_core__mmc2 = {
+ 	.master		= &omap2xxx_l4_core_hwmod,
+ 	.slave		= &omap2430_mmc2_hwmod,
+ 	.clk		= "mmchs2_ick",
+-	.addr		= omap2430_mmc2_addr_space,
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+@@ -643,7 +505,6 @@ static struct omap_hwmod_ocp_if omap2430_l4_core__mcspi3 = {
+ 	.master		= &omap2xxx_l4_core_hwmod,
+ 	.slave		= &omap2430_mcspi3_hwmod,
+ 	.clk		= "mcspi3_ick",
+-	.addr		= omap2430_mcspi3_addr_space,
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+@@ -655,129 +516,59 @@ static struct omap_hwmod_ocp_if omap2430_l3__iva = {
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+-static struct omap_hwmod_addr_space omap2430_timer1_addrs[] = {
+-	{
+-		.pa_start	= 0x49018000,
+-		.pa_end		= 0x49018000 + SZ_1K - 1,
+-		.flags		= ADDR_TYPE_RT
+-	},
+-	{ }
+-};
+-
+ /* l4_wkup -> timer1 */
+ static struct omap_hwmod_ocp_if omap2430_l4_wkup__timer1 = {
+ 	.master		= &omap2xxx_l4_wkup_hwmod,
+ 	.slave		= &omap2xxx_timer1_hwmod,
+ 	.clk		= "gpt1_ick",
+-	.addr		= omap2430_timer1_addrs,
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+ /* l4_wkup -> wd_timer2 */
+-static struct omap_hwmod_addr_space omap2430_wd_timer2_addrs[] = {
+-	{
+-		.pa_start	= 0x49016000,
+-		.pa_end		= 0x4901607f,
+-		.flags		= ADDR_TYPE_RT
+-	},
+-	{ }
+-};
+-
+ static struct omap_hwmod_ocp_if omap2430_l4_wkup__wd_timer2 = {
+ 	.master		= &omap2xxx_l4_wkup_hwmod,
+ 	.slave		= &omap2xxx_wd_timer2_hwmod,
+ 	.clk		= "mpu_wdt_ick",
+-	.addr		= omap2430_wd_timer2_addrs,
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+ /* l4_wkup -> gpio1 */
+-static struct omap_hwmod_addr_space omap2430_gpio1_addr_space[] = {
+-	{
+-		.pa_start	= 0x4900C000,
+-		.pa_end		= 0x4900C1ff,
+-		.flags		= ADDR_TYPE_RT
+-	},
+-	{ }
+-};
+-
+ static struct omap_hwmod_ocp_if omap2430_l4_wkup__gpio1 = {
+ 	.master		= &omap2xxx_l4_wkup_hwmod,
+ 	.slave		= &omap2xxx_gpio1_hwmod,
+ 	.clk		= "gpios_ick",
+-	.addr		= omap2430_gpio1_addr_space,
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+ /* l4_wkup -> gpio2 */
+-static struct omap_hwmod_addr_space omap2430_gpio2_addr_space[] = {
+-	{
+-		.pa_start	= 0x4900E000,
+-		.pa_end		= 0x4900E1ff,
+-		.flags		= ADDR_TYPE_RT
+-	},
+-	{ }
+-};
+-
+ static struct omap_hwmod_ocp_if omap2430_l4_wkup__gpio2 = {
+ 	.master		= &omap2xxx_l4_wkup_hwmod,
+ 	.slave		= &omap2xxx_gpio2_hwmod,
+ 	.clk		= "gpios_ick",
+-	.addr		= omap2430_gpio2_addr_space,
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+ /* l4_wkup -> gpio3 */
+-static struct omap_hwmod_addr_space omap2430_gpio3_addr_space[] = {
+-	{
+-		.pa_start	= 0x49010000,
+-		.pa_end		= 0x490101ff,
+-		.flags		= ADDR_TYPE_RT
+-	},
+-	{ }
+-};
+-
+ static struct omap_hwmod_ocp_if omap2430_l4_wkup__gpio3 = {
+ 	.master		= &omap2xxx_l4_wkup_hwmod,
+ 	.slave		= &omap2xxx_gpio3_hwmod,
+ 	.clk		= "gpios_ick",
+-	.addr		= omap2430_gpio3_addr_space,
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+ /* l4_wkup -> gpio4 */
+-static struct omap_hwmod_addr_space omap2430_gpio4_addr_space[] = {
+-	{
+-		.pa_start	= 0x49012000,
+-		.pa_end		= 0x490121ff,
+-		.flags		= ADDR_TYPE_RT
+-	},
+-	{ }
+-};
+-
+ static struct omap_hwmod_ocp_if omap2430_l4_wkup__gpio4 = {
+ 	.master		= &omap2xxx_l4_wkup_hwmod,
+ 	.slave		= &omap2xxx_gpio4_hwmod,
+ 	.clk		= "gpios_ick",
+-	.addr		= omap2430_gpio4_addr_space,
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+ /* l4_core -> gpio5 */
+-static struct omap_hwmod_addr_space omap2430_gpio5_addr_space[] = {
+-	{
+-		.pa_start	= 0x480B6000,
+-		.pa_end		= 0x480B61ff,
+-		.flags		= ADDR_TYPE_RT
+-	},
+-	{ }
+-};
+-
+ static struct omap_hwmod_ocp_if omap2430_l4_core__gpio5 = {
+ 	.master		= &omap2xxx_l4_core_hwmod,
+ 	.slave		= &omap2430_gpio5_hwmod,
+ 	.clk		= "gpio5_ick",
+-	.addr		= omap2430_gpio5_addr_space,
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+@@ -802,7 +593,6 @@ static struct omap_hwmod_ocp_if omap2430_l4_core__dma_system = {
+ static struct omap_hwmod_ocp_if omap2430_l4_core__mailbox = {
+ 	.master		= &omap2xxx_l4_core_hwmod,
+ 	.slave		= &omap2430_mailbox_hwmod,
+-	.addr		= omap2_mailbox_addrs,
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+@@ -811,7 +601,6 @@ static struct omap_hwmod_ocp_if omap2430_l4_core__mcbsp1 = {
+ 	.master		= &omap2xxx_l4_core_hwmod,
+ 	.slave		= &omap2430_mcbsp1_hwmod,
+ 	.clk		= "mcbsp1_ick",
+-	.addr		= omap2_mcbsp1_addrs,
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+@@ -820,64 +609,30 @@ static struct omap_hwmod_ocp_if omap2430_l4_core__mcbsp2 = {
+ 	.master		= &omap2xxx_l4_core_hwmod,
+ 	.slave		= &omap2430_mcbsp2_hwmod,
+ 	.clk		= "mcbsp2_ick",
+-	.addr		= omap2xxx_mcbsp2_addrs,
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+-static struct omap_hwmod_addr_space omap2430_mcbsp3_addrs[] = {
+-	{
+-		.name		= "mpu",
+-		.pa_start	= 0x4808C000,
+-		.pa_end		= 0x4808C0ff,
+-		.flags		= ADDR_TYPE_RT
+-	},
+-	{ }
+-};
+-
+ /* l4_core -> mcbsp3 */
+ static struct omap_hwmod_ocp_if omap2430_l4_core__mcbsp3 = {
+ 	.master		= &omap2xxx_l4_core_hwmod,
+ 	.slave		= &omap2430_mcbsp3_hwmod,
+ 	.clk		= "mcbsp3_ick",
+-	.addr		= omap2430_mcbsp3_addrs,
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+-static struct omap_hwmod_addr_space omap2430_mcbsp4_addrs[] = {
+-	{
+-		.name		= "mpu",
+-		.pa_start	= 0x4808E000,
+-		.pa_end		= 0x4808E0ff,
+-		.flags		= ADDR_TYPE_RT
+-	},
+-	{ }
+-};
+-
+ /* l4_core -> mcbsp4 */
+ static struct omap_hwmod_ocp_if omap2430_l4_core__mcbsp4 = {
+ 	.master		= &omap2xxx_l4_core_hwmod,
+ 	.slave		= &omap2430_mcbsp4_hwmod,
+ 	.clk		= "mcbsp4_ick",
+-	.addr		= omap2430_mcbsp4_addrs,
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+-static struct omap_hwmod_addr_space omap2430_mcbsp5_addrs[] = {
+-	{
+-		.name		= "mpu",
+-		.pa_start	= 0x48096000,
+-		.pa_end		= 0x480960ff,
+-		.flags		= ADDR_TYPE_RT
+-	},
+-	{ }
+-};
+-
+ /* l4_core -> mcbsp5 */
+ static struct omap_hwmod_ocp_if omap2430_l4_core__mcbsp5 = {
+ 	.master		= &omap2xxx_l4_core_hwmod,
+ 	.slave		= &omap2430_mcbsp5_hwmod,
+ 	.clk		= "mcbsp5_ick",
+-	.addr		= omap2430_mcbsp5_addrs,
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+@@ -886,35 +641,15 @@ static struct omap_hwmod_ocp_if omap2430_l4_core__hdq1w = {
+ 	.master		= &omap2xxx_l4_core_hwmod,
+ 	.slave		= &omap2430_hdq1w_hwmod,
+ 	.clk		= "hdq_ick",
+-	.addr		= omap2_hdq1w_addr_space,
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ 	.flags		= OMAP_FIREWALL_L4 | OCPIF_SWSUP_IDLE,
+ };
+ 
+ /* l4_wkup -> 32ksync_counter */
+-static struct omap_hwmod_addr_space omap2430_counter_32k_addrs[] = {
+-	{
+-		.pa_start	= 0x49020000,
+-		.pa_end		= 0x4902001f,
+-		.flags		= ADDR_TYPE_RT
+-	},
+-	{ }
+-};
+-
+-static struct omap_hwmod_addr_space omap2430_gpmc_addrs[] = {
+-	{
+-		.pa_start	= 0x6e000000,
+-		.pa_end		= 0x6e000fff,
+-		.flags		= ADDR_TYPE_RT
+-	},
+-	{ }
+-};
+-
+ static struct omap_hwmod_ocp_if omap2430_l4_wkup__counter_32k = {
+ 	.master		= &omap2xxx_l4_wkup_hwmod,
+ 	.slave		= &omap2xxx_counter_32k_hwmod,
+ 	.clk		= "sync_32k_ick",
+-	.addr		= omap2430_counter_32k_addrs,
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+@@ -922,7 +657,6 @@ static struct omap_hwmod_ocp_if omap2430_l3__gpmc = {
+ 	.master		= &omap2xxx_l3_main_hwmod,
+ 	.slave		= &omap2xxx_gpmc_hwmod,
+ 	.clk		= "core_l3_ck",
+-	.addr		= omap2430_gpmc_addrs,
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+diff --git a/arch/arm/mach-omap2/omap_hwmod_2xxx_interconnect_data.c b/arch/arm/mach-omap2/omap_hwmod_2xxx_interconnect_data.c
+index 5fd40d4..6c24f49 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_2xxx_interconnect_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_2xxx_interconnect_data.c
+@@ -20,142 +20,6 @@
+ 
+ #include "omap_hwmod_common_data.h"
+ 
+-static struct omap_hwmod_addr_space omap2xxx_uart1_addr_space[] = {
+-	{
+-		.pa_start	= OMAP2_UART1_BASE,
+-		.pa_end		= OMAP2_UART1_BASE + SZ_8K - 1,
+-		.flags		= ADDR_MAP_ON_INIT | ADDR_TYPE_RT,
+-	},
+-	{ }
+-};
+-
+-static struct omap_hwmod_addr_space omap2xxx_uart2_addr_space[] = {
+-	{
+-		.pa_start	= OMAP2_UART2_BASE,
+-		.pa_end		= OMAP2_UART2_BASE + SZ_1K - 1,
+-		.flags		= ADDR_MAP_ON_INIT | ADDR_TYPE_RT,
+-	},
+-	{ }
+-};
+-
+-static struct omap_hwmod_addr_space omap2xxx_uart3_addr_space[] = {
+-	{
+-		.pa_start	= OMAP2_UART3_BASE,
+-		.pa_end		= OMAP2_UART3_BASE + SZ_1K - 1,
+-		.flags		= ADDR_MAP_ON_INIT | ADDR_TYPE_RT,
+-	},
+-	{ }
+-};
+-
+-static struct omap_hwmod_addr_space omap2xxx_timer2_addrs[] = {
+-	{
+-		.pa_start	= 0x4802a000,
+-		.pa_end		= 0x4802a000 + SZ_1K - 1,
+-		.flags		= ADDR_TYPE_RT
+-	},
+-	{ }
+-};
+-
+-static struct omap_hwmod_addr_space omap2xxx_timer3_addrs[] = {
+-	{
+-		.pa_start	= 0x48078000,
+-		.pa_end		= 0x48078000 + SZ_1K - 1,
+-		.flags		= ADDR_TYPE_RT
+-	},
+-	{ }
+-};
+-
+-static struct omap_hwmod_addr_space omap2xxx_timer4_addrs[] = {
+-	{
+-		.pa_start	= 0x4807a000,
+-		.pa_end		= 0x4807a000 + SZ_1K - 1,
+-		.flags		= ADDR_TYPE_RT
+-	},
+-	{ }
+-};
+-
+-static struct omap_hwmod_addr_space omap2xxx_timer5_addrs[] = {
+-	{
+-		.pa_start	= 0x4807c000,
+-		.pa_end		= 0x4807c000 + SZ_1K - 1,
+-		.flags		= ADDR_TYPE_RT
+-	},
+-	{ }
+-};
+-
+-static struct omap_hwmod_addr_space omap2xxx_timer6_addrs[] = {
+-	{
+-		.pa_start	= 0x4807e000,
+-		.pa_end		= 0x4807e000 + SZ_1K - 1,
+-		.flags		= ADDR_TYPE_RT
+-	},
+-	{ }
+-};
+-
+-static struct omap_hwmod_addr_space omap2xxx_timer7_addrs[] = {
+-	{
+-		.pa_start	= 0x48080000,
+-		.pa_end		= 0x48080000 + SZ_1K - 1,
+-		.flags		= ADDR_TYPE_RT
+-	},
+-	{ }
+-};
+-
+-static struct omap_hwmod_addr_space omap2xxx_timer8_addrs[] = {
+-	{
+-		.pa_start	= 0x48082000,
+-		.pa_end		= 0x48082000 + SZ_1K - 1,
+-		.flags		= ADDR_TYPE_RT
+-	},
+-	{ }
+-};
+-
+-static struct omap_hwmod_addr_space omap2xxx_timer9_addrs[] = {
+-	{
+-		.pa_start	= 0x48084000,
+-		.pa_end		= 0x48084000 + SZ_1K - 1,
+-		.flags		= ADDR_TYPE_RT
+-	},
+-	{ }
+-};
+-
+-struct omap_hwmod_addr_space omap2xxx_mcbsp2_addrs[] = {
+-	{
+-		.name		= "mpu",
+-		.pa_start	= 0x48076000,
+-		.pa_end		= 0x480760ff,
+-		.flags		= ADDR_TYPE_RT
+-	},
+-	{ }
+-};
+-
+-static struct omap_hwmod_addr_space omap2_rng_addr_space[] = {
+-	{
+-		.pa_start	= 0x480a0000,
+-		.pa_end		= 0x480a004f,
+-		.flags		= ADDR_TYPE_RT
+-	},
+-	{ }
+-};
+-
+-static struct omap_hwmod_addr_space omap2xxx_sham_addrs[] = {
+-	{
+-		.pa_start	= 0x480a4000,
+-		.pa_end		= 0x480a4000 + 0x64 - 1,
+-		.flags		= ADDR_TYPE_RT
+-	},
+-	{ }
+-};
+-
+-static struct omap_hwmod_addr_space omap2xxx_aes_addrs[] = {
+-	{
+-		.pa_start	= 0x480a6000,
+-		.pa_end		= 0x480a6000 + 0x50 - 1,
+-		.flags		= ADDR_TYPE_RT
+-	},
+-	{ }
+-};
+-
+ /*
+  * Common interconnect data
   */
+@@ -199,7 +63,6 @@ struct omap_hwmod_ocp_if omap2_l4_core__uart1 = {
+ 	.master		= &omap2xxx_l4_core_hwmod,
+ 	.slave		= &omap2xxx_uart1_hwmod,
+ 	.clk		= "uart1_ick",
+-	.addr		= omap2xxx_uart1_addr_space,
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
  
--#include "mux2420.h"
--#include "mux2430.h"
- #include "mux34xx.h"
+@@ -208,7 +71,6 @@ struct omap_hwmod_ocp_if omap2_l4_core__uart2 = {
+ 	.master		= &omap2xxx_l4_core_hwmod,
+ 	.slave		= &omap2xxx_uart2_hwmod,
+ 	.clk		= "uart2_ick",
+-	.addr		= omap2xxx_uart2_addr_space,
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
  
- #define OMAP_MUX_TERMINATOR	0xffff
-diff --git a/arch/arm/mach-omap2/mux2420.c b/arch/arm/mach-omap2/mux2420.c
-deleted file mode 100644
-index cf6de097..0000000
---- a/arch/arm/mach-omap2/mux2420.c
-+++ /dev/null
-@@ -1,690 +0,0 @@
--/*
-- * Copyright (C) 2010 Nokia
-- * Copyright (C) 2010 Texas Instruments
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-- */
--
--#include <linux/module.h>
--#include <linux/init.h>
--
--#include "mux.h"
--
--#ifdef CONFIG_OMAP_MUX
--
--#define _OMAP2420_MUXENTRY(M0, g, m0, m1, m2, m3, m4, m5, m6, m7)		\
--{									\
--	.reg_offset	= (OMAP2420_CONTROL_PADCONF_##M0##_OFFSET),	\
--	.gpio		= (g),						\
--	.muxnames	= { m0, m1, m2, m3, m4, m5, m6, m7 },		\
--}
--
--#else
--
--#define _OMAP2420_MUXENTRY(M0, g, m0, m1, m2, m3, m4, m5, m6, m7)		\
--{									\
--	.reg_offset	= (OMAP2420_CONTROL_PADCONF_##M0##_OFFSET),	\
--	.gpio		= (g),						\
--}
--
--#endif
--
--#define _OMAP2420_BALLENTRY(M0, bb, bt)					\
--{									\
--	.reg_offset	= (OMAP2420_CONTROL_PADCONF_##M0##_OFFSET),	\
--	.balls		= { bb, bt },					\
--}
--
--/*
-- * Superset of all mux modes for omap2420
-- */
--static struct omap_mux __initdata omap2420_muxmodes[] = {
--	_OMAP2420_MUXENTRY(CAM_D0, 54,
--		"cam_d0", "hw_dbg2", "sti_dout", "gpio_54",
--		NULL, NULL, "etk_d2", NULL),
--	_OMAP2420_MUXENTRY(CAM_D1, 53,
--		"cam_d1", "hw_dbg3", "sti_din", "gpio_53",
--		NULL, NULL, "etk_d3", NULL),
--	_OMAP2420_MUXENTRY(CAM_D2, 52,
--		"cam_d2", "hw_dbg4", "mcbsp1_clkx", "gpio_52",
--		NULL, NULL, "etk_d4", NULL),
--	_OMAP2420_MUXENTRY(CAM_D3, 51,
--		"cam_d3", "hw_dbg5", "mcbsp1_dr", "gpio_51",
--		NULL, NULL, "etk_d5", NULL),
--	_OMAP2420_MUXENTRY(CAM_D4, 50,
--		"cam_d4", "hw_dbg6", "mcbsp1_fsr", "gpio_50",
--		NULL, NULL, "etk_d6", NULL),
--	_OMAP2420_MUXENTRY(CAM_D5, 49,
--		"cam_d5", "hw_dbg7", "mcbsp1_clkr", "gpio_49",
--		NULL, NULL, "etk_d7", NULL),
--	_OMAP2420_MUXENTRY(CAM_D6, 0,
--		"cam_d6", "hw_dbg8", NULL, NULL,
--		NULL, NULL, "etk_d8", NULL),
--	_OMAP2420_MUXENTRY(CAM_D7, 0,
--		"cam_d7", "hw_dbg9", NULL, NULL,
--		NULL, NULL, "etk_d9", NULL),
--	_OMAP2420_MUXENTRY(CAM_D8, 54,
--		"cam_d8", "hw_dbg10", NULL, "gpio_54",
--		NULL, NULL, "etk_d10", NULL),
--	_OMAP2420_MUXENTRY(CAM_D9, 53,
--		"cam_d9", "hw_dbg11", NULL, "gpio_53",
--		NULL, NULL, "etk_d11", NULL),
--	_OMAP2420_MUXENTRY(CAM_HS, 55,
--		"cam_hs", "hw_dbg1", "mcbsp1_dx", "gpio_55",
--		NULL, NULL, "etk_d1", NULL),
--	_OMAP2420_MUXENTRY(CAM_LCLK, 57,
--		"cam_lclk", NULL, "mcbsp_clks", "gpio_57",
--		NULL, NULL, "etk_c1", NULL),
--	_OMAP2420_MUXENTRY(CAM_VS, 56,
--		"cam_vs", "hw_dbg0", "mcbsp1_fsx", "gpio_56",
--		NULL, NULL, "etk_d0", NULL),
--	_OMAP2420_MUXENTRY(CAM_XCLK, 0,
--		"cam_xclk", NULL, "sti_clk", NULL,
--		NULL, NULL, "etk_c2", NULL),
--	_OMAP2420_MUXENTRY(DSS_ACBIAS, 48,
--		"dss_acbias", NULL, "mcbsp2_fsx", "gpio_48",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(DSS_DATA10, 40,
--		"dss_data10", NULL, NULL, "gpio_40",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(DSS_DATA11, 41,
--		"dss_data11", NULL, NULL, "gpio_41",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(DSS_DATA12, 42,
--		"dss_data12", NULL, NULL, "gpio_42",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(DSS_DATA13, 43,
--		"dss_data13", NULL, NULL, "gpio_43",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(DSS_DATA14, 44,
--		"dss_data14", NULL, NULL, "gpio_44",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(DSS_DATA15, 45,
--		"dss_data15", NULL, NULL, "gpio_45",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(DSS_DATA16, 46,
--		"dss_data16", NULL, NULL, "gpio_46",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(DSS_DATA17, 47,
--		"dss_data17", NULL, NULL, "gpio_47",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(DSS_DATA8, 38,
--		"dss_data8", NULL, NULL, "gpio_38",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(DSS_DATA9, 39,
--		"dss_data9", NULL, NULL, "gpio_39",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(EAC_AC_DIN, 115,
--		"eac_ac_din", "mcbsp2_dr", NULL, "gpio_115",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(EAC_AC_DOUT, 116,
--		"eac_ac_dout", "mcbsp2_dx", NULL, "gpio_116",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(EAC_AC_FS, 114,
--		"eac_ac_fs", "mcbsp2_fsx", NULL, "gpio_114",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(EAC_AC_MCLK, 117,
--		"eac_ac_mclk", NULL, NULL, "gpio_117",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(EAC_AC_RST, 118,
--		"eac_ac_rst", "eac_bt_din", NULL, "gpio_118",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(EAC_AC_SCLK, 113,
--		"eac_ac_sclk", "mcbsp2_clkx", NULL, "gpio_113",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(EAC_BT_DIN, 73,
--		"eac_bt_din", NULL, NULL, "gpio_73",
--		NULL, NULL, "etk_d9", NULL),
--	_OMAP2420_MUXENTRY(EAC_BT_DOUT, 74,
--		"eac_bt_dout", NULL, "sti_clk", "gpio_74",
--		NULL, NULL, "etk_d8", NULL),
--	_OMAP2420_MUXENTRY(EAC_BT_FS, 72,
--		"eac_bt_fs", NULL, NULL, "gpio_72",
--		NULL, NULL, "etk_d10", NULL),
--	_OMAP2420_MUXENTRY(EAC_BT_SCLK, 71,
--		"eac_bt_sclk", NULL, NULL, "gpio_71",
--		NULL, NULL, "etk_d11", NULL),
--	_OMAP2420_MUXENTRY(GPIO_119, 119,
--		"gpio_119", NULL, "sti_din", "gpio_119",
--		NULL, "sys_boot0", "etk_d12", NULL),
--	_OMAP2420_MUXENTRY(GPIO_120, 120,
--		"gpio_120", NULL, "sti_dout", "gpio_120",
--		"cam_d9", "sys_boot1", "etk_d13", NULL),
--	_OMAP2420_MUXENTRY(GPIO_121, 121,
--		"gpio_121", NULL, NULL, "gpio_121",
--		"jtag_emu2", "sys_boot2", "etk_d14", NULL),
--	_OMAP2420_MUXENTRY(GPIO_122, 122,
--		"gpio_122", NULL, NULL, "gpio_122",
--		"jtag_emu3", "sys_boot3", "etk_d15", NULL),
--	_OMAP2420_MUXENTRY(GPIO_124, 124,
--		"gpio_124", NULL, NULL, "gpio_124",
--		NULL, "sys_boot5", NULL, NULL),
--	_OMAP2420_MUXENTRY(GPIO_125, 125,
--		"gpio_125", "sys_jtagsel1", "sys_jtagsel2", "gpio_125",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(GPIO_36, 36,
--		"gpio_36", NULL, NULL, "gpio_36",
--		NULL, "sys_boot4", NULL, NULL),
--	_OMAP2420_MUXENTRY(GPIO_62, 62,
--		"gpio_62", "uart1_rx", "usb1_dat", "gpio_62",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(GPIO_6, 6,
--		"gpio_6", "tv_detpulse", NULL, "gpio_6",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(GPMC_A10, 3,
--		"gpmc_a10", NULL, "sys_ndmareq5", "gpio_3",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(GPMC_A1, 12,
--		"gpmc_a1", "dss_data18", NULL, "gpio_12",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(GPMC_A2, 11,
--		"gpmc_a2", "dss_data19", NULL, "gpio_11",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(GPMC_A3, 10,
--		"gpmc_a3", "dss_data20", NULL, "gpio_10",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(GPMC_A4, 9,
--		"gpmc_a4", "dss_data21", NULL, "gpio_9",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(GPMC_A5, 8,
--		"gpmc_a5", "dss_data22", NULL, "gpio_8",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(GPMC_A6, 7,
--		"gpmc_a6", "dss_data23", NULL, "gpio_7",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(GPMC_A7, 6,
--		"gpmc_a7", NULL, "sys_ndmareq2", "gpio_6",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(GPMC_A8, 5,
--		"gpmc_a8", NULL, "sys_ndmareq3", "gpio_5",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(GPMC_A9, 4,
--		"gpmc_a9", NULL, "sys_ndmareq4", "gpio_4",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(GPMC_CLK, 21,
--		"gpmc_clk", NULL, NULL, "gpio_21",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(GPMC_D10, 18,
--		"gpmc_d10", "ssi2_rdy_rx", NULL, "gpio_18",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(GPMC_D11, 17,
--		"gpmc_d11", "ssi2_flag_rx", NULL, "gpio_17",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(GPMC_D12, 16,
--		"gpmc_d12", "ssi2_dat_rx", NULL, "gpio_16",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(GPMC_D13, 15,
--		"gpmc_d13", "ssi2_rdy_tx", NULL, "gpio_15",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(GPMC_D14, 14,
--		"gpmc_d14", "ssi2_flag_tx", NULL, "gpio_14",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(GPMC_D15, 13,
--		"gpmc_d15", "ssi2_dat_tx", NULL, "gpio_13",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(GPMC_D8, 20,
--		"gpmc_d8", NULL, NULL, "gpio_20",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(GPMC_D9, 19,
--		"gpmc_d9", "ssi2_wake", NULL, "gpio_19",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(GPMC_NBE0, 29,
--		"gpmc_nbe0", NULL, NULL, "gpio_29",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(GPMC_NBE1, 30,
--		"gpmc_nbe1", NULL, NULL, "gpio_30",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(GPMC_NCS1, 22,
--		"gpmc_ncs1", NULL, NULL, "gpio_22",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(GPMC_NCS2, 23,
--		"gpmc_ncs2", NULL, NULL, "gpio_23",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(GPMC_NCS3, 24,
--		"gpmc_ncs3", "gpmc_io_dir", NULL, "gpio_24",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(GPMC_NCS4, 25,
--		"gpmc_ncs4", NULL, NULL, "gpio_25",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(GPMC_NCS5, 26,
--		"gpmc_ncs5", NULL, NULL, "gpio_26",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(GPMC_NCS6, 27,
--		"gpmc_ncs6", NULL, NULL, "gpio_27",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(GPMC_NCS7, 28,
--		"gpmc_ncs7", "gpmc_io_dir", "gpio_28", NULL,
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(GPMC_NWP, 31,
--		"gpmc_nwp", NULL, NULL, "gpio_31",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(GPMC_WAIT1, 33,
--		"gpmc_wait1", NULL, NULL, "gpio_33",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(GPMC_WAIT2, 34,
--		"gpmc_wait2", NULL, NULL, "gpio_34",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(GPMC_WAIT3, 35,
--		"gpmc_wait3", NULL, NULL, "gpio_35",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(HDQ_SIO, 101,
--		"hdq_sio", "usb2_tllse0", "sys_altclk", "gpio_101",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(I2C2_SCL, 99,
--		"i2c2_scl", NULL, "gpt9_pwm_evt", "gpio_99",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(I2C2_SDA, 100,
--		"i2c2_sda", NULL, "spi2_ncs1", "gpio_100",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(JTAG_EMU0, 127,
--		"jtag_emu0", NULL, NULL, "gpio_127",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(JTAG_EMU1, 126,
--		"jtag_emu1", NULL, NULL, "gpio_126",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(MCBSP1_CLKR, 92,
--		"mcbsp1_clkr", "ssi2_dat_tx", "vlynq_tx1", "gpio_92",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(MCBSP1_CLKX, 98,
--		"mcbsp1_clkx", "ssi2_wake", "vlynq_nla", "gpio_98",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(MCBSP1_DR, 95,
--		"mcbsp1_dr", "ssi2_dat_rx", "vlynq_rx1", "gpio_95",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(MCBSP1_DX, 94,
--		"mcbsp1_dx", "ssi2_rdy_tx", "vlynq_clk", "gpio_94",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(MCBSP1_FSR, 93,
--		"mcbsp1_fsr", "ssi2_flag_tx", "vlynq_tx0", "gpio_93",
--		"spi2_ncs1", NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(MCBSP1_FSX, 97,
--		"mcbsp1_fsx", "ssi2_rdy_rx", NULL, "gpio_97",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(MCBSP2_CLKX, 12,
--		"mcbsp2_clkx", NULL, "dss_data23", "gpio_12",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(MCBSP2_DR, 11,
--		"mcbsp2_dr", NULL, "dss_data22", "gpio_11",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(MCBSP_CLKS, 96,
--		"mcbsp_clks", "ssi2_flag_rx", "vlynq_rx0", "gpio_96",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(MMC_CLKI, 59,
--		"sdmmc_clki", "ms_clki", NULL, "gpio_59",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(MMC_CLKO, 0,
--		"sdmmc_clko", "ms_clko", NULL, NULL,
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(MMC_CMD_DIR, 8,
--		"sdmmc_cmd_dir", NULL, NULL, "gpio_8",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(MMC_CMD, 0,
--		"sdmmc_cmd", "ms_bs", NULL, NULL,
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(MMC_DAT_DIR0, 7,
--		"sdmmc_dat_dir0", "ms_dat0_dir", NULL, "gpio_7",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(MMC_DAT0, 0,
--		"sdmmc_dat0", "ms_dat0", NULL, NULL,
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(MMC_DAT_DIR1, 78,
--		"sdmmc_dat_dir1", "ms_datu_dir", "uart2_rts", "gpio_78",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(MMC_DAT1, 75,
--		"sdmmc_dat1", "ms_dat1", NULL, "gpio_75",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(MMC_DAT_DIR2, 79,
--		"sdmmc_dat_dir2", "ms_datu_dir", "uart2_tx", "gpio_79",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(MMC_DAT2, 76,
--		"sdmmc_dat2", "ms_dat2", "uart2_cts", "gpio_76",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(MMC_DAT_DIR3, 80,
--		"sdmmc_dat_dir3", "ms_datu_dir", "uart2_rx", "gpio_80",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(MMC_DAT3, 77,
--		"sdmmc_dat3", "ms_dat3", NULL, "gpio_77",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(SDRC_A12, 2,
--		"sdrc_a12", NULL, NULL, "gpio_2",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(SDRC_A13, 1,
--		"sdrc_a13", NULL, NULL, "gpio_1",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(SDRC_A14, 0,
--		"sdrc_a14", NULL, NULL, "gpio_0",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(SDRC_CKE1, 38,
--		"sdrc_cke1", NULL, NULL, "gpio_38",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(SDRC_NCS1, 37,
--		"sdrc_ncs1", NULL, NULL, "gpio_37",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(SPI1_CLK, 81,
--		"spi1_clk", NULL, NULL, "gpio_81",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(SPI1_NCS0, 84,
--		"spi1_ncs0", NULL, NULL, "gpio_84",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(SPI1_NCS1, 85,
--		"spi1_ncs1", NULL, NULL, "gpio_85",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(SPI1_NCS2, 86,
--		"spi1_ncs2", NULL, NULL, "gpio_86",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(SPI1_NCS3, 87,
--		"spi1_ncs3", NULL, NULL, "gpio_87",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(SPI1_SIMO, 82,
--		"spi1_simo", NULL, NULL, "gpio_82",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(SPI1_SOMI, 83,
--		"spi1_somi", NULL, NULL, "gpio_83",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(SPI2_CLK, 88,
--		"spi2_clk", NULL, NULL, "gpio_88",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(SPI2_NCS0, 91,
--		"spi2_ncs0", "gpt12_pwm_evt", NULL, "gpio_91",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(SPI2_SIMO, 89,
--		"spi2_simo", "gpt10_pwm_evt", NULL, "gpio_89",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(SPI2_SOMI, 90,
--		"spi2_somi", "gpt11_pwm_evt", NULL, "gpio_90",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(SSI1_DAT_RX, 63,
--		"ssi1_dat_rx", "eac_md_sclk", NULL, "gpio_63",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(SSI1_DAT_TX, 59,
--		"ssi1_dat_tx", "uart1_tx", "usb1_se0", "gpio_59",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(SSI1_FLAG_RX, 64,
--		"ssi1_flag_rx", "eac_md_din", NULL, "gpio_64",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(SSI1_FLAG_TX, 25,
--		"ssi1_flag_tx", "uart1_rts", "usb1_rcv", "gpio_25",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(SSI1_RDY_RX, 65,
--		"ssi1_rdy_rx", "eac_md_dout", NULL, "gpio_65",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(SSI1_RDY_TX, 61,
--		"ssi1_rdy_tx", "uart1_cts", "usb1_txen", "gpio_61",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(SSI1_WAKE, 66,
--		"ssi1_wake", "eac_md_fs", NULL, "gpio_66",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(SYS_CLKOUT, 123,
--		"sys_clkout", NULL, NULL, "gpio_123",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(SYS_CLKREQ, 52,
--		"sys_clkreq", NULL, NULL, "gpio_52",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(SYS_NIRQ, 60,
--		"sys_nirq", NULL, NULL, "gpio_60",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(UART1_CTS, 32,
--		"uart1_cts", NULL, "dss_data18", "gpio_32",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(UART1_RTS, 8,
--		"uart1_rts", NULL, "dss_data19", "gpio_8",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(UART1_RX, 10,
--		"uart1_rx", NULL, "dss_data21", "gpio_10",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(UART1_TX, 9,
--		"uart1_tx", NULL, "dss_data20", "gpio_9",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(UART2_CTS, 67,
--		"uart2_cts", "usb1_rcv", "gpt9_pwm_evt", "gpio_67",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(UART2_RTS, 68,
--		"uart2_rts", "usb1_txen", "gpt10_pwm_evt", "gpio_68",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(UART2_RX, 70,
--		"uart2_rx", "usb1_dat", "gpt12_pwm_evt", "gpio_70",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(UART2_TX, 69,
--		"uart2_tx", "usb1_se0", "gpt11_pwm_evt", "gpio_69",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(UART3_CTS_RCTX, 102,
--		"uart3_cts_rctx", "uart3_rx_irrx", NULL, "gpio_102",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(UART3_RTS_SD, 103,
--		"uart3_rts_sd", "uart3_tx_irtx", NULL, "gpio_103",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(UART3_RX_IRRX, 105,
--		"uart3_rx_irrx", NULL, NULL, "gpio_105",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(UART3_TX_IRTX, 104,
--		"uart3_tx_irtx", "uart3_cts_rctx", NULL, "gpio_104",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(USB0_DAT, 112,
--		"usb0_dat", "uart3_rx_irrx", "uart2_rx", "gpio_112",
--		"uart2_tx", NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(USB0_PUEN, 106,
--		"usb0_puen", "mcbsp2_dx", NULL, "gpio_106",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(USB0_RCV, 109,
--		"usb0_rcv", "mcbsp2_fsx", NULL, "gpio_109",
--		"uart2_cts", NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(USB0_SE0, 111,
--		"usb0_se0", "uart3_tx_irtx", "uart2_tx", "gpio_111",
--		"uart2_rx", NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(USB0_TXEN, 110,
--		"usb0_txen", "uart3_cts_rctx", "uart2_cts", "gpio_110",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(USB0_VM, 108,
--		"usb0_vm", "mcbsp2_clkx", NULL, "gpio_108",
--		"uart2_rx", NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(USB0_VP, 107,
--		"usb0_vp", "mcbsp2_dr", NULL, "gpio_107",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(VLYNQ_CLK, 13,
--		"vlynq_clk", "usb2_se0", "sys_ndmareq0", "gpio_13",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(VLYNQ_NLA, 58,
--		"vlynq_nla", NULL, NULL, "gpio_58",
--		"cam_d6", NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(VLYNQ_RX0, 15,
--		"vlynq_rx0", "usb2_tllse0", NULL, "gpio_15",
--		"cam_d7", NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(VLYNQ_RX1, 14,
--		"vlynq_rx1", "usb2_rcv", "sys_ndmareq1", "gpio_14",
--		"cam_d8", NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(VLYNQ_TX0, 17,
--		"vlynq_tx0", "usb2_txen", NULL, "gpio_17",
--		NULL, NULL, NULL, NULL),
--	_OMAP2420_MUXENTRY(VLYNQ_TX1, 16,
--		"vlynq_tx1", "usb2_dat", "sys_clkout2", "gpio_16",
--		NULL, NULL, NULL, NULL),
--	{ .reg_offset = OMAP_MUX_TERMINATOR },
+@@ -217,7 +79,6 @@ struct omap_hwmod_ocp_if omap2_l4_core__uart3 = {
+ 	.master		= &omap2xxx_l4_core_hwmod,
+ 	.slave		= &omap2xxx_uart3_hwmod,
+ 	.clk		= "uart3_ick",
+-	.addr		= omap2xxx_uart3_addr_space,
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+@@ -226,7 +87,6 @@ struct omap_hwmod_ocp_if omap2xxx_l4_core__mcspi1 = {
+ 	.master		= &omap2xxx_l4_core_hwmod,
+ 	.slave		= &omap2xxx_mcspi1_hwmod,
+ 	.clk		= "mcspi1_ick",
+-	.addr		= omap2_mcspi1_addr_space,
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+@@ -235,7 +95,6 @@ struct omap_hwmod_ocp_if omap2xxx_l4_core__mcspi2 = {
+ 	.master		= &omap2xxx_l4_core_hwmod,
+ 	.slave		= &omap2xxx_mcspi2_hwmod,
+ 	.clk		= "mcspi2_ick",
+-	.addr		= omap2_mcspi2_addr_space,
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+@@ -244,7 +103,6 @@ struct omap_hwmod_ocp_if omap2xxx_l4_core__timer2 = {
+ 	.master		= &omap2xxx_l4_core_hwmod,
+ 	.slave		= &omap2xxx_timer2_hwmod,
+ 	.clk		= "gpt2_ick",
+-	.addr		= omap2xxx_timer2_addrs,
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+@@ -253,7 +111,6 @@ struct omap_hwmod_ocp_if omap2xxx_l4_core__timer3 = {
+ 	.master		= &omap2xxx_l4_core_hwmod,
+ 	.slave		= &omap2xxx_timer3_hwmod,
+ 	.clk		= "gpt3_ick",
+-	.addr		= omap2xxx_timer3_addrs,
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+@@ -262,7 +119,6 @@ struct omap_hwmod_ocp_if omap2xxx_l4_core__timer4 = {
+ 	.master		= &omap2xxx_l4_core_hwmod,
+ 	.slave		= &omap2xxx_timer4_hwmod,
+ 	.clk		= "gpt4_ick",
+-	.addr		= omap2xxx_timer4_addrs,
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+@@ -271,7 +127,6 @@ struct omap_hwmod_ocp_if omap2xxx_l4_core__timer5 = {
+ 	.master		= &omap2xxx_l4_core_hwmod,
+ 	.slave		= &omap2xxx_timer5_hwmod,
+ 	.clk		= "gpt5_ick",
+-	.addr		= omap2xxx_timer5_addrs,
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+@@ -280,7 +135,6 @@ struct omap_hwmod_ocp_if omap2xxx_l4_core__timer6 = {
+ 	.master		= &omap2xxx_l4_core_hwmod,
+ 	.slave		= &omap2xxx_timer6_hwmod,
+ 	.clk		= "gpt6_ick",
+-	.addr		= omap2xxx_timer6_addrs,
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+@@ -289,7 +143,6 @@ struct omap_hwmod_ocp_if omap2xxx_l4_core__timer7 = {
+ 	.master		= &omap2xxx_l4_core_hwmod,
+ 	.slave		= &omap2xxx_timer7_hwmod,
+ 	.clk		= "gpt7_ick",
+-	.addr		= omap2xxx_timer7_addrs,
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+@@ -298,7 +151,6 @@ struct omap_hwmod_ocp_if omap2xxx_l4_core__timer8 = {
+ 	.master		= &omap2xxx_l4_core_hwmod,
+ 	.slave		= &omap2xxx_timer8_hwmod,
+ 	.clk		= "gpt8_ick",
+-	.addr		= omap2xxx_timer8_addrs,
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+@@ -307,7 +159,6 @@ struct omap_hwmod_ocp_if omap2xxx_l4_core__timer9 = {
+ 	.master		= &omap2xxx_l4_core_hwmod,
+ 	.slave		= &omap2xxx_timer9_hwmod,
+ 	.clk		= "gpt9_ick",
+-	.addr		= omap2xxx_timer9_addrs,
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+@@ -316,7 +167,6 @@ struct omap_hwmod_ocp_if omap2xxx_l4_core__timer10 = {
+ 	.master		= &omap2xxx_l4_core_hwmod,
+ 	.slave		= &omap2xxx_timer10_hwmod,
+ 	.clk		= "gpt10_ick",
+-	.addr		= omap2_timer10_addrs,
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+@@ -325,7 +175,6 @@ struct omap_hwmod_ocp_if omap2xxx_l4_core__timer11 = {
+ 	.master		= &omap2xxx_l4_core_hwmod,
+ 	.slave		= &omap2xxx_timer11_hwmod,
+ 	.clk		= "gpt11_ick",
+-	.addr		= omap2_timer11_addrs,
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+@@ -334,7 +183,6 @@ struct omap_hwmod_ocp_if omap2xxx_l4_core__timer12 = {
+ 	.master		= &omap2xxx_l4_core_hwmod,
+ 	.slave		= &omap2xxx_timer12_hwmod,
+ 	.clk		= "gpt12_ick",
+-	.addr		= omap2xxx_timer12_addrs,
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+@@ -404,7 +252,6 @@ struct omap_hwmod_ocp_if omap2xxx_l4_core__rng = {
+ 	.master		= &omap2xxx_l4_core_hwmod,
+ 	.slave		= &omap2xxx_rng_hwmod,
+ 	.clk		= "rng_ick",
+-	.addr		= omap2_rng_addr_space,
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+@@ -413,7 +260,6 @@ struct omap_hwmod_ocp_if omap2xxx_l4_core__sham = {
+ 	.master		= &omap2xxx_l4_core_hwmod,
+ 	.slave		= &omap2xxx_sham_hwmod,
+ 	.clk		= "sha_ick",
+-	.addr		= omap2xxx_sham_addrs,
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
+@@ -422,6 +268,5 @@ struct omap_hwmod_ocp_if omap2xxx_l4_core__aes = {
+ 	.master		= &omap2xxx_l4_core_hwmod,
+ 	.slave		= &omap2xxx_aes_hwmod,
+ 	.clk		= "aes_ick",
+-	.addr		= omap2xxx_aes_addrs,
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+diff --git a/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c b/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c
+index 56cebb0..2738876 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c
+@@ -20,11 +20,6 @@
+ #include "prm-regbits-24xx.h"
+ #include "wd_timer.h"
+ 
+-struct omap_hwmod_irq_info omap2xxx_timer12_mpu_irqs[] = {
+-	{ .irq = 48 + OMAP_INTC_START, },
+-	{ .irq = -1 },
 -};
 -
--/*
-- * Balls for 447-pin POP package
-- */
--#ifdef CONFIG_DEBUG_FS
--static struct omap_ball __initdata omap2420_pop_ball[] = {
--	_OMAP2420_BALLENTRY(CAM_D0, "y4", NULL),
--	_OMAP2420_BALLENTRY(CAM_D1, "y3", NULL),
--	_OMAP2420_BALLENTRY(CAM_D2, "u7", NULL),
--	_OMAP2420_BALLENTRY(CAM_D3, "ab3", NULL),
--	_OMAP2420_BALLENTRY(CAM_D4, "v2", NULL),
--	_OMAP2420_BALLENTRY(CAM_D5, "ad3", NULL),
--	_OMAP2420_BALLENTRY(CAM_D6, "aa4", NULL),
--	_OMAP2420_BALLENTRY(CAM_D7, "ab4", NULL),
--	_OMAP2420_BALLENTRY(CAM_D8, "ac6", NULL),
--	_OMAP2420_BALLENTRY(CAM_D9, "ac7", NULL),
--	_OMAP2420_BALLENTRY(CAM_HS, "v4", NULL),
--	_OMAP2420_BALLENTRY(CAM_LCLK, "ad6", NULL),
--	_OMAP2420_BALLENTRY(CAM_VS, "p7", NULL),
--	_OMAP2420_BALLENTRY(CAM_XCLK, "w4", NULL),
--	_OMAP2420_BALLENTRY(DSS_ACBIAS, "ae8", NULL),
--	_OMAP2420_BALLENTRY(DSS_DATA10, "ac12", NULL),
--	_OMAP2420_BALLENTRY(DSS_DATA11, "ae11", NULL),
--	_OMAP2420_BALLENTRY(DSS_DATA12, "ae13", NULL),
--	_OMAP2420_BALLENTRY(DSS_DATA13, "ad13", NULL),
--	_OMAP2420_BALLENTRY(DSS_DATA14, "ac13", NULL),
--	_OMAP2420_BALLENTRY(DSS_DATA15, "y12", NULL),
--	_OMAP2420_BALLENTRY(DSS_DATA16, "ad14", NULL),
--	_OMAP2420_BALLENTRY(DSS_DATA17, "y13", NULL),
--	_OMAP2420_BALLENTRY(DSS_DATA8, "ad11", NULL),
--	_OMAP2420_BALLENTRY(DSS_DATA9, "ad12", NULL),
--	_OMAP2420_BALLENTRY(EAC_AC_DIN, "ad19", NULL),
--	_OMAP2420_BALLENTRY(EAC_AC_DOUT, "af22", NULL),
--	_OMAP2420_BALLENTRY(EAC_AC_FS, "ad16", NULL),
--	_OMAP2420_BALLENTRY(EAC_AC_MCLK, "y17", NULL),
--	_OMAP2420_BALLENTRY(EAC_AC_RST, "ae22", NULL),
--	_OMAP2420_BALLENTRY(EAC_AC_SCLK, "ac18", NULL),
--	_OMAP2420_BALLENTRY(EAC_BT_DIN, "u8", NULL),
--	_OMAP2420_BALLENTRY(EAC_BT_DOUT, "ad5", NULL),
--	_OMAP2420_BALLENTRY(EAC_BT_FS, "w7", NULL),
--	_OMAP2420_BALLENTRY(EAC_BT_SCLK, "ad4", NULL),
--	_OMAP2420_BALLENTRY(GPIO_119, "af6", NULL),
--	_OMAP2420_BALLENTRY(GPIO_120, "af4", NULL),
--	_OMAP2420_BALLENTRY(GPIO_121, "ae6", NULL),
--	_OMAP2420_BALLENTRY(GPIO_122, "w3", NULL),
--	_OMAP2420_BALLENTRY(GPIO_124, "y19", NULL),
--	_OMAP2420_BALLENTRY(GPIO_125, "ae24", NULL),
--	_OMAP2420_BALLENTRY(GPIO_36, "y18", NULL),
--	_OMAP2420_BALLENTRY(GPIO_6, "d6", NULL),
--	_OMAP2420_BALLENTRY(GPIO_62, "ad18", NULL),
--	_OMAP2420_BALLENTRY(GPMC_A1, "m8", NULL),
--	_OMAP2420_BALLENTRY(GPMC_A10, "d5", NULL),
--	_OMAP2420_BALLENTRY(GPMC_A2, "w9", NULL),
--	_OMAP2420_BALLENTRY(GPMC_A3, "af10", NULL),
--	_OMAP2420_BALLENTRY(GPMC_A4, "w8", NULL),
--	_OMAP2420_BALLENTRY(GPMC_A5, "ae16", NULL),
--	_OMAP2420_BALLENTRY(GPMC_A6, "af9", NULL),
--	_OMAP2420_BALLENTRY(GPMC_A7, "e4", NULL),
--	_OMAP2420_BALLENTRY(GPMC_A8, "j7", NULL),
--	_OMAP2420_BALLENTRY(GPMC_A9, "ae18", NULL),
--	_OMAP2420_BALLENTRY(GPMC_CLK, "p1", "l1"),
--	_OMAP2420_BALLENTRY(GPMC_D10, "t1", "n1"),
--	_OMAP2420_BALLENTRY(GPMC_D11, "u2", "p2"),
--	_OMAP2420_BALLENTRY(GPMC_D12, "u1", "p1"),
--	_OMAP2420_BALLENTRY(GPMC_D13, "p2", "m1"),
--	_OMAP2420_BALLENTRY(GPMC_D14, "h2", "j2"),
--	_OMAP2420_BALLENTRY(GPMC_D15, "h1", "k2"),
--	_OMAP2420_BALLENTRY(GPMC_D8, "v1", "r1"),
--	_OMAP2420_BALLENTRY(GPMC_D9, "y1", "t1"),
--	_OMAP2420_BALLENTRY(GPMC_NBE0, "af12", "aa10"),
--	_OMAP2420_BALLENTRY(GPMC_NBE1, "u3", NULL),
--	_OMAP2420_BALLENTRY(GPMC_NCS1, "af14", "w1"),
--	_OMAP2420_BALLENTRY(GPMC_NCS2, "g4", NULL),
--	_OMAP2420_BALLENTRY(GPMC_NCS3, "t8", NULL),
--	_OMAP2420_BALLENTRY(GPMC_NCS4, "h8", NULL),
--	_OMAP2420_BALLENTRY(GPMC_NCS5, "k3", NULL),
--	_OMAP2420_BALLENTRY(GPMC_NCS6, "m7", NULL),
--	_OMAP2420_BALLENTRY(GPMC_NCS7, "p3", NULL),
--	_OMAP2420_BALLENTRY(GPMC_NWP, "ae15", "y5"),
--	_OMAP2420_BALLENTRY(GPMC_WAIT1, "ae20", "y8"),
--	_OMAP2420_BALLENTRY(GPMC_WAIT2, "n2", NULL),
--	_OMAP2420_BALLENTRY(GPMC_WAIT3, "t4", NULL),
--	_OMAP2420_BALLENTRY(HDQ_SIO, "t23", NULL),
--	_OMAP2420_BALLENTRY(I2C2_SCL, "l2", NULL),
--	_OMAP2420_BALLENTRY(I2C2_SDA, "k19", NULL),
--	_OMAP2420_BALLENTRY(JTAG_EMU0, "n24", NULL),
--	_OMAP2420_BALLENTRY(JTAG_EMU1, "ac22", NULL),
--	_OMAP2420_BALLENTRY(MCBSP1_CLKR, "y24", NULL),
--	_OMAP2420_BALLENTRY(MCBSP1_CLKX, "t19", NULL),
--	_OMAP2420_BALLENTRY(MCBSP1_DR, "u23", NULL),
--	_OMAP2420_BALLENTRY(MCBSP1_DX, "r24", NULL),
--	_OMAP2420_BALLENTRY(MCBSP1_FSR, "r20", NULL),
--	_OMAP2420_BALLENTRY(MCBSP1_FSX, "r23", NULL),
--	_OMAP2420_BALLENTRY(MCBSP2_CLKX, "t24", NULL),
--	_OMAP2420_BALLENTRY(MCBSP2_DR, "p20", NULL),
--	_OMAP2420_BALLENTRY(MCBSP_CLKS, "p23", NULL),
--	_OMAP2420_BALLENTRY(MMC_CLKI, "c23", NULL),
--	_OMAP2420_BALLENTRY(MMC_CLKO, "h23", NULL),
--	_OMAP2420_BALLENTRY(MMC_CMD, "j23", NULL),
--	_OMAP2420_BALLENTRY(MMC_CMD_DIR, "j24", NULL),
--	_OMAP2420_BALLENTRY(MMC_DAT0, "h17", NULL),
--	_OMAP2420_BALLENTRY(MMC_DAT_DIR0, "f23", NULL),
--	_OMAP2420_BALLENTRY(MMC_DAT1, "g19", NULL),
--	_OMAP2420_BALLENTRY(MMC_DAT_DIR1, "d23", NULL),
--	_OMAP2420_BALLENTRY(MMC_DAT2, "h20", NULL),
--	_OMAP2420_BALLENTRY(MMC_DAT_DIR2, "g23", NULL),
--	_OMAP2420_BALLENTRY(MMC_DAT3, "d24", NULL),
--	_OMAP2420_BALLENTRY(MMC_DAT_DIR3, "e23", NULL),
--	_OMAP2420_BALLENTRY(SDRC_A12, "w26", "r21"),
--	_OMAP2420_BALLENTRY(SDRC_A13, "w25", "aa15"),
--	_OMAP2420_BALLENTRY(SDRC_A14, "aa26", "y12"),
--	_OMAP2420_BALLENTRY(SDRC_CKE1, "ae25", "y13"),
--	_OMAP2420_BALLENTRY(SDRC_NCS1, "y25", "t20"),
--	_OMAP2420_BALLENTRY(SPI1_CLK, "y23", NULL),
--	_OMAP2420_BALLENTRY(SPI1_NCS0, "w24", NULL),
--	_OMAP2420_BALLENTRY(SPI1_NCS1, "w23", NULL),
--	_OMAP2420_BALLENTRY(SPI1_NCS2, "v23", NULL),
--	_OMAP2420_BALLENTRY(SPI1_NCS3, "u20", NULL),
--	_OMAP2420_BALLENTRY(SPI1_SIMO, "h10", NULL),
--	_OMAP2420_BALLENTRY(SPI1_SOMI, "v19", NULL),
--	_OMAP2420_BALLENTRY(SPI2_CLK, "v24", NULL),
--	_OMAP2420_BALLENTRY(SPI2_NCS0, "aa24", NULL),
--	_OMAP2420_BALLENTRY(SPI2_SIMO, "u24", NULL),
--	_OMAP2420_BALLENTRY(SPI2_SOMI, "v25", NULL),
--	_OMAP2420_BALLENTRY(SSI1_DAT_RX, "w15", NULL),
--	_OMAP2420_BALLENTRY(SSI1_DAT_TX, "w13", NULL),
--	_OMAP2420_BALLENTRY(SSI1_FLAG_RX, "af11", NULL),
--	_OMAP2420_BALLENTRY(SSI1_FLAG_TX, "ac15", NULL),
--	_OMAP2420_BALLENTRY(SSI1_RDY_RX, "ac16", NULL),
--	_OMAP2420_BALLENTRY(SSI1_RDY_TX, "af15", NULL),
--	_OMAP2420_BALLENTRY(SSI1_WAKE, "ad15", NULL),
--	_OMAP2420_BALLENTRY(SYS_CLKOUT, "ae19", NULL),
--	_OMAP2420_BALLENTRY(SYS_CLKREQ, "ad20", NULL),
--	_OMAP2420_BALLENTRY(SYS_NIRQ, "y20", NULL),
--	_OMAP2420_BALLENTRY(UART1_CTS, "g20", NULL),
--	_OMAP2420_BALLENTRY(UART1_RTS, "k20", NULL),
--	_OMAP2420_BALLENTRY(UART1_RX, "t20", NULL),
--	_OMAP2420_BALLENTRY(UART1_TX, "h12", NULL),
--	_OMAP2420_BALLENTRY(UART2_CTS, "ac24", NULL),
--	_OMAP2420_BALLENTRY(UART2_RTS, "w20", NULL),
--	_OMAP2420_BALLENTRY(UART2_RX, "ad24", NULL),
--	_OMAP2420_BALLENTRY(UART2_TX, "ab24", NULL),
--	_OMAP2420_BALLENTRY(UART3_CTS_RCTX, "k24", NULL),
--	_OMAP2420_BALLENTRY(UART3_RTS_SD, "m20", NULL),
--	_OMAP2420_BALLENTRY(UART3_RX_IRRX, "h24", NULL),
--	_OMAP2420_BALLENTRY(UART3_TX_IRTX, "g24", NULL),
--	_OMAP2420_BALLENTRY(USB0_DAT, "j25", NULL),
--	_OMAP2420_BALLENTRY(USB0_PUEN, "l23", NULL),
--	_OMAP2420_BALLENTRY(USB0_RCV, "k23", NULL),
--	_OMAP2420_BALLENTRY(USB0_SE0, "l24", NULL),
--	_OMAP2420_BALLENTRY(USB0_TXEN, "m24", NULL),
--	_OMAP2420_BALLENTRY(USB0_VM, "n23", NULL),
--	_OMAP2420_BALLENTRY(USB0_VP, "m23", NULL),
--	_OMAP2420_BALLENTRY(VLYNQ_CLK, "w12", NULL),
--	_OMAP2420_BALLENTRY(VLYNQ_NLA, "ae10", NULL),
--	_OMAP2420_BALLENTRY(VLYNQ_RX0, "ad7", NULL),
--	_OMAP2420_BALLENTRY(VLYNQ_RX1, "w10", NULL),
--	_OMAP2420_BALLENTRY(VLYNQ_TX0, "y15", NULL),
--	_OMAP2420_BALLENTRY(VLYNQ_TX1, "w14", NULL),
--	{ .reg_offset = OMAP_MUX_TERMINATOR },
--};
--#else
--#define omap2420_pop_ball	 NULL
--#endif
--
--int __init omap2420_mux_init(struct omap_board_mux *board_subset, int flags)
--{
--	struct omap_ball *package_balls = NULL;
--
--	switch (flags & OMAP_PACKAGE_MASK) {
--	case OMAP_PACKAGE_ZAC:
--		package_balls = omap2420_pop_ball;
--		break;
--	case OMAP_PACKAGE_ZAF:
--		/* REVISIT: Please add data */
--	default:
--		pr_warning("%s: No ball data available for omap2420 package\n",
--				__func__);
--	}
--
--	return omap_mux_init("core", OMAP_MUX_REG_8BIT | OMAP_MUX_GPIO_IN_MODE3,
--			     OMAP2420_CONTROL_PADCONF_MUX_PBASE,
--			     OMAP2420_CONTROL_PADCONF_MUX_SIZE,
--			     omap2420_muxmodes, NULL, board_subset,
--			     package_balls);
--}
-diff --git a/arch/arm/mach-omap2/mux2420.h b/arch/arm/mach-omap2/mux2420.h
-deleted file mode 100644
-index 0f555aa..0000000
---- a/arch/arm/mach-omap2/mux2420.h
-+++ /dev/null
-@@ -1,282 +0,0 @@
--/*
-- * Copyright (C) 2009 Nokia
-- * Copyright (C) 2009 Texas Instruments
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-- */
--
--#define OMAP2420_CONTROL_PADCONF_MUX_PBASE			0x48000030LU
--
--#define OMAP2420_MUX(mode0, mux_value)					\
--{									\
--	.reg_offset	= (OMAP2420_CONTROL_PADCONF_##mode0##_OFFSET),	\
--	.value		= (mux_value),					\
--}
--
--/*
-- * OMAP2420 CONTROL_PADCONF* register offsets for pin-muxing
-- *
-- * Extracted from the TRM.  Add 0x48000030 to these values to get the
-- * absolute addresses.  The name in the macro is the mode-0 name of
-- * the pin.  NOTE: These registers are 8-bits wide.
-- */
--#define OMAP2420_CONTROL_PADCONF_SDRC_A14_OFFSET			0x000
--#define OMAP2420_CONTROL_PADCONF_SDRC_A13_OFFSET			0x001
--#define OMAP2420_CONTROL_PADCONF_SDRC_A12_OFFSET			0x002
--#define OMAP2420_CONTROL_PADCONF_SDRC_BA1_OFFSET			0x003
--#define OMAP2420_CONTROL_PADCONF_SDRC_BA0_OFFSET			0x004
--#define OMAP2420_CONTROL_PADCONF_SDRC_A11_OFFSET			0x005
--#define OMAP2420_CONTROL_PADCONF_SDRC_A10_OFFSET			0x006
--#define OMAP2420_CONTROL_PADCONF_SDRC_A9_OFFSET				0x007
--#define OMAP2420_CONTROL_PADCONF_SDRC_A8_OFFSET				0x008
--#define OMAP2420_CONTROL_PADCONF_SDRC_A7_OFFSET				0x009
--#define OMAP2420_CONTROL_PADCONF_SDRC_A6_OFFSET				0x00a
--#define OMAP2420_CONTROL_PADCONF_SDRC_A5_OFFSET				0x00b
--#define OMAP2420_CONTROL_PADCONF_SDRC_A4_OFFSET				0x00c
--#define OMAP2420_CONTROL_PADCONF_SDRC_A3_OFFSET				0x00d
--#define OMAP2420_CONTROL_PADCONF_SDRC_A2_OFFSET				0x00e
--#define OMAP2420_CONTROL_PADCONF_SDRC_A1_OFFSET				0x00f
--#define OMAP2420_CONTROL_PADCONF_SDRC_A0_OFFSET				0x010
--#define OMAP2420_CONTROL_PADCONF_SDRC_D31_OFFSET			0x021
--#define OMAP2420_CONTROL_PADCONF_SDRC_D30_OFFSET			0x022
--#define OMAP2420_CONTROL_PADCONF_SDRC_D29_OFFSET			0x023
--#define OMAP2420_CONTROL_PADCONF_SDRC_D28_OFFSET			0x024
--#define OMAP2420_CONTROL_PADCONF_SDRC_D27_OFFSET			0x025
--#define OMAP2420_CONTROL_PADCONF_SDRC_D26_OFFSET			0x026
--#define OMAP2420_CONTROL_PADCONF_SDRC_D25_OFFSET			0x027
--#define OMAP2420_CONTROL_PADCONF_SDRC_D24_OFFSET			0x028
--#define OMAP2420_CONTROL_PADCONF_SDRC_D23_OFFSET			0x029
--#define OMAP2420_CONTROL_PADCONF_SDRC_D22_OFFSET			0x02a
--#define OMAP2420_CONTROL_PADCONF_SDRC_D21_OFFSET			0x02b
--#define OMAP2420_CONTROL_PADCONF_SDRC_D20_OFFSET			0x02c
--#define OMAP2420_CONTROL_PADCONF_SDRC_D19_OFFSET			0x02d
--#define OMAP2420_CONTROL_PADCONF_SDRC_D18_OFFSET			0x02e
--#define OMAP2420_CONTROL_PADCONF_SDRC_D17_OFFSET			0x02f
--#define OMAP2420_CONTROL_PADCONF_SDRC_D16_OFFSET			0x030
--#define OMAP2420_CONTROL_PADCONF_SDRC_D15_OFFSET			0x031
--#define OMAP2420_CONTROL_PADCONF_SDRC_D14_OFFSET			0x032
--#define OMAP2420_CONTROL_PADCONF_SDRC_D13_OFFSET			0x033
--#define OMAP2420_CONTROL_PADCONF_SDRC_D12_OFFSET			0x034
--#define OMAP2420_CONTROL_PADCONF_SDRC_D11_OFFSET			0x035
--#define OMAP2420_CONTROL_PADCONF_SDRC_D10_OFFSET			0x036
--#define OMAP2420_CONTROL_PADCONF_SDRC_D9_OFFSET				0x037
--#define OMAP2420_CONTROL_PADCONF_SDRC_D8_OFFSET				0x038
--#define OMAP2420_CONTROL_PADCONF_SDRC_D7_OFFSET				0x039
--#define OMAP2420_CONTROL_PADCONF_SDRC_D6_OFFSET				0x03a
--#define OMAP2420_CONTROL_PADCONF_SDRC_D5_OFFSET				0x03b
--#define OMAP2420_CONTROL_PADCONF_SDRC_D4_OFFSET				0x03c
--#define OMAP2420_CONTROL_PADCONF_SDRC_D3_OFFSET				0x03d
--#define OMAP2420_CONTROL_PADCONF_SDRC_D2_OFFSET				0x03e
--#define OMAP2420_CONTROL_PADCONF_SDRC_D1_OFFSET				0x03f
--#define OMAP2420_CONTROL_PADCONF_SDRC_D0_OFFSET				0x040
--#define OMAP2420_CONTROL_PADCONF_GPMC_A10_OFFSET			0x041
--#define OMAP2420_CONTROL_PADCONF_GPMC_A9_OFFSET				0x042
--#define OMAP2420_CONTROL_PADCONF_GPMC_A8_OFFSET				0x043
--#define OMAP2420_CONTROL_PADCONF_GPMC_A7_OFFSET				0x044
--#define OMAP2420_CONTROL_PADCONF_GPMC_A6_OFFSET				0x045
--#define OMAP2420_CONTROL_PADCONF_GPMC_A5_OFFSET				0x046
--#define OMAP2420_CONTROL_PADCONF_GPMC_A4_OFFSET				0x047
--#define OMAP2420_CONTROL_PADCONF_GPMC_A3_OFFSET				0x048
--#define OMAP2420_CONTROL_PADCONF_GPMC_A2_OFFSET				0x049
--#define OMAP2420_CONTROL_PADCONF_GPMC_A1_OFFSET				0x04a
--#define OMAP2420_CONTROL_PADCONF_GPMC_D15_OFFSET			0x04b
--#define OMAP2420_CONTROL_PADCONF_GPMC_D14_OFFSET			0x04c
--#define OMAP2420_CONTROL_PADCONF_GPMC_D13_OFFSET			0x04d
--#define OMAP2420_CONTROL_PADCONF_GPMC_D12_OFFSET			0x04e
--#define OMAP2420_CONTROL_PADCONF_GPMC_D11_OFFSET			0x04f
--#define OMAP2420_CONTROL_PADCONF_GPMC_D10_OFFSET			0x050
--#define OMAP2420_CONTROL_PADCONF_GPMC_D9_OFFSET				0x051
--#define OMAP2420_CONTROL_PADCONF_GPMC_D8_OFFSET				0x052
--#define OMAP2420_CONTROL_PADCONF_GPMC_D7_OFFSET				0x053
--#define OMAP2420_CONTROL_PADCONF_GPMC_D6_OFFSET				0x054
--#define OMAP2420_CONTROL_PADCONF_GPMC_D5_OFFSET				0x055
--#define OMAP2420_CONTROL_PADCONF_GPMC_D4_OFFSET				0x056
--#define OMAP2420_CONTROL_PADCONF_GPMC_D3_OFFSET				0x057
--#define OMAP2420_CONTROL_PADCONF_GPMC_D2_OFFSET				0x058
--#define OMAP2420_CONTROL_PADCONF_GPMC_D1_OFFSET				0x059
--#define OMAP2420_CONTROL_PADCONF_GPMC_D0_OFFSET				0x05a
--#define OMAP2420_CONTROL_PADCONF_GPMC_CLK_OFFSET			0x05b
--#define OMAP2420_CONTROL_PADCONF_GPMC_NCS0_OFFSET			0x05c
--#define OMAP2420_CONTROL_PADCONF_GPMC_NCS1_OFFSET			0x05d
--#define OMAP2420_CONTROL_PADCONF_GPMC_NCS2_OFFSET			0x05e
--#define OMAP2420_CONTROL_PADCONF_GPMC_NCS3_OFFSET			0x05f
--#define OMAP2420_CONTROL_PADCONF_GPMC_NCS4_OFFSET			0x060
--#define OMAP2420_CONTROL_PADCONF_GPMC_NCS5_OFFSET			0x061
--#define OMAP2420_CONTROL_PADCONF_GPMC_NCS6_OFFSET			0x062
--#define OMAP2420_CONTROL_PADCONF_GPMC_NCS7_OFFSET			0x063
--#define OMAP2420_CONTROL_PADCONF_GPMC_NALE_ALE_OFFSET			0x064
--#define OMAP2420_CONTROL_PADCONF_GPMC_NOE_OFFSET			0x065
--#define OMAP2420_CONTROL_PADCONF_GPMC_NWE_OFFSET			0x066
--#define OMAP2420_CONTROL_PADCONF_GPMC_NBE0_OFFSET			0x067
--#define OMAP2420_CONTROL_PADCONF_GPMC_NBE1_OFFSET			0x068
--#define OMAP2420_CONTROL_PADCONF_GPMC_NWP_OFFSET			0x069
--#define OMAP2420_CONTROL_PADCONF_GPMC_WAIT0_OFFSET			0x06a
--#define OMAP2420_CONTROL_PADCONF_GPMC_WAIT1_OFFSET			0x06b
--#define OMAP2420_CONTROL_PADCONF_GPMC_WAIT2_OFFSET			0x06c
--#define OMAP2420_CONTROL_PADCONF_GPMC_WAIT3_OFFSET			0x06d
--#define OMAP2420_CONTROL_PADCONF_SDRC_CLK_OFFSET			0x06e
--#define OMAP2420_CONTROL_PADCONF_SDRC_NCLK_OFFSET			0x06f
--#define OMAP2420_CONTROL_PADCONF_SDRC_NCS0_OFFSET			0x070
--#define OMAP2420_CONTROL_PADCONF_SDRC_NCS1_OFFSET			0x071
--#define OMAP2420_CONTROL_PADCONF_SDRC_CKE0_OFFSET			0x072
--#define OMAP2420_CONTROL_PADCONF_SDRC_CKE1_OFFSET			0x073
--#define OMAP2420_CONTROL_PADCONF_SDRC_NRAS_OFFSET			0x074
--#define OMAP2420_CONTROL_PADCONF_SDRC_NCAS_OFFSET			0x075
--#define OMAP2420_CONTROL_PADCONF_SDRC_NWE_OFFSET			0x076
--#define OMAP2420_CONTROL_PADCONF_SDRC_DM0_OFFSET			0x077
--#define OMAP2420_CONTROL_PADCONF_SDRC_DM1_OFFSET			0x078
--#define OMAP2420_CONTROL_PADCONF_SDRC_DM2_OFFSET			0x079
--#define OMAP2420_CONTROL_PADCONF_SDRC_DM3_OFFSET			0x07a
--#define OMAP2420_CONTROL_PADCONF_SDRC_DQS0_OFFSET			0x07f
--#define OMAP2420_CONTROL_PADCONF_SDRC_DQS1_OFFSET			0x080
--#define OMAP2420_CONTROL_PADCONF_SDRC_DQS2_OFFSET			0x081
--#define OMAP2420_CONTROL_PADCONF_SDRC_DQS3_OFFSET			0x082
--#define OMAP2420_CONTROL_PADCONF_DSS_DATA0_OFFSET			0x083
--#define OMAP2420_CONTROL_PADCONF_DSS_DATA1_OFFSET			0x084
--#define OMAP2420_CONTROL_PADCONF_DSS_DATA2_OFFSET			0x085
--#define OMAP2420_CONTROL_PADCONF_DSS_DATA3_OFFSET			0x086
--#define OMAP2420_CONTROL_PADCONF_DSS_DATA4_OFFSET			0x087
--#define OMAP2420_CONTROL_PADCONF_DSS_DATA5_OFFSET			0x088
--#define OMAP2420_CONTROL_PADCONF_DSS_DATA6_OFFSET			0x089
--#define OMAP2420_CONTROL_PADCONF_DSS_DATA7_OFFSET			0x08a
--#define OMAP2420_CONTROL_PADCONF_DSS_DATA8_OFFSET			0x08b
--#define OMAP2420_CONTROL_PADCONF_DSS_DATA9_OFFSET			0x08c
--#define OMAP2420_CONTROL_PADCONF_DSS_DATA10_OFFSET			0x08d
--#define OMAP2420_CONTROL_PADCONF_DSS_DATA11_OFFSET			0x08e
--#define OMAP2420_CONTROL_PADCONF_DSS_DATA12_OFFSET			0x08f
--#define OMAP2420_CONTROL_PADCONF_DSS_DATA13_OFFSET			0x090
--#define OMAP2420_CONTROL_PADCONF_DSS_DATA14_OFFSET			0x091
--#define OMAP2420_CONTROL_PADCONF_DSS_DATA15_OFFSET			0x092
--#define OMAP2420_CONTROL_PADCONF_DSS_DATA16_OFFSET			0x093
--#define OMAP2420_CONTROL_PADCONF_DSS_DATA17_OFFSET			0x094
--#define OMAP2420_CONTROL_PADCONF_UART1_CTS_OFFSET			0x095
--#define OMAP2420_CONTROL_PADCONF_UART1_RTS_OFFSET			0x096
--#define OMAP2420_CONTROL_PADCONF_UART1_TX_OFFSET			0x097
--#define OMAP2420_CONTROL_PADCONF_UART1_RX_OFFSET			0x098
--#define OMAP2420_CONTROL_PADCONF_MCBSP2_DR_OFFSET			0x099
--#define OMAP2420_CONTROL_PADCONF_MCBSP2_CLKX_OFFSET			0x09a
--#define OMAP2420_CONTROL_PADCONF_DSS_PCL_OFFSET				0x09b
--#define OMAP2420_CONTROL_PADCONF_DSS_VSYNC_OFFSET			0x09c
--#define OMAP2420_CONTROL_PADCONF_DSS_HSYNC_OFFSET			0x09d
--#define OMAP2420_CONTROL_PADCONF_DSS_ACBIAS_OFFSET			0x09e
--#define OMAP2420_CONTROL_PADCONF_CAM_D9_OFFSET				0x09f
--#define OMAP2420_CONTROL_PADCONF_CAM_D8_OFFSET				0x0a0
--#define OMAP2420_CONTROL_PADCONF_CAM_D7_OFFSET				0x0a1
--#define OMAP2420_CONTROL_PADCONF_CAM_D6_OFFSET				0x0a2
--#define OMAP2420_CONTROL_PADCONF_CAM_D5_OFFSET				0x0a3
--#define OMAP2420_CONTROL_PADCONF_CAM_D4_OFFSET				0x0a4
--#define OMAP2420_CONTROL_PADCONF_CAM_D3_OFFSET				0x0a5
--#define OMAP2420_CONTROL_PADCONF_CAM_D2_OFFSET				0x0a6
--#define OMAP2420_CONTROL_PADCONF_CAM_D1_OFFSET				0x0a7
--#define OMAP2420_CONTROL_PADCONF_CAM_D0_OFFSET				0x0a8
--#define OMAP2420_CONTROL_PADCONF_CAM_HS_OFFSET				0x0a9
--#define OMAP2420_CONTROL_PADCONF_CAM_VS_OFFSET				0x0aa
--#define OMAP2420_CONTROL_PADCONF_CAM_LCLK_OFFSET			0x0ab
--#define OMAP2420_CONTROL_PADCONF_CAM_XCLK_OFFSET			0x0ac
--#define OMAP2420_CONTROL_PADCONF_SSI1_DAT_TX_OFFSET			0x0ad
--#define OMAP2420_CONTROL_PADCONF_SSI1_FLAG_TX_OFFSET			0x0ae
--#define OMAP2420_CONTROL_PADCONF_SSI1_RDY_TX_OFFSET			0x0af
--#define OMAP2420_CONTROL_PADCONF_GPIO_62_OFFSET				0x0b0
--#define OMAP2420_CONTROL_PADCONF_SSI1_DAT_RX_OFFSET			0x0b1
--#define OMAP2420_CONTROL_PADCONF_SSI1_FLAG_RX_OFFSET			0x0b2
--#define OMAP2420_CONTROL_PADCONF_SSI1_RDY_RX_OFFSET			0x0b3
--#define OMAP2420_CONTROL_PADCONF_SSI1_WAKE_OFFSET			0x0b4
--#define OMAP2420_CONTROL_PADCONF_VLYNQ_CLK_OFFSET			0x0b5
--#define OMAP2420_CONTROL_PADCONF_VLYNQ_RX1_OFFSET			0x0b6
--#define OMAP2420_CONTROL_PADCONF_VLYNQ_RX0_OFFSET			0x0b7
--#define OMAP2420_CONTROL_PADCONF_VLYNQ_TX1_OFFSET			0x0b8
--#define OMAP2420_CONTROL_PADCONF_VLYNQ_TX0_OFFSET			0x0b9
--#define OMAP2420_CONTROL_PADCONF_VLYNQ_NLA_OFFSET			0x0ba
--#define OMAP2420_CONTROL_PADCONF_UART2_CTS_OFFSET			0x0bb
--#define OMAP2420_CONTROL_PADCONF_UART2_RTS_OFFSET			0x0bc
--#define OMAP2420_CONTROL_PADCONF_UART2_TX_OFFSET			0x0bd
--#define OMAP2420_CONTROL_PADCONF_UART2_RX_OFFSET			0x0be
--#define OMAP2420_CONTROL_PADCONF_EAC_BT_SCLK_OFFSET			0x0bf
--#define OMAP2420_CONTROL_PADCONF_EAC_BT_FS_OFFSET			0x0c0
--#define OMAP2420_CONTROL_PADCONF_EAC_BT_DIN_OFFSET			0x0c1
--#define OMAP2420_CONTROL_PADCONF_EAC_BT_DOUT_OFFSET			0x0c2
--#define OMAP2420_CONTROL_PADCONF_MMC_CLKO_OFFSET			0x0c3
--#define OMAP2420_CONTROL_PADCONF_MMC_CMD_OFFSET				0x0c4
--#define OMAP2420_CONTROL_PADCONF_MMC_DAT0_OFFSET			0x0c5
--#define OMAP2420_CONTROL_PADCONF_MMC_DAT1_OFFSET			0x0c6
--#define OMAP2420_CONTROL_PADCONF_MMC_DAT2_OFFSET			0x0c7
--#define OMAP2420_CONTROL_PADCONF_MMC_DAT3_OFFSET			0x0c8
--#define OMAP2420_CONTROL_PADCONF_MMC_DAT_DIR0_OFFSET			0x0c9
--#define OMAP2420_CONTROL_PADCONF_MMC_DAT_DIR1_OFFSET			0x0ca
--#define OMAP2420_CONTROL_PADCONF_MMC_DAT_DIR2_OFFSET			0x0cb
--#define OMAP2420_CONTROL_PADCONF_MMC_DAT_DIR3_OFFSET			0x0cc
--#define OMAP2420_CONTROL_PADCONF_MMC_CMD_DIR_OFFSET			0x0cd
--#define OMAP2420_CONTROL_PADCONF_MMC_CLKI_OFFSET			0x0ce
--#define OMAP2420_CONTROL_PADCONF_SPI1_CLK_OFFSET			0x0cf
--#define OMAP2420_CONTROL_PADCONF_SPI1_SIMO_OFFSET			0x0d0
--#define OMAP2420_CONTROL_PADCONF_SPI1_SOMI_OFFSET			0x0d1
--#define OMAP2420_CONTROL_PADCONF_SPI1_NCS0_OFFSET			0x0d2
--#define OMAP2420_CONTROL_PADCONF_SPI1_NCS1_OFFSET			0x0d3
--#define OMAP2420_CONTROL_PADCONF_SPI1_NCS2_OFFSET			0x0d4
--#define OMAP2420_CONTROL_PADCONF_SPI1_NCS3_OFFSET			0x0d5
--#define OMAP2420_CONTROL_PADCONF_SPI2_CLK_OFFSET			0x0d6
--#define OMAP2420_CONTROL_PADCONF_SPI2_SIMO_OFFSET			0x0d7
--#define OMAP2420_CONTROL_PADCONF_SPI2_SOMI_OFFSET			0x0d8
--#define OMAP2420_CONTROL_PADCONF_SPI2_NCS0_OFFSET			0x0d9
--#define OMAP2420_CONTROL_PADCONF_MCBSP1_CLKR_OFFSET			0x0da
--#define OMAP2420_CONTROL_PADCONF_MCBSP1_FSR_OFFSET			0x0db
--#define OMAP2420_CONTROL_PADCONF_MCBSP1_DX_OFFSET			0x0dc
--#define OMAP2420_CONTROL_PADCONF_MCBSP1_DR_OFFSET			0x0dd
--#define OMAP2420_CONTROL_PADCONF_MCBSP_CLKS_OFFSET			0x0de
--#define OMAP2420_CONTROL_PADCONF_MCBSP1_FSX_OFFSET			0x0df
--#define OMAP2420_CONTROL_PADCONF_MCBSP1_CLKX_OFFSET			0x0e0
--#define OMAP2420_CONTROL_PADCONF_I2C1_SCL_OFFSET			0x0e1
--#define OMAP2420_CONTROL_PADCONF_I2C1_SDA_OFFSET			0x0e2
--#define OMAP2420_CONTROL_PADCONF_I2C2_SCL_OFFSET			0x0e3
--#define OMAP2420_CONTROL_PADCONF_I2C2_SDA_OFFSET			0x0e4
--#define OMAP2420_CONTROL_PADCONF_HDQ_SIO_OFFSET				0x0e5
--#define OMAP2420_CONTROL_PADCONF_UART3_CTS_RCTX_OFFSET			0x0e6
--#define OMAP2420_CONTROL_PADCONF_UART3_RTS_SD_OFFSET			0x0e7
--#define OMAP2420_CONTROL_PADCONF_UART3_TX_IRTX_OFFSET			0x0e8
--#define OMAP2420_CONTROL_PADCONF_UART3_RX_IRRX_OFFSET			0x0e9
--#define OMAP2420_CONTROL_PADCONF_TV_CVBS_OFFSET				0x0ea
--#define OMAP2420_CONTROL_PADCONF_TV_VREF_OFFSET				0x0eb
--#define OMAP2420_CONTROL_PADCONF_TV_RREF_OFFSET				0x0ec
--#define OMAP2420_CONTROL_PADCONF_USB0_PUEN_OFFSET			0x0ed
--#define OMAP2420_CONTROL_PADCONF_USB0_VP_OFFSET				0x0ee
--#define OMAP2420_CONTROL_PADCONF_USB0_VM_OFFSET				0x0ef
--#define OMAP2420_CONTROL_PADCONF_USB0_RCV_OFFSET			0x0f0
--#define OMAP2420_CONTROL_PADCONF_USB0_TXEN_OFFSET			0x0f1
--#define OMAP2420_CONTROL_PADCONF_USB0_SE0_OFFSET			0x0f2
--#define OMAP2420_CONTROL_PADCONF_USB0_DAT_OFFSET			0x0f3
--#define OMAP2420_CONTROL_PADCONF_EAC_AC_SCLK_OFFSET			0x0f4
--#define OMAP2420_CONTROL_PADCONF_EAC_AC_FS_OFFSET			0x0f5
--#define OMAP2420_CONTROL_PADCONF_EAC_AC_DIN_OFFSET			0x0f6
--#define OMAP2420_CONTROL_PADCONF_EAC_AC_DOUT_OFFSET			0x0f7
--#define OMAP2420_CONTROL_PADCONF_EAC_AC_MCLK_OFFSET			0x0f8
--#define OMAP2420_CONTROL_PADCONF_EAC_AC_RST_OFFSET			0x0f9
--#define OMAP2420_CONTROL_PADCONF_SYS_NRESPWRON_OFFSET			0x0fa
--#define OMAP2420_CONTROL_PADCONF_SYS_NRESWARM_OFFSET			0x0fb
--#define OMAP2420_CONTROL_PADCONF_SYS_NIRQ_OFFSET			0x0fc
--#define OMAP2420_CONTROL_PADCONF_SYS_NV_OFFSET				0x0fd
--#define OMAP2420_CONTROL_PADCONF_GPIO_119_OFFSET			0x0fe
--#define OMAP2420_CONTROL_PADCONF_GPIO_120_OFFSET			0x0ff
--#define OMAP2420_CONTROL_PADCONF_GPIO_121_OFFSET			0x100
--#define OMAP2420_CONTROL_PADCONF_GPIO_122_OFFSET			0x101
--#define OMAP2420_CONTROL_PADCONF_SYS_32K_OFFSET				0x102
--#define OMAP2420_CONTROL_PADCONF_SYS_XTALIN_OFFSET			0x103
--#define OMAP2420_CONTROL_PADCONF_SYS_XTALOUT_OFFSET			0x104
--#define OMAP2420_CONTROL_PADCONF_GPIO_36_OFFSET				0x105
--#define OMAP2420_CONTROL_PADCONF_SYS_CLKREQ_OFFSET			0x106
--#define OMAP2420_CONTROL_PADCONF_SYS_CLKOUT_OFFSET			0x107
--#define OMAP2420_CONTROL_PADCONF_GPIO_6_OFFSET				0x108
--#define OMAP2420_CONTROL_PADCONF_GPIO_124_OFFSET			0x109
--#define OMAP2420_CONTROL_PADCONF_GPIO_125_OFFSET			0x10a
--#define OMAP2420_CONTROL_PADCONF_JTAG_EMU1_OFFSET			0x10b
--#define OMAP2420_CONTROL_PADCONF_JTAG_EMU0_OFFSET			0x10c
--#define OMAP2420_CONTROL_PADCONF_JTAG_NTRST_OFFSET			0x10d
--#define OMAP2420_CONTROL_PADCONF_JTAG_TCK_OFFSET			0x10e
--#define OMAP2420_CONTROL_PADCONF_JTAG_RTCK_OFFSET			0x10f
--#define OMAP2420_CONTROL_PADCONF_JTAG_TMS_OFFSET			0x110
--#define OMAP2420_CONTROL_PADCONF_JTAG_TDI_OFFSET			0x111
--#define OMAP2420_CONTROL_PADCONF_JTAG_TDO_OFFSET			0x112
--
--#define OMAP2420_CONTROL_PADCONF_MUX_SIZE			\
--		(OMAP2420_CONTROL_PADCONF_JTAG_TDO_OFFSET + 0x1)
-diff --git a/arch/arm/mach-omap2/mux2430.c b/arch/arm/mach-omap2/mux2430.c
-deleted file mode 100644
-index 4185f92..0000000
---- a/arch/arm/mach-omap2/mux2430.c
-+++ /dev/null
-@@ -1,793 +0,0 @@
--/*
-- * Copyright (C) 2010 Nokia
-- * Copyright (C) 2010 Texas Instruments
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-- */
--
--#include <linux/module.h>
--#include <linux/init.h>
--
--#include "mux.h"
--
--#ifdef CONFIG_OMAP_MUX
--
--#define _OMAP2430_MUXENTRY(M0, g, m0, m1, m2, m3, m4, m5, m6, m7)		\
--{									\
--	.reg_offset	= (OMAP2430_CONTROL_PADCONF_##M0##_OFFSET),	\
--	.gpio		= (g),						\
--	.muxnames	= { m0, m1, m2, m3, m4, m5, m6, m7 },		\
--}
--
--#else
--
--#define _OMAP2430_MUXENTRY(M0, g, m0, m1, m2, m3, m4, m5, m6, m7)		\
--{									\
--	.reg_offset	= (OMAP2430_CONTROL_PADCONF_##M0##_OFFSET),	\
--	.gpio		= (g),						\
--}
--
--#endif
--
--#define _OMAP2430_BALLENTRY(M0, bb, bt)					\
--{									\
--	.reg_offset	= (OMAP2430_CONTROL_PADCONF_##M0##_OFFSET),	\
--	.balls		= { bb, bt },					\
--}
--
--/*
-- * Superset of all mux modes for omap2430
-- */
--static struct omap_mux __initdata omap2430_muxmodes[] = {
--	_OMAP2430_MUXENTRY(CAM_D0, 133,
--		"cam_d0", "hw_dbg0", "sti_dout", "gpio_133",
--		NULL, NULL, "etk_d2", "safe_mode"),
--	_OMAP2430_MUXENTRY(CAM_D10, 146,
--		"cam_d10", NULL, NULL, "gpio_146",
--		NULL, NULL, "etk_d12", "safe_mode"),
--	_OMAP2430_MUXENTRY(CAM_D11, 145,
--		"cam_d11", NULL, NULL, "gpio_145",
--		NULL, NULL, "etk_d13", "safe_mode"),
--	_OMAP2430_MUXENTRY(CAM_D1, 132,
--		"cam_d1", "hw_dbg1", "sti_din", "gpio_132",
--		NULL, NULL, "etk_d3", "safe_mode"),
--	_OMAP2430_MUXENTRY(CAM_D2, 129,
--		"cam_d2", "hw_dbg2", "mcbsp1_clkx", "gpio_129",
--		NULL, NULL, "etk_d4", "safe_mode"),
--	_OMAP2430_MUXENTRY(CAM_D3, 128,
--		"cam_d3", "hw_dbg3", "mcbsp1_dr", "gpio_128",
--		NULL, NULL, "etk_d5", "safe_mode"),
--	_OMAP2430_MUXENTRY(CAM_D4, 143,
--		"cam_d4", "hw_dbg4", "mcbsp1_fsr", "gpio_143",
--		NULL, NULL, "etk_d6", "safe_mode"),
--	_OMAP2430_MUXENTRY(CAM_D5, 112,
--		"cam_d5", "hw_dbg5", "mcbsp1_clkr", "gpio_112",
--		NULL, NULL, "etk_d7", "safe_mode"),
--	_OMAP2430_MUXENTRY(CAM_D6, 137,
--		"cam_d6", "hw_dbg6", NULL, "gpio_137",
--		NULL, NULL, "etk_d8", "safe_mode"),
--	_OMAP2430_MUXENTRY(CAM_D7, 136,
--		"cam_d7", "hw_dbg7", NULL, "gpio_136",
--		NULL, NULL, "etk_d9", "safe_mode"),
--	_OMAP2430_MUXENTRY(CAM_D8, 135,
--		"cam_d8", "hw_dbg8", NULL, "gpio_135",
--		NULL, NULL, "etk_d10", "safe_mode"),
--	_OMAP2430_MUXENTRY(CAM_D9, 134,
--		"cam_d9", "hw_dbg9", NULL, "gpio_134",
--		NULL, NULL, "etk_d11", "safe_mode"),
--	_OMAP2430_MUXENTRY(CAM_HS, 11,
--		"cam_hs", "hw_dbg10", "mcbsp1_dx", "gpio_11",
--		NULL, NULL, "etk_d1", "safe_mode"),
--	_OMAP2430_MUXENTRY(CAM_LCLK, 0,
--		"cam_lclk", NULL, "mcbsp_clks", NULL,
--		NULL, NULL, "etk_c1", "safe_mode"),
--	_OMAP2430_MUXENTRY(CAM_VS, 12,
--		"cam_vs", "hw_dbg11", "mcbsp1_fsx", "gpio_12",
--		NULL, NULL, "etk_d0", "safe_mode"),
--	_OMAP2430_MUXENTRY(CAM_XCLK, 0,
--		"cam_xclk", NULL, "sti_clk", NULL,
--		NULL, NULL, "etk_c2", NULL),
--	_OMAP2430_MUXENTRY(DSS_ACBIAS, 48,
--		"dss_acbias", NULL, "mcbsp2_fsx", "gpio_48",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(DSS_DATA0, 40,
--		"dss_data0", "uart1_cts", NULL, "gpio_40",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(DSS_DATA10, 128,
--		"dss_data10", "sdi_data1n", NULL, "gpio_128",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(DSS_DATA11, 129,
--		"dss_data11", "sdi_data1p", NULL, "gpio_129",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(DSS_DATA12, 130,
--		"dss_data12", "sdi_data2n", NULL, "gpio_130",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(DSS_DATA13, 131,
--		"dss_data13", "sdi_data2p", NULL, "gpio_131",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(DSS_DATA14, 132,
--		"dss_data14", "sdi_data3n", NULL, "gpio_132",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(DSS_DATA15, 133,
--		"dss_data15", "sdi_data3p", NULL, "gpio_133",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(DSS_DATA16, 46,
--		"dss_data16", NULL, NULL, "gpio_46",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(DSS_DATA17, 47,
--		"dss_data17", NULL, NULL, "gpio_47",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(DSS_DATA1, 41,
--		"dss_data1", "uart1_rts", NULL, "gpio_41",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(DSS_DATA2, 42,
--		"dss_data2", "uart1_tx", NULL, "gpio_42",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(DSS_DATA3, 43,
--		"dss_data3", "uart1_rx", NULL, "gpio_43",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(DSS_DATA4, 44,
--		"dss_data4", "uart3_rx_irrx", NULL, "gpio_44",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(DSS_DATA5, 45,
--		"dss_data5", "uart3_tx_irtx", NULL, "gpio_45",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(DSS_DATA6, 144,
--		"dss_data6", NULL, NULL, "gpio_144",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(DSS_DATA7, 147,
--		"dss_data7", NULL, NULL, "gpio_147",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(DSS_DATA8, 38,
--		"dss_data8", NULL, NULL, "gpio_38",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(DSS_DATA9, 39,
--		"dss_data9", NULL, NULL, "gpio_39",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(DSS_HSYNC, 110,
--		"dss_hsync", NULL, NULL, "gpio_110",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(GPIO_113, 113,
--		"gpio_113", "mcbsp2_clkx", NULL, "gpio_113",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(GPIO_114, 114,
--		"gpio_114", "mcbsp2_fsx", NULL, "gpio_114",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(GPIO_115, 115,
--		"gpio_115", "mcbsp2_dr", NULL, "gpio_115",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(GPIO_116, 116,
--		"gpio_116", "mcbsp2_dx", NULL, "gpio_116",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(GPIO_128, 128,
--		"gpio_128", NULL, "sti_din", "gpio_128",
--		NULL, "sys_boot0", NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(GPIO_129, 129,
--		"gpio_129", NULL, "sti_dout", "gpio_129",
--		NULL, "sys_boot1", NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(GPIO_130, 130,
--		"gpio_130", NULL, NULL, "gpio_130",
--		"jtag_emu2", "sys_boot2", NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(GPIO_131, 131,
--		"gpio_131", NULL, NULL, "gpio_131",
--		"jtag_emu3", "sys_boot3", NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(GPIO_132, 132,
--		"gpio_132", NULL, NULL, "gpio_132",
--		NULL, "sys_boot4", NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(GPIO_133, 133,
--		"gpio_133", NULL, NULL, "gpio_133",
--		NULL, "sys_boot5", NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(GPIO_134, 134,
--		"gpio_134", "ccp_datn", NULL, "gpio_134",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(GPIO_135, 135,
--		"gpio_135", "ccp_datp", NULL, "gpio_135",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(GPIO_136, 136,
--		"gpio_136", "ccp_clkn", NULL, "gpio_136",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(GPIO_137, 137,
--		"gpio_137", "ccp_clkp", NULL, "gpio_137",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(GPIO_138, 138,
--		"gpio_138", "spi3_clk", NULL, "gpio_138",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(GPIO_139, 139,
--		"gpio_139", "spi3_cs0", "sys_ndmareq3", "gpio_139",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(GPIO_140, 140,
--		"gpio_140", "spi3_simo", "sys_ndmareq4", "gpio_140",
--		NULL, NULL, "etk_d14", "safe_mode"),
--	_OMAP2430_MUXENTRY(GPIO_141, 141,
--		"gpio_141", "spi3_somi", NULL, "gpio_141",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(GPIO_142, 142,
--		"gpio_142", "spi3_cs1", "sys_ndmareq2", "gpio_142",
--		NULL, NULL, "etk_d15", "safe_mode"),
--	_OMAP2430_MUXENTRY(GPIO_148, 148,
--		"gpio_148", "mcbsp5_fsx", NULL, "gpio_148",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(GPIO_149, 149,
--		"gpio_149", "mcbsp5_dx", NULL, "gpio_149",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(GPIO_150, 150,
--		"gpio_150", "mcbsp5_dr", NULL, "gpio_150",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(GPIO_151, 151,
--		"gpio_151", "sys_pwrok", NULL, "gpio_151",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(GPIO_152, 152,
--		"gpio_152", "uart1_cts", "sys_ndmareq1", "gpio_152",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(GPIO_153, 153,
--		"gpio_153", "uart1_rx", "sys_ndmareq0", "gpio_153",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(GPIO_154, 154,
--		"gpio_154", "mcbsp5_clkx", NULL, "gpio_154",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(GPIO_63, 63,
--		"gpio_63", "mcbsp4_clkx", NULL, "gpio_63",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(GPIO_78, 78,
--		"gpio_78", NULL, "uart2_rts", "gpio_78",
--		"uart3_rts_sd", NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(GPIO_79, 79,
--		"gpio_79", "secure_indicator", "uart2_tx", "gpio_79",
--		"uart3_tx_irtx", NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(GPIO_7, 7,
--		"gpio_7", NULL, "uart2_cts", "gpio_7",
--		"uart3_cts_rctx", NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(GPIO_80, 80,
--		"gpio_80", NULL, "uart2_rx", "gpio_80",
--		"uart3_rx_irrx", NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(GPMC_A10, 3,
--		"gpmc_a10", NULL, "sys_ndmareq0", "gpio_3",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(GPMC_A1, 31,
--		"gpmc_a1", NULL, NULL, "gpio_31",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(GPMC_A2, 30,
--		"gpmc_a2", NULL, NULL, "gpio_30",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(GPMC_A3, 29,
--		"gpmc_a3", NULL, NULL, "gpio_29",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(GPMC_A4, 49,
--		"gpmc_a4", NULL, NULL, "gpio_49",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(GPMC_A5, 53,
--		"gpmc_a5", NULL, NULL, "gpio_53",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(GPMC_A6, 52,
--		"gpmc_a6", NULL, NULL, "gpio_52",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(GPMC_A7, 6,
--		"gpmc_a7", NULL, NULL, "gpio_6",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(GPMC_A8, 5,
--		"gpmc_a8", NULL, NULL, "gpio_5",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(GPMC_A9, 4,
--		"gpmc_a9", NULL, "sys_ndmareq1", "gpio_4",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(GPMC_CLK, 21,
--		"gpmc_clk", NULL, NULL, "gpio_21",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(GPMC_D10, 18,
--		"gpmc_d10", NULL, NULL, "gpio_18",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(GPMC_D11, 57,
--		"gpmc_d11", NULL, NULL, "gpio_57",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(GPMC_D12, 77,
--		"gpmc_d12", NULL, NULL, "gpio_77",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(GPMC_D13, 76,
--		"gpmc_d13", NULL, NULL, "gpio_76",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(GPMC_D14, 55,
--		"gpmc_d14", NULL, NULL, "gpio_55",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(GPMC_D15, 54,
--		"gpmc_d15", NULL, NULL, "gpio_54",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(GPMC_D8, 20,
--		"gpmc_d8", NULL, NULL, "gpio_20",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(GPMC_D9, 19,
--		"gpmc_d9", NULL, NULL, "gpio_19",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(GPMC_NCS1, 22,
--		"gpmc_ncs1", NULL, NULL, "gpio_22",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(GPMC_NCS2, 23,
--		"gpmc_ncs2", NULL, NULL, "gpio_23",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(GPMC_NCS3, 24,
--		"gpmc_ncs3", "gpmc_io_dir", NULL, "gpio_24",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(GPMC_NCS4, 25,
--		"gpmc_ncs4", NULL, NULL, "gpio_25",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(GPMC_NCS5, 26,
--		"gpmc_ncs5", NULL, NULL, "gpio_26",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(GPMC_NCS6, 27,
--		"gpmc_ncs6", NULL, NULL, "gpio_27",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(GPMC_NCS7, 28,
--		"gpmc_ncs7", "gpmc_io_dir", NULL, "gpio_28",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(GPMC_WAIT1, 33,
--		"gpmc_wait1", NULL, NULL, "gpio_33",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(GPMC_WAIT2, 34,
--		"gpmc_wait2", NULL, NULL, "gpio_34",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(GPMC_WAIT3, 35,
--		"gpmc_wait3", NULL, NULL, "gpio_35",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(HDQ_SIO, 101,
--		"hdq_sio", "usb2_tllse0", "sys_altclk", "gpio_101",
--		"uart3_rx_irrx", NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(I2C1_SCL, 50,
--		"i2c1_scl", NULL, NULL, "gpio_50",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(I2C1_SDA, 51,
--		"i2c1_sda", NULL, NULL, "gpio_51",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(I2C2_SCL, 99,
--		"i2c2_scl", NULL, NULL, "gpio_99",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(I2C2_SDA, 100,
--		"i2c2_sda", NULL, NULL, "gpio_100",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(JTAG_EMU0, 127,
--		"jtag_emu0", "secure_indicator", NULL, "gpio_127",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(JTAG_EMU1, 126,
--		"jtag_emu1", NULL, NULL, "gpio_126",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(MCBSP1_CLKR, 92,
--		"mcbsp1_clkr", "ssi2_dat_tx", NULL, "gpio_92",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(MCBSP1_CLKX, 98,
--		"mcbsp1_clkx", "ssi2_wake", NULL, "gpio_98",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(MCBSP1_DR, 95,
--		"mcbsp1_dr", "ssi2_dat_rx", NULL, "gpio_95",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(MCBSP1_DX, 94,
--		"mcbsp1_dx", "ssi2_rdy_tx", NULL, "gpio_94",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(MCBSP1_FSR, 93,
--		"mcbsp1_fsr", "ssi2_flag_tx", NULL, "gpio_93",
--		"spi2_cs1", NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(MCBSP1_FSX, 97,
--		"mcbsp1_fsx", "ssi2_rdy_rx", NULL, "gpio_97",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(MCBSP2_CLKX, 147,
--		"mcbsp2_clkx", "sdi_clkp", "dss_data23", "gpio_147",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(MCBSP2_DR, 144,
--		"mcbsp2_dr", "sdi_clkn", "dss_data22", "gpio_144",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(MCBSP3_CLKX, 71,
--		"mcbsp3_clkx", NULL, NULL, "gpio_71",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(MCBSP3_DR, 73,
--		"mcbsp3_dr", NULL, NULL, "gpio_73",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(MCBSP3_DX, 74,
--		"mcbsp3_dx", NULL, "sti_clk", "gpio_74",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(MCBSP3_FSX, 72,
--		"mcbsp3_fsx", NULL, NULL, "gpio_72",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(MCBSP_CLKS, 96,
--		"mcbsp_clks", "ssi2_flag_rx", NULL, "gpio_96",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(SDMMC1_CLKO, 0,
--		"sdmmc1_clko", "ms_clko", NULL, NULL,
--		NULL, "hw_dbg9", "hw_dbg3", "safe_mode"),
--	_OMAP2430_MUXENTRY(SDMMC1_CMD, 0,
--		"sdmmc1_cmd", "ms_bs", NULL, NULL,
--		NULL, "hw_dbg8", "hw_dbg2", "safe_mode"),
--	_OMAP2430_MUXENTRY(SDMMC1_DAT0, 0,
--		"sdmmc1_dat0", "ms_dat0", NULL, NULL,
--		NULL, "hw_dbg7", "hw_dbg1", "safe_mode"),
--	_OMAP2430_MUXENTRY(SDMMC1_DAT1, 75,
--		"sdmmc1_dat1", "ms_dat1", NULL, "gpio_75",
--		NULL, "hw_dbg6", "hw_dbg0", "safe_mode"),
--	_OMAP2430_MUXENTRY(SDMMC1_DAT2, 0,
--		"sdmmc1_dat2", "ms_dat2", NULL, NULL,
--		NULL, "hw_dbg5", "hw_dbg10", "safe_mode"),
--	_OMAP2430_MUXENTRY(SDMMC1_DAT3, 0,
--		"sdmmc1_dat3", "ms_dat3", NULL, NULL,
--		NULL, "hw_dbg4", "hw_dbg11", "safe_mode"),
--	_OMAP2430_MUXENTRY(SDMMC2_CLKO, 13,
--		"sdmmc2_clko", NULL, NULL, "gpio_13",
--		NULL, "spi3_clk", NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(SDMMC2_CMD, 15,
--		"sdmmc2_cmd", "usb2_rcv", NULL, "gpio_15",
--		NULL, "spi3_simo", NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(SDMMC2_DAT0, 16,
--		"sdmmc2_dat0", "usb2_tllse0", NULL, "gpio_16",
--		NULL, "spi3_somi", NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(SDMMC2_DAT1, 58,
--		"sdmmc2_dat1", "usb2_txen", NULL, "gpio_58",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(SDMMC2_DAT2, 17,
--		"sdmmc2_dat2", "usb2_dat", NULL, "gpio_17",
--		NULL, "spi3_cs1", NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(SDMMC2_DAT3, 14,
--		"sdmmc2_dat3", "usb2_se0", NULL, "gpio_14",
--		NULL, "spi3_cs0", NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(SDRC_A12, 2,
--		"sdrc_a12", NULL, NULL, "gpio_2",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(SDRC_A13, 1,
--		"sdrc_a13", NULL, NULL, "gpio_1",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(SDRC_A14, 0,
--		"sdrc_a14", NULL, NULL, "gpio_0",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(SDRC_CKE1, 36,
--		"sdrc_cke1", NULL, NULL, "gpio_36",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(SDRC_NCS1, 37,
--		"sdrc_ncs1", NULL, NULL, "gpio_37",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(SPI1_CLK, 81,
--		"spi1_clk", NULL, NULL, "gpio_81",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(SPI1_CS0, 84,
--		"spi1_cs0", NULL, NULL, "gpio_84",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(SPI1_CS1, 85,
--		"spi1_cs1", NULL, NULL, "gpio_85",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(SPI1_CS2, 86,
--		"spi1_cs2", NULL, NULL, "gpio_86",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(SPI1_CS3, 87,
--		"spi1_cs3", "spi2_cs1", NULL, "gpio_87",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(SPI1_SIMO, 82,
--		"spi1_simo", NULL, NULL, "gpio_82",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(SPI1_SOMI, 83,
--		"spi1_somi", NULL, NULL, "gpio_83",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(SPI2_CLK, 88,
--		"spi2_clk", "gpt9_pwm_evt", NULL, "gpio_88",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(SPI2_CS0, 91,
--		"spi2_cs0", "gpt12_pwm_evt", NULL, "gpio_91",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(SPI2_SIMO, 89,
--		"spi2_simo", "gpt10_pwm_evt", NULL, "gpio_89",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(SPI2_SOMI, 90,
--		"spi2_somi", "gpt11_pwm_evt", NULL, "gpio_90",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(SSI1_DAT_RX, 62,
--		"ssi1_dat_rx", "uart1_rx", "usb1_dat", "gpio_62",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(SSI1_DAT_TX, 59,
--		"ssi1_dat_tx", "uart1_tx", "usb1_se0", "gpio_59",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(SSI1_FLAG_RX, 64,
--		"ssi1_flag_rx", "mcbsp4_dr", NULL, "gpio_64",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(SSI1_FLAG_TX, 60,
--		"ssi1_flag_tx", "uart1_rts", "usb1_rcv", "gpio_60",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(SSI1_RDY_RX, 65,
--		"ssi1_rdy_rx", "mcbsp4_dx", NULL, "gpio_65",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(SSI1_RDY_TX, 61,
--		"ssi1_rdy_tx", "uart1_cts", "usb1_txen", "gpio_61",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(SSI1_WAKE, 66,
--		"ssi1_wake", "mcbsp4_fsx", NULL, "gpio_66",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(SYS_CLKOUT, 111,
--		"sys_clkout", NULL, NULL, "gpio_111",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(SYS_DRM_MSECURE, 118,
--		"sys_drm_msecure", NULL, "sys_ndmareq6", "gpio_118",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(SYS_NIRQ0, 56,
--		"sys_nirq0", NULL, NULL, "gpio_56",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(SYS_NIRQ1, 125,
--		"sys_nirq1", NULL, "sys_ndmareq5", "gpio_125",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(UART1_CTS, 32,
--		"uart1_cts", "sdi_vsync", "dss_data18", "gpio_32",
--		"mcbsp5_clkx", NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(UART1_RTS, 8,
--		"uart1_rts", "sdi_hsync", "dss_data19", "gpio_8",
--		"mcbsp5_fsx", NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(UART1_RX, 10,
--		"uart1_rx", "sdi_stp", "dss_data21", "gpio_10",
--		"mcbsp5_dr", NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(UART1_TX, 9,
--		"uart1_tx", "sdi_den", "dss_data20", "gpio_9",
--		"mcbsp5_dx", NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(UART2_CTS, 67,
--		"uart2_cts", "usb1_rcv", "gpt9_pwm_evt", "gpio_67",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(UART2_RTS, 68,
--		"uart2_rts", "usb1_txen", "gpt10_pwm_evt", "gpio_68",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(UART2_RX, 70,
--		"uart2_rx", "usb1_dat", "gpt12_pwm_evt", "gpio_70",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(UART2_TX, 69,
--		"uart2_tx", "usb1_se0", "gpt11_pwm_evt", "gpio_69",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(UART3_CTS_RCTX, 102,
--		"uart3_cts_rctx", "uart3_rx_irrx", NULL, "gpio_102",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(UART3_RTS_SD, 103,
--		"uart3_rts_sd", "uart3_tx_irtx", NULL, "gpio_103",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(UART3_RX_IRRX, 105,
--		"uart3_rx_irrx", NULL, NULL, "gpio_105",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(UART3_TX_IRTX, 104,
--		"uart3_tx_irtx", "uart3_cts_rctx", NULL, "gpio_104",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(USB0HS_CLK, 120,
--		"usb0hs_clk", NULL, NULL, "gpio_120",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(USB0HS_DATA0, 0,
--		"usb0hs_data0", "uart3_tx_irtx", NULL, NULL,
--		"usb0_txen", NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(USB0HS_DATA1, 0,
--		"usb0hs_data1", "uart3_rx_irrx", NULL, NULL,
--		"usb0_dat", NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(USB0HS_DATA2, 0,
--		"usb0hs_data2", "uart3_rts_sd", NULL, NULL,
--		"usb0_se0", NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(USB0HS_DATA3, 106,
--		"usb0hs_data3", NULL, "uart3_cts_rctx", "gpio_106",
--		"usb0_puen", NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(USB0HS_DATA4, 107,
--		"usb0hs_data4", "mcbsp2_dr", NULL, "gpio_107",
--		"usb0_vp", NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(USB0HS_DATA5, 108,
--		"usb0hs_data5", "mcbsp2_dx", NULL, "gpio_108",
--		"usb0_vm", NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(USB0HS_DATA6, 109,
--		"usb0hs_data6", "mcbsp2_fsx", NULL, "gpio_109",
--		"usb0_rcv", NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(USB0HS_DATA7, 124,
--		"usb0hs_data7", "mcbsp2_clkx", NULL, "gpio_124",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(USB0HS_DIR, 121,
--		"usb0hs_dir", NULL, NULL, "gpio_121",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(USB0HS_NXT, 123,
--		"usb0hs_nxt", NULL, NULL, "gpio_123",
--		NULL, NULL, NULL, "safe_mode"),
--	_OMAP2430_MUXENTRY(USB0HS_STP, 122,
--		"usb0hs_stp", NULL, NULL, "gpio_122",
--		NULL, NULL, NULL, "safe_mode"),
--	{ .reg_offset = OMAP_MUX_TERMINATOR },
+ struct omap_hwmod_dma_info omap2xxx_dss_sdma_chs[] = {
+ 	{ .name = "dispc", .dma_req = 5 },
+ 	{ .dma_req = -1 }
+@@ -219,14 +214,8 @@ struct omap_hwmod omap2xxx_l4_wkup_hwmod = {
+ };
+ 
+ /* MPU */
+-static struct omap_hwmod_irq_info omap2xxx_mpu_irqs[] = {
+-	{ .name = "pmu", .irq = 3 + OMAP_INTC_START },
+-	{ .irq = -1 }
 -};
 -
--/*
-- * Balls for POP package
-- * 447-pin s-PBGA Package, 0.00mm Ball Pitch (Bottom)
-- */
--#ifdef CONFIG_DEBUG_FS
--static struct omap_ball __initdata omap2430_pop_ball[] = {
--	_OMAP2430_BALLENTRY(CAM_D0, "t8", NULL),
--	_OMAP2430_BALLENTRY(CAM_D1, "t4", NULL),
--	_OMAP2430_BALLENTRY(CAM_D10, "r4", NULL),
--	_OMAP2430_BALLENTRY(CAM_D11, "w3", NULL),
--	_OMAP2430_BALLENTRY(CAM_D2, "r2", NULL),
--	_OMAP2430_BALLENTRY(CAM_D3, "u3", NULL),
--	_OMAP2430_BALLENTRY(CAM_D4, "u2", NULL),
--	_OMAP2430_BALLENTRY(CAM_D5, "v1", NULL),
--	_OMAP2430_BALLENTRY(CAM_D6, "t3", NULL),
--	_OMAP2430_BALLENTRY(CAM_D7, "r3", NULL),
--	_OMAP2430_BALLENTRY(CAM_D8, "u7", NULL),
--	_OMAP2430_BALLENTRY(CAM_D9, "t7", NULL),
--	_OMAP2430_BALLENTRY(CAM_HS, "p2", NULL),
--	_OMAP2430_BALLENTRY(CAM_LCLK, "r7", NULL),
--	_OMAP2430_BALLENTRY(CAM_VS, "n2", NULL),
--	_OMAP2430_BALLENTRY(CAM_XCLK, "p3", NULL),
--	_OMAP2430_BALLENTRY(DSS_ACBIAS, "y3", NULL),
--	_OMAP2430_BALLENTRY(DSS_DATA0, "v8", NULL),
--	_OMAP2430_BALLENTRY(DSS_DATA1, "w1", NULL),
--	_OMAP2430_BALLENTRY(DSS_DATA10, "k25", NULL),
--	_OMAP2430_BALLENTRY(DSS_DATA11, "j25", NULL),
--	_OMAP2430_BALLENTRY(DSS_DATA12, "k24", NULL),
--	_OMAP2430_BALLENTRY(DSS_DATA13, "j24", NULL),
--	_OMAP2430_BALLENTRY(DSS_DATA14, "h25", NULL),
--	_OMAP2430_BALLENTRY(DSS_DATA15, "g25", NULL),
--	_OMAP2430_BALLENTRY(DSS_DATA16, "ac3", NULL),
--	_OMAP2430_BALLENTRY(DSS_DATA17, "y7", NULL),
--	_OMAP2430_BALLENTRY(DSS_DATA2, "u8", NULL),
--	_OMAP2430_BALLENTRY(DSS_DATA3, "u4", NULL),
--	_OMAP2430_BALLENTRY(DSS_DATA4, "v3", NULL),
--	_OMAP2430_BALLENTRY(DSS_DATA5, "aa4", NULL),
--	_OMAP2430_BALLENTRY(DSS_DATA6, "w8", NULL),
--	_OMAP2430_BALLENTRY(DSS_DATA7, "y1", NULL),
--	_OMAP2430_BALLENTRY(DSS_DATA8, "aa2", NULL),
--	_OMAP2430_BALLENTRY(DSS_DATA9, "ab4", NULL),
--	_OMAP2430_BALLENTRY(DSS_HSYNC, "v2", NULL),
--	_OMAP2430_BALLENTRY(GPIO_113, "ad16", NULL),
--	_OMAP2430_BALLENTRY(GPIO_114, "ac10", NULL),
--	_OMAP2430_BALLENTRY(GPIO_115, "ad13", NULL),
--	_OMAP2430_BALLENTRY(GPIO_116, "ae15", NULL),
--	_OMAP2430_BALLENTRY(GPIO_128, "p1", NULL),
--	_OMAP2430_BALLENTRY(GPIO_129, "r1", NULL),
--	_OMAP2430_BALLENTRY(GPIO_130, "p7", NULL),
--	_OMAP2430_BALLENTRY(GPIO_131, "l8", NULL),
--	_OMAP2430_BALLENTRY(GPIO_132, "w24", NULL),
--	_OMAP2430_BALLENTRY(GPIO_133, "aa24", NULL),
--	_OMAP2430_BALLENTRY(GPIO_134, "ae12", NULL),
--	_OMAP2430_BALLENTRY(GPIO_135, "ae11", NULL),
--	_OMAP2430_BALLENTRY(GPIO_136, "ad12", NULL),
--	_OMAP2430_BALLENTRY(GPIO_137, "ad11", NULL),
--	_OMAP2430_BALLENTRY(GPIO_138, "y12", NULL),
--	_OMAP2430_BALLENTRY(GPIO_139, "ad17", NULL),
--	_OMAP2430_BALLENTRY(GPIO_140, "l7", NULL),
--	_OMAP2430_BALLENTRY(GPIO_141, "ac24", NULL),
--	_OMAP2430_BALLENTRY(GPIO_142, "m3", NULL),
--	_OMAP2430_BALLENTRY(GPIO_148, "af12", NULL),
--	_OMAP2430_BALLENTRY(GPIO_149, "k7", NULL),
--	_OMAP2430_BALLENTRY(GPIO_150, "m1", NULL),
--	_OMAP2430_BALLENTRY(GPIO_151, "ad14", NULL),
--	_OMAP2430_BALLENTRY(GPIO_152, "ad18", NULL),
--	_OMAP2430_BALLENTRY(GPIO_153, "u24", NULL),
--	_OMAP2430_BALLENTRY(GPIO_154, "ae16", NULL),
--	_OMAP2430_BALLENTRY(GPIO_63, "n3", NULL),
--	_OMAP2430_BALLENTRY(GPIO_7, "ac23", NULL),
--	_OMAP2430_BALLENTRY(GPIO_78, "ad10", NULL),
--	_OMAP2430_BALLENTRY(GPIO_79, "ae10", NULL),
--	_OMAP2430_BALLENTRY(GPIO_80, "ae13", NULL),
--	_OMAP2430_BALLENTRY(GPMC_A1, "a9", NULL),
--	_OMAP2430_BALLENTRY(GPMC_A10, "g12", NULL),
--	_OMAP2430_BALLENTRY(GPMC_A2, "b8", NULL),
--	_OMAP2430_BALLENTRY(GPMC_A3, "g10", NULL),
--	_OMAP2430_BALLENTRY(GPMC_A4, "g11", NULL),
--	_OMAP2430_BALLENTRY(GPMC_A5, "a10", NULL),
--	_OMAP2430_BALLENTRY(GPMC_A6, "g13", NULL),
--	_OMAP2430_BALLENTRY(GPMC_A7, "a6", NULL),
--	_OMAP2430_BALLENTRY(GPMC_A8, "h1", NULL),
--	_OMAP2430_BALLENTRY(GPMC_A9, "c8", NULL),
--	_OMAP2430_BALLENTRY(GPMC_CLK, "n1", "l1"),
--	_OMAP2430_BALLENTRY(GPMC_D10, "d1", "n1"),
--	_OMAP2430_BALLENTRY(GPMC_D11, "d2", "p2"),
--	_OMAP2430_BALLENTRY(GPMC_D12, "e1", "p1"),
--	_OMAP2430_BALLENTRY(GPMC_D13, "e3", "m1"),
--	_OMAP2430_BALLENTRY(GPMC_D14, "c7", "j2"),
--	_OMAP2430_BALLENTRY(GPMC_D15, "f3", "k2"),
--	_OMAP2430_BALLENTRY(GPMC_D8, "e2", "r1"),
--	_OMAP2430_BALLENTRY(GPMC_D9, "ab1", "t1"),
--	_OMAP2430_BALLENTRY(GPMC_NCS1, "ac1", "w1"),
--	_OMAP2430_BALLENTRY(GPMC_NCS2, "c6", NULL),
--	_OMAP2430_BALLENTRY(GPMC_NCS3, "b9", NULL),
--	_OMAP2430_BALLENTRY(GPMC_NCS4, "b4", NULL),
--	_OMAP2430_BALLENTRY(GPMC_NCS5, "a4", NULL),
--	_OMAP2430_BALLENTRY(GPMC_NCS6, "f1", NULL),
--	_OMAP2430_BALLENTRY(GPMC_NCS7, "a7", NULL),
--	_OMAP2430_BALLENTRY(GPMC_WAIT1, "j1", "y8"),
--	_OMAP2430_BALLENTRY(GPMC_WAIT2, "b7", NULL),
--	_OMAP2430_BALLENTRY(GPMC_WAIT3, "g14", NULL),
--	_OMAP2430_BALLENTRY(HDQ_SIO, "h20", NULL),
--	_OMAP2430_BALLENTRY(I2C1_SCL, "y17", NULL),
--	_OMAP2430_BALLENTRY(I2C1_SDA, "ac19", NULL),
--	_OMAP2430_BALLENTRY(I2C2_SCL, "n7", NULL),
--	_OMAP2430_BALLENTRY(I2C2_SDA, "m4", NULL),
--	_OMAP2430_BALLENTRY(JTAG_EMU0, "e25", NULL),
--	_OMAP2430_BALLENTRY(JTAG_EMU1, "e24", NULL),
--	_OMAP2430_BALLENTRY(MCBSP1_CLKR, "ab2", NULL),
--	_OMAP2430_BALLENTRY(MCBSP1_CLKX, "y9", NULL),
--	_OMAP2430_BALLENTRY(MCBSP1_DR, "af3", NULL),
--	_OMAP2430_BALLENTRY(MCBSP1_DX, "aa1", NULL),
--	_OMAP2430_BALLENTRY(MCBSP1_FSR, "ad5", NULL),
--	_OMAP2430_BALLENTRY(MCBSP1_FSX, "ab3", NULL),
--	_OMAP2430_BALLENTRY(MCBSP2_CLKX, "j26", NULL),
--	_OMAP2430_BALLENTRY(MCBSP2_DR, "k26", NULL),
--	_OMAP2430_BALLENTRY(MCBSP3_CLKX, "ac9", NULL),
--	_OMAP2430_BALLENTRY(MCBSP3_DR, "ae2", NULL),
--	_OMAP2430_BALLENTRY(MCBSP3_DX, "af4", NULL),
--	_OMAP2430_BALLENTRY(MCBSP3_FSX, "ae4", NULL),
--	_OMAP2430_BALLENTRY(MCBSP_CLKS, "ad6", NULL),
--	_OMAP2430_BALLENTRY(SDMMC1_CLKO, "n23", NULL),
--	_OMAP2430_BALLENTRY(SDMMC1_CMD, "l23", NULL),
--	_OMAP2430_BALLENTRY(SDMMC1_DAT0, "m24", NULL),
--	_OMAP2430_BALLENTRY(SDMMC1_DAT1, "p23", NULL),
--	_OMAP2430_BALLENTRY(SDMMC1_DAT2, "t20", NULL),
--	_OMAP2430_BALLENTRY(SDMMC1_DAT3, "r20", NULL),
--	_OMAP2430_BALLENTRY(SDMMC2_CLKO, "v26", NULL),
--	_OMAP2430_BALLENTRY(SDMMC2_CMD, "w20", NULL),
--	_OMAP2430_BALLENTRY(SDMMC2_DAT0, "v23", NULL),
--	_OMAP2430_BALLENTRY(SDMMC2_DAT1, "y24", NULL),
--	_OMAP2430_BALLENTRY(SDMMC2_DAT2, "v25", NULL),
--	_OMAP2430_BALLENTRY(SDMMC2_DAT3, "v24", NULL),
--	_OMAP2430_BALLENTRY(SDRC_A12, "w26", "r21"),
--	_OMAP2430_BALLENTRY(SDRC_A13, "af20", "aa15"),
--	_OMAP2430_BALLENTRY(SDRC_A14, "af16", "y12"),
--	_OMAP2430_BALLENTRY(SDRC_CKE1, "af15", "y13"),
--	_OMAP2430_BALLENTRY(SDRC_NCS1, "aa25", "t20"),
--	_OMAP2430_BALLENTRY(SPI1_CLK, "y18", NULL),
--	_OMAP2430_BALLENTRY(SPI1_CS0, "u1", NULL),
--	_OMAP2430_BALLENTRY(SPI1_CS1, "af19", NULL),
--	_OMAP2430_BALLENTRY(SPI1_CS2, "ae19", NULL),
--	_OMAP2430_BALLENTRY(SPI1_CS3, "h24", NULL),
--	_OMAP2430_BALLENTRY(SPI1_SIMO, "ad15", NULL),
--	_OMAP2430_BALLENTRY(SPI1_SOMI, "ae17", NULL),
--	_OMAP2430_BALLENTRY(SPI2_CLK, "y20", NULL),
--	_OMAP2430_BALLENTRY(SPI2_CS0, "y19", NULL),
--	_OMAP2430_BALLENTRY(SPI2_SIMO, "ac20", NULL),
--	_OMAP2430_BALLENTRY(SPI2_SOMI, "ad19", NULL),
--	_OMAP2430_BALLENTRY(SSI1_DAT_RX, "aa26", NULL),
--	_OMAP2430_BALLENTRY(SSI1_DAT_TX, "ad24", NULL),
--	_OMAP2430_BALLENTRY(SSI1_FLAG_RX, "ad23", NULL),
--	_OMAP2430_BALLENTRY(SSI1_FLAG_TX, "ab24", NULL),
--	_OMAP2430_BALLENTRY(SSI1_RDY_RX, "ab25", NULL),
--	_OMAP2430_BALLENTRY(SSI1_RDY_TX, "y25", NULL),
--	_OMAP2430_BALLENTRY(SSI1_WAKE, "ac25", NULL),
--	_OMAP2430_BALLENTRY(SYS_CLKOUT, "r25", NULL),
--	_OMAP2430_BALLENTRY(SYS_DRM_MSECURE, "ae3", NULL),
--	_OMAP2430_BALLENTRY(SYS_NIRQ0, "w25", NULL),
--	_OMAP2430_BALLENTRY(SYS_NIRQ1, "ad21", NULL),
--	_OMAP2430_BALLENTRY(UART1_CTS, "p24", NULL),
--	_OMAP2430_BALLENTRY(UART1_RTS, "p25", NULL),
--	_OMAP2430_BALLENTRY(UART1_RX, "n24", NULL),
--	_OMAP2430_BALLENTRY(UART1_TX, "r24", NULL),
--	_OMAP2430_BALLENTRY(UART2_CTS, "u25", NULL),
--	_OMAP2430_BALLENTRY(UART2_RTS, "t23", NULL),
--	_OMAP2430_BALLENTRY(UART2_RX, "t24", NULL),
--	_OMAP2430_BALLENTRY(UART2_TX, "u20", NULL),
--	_OMAP2430_BALLENTRY(UART3_CTS_RCTX, "m2", NULL),
--	_OMAP2430_BALLENTRY(UART3_RTS_SD, "k2", NULL),
--	_OMAP2430_BALLENTRY(UART3_RX_IRRX, "l3", NULL),
--	_OMAP2430_BALLENTRY(UART3_TX_IRTX, "l2", NULL),
--	_OMAP2430_BALLENTRY(USB0HS_CLK, "ae8", NULL),
--	_OMAP2430_BALLENTRY(USB0HS_DATA0, "ad4", NULL),
--	_OMAP2430_BALLENTRY(USB0HS_DATA1, "ae6", NULL),
--	_OMAP2430_BALLENTRY(USB0HS_DATA2, "af9", NULL),
--	_OMAP2430_BALLENTRY(USB0HS_DATA3, "ad9", NULL),
--	_OMAP2430_BALLENTRY(USB0HS_DATA4, "y11", NULL),
--	_OMAP2430_BALLENTRY(USB0HS_DATA5, "ad7", NULL),
--	_OMAP2430_BALLENTRY(USB0HS_DATA6, "ae7", NULL),
--	_OMAP2430_BALLENTRY(USB0HS_DATA7, "ac7", NULL),
--	_OMAP2430_BALLENTRY(USB0HS_DIR, "ad8", NULL),
--	_OMAP2430_BALLENTRY(USB0HS_NXT, "ae9", NULL),
--	_OMAP2430_BALLENTRY(USB0HS_STP, "ae5", NULL),
--	{ .reg_offset = OMAP_MUX_TERMINATOR },
+ struct omap_hwmod omap2xxx_mpu_hwmod = {
+ 	.name		= "mpu",
+-	.mpu_irqs	= omap2xxx_mpu_irqs,
+ 	.class		= &mpu_hwmod_class,
+ 	.main_clk	= "mpu_ck",
+ };
+@@ -256,7 +245,6 @@ static struct omap_timer_capability_dev_attr capability_dsp_dev_attr = {
+ 
+ struct omap_hwmod omap2xxx_timer1_hwmod = {
+ 	.name		= "timer1",
+-	.mpu_irqs	= omap2_timer1_mpu_irqs,
+ 	.main_clk	= "gpt1_fck",
+ 	.prcm		= {
+ 		.omap2 = {
+@@ -276,7 +264,6 @@ struct omap_hwmod omap2xxx_timer1_hwmod = {
+ 
+ struct omap_hwmod omap2xxx_timer2_hwmod = {
+ 	.name		= "timer2",
+-	.mpu_irqs	= omap2_timer2_mpu_irqs,
+ 	.main_clk	= "gpt2_fck",
+ 	.prcm		= {
+ 		.omap2 = {
+@@ -295,7 +282,6 @@ struct omap_hwmod omap2xxx_timer2_hwmod = {
+ 
+ struct omap_hwmod omap2xxx_timer3_hwmod = {
+ 	.name		= "timer3",
+-	.mpu_irqs	= omap2_timer3_mpu_irqs,
+ 	.main_clk	= "gpt3_fck",
+ 	.prcm		= {
+ 		.omap2 = {
+@@ -314,7 +300,6 @@ struct omap_hwmod omap2xxx_timer3_hwmod = {
+ 
+ struct omap_hwmod omap2xxx_timer4_hwmod = {
+ 	.name		= "timer4",
+-	.mpu_irqs	= omap2_timer4_mpu_irqs,
+ 	.main_clk	= "gpt4_fck",
+ 	.prcm		= {
+ 		.omap2 = {
+@@ -333,7 +318,6 @@ struct omap_hwmod omap2xxx_timer4_hwmod = {
+ 
+ struct omap_hwmod omap2xxx_timer5_hwmod = {
+ 	.name		= "timer5",
+-	.mpu_irqs	= omap2_timer5_mpu_irqs,
+ 	.main_clk	= "gpt5_fck",
+ 	.prcm		= {
+ 		.omap2 = {
+@@ -353,7 +337,6 @@ struct omap_hwmod omap2xxx_timer5_hwmod = {
+ 
+ struct omap_hwmod omap2xxx_timer6_hwmod = {
+ 	.name		= "timer6",
+-	.mpu_irqs	= omap2_timer6_mpu_irqs,
+ 	.main_clk	= "gpt6_fck",
+ 	.prcm		= {
+ 		.omap2 = {
+@@ -373,7 +356,6 @@ struct omap_hwmod omap2xxx_timer6_hwmod = {
+ 
+ struct omap_hwmod omap2xxx_timer7_hwmod = {
+ 	.name		= "timer7",
+-	.mpu_irqs	= omap2_timer7_mpu_irqs,
+ 	.main_clk	= "gpt7_fck",
+ 	.prcm		= {
+ 		.omap2 = {
+@@ -393,7 +375,6 @@ struct omap_hwmod omap2xxx_timer7_hwmod = {
+ 
+ struct omap_hwmod omap2xxx_timer8_hwmod = {
+ 	.name		= "timer8",
+-	.mpu_irqs	= omap2_timer8_mpu_irqs,
+ 	.main_clk	= "gpt8_fck",
+ 	.prcm		= {
+ 		.omap2 = {
+@@ -413,7 +394,6 @@ struct omap_hwmod omap2xxx_timer8_hwmod = {
+ 
+ struct omap_hwmod omap2xxx_timer9_hwmod = {
+ 	.name		= "timer9",
+-	.mpu_irqs	= omap2_timer9_mpu_irqs,
+ 	.main_clk	= "gpt9_fck",
+ 	.prcm		= {
+ 		.omap2 = {
+@@ -433,7 +413,6 @@ struct omap_hwmod omap2xxx_timer9_hwmod = {
+ 
+ struct omap_hwmod omap2xxx_timer10_hwmod = {
+ 	.name		= "timer10",
+-	.mpu_irqs	= omap2_timer10_mpu_irqs,
+ 	.main_clk	= "gpt10_fck",
+ 	.prcm		= {
+ 		.omap2 = {
+@@ -453,7 +432,6 @@ struct omap_hwmod omap2xxx_timer10_hwmod = {
+ 
+ struct omap_hwmod omap2xxx_timer11_hwmod = {
+ 	.name		= "timer11",
+-	.mpu_irqs	= omap2_timer11_mpu_irqs,
+ 	.main_clk	= "gpt11_fck",
+ 	.prcm		= {
+ 		.omap2 = {
+@@ -473,7 +451,6 @@ struct omap_hwmod omap2xxx_timer11_hwmod = {
+ 
+ struct omap_hwmod omap2xxx_timer12_hwmod = {
+ 	.name		= "timer12",
+-	.mpu_irqs	= omap2xxx_timer12_mpu_irqs,
+ 	.main_clk	= "gpt12_fck",
+ 	.prcm		= {
+ 		.omap2 = {
+@@ -509,8 +486,6 @@ struct omap_hwmod omap2xxx_wd_timer2_hwmod = {
+ 
+ struct omap_hwmod omap2xxx_uart1_hwmod = {
+ 	.name		= "uart1",
+-	.mpu_irqs	= omap2_uart1_mpu_irqs,
+-	.sdma_reqs	= omap2_uart1_sdma_reqs,
+ 	.main_clk	= "uart1_fck",
+ 	.flags		= DEBUG_OMAP2UART1_FLAGS | HWMOD_SWSUP_SIDLE_ACT,
+ 	.prcm		= {
+@@ -529,8 +504,6 @@ struct omap_hwmod omap2xxx_uart1_hwmod = {
+ 
+ struct omap_hwmod omap2xxx_uart2_hwmod = {
+ 	.name		= "uart2",
+-	.mpu_irqs	= omap2_uart2_mpu_irqs,
+-	.sdma_reqs	= omap2_uart2_sdma_reqs,
+ 	.main_clk	= "uart2_fck",
+ 	.flags		= DEBUG_OMAP2UART2_FLAGS | HWMOD_SWSUP_SIDLE_ACT,
+ 	.prcm		= {
+@@ -549,8 +522,6 @@ struct omap_hwmod omap2xxx_uart2_hwmod = {
+ 
+ struct omap_hwmod omap2xxx_uart3_hwmod = {
+ 	.name		= "uart3",
+-	.mpu_irqs	= omap2_uart3_mpu_irqs,
+-	.sdma_reqs	= omap2_uart3_sdma_reqs,
+ 	.main_clk	= "uart3_fck",
+ 	.flags		= DEBUG_OMAP2UART3_FLAGS | HWMOD_SWSUP_SIDLE_ACT,
+ 	.prcm		= {
+@@ -657,7 +628,6 @@ struct omap_gpio_dev_attr omap2xxx_gpio_dev_attr = {
+ struct omap_hwmod omap2xxx_gpio1_hwmod = {
+ 	.name		= "gpio1",
+ 	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
+-	.mpu_irqs	= omap2_gpio1_irqs,
+ 	.main_clk	= "gpios_fck",
+ 	.prcm		= {
+ 		.omap2 = {
+@@ -676,7 +646,6 @@ struct omap_hwmod omap2xxx_gpio1_hwmod = {
+ struct omap_hwmod omap2xxx_gpio2_hwmod = {
+ 	.name		= "gpio2",
+ 	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
+-	.mpu_irqs	= omap2_gpio2_irqs,
+ 	.main_clk	= "gpios_fck",
+ 	.prcm		= {
+ 		.omap2 = {
+@@ -695,7 +664,6 @@ struct omap_hwmod omap2xxx_gpio2_hwmod = {
+ struct omap_hwmod omap2xxx_gpio3_hwmod = {
+ 	.name		= "gpio3",
+ 	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
+-	.mpu_irqs	= omap2_gpio3_irqs,
+ 	.main_clk	= "gpios_fck",
+ 	.prcm		= {
+ 		.omap2 = {
+@@ -714,7 +682,6 @@ struct omap_hwmod omap2xxx_gpio3_hwmod = {
+ struct omap_hwmod omap2xxx_gpio4_hwmod = {
+ 	.name		= "gpio4",
+ 	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
+-	.mpu_irqs	= omap2_gpio4_irqs,
+ 	.main_clk	= "gpios_fck",
+ 	.prcm		= {
+ 		.omap2 = {
+@@ -736,8 +703,6 @@ static struct omap2_mcspi_dev_attr omap_mcspi1_dev_attr = {
+ 
+ struct omap_hwmod omap2xxx_mcspi1_hwmod = {
+ 	.name		= "mcspi1",
+-	.mpu_irqs	= omap2_mcspi1_mpu_irqs,
+-	.sdma_reqs	= omap2_mcspi1_sdma_reqs,
+ 	.main_clk	= "mcspi1_fck",
+ 	.prcm		= {
+ 		.omap2 = {
+@@ -759,8 +724,6 @@ static struct omap2_mcspi_dev_attr omap_mcspi2_dev_attr = {
+ 
+ struct omap_hwmod omap2xxx_mcspi2_hwmod = {
+ 	.name		= "mcspi2",
+-	.mpu_irqs	= omap2_mcspi2_mpu_irqs,
+-	.sdma_reqs	= omap2_mcspi2_sdma_reqs,
+ 	.main_clk	= "mcspi2_fck",
+ 	.prcm		= {
+ 		.omap2 = {
+@@ -795,15 +758,9 @@ struct omap_hwmod omap2xxx_counter_32k_hwmod = {
+ };
+ 
+ /* gpmc */
+-static struct omap_hwmod_irq_info omap2xxx_gpmc_irqs[] = {
+-	{ .irq = 20 },
+-	{ .irq = -1 }
 -};
--#else
--#define omap2430_pop_ball	 NULL
--#endif
 -
--int __init omap2430_mux_init(struct omap_board_mux *board_subset, int flags)
--{
--	struct omap_ball *package_balls = NULL;
+ struct omap_hwmod omap2xxx_gpmc_hwmod = {
+ 	.name		= "gpmc",
+ 	.class		= &omap2xxx_gpmc_hwmod_class,
+-	.mpu_irqs	= omap2xxx_gpmc_irqs,
+ 	.main_clk	= "gpmc_fck",
+ 	/*
+ 	 * XXX HWMOD_INIT_NO_RESET should not be needed for this IP
+@@ -840,14 +797,8 @@ static struct omap_hwmod_class omap2_rng_hwmod_class = {
+ 	.sysc		= &omap2_rng_sysc,
+ };
+ 
+-static struct omap_hwmod_irq_info omap2_rng_mpu_irqs[] = {
+-	{ .irq = 52 },
+-	{ .irq = -1 }
+-};
 -
--	switch (flags & OMAP_PACKAGE_MASK) {
--	case OMAP_PACKAGE_ZAC:
--		package_balls = omap2430_pop_ball;
--		break;
--	default:
--		pr_warning("%s: No ball data available for omap2420 package\n",
--				__func__);
--	}
+ struct omap_hwmod omap2xxx_rng_hwmod = {
+ 	.name		= "rng",
+-	.mpu_irqs	= omap2_rng_mpu_irqs,
+ 	.main_clk	= "l4_ck",
+ 	.prcm		= {
+ 		.omap2 = {
+@@ -884,20 +835,8 @@ static struct omap_hwmod_class omap2xxx_sham_class = {
+ 	.sysc	= &omap2_sham_sysc,
+ };
+ 
+-static struct omap_hwmod_irq_info omap2_sham_mpu_irqs[] = {
+-	{ .irq = 51 + OMAP_INTC_START, },
+-	{ .irq = -1 }
+-};
 -
--	return omap_mux_init("core", OMAP_MUX_REG_8BIT | OMAP_MUX_GPIO_IN_MODE3,
--			     OMAP2430_CONTROL_PADCONF_MUX_PBASE,
--			     OMAP2430_CONTROL_PADCONF_MUX_SIZE,
--			     omap2430_muxmodes, NULL, board_subset,
--			     package_balls);
--}
-diff --git a/arch/arm/mach-omap2/mux2430.h b/arch/arm/mach-omap2/mux2430.h
-deleted file mode 100644
-index 9fd9314..0000000
---- a/arch/arm/mach-omap2/mux2430.h
-+++ /dev/null
-@@ -1,370 +0,0 @@
--/*
-- * Copyright (C) 2009 Nokia
-- * Copyright (C) 2009 Texas Instruments
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-- */
+-static struct omap_hwmod_dma_info omap2_sham_sdma_chs[] = {
+-	{ .name = "rx", .dma_req = 13 },
+-	{ .dma_req = -1 }
+-};
 -
--#define OMAP2430_CONTROL_PADCONF_MUX_PBASE			0x49002030LU
+ struct omap_hwmod omap2xxx_sham_hwmod = {
+ 	.name		= "sham",
+-	.mpu_irqs	= omap2_sham_mpu_irqs,
+-	.sdma_reqs	= omap2_sham_sdma_chs,
+ 	.main_clk	= "l4_ck",
+ 	.prcm		= {
+ 		.omap2 = {
+@@ -927,15 +866,8 @@ static struct omap_hwmod_class omap2xxx_aes_class = {
+ 	.sysc	= &omap2_aes_sysc,
+ };
+ 
+-static struct omap_hwmod_dma_info omap2_aes_sdma_chs[] = {
+-	{ .name = "tx", .dma_req = 9 },
+-	{ .name = "rx", .dma_req = 10 },
+-	{ .dma_req = -1 }
+-};
 -
--#define OMAP2430_MUX(mode0, mux_value)					\
--{									\
--	.reg_offset	= (OMAP2430_CONTROL_PADCONF_##mode0##_OFFSET),	\
--	.value		= (mux_value),					\
--}
+ struct omap_hwmod omap2xxx_aes_hwmod = {
+ 	.name		= "aes",
+-	.sdma_reqs	= omap2_aes_sdma_chs,
+ 	.main_clk	= "l4_ck",
+ 	.prcm		= {
+ 		.omap2 = {
+diff --git a/arch/arm/mach-omap2/omap_hwmod_common_data.h b/arch/arm/mach-omap2/omap_hwmod_common_data.h
+index 6e04ff7..2c38c6b 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_common_data.h
++++ b/arch/arm/mach-omap2/omap_hwmod_common_data.h
+@@ -18,9 +18,6 @@
+ #include "common.h"
+ #include "display.h"
+ 
+-/* Common address space across OMAP2xxx */
+-extern struct omap_hwmod_addr_space omap2xxx_mcbsp2_addrs[];
 -
--/*
-- * OMAP2430 CONTROL_PADCONF* register offsets for pin-muxing
-- *
-- * Extracted from the TRM.  Add 0x49002030 to these values to get the
-- * absolute addresses.  The name in the macro is the mode-0 name of
-- * the pin.  NOTE: These registers are 8-bits wide.
-- *
-- * Note that these defines use SDMMC instead of MMC for compatibility
-- * with signal names used in 3630.
-- */
--#define OMAP2430_CONTROL_PADCONF_GPMC_CLK_OFFSET		0x000
--#define OMAP2430_CONTROL_PADCONF_GPMC_NCS0_OFFSET		0x001
--#define OMAP2430_CONTROL_PADCONF_GPMC_NCS1_OFFSET		0x002
--#define OMAP2430_CONTROL_PADCONF_GPMC_NCS2_OFFSET		0x003
--#define OMAP2430_CONTROL_PADCONF_GPMC_NCS3_OFFSET		0x004
--#define OMAP2430_CONTROL_PADCONF_GPMC_NCS4_OFFSET		0x005
--#define OMAP2430_CONTROL_PADCONF_GPMC_NCS5_OFFSET		0x006
--#define OMAP2430_CONTROL_PADCONF_GPMC_NCS6_OFFSET		0x007
--#define OMAP2430_CONTROL_PADCONF_GPMC_NCS7_OFFSET		0x008
--#define OMAP2430_CONTROL_PADCONF_GPMC_NADV_ALE_OFFSET		0x009
--#define OMAP2430_CONTROL_PADCONF_GPMC_NOE_NRE_OFFSET		0x00a
--#define OMAP2430_CONTROL_PADCONF_GPMC_NWE_OFFSET		0x00b
--#define OMAP2430_CONTROL_PADCONF_GPMC_NBE0_CLE_OFFSET		0x00c
--#define OMAP2430_CONTROL_PADCONF_GPMC_NBE1_OFFSET		0x00d
--#define OMAP2430_CONTROL_PADCONF_GPMC_NWP_OFFSET		0x00e
--#define OMAP2430_CONTROL_PADCONF_GPMC_WAIT0_OFFSET		0x00f
--#define OMAP2430_CONTROL_PADCONF_GPMC_WAIT1_OFFSET		0x010
--#define OMAP2430_CONTROL_PADCONF_GPMC_WAIT2_OFFSET		0x011
--#define OMAP2430_CONTROL_PADCONF_GPMC_WAIT3_OFFSET		0x012
--#define OMAP2430_CONTROL_PADCONF_SDRC_CLK_OFFSET		0x013
--#define OMAP2430_CONTROL_PADCONF_SDRC_NCLK_OFFSET		0x014
--#define OMAP2430_CONTROL_PADCONF_SDRC_NCS0_OFFSET		0x015
--#define OMAP2430_CONTROL_PADCONF_SDRC_NCS1_OFFSET		0x016
--#define OMAP2430_CONTROL_PADCONF_SDRC_CKE0_OFFSET		0x017
--#define OMAP2430_CONTROL_PADCONF_SDRC_CKE1_OFFSET		0x018
--#define OMAP2430_CONTROL_PADCONF_SDRC_NRAS_OFFSET		0x019
--#define OMAP2430_CONTROL_PADCONF_SDRC_NCAS_OFFSET		0x01a
--#define OMAP2430_CONTROL_PADCONF_SDRC_NWE_OFFSET		0x01b
--#define OMAP2430_CONTROL_PADCONF_SDRC_DM0_OFFSET		0x01c
--#define OMAP2430_CONTROL_PADCONF_SDRC_DM1_OFFSET		0x01d
--#define OMAP2430_CONTROL_PADCONF_SDRC_DM2_OFFSET		0x01e
--#define OMAP2430_CONTROL_PADCONF_SDRC_DM3_OFFSET		0x01f
--#define OMAP2430_CONTROL_PADCONF_SDRC_DQS0_OFFSET		0x020
--#define OMAP2430_CONTROL_PADCONF_SDRC_DQS1_OFFSET		0x021
--#define OMAP2430_CONTROL_PADCONF_SDRC_DQS2_OFFSET		0x022
--#define OMAP2430_CONTROL_PADCONF_SDRC_DQS3_OFFSET		0x023
--#define OMAP2430_CONTROL_PADCONF_SDRC_A14_OFFSET		0x024
--#define OMAP2430_CONTROL_PADCONF_SDRC_A13_OFFSET		0x025
--#define OMAP2430_CONTROL_PADCONF_SDRC_A12_OFFSET		0x026
--#define OMAP2430_CONTROL_PADCONF_SDRC_BA1_OFFSET		0x027
--#define OMAP2430_CONTROL_PADCONF_SDRC_BA0_OFFSET		0x028
--#define OMAP2430_CONTROL_PADCONF_SDRC_A11_OFFSET		0x029
--#define OMAP2430_CONTROL_PADCONF_SDRC_A10_OFFSET		0x02a
--#define OMAP2430_CONTROL_PADCONF_SDRC_A9_OFFSET			0x02b
--#define OMAP2430_CONTROL_PADCONF_SDRC_A8_OFFSET			0x02c
--#define OMAP2430_CONTROL_PADCONF_SDRC_A7_OFFSET			0x02d
--#define OMAP2430_CONTROL_PADCONF_SDRC_A6_OFFSET			0x02e
--#define OMAP2430_CONTROL_PADCONF_SDRC_A5_OFFSET			0x02f
--#define OMAP2430_CONTROL_PADCONF_SDRC_A4_OFFSET			0x030
--#define OMAP2430_CONTROL_PADCONF_SDRC_A3_OFFSET			0x031
--#define OMAP2430_CONTROL_PADCONF_SDRC_A2_OFFSET			0x032
--#define OMAP2430_CONTROL_PADCONF_SDRC_A1_OFFSET			0x033
--#define OMAP2430_CONTROL_PADCONF_SDRC_A0_OFFSET			0x034
--#define OMAP2430_CONTROL_PADCONF_SDRC_D31_OFFSET		0x035
--#define OMAP2430_CONTROL_PADCONF_SDRC_D30_OFFSET		0x036
--#define OMAP2430_CONTROL_PADCONF_SDRC_D29_OFFSET		0x037
--#define OMAP2430_CONTROL_PADCONF_SDRC_D28_OFFSET		0x038
--#define OMAP2430_CONTROL_PADCONF_SDRC_D27_OFFSET		0x039
--#define OMAP2430_CONTROL_PADCONF_SDRC_D26_OFFSET		0x03a
--#define OMAP2430_CONTROL_PADCONF_SDRC_D25_OFFSET		0x03b
--#define OMAP2430_CONTROL_PADCONF_SDRC_D24_OFFSET		0x03c
--#define OMAP2430_CONTROL_PADCONF_SDRC_D23_OFFSET		0x03d
--#define OMAP2430_CONTROL_PADCONF_SDRC_D22_OFFSET		0x03e
--#define OMAP2430_CONTROL_PADCONF_SDRC_D21_OFFSET		0x03f
--#define OMAP2430_CONTROL_PADCONF_SDRC_D20_OFFSET		0x040
--#define OMAP2430_CONTROL_PADCONF_SDRC_D19_OFFSET		0x041
--#define OMAP2430_CONTROL_PADCONF_SDRC_D18_OFFSET		0x042
--#define OMAP2430_CONTROL_PADCONF_SDRC_D17_OFFSET		0x043
--#define OMAP2430_CONTROL_PADCONF_SDRC_D16_OFFSET		0x044
--#define OMAP2430_CONTROL_PADCONF_SDRC_D15_OFFSET		0x045
--#define OMAP2430_CONTROL_PADCONF_SDRC_D14_OFFSET		0x046
--#define OMAP2430_CONTROL_PADCONF_SDRC_D13_OFFSET		0x047
--#define OMAP2430_CONTROL_PADCONF_SDRC_D12_OFFSET		0x048
--#define OMAP2430_CONTROL_PADCONF_SDRC_D11_OFFSET		0x049
--#define OMAP2430_CONTROL_PADCONF_SDRC_D10_OFFSET		0x04a
--#define OMAP2430_CONTROL_PADCONF_SDRC_D9_OFFSET			0x04b
--#define OMAP2430_CONTROL_PADCONF_SDRC_D8_OFFSET			0x04c
--#define OMAP2430_CONTROL_PADCONF_SDRC_D7_OFFSET			0x04d
--#define OMAP2430_CONTROL_PADCONF_SDRC_D6_OFFSET			0x04e
--#define OMAP2430_CONTROL_PADCONF_SDRC_D5_OFFSET			0x04f
--#define OMAP2430_CONTROL_PADCONF_SDRC_D4_OFFSET			0x050
--#define OMAP2430_CONTROL_PADCONF_SDRC_D3_OFFSET			0x051
--#define OMAP2430_CONTROL_PADCONF_SDRC_D2_OFFSET			0x052
--#define OMAP2430_CONTROL_PADCONF_SDRC_D1_OFFSET			0x053
--#define OMAP2430_CONTROL_PADCONF_SDRC_D0_OFFSET			0x054
--#define OMAP2430_CONTROL_PADCONF_GPMC_A10_OFFSET		0x055
--#define OMAP2430_CONTROL_PADCONF_GPMC_A9_OFFSET			0x056
--#define OMAP2430_CONTROL_PADCONF_GPMC_A8_OFFSET			0x057
--#define OMAP2430_CONTROL_PADCONF_GPMC_A7_OFFSET			0x058
--#define OMAP2430_CONTROL_PADCONF_GPMC_A6_OFFSET			0x059
--#define OMAP2430_CONTROL_PADCONF_GPMC_A5_OFFSET			0x05a
--#define OMAP2430_CONTROL_PADCONF_GPMC_A4_OFFSET			0x05b
--#define OMAP2430_CONTROL_PADCONF_GPMC_A3_OFFSET			0x05c
--#define OMAP2430_CONTROL_PADCONF_GPMC_A2_OFFSET			0x05d
--#define OMAP2430_CONTROL_PADCONF_GPMC_A1_OFFSET			0x05e
--#define OMAP2430_CONTROL_PADCONF_GPMC_D15_OFFSET		0x05f
--#define OMAP2430_CONTROL_PADCONF_GPMC_D14_OFFSET		0x060
--#define OMAP2430_CONTROL_PADCONF_GPMC_D13_OFFSET		0x061
--#define OMAP2430_CONTROL_PADCONF_GPMC_D12_OFFSET		0x062
--#define OMAP2430_CONTROL_PADCONF_GPMC_D11_OFFSET		0x063
--#define OMAP2430_CONTROL_PADCONF_GPMC_D10_OFFSET		0x064
--#define OMAP2430_CONTROL_PADCONF_GPMC_D9_OFFSET			0x065
--#define OMAP2430_CONTROL_PADCONF_GPMC_D8_OFFSET			0x066
--#define OMAP2430_CONTROL_PADCONF_GPMC_D7_OFFSET			0x067
--#define OMAP2430_CONTROL_PADCONF_GPMC_D6_OFFSET			0x068
--#define OMAP2430_CONTROL_PADCONF_GPMC_D5_OFFSET			0x069
--#define OMAP2430_CONTROL_PADCONF_GPMC_D4_OFFSET			0x06a
--#define OMAP2430_CONTROL_PADCONF_GPMC_D3_OFFSET			0x06b
--#define OMAP2430_CONTROL_PADCONF_GPMC_D2_OFFSET			0x06c
--#define OMAP2430_CONTROL_PADCONF_GPMC_D1_OFFSET			0x06d
--#define OMAP2430_CONTROL_PADCONF_GPMC_D0_OFFSET			0x06e
--#define OMAP2430_CONTROL_PADCONF_DSS_DATA0_OFFSET		0x06f
--#define OMAP2430_CONTROL_PADCONF_DSS_DATA1_OFFSET		0x070
--#define OMAP2430_CONTROL_PADCONF_DSS_DATA2_OFFSET		0x071
--#define OMAP2430_CONTROL_PADCONF_DSS_DATA3_OFFSET		0x072
--#define OMAP2430_CONTROL_PADCONF_DSS_DATA4_OFFSET		0x073
--#define OMAP2430_CONTROL_PADCONF_DSS_DATA5_OFFSET		0x074
--#define OMAP2430_CONTROL_PADCONF_DSS_DATA6_OFFSET		0x075
--#define OMAP2430_CONTROL_PADCONF_DSS_DATA7_OFFSET		0x076
--#define OMAP2430_CONTROL_PADCONF_DSS_DATA8_OFFSET		0x077
--#define OMAP2430_CONTROL_PADCONF_DSS_DATA9_OFFSET		0x078
--#define OMAP2430_CONTROL_PADCONF_DSS_DATA10_OFFSET		0x079
--#define OMAP2430_CONTROL_PADCONF_DSS_DATA11_OFFSET		0x07a
--#define OMAP2430_CONTROL_PADCONF_DSS_DATA12_OFFSET		0x07b
--#define OMAP2430_CONTROL_PADCONF_DSS_DATA13_OFFSET		0x07c
--#define OMAP2430_CONTROL_PADCONF_DSS_DATA14_OFFSET		0x07d
--#define OMAP2430_CONTROL_PADCONF_DSS_DATA15_OFFSET		0x07e
--#define OMAP2430_CONTROL_PADCONF_DSS_DATA16_OFFSET		0x07f
--#define OMAP2430_CONTROL_PADCONF_DSS_DATA17_OFFSET		0x080
--#define OMAP2430_CONTROL_PADCONF_UART1_CTS_OFFSET		0x081
--#define OMAP2430_CONTROL_PADCONF_UART1_RTS_OFFSET		0x082
--#define OMAP2430_CONTROL_PADCONF_UART1_TX_OFFSET		0x083
--#define OMAP2430_CONTROL_PADCONF_UART1_RX_OFFSET		0x084
--#define OMAP2430_CONTROL_PADCONF_MCBSP2_DR_OFFSET		0x085
--#define OMAP2430_CONTROL_PADCONF_MCBSP2_CLKX_OFFSET		0x086
--#define OMAP2430_CONTROL_PADCONF_DSS_PCLK_OFFSET		0x087
--#define OMAP2430_CONTROL_PADCONF_DSS_VSYNC_OFFSET		0x088
--#define OMAP2430_CONTROL_PADCONF_DSS_HSYNC_OFFSET		0x089
--#define OMAP2430_CONTROL_PADCONF_DSS_ACBIAS_OFFSET		0x08a
--#define OMAP2430_CONTROL_PADCONF_SYS_NRESPWRON_OFFSET		0x08b
--#define OMAP2430_CONTROL_PADCONF_SYS_NRESWARM_OFFSET		0x08c
--#define OMAP2430_CONTROL_PADCONF_SYS_NIRQ0_OFFSET		0x08d
--#define OMAP2430_CONTROL_PADCONF_SYS_NIRQ1_OFFSET		0x08e
--#define OMAP2430_CONTROL_PADCONF_SYS_VMODE_OFFSET		0x08f
--#define OMAP2430_CONTROL_PADCONF_GPIO_128_OFFSET		0x090
--#define OMAP2430_CONTROL_PADCONF_GPIO_129_OFFSET		0x091
--#define OMAP2430_CONTROL_PADCONF_GPIO_130_OFFSET		0x092
--#define OMAP2430_CONTROL_PADCONF_GPIO_131_OFFSET		0x093
--#define OMAP2430_CONTROL_PADCONF_SYS_32K_OFFSET			0x094
--#define OMAP2430_CONTROL_PADCONF_SYS_XTALIN_OFFSET		0x095
--#define OMAP2430_CONTROL_PADCONF_SYS_XTALOUT_OFFSET		0x096
--#define OMAP2430_CONTROL_PADCONF_GPIO_132_OFFSET		0x097
--#define OMAP2430_CONTROL_PADCONF_SYS_CLKREQ_OFFSET		0x098
--#define OMAP2430_CONTROL_PADCONF_SYS_CLKOUT_OFFSET		0x099
--#define OMAP2430_CONTROL_PADCONF_GPIO_151_OFFSET		0x09a
--#define OMAP2430_CONTROL_PADCONF_GPIO_133_OFFSET		0x09b
--#define OMAP2430_CONTROL_PADCONF_JTAG_EMU1_OFFSET		0x09c
--#define OMAP2430_CONTROL_PADCONF_JTAG_EMU0_OFFSET		0x09d
--#define OMAP2430_CONTROL_PADCONF_JTAG_NTRST_OFFSET		0x09e
--#define OMAP2430_CONTROL_PADCONF_JTAG_TCK_OFFSET		0x09f
--#define OMAP2430_CONTROL_PADCONF_JTAG_RTCK_OFFSET		0x0a0
--#define OMAP2430_CONTROL_PADCONF_JTAG_TMS_OFFSET		0x0a1
--#define OMAP2430_CONTROL_PADCONF_JTAG_TDI_OFFSET		0x0a2
--#define OMAP2430_CONTROL_PADCONF_JTAG_TDO_OFFSET		0x0a3
--#define OMAP2430_CONTROL_PADCONF_CAM_D9_OFFSET			0x0a4
--#define OMAP2430_CONTROL_PADCONF_CAM_D8_OFFSET			0x0a5
--#define OMAP2430_CONTROL_PADCONF_CAM_D7_OFFSET			0x0a6
--#define OMAP2430_CONTROL_PADCONF_CAM_D6_OFFSET			0x0a7
--#define OMAP2430_CONTROL_PADCONF_CAM_D5_OFFSET			0x0a8
--#define OMAP2430_CONTROL_PADCONF_CAM_D4_OFFSET			0x0a9
--#define OMAP2430_CONTROL_PADCONF_CAM_D3_OFFSET			0x0aa
--#define OMAP2430_CONTROL_PADCONF_CAM_D2_OFFSET			0x0ab
--#define OMAP2430_CONTROL_PADCONF_CAM_D1_OFFSET			0x0ac
--#define OMAP2430_CONTROL_PADCONF_CAM_D0_OFFSET			0x0ad
--#define OMAP2430_CONTROL_PADCONF_CAM_HS_OFFSET			0x0ae
--#define OMAP2430_CONTROL_PADCONF_CAM_VS_OFFSET			0x0af
--#define OMAP2430_CONTROL_PADCONF_CAM_LCLK_OFFSET		0x0b0
--#define OMAP2430_CONTROL_PADCONF_CAM_XCLK_OFFSET		0x0b1
--#define OMAP2430_CONTROL_PADCONF_CAM_D11_OFFSET			0x0b2
--#define OMAP2430_CONTROL_PADCONF_CAM_D10_OFFSET			0x0b3
--#define OMAP2430_CONTROL_PADCONF_GPIO_134_OFFSET		0x0b4
--#define OMAP2430_CONTROL_PADCONF_GPIO_135_OFFSET		0x0b5
--#define OMAP2430_CONTROL_PADCONF_GPIO_136_OFFSET		0x0b6
--#define OMAP2430_CONTROL_PADCONF_GPIO_137_OFFSET		0x0b7
--#define OMAP2430_CONTROL_PADCONF_GPIO_138_OFFSET		0x0b8
--#define OMAP2430_CONTROL_PADCONF_GPIO_139_OFFSET		0x0b9
--#define OMAP2430_CONTROL_PADCONF_GPIO_140_OFFSET		0x0ba
--#define OMAP2430_CONTROL_PADCONF_GPIO_141_OFFSET		0x0bb
--#define OMAP2430_CONTROL_PADCONF_GPIO_142_OFFSET		0x0bc
--#define OMAP2430_CONTROL_PADCONF_GPIO_154_OFFSET		0x0bd
--#define OMAP2430_CONTROL_PADCONF_GPIO_148_OFFSET		0x0be
--#define OMAP2430_CONTROL_PADCONF_GPIO_149_OFFSET		0x0bf
--#define OMAP2430_CONTROL_PADCONF_GPIO_150_OFFSET		0x0c0
--#define OMAP2430_CONTROL_PADCONF_GPIO_152_OFFSET		0x0c1
--#define OMAP2430_CONTROL_PADCONF_GPIO_153_OFFSET		0x0c2
--#define OMAP2430_CONTROL_PADCONF_SDMMC1_CLKO_OFFSET		0x0c3
--#define OMAP2430_CONTROL_PADCONF_SDMMC1_CMD_OFFSET		0x0c4
--#define OMAP2430_CONTROL_PADCONF_SDMMC1_DAT0_OFFSET		0x0c5
--#define OMAP2430_CONTROL_PADCONF_SDMMC1_DAT1_OFFSET		0x0c6
--#define OMAP2430_CONTROL_PADCONF_SDMMC1_DAT2_OFFSET		0x0c7
--#define OMAP2430_CONTROL_PADCONF_SDMMC1_DAT3_OFFSET		0x0c8
--#define OMAP2430_CONTROL_PADCONF_SDMMC2_CLKO_OFFSET		0x0c9
--#define OMAP2430_CONTROL_PADCONF_SDMMC2_DAT3_OFFSET		0x0ca
--#define OMAP2430_CONTROL_PADCONF_SDMMC2_CMD_OFFSET		0x0cb
--#define OMAP2430_CONTROL_PADCONF_SDMMC2_DAT0_OFFSET		0x0cc
--#define OMAP2430_CONTROL_PADCONF_SDMMC2_DAT2_OFFSET		0x0cd
--#define OMAP2430_CONTROL_PADCONF_SDMMC2_DAT1_OFFSET		0x0ce
--#define OMAP2430_CONTROL_PADCONF_UART2_CTS_OFFSET		0x0cf
--#define OMAP2430_CONTROL_PADCONF_UART2_RTS_OFFSET		0x0d0
--#define OMAP2430_CONTROL_PADCONF_UART2_TX_OFFSET		0x0d1
--#define OMAP2430_CONTROL_PADCONF_UART2_RX_OFFSET		0x0d2
--#define OMAP2430_CONTROL_PADCONF_MCBSP3_CLKX_OFFSET		0x0d3
--#define OMAP2430_CONTROL_PADCONF_MCBSP3_FSX_OFFSET		0x0d4
--#define OMAP2430_CONTROL_PADCONF_MCBSP3_DR_OFFSET		0x0d5
--#define OMAP2430_CONTROL_PADCONF_MCBSP3_DX_OFFSET		0x0d6
--#define OMAP2430_CONTROL_PADCONF_SSI1_DAT_TX_OFFSET		0x0d7
--#define OMAP2430_CONTROL_PADCONF_SSI1_FLAG_TX_OFFSET		0x0d8
--#define OMAP2430_CONTROL_PADCONF_SSI1_RDY_TX_OFFSET		0x0d9
--#define OMAP2430_CONTROL_PADCONF_SSI1_DAT_RX_OFFSET		0x0da
--#define OMAP2430_CONTROL_PADCONF_GPIO_63_OFFSET			0x0db
--#define OMAP2430_CONTROL_PADCONF_SSI1_FLAG_RX_OFFSET		0x0dc
--#define OMAP2430_CONTROL_PADCONF_SSI1_RDY_RX_OFFSET		0x0dd
--#define OMAP2430_CONTROL_PADCONF_SSI1_WAKE_OFFSET		0x0de
--#define OMAP2430_CONTROL_PADCONF_SPI1_CLK_OFFSET		0x0df
--#define OMAP2430_CONTROL_PADCONF_SPI1_SIMO_OFFSET		0x0e0
--#define OMAP2430_CONTROL_PADCONF_SPI1_SOMI_OFFSET		0x0e1
--#define OMAP2430_CONTROL_PADCONF_SPI1_CS0_OFFSET		0x0e2
--#define OMAP2430_CONTROL_PADCONF_SPI1_CS1_OFFSET		0x0e3
--#define OMAP2430_CONTROL_PADCONF_SPI1_CS2_OFFSET		0x0e4
--#define OMAP2430_CONTROL_PADCONF_SPI1_CS3_OFFSET		0x0e5
--#define OMAP2430_CONTROL_PADCONF_SPI2_CLK_OFFSET		0x0e6
--#define OMAP2430_CONTROL_PADCONF_SPI2_SIMO_OFFSET		0x0e7
--#define OMAP2430_CONTROL_PADCONF_SPI2_SOMI_OFFSET		0x0e8
--#define OMAP2430_CONTROL_PADCONF_SPI2_CS0_OFFSET		0x0e9
--#define OMAP2430_CONTROL_PADCONF_MCBSP1_CLKR_OFFSET		0x0ea
--#define OMAP2430_CONTROL_PADCONF_MCBSP1_FSR_OFFSET		0x0eb
--#define OMAP2430_CONTROL_PADCONF_MCBSP1_DX_OFFSET		0x0ec
--#define OMAP2430_CONTROL_PADCONF_MCBSP1_DR_OFFSET		0x0ed
--#define OMAP2430_CONTROL_PADCONF_MCBSP_CLKS_OFFSET		0x0ee
--#define OMAP2430_CONTROL_PADCONF_MCBSP1_FSX_OFFSET		0x0ef
--#define OMAP2430_CONTROL_PADCONF_MCBSP1_CLKX_OFFSET		0x0f0
--#define OMAP2430_CONTROL_PADCONF_I2C1_SCL_OFFSET		0x0f1
--#define OMAP2430_CONTROL_PADCONF_I2C1_SDA_OFFSET		0x0f2
--#define OMAP2430_CONTROL_PADCONF_I2C2_SCL_OFFSET		0x0f3
--#define OMAP2430_CONTROL_PADCONF_I2C2_SDA_OFFSET		0x0f4
--#define OMAP2430_CONTROL_PADCONF_HDQ_SIO_OFFSET			0x0f5
--#define OMAP2430_CONTROL_PADCONF_UART3_CTS_RCTX_OFFSET		0x0f6
--#define OMAP2430_CONTROL_PADCONF_UART3_RTS_SD_OFFSET		0x0f7
--#define OMAP2430_CONTROL_PADCONF_UART3_TX_IRTX_OFFSET		0x0f8
--#define OMAP2430_CONTROL_PADCONF_UART3_RX_IRRX_OFFSET		0x0f9
--#define OMAP2430_CONTROL_PADCONF_GPIO_7_OFFSET			0x0fa
--#define OMAP2430_CONTROL_PADCONF_GPIO_78_OFFSET			0x0fb
--#define OMAP2430_CONTROL_PADCONF_GPIO_79_OFFSET			0x0fc
--#define OMAP2430_CONTROL_PADCONF_GPIO_80_OFFSET			0x0fd
--#define OMAP2430_CONTROL_PADCONF_GPIO_113_OFFSET		0x0fe
--#define OMAP2430_CONTROL_PADCONF_GPIO_114_OFFSET		0x0ff
--#define OMAP2430_CONTROL_PADCONF_GPIO_115_OFFSET		0x100
--#define OMAP2430_CONTROL_PADCONF_GPIO_116_OFFSET		0x101
--#define OMAP2430_CONTROL_PADCONF_SYS_DRM_MSECURE_OFFSET		0x102
--#define OMAP2430_CONTROL_PADCONF_USB0HS_DATA3_OFFSET		0x103
--#define OMAP2430_CONTROL_PADCONF_USB0HS_DATA4_OFFSET		0x104
--#define OMAP2430_CONTROL_PADCONF_USB0HS_DATA5_OFFSET		0x105
--#define OMAP2430_CONTROL_PADCONF_USB0HS_DATA6_OFFSET		0x106
--#define OMAP2430_CONTROL_PADCONF_USB0HS_DATA2_OFFSET		0x107
--#define OMAP2430_CONTROL_PADCONF_USB0HS_DATA0_OFFSET		0x108
--#define OMAP2430_CONTROL_PADCONF_USB0HS_DATA1_OFFSET		0x109
--#define OMAP2430_CONTROL_PADCONF_USB0HS_CLK_OFFSET		0x10a
--#define OMAP2430_CONTROL_PADCONF_USB0HS_DIR_OFFSET		0x10b
--#define OMAP2430_CONTROL_PADCONF_USB0HS_STP_OFFSET		0x10c
--#define OMAP2430_CONTROL_PADCONF_USB0HS_NXT_OFFSET		0x10d
--#define OMAP2430_CONTROL_PADCONF_USB0HS_DATA7_OFFSET		0x10e
--#define OMAP2430_CONTROL_PADCONF_TV_OUT_OFFSET			0x10f
--#define OMAP2430_CONTROL_PADCONF_TV_VREF_OFFSET			0x110
--#define OMAP2430_CONTROL_PADCONF_TV_RSET_OFFSET			0x111
--#define OMAP2430_CONTROL_PADCONF_TV_VFB_OFFSET			0x112
--#define OMAP2430_CONTROL_PADCONF_TV_DACOUT_OFFSET		0x113
--#define OMAP2430_CONTROL_PADCONF_AD2DMCAD0_OFFSET		0x114
--#define OMAP2430_CONTROL_PADCONF_AD2DMCAD1_OFFSET		0x115
--#define OMAP2430_CONTROL_PADCONF_AD2DMCAD2_OFFSET		0x116
--#define OMAP2430_CONTROL_PADCONF_AD2DMCAD3_OFFSET		0x117
--#define OMAP2430_CONTROL_PADCONF_AD2DMCAD4_OFFSET		0x118
--#define OMAP2430_CONTROL_PADCONF_AD2DMCAD5_OFFSET		0x119
--#define OMAP2430_CONTROL_PADCONF_AD2DMCAD6_OFFSET		0x11a
--#define OMAP2430_CONTROL_PADCONF_AD2DMCAD7_OFFSET		0x11b
--#define OMAP2430_CONTROL_PADCONF_AD2DMCAD8_OFFSET		0x11c
--#define OMAP2430_CONTROL_PADCONF_AD2DMCAD9_OFFSET		0x11d
--#define OMAP2430_CONTROL_PADCONF_AD2DMCAD10_OFFSET		0x11e
--#define OMAP2430_CONTROL_PADCONF_AD2DMCAD11_OFFSET		0x11f
--#define OMAP2430_CONTROL_PADCONF_AD2DMCAD12_OFFSET		0x120
--#define OMAP2430_CONTROL_PADCONF_AD2DMCAD13_OFFSET		0x121
--#define OMAP2430_CONTROL_PADCONF_AD2DMCAD14_OFFSET		0x122
--#define OMAP2430_CONTROL_PADCONF_AD2DMCAD15_OFFSET		0x123
--#define OMAP2430_CONTROL_PADCONF_AD2DMCAD16_OFFSET		0x124
--#define OMAP2430_CONTROL_PADCONF_AD2DMCAD17_OFFSET		0x125
--#define OMAP2430_CONTROL_PADCONF_AD2DMCAD18_OFFSET		0x126
--#define OMAP2430_CONTROL_PADCONF_AD2DMCAD19_OFFSET		0x127
--#define OMAP2430_CONTROL_PADCONF_AD2DMCAD20_OFFSET		0x128
--#define OMAP2430_CONTROL_PADCONF_AD2DMCAD21_OFFSET		0x129
--#define OMAP2430_CONTROL_PADCONF_AD2DMCAD22_OFFSET		0x12a
--#define OMAP2430_CONTROL_PADCONF_AD2DMCAD23_OFFSET		0x12b
--#define OMAP2430_CONTROL_PADCONF_AD2DMCAD24_OFFSET		0x12c
--#define OMAP2430_CONTROL_PADCONF_AD2DMCAD25_OFFSET		0x12d
--#define OMAP2430_CONTROL_PADCONF_AD2DMCAD26_OFFSET		0x12e
--#define OMAP2430_CONTROL_PADCONF_AD2DMCAD27_OFFSET		0x12f
--#define OMAP2430_CONTROL_PADCONF_AD2DMCAD28_OFFSET		0x130
--#define OMAP2430_CONTROL_PADCONF_AD2DMCAD29_OFFSET		0x131
--#define OMAP2430_CONTROL_PADCONF_AD2DMCAD30_OFFSET		0x132
--#define OMAP2430_CONTROL_PADCONF_AD2DMCAD31_OFFSET		0x133
--#define OMAP2430_CONTROL_PADCONF_AD2DMCAD32_OFFSET		0x134
--#define OMAP2430_CONTROL_PADCONF_AD2DMCAD33_OFFSET		0x135
--#define OMAP2430_CONTROL_PADCONF_AD2DMCAD34_OFFSET		0x136
--#define OMAP2430_CONTROL_PADCONF_AD2DMCAD35_OFFSET		0x137
--#define OMAP2430_CONTROL_PADCONF_AD2DMCAD36_OFFSET		0x138
--#define OMAP2430_CONTROL_PADCONF_AD2DMCAD37_OFFSET		0x139
--#define OMAP2430_CONTROL_PADCONF_AD2DMWRITE_OFFSET		0x13a
--#define OMAP2430_CONTROL_PADCONF_D2DCLK26MI_OFFSET		0x13b
--#define OMAP2430_CONTROL_PADCONF_D2DNRESPWRON1_OFFSET		0x13c
--#define OMAP2430_CONTROL_PADCONF_D2DNRESWARM_OFFSET		0x13d
--#define OMAP2430_CONTROL_PADCONF_D2DARM9NIRQ_OFFSET		0x13e
--#define OMAP2430_CONTROL_PADCONF_D2DUMA2P6FIQ_OFFSET		0x13f
--#define OMAP2430_CONTROL_PADCONF_D2DSPINT_OFFSET		0x140
--#define OMAP2430_CONTROL_PADCONF_D2DFRINT_OFFSET		0x141
--#define OMAP2430_CONTROL_PADCONF_D2DDMAREQ0_OFFSET		0x142
--#define OMAP2430_CONTROL_PADCONF_D2DDMAREQ1_OFFSET		0x143
--#define OMAP2430_CONTROL_PADCONF_D2DDMAREQ2_OFFSET		0x144
--#define OMAP2430_CONTROL_PADCONF_D2DDMAREQ3_OFFSET		0x145
--#define OMAP2430_CONTROL_PADCONF_D2DN3GTRST_OFFSET		0x146
--#define OMAP2430_CONTROL_PADCONF_D2DN3GTDI_OFFSET		0x147
--#define OMAP2430_CONTROL_PADCONF_D2DN3GTDO_OFFSET		0x148
--#define OMAP2430_CONTROL_PADCONF_D2DN3GTMS_OFFSET		0x149
--#define OMAP2430_CONTROL_PADCONF_D2DN3GTCK_OFFSET		0x14a
--#define OMAP2430_CONTROL_PADCONF_D2DN3GRTCK_OFFSET		0x14b
--#define OMAP2430_CONTROL_PADCONF_D2DMSTDBY_OFFSET		0x14c
--#define OMAP2430_CONTROL_PADCONF_AD2DSREAD_OFFSET		0x14d
--#define OMAP2430_CONTROL_PADCONF_D2DSWAKEUP_OFFSET		0x14e
--#define OMAP2430_CONTROL_PADCONF_D2DIDLEREQ_OFFSET		0x14f
--#define OMAP2430_CONTROL_PADCONF_D2DIDLEACK_OFFSET		0x150
--#define OMAP2430_CONTROL_PADCONF_D2DSPARE0_OFFSET		0x151
--#define OMAP2430_CONTROL_PADCONF_AD2DSWRITE_OFFSET		0x152
--#define OMAP2430_CONTROL_PADCONF_AD2DMREAD_OFFSET		0x153
--
--#define OMAP2430_CONTROL_PADCONF_MUX_SIZE			\
--		(OMAP2430_CONTROL_PADCONF_AD2DMREAD_OFFSET + 0x1)
+ /* Common address space across OMAP2xxx/3xxx */
+ extern struct omap_hwmod_addr_space omap2_i2c1_addr_space[];
+ extern struct omap_hwmod_addr_space omap2_i2c2_addr_space[];
+@@ -41,8 +38,6 @@ extern struct omap_hwmod_addr_space omap2_mcbsp1_addrs[];
+ extern struct omap_hwmod_addr_space omap2_hdq1w_addr_space[];
+ 
+ /* Common IP block data across OMAP2xxx */
+-extern struct omap_hwmod_irq_info omap2xxx_timer12_mpu_irqs[];
+-extern struct omap_hwmod_dma_info omap2xxx_dss_sdma_chs[];
+ extern struct omap_gpio_dev_attr omap2xxx_gpio_dev_attr;
+ extern struct omap_hwmod omap2xxx_l3_main_hwmod;
+ extern struct omap_hwmod omap2xxx_l4_core_hwmod;
 -- 
 1.8.1.1
 
