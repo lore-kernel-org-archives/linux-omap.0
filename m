@@ -1,29 +1,86 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH V3] ARM: OMAP2+: omap_device: maintain sane runtime pm
- status around suspend/resume
-Date: Fri, 15 Nov 2013 20:04:35 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1311152002500.25958@utopia.booyaka.com>
-References: <1384297710-29694-1-git-send-email-nm@ti.com> <1384448716-3186-1-git-send-email-nm@ti.com> <alpine.DEB.2.02.1311150806220.15980@utopia.booyaka.com> <528621E5.4030201@ti.com> <20131115143736.GW10317@atomide.com>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: [PATCH V3] ARM: OMAP2+: omap_device: maintain sane runtime pm status around suspend/resume
+Date: Fri, 15 Nov 2013 14:03:55 -0800
+Message-ID: <87ob5lnwz8.fsf@linaro.org>
+References: <1384297710-29694-1-git-send-email-nm@ti.com>
+	<1384448716-3186-1-git-send-email-nm@ti.com>
+	<alpine.DEB.2.02.1311150806220.15980@utopia.booyaka.com>
+	<528621E5.4030201@ti.com> <20131115143736.GW10317@atomide.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20131115143736.GW10317@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Nishanth Menon <nm@ti.com>, rnayak@ti.com, khilman@linaro.org, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pb0-f43.google.com ([209.85.160.43]:63239 "EHLO
+	mail-pb0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752492Ab3KOWEL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Nov 2013 17:04:11 -0500
+Received: by mail-pb0-f43.google.com with SMTP id rq2so2051731pbb.30
+        for <linux-omap@vger.kernel.org>; Fri, 15 Nov 2013 14:04:10 -0800 (PST)
+In-Reply-To: <20131115143736.GW10317@atomide.com> (Tony Lindgren's message of
+	"Fri, 15 Nov 2013 06:37:37 -0800")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Nishanth Menon <nm@ti.com>, Paul Walmsley <paul@pwsan.com>, rnayak@ti.com, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 
-On Fri, 15 Nov 2013, Tony Lindgren wrote:
+Tony Lindgren <tony@atomide.com> writes:
 
+> * Nishanth Menon <nm@ti.com> [131115 05:30]:
+>> On 11/15/2013 02:07 AM, Paul Walmsley wrote:
+>> > On Thu, 14 Nov 2013, Nishanth Menon wrote:
+>> > 
+>> >> OMAP device hooks around suspend|resume_noirq ensures that hwmod
+>> >> devices are forced to idle using omap_device_idle/enable as part of
+>> >> the last stage of suspend activity.
+>> >>
+>> >> For a device such as i2c who uses autosuspend, it is possible to enter
+>> >> the suspend path with dev->power.runtime_status = RPM_ACTIVE.
+>> >>
+>> >> As part of the suspend flow, the generic runtime logic would increment
+>> >> it's dev->power.disable_depth to 1. This should prevent further
+>> >> pm_runtime_get_sync from succeeding once the runtime_status has been
+>> >> set to RPM_SUSPENDED.
+>> >>
+>> >> Now, as part of the suspend_noirq handler in omap_device, we force the
+>> >> following: if the device status is !suspended, we force the device
+>> >> to idle using omap_device_idle (clocks are cut etc..). This ensures
+>> >> that from a hardware perspective, the device is "suspended". However,
+>> >> runtime_status is left to be active.
+>> >>
+>> >> *if* an operation is attempted after this point to
+>> >> pm_runtime_get_sync, runtime framework depends on runtime_status to
+>> >> indicate accurately the device status, and since it sees it to be
+>> >> ACTIVE, it assumes the module is functional and returns a non-error
+>> >> value. As a result the user will see pm_runtime_get succeed, however a
+>> >> register access will crash due to the lack of clocks.
+>> >>
+>> >> To prevent this from happening, we should ensure that runtime_status
+>> >> exactly indicates the device status. As a result of this change
+>> >> any further calls to pm_runtime_get* would return -EACCES (since
+>> >> disable_depth is 1). On resume, we restore the clocks and runtime
+>> >> status exactly as we suspended with. These operations are not expected
+>> >> to fail as we update the states after the core runtime framework has
+>> >> suspended itself and restore before the core runtime framework has
+>> >> resumed.
+>> >>
+>> >> Reported-by: J Keerthy <j-keerthy@ti.com>
+>> >> Signed-off-by: Nishanth Menon <nm@ti.com>
+>> >> Acked-by: Rajendra Nayak <rnayak@ti.com>
+>> >> Acked-by: Kevin Hilman <khilman@linaro.org>
+>> > 
+>> > Looks reasonable to me.  Looks like this should be considered for -stable 
+>> > - Nishanth, what do you think?
+>> 
+>> Every product kernel since 3.4 needed to be hacked (we have hacked in
+>> different ways so far) to work around this (since we never spend time
+>> digging deeper :( ), So, I do agree with your view that a -stable tag
+>> will be most beneficial.
+>> 
+>> > 
+>> > Tony or Kevin, do you want to take this one, or want me to?
+>
 > I can take it unless you have other fixes pending right now.
 
-Ran a quick test with the patch applied on v3.12, results here:
+This version looks good to me.
 
-http://www.pwsan.com/omap/testlogs/test_nm_omap_device_fix_v3.12-rc/20131115123132/
+Reviewed-by: Kevin Hilman <khilman@linaro.org>
 
-No other fixes queued here right now, so:
-
-Acked-by: Paul Walmsley <paul@pwsan.com>
-
-
-- Paul
