@@ -1,97 +1,115 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 00/11] Make omap24xx booting device tree based for v3.14 merge window
-Date: Thu, 14 Nov 2013 16:09:47 -0800
-Message-ID: <1384474198-20756-1-git-send-email-tony@atomide.com>
+Subject: [PATCH 01/11] ARM: dts: Add basic device tree support for omap2430 sdp
+Date: Thu, 14 Nov 2013 16:09:48 -0800
+Message-ID: <1384474198-20756-2-git-send-email-tony@atomide.com>
+References: <1384474198-20756-1-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:42007 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:42056 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753909Ab3KOAKB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Nov 2013 19:10:01 -0500
+	with ESMTP id S1754451Ab3KOAKC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Nov 2013 19:10:02 -0500
+In-Reply-To: <1384474198-20756-1-git-send-email-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Cc: devicetree@vger.kernel.org, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>
 
-Hi all,
+I doubt that there are many people using 2430 sdp, but as
+that's been historically an important acid test platform
+for omap2+ related changes, let's add minimal device
+tree support for it.
 
-Here are some early patches for the v3.14 merge window to make
-omap2 booting device tree based before we make omap3 device
-tree only. Otherwise we cannot remove the shared platform data
-between omap2 and 3 for things like some hwmod entries.
+If anybody is using it beyond minimal boot testing, patches
+for more complete device tree support are welcome.
 
-I've added minimal support for 2430sdp to boot it to serial
-console with ethernet working, and kept n8x0 support using
-the legacy init for the drivers. Then the old H4 I have not
-updated as I'm not using it.
-
-Hopefully if there are still people using n8x0 they can
-pick up the work from here on removing the rest of the legacy
-platform data init as we're planning to drop those things
-completely over next few merge cycles.
-
-Note that these patches are against mainline commit 10d0c9705
-as there are few device tree related fixes to stuff the resources.   
-These also depend on the recently posted fixes series
-"[PATCH 0/8] Various omap device tree usability fixes for v3.13
-merge window"
-
-Cheers,
-
-Tony
-
-
-Tony Lindgren (11):
-  ARM: dts: Add basic device tree support for omap2430 sdp
-  ARM: dts: Add basic Nokia N8X0 support
-  ARM: OMAP2+: Add support for board specific auxdata quirks
-  ARM: OMAP2+: Add device tree compatible revision checks for n8x0
-  ARM: OMAP2+: Make n8x0 behave better with device tree based booting
-  ARM: OMAP2+: Add quirks support for n8x0
-  ARM: OMAP2+: Remove legacy booting support for n8x0
-  ARM: OMAP2+: Remove board file for H4
-  ARM: OMAP2+: Remove legacy board file for 2430sdp
-  ARM: OMAP2+: Remove legacy mux code for omap2
-  ARM: OMAP2+: Remove legacy hwmod entries for omap2
-
- arch/arm/boot/dts/Makefile                         |   4 +
- arch/arm/boot/dts/omap2420-n800.dts                |   8 +
- arch/arm/boot/dts/omap2420-n810-wimax.dts          |   8 +
- arch/arm/boot/dts/omap2420-n810.dts                |   8 +
- arch/arm/boot/dts/omap2420-n8x0-common.dtsi        |  34 +
- arch/arm/boot/dts/omap2430-sdp.dts                 |  49 ++
- arch/arm/mach-omap2/Kconfig                        |  13 -
- arch/arm/mach-omap2/Makefile                       |   4 -
- arch/arm/mach-omap2/board-2430sdp.c                | 273 -------
- arch/arm/mach-omap2/board-h4.c                     | 365 ----------
- arch/arm/mach-omap2/board-n8x0.c                   | 190 ++---
- arch/arm/mach-omap2/common-board-devices.h         |   1 +
- arch/arm/mach-omap2/msdi.c                         |  69 --
- arch/arm/mach-omap2/mux.h                          |   2 -
- arch/arm/mach-omap2/mux2420.c                      | 690 ------------------
- arch/arm/mach-omap2/mux2420.h                      | 282 --------
- arch/arm/mach-omap2/mux2430.c                      | 793 ---------------------
- arch/arm/mach-omap2/mux2430.h                      | 370 ----------
- arch/arm/mach-omap2/omap_hwmod_2420_data.c         | 137 ----
- arch/arm/mach-omap2/omap_hwmod_2430_data.c         | 266 -------
- .../mach-omap2/omap_hwmod_2xxx_interconnect_data.c | 155 ----
- arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |  68 --
- arch/arm/mach-omap2/omap_hwmod_common_data.h       |   5 -
- arch/arm/mach-omap2/pdata-quirks.c                 |  46 +-
- 24 files changed, 200 insertions(+), 3640 deletions(-)
- create mode 100644 arch/arm/boot/dts/omap2420-n800.dts
- create mode 100644 arch/arm/boot/dts/omap2420-n810-wimax.dts
- create mode 100644 arch/arm/boot/dts/omap2420-n810.dts
- create mode 100644 arch/arm/boot/dts/omap2420-n8x0-common.dtsi
+Cc: devicetree@vger.kernel.org
+Cc: "Beno=C3=AEt Cousson" <bcousson@baylibre.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/boot/dts/Makefile         |  1 +
+ arch/arm/boot/dts/omap2430-sdp.dts | 49 ++++++++++++++++++++++++++++++=
+++++++++
+ 2 files changed, 50 insertions(+)
  create mode 100644 arch/arm/boot/dts/omap2430-sdp.dts
- delete mode 100644 arch/arm/mach-omap2/board-2430sdp.c
- delete mode 100644 arch/arm/mach-omap2/board-h4.c
- delete mode 100644 arch/arm/mach-omap2/mux2420.c
- delete mode 100644 arch/arm/mach-omap2/mux2420.h
- delete mode 100644 arch/arm/mach-omap2/mux2430.c
- delete mode 100644 arch/arm/mach-omap2/mux2430.h
 
--- 
+diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
+index d57c1a6..73022b1 100644
+--- a/arch/arm/boot/dts/Makefile
++++ b/arch/arm/boot/dts/Makefile
+@@ -173,6 +173,7 @@ dtb-$(CONFIG_ARCH_NSPIRE) +=3D nspire-cx.dtb \
+ 	nspire-tp.dtb \
+ 	nspire-clp.dtb
+ dtb-$(CONFIG_ARCH_OMAP2PLUS) +=3D omap2420-h4.dtb \
++	omap2430-sdp.dtb \
+ 	omap3430-sdp.dtb \
+ 	omap3-beagle.dtb \
+ 	omap3-devkit8000.dtb \
+diff --git a/arch/arm/boot/dts/omap2430-sdp.dts b/arch/arm/boot/dts/oma=
+p2430-sdp.dts
+new file mode 100644
+index 0000000..2c90d29
+--- /dev/null
++++ b/arch/arm/boot/dts/omap2430-sdp.dts
+@@ -0,0 +1,49 @@
++/*
++ * Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.c=
+om/
++ *
++ * This program is free software; you can redistribute it and/or modif=
+y
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++/dts-v1/;
++
++#include "omap2430.dtsi"
++
++/ {
++	model =3D "TI OMAP2430 SDP";
++	compatible =3D "ti,omap2430-sdp", "ti,omap2430", "ti,omap2";
++
++	memory {
++		device_type =3D "memory";
++		reg =3D <0x80000000 0x8000000>; /* 128 MB */
++	};
++};
++
++&i2c2 {
++	clock-frequency =3D <100000>;
++
++	twl: twl@48 {
++		reg =3D <0x48>;
++		interrupts =3D <7>; /* SYS_NIRQ cascaded to intc */
++	};
++};
++
++#include "twl4030.dtsi"
++
++&mmc1 {
++	vmmc-supply =3D <&vmmc1>;
++	bus-width =3D <4>;
++};
++
++&gpmc {
++	ranges =3D <5 0 0x08000000 0x01000000>;
++	ethernet@gpmc {
++		compatible =3D "smsc,lan91c94";
++		interrupt-parent =3D <&gpio5>;
++		interrupts =3D <21 IRQ_TYPE_LEVEL_LOW>;	/* gpio149 */
++		reg =3D <5 0x300 0xf>;
++		bank-width =3D <2>;
++		gpmc,mux-add-data;
++        };
++};
++
+--=20
 1.8.1.1
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
