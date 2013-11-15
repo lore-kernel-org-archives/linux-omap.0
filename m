@@ -1,67 +1,51 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH V3] ARM: OMAP2+: omap_device: maintain sane runtime pm
- status around suspend/resume
-Date: Fri, 15 Nov 2013 08:07:34 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1311150806220.15980@utopia.booyaka.com>
-References: <1384297710-29694-1-git-send-email-nm@ti.com> <1384448716-3186-1-git-send-email-nm@ti.com>
+From: Lokesh Vutla <lokeshvutla@ti.com>
+Subject: Re: 3.12: omap4: cpuidle: solid hangs at boot
+Date: Fri, 15 Nov 2013 14:41:00 +0530
+Message-ID: <5285E524.50202@ti.com>
+References: <20131114110445.GB4594@luxor.wired.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:49413 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752871Ab3KOIHf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Nov 2013 03:07:35 -0500
-In-Reply-To: <1384448716-3186-1-git-send-email-nm@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:53274 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757190Ab3KOJLG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 15 Nov 2013 04:11:06 -0500
+In-Reply-To: <20131114110445.GB4594@luxor.wired.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, rnayak@ti.com, khilman@linaro.org, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+To: Paolo Pisati <p.pisati@gmail.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@linaro.org>, Rajendra Nayak <rnayak@ti.com>
 
-On Thu, 14 Nov 2013, Nishanth Menon wrote:
++ Kevin
 
-> OMAP device hooks around suspend|resume_noirq ensures that hwmod
-> devices are forced to idle using omap_device_idle/enable as part of
-> the last stage of suspend activity.
-> 
-> For a device such as i2c who uses autosuspend, it is possible to enter
-> the suspend path with dev->power.runtime_status = RPM_ACTIVE.
-> 
-> As part of the suspend flow, the generic runtime logic would increment
-> it's dev->power.disable_depth to 1. This should prevent further
-> pm_runtime_get_sync from succeeding once the runtime_status has been
-> set to RPM_SUSPENDED.
-> 
-> Now, as part of the suspend_noirq handler in omap_device, we force the
-> following: if the device status is !suspended, we force the device
-> to idle using omap_device_idle (clocks are cut etc..). This ensures
-> that from a hardware perspective, the device is "suspended". However,
-> runtime_status is left to be active.
-> 
-> *if* an operation is attempted after this point to
-> pm_runtime_get_sync, runtime framework depends on runtime_status to
-> indicate accurately the device status, and since it sees it to be
-> ACTIVE, it assumes the module is functional and returns a non-error
-> value. As a result the user will see pm_runtime_get succeed, however a
-> register access will crash due to the lack of clocks.
-> 
-> To prevent this from happening, we should ensure that runtime_status
-> exactly indicates the device status. As a result of this change
-> any further calls to pm_runtime_get* would return -EACCES (since
-> disable_depth is 1). On resume, we restore the clocks and runtime
-> status exactly as we suspended with. These operations are not expected
-> to fail as we update the states after the core runtime framework has
-> suspended itself and restore before the core runtime framework has
-> resumed.
-> 
-> Reported-by: J Keerthy <j-keerthy@ti.com>
-> Signed-off-by: Nishanth Menon <nm@ti.com>
-> Acked-by: Rajendra Nayak <rnayak@ti.com>
-> Acked-by: Kevin Hilman <khilman@linaro.org>
+Hi Paolo,
 
-Looks reasonable to me.  Looks like this should be considered for -stable 
-- Nishanth, what do you think?
+On Thursday 14 November 2013 04:34 PM, Paolo Pisati wrote:
+> Vanilla 3.12 multi_v7_defconfig + cpu_idle result in a solid hang on my pandaes
+> board: has anyone experienced it before? is cpu_idle safe on omap4?
+I have also seen the same issue on my panda es board.
+On further investigation, it seemed to work on 3.11 and broken between 3.12-rc1 and 3.12-rc2
+because of the following patch: 
+7835027 ARM: OMAP4: cpuidle: fix: call cpu_cluster_pm_exit conditionally
+(http://www.mail-archive.com/linux-omap@vger.kernel.org/msg94655.html)
 
-Tony or Kevin, do you want to take this one, or want me to?
+But by applying a recent patch from Grygorii Strashko https://patchwork.kernel.org/patch/3084521/ 
+seems to make it work.
+You can give a try by applying the given patch.
 
+Kevin, please correct me if I am wrong.
 
-- Paul
+Thanks and regards,
+Lokesh
+> 
+> same kernel boots fine on omap3 and some other arm boards fwiw.
+> if you want to reproduce it:
+> 
+> config: http://people.canonical.com/~ppisati/3.12_armv7multi_cpuidle/config
+> 
+> zImage: http://people.canonical.com/~ppisati/3.12_armv7multi_cpuidle/zImage
+> 
+> boot log: http://paste.ubuntu.com/6415293/
+> 
+
