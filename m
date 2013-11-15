@@ -1,111 +1,54 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 1/2] input: touchscreen: fix spelling mistake in TSC/ADC
- DT binding
-Date: Fri, 15 Nov 2013 11:53:56 -0600
-Message-ID: <20131115175356.GJ4698@saruman.home>
-References: <1382386404-6659-1-git-send-email-balbi@ti.com>
- <1382386404-6659-2-git-send-email-balbi@ti.com>
- <52663A58.9070706@linutronix.de>
- <20131022120253.GD9340@gimli>
- <20131114111958.GG16396@e106331-lin.cambridge.arm.com>
- <20131114155404.GE15835@saruman.home>
- <20131115155540.GF24831@e106331-lin.cambridge.arm.com>
-Reply-To: <balbi@ti.com>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: Re: [PATCH 00/11] Make omap24xx booting device tree based for v3.14
+ merge window
+Date: Fri, 15 Nov 2013 20:47:44 +0200
+Message-ID: <20131115184744.GA10997@blackmetal.musicnaut.iki.fi>
+References: <1384474198-20756-1-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="IbA9xpzOQlG26JSn"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:55221 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751566Ab3KORyf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 15 Nov 2013 12:54:35 -0500
+Received: from filtteri6.pp.htv.fi ([213.243.153.189]:46321 "EHLO
+	filtteri6.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751843Ab3KOSrw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Nov 2013 13:47:52 -0500
 Content-Disposition: inline
-In-Reply-To: <20131115155540.GF24831@e106331-lin.cambridge.arm.com>
+In-Reply-To: <1384474198-20756-1-git-send-email-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: Felipe Balbi <balbi@ti.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, "dmitry.torokhov@gmail.com" <dmitry.torokhov@gmail.com>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, Pawel Moll <Pawel.Moll@arm.com>, "swarren@wwwdotorg.org" <swarren@wwwdotorg.org>, "ijc+devicetree@hellion.org.uk" <ijc+devicetree@hellion.org.uk>, "rob@landley.net" <rob@landley.net>, "bcousson@baylibre.com" <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>
-
---IbA9xpzOQlG26JSn
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
 Hi,
 
-On Fri, Nov 15, 2013 at 03:55:40PM +0000, Mark Rutland wrote:
-> > > > > > diff --git a/drivers/input/touchscreen/ti_am335x_tsc.c b/driver=
-s/input/touchscreen/ti_am335x_tsc.c
-> > > > > > index e1c5300..b61df9d 100644
-> > > > > > --- a/drivers/input/touchscreen/ti_am335x_tsc.c
-> > > > > > +++ b/drivers/input/touchscreen/ti_am335x_tsc.c
-> > > > > > @@ -348,9 +348,16 @@ static int titsc_parse_dt(struct platform_=
-device *pdev,
-> > > > > >  	if (err < 0)
-> > > > > >  		return err;
-> > > > > > =20
-> > > > > > -	err =3D of_property_read_u32(node, "ti,coordiante-readouts",
-> > > > > > +	/*
-> > > > > > +	 * try with new binding first. If it fails, still try with
-> > > > > > +	 * bogus, miss-spelled version.
-> > > > > > +	 */
-> > > > > > +	err =3D of_property_read_u32(node, "ti,coordinate-readouts",
-> > > > > >  			&ts_dev->coordinate_readouts);
-> > > > > >  	if (err < 0)
-> > > > > > +		err =3D of_property_read_u32(node, "ti,coordiante-readouts",
-> > > > > > +				&ts_dev->coordinate_readouts);
-> > > > > > +	if (err < 0)
-> > > > > >  		return err;
-> > > > >=20
-> > > > > Thanks, very good. Do we keep this fallback for ever or just for =
-a year
-> > > > > or two?
-> > > >=20
-> > > > That's for DT maintainers to decide but considering DT is an ABI, I
-> > > > guess we need to keep for 30 years or so :-p
-> > >=20
-> > > We keep it as long as we have to. If no-one's relying on the typo by =
-the
-> > > next merge window, I see no reason we'd have to keep support for the
-> >=20
-> > and how could you know that ? considering it's an ABI, how could you
-> > ever know that ?
->=20
-> If you know that the only user of a binding is a dts for a particular
-> product that you're in charge of, then you'd know the set of kernel +
-> dtb combinations out there, and can judge.
+On Thu, Nov 14, 2013 at 04:09:47PM -0800, Tony Lindgren wrote:
+> Here are some early patches for the v3.14 merge window to make
+> omap2 booting device tree based before we make omap3 device
+> tree only. Otherwise we cannot remove the shared platform data
+> between omap2 and 3 for things like some hwmod entries.
+> 
+> I've added minimal support for 2430sdp to boot it to serial
+> console with ethernet working, and kept n8x0 support using
+> the legacy init for the drivers. Then the old H4 I have not
+> updated as I'm not using it.
+> 
+> Hopefully if there are still people using n8x0 they can
+> pick up the work from here on removing the rest of the legacy
+> platform data init as we're planning to drop those things
+> completely over next few merge cycles.
 
-once the binding has made into mainline, it's next to impossible to
-figure out who has downloaded a tarball containing that driver and made
-a product out of it.
+Thanks for the effort, I'll try to continue this work. You can add my
+Tested-by for N8x0 bits.
 
-Besides keeping that check in the driver won't hurt at all in the long
-run. I would give it at least until 4.0 before thinking about removing,
-and that might still not be enough time.
+> Note that these patches are against mainline commit 10d0c9705
+> as there are few device tree related fixes to stuff the resources.   
+> These also depend on the recently posted fixes series
+> "[PATCH 0/8] Various omap device tree usability fixes for v3.13
+> merge window"
 
---=20
-balbi
+I noticed one bug. If you disable MACH_NOKIA_N8X0 from .config, there
+is a compilation failure:
 
---IbA9xpzOQlG26JSn
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+arch/arm/mach-omap2/built-in.o: In function `omap2420_n8x0_legacy_init':
+/home/aaro/git/linux/arch/arm/mach-omap2/pdata-quirks.c:76: undefined reference to `n8x0_legacy_init'
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.15 (GNU/Linux)
-
-iQIcBAEBAgAGBQJShl+0AAoJEIaOsuA1yqREofcP/jU5i67IMZOBLdbk9/C68m96
-TsdwClJC+pfUEV3gJP1wufJS/2xeCm4kEupFlmkJbmrrW7fZaPrf0n1NFdCX/jvA
-IV7QKMkprzcyjB+QGUvEy11VJs332fH3j/BMej9rbPiOHU+toZPnRdvWbRwzqzrm
-zQIN+tKW61NhhKYopg9wQ+4vuFQJ9z2WvEdpjyknyzGiUnjfKbcmD/4Hy3TSoqg1
-CIyAI2+//q5AiW0lePFMmffeFUjf/VKTwENRW/CjVoO/vwQjX426OCAfn63edQwS
-COQU0/DdJXQG3hqkXsAL0rgfZZu/bE+K4RuYwsW+G6i7JEI6lkfU/1ozzXgbk/fl
-G/3q29PQjQiQwIQftRwSkeQsRtTyvYeOmaYw5I4J08Oz7FYOnzgLV2hufvfZzjy6
-sGHWROg89Djhqjf9UQCTTETE1sbDbKDIoRn0FBzcNqHmvf7I2UrXPqfiKcgjM2Kd
-VlX8gMeF+9KakuPRDw0ctoX1GLw3IYPndZdchT6KU8pzgvVZM6qU65OPefWw86zS
-y6hiOaSy6s5qQ2tU9Xibjb310puS9H/wOu3MzE5nyoiR5lwvtIs/UjcT1Ytwd8sq
-2xnngWLeSNdEZ8kB0P/RJduYf1SOhGf1LmTM8QdhXDdSKqtVyTdpxOrHVGgqOe4M
-rDgxjzC/+VsbldCG0cxt
-=jkgP
------END PGP SIGNATURE-----
-
---IbA9xpzOQlG26JSn--
+A.
