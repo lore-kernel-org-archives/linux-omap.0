@@ -1,89 +1,67 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: Re: [PATCH 1/2] isp1704_charger: Add DT support
-Date: Fri, 15 Nov 2013 07:45:16 +0100
-Message-ID: <201311150745.18408@pali>
-References: <1384432734-1490-1-git-send-email-sre@debian.org> <201311141905.11046@pali> <20131114223416.GA6383@earth.universe>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH V3] ARM: OMAP2+: omap_device: maintain sane runtime pm
+ status around suspend/resume
+Date: Fri, 15 Nov 2013 08:07:34 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1311150806220.15980@utopia.booyaka.com>
+References: <1384297710-29694-1-git-send-email-nm@ti.com> <1384448716-3186-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart1397715.gDSUgNYlmo";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ea0-f176.google.com ([209.85.215.176]:35781 "EHLO
-	mail-ea0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751338Ab3KOGpX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Nov 2013 01:45:23 -0500
-In-Reply-To: <20131114223416.GA6383@earth.universe>
+Received: from utopia.booyaka.com ([74.50.51.50]:49413 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752871Ab3KOIHf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Nov 2013 03:07:35 -0500
+In-Reply-To: <1384448716-3186-1-git-send-email-nm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sebastian Reichel <sre@debian.org>
-Cc: Tony Lindgren <tony@atomide.com>, Anton Vorontsov <anton@enomsg.org>, David Woodhouse <dwmw2@infradead.org>, Grant Likely <grant.likely@linaro.org>, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, rnayak@ti.com, khilman@linaro.org, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 
---nextPart1397715.gDSUgNYlmo
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+On Thu, 14 Nov 2013, Nishanth Menon wrote:
 
-On Thursday 14 November 2013 23:34:19 Sebastian Reichel wrote:
-> On Thu, Nov 14, 2013 at 07:05:06PM +0100, Pali Roh=C3=A1r wrote:
-> > On Thursday 14 November 2013 13:38:53 Sebastian Reichel=20
-wrote:
-> > > diff --git a/drivers/power/isp1704_charger.c
-> > > b/drivers/power/isp1704_charger.c index fc04d19..db96778
-> > > 100644
-> > > --- a/drivers/power/isp1704_charger.c
-> > > +++ b/drivers/power/isp1704_charger.c
-> > > @@ -28,6 +28,8 @@
-> > >=20
-> > >  #include <linux/platform_device.h>
-> > >  #include <linux/power_supply.h>
-> > >  #include <linux/delay.h>
-> > >=20
-> > > +#include <linux/of.h>
-> > > +#include <linux/of_gpio.h>
-> > >=20
-> > >  #include <linux/usb/otg.h>
-> > >  #include <linux/usb/ulpi.h>
-> > >=20
-> > > @@ -89,8 +91,8 @@ static void
-> > > isp1704_charger_set_power(struct isp1704_charger *isp,
-> > > bool on) {
-> > >=20
-> > >  	struct isp1704_charger_data	*board =3D
-> > >=20
-> > > isp->dev->platform_data;
-> > >=20
-> > > -	if (board && board->set_power)
-> > > -		board->set_power(on);
-> > > +	if (board)
-> > > +		gpio_set_value(board->enable_gpio, on);
-> > >=20
-> > >  }
-> >=20
-> > You need to check if enable_gpio in board data was defined
-> > or not.
->=20
-> The device is not successful probed without valid enable_gpio.
->=20
-> -- Sebastian
+> OMAP device hooks around suspend|resume_noirq ensures that hwmod
+> devices are forced to idle using omap_device_idle/enable as part of
+> the last stage of suspend activity.
+> 
+> For a device such as i2c who uses autosuspend, it is possible to enter
+> the suspend path with dev->power.runtime_status = RPM_ACTIVE.
+> 
+> As part of the suspend flow, the generic runtime logic would increment
+> it's dev->power.disable_depth to 1. This should prevent further
+> pm_runtime_get_sync from succeeding once the runtime_status has been
+> set to RPM_SUSPENDED.
+> 
+> Now, as part of the suspend_noirq handler in omap_device, we force the
+> following: if the device status is !suspended, we force the device
+> to idle using omap_device_idle (clocks are cut etc..). This ensures
+> that from a hardware perspective, the device is "suspended". However,
+> runtime_status is left to be active.
+> 
+> *if* an operation is attempted after this point to
+> pm_runtime_get_sync, runtime framework depends on runtime_status to
+> indicate accurately the device status, and since it sees it to be
+> ACTIVE, it assumes the module is functional and returns a non-error
+> value. As a result the user will see pm_runtime_get succeed, however a
+> register access will crash due to the lack of clocks.
+> 
+> To prevent this from happening, we should ensure that runtime_status
+> exactly indicates the device status. As a result of this change
+> any further calls to pm_runtime_get* would return -EACCES (since
+> disable_depth is 1). On resume, we restore the clocks and runtime
+> status exactly as we suspended with. These operations are not expected
+> to fail as we update the states after the core runtime framework has
+> suspended itself and restore before the core runtime framework has
+> resumed.
+> 
+> Reported-by: J Keerthy <j-keerthy@ti.com>
+> Signed-off-by: Nishanth Menon <nm@ti.com>
+> Acked-by: Rajendra Nayak <rnayak@ti.com>
+> Acked-by: Kevin Hilman <khilman@linaro.org>
 
-Then, OK.
+Looks reasonable to me.  Looks like this should be considered for -stable 
+- Nishanth, what do you think?
 
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
+Tony or Kevin, do you want to take this one, or want me to?
 
---nextPart1397715.gDSUgNYlmo
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEABECAAYFAlKFwv4ACgkQi/DJPQPkQ1JKvwCfftQMP0wzZ0b7Y9hoA5FRDhxg
-HYcAnA8cdZf1SD+3XcWHIEDh6WpP+DNZ
-=aF0P
------END PGP SIGNATURE-----
-
---nextPart1397715.gDSUgNYlmo--
+- Paul
