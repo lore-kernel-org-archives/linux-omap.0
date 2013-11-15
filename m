@@ -1,86 +1,58 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [PATCH V3] ARM: OMAP2+: omap_device: maintain sane runtime pm status around suspend/resume
-Date: Fri, 15 Nov 2013 14:03:55 -0800
-Message-ID: <87ob5lnwz8.fsf@linaro.org>
-References: <1384297710-29694-1-git-send-email-nm@ti.com>
-	<1384448716-3186-1-git-send-email-nm@ti.com>
-	<alpine.DEB.2.02.1311150806220.15980@utopia.booyaka.com>
-	<528621E5.4030201@ti.com> <20131115143736.GW10317@atomide.com>
+From: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
+Subject: Re: [PATCH 9/8] i2c: Fix device tree binding for i2c-cbus-gpio
+Date: Fri, 15 Nov 2013 23:26:33 +0100
+Message-ID: <20131115222632.GB2672@katana>
+References: <1384396537-3486-1-git-send-email-tony@atomide.com>
+ <20131114230842.GU10317@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pb0-f43.google.com ([209.85.160.43]:63239 "EHLO
-	mail-pb0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752492Ab3KOWEL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Nov 2013 17:04:11 -0500
-Received: by mail-pb0-f43.google.com with SMTP id rq2so2051731pbb.30
-        for <linux-omap@vger.kernel.org>; Fri, 15 Nov 2013 14:04:10 -0800 (PST)
-In-Reply-To: <20131115143736.GW10317@atomide.com> (Tony Lindgren's message of
-	"Fri, 15 Nov 2013 06:37:37 -0800")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="IrhDeMKUP4DT/M7F"
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20131114230842.GU10317-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Nishanth Menon <nm@ti.com>, Paul Walmsley <paul@pwsan.com>, rnayak@ti.com, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 
-Tony Lindgren <tony@atomide.com> writes:
 
-> * Nishanth Menon <nm@ti.com> [131115 05:30]:
->> On 11/15/2013 02:07 AM, Paul Walmsley wrote:
->> > On Thu, 14 Nov 2013, Nishanth Menon wrote:
->> > 
->> >> OMAP device hooks around suspend|resume_noirq ensures that hwmod
->> >> devices are forced to idle using omap_device_idle/enable as part of
->> >> the last stage of suspend activity.
->> >>
->> >> For a device such as i2c who uses autosuspend, it is possible to enter
->> >> the suspend path with dev->power.runtime_status = RPM_ACTIVE.
->> >>
->> >> As part of the suspend flow, the generic runtime logic would increment
->> >> it's dev->power.disable_depth to 1. This should prevent further
->> >> pm_runtime_get_sync from succeeding once the runtime_status has been
->> >> set to RPM_SUSPENDED.
->> >>
->> >> Now, as part of the suspend_noirq handler in omap_device, we force the
->> >> following: if the device status is !suspended, we force the device
->> >> to idle using omap_device_idle (clocks are cut etc..). This ensures
->> >> that from a hardware perspective, the device is "suspended". However,
->> >> runtime_status is left to be active.
->> >>
->> >> *if* an operation is attempted after this point to
->> >> pm_runtime_get_sync, runtime framework depends on runtime_status to
->> >> indicate accurately the device status, and since it sees it to be
->> >> ACTIVE, it assumes the module is functional and returns a non-error
->> >> value. As a result the user will see pm_runtime_get succeed, however a
->> >> register access will crash due to the lack of clocks.
->> >>
->> >> To prevent this from happening, we should ensure that runtime_status
->> >> exactly indicates the device status. As a result of this change
->> >> any further calls to pm_runtime_get* would return -EACCES (since
->> >> disable_depth is 1). On resume, we restore the clocks and runtime
->> >> status exactly as we suspended with. These operations are not expected
->> >> to fail as we update the states after the core runtime framework has
->> >> suspended itself and restore before the core runtime framework has
->> >> resumed.
->> >>
->> >> Reported-by: J Keerthy <j-keerthy@ti.com>
->> >> Signed-off-by: Nishanth Menon <nm@ti.com>
->> >> Acked-by: Rajendra Nayak <rnayak@ti.com>
->> >> Acked-by: Kevin Hilman <khilman@linaro.org>
->> > 
->> > Looks reasonable to me.  Looks like this should be considered for -stable 
->> > - Nishanth, what do you think?
->> 
->> Every product kernel since 3.4 needed to be hacked (we have hacked in
->> different ways so far) to work around this (since we never spend time
->> digging deeper :( ), So, I do agree with your view that a -stable tag
->> will be most beneficial.
->> 
->> > 
->> > Tony or Kevin, do you want to take this one, or want me to?
->
-> I can take it unless you have other fixes pending right now.
+--IrhDeMKUP4DT/M7F
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-This version looks good to me.
+On Thu, Nov 14, 2013 at 03:08:42PM -0800, Tony Lindgren wrote:
+> Looks like we're missing two lines needed to make it
+> work properly with device tree.
+>=20
+> Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Cc: Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
+> Cc: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
+> Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 
-Reviewed-by: Kevin Hilman <khilman@linaro.org>
+Applied to for-next, thanks!
 
+
+--IrhDeMKUP4DT/M7F
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.14 (GNU/Linux)
+
+iQIcBAEBAgAGBQJShp+YAAoJEBQN5MwUoCm2ppIP/jaQrW+rtCkKbeRI5kY5MRJP
+fWAWsc9ki++qAphy//vxKT619Rk+GVFjI1JFq1QAc1oWU3fJ7aTjugsE2A2tJbPn
+MyBX+WzkvqvbKf16Cq8eHlEWbXyM8jM/AWfT0aZ9hI0F0Xs0zYHTCXACf5t+T3I+
+bFD8ENPlCOymHk6eMSp4XkJZeHGJqluf1NiTW66utL6VihoYk1qXq6PcSE+OrLYX
+t0gqWAC9qnpUaB2kjeZjjpFdH5CI7JXI1L1kuHvGHV7aJMA0Pch2CA7XNJi1oYUJ
+pC61EbgcPck/4gT170q57Jxx+RmU9gjoZeWi/WeIuYzaDh9XdDRUkBtDHdwnvjsZ
+Cgshnob8JVnqEPUn0/mbB6xFTAGe6XefnJfLVgipZRyiZ2xA2cRFyYmaxCiVjknp
+0W5CWbVgqjxJxov9w2Xr5pa4nfJnEyEkZ7PB2FocetLb3LmnSudwpsklJ8Bs3EhL
+5QYvg+n7Sdje67IeDH6762Ianj9WVgsFsouSK8OyAkcjYjTCPyx0vFUkc74Bw4At
+eGt3HpxU11mj8QmvaSDRR+FB9IzGi/foc7MM71omfNyK4BAw38KJzav64Ymzqitr
+AiuhB+aOvCaN3ZX6zt1F9UV3tqZBZeXOQPTuTbZnQwFCXHlN7SX+pQpDDqFxJvqu
+5iB5i4yjSvUHnOdr5MVL
+=Jd6m
+-----END PGP SIGNATURE-----
+
+--IrhDeMKUP4DT/M7F--
