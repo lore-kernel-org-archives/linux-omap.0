@@ -1,49 +1,81 @@
-From: Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [PATCH 2/2] dt: binding documentation for isp1704 charger
-Date: Fri, 15 Nov 2013 11:26:50 +0000
-Message-ID: <20131115112650.GF1709@e106331-lin.cambridge.arm.com>
-References: <1384432734-1490-1-git-send-email-sre@debian.org>
- <1384432734-1490-2-git-send-email-sre@debian.org>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH V3] ARM: OMAP2+: omap_device: maintain sane runtime pm
+ status around suspend/resume
+Date: Fri, 15 Nov 2013 07:30:13 -0600
+Message-ID: <528621E5.4030201@ti.com>
+References: <1384297710-29694-1-git-send-email-nm@ti.com> <1384448716-3186-1-git-send-email-nm@ti.com> <alpine.DEB.2.02.1311150806220.15980@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:50142 "EHLO
-	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757907Ab3KOL1t (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 15 Nov 2013 06:27:49 -0500
-Content-Disposition: inline
-In-Reply-To: <1384432734-1490-2-git-send-email-sre@debian.org>
-Content-Language: en-US
+Received: from devils.ext.ti.com ([198.47.26.153]:58131 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751429Ab3KONaj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Nov 2013 08:30:39 -0500
+In-Reply-To: <alpine.DEB.2.02.1311150806220.15980@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sebastian Reichel <sre@debian.org>
-Cc: Tony Lindgren <tony@atomide.com>, Anton Vorontsov <anton@enomsg.org>, David Woodhouse <dwmw2@infradead.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, Pawel Moll <Pawel.Moll@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Tony Lindgren <tony@atomide.com>, rnayak@ti.com, khilman@linaro.org, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 
-On Thu, Nov 14, 2013 at 12:38:54PM +0000, Sebastian Reichel wrote:
-> Add devicetree binding documentation for isp1704-charger.
+On 11/15/2013 02:07 AM, Paul Walmsley wrote:
+> On Thu, 14 Nov 2013, Nishanth Menon wrote:
 > 
-> Signed-off-by: Sebastian Reichel <sre@debian.org>
-> ---
->  Documentation/devicetree/bindings/power/isp1704.txt | 17 +++++++++++++++++
->  1 file changed, 17 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/power/isp1704.txt
+>> OMAP device hooks around suspend|resume_noirq ensures that hwmod
+>> devices are forced to idle using omap_device_idle/enable as part of
+>> the last stage of suspend activity.
+>>
+>> For a device such as i2c who uses autosuspend, it is possible to enter
+>> the suspend path with dev->power.runtime_status = RPM_ACTIVE.
+>>
+>> As part of the suspend flow, the generic runtime logic would increment
+>> it's dev->power.disable_depth to 1. This should prevent further
+>> pm_runtime_get_sync from succeeding once the runtime_status has been
+>> set to RPM_SUSPENDED.
+>>
+>> Now, as part of the suspend_noirq handler in omap_device, we force the
+>> following: if the device status is !suspended, we force the device
+>> to idle using omap_device_idle (clocks are cut etc..). This ensures
+>> that from a hardware perspective, the device is "suspended". However,
+>> runtime_status is left to be active.
+>>
+>> *if* an operation is attempted after this point to
+>> pm_runtime_get_sync, runtime framework depends on runtime_status to
+>> indicate accurately the device status, and since it sees it to be
+>> ACTIVE, it assumes the module is functional and returns a non-error
+>> value. As a result the user will see pm_runtime_get succeed, however a
+>> register access will crash due to the lack of clocks.
+>>
+>> To prevent this from happening, we should ensure that runtime_status
+>> exactly indicates the device status. As a result of this change
+>> any further calls to pm_runtime_get* would return -EACCES (since
+>> disable_depth is 1). On resume, we restore the clocks and runtime
+>> status exactly as we suspended with. These operations are not expected
+>> to fail as we update the states after the core runtime framework has
+>> suspended itself and restore before the core runtime framework has
+>> resumed.
+>>
+>> Reported-by: J Keerthy <j-keerthy@ti.com>
+>> Signed-off-by: Nishanth Menon <nm@ti.com>
+>> Acked-by: Rajendra Nayak <rnayak@ti.com>
+>> Acked-by: Kevin Hilman <khilman@linaro.org>
 > 
-> diff --git a/Documentation/devicetree/bindings/power/isp1704.txt b/Documentation/devicetree/bindings/power/isp1704.txt
-> new file mode 100644
-> index 0000000..bbeec11
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/power/isp1704.txt
-> @@ -0,0 +1,17 @@
-> +Binding for NXP ISP1704 USB Charger Detection
-> +
-> +Required properties:
-> +- compatible: Should contain one of the following:
-> + * "nxp,isp1704"
-> +- nxp,enable-gpio: Should contain a phandle to the
+> Looks reasonable to me.  Looks like this should be considered for -stable 
+> - Nishanth, what do you think?
 
-Nit: phandle + gpio-specifier
+Every product kernel since 3.4 needed to be hacked (we have hacked in
+different ways so far) to work around this (since we never spend time
+digging deeper :( ), So, I do agree with your view that a -stable tag
+will be most beneficial.
 
-Otherwise this looks fine.
+> 
+> Tony or Kevin, do you want to take this one, or want me to?
+> 
+> 
+> - Paul
+> 
 
-Mark.
+
+-- 
+Regards,
+Nishanth Menon
