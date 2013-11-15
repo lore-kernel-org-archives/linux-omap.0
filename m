@@ -1,60 +1,77 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 00/11] Make omap24xx booting device tree based for
- v3.14 merge window
-Date: Fri, 15 Nov 2013 11:02:56 -0800
-Message-ID: <20131115190255.GB10317@atomide.com>
-References: <1384474198-20756-1-git-send-email-tony@atomide.com>
- <20131115184744.GA10997@blackmetal.musicnaut.iki.fi>
+Subject: [GIT PULL] omap fixes for v3.13 merge window
+Date: Fri, 15 Nov 2013 11:36:40 -0800
+Message-ID: <23060.6344216087$1384544215@news.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:52618 "EHLO
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:30939 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751566Ab3KOTDH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Nov 2013 14:03:07 -0500
+	with ESMTP id S1751220Ab3KOTgq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Nov 2013 14:36:46 -0500
 Content-Disposition: inline
-In-Reply-To: <20131115184744.GA10997@blackmetal.musicnaut.iki.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
+To: arm@kernel.org
 Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Aaro Koskinen <aaro.koskinen@iki.fi> [131115 10:48]:
-> Hi,
-> 
-> On Thu, Nov 14, 2013 at 04:09:47PM -0800, Tony Lindgren wrote:
-> > Here are some early patches for the v3.14 merge window to make
-> > omap2 booting device tree based before we make omap3 device
-> > tree only. Otherwise we cannot remove the shared platform data
-> > between omap2 and 3 for things like some hwmod entries.
-> > 
-> > I've added minimal support for 2430sdp to boot it to serial
-> > console with ethernet working, and kept n8x0 support using
-> > the legacy init for the drivers. Then the old H4 I have not
-> > updated as I'm not using it.
-> > 
-> > Hopefully if there are still people using n8x0 they can
-> > pick up the work from here on removing the rest of the legacy
-> > platform data init as we're planning to drop those things
-> > completely over next few merge cycles.
-> 
-> Thanks for the effort, I'll try to continue this work. You can add my
-> Tested-by for N8x0 bits.
-> 
-> > Note that these patches are against mainline commit 10d0c9705
-> > as there are few device tree related fixes to stuff the resources.   
-> > These also depend on the recently posted fixes series
-> > "[PATCH 0/8] Various omap device tree usability fixes for v3.13
-> > merge window"
-> 
-> I noticed one bug. If you disable MACH_NOKIA_N8X0 from .config, there
-> is a compilation failure:
-> 
-> arch/arm/mach-omap2/built-in.o: In function `omap2420_n8x0_legacy_init':
-> /home/aaro/git/linux/arch/arm/mach-omap2/pdata-quirks.c:76: undefined reference to `n8x0_legacy_init'
+The following changes since commit 10d0c9705e80bbd3d587c5fad24599aabaca6688:
 
-OK thanks for testing, I'll fix that.
+  Merge tag 'devicetree-for-3.13' of git://git.kernel.org/pub/scm/linux/kernel/git/robh/linux (2013-11-12 16:52:17 +0900)
 
-Regards,
+are available in the git repository at:
 
-Tony
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.13/fixes-for-merge-window-take2
+
+for you to fetch changes up to 26273e02a0cf18eb72416559310d3294390a9024:
+
+  ARM: OMAP2+: Fix build for dra7xx without omap4 and 5 (2013-11-15 08:27:29 -0800)
+
+----------------------------------------------------------------
+Few clock fixes, a runtime PM fix, and pinctrl-single fix along
+with few other fixes that popped up during the merge window.
+
+----------------------------------------------------------------
+Eric Witcher (1):
+      ARM: OMAP: devicetree: fix SPI node compatible property syntax items
+
+Joel Fernandes (1):
+      doc: devicetree: Add bindings documentation for omap-des driver
+
+Lokesh Vutla (1):
+      ARM: dts: doc: Document missing compatible property for omap-sham driver
+
+Nishanth Menon (1):
+      ARM: OMAP2+: omap_device: maintain sane runtime pm status around suspend/resume
+
+Roger Quadros (1):
+      pinctrl: single: call pcs_soc->rearm() whenever IRQ mask is changed
+
+Tomi Valkeinen (3):
+      ARM: OMAP4: use CLK_SET_RATE_PARENT for dss_dss_clk
+      ARM: OMAP3: use CLK_SET_RATE_PARENT for dss clocks
+      ARM: OMAP3: fix dpll4_m3_ck and dpll4_m4_ck dividers
+
+Tony Lindgren (2):
+      Merge tag 'for-v3.13/clock-fixes-a' of git://git.kernel.org/.../pjw/omap-pending into xxx-dt
+      ARM: OMAP2+: Fix build for dra7xx without omap4 and 5
+
+Wei Yongjun (2):
+      ARM: OMAP2+: smsc911x: fix return value check in gpmc_smsc911x_init()
+      ARM: OMAP3: Beagle: fix return value check in beagle_opp_init()
+
+ .../devicetree/bindings/crypto/omap-des.txt        | 30 +++++++++++
+ .../devicetree/bindings/crypto/omap-sham.txt       |  2 +-
+ Documentation/devicetree/bindings/spi/omap-spi.txt |  4 +-
+ arch/arm/mach-omap2/Makefile                       |  2 +-
+ arch/arm/mach-omap2/board-omap3beagle.c            |  2 +-
+ arch/arm/mach-omap2/cclock3xxx_data.c              | 58 ++++++++++++++++++----
+ arch/arm/mach-omap2/cclock44xx_data.c              |  3 +-
+ arch/arm/mach-omap2/gpmc-smsc911x.c                |  2 +-
+ arch/arm/mach-omap2/omap_device.c                  | 13 ++++-
+ arch/arm/mach-omap2/prm44xx_54xx.h                 |  3 +-
+ drivers/pinctrl/pinctrl-single.c                   | 10 ++--
+ 11 files changed, 103 insertions(+), 26 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/crypto/omap-des.txt
