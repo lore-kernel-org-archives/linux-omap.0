@@ -1,81 +1,29 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] omap fixes for v3.13 merge window
-Date: Fri, 15 Nov 2013 11:36:40 -0800
-Message-ID: <41430.2511992448$1384544240@news.gmane.org>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH V3] ARM: OMAP2+: omap_device: maintain sane runtime pm
+ status around suspend/resume
+Date: Fri, 15 Nov 2013 20:04:35 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1311152002500.25958@utopia.booyaka.com>
+References: <1384297710-29694-1-git-send-email-nm@ti.com> <1384448716-3186-1-git-send-email-nm@ti.com> <alpine.DEB.2.02.1311150806220.15980@utopia.booyaka.com> <528621E5.4030201@ti.com> <20131115143736.GW10317@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: arm@kernel.org
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20131115143736.GW10317@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Nishanth Menon <nm@ti.com>, rnayak@ti.com, khilman@linaro.org, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-The following changes since commit 10d0c9705e80bbd3d587c5fad24599aabaca6688:
+On Fri, 15 Nov 2013, Tony Lindgren wrote:
 
-  Merge tag 'devicetree-for-3.13' of git://git.kernel.org/pub/scm/linux/kernel/git/robh/linux (2013-11-12 16:52:17 +0900)
+> I can take it unless you have other fixes pending right now.
 
-are available in the git repository at:
+Ran a quick test with the patch applied on v3.12, results here:
+
+http://www.pwsan.com/omap/testlogs/test_nm_omap_device_fix_v3.12-rc/20131115123132/
+
+No other fixes queued here right now, so:
+
+Acked-by: Paul Walmsley <paul@pwsan.com>
 
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.13/fixes-for-merge-window-take2
-
-for you to fetch changes up to 26273e02a0cf18eb72416559310d3294390a9024:
-
-  ARM: OMAP2+: Fix build for dra7xx without omap4 and 5 (2013-11-15 08:27:29 -0800)
-
-----------------------------------------------------------------
-Few clock fixes, a runtime PM fix, and pinctrl-single fix along
-with few other fixes that popped up during the merge window.
-
-----------------------------------------------------------------
-Eric Witcher (1):
-      ARM: OMAP: devicetree: fix SPI node compatible property syntax items
-
-Joel Fernandes (1):
-      doc: devicetree: Add bindings documentation for omap-des driver
-
-Lokesh Vutla (1):
-      ARM: dts: doc: Document missing compatible property for omap-sham driver
-
-Nishanth Menon (1):
-      ARM: OMAP2+: omap_device: maintain sane runtime pm status around suspend/resume
-
-Roger Quadros (1):
-      pinctrl: single: call pcs_soc->rearm() whenever IRQ mask is changed
-
-Tomi Valkeinen (3):
-      ARM: OMAP4: use CLK_SET_RATE_PARENT for dss_dss_clk
-      ARM: OMAP3: use CLK_SET_RATE_PARENT for dss clocks
-      ARM: OMAP3: fix dpll4_m3_ck and dpll4_m4_ck dividers
-
-Tony Lindgren (2):
-      Merge tag 'for-v3.13/clock-fixes-a' of git://git.kernel.org/.../pjw/omap-pending into xxx-dt
-      ARM: OMAP2+: Fix build for dra7xx without omap4 and 5
-
-Wei Yongjun (2):
-      ARM: OMAP2+: smsc911x: fix return value check in gpmc_smsc911x_init()
-      ARM: OMAP3: Beagle: fix return value check in beagle_opp_init()
-
- .../devicetree/bindings/crypto/omap-des.txt        | 30 +++++++++++
- .../devicetree/bindings/crypto/omap-sham.txt       |  2 +-
- Documentation/devicetree/bindings/spi/omap-spi.txt |  4 +-
- arch/arm/mach-omap2/Makefile                       |  2 +-
- arch/arm/mach-omap2/board-omap3beagle.c            |  2 +-
- arch/arm/mach-omap2/cclock3xxx_data.c              | 58 ++++++++++++++++++----
- arch/arm/mach-omap2/cclock44xx_data.c              |  3 +-
- arch/arm/mach-omap2/gpmc-smsc911x.c                |  2 +-
- arch/arm/mach-omap2/omap_device.c                  | 13 ++++-
- arch/arm/mach-omap2/prm44xx_54xx.h                 |  3 +-
- drivers/pinctrl/pinctrl-single.c                   | 10 ++--
- 11 files changed, 103 insertions(+), 26 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/crypto/omap-des.txt
+- Paul
