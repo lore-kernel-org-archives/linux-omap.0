@@ -1,32 +1,60 @@
-From: Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
-Subject: Re: [PATCH 9/8] i2c: Fix device tree binding for i2c-cbus-gpio
-Date: Fri, 15 Nov 2013 20:49:46 +0200
-Message-ID: <20131115184946.GB10997@blackmetal.musicnaut.iki.fi>
-References: <1384396537-3486-1-git-send-email-tony@atomide.com>
- <20131114230842.GU10317@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 00/11] Make omap24xx booting device tree based for
+ v3.14 merge window
+Date: Fri, 15 Nov 2013 11:02:56 -0800
+Message-ID: <20131115190255.GB10317@atomide.com>
+References: <1384474198-20756-1-git-send-email-tony@atomide.com>
+ <20131115184744.GA10997@blackmetal.musicnaut.iki.fi>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:52618 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751566Ab3KOTDH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Nov 2013 14:03:07 -0500
 Content-Disposition: inline
-In-Reply-To: <20131114230842.GU10317-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
+In-Reply-To: <20131115184744.GA10997@blackmetal.musicnaut.iki.fi>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Hi,
-
-On Thu, Nov 14, 2013 at 03:08:42PM -0800, Tony Lindgren wrote:
-> Looks like we're missing two lines needed to make it
-> work properly with device tree.
+* Aaro Koskinen <aaro.koskinen@iki.fi> [131115 10:48]:
+> Hi,
 > 
-> Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Cc: Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
+> On Thu, Nov 14, 2013 at 04:09:47PM -0800, Tony Lindgren wrote:
+> > Here are some early patches for the v3.14 merge window to make
+> > omap2 booting device tree based before we make omap3 device
+> > tree only. Otherwise we cannot remove the shared platform data
+> > between omap2 and 3 for things like some hwmod entries.
+> > 
+> > I've added minimal support for 2430sdp to boot it to serial
+> > console with ethernet working, and kept n8x0 support using
+> > the legacy init for the drivers. Then the old H4 I have not
+> > updated as I'm not using it.
+> > 
+> > Hopefully if there are still people using n8x0 they can
+> > pick up the work from here on removing the rest of the legacy
+> > platform data init as we're planning to drop those things
+> > completely over next few merge cycles.
+> 
+> Thanks for the effort, I'll try to continue this work. You can add my
+> Tested-by for N8x0 bits.
+> 
+> > Note that these patches are against mainline commit 10d0c9705
+> > as there are few device tree related fixes to stuff the resources.   
+> > These also depend on the recently posted fixes series
+> > "[PATCH 0/8] Various omap device tree usability fixes for v3.13
+> > merge window"
+> 
+> I noticed one bug. If you disable MACH_NOKIA_N8X0 from .config, there
+> is a compilation failure:
+> 
+> arch/arm/mach-omap2/built-in.o: In function `omap2420_n8x0_legacy_init':
+> /home/aaro/git/linux/arch/arm/mach-omap2/pdata-quirks.c:76: undefined reference to `n8x0_legacy_init'
 
-You can change this to: Tested-by: <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
+OK thanks for testing, I'll fix that.
 
-I booted DT-N800 with Tony's patches, and it works.
+Regards,
 
-Thanks,
-
-A.
+Tony
