@@ -1,73 +1,75 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH v2] ARM: OMAP4460: cpuidle: Extend PM_OMAP4_ROM_SMP_BOOT_ERRATUM_GICD
- on cpuidle
-Date: Fri, 15 Nov 2013 11:12:59 -0500
-Message-ID: <5286480B.3060801@ti.com>
-References: <1382467484-16957-1-git-send-email-grygorii.strashko@ti.com> <5266CCE3.1090801@ti.com> <20131114183535.GL10317@atomide.com> <20131115153608.GX10317@atomide.com> <52864585.6030206@linaro.org> <20131115161137.GY10317@atomide.com>
+From: Cedric Le Goater <clg@fr.ibm.com>
+Subject: Re: [PATCH 16/51] DMA-API: ppc: vio.c: replace dma_set_mask()+dma_set_coherent_mask()
+ with new helper
+Date: Fri, 15 Nov 2013 17:16:55 +0100
+Message-ID: <528648F7.20900@fr.ibm.com>
+References: <20130919212235.GD12758@n2100.arm.linux.org.uk> <E1VMly8-0007gy-Ru@rmk-PC.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:40795 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751453Ab3KOQNY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 15 Nov 2013 11:13:24 -0500
-In-Reply-To: <20131115161137.GY10317@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-crypto-owner@vger.kernel.org>
+In-Reply-To: <E1VMly8-0007gy-Ru@rmk-PC.arm.linux.org.uk>
+Sender: linux-crypto-owner@vger.kernel.org
+To: Russell King <rmk+kernel@arm.linux.org.uk>
+Cc: alsa-devel@alsa-project.org, b43-dev@lists.infradead.org, devel@driverdev.osuosl.org, devicetree@vger.kernel.org, dri-devel@lists.freedesktop.org, e1000-devel@lists.sourceforge.net, linux-arm-kernel@lists.infradead.org, linux-crypto@vger.kernel.org, linux-doc@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-ide@vger.kernel.org, linux-media@vger.kernel.org, linux-mmc@vger.kernel.org, linux-nvme@lists.infradead.org, linux-omap@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-samsung-soc@vger.kernel.org, linux-scsi@vger.kernel.org, linux-tegra@vger.kernel.org, linux-usb@vger.kernel.org, linux-wireless@vger.kernel.org, netdev@vger.kernel.org, Solarflare linux maintainers <linux-net-drivers@solarflare.com>, uclinux-dist-devel@blackfin.uclinux.org, Paul Mackerras <paulus@samba.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Taras Kondratiuk <taras.kondratiuk@linaro.org>, Grygorii Strashko <grygorii.strashko@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@linaro.org>, open list <linux-kernel@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-On Friday 15 November 2013 11:11 AM, Tony Lindgren wrote:
-> * Taras Kondratiuk <taras.kondratiuk@linaro.org> [131115 08:03]:
->> On 11/15/2013 05:36 PM, Tony Lindgren wrote:
->>> * Tony Lindgren <tony@atomide.com> [131114 10:36]:
->>>> * Grygorii Strashko <grygorii.strashko@ti.com> [131022 12:09]:
->>>>> The same workaround as ff999b8a0983ee15668394ed49e38d3568fc6859
->>>>> "ARM: OMAP4460: Workaround for ROM bug because of CA9 r2pX GIC ..."
->>>>> need to be applied not only when system is booting, but when MPUSS hits
->>>>> OSWR state through CPUIdle too. Without this WA the same issue is
->>>>> reproduced now on boards PandaES and Tablet/Blaze with SOM OMAP4460
->>>>> when CONFIG_CPU_IDLE is enabled.
->>>>> After MPUSS has enterred OSWR and waken up:
->>>>> - GIC distributor became disabled forever
->>>>> - scheduling is not performed any more
->>>>>
->>>>> Cc: Kevin Hilman <khilman@linaro.org>
->>>>> Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
->>>>> Reported-by: Taras Kondratiuk <taras.kondratiuk@linaro.org>
->>>>> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
->>>>
->>>> Applying into omap-for-v3.13/fixes thanks.
->>>
->>> Hmm looks like this breaks the build with randconfigs at least
->>> with the attached .config, so dropping for now.
->>
->> Hi Tony
->> Have you forgot to attach .config?
-> 
-> Oops, sorry looks like I removed it already as I rebuilt the tree
-> and started a new set of randconfig build tests.
->  
->>> arch/arm/mach-omap2/built-in.o: In function `omap_enter_idle_coupled':
->>> :(.text+0xb48c): undefined reference to `pm44xx_errata'
->>
->> I assume that .config doesn't have CONFIG_SMP enabled while
->> pm44xx_errata is defined in omap-smp.c.
->> I think it should be a separate patch to move pm44xx_errata somewhere
->> else, so this patch will remain the same.
-> 
-> Yes something like that probably. Sounds like that should be then
-> patches before this fix.
->  
->> Btw, do we need omap_enter_idle_coupled() in UP?
-> 
-> That should be checked, am43xx may need it.
-> 
-Nope. omap_enter_idle_coupled() is needed only for SMP
-systems. UP don't need couple idle functionality as
-such.
+Hi,=20
 
-Regards,
-Santosh
+On 09/19/2013 11:41 PM, Russell King wrote:
+> Replace the following sequence:
+>=20
+> 	dma_set_mask(dev, mask);
+> 	dma_set_coherent_mask(dev, mask);
+>=20
+> with a call to the new helper dma_set_mask_and_coherent().
+>=20
+> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+> ---
+>  arch/powerpc/kernel/vio.c |    3 +--
+>  1 files changed, 1 insertions(+), 2 deletions(-)
+>=20
+> diff --git a/arch/powerpc/kernel/vio.c b/arch/powerpc/kernel/vio.c
+> index 78a3506..96b6c97 100644
+> --- a/arch/powerpc/kernel/vio.c
+> +++ b/arch/powerpc/kernel/vio.c
+> @@ -1413,8 +1413,7 @@ struct vio_dev *vio_register_device_node(struct=
+ device_node *of_node)
+>=20
+>  		/* needed to ensure proper operation of coherent allocations
+>  		 * later, in case driver doesn't set it explicitly */
+> -		dma_set_mask(&viodev->dev, DMA_BIT_MASK(64));
+> -		dma_set_coherent_mask(&viodev->dev, DMA_BIT_MASK(64));
+> +		dma_set_mask_and_coherent(&viodev->dev, DMA_BIT_MASK(64));
+>  	}
+>=20
+>  	/* register with generic device framework */
+>=20
 
+The new helper routine dma_set_mask_and_coherent() breaks the=20
+initialization of the pseries vio devices which do not have an=20
+initial dev->dma_mask. I think we need to use dma_coerce_mask_and_coher=
+ent()
+instead.
+
+Signed-off-by: C=E9dric Le Goater <clg@fr.ibm.com>
+---
+ arch/powerpc/kernel/vio.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/powerpc/kernel/vio.c b/arch/powerpc/kernel/vio.c
+index e7d0c88f..76a6482 100644
+--- a/arch/powerpc/kernel/vio.c
++++ b/arch/powerpc/kernel/vio.c
+@@ -1419,7 +1419,7 @@ struct vio_dev *vio_register_device_node(struct d=
+evice_node *of_node)
+=20
+ 		/* needed to ensure proper operation of coherent allocations
+ 		 * later, in case driver doesn't set it explicitly */
+-		dma_set_mask_and_coherent(&viodev->dev, DMA_BIT_MASK(64));
++		dma_coerce_mask_and_coherent(&viodev->dev, DMA_BIT_MASK(64));
+ 	}
+=20
+ 	/* register with generic device framework */
+--=20
+1.7.10.4
