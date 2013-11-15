@@ -1,75 +1,57 @@
-From: Cedric Le Goater <clg@fr.ibm.com>
-Subject: Re: [PATCH 16/51] DMA-API: ppc: vio.c: replace dma_set_mask()+dma_set_coherent_mask()
- with new helper
-Date: Fri, 15 Nov 2013 17:16:55 +0100
-Message-ID: <528648F7.20900@fr.ibm.com>
-References: <20130919212235.GD12758@n2100.arm.linux.org.uk> <E1VMly8-0007gy-Ru@rmk-PC.arm.linux.org.uk>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH] ARM: OMAP2+: Fix build for dra7xx without omap4 and 5
+Date: Fri, 15 Nov 2013 08:31:07 -0800
+Message-ID: <20131115163107.GZ10317@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-crypto-owner@vger.kernel.org>
-In-Reply-To: <E1VMly8-0007gy-Ru@rmk-PC.arm.linux.org.uk>
-Sender: linux-crypto-owner@vger.kernel.org
-To: Russell King <rmk+kernel@arm.linux.org.uk>
-Cc: alsa-devel@alsa-project.org, b43-dev@lists.infradead.org, devel@driverdev.osuosl.org, devicetree@vger.kernel.org, dri-devel@lists.freedesktop.org, e1000-devel@lists.sourceforge.net, linux-arm-kernel@lists.infradead.org, linux-crypto@vger.kernel.org, linux-doc@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-ide@vger.kernel.org, linux-media@vger.kernel.org, linux-mmc@vger.kernel.org, linux-nvme@lists.infradead.org, linux-omap@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-samsung-soc@vger.kernel.org, linux-scsi@vger.kernel.org, linux-tegra@vger.kernel.org, linux-usb@vger.kernel.org, linux-wireless@vger.kernel.org, netdev@vger.kernel.org, Solarflare linux maintainers <linux-net-drivers@solarflare.com>, uclinux-dist-devel@blackfin.uclinux.org, Paul Mackerras <paulus@samba.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:43205 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751416Ab3KOQbM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Nov 2013 11:31:12 -0500
+Content-Disposition: inline
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org
 
-Hi,=20
+Otherwise we can get errors like:
 
-On 09/19/2013 11:41 PM, Russell King wrote:
-> Replace the following sequence:
->=20
-> 	dma_set_mask(dev, mask);
-> 	dma_set_coherent_mask(dev, mask);
->=20
-> with a call to the new helper dma_set_mask_and_coherent().
->=20
-> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
-> ---
->  arch/powerpc/kernel/vio.c |    3 +--
->  1 files changed, 1 insertions(+), 2 deletions(-)
->=20
-> diff --git a/arch/powerpc/kernel/vio.c b/arch/powerpc/kernel/vio.c
-> index 78a3506..96b6c97 100644
-> --- a/arch/powerpc/kernel/vio.c
-> +++ b/arch/powerpc/kernel/vio.c
-> @@ -1413,8 +1413,7 @@ struct vio_dev *vio_register_device_node(struct=
- device_node *of_node)
->=20
->  		/* needed to ensure proper operation of coherent allocations
->  		 * later, in case driver doesn't set it explicitly */
-> -		dma_set_mask(&viodev->dev, DMA_BIT_MASK(64));
-> -		dma_set_coherent_mask(&viodev->dev, DMA_BIT_MASK(64));
-> +		dma_set_mask_and_coherent(&viodev->dev, DMA_BIT_MASK(64));
->  	}
->=20
->  	/* register with generic device framework */
->=20
+arch/arm/mach-omap2/prm44xx.c:274: error: redefinition of =E2=80=98omap=
+44xx_prm_reconfigure_io_chain=E2=80=99
+arch/arm/mach-omap2/built-in.o: In function `default_finish_suspend':
+arch/arm/mach-omap2/omap-mpuss-lowpower.c:95: undefined reference to `o=
+map_do_wfi'
 
-The new helper routine dma_set_mask_and_coherent() breaks the=20
-initialization of the pseries vio devices which do not have an=20
-initial dev->dma_mask. I think we need to use dma_coerce_mask_and_coher=
-ent()
-instead.
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-Signed-off-by: C=E9dric Le Goater <clg@fr.ibm.com>
----
- arch/powerpc/kernel/vio.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/arch/powerpc/kernel/vio.c b/arch/powerpc/kernel/vio.c
-index e7d0c88f..76a6482 100644
---- a/arch/powerpc/kernel/vio.c
-+++ b/arch/powerpc/kernel/vio.c
-@@ -1419,7 +1419,7 @@ struct vio_dev *vio_register_device_node(struct d=
-evice_node *of_node)
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -40,7 +40,7 @@ omap-4-5-common				=3D  omap4-common.o omap-wakeupgen=
+=2Eo
+ obj-$(CONFIG_ARCH_OMAP4)		+=3D $(omap-4-5-common) $(smp-y) sleep44xx.o
+ obj-$(CONFIG_SOC_OMAP5)			+=3D $(omap-4-5-common) $(smp-y) sleep44xx.o
+ obj-$(CONFIG_SOC_AM43XX)		+=3D $(omap-4-5-common)
+-obj-$(CONFIG_SOC_DRA7XX)		+=3D $(omap-4-5-common) $(smp-y)
++obj-$(CONFIG_SOC_DRA7XX)		+=3D $(omap-4-5-common) $(smp-y) sleep44xx.o
 =20
- 		/* needed to ensure proper operation of coherent allocations
- 		 * later, in case driver doesn't set it explicitly */
--		dma_set_mask_and_coherent(&viodev->dev, DMA_BIT_MASK(64));
-+		dma_coerce_mask_and_coherent(&viodev->dev, DMA_BIT_MASK(64));
- 	}
+ plus_sec :=3D $(call as-instr,.arch_extension sec,+sec)
+ AFLAGS_omap-headsmp.o			:=3D-Wa,-march=3Darmv7-a$(plus_sec)
+--- a/arch/arm/mach-omap2/prm44xx_54xx.h
++++ b/arch/arm/mach-omap2/prm44xx_54xx.h
+@@ -42,7 +42,8 @@ extern u32 omap4_prm_vcvp_read(u8 offset);
+ extern void omap4_prm_vcvp_write(u32 val, u8 offset);
+ extern u32 omap4_prm_vcvp_rmw(u32 mask, u32 bits, u8 offset);
 =20
- 	/* register with generic device framework */
---=20
-1.7.10.4
+-#if defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_SOC_OMAP5)
++#if defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_SOC_OMAP5) || \
++	defined(CONFIG_SOC_DRA7XX)
+ void omap44xx_prm_reconfigure_io_chain(void);
+ #else
+ static inline void omap44xx_prm_reconfigure_io_chain(void)
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
