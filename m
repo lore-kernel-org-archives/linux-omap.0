@@ -1,152 +1,116 @@
 From: Taras Kondratiuk <taras.kondratiuk@linaro.org>
-Subject: [RFC 21/23] ARM: OMAP4: sleep: byteswap data for big-endian
-Date: Sat, 16 Nov 2013 02:01:24 +0200
-Message-ID: <1384560086-11994-22-git-send-email-taras.kondratiuk@linaro.org>
+Subject: [RFC 16/23] ASoC: omap: mcbsp, mcpdm, dmic: raw read and write endian fix
+Date: Sat, 16 Nov 2013 02:01:19 +0200
+Message-ID: <1384560086-11994-17-git-send-email-taras.kondratiuk@linaro.org>
 References: <1384560086-11994-1-git-send-email-taras.kondratiuk@linaro.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1384560086-11994-1-git-send-email-taras.kondratiuk@linaro.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: linaro-networking@linaro.org, Victor Kamensky <victor.kamensky@linaro.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Cc: linaro-networking@linaro.org, Victor Kamensky <victor.kamensky@linaro.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>, alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 From: Victor Kamensky <victor.kamensky@linaro.org>
 
-Assembler functions defined in sleep44xx.S need to byteswap values
-after read / before write from h/w register if code compiled in big
-endian mode. Simple change to do 'rev x, x' before str instruction
-and after ldr instruction that deals with h/w registers.
+All OMAP IP blocks expect LE data, but CPU may operate in BE mode.
+Need to use endian neutral functions to read/write h/w registers.
+I.e instead of __raw_read[lw] and __raw_write[lw] functions code
+need to use read[lw]_relaxed and write[lw]_relaxed functions.
+If the first simply reads/writes register, the second will byteswap
+it if host operates in BE mode.
+
+Changes are trivial sed like replacement of __raw_xxx functions
+with xxx_relaxed variant.
 
 Signed-off-by: Victor Kamensky <victor.kamensky@linaro.org>
 Signed-off-by: Taras Kondratiuk <taras.kondratiuk@linaro.org>
 ---
- arch/arm/mach-omap2/sleep44xx.S |   17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+ sound/soc/omap/mcbsp.c      |   12 ++++++------
+ sound/soc/omap/omap-dmic.c  |    4 ++--
+ sound/soc/omap/omap-mcpdm.c |    4 ++--
+ 3 files changed, 10 insertions(+), 10 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/sleep44xx.S b/arch/arm/mach-omap2/sleep44xx.S
-index 9086ce0..8017016 100644
---- a/arch/arm/mach-omap2/sleep44xx.S
-+++ b/arch/arm/mach-omap2/sleep44xx.S
-@@ -12,6 +12,7 @@
- #include <linux/linkage.h>
- #include <asm/smp_scu.h>
- #include <asm/memory.h>
-+#include <asm/assembler.h>
- #include <asm/hardware/cache-l2x0.h>
+diff --git a/sound/soc/omap/mcbsp.c b/sound/soc/omap/mcbsp.c
+index 83433fd..86c7538 100644
+--- a/sound/soc/omap/mcbsp.c
++++ b/sound/soc/omap/mcbsp.c
+@@ -36,10 +36,10 @@ static void omap_mcbsp_write(struct omap_mcbsp *mcbsp, u16 reg, u32 val)
  
- #include "omap-secure.h"
-@@ -74,6 +75,7 @@ ENTRY(omap4_finish_suspend)
- 	 */
- 	bl	omap4_get_sar_ram_base
- 	ldr	r9, [r0, #OMAP_TYPE_OFFSET]
-+ARM_BE8(rev	r9, r9)
- 	cmp	r9, #0x1			@ Check for HS device
- 	bne	skip_secure_l1_clean
- 	mov	r0, #SCU_PM_NORMAL
-@@ -113,12 +115,14 @@ skip_secure_l1_clean:
- 	bl	omap4_get_sar_ram_base
- 	mov	r8, r0
- 	ldr	r9, [r8, #OMAP_TYPE_OFFSET]
-+ARM_BE8(rev	r9, r9)
- 	cmp	r9, #0x1			@ Check for HS device
- 	bne	scu_gp_set
- 	mrc	p15, 0, r0, c0, c0, 5		@ Read MPIDR
- 	ands	r0, r0, #0x0f
- 	ldreq	r0, [r8, #SCU_OFFSET0]
- 	ldrne	r0, [r8, #SCU_OFFSET1]
-+ARM_BE8(rev	r0, r0)
- 	mov	r1, #0x00
- 	stmfd   r13!, {r4-r12, r14}
- 	ldr	r12, =OMAP4_MON_SCU_PWR_INDEX
-@@ -130,6 +134,7 @@ scu_gp_set:
- 	ands	r0, r0, #0x0f
- 	ldreq	r1, [r8, #SCU_OFFSET0]
- 	ldrne	r1, [r8, #SCU_OFFSET1]
-+ARM_BE8(rev	r1, r1)
- 	bl	omap4_get_scu_base
- 	bl	scu_power_mode
- skip_scu_gp_set:
-@@ -157,6 +162,7 @@ skip_scu_gp_set:
- 	ands	r5, r5, #0x0f
- 	ldreq	r0, [r8, #L2X0_SAVE_OFFSET0]	@ Retrieve L2 state from SAR
- 	ldrne	r0, [r8, #L2X0_SAVE_OFFSET1]	@ memory.
-+ARM_BE8(rev	r0, r0)
- 	cmp	r0, #3
- 	bne	do_WFI
- #ifdef CONFIG_PL310_ERRATA_727915
-@@ -167,9 +173,11 @@ skip_scu_gp_set:
- 	bl	omap4_get_l2cache_base
- 	mov	r2, r0
- 	ldr	r0, =0xffff
-+ARM_BE8(rev	r0, r0)
- 	str	r0, [r2, #L2X0_CLEAN_INV_WAY]
- wait:
- 	ldr	r0, [r2, #L2X0_CLEAN_INV_WAY]
-+ARM_BE8(rev	r0, r0)
- 	ldr	r1, =0xffff
- 	ands	r0, r0, r1
- 	bne	wait
-@@ -182,9 +190,11 @@ l2x_sync:
- 	bl	omap4_get_l2cache_base
- 	mov	r2, r0
- 	mov	r0, #0x0
-+ARM_BE8(rev	r0, r0)
- 	str	r0, [r2, #L2X0_CACHE_SYNC]
- sync:
- 	ldr	r0, [r2, #L2X0_CACHE_SYNC]
-+ARM_BE8(rev	r0, r0)
- 	ands	r0, r0, #0x1
- 	bne	sync
- #endif
-@@ -216,6 +226,7 @@ do_WFI:
- 	bl	omap4_get_sar_ram_base
- 	mov	r8, r0
- 	ldr	r9, [r8, #OMAP_TYPE_OFFSET]
-+ARM_BE8(rev	r9, r9)
- 	cmp	r9, #0x1			@ Check for HS device
- 	bne	scu_gp_clear
- 	mov	r0, #SCU_PM_NORMAL
-@@ -258,6 +269,7 @@ ENTRY(omap4_cpu_resume)
- 	 */
- 	ldr	r8, =OMAP44XX_SAR_RAM_BASE
- 	ldr	r9, [r8, #OMAP_TYPE_OFFSET]
-+ARM_BE8(rev	r9, r9)
- 	cmp	r9, #0x1			@ Skip if GP device
- 	bne	skip_ns_smp_enable
- 	mrc     p15, 0, r0, c0, c0, 5
-@@ -292,16 +304,19 @@ skip_ns_smp_enable:
- 	 */
- 	ldr	r2, =OMAP44XX_L2CACHE_BASE
- 	ldr	r0, [r2, #L2X0_CTRL]
-+ARM_BE8(rev	r0, r0)
- 	and	r0, #0x0f
- 	cmp	r0, #1
- 	beq	skip_l2en			@ Skip if already enabled
- 	ldr	r3, =OMAP44XX_SAR_RAM_BASE
- 	ldr	r1, [r3, #OMAP_TYPE_OFFSET]
-+ARM_BE8(rev	r1, r1)
- 	cmp	r1, #0x1			@ Check for HS device
- 	bne     set_gp_por
- 	ldr     r0, =OMAP4_PPA_L2_POR_INDEX
- 	ldr     r1, =OMAP44XX_SAR_RAM_BASE
- 	ldr     r4, [r1, #L2X0_PREFETCH_CTRL_OFFSET]
-+ARM_BE8(rev	r4, r4)
- 	adr     r3, ppa_por_params
- 	str     r4, [r3, #0x04]
- 	mov	r1, #0x0			@ Process ID
-@@ -313,11 +328,13 @@ skip_ns_smp_enable:
- set_gp_por:
- 	ldr     r1, =OMAP44XX_SAR_RAM_BASE
- 	ldr     r0, [r1, #L2X0_PREFETCH_CTRL_OFFSET]
-+ARM_BE8(rev	r0, r0)
- 	ldr	r12, =OMAP4_MON_L2X0_PREFETCH_INDEX	@ Setup L2 PREFETCH
- 	DO_SMC
- set_aux_ctrl:
- 	ldr     r1, =OMAP44XX_SAR_RAM_BASE
- 	ldr	r0, [r1, #L2X0_AUXCTRL_OFFSET]
-+ARM_BE8(rev	r0, r0)
- 	ldr	r12, =OMAP4_MON_L2X0_AUXCTRL_INDEX	@ Setup L2 AUXCTRL
- 	DO_SMC
- 	mov	r0, #0x1
+ 	if (mcbsp->pdata->reg_size == 2) {
+ 		((u16 *)mcbsp->reg_cache)[reg] = (u16)val;
+-		__raw_writew((u16)val, addr);
++		writew_relaxed((u16)val, addr);
+ 	} else {
+ 		((u32 *)mcbsp->reg_cache)[reg] = val;
+-		__raw_writel(val, addr);
++		writel_relaxed(val, addr);
+ 	}
+ }
+ 
+@@ -48,22 +48,22 @@ static int omap_mcbsp_read(struct omap_mcbsp *mcbsp, u16 reg, bool from_cache)
+ 	void __iomem *addr = mcbsp->io_base + reg * mcbsp->pdata->reg_step;
+ 
+ 	if (mcbsp->pdata->reg_size == 2) {
+-		return !from_cache ? __raw_readw(addr) :
++		return !from_cache ? readw_relaxed(addr) :
+ 				     ((u16 *)mcbsp->reg_cache)[reg];
+ 	} else {
+-		return !from_cache ? __raw_readl(addr) :
++		return !from_cache ? readl_relaxed(addr) :
+ 				     ((u32 *)mcbsp->reg_cache)[reg];
+ 	}
+ }
+ 
+ static void omap_mcbsp_st_write(struct omap_mcbsp *mcbsp, u16 reg, u32 val)
+ {
+-	__raw_writel(val, mcbsp->st_data->io_base_st + reg);
++	writel_relaxed(val, mcbsp->st_data->io_base_st + reg);
+ }
+ 
+ static int omap_mcbsp_st_read(struct omap_mcbsp *mcbsp, u16 reg)
+ {
+-	return __raw_readl(mcbsp->st_data->io_base_st + reg);
++	return readl_relaxed(mcbsp->st_data->io_base_st + reg);
+ }
+ 
+ #define MCBSP_READ(mcbsp, reg) \
+diff --git a/sound/soc/omap/omap-dmic.c b/sound/soc/omap/omap-dmic.c
+index 12e566b..1bd531d 100644
+--- a/sound/soc/omap/omap-dmic.c
++++ b/sound/soc/omap/omap-dmic.c
+@@ -61,12 +61,12 @@ struct omap_dmic {
+ 
+ static inline void omap_dmic_write(struct omap_dmic *dmic, u16 reg, u32 val)
+ {
+-	__raw_writel(val, dmic->io_base + reg);
++	writel_relaxed(val, dmic->io_base + reg);
+ }
+ 
+ static inline int omap_dmic_read(struct omap_dmic *dmic, u16 reg)
+ {
+-	return __raw_readl(dmic->io_base + reg);
++	return readl_relaxed(dmic->io_base + reg);
+ }
+ 
+ static inline void omap_dmic_start(struct omap_dmic *dmic)
+diff --git a/sound/soc/omap/omap-mcpdm.c b/sound/soc/omap/omap-mcpdm.c
+index 90d2a7c..653ba1c 100644
+--- a/sound/soc/omap/omap-mcpdm.c
++++ b/sound/soc/omap/omap-mcpdm.c
+@@ -74,12 +74,12 @@ struct omap_mcpdm {
+ 
+ static inline void omap_mcpdm_write(struct omap_mcpdm *mcpdm, u16 reg, u32 val)
+ {
+-	__raw_writel(val, mcpdm->io_base + reg);
++	writel_relaxed(val, mcpdm->io_base + reg);
+ }
+ 
+ static inline int omap_mcpdm_read(struct omap_mcpdm *mcpdm, u16 reg)
+ {
+-	return __raw_readl(mcpdm->io_base + reg);
++	return readl_relaxed(mcpdm->io_base + reg);
+ }
+ 
+ #ifdef DEBUG
 -- 
 1.7.9.5
