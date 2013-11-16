@@ -1,62 +1,111 @@
-From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [RFC 13/23] spi: omap2-mcspi: raw read and write endian fix
-Date: Sat, 16 Nov 2013 10:19:22 +0000
-Message-ID: <20131116101922.GL15393@sirena.org.uk>
-References: <1384560086-11994-1-git-send-email-taras.kondratiuk@linaro.org>
- <1384560086-11994-14-git-send-email-taras.kondratiuk@linaro.org>
+From: Sebastian Reichel <sre@debian.org>
+Subject: N900 board code in 3.14
+Date: Sat, 16 Nov 2013 12:05:11 +0000
+Message-ID: <20131116120508.GA22335@earth.universe>
+References: <1384562167-14725-1-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Qgd2S+2VS1hsWwXW"
-Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="gBBFr7Ir9EOA20Yy"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from ring0.de ([91.143.88.219]:36189 "EHLO smtp.ring0.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751040Ab3KPMFo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 16 Nov 2013 07:05:44 -0500
 Content-Disposition: inline
-In-Reply-To: <1384560086-11994-14-git-send-email-taras.kondratiuk-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Taras Kondratiuk <taras.kondratiuk-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linaro-networking-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, Victor Kamensky <victor.kamensky-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <1384562167-14725-1-git-send-email-tony@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
 
---Qgd2S+2VS1hsWwXW
+--gBBFr7Ir9EOA20Yy
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Sat, Nov 16, 2013 at 02:01:16AM +0200, Taras Kondratiuk wrote:
-> From: Victor Kamensky <victor.kamensky-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
->=20
-> All OMAP IP blocks expect LE data, but CPU may operate in BE mode.
-> Need to use endian neutral functions to read/write h/w registers.
-> I.e instead of __raw_read[lw] and __raw_write[lw] functions code
-> need to use read[lw]_relaxed and write[lw]_relaxed functions.
-> If the first simply reads/writes register, the second will byteswap
-> it if host operates in BE mode.
+Hi Tony,
 
-Applied, thanks.
+On Fri, Nov 15, 2013 at 04:36:02PM -0800, Tony Lindgren wrote:
+> Here are few patches to deal with the mix of legacy platform data
+> and device tree that we still need to do at least until DSS has
+> device tree bindings. These patches should allow the remaining
+> omap3 boards to be made device tree only so we can remove the
+> board-*.c files.
 
---Qgd2S+2VS1hsWwXW
+Do you plan to remove the Nokia N900 board code in 3.14, too?
+
+I see two big issues with that:
+ a) Using DT boot the display is currently not working.
+ b) I could not get the 32GB eMMC working. For me the chip is not found
+    and I don't know how to debug it.
+
+There are two reasons for broken display:
+
+1. omap_mux_init_gpio(RX51_LCD_RESET_GPIO, OMAP_PIN_OUTPUT) fails.
+   This can be fixed by simply not calling it in DT mode. DT data
+   contains pinmux information for this from 3.13 onwards [0].
+2. The spi panel driver is not probed.
+
+I have a local hack to probe the panel driver via DT. I changed the
+display node to look as follows:
+
+&mcspi1 {
+    /* ... tsc2005 ... */
+
+    mipid@2 {
+        compatible = "sony,acx565akm";
+        spi-max-frequency = <6000000>;
+        reg = <2>;
+        vdds_sdi-supply = <&vaux1>;
+        label = "lcd";
+        reset-gpio = <&gpio3 26 GPIO_ACTIVE_HIGH>; /* 90 */
+        ti,sdi-datapairs = <2>;
+        ti,dss-source = "sdi.0";
+        pinctrl-names = "default";
+        pinctrl-0 = <&display_pins>;
+    };
+};
+
+Then I changed the acx565akm panel driver to get data from DT
+and the DSS to get SDI regulator from the panel. This is
+obviously not the way to got, so I wonder how to proceed.
+omapdss DT seems not to be ready for the next kernel releases.
+
+My suggestion would be:
+ 1. Find a better workaround for omapdss to acquire the SDI
+    regulator. My current hack is obviously not acceptable.
+ 2. Load the panel driver via DT as seen above and reference
+    the omapdss interface with something like the above
+    "ti,dss-source".
+
+This is obviously not a stable DT interface, but that's also the case if
+everything is done via platform quirks: An old DT file without any display
+stuff in it would not work with a newer kernel without the quirks.
+
+[0] https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=d1e6f51646f2bed16826fd8e4fc1b5f4188d086e
+
+-- Sebastian
+
+--gBBFr7Ir9EOA20Yy
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
+Version: GnuPG v1.4.15 (GNU/Linux)
 
-iQIcBAEBAgAGBQJSh0ahAAoJELSic+t+oim9d6sQAJ2WAD+rogo+Y8PLKc30XOL4
-jVj7dmC8Mj9yDgZOpyW1YsOwVv55BgCzeXlbBLwOHlgl3o1jl+KObUQ5JfzYLVX5
-SfYPmjOPKoRYhptQBb4q15XbaiW8JNoX3iqgrEsON8exPjh3FvoMe69fYw/O+Q5+
-VTgkzE/Y3L3pD4XQI4cbqI8J9fjPRf6PuFKP1z0zcQdbMizrglSKAwYhE30AOH9e
-6W98RgxDWDsP0WoGF49POhOdPvl/VCQvEIL4pWqU5B0LvVlhbQhl+WUfo1cvDKvM
-VTk1YFahKiP4GvBjfWHNIqdAgb0pbWcVVlKFtj+um7SNjpvmgaH4honX1ForaK26
-yIAnyV+omlGJry1UN9ZdVKVlwtj/skuYb7vYdgTjzeLaJK+ZymxTE5/NBs25MD3m
-hC8L45DLr856mgwF7Q3FfIfduGlFopHx7tkScpCQ2kKnkQX7bhcJdIxl1qjxYJBE
-LUVbL/cgvMUIKxYDwd60H8Yw2Tw8O/x+06qS587fU+5tm0N4ys+18wRsQ1rROnA0
-p1Q1VmbdJkw0F5TdYYMD0rF+0cYi8zmOxV9OWEcC8TpwBDnB/y04puu/EbgLG9s7
-grkO27wOJ4JD1FCiUn0IXNI5r9KMXsnfGZaCdjsNq80qMSBPF89WltczmgT2Q/2Z
-pvvEBUskftZQK5GCKSnX
-=FkQl
+iQIcBAEBCAAGBQJSh190AAoJENju1/PIO/qaWE8P/jZLCcmtbqBcFtv9FEbtnaRB
+CozZa7QmhE9djRWJqPKqrR9eXQhjG3436ypzoatbgmwVcvqaJ2cSTa2kmegEHe0I
+bP6Qh4mZeeoYJp27zJZtC59uxY/xABBWSsI6RtXVmKfKC6ps6XFCOO/cNj9EOQbl
+F9rP6LCsRMbirwQM991IeGPV56uRKouW1D+A1gEv8yQfcT6r6siTnRWNgrCAxd/D
+7FpttW0L2642kxuj9IkRdPEhHEyHZ87wsO+E/kAPr8o3yOo2DHXJxGn3m0OVi90V
+ispsmhC/zgfv1D+QyFIbqtJ/fNzFSkf0W25fMq/8Ilc23ei4SSbY+gtPfdsppZv7
+vYPtI5lQoX/XkIC3jIBPdFj1WqNuv6LEITjfQCxyLyub8GhbDHMOS9S4nZb8cmuS
+6qf/5/Z5gn3sxhNh6blqOwl2xzqUFyVtGT+PvAx0DI/C+8IW5BUVzJAxoMVSLFYf
+ISHuNiF+KVx+Jg8Wl0W1/JXtE5nKoYRVG+CWw8JdSFW2r0T2G49yneiW9mSwK2wo
+R35kEe98MgJWXleoO/BR+oPm3z1A8/hol+eBXA9QTfGxelz3JKe2RLHY70IJsrCr
+nEB11tGRz61XftIywQN32XXnJvJV+Q0JaQOQlnEEU3ErOaEDobINzsXAMSy/cp8f
+2D1lHi1aX5/Y9MmCQk73
+=sTk9
 -----END PGP SIGNATURE-----
 
---Qgd2S+2VS1hsWwXW--
---
-To unsubscribe from this list: send the line "unsubscribe linux-spi" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--gBBFr7Ir9EOA20Yy--
