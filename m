@@ -1,16 +1,16 @@
-From: Taras Kondratiuk <taras.kondratiuk-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: [RFC 15/23] usb: musb: raw read and write endian fix
-Date: Sat, 16 Nov 2013 02:01:18 +0200
-Message-ID: <1384560086-11994-16-git-send-email-taras.kondratiuk@linaro.org>
+From: Taras Kondratiuk <taras.kondratiuk@linaro.org>
+Subject: [RFC 12/23] mfd: omap-usb-tll: raw read and write endian fix
+Date: Sat, 16 Nov 2013 02:01:15 +0200
+Message-ID: <1384560086-11994-13-git-send-email-taras.kondratiuk@linaro.org>
 References: <1384560086-11994-1-git-send-email-taras.kondratiuk@linaro.org>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1384560086-11994-1-git-send-email-taras.kondratiuk-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linaro-networking-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, Victor Kamensky <victor.kamensky-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1384560086-11994-1-git-send-email-taras.kondratiuk@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linaro-networking@linaro.org, Victor Kamensky <victor.kamensky@linaro.org>, Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Victor Kamensky <victor.kamensky-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+From: Victor Kamensky <victor.kamensky@linaro.org>
 
 All OMAP IP blocks expect LE data, but CPU may operate in BE mode.
 Need to use endian neutral functions to read/write h/w registers.
@@ -22,78 +22,42 @@ it if host operates in BE mode.
 Changes are trivial sed like replacement of __raw_xxx functions
 with xxx_relaxed variant.
 
-Signed-off-by: Victor Kamensky <victor.kamensky-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Signed-off-by: Taras Kondratiuk <taras.kondratiuk-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Signed-off-by: Victor Kamensky <victor.kamensky@linaro.org>
+Signed-off-by: Taras Kondratiuk <taras.kondratiuk@linaro.org>
 ---
- drivers/usb/musb/musb_io.h |   18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ drivers/mfd/omap-usb-tll.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/usb/musb/musb_io.h b/drivers/usb/musb/musb_io.h
-index eebeed7..76f4d2a 100644
---- a/drivers/usb/musb/musb_io.h
-+++ b/drivers/usb/musb/musb_io.h
-@@ -42,17 +42,17 @@
- /* NOTE:  these offsets are all in bytes */
+diff --git a/drivers/mfd/omap-usb-tll.c b/drivers/mfd/omap-usb-tll.c
+index e59ac4c..15bcd93 100644
+--- a/drivers/mfd/omap-usb-tll.c
++++ b/drivers/mfd/omap-usb-tll.c
+@@ -121,22 +121,22 @@ static DEFINE_SPINLOCK(tll_lock);	/* serialize access to tll_dev */
  
- static inline u16 musb_readw(const void __iomem *addr, unsigned offset)
--	{ return __raw_readw(addr + offset); }
-+	{ return readw_relaxed(addr + offset); }
- 
- static inline u32 musb_readl(const void __iomem *addr, unsigned offset)
--	{ return __raw_readl(addr + offset); }
-+	{ return readl_relaxed(addr + offset); }
- 
- 
- static inline void musb_writew(void __iomem *addr, unsigned offset, u16 data)
--	{ __raw_writew(data, addr + offset); }
-+	{ writew_relaxed(data, addr + offset); }
- 
- static inline void musb_writel(void __iomem *addr, unsigned offset, u32 data)
--	{ __raw_writel(data, addr + offset); }
-+	{ writel_relaxed(data, addr + offset); }
- 
- 
- #if defined(CONFIG_USB_MUSB_TUSB6010) || defined (CONFIG_USB_MUSB_TUSB6010_MODULE)
-@@ -65,7 +65,7 @@ static inline u8 musb_readb(const void __iomem *addr, unsigned offset)
- 	u16 tmp;
- 	u8 val;
- 
--	tmp = __raw_readw(addr + (offset & ~1));
-+	tmp = readw_relaxed(addr + (offset & ~1));
- 	if (offset & 1)
- 		val = (tmp >> 8);
- 	else
-@@ -78,22 +78,22 @@ static inline void musb_writeb(void __iomem *addr, unsigned offset, u8 data)
+ static inline void usbtll_write(void __iomem *base, u32 reg, u32 val)
  {
- 	u16 tmp;
- 
--	tmp = __raw_readw(addr + (offset & ~1));
-+	tmp = readw_relaxed(addr + (offset & ~1));
- 	if (offset & 1)
- 		tmp = (data << 8) | (tmp & 0xff);
- 	else
- 		tmp = (tmp & 0xff00) | data;
- 
--	__raw_writew(tmp, addr + (offset & ~1));
-+	writew_relaxed(tmp, addr + (offset & ~1));
+-	__raw_writel(val, base + reg);
++	writel_relaxed(val, base + reg);
  }
  
- #else
+ static inline u32 usbtll_read(void __iomem *base, u32 reg)
+ {
+-	return __raw_readl(base + reg);
++	return readl_relaxed(base + reg);
+ }
  
- static inline u8 musb_readb(const void __iomem *addr, unsigned offset)
--	{ return __raw_readb(addr + offset); }
-+	{ return readb_relaxed(addr + offset); }
+ static inline void usbtll_writeb(void __iomem *base, u8 reg, u8 val)
+ {
+-	__raw_writeb(val, base + reg);
++	writeb_relaxed(val, base + reg);
+ }
  
- static inline void musb_writeb(void __iomem *addr, unsigned offset, u8 data)
--	{ __raw_writeb(data, addr + offset); }
-+	{ writeb_relaxed(data, addr + offset); }
+ static inline u8 usbtll_readb(void __iomem *base, u8 reg)
+ {
+-	return __raw_readb(base + reg);
++	return readb_relaxed(base + reg);
+ }
  
- #endif	/* CONFIG_USB_MUSB_TUSB6010 */
- 
+ /*-------------------------------------------------------------------------*/
 -- 
 1.7.9.5
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
