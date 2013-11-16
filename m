@@ -1,22 +1,16 @@
-From: Taras Kondratiuk <taras.kondratiuk@linaro.org>
-Subject: [RFC 02/23] watchdog: omap_wdt: raw read and write endian fix
-Date: Sat, 16 Nov 2013 02:01:05 +0200
-Message-ID: <1384560086-11994-3-git-send-email-taras.kondratiuk@linaro.org>
+From: Taras Kondratiuk <taras.kondratiuk-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: [RFC 05/23] i2c: omap: raw read and write endian fix
+Date: Sat, 16 Nov 2013 02:01:08 +0200
+Message-ID: <1384560086-11994-6-git-send-email-taras.kondratiuk@linaro.org>
 References: <1384560086-11994-1-git-send-email-taras.kondratiuk@linaro.org>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ea0-f181.google.com ([209.85.215.181]:45086 "EHLO
-	mail-ea0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752758Ab3KPABg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Nov 2013 19:01:36 -0500
-Received: by mail-ea0-f181.google.com with SMTP id q16so1281496ead.26
-        for <linux-omap@vger.kernel.org>; Fri, 15 Nov 2013 16:01:34 -0800 (PST)
-In-Reply-To: <1384560086-11994-1-git-send-email-taras.kondratiuk@linaro.org>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1384560086-11994-1-git-send-email-taras.kondratiuk-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linaro-networking-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, Victor Kamensky <victor.kamensky-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linaro-networking@linaro.org, Victor Kamensky <victor.kamensky@linaro.org>, Wim Van Sebroeck <wim@iguana.be>, linux-watchdog@vger.kernel.org, linux-kernel@vger.kernel.org
 
-From: Victor Kamensky <victor.kamensky@linaro.org>
+From: Victor Kamensky <victor.kamensky-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 
 All OMAP IP blocks expect LE data, but CPU may operate in BE mode.
 Need to use endian neutral functions to read/write h/w registers.
@@ -28,107 +22,40 @@ it if host operates in BE mode.
 Changes are trivial sed like replacement of __raw_xxx functions
 with xxx_relaxed variant.
 
-Signed-off-by: Victor Kamensky <victor.kamensky@linaro.org>
-Signed-off-by: Taras Kondratiuk <taras.kondratiuk@linaro.org>
+Signed-off-by: Victor Kamensky <victor.kamensky-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Signed-off-by: Taras Kondratiuk <taras.kondratiuk-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 ---
- drivers/watchdog/omap_wdt.c |   36 ++++++++++++++++++------------------
- 1 file changed, 18 insertions(+), 18 deletions(-)
+ drivers/i2c/busses/i2c-omap.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/watchdog/omap_wdt.c b/drivers/watchdog/omap_wdt.c
-index af88ffd..2ff7bff 100644
---- a/drivers/watchdog/omap_wdt.c
-+++ b/drivers/watchdog/omap_wdt.c
-@@ -68,14 +68,14 @@ static void omap_wdt_reload(struct omap_wdt_dev *wdev)
- 	void __iomem    *base = wdev->base;
- 
- 	/* wait for posted write to complete */
--	while ((__raw_readl(base + OMAP_WATCHDOG_WPS)) & 0x08)
-+	while ((readl_relaxed(base + OMAP_WATCHDOG_WPS)) & 0x08)
- 		cpu_relax();
- 
- 	wdev->wdt_trgr_pattern = ~wdev->wdt_trgr_pattern;
--	__raw_writel(wdev->wdt_trgr_pattern, (base + OMAP_WATCHDOG_TGR));
-+	writel_relaxed(wdev->wdt_trgr_pattern, (base + OMAP_WATCHDOG_TGR));
- 
- 	/* wait for posted write to complete */
--	while ((__raw_readl(base + OMAP_WATCHDOG_WPS)) & 0x08)
-+	while ((readl_relaxed(base + OMAP_WATCHDOG_WPS)) & 0x08)
- 		cpu_relax();
- 	/* reloaded WCRR from WLDR */
- }
-@@ -85,12 +85,12 @@ static void omap_wdt_enable(struct omap_wdt_dev *wdev)
- 	void __iomem *base = wdev->base;
- 
- 	/* Sequence to enable the watchdog */
--	__raw_writel(0xBBBB, base + OMAP_WATCHDOG_SPR);
--	while ((__raw_readl(base + OMAP_WATCHDOG_WPS)) & 0x10)
-+	writel_relaxed(0xBBBB, base + OMAP_WATCHDOG_SPR);
-+	while ((readl_relaxed(base + OMAP_WATCHDOG_WPS)) & 0x10)
- 		cpu_relax();
- 
--	__raw_writel(0x4444, base + OMAP_WATCHDOG_SPR);
--	while ((__raw_readl(base + OMAP_WATCHDOG_WPS)) & 0x10)
-+	writel_relaxed(0x4444, base + OMAP_WATCHDOG_SPR);
-+	while ((readl_relaxed(base + OMAP_WATCHDOG_WPS)) & 0x10)
- 		cpu_relax();
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index 9967a6f..d69826e 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -266,13 +266,13 @@ static const u8 reg_map_ip_v2[] = {
+ static inline void omap_i2c_write_reg(struct omap_i2c_dev *i2c_dev,
+ 				      int reg, u16 val)
+ {
+-	__raw_writew(val, i2c_dev->base +
++	writew_relaxed(val, i2c_dev->base +
+ 			(i2c_dev->regs[reg] << i2c_dev->reg_shift));
  }
  
-@@ -99,12 +99,12 @@ static void omap_wdt_disable(struct omap_wdt_dev *wdev)
- 	void __iomem *base = wdev->base;
- 
- 	/* sequence required to disable watchdog */
--	__raw_writel(0xAAAA, base + OMAP_WATCHDOG_SPR);	/* TIMER_MODE */
--	while (__raw_readl(base + OMAP_WATCHDOG_WPS) & 0x10)
-+	writel_relaxed(0xAAAA, base + OMAP_WATCHDOG_SPR);	/* TIMER_MODE */
-+	while (readl_relaxed(base + OMAP_WATCHDOG_WPS) & 0x10)
- 		cpu_relax();
- 
--	__raw_writel(0x5555, base + OMAP_WATCHDOG_SPR);	/* TIMER_MODE */
--	while (__raw_readl(base + OMAP_WATCHDOG_WPS) & 0x10)
-+	writel_relaxed(0x5555, base + OMAP_WATCHDOG_SPR);	/* TIMER_MODE */
-+	while (readl_relaxed(base + OMAP_WATCHDOG_WPS) & 0x10)
- 		cpu_relax();
+ static inline u16 omap_i2c_read_reg(struct omap_i2c_dev *i2c_dev, int reg)
+ {
+-	return __raw_readw(i2c_dev->base +
++	return readw_relaxed(i2c_dev->base +
+ 				(i2c_dev->regs[reg] << i2c_dev->reg_shift));
  }
  
-@@ -115,11 +115,11 @@ static void omap_wdt_set_timer(struct omap_wdt_dev *wdev,
- 	void __iomem *base = wdev->base;
+@@ -1142,7 +1142,7 @@ omap_i2c_probe(struct platform_device *pdev)
+ 	 * Also since the omap_i2c_read_reg uses reg_map_ip_* a
+ 	 * raw_readw is done.
+ 	 */
+-	rev = __raw_readw(dev->base + 0x04);
++	rev = readw_relaxed(dev->base + 0x04);
  
- 	/* just count up at 32 KHz */
--	while (__raw_readl(base + OMAP_WATCHDOG_WPS) & 0x04)
-+	while (readl_relaxed(base + OMAP_WATCHDOG_WPS) & 0x04)
- 		cpu_relax();
- 
--	__raw_writel(pre_margin, base + OMAP_WATCHDOG_LDR);
--	while (__raw_readl(base + OMAP_WATCHDOG_WPS) & 0x04)
-+	writel_relaxed(pre_margin, base + OMAP_WATCHDOG_LDR);
-+	while (readl_relaxed(base + OMAP_WATCHDOG_WPS) & 0x04)
- 		cpu_relax();
- }
- 
-@@ -135,11 +135,11 @@ static int omap_wdt_start(struct watchdog_device *wdog)
- 	pm_runtime_get_sync(wdev->dev);
- 
- 	/* initialize prescaler */
--	while (__raw_readl(base + OMAP_WATCHDOG_WPS) & 0x01)
-+	while (readl_relaxed(base + OMAP_WATCHDOG_WPS) & 0x01)
- 		cpu_relax();
- 
--	__raw_writel((1 << 5) | (PTV << 2), base + OMAP_WATCHDOG_CNTRL);
--	while (__raw_readl(base + OMAP_WATCHDOG_WPS) & 0x01)
-+	writel_relaxed((1 << 5) | (PTV << 2), base + OMAP_WATCHDOG_CNTRL);
-+	while (readl_relaxed(base + OMAP_WATCHDOG_WPS) & 0x01)
- 		cpu_relax();
- 
- 	omap_wdt_set_timer(wdev, wdog->timeout);
-@@ -275,7 +275,7 @@ static int omap_wdt_probe(struct platform_device *pdev)
- 	}
- 
- 	pr_info("OMAP Watchdog Timer Rev 0x%02x: initial timeout %d sec\n",
--		__raw_readl(wdev->base + OMAP_WATCHDOG_REV) & 0xFF,
-+		readl_relaxed(wdev->base + OMAP_WATCHDOG_REV) & 0xFF,
- 		omap_wdt->timeout);
- 
- 	pm_runtime_put_sync(wdev->dev);
+ 	dev->scheme = OMAP_I2C_SCHEME(rev);
+ 	switch (dev->scheme) {
 -- 
 1.7.9.5
-
