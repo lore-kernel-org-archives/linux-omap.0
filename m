@@ -1,53 +1,58 @@
 From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Subject: [PATCH 01/11] ARM: dts: omap3-igep: Fix bus-width for mmc1.
-Date: Sat, 16 Nov 2013 14:23:34 +0100
-Message-ID: <1384608224-9452-2-git-send-email-javier.martinez@collabora.co.uk>
-References: <1384608224-9452-1-git-send-email-javier.martinez@collabora.co.uk>
+Subject: [PATCH 00/11]: add remaining support for IGEP boards
+Date: Sat, 16 Nov 2013 14:23:33 +0100
+Message-ID: <1384608224-9452-1-git-send-email-javier.martinez@collabora.co.uk>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([93.93.135.160]:60329 "EHLO
+Received: from bhuna.collabora.co.uk ([93.93.135.160]:60328 "EHLO
 	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751601Ab3KPNYx (ORCPT
+	with ESMTP id S1751618Ab3KPNYx (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Sat, 16 Nov 2013 08:24:53 -0500
-In-Reply-To: <1384608224-9452-1-git-send-email-javier.martinez@collabora.co.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: Enric Balletbo i Serra <eballetbo@gmail.com>, bcousson@baylibre.com, tomi.valkeinen@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-From: Enric Balletbo i Serra <eballetbo@gmail.com>
+In order to make mach-omap2 Device Tree only the board file for
+IGEP boards was removed even when support for wifi and display
+was still not supported by its DTS.
 
-Both, IGEPv2 and IGEP COM MODULE have a bus-width of 4 not 8, so fix this and
-do not mux data pins from mmc1_data4 to mmc1_data7.
+This patch-set adds support for these remaining peripherals and
+also adds support for USB, HDMI and user LED for the am33xx SoC
+based IGEP Aquila board.
 
-Signed-off-by: Enric Balletbo i Serra <eballetbo@gmail.com>
----
- arch/arm/boot/dts/omap3-igep.dtsi | 6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+The patch-set is composed of the following patches:
 
-diff --git a/arch/arm/boot/dts/omap3-igep.dtsi b/arch/arm/boot/dts/omap3-igep.dtsi
-index ba1e58b..d4fecce 100644
---- a/arch/arm/boot/dts/omap3-igep.dtsi
-+++ b/arch/arm/boot/dts/omap3-igep.dtsi
-@@ -65,10 +65,6 @@
- 			0x11a (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc1_dat1.sdmmc1_dat1 */
- 			0x11c (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc1_dat2.sdmmc1_dat2 */
- 			0x11e (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc1_dat3.sdmmc1_dat3 */
--			0x120 (PIN_INPUT | MUX_MODE0)		/* sdmmc1_dat4.sdmmc1_dat4 */
--			0x122 (PIN_INPUT | MUX_MODE0)		/* sdmmc1_dat5.sdmmc1_dat5 */
--			0x124 (PIN_INPUT | MUX_MODE0)		/* sdmmc1_dat6.sdmmc1_dat6 */
--			0x126 (PIN_INPUT | MUX_MODE0)		/* sdmmc1_dat7.sdmmc1_dat7 */
- 		>;
- 	};
- 
-@@ -114,7 +110,7 @@
-       pinctrl-0 = <&mmc1_pins>;
-       vmmc-supply = <&vmmc1>;
-       vmmc_aux-supply = <&vsim>;
--      bus-width = <8>;
-+      bus-width = <4>;
- };
- 
- &mmc2 {
--- 
-1.8.4.2
+Enric Balletbo i Serra (7):
+      ARM: dts: omap3-igep: Fix bus-width for mmc1.
+      ARM: dts: omap3-igep: Add support for LBEE1USJYC WiFi connected to SDIO.
+      ARM: dts: omap3-igep: Update to use the TI AM/DM37x processor.
+      ARM: dts: AM33XX BASE0033: add pinmux and hdmi node to enable display
+      ARM: dts: AM33XX BASE0033: add pinmux and user led support.
+      ARM: dts: AM33XX BASE0033: add 32KBit EEPROM support.
+      ARM: dts: AM33XX IGEP0033: add USB support.
 
+Javier Martinez Canillas (4):
+      ARM: dts: omap3-igep0020: Add pinmux setup for i2c devices
+      ARM: dts: omap3-igep0020: Add pinmuxing for DVI output
+      ARM: OMAP: dss-common: change IGEP's DVI DDC i2c bus
+      OMAPDSS: DPI: use VPLL2 regulator if VDDS_DSI is not found
+
+Tony,
+
+Most of these patches are just DTS changes so they have to be picked
+by Benoit although there are patches that should go to different trees.
+
+[PATCH 10/11] ARM: OMAP: dss-common: change IGEP's DVI DDC i2c bus
+
+have to go through your tree and
+
+[PATCH 11/11] OMAPDSS: DPI: use VPLL2 regulator if VDDS_DSI is not found
+
+should be picked by Tomi Valkeinen.
+
+Since we have removed the board file for IGEP boards I think these
+can be considered as regression fixes for 3.13 although I don't mind
+if you prefer to wait for 3.14.
+
+Thanks a lot and best regards,
+Javier
