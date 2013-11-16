@@ -1,78 +1,64 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 11/11] OMAPDSS: DPI: use VPLL2 regulator if VDDS_DSI is
- not found
-Date: Sat, 16 Nov 2013 06:18:53 -0800
-Message-ID: <20131116141853.GF10317@atomide.com>
-References: <1384608224-9452-1-git-send-email-javier.martinez@collabora.co.uk>
- <1384608224-9452-12-git-send-email-javier.martinez@collabora.co.uk>
+Subject: Re: [PATCH 4/5] ARM: dts: Add basic support for omap3 LDP zoom1
+ labrador
+Date: Sat, 16 Nov 2013 06:40:34 -0800
+Message-ID: <20131116144033.GG10317@atomide.com>
+References: <1384562167-14725-1-git-send-email-tony@atomide.com>
+ <1384562167-14725-5-git-send-email-tony@atomide.com>
+ <20131116080408.GA15300@earth.universe>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:17851 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:46660 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752725Ab3KPOS6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 16 Nov 2013 09:18:58 -0500
+	with ESMTP id S1751837Ab3KPOkj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 16 Nov 2013 09:40:39 -0500
 Content-Disposition: inline
-In-Reply-To: <1384608224-9452-12-git-send-email-javier.martinez@collabora.co.uk>
+In-Reply-To: <20131116080408.GA15300@earth.universe>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Cc: Enric Balletbo i Serra <eballetbo@gmail.com>, bcousson@baylibre.com, tomi.valkeinen@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>
 
-* Javier Martinez Canillas <javier.martinez@collabora.co.uk> [131116 05:25]:
-> On Device Tree boot the VDDS_DSI regulator is not linked to
-> the DPI device so omapfb driver probing fails with:
+* Sebastian Reichel <sre@ring0.de> [131116 00:05]:
+> On Fri, Nov 15, 2013 at 04:36:06PM -0800, Tony Lindgren wrote:
+> > Basic things like serial, Ethernet, MMC, NAND, DSS, touchscreen
+> > and GPIO keys work.
+> > 
+> > For twl4030-keypad we're still missing the binding, but
+> > support for that should be trivial to add once the driver
+> > has been updated.
 > 
-> [    3.186035] OMAPFB: omapfb_probe
-> [    3.190704] omapdss DPI error: can't get VDDS_DSI regulator
-> [    3.196594] omapfb omapfb: failed to connect default display
-> [    3.202667] omapfb omapfb: failed to init overlay connections
-> [    3.208892] OMAPFB: free_resources
-> [    3.212493] OMAPFB: free all fbmem
-> [    3.216735] omapfb omapfb: failed to setup omapfb
+> DT bindings for twl4030-keypad are being worked on:
 > 
-> As a workaround try to use the VPLL2 regulator from twl4030 in
-> dpi_init_regulator() if getting the VDDS_DSI regulator fails.
+> https://lkml.org/lkml/2013/11/8/463
+> 
+> > MUSB I'm pretty sure I got got to enumerate once, but I
+> > suspect the battery charging somehow disrupts it and it's
+> > not enumerating in general for some reason.
+> 
+> Try to add this:
+> 
+> &usb_otg_hs {
+> 	phys = <&usb2_phy>;
+> 	phy-names = "usb2-phy";
+> };
+> 
+> Those were introduced by the new generic PHY framework, see
+> for example: https://lkml.org/lkml/2013/9/27/37
 
-Probably makes sens to fix this in the dpi.c, but this can also be set
-in the .dts file. I just set up the following in the omap3-ldp.dts file:
+Thanks yeah those should be added. No luck with those either
+though, I do have MUSB working fine on the 37xx-evm with the
+same image.
 
-&vaux1 {
-	/* Needed for ads7846 */
-	regulator-name = "vcc";
-};
+I seem to get twl4030_usb interrupts on cable insert and remove,
+then enabling debugging I see the following:
 
-&vpll2 {
-	/* Needed for DSS */
-	regulator-name = "vdds_dsi";
-};
+connect
+HW_CONDITIONS 0xe0/224; link 3
+
+disconnect
+HW_CONDITIONS 0x60/96; link 4
 
 Regards,
 
 Tony
-
- 
-> Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-> ---
->  drivers/video/omap2/dss/dpi.c | 5 +++++
->  1 file changed, 5 insertions(+)
-> 
-> diff --git a/drivers/video/omap2/dss/dpi.c b/drivers/video/omap2/dss/dpi.c
-> index bd48cde..e328f0b 100644
-> --- a/drivers/video/omap2/dss/dpi.c
-> +++ b/drivers/video/omap2/dss/dpi.c
-> @@ -550,6 +550,11 @@ static int dpi_init_regulator(void)
->  		return 0;
->  
->  	vdds_dsi = devm_regulator_get(&dpi.pdev->dev, "vdds_dsi");
-> +
-> +        /* DT HACK: try VPLL2 to make omapdss work for OMAP3 IGEPv2 */
-> +        if (IS_ERR(vdds_dsi))
-> +                vdds_dsi = devm_regulator_get(&dpi.pdev->dev, "VPLL2");
-> +
->  	if (IS_ERR(vdds_dsi)) {
->  		DSSERR("can't get VDDS_DSI regulator\n");
->  		return PTR_ERR(vdds_dsi);
-> -- 
-> 1.8.4.2
-> 
