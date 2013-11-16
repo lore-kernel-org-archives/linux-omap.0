@@ -1,20 +1,20 @@
 From: Taras Kondratiuk <taras.kondratiuk@linaro.org>
-Subject: [RFC 11/23] mfd: omap-usb-host: raw read and write endian fix
-Date: Sat, 16 Nov 2013 02:01:14 +0200
-Message-ID: <1384560086-11994-12-git-send-email-taras.kondratiuk@linaro.org>
+Subject: [RFC 10/23] Input: omap-keypad - raw read and write endian fix
+Date: Sat, 16 Nov 2013 02:01:13 +0200
+Message-ID: <1384560086-11994-11-git-send-email-taras.kondratiuk@linaro.org>
 References: <1384560086-11994-1-git-send-email-taras.kondratiuk@linaro.org>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ee0-f47.google.com ([74.125.83.47]:56278 "EHLO
-	mail-ee0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753718Ab3KPABp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Nov 2013 19:01:45 -0500
-Received: by mail-ee0-f47.google.com with SMTP id c50so835063eek.6
-        for <linux-omap@vger.kernel.org>; Fri, 15 Nov 2013 16:01:44 -0800 (PST)
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:35087 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753707Ab3KPABo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Nov 2013 19:01:44 -0500
+Received: by mail-ee0-f46.google.com with SMTP id c4so1377729eek.33
+        for <linux-omap@vger.kernel.org>; Fri, 15 Nov 2013 16:01:43 -0800 (PST)
 In-Reply-To: <1384560086-11994-1-git-send-email-taras.kondratiuk@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: linaro-networking@linaro.org, Victor Kamensky <victor.kamensky@linaro.org>, Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, linux-kernel@vger.kernel.org
+Cc: linaro-networking@linaro.org, Victor Kamensky <victor.kamensky@linaro.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org
 
 From: Victor Kamensky <victor.kamensky@linaro.org>
 
@@ -31,40 +31,53 @@ with xxx_relaxed variant.
 Signed-off-by: Victor Kamensky <victor.kamensky@linaro.org>
 Signed-off-by: Taras Kondratiuk <taras.kondratiuk@linaro.org>
 ---
- drivers/mfd/omap-usb-host.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/input/keyboard/omap4-keypad.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
-index 29ee54d..3b34de1 100644
---- a/drivers/mfd/omap-usb-host.c
-+++ b/drivers/mfd/omap-usb-host.c
-@@ -121,22 +121,22 @@ static u64 usbhs_dmamask = DMA_BIT_MASK(32);
+diff --git a/drivers/input/keyboard/omap4-keypad.c b/drivers/input/keyboard/omap4-keypad.c
+index 30acfd4..952a2eb 100644
+--- a/drivers/input/keyboard/omap4-keypad.c
++++ b/drivers/input/keyboard/omap4-keypad.c
+@@ -89,26 +89,26 @@ struct omap4_keypad {
  
- static inline void usbhs_write(void __iomem *base, u32 reg, u32 val)
+ static int kbd_readl(struct omap4_keypad *keypad_data, u32 offset)
  {
--	__raw_writel(val, base + reg);
-+	writel_relaxed(val, base + reg);
+-	return __raw_readl(keypad_data->base +
++	return readl_relaxed(keypad_data->base +
+ 				keypad_data->reg_offset + offset);
  }
  
- static inline u32 usbhs_read(void __iomem *base, u32 reg)
+ static void kbd_writel(struct omap4_keypad *keypad_data, u32 offset, u32 value)
  {
--	return __raw_readl(base + reg);
-+	return readl_relaxed(base + reg);
+-	__raw_writel(value,
++	writel_relaxed(value,
+ 		     keypad_data->base + keypad_data->reg_offset + offset);
  }
  
- static inline void usbhs_writeb(void __iomem *base, u8 reg, u8 val)
+ static int kbd_read_irqreg(struct omap4_keypad *keypad_data, u32 offset)
  {
--	__raw_writeb(val, base + reg);
-+	writeb_relaxed(val, base + reg);
+-	return __raw_readl(keypad_data->base +
++	return readl_relaxed(keypad_data->base +
+ 				keypad_data->irqreg_offset + offset);
  }
  
- static inline u8 usbhs_readb(void __iomem *base, u8 reg)
+ static void kbd_write_irqreg(struct omap4_keypad *keypad_data,
+ 			     u32 offset, u32 value)
  {
--	return __raw_readb(base + reg);
-+	return readb_relaxed(base + reg);
+-	__raw_writel(value,
++	writel_relaxed(value,
+ 		     keypad_data->base + keypad_data->irqreg_offset + offset);
  }
  
- /*-------------------------------------------------------------------------*/
+@@ -312,7 +312,7 @@ static int omap4_keypad_probe(struct platform_device *pdev)
+ 		dev_err(&pdev->dev, "pm_runtime_get_sync() failed\n");
+ 		goto err_unmap;
+ 	}
+-	rev = __raw_readl(keypad_data->base + OMAP4_KBD_REVISION);
++	rev = readl_relaxed(keypad_data->base + OMAP4_KBD_REVISION);
+ 	rev &= 0x03 << 30;
+ 	rev >>= 30;
+ 	switch (rev) {
 -- 
 1.7.9.5
 
