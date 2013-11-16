@@ -1,111 +1,53 @@
-From: Sebastian Reichel <sre@debian.org>
-Subject: N900 board code in 3.14
-Date: Sat, 16 Nov 2013 12:05:11 +0000
-Message-ID: <20131116120508.GA22335@earth.universe>
-References: <1384562167-14725-1-git-send-email-tony@atomide.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="gBBFr7Ir9EOA20Yy"
+From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Subject: [PATCH 01/11] ARM: dts: omap3-igep: Fix bus-width for mmc1.
+Date: Sat, 16 Nov 2013 14:23:34 +0100
+Message-ID: <1384608224-9452-2-git-send-email-javier.martinez@collabora.co.uk>
+References: <1384608224-9452-1-git-send-email-javier.martinez@collabora.co.uk>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ring0.de ([91.143.88.219]:36189 "EHLO smtp.ring0.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751040Ab3KPMFo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 16 Nov 2013 07:05:44 -0500
-Content-Disposition: inline
-In-Reply-To: <1384562167-14725-1-git-send-email-tony@atomide.com>
+Received: from bhuna.collabora.co.uk ([93.93.135.160]:60329 "EHLO
+	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751601Ab3KPNYx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 16 Nov 2013 08:24:53 -0500
+In-Reply-To: <1384608224-9452-1-git-send-email-javier.martinez@collabora.co.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Cc: Enric Balletbo i Serra <eballetbo@gmail.com>, bcousson@baylibre.com, tomi.valkeinen@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
+From: Enric Balletbo i Serra <eballetbo@gmail.com>
 
---gBBFr7Ir9EOA20Yy
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Both, IGEPv2 and IGEP COM MODULE have a bus-width of 4 not 8, so fix this and
+do not mux data pins from mmc1_data4 to mmc1_data7.
 
-Hi Tony,
+Signed-off-by: Enric Balletbo i Serra <eballetbo@gmail.com>
+---
+ arch/arm/boot/dts/omap3-igep.dtsi | 6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
-On Fri, Nov 15, 2013 at 04:36:02PM -0800, Tony Lindgren wrote:
-> Here are few patches to deal with the mix of legacy platform data
-> and device tree that we still need to do at least until DSS has
-> device tree bindings. These patches should allow the remaining
-> omap3 boards to be made device tree only so we can remove the
-> board-*.c files.
+diff --git a/arch/arm/boot/dts/omap3-igep.dtsi b/arch/arm/boot/dts/omap3-igep.dtsi
+index ba1e58b..d4fecce 100644
+--- a/arch/arm/boot/dts/omap3-igep.dtsi
++++ b/arch/arm/boot/dts/omap3-igep.dtsi
+@@ -65,10 +65,6 @@
+ 			0x11a (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc1_dat1.sdmmc1_dat1 */
+ 			0x11c (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc1_dat2.sdmmc1_dat2 */
+ 			0x11e (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc1_dat3.sdmmc1_dat3 */
+-			0x120 (PIN_INPUT | MUX_MODE0)		/* sdmmc1_dat4.sdmmc1_dat4 */
+-			0x122 (PIN_INPUT | MUX_MODE0)		/* sdmmc1_dat5.sdmmc1_dat5 */
+-			0x124 (PIN_INPUT | MUX_MODE0)		/* sdmmc1_dat6.sdmmc1_dat6 */
+-			0x126 (PIN_INPUT | MUX_MODE0)		/* sdmmc1_dat7.sdmmc1_dat7 */
+ 		>;
+ 	};
+ 
+@@ -114,7 +110,7 @@
+       pinctrl-0 = <&mmc1_pins>;
+       vmmc-supply = <&vmmc1>;
+       vmmc_aux-supply = <&vsim>;
+-      bus-width = <8>;
++      bus-width = <4>;
+ };
+ 
+ &mmc2 {
+-- 
+1.8.4.2
 
-Do you plan to remove the Nokia N900 board code in 3.14, too?
-
-I see two big issues with that:
- a) Using DT boot the display is currently not working.
- b) I could not get the 32GB eMMC working. For me the chip is not found
-    and I don't know how to debug it.
-
-There are two reasons for broken display:
-
-1. omap_mux_init_gpio(RX51_LCD_RESET_GPIO, OMAP_PIN_OUTPUT) fails.
-   This can be fixed by simply not calling it in DT mode. DT data
-   contains pinmux information for this from 3.13 onwards [0].
-2. The spi panel driver is not probed.
-
-I have a local hack to probe the panel driver via DT. I changed the
-display node to look as follows:
-
-&mcspi1 {
-    /* ... tsc2005 ... */
-
-    mipid@2 {
-        compatible = "sony,acx565akm";
-        spi-max-frequency = <6000000>;
-        reg = <2>;
-        vdds_sdi-supply = <&vaux1>;
-        label = "lcd";
-        reset-gpio = <&gpio3 26 GPIO_ACTIVE_HIGH>; /* 90 */
-        ti,sdi-datapairs = <2>;
-        ti,dss-source = "sdi.0";
-        pinctrl-names = "default";
-        pinctrl-0 = <&display_pins>;
-    };
-};
-
-Then I changed the acx565akm panel driver to get data from DT
-and the DSS to get SDI regulator from the panel. This is
-obviously not the way to got, so I wonder how to proceed.
-omapdss DT seems not to be ready for the next kernel releases.
-
-My suggestion would be:
- 1. Find a better workaround for omapdss to acquire the SDI
-    regulator. My current hack is obviously not acceptable.
- 2. Load the panel driver via DT as seen above and reference
-    the omapdss interface with something like the above
-    "ti,dss-source".
-
-This is obviously not a stable DT interface, but that's also the case if
-everything is done via platform quirks: An old DT file without any display
-stuff in it would not work with a newer kernel without the quirks.
-
-[0] https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=d1e6f51646f2bed16826fd8e4fc1b5f4188d086e
-
--- Sebastian
-
---gBBFr7Ir9EOA20Yy
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.15 (GNU/Linux)
-
-iQIcBAEBCAAGBQJSh190AAoJENju1/PIO/qaWE8P/jZLCcmtbqBcFtv9FEbtnaRB
-CozZa7QmhE9djRWJqPKqrR9eXQhjG3436ypzoatbgmwVcvqaJ2cSTa2kmegEHe0I
-bP6Qh4mZeeoYJp27zJZtC59uxY/xABBWSsI6RtXVmKfKC6ps6XFCOO/cNj9EOQbl
-F9rP6LCsRMbirwQM991IeGPV56uRKouW1D+A1gEv8yQfcT6r6siTnRWNgrCAxd/D
-7FpttW0L2642kxuj9IkRdPEhHEyHZ87wsO+E/kAPr8o3yOo2DHXJxGn3m0OVi90V
-ispsmhC/zgfv1D+QyFIbqtJ/fNzFSkf0W25fMq/8Ilc23ei4SSbY+gtPfdsppZv7
-vYPtI5lQoX/XkIC3jIBPdFj1WqNuv6LEITjfQCxyLyub8GhbDHMOS9S4nZb8cmuS
-6qf/5/Z5gn3sxhNh6blqOwl2xzqUFyVtGT+PvAx0DI/C+8IW5BUVzJAxoMVSLFYf
-ISHuNiF+KVx+Jg8Wl0W1/JXtE5nKoYRVG+CWw8JdSFW2r0T2G49yneiW9mSwK2wo
-R35kEe98MgJWXleoO/BR+oPm3z1A8/hol+eBXA9QTfGxelz3JKe2RLHY70IJsrCr
-nEB11tGRz61XftIywQN32XXnJvJV+Q0JaQOQlnEEU3ErOaEDobINzsXAMSy/cp8f
-2D1lHi1aX5/Y9MmCQk73
-=sTk9
------END PGP SIGNATURE-----
-
---gBBFr7Ir9EOA20Yy--
