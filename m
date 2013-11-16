@@ -1,13 +1,13 @@
 From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Subject: [PATCH 02/11] ARM: dts: omap3-igep: Add support for LBEE1USJYC WiFi connected to SDIO.
-Date: Sat, 16 Nov 2013 14:23:35 +0100
-Message-ID: <1384608224-9452-3-git-send-email-javier.martinez@collabora.co.uk>
+Subject: [PATCH 03/11] ARM: dts: omap3-igep: Update to use the TI AM/DM37x processor.
+Date: Sat, 16 Nov 2013 14:23:36 +0100
+Message-ID: <1384608224-9452-4-git-send-email-javier.martinez@collabora.co.uk>
 References: <1384608224-9452-1-git-send-email-javier.martinez@collabora.co.uk>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([93.93.135.160]:60335 "EHLO
+Received: from bhuna.collabora.co.uk ([93.93.135.160]:60340 "EHLO
 	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751837Ab3KPNYy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 16 Nov 2013 08:24:54 -0500
+	with ESMTP id S1751914Ab3KPNYz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 16 Nov 2013 08:24:55 -0500
 In-Reply-To: <1384608224-9452-1-git-send-email-javier.martinez@collabora.co.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -16,92 +16,79 @@ Cc: Enric Balletbo i Serra <eballetbo@gmail.com>, bcousson@baylibre.com, tomi.va
 
 From: Enric Balletbo i Serra <eballetbo@gmail.com>
 
-The LBEE1USJYC is a WiFi/BT combo module used on OMAP3-based IGEP boards. In
-both cases, IGEPv2 Rev. C and IGEP COM MODULE, the module is connected using
-the same MMC interface and uses the same GPIOs.
+Most of the boards are using the TI AM/DM37x processor, there is only a small
+quantity of IGEP Processor Boards based on TI OMAP3530. So it's better use the
+omap36xx.dtsi include instead of omap34xx.dtsi include.
+
+To avoid confusion we have added to the model the (TI AM/DM37x) comment.
 
 Signed-off-by: Enric Balletbo i Serra <eballetbo@gmail.com>
 ---
- arch/arm/boot/dts/omap3-igep.dtsi | 45 ++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 44 insertions(+), 1 deletion(-)
+ arch/arm/boot/dts/omap3-igep.dtsi    | 4 ++--
+ arch/arm/boot/dts/omap3-igep0020.dts | 4 ++--
+ arch/arm/boot/dts/omap3-igep0030.dts | 4 ++--
+ 3 files changed, 6 insertions(+), 6 deletions(-)
 
 diff --git a/arch/arm/boot/dts/omap3-igep.dtsi b/arch/arm/boot/dts/omap3-igep.dtsi
-index d4fecce..b3517b2 100644
+index b3517b2..e4c8769 100644
 --- a/arch/arm/boot/dts/omap3-igep.dtsi
 +++ b/arch/arm/boot/dts/omap3-igep.dtsi
-@@ -24,6 +24,25 @@
- 		ti,mcbsp = <&mcbsp2>;
- 		ti,codec = <&twl_audio>;
- 	};
-+
-+	vdd33: regulator-vdd33 {
-+		compatible = "regulator-fixed";
-+		regulator-name = "vdd33";
-+		regulator-always-on;
-+	};
-+
-+	lbee1usjyc_vmmc: lbee1usjyc_vmmc {
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&lbee1usjyc_pins>;
-+		compatible = "regulator-fixed";
-+		regulator-name = "regulator-lbee1usjyc";
-+		regulator-min-microvolt = <3300000>;
-+		regulator-max-microvolt = <3300000>;
-+		gpio = <&gpio5 10 GPIO_ACTIVE_HIGH>;	/* gpio_138 WIFI_PDN */
-+		startup-delay-us = <10000>;
-+		enable-active-high;
-+		vin-supply = <&vdd33>;
-+	};
- };
+@@ -1,5 +1,5 @@
+ /*
+- * Device Tree Source for IGEP Technology devices
++ * Common device tree for IGEP boards based on AM/DM37x
+  *
+  * Copyright (C) 2012 Javier Martinez Canillas <javier@collabora.co.uk>
+  * Copyright (C) 2012 Enric Balletbo i Serra <eballetbo@gmail.com>
+@@ -10,7 +10,7 @@
+  */
+ /dts-v1/;
  
- &omap3_pmx_core {
-@@ -48,6 +67,15 @@
- 		>;
- 	};
+-#include "omap34xx.dtsi"
++#include "omap36xx.dtsi"
  
-+	/* WiFi/BT combo */
-+	lbee1usjyc_pins: pinmux_lbee1usjyc_pins {
-+		pinctrl-single,pins = <
-+			0x136 (PIN_OUTPUT | MUX_MODE4)	/* sdmmc2_dat5.gpio_137 */
-+			0x138 (PIN_OUTPUT | MUX_MODE4)	/* sdmmc2_dat6.gpio_138 */
-+			0x13a (PIN_OUTPUT | MUX_MODE4)	/* sdmmc2_dat7.gpio_139 */
-+		>;
-+	};
-+
- 	mcbsp2_pins: pinmux_mcbsp2_pins {
- 		pinctrl-single,pins = <
- 			0x10c (PIN_INPUT | MUX_MODE0)		/* mcbsp2_fsx.mcbsp2_fsx */
-@@ -68,6 +96,17 @@
- 		>;
- 	};
+ / {
+ 	memory {
+diff --git a/arch/arm/boot/dts/omap3-igep0020.dts b/arch/arm/boot/dts/omap3-igep0020.dts
+index d5cc792..33ce123 100644
+--- a/arch/arm/boot/dts/omap3-igep0020.dts
++++ b/arch/arm/boot/dts/omap3-igep0020.dts
+@@ -1,5 +1,5 @@
+ /*
+- * Device Tree Source for IGEPv2 board
++ * Device Tree Source for IGEPv2 Rev. (TI OMAP AM/DM37x)
+  *
+  * Copyright (C) 2012 Javier Martinez Canillas <javier@collabora.co.uk>
+  * Copyright (C) 2012 Enric Balletbo i Serra <eballetbo@gmail.com>
+@@ -13,7 +13,7 @@
+ #include "omap-gpmc-smsc911x.dtsi"
  
-+	mmc2_pins: pinmux_mmc2_pins {
-+		pinctrl-single,pins = <
-+			0x128 (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc2_clk.sdmmc2_clk */
-+			0x12a (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc2_cmd.sdmmc2_cmd */
-+			0x12c (PIN_INPUT_PULLUP | MUX_MODE0) 	/* sdmmc2_dat0.sdmmc2_dat0 */
-+			0x12e (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc2_dat1.sdmmc2_dat1 */
-+			0x130 (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc2_dat2.sdmmc2_dat2 */
-+			0x132 (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc2_dat3.sdmmc2_dat3 */
-+		>;
-+	};
-+
- 	smsc911x_pins: pinmux_smsc911x_pins {
- 		pinctrl-single,pins = <
- 			0x1a2 (PIN_INPUT | MUX_MODE4)		/* mcspi1_cs2.gpio_176 */
-@@ -114,7 +153,11 @@
- };
+ / {
+-	model = "IGEPv2";
++	model = "IGEPv2 (TI OMAP AM/DM37x)";
+ 	compatible = "isee,omap3-igep0020", "ti,omap3";
  
- &mmc2 {
--	status = "disabled";
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&mmc2_pins>;
-+	vmmc-supply = <&lbee1usjyc_vmmc>;
-+	bus-width = <4>;
-+	non-removable;
- };
+ 	leds {
+diff --git a/arch/arm/boot/dts/omap3-igep0030.dts b/arch/arm/boot/dts/omap3-igep0030.dts
+index 525e6d9..02a23f8 100644
+--- a/arch/arm/boot/dts/omap3-igep0030.dts
++++ b/arch/arm/boot/dts/omap3-igep0030.dts
+@@ -1,5 +1,5 @@
+ /*
+- * Device Tree Source for IGEP COM Module
++ * Device Tree Source for IGEP COM MODULE (TI OMAP AM/DM37x)
+  *
+  * Copyright (C) 2012 Javier Martinez Canillas <javier@collabora.co.uk>
+  * Copyright (C) 2012 Enric Balletbo i Serra <eballetbo@gmail.com>
+@@ -12,7 +12,7 @@
+ #include "omap3-igep.dtsi"
  
- &mmc3 {
+ / {
+-	model = "IGEP COM Module";
++	model = "IGEP COM MODULE (TI OMAP AM/DM37x)";
+ 	compatible = "isee,omap3-igep0030", "ti,omap3";
+ 
+ 	leds {
 -- 
 1.8.4.2
 
