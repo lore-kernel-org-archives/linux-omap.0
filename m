@@ -1,70 +1,72 @@
-From: Taras Kondratiuk <taras.kondratiuk@linaro.org>
-Subject: [RFC 08/23] crypto: omap-aes - raw read and write endian fix
-Date: Sat, 16 Nov 2013 02:01:11 +0200
-Message-ID: <1384560086-11994-9-git-send-email-taras.kondratiuk@linaro.org>
-References: <1384560086-11994-1-git-send-email-taras.kondratiuk@linaro.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1384560086-11994-1-git-send-email-taras.kondratiuk@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linaro-networking@linaro.org, Victor Kamensky <victor.kamensky@linaro.org>, Herbert Xu <herbert@gondor.apana.org.au>, "David S. Miller" <davem@davemloft.net>, linux-crypto@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH 1/5] mfd: twl-core: Fix passing of platform data in the device tree case
+Date: Fri, 15 Nov 2013 16:36:03 -0800
+Message-ID: <1384562167-14725-2-git-send-email-tony@atomide.com>
+References: <1384562167-14725-1-git-send-email-tony@atomide.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:31573 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753940Ab3KPAgL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Nov 2013 19:36:11 -0500
+In-Reply-To: <1384562167-14725-1-git-send-email-tony@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Cc: Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>
 
-From: Victor Kamensky <victor.kamensky@linaro.org>
+Since we still need to rely on a mix of device tree initialized
+drivers and legacy platform data initialize drivers, let's fix
+the passing of platform data to twl4030-gpio.
 
-All OMAP IP blocks expect LE data, but CPU may operate in BE mode.
-Need to use endian neutral functions to read/write h/w registers.
-I.e instead of __raw_read[lw] and __raw_write[lw] functions code
-need to use read[lw]_relaxed and write[lw]_relaxed functions.
-If the first simply reads/writes register, the second will byteswap
-it if host operates in BE mode.
+As the twl4030 GPIO is initialized by twl-core.c, we need to register
+the auxdata for twl4030 GPIO in twl-core.c.
 
-Changes are trivial sed like replacement of __raw_xxx functions
-with xxx_relaxed variant.
-
-Signed-off-by: Victor Kamensky <victor.kamensky@linaro.org>
-Signed-off-by: Taras Kondratiuk <taras.kondratiuk@linaro.org>
+Cc: Samuel Ortiz <sameo@linux.intel.com>
+Cc: Lee Jones <lee.jones@linaro.org>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/crypto/omap-aes.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/crypto/omap-aes.c b/drivers/crypto/omap-aes.c
-index ce791c2..777ae0a 100644
---- a/drivers/crypto/omap-aes.c
-+++ b/drivers/crypto/omap-aes.c
-@@ -195,7 +195,7 @@ static DEFINE_SPINLOCK(list_lock);
- #define omap_aes_read(dd, offset)				\
- ({								\
- 	int _read_ret;						\
--	_read_ret = __raw_readl(dd->io_base + offset);		\
-+	_read_ret = readl_relaxed(dd->io_base + offset);		\
- 	pr_debug("omap_aes_read(" #offset "=%#x)= %#x\n",	\
- 		 offset, _read_ret);				\
- 	_read_ret;						\
-@@ -203,7 +203,7 @@ static DEFINE_SPINLOCK(list_lock);
- #else
- static inline u32 omap_aes_read(struct omap_aes_dev *dd, u32 offset)
- {
--	return __raw_readl(dd->io_base + offset);
-+	return readl_relaxed(dd->io_base + offset);
+Samuel & Lee, I'd like to merge this fix via arm-soc tree if this looks
+OK to you as I have other patches that depend on this.
+
+---
+ drivers/mfd/twl-core.c | 15 ++++++++++++---
+ 1 file changed, 12 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
+index 29473c2..d5b3dd8 100644
+--- a/drivers/mfd/twl-core.c
++++ b/drivers/mfd/twl-core.c
+@@ -1133,6 +1133,11 @@ static int twl_remove(struct i2c_client *client)
+ 	return 0;
  }
- #endif
  
-@@ -212,13 +212,13 @@ static inline u32 omap_aes_read(struct omap_aes_dev *dd, u32 offset)
- 	do {								\
- 		pr_debug("omap_aes_write(" #offset "=%#x) value=%#x\n",	\
- 			 offset, value);				\
--		__raw_writel(value, dd->io_base + offset);		\
-+		writel_relaxed(value, dd->io_base + offset);		\
- 	} while (0)
- #else
- static inline void omap_aes_write(struct omap_aes_dev *dd, u32 offset,
- 				  u32 value)
- {
--	__raw_writel(value, dd->io_base + offset);
-+	writel_relaxed(value, dd->io_base + offset);
- }
- #endif
++static struct of_dev_auxdata twl_auxdata_lookup[] = {
++	OF_DEV_AUXDATA("ti,twl4030-gpio", 0, "twl4030-gpio", NULL),
++	{ /* sentinel */ },
++};
++
+ /* NOTE: This driver only handles a single twl4030/tps659x0 chip */
+ static int
+ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
+@@ -1271,10 +1276,14 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 		twl_i2c_write_u8(TWL4030_MODULE_INTBR, temp, REG_GPPUPDCTR1);
+ 	}
  
+-	if (node)
+-		status = of_platform_populate(node, NULL, NULL, &client->dev);
+-	else
++	if (node) {
++		if (pdata)
++			twl_auxdata_lookup[0].platform_data = pdata->gpio;
++		status = of_platform_populate(node, NULL, twl_auxdata_lookup,
++					      &client->dev);
++	} else {
+ 		status = add_children(pdata, irq_base, id->driver_data);
++	}
+ 
+ fail:
+ 	if (status < 0)
 -- 
-1.7.9.5
+1.8.1.1
+
