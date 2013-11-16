@@ -1,103 +1,163 @@
-From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Subject: Re: [PATCH 11/11] OMAPDSS: DPI: use VPLL2 regulator if VDDS_DSI is
- not found
-Date: Sat, 16 Nov 2013 18:28:00 +0100
-Message-ID: <5287AB20.9070407@collabora.co.uk>
-References: <1384608224-9452-1-git-send-email-javier.martinez@collabora.co.uk> <1384608224-9452-12-git-send-email-javier.martinez@collabora.co.uk> <20131116141853.GF10317@atomide.com> <5287908C.3040602@collabora.co.uk> <20131116154507.GL10317@atomide.com> <20131116160234.GB5104@earth.universe>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([93.93.135.160]:60493 "EHLO
-	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751267Ab3KPR25 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 16 Nov 2013 12:28:57 -0500
-In-Reply-To: <20131116160234.GB5104@earth.universe>
-Sender: linux-omap-owner@vger.kernel.org
+From: Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
+Subject: [PATCH] ARM: OMAP: dts: add n8x0 onenand
+Date: Sat, 16 Nov 2013 20:36:22 +0200
+Message-ID: <1384626982-11635-1-git-send-email-aaro.koskinen@iki.fi>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Enric Balletbo i Serra <eballetbo@gmail.com>, bcousson@baylibre.com, tomi.valkeinen@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Sebastian,
+Convert onenand to DT on n8x0 boards.
 
-On 11/16/2013 05:02 PM, Sebastian Reichel wrote:
-> On Sat, Nov 16, 2013 at 07:45:07AM -0800, Tony Lindgren wrote:
->> Well let's see what Tomi prefers.
->> 
->> > > &vaux1 {
->> > > 	/* Needed for ads7846 */
->> > > 	regulator-name = "vcc";
->> > > };
->> > > 
->> > > &vpll2 {
->> > > 	/* Needed for DSS */
->> > > 	regulator-name = "vdds_dsi";
->> > > };
->> 
->> In the long we'll use regulator phandles anyways in the DSS related
->> nodes, so from that point of view fixing dpi.c makes sense.
-> 
-> The hack, as being sent by Javier, will result in the wrong
-> regulator being used on the Nokia N900, which is using vaux1.
-> It must depend on the machine.
->
-
-I see, so this hack is not generic enough to be usable for all OMAP3 boards so I
-think is better to just add the hack on the DTS.
-
-I was more found about adding a hack on dpi.c since the DTB is an stable ABI
-while the dpi.c implementation is not. But I guess is not that bad to change the
-DTS later once DSS DT bindings are added to mainline.
-
-> At the same time the N900 device tree file uses V28 as
-> regulator-name for vaux1 (which is the same one as legacy boot
-> used). Nothing depends on this, but I don't think it's a
-> good idea to use this property. Apparently it does not work
-> if multiple drivers need the same regulator under different
-> names.
-> 
-> -- Sebastian
-> 
-
-So, what do you think about the following patch instead?
-
->From 99f1c60f6db6cac07ea2c0398a9cbb3525dfdd72 Mon Sep 17 00:00:00 2001
-From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Date: Sat, 16 Nov 2013 17:59:08 +0100
-Subject: [PATCH 1/1] ARM: dts: omap3-igep0020: name twl4030 VPLL2 regulator as
- vdds_dsi
-
-On Device Tree boot the VDDS_DSI regulator is not linked to
-the DPI device so omapfb driver probing fails with:
-
-[    3.186035] OMAPFB: omapfb_probe
-[    3.190704] omapdss DPI error: can't get VDDS_DSI regulator
-[    3.196594] omapfb omapfb: failed to connect default display
-[    3.202667] omapfb omapfb: failed to init overlay connections
-[    3.208892] OMAPFB: free_resources
-[    3.212493] OMAPFB: free all fbmem
-[    3.216735] omapfb omapfb: failed to setup omapfb
-
-As a workaround name the VPLL2 regulator from twl4030 as "vdds_dsi"
-so getting the VDDS_DSI regulator will succeed on dpi_init_regulator().
-
-Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Signed-off-by: Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
 ---
- arch/arm/boot/dts/omap3-igep0020.dts | 5 +++++
- 1 file changed, 5 insertions(+)
 
-diff --git a/arch/arm/boot/dts/omap3-igep0020.dts
-b/arch/arm/boot/dts/omap3-igep0020.dts
-index b9a9e17..1c7e74d 100644
---- a/arch/arm/boot/dts/omap3-igep0020.dts
-+++ b/arch/arm/boot/dts/omap3-igep0020.dts
-@@ -215,3 +215,8 @@
- &usbhsehci {
- 	phys = <&hsusb1_phy>;
+	This patch is based on top of Tony's 2420 DT patches.
+
+ arch/arm/boot/dts/omap2420-n8x0-common.dtsi | 65 +++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/board-n8x0.c            | 44 -------------------
+ 2 files changed, 65 insertions(+), 44 deletions(-)
+
+diff --git a/arch/arm/boot/dts/omap2420-n8x0-common.dtsi b/arch/arm/boot/dts/omap2420-n8x0-common.dtsi
+index c539693..89608b2 100644
+--- a/arch/arm/boot/dts/omap2420-n8x0-common.dtsi
++++ b/arch/arm/boot/dts/omap2420-n8x0-common.dtsi
+@@ -32,3 +32,68 @@
+ &i2c2 {
+ 	clock-frequency = <400000>;
  };
 +
-+&vpll2 {
-+        /* Needed for DSS */
-+        regulator-name = "vdds_dsi";
++&gpmc {
++	ranges = <0 0 0x04000000 0x10000000>;
++
++	/* gpio-irq for dma: 26 */
++
++	onenand@0,0 {
++		#address-cells = <1>;
++		#size-cells = <1>;
++		reg = <0 0 0x10000000>;
++
++		gpmc,sync-read;
++		gpmc,burst-length = <16>;
++		gpmc,burst-read;
++		gpmc,burst-wrap;
++		gpmc,device-width = <2>;
++		gpmc,mux-add-data = <2>;
++		gpmc,cs-on-ns = <0>;
++		gpmc,cs-rd-off-ns = <127>;
++		gpmc,cs-wr-off-ns = <109>;
++		gpmc,adv-on-ns = <0>;
++		gpmc,adv-rd-off-ns = <18>;
++		gpmc,adv-wr-off-ns = <18>;
++		gpmc,oe-on-ns = <27>;
++		gpmc,oe-off-ns = <127>;
++		gpmc,we-on-ns = <27>;
++		gpmc,we-off-ns = <72>;
++		gpmc,rd-cycle-ns = <145>;
++		gpmc,wr-cycle-ns = <136>;
++		gpmc,access-ns = <118>;
++		gpmc,page-burst-access-ns = <27>;
++		gpmc,bus-turnaround-ns = <0>;
++		gpmc,cycle2cycle-delay-ns = <0>;
++		gpmc,wait-monitoring-ns = <0>;
++		gpmc,clk-activation-ns = <9>;
++		gpmc,sync-clk-ps = <27000>;
++
++		/* MTD partition table corresponding to old board-n8x0 file. */
++		partition@0 {
++			label = "bootloader";
++			reg = <0x00000000 0x00020000>;
++			read-only;
++		};
++		partition@1 {
++			label = "config";
++			reg = <0x00020000 0x00060000>;
++		};
++		partition@2 {
++			label = "kernel";
++			reg = <0x00080000 0x00200000>;
++		};
++		partition@3 {
++			label = "initfs";
++			reg = <0x00280000 0x00400000>;
++		};
++		partition@4 {
++			label = "rootfs";
++			reg = <0x00680000 0x0f980000>;
++		};
++		partition@5 {
++			label = "omap2-onenand";
++			reg = <0x00000000 0x10000000>;
++		};
++	};
 +};
+diff --git a/arch/arm/mach-omap2/board-n8x0.c b/arch/arm/mach-omap2/board-n8x0.c
+index 5e04bdc..f7996194 100644
+--- a/arch/arm/mach-omap2/board-n8x0.c
++++ b/arch/arm/mach-omap2/board-n8x0.c
+@@ -162,49 +162,6 @@ static struct spi_board_info n800_spi_board_info[] __initdata = {
+ 	},
+ };
+ 
+-#if defined(CONFIG_MTD_ONENAND_OMAP2) || \
+-	defined(CONFIG_MTD_ONENAND_OMAP2_MODULE)
+-
+-static struct mtd_partition onenand_partitions[] = {
+-	{
+-		.name           = "bootloader",
+-		.offset         = 0,
+-		.size           = 0x20000,
+-		.mask_flags     = MTD_WRITEABLE,	/* Force read-only */
+-	},
+-	{
+-		.name           = "config",
+-		.offset         = MTDPART_OFS_APPEND,
+-		.size           = 0x60000,
+-	},
+-	{
+-		.name           = "kernel",
+-		.offset         = MTDPART_OFS_APPEND,
+-		.size           = 0x200000,
+-	},
+-	{
+-		.name           = "initfs",
+-		.offset         = MTDPART_OFS_APPEND,
+-		.size           = 0x400000,
+-	},
+-	{
+-		.name           = "rootfs",
+-		.offset         = MTDPART_OFS_APPEND,
+-		.size           = MTDPART_SIZ_FULL,
+-	},
+-};
+-
+-static struct omap_onenand_platform_data board_onenand_data[] = {
+-	{
+-		.cs		= 0,
+-		.gpio_irq	= 26,
+-		.parts		= onenand_partitions,
+-		.nr_parts	= ARRAY_SIZE(onenand_partitions),
+-		.flags		= ONENAND_SYNC_READ,
+-	}
+-};
+-#endif
+-
+ #if defined(CONFIG_MENELAUS) &&						\
+ 	(defined(CONFIG_MMC_OMAP) || defined(CONFIG_MMC_OMAP_MODULE))
+ 
+@@ -639,7 +596,6 @@ static int __init n8x0_late_initcall(void)
+ 	if (!board_caps)
+ 		return -ENODEV;
+ 
+-	gpmc_onenand_init(board_onenand_data);
+ 	n8x0_mmc_init();
+ 	n8x0_usb_init();
+ 
 -- 
-1.8.4.2
+1.8.4.3
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
