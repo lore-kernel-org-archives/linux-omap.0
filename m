@@ -1,58 +1,107 @@
 From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Subject: [PATCH 00/11]: add remaining support for IGEP boards
-Date: Sat, 16 Nov 2013 14:23:33 +0100
-Message-ID: <1384608224-9452-1-git-send-email-javier.martinez@collabora.co.uk>
+Subject: [PATCH 02/11] ARM: dts: omap3-igep: Add support for LBEE1USJYC WiFi connected to SDIO.
+Date: Sat, 16 Nov 2013 14:23:35 +0100
+Message-ID: <1384608224-9452-3-git-send-email-javier.martinez@collabora.co.uk>
+References: <1384608224-9452-1-git-send-email-javier.martinez@collabora.co.uk>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([93.93.135.160]:60328 "EHLO
+Received: from bhuna.collabora.co.uk ([93.93.135.160]:60335 "EHLO
 	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751618Ab3KPNYx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 16 Nov 2013 08:24:53 -0500
+	with ESMTP id S1751837Ab3KPNYy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 16 Nov 2013 08:24:54 -0500
+In-Reply-To: <1384608224-9452-1-git-send-email-javier.martinez@collabora.co.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: Enric Balletbo i Serra <eballetbo@gmail.com>, bcousson@baylibre.com, tomi.valkeinen@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-In order to make mach-omap2 Device Tree only the board file for
-IGEP boards was removed even when support for wifi and display
-was still not supported by its DTS.
+From: Enric Balletbo i Serra <eballetbo@gmail.com>
 
-This patch-set adds support for these remaining peripherals and
-also adds support for USB, HDMI and user LED for the am33xx SoC
-based IGEP Aquila board.
+The LBEE1USJYC is a WiFi/BT combo module used on OMAP3-based IGEP boards. In
+both cases, IGEPv2 Rev. C and IGEP COM MODULE, the module is connected using
+the same MMC interface and uses the same GPIOs.
 
-The patch-set is composed of the following patches:
+Signed-off-by: Enric Balletbo i Serra <eballetbo@gmail.com>
+---
+ arch/arm/boot/dts/omap3-igep.dtsi | 45 ++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 44 insertions(+), 1 deletion(-)
 
-Enric Balletbo i Serra (7):
-      ARM: dts: omap3-igep: Fix bus-width for mmc1.
-      ARM: dts: omap3-igep: Add support for LBEE1USJYC WiFi connected to SDIO.
-      ARM: dts: omap3-igep: Update to use the TI AM/DM37x processor.
-      ARM: dts: AM33XX BASE0033: add pinmux and hdmi node to enable display
-      ARM: dts: AM33XX BASE0033: add pinmux and user led support.
-      ARM: dts: AM33XX BASE0033: add 32KBit EEPROM support.
-      ARM: dts: AM33XX IGEP0033: add USB support.
+diff --git a/arch/arm/boot/dts/omap3-igep.dtsi b/arch/arm/boot/dts/omap3-igep.dtsi
+index d4fecce..b3517b2 100644
+--- a/arch/arm/boot/dts/omap3-igep.dtsi
++++ b/arch/arm/boot/dts/omap3-igep.dtsi
+@@ -24,6 +24,25 @@
+ 		ti,mcbsp = <&mcbsp2>;
+ 		ti,codec = <&twl_audio>;
+ 	};
++
++	vdd33: regulator-vdd33 {
++		compatible = "regulator-fixed";
++		regulator-name = "vdd33";
++		regulator-always-on;
++	};
++
++	lbee1usjyc_vmmc: lbee1usjyc_vmmc {
++		pinctrl-names = "default";
++		pinctrl-0 = <&lbee1usjyc_pins>;
++		compatible = "regulator-fixed";
++		regulator-name = "regulator-lbee1usjyc";
++		regulator-min-microvolt = <3300000>;
++		regulator-max-microvolt = <3300000>;
++		gpio = <&gpio5 10 GPIO_ACTIVE_HIGH>;	/* gpio_138 WIFI_PDN */
++		startup-delay-us = <10000>;
++		enable-active-high;
++		vin-supply = <&vdd33>;
++	};
+ };
+ 
+ &omap3_pmx_core {
+@@ -48,6 +67,15 @@
+ 		>;
+ 	};
+ 
++	/* WiFi/BT combo */
++	lbee1usjyc_pins: pinmux_lbee1usjyc_pins {
++		pinctrl-single,pins = <
++			0x136 (PIN_OUTPUT | MUX_MODE4)	/* sdmmc2_dat5.gpio_137 */
++			0x138 (PIN_OUTPUT | MUX_MODE4)	/* sdmmc2_dat6.gpio_138 */
++			0x13a (PIN_OUTPUT | MUX_MODE4)	/* sdmmc2_dat7.gpio_139 */
++		>;
++	};
++
+ 	mcbsp2_pins: pinmux_mcbsp2_pins {
+ 		pinctrl-single,pins = <
+ 			0x10c (PIN_INPUT | MUX_MODE0)		/* mcbsp2_fsx.mcbsp2_fsx */
+@@ -68,6 +96,17 @@
+ 		>;
+ 	};
+ 
++	mmc2_pins: pinmux_mmc2_pins {
++		pinctrl-single,pins = <
++			0x128 (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc2_clk.sdmmc2_clk */
++			0x12a (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc2_cmd.sdmmc2_cmd */
++			0x12c (PIN_INPUT_PULLUP | MUX_MODE0) 	/* sdmmc2_dat0.sdmmc2_dat0 */
++			0x12e (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc2_dat1.sdmmc2_dat1 */
++			0x130 (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc2_dat2.sdmmc2_dat2 */
++			0x132 (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc2_dat3.sdmmc2_dat3 */
++		>;
++	};
++
+ 	smsc911x_pins: pinmux_smsc911x_pins {
+ 		pinctrl-single,pins = <
+ 			0x1a2 (PIN_INPUT | MUX_MODE4)		/* mcspi1_cs2.gpio_176 */
+@@ -114,7 +153,11 @@
+ };
+ 
+ &mmc2 {
+-	status = "disabled";
++	pinctrl-names = "default";
++	pinctrl-0 = <&mmc2_pins>;
++	vmmc-supply = <&lbee1usjyc_vmmc>;
++	bus-width = <4>;
++	non-removable;
+ };
+ 
+ &mmc3 {
+-- 
+1.8.4.2
 
-Javier Martinez Canillas (4):
-      ARM: dts: omap3-igep0020: Add pinmux setup for i2c devices
-      ARM: dts: omap3-igep0020: Add pinmuxing for DVI output
-      ARM: OMAP: dss-common: change IGEP's DVI DDC i2c bus
-      OMAPDSS: DPI: use VPLL2 regulator if VDDS_DSI is not found
-
-Tony,
-
-Most of these patches are just DTS changes so they have to be picked
-by Benoit although there are patches that should go to different trees.
-
-[PATCH 10/11] ARM: OMAP: dss-common: change IGEP's DVI DDC i2c bus
-
-have to go through your tree and
-
-[PATCH 11/11] OMAPDSS: DPI: use VPLL2 regulator if VDDS_DSI is not found
-
-should be picked by Tomi Valkeinen.
-
-Since we have removed the board file for IGEP boards I think these
-can be considered as regression fixes for 3.13 although I don't mind
-if you prefer to wait for 3.14.
-
-Thanks a lot and best regards,
-Javier
