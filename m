@@ -1,14 +1,20 @@
 From: Taras Kondratiuk <taras.kondratiuk@linaro.org>
-Subject: [RFC 14/23] USB: ehci-omap: raw read and write endian fix
-Date: Sat, 16 Nov 2013 02:01:17 +0200
-Message-ID: <1384560086-11994-15-git-send-email-taras.kondratiuk@linaro.org>
+Subject: [RFC 11/23] mfd: omap-usb-host: raw read and write endian fix
+Date: Sat, 16 Nov 2013 02:01:14 +0200
+Message-ID: <1384560086-11994-12-git-send-email-taras.kondratiuk@linaro.org>
 References: <1384560086-11994-1-git-send-email-taras.kondratiuk@linaro.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ee0-f47.google.com ([74.125.83.47]:56278 "EHLO
+	mail-ee0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753718Ab3KPABp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Nov 2013 19:01:45 -0500
+Received: by mail-ee0-f47.google.com with SMTP id c50so835063eek.6
+        for <linux-omap@vger.kernel.org>; Fri, 15 Nov 2013 16:01:44 -0800 (PST)
 In-Reply-To: <1384560086-11994-1-git-send-email-taras.kondratiuk@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linaro-networking@linaro.org, Victor Kamensky <victor.kamensky@linaro.org>, Felipe Balbi <balbi@ti.com>, Alan Stern <stern@rowland.harvard.edu>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linaro-networking@linaro.org, Victor Kamensky <victor.kamensky@linaro.org>, Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, linux-kernel@vger.kernel.org
 
 From: Victor Kamensky <victor.kamensky@linaro.org>
 
@@ -25,27 +31,40 @@ with xxx_relaxed variant.
 Signed-off-by: Victor Kamensky <victor.kamensky@linaro.org>
 Signed-off-by: Taras Kondratiuk <taras.kondratiuk@linaro.org>
 ---
- drivers/usb/host/ehci-omap.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/mfd/omap-usb-host.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
-index 6fa82d6..803e706 100644
---- a/drivers/usb/host/ehci-omap.c
-+++ b/drivers/usb/host/ehci-omap.c
-@@ -73,12 +73,12 @@ struct omap_hcd {
+diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
+index 29ee54d..3b34de1 100644
+--- a/drivers/mfd/omap-usb-host.c
++++ b/drivers/mfd/omap-usb-host.c
+@@ -121,22 +121,22 @@ static u64 usbhs_dmamask = DMA_BIT_MASK(32);
  
- static inline void ehci_write(void __iomem *base, u32 reg, u32 val)
+ static inline void usbhs_write(void __iomem *base, u32 reg, u32 val)
  {
 -	__raw_writel(val, base + reg);
 +	writel_relaxed(val, base + reg);
  }
  
- static inline u32 ehci_read(void __iomem *base, u32 reg)
+ static inline u32 usbhs_read(void __iomem *base, u32 reg)
  {
 -	return __raw_readl(base + reg);
 +	return readl_relaxed(base + reg);
  }
  
- /* configure so an HC device and id are always provided */
+ static inline void usbhs_writeb(void __iomem *base, u8 reg, u8 val)
+ {
+-	__raw_writeb(val, base + reg);
++	writeb_relaxed(val, base + reg);
+ }
+ 
+ static inline u8 usbhs_readb(void __iomem *base, u8 reg)
+ {
+-	return __raw_readb(base + reg);
++	return readb_relaxed(base + reg);
+ }
+ 
+ /*-------------------------------------------------------------------------*/
 -- 
 1.7.9.5
+
