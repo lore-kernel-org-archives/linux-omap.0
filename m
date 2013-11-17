@@ -1,163 +1,104 @@
-From: Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
-Subject: [PATCH] ARM: OMAP: dts: add n8x0 onenand
-Date: Sat, 16 Nov 2013 20:36:22 +0200
-Message-ID: <1384626982-11635-1-git-send-email-aaro.koskinen@iki.fi>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
+From: Sebastian Reichel <sre@ring0.de>
+Subject: Re: [PATCH 11/11] OMAPDSS: DPI: use VPLL2 regulator if VDDS_DSI is
+ not found
+Date: Sun, 17 Nov 2013 00:26:00 +0000
+Message-ID: <20131117002600.GA14253@earth.universe>
+References: <1384608224-9452-1-git-send-email-javier.martinez@collabora.co.uk>
+ <1384608224-9452-12-git-send-email-javier.martinez@collabora.co.uk>
+ <20131116141853.GF10317@atomide.com>
+ <5287908C.3040602@collabora.co.uk>
+ <20131116154507.GL10317@atomide.com>
+ <20131116160234.GB5104@earth.universe>
+ <5287AB20.9070407@collabora.co.uk>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="jRHKVT23PllUwdXP"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from ring0.de ([91.143.88.219]:38061 "EHLO smtp.ring0.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752984Ab3KQA0F (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 16 Nov 2013 19:26:05 -0500
+Content-Disposition: inline
+In-Reply-To: <5287AB20.9070407@collabora.co.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Cc: Tony Lindgren <tony@atomide.com>, Enric Balletbo i Serra <eballetbo@gmail.com>, bcousson@baylibre.com, tomi.valkeinen@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Convert onenand to DT on n8x0 boards.
 
-Signed-off-by: Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
----
+--jRHKVT23PllUwdXP
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-	This patch is based on top of Tony's 2420 DT patches.
+Hi Javier,
 
- arch/arm/boot/dts/omap2420-n8x0-common.dtsi | 65 +++++++++++++++++++++++++++++
- arch/arm/mach-omap2/board-n8x0.c            | 44 -------------------
- 2 files changed, 65 insertions(+), 44 deletions(-)
+On Sat, Nov 16, 2013 at 06:28:00PM +0100, Javier Martinez Canillas wrote:
+> > The hack, as being sent by Javier, will result in the wrong
+> > regulator being used on the Nokia N900, which is using vaux1.
+> > It must depend on the machine.
+>=20
+> I see, so this hack is not generic enough to be usable for all OMAP3 boar=
+ds so I
+> think is better to just add the hack on the DTS.
+>
+> I was more found about adding a hack on dpi.c since the DTB is an stable =
+ABI
+> while the dpi.c implementation is not.
 
-diff --git a/arch/arm/boot/dts/omap2420-n8x0-common.dtsi b/arch/arm/boot/dts/omap2420-n8x0-common.dtsi
-index c539693..89608b2 100644
---- a/arch/arm/boot/dts/omap2420-n8x0-common.dtsi
-+++ b/arch/arm/boot/dts/omap2420-n8x0-common.dtsi
-@@ -32,3 +32,68 @@
- &i2c2 {
- 	clock-frequency = <400000>;
- };
-+
-+&gpmc {
-+	ranges = <0 0 0x04000000 0x10000000>;
-+
-+	/* gpio-irq for dma: 26 */
-+
-+	onenand@0,0 {
-+		#address-cells = <1>;
-+		#size-cells = <1>;
-+		reg = <0 0 0x10000000>;
-+
-+		gpmc,sync-read;
-+		gpmc,burst-length = <16>;
-+		gpmc,burst-read;
-+		gpmc,burst-wrap;
-+		gpmc,device-width = <2>;
-+		gpmc,mux-add-data = <2>;
-+		gpmc,cs-on-ns = <0>;
-+		gpmc,cs-rd-off-ns = <127>;
-+		gpmc,cs-wr-off-ns = <109>;
-+		gpmc,adv-on-ns = <0>;
-+		gpmc,adv-rd-off-ns = <18>;
-+		gpmc,adv-wr-off-ns = <18>;
-+		gpmc,oe-on-ns = <27>;
-+		gpmc,oe-off-ns = <127>;
-+		gpmc,we-on-ns = <27>;
-+		gpmc,we-off-ns = <72>;
-+		gpmc,rd-cycle-ns = <145>;
-+		gpmc,wr-cycle-ns = <136>;
-+		gpmc,access-ns = <118>;
-+		gpmc,page-burst-access-ns = <27>;
-+		gpmc,bus-turnaround-ns = <0>;
-+		gpmc,cycle2cycle-delay-ns = <0>;
-+		gpmc,wait-monitoring-ns = <0>;
-+		gpmc,clk-activation-ns = <9>;
-+		gpmc,sync-clk-ps = <27000>;
-+
-+		/* MTD partition table corresponding to old board-n8x0 file. */
-+		partition@0 {
-+			label = "bootloader";
-+			reg = <0x00000000 0x00020000>;
-+			read-only;
-+		};
-+		partition@1 {
-+			label = "config";
-+			reg = <0x00020000 0x00060000>;
-+		};
-+		partition@2 {
-+			label = "kernel";
-+			reg = <0x00080000 0x00200000>;
-+		};
-+		partition@3 {
-+			label = "initfs";
-+			reg = <0x00280000 0x00400000>;
-+		};
-+		partition@4 {
-+			label = "rootfs";
-+			reg = <0x00680000 0x0f980000>;
-+		};
-+		partition@5 {
-+			label = "omap2-onenand";
-+			reg = <0x00000000 0x10000000>;
-+		};
-+	};
-+};
-diff --git a/arch/arm/mach-omap2/board-n8x0.c b/arch/arm/mach-omap2/board-n8x0.c
-index 5e04bdc..f7996194 100644
---- a/arch/arm/mach-omap2/board-n8x0.c
-+++ b/arch/arm/mach-omap2/board-n8x0.c
-@@ -162,49 +162,6 @@ static struct spi_board_info n800_spi_board_info[] __initdata = {
- 	},
- };
- 
--#if defined(CONFIG_MTD_ONENAND_OMAP2) || \
--	defined(CONFIG_MTD_ONENAND_OMAP2_MODULE)
--
--static struct mtd_partition onenand_partitions[] = {
--	{
--		.name           = "bootloader",
--		.offset         = 0,
--		.size           = 0x20000,
--		.mask_flags     = MTD_WRITEABLE,	/* Force read-only */
--	},
--	{
--		.name           = "config",
--		.offset         = MTDPART_OFS_APPEND,
--		.size           = 0x60000,
--	},
--	{
--		.name           = "kernel",
--		.offset         = MTDPART_OFS_APPEND,
--		.size           = 0x200000,
--	},
--	{
--		.name           = "initfs",
--		.offset         = MTDPART_OFS_APPEND,
--		.size           = 0x400000,
--	},
--	{
--		.name           = "rootfs",
--		.offset         = MTDPART_OFS_APPEND,
--		.size           = MTDPART_SIZ_FULL,
--	},
--};
--
--static struct omap_onenand_platform_data board_onenand_data[] = {
--	{
--		.cs		= 0,
--		.gpio_irq	= 26,
--		.parts		= onenand_partitions,
--		.nr_parts	= ARRAY_SIZE(onenand_partitions),
--		.flags		= ONENAND_SYNC_READ,
--	}
--};
--#endif
--
- #if defined(CONFIG_MENELAUS) &&						\
- 	(defined(CONFIG_MMC_OMAP) || defined(CONFIG_MMC_OMAP_MODULE))
- 
-@@ -639,7 +596,6 @@ static int __init n8x0_late_initcall(void)
- 	if (!board_caps)
- 		return -ENODEV;
- 
--	gpmc_onenand_init(board_onenand_data);
- 	n8x0_mmc_init();
- 	n8x0_usb_init();
- 
--- 
-1.8.4.3
+I agree with this. My suggestion would be to get the vdds_dsi regulator name
+=66rom platform data. This way each board can setup its own quirk until oma=
+pdss
+supports DT.
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> But I guess is not that bad to change the DTS later once DSS DT
+> bindings are added to mainline.
+
+As far as I know DT bindings are supposed to be as stable as
+possible.
+
+> > At the same time the N900 device tree file uses V28 as
+> > regulator-name for vaux1 (which is the same one as legacy boot
+> > used). Nothing depends on this, but I don't think it's a
+> > good idea to use this property. Apparently it does not work
+> > if multiple drivers need the same regulator under different
+> > names.
+> >=20
+> > -- Sebastian
+> >=20
+>=20
+> So, what do you think about the following patch instead?
+>=20
+> [PATCH]
+
+For Nokia N900 vaux1 is also used for si4713 radio chip, lis3lv02d
+accelerometer and battery cover sensor, so I don't like this hack.
+
+If vppl2 is only used for omapdss.dsi on IGEP boards it might be
+sensible to label it, though? So it might be ok there.
+
+-- Sebastian
+
+--jRHKVT23PllUwdXP
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.15 (GNU/Linux)
+
+iQIcBAEBCAAGBQJSiA0YAAoJENju1/PIO/qa7SQP/ingzGQ+p6c1gGfrF2aO/O/g
+yFPLuv4OXYZfTjK2qBqJfgw5OyKCCQbvDrmZPaG7AQEauBfymhS46uwind/mHrVN
+cxpOtJI4kL4SZzY2v10ceKQWL6LgM8eP15LoHyeS3NEXVVIVpaC1lA+JSTWa2uB1
+PgbZUBLPMH1/3YGfenr+Dww7osysi+zgCdSkdmYXU3PyMwMFx8cthv34OS0Vu8va
+lfhMtEVfKrmPemCH+KKShl65jwm8DsdNSp403/TGIOEV0GmP62KF+OYkdp4OXyaU
+4Q9dIQZmbYvM96Jt0AeFhzOiP0MeC+/8xXwyH+wT2H0Snnganpp51Fmbcdeyd0TD
+5AtXXmc2BGbhXucBX/mkVEhlxYSaYLWoCk0ToQI1NNXW4gPIR3stnjASQJYhb7J4
+wFBsQP68fdm8FrwYCsISN1JKcdjMuLPiu9Yzt/iIrdQBDPZGE34iIR9W0RC0CHa1
+vso9bETYO/t9knU8wcLp/sVN8MMu7fL3INlFPSzFH6n78qqqLlCpcQHsDKs9oV1G
+QepTnrtbrk2fLudKVMiZSxXw/2j6fjEB6pvEaO9lWSEgLpW6xy78GStJTNdWv2is
+EpugQfI1y0nvNyy9/oS5dFE18++ZCINEUA+ac9/McoY5YFP59bX5k0LI4rVA1i5Q
+IsWu1J7+hXnAO6Rq+/cX
+=UElP
+-----END PGP SIGNATURE-----
+
+--jRHKVT23PllUwdXP--
