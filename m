@@ -1,58 +1,47 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/5] mfd: twl-core: Fix passing of platform data in the
- device tree case
-Date: Mon, 18 Nov 2013 11:33:59 -0800
-Message-ID: <20131118193359.GV10317@atomide.com>
-References: <1384562167-14725-1-git-send-email-tony@atomide.com>
- <1384562167-14725-2-git-send-email-tony@atomide.com>
- <20131118102907.GC13640@lee--X1>
- <20131118172510.GI16038@saruman.home>
- <20131118174638.GQ13640@lee--X1>
- <20131118181110.GM10317@atomide.com>
- <20131118190921.GT13640@lee--X1>
- <20131118192256.GU10317@atomide.com>
- <20131118192832.GU13640@lee--X1>
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
+Subject: Re: [PATCH v2 2/3] hwrng: OMAP3 ROM Random Number Generator support
+Date: Mon, 18 Nov 2013 22:51:30 +0100
+Message-ID: <201311182251.35704@pali>
+References: <1379534757-20870-1-git-send-email-pali.rohar@gmail.com> <20131008190408.GM8313@atomide.com> <20131016125734.GA10906@gondor.apana.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:49790 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751939Ab3KRTeD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Nov 2013 14:34:03 -0500
-Content-Disposition: inline
-In-Reply-To: <20131118192832.GU13640@lee--X1>
+Received: from mail-ee0-f43.google.com ([74.125.83.43]:42628 "EHLO
+	mail-ee0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751281Ab3KRVvj convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Nov 2013 16:51:39 -0500
+In-Reply-To: <20131016125734.GA10906@gondor.apana.org.au>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>
-Cc: Felipe Balbi <balbi@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Samuel Ortiz <sameo@linux.intel.com>
+To: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: Tony Lindgren <tony@atomide.com>, Matt Mackall <mpm@selenic.com>, Russell King <linux@arm.linux.org.uk>, Joe Perches <joe@perches.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
-* Lee Jones <lee.jones@linaro.org> [131118 11:29]:
-> On Mon, 18 Nov 2013, Tony Lindgren wrote:
-> 
-> > * Lee Jones <lee.jones@linaro.org> [131118 11:10]:
-> > > > > Are you Acking this patch by the way?
-> > > > 
-> > > > If this looks acceptable to you guys, I'd like to merge this via my fixes
-> > > > branch this week with your acks if that works for you. That way I can base
-> > > > my omap legacy platform data removal patches on my fixes branch while keep
-> > > > things working for the drivers. Alternatively I can naturally base my
-> > > > legacy data removal on -rc2 too if this gets merged to mainline by then 
-> > > > via the MFD tree.
-> > > 
-> > > I can either send it up for the -rcs, or I can create an immutable
-> > > branch for you to pull from. That way the patch can do in via ARM-SoC
-> > > and MFD and we can let Git sort it out.
-> > 
-> > OK great, I'd prefer an immutable branch that I can merge in too. Then
-> > you can bundle it with other MFD fixes for the -rc series and send it
-> > in when it suits you :)
-> 
-> That's fine. It's 19:30 here now and I still have a shed load of
-> debugging to do, so I'll deal with this tomorrow if it's all the same
-> to you?
+On Wednesday 16 October 2013 14:57:34 Herbert Xu wrote:
+> On Tue, Oct 08, 2013 at 12:04:09PM -0700, Tony Lindgren wrote:
+> > * Pali Roh=C3=A1r <pali.rohar@gmail.com> [130920 06:33]:
+> > > This driver provides kernel-side support for the Random
+> > > Number Generator hardware found on OMAP34xx processors.
+> > >=20
+> > > This driver comes from Maemo 2.6.28 kernel and was tested
+> > > on Nokia RX-51. It is platform device because it needs
+> > > board specific function for smc calls.
+> >=20
+> > This one is should be merged via the hw_random patches
+> > seprately:
+> >=20
+> > Acked-by: Tony Lindgren <tony@atomide.com>
+>=20
+> Patch applied.  Thanks!
 
-Yeah sure I can wait few days no problem.
+Hello, I still do not see this patch (2/3) in linus tree. But=20
+patch 1/3 and 3/3 are already merged. So is there any problem?
 
-Thanks,
-
-Tony
+--=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
