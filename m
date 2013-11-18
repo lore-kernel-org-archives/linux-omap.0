@@ -1,173 +1,153 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 4/7] OMAPDSS: rename parent clk variables
-Date: Mon, 18 Nov 2013 14:39:01 +0200
-Message-ID: <1384778344-8226-5-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 5/7] OMAPDSS: cleanup fck parent handling
+Date: Mon, 18 Nov 2013 14:39:02 +0200
+Message-ID: <1384778344-8226-6-git-send-email-tomi.valkeinen@ti.com>
 References: <1384778344-8226-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:45009 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751580Ab3KRMjV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 18 Nov 2013 07:39:21 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:52174 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751624Ab3KRMjX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Nov 2013 07:39:23 -0500
 In-Reply-To: <1384778344-8226-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
 Cc: Archit Taneja <archit@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Rename the variables related to DSS fclk's parent: "clk_name" and
-"dpll4_m4_ck", to "parent_clk_name" and "parent_clk", which much better
-tell what they mean.
+The dss parent_clk_name currently points to a clock node which we use to
+change the fclk rate. Now that we have CLK_SET_RATE_PARENT properly set,
+we can set the rate directly to the fclk node.
+
+However, we still need to calculate the possible clock rates. For this,
+we need the rate of the parent of the current parent_clk.
+
+To simplify the code, this patch changes the parent_clk_name to point to
+the above mentioned parent, so that we can get the rate directly.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/omap2/dss/dss.c | 40 ++++++++++++++++++++--------------------
- 1 file changed, 20 insertions(+), 20 deletions(-)
+ drivers/video/omap2/dss/dss.c | 39 ++++++++++++---------------------------
+ drivers/video/omap2/dss/dss.h |  1 -
+ 2 files changed, 12 insertions(+), 28 deletions(-)
 
 diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
-index 3dea532..d510ba3 100644
+index d510ba3..7af9719 100644
 --- a/drivers/video/omap2/dss/dss.c
 +++ b/drivers/video/omap2/dss/dss.c
-@@ -67,7 +67,7 @@ static void dss_runtime_put(void);
- struct dss_features {
- 	u8 fck_div_max;
- 	u8 dss_fck_multiplier;
--	const char *clk_name;
-+	const char *parent_clk_name;
- 	int (*dpi_select_source)(enum omap_channel channel);
- };
+@@ -454,7 +454,7 @@ bool dss_div_calc(unsigned long fck_min, dss_div_calc_func func, void *data)
+ 	fckd_hw_max = dss.feat->fck_div_max;
  
-@@ -75,7 +75,7 @@ static struct {
- 	struct platform_device *pdev;
- 	void __iomem    *base;
+ 	m = dss.feat->dss_fck_multiplier;
+-	prate = dss_get_dpll4_rate();
++	prate = clk_get_rate(dss.parent_clk);
  
--	struct clk	*dpll4_m4_ck;
-+	struct clk	*parent_clk;
- 	struct clk	*dss_clk;
- 	unsigned long	dss_clk_rate;
+ 	fck_min = fck_min ? fck_min : 1;
  
-@@ -445,7 +445,7 @@ bool dss_div_calc(unsigned long fck_min, dss_div_calc_func func, void *data)
- 	unsigned long prate;
- 	unsigned m;
+@@ -473,20 +473,13 @@ bool dss_div_calc(unsigned long fck_min, dss_div_calc_func func, void *data)
  
--	if (dss.dpll4_m4_ck == NULL) {
-+	if (dss.parent_clk == NULL) {
- 		fck = clk_get_rate(dss.dss_clk);
- 		return func(fck, data);
- 	}
-@@ -475,15 +475,15 @@ int dss_set_fck_rate(unsigned long rate)
+ int dss_set_fck_rate(unsigned long rate)
  {
- 	DSSDBG("set fck to %lu\n", rate);
+-	DSSDBG("set fck to %lu\n", rate);
+-
+-	if (dss.parent_clk) {
+-		unsigned long prate;
+-		unsigned m;
+-		int r;
++	int r;
  
--	if (dss.dpll4_m4_ck) {
-+	if (dss.parent_clk) {
- 		unsigned long prate;
- 		unsigned m;
- 		int r;
+-		prate = clk_get_rate(clk_get_parent(dss.parent_clk));
+-		m = dss.feat->dss_fck_multiplier;
++	DSSDBG("set fck to %lu\n", rate);
  
--		prate = clk_get_rate(clk_get_parent(dss.dpll4_m4_ck));
-+		prate = clk_get_rate(clk_get_parent(dss.parent_clk));
- 		m = dss.feat->dss_fck_multiplier;
+-		r = clk_set_rate(dss.parent_clk, rate * m);
+-		if (r)
+-			return r;
+-	}
++	r = clk_set_rate(dss.dss_clk, rate);
++	if (r)
++		return r;
  
--		r = clk_set_rate(dss.dpll4_m4_ck, rate * m);
-+		r = clk_set_rate(dss.parent_clk, rate * m);
- 		if (r)
- 			return r;
- 	}
-@@ -499,8 +499,8 @@ int dss_set_fck_rate(unsigned long rate)
+ 	dss.dss_clk_rate = clk_get_rate(dss.dss_clk);
  
- unsigned long dss_get_dpll4_rate(void)
- {
--	if (dss.dpll4_m4_ck)
--		return clk_get_rate(clk_get_parent(dss.dpll4_m4_ck));
-+	if (dss.parent_clk)
-+		return clk_get_rate(clk_get_parent(dss.parent_clk));
- 	else
- 		return 0;
- }
-@@ -517,7 +517,7 @@ static int dss_setup_default_clock(void)
- 	unsigned fck_div;
- 	int r;
- 
--	if (dss.dpll4_m4_ck == NULL)
-+	if (dss.parent_clk == NULL)
- 		return 0;
- 
- 	max_dss_fck = dss_feat_get_param_max(FEAT_PARAM_DSS_FCK);
-@@ -654,25 +654,25 @@ static int dss_get_clocks(void)
- 
- 	dss.dss_clk = clk;
- 
--	if (dss.feat->clk_name) {
--		clk = clk_get(NULL, dss.feat->clk_name);
-+	if (dss.feat->parent_clk_name) {
-+		clk = clk_get(NULL, dss.feat->parent_clk_name);
- 		if (IS_ERR(clk)) {
--			DSSERR("Failed to get %s\n", dss.feat->clk_name);
-+			DSSERR("Failed to get %s\n", dss.feat->parent_clk_name);
- 			return PTR_ERR(clk);
- 		}
- 	} else {
- 		clk = NULL;
- 	}
- 
--	dss.dpll4_m4_ck = clk;
-+	dss.parent_clk = clk;
- 
+@@ -497,14 +490,6 @@ int dss_set_fck_rate(unsigned long rate)
  	return 0;
  }
  
- static void dss_put_clocks(void)
+-unsigned long dss_get_dpll4_rate(void)
+-{
+-	if (dss.parent_clk)
+-		return clk_get_rate(clk_get_parent(dss.parent_clk));
+-	else
+-		return 0;
+-}
+-
+ unsigned long dss_get_dispc_clk_rate(void)
  {
--	if (dss.dpll4_m4_ck)
--		clk_put(dss.dpll4_m4_ck);
-+	if (dss.parent_clk)
-+		clk_put(dss.parent_clk);
- }
+ 	return dss.dss_clk_rate;
+@@ -522,7 +507,7 @@ static int dss_setup_default_clock(void)
  
- static int dss_runtime_get(void)
-@@ -715,35 +715,35 @@ static const struct dss_features omap24xx_dss_feats __initconst = {
+ 	max_dss_fck = dss_feat_get_param_max(FEAT_PARAM_DSS_FCK);
+ 
+-	prate = dss_get_dpll4_rate();
++	prate = clk_get_rate(dss.parent_clk);
+ 
+ 	fck_div = DIV_ROUND_UP(prate * dss.feat->dss_fck_multiplier,
+ 			max_dss_fck);
+@@ -715,35 +700,35 @@ static const struct dss_features omap24xx_dss_feats __initconst = {
  	 */
  	.fck_div_max		=	6,
  	.dss_fck_multiplier	=	2,
--	.clk_name		=	"dss1_fck",
-+	.parent_clk_name	=	"dss1_fck",
+-	.parent_clk_name	=	"dss1_fck",
++	.parent_clk_name	=	"core_ck",
  	.dpi_select_source	=	&dss_dpi_select_source_omap2_omap3,
  };
  
  static const struct dss_features omap34xx_dss_feats __initconst = {
  	.fck_div_max		=	16,
  	.dss_fck_multiplier	=	2,
--	.clk_name		=	"dpll4_m4_ck",
-+	.parent_clk_name	=	"dpll4_m4_ck",
+-	.parent_clk_name	=	"dpll4_m4_ck",
++	.parent_clk_name	=	"dpll4_ck",
  	.dpi_select_source	=	&dss_dpi_select_source_omap2_omap3,
  };
  
  static const struct dss_features omap3630_dss_feats __initconst = {
  	.fck_div_max		=	32,
  	.dss_fck_multiplier	=	1,
--	.clk_name		=	"dpll4_m4_ck",
-+	.parent_clk_name	=	"dpll4_m4_ck",
+-	.parent_clk_name	=	"dpll4_m4_ck",
++	.parent_clk_name	=	"dpll4_ck",
  	.dpi_select_source	=	&dss_dpi_select_source_omap2_omap3,
  };
  
  static const struct dss_features omap44xx_dss_feats __initconst = {
  	.fck_div_max		=	32,
  	.dss_fck_multiplier	=	1,
--	.clk_name		=	"dpll_per_m5x2_ck",
-+	.parent_clk_name	=	"dpll_per_m5x2_ck",
+-	.parent_clk_name	=	"dpll_per_m5x2_ck",
++	.parent_clk_name	=	"dpll_per_x2_ck",
  	.dpi_select_source	=	&dss_dpi_select_source_omap4,
  };
  
  static const struct dss_features omap54xx_dss_feats __initconst = {
  	.fck_div_max		=	64,
  	.dss_fck_multiplier	=	1,
--	.clk_name		=	"dpll_per_h12x2_ck",
-+	.parent_clk_name	=	"dpll_per_h12x2_ck",
+-	.parent_clk_name	=	"dpll_per_h12x2_ck",
++	.parent_clk_name	=	"dpll_per_x2_ck",
  	.dpi_select_source	=	&dss_dpi_select_source_omap5,
  };
  
+diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
+index ead1960..6fc786f 100644
+--- a/drivers/video/omap2/dss/dss.h
++++ b/drivers/video/omap2/dss/dss.h
+@@ -242,7 +242,6 @@ enum omap_dss_clk_source dss_get_lcd_clk_source(enum omap_channel channel);
+ void dss_set_venc_output(enum omap_dss_venc_type type);
+ void dss_set_dac_pwrdn_bgz(bool enable);
+ 
+-unsigned long dss_get_dpll4_rate(void);
+ int dss_set_fck_rate(unsigned long rate);
+ 
+ typedef bool (*dss_div_calc_func)(unsigned long fck, void *data);
 -- 
 1.8.3.2
 
