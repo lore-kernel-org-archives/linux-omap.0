@@ -1,268 +1,81 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 2/4] OMAPDSS: fix debug prints
-Date: Mon, 18 Nov 2013 14:44:07 +0200
-Message-ID: <1384778649-9396-2-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 3/4] OMAPDSS: apply fixes
+Date: Mon, 18 Nov 2013 14:44:08 +0200
+Message-ID: <1384778649-9396-3-git-send-email-tomi.valkeinen@ti.com>
 References: <1384778649-9396-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:54021 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:54022 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750731Ab3KRMoT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 18 Nov 2013 07:44:19 -0500
+	id S1751409Ab3KRMoV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 18 Nov 2013 07:44:21 -0500
 In-Reply-To: <1384778649-9396-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
 Cc: Archit Taneja <archit@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Fix debug prints all over omapdss:
-* add missing linefeeds
-* change pr_err/pr_debug to DSSERR/DSSDBG
-* add missing DSS_SUBSYS_NAMEs
+When omapfb does ovl->get_overlay_info, ovl->set_overlay_info, the set
+function may fail even if the info has not been changed. This is because
+omapdss doesn't initialize the info, but expect the caller to set valid
+values.
+
+Normally that is the case, but there is at least one corner case: if
+omapfb has not allocated memory for the overlay yet, and the user uses
+ioctl to disable the overlay to make sure it's disabled. In this case
+get_overlay_info returns invalid data, but the user is only interested
+in setting the overlay to disabled, not configuring it, and
+set_overlay_info fails.
+
+The issue is made possible by the omapfb's setup_plane ioctl, which
+groups overlay configuration and overlay enable/disable bit into the
+same struct. Thus, when you are disabling an overlay, you are also
+configuring it.
+
+This is a bit counter intuitive, so I think it's better to initialize
+the info to some valid values.
+
+The fields requiring initialization are color_mode and rotation_type,
+and also we need to remove the check for (paddr == 0), as paddr is 0 for
+unallocated overlay (but it's still fine to disable the overlay).
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/omap2/dss/apply.c       |  8 ++++----
- drivers/video/omap2/dss/hdmi4_core.c  | 16 +++++++++-------
- drivers/video/omap2/dss/hdmi_common.c |  2 ++
- drivers/video/omap2/dss/hdmi_pll.c    | 16 +++++++++-------
- drivers/video/omap2/dss/hdmi_wp.c     | 12 +++++++-----
- 5 files changed, 31 insertions(+), 23 deletions(-)
+ drivers/video/omap2/dss/apply.c   | 3 +++
+ drivers/video/omap2/dss/overlay.c | 5 -----
+ 2 files changed, 3 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/video/omap2/dss/apply.c b/drivers/video/omap2/dss/apply.c
-index 60758db..24cd7c2 100644
+index 24cd7c2..0a0b084 100644
 --- a/drivers/video/omap2/dss/apply.c
 +++ b/drivers/video/omap2/dss/apply.c
-@@ -629,7 +629,7 @@ static void dss_ovl_write_regs(struct omap_overlay *ovl)
- 	struct mgr_priv_data *mp;
- 	int r;
+@@ -149,6 +149,9 @@ static void apply_init_priv(void)
  
--	DSSDBG("writing ovl %d regs", ovl->id);
-+	DSSDBG("writing ovl %d regs\n", ovl->id);
+ 		op = &dss_data.ovl_priv_data_array[i];
  
- 	if (!op->enabled || !op->info_dirty)
- 		return;
-@@ -664,7 +664,7 @@ static void dss_ovl_write_regs_extra(struct omap_overlay *ovl)
- 	struct ovl_priv_data *op = get_ovl_priv(ovl);
- 	struct mgr_priv_data *mp;
- 
--	DSSDBG("writing ovl %d regs extra", ovl->id);
-+	DSSDBG("writing ovl %d regs extra\n", ovl->id);
- 
- 	if (!op->extra_info_dirty)
- 		return;
-@@ -687,7 +687,7 @@ static void dss_mgr_write_regs(struct omap_overlay_manager *mgr)
- 	struct mgr_priv_data *mp = get_mgr_priv(mgr);
- 	struct omap_overlay *ovl;
- 
--	DSSDBG("writing mgr %d regs", mgr->id);
-+	DSSDBG("writing mgr %d regs\n", mgr->id);
- 
- 	if (!mp->enabled)
- 		return;
-@@ -713,7 +713,7 @@ static void dss_mgr_write_regs_extra(struct omap_overlay_manager *mgr)
- {
- 	struct mgr_priv_data *mp = get_mgr_priv(mgr);
- 
--	DSSDBG("writing mgr %d regs extra", mgr->id);
-+	DSSDBG("writing mgr %d regs extra\n", mgr->id);
- 
- 	if (!mp->extra_info_dirty)
- 		return;
-diff --git a/drivers/video/omap2/dss/hdmi4_core.c b/drivers/video/omap2/dss/hdmi4_core.c
-index 5dd5e54..2386a3d 100644
---- a/drivers/video/omap2/dss/hdmi4_core.c
-+++ b/drivers/video/omap2/dss/hdmi4_core.c
-@@ -19,6 +19,8 @@
-  * this program.  If not, see <http://www.gnu.org/licenses/>.
-  */
- 
-+#define DSS_SUBSYS_NAME "HDMICORE"
++		op->info.color_mode = OMAP_DSS_COLOR_RGB16;
++		op->info.rotation_type = OMAP_DSS_ROT_DMA;
 +
- #include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/err.h>
-@@ -125,12 +127,12 @@ static int hdmi_core_ddc_edid(struct hdmi_core_data *core,
+ 		op->info.global_alpha = 255;
  
- 	/* HDMI_CORE_DDC_STATUS_BUS_LOW */
- 	if (REG_GET(base, HDMI_CORE_DDC_STATUS, 6, 6) == 1) {
--		pr_err("I2C Bus Low?\n");
-+		DSSERR("I2C Bus Low?\n");
- 		return -EIO;
- 	}
- 	/* HDMI_CORE_DDC_STATUS_NO_ACK */
- 	if (REG_GET(base, HDMI_CORE_DDC_STATUS, 5, 5) == 1) {
--		pr_err("I2C No Ack\n");
-+		DSSERR("I2C No Ack\n");
- 		return -EIO;
- 	}
- 
-@@ -161,7 +163,7 @@ static int hdmi_core_ddc_edid(struct hdmi_core_data *core,
- 		checksum += pedid[i];
- 
- 	if (checksum != 0) {
--		pr_err("E-EDID checksum failed!!\n");
-+		DSSERR("E-EDID checksum failed!!\n");
- 		return -EIO;
- 	}
- 
-@@ -199,7 +201,7 @@ static void hdmi_core_init(struct hdmi_core_video_config *video_cfg,
- 			struct hdmi_core_infoframe_avi *avi_cfg,
- 			struct hdmi_core_packet_enable_repeat *repeat_cfg)
+ 		switch (i) {
+diff --git a/drivers/video/omap2/dss/overlay.c b/drivers/video/omap2/dss/overlay.c
+index eccde32..2f7cee9 100644
+--- a/drivers/video/omap2/dss/overlay.c
++++ b/drivers/video/omap2/dss/overlay.c
+@@ -113,11 +113,6 @@ void dss_uninit_overlays(struct platform_device *pdev)
+ int dss_ovl_simple_check(struct omap_overlay *ovl,
+ 		const struct omap_overlay_info *info)
  {
--	pr_debug("Enter hdmi_core_init\n");
-+	DSSDBG("Enter hdmi_core_init\n");
- 
- 	/* video core */
- 	video_cfg->ip_bus_width = HDMI_INPUT_8BIT;
-@@ -241,19 +243,19 @@ static void hdmi_core_init(struct hdmi_core_video_config *video_cfg,
- 
- static void hdmi_core_powerdown_disable(struct hdmi_core_data *core)
- {
--	pr_debug("Enter hdmi_core_powerdown_disable\n");
-+	DSSDBG("Enter hdmi_core_powerdown_disable\n");
- 	REG_FLD_MOD(core->base, HDMI_CORE_SYS_SYS_CTRL1, 0x0, 0, 0);
- }
- 
- static void hdmi_core_swreset_release(struct hdmi_core_data *core)
- {
--	pr_debug("Enter hdmi_core_swreset_release\n");
-+	DSSDBG("Enter hdmi_core_swreset_release\n");
- 	REG_FLD_MOD(core->base, HDMI_CORE_SYS_SRST, 0x0, 0, 0);
- }
- 
- static void hdmi_core_swreset_assert(struct hdmi_core_data *core)
- {
--	pr_debug("Enter hdmi_core_swreset_assert\n");
-+	DSSDBG("Enter hdmi_core_swreset_assert\n");
- 	REG_FLD_MOD(core->base, HDMI_CORE_SYS_SRST, 0x1, 0, 0);
- }
- 
-diff --git a/drivers/video/omap2/dss/hdmi_common.c b/drivers/video/omap2/dss/hdmi_common.c
-index 5586aaa..0614922 100644
---- a/drivers/video/omap2/dss/hdmi_common.c
-+++ b/drivers/video/omap2/dss/hdmi_common.c
-@@ -13,6 +13,8 @@
-  * map it to corresponding CEA or VESA index.
-  */
- 
-+#define DSS_SUBSYS_NAME "HDMI"
-+
- #include <linux/kernel.h>
- #include <linux/err.h>
- #include <video/omapdss.h>
-diff --git a/drivers/video/omap2/dss/hdmi_pll.c b/drivers/video/omap2/dss/hdmi_pll.c
-index d3e6e78..a06f4ee 100644
---- a/drivers/video/omap2/dss/hdmi_pll.c
-+++ b/drivers/video/omap2/dss/hdmi_pll.c
-@@ -8,6 +8,8 @@
-  * the Free Software Foundation.
-  */
- 
-+#define DSS_SUBSYS_NAME "HDMIPLL"
-+
- #include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/err.h>
-@@ -127,24 +129,24 @@ static int hdmi_pll_config(struct hdmi_pll_data *pll)
- 	/* wait for bit change */
- 	if (hdmi_wait_for_bit_change(pll->base, PLLCTRL_PLL_GO,
- 			0, 0, 1) != 1) {
--		pr_err("PLL GO bit not set\n");
-+		DSSERR("PLL GO bit not set\n");
- 		return -ETIMEDOUT;
- 	}
- 
- 	/* Wait till the lock bit is set in PLL status */
- 	if (hdmi_wait_for_bit_change(pll->base,
- 			PLLCTRL_PLL_STATUS, 1, 1, 1) != 1) {
--		pr_err("cannot lock PLL\n");
--		pr_err("CFG1 0x%x\n",
-+		DSSERR("cannot lock PLL\n");
-+		DSSERR("CFG1 0x%x\n",
- 			hdmi_read_reg(pll->base, PLLCTRL_CFG1));
--		pr_err("CFG2 0x%x\n",
-+		DSSERR("CFG2 0x%x\n",
- 			hdmi_read_reg(pll->base, PLLCTRL_CFG2));
--		pr_err("CFG4 0x%x\n",
-+		DSSERR("CFG4 0x%x\n",
- 			hdmi_read_reg(pll->base, PLLCTRL_CFG4));
- 		return -ETIMEDOUT;
- 	}
- 
--	pr_debug("PLL locked!\n");
-+	DSSDBG("PLL locked!\n");
- 
- 	return 0;
- }
-@@ -157,7 +159,7 @@ static int hdmi_pll_reset(struct hdmi_pll_data *pll)
- 	/* READ 0x0 reset is in progress */
- 	if (hdmi_wait_for_bit_change(pll->base, PLLCTRL_PLL_STATUS, 0, 0, 1)
- 			!= 1) {
--		pr_err("Failed to sysreset PLL\n");
-+		DSSERR("Failed to sysreset PLL\n");
- 		return -ETIMEDOUT;
- 	}
- 
-diff --git a/drivers/video/omap2/dss/hdmi_wp.c b/drivers/video/omap2/dss/hdmi_wp.c
-index 8151d89..fa8e094 100644
---- a/drivers/video/omap2/dss/hdmi_wp.c
-+++ b/drivers/video/omap2/dss/hdmi_wp.c
-@@ -8,6 +8,8 @@
-  * the Free Software Foundation.
-  */
- 
-+#define DSS_SUBSYS_NAME "HDMIWP"
-+
- #include <linux/kernel.h>
- #include <linux/err.h>
- #include <linux/io.h>
-@@ -76,7 +78,7 @@ int hdmi_wp_set_phy_pwr(struct hdmi_wp_data *wp, enum hdmi_phy_pwr val)
- 	/* Status of the power control of HDMI PHY */
- 	if (hdmi_wait_for_bit_change(wp->base, HDMI_WP_PWR_CTRL, 5, 4, val)
- 			!= val) {
--		pr_err("Failed to set PHY power mode to %d\n", val);
-+		DSSERR("Failed to set PHY power mode to %d\n", val);
- 		return -ETIMEDOUT;
- 	}
- 
-@@ -92,7 +94,7 @@ int hdmi_wp_set_pll_pwr(struct hdmi_wp_data *wp, enum hdmi_pll_pwr val)
- 	/* wait till PHY_PWR_STATUS is set */
- 	if (hdmi_wait_for_bit_change(wp->base, HDMI_WP_PWR_CTRL, 1, 0, val)
- 			!= val) {
--		pr_err("Failed to set PLL_PWR_STATUS\n");
-+		DSSERR("Failed to set PLL_PWR_STATUS\n");
- 		return -ETIMEDOUT;
- 	}
- 
-@@ -129,7 +131,7 @@ void hdmi_wp_video_config_interface(struct hdmi_wp_data *wp,
- {
- 	u32 r;
- 	bool vsync_pol, hsync_pol;
--	pr_debug("Enter hdmi_wp_video_config_interface\n");
-+	DSSDBG("Enter hdmi_wp_video_config_interface\n");
- 
- 	vsync_pol = timings->vsync_level == OMAPDSS_SIG_ACTIVE_HIGH;
- 	hsync_pol = timings->hsync_level == OMAPDSS_SIG_ACTIVE_HIGH;
-@@ -148,7 +150,7 @@ void hdmi_wp_video_config_timing(struct hdmi_wp_data *wp,
- 	u32 timing_h = 0;
- 	u32 timing_v = 0;
- 
--	pr_debug("Enter hdmi_wp_video_config_timing\n");
-+	DSSDBG("Enter hdmi_wp_video_config_timing\n");
- 
- 	timing_h |= FLD_VAL(timings->hbp, 31, 20);
- 	timing_h |= FLD_VAL(timings->hfp, 19, 8);
-@@ -164,7 +166,7 @@ void hdmi_wp_video_config_timing(struct hdmi_wp_data *wp,
- void hdmi_wp_init_vid_fmt_timings(struct hdmi_video_format *video_fmt,
- 		struct omap_video_timings *timings, struct hdmi_config *param)
- {
--	pr_debug("Enter hdmi_wp_video_init_format\n");
-+	DSSDBG("Enter hdmi_wp_video_init_format\n");
- 
- 	video_fmt->packing_mode = HDMI_PACK_10b_RGB_YUV444;
- 	video_fmt->y_res = param->timings.y_res;
+-	if (info->paddr == 0) {
+-		DSSERR("check_overlay: paddr cannot be 0\n");
+-		return -EINVAL;
+-	}
+-
+ 	if ((ovl->caps & OMAP_DSS_OVL_CAP_SCALE) == 0) {
+ 		if (info->out_width != 0 && info->width != info->out_width) {
+ 			DSSERR("check_overlay: overlay %d doesn't support "
 -- 
 1.8.3.2
 
