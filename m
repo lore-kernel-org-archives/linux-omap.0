@@ -1,80 +1,100 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [RFC 16/23] ASoC: omap: mcbsp, mcpdm,
- dmic: raw read and write endian fix
-Date: Mon, 18 Nov 2013 11:15:22 +0000
-Message-ID: <20131118111522.GC10877@sirena.org.uk>
-References: <1384560086-11994-1-git-send-email-taras.kondratiuk@linaro.org>
- <1384560086-11994-17-git-send-email-taras.kondratiuk@linaro.org>
+From: Mark Rutland <mark.rutland@arm.com>
+Subject: Re: [PATCH 1/2] input: touchscreen: fix spelling mistake in
+ TSC/ADC DT binding
+Date: Mon, 18 Nov 2013 11:40:29 +0000
+Message-ID: <20131118114029.GD30853@e106331-lin.cambridge.arm.com>
+References: <1382386404-6659-1-git-send-email-balbi@ti.com>
+ <1382386404-6659-2-git-send-email-balbi@ti.com>
+ <52663A58.9070706@linutronix.de>
+ <20131022120253.GD9340@gimli>
+ <20131114111958.GG16396@e106331-lin.cambridge.arm.com>
+ <20131114155404.GE15835@saruman.home>
+ <20131115155540.GF24831@e106331-lin.cambridge.arm.com>
+ <20131115175356.GJ4698@saruman.home>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============8392656600557136467=="
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <1384560086-11994-17-git-send-email-taras.kondratiuk@linaro.org>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Taras Kondratiuk <taras.kondratiuk@linaro.org>
-Cc: alsa-devel@alsa-project.org, Victor Kamensky <victor.kamensky@linaro.org>, Takashi Iwai <tiwai@suse.de>, linux-kernel@vger.kernel.org, Liam Girdwood <lgirdwood@gmail.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, linaro-networking@linaro.org, linux-omap@vger.kernel.org, Jarkko Nikula <jarkko.nikula@bitmer.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-input-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20131115175356.GJ4698@saruman.home>
+Sender: linux-input-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>, "dmitry.torokhov@gmail.com" <dmitry.torokhov@gmail.com>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, Pawel Moll <Pawel.Moll@arm.com>, "swarren@wwwdotorg.org" <swarren@wwwdotorg.org>, "ijc+devicetree@hellion.org.uk" <ijc+devicetree@hellion.org.uk>, "rob@landley.net" <rob@landley.net>, "bcousson@baylibre.com" <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-
---===============8392656600557136467==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="VMt1DrMGOVs3KQwf"
-Content-Disposition: inline
-
-
---VMt1DrMGOVs3KQwf
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Sat, Nov 16, 2013 at 02:01:19AM +0200, Taras Kondratiuk wrote:
-> From: Victor Kamensky <victor.kamensky@linaro.org>
+On Fri, Nov 15, 2013 at 05:53:56PM +0000, Felipe Balbi wrote:
+> Hi,
 >=20
-> All OMAP IP blocks expect LE data, but CPU may operate in BE mode.
-> Need to use endian neutral functions to read/write h/w registers.
-> I.e instead of __raw_read[lw] and __raw_write[lw] functions code
-> need to use read[lw]_relaxed and write[lw]_relaxed functions.
-> If the first simply reads/writes register, the second will byteswap
-> it if host operates in BE mode.
+> On Fri, Nov 15, 2013 at 03:55:40PM +0000, Mark Rutland wrote:
+> > > > > > > diff --git a/drivers/input/touchscreen/ti_am335x_tsc.c b/=
+drivers/input/touchscreen/ti_am335x_tsc.c
+> > > > > > > index e1c5300..b61df9d 100644
+> > > > > > > --- a/drivers/input/touchscreen/ti_am335x_tsc.c
+> > > > > > > +++ b/drivers/input/touchscreen/ti_am335x_tsc.c
+> > > > > > > @@ -348,9 +348,16 @@ static int titsc_parse_dt(struct pla=
+tform_device *pdev,
+> > > > > > >  	if (err < 0)
+> > > > > > >  		return err;
+> > > > > > > =20
+> > > > > > > -	err =3D of_property_read_u32(node, "ti,coordiante-reado=
+uts",
+> > > > > > > +	/*
+> > > > > > > +	 * try with new binding first. If it fails, still try w=
+ith
+> > > > > > > +	 * bogus, miss-spelled version.
+> > > > > > > +	 */
+> > > > > > > +	err =3D of_property_read_u32(node, "ti,coordinate-reado=
+uts",
+> > > > > > >  			&ts_dev->coordinate_readouts);
+> > > > > > >  	if (err < 0)
+> > > > > > > +		err =3D of_property_read_u32(node, "ti,coordiante-read=
+outs",
+> > > > > > > +				&ts_dev->coordinate_readouts);
+> > > > > > > +	if (err < 0)
+> > > > > > >  		return err;
+> > > > > >=20
+> > > > > > Thanks, very good. Do we keep this fallback for ever or jus=
+t for a year
+> > > > > > or two?
+> > > > >=20
+> > > > > That's for DT maintainers to decide but considering DT is an =
+ABI, I
+> > > > > guess we need to keep for 30 years or so :-p
+> > > >=20
+> > > > We keep it as long as we have to. If no-one's relying on the ty=
+po by the
+> > > > next merge window, I see no reason we'd have to keep support fo=
+r the
+> > >=20
+> > > and how could you know that ? considering it's an ABI, how could =
+you
+> > > ever know that ?
+> >=20
+> > If you know that the only user of a binding is a dts for a particul=
+ar
+> > product that you're in charge of, then you'd know the set of kernel=
+ +
+> > dtb combinations out there, and can judge.
+>=20
+> once the binding has made into mainline, it's next to impossible to
+> figure out who has downloaded a tarball containing that driver and ma=
+de
+> a product out of it.
+>=20
+> Besides keeping that check in the driver won't hurt at all in the lon=
+g
+> run. I would give it at least until 4.0 before thinking about removin=
+g,
+> and that might still not be enough time.
 
-Applied, thanks.
+That sounds sensible to me. As mentioned before I'd recommend adding a
+warning for the typo now in the (possibly na=C3=AFve) hope that it will
+encourage people to fix up their dts early.
 
---VMt1DrMGOVs3KQwf
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
-
-iQIcBAEBAgAGBQJSifbHAAoJELSic+t+oim9bZwP/0VR95R4lczYwmThvtn5zfGF
-21fJVSTfe2V4oxx/oNKkbx4S0Bk+vbTmHzYV9f5qD4FbV/x6Iud6G5GLXpX3Nw5F
-lHalWJ+79JHOPoBGKL2YGORoNHMnYUVvAN42mA93h/Z7P0t2r8zE94UIW44za1r1
-0r9lePznWK1XzHNFngHDuLdT1OHlvaWSYhxppWaoDdUhBOrtYbT6zWXrpEmqGLuB
-HwZcqj7Ne8dBE9RpC5GL0MGA+4KPzO6/OG0rHIG5A7r7OyrlOt/Hwoyzu2uVEDsy
-tapaznfpyOGa7fqbiNO6hRhvXwf/eJYoOc93qDEZGo7TgdrDF2GMwOKsFNbsUDfn
-XDB/exDaJWub3TtY6bNB+GG9oZd7cwTqWs9L4vaYYFW6DwAGmFjt8pVoNTmVYbs1
-r0qe9Ynxmhb4dESvBhRK6QvfsApgEmt+WeUbYH/gTsiuXU+tj96O1J6lyV3tSSz2
-3KsLiPoDeGFTGzF1hprJ08a+ZhFjvZQz4O/zt+KyDZKL01142G1CDf8dJCJEabTp
-loUkS1Zsz1lY7ePrVf0Wzrgb7aqpl822s3gAatwJA3KcTWf0Hb8VbPMspb0F6wzz
-qXomOS7QUattqOyZjZLdxnDUjgbUpD705f2KpV9A0jnIhzt0t5EM+Q9kg5OlhNi9
-SCkNYvET7VltPeazcx/F
-=cG8q
------END PGP SIGNATURE-----
-
---VMt1DrMGOVs3KQwf--
-
---===============8392656600557136467==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---===============8392656600557136467==--
+Thanks,
+Mark.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-input" =
+in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
