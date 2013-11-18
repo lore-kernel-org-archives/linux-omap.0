@@ -1,153 +1,89 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 5/7] OMAPDSS: cleanup fck parent handling
-Date: Mon, 18 Nov 2013 14:39:02 +0200
-Message-ID: <1384778344-8226-6-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 6/7] OMAPDSS: pass pck to dss fck clock calc
+Date: Mon, 18 Nov 2013 14:39:03 +0200
+Message-ID: <1384778344-8226-7-git-send-email-tomi.valkeinen@ti.com>
 References: <1384778344-8226-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:52174 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751624Ab3KRMjX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Nov 2013 07:39:23 -0500
+Received: from bear.ext.ti.com ([192.94.94.41]:53878 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751656Ab3KRMjY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 18 Nov 2013 07:39:24 -0500
 In-Reply-To: <1384778344-8226-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
 Cc: Archit Taneja <archit@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-The dss parent_clk_name currently points to a clock node which we use to
-change the fclk rate. Now that we have CLK_SET_RATE_PARENT properly set,
-we can set the rate directly to the fclk node.
+We need the required pixel clock rate when calculating the dss fclk on
+SoCs that have a dedicated DSS PLL.
 
-However, we still need to calculate the possible clock rates. For this,
-we need the rate of the parent of the current parent_clk.
-
-To simplify the code, this patch changes the parent_clk_name to point to
-the above mentioned parent, so that we can get the rate directly.
+This patch changes the code to pass the pck to the calc functions. The
+pck rate is taken into use in the next patch.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/omap2/dss/dss.c | 39 ++++++++++++---------------------------
- drivers/video/omap2/dss/dss.h |  1 -
- 2 files changed, 12 insertions(+), 28 deletions(-)
+ drivers/video/omap2/dss/dpi.c | 2 +-
+ drivers/video/omap2/dss/dss.c | 3 ++-
+ drivers/video/omap2/dss/dss.h | 3 ++-
+ drivers/video/omap2/dss/sdi.c | 2 +-
+ 4 files changed, 6 insertions(+), 4 deletions(-)
 
+diff --git a/drivers/video/omap2/dss/dpi.c b/drivers/video/omap2/dss/dpi.c
+index 16acddd..ae1c8b9 100644
+--- a/drivers/video/omap2/dss/dpi.c
++++ b/drivers/video/omap2/dss/dpi.c
+@@ -236,7 +236,7 @@ static bool dpi_dss_clk_calc(unsigned long pck, struct dpi_clk_calc_ctx *ctx)
+ 			ctx->pck_min = 0;
+ 		ctx->pck_max = pck + 1000 * i * i * i;
+ 
+-		ok = dss_div_calc(ctx->pck_min, dpi_calc_dss_cb, ctx);
++		ok = dss_div_calc(pck, ctx->pck_min, dpi_calc_dss_cb, ctx);
+ 		if (ok)
+ 			return ok;
+ 	}
 diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
-index d510ba3..7af9719 100644
+index 7af9719..08c58eb 100644
 --- a/drivers/video/omap2/dss/dss.c
 +++ b/drivers/video/omap2/dss/dss.c
-@@ -454,7 +454,7 @@ bool dss_div_calc(unsigned long fck_min, dss_div_calc_func func, void *data)
- 	fckd_hw_max = dss.feat->fck_div_max;
- 
- 	m = dss.feat->dss_fck_multiplier;
--	prate = dss_get_dpll4_rate();
-+	prate = clk_get_rate(dss.parent_clk);
- 
- 	fck_min = fck_min ? fck_min : 1;
- 
-@@ -473,20 +473,13 @@ bool dss_div_calc(unsigned long fck_min, dss_div_calc_func func, void *data)
- 
- int dss_set_fck_rate(unsigned long rate)
- {
--	DSSDBG("set fck to %lu\n", rate);
--
--	if (dss.parent_clk) {
--		unsigned long prate;
--		unsigned m;
--		int r;
-+	int r;
- 
--		prate = clk_get_rate(clk_get_parent(dss.parent_clk));
--		m = dss.feat->dss_fck_multiplier;
-+	DSSDBG("set fck to %lu\n", rate);
- 
--		r = clk_set_rate(dss.parent_clk, rate * m);
--		if (r)
--			return r;
--	}
-+	r = clk_set_rate(dss.dss_clk, rate);
-+	if (r)
-+		return r;
- 
- 	dss.dss_clk_rate = clk_get_rate(dss.dss_clk);
- 
-@@ -497,14 +490,6 @@ int dss_set_fck_rate(unsigned long rate)
- 	return 0;
+@@ -436,7 +436,8 @@ enum omap_dss_clk_source dss_get_lcd_clk_source(enum omap_channel channel)
+ 	}
  }
  
--unsigned long dss_get_dpll4_rate(void)
--{
--	if (dss.parent_clk)
--		return clk_get_rate(clk_get_parent(dss.parent_clk));
--	else
--		return 0;
--}
--
- unsigned long dss_get_dispc_clk_rate(void)
+-bool dss_div_calc(unsigned long fck_min, dss_div_calc_func func, void *data)
++bool dss_div_calc(unsigned long pck, unsigned long fck_min,
++		dss_div_calc_func func, void *data)
  {
- 	return dss.dss_clk_rate;
-@@ -522,7 +507,7 @@ static int dss_setup_default_clock(void)
- 
- 	max_dss_fck = dss_feat_get_param_max(FEAT_PARAM_DSS_FCK);
- 
--	prate = dss_get_dpll4_rate();
-+	prate = clk_get_rate(dss.parent_clk);
- 
- 	fck_div = DIV_ROUND_UP(prate * dss.feat->dss_fck_multiplier,
- 			max_dss_fck);
-@@ -715,35 +700,35 @@ static const struct dss_features omap24xx_dss_feats __initconst = {
- 	 */
- 	.fck_div_max		=	6,
- 	.dss_fck_multiplier	=	2,
--	.parent_clk_name	=	"dss1_fck",
-+	.parent_clk_name	=	"core_ck",
- 	.dpi_select_source	=	&dss_dpi_select_source_omap2_omap3,
- };
- 
- static const struct dss_features omap34xx_dss_feats __initconst = {
- 	.fck_div_max		=	16,
- 	.dss_fck_multiplier	=	2,
--	.parent_clk_name	=	"dpll4_m4_ck",
-+	.parent_clk_name	=	"dpll4_ck",
- 	.dpi_select_source	=	&dss_dpi_select_source_omap2_omap3,
- };
- 
- static const struct dss_features omap3630_dss_feats __initconst = {
- 	.fck_div_max		=	32,
- 	.dss_fck_multiplier	=	1,
--	.parent_clk_name	=	"dpll4_m4_ck",
-+	.parent_clk_name	=	"dpll4_ck",
- 	.dpi_select_source	=	&dss_dpi_select_source_omap2_omap3,
- };
- 
- static const struct dss_features omap44xx_dss_feats __initconst = {
- 	.fck_div_max		=	32,
- 	.dss_fck_multiplier	=	1,
--	.parent_clk_name	=	"dpll_per_m5x2_ck",
-+	.parent_clk_name	=	"dpll_per_x2_ck",
- 	.dpi_select_source	=	&dss_dpi_select_source_omap4,
- };
- 
- static const struct dss_features omap54xx_dss_feats __initconst = {
- 	.fck_div_max		=	64,
- 	.dss_fck_multiplier	=	1,
--	.parent_clk_name	=	"dpll_per_h12x2_ck",
-+	.parent_clk_name	=	"dpll_per_x2_ck",
- 	.dpi_select_source	=	&dss_dpi_select_source_omap5,
- };
- 
+ 	int fckd, fckd_start, fckd_stop;
+ 	unsigned long fck;
 diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
-index ead1960..6fc786f 100644
+index 6fc786f..2acc661 100644
 --- a/drivers/video/omap2/dss/dss.h
 +++ b/drivers/video/omap2/dss/dss.h
-@@ -242,7 +242,6 @@ enum omap_dss_clk_source dss_get_lcd_clk_source(enum omap_channel channel);
- void dss_set_venc_output(enum omap_dss_venc_type type);
- void dss_set_dac_pwrdn_bgz(bool enable);
- 
--unsigned long dss_get_dpll4_rate(void);
+@@ -245,7 +245,8 @@ void dss_set_dac_pwrdn_bgz(bool enable);
  int dss_set_fck_rate(unsigned long rate);
  
  typedef bool (*dss_div_calc_func)(unsigned long fck, void *data);
+-bool dss_div_calc(unsigned long fck_min, dss_div_calc_func func, void *data);
++bool dss_div_calc(unsigned long pck, unsigned long fck_min,
++		dss_div_calc_func func, void *data);
+ 
+ /* SDI */
+ int sdi_init_platform_driver(void) __init;
+diff --git a/drivers/video/omap2/dss/sdi.c b/drivers/video/omap2/dss/sdi.c
+index 221fd34..3bf47c9 100644
+--- a/drivers/video/omap2/dss/sdi.c
++++ b/drivers/video/omap2/dss/sdi.c
+@@ -97,7 +97,7 @@ static int sdi_calc_clock_div(unsigned long pclk,
+ 			ctx.pck_min = 0;
+ 		ctx.pck_max = pclk + 1000 * i * i * i;
+ 
+-		ok = dss_div_calc(ctx.pck_min, dpi_calc_dss_cb, &ctx);
++		ok = dss_div_calc(pclk, ctx.pck_min, dpi_calc_dss_cb, &ctx);
+ 		if (ok) {
+ 			*fck = ctx.fck;
+ 			*dispc_cinfo = ctx.dispc_cinfo;
 -- 
 1.8.3.2
 
