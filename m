@@ -1,117 +1,35 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/8] mmc: omap: Fix DMA configuration to not rely on
- device id
-Date: Mon, 18 Nov 2013 10:47:24 -0800
-Message-ID: <20131118184723.GR10317@atomide.com>
-References: <1384396537-3486-1-git-send-email-tony@atomide.com>
- <1384396537-3486-3-git-send-email-tony@atomide.com>
+Subject: Re: [BUG] PandaBoard hangs before starting init while booting v3.12
+Date: Mon, 18 Nov 2013 10:57:23 -0800
+Message-ID: <20131118185722.GS10317@atomide.com>
+References: <87hab9agjr.fsf@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:32472 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752195Ab3KRSr1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Nov 2013 13:47:27 -0500
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:17056 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751469Ab3KRS51 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Nov 2013 13:57:27 -0500
 Content-Disposition: inline
-In-Reply-To: <1384396537-3486-3-git-send-email-tony@atomide.com>
+In-Reply-To: <87hab9agjr.fsf@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Cc: Chris Ball <cjb@laptop.org>, linux-mmc@vger.kernel.org
+To: Ben Gamari <bgamari.foss@gmail.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [131113 18:36]:
-> We are wrongly relying on device id for the DMA configuration
-> which can lead to wrong DMA channel being selected.
+* Ben Gamari <bgamari.foss@gmail.com> [131118 07:14]:
+> I'm having difficulty getting a PandaBoard ES rev. B1 to boot v3.12 and
+> linux-next (30121118). I'm booting with a brand new u-boot
+> (c2e5e802ecb7ab668ce9911b210ed68c804b349f).
 > 
-> Fix the issue by using the standard resources like we should.
-> 
-> Cc: Chris Ball <cjb@laptop.org>
-> Cc: linux-mmc@vger.kernel.org
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> ---
-> 
-> If this looks OK, I'd like to merge this as a fix via arm-soc tree
-> along with the other patches in this series as my later patches
-> depend on patches in this series.
+> In both cases the device appears to hang shortly before one would expect
+> init to start as seen in the boot output below. I'm booting with the
+> omap4-panda-es devicetree. As far as I can tell, the machine is
+> completely dead and will not respond to even sysrq. I have a PandaBoard
+> A4 which apparently has no trouble with the same kernel image.
 
-Looks like we need sig initialized in this patch to avoid some
-uninitialized warnings.
+Do you have the same version of u-boot in both cases?
 
 Regards,
 
 Tony
-
-
-From: Tony Lindgren <tony@atomide.com>
-Date: Thu, 14 Nov 2013 15:25:06 -0800
-Subject: [PATCH] mmc: omap: Fix DMA configuration to not rely on device id
-
-We are wrongly relying on device id for the DMA configuration
-which can lead to wrong DMA channel being selected.
-
-Fix the issue by using the standard resources like we should.
-
-Cc: Chris Ball <cjb@laptop.org>
-Cc: linux-mmc@vger.kernel.org
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-
---- a/drivers/mmc/host/omap.c
-+++ b/drivers/mmc/host/omap.c
-@@ -90,17 +90,6 @@
- #define OMAP_MMC_CMDTYPE_AC	2
- #define OMAP_MMC_CMDTYPE_ADTC	3
- 
--#define OMAP_DMA_MMC_TX		21
--#define OMAP_DMA_MMC_RX		22
--#define OMAP_DMA_MMC2_TX	54
--#define OMAP_DMA_MMC2_RX	55
--
--#define OMAP24XX_DMA_MMC2_TX	47
--#define OMAP24XX_DMA_MMC2_RX	48
--#define OMAP24XX_DMA_MMC1_TX	61
--#define OMAP24XX_DMA_MMC1_RX	62
--
--
- #define DRIVER_NAME "mmci-omap"
- 
- /* Specifies how often in millisecs to poll for card status changes
-@@ -1331,7 +1320,7 @@ static int mmc_omap_probe(struct platform_device *pdev)
- 	struct mmc_omap_host *host = NULL;
- 	struct resource *res;
- 	dma_cap_mask_t mask;
--	unsigned sig;
-+	unsigned sig = 0;
- 	int i, ret = 0;
- 	int irq;
- 
-@@ -1408,19 +1397,20 @@ static int mmc_omap_probe(struct platform_device *pdev)
- 	host->dma_tx_burst = -1;
- 	host->dma_rx_burst = -1;
- 
--	if (mmc_omap2())
--		sig = host->id == 0 ? OMAP24XX_DMA_MMC1_TX : OMAP24XX_DMA_MMC2_TX;
--	else
--		sig = host->id == 0 ? OMAP_DMA_MMC_TX : OMAP_DMA_MMC2_TX;
--	host->dma_tx = dma_request_channel(mask, omap_dma_filter_fn, &sig);
-+	res = platform_get_resource_byname(pdev, IORESOURCE_DMA, "tx");
-+	if (res)
-+		sig = res->start;
-+	host->dma_tx = dma_request_slave_channel_compat(mask,
-+				omap_dma_filter_fn, &sig, &pdev->dev, "tx");
- 	if (!host->dma_tx)
- 		dev_warn(host->dev, "unable to obtain TX DMA engine channel %u\n",
- 			sig);
--	if (mmc_omap2())
--		sig = host->id == 0 ? OMAP24XX_DMA_MMC1_RX : OMAP24XX_DMA_MMC2_RX;
--	else
--		sig = host->id == 0 ? OMAP_DMA_MMC_RX : OMAP_DMA_MMC2_RX;
--	host->dma_rx = dma_request_channel(mask, omap_dma_filter_fn, &sig);
-+
-+	res = platform_get_resource_byname(pdev, IORESOURCE_DMA, "rx");
-+	if (res)
-+		sig = res->start;
-+	host->dma_rx = dma_request_slave_channel_compat(mask,
-+				omap_dma_filter_fn, &sig, &pdev->dev, "rx");
- 	if (!host->dma_rx)
- 		dev_warn(host->dev, "unable to obtain RX DMA engine channel %u\n",
- 			sig);
