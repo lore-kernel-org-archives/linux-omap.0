@@ -1,85 +1,54 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/5] mfd: twl-core: Fix passing of platform data in the
- device tree case
-Date: Mon, 18 Nov 2013 10:11:10 -0800
-Message-ID: <20131118181110.GM10317@atomide.com>
+Subject: Re: [PATCH 3/5] ARM: OMAP2+: Add DT init code for DPI displays and
+ make omap3 LDP to use it
+Date: Mon, 18 Nov 2013 10:19:34 -0800
+Message-ID: <20131118181934.GN10317@atomide.com>
 References: <1384562167-14725-1-git-send-email-tony@atomide.com>
- <1384562167-14725-2-git-send-email-tony@atomide.com>
- <20131118102907.GC13640@lee--X1>
- <20131118172510.GI16038@saruman.home>
- <20131118174638.GQ13640@lee--X1>
+ <1384562167-14725-4-git-send-email-tony@atomide.com>
+ <528A10CC.7070908@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:50668 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:16579 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751297Ab3KRSLQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Nov 2013 13:11:16 -0500
+	with ESMTP id S1751468Ab3KRSTh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Nov 2013 13:19:37 -0500
 Content-Disposition: inline
-In-Reply-To: <20131118174638.GQ13640@lee--X1>
+In-Reply-To: <528A10CC.7070908@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>
-Cc: Felipe Balbi <balbi@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Samuel Ortiz <sameo@linux.intel.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Lee Jones <lee.jones@linaro.org> [131118 09:47]:
-> > > > +static struct of_dev_auxdata twl_auxdata_lookup[] = {
-> > > > +	OF_DEV_AUXDATA("ti,twl4030-gpio", 0, "twl4030-gpio", NULL),
-> > > > +	{ /* sentinel */ },
-> > > > +};
-> > > > +
-> > > >  /* NOTE: This driver only handles a single twl4030/tps659x0 chip */
-> > > >  static int
-> > > >  twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
-> > > > @@ -1271,10 +1276,14 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
-> > > >  		twl_i2c_write_u8(TWL4030_MODULE_INTBR, temp, REG_GPPUPDCTR1);
-> > > >  	}
-> > > >  
-> > > > -	if (node)
-> > > > -		status = of_platform_populate(node, NULL, NULL, &client->dev);
-> > > > -	else
-> > > > +	if (node) {
-> > > > +		if (pdata)
-> > > > +			twl_auxdata_lookup[0].platform_data = pdata->gpio;
-> > > > +		status = of_platform_populate(node, NULL, twl_auxdata_lookup,
-> > > > +					      &client->dev);
-> > > > +	} else {
-> > > >  		status = add_children(pdata, irq_base, id->driver_data);
-> > > 
-> > > Why doesn't the TWL driver use the MFD framework for this stuff?
+* Tomi Valkeinen <tomi.valkeinen@ti.com> [131118 05:07]:
+> On 2013-11-16 02:36, Tony Lindgren wrote:
+> > In order to make the remaining omap3 boards usable with device
+> > tree, we need to initialize the DPI based displays using pdata
+> > until we have the DSS bindings in place.
 > > 
-> > that's reminiscent from years ago and, surely, needs to be fixed. Should
-> > we gate $subject for that, though ? This has been in tree for quite a
-> > few years already and Tony's patch is still a step forward, since most
-> > omap3 platforms would break on DT-only without it.
+> > At least board-am3517evm.c, board-cm-t35.c, board-devkit8000.c,
+> > board-ldp.c and board-overo.c all use fairly similar DPI setup,
+> > so let's add generic code for it. And let's make omap3 LDP to
+> > use it and also initialize the ads7846 until we have a binding
+> > for it.
+> > 
+> > Note that at least LDP needs the TWL bug fix posted as
+> > "gpio: twl4030: Fix regression for twl gpio output" for the
+> > LCD backlight to power.
 > 
-> I didn't say that I would reject the patch. I was just surprised to
-> see so much hand-rolling, as the MFD core code does much of it
-> automatically. This is the first time I've taken a look at this and it
-> seems to be quite the relic.
-
-Yeah it seems something from the early days of MFD code. Then grepping for
-add_children shows that drivers/mfd/dm355evm_msp.c is doing it too, which
-should also be fixed while at it.
- 
-> > There are quite a few folks who could volunteer to fixing that after
-> > Tony's patch is in (me included, although there could be better choices
-> > hehe).
+> Looks fine to me.
 > 
-> Well it's not doing any harm. I'll make a note to fix it myself if a)
-> no one has done so already and b) I manage to find some spare
-> time. The latter issue is less likely to be resolved. :)
+> Is it possible to keep this, and other similar DSS patches, in a
+> separate branch, that could be dropped if needed? I'm kind of hoping I
+> would get the DSS DT finished for the next merge window (but I've said
+> that before, so...).
 
-Sounds like Felipe has already picked it up for future work :)
- 
-> Are you Acking this patch by the way?
+OK let's keep the DSS pdata quirks separate for now. How about we set
+-rc3 as a deadline for deciding which way to go for the DSS DT bindings
+for v3.14?
 
-If this looks acceptable to you guys, I'd like to merge this via my fixes
-branch this week with your acks if that works for you. That way I can base
-my omap legacy platform data removal patches on my fixes branch while keep
-things working for the drivers. Alternatively I can naturally base my
-legacy data removal on -rc2 too if this gets merged to mainline by then 
-via the MFD tree.
+BTW, Russell posted some interesting comments on LAKML this weekend
+on binding together driver components if that helps.
 
 Regards,
 
