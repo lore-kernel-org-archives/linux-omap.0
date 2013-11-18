@@ -1,152 +1,122 @@
-From: Balaji T K <balajitk@ti.com>
-Subject: Re: [PATCH v3 2/3] mmc: omap_hsmmc: Pin remux workaround to support
- SDIO interrupt on AM335x.
-Date: Mon, 18 Nov 2013 21:52:10 +0530
-Message-ID: <528A3EB2.1010103@ti.com>
-References: <1384761240-11005-1-git-send-email-afenkart@gmail.com> <1384761240-11005-3-git-send-email-afenkart@gmail.com> <CAOf5uw=9KJ312PVzMVEHX-Lj=iYpeZOYFduB8iOu9o+-863CYw@mail.gmail.com> <CALtMJEBfeww=ymGMXWtwjtZrpqpFrkRPEOti_uPrE63SBk3Dtw@mail.gmail.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 1/5] mfd: twl-core: Fix passing of platform data in the
+ device tree case
+Date: Mon, 18 Nov 2013 11:25:10 -0600
+Message-ID: <20131118172510.GI16038@saruman.home>
+References: <1384562167-14725-1-git-send-email-tony@atomide.com>
+ <1384562167-14725-2-git-send-email-tony@atomide.com>
+ <20131118102907.GC13640@lee--X1>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="8cpS+6Cx+xtICsjy"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:35838 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751199Ab3KRQWT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 18 Nov 2013 11:22:19 -0500
-In-Reply-To: <CALtMJEBfeww=ymGMXWtwjtZrpqpFrkRPEOti_uPrE63SBk3Dtw@mail.gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:37502 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751281Ab3KRRZ4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Nov 2013 12:25:56 -0500
+Content-Disposition: inline
+In-Reply-To: <20131118102907.GC13640@lee--X1>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Andreas Fenkart <afenkart@gmail.com>
-Cc: Michael Trimarchi <michael@amarulasolutions.com>, Chris Ball <cjb@laptop.org>, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, Felipe Balbi <balbi@ti.com>, Daniel Mack <zonque@gmail.com>, linux-doc@vger.kernel.org, linux-mmc <linux-mmc@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+To: Lee Jones <lee.jones@linaro.org>
+Cc: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Samuel Ortiz <sameo@linux.intel.com>
 
-On Monday 18 November 2013 05:45 PM, Andreas Fenkart wrote:
-> 2013/11/18 Michael Trimarchi <michael@amarulasolutions.com>:
->> Hi Andreas
->>
->> On Mon, Nov 18, 2013 at 8:53 AM, Andreas Fenkart <afenkart@gmail.com> wrote:
->>> The am335x can't detect pending cirq in PM runtime suspend.
->>> This patch reconfigures dat1 as a GPIO before going to suspend.
->>> SDIO interrupts are detected with the GPIO, the GPIO will only wake
->>> the module from suspend, SDIO irq detection will still happen through the
->>> IP block.
->>>
->>> Idea of remuxing the pins by Tony Lindgren as well as the implementation
->>> of omap_hsmmc_pin_init.
->>>
->>> Signed-off-by: Andreas Fenkart <afenkart@gmail.com>
->>>
->>> diff --git a/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt b/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
->>> index 1136e6b..146f3ad 100644
->>> --- a/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
->>> +++ b/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
->>> @@ -21,8 +21,11 @@ ti,non-removable: non-removable slot (like eMMC)
->>>   ti,needs-special-reset: Requires a special softreset sequence
->>>   ti,needs-special-hs-handling: HSMMC IP needs special setting for handling High Speed
->>>   ti,quirk-swakup-missing: SOC missing the swakeup line, will not detect
->>> -SDIO irq while in suspend. Fallback to polling. Affected chips are
->>> -am335x,
->>> +SDIO irq while in suspend. The workaround is to reconfigure the dat1 line as a
->>> +GPIO upon suspend. Beyond this option and the GPIO config, you also need to set
->>> +named pinctrl states "default", "active" and "idle ", see example below.  The
->>> +MMC driver will then then toggle between default and idle during the runtime
->>> +Affected chips are am335x,
->>>
->>>                               ------
->>>                               | PRCM |
->>> @@ -49,3 +52,24 @@ Example:
->>>                  vmmc-supply = <&vmmc>; /* phandle to regulator node */
->>>                  ti,non-removable;
->>>          };
->>> +
->>> +[am335x with with gpio for sdio irq]
->>> +
->>> +       mmc1_cirq_pin: pinmux_cirq_pin {
->>> +               pinctrl-single,pins = <
->>> +                       0x0f8 0x3f      /* MMC0_DAT1 as GPIO2_28 */
->>> +               >;
->>> +       };
->>> +
->>> +       mmc1: mmc@48060000 {
->>> +               ti,non-removable;
->>> +               bus-width = <4>;
->>> +               vmmc-supply = <&ldo2_reg>;
->>> +               vmmc_aux-supply = <&vmmc>;
->>> +               ti,quirk-swakeup-missing;
->>> +               pinctrl-names = "default", "active", "idle";
->>> +               pinctrl-0 = <&mmc1_pins>;
->>> +               pinctrl-1 = <&mmc1_pins>;
->>> +               pinctrl-2 = <&mmc1_cirq_pin>;
->>> +               ti,cirq-gpio = <&gpio3 28 0>;
->>> +       };
->>> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
->>> index 6b0ec55..b94ab08 100644
->>> --- a/drivers/mmc/host/omap_hsmmc.c
->>> +++ b/drivers/mmc/host/omap_hsmmc.c
->>> @@ -36,6 +36,7 @@
->>>   #include <linux/mmc/core.h>
->>>   #include <linux/mmc/mmc.h>
->>>   #include <linux/io.h>
->>> +#include <linux/irq.h>
->>>   #include <linux/gpio.h>
->>>   #include <linux/regulator/consumer.h>
->>>   #include <linux/pinctrl/consumer.h>
->>> @@ -213,11 +214,32 @@ struct omap_hsmmc_host {
->>>          int                     req_in_progress;
->>>          int                     flags;
->>>   #define HSMMC_SDIO_IRQ_ENABLED (1 << 0)        /* SDIO irq enabled */
->>> +#define HSMMC_SWAKEUP_QUIRK    (1 << 1)
->>> +#define HSMMC_CIRQ_GPIO_ENABLED (1 << 2)
->>>
->>>          struct omap_hsmmc_next  next_data;
->>> +       struct pinctrl          *pinctrl;
->>> +       struct pinctrl_state    *fixed, *active, *idle;
->>>          struct  omap_mmc_platform_data  *pdata;
->>>   };
->>>
->>> +static irqreturn_t omap_hsmmc_cirq(int irq, void *dev_id)
->>> +{
->>> +       struct omap_hsmmc_host *host = dev_id;
->>> +       unsigned long flags;
->>> +
->>> +       spin_lock_irqsave(&host->irq_lock, flags);
->>> +       if (host->flags & HSMMC_CIRQ_GPIO_ENABLED) {
->>> +               disable_irq_nosync(mmc_slot(host).sdio_irq);
->>> +               host->flags &= ~HSMMC_CIRQ_GPIO_ENABLED;
->>> +       }
->>> +       spin_unlock_irqrestore(&host->irq_lock, flags);
->>> +
->>> +       pm_request_resume(host->dev); /* no use counter */
->>> +
->>> +       return IRQ_HANDLED;
->>> +}
->>> +
->>>   static int omap_hsmmc_card_detect(struct device *dev, int slot)
->>>   {
->>>          struct omap_hsmmc_host *host = dev_get_drvdata(dev);
->>> @@ -452,10 +474,25 @@ static int omap_hsmmc_gpio_init(struct omap_mmc_platform_data *pdata)
->>>          } else
->>>                  pdata->slots[0].gpio_wp = -EINVAL;
->>>
->>> +       if (gpio_is_valid(pdata->slots[0].gpio_cirq)) {
->>> +               pdata->slots[0].sdio_irq =
->>> +                               gpio_to_irq(pdata->slots[0].gpio_cirq);
->>
->> What is this? re-assign the platform data?
->
-> Seems like, I didn't pay attention to this.
-> Simply kept in line how the write protection/read only pins are managed.
-> I'd rather not change this part, or not changing it as part of adding
-> sdio IRQ support it.
->
-> Maybe somebody else on the list can explain why the platform data
-> contains elements
-> that are modified during runtime.
->
-> - set_power / get_ro function callbacks
-> - ocr_mask.
->
+--8cpS+6Cx+xtICsjy
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
 Hi,
 
-few params were passed via platform data in non-DT case and never cached
-in internal data structure, with non-dt support going away soon, I am
-planning to cleanup pdata usage in the driver when it gets to DT only support.
+On Mon, Nov 18, 2013 at 10:29:07AM +0000, Lee Jones wrote:
+> > Since we still need to rely on a mix of device tree initialized
+> > drivers and legacy platform data initialize drivers, let's fix
+> > the passing of platform data to twl4030-gpio.
+> >=20
+> > As the twl4030 GPIO is initialized by twl-core.c, we need to register
+> > the auxdata for twl4030 GPIO in twl-core.c.
+> >=20
+> > Cc: Samuel Ortiz <sameo@linux.intel.com>
+> > Cc: Lee Jones <lee.jones@linaro.org>
+> > Signed-off-by: Tony Lindgren <tony@atomide.com>
+> > ---
+> >=20
+> > Samuel & Lee, I'd like to merge this fix via arm-soc tree if this looks
+> > OK to you as I have other patches that depend on this.
+> >=20
+> > ---
+> >  drivers/mfd/twl-core.c | 15 ++++++++++++---
+> >  1 file changed, 12 insertions(+), 3 deletions(-)
+> >=20
+> > diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
+> > index 29473c2..d5b3dd8 100644
+> > --- a/drivers/mfd/twl-core.c
+> > +++ b/drivers/mfd/twl-core.c
+> > @@ -1133,6 +1133,11 @@ static int twl_remove(struct i2c_client *client)
+> >  	return 0;
+> >  }
+> > =20
+> > +static struct of_dev_auxdata twl_auxdata_lookup[] =3D {
+> > +	OF_DEV_AUXDATA("ti,twl4030-gpio", 0, "twl4030-gpio", NULL),
+> > +	{ /* sentinel */ },
+> > +};
+> > +
+> >  /* NOTE: This driver only handles a single twl4030/tps659x0 chip */
+> >  static int
+> >  twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
+> > @@ -1271,10 +1276,14 @@ twl_probe(struct i2c_client *client, const stru=
+ct i2c_device_id *id)
+> >  		twl_i2c_write_u8(TWL4030_MODULE_INTBR, temp, REG_GPPUPDCTR1);
+> >  	}
+> > =20
+> > -	if (node)
+> > -		status =3D of_platform_populate(node, NULL, NULL, &client->dev);
+> > -	else
+> > +	if (node) {
+> > +		if (pdata)
+> > +			twl_auxdata_lookup[0].platform_data =3D pdata->gpio;
+> > +		status =3D of_platform_populate(node, NULL, twl_auxdata_lookup,
+> > +					      &client->dev);
+> > +	} else {
+> >  		status =3D add_children(pdata, irq_base, id->driver_data);
+>=20
+> Why doesn't the TWL driver use the MFD framework for this stuff?
 
+that's reminiscent from years ago and, surely, needs to be fixed. Should
+we gate $subject for that, though ? This has been in tree for quite a
+few years already and Tony's patch is still a step forward, since most
+omap3 platforms would break on DT-only without it.
+
+There are quite a few folks who could volunteer to fixing that after
+Tony's patch is in (me included, although there could be better choices
+hehe).
+
+cheers
+
+--=20
+balbi
+
+--8cpS+6Cx+xtICsjy
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.15 (GNU/Linux)
+
+iQIcBAEBAgAGBQJSik12AAoJEIaOsuA1yqREw10QAJDdTviJNDLjAmoDWzfH0g85
+eobv3i7TxDr23HLgSWJfuFzsGkgDySxw8fDSkJl6AFBsVpz4jBj9EmRclQ/uyIz5
+IJn89IwRyXebyN4vrBp+OvLols8lAUkzhgUMwtb3RKGESECxuFa84s1Q9DsIhUxa
+t1S76AjlEP+Muuff73IZDbjDbdECfvHzV2Xv7UWvQuY79vMpfSbduauyRmb2WzQ7
+PUTwF6MTcnS8Da2h2eboWH1CALjanyAspjbuCQ+TFVGXd1xkDsFHC0yMRizQI678
+8ANPgm8nl+LM6USPf7xQjUEN95lB8oQBiStUg527zkQEvh32oDuWIZ4Z+jtHRxz7
+/cc4IffX/MmQov1GpsM47+iDM5BZW8vc0/gRBey6jVQelhf3agQO1kD87SH0AQVK
+rub3dBAqweLTX0qurzU+OS7Zgv7ngaWieUlYxUtAtqgESP6HH06bzxyCJpmtei4j
+p1mgii4hnsgeFhBPKwOXyjPsu28UUtdpRaDRFqa7MFSyz4v+4XDA6ut2EqcN+XKL
+WSEEWs4/8Mkf00UFuqtZ43QGB4gFrPyqtVGaGV4aFtZUjBE+kleZLnFQCoQqRQty
+ledo1y2WIwX+DR1BvEyWocJPbr5QmytQ0mnXp/wjwJxhWPIAG15Z0WmmSBhYhMUa
+K4gJwrhR1CzByKW2rQiu
+=d+3e
+-----END PGP SIGNATURE-----
+
+--8cpS+6Cx+xtICsjy--
