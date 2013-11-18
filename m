@@ -1,81 +1,121 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 3/4] OMAPDSS: apply fixes
-Date: Mon, 18 Nov 2013 14:44:08 +0200
-Message-ID: <1384778649-9396-3-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 4/4] OMAPDSS: DISPC: Add MFLAG defines
+Date: Mon, 18 Nov 2013 14:44:09 +0200
+Message-ID: <1384778649-9396-4-git-send-email-tomi.valkeinen@ti.com>
 References: <1384778649-9396-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:54022 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:51991 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751409Ab3KRMoV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 18 Nov 2013 07:44:21 -0500
+	id S1751297Ab3KRMoW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 18 Nov 2013 07:44:22 -0500
 In-Reply-To: <1384778649-9396-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
 Cc: Archit Taneja <archit@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-When omapfb does ovl->get_overlay_info, ovl->set_overlay_info, the set
-function may fail even if the info has not been changed. This is because
-omapdss doesn't initialize the info, but expect the caller to set valid
-values.
-
-Normally that is the case, but there is at least one corner case: if
-omapfb has not allocated memory for the overlay yet, and the user uses
-ioctl to disable the overlay to make sure it's disabled. In this case
-get_overlay_info returns invalid data, but the user is only interested
-in setting the overlay to disabled, not configuring it, and
-set_overlay_info fails.
-
-The issue is made possible by the omapfb's setup_plane ioctl, which
-groups overlay configuration and overlay enable/disable bit into the
-same struct. Thus, when you are disabling an overlay, you are also
-configuring it.
-
-This is a bit counter intuitive, so I think it's better to initialize
-the info to some valid values.
-
-The fields requiring initialization are color_mode and rotation_type,
-and also we need to remove the check for (paddr == 0), as paddr is 0 for
-unallocated overlay (but it's still fine to disable the overlay).
+OMAP5 has MFLAG feature in DISPC. Add the register definition and dump
+it. The register is not used yet, though.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/omap2/dss/apply.c   | 3 +++
- drivers/video/omap2/dss/overlay.c | 5 -----
- 2 files changed, 3 insertions(+), 5 deletions(-)
+ drivers/video/omap2/dss/dispc.c        |  4 ++++
+ drivers/video/omap2/dss/dispc.h        | 20 ++++++++++++++++++++
+ drivers/video/omap2/dss/dss_features.c |  1 +
+ drivers/video/omap2/dss/dss_features.h |  1 +
+ 4 files changed, 26 insertions(+)
 
-diff --git a/drivers/video/omap2/dss/apply.c b/drivers/video/omap2/dss/apply.c
-index 24cd7c2..0a0b084 100644
---- a/drivers/video/omap2/dss/apply.c
-+++ b/drivers/video/omap2/dss/apply.c
-@@ -149,6 +149,9 @@ static void apply_init_priv(void)
+diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
+index aa95ba5..d39a4e3 100644
+--- a/drivers/video/omap2/dss/dispc.c
++++ b/drivers/video/omap2/dss/dispc.c
+@@ -3213,6 +3213,8 @@ static void dispc_dump_regs(struct seq_file *s)
+ 		DUMPREG(DISPC_CONTROL3);
+ 		DUMPREG(DISPC_CONFIG3);
+ 	}
++	if (dss_has_feature(FEAT_MFLAG))
++		DUMPREG(DISPC_GLOBAL_MFLAG_ATTRIBUTE);
  
- 		op = &dss_data.ovl_priv_data_array[i];
+ #undef DUMPREG
  
-+		op->info.color_mode = OMAP_DSS_COLOR_RGB16;
-+		op->info.rotation_type = OMAP_DSS_ROT_DMA;
+@@ -3287,6 +3289,8 @@ static void dispc_dump_regs(struct seq_file *s)
+ 			DUMPREG(i, DISPC_OVL_ATTRIBUTES2);
+ 		if (dss_has_feature(FEAT_PRELOAD))
+ 			DUMPREG(i, DISPC_OVL_PRELOAD);
++		if (dss_has_feature(FEAT_MFLAG))
++			DUMPREG(i, DISPC_OVL_MFLAG_THRESHOLD);
+ 	}
+ 
+ #undef DISPC_REG
+diff --git a/drivers/video/omap2/dss/dispc.h b/drivers/video/omap2/dss/dispc.h
+index de4863d..78edb44 100644
+--- a/drivers/video/omap2/dss/dispc.h
++++ b/drivers/video/omap2/dss/dispc.h
+@@ -40,6 +40,7 @@
+ #define DISPC_CONTROL3                  0x0848
+ #define DISPC_CONFIG3                   0x084C
+ #define DISPC_MSTANDBY_CTRL		0x0858
++#define DISPC_GLOBAL_MFLAG_ATTRIBUTE	0x085C
+ 
+ /* DISPC overlay registers */
+ #define DISPC_OVL_BA0(n)		(DISPC_OVL_BASE(n) + \
+@@ -100,6 +101,8 @@
+ 					DISPC_FIR_COEF_V2_OFFSET(n, i))
+ #define DISPC_OVL_PRELOAD(n)		(DISPC_OVL_BASE(n) + \
+ 					DISPC_PRELOAD_OFFSET(n))
++#define DISPC_OVL_MFLAG_THRESHOLD(n)	(DISPC_OVL_BASE(n) + \
++					DISPC_MFLAG_THRESHOLD_OFFSET(n))
+ 
+ /* DISPC up/downsampling FIR filter coefficient structure */
+ struct dispc_coef {
+@@ -894,4 +897,21 @@ static inline u16 DISPC_PRELOAD_OFFSET(enum omap_plane plane)
+ 		return 0;
+ 	}
+ }
 +
- 		op->info.global_alpha = 255;
++static inline u16 DISPC_MFLAG_THRESHOLD_OFFSET(enum omap_plane plane)
++{
++	switch (plane) {
++	case OMAP_DSS_GFX:
++		return 0x0860;
++	case OMAP_DSS_VIDEO1:
++		return 0x0864;
++	case OMAP_DSS_VIDEO2:
++		return 0x0868;
++	case OMAP_DSS_VIDEO3:
++		return 0x086c;
++	default:
++		BUG();
++		return 0;
++	}
++}
+ #endif
+diff --git a/drivers/video/omap2/dss/dss_features.c b/drivers/video/omap2/dss/dss_features.c
+index f8fd6db..7f89691 100644
+--- a/drivers/video/omap2/dss/dss_features.c
++++ b/drivers/video/omap2/dss/dss_features.c
+@@ -613,6 +613,7 @@ static const enum dss_feat_id omap5_dss_feat_list[] = {
+ 	FEAT_DSI_PLL_SELFREQDCO,
+ 	FEAT_DSI_PLL_REFSEL,
+ 	FEAT_DSI_PHY_DCC,
++	FEAT_MFLAG,
+ };
  
- 		switch (i) {
-diff --git a/drivers/video/omap2/dss/overlay.c b/drivers/video/omap2/dss/overlay.c
-index eccde32..2f7cee9 100644
---- a/drivers/video/omap2/dss/overlay.c
-+++ b/drivers/video/omap2/dss/overlay.c
-@@ -113,11 +113,6 @@ void dss_uninit_overlays(struct platform_device *pdev)
- int dss_ovl_simple_check(struct omap_overlay *ovl,
- 		const struct omap_overlay_info *info)
- {
--	if (info->paddr == 0) {
--		DSSERR("check_overlay: paddr cannot be 0\n");
--		return -EINVAL;
--	}
--
- 	if ((ovl->caps & OMAP_DSS_OVL_CAP_SCALE) == 0) {
- 		if (info->out_width != 0 && info->width != info->out_width) {
- 			DSSERR("check_overlay: overlay %d doesn't support "
+ /* OMAP2 DSS Features */
+diff --git a/drivers/video/omap2/dss/dss_features.h b/drivers/video/omap2/dss/dss_features.h
+index 10b0556..e3ef3b7 100644
+--- a/drivers/video/omap2/dss/dss_features.h
++++ b/drivers/video/omap2/dss/dss_features.h
+@@ -64,6 +64,7 @@ enum dss_feat_id {
+ 	FEAT_DSI_PLL_SELFREQDCO,
+ 	FEAT_DSI_PLL_REFSEL,
+ 	FEAT_DSI_PHY_DCC,
++	FEAT_MFLAG,
+ };
+ 
+ /* DSS register field id */
 -- 
 1.8.3.2
 
