@@ -1,165 +1,188 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 5/6] OMAPDSS: add debug print for runtime suspend/resume
-Date: Mon, 18 Nov 2013 14:50:08 +0200
-Message-ID: <1384779009-10512-6-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 6/6] OMAPDSS: use runtime PM's autosuspend
+Date: Mon, 18 Nov 2013 14:50:09 +0200
+Message-ID: <1384779009-10512-7-git-send-email-tomi.valkeinen@ti.com>
 References: <1384779009-10512-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:54191 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:52143 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751597Ab3KRMuW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 18 Nov 2013 07:50:22 -0500
+	id S1751628Ab3KRMuX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 18 Nov 2013 07:50:23 -0500
 In-Reply-To: <1384779009-10512-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
 Cc: Archit Taneja <archit@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Add consistent debug prints on all suspend & resume callbacks in omapdss
-to make it simpler to debug runtime PM.
+Use runtime PM's autosuspend support with delay of 100ms.
+
+This will prevent the driver from turning the DSS modules off and on
+multiple times e.g. when loading the module.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/omap2/dss/dispc.c | 4 ++++
- drivers/video/omap2/dss/dsi.c   | 4 ++++
- drivers/video/omap2/dss/dss.c   | 5 +++++
- drivers/video/omap2/dss/hdmi4.c | 4 ++++
- drivers/video/omap2/dss/rfbi.c  | 4 ++++
- drivers/video/omap2/dss/venc.c  | 4 ++++
- 6 files changed, 25 insertions(+)
+ drivers/video/omap2/dss/dispc.c | 5 ++++-
+ drivers/video/omap2/dss/dsi.c   | 5 ++++-
+ drivers/video/omap2/dss/dss.c   | 5 ++++-
+ drivers/video/omap2/dss/dss.h   | 2 ++
+ drivers/video/omap2/dss/hdmi4.c | 5 ++++-
+ drivers/video/omap2/dss/rfbi.c  | 5 ++++-
+ drivers/video/omap2/dss/venc.c  | 5 ++++-
+ 7 files changed, 26 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
-index 54716ad..58f3626 100644
+index 58f3626..0643eb0 100644
 --- a/drivers/video/omap2/dss/dispc.c
 +++ b/drivers/video/omap2/dss/dispc.c
-@@ -3475,11 +3475,15 @@ static int __exit omap_dispchw_remove(struct platform_device *pdev)
+@@ -258,7 +258,8 @@ void dispc_runtime_put(void)
  
- static int dispc_runtime_suspend(struct device *dev)
- {
-+	DSSDBG("suspend\n");
-+
- 	return 0;
+ 	DSSDBG("dispc_runtime_put\n");
+ 
+-	r = pm_runtime_put_sync(&dispc.pdev->dev);
++	pm_runtime_mark_last_busy(&dispc.pdev->dev);
++	r = pm_runtime_put_autosuspend(&dispc.pdev->dev);
+ 	WARN_ON(r < 0 && r != -ENOSYS);
  }
+ EXPORT_SYMBOL(dispc_runtime_put);
+@@ -3440,6 +3441,8 @@ static int __init omap_dispchw_probe(struct platform_device *pdev)
+ 	}
  
- static int dispc_runtime_resume(struct device *dev)
- {
-+	DSSDBG("resume\n");
-+
- 	_omap_dispc_initial_config();
+ 	pm_runtime_enable(&pdev->dev);
++	pm_runtime_set_autosuspend_delay(&pdev->dev, DSS_AUTOSUSPEND_DELAY);
++	pm_runtime_use_autosuspend(&pdev->dev);
  
- 	return 0;
-diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
-index 6056b27..6b30a58 100644
---- a/drivers/video/omap2/dss/dsi.c
-+++ b/drivers/video/omap2/dss/dsi.c
-@@ -5477,6 +5477,8 @@ static int __exit omap_dsihw_remove(struct platform_device *dsidev)
- 
- static int dsi_runtime_suspend(struct device *dev)
- {
-+	DSSDBG("suspend\n");
-+
- 	dispc_runtime_put();
- 
- 	return 0;
-@@ -5486,6 +5488,8 @@ static int dsi_runtime_resume(struct device *dev)
- {
- 	int r;
- 
-+	DSSDBG("resume\n");
-+
  	r = dispc_runtime_get();
  	if (r)
+diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
+index 6b30a58..19e4cad 100644
+--- a/drivers/video/omap2/dss/dsi.c
++++ b/drivers/video/omap2/dss/dsi.c
+@@ -1110,7 +1110,8 @@ void dsi_runtime_put(struct platform_device *dsidev)
+ 
+ 	DSSDBG("dsi_runtime_put\n");
+ 
+-	r = pm_runtime_put_sync(&dsi->pdev->dev);
++	pm_runtime_mark_last_busy(&dsi->pdev->dev);
++	r = pm_runtime_put_autosuspend(&dsi->pdev->dev);
+ 	WARN_ON(r < 0 && r != -ENOSYS);
+ }
+ 
+@@ -5416,6 +5417,8 @@ static int omap_dsihw_probe(struct platform_device *dsidev)
  		return r;
+ 
+ 	pm_runtime_enable(&dsidev->dev);
++	pm_runtime_set_autosuspend_delay(&dsidev->dev, DSS_AUTOSUSPEND_DELAY);
++	pm_runtime_use_autosuspend(&dsidev->dev);
+ 
+ 	r = dsi_runtime_get(dsidev);
+ 	if (r)
 diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
-index 0b78c89..fa7bc00 100644
+index fa7bc00..d3b0122 100644
 --- a/drivers/video/omap2/dss/dss.c
 +++ b/drivers/video/omap2/dss/dss.c
-@@ -872,6 +872,8 @@ static int __exit omap_dsshw_remove(struct platform_device *pdev)
+@@ -689,7 +689,8 @@ static void dss_runtime_put(void)
  
- static int dss_runtime_suspend(struct device *dev)
- {
-+	DSSDBG("suspend\n");
-+
- 	dss.ctx.control = dss_read_reg(DSS_CONTROL);
+ 	DSSDBG("dss_runtime_put\n");
  
- 	if (dss_feat_get_supported_displays(OMAP_DSS_CHANNEL_LCD) &
-@@ -889,6 +891,9 @@ static int dss_runtime_suspend(struct device *dev)
- static int dss_runtime_resume(struct device *dev)
- {
- 	int r;
+-	r = pm_runtime_put_sync(&dss.pdev->dev);
++	pm_runtime_mark_last_busy(&dss.pdev->dev);
++	r = pm_runtime_put_autosuspend(&dss.pdev->dev);
+ 	WARN_ON(r < 0 && r != -ENOSYS && r != -EBUSY);
+ }
+ 
+@@ -821,6 +822,8 @@ static int __init omap_dsshw_probe(struct platform_device *pdev)
+ 		goto err_setup_clocks;
+ 
+ 	pm_runtime_enable(&pdev->dev);
++	pm_runtime_set_autosuspend_delay(&pdev->dev, DSS_AUTOSUSPEND_DELAY);
++	pm_runtime_use_autosuspend(&pdev->dev);
+ 
+ 	r = dss_runtime_get();
+ 	if (r)
+diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
+index af83c4d..96505f0 100644
+--- a/drivers/video/omap2/dss/dss.h
++++ b/drivers/video/omap2/dss/dss.h
+@@ -73,6 +73,8 @@
+ #define FLD_MOD(orig, val, start, end) \
+ 	(((orig) & ~FLD_MASK(start, end)) | FLD_VAL(val, start, end))
+ 
++#define DSS_AUTOSUSPEND_DELAY 100	/* in ms */
 +
-+	DSSDBG("resume\n");
-+
- 	/*
- 	 * Set an arbitrarily high tput request to ensure OPP100.
- 	 * What we should really do is to make a request to stay in OPP100,
+ enum dss_io_pad_mode {
+ 	DSS_IO_PAD_MODE_RESET,
+ 	DSS_IO_PAD_MODE_RFBI,
 diff --git a/drivers/video/omap2/dss/hdmi4.c b/drivers/video/omap2/dss/hdmi4.c
-index e140096..f1a45fe 100644
+index f1a45fe..f255641 100644
 --- a/drivers/video/omap2/dss/hdmi4.c
 +++ b/drivers/video/omap2/dss/hdmi4.c
-@@ -650,6 +650,8 @@ static int __exit omapdss_hdmihw_remove(struct platform_device *pdev)
+@@ -77,7 +77,8 @@ static void hdmi_runtime_put(void)
  
- static int hdmi_runtime_suspend(struct device *dev)
- {
-+	DSSDBG("suspend\n");
-+
- 	clk_disable_unprepare(hdmi.sys_clk);
+ 	DSSDBG("hdmi_runtime_put\n");
  
- 	dispc_runtime_put();
-@@ -661,6 +663,8 @@ static int hdmi_runtime_resume(struct device *dev)
- {
- 	int r;
+-	r = pm_runtime_put_sync(&hdmi.pdev->dev);
++	pm_runtime_mark_last_busy(&hdmi.pdev->dev);
++	r = pm_runtime_put_autosuspend(&hdmi.pdev->dev);
+ 	WARN_ON(r < 0 && r != -ENOSYS);
+ }
  
-+	DSSDBG("resume\n");
-+
- 	r = dispc_runtime_get();
- 	if (r < 0)
- 		return r;
+@@ -631,6 +632,8 @@ static int omapdss_hdmihw_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	pm_runtime_enable(&pdev->dev);
++	pm_runtime_set_autosuspend_delay(&pdev->dev, DSS_AUTOSUSPEND_DELAY);
++	pm_runtime_use_autosuspend(&pdev->dev);
+ 
+ 	hdmi_init_output(pdev);
+ 
 diff --git a/drivers/video/omap2/dss/rfbi.c b/drivers/video/omap2/dss/rfbi.c
-index c8a81a2..74d3ed1 100644
+index 74d3ed1..20dcbfb 100644
 --- a/drivers/video/omap2/dss/rfbi.c
 +++ b/drivers/video/omap2/dss/rfbi.c
-@@ -1016,6 +1016,8 @@ static int __exit omap_rfbihw_remove(struct platform_device *pdev)
+@@ -147,7 +147,8 @@ static void rfbi_runtime_put(void)
  
- static int rfbi_runtime_suspend(struct device *dev)
- {
-+	DSSDBG("suspend\n");
-+
- 	dispc_runtime_put();
+ 	DSSDBG("rfbi_runtime_put\n");
  
- 	return 0;
-@@ -1025,6 +1027,8 @@ static int rfbi_runtime_resume(struct device *dev)
- {
- 	int r;
+-	r = pm_runtime_put_sync(&rfbi.pdev->dev);
++	pm_runtime_mark_last_busy(&rfbi.pdev->dev);
++	r = pm_runtime_put_autosuspend(&rfbi.pdev->dev);
+ 	WARN_ON(r < 0 && r != -ENOSYS);
+ }
  
-+	DSSDBG("resume\n");
-+
- 	r = dispc_runtime_get();
- 	if (r < 0)
- 		return r;
+@@ -981,6 +982,8 @@ static int omap_rfbihw_probe(struct platform_device *pdev)
+ 	clk_put(clk);
+ 
+ 	pm_runtime_enable(&pdev->dev);
++	pm_runtime_set_autosuspend_delay(&pdev->dev, DSS_AUTOSUSPEND_DELAY);
++	pm_runtime_use_autosuspend(&pdev->dev);
+ 
+ 	r = rfbi_runtime_get();
+ 	if (r)
 diff --git a/drivers/video/omap2/dss/venc.c b/drivers/video/omap2/dss/venc.c
-index 5f88ac4..e173961 100644
+index e173961..bbd35bb 100644
 --- a/drivers/video/omap2/dss/venc.c
 +++ b/drivers/video/omap2/dss/venc.c
-@@ -867,6 +867,8 @@ static int __exit omap_venchw_remove(struct platform_device *pdev)
+@@ -410,7 +410,8 @@ static void venc_runtime_put(void)
  
- static int venc_runtime_suspend(struct device *dev)
- {
-+	DSSDBG("suspend\n");
-+
- 	if (venc.tv_dac_clk)
- 		clk_disable_unprepare(venc.tv_dac_clk);
+ 	DSSDBG("venc_runtime_put\n");
  
-@@ -879,6 +881,8 @@ static int venc_runtime_resume(struct device *dev)
- {
- 	int r;
+-	r = pm_runtime_put_sync(&venc.pdev->dev);
++	pm_runtime_mark_last_busy(&venc.pdev->dev);
++	r = pm_runtime_put_autosuspend(&venc.pdev->dev);
+ 	WARN_ON(r < 0 && r != -ENOSYS);
+ }
  
-+	DSSDBG("resume\n");
-+
- 	r = dispc_runtime_get();
- 	if (r < 0)
+@@ -835,6 +836,8 @@ static int omap_venchw_probe(struct platform_device *pdev)
  		return r;
+ 
+ 	pm_runtime_enable(&pdev->dev);
++	pm_runtime_set_autosuspend_delay(&pdev->dev, DSS_AUTOSUSPEND_DELAY);
++	pm_runtime_use_autosuspend(&pdev->dev);
+ 
+ 	r = venc_runtime_get();
+ 	if (r)
 -- 
 1.8.3.2
 
