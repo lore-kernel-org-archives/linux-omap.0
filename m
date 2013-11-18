@@ -1,188 +1,75 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 6/6] OMAPDSS: use runtime PM's autosuspend
-Date: Mon, 18 Nov 2013 14:50:09 +0200
-Message-ID: <1384779009-10512-7-git-send-email-tomi.valkeinen@ti.com>
-References: <1384779009-10512-1-git-send-email-tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 3/5] ARM: OMAP2+: Add DT init code for DPI displays and
+ make omap3 LDP to use it
+Date: Mon, 18 Nov 2013 15:06:20 +0200
+Message-ID: <528A10CC.7070908@ti.com>
+References: <1384562167-14725-1-git-send-email-tony@atomide.com> <1384562167-14725-4-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="aCe8uQl9U93B73DjDgRVxFQfRX10Sbo7s"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:52143 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:52702 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751628Ab3KRMuX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 18 Nov 2013 07:50:23 -0500
-In-Reply-To: <1384779009-10512-1-git-send-email-tomi.valkeinen@ti.com>
+	id S1751840Ab3KRNGp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 18 Nov 2013 08:06:45 -0500
+In-Reply-To: <1384562167-14725-4-git-send-email-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: Archit Taneja <archit@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
+To: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Use runtime PM's autosuspend support with delay of 100ms.
+--aCe8uQl9U93B73DjDgRVxFQfRX10Sbo7s
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-This will prevent the driver from turning the DSS modules off and on
-multiple times e.g. when loading the module.
+On 2013-11-16 02:36, Tony Lindgren wrote:
+> In order to make the remaining omap3 boards usable with device
+> tree, we need to initialize the DPI based displays using pdata
+> until we have the DSS bindings in place.
+>=20
+> At least board-am3517evm.c, board-cm-t35.c, board-devkit8000.c,
+> board-ldp.c and board-overo.c all use fairly similar DPI setup,
+> so let's add generic code for it. And let's make omap3 LDP to
+> use it and also initialize the ads7846 until we have a binding
+> for it.
+>=20
+> Note that at least LDP needs the TWL bug fix posted as
+> "gpio: twl4030: Fix regression for twl gpio output" for the
+> LCD backlight to power.
 
-Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
----
- drivers/video/omap2/dss/dispc.c | 5 ++++-
- drivers/video/omap2/dss/dsi.c   | 5 ++++-
- drivers/video/omap2/dss/dss.c   | 5 ++++-
- drivers/video/omap2/dss/dss.h   | 2 ++
- drivers/video/omap2/dss/hdmi4.c | 5 ++++-
- drivers/video/omap2/dss/rfbi.c  | 5 ++++-
- drivers/video/omap2/dss/venc.c  | 5 ++++-
- 7 files changed, 26 insertions(+), 6 deletions(-)
+Looks fine to me.
 
-diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
-index 58f3626..0643eb0 100644
---- a/drivers/video/omap2/dss/dispc.c
-+++ b/drivers/video/omap2/dss/dispc.c
-@@ -258,7 +258,8 @@ void dispc_runtime_put(void)
- 
- 	DSSDBG("dispc_runtime_put\n");
- 
--	r = pm_runtime_put_sync(&dispc.pdev->dev);
-+	pm_runtime_mark_last_busy(&dispc.pdev->dev);
-+	r = pm_runtime_put_autosuspend(&dispc.pdev->dev);
- 	WARN_ON(r < 0 && r != -ENOSYS);
- }
- EXPORT_SYMBOL(dispc_runtime_put);
-@@ -3440,6 +3441,8 @@ static int __init omap_dispchw_probe(struct platform_device *pdev)
- 	}
- 
- 	pm_runtime_enable(&pdev->dev);
-+	pm_runtime_set_autosuspend_delay(&pdev->dev, DSS_AUTOSUSPEND_DELAY);
-+	pm_runtime_use_autosuspend(&pdev->dev);
- 
- 	r = dispc_runtime_get();
- 	if (r)
-diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
-index 6b30a58..19e4cad 100644
---- a/drivers/video/omap2/dss/dsi.c
-+++ b/drivers/video/omap2/dss/dsi.c
-@@ -1110,7 +1110,8 @@ void dsi_runtime_put(struct platform_device *dsidev)
- 
- 	DSSDBG("dsi_runtime_put\n");
- 
--	r = pm_runtime_put_sync(&dsi->pdev->dev);
-+	pm_runtime_mark_last_busy(&dsi->pdev->dev);
-+	r = pm_runtime_put_autosuspend(&dsi->pdev->dev);
- 	WARN_ON(r < 0 && r != -ENOSYS);
- }
- 
-@@ -5416,6 +5417,8 @@ static int omap_dsihw_probe(struct platform_device *dsidev)
- 		return r;
- 
- 	pm_runtime_enable(&dsidev->dev);
-+	pm_runtime_set_autosuspend_delay(&dsidev->dev, DSS_AUTOSUSPEND_DELAY);
-+	pm_runtime_use_autosuspend(&dsidev->dev);
- 
- 	r = dsi_runtime_get(dsidev);
- 	if (r)
-diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
-index fa7bc00..d3b0122 100644
---- a/drivers/video/omap2/dss/dss.c
-+++ b/drivers/video/omap2/dss/dss.c
-@@ -689,7 +689,8 @@ static void dss_runtime_put(void)
- 
- 	DSSDBG("dss_runtime_put\n");
- 
--	r = pm_runtime_put_sync(&dss.pdev->dev);
-+	pm_runtime_mark_last_busy(&dss.pdev->dev);
-+	r = pm_runtime_put_autosuspend(&dss.pdev->dev);
- 	WARN_ON(r < 0 && r != -ENOSYS && r != -EBUSY);
- }
- 
-@@ -821,6 +822,8 @@ static int __init omap_dsshw_probe(struct platform_device *pdev)
- 		goto err_setup_clocks;
- 
- 	pm_runtime_enable(&pdev->dev);
-+	pm_runtime_set_autosuspend_delay(&pdev->dev, DSS_AUTOSUSPEND_DELAY);
-+	pm_runtime_use_autosuspend(&pdev->dev);
- 
- 	r = dss_runtime_get();
- 	if (r)
-diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
-index af83c4d..96505f0 100644
---- a/drivers/video/omap2/dss/dss.h
-+++ b/drivers/video/omap2/dss/dss.h
-@@ -73,6 +73,8 @@
- #define FLD_MOD(orig, val, start, end) \
- 	(((orig) & ~FLD_MASK(start, end)) | FLD_VAL(val, start, end))
- 
-+#define DSS_AUTOSUSPEND_DELAY 100	/* in ms */
-+
- enum dss_io_pad_mode {
- 	DSS_IO_PAD_MODE_RESET,
- 	DSS_IO_PAD_MODE_RFBI,
-diff --git a/drivers/video/omap2/dss/hdmi4.c b/drivers/video/omap2/dss/hdmi4.c
-index f1a45fe..f255641 100644
---- a/drivers/video/omap2/dss/hdmi4.c
-+++ b/drivers/video/omap2/dss/hdmi4.c
-@@ -77,7 +77,8 @@ static void hdmi_runtime_put(void)
- 
- 	DSSDBG("hdmi_runtime_put\n");
- 
--	r = pm_runtime_put_sync(&hdmi.pdev->dev);
-+	pm_runtime_mark_last_busy(&hdmi.pdev->dev);
-+	r = pm_runtime_put_autosuspend(&hdmi.pdev->dev);
- 	WARN_ON(r < 0 && r != -ENOSYS);
- }
- 
-@@ -631,6 +632,8 @@ static int omapdss_hdmihw_probe(struct platform_device *pdev)
- 	}
- 
- 	pm_runtime_enable(&pdev->dev);
-+	pm_runtime_set_autosuspend_delay(&pdev->dev, DSS_AUTOSUSPEND_DELAY);
-+	pm_runtime_use_autosuspend(&pdev->dev);
- 
- 	hdmi_init_output(pdev);
- 
-diff --git a/drivers/video/omap2/dss/rfbi.c b/drivers/video/omap2/dss/rfbi.c
-index 74d3ed1..20dcbfb 100644
---- a/drivers/video/omap2/dss/rfbi.c
-+++ b/drivers/video/omap2/dss/rfbi.c
-@@ -147,7 +147,8 @@ static void rfbi_runtime_put(void)
- 
- 	DSSDBG("rfbi_runtime_put\n");
- 
--	r = pm_runtime_put_sync(&rfbi.pdev->dev);
-+	pm_runtime_mark_last_busy(&rfbi.pdev->dev);
-+	r = pm_runtime_put_autosuspend(&rfbi.pdev->dev);
- 	WARN_ON(r < 0 && r != -ENOSYS);
- }
- 
-@@ -981,6 +982,8 @@ static int omap_rfbihw_probe(struct platform_device *pdev)
- 	clk_put(clk);
- 
- 	pm_runtime_enable(&pdev->dev);
-+	pm_runtime_set_autosuspend_delay(&pdev->dev, DSS_AUTOSUSPEND_DELAY);
-+	pm_runtime_use_autosuspend(&pdev->dev);
- 
- 	r = rfbi_runtime_get();
- 	if (r)
-diff --git a/drivers/video/omap2/dss/venc.c b/drivers/video/omap2/dss/venc.c
-index e173961..bbd35bb 100644
---- a/drivers/video/omap2/dss/venc.c
-+++ b/drivers/video/omap2/dss/venc.c
-@@ -410,7 +410,8 @@ static void venc_runtime_put(void)
- 
- 	DSSDBG("venc_runtime_put\n");
- 
--	r = pm_runtime_put_sync(&venc.pdev->dev);
-+	pm_runtime_mark_last_busy(&venc.pdev->dev);
-+	r = pm_runtime_put_autosuspend(&venc.pdev->dev);
- 	WARN_ON(r < 0 && r != -ENOSYS);
- }
- 
-@@ -835,6 +836,8 @@ static int omap_venchw_probe(struct platform_device *pdev)
- 		return r;
- 
- 	pm_runtime_enable(&pdev->dev);
-+	pm_runtime_set_autosuspend_delay(&pdev->dev, DSS_AUTOSUSPEND_DELAY);
-+	pm_runtime_use_autosuspend(&pdev->dev);
- 
- 	r = venc_runtime_get();
- 	if (r)
--- 
-1.8.3.2
+Is it possible to keep this, and other similar DSS patches, in a
+separate branch, that could be dropped if needed? I'm kind of hoping I
+would get the DSS DT finished for the next merge window (but I've said
+that before, so...).
 
+ Tomi
+
+
+
+--aCe8uQl9U93B73DjDgRVxFQfRX10Sbo7s
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.14 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJSihDMAAoJEPo9qoy8lh71ElwP/A01R0XY1RhyMUtC8cqvlnv8
+qpQL4bTANOmN8fyPkiSJc/dNNUitArgkplSqJXuuCXtMOs0NmchJXbydCmdmhVH8
+N6JECKAS2v2SkQs/ZEt2fwE0XoUoAzo/pWxSodcrAIJZbFQVhM38VcBV65r10rto
+uAJwVGUsj1tSkqK/UWkIQ5LRvcSDUC0jYu/5CAaZ3lMvFg9GGNamZ0JMR57fFUih
+JfgXvuSTjcW9IVHnNcV2tAg53S05/sS5Kkpuz3I2Y42DWno1n3MOdsaFxylxJ4U+
+ebo94OREOp+k+ZumEzQ+FGwtQvZwj+ljRlNp7ph4cRX8mixACH6zDWfhO+Td8jBU
+77/7wpGbgt2C6sfVgS/QqlZhIzZ45SgOXkg/MYN4IfxCcSYb2o0qwBzYvMlTkoaY
+zCdJnh4dEyKfGgtdxw2Xg4gHlTiNqtXGyNYmcR/eEECYdxfyjVTroSaV1IggNV+h
+MVlUL1FPDBXuIvNo3ESrHOnuJ+GUK6hWmsWnjuj/odmnrHWQuUeqQZ4pUMmQEbex
+2tSC/jmRIGujkXjgSFn4XsPo5II3UQIs1IvwcwASVMryN86a/YIOHOh4SGERG5vR
+qnS2IxeMIti6oVNGObJ2FlAsFg9mWIWP4/U+/V2KTsZWaZJRmsfOJMtODwG1v77O
+Vi6c8XSljowe5MKpH0OS
+=fQWR
+-----END PGP SIGNATURE-----
+
+--aCe8uQl9U93B73DjDgRVxFQfRX10Sbo7s--
