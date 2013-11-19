@@ -1,48 +1,71 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC 01/23] gpio/omap: raw read and write endian fix
-Date: Tue, 19 Nov 2013 07:43:53 -0800
-Message-ID: <20131119154353.GC10317@atomide.com>
-References: <1384560086-11994-1-git-send-email-taras.kondratiuk@linaro.org>
- <1384560086-11994-2-git-send-email-taras.kondratiuk@linaro.org>
- <CACRpkdYD-Yw+RFnX0GshyQn2oHYNnXXRF4RXTzCox=2Z0_gKqg@mail.gmail.com>
+Subject: Re: [PATCH v3 2/3] mmc: omap_hsmmc: Pin remux workaround to
+ support SDIO interrupt on AM335x.
+Date: Tue, 19 Nov 2013 07:49:09 -0800
+Message-ID: <20131119154909.GD10317@atomide.com>
+References: <1384761240-11005-1-git-send-email-afenkart@gmail.com>
+ <1384761240-11005-3-git-send-email-afenkart@gmail.com>
+ <CAOf5uw=9KJ312PVzMVEHX-Lj=iYpeZOYFduB8iOu9o+-863CYw@mail.gmail.com>
+ <CALtMJEBfeww=ymGMXWtwjtZrpqpFrkRPEOti_uPrE63SBk3Dtw@mail.gmail.com>
+ <528A3EB2.1010103@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-gpio-owner@vger.kernel.org>
+Return-path: <linux-doc-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CACRpkdYD-Yw+RFnX0GshyQn2oHYNnXXRF4RXTzCox=2Z0_gKqg@mail.gmail.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Taras Kondratiuk <taras.kondratiuk@linaro.org>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Linux-OMAP <linux-omap@vger.kernel.org>, linaro-networking@linaro.org, Victor Kamensky <victor.kamensky@linaro.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+In-Reply-To: <528A3EB2.1010103@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Balaji T K <balajitk@ti.com>
+Cc: Andreas Fenkart <afenkart@gmail.com>, Michael Trimarchi <michael@amarulasolutions.com>, Chris Ball <cjb@laptop.org>, Grant Likely <grant.likely@secretlab.ca>, Felipe Balbi <balbi@ti.com>, Daniel Mack <zonque@gmail.com>, linux-doc@vger.kernel.org, linux-mmc <linux-mmc@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Linus Walleij <linus.walleij@linaro.org> [131119 01:29]:
-> On Sat, Nov 16, 2013 at 1:01 AM, Taras Kondratiuk
-> <taras.kondratiuk@linaro.org> wrote:
+* Balaji T K <balajitk@ti.com> [131118 08:23]:
+> On Monday 18 November 2013 05:45 PM, Andreas Fenkart wrote:
+> >2013/11/18 Michael Trimarchi <michael@amarulasolutions.com>:
+> >>On Mon, Nov 18, 2013 at 8:53 AM, Andreas Fenkart <afenkart@gmail.com> wrote:
+> >>>  static int omap_hsmmc_card_detect(struct device *dev, int slot)
+> >>>  {
+> >>>         struct omap_hsmmc_host *host = dev_get_drvdata(dev);
+> >>>@@ -452,10 +474,25 @@ static int omap_hsmmc_gpio_init(struct omap_mmc_platform_data *pdata)
+> >>>         } else
+> >>>                 pdata->slots[0].gpio_wp = -EINVAL;
+> >>>
+> >>>+       if (gpio_is_valid(pdata->slots[0].gpio_cirq)) {
+> >>>+               pdata->slots[0].sdio_irq =
+> >>>+                               gpio_to_irq(pdata->slots[0].gpio_cirq);
+> >>
+> >>What is this? re-assign the platform data?
+> >
+> >Seems like, I didn't pay attention to this.
+> >Simply kept in line how the write protection/read only pins are managed.
+> >I'd rather not change this part, or not changing it as part of adding
+> >sdio IRQ support it.
+> >
+> >Maybe somebody else on the list can explain why the platform data
+> >contains elements
+> >that are modified during runtime.
+> >
+> >- set_power / get_ro function callbacks
+> >- ocr_mask.
+> >
+> Hi,
 > 
-> > From: Victor Kamensky <victor.kamensky@linaro.org>
-> >
-> > All OMAP IP blocks expect LE data, but CPU may operate in BE mode.
-> > Need to use endian neutral functions to read/write h/w registers.
-> > I.e instead of __raw_read[lw] and __raw_write[lw] functions code
-> > need to use read[lw]_relaxed and write[lw]_relaxed functions.
-> > If the first simply reads/writes register, the second will byteswap
-> > it if host operates in BE mode.
-> >
-> > Changes are trivial sed like replacement of __raw_xxx functions
-> > with xxx_relaxed variant.
-> >
-> > Signed-off-by: Victor Kamensky <victor.kamensky@linaro.org>
-> > Signed-off-by: Taras Kondratiuk <taras.kondratiuk@linaro.org>
-> 
-> Since I generally just dislike __raw accessors I went and applied
-> this. If it collides with any of Tony's fixup work I might need to
-> take the patch out again, no big deal.
+> few params were passed via platform data in non-DT case and never cached
+> in internal data structure, with non-dt support going away soon, I am
+> planning to cleanup pdata usage in the driver when it gets to DT only support.
 
-Thanks, this should not conflict with what I have. I just had few
-fixes for the twl4030-gpio for older omaps and I doubt that I have
-further driver dependencies beyond that for my clean-up work.
- 
-> Some ACKs would be nice, but unless there are major objections
-> this stays merged.
+The issue of pdata tinkering needs to be fixed first as it will cause nasty
+issues when the module is reprobed. 
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+Note that it's still possible to pass platform data in the device tree case
+as auxdata. And we probably need to do that for the pbias register handling
+until we have a driver for that.
+
+Talking of the pbias driver, any news on it?
+
+To recap, we basically we need a minimal separate driver that exposes the
+control module pbias register as a regulator to the hsmmc driver. I don't see
+that we can remove the platform data from the driver before that's done.
+
+Regards,
+
+Tony
