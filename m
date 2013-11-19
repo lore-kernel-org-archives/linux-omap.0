@@ -1,79 +1,80 @@
-From: Andreas Fenkart <afenkart@gmail.com>
-Subject: Re: [PATCH v3 2/3] mmc: omap_hsmmc: Pin remux workaround to support
- SDIO interrupt on AM335x.
-Date: Tue, 19 Nov 2013 14:37:52 +0100
-Message-ID: <CALtMJEB4RRHdc9HYqdCf=YonbpADrj5_MiWJgE1rxK_t5O8nsA@mail.gmail.com>
-References: <1384761240-11005-1-git-send-email-afenkart@gmail.com>
-	<1384761240-11005-3-git-send-email-afenkart@gmail.com>
-	<CAPDyKFrTm3BB3o=445FjigB1nVuKukwa6FtunPqtzFR2BihhRg@mail.gmail.com>
+From: Ben Gamari <bgamari.foss@gmail.com>
+Subject: Re: [BUG] PandaBoard hangs before starting init while booting v3.12
+Date: Tue, 19 Nov 2013 09:37:22 -0500
+Message-ID: <87mwl0o3tp.fsf@gmail.com>
+References: <87hab9agjr.fsf@gmail.com> <528AE58B.5030209@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: multipart/signed; boundary="=-=-=";
+	micalg=pgp-sha1; protocol="application/pgp-signature"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vc0-f171.google.com ([209.85.220.171]:36410 "EHLO
-	mail-vc0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752013Ab3KSNhx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Nov 2013 08:37:53 -0500
-In-Reply-To: <CAPDyKFrTm3BB3o=445FjigB1nVuKukwa6FtunPqtzFR2BihhRg@mail.gmail.com>
+Received: from mail-qa0-f54.google.com ([209.85.216.54]:39555 "EHLO
+	mail-qa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752278Ab3KSOiL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Nov 2013 09:38:11 -0500
+Received: by mail-qa0-f54.google.com with SMTP id f11so2160985qae.6
+        for <linux-omap@vger.kernel.org>; Tue, 19 Nov 2013 06:38:10 -0800 (PST)
+In-Reply-To: <528AE58B.5030209@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ulf Hansson <ulf.hansson@linaro.org>
-Cc: Chris Ball <cjb@laptop.org>, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, Felipe Balbi <balbi@ti.com>, Balaji T K <balajitk@ti.com>, Daniel Mack <zonque@gmail.com>, linux-doc@vger.kernel.org, linux-mmc <linux-mmc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>
+To: Lokesh Vutla <lokeshvutla@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Hi Ulf,
+--=-=-=
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-2013/11/19 Ulf Hansson <ulf.hansson@linaro.org>:
-> On 18 November 2013 08:53, Andreas Fenkart <afenkart@gmail.com> wrote:
+Lokesh Vutla <lokeshvutla@ti.com> writes:
 
->>
->> +static irqreturn_t omap_hsmmc_cirq(int irq, void *dev_id)
->> +{
->> +       struct omap_hsmmc_host *host = dev_id;
->> +       unsigned long flags;
->> +
->> +       spin_lock_irqsave(&host->irq_lock, flags);
->> +       if (host->flags & HSMMC_CIRQ_GPIO_ENABLED) {
->> +               disable_irq_nosync(mmc_slot(host).sdio_irq);
->> +               host->flags &= ~HSMMC_CIRQ_GPIO_ENABLED;
->> +       }
->> +       spin_unlock_irqrestore(&host->irq_lock, flags);
->> +
->> +       pm_request_resume(host->dev); /* no use counter */
+> Hi Ben,
+> On Monday 18 November 2013 08:44 PM, Ben Gamari wrote:
+>> I'm having difficulty getting a PandaBoard ES rev. B1 to boot v3.12 and
+>> linux-next (30121118). I'm booting with a brand new u-boot
+>> (c2e5e802ecb7ab668ce9911b210ed68c804b349f).
+>>=20
+>> In both cases the device appears to hang shortly before one would expect
+>> init to start as seen in the boot output below. I'm booting with the
+>> omap4-panda-es devicetree. As far as I can tell, the machine is
+>> completely dead and will not respond to even sysrq. I have a PandaBoard
+>> A4 which apparently has no trouble with the same kernel image.
+>=20
+> Which defconfig are you using ?
 >
-> In the case were you are not waking up from system suspend, but from
-> runtime suspend, you likely want to signal the SDIO irq as soon as
-> possible. Then you should use mmc_signal_sdio_irq instead.
+I derived the config from RobertCNelson's Debian Wheezy image. It did
+require some modification, however.
 
-That was my intention first as well, and previous patches worked that way.
-SDIO IRQ while in pm_suspend is a rare event, compard to SDIO irq
-while in pm_active state.
-
-cat /proc/interrupts
-           CPU0
- 80:      68349      INTC  64  mmc0
-236:       4352      GPIO  28  mmc0
-
-Here the Wifi module is just connected, not being pinged or iperf
-running. So the benefit will not be as big as you imagine.
-
-On the other side the optimisations is not without problems, while in
-pm_suspend the functional clock is off and you must not access the
-registers of the module.
-
-But this is exactly whapt happens when you call mmc_signal_sdio_irq,
-it will call back into the drivers omap_hsmmc_enable_sdio_irq trying to
-disable the SDIO irq. So you must add special state machines there.
-
-After all it's doable but error prone, and I consider not worth the troubles
-for no noticeable speedup.
-
-Also have a look here, Balaji T K had a similar remark to yours
-http://www.spinics.net/lists/linux-omap/msg99832.html
-
+> Can you see if CPU_IDLE is enabled in your defconfig?
 >
-> In the other case, when waking up from system suspend, you should be
-> able to completely rely on that the mmc_sdio_resume from the core
-> layer, will handle the IRQ.
+Yes, CPU_IDLE is enabled.
+
+> I saw a similar failure on my panda es when CPU_IDLE is enabled.
+> If this is the case for you please apply this[1] patch and give a try.
 >
-> Kind regards
-> Ulf Hansson
->
+
+Indeed that did the trick. Thanks for the reference!
+
+I do however now see periodic messages of the form,
+
+    [   42.143005] gic_timer_retrigger: lost localtimer interrupt
+
+Any idea what this might be due to?
+
+Cheers,
+
+=2D Ben
+
+
+--=-=-=
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.14 (GNU/Linux)
+
+iQEcBAEBAgAGBQJSi3ejAAoJEErkyLZmeNiDhEwH/1QLz68x83cKnL2LUA3sGQ8m
+139gYbO15B47e30vBgiljwgHrHHJW9manmqzVa1qr0nRITcikY4Y4X4rJNooWxRM
++QQcLk+qPk7gHwHgoYKL9Nb6mvOJhUaA4XQtxwxAlVwUq/djk8QoWXB7lOK6YRC4
+SSbs5/uFbUoy+pOKp1jjQqF4p31eJBYEED3MGOFptT4cT/T09xabKEYvftbVIKR8
+K3tKi7NnKgpHohPK4L5HqU+P4MgVBdIGzoaV9HCZT0puRVWR1wNxW2e7SthtxF1K
+OeZ8kvn9SN1X7oznzUlAOtWdHezmJ2D8V55lJED1EF7LVbO6RytHBJm9gPecXdY=
+=mdk7
+-----END PGP SIGNATURE-----
+--=-=-=--
