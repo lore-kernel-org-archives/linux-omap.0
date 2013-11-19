@@ -1,42 +1,41 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [RFC 01/23] gpio/omap: raw read and write endian fix
-Date: Tue, 19 Nov 2013 10:29:02 +0100
-Message-ID: <CACRpkdYD-Yw+RFnX0GshyQn2oHYNnXXRF4RXTzCox=2Z0_gKqg@mail.gmail.com>
-References: <1384560086-11994-1-git-send-email-taras.kondratiuk@linaro.org>
-	<1384560086-11994-2-git-send-email-taras.kondratiuk@linaro.org>
+From: =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>
+Subject: [PATCH v2 0/3] Add support for charging battery in Nokia RX-51
+Date: Tue, 19 Nov 2013 11:18:02 +0100
+Message-ID: <1384856285-19593-1-git-send-email-pali.rohar@gmail.com>
+References: <1378630239-10006-1-git-send-email-pali.rohar@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <1384560086-11994-2-git-send-email-taras.kondratiuk@linaro.org>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Taras Kondratiuk <taras.kondratiuk@linaro.org>, ext Tony Lindgren <tony@atomide.com>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Cc: Linux-OMAP <linux-omap@vger.kernel.org>, linaro-networking@linaro.org, Victor Kamensky <victor.kamensky@linaro.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1378630239-10006-1-git-send-email-pali.rohar@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Anton Vorontsov <anton@enomsg.org>, David Woodhouse <dwmw2@infradead.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, freemangordon@abv.bg, aaro.koskinen@iki.fi, pavel@ucw.cz, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Sat, Nov 16, 2013 at 1:01 AM, Taras Kondratiuk
-<taras.kondratiuk@linaro.org> wrote:
+This patch series finally bringing support for charging battery on
+Nokia N900 (RX-51) without any proprietary Nokia bits in userspace.
 
-> From: Victor Kamensky <victor.kamensky@linaro.org>
->
-> All OMAP IP blocks expect LE data, but CPU may operate in BE mode.
-> Need to use endian neutral functions to read/write h/w registers.
-> I.e instead of __raw_read[lw] and __raw_write[lw] functions code
-> need to use read[lw]_relaxed and write[lw]_relaxed functions.
-> If the first simply reads/writes register, the second will byteswap
-> it if host operates in BE mode.
->
-> Changes are trivial sed like replacement of __raw_xxx functions
-> with xxx_relaxed variant.
->
-> Signed-off-by: Victor Kamensky <victor.kamensky@linaro.org>
-> Signed-off-by: Taras Kondratiuk <taras.kondratiuk@linaro.org>
+I removed hook function from bq2415x_charger driver and replaced it
+by Jenny TC power_supply notifier code. This simplify usage of
+bq2415x driver and also allow adding DT support in future because
+driver does not need board specific function anymore (only static data)=
+=2E
 
-Since I generally just dislike __raw accessors I went and applied
-this. If it collides with any of Tony's fixup work I might need to
-take the patch out again, no big deal.
+I tested this series with linux 3.12-rc5 on Nokia N900.
 
-Some ACKs would be nice, but unless there are major objections
-this stays merged.
+Pali Roh=C3=A1r (3):
+  power_supply: Add power_supply notifier
+  bq2415x_charger: Use power_supply notifier for automode
+  RX-51: Add platform data for bq24150a charger
 
-Yours,
-Linus Walleij
+ arch/arm/mach-omap2/board-rx51-peripherals.c |   17 +++++-
+ drivers/power/bq2415x_charger.c              |   77 ++++++++++++++++++=
+++------
+ drivers/power/power_supply_core.c            |   17 ++++++
+ include/linux/power/bq2415x_charger.h        |   48 ++--------------
+ include/linux/power_supply.h                 |   10 ++++
+ 5 files changed, 108 insertions(+), 61 deletions(-)
+
+--=20
+1.7.9.5
