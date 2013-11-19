@@ -1,89 +1,50 @@
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: Re: [PATCH v3 2/3] mmc: omap_hsmmc: Pin remux workaround to support
- SDIO interrupt on AM335x.
-Date: Tue, 19 Nov 2013 16:09:48 +0100
-Message-ID: <CAPDyKFowQACfpZb3LMH1Dvryx7jCGR9hYb32ycf=u0Um2YRf6Q@mail.gmail.com>
-References: <1384761240-11005-1-git-send-email-afenkart@gmail.com>
-	<1384761240-11005-3-git-send-email-afenkart@gmail.com>
-	<CAPDyKFrTm3BB3o=445FjigB1nVuKukwa6FtunPqtzFR2BihhRg@mail.gmail.com>
-	<CALtMJEB4RRHdc9HYqdCf=YonbpADrj5_MiWJgE1rxK_t5O8nsA@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2 0/3] Add support for charging battery in Nokia RX-51
+Date: Tue, 19 Nov 2013 07:40:52 -0800
+Message-ID: <20131119154052.GB10317@atomide.com>
+References: <1378630239-10006-1-git-send-email-pali.rohar@gmail.com>
+ <1384856285-19593-1-git-send-email-pali.rohar@gmail.com>
+ <20131119144407.GB28455@earth.universe>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <CALtMJEB4RRHdc9HYqdCf=YonbpADrj5_MiWJgE1rxK_t5O8nsA@mail.gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Andreas Fenkart <afenkart@gmail.com>
-Cc: Chris Ball <cjb@laptop.org>, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, Felipe Balbi <balbi@ti.com>, Balaji T K <balajitk@ti.com>, Daniel Mack <zonque@gmail.com>, linux-doc@vger.kernel.org, linux-mmc <linux-mmc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20131119144407.GB28455@earth.universe>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>, Anton Vorontsov <anton@enomsg.org>, David Woodhouse <dwmw2@infradead.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, freemangordon@abv.bg, aaro.koskinen@iki.fi, pavel@ucw.cz
 List-Id: linux-omap@vger.kernel.org
 
-On 19 November 2013 14:37, Andreas Fenkart <afenkart@gmail.com> wrote:
-> Hi Ulf,
->
-> 2013/11/19 Ulf Hansson <ulf.hansson@linaro.org>:
->> On 18 November 2013 08:53, Andreas Fenkart <afenkart@gmail.com> wrote:
->
->>>
->>> +static irqreturn_t omap_hsmmc_cirq(int irq, void *dev_id)
->>> +{
->>> +       struct omap_hsmmc_host *host = dev_id;
->>> +       unsigned long flags;
->>> +
->>> +       spin_lock_irqsave(&host->irq_lock, flags);
->>> +       if (host->flags & HSMMC_CIRQ_GPIO_ENABLED) {
->>> +               disable_irq_nosync(mmc_slot(host).sdio_irq);
->>> +               host->flags &= ~HSMMC_CIRQ_GPIO_ENABLED;
->>> +       }
->>> +       spin_unlock_irqrestore(&host->irq_lock, flags);
->>> +
->>> +       pm_request_resume(host->dev); /* no use counter */
->>
->> In the case were you are not waking up from system suspend, but from
->> runtime suspend, you likely want to signal the SDIO irq as soon as
->> possible. Then you should use mmc_signal_sdio_irq instead.
->
-> That was my intention first as well, and previous patches worked that way.
-> SDIO IRQ while in pm_suspend is a rare event, compard to SDIO irq
-> while in pm_active state.
->
-> cat /proc/interrupts
->            CPU0
->  80:      68349      INTC  64  mmc0
-> 236:       4352      GPIO  28  mmc0
->
-> Here the Wifi module is just connected, not being pinged or iperf
-> running. So the benefit will not be as big as you imagine.
+* Sebastian Reichel <sre@debian.org> [131119 06:45]:
+> Hi Pali,
+>=20
+> On Tue, Nov 19, 2013 at 11:18:02AM +0100, Pali Roh=C3=A1r wrote:
+> > This patch series finally bringing support for charging battery on
+> > Nokia N900 (RX-51) without any proprietary Nokia bits in userspace.
+>=20
+> YAY! :)
+>=20
+> > I removed hook function from bq2415x_charger driver and replaced it
+> > by Jenny TC power_supply notifier code. This simplify usage of
+> > bq2415x driver and also allow adding DT support in future because
+> > driver does not need board specific function anymore (only static d=
+ata).
+> >=20
+> > I tested this series with linux 3.12-rc5 on Nokia N900.
+>=20
+> cool :)
+>=20
+> Do you want me to take this up and add DT support?
 
-You are right.
+Great news, yeah let's add this with DT support instead as we're
+planning to switch over to DT only booting anyways. The values can be
+probably set directly in the charger driver based on the compatible
+flag.
 
->
-> On the other side the optimisations is not without problems, while in
-> pm_suspend the functional clock is off and you must not access the
-> registers of the module.
->
-> But this is exactly whapt happens when you call mmc_signal_sdio_irq,
-> it will call back into the drivers omap_hsmmc_enable_sdio_irq trying to
-> disable the SDIO irq. So you must add special state machines there.
+Note that we can also still add the I2C devices as needed from
+the pdata-quirks.c, but in this case there should not be any need
+for it :)
 
-Yes, it will be somewhat complicated - I guess.
+Regards,
 
->
-> After all it's doable but error prone, and I consider not worth the troubles
-> for no noticeable speedup.
->
-> Also have a look here, Balaji T K had a similar remark to yours
-> http://www.spinics.net/lists/linux-omap/msg99832.html
-
-Thanks, I should have looked that first. :-)
-
-Kind regards
-Ulf Hansson
-
->
->>
->> In the other case, when waking up from system suspend, you should be
->> able to completely rely on that the mmc_sdio_resume from the core
->> layer, will handle the IRQ.
->>
->> Kind regards
->> Ulf Hansson
->>
+Tony
