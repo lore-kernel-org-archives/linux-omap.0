@@ -1,33 +1,62 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [RFC 01/23] gpio/omap: raw read and write endian fix
-Date: Tue, 19 Nov 2013 13:21:34 -0500
-Message-ID: <528BAC2E.4020601@ti.com>
-References: <1384560086-11994-1-git-send-email-taras.kondratiuk@linaro.org> <1384560086-11994-2-git-send-email-taras.kondratiuk@linaro.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL] few more omap fixes for v3.13 merge window
+Date: Tue, 19 Nov 2013 11:48:26 -0800
+Message-ID: <40127.8664278381$1384890518@news.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <1384560086-11994-2-git-send-email-taras.kondratiuk@linaro.org>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Taras Kondratiuk <taras.kondratiuk@linaro.org>
-Cc: linux-omap@vger.kernel.org, linaro-networking@linaro.org, Victor Kamensky <victor.kamensky@linaro.org>, Kevin Hilman <khilman@deeprootsystems.com>, Linus Walleij <linus.walleij@linaro.org>, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:17899 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751855Ab3KSTs3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Nov 2013 14:48:29 -0500
+Content-Disposition: inline
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: arm@kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Friday 15 November 2013 07:01 PM, Taras Kondratiuk wrote:
-> From: Victor Kamensky <victor.kamensky@linaro.org>
-> 
-> All OMAP IP blocks expect LE data, but CPU may operate in BE mode.
-> Need to use endian neutral functions to read/write h/w registers.
-> I.e instead of __raw_read[lw] and __raw_write[lw] functions code
-> need to use read[lw]_relaxed and write[lw]_relaxed functions.
-> If the first simply reads/writes register, the second will byteswap
-> it if host operates in BE mode.
-> 
-> Changes are trivial sed like replacement of __raw_xxx functions
-> with xxx_relaxed variant.
-> 
-> Signed-off-by: Victor Kamensky <victor.kamensky@linaro.org>
-> Signed-off-by: Taras Kondratiuk <taras.kondratiuk@linaro.org>
-> ---
-Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+The following changes since commit 26273e02a0cf18eb72416559310d3294390a9024:
 
+  ARM: OMAP2+: Fix build for dra7xx without omap4 and 5 (2013-11-15 08:27:29 -0800)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.13/more-fixes-for-merge-window-take2
+
+for you to fetch changes up to b2ff4790612bbfa3433cc92e56445c2a40098e2c:
+
+  ARM: OMAP2+: Remove legacy omap4_twl6030_hsmmc_init (2013-11-18 16:24:58 -0800)
+
+----------------------------------------------------------------
+Few more fixes for issues found booting older omaps using device tree.
+Also few randconfig build fixes and removal of some dead code for omap4
+as it no longer has legacy platform data based booting support.
+
+----------------------------------------------------------------
+Tony Lindgren (9):
+      i2c: omap: Fix missing device tree flags for omap2
+      ARM: OMAP2+: Fix GPMC and simplify bootloader timings for 8250 and smc91x
+      ARM: dts: Fix omap2 specific dtsi files by adding the missing entries
+      ARM: OMAP2+: More randconfig fixes for reconfigure_io_chain
+      gpio: twl4030: Fix regression for twl gpio output
+      gpio: twl4030: Fix passing of pdata in the device tree case
+      ARM: OMAP2+: Fix undefined reference to set_cntfreq
+      ARM: OMAP2+: Remove legacy mux code for display.c
+      ARM: OMAP2+: Remove legacy omap4_twl6030_hsmmc_init
+
+ Documentation/devicetree/bindings/i2c/i2c-omap.txt |  3 +-
+ arch/arm/boot/dts/omap-zoom-common.dtsi            |  2 +-
+ arch/arm/boot/dts/omap2.dtsi                       | 96 ++++++++++++++++++++++
+ arch/arm/boot/dts/omap2420.dtsi                    | 23 ++++++
+ arch/arm/boot/dts/omap2430.dtsi                    | 49 +++++++++++
+ arch/arm/mach-omap2/Makefile                       |  6 +-
+ arch/arm/mach-omap2/common.h                       |  1 -
+ arch/arm/mach-omap2/display.c                      | 78 ------------------
+ arch/arm/mach-omap2/gpmc.c                         | 58 +++++--------
+ arch/arm/mach-omap2/omap-secure.h                  |  7 ++
+ arch/arm/mach-omap2/omap4-common.c                 | 57 -------------
+ arch/arm/mach-omap2/prm44xx_54xx.h                 |  2 +-
+ drivers/gpio/gpio-twl4030.c                        | 13 ++-
+ drivers/i2c/busses/i2c-omap.c                      | 22 +++++
+ 14 files changed, 232 insertions(+), 185 deletions(-)
