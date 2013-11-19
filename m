@@ -1,67 +1,59 @@
-From: Sebastian Reichel <sre@debian.org>
-Subject: Re: [PATCH v2 0/3] Add support for charging battery in Nokia RX-51
-Date: Tue, 19 Nov 2013 15:44:09 +0100
-Message-ID: <20131119144407.GB28455@earth.universe>
-References: <1378630239-10006-1-git-send-email-pali.rohar@gmail.com>
- <1384856285-19593-1-git-send-email-pali.rohar@gmail.com>
+From: Ben Gamari <bgamari.foss@gmail.com>
+Subject: cpufreq on PandaBoard
+Date: Tue, 19 Nov 2013 09:59:07 -0500
+Message-ID: <87eh6ca150.fsf@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="i0/AhcQY5QxfSsSZ"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1384856285-19593-1-git-send-email-pali.rohar@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
-Cc: Anton Vorontsov <anton@enomsg.org>, David Woodhouse <dwmw2@infradead.org>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, freemangordon@abv.bg, aaro.koskinen@iki.fi, pavel@ucw.cz
+Content-Type: multipart/signed; boundary="=-=-=";
+	micalg=pgp-sha1; protocol="application/pgp-signature"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-qa0-f43.google.com ([209.85.216.43]:37462 "EHLO
+	mail-qa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751421Ab3KSO7M (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Nov 2013 09:59:12 -0500
+Received: by mail-qa0-f43.google.com with SMTP id ii20so866573qab.9
+        for <linux-omap@vger.kernel.org>; Tue, 19 Nov 2013 06:59:12 -0800 (PST)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org, linux-omap <linux-omap@vger.kernel.org>
+
+--=-=-=
+Content-Type: text/plain
 
 
---i0/AhcQY5QxfSsSZ
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Booting a PandaBoard with a recent kernel and devicetree appears to be a
+rather messy process. There are dozens of devicetree-related warnings
+spewed on boot (many pertaining to missing regulators). At the moment,
+however, I'm most interested in this,
 
-Hi Pali,
+    cpufreq-cpu0 cpufreq-cpu0.0: no of_node; not parsing pinctrl DT
+    cpu cpu0: dummy supplies not allowed
+    cpufreq_cpu0: failed to get cpu0 regulator: -19
+    cpufreq_cpu0: failed to get cpu0 clock: -2
+    cpufreq-cpu0: probe of cpufreq-cpu0.0 failed with error -2
 
-On Tue, Nov 19, 2013 at 11:18:02AM +0100, Pali Roh=E1r wrote:
-> This patch series finally bringing support for charging battery on
-> Nokia N900 (RX-51) without any proprietary Nokia bits in userspace.
+What is the status of cpufreq on the PandaBoard? Is this expected to
+work?
 
-YAY! :)
+More generally, if one wants a fairly recent kernel supporting the
+PandaBoard's hardware what kernel tree should be used? Is mainline not
+yet appropriate? Is linux-next preferred? Perhaps a ti-maintained tree?
 
-> I removed hook function from bq2415x_charger driver and replaced it
-> by Jenny TC power_supply notifier code. This simplify usage of
-> bq2415x driver and also allow adding DT support in future because
-> driver does not need board specific function anymore (only static data).
->=20
-> I tested this series with linux 3.12-rc5 on Nokia N900.
+Cheers,
 
-cool :)
+- Ben
 
-Do you want me to take this up and add DT support?
-
--- Sebastian
-
---i0/AhcQY5QxfSsSZ
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+--=-=-=
+Content-Type: application/pgp-signature
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.15 (GNU/Linux)
+Version: GnuPG v1.4.14 (GNU/Linux)
 
-iQIcBAEBCAAGBQJSi3k3AAoJENju1/PIO/qaStcQAJkFlzEmn4jPWBnFGzEDpO8/
-FAk0ZN+Xh5k5anYQhNoFNvfvqCyPEoaxak7BdsPhZZZRZeXnjTqyr/ExEtxppGNo
-GVA9Dk1UNSx5nCxsUVOL6cC9pFEpzycXm7k1SXxbaNG2Kc9WY0m3/CKAjuyI7ahl
-8v/9rQvFggA3SOHj+RISq0Ay6Imlc1zT24zDsIWIqh0F++IvR1/IS9HYy0CBZKdT
-TG/dOX3tqnBj2T0QcVRAv2blMBofPcRNU9TK1DZJnITSaowbm1FSjPKN1PFsxT19
-lRrRGQ/+RJ1Ylnpb1FmbPS1GxtWtZgB0Nb3Sy/Xz9gND+1w/P5KII5tKfKaImPIL
-3fNCjL/qPunMprk4Yyr2IFLZLHro3XwFpmX8zeUN7qZ/AFfC8YzUqqe7iwoKkBRo
-XnfrwMb0yEA7y83PXsi0hEaBhw5A4bC5u0GxfbbKQ3LhqROmaGvV/ZVFIiVEZ+28
-oGD5Q4YuRJmiNYxjsv7fKBiMf6BXJ78zhD6jw9Q/gI7xCx44LVgd+3DkGEZdSt18
-mUmRT7ayni2CwsDe2CZ9zmg5NHoJqp/pFkn3DhkSGDiy9s3OSlzjXcyFSEjeA7cV
-Hzf8vHyrkRSGSBg9DcLlts0Kisyk80gLZ2LCf2cEXM4LNoV/HItd3b0KjWwkWH0+
-KIPJvPfMifjv/zV1GPQZ
-=aPeq
+iQEcBAEBAgAGBQJSi3y7AAoJEErkyLZmeNiDmcEH/0EvjeIoSQ0nfeZ/QxpAUjus
+ISMIYcrDpug+nULrAn2rc1/FNaZA3v0cFoLPWpu+1+nQVkBCS1B4zrhTYk4GdxNS
+2PLGAJTlGCXEaJdRPjHTHD3CP+CJq85+D8ue8L+VEw+0vklw2pX+Abu/HSLojdfF
++tzwZ4wb7iSf7j44d2yGCawgLzyBJLY2N6nRrYxjTLarw6VGaOCS0e26ipJDK0yJ
+19lpk6zOyfNcvvUh7mp8LJEMXFfZIXFVXNEreC2MvkRU3wZmMMLAZhHbsKKD9xhw
+9y1l8bHsmC/Yp4FWv0ePyXzE7FM7kqFDN7sE5rQCaiOX7Bnuq2fsOHKkszzn6xY=
+=tVmS
 -----END PGP SIGNATURE-----
-
---i0/AhcQY5QxfSsSZ--
+--=-=-=--
