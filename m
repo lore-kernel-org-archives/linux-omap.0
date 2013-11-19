@@ -1,82 +1,79 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH v2 3/3] RX-51: Add platform data for bq24150a charger
-Date: Tue, 19 Nov 2013 14:32:13 +0100
-Message-ID: <20131119133212.GF14587@amd.pavel.ucw.cz>
-References: <1378630239-10006-1-git-send-email-pali.rohar@gmail.com>
- <1384856285-19593-1-git-send-email-pali.rohar@gmail.com>
- <1384856285-19593-4-git-send-email-pali.rohar@gmail.com>
+From: Andreas Fenkart <afenkart@gmail.com>
+Subject: Re: [PATCH v3 2/3] mmc: omap_hsmmc: Pin remux workaround to support
+ SDIO interrupt on AM335x.
+Date: Tue, 19 Nov 2013 14:37:52 +0100
+Message-ID: <CALtMJEB4RRHdc9HYqdCf=YonbpADrj5_MiWJgE1rxK_t5O8nsA@mail.gmail.com>
+References: <1384761240-11005-1-git-send-email-afenkart@gmail.com>
+	<1384761240-11005-3-git-send-email-afenkart@gmail.com>
+	<CAPDyKFrTm3BB3o=445FjigB1nVuKukwa6FtunPqtzFR2BihhRg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1384856285-19593-4-git-send-email-pali.rohar@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
-Cc: Anton Vorontsov <anton@enomsg.org>, David Woodhouse <dwmw2@infradead.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, freemangordon@abv.bg, aaro.koskinen@iki.fi
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-vc0-f171.google.com ([209.85.220.171]:36410 "EHLO
+	mail-vc0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752013Ab3KSNhx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Nov 2013 08:37:53 -0500
+In-Reply-To: <CAPDyKFrTm3BB3o=445FjigB1nVuKukwa6FtunPqtzFR2BihhRg@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Ulf Hansson <ulf.hansson@linaro.org>
+Cc: Chris Ball <cjb@laptop.org>, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, Felipe Balbi <balbi@ti.com>, Balaji T K <balajitk@ti.com>, Daniel Mack <zonque@gmail.com>, linux-doc@vger.kernel.org, linux-mmc <linux-mmc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>
 
-On Tue 2013-11-19 11:18:05, Pali Roh=E1r wrote:
-> This patch will register bq24150a charger in RX-51 board data.
->=20
-> So finally charging battery on Nokia N900 (RX-51) working
-> automatically without any proprietary Nokia bits in userspace.
->=20
-> Signed-off-by: Pali Roh=E1r <pali.rohar@gmail.com>
+Hi Ulf,
 
-Reviewed-by: Pavel Machek <pavel@ucw.cz>
+2013/11/19 Ulf Hansson <ulf.hansson@linaro.org>:
+> On 18 November 2013 08:53, Andreas Fenkart <afenkart@gmail.com> wrote:
 
-									Pavel
-BTW, current code says:
+>>
+>> +static irqreturn_t omap_hsmmc_cirq(int irq, void *dev_id)
+>> +{
+>> +       struct omap_hsmmc_host *host = dev_id;
+>> +       unsigned long flags;
+>> +
+>> +       spin_lock_irqsave(&host->irq_lock, flags);
+>> +       if (host->flags & HSMMC_CIRQ_GPIO_ENABLED) {
+>> +               disable_irq_nosync(mmc_slot(host).sdio_irq);
+>> +               host->flags &= ~HSMMC_CIRQ_GPIO_ENABLED;
+>> +       }
+>> +       spin_unlock_irqrestore(&host->irq_lock, flags);
+>> +
+>> +       pm_request_resume(host->dev); /* no use counter */
+>
+> In the case were you are not waking up from system suspend, but from
+> runtime suspend, you likely want to signal the SDIO irq as soon as
+> possible. Then you should use mmc_signal_sdio_irq instead.
 
-That seems to limit charging voltage to 3.9V, with comment saying
-4.11V... which means battery will not be charged fully. does it make
-sense to raise limit to 4.11V here?
+That was my intention first as well, and previous patches worked that way.
+SDIO IRQ while in pm_suspend is a rare event, compard to SDIO irq
+while in pm_active state.
 
-Aha, and actually will not 4.2V requested by
-rx51_bq24150a_platform_data trigger -EINVAL?
+cat /proc/interrupts
+           CPU0
+ 80:      68349      INTC  64  mmc0
+236:       4352      GPIO  28  mmc0
 
-/* set battery regulation voltage in mV */
-static int bq2415x_set_battery_regulation_voltage(struct
-bq2415x_device *bq,
-                                                  int mV)
-{
-        int val =3D (mV/10 - 350) / 2;
+Here the Wifi module is just connected, not being pinged or iperf
+running. So the benefit will not be as big as you imagine.
 
-        if (val < 0)
-                val =3D 0;
-        else if (val > 94) /* FIXME: Max is 94 or 122 ? Set max value
-                ? */
-                return -EINVAL;
+On the other side the optimisations is not without problems, while in
+pm_suspend the functional clock is off and you must not access the
+registers of the module.
 
-        return bq2415x_i2c_write_mask(bq, BQ2415X_REG_VOLTAGE, val,
-                        BQ2415X_MASK_VO, BQ2415X_SHIFT_VO);
-}
+But this is exactly whapt happens when you call mmc_signal_sdio_irq,
+it will call back into the drivers omap_hsmmc_enable_sdio_irq trying to
+disable the SDIO irq. So you must add special state machines there.
 
-> --- a/arch/arm/mach-omap2/board-rx51-peripherals.c
-> +++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
-> @@ -1275,6 +1276,16 @@ static struct aic3x_pdata rx51_aic3x_data2 =3D=
- {
->  	.gpio_reset =3D 60,
->  };
-> =20
-> +static struct bq2415x_platform_data rx51_bq24150a_platform_data =3D =
-{
-> +	.current_limit =3D 100,			/* mA */
-> +	.weak_battery_voltage =3D 3400,		/* mV */
-> +	.battery_regulation_voltage =3D 4200,	/* mV */
-> +	.charge_current =3D 650,			/* mA */
-> +	.termination_current =3D 100,		/* mA */
-> +	.resistor_sense =3D 68,			/* m ohm */
-> +	.notify_device =3D "isp1704",
-> +};
-> +
->  static struct i2c_board_info __initdata rx51_peripherals_i2c_board_i=
-nfo_2[] =3D {
->  	{
->  		I2C_BOARD_INFO("tlv320aic3x", 0x18),
+After all it's doable but error prone, and I consider not worth the troubles
+for no noticeable speedup.
 
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses=
-/blog.html
+Also have a look here, Balaji T K had a similar remark to yours
+http://www.spinics.net/lists/linux-omap/msg99832.html
+
+>
+> In the other case, when waking up from system suspend, you should be
+> able to completely rely on that the mmc_sdio_resume from the core
+> layer, will handle the IRQ.
+>
+> Kind regards
+> Ulf Hansson
+>
