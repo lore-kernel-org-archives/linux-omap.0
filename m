@@ -1,40 +1,42 @@
 From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH] pinctrl: single: call pcs_soc->rearm() whenever IRQ mask
- is changed
-Date: Tue, 19 Nov 2013 09:41:07 +0100
-Message-ID: <CACRpkdbLWnkoRtG1jJg73XWKveMSbf244SbmNdXN+cdEfEMcew@mail.gmail.com>
-References: <1381507996-15021-1-git-send-email-rogerq@ti.com>
-	<CACRpkdb7iUypffB7O7-RhQhVf5WkjYdVCNLRz=BgySG4FET-xQ@mail.gmail.com>
-	<20131011172337.GU29913@atomide.com>
-	<CACRpkdbo_TwX79hnJ5mCo8D4TSDd6OUzaOsFa8MgzjLy-H2U4Q@mail.gmail.com>
-	<20131112195611.GT15154@atomide.com>
-	<20131114182447.GJ10317@atomide.com>
+Subject: Re: [RFC 01/23] gpio/omap: raw read and write endian fix
+Date: Tue, 19 Nov 2013 10:29:02 +0100
+Message-ID: <CACRpkdYD-Yw+RFnX0GshyQn2oHYNnXXRF4RXTzCox=2Z0_gKqg@mail.gmail.com>
+References: <1384560086-11994-1-git-send-email-taras.kondratiuk@linaro.org>
+	<1384560086-11994-2-git-send-email-taras.kondratiuk@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-oa0-f51.google.com ([209.85.219.51]:45374 "EHLO
-	mail-oa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750833Ab3KSIlI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Nov 2013 03:41:08 -0500
-Received: by mail-oa0-f51.google.com with SMTP id i7so3294625oag.38
-        for <linux-omap@vger.kernel.org>; Tue, 19 Nov 2013 00:41:07 -0800 (PST)
-In-Reply-To: <20131114182447.GJ10317@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <1384560086-11994-2-git-send-email-taras.kondratiuk@linaro.org>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Taras Kondratiuk <taras.kondratiuk@linaro.org>, ext Tony Lindgren <tony@atomide.com>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Cc: Linux-OMAP <linux-omap@vger.kernel.org>, linaro-networking@linaro.org, Victor Kamensky <victor.kamensky@linaro.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Roger Quadros <rogerq@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Haojian Zhuang <haojian.zhuang@linaro.org>, Benoit Cousson <bcousson@baylibre.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux-OMAP <linux-omap@vger.kernel.org>
 
-On Thu, Nov 14, 2013 at 7:24 PM, Tony Lindgren <tony@atomide.com> wrote:
-> * Tony Lindgren <tony@atomide.com> [131112 11:57]:
+On Sat, Nov 16, 2013 at 1:01 AM, Taras Kondratiuk
+<taras.kondratiuk@linaro.org> wrote:
 
->> The fix from Roger is still missing. You can go ahead and queue
->> it, or if you prefer me to do it I can add it to my fixes.
+> From: Victor Kamensky <victor.kamensky@linaro.org>
 >
-> Actually Linus, I'll queue this with your ack as the interrupts-extended
-> property is now merged in and I can also enable some minimal wake-up
-> events for omap3.
+> All OMAP IP blocks expect LE data, but CPU may operate in BE mode.
+> Need to use endian neutral functions to read/write h/w registers.
+> I.e instead of __raw_read[lw] and __raw_write[lw] functions code
+> need to use read[lw]_relaxed and write[lw]_relaxed functions.
+> If the first simply reads/writes register, the second will byteswap
+> it if host operates in BE mode.
+>
+> Changes are trivial sed like replacement of __raw_xxx functions
+> with xxx_relaxed variant.
+>
+> Signed-off-by: Victor Kamensky <victor.kamensky@linaro.org>
+> Signed-off-by: Taras Kondratiuk <taras.kondratiuk@linaro.org>
 
-OK thanks for the heads-up, go ahead.
+Since I generally just dislike __raw accessors I went and applied
+this. If it collides with any of Tony's fixup work I might need to
+take the patch out again, no big deal.
+
+Some ACKs would be nice, but unless there are major objections
+this stays merged.
 
 Yours,
 Linus Walleij
