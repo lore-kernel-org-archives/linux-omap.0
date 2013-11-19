@@ -1,82 +1,51 @@
-From: Ben Gamari <bgamari.foss@gmail.com>
-Subject: Re: cpufreq on PandaBoard
-Date: Tue, 19 Nov 2013 12:51:21 -0500
-Message-ID: <87bo1gnuue.fsf@gmail.com>
-References: <87eh6ca150.fsf@gmail.com> <528B7D61.5020206@ti.com> <87hab8nwdl.fsf@gmail.com> <528BA031.5050201@ti.com>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: [RFC 01/23] gpio/omap: raw read and write endian fix
+Date: Tue, 19 Nov 2013 10:12:55 -0800
+Message-ID: <87mwl0mfa0.fsf@linaro.org>
+References: <1384560086-11994-1-git-send-email-taras.kondratiuk@linaro.org>
+	<1384560086-11994-2-git-send-email-taras.kondratiuk@linaro.org>
+	<CACRpkdYD-Yw+RFnX0GshyQn2oHYNnXXRF4RXTzCox=2Z0_gKqg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="=-=-=";
-	micalg=pgp-sha1; protocol="application/pgp-signature"
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qe0-f51.google.com ([209.85.128.51]:35423 "EHLO
-	mail-qe0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751421Ab3KSRv0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Nov 2013 12:51:26 -0500
-Received: by mail-qe0-f51.google.com with SMTP id d4so1747884qej.38
-        for <linux-omap@vger.kernel.org>; Tue, 19 Nov 2013 09:51:26 -0800 (PST)
-In-Reply-To: <528BA031.5050201@ti.com>
+Received: from mail-pd0-f170.google.com ([209.85.192.170]:65282 "EHLO
+	mail-pd0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751307Ab3KSSM7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Nov 2013 13:12:59 -0500
+Received: by mail-pd0-f170.google.com with SMTP id g10so4117008pdj.29
+        for <linux-omap@vger.kernel.org>; Tue, 19 Nov 2013 10:12:59 -0800 (PST)
+In-Reply-To: <CACRpkdYD-Yw+RFnX0GshyQn2oHYNnXXRF4RXTzCox=2Z0_gKqg@mail.gmail.com>
+	(Linus Walleij's message of "Tue, 19 Nov 2013 10:29:02 +0100")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap <linux-omap@vger.kernel.org>
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: Taras Kondratiuk <taras.kondratiuk@linaro.org>, ext Tony Lindgren <tony@atomide.com>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Linux-OMAP <linux-omap@vger.kernel.org>, linaro-networking@linaro.org, Victor Kamensky <victor.kamensky@linaro.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
---=-=-=
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+Linus Walleij <linus.walleij@linaro.org> writes:
 
-Nishanth Menon <nm@ti.com> writes:
-
-> On 11/19/2013 11:18 AM, Ben Gamari wrote:
->>=20
->> I take it that the clock node work does not itself fix cpufreq? I've
->> built the 3.12-dt-clks-v10-dev branch. On the bright side, it boots and
->> appears to run just fine. Unfortunately, there isn't even a mention of
->> cpufreq in the boot log.
+> On Sat, Nov 16, 2013 at 1:01 AM, Taras Kondratiuk
+> <taras.kondratiuk@linaro.org> wrote:
 >
-> You are probably picking up a branch that is yet to be posted :)...
-> and I assume you know the risk of in-development patches ;)
->=20
-The house hasn't burned down yet... ;)
-
-> - the branch looks to introduce purely clock nodes which patch [2]
-> adds on to and makes cpufreq work as a start..
+>> From: Victor Kamensky <victor.kamensky@linaro.org>
+>>
+>> All OMAP IP blocks expect LE data, but CPU may operate in BE mode.
+>> Need to use endian neutral functions to read/write h/w registers.
+>> I.e instead of __raw_read[lw] and __raw_write[lw] functions code
+>> need to use read[lw]_relaxed and write[lw]_relaxed functions.
+>> If the first simply reads/writes register, the second will byteswap
+>> it if host operates in BE mode.
+>>
+>> Changes are trivial sed like replacement of __raw_xxx functions
+>> with xxx_relaxed variant.
+>>
+>> Signed-off-by: Victor Kamensky <victor.kamensky@linaro.org>
+>> Signed-off-by: Taras Kondratiuk <taras.kondratiuk@linaro.org>
 >
-Thanks!
-
->>=20
->> I've seen your Google+ post[1] from May enumerating the steps to having
->> working DVFS. It would be useful to post an update showing what has been
->> merged, what is waiting for merge, and what is still in progress.
+> Since I generally just dislike __raw accessors I went and applied
+> this. If it collides with any of Tony's fixup work I might need to
+> take the patch out again, no big deal.
 >
-> We are still at "step 1 - get clock nodes" :(... and no, situation has
-> not improved since May 2013 when I originally posted that G+ comment
-> (and not because we have not been trying..).
->
-Ouch. Good luck!=20
+> Some ACKs would be nice, but unless there are major objections
+> this stays merged.
 
->> I wasn't asking for official support, just wondering where work is
->> currently happening.
->
-> they are happening here in linux-omap mailing list.. just that the
-> changes are pretty fundamental and a lot of discussions have been
-> taking place
->=20
-Thanks!
-
-Cheers,
-
-=2D Ben
-
---=-=-=
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
-
-iQEcBAEBAgAGBQJSi6UaAAoJEErkyLZmeNiDavsH/RZALvy7sfrIUBchhvc26CdS
-M1X3odX2QXbVQ3X2cAlR/L/ry7yV0cLnE4hlwlbHG8DqeQL1mqSnqx03P3u4AUxb
-poiwKCDXx4z0Yt0X9TgFelPElT8CdYgovvu3V4oW5Q3RiZS2xtx+n+f2SBr7XCNc
-ZTv9DzAso6u2QBiB/YucUY8iX6tS3qIb6pgQcOB6GjdykSwRH+P+gS5/J6246V4o
-UA9OPHSm+hbH++65b5+U0nlaZccwtzmGP2wsnlsyd3PqOn8D4s85+OgqD+j+ddjl
-GouZ+yY9V5aMY5wbgtI+X9DGAgq358m8qAwybykE6++fV2aHwHDJ7sAMUHmOsM0=
-=yCe4
------END PGP SIGNATURE-----
---=-=-=--
+Acked-by: Kevin Hilman <khilman@linaro.org>
