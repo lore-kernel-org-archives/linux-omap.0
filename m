@@ -1,60 +1,82 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH RFC 4/9] ASoC: hdmi-codec: Add devicetree binding with
- documentation
-Date: Tue, 19 Nov 2013 17:50:12 +0000
-Message-ID: <20131119175012.GB2674@sirena.org.uk>
-References: <cover.1384862950.git.jsarha@ti.com>
- <829968f1a6b34176de8a04dd4ad473b2b37be783.1384862950.git.jsarha@ti.com>
+From: Ben Gamari <bgamari.foss@gmail.com>
+Subject: Re: cpufreq on PandaBoard
+Date: Tue, 19 Nov 2013 12:51:21 -0500
+Message-ID: <87bo1gnuue.fsf@gmail.com>
+References: <87eh6ca150.fsf@gmail.com> <528B7D61.5020206@ti.com> <87hab8nwdl.fsf@gmail.com> <528BA031.5050201@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="avNtfD0ffNO6L/9g"
+Content-Type: multipart/signed; boundary="=-=-=";
+	micalg=pgp-sha1; protocol="application/pgp-signature"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cassiel.sirena.org.uk ([80.68.93.111]:38863 "EHLO
-	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752683Ab3KSRuS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Nov 2013 12:50:18 -0500
-Content-Disposition: inline
-In-Reply-To: <829968f1a6b34176de8a04dd4ad473b2b37be783.1384862950.git.jsarha@ti.com>
+Received: from mail-qe0-f51.google.com ([209.85.128.51]:35423 "EHLO
+	mail-qe0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751421Ab3KSRv0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Nov 2013 12:51:26 -0500
+Received: by mail-qe0-f51.google.com with SMTP id d4so1747884qej.38
+        for <linux-omap@vger.kernel.org>; Tue, 19 Nov 2013 09:51:26 -0800 (PST)
+In-Reply-To: <528BA031.5050201@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jyri Sarha <jsarha@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, dri-devel@lists.freedesktop.org, peter.ujfalusi@ti.com, detheridge@ti.com
+To: Nishanth Menon <nm@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap <linux-omap@vger.kernel.org>
 
-
---avNtfD0ffNO6L/9g
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+--=-=-=
+Content-Type: text/plain
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Nov 19, 2013 at 02:12:24PM +0200, Jyri Sarha wrote:
-> Signed-off-by: Jyri Sarha <jsarha@ti.com>
-> ---
->  Documentation/devicetree/bindings/sound/hdmi.txt |   17 +++++++++++++++++
->  sound/soc/codecs/hdmi.c                          |   10 ++++++++++
+Nishanth Menon <nm@ti.com> writes:
 
-Device tree bindings need to be sent to the DT folks for review as well.
-This looks OK but it should still go there.=20
+> On 11/19/2013 11:18 AM, Ben Gamari wrote:
+>>=20
+>> I take it that the clock node work does not itself fix cpufreq? I've
+>> built the 3.12-dt-clks-v10-dev branch. On the bright side, it boots and
+>> appears to run just fine. Unfortunately, there isn't even a mention of
+>> cpufreq in the boot log.
+>
+> You are probably picking up a branch that is yet to be posted :)...
+> and I assume you know the risk of in-development patches ;)
+>=20
+The house hasn't burned down yet... ;)
 
---avNtfD0ffNO6L/9g
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+> - the branch looks to introduce purely clock nodes which patch [2]
+> adds on to and makes cpufreq work as a start..
+>
+Thanks!
+
+>>=20
+>> I've seen your Google+ post[1] from May enumerating the steps to having
+>> working DVFS. It would be useful to post an update showing what has been
+>> merged, what is waiting for merge, and what is still in progress.
+>
+> We are still at "step 1 - get clock nodes" :(... and no, situation has
+> not improved since May 2013 when I originally posted that G+ comment
+> (and not because we have not been trying..).
+>
+Ouch. Good luck!=20
+
+>> I wasn't asking for official support, just wondering where work is
+>> currently happening.
+>
+> they are happening here in linux-omap mailing list.. just that the
+> changes are pretty fundamental and a lot of discussions have been
+> taking place
+>=20
+Thanks!
+
+Cheers,
+
+=2D Ben
+
+--=-=-=
+Content-Type: application/pgp-signature
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
+Version: GnuPG v1.4.14 (GNU/Linux)
 
-iQIcBAEBAgAGBQJSi6TRAAoJELSic+t+oim9J5wQAIL2Hj37MYIYsvJsHj2dM47C
-/zSqnni780/7pgwzHLf3f7nfzhbHXE6zZAFSgyGGc+6f/xBYgEjedX0YeFbeV6/A
-qDvXklRBlXttXCAnIMvayznF+FYvH0mqa0Gau0gGZInMpqEcc990EIXm/W962FLf
-Xw98VOsuKj1yeflqoQHj930Vn3JeZluN5nowF5o9ix7OKFUoi5FxB85tO3TYaEGq
-6g8AOFCEN6ALebAWOG5iyxbi/uYZtSwNAs793ueL8e0U6Szs15OFEzoA5aN+3sqm
-f0DeFM7khL2lNHjhVUr7eEfBuNWXzxJLzACyNJ1TbJlC0EQzelktOwBJusQVlItU
-OJUEfz0fCqNvzS2fjhdV4LsneVVLaL3i4XB+SbaeEi36b8WOBUHLyeGvucWDzsNr
-bl5Rw/OwL0cZ8OMTwUZM0H9dzvB0vgyY6ChM3rtwWIl4NJ6UQOidaf45KYxjY5LQ
-ZZYtD58Lyk2oYBKAJXwKqBPURPQxl3E7POtCq32lpjbI8lfaAL8XuKavTWtXBGhh
-t7j/MuRoK9VvJ8dCdE9IKKoPX/2eNn31H4xaidvUa7pPUQzTeXMRKNXTOqubju7a
-ig9H5fg2TnC6MuZyeU/e+LCNOm2RqO0eKjMAl4TCEXYmtkIBz0ph00hJaEVDnoVH
-4C2qkyX0QcRp+AMRLNKv
-=1t0U
+iQEcBAEBAgAGBQJSi6UaAAoJEErkyLZmeNiDavsH/RZALvy7sfrIUBchhvc26CdS
+M1X3odX2QXbVQ3X2cAlR/L/ry7yV0cLnE4hlwlbHG8DqeQL1mqSnqx03P3u4AUxb
+poiwKCDXx4z0Yt0X9TgFelPElT8CdYgovvu3V4oW5Q3RiZS2xtx+n+f2SBr7XCNc
+ZTv9DzAso6u2QBiB/YucUY8iX6tS3qIb6pgQcOB6GjdykSwRH+P+gS5/J6246V4o
+UA9OPHSm+hbH++65b5+U0nlaZccwtzmGP2wsnlsyd3PqOn8D4s85+OgqD+j+ddjl
+GouZ+yY9V5aMY5wbgtI+X9DGAgq358m8qAwybykE6++fV2aHwHDJ7sAMUHmOsM0=
+=yCe4
 -----END PGP SIGNATURE-----
-
---avNtfD0ffNO6L/9g--
+--=-=-=--
