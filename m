@@ -1,48 +1,38 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: Re: [PATCH v2 1/3] power_supply: Add power_supply notifier
-Date: Tue, 19 Nov 2013 14:19:19 +0100
-Message-ID: <201311191419.25036@pali>
-References: <1378630239-10006-1-git-send-email-pali.rohar@gmail.com> <1384856285-19593-2-git-send-email-pali.rohar@gmail.com> <20131119131006.GD14587@amd.pavel.ucw.cz>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH v2 2/3] bq2415x_charger: Use power_supply notifier for
+ automode
+Date: Tue, 19 Nov 2013 14:24:16 +0100
+Message-ID: <20131119132416.GE14587@amd.pavel.ucw.cz>
+References: <1378630239-10006-1-git-send-email-pali.rohar@gmail.com>
+ <1384856285-19593-1-git-send-email-pali.rohar@gmail.com>
+ <1384856285-19593-3-git-send-email-pali.rohar@gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=utf-8
+Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20131119131006.GD14587@amd.pavel.ucw.cz>
+Content-Disposition: inline
+In-Reply-To: <1384856285-19593-3-git-send-email-pali.rohar@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Anton Vorontsov <anton@enomsg.org>, David Woodhouse <dwmw2@infradead.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, freemangordon@abv.bg, aaro.koskinen@iki.fi, Jenny TC <jenny.tc@intel.com>
+To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
+Cc: Anton Vorontsov <anton@enomsg.org>, David Woodhouse <dwmw2@infradead.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, freemangordon@abv.bg, aaro.koskinen@iki.fi
 List-Id: linux-omap@vger.kernel.org
 
-On Tuesday 19 November 2013 14:10:06 Pavel Machek wrote:
-> On Tue 2013-11-19 11:18:03, Pali Roh=C3=A1r wrote:
-> > This patch adds a notifier chain to the power_supply.
-> > This notifier helps drivers in other subsystem to listen to
-> > changes in power supply subsystem. This would help to take
-> > some actions in those drivers on changing the power supply
-> > properties. One such scenario is to increase/decrease
-> > system performance based on the battery capacity/voltage.
-> > Another scenario is to adjust the h/w peak current
-> > detection voltage/current thresholds based on battery
-> > voltage/capacity. The notifier helps drivers to listen to
-> > changes in power_suppy susbystem without polling the
-> > power_supply properties
-> >=20
-> > Signed-off-by: Jenny TC <jenny.tc@intel.com>
-> > Signed-off-by: Pali Roh=C3=A1r <pali.rohar@gmail.com>
+On Tue 2013-11-19 11:18:04, Pali Roh=E1r wrote:
+> This patch removing set_mode_hook function from board data and replac=
+ing it with
+> new string variable of notifier power supply device. After this chang=
+e it is
+> possible to add DT support because driver does not need specific boar=
+d function
+> anymore. Only static data and name of power supply device is required=
+=2E
 >=20
-> Reviewed-by: Pavel Machek <pavel@ucw.cz>
->=20
-> > +extern struct atomic_notifier_head  =20
-> > power_supply_notifier;
->=20
-> You may want to delete some spaces here.
->=20
-> Thanks,
-> 								Pavel
+> Signed-off-by: Pali Roh=E1r <pali.rohar@gmail.com>
 
-Ok, note that this patch I copied from:=20
-https://lkml.org/lkml/2013/9/23/181
+Reviewed-by: Pavel Machek <pavel@ucw.cz>
+									Pavel
 
 --=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses=
+/blog.html
