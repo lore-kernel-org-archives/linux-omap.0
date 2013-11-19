@@ -1,164 +1,70 @@
-From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v3 09/10] ARM: dts: omap3-beagle-xm: Add USB Host support
-Date: Tue, 19 Nov 2013 15:05:51 -0600
-Message-ID: <528BD2AF.2030607@ti.com>
-References: <1380012836-29900-1-git-send-email-rogerq@ti.com> <1380012836-29900-10-git-send-email-rogerq@ti.com>
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
+Subject: Re: [PATCH v2 0/3] Add support for charging battery in Nokia RX-51
+Date: Tue, 19 Nov 2013 22:38:34 +0100
+Message-ID: <201311192238.34764@pali>
+References: <1378630239-10006-1-git-send-email-pali.rohar@gmail.com> <1384856285-19593-1-git-send-email-pali.rohar@gmail.com> <20131119144407.GB28455@earth.universe>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: multipart/signed;
+  boundary="nextPart1481251.M8gYiG9GiM";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1380012836-29900-10-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, balbi-l0cyMroinI0@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
-Cc: p.zabel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ea0-f173.google.com ([209.85.215.173]:42703 "EHLO
+	mail-ea0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751967Ab3KSVii (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Nov 2013 16:38:38 -0500
+In-Reply-To: <20131119144407.GB28455@earth.universe>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Sebastian Reichel <sre@debian.org>
+Cc: Anton Vorontsov <anton@enomsg.org>, David Woodhouse <dwmw2@infradead.org>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, freemangordon@abv.bg, aaro.koskinen@iki.fi, pavel@ucw.cz
 
+--nextPart1481251.M8gYiG9GiM
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
+On Tuesday 19 November 2013 15:44:09 Sebastian Reichel wrote:
+> Hi Pali,
+>=20
+> On Tue, Nov 19, 2013 at 11:18:02AM +0100, Pali Roh=C3=A1r wrote:
+> > This patch series finally bringing support for charging
+> > battery on Nokia N900 (RX-51) without any proprietary Nokia
+> > bits in userspace.
+>=20
+> YAY! :)
+>=20
+> > I removed hook function from bq2415x_charger driver and
+> > replaced it by Jenny TC power_supply notifier code. This
+> > simplify usage of bq2415x driver and also allow adding DT
+> > support in future because driver does not need board
+> > specific function anymore (only static data).
+> >=20
+> > I tested this series with linux 3.12-rc5 on Nokia N900.
+>=20
+> cool :)
+>=20
+> Do you want me to take this up and add DT support?
+>=20
+> -- Sebastian
 
-On 09/24/2013 03:53 AM, Roger Quadros wrote:
-> Provide RESET GPIO and Power regulator for the USB PHY,
-> the USB Host port mode and the PHY device for the controller.
-> Also provide pin multiplexer information for USB host pins.
-> 
-> We also relocate omap3_pmx_core pin definations so that they
-> are close to omap3_pmx_wkup pin definations.
-> 
-> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-> ---
+Hello, if you have time, can you add DT support code?
 
-just using this thread, but a question ->
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
 
-I am kernel * master                                   dec8e46 Merge
-tag 'arc-v3.13-rc1-part2' of
-git://git.kernel.org/pub/scm/linux/kernel/git/vgupta/arc
+--nextPart1481251.M8gYiG9GiM
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
 
-and I see that VAUX2 which supplies USB_1V8[1] is not enabled -> I did
-a quick patch and it did seem to work (Usb keyboard, networking, mouse
-etc on my ehci ports seems to come up good) - any suggestions how we'd
-like to handle this?
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
 
---- a/arch/arm/boot/dts/omap3-beagle-xm.dts
-+++ b/arch/arm/boot/dts/omap3-beagle-xm.dts
-@@ -169,6 +169,14 @@
-        bus-width = <8>;
- };
+iEYEABECAAYFAlKL2loACgkQi/DJPQPkQ1KIZgCfYqrsQGgu1GMAF8/MlppAoRzD
+CTQAn2YnouSDDB6lMSdAr2b9cxAUbzt2
+=dgeJ
+-----END PGP SIGNATURE-----
 
-+&vaux2 {
-+       regulator-name = "HubPower";
-+       regulator-min-microvolt = <1800000>;
-+       regulator-max-microvolt = <1800000>;
-+       regulator-always-on;
-+};
-+
-+
-
-[1]
-https://github.com/CircuitCo/BeagleBoard-xM-RevC/blob/master/BeagleBoard-xM_revC_SCH.pdf?raw=true
-
->  arch/arm/boot/dts/omap3-beagle-xm.dts |   65 ++++++++++++++++++++++++++++-----
->  1 files changed, 56 insertions(+), 9 deletions(-)
-> 
-> diff --git a/arch/arm/boot/dts/omap3-beagle-xm.dts b/arch/arm/boot/dts/omap3-beagle-xm.dts
-> index afdb164..b081f5a 100644
-> --- a/arch/arm/boot/dts/omap3-beagle-xm.dts
-> +++ b/arch/arm/boot/dts/omap3-beagle-xm.dts
-> @@ -69,6 +69,23 @@
->  		};
->  
->  	};
-> +
-> +	/* HS USB Port 2 Power */
-> +	hsusb2_power: hsusb2_power_reg {
-> +		compatible = "regulator-fixed";
-> +		regulator-name = "hsusb2_vbus";
-> +		regulator-min-microvolt = <3300000>;
-> +		regulator-max-microvolt = <3300000>;
-> +		gpio = <&twl_gpio 18 0>;	/* GPIO LEDA */
-> +		startup-delay-us = <70000>;
-> +	};
-> +
-> +	/* HS USB Host PHY on PORT 2 */
-> +	hsusb2_phy: hsusb2_phy {
-> +		compatible = "usb-nop-xceiv";
-> +		reset-gpios = <&gpio5 19 GPIO_ACTIVE_LOW>; /* gpio_147 */
-> +		vcc-supply = <&hsusb2_power>;
-> +	};
->  };
->  
->  &omap3_pmx_wkup {
-> @@ -79,6 +96,37 @@
->  	};
->  };
->  
-> +&omap3_pmx_core {
-> +	pinctrl-names = "default";
-> +	pinctrl-0 = <
-> +			&hsusbb2_pins
-> +	>;
-> +
-> +	uart3_pins: pinmux_uart3_pins {
-> +		pinctrl-single,pins = <
-> +			0x16e (PIN_INPUT | PIN_OFF_WAKEUPENABLE | MUX_MODE0) /* uart3_rx_irrx.uart3_rx_irrx */
-> +			0x170 (PIN_OUTPUT | MUX_MODE0) /* uart3_tx_irtx.uart3_tx_irtx OUTPUT | MODE0 */
-> +		>;
-> +	};
-> +
-> +	hsusbb2_pins: pinmux_hsusbb2_pins {
-> +		pinctrl-single,pins = <
-> +			0x5c0 (PIN_OUTPUT | MUX_MODE3)		/* etk_d10.hsusb2_clk */
-> +			0x5c2 (PIN_OUTPUT | MUX_MODE3)		/* etk_d11.hsusb2_stp */
-> +			0x5c4 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d12.hsusb2_dir */
-> +			0x5c6 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d13.hsusb2_nxt */
-> +			0x5c8 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d14.hsusb2_data0 */
-> +			0x5cA (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d15.hsusb2_data1 */
-> +			0x1a4 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi1_cs3.hsusb2_data2 */
-> +			0x1a6 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_clk.hsusb2_data7 */
-> +			0x1a8 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_simo.hsusb2_data4 */
-> +			0x1aa (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_somi.hsusb2_data5 */
-> +			0x1ac (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_cs0.hsusb2_data6 */
-> +			0x1ae (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_cs1.hsusb2_data3 */
-> +		>;
-> +	};
-> +};
-> +
->  &i2c1 {
->  	clock-frequency = <2600000>;
->  
-> @@ -148,15 +196,6 @@
->  	power = <50>;
->  };
->  
-> -&omap3_pmx_core {
-> -	uart3_pins: pinmux_uart3_pins {
-> -		pinctrl-single,pins = <
-> -			0x16e (PIN_INPUT | PIN_OFF_WAKEUPENABLE | MUX_MODE0) /* uart3_rx_irrx.uart3_rx_irrx */
-> -			0x170 (PIN_OUTPUT | MUX_MODE0) /* uart3_tx_irtx.uart3_tx_irtx OUTPUT | MODE0 */
-> -		>;
-> -	};
-> -};
-> -
->  &uart3 {
->  	pinctrl-names = "default";
->  	pinctrl-0 = <&uart3_pins>;
-> @@ -166,3 +205,11 @@
->  	pinctrl-names = "default";
->  	pinctrl-0 = <&gpio1_pins>;
->  };
-> +
-> +&usbhshost {
-> +	port2-mode = "ehci-phy";
-> +};
-> +
-> +&usbhsehci {
-> +	phys = <0 &hsusb2_phy>;
-> +};
-> 
-
-
--- 
-Regards,
-Nishanth Menon
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--nextPart1481251.M8gYiG9GiM--
