@@ -1,74 +1,108 @@
-From: =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: [PATCH v2 3/3] RX-51: Add platform data for bq24150a charger
-Date: Tue, 19 Nov 2013 11:18:05 +0100
-Message-ID: <1384856285-19593-4-git-send-email-pali.rohar@gmail.com>
-References: <1378630239-10006-1-git-send-email-pali.rohar@gmail.com>
- <1384856285-19593-1-git-send-email-pali.rohar@gmail.com>
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: Re: [PATCH V3] ARM: OMAP2+: omap_device: maintain sane runtime pm
+ status around suspend/resume
+Date: Tue, 19 Nov 2013 12:34:18 +0100
+Message-ID: <CAPDyKFrgGn91151SuAfirpcT48fvXeDup9OxqnkiWkk9UBvxeA@mail.gmail.com>
+References: <1384297710-29694-1-git-send-email-nm@ti.com>
+	<1384448716-3186-1-git-send-email-nm@ti.com>
+	<alpine.DEB.2.02.1311150806220.15980@utopia.booyaka.com>
+	<528621E5.4030201@ti.com>
+	<20131115143736.GW10317@atomide.com>
+	<87ob5lnwz8.fsf@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1384856285-19593-1-git-send-email-pali.rohar@gmail.com>
+In-Reply-To: <87ob5lnwz8.fsf@linaro.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Anton Vorontsov <anton@enomsg.org>, David Woodhouse <dwmw2@infradead.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, freemangordon@abv.bg, aaro.koskinen@iki.fi, pavel@ucw.cz, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>
+To: Kevin Hilman <khilman@linaro.org>
+Cc: Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>, Paul Walmsley <paul@pwsan.com>, Rajendra Nayak <rnayak@ti.com>, Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-This patch will register bq24150a charger in RX-51 board data.
+On 15 November 2013 23:03, Kevin Hilman <khilman@linaro.org> wrote:
+> Tony Lindgren <tony@atomide.com> writes:
+>
+>> * Nishanth Menon <nm@ti.com> [131115 05:30]:
+>>> On 11/15/2013 02:07 AM, Paul Walmsley wrote:
+>>> > On Thu, 14 Nov 2013, Nishanth Menon wrote:
+>>> >
+>>> >> OMAP device hooks around suspend|resume_noirq ensures that hwmod
+>>> >> devices are forced to idle using omap_device_idle/enable as part of
+>>> >> the last stage of suspend activity.
+>>> >>
+>>> >> For a device such as i2c who uses autosuspend, it is possible to enter
+>>> >> the suspend path with dev->power.runtime_status = RPM_ACTIVE.
+>>> >>
+>>> >> As part of the suspend flow, the generic runtime logic would increment
+>>> >> it's dev->power.disable_depth to 1. This should prevent further
+>>> >> pm_runtime_get_sync from succeeding once the runtime_status has been
+>>> >> set to RPM_SUSPENDED.
+>>> >>
+>>> >> Now, as part of the suspend_noirq handler in omap_device, we force the
+>>> >> following: if the device status is !suspended, we force the device
+>>> >> to idle using omap_device_idle (clocks are cut etc..). This ensures
+>>> >> that from a hardware perspective, the device is "suspended". However,
+>>> >> runtime_status is left to be active.
+>>> >>
+>>> >> *if* an operation is attempted after this point to
+>>> >> pm_runtime_get_sync, runtime framework depends on runtime_status to
+>>> >> indicate accurately the device status, and since it sees it to be
+>>> >> ACTIVE, it assumes the module is functional and returns a non-error
+>>> >> value. As a result the user will see pm_runtime_get succeed, however a
+>>> >> register access will crash due to the lack of clocks.
+>>> >>
+>>> >> To prevent this from happening, we should ensure that runtime_status
+>>> >> exactly indicates the device status. As a result of this change
+>>> >> any further calls to pm_runtime_get* would return -EACCES (since
+>>> >> disable_depth is 1). On resume, we restore the clocks and runtime
+>>> >> status exactly as we suspended with. These operations are not expected
+>>> >> to fail as we update the states after the core runtime framework has
+>>> >> suspended itself and restore before the core runtime framework has
+>>> >> resumed.
+>>> >>
+>>> >> Reported-by: J Keerthy <j-keerthy@ti.com>
+>>> >> Signed-off-by: Nishanth Menon <nm@ti.com>
+>>> >> Acked-by: Rajendra Nayak <rnayak@ti.com>
+>>> >> Acked-by: Kevin Hilman <khilman@linaro.org>
 
-So finally charging battery on Nokia N900 (RX-51) working
-automatically without any proprietary Nokia bits in userspace.
+Hi Kevin,
 
-Signed-off-by: Pali Roh=C3=A1r <pali.rohar@gmail.com>
----
- arch/arm/mach-omap2/board-rx51-peripherals.c |   17 ++++++++++++++++-
- 1 file changed, 16 insertions(+), 1 deletion(-)
+I am wondering if OMAP would benefit from letting the PM core allow
+runtime suspends during system suspend, which is not the case as of
+now.
 
-diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/ma=
-ch-omap2/board-rx51-peripherals.c
-index 70fcaff..95e6638 100644
---- a/arch/arm/mach-omap2/board-rx51-peripherals.c
-+++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
-@@ -25,6 +25,7 @@
- #include <linux/gpio_keys.h>
- #include <linux/mmc/host.h>
- #include <linux/power/isp1704_charger.h>
-+#include <linux/power/bq2415x_charger.h>
- #include <linux/platform_data/spi-omap2-mcspi.h>
- #include <linux/platform_data/mtd-onenand-omap2.h>
- #include <linux/hsi/hsi.h>
-@@ -1275,6 +1276,16 @@ static struct aic3x_pdata rx51_aic3x_data2 =3D {
- 	.gpio_reset =3D 60,
- };
-=20
-+static struct bq2415x_platform_data rx51_bq24150a_platform_data =3D {
-+	.current_limit =3D 100,			/* mA */
-+	.weak_battery_voltage =3D 3400,		/* mV */
-+	.battery_regulation_voltage =3D 4200,	/* mV */
-+	.charge_current =3D 650,			/* mA */
-+	.termination_current =3D 100,		/* mA */
-+	.resistor_sense =3D 68,			/* m ohm */
-+	.notify_device =3D "isp1704",
-+};
-+
- static struct i2c_board_info __initdata rx51_peripherals_i2c_board_inf=
-o_2[] =3D {
- 	{
- 		I2C_BOARD_INFO("tlv320aic3x", 0x18),
-@@ -1302,7 +1313,11 @@ static struct i2c_board_info __initdata rx51_per=
-ipherals_i2c_board_info_2[] =3D {
- 	{
- 		I2C_BOARD_INFO("tpa6130a2", 0x60),
- 		.platform_data =3D &rx51_tpa6130a2_data,
--	}
-+	},
-+	{
-+		I2C_BOARD_INFO("bq24150a", 0x6b),
-+		.platform_data =3D &rx51_bq24150a_platform_data,
-+	},
- };
-=20
- static struct i2c_board_info __initdata rx51_peripherals_i2c_board_inf=
-o_3[] =3D {
---=20
-1.7.9.5
+My impression is that it could simplify OMAP drivers and the power
+domain, but it would be interesting to hear your opinion in this. It
+somewhat touches this patch. I guess.
+
+The reason for bringing this up here, is that I wanted to highlight
+that we are at the moment discussing the following RFC on the linux-pm
+mailing list:
+
+"[RFC PATCH] PM / Runtime: Allow to inactivate devices during system suspend".
+
+Kind regards
+Ulf Hansson
+
+>>> >
+>>> > Looks reasonable to me.  Looks like this should be considered for -stable
+>>> > - Nishanth, what do you think?
+>>>
+>>> Every product kernel since 3.4 needed to be hacked (we have hacked in
+>>> different ways so far) to work around this (since we never spend time
+>>> digging deeper :( ), So, I do agree with your view that a -stable tag
+>>> will be most beneficial.
+>>>
+>>> >
+>>> > Tony or Kevin, do you want to take this one, or want me to?
+>>
+>> I can take it unless you have other fixes pending right now.
+>
+> This version looks good to me.
+>
+> Reviewed-by: Kevin Hilman <khilman@linaro.org>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
