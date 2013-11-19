@@ -1,57 +1,88 @@
-From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Subject: Re: [RFC 01/23] gpio/omap: raw read and write endian fix
-Date: Tue, 19 Nov 2013 17:51:18 +0100
-Message-ID: <528B9706.1070805@collabora.co.uk>
-References: <1384560086-11994-1-git-send-email-taras.kondratiuk@linaro.org> <1384560086-11994-2-git-send-email-taras.kondratiuk@linaro.org> <CACRpkdYD-Yw+RFnX0GshyQn2oHYNnXXRF4RXTzCox=2Z0_gKqg@mail.gmail.com>
+From: Ben Gamari <bgamari.foss@gmail.com>
+Subject: Re: cpufreq on PandaBoard
+Date: Tue, 19 Nov 2013 12:18:14 -0500
+Message-ID: <87hab8nwdl.fsf@gmail.com>
+References: <87eh6ca150.fsf@gmail.com> <528B7D61.5020206@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; boundary="=-=-=";
+	micalg=pgp-sha1; protocol="application/pgp-signature"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([93.93.135.160]:34462 "EHLO
-	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751421Ab3KSQwP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Nov 2013 11:52:15 -0500
-In-Reply-To: <CACRpkdYD-Yw+RFnX0GshyQn2oHYNnXXRF4RXTzCox=2Z0_gKqg@mail.gmail.com>
+Received: from mail-qc0-f172.google.com ([209.85.216.172]:36994 "EHLO
+	mail-qc0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752683Ab3KSRSU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Nov 2013 12:18:20 -0500
+Received: by mail-qc0-f172.google.com with SMTP id l13so1833228qcy.31
+        for <linux-omap@vger.kernel.org>; Tue, 19 Nov 2013 09:18:19 -0800 (PST)
+In-Reply-To: <528B7D61.5020206@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Taras Kondratiuk <taras.kondratiuk@linaro.org>, ext Tony Lindgren <tony@atomide.com>, Linux-OMAP <linux-omap@vger.kernel.org>, linaro-networking@linaro.org, Victor Kamensky <victor.kamensky@linaro.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Nishanth Menon <nm@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap <linux-omap@vger.kernel.org>
 
-On 11/19/2013 10:29 AM, Linus Walleij wrote:
-> On Sat, Nov 16, 2013 at 1:01 AM, Taras Kondratiuk
-> <taras.kondratiuk@linaro.org> wrote:
-> 
->> From: Victor Kamensky <victor.kamensky@linaro.org>
->>
->> All OMAP IP blocks expect LE data, but CPU may operate in BE mode.
->> Need to use endian neutral functions to read/write h/w registers.
->> I.e instead of __raw_read[lw] and __raw_write[lw] functions code
->> need to use read[lw]_relaxed and write[lw]_relaxed functions.
->> If the first simply reads/writes register, the second will byteswap
->> it if host operates in BE mode.
->>
->> Changes are trivial sed like replacement of __raw_xxx functions
->> with xxx_relaxed variant.
->>
->> Signed-off-by: Victor Kamensky <victor.kamensky@linaro.org>
->> Signed-off-by: Taras Kondratiuk <taras.kondratiuk@linaro.org>
-> 
-> Since I generally just dislike __raw accessors I went and applied
-> this. If it collides with any of Tony's fixup work I might need to
-> take the patch out again, no big deal.
-> 
-> Some ACKs would be nice, but unless there are major objections
-> this stays merged.
+--=-=-=
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-Looks good to me and also I've tested this patch on a TI DM3730 (Cortex A-8)
-board in LE mode and found no regressions on devices using a GPIO.
+Nishanth Menon <nm@ti.com> writes:
 
-Tested-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+> On 11/19/2013 08:59 AM, Ben Gamari wrote:
+>>=20
+>> Booting a PandaBoard with a recent kernel and devicetree appears to be a
+>> rather messy process. There are dozens of devicetree-related warnings
+>> spewed on boot (many pertaining to missing regulators). At the moment,
+>> however, I'm most interested in this,
+>>=20
+>>     cpufreq-cpu0 cpufreq-cpu0.0: no of_node; not parsing pinctrl DT
+>>     cpu cpu0: dummy supplies not allowed
+>>     cpufreq_cpu0: failed to get cpu0 regulator: -19
+>>     cpufreq_cpu0: failed to get cpu0 clock: -2
+>>     cpufreq-cpu0: probe of cpufreq-cpu0.0 failed with error -2
+>>=20
+>> What is the status of cpufreq on the PandaBoard? Is this expected to
+>> work?
+>>=20
+>> More generally, if one wants a fairly recent kernel supporting the
+>> PandaBoard's hardware what kernel tree should be used? Is mainline not
+>> yet appropriate? Is linux-next preferred? Perhaps a ti-maintained tree?
+>=20
+> for upstream: Wait for the clock nodes to get merged.. we are at v9 of
+> discussion thread here[1].
+>
+I take it that the clock node work does not itself fix cpufreq? I've
+built the 3.12-dt-clks-v10-dev branch. On the bright side, it boots and
+appears to run just fine. Unfortunately, there isn't even a mention of
+cpufreq in the boot log.
 
-> 
-> Yours,
-> Linus Walleij
-> 
+I've seen your Google+ post[1] from May enumerating the steps to having
+working DVFS. It would be useful to post an update showing what has been
+merged, what is waiting for merge, and what is still in progress.
 
-Thanks a lot and best regards,
-Javier
+> for ti-maintained tree, you need to talk to TI support folks for
+> appropriate kernel for your product line.
+>
+I wasn't asking for official support, just wondering where work is
+currently happening.
+
+Thanks for your help.
+
+Cheers,
+
+=2D Ben
+
+
+[1] https://plus.google.com/112464029509057661457/posts/gvyZQcNieoq
+
+--=-=-=
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.14 (GNU/Linux)
+
+iQEcBAEBAgAGBQJSi51XAAoJEErkyLZmeNiDrUwH/2aOtO+dEHw7xIOFBKM2jvAr
+DjzJ51LgSewxnzrJ5HNwr+DVogvXK6aJKgwsBhZY42D7YERdqJ55vLXRVgwthuoO
+Nnv84O4MQ2v9PLceXyTYMMYDTipUq+cZz3mpSsuFRtwQshOcLB9JszeRjTYf0rg5
+Cy8LdVvsa5ZrpSLOmRpYmit0Y9+DlmDOlxWA2xlsgQYGg6C/OzlH1pa/h7k0SYVk
+xDcbvwacRBlE4aU5+JpHa3vzQkjXESK5XAAhAmyy67nMU33U8/c4Z1dSImgwCV7b
+/LS8kJwFZINCQ7/K9MLnMif8mfCyvt2WcHJ+k5xd6oKeGCNLCgaLR31TBinaRYY=
+=MpGI
+-----END PGP SIGNATURE-----
+--=-=-=--
