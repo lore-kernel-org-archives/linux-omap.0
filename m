@@ -1,69 +1,47 @@
 From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Subject: [PATCH v2 09/11] ARM: dts: AM33XX IGEP0033: add USB support.
-Date: Wed, 20 Nov 2013 02:06:13 +0100
-Message-ID: <1384909575-19108-10-git-send-email-javier.martinez@collabora.co.uk>
+Subject: [PATCH v2 10/11] ARM: OMAP: dss-common: change IGEP's DVI DDC i2c bus
+Date: Wed, 20 Nov 2013 02:06:14 +0100
+Message-ID: <1384909575-19108-11-git-send-email-javier.martinez@collabora.co.uk>
 References: <1384909575-19108-1-git-send-email-javier.martinez@collabora.co.uk>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([93.93.135.160]:34754 "EHLO
+Received: from bhuna.collabora.co.uk ([93.93.135.160]:34763 "EHLO
 	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753536Ab3KTBHq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Nov 2013 20:07:46 -0500
+	with ESMTP id S1753591Ab3KTBHr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Nov 2013 20:07:47 -0500
 In-Reply-To: <1384909575-19108-1-git-send-email-javier.martinez@collabora.co.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: Enric Balletbo i Serra <eballetbo@gmail.com>, bcousson@baylibre.com, tomi.valkeinen@ti.com, Sebastian Reichel <sre@ring0.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Enric Balletbo i Serra <eballetbo@iseebcn.com>
+Cc: Enric Balletbo i Serra <eballetbo@gmail.com>, bcousson@baylibre.com, tomi.valkeinen@ti.com, Sebastian Reichel <sre@ring0.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Javier Martinez Canillas <javier.martinez@collabora.co.uk>
 
-From: Enric Balletbo i Serra <eballetbo@iseebcn.com>
+IGEP's DVI connector's DDC pins are connected to OMAP's third i2c bus.
 
-Add node to support the USB Host and the USB OTG on the IGEP AQUILA
-Processor Board.
+When booting with Device Trees the requested bus number is set to -1
+which means that the bus number should be dynamically assigned. So the
+third i2c bus has 2 has a bus number.
 
-Signed-off-by: Enric Balletbo i Serra <eballetbo@iseebcn.com>
+Since now only DT booting is supported for IGEP boards after commit
+06ff74fd ("ARM: OMAP2+: remove legacy support for IGEP boards"), the
+i2c bus number has to be changed.
+
+Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
 ---
- arch/arm/boot/dts/am335x-igep0033.dtsi | 29 +++++++++++++++++++++++++++++
- 1 file changed, 29 insertions(+)
+ arch/arm/mach-omap2/dss-common.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/arm/boot/dts/am335x-igep0033.dtsi b/arch/arm/boot/dts/am335x-igep0033.dtsi
-index 6196244..7063311 100644
---- a/arch/arm/boot/dts/am335x-igep0033.dtsi
-+++ b/arch/arm/boot/dts/am335x-igep0033.dtsi
-@@ -199,6 +199,35 @@
- 	pinctrl-0 = <&uart0_pins>;
+diff --git a/arch/arm/mach-omap2/dss-common.c b/arch/arm/mach-omap2/dss-common.c
+index 365bfd3..dadccc9 100644
+--- a/arch/arm/mach-omap2/dss-common.c
++++ b/arch/arm/mach-omap2/dss-common.c
+@@ -223,7 +223,7 @@ void __init omap_4430sdp_display_init_of(void)
+ static struct connector_dvi_platform_data omap3_igep2_dvi_connector_pdata = {
+ 	.name                   = "dvi",
+ 	.source                 = "tfp410.0",
+-	.i2c_bus_num            = 3,
++	.i2c_bus_num            = 2,
  };
  
-+&usb {
-+	status = "okay";
-+
-+	control@44e10000 {
-+		status = "okay";
-+	};
-+
-+	usb-phy@47401300 {
-+		status = "okay";
-+	};
-+
-+	usb-phy@47401b00 {
-+		status = "okay";
-+	};
-+
-+	usb@47401000 {
-+		status = "okay";
-+	};
-+
-+	usb@47401800 {
-+		status = "okay";
-+		dr_mode = "host";
-+	};
-+
-+	dma-controller@07402000  {
-+		status = "okay";
-+	};
-+};
-+
- #include "tps65910.dtsi"
- 
- &tps {
+ static struct platform_device omap3_igep2_dvi_connector_device = {
 -- 
 1.8.4.2
 
