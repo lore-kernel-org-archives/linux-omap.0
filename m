@@ -1,85 +1,58 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP2+: Fix populating the hwmod data from device
- tree
-Date: Wed, 20 Nov 2013 10:12:56 -0800
-Message-ID: <20131120181255.GG10317@atomide.com>
-References: <20131120025620.GF10317@atomide.com>
+From: Wolfram Sang <wsa@the-dreams.de>
+Subject: Re: [RFC] mtd: gpmc: add BCH support for plain AM335x
+Date: Wed, 20 Nov 2013 19:27:27 +0100
+Message-ID: <20131120182727.GA11169@katana>
+References: <1384969152-10411-1-git-send-email-wsa@the-dreams.de>
+ <20131120175733.GA27064@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="envbJBWh7q8WU6mo"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:55992 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751940Ab3KTSM7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Nov 2013 13:12:59 -0500
+Received: from sauhun.de ([89.238.76.85]:56270 "EHLO pokefinder.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754083Ab3KTS1b (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 20 Nov 2013 13:27:31 -0500
 Content-Disposition: inline
-In-Reply-To: <20131120025620.GF10317@atomide.com>
+In-Reply-To: <20131120175733.GA27064@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Paul Walmsley <paul@pwsan.com>
+To: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+Cc: linux-mtd@lists.infradead.org, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Tony Lindgren <tony@atomide.com> [131119 18:57]:
-> We have some device tree properties where the ti,hwmod has multiple
-> values:
->=20
-> am33xx.dtsi:	ti,hwmods =3D "tpcc", "tptc0", "tptc1", "tptc2";
-> am4372.dtsi:	ti,hwmods =3D "tpcc", "tptc0", "tptc1", "tptc2";
-> dra7.dtsi:	ti,hwmods =3D "l3_main_1", "l3_main_2";
-> omap3.dtsi:	ti,hwmods =3D "mcbsp2", "mcbsp2_sidetone";
-> omap3.dtsi:	ti,hwmods =3D "mcbsp3", "mcbsp3_sidetone";
-> omap4.dtsi:	ti,hwmods =3D "l3_main_1", "l3_main_2", "l3_main_3";
-> omap5.dtsi:	ti,hwmods =3D "l3_main_1", "l3_main_2", "l3_main_3";
->=20
-> So we need to handle the whole string array instead of just the
-> first string to find the related hwmod entry.
->=20
-> Cc: "Beno=C3=AEt Cousson" <bcousson@baylibre.com>
-> Cc: Paul Walmsley <paul@pwsan.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
->=20
-> --- a/arch/arm/mach-omap2/omap_hwmod.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod.c
-> @@ -2228,11 +2228,23 @@ static struct device_node *of_dev_hwmod_looku=
-p(struct device_node *np,
->  						struct omap_hwmod *oh)
->  {
->  	struct device_node *np0 =3D NULL, *np1 =3D NULL;
-> -	const char *p;
-> =20
->  	for_each_child_of_node(np, np0) {
-> -		if (of_find_property(np0, "ti,hwmods", NULL)) {
-> -			p =3D of_get_property(np0, "ti,hwmods", NULL);
-> +		int count, i;
-> +
-> +		count =3D of_property_count_strings(np0, "ti,hwmods");
-> +		if (count < 1)
-> +			continue;
-> +
-> +		for (i =3D 0; i < count; i++) {
-> +			const char *p;
-> +			int res;
-> +
-> +			res =3D of_property_read_string_index(np0, "ti,hwmods",
-> +							    i, &p);
-> +			if (res)
-> +				continue;
-> +
->  			if (!strcmp(p, oh->name))
->  				return np0;
->  			np1 =3D of_dev_hwmod_lookup(np0, oh);
 
-Hmm I think this also needs part two to it to populate the right IO spa=
-ce
-based on the index, this probably now wrongly populates the first IO sp=
-ace
-for all the hwmod instances in the group.
+--envbJBWh7q8WU6mo
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Regards,
+> A similar patch has been already merged and you can pick it from l2-mtd
+> next branch:
+>=20
+> http://git.infradead.org/l2-mtd.git/commitdiff/1900cdf03057030497e967614c=
+4b19296b6ac460
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Great, thanks!
+
+--envbJBWh7q8WU6mo
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.15 (GNU/Linux)
+
+iQIcBAEBAgAGBQJSjP8OAAoJEBQN5MwUoCm2mdoQAJ68/1b40dHt7GO8FW7oNLkn
+yjJFPBypkk7TWo1re+Vo+vK60HxpbCm/Sm3mff/3JL4hksIZOeksvJ6LSELWUulN
+0kHHnZPsmkDaW3VwS44oThEQOLl33MlxSnlyuYiUdgQDvF0Z/YNF4b7vw1BqhZWQ
+WL0xnKJ/zb+aGgo8Ekb6TzmPu1StEBlE7gGSaPQbf1UlY+5AUSruW0wYY1dw2hor
+YatgtIY8kdCJrRhohBAshYzaFzB+1SmHH77eyXKR1Atloq8ipZ+3FT3ypbem3b0f
+xa2jGxRFiXNYcm2DEjKzuBIxIaqSlHiuvh3wUofrue70ZH9GoRKmPUK1xjzyBN6m
+t/3FwzUlSim/s9C9vd/tylt8w+0fNHSySjPO7kXso5MKssGhpYSAGDhSZCFMLeFC
+B7PRt+eO1SH9HCT5VRAl/qQqBgh6VwTCNFp6HxmLS1mLheL6WqAdAwbhfBNzZC01
+gpJcfKSgkj87/veXeegtXPAWqd8tRi9tOqCQyG1V7PkdErCx66zgSWL4OWfTpS14
+OKM+ETKSeSuwjd1+dTClCPghyBJQA8QPQgtdqVMgm22fOxJrY33+Dz/oXD51NhnC
+xxKI/mXwN+IA2izueZR0Poazikc2m5srqYlcDSVNwPD+dOcEftwMOXAkE5aoZ+wD
+Ku7w6NcRizK7bN2R2LKd
+=3Orw
+-----END PGP SIGNATURE-----
+
+--envbJBWh7q8WU6mo--
