@@ -1,78 +1,62 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] ARM: OMAP2+: Fix populating the hwmod data from device
- tree
-Date: Wed, 20 Nov 2013 21:58:38 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1311202148160.30143@utopia.booyaka.com>
-References: <20131120025620.GF10317@atomide.com> <20131120181255.GG10317@atomide.com> <20131120192209.GI10317@atomide.com>
+From: Ezequiel Garcia <ezequiel.garcia-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
+Subject: Re: [PATCH] usb: phy: am335x: Prevent GPIO reset line request
+Date: Wed, 20 Nov 2013 19:02:13 -0300
+Message-ID: <20131120220212.GA12776@localhost>
+References: <1384984714-19860-1-git-send-email-ezequiel.garcia@free-electrons.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:43153 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755141Ab3KTV6j (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Nov 2013 16:58:39 -0500
-In-Reply-To: <20131120192209.GI10317@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1384984714-19860-1-git-send-email-ezequiel.garcia-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Javier Martinez Canillas <martinez.javier-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Enric Balletbo Serra <eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, =?ISO-8859-15?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>
 
-On Wed, 20 Nov 2013, Tony Lindgren wrote:
+(Forgot to Cc OMAP people)
 
-> * Tony Lindgren <tony@atomide.com> [131120 10:13]:
-> > * Tony Lindgren <tony@atomide.com> [131119 18:57]:
-> > > We have some device tree properties where the ti,hwmod has multiple
-> > > values:
-> > > 
-> > > am33xx.dtsi:	ti,hwmods = "tpcc", "tptc0", "tptc1", "tptc2";
-> > > am4372.dtsi:	ti,hwmods = "tpcc", "tptc0", "tptc1", "tptc2";
-> 
-> I think these should be defined in the .dtsi files as separate devices
-> and removed from the related omap_hwmod_*_data.c files.
-> 
-> > > dra7.dtsi:	ti,hwmods = "l3_main_1", "l3_main_2";
-> 
-> These too should be defined in the .dtsi file. Looks like we're missing
-> the related data in the omap_hwmod_7xx_data.c file anyways?
-> 
-> > > omap3.dtsi:	ti,hwmods = "mcbsp2", "mcbsp2_sidetone";
-> > > omap3.dtsi:	ti,hwmods = "mcbsp3", "mcbsp3_sidetone";
-> 
-> OK the sidetone data we can probably parse using the ti,hwmods as
-> an index.
-> 
-> > > omap4.dtsi:	ti,hwmods = "l3_main_1", "l3_main_2", "l3_main_3";
-> > > omap5.dtsi:	ti,hwmods = "l3_main_1", "l3_main_2", "l3_main_3";
-> 
-> Benoit, I guess these mean that those devices should be created
-> dynamically, right?
-> 
-> Yet we've removed the related data in commit 3b9b10 and are not
-> passing it in the .dtsi file?
-> 
-> So these should be created as separate devices in the .dtsi file
-> instead AFAIK.
-> 
-> > Hmm I think this also needs part two to it to populate the right IO space
-> > based on the index, this probably now wrongly populates the first IO space
-> > for all the hwmod instances in the group.
-> 
-> Yeah this patch clearly is not the right fix to the problem of
-> missing data.
+On Wed, Nov 20, 2013 at 06:58:34PM -0300, Ezequiel Garcia wrote:
+> The 'gpio_reset' field was implicitly set to zero, which is a valid
+> GPIO line and results in the NOP PHY layer trying to request it.
+>=20
+> Instead, the AM335x SoC need special USB PHY reset handling so let's
+> set 'gpio_reset' to EINVAL and prevent the NOP PHY from messing with =
+it.
+>=20
+> Signed-off-by: Ezequiel Garcia <ezequiel.garcia-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
+> ---
+> Commit bd27fa44e13830d2baa278d5702e766380659cb3 (usb: phy: generic:
+> Don't use regulator framework for RESET line) introduced this.
+>=20
+>  drivers/usb/phy/phy-am335x.c | 3 +++
+>  1 file changed, 3 insertions(+)
+>=20
+> diff --git a/drivers/usb/phy/phy-am335x.c b/drivers/usb/phy/phy-am335=
+x.c
+> index 6370e50..7fff9f3 100644
+> --- a/drivers/usb/phy/phy-am335x.c
+> +++ b/drivers/usb/phy/phy-am335x.c
+> @@ -43,6 +43,9 @@ static int am335x_phy_probe(struct platform_device =
+*pdev)
+>  	if (!am_phy)
+>  		return -ENOMEM;
+> =20
+> +	/* Prevent GPIO Reset from the Generic PHY */
+> +	am_phy->usb_phy_gen.gpio_reset =3D -EINVAL;
+> +
+>  	am_phy->phy_ctrl =3D am335x_get_phy_control(dev);
+>  	if (!am_phy->phy_ctrl)
+>  		return -EPROBE_DEFER;
+> --=20
+> 1.8.1.5
+>=20
 
-In most of the cases with multiple hwmods per DT device, there's probably 
-something wrong with the data.  So we should try to remove those when 
-possible.
-
-For example if you look at the SIDETONE blocks, those should definitely be 
-separate DT devices - they have separate address spaces, SYSCONFIG 
-registers, etc. (section 21.6.2 "SIDETONE register mapping summary", 
-OMAP36xx TRM)
-
-Would strongly suspect that's the case also for the EDMA blocks you 
-mention.
-
-Am not 100% sure about the L3 cases; would have to dig deeper.
-
-
-- Paul
+--=20
+Ezequiel Garc=C3=ADa, Free Electrons
+Embedded Linux, Kernel and Android Engineering
+http://free-electrons.com
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
