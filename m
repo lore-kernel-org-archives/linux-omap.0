@@ -1,76 +1,63 @@
-From: Ben Gamari <bgamari.foss@gmail.com>
-Subject: Re: [BUG] PandaBoard hangs before starting init while booting v3.12
-Date: Tue, 19 Nov 2013 22:06:50 -0500
-Message-ID: <87wqk3n54l.fsf@gmail.com>
-References: <87hab9agjr.fsf@gmail.com> <CAKZq+rdQLrNE43aGaPtnDfaO6CHsq_ePLu+oRgWNs25OrdCtdw@mail.gmail.com>
+From: Jean-Francois Moine <moinejf@free.fr>
+Subject: Re: [PATCH RFC 4/9] ASoC: hdmi-codec: Add devicetree binding with
+ documentation
+Date: Wed, 20 Nov 2013 10:23:42 +0100
+Message-ID: <20131120102342.7befe75e@armhf>
+References: <cover.1384862950.git.jsarha@ti.com>
+	<829968f1a6b34176de8a04dd4ad473b2b37be783.1384862950.git.jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="=-=-=";
-	micalg=pgp-sha1; protocol="application/pgp-signature"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qe0-f43.google.com ([209.85.128.43]:42648 "EHLO
-	mail-qe0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753291Ab3KTDGz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Nov 2013 22:06:55 -0500
-Received: by mail-qe0-f43.google.com with SMTP id 2so3566056qeb.30
-        for <linux-omap@vger.kernel.org>; Tue, 19 Nov 2013 19:06:55 -0800 (PST)
-In-Reply-To: <CAKZq+rdQLrNE43aGaPtnDfaO6CHsq_ePLu+oRgWNs25OrdCtdw@mail.gmail.com>
+Received: from smtp2-g21.free.fr ([212.27.42.2]:51780 "EHLO smtp2-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750834Ab3KTJVu convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Nov 2013 04:21:50 -0500
+In-Reply-To: <829968f1a6b34176de8a04dd4ad473b2b37be783.1384862950.git.jsarha@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Chao Xu <caesarxuchao@gmail.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Jyri Sarha <jsarha@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, dri-devel@lists.freedesktop.org, peter.ujfalusi@ti.com, broonie@kernel.org
 
---=-=-=
-Content-Type: text/plain
+On Tue, 19 Nov 2013 14:12:24 +0200
+Jyri Sarha <jsarha@ti.com> wrote:
 
-Chao Xu <caesarxuchao@gmail.com> writes:
+> Signed-off-by: Jyri Sarha <jsarha@ti.com>
+> ---
+>  Documentation/devicetree/bindings/sound/hdmi.txt |   17 ++++++++++++=
++++++
+>  sound/soc/codecs/hdmi.c                          |   10 ++++++++++
+>  2 files changed, 27 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/sound/hdmi.txt
+	[snip]
 
-> Hi,
->
-> I also try to boot v3.12 on my pandaboard rev A2, but it hangs at
-> "starting kernel". My SD card is originally loaded with a linaro 12.04
-> ubuntu-developer image. I have tried with v3.7 and v3.8 uImage and
-> both of them work normally, but v3.12 hangs. Is there any trick I
-> missed? Do I need to use the new u-boot as used by Ben?
->
-I've written up some of my experiences bringing up 3.12 on the
-PandaBoard here[1]. You may find it helpful. Regardless, I would
-definitely try upgrading u-boot.
+A couple of months ago, I proposed a 'generic DT based simple
+codec' (http://www.spinics.net/lists/arm-kernel/msg274322.html) which
+was supposed to replace all of the `empty` codecs in a DT context.
+These codecs do nothing except defining some audio parameters.
+They are mainly spdif tx/rx, hdmi, bt-sco, dmic, wm8727 and wm8782.
 
-> And here is a separate problem with building u-boot. I cloned the
-> upstream u-boot repository. The latest commit is
-> c2e5e802ecb7ab668ce9911b210ed68c804b349f. Then I did:
-> make ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- omap4_panda_config
-> make ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- -j8
-> cp MLO u-boot.img /media/boot/
-> But when turn on my pandaboard, there is NO output from the serial
-> console. I didn't change the other file in the boot partition. They
-> are from linaro 12.04 ubuntu-developer image.
->
-I would check that you have earlyprintk enabled (both in the kernel
-configuration as well as on the kernel command line). Moreover, ensure
-that the correct serial devices is selected for low-level debug output
-(in the kernel configuration).
+This generic codec would have been used for the tda998x which is the
+HDMI transmitter of the Cubox. But, as its utility was not clear yet,
+I switched to the 'spdif transmitter' codec which has DT support. This
+last codec works fine without change, with either i2s or spdif input in
+the tda998x. It is well suited to the Cubox because the Marvell Armada
+510 audio subsystem does not support sound recording (nor does the
+tda998x while the 'hdmi' code provides recording), and also because it
+supports a wider range of rates than the 'hdmi'codec (I have no problem
+with 22.05kHz audio).
 
-Cheers,
+But now, I am wondering again about these `empty`codecs:
+- in a DT context, should we continue to add / modify such codecs?
+- what do you think about my generic DT codec? (indeed, I would do a ne=
+w
+  version according to the previous remarks)
 
-- Ben
-
-[1] http://bgamari.github.io/posts/2013-11-17-running-modern-kernel-on-pandaboard.html
-
-
-
---=-=-=
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
-
-iQEcBAEBAgAGBQJSjCdLAAoJEErkyLZmeNiDA74H/RlindWWTM5HVDtoXc1Kujak
-lFv/reGQcb8BCC8pbFFSgNfEO7uESXGBfIMajJTaZrvnghdGq2q0r/ZEtdy0apj+
-RhDrDRBI/5HmzuMLF/dPvM3r7D4XnGWUcc4fy4fRZ2tzCxmyTFwTk5VEI1ndqK97
-jApI9HcNzMxHJciC2RIlDhWxcDzIQOxsn5De+LKCeylOG+lxKEUs9wr7OLPkPYcZ
-6DBoQmO/kagLIyPQsZ7XFLWzCdIbkV5iiYZ2KR7J5afgkZvsatLKCo9nNnOEnYfu
-jw7OkoQXgs0roC3ZUJbBmcM0JYhV/5VhRFsZlZ4OHvI+KukDF5D42nDsJX8Zwfg=
-=DryN
------END PGP SIGNATURE-----
---=-=-=--
+--=20
+Ken ar c'henta=C3=B1	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
