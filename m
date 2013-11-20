@@ -1,70 +1,61 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: Re: [PATCH v2 0/3] Add support for charging battery in Nokia RX-51
-Date: Tue, 19 Nov 2013 22:38:34 +0100
-Message-ID: <201311192238.34764@pali>
-References: <1378630239-10006-1-git-send-email-pali.rohar@gmail.com> <1384856285-19593-1-git-send-email-pali.rohar@gmail.com> <20131119144407.GB28455@earth.universe>
-Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart1481251.M8gYiG9GiM";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
+From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Subject: [PATCH v2 00/11]: add remaining support for IGEP boards
+Date: Wed, 20 Nov 2013 02:06:04 +0100
+Message-ID: <1384909575-19108-1-git-send-email-javier.martinez@collabora.co.uk>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ea0-f173.google.com ([209.85.215.173]:42703 "EHLO
-	mail-ea0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751967Ab3KSVii (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Nov 2013 16:38:38 -0500
-In-Reply-To: <20131119144407.GB28455@earth.universe>
+Received: from bhuna.collabora.co.uk ([93.93.135.160]:34687 "EHLO
+	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752166Ab3KTBH1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Nov 2013 20:07:27 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sebastian Reichel <sre@debian.org>
-Cc: Anton Vorontsov <anton@enomsg.org>, David Woodhouse <dwmw2@infradead.org>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, freemangordon@abv.bg, aaro.koskinen@iki.fi, pavel@ucw.cz
+To: Tony Lindgren <tony@atomide.com>
+Cc: Enric Balletbo i Serra <eballetbo@gmail.com>, bcousson@baylibre.com, tomi.valkeinen@ti.com, Sebastian Reichel <sre@ring0.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
---nextPart1481251.M8gYiG9GiM
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+In order to make mach-omap2 Device Tree only, the board file for
+IGEP boards was removed even when support for wifi and display
+was still not supported by its DTS.
 
-On Tuesday 19 November 2013 15:44:09 Sebastian Reichel wrote:
-> Hi Pali,
->=20
-> On Tue, Nov 19, 2013 at 11:18:02AM +0100, Pali Roh=C3=A1r wrote:
-> > This patch series finally bringing support for charging
-> > battery on Nokia N900 (RX-51) without any proprietary Nokia
-> > bits in userspace.
->=20
-> YAY! :)
->=20
-> > I removed hook function from bq2415x_charger driver and
-> > replaced it by Jenny TC power_supply notifier code. This
-> > simplify usage of bq2415x driver and also allow adding DT
-> > support in future because driver does not need board
-> > specific function anymore (only static data).
-> >=20
-> > I tested this series with linux 3.12-rc5 on Nokia N900.
->=20
-> cool :)
->=20
-> Do you want me to take this up and add DT support?
->=20
-> -- Sebastian
+This is a second version of a patch-set that adds support for
+these remaining peripherals and also adds support for USB,
+HDMI and user LED for the am33xx SoC based IGEP Aquila board.
 
-Hello, if you have time, can you add DT support code?
+The patch-set is composed of the following patches:
 
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
+Enric Balletbo i Serra (7):
+      ARM: dts: omap3-igep: Fix bus-width for mmc1.
+      ARM: dts: omap3-igep: Add support for LBEE1USJYC WiFi connected to SDIO.
+      ARM: dts: omap3-igep: Update to use the TI AM/DM37x processor.
+      ARM: dts: AM33XX BASE0033: add pinmux and hdmi node to enable display
+      ARM: dts: AM33XX BASE0033: add pinmux and user led support.
+      ARM: dts: AM33XX BASE0033: add 32KBit EEPROM support.
+      ARM: dts: AM33XX IGEP0033: add USB support.
 
---nextPart1481251.M8gYiG9GiM
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
+Javier Martinez Canillas (4):
+      ARM: dts: omap3-igep0020: Add pinmux setup for i2c devices
+      ARM: dts: omap3-igep0020: Add pinmuxing for DVI output
+      ARM: OMAP: dss-common: change IGEP's DVI DDC i2c bus
+      ARM: dts: omap3-igep0020: name twl4030 VPLL2 regulator as vdds_dsi
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
+Changes since v1:
 
-iEYEABECAAYFAlKL2loACgkQi/DJPQPkQ1KIZgCfYqrsQGgu1GMAF8/MlppAoRzD
-CTQAn2YnouSDDB6lMSdAr2b9cxAUbzt2
-=dgeJ
------END PGP SIGNATURE-----
+ Don't add a workaround in drivers/video/omap2/dss/dpi.c to use the
+ VPLL2 regulator from twl4030 if VDDS_DSI regulator is not linked to
+ the DPI device since the used regulator is a per board configuration.
 
---nextPart1481251.M8gYiG9GiM--
+ Instead add a regulator-name = "vdds_dsi" property to the regulator
+ in the IGEPv2 DTS file as suggested by Tony Lindgren. 
+
+Tony,
+
+Most of these patches are just DTS changes so they have to be picked
+by Benoit besides the following patch that has to go through your tree
+
+[PATCH 10/11] ARM: OMAP: dss-common: change IGEP's DVI DDC i2c bus
+
+Since we have removed the board file for IGEP boards I think these
+can be considered as regression fixes for 3.13 although I don't mind
+if you prefer to wait for 3.14.
+
+Thanks a lot and best regards,
+Javier
