@@ -1,81 +1,52 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH RFC 4/9] ASoC: hdmi-codec: Add devicetree binding with
- documentation
-Date: Wed, 20 Nov 2013 13:33:15 +0000
-Message-ID: <20131120133315.GC2674@sirena.org.uk>
-References: <cover.1384862950.git.jsarha@ti.com>
- <829968f1a6b34176de8a04dd4ad473b2b37be783.1384862950.git.jsarha@ti.com>
- <20131120102342.7befe75e@armhf>
- <20131120100959.GV2674@sirena.org.uk>
- <20131120133458.3822a165@armhf>
+From: Stefan Roese <stefan.roese@gmail.com>
+Subject: AM335x board with disabled RTC crashes
+Date: Wed, 20 Nov 2013 15:18:51 +0100
+Message-ID: <528CC4CB.4000609@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="3m6ZAtymzEdXvUYk"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cassiel.sirena.org.uk ([80.68.93.111]:60975 "EHLO
-	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751599Ab3KTNdi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Nov 2013 08:33:38 -0500
-Content-Disposition: inline
-In-Reply-To: <20131120133458.3822a165@armhf>
+Received: from mo-p05-ob.rzone.de ([81.169.146.181]:9672 "EHLO
+	mo-p05-ob.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751375Ab3KTOS6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Nov 2013 09:18:58 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jean-Francois Moine <moinejf@free.fr>
-Cc: Jyri Sarha <jsarha@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, dri-devel@lists.freedesktop.org, peter.ujfalusi@ti.com
+To: linux-omap <linux-omap@vger.kernel.org>
+Cc: Tony Lindgren <tony@atomide.com>
 
+Hi!
 
---3m6ZAtymzEdXvUYk
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+I'm currently working on a custom AM335x based board, where the SoC
+RTC is disabled. As described in this page in the "RTC feature disabled"
+column:
 
-On Wed, Nov 20, 2013 at 01:34:58PM +0100, Jean-Francois Moine wrote:
-> Mark Brown <broonie@kernel.org> wrote:
+http://processors.wiki.ti.com/index.php/AM335x_Schematic_Checklist#RTC
 
-> > We still want to be able to have users just name the CODEC on their
-> > board rather than have to type in all the details from the datasheet,
-> > if we're going to try to amalgamate the drivers it should still let
-> > people do that.
+On this board the registers of the RTC are not accessible. But the OMAP
+hwmod code tries to read the sysc register unconditionally from the RTC.
+And this leads to this crash (using v3.12):
 
-> OK. But it seems to me that the codec is not tied to the board, but
-> rather to the audio connector / transmitter.
+...
+[    0.179491] CPU: Testing write buffer coherency: ok
+[    0.187702] Setting up static identity map for 0xc04dfa90 - 0xc04dfb00
+[    0.204665] devtmpfs: initialized
+[    0.219513] VFP support v0.3: implementor 41 architecture 3 part 30 variant c rev 3
+[    0.237462] *** _update_sysc_cache (263): name=emif
+[    0.246247] omap_hwmod: debugss: _wait_target_disable failed
+[    0.252290] *** _update_sysc_cache (263): name=uart1
+[    0.257668] *** _update_sysc_cache (263): name=rtc
+[    0.262885] Unhandled fault: external abort on non-linefetch (0x1028) at 0xf9e3e078
+[    0.270893] Internal error: : 1028 [#1] ARM
+[    0.275302] Modules linked in:
+[    0.278572] CPU: 0 PID: 1 Comm: swapper Not tainted 3.12.0-dirty #21
+[    0.285222] task: c7047340 ti: c7048000 task.ti: c7048000
+[    0.290909] PC is at _update_sysc_cache+0x44/0xb0
+[    0.295861] LR is at _update_sysc_cache+0x1c/0xb0
+...
 
-No, not at all.  The majority of these devices are simple CODECs, DACs
-and ADCs with no register control which are soldered down onto the
-board.  What's connected beyond them is irrelevant.  If anything the
-devices that don't have fixed functions are even more likely to want or
-need to have specific code, for example code could be written to enforce
-the results of HDMI capability discovery.
+Disabling the RTC in the DT doesn't help (of course). So what's the
+recommended way to disable this hwmod access to the RTC registers?
 
-> In the case of the tda998x HDMI transmitter, either i2s or s/pdif may
-> be used, thanks to the actual codecs 'hdmi' and 'spdif tx'. But they
-> don't work the same way: the 'hdmi' codec handles both playback and
-> record, and recording is disabled by program in the sound device,
-> while the 'spdif tx' codec is selected by the codec-dai-name
-> ("dit-hifi" - it is "dir-hifi" for recording). It would be nice if
-> these codecs would have the same behaviour...
-
-Well, send patches refactoring one or the other then...
-
---3m6ZAtymzEdXvUYk
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
-
-iQIcBAEBAgAGBQJSjLoYAAoJELSic+t+oim9MhQQAJksxLsGaBzuaAxsEch0RJpH
-8LMx93Zpcm8GExDX4Xj2//Ju+HuqfVlf19PHgPDTdvN+2VVeQlcHeEVPW6ubCvfV
-v0yez9rN20RBzw4On43G8NC6CHq8HfEthGlFPlkpKItWoujVhAk3dMGHLMkCffAA
-rjcKQQUevYmdUbEIOEI70VvaBnXSHz2qNP+481TA1qFnukdeFOtCtet84lShmhG0
-8uzcEzD1JtAiAzX1UiLs5GcSHa3EcSPwF7HLaCaM8dxlWwca7naUa2S362eIn/NU
-5Gy7BjxSRg4MU2QNMoJSQse5P1AgBzMOLJoC2/eV2SYDpkZKPy0WJzot6i/d9uZV
-AQJJ+Qzf++oP+C7ZHIH+1MqygN7Mxg7us4uHXGfoiBONf0gTulIIzbPJ/zQOmvt1
-mx43F/RGLyJuadR1GuyjMCEY6n97KbcJJA0xhGgKN9zb6DiZjt+vidF6rSdnG14f
-wYs4ih0fTD9Sv1zYauLDCzGZ8iXigG0N1M8MIe7cM2pTGIQzfJGgyqx2i1H5FgZw
-MvL/pG/HAPlqAAWPVdMMdz25p54KtsxKxzB6cxhwOXLhWE6BbFBaKZ/Kz6mpvODn
-wd+UlmZUGNn+mylxNHvXNJ9a0RkPNUwiklF6LT1h1kwLY79trx+vfGoqpmsNWGlb
-VzWGcq1Ij0PXDXNabbIw
-=9bGT
------END PGP SIGNATURE-----
-
---3m6ZAtymzEdXvUYk--
+Thanks,
+Stefan
