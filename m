@@ -1,65 +1,55 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP2+: Fix populating the hwmod data from device
- tree
-Date: Wed, 20 Nov 2013 11:22:10 -0800
-Message-ID: <20131120192209.GI10317@atomide.com>
-References: <20131120025620.GF10317@atomide.com>
- <20131120181255.GG10317@atomide.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: commit c368e5fc2a190923b786f2de3e79430ea3566a25 regresses MMC
+Date: Wed, 20 Nov 2013 20:34:00 +0000
+Message-ID: <20131120203400.GL2674@sirena.org.uk>
+References: <20131120175814.GC27423@saruman.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:63279 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754193Ab3KTTWM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Nov 2013 14:22:12 -0500
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="BOHdEyqYAbgZNeC0"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20131120181255.GG10317@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20131120175814.GC27423@saruman.home>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: ldewangan@nvidia.com, lgirdwood@gmail.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Paul Walmsley <paul@pwsan.com>
 
-* Tony Lindgren <tony@atomide.com> [131120 10:13]:
-> * Tony Lindgren <tony@atomide.com> [131119 18:57]:
-> > We have some device tree properties where the ti,hwmod has multiple
-> > values:
-> > 
-> > am33xx.dtsi:	ti,hwmods = "tpcc", "tptc0", "tptc1", "tptc2";
-> > am4372.dtsi:	ti,hwmods = "tpcc", "tptc0", "tptc1", "tptc2";
 
-I think these should be defined in the .dtsi files as separate devices
-and removed from the related omap_hwmod_*_data.c files.
+--BOHdEyqYAbgZNeC0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-> > dra7.dtsi:	ti,hwmods = "l3_main_1", "l3_main_2";
+On Wed, Nov 20, 2013 at 11:58:14AM -0600, Felipe Balbi wrote:
 
-These too should be defined in the .dtsi file. Looks like we're missing
-the related data in the omap_hwmod_7xx_data.c file anyways?
+> commit c368e5fc2a190923b786f2de3e79430ea3566a25 (regulator: fixed: get
+> rid of {get|list}_voltage()) regresses any MMC host controller which
+> uses fixed regulator for functionality.
 
-> > omap3.dtsi:	ti,hwmods = "mcbsp2", "mcbsp2_sidetone";
-> > omap3.dtsi:	ti,hwmods = "mcbsp3", "mcbsp3_sidetone";
+This is already fixed in -next.  Please remember to always CC
+maintainers on mails and please try to write subject lines which are
+readable by humans - full SHA1s for commits that obscure any actual
+content don't help.
 
-OK the sidetone data we can probably parse using the ti,hwmods as
-an index.
+--BOHdEyqYAbgZNeC0
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-> > omap4.dtsi:	ti,hwmods = "l3_main_1", "l3_main_2", "l3_main_3";
-> > omap5.dtsi:	ti,hwmods = "l3_main_1", "l3_main_2", "l3_main_3";
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
 
-Benoit, I guess these mean that those devices should be created
-dynamically, right?
+iQIcBAEBAgAGBQJSjRy1AAoJELSic+t+oim9oVoP/0lfe126LNuvhEwFW1mvHlm3
+VoO7QFg6lP2OHzgMx7rfvCeFspVumerWIvMFqyGFd8zZdcN1sYN/BVJqg0YUbx1q
+ZBQ0FLMTkc0S0c8BPifI+U8T4wTeiYyjrB9AjkOx+xRymR6E9sMjgoLkqm7sB9oe
+bpv1FGzu8CzSoEdfm6mfKyhwnIAxHT+mMTCLA1wiC0gUXbYJrDibn1mYaiTamFjQ
+4P+cttDpT5AeAwOIBu8sFnAbChB3bLGzTyhu9WkI5maY6RhemsKrWu0n95gP83jo
+35AgciUQNdRVwXti2HpE3eEIZASF9uuBwIzBBCJmzU3IE8wccnjQ7z5BG/iAhoGC
+h+4B+byBTk8GxrYpi2ka4yxsW03IDaV1/K1xbH6QgKmGwk+Vo0gzf68+lTOdB64l
+gLya//KndYHOM3I6b2HSkBzYuPgvOThrYujJ7LoBNZJeEn4w2cLJNEE5qkgas6uv
+rjYSgTk1Ct7XuoSF7/NGxSGZ+MmUfsxSJVcj0UXstplCUoZrSzw36N88A1GlGGN+
+Pqnygc/rtLyCSSudv8C2RmMCxHRaUIBXY+N1OO/Dq0dyDWsdnc7kqo7aElTNeC/2
+xQov1AiNfBOOjtp0C+jpjh0zQvYNk3zAfJgdm8P/T72adMI/QhqRg6KQpwOowgUH
+JAsZlWsGYlpy3ev/1kh3
+=Qmyd
+-----END PGP SIGNATURE-----
 
-Yet we've removed the related data in commit 3b9b10 and are not
-passing it in the .dtsi file?
-
-So these should be created as separate devices in the .dtsi file
-instead AFAIK.
-
-> Hmm I think this also needs part two to it to populate the right IO space
-> based on the index, this probably now wrongly populates the first IO space
-> for all the hwmod instances in the group.
-
-Yeah this patch clearly is not the right fix to the problem of
-missing data.
-
-Regards,
-
-Tony
+--BOHdEyqYAbgZNeC0--
