@@ -1,63 +1,181 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH RFC 4/9] ASoC: hdmi-codec: Add devicetree binding with
- documentation
-Date: Wed, 20 Nov 2013 10:09:59 +0000
-Message-ID: <20131120100959.GV2674@sirena.org.uk>
-References: <cover.1384862950.git.jsarha@ti.com>
- <829968f1a6b34176de8a04dd4ad473b2b37be783.1384862950.git.jsarha@ti.com>
- <20131120102342.7befe75e@armhf>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH v3 09/10] ARM: dts: omap3-beagle-xm: Add USB Host support
+Date: Wed, 20 Nov 2013 12:32:28 +0200
+Message-ID: <528C8FBC.7020407@ti.com>
+References: <1380012836-29900-1-git-send-email-rogerq@ti.com>
+ <1380012836-29900-10-git-send-email-rogerq@ti.com> <528BD2AF.2030607@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="4jz2RIiWkXBLiaBi"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cassiel.sirena.org.uk ([80.68.93.111]:53627 "EHLO
-	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750858Ab3KTKKY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Nov 2013 05:10:24 -0500
-Content-Disposition: inline
-In-Reply-To: <20131120102342.7befe75e@armhf>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <528BD2AF.2030607@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Nishanth Menon <nm@ti.com>, balbi@ti.com, bcousson@baylibre.com, tony@atomide.com
+Cc: devicetree@vger.kernel.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, broonie@kernel.org, p.zabel@pengutronix.de, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Jean-Francois Moine <moinejf@free.fr>
-Cc: Jyri Sarha <jsarha@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, dri-devel@lists.freedesktop.org, peter.ujfalusi@ti.com
+
+Nishant,
+
+On 11/19/2013 11:05 PM, Nishanth Menon wrote:
+> 
+> 
+> On 09/24/2013 03:53 AM, Roger Quadros wrote:
+>> Provide RESET GPIO and Power regulator for the USB PHY,
+>> the USB Host port mode and the PHY device for the controller.
+>> Also provide pin multiplexer information for USB host pins.
+>>
+>> We also relocate omap3_pmx_core pin definations so that they
+>> are close to omap3_pmx_wkup pin definations.
+>>
+>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>> ---
+> 
+> just using this thread, but a question ->
+> 
+> I am kernel * master                                   dec8e46 Merge
+> tag 'arc-v3.13-rc1-part2' of
+> git://git.kernel.org/pub/scm/linux/kernel/git/vgupta/arc
+> 
+> and I see that VAUX2 which supplies USB_1V8[1] is not enabled -> I did
+> a quick patch and it did seem to work (Usb keyboard, networking, mouse
+> etc on my ehci ports seems to come up good) - any suggestions how we'd
+> like to handle this?
+
+It worked for me without your patch. It could be that u-boot is enabling
+that regulator for me. I'm on u-boot-v2013.10.
+
+In any case, your patch seems the right thing to do. We should take it in
+the rc cycle.
+
+> 
+> --- a/arch/arm/boot/dts/omap3-beagle-xm.dts
+> +++ b/arch/arm/boot/dts/omap3-beagle-xm.dts
+> @@ -169,6 +169,14 @@
+>         bus-width = <8>;
+>  };
+> 
+> +&vaux2 {
+> +       regulator-name = "HubPower";
+> +       regulator-min-microvolt = <1800000>;
+> +       regulator-max-microvolt = <1800000>;
+> +       regulator-always-on;
+> +};
+> +
+> +
+> 
+> [1]
+> https://github.com/CircuitCo/BeagleBoard-xM-RevC/blob/master/BeagleBoard-xM_revC_SCH.pdf?raw=true
 
 
---4jz2RIiWkXBLiaBi
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+cheers,
+-roger
 
-On Wed, Nov 20, 2013 at 10:23:42AM +0100, Jean-Francois Moine wrote:
-
-> But now, I am wondering again about these `empty`codecs:
-> - in a DT context, should we continue to add / modify such codecs?
-> - what do you think about my generic DT codec? (indeed, I would do a new
->   version according to the previous remarks)
-
-We still want to be able to have users just name the CODEC on their
-board rather than have to type in all the details from the datasheet,
-if we're going to try to amalgamate the drivers it should still let
-people do that.
-
---4jz2RIiWkXBLiaBi
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
-
-iQIcBAEBAgAGBQJSjIpzAAoJELSic+t+oim9h14QAJW/PVQUKOznoNKVXTdu9DEw
-UBS/UDjc3gg+VzXYHeJG5+mdUJjwXe3LD0MXI0vXNla4VPgRy+wSJA6xWX3UFs9J
-mSfb/gbuayMM9i2qRmm86CaM9TluKEunhGacZ5BCs6dwzfJrVgM80Il0ESkK76BY
-/vY6Lcn0WtGEgojNskmbGGR3NirRnkemNcs6Jz8elK5pVblqwYX8vQEi+Lja/veN
-pXEXZH7IWdWuzfNZce/vU3LFCyJI9g/tifssdQYrK30F+IELj/gATCIMCDTqAHJ3
-jD3DUs98eZ4wWkugXDrNhi9U9cE7ihPiJanHBz+WkefbRLL5985fi/pCLlv5SKuY
-N6/23Mh4I+f/ETbnJPYHDbyBx78ARFz7bD60TLAlyOMkUezt+aZXH1480bEuZGSL
-Nxd3KNjO2xEWJuwJlkdQS35GprX0lWj3x9SLAEVOKt86LgZyhx0muiYOgN11l3O6
-YMpUFVCrxm0BMR11benOv/qvvKNMDg8Gvbgzul1DKOfQLlhFJQx0UULMYDqYm6r2
-okbWAP7uwJT4JTkcSgDYs3590yNvq5eYGlSpjesoOXK+EfL1wdG0kWU6XB4YnnYf
-hnknEEh+wlJ3kgWrMqYzSFqaif7byTNcC21fqy6HhcTMsNMusN3F4vTIfqwChkXP
-FxFxyUmknSa7dkpjiRys
-=h209
------END PGP SIGNATURE-----
-
---4jz2RIiWkXBLiaBi--
+> 
+>>  arch/arm/boot/dts/omap3-beagle-xm.dts |   65 ++++++++++++++++++++++++++++-----
+>>  1 files changed, 56 insertions(+), 9 deletions(-)
+>>
+>> diff --git a/arch/arm/boot/dts/omap3-beagle-xm.dts b/arch/arm/boot/dts/omap3-beagle-xm.dts
+>> index afdb164..b081f5a 100644
+>> --- a/arch/arm/boot/dts/omap3-beagle-xm.dts
+>> +++ b/arch/arm/boot/dts/omap3-beagle-xm.dts
+>> @@ -69,6 +69,23 @@
+>>  		};
+>>  
+>>  	};
+>> +
+>> +	/* HS USB Port 2 Power */
+>> +	hsusb2_power: hsusb2_power_reg {
+>> +		compatible = "regulator-fixed";
+>> +		regulator-name = "hsusb2_vbus";
+>> +		regulator-min-microvolt = <3300000>;
+>> +		regulator-max-microvolt = <3300000>;
+>> +		gpio = <&twl_gpio 18 0>;	/* GPIO LEDA */
+>> +		startup-delay-us = <70000>;
+>> +	};
+>> +
+>> +	/* HS USB Host PHY on PORT 2 */
+>> +	hsusb2_phy: hsusb2_phy {
+>> +		compatible = "usb-nop-xceiv";
+>> +		reset-gpios = <&gpio5 19 GPIO_ACTIVE_LOW>; /* gpio_147 */
+>> +		vcc-supply = <&hsusb2_power>;
+>> +	};
+>>  };
+>>  
+>>  &omap3_pmx_wkup {
+>> @@ -79,6 +96,37 @@
+>>  	};
+>>  };
+>>  
+>> +&omap3_pmx_core {
+>> +	pinctrl-names = "default";
+>> +	pinctrl-0 = <
+>> +			&hsusbb2_pins
+>> +	>;
+>> +
+>> +	uart3_pins: pinmux_uart3_pins {
+>> +		pinctrl-single,pins = <
+>> +			0x16e (PIN_INPUT | PIN_OFF_WAKEUPENABLE | MUX_MODE0) /* uart3_rx_irrx.uart3_rx_irrx */
+>> +			0x170 (PIN_OUTPUT | MUX_MODE0) /* uart3_tx_irtx.uart3_tx_irtx OUTPUT | MODE0 */
+>> +		>;
+>> +	};
+>> +
+>> +	hsusbb2_pins: pinmux_hsusbb2_pins {
+>> +		pinctrl-single,pins = <
+>> +			0x5c0 (PIN_OUTPUT | MUX_MODE3)		/* etk_d10.hsusb2_clk */
+>> +			0x5c2 (PIN_OUTPUT | MUX_MODE3)		/* etk_d11.hsusb2_stp */
+>> +			0x5c4 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d12.hsusb2_dir */
+>> +			0x5c6 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d13.hsusb2_nxt */
+>> +			0x5c8 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d14.hsusb2_data0 */
+>> +			0x5cA (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d15.hsusb2_data1 */
+>> +			0x1a4 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi1_cs3.hsusb2_data2 */
+>> +			0x1a6 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_clk.hsusb2_data7 */
+>> +			0x1a8 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_simo.hsusb2_data4 */
+>> +			0x1aa (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_somi.hsusb2_data5 */
+>> +			0x1ac (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_cs0.hsusb2_data6 */
+>> +			0x1ae (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_cs1.hsusb2_data3 */
+>> +		>;
+>> +	};
+>> +};
+>> +
+>>  &i2c1 {
+>>  	clock-frequency = <2600000>;
+>>  
+>> @@ -148,15 +196,6 @@
+>>  	power = <50>;
+>>  };
+>>  
+>> -&omap3_pmx_core {
+>> -	uart3_pins: pinmux_uart3_pins {
+>> -		pinctrl-single,pins = <
+>> -			0x16e (PIN_INPUT | PIN_OFF_WAKEUPENABLE | MUX_MODE0) /* uart3_rx_irrx.uart3_rx_irrx */
+>> -			0x170 (PIN_OUTPUT | MUX_MODE0) /* uart3_tx_irtx.uart3_tx_irtx OUTPUT | MODE0 */
+>> -		>;
+>> -	};
+>> -};
+>> -
+>>  &uart3 {
+>>  	pinctrl-names = "default";
+>>  	pinctrl-0 = <&uart3_pins>;
+>> @@ -166,3 +205,11 @@
+>>  	pinctrl-names = "default";
+>>  	pinctrl-0 = <&gpio1_pins>;
+>>  };
+>> +
+>> +&usbhshost {
+>> +	port2-mode = "ehci-phy";
+>> +};
+>> +
+>> +&usbhsehci {
+>> +	phys = <0 &hsusb2_phy>;
+>> +};
+>>
+> 
+> 
