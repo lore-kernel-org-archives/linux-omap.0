@@ -1,72 +1,130 @@
-From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-Subject: Re: [RFC] mtd: gpmc: add BCH support for plain AM335x
-Date: Wed, 20 Nov 2013 14:57:34 -0300
-Message-ID: <20131120175733.GA27064@localhost>
-References: <1384969152-10411-1-git-send-email-wsa@the-dreams.de>
+From: Felipe Balbi <balbi@ti.com>
+Subject: commit c368e5fc2a190923b786f2de3e79430ea3566a25 regresses MMC
+Date: Wed, 20 Nov 2013 11:58:14 -0600
+Message-ID: <20131120175814.GC27423@saruman.home>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="oTHb8nViIGeoXxdp"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from top.free-electrons.com ([176.31.233.9]:54184 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753492Ab3KTR5e (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Nov 2013 12:57:34 -0500
+Received: from arroyo.ext.ti.com ([192.94.94.40]:39224 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753463Ab3KTR6k (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 20 Nov 2013 12:58:40 -0500
 Content-Disposition: inline
-In-Reply-To: <1384969152-10411-1-git-send-email-wsa@the-dreams.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Wolfram Sang <wsa@the-dreams.de>
-Cc: linux-mtd@lists.infradead.org, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: ldewangan@nvidia.com, broonie@linaro.org, lgirdwood@gmail.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-Hey Wolfram:
+--oTHb8nViIGeoXxdp
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Wed, Nov 20, 2013 at 06:39:12PM +0100, Wolfram Sang wrote:
-> When building a kernel without OMAP3 support but only AM335x, we can'=
-t
-> activate the needed MTD_NAND_OMAP_BCH symbol.
->=20
-> Signed-off-by: Wolfram Sang <wsa@the-dreams.de>
-> ---
->=20
-> Actually, I wonder if this is fix will scale. Maybe someone with more=
- insight
-> about TI SoCs could find a better expression of supported SoCs. This =
-is the
-> only one I could test .
->=20
->  drivers/mtd/nand/Kconfig | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->=20
-> diff --git a/drivers/mtd/nand/Kconfig b/drivers/mtd/nand/Kconfig
-> index 93ae6a6..f9455e4 100644
-> --- a/drivers/mtd/nand/Kconfig
-> +++ b/drivers/mtd/nand/Kconfig
-> @@ -95,7 +95,7 @@ config MTD_NAND_OMAP2
->  	  platforms.
-> =20
->  config MTD_NAND_OMAP_BCH
-> -	depends on MTD_NAND && MTD_NAND_OMAP2 && ARCH_OMAP3
-> +	depends on MTD_NAND && MTD_NAND_OMAP2 && (ARCH_OMAP3 || SOC_AM33XX)
->  	tristate "Support hardware based BCH error correction"
->  	default n
->  	select BCH
-> --=20
-> 1.8.4.2
->=20
+Hi,
 
-A similar patch has been already merged and you can pick it from l2-mtd
-next branch:
+commit c368e5fc2a190923b786f2de3e79430ea3566a25 (regulator: fixed: get
+rid of {get|list}_voltage()) regresses any MMC host controller which
+uses fixed regulator for functionality.
 
-http://git.infradead.org/l2-mtd.git/commitdiff/1900cdf03057030497e96761=
-4c4b19296b6ac460
+Note that mmc core uses regulator_list_voltage() to setup OCR mask and
+that has a check for missing ->list_voltage() method.
 
-Thanks!
+Reverting that commit makes beablebone black and white work with today's
+Linus' HEAD.
+
+That commit should either be reverted or regulator_list_voltages()
+should be fixed up accordingly.
+
+Proposed patch below:
+
+8<------------------------ cut here -----------------------------------
+
+=46rom 807bb4e91eea46390f184b737f7f8dc634e62a01 Mon Sep 17 00:00:00 2001
+=46rom: Felipe Balbi <balbi@ti.com>
+Date: Wed, 20 Nov 2013 11:52:33 -0600
+Subject: [PATCH] regulator: core: fix regulator_list_voltage()
+
+commit c368e5f (regulator: fixed: get rid of
+{get|list}_voltage()) caused a regression
+for any MMC host which uses a fixed regulator.
+
+MMC core uses regulator_list_voltage() to
+setup card's OCR mask. Unfortunately, said
+commit missed the fact that regulator_list_voltage()
+would bail out early if ->list_voltage()
+implementation is missing.
+
+This was not a problem before, since fixed
+regulator implemented that callback.
+
+The best solution is to patch regulator_list_voltage()
+itself, since MMC core shouldn't have to know
+which regulator type it's using.
+
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+---
+ drivers/regulator/core.c | 16 +++++++++++-----
+ 1 file changed, 11 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/regulator/core.c b/drivers/regulator/core.c
+index 6382f0a..0da48ae 100644
+--- a/drivers/regulator/core.c
++++ b/drivers/regulator/core.c
+@@ -2181,15 +2181,21 @@ EXPORT_SYMBOL_GPL(regulator_count_voltages);
+ int regulator_list_voltage(struct regulator *regulator, unsigned selector)
+ {
+ 	struct regulator_dev	*rdev =3D regulator->rdev;
+-	struct regulator_ops	*ops =3D rdev->desc->ops;
++	const struct regulator_desc *desc =3D rdev->desc;
++	struct regulator_ops	*ops =3D desc->ops;
+ 	int			ret;
+=20
+-	if (!ops->list_voltage || selector >=3D rdev->desc->n_voltages)
++	if ((!ops->list_voltage && !desc->fixed_uV) ||
++			selector >=3D rdev->desc->n_voltages)
+ 		return -EINVAL;
+=20
+-	mutex_lock(&rdev->mutex);
+-	ret =3D ops->list_voltage(rdev, selector);
+-	mutex_unlock(&rdev->mutex);
++	if (ops->list_voltage) {
++		mutex_lock(&rdev->mutex);
++		ret =3D ops->list_voltage(rdev, selector);
++		mutex_unlock(&rdev->mutex);
++	} else /* if (desc->fixed_uV) */ {
++		ret =3D desc->fixed_uV;
++	}
+=20
+ 	if (ret > 0) {
+ 		if (ret < rdev->constraints->min_uV)
 --=20
-Ezequiel Garc=C3=ADa, Free Electrons
-Embedded Linux, Kernel and Android Engineering
-http://free-electrons.com
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+1.8.4.GIT
+
+
+--=20
+balbi
+
+--oTHb8nViIGeoXxdp
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.15 (GNU/Linux)
+
+iQIcBAEBAgAGBQJSjPg1AAoJEIaOsuA1yqREq9MP/jfIsBIYGqaFZdguzeMnoO3h
+gfpe41b7R/JAh61BezJT6vL7DsV8MvceNAZKs7r6cs+rvlF3iZx07LLTmvGi+YLj
+jStKfE4cyV05q9NhyhHrxQg58LtDK11XIujWClIdF8pN4W0WFkFrM0coSWU5I/aH
+s/MYjXufZ2j/4Ymvzu4WQ4F87PKkES6PcbOHht90BqRCsYXGyLva6d7bqrGovb1B
+gVKg9IsaMzDLwavs9ORP8g4I9gChs81TL0jP1MBbAybfrujcqxhI9kvU6pKQc3KP
+07Jys92BENcjrZab13O+Yw+iEadXbXW4xKaGzMuJQ1ThcltjEaOvR+1NYWN90hld
+1xmbXY2xHcaz+yO3FdKUV6jis+iPyLTOFzdKAzZRP8NvtqL9r+LdHSq8QDFu6Zmd
+wc51+8OfyrbFYTKgc1w7aGg2EnaFzdqnnWR8fgJYCGOPCYg3ds3SeFPNLe/uzo0i
+DDZLn9sTrw2XfDnQgbj9jjuREtp7jD8zUTzkfrYQqGksDwFr8voRHw4KsGPDsMaj
+NOnQJeehH4M15ZUUN05nsSlWnvDTt4ulVHZeNDLD4sPmX+DG9t1YU2fbuYyzBns5
+8r/iIPUTjqhPiftHEABLwFwaRh8znjWeOYOuCv4WVSumr66wm4U+QU6LftBWMbsr
+HbSECV9HcXQvLY2MSO0h
+=xb2U
+-----END PGP SIGNATURE-----
+
+--oTHb8nViIGeoXxdp--
