@@ -1,130 +1,92 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: commit c368e5fc2a190923b786f2de3e79430ea3566a25 regresses MMC
-Date: Wed, 20 Nov 2013 11:58:14 -0600
-Message-ID: <20131120175814.GC27423@saruman.home>
-Reply-To: <balbi@ti.com>
+Subject: [RFT/RFC/PATCH 00/31] arm: omap: irq: cleanup INTC driver
+Date: Wed, 20 Nov 2013 12:08:47 -0600
+Message-ID: <1384970958-4118-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="oTHb8nViIGeoXxdp"
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:39224 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:39909 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753463Ab3KTR6k (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 20 Nov 2013 12:58:40 -0500
-Content-Disposition: inline
+	id S1754154Ab3KTSKG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 20 Nov 2013 13:10:06 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ldewangan@nvidia.com, broonie@linaro.org, lgirdwood@gmail.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Felipe Balbi <balbi@ti.com>
 
---oTHb8nViIGeoXxdp
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Afte these patches, we're very close to being able
+to move arch/arm/mach-omap2/irq.c to drivers/irqchip/irq-intc.c
 
-Hi,
+All which would be missing is for Tony to drop all OMAP2/3 board
+files so we remove the few pending bits and pieces left in
+for legacy boot.
 
-commit c368e5fc2a190923b786f2de3e79430ea3566a25 (regulator: fixed: get
-rid of {get|list}_voltage()) regresses any MMC host controller which
-uses fixed regulator for functionality.
+Note that I have only boot tested these on AM335x Bone Black
+(with a small fix for fixed regulator which should be in
+the mailing list already), so I'd need help testing all
+other impacted platforms, specially when it comes to PM.
 
-Note that mmc core uses regulator_list_voltage() to setup OCR mask and
-that has a check for missing ->list_voltage() method.
+Felipe Balbi (31):
+  arm: omap: irq: make omap_irq_base global
+  arm: omap: irq: define INTC_ILR0 register
+  arm: omap: irq: start to remove irq_banks array
+  arm: omap: irq: add a global omap_nr_irqs variable
+  arm: omap: irq: remove rest of irq_banks usage
+  arm: omap: irq: remove unused macro
+  arm: omap: irq: switch over to intc_readl on omap_intc_handle_irq
+  arm: omap: irq: remove unnecessary base_addr argument
+  arm: omap: irq: rename omap3_intc_regs
+  arm: omap: irq: always define omap3 support
+  arm: omap: irq: reorganize code a little bit
+  arm: omap: irq: add suspend/resume methods
+  arm: omap: irq: remove last bits of our homebrew irqchip pm
+  arm: omap: irq: make intc_of_init static
+  arm: omap: irq: call set_handle_irq() from intc_of_init
+  arm: omap: irq: use IRQCHIP_DECLARE macro
+  arm: omap: irq: drop .handle_irq and .init_irq fields
+  arm: omap: irq: add specific compatibles for omap3 and am33xx devices
+  arm: omap: irq: use compatible flag to figure out number of IRQ lines
+  arm: boot: dts: am33xx/omap3: fix intc compatible flag
+  arm: omap: irq: drop ti,intc-size support
+  arm: boot: dts: omap2/3/am33xx: drop ti,intc-size
+  arm: omap: irq: move some more code around
+  arm: omap: irq: call set_handle_irq() from .init_irq
+  arm: omap: irq: drop omap3_intc_handle_irq()
+  arm: omap: irq: drop omap2_intc_handle_irq()
+  arm: omap: irq: drop omap_pending_irq()
+  arm: omap: irq: remove unnecessary header
+  arm: omap: irq: remove nr_irqs argument
+  arm: omap: irq: introduce omap_nr_pending
+  arm: omap: irq: get rid of ifdef hack
 
-Reverting that commit makes beablebone black and white work with today's
-Linus' HEAD.
+ arch/arm/boot/dts/am33xx.dtsi              |   3 +-
+ arch/arm/boot/dts/omap2.dtsi               |   1 -
+ arch/arm/boot/dts/omap3.dtsi               |   3 +-
+ arch/arm/mach-omap2/board-2430sdp.c        |   1 -
+ arch/arm/mach-omap2/board-3430sdp.c        |   1 -
+ arch/arm/mach-omap2/board-am3517crane.c    |   1 -
+ arch/arm/mach-omap2/board-am3517evm.c      |   1 -
+ arch/arm/mach-omap2/board-cm-t35.c         |   2 -
+ arch/arm/mach-omap2/board-cm-t3517.c       |   1 -
+ arch/arm/mach-omap2/board-devkit8000.c     |   1 -
+ arch/arm/mach-omap2/board-generic.c        |  12 -
+ arch/arm/mach-omap2/board-h4.c             |   1 -
+ arch/arm/mach-omap2/board-ldp.c            |   1 -
+ arch/arm/mach-omap2/board-n8x0.c           |   3 -
+ arch/arm/mach-omap2/board-omap3beagle.c    |   1 -
+ arch/arm/mach-omap2/board-omap3logic.c     |   2 -
+ arch/arm/mach-omap2/board-omap3pandora.c   |   1 -
+ arch/arm/mach-omap2/board-omap3stalker.c   |   1 -
+ arch/arm/mach-omap2/board-omap3touchbook.c |   1 -
+ arch/arm/mach-omap2/board-overo.c          |   1 -
+ arch/arm/mach-omap2/board-rx51.c           |   1 -
+ arch/arm/mach-omap2/common.h               |  19 --
+ arch/arm/mach-omap2/cpuidle34xx.c          |   2 +-
+ arch/arm/mach-omap2/irq.c                  | 357 ++++++++++++-----------------
+ arch/arm/mach-omap2/pm24xx.c               |  11 -
+ arch/arm/mach-omap2/pm34xx.c               |  13 --
+ 26 files changed, 153 insertions(+), 289 deletions(-)
 
-That commit should either be reverted or regulator_list_voltages()
-should be fixed up accordingly.
-
-Proposed patch below:
-
-8<------------------------ cut here -----------------------------------
-
-=46rom 807bb4e91eea46390f184b737f7f8dc634e62a01 Mon Sep 17 00:00:00 2001
-=46rom: Felipe Balbi <balbi@ti.com>
-Date: Wed, 20 Nov 2013 11:52:33 -0600
-Subject: [PATCH] regulator: core: fix regulator_list_voltage()
-
-commit c368e5f (regulator: fixed: get rid of
-{get|list}_voltage()) caused a regression
-for any MMC host which uses a fixed regulator.
-
-MMC core uses regulator_list_voltage() to
-setup card's OCR mask. Unfortunately, said
-commit missed the fact that regulator_list_voltage()
-would bail out early if ->list_voltage()
-implementation is missing.
-
-This was not a problem before, since fixed
-regulator implemented that callback.
-
-The best solution is to patch regulator_list_voltage()
-itself, since MMC core shouldn't have to know
-which regulator type it's using.
-
-Signed-off-by: Felipe Balbi <balbi@ti.com>
----
- drivers/regulator/core.c | 16 +++++++++++-----
- 1 file changed, 11 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/regulator/core.c b/drivers/regulator/core.c
-index 6382f0a..0da48ae 100644
---- a/drivers/regulator/core.c
-+++ b/drivers/regulator/core.c
-@@ -2181,15 +2181,21 @@ EXPORT_SYMBOL_GPL(regulator_count_voltages);
- int regulator_list_voltage(struct regulator *regulator, unsigned selector)
- {
- 	struct regulator_dev	*rdev =3D regulator->rdev;
--	struct regulator_ops	*ops =3D rdev->desc->ops;
-+	const struct regulator_desc *desc =3D rdev->desc;
-+	struct regulator_ops	*ops =3D desc->ops;
- 	int			ret;
-=20
--	if (!ops->list_voltage || selector >=3D rdev->desc->n_voltages)
-+	if ((!ops->list_voltage && !desc->fixed_uV) ||
-+			selector >=3D rdev->desc->n_voltages)
- 		return -EINVAL;
-=20
--	mutex_lock(&rdev->mutex);
--	ret =3D ops->list_voltage(rdev, selector);
--	mutex_unlock(&rdev->mutex);
-+	if (ops->list_voltage) {
-+		mutex_lock(&rdev->mutex);
-+		ret =3D ops->list_voltage(rdev, selector);
-+		mutex_unlock(&rdev->mutex);
-+	} else /* if (desc->fixed_uV) */ {
-+		ret =3D desc->fixed_uV;
-+	}
-=20
- 	if (ret > 0) {
- 		if (ret < rdev->constraints->min_uV)
---=20
+-- 
 1.8.4.GIT
 
-
---=20
-balbi
-
---oTHb8nViIGeoXxdp
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.15 (GNU/Linux)
-
-iQIcBAEBAgAGBQJSjPg1AAoJEIaOsuA1yqREq9MP/jfIsBIYGqaFZdguzeMnoO3h
-gfpe41b7R/JAh61BezJT6vL7DsV8MvceNAZKs7r6cs+rvlF3iZx07LLTmvGi+YLj
-jStKfE4cyV05q9NhyhHrxQg58LtDK11XIujWClIdF8pN4W0WFkFrM0coSWU5I/aH
-s/MYjXufZ2j/4Ymvzu4WQ4F87PKkES6PcbOHht90BqRCsYXGyLva6d7bqrGovb1B
-gVKg9IsaMzDLwavs9ORP8g4I9gChs81TL0jP1MBbAybfrujcqxhI9kvU6pKQc3KP
-07Jys92BENcjrZab13O+Yw+iEadXbXW4xKaGzMuJQ1ThcltjEaOvR+1NYWN90hld
-1xmbXY2xHcaz+yO3FdKUV6jis+iPyLTOFzdKAzZRP8NvtqL9r+LdHSq8QDFu6Zmd
-wc51+8OfyrbFYTKgc1w7aGg2EnaFzdqnnWR8fgJYCGOPCYg3ds3SeFPNLe/uzo0i
-DDZLn9sTrw2XfDnQgbj9jjuREtp7jD8zUTzkfrYQqGksDwFr8voRHw4KsGPDsMaj
-NOnQJeehH4M15ZUUN05nsSlWnvDTt4ulVHZeNDLD4sPmX+DG9t1YU2fbuYyzBns5
-8r/iIPUTjqhPiftHEABLwFwaRh8znjWeOYOuCv4WVSumr66wm4U+QU6LftBWMbsr
-HbSECV9HcXQvLY2MSO0h
-=xb2U
------END PGP SIGNATURE-----
-
---oTHb8nViIGeoXxdp--
