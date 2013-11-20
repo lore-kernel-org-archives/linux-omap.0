@@ -1,109 +1,85 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: [RFT/RFC/PATCH 29/31] arm: omap: irq: remove nr_irqs argument
-Date: Wed, 20 Nov 2013 12:09:16 -0600
-Message-ID: <1384970958-4118-30-git-send-email-balbi@ti.com>
-References: <1384970958-4118-1-git-send-email-balbi@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: OMAP2+: Fix populating the hwmod data from device
+ tree
+Date: Wed, 20 Nov 2013 10:12:56 -0800
+Message-ID: <20131120181255.GG10317@atomide.com>
+References: <20131120025620.GF10317@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:48488 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754718Ab3KTSKx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 20 Nov 2013 13:10:53 -0500
-In-Reply-To: <1384970958-4118-1-git-send-email-balbi@ti.com>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:55992 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751940Ab3KTSM7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Nov 2013 13:12:59 -0500
+Content-Disposition: inline
+In-Reply-To: <20131120025620.GF10317@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Felipe Balbi <balbi@ti.com>
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Paul Walmsley <paul@pwsan.com>
 
-we can set our global omap_nr_irqs early on
-and drop the extra argument to omap_init_irq().
+* Tony Lindgren <tony@atomide.com> [131119 18:57]:
+> We have some device tree properties where the ti,hwmod has multiple
+> values:
+>=20
+> am33xx.dtsi:	ti,hwmods =3D "tpcc", "tptc0", "tptc1", "tptc2";
+> am4372.dtsi:	ti,hwmods =3D "tpcc", "tptc0", "tptc1", "tptc2";
+> dra7.dtsi:	ti,hwmods =3D "l3_main_1", "l3_main_2";
+> omap3.dtsi:	ti,hwmods =3D "mcbsp2", "mcbsp2_sidetone";
+> omap3.dtsi:	ti,hwmods =3D "mcbsp3", "mcbsp3_sidetone";
+> omap4.dtsi:	ti,hwmods =3D "l3_main_1", "l3_main_2", "l3_main_3";
+> omap5.dtsi:	ti,hwmods =3D "l3_main_1", "l3_main_2", "l3_main_3";
+>=20
+> So we need to handle the whole string array instead of just the
+> first string to find the related hwmod entry.
+>=20
+> Cc: "Beno=C3=AEt Cousson" <bcousson@baylibre.com>
+> Cc: Paul Walmsley <paul@pwsan.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+>=20
+> --- a/arch/arm/mach-omap2/omap_hwmod.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod.c
+> @@ -2228,11 +2228,23 @@ static struct device_node *of_dev_hwmod_looku=
+p(struct device_node *np,
+>  						struct omap_hwmod *oh)
+>  {
+>  	struct device_node *np0 =3D NULL, *np1 =3D NULL;
+> -	const char *p;
+> =20
+>  	for_each_child_of_node(np, np0) {
+> -		if (of_find_property(np0, "ti,hwmods", NULL)) {
+> -			p =3D of_get_property(np0, "ti,hwmods", NULL);
+> +		int count, i;
+> +
+> +		count =3D of_property_count_strings(np0, "ti,hwmods");
+> +		if (count < 1)
+> +			continue;
+> +
+> +		for (i =3D 0; i < count; i++) {
+> +			const char *p;
+> +			int res;
+> +
+> +			res =3D of_property_read_string_index(np0, "ti,hwmods",
+> +							    i, &p);
+> +			if (res)
+> +				continue;
+> +
+>  			if (!strcmp(p, oh->name))
+>  				return np0;
+>  			np1 =3D of_dev_hwmod_lookup(np0, oh);
 
-Signed-off-by: Felipe Balbi <balbi@ti.com>
----
- arch/arm/mach-omap2/irq.c | 25 +++++++++++++------------
- 1 file changed, 13 insertions(+), 12 deletions(-)
+Hmm I think this also needs part two to it to populate the right IO spa=
+ce
+based on the index, this probably now wrongly populates the first IO sp=
+ace
+for all the hwmod instances in the group.
 
-diff --git a/arch/arm/mach-omap2/irq.c b/arch/arm/mach-omap2/irq.c
-index 5d4e883..a411ed4 100644
---- a/arch/arm/mach-omap2/irq.c
-+++ b/arch/arm/mach-omap2/irq.c
-@@ -207,8 +207,7 @@ omap_alloc_gc(void __iomem *base, unsigned int irq_start, unsigned int num)
- 				IRQ_NOREQUEST | IRQ_NOPROBE, 0);
- }
- 
--static void __init omap_init_irq(u32 base, int nr_irqs,
--				 struct device_node *node)
-+static void __init omap_init_irq(u32 base, struct device_node *node)
- {
- 	int j, irq_base;
- 
-@@ -216,15 +215,13 @@ static void __init omap_init_irq(u32 base, int nr_irqs,
- 	if (WARN_ON(!omap_irq_base))
- 		return;
- 
--	omap_nr_irqs = nr_irqs;
--
--	irq_base = irq_alloc_descs(-1, 0, nr_irqs, 0);
-+	irq_base = irq_alloc_descs(-1, 0, omap_nr_irqs, 0);
- 	if (irq_base < 0) {
- 		pr_warn("Couldn't allocate IRQ numbers\n");
- 		irq_base = 0;
- 	}
- 
--	domain = irq_domain_add_legacy(node, nr_irqs, irq_base, 0,
-+	domain = irq_domain_add_legacy(node, omap_nr_irqs, irq_base, 0,
- 			&irq_domain_simple_ops, NULL);
- 
- 	omap_irq_soft_reset();
-@@ -270,19 +267,22 @@ out:
- 
- void __init omap2_init_irq(void)
- {
--	omap_init_irq(OMAP24XX_IC_BASE, 96, NULL);
-+	omap_nr_irqs = 96;
-+	omap_init_irq(OMAP24XX_IC_BASE, NULL);
- 	set_handle_irq(omap_intc_handle_irq);
- }
- 
- void __init omap3_init_irq(void)
- {
--	omap_init_irq(OMAP34XX_IC_BASE, 96, NULL);
-+	omap_nr_irqs = 96;
-+	omap_init_irq(OMAP34XX_IC_BASE, NULL);
- 	set_handle_irq(omap_intc_handle_irq);
- }
- 
- void __init ti81xx_init_irq(void)
- {
--	omap_init_irq(OMAP34XX_IC_BASE, 128, NULL);
-+	omap_nr_irqs = 96;
-+	omap_init_irq(OMAP34XX_IC_BASE, NULL);
- 	set_handle_irq(omap_intc_handle_irq);
- }
- 
-@@ -290,7 +290,8 @@ static int __init intc_of_init(struct device_node *node,
- 			     struct device_node *parent)
- {
- 	struct resource res;
--	u32 nr_irq = 96;
-+
-+	omap_nr_irqs = 96;
- 
- 	if (WARN_ON(!node))
- 		return -ENODEV;
-@@ -301,9 +302,9 @@ static int __init intc_of_init(struct device_node *node,
- 	}
- 
- 	if (of_device_is_compatible(node, "ti,am33xx-intc"))
--		nr_irq = 128;
-+		omap_nr_irqs = 128;
- 
--	omap_init_irq(res.start, nr_irq, of_node_get(node));
-+	omap_init_irq(res.start, of_node_get(node));
- 
- 	set_handle_irq(omap_intc_handle_irq);
- 
--- 
-1.8.4.GIT
+Regards,
 
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
