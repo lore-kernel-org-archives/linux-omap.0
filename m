@@ -1,72 +1,78 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: commit c368e5fc2a190923b786f2de3e79430ea3566a25 regresses MMC
-Date: Wed, 20 Nov 2013 14:51:43 -0600
-Message-ID: <20131120205143.GA9182@saruman.home>
-References: <20131120175814.GC27423@saruman.home>
- <20131120203400.GL2674@sirena.org.uk>
-Reply-To: <balbi@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] ARM: OMAP2+: Fix populating the hwmod data from device
+ tree
+Date: Wed, 20 Nov 2013 21:58:38 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1311202148160.30143@utopia.booyaka.com>
+References: <20131120025620.GF10317@atomide.com> <20131120181255.GG10317@atomide.com> <20131120192209.GI10317@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="sm4nu43k4a2Rpi4c"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:59746 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755027Ab3KTUwM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Nov 2013 15:52:12 -0500
-Content-Disposition: inline
-In-Reply-To: <20131120203400.GL2674@sirena.org.uk>
+Received: from utopia.booyaka.com ([74.50.51.50]:43153 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755141Ab3KTV6j (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Nov 2013 16:58:39 -0500
+In-Reply-To: <20131120192209.GI10317@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: Felipe Balbi <balbi@ti.com>, ldewangan@nvidia.com, lgirdwood@gmail.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, =?ISO-8859-15?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>
 
---sm4nu43k4a2Rpi4c
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Wed, 20 Nov 2013, Tony Lindgren wrote:
 
-Hi,
+> * Tony Lindgren <tony@atomide.com> [131120 10:13]:
+> > * Tony Lindgren <tony@atomide.com> [131119 18:57]:
+> > > We have some device tree properties where the ti,hwmod has multiple
+> > > values:
+> > > 
+> > > am33xx.dtsi:	ti,hwmods = "tpcc", "tptc0", "tptc1", "tptc2";
+> > > am4372.dtsi:	ti,hwmods = "tpcc", "tptc0", "tptc1", "tptc2";
+> 
+> I think these should be defined in the .dtsi files as separate devices
+> and removed from the related omap_hwmod_*_data.c files.
+> 
+> > > dra7.dtsi:	ti,hwmods = "l3_main_1", "l3_main_2";
+> 
+> These too should be defined in the .dtsi file. Looks like we're missing
+> the related data in the omap_hwmod_7xx_data.c file anyways?
+> 
+> > > omap3.dtsi:	ti,hwmods = "mcbsp2", "mcbsp2_sidetone";
+> > > omap3.dtsi:	ti,hwmods = "mcbsp3", "mcbsp3_sidetone";
+> 
+> OK the sidetone data we can probably parse using the ti,hwmods as
+> an index.
+> 
+> > > omap4.dtsi:	ti,hwmods = "l3_main_1", "l3_main_2", "l3_main_3";
+> > > omap5.dtsi:	ti,hwmods = "l3_main_1", "l3_main_2", "l3_main_3";
+> 
+> Benoit, I guess these mean that those devices should be created
+> dynamically, right?
+> 
+> Yet we've removed the related data in commit 3b9b10 and are not
+> passing it in the .dtsi file?
+> 
+> So these should be created as separate devices in the .dtsi file
+> instead AFAIK.
+> 
+> > Hmm I think this also needs part two to it to populate the right IO space
+> > based on the index, this probably now wrongly populates the first IO space
+> > for all the hwmod instances in the group.
+> 
+> Yeah this patch clearly is not the right fix to the problem of
+> missing data.
 
-On Wed, Nov 20, 2013 at 08:34:00PM +0000, Mark Brown wrote:
-> On Wed, Nov 20, 2013 at 11:58:14AM -0600, Felipe Balbi wrote:
->=20
-> > commit c368e5fc2a190923b786f2de3e79430ea3566a25 (regulator: fixed: get
-> > rid of {get|list}_voltage()) regresses any MMC host controller which
-> > uses fixed regulator for functionality.
->=20
-> This is already fixed in -next.  Please remember to always CC
-> maintainers on mails and please try to write subject lines which are
+In most of the cases with multiple hwmods per DT device, there's probably 
+something wrong with the data.  So we should try to remove those when 
+possible.
 
-that's why Liam and Laxman are in Cc. Looks like only you were missed.
+For example if you look at the SIDETONE blocks, those should definitely be 
+separate DT devices - they have separate address spaces, SYSCONFIG 
+registers, etc. (section 21.6.2 "SIDETONE register mapping summary", 
+OMAP36xx TRM)
 
-> readable by humans - full SHA1s for commits that obscure any actual
-> content don't help.
+Would strongly suspect that's the case also for the EDMA blocks you 
+mention.
 
-right...
+Am not 100% sure about the L3 cases; would have to dig deeper.
 
---=20
-balbi
 
---sm4nu43k4a2Rpi4c
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.15 (GNU/Linux)
-
-iQIcBAEBAgAGBQJSjSDfAAoJEIaOsuA1yqRE4JEP/0FfCWkqAtbMR7sV/GuNs/XS
-eFjqZ8kliLz9DREw78maw/njTgZj3aA3kmK5Psm/4R3UGHb8UxNIMXPLzXUWIn/e
-ymSPBJ5u8OsOb26kTqkhdYBMRGPq3WcoZ46W4UnzWswGAAFZwfWzGKWUyJp4di+Y
-4z+waSMcWIMmhNWky9WzHCQJ/pmSbEi3BBkLS28JyASU2hH7nRM2z1TxrzaH7IV7
-74oWE/SnAdoZyT4LRq0USFkEIx2mmf+q4Vp5ySaXJn6WaBU6d42IpeX4coft9vm5
-z5WrmhhjQm4ZC5ajE94NhGbLmx4VbCybGeXyfsf0iTEOb3rxj6k2iNLF8xkwue85
-xtONcEwf+RY+bEPL2gkQs6WUwDsUnYhZxyjr8gLFlqA9fTSA31Axfh3b6D9NB/I/
-KdIK0RJqagRw1QGZs6ReCdwXngftb8coSwG3ABIrpyFnopo6uM/OCddn3VYVKOHF
-lKl5Ha/9IGwmaBr26FgQzynCTQfxjuYbwoZPQVsugWgFU8xtRFLpe/SBwFfKjJVx
-lST3Zw7XZ1MheQtTod6naEsrsuDwabS9IDg+4+FcsHBUCqRbcqM0/yG4Qa4xGWTA
-mMKceyVK8m155OTlEavB2h7awNXhRWmGBXhXZnnpsTAL3rY7+U3vWJ+mgcaeiym0
-eCO9sEUYBSTbIwTXYiQf
-=0yj3
------END PGP SIGNATURE-----
-
---sm4nu43k4a2Rpi4c--
+- Paul
