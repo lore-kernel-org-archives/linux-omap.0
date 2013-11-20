@@ -1,86 +1,89 @@
 From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Subject: [PATCH v2 06/11] ARM: dts: AM33XX BASE0033: add pinmux and hdmi node to enable display
-Date: Wed, 20 Nov 2013 02:06:10 +0100
-Message-ID: <1384909575-19108-7-git-send-email-javier.martinez@collabora.co.uk>
+Subject: [PATCH v2 05/11] ARM: dts: omap3-igep0020: Add pinmuxing for DVI output
+Date: Wed, 20 Nov 2013 02:06:09 +0100
+Message-ID: <1384909575-19108-6-git-send-email-javier.martinez@collabora.co.uk>
 References: <1384909575-19108-1-git-send-email-javier.martinez@collabora.co.uk>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([93.93.135.160]:34731 "EHLO
+Received: from bhuna.collabora.co.uk ([93.93.135.160]:34725 "EHLO
 	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752720Ab3KTBHi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Nov 2013 20:07:38 -0500
+	with ESMTP id S1752211Ab3KTBHh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Nov 2013 20:07:37 -0500
 In-Reply-To: <1384909575-19108-1-git-send-email-javier.martinez@collabora.co.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: Enric Balletbo i Serra <eballetbo@gmail.com>, bcousson@baylibre.com, tomi.valkeinen@ti.com, Sebastian Reichel <sre@ring0.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Enric Balletbo i Serra <eballetbo@gmail.com>, bcousson@baylibre.com, tomi.valkeinen@ti.com, Sebastian Reichel <sre@ring0.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Javier Martinez Canillas <javier.martinez@collabora.co.uk>
 
-From: Enric Balletbo i Serra <eballetbo@gmail.com>
+The IGEPv2 has a TFP410 DPI-to-DVI encoder attached to OMAP's
+Display SubSystem (DSS).
 
-Enable the hdmi output and the LCD Controller on IGEP AQUILA. Also
-configure the correct pinmux for output of video data from the SoC
-to the HDMI encoder.
+Add mux setup for DSS pins and also for the GPIO 170 pin that
+is used to ensure that the DVI-D is powered down on power up.
 
-Signed-off-by: Enric Balletbo i Serra <eballetbo@gmail.com>
+Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
 ---
- arch/arm/boot/dts/am335x-base0033.dts | 47 +++++++++++++++++++++++++++++++++++
- 1 file changed, 47 insertions(+)
+ arch/arm/boot/dts/omap3-igep0020.dts | 41 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 41 insertions(+)
 
-diff --git a/arch/arm/boot/dts/am335x-base0033.dts b/arch/arm/boot/dts/am335x-base0033.dts
-index b4f95c2..3a97613 100644
---- a/arch/arm/boot/dts/am335x-base0033.dts
-+++ b/arch/arm/boot/dts/am335x-base0033.dts
-@@ -13,4 +13,51 @@
- / {
- 	model = "IGEP COM AM335x on AQUILA Expansion";
- 	compatible = "isee,am335x-base0033", "isee,am335x-igep0033", "ti,am33xx";
+diff --git a/arch/arm/boot/dts/omap3-igep0020.dts b/arch/arm/boot/dts/omap3-igep0020.dts
+index 33ce123..b9a9e17 100644
+--- a/arch/arm/boot/dts/omap3-igep0020.dts
++++ b/arch/arm/boot/dts/omap3-igep0020.dts
+@@ -67,6 +67,8 @@
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <
+ 		&hsusbb1_pins
++		&tfp410_pins
++		&dss_pins
+ 	>;
+ 
+ 	hsusbb1_pins: pinmux_hsusbb1_pins {
+@@ -85,6 +87,45 @@
+ 			0x5ba (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d7.hsusb1_data3 */
+ 		>;
+ 	};
 +
-+	hdmi {
-+		compatible = "ti,tilcdc,slave";
-+		i2c = <&i2c0>;
-+		pinctrl-names = "default", "off";
-+		pinctrl-0 = <&nxp_hdmi_pins>;
-+		pinctrl-1 = <&nxp_hdmi_off_pins>;
-+		status = "okay";
-+	};
-+};
-+
-+&am33xx_pinmux {
-+	nxp_hdmi_pins: pinmux_nxp_hdmi_pins {
++	tfp410_pins: tfp410_dvi_pins {
 +		pinctrl-single,pins = <
-+			0x1b0 (PIN_OUTPUT | MUX_MODE3)	/* xdma_event_intr0.clkout1 */
-+			0xa0 (PIN_OUTPUT | MUX_MODE0)	/* lcd_data0 */
-+			0xa4 (PIN_OUTPUT | MUX_MODE0)	/* lcd_data1 */
-+			0xa8 (PIN_OUTPUT | MUX_MODE0)	/* lcd_data2 */
-+			0xac (PIN_OUTPUT | MUX_MODE0)	/* lcd_data3 */
-+			0xb0 (PIN_OUTPUT | MUX_MODE0)	/* lcd_data4 */
-+			0xb4 (PIN_OUTPUT | MUX_MODE0)	/* lcd_data5 */
-+			0xb8 (PIN_OUTPUT | MUX_MODE0)	/* lcd_data6 */
-+			0xbc (PIN_OUTPUT | MUX_MODE0)	/* lcd_data7 */
-+			0xc0 (PIN_OUTPUT | MUX_MODE0)	/* lcd_data8 */
-+			0xc4 (PIN_OUTPUT | MUX_MODE0)	/* lcd_data9 */
-+			0xc8 (PIN_OUTPUT | MUX_MODE0)	/* lcd_data10 */
-+			0xcc (PIN_OUTPUT | MUX_MODE0)	/* lcd_data11 */
-+			0xd0 (PIN_OUTPUT | MUX_MODE0)	/* lcd_data12 */
-+			0xd4 (PIN_OUTPUT | MUX_MODE0)	/* lcd_data13 */
-+			0xd8 (PIN_OUTPUT | MUX_MODE0)	/* lcd_data14 */
-+			0xdc (PIN_OUTPUT | MUX_MODE0)	/* lcd_data15 */
-+			0xe0 (PIN_OUTPUT | MUX_MODE0)	/* lcd_vsync */
-+			0xe4 (PIN_OUTPUT | MUX_MODE0)	/* lcd_hsync */
-+			0xe8 (PIN_OUTPUT | MUX_MODE0)	/* lcd_pclk */
-+			0xec (PIN_OUTPUT | MUX_MODE0)	/* lcd_ac_bias_en */
++			0x196 (PIN_OUTPUT | MUX_MODE4)   /* hdq_sio.gpio_170 */
 +		>;
 +	};
-+	nxp_hdmi_off_pins: pinmux_nxp_hdmi_off_pins {
++
++	dss_pins: pinmux_dss_dvi_pins {
 +		pinctrl-single,pins = <
-+			0x1b0 (PIN_OUTPUT | MUX_MODE3)	/* xdma_event_intr0.clkout1 */
++			0x0a4 (PIN_OUTPUT | MUX_MODE0)   /* dss_pclk.dss_pclk */
++			0x0a6 (PIN_OUTPUT | MUX_MODE0)   /* dss_hsync.dss_hsync */
++			0x0a8 (PIN_OUTPUT | MUX_MODE0)   /* dss_vsync.dss_vsync */
++			0x0aa (PIN_OUTPUT | MUX_MODE0)   /* dss_acbias.dss_acbias */
++			0x0ac (PIN_OUTPUT | MUX_MODE0)   /* dss_data0.dss_data0 */
++			0x0ae (PIN_OUTPUT | MUX_MODE0)   /* dss_data1.dss_data1 */
++			0x0b0 (PIN_OUTPUT | MUX_MODE0)   /* dss_data2.dss_data2 */
++			0x0b2 (PIN_OUTPUT | MUX_MODE0)   /* dss_data3.dss_data3 */
++			0x0b4 (PIN_OUTPUT | MUX_MODE0)   /* dss_data4.dss_data4 */
++			0x0b6 (PIN_OUTPUT | MUX_MODE0)   /* dss_data5.dss_data5 */
++			0x0b8 (PIN_OUTPUT | MUX_MODE0)   /* dss_data6.dss_data6 */
++			0x0ba (PIN_OUTPUT | MUX_MODE0)   /* dss_data7.dss_data7 */
++			0x0bc (PIN_OUTPUT | MUX_MODE0)   /* dss_data8.dss_data8 */
++			0x0be (PIN_OUTPUT | MUX_MODE0)   /* dss_data9.dss_data9 */
++			0x0c0 (PIN_OUTPUT | MUX_MODE0)   /* dss_data10.dss_data10 */
++			0x0c2 (PIN_OUTPUT | MUX_MODE0)   /* dss_data11.dss_data11 */
++			0x0c4 (PIN_OUTPUT | MUX_MODE0)   /* dss_data12.dss_data12 */
++			0x0c6 (PIN_OUTPUT | MUX_MODE0)   /* dss_data13.dss_data13 */
++			0x0c8 (PIN_OUTPUT | MUX_MODE0)   /* dss_data14.dss_data14 */
++			0x0ca (PIN_OUTPUT | MUX_MODE0)   /* dss_data15.dss_data15 */
++			0x0cc (PIN_OUTPUT | MUX_MODE0)   /* dss_data16.dss_data16 */
++			0x0ce (PIN_OUTPUT | MUX_MODE0)   /* dss_data17.dss_data17 */
++			0x0d0 (PIN_OUTPUT | MUX_MODE0)   /* dss_data18.dss_data18 */
++			0x0d2 (PIN_OUTPUT | MUX_MODE0)   /* dss_data19.dss_data19 */
++			0x0d4 (PIN_OUTPUT | MUX_MODE0)   /* dss_data20.dss_data20 */
++			0x0d6 (PIN_OUTPUT | MUX_MODE0)   /* dss_data21.dss_data21 */
++			0x0d8 (PIN_OUTPUT | MUX_MODE0)   /* dss_data22.dss_data22 */
++			0x0da (PIN_OUTPUT | MUX_MODE0)   /* dss_data23.dss_data23 */
 +		>;
 +	};
  };
-+
-+&lcdc {
-+	status = "okay";
-+};
-+
+ 
+ &leds_pins {
 -- 
 1.8.4.2
 
