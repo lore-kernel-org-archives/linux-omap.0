@@ -1,62 +1,24 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: AM335x board with disabled RTC crashes
-Date: Wed, 20 Nov 2013 08:22:59 -0600
-Message-ID: <528CC5C3.2010905@ti.com>
-References: <528CC4CB.4000609@gmail.com>
+From: Rob Herring <robherring2@gmail.com>
+Subject: Re: [PATCH V2 2/2] ARM: dts: doc: Document missing binding for
+ ti-sdma controller
+Date: Wed, 20 Nov 2013 08:24:21 -0600
+Message-ID: <CAL_Jsq+vbonbLga3idXS_NKBq1OXLqwJXpin97Y4dEag7vYBUg@mail.gmail.com>
+References: <1384185976-17822-1-git-send-email-r.sricharan@ti.com>
+	<1384185976-17822-2-git-send-email-r.sricharan@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:38989 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751409Ab3KTOXC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 20 Nov 2013 09:23:02 -0500
-In-Reply-To: <528CC4CB.4000609@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <1384185976-17822-2-git-send-email-r.sricharan@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Sricharan R <r.sricharan@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, linux-doc@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Benoit Cousson <bcousson@baylibre.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Stefan Roese <stefan.roese@gmail.com>, linux-omap <linux-omap@vger.kernel.org>
-Cc: Tony Lindgren <tony@atomide.com>
 
-On 11/20/2013 08:18 AM, Stefan Roese wrote:
-> Hi!
-> 
-> I'm currently working on a custom AM335x based board, where the SoC
-> RTC is disabled. As described in this page in the "RTC feature disabled"
-> column:
-> 
-> http://processors.wiki.ti.com/index.php/AM335x_Schematic_Checklist#RTC
-> 
-> On this board the registers of the RTC are not accessible. But the OMAP
-> hwmod code tries to read the sysc register unconditionally from the RTC.
-> And this leads to this crash (using v3.12):
-> 
-> ...
-> [    0.179491] CPU: Testing write buffer coherency: ok
-> [    0.187702] Setting up static identity map for 0xc04dfa90 - 0xc04dfb00
-> [    0.204665] devtmpfs: initialized
-> [    0.219513] VFP support v0.3: implementor 41 architecture 3 part 30 variant c rev 3
-> [    0.237462] *** _update_sysc_cache (263): name=emif
-> [    0.246247] omap_hwmod: debugss: _wait_target_disable failed
-> [    0.252290] *** _update_sysc_cache (263): name=uart1
-> [    0.257668] *** _update_sysc_cache (263): name=rtc
-> [    0.262885] Unhandled fault: external abort on non-linefetch (0x1028) at 0xf9e3e078
-> [    0.270893] Internal error: : 1028 [#1] ARM
-> [    0.275302] Modules linked in:
-> [    0.278572] CPU: 0 PID: 1 Comm: swapper Not tainted 3.12.0-dirty #21
-> [    0.285222] task: c7047340 ti: c7048000 task.ti: c7048000
-> [    0.290909] PC is at _update_sysc_cache+0x44/0xb0
-> [    0.295861] LR is at _update_sysc_cache+0x1c/0xb0
-> ...
-> 
-> Disabling the RTC in the DT doesn't help (of course). So what's the
-> recommended way to disable this hwmod access to the RTC registers?
+On Mon, Nov 11, 2013 at 10:06 AM, Sricharan R <r.sricharan@ti.com> wrote:
+> The binding and support for system DMA module present in OMAP2+ Socs
+> and DRA7 with dma-engine is already present. So adding the missing
+> documentation for the same.
+>
+> Signed-off-by: Sricharan R <r.sricharan@ti.com>
 
-
-http://www.spinics.net/lists/linux-omap/msg98207.html
-might help you - we had thought it might get queued for 3.12, but it
-was queued for 3.13 instead..
-
-
--- 
-Regards,
-Nishanth Menon
+Acked-by: Rob Herring <rob.herring@calxeda.com>
