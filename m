@@ -1,55 +1,72 @@
-From: Mark Brown <broonie@kernel.org>
+From: Felipe Balbi <balbi@ti.com>
 Subject: Re: commit c368e5fc2a190923b786f2de3e79430ea3566a25 regresses MMC
-Date: Wed, 20 Nov 2013 20:34:00 +0000
-Message-ID: <20131120203400.GL2674@sirena.org.uk>
+Date: Wed, 20 Nov 2013 14:51:43 -0600
+Message-ID: <20131120205143.GA9182@saruman.home>
 References: <20131120175814.GC27423@saruman.home>
+ <20131120203400.GL2674@sirena.org.uk>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="BOHdEyqYAbgZNeC0"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+	protocol="application/pgp-signature"; boundary="sm4nu43k4a2Rpi4c"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:59746 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755027Ab3KTUwM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Nov 2013 15:52:12 -0500
 Content-Disposition: inline
-In-Reply-To: <20131120175814.GC27423@saruman.home>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: ldewangan@nvidia.com, lgirdwood@gmail.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+In-Reply-To: <20131120203400.GL2674@sirena.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Mark Brown <broonie@kernel.org>
+Cc: Felipe Balbi <balbi@ti.com>, ldewangan@nvidia.com, lgirdwood@gmail.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-
---BOHdEyqYAbgZNeC0
+--sm4nu43k4a2Rpi4c
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Wed, Nov 20, 2013 at 11:58:14AM -0600, Felipe Balbi wrote:
+Hi,
 
-> commit c368e5fc2a190923b786f2de3e79430ea3566a25 (regulator: fixed: get
-> rid of {get|list}_voltage()) regresses any MMC host controller which
-> uses fixed regulator for functionality.
+On Wed, Nov 20, 2013 at 08:34:00PM +0000, Mark Brown wrote:
+> On Wed, Nov 20, 2013 at 11:58:14AM -0600, Felipe Balbi wrote:
+>=20
+> > commit c368e5fc2a190923b786f2de3e79430ea3566a25 (regulator: fixed: get
+> > rid of {get|list}_voltage()) regresses any MMC host controller which
+> > uses fixed regulator for functionality.
+>=20
+> This is already fixed in -next.  Please remember to always CC
+> maintainers on mails and please try to write subject lines which are
 
-This is already fixed in -next.  Please remember to always CC
-maintainers on mails and please try to write subject lines which are
-readable by humans - full SHA1s for commits that obscure any actual
-content don't help.
+that's why Liam and Laxman are in Cc. Looks like only you were missed.
 
---BOHdEyqYAbgZNeC0
+> readable by humans - full SHA1s for commits that obscure any actual
+> content don't help.
+
+right...
+
+--=20
+balbi
+
+--sm4nu43k4a2Rpi4c
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
+Version: GnuPG v1.4.15 (GNU/Linux)
 
-iQIcBAEBAgAGBQJSjRy1AAoJELSic+t+oim9oVoP/0lfe126LNuvhEwFW1mvHlm3
-VoO7QFg6lP2OHzgMx7rfvCeFspVumerWIvMFqyGFd8zZdcN1sYN/BVJqg0YUbx1q
-ZBQ0FLMTkc0S0c8BPifI+U8T4wTeiYyjrB9AjkOx+xRymR6E9sMjgoLkqm7sB9oe
-bpv1FGzu8CzSoEdfm6mfKyhwnIAxHT+mMTCLA1wiC0gUXbYJrDibn1mYaiTamFjQ
-4P+cttDpT5AeAwOIBu8sFnAbChB3bLGzTyhu9WkI5maY6RhemsKrWu0n95gP83jo
-35AgciUQNdRVwXti2HpE3eEIZASF9uuBwIzBBCJmzU3IE8wccnjQ7z5BG/iAhoGC
-h+4B+byBTk8GxrYpi2ka4yxsW03IDaV1/K1xbH6QgKmGwk+Vo0gzf68+lTOdB64l
-gLya//KndYHOM3I6b2HSkBzYuPgvOThrYujJ7LoBNZJeEn4w2cLJNEE5qkgas6uv
-rjYSgTk1Ct7XuoSF7/NGxSGZ+MmUfsxSJVcj0UXstplCUoZrSzw36N88A1GlGGN+
-Pqnygc/rtLyCSSudv8C2RmMCxHRaUIBXY+N1OO/Dq0dyDWsdnc7kqo7aElTNeC/2
-xQov1AiNfBOOjtp0C+jpjh0zQvYNk3zAfJgdm8P/T72adMI/QhqRg6KQpwOowgUH
-JAsZlWsGYlpy3ev/1kh3
-=Qmyd
+iQIcBAEBAgAGBQJSjSDfAAoJEIaOsuA1yqRE4JEP/0FfCWkqAtbMR7sV/GuNs/XS
+eFjqZ8kliLz9DREw78maw/njTgZj3aA3kmK5Psm/4R3UGHb8UxNIMXPLzXUWIn/e
+ymSPBJ5u8OsOb26kTqkhdYBMRGPq3WcoZ46W4UnzWswGAAFZwfWzGKWUyJp4di+Y
+4z+waSMcWIMmhNWky9WzHCQJ/pmSbEi3BBkLS28JyASU2hH7nRM2z1TxrzaH7IV7
+74oWE/SnAdoZyT4LRq0USFkEIx2mmf+q4Vp5ySaXJn6WaBU6d42IpeX4coft9vm5
+z5WrmhhjQm4ZC5ajE94NhGbLmx4VbCybGeXyfsf0iTEOb3rxj6k2iNLF8xkwue85
+xtONcEwf+RY+bEPL2gkQs6WUwDsUnYhZxyjr8gLFlqA9fTSA31Axfh3b6D9NB/I/
+KdIK0RJqagRw1QGZs6ReCdwXngftb8coSwG3ABIrpyFnopo6uM/OCddn3VYVKOHF
+lKl5Ha/9IGwmaBr26FgQzynCTQfxjuYbwoZPQVsugWgFU8xtRFLpe/SBwFfKjJVx
+lST3Zw7XZ1MheQtTod6naEsrsuDwabS9IDg+4+FcsHBUCqRbcqM0/yG4Qa4xGWTA
+mMKceyVK8m155OTlEavB2h7awNXhRWmGBXhXZnnpsTAL3rY7+U3vWJ+mgcaeiym0
+eCO9sEUYBSTbIwTXYiQf
+=0yj3
 -----END PGP SIGNATURE-----
 
---BOHdEyqYAbgZNeC0--
+--sm4nu43k4a2Rpi4c--
