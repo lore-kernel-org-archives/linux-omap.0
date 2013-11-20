@@ -1,63 +1,63 @@
-From: Jean-Francois Moine <moinejf@free.fr>
+From: Mark Brown <broonie@kernel.org>
 Subject: Re: [PATCH RFC 4/9] ASoC: hdmi-codec: Add devicetree binding with
  documentation
-Date: Wed, 20 Nov 2013 10:23:42 +0100
-Message-ID: <20131120102342.7befe75e@armhf>
+Date: Wed, 20 Nov 2013 10:09:59 +0000
+Message-ID: <20131120100959.GV2674@sirena.org.uk>
 References: <cover.1384862950.git.jsarha@ti.com>
-	<829968f1a6b34176de8a04dd4ad473b2b37be783.1384862950.git.jsarha@ti.com>
+ <829968f1a6b34176de8a04dd4ad473b2b37be783.1384862950.git.jsarha@ti.com>
+ <20131120102342.7befe75e@armhf>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="4jz2RIiWkXBLiaBi"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp2-g21.free.fr ([212.27.42.2]:51780 "EHLO smtp2-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750834Ab3KTJVu convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Nov 2013 04:21:50 -0500
-In-Reply-To: <829968f1a6b34176de8a04dd4ad473b2b37be783.1384862950.git.jsarha@ti.com>
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:53627 "EHLO
+	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750858Ab3KTKKY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Nov 2013 05:10:24 -0500
+Content-Disposition: inline
+In-Reply-To: <20131120102342.7befe75e@armhf>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jyri Sarha <jsarha@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, dri-devel@lists.freedesktop.org, peter.ujfalusi@ti.com, broonie@kernel.org
+To: Jean-Francois Moine <moinejf@free.fr>
+Cc: Jyri Sarha <jsarha@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, dri-devel@lists.freedesktop.org, peter.ujfalusi@ti.com
 
-On Tue, 19 Nov 2013 14:12:24 +0200
-Jyri Sarha <jsarha@ti.com> wrote:
 
-> Signed-off-by: Jyri Sarha <jsarha@ti.com>
-> ---
->  Documentation/devicetree/bindings/sound/hdmi.txt |   17 ++++++++++++=
-+++++
->  sound/soc/codecs/hdmi.c                          |   10 ++++++++++
->  2 files changed, 27 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/sound/hdmi.txt
-	[snip]
+--4jz2RIiWkXBLiaBi
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-A couple of months ago, I proposed a 'generic DT based simple
-codec' (http://www.spinics.net/lists/arm-kernel/msg274322.html) which
-was supposed to replace all of the `empty` codecs in a DT context.
-These codecs do nothing except defining some audio parameters.
-They are mainly spdif tx/rx, hdmi, bt-sco, dmic, wm8727 and wm8782.
+On Wed, Nov 20, 2013 at 10:23:42AM +0100, Jean-Francois Moine wrote:
 
-This generic codec would have been used for the tda998x which is the
-HDMI transmitter of the Cubox. But, as its utility was not clear yet,
-I switched to the 'spdif transmitter' codec which has DT support. This
-last codec works fine without change, with either i2s or spdif input in
-the tda998x. It is well suited to the Cubox because the Marvell Armada
-510 audio subsystem does not support sound recording (nor does the
-tda998x while the 'hdmi' code provides recording), and also because it
-supports a wider range of rates than the 'hdmi'codec (I have no problem
-with 22.05kHz audio).
+> But now, I am wondering again about these `empty`codecs:
+> - in a DT context, should we continue to add / modify such codecs?
+> - what do you think about my generic DT codec? (indeed, I would do a new
+>   version according to the previous remarks)
 
-But now, I am wondering again about these `empty`codecs:
-- in a DT context, should we continue to add / modify such codecs?
-- what do you think about my generic DT codec? (indeed, I would do a ne=
-w
-  version according to the previous remarks)
+We still want to be able to have users just name the CODEC on their
+board rather than have to type in all the details from the datasheet,
+if we're going to try to amalgamate the drivers it should still let
+people do that.
 
---=20
-Ken ar c'henta=C3=B1	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--4jz2RIiWkXBLiaBi
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
+
+iQIcBAEBAgAGBQJSjIpzAAoJELSic+t+oim9h14QAJW/PVQUKOznoNKVXTdu9DEw
+UBS/UDjc3gg+VzXYHeJG5+mdUJjwXe3LD0MXI0vXNla4VPgRy+wSJA6xWX3UFs9J
+mSfb/gbuayMM9i2qRmm86CaM9TluKEunhGacZ5BCs6dwzfJrVgM80Il0ESkK76BY
+/vY6Lcn0WtGEgojNskmbGGR3NirRnkemNcs6Jz8elK5pVblqwYX8vQEi+Lja/veN
+pXEXZH7IWdWuzfNZce/vU3LFCyJI9g/tifssdQYrK30F+IELj/gATCIMCDTqAHJ3
+jD3DUs98eZ4wWkugXDrNhi9U9cE7ihPiJanHBz+WkefbRLL5985fi/pCLlv5SKuY
+N6/23Mh4I+f/ETbnJPYHDbyBx78ARFz7bD60TLAlyOMkUezt+aZXH1480bEuZGSL
+Nxd3KNjO2xEWJuwJlkdQS35GprX0lWj3x9SLAEVOKt86LgZyhx0muiYOgN11l3O6
+YMpUFVCrxm0BMR11benOv/qvvKNMDg8Gvbgzul1DKOfQLlhFJQx0UULMYDqYm6r2
+okbWAP7uwJT4JTkcSgDYs3590yNvq5eYGlSpjesoOXK+EfL1wdG0kWU6XB4YnnYf
+hnknEEh+wlJ3kgWrMqYzSFqaif7byTNcC21fqy6HhcTMsNMusN3F4vTIfqwChkXP
+FxFxyUmknSa7dkpjiRys
+=h209
+-----END PGP SIGNATURE-----
+
+--4jz2RIiWkXBLiaBi--
