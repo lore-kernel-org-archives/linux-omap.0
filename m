@@ -1,24 +1,43 @@
-From: Rob Herring <robherring2@gmail.com>
-Subject: Re: [PATCH V2 2/2] ARM: dts: doc: Document missing binding for
- ti-sdma controller
-Date: Wed, 20 Nov 2013 08:24:21 -0600
-Message-ID: <CAL_Jsq+vbonbLga3idXS_NKBq1OXLqwJXpin97Y4dEag7vYBUg@mail.gmail.com>
-References: <1384185976-17822-1-git-send-email-r.sricharan@ti.com>
-	<1384185976-17822-2-git-send-email-r.sricharan@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <1384185976-17822-2-git-send-email-r.sricharan@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Sricharan R <r.sricharan@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, linux-doc@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Benoit Cousson <bcousson@baylibre.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+From: Wolfram Sang <wsa@the-dreams.de>
+Subject: [RFC] mtd: gpmc: add BCH support for plain AM335x
+Date: Wed, 20 Nov 2013 18:39:12 +0100
+Message-ID: <1384969152-10411-1-git-send-email-wsa@the-dreams.de>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from sauhun.de ([89.238.76.85]:42790 "EHLO pokefinder.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753915Ab3KTRjh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 20 Nov 2013 12:39:37 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-mtd@lists.infradead.org
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Wolfram Sang <wsa@the-dreams.de>
 
-On Mon, Nov 11, 2013 at 10:06 AM, Sricharan R <r.sricharan@ti.com> wrote:
-> The binding and support for system DMA module present in OMAP2+ Socs
-> and DRA7 with dma-engine is already present. So adding the missing
-> documentation for the same.
->
-> Signed-off-by: Sricharan R <r.sricharan@ti.com>
+When building a kernel without OMAP3 support but only AM335x, we can't
+activate the needed MTD_NAND_OMAP_BCH symbol.
 
-Acked-by: Rob Herring <rob.herring@calxeda.com>
+Signed-off-by: Wolfram Sang <wsa@the-dreams.de>
+---
+
+Actually, I wonder if this is fix will scale. Maybe someone with more insight
+about TI SoCs could find a better expression of supported SoCs. This is the
+only one I could test .
+
+ drivers/mtd/nand/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/mtd/nand/Kconfig b/drivers/mtd/nand/Kconfig
+index 93ae6a6..f9455e4 100644
+--- a/drivers/mtd/nand/Kconfig
++++ b/drivers/mtd/nand/Kconfig
+@@ -95,7 +95,7 @@ config MTD_NAND_OMAP2
+ 	  platforms.
+ 
+ config MTD_NAND_OMAP_BCH
+-	depends on MTD_NAND && MTD_NAND_OMAP2 && ARCH_OMAP3
++	depends on MTD_NAND && MTD_NAND_OMAP2 && (ARCH_OMAP3 || SOC_AM33XX)
+ 	tristate "Support hardware based BCH error correction"
+ 	default n
+ 	select BCH
+-- 
+1.8.4.2
+
