@@ -1,56 +1,76 @@
-From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-Subject: Re: [PATCH] usb: phy: am335x: Prevent GPIO reset line request
-Date: Thu, 21 Nov 2013 08:55:20 -0300
-Message-ID: <20131121115519.GC2942@localhost>
-References: <1384984714-19860-1-git-send-email-ezequiel.garcia@free-electrons.com>
- <20131120220212.GA12776@localhost>
- <528DC168.7090204@linutronix.de>
- <20131121113025.GA2942@localhost>
- <528DF233.40502@linutronix.de>
+From: Balaji T K <balajitk@ti.com>
+Subject: Re: [PATCH v3 2/3] mmc: omap_hsmmc: Pin remux workaround to support
+ SDIO interrupt on AM335x.
+Date: Thu, 21 Nov 2013 17:28:33 +0530
+Message-ID: <528DF569.4070501@ti.com>
+References: <1384761240-11005-1-git-send-email-afenkart@gmail.com> <1384761240-11005-3-git-send-email-afenkart@gmail.com> <CAOf5uw=9KJ312PVzMVEHX-Lj=iYpeZOYFduB8iOu9o+-863CYw@mail.gmail.com> <CALtMJEBfeww=ymGMXWtwjtZrpqpFrkRPEOti_uPrE63SBk3Dtw@mail.gmail.com> <528A3EB2.1010103@ti.com> <20131119154909.GD10317@atomide.com> <528B8ADA.6030703@ti.com> <20131119161932.GE10317@atomide.com> <CALtMJECrCxtPY_dfy832-EsgXCNB6u+mW0w_yVDnDWMo5Up-NQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from top.free-electrons.com ([176.31.233.9]:58071 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750844Ab3KULzO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Nov 2013 06:55:14 -0500
-Content-Disposition: inline
-In-Reply-To: <528DF233.40502@linutronix.de>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <CALtMJECrCxtPY_dfy832-EsgXCNB6u+mW0w_yVDnDWMo5Up-NQ@mail.gmail.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Andreas Fenkart <afenkart@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, Michael Trimarchi <michael@amarulasolutions.com>, Chris Ball <cjb@laptop.org>, Grant Likely <grant.likely@secretlab.ca>, Felipe Balbi <balbi@ti.com>, Daniel Mack <zonque@gmail.com>, linux-doc@vger.kernel.org, linux-mmc <linux-mmc@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Roger Quadros <rogerq@ti.com>, Javier Martinez Canillas <martinez.javier@gmail.com>, Enric Balletbo Serra <eballetbo@gmail.com>, Tony Lindgren <tony@atomide.com>
 
-On Thu, Nov 21, 2013 at 12:44:51PM +0100, Sebastian Andrzej Siewior wro=
-te:
-> On 11/21/2013 12:30 PM, Ezequiel Garcia wrote:
-> > Ah, good to know. That patch should be picked ASAP, without it the =
-USB
-> > in AM335x is broken. Is it already too late to -rc1?
-> Yes.
->=20
-> > Who is supposed to merge that? Greg?
->=20
-> Felipe will start collecting fixes once -rc1 is out [0] so it should =
-be
-> part of -rc2.
->=20
+On Thursday 21 November 2013 05:07 PM, Andreas Fenkart wrote:
+> 2013/11/19 Tony Lindgren <tony@atomide.com>:
+>> * Balaji T K <balajitk@ti.com> [131119 08:00]:
+>>> On Tuesday 19 November 2013 09:19 PM, Tony Lindgren wrote:
+>>>> * Balaji T K <balajitk@ti.com> [131118 08:23]:
+>>>>>
+>>>>> few params were passed via platform data in non-DT case and never cached
+>>>>> in internal data structure, with non-dt support going away soon, I am
+>>>>> planning to cleanup pdata usage in the driver when it gets to DT only support.
+>>>>
+>>>> The issue of pdata tinkering needs to be fixed first as it will cause nasty
+>>>> issues when the module is reprobed.
+>>>
+>>> Agree that pdata usage needs to be fixed, but currently module
+>>> reprobe is working fine.
+>>
+>> OK. The sdio_irq should be just set in struct omap_hsmmc_host instead.
 
-OK, fine by me. Please note that Felipe's commit is a much bigger (and
-nicer) rework of the code, and that it doesn't clearly state it fixes
-the current code.
+agree, sdio_irq should be cached in struct omap_hsmmc_host
 
-=46elipe: Maybe you should add some message stating it fixes a regressi=
-on?
+>>
+>>>> Note that it's still possible to pass platform data in the device tree case
+>>>> as auxdata. And we probably need to do that for the pbias register handling
+>>>> until we have a driver for that.
+>>>>
+>>>> Talking of the pbias driver, any news on it?
+>>>
+>>> Almost there, will post the patches soon.
+>>> Do you have a branch with updated board files, for me to base pbias patches on
+>>> else I can base the patches on rc1 too.
+>>
+>> Great. How about make the pbias driver DT only? Let's not touch the board-*.c
+>> files any longer as those will be going away for v3.14. We can probably keep
+>> the old callback support in place also, and then remove it for v3.15.
+>
+> Is there a dependency on the patches from Balaji or can the SDIO IRQ patches
+> go in already?
+>
+Hi Andreas,
 
-Just a suggestion though...
---=20
-Ezequiel Garc=C3=ADa, Free Electrons
-Embedded Linux, Kernel and Android Engineering
-http://free-electrons.com
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I could get sdio interrupt working on AM335x, will do more testing and get back
+to you.
+
+Pbias shouldn't have create any dependency. Just add sdio_irq to
+struct omap_hsmmc_host as suggested by Tony.
+
+Thanks and Regards,
+Balaji T K
+
+>>
+>> And after that it would certainly make sense to rip out the platform data
+>> fomr hsmmc driver just to get rid of the legacy support for multiplexing slots
+>> that's not needed in this driver. That would allow replacing all mmc->slots[0]
+>> accesses with something more standard.
+>>
+>
+>
+> rgds,
+> Andi
+>
