@@ -1,75 +1,61 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: N900 board code in 3.14
-Date: Thu, 21 Nov 2013 10:58:45 -0800
-Message-ID: <20131121185844.GA10023@atomide.com>
-References: <1384562167-14725-1-git-send-email-tony@atomide.com>
- <20131116120508.GA22335@earth.universe>
- <20131116141226.GD10317@atomide.com>
- <20131116155031.GA5104@earth.universe>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: commit c368e5fc2a190923b786f2de3e79430ea3566a25 regresses MMC
+Date: Thu, 21 Nov 2013 19:28:02 +0000
+Message-ID: <20131121192802.GJ8120@sirena.org.uk>
+References: <20131120175814.GC27423@saruman.home>
+ <20131120203400.GL2674@sirena.org.uk>
+ <20131120205143.GA9182@saruman.home>
+ <20131121024840.GA22970@saruman.home>
+ <20131121104911.GM2674@sirena.org.uk>
+ <528E3817.1010105@wwwdotorg.org>
+ <20131121183632.GE8120@sirena.org.uk>
+ <528E5487.8000003@wwwdotorg.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:44915 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751569Ab3KUS6r (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Nov 2013 13:58:47 -0500
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="q5r20fdKX+PFtYHw"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20131116155031.GA5104@earth.universe>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <528E5487.8000003@wwwdotorg.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Stephen Warren <swarren@wwwdotorg.org>
+Cc: Felipe Balbi <balbi@ti.com>, ldewangan@nvidia.com, lgirdwood@gmail.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Sebastian Reichel <sre@ring0.de> [131116 07:51]:
-> On Sat, Nov 16, 2013 at 06:12:26AM -0800, Tony Lindgren wrote:
-> > [...]
-> > >  b) I could not get the 32GB eMMC working. For me the chip is not found
-> > >     and I don't know how to debug it.
-> > 
-> > OK the eMMC issue might be related to the control module PBIAS
-> > register support missing. If so, that should be fixable with the
-> > auxdata until we have a minimal control module device driver to
-> > deal with the PBIAS and expose those features as regulators to
-> > the omap-hsmmc driver.
-> 
-> I wasn't aware, that PBIAS register support is missing for DT
-> boot. The existing board code uses a 2.8-3.0V regulator for mmc1,
-> so missing PBIAS is probably the problem.
 
-Right, sorry I was confused, looks like we don't need to worry about
-that. And looks like Balaji just posted patches for the PBIAS support.
+--q5r20fdKX+PFtYHw
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Also, I just posted a patch to fix the eMMC that you may want to
-try out.
- 
-> > > [...]
-> > > 
-> > > My suggestion would be:
-> > >  1. Find a better workaround for omapdss to acquire the SDI
-> > >     regulator. My current hack is obviously not acceptable.
-> > >  2. Load the panel driver via DT as seen above and reference
-> > >     the omapdss interface with something like the above
-> > >     "ti,dss-source".
-> > 
-> > To me it seems that we should be able to add minimal panel entries to DT
-> > if we stick to existing standard bindings. Then the timings etc can be
-> > set up based on the compatible flag. So I would leave out the properties
-> > for ti,sdi-datapairs and ti,dss-source for now, and just set those in
-> > the driver based on the sony,acx565akm compatible flag. Or maybe it should
-> > be sony,acx565akm-n900 if there's some board specific configuration info.
-> 
-> So we add reset-gpio and label to the DT data (they are panel
-> specific and independent of omapdss) and just hardcode "dsi.0"
-> with 2 data lanes into the driver? That sounds fine for me.
-> 
-> If neither Tomi nor anybody else has better ideas I will cook a
-> patch for that. I'm not sure how to setup the vdds_sdi regulator for
-> omapdss, though. Is there an example for a legacy driver using a DT
-> regulator available?
+On Thu, Nov 21, 2013 at 11:44:23AM -0700, Stephen Warren wrote:
 
-Not that I know of :) But I guess only the panel driver would need to
-parse the compatible flag and the rest of the DSS could still be
-initialize the legacy way if needed.
+> Ah yes. I also have a delivery-time filter that remembers the last n
+> Message-Id headers I've received, and it dumps any duplicates into a
+> separate folder that I ignore. It seems to work pretty well. It looks
+> like n==10000 for me right now.
 
-Regards,
+Yeah, that wasn't working great - I think because I was doing it in the
+wrong place and it was catching lists too.
 
-Tony
+--q5r20fdKX+PFtYHw
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
+
+iQIcBAEBAgAGBQJSjl6/AAoJELSic+t+oim9deAP/RxujeAnxRBioT04WYCNofIX
+FTdvQz5Ck5aFBG0b8rTiTiBz2E5ysypYxKPcQyU0WMZNLkI0ta9QhGv6/LnZN0nR
+ueRQ9aYq28o/8MGrQr7owH4syRxOKuYA/um7/GV1UNv2hacFWVeoj9gDg1IxiJy2
+tKnIaRWX3ndS/BEVI0lXNNzoXGJKeGHOGXK5XvQrrpaGdMYZvaVNdX3eSQqKRUx9
+g9IEBFvvTMZISET7AWAOpkbvyDeUHS438SzQ3BkUPLhjmmslK0t/fpuheZS2CqFp
+YlJxLpFzfWeUsNVWmgTVgUQvFz9Wy3U5qu2mD/tjdHHJK/urOqSLsoJXkKsVsWef
+JlpbagLEq45IQ1vtHJLP37z/PADesx6gTAY7xq+hgeBe7Wz5HdZzhrfGEZKQwj9w
+iENqF95oX2DDvMl1fM+efSMBXx2WKEa0pQoJVcgRxxejuxTRYhnKPN6v1FgIM4+q
+KMfBugOqEIqKFJMErjjObaNepfo4njbRaYDqQSDK/qzrN8hlZNa8VYPiowBz5iF5
+BOjefD2ZG/UvhKAT5jX4SQrq0+JtX+g04J32HsWa5wHytpoZdjd2HPu/LEuiF6gX
+v89EK1NH9FBil5a/Bi/HgJ35zChQKPSAtkQVdtZefg6I4iOp3iPQmw7LqJztHhbi
+yHVgHbE0q3UOsSMuEd1a
+=RJ1E
+-----END PGP SIGNATURE-----
+
+--q5r20fdKX+PFtYHw--
