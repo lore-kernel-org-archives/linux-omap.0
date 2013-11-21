@@ -1,76 +1,250 @@
-From: Balaji T K <balajitk@ti.com>
-Subject: Re: [PATCH v3 2/3] mmc: omap_hsmmc: Pin remux workaround to support
- SDIO interrupt on AM335x.
-Date: Thu, 21 Nov 2013 17:28:33 +0530
-Message-ID: <528DF569.4070501@ti.com>
-References: <1384761240-11005-1-git-send-email-afenkart@gmail.com> <1384761240-11005-3-git-send-email-afenkart@gmail.com> <CAOf5uw=9KJ312PVzMVEHX-Lj=iYpeZOYFduB8iOu9o+-863CYw@mail.gmail.com> <CALtMJEBfeww=ymGMXWtwjtZrpqpFrkRPEOti_uPrE63SBk3Dtw@mail.gmail.com> <528A3EB2.1010103@ti.com> <20131119154909.GD10317@atomide.com> <528B8ADA.6030703@ti.com> <20131119161932.GE10317@atomide.com> <CALtMJECrCxtPY_dfy832-EsgXCNB6u+mW0w_yVDnDWMo5Up-NQ@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <CALtMJECrCxtPY_dfy832-EsgXCNB6u+mW0w_yVDnDWMo5Up-NQ@mail.gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Andreas Fenkart <afenkart@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, Michael Trimarchi <michael@amarulasolutions.com>, Chris Ball <cjb@laptop.org>, Grant Likely <grant.likely@secretlab.ca>, Felipe Balbi <balbi@ti.com>, Daniel Mack <zonque@gmail.com>, linux-doc@vger.kernel.org, linux-mmc <linux-mmc@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+From: Ruslan Ruslichenko <ruslan.ruslichenko@globallogic.com>
+Subject: [PATCH] mfd: twl-core: Clean up module by removing twl603x pdata handling
+Date: Thu, 21 Nov 2013 14:13:28 +0200
+Message-ID: <1385036008-1727-1-git-send-email-ruslan.ruslichenko@globallogic.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from exprod5og108.obsmtp.com ([64.18.0.186]:59441 "EHLO
+	exprod5og108.obsmtp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753443Ab3KUMNd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Nov 2013 07:13:33 -0500
+Received: by mail-lb0-f178.google.com with SMTP id c11so4028289lbj.23
+        for <linux-omap@vger.kernel.org>; Thu, 21 Nov 2013 04:13:31 -0800 (PST)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>
+Cc: linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 
-On Thursday 21 November 2013 05:07 PM, Andreas Fenkart wrote:
-> 2013/11/19 Tony Lindgren <tony@atomide.com>:
->> * Balaji T K <balajitk@ti.com> [131119 08:00]:
->>> On Tuesday 19 November 2013 09:19 PM, Tony Lindgren wrote:
->>>> * Balaji T K <balajitk@ti.com> [131118 08:23]:
->>>>>
->>>>> few params were passed via platform data in non-DT case and never cached
->>>>> in internal data structure, with non-dt support going away soon, I am
->>>>> planning to cleanup pdata usage in the driver when it gets to DT only support.
->>>>
->>>> The issue of pdata tinkering needs to be fixed first as it will cause nasty
->>>> issues when the module is reprobed.
->>>
->>> Agree that pdata usage needs to be fixed, but currently module
->>> reprobe is working fine.
->>
->> OK. The sdio_irq should be just set in struct omap_hsmmc_host instead.
+Since currently nobody uses TWL603x platform data and all new
+users will supply it through device tree, handling of these
+data within twl-core will never be used, so remove it.
 
-agree, sdio_irq should be cached in struct omap_hsmmc_host
+Signed-off-by: Ruslan Ruslichenko <ruslan.ruslichenko@globallogic.com>
+---
 
->>
->>>> Note that it's still possible to pass platform data in the device tree case
->>>> as auxdata. And we probably need to do that for the pbias register handling
->>>> until we have a driver for that.
->>>>
->>>> Talking of the pbias driver, any news on it?
->>>
->>> Almost there, will post the patches soon.
->>> Do you have a branch with updated board files, for me to base pbias patches on
->>> else I can base the patches on rc1 too.
->>
->> Great. How about make the pbias driver DT only? Let's not touch the board-*.c
->> files any longer as those will be going away for v3.14. We can probably keep
->> the old callback support in place also, and then remove it for v3.15.
->
-> Is there a dependency on the patches from Balaji or can the SDIO IRQ patches
-> go in already?
->
-Hi Andreas,
+Tested on TI SDP/Tablet OMAP4460 board
+Based on:
+git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
+commit 5e01dc7 Linux 3.12
 
-I could get sdio interrupt working on AM335x, will do more testing and get back
-to you.
+ drivers/mfd/twl-core.c | 198 -------------------------------------------------
+ 1 file changed, 198 deletions(-)
 
-Pbias shouldn't have create any dependency. Just add sdio_irq to
-struct omap_hsmmc_host as suggested by Tony.
+diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
+index 29473c2..c3c28b9 100644
+--- a/drivers/mfd/twl-core.c
++++ b/drivers/mfd/twl-core.c
+@@ -701,62 +701,6 @@ add_children(struct twl4030_platform_data *pdata, unsigned irq_base,
+ 			usb3v1[0].dev_name = dev_name(child);
+ 		}
+ 	}
+-	if (IS_ENABLED(CONFIG_TWL6030_USB) && pdata->usb &&
+-	    twl_class_is_6030()) {
+-
+-		static struct regulator_consumer_supply usb3v3;
+-		int regulator;
+-
+-		if (IS_ENABLED(CONFIG_REGULATOR_TWL4030)) {
+-			/* this is a template that gets copied */
+-			struct regulator_init_data usb_fixed = {
+-				.constraints.valid_modes_mask =
+-					REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-				.constraints.valid_ops_mask =
+-					REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-			};
+-
+-			if (features & TWL6032_SUBCLASS) {
+-				usb3v3.supply =	"ldousb";
+-				regulator = TWL6032_REG_LDOUSB;
+-			} else {
+-				usb3v3.supply = "vusb";
+-				regulator = TWL6030_REG_VUSB;
+-			}
+-			child = add_regulator_linked(regulator, &usb_fixed,
+-							&usb3v3, 1,
+-							features);
+-			if (IS_ERR(child))
+-				return PTR_ERR(child);
+-		}
+-
+-		pdata->usb->features = features;
+-
+-		child = add_child(TWL_MODULE_USB, "twl6030_usb",
+-			pdata->usb, sizeof(*pdata->usb), true,
+-			/* irq1 = VBUS_PRES, irq0 = USB ID */
+-			irq_base + USBOTG_INTR_OFFSET,
+-			irq_base + USB_PRES_INTR_OFFSET);
+-
+-		if (IS_ERR(child))
+-			return PTR_ERR(child);
+-		/* we need to connect regulators to this transceiver */
+-		if (IS_ENABLED(CONFIG_REGULATOR_TWL4030) && child)
+-			usb3v3.dev_name = dev_name(child);
+-	} else if (IS_ENABLED(CONFIG_REGULATOR_TWL4030) &&
+-		   twl_class_is_6030()) {
+-		if (features & TWL6032_SUBCLASS)
+-			child = add_regulator(TWL6032_REG_LDOUSB,
+-						pdata->ldousb, features);
+-		else
+-			child = add_regulator(TWL6030_REG_VUSB,
+-						pdata->vusb, features);
+-
+-			if (IS_ERR(child))
+-					return PTR_ERR(child);
+-	}
+ 
+ 	if (IS_ENABLED(CONFIG_TWL4030_WATCHDOG) && twl_class_is_4030()) {
+ 		child = add_child(TWL_MODULE_PM_RECEIVER, "twl4030_wdt", NULL,
+@@ -870,148 +814,6 @@ add_children(struct twl4030_platform_data *pdata, unsigned irq_base,
+ 			return PTR_ERR(child);
+ 	}
+ 
+-	/* twl6030 regulators */
+-	if (IS_ENABLED(CONFIG_REGULATOR_TWL4030) && twl_class_is_6030() &&
+-			!(features & TWL6032_SUBCLASS)) {
+-		child = add_regulator(TWL6030_REG_VDD1, pdata->vdd1,
+-					features);
+-		if (IS_ERR(child))
+-			return PTR_ERR(child);
+-
+-		child = add_regulator(TWL6030_REG_VDD2, pdata->vdd2,
+-					features);
+-		if (IS_ERR(child))
+-			return PTR_ERR(child);
+-
+-		child = add_regulator(TWL6030_REG_VDD3, pdata->vdd3,
+-					features);
+-		if (IS_ERR(child))
+-			return PTR_ERR(child);
+-
+-		child = add_regulator(TWL6030_REG_V1V8, pdata->v1v8,
+-					features);
+-		if (IS_ERR(child))
+-			return PTR_ERR(child);
+-
+-		child = add_regulator(TWL6030_REG_V2V1, pdata->v2v1,
+-					features);
+-		if (IS_ERR(child))
+-			return PTR_ERR(child);
+-
+-		child = add_regulator(TWL6030_REG_VMMC, pdata->vmmc,
+-					features);
+-		if (IS_ERR(child))
+-			return PTR_ERR(child);
+-
+-		child = add_regulator(TWL6030_REG_VPP, pdata->vpp,
+-					features);
+-		if (IS_ERR(child))
+-			return PTR_ERR(child);
+-
+-		child = add_regulator(TWL6030_REG_VUSIM, pdata->vusim,
+-					features);
+-		if (IS_ERR(child))
+-			return PTR_ERR(child);
+-
+-		child = add_regulator(TWL6030_REG_VCXIO, pdata->vcxio,
+-					features);
+-		if (IS_ERR(child))
+-			return PTR_ERR(child);
+-
+-		child = add_regulator(TWL6030_REG_VDAC, pdata->vdac,
+-					features);
+-		if (IS_ERR(child))
+-			return PTR_ERR(child);
+-
+-		child = add_regulator(TWL6030_REG_VAUX1_6030, pdata->vaux1,
+-					features);
+-		if (IS_ERR(child))
+-			return PTR_ERR(child);
+-
+-		child = add_regulator(TWL6030_REG_VAUX2_6030, pdata->vaux2,
+-					features);
+-		if (IS_ERR(child))
+-			return PTR_ERR(child);
+-
+-		child = add_regulator(TWL6030_REG_VAUX3_6030, pdata->vaux3,
+-					features);
+-		if (IS_ERR(child))
+-			return PTR_ERR(child);
+-
+-		child = add_regulator(TWL6030_REG_CLK32KG, pdata->clk32kg,
+-					features);
+-		if (IS_ERR(child))
+-			return PTR_ERR(child);
+-	}
+-
+-	/* 6030 and 6025 share this regulator */
+-	if (IS_ENABLED(CONFIG_REGULATOR_TWL4030) && twl_class_is_6030()) {
+-		child = add_regulator(TWL6030_REG_VANA, pdata->vana,
+-					features);
+-		if (IS_ERR(child))
+-			return PTR_ERR(child);
+-	}
+-
+-	/* twl6032 regulators */
+-	if (IS_ENABLED(CONFIG_REGULATOR_TWL4030) && twl_class_is_6030() &&
+-			(features & TWL6032_SUBCLASS)) {
+-		child = add_regulator(TWL6032_REG_LDO5, pdata->ldo5,
+-					features);
+-		if (IS_ERR(child))
+-			return PTR_ERR(child);
+-
+-		child = add_regulator(TWL6032_REG_LDO1, pdata->ldo1,
+-					features);
+-		if (IS_ERR(child))
+-			return PTR_ERR(child);
+-
+-		child = add_regulator(TWL6032_REG_LDO7, pdata->ldo7,
+-					features);
+-		if (IS_ERR(child))
+-			return PTR_ERR(child);
+-
+-		child = add_regulator(TWL6032_REG_LDO6, pdata->ldo6,
+-					features);
+-		if (IS_ERR(child))
+-			return PTR_ERR(child);
+-
+-		child = add_regulator(TWL6032_REG_LDOLN, pdata->ldoln,
+-					features);
+-		if (IS_ERR(child))
+-			return PTR_ERR(child);
+-
+-		child = add_regulator(TWL6032_REG_LDO2, pdata->ldo2,
+-					features);
+-		if (IS_ERR(child))
+-			return PTR_ERR(child);
+-
+-		child = add_regulator(TWL6032_REG_LDO4, pdata->ldo4,
+-					features);
+-		if (IS_ERR(child))
+-			return PTR_ERR(child);
+-
+-		child = add_regulator(TWL6032_REG_LDO3, pdata->ldo3,
+-					features);
+-		if (IS_ERR(child))
+-			return PTR_ERR(child);
+-
+-		child = add_regulator(TWL6032_REG_SMPS3, pdata->smps3,
+-					features);
+-		if (IS_ERR(child))
+-			return PTR_ERR(child);
+-
+-		child = add_regulator(TWL6032_REG_SMPS4, pdata->smps4,
+-					features);
+-		if (IS_ERR(child))
+-			return PTR_ERR(child);
+-
+-		child = add_regulator(TWL6032_REG_VIO, pdata->vio6025,
+-					features);
+-		if (IS_ERR(child))
+-			return PTR_ERR(child);
+-
+-	}
+-
+ 	if (IS_ENABLED(CONFIG_CHARGER_TWL4030) && pdata->bci &&
+ 			!(features & (TPS_SUBSET | TWL5031))) {
+ 		child = add_child(TWL_MODULE_MAIN_CHARGE, "twl4030_bci",
+-- 
+1.8.3.2
 
-Thanks and Regards,
-Balaji T K
-
->>
->> And after that it would certainly make sense to rip out the platform data
->> fomr hsmmc driver just to get rid of the legacy support for multiplexing slots
->> that's not needed in this driver. That would allow replacing all mmc->slots[0]
->> accesses with something more standard.
->>
->
->
-> rgds,
-> Andi
->
