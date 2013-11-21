@@ -1,77 +1,137 @@
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: Re: [RFC PATCH v3 1/8] mmc: omap_hsmmc: use devm_regulator API
-Date: Thu, 21 Nov 2013 16:08:45 +0100
-Message-ID: <CAPDyKFoS3i3eMKy817emRWoZ5OMKr7LgP3mjj2ePBBGcN5ZB2w@mail.gmail.com>
-References: <20130613174554.GB1403@sirena.org.uk>
-	<1385043627-30439-1-git-send-email-balajitk@ti.com>
-	<1385043627-30439-2-git-send-email-balajitk@ti.com>
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+Subject: Re: [PATCHv5 10/20] arm: dts: add omap4430 thermal data
+Date: Thu, 21 Nov 2013 11:36:13 -0400
+Message-ID: <528E286D.50100@ti.com>
+References: <1384285582-16933-1-git-send-email-eduardo.valentin@ti.com>
+ <1384285582-16933-11-git-send-email-eduardo.valentin@ti.com>
+ <20131120123245.GA3242@amd.pavel.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qe0-f49.google.com ([209.85.128.49]:45658 "EHLO
-	mail-qe0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753177Ab3KUPIs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Nov 2013 10:08:48 -0500
-Received: by mail-qe0-f49.google.com with SMTP id w7so1751202qeb.22
-        for <linux-omap@vger.kernel.org>; Thu, 21 Nov 2013 07:08:45 -0800 (PST)
-In-Reply-To: <1385043627-30439-2-git-send-email-balajitk@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/mixed; boundary="===============0656805260706730323=="
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20131120123245.GA3242@amd.pavel.ucw.cz>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, wni@nvidia.com, durgadoss.r@intel.com, ian.campbell@citrix.com, pawel.moll@arm.com, swarren@wwwdotorg.org, Tony Lindgren <tony@atomide.com>, devicetree-discuss@lists.ozlabs.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, rob.herring@calxeda.com, lm-sensors@lm-sensors.org, Eduardo Valentin <eduardo.valentin@ti.com>, linux-arm-kernel@lists.infradead.org, =?ISO-8859-1?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, grant.likely@linaro.org, Russell King <linux@arm.linux.org.uk>, rui.zhang@intel.com, linux-omap@vger.kernel.org, linux@roeck-us.net
 List-Id: linux-omap@vger.kernel.org
-To: Balaji T K <balajitk@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, bcousson@baylibre.com, devicetree@vger.kernel.org, linux-mmc <linux-mmc@vger.kernel.org>, Chris Ball <cjb@laptop.org>, Mark Brown <broonie@kernel.org>, Tony Lindgren <tony@atomide.com>
 
-On 21 November 2013 15:20, Balaji T K <balajitk@ti.com> wrote:
-> Use devm_regulator API, while at it use
-> devm_regulator_get_optional for optional vmmc_aux supply
->
-> Signed-off-by: Balaji T K <balajitk@ti.com>
-> ---
->  drivers/mmc/host/omap_hsmmc.c |    6 ++----
->  1 files changed, 2 insertions(+), 4 deletions(-)
->
-> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-> index dbd32ad..1eb4350 100644
-> --- a/drivers/mmc/host/omap_hsmmc.c
-> +++ b/drivers/mmc/host/omap_hsmmc.c
-> @@ -316,7 +316,7 @@ static int omap_hsmmc_reg_get(struct omap_hsmmc_host *host)
->         struct regulator *reg;
->         int ocr_value = 0;
->
-> -       reg = regulator_get(host->dev, "vmmc");
-> +       reg = devm_regulator_get(host->dev, "vmmc");
->         if (IS_ERR(reg)) {
->                 dev_err(host->dev, "vmmc regulator missing\n");
->                 return PTR_ERR(reg);
-> @@ -336,7 +336,7 @@ static int omap_hsmmc_reg_get(struct omap_hsmmc_host *host)
->                 }
->
->                 /* Allow an aux regulator */
-> -               reg = regulator_get(host->dev, "vmmc_aux");
-> +               reg = devm_regulator_get_optional(host->dev, "vmmc_aux");
->                 host->vcc_aux = IS_ERR(reg) ? NULL : reg;
->
->                 /* For eMMC do not power off when not in sleep state */
-> @@ -366,8 +366,6 @@ static int omap_hsmmc_reg_get(struct omap_hsmmc_host *host)
->
->  static void omap_hsmmc_reg_put(struct omap_hsmmc_host *host)
->  {
-> -       regulator_put(host->vcc);
-> -       regulator_put(host->vcc_aux);
->         mmc_slot(host).set_power = NULL;
->  }
+--===============0656805260706730323==
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature";
+	boundary="OQGHXilJNQEKWhIDtwI8TunGQ1jD8Fk8k"
 
-While you are touching this code I would suggest to convert to
-mmc_regulator_get_supply instead. That mean the vmmc_aux change name
-to vqmmc though, so you need to adapt for this as well then.
+--OQGHXilJNQEKWhIDtwI8TunGQ1jD8Fk8k
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-Kind regards
-Ulf Hansson
+On 20-11-2013 08:32, Pavel Machek wrote:
+> HI!
+>=20
+>> This patch changes the dtsi entry on omap4430 to contain
+>> the thermal data. This data will enable the passive
+>> cooling with CPUfreq cooling device at 100C and the
+>> system will do a thermal shutdown at 125C.
+>>
+>> Cc: "Beno=EEt Cousson" <bcousson@baylibre.com>
+>> Cc: Tony Lindgren <tony@atomide.com>
+>> Cc: Russell King <linux@arm.linux.org.uk>
+>> Cc: linux-omap@vger.kernel.org
+>> Cc: devicetree-discuss@lists.ozlabs.org
+>> Cc: linux-arm-kernel@lists.infradead.org
+>> Cc: linux-kernel@vger.kernel.org
+>> Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
+>> ---
+>>  arch/arm/boot/dts/omap443x.dtsi | 10 ++++++++--
+>>  1 file changed, 8 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/arch/arm/boot/dts/omap443x.dtsi b/arch/arm/boot/dts/omap4=
+43x.dtsi
+>> index bcf455e..e9c97d6 100644
+>> --- a/arch/arm/boot/dts/omap443x.dtsi
+>> +++ b/arch/arm/boot/dts/omap443x.dtsi
+>> @@ -12,7 +12,7 @@
+>> =20
+>>  / {
+>>  	cpus {
+>> -		cpu@0 {
+>> +		cpu0: cpu@0 {
+>>  			/* OMAP443x variants OPP50-OPPNT */
+>>  			operating-points =3D <
+>>  				/* kHz    uV */
+>=20
+> I see you also add labels to various other entries...
 
->
-> --
-> 1.7.5.4
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-mmc" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I think I didn't quite get your point here. Can you please elaborate?
+
+This label has been added because it will be used in thermal zone while
+referencing the cooling device.
+
+>=20
+>> @@ -25,9 +25,15 @@
+>>  		};
+>>  	};
+>> =20
+>> -	bandgap {
+>> +	thermal-zones{
+>=20
+> You may want to include space here.
+
+OK.
+
+>=20
+>> +		#include "omap4-cpu-thermal.dtsi"
+>> +	};
+>> +
+>> +	bandgap: bandgap {
+>>  		reg =3D <0x4a002260 0x4
+>>  		       0x4a00232C 0x4>;
+>>  		compatible =3D "ti,omap4430-bandgap";
+>> +
+>> +		#thermal-sensor-cells =3D <0>;
+>>  	};
+>>  };
+>=20
+
+
+--=20
+You have got to be excited about what you are doing. (L. Lamport)
+
+Eduardo Valentin
+
+
+--OQGHXilJNQEKWhIDtwI8TunGQ1jD8Fk8k
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iF4EAREIAAYFAlKOKG0ACgkQCXcVR3XQvP2npgEAxbfIMuRDvRE62RLB0vNNBJZi
+h70ppZC7HXSQYLS9an4A/1/i5UmTN/9oMYPgz4cCiwNsCLAgWpwHm44gDmu7sspq
+=ysce
+-----END PGP SIGNATURE-----
+
+--OQGHXilJNQEKWhIDtwI8TunGQ1jD8Fk8k--
+
+
+--===============0656805260706730323==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+--===============0656805260706730323==--
