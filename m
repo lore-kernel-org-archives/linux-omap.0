@@ -1,49 +1,62 @@
-From: Dan Murphy <dmurphy@ti.com>
-Subject: Re: [PATCH 1/2] ARM: dts: omap4-panda-common: Fix pin muxing for
- wl12xx
-Date: Thu, 21 Nov 2013 11:27:49 -0600
-Message-ID: <528E4295.2040109@ti.com>
-References: <1385041804-19115-1-git-send-email-balajitk@ti.com> <1385041804-19115-2-git-send-email-balajitk@ti.com> <20131121165823.GM10317@atomide.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: commit c368e5fc2a190923b786f2de3e79430ea3566a25 regresses MMC
+Date: Thu, 21 Nov 2013 18:36:32 +0000
+Message-ID: <20131121183632.GE8120@sirena.org.uk>
+References: <20131120175814.GC27423@saruman.home>
+ <20131120203400.GL2674@sirena.org.uk>
+ <20131120205143.GA9182@saruman.home>
+ <20131121024840.GA22970@saruman.home>
+ <20131121104911.GM2674@sirena.org.uk>
+ <528E3817.1010105@wwwdotorg.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:36853 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753211Ab3KUR2O (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 21 Nov 2013 12:28:14 -0500
-In-Reply-To: <20131121165823.GM10317@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="gMR3gsNFwZpnI/Ts"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <528E3817.1010105@wwwdotorg.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Stephen Warren <swarren@wwwdotorg.org>
+Cc: Felipe Balbi <balbi@ti.com>, ldewangan@nvidia.com, lgirdwood@gmail.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Balaji T K <balajitk@ti.com>
-Cc: bcousson@baylibre.com, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-
-On 11/21/2013 10:58 AM, Tony Lindgren wrote:
-> * Balaji T K <balajitk@ti.com> [131121 05:51]:
->> pin mux wl12xx_gpio and wl12xx_pins should be part of omap4_pmx_core
->> and not omap4_pmx_wkup. So, move wl12xx_* to omap4_pmx_core.
->>
->> Fix the following error message:
->> pinctrl-single 4a31e040.pinmux: mux offset out of range: 0x38 (0x38)
->> pinctrl-single 4a31e040.pinmux: could not add functions for pinmux_wl12xx_pins 56x
-
-Why is the led pins moved then?
-
->> SDIO card is not detected after moving pin mux to omap4_pmx_core since
->> sdmmc5_clk pull is disabled. Enable Pull up on sdmmc5_clk to detect SDIO card.
-> Cool, does this fix the issue with the WLAN not coming up after a warm reset
-> on panda?
->
-> Regards,
->
-> Tony
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 
--- 
-------------------
-Dan Murphy
+--gMR3gsNFwZpnI/Ts
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
+On Thu, Nov 21, 2013 at 09:43:03AM -0700, Stephen Warren wrote:
+
+> FYI, the way I deal with this is that my preferred email account
+> subscribes to the mailing list, and I have a filter such that anything
+> that's to/cc either *that* email address *or* any of my other email
+> addresses gets handled the same, and dumped in my (list) inbox rather
+> than in a mailing list folder.
+
+I used to do that but I found it tended to create annoying duplicates
+more often than it was helpful.  It's also a bit of an issue for me that
+there are other people with the same name who work upstream so I do also
+find people from time to time picking the wrong Mark Brown to e-mail.
+
+--gMR3gsNFwZpnI/Ts
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
+
+iQIcBAEBAgAGBQJSjlKtAAoJELSic+t+oim9gN4P/A+Z0Tw0RfwxEkZphiHUcVnS
+O0+O9y1tND/R3CMB+MZHAAXELdpgWOif51K8eY6B/638oEWTngUbbajyEXvD2x1G
+iWxMOc0mH50MYRGQsHADjGKrT5C5uwRKZi/Ll2uS7p2QPl0BQqXsTv0WAeLhcydV
+8WkW5qigmx8h4FrOdgesMdLNwnMWW5W3LSEASBPP1Uq78iHaN8DqwYGMAc4D50vR
+ID4x0L/6XCZn+EvDxWBzy4fHzWaEtPuZvjqwGydR/uc12X4B+6vLOjaoHHGmRoyC
+DkVJ3Ufo7WaQKndpogEpHC5cIvyJE5LoQ5yvfgkmh3gtncSsvcy1VbdV7A0z68Pc
+nGqLWM2PBBqzmwBDmBjIpWTIILgwT1EjCLBer1Hwg/9h932F3nVJ3m35Vbz+ZzWG
+uu6NcUq+/D/YN3WnLF66ROhUK6OR2nWa1Av4Ztn6m2d1Dcc9Oi1CzDzWDe99JpUm
+MqcXPbPd7KIFYGtHnUcCHgRUxBrCsiEDmNTeQmloQONIiC55EfimLYCbwFOtP/rU
+7rYPsUCWfimFT/rckua+m5b8ImU/atbvwyagTM8IZsAbSRGlzz2OALYNlP1jk4af
+UD8HxS8IzqMbqQfBo3LZhF9wGMaQC6du/pEirV+NUcJQMKbNYWwarD0QPd8zYhjX
+uDcHfOAG84iPUTkRibwp
+=kkGH
+-----END PGP SIGNATURE-----
+
+--gMR3gsNFwZpnI/Ts--
