@@ -1,114 +1,88 @@
-From: Sebastian Reichel <sre@debian.org>
-Subject: Re: [PATCH 3/3] ARM: OMAP2+: Fix eMMC on n900 with device tree
-Date: Fri, 22 Nov 2013 00:17:52 +0100
-Message-ID: <20131121231751.GA9772@earth.universe>
-References: <1385059866-10646-1-git-send-email-tony@atomide.com>
- <1385059866-10646-4-git-send-email-tony@atomide.com>
+From: Sebastian Reichel <sre@ring0.de>
+Subject: Re: [RFCv2 3/3] ARM: dts: N900: Add SSI information
+Date: Fri, 22 Nov 2013 00:38:48 +0100
+Message-ID: <20131121233847.GB9772@earth.universe>
+References: <1379277856-24571-1-git-send-email-sre@debian.org>
+ <1379277856-24571-4-git-send-email-sre@debian.org>
+ <20131121013858.GK10317@atomide.com>
+ <20131121022125.GA2445@earth.universe>
+ <20131121204654.GB10023@atomide.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="jRHKVT23PllUwdXP"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ring0.de ([91.143.88.219]:35598 "EHLO smtp.ring0.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754626Ab3KUXSC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 21 Nov 2013 18:18:02 -0500
+	protocol="application/pgp-signature"; boundary="4SFOXa2GPu3tIq4H"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1385059866-10646-4-git-send-email-tony@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+In-Reply-To: <20131121204654.GB10023@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Shubhrajyoti Datta <omaplinuxkernel@gmail.com>, Carlos Chinea <cch.devel@gmail.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, Russell King <linux@arm.linux.org.uk>, Grant Likely <grant.likely@linaro.org>, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Rob Landley <rob@landley.net>, =?iso-8859-1?Q?'Beno=EEt?= Cousson' <bcousson@baylibre.com>, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 
 
---jRHKVT23PllUwdXP
+--4SFOXa2GPu3tIq4H
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi Tony,
-
-On Thu, Nov 21, 2013 at 10:51:06AM -0800, Tony Lindgren wrote:
-> Looks like we need to configure the regulators and use the pdata
-> quirk to make eMMC work with device tree.
+On Thu, Nov 21, 2013 at 12:46:55PM -0800, Tony Lindgren wrote:
+> * Sebastian Reichel <sre@debian.org> [131120 18:22]:
+> > On Wed, Nov 20, 2013 at 05:38:59PM -0800, Tony Lindgren wrote:
+> >=20
+> > In the public documentation of the omaps all SSI related stuff is
+> > missing and memory areas are marked as reserved. I could not find
+> > out how to receive the NDA version, so the following is purely
+> > speculation based on the code.
+> >=20
+> > If I understand it right the HW looks like this:
+> >=20
+> > +-----------------+
+> > |    GDD (DMA)    | <- this one is currently called ssi-controller
+> > +--------+--------+
+> > | Port 1 | Port 2 | <- these are currently called ssi-port
+> > +--------+--------+
+> >=20
+> > I think the GDD part must be enabled while Port 1 or Port 2 is
+> > enabled. The last RFC driver from Carlos did not even split up the
+> > irq/memory areas into different platform devices, but just requested
+> > all of them in one ssi platform device.
 >=20
-> It seems that mostly vmmc2 is used, and only some earlier revisions
-> like the macro board used vaux3.
->=20
-> Note that we can add support for the macro board later as needed
-> by including the common n900 .dts file and configuring the vaux3
-> instead of vmmc2, and adding support for the smc91x Ethernet.
->
-> ---
->=20
-> Can you guys please test this on production n900 devices?
->=20
-> I've tested it with my old macro board where I had to patch in vaux3
-> instead of vmmc2. I think there's some confusion in the legacy code
-> comments, or else I'm confused. In any case, vaux3 works for the macro
-> board, and I suspect that the production versions have vmmc2.
->=20
-> If this does not work and vaux3 as regulator works, please also dump
-> out the system_rev from your board.
+> Might be worth checking. If these blocks have the revision and SYSC
+> register in the beginning of their address space like all omap modules,
+> then they are completely separate blocks and can idle independently.
 
-The good news is, that I got eMMC working :) The bad news is, that it
-did not work with your patch :( I included my DTS nodes below. The
-phone is HW/System revision 0x2101.
+This does not seem to be the case.
+I think this is just one big IP-Core, which provides two ports.
 
-I have a second N900, which has HW revision 0x2204. I did not yet test
-the patch with this phone, but legacy code also seems to use vaux3 for
-it. Seems like we need two n900.dts files?
+> The fact that they have separate interrutps makes me think that's the
+> case, otherwise there would be just interrupt(s) at the ssi-controllel
+> level.
 
---- DTS nodes working on the 0x2101 board ---
-
-&omap3_pmx_core {
-	mmc2_pins: pinmux_mmc2_pins {
-		pinctrl-single,pins =3D <
-			0x128 (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc2_clk */
-			0x12a (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc2_cmd */
-			0x12c (PIN_INPUT_PULLUP | MUX_MODE0) 	/* sdmmc2_dat0 */
-			0x12e (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc2_dat1 */
-			0x130 (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc2_dat2 */
-			0x132 (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc2_dat3 */
-			0x134 (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc2_dat4 */
-			0x136 (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc2_dat5 */
-			0x138 (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc2_dat6 */
-			0x13a (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc2_dat7 */
-		>;
-	};
-};
-
-&mmc2 {
-    pinctrl-names =3D "default";
-    pinctrl-0 =3D <&mmc2_pins>;
-
-    vmmc-supply =3D <&vaux3>;
-    vmmc_aux-supply =3D <&vsim>;
-    bus-width =3D <8>;
-    non-removable;
-};
+The original driver from Carlos had all IRQs in one big platform
+device. I created the ports subdevices, since it looked cleaner
+than naming resources "port1_mpu_irq0".
 
 -- Sebastian
 
---jRHKVT23PllUwdXP
+--4SFOXa2GPu3tIq4H
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.15 (GNU/Linux)
 
-iQIcBAEBCAAGBQJSjpSeAAoJENju1/PIO/qawmUP/0TwNvomoNlOM4IV9rhkX6oY
-kRLhH2uJ+lpLihUEKHORrRIrircRe+A+57XOMw/y4em00/wKcERQzGCn6he5fpyo
-oad1oYGm8v4sPatob/1Gjy9viWiNW/y1eW+/oOrI7+eZElXvW4O09BGlXJU5wFYy
-IaBq6Q6mBtS7w5/olcH+0mIuXFEnrGW6v7fK53F6EjMsbjHYE9I8fU51WDrJ1W/I
-+GVQ6TDiv4BUTQjQKhc2MBTz9yMAjB5FovnrNB/0UE13AdeAxp1E7h6w3sO9eoUV
-5EzCL4riC044llsgmZih8yTh2H7yDSyIDRBt55YURZCTR+LuhmG7L/HCQqH73kvY
-GPKiWV+gqTKuTIQosbnO7Kt8OSHseJLGWQ3u7XSzWC+dZQMzNE0XlH5H3ItA1Enl
-l+ZQ4d/rLnLwxpH63AgQ/a6udvV89xH/pdH6G6Ra1M0NymY6TWqFZJzD3HKCw523
-VCl1nQgFcEIKMHriL3O/avq50KAqb0KZ4tVhjVGLlR2pK4JWF4GLX4zYOD4bw7/G
-HW7dE7djguf/Rgew6Opv/hNpxawGsEzjY0nQmm0a178C+YgKfSHOGAbxiifiZ7hR
-NaKljLDCyBlLA8KVqaV2E0/R4InQScXZz/X1E1J+I5s9u2tRsMemflDrb0+L8b8N
-8Ildt5oxA/t/MkWvtRld
-=zzN8
+iQIcBAEBCAAGBQJSjpmHAAoJENju1/PIO/qafX0P/RthfLl7kCxXOEZT11RLuyrh
+uf49kagc8yNjtRaOK25ft8EYbmQbxCyZtrqEm+Xnv3PF/us9EjTYeTrDmVJ7Sh/0
+1mLtDZHyS4yq11m1u3z1xfQtOwdJWTHmLeWNBGvOfaFHa0xa7AaVK8D/4FBes2tA
+/7NHh2oEU4SzJCyHtQLWUOxJ7tONoNZxdhQZD5g9FiJ+kpQuqSICnJ1LuFaOjaVd
+VPFH1/OTzOrDp8XW+l7AcRPHH5FYBUKR8fkebpivTH2b+Ayg+MV9EPVwaAlcFBxw
+pfHh+Y8eMOX+HJoVb80OHldqN5YdSKmUGPByn3meFsEiriMWLtcp1hU0w9o3qQ6r
+h9Vu7jn+Fw7FCpdf10VsL7b/4Xn+mHV+dFuM+BH5vYnmpAkfMxZl+SoGAAh2E+/N
+8CUV51InahaZ5SGdTbCygMxB5mCIIxj+hUEd8TfK6m2EKZhUXv2CZ28PfRcEQV8m
+ZxdWy5WLXbCITNBZFzhQCzz5LniFDqG9sPma0+pahRw4axM1CRUeGIcgKsiWKZtz
+YRVd07t2xDamVJT8uJFLdJLysBmRPp/bcx+hiLqTV/wM2g6zV9y6dEsX8zheXXxM
+CHUkS+5bzxaBZXowlxu4zx1Vsfiyp/1654UiIQAjaT2EYDh22r7DJ+HjYPUx+821
+5Sb+nl6ZAKuqR68xf5d6
+=+LA4
 -----END PGP SIGNATURE-----
 
---jRHKVT23PllUwdXP--
+--4SFOXa2GPu3tIq4H--
