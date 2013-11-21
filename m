@@ -1,76 +1,114 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: commit c368e5fc2a190923b786f2de3e79430ea3566a25 regresses MMC
-Date: Thu, 21 Nov 2013 20:50:50 +0000
-Message-ID: <20131121205050.GF14725@sirena.org.uk>
-References: <20131120175814.GC27423@saruman.home>
- <20131120203400.GL2674@sirena.org.uk>
- <20131120205143.GA9182@saruman.home>
- <20131121024840.GA22970@saruman.home>
- <20131121104911.GM2674@sirena.org.uk>
- <CAOesGMi2wDz2PB7GJbfg3i4bRU+qgT+ubTa+WurQ96biyjaLsw@mail.gmail.com>
+From: Sebastian Reichel <sre@debian.org>
+Subject: Re: [PATCH 3/3] ARM: OMAP2+: Fix eMMC on n900 with device tree
+Date: Fri, 22 Nov 2013 00:17:52 +0100
+Message-ID: <20131121231751.GA9772@earth.universe>
+References: <1385059866-10646-1-git-send-email-tony@atomide.com>
+ <1385059866-10646-4-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Pql/uPZNXIm1JCle"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="jRHKVT23PllUwdXP"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from ring0.de ([91.143.88.219]:35598 "EHLO smtp.ring0.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754626Ab3KUXSC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 21 Nov 2013 18:18:02 -0500
 Content-Disposition: inline
-In-Reply-To: <CAOesGMi2wDz2PB7GJbfg3i4bRU+qgT+ubTa+WurQ96biyjaLsw@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Olof Johansson <olof@lixom.net>
-Cc: Felipe Balbi <balbi@ti.com>, Laxman Dewangan <ldewangan@nvidia.com>, Liam Girdwood <lgirdwood@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+In-Reply-To: <1385059866-10646-4-git-send-email-tony@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Aaro Koskinen <aaro.koskinen@iki.fi>
 
 
---Pql/uPZNXIm1JCle
+--jRHKVT23PllUwdXP
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Nov 21, 2013 at 12:27:06PM -0800, Olof Johansson wrote:
+Hi Tony,
 
-> If you have one email address listed in MAINTAINERS, and do all your
-> actual work with another identity, you might want to look at your
-> workflow a bit. I suggest either signing off with the MAINTAINERS
+On Thu, Nov 21, 2013 at 10:51:06AM -0800, Tony Lindgren wrote:
+> Looks like we need to configure the regulators and use the pdata
+> quirk to make eMMC work with device tree.
+>=20
+> It seems that mostly vmmc2 is used, and only some earlier revisions
+> like the macro board used vaux3.
+>=20
+> Note that we can add support for the macro board later as needed
+> by including the common n900 .dts file and configuring the vaux3
+> instead of vmmc2, and adding support for the smc91x Ethernet.
+>
+> ---
+>=20
+> Can you guys please test this on production n900 devices?
+>=20
+> I've tested it with my old macro board where I had to patch in vaux3
+> instead of vmmc2. I think there's some confusion in the legacy code
+> comments, or else I'm confused. In any case, vaux3 works for the macro
+> board, and I suspect that the production versions have vmmc2.
+>=20
+> If this does not work and vaux3 as regulator works, please also dump
+> out the system_rev from your board.
 
-The only thing that uses the work address is patches and signoffs, all
-my e-mail traffic is done from my kernel.org address (including patch
-posts).
+The good news is, that I got eMMC working :) The bad news is, that it
+did not work with your patch :( I included my DTS nodes below. The
+phone is HW/System revision 0x2101.
 
-> email address, or changing the entries of that file. People should
-> expect to be able to email you on the address you sign off with.
+I have a second N900, which has HW revision 0x2204. I did not yet test
+the patch with this phone, but legacy code also seems to use vaux3 for
+it. Seems like we need two n900.dts files?
 
-Unfortunately my employer can't cope with that at present and I don't
-really want to use my work address for everything since all the stuff
-=66rom upstream DoSs the stuff that pays the bills.  I wouldn't mind if
-people mailed both, but if you're going to pick a single one then the
-one listed in MAINTAINERS is the way forwards (which generally is the
-address people manage to pick).
+--- DTS nodes working on the 0x2101 board ---
 
-/me notes that he'd probably have been less grumpy if the message had
-a subject line that had content in it, even had it gone to the right
-mailbox there's a good chance I'd never even have opened the mail due to
-that - if anything it going to the wrong place actually worked around
-the subject line here.
+&omap3_pmx_core {
+	mmc2_pins: pinmux_mmc2_pins {
+		pinctrl-single,pins =3D <
+			0x128 (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc2_clk */
+			0x12a (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc2_cmd */
+			0x12c (PIN_INPUT_PULLUP | MUX_MODE0) 	/* sdmmc2_dat0 */
+			0x12e (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc2_dat1 */
+			0x130 (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc2_dat2 */
+			0x132 (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc2_dat3 */
+			0x134 (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc2_dat4 */
+			0x136 (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc2_dat5 */
+			0x138 (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc2_dat6 */
+			0x13a (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc2_dat7 */
+		>;
+	};
+};
 
---Pql/uPZNXIm1JCle
+&mmc2 {
+    pinctrl-names =3D "default";
+    pinctrl-0 =3D <&mmc2_pins>;
+
+    vmmc-supply =3D <&vaux3>;
+    vmmc_aux-supply =3D <&vsim>;
+    bus-width =3D <8>;
+    non-removable;
+};
+
+-- Sebastian
+
+--jRHKVT23PllUwdXP
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
+Version: GnuPG v1.4.15 (GNU/Linux)
 
-iQIcBAEBAgAGBQJSjnInAAoJELSic+t+oim9oDgP/34R0SqmILHILWrtkNFBDE9v
-7HwE6jXjlQ84safDUk040X3npHld5DeIdJ6OZxRsSZdzvyUQIxAO3VLDFUC9zzUV
-GrYH5+Gm3nWwjDczrQtctUZHn5jjOUpno+coiALSpCW//Ca933bW6wkO0ZW8cfTp
-CCQ4cxUgTTIZf8y52yqjU4O0ImFNn2+AhtXojIs+3zDTinkTWz/gt6hKI7r5ZN1H
-fBl9xnuiv0sPO1WTytvKIYiCkfpC3bt4USOSMzhAXLfQcv4pV4eyV2bUTzUzCUGA
-usgoCiAMfdgQFb8oqi4LXMFYYHjpcKqEKIerNXS1BWlIbQiq85iL2WQJ2jam3uh7
-mrZ9XejZKOM8wD6rAVfY3szmTyqaDjzhlhySF9RP+XvoYrfOqARNY77xPJrUj19Y
-MwL31S5E3i+21SJkaI6Kqc27h2GbsnnutKiUIZlqQyzZSe+WwHr2TSKKoavwg6XH
-9UjBp8JKEC0il4CCGEkWtqJAw8s+MEgTy14vtqpo+OZngkYNubmM/ci7cNgMgomu
-IO+Rfzfff7Z/MFMuS1wc9wG7iZhSMUbfjCQC0eQMDQJJYdsUpQgic+u/cRsJQ6Vm
-HHmI53ZMkKt75xfR5R5zKLzxvMPRVnWqbfkI3tzjKSzocYFzXfe3C2+Fq0PRnE+v
-ZU6SyprWmU979QJ5NDP8
-=HZwY
+iQIcBAEBCAAGBQJSjpSeAAoJENju1/PIO/qawmUP/0TwNvomoNlOM4IV9rhkX6oY
+kRLhH2uJ+lpLihUEKHORrRIrircRe+A+57XOMw/y4em00/wKcERQzGCn6he5fpyo
+oad1oYGm8v4sPatob/1Gjy9viWiNW/y1eW+/oOrI7+eZElXvW4O09BGlXJU5wFYy
+IaBq6Q6mBtS7w5/olcH+0mIuXFEnrGW6v7fK53F6EjMsbjHYE9I8fU51WDrJ1W/I
++GVQ6TDiv4BUTQjQKhc2MBTz9yMAjB5FovnrNB/0UE13AdeAxp1E7h6w3sO9eoUV
+5EzCL4riC044llsgmZih8yTh2H7yDSyIDRBt55YURZCTR+LuhmG7L/HCQqH73kvY
+GPKiWV+gqTKuTIQosbnO7Kt8OSHseJLGWQ3u7XSzWC+dZQMzNE0XlH5H3ItA1Enl
+l+ZQ4d/rLnLwxpH63AgQ/a6udvV89xH/pdH6G6Ra1M0NymY6TWqFZJzD3HKCw523
+VCl1nQgFcEIKMHriL3O/avq50KAqb0KZ4tVhjVGLlR2pK4JWF4GLX4zYOD4bw7/G
+HW7dE7djguf/Rgew6Opv/hNpxawGsEzjY0nQmm0a178C+YgKfSHOGAbxiifiZ7hR
+NaKljLDCyBlLA8KVqaV2E0/R4InQScXZz/X1E1J+I5s9u2tRsMemflDrb0+L8b8N
+8Ildt5oxA/t/MkWvtRld
+=zzN8
 -----END PGP SIGNATURE-----
 
---Pql/uPZNXIm1JCle--
+--jRHKVT23PllUwdXP--
