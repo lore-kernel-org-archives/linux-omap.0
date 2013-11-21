@@ -1,69 +1,38 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFCv2 3/3] ARM: dts: N900: Add SSI information
-Date: Wed, 20 Nov 2013 17:38:59 -0800
-Message-ID: <20131121013858.GK10317@atomide.com>
-References: <1379277856-24571-1-git-send-email-sre@debian.org>
- <1379277856-24571-4-git-send-email-sre@debian.org>
+Subject: Re: [PATCH] ARM: OMAP2+: Fix populating the hwmod data from device
+ tree
+Date: Wed, 20 Nov 2013 17:45:56 -0800
+Message-ID: <20131121014555.GL10317@atomide.com>
+References: <20131120025620.GF10317@atomide.com>
+ <20131120181255.GG10317@atomide.com>
+ <20131120192209.GI10317@atomide.com>
+ <alpine.DEB.2.02.1311202148160.30143@utopia.booyaka.com>
+ <20131121000533.GJ10317@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-doc-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:18450 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752146Ab3KUBp7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Nov 2013 20:45:59 -0500
 Content-Disposition: inline
-In-Reply-To: <1379277856-24571-4-git-send-email-sre@debian.org>
-Sender: linux-doc-owner@vger.kernel.org
-To: Sebastian Reichel <sre@debian.org>
-Cc: Sebastian Reichel <sre@ring0.de>, Linus Walleij <linus.walleij@linaro.org>, Shubhrajyoti Datta <omaplinuxkernel@gmail.com>, Carlos Chinea <cch.devel@gmail.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, Russell King <linux@arm.linux.org.uk>, Grant Likely <grant.likely@linaro.org>, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Rob Landley <rob@landley.net>, =?utf-8?Q?'Beno=C3=AEt?= Cousson' <bcousson@baylibre.com>, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+In-Reply-To: <20131121000533.GJ10317@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>
 
-* Sebastian Reichel <sre@debian.org> [130915 13:56]:
-> +
-> +Example for Nokia N900:
-> +
-> +ssi-controller@48058000 {
-> +	compatible = "ti,omap3-ssi";
-> +	ti,hwmods = "ssi";
-> +
-> +	reg = <0x48058000 0x1000>,
-> +	      <0x48059000 0x1000>;
-> +	reg-names = "sys",
-> +		    "gdd";
-> +
-> +	interrupts = <55>;
-> +	interrupt-names = "gdd_mpu";
-> +
-> +	#address-cells = <1>;
-> +	#size-cells = <1>;
-> +	ranges;
-> +
-> +	ssi-port@0 {
-> +		compatible = "ti,omap3-ssi-port";
-> +
-> +		reg = <0x4805a000 0x800>,
-> +		      <0x4805a800 0x800>;
-> +		reg-names = "tx",
-> +			    "rx";
-> +
-> +		interrupt-parent = <&intc>;
-> +		interrupts = <51>,
-> +			     <52>;
-> +		interrupt-names = "mpu_irq0",
-> +				  "mpu_irq1";
-> +
-> +		ti,ssi-cawake-gpio = <&gpio5 23 GPIO_ACTIVE_HIGH>; /* 151 */
-> +	}
-> +}
+* Tony Lindgren <tony@atomide.com> [131120 16:06]:
+> 
+> They at least had interrupts listed looking at commit 3b9b10. Probably
+> the thing to do for now is to revert those changes, and see if we can
+> just remove the L3 entries from the .dtsi files.
 
-These should be in the omap3.dtsi file and not nested but separate. I'm almost
-certain that these are completely independent hardware modules and this
-means they can live their own PM life independently.
-
-So can you please do a minimal patch for omap3.dtsi that just sets up
-the standard resources separately for both modules the same way we have
-for other hardware modules in omap3.dtsi do?
-
-One of them should be called ssi, no idea what the other module name should
-be as those register ranges show up as reserved in the docs I have.
-
-The other binding pieces can be added later on as they get are ready.
+Actually the patch I posted should be able to handle also the
+ti,hwmods = "l3_main_1", "l3_main_2", "l3_main_3" property in omap4.dtsi,
+but we're not currently parsing that as we only look at the children
+and not the properties of the OCP bus. Should be fixable, will take a look
+tomorrow if this approach makes sense to you.
 
 Regards,
 
