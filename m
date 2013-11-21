@@ -1,273 +1,76 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP2+: Fix populating the hwmod data from device
- tree
-Date: Thu, 21 Nov 2013 12:48:14 -0800
-Message-ID: <20131121204814.GC10023@atomide.com>
-References: <20131120025620.GF10317@atomide.com>
- <20131120181255.GG10317@atomide.com>
- <20131120192209.GI10317@atomide.com>
- <alpine.DEB.2.02.1311202148160.30143@utopia.booyaka.com>
- <20131121000533.GJ10317@atomide.com>
- <20131121014555.GL10317@atomide.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: commit c368e5fc2a190923b786f2de3e79430ea3566a25 regresses MMC
+Date: Thu, 21 Nov 2013 20:50:50 +0000
+Message-ID: <20131121205050.GF14725@sirena.org.uk>
+References: <20131120175814.GC27423@saruman.home>
+ <20131120203400.GL2674@sirena.org.uk>
+ <20131120205143.GA9182@saruman.home>
+ <20131121024840.GA22970@saruman.home>
+ <20131121104911.GM2674@sirena.org.uk>
+ <CAOesGMi2wDz2PB7GJbfg3i4bRU+qgT+ubTa+WurQ96biyjaLsw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:29118 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754059Ab3KUUsR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Nov 2013 15:48:17 -0500
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Pql/uPZNXIm1JCle"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20131121014555.GL10317@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <CAOesGMi2wDz2PB7GJbfg3i4bRU+qgT+ubTa+WurQ96biyjaLsw@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Olof Johansson <olof@lixom.net>
+Cc: Felipe Balbi <balbi@ti.com>, Laxman Dewangan <ldewangan@nvidia.com>, Liam Girdwood <lgirdwood@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>
-
-* Tony Lindgren <tony@atomide.com> [131120 17:46]:
-> * Tony Lindgren <tony@atomide.com> [131120 16:06]:
-> >=20
-> > They at least had interrupts listed looking at commit 3b9b10. Proba=
-bly
-> > the thing to do for now is to revert those changes, and see if we c=
-an
-> > just remove the L3 entries from the .dtsi files.
->=20
-> Actually the patch I posted should be able to handle also the
-> ti,hwmods =3D "l3_main_1", "l3_main_2", "l3_main_3" property in omap4=
-=2Edtsi,
-> but we're not currently parsing that as we only look at the children
-> and not the properties of the OCP bus. Should be fixable, will take a=
- look
-> tomorrow if this approach makes sense to you.
-
-OK this one seems to do the right thing for me.
-
-Tony
 
 
-=46rom: Tony Lindgren <tony@atomide.com>
-Date: Wed, 20 Nov 2013 15:46:51 -0800
-Subject: [PATCH] ARM: OMAP2+: Fix overwriting hwmod data with data from=
- device tree
-MIME-Version: 1.0
-Content-Type: text/plain; charset=3DUTF-8
-Content-Transfer-Encoding: 8bit
+--Pql/uPZNXIm1JCle
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-We have some device tree properties where the ti,hwmod have multiple
-values:
+On Thu, Nov 21, 2013 at 12:27:06PM -0800, Olof Johansson wrote:
 
-am33xx.dtsi:	ti,hwmods =3D "tpcc", "tptc0", "tptc1", "tptc2";
-am4372.dtsi:	ti,hwmods =3D "tpcc", "tptc0", "tptc1", "tptc2";
-dra7.dtsi:	ti,hwmods =3D "l3_main_1", "l3_main_2";
-omap3.dtsi:	ti,hwmods =3D "mcbsp2", "mcbsp2_sidetone";
-omap3.dtsi:	ti,hwmods =3D "mcbsp3", "mcbsp3_sidetone";
-omap4.dtsi:	ti,hwmods =3D "l3_main_1", "l3_main_2", "l3_main_3";
-omap5.dtsi:	ti,hwmods =3D "l3_main_1", "l3_main_2", "l3_main_3";
+> If you have one email address listed in MAINTAINERS, and do all your
+> actual work with another identity, you might want to look at your
+> workflow a bit. I suggest either signing off with the MAINTAINERS
 
-That's not correct way of doing things in this case because these are
-separate devices with their own address space, interrupts, SYSCONFIG
-registers and can set their PM states independently.
+The only thing that uses the work address is patches and signoffs, all
+my e-mail traffic is done from my kernel.org address (including patch
+posts).
 
-So they should all be fixed up to be separate devices in the .dts files=
-=2E
+> email address, or changing the entries of that file. People should
+> expect to be able to email you on the address you sign off with.
 
-We also have the related data removed for at least omap4 in commit
-3b9b10151c68 (ARM: OMAP4: hwmod data: Clean up the data file), so
-that data is wrongly initialized as null data.
+Unfortunately my employer can't cope with that at present and I don't
+really want to use my work address for everything since all the stuff
+=66rom upstream DoSs the stuff that pays the bills.  I wouldn't mind if
+people mailed both, but if you're going to pick a single one then the
+one listed in MAINTAINERS is the way forwards (which generally is the
+address people manage to pick).
 
-So we need to fix two bugs:
+/me notes that he'd probably have been less grumpy if the message had
+a subject line that had content in it, even had it gone to the right
+mailbox there's a good chance I'd never even have opened the mail due to
+that - if anything it going to the wrong place actually worked around
+the subject line here.
 
-1. We are only checking the first entry of the ti,hwmods property
+--Pql/uPZNXIm1JCle
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-   This means that we're only initializing the first hwmods entry
-   instead of the ones listed in the ti,hwmods property.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
 
-2. We are only checking the child nodes, not the nodes themselves
+iQIcBAEBAgAGBQJSjnInAAoJELSic+t+oim9oDgP/34R0SqmILHILWrtkNFBDE9v
+7HwE6jXjlQ84safDUk040X3npHld5DeIdJ6OZxRsSZdzvyUQIxAO3VLDFUC9zzUV
+GrYH5+Gm3nWwjDczrQtctUZHn5jjOUpno+coiALSpCW//Ca933bW6wkO0ZW8cfTp
+CCQ4cxUgTTIZf8y52yqjU4O0ImFNn2+AhtXojIs+3zDTinkTWz/gt6hKI7r5ZN1H
+fBl9xnuiv0sPO1WTytvKIYiCkfpC3bt4USOSMzhAXLfQcv4pV4eyV2bUTzUzCUGA
+usgoCiAMfdgQFb8oqi4LXMFYYHjpcKqEKIerNXS1BWlIbQiq85iL2WQJ2jam3uh7
+mrZ9XejZKOM8wD6rAVfY3szmTyqaDjzhlhySF9RP+XvoYrfOqARNY77xPJrUj19Y
+MwL31S5E3i+21SJkaI6Kqc27h2GbsnnutKiUIZlqQyzZSe+WwHr2TSKKoavwg6XH
+9UjBp8JKEC0il4CCGEkWtqJAw8s+MEgTy14vtqpo+OZngkYNubmM/ci7cNgMgomu
+IO+Rfzfff7Z/MFMuS1wc9wG7iZhSMUbfjCQC0eQMDQJJYdsUpQgic+u/cRsJQ6Vm
+HHmI53ZMkKt75xfR5R5zKLzxvMPRVnWqbfkI3tzjKSzocYFzXfe3C2+Fq0PRnE+v
+ZU6SyprWmU979QJ5NDP8
+=HZwY
+-----END PGP SIGNATURE-----
 
-   This means that anything listed at OCP level is currently just
-   ignored and unitialized and at least the omap4 case, with the
-   legacy data missing from the hwmod.
-
-=46ix both of the issues by using an index to the ti,hwmods property
-and changing the hwmod lookup function to also check the current node
-for ti,hwmods property instead of just the children.
-
-While at it, let's also add some warnings for the bad data so it's
-easier to fix.
-
-Cc: "Beno=C3=AEt Cousson" <bcousson@baylibre.com>
-Cc: Paul Walmsley <paul@pwsan.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/oma=
-p_hwmod.c
-index e3f0eca..ee655da 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -2326,38 +2326,80 @@ static int _shutdown(struct omap_hwmod *oh)
- 	return 0;
- }
-=20
-+static int of_dev_find_hwmod(struct device_node *np,
-+			     struct omap_hwmod *oh)
-+{
-+	int count, i, res;
-+	const char *p;
-+
-+	count =3D of_property_count_strings(np, "ti,hwmods");
-+	if (count < 1)
-+		return -ENODEV;
-+
-+	for (i =3D 0; i < count; i++) {
-+		res =3D of_property_read_string_index(np, "ti,hwmods",
-+						    i, &p);
-+		if (res)
-+			continue;
-+		if (!strcmp(p, oh->name)) {
-+			pr_debug("omap_hwmod: dt %s[%i] uses hwmod %s\n",
-+				 np->name, i, oh->name);
-+			return i;
-+		}
-+	}
-+
-+	return -ENODEV;
-+}
-+
- /**
-  * of_dev_hwmod_lookup - look up needed hwmod from dt blob
-  * @np: struct device_node *
-  * @oh: struct omap_hwmod *
-+ * @index: index of the entry found
-+ * @found: struct device_node * found or NULL
-  *
-  * Parse the dt blob and find out needed hwmod. Recursive function is
-  * implemented to take care hierarchical dt blob parsing.
-- * Return: The device node on success or NULL on failure.
-+ * Return: Returns 0 on success, -ENODEV when not found.
-  */
--static struct device_node *of_dev_hwmod_lookup(struct device_node *np,
--						struct omap_hwmod *oh)
-+static int of_dev_hwmod_lookup(struct device_node *np,
-+			       struct omap_hwmod *oh,
-+			       int *index,
-+			       struct device_node **found)
- {
--	struct device_node *np0 =3D NULL, *np1 =3D NULL;
--	const char *p;
-+	struct device_node *np0 =3D NULL;
-+	int res;
-+
-+	res =3D of_dev_find_hwmod(np, oh);
-+	if (res >=3D 0) {
-+		*found =3D np;
-+		*index =3D res;
-+		return 0;
-+	}
-=20
- 	for_each_child_of_node(np, np0) {
--		if (of_find_property(np0, "ti,hwmods", NULL)) {
--			p =3D of_get_property(np0, "ti,hwmods", NULL);
--			if (!strcmp(p, oh->name))
--				return np0;
--			np1 =3D of_dev_hwmod_lookup(np0, oh);
--			if (np1)
--				return np1;
-+		struct device_node *fc;
-+		int i;
-+
-+		res =3D of_dev_hwmod_lookup(np0, oh, &i, &fc);
-+		if (res =3D=3D 0) {
-+			*found =3D fc;
-+			*index =3D i;
-+			return 0;
- 		}
- 	}
--	return NULL;
-+
-+	*found =3D NULL;
-+	*index =3D 0;
-+
-+	return -ENODEV;
- }
-=20
- /**
-  * _init_mpu_rt_base - populate the virtual address for a hwmod
-  * @oh: struct omap_hwmod * to locate the virtual address
-  * @data: (unused, caller should pass NULL)
-+ * @index: index of the reg entry iospace in device tree
-  * @np: struct device_node * of the IP block's device node in the DT d=
-ata
-  *
-  * Cache the virtual address used by the MPU to access this IP block's
-@@ -2368,7 +2410,7 @@ static struct device_node *of_dev_hwmod_lookup(st=
-ruct device_node *np,
-  * -ENXIO on absent or invalid register target address space.
-  */
- static int __init _init_mpu_rt_base(struct omap_hwmod *oh, void *data,
--				    struct device_node *np)
-+				    int index, struct device_node *np)
- {
- 	struct omap_hwmod_addr_space *mem;
- 	void __iomem *va_start =3D NULL;
-@@ -2390,13 +2432,17 @@ static int __init _init_mpu_rt_base(struct omap=
-_hwmod *oh, void *data,
- 		if (!np)
- 			return -ENXIO;
-=20
--		va_start =3D of_iomap(np, oh->mpu_rt_idx);
-+		va_start =3D of_iomap(np, index + oh->mpu_rt_idx);
- 	} else {
- 		va_start =3D ioremap(mem->pa_start, mem->pa_end - mem->pa_start);
- 	}
-=20
- 	if (!va_start) {
--		pr_err("omap_hwmod: %s: Could not ioremap\n", oh->name);
-+		if (mem)
-+			pr_err("omap_hwmod: %s: Could not ioremap\n", oh->name);
-+		else
-+			pr_err("omap_hwmod: %s: Missing dt reg%i for %s\n",
-+			       oh->name, index, np->full_name);
- 		return -ENXIO;
- 	}
-=20
-@@ -2422,17 +2468,29 @@ static int __init _init_mpu_rt_base(struct omap=
-_hwmod *oh, void *data,
-  */
- static int __init _init(struct omap_hwmod *oh, void *data)
- {
--	int r;
-+	int r, index;
- 	struct device_node *np =3D NULL;
-=20
- 	if (oh->_state !=3D _HWMOD_STATE_REGISTERED)
- 		return 0;
-=20
--	if (of_have_populated_dt())
--		np =3D of_dev_hwmod_lookup(of_find_node_by_name(NULL, "ocp"), oh);
-+	if (of_have_populated_dt()) {
-+		struct device_node *bus;
-+
-+		bus =3D of_find_node_by_name(NULL, "ocp");
-+		if (!bus)
-+			return -ENODEV;
-+
-+		r =3D of_dev_hwmod_lookup(bus, oh, &index, &np);
-+		if (r)
-+			pr_debug("omap_hwmod: %s missing dt data\n", oh->name);
-+		else if (np && index)
-+			pr_warn("omap_hwmod: %s using broken dt data from %s\n",
-+				oh->name, np->name);
-+	}
-=20
- 	if (oh->class->sysc) {
--		r =3D _init_mpu_rt_base(oh, NULL, np);
-+		r =3D _init_mpu_rt_base(oh, NULL, index, np);
- 		if (r < 0) {
- 			WARN(1, "omap_hwmod: %s: doesn't have mpu register target base\n",
- 			     oh->name);
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--Pql/uPZNXIm1JCle--
