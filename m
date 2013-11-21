@@ -1,74 +1,79 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: commit c368e5fc2a190923b786f2de3e79430ea3566a25 regresses MMC
-Date: Thu, 21 Nov 2013 06:58:36 -0600
-Message-ID: <20131121125836.GB24559@saruman.home>
-References: <20131120175814.GC27423@saruman.home>
- <20131120203400.GL2674@sirena.org.uk>
- <20131120205143.GA9182@saruman.home>
- <20131121024840.GA22970@saruman.home>
- <20131121104911.GM2674@sirena.org.uk>
+Subject: Re: [PATCH] usb: phy: am335x: Prevent GPIO reset line request
+Date: Thu, 21 Nov 2013 07:01:55 -0600
+Message-ID: <20131121130155.GC24559@saruman.home>
+References: <1384984714-19860-1-git-send-email-ezequiel.garcia@free-electrons.com>
+ <20131120220212.GA12776@localhost>
+ <528DC168.7090204@linutronix.de>
+ <20131121113025.GA2942@localhost>
+ <528DF233.40502@linutronix.de>
+ <20131121115519.GC2942@localhost>
 Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="+g7M9IMkV8truYOl"
+	protocol="application/pgp-signature"; boundary="2/5bycvrmDh4d1IB"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:39905 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:53304 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752317Ab3KUM7H (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 21 Nov 2013 07:59:07 -0500
+	id S1753218Ab3KUNCc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 21 Nov 2013 08:02:32 -0500
 Content-Disposition: inline
-In-Reply-To: <20131121104911.GM2674@sirena.org.uk>
+In-Reply-To: <20131121115519.GC2942@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: Felipe Balbi <balbi@ti.com>, ldewangan@nvidia.com, lgirdwood@gmail.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+To: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Roger Quadros <rogerq@ti.com>, Javier Martinez Canillas <martinez.javier@gmail.com>, Enric Balletbo Serra <eballetbo@gmail.com>, Tony Lindgren <tony@atomide.com>
 
---+g7M9IMkV8truYOl
+--2/5bycvrmDh4d1IB
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi,
-
-On Thu, Nov 21, 2013 at 10:49:11AM +0000, Mark Brown wrote:
-> On Wed, Nov 20, 2013 at 08:48:41PM -0600, Felipe Balbi wrote:
+On Thu, Nov 21, 2013 at 08:55:20AM -0300, Ezequiel Garcia wrote:
+> On Thu, Nov 21, 2013 at 12:44:51PM +0100, Sebastian Andrzej Siewior wrote:
+> > On 11/21/2013 12:30 PM, Ezequiel Garcia wrote:
+> > > Ah, good to know. That patch should be picked ASAP, without it the USB
+> > > in AM335x is broken. Is it already too late to -rc1?
+> > Yes.
+> >=20
+> > > Who is supposed to merge that? Greg?
+> >=20
+> > Felipe will start collecting fixes once -rc1 is out [0] so it should be
+> > part of -rc2.
+> >=20
 >=20
-> > actually, I didn't miss you at all. your broonie@linaro.org was in Cc
-> > of original email thread. The same email which was used to sign-off on
-> > original commit.
+> OK, fine by me. Please note that Felipe's commit is a much bigger (and
+> nicer) rework of the code, and that it doesn't clearly state it fixes
+> the current code.
 >=20
-> It's not what's advertised in MAINTAINERS, you should be sending stuff
-> to that address.  My work account is completely separate and for various
-> reasons (including the fact that a lot of the mails for upstream sent
-> there are duplicates of mails sent here) non-automatic upstream stuff
-> has a good chance of getting dropped on the floor and at the very least
-> will be dealt with more slowly.
+> Felipe: Maybe you should add some message stating it fixes a regression?
 
-still, your claim that I didn't Cc any maintainer is completely bogus
+sure, makes sense. Sebastian had already mentioned it sounded too nice
+of a commit log ;-)
 
 --=20
 balbi
 
---+g7M9IMkV8truYOl
+--2/5bycvrmDh4d1IB
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.15 (GNU/Linux)
 
-iQIcBAEBAgAGBQJSjgN8AAoJEIaOsuA1yqRE9RIP/jK2YER3P8iovks7NerJXR6a
-L7HMhyv49seTPF0TShPsiFaBpcnoE/UQ7LbayP+xrbA7dgffOCIxpMK8lwKoJVdE
-WFsoFU8d2kOb0F1N/OhJhMN7HNKtvXQyD5/Giw/ep+N/JB7gTqVHMxtRA2n0F1lp
-//5rWoD3RLPtScT+vxpAb/Hm5G5xRyELg91QjBUYSe/n34JCkPVBWIuVcKcrYMPO
-BK0NvzOj1nI1XjWTfky+qdlw+8+0PSSydh5ogNUHSiY0HgeoanGEhEyvg0zIkyfN
-2VdN6uZHtGTiimgJsHSJsopaSr9Tpronuji5rFatcxXuaADFyrd4Roq4NILQaPak
-vN2zFpWVDSrLCwvEruPx4eu9t0Z0AEdBNAR0iQ1ZEDW1n0QEtK1b6j+3ObTXquwz
-QY2rY5SfF7DwRSlE0DUCCqRIg+tEbpxa95TuVDOJh9chl4bRRB0Pybs1x0TnKn7x
-3uzLM2iPdaACv1WQd+UWnvGkrwgI0laBEAHXOOOAY9j+hVjfFk4c5IvYxwcpekTI
-mcfgc/8zoBsECkYEXLRLk9MsTHjR78Ue47mmsGxi3CICdwzfNE1CSfBzHb3TJdUM
-Fd8DP87Ygr8k38QuvyzYV2i6JTx/acDed6qJu5QclaMZ6ybitJ+sfcYXLh2+HIPG
-87XGNUwjx5B6v/4Qk9Fl
-=PbhX
+iQIcBAEBAgAGBQJSjgRDAAoJEIaOsuA1yqREtxoP/iNEuNuTINRHaYZnYhvCw6ck
+TwgzxkV3cGGUvpPnPLC73x3/VXH163+7wKOxaB/w4OlmgqzgQcVSeeLnNNf3buLP
+mfizlXP+CRGqk77mTD5FgfNn8t7zDF6SrfvRzeDWFxQyRXvaOZdecUd+q8NaRwpv
+huiBJCZ88H2BPgmXZLgeYpYiixkEjbCJPgio0BxcFmaaLQpHNsdgsmm+5VMpzYJu
+ich7QAJfrY1HEzn3hEUk4hMLGUU17+ICNSCveacp+/OCglr4Cjey1pnNfR5uE6Tm
+mo6OjmFu4Ao9wI7GVgGJdLj/58yhKI7MedhqFcm4RAIqd9MjbCDCd37T9r7wWgsi
+wckx7UjtRG6RgHWY34ZHgkiBZzRgVg8ckufKefbhWxTM/41A9dXDA6gKbQXa3puo
+ktnsbtbPlae8bLQ/Myt2gjYvXhGLUAriiarWagSkB0z0ljFrRik/Cd9Abne8/DEH
+H42z/bK3dAn4dHcRJYR0d+yVmwqmmy0FMgYgKXu1AnabsXLjs4C8Xp0rbJ/ZkD0+
+QWUoZ7Om5VTDrguNSmazy+yZCcALF202BLAW6Cm9EzDGW1wXQ75dnXq7ZBuGxVQ1
+Fq9FZ/HSQOiFqhPPPMrW+89iWECtQlrGbHAq3Bh2h0DUi/iPk50zHRVjyXk9FUDa
+YgqGD1WicbVQ+5gmIIBz
+=Picu
 -----END PGP SIGNATURE-----
 
---+g7M9IMkV8truYOl--
+--2/5bycvrmDh4d1IB--
