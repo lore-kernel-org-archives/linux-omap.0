@@ -1,79 +1,81 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] usb: phy: am335x: Prevent GPIO reset line request
-Date: Thu, 21 Nov 2013 07:01:55 -0600
-Message-ID: <20131121130155.GC24559@saruman.home>
-References: <1384984714-19860-1-git-send-email-ezequiel.garcia@free-electrons.com>
- <20131120220212.GA12776@localhost>
- <528DC168.7090204@linutronix.de>
- <20131121113025.GA2942@localhost>
- <528DF233.40502@linutronix.de>
- <20131121115519.GC2942@localhost>
-Reply-To: <balbi@ti.com>
+From: Balaji T K <balajitk@ti.com>
+Subject: [PATCH 1/2] ARM: dts: omap4-panda-common: Fix pin muxing for wl12xx
+Date: Thu, 21 Nov 2013 19:20:03 +0530
+Message-ID: <1385041804-19115-2-git-send-email-balajitk@ti.com>
+References: <1385041804-19115-1-git-send-email-balajitk@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="2/5bycvrmDh4d1IB"
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:53304 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:55015 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753218Ab3KUNCc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 21 Nov 2013 08:02:32 -0500
-Content-Disposition: inline
-In-Reply-To: <20131121115519.GC2942@localhost>
+	id S1754206Ab3KUNuf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 21 Nov 2013 08:50:35 -0500
+In-Reply-To: <1385041804-19115-1-git-send-email-balajitk@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Roger Quadros <rogerq@ti.com>, Javier Martinez Canillas <martinez.javier@gmail.com>, Enric Balletbo Serra <eballetbo@gmail.com>, Tony Lindgren <tony@atomide.com>
+To: bcousson@baylibre.com, devicetree@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Balaji T K <balajitk@ti.com>
 
---2/5bycvrmDh4d1IB
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+pin mux wl12xx_gpio and wl12xx_pins should be part of omap4_pmx_core
+and not omap4_pmx_wkup. So, move wl12xx_* to omap4_pmx_core.
 
-On Thu, Nov 21, 2013 at 08:55:20AM -0300, Ezequiel Garcia wrote:
-> On Thu, Nov 21, 2013 at 12:44:51PM +0100, Sebastian Andrzej Siewior wrote:
-> > On 11/21/2013 12:30 PM, Ezequiel Garcia wrote:
-> > > Ah, good to know. That patch should be picked ASAP, without it the USB
-> > > in AM335x is broken. Is it already too late to -rc1?
-> > Yes.
-> >=20
-> > > Who is supposed to merge that? Greg?
-> >=20
-> > Felipe will start collecting fixes once -rc1 is out [0] so it should be
-> > part of -rc2.
-> >=20
->=20
-> OK, fine by me. Please note that Felipe's commit is a much bigger (and
-> nicer) rework of the code, and that it doesn't clearly state it fixes
-> the current code.
->=20
-> Felipe: Maybe you should add some message stating it fixes a regression?
+Fix the following error message:
+pinctrl-single 4a31e040.pinmux: mux offset out of range: 0x38 (0x38)
+pinctrl-single 4a31e040.pinmux: could not add functions for pinmux_wl12xx_pins 56x
 
-sure, makes sense. Sebastian had already mentioned it sounded too nice
-of a commit log ;-)
+SDIO card is not detected after moving pin mux to omap4_pmx_core since
+sdmmc5_clk pull is disabled. Enable Pull up on sdmmc5_clk to detect SDIO card.
 
---=20
-balbi
+Signed-off-by: Balaji T K <balajitk@ti.com>
+---
+ arch/arm/boot/dts/omap4-panda-common.dtsi |   20 ++++++++++----------
+ 1 files changed, 10 insertions(+), 10 deletions(-)
 
---2/5bycvrmDh4d1IB
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+diff --git a/arch/arm/boot/dts/omap4-panda-common.dtsi b/arch/arm/boot/dts/omap4-panda-common.dtsi
+index 298e850..88c6a05 100644
+--- a/arch/arm/boot/dts/omap4-panda-common.dtsi
++++ b/arch/arm/boot/dts/omap4-panda-common.dtsi
+@@ -246,15 +246,6 @@
+ 			0xf0 (PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c4_sda */
+ 		>;
+ 	};
+-};
+-
+-&omap4_pmx_wkup {
+-	led_wkgpio_pins: pinmux_leds_wkpins {
+-		pinctrl-single,pins = <
+-			0x1a (PIN_OUTPUT | MUX_MODE3)	/* gpio_wk7 */
+-			0x1c (PIN_OUTPUT | MUX_MODE3)	/* gpio_wk8 */
+-		>;
+-	};
+ 
+ 	/*
+ 	 * wl12xx GPIO outputs for WLAN_EN, BT_EN, FM_EN, BT_WAKEUP
+@@ -274,7 +265,7 @@
+ 		pinctrl-single,pins = <
+ 			0x38 (PIN_INPUT | MUX_MODE3)		/* gpmc_ncs2.gpio_52 */
+ 			0x3a (PIN_INPUT | MUX_MODE3)		/* gpmc_ncs3.gpio_53 */
+-			0x108 (PIN_OUTPUT | MUX_MODE0)		/* sdmmc5_clk.sdmmc5_clk */
++			0x108 (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc5_clk.sdmmc5_clk */
+ 			0x10a (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc5_cmd.sdmmc5_cmd */
+ 			0x10c (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc5_dat0.sdmmc5_dat0 */
+ 			0x10e (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc5_dat1.sdmmc5_dat1 */
+@@ -284,6 +275,15 @@
+ 	};
+ };
+ 
++&omap4_pmx_wkup {
++	led_wkgpio_pins: pinmux_leds_wkpins {
++		pinctrl-single,pins = <
++			0x1a (PIN_OUTPUT | MUX_MODE3)	/* gpio_wk7 */
++			0x1c (PIN_OUTPUT | MUX_MODE3)	/* gpio_wk8 */
++		>;
++	};
++};
++
+ &i2c1 {
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&i2c1_pins>;
+-- 
+1.7.5.4
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.15 (GNU/Linux)
-
-iQIcBAEBAgAGBQJSjgRDAAoJEIaOsuA1yqREtxoP/iNEuNuTINRHaYZnYhvCw6ck
-TwgzxkV3cGGUvpPnPLC73x3/VXH163+7wKOxaB/w4OlmgqzgQcVSeeLnNNf3buLP
-mfizlXP+CRGqk77mTD5FgfNn8t7zDF6SrfvRzeDWFxQyRXvaOZdecUd+q8NaRwpv
-huiBJCZ88H2BPgmXZLgeYpYiixkEjbCJPgio0BxcFmaaLQpHNsdgsmm+5VMpzYJu
-ich7QAJfrY1HEzn3hEUk4hMLGUU17+ICNSCveacp+/OCglr4Cjey1pnNfR5uE6Tm
-mo6OjmFu4Ao9wI7GVgGJdLj/58yhKI7MedhqFcm4RAIqd9MjbCDCd37T9r7wWgsi
-wckx7UjtRG6RgHWY34ZHgkiBZzRgVg8ckufKefbhWxTM/41A9dXDA6gKbQXa3puo
-ktnsbtbPlae8bLQ/Myt2gjYvXhGLUAriiarWagSkB0z0ljFrRik/Cd9Abne8/DEH
-H42z/bK3dAn4dHcRJYR0d+yVmwqmmy0FMgYgKXu1AnabsXLjs4C8Xp0rbJ/ZkD0+
-QWUoZ7Om5VTDrguNSmazy+yZCcALF202BLAW6Cm9EzDGW1wXQ75dnXq7ZBuGxVQ1
-Fq9FZ/HSQOiFqhPPPMrW+89iWECtQlrGbHAq3Bh2h0DUi/iPk50zHRVjyXk9FUDa
-YgqGD1WicbVQ+5gmIIBz
-=Picu
------END PGP SIGNATURE-----
-
---2/5bycvrmDh4d1IB--
