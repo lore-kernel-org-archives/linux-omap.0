@@ -1,69 +1,72 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: commit c368e5fc2a190923b786f2de3e79430ea3566a25 regresses MMC
-Date: Wed, 20 Nov 2013 20:48:41 -0600
-Message-ID: <20131121024840.GA22970@saruman.home>
-References: <20131120175814.GC27423@saruman.home>
- <20131120203400.GL2674@sirena.org.uk>
- <20131120205143.GA9182@saruman.home>
-Reply-To: <balbi@ti.com>
+From: Stefan Roese <stefan.roese@gmail.com>
+Subject: Re: AM335x board with disabled RTC crashes
+Date: Thu, 21 Nov 2013 05:28:56 +0100
+Message-ID: <528D8C08.1020201@gmail.com>
+References: <528CC4CB.4000609@gmail.com> <528CC5C3.2010905@ti.com> <528CDAF6.7070905@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="OXfL5xGRrasGEqWY"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20131120205143.GA9182@saruman.home>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Mark Brown <broonie@kernel.org>, ldewangan@nvidia.com, lgirdwood@gmail.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mo-p05-ob.rzone.de ([81.169.146.181]:12794 "EHLO
+	mo-p05-ob.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752060Ab3KUE27 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Nov 2013 23:28:59 -0500
+In-Reply-To: <528CDAF6.7070905@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>, Paul Walmsley <paul@pwsan.com>, "Nayak, Rajendra" <rnayak@ti.com>, "tony@atomide.com" <tony@atomide.com>
+Cc: Suman Anna <s-anna@ti.com>, linux-omap <linux-omap@vger.kernel.org>
 
---OXfL5xGRrasGEqWY
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On 11/20/2013 04:53 PM, Nishanth Menon wrote:
+> Paul, Tony, Rajendra,
+> 
+> On 11/20/2013 08:22 AM, Nishanth Menon wrote:
+>> On 11/20/2013 08:18 AM, Stefan Roese wrote:
+>>> Hi!
+>>>
+>>> I'm currently working on a custom AM335x based board, where the SoC
+>>> RTC is disabled. As described in this page in the "RTC feature disabled"
+>>> column:
+>>>
+>>> http://processors.wiki.ti.com/index.php/AM335x_Schematic_Checklist#RTC
+>>>
+>>> On this board the registers of the RTC are not accessible. But the OMAP
+>>> hwmod code tries to read the sysc register unconditionally from the RTC.
+>>> And this leads to this crash (using v3.12):
+>>>
+>>> ...
+>>> [    0.179491] CPU: Testing write buffer coherency: ok
+>>> [    0.187702] Setting up static identity map for 0xc04dfa90 - 0xc04dfb00
+>>> [    0.204665] devtmpfs: initialized
+>>> [    0.219513] VFP support v0.3: implementor 41 architecture 3 part 30 variant c rev 3
+>>> [    0.237462] *** _update_sysc_cache (263): name=emif
+>>> [    0.246247] omap_hwmod: debugss: _wait_target_disable failed
+>>> [    0.252290] *** _update_sysc_cache (263): name=uart1
+>>> [    0.257668] *** _update_sysc_cache (263): name=rtc
+>>> [    0.262885] Unhandled fault: external abort on non-linefetch (0x1028) at 0xf9e3e078
+>>> [    0.270893] Internal error: : 1028 [#1] ARM
+>>> [    0.275302] Modules linked in:
+>>> [    0.278572] CPU: 0 PID: 1 Comm: swapper Not tainted 3.12.0-dirty #21
+>>> [    0.285222] task: c7047340 ti: c7048000 task.ti: c7048000
+>>> [    0.290909] PC is at _update_sysc_cache+0x44/0xb0
+>>> [    0.295861] LR is at _update_sysc_cache+0x1c/0xb0
+>>> ...
+>>>
+>>> Disabling the RTC in the DT doesn't help (of course). So what's the
+>>> recommended way to disable this hwmod access to the RTC registers?
+>>
+>>
+>> http://www.spinics.net/lists/linux-omap/msg98207.html
+>> might help you - we had thought it might get queued for 3.12, but it
+>> was queued for 3.13 instead..
 
-On Wed, Nov 20, 2013 at 02:51:43PM -0600, Felipe Balbi wrote:
-> Hi,
->=20
-> On Wed, Nov 20, 2013 at 08:34:00PM +0000, Mark Brown wrote:
-> > On Wed, Nov 20, 2013 at 11:58:14AM -0600, Felipe Balbi wrote:
-> >=20
-> > > commit c368e5fc2a190923b786f2de3e79430ea3566a25 (regulator: fixed: get
-> > > rid of {get|list}_voltage()) regresses any MMC host controller which
-> > > uses fixed regulator for functionality.
-> >=20
-> > This is already fixed in -next.  Please remember to always CC
-> > maintainers on mails and please try to write subject lines which are
->=20
-> that's why Liam and Laxman are in Cc. Looks like only you were missed.
+Unfortunately this patch doesn't fix the crash for me (yet). With this
+patch applied and the RTC DT node completely removed from am33xx.dtsi it
+works. But only disabling it (via status = "disabled" in the board dts
+file) doesn't work.
 
-actually, I didn't miss you at all. your broonie@linaro.org was in Cc
-of original email thread. The same email which was used to sign-off on
-original commit.
+I'll dig a bit deeper today...
 
---=20
-balbi
+Thanks,
+Stefan
 
---OXfL5xGRrasGEqWY
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.15 (GNU/Linux)
-
-iQIcBAEBAgAGBQJSjXSIAAoJEIaOsuA1yqRE8nQQAI4hldStT39hQmHAsFw3Af0r
-TiHQQE+bTOi+VuqZYSoh7Unx21g3H38j3f4IHysT41dSFpPSr5dpT8JCHRwxGv1P
-8duUlTEUngX0AM9s2Q2ta+8ofdeNUCAw8mYM0aEYl4VvsExjbR74VS2EN3Elr4DP
-1u7eo966Gk4XOtvegBPMvzN1hsWU5IazRVhoxdop2efJjO0IDEQtepmvjprIlgML
-3GOVGm6mWc1jzjKl8ZviZW/GaSOosi/tbJZM14MsI9jcA3vo2lwllDiv9ljYdkQi
-D8vfChdbuetmlMlZj3QXEqOslon5uO1HaxPMgYBhOuYNujKEF1EGc6zPlHDumTCQ
-DlQEQqOVjpI84FvbwkmDmo3l+/fgGl4Ns0b8AHd5TZWNvrfwRsTr+DzoGzdhPhDv
-SfFtzLEgTH4fj5tRoKwM3GVo9Xv7p1qdv5XfcACJogEz6KpiMYhkMjjYizBF3JMV
-Ea5t7T2FVRWC0J9pmx9siUOJB874LJKe6itDkxxLzgUAyU5uawRbHL78mqHlhibY
-1qDv3hHjPFSzZ8zIgTSeqke6ITn8XcmQwt462WmD5iJYqjZV/jOR1s/HpSxto4Jn
-6mxnyJgfqGmFBKaisdNr0OCc/N/CTZxNG4xFLESnm3i5rQ9l79pRWIdpZjrY8pnJ
-dqQ3Wv8LLWSsE0R02B5/
-=29YV
------END PGP SIGNATURE-----
-
---OXfL5xGRrasGEqWY--
