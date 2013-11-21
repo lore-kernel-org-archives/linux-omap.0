@@ -1,117 +1,77 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [RFC PATCH v3 3/8] regulator: add pbias regulator support
-Date: Thu, 21 Nov 2013 14:46:23 +0000
-Message-ID: <20131121144623.GA8120@sirena.org.uk>
-References: <1385043627-30439-4-git-send-email-balajitk@ti.com>
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: Re: [RFC PATCH v3 1/8] mmc: omap_hsmmc: use devm_regulator API
+Date: Thu, 21 Nov 2013 16:08:45 +0100
+Message-ID: <CAPDyKFoS3i3eMKy817emRWoZ5OMKr7LgP3mjj2ePBBGcN5ZB2w@mail.gmail.com>
+References: <20130613174554.GB1403@sirena.org.uk>
+	<1385043627-30439-1-git-send-email-balajitk@ti.com>
+	<1385043627-30439-2-git-send-email-balajitk@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="EeQfGwPcQSOJBaQU"
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cassiel.sirena.org.uk ([80.68.93.111]:57973 "EHLO
-	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755078Ab3KUOqu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Nov 2013 09:46:50 -0500
-Content-Disposition: inline
-In-Reply-To: <1385043627-30439-4-git-send-email-balajitk@ti.com>
+Received: from mail-qe0-f49.google.com ([209.85.128.49]:45658 "EHLO
+	mail-qe0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753177Ab3KUPIs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Nov 2013 10:08:48 -0500
+Received: by mail-qe0-f49.google.com with SMTP id w7so1751202qeb.22
+        for <linux-omap@vger.kernel.org>; Thu, 21 Nov 2013 07:08:45 -0800 (PST)
+In-Reply-To: <1385043627-30439-2-git-send-email-balajitk@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Balaji T K <balajitk@ti.com>
-Cc: linux-omap@vger.kernel.org, bcousson@baylibre.com, devicetree@vger.kernel.org, linux-mmc@vger.kernel.org, cjb@laptop.org, tony@atomide.com
+Cc: linux-omap <linux-omap@vger.kernel.org>, bcousson@baylibre.com, devicetree@vger.kernel.org, linux-mmc <linux-mmc@vger.kernel.org>, Chris Ball <cjb@laptop.org>, Mark Brown <broonie@kernel.org>, Tony Lindgren <tony@atomide.com>
 
+On 21 November 2013 15:20, Balaji T K <balajitk@ti.com> wrote:
+> Use devm_regulator API, while at it use
+> devm_regulator_get_optional for optional vmmc_aux supply
+>
+> Signed-off-by: Balaji T K <balajitk@ti.com>
+> ---
+>  drivers/mmc/host/omap_hsmmc.c |    6 ++----
+>  1 files changed, 2 insertions(+), 4 deletions(-)
+>
+> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+> index dbd32ad..1eb4350 100644
+> --- a/drivers/mmc/host/omap_hsmmc.c
+> +++ b/drivers/mmc/host/omap_hsmmc.c
+> @@ -316,7 +316,7 @@ static int omap_hsmmc_reg_get(struct omap_hsmmc_host *host)
+>         struct regulator *reg;
+>         int ocr_value = 0;
+>
+> -       reg = regulator_get(host->dev, "vmmc");
+> +       reg = devm_regulator_get(host->dev, "vmmc");
+>         if (IS_ERR(reg)) {
+>                 dev_err(host->dev, "vmmc regulator missing\n");
+>                 return PTR_ERR(reg);
+> @@ -336,7 +336,7 @@ static int omap_hsmmc_reg_get(struct omap_hsmmc_host *host)
+>                 }
+>
+>                 /* Allow an aux regulator */
+> -               reg = regulator_get(host->dev, "vmmc_aux");
+> +               reg = devm_regulator_get_optional(host->dev, "vmmc_aux");
+>                 host->vcc_aux = IS_ERR(reg) ? NULL : reg;
+>
+>                 /* For eMMC do not power off when not in sleep state */
+> @@ -366,8 +366,6 @@ static int omap_hsmmc_reg_get(struct omap_hsmmc_host *host)
+>
+>  static void omap_hsmmc_reg_put(struct omap_hsmmc_host *host)
+>  {
+> -       regulator_put(host->vcc);
+> -       regulator_put(host->vcc_aux);
+>         mmc_slot(host).set_power = NULL;
+>  }
 
---EeQfGwPcQSOJBaQU
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+While you are touching this code I would suggest to convert to
+mmc_regulator_get_supply instead. That mean the vmmc_aux change name
+to vqmmc though, so you need to adapt for this as well then.
 
-On Thu, Nov 21, 2013 at 07:50:22PM +0530, Balaji T K wrote:
+Kind regards
+Ulf Hansson
 
-> +static int pbias_regulator_set_voltage(struct regulator_dev *dev,
-> +			int min_uV, int max_uV, unsigned *selector)
-> +{
-> +	struct pbias_regulator_data *data = rdev_get_drvdata(dev);
-> +	const struct pbias_bit_map *bmap = data->bmap;
-> +	int ret, vmode;
-> +
-> +	if (min_uV <= 1800000)
-> +		vmode = 0;
-> +	else if (min_uV > 1800000)
-> +		vmode = bmap->vmode;
-> +
-> +	ret = regmap_update_bits(data->syscon, data->pbias_reg,
-> +						bmap->vmode, vmode);
-> +	data->voltage = min_uV;
-
-> +static int pbias_regulator_get_voltage(struct regulator_dev *rdev)
-> +{
-> +	struct pbias_regulator_data *data = rdev_get_drvdata(rdev);
-> +
-> +	return data->voltage;
-> +}
-
-These don't match up with each other - the get and set voltage calls
-should reflect what the hardware state is, not what was requested by the
-caller.  You should be able to use the regmap helpers I think.
-
-> +static int pbias_regulator_enable(struct regulator_dev *rdev)
-> +{
-> +	struct pbias_regulator_data *data = rdev_get_drvdata(rdev);
-> +	const struct pbias_bit_map *bmap = data->bmap;
-> +	int ret;
-> +
-> +	ret = regmap_update_bits(data->syscon, data->pbias_reg,
-> +					bmap->enable_mask, bmap->enable);
-
-regulator_enable_regmap() and similarly for disable() and is_enabled().
-
-> +	supply_name = initdata->constraints.name;
-> +
-> +	of_property_read_u32(np, "startup-delay-us", &startup_delay);
-> +	ret = of_property_read_u32(np, "pbias-reg-offset",
-> +				   &drvdata->pbias_reg);
-> +	if (ret) {
-> +		dev_err(&pdev->dev, "no pbias-reg-offset property set\n");
-> +		return ret;
-> +	}
-
-This looks like it should be added as a standard property for overridig
-the regulator delay if it can't be set based on the compatible string
-alone due to board dependencies.  Do something like what's done for
-regulator-ramp-delay.
-
-> +err_regulator:
-> +	kfree(drvdata->desc.name);
-> +	return ret;
-
-devm_kzalloc().
-
-> +static int __init pbias_regulator_init(void)
-> +{
-> +	return platform_driver_register(&pbias_regulator_driver);
-> +}
-> +subsys_initcall(pbias_regulator_init);
-
-module_platform_driver().
-
---EeQfGwPcQSOJBaQU
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
-
-iQIcBAEBAgAGBQJSjhy8AAoJELSic+t+oim9FgAP/3DOgHLOu5/FReSkZ4DAWUDe
-2exoaRwlJ4FUtcpuN69vIcBWkONOZtwEhlVdsGOvHUTOuEP3g/jpaEHs5n2QhZir
-BHC79OtJ9Q14MaCTyJw3Qrflh8WkMi2bHiGrq8RxTCkRIO+8FQxiiWMHipMzvsM5
-ISmZXn6ipykCnl8dJwcJXhHpjkmxerimHQN4jfjhCggrpirxpw9h/mtwQNm22+lx
-Jd3EuoU14/3us+8rFsm+mGueiR/1hTHdrgEZk2KKAV27DuLfc/U9tQZECBhFDawW
-HKXj4BBdRTY55umLh+YvilBJdjXyUC+Dz2dzC7FIfrK3acOBzhHoh8cOkDHSiIdv
-vVMz/jRucHGZX5w/EJg3rsse5YDIpBZCzkK7YjWeNH24VZAkwylb18VMeQYGU7I/
-f0/hFbFmLml14+m9glD1yyJdSKogdE1Sg3/Yx617kveY9hHUEY/ql7FyP7i9r6BE
-fYEtJ7wiY4SSsrUXdKmKV1MtqvJaKUWpcdYKypLa+CM6ViAVGz2s+NncIY5lsBCB
-Mzy2/y9f5gLmpQgCmYTEHrSu1vTpk1rA9FEl2O7h7ja7TLvMA1HtogW8uhYwgTx+
-lsjq8jknhlZXCh2wZSpLr+tXCKeH8bAeqL0t6rBLQkMsZDG5yHq5our/6tJ+ACFS
-DNq9ZBTS64UgujKqmb26
-=bIz+
------END PGP SIGNATURE-----
-
---EeQfGwPcQSOJBaQU--
+>
+> --
+> 1.7.5.4
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-mmc" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
