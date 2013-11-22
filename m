@@ -1,39 +1,27 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/3] ARM: OMAP2+: Fix eMMC on n900 with device tree
-Date: Fri, 22 Nov 2013 09:14:21 -0800
-Message-ID: <20131122171421.GI10023@atomide.com>
-References: <1385059866-10646-1-git-send-email-tony@atomide.com>
- <1385059866-10646-4-git-send-email-tony@atomide.com>
- <20131121231751.GA9772@earth.universe>
- <20131121235729.GD10023@atomide.com>
- <20131122163532.GA32331@earth.universe>
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: Re: [PATCH] Allow MUSB DSPS to use "force host" mode
+Date: Fri, 22 Nov 2013 18:22:30 +0100
+Message-ID: <528F92D6.9010409@linutronix.de>
+References: <528F7E8F.5050807@newflow.co.uk> <528F8741.1060406@linutronix.de> <528F8B35.8070408@newflow.co.uk> <528F8DF1.2060307@linutronix.de> <528F8F62.7000801@newflow.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:36274 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755484Ab3KVROY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 Nov 2013 12:14:24 -0500
-Content-Disposition: inline
-In-Reply-To: <20131122163532.GA32331@earth.universe>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <528F8F62.7000801@newflow.co.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mark Jackson <mpfj-list@newflow.co.uk>
+Cc: linux-usb@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Greg KH <gregkh@linuxfoundation.org>, jkosina@suse.cz, anatol.pomozov@gmail.com, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Bin Liu <binmlist@gmail.com>
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, Aaro Koskinen <aaro.koskinen@iki.fi>
 
-* Sebastian Reichel <sre@ring0.de> [131122 08:38]:
-> On Thu, Nov 21, 2013 at 03:57:29PM -0800, Tony Lindgren wrote:
-> > Well let's use just vaux3 then with a comment to the .dts file if that
-> > works also on your 0x2204. It works on my 0x0010 too.
-> > 
-> > I folded in your changes to the updated patch below. Care to reply with
-> > your Signed-off-by too assuming it works also on your 0x2204 n900?
+On 11/22/2013 06:07 PM, Mark Jackson wrote:
+>> Do you insists on having this change merged upstream?
 > 
-> It does work with the 0x2204 phone.
+> No ... I didn't think it would be such an issue, so I'm happy to keep this
+> as a local patch if that's any better.
+
+Felipe, Bin: Second opinion on that?
+
 > 
-> Signed-off-by: Sebastian Reichel <sre@debian.org>
+> Mark J.
 
-OK good to hear. I'll update the patch with that.
-
-Thanks,
-
-Tony
+Sebastian
