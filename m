@@ -1,70 +1,59 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: commit c368e5fc2a190923b786f2de3e79430ea3566a25 regresses MMC
+From: Joel Fernandes <joelf@ti.com>
+Subject: [PATCH 2/8] rc: ir-rx51: Use clk API to get clock rate
 Date: Thu, 21 Nov 2013 19:56:48 -0600
-Message-ID: <20131122015648.GA855@saruman.home>
-References: <20131120175814.GC27423@saruman.home>
- <20131120203400.GL2674@sirena.org.uk>
- <20131120205143.GA9182@saruman.home>
- <20131121024840.GA22970@saruman.home>
- <20131121104911.GM2674@sirena.org.uk>
- <CAOesGMi2wDz2PB7GJbfg3i4bRU+qgT+ubTa+WurQ96biyjaLsw@mail.gmail.com>
- <20131121205050.GF14725@sirena.org.uk>
-Reply-To: <balbi@ti.com>
+Message-ID: <1385085414-9034-3-git-send-email-joelf@ti.com>
+References: <1385085414-9034-1-git-send-email-joelf@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="6TrnltStXW4iwmi0"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20131121205050.GF14725@sirena.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: Olof Johansson <olof@lixom.net>, Felipe Balbi <balbi@ti.com>, Laxman Dewangan <ldewangan@nvidia.com>, Liam Girdwood <lgirdwood@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1385085414-9034-1-git-send-email-joelf@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Cc: Joel Fernandes <joelf@ti.com>, jgchunter@gmail.com, rnayak@ti.com, balbi@ti.com, santosh.shilimkar@ti.com, benoit.cousson@linaro.org
 List-Id: linux-omap@vger.kernel.org
 
---6TrnltStXW4iwmi0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+ir-rx51 tries to use struct clk directly, which is private. Go through to clk
+API to get the rate.
 
-Hi,
+Compile tested only.
 
-On Thu, Nov 21, 2013 at 08:50:50PM +0000, Mark Brown wrote:
-> /me notes that he'd probably have been less grumpy if the message had
-> a subject line that had content in it, even had it gone to the right
+Signed-off-by: Joel Fernandes <joelf@ti.com>
+---
+ drivers/media/rc/ir-rx51.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-oh cut the crap already. It contained the commit sha1 and a pretty
-self-explanatory "regresses MMC". You can't expect me to put everything
-in the subject and you're only "grumpy" because you're too lazy to move
-your neck 5 degrees to the right to read the rest of the line.
-
-what a long thread for such a small issue Mark, just stop it already.
-The issue is fixed in -next and that's what matters, everybody's happy.
-
-I know I am with my working MMC on BBB.
-
---=20
-balbi
-
---6TrnltStXW4iwmi0
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.15 (GNU/Linux)
-
-iQIcBAEBAgAGBQJSjrngAAoJEIaOsuA1yqREECIQAJNqXlnt8+FCC9VEy2epY7Sc
-TpOINrhqtllU9nkUyz7OZ0RycSMPfZVBh/ScEB/W5ipDhmLjovCAkB4f+Cnwfrtt
-UATzk5/Ou/6TuCGt+XIAgGUrOAihi4LLTdOY9S2MvCJ2ET1QZheeXn8bf5ZCn1py
-E2KhBff+2F6WfqdF6jOwFUhUVzSaRvss0ibGbFLVz8HfABLOYXrlAWRQEO8om3uG
-v6rw/yAo5CIUSFejOVEVhd9YqioGfRIAQVmxSRq0pra78QF9q79dWqPI6ZO2M9Xh
-LriBpvrpdGnCKBosovdbZV7dfuSzCDCG7LdRRNKudyldkJGPAep6MjXjb5HNeyNc
-eoKRbsAswgZZKuIwSPSlhVyMfXiNDoqRNygqC0AEWUTjEYsY+pSWCOAeAcu39c7M
-lc69qOz0vQ1PZAlr/Qo52RLuZbcZs/eC3zSyIjAWIMcq7mfSg2Q4gW0K92yKIsvo
-d+U5kkLAjWTGyL1IIGcVek1QdEE4a6vmVMXn9n/6IyhsxujSgfbKm5dHAYLkO1H/
-650BEbfGX4ZNb9z3KM6oCyxqJAEbhaaWSOn4wF4SsLZr5xFMoWqJGE1HOIX0xBN0
-A8VOcKZ1tjB/WTkHszn/sT/13FvrQs0RHJQdpcMXmJJo+FSg/lWRln5bV9uKKLDi
-5f9Uv9nG2r9YtKqRU41y
-=pwOK
------END PGP SIGNATURE-----
-
---6TrnltStXW4iwmi0--
+diff --git a/drivers/media/rc/ir-rx51.c b/drivers/media/rc/ir-rx51.c
+index 31b955b..7367122 100644
+--- a/drivers/media/rc/ir-rx51.c
++++ b/drivers/media/rc/ir-rx51.c
+@@ -26,8 +26,8 @@
+ #include <linux/sched.h>
+ #include <linux/wait.h>
+ 
+-#include <plat/dmtimer.h>
+-#include <plat/clock.h>
++#include <linux/omap-timer.h>
++#include <linux/clk.h>
+ 
+ #include <media/lirc.h>
+ #include <media/lirc_dev.h>
+@@ -209,7 +209,7 @@ static int lirc_rx51_init_port(struct lirc_rx51 *lirc_rx51)
+ 	}
+ 
+ 	clk_fclk = omap_dm_timer_get_fclk(lirc_rx51->pwm_timer);
+-	lirc_rx51->fclk_khz = clk_fclk->rate / 1000;
++	lirc_rx51->fclk_khz = clk_get_rate(clk_fclk) / 1000;
+ 
+ 	return 0;
+ 
+-- 
+1.8.1.2
