@@ -1,47 +1,78 @@
-From: "Mrs Nicole Marois" <nicolemaroisparis@gmail.com>
-Subject: Personal email(22 November 2013)
-Date: Fri, 22 Nov 2013 11:38:17 +0600 (BTT)
-Message-ID: <3083.196.28.245.209.1385098697.squirrel@mail.sliven.bg>
-Reply-To: marois0147@gmail.com
-Mime-Version: 1.0
-Content-Type: text/plain;charset=windows-1251
-Content-Transfer-Encoding: 8bit
+From: anaumann@ultratronik.de
+Subject: [PATCH] usb: musb: Fix unstable init of OTG_INTERFSEL.
+Date: Fri, 22 Nov 2013 10:37:49 +0100
+Message-ID: <1385113069-23008-1-git-send-email-anaumann@ultratronik.de>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.sliven.bg ([87.121.77.67]:45612 "EHLO mail.sliven.bg"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750808Ab3KVHrd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 22 Nov 2013 02:47:33 -0500
+Received: from dd5612.kasserver.com ([85.13.130.143]:53363 "EHLO
+	dd5612.kasserver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751879Ab3KVJrZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 Nov 2013 04:47:25 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: vikram.pandita@ti.com, hemahk@ti.com, balbi@ti.com, linux-omap@vger.kernel.org
+Cc: Andreas Naumann <anaumann@ultratronik.de>
 
+From: Andreas Naumann <anaumann@ultratronik.de>
 
-CONTACT US IMMEDIATELY FOR YOUR PAYMENT.
+This is a hard to reproduce problem which leads to non-functional USB-OTG port in 0.1%-1% of all boots.
+Tracked it down to commit e25bec160158abe86c276d7d206264afc3646281, which introduces save/restore of OTG_INTERFSEL over suspend.
+Since the resume function is also called early in driver init, it uses a non-initialized value (which is 0 and a non-supported setting in DM37xx for INTERFSEL).
+Shortly after the correct value is set. Apparently this works most time, but not always.
 
-Dear Beloved Friend,
+The fix is to initialize the value, BEFORE being written in the resume function.
 
-    I am Mrs Nicole Marois Benoite, and i have been suffering from
-ovarian cancer disease and the doctor says that i have just few days to
-leave. I am from (Paris) France but based in Africa Burkina Faso since
-eleven years ago as a business woman dealing with gold exportation.
+Signed-off-by: Andreas Naumann <anaumann@ultratronik.de>
+---
+ drivers/usb/musb/omap2430.c | 22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
-Now that i am about to end the race like this, without any family
-members and no child. I have $3 Million US DOLLARS in Africa Development
-Bank (ADB) Burkina Faso which i instructed the bank to give St Andrews
-Missionary Home in Burkina Faso.But my mind is not at rest because i am
-writing this letter now through the help of my computer beside my sick
-bed.
-
-I also have $4.5 Million US Dollars at Eco-Bank here in Burkina Faso
-and i instructed the bank to transfer the fund to you as foreigner that
-will apply to the bank after i have gone, that they should release the
-fund to him/her,but you will assure me that you will take 50% of the
-fund and give 50% to the orphanages home in your country for my heart to
-rest.
-
-Respond to me immediately  for further details since I have just few
-days to end my life due to the ovarian cancer disease, hoping you will
-understand my point.
-
-Yours fairly friend,
-Mrs Nicole Marois Benoite
+diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+index 4315d35..783547c 100644
+--- a/drivers/usb/musb/omap2430.c
++++ b/drivers/usb/musb/omap2430.c
+@@ -337,7 +337,6 @@ static irqreturn_t omap2430_musb_interrupt(int irq, void *__hci)
+ 
+ static int omap2430_musb_init(struct musb *musb)
+ {
+-	u32 l;
+ 	int status = 0;
+ 	struct device *dev = musb->controller;
+ 	struct omap2430_glue *glue = dev_get_drvdata(dev->parent);
+@@ -366,23 +365,24 @@ static int omap2430_musb_init(struct musb *musb)
+ 
+ 	musb->isr = omap2430_musb_interrupt;
+ 
++	musb->context.otg_interfsel = musb_readl(musb->mregs, OTG_INTERFSEL);
++
++	if (data->interface_type == MUSB_INTERFACE_UTMI) {
++		/* OMAP4 uses Internal PHY GS70 which uses UTMI interface */
++		musb->context.otg_interfsel &= ~ULPI_12PIN;       /* Disable ULPI */
++		musb->context.otg_interfsel |= UTMI_8BIT;         /* Enable UTMI  */
++	} else {
++		musb->context.otg_interfsel |= ULPI_12PIN;
++	}
++
+ 	status = pm_runtime_get_sync(dev);
+ 	if (status < 0) {
+ 		dev_err(dev, "pm_runtime_get_sync FAILED %d\n", status);
+ 		goto err1;
+ 	}
+ 
+-	l = musb_readl(musb->mregs, OTG_INTERFSEL);
+-
+-	if (data->interface_type == MUSB_INTERFACE_UTMI) {
+-		/* OMAP4 uses Internal PHY GS70 which uses UTMI interface */
+-		l &= ~ULPI_12PIN;       /* Disable ULPI */
+-		l |= UTMI_8BIT;         /* Enable UTMI  */
+-	} else {
+-		l |= ULPI_12PIN;
+-	}
+ 
+-	musb_writel(musb->mregs, OTG_INTERFSEL, l);
++	musb_writel(musb->mregs, OTG_INTERFSEL, musb->context.otg_interfsel);
+ 
+ 	pr_debug("HS USB OTG: revision 0x%x, sysconfig 0x%02x, "
+ 			"sysstatus 0x%x, intrfsel 0x%x, simenable  0x%x\n",
+-- 
+1.8.4.1
 
