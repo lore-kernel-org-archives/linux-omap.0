@@ -1,101 +1,69 @@
-From: Mark Jackson <mpfj-list@newflow.co.uk>
-Subject: [PATCH] Allow MUSB DSPS to use "force host" mode
-Date: Fri, 22 Nov 2013 15:55:59 +0000
-Message-ID: <528F7E8F.5050807@newflow.co.uk>
+From: Rob Herring <robherring2@gmail.com>
+Subject: Re: [PATCH 5/8] ARM: OMAP2+: timer: Introduce OF-friendly
+ clocksource/clockevent system timers
+Date: Fri, 22 Nov 2013 09:58:01 -0600
+Message-ID: <CAL_JsqKS=cGeAhj+K04SOtA8nJRR3MXxS3ry-kzjQOkZx3yK4g@mail.gmail.com>
+References: <1385085414-9034-1-git-send-email-joelf@ti.com>
+	<1385085414-9034-6-git-send-email-joelf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1385085414-9034-6-git-send-email-joelf@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-usb@vger.kernel.org
-Cc: lkml <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, bigeasy@linutronix.de, Greg KH <gregkh@linuxfoundation.org>, jkosina@suse.cz, anatol.pomozov@gmail.com, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Joel Fernandes <joelf@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, jgchunter@gmail.com, rnayak@ti.com, Felipe Balbi <balbi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, benoit.cousson@linaro.org
 List-Id: linux-omap@vger.kernel.org
 
-The IDDIG input pin is normally used to determine the USB mode
-(i.e. HOST or DEVICE).
+On Thu, Nov 21, 2013 at 7:56 PM, Joel Fernandes <joelf@ti.com> wrote:
+> This work is a migration effort of OMAP system timers to the
+> clocksource/clockevent framework. Consider this as a first-pass in this effort.
+> There are few cleanups that need to be done first. The HWMOD code is
+> intertwined with the timer code. HWMOD code cleanups in the future will
+> hopefully make most of this code go away, so till then we separate out the
+> power/clocks portion of the code from the actual timer bits.  This will
+> facilitate near-future work of adapting the system timer as a clocksource.
+>
+> New functions for OF-only boot are introduced, and we can soon delete the old
+> versions once we migrate all platforms. Currently only AM335x is migrated and
+> testedA new omap_generic_timer_init function is introduced for DT platforms.
+> Code required earlier for non-DT platforms such as setup of timer IDs and timer
+> parent clock is not required.  parent clocks are automatically setup by the mux
+> clock driver through DT so they no longer need to be hardcoded.
+>
+> The init code will try to pick the best timer for clocksource and clockevent
+> however bindings are added to force a particular timer as clocksource or
+> clockevent through DT.
+>
+> Signed-off-by: Joel Fernandes <joelf@ti.com>
+> ---
+>  .../devicetree/bindings/arm/omap/timer.txt         |  12 ++
+>  arch/arm/mach-omap2/common.h                       |   1 +
+>  arch/arm/mach-omap2/timer.c                        | 235 +++++++++++++++++++++
+>  3 files changed, 248 insertions(+)
+>
+> diff --git a/Documentation/devicetree/bindings/arm/omap/timer.txt b/Documentation/devicetree/bindings/arm/omap/timer.txt
+> index d02e27c..6cf7a75 100644
+> --- a/Documentation/devicetree/bindings/arm/omap/timer.txt
+> +++ b/Documentation/devicetree/bindings/arm/omap/timer.txt
+> @@ -32,6 +32,18 @@ Optional properties:
+>  - ti,timer-secure:     Indicates the timer is reserved on a secure OMAP device
+>                         and therefore cannot be used by the kernel.
+>
+> +- ti,timer-clockevent,
+> +  ti,timer-clocksource These properties force the system timer code to choose
+> +                       the particular timer as a clockevent or clocksource.
+> +                       If these properties are not specified, the timer code
+> +                       picks up a "ti,timer-alwon" as the clocksource and a
+> +                       timer containing one of the following properties as
+> +                       the clockevent in the following order:
+> +                               ti,timer-alwon
+> +                               ti,timer-dsp
+> +                               ti,timer-pwm
+> +                               ti,timer-secure
 
-On some systems (e.g. AM335x) leaving this pin floating allows
-the USB mode to be set via software.
+These properties were added specifically for the reason of avoiding
+linux specific properties like these. When is this not sufficient?
 
-This patch adds support for this via the device tree.
+And I agree with the comment to use OF_CLKSRC.
 
-Signed-off-by: Mark Jackson <mpfj@newflow.co.uk>
----
- .../devicetree/bindings/usb/am33xx-usb.txt         |    2 ++
- drivers/usb/musb/musb_dsps.c                       |   14 ++++++++++++++
- include/linux/usb/musb.h                           |    1 +
- 3 files changed, 17 insertions(+)
-
-diff --git a/Documentation/devicetree/bindings/usb/am33xx-usb.txt b/Documentation/devicetree/bindings/usb/am33xx-usb.txt
-index 20c2ff2..560b7ff 100644
---- a/Documentation/devicetree/bindings/usb/am33xx-usb.txt
-+++ b/Documentation/devicetree/bindings/usb/am33xx-usb.txt
-@@ -47,6 +47,8 @@ USB
- - dmas: specifies the dma channels
- - dma-names: specifies the names of the channels. Use "rxN" for receive
-   and "txN" for transmit endpoints. N specifies the endpoint number.
-+- ti,force-host: specifies that the IDDIG input be ignored and the device be
-+  put into host mode regardless.
- 
- The controller should have an "usb" alias numbered properly in the alias
- node.
-diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
-index 1901f6f..6439809 100644
---- a/drivers/usb/musb/musb_dsps.c
-+++ b/drivers/usb/musb/musb_dsps.c
-@@ -105,6 +105,7 @@ struct dsps_musb_wrapper {
- 	unsigned	otg_disable:5;
- 
- 	/* bit positions for mode */
-+	unsigned	iddig_mux:5;
- 	unsigned	iddig:5;
- 	/* miscellaneous stuff */
- 	u8		poll_seconds;
-@@ -387,6 +388,15 @@ static int dsps_musb_init(struct musb *musb)
- 
- 	musb->isr = dsps_interrupt;
- 
-+	/* Force host mode, rather than relying on IDDIG input */
-+	if (musb->config->force_host) {
-+		val = dsps_readl(reg_base, wrp->mode);
-+		/* clear IDDIG bit, set IDDIG_MUX bit */
-+		val &= ~(1 << wrp->iddig);
-+		val |= (1 << wrp->iddig_mux);
-+		dsps_writel(musb->ctrl_base, wrp->mode, val);
-+	}
-+
- 	/* reset the otgdisable bit, needed for host mode to work */
- 	val = dsps_readl(reg_base, wrp->phy_utmi);
- 	val &= ~(1 << wrp->otg_disable);
-@@ -512,6 +522,9 @@ static int dsps_create_musb_pdev(struct dsps_glue *glue,
- 	pdata.power = get_int_prop(dn, "mentor,power") / 2;
- 	config->multipoint = of_property_read_bool(dn, "mentor,multipoint");
- 
-+	if (of_property_read_bool(dn, "ti,force-host"))
-+		config->force_host = true;
-+
- 	ret = platform_device_add_data(musb, &pdata, sizeof(pdata));
- 	if (ret) {
- 		dev_err(dev, "failed to add platform_data\n");
-@@ -607,6 +620,7 @@ static const struct dsps_musb_wrapper am33xx_driver_data = {
- 	.mode			= 0xe8,
- 	.reset			= 0,
- 	.otg_disable		= 21,
-+	.iddig_mux		= 7,
- 	.iddig			= 8,
- 	.usb_shift		= 0,
- 	.usb_mask		= 0x1ff,
-diff --git a/include/linux/usb/musb.h b/include/linux/usb/musb.h
-index eb50525..a0a81c5 100644
---- a/include/linux/usb/musb.h
-+++ b/include/linux/usb/musb.h
-@@ -75,6 +75,7 @@ struct musb_hdrc_config {
- 	unsigned	high_iso_rx:1;	/* Rx ep required for HD iso */
- 	unsigned	dma:1 __deprecated; /* supports DMA */
- 	unsigned	vendor_req:1 __deprecated; /* vendor registers required */
-+	unsigned	force_host:1;	/* force host mode */
- 
- 	u8		num_eps;	/* number of endpoints _with_ ep0 */
- 	u8		dma_channels __deprecated; /* number of dma channels */
--- 
-1.7.9.5
+Rob
