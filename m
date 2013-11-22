@@ -1,94 +1,47 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 5/8] ARM: OMAP2+: timer: Introduce OF-friendly
- clocksource/clockevent system timers
-Date: Thu, 21 Nov 2013 21:51:28 -0600
-Message-ID: <20131122035127.GA1417@saruman.home>
-References: <1385085414-9034-1-git-send-email-joelf@ti.com>
- <1385085414-9034-6-git-send-email-joelf@ti.com>
-Reply-To: balbi@ti.com
+From: "Mrs Nicole Marois" <nicolemaroisparis@gmail.com>
+Subject: Personal email(22 November 2013)
+Date: Fri, 22 Nov 2013 11:38:17 +0600 (BTT)
+Message-ID: <3083.196.28.245.209.1385098697.squirrel@mail.sliven.bg>
+Reply-To: marois0147@gmail.com
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============8418698339833739701=="
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1385085414-9034-6-git-send-email-joelf@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Joel Fernandes <joelf@ti.com>
-Cc: jgchunter@gmail.com, rnayak@ti.com, linux-kernel@vger.kernel.org, balbi@ti.com, santosh.shilimkar@ti.com, benoit.cousson@linaro.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain;charset=windows-1251
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail.sliven.bg ([87.121.77.67]:45612 "EHLO mail.sliven.bg"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750808Ab3KVHrd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 22 Nov 2013 02:47:33 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
---===============8418698339833739701==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="tThc/1wpZn/ma/RB"
-Content-Disposition: inline
 
---tThc/1wpZn/ma/RB
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+CONTACT US IMMEDIATELY FOR YOUR PAYMENT.
 
-Hi,
+Dear Beloved Friend,
 
-On Thu, Nov 21, 2013 at 07:56:51PM -0600, Joel Fernandes wrote:
+    I am Mrs Nicole Marois Benoite, and i have been suffering from
+ovarian cancer disease and the doctor says that i have just few days to
+leave. I am from (Paris) France but based in Africa Burkina Faso since
+eleven years ago as a business woman dealing with gold exportation.
 
-[...]
+Now that i am about to end the race like this, without any family
+members and no child. I have $3 Million US DOLLARS in Africa Development
+Bank (ADB) Burkina Faso which i instructed the bank to give St Andrews
+Missionary Home in Burkina Faso.But my mind is not at rest because i am
+writing this letter now through the help of my computer beside my sick
+bed.
 
-> New functions for OF-only boot are introduced, and we can soon delete the=
- old
-> versions once we migrate all platforms. Currently only AM335x is migrated=
- and
+I also have $4.5 Million US Dollars at Eco-Bank here in Burkina Faso
+and i instructed the bank to transfer the fund to you as foreigner that
+will apply to the bank after i have gone, that they should release the
+fund to him/her,but you will assure me that you will take 50% of the
+fund and give 50% to the orphanages home in your country for my heart to
+rest.
 
-actually, you don't need to initialize .init_timer at all in DT boot.
-Just use CLKSOURCE_OF_DECLARE() and pass your omap_generic_timer_init()
-as argument (although, I'd call it omap_of_timer_init()).
+Respond to me immediately  for further details since I have just few
+days to end my life due to the ovarian cancer disease, hoping you will
+understand my point.
 
-That will put of_device_id structure on a special section
-(__clksource_of_table) and pass your function as a data argument. That
-function will be called automatically during init.
+Yours fairly friend,
+Mrs Nicole Marois Benoite
 
---=20
-balbi
-
---tThc/1wpZn/ma/RB
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.15 (GNU/Linux)
-
-iQIcBAEBAgAGBQJSjtS/AAoJEIaOsuA1yqREKcYP/2GYbNpgOpiH/l8sQDIW5DEr
-gzgopEW5qGhz6DQx1jPQe7F169WIvvz1mXQ7717OKFiOA0YQifxIcoTmdqXzcKAh
-q3+gOrKb2m8t4D/4tHFH6FmjjwQIAzzJbNygMLV58qDWICrWPfQ2vxoJGKhw8OAR
-/0hiCOyWk5CMBIyseHiENw3Wnj0dN/eHvcYY0W5Sm6FLT0El1pwRrzKK0MchpYW2
-LmPv4FJH2KzkQSPolQp0FYVlKJ2f6IbPhzGusY9GQGOr00QDm2J+cH+WR9R2WMoh
-ZD7xjcHSRs7MgRlockUykZ/zqc34F8XNiA3qZSjrrO9KAsw/ttF8tjPD7RCoz8yd
-v2WbrFp/Wd2J+6CSoJ8nzAzCseWh/UuvZ4oF1RSHl9XFTIk7Stpwtk3VhxuQisgE
-lTyzA4z7Xoq8zTCwVt7CVASJdthUb4mqr9p1xLbqmQS3/n1MeB1wm2VdH5KB8BEq
-9vw8jqpT7ie26Vjf+vA328Up7rTkQlifAVwYvWF7w1ZAvDRgDXkqGVuIpHwj1BGc
-iQshAE/4KTdtDnLyW5RmOg0pdqkYog3k30S0hK5hlbZHF/YUi0k9IrG2cW60KYqI
-bi2Jxwe1op2FODBrFD6n5or1GgJlLB/fGCvPVy/WbHlBBd8EejydkK/+6Qb8QER7
-lCHVOuB3Fx17QxQN6+aI
-=0c5Q
------END PGP SIGNATURE-----
-
---tThc/1wpZn/ma/RB--
-
-
---===============8418698339833739701==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-arm-kernel mailing list
-linux-arm-kernel@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-
---===============8418698339833739701==--
