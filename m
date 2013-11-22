@@ -1,67 +1,69 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 6/8] devicetree: doc: Document ti,timer-parent property
-Date: Fri, 22 Nov 2013 07:58:45 -0800
-Message-ID: <20131122155838.GF10023@atomide.com>
-References: <1385085414-9034-1-git-send-email-joelf@ti.com>
- <1385085414-9034-7-git-send-email-joelf@ti.com>
+From: Joel Fernandes <joelf@ti.com>
+Subject: Re: [PATCH 1/8] ARM: OMAP: Move public portion of dmtimer.h to include/linux/omap-timer.h
+Date: Fri, 22 Nov 2013 10:01:41 -0600
+Message-ID: <528F7FE5.3020908@ti.com>
+References: <1385085414-9034-1-git-send-email-joelf@ti.com> <1385085414-9034-2-git-send-email-joelf@ti.com> <20131122153334.GE10023@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1385085414-9034-7-git-send-email-joelf@ti.com>
+In-Reply-To: <20131122153334.GE10023@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Joel Fernandes <joelf@ti.com>
+To: Tony Lindgren <tony@atomide.com>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, benoit.cousson@linaro.org, santosh.shilimkar@ti.com, jgchunter@gmail.com, rnayak@ti.com, balbi@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-* Joel Fernandes <joelf@ti.com> [131121 18:00]:
-> +Required properties for system timers (clockevents/clocksource):
-> +- ti,timer-parent:	System timer's parent mux clock needs to be setup.
-> +			This is currently hardcoded in code, for DT boot we
-> +			move this to DT.
-> +
+On 11/22/2013 09:33 AM, Tony Lindgren wrote:
+> Hi,
+> 
+> * Joel Fernandes <joelf@ti.com> [131121 18:00]:
+>> Multiplatform support has made arch/arm/plat-omap/include/plat/ inaccessible to
+>> drivers outside the plat-omap directory [1]. Due to this the following drivers
+>> are disabled with !CONFIG_ARCH_MULTIPLATFORM:
+>> CONFIG_IR_RX51 (drivers/media/rc/ir-rx51.c)
+>> CONFIG_TIDSPBRIDGE (drivers/staging/tidspbridge/core/dsp-clock.c)
+>>
+>> We move the portion of the dmtimer "API" that should be accessible to the
+>> drivers, into include/linux/omap-timer.h
+> 
+> As we chatted earlier, we don't have to expose all these hardware specific
+> functions and use existing Linux generic frameworks instead.
+> 
+> We can implement an irqchip and a clocksource in the dmtimer code for the
+> client drivers to use, and after that we only have a couple of dmtimer
+> specific functions left to export.
+> 
+> I'm thinkging some thing like this for the public API:
+> 
+> omap_dm_timer_request			request_irq
+> omap_dm_timer_request_specific		request_irq
+> omap_dm_timer_get_irq			request_irq
+> omap_dm_timer_set_source		clk_set_rate
+> omap_dm_timer_stop			disable_irq
+> omap_dm_timer_start			enable_irq
+> omap_dm_timer_disable			disable_irq
+> omap_dm_timer_free			free_irq
+> omap_dm_timer_set_int_enable		enable_irq
 
-This can be replaced with just clk_set_rate, or clk_set_parent if needed.
-Or by having a clocks = <&32k_clk> property in the dmtimer node in the
-.dts file.
+Hi Tony,
 
->  Optional properties:
->  - ti,timer-alwon:	Indicates the timer is in an alway-on power domain.
+The thing I feel we're trying to fit a square peg into round hole type of thing
+here.
 
-Hmm this we may not need, this can probably be deciphered from the compatible
-flag already?
+Some reasons I feel this is overkill (point 2 makes it even not possible):
 
-Then for the users of a specific dmtimer, they can select the right one using
-the interrupt-parent property:
+1. Ideally IR_RX51 should be using clockevents/hrtimer framework instead of
+irqchip. Other than that, dsp bridge is the only other user.
 
-timer1: timer@0x4800abcd {
-	compatible = "ti,omap5430-timer";
-	#interrupt-cells = <1>;		/* needs irqchip implemented for dmtimer */
-	interrupt-controller;
-	#clock-cells = <1>;		/* needs clocksource implemented for dmtimer */
-	clock-output-names = "32k", "sys_ck";
-	...
-};
+2. These functions will be also be required to be public once mach-omap2/timer.c
+moves to drivers/clocksource/ . At such an early point of code, we can't use
+irqchip anyway so we'd need these functions public.
 
-counter32k: counter@4ae04000 {
-	compatible = "ti,omap-counter32k";
-	#clock-cells = <1>;		/* needs clocksource implemented for 32k counter */
-	clock-output-names = "32k";
-	...
-};
+3. This is a minor point, but its also not immediately intuitive or clear to
+someone who needs a dedicated hardware timer that they need to use an IRQ chip
+driver for the same. But we can avoid any discussion about this till we can
+discuss/agree on the above 2.
 
-timer {
-	compatible = "ti,omap5-timer";
-	interrupt-parent = <&timer1>;
-	interrupts = <1>;
-	clocks = <&timer1 0>,		/* use timer1 as clockevent, clock index 0 = 32k, 1 = sys_ck ... */
-		 <&counter32k 0>;	/* use 32k counter as clocksource */
-};
+thanks,
 
->  - ti,timer-dsp:		Indicates the timer can interrupt the on-chip DSP in
-
-This can be probably also be mapped based on the compatible property?
-
-Regards,
-
-Tony
+-Joel
