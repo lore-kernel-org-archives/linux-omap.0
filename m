@@ -1,94 +1,33 @@
-From: Rob Herring <robherring2@gmail.com>
-Subject: Re: [PATCH 5/8] ARM: OMAP2+: timer: Introduce OF-friendly
- clocksource/clockevent system timers
-Date: Fri, 22 Nov 2013 14:01:15 -0600
-Message-ID: <CAL_JsqJoH_yWP-Aae2REb=qzV6c56=WQoVLV8cFgX+_b+voM5g@mail.gmail.com>
-References: <1385085414-9034-1-git-send-email-joelf@ti.com>
-	<1385085414-9034-6-git-send-email-joelf@ti.com>
-	<CAL_JsqKS=cGeAhj+K04SOtA8nJRR3MXxS3ry-kzjQOkZx3yK4g@mail.gmail.com>
-	<528F8959.7080207@ti.com>
+From: "Mark A. Greer" <mgreer@animalcreek.com>
+Subject: Status of 1GHz support on am37xx
+Date: Fri, 22 Nov 2013 16:01:21 -0700
+Message-ID: <20131122230121.GA13440@animalcreek.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vb0-f53.google.com ([209.85.212.53]:53066 "EHLO
-	mail-vb0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755801Ab3KVUBQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 Nov 2013 15:01:16 -0500
-In-Reply-To: <528F8959.7080207@ti.com>
+Received: from p3plsmtpa08-05.prod.phx3.secureserver.net ([173.201.193.106]:55946
+	"EHLO p3plsmtpa08-05.prod.phx3.secureserver.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753277Ab3KVXBX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 22 Nov 2013 18:01:23 -0500
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Joel Fernandes <joelf@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, jgchunter@gmail.com, rnayak@ti.com, Felipe Balbi <balbi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, benoit.cousson@linaro.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Nishanth Menon <nm@ti.com>
 
-On Fri, Nov 22, 2013 at 10:42 AM, Joel Fernandes <joelf@ti.com> wrote:
-> On 11/22/2013 09:58 AM, Rob Herring wrote:
->> On Thu, Nov 21, 2013 at 7:56 PM, Joel Fernandes <joelf@ti.com> wrote:
->>> This work is a migration effort of OMAP system timers to the
->>> clocksource/clockevent framework. Consider this as a first-pass in this effort.
->>> There are few cleanups that need to be done first. The HWMOD code is
->>> intertwined with the timer code. HWMOD code cleanups in the future will
->>> hopefully make most of this code go away, so till then we separate out the
->>> power/clocks portion of the code from the actual timer bits.  This will
->>> facilitate near-future work of adapting the system timer as a clocksource.
->>>
->>> New functions for OF-only boot are introduced, and we can soon delete the old
->>> versions once we migrate all platforms. Currently only AM335x is migrated and
->>> testedA new omap_generic_timer_init function is introduced for DT platforms.
->>> Code required earlier for non-DT platforms such as setup of timer IDs and timer
->>> parent clock is not required.  parent clocks are automatically setup by the mux
->>> clock driver through DT so they no longer need to be hardcoded.
->>>
->>> The init code will try to pick the best timer for clocksource and clockevent
->>> however bindings are added to force a particular timer as clocksource or
->>> clockevent through DT.
->>>
->>> Signed-off-by: Joel Fernandes <joelf@ti.com>
->>> ---
->>>  .../devicetree/bindings/arm/omap/timer.txt         |  12 ++
->>>  arch/arm/mach-omap2/common.h                       |   1 +
->>>  arch/arm/mach-omap2/timer.c                        | 235 +++++++++++++++++++++
->>>  3 files changed, 248 insertions(+)
->>>
->>> diff --git a/Documentation/devicetree/bindings/arm/omap/timer.txt b/Documentation/devicetree/bindings/arm/omap/timer.txt
->>> index d02e27c..6cf7a75 100644
->>> --- a/Documentation/devicetree/bindings/arm/omap/timer.txt
->>> +++ b/Documentation/devicetree/bindings/arm/omap/timer.txt
->>> @@ -32,6 +32,18 @@ Optional properties:
->>>  - ti,timer-secure:     Indicates the timer is reserved on a secure OMAP device
->>>                         and therefore cannot be used by the kernel.
->>>
->>> +- ti,timer-clockevent,
->>> +  ti,timer-clocksource These properties force the system timer code to choose
->>> +                       the particular timer as a clockevent or clocksource.
->>> +                       If these properties are not specified, the timer code
->>> +                       picks up a "ti,timer-alwon" as the clocksource and a
->>> +                       timer containing one of the following properties as
->>> +                       the clockevent in the following order:
->>> +                               ti,timer-alwon
->>> +                               ti,timer-dsp
->>> +                               ti,timer-pwm
->>> +                               ti,timer-secure
->>
->> These properties were added specifically for the reason of avoiding
->> linux specific properties like these. When is this not sufficient?
->
-> Some platforms cannot use certain timers as clockevents and clocksource, to keep
-> this code functionally equivalent and working, I added these properties so that
-> its possible to select specific timers as clockevents/sources as was being done
-> in the non-DT case. I'm open to suggestions for doing this in a better way for DT.
+Hello.
 
-There has to be a defined reason why a given timer cannot be used. You
-are not explaining what that reason is. Define a property or set of
-properties that describe the h/w feature or quirk.
+I was wondering what that the status of 1GHz support for the am37xx is.
 
->>
->> And I agree with the comment to use OF_CLKSRC.
->>
->
-> There are difficulties I mentioned in a previous post [1] stating why it may not
-> be possible to use OF_CLKSRC macros, and still keep the code functionally
-> equivalent to when it was non-DT.
+It looks like smartreflex/avs and ABB drivers are there.  Do they need
+more work (e.g., DT support)?  What DT nodes and related support need
+to be added?
 
-Sorry, I don't buy it.
+What pieces are being worked on and which ones aren't?
+Is there an ETA for the pieces being worked on?
 
-Rob
+Thanks,
+
+Mark
+--
