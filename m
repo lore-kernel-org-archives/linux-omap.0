@@ -1,28 +1,77 @@
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: Re: [PATCH] Allow MUSB DSPS to use "force host" mode
-Date: Fri, 22 Nov 2013 17:33:05 +0100
-Message-ID: <528F8741.1060406@linutronix.de>
-References: <528F7E8F.5050807@newflow.co.uk>
+From: Joel Fernandes <joelf@ti.com>
+Subject: Re: [PATCH 6/8] devicetree: doc: Document ti,timer-parent property
+Date: Fri, 22 Nov 2013 10:36:23 -0600
+Message-ID: <528F8807.7050803@ti.com>
+References: <1385085414-9034-1-git-send-email-joelf@ti.com> <1385085414-9034-7-git-send-email-joelf@ti.com> <20131122155838.GF10023@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <528F7E8F.5050807@newflow.co.uk>
+In-Reply-To: <20131122155838.GF10023@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Jackson <mpfj-list@newflow.co.uk>
-Cc: linux-usb@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Greg KH <gregkh@linuxfoundation.org>, jkosina@suse.cz, anatol.pomozov@gmail.com, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Bin Liu <binmlist@gmail.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, benoit.cousson@linaro.org, santosh.shilimkar@ti.com, jgchunter@gmail.com, rnayak@ti.com, balbi@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On 11/22/2013 04:55 PM, Mark Jackson wrote:
-> The IDDIG input pin is normally used to determine the USB mode
-> (i.e. HOST or DEVICE).
+Hi Tony,
+
+Thanks for your comments, few replies inline below..
+
+On 11/22/2013 09:58 AM, Tony Lindgren wrote:
+> * Joel Fernandes <joelf@ti.com> [131121 18:00]:
+>> +Required properties for system timers (clockevents/clocksource):
+>> +- ti,timer-parent:	System timer's parent mux clock needs to be setup.
+>> +			This is currently hardcoded in code, for DT boot we
+>> +			move this to DT.
+>> +
 > 
-> On some systems (e.g. AM335x) leaving this pin floating allows
-> the USB mode to be set via software.
+> This can be replaced with just clk_set_rate, or clk_set_parent if needed.
+> Or by having a clocks = <&32k_clk> property in the dmtimer node in the
+> .dts file.
+> 
 
-So you have a board where musb is used only as host or only as device
-and the ID pin not on ground or 3.3V?
-What are the side effects? I remember correctly Bin wanted to avoid
-settings this if it could be avoided.
+Sure, but clock-data is still not available to make this possible in mainline.
+We also discussed earlier right that we don't want dependencies as much as
+possible to get one chunk in and working at a time. I was thinking like for a
+first-pass since there's a lot of unrelated code that doesn't have dependencies,
+but needs this to work, we can introduce this property for now and drop it later
+as a "cost of migration"?
 
-Sebastian
+>>  Optional properties:
+>>  - ti,timer-alwon:	Indicates the timer is in an alway-on power domain.
+> 
+> Hmm this we may not need, this can probably be deciphered from the compatible
+> flag already?
+
+How? Compatible contains the same string, for example for OMAP4:
+
+timer8 has:
+                        compatible = "ti,omap4430-timer";
+                        ti,timer-pwm;
+                        ti,timer-dsp;
+
+and timer9 has:
+                        compatible = "ti,omap4430-timer";
+                        ti,hwmods = "timer9";
+                        ti,timer-pwm;
+
+
+> 
+> Then for the users of a specific dmtimer, they can select the right one using
+> the interrupt-parent property:
+> 
+> timer1: timer@0x4800abcd {
+> 	compatible = "ti,omap5430-timer";
+> 	#interrupt-cells = <1>;		/* needs irqchip implemented for dmtimer */
+> 	interrupt-controller;
+> 	#clock-cells = <1>;		/* needs clocksource implemented for dmtimer */
+> 	clock-output-names = "32k", "sys_ck";
+> 	...
+> };
+
+In reference to my last thread reply, irqchip may not be available early in the
+boot process (.init_time) for system timer usage?
+
+thanks,
+
+-Joel
