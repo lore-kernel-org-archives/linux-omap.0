@@ -1,52 +1,63 @@
-From: Joel Fernandes <joelf@ti.com>
-Subject: Re: [PATCH 5/8] ARM: OMAP2+: timer: Introduce OF-friendly clocksource/clockevent
- system timers
-Date: Fri, 22 Nov 2013 09:09:11 -0600
-Message-ID: <528F7397.5070603@ti.com>
-References: <1385085414-9034-1-git-send-email-joelf@ti.com> <1385085414-9034-6-git-send-email-joelf@ti.com> <20131122035127.GA1417@saruman.home>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/8] ARM: OMAP: Move public portion of dmtimer.h to
+ include/linux/omap-timer.h
+Date: Fri, 22 Nov 2013 07:33:34 -0800
+Message-ID: <20131122153334.GE10023@atomide.com>
+References: <1385085414-9034-1-git-send-email-joelf@ti.com>
+ <1385085414-9034-2-git-send-email-joelf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20131122035127.GA1417@saruman.home>
+Content-Disposition: inline
+In-Reply-To: <1385085414-9034-2-git-send-email-joelf@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, benoit.cousson@linaro.org, santosh.shilimkar@ti.com, jgchunter@gmail.com, rnayak@ti.com
+To: Joel Fernandes <joelf@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, benoit.cousson@linaro.org, santosh.shilimkar@ti.com, jgchunter@gmail.com, rnayak@ti.com, balbi@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On 11/21/2013 09:51 PM, Felipe Balbi wrote:
-> Hi,
+Hi,
+
+* Joel Fernandes <joelf@ti.com> [131121 18:00]:
+> Multiplatform support has made arch/arm/plat-omap/include/plat/ inaccessible to
+> drivers outside the plat-omap directory [1]. Due to this the following drivers
+> are disabled with !CONFIG_ARCH_MULTIPLATFORM:
+> CONFIG_IR_RX51 (drivers/media/rc/ir-rx51.c)
+> CONFIG_TIDSPBRIDGE (drivers/staging/tidspbridge/core/dsp-clock.c)
 > 
-> On Thu, Nov 21, 2013 at 07:56:51PM -0600, Joel Fernandes wrote:
-> 
-> [...]
-> 
->> New functions for OF-only boot are introduced, and we can soon delete the old
->> versions once we migrate all platforms. Currently only AM335x is migrated and
-> 
-> actually, you don't need to initialize .init_timer at all in DT boot.
+> We move the portion of the dmtimer "API" that should be accessible to the
+> drivers, into include/linux/omap-timer.h
 
-Actually we still do, because the plan is to keep the hwmod stuff that's
-required in timer.c in a custom .init_time, and then of_clocksource_init maybe
-called to do what you're suggesting but (not yet) more on that below.
+As we chatted earlier, we don't have to expose all these hardware specific
+functions and use existing Linux generic frameworks instead.
 
-> Just use CLKSOURCE_OF_DECLARE() and pass your omap_generic_timer_init()
-> as argument (although, I'd call it omap_of_timer_init()).
-> That will put of_device_id structure on a special section
-> (__clksource_of_table) and pass your function as a data argument. That
-> function will be called automatically during init.
->
+We can implement an irqchip and a clocksource in the dmtimer code for the
+client drivers to use, and after that we only have a couple of dmtimer
+specific functions left to export.
 
-I thought of doing that, but currently the timer selection for clocksource
-is not a simple matching of compatible string, rather it is selecting the timer
-based on properties such as ti,timer-alwon and such.
+I'm thinkging some thing like this for the public API:
 
-In omap3 for example, there are needs for specific timers and such have been
-provided with the macros passing in timer id etc. Right now, this can be forced
-through DT with the "ti,timer-clocksource" property I introduced. All this
-selection algorithm is too complex to be handle directly by the
-CLOCKSOURCE_OF_DECLARE / clocksource_of_init matching mechanism.
+omap_dm_timer_request			request_irq
+omap_dm_timer_request_specific		request_irq
+omap_dm_timer_get_irq			request_irq
+omap_dm_timer_set_source		clk_set_rate
+omap_dm_timer_stop			disable_irq
+omap_dm_timer_start			enable_irq
+omap_dm_timer_disable			disable_irq
+omap_dm_timer_free			free_irq
+omap_dm_timer_set_int_enable		enable_irq
 
-thanks,
+After that, what's left to export are some functions to configure
+the hardware timer:
 
--Joel
+omap_dm_timer_write_counter
+omap_dm_timer_set_match
+omap_dm_timer_read_counter
+omap_dm_timer_read_status
+omap_dm_timer_write_status
+
+And for those we can then eventually probably have some Linux generic
+hardware timer API :)
+
+Regards,
+
+Tony
