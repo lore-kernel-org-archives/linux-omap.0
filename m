@@ -1,69 +1,67 @@
-From: Rob Herring <robherring2@gmail.com>
-Subject: Re: [PATCH 5/8] ARM: OMAP2+: timer: Introduce OF-friendly
- clocksource/clockevent system timers
-Date: Fri, 22 Nov 2013 09:58:01 -0600
-Message-ID: <CAL_JsqKS=cGeAhj+K04SOtA8nJRR3MXxS3ry-kzjQOkZx3yK4g@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 6/8] devicetree: doc: Document ti,timer-parent property
+Date: Fri, 22 Nov 2013 07:58:45 -0800
+Message-ID: <20131122155838.GF10023@atomide.com>
 References: <1385085414-9034-1-git-send-email-joelf@ti.com>
-	<1385085414-9034-6-git-send-email-joelf@ti.com>
+ <1385085414-9034-7-git-send-email-joelf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1385085414-9034-6-git-send-email-joelf@ti.com>
+Content-Disposition: inline
+In-Reply-To: <1385085414-9034-7-git-send-email-joelf@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Joel Fernandes <joelf@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, jgchunter@gmail.com, rnayak@ti.com, Felipe Balbi <balbi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, benoit.cousson@linaro.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, benoit.cousson@linaro.org, santosh.shilimkar@ti.com, jgchunter@gmail.com, rnayak@ti.com, balbi@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Nov 21, 2013 at 7:56 PM, Joel Fernandes <joelf@ti.com> wrote:
-> This work is a migration effort of OMAP system timers to the
-> clocksource/clockevent framework. Consider this as a first-pass in this effort.
-> There are few cleanups that need to be done first. The HWMOD code is
-> intertwined with the timer code. HWMOD code cleanups in the future will
-> hopefully make most of this code go away, so till then we separate out the
-> power/clocks portion of the code from the actual timer bits.  This will
-> facilitate near-future work of adapting the system timer as a clocksource.
->
-> New functions for OF-only boot are introduced, and we can soon delete the old
-> versions once we migrate all platforms. Currently only AM335x is migrated and
-> testedA new omap_generic_timer_init function is introduced for DT platforms.
-> Code required earlier for non-DT platforms such as setup of timer IDs and timer
-> parent clock is not required.  parent clocks are automatically setup by the mux
-> clock driver through DT so they no longer need to be hardcoded.
->
-> The init code will try to pick the best timer for clocksource and clockevent
-> however bindings are added to force a particular timer as clocksource or
-> clockevent through DT.
->
-> Signed-off-by: Joel Fernandes <joelf@ti.com>
-> ---
->  .../devicetree/bindings/arm/omap/timer.txt         |  12 ++
->  arch/arm/mach-omap2/common.h                       |   1 +
->  arch/arm/mach-omap2/timer.c                        | 235 +++++++++++++++++++++
->  3 files changed, 248 insertions(+)
->
-> diff --git a/Documentation/devicetree/bindings/arm/omap/timer.txt b/Documentation/devicetree/bindings/arm/omap/timer.txt
-> index d02e27c..6cf7a75 100644
-> --- a/Documentation/devicetree/bindings/arm/omap/timer.txt
-> +++ b/Documentation/devicetree/bindings/arm/omap/timer.txt
-> @@ -32,6 +32,18 @@ Optional properties:
->  - ti,timer-secure:     Indicates the timer is reserved on a secure OMAP device
->                         and therefore cannot be used by the kernel.
->
-> +- ti,timer-clockevent,
-> +  ti,timer-clocksource These properties force the system timer code to choose
-> +                       the particular timer as a clockevent or clocksource.
-> +                       If these properties are not specified, the timer code
-> +                       picks up a "ti,timer-alwon" as the clocksource and a
-> +                       timer containing one of the following properties as
-> +                       the clockevent in the following order:
-> +                               ti,timer-alwon
-> +                               ti,timer-dsp
-> +                               ti,timer-pwm
-> +                               ti,timer-secure
+* Joel Fernandes <joelf@ti.com> [131121 18:00]:
+> +Required properties for system timers (clockevents/clocksource):
+> +- ti,timer-parent:	System timer's parent mux clock needs to be setup.
+> +			This is currently hardcoded in code, for DT boot we
+> +			move this to DT.
+> +
 
-These properties were added specifically for the reason of avoiding
-linux specific properties like these. When is this not sufficient?
+This can be replaced with just clk_set_rate, or clk_set_parent if needed.
+Or by having a clocks = <&32k_clk> property in the dmtimer node in the
+.dts file.
 
-And I agree with the comment to use OF_CLKSRC.
+>  Optional properties:
+>  - ti,timer-alwon:	Indicates the timer is in an alway-on power domain.
 
-Rob
+Hmm this we may not need, this can probably be deciphered from the compatible
+flag already?
+
+Then for the users of a specific dmtimer, they can select the right one using
+the interrupt-parent property:
+
+timer1: timer@0x4800abcd {
+	compatible = "ti,omap5430-timer";
+	#interrupt-cells = <1>;		/* needs irqchip implemented for dmtimer */
+	interrupt-controller;
+	#clock-cells = <1>;		/* needs clocksource implemented for dmtimer */
+	clock-output-names = "32k", "sys_ck";
+	...
+};
+
+counter32k: counter@4ae04000 {
+	compatible = "ti,omap-counter32k";
+	#clock-cells = <1>;		/* needs clocksource implemented for 32k counter */
+	clock-output-names = "32k";
+	...
+};
+
+timer {
+	compatible = "ti,omap5-timer";
+	interrupt-parent = <&timer1>;
+	interrupts = <1>;
+	clocks = <&timer1 0>,		/* use timer1 as clockevent, clock index 0 = 32k, 1 = sys_ck ... */
+		 <&counter32k 0>;	/* use 32k counter as clocksource */
+};
+
+>  - ti,timer-dsp:		Indicates the timer can interrupt the on-chip DSP in
+
+This can be probably also be mapped based on the compatible property?
+
+Regards,
+
+Tony
