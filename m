@@ -1,78 +1,100 @@
-From: anaumann@ultratronik.de
-Subject: [PATCH] usb: musb: Fix unstable init of OTG_INTERFSEL.
-Date: Fri, 22 Nov 2013 10:37:49 +0100
-Message-ID: <1385113069-23008-1-git-send-email-anaumann@ultratronik.de>
+From: Javier Martinez Canillas <javier@dowhile0.org>
+Subject: Re: N900 board code in 3.14
+Date: Fri, 22 Nov 2013 11:41:27 +0100
+Message-ID: <CABxcv==b-Nj4ADT+qN9qLC8bL5raqkRkaLkGG0cMNrZV8njhDg@mail.gmail.com>
+References: <1384562167-14725-1-git-send-email-tony@atomide.com>
+	<20131116120508.GA22335@earth.universe>
+	<20131116141226.GD10317@atomide.com>
+	<20131116155031.GA5104@earth.universe>
+	<20131121185844.GA10023@atomide.com>
+	<20131121235111.GC9772@earth.universe>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from dd5612.kasserver.com ([85.13.130.143]:53363 "EHLO
-	dd5612.kasserver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751879Ab3KVJrZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 Nov 2013 04:47:25 -0500
+Received: from mail-we0-f170.google.com ([74.125.82.170]:48128 "EHLO
+	mail-we0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753901Ab3KVKl2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 Nov 2013 05:41:28 -0500
+Received: by mail-we0-f170.google.com with SMTP id w61so959134wes.15
+        for <linux-omap@vger.kernel.org>; Fri, 22 Nov 2013 02:41:27 -0800 (PST)
+In-Reply-To: <20131121235111.GC9772@earth.universe>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: vikram.pandita@ti.com, hemahk@ti.com, balbi@ti.com, linux-omap@vger.kernel.org
-Cc: Andreas Naumann <anaumann@ultratronik.de>
+To: Tony Lindgren <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-From: Andreas Naumann <anaumann@ultratronik.de>
+On Fri, Nov 22, 2013 at 12:51 AM, Sebastian Reichel <sre@ring0.de> wrote:
+> Hi Tony,
+>
+> On Thu, Nov 21, 2013 at 10:58:45AM -0800, Tony Lindgren wrote:
+>> Also, I just posted a patch to fix the eMMC that you may want to
+>> try out.
+>
+> Let's move eMMC diskussion to that patch :)
+>
+>> > > > [...]
+>> > > >
+>> > > > My suggestion would be:
+>> > > >  1. Find a better workaround for omapdss to acquire the SDI
+>> > > >     regulator. My current hack is obviously not acceptable.
+>> > > >  2. Load the panel driver via DT as seen above and reference
+>> > > >     the omapdss interface with something like the above
+>> > > >     "ti,dss-source".
+>> > >
+>> > > To me it seems that we should be able to add minimal panel entries to DT
+>> > > if we stick to existing standard bindings. Then the timings etc can be
+>> > > set up based on the compatible flag. So I would leave out the properties
+>> > > for ti,sdi-datapairs and ti,dss-source for now, and just set those in
+>> > > the driver based on the sony,acx565akm compatible flag. Or maybe it should
+>> > > be sony,acx565akm-n900 if there's some board specific configuration info.
+>> >
+>> > So we add reset-gpio and label to the DT data (they are panel
+>> > specific and independent of omapdss) and just hardcode "dsi.0"
+>> > with 2 data lanes into the driver? That sounds fine for me.
+>> >
+>> > If neither Tomi nor anybody else has better ideas I will cook a
+>> > patch for that. I'm not sure how to setup the vdds_sdi regulator for
+>> > omapdss, though. Is there an example for a legacy driver using a DT
+>> > regulator available?
+>>
+>> Not that I know of :)
+>
+> Javier Martinez Canillas patch did what I was thinking of in [0].
 
-This is a hard to reproduce problem which leads to non-functional USB-OTG port in 0.1%-1% of all boots.
-Tracked it down to commit e25bec160158abe86c276d7d206264afc3646281, which introduces save/restore of OTG_INTERFSEL over suspend.
-Since the resume function is also called early in driver init, it uses a non-initialized value (which is 0 and a non-supported setting in DM37xx for INTERFSEL).
-Shortly after the correct value is set. Apparently this works most time, but not always.
+I dropped that patch from my series and posted a v2 that just name the
+VPLL2 regulator as vdds_dsi [1]. That way will be safer for Tony and
+Benoit to take this series as a fix for the -rc cycle since the
+changes are contained within IGEP boards DTS.
 
-The fix is to initialize the value, BEFORE being written in the resume function.
+> My suggestion would be to add something like this pseudocode to
+> omapdss:
+>
+> if(board_is_n900_dt()) {
+>     vdds_dsi = devm_regulator_get(&dpi.pdev->dev, "V28");
+> }
+>
+> The problem is, that we do not want to name the regulator
+> "vdds_dsi", since it's not used exclusivly for omapdss.
+>
+> In the future it can get the regulator via phandle of course.
+>
 
-Signed-off-by: Andreas Naumann <anaumann@ultratronik.de>
----
- drivers/usb/musb/omap2430.c | 22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+For what is worth I think that your suggestion is a good workaround.
+Please just add a comment specifying that it is a hack and that we
+have to get rid of these once the DSS DT bindings land on mainline and
+we can use a phandle to get the regulator.
 
-diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
-index 4315d35..783547c 100644
---- a/drivers/usb/musb/omap2430.c
-+++ b/drivers/usb/musb/omap2430.c
-@@ -337,7 +337,6 @@ static irqreturn_t omap2430_musb_interrupt(int irq, void *__hci)
- 
- static int omap2430_musb_init(struct musb *musb)
- {
--	u32 l;
- 	int status = 0;
- 	struct device *dev = musb->controller;
- 	struct omap2430_glue *glue = dev_get_drvdata(dev->parent);
-@@ -366,23 +365,24 @@ static int omap2430_musb_init(struct musb *musb)
- 
- 	musb->isr = omap2430_musb_interrupt;
- 
-+	musb->context.otg_interfsel = musb_readl(musb->mregs, OTG_INTERFSEL);
-+
-+	if (data->interface_type == MUSB_INTERFACE_UTMI) {
-+		/* OMAP4 uses Internal PHY GS70 which uses UTMI interface */
-+		musb->context.otg_interfsel &= ~ULPI_12PIN;       /* Disable ULPI */
-+		musb->context.otg_interfsel |= UTMI_8BIT;         /* Enable UTMI  */
-+	} else {
-+		musb->context.otg_interfsel |= ULPI_12PIN;
-+	}
-+
- 	status = pm_runtime_get_sync(dev);
- 	if (status < 0) {
- 		dev_err(dev, "pm_runtime_get_sync FAILED %d\n", status);
- 		goto err1;
- 	}
- 
--	l = musb_readl(musb->mregs, OTG_INTERFSEL);
--
--	if (data->interface_type == MUSB_INTERFACE_UTMI) {
--		/* OMAP4 uses Internal PHY GS70 which uses UTMI interface */
--		l &= ~ULPI_12PIN;       /* Disable ULPI */
--		l |= UTMI_8BIT;         /* Enable UTMI  */
--	} else {
--		l |= ULPI_12PIN;
--	}
- 
--	musb_writel(musb->mregs, OTG_INTERFSEL, l);
-+	musb_writel(musb->mregs, OTG_INTERFSEL, musb->context.otg_interfsel);
- 
- 	pr_debug("HS USB OTG: revision 0x%x, sysconfig 0x%02x, "
- 			"sysstatus 0x%x, intrfsel 0x%x, simenable  0x%x\n",
--- 
-1.8.4.1
+>> But I guess only the panel driver would need to parse the
+>> compatible flag and the rest of the DSS could still be initialize
+>> the legacy way if needed.
+>
+> Yes, except of the regulator. I will try to get this working
+> tomorrow.
+>
+> [0] http://www.spinics.net/lists/arm-kernel/msg286896.html
+>
+> -- Sebastian
 
+[1]: http://www.spinics.net/lists/arm-kernel/msg287703.html
+
+Best regards,
+Javier
