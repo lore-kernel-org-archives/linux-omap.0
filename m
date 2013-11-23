@@ -1,103 +1,78 @@
-From: Chao Xu <caesarxuchao@gmail.com>
-Subject: Re: [BUG] PandaBoard hangs before starting init while booting v3.12
-Date: Fri, 22 Nov 2013 21:27:11 -0600
-Message-ID: <CAKZq+rcoC5PLSVVazWcce7V7TcBM8=M2jM56bvk9HO2orKt8fg@mail.gmail.com>
-References: <87hab9agjr.fsf@gmail.com>
-	<CAKZq+rdQLrNE43aGaPtnDfaO6CHsq_ePLu+oRgWNs25OrdCtdw@mail.gmail.com>
-	<87wqk3n54l.fsf@gmail.com>
-	<20131120183548.GH10317@atomide.com>
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
+Subject: Re: [PATCH v2 2/3] hwrng: OMAP3 ROM Random Number Generator support
+Date: Sat, 23 Nov 2013 10:37:13 +0100
+Message-ID: <201311231037.13908@pali>
+References: <1379534757-20870-1-git-send-email-pali.rohar@gmail.com> <201311182251.35704@pali> <20131119021409.GA2820@gondor.apana.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: multipart/signed;
+  boundary="nextPart1990570.ofrVAdtyRY";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qe0-f48.google.com ([209.85.128.48]:34700 "EHLO
-	mail-qe0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932113Ab3KWD1L (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 Nov 2013 22:27:11 -0500
-Received: by mail-qe0-f48.google.com with SMTP id gc15so1672811qeb.35
-        for <linux-omap@vger.kernel.org>; Fri, 22 Nov 2013 19:27:11 -0800 (PST)
-In-Reply-To: <20131120183548.GH10317@atomide.com>
+Received: from mail-bk0-f53.google.com ([209.85.214.53]:53573 "EHLO
+	mail-bk0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750719Ab3KWJhS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 23 Nov 2013 04:37:18 -0500
+In-Reply-To: <20131119021409.GA2820@gondor.apana.org.au>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Ben Gamari <bgamari.foss@gmail.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: Tony Lindgren <tony@atomide.com>, Matt Mackall <mpm@selenic.com>, Russell King <linux@arm.linux.org.uk>, Joe Perches <joe@perches.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
-"I wonder if we also have some dependency to some earlier versions of
-u-boot as u-boot now only muxes the essential pins?"
-This is exactly the problem in my case. I added "#define
-CONFIG_SYS_ENABLE_PADS_ALL" in u-boot/include/configs/omap4_common.h
-and now there is output.
+--nextPart1990570.ofrVAdtyRY
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-I guess the reason that the u-boot worked out-of-box for Ben but not
-for me is that I missed some configurations in v3.12 kernel. I image
-there is a config options that tells the kernel to take care of the
-non-essential pins that used to be the responsibility of u-boot. Could
-you confirm my hypothesis? And if so, could you kindly suggest what's
-the name of the config option?
+On Tuesday 19 November 2013 03:14:09 Herbert Xu wrote:
+> On Mon, Nov 18, 2013 at 10:51:30PM +0100, Pali Roh=C3=A1r wrote:
+> > On Wednesday 16 October 2013 14:57:34 Herbert Xu wrote:
+> > > On Tue, Oct 08, 2013 at 12:04:09PM -0700, Tony Lindgren=20
+wrote:
+> > > > * Pali Roh=C3=A1r <pali.rohar@gmail.com> [130920 06:33]:
+> > > > > This driver provides kernel-side support for the
+> > > > > Random Number Generator hardware found on OMAP34xx
+> > > > > processors.
+> > > > >=20
+> > > > > This driver comes from Maemo 2.6.28 kernel and was
+> > > > > tested on Nokia RX-51. It is platform device because
+> > > > > it needs board specific function for smc calls.
+> > > >=20
+> > > > This one is should be merged via the hw_random patches
+> > > > seprately:
+> > > >=20
+> > > > Acked-by: Tony Lindgren <tony@atomide.com>
+> > >=20
+> > > Patch applied.  Thanks!
+> >=20
+> > Hello, I still do not see this patch (2/3) in linus tree.
+> > But patch 1/3 and 3/3 are already merged. So is there any
+> > problem?
+>=20
+> 2/3 is still in my tree so when Linus pulls it it'll be there.
+>=20
+> Cheers,
 
-Thank you!
+Now 3.13-rc1 is out [1], but your tree was not merged. Can you=20
+try to ping Linus what happened?
 
-On Wed, Nov 20, 2013 at 12:35 PM, Tony Lindgren <tony@atomide.com> wrote:
-> * Ben Gamari <bgamari.foss@gmail.com> [131119 19:07]:
->> Chao Xu <caesarxuchao@gmail.com> writes:
->>
->> > Hi,
->> >
->> > I also try to boot v3.12 on my pandaboard rev A2, but it hangs at
->> > "starting kernel". My SD card is originally loaded with a linaro 12.04
->> > ubuntu-developer image. I have tried with v3.7 and v3.8 uImage and
->> > both of them work normally, but v3.12 hangs. Is there any trick I
->> > missed? Do I need to use the new u-boot as used by Ben?
->> >
->> I've written up some of my experiences bringing up 3.12 on the
->> PandaBoard here[1]. You may find it helpful. Regardless, I would
->> definitely try upgrading u-boot.
->
-> Nice investigative blogging :)
->
-> Care to also update it with the other issues remaining on pandaboard?
-> Sounds like we're pretty close to having things working nicely with
-> mainline kernel on it, so let's just fix those issues ASAP.
->
-> I'm aware of at least two issues:
->
-> 1.  The WLAN not working after a soft reset, or if the interface is
->     reset with ifconfig down. This could be a typo somewhere in the
->     .dts file for the WLAN regulator or something like that.
->
-> 2. Suspend and resume does not wake-up from serial console and spews
->    a bunch of warnings. The wake-up issue can be fixed with the new
->    the new interrupts-extended property to use the wake IRQs, I'll
->    try to update my patches for that today.
->
->> > And here is a separate problem with building u-boot. I cloned the
->> > upstream u-boot repository. The latest commit is
->> > c2e5e802ecb7ab668ce9911b210ed68c804b349f. Then I did:
->> > make ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- omap4_panda_config
->> > make ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- -j8
->> > cp MLO u-boot.img /media/boot/
->> > But when turn on my pandaboard, there is NO output from the serial
->> > console. I didn't change the other file in the boot partition. They
->> > are from linaro 12.04 ubuntu-developer image.
->> >
->> I would check that you have earlyprintk enabled (both in the kernel
->> configuration as well as on the kernel command line). Moreover, ensure
->> that the correct serial devices is selected for low-level debug output
->> (in the kernel configuration).
->
-> I wonder if we also have some dependency to some earlier versions of
-> u-boot as u-boot now only muxes the essential pins?
->
-> Regards,
->
-> Tony
->
->
->> [1] http://bgamari.github.io/posts/2013-11-17-running-modern-kernel-on-pandaboard.html
->
->
+[1] - https://lkml.org/lkml/2013/11/22/439
 
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
 
+--nextPart1990570.ofrVAdtyRY
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
 
--- 
-Regards,
-Chao Xu
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iEYEABECAAYFAlKQd0kACgkQi/DJPQPkQ1LySgCeKyyCfkkapr+eCrx6VsmOk37t
+EAsAoLAqrIRgaulp2fpyvAMCCPJVHKbI
+=f4ly
+-----END PGP SIGNATURE-----
+
+--nextPart1990570.ofrVAdtyRY--
