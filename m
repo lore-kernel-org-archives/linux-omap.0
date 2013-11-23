@@ -1,56 +1,192 @@
-From: Sebastian Reichel <sre@ring0.de>
-Subject: Re: [PATCH v2 2/3] hwrng: OMAP3 ROM Random Number Generator support
-Date: Sat, 23 Nov 2013 13:09:52 +0100
-Message-ID: <20131123120951.GB21861@earth.universe>
-References: <1379534757-20870-1-git-send-email-pali.rohar@gmail.com>
- <201311182251.35704@pali>
- <20131119021409.GA2820@gondor.apana.org.au>
- <201311231037.13908@pali>
+From: Rob Herring <robherring2@gmail.com>
+Subject: Re: [PATCH 5/8] ARM: OMAP2+: timer: Introduce OF-friendly
+ clocksource/clockevent system timers
+Date: Sat, 23 Nov 2013 10:26:37 -0600
+Message-ID: <CAL_JsqJGG+JHBAKa=gab14dsY0nF1iz5CHzq0OW=-SdpaFVc2g@mail.gmail.com>
+References: <1385085414-9034-1-git-send-email-joelf@ti.com>
+	<1385085414-9034-6-git-send-email-joelf@ti.com>
+	<CAL_JsqKS=cGeAhj+K04SOtA8nJRR3MXxS3ry-kzjQOkZx3yK4g@mail.gmail.com>
+	<528F8959.7080207@ti.com>
+	<CAL_JsqJoH_yWP-Aae2REb=qzV6c56=WQoVLV8cFgX+_b+voM5g@mail.gmail.com>
+	<529000EA.7090001@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="NDin8bjvE/0mNLFQ"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <201311231037.13908@pali>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
-Cc: Herbert Xu <herbert@gondor.hengli.com.au>, Tony Lindgren <tony@atomide.com>, Matt Mackall <mpm@selenic.com>, Russell King <linux@arm.linux.org.uk>, Joe Perches <joe@perches.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ve0-f171.google.com ([209.85.128.171]:56122 "EHLO
+	mail-ve0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753922Ab3KWQ0i (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 23 Nov 2013 11:26:38 -0500
+In-Reply-To: <529000EA.7090001@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Joel Fernandes <joelf@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Jon Hunter <jgchunter@gmail.com>, rnayak@ti.com, Felipe Balbi <balbi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, benoit.cousson@linaro.org, Thomas Gleixner <tglx@linutronix.de>, Mark Rutland <mark.rutland@arm.com>
 
+On Fri, Nov 22, 2013 at 7:12 PM, Joel Fernandes <joelf@ti.com> wrote:
+> Adding Thomas to the thread since discussion is about clocksource, and Mark
+> Rutland as discussion is related to timers and DT, thanks.
+>
+> On 11/22/2013 02:01 PM, Rob Herring wrote:
+>> On Fri, Nov 22, 2013 at 10:42 AM, Joel Fernandes <joelf@ti.com> wrote:
+>>> On 11/22/2013 09:58 AM, Rob Herring wrote:
+>>>> On Thu, Nov 21, 2013 at 7:56 PM, Joel Fernandes <joelf@ti.com> wrote:
+>>>>> This work is a migration effort of OMAP system timers to the
+>>>>> clocksource/clockevent framework. Consider this as a first-pass in this effort.
+>>>>> There are few cleanups that need to be done first. The HWMOD code is
+>>>>> intertwined with the timer code. HWMOD code cleanups in the future will
+>>>>> hopefully make most of this code go away, so till then we separate out the
+>>>>> power/clocks portion of the code from the actual timer bits.  This will
+>>>>> facilitate near-future work of adapting the system timer as a clocksource.
+>>>>>
+>>>>> New functions for OF-only boot are introduced, and we can soon delete the old
+>>>>> versions once we migrate all platforms. Currently only AM335x is migrated and
+>>>>> testedA new omap_generic_timer_init function is introduced for DT platforms.
+>>>>> Code required earlier for non-DT platforms such as setup of timer IDs and timer
+>>>>> parent clock is not required.  parent clocks are automatically setup by the mux
+>>>>> clock driver through DT so they no longer need to be hardcoded.
+>>>>>
+>>>>> The init code will try to pick the best timer for clocksource and clockevent
+>>>>> however bindings are added to force a particular timer as clocksource or
+>>>>> clockevent through DT.
+>>>>>
+>>>>> Signed-off-by: Joel Fernandes <joelf@ti.com>
+>>>>> ---
+>>>>>  .../devicetree/bindings/arm/omap/timer.txt         |  12 ++
+>>>>>  arch/arm/mach-omap2/common.h                       |   1 +
+>>>>>  arch/arm/mach-omap2/timer.c                        | 235 +++++++++++++++++++++
+>>>>>  3 files changed, 248 insertions(+)
+>>>>>
+>>>>> diff --git a/Documentation/devicetree/bindings/arm/omap/timer.txt b/Documentation/devicetree/bindings/arm/omap/timer.txt
+>>>>> index d02e27c..6cf7a75 100644
+>>>>> --- a/Documentation/devicetree/bindings/arm/omap/timer.txt
+>>>>> +++ b/Documentation/devicetree/bindings/arm/omap/timer.txt
+>>>>> @@ -32,6 +32,18 @@ Optional properties:
+>>>>>  - ti,timer-secure:     Indicates the timer is reserved on a secure OMAP device
+>>>>>                         and therefore cannot be used by the kernel.
+>>>>>
+>>>>> +- ti,timer-clockevent,
+>>>>> +  ti,timer-clocksource These properties force the system timer code to choose
+>>>>> +                       the particular timer as a clockevent or clocksource.
+>>>>> +                       If these properties are not specified, the timer code
+>>>>> +                       picks up a "ti,timer-alwon" as the clocksource and a
+>>>>> +                       timer containing one of the following properties as
+>>>>> +                       the clockevent in the following order:
+>>>>> +                               ti,timer-alwon
+>>>>> +                               ti,timer-dsp
+>>>>> +                               ti,timer-pwm
+>>>>> +                               ti,timer-secure
+>>>>
+>>>> These properties were added specifically for the reason of avoiding
+>>>> linux specific properties like these. When is this not sufficient?
+>>>
+>>> Some platforms cannot use certain timers as clockevents and clocksource, to keep
+>>> this code functionally equivalent and working, I added these properties so that
+>>> its possible to select specific timers as clockevents/sources as was being done
+>>> in the non-DT case. I'm open to suggestions for doing this in a better way for DT.
+>>
+>> There has to be a defined reason why a given timer cannot be used. You
+>> are not explaining what that reason is. Define a property or set of
+>> properties that describe the h/w feature or quirk.
+>
+> Reason? There are HW bugs that prevent a timer from being used. See [1]. And
+> there may be other reasons, I haven't written this code but I know that there
+> are other HW bugs that made authors pick a specific timer such as board issues
+> or accuracy.
 
---NDin8bjvE/0mNLFQ
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Bugs are a feature of the h/w. Add a "ti,timer-broken" property if you
+don't know the specific bug. Accuracy is a function of counter bit
+size and frequency. The only board issues for a timer I can imagine is
+you want to reserve timers with output compare or input capture pins
+for other uses. These are all properties that you can describe in the
+binding. If you just don't want to use a timer for some arbitrary
+reason, then add a 'status = "disabled";' property.
 
-On Sat, Nov 23, 2013 at 10:37:13AM +0100, Pali Roh=E1r wrote:
-> Now 3.13-rc1 is out, but your tree was not merged. Can you=20
-> try to ping Linus what happened?
+>
+> This is nothing new, just that I'm trying to find a way to do it from DT.
+>
+> You can see the ifdef'ry below in mach-omap2/timer.c. All I'm trying to do is
+> make it simpler and cleaner by adding these properties to DT so that we can
+> delete this code entirely.
+>
+>
+> #ifdef CONFIG_ARCH_OMAP2
+> OMAP_SYS_32K_TIMER_INIT(2, 1, "timer_32k_ck", "ti,timer-alwon",
+>                         2, "timer_sys_ck", NULL);
+> #endif /* CONFIG_ARCH_OMAP2 */
+>
+> #if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_SOC_AM43XX)
+> OMAP_SYS_32K_TIMER_INIT(3, 1, "timer_32k_ck", "ti,timer-alwon",
+>                         2, "timer_sys_ck", NULL);
+> OMAP_SYS_32K_TIMER_INIT(3_secure, 12, "secure_32k_fck", "ti,timer-secure",
+>                         2, "timer_sys_ck", NULL);
+> #endif /* CONFIG_ARCH_OMAP3 */
 
-See here: http://www.spinics.net/lists/arm-kernel/msg288508.html
+Hence why compatible properties are supposed to be specific. You
+should have ti,omap2-timer, ti,omap3-timer, and ti,am43xx-timer as
+compatible properties.
 
--- Sebastian
+> etc...
+>
+>>>>
+>>>> And I agree with the comment to use OF_CLKSRC.
+>>>>
+>>>
+>>> There are difficulties I mentioned in a previous post [1] stating why it may not
+>>> be possible to use OF_CLKSRC macros, and still keep the code functionally
+>>> equivalent to when it was non-DT.
+>>
+>> Sorry, I don't buy it.
+>>
+>
+> Ofcourse even I want to use OF_CLOCKSOURCE macros for registering DT
+> clocksources, but re-iterating, the selection of timer is not a simple match of
+> compatible property as you may see in my patch. Some platforms need specific
+> timer as clocksource, all timers have same "compatible" flag. How would you
+> differentiate? Refer to ifdef's above to see how timer IDs change across
+> platforms in the non-DT code that's being converted.
+>
+> I think clocksource_of_init has been written such that any timer having a
+> matching compatible can be enumerated.
+>
+> I can change the compatible to something unique in the DT like:
+>
+> timer1:timer@... {
+>   compatible = "ti,dmtimer-clocksource"
+>   ....
+> }
+>
+>  and that may make clocksource work. But then such a similar approach to
+> clockevent is not possible. What I observed in other platforms is a *single* DT
+> node represents both clocksource and clockevent.
 
---NDin8bjvE/0mNLFQ
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Because the timer h/w represents a single IP block in these cases.
+This is the case for sp804 which I wrote. And I also care which timer
+is which function because only 1 timer has an interrupt connected. All
+this was handled by describing the h/w and leaving it to the kernel to
+figure out which timer is which.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.15 (GNU/Linux)
+>
+> For example, in zevio-timer:
+> drivers/clocksource/zevio-timer.c
+>
+> does this:
+> CLOCKSOURCE_OF_DECLARE(zevio_timer, "lsi,zevio-timer", zevio_timer_add);
+>
+> In the body of zevio_timer_add(struct device_node *node), they do this:
+>         timer->base = of_iomap(node, 0);
+>         timer->timer1 = timer->base + IO_TIMER1; // USED AS CLOCKSOURCE
+>         timer->timer2 = timer->base + IO_TIMER2; // USED AS CLOCKEVENT
+>
+> What's happening here is a single device node (DT node) represents both
+> clockevent and source. But for OMAP, we use different timers for clockevent and
+> clocksource. They are physically 2 different timer DT nodes. How do we register
+> something like this with the CLOCKSOURCE_OF_DECLARE macro?
 
-iQIcBAEBCAAGBQJSkJsPAAoJENju1/PIO/qaHpoP/jq80GqizwWhSWhR7YxDOlCD
-WGKMO0xGqIazW+EN0jjx9Ol1MnAJKZgKeKIv1hykHo9vXZIqJrGOsI/jA0IrofEG
-XdLwqwvj7xAoFWYXMIsrKA98fn2/1FsVr52kKU0Wbr9OZQ7W/25lCkablcbX2cI5
-4xCxNMtPgoBk9MZ+g6pGbEqnV3VWamBfBzDa9UpDgywOr9PLvbtzelROkdBkjQKd
-mlnSQ0JnCD1we6eDS1OVPfvnSuOXXW1Gcj4KrWfJC44FyYUl4fq4mwcCA12wT/ts
-o+ecpqk+R76Kq8y9oFZ8lzPJuYU0OyLjZyp2g786i9VPu0xX7zD04T3eCUierESA
-jfmrn5aYmXATnq34ZDSn8RjXFv1qG+Q85sK8lHDjLnm2ctVuxO48z1yKEKVf0c1X
-Q9fB4QDv9aqvGMlEjEiRCVNWBJWarAfKeQrZpM9vIvPpRov+ICfcBi73cXG8K87P
-89Mv3zN/9DPTdJOQAsd6d8xiaOvWabRSE9RPCht3GZYmQ7Zw46A+D+X67SzlmEZw
-gheO2/0nR+1d9gbdCrZ2lkvI+wX1diOtfDq5FBXZbZBT1sxiWpeMVWET0+WHEj3g
-fuNo3SlkEskeREXRlhcQeM2Puoy6GNHAYj8qx7PVwWCu38sSXP49ws6lXnrUACTJ
-OZQ2rBEhabAzg4wBBJad
-=9/GX
------END PGP SIGNATURE-----
+To start with, declare a macro and init function for each SOC and add
+an of_machine_is_compatible check if you need to different selection
+logic for each SOC.
 
---NDin8bjvE/0mNLFQ--
+You might look at integrator_cp_of_init which deals with having 3
+different timers.
+
+Rob
