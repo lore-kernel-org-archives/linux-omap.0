@@ -1,170 +1,103 @@
-From: Joel Fernandes <joelf@ti.com>
-Subject: Re: [PATCH 5/8] ARM: OMAP2+: timer: Introduce OF-friendly
- clocksource/clockevent system timers
-Date: Fri, 22 Nov 2013 19:22:41 -0600
-Message-ID: <52900361.9000805@ti.com>
-References: <529000EA.7090001@ti.com>
-Reply-To: Rob Herring <robherring2@gmail.com>
+From: Chao Xu <caesarxuchao@gmail.com>
+Subject: Re: [BUG] PandaBoard hangs before starting init while booting v3.12
+Date: Fri, 22 Nov 2013 21:27:11 -0600
+Message-ID: <CAKZq+rcoC5PLSVVazWcce7V7TcBM8=M2jM56bvk9HO2orKt8fg@mail.gmail.com>
+References: <87hab9agjr.fsf@gmail.com>
+	<CAKZq+rdQLrNE43aGaPtnDfaO6CHsq_ePLu+oRgWNs25OrdCtdw@mail.gmail.com>
+	<87wqk3n54l.fsf@gmail.com>
+	<20131120183548.GH10317@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <529000EA.7090001@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-Cc: Mark Rutland <mark.rutland@arm.com>, jgchunter@gmail.com, rnayak@ti.com, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, benoit.cousson@linaro.org, Thomas Gleixner <tglx@linutronix.de>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-qe0-f48.google.com ([209.85.128.48]:34700 "EHLO
+	mail-qe0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932113Ab3KWD1L (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 Nov 2013 22:27:11 -0500
+Received: by mail-qe0-f48.google.com with SMTP id gc15so1672811qeb.35
+        for <linux-omap@vger.kernel.org>; Fri, 22 Nov 2013 19:27:11 -0800 (PST)
+In-Reply-To: <20131120183548.GH10317@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Ben Gamari <bgamari.foss@gmail.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Sorry, resending due to an MUA issue.
+"I wonder if we also have some dependency to some earlier versions of
+u-boot as u-boot now only muxes the essential pins?"
+This is exactly the problem in my case. I added "#define
+CONFIG_SYS_ENABLE_PADS_ALL" in u-boot/include/configs/omap4_common.h
+and now there is output.
 
-Adding Thomas to the thread since discussion is about clocksource, and Mark
-Rutland as discussion is related to timers and DT, thanks.
+I guess the reason that the u-boot worked out-of-box for Ben but not
+for me is that I missed some configurations in v3.12 kernel. I image
+there is a config options that tells the kernel to take care of the
+non-essential pins that used to be the responsibility of u-boot. Could
+you confirm my hypothesis? And if so, could you kindly suggest what's
+the name of the config option?
 
-On 11/22/2013 02:01 PM, Rob Herring wrote:
-> On Fri, Nov 22, 2013 at 10:42 AM, Joel Fernandes <joelf@ti.com> wrote:
->> On 11/22/2013 09:58 AM, Rob Herring wrote:
->>> On Thu, Nov 21, 2013 at 7:56 PM, Joel Fernandes <joelf@ti.com> wrote:
->>>> This work is a migration effort of OMAP system timers to the
->>>> clocksource/clockevent framework. Consider this as a first-pass in this effort.
->>>> There are few cleanups that need to be done first. The HWMOD code is
->>>> intertwined with the timer code. HWMOD code cleanups in the future will
->>>> hopefully make most of this code go away, so till then we separate out the
->>>> power/clocks portion of the code from the actual timer bits.  This will
->>>> facilitate near-future work of adapting the system timer as a clocksource.
->>>>
->>>> New functions for OF-only boot are introduced, and we can soon delete the old
->>>> versions once we migrate all platforms. Currently only AM335x is migrated and
->>>> testedA new omap_generic_timer_init function is introduced for DT platforms.
->>>> Code required earlier for non-DT platforms such as setup of timer IDs and timer
->>>> parent clock is not required.  parent clocks are automatically setup by the mux
->>>> clock driver through DT so they no longer need to be hardcoded.
->>>>
->>>> The init code will try to pick the best timer for clocksource and clockevent
->>>> however bindings are added to force a particular timer as clocksource or
->>>> clockevent through DT.
->>>>
->>>> Signed-off-by: Joel Fernandes <joelf@ti.com>
->>>> ---
->>>>  .../devicetree/bindings/arm/omap/timer.txt         |  12 ++
->>>>  arch/arm/mach-omap2/common.h                       |   1 +
->>>>  arch/arm/mach-omap2/timer.c                        | 235 +++++++++++++++++++++
->>>>  3 files changed, 248 insertions(+)
->>>>
->>>> diff --git a/Documentation/devicetree/bindings/arm/omap/timer.txt b/Documentation/devicetree/bindings/arm/omap/timer.txt
->>>> index d02e27c..6cf7a75 100644
->>>> --- a/Documentation/devicetree/bindings/arm/omap/timer.txt
->>>> +++ b/Documentation/devicetree/bindings/arm/omap/timer.txt
->>>> @@ -32,6 +32,18 @@ Optional properties:
->>>>  - ti,timer-secure:     Indicates the timer is reserved on a secure OMAP device
->>>>                         and therefore cannot be used by the kernel.
->>>>
->>>> +- ti,timer-clockevent,
->>>> +  ti,timer-clocksource These properties force the system timer code to choose
->>>> +                       the particular timer as a clockevent or clocksource.
->>>> +                       If these properties are not specified, the timer code
->>>> +                       picks up a "ti,timer-alwon" as the clocksource and a
->>>> +                       timer containing one of the following properties as
->>>> +                       the clockevent in the following order:
->>>> +                               ti,timer-alwon
->>>> +                               ti,timer-dsp
->>>> +                               ti,timer-pwm
->>>> +                               ti,timer-secure
->>>
->>> These properties were added specifically for the reason of avoiding
->>> linux specific properties like these. When is this not sufficient?
+Thank you!
+
+On Wed, Nov 20, 2013 at 12:35 PM, Tony Lindgren <tony@atomide.com> wrote:
+> * Ben Gamari <bgamari.foss@gmail.com> [131119 19:07]:
+>> Chao Xu <caesarxuchao@gmail.com> writes:
 >>
->> Some platforms cannot use certain timers as clockevents and clocksource, to keep
->> this code functionally equivalent and working, I added these properties so that
->> its possible to select specific timers as clockevents/sources as was being done
->> in the non-DT case. I'm open to suggestions for doing this in a better way for DT.
-> 
-> There has to be a defined reason why a given timer cannot be used. You
-> are not explaining what that reason is. Define a property or set of
-> properties that describe the h/w feature or quirk.
+>> > Hi,
+>> >
+>> > I also try to boot v3.12 on my pandaboard rev A2, but it hangs at
+>> > "starting kernel". My SD card is originally loaded with a linaro 12.04
+>> > ubuntu-developer image. I have tried with v3.7 and v3.8 uImage and
+>> > both of them work normally, but v3.12 hangs. Is there any trick I
+>> > missed? Do I need to use the new u-boot as used by Ben?
+>> >
+>> I've written up some of my experiences bringing up 3.12 on the
+>> PandaBoard here[1]. You may find it helpful. Regardless, I would
+>> definitely try upgrading u-boot.
+>
+> Nice investigative blogging :)
+>
+> Care to also update it with the other issues remaining on pandaboard?
+> Sounds like we're pretty close to having things working nicely with
+> mainline kernel on it, so let's just fix those issues ASAP.
+>
+> I'm aware of at least two issues:
+>
+> 1.  The WLAN not working after a soft reset, or if the interface is
+>     reset with ifconfig down. This could be a typo somewhere in the
+>     .dts file for the WLAN regulator or something like that.
+>
+> 2. Suspend and resume does not wake-up from serial console and spews
+>    a bunch of warnings. The wake-up issue can be fixed with the new
+>    the new interrupts-extended property to use the wake IRQs, I'll
+>    try to update my patches for that today.
+>
+>> > And here is a separate problem with building u-boot. I cloned the
+>> > upstream u-boot repository. The latest commit is
+>> > c2e5e802ecb7ab668ce9911b210ed68c804b349f. Then I did:
+>> > make ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- omap4_panda_config
+>> > make ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- -j8
+>> > cp MLO u-boot.img /media/boot/
+>> > But when turn on my pandaboard, there is NO output from the serial
+>> > console. I didn't change the other file in the boot partition. They
+>> > are from linaro 12.04 ubuntu-developer image.
+>> >
+>> I would check that you have earlyprintk enabled (both in the kernel
+>> configuration as well as on the kernel command line). Moreover, ensure
+>> that the correct serial devices is selected for low-level debug output
+>> (in the kernel configuration).
+>
+> I wonder if we also have some dependency to some earlier versions of
+> u-boot as u-boot now only muxes the essential pins?
+>
+> Regards,
+>
+> Tony
+>
+>
+>> [1] http://bgamari.github.io/posts/2013-11-17-running-modern-kernel-on-pandaboard.html
+>
+>
 
-Reason? There are HW bugs that prevent a timer from being used. See [1]. And
-there may be other reasons, I haven't written this code but I know that there
-are other HW bugs that made authors pick a specific timer such as board issues
-or accuracy.
-
-This is nothing new, just that I'm trying to find a way to do it from DT.
-
-You can see the ifdef'ry below in mach-omap2/timer.c. All I'm trying to do is
-make it simpler and cleaner by adding these properties to DT so that we can
-delete this code entirely.
 
 
-#ifdef CONFIG_ARCH_OMAP2
-OMAP_SYS_32K_TIMER_INIT(2, 1, "timer_32k_ck", "ti,timer-alwon",
-                        2, "timer_sys_ck", NULL);
-#endif /* CONFIG_ARCH_OMAP2 */
-
-#if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_SOC_AM43XX)
-OMAP_SYS_32K_TIMER_INIT(3, 1, "timer_32k_ck", "ti,timer-alwon",
-                        2, "timer_sys_ck", NULL);
-OMAP_SYS_32K_TIMER_INIT(3_secure, 12, "secure_32k_fck", "ti,timer-secure",
-                        2, "timer_sys_ck", NULL);
-#endif /* CONFIG_ARCH_OMAP3 */
-
-etc...
-
->>>
->>> And I agree with the comment to use OF_CLKSRC.
->>>
->>
->> There are difficulties I mentioned in a previous post [1] stating why it may not
->> be possible to use OF_CLKSRC macros, and still keep the code functionally
->> equivalent to when it was non-DT.
-> 
-> Sorry, I don't buy it.
-> 
-
-Ofcourse even I want to use OF_CLOCKSOURCE macros for registering DT
-clocksources, but re-iterating, the selection of timer is not a simple match of
-compatible property as you may see in my patch. Some platforms need specific
-timer as clocksource, all timers have same "compatible" flag. How would you
-differentiate? Refer to ifdef's above to see how timer IDs change across
-platforms in the non-DT code that's being converted.
-
-I think clocksource_of_init has been written such that any timer having a
-matching compatible can be enumerated.
-
-I can change the compatible to something unique in the DT like:
-
-timer1:timer@... {
-  compatible = "ti,dmtimer-clocksource"
-  ....
-}
-
- and that may make clocksource work. But then such a similar approach to
-clockevent is not possible. What I observed in other platforms is a *single* DT
-node represents both clocksource and clockevent.
-
-For example, in zevio-timer:
-drivers/clocksource/zevio-timer.c
-
-does this:
-CLOCKSOURCE_OF_DECLARE(zevio_timer, "lsi,zevio-timer", zevio_timer_add);
-
-In the body of zevio_timer_add(struct device_node *node), they do this:
-        timer->base = of_iomap(node, 0);
-        timer->timer1 = timer->base + IO_TIMER1; // USED AS CLOCKSOURCE
-        timer->timer2 = timer->base + IO_TIMER2; // USED AS CLOCKEVENT
-
-What's happening here is a single device node (DT node) represents both
-clockevent and source. But for OMAP, we use different timers for clockevent and
-clocksource. They are physically 2 different timer DT nodes. How do we register
-something like this with the CLOCKSOURCE_OF_DECLARE macro?
-
-Looking forward to your suggestions.
-
-thanks,
-
--Joel
+-- 
+Regards,
+Chao Xu
