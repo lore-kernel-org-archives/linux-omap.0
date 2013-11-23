@@ -1,45 +1,41 @@
-From: Vaibhav Bedia <vaibhav.bedia@gmail.com>
-Subject: Re: [rtc-linux] Re: [PATCH v4 0/4] pm: Add power off control
-Date: Sat, 23 Nov 2013 12:23:35 -0500
-Message-ID: <CANacCWxwr7s6ZvjWRbg_JGgc-Q1sJa-KJCLrSCK4BvSrmL5Eug@mail.gmail.com>
-References: <1355464997-19367-1-git-send-email-anilkumar@ti.com>
-	<331ABD5ECB02734CA317220B2BBEABC13EAD58C2@DBDE01.ent.ti.com>
-	<CA+Bv8XbUa7xPd8V7LQCmFbbdQvORUK1X0xBPzAhKUFFjjho2jw@mail.gmail.com>
-	<20131122195041.GF18968@localhost>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Sebastian Reichel <sre@debian.org>
+Subject: [PATCH 3/5] DTS: ARM: OMAP3-N900: Add reset gpio to lcd node
+Date: Sat, 23 Nov 2013 21:57:22 +0100
+Message-ID: <1385240244-28629-4-git-send-email-sre@debian.org>
+References: <1385240244-28629-1-git-send-email-sre@debian.org>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qa0-f41.google.com ([209.85.216.41]:34437 "EHLO
-	mail-qa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755614Ab3KWRXg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 23 Nov 2013 12:23:36 -0500
-Received: by mail-qa0-f41.google.com with SMTP id j5so1541223qaq.0
-        for <linux-omap@vger.kernel.org>; Sat, 23 Nov 2013 09:23:36 -0800 (PST)
-In-Reply-To: <20131122195041.GF18968@localhost>
+Received: from ring0.de ([91.143.88.219]:56834 "EHLO smtp.ring0.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755859Ab3KWU6G (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 23 Nov 2013 15:58:06 -0500
+In-Reply-To: <1385240244-28629-1-git-send-email-sre@debian.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: rtc-linux@googlegroups.com
-Cc: Russ Dill <Russ.Dill@ti.com>, "AnilKumar, Chimata" <anilkumar@ti.com>, "a.zummo@towertech.it" <a.zummo@towertech.it>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "tony@atomide.com" <tony@atomide.com>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>
+To: Sebastian Reichel <sre@ring0.de>, Tomi Valkeinen <tomi.valkeinen@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>
+Cc: Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Rob Landley <rob@landley.net>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Sebastian Reichel <sre@debian.org>
 
-On Fri, Nov 22, 2013 at 2:50 PM, Ezequiel Garcia
-<ezequiel.garcia@free-electrons.com> wrote:
-[...]
->
-> And why specifically *2* seconds, instead of *1* or *33* ?
->
-> Sounds a bit like voodoo magic on this side :-)
+This adds reset-gpio property to the Nokia N900's
+lcd node.
 
-Consider the scenario where the actual time is 00:00:01.95 secs.
-Due to the 1 second resolution of the RTC, reading the registers
-would return 00:00:01. By the time we get to updating the
-RTC register for the shutdown by adding 1 sec (theoretically the
-smallest delta) we could end up programming the time that's already
-passed and in such cases the system will never shut down.
+Signed-off-by: Sebastian Reichel <sre@debian.org>
+---
+ arch/arm/boot/dts/omap3-n900.dts | 3 +++
+ 1 file changed, 3 insertions(+)
 
-2 secs is the smallest delay that we can use to get the system
-to shutdown reliably.
+diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
+index 6ad5ae9..ac725e0 100644
+--- a/arch/arm/boot/dts/omap3-n900.dts
++++ b/arch/arm/boot/dts/omap3-n900.dts
+@@ -585,6 +585,9 @@
+ 		spi-max-frequency = <6000000>;
+ 		reg = <2>;
+ 
++		label = "lcd";
++		reset-gpio = <&gpio3 26 GPIO_ACTIVE_HIGH>; /* 90 */
++
+ 		pinctrl-names = "default";
+ 		pinctrl-0 = <&display_pins>;
+ 	};
+-- 
+1.8.4.3
 
-So it's not voodoo magic after all ;)
-
-Regards,
-Vaibhav
