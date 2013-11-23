@@ -1,25 +1,56 @@
-From: OSBORNES SOLICITORS LLP <djholditch@crimson.ua.edu>
-Subject: PRIVATE MESSAGE
-Date: Sat, 23 Nov 2013 11:36:37 +0100
-Message-ID: <CAES10a717CqU=CM7sp160n9k2z+rs7xRjJ1-0ygc_+a+ofv0Lw__9753.62240938029$1385203053$gmane$org@mail.gmail.com>
-Reply-To: Osbornes@mail2world.com
+From: Sebastian Reichel <sre@ring0.de>
+Subject: Re: [PATCH v2 2/3] hwrng: OMAP3 ROM Random Number Generator support
+Date: Sat, 23 Nov 2013 13:09:52 +0100
+Message-ID: <20131123120951.GB21861@earth.universe>
+References: <1379534757-20870-1-git-send-email-pali.rohar@gmail.com>
+ <201311182251.35704@pali>
+ <20131119021409.GA2820@gondor.apana.org.au>
+ <201311231037.13908@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-la0-f68.google.com ([209.85.215.68]:48723 "EHLO
-	mail-la0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753485Ab3KWKg4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 23 Nov 2013 05:36:56 -0500
-Received: by mail-la0-f68.google.com with SMTP id ea20so376800lab.3
-        for <linux-omap@vger.kernel.org>; Sat, 23 Nov 2013 02:36:55 -0800 (PST)
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="NDin8bjvE/0mNLFQ"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <201311231037.13908@pali>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
+Cc: Herbert Xu <herbert@gondor.hengli.com.au>, Tony Lindgren <tony@atomide.com>, Matt Mackall <mpm@selenic.com>, Russell King <linux@arm.linux.org.uk>, Joe Perches <joe@perches.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
--- 
-This is to inform you that an inheritance was bequeathed in your
-favour. Letters were posted to you to this regards, but returned
-undelivered. Kindly contact me once you recieve this email for more
-information.
 
-Sincerely
-Barr Mark Freedman
+--NDin8bjvE/0mNLFQ
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Sat, Nov 23, 2013 at 10:37:13AM +0100, Pali Roh=E1r wrote:
+> Now 3.13-rc1 is out, but your tree was not merged. Can you=20
+> try to ping Linus what happened?
+
+See here: http://www.spinics.net/lists/arm-kernel/msg288508.html
+
+-- Sebastian
+
+--NDin8bjvE/0mNLFQ
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.15 (GNU/Linux)
+
+iQIcBAEBCAAGBQJSkJsPAAoJENju1/PIO/qaHpoP/jq80GqizwWhSWhR7YxDOlCD
+WGKMO0xGqIazW+EN0jjx9Ol1MnAJKZgKeKIv1hykHo9vXZIqJrGOsI/jA0IrofEG
+XdLwqwvj7xAoFWYXMIsrKA98fn2/1FsVr52kKU0Wbr9OZQ7W/25lCkablcbX2cI5
+4xCxNMtPgoBk9MZ+g6pGbEqnV3VWamBfBzDa9UpDgywOr9PLvbtzelROkdBkjQKd
+mlnSQ0JnCD1we6eDS1OVPfvnSuOXXW1Gcj4KrWfJC44FyYUl4fq4mwcCA12wT/ts
+o+ecpqk+R76Kq8y9oFZ8lzPJuYU0OyLjZyp2g786i9VPu0xX7zD04T3eCUierESA
+jfmrn5aYmXATnq34ZDSn8RjXFv1qG+Q85sK8lHDjLnm2ctVuxO48z1yKEKVf0c1X
+Q9fB4QDv9aqvGMlEjEiRCVNWBJWarAfKeQrZpM9vIvPpRov+ICfcBi73cXG8K87P
+89Mv3zN/9DPTdJOQAsd6d8xiaOvWabRSE9RPCht3GZYmQ7Zw46A+D+X67SzlmEZw
+gheO2/0nR+1d9gbdCrZ2lkvI+wX1diOtfDq5FBXZbZBT1sxiWpeMVWET0+WHEj3g
+fuNo3SlkEskeREXRlhcQeM2Puoy6GNHAYj8qx7PVwWCu38sSXP49ws6lXnrUACTJ
+OZQ2rBEhabAzg4wBBJad
+=9/GX
+-----END PGP SIGNATURE-----
+
+--NDin8bjvE/0mNLFQ--
