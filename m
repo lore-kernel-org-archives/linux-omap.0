@@ -1,62 +1,87 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH 1/2] ARM: dts: OMAP5: Add maintenance interrupt for
- virtualisation
-Date: Sat, 23 Nov 2013 19:38:51 -0500
-Message-ID: <52914A9B.7040602@ti.com>
-References: <1385251666-27532-1-git-send-email-santosh.shilimkar@ti.com>
- <1385251666-27532-2-git-send-email-santosh.shilimkar@ti.com>
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
+Subject: Re: [PATCH v2 3/3] RX-51: Add platform data for bq24150a charger
+Date: Sun, 24 Nov 2013 11:28:26 +0100
+Message-ID: <201311241128.27783@pali>
+References: <1378630239-10006-1-git-send-email-pali.rohar@gmail.com> <1384856285-19593-4-git-send-email-pali.rohar@gmail.com> <20131119133212.GF14587@amd.pavel.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1385251666-27532-2-git-send-email-santosh.shilimkar@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org
-Cc: Marc Zyngier <marc.zyngier@arm.com>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org, =?UTF-8?B?QmVub8OudCBDb3U=?= =?UTF-8?B?c3Nvbg==?= <bcousson@baylibre.com>, Christoffer Dall <christoffer.dall@linaro.org>
+Content-Type: multipart/signed;
+  boundary="nextPart1556635.STb31pS9vA";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-bk0-f43.google.com ([209.85.214.43]:39426 "EHLO
+	mail-bk0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751790Ab3KXK2c (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 24 Nov 2013 05:28:32 -0500
+In-Reply-To: <20131119133212.GF14587@amd.pavel.ucw.cz>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Anton Vorontsov <anton@enomsg.org>, David Woodhouse <dwmw2@infradead.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, freemangordon@abv.bg, aaro.koskinen@iki.fi
 
-T24gU2F0dXJkYXkgMjMgTm92ZW1iZXIgMjAxMyAwNzowNyBQTSwgU2FudG9zaCBTaGlsaW1rYXIg
-d3JvdGU6Cj4gQWRkIGEgbWFpbnRlbmFuY2UgSVJRIHVzaW5nIFBQSSA5IHRvIE9NQVA1IGRldmlj
-ZSB0cmVlCj4gbmVlZGVkIGZvciB2aXJ0dWFsaXNhdGlvbi4KPiAKPiBDYzogTWFyYyBaeW5naWVy
-IDxtYXJjLnp5bmdpZXJAYXJtLmNvbT4KPiBDYzogQ2hyaXN0b2ZmZXIgRGFsbCA8Y2hyaXN0b2Zm
-ZXIuZGFsbEBsaW5hcm8ub3JnPgo+IENjOiBCZW5vw650IENvdXNzb24gPGJjb3Vzc29uQGJheWxp
-YnJlLmNvbT4KPiBDYzogVG9ueSBMaW5kZ3JlbiA8dG9ueUBhdG9taWRlLmNvbT4KPiBTaWduZWQt
-b2ZmLWJ5OiBTYW50b3NoIFNoaWxpbWthciA8c2FudG9zaC5zaGlsaW1rYXJAdGkuY29tPgo+IC0t
-LQo+ICBhcmNoL2FybS9ib290L2R0cy9vbWFwNS5kdHNpIHwgICAgMSArCj4gIDEgZmlsZSBjaGFu
-Z2VkLCAxIGluc2VydGlvbigrKQo+IAo+IGRpZmYgLS1naXQgYS9hcmNoL2FybS9ib290L2R0cy9v
-bWFwNS5kdHNpIGIvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDUuZHRzaQo+IGluZGV4IGZjM2ZhZDUu
-LmM5ZjFhZTQgMTAwNjQ0Cj4gLS0tIGEvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDUuZHRzaQo+ICsr
-KyBiL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXA1LmR0c2kKPiBAQCAtNzQsNiArNzQsNyBAQAo+ICAJ
-CSAgICAgIDwweDQ4MjEyMDAwIDB4MTAwMD4sCj4gIAkJICAgICAgPDB4NDgyMTQwMDAgMHgyMDAw
-PiwKPiAgCQkgICAgICA8MHg0ODIxNjAwMCAweDIwMDA+Owo+ICsJCWludGVycnVwdHMgPSA8MSA5
-IDB4MzA0PjsKSSBzaG91bGQgaGF2ZSB1c2VkIHRoZSBHSUMgZmxhZ3MuIFVwZGF0ZWQgdmVyc2lv
-biBlbmQgb2YgdGhlCmVtYWlsLgoKUmVnYXJkcywKU2FudG9zaAoKCkZyb20gOTFjYmQ1ZjY1Y2Nk
-OWEwNzgwNjE0ZmE3YWI1NTA1OTIyYmRjZTU3NyBNb24gU2VwIDE3IDAwOjAwOjAwIDIwMDEKRnJv
-bTogU2FudG9zaCBTaGlsaW1rYXIgPHNhbnRvc2guc2hpbGlta2FyQHRpLmNvbT4KRGF0ZTogVGh1
-LCAxMiBTZXAgMjAxMyAxNTo1MzoxMyAtMDQwMApTdWJqZWN0OiBbUEFUQ0ggMS8yXSBBUk06IGR0
-czogT01BUDU6IEFkZCBtYWludGVuYW5jZSBpbnRlcnJ1cHQgZm9yCiB2aXJ0dWFsaXNhdGlvbgoK
-QWRkIGEgbWFpbnRlbmFuY2UgSVJRIHVzaW5nIFBQSSA5IHRvIE9NQVA1IGRldmljZSB0cmVlCm5l
-ZWRlZCBmb3IgdmlydHVhbGlzYXRpb24uCgpDYzogTWFyYyBaeW5naWVyIDxtYXJjLnp5bmdpZXJA
-YXJtLmNvbT4KQ2M6IENocmlzdG9mZmVyIERhbGwgPGNocmlzdG9mZmVyLmRhbGxAbGluYXJvLm9y
-Zz4KQ2M6IEJlbm/DrnQgQ291c3NvbiA8YmNvdXNzb25AYmF5bGlicmUuY29tPgpDYzogVG9ueSBM
-aW5kZ3JlbiA8dG9ueUBhdG9taWRlLmNvbT4KU2lnbmVkLW9mZi1ieTogU2FudG9zaCBTaGlsaW1r
-YXIgPHNhbnRvc2guc2hpbGlta2FyQHRpLmNvbT4KLS0tCiBhcmNoL2FybS9ib290L2R0cy9vbWFw
-NS5kdHNpIHwgICAgMSArCiAxIGZpbGUgY2hhbmdlZCwgMSBpbnNlcnRpb24oKykKCmRpZmYgLS1n
-aXQgYS9hcmNoL2FybS9ib290L2R0cy9vbWFwNS5kdHNpIGIvYXJjaC9hcm0vYm9vdC9kdHMvb21h
-cDUuZHRzaQppbmRleCBmYzNmYWQ1Li45MDdhYjdiIDEwMDY0NAotLS0gYS9hcmNoL2FybS9ib290
-L2R0cy9vbWFwNS5kdHNpCisrKyBiL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXA1LmR0c2kKQEAgLTc0
-LDYgKzc0LDcgQEAKIAkJICAgICAgPDB4NDgyMTIwMDAgMHgxMDAwPiwKIAkJICAgICAgPDB4NDgy
-MTQwMDAgMHgyMDAwPiwKIAkJICAgICAgPDB4NDgyMTYwMDAgMHgyMDAwPjsKKwkJaW50ZXJydXB0
-cyA9IDxHSUNfUFBJIDkgKEdJQ19DUFVfTUFTS19TSU1QTEUoMikgfCBJUlFfVFlQRV9MRVZFTF9I
-SUdIKT47CiAJfTsKIAogCS8qCi0tIAoxLjcuOS41CgoKX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtlcm5lbCBtYWlsaW5nIGxpc3QKbGlu
-dXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQu
-b3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAo=
+--nextPart1556635.STb31pS9vA
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+On Tuesday 19 November 2013 14:32:13 Pavel Machek wrote:
+> On Tue 2013-11-19 11:18:05, Pali Roh=C3=A1r wrote:
+> > This patch will register bq24150a charger in RX-51 board
+> > data.
+> >=20
+> > So finally charging battery on Nokia N900 (RX-51) working
+> > automatically without any proprietary Nokia bits in
+> > userspace.
+> >=20
+> > Signed-off-by: Pali Roh=C3=A1r <pali.rohar@gmail.com>
+>=20
+> Reviewed-by: Pavel Machek <pavel@ucw.cz>
+>=20
+> 									Pavel
+> BTW, current code says:
+>=20
+> That seems to limit charging voltage to 3.9V, with comment
+> saying 4.11V... which means battery will not be charged
+> fully. does it make sense to raise limit to 4.11V here?
+>=20
+> Aha, and actually will not 4.2V requested by
+> rx51_bq24150a_platform_data trigger -EINVAL?
+>=20
+> /* set battery regulation voltage in mV */
+> static int bq2415x_set_battery_regulation_voltage(struct
+> bq2415x_device *bq,
+>                                                   int mV)
+> {
+>         int val =3D (mV/10 - 350) / 2;
+>=20
+>         if (val < 0)
+>                 val =3D 0;
+>         else if (val > 94) /* FIXME: Max is 94 or 122 ? Set
+> max value ? */
+>                 return -EINVAL;
+>=20
+>         return bq2415x_i2c_write_mask(bq, BQ2415X_REG_VOLTAGE,
+> val, BQ2415X_MASK_VO, BQ2415X_SHIFT_VO); }
+>=20
+
+Above bq2415x_set_battery_regulation_voltage function is updated=20
+in 3.13, see commit 3ed5cd79b82e9a055e0df3275eeb471ea0f1e2d7.
+
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
+
+--nextPart1556635.STb31pS9vA
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iEYEABECAAYFAlKR1MsACgkQi/DJPQPkQ1JltgCeMYUnBvg86S//Y/0rhoI9nY5m
+WFYAoIaEIr+7xEuVolWQgMu94lqecd2b
+=Vh3g
+-----END PGP SIGNATURE-----
+
+--nextPart1556635.STb31pS9vA--
