@@ -1,87 +1,40 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: Re: [PATCH v2 3/3] RX-51: Add platform data for bq24150a charger
-Date: Sun, 24 Nov 2013 11:28:26 +0100
-Message-ID: <201311241128.27783@pali>
-References: <1378630239-10006-1-git-send-email-pali.rohar@gmail.com> <1384856285-19593-4-git-send-email-pali.rohar@gmail.com> <20131119133212.GF14587@amd.pavel.ucw.cz>
+From: Sebastian Reichel <sre@debian.org>
+Subject: [PATCH 0/3] DT support for bq2415x
+Date: Sun, 24 Nov 2013 17:49:28 +0100
+Message-ID: <1385311771-447-1-git-send-email-sre@debian.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart1556635.STb31pS9vA";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bk0-f43.google.com ([209.85.214.43]:39426 "EHLO
-	mail-bk0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751790Ab3KXK2c (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 24 Nov 2013 05:28:32 -0500
-In-Reply-To: <20131119133212.GF14587@amd.pavel.ucw.cz>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Reichel <sre@ring0.de>, Anton Vorontsov <anton@enomsg.org>, David Woodhouse <dwmw2@infradead.org>
+Cc: Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Rob Landley <rob@landley.net>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>, freemangordon@abv.bg, aaro.koskinen@iki.fi, pavel@ucw.cz, Sebastian Reichel <sre@debian.org>
 List-Id: linux-omap@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Anton Vorontsov <anton@enomsg.org>, David Woodhouse <dwmw2@infradead.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, freemangordon@abv.bg, aaro.koskinen@iki.fi
 
---nextPart1556635.STb31pS9vA
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+Hi,
 
-On Tuesday 19 November 2013 14:32:13 Pavel Machek wrote:
-> On Tue 2013-11-19 11:18:05, Pali Roh=C3=A1r wrote:
-> > This patch will register bq24150a charger in RX-51 board
-> > data.
-> >=20
-> > So finally charging battery on Nokia N900 (RX-51) working
-> > automatically without any proprietary Nokia bits in
-> > userspace.
-> >=20
-> > Signed-off-by: Pali Roh=C3=A1r <pali.rohar@gmail.com>
->=20
-> Reviewed-by: Pavel Machek <pavel@ucw.cz>
->=20
-> 									Pavel
-> BTW, current code says:
->=20
-> That seems to limit charging voltage to 3.9V, with comment
-> saying 4.11V... which means battery will not be charged
-> fully. does it make sense to raise limit to 4.11V here?
->=20
-> Aha, and actually will not 4.2V requested by
-> rx51_bq24150a_platform_data trigger -EINVAL?
->=20
-> /* set battery regulation voltage in mV */
-> static int bq2415x_set_battery_regulation_voltage(struct
-> bq2415x_device *bq,
->                                                   int mV)
-> {
->         int val =3D (mV/10 - 350) / 2;
->=20
->         if (val < 0)
->                 val =3D 0;
->         else if (val > 94) /* FIXME: Max is 94 or 122 ? Set
-> max value ? */
->                 return -EINVAL;
->=20
->         return bq2415x_i2c_write_mask(bq, BQ2415X_REG_VOLTAGE,
-> val, BQ2415X_MASK_VO, BQ2415X_SHIFT_VO); }
->=20
+This patchset adds DT support for the bq2415x charger, which is used in=
+ the
+Nokia N900. The changes depend on Pali Roh=C3=A1r's "[PATCH v2 0/3] Add=
+ support for
+charging battery in Nokia RX-51" patchset [0].
 
-Above bq2415x_set_battery_regulation_voltage function is updated=20
-in 3.13, see commit 3ed5cd79b82e9a055e0df3275eeb471ea0f1e2d7.
+[0] https://lkml.org/lkml/2013/11/19/106
 
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
+-- Sebastian
 
---nextPart1556635.STb31pS9vA
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
+Sebastian Reichel (3):
+  power_supply: add power_supply_get_by_phandle
+  bq2415x_charger: add DT support
+  dt: binding documentation for bq2415x charger
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
+ .../devicetree/bindings/power/bq2415x.txt          | 43 +++++++++++++
+ drivers/power/bq2415x_charger.c                    | 72 ++++++++++++++=
+++------
+ drivers/power/power_supply_core.c                  | 24 ++++++++
+ include/linux/power_supply.h                       |  2 +
+ 4 files changed, 121 insertions(+), 20 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/power/bq2415x.txt
 
-iEYEABECAAYFAlKR1MsACgkQi/DJPQPkQ1JltgCeMYUnBvg86S//Y/0rhoI9nY5m
-WFYAoIaEIr+7xEuVolWQgMu94lqecd2b
-=Vh3g
------END PGP SIGNATURE-----
-
---nextPart1556635.STb31pS9vA--
+--=20
+1.8.4.3
