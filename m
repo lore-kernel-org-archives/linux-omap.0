@@ -1,83 +1,70 @@
-From: Sebastian Reichel <sre@ring0.de>
-Subject: Re: [PATCH v2 2/3] bq2415x_charger: Use power_supply notifier for
- automode
-Date: Sun, 24 Nov 2013 20:26:09 +0100
-Message-ID: <20131124192608.GA11338@earth.universe>
-References: <1378630239-10006-1-git-send-email-pali.rohar@gmail.com>
- <1384856285-19593-3-git-send-email-pali.rohar@gmail.com>
- <20131124165959.GA655@earth.universe>
- <201311242001.16299@pali>
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
+Subject: Re: [PATCH v2 2/3] bq2415x_charger: Use power_supply notifier for automode
+Date: Sun, 24 Nov 2013 20:41:46 +0100
+Message-ID: <201311242041.47075@pali>
+References: <1378630239-10006-1-git-send-email-pali.rohar@gmail.com> <201311242001.16299@pali> <20131124192608.GA11338@earth.universe>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="T4sUOijqQbZv57TR"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <201311242001.16299@pali>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
-Cc: Anton Vorontsov <anton@enomsg.org>, David Woodhouse <dwmw2@infradead.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, freemangordon@abv.bg, aaro.koskinen@iki.fi, pavel@ucw.cz
+Content-Type: multipart/signed;
+  boundary="nextPart7971141.LebVL2NGrv";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-bk0-f50.google.com ([209.85.214.50]:44865 "EHLO
+	mail-bk0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752122Ab3KXTlv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 24 Nov 2013 14:41:51 -0500
+In-Reply-To: <20131124192608.GA11338@earth.universe>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Sebastian Reichel <sre@ring0.de>
+Cc: Anton Vorontsov <anton@enomsg.org>, David Woodhouse <dwmw2@infradead.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, freemangordon@abv.bg, aaro.koskinen@iki.fi, pavel@ucw.cz
 
-
---T4sUOijqQbZv57TR
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
+--nextPart7971141.LebVL2NGrv
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Sun, Nov 24, 2013 at 08:01:16PM +0100, Pali Roh=E1r wrote:
-> > I'm wondering if the watchdog thread should check some values,
-> > like e.g. battery temperature. It should stop charging the
-> > battery if some critical battery temperature threshold is
-> > reached.
+On Sunday 24 November 2013 20:26:09 Sebastian Reichel wrote:
+> On Sun, Nov 24, 2013 at 08:01:16PM +0100, Pali Roh=C3=A1r wrote:
+> > Currently on Maemo 5 this is handled in userspace (with open
+> > source dsme daemon).
 >=20
-> For checking battery temperature is needed third driver=20
-> (rx51_battery.ko).
+> I assume it currently also takes care of the bq2415x watchdog?
+> That means if the daemon dies charging will stop, because the
+> watchdog does no longer trigger.
+>=20
+> When your patch is applied you have introduced a safety issue.
+> When the daemon dies charging will continue and temperature is
+> no longer checked.
+>=20
+> -- Sebastian
 
-I know, but that doesn't mean one can skip the check.
+No dsme checking battery temperature and does not handle bq24510=20
+timer (previously this was in closed bme daemon which=20
+functionality is now in kernel drivers). But dsme daemon also=20
+kicking tlw4030 watchdog, so when daemon dies after 30s tlw4030=20
+reboot device.
 
-> And I think this should not be implemented in driver itself but in
-> charger manager framework...
+But right you can implement correctly this in userspace (e.g.=20
+when daemon not running/crashed, you can restart daemon or reboot=20
+system or disable charing, whatever...) and you do not need to=20
+have it in kernel...
 
-There is a reason, that the HW has a watchdog. I think the safety
-relevant stuff should be done in the watchdog thread. This ensures,
-that charging depends on reading the safety relevant sensors.
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
 
-Of course the watchdog stuff could be moved into the charger manager
-framework...
-
-> Currently on Maemo 5 this is handled in userspace (with open=20
-> source dsme daemon).
-
-I assume it currently also takes care of the bq2415x watchdog? That
-means if the daemon dies charging will stop, because the watchdog
-does no longer trigger.
-
-When your patch is applied you have introduced a safety issue.
-When the daemon dies charging will continue and temperature is
-no longer checked.
-
--- Sebastian
-
---T4sUOijqQbZv57TR
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+--nextPart7971141.LebVL2NGrv
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.15 (GNU/Linux)
+Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQIcBAEBCAAGBQJSklLQAAoJENju1/PIO/qaqZ8P/3Ud47p1oEEhOwFzgsAKTiFa
-6PTa2mnMb6siZ3L3zgb2zCrHbp92NVUHYmeQjVl1SiZ3B4DekVbCJwGWvkGAjiVb
-3cwP41vl/OXBA6IVJyrGDvpGKcndaTgILtXcXiSOe4mLMSQhoXbOcOOj66n25Hkd
-IIXWq9fHwgWnmHY8fvSMvjr8Tvy/XOZf1gMmTNimTVXGmBDL30SaUu+ya/Mymo32
-LES4AZl2AbvJKO2AJOZEWQuIKSt8HrggyHwyCGpOH9mfd5CEfPFf/WuNCOgVXVe+
-4VwhUiwXolaQf83JubZHgooxfLw9jXj3m1b0cHvqCGtm3COXP9223hLNvtScbWXV
-IVDC9cDDcSWR6zGXXaCTSsAAqokL58lhJy3TsQPqB3wWnDEaDVBzDJtnXuwaA3LI
-RHQP/SLNAm8VNY3MEujd2a4/ciJgxfU0yyz1vwk1YZ1oLf8J1Up16UHKLdMwgt76
-E6NqeMBNcBzef7z+fOWFOewJpMhucfgK/Z8PYqYAsviOjkC6b8E7uYk3tNlDFTqM
-ZcJpLfkDSj9VPcdacGXnnc3ibrqkdzeArLWdJVdsyYYK4INjt+1YPpPe+SpBvR+Z
-xmYNvTfX+0dkHQFTU5Nej24dVDcdKx4PXZxzICd6Ti/zAhwQZF6Y/QuXjV6MUt7J
-/WjnmNYlPaH5+B2uHF/I
-=gGhw
+iEYEABECAAYFAlKSVnsACgkQi/DJPQPkQ1JYowCgv68iwEMUSG+g77Wtv5i6NKxl
+XXgAoJ0gyNwf6QmbjfIo8KWBdVczerNY
+=Z68E
 -----END PGP SIGNATURE-----
 
---T4sUOijqQbZv57TR--
+--nextPart7971141.LebVL2NGrv--
