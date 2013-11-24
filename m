@@ -1,61 +1,62 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH 2/2] ARM: OMAP5: Add HYP mode entry support for secondary CPUs
-Date: Sat, 23 Nov 2013 19:07:46 -0500
-Message-ID: <1385251666-27532-3-git-send-email-santosh.shilimkar@ti.com>
+Subject: Re: [PATCH 1/2] ARM: dts: OMAP5: Add maintenance interrupt for
+ virtualisation
+Date: Sat, 23 Nov 2013 19:38:51 -0500
+Message-ID: <52914A9B.7040602@ti.com>
 References: <1385251666-27532-1-git-send-email-santosh.shilimkar@ti.com>
+ <1385251666-27532-2-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:46068 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756346Ab3KXAIT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 23 Nov 2013 19:08:19 -0500
-In-Reply-To: <1385251666-27532-1-git-send-email-santosh.shilimkar@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1385251666-27532-2-git-send-email-santosh.shilimkar@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Marc Zyngier <marc.zyngier@arm.com>, Christoffer Dall <christoffer.dall@linaro.org>, Tony Lindgren <tony@atomide.com>
+Cc: Marc Zyngier <marc.zyngier@arm.com>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org, =?UTF-8?B?QmVub8OudCBDb3U=?= =?UTF-8?B?c3Nvbg==?= <bcousson@baylibre.com>, Christoffer Dall <christoffer.dall@linaro.org>
+List-Id: linux-omap@vger.kernel.org
 
-Boot-CPU entry into the HYP mode is managed in boot-loader but
-the secondary CPUs directly jumps to kernel during boot. Same
-path is also used for CPU hotplug as well during suspend for
-secondary CPU.
-
-Hence patch the secondary CPU boot path for hyp mode etry.
-
-Cc: Marc Zyngier <marc.zyngier@arm.com>
-Cc: Christoffer Dall <christoffer.dall@linaro.org>
-Cc: Tony Lindgren <tony@atomide.com>
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
----
- arch/arm/mach-omap2/omap-headsmp.S |    7 +++++++
- 1 file changed, 7 insertions(+)
-
-diff --git a/arch/arm/mach-omap2/omap-headsmp.S b/arch/arm/mach-omap2/omap-headsmp.S
-index 75e9295..4844dd8 100644
---- a/arch/arm/mach-omap2/omap-headsmp.S
-+++ b/arch/arm/mach-omap2/omap-headsmp.S
-@@ -22,6 +22,7 @@
- 
- /* Physical address needed since MMU not enabled yet on secondary core */
- #define AUX_CORE_BOOT0_PA			0x48281800
-+#define API_HYP_ENTRY				0x102
- 
- /*
-  * OMAP5 specific entry point for secondary CPU to jump from ROM
-@@ -38,6 +39,12 @@ wait:	ldr	r2, =AUX_CORE_BOOT0_PA	@ read from AuxCoreBoot0
- 	and	r4, r4, #0x0f
- 	cmp	r0, r4
- 	bne	wait
-+#ifdef CONFIG_KVM_ARM_HOST
-+	ldr	r12, =API_HYP_ENTRY
-+	adr	r0, hyp_boot
-+	smc	#0
-+hyp_boot:
-+#endif
- 	b	secondary_startup
- END(omap5_secondary_startup)
- /*
--- 
-1.7.9.5
-
+T24gU2F0dXJkYXkgMjMgTm92ZW1iZXIgMjAxMyAwNzowNyBQTSwgU2FudG9zaCBTaGlsaW1rYXIg
+d3JvdGU6Cj4gQWRkIGEgbWFpbnRlbmFuY2UgSVJRIHVzaW5nIFBQSSA5IHRvIE9NQVA1IGRldmlj
+ZSB0cmVlCj4gbmVlZGVkIGZvciB2aXJ0dWFsaXNhdGlvbi4KPiAKPiBDYzogTWFyYyBaeW5naWVy
+IDxtYXJjLnp5bmdpZXJAYXJtLmNvbT4KPiBDYzogQ2hyaXN0b2ZmZXIgRGFsbCA8Y2hyaXN0b2Zm
+ZXIuZGFsbEBsaW5hcm8ub3JnPgo+IENjOiBCZW5vw650IENvdXNzb24gPGJjb3Vzc29uQGJheWxp
+YnJlLmNvbT4KPiBDYzogVG9ueSBMaW5kZ3JlbiA8dG9ueUBhdG9taWRlLmNvbT4KPiBTaWduZWQt
+b2ZmLWJ5OiBTYW50b3NoIFNoaWxpbWthciA8c2FudG9zaC5zaGlsaW1rYXJAdGkuY29tPgo+IC0t
+LQo+ICBhcmNoL2FybS9ib290L2R0cy9vbWFwNS5kdHNpIHwgICAgMSArCj4gIDEgZmlsZSBjaGFu
+Z2VkLCAxIGluc2VydGlvbigrKQo+IAo+IGRpZmYgLS1naXQgYS9hcmNoL2FybS9ib290L2R0cy9v
+bWFwNS5kdHNpIGIvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDUuZHRzaQo+IGluZGV4IGZjM2ZhZDUu
+LmM5ZjFhZTQgMTAwNjQ0Cj4gLS0tIGEvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDUuZHRzaQo+ICsr
+KyBiL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXA1LmR0c2kKPiBAQCAtNzQsNiArNzQsNyBAQAo+ICAJ
+CSAgICAgIDwweDQ4MjEyMDAwIDB4MTAwMD4sCj4gIAkJICAgICAgPDB4NDgyMTQwMDAgMHgyMDAw
+PiwKPiAgCQkgICAgICA8MHg0ODIxNjAwMCAweDIwMDA+Owo+ICsJCWludGVycnVwdHMgPSA8MSA5
+IDB4MzA0PjsKSSBzaG91bGQgaGF2ZSB1c2VkIHRoZSBHSUMgZmxhZ3MuIFVwZGF0ZWQgdmVyc2lv
+biBlbmQgb2YgdGhlCmVtYWlsLgoKUmVnYXJkcywKU2FudG9zaAoKCkZyb20gOTFjYmQ1ZjY1Y2Nk
+OWEwNzgwNjE0ZmE3YWI1NTA1OTIyYmRjZTU3NyBNb24gU2VwIDE3IDAwOjAwOjAwIDIwMDEKRnJv
+bTogU2FudG9zaCBTaGlsaW1rYXIgPHNhbnRvc2guc2hpbGlta2FyQHRpLmNvbT4KRGF0ZTogVGh1
+LCAxMiBTZXAgMjAxMyAxNTo1MzoxMyAtMDQwMApTdWJqZWN0OiBbUEFUQ0ggMS8yXSBBUk06IGR0
+czogT01BUDU6IEFkZCBtYWludGVuYW5jZSBpbnRlcnJ1cHQgZm9yCiB2aXJ0dWFsaXNhdGlvbgoK
+QWRkIGEgbWFpbnRlbmFuY2UgSVJRIHVzaW5nIFBQSSA5IHRvIE9NQVA1IGRldmljZSB0cmVlCm5l
+ZWRlZCBmb3IgdmlydHVhbGlzYXRpb24uCgpDYzogTWFyYyBaeW5naWVyIDxtYXJjLnp5bmdpZXJA
+YXJtLmNvbT4KQ2M6IENocmlzdG9mZmVyIERhbGwgPGNocmlzdG9mZmVyLmRhbGxAbGluYXJvLm9y
+Zz4KQ2M6IEJlbm/DrnQgQ291c3NvbiA8YmNvdXNzb25AYmF5bGlicmUuY29tPgpDYzogVG9ueSBM
+aW5kZ3JlbiA8dG9ueUBhdG9taWRlLmNvbT4KU2lnbmVkLW9mZi1ieTogU2FudG9zaCBTaGlsaW1r
+YXIgPHNhbnRvc2guc2hpbGlta2FyQHRpLmNvbT4KLS0tCiBhcmNoL2FybS9ib290L2R0cy9vbWFw
+NS5kdHNpIHwgICAgMSArCiAxIGZpbGUgY2hhbmdlZCwgMSBpbnNlcnRpb24oKykKCmRpZmYgLS1n
+aXQgYS9hcmNoL2FybS9ib290L2R0cy9vbWFwNS5kdHNpIGIvYXJjaC9hcm0vYm9vdC9kdHMvb21h
+cDUuZHRzaQppbmRleCBmYzNmYWQ1Li45MDdhYjdiIDEwMDY0NAotLS0gYS9hcmNoL2FybS9ib290
+L2R0cy9vbWFwNS5kdHNpCisrKyBiL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXA1LmR0c2kKQEAgLTc0
+LDYgKzc0LDcgQEAKIAkJICAgICAgPDB4NDgyMTIwMDAgMHgxMDAwPiwKIAkJICAgICAgPDB4NDgy
+MTQwMDAgMHgyMDAwPiwKIAkJICAgICAgPDB4NDgyMTYwMDAgMHgyMDAwPjsKKwkJaW50ZXJydXB0
+cyA9IDxHSUNfUFBJIDkgKEdJQ19DUFVfTUFTS19TSU1QTEUoMikgfCBJUlFfVFlQRV9MRVZFTF9I
+SUdIKT47CiAJfTsKIAogCS8qCi0tIAoxLjcuOS41CgoKX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtlcm5lbCBtYWlsaW5nIGxpc3QKbGlu
+dXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQu
+b3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAo=
