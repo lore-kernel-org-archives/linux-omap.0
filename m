@@ -1,86 +1,38 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/5] mfd: twl-core: Fix passing of platform data in the
- device tree case
-Date: Mon, 25 Nov 2013 15:22:45 -0800
-Message-ID: <20131125232245.GY10023@atomide.com>
-References: <1384562167-14725-1-git-send-email-tony@atomide.com>
- <1384562167-14725-2-git-send-email-tony@atomide.com>
- <20131118102907.GC13640@lee--X1>
- <20131118172510.GI16038@saruman.home>
- <20131118174638.GQ13640@lee--X1>
- <20131118181110.GM10317@atomide.com>
- <20131118190921.GT13640@lee--X1>
- <20131118192256.GU10317@atomide.com>
- <20131121104654.GA23067@lee--X1>
- <20131121110950.GC23067@lee--X1>
+Subject: Re: Status of 1GHz support on am37xx
+Date: Mon, 25 Nov 2013 15:35:46 -0800
+Message-ID: <20131125233545.GZ10023@atomide.com>
+References: <20131122230121.GA13440@animalcreek.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:13576 "EHLO
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:45724 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751655Ab3KYXWt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 25 Nov 2013 18:22:49 -0500
+	with ESMTP id S1752592Ab3KYXft (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 25 Nov 2013 18:35:49 -0500
 Content-Disposition: inline
-In-Reply-To: <20131121110950.GC23067@lee--X1>
+In-Reply-To: <20131122230121.GA13440@animalcreek.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>
-Cc: Felipe Balbi <balbi@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Samuel Ortiz <sameo@linux.intel.com>
+To: "Mark A. Greer" <mgreer@animalcreek.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Nishanth Menon <nm@ti.com>
 
-* Lee Jones <lee.jones@linaro.org> [131121 03:10]:
-> > Here Tony, you can take this one.
-> >=20
-> > I will simply apply my other fixes on top of it.
-> >=20
-> > The issue is, I will most likely have to rebase it on top of -rc1 p=
-rior
-> > to sending a request to Linus, so in that regard it's not exactly
-> > immutable.
-> >=20
->=20
-> Ignore the above. This is what you want:
+* Mark A. Greer <mgreer@animalcreek.com> [131122 15:02]:
+> Hello.
+> 
+> I was wondering what that the status of 1GHz support for the am37xx is.
+> 
+> It looks like smartreflex/avs and ABB drivers are there.  Do they need
+> more work (e.g., DT support)?  What DT nodes and related support need
+> to be added?
+> 
+> What pieces are being worked on and which ones aren't?
+> Is there an ETA for the pieces being worked on?
 
-Thanks, I'll use that commit in my omap-for-v3.14/board-removal branch.
+There are still various parts of twl4030 that are only working with
+platform data, so at least those should be fixed now that we're moving
+to DT only based booting for mach-omap2 for v3.14.
 
 Regards,
 
 Tony
-=20
-> The following changes since commit 5e01dc7b26d9f24f39abace5da98ccbd6a=
-5ceb52:
->=20
->   Linux 3.12 (2013-11-03 15:41:51 -0800)
->=20
-> are available in the git repository at:
->=20
->   git://git.linaro.org/people/ljones/mfd.git tags/ib-tony
->=20
-> for you to fetch changes up to f984370913d3ba5d13806cc8ac6fc26f8ebd16=
-94:
->=20
->   mfd: twl-core: Fix passing of platform data in the device tree case=
- (2013-11-21 10:42:36 +0000)
->=20
-> ----------------------------------------------------------------
-> warning: refname 'ib-tony' is ambiguous.
-> Immutable branch for Tony Lindgren
->=20
-> ----------------------------------------------------------------
-> Tony Lindgren (1):
->       mfd: twl-core: Fix passing of platform data in the device tree =
-case
->=20
->  drivers/mfd/twl-core.c | 15 ++++++++++++---
->  1 file changed, 12 insertions(+), 3 deletions(-)
->=20
-> --=20
-> Lee Jones
-> Linaro STMicroelectronics Landing Team Lead
-> Linaro.org =E2=94=82 Open source software for ARM SoCs
-> Follow Linaro: Facebook | Twitter | Blog
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
