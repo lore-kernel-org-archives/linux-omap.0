@@ -1,40 +1,80 @@
-From: Joel Fernandes <joelf@ti.com>
-Subject: [PATCH 7/7] OMAP: AM33xx: hwmod: Correct AES module SYSC type
-Date: Mon, 25 Nov 2013 15:44:36 -0600
-Message-ID: <1385415876-12387-8-git-send-email-joelf@ti.com>
-References: <1385415876-12387-1-git-send-email-joelf@ti.com>
+From: Sebastian Reichel <sre@ring0.de>
+Subject: Re: [PATCH v2 2/3] bq2415x_charger: Use power_supply notifier for
+ automode
+Date: Mon, 25 Nov 2013 22:50:01 +0100
+Message-ID: <20131125214959.GA20107@earth.universe>
+References: <1434978251.31721.1385404366021.JavaMail.apache@mail83.abv.bg>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:50884 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752520Ab3KYVpN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 25 Nov 2013 16:45:13 -0500
-In-Reply-To: <1385415876-12387-1-git-send-email-joelf@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="xHFwDpU9dbj6ez1V"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1434978251.31721.1385404366021.JavaMail.apache@mail83.abv.bg>
+Sender: linux-kernel-owner@vger.kernel.org
+To: =?utf-8?B?0JjQstCw0LnQu9C+INCU0LjQvNC40YLRgNC+0LI=?= <freemangordon@abv.bg>
+Cc: pavel@ucw.cz, pali.rohar@gmail.com, anton@enomsg.org, dwmw2@infradead.org, tony@atomide.com, linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, aaro.koskinen@iki.fi
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Joel Fernandes <joelf@ti.com>
 
-Use the newly added sysc type4 for AES module.
 
-Signed-off-by: Joel Fernandes <joelf@ti.com>
----
- arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c | 1 +
- 1 file changed, 1 insertion(+)
+--xHFwDpU9dbj6ez1V
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c
-index 0f17862..7f97863 100644
---- a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c
-@@ -209,6 +209,7 @@ static struct omap_hwmod_class_sysconfig am33xx_aes0_sysc = {
- 	.sysc_offs	= 0x84,
- 	.syss_offs	= 0x88,
- 	.sysc_flags	= SYSS_HAS_RESET_STATUS,
-+	.sysc_fields    = &omap_hwmod_sysc_type4,
- };
- 
- static struct omap_hwmod_class am33xx_aes0_hwmod_class = {
--- 
-1.8.1.2
+Hi,
 
+On Mon, Nov 25, 2013 at 08:32:46PM +0200, =D0=98=D0=B2=D0=B0=D0=B9=D0=BB=D0=
+=BE =D0=94=D0=B8=D0=BC=D0=B8=D1=82=D1=80=D0=BE=D0=B2 wrote:
+> So, AIUI there are 2 options:
+>=20
+> 1. charger driver polls the battery driver every n (60?) seconds.
+> 2. battery driver sends PSY_EVENT_PROP_CHANGED on every degree
+>    up or down.
+> =20
+> In both cases if the temperature is outside of the safe margins, the
+> charging should be stopped.
+
+ACK.
+
+> 2 seems more generic to me, but as rx51-battery is missing the
+> functionality to send events on temperature change, I guess 1 will
+> be easier to implement.
+
+The temperature must be polled anyway, if the ADC does not support
+interrupts.
+
+> And I think there should be some method (sysfs entry?, /dev/bqxxx
+> opened?) to tell the charger driver to stop polling the battery=20
+> driver once (and if) the userspace has started to take care of the=20
+> battery temperature - makes no sense to duplicate the checks IMO.
+
+I would just cache the temperature value in the battery driver for a
+couple of seconds. Then userspace can check for very high temperatures
+(-> system shutdown) and the charging driver can check for
+temperatures, which are critical for charging.
+
+-- Sebastian
+
+--xHFwDpU9dbj6ez1V
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.15 (GNU/Linux)
+
+iQIcBAEBCAAGBQJSk8YHAAoJENju1/PIO/qaDD8P/2dmcE7jRiQtO26FgEDGlsjO
+fb2/4amDr/3rat+6zgRWmHMVRu+LNoRSZKNiBgcSKNGBKE94PzIZ16IunDeCvGJP
+O6Heiwrc+wGn5se+dnllEH7fh09yZBioeth0ljI7TwZrF8cuMDejpZ215LVQ11Zf
+hmTOtq3tnQAH91otgL0WoWeEzAbJBXLoGVqkhjsoVXrlEySjVqbmCS5zwOKBiS90
+qdsqGEUvZFnQnlMfcixYqhuSaBpQ4pAomkjjdOvLUAfZiyM9le6DWH7FRBAFb4PC
+mU//G9KifDT54Oo2V7KibPhUbPKtaX5G6IaYF1y0lSP7RkN2yAIFiS/5OTU34F1S
+O6ht0NyAi1DhWicr6wq0hOi+Yj4U8uyemiPWIUv0unzsCuDmJpg11Ii/uWJSikJL
+aP1zqjJfFlCQ+vr/TbwTCl5fge45BEUy4jnbi/HJ1tAgKevoXeu2Hp7cLPE8ZQ6T
+GbYMpyrRL6sNcepup+KGpHyVB+LuSAxyiVg2UM+FMDGwmWRAra7AQPLVN73BPmPR
+hGv+NcF3D00enWLozZFYvSddhPGWp9KU1tiln52r2N0QZh7J/rYZyeJYELFe6CIr
+lL77i25BhzdzbOXCFlRCkwcvriOldAI6L8lfKX2KNJm25C8DXedTGE1YGgeCWeEv
+rAaRz4icSTidrHeRFNUM
+=EhwB
+-----END PGP SIGNATURE-----
+
+--xHFwDpU9dbj6ez1V--
