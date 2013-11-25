@@ -1,69 +1,75 @@
-From: Daniel Mack <zonque@gmail.com>
-Subject: Re: [PATCH 4/5] usb: musb: dsps: add support for suspend and resume
-Date: Mon, 25 Nov 2013 21:26:55 +0100
-Message-ID: <5293B28F.9010506@gmail.com>
-References: <1385408393-19707-1-git-send-email-zonque@gmail.com> <1385408393-19707-5-git-send-email-zonque@gmail.com> <20131125194804.GB18046@saruman.home> <5293AD40.6060607@gmail.com> <20131125200853.GG18046@saruman.home>
+From: Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 1/5] usb: musb: conditionally save and restore the context
+ on suspend
+Date: Mon, 25 Nov 2013 21:27:29 +0100
+Message-ID: <5293B2B1.4010108@gmail.com>
+References: <1385408393-19707-1-git-send-email-zonque@gmail.com> <1385408393-19707-2-git-send-email-zonque@gmail.com> <20131125194427.GZ18046@saruman.home> <5293AE53.9080606@gmail.com> <20131125201339.GH18046@saruman.home>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bk0-f52.google.com ([209.85.214.52]:53072 "EHLO
-	mail-bk0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756758Ab3KYU07 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 25 Nov 2013 15:26:59 -0500
-In-Reply-To: <20131125200853.GG18046@saruman.home>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20131125201339.GH18046-HgARHv6XitL9zxVx7UNMDg@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: balbi-l0cyMroinI0@public.gmane.org
+Cc: bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, neumann-SRDuVqtxQLSzQB+pC5nmwQ@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: bigeasy@linutronix.de, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, neumann@teufel.de
 
-On 11/25/2013 09:08 PM, Felipe Balbi wrote:
-> On Mon, Nov 25, 2013 at 09:04:16PM +0100, Daniel Mack wrote:
->>>> diff --git a/drivers/usb/musb/musb_virthub.c b/drivers/usb/musb/musb_virthub.c
->>>> index e977441..24e46c0 100644
->>>> --- a/drivers/usb/musb/musb_virthub.c
->>>> +++ b/drivers/usb/musb/musb_virthub.c
->>>> @@ -109,7 +109,7 @@ void musb_port_suspend(struct musb *musb, bool do_suspend)
->>>>  	}
->>>>  }
->>>>  
->>>> -static void musb_port_reset(struct musb *musb, bool do_reset)
->>>> +void musb_port_reset(struct musb *musb, bool do_reset)
->>>
->>> NAK, this should not be called from the glue layers at all. If anything
->>> call from musb_core's resume callback. That will only be called after
->>> parent's resume has been called anyway.
->>
->> Given that this driver is successfully used with suspend/resume on other
->> platforms without that reset, but it's clearly needed for dsps, I'm
->> fairly sure this should be a glue-layer specific thing. Hence the change.
->>
->> I think it'll break things on other platforms if we unconditionally
->> reset the port after resume, but I can't test it. Anyone?
+On 11/25/2013 09:13 PM, Felipe Balbi wrote:
+> Hi,
 > 
-> your original commit log only says "we need to issue port reset" but it
-> never explains why. It could very well be you just found a device which
-> needs to be reset when coming out of suspend and it misses a quirk flag ?
+> On Mon, Nov 25, 2013 at 09:08:51PM +0100, Daniel Mack wrote:
+>> On 11/25/2013 08:44 PM, Felipe Balbi wrote:
+>>> Hi,
+>>>
+>>> On Mon, Nov 25, 2013 at 08:39:49PM +0100, Daniel Mack wrote:
+>>>> It appears not all platforms featuring a musb core need to save the musb
+>>>> core registers at suspend time and restore them on resume.
+>>>>
+>>>> The dsps platform does, however. So add a bit in struct
+>>>> musb_hdrc_platform_data to let platforms specify their need of such
+>>>> action being taken.
+>>>>
+>>>> Signed-off-by: Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+>>>> ---
+>>>>  drivers/usb/musb/musb_core.c | 17 ++++++++++++++++-
+>>>>  include/linux/usb/musb.h     |  3 +++
+>>>>  2 files changed, 19 insertions(+), 1 deletion(-)
+>>>>
+>>>> diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+>>>> index 0a43329..a8ded57 100644
+>>>> --- a/drivers/usb/musb/musb_core.c
+>>>> +++ b/drivers/usb/musb/musb_core.c
+>>>> @@ -2202,6 +2202,7 @@ static int musb_suspend(struct device *dev)
+>>>>  {
+>>>>  	struct musb	*musb = dev_to_musb(dev);
+>>>>  	unsigned long	flags;
+>>>> +	struct musb_hdrc_platform_data *plat = dev_get_platdata(dev);
+>>>
+>>> we don't want to have platform_data on DT-based boot. It's best to just
+>>> save those registers unconditionally as it doesn't hurt.
+>>>
+>>
+>> My concern about doing it unconditionally from the core is simply that I
+>> fear regressions for other platforms. I can of course drop it if you're
+>> certain that that's correct.
+>>
+>> I can only test this on a dsps glue layer, and I have no documentation
+>> for the musb core. All I'm left with here is fishing in muddy waters :/
+> 
+> I really don't think it should cause any issues with any other platform.
+> 
+> We can make to leave this soaking in linux-next for a long time and hope
+> people test it.
+> 
 
-I think I can really rule that out, as I tested with multiple USB sticks
-and also tested the same sticks on other embedded platforms.
-
-> In any case, those functions should never be called by the glue, if
-> reset needs to be called, it must be called by musb-hdrc.ko, if you need
-> a flag, pass a flag but I need a really good explanation in your commit
-> log of why that's necessary.
-
-Well, if I'd only knew exactly why. All these patches are really the
-result of many days of trial and error, with multiple drivers (musb,
-cppi41, ...) involved. And as I said - I have no documentation of the
-musb core itself.
-
-So yes, I can do it the other way around and pass a flag, but what I
-can't provide is a good explanantion why the dsps glue behaves
-differently here than others. I'm curious myself, and all I know is that
-with this reset in place, things work as expected on AM33xx.
+Ok, sounds good. I'll do it and repost, along with the other changes.
 
 
-Thanks for your feedback,
+Many thanks,
 Daniel
 
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
