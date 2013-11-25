@@ -1,150 +1,305 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v3 04/10] usb: dwc3: use quirks to know if a particualr
- platform doesn't have PHY
-Date: Mon, 25 Nov 2013 15:21:01 -0600
-Message-ID: <20131125212101.GR18046@saruman.home>
-References: <1385373690-12170-1-git-send-email-kishon@ti.com>
- <1385373690-12170-5-git-send-email-kishon@ti.com>
-Reply-To: balbi@ti.com
+Subject: Re: [PATCH] Allow MUSB DSPS to use "force host" mode
+Date: Mon, 25 Nov 2013 15:24:15 -0600
+Message-ID: <20131125212415.GS18046@saruman.home>
+References: <528F7E8F.5050807@newflow.co.uk>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============5799172451921987016=="
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1385373690-12170-5-git-send-email-kishon@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, ijc+devicetree@hellion.org.uk, linux@arm.linux.org.uk, rob@landley.net, pawel.moll@arm.com, linux-doc@vger.kernel.org, tony@atomide.com, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, grant.likely@linaro.org, rob.herring@calxeda.com, bcousson@baylibre.com, galak@codeaurora.org, swarren@wwwdotorg.org, s.nawrocki@samsung.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="69FgzCUgmxT1EUzs"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <528F7E8F.5050807@newflow.co.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mark Jackson <mpfj-list@newflow.co.uk>
+Cc: linux-usb@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, bigeasy@linutronix.de, Greg KH <gregkh@linuxfoundation.org>, jkosina@suse.cz, anatol.pomozov@gmail.com, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
---===============5799172451921987016==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="hdoY8pikdvrkIRAT"
+--69FgzCUgmxT1EUzs
+Content-Type: multipart/mixed; boundary="rYaPn2Jr/kqjcqFq"
 Content-Disposition: inline
 
---hdoY8pikdvrkIRAT
+
+--rYaPn2Jr/kqjcqFq
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Nov 25, 2013 at 03:31:24PM +0530, Kishon Vijay Abraham I wrote:
-> There can be systems which does not have an external phy, so get
-> phy only if no quirks are added that indicates the PHY is not present.
-> Introduced two quirk flags to indicate the *absence* of usb2 phy and
-> usb3 phy. Also remove checking if return value is -ENXIO since it's now
-> changed to always enable usb_phy layer.
+Hi,
+
+On Fri, Nov 22, 2013 at 03:55:59PM +0000, Mark Jackson wrote:
+> The IDDIG input pin is normally used to determine the USB mode
+> (i.e. HOST or DEVICE).
 >=20
-> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> On some systems (e.g. AM335x) leaving this pin floating allows
+> the USB mode to be set via software.
+>=20
+> This patch adds support for this via the device tree.
+>=20
+> Signed-off-by: Mark Jackson <mpfj@newflow.co.uk>
 > ---
->  drivers/usb/dwc3/Kconfig         |    1 +
->  drivers/usb/dwc3/core.c          |   93 ++++++++++++++++++++------------=
-------
->  drivers/usb/dwc3/core.h          |   15 ++++++
->  drivers/usb/dwc3/platform_data.h |    5 ++
->  4 files changed, 69 insertions(+), 45 deletions(-)
+>  .../devicetree/bindings/usb/am33xx-usb.txt         |    2 ++
+>  drivers/usb/musb/musb_dsps.c                       |   14 ++++++++++++++
+>  include/linux/usb/musb.h                           |    1 +
+>  3 files changed, 17 insertions(+)
 >=20
-> diff --git a/drivers/usb/dwc3/Kconfig b/drivers/usb/dwc3/Kconfig
-> index 70fc430..8e385b4 100644
-> --- a/drivers/usb/dwc3/Kconfig
-> +++ b/drivers/usb/dwc3/Kconfig
-> @@ -1,6 +1,7 @@
->  config USB_DWC3
->  	tristate "DesignWare USB3 DRD Core Support"
->  	depends on (USB || USB_GADGET) && HAS_DMA
-> +	select USB_PHY
-
-no more selects, we've already had too many problems caused by bogus
-usage of select.
-
-> diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
-> index 986674f..f20f4a1 100644
-> --- a/drivers/usb/dwc3/core.c
-> +++ b/drivers/usb/dwc3/core.c
-> @@ -32,6 +32,7 @@
->  #include <linux/delay.h>
->  #include <linux/dma-mapping.h>
->  #include <linux/of.h>
-> +#include <linux/of_device.h>
+> diff --git a/Documentation/devicetree/bindings/usb/am33xx-usb.txt b/Docum=
+entation/devicetree/bindings/usb/am33xx-usb.txt
+> index 20c2ff2..560b7ff 100644
+> --- a/Documentation/devicetree/bindings/usb/am33xx-usb.txt
+> +++ b/Documentation/devicetree/bindings/usb/am33xx-usb.txt
+> @@ -47,6 +47,8 @@ USB
+>  - dmas: specifies the dma channels
+>  - dma-names: specifies the names of the channels. Use "rxN" for receive
+>    and "txN" for transmit endpoints. N specifies the endpoint number.
+> +- ti,force-host: specifies that the IDDIG input be ignored and the devic=
+e be
+> +  put into host mode regardless.
 > =20
->  #include <linux/usb/ch9.h>
->  #include <linux/usb/gadget.h>
-> @@ -351,13 +352,28 @@ static void dwc3_core_exit(struct dwc3 *dwc)
+>  The controller should have an "usb" alias numbered properly in the alias
+>  node.
+> diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
+> index 1901f6f..6439809 100644
+> --- a/drivers/usb/musb/musb_dsps.c
+> +++ b/drivers/usb/musb/musb_dsps.c
+> @@ -105,6 +105,7 @@ struct dsps_musb_wrapper {
+>  	unsigned	otg_disable:5;
 > =20
->  #define DWC3_ALIGN_MASK		(16 - 1)
+>  	/* bit positions for mode */
+> +	unsigned	iddig_mux:5;
+>  	unsigned	iddig:5;
+>  	/* miscellaneous stuff */
+>  	u8		poll_seconds;
+> @@ -387,6 +388,15 @@ static int dsps_musb_init(struct musb *musb)
 > =20
-> +#ifdef CONFIG_OF
-> +static const struct of_device_id of_dwc3_match[] =3D {
-> +	{
-> +		.compatible =3D "snps,dwc3"
-> +	},
-> +	{
-> +		.compatible =3D "synopsys,dwc3"
-> +	},
-> +	{ },
-> +};
-> +MODULE_DEVICE_TABLE(of, of_dwc3_match);
-> +#endif
+>  	musb->isr =3D dsps_interrupt;
+> =20
+> +	/* Force host mode, rather than relying on IDDIG input */
+> +	if (musb->config->force_host) {
+> +		val =3D dsps_readl(reg_base, wrp->mode);
+> +		/* clear IDDIG bit, set IDDIG_MUX bit */
+> +		val &=3D ~(1 << wrp->iddig);
+> +		val |=3D (1 << wrp->iddig_mux);
+> +		dsps_writel(musb->ctrl_base, wrp->mode, val);
+> +	}
 > +
+>  	/* reset the otgdisable bit, needed for host mode to work */
+>  	val =3D dsps_readl(reg_base, wrp->phy_utmi);
+>  	val &=3D ~(1 << wrp->otg_disable);
+> @@ -512,6 +522,9 @@ static int dsps_create_musb_pdev(struct dsps_glue *gl=
+ue,
+>  	pdata.power =3D get_int_prop(dn, "mentor,power") / 2;
+>  	config->multipoint =3D of_property_read_bool(dn, "mentor,multipoint");
+> =20
+> +	if (of_property_read_bool(dn, "ti,force-host"))
+> +		config->force_host =3D true;
+> +
+>  	ret =3D platform_device_add_data(musb, &pdata, sizeof(pdata));
+>  	if (ret) {
+>  		dev_err(dev, "failed to add platform_data\n");
+> @@ -607,6 +620,7 @@ static const struct dsps_musb_wrapper am33xx_driver_d=
+ata =3D {
+>  	.mode			=3D 0xe8,
+>  	.reset			=3D 0,
+>  	.otg_disable		=3D 21,
+> +	.iddig_mux		=3D 7,
 
-you can split this patch a little bit just to make it easier to review
-because there are a few changes which are really obvious:
-
-a) move of_device_id higher in source code so you can use it from probe.
-	while at that, aso use of_match_device() and return early if it
-	doesn't match anything.
-
-b) introduce struct dwc3_data.
-
-c) initialize of_id->data field.
-
-d) start using struct dwc3_data
-
-this will make to put all obvious changes (a-c) in separate patches so
-review can focus on (d).
+I recently sent a patch to make this work, I'm attaching it here in case
+it didn't reach mailing list.
 
 --=20
 balbi
 
---hdoY8pikdvrkIRAT
+--rYaPn2Jr/kqjcqFq
+Content-Type: text/x-diff; charset=us-ascii
+Content-Disposition: attachment; filename="0001-usb-musb-dsps-implement-set_mode.diff"
+Content-Transfer-Encoding: quoted-printable
+
+=46rom 5edc4b78bbfdc5fcff2cba46c7dbeebd2efddb76 Mon Sep 17 00:00:00 2001
+=46rom: Felipe Balbi <balbi@ti.com>
+Date: Tue, 29 Oct 2013 12:17:16 -0500
+Subject: [PATCH 1/2] usb: musb: dsps: implement ->set_mode()
+
+this will let us support broken designs such
+as AM335x EVM SK where ID pin isn't routed
+anywhere on a host port.
+
+With this we can toggle internal IDDIG signal
+and make sure MUSB goes into host mode as
+necessary.
+
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+---
+ drivers/usb/musb/musb_dsps.c | 51 ++++++++++++++++++++++++++++++++++++++++=
+++++
+ 1 file changed, 51 insertions(+)
+
+diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
+index 1901f6f..ce7ec01 100644
+--- a/drivers/usb/musb/musb_dsps.c
++++ b/drivers/usb/musb/musb_dsps.c
+@@ -106,6 +106,7 @@ struct dsps_musb_wrapper {
+=20
+ 	/* bit positions for mode */
+ 	unsigned	iddig:5;
++	unsigned	iddig_mux:5;
+ 	/* miscellaneous stuff */
+ 	u8		poll_seconds;
+ };
+@@ -406,6 +407,54 @@ static int dsps_musb_exit(struct musb *musb)
+ 	return 0;
+ }
+=20
++static int dsps_musb_set_mode(struct musb *musb, u8 mode)
++{
++	struct device *dev =3D musb->controller;
++	struct dsps_glue *glue =3D dev_get_drvdata(dev->parent);
++	const struct dsps_musb_wrapper *wrp =3D glue->wrp;
++	void __iomem *ctrl_base =3D musb->ctrl_base;
++	void __iomem *base =3D musb->mregs;
++	u32 reg;
++
++	reg =3D dsps_readl(base, wrp->mode);
++
++	switch (mode) {
++	case MUSB_HOST:
++		reg &=3D ~(1 << wrp->iddig);
++
++		/*
++		 * if we're setting mode to host-only or device-only, we're
++		 * going to ignore whatever the PHY sends us and just force
++		 * ID pin status by SW
++		 */
++		reg |=3D (1 << wrp->iddig_mux);
++
++		dsps_writel(base, wrp->mode, reg);
++		dsps_writel(ctrl_base, wrp->phy_utmi, 0x02);
++		break;
++	case MUSB_PERIPHERAL:
++		reg |=3D (1 << wrp->iddig);
++
++		/*
++		 * if we're setting mode to host-only or device-only, we're
++		 * going to ignore whatever the PHY sends us and just force
++		 * ID pin status by SW
++		 */
++		reg |=3D (1 << wrp->iddig_mux);
++
++		dsps_writel(base, wrp->mode, reg);
++		break;
++	case MUSB_OTG:
++		dsps_writel(base, wrp->phy_utmi, 0x02);
++		break;
++	default:
++		dev_err(glue->dev, "unsupported mode %d\n", mode);
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
+ static struct musb_platform_ops dsps_ops =3D {
+ 	.init		=3D dsps_musb_init,
+ 	.exit		=3D dsps_musb_exit,
+@@ -414,6 +463,7 @@ static struct musb_platform_ops dsps_ops =3D {
+ 	.disable	=3D dsps_musb_disable,
+=20
+ 	.try_idle	=3D dsps_musb_try_idle,
++	.set_mode	=3D dsps_musb_set_mode,
+ };
+=20
+ static u64 musb_dmamask =3D DMA_BIT_MASK(32);
+@@ -608,6 +658,7 @@ static const struct dsps_musb_wrapper am33xx_driver_dat=
+a =3D {
+ 	.reset			=3D 0,
+ 	.otg_disable		=3D 21,
+ 	.iddig			=3D 8,
++	.iddig_mux		=3D 7,
+ 	.usb_shift		=3D 0,
+ 	.usb_mask		=3D 0x1ff,
+ 	.usb_bitmap		=3D (0x1ff << 0),
+--=20
+1.8.4.GIT
+
+
+--rYaPn2Jr/kqjcqFq
+Content-Type: text/x-diff; charset=us-ascii
+Content-Disposition: attachment; filename="0002-usb-musb-core-call-musb_platform_set_mode-during-prob.diff"
+Content-Transfer-Encoding: quoted-printable
+
+=46rom c9dfe3d2b4c3f00951839eb17835daa0c5c19d71 Mon Sep 17 00:00:00 2001
+=46rom: Felipe Balbi <balbi@ti.com>
+Date: Tue, 29 Oct 2013 12:17:17 -0500
+Subject: [PATCH 2/2] usb: musb: core: call musb_platform_set_mode() during
+ probe
+
+This will tell glue layer which mode we want port
+to be in.
+
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+---
+ drivers/usb/musb/musb_core.c | 11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+index 0a43329..377ef9b 100644
+--- a/drivers/usb/musb/musb_core.c
++++ b/drivers/usb/musb/musb_core.c
+@@ -1941,17 +1941,26 @@ musb_init_controller(struct device *dev, int nIrq, =
+void __iomem *ctrl)
+ 	switch (musb->port_mode) {
+ 	case MUSB_PORT_MODE_HOST:
+ 		status =3D musb_host_setup(musb, plat->power);
++		if (status < 0)
++			goto fail3;
++		status =3D musb_platform_set_mode(musb, MUSB_HOST);
+ 		break;
+ 	case MUSB_PORT_MODE_GADGET:
+ 		status =3D musb_gadget_setup(musb);
++		if (status < 0)
++			goto fail3;
++		status =3D musb_platform_set_mode(musb, MUSB_PERIPHERAL);
+ 		break;
+ 	case MUSB_PORT_MODE_DUAL_ROLE:
+ 		status =3D musb_host_setup(musb, plat->power);
+ 		if (status < 0)
+ 			goto fail3;
+ 		status =3D musb_gadget_setup(musb);
+-		if (status)
++		if (status) {
+ 			musb_host_cleanup(musb);
++			goto fail3;
++		}
++		status =3D musb_platform_set_mode(musb, MUSB_OTG);
+ 		break;
+ 	default:
+ 		dev_err(dev, "unsupported port mode %d\n", musb->port_mode);
+--=20
+1.8.4.GIT
+
+
+--rYaPn2Jr/kqjcqFq--
+
+--69FgzCUgmxT1EUzs
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.15 (GNU/Linux)
 
-iQIcBAEBAgAGBQJSk789AAoJEIaOsuA1yqREUA4QAKJ5mdE8Hv9U3G/Uwaood3de
-RZRxtYtpd1hAJWNcRKRN8JhnZ4FsQnjsTOTT6AiWXlNuprgUtcText9xoK0YX9RD
-m/D7peeSwXWvC5OwEkXJfDgi6GhqFya2nyLAyx/WZAM7buHXiW3S1ffOr3RP5MkX
-loTIZzzjssHZN9/3lAdqAUKmwLpfu+b9P1sl6zF4i83cFWZWiin81dSryM9Eg2CP
-S30q5VsT8n6HCOEv8At5JV3SxgSOZgtc5pv7EE4loBzUhLgb/LdaXTHfzXBRPPux
-plJ+DVVzdKIrI4eO9StGfUytIQM/DDfGq76wIvwFSfnsopmJ5+ZFR50uxf4nS5Mn
-+vpxkVC00uDgBzMLegGdahqOcYNyRA5fSYMClLi1VRe0bfDg7JipAll+VkzV/iZI
-WUcxta96WctOH0SbtwC8vqSDkHGiERt+E3OWLpkBZiUeCrLrooXqspJHyGt0Ws+J
-Nrzvy55Oc3/t/khbzJLrEeUJqVv3Dh8UcyEkPM9clRfrZtQJ2D01AgZAMC9ry07x
-RTs+Aelj2IzgZKtXINJXey4bCglk71h8okVCPK7vxdJNhEQlB/YOCRWwZuq9/84i
-G6Jk9PDDrqQ/KnVzalOoXOG/Es+vycXyd2A9DqB+IZRgocPBKR/cOkru6sQB7ogf
-h9/lh5qS/k/TZwcyohE2
-=X7UI
+iQIcBAEBAgAGBQJSk7//AAoJEIaOsuA1yqREDxMQAJNqBnGx+yYzN5wx/ds2XvHE
+eCdBmqX0huRJ5F4CFNkehWj6tnc/noriGMADNYo7Ew9UEuBAxN4H8ivrw65l0qTQ
+bgAyFvczBHCyNvETWaM8GHGivyW6qVNBkHWgV+OC4ZPMtbovSxvDRqlUi72Ad50Y
+eDjJsJf3bMEbMRPH5zCmlJdFN10NUgr9I1GWAw6q4fgDDzTRAjuuQhcHmmNrdBXK
+K8lT8jAJNooWWiBy2PhU1JypHXcQdI+ae/49B7D1KC7V9jzzBoYebe98tV5iNsSi
+fhC1VHnaGjjyJfb8VKmKmPjLDELFQa5FAtHpL1a7b2rr8up8epiCGOdppuPzGIzL
+X6z56PVCLuwCgMDAS6v5PlPss3BtqWc3mielxi0jSGqgfhh29V8vccQSWB31x378
+H+utt6fr/QdNQ6RxIGWe7fswXvWeqWCQS5VJvE/ql0FkbocE+XfnbbBMx/QpK+zK
+vtZkBnBCbAybQT146YEF1SCyTjnDi0bOD7F/7gjGX2+bz6Q7DDCTfQ5lJ1wE/Ega
+KqmrDDelOy5QYw5xqgQmhC54oFWYZGL6w01/7ReEFYVbR5IuImI5jrrvB8vH24Nz
++oXtPPL+SeMR9ZcJq7nvJ0exYoCQqjRNzDRDg8DV1bG01LQI4hIOcs1VtVMkmPyO
+DBSwEN3/C9VpLaBhMasB
+=SDoM
 -----END PGP SIGNATURE-----
 
---hdoY8pikdvrkIRAT--
-
-
---===============5799172451921987016==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-arm-kernel mailing list
-linux-arm-kernel@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-
---===============5799172451921987016==--
+--69FgzCUgmxT1EUzs--
