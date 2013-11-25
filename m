@@ -1,59 +1,57 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v3 10/10] arm/dts: added dt properties to adapt to the new phy framwork
-Date: Mon, 25 Nov 2013 15:31:30 +0530
-Message-ID: <1385373690-12170-11-git-send-email-kishon@ti.com>
+Subject: [PATCH v3 01/10] usb: dwc3: invoke phy_resume after phy_init
+Date: Mon, 25 Nov 2013 15:31:21 +0530
+Message-ID: <1385373690-12170-2-git-send-email-kishon@ti.com>
 References: <1385373690-12170-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:48383 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753074Ab3KYKDd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 25 Nov 2013 05:03:33 -0500
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1385373690-12170-1-git-send-email-kishon@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: bcousson@baylibre.com, balbi@ti.com, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org
-Cc: rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ijc+devicetree@hellion.org.uk, rob@landley.net, tony@atomide.com, linux@arm.linux.org.uk, kishon@ti.com, gregkh@linuxfoundation.org, grant.likely@linaro.org, s.nawrocki@samsung.com, galak@codeaurora.org
+Cc: mark.rutland@arm.com, linux@arm.linux.org.uk, s.nawrocki@samsung.com, pawel.moll@arm.com, ijc+devicetree@hellion.org.uk, tony@atomide.com, gregkh@linuxfoundation.org, swarren@wwwdotorg.org, rob.herring@calxeda.com, kishon@ti.com, rob@landley.net, galak@codeaurora.org, grant.likely@linaro.org
+List-Id: linux-omap@vger.kernel.org
 
-Added device tree bindings for dwc3, usb2 and usb3 PHYs. The documentation
-of these can be found at Documentation/devicetree/bindings/phy/phy-bindings.txt
-and Documentation/devicetree/bindings/phy/ti-phy.txt.
+usb_phy_set_suspend(phy, 0) is called before usb_phy_init. Fix it.
 
+Reported-by: Roger Quadros <rogerq@ti.com>
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- arch/arm/boot/dts/omap5.dtsi |    4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/usb/dwc3/core.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-index 29a6354..c135677 100644
---- a/arch/arm/boot/dts/omap5.dtsi
-+++ b/arch/arm/boot/dts/omap5.dtsi
-@@ -678,6 +678,8 @@
- 				reg = <0x4a030000 0x10000>;
- 				interrupts = <GIC_SPI 92 IRQ_TYPE_LEVEL_HIGH>;
- 				usb-phy = <&usb2_phy>, <&usb3_phy>;
-+				phys = <&usb2_phy>, <&usb3_phy>;
-+				phy-names = "usb2-phy", "usb3-phy";
- 				dr_mode = "peripheral";
- 				tx-fifo-resize;
- 			};
-@@ -694,6 +696,7 @@
- 				compatible = "ti,omap-usb2";
- 				reg = <0x4a084000 0x7c>;
- 				ctrl-module = <&omap_control_usb2phy>;
-+				#phy-cells = <0>;
- 			};
+diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
+index 74f9cf0..4dd1f7e 100644
+--- a/drivers/usb/dwc3/core.c
++++ b/drivers/usb/dwc3/core.c
+@@ -455,9 +455,6 @@ static int dwc3_probe(struct platform_device *pdev)
+ 	if (IS_ERR(regs))
+ 		return PTR_ERR(regs);
  
- 			usb3_phy: usb3phy@4a084400 {
-@@ -703,6 +706,7 @@
- 				      <0x4a084c00 0x40>;
- 				reg-names = "phy_rx", "phy_tx", "pll_ctrl";
- 				ctrl-module = <&omap_control_usb3phy>;
-+				#phy-cells = <0>;
- 			};
- 		};
+-	usb_phy_set_suspend(dwc->usb2_phy, 0);
+-	usb_phy_set_suspend(dwc->usb3_phy, 0);
+-
+ 	spin_lock_init(&dwc->lock);
+ 	platform_set_drvdata(pdev, dwc);
  
+@@ -488,6 +485,9 @@ static int dwc3_probe(struct platform_device *pdev)
+ 		goto err0;
+ 	}
+ 
++	usb_phy_set_suspend(dwc->usb2_phy, 0);
++	usb_phy_set_suspend(dwc->usb3_phy, 0);
++
+ 	ret = dwc3_event_buffers_setup(dwc);
+ 	if (ret) {
+ 		dev_err(dwc->dev, "failed to setup event buffers\n");
 -- 
 1.7.10.4
-
