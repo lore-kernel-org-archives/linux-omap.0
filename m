@@ -1,60 +1,57 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: OMAP build failure after this merge window - caused by usb or phy
- Kconfig krap
-Date: Mon, 25 Nov 2013 14:09:27 +0000
-Message-ID: <20131125140927.GP16735@n2100.arm.linux.org.uk>
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
+Subject: Re: [PATCH v2 2/3] bq2415x_charger: Use power_supply notifier for automode
+Date: Mon, 25 Nov 2013 15:10:00 +0100
+Message-ID: <201311251510.00987@pali>
+References: <1378630239-10006-1-git-send-email-pali.rohar@gmail.com> <201311242041.47075@pali> <20131125140127.GA24125@amd.pavel.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: multipart/signed;
+  boundary="nextPart3057625.DtvM65lKLt";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Kishon Vijay Abraham I <kishon@ti.com>, Felipe Balbi <balbi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20131125140127.GA24125@amd.pavel.ucw.cz>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Sebastian Reichel <sre@ring0.de>, Anton Vorontsov <anton@enomsg.org>, David Woodhouse <dwmw2@infradead.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, freemangordon@abv.bg, aaro.koskinen@iki.fi
 List-Id: linux-omap@vger.kernel.org
 
-There's no other way to say it, and I've no idea who is responsible for
-this:
+--nextPart3057625.DtvM65lKLt
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-  LD      init/built-in.o
-drivers/built-in.o: In function `omap_usb2_remove':
-powercap_sys.c:(.text+0x1c60): undefined reference to `usb_remove_phy'
-drivers/built-in.o: In function `omap_usb_power_off':
-powercap_sys.c:(.text+0x1c84): undefined reference to `omap_control_usb_phy_power'
-drivers/built-in.o: In function `omap_usb_power_on':
-powercap_sys.c:(.text+0x1ca8): undefined reference to `omap_control_usb_phy_power'
-drivers/built-in.o: In function `omap_usb2_probe':
-powercap_sys.c:(.text+0x1dac): undefined reference to `omap_control_usb_phy_power'
-powercap_sys.c:(.text+0x1e5c): undefined reference to `usb_add_phy_dev'
-drivers/built-in.o: In function `omap_usb2_suspend':
-powercap_sys.c:(.text+0x1ec8): undefined reference to `omap_control_usb_phy_power'
-powercap_sys.c:(.text+0x1f20): undefined reference to `omap_control_usb_phy_power'
-drivers/built-in.o: In function `omap_usb2_set_comparator':
-powercap_sys.c:(.text+0x1f54): undefined reference to `usb_get_phy'
-arch/arm/mach-omap2/built-in.o: In function `usbhs_init_phys':
-dss-common.c:(.text+0xf824): undefined reference to `usb_bind_phy'
-make[1]: *** [vmlinux] Error 1
-make: *** [sub-make] Error 2
+On Monday 25 November 2013 15:01:27 Pavel Machek wrote:
+> Where can I get dsme sources?
+> 									Pavel
 
-These warnings probably have something to do with it:
+dsme daemon: https://gitorious.org/community-ssu/dsme
+dsme thermal plugin: https://gitorious.org/rx51-bme-replacement/dsme-therma=
+lobject-surface
 
-scripts/kconfig/conf --silentoldconfig Kconfig
-warning: (OMAP_USB2 && TWL4030_USB) selects USB_PHY which has unmet direct dependencies (USB_SUPPORT)
-warning: (OMAP_USB2) selects OMAP_CONTROL_USB which has unmet direct dependencies (USB_SUPPORT && (ARCH_OMAP2PLUS || COMPILE_TEST))
-warning: (OMAP_USB2 && TWL4030_USB) selects USB_PHY which has unmet direct dependencies (USB_SUPPORT)
-warning: (OMAP_USB2) selects OMAP_CONTROL_USB which has unmet direct dependencies (USB_SUPPORT && (ARCH_OMAP2PLUS || COMPILE_TEST))
+dsme thermal plugin is responsible for checking temperature of=20
+battery and send it to dsme damon. dsme daemon itself checking=20
+temperature limits and do something (e.g reboot device)
 
-which just illustrates why "select" in Kconfig is soo fscking bad that
-it shouldn't be used.
+in dsme thermal plugin git history you can find both old version=20
+(which asking temperature from proprietary nokia bme daemon) and=20
+new version which reading temperature from power supply kernel=20
+modules.
 
-It certainly should not be used without running through a series of
-randconfig builds to make absolutely sure you have the dependencies
-correct... or an allnoconfig with just the options required to select
-the new option enabled.
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
+
+--nextPart3057625.DtvM65lKLt
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iEYEABECAAYFAlKTWjgACgkQi/DJPQPkQ1LeIACglshbvwK9NC81ueJGSPn5ysm4
+AgcAnAjmCa9lwMQXgOt9qzPsfU+v1OFU
+=o1Y+
+-----END PGP SIGNATURE-----
+
+--nextPart3057625.DtvM65lKLt--
