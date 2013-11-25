@@ -1,57 +1,71 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: Re: [PATCH v2 2/3] bq2415x_charger: Use power_supply notifier for automode
-Date: Mon, 25 Nov 2013 15:10:00 +0100
-Message-ID: <201311251510.00987@pali>
-References: <1378630239-10006-1-git-send-email-pali.rohar@gmail.com> <201311242041.47075@pali> <20131125140127.GA24125@amd.pavel.ucw.cz>
+From: Christoffer Dall <christoffer.dall@linaro.org>
+Subject: Re: [PATCH 2/2] ARM: OMAP5: Add HYP mode entry support for secondary CPUs
+Date: Mon, 25 Nov 2013 07:09:17 -0800
+Message-ID: <CAMJs5B8XX-93YcRyTiQ1JRcKUB5oer8cV7FLtMPP6SeqeB3RwQ@mail.gmail.com>
+References: <1385251666-27532-1-git-send-email-santosh.shilimkar@ti.com>
+	<1385251666-27532-3-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart3057625.DtvM65lKLt";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20131125140127.GA24125@amd.pavel.ucw.cz>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Sebastian Reichel <sre@ring0.de>, Anton Vorontsov <anton@enomsg.org>, David Woodhouse <dwmw2@infradead.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, freemangordon@abv.bg, aaro.koskinen@iki.fi
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wi0-f174.google.com ([209.85.212.174]:63761 "EHLO
+	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752093Ab3KYPJT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 25 Nov 2013 10:09:19 -0500
+Received: by mail-wi0-f174.google.com with SMTP id ez12so3707004wid.1
+        for <linux-omap@vger.kernel.org>; Mon, 25 Nov 2013 07:09:18 -0800 (PST)
+In-Reply-To: <1385251666-27532-3-git-send-email-santosh.shilimkar@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Marc Zyngier <marc.zyngier@arm.com>, Tony Lindgren <tony@atomide.com>
 
---nextPart3057625.DtvM65lKLt
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+On 23 November 2013 16:07, Santosh Shilimkar <santosh.shilimkar@ti.com> wrote:
+> Boot-CPU entry into the HYP mode is managed in boot-loader but
+> the secondary CPUs directly jumps to kernel during boot. Same
+> path is also used for CPU hotplug as well during suspend for
+> secondary CPU.
+>
+> Hence patch the secondary CPU boot path for hyp mode etry.
+>
+> Cc: Marc Zyngier <marc.zyngier@arm.com>
+> Cc: Christoffer Dall <christoffer.dall@linaro.org>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> ---
+>  arch/arm/mach-omap2/omap-headsmp.S |    7 +++++++
+>  1 file changed, 7 insertions(+)
+>
+> diff --git a/arch/arm/mach-omap2/omap-headsmp.S b/arch/arm/mach-omap2/omap-headsmp.S
+> index 75e9295..4844dd8 100644
+> --- a/arch/arm/mach-omap2/omap-headsmp.S
+> +++ b/arch/arm/mach-omap2/omap-headsmp.S
+> @@ -22,6 +22,7 @@
+>
+>  /* Physical address needed since MMU not enabled yet on secondary core */
+>  #define AUX_CORE_BOOT0_PA                      0x48281800
+> +#define API_HYP_ENTRY                          0x102
+>
+>  /*
+>   * OMAP5 specific entry point for secondary CPU to jump from ROM
+> @@ -38,6 +39,12 @@ wait:        ldr     r2, =AUX_CORE_BOOT0_PA  @ read from AuxCoreBoot0
+>         and     r4, r4, #0x0f
+>         cmp     r0, r4
+>         bne     wait
+> +#ifdef CONFIG_KVM_ARM_HOST
+> +       ldr     r12, =API_HYP_ENTRY
+> +       adr     r0, hyp_boot
+> +       smc     #0
+> +hyp_boot:
+> +#endif
+>         b       secondary_startup
+>  END(omap5_secondary_startup)
+>  /*
 
-On Monday 25 November 2013 15:01:27 Pavel Machek wrote:
-> Where can I get dsme sources?
-> 									Pavel
+hmm, this means that currently running this in a guest will fail to
+bring-up SMP, right?
 
-dsme daemon: https://gitorious.org/community-ssu/dsme
-dsme thermal plugin: https://gitorious.org/rx51-bme-replacement/dsme-therma=
-lobject-surface
+Couldn't you create a little wrapper-pen in U-Boot instead, which
+replicates the omap boot protocol and takes care of the hyp-mode
+startup there instead, keeping this completely out of the kernel?
 
-dsme thermal plugin is responsible for checking temperature of=20
-battery and send it to dsme damon. dsme daemon itself checking=20
-temperature limits and do something (e.g reboot device)
-
-in dsme thermal plugin git history you can find both old version=20
-(which asking temperature from proprietary nokia bme daemon) and=20
-new version which reading temperature from power supply kernel=20
-modules.
-
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
-
---nextPart3057625.DtvM65lKLt
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEABECAAYFAlKTWjgACgkQi/DJPQPkQ1LeIACglshbvwK9NC81ueJGSPn5ysm4
-AgcAnAjmCa9lwMQXgOt9qzPsfU+v1OFU
-=o1Y+
------END PGP SIGNATURE-----
-
---nextPart3057625.DtvM65lKLt--
+-Christoffer
