@@ -1,116 +1,72 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 4/5] usb: musb: dsps: add support for suspend and resume
-Date: Mon, 25 Nov 2013 14:46:41 -0600
-Message-ID: <20131125204641.GM18046@saruman.home>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 2/5] usb: musb: call musb_port_suspend from
+ musb_bus_suspend
+Date: Mon, 25 Nov 2013 14:49:31 -0600
+Message-ID: <20131125204931.GN18046@saruman.home>
 References: <1385408393-19707-1-git-send-email-zonque@gmail.com>
- <1385408393-19707-5-git-send-email-zonque@gmail.com>
- <20131125194804.GB18046@saruman.home>
- <5293AD40.6060607@gmail.com>
- <20131125200853.GG18046@saruman.home>
- <5293B28F.9010506@gmail.com>
-Reply-To: <balbi@ti.com>
+ <1385408393-19707-3-git-send-email-zonque@gmail.com>
+ <20131125194629.GA18046@saruman.home>
+ <5293ABDE.4080404@gmail.com>
+ <20131125200121.GE18046@saruman.home>
+ <5293B754.9050406@gmail.com>
+Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="OoKXXPSaVc/Wpb6N"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:48418 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750869Ab3KYUri (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 25 Nov 2013 15:47:38 -0500
+	protocol="application/pgp-signature"; boundary="ZXg5XZblsOcYBG3r"
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <5293B28F.9010506@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <5293B754.9050406-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: balbi-l0cyMroinI0@public.gmane.org, bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, neumann-SRDuVqtxQLSzQB+pC5nmwQ@public.gmane.org, Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Daniel Mack <zonque@gmail.com>
-Cc: balbi@ti.com, bigeasy@linutronix.de, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, neumann@teufel.de
 
---OoKXXPSaVc/Wpb6N
+--ZXg5XZblsOcYBG3r
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi,
-
-On Mon, Nov 25, 2013 at 09:26:55PM +0100, Daniel Mack wrote:
-> On 11/25/2013 09:08 PM, Felipe Balbi wrote:
-> > On Mon, Nov 25, 2013 at 09:04:16PM +0100, Daniel Mack wrote:
-> >>>> diff --git a/drivers/usb/musb/musb_virthub.c b/drivers/usb/musb/musb=
-_virthub.c
-> >>>> index e977441..24e46c0 100644
-> >>>> --- a/drivers/usb/musb/musb_virthub.c
-> >>>> +++ b/drivers/usb/musb/musb_virthub.c
-> >>>> @@ -109,7 +109,7 @@ void musb_port_suspend(struct musb *musb, bool d=
-o_suspend)
-> >>>>  	}
-> >>>>  }
-> >>>> =20
-> >>>> -static void musb_port_reset(struct musb *musb, bool do_reset)
-> >>>> +void musb_port_reset(struct musb *musb, bool do_reset)
-> >>>
-> >>> NAK, this should not be called from the glue layers at all. If anythi=
-ng
-> >>> call from musb_core's resume callback. That will only be called after
-> >>> parent's resume has been called anyway.
-> >>
-> >> Given that this driver is successfully used with suspend/resume on oth=
-er
-> >> platforms without that reset, but it's clearly needed for dsps, I'm
-> >> fairly sure this should be a glue-layer specific thing. Hence the chan=
-ge.
-> >>
-> >> I think it'll break things on other platforms if we unconditionally
-> >> reset the port after resume, but I can't test it. Anyone?
+On Mon, Nov 25, 2013 at 09:47:16PM +0100, Daniel Mack wrote:
+> On 11/25/2013 09:01 PM, Felipe Balbi wrote:
+> > On Mon, Nov 25, 2013 at 08:58:22PM +0100, Daniel Mack wrote:
+>=20
+> >> In 3.13, something about the parition table reading seems to be broken
+> >> currently, I'll have a closer look.
 > >=20
-> > your original commit log only says "we need to issue port reset" but it
-> > never explains why. It could very well be you just found a device which
-> > needs to be reset when coming out of suspend and it misses a quirk flag=
- ?
+> > cool
 >=20
-> I think I can really rule that out, as I tested with multiple USB sticks
-> and also tested the same sticks on other embedded platforms.
->=20
-> > In any case, those functions should never be called by the glue, if
-> > reset needs to be called, it must be called by musb-hdrc.ko, if you need
-> > a flag, pass a flag but I need a really good explanation in your commit
-> > log of why that's necessary.
->=20
-> Well, if I'd only knew exactly why. All these patches are really the
-> result of many days of trial and error, with multiple drivers (musb,
-> cppi41, ...) involved. And as I said - I have no documentation of the
-> musb core itself.
->=20
-> So yes, I can do it the other way around and pass a flag, but what I
-> can't provide is a good explanantion why the dsps glue behaves
-> differently here than others. I'm curious myself, and all I know is that
-> with this reset in place, things work as expected on AM33xx.
+> Ah, and forget about this one. I didn't look close enough. There's no
+> such issue in 3.13. Sorry for the noise.
 
-ok, then let's pass a flag. Meanwhile I'll try to figure out internally
-why we need that reset. As Alan said, usb-persist should already for a
-bus-reset when resuming, right ?
+no problem :-)
 
 --=20
 balbi
 
---OoKXXPSaVc/Wpb6N
+--ZXg5XZblsOcYBG3r
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.15 (GNU/Linux)
 
-iQIcBAEBAgAGBQJSk7cxAAoJEIaOsuA1yqRErFAP/AswGDoEQoUKIfX2jfMC6EVA
-Ay6AUHug1O//U9O23dtlwi9H9dzNM7fuiAqK0AK6LrCnkGsGH9StXgVkwvsf59/w
-ljFi4n12nQcOyIvWDW+tZ7GlYN6bEhn8IcDUHKRoLgeTYboY3RPZVp+qz17IET6S
-t17KQrJYUUMr4ZLTPcJp7sn53qhanL411SAQxvcQaQoSKylo67KsIVSGxGF001Qv
-E26A/1sX60CLHCVGeCNBtEg27GRWEAkIaZJcgPNQmCidstV6jw9G0LdsR+b7tQnM
-2YEM53mb7jiu0r2ItIAW9z5w0Sm/vzN4Rdi7CXbziA7T+F9ssS7SQRTY1VzLOJc9
-YT7+h4hn42jGExWXq2NdlzTkxcKKtqnv7vv7EAQkz2V99G312Qr2bnUEuRfNTCVt
-KD2q2CqUwqd5KSuqofbeSqfTBcJ8ni0SBkO7z1SaWFfvpMnTOicQ4Cy6yNdpEc36
-dPWIP5yQoATkKYYs5aejxJq1/PUF+2+hxWiRZ0UYL5pMwZrSp/ATQHdh2NCq8LUz
-M+lGjM2P24xh4gd/8PFpxJoUJVxoYyH3mqXiqO3tyVVJrBhiJz9YAxvwxxFCeaTA
-phwPdumcdwH9/VbrNNOnXmgyT7BeVlDdYkKGCYNU4WTrT9/VVHBQ9Ie4U9BSjlq2
-lhob5xgLALISifDksRqw
-=5lSQ
+iQIcBAEBAgAGBQJSk7fbAAoJEIaOsuA1yqREHJ0QAJ3GNi4+EzsD3INOt0sVc81Z
+2XzddtLi9LjQrA8fuGQKVqqUx74wjGA6ltm1APAtwdQGUx5y3w9KJv6YCMCdNJvV
+wpSnqC/RarYdQfXch4WbMVLcnr/1/Qq3Jp9qKTvUV+irw8B/YtvuR6v1MrVJR3Bj
+FeESZInslK25jhNjQ0d+NvfiQToG2U85ajKrK9uNwZ8v1zAs11w4LcqefdDXX4jv
+3ObkzVrwu5TBOkIhLyaCKE+Y4dn1E3bsgxi8y6+ISTvgDwSkZEJarF5l1L5xksGP
+wg327aaLxRkgMFAhC91jQECj4yCju+9Q0eUHqMhrl64YOonByit4TjpTh1uBR/li
+RvG1aSKhlpOPsELzVnCHq2uJP0wiVBQ/PTq9j4MB4RnKYhFGit2qsu5pFk6Hg8Vj
+HRHDQKgSIQzCOBcWVKDpNDdC67B5Mh/DksJUs2D2P/EXkP+E6QKSDfL1RIO2lVWI
+++CKcOnaLDuc0dacpaTiPCpR0R+rwwrDlIhe6L/JMTi8y+4L6HTD4uLTVxrfLEmM
+9fUo100Hfgnf4Feuyi2hXLizJ/XLZctnyKKINlC8K0YsGoK/HDbdmPWyk7elnnKc
+8PpbC2WLHZAt07mVeb5XARbjjhIaa3t8QLvvAw+9hyGn21REUcWR2zb0QDwLv+yF
+Dg2YIQPEGOg71U18lJwc
+=+4cV
 -----END PGP SIGNATURE-----
 
---OoKXXPSaVc/Wpb6N--
+--ZXg5XZblsOcYBG3r--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
