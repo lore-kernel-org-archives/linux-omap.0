@@ -1,75 +1,63 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH] ARM: dts: omap3-beagle: Fix USB host on beagle boards (for
- 3.13)
-Date: Mon, 25 Nov 2013 15:55:45 +0200
-Message-ID: <1385387745-7162-1-git-send-email-rogerq@ti.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH v2 2/3] bq2415x_charger: Use power_supply notifier for
+ automode
+Date: Mon, 25 Nov 2013 15:01:27 +0100
+Message-ID: <20131125140127.GA24125@amd.pavel.ucw.cz>
+References: <1378630239-10006-1-git-send-email-pali.rohar@gmail.com>
+ <201311242001.16299@pali>
+ <20131124192608.GA11338@earth.universe>
+ <201311242041.47075@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: tony@atomide.com, bcousson@baylibre.com
-Cc: nm@ti.com, devicetree@vger.kernel.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <201311242041.47075@pali>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
+Cc: Sebastian Reichel <sre@ring0.de>, Anton Vorontsov <anton@enomsg.org>, David Woodhouse <dwmw2@infradead.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, freemangordon@abv.bg, aaro.koskinen@iki.fi
 List-Id: linux-omap@vger.kernel.org
 
-Beagle (rev. C4) and Beagle-XM (all revs) need VAUX2 1.8V supply
-for the USB PHY.
+Hi!
 
-As the generic PHY driver can't handle more than one supply
-at the moment, we configure this supply to be always on.
-This will cause a very small power impact if the USB host subsystem
-is not in use, about 76.86 micro-W + LDO power.
+On Sun 2013-11-24 20:41:46, Pali Roh=E1r wrote:
+> On Sunday 24 November 2013 20:26:09 Sebastian Reichel wrote:
+> > On Sun, Nov 24, 2013 at 08:01:16PM +0100, Pali Roh=E1r wrote:
+> > > Currently on Maemo 5 this is handled in userspace (with open
+> > > source dsme daemon).
+> >=20
+> > I assume it currently also takes care of the bq2415x watchdog?
+> > That means if the daemon dies charging will stop, because the
+> > watchdog does no longer trigger.
+> >=20
+> > When your patch is applied you have introduced a safety issue.
+> > When the daemon dies charging will continue and temperature is
+> > no longer checked.
+> >=20
+> > -- Sebastian
+>=20
+> No dsme checking battery temperature and does not handle bq24510=20
+> timer (previously this was in closed bme daemon which=20
+> functionality is now in kernel drivers). But dsme daemon also=20
+> kicking tlw4030 watchdog, so when daemon dies after 30s tlw4030=20
+> reboot device.
+>=20
+> But right you can implement correctly this in userspace (e.g.=20
+> when daemon not running/crashed, you can restart daemon or reboot=20
+> system or disable charing, whatever...) and you do not need to=20
+> have it in kernel...
 
-Older Beagle boards (prior to C4) don't have VAUX2 connected anywhere,
-so there won't be any functional impact on those boards other than
-some additional LDO power consumption.
+Charging handling really should be in kernel.
 
-Reported-by: Nishanth Menon <nm@ti.com>
-Signed-off-by: Roger Quadros <rogerq@ti.com>
----
- arch/arm/boot/dts/omap3-beagle-xm.dts | 8 ++++++++
- arch/arm/boot/dts/omap3-beagle.dts    | 8 ++++++++
- 2 files changed, 16 insertions(+)
+1st) you want charging to work with init=3D/bin/bash, and you want it
+with regular (not n900-specific) debian/arm.
 
-diff --git a/arch/arm/boot/dts/omap3-beagle-xm.dts b/arch/arm/boot/dts/omap3-beagle-xm.dts
-index 31a632f..b39918e 100644
---- a/arch/arm/boot/dts/omap3-beagle-xm.dts
-+++ b/arch/arm/boot/dts/omap3-beagle-xm.dts
-@@ -215,3 +215,11 @@
- &usbhsehci {
- 	phys = <0 &hsusb2_phy>;
- };
-+
-+&vaux2 {
-+	regulator-name = "usb_1v8";
-+	regulator-min-microvolt = <1800000>;
-+	regulator-max-microvolt = <1800000>;
-+	regulator-always-on;
-+};
-+
-diff --git a/arch/arm/boot/dts/omap3-beagle.dts b/arch/arm/boot/dts/omap3-beagle.dts
-index fa532aa..9764556 100644
---- a/arch/arm/boot/dts/omap3-beagle.dts
-+++ b/arch/arm/boot/dts/omap3-beagle.dts
-@@ -178,3 +178,11 @@
- 	mode = <3>;
- 	power = <50>;
- };
-+
-+&vaux2 {
-+	regulator-name = "vdd_ehci";
-+	regulator-min-microvolt = <1800000>;
-+	regulator-max-microvolt = <1800000>;
-+	regulator-always-on;
-+};
-+
--- 
-1.8.3.2
+2st) normally hardware, firmware or kernel does the charging. (PCs,
+Sharp Zaurus). Yes, it pulls us farther away from Maemo...
+
+Where can I get dsme sources?
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses=
+/blog.html
