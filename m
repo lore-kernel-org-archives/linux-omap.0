@@ -1,213 +1,104 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] ARM: dts: Fix omap serial wake-up when booted with device
- tree
-Date: Mon, 25 Nov 2013 12:11:42 -0800
-Message-ID: <20131125201142.GT10023@atomide.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 1/5] usb: musb: conditionally save and restore the
+ context on suspend
+Date: Mon, 25 Nov 2013 14:13:39 -0600
+Message-ID: <20131125201339.GH18046@saruman.home>
+References: <1385408393-19707-1-git-send-email-zonque@gmail.com>
+ <1385408393-19707-2-git-send-email-zonque@gmail.com>
+ <20131125194427.GZ18046@saruman.home>
+ <5293AE53.9080606@gmail.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="o9mtL5OVI48+DSkO"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:64889 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754934Ab3KYULq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 25 Nov 2013 15:11:46 -0500
+Received: from comal.ext.ti.com ([198.47.26.152]:47090 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753181Ab3KYUOh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 25 Nov 2013 15:14:37 -0500
 Content-Disposition: inline
+In-Reply-To: <5293AE53.9080606@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>
+To: Daniel Mack <zonque@gmail.com>
+Cc: balbi@ti.com, bigeasy@linutronix.de, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, neumann@teufel.de
 
-We've had deeper idle states working on omaps for few years now,
-but only in the legacy mode. When booted with device tree, the
-wake-up events did not have a chance to work until commit
-3e6cee1786a1 (pinctrl: single: Add support for wake-up interrupts)
-that recently got merged. In addition to that we also needed commit
-79d9701559a9 (of/irq: create interrupts-extended property) that's
-now also merged.
+--o9mtL5OVI48+DSkO
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-So let's fix the wake-up events for some selected omaps so devices
-booted in device tree mode won't just hang if deeper power states
-are enabled, and so systems can wake up from suspend to the serial
-port event.
+Hi,
 
-Note that there's no longer need to specify the wake-up bit in
-the pinctrl settings, the request_irq on the wake-up pin takes
-care of that.
+On Mon, Nov 25, 2013 at 09:08:51PM +0100, Daniel Mack wrote:
+> On 11/25/2013 08:44 PM, Felipe Balbi wrote:
+> > Hi,
+> >=20
+> > On Mon, Nov 25, 2013 at 08:39:49PM +0100, Daniel Mack wrote:
+> >> It appears not all platforms featuring a musb core need to save the mu=
+sb
+> >> core registers at suspend time and restore them on resume.
+> >>
+> >> The dsps platform does, however. So add a bit in struct
+> >> musb_hdrc_platform_data to let platforms specify their need of such
+> >> action being taken.
+> >>
+> >> Signed-off-by: Daniel Mack <zonque@gmail.com>
+> >> ---
+> >>  drivers/usb/musb/musb_core.c | 17 ++++++++++++++++-
+> >>  include/linux/usb/musb.h     |  3 +++
+> >>  2 files changed, 19 insertions(+), 1 deletion(-)
+> >>
+> >> diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core=
+=2Ec
+> >> index 0a43329..a8ded57 100644
+> >> --- a/drivers/usb/musb/musb_core.c
+> >> +++ b/drivers/usb/musb/musb_core.c
+> >> @@ -2202,6 +2202,7 @@ static int musb_suspend(struct device *dev)
+> >>  {
+> >>  	struct musb	*musb =3D dev_to_musb(dev);
+> >>  	unsigned long	flags;
+> >> +	struct musb_hdrc_platform_data *plat =3D dev_get_platdata(dev);
+> >=20
+> > we don't want to have platform_data on DT-based boot. It's best to just
+> > save those registers unconditionally as it doesn't hurt.
+> >=20
+>=20
+> My concern about doing it unconditionally from the core is simply that I
+> fear regressions for other platforms. I can of course drop it if you're
+> certain that that's correct.
+>=20
+> I can only test this on a dsps glue layer, and I have no documentation
+> for the musb core. All I'm left with here is fishing in muddy waters :/
 
-Cc: devicetree@vger.kernel.org
-Cc: "Beno=C3=AEt Cousson" <bcousson@baylibre.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
+I really don't think it should cause any issues with any other platform.
 
----
+We can make to leave this soaking in linux-next for a long time and hope
+people test it.
 
-=46YI, this depends on the device resource populating patch posted in
-thread "[PATCH] of/platform: Fix no irq domain found errors when
-populating interrupts" to avoid intoducing nasty warnings.
+--=20
+balbi
 
---- a/arch/arm/boot/dts/omap3-evm-37xx.dts
-+++ b/arch/arm/boot/dts/omap3-evm-37xx.dts
-@@ -89,7 +89,16 @@
- 	status =3D "disabled";
- };
-=20
-+&uart1 {
-+	interrupts-extended =3D <&intc 72 &omap3_pmx_core OMAP3_UART1_RX>;
-+};
-+
-+&uart2 {
-+	interrupts-extended =3D <&intc 73 &omap3_pmx_core OMAP3_UART2_RX>;
-+};
-+
- &uart3 {
-+	interrupts-extended =3D <&intc 74 &omap3_pmx_core OMAP3_UART3_RX>;
- 	pinctrl-names =3D "default";
- 	pinctrl-0 =3D <&uart3_pins>;
- };
---- a/arch/arm/boot/dts/omap3-n900.dts
-+++ b/arch/arm/boot/dts/omap3-n900.dts
-@@ -495,11 +495,13 @@
- };
-=20
- &uart2 {
-+	interrupts-extended =3D <&intc 73 &omap3_pmx_core OMAP3_UART2_RX>;
- 	pinctrl-names =3D "default";
- 	pinctrl-0 =3D <&uart2_pins>;
- };
-=20
- &uart3 {
-+	interrupts-extended =3D <&intc 74 &omap3_pmx_core OMAP3_UART3_RX>;
- 	pinctrl-names =3D "default";
- 	pinctrl-0 =3D <&uart3_pins>;
- };
---- a/arch/arm/boot/dts/omap3.dtsi
-+++ b/arch/arm/boot/dts/omap3.dtsi
-@@ -207,7 +207,7 @@
- 		uart1: serial@4806a000 {
- 			compatible =3D "ti,omap3-uart";
- 			reg =3D <0x4806a000 0x2000>;
--			interrupts =3D <72>;
-+			interrupts-extended =3D <&intc 72>;
- 			dmas =3D <&sdma 49 &sdma 50>;
- 			dma-names =3D "tx", "rx";
- 			ti,hwmods =3D "uart1";
-@@ -217,7 +217,7 @@
- 		uart2: serial@4806c000 {
- 			compatible =3D "ti,omap3-uart";
- 			reg =3D <0x4806c000 0x400>;
--			interrupts =3D <73>;
-+			interrupts-extended =3D <&intc 73>;
- 			dmas =3D <&sdma 51 &sdma 52>;
- 			dma-names =3D "tx", "rx";
- 			ti,hwmods =3D "uart2";
-@@ -227,7 +227,7 @@
- 		uart3: serial@49020000 {
- 			compatible =3D "ti,omap3-uart";
- 			reg =3D <0x49020000 0x400>;
--			interrupts =3D <74>;
-+			interrupts-extended =3D <&intc 74>;
- 			dmas =3D <&sdma 53 &sdma 54>;
- 			dma-names =3D "tx", "rx";
- 			ti,hwmods =3D "uart3";
---- a/arch/arm/boot/dts/omap4-panda-common.dtsi
-+++ b/arch/arm/boot/dts/omap4-panda-common.dtsi
-@@ -396,6 +396,21 @@
- 	usb-supply =3D <&vusb>;
- };
-=20
-+&uart2 {
-+	interrupts-extended =3D <&gic GIC_SPI 73 IRQ_TYPE_LEVEL_HIGH
-+			       &omap4_pmx_core OMAP4_UART2_RX>;
-+};
-+
-+&uart3 {
-+	interrupts-extended =3D <&gic GIC_SPI 74 IRQ_TYPE_LEVEL_HIGH
-+			       &omap4_pmx_core OMAP4_UART3_RX>;
-+};
-+
-+&uart4 {
-+	interrupts-extended =3D <&gic GIC_SPI 70 IRQ_TYPE_LEVEL_HIGH
-+			       &omap4_pmx_core OMAP4_UART4_RX>;
-+};
-+
- &usb_otg_hs {
- 	interface-type =3D <1>;
- 	mode =3D <3>;
---- a/arch/arm/boot/dts/omap4-sdp.dts
-+++ b/arch/arm/boot/dts/omap4-sdp.dts
-@@ -523,16 +523,22 @@
- };
-=20
- &uart2 {
-+	interrupts-extended =3D <&gic GIC_SPI 73 IRQ_TYPE_LEVEL_HIGH
-+			       &omap4_pmx_core OMAP4_UART2_RX>;
- 	pinctrl-names =3D "default";
- 	pinctrl-0 =3D <&uart2_pins>;
- };
-=20
- &uart3 {
-+	interrupts-extended =3D <&gic GIC_SPI 74 IRQ_TYPE_LEVEL_HIGH
-+			       &omap4_pmx_core OMAP4_UART3_RX>;
- 	pinctrl-names =3D "default";
- 	pinctrl-0 =3D <&uart3_pins>;
- };
-=20
- &uart4 {
-+	interrupts-extended =3D <&gic GIC_SPI 70 IRQ_TYPE_LEVEL_HIGH
-+			       &omap4_pmx_core OMAP4_UART4_RX>;
- 	pinctrl-names =3D "default";
- 	pinctrl-0 =3D <&uart4_pins>;
- };
---- a/arch/arm/boot/dts/omap4.dtsi
-+++ b/arch/arm/boot/dts/omap4.dtsi
-@@ -236,7 +236,7 @@
- 		uart2: serial@4806c000 {
- 			compatible =3D "ti,omap4-uart";
- 			reg =3D <0x4806c000 0x100>;
--			interrupts =3D <GIC_SPI 73 IRQ_TYPE_LEVEL_HIGH>;
-+			interrupts-extended =3D <&gic GIC_SPI 73 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods =3D "uart2";
- 			clock-frequency =3D <48000000>;
- 		};
-@@ -244,7 +244,7 @@
- 		uart3: serial@48020000 {
- 			compatible =3D "ti,omap4-uart";
- 			reg =3D <0x48020000 0x100>;
--			interrupts =3D <GIC_SPI 74 IRQ_TYPE_LEVEL_HIGH>;
-+			interrupts-extended =3D <&gic GIC_SPI 74 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods =3D "uart3";
- 			clock-frequency =3D <48000000>;
- 		};
-@@ -252,7 +252,7 @@
- 		uart4: serial@4806e000 {
- 			compatible =3D "ti,omap4-uart";
- 			reg =3D <0x4806e000 0x100>;
--			interrupts =3D <GIC_SPI 70 IRQ_TYPE_LEVEL_HIGH>;
-+			interrupts-extended =3D <&gic GIC_SPI 70 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods =3D "uart4";
- 			clock-frequency =3D <48000000>;
- 		};
---- a/include/dt-bindings/pinctrl/omap.h
-+++ b/include/dt-bindings/pinctrl/omap.h
-@@ -49,5 +49,17 @@
- #define PIN_OFF_INPUT_PULLDOWN	(OFF_EN | OFF_PULL_EN)
- #define PIN_OFF_WAKEUPENABLE	WAKEUP_EN
-=20
-+/*
-+ * Define some commonly used pins configured by the boards.
-+ * Note that some boards use alternative pins, so check
-+ * the schematics before using these.
-+ */
-+#define OMAP3_UART1_RX		0x152
-+#define OMAP3_UART2_RX		0x14a
-+#define OMAP3_UART3_RX		0x16e
-+#define OMAP4_UART2_RX		0xdc
-+#define OMAP4_UART3_RX		0x104
-+#define OMAP4_UART4_RX		0x11c
-+
- #endif
-=20
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--o9mtL5OVI48+DSkO
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.15 (GNU/Linux)
+
+iQIcBAEBAgAGBQJSk69zAAoJEIaOsuA1yqREPPYP/1Jc/3vT+Om4dCKoNfYZfP//
+M1u9C3OGlc0Wbv5hyHl4wcSyicF5ed6hN/YCAwZoyilZznv5h30sCYYjOeJTnbVJ
+gChkppad0oqYKqot4b27IX3eh+3B7xOS5hbndkIV2sK7VkRC3T9XbqECbIr73n7p
+Ciharrpc8mgjsE1PiVk8OdYhntuEWYKf2Or6PwDgclfTzMd54RFL+HVAd7LIKIiK
+Jx2FqZanfsBlpwzGSZmjhcEG6YoRjPWLdcX3RHKJAWieqVgPGImKUdStjBMGdDQC
+jRBTMsPiUp4FwB6JoFtjxaDcLWS6Lp9u7hunm4q2pbpj/q5ZsbmhCBw0g6SpX2D+
+6S9NQN2Sd5PJca+GsbVbwf5Q2QA1LIabQHpj/FaXY/RbIllRPwIM76b/CEEJGJWl
+zWbgrksasky1vLJ9ooXvmE9wO2ohsQOMMf59oeJkF81BJDBeHlaM6NwVDir61cd7
+zVUNXNhGuRVbSx9J54+BqbVJR4HjpIqiDFhAO3sqwhvb0+RJ6S0AInICnV9JHCaq
+iNXyL8Lpn2s8YEjx2X3lyGXVClTT4tFyNPU75/A+HwiNDUh9kXusjo5w4Ph/FO0I
+Bi5YZYOwBYum1Q1zeO8ZLy/Bip0jwBcm0Nd/sV70DwqXF0FXsjhfMfoqCAsPSX3m
+iHvy7/EnvEdbnPwspc30
+=jMPL
+-----END PGP SIGNATURE-----
+
+--o9mtL5OVI48+DSkO--
