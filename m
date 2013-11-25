@@ -1,86 +1,80 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v2 4/4] usb: musb: dsps: add support for suspend and
- resume
-Date: Mon, 25 Nov 2013 15:32:36 -0600
-Message-ID: <20131125213236.GW18046@saruman.home>
-References: <1385414803-13212-1-git-send-email-zonque@gmail.com>
- <1385414803-13212-5-git-send-email-zonque@gmail.com>
- <20131125212920.GU18046@saruman.home>
- <5293C17D.3020508@gmail.com>
-Reply-To: <balbi@ti.com>
+From: Joel Fernandes <joelf@ti.com>
+Subject: [PATCH 1/7] ARM: OMAP: hwmod: Add SYSC offsets for AES IP
+Date: Mon, 25 Nov 2013 15:44:30 -0600
+Message-ID: <1385415876-12387-2-git-send-email-joelf@ti.com>
+References: <1385415876-12387-1-git-send-email-joelf@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="anW2uJ7hcMI/vMa8"
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:48602 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:49091 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752987Ab3KYVdg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 25 Nov 2013 16:33:36 -0500
-Content-Disposition: inline
-In-Reply-To: <5293C17D.3020508@gmail.com>
+	with ESMTP id S1752062Ab3KYVpJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 25 Nov 2013 16:45:09 -0500
+In-Reply-To: <1385415876-12387-1-git-send-email-joelf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Daniel Mack <zonque@gmail.com>
-Cc: balbi@ti.com, bigeasy@linutronix.de, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, neumann@teufel.de
+To: Tony Lindgren <tony@atomide.com>
+Cc: Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Joel Fernandes <joelf@ti.com>
 
---anW2uJ7hcMI/vMa8
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+The AES IP has the SIDLE offset by 2 and not 3, to allow SIDLE modes
+to work for AES, we add a new SYSC type to hwmod.
 
-On Mon, Nov 25, 2013 at 10:30:37PM +0100, Daniel Mack wrote:
-> On 11/25/2013 10:29 PM, Felipe Balbi wrote:
-> > Hi,
-> >=20
-> > On Mon, Nov 25, 2013 at 10:26:43PM +0100, Daniel Mack wrote:
-> >> +static int dsps_resume(struct device *dev)
-> >> +{
-> >> +	struct dsps_glue *glue =3D dev_get_drvdata(dev);
-> >> +	const struct dsps_musb_wrapper *wrp =3D glue->wrp;
-> >> +	struct musb *musb =3D platform_get_drvdata(glue->musb);
-> >> +	void __iomem *mbase =3D musb->ctrl_base;
-> >> +
-> >> +	dsps_writel(mbase, wrp->control, glue->context.control);
-> >> +	dsps_writel(mbase, wrp->epintr_set, glue->context.epintr);
-> >> +	dsps_writel(mbase, wrp->coreintr_set, glue->context.coreintr);
-> >> +	dsps_writel(mbase, wrp->phy_utmi, glue->context.phy_utmi);
-> >> +	dsps_writel(mbase, wrp->mode, glue->context.mode);
-> >> +	dsps_writel(mbase, wrp->tx_mode, glue->context.tx_mode);
-> >> +	dsps_writel(mbase, wrp->rx_mode, glue->context.rx_mode);
-> >> +
-> >> +	//musb_port_reset(musb, false);
-> >=20
-> > ????
-> >=20
->=20
-> Urgs. Development left-over. Sorry. You want me to resend the whole
-> series or just this last patch?
+Signed-off-by: Joel Fernandes <joelf@ti.com>
+---
+ arch/arm/mach-omap2/omap_hwmod.h             | 11 +++++++++++
+ arch/arm/mach-omap2/omap_hwmod_common_data.c | 10 ++++++++++
+ 2 files changed, 21 insertions(+)
 
-just the last patch is fine :-)
+diff --git a/arch/arm/mach-omap2/omap_hwmod.h b/arch/arm/mach-omap2/omap_hwmod.h
+index 0f97d63..b2efcc8 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.h
++++ b/arch/arm/mach-omap2/omap_hwmod.h
+@@ -41,6 +41,7 @@ struct omap_device;
+ extern struct omap_hwmod_sysc_fields omap_hwmod_sysc_type1;
+ extern struct omap_hwmod_sysc_fields omap_hwmod_sysc_type2;
+ extern struct omap_hwmod_sysc_fields omap_hwmod_sysc_type3;
++extern struct omap_hwmod_sysc_fields omap_hwmod_sysc_type4;
+ 
+ /*
+  * OCP SYSCONFIG bit shifts/masks TYPE1. These are for IPs compliant
+@@ -81,6 +82,16 @@ extern struct omap_hwmod_sysc_fields omap_hwmod_sysc_type3;
+ #define SYSC_TYPE3_MIDLEMODE_SHIFT	2
+ #define SYSC_TYPE3_MIDLEMODE_MASK	(0x3 << SYSC_TYPE3_MIDLEMODE_SHIFT)
+ 
++/*
++ * OCP SYSCONFIG bit shifts/masks TYPE4.
++ */
++#define SYSC_TYPE4_SIDLEMODE_SHIFT	2
++#define SYSC_TYPE4_SIDLEMODE_MASK	(0x3 << SYSC_TYPE4_SIDLEMODE_SHIFT)
++#define SYSC_TYPE4_SOFTRESET_SHIFT	1
++#define SYSC_TYPE4_SOFTRESET_MASK	(1 << SYSC_TYPE4_SOFTRESET_SHIFT)
++#define SYSC_TYPE4_AUTOIDLE_SHIFT	0
++#define SYSC_TYPE4_AUTOIDLE_MASK	(1 << SYSC_TYPE4_AUTOIDLE_SHIFT)
++
+ /* OCP SYSSTATUS bit shifts/masks */
+ #define SYSS_RESETDONE_SHIFT		0
+ #define SYSS_RESETDONE_MASK		(1 << SYSS_RESETDONE_SHIFT)
+diff --git a/arch/arm/mach-omap2/omap_hwmod_common_data.c b/arch/arm/mach-omap2/omap_hwmod_common_data.c
+index 79d623b..7443dc0 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_common_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_common_data.c
+@@ -59,6 +59,16 @@ struct omap_hwmod_sysc_fields omap_hwmod_sysc_type3 = {
+ 	.sidle_shift	= SYSC_TYPE3_SIDLEMODE_SHIFT,
+ };
+ 
++/**
++ * struct omap_hwmod_sysc_type4 - TYPE4 sysconfig scheme.
++ * Used by some IPs on AM33xx
++ */
++struct omap_hwmod_sysc_fields omap_hwmod_sysc_type4 = {
++	.sidle_shift	= SYSC_TYPE4_SIDLEMODE_SHIFT,
++	.srst_shift	= SYSC_TYPE4_SOFTRESET_SHIFT,
++	.autoidle_shift	= SYSC_TYPE4_AUTOIDLE_SHIFT,
++};
++
+ struct omap_dss_dispc_dev_attr omap2_3_dss_dispc_dev_attr = {
+ 	.manager_count		= 2,
+ 	.has_framedonetv_irq	= 0
+-- 
+1.8.1.2
 
---=20
-balbi
-
---anW2uJ7hcMI/vMa8
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.15 (GNU/Linux)
-
-iQIcBAEBAgAGBQJSk8H0AAoJEIaOsuA1yqREXqIP/3Km17azKW51gFm+X1Kccp3S
-u8cwUuyIIw+6duI1frBcQ+HGmxpHSJSlvzWTc3BDnC4IOON5I6gRhf1+5NPtOuUl
-pb4TnZjdKbWnR7Fx06N1yaqmMurZdJI+hGojOBSwUqcGHi/faMc0NVCkP+AXehun
-LEMRqyuG8L0KlNnlMFTuiwcibRFJfQxqEJYRUFbKKgNt1PbZvFNOExeJGXUoezrz
-PpIb12RrDqq+8VY79s8c2GkXuSNRbPPoZgzn3v/zXUT7ZsGr4dYO3ymv4f4BXWZv
-U5+njxSjeFnIZmVD6bnLFspCc6P3tkglCEj6lWTvCKLPS8l95tO8TNbVrXDsy/3x
-t/O5jlLuiIl2eGR2g8eU12doOMI+d/duB+tXZdeBnkkonyEyyrsJb6HMsBxQBwiE
-Bpj4X7Z9pbdU0OWEJdbCxF6ZYrgyp/lGjGqKiMRE6AzSYAhJULtvhrorH6e7nNnK
-aDpRRepSjMGi3+H5N4DgJozHkeeyNGZeiNEqSq++5TRuLjv0ka/YD7UDzFJBQL+C
-Wgmbe3IGuv6vrpByUpyv60gCuZFx5QeaOI3+u2NLynSwhXHjoa2pE9XFhdCNn6v/
-qCBGoZ6S+FoUEHuE2312QlFWFchEMDS8ftZclQVMHu6cZc9j3iyT6QYHnsz6qXF2
-tdfWPUw+4xez2VsJ5AgZ
-=Eg5n
------END PGP SIGNATURE-----
-
---anW2uJ7hcMI/vMa8--
