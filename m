@@ -1,82 +1,116 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 4/5] usb: musb: dsps: add support for suspend and resume
-Date: Mon, 25 Nov 2013 14:55:49 -0600
-Message-ID: <20131125205549.GO18046@saruman.home>
-References: <1385408393-19707-1-git-send-email-zonque@gmail.com>
- <1385408393-19707-5-git-send-email-zonque@gmail.com>
- <20131125194804.GB18046@saruman.home>
- <5293AD40.6060607@gmail.com>
- <20131125200853.GG18046@saruman.home>
- <5293B28F.9010506@gmail.com>
- <20131125204641.GM18046@saruman.home>
- <5293B920.30401@gmail.com>
-Reply-To: <balbi@ti.com>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: Re: ARM: v3.13-rc1: USB regression
+Date: Mon, 25 Nov 2013 23:12:27 +0200
+Message-ID: <20131125211227.GE24645@blackmetal.musicnaut.iki.fi>
+References: <20131124222247.GC24645@blackmetal.musicnaut.iki.fi>
+ <20131124224359.GE25039@n2100.arm.linux.org.uk>
+ <20131125163302.GD24645@blackmetal.musicnaut.iki.fi>
+ <20131125171853.GF25039@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="KZa8Qkr7Zx+i11wB"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:48827 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751977Ab3KYU4p (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 25 Nov 2013 15:56:45 -0500
+Received: from filtteri2.pp.htv.fi ([213.243.153.185]:59504 "EHLO
+	filtteri2.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752225Ab3KYVMf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 25 Nov 2013 16:12:35 -0500
 Content-Disposition: inline
-In-Reply-To: <5293B920.30401@gmail.com>
+In-Reply-To: <20131125171853.GF25039@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Daniel Mack <zonque@gmail.com>
-Cc: balbi@ti.com, bigeasy@linutronix.de, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, neumann@teufel.de
-
---KZa8Qkr7Zx+i11wB
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, Alan Stern <stern@rowland.harvard.edu>, linux-omap@vger.kernel.org
 
 Hi,
 
-On Mon, Nov 25, 2013 at 09:54:56PM +0100, Daniel Mack wrote:
-> > As Alan said, usb-persist should already for a
-> > bus-reset when resuming, right ?
->=20
-> The explicit un-reset is really needed, otherwise the port will
-> reenumerate the device, and a previously mounted filesystem will become
-> invalid of course. The log looks like this in that case:
->=20
-> [   17.045641] PM: resume of devices complete after 166.084 msecs
-> [   17.056461] PM: Sending message for resetting M3 state machine
-> [   17.063451] Restarting tasks ... [   17.071767] usb 1-1: USB
-> disconnect, device number 2
-> done.
-> [   17.403402] usb 1-1: new high-speed USB device number 3 using musb-hdrc
-> [   17.766959] usb 1-1: New USB device found, idVendor=3D058f, idProduct=
-=3D6387
-> [   17.774849] usb 1-1: New USB device strings: Mfr=3D1, Product=3D2,
-> SerialNumber=3D3
+On Mon, Nov 25, 2013 at 05:18:53PM +0000, Russell King - ARM Linux wrote:
+> On Mon, Nov 25, 2013 at 06:33:02PM +0200, Aaro Koskinen wrote:
+> > Hi,
+> > 
+> > On Sun, Nov 24, 2013 at 10:43:59PM +0000, Russell King - ARM Linux wrote:
+> > > On Mon, Nov 25, 2013 at 12:22:47AM +0200, Aaro Koskinen wrote:
+> > > > [   33.967324] ohci ohci: Coherent DMA mask 0xffffffff (pfn 0xe0000-0xe0000) covers a smaller range of system memory than the DMA zone pfn 0x0-0x100000
+> > > > 
+> > > > I bisected this to 4dcfa60071b3d23f0181f27d8519f12e37cefbb9 (ARM: DMA-API:
+> > > > better handing of DMA masks for coherent allocations). Reverting that
+> > > > commit makes the USB work again fine.
+> > 
+> > [...]
+> > 
+> > > Better would be:
+> > > 
+> > > #define __arch_dma_to_pfn(dev, addr)	\
+> > > 	({ unsigned long pfn = (addr) >> PAGE_SHIFT;		\
+> > > 	   if (is_lbus_device(dev))				\
+> > > 		pfn += PHYS_PFN_OFFSET - 			\
+> > > 			(OMAP1510_LB_OFFSET >> PAGE_SHIFT);	\
+> > > 	   pfn;							\
+> > > 	})
+> > > 
+> > > Can you try that in arch/arm/mach-omap1/include/mach/memory.h please?
+> > 
+> > Still doesn't work:
+> > 
+> > [   33.878790] ohci ohci: Coherent DMA mask 0xffffffff (pfn 0xfffe0000-0xe0000) covers a smaller range of system memory than the DMA zone pfn 0x0-0x100000
+> > [   33.894019] ohci ohci: can't setup: -12
+> 
+> Well, that looks technically better, rather unfortunate that we end up
+> going to negative PFNs though.
+> 
+> Without that change, could you try this instead please:
 
-got it now ;-) Thanks
+This works, thanks.
 
---=20
-balbi
+A.
 
---KZa8Qkr7Zx+i11wB
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.15 (GNU/Linux)
-
-iQIcBAEBAgAGBQJSk7lVAAoJEIaOsuA1yqREhuMP/1YwykAShW5xCBeA4n192BZe
-V32butFh8D5LuwuJ1eJfA+8+kotYVQ2wh8BwL+ese+ly9piR3K+2bn5iNsKvg6Gu
-wzAmG/zjw5eMgI7ftlk/QfxIS7aNIh6gPLIojkQ7+LQRnQtjNBL9Nlad2hc5/wiA
-4WJJ862Xhku40DfRNrRu6IbDu/Yw0LpGT3vhIr+pevXViu/oAIDsZrdb7kMM6xlZ
-qxvGWZvOS7HIaUjMfbiGcxjFowAeEUlpfUkFl9WzluGwlF7b9Xdgommm7gs64LO0
-4j4mkY8/RFmc6Mz5DldSpPIM5P968yoydaOKmWVt5eHVsQtkdMrlk9RFQeN77Py4
-7FI+yHoQNlqARTYRFmcvHE3/2ftyeEN1+8YNvdAow2+3BFV0NNGx1TyR1T8SEBKO
-2kcLygcDTLcy/OgQSEUOt//p31J+I72+032dyFTtvpH+GyWfalJIcbicRCQ/X2tU
-UkH9TMeakOiWEX3xXVfhZwcuOWrzSGqI0JsRgB4wGbXcLDMeX28bnjNWg9Lp4H6r
-4E0N7iBfdmemKtBnZdHw68QAeQBMt4uR0ET/b2I7b1JR1XfSY3bSHgqgfZ5JfXYa
-DAYjlBlm/GqTL+rS53updWwwLITVLRppB6XTGarPRjghdtRDsnFbNby/gC7Mjm5I
-/cQTxpVRFu9wpDvu2PVm
-=AjsO
------END PGP SIGNATURE-----
-
---KZa8Qkr7Zx+i11wB--
+>  arch/arm/mm/dma-mapping.c |    9 +++++++--
+>  1 files changed, 7 insertions(+), 2 deletions(-)
+> 
+> diff --git a/arch/arm/mm/dma-mapping.c b/arch/arm/mm/dma-mapping.c
+> index f0ea0134e5a3..a18cfc53f445 100644
+> --- a/arch/arm/mm/dma-mapping.c
+> +++ b/arch/arm/mm/dma-mapping.c
+> @@ -9,6 +9,7 @@
+>   *
+>   *  DMA uncached mapping support.
+>   */
+> +#include <linux/bootmem.h>
+>  #include <linux/module.h>
+>  #include <linux/mm.h>
+>  #include <linux/gfp.h>
+> @@ -162,6 +163,8 @@ static u64 get_coherent_dma_mask(struct device *dev)
+>  	u64 mask = (u64)DMA_BIT_MASK(32);
+>  
+>  	if (dev) {
+> +		unsigned long max_dma_pfn;
+> +
+>  		mask = dev->coherent_dma_mask;
+>  
+>  		/*
+> @@ -173,6 +176,8 @@ static u64 get_coherent_dma_mask(struct device *dev)
+>  			return 0;
+>  		}
+>  
+> +		max_dma_pfn = min(max_pfn, arm_dma_pfn_limit);
+> +
+>  		/*
+>  		 * If the mask allows for more memory than we can address,
+>  		 * and we actually have that much memory, then fail the
+> @@ -180,7 +185,7 @@ static u64 get_coherent_dma_mask(struct device *dev)
+>  		 */
+>  		if (sizeof(mask) != sizeof(dma_addr_t) &&
+>  		    mask > (dma_addr_t)~0 &&
+> -		    dma_to_pfn(dev, ~0) > arm_dma_pfn_limit) {
+> +		    dma_to_pfn(dev, ~0) > max_dma_pfn) {
+>  			dev_warn(dev, "Coherent DMA mask %#llx is larger than dma_addr_t allows\n",
+>  				 mask);
+>  			dev_warn(dev, "Driver did not use or check the return value from dma_set_coherent_mask()?\n");
+> @@ -192,7 +197,7 @@ static u64 get_coherent_dma_mask(struct device *dev)
+>  		 * fits within the allowable addresses which we can
+>  		 * allocate.
+>  		 */
+> -		if (dma_to_pfn(dev, mask) < arm_dma_pfn_limit) {
+> +		if (dma_to_pfn(dev, mask) < max_dma_pfn) {
+>  			dev_warn(dev, "Coherent DMA mask %#llx (pfn %#lx-%#lx) covers a smaller range of system memory than the DMA zone pfn 0x0-%#lx\n",
+>  				 mask,
+>  				 dma_to_pfn(dev, 0), dma_to_pfn(dev, mask) + 1,
+> 
