@@ -1,86 +1,77 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: OMAP build failure after this merge window - caused by usb or
- phy Kconfig krap
-Date: Mon, 25 Nov 2013 11:55:39 -0600
-Message-ID: <20131125175539.GP18046@saruman.home>
-References: <20131125140927.GP16735@n2100.arm.linux.org.uk>
+Subject: Re: [PATCH] usb: musb: Fix unstable init of OTG_INTERFSEL.
+Date: Mon, 25 Nov 2013 11:56:53 -0600
+Message-ID: <20131125175642.GQ18046@saruman.home>
+References: <1385113069-23008-1-git-send-email-anaumann@ultratronik.de>
 Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="CVXKxAdNG2kQIXaJ"
+	protocol="application/pgp-signature"; boundary="JWOY2/vB4uO4FuME"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:48438 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:58171 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754007Ab3KYR4h (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 25 Nov 2013 12:56:37 -0500
+	id S1754433Ab3KYR5b (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 25 Nov 2013 12:57:31 -0500
 Content-Disposition: inline
-In-Reply-To: <20131125140927.GP16735@n2100.arm.linux.org.uk>
+In-Reply-To: <1385113069-23008-1-git-send-email-anaumann@ultratronik.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Kishon Vijay Abraham I <kishon@ti.com>, Felipe Balbi <balbi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To: anaumann@ultratronik.de
+Cc: balbi@ti.com, linux-omap@vger.kernel.org
 
---CVXKxAdNG2kQIXaJ
+--JWOY2/vB4uO4FuME
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Mon, Nov 25, 2013 at 02:09:27PM +0000, Russell King - ARM Linux wrote:
-> There's no other way to say it, and I've no idea who is responsible for
-> this:
+On Fri, Nov 22, 2013 at 10:37:49AM +0100, anaumann@ultratronik.de wrote:
+> From: Andreas Naumann <anaumann@ultratronik.de>
 >=20
->   LD      init/built-in.o
-> drivers/built-in.o: In function `omap_usb2_remove':
-> powercap_sys.c:(.text+0x1c60): undefined reference to `usb_remove_phy'
-> drivers/built-in.o: In function `omap_usb_power_off':
-> powercap_sys.c:(.text+0x1c84): undefined reference to `omap_control_usb_p=
-hy_power'
-> drivers/built-in.o: In function `omap_usb_power_on':
-> powercap_sys.c:(.text+0x1ca8): undefined reference to `omap_control_usb_p=
-hy_power'
-> drivers/built-in.o: In function `omap_usb2_probe':
-> powercap_sys.c:(.text+0x1dac): undefined reference to `omap_control_usb_p=
-hy_power'
-> powercap_sys.c:(.text+0x1e5c): undefined reference to `usb_add_phy_dev'
-> drivers/built-in.o: In function `omap_usb2_suspend':
-> powercap_sys.c:(.text+0x1ec8): undefined reference to `omap_control_usb_p=
-hy_power'
-> powercap_sys.c:(.text+0x1f20): undefined reference to `omap_control_usb_p=
-hy_power'
-> drivers/built-in.o: In function `omap_usb2_set_comparator':
-> powercap_sys.c:(.text+0x1f54): undefined reference to `usb_get_phy'
-> arch/arm/mach-omap2/built-in.o: In function `usbhs_init_phys':
-> dss-common.c:(.text+0xf824): undefined reference to `usb_bind_phy'
-> make[1]: *** [vmlinux] Error 1
-> make: *** [sub-make] Error 2
+> This is a hard to reproduce problem which leads to non-functional USB-OTG=
+ port in 0.1%-1% of all boots.
+> Tracked it down to commit e25bec160158abe86c276d7d206264afc3646281, which=
+ introduces save/restore of OTG_INTERFSEL over suspend.
+> Since the resume function is also called early in driver init, it uses a =
+non-initialized value (which is 0 and a non-supported setting in DM37xx for=
+ INTERFSEL).
+> Shortly after the correct value is set. Apparently this works most time, =
+but not always.
+>=20
+> The fix is to initialize the value, BEFORE being written in the resume fu=
+nction.
+>=20
+> Signed-off-by: Andreas Naumann <anaumann@ultratronik.de>
 
-Kishon, can you send a patch fixing these ?
+please resend with linux-usb in Cc as well. Also make sure that your
+lines (in commit log) aren't over 72 characters.
+
+thanks
 
 --=20
 balbi
 
---CVXKxAdNG2kQIXaJ
+--JWOY2/vB4uO4FuME
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.15 (GNU/Linux)
 
-iQIcBAEBAgAGBQJSk48bAAoJEIaOsuA1yqREusMP/iaeNoCbMCxgFcuiWnbSlNtI
-GLIZ+07vBdzC2Mq6bhC4aBBSCX+DCuOydm16nAvzIDbuk0KKQ7fk6VaYDc1ZPw4g
-XpDLG3QDhIv1u32J7+z5CnUCss8jU0SiMvvtGckLFEGj+zdpQr3IzqOalS/vQbdO
-o8taMM1sAxLGyCvI4wGrYEBiJYYOBVy3pNj6xOEljbdhthQ3ra1/mwGWAQi79e/P
-FUu0INnHJ35zpJ3fKpR2urjk6NKlmTvj1cR0DvoAEXdRu5VNsxarze+ONIbW6YTG
-XWF2nDN0Pb/ocVv1ZNfHZ0EFP6HmZBPL/U868X8FhPUIE5yhamQO1TAFtTUpomuu
-OP+ushhV4VUpsn2HWKGt4+2zkJNXfIT1AmYKY08gwzMRs3zyxKxEdmmf2ok79fZp
-F9LJpxtUvGpIAWauKtXmEb+smaAOsoekD4yJsE1aVdOC6lzqepp2joLMdWfLmr2Y
-DXZ8ZHIq/EkKuS7AXnWIevzhFOPGeSinR/LooZD/z/IFq2uKe9vVFZ8Pc/87UHrT
-QVfK5pvi5ywtKi//kkPP3upTkmjKPs+YxtZQ8p0xxkJ0yO+7ogz1yRWir2Y8mRN2
-rFb/XnGKcvYSDWwf0IP2Ew6g3bvitfcIw9ENH0gOwlTE4Ly28TeXbuKAkHuV7fUQ
-oCyr0BMJe92VlEJJCYlS
-=XwBP
+iQIcBAEBAgAGBQJSk49lAAoJEIaOsuA1yqREbSEP/3Y+KmxwDWIpjnjQ5SahFdBi
+8SRPAMOTa6mWEDpZtkXAR7vHzhaDikyrZop2MkWEReh5Gqs/w4fss3LcMs/Rjcyv
+GT7vrFAVo+MWEOkdlAgOmECA6FCKCKverqNwcIuva+fYNqlUtFmiUmCuiod/6iQR
+E0ZWQajgrYMlMWKRv67GOFdTToEuvYwb0ivpdgFEheKoA0q+eVWDh1mPNSyX0OUr
+lyIrB8nhkghH5Nvz+y91xn+k5syCW0RAtuh9taBaP9RwsQ96fCxRv3FovU1DBAjt
+C2H3XAGYhasyPNF1DncN7fPga1UPagnJiT9/E2u1QKUan2xoQsIhD9tJV9WXZ+EV
+4kL5tMCs3dFNcR5BmXU41iICPXcT4Ou/J2fd6PBabdyLTdZt5QISM07F+Vf4Xq20
+ryoA0hIRQgl9UJEHZ66uxo9h29UyZQLcMsO6rUzYrUWWcA+yk8c7Ey2T6djHKKU2
+VO9mVoVwYEGOIC2D6i0WWaoOdT3PvHfc7Q/I5VDklMCjeALmKPIzJeODeyMhJK71
+NqgsReDGL9mYxg0q7coZm/nc/OYWMEWL2ZyRMgkJVJw5jdlpbT56ocY0WrDuneah
+GPe726vB2gO8E5ai3IFBzqWQYHWZN10bWHk5tPvA3dIrf/jmn4bHH6Pwn1WfLOOt
+E/5B8U3ymA9fZiFCTdzV
+=t5V8
 -----END PGP SIGNATURE-----
 
---CVXKxAdNG2kQIXaJ--
+--JWOY2/vB4uO4FuME--
