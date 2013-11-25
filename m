@@ -1,87 +1,87 @@
-From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH] ARM: dts: omap3-beagle: Fix USB host on beagle boards
- (for 3.13)
-Date: Mon, 25 Nov 2013 09:50:55 -0600
-Message-ID: <CAGo_u6ryFJvBwd=S9A-nJw+eoGguPj0jMOtgMiZ7mXXAbh4i+w@mail.gmail.com>
-References: <1385387745-7162-1-git-send-email-rogerq@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH 2/2] ARM: OMAP5: Add HYP mode entry support for secondary
+ CPUs
+Date: Mon, 25 Nov 2013 11:28:36 -0500
+Message-ID: <52937AB4.1060901@ti.com>
+References: <1385251666-27532-1-git-send-email-santosh.shilimkar@ti.com> <1385251666-27532-3-git-send-email-santosh.shilimkar@ti.com> <CAMJs5B8XX-93YcRyTiQ1JRcKUB5oer8cV7FLtMPP6SeqeB3RwQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1385387745-7162-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, dt list <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, balbi-l0cyMroinI0@public.gmane.org, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:34605 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755257Ab3KYQ3F (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 25 Nov 2013 11:29:05 -0500
+In-Reply-To: <CAMJs5B8XX-93YcRyTiQ1JRcKUB5oer8cV7FLtMPP6SeqeB3RwQ@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Christoffer Dall <christoffer.dall@linaro.org>
+Cc: linux-omap@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Marc Zyngier <marc.zyngier@arm.com>, Tony Lindgren <tony@atomide.com>
 
-On Mon, Nov 25, 2013 at 7:55 AM, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> wrote:
-> Beagle (rev. C4) and Beagle-XM (all revs) need VAUX2 1.8V supply
-> for the USB PHY.
->
-> As the generic PHY driver can't handle more than one supply
-> at the moment, we configure this supply to be always on.
-> This will cause a very small power impact if the USB host subsystem
-> is not in use, about 76.86 micro-W + LDO power.
+On Monday 25 November 2013 10:09 AM, Christoffer Dall wrote:
+> On 23 November 2013 16:07, Santosh Shilimkar <santosh.shilimkar@ti.com> wrote:
+>> Boot-CPU entry into the HYP mode is managed in boot-loader but
+>> the secondary CPUs directly jumps to kernel during boot. Same
+>> path is also used for CPU hotplug as well during suspend for
+>> secondary CPU.
+>>
+>> Hence patch the secondary CPU boot path for hyp mode etry.
+>>
+>> Cc: Marc Zyngier <marc.zyngier@arm.com>
+>> Cc: Christoffer Dall <christoffer.dall@linaro.org>
+>> Cc: Tony Lindgren <tony@atomide.com>
+>> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>> ---
+>>  arch/arm/mach-omap2/omap-headsmp.S |    7 +++++++
+>>  1 file changed, 7 insertions(+)
+>>
+>> diff --git a/arch/arm/mach-omap2/omap-headsmp.S b/arch/arm/mach-omap2/omap-headsmp.S
+>> index 75e9295..4844dd8 100644
+>> --- a/arch/arm/mach-omap2/omap-headsmp.S
+>> +++ b/arch/arm/mach-omap2/omap-headsmp.S
+>> @@ -22,6 +22,7 @@
+>>
+>>  /* Physical address needed since MMU not enabled yet on secondary core */
+>>  #define AUX_CORE_BOOT0_PA                      0x48281800
+>> +#define API_HYP_ENTRY                          0x102
+>>
+>>  /*
+>>   * OMAP5 specific entry point for secondary CPU to jump from ROM
+>> @@ -38,6 +39,12 @@ wait:        ldr     r2, =AUX_CORE_BOOT0_PA  @ read from AuxCoreBoot0
+>>         and     r4, r4, #0x0f
+>>         cmp     r0, r4
+>>         bne     wait
+>> +#ifdef CONFIG_KVM_ARM_HOST
+>> +       ldr     r12, =API_HYP_ENTRY
+>> +       adr     r0, hyp_boot
+>> +       smc     #0
+>> +hyp_boot:
+>> +#endif
+>>         b       secondary_startup
+>>  END(omap5_secondary_startup)
+>>  /*
+> 
+> hmm, this means that currently running this in a guest will fail to
+> bring-up SMP, right?
+> 
+Nope. Because the code under 'KVM_ARM_HOST' macro. Guest build 
+will not enable CONFIG_KVM_ARM_HOST and things should be fine then.
+Right ? 
 
->
-> Older Beagle boards (prior to C4) don't have VAUX2 connected anywhere,
-> so there won't be any functional impact on those boards other than
-> some additional LDO power consumption.
->
-> Reported-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+> Couldn't you create a little wrapper-pen in U-Boot instead, which
+> replicates the omap boot protocol and takes care of the hyp-mode
+> startup there instead, keeping this completely out of the kernel?
+> 
+Its not just booting but CPU hotplug also follows the same path
+so we need the mechanism in kernel to switch mode.
 
-Tested-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+In general, I think its important to consider the aspect with
+CPU PM. CPUs are not going to go through the boot-loaders in
+those paths and hence need of HYP entry in the kernel will
+be must.
 
-I might suggest though that the better alternative might be to get phy
-driver to handle multiple regulators considering that DT is supposed
-to represent the h/w topology.
+Regards,
+Santosh
 
-> ---
->  arch/arm/boot/dts/omap3-beagle-xm.dts | 8 ++++++++
->  arch/arm/boot/dts/omap3-beagle.dts    | 8 ++++++++
->  2 files changed, 16 insertions(+)
->
-> diff --git a/arch/arm/boot/dts/omap3-beagle-xm.dts b/arch/arm/boot/dts/omap3-beagle-xm.dts
-> index 31a632f..b39918e 100644
-> --- a/arch/arm/boot/dts/omap3-beagle-xm.dts
-> +++ b/arch/arm/boot/dts/omap3-beagle-xm.dts
-> @@ -215,3 +215,11 @@
->  &usbhsehci {
->         phys = <0 &hsusb2_phy>;
->  };
-> +
-> +&vaux2 {
-> +       regulator-name = "usb_1v8";
-> +       regulator-min-microvolt = <1800000>;
-> +       regulator-max-microvolt = <1800000>;
-> +       regulator-always-on;
-> +};
-> +
-> diff --git a/arch/arm/boot/dts/omap3-beagle.dts b/arch/arm/boot/dts/omap3-beagle.dts
-> index fa532aa..9764556 100644
-> --- a/arch/arm/boot/dts/omap3-beagle.dts
-> +++ b/arch/arm/boot/dts/omap3-beagle.dts
-> @@ -178,3 +178,11 @@
->         mode = <3>;
->         power = <50>;
->  };
-> +
-> +&vaux2 {
-> +       regulator-name = "vdd_ehci";
-> +       regulator-min-microvolt = <1800000>;
-> +       regulator-max-microvolt = <1800000>;
-> +       regulator-always-on;
-> +};
-> +
-> --
-> 1.8.3.2
->
->
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+Santosh
