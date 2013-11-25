@@ -1,80 +1,82 @@
-From: Sebastian Reichel <sre@ring0.de>
-Subject: Re: [PATCH v2 2/3] bq2415x_charger: Use power_supply notifier for
- automode
-Date: Mon, 25 Nov 2013 22:50:01 +0100
-Message-ID: <20131125214959.GA20107@earth.universe>
-References: <1434978251.31721.1385404366021.JavaMail.apache@mail83.abv.bg>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [RFC 15/23] usb: musb: raw read and write endian fix
+Date: Mon, 25 Nov 2013 16:07:49 -0600
+Message-ID: <20131125220749.GA18046@saruman.home>
+References: <1384560086-11994-1-git-send-email-taras.kondratiuk@linaro.org>
+ <1384560086-11994-16-git-send-email-taras.kondratiuk@linaro.org>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="xHFwDpU9dbj6ez1V"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="lS0Z/zpizLfakKcP"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1434978251.31721.1385404366021.JavaMail.apache@mail83.abv.bg>
+In-Reply-To: <1384560086-11994-16-git-send-email-taras.kondratiuk@linaro.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: =?utf-8?B?0JjQstCw0LnQu9C+INCU0LjQvNC40YLRgNC+0LI=?= <freemangordon@abv.bg>
-Cc: pavel@ucw.cz, pali.rohar@gmail.com, anton@enomsg.org, dwmw2@infradead.org, tony@atomide.com, linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, aaro.koskinen@iki.fi
+To: Taras Kondratiuk <taras.kondratiuk@linaro.org>
+Cc: linux-omap@vger.kernel.org, linaro-networking@linaro.org, Victor Kamensky <victor.kamensky@linaro.org>, Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-
---xHFwDpU9dbj6ez1V
-Content-Type: text/plain; charset=utf-8
+--lS0Z/zpizLfakKcP
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi,
-
-On Mon, Nov 25, 2013 at 08:32:46PM +0200, =D0=98=D0=B2=D0=B0=D0=B9=D0=BB=D0=
-=BE =D0=94=D0=B8=D0=BC=D0=B8=D1=82=D1=80=D0=BE=D0=B2 wrote:
-> So, AIUI there are 2 options:
+On Sat, Nov 16, 2013 at 02:01:18AM +0200, Taras Kondratiuk wrote:
+> From: Victor Kamensky <victor.kamensky@linaro.org>
 >=20
-> 1. charger driver polls the battery driver every n (60?) seconds.
-> 2. battery driver sends PSY_EVENT_PROP_CHANGED on every degree
->    up or down.
+> All OMAP IP blocks expect LE data, but CPU may operate in BE mode.
+> Need to use endian neutral functions to read/write h/w registers.
+> I.e instead of __raw_read[lw] and __raw_write[lw] functions code
+> need to use read[lw]_relaxed and write[lw]_relaxed functions.
+> If the first simply reads/writes register, the second will byteswap
+> it if host operates in BE mode.
+>=20
+> Changes are trivial sed like replacement of __raw_xxx functions
+> with xxx_relaxed variant.
+>=20
+> Signed-off-by: Victor Kamensky <victor.kamensky@linaro.org>
+> Signed-off-by: Taras Kondratiuk <taras.kondratiuk@linaro.org>
+> ---
+>  drivers/usb/musb/musb_io.h |   18 +++++++++---------
+>  1 file changed, 9 insertions(+), 9 deletions(-)
+>=20
+> diff --git a/drivers/usb/musb/musb_io.h b/drivers/usb/musb/musb_io.h
+> index eebeed7..76f4d2a 100644
+> --- a/drivers/usb/musb/musb_io.h
+> +++ b/drivers/usb/musb/musb_io.h
+> @@ -42,17 +42,17 @@
+>  /* NOTE:  these offsets are all in bytes */
 > =20
-> In both cases if the temperature is outside of the safe margins, the
-> charging should be stopped.
+>  static inline u16 musb_readw(const void __iomem *addr, unsigned offset)
+> -	{ return __raw_readw(addr + offset); }
+> +	{ return readw_relaxed(addr + offset); }
 
-ACK.
+x86 doesn't provide any of the write?_relaxed methods so this breaks
+build on x86 at least.
 
-> 2 seems more generic to me, but as rx51-battery is missing the
-> functionality to send events on temperature change, I guess 1 will
-> be easier to implement.
+--=20
+balbi
 
-The temperature must be polled anyway, if the ADC does not support
-interrupts.
-
-> And I think there should be some method (sysfs entry?, /dev/bqxxx
-> opened?) to tell the charger driver to stop polling the battery=20
-> driver once (and if) the userspace has started to take care of the=20
-> battery temperature - makes no sense to duplicate the checks IMO.
-
-I would just cache the temperature value in the battery driver for a
-couple of seconds. Then userspace can check for very high temperatures
-(-> system shutdown) and the charging driver can check for
-temperatures, which are critical for charging.
-
--- Sebastian
-
---xHFwDpU9dbj6ez1V
+--lS0Z/zpizLfakKcP
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.15 (GNU/Linux)
 
-iQIcBAEBCAAGBQJSk8YHAAoJENju1/PIO/qaDD8P/2dmcE7jRiQtO26FgEDGlsjO
-fb2/4amDr/3rat+6zgRWmHMVRu+LNoRSZKNiBgcSKNGBKE94PzIZ16IunDeCvGJP
-O6Heiwrc+wGn5se+dnllEH7fh09yZBioeth0ljI7TwZrF8cuMDejpZ215LVQ11Zf
-hmTOtq3tnQAH91otgL0WoWeEzAbJBXLoGVqkhjsoVXrlEySjVqbmCS5zwOKBiS90
-qdsqGEUvZFnQnlMfcixYqhuSaBpQ4pAomkjjdOvLUAfZiyM9le6DWH7FRBAFb4PC
-mU//G9KifDT54Oo2V7KibPhUbPKtaX5G6IaYF1y0lSP7RkN2yAIFiS/5OTU34F1S
-O6ht0NyAi1DhWicr6wq0hOi+Yj4U8uyemiPWIUv0unzsCuDmJpg11Ii/uWJSikJL
-aP1zqjJfFlCQ+vr/TbwTCl5fge45BEUy4jnbi/HJ1tAgKevoXeu2Hp7cLPE8ZQ6T
-GbYMpyrRL6sNcepup+KGpHyVB+LuSAxyiVg2UM+FMDGwmWRAra7AQPLVN73BPmPR
-hGv+NcF3D00enWLozZFYvSddhPGWp9KU1tiln52r2N0QZh7J/rYZyeJYELFe6CIr
-lL77i25BhzdzbOXCFlRCkwcvriOldAI6L8lfKX2KNJm25C8DXedTGE1YGgeCWeEv
-rAaRz4icSTidrHeRFNUM
-=EhwB
+iQIcBAEBAgAGBQJSk8o1AAoJEIaOsuA1yqREfYYP/iW8R8v9WJ9qkdGNyyy6ASPP
+6Bmm6rlHn8WB1UBgIkwoCNwJmL4slsFKYABTXLitb1lVfMHYRS5MdfUBrhRqWzMW
+rWHV+BUafKt7rXGlA4aYH91PCBkOE2OTsJA/oAoNLd3rNszck/WbpESkWhJLCrq8
+g93B4fuojy5xaudyw9ZKaJEdSjBnnd1DyUGJwvDFPL0iSRVB5YBxK7q2NhXIkq/M
+4uiMfWyKcxaWypFXkhloBk2HvyK1kSAniXqKWacKI89LqpyazxCfqi2uZye/rH+9
+rYBvfq8B2MMQELtdaa4FvWBMLK8WKKn3aYHIMP4db6yUCx0WK13ZHC9Va30fhm36
+EFfe31t5Q3e/4gLpMo0vfuT4slyXJ2c9lYmnz/WhhGxsoAcMOPj+lFpgh4YAAUYN
+HOn1GvxAcfQz3g7Nj1RQqgD/IVkoNaewG683CFH46yhP5CjF5EYcaan4b3vQLhSw
+hrnVBt5vJWQBM+aN+8R3RiGDTomDNdnpC5V1i7BFWUe3Wf1zY9sUDA1Z6x4jJK1b
+EYKXfiur2ipfGmBjtfY1EpuAsnhc/NDAYItPJLheVds7CMis3oGw+I8vzlj9J0TK
+fSaYXYvGWASTSkmSpMJ7g5G8PSa6g9hV/8S9bNroCoQItG6tqVDHCWSYkycxQcro
+UQ8+DWSdDb5ZSg30IzE4
+=TKwl
 -----END PGP SIGNATURE-----
 
---xHFwDpU9dbj6ez1V--
+--lS0Z/zpizLfakKcP--
