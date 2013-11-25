@@ -1,49 +1,81 @@
-From: Daniel Mack <zonque@gmail.com>
-Subject: Re: [PATCH v2 4/4] usb: musb: dsps: add support for suspend and resume
-Date: Mon, 25 Nov 2013 22:30:37 +0100
-Message-ID: <5293C17D.3020508@gmail.com>
-References: <1385414803-13212-1-git-send-email-zonque@gmail.com> <1385414803-13212-5-git-send-email-zonque@gmail.com> <20131125212920.GU18046@saruman.home>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH v2 1/7] usb: dwc3: get "usb_phy" only if the platform
+ indicates the presence of PHY's
+Date: Mon, 25 Nov 2013 15:32:13 -0600
+Message-ID: <20131125213213.GV18046@saruman.home>
+References: <1381866857-3861-1-git-send-email-kishon@ti.com>
+ <1381866857-3861-2-git-send-email-kishon@ti.com>
+ <20131017163828.GH11611@gimli>
+ <5280EB5C.1040001@ti.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bk0-f41.google.com ([209.85.214.41]:65445 "EHLO
-	mail-bk0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752378Ab3KYVak (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 25 Nov 2013 16:30:40 -0500
-In-Reply-To: <20131125212920.GU18046@saruman.home>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="wwhGNBny+TwOF9uv"
+Return-path: <linux-doc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <5280EB5C.1040001@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: balbi@ti.com, gregkh@linuxfoundation.org, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ijc+devicetree@hellion.org.uk, rob@landley.net, bcousson@baylibre.com, tony@atomide.com, linux@arm.linux.org.uk, grant.likely@linaro.org, s.nawrocki@samsung.com, galak@codeaurora.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: bigeasy@linutronix.de, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, neumann@teufel.de
 
-On 11/25/2013 10:29 PM, Felipe Balbi wrote:
-> Hi,
-> 
-> On Mon, Nov 25, 2013 at 10:26:43PM +0100, Daniel Mack wrote:
->> +static int dsps_resume(struct device *dev)
->> +{
->> +	struct dsps_glue *glue = dev_get_drvdata(dev);
->> +	const struct dsps_musb_wrapper *wrp = glue->wrp;
->> +	struct musb *musb = platform_get_drvdata(glue->musb);
->> +	void __iomem *mbase = musb->ctrl_base;
->> +
->> +	dsps_writel(mbase, wrp->control, glue->context.control);
->> +	dsps_writel(mbase, wrp->epintr_set, glue->context.epintr);
->> +	dsps_writel(mbase, wrp->coreintr_set, glue->context.coreintr);
->> +	dsps_writel(mbase, wrp->phy_utmi, glue->context.phy_utmi);
->> +	dsps_writel(mbase, wrp->mode, glue->context.mode);
->> +	dsps_writel(mbase, wrp->tx_mode, glue->context.tx_mode);
->> +	dsps_writel(mbase, wrp->rx_mode, glue->context.rx_mode);
->> +
->> +	//musb_port_reset(musb, false);
-> 
-> ????
-> 
+--wwhGNBny+TwOF9uv
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Urgs. Development left-over. Sorry. You want me to resend the whole
-series or just this last patch?
+Hi,
 
+On Mon, Nov 11, 2013 at 08:06:12PM +0530, Kishon Vijay Abraham I wrote:
+> >> diff --git a/drivers/usb/dwc3/platform_data.h b/drivers/usb/dwc3/platf=
+orm_data.h
+> >> index 7db34f0..49ffa6d 100644
+> >> --- a/drivers/usb/dwc3/platform_data.h
+> >> +++ b/drivers/usb/dwc3/platform_data.h
+> >> @@ -24,4 +24,6 @@ struct dwc3_platform_data {
+> >>  	enum usb_device_speed maximum_speed;
+> >>  	enum usb_dr_mode dr_mode;
+> >>  	bool tx_fifo_resize;
+> >> +	bool usb2_phy;
+> >> +	bool usb3_phy;
+> >=20
+> > This would look better as a quirks flag, then we could:
+> >=20
+> > unsigned long quirks;
+> > #define DWC3_QUIRK_NO_USB3_PHY	BIT(0)
+> > #define DWC3_QUIRK_NO_USB2_PHY	BIT(1)
+>=20
+> Should this quirk be used for dt also? Currently we find if it has usb3 p=
+hy or
+> usb2 phy from the dt data only. But if we add a quirk, we'll have to add a
+> property to populate the quirk no?
 
-Daniel
+either we use the quirk, or use the fact that no <&usb2_phy> phandle is
+defined, would work both ways, no ?
 
+--=20
+balbi
+
+--wwhGNBny+TwOF9uv
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.15 (GNU/Linux)
+
+iQIcBAEBAgAGBQJSk8HdAAoJEIaOsuA1yqREsoQQAIBfzbu2z/Pk8DFRqvkWyMnY
+xvT4K/UrePZwqHJbY2LpQFlSpMi1rIIptw+3195cGtyV40IO+BK1wmJpAa7o2F7q
+ImMLm1ORcIWkSYrJb3wPVLcH+m4qVmGyS6bZrtKOjX7o4jM6IEL4f8BcYf71W2Yr
+B/UuZB+R327zebZDlQFoOWK1s4X5sEPzpFMTn8LXzfgwRRD3xM+XkVArT7578AYw
+eBjEyDU3TODEXjgPpTcugVXYZCt+ogBiTnMpJrr17kLYHNed3/ScWkYOwuID8R/p
+gL9bJ89/2TWgyf12m+512NjcbA2/Wv+L3MpfkJPO4YH+98re90EN6UqZ3tnXLLAz
+LFehog7DQOmjtbid8uiWEGkjL/xu6+Y7UU7gdQ+MTBjcLLDpYr5tkjln5g8PdvVt
+RbSbTqRRb3s4kM4ZYu9CKxr0clysLgYHnsrZos9oFCxEzmLunCYN2r4a89XqowtN
+csxtimWn+LqCsiAOCo9M7927povga+8AgKTNPd9t5ocuGp6O+3olAuo6bWAdoYH7
+/JfSVWOq6pZ6753k9m9voOfoCjv3bh445QmRGSLNpMs9z/LyaAWu/HtD/ojc3arb
+mbhfC3AlFWUIquA3iBX1DIUIcORTpLD8vvqYe/IHh/bZcRH2P1P9EK0ORnwfml4Y
+ElEXVlIR3vCmphyn9SXo
+=Kfhf
+-----END PGP SIGNATURE-----
+
+--wwhGNBny+TwOF9uv--
