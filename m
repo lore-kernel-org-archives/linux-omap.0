@@ -1,104 +1,190 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 2/5] usb: musb: call musb_port_suspend from
- musb_bus_suspend
-Date: Mon, 25 Nov 2013 14:01:21 -0600
-Message-ID: <20131125200121.GE18046@saruman.home>
-References: <1385408393-19707-1-git-send-email-zonque@gmail.com>
- <1385408393-19707-3-git-send-email-zonque@gmail.com>
- <20131125194629.GA18046@saruman.home>
- <5293ABDE.4080404@gmail.com>
-Reply-To: <balbi@ti.com>
+From: Daniel Mack <zonque@gmail.com>
+Subject: Re: [PATCH 4/5] usb: musb: dsps: add support for suspend and resume
+Date: Mon, 25 Nov 2013 21:04:16 +0100
+Message-ID: <5293AD40.6060607@gmail.com>
+References: <1385408393-19707-1-git-send-email-zonque@gmail.com> <1385408393-19707-5-git-send-email-zonque@gmail.com> <20131125194804.GB18046@saruman.home>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="4B4+7MsODflw+h2f"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:46599 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756685Ab3KYUCY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 25 Nov 2013 15:02:24 -0500
-Content-Disposition: inline
-In-Reply-To: <5293ABDE.4080404@gmail.com>
+Received: from mail-bk0-f41.google.com ([209.85.214.41]:55432 "EHLO
+	mail-bk0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757117Ab3KYUEU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 25 Nov 2013 15:04:20 -0500
+In-Reply-To: <20131125194804.GB18046@saruman.home>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Daniel Mack <zonque@gmail.com>
-Cc: balbi@ti.com, bigeasy@linutronix.de, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, neumann@teufel.de, Greg KH <gregkh@linuxfoundation.org>, Alan Stern <stern@rowland.harvard.edu>
+To: balbi@ti.com
+Cc: bigeasy@linutronix.de, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, neumann@teufel.de
 
---4B4+7MsODflw+h2f
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On 11/25/2013 08:48 PM, Felipe Balbi wrote:
+> On Mon, Nov 25, 2013 at 08:39:52PM +0100, Daniel Mack wrote:
+>> The dsps platform needs to save save some registers at suspend time and
+>> restore them after resume. This patch adds a struct for these registers,
+>> and also lets the musb core know that the core registers need to be
+>> saved as well.
+>>
+>> We also have to call musb_port_reset() for this platform upon resume, so
+>> this function has to be made non-static.
+>>
+>> Signed-off-by: Daniel Mack <zonque@gmail.com>
+>> ---
+>>  drivers/usb/musb/musb_core.h    |  1 +
+>>  drivers/usb/musb/musb_dsps.c    | 59 +++++++++++++++++++++++++++++++++++++++++
+>>  drivers/usb/musb/musb_host.h    |  2 ++
+>>  drivers/usb/musb/musb_virthub.c |  2 +-
+>>  4 files changed, 63 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
+>> index 29f7cd7..a423037 100644
+>> --- a/drivers/usb/musb/musb_core.h
+>> +++ b/drivers/usb/musb/musb_core.h
+>> @@ -295,6 +295,7 @@ struct musb {
+>>  
+>>  	irqreturn_t		(*isr)(int, void *);
+>>  	struct work_struct	irq_work;
+>> +
+>>  	u16			hwvers;
+>>  
+>>  	u16			intrrxe;
+>> diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
+>> index e57d712..361ddf8 100644
+>> --- a/drivers/usb/musb/musb_dsps.c
+>> +++ b/drivers/usb/musb/musb_dsps.c
+>> @@ -112,6 +112,19 @@ struct dsps_musb_wrapper {
+>>  	u8		poll_seconds;
+>>  };
+>>  
+>> +/*
+>> + * register shadow for suspend
+>> + */
+>> +struct dsps_context {
+>> +	u32 control;
+>> +	u32 epintr;
+>> +	u32 coreintr;
+>> +	u32 phy_utmi;
+>> +	u32 mode;
+>> +	u32 tx_mode;
+>> +	u32 rx_mode;
+>> +};
+>> +
+>>  /**
+>>   * DSPS glue structure.
+>>   */
+>> @@ -121,6 +134,8 @@ struct dsps_glue {
+>>  	const struct dsps_musb_wrapper *wrp; /* wrapper register offsets */
+>>  	struct timer_list timer;	/* otg_workaround timer */
+>>  	unsigned long last_timer;    /* last timer data for each instance */
+>> +
+>> +	struct dsps_context context;
+>>  };
+>>  
+>>  static void dsps_musb_try_idle(struct musb *musb, unsigned long timeout)
+>> @@ -506,6 +521,7 @@ static int dsps_create_musb_pdev(struct dsps_glue *glue,
+>>  	}
+>>  	pdata.config = config;
+>>  	pdata.platform_ops = &dsps_ops;
+>> +	pdata.restore_after_suspend = 1;
+>>  
+>>  	config->num_eps = get_int_prop(dn, "mentor,num-eps");
+>>  	config->ram_bits = get_int_prop(dn, "mentor,ram-bits");
+>> @@ -632,11 +648,54 @@ static const struct of_device_id musb_dsps_of_match[] = {
+>>  };
+>>  MODULE_DEVICE_TABLE(of, musb_dsps_of_match);
+>>  
+>> +#ifdef CONFIG_PM
+>> +static int dsps_suspend(struct device *dev)
+>> +{
+>> +	struct dsps_glue *glue = dev_get_drvdata(dev);
+>> +	const struct dsps_musb_wrapper *wrp = glue->wrp;
+>> +	struct musb *musb = platform_get_drvdata(glue->musb);
+>> +	void __iomem *mbase = musb->ctrl_base;
+>> +
+>> +	glue->context.control = dsps_readl(mbase, wrp->control);
+>> +	glue->context.epintr = dsps_readl(mbase, wrp->epintr_set);
+>> +	glue->context.coreintr = dsps_readl(mbase, wrp->coreintr_set);
+>> +	glue->context.phy_utmi = dsps_readl(mbase, wrp->phy_utmi);
+>> +	glue->context.mode = dsps_readl(mbase, wrp->mode);
+>> +	glue->context.tx_mode = dsps_readl(mbase, wrp->tx_mode);
+>> +	glue->context.rx_mode = dsps_readl(mbase, wrp->rx_mode);
+>> +
+>> +	return 0;
+>> +}
+>> +
+>> +static int dsps_resume(struct device *dev)
+>> +{
+>> +	struct dsps_glue *glue = dev_get_drvdata(dev);
+>> +	const struct dsps_musb_wrapper *wrp = glue->wrp;
+>> +	struct musb *musb = platform_get_drvdata(glue->musb);
+>> +	void __iomem *mbase = musb->ctrl_base;
+>> +
+>> +	dsps_writel(mbase, wrp->control, glue->context.control);
+>> +	dsps_writel(mbase, wrp->epintr_set, glue->context.epintr);
+>> +	dsps_writel(mbase, wrp->coreintr_set, glue->context.coreintr);
+>> +	dsps_writel(mbase, wrp->phy_utmi, glue->context.phy_utmi);
+>> +	dsps_writel(mbase, wrp->mode, glue->context.mode);
+>> +	dsps_writel(mbase, wrp->tx_mode, glue->context.tx_mode);
+>> +	dsps_writel(mbase, wrp->rx_mode, glue->context.rx_mode);
+>> +
+>> +	musb_port_reset(musb, false);
+>> +
+>> +	return 0;
+>> +}
+>> +#endif
+>> +
+>> +static SIMPLE_DEV_PM_OPS(dsps_pm_ops, dsps_suspend, dsps_resume);
+>> +
+>>  static struct platform_driver dsps_usbss_driver = {
+>>  	.probe		= dsps_probe,
+>>  	.remove         = dsps_remove,
+>>  	.driver         = {
+>>  		.name   = "musb-dsps",
+>> +		.pm	= &dsps_pm_ops,
+>>  		.of_match_table	= musb_dsps_of_match,
+>>  	},
+>>  };
+>> diff --git a/drivers/usb/musb/musb_host.h b/drivers/usb/musb/musb_host.h
+>> index e660af9..7436c24 100644
+>> --- a/drivers/usb/musb/musb_host.h
+>> +++ b/drivers/usb/musb/musb_host.h
+>> @@ -93,6 +93,7 @@ extern void musb_root_disconnect(struct musb *musb);
+>>  extern void musb_host_resume_root_hub(struct musb *musb);
+>>  extern void musb_host_poke_root_hub(struct musb *musb);
+>>  extern void musb_port_suspend(struct musb *musb, bool do_suspend);
+>> +extern void musb_port_reset(struct musb *musb, bool do_reset);
+>>  #else
+>>  static inline struct musb *hcd_to_musb(struct usb_hcd *hcd)
+>>  {
+>> @@ -123,6 +124,7 @@ static inline void musb_host_resume_root_hub(struct musb *musb)	{}
+>>  static inline void musb_host_poll_rh_status(struct musb *musb)	{}
+>>  static inline void musb_host_poke_root_hub(struct musb *musb)	{}
+>>  static inline void musb_port_suspend(struct musb *musb, bool do_suspend) {}
+>> +static inline void musb_port_reset(struct musb *musb)		{}
+>>  #endif
+>>  
+>>  struct usb_hcd;
+>> diff --git a/drivers/usb/musb/musb_virthub.c b/drivers/usb/musb/musb_virthub.c
+>> index e977441..24e46c0 100644
+>> --- a/drivers/usb/musb/musb_virthub.c
+>> +++ b/drivers/usb/musb/musb_virthub.c
+>> @@ -109,7 +109,7 @@ void musb_port_suspend(struct musb *musb, bool do_suspend)
+>>  	}
+>>  }
+>>  
+>> -static void musb_port_reset(struct musb *musb, bool do_reset)
+>> +void musb_port_reset(struct musb *musb, bool do_reset)
+> 
+> NAK, this should not be called from the glue layers at all. If anything
+> call from musb_core's resume callback. That will only be called after
+> parent's resume has been called anyway.
 
-Hi,
+Given that this driver is successfully used with suspend/resume on other
+platforms without that reset, but it's clearly needed for dsps, I'm
+fairly sure this should be a glue-layer specific thing. Hence the change.
 
-On Mon, Nov 25, 2013 at 08:58:22PM +0100, Daniel Mack wrote:
-> On 11/25/2013 08:46 PM, Felipe Balbi wrote:
-> > On Mon, Nov 25, 2013 at 08:39:50PM +0100, Daniel Mack wrote:
-> >> Make musb_port_suspend() externally available, and call it when to host
-> >> goes into suspend. This allows the core to go into suspend while a
-> >> device is connected.
-> >>
-> >> Signed-off-by: Daniel Mack <zonque@gmail.com>
-> >> ---
-> >>  drivers/usb/musb/musb_host.c    | 2 ++
-> >>  drivers/usb/musb/musb_host.h    | 2 ++
-> >>  drivers/usb/musb/musb_virthub.c | 2 +-
-> >>  3 files changed, 5 insertions(+), 1 deletion(-)
-> >>
-> >> diff --git a/drivers/usb/musb/musb_host.c b/drivers/usb/musb/musb_host=
-=2Ec
-> >> index 6582a20..81caf9f 100644
-> >> --- a/drivers/usb/musb/musb_host.c
-> >> +++ b/drivers/usb/musb/musb_host.c
-> >> @@ -2433,6 +2433,8 @@ static int musb_bus_suspend(struct usb_hcd *hcd)
-> >>  	struct musb	*musb =3D hcd_to_musb(hcd);
-> >>  	u8		devctl;
-> >> =20
-> >> +	musb_port_suspend(musb, true);
-> >=20
-> > have you considered the fact that when musb looses context it'll cause a
-> > disconnect on the bus because soft_connect bit is lost ?
-> >
-> > What if you have a mounted file system on a pendrive ? Should we allow
-> > suspend in that case ?
->=20
-> Well, I would have expected that, but in fact, the opposite is true.
-> With 3.12, mounting a filesystem on a USB media and accessing it after
-> resume was exactly my test case, and it worked just fine with that patch.
+I think it'll break things on other platforms if we unconditionally
+reset the port after resume, but I can't test it. Anyone?
 
-so you had a mounted file system, suspend, resume, it was still mounted?
-or did it reenumerate and you remounted it ?
 
-Try to do the same with transfers in flight, it's likely to corrupt your
-file system.
-
-> In 3.13, something about the parition table reading seems to be broken
-> currently, I'll have a closer look.
-
-cool
-
---=20
-balbi
-
---4B4+7MsODflw+h2f
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.15 (GNU/Linux)
-
-iQIcBAEBAgAGBQJSk6yRAAoJEIaOsuA1yqRESyQP/1+qwmN70JwLHigxXK8aIXDu
-xgwPFxR4OHSEGDAskyxwMqS/Cz8I2v7PRaVa6p4pL46sjcRGdgQnjmVAAe0Uxu8b
-qPFY/LFOo6glnxnJMFL27uTHbtDxCSvkAT5wEgJL5SJNpRXI0pqvwnO5F4ZGyj76
-0v2fSuWOIfMDTHpaSg9OzqqI2uOlRdN5wTr/9cvmY4zLi+F/Cnqxffy2HXktatpZ
-gM+9fxa5eXUYeFgExnetusCzC7ZduZHc475iZANmsNC/flKn4b8G9H0L9VmBmk9b
-leHuz29Sd7yx/+alW9HzkOevH4IpTf2Tbxwjo5oAzlloSNc47iyBdquf5ST1AKdY
-zXIMI5gg+MRdSOum0PTD9Df6lK7tLwWixIR3893TLSp1ApTizo5IrIqF89+48TkI
-uNrDJtEYkAfPqcOR7o/gfU2nNd4sA/kldN/Iij8gNtmGqogEtAqT+RWpzETRcw/u
-+f2gPV0ZqrNTfsDx5a9zg/8V9CpmuyPELelmT/5VHeIrHTljL3jwILzJBRfnIGZw
-Kqb50Pkef/cB+/fPWZ/DbJF2qZkxXFjz3qRAjJFaw7vof5nrcpeua/ZA4B0loDGN
-g0H47ex3ySzZ6nVrtkPB+oZTsa2Pae8rJgN9yDY/L0GPvuEYdqA7dneG+gTVLAWU
-unVRonOuCU4tnSYPxtnI
-=EqvZ
------END PGP SIGNATURE-----
-
---4B4+7MsODflw+h2f--
+Thanks,
+Daniel
