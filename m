@@ -1,56 +1,82 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH v2 2/3] bq2415x_charger: Use power_supply notifier for
- automode
-Date: Mon, 25 Nov 2013 16:18:39 +0100
-Message-ID: <20131125151838.GD21526@amd.pavel.ucw.cz>
-References: <1378630239-10006-1-git-send-email-pali.rohar@gmail.com>
- <201311242041.47075@pali>
- <20131125140127.GA24125@amd.pavel.ucw.cz>
- <201311251510.00987@pali>
+From: Javier Martinez Canillas <javier@dowhile0.org>
+Subject: Re: [PATCH v2 00/11]: add remaining support for IGEP boards
+Date: Mon, 25 Nov 2013 16:30:27 +0100
+Message-ID: <CABxcv=k+Lk=PFONKLvXab5iHExG7WCJRfE6BzEkv_YtPVwB8Dw@mail.gmail.com>
+References: <1384909575-19108-1-git-send-email-javier.martinez@collabora.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <201311251510.00987@pali>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
-Cc: Sebastian Reichel <sre@ring0.de>, Anton Vorontsov <anton@enomsg.org>, David Woodhouse <dwmw2@infradead.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, freemangordon@abv.bg, aaro.koskinen@iki.fi
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:63249 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753857Ab3KYPa3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 25 Nov 2013 10:30:29 -0500
+Received: by mail-wi0-f178.google.com with SMTP id ca18so5626165wib.11
+        for <linux-omap@vger.kernel.org>; Mon, 25 Nov 2013 07:30:27 -0800 (PST)
+In-Reply-To: <1384909575-19108-1-git-send-email-javier.martinez@collabora.co.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Cc: Tony Lindgren <tony@atomide.com>, Enric Balletbo i Serra <eballetbo@gmail.com>, Benoit Cousson <bcousson@baylibre.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Sebastian Reichel <sre@ring0.de>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Mon 2013-11-25 15:10:00, Pali Roh=E1r wrote:
-> On Monday 25 November 2013 15:01:27 Pavel Machek wrote:
-> > Where can I get dsme sources?
-> > 									Pavel
->=20
-> dsme daemon: https://gitorious.org/community-ssu/dsme
-> dsme thermal plugin: https://gitorious.org/rx51-bme-replacement/dsme-=
-thermalobject-surface
->=20
-> dsme thermal plugin is responsible for checking temperature of=20
-> battery and send it to dsme damon. dsme daemon itself checking=20
-> temperature limits and do something (e.g reboot device)
+On Wed, Nov 20, 2013 at 2:06 AM, Javier Martinez Canillas
+<javier.martinez@collabora.co.uk> wrote:
+> In order to make mach-omap2 Device Tree only, the board file for
+> IGEP boards was removed even when support for wifi and display
+> was still not supported by its DTS.
+>
+> This is a second version of a patch-set that adds support for
+> these remaining peripherals and also adds support for USB,
+> HDMI and user LED for the am33xx SoC based IGEP Aquila board.
+>
+> The patch-set is composed of the following patches:
+>
+> Enric Balletbo i Serra (7):
+>       ARM: dts: omap3-igep: Fix bus-width for mmc1.
+>       ARM: dts: omap3-igep: Add support for LBEE1USJYC WiFi connected to SDIO.
+>       ARM: dts: omap3-igep: Update to use the TI AM/DM37x processor.
+>       ARM: dts: AM33XX BASE0033: add pinmux and hdmi node to enable display
+>       ARM: dts: AM33XX BASE0033: add pinmux and user led support.
+>       ARM: dts: AM33XX BASE0033: add 32KBit EEPROM support.
+>       ARM: dts: AM33XX IGEP0033: add USB support.
+>
+> Javier Martinez Canillas (4):
+>       ARM: dts: omap3-igep0020: Add pinmux setup for i2c devices
+>       ARM: dts: omap3-igep0020: Add pinmuxing for DVI output
+>       ARM: OMAP: dss-common: change IGEP's DVI DDC i2c bus
+>       ARM: dts: omap3-igep0020: name twl4030 VPLL2 regulator as vdds_dsi
+>
+> Changes since v1:
+>
+>  Don't add a workaround in drivers/video/omap2/dss/dpi.c to use the
+>  VPLL2 regulator from twl4030 if VDDS_DSI regulator is not linked to
+>  the DPI device since the used regulator is a per board configuration.
+>
+>  Instead add a regulator-name = "vdds_dsi" property to the regulator
+>  in the IGEPv2 DTS file as suggested by Tony Lindgren.
+>
+> Tony,
+>
+> Most of these patches are just DTS changes so they have to be picked
+> by Benoit besides the following patch that has to go through your tree
+>
+> [PATCH 10/11] ARM: OMAP: dss-common: change IGEP's DVI DDC i2c bus
+>
+> Since we have removed the board file for IGEP boards I think these
+> can be considered as regression fixes for 3.13 although I don't mind
+> if you prefer to wait for 3.14.
+>
+> Thanks a lot and best regards,
+> Javier
+> --
 
-Thanks for links!
+Hi Benoit and Tony,
 
-AFAICT.... dsme daemon does some kind of system management, not
-directly controlling charging, right? It does monitor system temperatur=
-e.
+Now that 3.13-rc1 is out, do you think that it would be possible to
+include this series as a fix for the -rc cycle?
 
-Now.. Imagine phone left in car in charger (on sun). Likely
-temperature will reach high values, kernel is charging, dsme will
-reboot the system, but kernel will start charging again, dsme will
-reboot again, ...
+Otherwise we will have missing functionality for IGEP boards on 3.13
+due the board file removal. The changes are mostly DT and won't affect
+other boards.
 
-And it is not only high temperatures that are problem for li-ion
-charging; battery should not be fast charged below 5C and should not
-be charged below 0C. (Again, both are likely to happen if you leave
-your phone in car).
-
-AFAICT, we should simply disable charging below 5C or above 45C.
-
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses=
-/blog.html
+Thanks a lot and best regards,
+Javier
