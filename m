@@ -1,37 +1,26 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Status of 1GHz support on am37xx
-Date: Mon, 25 Nov 2013 15:35:46 -0800
-Message-ID: <20131125233545.GZ10023@atomide.com>
-References: <20131122230121.GA13440@animalcreek.com>
+Subject: Re: [PATCH] ARM: OMAP: dts: add n8x0 onenand
+Date: Mon, 25 Nov 2013 15:39:10 -0800
+Message-ID: <20131125233909.GA10023@atomide.com>
+References: <1384626982-11635-1-git-send-email-aaro.koskinen@iki.fi>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:45724 "EHLO
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:53011 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752592Ab3KYXft (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 25 Nov 2013 18:35:49 -0500
+	with ESMTP id S1750756Ab3KYXjZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 25 Nov 2013 18:39:25 -0500
 Content-Disposition: inline
-In-Reply-To: <20131122230121.GA13440@animalcreek.com>
+In-Reply-To: <1384626982-11635-1-git-send-email-aaro.koskinen@iki.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Mark A. Greer" <mgreer@animalcreek.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Nishanth Menon <nm@ti.com>
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
 
-* Mark A. Greer <mgreer@animalcreek.com> [131122 15:02]:
-> Hello.
-> 
-> I was wondering what that the status of 1GHz support for the am37xx is.
-> 
-> It looks like smartreflex/avs and ABB drivers are there.  Do they need
-> more work (e.g., DT support)?  What DT nodes and related support need
-> to be added?
-> 
-> What pieces are being worked on and which ones aren't?
-> Is there an ETA for the pieces being worked on?
+* Aaro Koskinen <aaro.koskinen@iki.fi> [131116 10:37]:
+> Convert onenand to DT on n8x0 boards.
 
-There are still various parts of twl4030 that are only working with
-platform data, so at least those should be fixed now that we're moving
-to DT only based booting for mach-omap2 for v3.14.
+Thanks, applying into omap-for-v3.14/board-removal branch.
 
 Regards,
 
