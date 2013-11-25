@@ -1,96 +1,76 @@
 From: Daniel Mack <zonque@gmail.com>
-Subject: [PATCH 5/5] usb: musb: dsps: indentation and whitespace fixes
-Date: Mon, 25 Nov 2013 20:39:53 +0100
-Message-ID: <1385408393-19707-6-git-send-email-zonque@gmail.com>
+Subject: [PATCH 2/5] usb: musb: call musb_port_suspend from musb_bus_suspend
+Date: Mon, 25 Nov 2013 20:39:50 +0100
+Message-ID: <1385408393-19707-3-git-send-email-zonque@gmail.com>
 References: <1385408393-19707-1-git-send-email-zonque@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bk0-f54.google.com ([209.85.214.54]:49082 "EHLO
-	mail-bk0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752493Ab3KYTkJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 25 Nov 2013 14:40:09 -0500
+Received: from mail-bk0-f45.google.com ([209.85.214.45]:46821 "EHLO
+	mail-bk0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756872Ab3KYTkF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 25 Nov 2013 14:40:05 -0500
 In-Reply-To: <1385408393-19707-1-git-send-email-zonque@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: balbi@ti.com
 Cc: bigeasy@linutronix.de, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, neumann@teufel.de, Daniel Mack <zonque@gmail.com>
 
-Just a cosmetic thing, no functional change.
+Make musb_port_suspend() externally available, and call it when to host
+goes into suspend. This allows the core to go into suspend while a
+device is connected.
 
 Signed-off-by: Daniel Mack <zonque@gmail.com>
 ---
- drivers/usb/musb/musb_dsps.c | 23 +++++++++++------------
- 1 file changed, 11 insertions(+), 12 deletions(-)
+ drivers/usb/musb/musb_host.c    | 2 ++
+ drivers/usb/musb/musb_host.h    | 2 ++
+ drivers/usb/musb/musb_virthub.c | 2 +-
+ 3 files changed, 5 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
-index 361ddf8..b27c072 100644
---- a/drivers/usb/musb/musb_dsps.c
-+++ b/drivers/usb/musb/musb_dsps.c
-@@ -131,9 +131,9 @@ struct dsps_context {
- struct dsps_glue {
- 	struct device *dev;
- 	struct platform_device *musb;	/* child musb pdev */
--	const struct dsps_musb_wrapper *wrp; /* wrapper register offsets */
-+	const struct dsps_musb_wrapper *wrp;	/* wrapper register offsets */
- 	struct timer_list timer;	/* otg_workaround timer */
--	unsigned long last_timer;    /* last timer data for each instance */
-+	unsigned long last_timer;	/* last timer data for each instance */
+diff --git a/drivers/usb/musb/musb_host.c b/drivers/usb/musb/musb_host.c
+index 6582a20..81caf9f 100644
+--- a/drivers/usb/musb/musb_host.c
++++ b/drivers/usb/musb/musb_host.c
+@@ -2433,6 +2433,8 @@ static int musb_bus_suspend(struct usb_hcd *hcd)
+ 	struct musb	*musb = hcd_to_musb(hcd);
+ 	u8		devctl;
  
- 	struct dsps_context context;
- };
-@@ -213,7 +213,7 @@ static void dsps_musb_disable(struct musb *musb)
++	musb_port_suspend(musb, true);
++
+ 	if (!is_host_active(musb))
+ 		return 0;
  
- 	dsps_writel(reg_base, wrp->coreintr_clear, wrp->usb_bitmap);
- 	dsps_writel(reg_base, wrp->epintr_clear,
--			 wrp->txep_bitmap | wrp->rxep_bitmap);
-+		    wrp->txep_bitmap | wrp->rxep_bitmap);
- 	dsps_writeb(musb->mregs, MUSB_DEVCTL, 0);
- }
+diff --git a/drivers/usb/musb/musb_host.h b/drivers/usb/musb/musb_host.h
+index 960d735..e660af9 100644
+--- a/drivers/usb/musb/musb_host.h
++++ b/drivers/usb/musb/musb_host.h
+@@ -92,6 +92,7 @@ extern void musb_host_rx(struct musb *, u8);
+ extern void musb_root_disconnect(struct musb *musb);
+ extern void musb_host_resume_root_hub(struct musb *musb);
+ extern void musb_host_poke_root_hub(struct musb *musb);
++extern void musb_port_suspend(struct musb *musb, bool do_suspend);
+ #else
+ static inline struct musb *hcd_to_musb(struct usb_hcd *hcd)
+ {
+@@ -121,6 +122,7 @@ static inline void musb_root_disconnect(struct musb *musb)	{}
+ static inline void musb_host_resume_root_hub(struct musb *musb)	{}
+ static inline void musb_host_poll_rh_status(struct musb *musb)	{}
+ static inline void musb_host_poke_root_hub(struct musb *musb)	{}
++static inline void musb_port_suspend(struct musb *musb, bool do_suspend) {}
+ #endif
  
-@@ -234,7 +234,7 @@ static void otg_timer(unsigned long _musb)
- 	 */
- 	devctl = dsps_readb(mregs, MUSB_DEVCTL);
- 	dev_dbg(musb->controller, "Poll devctl %02x (%s)\n", devctl,
--				usb_otg_state_string(musb->xceiv->state));
-+		usb_otg_state_string(musb->xceiv->state));
+ struct usb_hcd;
+diff --git a/drivers/usb/musb/musb_virthub.c b/drivers/usb/musb/musb_virthub.c
+index 9af6bba..e977441 100644
+--- a/drivers/usb/musb/musb_virthub.c
++++ b/drivers/usb/musb/musb_virthub.c
+@@ -44,7 +44,7 @@
  
- 	spin_lock_irqsave(&musb->lock, flags);
- 	switch (musb->xceiv->state) {
-@@ -298,7 +298,7 @@ static irqreturn_t dsps_interrupt(int irq, void *hci)
- 		dsps_writel(reg_base, wrp->coreintr_status, usbintr);
+ #include "musb_core.h"
  
- 	dev_dbg(musb->controller, "usbintr (%x) epintr(%x)\n",
--			usbintr, epintr);
-+		usbintr, epintr);
- 	/*
- 	 * DRVVBUS IRQs are the only proxy we have (a very poor one!) for
- 	 * DSPS IP's missing ID change IRQ.  We need an ID change IRQ to
-@@ -348,10 +348,9 @@ static irqreturn_t dsps_interrupt(int irq, void *hci)
- 
- 		/* NOTE: this must complete power-on within 100 ms. */
- 		dev_dbg(musb->controller, "VBUS %s (%s)%s, devctl %02x\n",
--				drvvbus ? "on" : "off",
--				usb_otg_state_string(musb->xceiv->state),
--				err ? " ERROR" : "",
--				devctl);
-+			drvvbus ? "on" : "off",
-+			usb_otg_state_string(musb->xceiv->state),
-+			err ? " ERROR" : "", devctl);
- 		ret = IRQ_HANDLED;
- 	}
- 
-@@ -692,9 +691,9 @@ static SIMPLE_DEV_PM_OPS(dsps_pm_ops, dsps_suspend, dsps_resume);
- 
- static struct platform_driver dsps_usbss_driver = {
- 	.probe		= dsps_probe,
--	.remove         = dsps_remove,
--	.driver         = {
--		.name   = "musb-dsps",
-+	.remove		= dsps_remove,
-+	.driver		= {
-+		.name	= "musb-dsps",
- 		.pm	= &dsps_pm_ops,
- 		.of_match_table	= musb_dsps_of_match,
- 	},
+-static void musb_port_suspend(struct musb *musb, bool do_suspend)
++void musb_port_suspend(struct musb *musb, bool do_suspend)
+ {
+ 	struct usb_otg	*otg = musb->xceiv->otg;
+ 	u8		power;
 -- 
 1.8.4.2
 
