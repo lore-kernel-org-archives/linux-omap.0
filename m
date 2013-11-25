@@ -1,15 +1,15 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: OMAP baseline test results for v3.13-rc1 (toolchain CodeSourcery
- 2010.09-50)
-Date: Mon, 25 Nov 2013 07:31:40 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1311250725060.1364@utopia.booyaka.com>
+Subject: OMAP baseline test results for v3.13-rc1 (toolchain Debian
+ 4.7.2-5)
+Date: Mon, 25 Nov 2013 07:41:31 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1311250731410.1364@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:35065 "EHLO
+Received: from utopia.booyaka.com ([74.50.51.50]:35095 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752051Ab3KYHbl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 25 Nov 2013 02:31:41 -0500
+	with ESMTP id S1751778Ab3KYHlc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 25 Nov 2013 02:41:32 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -19,7 +19,7 @@ Cc: linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org
 Here are some basic OMAP test results for Linux v3.13-rc1.
 Logs and other details at:
 
-    http://www.pwsan.com/omap/testlogs/test_v3.13-rc1/20131124223225/
+    http://www.pwsan.com/omap/testlogs/test_v3.13-rc1/20131124230250/
 
 
 Test summary
@@ -80,42 +80,43 @@ PM: chip off via dynamic idle:
 vmlinux object size
 (delta in bytes from test_v3.12 (5e01dc7b26d9f24f39abace5da98ccbd6a5ceb52)):
    text     data      bss    total  kernel
- +53225     +320    +4200   +57745  omap1_defconfig
- +50509     +216    +4200   +54925  omap1_defconfig_1510innovator_only
- +47177     +272    +4200   +51649  omap1_defconfig_5912osk_only
-+146639    -6024    +5056  +145671  omap2plus_defconfig
- +98635    +9768    +4672  +113075  omap2plus_defconfig_2430sdp_only
-+150542    -6040    +5056  +149558  omap2plus_defconfig_cpupm
- +83976   +10248    +4400   +98624  omap2plus_defconfig_n800_multi_omap2xxx
- +83920   +10248    +4400   +98568  omap2plus_defconfig_n800_only_a
-+145995    -5224    +5056  +145827  omap2plus_defconfig_no_pm
-+154543   +13528    +4992  +173063  omap2plus_defconfig_omap2_4_only
-+150515    -6016    +5056  +149555  omap2plus_defconfig_omap3_4_only
- +30064   -10076    +3116   +23104  rmk_omap3430_ldp_allnoconfig
- +48163    +3960    +4352   +56475  rmk_omap3430_ldp_oldconfig
- +34920    +1748    +5764   +42432  rmk_omap4430_sdp_allnoconfig
-+4532235  +248124  +439128  +5219487  rmk_omap4430_sdp_oldnoconfig
+-351659     +384    +4216  -347059  omap1_defconfig
+-354695     +296    +4216  -350183  omap1_defconfig_1510innovator_only
+-354491     +360    +4216  -349915  omap1_defconfig_5912osk_only
+-276029    -5584    +5008  -276605  omap2plus_defconfig
+-292693    +9808    +4656  -278229  omap2plus_defconfig_2430sdp_only
+-273194    -5512    +5008  -273698  omap2plus_defconfig_cpupm
+ +88436   +10392    +4368  +103196  omap2plus_defconfig_n800_multi_omap2xxx
+ +88404   +10408    +4368  +103180  omap2plus_defconfig_n800_only_a
+-273765    -4704    +5008  -273461  omap2plus_defconfig_no_pm
+-263629   +13912    +4944  -244773  omap2plus_defconfig_omap2_4_only
+-270645    -5584    +5008  -271221  omap2plus_defconfig_omap3_4_only
+-119620   -10124    +2856  -126888  rmk_omap3430_ldp_allnoconfig
+ +49719    +3928    +4352   +57999  rmk_omap3430_ldp_oldconfig
+-115704    +1788    +5608  -108308  rmk_omap4430_sdp_allnoconfig
++4738404  +250480  +443152  +5432036  rmk_omap4430_sdp_oldnoconfig
+
+Re-enabled rmk_omap4430_sdp_oldnoconfig.
+
+A significant portion of the size delta is due to switch in the toolchain 
+used for the testbed, to the Emdebian gcc 4.7.  See also the message with 
+the subject line "OMAP baseline test results for v3.13-rc1 (toolchain 
+CodeSourcery 2010.09-50)" for the results with the previous compiler used.
+
 
 Boot-time memory difference
 (delta in bytes from test_v3.12 (5e01dc7b26d9f24f39abace5da98ccbd6a5ceb52))
   avail  rsrvd   high  freed  board          kconfig
-   -96k    96k      .     4k  2420n800       omap2plus_defconfig_n800_only_a
-  -140k   140k      .    -4k  2430sdp        omap2plus_defconfig
-  -140k   140k      .    -4k  3517evm        omap2plus_defconfig
-  -140k   140k      .    -4k  3530es3beagle  omap2plus_defconfig
-  -140k   140k      .    -4k  3730beaglexm   omap2plus_defconfig
+  -104k   104k      .     4k  2420n800       omap2plus_defconfig_n800_only_a
+   276k  -276k      .    -8k  2430sdp        omap2plus_defconfig
+   276k  -276k      .    -8k  3517evm        omap2plus_defconfig
+   276k  -276k      .    -8k  3530es3beagle  omap2plus_defconfig
+   276k  -276k      .    -8k  3730beaglexm   omap2plus_defconfig
  -227908k -33212k      .  -392k  37xxevm        omap2plus_defconfig
-  -140k   140k      .    -4k  4430es2panda   omap2plus_defconfig
-  -144k   144k      .    -4k  4460pandaes    omap2plus_defconfig
-  -144k   144k      .    -4k  4460varsomom   omap2plus_defconfig
-  -144k   144k      .     4k  am335xbone     omap2plus_defconfig_am33xx_only
-  -148k   148k      .    -4k  am335xbonelt   omap2plus_defconfig_am33xx_only
-
-
-Re-enabled rmk_omap4430_sdp_oldnoconfig.
-
-Will be switching toolchains from CodeSourcery 2010.09-50 to Debian 
-4.7.2-5; a test with the newer toolchain version is to follow.
-
+   272k  -272k      .    -8k  4430es2panda   omap2plus_defconfig
+   268k  -268k      .    -8k  4460pandaes    omap2plus_defconfig
+   272k  -272k      .    -8k  4460varsomom   omap2plus_defconfig
+   312k  -312k      .     4k  am335xbone     omap2plus_defconfig_am33xx_only
+   268k  -268k      .    -8k  am335xbonelt   omap2plus_defconfig_am33xx_only
 
 
