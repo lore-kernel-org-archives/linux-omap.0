@@ -1,74 +1,106 @@
-From: Sebastian Reichel <sre@ring0.de>
-Subject: Re: [PATCH v2 2/3] bq2415x_charger: Use power_supply notifier for
- automode
-Date: Mon, 25 Nov 2013 18:14:21 +0100
-Message-ID: <20131125171420.GA12995@earth.universe>
-References: <1851041258.29554.1385398914287.JavaMail.apache@mail83.abv.bg>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: ARM: v3.13-rc1: USB regression
+Date: Mon, 25 Nov 2013 17:18:53 +0000
+Message-ID: <20131125171853.GF25039@n2100.arm.linux.org.uk>
+References: <20131124222247.GC24645@blackmetal.musicnaut.iki.fi> <20131124224359.GE25039@n2100.arm.linux.org.uk> <20131125163302.GD24645@blackmetal.musicnaut.iki.fi>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="ibTvN161/egqYuK8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:43386 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753684Ab3KYRTr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 25 Nov 2013 12:19:47 -0500
 Content-Disposition: inline
-In-Reply-To: <1851041258.29554.1385398914287.JavaMail.apache@mail83.abv.bg>
-Sender: linux-kernel-owner@vger.kernel.org
-To: =?utf-8?B?0JjQstCw0LnQu9C+INCU0LjQvNC40YLRgNC+0LI=?= <freemangordon@abv.bg>
-Cc: Pavel Machek <pavel@ucw.cz>, pali.rohar@gmail.com, anton@enomsg.org, dwmw2@infradead.org, tony@atomide.com, linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, aaro.koskinen@iki.fi
+In-Reply-To: <20131125163302.GD24645@blackmetal.musicnaut.iki.fi>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, Alan Stern <stern@rowland.harvard.edu>, linux-omap@vger.kernel.org
 
+On Mon, Nov 25, 2013 at 06:33:02PM +0200, Aaro Koskinen wrote:
+> Hi,
+> 
+> On Sun, Nov 24, 2013 at 10:43:59PM +0000, Russell King - ARM Linux wrote:
+> > On Mon, Nov 25, 2013 at 12:22:47AM +0200, Aaro Koskinen wrote:
+> > > [   33.967324] ohci ohci: Coherent DMA mask 0xffffffff (pfn 0xe0000-0xe0000) covers a smaller range of system memory than the DMA zone pfn 0x0-0x100000
+> > > 
+> > > I bisected this to 4dcfa60071b3d23f0181f27d8519f12e37cefbb9 (ARM: DMA-API:
+> > > better handing of DMA masks for coherent allocations). Reverting that
+> > > commit makes the USB work again fine.
+> 
+> [...]
+> 
+> > Better would be:
+> > 
+> > #define __arch_dma_to_pfn(dev, addr)	\
+> > 	({ unsigned long pfn = (addr) >> PAGE_SHIFT;		\
+> > 	   if (is_lbus_device(dev))				\
+> > 		pfn += PHYS_PFN_OFFSET - 			\
+> > 			(OMAP1510_LB_OFFSET >> PAGE_SHIFT);	\
+> > 	   pfn;							\
+> > 	})
+> > 
+> > Can you try that in arch/arm/mach-omap1/include/mach/memory.h please?
+> 
+> Still doesn't work:
+> 
+> [   33.878790] ohci ohci: Coherent DMA mask 0xffffffff (pfn 0xfffe0000-0xe0000) covers a smaller range of system memory than the DMA zone pfn 0x0-0x100000
+> [   33.894019] ohci ohci: can't setup: -12
 
---ibTvN161/egqYuK8
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Well, that looks technically better, rather unfortunate that we end up
+going to negative PFNs though.
 
-On Mon, Nov 25, 2013 at 07:01:54PM +0200, =D0=98=D0=B2=D0=B0=D0=B9=D0=BB=D0=
-=BE =D0=94=D0=B8=D0=BC=D0=B8=D1=82=D1=80=D0=BE=D0=B2 wrote:
->> Now.. Imagine phone left in car in charger (on sun). Likely
->> temperature will reach high values, kernel is charging, dsme will
->> reboot the system, but kernel will start charging again, dsme will
->> reboot again, ...
->>
->> And it is not only high temperatures that are problem for li-ion
->> charging; battery should not be fast charged below 5C and should not
->> be charged below 0C. (Again, both are likely to happen if you leave
->> your phone in car).
->>
->> AFAICT, we should simply disable charging below 5C or above 45C.
->=20
-> AFAIK dsme will not restart it, but power it off, so the above
-> scenario won't happen.
+Without that change, could you try this instead please:
 
-Just assume what happens, when dsme does not start (e.g. system boot
-hangs).
+ arch/arm/mm/dma-mapping.c |    9 +++++++--
+ 1 files changed, 7 insertions(+), 2 deletions(-)
 
-If everything is controlled from userspace, charger would not start
-(-> safe!). If everything is controlled by the kernel, temperature
-safety checks are taken (-> safe!). But in the currently proposed
-variant: No safety checks.
+diff --git a/arch/arm/mm/dma-mapping.c b/arch/arm/mm/dma-mapping.c
+index f0ea0134e5a3..a18cfc53f445 100644
+--- a/arch/arm/mm/dma-mapping.c
++++ b/arch/arm/mm/dma-mapping.c
+@@ -9,6 +9,7 @@
+  *
+  *  DMA uncached mapping support.
+  */
++#include <linux/bootmem.h>
+ #include <linux/module.h>
+ #include <linux/mm.h>
+ #include <linux/gfp.h>
+@@ -162,6 +163,8 @@ static u64 get_coherent_dma_mask(struct device *dev)
+ 	u64 mask = (u64)DMA_BIT_MASK(32);
+ 
+ 	if (dev) {
++		unsigned long max_dma_pfn;
++
+ 		mask = dev->coherent_dma_mask;
+ 
+ 		/*
+@@ -173,6 +176,8 @@ static u64 get_coherent_dma_mask(struct device *dev)
+ 			return 0;
+ 		}
+ 
++		max_dma_pfn = min(max_pfn, arm_dma_pfn_limit);
++
+ 		/*
+ 		 * If the mask allows for more memory than we can address,
+ 		 * and we actually have that much memory, then fail the
+@@ -180,7 +185,7 @@ static u64 get_coherent_dma_mask(struct device *dev)
+ 		 */
+ 		if (sizeof(mask) != sizeof(dma_addr_t) &&
+ 		    mask > (dma_addr_t)~0 &&
+-		    dma_to_pfn(dev, ~0) > arm_dma_pfn_limit) {
++		    dma_to_pfn(dev, ~0) > max_dma_pfn) {
+ 			dev_warn(dev, "Coherent DMA mask %#llx is larger than dma_addr_t allows\n",
+ 				 mask);
+ 			dev_warn(dev, "Driver did not use or check the return value from dma_set_coherent_mask()?\n");
+@@ -192,7 +197,7 @@ static u64 get_coherent_dma_mask(struct device *dev)
+ 		 * fits within the allowable addresses which we can
+ 		 * allocate.
+ 		 */
+-		if (dma_to_pfn(dev, mask) < arm_dma_pfn_limit) {
++		if (dma_to_pfn(dev, mask) < max_dma_pfn) {
+ 			dev_warn(dev, "Coherent DMA mask %#llx (pfn %#lx-%#lx) covers a smaller range of system memory than the DMA zone pfn 0x0-%#lx\n",
+ 				 mask,
+ 				 dma_to_pfn(dev, 0), dma_to_pfn(dev, mask) + 1,
 
--- Sebastian
-
-
---ibTvN161/egqYuK8
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.15 (GNU/Linux)
-
-iQIcBAEBCAAGBQJSk4VsAAoJENju1/PIO/qaEGcP/jYZKDCBRL4EB9qg7PofQDMn
-kFoXcwp9wNPFP/JW78Gm0u5217oCTxZA4YQBt7N+Cfn//aJAMwJguJPbd5D0hyCu
-SV7M0Wv4R7odatvk/OXcWGfvk9Ofid+6eaZRPDRwnDw6VTmHgmj15FdRk7a/w7K7
-5IhZmAh4TBbIW2nKCF9mpZX5vqGBkvDvr5g+zQA6i9P3AtGaHDlYuTyQHIgX+DrW
-urltahuq8BdhOFTefcQ3cnOI7Hap3h7ng24eXfkIVYkZv8vez7TrURzyTn+3ETqd
-zyDRsLspvSKZUqTYd+kN/NkhYMhqtkBduZMkcOPA0htLFPp5Hz/Y2bNEH6VOBbi4
-BLlqFREZBLgdL20O5+XsI3bwYjk/++wU4P15KeYrdDKOMC8d8W0e4oPlB4UDWw7s
-iMe4gBXhgXup0sCn9/oebteRMoeQ0BnG9OtJUgt1Xn7RezIhC5DFAldejkEGSlWb
-hMhZjGqAYhmj9JUGriklZSkUUR1yPuufDM0WmrK1t4zziq5XKIAEWb7ZAY3e1F2V
-jObaCj4vGTJi/ZGyyeUC1p1hiJ2EdZ61GIf58cWt0fhisjrbSIbopE4h5Xzt4lLc
-Y5ZbWyiMCCwK8ZqjbDNQFDr+m9XS1gFGJGOwKEFLNV6/eGjQ90OoRxvBryX2DYci
-Fy/43Q/U8g9ksFw6LVx3
-=rFmr
------END PGP SIGNATURE-----
-
---ibTvN161/egqYuK8--
