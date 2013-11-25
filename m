@@ -1,106 +1,129 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: ARM: v3.13-rc1: USB regression
-Date: Mon, 25 Nov 2013 17:18:53 +0000
-Message-ID: <20131125171853.GF25039@n2100.arm.linux.org.uk>
-References: <20131124222247.GC24645@blackmetal.musicnaut.iki.fi> <20131124224359.GE25039@n2100.arm.linux.org.uk> <20131125163302.GD24645@blackmetal.musicnaut.iki.fi>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: HYP Kernel boot requirements [Was ...Re: [PATCH 2/2] ARM:
+ OMAP5: Add HYP mode entry support for secondary CPUs]
+Date: Mon, 25 Nov 2013 17:28:25 +0000
+Message-ID: <20131125172825.GD8396@arm.com>
+References: <1385251666-27532-1-git-send-email-santosh.shilimkar@ti.com>
+ <1385251666-27532-3-git-send-email-santosh.shilimkar@ti.com>
+ <CAMJs5B8XX-93YcRyTiQ1JRcKUB5oer8cV7FLtMPP6SeqeB3RwQ@mail.gmail.com>
+ <52937AB4.1060901@ti.com>
+ <CAMJs5B9nnpqjSmT7vi9cvC4e9Fx2Bft4rRGxmVKyLP7JbGMPAg@mail.gmail.com>
+ <529381E4.3090405@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:43386 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753684Ab3KYRTr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 25 Nov 2013 12:19:47 -0500
+Received: from fw-tnat.cambridge.arm.com ([217.140.96.21]:52277 "EHLO
+	cam-smtp0.cambridge.arm.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1755228Ab3KYR3m (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 25 Nov 2013 12:29:42 -0500
 Content-Disposition: inline
-In-Reply-To: <20131125163302.GD24645@blackmetal.musicnaut.iki.fi>
+In-Reply-To: <529381E4.3090405@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, Alan Stern <stern@rowland.harvard.edu>, linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Christoffer Dall <christoffer.dall@linaro.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Marc Zyngier <Marc.Zyngier@arm.com>, Tony Lindgren <tony@atomide.com>, Will Deacon <Will.Deacon@arm.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
 
-On Mon, Nov 25, 2013 at 06:33:02PM +0200, Aaro Koskinen wrote:
-> Hi,
-> 
-> On Sun, Nov 24, 2013 at 10:43:59PM +0000, Russell King - ARM Linux wrote:
-> > On Mon, Nov 25, 2013 at 12:22:47AM +0200, Aaro Koskinen wrote:
-> > > [   33.967324] ohci ohci: Coherent DMA mask 0xffffffff (pfn 0xe0000-0xe0000) covers a smaller range of system memory than the DMA zone pfn 0x0-0x100000
-> > > 
-> > > I bisected this to 4dcfa60071b3d23f0181f27d8519f12e37cefbb9 (ARM: DMA-API:
-> > > better handing of DMA masks for coherent allocations). Reverting that
-> > > commit makes the USB work again fine.
-> 
-> [...]
-> 
-> > Better would be:
+On Mon, Nov 25, 2013 at 04:59:16PM +0000, Santosh Shilimkar wrote:
+> On Monday 25 November 2013 11:33 AM, Christoffer Dall wrote:
+> > On 25 November 2013 08:28, Santosh Shilimkar <santosh.shilimkar@ti.com> wrote:
+> >> On Monday 25 November 2013 10:09 AM, Christoffer Dall wrote:
+> >>> On 23 November 2013 16:07, Santosh Shilimkar <santosh.shilimkar@ti.com> wrote:
+> >>>> Boot-CPU entry into the HYP mode is managed in boot-loader but
+> >>>> the secondary CPUs directly jumps to kernel during boot. Same
+> >>>> path is also used for CPU hotplug as well during suspend for
+> >>>> secondary CPU.
+> >>>>
+> >>>> Hence patch the secondary CPU boot path for hyp mode etry.
+> >>>>
+> >>>> Cc: Marc Zyngier <marc.zyngier@arm.com>
+> >>>> Cc: Christoffer Dall <christoffer.dall@linaro.org>
+> >>>> Cc: Tony Lindgren <tony@atomide.com>
+> >>>> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> >>>> ---
+> >>>>  arch/arm/mach-omap2/omap-headsmp.S |    7 +++++++
+> >>>>  1 file changed, 7 insertions(+)
+> >>>>
+> >>>> diff --git a/arch/arm/mach-omap2/omap-headsmp.S b/arch/arm/mach-omap2/omap-headsmp.S
+> >>>> index 75e9295..4844dd8 100644
+> >>>> --- a/arch/arm/mach-omap2/omap-headsmp.S
+> >>>> +++ b/arch/arm/mach-omap2/omap-headsmp.S
+> >>>> @@ -22,6 +22,7 @@
+> >>>>
+> >>>>  /* Physical address needed since MMU not enabled yet on secondary core */
+> >>>>  #define AUX_CORE_BOOT0_PA                      0x48281800
+> >>>> +#define API_HYP_ENTRY                          0x102
+> >>>>
+> >>>>  /*
+> >>>>   * OMAP5 specific entry point for secondary CPU to jump from ROM
+> >>>> @@ -38,6 +39,12 @@ wait:        ldr     r2, =AUX_CORE_BOOT0_PA  @ read from AuxCoreBoot0
+> >>>>         and     r4, r4, #0x0f
+> >>>>         cmp     r0, r4
+> >>>>         bne     wait
+> >>>> +#ifdef CONFIG_KVM_ARM_HOST
+> >>>> +       ldr     r12, =API_HYP_ENTRY
+> >>>> +       adr     r0, hyp_boot
+> >>>> +       smc     #0
+> >>>> +hyp_boot:
+> >>>> +#endif
+> >>>>         b       secondary_startup
+> >>>>  END(omap5_secondary_startup)
+> >>>>  /*
+> >>>
+> >>> hmm, this means that currently running this in a guest will fail to
+> >>> bring-up SMP, right?
+> >>>
+> >> Nope. Because the code under 'KVM_ARM_HOST' macro. Guest build
+> >> will not enable CONFIG_KVM_ARM_HOST and things should be fine then.
+> >> Right ?
+> >>
 > > 
-> > #define __arch_dma_to_pfn(dev, addr)	\
-> > 	({ unsigned long pfn = (addr) >> PAGE_SHIFT;		\
-> > 	   if (is_lbus_device(dev))				\
-> > 		pfn += PHYS_PFN_OFFSET - 			\
-> > 			(OMAP1510_LB_OFFSET >> PAGE_SHIFT);	\
-> > 	   pfn;							\
-> > 	})
+> > That really goes against the whole single binary on all platforms
+> > thing. With multi-platform support you really shouldn't have to
+> > compile your kernel any differently for running as a guest as when
+> > you're running on a host.  Someone may even emulate an OMAP5 in QEMU
+> > and you'd certainly want your kvm-enabled kernel to run as both guest
+> > and host.  After all, this is not a paravirtualization solution.
+> 
+> Fair enough.
+> 
+> >>> Couldn't you create a little wrapper-pen in U-Boot instead, which
+> >>> replicates the omap boot protocol and takes care of the hyp-mode
+> >>> startup there instead, keeping this completely out of the kernel?
+> >>>
+> >> Its not just booting but CPU hotplug also follows the same path
+> >> so we need the mechanism in kernel to switch mode.
+> >>
+> >> In general, I think its important to consider the aspect with
+> >> CPU PM. CPUs are not going to go through the boot-loaders in
+> >> those paths and hence need of HYP entry in the kernel will
+> >> be must.
+> >>
+> > I agree, and PSCI is the obvious only correct answer to this.
 > > 
-> > Can you try that in arch/arm/mach-omap1/include/mach/memory.h please?
+> > We have discussed this a bit earlier (I think Will Deacon brought this
+> > up - cc'ed), but I don't think anyone had any bright ideas.
+> > 
+> > However, we broadly agreed on the fact that for KVM/hyp support, you
+> > need to boot your kernel in that mode, and this is definitely pulling
+> > in the wrong direction.
 > 
-> Still doesn't work:
+> What I am saying is the platforms like OMAP5 already support PM in
+> mainline kernel and we can't break that for KVM. Boot-loaders
+> would be thrashed after boot so you need something which runs
+> in Kernel or along with Kernel to have equivalent of hyp
+> switching.
 > 
-> [   33.878790] ohci ohci: Coherent DMA mask 0xffffffff (pfn 0xfffe0000-0xe0000) covers a smaller range of system memory than the DMA zone pfn 0x0-0x100000
-> [   33.894019] ohci ohci: can't setup: -12
+> Am not challenging the agreed direction but we need to solve the
+> PM problem as well before making "all CPU runs boot-loader for
+> HYP kernels" as a must have. At least its is a change in boot
+> strategy from existing kernels.
 
-Well, that looks technically better, rather unfortunate that we end up
-going to negative PFNs though.
+Of course I recommend PSCI which covers both hotplug and suspend ;), but
+I guess it's not the case for OMAP5. Since OMAP has its own secondary
+booting protocol and CPU hotplug re-entry, can you not just use
+different entry point when the primary CPU was initially started in Hyp
+mode (e.g. omap5_hyp_secondary_startup)?
 
-Without that change, could you try this instead please:
-
- arch/arm/mm/dma-mapping.c |    9 +++++++--
- 1 files changed, 7 insertions(+), 2 deletions(-)
-
-diff --git a/arch/arm/mm/dma-mapping.c b/arch/arm/mm/dma-mapping.c
-index f0ea0134e5a3..a18cfc53f445 100644
---- a/arch/arm/mm/dma-mapping.c
-+++ b/arch/arm/mm/dma-mapping.c
-@@ -9,6 +9,7 @@
-  *
-  *  DMA uncached mapping support.
-  */
-+#include <linux/bootmem.h>
- #include <linux/module.h>
- #include <linux/mm.h>
- #include <linux/gfp.h>
-@@ -162,6 +163,8 @@ static u64 get_coherent_dma_mask(struct device *dev)
- 	u64 mask = (u64)DMA_BIT_MASK(32);
- 
- 	if (dev) {
-+		unsigned long max_dma_pfn;
-+
- 		mask = dev->coherent_dma_mask;
- 
- 		/*
-@@ -173,6 +176,8 @@ static u64 get_coherent_dma_mask(struct device *dev)
- 			return 0;
- 		}
- 
-+		max_dma_pfn = min(max_pfn, arm_dma_pfn_limit);
-+
- 		/*
- 		 * If the mask allows for more memory than we can address,
- 		 * and we actually have that much memory, then fail the
-@@ -180,7 +185,7 @@ static u64 get_coherent_dma_mask(struct device *dev)
- 		 */
- 		if (sizeof(mask) != sizeof(dma_addr_t) &&
- 		    mask > (dma_addr_t)~0 &&
--		    dma_to_pfn(dev, ~0) > arm_dma_pfn_limit) {
-+		    dma_to_pfn(dev, ~0) > max_dma_pfn) {
- 			dev_warn(dev, "Coherent DMA mask %#llx is larger than dma_addr_t allows\n",
- 				 mask);
- 			dev_warn(dev, "Driver did not use or check the return value from dma_set_coherent_mask()?\n");
-@@ -192,7 +197,7 @@ static u64 get_coherent_dma_mask(struct device *dev)
- 		 * fits within the allowable addresses which we can
- 		 * allocate.
- 		 */
--		if (dma_to_pfn(dev, mask) < arm_dma_pfn_limit) {
-+		if (dma_to_pfn(dev, mask) < max_dma_pfn) {
- 			dev_warn(dev, "Coherent DMA mask %#llx (pfn %#lx-%#lx) covers a smaller range of system memory than the DMA zone pfn 0x0-%#lx\n",
- 				 mask,
- 				 dma_to_pfn(dev, 0), dma_to_pfn(dev, mask) + 1,
-
+-- 
+Catalin
