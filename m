@@ -1,87 +1,51 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH 2/2] ARM: OMAP5: Add HYP mode entry support for secondary
- CPUs
-Date: Mon, 25 Nov 2013 11:28:36 -0500
-Message-ID: <52937AB4.1060901@ti.com>
-References: <1385251666-27532-1-git-send-email-santosh.shilimkar@ti.com> <1385251666-27532-3-git-send-email-santosh.shilimkar@ti.com> <CAMJs5B8XX-93YcRyTiQ1JRcKUB5oer8cV7FLtMPP6SeqeB3RwQ@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: OMAP baseline test results for v3.13-rc1 (toolchain Debian
+ 4.7.2-5)
+Date: Mon, 25 Nov 2013 08:30:31 -0800
+Message-ID: <20131125163031.GQ10023@atomide.com>
+References: <alpine.DEB.2.02.1311250731410.1364@utopia.booyaka.com>
+ <alpine.DEB.2.02.1311251514330.1364@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:34605 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755257Ab3KYQ3F (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 25 Nov 2013 11:29:05 -0500
-In-Reply-To: <CAMJs5B8XX-93YcRyTiQ1JRcKUB5oer8cV7FLtMPP6SeqeB3RwQ@mail.gmail.com>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:64451 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753453Ab3KYQai (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 25 Nov 2013 11:30:38 -0500
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.02.1311251514330.1364@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Christoffer Dall <christoffer.dall@linaro.org>
-Cc: linux-omap@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Marc Zyngier <marc.zyngier@arm.com>, Tony Lindgren <tony@atomide.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org
 
-On Monday 25 November 2013 10:09 AM, Christoffer Dall wrote:
-> On 23 November 2013 16:07, Santosh Shilimkar <santosh.shilimkar@ti.com> wrote:
->> Boot-CPU entry into the HYP mode is managed in boot-loader but
->> the secondary CPUs directly jumps to kernel during boot. Same
->> path is also used for CPU hotplug as well during suspend for
->> secondary CPU.
->>
->> Hence patch the secondary CPU boot path for hyp mode etry.
->>
->> Cc: Marc Zyngier <marc.zyngier@arm.com>
->> Cc: Christoffer Dall <christoffer.dall@linaro.org>
->> Cc: Tony Lindgren <tony@atomide.com>
->> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
->> ---
->>  arch/arm/mach-omap2/omap-headsmp.S |    7 +++++++
->>  1 file changed, 7 insertions(+)
->>
->> diff --git a/arch/arm/mach-omap2/omap-headsmp.S b/arch/arm/mach-omap2/omap-headsmp.S
->> index 75e9295..4844dd8 100644
->> --- a/arch/arm/mach-omap2/omap-headsmp.S
->> +++ b/arch/arm/mach-omap2/omap-headsmp.S
->> @@ -22,6 +22,7 @@
->>
->>  /* Physical address needed since MMU not enabled yet on secondary core */
->>  #define AUX_CORE_BOOT0_PA                      0x48281800
->> +#define API_HYP_ENTRY                          0x102
->>
->>  /*
->>   * OMAP5 specific entry point for secondary CPU to jump from ROM
->> @@ -38,6 +39,12 @@ wait:        ldr     r2, =AUX_CORE_BOOT0_PA  @ read from AuxCoreBoot0
->>         and     r4, r4, #0x0f
->>         cmp     r0, r4
->>         bne     wait
->> +#ifdef CONFIG_KVM_ARM_HOST
->> +       ldr     r12, =API_HYP_ENTRY
->> +       adr     r0, hyp_boot
->> +       smc     #0
->> +hyp_boot:
->> +#endif
->>         b       secondary_startup
->>  END(omap5_secondary_startup)
->>  /*
+* Paul Walmsley <paul@pwsan.com> [131125 07:16]:
+> On Mon, 25 Nov 2013, Paul Walmsley wrote:
 > 
-> hmm, this means that currently running this in a guest will fail to
-> bring-up SMP, right?
+> > Boot to userspace:
+> >     FAIL ( 1/11): 37xxevm
 > 
-Nope. Because the code under 'KVM_ARM_HOST' macro. Guest build 
-will not enable CONFIG_KVM_ARM_HOST and things should be fine then.
-Right ? 
+> An auto-bisect traced this to:
+> 
+> commit 95807689eab8441737572d1a9daaa1025429a908
+> Author: Tony Lindgren <tony@atomide.com>
+> Date:   Mon Oct 14 11:31:43 2013 -0700
+> 
+>     ARM: OMAP2+: Remove legacy booting support for omap3 EVM
+>     
+>     We now have pretty decent support with the device tree
+>     based booting. Patches to add more features are welcome.
+>     
+>     Signed-off-by: Tony Lindgren <tony@atomide.com>
+> 
+> 
+> So looks like this is due to the switchover to DT-based booting for 37xx 
+> EVM.  Will plug that in here and re-test.
 
-> Couldn't you create a little wrapper-pen in U-Boot instead, which
-> replicates the omap boot protocol and takes care of the hyp-mode
-> startup there instead, keeping this completely out of the kernel?
-> 
-Its not just booting but CPU hotplug also follows the same path
-so we need the mechanism in kernel to switch mode.
-
-In general, I think its important to consider the aspect with
-CPU PM. CPUs are not going to go through the boot-loaders in
-those paths and hence need of HYP entry in the kernel will
-be must.
+Yes. Also there's the patch missing to enable wake-up interrupts, but
+that has a dependency to populating IRQ resources dynamically to avoid
+nasty warnings. Both should get fixed during the -rc cycle though.
 
 Regards,
-Santosh
 
-Regards,
-Santosh
+Tony
