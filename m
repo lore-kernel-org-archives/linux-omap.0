@@ -1,104 +1,113 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 1/5] usb: musb: conditionally save and restore the
- context on suspend
-Date: Mon, 25 Nov 2013 14:13:39 -0600
-Message-ID: <20131125201339.GH18046@saruman.home>
-References: <1385408393-19707-1-git-send-email-zonque@gmail.com>
- <1385408393-19707-2-git-send-email-zonque@gmail.com>
- <20131125194427.GZ18046@saruman.home>
- <5293AE53.9080606@gmail.com>
-Reply-To: <balbi@ti.com>
+From: Daniel Mack <zonque@gmail.com>
+Subject: Re: [PATCH 2/5] usb: musb: call musb_port_suspend from musb_bus_suspend
+Date: Mon, 25 Nov 2013 21:21:24 +0100
+Message-ID: <5293B144.10006@gmail.com>
+References: <1385408393-19707-1-git-send-email-zonque@gmail.com> <1385408393-19707-3-git-send-email-zonque@gmail.com> <20131125194629.GA18046@saruman.home> <5293ABDE.4080404@gmail.com> <20131125200121.GE18046@saruman.home>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="o9mtL5OVI48+DSkO"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:47090 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753181Ab3KYUOh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 25 Nov 2013 15:14:37 -0500
-Content-Disposition: inline
-In-Reply-To: <5293AE53.9080606@gmail.com>
+Received: from mail-bk0-f44.google.com ([209.85.214.44]:41418 "EHLO
+	mail-bk0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753622Ab3KYUV1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 25 Nov 2013 15:21:27 -0500
+In-Reply-To: <20131125200121.GE18046@saruman.home>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Daniel Mack <zonque@gmail.com>
-Cc: balbi@ti.com, bigeasy@linutronix.de, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, neumann@teufel.de
+To: balbi@ti.com
+Cc: bigeasy@linutronix.de, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, neumann@teufel.de, Greg KH <gregkh@linuxfoundation.org>, Alan Stern <stern@rowland.harvard.edu>
 
---o9mtL5OVI48+DSkO
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On 11/25/2013 09:01 PM, Felipe Balbi wrote:
+> Hi,
+> 
+> On Mon, Nov 25, 2013 at 08:58:22PM +0100, Daniel Mack wrote:
+>> On 11/25/2013 08:46 PM, Felipe Balbi wrote:
+>>> On Mon, Nov 25, 2013 at 08:39:50PM +0100, Daniel Mack wrote:
+>>>> Make musb_port_suspend() externally available, and call it when to host
+>>>> goes into suspend. This allows the core to go into suspend while a
+>>>> device is connected.
+>>>>
+>>>> Signed-off-by: Daniel Mack <zonque@gmail.com>
+>>>> ---
+>>>>  drivers/usb/musb/musb_host.c    | 2 ++
+>>>>  drivers/usb/musb/musb_host.h    | 2 ++
+>>>>  drivers/usb/musb/musb_virthub.c | 2 +-
+>>>>  3 files changed, 5 insertions(+), 1 deletion(-)
+>>>>
+>>>> diff --git a/drivers/usb/musb/musb_host.c b/drivers/usb/musb/musb_host.c
+>>>> index 6582a20..81caf9f 100644
+>>>> --- a/drivers/usb/musb/musb_host.c
+>>>> +++ b/drivers/usb/musb/musb_host.c
+>>>> @@ -2433,6 +2433,8 @@ static int musb_bus_suspend(struct usb_hcd *hcd)
+>>>>  	struct musb	*musb = hcd_to_musb(hcd);
+>>>>  	u8		devctl;
+>>>>  
+>>>> +	musb_port_suspend(musb, true);
+>>>
+>>> have you considered the fact that when musb looses context it'll cause a
+>>> disconnect on the bus because soft_connect bit is lost ?
+>>>
+>>> What if you have a mounted file system on a pendrive ? Should we allow
+>>> suspend in that case ?
+>>
+>> Well, I would have expected that, but in fact, the opposite is true.
+>> With 3.12, mounting a filesystem on a USB media and accessing it after
+>> resume was exactly my test case, and it worked just fine with that patch.
+> 
+> so you had a mounted file system, suspend, resume, it was still mounted?
 
-Hi,
+Yes, exactly.
 
-On Mon, Nov 25, 2013 at 09:08:51PM +0100, Daniel Mack wrote:
-> On 11/25/2013 08:44 PM, Felipe Balbi wrote:
-> > Hi,
-> >=20
-> > On Mon, Nov 25, 2013 at 08:39:49PM +0100, Daniel Mack wrote:
-> >> It appears not all platforms featuring a musb core need to save the mu=
-sb
-> >> core registers at suspend time and restore them on resume.
-> >>
-> >> The dsps platform does, however. So add a bit in struct
-> >> musb_hdrc_platform_data to let platforms specify their need of such
-> >> action being taken.
-> >>
-> >> Signed-off-by: Daniel Mack <zonque@gmail.com>
-> >> ---
-> >>  drivers/usb/musb/musb_core.c | 17 ++++++++++++++++-
-> >>  include/linux/usb/musb.h     |  3 +++
-> >>  2 files changed, 19 insertions(+), 1 deletion(-)
-> >>
-> >> diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core=
-=2Ec
-> >> index 0a43329..a8ded57 100644
-> >> --- a/drivers/usb/musb/musb_core.c
-> >> +++ b/drivers/usb/musb/musb_core.c
-> >> @@ -2202,6 +2202,7 @@ static int musb_suspend(struct device *dev)
-> >>  {
-> >>  	struct musb	*musb =3D dev_to_musb(dev);
-> >>  	unsigned long	flags;
-> >> +	struct musb_hdrc_platform_data *plat =3D dev_get_platdata(dev);
-> >=20
-> > we don't want to have platform_data on DT-based boot. It's best to just
-> > save those registers unconditionally as it doesn't hurt.
-> >=20
->=20
-> My concern about doing it unconditionally from the core is simply that I
-> fear regressions for other platforms. I can of course drop it if you're
-> certain that that's correct.
->=20
-> I can only test this on a dsps glue layer, and I have no documentation
-> for the musb core. All I'm left with here is fishing in muddy waters :/
+> or did it reenumerate and you remounted it ?
 
-I really don't think it should cause any issues with any other platform.
+No, it did not reenumerate, but the core did a reset on it. See the
+following log.
 
-We can make to leave this soaking in linux-next for a long time and hope
-people test it.
+# mount /dev/sda /mnt
+# md5sum /mnt/sine_left.wav
+bcd90548c1ebf293289072f1a6161f0f  /mnt/sine_left.wav
+#
+#
+# echo mem > /sys/power/state
+[   31.553425] PM: Syncing filesystems ... done.
+[   31.575462] Freezing user space processes ... (elapsed 0.002 seconds)
+done.
+[   31.585275] Freezing remaining freezable tasks ... (elapsed 0.002
+seconds) done.
+[   31.595953] PM: Sending message for entering DeepSleep mode
+[   31.628887] PM: suspend of devices complete after 21.097 msecs
+[   31.641082] PM: late suspend of devices complete after 5.906 msecs
+[   31.653834] PM: noirq suspend of devices complete after 6.135 msecs
+[   31.660558] PM: GFX domain entered low power state
+[   31.660558] PM: Successfully put all powerdomains to target state
+[   31.660558] PM: Wakeup source GPIO0
+[   31.679130] PM: noirq resume of devices complete after 17.941 msecs
+[   31.693371] PM: early resume of devices complete after 4.388 msecs
+[   31.702750] net eth0: initializing cpsw version 1.12 (0)
+[   31.712084] net eth0: phy found : id is : 0x4dd076
+[   31.717317] libphy: PHY  not found
+[   31.722448] net eth0: phy  not found on slave 1
+[   32.030792] usb 1-1: reset high-speed USB device number 2 using
+musb-hdrc <<<< !
+[   32.395192] PM: resume of devices complete after 695.279 msecs
+[   32.407816] PM: Sending message for resetting M3 state machine
+[   32.414683] Restarting tasks ... done.
+[   36.701568] libphy: 4a101000.mdio:04 - Link is Up - 100/Full
+#
+#
+# md5sum /mnt/sine_left.wav
+bcd90548c1ebf293289072f1a6161f0f  /mnt/sine_left.wav
 
---=20
-balbi
+> Try to do the same with transfers in flight, it's likely to corrupt your
+> file system.
 
---o9mtL5OVI48+DSkO
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+I did that as well, and it appeared stable to me. After all, the USB
+device was properly put into suspend before VBUS went away, and the usb
+storage driver caught up after the core's reset.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.15 (GNU/Linux)
+In my tests, this was the only approach that would work after resume.
 
-iQIcBAEBAgAGBQJSk69zAAoJEIaOsuA1yqREPPYP/1Jc/3vT+Om4dCKoNfYZfP//
-M1u9C3OGlc0Wbv5hyHl4wcSyicF5ed6hN/YCAwZoyilZznv5h30sCYYjOeJTnbVJ
-gChkppad0oqYKqot4b27IX3eh+3B7xOS5hbndkIV2sK7VkRC3T9XbqECbIr73n7p
-Ciharrpc8mgjsE1PiVk8OdYhntuEWYKf2Or6PwDgclfTzMd54RFL+HVAd7LIKIiK
-Jx2FqZanfsBlpwzGSZmjhcEG6YoRjPWLdcX3RHKJAWieqVgPGImKUdStjBMGdDQC
-jRBTMsPiUp4FwB6JoFtjxaDcLWS6Lp9u7hunm4q2pbpj/q5ZsbmhCBw0g6SpX2D+
-6S9NQN2Sd5PJca+GsbVbwf5Q2QA1LIabQHpj/FaXY/RbIllRPwIM76b/CEEJGJWl
-zWbgrksasky1vLJ9ooXvmE9wO2ohsQOMMf59oeJkF81BJDBeHlaM6NwVDir61cd7
-zVUNXNhGuRVbSx9J54+BqbVJR4HjpIqiDFhAO3sqwhvb0+RJ6S0AInICnV9JHCaq
-iNXyL8Lpn2s8YEjx2X3lyGXVClTT4tFyNPU75/A+HwiNDUh9kXusjo5w4Ph/FO0I
-Bi5YZYOwBYum1Q1zeO8ZLy/Bip0jwBcm0Nd/sV70DwqXF0FXsjhfMfoqCAsPSX3m
-iHvy7/EnvEdbnPwspc30
-=jMPL
------END PGP SIGNATURE-----
 
---o9mtL5OVI48+DSkO--
+
+Daniel
+
