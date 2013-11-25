@@ -1,61 +1,119 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v3 06/10] Documentation: dt bindings: move ..usb/usb-phy.txt to ..phy/ti-phy.txt
-Date: Mon, 25 Nov 2013 15:31:26 +0530
-Message-ID: <1385373690-12170-7-git-send-email-kishon@ti.com>
+Subject: [PATCH v3 03/10] usb: dwc3: preparation for adapting dwc3 to generic phy framework
+Date: Mon, 25 Nov 2013 15:31:23 +0530
+Message-ID: <1385373690-12170-4-git-send-email-kishon@ti.com>
 References: <1385373690-12170-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-doc-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1385373690-12170-1-git-send-email-kishon@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: bcousson@baylibre.com, balbi@ti.com, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org
 Cc: rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ijc+devicetree@hellion.org.uk, rob@landley.net, tony@atomide.com, linux@arm.linux.org.uk, kishon@ti.com, gregkh@linuxfoundation.org, grant.likely@linaro.org, s.nawrocki@samsung.com, galak@codeaurora.org
 List-Id: linux-omap@vger.kernel.org
 
-Since now we have a separate folder for phy, move the PHY dt binding
-documentation of TI to that folder.
+Invoke usb_phy api's only if usb_phy does not have error value. This is
+needed for both the legacy usb_phy and generic phy to co-exist in dwc3 core.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- .../devicetree/bindings/{usb/usb-phy.txt => phy/ti-phy.txt}    |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
- rename Documentation/devicetree/bindings/{usb/usb-phy.txt => phy/ti-phy.txt} (88%)
+ drivers/usb/dwc3/core.c |   42 ++++++++++++++++++++++++++++--------------
+ 1 file changed, 28 insertions(+), 14 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/usb/usb-phy.txt b/Documentation/devicetree/bindings/phy/ti-phy.txt
-similarity index 88%
-rename from Documentation/devicetree/bindings/usb/usb-phy.txt
-rename to Documentation/devicetree/bindings/phy/ti-phy.txt
-index c0245c8..207e14c 100644
---- a/Documentation/devicetree/bindings/usb/usb-phy.txt
-+++ b/Documentation/devicetree/bindings/phy/ti-phy.txt
-@@ -1,4 +1,4 @@
--USB PHY
-+TI PHY: DT DOCUMENTATION FOR PHYs in TI PLATFORMs
+diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
+index a49217a..986674f 100644
+--- a/drivers/usb/dwc3/core.c
++++ b/drivers/usb/dwc3/core.c
+@@ -80,8 +80,10 @@ static void dwc3_core_soft_reset(struct dwc3 *dwc)
+ 	reg |= DWC3_GUSB2PHYCFG_PHYSOFTRST;
+ 	dwc3_writel(dwc->regs, DWC3_GUSB2PHYCFG(0), reg);
  
- OMAP USB2 PHY
+-	usb_phy_init(dwc->usb2_phy);
+-	usb_phy_init(dwc->usb3_phy);
++	if (!IS_ERR(dwc->usb2_phy))
++		usb_phy_init(dwc->usb2_phy);
++	if (!IS_ERR(dwc->usb3_phy))
++		usb_phy_init(dwc->usb3_phy);
+ 	mdelay(100);
  
-@@ -21,10 +21,10 @@ usb2phy@4a0ad080 {
- 	#phy-cells = <0>;
- };
+ 	/* Clear USB3 PHY reset */
+@@ -341,8 +343,10 @@ err0:
  
--OMAP USB3 PHY
-+TI PIPE3 PHY
+ static void dwc3_core_exit(struct dwc3 *dwc)
+ {
+-	usb_phy_shutdown(dwc->usb2_phy);
+-	usb_phy_shutdown(dwc->usb3_phy);
++	if (!IS_ERR(dwc->usb2_phy))
++		usb_phy_shutdown(dwc->usb2_phy);
++	if (!IS_ERR(dwc->usb3_phy))
++		usb_phy_shutdown(dwc->usb3_phy);
+ }
  
- Required properties:
-- - compatible: Should be "ti,omap-usb3"
-+ - compatible: Should be "ti,phy-usb3". "ti,omap-usb3" is deprecated.
-  - reg : Address and length of the register set for the device.
-  - reg-names: The names of the register addresses corresponding to the registers
-    filled in "reg".
-@@ -38,7 +38,7 @@ Optional properties:
- This is usually a subnode of ocp2scp to which it is connected.
+ #define DWC3_ALIGN_MASK		(16 - 1)
+@@ -485,8 +489,10 @@ static int dwc3_probe(struct platform_device *pdev)
+ 		goto err0;
+ 	}
  
- usb3phy@4a084400 {
--	compatible = "ti,omap-usb3";
-+	compatible = "ti,phy-usb3";
- 	reg = <0x4a084400 0x80>,
- 	      <0x4a084800 0x64>,
- 	      <0x4a084c00 0x40>;
+-	usb_phy_set_suspend(dwc->usb2_phy, 0);
+-	usb_phy_set_suspend(dwc->usb3_phy, 0);
++	if (!IS_ERR(dwc->usb2_phy))
++		usb_phy_set_suspend(dwc->usb2_phy, 0);
++	if (!IS_ERR(dwc->usb3_phy))
++		usb_phy_set_suspend(dwc->usb3_phy, 0);
+ 
+ 	ret = dwc3_event_buffers_setup(dwc);
+ 	if (ret) {
+@@ -569,8 +575,10 @@ err2:
+ 	dwc3_event_buffers_cleanup(dwc);
+ 
+ err1:
+-	usb_phy_set_suspend(dwc->usb2_phy, 1);
+-	usb_phy_set_suspend(dwc->usb3_phy, 1);
++	if (!IS_ERR(dwc->usb2_phy))
++		usb_phy_set_suspend(dwc->usb2_phy, 1);
++	if (!IS_ERR(dwc->usb3_phy))
++		usb_phy_set_suspend(dwc->usb3_phy, 1);
+ 	dwc3_core_exit(dwc);
+ 
+ err0:
+@@ -583,8 +591,10 @@ static int dwc3_remove(struct platform_device *pdev)
+ {
+ 	struct dwc3	*dwc = platform_get_drvdata(pdev);
+ 
+-	usb_phy_set_suspend(dwc->usb2_phy, 1);
+-	usb_phy_set_suspend(dwc->usb3_phy, 1);
++	if (!IS_ERR(dwc->usb2_phy))
++		usb_phy_set_suspend(dwc->usb2_phy, 1);
++	if (!IS_ERR(dwc->usb3_phy))
++		usb_phy_set_suspend(dwc->usb3_phy, 1);
+ 
+ 	pm_runtime_put_sync(&pdev->dev);
+ 	pm_runtime_disable(&pdev->dev);
+@@ -680,8 +690,10 @@ static int dwc3_suspend(struct device *dev)
+ 	dwc->gctl = dwc3_readl(dwc->regs, DWC3_GCTL);
+ 	spin_unlock_irqrestore(&dwc->lock, flags);
+ 
+-	usb_phy_shutdown(dwc->usb3_phy);
+-	usb_phy_shutdown(dwc->usb2_phy);
++	if (!IS_ERR(dwc->usb3_phy))
++		usb_phy_shutdown(dwc->usb3_phy);
++	if (!IS_ERR(dwc->usb2_phy))
++		usb_phy_shutdown(dwc->usb2_phy);
+ 
+ 	return 0;
+ }
+@@ -691,8 +703,10 @@ static int dwc3_resume(struct device *dev)
+ 	struct dwc3	*dwc = dev_get_drvdata(dev);
+ 	unsigned long	flags;
+ 
+-	usb_phy_init(dwc->usb3_phy);
+-	usb_phy_init(dwc->usb2_phy);
++	if (!IS_ERR(dwc->usb3_phy))
++		usb_phy_init(dwc->usb3_phy);
++	if (!IS_ERR(dwc->usb2_phy))
++		usb_phy_init(dwc->usb2_phy);
+ 
+ 	spin_lock_irqsave(&dwc->lock, flags);
+ 
 -- 
 1.7.10.4
-
