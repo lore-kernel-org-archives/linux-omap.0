@@ -1,7 +1,7 @@
 From: Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 13/17] drivers: mtd: m25p80: Add api to configure master register.
-Date: Tue, 26 Nov 2013 13:05:09 +0530
-Message-ID: <1385451313-1875-14-git-send-email-sourav.poddar@ti.com>
+Subject: [PATCH 15/17] arm: dts: dra7: Add qspi device.
+Date: Tue, 26 Nov 2013 13:05:11 +0530
+Message-ID: <1385451313-1875-16-git-send-email-sourav.poddar@ti.com>
 References: <1385451313-1875-1-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,42 +12,85 @@ To: computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, broonie-DgEjT+Ai2
 Cc: balbi-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-These can be used to fill information needed to configure 
-master controller registers.
+These add device tree entry for qspi controller driver on dra7.
 
 Signed-off-by: Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>
 ---
- drivers/mtd/devices/m25p80.c |   17 +++++++++++++++++
- 1 files changed, 17 insertions(+), 0 deletions(-)
+ arch/arm/boot/dts/dra7-evm.dts |   32 ++++++++++++++++++++++++++++++++
+ arch/arm/boot/dts/dra7.dtsi    |   13 +++++++++++++
+ 2 files changed, 45 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/mtd/devices/m25p80.c b/drivers/mtd/devices/m25p80.c
-index 7dc2c14..6a27677 100644
---- a/drivers/mtd/devices/m25p80.c
-+++ b/drivers/mtd/devices/m25p80.c
-@@ -490,6 +490,23 @@ static inline int m25p80_dummy_cycles_read(struct m25p *flash)
- }
+diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
+index 5babba0..2c8753a 100644
+--- a/arch/arm/boot/dts/dra7-evm.dts
++++ b/arch/arm/boot/dts/dra7-evm.dts
+@@ -93,6 +93,21 @@
+ 			0x24c (PIN_INPUT_SLEW | MUX_MODE0) /* uart3_txd */
+ 		>;
+ 	};
++
++	qspi1_pins: pinmux_qspi1_pins {
++		pinctrl-single,pins = <
++			0x4c 0x40001  /* gpmc_a3.qspi1_cs2 */
++			0x50 0x40001  /* gpmc_a4.qspi1_cs3 */
++			0x74 0x40001  /* gpmc_a13.qspi1_rtclk */
++			0x78 0x40001  /* gpmc_a14.qspi1_d3 */
++			0x7c 0x40001  /* gpmc_a15.qspi1_d2 */
++			0x80 0x40001  /* gpmc_a16.qspi1_d1 */
++			0x84 0x40001  /* gpmc_a17.qspi1_d0 */
++			0x88 0x40001  /* qpmc_a18.qspi1_sclk */
++			0xb8 0x60001  /* gpmc_cs2.qspi1_cs0 */
++			0xbc 0x60001  /* gpmc_cs3.qspi1_cs1 */
++		>;
++	};
+ };
  
- /*
-+ * This API can be used to transfer flash information to
-+ * SPI controller which needs some of its registers to get
-+ * configured on flash.
-+ */
-+static void m25p80_fill_flash_information(struct m25p *flash)
-+{
-+	struct spi_master *master = flash->spi->master;
-+	u8 info[4];
-+	info[0] = flash->read_opcode;
-+	info[1] = flash->program_opcode;
-+	info[2] = flash->addr_width;
-+	info[3] = m25p80_dummy_cycles_read(flash);
+ &i2c1 {
+@@ -273,3 +288,20 @@
+ &cpu0 {
+ 	cpu0-supply = <&smps123_reg>;
+ };
 +
-+	master->configure_from_slave(flash->spi, info);
-+}
++&qspi {
++	status = "okay";
++	pinctrl-names = "default";
++	pinctrl-0 = <&qspi1_pins>;
 +
-+/*
-  * Read an address range from the flash chip.  The address range
-  * may be any size provided it is within the physical boundaries.
-  */
++	spi-max-frequency = <48000000>;
++	m25p80@0 {
++		compatible = "s25fl256s1";
++		spi-max-frequency = <48000000>;
++		reg = <0>;
++		spi-tx-bus-width = <1>;
++		spi-rx-bus-width = <4>;
++		spi-cpol;
++		spi-cpha;
++	};
++};
+diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+index 67275c8..b06d899 100644
+--- a/arch/arm/boot/dts/dra7.dtsi
++++ b/arch/arm/boot/dts/dra7.dtsi
+@@ -582,6 +582,19 @@
+ 			dma-names = "tx0", "rx0";
+ 			status = "disabled";
+ 		};
++
++		qspi: qspi@4b300000 {
++			compatible = "ti,dra7xxx-qspi";
++			reg = <0x4b300000 0x100>, <0x4a002558 0x4>,
++					<0x5c000000 0x3ffffff>;
++			reg-names = "qspi_base", "qspi_ctrlmod", "qspi_mmap";
++			#address-cells = <1>;
++			#size-cells = <0>;
++			ti,hwmods = "qspi";
++			num-cs = <4>;
++			interrupts = <0 124 0x4>;
++			status = "disabled";
++		};
+ 	};
+ 
+ 	clocks {
 -- 
 1.7.1
 
