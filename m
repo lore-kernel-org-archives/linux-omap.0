@@ -1,115 +1,288 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v3 2/3] mmc: omap_hsmmc: Pin remux workaround to support
- SDIO interrupt on AM335x.
-Date: Mon, 25 Nov 2013 19:16:10 -0600
-Message-ID: <20131126011610.GB21580@saruman.home>
-References: <1385386009-14981-1-git-send-email-afenkart@gmail.com>
- <1385386009-14981-3-git-send-email-afenkart@gmail.com>
- <20131125224601.GX10023@atomide.com>
-Reply-To: <balbi@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH 01/12 diet] ARM: OMAP2+: Remove legacy omap3 board-*.c
+ files and make mach-omap2 DT only for booting
+Date: Mon, 25 Nov 2013 17:17:45 -0800
+Message-ID: <20131126011744.GA26766@atomide.com>
+References: <1385424867-27243-1-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="lEGEL1/lMxI0MVQ2"
-Return-path: <linux-doc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20131125224601.GX10023@atomide.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Andreas Fenkart <afenkart@gmail.com>, Chris Ball <cjb@laptop.org>, Grant Likely <grant.likely@secretlab.ca>, Felipe Balbi <balbi@ti.com>, Balaji T K <balajitk@ti.com>, zonque@gmail.com, linux-doc@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
-
---lEGEL1/lMxI0MVQ2
 Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:50372 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752115Ab3KZBRr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 25 Nov 2013 20:17:47 -0500
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <1385424867-27243-1-git-send-email-tony@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Hi,
+We can now boot all mach-omap2 related boards using appended device
+tree by creating a related .dts file with pretty much the same
+functionality as booted in the legacy platform data mode.
 
-On Mon, Nov 25, 2013 at 02:46:02PM -0800, Tony Lindgren wrote:
-> * Andreas Fenkart <afenkart@gmail.com> [131125 05:30]:
-> > --- a/drivers/mmc/host/omap_hsmmc.c
-> > +++ b/drivers/mmc/host/omap_hsmmc.c
-> > @@ -452,10 +475,23 @@ static int omap_hsmmc_gpio_init(struct omap_mmc_p=
-latform_data *pdata)
-> >  	} else
-> >  		pdata->slots[0].gpio_wp =3D -EINVAL;
-> > =20
-> > +	if (gpio_is_valid(pdata->slots[0].gpio_cirq)) {
-> > +		ret =3D gpio_request_one(pdata->slots[0].gpio_cirq, GPIOF_DIR_IN,
-> > +				       "sdio_cirq");
-> > +		if (ret)
-> > +			goto err_free_ro;
-> > +
-> > +	} else {
-> > +		pdata->slots[0].gpio_cirq =3D -EINVAL;
-> > +	}
-> > +
-> > +
-> >  	return 0;
-> > =20
-> > +err_free_ro:
-> > +	if (gpio_is_valid(pdata->slots[0].gpio_wp))
-> >  err_free_wp:
-> > -	gpio_free(pdata->slots[0].gpio_wp);
-> > +		gpio_free(pdata->slots[0].gpio_wp);
-> >  err_free_cd:
-> >  	if (gpio_is_valid(pdata->slots[0].switch_pin))
-> >  err_free_sp:
->=20
-> This patch we can now make a bit more generic with the recent addition
-> of interrupts-extended property that's now merged in mainline tree :)
->=20
-> We can optionally pass two interrupts to omap_hsmmc.c where the second
-> interrupt is either the pinctrl-single wake-up interrupt, or the GPIO
-> interrupt.
->=20
-> Both the iochain wake interrupt or the GPIO interrupt are available with
-> request_irq as long as configured in the .dts file. And can both use the
-> SDIO interrupt handler. The only difference is that the GPIO wake-up
-> still needs to do the dynamic remuxing of pins.
+So let's remove the legacy board files so we can finally make mach-omap2
+boot using device tree only. The main reason for doing this is to leave
+out massive amounts of legacy platform data that is no longer needed
+when booted with device tree.
 
-could that be done automatically if DTS provides "suspend" pinctrl
-state ?
+There are some devices that still need platform data, but that we
+can deal with using the auxdata support in mach-omap2/pdata-quirks.c
+based on the board specific device tree compatible flag.
 
-Would that be done before or after driver's ->{runtime_,}suspend()
-methods ?
+The only board-*.c files remaining will be board-generic.c that's used
+for device tree based booting, and board-n8x0.c that's needed temporarily
+until basic omap2 legacy devices work with device tree. Note that we're
+also removing board-ti8168evm.c that's not omap3, but that seems broken
+anyways as it's missing handle_irq. And there's really nothing stopping
+us from booting ti81xx with device tree either except adding support to
+board-generic.c like other omaps have.
 
-> mmc: mmc@4810abcd {
-> 	compatible =3D "ti,omap33xx-hsmmc";
+If you're new to booting things with device tree, here are some quick
+instructions for bringing up new boards with device tree:
 
-I would rather call it "ti,am33xx-hsmmc" just to make it match marketing
-name of the device.
+1. Look at the existing files in arch/arm/boot/dts
 
-> Then the logic of enabling the dynamic remuxing can be done based
-> on the ti,omap33xx-hsmmc compatible flag if there are two interrupts
-> and the needed pin states are defined.
+There's a fair chance somebody has already created a suitable
+file for your board.
 
-or maybe dynamic remuxing can be done by calling pinctrl_select_state()
-with appropriate arguments ?
+2. Create omap3-yourboard.dts file in arch/arm/boot/dts
 
---=20
-balbi
+If you don't see a suitable omap3-*.dts file, chances are your
+board is very similar to one of them. For older 34xx/35xx based
+boards take a look at the omap3-beagle.dts and omap3-ldp.dts, and
+for newer 36xx/37xx based boards take a look at omap3-beagle-xm.dts
+and omap3-evm-37xx.dts.
 
---lEGEL1/lMxI0MVQ2
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+3. Add omap3-yourboard.dtb to the arch/arm/boot/dts/Makefile
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.15 (GNU/Linux)
+4. Check that you have the necessary .config options enabled
 
-iQIcBAEBAgAGBQJSk/ZaAAoJEIaOsuA1yqRE2g4QAJconHktsuECWWaQFvpbnM+2
-/wnFRYXPVib9OvN4gyP2n6r5jThe5pLxqOaWw/6EL61eRh7Wu18REaRBOdWaFQ9x
-hqWq9Nr7qVdHvshzDLpRz2wbIEOKbjgPTvjOxsqYVab3KhvI5nx6YVIAFCoZNQF8
-FkQ+CTmLoshCWpt1Bdbkx6iH8epvqH3hXVAYRScnO6wnVaAtmWnjI0LxcEboIjk9
-6erAgYUI7bv2gLN95zoABMzgmSbtfreGSt7tGVCu9oKz+Yu3AVOlzaXaa1D6PiNf
-r2o43gI9z2ujPum8XfmtAvI+pIytHWZ+/ArY5+pl002KiCE2QviW666J17NG91g0
-SRuL2uRPB1yDoTUMxxjAqHv1yd3WuheaNYder8NLFEXLxsLx1H8T/thsJbYqir9l
-7PwIV6+WBYsJEBYBtyrGmOLjK1Gp9+8Z5rz13RwGMcze7Z3oWK6d7MvTP7WYzeHC
-7biW1WwBLxskWYUnFlaVHsADkPCJE4HN0EkOWMkC02ejhfEr6erhg0UwlnmsnNVR
-2f9VQ5Q2W9Vl9Fm9qZ/uK1G8NIaeqacD6rRruRpa/UjHbTf431wa1B8zu3R4gcBg
-tMgo3XflH08YgmEGq1dgCTYKQFU9/NsfqAcb8V4K5Hv2ckBdXOcudqyqLgcvfwms
-IiuIiMUBS3utp9XvFXvu
-=OPU5
------END PGP SIGNATURE-----
+CONFIG_ARM_APPENDED_DTB=y
+CONFIG_ARM_ATAG_DTB_COMPAT=y
+CONFIG_ARM_ATAG_DTB_COMPAT_CMDLINE_EXTEND=y
+CONFIG_PINCTRL_SINGLE=y
+CONFIG_REGULATOR_TWL4030=y
+CONFIG_REGULATOR_FIXED_VOLTAGE=y
 
---lEGEL1/lMxI0MVQ2--
+These are enabled in omap2plus_defconfig by default.
+
+5. Build the kernel
+
+$ ARCH=arm CROSS_COMPILE=/usr/bin/arm-linux-gnueabi- make omap3-myboard.dtb
+$ ARCH=arm CROSS_COMPILE=/usr/bin/arm-linux-gnueabi- make zImage
+
+6. Append the .dtb file to zImage
+
+$ cat arch/arm/boot/zImage arch/arm/boot/dts/omap3-evm-37xx.dtb > /tmp/zImage
+
+7. Optionally run mkimage to create uImage file
+
+$ mkimage -A arm -O linux -T kernel -C none -a 0x80008000 -e 0x80008000 \
+  -n Linux -d /tmp/zImage-omap2plus /tmp/uImage-omap2plus
+
+8. Add support for further devices to the .dts files
+
+Please try to add support for further devices as device tree drivers.
+If you need some legacy devices to keep things working, you can also
+use the pdata-quirk.c to initialize those.
+
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+---
+
+Here's the diet version of this patch as the full patch was too big
+for the lists it seems.
+
+This diet version of the patch just removes the legacy board-*.c file
+entries from Kconfig and Makefile, which should be enough for most
+people for testing.
+
+If the full patch does not make it to the lists, it's also available
+here:
+
+http://git.kernel.org/cgit/linux/kernel/git/tmlind/linux-omap.git/commit/?id=1f7260bc2ba270ef04b8eaa2a7824fb32aa516aa
+
+The full patch also removes the following board-*.c files:
+
+ arch/arm/mach-omap2/board-3430sdp.c          |  633 ------------
+ arch/arm/mach-omap2/board-am3517crane.c      |  150 ---
+ arch/arm/mach-omap2/board-am3517evm.c        |  379 -------
+ arch/arm/mach-omap2/board-cm-t35.c           |  771 ---------------
+ arch/arm/mach-omap2/board-cm-t3517.c         |  337 ------
+ arch/arm/mach-omap2/board-devkit8000.c       |  655 -------------
+ arch/arm/mach-omap2/board-ldp.c              |  425 --------
+ arch/arm/mach-omap2/board-omap3beagle.c      |  596 ------------
+ arch/arm/mach-omap2/board-omap3logic.c       |  251 -----
+ arch/arm/mach-omap2/board-omap3pandora.c     |  630 ------------
+ arch/arm/mach-omap2/board-omap3stalker.c     |  438 --------
+ arch/arm/mach-omap2/board-omap3touchbook.c   |  396 --------
+ arch/arm/mach-omap2/board-overo.c            |  572 -----------
+ arch/arm/mach-omap2/board-rx51-peripherals.c | 1323 ---------------------------
+ arch/arm/mach-omap2/board-rx51-video.c       |   67 -
+ arch/arm/mach-omap2/board-rx51.c             |  142 --
+ arch/arm/mach-omap2/board-ti8168evm.c        |   62 -
+
+
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -192,80 +192,6 @@ config MACH_OMAP2_TUSB6010
+ 	depends on ARCH_OMAP2 && SOC_OMAP2420
+ 	default y if MACH_NOKIA_N8X0
+ 
+-config MACH_OMAP3_BEAGLE
+-	bool "OMAP3 BEAGLE board"
+-	depends on ARCH_OMAP3
+-	default y
+-	select OMAP_PACKAGE_CBB
+-
+-config MACH_DEVKIT8000
+-	bool "DEVKIT8000 board"
+-	depends on ARCH_OMAP3
+-	default y
+-	select OMAP_PACKAGE_CUS
+-
+-config MACH_OMAP_LDP
+-	bool "OMAP3 LDP board"
+-	depends on ARCH_OMAP3
+-	default y
+-	select OMAP_PACKAGE_CBB
+-
+-config MACH_OMAP3530_LV_SOM
+-	bool "OMAP3 Logic 3530 LV SOM board"
+-	depends on ARCH_OMAP3
+-	default y
+-	select OMAP_PACKAGE_CBB
+-	help
+-	 Support for the LogicPD OMAP3530 SOM Development kit
+-	 for full description please see the products webpage at
+-	 http://www.logicpd.com/products/development-kits/texas-instruments-zoom%E2%84%A2-omap35x-development-kit
+-
+-config MACH_OMAP3_TORPEDO
+-	bool "OMAP3 Logic 35x Torpedo board"
+-	depends on ARCH_OMAP3
+-	default y
+-	select OMAP_PACKAGE_CBB
+-	help
+-	 Support for the LogicPD OMAP35x Torpedo Development kit
+-	 for full description please see the products webpage at
+-	 http://www.logicpd.com/products/development-kits/zoom-omap35x-torpedo-development-kit
+-
+-config MACH_OVERO
+-	bool "Gumstix Overo board"
+-	depends on ARCH_OMAP3
+-	default y
+-	select OMAP_PACKAGE_CBB
+-
+-config MACH_OMAP3517EVM
+-	bool "OMAP3517/ AM3517 EVM board"
+-	depends on ARCH_OMAP3
+-	default y
+-	select OMAP_PACKAGE_CBB
+-
+-config MACH_CRANEBOARD
+-	bool "AM3517/05 CRANE board"
+-	depends on ARCH_OMAP3
+-	select OMAP_PACKAGE_CBB
+-
+-config MACH_OMAP3_PANDORA
+-	bool "OMAP3 Pandora"
+-	depends on ARCH_OMAP3
+-	default y
+-	select OMAP_PACKAGE_CBB
+-	select REGULATOR_FIXED_VOLTAGE if REGULATOR
+-
+-config MACH_TOUCHBOOK
+-	bool "OMAP3 Touch Book"
+-	depends on ARCH_OMAP3
+-	default y
+-	select OMAP_PACKAGE_CBB
+-
+-config MACH_OMAP_3430SDP
+-	bool "OMAP 3430 SDP board"
+-	depends on ARCH_OMAP3
+-	default y
+-	select OMAP_PACKAGE_CBB
+-
+ config MACH_NOKIA_N800
+        bool
+ 
+@@ -284,44 +210,6 @@ config MACH_NOKIA_N8X0
+ 	select MACH_NOKIA_N810_WIMAX
+ 	select OMAP_PACKAGE_ZAC
+ 
+-config MACH_NOKIA_RX51
+-	bool "Nokia N900 (RX-51) phone"
+-	depends on ARCH_OMAP3
+-	default y
+-	select OMAP_PACKAGE_CBB
+-
+-config MACH_CM_T35
+-	bool "CompuLab CM-T35/CM-T3730 modules"
+-	depends on ARCH_OMAP3
+-	default y
+-	select MACH_CM_T3730
+-	select OMAP_PACKAGE_CUS
+-
+-config MACH_CM_T3517
+-	bool "CompuLab CM-T3517 module"
+-	depends on ARCH_OMAP3
+-	default y
+-	select OMAP_PACKAGE_CBB
+-
+-config MACH_CM_T3730
+-       bool
+-
+-config MACH_SBC3530
+-	bool "OMAP3 SBC STALKER board"
+-	depends on ARCH_OMAP3
+-	default y
+-	select OMAP_PACKAGE_CUS
+-
+-config MACH_TI8168EVM
+-	bool "TI8168 Evaluation Module"
+-	depends on SOC_TI81XX
+-	default y
+-
+-config MACH_TI8148EVM
+-	bool "TI8148 Evaluation Module"
+-	depends on SOC_TI81XX
+-	default y
+-
+ config OMAP3_EMU
+ 	bool "OMAP3 debugging peripherals"
+ 	depends on ARCH_OMAP3
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index f78b177..914256e 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -235,29 +235,7 @@ obj-$(CONFIG_SOC_OMAP2420)		+= msdi.o
+ 
+ # Specific board support
+ obj-$(CONFIG_MACH_OMAP_GENERIC)		+= board-generic.o pdata-quirks.o
+-obj-$(CONFIG_MACH_OMAP3_BEAGLE)		+= board-omap3beagle.o
+-obj-$(CONFIG_MACH_DEVKIT8000)     	+= board-devkit8000.o
+-obj-$(CONFIG_MACH_OMAP_LDP)		+= board-ldp.o
+-obj-$(CONFIG_MACH_OMAP3530_LV_SOM)      += board-omap3logic.o
+-obj-$(CONFIG_MACH_OMAP3_TORPEDO)        += board-omap3logic.o
+-obj-$(CONFIG_MACH_OVERO)		+= board-overo.o
+-obj-$(CONFIG_MACH_OMAP3_PANDORA)	+= board-omap3pandora.o
+-obj-$(CONFIG_MACH_OMAP_3430SDP)		+= board-3430sdp.o
+ obj-$(CONFIG_MACH_NOKIA_N8X0)		+= board-n8x0.o
+-obj-$(CONFIG_MACH_NOKIA_RX51)		+= board-rx51.o sdram-nokia.o
+-obj-$(CONFIG_MACH_NOKIA_RX51)		+= board-rx51-peripherals.o
+-obj-$(CONFIG_MACH_NOKIA_RX51)		+= board-rx51-video.o
+-obj-$(CONFIG_MACH_CM_T35)		+= board-cm-t35.o
+-obj-$(CONFIG_MACH_CM_T3517)		+= board-cm-t3517.o
+-obj-$(CONFIG_MACH_TOUCHBOOK)		+= board-omap3touchbook.o
+-
+-obj-$(CONFIG_MACH_OMAP3517EVM)		+= board-am3517evm.o
+-
+-obj-$(CONFIG_MACH_CRANEBOARD)		+= board-am3517crane.o
+-
+-obj-$(CONFIG_MACH_SBC3530)		+= board-omap3stalker.o
+-obj-$(CONFIG_MACH_TI8168EVM)		+= board-ti8168evm.o
+-obj-$(CONFIG_MACH_TI8148EVM)		+= board-ti8168evm.o
+ 
+ # Platform specific device init code
+ 
