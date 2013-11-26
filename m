@@ -1,407 +1,89 @@
-From: Chao Xu <Chao.Xu@rice.edu>
-Subject: =?windows-1252?Q?=5BPATCH_RFC=5D_gpio=3A_omap=3A_refresh_the_patch_=93gpio=3A_o?=
-	=?windows-1252?Q?map=3A_be_more_aggressive_with_pm=5Fruntime=94_against_v3=2E12=2Drc5?=
-Date: Mon, 25 Nov 2013 21:30:46 -0600
-Message-ID: <CAKZq+rdGooV0SV1RH6Hrms_Z-p6_FqcNmpGTAcn3dPU0u478vQ@mail.gmail.com>
+From: Sourav Poddar <sourav.poddar@ti.com>
+Subject: [PATCH 00/17] Add memory mapped support for ti qspi, m25p80 serial flash.
+Date: Tue, 26 Nov 2013 13:04:56 +0530
+Message-ID: <1385451313-1875-1-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-gpio-owner@vger.kernel.org>
-Sender: linux-gpio-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: santosh.shilimkar@ti.com, khilman@deeprootsystems.com, linus.walleij@linaro.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>, balbi@ti.com
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:59109 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752690Ab3KZHfy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 26 Nov 2013 02:35:54 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: computersforpeace@gmail.com, broonie@kernel.org, linux-mtd@lists.infradead.org, linux-spi@vger.kernel.org
+Cc: balbi@ti.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, bcousson@baylibre.com, Sourav Poddar <sourav.poddar@ti.com>
 
-Refresh the patch =93gpio: omap: be more aggressive with pm_runtime=94 =
-by
-=46elipe Balbi against v3.12-rc5. Add version checking so that the
-aggressive pm_runtime only applies to omap4 devices. Tested with
-pandaboard rev a2 through sysfs.
-Signed-off-by: Chao Xu <chao.xu@rice.edu>
----
-According to Mr. Felipe Balbi, the original patch was not accepted
-because interrupts would be missed when GPIO was used as IRQ source.
-But in my tests with pandaboard, interrupts were not missed. This is
-because _idle_sysc() sets the idlemode of gpio module to
-smart-idle-wakeup, and according to OMAP4430 TRM, under this idlemode,
-the gpio can generate an asynchronous wakeup request to the PRCM. And
-after GPIO is awake, the wake-up request is reflected into the
-interrupt status registers.
 
-A change I made against the original patch is only using the
-aggressive runtime pm scheme on OMAP4 by adding a flag in pdata,
-because I don=92t have HW to test OMAP3 or am33xx devices. According to
-the respective TRMs, their GPIO modules also can generate wake-up
-request if the idlemode is set to smart-idle or smart-idle-wakeup. So
-the patch should work for them, too. But I suspect a potential SW bug
-may cause missed interrupts: the am33xx_gpio_sysc.idlemodes is marked
-as capable of SIDLE_SMART_WKUP in omap_hwmod_33xx.c. But according to
-AM335x TRM, _only_ gpio0 is capable of this mode. This may make GPIO
-stuck in force-idle mode and unable to generate wakeup request. And
-thus interrupt will be missed. Again, I don=92t have the HW to verify
-whether this is a bug or not :(
+The patch series aims to add memory mapped support for TI qspi
+contoller and also add support for the same in serial flash driver(m25p80).
 
- drivers/gpio/gpio-omap.c                |  103 +++++++++++++++++++++++=
-+++-----
- include/linux/platform_data/gpio-omap.h |    1 +
- 2 files changed, 87 insertions(+), 17 deletions(-)
+These feature was added as a part of the series[1]:
+The series[1] add support for quad and memory mapped feature in spi and
+flash driver. Based on Brian Norris suggestion on splitting the quad and 
+memory mapped feature, I had sent a seperate series for quad support which 
+has beed accepted by Brian.
 
-diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index 89675f8..90661f2 100644
---- a/drivers/gpio/gpio-omap.c
-+++ b/drivers/gpio/gpio-omap.c
-@@ -76,6 +76,7 @@ struct gpio_bank {
-  int context_loss_count;
-  int power_mode;
-  bool workaround_enabled;
-+ bool is_aggressive_pm;
+The $subject patch series takes care of the memory mapped part.  
 
-  void (*set_dataout)(struct gpio_bank *bank, int gpio, int enable);
-  int (*get_context_loss_count)(struct device *dev);
-@@ -473,8 +474,15 @@ static void _disable_gpio_module(struct gpio_bank
-*bank, unsigned offset)
- static int gpio_is_input(struct gpio_bank *bank, int mask)
- {
-  void __iomem *reg =3D bank->base + bank->regs->direction;
-+ u32 val;
+Overview of memory mapped support in qspi:
+ TI qspi controller supports memory mapped read support, switching to which
+ requires  register modifications(qspi registers, control module register for
+ DRA, qspi register for am43x). Once switched, the flash data can be available
+ at a soc specific memory mapped address. For operations in normal mode, we need 
+ to keep memory mapped disable.
 
-- return __raw_readl(reg) & mask;
-+ if (bank->is_aggressive_pm)
-+ pm_runtime_get_sync(bank->dev);
-+ val =3D __raw_readl(reg) & mask;
-+ if (bank->is_aggressive_pm)
-+ pm_runtime_put(bank->dev);
-+
-+ return val;
- }
+ Flow of the patch is to keep the memory mapped enable by default in the driver.
+ Whenever Normal spi mode operations are desired, we switch to configuration mode
+ and at the end of it memory mapped is again enabled. There are few function pointers
+ added to fecilitate easy communication between the flash and spi controllers.
 
- static int gpio_irq_type(struct irq_data *d, unsigned type)
-@@ -485,7 +493,7 @@ static int gpio_irq_type(struct irq_data *d, unsign=
-ed type)
-  unsigned long flags;
-  unsigned offset;
+Major changes in the $subject patch based on discussion in [1]:
 
-- if (!BANK_USED(bank))
-+ if (!BANK_USED(bank) && !bank->is_aggressive_pm)
-  pm_runtime_get_sync(bank->dev);
+- Feature has been broken down into small meaningfl patches.
+- memcpy is done in flash driver and spi framework is bypassed.
+- configuration of memory mapped spi controller regsiters is done
+  through function calls from flash side.
 
- #ifdef CONFIG_ARCH_OMAP1
-@@ -503,6 +511,8 @@ static int gpio_irq_type(struct irq_data *d, unsign=
-ed type)
-  (type & (IRQ_TYPE_LEVEL_LOW|IRQ_TYPE_LEVEL_HIGH)))
-  return -EINVAL;
+[1]: http://lists.infradead.org/pipermail/linux-mtd/2013-October/049058.html
 
-+ if (bank->is_aggressive_pm)
-+ pm_runtime_get_sync(bank->dev);
-  spin_lock_irqsave(&bank->lock, flags);
-  offset =3D GPIO_INDEX(bank, gpio);
-  retval =3D _set_gpio_triggering(bank, offset, type);
-@@ -511,11 +521,16 @@ static int gpio_irq_type(struct irq_data *d,
-unsigned type)
-  _set_gpio_direction(bank, offset, 1);
-  } else if (!gpio_is_input(bank, 1 << offset)) {
-  spin_unlock_irqrestore(&bank->lock, flags);
-+ if (bank->is_aggressive_pm)
-+ pm_runtime_put(bank->dev);
-+
-  return -EINVAL;
-  }
 
-  bank->irq_usage |=3D 1 << GPIO_INDEX(bank, gpio);
-  spin_unlock_irqrestore(&bank->lock, flags);
-+ if (bank->is_aggressive_pm)
-+ pm_runtime_put(bank->dev);
+Tested on DRA7 board with spansion S25FL256S flash along with some
+internal irq crossbar patches.
+Tested on AM437x epos evm with macronix MX66l51235l flash.
 
-  if (type & (IRQ_TYPE_LEVEL_LOW | IRQ_TYPE_LEVEL_HIGH))
-  __irq_set_handler_locked(d->irq, handle_level_irq);
-@@ -668,10 +683,11 @@ static int omap_gpio_request(struct gpio_chip
-*chip, unsigned offset)
-  unsigned long flags;
+Testing done:
+-Erase the whole flash.
+-write to the flash
+-read back the flash
+- compare the data
 
-  /*
-- * If this is the first gpio_request for the bank,
-- * enable the bank module.
-+ * if aggressive runtime pm is supported, enable the bank module
-+ * for each gpio_request. Otherwise enable the bank module if this
-+ * is the first gpio_request for the bank.
-  */
-- if (!BANK_USED(bank))
-+ if (bank->is_aggressive_pm || !BANK_USED(bank))
-  pm_runtime_get_sync(bank->dev);
+Sourav Poddar (17):
+  spi/spi.h: Add get_buf/put_buf support in spi master..
+  spi/spi.h: Add configure from slave support.
+  spi/qspi: parse register by name.
+  spi/qspi: parse control module register.
+  spi/qspi: parse memory map register.
+  spi/qspi: Add support to switc to memory mapped operation.
+  spi/qspi: configure set up register for memory map..
+  spi/qspi: Add api for get_buf/put_buf.
+  spi/spi.h: Add "mem" variable in spi master.
+  spi/spi.h: Add mmap flag in spi master.
+  spi/qspi: set "mmap" flag to true.
+  spi/qspi: convert driver to enable/disable memory mapped..
+  drivers: mtd: m25p80: Add api to configure master register .
+  drivers: mtd: m25p80: Adapt driver to support memory mapped read.
+  arm: dts: dra7: Add qspi device.
+  arm: dts: am43x-epos: Add qspi device.
+  Documentation: bindings: ti-qspi: update binding information.
 
-  spin_lock_irqsave(&bank->lock, flags);
-@@ -685,7 +701,8 @@ static int omap_gpio_request(struct gpio_chip
-*chip, unsigned offset)
-  }
-  bank->mod_usage |=3D 1 << offset;
-  spin_unlock_irqrestore(&bank->lock, flags);
--
-+ if (bank->is_aggressive_pm)
-+ pm_runtime_put(bank->dev);
-  return 0;
- }
+ Documentation/devicetree/bindings/spi/ti_qspi.txt |    2 +
+ arch/arm/boot/dts/am4372.dtsi                     |   12 ++
+ arch/arm/boot/dts/am43x-epos-evm.dts              |   28 +++++
+ arch/arm/boot/dts/dra7-evm.dts                    |   32 ++++++
+ arch/arm/boot/dts/dra7.dtsi                       |   13 +++
+ drivers/mtd/devices/m25p80.c                      |   30 ++++++
+ drivers/spi/spi-ti-qspi.c                         |  115 ++++++++++++++++++++-
+ include/linux/spi/spi.h                           |   16 +++
+ 8 files changed, 246 insertions(+), 2 deletions(-)
 
-@@ -694,6 +711,9 @@ static void omap_gpio_free(struct gpio_chip *chip,
-unsigned offset)
-  struct gpio_bank *bank =3D container_of(chip, struct gpio_bank, chip)=
-;
-  unsigned long flags;
-
-+ if (bank->is_aggressive_pm)
-+ pm_runtime_get_sync(bank->dev);
-+
-  spin_lock_irqsave(&bank->lock, flags);
-  bank->mod_usage &=3D ~(1 << offset);
-  _disable_gpio_module(bank, offset);
-@@ -701,10 +721,11 @@ static void omap_gpio_free(struct gpio_chip
-*chip, unsigned offset)
-  spin_unlock_irqrestore(&bank->lock, flags);
-
-  /*
-- * If this is the last gpio to be freed in the bank,
-- * disable the bank module.
-+ * if aggressive runtime pm is supported, disable the bank module
-+ * for each gpio_free. Otherwise disable the bank module if this
-+ * is the last gpio to be freed in the bank.
-  */
-- if (!BANK_USED(bank))
-+ if (bank->is_aggressive_pm || !BANK_USED(bank))
-  pm_runtime_put(bank->dev);
- }
-
-@@ -796,17 +817,19 @@ static void gpio_irq_shutdown(struct irq_data *d)
-  unsigned long flags;
-  unsigned offset =3D GPIO_INDEX(bank, gpio);
-
-+ if (bank->is_aggressive_pm)
-+ pm_runtime_get_sync(bank->dev);
-  spin_lock_irqsave(&bank->lock, flags);
-  bank->irq_usage &=3D ~(1 << offset);
-  _disable_gpio_module(bank, offset);
-  _reset_gpio(bank, gpio);
-  spin_unlock_irqrestore(&bank->lock, flags);
--
-  /*
-- * If this is the last IRQ to be freed in the bank,
-- * disable the bank module.
-+ * if aggressive runtime pm is supported, disable the bank module
-+ * for each irq_shutdown. Otherwise disable the bank module if this
-+ * is the last IRQ to be freed in the bank.
-  */
-- if (!BANK_USED(bank))
-+ if (bank->is_aggressive_pm || !BANK_USED(bank))
-  pm_runtime_put(bank->dev);
- }
-
-@@ -815,7 +838,11 @@ static void gpio_ack_irq(struct irq_data *d)
-  struct gpio_bank *bank =3D irq_data_get_irq_chip_data(d);
-  unsigned int gpio =3D irq_to_gpio(bank, d->hwirq);
-
-+ if (bank->is_aggressive_pm)
-+ pm_runtime_get_sync(bank->dev);
-  _clear_gpio_irqstatus(bank, gpio);
-+ if (bank->is_aggressive_pm)
-+ pm_runtime_put(bank->dev);
- }
-
- static void gpio_mask_irq(struct irq_data *d)
-@@ -824,10 +851,14 @@ static void gpio_mask_irq(struct irq_data *d)
-  unsigned int gpio =3D irq_to_gpio(bank, d->hwirq);
-  unsigned long flags;
-
-+ if (bank->is_aggressive_pm)
-+ pm_runtime_get_sync(bank->dev);
-  spin_lock_irqsave(&bank->lock, flags);
-  _set_gpio_irqenable(bank, gpio, 0);
-  _set_gpio_triggering(bank, GPIO_INDEX(bank, gpio), IRQ_TYPE_NONE);
-  spin_unlock_irqrestore(&bank->lock, flags);
-+ if (bank->is_aggressive_pm)
-+ pm_runtime_put(bank->dev);
- }
-
- static void gpio_unmask_irq(struct irq_data *d)
-@@ -838,6 +869,8 @@ static void gpio_unmask_irq(struct irq_data *d)
-  u32 trigger =3D irqd_get_trigger_type(d);
-  unsigned long flags;
-
-+ if (bank->is_aggressive_pm)
-+ pm_runtime_get_sync(bank->dev);
-  spin_lock_irqsave(&bank->lock, flags);
-  if (trigger)
-  _set_gpio_triggering(bank, GPIO_INDEX(bank, gpio), trigger);
-@@ -851,6 +884,8 @@ static void gpio_unmask_irq(struct irq_data *d)
-
-  _set_gpio_irqenable(bank, gpio, 1);
-  spin_unlock_irqrestore(&bank->lock, flags);
-+ if (bank->is_aggressive_pm)
-+ pm_runtime_put(bank->dev);
- }
-
- static struct irq_chip gpio_irq_chip =3D {
-@@ -933,9 +968,15 @@ static int gpio_input(struct gpio_chip *chip,
-unsigned offset)
-  unsigned long flags;
-
-  bank =3D container_of(chip, struct gpio_bank, chip);
-+
-+ if (bank->is_aggressive_pm)
-+ pm_runtime_get_sync(bank->dev);
-  spin_lock_irqsave(&bank->lock, flags);
-  _set_gpio_direction(bank, offset, 1);
-  spin_unlock_irqrestore(&bank->lock, flags);
-+ if (bank->is_aggressive_pm)
-+ pm_runtime_put(bank->dev);
-+
-  return 0;
- }
-
-@@ -944,13 +985,20 @@ static int gpio_get(struct gpio_chip *chip,
-unsigned offset)
-  struct gpio_bank *bank;
-  u32 mask;
-
-+ int val;
-  bank =3D container_of(chip, struct gpio_bank, chip);
-  mask =3D (1 << offset);
-
-+ if (bank->is_aggressive_pm)
-+ pm_runtime_get_sync(bank->dev);
-  if (gpio_is_input(bank, mask))
-- return _get_gpio_datain(bank, offset);
-+ val =3D _get_gpio_datain(bank, offset);
-  else
-- return _get_gpio_dataout(bank, offset);
-+ val =3D _get_gpio_dataout(bank, offset);
-+ if (bank->is_aggressive_pm)
-+ pm_runtime_put(bank->dev);
-+
-+ return val;
- }
-
- static int gpio_output(struct gpio_chip *chip, unsigned offset, int va=
-lue)
-@@ -960,6 +1008,9 @@ static int gpio_output(struct gpio_chip *chip,
-unsigned offset, int value)
-  int retval =3D 0;
-
-  bank =3D container_of(chip, struct gpio_bank, chip);
-+
-+ if (bank->is_aggressive_pm)
-+ pm_runtime_get_sync(bank->dev);
-  spin_lock_irqsave(&bank->lock, flags);
-
-  if (LINE_USED(bank->irq_usage, offset)) {
-@@ -972,6 +1023,9 @@ static int gpio_output(struct gpio_chip *chip,
-unsigned offset, int value)
-
- exit:
-  spin_unlock_irqrestore(&bank->lock, flags);
-+ if (bank->is_aggressive_pm)
-+ pm_runtime_put(bank->dev);
-+
-  return retval;
- }
-
-@@ -983,9 +1037,13 @@ static int gpio_debounce(struct gpio_chip *chip,
-unsigned offset,
-
-  bank =3D container_of(chip, struct gpio_bank, chip);
-
-+ if (bank->is_aggressive_pm)
-+ pm_runtime_get_sync(bank->dev);
-  spin_lock_irqsave(&bank->lock, flags);
-  _set_gpio_debounce(bank, offset, debounce);
-  spin_unlock_irqrestore(&bank->lock, flags);
-+ if (bank->is_aggressive_pm)
-+ pm_runtime_put(bank->dev);
-
-  return 0;
- }
-@@ -996,9 +1054,14 @@ static void gpio_set(struct gpio_chip *chip,
-unsigned offset, int value)
-  unsigned long flags;
-
-  bank =3D container_of(chip, struct gpio_bank, chip);
-+
-+ if (bank->is_aggressive_pm)
-+ pm_runtime_get_sync(bank->dev);
-  spin_lock_irqsave(&bank->lock, flags);
-  bank->set_dataout(bank, offset, value);
-  spin_unlock_irqrestore(&bank->lock, flags);
-+ if (bank->is_aggressive_pm)
-+ pm_runtime_put(bank->dev);
- }
-
- /*--------------------------------------------------------------------=
--*/
-@@ -1168,6 +1231,7 @@ static int omap_gpio_probe(struct platform_device=
- *pdev)
-  bank->is_mpuio =3D pdata->is_mpuio;
-  bank->non_wakeup_gpios =3D pdata->non_wakeup_gpios;
-  bank->regs =3D pdata->regs;
-+ bank->is_aggressive_pm =3D pdata->is_aggressive_pm;
- #ifdef CONFIG_OF_GPIO
-  bank->chip.of_node =3D of_node_get(node);
- #endif
-@@ -1449,7 +1513,8 @@ void omap2_gpio_prepare_for_idle(int pwr_mode)
-
-  bank->power_mode =3D pwr_mode;
-
-- pm_runtime_put_sync_suspend(bank->dev);
-+ if (!pm_runtime_suspended(bank->dev))
-+ pm_runtime_suspend(bank->dev);
-  }
- }
-
-@@ -1461,7 +1526,8 @@ void omap2_gpio_resume_after_idle(void)
-  if (!BANK_USED(bank) || !bank->loses_context)
-  continue;
-
-- pm_runtime_get_sync(bank->dev);
-+ if (pm_runtime_suspended(bank->dev))
-+ pm_runtime_resume(bank->dev);
-  }
- }
-
-@@ -1585,18 +1651,21 @@ static const struct omap_gpio_platform_data
-omap2_pdata =3D {
-  .regs =3D &omap2_gpio_regs,
-  .bank_width =3D 32,
-  .dbck_flag =3D false,
-+ .is_aggressive_pm =3D false,
- };
-
- static const struct omap_gpio_platform_data omap3_pdata =3D {
-  .regs =3D &omap2_gpio_regs,
-  .bank_width =3D 32,
-  .dbck_flag =3D true,
-+ .is_aggressive_pm =3D false,
- };
-
- static const struct omap_gpio_platform_data omap4_pdata =3D {
-  .regs =3D &omap4_gpio_regs,
-  .bank_width =3D 32,
-  .dbck_flag =3D true,
-+ .is_aggressive_pm =3D true,
- };
-
- static const struct of_device_id omap_gpio_match[] =3D {
-diff --git a/include/linux/platform_data/gpio-omap.h
-b/include/linux/platform_data/gpio-omap.h
-index 5d50b25..bb033b1 100644
---- a/include/linux/platform_data/gpio-omap.h
-+++ b/include/linux/platform_data/gpio-omap.h
-@@ -200,6 +200,7 @@ struct omap_gpio_platform_data {
-  bool dbck_flag; /* dbck required or not - True for OMAP3&4 */
-  bool loses_context; /* whether the bank would ever lose context */
-  bool is_mpuio; /* whether the bank is of type MPUIO */
-+ bool is_aggressive_pm; /* whether aggressive runtime pm is supported*=
-/
-  u32 non_wakeup_gpios;
-
-  struct omap_gpio_reg_offs *regs;
---
-To unsubscribe from this list: send the line "unsubscribe linux-gpio" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
