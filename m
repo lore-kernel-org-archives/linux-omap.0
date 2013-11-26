@@ -1,82 +1,64 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH 03/17] spi/qspi: parse register by name.
-Date: Tue, 26 Nov 2013 12:24:42 +0000
-Message-ID: <20131126122442.GC14725@sirena.org.uk>
+From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 04/17] spi/qspi: parse control module register.
+Date: Tue, 26 Nov 2013 12:25:12 +0000
+Message-ID: <20131126122512.GD14725@sirena.org.uk>
 References: <1385451313-1875-1-git-send-email-sourav.poddar@ti.com>
- <1385451313-1875-4-git-send-email-sourav.poddar@ti.com>
- <20131126103029.GY14725@sirena.org.uk> <5294835D.5090902@ti.com>
+ <1385451313-1875-5-git-send-email-sourav.poddar@ti.com>
+ <20131126103104.GZ14725@sirena.org.uk>
+ <529483A2.3080000@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============4356137134076900306=="
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
-In-Reply-To: <5294835D.5090902@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
-To: Sourav Poddar <sourav.poddar@ti.com>
-Cc: devicetree@vger.kernel.org, computersforpeace@gmail.com, balbi@ti.com, linux-spi@vger.kernel.org, linux-mtd@lists.infradead.org, bcousson@baylibre.com, linux-omap@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="dqsx3Lh6rjXyciUn"
+Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <529483A2.3080000-l0cyMroinI0@public.gmane.org>
+Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>
+Cc: computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
 
---===============4356137134076900306==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="xYEba/cIt2nZJmCG"
-Content-Disposition: inline
-
-
---xYEba/cIt2nZJmCG
+--dqsx3Lh6rjXyciUn
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Tue, Nov 26, 2013 at 04:47:49PM +0530, Sourav Poddar wrote:
+On Tue, Nov 26, 2013 at 04:48:58PM +0530, Sourav Poddar wrote:
+> On Tuesday 26 November 2013 04:01 PM, Mark Brown wrote:
+> >On Tue, Nov 26, 2013 at 01:05:00PM +0530, Sourav Poddar wrote:
+> >>In qspi controller, we need to switch to memory mapped operations.
+> >>These switching depends on
 
-> I have added "reg-names" property in dt bindings. (17/17) patch of
-> this series has that info.
+> >This will need to be added to the DT binding.
 
-Do device tree binding changes early on in the series rather than at the
-end, one of the things that gets reviewed for is binding updates.
+> I have added a "reg-name" property. Does we need to add individual
+> reg-names also?
 
-Your code should also cope with the existing bindings, falling back on
-the current behaviour if it can't get the names or the extra resources.
+I don't understand what you mean by "individual reg-names"?
 
---xYEba/cIt2nZJmCG
+--dqsx3Lh6rjXyciUn
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2.0.22 (GNU/Linux)
 
-iQIcBAEBAgAGBQJSlJMHAAoJELSic+t+oim9Fz0P/ibhevhum+cYlpunkpWiHJHB
-aPEJuWG9k5nxupW4yOc2bm0GlsMk2303XRkBI7fgIMvdGxC2C7MS1M0HMv++11mT
-+0BENkReILTgGbWILIifAZz/ooeqDPPHvsKBkZSy24WgYf2JZLONZSOrwTmHF4Nj
-5vcRh7z/gpnT3mDtvuhZptTBTENgYV3Rgo1QT88fGHz+ZydmbEG1s2BWL6T8widb
-7OO+A9wTt/rSvCU7jLq/mL80mzRv4SmnvyF/BgFQF0MFee6YlLfDnp3n+nYssrf8
-zRGwD6KFF0coOudbbphvTf2YgOSGPpHvFJkB0L0uUNAd2ThexdM3z/FHBrFtQORC
-d5g0p9rswi4ldWkKvwf/rb6QW7U4RvA9+F4n1ciQTvtRT5jFhdxu5S8EVk+AO4es
-ClxT0Tjwwb8ar20o2TmvlXG9oULUKsxWTPji2ALUexmf/zrlPzXtIXhcN1NexNQ1
-9qmlviJ48q1oW0lteR/AurEVlmjSAJ5tHSJOVRgBYe7lYyZESxwNB75xWRrxEoh1
-kObNCfzsqN8uVP6UO50Rb+V2ZLEtHbt6Ii8s2ZQtaV/5GqwpOEPCj8gfSJvKzE3C
-pMbq6odgU+cFUHp9Q5d5gqRc9CyhPjFDQU8qxkhdDMMk5ChRsByAm8kL6pa2cu/3
-jZA+uNBRrCvorMInpCSm
-=w3+Q
+iQIcBAEBAgAGBQJSlJMkAAoJELSic+t+oim98dsP/jybFymsOcncl7ILBDsnyNQy
+ypT3KH4sGYxMtRuVlPYra97PRDz0ZaB1RQBFSXmi8N/ZfdXZUZR/0qaRJ00zW+8K
+yU/5Rc1Yp/DBAJ6mVjiOd4+qVpUrT8MV5REoKG9HhZVcTPdsMa6EK8EdZpzid1/H
+MljrH+iocuaAEtFxgrntPDCi/E05IUXPdMH0jsyl7fyrKmcGd442jcRn9ytxR/Hm
+4HWhwWXUUBYjMJcWLyPvW/fxQNKJELtB1upe4BpRGNCe5Hh8GaIk5DnD6HuWiJEk
+7enUkFPq7Ay7qGjv33llq1xRmgOzZbScHdjR5Q1xCMprDaM5bbluAQyZpCGUnbVl
+z6DKfeMheeICEvXzZch8B1f+mvlnCcy8+GL3MqLjlTitr+gf0UGUrnyiBjaNkC+K
+wQGdcV6yCJRpvwbc6CQaBZsXxymhWcIgkCa8YMjH1N3V+GuY4G1rpis/cVxnQpBq
+xFLX9+PNIRSIIZxeOZIR2Qt7+POUnutrynvlQ9mTeQnleQ/8nr2+UIYQYNewR0I0
+oU/Yp7295fumkDNzvzVDLEcYw/9hCoeaqx460yGDN3L8ZZSGI4r3kmIjQ8hlpdEO
+4AflqcgJq+yl103EqHT97jOweXmDVYlHNbDm8LAcmNQ0prl9NUn4vXO4oVemnXUS
+g+ZT6KauH1LhvTZDVCeW
+=xqrf
 -----END PGP SIGNATURE-----
 
---xYEba/cIt2nZJmCG--
-
-
---===============4356137134076900306==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-______________________________________________________
-Linux MTD discussion mailing list
-http://lists.infradead.org/mailman/listinfo/linux-mtd/
-
---===============4356137134076900306==--
+--dqsx3Lh6rjXyciUn--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-spi" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
