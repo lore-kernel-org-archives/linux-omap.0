@@ -1,77 +1,32 @@
-From: Mark Brown <broonie@kernel.org>
+From: Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>
 Subject: Re: [PATCH 09/17] spi/spi.h: Add "mem" variable in spi master.
-Date: Tue, 26 Nov 2013 13:01:19 +0000
-Message-ID: <20131126130119.GH14725@sirena.org.uk>
-References: <1385451313-1875-1-git-send-email-sourav.poddar@ti.com>
- <1385451313-1875-10-git-send-email-sourav.poddar@ti.com>
+Date: Tue, 26 Nov 2013 18:35:35 +0530
+Message-ID: <52949C9F.10008@ti.com>
+References: <1385451313-1875-1-git-send-email-sourav.poddar@ti.com> <1385451313-1875-10-git-send-email-sourav.poddar@ti.com> <20131126130119.GH14725@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============8402795421520857920=="
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
-In-Reply-To: <1385451313-1875-10-git-send-email-sourav.poddar@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
-To: Sourav Poddar <sourav.poddar@ti.com>
-Cc: devicetree@vger.kernel.org, computersforpeace@gmail.com, balbi@ti.com, linux-spi@vger.kernel.org, linux-mtd@lists.infradead.org, bcousson@baylibre.com, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20131126130119.GH14725-GFdadSzt00ze9xe1eoZjHA@public.gmane.org>
+Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-
---===============8402795421520857920==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="213B/23bCmw+8GSd"
-Content-Disposition: inline
-
-
---213B/23bCmw+8GSd
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Tue, Nov 26, 2013 at 01:05:05PM +0530, Sourav Poddar wrote:
-> Add "mem" variable in spi_master, which can be used to hold on the
-> memory mapped address.
-
-Is this really generic enough to put here rather than in the driver
-data?
-
---213B/23bCmw+8GSd
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
-
-iQIcBAEBAgAGBQJSlJucAAoJELSic+t+oim92uUP/2HbaUOMqmEsz2WqBXrCyIfU
-23RCClegy2/K9Iw2ukldQyNvhEiro0PyXqRTDW7LeKMc9Ga9l6IFqto5EL1+IFfj
-hJpoURqr8lt/EmoAsMt7jV9HJ2z0eb0eswWY2lGTFoRSLG4v+K19fKOdheoy32Ve
-06Sw+EGLxIjVwB/GmBsgjs4UIim53jtCD/xYF999K3WC5In8WKwWHwAZegFOiE15
-0x0li2G9ZwiOkWHyMZaGomg4rmT8zXCQ+ZhnnFyVS+3zMxo+ys5DnfeET7CxM4Km
-6noEjdy/UjFqtnW+oxVOiTy3uzH96AKKpKlwvSqshL8BJs8RTCa4SBE9PWpCArAv
-whst+Nodeg+2F5WtgAv2bzqyiIHjXsDoTby1YYM+eQDGGCAgr+1eK+T8gRnZppst
-h9Jmw71puyjk23Dd35YHytbrGHBnaJlt46ZhsccWaRVPPFe1GYP5MsW30BM86chI
-1zVlDhxYfLYvPtJUuyFoEP31CAbkI2BfipQ1ZMD9t0X6B7xxLJq60SXjtPbVplOn
-QuCPInq3zEL5IKFGeX93GtiFEREngHHeMbSUa2Ht30VeEhXKNs67adh0SIblSMQe
-DEWBVlpTtJfFpXutsLlPERHge8XWIxQfCrPhUU/A77j0LdtDrJr0Qz898kRG8gCw
-yLRQAaC0r6Ktz9BvFSab
-=h++a
------END PGP SIGNATURE-----
-
---213B/23bCmw+8GSd--
-
-
---===============8402795421520857920==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-______________________________________________________
-Linux MTD discussion mailing list
-http://lists.infradead.org/mailman/listinfo/linux-mtd/
-
---===============8402795421520857920==--
+On Tuesday 26 November 2013 06:31 PM, Mark Brown wrote:
+> On Tue, Nov 26, 2013 at 01:05:05PM +0530, Sourav Poddar wrote:
+>> Add "mem" variable in spi_master, which can be used to hold on the
+>> memory mapped address.
+> Is this really generic enough to put here rather than in the driver
+> data?
+The thought behind this was that if a master controller supports
+memory mapped operation and slave wants to use memcpy in his
+driver(bypassing spi ), then we should have a mean to communicate 
+between the
+master and the slave. So, 'spi_master' seems to be the place for me for 
+this data,
+which could be parsed in the slave side also.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-spi" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
