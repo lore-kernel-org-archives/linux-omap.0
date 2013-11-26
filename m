@@ -1,141 +1,85 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/8] ARM: OMAP: Move public portion of dmtimer.h to
- include/linux/omap-timer.h
-Date: Tue, 26 Nov 2013 10:29:09 -0800
-Message-ID: <20131126182908.GK26766@atomide.com>
-References: <1385085414-9034-1-git-send-email-joelf@ti.com>
- <1385085414-9034-2-git-send-email-joelf@ti.com>
- <20131122153334.GE10023@atomide.com>
- <52940F32.3000006@ti.com>
+From: Joel Fernandes <joelf@ti.com>
+Subject: Re: [PATCH 1/8] ARM: OMAP: Move public portion of dmtimer.h to include/linux/omap-timer.h
+Date: Tue, 26 Nov 2013 13:52:41 -0600
+Message-ID: <5294FC09.2080604@ti.com>
+References: <1385085414-9034-1-git-send-email-joelf@ti.com> <1385085414-9034-2-git-send-email-joelf@ti.com> <20131122153334.GE10023@atomide.com> <52940F32.3000006@ti.com> <20131126182908.GK26766@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:56639 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754754Ab3KZS3M (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Nov 2013 13:29:12 -0500
-Content-Disposition: inline
-In-Reply-To: <52940F32.3000006@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:34375 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753088Ab3KZTxG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 26 Nov 2013 14:53:06 -0500
+In-Reply-To: <20131126182908.GK26766@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Joel Fernandes <joelf@ti.com>
+To: Tony Lindgren <tony@atomide.com>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, benoit.cousson@linaro.org, santosh.shilimkar@ti.com, jgchunter@gmail.com, rnayak@ti.com, balbi@ti.com, Suman Anna <s-anna@ti.com>
 
-* Joel Fernandes <joelf@ti.com> [131125 19:03]:
-> Hi Tony,
+On 11/26/2013 12:29 PM, Tony Lindgren wrote:
+[..]
+>>> We can implement an irqchip and a clocksource in the dmtimer code for the
+>>> client drivers to use, and after that we only have a couple of dmtimer
+>>> specific functions left to export.
+>>>
+>>> I'm thinkging some thing like this for the public API:
+>>>
+>>> omap_dm_timer_request			request_irq
+>>> omap_dm_timer_request_specific		request_irq
+>>> omap_dm_timer_get_irq			request_irq
+>>> omap_dm_timer_set_source		clk_set_rate
+>>
+>> For clk_set_rate, how would one directly access the timer node if we've hidden
+>> it behind an irq chip abstraction?
+>>
+>> per your suggestion, one would have something like:
+>>
+>> dsp {
+>>     interrupt-parent = <&timer1>;
+>> }
+>>
+>> so how do you clk_set_rate rate something like this given the dsp node?
 > 
-> Few replies inline below. Adding Suman as well who is planning to use dmtimer
-> directly for his work with DSP.
+> All you have to do is implement a clocksource driver in dmtimer.c code.
+>  
+>> If the suggestion is to get the timer1 node from the interrupt-parent property,
+>> if I may say- that's a bit ugly because now you're breaking the irq chip
+>> abstraction just to access the timer node..
 > 
-> On 11/22/2013 09:33 AM, Tony Lindgren wrote:
-> > Hi,
-> > 
-> > * Joel Fernandes <joelf@ti.com> [131121 18:00]:
-> >> Multiplatform support has made arch/arm/plat-omap/include/plat/ inaccessible to
-> >> drivers outside the plat-omap directory [1]. Due to this the following drivers
-> >> are disabled with !CONFIG_ARCH_MULTIPLATFORM:
-> >> CONFIG_IR_RX51 (drivers/media/rc/ir-rx51.c)
-> >> CONFIG_TIDSPBRIDGE (drivers/staging/tidspbridge/core/dsp-clock.c)
-> >>
-> >> We move the portion of the dmtimer "API" that should be accessible to the
-> >> drivers, into include/linux/omap-timer.h
-> > 
-> > As we chatted earlier, we don't have to expose all these hardware specific
-> > functions and use existing Linux generic frameworks instead.
-> 
-> I thought over this, and strongly feel that in this case moving to a generic
-> framework is not the right approach. I mentioned reasons in last post, but
-> summarizing all of them below:
-> 
-> 1. It is not immediately intuitive or obvious unlike GPIO that a timer can be an
-> irqchip.
+> Hmm sorry I don't follow you here.
 
-But that's what it really is for hadware timers :)
- 
-> 2. There are only 1-2 users of the dmtimer directly so moving to linux generic
-> framework is bit overkill I feel. Further there is already a framework-
-> clockevents/hrtimer which everyone should be using. For the 1-2 direct dmtimer
-> users, they should just use the dmtimer public API.
+I assumed above that you were suggesting implementing interrupt chaining like
+gpio-omap driver.
 
-But the thing is, we don't want to expose the dmtimer public API. That will
-lead to drivers tinkering directly with the hardware timers and then other
-SoCs will follow.
- 
-> More reasons below...
-> 
-> > 
-> > We can implement an irqchip and a clocksource in the dmtimer code for the
-> > client drivers to use, and after that we only have a couple of dmtimer
-> > specific functions left to export.
-> > 
-> > I'm thinkging some thing like this for the public API:
-> > 
-> > omap_dm_timer_request			request_irq
-> > omap_dm_timer_request_specific		request_irq
-> > omap_dm_timer_get_irq			request_irq
-> > omap_dm_timer_set_source		clk_set_rate
-> 
-> For clk_set_rate, how would one directly access the timer node if we've hidden
-> it behind an irq chip abstraction?
-> 
-> per your suggestion, one would have something like:
-> 
-> dsp {
->     interrupt-parent = <&timer1>;
-> }
-> 
-> so how do you clk_set_rate rate something like this given the dsp node?
+Can you give an example workflow to explain your suggestion?
 
-All you have to do is implement a clocksource driver in dmtimer.c code.
- 
-> If the suggestion is to get the timer1 node from the interrupt-parent property,
-> if I may say- that's a bit ugly because now you're breaking the irq chip
-> abstraction just to access the timer node..
+I'll tell you how I understand what you were suggesting and then you can correct
+me, and maybe we can meet somewhere:
 
-Hmm sorry I don't follow you here.
- 
-> > omap_dm_timer_stop			disable_irq
-> > omap_dm_timer_start			enable_irq
-> > omap_dm_timer_disable			disable_irq
-> > omap_dm_timer_free			free_irq
-> > omap_dm_timer_set_int_enable		enable_irq
-> > 
-> > After that, what's left to export are some functions to configure
-> > the hardware timer:
-> > 
-> > omap_dm_timer_write_counter
-> > omap_dm_timer_set_match
-> > omap_dm_timer_read_counter
-> > omap_dm_timer_read_status
-> > omap_dm_timer_write_status
-> 
-> Same comment for clk_set_rate applies here, we've to access interrupt-parent
-> property to get timer node and call dmtimer API which breaks the abstraction.
+Typically *without* irqchip or chaining what you suggested, we would  have
+something like (purely an example):
+dsp {
+    timer = <&timer1>;
+}
 
-Sorry, I don't follow you here either. I'm sure we'll have some Linux generic
-standard for programming hardware timers, but still using request_irq + 
-clk_set_rate is very standard behaviour no matter what happens later on.
- 
-> Usually I've seen frameworks come up because there is code duplication etc. In
-> this case there is no duplication as such, and the number of users of the API is
-> also few. What is the problem with exposing a small set of API to timer users in
-> drivers/ specially when they are prefixed by a unique name (omap_dm_timer)?
+There is an API:
+omap_dm_timer *omap_dm_timer_request_by_node(struct device_node *np); that one
+would use.
 
-Because we don't want to export 27 omap specific functions to drivers:
+Now moving to your suggestion, the dts would look like:
+dsp {
+    interrupt-parrent = <&timer1>;
+    interrupts = <1>;
+}
 
-$ grep EXPORT_SYMBOL arch/arm/plat-omap/dmtimer.c | wc -l
-27
+Naturally some APIs will not fit into the IRQ framework, so these subset of
+dmtimer API may need to be exposed as you pointed. To use the API, the timer has
+to first be retrieved from interrupt-parent property of "dsp" here to get a
+device_node, and then the timer has to be requested and subset API used on it.
+This is "hack" that's not acceptable according to me...
 
-Instead, it looks like we can get away with exporting just:
+thanks,
 
-omap_dm_timer_write_counter
-omap_dm_timer_set_match
-omap_dm_timer_read_counter
-omap_dm_timer_read_status
-omap_dm_timer_write_status
+-Joel
 
-And I'm sure we'll have some solution for those also later on.
-
-Regards,
-
-Tony
