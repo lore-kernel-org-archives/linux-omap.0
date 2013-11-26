@@ -1,221 +1,166 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv10 35/41] ARM: OMAP2+: PRM: add support for initializing PRCM clock modules from DT
-Date: Tue, 26 Nov 2013 10:06:16 +0200
-Message-ID: <1385453182-24421-36-git-send-email-t-kristo@ti.com>
+From: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
+Subject: [PATCHv10 36/41] ARM: OMAP2+: io: use new clock init API
+Date: Tue, 26 Nov 2013 10:06:17 +0200
+Message-ID: <1385453182-24421-37-git-send-email-t-kristo@ti.com>
 References: <1385453182-24421-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:60615 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754849Ab3KZIKh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 26 Nov 2013 03:10:37 -0500
-In-Reply-To: <1385453182-24421-1-git-send-email-t-kristo@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1385453182-24421-1-git-send-email-t-kristo-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, mturquette-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, nm@ti.com, rnayak@ti.com, bcousson@baylibre.com, mturquette@linaro.org
-Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-This patch provides top level functionality for the DT clock initialization.
-Clock tree is initialized hierarchically starting from IP modules (CM/PRM/PRCM)
-going down towards individual clock nodes, and finally initializing
-clockdomains once all the clocks are ready.
+clk_init is now separated to a common function which gets called for all
+SoC:s, which initializes the DT clocks and calls the SoC specific clock init.
 
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Signed-off-by: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/mach-omap2/Kconfig      |    1 +
- arch/arm/mach-omap2/clock.h      |    2 +
- arch/arm/mach-omap2/prm.h        |    1 +
- arch/arm/mach-omap2/prm_common.c |  128 ++++++++++++++++++++++++++++++++++++++
- 4 files changed, 132 insertions(+)
+ arch/arm/mach-omap2/common.h |    2 +-
+ arch/arm/mach-omap2/io.c     |   32 +++++++++++++++++++++++---------
+ arch/arm/mach-omap2/timer.c  |    6 ++----
+ 3 files changed, 26 insertions(+), 14 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index dc21df1..4fccbbe 100644
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -95,6 +95,7 @@ config ARCH_OMAP2PLUS
- 	select SPARSE_IRQ
- 	select TI_PRIV_EDMA
- 	select USE_OF
-+	select REGMAP_MMIO
- 	help
- 	  Systems based on OMAP2, OMAP3, OMAP4 or OMAP5
+diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
+index f7644fe..5b44bcc 100644
+--- a/arch/arm/mach-omap2/common.h
++++ b/arch/arm/mach-omap2/common.h
+@@ -306,7 +306,7 @@ struct omap_hwmod;
+ extern int omap_dss_reset(struct omap_hwmod *);
  
-diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
-index 9595d72..10efab8 100644
---- a/arch/arm/mach-omap2/clock.h
-+++ b/arch/arm/mach-omap2/clock.h
-@@ -291,6 +291,8 @@ extern const struct clksel_rate div_1_3_rates[];
- extern const struct clksel_rate div_1_4_rates[];
- extern const struct clksel_rate div31_1to31_rates[];
+ /* SoC specific clock initializer */
+-extern int (*omap_clk_init)(void);
++int omap_clk_init(void);
  
-+extern struct regmap *clk_regmaps[];
-+
- extern int am33xx_clk_init(void);
- 
- extern int omap2_clkops_enable_clkdm(struct clk_hw *hw);
-diff --git a/arch/arm/mach-omap2/prm.h b/arch/arm/mach-omap2/prm.h
-index ac25ae6..623db40 100644
---- a/arch/arm/mach-omap2/prm.h
-+++ b/arch/arm/mach-omap2/prm.h
-@@ -18,6 +18,7 @@
- # ifndef __ASSEMBLER__
- extern void __iomem *prm_base;
- extern void omap2_set_globals_prm(void __iomem *prm);
-+int of_prcm_init(void);
- # endif
- 
- 
-diff --git a/arch/arm/mach-omap2/prm_common.c b/arch/arm/mach-omap2/prm_common.c
-index a2e1174..16ab63c 100644
---- a/arch/arm/mach-omap2/prm_common.c
-+++ b/arch/arm/mach-omap2/prm_common.c
-@@ -23,6 +23,12 @@
- #include <linux/irq.h>
- #include <linux/interrupt.h>
- #include <linux/slab.h>
-+#include <linux/of.h>
-+#include <linux/of_address.h>
-+#include <linux/clk-provider.h>
-+#include <linux/clk/ti.h>
-+#include <linux/of_platform.h>
-+#include <linux/regmap.h>
- 
- #include "soc.h"
- #include "prm2xxx_3xxx.h"
-@@ -30,6 +36,7 @@
- #include "prm3xxx.h"
+ #endif /* __ASSEMBLER__ */
+ #endif /* __ARCH_ARM_MACH_OMAP2PLUS_COMMON_H */
+diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+index 3d9b3fc..7a394d7 100644
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -55,10 +55,10 @@
  #include "prm44xx.h"
- #include "common.h"
-+#include "clock.h"
  
  /*
-  * OMAP_PRCM_MAX_NR_PENDING_REG: maximum number of PRM_IRQ*_MPU regs
-@@ -464,3 +471,124 @@ int prm_unregister(struct prm_ll_data *pld)
+- * omap_clk_init: points to a function that does the SoC-specific
++ * omap_clk_soc_init: points to a function that does the SoC-specific
+  * clock initializations
+  */
+-int (*omap_clk_init)(void);
++int (*omap_clk_soc_init)(void);
  
- 	return 0;
+ /*
+  * The machine specific code may provide the extra mapping besides the
+@@ -419,7 +419,7 @@ void __init omap2420_init_early(void)
+ 	omap242x_clockdomains_init();
+ 	omap2420_hwmod_init();
+ 	omap_hwmod_init_postsetup();
+-	omap_clk_init = omap2420_clk_init;
++	omap_clk_soc_init = omap2420_clk_init;
+ }
+ 
+ void __init omap2420_init_late(void)
+@@ -448,7 +448,7 @@ void __init omap2430_init_early(void)
+ 	omap243x_clockdomains_init();
+ 	omap2430_hwmod_init();
+ 	omap_hwmod_init_postsetup();
+-	omap_clk_init = omap2430_clk_init;
++	omap_clk_soc_init = omap2430_clk_init;
+ }
+ 
+ void __init omap2430_init_late(void)
+@@ -482,7 +482,7 @@ void __init omap3_init_early(void)
+ 	omap3xxx_clockdomains_init();
+ 	omap3xxx_hwmod_init();
+ 	omap_hwmod_init_postsetup();
+-	omap_clk_init = omap3xxx_clk_init;
++	omap_clk_soc_init = omap3xxx_clk_init;
+ }
+ 
+ void __init omap3430_init_early(void)
+@@ -520,7 +520,7 @@ void __init ti81xx_init_early(void)
+ 	omap3xxx_clockdomains_init();
+ 	omap3xxx_hwmod_init();
+ 	omap_hwmod_init_postsetup();
+-	omap_clk_init = omap3xxx_clk_init;
++	omap_clk_soc_init = omap3xxx_clk_init;
+ }
+ 
+ void __init omap3_init_late(void)
+@@ -581,7 +581,7 @@ void __init am33xx_init_early(void)
+ 	am33xx_clockdomains_init();
+ 	am33xx_hwmod_init();
+ 	omap_hwmod_init_postsetup();
+-	omap_clk_init = am33xx_clk_init;
++	omap_clk_soc_init = am33xx_clk_init;
+ }
+ 
+ void __init am33xx_init_late(void)
+@@ -635,7 +635,7 @@ void __init omap4430_init_early(void)
+ 	omap44xx_clockdomains_init();
+ 	omap44xx_hwmod_init();
+ 	omap_hwmod_init_postsetup();
+-	omap_clk_init = omap4xxx_clk_init;
++	omap_clk_soc_init = omap4xxx_clk_init;
+ }
+ 
+ void __init omap4430_init_late(void)
+@@ -666,7 +666,7 @@ void __init omap5_init_early(void)
+ 	omap54xx_clockdomains_init();
+ 	omap54xx_hwmod_init();
+ 	omap_hwmod_init_postsetup();
+-	omap_clk_init = omap5xxx_dt_clk_init;
++	omap_clk_soc_init = omap5xxx_dt_clk_init;
+ }
+ 
+ void __init omap5_init_late(void)
+@@ -711,3 +711,17 @@ void __init omap_sdrc_init(struct omap_sdrc_params *sdrc_cs0,
+ 		_omap2_init_reprogram_sdrc();
+ 	}
  }
 +
-+static struct of_device_id omap_prcm_dt_match_table[] = {
-+	{ .compatible = "ti,clock-master" },
-+	{ }
-+};
-+
-+static struct regmap_config ti_clk_regmap_config = {
-+	.reg_bits = 32,
-+	.reg_stride = 4,
-+	.val_bits = 32,
-+	.cache_type = REGCACHE_NONE,
-+};
-+
-+static LIST_HEAD(prcm_early_devs);
-+
-+struct prcm_early_dev {
-+	struct device_node *node;
-+	struct platform_device *dev;
-+	struct list_head link;
-+};
-+
-+static struct clk_hw_omap regmap_dummy_ck = {
-+	.flags = REGMAP_ADDRESSING,
-+};
-+
-+static u32 prm_clk_readl(u32 *reg)
++int __init omap_clk_init(void)
 +{
-+	return omap2_clk_readl(&regmap_dummy_ck, reg);
-+}
++	int ret = 0;
 +
-+static void prm_clk_writel(u32 val, u32 *reg)
-+{
-+	omap2_clk_writel(val, &regmap_dummy_ck, reg);
-+}
-+
-+static struct clk_reg_ops omap_clk_reg_ops = {
-+	.clk_readl = prm_clk_readl,
-+	.clk_writel = prm_clk_writel,
-+};
-+
-+int __init of_prcm_init(void)
-+{
-+	struct device_node *np;
-+	void __iomem *mem;
-+	struct regmap *regmap;
-+	struct platform_device *pdev;
-+	struct prcm_early_dev *edev;
-+	int regmap_index = 0;
-+
-+	clk_register_reg_ops(&omap_clk_reg_ops);
-+
-+	for_each_matching_node(np, omap_prcm_dt_match_table) {
-+		pdev = platform_device_alloc(np->name, 0);
-+		dev_set_name(&pdev->dev, "%s", pdev->name);
-+		edev = kzalloc(sizeof(*edev), GFP_KERNEL);
-+		edev->dev = pdev;
-+		edev->node = np;
-+		list_add(&edev->link, &prcm_early_devs);
-+		mem = of_iomap(np, 0);
-+		ti_clk_regmap_config.name = "0";
-+		regmap = regmap_init_mmio(&pdev->dev, mem,
-+					  &ti_clk_regmap_config);
-+		clk_regmaps[regmap_index] = regmap;
-+		ti_dt_clk_init_provider(np, regmap_index);
-+		regmap_index++;
-+	}
-+
-+	ti_dt_clockdomains_setup();
-+
-+	return 0;
-+}
-+
-+static int prcm_probe(struct platform_device *pdev)
-+{
-+	const struct of_device_id *of_id =
-+		of_match_device(omap_prcm_dt_match_table, &pdev->dev);
-+	struct prcm_early_dev *edev;
-+	int ret;
-+
-+	if (!of_id)
++	if (!omap_clk_soc_init)
 +		return 0;
 +
-+	list_for_each_entry(edev, &prcm_early_devs, link) {
-+		if (edev->node == pdev->dev.of_node) {
-+			platform_device_add(edev->dev);
-+			edev->dev->dev.driver = pdev->dev.driver;
-+			ret = device_bind_driver(&edev->dev->dev);
-+			if (ret)
-+				return ret;
-+		}
-+	}
++	ret = of_prcm_init();
++	if (!ret)
++		ret = omap_clk_soc_init();
 +
-+	return 0;
++	return ret;
 +}
-+
-+static int prcm_remove(struct platform_device *pdev)
-+{
-+	return 0;
-+}
-+
-+static struct platform_driver prcm_driver = {
-+	.probe		= prcm_probe,
-+	.remove		= prcm_remove,
-+	.driver		= {
-+		.name	= "prcm-driver",
-+		.owner	= THIS_MODULE,
-+		.of_match_table	= of_match_ptr(omap_prcm_dt_match_table),
-+	},
-+};
-+
-+static __init int prcm_init(void)
-+{
-+	return platform_driver_register(&prcm_driver);
-+}
-+
-+static __exit void prcm_exit(void)
-+{
-+	platform_driver_unregister(&prcm_driver);
-+}
-+omap_postcore_initcall(prcm_init);
-+module_exit(prcm_exit);
+diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+index 3ca81e0..60e5fc9 100644
+--- a/arch/arm/mach-omap2/timer.c
++++ b/arch/arm/mach-omap2/timer.c
+@@ -570,8 +570,7 @@ static inline void __init realtime_counter_init(void)
+ 			       clksrc_nr, clksrc_src, clksrc_prop)	\
+ void __init omap##name##_gptimer_timer_init(void)			\
+ {									\
+-	if (omap_clk_init)						\
+-		omap_clk_init();					\
++	omap_clk_init();					\
+ 	omap_dmtimer_init();						\
+ 	omap2_gp_clockevent_init((clkev_nr), clkev_src, clkev_prop);	\
+ 	omap2_gptimer_clocksource_init((clksrc_nr), clksrc_src,		\
+@@ -582,8 +581,7 @@ void __init omap##name##_gptimer_timer_init(void)			\
+ 				clksrc_nr, clksrc_src, clksrc_prop)	\
+ void __init omap##name##_sync32k_timer_init(void)		\
+ {									\
+-	if (omap_clk_init)						\
+-		omap_clk_init();					\
++	omap_clk_init();					\
+ 	omap_dmtimer_init();						\
+ 	omap2_gp_clockevent_init((clkev_nr), clkev_src, clkev_prop);	\
+ 	/* Enable the use of clocksource="gp_timer" kernel parameter */	\
 -- 
 1.7.9.5
 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
