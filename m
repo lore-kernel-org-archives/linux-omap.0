@@ -1,292 +1,394 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 04/12] ARM: OMAP2+: Remove legacy i2c.c platform init code
-Date: Mon, 25 Nov 2013 16:14:19 -0800
-Message-ID: <1385424867-27243-5-git-send-email-tony@atomide.com>
+Subject: [PATCH 06/12] ARM: OMAP2+: Remove legacy twl4030 platform init code
+Date: Mon, 25 Nov 2013 16:14:21 -0800
+Message-ID: <1385424867-27243-7-git-send-email-tony@atomide.com>
 References: <1385424867-27243-1-git-send-email-tony@atomide.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:30111 "EHLO
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:30180 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752625Ab3KZAOe (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 25 Nov 2013 19:14:34 -0500
+	with ESMTP id S1753609Ab3KZAOg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 25 Nov 2013 19:14:36 -0500
 In-Reply-To: <1385424867-27243-1-git-send-email-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-We can now initialize I2C for mach-omap2 using device tree. And we
-can move the remaining code in plat-omap/i2c.c into mach-omap1/i2c.c.
-
-Note that we cannot remove some of the I2C bus reset functions
-as they are being used by hwmod code.
+We can now initialize twl4030 with device tree.
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap1/i2c.c        |  83 ++++++++++++++++++++++++++++
- arch/arm/mach-omap2/i2c.c        |  97 --------------------------------
- arch/arm/mach-omap2/twl-common.c |   2 -
- arch/arm/plat-omap/Makefile      |   3 -
- arch/arm/plat-omap/i2c.c         | 116 ---------------------------------------
- 5 files changed, 83 insertions(+), 218 deletions(-)
- delete mode 100644 arch/arm/plat-omap/i2c.c
+ arch/arm/mach-omap2/Makefile               |   3 +-
+ arch/arm/mach-omap2/common-board-devices.h |   2 -
+ arch/arm/mach-omap2/omap_twl.c             | 314 ----------------
+ arch/arm/mach-omap2/twl-common.c           | 568 -----------------------------
+ arch/arm/mach-omap2/twl-common.h           |  66 ----
+ 5 files changed, 1 insertion(+), 952 deletions(-)
+ delete mode 100644 arch/arm/mach-omap2/omap_twl.c
+ delete mode 100644 arch/arm/mach-omap2/twl-common.c
+ delete mode 100644 arch/arm/mach-omap2/twl-common.h
 
-diff --git a/arch/arm/mach-omap1/i2c.c b/arch/arm/mach-omap1/i2c.c
-index 7f5761c..3f6384e 100644
---- a/arch/arm/mach-omap1/i2c.c
-+++ b/arch/arm/mach-omap1/i2c.c
-@@ -19,6 +19,7 @@
-  *
-  */
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index a5e13c0..1f50fae 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -29,7 +29,6 @@ ifneq ($(CONFIG_SND_OMAP_SOC_MCBSP),)
+ obj-y += mcbsp.o
+ endif
  
-+#include <linux/i2c.h>
- #include <linux/i2c-omap.h>
- #include <mach/mux.h>
- #include "soc.h"
-@@ -92,6 +93,88 @@ int __init omap_i2c_add_bus(struct omap_i2c_bus_platform_data *pdata,
- 	return platform_device_register(pdev);
- }
+-obj-$(CONFIG_TWL4030_CORE) += omap_twl.o
+ obj-$(CONFIG_SOC_HAS_OMAP2_SDRC)	+= sdrc.o
  
-+#define OMAP_I2C_MAX_CONTROLLERS 4
-+static struct omap_i2c_bus_platform_data i2c_pdata[OMAP_I2C_MAX_CONTROLLERS];
-+
-+#define OMAP_I2C_CMDLINE_SETUP	(BIT(31))
-+
-+/**
-+ * omap_i2c_bus_setup - Process command line options for the I2C bus speed
-+ * @str: String of options
-+ *
-+ * This function allow to override the default I2C bus speed for given I2C
-+ * bus with a command line option.
-+ *
-+ * Format: i2c_bus=bus_id,clkrate (in kHz)
-+ *
-+ * Returns 1 on success, 0 otherwise.
-+ */
-+static int __init omap_i2c_bus_setup(char *str)
-+{
-+	int ints[3];
-+
-+	get_options(str, 3, ints);
-+	if (ints[0] < 2 || ints[1] < 1 ||
-+			ints[1] > OMAP_I2C_MAX_CONTROLLERS)
-+		return 0;
-+	i2c_pdata[ints[1] - 1].clkrate = ints[2];
-+	i2c_pdata[ints[1] - 1].clkrate |= OMAP_I2C_CMDLINE_SETUP;
-+
-+	return 1;
-+}
-+__setup("i2c_bus=", omap_i2c_bus_setup);
-+
-+/*
-+ * Register busses defined in command line but that are not registered with
-+ * omap_register_i2c_bus from board initialization code.
-+ */
-+int __init omap_register_i2c_bus_cmdline(void)
-+{
-+	int i, err = 0;
-+
-+	for (i = 0; i < ARRAY_SIZE(i2c_pdata); i++)
-+		if (i2c_pdata[i].clkrate & OMAP_I2C_CMDLINE_SETUP) {
-+			i2c_pdata[i].clkrate &= ~OMAP_I2C_CMDLINE_SETUP;
-+			err = omap_i2c_add_bus(&i2c_pdata[i], i + 1);
-+			if (err)
-+				goto out;
-+		}
-+
-+out:
-+	return err;
-+}
-+
-+/**
-+ * omap_register_i2c_bus - register I2C bus with device descriptors
-+ * @bus_id: bus id counting from number 1
-+ * @clkrate: clock rate of the bus in kHz
-+ * @info: pointer into I2C device descriptor table or NULL
-+ * @len: number of descriptors in the table
-+ *
-+ * Returns 0 on success or an error code.
-+ */
-+int __init omap_register_i2c_bus(int bus_id, u32 clkrate,
-+			  struct i2c_board_info const *info,
-+			  unsigned len)
-+{
-+	int err;
-+
-+	BUG_ON(bus_id < 1 || bus_id > OMAP_I2C_MAX_CONTROLLERS);
-+
-+	if (info) {
-+		err = i2c_register_board_info(bus_id, info, len);
-+		if (err)
-+			return err;
-+	}
-+
-+	if (!i2c_pdata[bus_id - 1].clkrate)
-+		i2c_pdata[bus_id - 1].clkrate = clkrate;
-+
-+	i2c_pdata[bus_id - 1].clkrate &= ~OMAP_I2C_CMDLINE_SETUP;
-+
-+	return omap_i2c_add_bus(&i2c_pdata[bus_id - 1], bus_id);
-+}
-+
- static  int __init omap_i2c_cmdline(void)
- {
- 	return omap_register_i2c_bus_cmdline();
-diff --git a/arch/arm/mach-omap2/i2c.c b/arch/arm/mach-omap2/i2c.c
-index b456b44..2d037e8 100644
---- a/arch/arm/mach-omap2/i2c.c
-+++ b/arch/arm/mach-omap2/i2c.c
-@@ -26,7 +26,6 @@
+ # SMP support ONLY available for OMAP4
+@@ -267,4 +266,4 @@ endif
+ emac-$(CONFIG_TI_DAVINCI_EMAC)		:= am35xx-emac.o
+ obj-y					+= $(emac-m) $(emac-y)
  
- #include "prm.h"
- #include "common.h"
--#include "mux.h"
- #include "i2c.h"
+-obj-y					+= common-board-devices.o twl-common.o dss-common.o
++obj-y					+= common-board-devices.o dss-common.o
+diff --git a/arch/arm/mach-omap2/common-board-devices.h b/arch/arm/mach-omap2/common-board-devices.h
+index f338177..663dfa3 100644
+--- a/arch/arm/mach-omap2/common-board-devices.h
++++ b/arch/arm/mach-omap2/common-board-devices.h
+@@ -1,8 +1,6 @@
+ #ifndef __OMAP_COMMON_BOARD_DEVICES__
+ #define __OMAP_COMMON_BOARD_DEVICES__
  
- /* In register I2C_CON, Bit 15 is the I2C enable bit */
-@@ -36,20 +35,6 @@
- 
- #define MAX_OMAP_I2C_HWMOD_NAME_LEN	16
- 
--static void __init omap2_i2c_mux_pins(int bus_id)
--{
--	char mux_name[sizeof("i2c2_scl.i2c2_scl")];
+-#include "twl-common.h"
 -
--	/* First I2C bus is not muxable */
--	if (bus_id == 1)
--		return;
--
--	sprintf(mux_name, "i2c%i_scl.i2c%i_scl", bus_id, bus_id);
--	omap_mux_init_signal(mux_name, OMAP_PIN_INPUT);
--	sprintf(mux_name, "i2c%i_sda.i2c%i_sda", bus_id, bus_id);
--	omap_mux_init_signal(mux_name, OMAP_PIN_INPUT);
--}
--
- /**
-  * omap_i2c_reset - reset the omap i2c module.
-  * @oh: struct omap_hwmod *
-@@ -107,85 +92,3 @@ int omap_i2c_reset(struct omap_hwmod *oh)
+ #define NAND_BLOCK_SIZE	SZ_128K
  
- 	return 0;
- }
--
--static int __init omap_i2c_nr_ports(void)
--{
--	int ports = 0;
--
--	if (cpu_is_omap24xx())
--		ports = 2;
--	else if (cpu_is_omap34xx())
--		ports = 3;
--	else if (cpu_is_omap44xx())
--		ports = 4;
--	return ports;
--}
--
--/*
-- * XXX This function is a temporary compatibility wrapper - only
-- * needed until the I2C driver can be converted to call
-- * omap_pm_set_max_dev_wakeup_lat() and handle a return code.
+ struct mtd_partition;
+diff --git a/arch/arm/mach-omap2/omap_twl.c b/arch/arm/mach-omap2/omap_twl.c
+deleted file mode 100644
+index 615e5b1..0000000
+--- a/arch/arm/mach-omap2/omap_twl.c
++++ /dev/null
+@@ -1,314 +0,0 @@
+-/**
+- * OMAP and TWL PMIC specific intializations.
+- *
+- * Copyright (C) 2010 Texas Instruments Incorporated.
+- * Thara Gopinath
+- * Copyright (C) 2009 Texas Instruments Incorporated.
+- * Nishanth Menon
+- * Copyright (C) 2009 Nokia Corporation
+- * Paul Walmsley
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
 - */
--static void omap_pm_set_max_mpu_wakeup_lat_compat(struct device *dev, long t)
+-
+-#include <linux/err.h>
+-#include <linux/io.h>
+-#include <linux/kernel.h>
+-#include <linux/i2c/twl.h>
+-
+-#include "soc.h"
+-#include "voltage.h"
+-
+-#include "pm.h"
+-
+-#define OMAP3_SRI2C_SLAVE_ADDR		0x12
+-#define OMAP3_VDD_MPU_SR_CONTROL_REG	0x00
+-#define OMAP3_VDD_CORE_SR_CONTROL_REG	0x01
+-#define OMAP3_VP_CONFIG_ERROROFFSET	0x00
+-#define OMAP3_VP_VSTEPMIN_VSTEPMIN	0x1
+-#define OMAP3_VP_VSTEPMAX_VSTEPMAX	0x04
+-#define OMAP3_VP_VLIMITTO_TIMEOUT_US	200
+-
+-#define OMAP4_SRI2C_SLAVE_ADDR		0x12
+-#define OMAP4_VDD_MPU_SR_VOLT_REG	0x55
+-#define OMAP4_VDD_MPU_SR_CMD_REG	0x56
+-#define OMAP4_VDD_IVA_SR_VOLT_REG	0x5B
+-#define OMAP4_VDD_IVA_SR_CMD_REG	0x5C
+-#define OMAP4_VDD_CORE_SR_VOLT_REG	0x61
+-#define OMAP4_VDD_CORE_SR_CMD_REG	0x62
+-
+-#define OMAP4_VP_CONFIG_ERROROFFSET	0x00
+-#define OMAP4_VP_VSTEPMIN_VSTEPMIN	0x01
+-#define OMAP4_VP_VSTEPMAX_VSTEPMAX	0x04
+-#define OMAP4_VP_VLIMITTO_TIMEOUT_US	200
+-
+-static bool is_offset_valid;
+-static u8 smps_offset;
+-/*
+- * Flag to ensure Smartreflex bit in TWL
+- * being cleared in board file is not overwritten.
+- */
+-static bool __initdata twl_sr_enable_autoinit;
+-
+-#define TWL4030_DCDC_GLOBAL_CFG        0x06
+-#define REG_SMPS_OFFSET         0xE0
+-#define SMARTREFLEX_ENABLE     BIT(3)
+-
+-static unsigned long twl4030_vsel_to_uv(const u8 vsel)
 -{
--	omap_pm_set_max_mpu_wakeup_lat(dev, t);
+-	return (((vsel * 125) + 6000)) * 100;
 -}
 -
--static const char name[] = "omap_i2c";
--
--int __init omap_i2c_add_bus(struct omap_i2c_bus_platform_data *i2c_pdata,
--				int bus_id)
+-static u8 twl4030_uv_to_vsel(unsigned long uv)
 -{
--	int l;
--	struct omap_hwmod *oh;
--	struct platform_device *pdev;
--	char oh_name[MAX_OMAP_I2C_HWMOD_NAME_LEN];
--	struct omap_i2c_bus_platform_data *pdata;
--	struct omap_i2c_dev_attr *dev_attr;
+-	return DIV_ROUND_UP(uv - 600000, 12500);
+-}
 -
--	if (bus_id > omap_i2c_nr_ports())
--		return -EINVAL;
--
--	omap2_i2c_mux_pins(bus_id);
--
--	l = snprintf(oh_name, MAX_OMAP_I2C_HWMOD_NAME_LEN, "i2c%d", bus_id);
--	WARN(l >= MAX_OMAP_I2C_HWMOD_NAME_LEN,
--		"String buffer overflow in I2C%d device setup\n", bus_id);
--	oh = omap_hwmod_lookup(oh_name);
--	if (!oh) {
--			pr_err("Could not look up %s\n", oh_name);
--			return -EEXIST;
+-static unsigned long twl6030_vsel_to_uv(const u8 vsel)
+-{
+-	/*
+-	 * In TWL6030 depending on the value of SMPS_OFFSET
+-	 * efuse register the voltage range supported in
+-	 * standard mode can be either between 0.6V - 1.3V or
+-	 * 0.7V - 1.4V. In TWL6030 ES1.0 SMPS_OFFSET efuse
+-	 * is programmed to all 0's where as starting from
+-	 * TWL6030 ES1.1 the efuse is programmed to 1
+-	 */
+-	if (!is_offset_valid) {
+-		twl_i2c_read_u8(TWL6030_MODULE_ID0, &smps_offset,
+-				REG_SMPS_OFFSET);
+-		is_offset_valid = true;
 -	}
 -
--	pdata = i2c_pdata;
+-	if (!vsel)
+-		return 0;
 -	/*
--	 * pass the hwmod class's CPU-specific knowledge of I2C IP revision in
--	 * use, and functionality implementation flags, up to the OMAP I2C
--	 * driver via platform data
+-	 * There is no specific formula for voltage to vsel
+-	 * conversion above 1.3V. There are special hardcoded
+-	 * values for voltages above 1.3V. Currently we are
+-	 * hardcoding only for 1.35 V which is used for 1GH OPP for
+-	 * OMAP4430.
 -	 */
--	pdata->rev = oh->class->rev;
+-	if (vsel == 0x3A)
+-		return 1350000;
 -
--	dev_attr = (struct omap_i2c_dev_attr *)oh->dev_attr;
--	pdata->flags = dev_attr->flags;
--
--	/*
--	 * When waiting for completion of a i2c transfer, we need to
--	 * set a wake up latency constraint for the MPU. This is to
--	 * ensure quick enough wakeup from idle, when transfer
--	 * completes.
--	 * Only omap3 has support for constraints
--	 */
--	if (cpu_is_omap34xx())
--		pdata->set_mpu_wkup_lat = omap_pm_set_max_mpu_wakeup_lat_compat;
--	pdev = omap_device_build(name, bus_id, oh, pdata,
--				 sizeof(struct omap_i2c_bus_platform_data));
--	WARN(IS_ERR(pdev), "Could not build omap_device for %s\n", name);
--
--	return PTR_ERR_OR_ZERO(pdev);
+-	if (smps_offset & 0x8)
+-		return ((((vsel - 1) * 1266) + 70900)) * 10;
+-	else
+-		return ((((vsel - 1) * 1266) + 60770)) * 10;
 -}
 -
--static  int __init omap_i2c_cmdline(void)
+-static u8 twl6030_uv_to_vsel(unsigned long uv)
 -{
--	return omap_register_i2c_bus_cmdline();
+-	/*
+-	 * In TWL6030 depending on the value of SMPS_OFFSET
+-	 * efuse register the voltage range supported in
+-	 * standard mode can be either between 0.6V - 1.3V or
+-	 * 0.7V - 1.4V. In TWL6030 ES1.0 SMPS_OFFSET efuse
+-	 * is programmed to all 0's where as starting from
+-	 * TWL6030 ES1.1 the efuse is programmed to 1
+-	 */
+-	if (!is_offset_valid) {
+-		twl_i2c_read_u8(TWL6030_MODULE_ID0, &smps_offset,
+-				REG_SMPS_OFFSET);
+-		is_offset_valid = true;
+-	}
+-
+-	if (!uv)
+-		return 0x00;
+-	/*
+-	 * There is no specific formula for voltage to vsel
+-	 * conversion above 1.3V. There are special hardcoded
+-	 * values for voltages above 1.3V. Currently we are
+-	 * hardcoding only for 1.35 V which is used for 1GH OPP for
+-	 * OMAP4430.
+-	 */
+-	if (uv > twl6030_vsel_to_uv(0x39)) {
+-		if (uv == 1350000)
+-			return 0x3A;
+-		pr_err("%s:OUT OF RANGE! non mapped vsel for %ld Vs max %ld\n",
+-			__func__, uv, twl6030_vsel_to_uv(0x39));
+-		return 0x3A;
+-	}
+-
+-	if (smps_offset & 0x8)
+-		return DIV_ROUND_UP(uv - 709000, 12660) + 1;
+-	else
+-		return DIV_ROUND_UP(uv - 607700, 12660) + 1;
 -}
--omap_subsys_initcall(omap_i2c_cmdline);
+-
+-static struct omap_voltdm_pmic omap3_mpu_pmic = {
+-	.slew_rate		= 4000,
+-	.step_size		= 12500,
+-	.vp_erroroffset		= OMAP3_VP_CONFIG_ERROROFFSET,
+-	.vp_vstepmin		= OMAP3_VP_VSTEPMIN_VSTEPMIN,
+-	.vp_vstepmax		= OMAP3_VP_VSTEPMAX_VSTEPMAX,
+-	.vddmin			= 600000,
+-	.vddmax			= 1450000,
+-	.vp_timeout_us		= OMAP3_VP_VLIMITTO_TIMEOUT_US,
+-	.i2c_slave_addr		= OMAP3_SRI2C_SLAVE_ADDR,
+-	.volt_reg_addr		= OMAP3_VDD_MPU_SR_CONTROL_REG,
+-	.i2c_high_speed		= true,
+-	.vsel_to_uv		= twl4030_vsel_to_uv,
+-	.uv_to_vsel		= twl4030_uv_to_vsel,
+-};
+-
+-static struct omap_voltdm_pmic omap3_core_pmic = {
+-	.slew_rate		= 4000,
+-	.step_size		= 12500,
+-	.vp_erroroffset		= OMAP3_VP_CONFIG_ERROROFFSET,
+-	.vp_vstepmin		= OMAP3_VP_VSTEPMIN_VSTEPMIN,
+-	.vp_vstepmax		= OMAP3_VP_VSTEPMAX_VSTEPMAX,
+-	.vddmin			= 600000,
+-	.vddmax			= 1450000,
+-	.vp_timeout_us		= OMAP3_VP_VLIMITTO_TIMEOUT_US,
+-	.i2c_slave_addr		= OMAP3_SRI2C_SLAVE_ADDR,
+-	.volt_reg_addr		= OMAP3_VDD_CORE_SR_CONTROL_REG,
+-	.i2c_high_speed		= true,
+-	.vsel_to_uv		= twl4030_vsel_to_uv,
+-	.uv_to_vsel		= twl4030_uv_to_vsel,
+-};
+-
+-static struct omap_voltdm_pmic omap4_mpu_pmic = {
+-	.slew_rate		= 4000,
+-	.step_size		= 12660,
+-	.vp_erroroffset		= OMAP4_VP_CONFIG_ERROROFFSET,
+-	.vp_vstepmin		= OMAP4_VP_VSTEPMIN_VSTEPMIN,
+-	.vp_vstepmax		= OMAP4_VP_VSTEPMAX_VSTEPMAX,
+-	.vddmin			= 0,
+-	.vddmax			= 2100000,
+-	.vp_timeout_us		= OMAP4_VP_VLIMITTO_TIMEOUT_US,
+-	.i2c_slave_addr		= OMAP4_SRI2C_SLAVE_ADDR,
+-	.volt_reg_addr		= OMAP4_VDD_MPU_SR_VOLT_REG,
+-	.cmd_reg_addr		= OMAP4_VDD_MPU_SR_CMD_REG,
+-	.i2c_high_speed		= true,
+-	.i2c_pad_load		= 3,
+-	.vsel_to_uv		= twl6030_vsel_to_uv,
+-	.uv_to_vsel		= twl6030_uv_to_vsel,
+-};
+-
+-static struct omap_voltdm_pmic omap4_iva_pmic = {
+-	.slew_rate		= 4000,
+-	.step_size		= 12660,
+-	.vp_erroroffset		= OMAP4_VP_CONFIG_ERROROFFSET,
+-	.vp_vstepmin		= OMAP4_VP_VSTEPMIN_VSTEPMIN,
+-	.vp_vstepmax		= OMAP4_VP_VSTEPMAX_VSTEPMAX,
+-	.vddmin			= 0,
+-	.vddmax			= 2100000,
+-	.vp_timeout_us		= OMAP4_VP_VLIMITTO_TIMEOUT_US,
+-	.i2c_slave_addr		= OMAP4_SRI2C_SLAVE_ADDR,
+-	.volt_reg_addr		= OMAP4_VDD_IVA_SR_VOLT_REG,
+-	.cmd_reg_addr		= OMAP4_VDD_IVA_SR_CMD_REG,
+-	.i2c_high_speed		= true,
+-	.i2c_pad_load		= 3,
+-	.vsel_to_uv		= twl6030_vsel_to_uv,
+-	.uv_to_vsel		= twl6030_uv_to_vsel,
+-};
+-
+-static struct omap_voltdm_pmic omap4_core_pmic = {
+-	.slew_rate		= 4000,
+-	.step_size		= 12660,
+-	.vp_erroroffset		= OMAP4_VP_CONFIG_ERROROFFSET,
+-	.vp_vstepmin		= OMAP4_VP_VSTEPMIN_VSTEPMIN,
+-	.vp_vstepmax		= OMAP4_VP_VSTEPMAX_VSTEPMAX,
+-	.vddmin			= 0,
+-	.vddmax			= 2100000,
+-	.vp_timeout_us		= OMAP4_VP_VLIMITTO_TIMEOUT_US,
+-	.i2c_slave_addr		= OMAP4_SRI2C_SLAVE_ADDR,
+-	.volt_reg_addr		= OMAP4_VDD_CORE_SR_VOLT_REG,
+-	.cmd_reg_addr		= OMAP4_VDD_CORE_SR_CMD_REG,
+-	.i2c_high_speed		= true,
+-	.i2c_pad_load		= 3,
+-	.vsel_to_uv		= twl6030_vsel_to_uv,
+-	.uv_to_vsel		= twl6030_uv_to_vsel,
+-};
+-
+-int __init omap4_twl_init(void)
+-{
+-	struct voltagedomain *voltdm;
+-
+-	if (!cpu_is_omap44xx())
+-		return -ENODEV;
+-
+-	voltdm = voltdm_lookup("mpu");
+-	omap_voltage_register_pmic(voltdm, &omap4_mpu_pmic);
+-
+-	voltdm = voltdm_lookup("iva");
+-	omap_voltage_register_pmic(voltdm, &omap4_iva_pmic);
+-
+-	voltdm = voltdm_lookup("core");
+-	omap_voltage_register_pmic(voltdm, &omap4_core_pmic);
+-
+-	return 0;
+-}
+-
+-int __init omap3_twl_init(void)
+-{
+-	struct voltagedomain *voltdm;
+-
+-	if (!cpu_is_omap34xx())
+-		return -ENODEV;
+-
+-	/*
+-	 * The smartreflex bit on twl4030 specifies if the setting of voltage
+-	 * is done over the I2C_SR path. Since this setting is independent of
+-	 * the actual usage of smartreflex AVS module, we enable TWL SR bit
+-	 * by default irrespective of whether smartreflex AVS module is enabled
+-	 * on the OMAP side or not. This is because without this bit enabled,
+-	 * the voltage scaling through vp forceupdate/bypass mechanism of
+-	 * voltage scaling will not function on TWL over I2C_SR.
+-	 */
+-	if (!twl_sr_enable_autoinit)
+-		omap3_twl_set_sr_bit(true);
+-
+-	voltdm = voltdm_lookup("mpu_iva");
+-	omap_voltage_register_pmic(voltdm, &omap3_mpu_pmic);
+-
+-	voltdm = voltdm_lookup("core");
+-	omap_voltage_register_pmic(voltdm, &omap3_core_pmic);
+-
+-	return 0;
+-}
+-
+-/**
+- * omap3_twl_set_sr_bit() - Set/Clear SR bit on TWL
+- * @enable: enable SR mode in twl or not
+- *
+- * If 'enable' is true, enables Smartreflex bit on TWL 4030 to make sure
+- * voltage scaling through OMAP SR works. Else, the smartreflex bit
+- * on twl4030 is cleared as there are platforms which use OMAP3 and T2 but
+- * use Synchronized Scaling Hardware Strategy (ENABLE_VMODE=1) and Direct
+- * Strategy Software Scaling Mode (ENABLE_VMODE=0), for setting the voltages,
+- * in those scenarios this bit is to be cleared (enable = false).
+- *
+- * Returns 0 on success, error is returned if I2C read/write fails.
+- */
+-int __init omap3_twl_set_sr_bit(bool enable)
+-{
+-	u8 temp;
+-	int ret;
+-	if (twl_sr_enable_autoinit)
+-		pr_warning("%s: unexpected multiple calls\n", __func__);
+-
+-	ret = twl_i2c_read_u8(TWL_MODULE_PM_RECEIVER, &temp,
+-			      TWL4030_DCDC_GLOBAL_CFG);
+-	if (ret)
+-		goto err;
+-
+-	if (enable)
+-		temp |= SMARTREFLEX_ENABLE;
+-	else
+-		temp &= ~SMARTREFLEX_ENABLE;
+-
+-	ret = twl_i2c_write_u8(TWL_MODULE_PM_RECEIVER, temp,
+-			       TWL4030_DCDC_GLOBAL_CFG);
+-	if (!ret) {
+-		twl_sr_enable_autoinit = true;
+-		return 0;
+-	}
+-err:
+-	pr_err("%s: Error access to TWL4030 (%d)\n", __func__, ret);
+-	return ret;
+-}
 diff --git a/arch/arm/mach-omap2/twl-common.c b/arch/arm/mach-omap2/twl-common.c
-index b0d54da..e816966 100644
---- a/arch/arm/mach-omap2/twl-common.c
-+++ b/arch/arm/mach-omap2/twl-common.c
-@@ -62,8 +62,6 @@ void __init omap_pmic_init(int bus, u32 clkrate,
- 		sizeof(pmic_i2c_board_info.type));
- 	pmic_i2c_board_info.irq = pmic_irq;
- 	pmic_i2c_board_info.platform_data = pmic_data;
--
--	omap_register_i2c_bus(bus, clkrate, &pmic_i2c_board_info, 1);
- }
- 
- void __init omap4_pmic_init(const char *pmic_type,
-diff --git a/arch/arm/plat-omap/Makefile b/arch/arm/plat-omap/Makefile
-index 0b01b68..cdf999a 100644
---- a/arch/arm/plat-omap/Makefile
-+++ b/arch/arm/plat-omap/Makefile
-@@ -14,6 +14,3 @@ obj-  :=
- 
- obj-$(CONFIG_OMAP_DM_TIMER) += dmtimer.o
- obj-$(CONFIG_OMAP_DEBUG_LEDS) += debug-leds.o
--i2c-omap-$(CONFIG_I2C_OMAP) := i2c.o
--obj-y += $(i2c-omap-m) $(i2c-omap-y)
--
-diff --git a/arch/arm/plat-omap/i2c.c b/arch/arm/plat-omap/i2c.c
 deleted file mode 100644
-index 58213d9..0000000
---- a/arch/arm/plat-omap/i2c.c
+index e816966..0000000
+--- a/arch/arm/mach-omap2/twl-common.c
 +++ /dev/null
-@@ -1,116 +0,0 @@
+@@ -1,568 +0,0 @@
 -/*
-- * linux/arch/arm/plat-omap/i2c.c
+- * twl-common.c
 - *
-- * Helper module for board specific I2C bus registration
-- *
-- * Copyright (C) 2007 Nokia Corporation.
-- *
-- * Contact: Jarkko Nikula <jhnikula@gmail.com>
+- * Copyright (C) 2011 Texas Instruments, Inc..
+- * Author: Peter Ujfalusi <peter.ujfalusi@ti.com>
 - *
 - * This program is free software; you can redistribute it and/or
 - * modify it under the terms of the GNU General Public License
@@ -304,97 +406,624 @@ index 58213d9..0000000
 - *
 - */
 -
--#include <linux/kernel.h>
--#include <linux/platform_device.h>
 -#include <linux/i2c.h>
--#include <linux/i2c-omap.h>
--#include <linux/slab.h>
--#include <linux/err.h>
--#include <linux/clk.h>
+-#include <linux/i2c/twl.h>
+-#include <linux/gpio.h>
+-#include <linux/string.h>
+-#include <linux/phy/phy.h>
+-#include <linux/regulator/machine.h>
+-#include <linux/regulator/fixed.h>
 -
--#include <plat/i2c.h>
+-#include "soc.h"
+-#include "twl-common.h"
+-#include "pm.h"
+-#include "voltage.h"
+-#include "mux.h"
 -
--#define OMAP_I2C_MAX_CONTROLLERS 4
--static struct omap_i2c_bus_platform_data i2c_pdata[OMAP_I2C_MAX_CONTROLLERS];
+-static struct i2c_board_info __initdata pmic_i2c_board_info = {
+-	.addr		= 0x48,
+-	.flags		= I2C_CLIENT_WAKE,
+-};
 -
--#define OMAP_I2C_CMDLINE_SETUP	(BIT(31))
--
--/**
-- * omap_i2c_bus_setup - Process command line options for the I2C bus speed
-- * @str: String of options
-- *
-- * This function allow to override the default I2C bus speed for given I2C
-- * bus with a command line option.
-- *
-- * Format: i2c_bus=bus_id,clkrate (in kHz)
-- *
-- * Returns 1 on success, 0 otherwise.
-- */
--static int __init omap_i2c_bus_setup(char *str)
+-#if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4)
+-static int twl_set_voltage(void *data, int target_uV)
 -{
--	int ints[3];
--
--	get_options(str, 3, ints);
--	if (ints[0] < 2 || ints[1] < 1 ||
--			ints[1] > OMAP_I2C_MAX_CONTROLLERS)
--		return 0;
--	i2c_pdata[ints[1] - 1].clkrate = ints[2];
--	i2c_pdata[ints[1] - 1].clkrate |= OMAP_I2C_CMDLINE_SETUP;
--
--	return 1;
--}
--__setup("i2c_bus=", omap_i2c_bus_setup);
--
--/*
-- * Register busses defined in command line but that are not registered with
-- * omap_register_i2c_bus from board initialization code.
-- */
--int __init omap_register_i2c_bus_cmdline(void)
--{
--	int i, err = 0;
--
--	for (i = 0; i < ARRAY_SIZE(i2c_pdata); i++)
--		if (i2c_pdata[i].clkrate & OMAP_I2C_CMDLINE_SETUP) {
--			i2c_pdata[i].clkrate &= ~OMAP_I2C_CMDLINE_SETUP;
--			err = omap_i2c_add_bus(&i2c_pdata[i], i + 1);
--			if (err)
--				goto out;
--		}
--
--out:
--	return err;
+-	struct voltagedomain *voltdm = (struct voltagedomain *)data;
+-	return voltdm_scale(voltdm, target_uV);
 -}
 -
--/**
-- * omap_register_i2c_bus - register I2C bus with device descriptors
-- * @bus_id: bus id counting from number 1
-- * @clkrate: clock rate of the bus in kHz
-- * @info: pointer into I2C device descriptor table or NULL
-- * @len: number of descriptors in the table
-- *
-- * Returns 0 on success or an error code.
-- */
--int __init omap_register_i2c_bus(int bus_id, u32 clkrate,
--			  struct i2c_board_info const *info,
--			  unsigned len)
+-static int twl_get_voltage(void *data)
 -{
--	int err;
+-	struct voltagedomain *voltdm = (struct voltagedomain *)data;
+-	return voltdm_get_voltage(voltdm);
+-}
+-#endif
 -
--	BUG_ON(bus_id < 1 || bus_id > OMAP_I2C_MAX_CONTROLLERS);
+-void __init omap_pmic_init(int bus, u32 clkrate,
+-			   const char *pmic_type, int pmic_irq,
+-			   struct twl4030_platform_data *pmic_data)
+-{
+-	omap_mux_init_signal("sys_nirq", OMAP_PIN_INPUT_PULLUP | OMAP_PIN_OFF_WAKEUPENABLE);
+-	strlcpy(pmic_i2c_board_info.type, pmic_type,
+-		sizeof(pmic_i2c_board_info.type));
+-	pmic_i2c_board_info.irq = pmic_irq;
+-	pmic_i2c_board_info.platform_data = pmic_data;
+-}
 -
--	if (info) {
--		err = i2c_register_board_info(bus_id, info, len);
--		if (err)
--			return err;
+-void __init omap4_pmic_init(const char *pmic_type,
+-		    struct twl4030_platform_data *pmic_data,
+-		    struct i2c_board_info *devices, int nr_devices)
+-{
+-	/* PMIC part*/
+-	omap_mux_init_signal("sys_nirq1", OMAP_PIN_INPUT_PULLUP | OMAP_PIN_OFF_WAKEUPENABLE);
+-	omap_mux_init_signal("fref_clk0_out.sys_drm_msecure", OMAP_PIN_OUTPUT);
+-	omap_pmic_init(1, 400, pmic_type, 7 + OMAP44XX_IRQ_GIC_START, pmic_data);
+-
+-	/* Register additional devices on i2c1 bus if needed */
+-	if (devices)
+-		i2c_register_board_info(1, devices, nr_devices);
+-}
+-
+-void __init omap_pmic_late_init(void)
+-{
+-	/* Init the OMAP TWL parameters (if PMIC has been registerd) */
+-	if (!pmic_i2c_board_info.irq)
+-		return;
+-
+-	omap3_twl_init();
+-	omap4_twl_init();
+-}
+-
+-#if defined(CONFIG_ARCH_OMAP3)
+-struct phy_consumer consumers[] = {
+-	PHY_CONSUMER("musb-hdrc.0", "usb"),
+-};
+-
+-struct phy_init_data init_data = {
+-	.consumers = consumers,
+-	.num_consumers = ARRAY_SIZE(consumers),
+-};
+-
+-static struct twl4030_usb_data omap3_usb_pdata = {
+-	.usb_mode	= T2_USB_MODE_ULPI,
+-	.init_data	= &init_data,
+-};
+-
+-static int omap3_batt_table[] = {
+-/* 0 C */
+-30800, 29500, 28300, 27100,
+-26000, 24900, 23900, 22900, 22000, 21100, 20300, 19400, 18700, 17900,
+-17200, 16500, 15900, 15300, 14700, 14100, 13600, 13100, 12600, 12100,
+-11600, 11200, 10800, 10400, 10000, 9630,  9280,  8950,  8620,  8310,
+-8020,  7730,  7460,  7200,  6950,  6710,  6470,  6250,  6040,  5830,
+-5640,  5450,  5260,  5090,  4920,  4760,  4600,  4450,  4310,  4170,
+-4040,  3910,  3790,  3670,  3550
+-};
+-
+-static struct twl4030_bci_platform_data omap3_bci_pdata = {
+-	.battery_tmp_tbl	= omap3_batt_table,
+-	.tblsize		= ARRAY_SIZE(omap3_batt_table),
+-};
+-
+-static struct twl4030_madc_platform_data omap3_madc_pdata = {
+-	.irq_line	= 1,
+-};
+-
+-static struct twl4030_codec_data omap3_codec;
+-
+-static struct twl4030_audio_data omap3_audio_pdata = {
+-	.audio_mclk = 26000000,
+-	.codec = &omap3_codec,
+-};
+-
+-static struct regulator_consumer_supply omap3_vdda_dac_supplies[] = {
+-	REGULATOR_SUPPLY("vdda_dac", "omapdss_venc"),
+-};
+-
+-static struct regulator_init_data omap3_vdac_idata = {
+-	.constraints = {
+-		.min_uV			= 1800000,
+-		.max_uV			= 1800000,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-	},
+-	.num_consumer_supplies	= ARRAY_SIZE(omap3_vdda_dac_supplies),
+-	.consumer_supplies	= omap3_vdda_dac_supplies,
+-};
+-
+-static struct regulator_consumer_supply omap3_vpll2_supplies[] = {
+-	REGULATOR_SUPPLY("vdds_dsi", "omapdss"),
+-	REGULATOR_SUPPLY("vdds_dsi", "omapdss_dpi.0"),
+-	REGULATOR_SUPPLY("vdds_dsi", "omapdss_dsi.0"),
+-};
+-
+-static struct regulator_init_data omap3_vpll2_idata = {
+-	.constraints = {
+-		.min_uV                 = 1800000,
+-		.max_uV                 = 1800000,
+-		.valid_modes_mask       = REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask         = REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-	},
+-	.num_consumer_supplies		= ARRAY_SIZE(omap3_vpll2_supplies),
+-	.consumer_supplies		= omap3_vpll2_supplies,
+-};
+-
+-static struct regulator_consumer_supply omap3_vdd1_supply[] = {
+-	REGULATOR_SUPPLY("vcc", "cpu0"),
+-};
+-
+-static struct regulator_consumer_supply omap3_vdd2_supply[] = {
+-	REGULATOR_SUPPLY("vcc", "l3_main.0"),
+-};
+-
+-static struct regulator_init_data omap3_vdd1 = {
+-	.constraints = {
+-		.name			= "vdd_mpu_iva",
+-		.min_uV			= 600000,
+-		.max_uV			= 1450000,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL,
+-		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE,
+-	},
+-	.num_consumer_supplies		= ARRAY_SIZE(omap3_vdd1_supply),
+-	.consumer_supplies		= omap3_vdd1_supply,
+-};
+-
+-static struct regulator_init_data omap3_vdd2 = {
+-	.constraints = {
+-		.name			= "vdd_core",
+-		.min_uV			= 600000,
+-		.max_uV			= 1450000,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL,
+-		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE,
+-	},
+-	.num_consumer_supplies		= ARRAY_SIZE(omap3_vdd2_supply),
+-	.consumer_supplies		= omap3_vdd2_supply,
+-};
+-
+-static struct twl_regulator_driver_data omap3_vdd1_drvdata = {
+-	.get_voltage = twl_get_voltage,
+-	.set_voltage = twl_set_voltage,
+-};
+-
+-static struct twl_regulator_driver_data omap3_vdd2_drvdata = {
+-	.get_voltage = twl_get_voltage,
+-	.set_voltage = twl_set_voltage,
+-};
+-
+-void __init omap3_pmic_get_config(struct twl4030_platform_data *pmic_data,
+-				  u32 pdata_flags, u32 regulators_flags)
+-{
+-	if (!pmic_data->vdd1) {
+-		omap3_vdd1.driver_data = &omap3_vdd1_drvdata;
+-		omap3_vdd1_drvdata.data = voltdm_lookup("mpu_iva");
+-		pmic_data->vdd1 = &omap3_vdd1;
+-	}
+-	if (!pmic_data->vdd2) {
+-		omap3_vdd2.driver_data = &omap3_vdd2_drvdata;
+-		omap3_vdd2_drvdata.data = voltdm_lookup("core");
+-		pmic_data->vdd2 = &omap3_vdd2;
 -	}
 -
--	if (!i2c_pdata[bus_id - 1].clkrate)
--		i2c_pdata[bus_id - 1].clkrate = clkrate;
+-	/* Common platform data configurations */
+-	if (pdata_flags & TWL_COMMON_PDATA_USB && !pmic_data->usb)
+-		pmic_data->usb = &omap3_usb_pdata;
 -
--	i2c_pdata[bus_id - 1].clkrate &= ~OMAP_I2C_CMDLINE_SETUP;
+-	if (pdata_flags & TWL_COMMON_PDATA_BCI && !pmic_data->bci)
+-		pmic_data->bci = &omap3_bci_pdata;
 -
--	return omap_i2c_add_bus(&i2c_pdata[bus_id - 1], bus_id);
+-	if (pdata_flags & TWL_COMMON_PDATA_MADC && !pmic_data->madc)
+-		pmic_data->madc = &omap3_madc_pdata;
+-
+-	if (pdata_flags & TWL_COMMON_PDATA_AUDIO && !pmic_data->audio)
+-		pmic_data->audio = &omap3_audio_pdata;
+-
+-	/* Common regulator configurations */
+-	if (regulators_flags & TWL_COMMON_REGULATOR_VDAC && !pmic_data->vdac)
+-		pmic_data->vdac = &omap3_vdac_idata;
+-
+-	if (regulators_flags & TWL_COMMON_REGULATOR_VPLL2 && !pmic_data->vpll2)
+-		pmic_data->vpll2 = &omap3_vpll2_idata;
 -}
+-#endif /* CONFIG_ARCH_OMAP3 */
+-
+-#if defined(CONFIG_ARCH_OMAP4)
+-static struct twl4030_usb_data omap4_usb_pdata = {
+-};
+-
+-static struct regulator_consumer_supply omap4_vdda_hdmi_dac_supplies[] = {
+-	REGULATOR_SUPPLY("vdda_hdmi_dac", "omapdss_hdmi"),
+-};
+-
+-static struct regulator_init_data omap4_vdac_idata = {
+-	.constraints = {
+-		.min_uV			= 1800000,
+-		.max_uV			= 1800000,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-	},
+-	.num_consumer_supplies	= ARRAY_SIZE(omap4_vdda_hdmi_dac_supplies),
+-	.consumer_supplies	= omap4_vdda_hdmi_dac_supplies,
+-	.supply_regulator	= "V2V1",
+-};
+-
+-static struct regulator_init_data omap4_vaux2_idata = {
+-	.constraints = {
+-		.min_uV			= 1200000,
+-		.max_uV			= 2800000,
+-		.apply_uV		= true,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE
+-					| REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-	},
+-};
+-
+-static struct regulator_init_data omap4_vaux3_idata = {
+-	.constraints = {
+-		.min_uV			= 1000000,
+-		.max_uV			= 3000000,
+-		.apply_uV		= true,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE
+-					| REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-	},
+-};
+-
+-static struct regulator_consumer_supply omap4_vmmc_supply[] = {
+-	REGULATOR_SUPPLY("vmmc", "omap_hsmmc.0"),
+-};
+-
+-/* VMMC1 for MMC1 card */
+-static struct regulator_init_data omap4_vmmc_idata = {
+-	.constraints = {
+-		.min_uV			= 1200000,
+-		.max_uV			= 3000000,
+-		.apply_uV		= true,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE
+-					| REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-	},
+-	.num_consumer_supplies  = ARRAY_SIZE(omap4_vmmc_supply),
+-	.consumer_supplies      = omap4_vmmc_supply,
+-};
+-
+-static struct regulator_init_data omap4_vpp_idata = {
+-	.constraints = {
+-		.min_uV			= 1800000,
+-		.max_uV			= 2500000,
+-		.apply_uV		= true,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE
+-					| REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-	},
+-};
+-
+-static struct regulator_init_data omap4_vana_idata = {
+-	.constraints = {
+-		.min_uV			= 2100000,
+-		.max_uV			= 2100000,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-	},
+-};
+-
+-static struct regulator_consumer_supply omap4_vcxio_supply[] = {
+-	REGULATOR_SUPPLY("vdds_dsi", "omapdss_dss"),
+-	REGULATOR_SUPPLY("vdds_dsi", "omapdss_dsi.0"),
+-	REGULATOR_SUPPLY("vdds_dsi", "omapdss_dsi.1"),
+-};
+-
+-static struct regulator_init_data omap4_vcxio_idata = {
+-	.constraints = {
+-		.min_uV			= 1800000,
+-		.max_uV			= 1800000,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-		.always_on		= true,
+-	},
+-	.num_consumer_supplies	= ARRAY_SIZE(omap4_vcxio_supply),
+-	.consumer_supplies	= omap4_vcxio_supply,
+-	.supply_regulator	= "V2V1",
+-};
+-
+-static struct regulator_init_data omap4_vusb_idata = {
+-	.constraints = {
+-		.min_uV			= 3300000,
+-		.max_uV			= 3300000,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-	},
+-};
+-
+-static struct regulator_init_data omap4_clk32kg_idata = {
+-	.constraints = {
+-		.valid_ops_mask		= REGULATOR_CHANGE_STATUS,
+-	},
+-};
+-
+-static struct regulator_consumer_supply omap4_vdd1_supply[] = {
+-	REGULATOR_SUPPLY("vcc", "cpu0"),
+-};
+-
+-static struct regulator_consumer_supply omap4_vdd2_supply[] = {
+-	REGULATOR_SUPPLY("vcc", "iva.0"),
+-};
+-
+-static struct regulator_consumer_supply omap4_vdd3_supply[] = {
+-	REGULATOR_SUPPLY("vcc", "l3_main.0"),
+-};
+-
+-static struct regulator_init_data omap4_vdd1 = {
+-	.constraints = {
+-		.name			= "vdd_mpu",
+-		.min_uV			= 500000,
+-		.max_uV			= 1500000,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL,
+-		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE,
+-	},
+-	.num_consumer_supplies		= ARRAY_SIZE(omap4_vdd1_supply),
+-	.consumer_supplies		= omap4_vdd1_supply,
+-};
+-
+-static struct regulator_init_data omap4_vdd2 = {
+-	.constraints = {
+-		.name			= "vdd_iva",
+-		.min_uV			= 500000,
+-		.max_uV			= 1500000,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL,
+-		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE,
+-	},
+-	.num_consumer_supplies		= ARRAY_SIZE(omap4_vdd2_supply),
+-	.consumer_supplies		= omap4_vdd2_supply,
+-};
+-
+-static struct regulator_init_data omap4_vdd3 = {
+-	.constraints = {
+-		.name			= "vdd_core",
+-		.min_uV			= 500000,
+-		.max_uV			= 1500000,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL,
+-		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE,
+-	},
+-	.num_consumer_supplies		= ARRAY_SIZE(omap4_vdd3_supply),
+-	.consumer_supplies		= omap4_vdd3_supply,
+-};
+-
+-
+-static struct twl_regulator_driver_data omap4_vdd1_drvdata = {
+-	.get_voltage = twl_get_voltage,
+-	.set_voltage = twl_set_voltage,
+-};
+-
+-static struct twl_regulator_driver_data omap4_vdd2_drvdata = {
+-	.get_voltage = twl_get_voltage,
+-	.set_voltage = twl_set_voltage,
+-};
+-
+-static struct twl_regulator_driver_data omap4_vdd3_drvdata = {
+-	.get_voltage = twl_get_voltage,
+-	.set_voltage = twl_set_voltage,
+-};
+-
+-static struct regulator_consumer_supply omap4_v1v8_supply[] = {
+-	REGULATOR_SUPPLY("vio", "1-004b"),
+-};
+-
+-static struct regulator_init_data omap4_v1v8_idata = {
+-	.constraints = {
+-		.min_uV			= 1800000,
+-		.max_uV			= 1800000,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-		.always_on		= true,
+-	},
+-	.num_consumer_supplies	= ARRAY_SIZE(omap4_v1v8_supply),
+-	.consumer_supplies	= omap4_v1v8_supply,
+-};
+-
+-static struct regulator_consumer_supply omap4_v2v1_supply[] = {
+-	REGULATOR_SUPPLY("v2v1", "1-004b"),
+-};
+-
+-static struct regulator_init_data omap4_v2v1_idata = {
+-	.constraints = {
+-		.min_uV			= 2100000,
+-		.max_uV			= 2100000,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-	},
+-	.num_consumer_supplies	= ARRAY_SIZE(omap4_v2v1_supply),
+-	.consumer_supplies	= omap4_v2v1_supply,
+-};
+-
+-void __init omap4_pmic_get_config(struct twl4030_platform_data *pmic_data,
+-				  u32 pdata_flags, u32 regulators_flags)
+-{
+-	if (!pmic_data->vdd1) {
+-		omap4_vdd1.driver_data = &omap4_vdd1_drvdata;
+-		omap4_vdd1_drvdata.data = voltdm_lookup("mpu");
+-		pmic_data->vdd1 = &omap4_vdd1;
+-	}
+-
+-	if (!pmic_data->vdd2) {
+-		omap4_vdd2.driver_data = &omap4_vdd2_drvdata;
+-		omap4_vdd2_drvdata.data = voltdm_lookup("iva");
+-		pmic_data->vdd2 = &omap4_vdd2;
+-	}
+-
+-	if (!pmic_data->vdd3) {
+-		omap4_vdd3.driver_data = &omap4_vdd3_drvdata;
+-		omap4_vdd3_drvdata.data = voltdm_lookup("core");
+-		pmic_data->vdd3 = &omap4_vdd3;
+-	}
+-
+-	/* Common platform data configurations */
+-	if (pdata_flags & TWL_COMMON_PDATA_USB && !pmic_data->usb)
+-		pmic_data->usb = &omap4_usb_pdata;
+-
+-	/* Common regulator configurations */
+-	if (regulators_flags & TWL_COMMON_REGULATOR_VDAC && !pmic_data->vdac)
+-		pmic_data->vdac = &omap4_vdac_idata;
+-
+-	if (regulators_flags & TWL_COMMON_REGULATOR_VAUX2 && !pmic_data->vaux2)
+-		pmic_data->vaux2 = &omap4_vaux2_idata;
+-
+-	if (regulators_flags & TWL_COMMON_REGULATOR_VAUX3 && !pmic_data->vaux3)
+-		pmic_data->vaux3 = &omap4_vaux3_idata;
+-
+-	if (regulators_flags & TWL_COMMON_REGULATOR_VMMC && !pmic_data->vmmc)
+-		pmic_data->vmmc = &omap4_vmmc_idata;
+-
+-	if (regulators_flags & TWL_COMMON_REGULATOR_VPP && !pmic_data->vpp)
+-		pmic_data->vpp = &omap4_vpp_idata;
+-
+-	if (regulators_flags & TWL_COMMON_REGULATOR_VANA && !pmic_data->vana)
+-		pmic_data->vana = &omap4_vana_idata;
+-
+-	if (regulators_flags & TWL_COMMON_REGULATOR_VCXIO && !pmic_data->vcxio)
+-		pmic_data->vcxio = &omap4_vcxio_idata;
+-
+-	if (regulators_flags & TWL_COMMON_REGULATOR_VUSB && !pmic_data->vusb)
+-		pmic_data->vusb = &omap4_vusb_idata;
+-
+-	if (regulators_flags & TWL_COMMON_REGULATOR_CLK32KG &&
+-	    !pmic_data->clk32kg)
+-		pmic_data->clk32kg = &omap4_clk32kg_idata;
+-
+-	if (regulators_flags & TWL_COMMON_REGULATOR_V1V8 && !pmic_data->v1v8)
+-		pmic_data->v1v8 = &omap4_v1v8_idata;
+-
+-	if (regulators_flags & TWL_COMMON_REGULATOR_V2V1 && !pmic_data->v2v1)
+-		pmic_data->v2v1 = &omap4_v2v1_idata;
+-}
+-#endif /* CONFIG_ARCH_OMAP4 */
+-
+-#if defined(CONFIG_SND_OMAP_SOC_OMAP_TWL4030) || \
+-	defined(CONFIG_SND_OMAP_SOC_OMAP_TWL4030_MODULE)
+-#include <linux/platform_data/omap-twl4030.h>
+-
+-/* Commonly used configuration */
+-static struct omap_tw4030_pdata omap_twl4030_audio_data;
+-
+-static struct platform_device audio_device = {
+-	.name		= "omap-twl4030",
+-	.id		= -1,
+-};
+-
+-void omap_twl4030_audio_init(char *card_name,
+-				    struct omap_tw4030_pdata *pdata)
+-{
+-	if (!pdata)
+-		pdata = &omap_twl4030_audio_data;
+-
+-	pdata->card_name = card_name;
+-
+-	audio_device.dev.platform_data = pdata;
+-	platform_device_register(&audio_device);
+-}
+-
+-#else /* SOC_OMAP_TWL4030 */
+-void omap_twl4030_audio_init(char *card_name,
+-				    struct omap_tw4030_pdata *pdata)
+-{
+-	return;
+-}
+-#endif /* SOC_OMAP_TWL4030 */
+diff --git a/arch/arm/mach-omap2/twl-common.h b/arch/arm/mach-omap2/twl-common.h
+deleted file mode 100644
+index 24b65d0..0000000
+--- a/arch/arm/mach-omap2/twl-common.h
++++ /dev/null
+@@ -1,66 +0,0 @@
+-#ifndef __OMAP_PMIC_COMMON__
+-#define __OMAP_PMIC_COMMON__
+-
+-#include "common.h"
+-
+-#define TWL_COMMON_PDATA_USB		(1 << 0)
+-#define TWL_COMMON_PDATA_BCI		(1 << 1)
+-#define TWL_COMMON_PDATA_MADC		(1 << 2)
+-#define TWL_COMMON_PDATA_AUDIO		(1 << 3)
+-
+-/* Common LDO regulators for TWL4030/TWL6030 */
+-#define TWL_COMMON_REGULATOR_VDAC	(1 << 0)
+-#define TWL_COMMON_REGULATOR_VAUX1	(1 << 1)
+-#define TWL_COMMON_REGULATOR_VAUX2	(1 << 2)
+-#define TWL_COMMON_REGULATOR_VAUX3	(1 << 3)
+-
+-/* TWL6030 LDO regulators */
+-#define TWL_COMMON_REGULATOR_VMMC	(1 << 4)
+-#define TWL_COMMON_REGULATOR_VPP	(1 << 5)
+-#define TWL_COMMON_REGULATOR_VUSIM	(1 << 6)
+-#define TWL_COMMON_REGULATOR_VANA	(1 << 7)
+-#define TWL_COMMON_REGULATOR_VCXIO	(1 << 8)
+-#define TWL_COMMON_REGULATOR_VUSB	(1 << 9)
+-#define TWL_COMMON_REGULATOR_CLK32KG	(1 << 10)
+-#define TWL_COMMON_REGULATOR_V1V8	(1 << 11)
+-#define TWL_COMMON_REGULATOR_V2V1	(1 << 12)
+-
+-/* TWL4030 LDO regulators */
+-#define TWL_COMMON_REGULATOR_VPLL1	(1 << 4)
+-#define TWL_COMMON_REGULATOR_VPLL2	(1 << 5)
+-
+-
+-struct twl4030_platform_data;
+-struct twl6040_platform_data;
+-struct omap_tw4030_pdata;
+-struct i2c_board_info;
+-
+-void omap_pmic_init(int bus, u32 clkrate, const char *pmic_type, int pmic_irq,
+-		    struct twl4030_platform_data *pmic_data);
+-void omap_pmic_late_init(void);
+-
+-static inline void omap2_pmic_init(const char *pmic_type,
+-				   struct twl4030_platform_data *pmic_data)
+-{
+-	omap_pmic_init(2, 2600, pmic_type, 7 + OMAP_INTC_START, pmic_data);
+-}
+-
+-static inline void omap3_pmic_init(const char *pmic_type,
+-				   struct twl4030_platform_data *pmic_data)
+-{
+-	omap_pmic_init(1, 2600, pmic_type, 7 + OMAP_INTC_START, pmic_data);
+-}
+-
+-void omap4_pmic_init(const char *pmic_type,
+-		    struct twl4030_platform_data *pmic_data,
+-		    struct i2c_board_info *devices, int nr_devices);
+-
+-void omap3_pmic_get_config(struct twl4030_platform_data *pmic_data,
+-			   u32 pdata_flags, u32 regulators_flags);
+-
+-void omap4_pmic_get_config(struct twl4030_platform_data *pmic_data,
+-			   u32 pdata_flags, u32 regulators_flags);
+-
+-void omap_twl4030_audio_init(char *card_name, struct omap_tw4030_pdata *pdata);
+-
+-#endif /* __OMAP_PMIC_COMMON__ */
 -- 
 1.8.1.1
 
