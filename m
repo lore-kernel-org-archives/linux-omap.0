@@ -1,177 +1,140 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv10 03/41] CLK: ti: add init support for clock IP blocks
-Date: Tue, 26 Nov 2013 10:05:44 +0200
-Message-ID: <1385453182-24421-4-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv10 01/41] clk: add support for platform specific clock I/O wrapper functions
+Date: Tue, 26 Nov 2013 10:05:42 +0200
+Message-ID: <1385453182-24421-2-git-send-email-t-kristo@ti.com>
 References: <1385453182-24421-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:47732 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:53577 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752727Ab3KZIIe (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 26 Nov 2013 03:08:34 -0500
+	id S1752763Ab3KZIIf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 26 Nov 2013 03:08:35 -0500
 In-Reply-To: <1385453182-24421-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, nm@ti.com, rnayak@ti.com, bcousson@baylibre.com, mturquette@linaro.org
 Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-ti_dt_clk_init_provider() can now be used to initialize the contents of
-a single clock IP block. This parses all the clocks under the IP block
-and calls the corresponding init function for them.
-
-This patch also introduces a helper function for the TI clock drivers
-to get register info from DT and append the master IP info to this.
+Current clock wrappers assume simple and direct mapped hardware register
+access. Improve this support by adding functionality for registering
+platform specific clock I/O wrappers, which can be used to support
+various features needed like endianess conversions, indexed regmap support,
+etc. Default I/O wrapper provided also which uses the existing direct
+I/O mapped behavior.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- drivers/clk/ti/clk.c   |   98 ++++++++++++++++++++++++++++++++++++++++++++++++
- include/linux/clk/ti.h |   14 +++++++
- 2 files changed, 112 insertions(+)
+ drivers/clk/clk.c            |   68 ++++++++++++++++++++++++++++++++++++++++++
+ include/linux/clk-provider.h |   15 +++++-----
+ 2 files changed, 75 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/clk/ti/clk.c b/drivers/clk/ti/clk.c
-index ef1a7cd..63f85e9 100644
---- a/drivers/clk/ti/clk.c
-+++ b/drivers/clk/ti/clk.c
-@@ -19,10 +19,15 @@
- #include <linux/clkdev.h>
- #include <linux/clk/ti.h>
- #include <linux/of.h>
-+#include <linux/of_address.h>
-+#include <linux/list.h>
+diff --git a/drivers/clk/clk.c b/drivers/clk/clk.c
+index 2cf2ea6..c331386 100644
+--- a/drivers/clk/clk.c
++++ b/drivers/clk/clk.c
+@@ -34,6 +34,74 @@ static HLIST_HEAD(clk_root_list);
+ static HLIST_HEAD(clk_orphan_list);
+ static LIST_HEAD(clk_notifier_list);
  
- #undef pr_fmt
- #define pr_fmt(fmt) "%s: " fmt, __func__
- 
-+extern struct of_device_id __clk_of_table[];
-+static int ti_dt_clk_regmap_index;
-+
- /**
-  * ti_dt_clocks_register - register DT alias clocks during boot
-  * @oclks: list of clocks to register
-@@ -53,3 +58,96 @@ void __init ti_dt_clocks_register(struct ti_dt_clk oclks[])
- 		}
- 	}
- }
-+
-+typedef int (*ti_of_clk_init_cb_t)(struct device_node *);
-+
-+struct clk_init_item {
-+	int index;
-+	struct device_node *np;
-+	ti_of_clk_init_cb_t init_cb;
-+	struct list_head node;
-+};
-+
-+static LIST_HEAD(retry_list);
-+
 +/**
-+ * ti_clk_get_reg_addr - get register address for a clock register
-+ * @node: device node for the clock
-+ * @index: register index from the clock node
++ * clk_readl_default - default clock register read support function
++ * @reg: register to read
 + *
-+ * Builds clock register address from device tree information. This
-+ * is a struct of type clk_omap_reg.
++ * Default implementation for reading a clock register.
 + */
-+void __iomem *ti_clk_get_reg_addr(struct device_node *node, int index)
++static u32 clk_readl_default(u32 __iomem *reg)
 +{
-+	struct clk_omap_reg *reg;
-+	u32 val;
-+	u32 tmp;
-+
-+	reg = (struct clk_omap_reg *)&tmp;
-+	reg->index = ti_dt_clk_regmap_index;
-+
-+	if (of_property_read_u32_index(node, "reg", index, &val)) {
-+		pr_err("%s must have reg[%d]!\n", node->name, index);
-+		return NULL;
-+	}
-+
-+	reg->offset = val;
-+
-+	return (void __iomem *)tmp;
++	return readl(reg);
 +}
 +
 +/**
-+ * ti_dt_clk_init_provider - init master clock provider
-+ * @parent: master node
-+ * @index: internal index for clk_reg_ops
++ * clk_writel_default - default clock register write support function
++ * @val: value to write
++ * @reg: register to write to
 + *
-+ * Initializes a master clock IP block and its child clock nodes.
-+ * Regmap is provided for accessing the register space for the
-+ * IP block and all the clocks under it.
++ * Default implementation for writing a clock register.
 + */
-+void ti_dt_clk_init_provider(struct device_node *parent, int index)
++static void clk_writel_default(u32 val, u32 __iomem *reg)
 +{
-+	const struct of_device_id *match;
-+	struct device_node *np;
-+	ti_of_clk_init_cb_t clk_init_cb;
-+	struct clk_init_item *retry;
-+	struct clk_init_item *tmp;
-+	int ret;
-+
-+	ti_dt_clk_regmap_index = index;
-+
-+	for_each_child_of_node(parent, np) {
-+		match = of_match_node(__clk_of_table, np);
-+		if (!match)
-+			continue;
-+		clk_init_cb = (ti_of_clk_init_cb_t)match->data;
-+		pr_debug("%s: initializing: %s\n", __func__, np->name);
-+		ret = clk_init_cb(np);
-+		if (ret == -EAGAIN) {
-+			pr_debug("%s: adding to again list...\n", np->name);
-+			retry = kzalloc(sizeof(*retry), GFP_KERNEL);
-+			retry->np = np;
-+			retry->init_cb = clk_init_cb;
-+			list_add(&retry->node, &retry_list);
-+		} else if (ret) {
-+			pr_err("%s: clock init failed for %s (%d)!\n", __func__,
-+			       np->name, ret);
-+		}
-+	}
-+
-+	list_for_each_entry_safe(retry, tmp, &retry_list, node) {
-+		pr_debug("%s: retry-init: %s\n", __func__, retry->np->name);
-+		ti_dt_clk_regmap_index = retry->index;
-+		ret = retry->init_cb(retry->np);
-+		if (ret == -EAGAIN) {
-+			pr_debug("%s failed again?\n", retry->np->name);
-+		} else {
-+			if (ret)
-+				pr_err("%s: clock init failed for %s (%d)!\n",
-+				       __func__, retry->np->name, ret);
-+			list_del(&retry->node);
-+			kfree(retry);
-+		}
-+	}
++	writel(val, reg);
 +}
-diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
-index df94c24..d6bf530 100644
---- a/include/linux/clk/ti.h
-+++ b/include/linux/clk/ti.h
-@@ -36,7 +36,21 @@ struct ti_dt_clk {
- 		.node_name = name,	\
- 	}
- 
-+/* Maximum number of clock regmaps */
-+#define CLK_MAX_REGMAPS			4
- 
-+/**
-+ * struct clk_omap_reg - OMAP register declaration
-+ * @offset: offset from the master IP module base address
-+ * @index: index of the master IP module
-+ */
-+struct clk_omap_reg {
-+	u16 offset;
-+	u16 index;
++
++struct clk_reg_ops clk_reg_ops_default = {
++	.clk_readl = clk_readl_default,
++	.clk_writel = clk_writel_default
 +};
 +
-+void __iomem *ti_clk_get_reg_addr(struct device_node *node, int index);
- void ti_dt_clocks_register(struct ti_dt_clk *oclks);
-+void ti_dt_clk_init_provider(struct device_node *np, int index);
++static struct clk_reg_ops *clk_reg_ops = &clk_reg_ops_default;
++
++/**
++ * clk_register_reg_ops - register access functions for clock registers
++ * @ops: register level ops
++ *
++ * Registers platform or SoC specific operations for reading / writing
++ * clock registers.
++ */
++int clk_register_reg_ops(struct clk_reg_ops *ops)
++{
++	if (!ops)
++		return -EINVAL;
++	clk_reg_ops = ops;
++	return 0;
++}
++
++/**
++ * clk_readl - read a clock register value from hardware
++ * @reg: register to read
++ *
++ * Uses the registered clk_reg_ops to read a hardware clock register value.
++ */
++u32 clk_readl(u32 __iomem *reg)
++{
++	return clk_reg_ops->clk_readl(reg);
++}
++
++/**
++ * clk_writel - write a clock register value to hardware
++ * @val: value to write
++ * @reg: register to write
++ *
++ * Uses the registered clk_reg_ops to write a hardware clock register value.
++ */
++void clk_writel(u32 val, u32 __iomem *reg)
++{
++	clk_reg_ops->clk_writel(val, reg);
++}
++
+ /***           locking             ***/
+ static void clk_prepare_lock(void)
+ {
+diff --git a/include/linux/clk-provider.h b/include/linux/clk-provider.h
+index 7e59253..16e4df2 100644
+--- a/include/linux/clk-provider.h
++++ b/include/linux/clk-provider.h
+@@ -512,15 +512,14 @@ static inline const char *of_clk_get_parent_name(struct device_node *np,
+  * for improved portability across platforms
+  */
  
- #endif
+-static inline u32 clk_readl(u32 __iomem *reg)
+-{
+-	return readl(reg);
+-}
++struct clk_reg_ops {
++	u32 (*clk_readl)(u32 __iomem *reg);
++	void (*clk_writel)(u32 val, u32 __iomem *reg);
++};
+ 
+-static inline void clk_writel(u32 val, u32 __iomem *reg)
+-{
+-	writel(val, reg);
+-}
++u32 clk_readl(u32 __iomem *reg);
++void clk_writel(u32 val, u32 __iomem *reg);
++int clk_register_reg_ops(struct clk_reg_ops *ops);
+ 
+ #endif /* CONFIG_COMMON_CLK */
+ #endif /* CLK_PROVIDER_H */
 -- 
 1.7.9.5
 
