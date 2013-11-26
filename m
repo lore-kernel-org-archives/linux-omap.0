@@ -1,7 +1,7 @@
 From: Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 05/17] spi/qspi: parse memory map register.
-Date: Tue, 26 Nov 2013 13:05:01 +0530
-Message-ID: <1385451313-1875-6-git-send-email-sourav.poddar@ti.com>
+Subject: [PATCH 06/17] spi/qspi: Add support to switc to memory mapped operation.
+Date: Tue, 26 Nov 2013 13:05:02 +0530
+Message-ID: <1385451313-1875-7-git-send-email-sourav.poddar@ti.com>
 References: <1385451313-1875-1-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,59 +12,60 @@ To: computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, broonie-DgEjT+Ai2
 Cc: balbi-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Parse memory map register from device tree.
+These add apis that can be used to switch to memory mapped operatons
+by configuring control module and qspi registers.
 
 Signed-off-by: Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>
 ---
- drivers/spi/spi-ti-qspi.c |   14 +++++++++++++-
- 1 files changed, 13 insertions(+), 1 deletions(-)
+ drivers/spi/spi-ti-qspi.c |   28 ++++++++++++++++++++++++++++
+ 1 files changed, 28 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/spi/spi-ti-qspi.c b/drivers/spi/spi-ti-qspi.c
-index 776e93d..39aefd7 100644
+index 39aefd7..40f1c35 100644
 --- a/drivers/spi/spi-ti-qspi.c
 +++ b/drivers/spi/spi-ti-qspi.c
-@@ -47,6 +47,7 @@ struct ti_qspi {
- 	struct spi_master	*master;
- 	void __iomem            *base;
- 	void __iomem            *ctrl_base;
-+	void __iomem            *mmap_base;
- 	struct clk		*fclk;
- 	struct device           *dev;
+@@ -113,6 +113,10 @@ struct ti_qspi {
+ #define QSPI_CSPOL(n)			(1 << (1 + n * 8))
+ #define QSPI_CKPOL(n)			(1 << (n * 8))
  
-@@ -440,7 +441,7 @@ static int ti_qspi_probe(struct platform_device *pdev)
- {
- 	struct  ti_qspi *qspi;
- 	struct spi_master *master;
--	struct resource         *r, *res_ctrl;
-+	struct resource         *r, *res_ctrl, *res_mmap;
- 	struct device_node *np = pdev->dev.of_node;
- 	u32 max_freq;
- 	int ret = 0, num_cs, irq;
-@@ -477,6 +478,9 @@ static int ti_qspi_probe(struct platform_device *pdev)
- 	res_ctrl = platform_get_resource_byname(pdev,
- 			IORESOURCE_MEM, "qspi_ctrlmod");
- 
-+	res_mmap = platform_get_resource_byname(pdev,
-+			IORESOURCE_MEM, "qspi_mmap");
++#define MM_SWITCH	(1 << 0)
++#define MEM_CS		(1 << 8)
++#define MEM_CS_DIS	(0 << 8)
 +
- 	irq = platform_get_irq(pdev, 0);
- 	if (irq < 0) {
- 		dev_err(&pdev->dev, "no irq resource?\n");
-@@ -500,6 +504,14 @@ static int ti_qspi_probe(struct platform_device *pdev)
- 		}
- 	}
+ #define	QSPI_FRAME			4096
  
-+	if (res_mmap) {
-+		qspi->mmap_base = devm_ioremap_resource(&pdev->dev, res_mmap);
-+		if (IS_ERR(qspi->mmap_base)) {
-+			ret = PTR_ERR(qspi->mmap_base);
-+			goto free_master;
-+		}
+ #define QSPI_AUTOSUSPEND_TIMEOUT         2000
+@@ -129,6 +133,30 @@ static inline void ti_qspi_write(struct ti_qspi *qspi,
+ 	writel(val, qspi->base + reg);
+ }
+ 
++void enable_qspi_memory_mapped(struct ti_qspi *qspi)
++{
++	u32 val;
++
++	ti_qspi_write(qspi, MM_SWITCH, QSPI_SPI_SWITCH_REG);
++	if (qspi->ctrl_mod) {
++		val = readl(qspi->ctrl_base);
++		val |= MEM_CS;
++		writel(val, qspi->ctrl_base);
 +	}
++}
 +
- 	ret = devm_request_irq(&pdev->dev, irq, ti_qspi_isr, 0,
- 			dev_name(&pdev->dev), qspi);
- 	if (ret < 0) {
++void disable_qspi_memory_mapped(struct ti_qspi *qspi)
++{
++	u32 val;
++
++	ti_qspi_write(qspi, ~MM_SWITCH, QSPI_SPI_SWITCH_REG);
++	if (qspi->ctrl_mod) {
++		val = readl(qspi->ctrl_base);
++		val &= MEM_CS_DIS;
++		writel(val, qspi->ctrl_base);
++	}
++}
++
+ static int ti_qspi_setup(struct spi_device *spi)
+ {
+ 	struct ti_qspi	*qspi = spi_master_get_devdata(spi->master);
 -- 
 1.7.1
 
