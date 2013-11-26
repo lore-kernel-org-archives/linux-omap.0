@@ -1,7 +1,7 @@
 From: Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 09/17] spi/spi.h: Add "mem" variable in spi master.
-Date: Tue, 26 Nov 2013 13:05:05 +0530
-Message-ID: <1385451313-1875-10-git-send-email-sourav.poddar@ti.com>
+Subject: [PATCH 08/17] spi/qspi: Add api for get_buf/put_buf.
+Date: Tue, 26 Nov 2013 13:05:04 +0530
+Message-ID: <1385451313-1875-9-git-send-email-sourav.poddar@ti.com>
 References: <1385451313-1875-1-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,35 +12,51 @@ To: computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, broonie-DgEjT+Ai2
 Cc: balbi-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Add "mem" variable in spi_master, which can be used to hold on the
-memory mapped address.
+Adapt qspi driver to use (get_buf/put_buf) pointers added
+earlier.
+These can be called just before the memcpy operations to get hold
+of the memory mapped address and to turn on the controller clocks.
 
 Signed-off-by: Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>
 ---
- include/linux/spi/spi.h |    3 +++
- 1 files changed, 3 insertions(+), 0 deletions(-)
+ drivers/spi/spi-ti-qspi.c |   17 +++++++++++++++++
+ 1 files changed, 17 insertions(+), 0 deletions(-)
 
-diff --git a/include/linux/spi/spi.h b/include/linux/spi/spi.h
-index 4be969a..72565ff 100644
---- a/include/linux/spi/spi.h
-+++ b/include/linux/spi/spi.h
-@@ -298,6 +298,7 @@ static inline void spi_unregister_driver(struct spi_driver *sdrv)
-  * @configure_from_slave: Used when SPI controller has registers which need
-  *      to be configured from slave specifics information(typical use case for
-  *      SPI flash device).
-+ * @mem: memory mapped address to be filled by master controller driver.
-  * Each SPI master controller can communicate with one or more @spi_device
-  * children.  These make a small bus, sharing MOSI, MISO and SCK signals
-  * but not chip select signals.  Each device may be configured to use a
-@@ -432,6 +433,8 @@ struct spi_master {
- 	void	(*put_buf)(struct spi_master *master);
- 	void	(*configure_from_slave)(struct spi_device *spi, u8 *val);
+diff --git a/drivers/spi/spi-ti-qspi.c b/drivers/spi/spi-ti-qspi.c
+index 2323572..10bcb37 100644
+--- a/drivers/spi/spi-ti-qspi.c
++++ b/drivers/spi/spi-ti-qspi.c
+@@ -247,6 +247,21 @@ static void ti_qspi_configure_from_slave(struct spi_device *spi, u8 *val)
+ 	ti_qspi_write(qspi, memval, QSPI_SPI_SETUP0_REG);
+ }
  
-+	void __iomem *mem;
++static void ti_qspi_get_mem_buf(struct spi_master *master)
++{
++	struct ti_qspi *qspi = spi_master_get_devdata(master);
 +
- 	/* gpio chip select */
- 	int			*cs_gpios;
- };
++	pm_runtime_get_sync(qspi->dev);
++	master->mem = qspi->mmap_base;
++}
++
++static void ti_qspi_put_mem_buf(struct spi_master *master)
++{
++	struct ti_qspi *qspi = spi_master_get_devdata(master);
++
++	pm_runtime_put(qspi->dev);
++}
++
+ static void ti_qspi_restore_ctx(struct ti_qspi *qspi)
+ {
+ 	struct ti_qspi_regs *ctx_reg = &qspi->ctx_reg;
+@@ -515,6 +530,8 @@ static int ti_qspi_probe(struct platform_device *pdev)
+ 	master->dev.of_node = pdev->dev.of_node;
+ 	master->bits_per_word_mask = BIT(32 - 1) | BIT(16 - 1) | BIT(8 - 1);
+ 	master->configure_from_slave = ti_qspi_configure_from_slave;
++	master->get_buf = ti_qspi_get_mem_buf;
++	master->put_buf = ti_qspi_put_mem_buf;
+ 
+ 	if (!of_property_read_u32(np, "num-cs", &num_cs))
+ 		master->num_chipselect = num_cs;
 -- 
 1.7.1
 
