@@ -1,106 +1,115 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 00/12] Drop omap3 board files and make mach-omap2 boot in
- DT only mode
-Date: Mon, 25 Nov 2013 19:09:22 -0600
-Message-ID: <20131126010922.GA21580@saruman.home>
-References: <1385424867-27243-1-git-send-email-tony@atomide.com>
+Subject: Re: [PATCH v3 2/3] mmc: omap_hsmmc: Pin remux workaround to support
+ SDIO interrupt on AM335x.
+Date: Mon, 25 Nov 2013 19:16:10 -0600
+Message-ID: <20131126011610.GB21580@saruman.home>
+References: <1385386009-14981-1-git-send-email-afenkart@gmail.com>
+ <1385386009-14981-3-git-send-email-afenkart@gmail.com>
+ <20131125224601.GX10023@atomide.com>
 Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="vkogqOf2sHV7VnPd"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:56536 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751793Ab3KZBKN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 25 Nov 2013 20:10:13 -0500
+	protocol="application/pgp-signature"; boundary="lEGEL1/lMxI0MVQ2"
+Return-path: <linux-doc-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1385424867-27243-1-git-send-email-tony@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+In-Reply-To: <20131125224601.GX10023@atomide.com>
+Sender: linux-doc-owner@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Cc: Andreas Fenkart <afenkart@gmail.com>, Chris Ball <cjb@laptop.org>, Grant Likely <grant.likely@secretlab.ca>, Felipe Balbi <balbi@ti.com>, Balaji T K <balajitk@ti.com>, zonque@gmail.com, linux-doc@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 
---vkogqOf2sHV7VnPd
+--lEGEL1/lMxI0MVQ2
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Mon, Nov 25, 2013 at 04:14:15PM -0800, Tony Lindgren wrote:
-> Hi all,
+On Mon, Nov 25, 2013 at 02:46:02PM -0800, Tony Lindgren wrote:
+> * Andreas Fenkart <afenkart@gmail.com> [131125 05:30]:
+> > --- a/drivers/mmc/host/omap_hsmmc.c
+> > +++ b/drivers/mmc/host/omap_hsmmc.c
+> > @@ -452,10 +475,23 @@ static int omap_hsmmc_gpio_init(struct omap_mmc_p=
+latform_data *pdata)
+> >  	} else
+> >  		pdata->slots[0].gpio_wp =3D -EINVAL;
+> > =20
+> > +	if (gpio_is_valid(pdata->slots[0].gpio_cirq)) {
+> > +		ret =3D gpio_request_one(pdata->slots[0].gpio_cirq, GPIOF_DIR_IN,
+> > +				       "sdio_cirq");
+> > +		if (ret)
+> > +			goto err_free_ro;
+> > +
+> > +	} else {
+> > +		pdata->slots[0].gpio_cirq =3D -EINVAL;
+> > +	}
+> > +
+> > +
+> >  	return 0;
+> > =20
+> > +err_free_ro:
+> > +	if (gpio_is_valid(pdata->slots[0].gpio_wp))
+> >  err_free_wp:
+> > -	gpio_free(pdata->slots[0].gpio_wp);
+> > +		gpio_free(pdata->slots[0].gpio_wp);
+> >  err_free_cd:
+> >  	if (gpio_is_valid(pdata->slots[0].switch_pin))
+> >  err_free_sp:
 >=20
-> We can finally make mach-omap2 to boot in device tree only mode for v3.14.
+> This patch we can now make a bit more generic with the recent addition
+> of interrupts-extended property that's now merged in mainline tree :)
 >=20
-> By doing that, we can get rid of about 20000 lines of legacy code for v3.=
-14
-> that's no longer needed with device tree :) And that's not counting the
-> additional removal of the code that comes with the pending patches to
-> move clocks to drivers/clk.
+> We can optionally pass two interrupts to omap_hsmmc.c where the second
+> interrupt is either the pinctrl-single wake-up interrupt, or the GPIO
+> interrupt.
 >=20
-> Looks like we still have some legacy boards that don't have a .dts file,
-> so if you're using one, please post the .dts file. I've posted some quick
-> instructions in the first patch of this series for bringing up omaps with
-> device tree.
->=20
-> For most omap2+ boards that are not yet supported with device tree just
-> the .dts file is needed. Some boards also may need additional entries to
-> pdata-quirks.c. If there are more complicated issues, please let me know
-> so we can sort out those issues ASAP.
->=20
-> I don't have all omap boards so I have not been able to do a .dts file
-> for those. Some help would be appreciated there if you are using a
-> board with no .dts file posted yet. I can naturally help too where
-> possible so we get the devices working with device tree as needed :)
->=20
-> These patches need v3.13-rc1 and some of the following patches
-> depending on your board:
->=20
-> [PATCH 0/8] Various omap device tree usability fixes for v3.13 merge wind=
-ow
-> [PATCH 00/11] Make omap24xx booting device tree based for v3.14 merge win=
-dow
-> [PATCH 0/3] Yet more fixes for booting omaps with device tree
-> [PATCH 0/5] Prepare making omap3 device tree only and convert LDP
->=20
-> I've also pushed all the patches into a temporary testing branch:
->=20
-> omap-for-v3.14/tmp-testing-unstable-not-immutable
->=20
-> Regards,
->=20
-> Tony
->=20
->=20
-> Tony Lindgren (12):
->   ARM: OMAP2+: Remove legacy omap3 board-*.c files and make mach-omap2
->     DT only for booting
+> Both the iochain wake interrupt or the GPIO interrupt are available with
+> request_irq as long as configured in the .dts file. And can both use the
+> SDIO interrupt handler. The only difference is that the GPIO wake-up
+> still needs to do the dynamic remuxing of pins.
 
-looks like this patch didn't make it to the list, maybe it's too large ?
+could that be done automatically if DTS provides "suspend" pinctrl
+state ?
+
+Would that be done before or after driver's ->{runtime_,}suspend()
+methods ?
+
+> mmc: mmc@4810abcd {
+> 	compatible =3D "ti,omap33xx-hsmmc";
+
+I would rather call it "ti,am33xx-hsmmc" just to make it match marketing
+name of the device.
+
+> Then the logic of enabling the dynamic remuxing can be done based
+> on the ti,omap33xx-hsmmc compatible flag if there are two interrupts
+> and the needed pin states are defined.
+
+or maybe dynamic remuxing can be done by calling pinctrl_select_state()
+with appropriate arguments ?
 
 --=20
 balbi
 
---vkogqOf2sHV7VnPd
+--lEGEL1/lMxI0MVQ2
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.15 (GNU/Linux)
 
-iQIcBAEBAgAGBQJSk/TCAAoJEIaOsuA1yqREiTwP/iUtMbDcHOAkda1mVasD5ZD8
-jPDkiLtBdykGRq2pmYKi7jVt46upE8TFo2xYtonU7HE7nJrCHvaDGYSfwJRZwjSI
-qIspUSBAuywSqE/gM0shRLPMYnnTYDJgoN57h3FNkUGjqXq0Hq8RMw6USxh5kPLE
-Euzd+V9Ry+7FSfiB2Api1Kts9O876xgoMvqN/9x++x6LCR7Co/KRn6CT39oBqy54
-Ac1CGokQYmLhVmkEt0xsdhaKcLzHE7SGNuNRZk/ibpoQ1diabkvnHBQO+Z9bj0Be
-8xF4LeMw/JUVf6tcFoYcHpMtBmkKyax9GRX/U7YoWplv2n7BTYS+U3CFcScyp1Nn
-4cl+OiDoss/u7fRdztyOtrEQnhzAv7vUN1hGN+RvV4Q6rGt6n1iYeXuMXBWbHWmZ
-B3/UJqa/JMCwbxOW5PDXslU7IZKgO2sP4Pp63ro4lPoS+YYVXjd5kYIRXdt0K2jY
-V+aGY9PkygqE9Gfy/Rti0aUS8KWWWzt7PEE4d7J0ktW2lz/Ml/z9T/2ex+55twch
-pIvk/F7wBz5y+UZP5FHSbmEyffJoiyHCzPIb6VStvQGbg+g4gYnI7Fg7eD2ZVBXr
-3V4H7SU/hkgPiwhgNiRJempSrDLvbTnFSyHLD3B+99KJaFMhVaJGWPS/b9bhw9CF
-TgKsaJmcYTL/x5i7Kh1W
-=zokk
+iQIcBAEBAgAGBQJSk/ZaAAoJEIaOsuA1yqRE2g4QAJconHktsuECWWaQFvpbnM+2
+/wnFRYXPVib9OvN4gyP2n6r5jThe5pLxqOaWw/6EL61eRh7Wu18REaRBOdWaFQ9x
+hqWq9Nr7qVdHvshzDLpRz2wbIEOKbjgPTvjOxsqYVab3KhvI5nx6YVIAFCoZNQF8
+FkQ+CTmLoshCWpt1Bdbkx6iH8epvqH3hXVAYRScnO6wnVaAtmWnjI0LxcEboIjk9
+6erAgYUI7bv2gLN95zoABMzgmSbtfreGSt7tGVCu9oKz+Yu3AVOlzaXaa1D6PiNf
+r2o43gI9z2ujPum8XfmtAvI+pIytHWZ+/ArY5+pl002KiCE2QviW666J17NG91g0
+SRuL2uRPB1yDoTUMxxjAqHv1yd3WuheaNYder8NLFEXLxsLx1H8T/thsJbYqir9l
+7PwIV6+WBYsJEBYBtyrGmOLjK1Gp9+8Z5rz13RwGMcze7Z3oWK6d7MvTP7WYzeHC
+7biW1WwBLxskWYUnFlaVHsADkPCJE4HN0EkOWMkC02ejhfEr6erhg0UwlnmsnNVR
+2f9VQ5Q2W9Vl9Fm9qZ/uK1G8NIaeqacD6rRruRpa/UjHbTf431wa1B8zu3R4gcBg
+tMgo3XflH08YgmEGq1dgCTYKQFU9/NsfqAcb8V4K5Hv2ckBdXOcudqyqLgcvfwms
+IiuIiMUBS3utp9XvFXvu
+=OPU5
 -----END PGP SIGNATURE-----
 
---vkogqOf2sHV7VnPd--
+--lEGEL1/lMxI0MVQ2--
