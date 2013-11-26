@@ -1,59 +1,168 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv10 00/41] ARM: TI SoC clock DT conversion
-Date: Tue, 26 Nov 2013 10:05:41 +0200
-Message-ID: <1385453182-24421-1-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv10 02/41] CLK: TI: add DT alias clock registration mechanism
+Date: Tue, 26 Nov 2013 10:05:43 +0200
+Message-ID: <1385453182-24421-3-git-send-email-t-kristo@ti.com>
+References: <1385453182-24421-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, nm@ti.com, rnayak@ti.com, bcousson@baylibre.com, mturquette@linaro.org
-Cc: devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:60492 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752928Ab3KZIIh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 26 Nov 2013 03:08:37 -0500
+In-Reply-To: <1385453182-24421-1-git-send-email-t-kristo@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, nm@ti.com, rnayak@ti.com, bcousson@baylibre.com, mturquette@linaro.org
+Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-Hi,
+Some devices require their clocks to be available with a specific
+dev-id con-id mapping. With DT, the clocks can be found by default
+only with their name, or alternatively through the device node of
+the consumer. With drivers, that don't support DT fully yet, add
+mechanism to register specific clock names.
 
-Changes compared to v9:
-- rebased on top of 3.13-rc1
-- modified the low level clk register API to provide SoC specific clk_readl
-  and clk_writel support which can be registered during boot, TI SoC variant
-  uses regmap on low level
-- dropped regmap parameter from clock init calls, instead a helper is used
-  for getting regmap index along with the register offset from DT
-- dropped regmap parameter from clock structs, instead platform specific
-  clk_readl / clk_writel are used to parse reg parameter according to
-  platform, for TI SoC:s, this is encoded as:
-  struct clk_omap_reg {
-    u16 offset; /* register offset */
-    u16 index; /* regmap index */
-  }
-- Nishanth's comments to v9 mostly addressed, except for the CLK_OF_DECLARE
-  tweak which I would actually want some feedback upon, basically the problem
-  is I need to return status from the clk init functions so I can see if
-  -EAGAIN is passed, in which case init will be retried later, maybe some of
-  this can be made generic, like converting all the CLK_OF_DECLARE type
-  functions to return status
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+---
+ drivers/clk/Makefile    |    1 +
+ drivers/clk/ti/Makefile |    3 +++
+ drivers/clk/ti/clk.c    |   55 +++++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/clk/ti.h  |   42 ++++++++++++++++++++++++++++++++++++
+ 4 files changed, 101 insertions(+)
+ create mode 100644 drivers/clk/ti/Makefile
+ create mode 100644 drivers/clk/ti/clk.c
+ create mode 100644 include/linux/clk/ti.h
 
-Testing done:
-- omap3-beagle : boot + suspend/resume
-- omap3-beagle-xm : boot (thanks to Nishanth)
-- omap4-panda-es : boot + suspend/resume
-- omap5-uevm : boot
-- dra7-evm : boot
-- am335x-bone : boot
+diff --git a/drivers/clk/Makefile b/drivers/clk/Makefile
+index 7a10bc9..c61f768 100644
+--- a/drivers/clk/Makefile
++++ b/drivers/clk/Makefile
+@@ -35,6 +35,7 @@ obj-$(CONFIG_ARCH_TEGRA)	+= tegra/
+ obj-$(CONFIG_PLAT_SAMSUNG)	+= samsung/
+ obj-$(CONFIG_COMMON_CLK_XGENE)  += clk-xgene.o
+ obj-$(CONFIG_COMMON_CLK_KEYSTONE)	+= keystone/
++obj-$(CONFIG_ARCH_OMAP)		+= ti/
+ 
+ obj-$(CONFIG_X86)		+= x86/
+ 
+diff --git a/drivers/clk/ti/Makefile b/drivers/clk/ti/Makefile
+new file mode 100644
+index 0000000..1825f7f
+--- /dev/null
++++ b/drivers/clk/ti/Makefile
+@@ -0,0 +1,3 @@
++ifneq ($(CONFIG_OF),)
++obj-y					+= clk.o
++endif
+diff --git a/drivers/clk/ti/clk.c b/drivers/clk/ti/clk.c
+new file mode 100644
+index 0000000..ef1a7cd
+--- /dev/null
++++ b/drivers/clk/ti/clk.c
+@@ -0,0 +1,55 @@
++/*
++ * TI clock support
++ *
++ * Copyright (C) 2013 Texas Instruments, Inc.
++ *
++ * Tero Kristo <t-kristo@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed "as is" WITHOUT ANY WARRANTY of any
++ * kind, whether express or implied; without even the implied warranty
++ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++#include <linux/clk-provider.h>
++#include <linux/clkdev.h>
++#include <linux/clk/ti.h>
++#include <linux/of.h>
++
++#undef pr_fmt
++#define pr_fmt(fmt) "%s: " fmt, __func__
++
++/**
++ * ti_dt_clocks_register - register DT alias clocks during boot
++ * @oclks: list of clocks to register
++ *
++ * Register alias or non-standard DT clock entries during boot. By
++ * default, DT clocks are found based on their node name. If any
++ * additional con-id / dev-id -> clock mapping is required, use this
++ * function to list these.
++ */
++void __init ti_dt_clocks_register(struct ti_dt_clk oclks[])
++{
++	struct ti_dt_clk *c;
++	struct device_node *node;
++	struct clk *clk;
++	struct of_phandle_args clkspec;
++
++	for (c = oclks; c->node_name != NULL; c++) {
++		node = of_find_node_by_name(NULL, c->node_name);
++		clkspec.np = node;
++		clk = of_clk_get_from_provider(&clkspec);
++
++		if (!IS_ERR(clk)) {
++			c->lk.clk = clk;
++			clkdev_add(&c->lk);
++		} else {
++			pr_warn("failed to lookup clock node %s\n",
++				c->node_name);
++		}
++	}
++}
+diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
+new file mode 100644
+index 0000000..df94c24
+--- /dev/null
++++ b/include/linux/clk/ti.h
+@@ -0,0 +1,42 @@
++/*
++ * TI clock drivers support
++ *
++ * Copyright (C) 2013 Texas Instruments, Inc.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed "as is" WITHOUT ANY WARRANTY of any
++ * kind, whether express or implied; without even the implied warranty
++ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++#ifndef __LINUX_CLK_TI_H__
++#define __LINUX_CLK_TI_H__
++
++#include <linux/clkdev.h>
++
++/**
++ * struct ti_dt_clk - OMAP DT clock alias declarations
++ * @lk: clock lookup definition
++ * @node_name: clock DT node to map to
++ */
++struct ti_dt_clk {
++	struct clk_lookup		lk;
++	char				*node_name;
++};
++
++#define DT_CLK(dev, con, name)		\
++	{				\
++		.lk = {			\
++			.dev_id = dev,	\
++			.con_id = con,	\
++		},			\
++		.node_name = name,	\
++	}
++
++
++void ti_dt_clocks_register(struct ti_dt_clk *oclks);
++
++#endif
+-- 
+1.7.9.5
 
-Separate branches available at https://github.com/t-kristo/linux-pm.git
-
-- full: 3.13-rc1-dt-clks-v10 (should be merged last, contains everything)
-- clk driver only: 3.13-rc1-dt-clks-v10-for-mike
-- DT data only: 3.13-rc1-dt-clks-v10-for-benoit
-
--Tero
