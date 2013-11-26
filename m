@@ -1,66 +1,49 @@
-From: Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 08/17] spi/qspi: Add api for get_buf/put_buf.
-Date: Tue, 26 Nov 2013 13:05:04 +0530
-Message-ID: <1385451313-1875-9-git-send-email-sourav.poddar@ti.com>
+From: Sourav Poddar <sourav.poddar@ti.com>
+Subject: [PATCH 10/17] spi/spi.h: Add mmap flag in spi master.
+Date: Tue, 26 Nov 2013 13:05:06 +0530
+Message-ID: <1385451313-1875-11-git-send-email-sourav.poddar@ti.com>
 References: <1385451313-1875-1-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1385451313-1875-1-git-send-email-sourav.poddar-l0cyMroinI0@public.gmane.org>
-Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: balbi-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:43846 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754700Ab3KZHg0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Nov 2013 02:36:26 -0500
+In-Reply-To: <1385451313-1875-1-git-send-email-sourav.poddar@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: computersforpeace@gmail.com, broonie@kernel.org, linux-mtd@lists.infradead.org, linux-spi@vger.kernel.org
+Cc: balbi@ti.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, bcousson@baylibre.com, Sourav Poddar <sourav.poddar@ti.com>
 
-Adapt qspi driver to use (get_buf/put_buf) pointers added
-earlier.
-These can be called just before the memcpy operations to get hold
-of the memory mapped address and to turn on the controller clocks.
+Add "mmap" flag which can be used to show that the master
+controller supports memory mapped operations.
 
-Signed-off-by: Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
 ---
- drivers/spi/spi-ti-qspi.c |   17 +++++++++++++++++
- 1 files changed, 17 insertions(+), 0 deletions(-)
+ include/linux/spi/spi.h |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/spi/spi-ti-qspi.c b/drivers/spi/spi-ti-qspi.c
-index 2323572..10bcb37 100644
---- a/drivers/spi/spi-ti-qspi.c
-+++ b/drivers/spi/spi-ti-qspi.c
-@@ -247,6 +247,21 @@ static void ti_qspi_configure_from_slave(struct spi_device *spi, u8 *val)
- 	ti_qspi_write(qspi, memval, QSPI_SPI_SETUP0_REG);
- }
+diff --git a/include/linux/spi/spi.h b/include/linux/spi/spi.h
+index 72565ff..9425ea4 100644
+--- a/include/linux/spi/spi.h
++++ b/include/linux/spi/spi.h
+@@ -299,6 +299,7 @@ static inline void spi_unregister_driver(struct spi_driver *sdrv)
+  *      to be configured from slave specifics information(typical use case for
+  *      SPI flash device).
+  * @mem: memory mapped address to be filled by master controller driver.
++ * @mmap: Shows that master controller supports memory mapped operation.
+  * Each SPI master controller can communicate with one or more @spi_device
+  * children.  These make a small bus, sharing MOSI, MISO and SCK signals
+  * but not chip select signals.  Each device may be configured to use a
+@@ -437,6 +438,7 @@ struct spi_master {
  
-+static void ti_qspi_get_mem_buf(struct spi_master *master)
-+{
-+	struct ti_qspi *qspi = spi_master_get_devdata(master);
-+
-+	pm_runtime_get_sync(qspi->dev);
-+	master->mem = qspi->mmap_base;
-+}
-+
-+static void ti_qspi_put_mem_buf(struct spi_master *master)
-+{
-+	struct ti_qspi *qspi = spi_master_get_devdata(master);
-+
-+	pm_runtime_put(qspi->dev);
-+}
-+
- static void ti_qspi_restore_ctx(struct ti_qspi *qspi)
- {
- 	struct ti_qspi_regs *ctx_reg = &qspi->ctx_reg;
-@@ -515,6 +530,8 @@ static int ti_qspi_probe(struct platform_device *pdev)
- 	master->dev.of_node = pdev->dev.of_node;
- 	master->bits_per_word_mask = BIT(32 - 1) | BIT(16 - 1) | BIT(8 - 1);
- 	master->configure_from_slave = ti_qspi_configure_from_slave;
-+	master->get_buf = ti_qspi_get_mem_buf;
-+	master->put_buf = ti_qspi_put_mem_buf;
+ 	/* gpio chip select */
+ 	int			*cs_gpios;
++	bool	mmap;
+ };
  
- 	if (!of_property_read_u32(np, "num-cs", &num_cs))
- 		master->num_chipselect = num_cs;
+ static inline void *spi_master_get_devdata(struct spi_master *master)
 -- 
 1.7.1
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-spi" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
