@@ -1,90 +1,416 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 00/11]: add remaining support for IGEP boards
-Date: Tue, 26 Nov 2013 14:27:48 -0800
-Message-ID: <20131126222747.GR26766@atomide.com>
-References: <1384909575-19108-1-git-send-email-javier.martinez@collabora.co.uk>
- <CABxcv=k+Lk=PFONKLvXab5iHExG7WCJRfE6BzEkv_YtPVwB8Dw@mail.gmail.com>
- <52948399.7070407@ti.com>
+From: Chao Xu <caesarxuchao@gmail.com>
+Subject: =?UTF-8?q?=5BPATCH=20V2=5D=20gpio=3A=20omap=3A=20refresh=20patch=20=22be=20more=20aggressive=20with=20pm=5Fruntime=22=20against=20v3=2E12-rc5?=
+Date: Tue, 26 Nov 2013 16:46:44 -0600
+Message-ID: <1385506004-14943-1-git-send-email-caesarxuchao@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:43640 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756764Ab3KZW1z (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Nov 2013 17:27:55 -0500
-Content-Disposition: inline
-In-Reply-To: <52948399.7070407@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-gpio-owner@vger.kernel.org>
+Sender: linux-gpio-owner@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: santosh.shilimkar@ti.com, khilman@deeprootsystems.com, linus.walleij@linaro.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, tony@atomide.com, balbi@ti.com, Chao Xu <caesarxuchao@gmail.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Javier Martinez Canillas <javier@dowhile0.org>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Enric Balletbo i Serra <eballetbo@gmail.com>, Benoit Cousson <bcousson@baylibre.com>, Sebastian Reichel <sre@ring0.de>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-* Tomi Valkeinen <tomi.valkeinen@ti.com> [131126 03:19]:
-> On 2013-11-25 17:30, Javier Martinez Canillas wrote:
-> > On Wed, Nov 20, 2013 at 2:06 AM, Javier Martinez Canillas
-> > <javier.martinez@collabora.co.uk> wrote:
-> >> In order to make mach-omap2 Device Tree only, the board file for
-> >> IGEP boards was removed even when support for wifi and display
-> >> was still not supported by its DTS.
-> >>
-> >> This is a second version of a patch-set that adds support for
-> >> these remaining peripherals and also adds support for USB,
-> >> HDMI and user LED for the am33xx SoC based IGEP Aquila board.
-> >>
-> >> The patch-set is composed of the following patches:
-> >>
-> >> Enric Balletbo i Serra (7):
-> >>       ARM: dts: omap3-igep: Fix bus-width for mmc1.
-> >>       ARM: dts: omap3-igep: Add support for LBEE1USJYC WiFi connected to SDIO.
-> >>       ARM: dts: omap3-igep: Update to use the TI AM/DM37x processor.
-> >>       ARM: dts: AM33XX BASE0033: add pinmux and hdmi node to enable display
-> >>       ARM: dts: AM33XX BASE0033: add pinmux and user led support.
-> >>       ARM: dts: AM33XX BASE0033: add 32KBit EEPROM support.
-> >>       ARM: dts: AM33XX IGEP0033: add USB support.
-> >>
-> >> Javier Martinez Canillas (4):
-> >>       ARM: dts: omap3-igep0020: Add pinmux setup for i2c devices
-> >>       ARM: dts: omap3-igep0020: Add pinmuxing for DVI output
-> >>       ARM: OMAP: dss-common: change IGEP's DVI DDC i2c bus
-> >>       ARM: dts: omap3-igep0020: name twl4030 VPLL2 regulator as vdds_dsi
-> >>
-> >> Changes since v1:
-> >>
-> >>  Don't add a workaround in drivers/video/omap2/dss/dpi.c to use the
-> >>  VPLL2 regulator from twl4030 if VDDS_DSI regulator is not linked to
-> >>  the DPI device since the used regulator is a per board configuration.
-> >>
-> >>  Instead add a regulator-name = "vdds_dsi" property to the regulator
-> >>  in the IGEPv2 DTS file as suggested by Tony Lindgren.
-> >>
-> >> Tony,
-> >>
-> >> Most of these patches are just DTS changes so they have to be picked
-> >> by Benoit besides the following patch that has to go through your tree
-> >>
-> >> [PATCH 10/11] ARM: OMAP: dss-common: change IGEP's DVI DDC i2c bus
-> >>
-> >> Since we have removed the board file for IGEP boards I think these
-> >> can be considered as regression fixes for 3.13 although I don't mind
-> >> if you prefer to wait for 3.14.
-> >>
-> >> Thanks a lot and best regards,
-> >> Javier
-> >> --
-> > 
-> > Hi Benoit and Tony,
-> > 
-> > Now that 3.13-rc1 is out, do you think that it would be possible to
-> > include this series as a fix for the -rc cycle?
-> > 
-> > Otherwise we will have missing functionality for IGEP boards on 3.13
-> > due the board file removal. The changes are mostly DT and won't affect
-> > other boards.
-> 
-> The DSS related parts look fine to me.
+=46rom: Felipe Balbi <balbi@ti.com>
 
-Thanks, applying the whole series into omap-for-v3.13/fixes-take4.
+try to keep gpio block suspended as much as possible.
 
-Regards,
+Tested with pandaboard and a sysfs exported gpio.
 
-Tony
+Signed-off-by: Felipe Balbi <balbi at ti.com>
+
+[caesarxuchao@gmail.com : Refreshed against v3.12-rc5, and added revisi=
+on check to enable aggressive pm_runtime on OMAP4-only. Because am33xx_=
+gpio_sysc.idlemodes seems to be wrongly marked as SIDLE_SMART_WKUP, whi=
+ch might cause missed interrupts with this patch. Tested on Pandaboard =
+rev A2.]
+
+Signed-off-by: Chao Xu <caesarxuchao@gmail.com>
+---
+According to Mr. Felipe Balbi, the original patch was not accepted beca=
+use interrupts would be missed when GPIO was used as IRQ source. But in=
+ my tests with pandaboard, interrupts were not missed. This is because =
+_idle_sysc() sets the idlemode of gpio module to smart-idle-wakeup, and=
+ according to OMAP4430 TRM, under this idlemode, the gpio can generate =
+an asynchronous wakeup request to the PRCM. And after GPIO is awake, th=
+e wake-up request is reflected into the interrupt status registers.=20
+
+A change made on the original patch is only applying the aggressive run=
+time pm scheme on OMAP4, because I don=E2=80=99t have HW to test OMAP3 =
+or am33xx devices. According to the respective TRMs, their GPIO modules=
+ also can generate wake-up request if the idlemode is set to smart-idle=
+ or smart-idle-wakeup. So the patch should work for them, too. But I su=
+spect a potential SW bug may cause missed interrupts: the am33xx_gpio_s=
+ysc.idlemodes is marked as capable of SIDLE_SMART_WKUP in omap_hwmod_33=
+xx.c. But according to AM335x TRM, _only_ gpio0 is capable of this mode=
+=2E This may make GPIO stuck in force-idle mode and unable to generate =
+wakeup request. And thus interrupt will be missed. Again, I don=E2=80=99=
+t have the HW to verify whether this is a bug or not :(
+
+ drivers/gpio/gpio-omap.c                |  103 +++++++++++++++++++++++=
++++-----
+ include/linux/platform_data/gpio-omap.h |    1 +
+ 2 files changed, 87 insertions(+), 17 deletions(-)
+
+diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+index 89675f8..90661f2 100644
+--- a/drivers/gpio/gpio-omap.c
++++ b/drivers/gpio/gpio-omap.c
+@@ -76,6 +76,7 @@ struct gpio_bank {
+ 	int context_loss_count;
+ 	int power_mode;
+ 	bool workaround_enabled;
++	bool is_aggressive_pm;
+=20
+ 	void (*set_dataout)(struct gpio_bank *bank, int gpio, int enable);
+ 	int (*get_context_loss_count)(struct device *dev);
+@@ -473,8 +474,15 @@ static void _disable_gpio_module(struct gpio_bank =
+*bank, unsigned offset)
+ static int gpio_is_input(struct gpio_bank *bank, int mask)
+ {
+ 	void __iomem *reg =3D bank->base + bank->regs->direction;
++	u32 val;
+=20
+-	return __raw_readl(reg) & mask;
++	if (bank->is_aggressive_pm)
++		pm_runtime_get_sync(bank->dev);
++	val =3D __raw_readl(reg) & mask;
++	if (bank->is_aggressive_pm)
++		pm_runtime_put(bank->dev);
++
++	return val;
+ }
+=20
+ static int gpio_irq_type(struct irq_data *d, unsigned type)
+@@ -485,7 +493,7 @@ static int gpio_irq_type(struct irq_data *d, unsign=
+ed type)
+ 	unsigned long flags;
+ 	unsigned offset;
+=20
+-	if (!BANK_USED(bank))
++	if (!BANK_USED(bank) && !bank->is_aggressive_pm)
+ 		pm_runtime_get_sync(bank->dev);
+=20
+ #ifdef CONFIG_ARCH_OMAP1
+@@ -503,6 +511,8 @@ static int gpio_irq_type(struct irq_data *d, unsign=
+ed type)
+ 		(type & (IRQ_TYPE_LEVEL_LOW|IRQ_TYPE_LEVEL_HIGH)))
+ 		return -EINVAL;
+=20
++	if (bank->is_aggressive_pm)
++		pm_runtime_get_sync(bank->dev);
+ 	spin_lock_irqsave(&bank->lock, flags);
+ 	offset =3D GPIO_INDEX(bank, gpio);
+ 	retval =3D _set_gpio_triggering(bank, offset, type);
+@@ -511,11 +521,16 @@ static int gpio_irq_type(struct irq_data *d, unsi=
+gned type)
+ 		_set_gpio_direction(bank, offset, 1);
+ 	} else if (!gpio_is_input(bank, 1 << offset)) {
+ 		spin_unlock_irqrestore(&bank->lock, flags);
++		if (bank->is_aggressive_pm)
++			pm_runtime_put(bank->dev);
++
+ 		return -EINVAL;
+ 	}
+=20
+ 	bank->irq_usage |=3D 1 << GPIO_INDEX(bank, gpio);
+ 	spin_unlock_irqrestore(&bank->lock, flags);
++	if (bank->is_aggressive_pm)
++		pm_runtime_put(bank->dev);
+=20
+ 	if (type & (IRQ_TYPE_LEVEL_LOW | IRQ_TYPE_LEVEL_HIGH))
+ 		__irq_set_handler_locked(d->irq, handle_level_irq);
+@@ -668,10 +683,11 @@ static int omap_gpio_request(struct gpio_chip *ch=
+ip, unsigned offset)
+ 	unsigned long flags;
+=20
+ 	/*
+-	 * If this is the first gpio_request for the bank,
+-	 * enable the bank module.
++	 * if aggressive runtime pm is supported, enable the bank module
++	 * for each gpio_request. Otherwise enable the bank module if this
++	 * is the first gpio_request for the bank.
+ 	 */
+-	if (!BANK_USED(bank))
++	if (bank->is_aggressive_pm || !BANK_USED(bank))
+ 		pm_runtime_get_sync(bank->dev);
+=20
+ 	spin_lock_irqsave(&bank->lock, flags);
+@@ -685,7 +701,8 @@ static int omap_gpio_request(struct gpio_chip *chip=
+, unsigned offset)
+ 	}
+ 	bank->mod_usage |=3D 1 << offset;
+ 	spin_unlock_irqrestore(&bank->lock, flags);
+-
++	if (bank->is_aggressive_pm)
++		pm_runtime_put(bank->dev);
+ 	return 0;
+ }
+=20
+@@ -694,6 +711,9 @@ static void omap_gpio_free(struct gpio_chip *chip, =
+unsigned offset)
+ 	struct gpio_bank *bank =3D container_of(chip, struct gpio_bank, chip)=
+;
+ 	unsigned long flags;
+=20
++	if (bank->is_aggressive_pm)
++		pm_runtime_get_sync(bank->dev);
++
+ 	spin_lock_irqsave(&bank->lock, flags);
+ 	bank->mod_usage &=3D ~(1 << offset);
+ 	_disable_gpio_module(bank, offset);
+@@ -701,10 +721,11 @@ static void omap_gpio_free(struct gpio_chip *chip=
+, unsigned offset)
+ 	spin_unlock_irqrestore(&bank->lock, flags);
+=20
+ 	/*
+-	 * If this is the last gpio to be freed in the bank,
+-	 * disable the bank module.
++	 * if aggressive runtime pm is supported, disable the bank module
++	 * for each gpio_free. Otherwise disable the bank module if this
++	 * is the last gpio to be freed in the bank.
+ 	 */
+-	if (!BANK_USED(bank))
++	if (bank->is_aggressive_pm || !BANK_USED(bank))
+ 		pm_runtime_put(bank->dev);
+ }
+=20
+@@ -796,17 +817,19 @@ static void gpio_irq_shutdown(struct irq_data *d)
+ 	unsigned long flags;
+ 	unsigned offset =3D GPIO_INDEX(bank, gpio);
+=20
++	if (bank->is_aggressive_pm)
++		pm_runtime_get_sync(bank->dev);
+ 	spin_lock_irqsave(&bank->lock, flags);
+ 	bank->irq_usage &=3D ~(1 << offset);
+ 	_disable_gpio_module(bank, offset);
+ 	_reset_gpio(bank, gpio);
+ 	spin_unlock_irqrestore(&bank->lock, flags);
+-
+ 	/*
+-	 * If this is the last IRQ to be freed in the bank,
+-	 * disable the bank module.
++	 * if aggressive runtime pm is supported, disable the bank module
++	 * for each irq_shutdown. Otherwise disable the bank module if this
++	 * is the last IRQ to be freed in the bank.
+ 	 */
+-	if (!BANK_USED(bank))
++	if (bank->is_aggressive_pm || !BANK_USED(bank))
+ 		pm_runtime_put(bank->dev);
+ }
+=20
+@@ -815,7 +838,11 @@ static void gpio_ack_irq(struct irq_data *d)
+ 	struct gpio_bank *bank =3D irq_data_get_irq_chip_data(d);
+ 	unsigned int gpio =3D irq_to_gpio(bank, d->hwirq);
+=20
++	if (bank->is_aggressive_pm)
++		pm_runtime_get_sync(bank->dev);
+ 	_clear_gpio_irqstatus(bank, gpio);
++	if (bank->is_aggressive_pm)
++		pm_runtime_put(bank->dev);
+ }
+=20
+ static void gpio_mask_irq(struct irq_data *d)
+@@ -824,10 +851,14 @@ static void gpio_mask_irq(struct irq_data *d)
+ 	unsigned int gpio =3D irq_to_gpio(bank, d->hwirq);
+ 	unsigned long flags;
+=20
++	if (bank->is_aggressive_pm)
++		pm_runtime_get_sync(bank->dev);
+ 	spin_lock_irqsave(&bank->lock, flags);
+ 	_set_gpio_irqenable(bank, gpio, 0);
+ 	_set_gpio_triggering(bank, GPIO_INDEX(bank, gpio), IRQ_TYPE_NONE);
+ 	spin_unlock_irqrestore(&bank->lock, flags);
++	if (bank->is_aggressive_pm)
++		pm_runtime_put(bank->dev);
+ }
+=20
+ static void gpio_unmask_irq(struct irq_data *d)
+@@ -838,6 +869,8 @@ static void gpio_unmask_irq(struct irq_data *d)
+ 	u32 trigger =3D irqd_get_trigger_type(d);
+ 	unsigned long flags;
+=20
++	if (bank->is_aggressive_pm)
++		pm_runtime_get_sync(bank->dev);
+ 	spin_lock_irqsave(&bank->lock, flags);
+ 	if (trigger)
+ 		_set_gpio_triggering(bank, GPIO_INDEX(bank, gpio), trigger);
+@@ -851,6 +884,8 @@ static void gpio_unmask_irq(struct irq_data *d)
+=20
+ 	_set_gpio_irqenable(bank, gpio, 1);
+ 	spin_unlock_irqrestore(&bank->lock, flags);
++	if (bank->is_aggressive_pm)
++		pm_runtime_put(bank->dev);
+ }
+=20
+ static struct irq_chip gpio_irq_chip =3D {
+@@ -933,9 +968,15 @@ static int gpio_input(struct gpio_chip *chip, unsi=
+gned offset)
+ 	unsigned long flags;
+=20
+ 	bank =3D container_of(chip, struct gpio_bank, chip);
++
++	if (bank->is_aggressive_pm)
++		pm_runtime_get_sync(bank->dev);
+ 	spin_lock_irqsave(&bank->lock, flags);
+ 	_set_gpio_direction(bank, offset, 1);
+ 	spin_unlock_irqrestore(&bank->lock, flags);
++	if (bank->is_aggressive_pm)
++		pm_runtime_put(bank->dev);
++
+ 	return 0;
+ }
+=20
+@@ -944,13 +985,20 @@ static int gpio_get(struct gpio_chip *chip, unsig=
+ned offset)
+ 	struct gpio_bank *bank;
+ 	u32 mask;
+=20
++	int val;
+ 	bank =3D container_of(chip, struct gpio_bank, chip);
+ 	mask =3D (1 << offset);
+=20
++	if (bank->is_aggressive_pm)
++		pm_runtime_get_sync(bank->dev);
+ 	if (gpio_is_input(bank, mask))
+-		return _get_gpio_datain(bank, offset);
++		val =3D _get_gpio_datain(bank, offset);
+ 	else
+-		return _get_gpio_dataout(bank, offset);
++		val =3D _get_gpio_dataout(bank, offset);
++	if (bank->is_aggressive_pm)
++		pm_runtime_put(bank->dev);
++
++	return val;
+ }
+=20
+ static int gpio_output(struct gpio_chip *chip, unsigned offset, int va=
+lue)
+@@ -960,6 +1008,9 @@ static int gpio_output(struct gpio_chip *chip, uns=
+igned offset, int value)
+ 	int retval =3D 0;
+=20
+ 	bank =3D container_of(chip, struct gpio_bank, chip);
++
++	if (bank->is_aggressive_pm)
++		pm_runtime_get_sync(bank->dev);
+ 	spin_lock_irqsave(&bank->lock, flags);
+=20
+ 	if (LINE_USED(bank->irq_usage, offset)) {
+@@ -972,6 +1023,9 @@ static int gpio_output(struct gpio_chip *chip, uns=
+igned offset, int value)
+=20
+ exit:
+ 	spin_unlock_irqrestore(&bank->lock, flags);
++	if (bank->is_aggressive_pm)
++		pm_runtime_put(bank->dev);
++
+ 	return retval;
+ }
+=20
+@@ -983,9 +1037,13 @@ static int gpio_debounce(struct gpio_chip *chip, =
+unsigned offset,
+=20
+ 	bank =3D container_of(chip, struct gpio_bank, chip);
+=20
++	if (bank->is_aggressive_pm)
++		pm_runtime_get_sync(bank->dev);
+ 	spin_lock_irqsave(&bank->lock, flags);
+ 	_set_gpio_debounce(bank, offset, debounce);
+ 	spin_unlock_irqrestore(&bank->lock, flags);
++	if (bank->is_aggressive_pm)
++		pm_runtime_put(bank->dev);
+=20
+ 	return 0;
+ }
+@@ -996,9 +1054,14 @@ static void gpio_set(struct gpio_chip *chip, unsi=
+gned offset, int value)
+ 	unsigned long flags;
+=20
+ 	bank =3D container_of(chip, struct gpio_bank, chip);
++
++	if (bank->is_aggressive_pm)
++		pm_runtime_get_sync(bank->dev);
+ 	spin_lock_irqsave(&bank->lock, flags);
+ 	bank->set_dataout(bank, offset, value);
+ 	spin_unlock_irqrestore(&bank->lock, flags);
++	if (bank->is_aggressive_pm)
++		pm_runtime_put(bank->dev);
+ }
+=20
+ /*--------------------------------------------------------------------=
+-*/
+@@ -1168,6 +1231,7 @@ static int omap_gpio_probe(struct platform_device=
+ *pdev)
+ 	bank->is_mpuio =3D pdata->is_mpuio;
+ 	bank->non_wakeup_gpios =3D pdata->non_wakeup_gpios;
+ 	bank->regs =3D pdata->regs;
++	bank->is_aggressive_pm =3D pdata->is_aggressive_pm;
+ #ifdef CONFIG_OF_GPIO
+ 	bank->chip.of_node =3D of_node_get(node);
+ #endif
+@@ -1449,7 +1513,8 @@ void omap2_gpio_prepare_for_idle(int pwr_mode)
+=20
+ 		bank->power_mode =3D pwr_mode;
+=20
+-		pm_runtime_put_sync_suspend(bank->dev);
++		if (!pm_runtime_suspended(bank->dev))
++			pm_runtime_suspend(bank->dev);
+ 	}
+ }
+=20
+@@ -1461,7 +1526,8 @@ void omap2_gpio_resume_after_idle(void)
+ 		if (!BANK_USED(bank) || !bank->loses_context)
+ 			continue;
+=20
+-		pm_runtime_get_sync(bank->dev);
++		if (pm_runtime_suspended(bank->dev))
++			pm_runtime_resume(bank->dev);
+ 	}
+ }
+=20
+@@ -1585,18 +1651,21 @@ static const struct omap_gpio_platform_data oma=
+p2_pdata =3D {
+ 	.regs =3D &omap2_gpio_regs,
+ 	.bank_width =3D 32,
+ 	.dbck_flag =3D false,
++	.is_aggressive_pm =3D false,
+ };
+=20
+ static const struct omap_gpio_platform_data omap3_pdata =3D {
+ 	.regs =3D &omap2_gpio_regs,
+ 	.bank_width =3D 32,
+ 	.dbck_flag =3D true,
++	.is_aggressive_pm =3D false,
+ };
+=20
+ static const struct omap_gpio_platform_data omap4_pdata =3D {
+ 	.regs =3D &omap4_gpio_regs,
+ 	.bank_width =3D 32,
+ 	.dbck_flag =3D true,
++	.is_aggressive_pm =3D true,
+ };
+=20
+ static const struct of_device_id omap_gpio_match[] =3D {
+diff --git a/include/linux/platform_data/gpio-omap.h b/include/linux/pl=
+atform_data/gpio-omap.h
+index 5d50b25..bb033b1 100644
+--- a/include/linux/platform_data/gpio-omap.h
++++ b/include/linux/platform_data/gpio-omap.h
+@@ -200,6 +200,7 @@ struct omap_gpio_platform_data {
+ 	bool dbck_flag;		/* dbck required or not - True for OMAP3&4 */
+ 	bool loses_context;	/* whether the bank would ever lose context */
+ 	bool is_mpuio;		/* whether the bank is of type MPUIO */
++	bool is_aggressive_pm; /* whether aggressive runtime pm is supported*=
+/
+ 	u32 non_wakeup_gpios;
+=20
+ 	struct omap_gpio_reg_offs *regs;
+--=20
+1.7.9.5
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-gpio" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
