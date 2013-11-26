@@ -1,7 +1,7 @@
 From: Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 12/17] spi/qspi: convert driver to enable/disable memory mapped.
-Date: Tue, 26 Nov 2013 13:05:08 +0530
-Message-ID: <1385451313-1875-13-git-send-email-sourav.poddar@ti.com>
+Subject: [PATCH 14/17] drivers: mtd: m25p80: Adapt driver to support memory mapped read.
+Date: Tue, 26 Nov 2013 13:05:10 +0530
+Message-ID: <1385451313-1875-15-git-send-email-sourav.poddar@ti.com>
 References: <1385451313-1875-1-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,47 +12,58 @@ To: computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, broonie-DgEjT+Ai2
 Cc: balbi-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Idea is to enable memory mapped by default at the end of the probe,
-if the control reaches the "transfer" api, then the operation is
-not a memory mapped one. Hence, we switch to Normal mode and at the
-end of the "transfer" function. switch back to memory mapped mode.
+Adapt driver to do a memory mapped read.
 
 Signed-off-by: Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>
 ---
- drivers/spi/spi-ti-qspi.c |    6 ++++++
- 1 files changed, 6 insertions(+), 0 deletions(-)
+ drivers/mtd/devices/m25p80.c |   13 +++++++++++++
+ 1 files changed, 13 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/spi/spi-ti-qspi.c b/drivers/spi/spi-ti-qspi.c
-index d21d40d..ba95d64 100644
---- a/drivers/spi/spi-ti-qspi.c
-+++ b/drivers/spi/spi-ti-qspi.c
-@@ -415,6 +415,8 @@ static int ti_qspi_start_transfer_one(struct spi_master *master,
- 	int status = 0, ret;
- 	int frame_length;
+diff --git a/drivers/mtd/devices/m25p80.c b/drivers/mtd/devices/m25p80.c
+index 6a27677..b7ed4be 100644
+--- a/drivers/mtd/devices/m25p80.c
++++ b/drivers/mtd/devices/m25p80.c
+@@ -514,6 +514,7 @@ static int m25p80_read(struct mtd_info *mtd, loff_t from, size_t len,
+ 	size_t *retlen, u_char *buf)
+ {
+ 	struct m25p *flash = mtd_to_m25p(mtd);
++	struct spi_master *master = flash->spi->master;
+ 	struct spi_transfer t[2];
+ 	struct spi_message m;
+ 	uint8_t opcode;
+@@ -522,6 +523,14 @@ static int m25p80_read(struct mtd_info *mtd, loff_t from, size_t len,
+ 	pr_debug("%s: %s from 0x%08x, len %zd\n", dev_name(&flash->spi->dev),
+ 			__func__, (u32)from, len);
  
-+	disable_qspi_memory_mapped(qspi);
++	if (master->mmap) {
++		master->get_buf(master);
++		memcpy(buf, master->mem + from, len);
++		master->put_buf(master);
++		*retlen = len;
++		goto out;
++	}
 +
- 	/* setup device control reg */
- 	qspi->dc = 0;
+ 	spi_message_init(&m);
+ 	memset(t, 0, (sizeof t));
  
-@@ -460,6 +462,8 @@ static int ti_qspi_start_transfer_one(struct spi_master *master,
+@@ -559,6 +568,7 @@ static int m25p80_read(struct mtd_info *mtd, loff_t from, size_t len,
  
- 	ti_qspi_write(qspi, qspi->cmd | QSPI_INVAL, QSPI_SPI_CMD_REG);
+ 	mutex_unlock(&flash->lock);
  
-+	enable_qspi_memory_mapped(qspi);
-+
- 	return status;
++out:
+ 	return 0;
  }
  
-@@ -613,6 +617,8 @@ static int ti_qspi_probe(struct platform_device *pdev)
- 	if (ret)
- 		goto free_master;
+@@ -1285,6 +1295,9 @@ static int m25p_probe(struct spi_device *spi)
+ 		flash->addr_width = 3;
+ 	}
  
-+	enable_qspi_memory_mapped(qspi);
++	if (spi->master->configure_from_slave)
++		m25p80_fill_flash_information(flash);
 +
- 	return 0;
+ 	dev_info(&spi->dev, "%s (%lld Kbytes)\n", id->name,
+ 			(long long)flash->mtd.size >> 10);
  
- free_master:
 -- 
 1.7.1
 
