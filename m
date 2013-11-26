@@ -1,68 +1,60 @@
-From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 09/17] spi/spi.h: Add "mem" variable in spi master.
-Date: Tue, 26 Nov 2013 13:20:51 +0000
-Message-ID: <20131126132051.GO14725@sirena.org.uk>
-References: <1385451313-1875-1-git-send-email-sourav.poddar@ti.com>
- <1385451313-1875-10-git-send-email-sourav.poddar@ti.com>
- <20131126130119.GH14725@sirena.org.uk>
- <52949C9F.10008@ti.com>
+From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+Subject: Re: [rtc-linux] Re: [PATCH v4 0/4] pm: Add power off control
+Date: Tue, 26 Nov 2013 10:22:46 -0300
+Message-ID: <20131126132245.GD2344@localhost>
+References: <1355464997-19367-1-git-send-email-anilkumar@ti.com>
+ <331ABD5ECB02734CA317220B2BBEABC13EAD58C2@DBDE01.ent.ti.com>
+ <CA+Bv8XbUa7xPd8V7LQCmFbbdQvORUK1X0xBPzAhKUFFjjho2jw@mail.gmail.com>
+ <20131122195041.GF18968@localhost>
+ <CANacCWxwr7s6ZvjWRbg_JGgc-Q1sJa-KJCLrSCK4BvSrmL5Eug@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="qYpwwOSOoAAr8PNn"
-Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from top.free-electrons.com ([176.31.233.9]:52720 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751115Ab3KZNXY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Nov 2013 08:23:24 -0500
 Content-Disposition: inline
-In-Reply-To: <52949C9F.10008-l0cyMroinI0@public.gmane.org>
-Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>
-Cc: computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org
+In-Reply-To: <CANacCWxwr7s6ZvjWRbg_JGgc-Q1sJa-KJCLrSCK4BvSrmL5Eug@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Vaibhav Bedia <vaibhav.bedia@gmail.com>
+Cc: rtc-linux@googlegroups.com, Russ Dill <Russ.Dill@ti.com>, "AnilKumar, Chimata" <anilkumar@ti.com>, "a.zummo@towertech.it" <a.zummo@towertech.it>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "tony@atomide.com" <tony@atomide.com>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>
 
+On Sat, Nov 23, 2013 at 12:23:35PM -0500, Vaibhav Bedia wrote:
+> On Fri, Nov 22, 2013 at 2:50 PM, Ezequiel Garcia
+> <ezequiel.garcia@free-electrons.com> wrote:
+> [...]
+> >
+> > And why specifically *2* seconds, instead of *1* or *33* ?
+> >
+> > Sounds a bit like voodoo magic on this side :-)
+>=20
+> Consider the scenario where the actual time is 00:00:01.95 secs.
+> Due to the 1 second resolution of the RTC, reading the registers
+> would return 00:00:01. By the time we get to updating the
+> RTC register for the shutdown by adding 1 sec (theoretically the
+> smallest delta) we could end up programming the time that's already
+> passed and in such cases the system will never shut down.
+>=20
+> 2 secs is the smallest delay that we can use to get the system
+> to shutdown reliably.
+>=20
+> So it's not voodoo magic after all ;)
+>=20
 
---qYpwwOSOoAAr8PNn
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Right, thanks for the details.
 
-On Tue, Nov 26, 2013 at 06:35:35PM +0530, Sourav Poddar wrote:
-> On Tuesday 26 November 2013 06:31 PM, Mark Brown wrote:
+Care to add the above explanation to a comment inside the driver?
 
-> >Is this really generic enough to put here rather than in the driver
-> >data?
-
-> The thought behind this was that if a master controller supports
-> memory mapped operation and slave wants to use memcpy in his
-> driver(bypassing spi ), then we should have a mean to communicate
-> between the
-> master and the slave. So, 'spi_master' seems to be the place for me
-> for this data,
-> which could be parsed in the slave side also.
-
-I would have expected that the address would be returned by the function
-that maps the buffer in rather than stored permanently in the master.
-
---qYpwwOSOoAAr8PNn
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
-
-iQIcBAEBAgAGBQJSlKAvAAoJELSic+t+oim9w4QP/16Y18APhav+poBt0dc+Q5IN
-WeVvrv16jzZ+tqNCox+MdLDQsl20CGiPlq/pBwVXYm8fZetkajh5a/h2oofIqqy3
-tqYfaFg5u3aYBd6iCdKCm3hJyY29LKCu7ecpo4iPic9riP0ErUUtag4qKhXRkZB0
-GkHdBv61oBK1nFLnu24Ke6JCS3BuYl9t5MtkyvTi8cGhGZbNjD4B7as9jo5MMXPq
-FITMgmRjMSQV0VfUvWLnjC1F97TCA6g/7tIYrGuh+3yBJrV4kX+qKRcuBXMCCp7J
-cEtChhpseTGEQ+r+zbFaDzngE3i+xy4IncoFlDKCfRnO4CXsWP7bbQHHOoKSdrM+
-lZaWnRVAVBGb6fiVgDQ5BPDyUDWj9jJWp6s+EurymGwNtiMCKnkZDj+1EA12vOnZ
-kk6NMhYGxBgJ0kYD89bebqrI+CF1fCEoo/20wdgfH7z1uTQf0i7pkHG5lz7EUwKo
-hYQUxA/8l1bwy+ojy2KgeidDp/VV/ENBvCp76cnOnziGqzXolg3d+kLTB3RoJcKm
-h6WCSBlvdDQkyKJ7CwBOdsec5J2la4CF1zSe8T+wIBMcRTA/rjgAWqEhsMOSCIKg
-AjwGJ52C+e4r2vdO1aZ4T1d0/zrW7HKGotualIC5P6tbujgGtZM9tdv/cROVOHzb
-MgC1oQMrSoEN3M+tCgsy
-=aoaK
------END PGP SIGNATURE-----
-
---qYpwwOSOoAAr8PNn--
+That way, people won't ask this same question again :-)
+--=20
+Ezequiel Garc=C3=ADa, Free Electrons
+Embedded Linux, Kernel and Android Engineering
+http://free-electrons.com
 --
-To unsubscribe from this list: send the line "unsubscribe linux-spi" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
