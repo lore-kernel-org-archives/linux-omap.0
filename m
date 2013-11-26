@@ -1,45 +1,39 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 6/7] ARM: OMAP: Disable POSTED mode for errata i103 and
- i767
-Date: Tue, 26 Nov 2013 14:05:43 -0800
-Message-ID: <20131126220543.GP26766@atomide.com>
-References: <1385415876-12387-1-git-send-email-joelf@ti.com>
- <1385415876-12387-7-git-send-email-joelf@ti.com>
- <20131125221437.GW10023@atomide.com>
- <5293CC93.6040603@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH 05/12] ARM: OMAP2+: Remove legacy PM init
+Date: Tue, 26 Nov 2013 16:13:53 -0600
+Message-ID: <CAGo_u6pwOdizyxD8Hy_znQHG0Spk-UTOKYxfj30UMxi7=cUbtw@mail.gmail.com>
+References: <1385424867-27243-1-git-send-email-tony@atomide.com>
+	<1385424867-27243-6-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <5293CC93.6040603@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Joel Fernandes <joelf@ti.com>
-Cc: Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wg0-f50.google.com ([74.125.82.50]:65443 "EHLO
+	mail-wg0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754569Ab3KZWNy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Nov 2013 17:13:54 -0500
+Received: by mail-wg0-f50.google.com with SMTP id a1so4123460wgh.17
+        for <linux-omap@vger.kernel.org>; Tue, 26 Nov 2013 14:13:53 -0800 (PST)
+In-Reply-To: <1385424867-27243-6-git-send-email-tony@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>
 
-* Joel Fernandes <joelf@ti.com> [131125 14:18]:
-> On 11/25/2013 04:14 PM, Tony Lindgren wrote:
-> > * Joel Fernandes <joelf@ti.com> [131125 13:46]:
-> >> Enabling of Posted mode is seen to cause problems on dmtimer modules on AM33xx
-> >> (much like other OMAPs).  Reference discussions on forums [1] [2]. Earlier
-> >> patch solving this on other OMAPs [3].
-> >>
-> >> For OMAP SoCs with this errata, the fix has been to not enable Posted mode.
-> >> However, on some SoCs (atleast AM33xx) which carry this errata, Posted mode
-> >> is enabled on reset. So we not only need to ignore enabling of the POSTED bit
-> >> when the timer is requested, but also disable Posted mode if errata is present.
-> > 
-> > This could explain some occasional lost timers I saw a while back when
-> > testing things.. We most likely should merge for the -rc series with cc stable.
-> 
-> Sure, I agree.
-> 
-> > 
-> > Does this depend on the other patches in this series?
-> > 
-> 
-> No it doesn't depend.
+On Mon, Nov 25, 2013 at 6:14 PM, Tony Lindgren <tony@atomide.com> wrote:
+> This is no longer needed when booted with device tree.
+[...]
+>  static inline void omap_init_cpufreq(void)
+>  {
+>         struct platform_device_info devinfo = { };
+>
+> -       if (!of_have_populated_dt())
+> -               devinfo.name = "omap-cpufreq";
+> -       else
+> -               devinfo.name = "cpufreq-cpu0";
+> +       devinfo.name = "cpufreq-cpu0";
 
-OK thanks applying into omap-for-v3.13/fixes-take4.
+struct platform_device_info devinfo = { .name = "cpufreq-cpu0" };
 
-Tony
+otherwise, ok with the change.
+Thanks and Regards,
+Nishanth Menon
