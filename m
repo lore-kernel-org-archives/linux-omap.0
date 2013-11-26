@@ -1,85 +1,60 @@
-From: Joel Fernandes <joelf@ti.com>
-Subject: Re: [PATCH 1/8] ARM: OMAP: Move public portion of dmtimer.h to include/linux/omap-timer.h
-Date: Tue, 26 Nov 2013 13:52:41 -0600
-Message-ID: <5294FC09.2080604@ti.com>
-References: <1385085414-9034-1-git-send-email-joelf@ti.com> <1385085414-9034-2-git-send-email-joelf@ti.com> <20131122153334.GE10023@atomide.com> <52940F32.3000006@ti.com> <20131126182908.GK26766@atomide.com>
+From: Chao Xu <caesarxuchao@gmail.com>
+Subject: Re: [BUG] PandaBoard hangs before starting init while booting v3.12
+Date: Tue, 26 Nov 2013 13:59:17 -0600
+Message-ID: <CAKZq+rcpSg02X_xmTzq_fzG6cAWNS+TeXoqZsNFdneqekiaavw@mail.gmail.com>
+References: <87hab9agjr.fsf@gmail.com>
+	<CAKZq+rdQLrNE43aGaPtnDfaO6CHsq_ePLu+oRgWNs25OrdCtdw@mail.gmail.com>
+	<87wqk3n54l.fsf@gmail.com>
+	<20131120183548.GH10317@atomide.com>
+	<CAKZq+rcoC5PLSVVazWcce7V7TcBM8=M2jM56bvk9HO2orKt8fg@mail.gmail.com>
+	<20131126182022.GJ26766@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:34375 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753088Ab3KZTxG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 26 Nov 2013 14:53:06 -0500
-In-Reply-To: <20131126182908.GK26766@atomide.com>
+Received: from mail-qe0-f48.google.com ([209.85.128.48]:48786 "EHLO
+	mail-qe0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753729Ab3KZT7S (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Nov 2013 14:59:18 -0500
+Received: by mail-qe0-f48.google.com with SMTP id gc15so6256447qeb.7
+        for <linux-omap@vger.kernel.org>; Tue, 26 Nov 2013 11:59:17 -0800 (PST)
+In-Reply-To: <20131126182022.GJ26766@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, benoit.cousson@linaro.org, santosh.shilimkar@ti.com, jgchunter@gmail.com, rnayak@ti.com, balbi@ti.com, Suman Anna <s-anna@ti.com>
+Cc: Ben Gamari <bgamari.foss@gmail.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On 11/26/2013 12:29 PM, Tony Lindgren wrote:
-[..]
->>> We can implement an irqchip and a clocksource in the dmtimer code for the
->>> client drivers to use, and after that we only have a couple of dmtimer
->>> specific functions left to export.
->>>
->>> I'm thinkging some thing like this for the public API:
->>>
->>> omap_dm_timer_request			request_irq
->>> omap_dm_timer_request_specific		request_irq
->>> omap_dm_timer_get_irq			request_irq
->>> omap_dm_timer_set_source		clk_set_rate
+Thanks, Tony. I checked my .config and this option is enabled. FYI, I
+raised this issue in u-boot mailing-list, too. It seems to be a bug in
+u-boot and only happens to certain version of pandaboard. The name of
+the thread is "No single character output after update to latest
+u-boot on pandaboard"
+
+On Tue, Nov 26, 2013 at 12:20 PM, Tony Lindgren <tony@atomide.com> wrote:
+> * Chao Xu <caesarxuchao@gmail.com> [131122 19:28]:
+>> "I wonder if we also have some dependency to some earlier versions of
+>> u-boot as u-boot now only muxes the essential pins?"
+>> This is exactly the problem in my case. I added "#define
+>> CONFIG_SYS_ENABLE_PADS_ALL" in u-boot/include/configs/omap4_common.h
+>> and now there is output.
 >>
->> For clk_set_rate, how would one directly access the timer node if we've hidden
->> it behind an irq chip abstraction?
->>
->> per your suggestion, one would have something like:
->>
->> dsp {
->>     interrupt-parent = <&timer1>;
->> }
->>
->> so how do you clk_set_rate rate something like this given the dsp node?
-> 
-> All you have to do is implement a clocksource driver in dmtimer.c code.
->  
->> If the suggestion is to get the timer1 node from the interrupt-parent property,
->> if I may say- that's a bit ugly because now you're breaking the irq chip
->> abstraction just to access the timer node..
-> 
-> Hmm sorry I don't follow you here.
+>> I guess the reason that the u-boot worked out-of-box for Ben but not
+>> for me is that I missed some configurations in v3.12 kernel. I image
+>> there is a config options that tells the kernel to take care of the
+>> non-essential pins that used to be the responsibility of u-boot. Could
+>> you confirm my hypothesis? And if so, could you kindly suggest what's
+>> the name of the config option?
+>
+> That would be CONFIG_PINCTRL_SINGLE=y for device tree based omaps.
+> But if we have the configuration missing for some driver in the
+> board specific .dts file, that won't help naturally. We do have
+> PINCTRL_SINGLE enabled in omap2plus_defconfig.
+>
+> Regards,
+>
+> Tony
 
-I assumed above that you were suggesting implementing interrupt chaining like
-gpio-omap driver.
 
-Can you give an example workflow to explain your suggestion?
 
-I'll tell you how I understand what you were suggesting and then you can correct
-me, and maybe we can meet somewhere:
-
-Typically *without* irqchip or chaining what you suggested, we would  have
-something like (purely an example):
-dsp {
-    timer = <&timer1>;
-}
-
-There is an API:
-omap_dm_timer *omap_dm_timer_request_by_node(struct device_node *np); that one
-would use.
-
-Now moving to your suggestion, the dts would look like:
-dsp {
-    interrupt-parrent = <&timer1>;
-    interrupts = <1>;
-}
-
-Naturally some APIs will not fit into the IRQ framework, so these subset of
-dmtimer API may need to be exposed as you pointed. To use the API, the timer has
-to first be retrieved from interrupt-parent property of "dsp" here to get a
-device_node, and then the timer has to be requested and subset API used on it.
-This is "hack" that's not acceptable according to me...
-
-thanks,
-
--Joel
-
+-- 
+Regards,
+Chao Xu
