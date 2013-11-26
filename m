@@ -1,44 +1,140 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [BUG] PandaBoard hangs before starting init while booting v3.12
-Date: Tue, 26 Nov 2013 10:20:22 -0800
-Message-ID: <20131126182022.GJ26766@atomide.com>
-References: <87hab9agjr.fsf@gmail.com>
- <CAKZq+rdQLrNE43aGaPtnDfaO6CHsq_ePLu+oRgWNs25OrdCtdw@mail.gmail.com>
- <87wqk3n54l.fsf@gmail.com>
- <20131120183548.GH10317@atomide.com>
- <CAKZq+rcoC5PLSVVazWcce7V7TcBM8=M2jM56bvk9HO2orKt8fg@mail.gmail.com>
+Subject: Re: [PATCH 1/8] ARM: OMAP: Move public portion of dmtimer.h to
+ include/linux/omap-timer.h
+Date: Tue, 26 Nov 2013 10:29:09 -0800
+Message-ID: <20131126182908.GK26766@atomide.com>
+References: <1385085414-9034-1-git-send-email-joelf@ti.com>
+ <1385085414-9034-2-git-send-email-joelf@ti.com>
+ <20131122153334.GE10023@atomide.com>
+ <52940F32.3000006@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:59921 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S932372Ab3KZSUZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Nov 2013 13:20:25 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:56639 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754754Ab3KZS3M (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Nov 2013 13:29:12 -0500
 Content-Disposition: inline
-In-Reply-To: <CAKZq+rcoC5PLSVVazWcce7V7TcBM8=M2jM56bvk9HO2orKt8fg@mail.gmail.com>
+In-Reply-To: <52940F32.3000006@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Chao Xu <caesarxuchao@gmail.com>
-Cc: Ben Gamari <bgamari.foss@gmail.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Joel Fernandes <joelf@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, benoit.cousson@linaro.org, santosh.shilimkar@ti.com, jgchunter@gmail.com, rnayak@ti.com, balbi@ti.com, Suman Anna <s-anna@ti.com>
 
-* Chao Xu <caesarxuchao@gmail.com> [131122 19:28]:
-> "I wonder if we also have some dependency to some earlier versions of
-> u-boot as u-boot now only muxes the essential pins?"
-> This is exactly the problem in my case. I added "#define
-> CONFIG_SYS_ENABLE_PADS_ALL" in u-boot/include/configs/omap4_common.h
-> and now there is output.
+* Joel Fernandes <joelf@ti.com> [131125 19:03]:
+> Hi Tony,
 > 
-> I guess the reason that the u-boot worked out-of-box for Ben but not
-> for me is that I missed some configurations in v3.12 kernel. I image
-> there is a config options that tells the kernel to take care of the
-> non-essential pins that used to be the responsibility of u-boot. Could
-> you confirm my hypothesis? And if so, could you kindly suggest what's
-> the name of the config option?
+> Few replies inline below. Adding Suman as well who is planning to use dmtimer
+> directly for his work with DSP.
+> 
+> On 11/22/2013 09:33 AM, Tony Lindgren wrote:
+> > Hi,
+> > 
+> > * Joel Fernandes <joelf@ti.com> [131121 18:00]:
+> >> Multiplatform support has made arch/arm/plat-omap/include/plat/ inaccessible to
+> >> drivers outside the plat-omap directory [1]. Due to this the following drivers
+> >> are disabled with !CONFIG_ARCH_MULTIPLATFORM:
+> >> CONFIG_IR_RX51 (drivers/media/rc/ir-rx51.c)
+> >> CONFIG_TIDSPBRIDGE (drivers/staging/tidspbridge/core/dsp-clock.c)
+> >>
+> >> We move the portion of the dmtimer "API" that should be accessible to the
+> >> drivers, into include/linux/omap-timer.h
+> > 
+> > As we chatted earlier, we don't have to expose all these hardware specific
+> > functions and use existing Linux generic frameworks instead.
+> 
+> I thought over this, and strongly feel that in this case moving to a generic
+> framework is not the right approach. I mentioned reasons in last post, but
+> summarizing all of them below:
+> 
+> 1. It is not immediately intuitive or obvious unlike GPIO that a timer can be an
+> irqchip.
 
-That would be CONFIG_PINCTRL_SINGLE=y for device tree based omaps.
-But if we have the configuration missing for some driver in the
-board specific .dts file, that won't help naturally. We do have
-PINCTRL_SINGLE enabled in omap2plus_defconfig.
+But that's what it really is for hadware timers :)
+ 
+> 2. There are only 1-2 users of the dmtimer directly so moving to linux generic
+> framework is bit overkill I feel. Further there is already a framework-
+> clockevents/hrtimer which everyone should be using. For the 1-2 direct dmtimer
+> users, they should just use the dmtimer public API.
+
+But the thing is, we don't want to expose the dmtimer public API. That will
+lead to drivers tinkering directly with the hardware timers and then other
+SoCs will follow.
+ 
+> More reasons below...
+> 
+> > 
+> > We can implement an irqchip and a clocksource in the dmtimer code for the
+> > client drivers to use, and after that we only have a couple of dmtimer
+> > specific functions left to export.
+> > 
+> > I'm thinkging some thing like this for the public API:
+> > 
+> > omap_dm_timer_request			request_irq
+> > omap_dm_timer_request_specific		request_irq
+> > omap_dm_timer_get_irq			request_irq
+> > omap_dm_timer_set_source		clk_set_rate
+> 
+> For clk_set_rate, how would one directly access the timer node if we've hidden
+> it behind an irq chip abstraction?
+> 
+> per your suggestion, one would have something like:
+> 
+> dsp {
+>     interrupt-parent = <&timer1>;
+> }
+> 
+> so how do you clk_set_rate rate something like this given the dsp node?
+
+All you have to do is implement a clocksource driver in dmtimer.c code.
+ 
+> If the suggestion is to get the timer1 node from the interrupt-parent property,
+> if I may say- that's a bit ugly because now you're breaking the irq chip
+> abstraction just to access the timer node..
+
+Hmm sorry I don't follow you here.
+ 
+> > omap_dm_timer_stop			disable_irq
+> > omap_dm_timer_start			enable_irq
+> > omap_dm_timer_disable			disable_irq
+> > omap_dm_timer_free			free_irq
+> > omap_dm_timer_set_int_enable		enable_irq
+> > 
+> > After that, what's left to export are some functions to configure
+> > the hardware timer:
+> > 
+> > omap_dm_timer_write_counter
+> > omap_dm_timer_set_match
+> > omap_dm_timer_read_counter
+> > omap_dm_timer_read_status
+> > omap_dm_timer_write_status
+> 
+> Same comment for clk_set_rate applies here, we've to access interrupt-parent
+> property to get timer node and call dmtimer API which breaks the abstraction.
+
+Sorry, I don't follow you here either. I'm sure we'll have some Linux generic
+standard for programming hardware timers, but still using request_irq + 
+clk_set_rate is very standard behaviour no matter what happens later on.
+ 
+> Usually I've seen frameworks come up because there is code duplication etc. In
+> this case there is no duplication as such, and the number of users of the API is
+> also few. What is the problem with exposing a small set of API to timer users in
+> drivers/ specially when they are prefixed by a unique name (omap_dm_timer)?
+
+Because we don't want to export 27 omap specific functions to drivers:
+
+$ grep EXPORT_SYMBOL arch/arm/plat-omap/dmtimer.c | wc -l
+27
+
+Instead, it looks like we can get away with exporting just:
+
+omap_dm_timer_write_counter
+omap_dm_timer_set_match
+omap_dm_timer_read_counter
+omap_dm_timer_read_status
+omap_dm_timer_write_status
+
+And I'm sure we'll have some solution for those also later on.
 
 Regards,
 
