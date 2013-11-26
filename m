@@ -1,51 +1,45 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/2] ARM: dts: omap4-panda-common: Fix pin muxing for
- wl12xx
-Date: Tue, 26 Nov 2013 13:55:37 -0800
-Message-ID: <20131126215537.GO26766@atomide.com>
-References: <1385041804-19115-1-git-send-email-balajitk@ti.com>
- <1385041804-19115-2-git-send-email-balajitk@ti.com>
- <20131121165823.GM10317@atomide.com>
- <528E4295.2040109@ti.com>
+Subject: Re: [PATCH 6/7] ARM: OMAP: Disable POSTED mode for errata i103 and
+ i767
+Date: Tue, 26 Nov 2013 14:05:43 -0800
+Message-ID: <20131126220543.GP26766@atomide.com>
+References: <1385415876-12387-1-git-send-email-joelf@ti.com>
+ <1385415876-12387-7-git-send-email-joelf@ti.com>
+ <20131125221437.GW10023@atomide.com>
+ <5293CC93.6040603@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:57004 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757344Ab3KZVzm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Nov 2013 16:55:42 -0500
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <528E4295.2040109@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <5293CC93.6040603@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Joel Fernandes <joelf@ti.com>
+Cc: Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Dan Murphy <dmurphy@ti.com>
-Cc: Balaji T K <balajitk@ti.com>, bcousson@baylibre.com, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Dan Murphy <dmurphy@ti.com> [131121 09:28]:
-> On 11/21/2013 10:58 AM, Tony Lindgren wrote:
-> > * Balaji T K <balajitk@ti.com> [131121 05:51]:
-> >> pin mux wl12xx_gpio and wl12xx_pins should be part of omap4_pmx_core
-> >> and not omap4_pmx_wkup. So, move wl12xx_* to omap4_pmx_core.
+* Joel Fernandes <joelf@ti.com> [131125 14:18]:
+> On 11/25/2013 04:14 PM, Tony Lindgren wrote:
+> > * Joel Fernandes <joelf@ti.com> [131125 13:46]:
+> >> Enabling of Posted mode is seen to cause problems on dmtimer modules on AM33xx
+> >> (much like other OMAPs).  Reference discussions on forums [1] [2]. Earlier
+> >> patch solving this on other OMAPs [3].
 > >>
-> >> Fix the following error message:
-> >> pinctrl-single 4a31e040.pinmux: mux offset out of range: 0x38 (0x38)
-> >> pinctrl-single 4a31e040.pinmux: could not add functions for pinmux_wl12xx_pins 56x
+> >> For OMAP SoCs with this errata, the fix has been to not enable Posted mode.
+> >> However, on some SoCs (atleast AM33xx) which carry this errata, Posted mode
+> >> is enabled on reset. So we not only need to ignore enabling of the POSTED bit
+> >> when the timer is requested, but also disable Posted mode if errata is present.
+> > 
+> > This could explain some occasional lost timers I saw a while back when
+> > testing things.. We most likely should merge for the -rc series with cc stable.
 > 
-> Why is the led pins moved then?
+> Sure, I agree.
+> 
+> > 
+> > Does this depend on the other patches in this series?
+> > 
+> 
+> No it doesn't depend.
 
-Heh the patch just looks that way, looking at the curly brackets
-thing do get moved properly.
- 
-> >> SDIO card is not detected after moving pin mux to omap4_pmx_core since
-> >> sdmmc5_clk pull is disabled. Enable Pull up on sdmmc5_clk to detect SDIO card.
-> > Cool, does this fix the issue with the WLAN not coming up after a warm reset
-> > on panda?
-
-Also commit f446043f1aa7 (regulator: fixed: fix regulator_list_voltage() for
-regression) is needed that recently got merged. But with v3.13-rc1 +
-f446043f1aa7 + this patch no luck whatsoever bringing up the wl12xx so there
-must be also some regression somewhere from v3.12 on that?
-
-Regards,
+OK thanks applying into omap-for-v3.13/fixes-take4.
 
 Tony
