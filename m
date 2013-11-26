@@ -1,40 +1,114 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 00/12] Drop omap3 board files and make mach-omap2 boot
- in DT only mode
-Date: Mon, 25 Nov 2013 17:28:52 -0800
-Message-ID: <20131126012851.GC26766@atomide.com>
-References: <1385424867-27243-1-git-send-email-tony@atomide.com>
- <20131126010922.GA21580@saruman.home>
+From: Joel Fernandes <joelf@ti.com>
+Subject: Re: [PATCH 1/8] ARM: OMAP: Move public portion of dmtimer.h to
+ include/linux/omap-timer.h
+Date: Mon, 25 Nov 2013 21:02:10 -0600
+Message-ID: <52940F32.3000006@ti.com>
+References: <1385085414-9034-1-git-send-email-joelf@ti.com>
+ <1385085414-9034-2-git-send-email-joelf@ti.com>
+ <20131122153334.GE10023@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:15923 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751205Ab3KZB2y (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 25 Nov 2013 20:28:54 -0500
-Content-Disposition: inline
-In-Reply-To: <20131126010922.GA21580@saruman.home>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20131122153334.GE10023@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Suman Anna <s-anna@ti.com>, jgchunter@gmail.com, rnayak@ti.com, linux-kernel@vger.kernel.org, balbi@ti.com, santosh.shilimkar@ti.com, benoit.cousson@linaro.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Felipe Balbi <balbi@ti.com> [131125 17:10]:
-> On Mon, Nov 25, 2013 at 04:14:15PM -0800, Tony Lindgren wrote:
-> > 
-> > We can finally make mach-omap2 to boot in device tree only mode for v3.14.
-...
-> > 
-> > Tony Lindgren (12):
-> >   ARM: OMAP2+: Remove legacy omap3 board-*.c files and make mach-omap2
-> >     DT only for booting
+Hi Tony,
+
+Few replies inline below. Adding Suman as well who is planning to use dmtimer
+directly for his work with DSP.
+
+On 11/22/2013 09:33 AM, Tony Lindgren wrote:
+> Hi,
 > 
-> looks like this patch didn't make it to the list, maybe it's too large ?
+> * Joel Fernandes <joelf@ti.com> [131121 18:00]:
+>> Multiplatform support has made arch/arm/plat-omap/include/plat/ inaccessible to
+>> drivers outside the plat-omap directory [1]. Due to this the following drivers
+>> are disabled with !CONFIG_ARCH_MULTIPLATFORM:
+>> CONFIG_IR_RX51 (drivers/media/rc/ir-rx51.c)
+>> CONFIG_TIDSPBRIDGE (drivers/staging/tidspbridge/core/dsp-clock.c)
+>>
+>> We move the portion of the dmtimer "API" that should be accessible to the
+>> drivers, into include/linux/omap-timer.h
+> 
+> As we chatted earlier, we don't have to expose all these hardware specific
+> functions and use existing Linux generic frameworks instead.
 
-Yeah looks like patches 1 and 11 were too bloated. I just posted dietx
-versions of those as a reply to this thread that don't yet remove the
-legacy board-*.c files and mux*.c files.
+I thought over this, and strongly feel that in this case moving to a generic
+framework is not the right approach. I mentioned reasons in last post, but
+summarizing all of them below:
 
-Regards,
+1. It is not immediately intuitive or obvious unlike GPIO that a timer can be an
+irqchip.
 
-Tony
+2. There are only 1-2 users of the dmtimer directly so moving to linux generic
+framework is bit overkill I feel. Further there is already a framework-
+clockevents/hrtimer which everyone should be using. For the 1-2 direct dmtimer
+users, they should just use the dmtimer public API.
+
+More reasons below...
+
+> 
+> We can implement an irqchip and a clocksource in the dmtimer code for the
+> client drivers to use, and after that we only have a couple of dmtimer
+> specific functions left to export.
+> 
+> I'm thinkging some thing like this for the public API:
+> 
+> omap_dm_timer_request			request_irq
+> omap_dm_timer_request_specific		request_irq
+> omap_dm_timer_get_irq			request_irq
+> omap_dm_timer_set_source		clk_set_rate
+
+For clk_set_rate, how would one directly access the timer node if we've hidden
+it behind an irq chip abstraction?
+
+per your suggestion, one would have something like:
+
+dsp {
+    interrupt-parent = <&timer1>;
+}
+
+so how do you clk_set_rate rate something like this given the dsp node?
+
+If the suggestion is to get the timer1 node from the interrupt-parent property,
+if I may say- that's a bit ugly because now you're breaking the irq chip
+abstraction just to access the timer node..
+
+> omap_dm_timer_stop			disable_irq
+> omap_dm_timer_start			enable_irq
+> omap_dm_timer_disable			disable_irq
+> omap_dm_timer_free			free_irq
+> omap_dm_timer_set_int_enable		enable_irq
+> 
+> After that, what's left to export are some functions to configure
+> the hardware timer:
+> 
+> omap_dm_timer_write_counter
+> omap_dm_timer_set_match
+> omap_dm_timer_read_counter
+> omap_dm_timer_read_status
+> omap_dm_timer_write_status
+
+Same comment for clk_set_rate applies here, we've to access interrupt-parent
+property to get timer node and call dmtimer API which breaks the abstraction.
+
+Usually I've seen frameworks come up because there is code duplication etc. In
+this case there is no duplication as such, and the number of users of the API is
+also few. What is the problem with exposing a small set of API to timer users in
+drivers/ specially when they are prefixed by a unique name (omap_dm_timer)?
+
+thanks,
+
+-Joel
