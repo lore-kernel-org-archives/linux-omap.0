@@ -1,159 +1,106 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 09/12] ARM: OMAP2+: Remove legacy usb-musb.c platform init code
-Date: Mon, 25 Nov 2013 16:14:24 -0800
-Message-ID: <1385424867-27243-10-git-send-email-tony@atomide.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 00/12] Drop omap3 board files and make mach-omap2 boot in
+ DT only mode
+Date: Mon, 25 Nov 2013 19:09:22 -0600
+Message-ID: <20131126010922.GA21580@saruman.home>
 References: <1385424867-27243-1-git-send-email-tony@atomide.com>
+Reply-To: <balbi@ti.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="vkogqOf2sHV7VnPd"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:30262 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753630Ab3KZAOi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 25 Nov 2013 19:14:38 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:56536 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751793Ab3KZBKN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 25 Nov 2013 20:10:13 -0500
+Content-Disposition: inline
 In-Reply-To: <1385424867-27243-1-git-send-email-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-This is no longer needed when booted with device tree.
+--vkogqOf2sHV7VnPd
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/mach-omap2/Makefile   |   1 -
- arch/arm/mach-omap2/usb-musb.c | 114 -----------------------------------------
- 2 files changed, 115 deletions(-)
- delete mode 100644 arch/arm/mach-omap2/usb-musb.c
+Hi,
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index bfc5459..66b7218 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -242,7 +242,6 @@ omap-flash-$(CONFIG_MTD_NAND_OMAP2)	:= board-flash.o
- omap-flash-$(CONFIG_MTD_ONENAND_OMAP2)	:= board-flash.o
- obj-y					+= $(omap-flash-y) $(omap-flash-m)
- 
--obj-y					+= usb-musb.o
- obj-y					+= omap_phy_internal.o
- 
- obj-$(CONFIG_MACH_OMAP2_TUSB6010)	+= usb-tusb6010.o
-diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
-deleted file mode 100644
-index bc89723..0000000
---- a/arch/arm/mach-omap2/usb-musb.c
-+++ /dev/null
-@@ -1,114 +0,0 @@
--/*
-- * linux/arch/arm/mach-omap2/usb-musb.c
-- *
-- * This file will contain the board specific details for the
-- * MENTOR USB OTG controller on OMAP3430
-- *
-- * Copyright (C) 2007-2008 Texas Instruments
-- * Copyright (C) 2008 Nokia Corporation
-- * Author: Vikram Pandita
-- *
-- * Generalization by:
-- * Felipe Balbi <felipe.balbi@nokia.com>
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-- */
--
--#include <linux/types.h>
--#include <linux/errno.h>
--#include <linux/delay.h>
--#include <linux/platform_device.h>
--#include <linux/clk.h>
--#include <linux/dma-mapping.h>
--#include <linux/io.h>
--#include <linux/usb/musb.h>
--
--#include "omap_device.h"
--#include "soc.h"
--#include "mux.h"
--#include "usb.h"
--
--static struct musb_hdrc_config musb_config = {
--	.multipoint	= 1,
--	.dyn_fifo	= 1,
--	.num_eps	= 16,
--	.ram_bits	= 12,
--};
--
--static struct musb_hdrc_platform_data musb_plat = {
--	.mode		= MUSB_OTG,
--
--	/* .clock is set dynamically */
--	.config		= &musb_config,
--
--	/* REVISIT charge pump on TWL4030 can supply up to
--	 * 100 mA ... but this value is board-specific, like
--	 * "mode", and should be passed to usb_musb_init().
--	 */
--	.power		= 50,			/* up to 100 mA */
--};
--
--static u64 musb_dmamask = DMA_BIT_MASK(32);
--
--static struct omap_musb_board_data musb_default_board_data = {
--	.interface_type		= MUSB_INTERFACE_ULPI,
--	.mode			= MUSB_OTG,
--	.power			= 100,
--};
--
--void __init usb_musb_init(struct omap_musb_board_data *musb_board_data)
--{
--	struct omap_hwmod		*oh;
--	struct platform_device		*pdev;
--	struct device			*dev;
--	int				bus_id = -1;
--	const char			*oh_name, *name;
--	struct omap_musb_board_data	*board_data;
--
--	if (musb_board_data)
--		board_data = musb_board_data;
--	else
--		board_data = &musb_default_board_data;
--
--	/*
--	 * REVISIT: This line can be removed once all the platforms using
--	 * musb_core.c have been converted to use use clkdev.
--	 */
--	musb_plat.clock = "ick";
--	musb_plat.board_data = board_data;
--	musb_plat.power = board_data->power >> 1;
--	musb_plat.mode = board_data->mode;
--	musb_plat.extvbus = board_data->extvbus;
--
--	if (soc_is_am35xx()) {
--		oh_name = "am35x_otg_hs";
--		name = "musb-am35x";
--	} else if (cpu_is_ti81xx()) {
--		oh_name = "usb_otg_hs";
--		name = "musb-ti81xx";
--	} else {
--		oh_name = "usb_otg_hs";
--		name = "musb-omap2430";
--	}
--
--        oh = omap_hwmod_lookup(oh_name);
--        if (WARN(!oh, "%s: could not find omap_hwmod for %s\n",
--                 __func__, oh_name))
--                return;
--
--	pdev = omap_device_build(name, bus_id, oh, &musb_plat,
--				 sizeof(musb_plat));
--	if (IS_ERR(pdev)) {
--		pr_err("Could not build omap_device for %s %s\n",
--						name, oh_name);
--		return;
--	}
--
--	dev = &pdev->dev;
--	get_device(dev);
--	dev->dma_mask = &musb_dmamask;
--	dev->coherent_dma_mask = musb_dmamask;
--	put_device(dev);
--}
--- 
-1.8.1.1
+On Mon, Nov 25, 2013 at 04:14:15PM -0800, Tony Lindgren wrote:
+> Hi all,
+>=20
+> We can finally make mach-omap2 to boot in device tree only mode for v3.14.
+>=20
+> By doing that, we can get rid of about 20000 lines of legacy code for v3.=
+14
+> that's no longer needed with device tree :) And that's not counting the
+> additional removal of the code that comes with the pending patches to
+> move clocks to drivers/clk.
+>=20
+> Looks like we still have some legacy boards that don't have a .dts file,
+> so if you're using one, please post the .dts file. I've posted some quick
+> instructions in the first patch of this series for bringing up omaps with
+> device tree.
+>=20
+> For most omap2+ boards that are not yet supported with device tree just
+> the .dts file is needed. Some boards also may need additional entries to
+> pdata-quirks.c. If there are more complicated issues, please let me know
+> so we can sort out those issues ASAP.
+>=20
+> I don't have all omap boards so I have not been able to do a .dts file
+> for those. Some help would be appreciated there if you are using a
+> board with no .dts file posted yet. I can naturally help too where
+> possible so we get the devices working with device tree as needed :)
+>=20
+> These patches need v3.13-rc1 and some of the following patches
+> depending on your board:
+>=20
+> [PATCH 0/8] Various omap device tree usability fixes for v3.13 merge wind=
+ow
+> [PATCH 00/11] Make omap24xx booting device tree based for v3.14 merge win=
+dow
+> [PATCH 0/3] Yet more fixes for booting omaps with device tree
+> [PATCH 0/5] Prepare making omap3 device tree only and convert LDP
+>=20
+> I've also pushed all the patches into a temporary testing branch:
+>=20
+> omap-for-v3.14/tmp-testing-unstable-not-immutable
+>=20
+> Regards,
+>=20
+> Tony
+>=20
+>=20
+> Tony Lindgren (12):
+>   ARM: OMAP2+: Remove legacy omap3 board-*.c files and make mach-omap2
+>     DT only for booting
 
+looks like this patch didn't make it to the list, maybe it's too large ?
+
+--=20
+balbi
+
+--vkogqOf2sHV7VnPd
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.15 (GNU/Linux)
+
+iQIcBAEBAgAGBQJSk/TCAAoJEIaOsuA1yqREiTwP/iUtMbDcHOAkda1mVasD5ZD8
+jPDkiLtBdykGRq2pmYKi7jVt46upE8TFo2xYtonU7HE7nJrCHvaDGYSfwJRZwjSI
+qIspUSBAuywSqE/gM0shRLPMYnnTYDJgoN57h3FNkUGjqXq0Hq8RMw6USxh5kPLE
+Euzd+V9Ry+7FSfiB2Api1Kts9O876xgoMvqN/9x++x6LCR7Co/KRn6CT39oBqy54
+Ac1CGokQYmLhVmkEt0xsdhaKcLzHE7SGNuNRZk/ibpoQ1diabkvnHBQO+Z9bj0Be
+8xF4LeMw/JUVf6tcFoYcHpMtBmkKyax9GRX/U7YoWplv2n7BTYS+U3CFcScyp1Nn
+4cl+OiDoss/u7fRdztyOtrEQnhzAv7vUN1hGN+RvV4Q6rGt6n1iYeXuMXBWbHWmZ
+B3/UJqa/JMCwbxOW5PDXslU7IZKgO2sP4Pp63ro4lPoS+YYVXjd5kYIRXdt0K2jY
+V+aGY9PkygqE9Gfy/Rti0aUS8KWWWzt7PEE4d7J0ktW2lz/Ml/z9T/2ex+55twch
+pIvk/F7wBz5y+UZP5FHSbmEyffJoiyHCzPIb6VStvQGbg+g4gYnI7Fg7eD2ZVBXr
+3V4H7SU/hkgPiwhgNiRJempSrDLvbTnFSyHLD3B+99KJaFMhVaJGWPS/b9bhw9CF
+TgKsaJmcYTL/x5i7Kh1W
+=zokk
+-----END PGP SIGNATURE-----
+
+--vkogqOf2sHV7VnPd--
