@@ -1,37 +1,73 @@
-From: "Tc, Jenny" <jenny.tc@intel.com>
-Subject: RE: [PATCH v2 1/3] power_supply: Add power_supply notifier
-Date: Wed, 27 Nov 2013 17:23:34 +0000
-Message-ID: <20ADAB092842284E95860F279283C5640AAF43B1@BGSMSX104.gar.corp.intel.com>
-References: <1378630239-10006-1-git-send-email-pali.rohar@gmail.com>
- <1384856285-19593-1-git-send-email-pali.rohar@gmail.com>
- <1384856285-19593-2-git-send-email-pali.rohar@gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/8] net: smc91x: Fix device tree based configuration
+ so it's usable
+Date: Wed, 27 Nov 2013 10:36:30 -0800
+Message-ID: <20131127183629.GZ26766@atomide.com>
+References: <1384396537-3486-1-git-send-email-tony@atomide.com>
+ <1384396537-3486-2-git-send-email-tony@atomide.com>
+ <20131114110324.GC16396@e106331-lin.cambridge.arm.com>
+ <20131114160813.GC10317@atomide.com>
+ <20131116151640.GJ10317@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:30486 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753336Ab3K0RXi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 27 Nov 2013 12:23:38 -0500
-In-Reply-To: <1384856285-19593-2-git-send-email-pali.rohar@gmail.com>
-Content-Language: en-US
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:36397 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752136Ab3K0Sge (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Nov 2013 13:36:34 -0500
+Content-Disposition: inline
+In-Reply-To: <20131116151640.GJ10317@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: =?utf-8?B?UGFsaSBSb2jDoXI=?= <pali.rohar@gmail.com>, Anton Vorontsov <anton@enomsg.org>, David Woodhouse <dwmw2@infradead.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "freemangordon@abv.bg" <freemangordon@abv.bg>, "aaro.koskinen@iki.fi" <aaro.koskinen@iki.fi>, "pavel@ucw.cz" <pavel@ucw.cz>
+To: Mark Rutland <mark.rutland@arm.com>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Nicolas Pitre <nico@fluxnic.net>, "David S. Miller" <davem@davemloft.net>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
 
-DQo+IFN1YmplY3Q6IFtQQVRDSCB2MiAxLzNdIHBvd2VyX3N1cHBseTogQWRkIHBvd2VyX3N1cHBs
-eSBub3RpZmllcg0KPiANCj4gVGhpcyBwYXRjaCBhZGRzIGEgbm90aWZpZXIgY2hhaW4gdG8gdGhl
-IHBvd2VyX3N1cHBseS4NCj4gVGhpcyBub3RpZmllciBoZWxwcyBkcml2ZXJzIGluIG90aGVyIHN1
-YnN5c3RlbSB0byBsaXN0ZW4gdG8gY2hhbmdlcyBpbiBwb3dlciBzdXBwbHkNCj4gc3Vic3lzdGVt
-LiBUaGlzIHdvdWxkIGhlbHAgdG8gdGFrZSBzb21lIGFjdGlvbnMgaW4gdGhvc2UgZHJpdmVycyBv
-biBjaGFuZ2luZyB0aGUgcG93ZXINCj4gc3VwcGx5IHByb3BlcnRpZXMuDQo+IE9uZSBzdWNoIHNj
-ZW5hcmlvIGlzIHRvIGluY3JlYXNlL2RlY3JlYXNlIHN5c3RlbSBwZXJmb3JtYW5jZSBiYXNlZCBv
-biB0aGUgYmF0dGVyeQ0KPiBjYXBhY2l0eS92b2x0YWdlLiBBbm90aGVyIHNjZW5hcmlvIGlzIHRv
-IGFkanVzdCB0aGUgaC93IHBlYWsgY3VycmVudCBkZXRlY3Rpb24NCj4gdm9sdGFnZS9jdXJyZW50
-IHRocmVzaG9sZHMgYmFzZWQgb24gYmF0dGVyeSB2b2x0YWdlL2NhcGFjaXR5LiBUaGUgbm90aWZp
-ZXIgaGVscHMgZHJpdmVycyB0bw0KPiBsaXN0ZW4gdG8gY2hhbmdlcyBpbiBwb3dlcl9zdXBweSBz
-dXNieXN0ZW0gd2l0aG91dCBwb2xsaW5nIHRoZSBwb3dlcl9zdXBwbHkgcHJvcGVydGllcw0KPiAN
-Cj4gU2lnbmVkLW9mZi1ieTogSmVubnkgVEMgPGplbm55LnRjQGludGVsLmNvbT4NCj4gU2lnbmVk
-LW9mZi1ieTogUGFsaSBSb2jDoXIgPHBhbGkucm9oYXJAZ21haWwuY29tPg0KPiAtLS0NCg0KQWNr
-ZWQtYnk6IEplbm55IFRDIDxqZW5ueS50Y0BpbnRlbC5jb20+DQo=
+* Tony Lindgren <tony@atomide.com> [131116 07:17]:
+>
+> Here's what I was thinking with the reg-io-width-mask. Anybody
+> have comments on using reg-io-width vs reg-io-width-mask?
+...
+
+> --- a/drivers/net/ethernet/smsc/smc91x.c
+> +++ b/drivers/net/ethernet/smsc/smc91x.c
+> @@ -2222,11 +2234,31 @@ static int smc_drv_probe(struct platform_device *pdev)
+>  	 */
+>  
+>  	lp = netdev_priv(ndev);
+> +	lp->cfg.flags = 0;
+>  
+>  	if (pd) {
+>  		memcpy(&lp->cfg, pd, sizeof(lp->cfg));
+>  		lp->io_shift = SMC91X_IO_SHIFT(lp->cfg.flags);
+> -	} else {
+> +	}
+> +
+> +#if IS_BUILTIN(CONFIG_OF)
+> +	match = of_match_device(of_match_ptr(smc91x_match), &pdev->dev);
+> +	if (match) {
+> +		u32 val;
+> +
+> +		of_property_read_u32(np, "reg-io-width", &val);
+> +		if (val == 0)
+> +			lp->cfg.flags |= SMC91X_USE_16BIT;
+> +		if (val & 1)
+> +			lp->cfg.flags |= SMC91X_USE_8BIT;
+> +		if (val & 2)
+> +			lp->cfg.flags |= SMC91X_USE_16BIT;
+> +		if (val & 4)
+> +			lp->cfg.flags |= SMC91X_USE_32BIT;
+> +	}
+> +#endif
+> +
+> +	if (!pd && !match) {
+>  		lp->cfg.flags |= (SMC_CAN_USE_8BIT)  ? SMC91X_USE_8BIT  : 0;
+>  		lp->cfg.flags |= (SMC_CAN_USE_16BIT) ? SMC91X_USE_16BIT : 0;
+>  		lp->cfg.flags |= (SMC_CAN_USE_32BIT) ? SMC91X_USE_32BIT : 0;
+
+Looks this patch is missing the check for the return value for
+of_property_read_u32(), will repost this patch separately as the
+others in this series are out of the way now.
+
+Regards,
+
+Tony
