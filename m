@@ -1,90 +1,59 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: Re: [PATCH 00/13] mfd: menelaus: a few cleanups
-Date: Wed, 27 Nov 2013 22:46:21 +0200
-Message-ID: <20131127204621.GI24645@blackmetal.musicnaut.iki.fi>
-References: <1385579217-20127-1-git-send-email-balbi@ti.com>
- <20131127200247.GH24645@blackmetal.musicnaut.iki.fi>
- <20131127201149.GB20734@saruman.home>
+From: Jarkko Nikula <jarkko.nikula@bitmer.com>
+Subject: Re: [PATCH 2/8] mmc: omap: Fix DMA configuration to not rely on
+ device id
+Date: Wed, 27 Nov 2013 22:57:04 +0200
+Message-ID: <20131127225704.208445df2aa7fc5fc6cb5faa@bitmer.com>
+References: <1384396537-3486-1-git-send-email-tony@atomide.com>
+	<1384396537-3486-3-git-send-email-tony@atomide.com>
+	<20131118184723.GR10317@atomide.com>
+	<87ioveeo0x.fsf@octavius.laptop.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20131127201149.GB20734@saruman.home>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: sameo@linux.intel.com, lee.jones@linaro.org, Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <87ioveeo0x.fsf@octavius.laptop.org>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Chris Ball <cjb@laptop.org>
+Cc: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Hi Chris
 
-On Wed, Nov 27, 2013 at 02:11:49PM -0600, Felipe Balbi wrote:
-> On Wed, Nov 27, 2013 at 10:02:47PM +0200, Aaro Koskinen wrote:
-> > On Wed, Nov 27, 2013 at 01:06:44PM -0600, Felipe Balbi wrote:
-> > > few cleanups on the old menelaus driver. I don't have
-> > > HW to test these patches, maybe Aaro can help here ?
-> > 
-> > Hmm, I got:
-> > 
-> > [    1.330000] Unable to handle kernel NULL pointer dereference at virtual address 00000000
-> > [    1.340000] pgd = c0004000
-> > [    1.340000] [00000000] *pgd=00000000
-> > [    1.350000] Internal error: Oops: 17 [#1] ARM
-> > [    1.350000] CPU: 0 PID: 1 Comm: swapper Not tainted 3.13.0-rc1-n8x0_tiny-los.git-729021f-00018-g74a0f39 #2
-> > [    1.350000] task: c782c000 ti: c782e000 task.ti: c782e000
-> > [    1.350000] PC is at mutex_lock+0x0/0x20
-> > [    1.350000] LR is at __irq_get_desc_lock+0x6c/0x88
-[...]
-> > [    1.350000] [<c016745c>] (mutex_lock+0x0/0x20) from [<c00509ac>] (__irq_get_desc_lock+0x6c/0x88)
-> > [    1.350000] [<c00509ac>] (__irq_get_desc_lock+0x6c/0x88) from [<c0053518>] (__irq_set_handler+0x24/0x128)
-> > [    1.350000] [<c0053518>] (__irq_set_handler+0x24/0x128) from [<c013ec80>] (menelaus_probe+0xbc/0x280)
-> > [    1.350000] [<c013ec80>] (menelaus_probe+0xbc/0x280) from [<c0140ab8>] (i2c_device_probe+0x98/0xc0)
+On Tue, 26 Nov 2013 18:33:50 -0500
+Chris Ball <cjb@laptop.org> wrote:
 
-[...]
-
-> hmm, irq_set_chip_and_handler() will call back into the irq_chip we just
-> registered, so my ->irq_bus_lock needs to have everything setup
-> (chip_data my mutex), this should solve it:
-
-Yes, that fixes it. Seems to work fine now.
-
-A.
-
-> diff --git a/drivers/mfd/menelaus.c b/drivers/mfd/menelaus.c
-> index 376f01d..c9bd2fb 100644
-> --- a/drivers/mfd/menelaus.c
-> +++ b/drivers/mfd/menelaus.c
-> @@ -1232,6 +1232,7 @@ static int menelaus_probe(struct i2c_client *client,
->  
->  	the_menelaus = m;
->  	m->client = client;
-> +	mutex_init(&m->lock);
->  
->  	irq_base = irq_alloc_descs(-1, 0, MENELAUS_NR_IRQS, 0);
->  	if (irq_base < 0) {
-> @@ -1245,10 +1246,10 @@ static int menelaus_probe(struct i2c_client *client,
->  	m->irq_base = irq_base;
->  
->  	for (i = irq_base; i < irq_base + MENELAUS_NR_IRQS; i++) {
-> +		irq_set_chip_data(i, m);
->  		irq_set_chip_and_handler(i, &menelaus_irq_chip,
->  				handle_simple_irq);
->  		irq_set_nested_thread(i, 1);
-> -		irq_set_chip_data(i, m);
->  		set_irq_flags(i, IRQF_VALID);
->  	}
->  
-> @@ -1280,8 +1281,6 @@ static int menelaus_probe(struct i2c_client *client,
->  		}
->  	}
->  
-> -	mutex_init(&m->lock);
-> -
->  	pr_info("Menelaus rev %d.%d\n", rev >> 4, rev & 0x0f);
->  
->  	val = menelaus_read_reg(m, MENELAUS_VCORE_CTRL1);
+> Hi Tony,
 > 
+> On Mon, Nov 18 2013, Tony Lindgren wrote:
+> > We are wrongly relying on device id for the DMA configuration
+> > which can lead to wrong DMA channel being selected.
+> >
+> > Fix the issue by using the standard resources like we should.
+> >
+> > Cc: Chris Ball <cjb@laptop.org>
+> > Cc: linux-mmc@vger.kernel.org
+> > Signed-off-by: Tony Lindgren <tony@atomide.com>
 > 
-> let me know when you can, and I'll meld these hunks to proper patch.
+> Feel free to merge via your tree:
 > 
-> -- 
-> balbi
+> Acked-by: Chris Ball <cjb@laptop.org>
+> 
+Can you enlighten me what's the proper way to get patches to mmc since
+I cannot figure out working methodology from MAINTAINERS file?
+
+I happened to notice that Tony had this similar patch in linux-omap
+list I sent first time already September to you and linux-mmc (sorry
+linux-omap folks, I didn't want to spam multiple lists):
+
+http://www.spinics.net/lists/linux-mmc/msg22137.html
+
+After that I've resend the set a few times including a fix to
+user triggable NULL pointer dereference:
+
+http://www.spinics.net/lists/linux-mmc/msg22610.html
+
+I'm fine if mmc patches should go through other subsystems but at least
+it should be documented in MAINTAINERS file.
+
+-- 
+Jarkko
