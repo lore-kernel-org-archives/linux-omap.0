@@ -1,59 +1,58 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: Re: [PATCH v2 2/3] bq2415x_charger: Use power_supply notifier for automode
-Date: Wed, 27 Nov 2013 22:16:47 +0100
-Message-ID: <201311272216.47390@pali>
-References: <1434978251.31721.1385404366021.JavaMail.apache@mail83.abv.bg> <20131125214959.GA20107@earth.universe>
-Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart1505224.1dOuLHziek";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bk0-f48.google.com ([209.85.214.48]:55614 "EHLO
-	mail-bk0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753338Ab3K0VQv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Nov 2013 16:16:51 -0500
-In-Reply-To: <20131125214959.GA20107@earth.universe>
-Sender: linux-omap-owner@vger.kernel.org
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: [PATCH RESEND v2] ARM: OMAPFB: panel-sony-acx565akm: fix bad unlock balance
+Date: Wed, 27 Nov 2013 23:32:45 +0200
+Message-ID: <1385587965-4612-1-git-send-email-aaro.koskinen@iki.fi>
+Return-path: <stable-owner@vger.kernel.org>
+Sender: stable-owner@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
+Cc: Eduardo Valentin <eduardo.valentin@ti.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, stable@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sebastian Reichel <sre@ring0.de>
-Cc: =?utf-8?q?=D0=98=D0=B2=D0=B0=D0=B9=D0=BB=D0=BE?= =?utf-8?q?_=D0=94=D0=B8=D0=BC=D0=B8=D1=82=D1=80=D0=BE=D0=B2?= <freemangordon@abv.bg>, pavel@ucw.cz, anton@enomsg.org, dwmw2@infradead.org, tony@atomide.com, linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, aaro.koskinen@iki.fi
 
---nextPart1505224.1dOuLHziek
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+When booting Nokia N900 smartphone with v3.12 + omap2plus_defconfig
+(LOCKDEP enabled) and CONFIG_DISPLAY_PANEL_SONY_ACX565AKM enabled,
+the following BUG is seen during the boot:
 
-On Monday 25 November 2013 22:50:01 Sebastian Reichel wrote:
-> > 2 seems more generic to me, but as rx51-battery is missing
-> > the functionality to send events on temperature change, I
-> > guess 1 will be easier to implement.
->=20
-> The temperature must be polled anyway, if the ADC does not
-> support interrupts.
->=20
+[    7.302154] =====================================
+[    7.307128] [ BUG: bad unlock balance detected! ]
+[    7.312103] 3.12.0-los.git-2093492-00120-g5e01dc7 #3 Not tainted
+[    7.318450] -------------------------------------
+[    7.323425] kworker/u2:1/12 is trying to release lock (&ddata->mutex) at:
+[    7.330657] [<c031b760>] acx565akm_enable+0x12c/0x18c
+[    7.335998] but there are no more locks to release!
 
-Yes, ADC does not support interrupts, temperature must be polled.=20
-Also bq27200 chip does not support interrupts, but=20
-bq27x00_battery driver using delayed work which every 60s poll=20
-all values (timeout can be configured via modprobe param). So=20
-similar code can be added to rx51_battery.ko too.
+Fix by removing double unlock and handling the locking completely inside
+acx565akm_panel_power_on() when doing the power on.
 
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
+Reported-by: Eduardo Valentin <eduardo.valentin@ti.com>
+Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: stable@vger.kernel.org
+---
+ drivers/video/omap2/displays-new/panel-sony-acx565akm.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
---nextPart1505224.1dOuLHziek
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEABECAAYFAlKWYT8ACgkQi/DJPQPkQ1LrDgCZATle/AQn2Md0cNnVsMePRTQ2
-prIAn0TgIHG3nOoN2G0SDi2Yggzlaq2Y
-=K7Mw
------END PGP SIGNATURE-----
-
---nextPart1505224.1dOuLHziek--
+diff --git a/drivers/video/omap2/displays-new/panel-sony-acx565akm.c b/drivers/video/omap2/displays-new/panel-sony-acx565akm.c
+index e6d56f7..d94f35d 100644
+--- a/drivers/video/omap2/displays-new/panel-sony-acx565akm.c
++++ b/drivers/video/omap2/displays-new/panel-sony-acx565akm.c
+@@ -526,6 +526,8 @@ static int acx565akm_panel_power_on(struct omap_dss_device *dssdev)
+ 	struct omap_dss_device *in = ddata->in;
+ 	int r;
+ 
++	mutex_lock(&ddata->mutex);
++
+ 	dev_dbg(&ddata->spi->dev, "%s\n", __func__);
+ 
+ 	in->ops.sdi->set_timings(in, &ddata->videomode);
+@@ -614,10 +616,7 @@ static int acx565akm_enable(struct omap_dss_device *dssdev)
+ 	if (omapdss_device_is_enabled(dssdev))
+ 		return 0;
+ 
+-	mutex_lock(&ddata->mutex);
+ 	r = acx565akm_panel_power_on(dssdev);
+-	mutex_unlock(&ddata->mutex);
+-
+ 	if (r)
+ 		return r;
+ 
+-- 
+1.8.4.3
