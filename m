@@ -1,59 +1,32 @@
-From: Sourav Poddar <sourav.poddar@ti.com>
-Subject: Re: [PATCH 0/5] Add more device nodes for am43x-epos-evm
-Date: Wed, 27 Nov 2013 13:45:01 +0530
-Message-ID: <5295AA05.10103@ti.com>
-References: <1385537447-6922-1-git-send-email-sourav.poddar@ti.com> <5295A881.5070406@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv10 41/41] ARM: OMAP3: use DT clock init if DT data is
+ available
+Date: Wed, 27 Nov 2013 11:06:52 +0200
+Message-ID: <5295B62C.8090209@ti.com>
+References: <1385453182-24421-1-git-send-email-t-kristo@ti.com> <1385453182-24421-42-git-send-email-t-kristo@ti.com> <20131126174455.GF26766@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:51328 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752810Ab3K0IPM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Nov 2013 03:15:12 -0500
-In-Reply-To: <5295A881.5070406@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:34997 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752583Ab3K0JHW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 27 Nov 2013 04:07:22 -0500
+In-Reply-To: <20131126174455.GF26766@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sathya Prakash <a0393677@ti.com>
-Cc: rob.herring@calxeda.com, mark.rutland@arm.com, swarren@wwwdotorg.org, devicetree@vger.kernel.org, tony@atomide.com, bcousson@baylibre.com, balbi@ti.com, linux-omap@vger.kernel.org, nsekhar@ti.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, nm@ti.com, rnayak@ti.com, bcousson@baylibre.com, mturquette@linaro.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-On Wednesday 27 November 2013 01:38 PM, Sathya Prakash wrote:
-> On Wednesday 27 November 2013 01:00 PM, Sourav Poddar wrote:
->> The patch series adds support for enabling pwm backlight, i2c2, spi and
->> matrix gpio keys on am43x-gp-evm.
-> Seems a typo - series is for epos evm.
-Yes, true. The series if for epos.
+On 11/26/2013 07:44 PM, Tony Lindgren wrote:
+> * Tero Kristo <t-kristo@ti.com> [131126 00:10]:
+>> OMAP3 platforms support both DT and non-DT boot at the moment, make
+>> the clock init work according to the used setup.
 >
->>
->> Done on top of 3.13-rc1 + tero clock series(1)
->>
->> [1]: https://patchwork.kernel.org/patch/3009541/
->>
->> Tested on am43x-gp-evm.
->>
->> There is a some bug while using regulators through backlight
->> driver on 3.13-rc1. So, tested pwm part with this temporary patch[2].
->>
->> [2]: http://www.spinics.net/lists/arm-kernel/msg288215.html
->>
->> Darren Etheridge (1):
->>    pinctrl: am43xx: dt-bindings: add MUX_MODE8
->>
->> Sourav Poddar (4):
->>    arm: dts: am4372: Add pwm-cellsproperty for ecap device.
->>    arm: dts: am43x-epos-evm: Add I2C data.
->>    arm: dts: am43x-epos-evm: Add SPI data.
->>    ARM: dts: am43x-epos-evm: Add pwm backlight support.
->>
->>   arch/arm/boot/dts/am4372.dtsi        |    9 +++++
->>   arch/arm/boot/dts/am43x-epos-evm.dts |   67 
->> ++++++++++++++++++++++++++++++++++
->>   include/dt-bindings/pinctrl/am43xx.h |    1 +
->>   3 files changed, 77 insertions(+), 0 deletions(-)
->>
->> -- 
->> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> ~Sathya
+> We're making omap3 to be DT only as well, so it might make sense to
+> drop the omap3 clock data as well while at it. Or do it later to
+> avoid adding dependencies, up to you.
 
+Ok, I can remove it with next rev if you like.
+
+-Tero
