@@ -1,187 +1,90 @@
-From: Daniel Mack <zonque@gmail.com>
-Subject: [PATCH v7] ARM: omap: edma: add suspend suspend/resume hooks
-Date: Wed, 27 Nov 2013 14:56:11 +0100
-Message-ID: <1385560571-3939-1-git-send-email-zonque@gmail.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: HYP Kernel boot requirements
+Date: Wed, 27 Nov 2013 14:38:54 +0000
+Message-ID: <20131127143854.GB10411@e102568-lin.cambridge.arm.com>
+References: <CAMJs5B8XX-93YcRyTiQ1JRcKUB5oer8cV7FLtMPP6SeqeB3RwQ@mail.gmail.com>
+ <52937AB4.1060901@ti.com>
+ <CAMJs5B9nnpqjSmT7vi9cvC4e9Fx2Bft4rRGxmVKyLP7JbGMPAg@mail.gmail.com>
+ <529381E4.3090405@ti.com>
+ <20131125172825.GD8396@arm.com>
+ <5293A888.9050500@ti.com>
+ <20131126141346.GA692@arm.com>
+ <5294B471.7020205@ti.com>
+ <20131126173751.GF2355@e103592.cambridge.arm.com>
+ <52951756.9000206@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=WINDOWS-1252
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ea0-f171.google.com ([209.85.215.171]:39750 "EHLO
-	mail-ea0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752668Ab3K0N4T (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Nov 2013 08:56:19 -0500
-Received: by mail-ea0-f171.google.com with SMTP id h10so4773906eak.16
-        for <linux-omap@vger.kernel.org>; Wed, 27 Nov 2013 05:56:18 -0800 (PST)
+Received: from service87.mimecast.com ([91.220.42.44]:55038 "EHLO
+	service87.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750907Ab3K0Oi7 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Nov 2013 09:38:59 -0500
+In-Reply-To: <52951756.9000206@ti.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: nsekhar@ti.com, linux-omap@vger.kernel.org, joelf@ti.com, gururaja.hebbar@ti.com, balajitk@ti.com
-Cc: s.neumann@raumfeld.com, Russ.Dill@ti.com, nm@ti.com, vaibhav.bedia@gmail.com, linux-arm-kernel@lists.infradead.org, khilman@linaro.org, Daniel Mack <zonque@gmail.com>
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Dave P Martin <Dave.Martin@arm.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <Marc.Zyngier@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, Tony Lindgren <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Olof Johansson <olof@lixom.net>, linux-omap <linux-omap@vger.kernel.org>, Christoffer Dall <christoffer.dall@linaro.org>
 
-This patch makes the edma driver resume correctly after suspend. Tested
-on an AM33xx platform with cyclic audio streams and omap_hsmmc.
+On Tue, Nov 26, 2013 at 09:49:10PM +0000, Santosh Shilimkar wrote:
+> On Tuesday 26 November 2013 12:37 PM, Dave Martin wrote:
+> > On Tue, Nov 26, 2013 at 09:47:13AM -0500, Santosh Shilimkar wrote:
+> >> On Tuesday 26 November 2013 09:13 AM, Catalin Marinas wrote:
+> >>> On Mon, Nov 25, 2013 at 07:44:08PM +0000, Santosh Shilimkar wrote:
+> >>>> On Monday 25 November 2013 12:28 PM, Catalin Marinas wrote:
+> >>>>> On Mon, Nov 25, 2013 at 04:59:16PM +0000, Santosh Shilimkar wrote:
+> >>>>>> What I am saying is the platforms like OMAP5 already support PM in
+> >>>>>> mainline kernel and we can't break that for KVM. Boot-loaders
+> >>>>>> would be thrashed after boot so you need something which runs
+> >>>>>> in Kernel or along with Kernel to have equivalent of hyp
+> >>>>>> switching.
+> >>>>>>
+> >>>>>> Am not challenging the agreed direction but we need to solve the
+> >>>>>> PM problem as well before making "all CPU runs boot-loader for
+> >>>>>> HYP kernels" as a must have. At least its is a change in boot
+> >>>>>> strategy from existing kernels.
+> >>>>>
+> >>>>> Of course I recommend PSCI which covers both hotplug and suspend ;), but
+> >>>>> I guess it's not the case for OMAP5. Since OMAP has its own secondary
+> >>>>> booting protocol and CPU hotplug re-entry, can you not just use
+> >>>>> different entry point when the primary CPU was initially started in Hyp
+> >>>>> mode (e.g. omap5_hyp_secondary_startup)?
+> >>>>>
+> >>>> How will that solve the guest secondary boot failure case when using
+> >>>> the same kernel binary for guest-boot ? Even for primary CPU which
+> >>>> will be suspended it needs to resume already in HYP mode and its not
+> >>>> going to go through boot-loader. So the low power code needs to have
+> >>>> HYP switch code so that CPU resumes in HYP mode.
+> >>>
+> >>> Is it late to rewrite the OMAP5 firmware?
+> >>>
+> >> Well its ROM'ed unfortunately so no choice. OMAP5 ROM did implement
+> >> a secure API which lets you enter into HYP mode and thats the only
+> >> thing can be used.
+> > 
+> > If the ROM is capable of loading some additional signed Secure World
+> > firmware after the ROM itself has booted, PSCI could be implemented
+> > in the second, resident firmware payload.
+> > 
+> > Some SoCs ship with boot ROMs that can do that -- is this not the case
+> > for OMAP5?
+> > 
+> On OMAP, the secure devices there is a way to do this but not for 
+> general purpose devices. General purpose devices once you
+> exit the ROM code, we exit out of security and only way to
+> re-enter secure word is via ROM implemented monitor/secure
+> APIs.
 
-All information can be reconstructed by already known runtime
-information.
+As last resort, you can still write a bunch of instructions acting as
+warm-bootloader, reserve a page and add them there. Code required is just
+a shim layer and should not require more than few bytes, after all
+it has just to check some variables and jump accordingly (+ calling
+smc if required).
 
-As we now use some functions that were previously only used from __init
-context, annotations had to be dropped.
+Not pretty, agreed, but still better than patching the kernel IMHO
+(basically you will end up patching the bootloader - and possibly the
+dtb - instead, to install the shim mentioned above).
 
-[nm@ti.com: added error handling for runtime + suspend_late/early_resume]
-Signed-off-by: Nishanth Menon <nm@ti.com>
-Signed-off-by: Daniel Mack <zonque@gmail.com>
-Tested-by: Joel Fernandes <joelf@ti.com>
-Acked-by: Joel Fernandes <joelf@ti.com>
----
-v6 -> v7:
-
- * Addressed comments from Sekhar Nori:
-
-   * pm_runtime_get_sync() returns negative errors, so do not use
-     IS_ERR_VALUE()
-   * Several style fixes
-
-
- arch/arm/common/edma.c | 95 ++++++++++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 92 insertions(+), 3 deletions(-)
-
-diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
-index 41bca32..dece66d 100644
---- a/arch/arm/common/edma.c
-+++ b/arch/arm/common/edma.c
-@@ -239,6 +239,8 @@ struct edma {
- 	/* list of channels with no even trigger; terminated by "-1" */
- 	const s8	*noevent;
- 
-+	struct edma_soc_info *info;
-+
- 	/* The edma_inuse bit for each PaRAM slot is clear unless the
- 	 * channel is in use ... by ARM or DSP, for QDMA, or whatever.
- 	 */
-@@ -290,13 +292,13 @@ static void map_dmach_queue(unsigned ctlr, unsigned ch_no,
- 			~(0x7 << bit), queue_no << bit);
- }
- 
--static void __init map_queue_tc(unsigned ctlr, int queue_no, int tc_no)
-+static void map_queue_tc(unsigned ctlr, int queue_no, int tc_no)
- {
- 	int bit = queue_no * 4;
- 	edma_modify(ctlr, EDMA_QUETCMAP, ~(0x7 << bit), ((tc_no & 0x7) << bit));
- }
- 
--static void __init assign_priority_to_queue(unsigned ctlr, int queue_no,
-+static void assign_priority_to_queue(unsigned ctlr, int queue_no,
- 		int priority)
- {
- 	int bit = queue_no * 4;
-@@ -315,7 +317,7 @@ static void __init assign_priority_to_queue(unsigned ctlr, int queue_no,
-  * included in that particular EDMA variant (Eg : dm646x)
-  *
-  */
--static void __init map_dmach_param(unsigned ctlr)
-+static void map_dmach_param(unsigned ctlr)
- {
- 	int i;
- 	for (i = 0; i < EDMA_MAX_DMACH; i++)
-@@ -1785,15 +1787,102 @@ static int edma_probe(struct platform_device *pdev)
- 			edma_write_array2(j, EDMA_DRAE, i, 1, 0x0);
- 			edma_write_array(j, EDMA_QRAE, i, 0x0);
- 		}
-+		edma_cc[j]->info = info[j];
- 		arch_num_cc++;
- 	}
- 
- 	return 0;
- }
- 
-+static int edma_pm_suspend(struct device *dev)
-+{
-+	int j, r;
-+
-+	r = pm_runtime_get_sync(dev);
-+	if (r < 0) {
-+		dev_err(dev, "%s: get_sync returned %d\n", __func__, r);
-+		return r;
-+	}
-+
-+	for (j = 0; j < arch_num_cc; j++) {
-+		struct edma *ecc = edma_cc[j];
-+
-+		disable_irq(ecc->irq_res_start);
-+		disable_irq(ecc->irq_res_end);
-+	}
-+
-+	pm_runtime_put_sync(dev);
-+
-+	return 0;
-+}
-+
-+static int edma_pm_resume(struct device *dev)
-+{
-+	int i, j, r;
-+
-+	r = pm_runtime_get_sync(dev);
-+	if (r < 0) {
-+		dev_err(dev, "%s: get_sync returned %d\n", __func__, r);
-+		return r;
-+	}
-+
-+	for (j = 0; j < arch_num_cc; j++) {
-+		struct edma *cc = edma_cc[j];
-+
-+		s8 (*queue_priority_mapping)[2];
-+		s8 (*queue_tc_mapping)[2];
-+
-+		queue_tc_mapping = cc->info->queue_tc_mapping;
-+		queue_priority_mapping = cc->info->queue_priority_mapping;
-+
-+		/* Event queue to TC mapping */
-+		for (i = 0; queue_tc_mapping[i][0] != -1; i++)
-+			map_queue_tc(j, queue_tc_mapping[i][0],
-+				     queue_tc_mapping[i][1]);
-+
-+		/* Event queue priority mapping */
-+		for (i = 0; queue_priority_mapping[i][0] != -1; i++)
-+			assign_priority_to_queue(j,
-+						 queue_priority_mapping[i][0],
-+						 queue_priority_mapping[i][1]);
-+
-+		/*
-+		 * Map the channel to param entry if channel mapping logic
-+		 * exist
-+		 */
-+		if (edma_read(j, EDMA_CCCFG) & CHMAP_EXIST)
-+			map_dmach_param(j);
-+
-+		for (i = 0; i < cc->num_channels; i++) {
-+			if (test_bit(i, cc->edma_inuse)) {
-+				/* ensure access through shadow region 0 */
-+				edma_or_array2(j, EDMA_DRAE, 0, i >> 5,
-+					       BIT(i & 0x1f));
-+
-+				setup_dma_interrupt(i,
-+						    cc->intr_data[i].callback,
-+						    cc->intr_data[i].data);
-+			}
-+		}
-+
-+		enable_irq(cc->irq_res_start);
-+		enable_irq(cc->irq_res_end);
-+	}
-+
-+	pm_runtime_put_sync(dev);
-+
-+	return 0;
-+}
-+
-+static const struct dev_pm_ops edma_pm_ops = {
-+	.suspend_late	= edma_pm_suspend,
-+	.resume_early	= edma_pm_resume,
-+};
-+
- static struct platform_driver edma_driver = {
- 	.driver = {
- 		.name	= "edma",
-+		.pm	= &edma_pm_ops,
- 		.of_match_table = edma_of_ids,
- 	},
- 	.probe = edma_probe,
--- 
-1.8.4.2
+Lorenzo
 
