@@ -1,58 +1,79 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: [PATCH RESEND v2] ARM: OMAPFB: panel-sony-acx565akm: fix bad unlock balance
-Date: Wed, 27 Nov 2013 23:32:45 +0200
-Message-ID: <1385587965-4612-1-git-send-email-aaro.koskinen@iki.fi>
-Return-path: <stable-owner@vger.kernel.org>
-Sender: stable-owner@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
-Cc: Eduardo Valentin <eduardo.valentin@ti.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, stable@vger.kernel.org
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 2/8] mmc: omap: Fix DMA configuration to not rely on
+ device id
+Date: Wed, 27 Nov 2013 13:37:26 -0800
+Message-ID: <20131127213726.GB26766@atomide.com>
+References: <1384396537-3486-1-git-send-email-tony@atomide.com>
+ <1384396537-3486-3-git-send-email-tony@atomide.com>
+ <20131118184723.GR10317@atomide.com>
+ <87ioveeo0x.fsf@octavius.laptop.org>
+ <20131127225704.208445df2aa7fc5fc6cb5faa@bitmer.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:13928 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753959Ab3K0Vhi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Nov 2013 16:37:38 -0500
+Content-Disposition: inline
+In-Reply-To: <20131127225704.208445df2aa7fc5fc6cb5faa@bitmer.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jarkko Nikula <jarkko.nikula@bitmer.com>
+Cc: Chris Ball <cjb@laptop.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>
 
-When booting Nokia N900 smartphone with v3.12 + omap2plus_defconfig
-(LOCKDEP enabled) and CONFIG_DISPLAY_PANEL_SONY_ACX565AKM enabled,
-the following BUG is seen during the boot:
+* Jarkko Nikula <jarkko.nikula@bitmer.com> [131127 12:55]:
+> Hi Chris
+> 
+> On Tue, 26 Nov 2013 18:33:50 -0500
+> Chris Ball <cjb@laptop.org> wrote:
+> 
+> > Hi Tony,
+> > 
+> > On Mon, Nov 18 2013, Tony Lindgren wrote:
+> > > We are wrongly relying on device id for the DMA configuration
+> > > which can lead to wrong DMA channel being selected.
+> > >
+> > > Fix the issue by using the standard resources like we should.
+> > >
+> > > Cc: Chris Ball <cjb@laptop.org>
+> > > Cc: linux-mmc@vger.kernel.org
+> > > Signed-off-by: Tony Lindgren <tony@atomide.com>
+> > 
+> > Feel free to merge via your tree:
+> > 
+> > Acked-by: Chris Ball <cjb@laptop.org>
+> > 
+> Can you enlighten me what's the proper way to get patches to mmc since
+> I cannot figure out working methodology from MAINTAINERS file?
+> 
+> I happened to notice that Tony had this similar patch in linux-omap
+> list I sent first time already September to you and linux-mmc (sorry
+> linux-omap folks, I didn't want to spam multiple lists):
+> 
+> http://www.spinics.net/lists/linux-mmc/msg22137.html
+> 
+> After that I've resend the set a few times including a fix to
+> user triggable NULL pointer dereference:
+> 
+> http://www.spinics.net/lists/linux-mmc/msg22610.html
+> 
+> I'm fine if mmc patches should go through other subsystems but at least
+> it should be documented in MAINTAINERS file.
 
-[    7.302154] =====================================
-[    7.307128] [ BUG: bad unlock balance detected! ]
-[    7.312103] 3.12.0-los.git-2093492-00120-g5e01dc7 #3 Not tainted
-[    7.318450] -------------------------------------
-[    7.323425] kworker/u2:1/12 is trying to release lock (&ddata->mutex) at:
-[    7.330657] [<c031b760>] acx565akm_enable+0x12c/0x18c
-[    7.335998] but there are no more locks to release!
+Bummer, sounds like some duplicate work could have been avoided :(
+I suggest resend to Chris and linux-mmc one more time as Chris should
+pick up the MMC patches in general.
 
-Fix by removing double unlock and handling the locking completely inside
-acx565akm_panel_power_on() when doing the power on.
+I've been just trying to get things working in general for v3.13-rc
+series for omaps with device tree based booting and patching all over
+the place. This is to make it easy for us to just drop the legacy
+platform based booting for v3.14 while keeping things working.
 
-Reported-by: Eduardo Valentin <eduardo.valentin@ti.com>
-Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: stable@vger.kernel.org
----
- drivers/video/omap2/displays-new/panel-sony-acx565akm.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+Chris, as far as I'm concerned, Aaro and Jarkko are good people to
+review and ack the drivers/mmc/omap.c patches, so adding Aaro to
+Cc as well.
 
-diff --git a/drivers/video/omap2/displays-new/panel-sony-acx565akm.c b/drivers/video/omap2/displays-new/panel-sony-acx565akm.c
-index e6d56f7..d94f35d 100644
---- a/drivers/video/omap2/displays-new/panel-sony-acx565akm.c
-+++ b/drivers/video/omap2/displays-new/panel-sony-acx565akm.c
-@@ -526,6 +526,8 @@ static int acx565akm_panel_power_on(struct omap_dss_device *dssdev)
- 	struct omap_dss_device *in = ddata->in;
- 	int r;
- 
-+	mutex_lock(&ddata->mutex);
-+
- 	dev_dbg(&ddata->spi->dev, "%s\n", __func__);
- 
- 	in->ops.sdi->set_timings(in, &ddata->videomode);
-@@ -614,10 +616,7 @@ static int acx565akm_enable(struct omap_dss_device *dssdev)
- 	if (omapdss_device_is_enabled(dssdev))
- 		return 0;
- 
--	mutex_lock(&ddata->mutex);
- 	r = acx565akm_panel_power_on(dssdev);
--	mutex_unlock(&ddata->mutex);
--
- 	if (r)
- 		return r;
- 
--- 
-1.8.4.3
+Regards,
+
+Tony
