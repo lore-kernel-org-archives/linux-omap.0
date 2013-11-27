@@ -1,44 +1,39 @@
 From: Sourav Poddar <sourav.poddar@ti.com>
-Subject: [PATCH 3/5] pinctrl: am43xx: dt-bindings: add MUX_MODE8
-Date: Wed, 27 Nov 2013 13:00:45 +0530
-Message-ID: <1385537447-6922-4-git-send-email-sourav.poddar@ti.com>
-References: <1385537447-6922-1-git-send-email-sourav.poddar@ti.com>
+Subject: [PATCH 0/3] Add more device nodes for am43x gp evm.
+Date: Wed, 27 Nov 2013 13:01:16 +0530
+Message-ID: <1385537479-6959-1-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:49425 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752175Ab3K0HbJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Nov 2013 02:31:09 -0500
-In-Reply-To: <1385537447-6922-1-git-send-email-sourav.poddar@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:59514 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752175Ab3K0Hb2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 27 Nov 2013 02:31:28 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: rob.herring@calxeda.com, mark.rutland@arm.com, swarren@wwwdotorg.org, devicetree@vger.kernel.org, tony@atomide.com, bcousson@baylibre.com
-Cc: balbi@ti.com, linux-omap@vger.kernel.org, nsekhar@ti.com, Darren Etheridge <detheridge@ti.com>, Sourav Poddar <sourav.poddar@ti.com>
+Cc: balbi@ti.com, linux-omap@vger.kernel.org, nsekhar@ti.com, Sourav Poddar <sourav.poddar@ti.com>
 
-From: Darren Etheridge <detheridge@ti.com>
+The patch series adds support for enabling gpio, pwm backlight and
+matrix gpio keys on am43x-gp-evm.
 
-AM43xx devices have an extra MUX_MODE for certain pins.
-Updating dt include to have MUX_MODE8 which maps to 0x8.
+Done on top of 3.13-rc1 + tero clock series(1) + Afzal's basic gp support(2).
 
-Signed-off-by: Darren Etheridge <detheridge@ti.com>
-Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
----
- include/dt-bindings/pinctrl/am43xx.h |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+[1]: https://patchwork.kernel.org/patch/3009541/
+[2]: https://patchwork.kernel.org/patch/3171761/
 
-diff --git a/include/dt-bindings/pinctrl/am43xx.h b/include/dt-bindings/pinctrl/am43xx.h
-index eb6c366..9c2e4f8 100644
---- a/include/dt-bindings/pinctrl/am43xx.h
-+++ b/include/dt-bindings/pinctrl/am43xx.h
-@@ -13,6 +13,7 @@
- #define MUX_MODE5	5
- #define MUX_MODE6	6
- #define MUX_MODE7	7
-+#define MUX_MODE8	8
- 
- #define PULL_DISABLE		(1 << 16)
- #define PULL_UP			(1 << 17)
--- 
-1.7.1
+Tested on am43x-gp-evm.
+
+There is a some bug while using regulators through backlight
+driver on 3.13-rc1. So, tested pwm part with this patch[3].
+
+[3]: http://www.spinics.net/lists/arm-kernel/msg288215.html
+
+Sourav Poddar (3):
+  arm: dts: am437x-gp-evm: Enable gpio.
+  ARM: dts: am43x-gp-evm: Add matrix gpio keys.
+  ARM: dts: am437x-gp-evm: Add pwm backlight support.
+
+ arch/arm/boot/dts/am437x-gp-evm.dts |   53 +++++++++++++++++++++++++++++++++++
+ 1 files changed, 53 insertions(+), 0 deletions(-)
 
