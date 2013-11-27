@@ -1,57 +1,50 @@
-From: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Subject: [PATCH] ARM: dts: omap3-beagle: Add omap-twl4030 audio support
-Date: Wed, 27 Nov 2013 20:46:48 +0200
-Message-ID: <1385578008-6623-1-git-send-email-jarkko.nikula@bitmer.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: [PATCH 01/13] mfd: menelaus: drop __exit section annotation
+Date: Wed, 27 Nov 2013 13:06:45 -0600
+Message-ID: <1385579217-20127-2-git-send-email-balbi@ti.com>
+References: <1385579217-20127-1-git-send-email-balbi@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bitmer.com ([213.157.87.50]:47083 "EHLO bitmer.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:58754 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757426Ab3K0SrK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 27 Nov 2013 13:47:10 -0500
+	id S1753290Ab3K0TIF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 27 Nov 2013 14:08:05 -0500
+In-Reply-To: <1385579217-20127-1-git-send-email-balbi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: devicetree@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>
+To: sameo@linux.intel.com
+Cc: lee.jones@linaro.org, Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Felipe Balbi <balbi@ti.com>
 
-This adds typical McBSP2-TWL4030 audio description to the legacy
-Beagle Board.
+we could build that as a driver.
 
-Signed-off-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
+Signed-off-by: Felipe Balbi <balbi@ti.com>
 ---
- arch/arm/boot/dts/omap3-beagle.dts | 14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ drivers/mfd/menelaus.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap3-beagle.dts b/arch/arm/boot/dts/omap3-beagle.dts
-index fa532aaacc68..1912c421e246 100644
---- a/arch/arm/boot/dts/omap3-beagle.dts
-+++ b/arch/arm/boot/dts/omap3-beagle.dts
-@@ -61,6 +61,14 @@
- 		vcc-supply = <&hsusb2_power>;
- 	};
+diff --git a/drivers/mfd/menelaus.c b/drivers/mfd/menelaus.c
+index ad25bfa..975ff9e 100644
+--- a/drivers/mfd/menelaus.c
++++ b/drivers/mfd/menelaus.c
+@@ -1262,7 +1262,7 @@ fail:
+ 	return err;
+ }
  
-+	sound {
-+		compatible = "ti,omap-twl4030";
-+		ti,model = "omap3beagle";
-+
-+		ti,mcbsp = <&mcbsp2>;
-+		ti,codec = <&twl_audio>;
-+	};
-+
- 	gpio_keys {
- 		compatible = "gpio-keys";
+-static int __exit menelaus_remove(struct i2c_client *client)
++static int menelaus_remove(struct i2c_client *client)
+ {
+ 	struct menelaus_chip	*menelaus = i2c_get_clientdata(client);
  
-@@ -120,6 +128,12 @@
- 		reg = <0x48>;
- 		interrupts = <7>; /* SYS_NIRQ cascaded to intc */
- 		interrupt-parent = <&intc>;
-+
-+		twl_audio: audio {
-+			compatible = "ti,twl4030-audio";
-+			codec {
-+			};
-+		};
- 	};
+@@ -1283,7 +1283,7 @@ static struct i2c_driver menelaus_i2c_driver = {
+ 		.name		= DRIVER_NAME,
+ 	},
+ 	.probe		= menelaus_probe,
+-	.remove		= __exit_p(menelaus_remove),
++	.remove		= menelaus_remove,
+ 	.id_table	= menelaus_id,
  };
  
 -- 
-1.8.4.3
+1.8.4.GIT
 
