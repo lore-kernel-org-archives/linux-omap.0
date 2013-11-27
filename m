@@ -1,70 +1,80 @@
-From: Taras Kondratiuk <taras.kondratiuk-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: [PATCH] i2c: omap: raw read and write endian fix
-Date: Wed, 27 Nov 2013 15:48:08 +0200
-Message-ID: <1385560088-22339-1-git-send-email-taras.kondratiuk@linaro.org>
-References: <20131126124238.GC7427@katana>
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20131126124238.GC7427@katana>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
-Cc: patches-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linaro-networking-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linaro-kernel-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, Victor Kamensky <victor.kamensky-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Sekhar Nori <nsekhar@ti.com>
+Subject: Re: [PATCH v6] ARM: omap: edma: add suspend suspend/resume hooks
+Date: Wed, 27 Nov 2013 19:24:39 +0530
+Message-ID: <5295F99F.6010203@ti.com>
+References: <1384726754-27875-1-git-send-email-zonque@gmail.com>
+ <5295F53C.8040101@ti.com> <5295F806.9030900@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <5295F806.9030900@gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Daniel Mack <zonque@gmail.com>, linux-omap@vger.kernel.org, joelf@ti.com, gururaja.hebbar@ti.com, balajitk@ti.com
+Cc: nm@ti.com, Kevin Hilman <khilman@linaro.org>, s.neumann@raumfeld.com, Russ.Dill@ti.com, vaibhav.bedia@gmail.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Victor Kamensky <victor.kamensky-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+On Wednesday 27 November 2013 07:17 PM, Daniel Mack wrote:
+> Hi Sekhar,
+> 
+> On 11/27/2013 02:35 PM, Sekhar Nori wrote:
+>> On Monday 18 November 2013 03:49 AM, Daniel Mack wrote:
+> 
+>>> +static int edma_pm_suspend(struct device *dev)
+>>> +{
+>>> +	int j, r;
+>>> +
+>>> +	r = pm_runtime_get_sync(dev);
+>>> +	if (IS_ERR_VALUE(r)) {
+>>
+>> So IS_ERR_VALUE() is only for functions which may return a negative
+>> number outside of MAX_ERRNO as a success indication.
+>> pm_runtime_get_sync() does not appear to be one of them so just use"
+>>
+>> if (r < 0) { .. }
+> 
+> That's true. Thanks for catching this, I'll fix it. However, grepping
+> through the tree, there are quite a lot places where the same mistake is
+> made.
 
-All OMAP IP blocks expect LE data, but CPU may operate in BE mode.
-Need to use endian neutral functions to read/write h/w registers.
-I.e instead of __raw_read[lw] and __raw_write[lw] functions code
-need to use read[lw]_relaxed and write[lw]_relaxed functions.
-If the first simply reads/writes register, the second will byteswap
-it if host operates in BE mode.
+Yes, this is a common fallacy. Russell cleaned up a bunch of these a
+while back.
 
-Changes are trivial sed like replacement of __raw_xxx functions
-with xxx_relaxed variant.
+> 
+>>> +		/* Map the channel to param entry if channel mapping logic
+>>> +		 * exist
+>>> +		 */
+>>
+>> Please follow the multi-line commenting style.
+> 
+> Can do. However, these lines in fact follow the style that is used
+> throughout the entire file ;)
 
-Signed-off-by: Victor Kamensky <victor.kamensky-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Signed-off-by: Taras Kondratiuk <taras.kondratiuk-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
----
-Posting this as a saparate patch out of RFC series.
-RFC: http://patchwork.ozlabs.org/patch/291726/
-Only minor comment change is done since RFC patch.
+:) I did not compare the rest of the file, but hey the bar keep rising
+all the time.
 
-Based on v3.13-rc1
+> 
+>> There are some checkpatch checks that result from lines like this.
+>> Please fix these as well.
+>>
+>> CHECK: Alignment should match open parenthesis
+>> #179: FILE: arch/arm/common/edma.c:1841:
+>> +			map_queue_tc(j, queue_tc_mapping[i][0],
+>> +					queue_tc_mapping[i][1]);
+> 
+> If you say so, even though I disagree with checkpatch.pl here. The above
+> is actually more readable, right? :)
 
- drivers/i2c/busses/i2c-omap.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+In this particular case, I agree so I am okay if you keep it as is. The
+rest of the two reports are valid though.
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index d76228d..90dcc2e 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -266,13 +266,13 @@ static const u8 reg_map_ip_v2[] = {
- static inline void omap_i2c_write_reg(struct omap_i2c_dev *i2c_dev,
- 				      int reg, u16 val)
- {
--	__raw_writew(val, i2c_dev->base +
-+	writew_relaxed(val, i2c_dev->base +
- 			(i2c_dev->regs[reg] << i2c_dev->reg_shift));
- }
- 
- static inline u16 omap_i2c_read_reg(struct omap_i2c_dev *i2c_dev, int reg)
- {
--	return __raw_readw(i2c_dev->base +
-+	return readw_relaxed(i2c_dev->base +
- 				(i2c_dev->regs[reg] << i2c_dev->reg_shift));
- }
- 
-@@ -1162,9 +1162,9 @@ omap_i2c_probe(struct platform_device *pdev)
- 	 * Read the Rev hi bit-[15:14] ie scheme this is 1 indicates ver2.
- 	 * On omap1/3/2 Offset 4 is IE Reg the bit [15:14] is 0 at reset.
- 	 * Also since the omap_i2c_read_reg uses reg_map_ip_* a
--	 * raw_readw is done.
-+	 * readw_relaxed is done.
- 	 */
--	rev = __raw_readw(dev->base + 0x04);
-+	rev = readw_relaxed(dev->base + 0x04);
- 
- 	dev->scheme = OMAP_I2C_SCHEME(rev);
- 	switch (dev->scheme) {
--- 
-1.7.9.5
+Thanks,
+Sekhar
