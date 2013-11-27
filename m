@@ -1,34 +1,52 @@
-From: Michael Trimarchi <michael@amarulasolutions.com>
-Subject: musb host mode suspend mode
-Date: Wed, 27 Nov 2013 16:26:34 +0100
-Message-ID: <CAOf5uwn0gqLNWMks6Cw_9szC-Mpq6n+G3x9tqU8QpYOJoOKhfA@mail.gmail.com>
+From: Balaji T K <balajitk@ti.com>
+Subject: Re: [PATCH 1/2] ARM: dts: omap4-panda-common: Fix pin muxing for
+ wl12xx
+Date: Wed, 27 Nov 2013 21:34:31 +0530
+Message-ID: <5296180F.7040104@ti.com>
+References: <1385041804-19115-1-git-send-email-balajitk@ti.com> <1385041804-19115-2-git-send-email-balajitk@ti.com> <20131121165823.GM10317@atomide.com> <528E4295.2040109@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f45.google.com ([74.125.82.45]:38902 "EHLO
-	mail-wg0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752013Ab3K0P0i (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Nov 2013 10:26:38 -0500
-Received: by mail-wg0-f45.google.com with SMTP id y10so5187812wgg.24
-        for <linux-omap@vger.kernel.org>; Wed, 27 Nov 2013 07:26:36 -0800 (PST)
+Received: from devils.ext.ti.com ([198.47.26.153]:41802 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751980Ab3K0QFB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Nov 2013 11:05:01 -0500
+In-Reply-To: <528E4295.2040109@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+To: Dan Murphy <dmurphy@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, bcousson@baylibre.com, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Felipe,
+On Thursday 21 November 2013 10:57 PM, Dan Murphy wrote:
+> On 11/21/2013 10:58 AM, Tony Lindgren wrote:
+>> * Balaji T K <balajitk@ti.com> [131121 05:51]:
+>>> pin mux wl12xx_gpio and wl12xx_pins should be part of omap4_pmx_core
+>>> and not omap4_pmx_wkup. So, move wl12xx_* to omap4_pmx_core.
+>>>
+>>> Fix the following error message:
+>>> pinctrl-single 4a31e040.pinmux: mux offset out of range: 0x38 (0x38)
+>>> pinctrl-single 4a31e040.pinmux: could not add functions for pinmux_wl12xx_pins 56x
+>
+> Why is the led pins moved then?
+Hi Dan,
 
-I'm trying to understand how dpll_usb and vbus should work in suspend mode.
-What I have in my kernel 3.0.31 from ti is that if I suspend the device with id
-pin ground and no device connected I have:
+I just moved 27 lines (wl12xx_pins, wl12xx_gpio) up, git diff generated smaller
+diff stat by moving 10 line of code (led_wkgpio_pins) further down :-)
 
-- vbus 5v
-- dpll_usb locked problem so l3domain can not suspend
+>
+>>> SDIO card is not detected after moving pin mux to omap4_pmx_core since
+>>> sdmmc5_clk pull is disabled. Enable Pull up on sdmmc5_clk to detect SDIO card.
+>> Cool, does this fix the issue with the WLAN not coming up after a warm reset
+>> on panda?
+>>
+>> Regards,
+>>
+>> Tony
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+>
 
-If I have the id pin floating (device mode) and no device connected I
-can suspend
-without problem. I'm not care about remote wakeup and I would like to understand
-what is the reason of having no complete suspend in host mode. Can you give
-some insight?
-
-Michael
