@@ -1,65 +1,142 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH 05/13] mfd: menelaus: use for_each_set_bit()
-Date: Wed, 27 Nov 2013 13:06:49 -0600
-Message-ID: <1385579217-20127-6-git-send-email-balbi@ti.com>
+Subject: [PATCH 06/13] mfd: menelaus: pass menelaus pointer as argument to
+ enable/disable irq
+Date: Wed, 27 Nov 2013 13:06:50 -0600
+Message-ID: <1385579217-20127-7-git-send-email-balbi@ti.com>
 References: <1385579217-20127-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1385579217-20127-1-git-send-email-balbi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: sameo@linux.intel.com
-Cc: lee.jones@linaro.org, Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Felipe Balbi <balbi@ti.com>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, lee.jones@linaro.org, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-that macro just helps removing some extra
-line of code and hides ffs() calls.
-
-while at that, also fix a variable shadowing
-bug where 'int irq' was being redeclared inside
-inner loop while it was also argument to interrupt
-handler.
+we want to, eventually, get rid of the global
+the_menelaus pointer, so let's start passing
+menelaus as argument to some function calls
+and slowly phase out the_menelaus global pointer.
 
 Signed-off-by: Felipe Balbi <balbi@ti.com>
 ---
- drivers/mfd/menelaus.c | 16 +++++++---------
- 1 file changed, 7 insertions(+), 9 deletions(-)
+ drivers/mfd/menelaus.c | 48 ++++++++++++++++++++++++------------------------
+ 1 file changed, 24 insertions(+), 24 deletions(-)
 
 diff --git a/drivers/mfd/menelaus.c b/drivers/mfd/menelaus.c
-index 11dc4d3..9ccbb79 100644
+index 9ccbb79..4c51e4b 100644
 --- a/drivers/mfd/menelaus.c
 +++ b/drivers/mfd/menelaus.c
-@@ -795,24 +795,22 @@ static irqreturn_t menelaus_irq(int irq, void *_menelaus)
+@@ -199,35 +199,35 @@ static int menelaus_read_reg(int reg)
+ 	return val;
+ }
+ 
+-static int menelaus_enable_irq(int irq)
++static int menelaus_enable_irq(struct menelaus_chip *m, int irq)
  {
- 	struct menelaus_chip *menelaus = _menelaus;
- 	void (*handler)(struct menelaus_chip *menelaus);
--	unsigned isr;
-+	unsigned long isr;
-+	unsigned long i;
+ 	if (irq > 7) {
+ 		irq -= 8;
+-		the_menelaus->mask2 &= ~(1 << irq);
++		m->mask2 &= ~(1 << irq);
+ 		return menelaus_write_reg(MENELAUS_INT_MASK2,
+-				the_menelaus->mask2);
++				m->mask2);
+ 	} else {
+-		the_menelaus->mask1 &= ~(1 << irq);
++		m->mask1 &= ~(1 << irq);
+ 		return menelaus_write_reg(MENELAUS_INT_MASK1,
+-				the_menelaus->mask1);
++				m->mask1);
+ 	}
+ }
+ 
+-static int menelaus_disable_irq(int irq)
++static int menelaus_disable_irq(struct menelaus_chip *m, int irq)
+ {
+ 	if (irq > 7) {
+ 		irq -= 8;
+-		the_menelaus->mask2 |= (1 << irq);
++		m->mask2 |= (1 << irq);
+ 		return menelaus_write_reg(MENELAUS_INT_MASK2,
+-				the_menelaus->mask2);
++				m->mask2);
+ 	} else {
+-		the_menelaus->mask1 |= (1 << irq);
++		m->mask1 |= (1 << irq);
+ 		return menelaus_write_reg(MENELAUS_INT_MASK1,
+-				the_menelaus->mask1);
++				m->mask1);
+ 	}
+ }
+ 
+-static int menelaus_ack_irq(int irq)
++static int menelaus_ack_irq(struct menelaus_chip *m, int irq)
+ {
+ 	if (irq > 7)
+ 		return menelaus_write_reg(MENELAUS_INT_ACK2, 1 << (irq - 8));
+@@ -243,7 +243,7 @@ static int menelaus_add_irq_work(int irq,
+ 
+ 	mutex_lock(&the_menelaus->lock);
+ 	the_menelaus->handlers[irq] = handler;
+-	ret = menelaus_enable_irq(irq);
++	ret = menelaus_enable_irq(the_menelaus, irq);
+ 	mutex_unlock(&the_menelaus->lock);
+ 
+ 	return ret;
+@@ -255,7 +255,7 @@ static int menelaus_remove_irq_work(int irq)
+ 	int ret = 0;
+ 
+ 	mutex_lock(&the_menelaus->lock);
+-	ret = menelaus_disable_irq(irq);
++	ret = menelaus_disable_irq(the_menelaus, irq);
+ 	the_menelaus->handlers[irq] = NULL;
+ 	mutex_unlock(&the_menelaus->lock);
+ 
+@@ -793,25 +793,25 @@ out:
+ 
+ static irqreturn_t menelaus_irq(int irq, void *_menelaus)
+ {
+-	struct menelaus_chip *menelaus = _menelaus;
+-	void (*handler)(struct menelaus_chip *menelaus);
++	struct menelaus_chip *m = _menelaus;
++	void (*handler)(struct menelaus_chip *m);
+ 	unsigned long isr;
+ 	unsigned long i;
  
  	isr = (menelaus_read_reg(MENELAUS_INT_STATUS2)
- 			& ~menelaus->mask2) << 8;
+-			& ~menelaus->mask2) << 8;
++			& ~m->mask2) << 8;
  	isr |= menelaus_read_reg(MENELAUS_INT_STATUS1)
- 		& ~menelaus->mask1;
+-		& ~menelaus->mask1;
++		& ~m->mask1;
  
--	while (isr) {
--		int irq = fls(isr) - 1;
--		isr &= ~(1 << irq);
--
-+	for_each_set_bit(i, &isr, 16) {
- 		mutex_lock(&menelaus->lock);
--		menelaus_disable_irq(irq);
--		menelaus_ack_irq(irq);
--		handler = menelaus->handlers[irq];
-+		menelaus_disable_irq(i);
-+		menelaus_ack_irq(i);
-+		handler = menelaus->handlers[i];
+ 	for_each_set_bit(i, &isr, 16) {
+-		mutex_lock(&menelaus->lock);
+-		menelaus_disable_irq(i);
+-		menelaus_ack_irq(i);
+-		handler = menelaus->handlers[i];
++		mutex_lock(&m->lock);
++		menelaus_disable_irq(m, i);
++		menelaus_ack_irq(m, i);
++		handler = m->handlers[i];
  		if (handler)
- 			handler(menelaus);
--		menelaus_enable_irq(irq);
-+		menelaus_enable_irq(i);
- 		mutex_unlock(&menelaus->lock);
+-			handler(menelaus);
+-		menelaus_enable_irq(i);
+-		mutex_unlock(&menelaus->lock);
++			handler(m);
++		menelaus_enable_irq(m, i);
++		mutex_unlock(&m->lock);
  	}
  
+ 	return IRQ_HANDLED;
 -- 
 1.8.4.GIT
