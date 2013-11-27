@@ -1,198 +1,56 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: pm_runtime functions and IS_ERR_VALUE (was Re: [PATCH v6] ARM: omap:
- edma: add suspend suspend/resume hooks)
-Date: Wed, 27 Nov 2013 17:15:41 -0600
-Message-ID: <20131127231541.GA8418@kahuna>
-References: <1384726754-27875-1-git-send-email-zonque@gmail.com>
- <5295F53C.8040101@ti.com>
- <5295F806.9030900@gmail.com>
- <5295F99F.6010203@ti.com>
+From: "Mark A. Greer" <mgreer@animalcreek.com>
+Subject: Re: Status of 1GHz support on am37xx
+Date: Wed, 27 Nov 2013 16:33:11 -0700
+Message-ID: <20131127233311.GA31335@animalcreek.com>
+References: <20131122230121.GA13440@animalcreek.com>
+ <20131125233545.GZ10023@atomide.com>
+ <5294C307.1080703@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from p3plsmtpa08-08.prod.phx3.secureserver.net ([173.201.193.109]:45823
+	"EHLO p3plsmtpa08-08.prod.phx3.secureserver.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757187Ab3K0XdN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 27 Nov 2013 18:33:13 -0500
 Content-Disposition: inline
-In-Reply-To: <5295F99F.6010203@ti.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Sekhar Nori <nsekhar@ti.com>, rjw@rjwysocki.net
-Cc: Daniel Mack <zonque@gmail.com>, linux-omap@vger.kernel.org, joelf@ti.com, gururaja.hebbar@ti.com, balajitk@ti.com, s.neumann@raumfeld.com, Russ.Dill@ti.com, vaibhav.bedia@gmail.com, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@linaro.org>, Julia.Lawall@lip6.fr, Gilles.Muller@lip6.fr, nicolas.palix@imag.fr, mmarek@suse.cz, linux-kernel@vger.kernel.org, cocci@systeme.lip6.fr, rmk+kernel@arm.linux.org.uk, linux-pm@vger.kernel.org
+In-Reply-To: <5294C307.1080703@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Change in subject line + wider forum
-
-On 19:24-20131127, Sekhar Nori wrote:
-> On Wednesday 27 November 2013 07:17 PM, Daniel Mack wrote:
-> > On 11/27/2013 02:35 PM, Sekhar Nori wrote:
-> >> On Monday 18 November 2013 03:49 AM, Daniel Mack wrote:
-> >>> +static int edma_pm_suspend(struct device *dev)
-> >>> +{
-> >>> +	int j, r;
-> >>> +
-> >>> +	r = pm_runtime_get_sync(dev);
-> >>> +	if (IS_ERR_VALUE(r)) {
+On Tue, Nov 26, 2013 at 09:49:27AM -0600, Nishanth Menon wrote:
+> On 11/25/2013 05:35 PM, Tony Lindgren wrote:
+> > * Mark A. Greer <mgreer@animalcreek.com> [131122 15:02]:
+> >> Hello.
 > >>
-> >> So IS_ERR_VALUE() is only for functions which may return a negative
-> >> number outside of MAX_ERRNO as a success indication.
-> >> pm_runtime_get_sync() does not appear to be one of them so just use"
+> >> I was wondering what that the status of 1GHz support for the am37xx is.
 > >>
-> >> if (r < 0) { .. }
+> >> It looks like smartreflex/avs and ABB drivers are there.  Do they need
+> >> more work (e.g., DT support)?  What DT nodes and related support need
+> >> to be added?
+> >>
+> >> What pieces are being worked on and which ones aren't?
+> >> Is there an ETA for the pieces being worked on?
 > > 
-> > That's true. Thanks for catching this, I'll fix it. However, grepping
-> > through the tree, there are quite a lot places where the same mistake is
-> > made.
+> > There are still various parts of twl4030 that are only working with
+> > platform data, so at least those should be fixed now that we're moving
+> > to DT only based booting for mach-omap2 for v3.14.
+> > 
 > 
-> Yes, this is a common fallacy. Russell cleaned up a bunch of these a
-> while back.
+> For 3630/DM3730 1GHz support the following needs to be done:
+> a) clock nodes[1] without which cpufreq-cpu0 will never scale frequencies
+> The following includes conversion to device tree enabled support.
+> b) VC-vp regulator
+> c) ABB dt nodes
+> d) AVS class 1.5 support
+> e) voltage regulator notifier around clock node for mpu so that avs
+> and abb can be sequenced around voltage and frequency changes.
+> 
+> So, to answer your question, we are a little farther away beyond the
+> first step of DT only boot to being able to exercise 1GHz properly.
+> 
+> [1] http://marc.info/?l=linux-omap&m=138545331825036&w=2
 
-Thinking a little more on this front, to prevent recurrence and fixing
-the ones we already have, how about something like the following
-patch?
-
-For example, on 3.13-rc1, with omap2plus_defconfig, I see the following:
-http://pastebin.mozilla.org/3681911
-
--->8--
->From b7946d214fab72b2e18cd67eec01c377f1cddee8 Mon Sep 17 00:00:00 2001
-From: Nishanth Menon <nm@ti.com>
-Date: Wed, 27 Nov 2013 17:01:20 -0600
-Subject: [RFC PATCH] scripts: Coccinelle script for pm_runtime_* return checks
- with IS_ERR_VALUE
-
-As indicated by Sekhar in [1], there seems to be a tendency to use
-IS_ERR_VALUE to check the error result for pm_runtime_* functions which
-make no sense considering commit c48cd65 (ARM: OMAP: use consistent
-error checking) - the error values can either be < 0 for error OR
-0, 1 in cases where we have success.
-
-So, setup a coccinelle script to help identify the same.
-
-[1] http://marc.info/?t=138472678100003&r=1&w=2
-
-Cc: Russell King <rmk+kernel@arm.linux.org.uk>
-Reported-by: Sekhar Nori <nsekhar@ti.com>
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
- scripts/coccinelle/api/pm_runtime.cocci |  109 +++++++++++++++++++++++++++++++
- 1 file changed, 109 insertions(+)
- create mode 100644 scripts/coccinelle/api/pm_runtime.cocci
-
-diff --git a/scripts/coccinelle/api/pm_runtime.cocci b/scripts/coccinelle/api/pm_runtime.cocci
-new file mode 100644
-index 0000000..f01789e
---- /dev/null
-+++ b/scripts/coccinelle/api/pm_runtime.cocci
-@@ -0,0 +1,109 @@
-+/// Make sure pm_runtime_* calls does not use unnecessary IS_ERR_VALUE
-+//
-+// Keywords: pm_runtime
-+// Confidence: Medium
-+// Copyright (C) 2013 Texas Instruments Incorporated - GPLv2.
-+// URL: http://coccinelle.lip6.fr/
-+// Options: --include-headers
-+
-+virtual patch
-+virtual context
-+virtual org
-+virtual report
-+
-+//----------------------------------------------------------
-+//  Detection
-+//----------------------------------------------------------
-+
-+@runtime_bad_err_handle exists@
-+expression ret;
-+@@
-+(
-+ret = \(pm_runtime_idle\|
-+	pm_runtime_suspend\|
-+	pm_runtime_autosuspend\|
-+	pm_runtime_resume\|
-+	pm_request_idle\|
-+	pm_request_resume\|
-+	pm_request_autosuspend\|
-+	pm_runtime_get\|
-+	pm_runtime_get_sync\|
-+	pm_runtime_put\|
-+	pm_runtime_put_autosuspend\|
-+	pm_runtime_put_sync\|
-+	pm_runtime_put_sync_suspend\|
-+	pm_runtime_put_sync_autosuspend\|
-+	pm_runtime_set_active\|
-+	pm_schedule_suspend\|
-+	pm_runtime_barrier\|
-+	pm_generic_runtime_suspend\|
-+	pm_generic_runtime_resume\)(...);
-+...
-+IS_ERR_VALUE(ret)
-+...
-+)
-+
-+//----------------------------------------------------------
-+//  For context mode
-+//----------------------------------------------------------
-+
-+@depends on runtime_bad_err_handle && context@
-+identifier pm_runtime_api;
-+expression ret;
-+@@
-+(
-+ret = pm_runtime_api(...);
-+...
-+* IS_ERR_VALUE(ret)
-+...
-+)
-+
-+//----------------------------------------------------------
-+//  For patch mode
-+//----------------------------------------------------------
-+
-+@depends on runtime_bad_err_handle && patch@
-+identifier pm_runtime_api;
-+expression ret;
-+@@
-+(
-+ret = pm_runtime_api(...);
-+...
-+- IS_ERR_VALUE(ret)
-++ ret < 0
-+...
-+)
-+
-+//----------------------------------------------------------
-+//  For org and report mode
-+//----------------------------------------------------------
-+
-+@r depends on runtime_bad_err_handle exists@
-+position p1, p2;
-+identifier pm_runtime_api;
-+expression ret;
-+@@
-+(
-+ret = pm_runtime_api@p1(...);
-+...
-+IS_ERR_VALUE@p2(ret)
-+...
-+)
-+
-+@script:python depends on org@
-+p1 << r.p1;
-+p2 << r.p2;
-+pm_runtime_api << r.pm_runtime_api;
-+@@
-+
-+cocci.print_main(pm_runtime_api,p1)
-+cocci.print_secs("IS_ERR_VALUE",p2)
-+
-+@script:python depends on report@
-+p1 << r.p1;
-+p2 << r.p2;
-+pm_runtime_api << r.pm_runtime_api;
-+@@
-+
-+msg = "%s returns < 0 as error. Unecessary IS_ERR_VALUE at line %s" % (pm_runtime_api, p2[0].line)
-+coccilib.report.print_report(p1[0],msg)
--- 
-1.7.9.5
-
--- 
-Regards,
-Nishanth Menon
+Thanks guys.
