@@ -1,34 +1,78 @@
-From: Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 03/17] spi/qspi: parse register by name.
-Date: Thu, 28 Nov 2013 16:49:35 +0530
-Message-ID: <529726C7.8060005@ti.com>
-References: <1385451313-1875-1-git-send-email-sourav.poddar@ti.com> <1385451313-1875-4-git-send-email-sourav.poddar@ti.com> <20131126103029.GY14725@sirena.org.uk> <5294835D.5090902@ti.com> <20131126122442.GC14725@sirena.org.uk> <5296CA5A.90304@ti.com> <20131128105423.GL14725@sirena.org.uk> <529721BF.4010902@ti.com> <20131128111152.GN14725@sirena.org.uk>
+From: Ruslan Ruslichenko <ruslan.ruslichenko@globallogic.com>
+Subject: Re: [PATCH] mfd: twl-core: Clean up module by removing twl603x pdata handling
+Date: Thu, 28 Nov 2013 13:48:43 +0200
+Message-ID: <CAK9oHmwe3TZZ+Ee=uymVk8oWbBD6Jq_9cgYXO3DUy67DPrRVJw@mail.gmail.com>
+References: <1385036008-1727-1-git-send-email-ruslan.ruslichenko@globallogic.com>
+	<20131127121908.GE3296@lee--X1>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20131128111152.GN14725-GFdadSzt00ze9xe1eoZjHA@public.gmane.org>
-Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20131127121908.GE3296@lee--X1>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lee Jones <lee.jones@linaro.org>
+Cc: Samuel Ortiz <sameo@linux.intel.com>, linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Graeme Gregory <graeme.gregory@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Thursday 28 November 2013 04:41 PM, Mark Brown wrote:
-> On Thu, Nov 28, 2013 at 04:28:07PM +0530, Sourav Poddar wrote:
->> On Thursday 28 November 2013 04:24 PM, Mark Brown wrote:
->>> That means that if you switch all resources to _byname then the driver
->>> won't find any resources at all and will fail.  This will in turn mean
->>> that any device trees that work with the current code wil start failing,
->>> breaking compatibility.
->> I am changing my code to use *byname for all resources. There is no
->> dts available now in mainline using this code. I have added the dts file
->> as patch 15, 16 of this series to take care of this.
-> We're now aiming for DT to be a stable interface and the existing
-> binding has been included in a release so you really ought to be keeping
-> compatiblity.
-Ok. So I will check for *byname, if not found I will switch to 
-"platform_get_resource".
---
-To unsubscribe from this list: send the line "unsubscribe linux-spi" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Hello Lee,
+
+On Wed, Nov 27, 2013 at 2:19 PM, Lee Jones <lee.jones@linaro.org> wrote:
+> On Thu, 21 Nov 2013, Ruslan Ruslichenko wrote:
+>
+>> Since currently nobody uses TWL603x platform data and all new
+>
+> Hmm... when you say nobody, how did you come to this conclusion?
+>
+> Without digging into it and probably not that relevant, it
+> appears there is some references to it in platform data still:
+>
+> $ git grep twl603 -- arch/ | grep -v dts
+> arch/arm/mach-omap2/common.h:extern int omap4_twl6030_hsmmc_init(struct omap2_hsmmc_info *controllers);
+> arch/arm/mach-omap2/omap4-common.c:static int omap4_twl6030_hsmmc_late_init(struct device *dev)
+> arch/arm/mach-omap2/omap4-common.c:             irq = twl6030_mmc_card_detect_config();
+> arch/arm/mach-omap2/omap4-common.c:             pdata->slots[0].card_detect = twl6030_mmc_card_detect;
+> arch/arm/mach-omap2/omap4-common.c:static __init void omap4_twl6030_hsmmc_set_late_init(struct device *dev)
+> arch/arm/mach-omap2/omap4-common.c:     pdata->init =   omap4_twl6030_hsmmc_late_init;
+> arch/arm/mach-omap2/omap4-common.c:int __init omap4_twl6030_hsmmc_init(struct omap2_hsmmc_info *controllers)
+> arch/arm/mach-omap2/omap4-common.c:             omap4_twl6030_hsmmc_set_late_init(&c->pdev->dev);
+> arch/arm/mach-omap2/omap4-common.c:int __init omap4_twl6030_hsmmc_init(struct omap2_hsmmc_info *controllers)
+> arch/arm/mach-omap2/omap_twl.c:static unsigned long twl6030_vsel_to_uv(const u8 vsel)
+> arch/arm/mach-omap2/omap_twl.c:static u8 twl6030_uv_to_vsel(unsigned long uv)
+> arch/arm/mach-omap2/omap_twl.c: if (uv > twl6030_vsel_to_uv(0x39)) {
+> arch/arm/mach-omap2/omap_twl.c:                 __func__, uv, twl6030_vsel_to_uv(0x39));
+> arch/arm/mach-omap2/omap_twl.c: .vsel_to_uv             = twl6030_vsel_to_uv,
+> arch/arm/mach-omap2/omap_twl.c: .uv_to_vsel             = twl6030_uv_to_vsel,
+> arch/arm/mach-omap2/omap_twl.c: .vsel_to_uv             = twl6030_vsel_to_uv,
+> arch/arm/mach-omap2/omap_twl.c: .uv_to_vsel             = twl6030_uv_to_vsel,
+> arch/arm/mach-omap2/omap_twl.c: .vsel_to_uv             = twl6030_vsel_to_uv,
+> arch/arm/mach-omap2/omap_twl.c: .uv_to_vsel             = twl6030_uv_to_vsel,
+>
+
+Looks like some misunderstanding is here. This patch *only* removes
+platform data for TWL603x
+which were used to create TWL sub-devices like regulators, adc's,
+watchdogs, etc.
+Previously it was set up in twl_common.c by omap4_pmic_init(), which
+was called from board files
+with specific pmic config.
+Since now in Linux kernel 3.13 OMAP4 non-DT boot is not supported and
+all OMAP4 board files
+have been removed omap4_pmic_init() is never called and all TWL603x
+sub-devices are created
+from device tree data.
+
+>> users will supply it through device tree, handling of these
+>> data within twl-core will never be used, so remove it.
+>>
+>> Signed-off-by: Ruslan Ruslichenko <ruslan.ruslichenko@globallogic.com>
+>> ---
+>>
+>> [...]
+
+
+-- 
+Regards,
+Ruslan Ruslichenko | Software Engineer
+GlobalLogic
+www.globallogic.com
+
+http://www.globallogic.com/email_disclaimer.txt
