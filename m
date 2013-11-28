@@ -1,56 +1,99 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH] ARM: OMAP2+: Powerdomain: Fix unchecked dereference of
- arch_pwrdm
-Date: Wed, 27 Nov 2013 19:55:40 -0600
-Message-ID: <5296A29C.50006@ti.com>
-References: <1385553437-22568-1-git-send-email-rnayak@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 00/13] mfd: menelaus: a few cleanups
+Date: Wed, 27 Nov 2013 21:00:34 -0600
+Message-ID: <20131128030033.GA15444@saruman.home>
+References: <1385579217-20127-1-git-send-email-balbi@ti.com>
+ <20131127200247.GH24645@blackmetal.musicnaut.iki.fi>
+ <20131127201149.GB20734@saruman.home>
+ <20131127204621.GI24645@blackmetal.musicnaut.iki.fi>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="qMm9M+Fa2AknHoGS"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:40116 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758459Ab3K1Bzn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Nov 2013 20:55:43 -0500
-In-Reply-To: <1385553437-22568-1-git-send-email-rnayak@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:49047 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754736Ab3K1DBq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 27 Nov 2013 22:01:46 -0500
+Content-Disposition: inline
+In-Reply-To: <20131127204621.GI24645@blackmetal.musicnaut.iki.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>, linux-omap@vger.kernel.org
-Cc: tony@atomide.com, dan.carpenter@oracle.com
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: Felipe Balbi <balbi@ti.com>, sameo@linux.intel.com, lee.jones@linaro.org, Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
-On 11/27/2013 05:57 AM, Rajendra Nayak wrote:
-> Commit 'cd8abed' "ARM: OMAP2+: Powerdomain: Remove the need to
-> always have a voltdm associated to a pwrdm" leads to the following
-> Smatch complaint:
-> 
-> arch/arm/mach-omap2/powerdomain.c:131 _pwrdm_register()
-> 	 error: we previously assumed 'arch_pwrdm' could be null (see line 105)
-> 
-> So, fix the unchecked dereference of arch_pwrdm.
-> 
-> Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-> ---
->  arch/arm/mach-omap2/powerdomain.c |    3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
-> 
-> diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
-> index e233dfc..93a2a6e 100644
-> --- a/arch/arm/mach-omap2/powerdomain.c
-> +++ b/arch/arm/mach-omap2/powerdomain.c
-> @@ -128,7 +128,8 @@ skip_voltdm:
->  	for (i = 0; i < pwrdm->banks; i++)
->  		pwrdm->ret_mem_off_counter[i] = 0;
->  
-> -	arch_pwrdm->pwrdm_wait_transition(pwrdm);
-> +	if (arch_pwrdm && arch_pwrdm->pwrdm_wait_transition)
-> +		arch_pwrdm->pwrdm_wait_transition(pwrdm);
->  	pwrdm->state = pwrdm_read_pwrst(pwrdm);
->  	pwrdm->state_counter[pwrdm->state] = 1;
->  
-> 
-Acked-by: Nishanth Menon <nm@ti.com>
+--qMm9M+Fa2AknHoGS
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
--- 
-Regards,
-Nishanth Menon
+Hi,
+
+On Wed, Nov 27, 2013 at 10:46:21PM +0200, Aaro Koskinen wrote:
+> Hi,
+>=20
+> On Wed, Nov 27, 2013 at 02:11:49PM -0600, Felipe Balbi wrote:
+> > On Wed, Nov 27, 2013 at 10:02:47PM +0200, Aaro Koskinen wrote:
+> > > On Wed, Nov 27, 2013 at 01:06:44PM -0600, Felipe Balbi wrote:
+> > > > few cleanups on the old menelaus driver. I don't have
+> > > > HW to test these patches, maybe Aaro can help here ?
+> > >=20
+> > > Hmm, I got:
+> > >=20
+> > > [    1.330000] Unable to handle kernel NULL pointer dereference at vi=
+rtual address 00000000
+> > > [    1.340000] pgd =3D c0004000
+> > > [    1.340000] [00000000] *pgd=3D00000000
+> > > [    1.350000] Internal error: Oops: 17 [#1] ARM
+> > > [    1.350000] CPU: 0 PID: 1 Comm: swapper Not tainted 3.13.0-rc1-n8x=
+0_tiny-los.git-729021f-00018-g74a0f39 #2
+> > > [    1.350000] task: c782c000 ti: c782e000 task.ti: c782e000
+> > > [    1.350000] PC is at mutex_lock+0x0/0x20
+> > > [    1.350000] LR is at __irq_get_desc_lock+0x6c/0x88
+> [...]
+> > > [    1.350000] [<c016745c>] (mutex_lock+0x0/0x20) from [<c00509ac>] (=
+__irq_get_desc_lock+0x6c/0x88)
+> > > [    1.350000] [<c00509ac>] (__irq_get_desc_lock+0x6c/0x88) from [<c0=
+053518>] (__irq_set_handler+0x24/0x128)
+> > > [    1.350000] [<c0053518>] (__irq_set_handler+0x24/0x128) from [<c01=
+3ec80>] (menelaus_probe+0xbc/0x280)
+> > > [    1.350000] [<c013ec80>] (menelaus_probe+0xbc/0x280) from [<c0140a=
+b8>] (i2c_device_probe+0x98/0xc0)
+>=20
+> [...]
+>=20
+> > hmm, irq_set_chip_and_handler() will call back into the irq_chip we just
+> > registered, so my ->irq_bus_lock needs to have everything setup
+> > (chip_data my mutex), this should solve it:
+>=20
+> Yes, that fixes it. Seems to work fine now.
+
+Awesome, should I add your tested-by ? I also added a few extra patches
+on top which I'll send soon.
+
+--=20
+balbi
+
+--qMm9M+Fa2AknHoGS
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.15 (GNU/Linux)
+
+iQIcBAEBAgAGBQJSlrHRAAoJEIaOsuA1yqREb6gP/A0+vMvLNKynabb7Cm+ajE3x
++bI2M50diXPGTPF82r4on0QHYfC2P/neQwo+eh4dWS98hoDeK1S89/TaYjMDdoQw
+UmfYGRT0+IHVqglseLuAu/fWSdRlPwa3+TT2iTNKiodpYMf6rkw8T6XFCmPJPUbQ
+7JfpZI8X2cqfgyBO0EJpFM+POS0ZHWsP6IUj/A0v4CyseRZu3awJ1xcv+hVnPzNn
+atLsG6SRWdaoM+/ZZjnHhsZJvQUEiW2q1gAZINGL869D4nl0eBQ+pAmxSzSgBf4d
+YN57yj4N72FwycA7Nz4diLYZDzyJRXv7hjCnF5MmNV+SEXDKnC9J+X6mUzhHzn9g
+LzHOBqXEBFxWPMBbQHFlRUfOr4jw/BvDTxdt/gJCxKqWuAeTdRzNwJAUjkppm14r
+Fow0/N9VQTJ/e5Ny2S9SEZLZapVeroHsfZ1+6E7NPSqVaF+mCc4qHDBmFeCMXIk/
+tMvDsoY/qylR6eud1UU2xjzVQldn6L22JWaohzo560+rUhXdE3tZT7nYdtH9+sGI
+s/fMy8ClNY6c6haIVjNf6Y1mZQnm4dWRAZU7DG1rFiHw2NAEtYgD4UsotjPYyXHq
+JmkwNm2MQzwLC2B06ghrgk5AYdRN6g1vuXKS0iB76IkQVJQTubWLyt8GeaoJqahr
+TmGNmJVEG/l82WXnIhGZ
+=9Ye0
+-----END PGP SIGNATURE-----
+
+--qMm9M+Fa2AknHoGS--
