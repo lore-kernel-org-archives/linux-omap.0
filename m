@@ -1,89 +1,84 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: Re: [PATCH v2 2/3] bq2415x_charger: Use power_supply notifier for automode
-Date: Thu, 28 Nov 2013 07:53:10 +0100
-Message-ID: <201311280753.11274@pali>
-References: <1434978251.31721.1385404366021.JavaMail.apache@mail83.abv.bg> <201311272216.47390@pali> <20131128002549.GA5548@earth.universe>
-Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart1688946.yaiLlMhO3C";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
+From: anaumann@ultratronik.de
+Subject: [PATCH V2] usb: musb: Fix unstable init of OTG_INTERFSEL.
+Date: Thu, 28 Nov 2013 08:51:45 +0100
+Message-ID: <1385625105-7348-1-git-send-email-anaumann@ultratronik.de>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bk0-f47.google.com ([209.85.214.47]:42739 "EHLO
-	mail-bk0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750923Ab3K1GxP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Nov 2013 01:53:15 -0500
-In-Reply-To: <20131128002549.GA5548@earth.universe>
+Received: from dd5612.kasserver.com ([85.13.130.143]:36558 "EHLO
+	dd5612.kasserver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752082Ab3K1Hwp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Nov 2013 02:52:45 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sebastian Reichel <sre@debian.org>
-Cc: =?utf-8?q?=D0=98=D0=B2=D0=B0=D0=B9=D0=BB=D0=BE?= =?utf-8?q?_=D0=94=D0=B8=D0=BC=D0=B8=D1=82=D1=80=D0=BE=D0=B2?= <freemangordon@abv.bg>, pavel@ucw.cz, anton@enomsg.org, dwmw2@infradead.org, tony@atomide.com, linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, aaro.koskinen@iki.fi
+To: balbi@ti.com
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Andreas Naumann <anaumann@ultratronik.de>
 
---nextPart1688946.yaiLlMhO3C
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+From: Andreas Naumann <anaumann@ultratronik.de>
 
-On Thursday 28 November 2013 01:25:50 Sebastian Reichel wrote:
-> On Wed, Nov 27, 2013 at 10:16:47PM +0100, Pali Roh=C3=A1r wrote:
-> > On Monday 25 November 2013 22:50:01 Sebastian Reichel wrote:
-> > > > 2 seems more generic to me, but as rx51-battery is
-> > > > missing the functionality to send events on temperature
-> > > > change, I guess 1 will be easier to implement.
-> > >=20
-> > > The temperature must be polled anyway, if the ADC does not
-> > > support interrupts.
-> >=20
-> > Yes, ADC does not support interrupts, temperature must be
-> > polled. Also bq27200 chip does not support interrupts, but
-> > bq27x00_battery driver using delayed work which every 60s
-> > poll all values (timeout can be configured via modprobe
-> > param). So similar code can be added to rx51_battery.ko
-> > too.
->=20
-> I think the safest implementation would be:
->=20
-> bq2415x polls the temperature from rx51-battery in the bq2415x
-> watchdog handler. That way discontinuation of the charge
-> process is guaranteed.
->=20
-> To avoid useless ADC conversion the rx51-battery driver caches
-> the converted temperature value for a reasonable time (e.g.
-> 10 seconds). This helps if multiple users want to read the
-> battery temperature (e.g. userspace).
->=20
-> This also means, that the kernel stuff can handle charging
-> autonomously and the userland daemon checks the battery
-> temperature only for emergency shutdown (I guess the
-> temperatures for stopping the charging and emergency shutdown
-> are different).
->=20
-> IMHO it makes sense to move the emergency shutdown also into
-> the kernel (but different driver!) in the future, but that's
-> another topic :)
->=20
-> -- Sebastian
+This is a hard to reproduce problem which leads to non-functional
+USB-OTG port in 0.1%-1% of all boots. Tracked it down to commit
+e25bec160158abe86c276d7d206264afc3646281, which introduces save/restore
+of OTG_INTERFSEL over suspend.
+Since the resume function is also called early in driver init, it uses a
+non-initialized value (which is 0 and a non-supported setting in DM37xx
+for INTERFSEL). Shortly after the correct value is set. Apparently this
+works most time, but not always.
 
-Just to note, here is original nokia table of temperature limits:
+The fix is to initialize the value, BEFORE being written in the resume
+function.
 
-https://gitorious.org/rx51-bme-replacement/dsme-thermalobject-surface/sourc=
-e/master:modules/thermalobject_surface.c#L40
 
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
+Signed-off-by: Andreas Naumann <anaumann@ultratronik.de>
+---
+ drivers/usb/musb/omap2430.c | 22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
---nextPart1688946.yaiLlMhO3C
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
+diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+index 4315d35..783547c 100644
+--- a/drivers/usb/musb/omap2430.c
++++ b/drivers/usb/musb/omap2430.c
+@@ -337,7 +337,6 @@ static irqreturn_t omap2430_musb_interrupt(int irq, void *__hci)
+ 
+ static int omap2430_musb_init(struct musb *musb)
+ {
+-	u32 l;
+ 	int status = 0;
+ 	struct device *dev = musb->controller;
+ 	struct omap2430_glue *glue = dev_get_drvdata(dev->parent);
+@@ -366,23 +365,24 @@ static int omap2430_musb_init(struct musb *musb)
+ 
+ 	musb->isr = omap2430_musb_interrupt;
+ 
++	musb->context.otg_interfsel = musb_readl(musb->mregs, OTG_INTERFSEL);
++
++	if (data->interface_type == MUSB_INTERFACE_UTMI) {
++		/* OMAP4 uses Internal PHY GS70 which uses UTMI interface */
++		musb->context.otg_interfsel &= ~ULPI_12PIN;  /* Disable ULPI */
++		musb->context.otg_interfsel |= UTMI_8BIT;    /* Enable UTMI  */
++	} else {
++		musb->context.otg_interfsel |= ULPI_12PIN;
++	}
++
+ 	status = pm_runtime_get_sync(dev);
+ 	if (status < 0) {
+ 		dev_err(dev, "pm_runtime_get_sync FAILED %d\n", status);
+ 		goto err1;
+ 	}
+ 
+-	l = musb_readl(musb->mregs, OTG_INTERFSEL);
+-
+-	if (data->interface_type == MUSB_INTERFACE_UTMI) {
+-		/* OMAP4 uses Internal PHY GS70 which uses UTMI interface */
+-		l &= ~ULPI_12PIN;       /* Disable ULPI */
+-		l |= UTMI_8BIT;         /* Enable UTMI  */
+-	} else {
+-		l |= ULPI_12PIN;
+-	}
+ 
+-	musb_writel(musb->mregs, OTG_INTERFSEL, l);
++	musb_writel(musb->mregs, OTG_INTERFSEL, musb->context.otg_interfsel);
+ 
+ 	pr_debug("HS USB OTG: revision 0x%x, sysconfig 0x%02x, "
+ 			"sysstatus 0x%x, intrfsel 0x%x, simenable  0x%x\n",
+-- 
+1.8.4.1
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEABECAAYFAlKW6FcACgkQi/DJPQPkQ1KNnQCgtrtxCG0VgFBASUPp/zO5oLUq
-XHAAn2ae97Y7y9UA0eb4FVqwhJn9W9fD
-=NHFb
------END PGP SIGNATURE-----
-
---nextPart1688946.yaiLlMhO3C--
