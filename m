@@ -1,29 +1,33 @@
-From: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCHv10 00/41] ARM: TI SoC clock DT conversion
-Date: Thu, 28 Nov 2013 18:58:04 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1311281857100.23429@utopia.booyaka.com>
-References: <1385453182-24421-1-git-send-email-t-kristo@ti.com> <52969313.6090207@ti.com>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: Re: [PATCH 00/13] mfd: menelaus: a few cleanups
+Date: Thu, 28 Nov 2013 23:34:37 +0200
+Message-ID: <20131128213437.GA30823@blackmetal.musicnaut.iki.fi>
+References: <1385579217-20127-1-git-send-email-balbi@ti.com>
+ <20131127200247.GH24645@blackmetal.musicnaut.iki.fi>
+ <20131127201149.GB20734@saruman.home>
+ <20131127204621.GI24645@blackmetal.musicnaut.iki.fi>
+ <20131128030033.GA15444@saruman.home>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <52969313.6090207-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-Cc: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, mturquette-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from filtteri5.pp.htv.fi ([213.243.153.188]:42176 "EHLO
+	filtteri5.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750841Ab3K1Vep (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Nov 2013 16:34:45 -0500
+Content-Disposition: inline
+In-Reply-To: <20131128030033.GA15444@saruman.home>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: sameo@linux.intel.com, lee.jones@linaro.org, Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
-On Wed, 27 Nov 2013, Nishanth Menon wrote:
+Hi,
 
-> http://pastebin.mozilla.org/3681900 -> AM3517-evm (not sure yet how
-> long this has been broken).
+On Wed, Nov 27, 2013 at 09:00:34PM -0600, Felipe Balbi wrote:
+> Awesome, should I add your tested-by ? I also added a few extra patches
+> on top which I'll send soon.
 
-Seems to work in v3.13-rc1:
+Yes, that's fine. Once you have the final set ready, I can also easily
+test it once more just in case.
 
-http://www.pwsan.com/omap/testlogs/test_v3.13-rc1/20131124230250/boot/3517evm/3517evm_log.txt
-
-
-- Paul
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+A.
