@@ -1,52 +1,33 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH] ARM: DTS: omap4-sdp: Add regulator for LCD backlight
- (pwm-backlight)
-Date: Thu, 28 Nov 2013 11:28:44 +0200
-Message-ID: <1385630924-16392-1-git-send-email-peter.ujfalusi@ti.com>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH 00/13] mfd: menelaus: a few cleanups
+Date: Thu, 28 Nov 2013 09:32:15 +0000
+Message-ID: <20131128093215.GA3296@lee--X1>
+References: <1385579217-20127-1-git-send-email-balbi@ti.com>
+ <20131127200247.GH24645@blackmetal.musicnaut.iki.fi>
+ <20131127201149.GB20734@saruman.home>
+ <20131127204621.GI24645@blackmetal.musicnaut.iki.fi>
+ <20131128030033.GA15444@saruman.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>
-Cc: devicetree@vger.kernel.org, tomi.valkeinen@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20131128030033.GA15444@saruman.home>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, sameo@linux.intel.com, Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-Since in DT booted kernel dummy regulators are no longer supported we need
-to provide valid phandle for the regulator needed by the backlight.
-On the board VBAT is used to power the LCD backlight(s).
+> Awesome, should I add your tested-by ? I also added a few extra patch=
+es
+> on top which I'll send soon.
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
----
-Hi,
+When you next submit, can you capitalise the first character of the
+subject line after the final ':' also please, it will save me the
+trouble.
 
-This patch is needed for 3.13 to get the LCD backlight to work again.
-
-Regards,
-Peter
-
- arch/arm/boot/dts/omap4-sdp.dts | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/arch/arm/boot/dts/omap4-sdp.dts b/arch/arm/boot/dts/omap4-sdp.dts
-index 5fc3f43..6f86db2 100644
---- a/arch/arm/boot/dts/omap4-sdp.dts
-+++ b/arch/arm/boot/dts/omap4-sdp.dts
-@@ -104,6 +104,7 @@
- 				100 110 120 127
- 				>;
- 		default-brightness-level = <13>;
-+		power-supply = <&vbat>;
- 	};
- 
- 	sound {
--- 
-1.8.4.2
+--=20
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org =E2=94=82 Open source software for ARM SoCs
+=46ollow Linaro: Facebook | Twitter | Blog
