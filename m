@@ -1,90 +1,75 @@
-From: Sebastian Reichel <sre@debian.org>
-Subject: Re: [PATCH v2 2/3] bq2415x_charger: Use power_supply notifier for
- automode
-Date: Thu, 28 Nov 2013 01:25:50 +0100
-Message-ID: <20131128002549.GA5548@earth.universe>
-References: <1434978251.31721.1385404366021.JavaMail.apache@mail83.abv.bg>
- <20131125214959.GA20107@earth.universe>
- <201311272216.47390@pali>
+From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCHv10 00/41] ARM: TI SoC clock DT conversion
+Date: Wed, 27 Nov 2013 18:49:23 -0600
+Message-ID: <52969313.6090207@ti.com>
+References: <1385453182-24421-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="FL5UXtIhxfXey3p5"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ring0.de ([91.143.88.219]:51840 "EHLO smtp.ring0.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753959Ab3K1AZy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 27 Nov 2013 19:25:54 -0500
-Content-Disposition: inline
-In-Reply-To: <201311272216.47390@pali>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1385453182-24421-1-git-send-email-t-kristo-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, mturquette-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
-Cc: =?utf-8?B?0JjQstCw0LnQu9C+INCU0LjQvNC40YLRgNC+0LI=?= <freemangordon@abv.bg>, pavel@ucw.cz, anton@enomsg.org, dwmw2@infradead.org, tony@atomide.com, linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, aaro.koskinen@iki.fi
 
+On 11/26/2013 02:05 AM, Tero Kristo wrote:
+> Hi,
+> 
+> Changes compared to v9:
+> - rebased on top of 3.13-rc1
+> - modified the low level clk register API to provide SoC specific clk_readl
+>   and clk_writel support which can be registered during boot, TI SoC variant
+>   uses regmap on low level
+> - dropped regmap parameter from clock init calls, instead a helper is used
+>   for getting regmap index along with the register offset from DT
+> - dropped regmap parameter from clock structs, instead platform specific
+>   clk_readl / clk_writel are used to parse reg parameter according to
+>   platform, for TI SoC:s, this is encoded as:
+>   struct clk_omap_reg {
+>     u16 offset; /* register offset */
+>     u16 index; /* regmap index */
+>   }
+> - Nishanth's comments to v9 mostly addressed, except for the CLK_OF_DECLARE
+>   tweak which I would actually want some feedback upon, basically the problem
+>   is I need to return status from the clk init functions so I can see if
+>   -EAGAIN is passed, in which case init will be retried later, maybe some of
+>   this can be made generic, like converting all the CLK_OF_DECLARE type
+>   functions to return status
+> 
+> Testing done:
+> - omap3-beagle : boot + suspend/resume
+> - omap3-beagle-xm : boot (thanks to Nishanth)
+> - omap4-panda-es : boot + suspend/resume
+> - omap5-uevm : boot
+> - dra7-evm : boot
+> - am335x-bone : boot
+> 
+> Separate branches available at https://github.com/t-kristo/linux-pm.git
+> 
+> - full: 3.13-rc1-dt-clks-v10 (should be merged last, contains everything)
 
---FL5UXtIhxfXey3p5
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+More testing (boot):
+(uImage + dtb combined):
+http://pastebin.mozilla.org/3681899 - AM37xx-evm
+http://pastebin.mozilla.org/3681900 -> AM3517-evm (not sure yet how
+long this has been broken).
 
-On Wed, Nov 27, 2013 at 10:16:47PM +0100, Pali Roh=E1r wrote:
-> On Monday 25 November 2013 22:50:01 Sebastian Reichel wrote:
-> > > 2 seems more generic to me, but as rx51-battery is missing
-> > > the functionality to send events on temperature change, I
-> > > guess 1 will be easier to implement.
-> >=20
-> > The temperature must be polled anyway, if the ADC does not
-> > support interrupts.
-> >=20
->=20
-> Yes, ADC does not support interrupts, temperature must be polled.=20
-> Also bq27200 chip does not support interrupts, but=20
-> bq27x00_battery driver using delayed work which every 60s poll=20
-> all values (timeout can be configured via modprobe param). So=20
-> similar code can be added to rx51_battery.ko too.
+zImage and dtbs: (boot tests):
+http://pastebin.mozilla.org/3669889 -> omap5uevm
+http://pastebin.mozilla.org/3669917 -> Panda-ES
+http://pastebin.mozilla.org/3669928 -> Beagle-XM
+http://pastebin.mozilla.org/3669939 -> BBBlack
+http://pastebin.mozilla.org/3670104 ->AM335x-EVM
 
-I think the safest implementation would be:
+Other than these, ran a quick coccicheck
+http://pastebin.mozilla.org/3682339
+at least the kzalloc one seems to indicate a pending fix.
 
-bq2415x polls the temperature from rx51-battery in the bq2415x
-watchdog handler. That way discontinuation of the charge process
-is guaranteed.
-
-To avoid useless ADC conversion the rx51-battery driver caches the
-converted temperature value for a reasonable time (e.g. 10 seconds).
-This helps if multiple users want to read the battery temperature
-(e.g. userspace).
-
-This also means, that the kernel stuff can handle charging
-autonomously and the userland daemon checks the battery temperature
-only for emergency shutdown (I guess the temperatures for stopping
-the charging and emergency shutdown are different).
-
-IMHO it makes sense to move the emergency shutdown also into the
-kernel (but different driver!) in the future, but that's another
-topic :)
-
--- Sebastian
-
---FL5UXtIhxfXey3p5
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.15 (GNU/Linux)
-
-iQIcBAEBCAAGBQJSlo2NAAoJENju1/PIO/qaxnUP/iWttibMN/h756OOZuedNey+
-5Kd2JLv0i9pG0b63nUKjabDJ40ROcPjkHyfQKM0TapY6rZxNDRjFDSh4QS5Lqf4B
-u74FYgwFMG57AlBx3tNaGC40ajUDT0mvQEMYvXArD7XezTyKUUWRJB8tl+JqwRfn
-uTHiPfqb02k3O09NH4+NQsSGt7stzZqcQoN1OKz81JGuBGb06ypBEOBkEZa2P45S
-H4m6Zmls+l55jcGq3S0yHuzCM/EWLzcmKH/SnmAsTvvzBxUX/7YEdnTMv/I2DJYl
-aCNimlmO1t57asGdNbUQhMO10E7w3XcRDBiU9lMsLQ5GQMXfkgjqxJHDWm0hyeOX
-Xg3L0lYf3KvijG0EwUy4U1sSX6Q5pf7E5hTO2K57uOenW5pZbF6jOt4Z1uWVjkYi
-f/AVGvZ4jkECRvT7iW6wa+7+64SaXtU7V1r8h8I4urPYBJD9E0K8MF85kzpnFFni
-EJQCrCpcGE6ObuH25gdElWTFhWYQVngSLqvOqK30MqBay+5brG+EOc0uowCTRM4G
-9OIsZTuYcTye0wnOTJk2rI5sAyo4yvKUYi43mh9XvlHOw6S9AX0+EMNwyGZ+38T8
-zqkopU+oIgD0bO/qxc+XcEtWtZmQHCfCaR1DF8noBL9uRRDDg8Cnx4dxPLjVauw6
-lWC1RA9ShdgRXdN6HM7Y
-=lveK
------END PGP SIGNATURE-----
-
---FL5UXtIhxfXey3p5--
+-- 
+Regards,
+Nishanth Menon
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
