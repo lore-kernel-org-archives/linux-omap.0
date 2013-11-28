@@ -1,47 +1,46 @@
-From: Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH V2] usb: musb: Fix unstable init of OTG_INTERFSEL.
-Date: Fri, 29 Nov 2013 01:35:32 +0200
-Message-ID: <CANOLnONAKg9Efha6Qc7-mgdUCHb=tQ__WVKPDbFDN3ZL3EZUEw@mail.gmail.com>
-References: <1385625105-7348-1-git-send-email-anaumann@ultratronik.de>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Re: [PATCH 01/12 diet] ARM: OMAP2+: Remove legacy omap3 board-*.c
+ files and make mach-omap2 DT only for booting
+Date: Fri, 29 Nov 2013 01:57:58 +0200
+Message-ID: <CANOLnONmmRgDSfdObUii-FxwVOTo45WGX81Lend7QGWuqXWaZA@mail.gmail.com>
+References: <1385424867-27243-1-git-send-email-tony@atomide.com>
+	<20131126011744.GA26766@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-13
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1385625105-7348-1-git-send-email-anaumann-ZKHRqZ6+gQUX0D0ZMPkEVw@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: anaumann-ZKHRqZ6+gQUX0D0ZMPkEVw@public.gmane.org
-Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-oa0-f43.google.com ([209.85.219.43]:55110 "EHLO
+	mail-oa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751329Ab3K1X56 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Nov 2013 18:57:58 -0500
+Received: by mail-oa0-f43.google.com with SMTP id i7so9711891oag.16
+        for <linux-omap@vger.kernel.org>; Thu, 28 Nov 2013 15:57:58 -0800 (PST)
+In-Reply-To: <20131126011744.GA26766@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Thu, Nov 28, 2013 at 9:51 AM,  <anaumann-ZKHRqZ6+gQUX0D0ZMPkEVw@public.gmane.org> wrote:
-> From: Andreas Naumann <anaumann-ZKHRqZ6+gQUX0D0ZMPkEVw@public.gmane.org>
->
-> This is a hard to reproduce problem which leads to non-functional
-> USB-OTG port in 0.1%-1% of all boots. Tracked it down to commit
-> e25bec160158abe86c276d7d206264afc3646281, which introduces save/resto=
-re
-> of OTG_INTERFSEL over suspend.
-> Since the resume function is also called early in driver init, it use=
-s a
-> non-initialized value (which is 0 and a non-supported setting in DM37=
-xx
-> for INTERFSEL). Shortly after the correct value is set. Apparently th=
-is
-> works most time, but not always.
->
-> The fix is to initialize the value, BEFORE being written in the resum=
-e
-> function.
+On Tue, Nov 26, 2013 at 3:17 AM, Tony Lindgren <tony@atomide.com> wrote=
+:
+> We can now boot all mach-omap2 related boards using appended device
+> tree by creating a related .dts file with pretty much the same
+> functionality as booted in the legacy platform data mode.
 
-Nice find, I think I'm also affected by this. However this crashes on
-OMAP3530 pandora because you now access INTERFSEL before interface
-clock is enabled.. This is not a problem on DM37xx because it uses
-different interconnects. You should probably use "context_valid"
-variable in omap2430_glue or similar to decide to write to register or
-not.
+Not really the same, quite some drivers are still missing, and it
+makes pandora unusable :( . For example, SDIO variation of wl1251,
+that one is non-probeable and used to be "detected" by using
+MMC_QUIRK_NONSTD_SDIO quirk (see pandora_wl1251_init_card() in
+board-omap3pandora.c). Also there are at least pandora-backlight,
+twl4030_keypad and panel drivers that are not converted yet.
 
-Gra=C5=BEvydas
+Can pdata-quirks.c be used for SDIO wl1251 at least, as I have no idea
+how to express it using device tree?
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Gra=FEvydas
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
