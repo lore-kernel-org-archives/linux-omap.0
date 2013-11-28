@@ -1,99 +1,34 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 00/13] mfd: menelaus: a few cleanups
-Date: Wed, 27 Nov 2013 21:00:34 -0600
-Message-ID: <20131128030033.GA15444@saruman.home>
-References: <1385579217-20127-1-git-send-email-balbi@ti.com>
- <20131127200247.GH24645@blackmetal.musicnaut.iki.fi>
- <20131127201149.GB20734@saruman.home>
- <20131127204621.GI24645@blackmetal.musicnaut.iki.fi>
-Reply-To: <balbi@ti.com>
+From: Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 09/17] spi/spi.h: Add "mem" variable in spi master.
+Date: Thu, 28 Nov 2013 10:08:44 +0530
+Message-ID: <5296C8D4.80004@ti.com>
+References: <1385451313-1875-1-git-send-email-sourav.poddar@ti.com> <1385451313-1875-10-git-send-email-sourav.poddar@ti.com> <20131126130119.GH14725@sirena.org.uk> <52949C9F.10008@ti.com> <20131126132051.GO14725@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="qMm9M+Fa2AknHoGS"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:49047 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754736Ab3K1DBq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 27 Nov 2013 22:01:46 -0500
-Content-Disposition: inline
-In-Reply-To: <20131127204621.GI24645@blackmetal.musicnaut.iki.fi>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20131126132051.GO14725-GFdadSzt00ze9xe1eoZjHA@public.gmane.org>
+Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: Felipe Balbi <balbi@ti.com>, sameo@linux.intel.com, lee.jones@linaro.org, Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
---qMm9M+Fa2AknHoGS
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi,
-
-On Wed, Nov 27, 2013 at 10:46:21PM +0200, Aaro Koskinen wrote:
-> Hi,
->=20
-> On Wed, Nov 27, 2013 at 02:11:49PM -0600, Felipe Balbi wrote:
-> > On Wed, Nov 27, 2013 at 10:02:47PM +0200, Aaro Koskinen wrote:
-> > > On Wed, Nov 27, 2013 at 01:06:44PM -0600, Felipe Balbi wrote:
-> > > > few cleanups on the old menelaus driver. I don't have
-> > > > HW to test these patches, maybe Aaro can help here ?
-> > >=20
-> > > Hmm, I got:
-> > >=20
-> > > [    1.330000] Unable to handle kernel NULL pointer dereference at vi=
-rtual address 00000000
-> > > [    1.340000] pgd =3D c0004000
-> > > [    1.340000] [00000000] *pgd=3D00000000
-> > > [    1.350000] Internal error: Oops: 17 [#1] ARM
-> > > [    1.350000] CPU: 0 PID: 1 Comm: swapper Not tainted 3.13.0-rc1-n8x=
-0_tiny-los.git-729021f-00018-g74a0f39 #2
-> > > [    1.350000] task: c782c000 ti: c782e000 task.ti: c782e000
-> > > [    1.350000] PC is at mutex_lock+0x0/0x20
-> > > [    1.350000] LR is at __irq_get_desc_lock+0x6c/0x88
-> [...]
-> > > [    1.350000] [<c016745c>] (mutex_lock+0x0/0x20) from [<c00509ac>] (=
-__irq_get_desc_lock+0x6c/0x88)
-> > > [    1.350000] [<c00509ac>] (__irq_get_desc_lock+0x6c/0x88) from [<c0=
-053518>] (__irq_set_handler+0x24/0x128)
-> > > [    1.350000] [<c0053518>] (__irq_set_handler+0x24/0x128) from [<c01=
-3ec80>] (menelaus_probe+0xbc/0x280)
-> > > [    1.350000] [<c013ec80>] (menelaus_probe+0xbc/0x280) from [<c0140a=
-b8>] (i2c_device_probe+0x98/0xc0)
->=20
-> [...]
->=20
-> > hmm, irq_set_chip_and_handler() will call back into the irq_chip we just
-> > registered, so my ->irq_bus_lock needs to have everything setup
-> > (chip_data my mutex), this should solve it:
->=20
-> Yes, that fixes it. Seems to work fine now.
-
-Awesome, should I add your tested-by ? I also added a few extra patches
-on top which I'll send soon.
-
---=20
-balbi
-
---qMm9M+Fa2AknHoGS
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.15 (GNU/Linux)
-
-iQIcBAEBAgAGBQJSlrHRAAoJEIaOsuA1yqREb6gP/A0+vMvLNKynabb7Cm+ajE3x
-+bI2M50diXPGTPF82r4on0QHYfC2P/neQwo+eh4dWS98hoDeK1S89/TaYjMDdoQw
-UmfYGRT0+IHVqglseLuAu/fWSdRlPwa3+TT2iTNKiodpYMf6rkw8T6XFCmPJPUbQ
-7JfpZI8X2cqfgyBO0EJpFM+POS0ZHWsP6IUj/A0v4CyseRZu3awJ1xcv+hVnPzNn
-atLsG6SRWdaoM+/ZZjnHhsZJvQUEiW2q1gAZINGL869D4nl0eBQ+pAmxSzSgBf4d
-YN57yj4N72FwycA7Nz4diLYZDzyJRXv7hjCnF5MmNV+SEXDKnC9J+X6mUzhHzn9g
-LzHOBqXEBFxWPMBbQHFlRUfOr4jw/BvDTxdt/gJCxKqWuAeTdRzNwJAUjkppm14r
-Fow0/N9VQTJ/e5Ny2S9SEZLZapVeroHsfZ1+6E7NPSqVaF+mCc4qHDBmFeCMXIk/
-tMvDsoY/qylR6eud1UU2xjzVQldn6L22JWaohzo560+rUhXdE3tZT7nYdtH9+sGI
-s/fMy8ClNY6c6haIVjNf6Y1mZQnm4dWRAZU7DG1rFiHw2NAEtYgD4UsotjPYyXHq
-JmkwNm2MQzwLC2B06ghrgk5AYdRN6g1vuXKS0iB76IkQVJQTubWLyt8GeaoJqahr
-TmGNmJVEG/l82WXnIhGZ
-=9Ye0
------END PGP SIGNATURE-----
-
---qMm9M+Fa2AknHoGS--
+On Tuesday 26 November 2013 06:50 PM, Mark Brown wrote:
+> On Tue, Nov 26, 2013 at 06:35:35PM +0530, Sourav Poddar wrote:
+>> On Tuesday 26 November 2013 06:31 PM, Mark Brown wrote:
+>>> Is this really generic enough to put here rather than in the driver
+>>> data?
+>> The thought behind this was that if a master controller supports
+>> memory mapped operation and slave wants to use memcpy in his
+>> driver(bypassing spi ), then we should have a mean to communicate
+>> between the
+>> master and the slave. So, 'spi_master' seems to be the place for me
+>> for this data,
+>> which could be parsed in the slave side also.
+> I would have expected that the address would be returned by the function
+> that maps the buffer in rather than stored permanently in the master.
+Yes, it could be be done the above way. I will change.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-spi" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
