@@ -1,55 +1,89 @@
-From: Sourav Poddar <sourav.poddar@ti.com>
-Subject: Re: [PATCH 12/17] spi/qspi: convert driver to enable/disable memory
- mapped.
-Date: Thu, 28 Nov 2013 10:54:12 +0530
-Message-ID: <5296D37C.2020003@ti.com>
-References: <1385451313-1875-1-git-send-email-sourav.poddar@ti.com>
- <1385451313-1875-13-git-send-email-sourav.poddar@ti.com>
- <20131126131138.GJ14725@sirena.org.uk>
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
+Subject: Re: [PATCH v2 2/3] bq2415x_charger: Use power_supply notifier for automode
+Date: Thu, 28 Nov 2013 07:53:10 +0100
+Message-ID: <201311280753.11274@pali>
+References: <1434978251.31721.1385404366021.JavaMail.apache@mail83.abv.bg> <201311272216.47390@pali> <20131128002549.GA5548@earth.universe>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: multipart/signed;
+  boundary="nextPart1688946.yaiLlMhO3C";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
-In-Reply-To: <20131126131138.GJ14725@sirena.org.uk>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
-To: Mark Brown <broonie@kernel.org>
-Cc: devicetree@vger.kernel.org, computersforpeace@gmail.com, balbi@ti.com, linux-spi@vger.kernel.org, linux-mtd@lists.infradead.org, bcousson@baylibre.com, linux-omap@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-bk0-f47.google.com ([209.85.214.47]:42739 "EHLO
+	mail-bk0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750923Ab3K1GxP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Nov 2013 01:53:15 -0500
+In-Reply-To: <20131128002549.GA5548@earth.universe>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Sebastian Reichel <sre@debian.org>
+Cc: =?utf-8?q?=D0=98=D0=B2=D0=B0=D0=B9=D0=BB=D0=BE?= =?utf-8?q?_=D0=94=D0=B8=D0=BC=D0=B8=D1=82=D1=80=D0=BE=D0=B2?= <freemangordon@abv.bg>, pavel@ucw.cz, anton@enomsg.org, dwmw2@infradead.org, tony@atomide.com, linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, aaro.koskinen@iki.fi
 
-Hi Mark,
-On Tuesday 26 November 2013 06:41 PM, Mark Brown wrote:
-> On Tue, Nov 26, 2013 at 01:05:08PM +0530, Sourav Poddar wrote:
->> Idea is to enable memory mapped by default at the end of the probe,
->> if the control reaches the "transfer" api, then the operation is
->> not a memory mapped one. Hence, we switch to Normal mode and at the
->> end of the "transfer" function. switch back to memory mapped mode.
-> This doesn't see safe, what happens if something tries to use the map
-> while a transfer is in progress?
-Transfer gets initiated with the following api "ti_qspi_start_transfer_one".
+--nextPart1688946.yaiLlMhO3C
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-At the beginning of this api, I am doing a "disable memory mapped", as 
-becuase of
-the code implemntation, if the control has reaches this api, memory 
-mapped is not
-the desired operation. Then, at the end of this api after
-"spi_finalize_current_message(master)", which indicated the current 
-transfer complete, I
-issue a end of transfer command. Only after which, I enable memory 
-mapped mode again.
+On Thursday 28 November 2013 01:25:50 Sebastian Reichel wrote:
+> On Wed, Nov 27, 2013 at 10:16:47PM +0100, Pali Roh=C3=A1r wrote:
+> > On Monday 25 November 2013 22:50:01 Sebastian Reichel wrote:
+> > > > 2 seems more generic to me, but as rx51-battery is
+> > > > missing the functionality to send events on temperature
+> > > > change, I guess 1 will be easier to implement.
+> > >=20
+> > > The temperature must be polled anyway, if the ADC does not
+> > > support interrupts.
+> >=20
+> > Yes, ADC does not support interrupts, temperature must be
+> > polled. Also bq27200 chip does not support interrupts, but
+> > bq27x00_battery driver using delayed work which every 60s
+> > poll all values (timeout can be configured via modprobe
+> > param). So similar code can be added to rx51_battery.ko
+> > too.
+>=20
+> I think the safest implementation would be:
+>=20
+> bq2415x polls the temperature from rx51-battery in the bq2415x
+> watchdog handler. That way discontinuation of the charge
+> process is guaranteed.
+>=20
+> To avoid useless ADC conversion the rx51-battery driver caches
+> the converted temperature value for a reasonable time (e.g.
+> 10 seconds). This helps if multiple users want to read the
+> battery temperature (e.g. userspace).
+>=20
+> This also means, that the kernel stuff can handle charging
+> autonomously and the userland daemon checks the battery
+> temperature only for emergency shutdown (I guess the
+> temperatures for stopping the charging and emergency shutdown
+> are different).
+>=20
+> IMHO it makes sense to move the emergency shutdown also into
+> the kernel (but different driver!) in the future, but that's
+> another topic :)
+>=20
+> -- Sebastian
 
-So, will the condition you mention above will hit.? Please help me 
-understand if i am
-missing something?
+Just to note, here is original nokia table of temperature limits:
 
+https://gitorious.org/rx51-bme-replacement/dsme-thermalobject-surface/sourc=
+e/master:modules/thermalobject_surface.c#L40
 
-______________________________________________________
-Linux MTD discussion mailing list
-http://lists.infradead.org/mailman/listinfo/linux-mtd/
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
+
+--nextPart1688946.yaiLlMhO3C
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iEYEABECAAYFAlKW6FcACgkQi/DJPQPkQ1KNnQCgtrtxCG0VgFBASUPp/zO5oLUq
+XHAAn2ae97Y7y9UA0eb4FVqwhJn9W9fD
+=NHFb
+-----END PGP SIGNATURE-----
+
+--nextPart1688946.yaiLlMhO3C--
