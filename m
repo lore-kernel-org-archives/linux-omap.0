@@ -1,33 +1,47 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: Re: [PATCH 00/13] mfd: menelaus: a few cleanups
-Date: Thu, 28 Nov 2013 23:34:37 +0200
-Message-ID: <20131128213437.GA30823@blackmetal.musicnaut.iki.fi>
-References: <1385579217-20127-1-git-send-email-balbi@ti.com>
- <20131127200247.GH24645@blackmetal.musicnaut.iki.fi>
- <20131127201149.GB20734@saruman.home>
- <20131127204621.GI24645@blackmetal.musicnaut.iki.fi>
- <20131128030033.GA15444@saruman.home>
+From: Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH V2] usb: musb: Fix unstable init of OTG_INTERFSEL.
+Date: Fri, 29 Nov 2013 01:35:32 +0200
+Message-ID: <CANOLnONAKg9Efha6Qc7-mgdUCHb=tQ__WVKPDbFDN3ZL3EZUEw@mail.gmail.com>
+References: <1385625105-7348-1-git-send-email-anaumann@ultratronik.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from filtteri5.pp.htv.fi ([213.243.153.188]:42176 "EHLO
-	filtteri5.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750841Ab3K1Vep (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Nov 2013 16:34:45 -0500
-Content-Disposition: inline
-In-Reply-To: <20131128030033.GA15444@saruman.home>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1385625105-7348-1-git-send-email-anaumann-ZKHRqZ6+gQUX0D0ZMPkEVw@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: anaumann-ZKHRqZ6+gQUX0D0ZMPkEVw@public.gmane.org
+Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: sameo@linux.intel.com, lee.jones@linaro.org, Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
-Hi,
+On Thu, Nov 28, 2013 at 9:51 AM,  <anaumann-ZKHRqZ6+gQUX0D0ZMPkEVw@public.gmane.org> wrote:
+> From: Andreas Naumann <anaumann-ZKHRqZ6+gQUX0D0ZMPkEVw@public.gmane.org>
+>
+> This is a hard to reproduce problem which leads to non-functional
+> USB-OTG port in 0.1%-1% of all boots. Tracked it down to commit
+> e25bec160158abe86c276d7d206264afc3646281, which introduces save/resto=
+re
+> of OTG_INTERFSEL over suspend.
+> Since the resume function is also called early in driver init, it use=
+s a
+> non-initialized value (which is 0 and a non-supported setting in DM37=
+xx
+> for INTERFSEL). Shortly after the correct value is set. Apparently th=
+is
+> works most time, but not always.
+>
+> The fix is to initialize the value, BEFORE being written in the resum=
+e
+> function.
 
-On Wed, Nov 27, 2013 at 09:00:34PM -0600, Felipe Balbi wrote:
-> Awesome, should I add your tested-by ? I also added a few extra patches
-> on top which I'll send soon.
+Nice find, I think I'm also affected by this. However this crashes on
+OMAP3530 pandora because you now access INTERFSEL before interface
+clock is enabled.. This is not a problem on DM37xx because it uses
+different interconnects. You should probably use "context_valid"
+variable in omap2430_glue or similar to decide to write to register or
+not.
 
-Yes, that's fine. Once you have the final set ready, I can also easily
-test it once more just in case.
-
-A.
+Gra=C5=BEvydas
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
