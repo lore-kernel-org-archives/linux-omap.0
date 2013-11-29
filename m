@@ -1,36 +1,53 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH V2] gpio: omap: refresh patch "be more aggressive with
- pm_runtime" against v3.12-rc5
-Date: Fri, 29 Nov 2013 11:05:20 +0100
-Message-ID: <CACRpkdZBobnSZMLcW6YWc08ew1sb+UY3np+iS4=nqx5wpSNixw@mail.gmail.com>
-References: <1385506004-14943-1-git-send-email-caesarxuchao@gmail.com>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Re: [PATCH V2] usb: musb: Fix unstable init of OTG_INTERFSEL.
+Date: Fri, 29 Nov 2013 13:57:33 +0200
+Message-ID: <CANOLnON07VLQ-xrB7qLuk1yCJiOESH_NbfSAozWnE4gjEK93sQ@mail.gmail.com>
+References: <EE4E4767751A8B40949306E403F4DDD80322D479@sv03ultra002.ultratronik.de>
+	<529851AE.7090300@andin.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1385506004-14943-1-git-send-email-caesarxuchao@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Chao Xu <caesarxuchao@gmail.com>, ext Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@linaro.org>
-Cc: Linux-OMAP <linux-omap@vger.kernel.org>, "santosh.shilimkar@ti.com" <santosh.shilimkar@ti.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Paul Walmsley <paul@pwsan.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ob0-f182.google.com ([209.85.214.182]:44771 "EHLO
+	mail-ob0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752890Ab3K2L5e (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Nov 2013 06:57:34 -0500
+Received: by mail-ob0-f182.google.com with SMTP id wp4so9999630obc.13
+        for <linux-omap@vger.kernel.org>; Fri, 29 Nov 2013 03:57:33 -0800 (PST)
+In-Reply-To: <529851AE.7090300@andin.de>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Andreas Naumann <dev@andin.de>
+Cc: Felipe Balbi <balbi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Tue, Nov 26, 2013 at 11:46 PM, Chao Xu <caesarxuchao@gmail.com> wrote:
+On Fri, Nov 29, 2013 at 10:34 AM, Andreas Naumann <dev@andin.de> wrote:
+>> Nice find, I think I'm also affected by this. However this crashes on
+>> OMAP3530 pandora because you now access INTERFSEL before interface
+>> clock is enabled.. This is not a problem on DM37xx because it uses
+>> different interconnects. You should probably use "context_valid"
+>> variable in omap2430_glue or similar to decide to write to register or
+>> not.
+>>
+>> Grazvydas
+>
+>
+> You mean introducing a "context_value"? I'm not sure if i want to add more
+> code.
 
-> From: Felipe Balbi <balbi@ti.com>
->
-> try to keep gpio block suspended as much as possible.
->
-> Tested with pandaboard and a sysfs exported gpio.
->
-> Signed-off-by: Felipe Balbi <balbi at ti.com>
->
-> [caesarxuchao@gmail.com : Refreshed against v3.12-rc5, and added revision check to enable aggressive pm_runtime on OMAP4-only. Because am33xx_gpio_sysc.idlemodes seems to be wrongly marked as SIDLE_SMART_WKUP, which might cause missed interrupts with this patch. Tested on Pandaboard rev A2.]
->
-> Signed-off-by: Chao Xu <caesarxuchao@gmail.com>
+What I meant is to have a flag that would be set after
+omap2430_runtime_suspend() is called, and only write to INTERFSEL in
+omap2430_runtime_resume() if that flag is set.
 
-I'd like Tony and/or Kevin to have a look at this from a PM point
-of view so I get some confirmation from the core maintainers
-that this is the way forward.
+Drivers like drivers/tty/serial/omap-serial.c or
+drivers/gpio/gpio-omap.c use get_context_loss_count() callbacks for
+this, but it looks unnecessarily complicated.. Maybe Felipe has some
+ideas on this?
 
-Yours,
-Linus Walleij
+> Do you think simple removing the first read is an option? So far we read
+> back 0 anyway because the first write to INTERFSEL in resume() set it to
+> uninitialized / 0 anyway.
+
+It should be fine but I don't know if all OMAPs only have PHY
+interface bits, there could be some that have some more bits there..
+Yes current code is broken and writes 0 anyway, so any solution is
+better, but ideally it should read-modify-write the register and only
+change PHYSEL bits at probe.
