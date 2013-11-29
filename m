@@ -1,159 +1,209 @@
-From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-Subject: [RFC/PATCH] mtd: nand: auto-detection of NAND bus-width from ONFI param or nand_id[]
-Date: Fri, 29 Nov 2013 10:40:56 -0300
-Message-ID: <1385732456-32696-2-git-send-email-ezequiel.garcia@free-electrons.com>
-References: <1385732456-32696-1-git-send-email-ezequiel.garcia@free-electrons.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from top.free-electrons.com ([176.31.233.9]:42483 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755108Ab3K2Nl3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Nov 2013 08:41:29 -0500
-In-Reply-To: <1385732456-32696-1-git-send-email-ezequiel.garcia@free-electrons.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Michael Trimarchi <michael-dyjBcgdgk7Pe9wHmmfpqLFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH 1/1] mfd: omap-usb-host: Fix USB device detection problems
+ on OMAP4 Panda
+Date: Fri, 29 Nov 2013 16:32:22 +0100
+Message-ID: <CAOf5uwmEkzFd=e3j8m8=qdTCAMkk_-DPw0fTm=7Vzy0PbE2oDQ@mail.gmail.com>
+References: <1385730118-26402-1-git-send-email-rogerq@ti.com>
+	<1385730118-26402-2-git-send-email-rogerq@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1385730118-26402-2-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Cc: lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, tomi.valkeinen-l0cyMroinI0@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Stefan Roese <sr-ynQEQJNshbs@public.gmane.org>, ljkenny.mailinglists-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, USB list <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-mtd@lists.infradead.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: Brian Norris <computersforpeace@gmail.com>, Pekon Gupta <pekon@ti.com>, shc_work@mail.ru, Artem Bityutskiy <dedekind1@gmail.com>, David Woodhouse <dwmw2@infradead.org>, swarren@wwwdotorg.org, rob.herring@calxeda.com, mark.rutland@arm.com, Tony Lindgren <tony@atomide.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
 
-From: Pekon Gupta <pekon@ti.com>
+Hi Roger
 
-This patch is alternative implementation for following commit which introduced
-NAND_BUSWIDTH_AUTO for detection of bus-width during device probe
-   commit 64b37b2a63eb2f80b65c7185f0013f8ffc637ae3
-   Author:     Matthieu CASTET <matthieu.castet@parrot.com>
-   AuthorDate: 2012-11-06
+On Fri, Nov 29, 2013 at 2:01 PM, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> wrote:
+> With u-boot 2013.10, USB devices are sometimes not detected
+> on OMAP4 Panda. To make us independent of what bootloader does
+> with the USB Host module, we must RESET it to get it to a known
+> good state. This patch Soft RESETs the USB Host module.
+>
 
-As NAND device is identified only during nand_scan_ident(), so this patch
-assumes that NAND driver may un-initialized or partially congigured while
-calling nand_scan_ident(). Hence, this patch does following:
+Do you think that we need something similar of usb musb?
+I have seen the OTG_SYSCONFIG is touched in uboot and
+only readed in omap2430.c.
 
- 1. Temporarily configures 'bus-width=x8' mode before reading ONFI parameters,
-    as required by ONFI specification [1].
+Michael
 
- 2. Reconfigures the driver with correct bus-width determined by either reading
-    ONFI param, or the nand_flash_id[] table.
-
-This patch removes any dependency on either 'DT binding' or 'platform data' to
-specify the NAND device bus-width.
-
-[*] Reference: ONFI spec version 3.1 (section 3.5.3. Target Initialization)
-    "The Read ID and Read Parameter Page commands only use the lower 8-bits
-     of the data bus. The host shall not issue commands that use a word
-     data width on x16 devices until the host determines the device supports
-     a 16-bit data bus width in the parameter page."
-
-Signed-off-by: Pekon Gupta <pekon@ti.com>
-Signed-off-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
----
- drivers/mtd/nand/nand_base.c | 43 +++++++++++++------------------------------
- include/linux/mtd/nand.h     |  7 -------
- 2 files changed, 13 insertions(+), 37 deletions(-)
-
-diff --git a/drivers/mtd/nand/nand_base.c b/drivers/mtd/nand/nand_base.c
-index bd39f7b..2fff3d0 100644
---- a/drivers/mtd/nand/nand_base.c
-+++ b/drivers/mtd/nand/nand_base.c
-@@ -2942,15 +2942,6 @@ static int nand_flash_detect_onfi(struct mtd_info *mtd, struct nand_chip *chip,
- 		chip->read_byte(mtd) != 'F' || chip->read_byte(mtd) != 'I')
- 		return 0;
- 
--	/*
--	 * ONFI must be probed in 8-bit mode or with NAND_BUSWIDTH_AUTO, not
--	 * with NAND_BUSWIDTH_16
--	 */
--	if (chip->options & NAND_BUSWIDTH_16) {
--		pr_err("ONFI cannot be probed in 16-bit mode; aborting\n");
--		return 0;
--	}
--
- 	chip->cmdfunc(mtd, NAND_CMD_PARAM, 0, -1);
- 	for (i = 0; i < 3; i++) {
- 		chip->read_buf(mtd, (uint8_t *)p, sizeof(*p));
-@@ -3335,13 +3326,20 @@ static bool find_full_id_nand(struct mtd_info *mtd, struct nand_chip *chip,
-  */
- static struct nand_flash_dev *nand_get_flash_type(struct mtd_info *mtd,
- 						  struct nand_chip *chip,
--						  int busw,
- 						  int *maf_id, int *dev_id,
- 						  struct nand_flash_dev *type)
- {
- 	int i, maf_idx;
-+	int busw = 0;
- 	u8 id_data[8];
- 
-+	/*
-+	 * The device detection is done in 8-bit mode. The real bus width
-+	 * will be autodetected (either ONFI or flash-based), the
-+	 * defaults re-configured and the chip->options updated.
-+	 */
-+	nand_set_defaults(chip, 0);
-+
- 	/* Select the device */
- 	chip->select_chip(mtd, 0);
- 
-@@ -3431,22 +3429,11 @@ ident_done:
- 			break;
- 	}
- 
--	if (chip->options & NAND_BUSWIDTH_AUTO) {
--		WARN_ON(chip->options & NAND_BUSWIDTH_16);
-+	/* re-configure driver using detected bus-width */
-+	if (busw) {
-+		pr_debug("reconfiguring bus width to %d bit\n", busw ? 16 : 8);
- 		chip->options |= busw;
- 		nand_set_defaults(chip, busw);
--	} else if (busw != (chip->options & NAND_BUSWIDTH_16)) {
--		/*
--		 * Check, if buswidth is correct. Hardware drivers should set
--		 * chip correct!
--		 */
--		pr_info("NAND device: Manufacturer ID:"
--			" 0x%02x, Chip ID: 0x%02x (%s %s)\n", *maf_id,
--			*dev_id, nand_manuf_ids[maf_idx].name, mtd->name);
--		pr_warn("NAND bus width %d instead %d bit\n",
--			   (chip->options & NAND_BUSWIDTH_16) ? 16 : 8,
--			   busw ? 16 : 8);
--		return ERR_PTR(-EINVAL);
- 	}
- 
- 	nand_decode_bbm_options(mtd, chip, id_data);
-@@ -3497,17 +3484,13 @@ ident_done:
- int nand_scan_ident(struct mtd_info *mtd, int maxchips,
- 		    struct nand_flash_dev *table)
- {
--	int i, busw, nand_maf_id, nand_dev_id;
-+	int i, nand_maf_id, nand_dev_id;
- 	struct nand_chip *chip = mtd->priv;
- 	struct nand_flash_dev *type;
- 
--	/* Get buswidth to select the correct functions */
--	busw = chip->options & NAND_BUSWIDTH_16;
--	/* Set the default functions */
--	nand_set_defaults(chip, busw);
- 
- 	/* Read the flash type */
--	type = nand_get_flash_type(mtd, chip, busw,
-+	type = nand_get_flash_type(mtd, chip,
- 				&nand_maf_id, &nand_dev_id, table);
- 
- 	if (IS_ERR(type)) {
-diff --git a/include/linux/mtd/nand.h b/include/linux/mtd/nand.h
-index 9e6c8f9..d5cc642 100644
---- a/include/linux/mtd/nand.h
-+++ b/include/linux/mtd/nand.h
-@@ -183,13 +183,6 @@ typedef enum {
- #define NAND_OWN_BUFFERS	0x00020000
- /* Chip may not exist, so silence any errors in scan */
- #define NAND_SCAN_SILENT_NODEV	0x00040000
--/*
-- * Autodetect nand buswidth with readid/onfi.
-- * This suppose the driver will configure the hardware in 8 bits mode
-- * when calling nand_scan_ident, and update its configuration
-- * before calling nand_scan_tail.
-- */
--#define NAND_BUSWIDTH_AUTO      0x00080000
- 
- /* Options set by nand scan */
- /* Nand scan has allocated controller struct */
--- 
-1.8.1.5
-
+> Reported-by: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
+> Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org> # 3.10+
+> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+> ---
+>  drivers/mfd/omap-usb-host.c | 115 +++++++++++++++++++++++++++++++++++++++++---
+>  1 file changed, 109 insertions(+), 6 deletions(-)
+>
+> diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
+> index 142650f..d4bd464 100644
+> --- a/drivers/mfd/omap-usb-host.c
+> +++ b/drivers/mfd/omap-usb-host.c
+> @@ -43,14 +43,18 @@
+>  /* UHH Register Set */
+>  #define        OMAP_UHH_REVISION                               (0x00)
+>  #define        OMAP_UHH_SYSCONFIG                              (0x10)
+> -#define        OMAP_UHH_SYSCONFIG_MIDLEMODE                    (1 << 12)
+> +#define        OMAP_UHH_SYSCONFIG_MIDLEMASK                    (3 << 12)
+> +#define OMAP_UHH_SYSCONFIG_MIDLESHIFT                  (12)
+>  #define        OMAP_UHH_SYSCONFIG_CACTIVITY                    (1 << 8)
+> -#define        OMAP_UHH_SYSCONFIG_SIDLEMODE                    (1 << 3)
+> +#define        OMAP_UHH_SYSCONFIG_SIDLEMASK                    (3 << 3)
+> +#define        OMAP_UHH_SYSCONFIG_SIDLESHIFT                   (3)
+>  #define        OMAP_UHH_SYSCONFIG_ENAWAKEUP                    (1 << 2)
+>  #define        OMAP_UHH_SYSCONFIG_SOFTRESET                    (1 << 1)
+>  #define        OMAP_UHH_SYSCONFIG_AUTOIDLE                     (1 << 0)
+>
+>  #define        OMAP_UHH_SYSSTATUS                              (0x14)
+> +#define OMAP_UHH_SYSSTATUS_RESETDONE                   (1 << 0)
+> +
+>  #define        OMAP_UHH_HOSTCONFIG                             (0x40)
+>  #define        OMAP_UHH_HOSTCONFIG_ULPI_BYPASS                 (1 << 0)
+>  #define        OMAP_UHH_HOSTCONFIG_ULPI_P1_BYPASS              (1 << 0)
+> @@ -66,10 +70,10 @@
+>  #define OMAP4_UHH_HOSTCONFIG_APP_START_CLK             (1 << 31)
+>
+>  /* OMAP4-specific defines */
+> -#define OMAP4_UHH_SYSCONFIG_IDLEMODE_CLEAR             (3 << 2)
+> -#define OMAP4_UHH_SYSCONFIG_NOIDLE                     (1 << 2)
+> -#define OMAP4_UHH_SYSCONFIG_STDBYMODE_CLEAR            (3 << 4)
+> -#define OMAP4_UHH_SYSCONFIG_NOSTDBY                    (1 << 4)
+> +#define OMAP4_UHH_SYSCONFIG_MIDLEMASK                  (3 << 2)
+> +#define OMAP4_UHH_SYSCONFIG_MIDLESHIFT                 (2)
+> +#define OMAP4_UHH_SYSCONFIG_SIDLEMASK                  (3 << 4)
+> +#define OMAP4_UHH_SYSCONFIG_SIDLESHIFT                 (4)
+>  #define OMAP4_UHH_SYSCONFIG_SOFTRESET                  (1 << 0)
+>
+>  #define OMAP4_P1_MODE_CLEAR                            (3 << 16)
+> @@ -81,6 +85,12 @@
+>
+>  #define        OMAP_UHH_DEBUG_CSR                              (0x44)
+>
+> +/* MIDLE modes */
+> +#define OMAP_UHH_SYSCONFIG_MIDLE_NOSTANDBY             (1)
+> +
+> +/* SIDLE modes */
+> +#define OMAP_UHH_SYSCONFIG_SIDLE_NOIDLE                        (1)
+> +
+>  /* Values of UHH_REVISION - Note: these are not given in the TRM */
+>  #define OMAP_USBHS_REV1                0x00000010      /* OMAP3 */
+>  #define OMAP_USBHS_REV2                0x50700100      /* OMAP4 */
+> @@ -474,6 +484,97 @@ static unsigned omap_usbhs_rev2_hostconfig(struct usbhs_hcd_omap *omap,
+>         return reg;
+>  }
+>
+> +static void omap_usbhs_rev1_reset(struct device *dev)
+> +{
+> +       struct usbhs_hcd_omap *omap = dev_get_drvdata(dev);
+> +       u32 reg;
+> +       unsigned long timeout;
+> +
+> +       reg = usbhs_read(omap->uhh_base, OMAP_UHH_SYSCONFIG);
+> +
+> +       /* Soft Reset */
+> +       usbhs_write(omap->uhh_base, OMAP_UHH_SYSCONFIG,
+> +                   reg | OMAP_UHH_SYSCONFIG_SOFTRESET);
+> +
+> +       timeout = jiffies + msecs_to_jiffies(100);
+> +       while (!(usbhs_read(omap->uhh_base, OMAP_UHH_SYSSTATUS)
+> +                       & OMAP_UHH_SYSSTATUS_RESETDONE)) {
+> +               cpu_relax();
+> +
+> +               if (time_after(jiffies, timeout)) {
+> +                       dev_err(dev, "Soft RESET operation timed out\n");
+> +                       break;
+> +               }
+> +       }
+> +
+> +       /* Set No-Standby */
+> +       reg &= ~OMAP_UHH_SYSCONFIG_MIDLEMASK;
+> +       reg |= OMAP_UHH_SYSCONFIG_MIDLE_NOSTANDBY
+> +               << OMAP_UHH_SYSCONFIG_MIDLESHIFT;
+> +
+> +       /* Set No-Idle */
+> +       reg &= ~OMAP_UHH_SYSCONFIG_SIDLEMASK;
+> +       reg |= OMAP_UHH_SYSCONFIG_SIDLE_NOIDLE
+> +               << OMAP_UHH_SYSCONFIG_SIDLESHIFT;
+> +
+> +       usbhs_write(omap->uhh_base, OMAP_UHH_SYSCONFIG, reg);
+> +}
+> +
+> +static void omap_usbhs_rev2_reset(struct device *dev)
+> +{
+> +       struct usbhs_hcd_omap *omap = dev_get_drvdata(dev);
+> +       u32 reg;
+> +       unsigned long timeout;
+> +
+> +       reg = usbhs_read(omap->uhh_base, OMAP_UHH_SYSCONFIG);
+> +
+> +       /* Soft Reset */
+> +       usbhs_write(omap->uhh_base, OMAP_UHH_SYSCONFIG,
+> +                   reg | OMAP4_UHH_SYSCONFIG_SOFTRESET);
+> +
+> +       /* OMAP4: Need to wait before SYSCONFIG can be accessed */
+> +       udelay(2);
+> +       timeout = jiffies + msecs_to_jiffies(100);
+> +
+> +       /* SOFTRESET bit clears when RESET completes */
+> +       while (usbhs_read(omap->uhh_base, OMAP_UHH_SYSCONFIG)
+> +                       & OMAP4_UHH_SYSCONFIG_SOFTRESET) {
+> +               cpu_relax();
+> +
+> +               if (time_after(jiffies, timeout)) {
+> +                       dev_err(dev, "Soft RESET operation timed out\n");
+> +                       break;
+> +               }
+> +       }
+> +
+> +       /* Set No-Standby */
+> +       reg &= ~OMAP4_UHH_SYSCONFIG_MIDLEMASK;
+> +       reg |= OMAP_UHH_SYSCONFIG_MIDLE_NOSTANDBY
+> +               << OMAP4_UHH_SYSCONFIG_MIDLESHIFT;
+> +
+> +       /* Set No-Idle */
+> +       reg &= ~OMAP4_UHH_SYSCONFIG_SIDLEMASK;
+> +       reg |= OMAP_UHH_SYSCONFIG_SIDLE_NOIDLE
+> +               << OMAP4_UHH_SYSCONFIG_SIDLESHIFT;
+> +
+> +       usbhs_write(omap->uhh_base, OMAP_UHH_SYSCONFIG, reg);
+> +}
+> +
+> +static void omap_usbhs_softreset(struct device *dev)
+> +{
+> +       struct usbhs_hcd_omap *omap = dev_get_drvdata(dev);
+> +
+> +       switch (omap->usbhs_rev) {
+> +       case OMAP_USBHS_REV1:
+> +               omap_usbhs_rev1_reset(dev);
+> +               break;
+> +
+> +       default:        /* Rev 2 onwards */
+> +               omap_usbhs_rev2_reset(dev);
+> +               break;
+> +       }
+> +}
+> +
+>  static void omap_usbhs_init(struct device *dev)
+>  {
+>         struct usbhs_hcd_omap           *omap = dev_get_drvdata(dev);
+> @@ -483,6 +584,8 @@ static void omap_usbhs_init(struct device *dev)
+>
+>         pm_runtime_get_sync(dev);
+>
+> +       omap_usbhs_softreset(dev);
+> +
+>         reg = usbhs_read(omap->uhh_base, OMAP_UHH_HOSTCONFIG);
+>         /* setup ULPI bypass and burst configurations */
+>         reg |= (OMAP_UHH_HOSTCONFIG_INCR4_BURST_EN
+> --
+> 1.8.3.2
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
