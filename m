@@ -1,37 +1,135 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv10 00/41] ARM: TI SoC clock DT conversion
-Date: Fri, 29 Nov 2013 20:59:07 +0200
-Message-ID: <5298E3FB.4010908@ti.com>
-References: <1385453182-24421-1-git-send-email-t-kristo@ti.com> <52969313.6090207@ti.com> <alpine.DEB.2.02.1311281857100.23429@utopia.booyaka.com> <20131129171256.GN31534@atomide.com>
+Subject: Re: [PATCHv10 15/41] CLK: TI: DRA7: Add APLL support
+Date: Fri, 29 Nov 2013 21:00:29 +0200
+Message-ID: <5298E44D.4010308@ti.com>
+References: <1385453182-24421-1-git-send-email-t-kristo@ti.com> <1385453182-24421-16-git-send-email-t-kristo@ti.com> <20131126085128.GA19357@omega>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:42663 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753191Ab3K2S7l (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 29 Nov 2013 13:59:41 -0500
-In-Reply-To: <20131129171256.GN31534@atomide.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:45527 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752634Ab3K2TA5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Nov 2013 14:00:57 -0500
+In-Reply-To: <20131126085128.GA19357@omega>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
-Cc: Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org, rnayak@ti.com, bcousson@baylibre.com, mturquette@linaro.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
+To: Alexander Aring <alex.aring@gmail.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, nm@ti.com, rnayak@ti.com, bcousson@baylibre.com, mturquette@linaro.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, J Keerthy <j-keerthy@ti.com>
 
-On 11/29/2013 07:12 PM, Tony Lindgren wrote:
-> * Paul Walmsley <paul@pwsan.com> [131128 10:59]:
->> On Wed, 27 Nov 2013, Nishanth Menon wrote:
->>
->>> http://pastebin.mozilla.org/3681900 -> AM3517-evm (not sure yet how
->>> long this has been broken).
->>
->> Seems to work in v3.13-rc1:
->>
->> http://www.pwsan.com/omap/testlogs/test_v3.13-rc1/20131124230250/boot/3517evm/3517evm_log.txt
+On 11/26/2013 10:51 AM, Alexander Aring wrote:
+> Hi,
 >
-> FYI, not really related to the clock patches, but we're also missing the .dtsi
-> file for 3517 currently for the device tree based booting. I'm planning to take
-> a look at that next week.
+> On Tue, Nov 26, 2013 at 10:05:56AM +0200, Tero Kristo wrote:
+>> From: J Keerthy <j-keerthy@ti.com>
+>>
+>> The patch adds support for DRA7 PCIe APLL. The APLL
+>> sources the optional functional clocks for PCIe module.
+>>
+>> APLL stands for Analog PLL. This is different when comapred
+>> with DPLL meaning Digital PLL, the phase detection is done
+>> using an analog circuit.
+>>
+>> Signed-off-by: J Keerthy <j-keerthy@ti.com>
+>> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+>> ---
+>>   .../devicetree/bindings/clock/ti/apll.txt          |   31 +++
+>>   drivers/clk/ti/Makefile                            |    2 +-
+>>   drivers/clk/ti/apll.c                              |  239 ++++++++++++++++++++
+>>   3 files changed, 271 insertions(+), 1 deletion(-)
+>>   create mode 100644 Documentation/devicetree/bindings/clock/ti/apll.txt
+>>   create mode 100644 drivers/clk/ti/apll.c
+>>
+>> diff --git a/Documentation/devicetree/bindings/clock/ti/apll.txt b/Documentation/devicetree/bindings/clock/ti/apll.txt
+>> new file mode 100644
+>> index 0000000..7faf5a6
+> ...
+>> +
+>> +static int __init of_dra7_apll_setup(struct device_node *node)
+>> +{
+>> +	const struct clk_ops *ops;
+>> +	struct clk *clk;
+>> +	const char *clk_name = node->name;
+>> +	int num_parents;
+>> +	const char **parent_names = NULL;
+>> +	u8 apll_flags = 0;
+>> +	struct dpll_data *ad;
+>> +	u32 idlest_mask = 0x1;
+>> +	u32 autoidle_mask = 0x3;
+>> +	int i;
+>> +	int ret;
+>> +
+>> +	ops = &apll_ck_ops;
+>> +	ad = kzalloc(sizeof(*ad), GFP_KERNEL);
+>> +	if (!ad)
+>> +		return -ENOMEM;
+>> +
+>> +	of_property_read_string(node, "clock-output-names", &clk_name);
+>> +
+>> +	num_parents = of_clk_get_parent_count(node);
+>> +	if (num_parents < 1) {
+>> +		pr_err("dra7 apll %s must have parent(s)\n", node->name);
+>> +		ret = -EINVAL;
+>> +		goto cleanup;
+>> +	}
+>> +
+>> +	parent_names = kzalloc(sizeof(char *) * num_parents, GFP_KERNEL);
+>> +
+>> +	for (i = 0; i < num_parents; i++)
+>> +		parent_names[i] = of_clk_get_parent_name(node, i);
+>> +
+>> +	ad->clk_ref = of_clk_get(node, 0);
+>> +	ad->clk_bypass = of_clk_get(node, 1);
+>> +
+>> +	if (IS_ERR(ad->clk_ref)) {
+>> +		pr_debug("ti,clk-ref for %s not found\n", clk_name);
+>> +		ret = -EAGAIN;
+>> +		goto cleanup;
+>> +	}
+>> +
+>> +	if (IS_ERR(ad->clk_bypass)) {
+>> +		pr_debug("ti,clk-bypass for %s not found\n", clk_name);
+>> +		ret = -EAGAIN;
+>> +		goto cleanup;
+>> +	}
+>> +
+>> +	ad->control_reg = ti_clk_get_reg_addr(node, 0);
+>> +	ad->idlest_reg = ti_clk_get_reg_addr(node, 1);
+>> +
+>> +	if (!ad->control_reg || !ad->idlest_reg) {
+>> +		ret = -EINVAL;
+>> +		goto cleanup;
+>> +	}
+>> +
+>> +	ad->idlest_mask = idlest_mask;
+>> +	ad->enable_mask = autoidle_mask;
+>> +
+>> +	clk = omap_clk_register_apll(NULL, clk_name, parent_names,
+>> +				num_parents, apll_flags, ad,
+>> +				NULL, ops);
+>> +
+>> +	if (!IS_ERR(clk)) {
+>> +		of_clk_add_provider(node, of_clk_src_simple_get, clk);
+>> +		return 0;
+>> +	}
+>> +
+>
+> Should we not also here do a cleanup for allocated memory?
+>
+>> +	return PTR_ERR(clk);
 
-Yea I would guess this prevents this set from working also on that board. :)
+Yes, this should be changed to be ret = PTR_ERR(clk);
 
 -Tero
+
+>> +
+>> +cleanup:
+>> +	kfree(parent_names);
+>> +	kfree(ad);
+>> +	return ret;
+>> +}
+>> +CLK_OF_DECLARE(dra7_apll_clock, "ti,dra7-apll-clock", of_dra7_apll_setup);
+>
+> - Alex
+>
+
