@@ -1,61 +1,96 @@
-From: Javier Martinez Canillas <javier@dowhile0.org>
-Subject: Re: [PATCH 01/12 diet] ARM: OMAP2+: Remove legacy omap3 board-*.c
- files and make mach-omap2 DT only for booting
-Date: Fri, 29 Nov 2013 10:00:38 +0100
-Message-ID: <CABxcv==5X91DTnUCOjZTpjKCVQzHquvL7o4+q0DsJ=LM80DORQ@mail.gmail.com>
-References: <1385424867-27243-1-git-send-email-tony@atomide.com>
-	<20131126011744.GA26766@atomide.com>
-	<CANOLnONmmRgDSfdObUii-FxwVOTo45WGX81Lend7QGWuqXWaZA@mail.gmail.com>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH] mfd: twl-core: Clean up module by removing twl603x pdata
+ handling
+Date: Fri, 29 Nov 2013 09:16:44 +0000
+Message-ID: <20131129091644.GB26086@lee--X1>
+References: <1385036008-1727-1-git-send-email-ruslan.ruslichenko@globallogic.com>
+ <20131127121908.GE3296@lee--X1>
+ <CAK9oHmyq3wOwgzxPYOLjoHuHahPFJE=vEN+GZCzfu-ZFhk9_Hw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-we0-f176.google.com ([74.125.82.176]:40552 "EHLO
-	mail-we0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751485Ab3K2JAk convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Nov 2013 04:00:40 -0500
-Received: by mail-we0-f176.google.com with SMTP id w62so3387488wes.35
-        for <linux-omap@vger.kernel.org>; Fri, 29 Nov 2013 01:00:38 -0800 (PST)
-In-Reply-To: <CANOLnONmmRgDSfdObUii-FxwVOTo45WGX81Lend7QGWuqXWaZA@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAK9oHmyq3wOwgzxPYOLjoHuHahPFJE=vEN+GZCzfu-ZFhk9_Hw@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ruslan Ruslichenko <ruslan.ruslichenko@globallogic.com>, Tony Lindgren <tony@atomide.com>
+Cc: Samuel Ortiz <sameo@linux.intel.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Graeme Gregory <graeme.gregory@linaro.org>
 List-Id: linux-omap@vger.kernel.org
-To: Grazvydas Ignotas <notasas@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Grazvydas,
+Attn: Tony
 
-On Fri, Nov 29, 2013 at 12:57 AM, Grazvydas Ignotas <notasas@gmail.com>=
- wrote:
-> On Tue, Nov 26, 2013 at 3:17 AM, Tony Lindgren <tony@atomide.com> wro=
-te:
->> We can now boot all mach-omap2 related boards using appended device
->> tree by creating a related .dts file with pretty much the same
->> functionality as booted in the legacy platform data mode.
->
-> Not really the same, quite some drivers are still missing, and it
-> makes pandora unusable :( . For example, SDIO variation of wl1251,
-> that one is non-probeable and used to be "detected" by using
-> MMC_QUIRK_NONSTD_SDIO quirk (see pandora_wl1251_init_card() in
-> board-omap3pandora.c). Also there are at least pandora-backlight,
-> twl4030_keypad and panel drivers that are not converted yet.
->
-> Can pdata-quirks.c be used for SDIO wl1251 at least, as I have no ide=
-a
-> how to express it using device tree?
->
+> > > Since currently nobody uses TWL603x platform data and all new
+> >
+> > Hmm... when you say nobody, how did you come to this conclusion?
+> >
+> > Without digging into it and probably not that relevant, it
+> > appears there is some references to it in platform data still:
+> >
+> > $ git grep twl603 -- arch/ | grep -v dts
+> > arch/arm/mach-omap2/common.h:extern int omap4_twl6030_hsmmc_init(st=
+ruct
+> > omap2_hsmmc_info *controllers);
+> > arch/arm/mach-omap2/omap4-common.c:static int
+> > omap4_twl6030_hsmmc_late_init(struct device *dev)
+> > arch/arm/mach-omap2/omap4-common.c:             irq =3D
+> > twl6030_mmc_card_detect_config();
+> > arch/arm/mach-omap2/omap4-common.c:
+> > pdata->slots[0].card_detect =3D twl6030_mmc_card_detect;
+> > arch/arm/mach-omap2/omap4-common.c:static __init void
+> > omap4_twl6030_hsmmc_set_late_init(struct device *dev)
+> > arch/arm/mach-omap2/omap4-common.c:     pdata->init =3D
+> > omap4_twl6030_hsmmc_late_init;
+> > arch/arm/mach-omap2/omap4-common.c:int __init
+> > omap4_twl6030_hsmmc_init(struct omap2_hsmmc_info *controllers)
+> > arch/arm/mach-omap2/omap4-common.c:
+> > omap4_twl6030_hsmmc_set_late_init(&c->pdev->dev);
+> > arch/arm/mach-omap2/omap4-common.c:int __init
+> > omap4_twl6030_hsmmc_init(struct omap2_hsmmc_info *controllers)
+> > arch/arm/mach-omap2/omap_twl.c:static unsigned long
+> > twl6030_vsel_to_uv(const u8 vsel)
+> > arch/arm/mach-omap2/omap_twl.c:static u8 twl6030_uv_to_vsel(unsigne=
+d long
+> > uv)
+> > arch/arm/mach-omap2/omap_twl.c: if (uv > twl6030_vsel_to_uv(0x39)) =
+{
+> > arch/arm/mach-omap2/omap_twl.c:                 __func__, uv,
+> > twl6030_vsel_to_uv(0x39));
+> > arch/arm/mach-omap2/omap_twl.c: .vsel_to_uv             =3D
+> > twl6030_vsel_to_uv,
+> > arch/arm/mach-omap2/omap_twl.c: .uv_to_vsel             =3D
+> > twl6030_uv_to_vsel,
+> > arch/arm/mach-omap2/omap_twl.c: .vsel_to_uv             =3D
+> > twl6030_vsel_to_uv,
+> > arch/arm/mach-omap2/omap_twl.c: .uv_to_vsel             =3D
+> > twl6030_uv_to_vsel,
+> > arch/arm/mach-omap2/omap_twl.c: .vsel_to_uv             =3D
+> > twl6030_vsel_to_uv,
+> > arch/arm/mach-omap2/omap_twl.c: .uv_to_vsel             =3D
+> > twl6030_uv_to_vsel,
+> >
+> Looks like some misunderstanding is here. This patch *only* removes
+> platform data for TWL603x
+> which were used to create TWL sub-devices like regulators, adc's,
+> watchdogs, etc.
+> Previously it was set up in twl_common.c by omap4_pmic_init(), which =
+was
+> called from board files
+> with specific pmic config.
+> Since now in Linux kernel 3.13 OMAP4 non-DT boot is not supported and=
+ all
+> OMAP4 board files
+> have been removed omap4_pmic_init() is never called and all TWL603x
+> sub-devices are created
+> from device tree data.
 
-Yes, pdata-quirks.c can be used to initialize any platform device that
-does not have DT support yet and still needs platform data. Until we
-add the proper bindings and get rid of it.
+I'm not overly familiar with this driver (it looks like a big
+historical mess to me), or the current state of the OMAP4 platform, so
+I would like a second opinion on this.
 
-> --
-> Gra=C5=BEvydas
-> --
+Tony would you be kind enough to oblige?
 
-Best regards,
-Javier
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--=20
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org =E2=94=82 Open source software for ARM SoCs
+=46ollow Linaro: Facebook | Twitter | Blog
