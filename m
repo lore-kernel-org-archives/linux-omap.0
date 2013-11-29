@@ -1,42 +1,61 @@
-From: Daniel Mack <zonque@gmail.com>
-Subject: Re: [PATCH v7] ARM: omap: edma: add suspend suspend/resume hooks
-Date: Fri, 29 Nov 2013 09:57:13 +0100
-Message-ID: <529856E9.8030708@gmail.com>
-References: <1385560571-3939-1-git-send-email-zonque@gmail.com> <52984B98.5050202@cobham.com>
+From: Javier Martinez Canillas <javier@dowhile0.org>
+Subject: Re: [PATCH 01/12 diet] ARM: OMAP2+: Remove legacy omap3 board-*.c
+ files and make mach-omap2 DT only for booting
+Date: Fri, 29 Nov 2013 10:00:38 +0100
+Message-ID: <CABxcv==5X91DTnUCOjZTpjKCVQzHquvL7o4+q0DsJ=LM80DORQ@mail.gmail.com>
+References: <1385424867-27243-1-git-send-email-tony@atomide.com>
+	<20131126011744.GA26766@atomide.com>
+	<CANOLnONmmRgDSfdObUii-FxwVOTo45WGX81Lend7QGWuqXWaZA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bk0-f50.google.com ([209.85.214.50]:60699 "EHLO
-	mail-bk0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750985Ab3K2I5Z (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Nov 2013 03:57:25 -0500
-Received: by mail-bk0-f50.google.com with SMTP id e11so4180443bkh.37
-        for <linux-omap@vger.kernel.org>; Fri, 29 Nov 2013 00:57:24 -0800 (PST)
-In-Reply-To: <52984B98.5050202@cobham.com>
+Received: from mail-we0-f176.google.com ([74.125.82.176]:40552 "EHLO
+	mail-we0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751485Ab3K2JAk convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Nov 2013 04:00:40 -0500
+Received: by mail-we0-f176.google.com with SMTP id w62so3387488wes.35
+        for <linux-omap@vger.kernel.org>; Fri, 29 Nov 2013 01:00:38 -0800 (PST)
+In-Reply-To: <CANOLnONmmRgDSfdObUii-FxwVOTo45WGX81Lend7QGWuqXWaZA@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Brian Murphy <brian.murphy@cobham.com>
-Cc: linux-omap@vger.kernel.org
+To: Grazvydas Ignotas <notasas@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On 11/29/2013 09:08 AM, Brian Murphy wrote:
-> On 11/27/2013 02:56 PM, Daniel Mack wrote:
->> This patch makes the edma driver resume correctly after suspend. Tested
->> on an AM33xx platform with cyclic audio streams and omap_hsmmc.
-> 
-> Can I ask which git this patch is relative to? There is no
-> suspend/resume support for AM33xx in Linus Torvalds kernel as far as I 
-> can see.
+Hi Grazvydas,
 
-I am based on 3.13-rc1 with some patches from Suman Anna, Vaibhav Bedia
-and Dave Gerlach that have been posted on arm-linux some month ago.
+On Fri, Nov 29, 2013 at 12:57 AM, Grazvydas Ignotas <notasas@gmail.com>=
+ wrote:
+> On Tue, Nov 26, 2013 at 3:17 AM, Tony Lindgren <tony@atomide.com> wro=
+te:
+>> We can now boot all mach-omap2 related boards using appended device
+>> tree by creating a related .dts file with pretty much the same
+>> functionality as booted in the legacy platform data mode.
+>
+> Not really the same, quite some drivers are still missing, and it
+> makes pandora unusable :( . For example, SDIO variation of wl1251,
+> that one is non-probeable and used to be "detected" by using
+> MMC_QUIRK_NONSTD_SDIO quirk (see pandora_wl1251_init_card() in
+> board-omap3pandora.c). Also there are at least pandora-backlight,
+> twl4030_keypad and panel drivers that are not converted yet.
+>
+> Can pdata-quirks.c be used for SDIO wl1251 at least, as I have no ide=
+a
+> how to express it using device tree?
+>
 
-This patch can be merged independently as it has no dependency on those.
+Yes, pdata-quirks.c can be used to initialize any platform device that
+does not have DT support yet and still needs platform data. Until we
+add the proper bindings and get rid of it.
 
-We already did the same for cppi41, musb, mcasp and some other drivers,
-which gradually learn support for suspend in mainline now. Only the core
-bits are missing, but I'm sure someone from TI is pushing them forward :)
+> --
+> Gra=C5=BEvydas
+> --
 
-
-Daniel
-
+Best regards,
+Javier
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
