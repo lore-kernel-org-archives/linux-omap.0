@@ -1,77 +1,76 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/8] mmc: omap: Fix DMA configuration to not rely on
- device id
-Date: Sat, 30 Nov 2013 09:33:18 -0800
-Message-ID: <20131130173317.GG23334@atomide.com>
-References: <1384396537-3486-1-git-send-email-tony@atomide.com>
- <1384396537-3486-3-git-send-email-tony@atomide.com>
- <5299339C.2040102@ti.com>
+From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+Subject: Re: [PATCH] usb: phy: am335x: Prevent GPIO reset line request
+Date: Sat, 30 Nov 2013 19:45:05 -0300
+Message-ID: <20131130224504.GA2446@localhost>
+References: <1384984714-19860-1-git-send-email-ezequiel.garcia@free-electrons.com>
+ <20131120220212.GA12776@localhost>
+ <528DC168.7090204@linutronix.de>
+ <20131121113025.GA2942@localhost>
+ <528DF233.40502@linutronix.de>
+ <20131121115519.GC2942@localhost>
+ <20131121130155.GC24559@saruman.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:38558 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752296Ab3K3RdV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 30 Nov 2013 12:33:21 -0500
+Received: from top.free-electrons.com ([176.31.233.9]:46888 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751159Ab3K3WpH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 30 Nov 2013 17:45:07 -0500
 Content-Disposition: inline
-In-Reply-To: <5299339C.2040102@ti.com>
+In-Reply-To: <20131121130155.GC24559@saruman.home>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Joel Fernandes <joelf@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Chris Ball <cjb@laptop.org>, linux-mmc@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Roger Quadros <rogerq@ti.com>, Javier Martinez Canillas <martinez.javier@gmail.com>, Enric Balletbo Serra <eballetbo@gmail.com>, Tony Lindgren <tony@atomide.com>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
 
-* Joel Fernandes <joelf@ti.com> [131129 16:39]:
-> On 11/13/2013 08:35 PM, Tony Lindgren wrote:
-> > --- a/drivers/mmc/host/omap.c
-> > +++ b/drivers/mmc/host/omap.c
-> > @@ -90,17 +90,6 @@
-> >  #define OMAP_MMC_CMDTYPE_AC	2
-> >  #define OMAP_MMC_CMDTYPE_ADTC	3
-> >  
-> > -#define OMAP_DMA_MMC_TX		21
-> > -#define OMAP_DMA_MMC_RX		22
-> > -#define OMAP_DMA_MMC2_TX	54
-> > -#define OMAP_DMA_MMC2_RX	55
-> > -
-> > -#define OMAP24XX_DMA_MMC2_TX	47
-> > -#define OMAP24XX_DMA_MMC2_RX	48
-> > -#define OMAP24XX_DMA_MMC1_TX	61
-> > -#define OMAP24XX_DMA_MMC1_RX	62
-> > -
-> > -
-> >  #define DRIVER_NAME "mmci-omap"
-> >  
-> >  /* Specifies how often in millisecs to poll for card status changes
-> > @@ -1408,19 +1397,20 @@ static int mmc_omap_probe(struct platform_device *pdev)
-> >  	host->dma_tx_burst = -1;
-> >  	host->dma_rx_burst = -1;
-> >  
-> > -	if (mmc_omap2())
-> > -		sig = host->id == 0 ? OMAP24XX_DMA_MMC1_TX : OMAP24XX_DMA_MMC2_TX;
-> > -	else
-> > -		sig = host->id == 0 ? OMAP_DMA_MMC_TX : OMAP_DMA_MMC2_TX;
-> > -	host->dma_tx = dma_request_channel(mask, omap_dma_filter_fn, &sig);
-> > +	res = platform_get_resource_byname(pdev, IORESOURCE_DMA, "tx");
-> > +	if (res)
-> > +		sig = res->start;
-> > +	host->dma_tx = dma_request_slave_channel_compat(mask,
-> > +				omap_dma_filter_fn, &sig, &pdev->dev, "tx");
-> 
-> Minor comment, since we're moving to DT-only for platforms using this driver
-> (hope I'm right about that), why not just do:
-> 	dma_request_slave_channel_(&pdev->dev, "tx");
-> 
-> IORESOURCE_DMA is not created by OF layer so I guess no need to call
-> platform_get_resource either.
+On Thu, Nov 21, 2013 at 07:01:55AM -0600, Felipe Balbi wrote:
+> On Thu, Nov 21, 2013 at 08:55:20AM -0300, Ezequiel Garcia wrote:
+> > On Thu, Nov 21, 2013 at 12:44:51PM +0100, Sebastian Andrzej Siewior=
+ wrote:
+> > > On 11/21/2013 12:30 PM, Ezequiel Garcia wrote:
+> > > > Ah, good to know. That patch should be picked ASAP, without it =
+the USB
+> > > > in AM335x is broken. Is it already too late to -rc1?
+> > > Yes.
+> > >=20
+> > > > Who is supposed to merge that? Greg?
+> > >=20
+> > > Felipe will start collecting fixes once -rc1 is out [0] so it sho=
+uld be
+> > > part of -rc2.
+> > >=20
+> >=20
+> > OK, fine by me. Please note that Felipe's commit is a much bigger (=
+and
+> > nicer) rework of the code, and that it doesn't clearly state it fix=
+es
+> > the current code.
+> >=20
+> > Felipe: Maybe you should add some message stating it fixes a regres=
+sion?
+>=20
+> sure, makes sense. Sebastian had already mentioned it sounded too nic=
+e
+> of a commit log ;-)
+>=20
 
-Well this is not the omap_hsmmc.c driver, this is the one for earlier hardware
-that's available on omap1 and 2420. All the later ones use the omap_hsmmc.c
-driver instead. So this one we cannot make DT only unless we make mach-omap1
-DT only, which is doable, but may never happen because of the effort needed.
+I'm looking at -rc2 and it seems the fix was never pushed, so my board
+is probably still broken :-(
 
-Most of the effort would be quite trivial, except for the conversion to use
-the common clock framework.
+Can anybody _please_please_ fix the issue by merging some fix so we can
+use USB with mainline?
 
-Regards,
+(FWIW, the fix from Felipe (pointed out by Sebastian) is sitting at
+linux-next).
 
-Tony
+Thanks a lot!
+--=20
+Ezequiel Garc=C3=ADa, Free Electrons
+Embedded Linux, Kernel and Android Engineering
+http://free-electrons.com
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
