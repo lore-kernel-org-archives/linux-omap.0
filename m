@@ -1,85 +1,209 @@
-From: Joel Fernandes <joelf@ti.com>
-Subject: Re: [PATCH 2/8] mmc: omap: Fix DMA configuration to not rely on device
- id
-Date: Fri, 29 Nov 2013 18:38:52 -0600
-Message-ID: <5299339C.2040102@ti.com>
-References: <1384396537-3486-1-git-send-email-tony@atomide.com> <1384396537-3486-3-git-send-email-tony@atomide.com>
-Reply-To: <joelf@ti.com>
+From: Michael Trimarchi <michael@amarulasolutions.com>
+Subject: Re: [PATCH 1/1] mfd: omap-usb-host: Fix USB device detection problems
+ on OMAP4 Panda
+Date: Sat, 30 Nov 2013 05:48:01 +0100
+Message-ID: <CAOf5uwnttvOQ26USuDK1naq1nNtVbHo4c0UAfdep64bK2wyvBA@mail.gmail.com>
+References: <1385730118-26402-1-git-send-email-rogerq@ti.com>
+	<1385730118-26402-2-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <1384396537-3486-3-git-send-email-tony@atomide.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Cc: Chris Ball <cjb@laptop.org>, linux-mmc@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <1385730118-26402-2-git-send-email-rogerq@ti.com>
+Sender: stable-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: Lee Jones <lee.jones@linaro.org>, sameo@linux.intel.com, tomi.valkeinen@ti.com, Felipe Balbi <balbi@ti.com>, Stefan Roese <sr@denx.de>, ljkenny.mailinglists@gmail.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, USB list <linux-usb@vger.kernel.org>, linux-kernel@vger.kernel.org, stable@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 11/13/2013 08:35 PM, Tony Lindgren wrote:
-> We are wrongly relying on device id for the DMA configuration
-> which can lead to wrong DMA channel being selected.
-> 
-> Fix the issue by using the standard resources like we should.
-> 
-> Cc: Chris Ball <cjb@laptop.org>
-> Cc: linux-mmc@vger.kernel.org
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
+Hi Roger
+
+On Fri, Nov 29, 2013 at 2:01 PM, Roger Quadros <rogerq@ti.com> wrote:
+> With u-boot 2013.10, USB devices are sometimes not detected
+> on OMAP4 Panda. To make us independent of what bootloader does
+> with the USB Host module, we must RESET it to get it to a known
+> good state. This patch Soft RESETs the USB Host module.
+>
+> Reported-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> Cc: <stable@vger.kernel.org> # 3.10+
+> Signed-off-by: Roger Quadros <rogerq@ti.com>
 > ---
-> 
-> If this looks OK, I'd like to merge this as a fix via arm-soc tree
-> along with the other patches in this series as my later patches
-> depend on patches in this series.
-> 
-> ---
-> 
->  drivers/mmc/host/omap.c | 32 +++++++++++---------------------
->  1 file changed, 11 insertions(+), 21 deletions(-)
-> 
-> diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
-> index b94f38e..ed56868 100644
-> --- a/drivers/mmc/host/omap.c
-> +++ b/drivers/mmc/host/omap.c
-> @@ -90,17 +90,6 @@
->  #define OMAP_MMC_CMDTYPE_AC	2
->  #define OMAP_MMC_CMDTYPE_ADTC	3
->  
-> -#define OMAP_DMA_MMC_TX		21
-> -#define OMAP_DMA_MMC_RX		22
-> -#define OMAP_DMA_MMC2_TX	54
-> -#define OMAP_DMA_MMC2_RX	55
-> -
-> -#define OMAP24XX_DMA_MMC2_TX	47
-> -#define OMAP24XX_DMA_MMC2_RX	48
-> -#define OMAP24XX_DMA_MMC1_TX	61
-> -#define OMAP24XX_DMA_MMC1_RX	62
-> -
-> -
->  #define DRIVER_NAME "mmci-omap"
->  
->  /* Specifies how often in millisecs to poll for card status changes
-> @@ -1408,19 +1397,20 @@ static int mmc_omap_probe(struct platform_device *pdev)
->  	host->dma_tx_burst = -1;
->  	host->dma_rx_burst = -1;
->  
-> -	if (mmc_omap2())
-> -		sig = host->id == 0 ? OMAP24XX_DMA_MMC1_TX : OMAP24XX_DMA_MMC2_TX;
-> -	else
-> -		sig = host->id == 0 ? OMAP_DMA_MMC_TX : OMAP_DMA_MMC2_TX;
-> -	host->dma_tx = dma_request_channel(mask, omap_dma_filter_fn, &sig);
-> +	res = platform_get_resource_byname(pdev, IORESOURCE_DMA, "tx");
-> +	if (res)
-> +		sig = res->start;
-> +	host->dma_tx = dma_request_slave_channel_compat(mask,
-> +				omap_dma_filter_fn, &sig, &pdev->dev, "tx");
+>  drivers/mfd/omap-usb-host.c | 115 +++++++++++++++++++++++++++++++++++++++++---
+>  1 file changed, 109 insertions(+), 6 deletions(-)
+>
+> diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
+> index 142650f..d4bd464 100644
+> --- a/drivers/mfd/omap-usb-host.c
+> +++ b/drivers/mfd/omap-usb-host.c
+> @@ -43,14 +43,18 @@
+>  /* UHH Register Set */
+>  #define        OMAP_UHH_REVISION                               (0x00)
+>  #define        OMAP_UHH_SYSCONFIG                              (0x10)
+> -#define        OMAP_UHH_SYSCONFIG_MIDLEMODE                    (1 << 12)
+> +#define        OMAP_UHH_SYSCONFIG_MIDLEMASK                    (3 << 12)
+> +#define OMAP_UHH_SYSCONFIG_MIDLESHIFT                  (12)
+>  #define        OMAP_UHH_SYSCONFIG_CACTIVITY                    (1 << 8)
+> -#define        OMAP_UHH_SYSCONFIG_SIDLEMODE                    (1 << 3)
+> +#define        OMAP_UHH_SYSCONFIG_SIDLEMASK                    (3 << 3)
+> +#define        OMAP_UHH_SYSCONFIG_SIDLESHIFT                   (3)
+>  #define        OMAP_UHH_SYSCONFIG_ENAWAKEUP                    (1 << 2)
+>  #define        OMAP_UHH_SYSCONFIG_SOFTRESET                    (1 << 1)
+>  #define        OMAP_UHH_SYSCONFIG_AUTOIDLE                     (1 << 0)
+>
+>  #define        OMAP_UHH_SYSSTATUS                              (0x14)
+> +#define OMAP_UHH_SYSSTATUS_RESETDONE                   (1 << 0)
+> +
+>  #define        OMAP_UHH_HOSTCONFIG                             (0x40)
+>  #define        OMAP_UHH_HOSTCONFIG_ULPI_BYPASS                 (1 << 0)
+>  #define        OMAP_UHH_HOSTCONFIG_ULPI_P1_BYPASS              (1 << 0)
+> @@ -66,10 +70,10 @@
+>  #define OMAP4_UHH_HOSTCONFIG_APP_START_CLK             (1 << 31)
+>
+>  /* OMAP4-specific defines */
+> -#define OMAP4_UHH_SYSCONFIG_IDLEMODE_CLEAR             (3 << 2)
+> -#define OMAP4_UHH_SYSCONFIG_NOIDLE                     (1 << 2)
+> -#define OMAP4_UHH_SYSCONFIG_STDBYMODE_CLEAR            (3 << 4)
+> -#define OMAP4_UHH_SYSCONFIG_NOSTDBY                    (1 << 4)
+> +#define OMAP4_UHH_SYSCONFIG_MIDLEMASK                  (3 << 2)
+> +#define OMAP4_UHH_SYSCONFIG_MIDLESHIFT                 (2)
+> +#define OMAP4_UHH_SYSCONFIG_SIDLEMASK                  (3 << 4)
+> +#define OMAP4_UHH_SYSCONFIG_SIDLESHIFT                 (4)
+>  #define OMAP4_UHH_SYSCONFIG_SOFTRESET                  (1 << 0)
+>
+>  #define OMAP4_P1_MODE_CLEAR                            (3 << 16)
+> @@ -81,6 +85,12 @@
+>
+>  #define        OMAP_UHH_DEBUG_CSR                              (0x44)
+>
+> +/* MIDLE modes */
+> +#define OMAP_UHH_SYSCONFIG_MIDLE_NOSTANDBY             (1)
+> +
+> +/* SIDLE modes */
+> +#define OMAP_UHH_SYSCONFIG_SIDLE_NOIDLE                        (1)
+> +
+>  /* Values of UHH_REVISION - Note: these are not given in the TRM */
+>  #define OMAP_USBHS_REV1                0x00000010      /* OMAP3 */
+>  #define OMAP_USBHS_REV2                0x50700100      /* OMAP4 */
+> @@ -474,6 +484,97 @@ static unsigned omap_usbhs_rev2_hostconfig(struct usbhs_hcd_omap *omap,
+>         return reg;
+>  }
+>
 
-Minor comment, since we're moving to DT-only for platforms using this driver
-(hope I'm right about that), why not just do:
-	dma_request_slave_channel_(&pdev->dev, "tx");
+I'm digging in the code but as I understand this should be done by
+omap_hwmod and
+i660 avoid reset of the ehci module. This is done by ocp_softreset?
 
-IORESOURCE_DMA is not created by OF layer so I guess no need to call
-platform_get_resource either.
 
-thanks,
+> +static void omap_usbhs_rev1_reset(struct device *dev)
+> +{
+> +       struct usbhs_hcd_omap *omap = dev_get_drvdata(dev);
+> +       u32 reg;
+> +       unsigned long timeout;
+> +
+> +       reg = usbhs_read(omap->uhh_base, OMAP_UHH_SYSCONFIG);
+> +
+> +       /* Soft Reset */
+> +       usbhs_write(omap->uhh_base, OMAP_UHH_SYSCONFIG,
+> +                   reg | OMAP_UHH_SYSCONFIG_SOFTRESET);
+> +
+> +       timeout = jiffies + msecs_to_jiffies(100);
+> +       while (!(usbhs_read(omap->uhh_base, OMAP_UHH_SYSSTATUS)
+> +                       & OMAP_UHH_SYSSTATUS_RESETDONE)) {
+> +               cpu_relax();
+> +
+> +               if (time_after(jiffies, timeout)) {
+> +                       dev_err(dev, "Soft RESET operation timed out\n");
+> +                       break;
+> +               }
+> +       }
+> +
+> +       /* Set No-Standby */
+> +       reg &= ~OMAP_UHH_SYSCONFIG_MIDLEMASK;
+> +       reg |= OMAP_UHH_SYSCONFIG_MIDLE_NOSTANDBY
+> +               << OMAP_UHH_SYSCONFIG_MIDLESHIFT;
+> +
+> +       /* Set No-Idle */
+> +       reg &= ~OMAP_UHH_SYSCONFIG_SIDLEMASK;
+> +       reg |= OMAP_UHH_SYSCONFIG_SIDLE_NOIDLE
+> +               << OMAP_UHH_SYSCONFIG_SIDLESHIFT;
+> +
+> +       usbhs_write(omap->uhh_base, OMAP_UHH_SYSCONFIG, reg);
+> +}
+> +
+> +static void omap_usbhs_rev2_reset(struct device *dev)
+> +{
+> +       struct usbhs_hcd_omap *omap = dev_get_drvdata(dev);
+> +       u32 reg;
+> +       unsigned long timeout;
+> +
+> +       reg = usbhs_read(omap->uhh_base, OMAP_UHH_SYSCONFIG);
+> +
+> +       /* Soft Reset */
+> +       usbhs_write(omap->uhh_base, OMAP_UHH_SYSCONFIG,
+> +                   reg | OMAP4_UHH_SYSCONFIG_SOFTRESET);
+> +
+> +       /* OMAP4: Need to wait before SYSCONFIG can be accessed */
+> +       udelay(2);
 
--Joel
+is this the srst_udelay?
 
+Michael
+
+> +       timeout = jiffies + msecs_to_jiffies(100);
+> +
+> +       /* SOFTRESET bit clears when RESET completes */
+> +       while (usbhs_read(omap->uhh_base, OMAP_UHH_SYSCONFIG)
+> +                       & OMAP4_UHH_SYSCONFIG_SOFTRESET) {
+> +               cpu_relax();
+> +
+> +               if (time_after(jiffies, timeout)) {
+> +                       dev_err(dev, "Soft RESET operation timed out\n");
+> +                       break;
+> +               }
+> +       }
+> +
+> +       /* Set No-Standby */
+> +       reg &= ~OMAP4_UHH_SYSCONFIG_MIDLEMASK;
+> +       reg |= OMAP_UHH_SYSCONFIG_MIDLE_NOSTANDBY
+> +               << OMAP4_UHH_SYSCONFIG_MIDLESHIFT;
+> +
+> +       /* Set No-Idle */
+> +       reg &= ~OMAP4_UHH_SYSCONFIG_SIDLEMASK;
+> +       reg |= OMAP_UHH_SYSCONFIG_SIDLE_NOIDLE
+> +               << OMAP4_UHH_SYSCONFIG_SIDLESHIFT;
+> +
+> +       usbhs_write(omap->uhh_base, OMAP_UHH_SYSCONFIG, reg);
+> +}
+> +
+> +static void omap_usbhs_softreset(struct device *dev)
+> +{
+> +       struct usbhs_hcd_omap *omap = dev_get_drvdata(dev);
+> +
+> +       switch (omap->usbhs_rev) {
+> +       case OMAP_USBHS_REV1:
+> +               omap_usbhs_rev1_reset(dev);
+> +               break;
+> +
+> +       default:        /* Rev 2 onwards */
+> +               omap_usbhs_rev2_reset(dev);
+> +               break;
+> +       }
+> +}
+> +
+>  static void omap_usbhs_init(struct device *dev)
+>  {
+>         struct usbhs_hcd_omap           *omap = dev_get_drvdata(dev);
+> @@ -483,6 +584,8 @@ static void omap_usbhs_init(struct device *dev)
+>
+>         pm_runtime_get_sync(dev);
+>
+> +       omap_usbhs_softreset(dev);
+> +
+>         reg = usbhs_read(omap->uhh_base, OMAP_UHH_HOSTCONFIG);
+>         /* setup ULPI bypass and burst configurations */
+>         reg |= (OMAP_UHH_HOSTCONFIG_INCR4_BURST_EN
+> --
+> 1.8.3.2
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
