@@ -1,234 +1,179 @@
-From: Michael Trimarchi <michael@amarulasolutions.com>
-Subject: Re: [PATCH 1/1] mfd: omap-usb-host: Fix USB device detection problems
- on OMAP4 Panda
-Date: Sat, 30 Nov 2013 06:10:20 +0100
-Message-ID: <CAOf5uwk-n0J4EOgDwo2v7sC9J2ben5m_xFkE5F+a1DnyLZKF-g@mail.gmail.com>
-References: <1385730118-26402-1-git-send-email-rogerq@ti.com>
-	<1385730118-26402-2-git-send-email-rogerq@ti.com>
-	<CAOf5uwnttvOQ26USuDK1naq1nNtVbHo4c0UAfdep64bK2wyvBA@mail.gmail.com>
+From: Brian Norris <computersforpeace@gmail.com>
+Subject: Re: [RFC/PATCH] NAND bus-width detection extreme makeover
+Date: Sat, 30 Nov 2013 00:35:37 -0800
+Message-ID: <20131130083537.GB29397@norris.computersforpeace.net>
+References: <1385732456-32696-1-git-send-email-ezequiel.garcia@free-electrons.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f45.google.com ([74.125.82.45]:36128 "EHLO
-	mail-wg0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751201Ab3K3FKW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 30 Nov 2013 00:10:22 -0500
-Received: by mail-wg0-f45.google.com with SMTP id y10so8257689wgg.12
-        for <linux-omap@vger.kernel.org>; Fri, 29 Nov 2013 21:10:20 -0800 (PST)
-In-Reply-To: <CAOf5uwnttvOQ26USuDK1naq1nNtVbHo4c0UAfdep64bK2wyvBA@mail.gmail.com>
+Received: from mail-pb0-f42.google.com ([209.85.160.42]:33072 "EHLO
+	mail-pb0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750988Ab3K3Ifo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 30 Nov 2013 03:35:44 -0500
+Content-Disposition: inline
+In-Reply-To: <1385732456-32696-1-git-send-email-ezequiel.garcia@free-electrons.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: Lee Jones <lee.jones@linaro.org>, sameo@linux.intel.com, tomi.valkeinen@ti.com, Felipe Balbi <balbi@ti.com>, Stefan Roese <sr@denx.de>, ljkenny.mailinglists@gmail.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, USB list <linux-usb@vger.kernel.org>, linux-kernel@vger.kernel.org, stable@vger.kernel.org
+To: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+Cc: linux-mtd@lists.infradead.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, Pekon Gupta <pekon@ti.com>, shc_work@mail.ru, Artem Bityutskiy <dedekind1@gmail.com>, David Woodhouse <dwmw2@infradead.org>, swarren@wwwdotorg.org, rob.herring@calxeda.com, mark.rutland@arm.com, Tony Lindgren <tony@atomide.com>, u.kleine-koenig@pengutronix.de
 
-Hi
+Hi Ezequiel,
 
-On Sat, Nov 30, 2013 at 5:48 AM, Michael Trimarchi
-<michael@amarulasolutions.com> wrote:
-> Hi Roger
->
-> On Fri, Nov 29, 2013 at 2:01 PM, Roger Quadros <rogerq@ti.com> wrote:
->> With u-boot 2013.10, USB devices are sometimes not detected
->> on OMAP4 Panda. To make us independent of what bootloader does
->> with the USB Host module, we must RESET it to get it to a known
->> good state. This patch Soft RESETs the USB Host module.
->>
->> Reported-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
->> Cc: <stable@vger.kernel.org> # 3.10+
->> Signed-off-by: Roger Quadros <rogerq@ti.com>
->> ---
->>  drivers/mfd/omap-usb-host.c | 115 +++++++++++++++++++++++++++++++++++++++++---
->>  1 file changed, 109 insertions(+), 6 deletions(-)
->>
->> diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
->> index 142650f..d4bd464 100644
->> --- a/drivers/mfd/omap-usb-host.c
->> +++ b/drivers/mfd/omap-usb-host.c
->> @@ -43,14 +43,18 @@
->>  /* UHH Register Set */
->>  #define        OMAP_UHH_REVISION                               (0x00)
->>  #define        OMAP_UHH_SYSCONFIG                              (0x10)
->> -#define        OMAP_UHH_SYSCONFIG_MIDLEMODE                    (1 << 12)
->> +#define        OMAP_UHH_SYSCONFIG_MIDLEMASK                    (3 << 12)
->> +#define OMAP_UHH_SYSCONFIG_MIDLESHIFT                  (12)
->>  #define        OMAP_UHH_SYSCONFIG_CACTIVITY                    (1 << 8)
->> -#define        OMAP_UHH_SYSCONFIG_SIDLEMODE                    (1 << 3)
->> +#define        OMAP_UHH_SYSCONFIG_SIDLEMASK                    (3 << 3)
->> +#define        OMAP_UHH_SYSCONFIG_SIDLESHIFT                   (3)
->>  #define        OMAP_UHH_SYSCONFIG_ENAWAKEUP                    (1 << 2)
->>  #define        OMAP_UHH_SYSCONFIG_SOFTRESET                    (1 << 1)
->>  #define        OMAP_UHH_SYSCONFIG_AUTOIDLE                     (1 << 0)
->>
->>  #define        OMAP_UHH_SYSSTATUS                              (0x14)
->> +#define OMAP_UHH_SYSSTATUS_RESETDONE                   (1 << 0)
->> +
->>  #define        OMAP_UHH_HOSTCONFIG                             (0x40)
->>  #define        OMAP_UHH_HOSTCONFIG_ULPI_BYPASS                 (1 << 0)
->>  #define        OMAP_UHH_HOSTCONFIG_ULPI_P1_BYPASS              (1 << 0)
->> @@ -66,10 +70,10 @@
->>  #define OMAP4_UHH_HOSTCONFIG_APP_START_CLK             (1 << 31)
->>
->>  /* OMAP4-specific defines */
->> -#define OMAP4_UHH_SYSCONFIG_IDLEMODE_CLEAR             (3 << 2)
->> -#define OMAP4_UHH_SYSCONFIG_NOIDLE                     (1 << 2)
->> -#define OMAP4_UHH_SYSCONFIG_STDBYMODE_CLEAR            (3 << 4)
->> -#define OMAP4_UHH_SYSCONFIG_NOSTDBY                    (1 << 4)
->> +#define OMAP4_UHH_SYSCONFIG_MIDLEMASK                  (3 << 2)
->> +#define OMAP4_UHH_SYSCONFIG_MIDLESHIFT                 (2)
->> +#define OMAP4_UHH_SYSCONFIG_SIDLEMASK                  (3 << 4)
->> +#define OMAP4_UHH_SYSCONFIG_SIDLESHIFT                 (4)
->>  #define OMAP4_UHH_SYSCONFIG_SOFTRESET                  (1 << 0)
->>
->>  #define OMAP4_P1_MODE_CLEAR                            (3 << 16)
->> @@ -81,6 +85,12 @@
->>
->>  #define        OMAP_UHH_DEBUG_CSR                              (0x44)
->>
->> +/* MIDLE modes */
->> +#define OMAP_UHH_SYSCONFIG_MIDLE_NOSTANDBY             (1)
->> +
->> +/* SIDLE modes */
->> +#define OMAP_UHH_SYSCONFIG_SIDLE_NOIDLE                        (1)
->> +
->>  /* Values of UHH_REVISION - Note: these are not given in the TRM */
->>  #define OMAP_USBHS_REV1                0x00000010      /* OMAP3 */
->>  #define OMAP_USBHS_REV2                0x50700100      /* OMAP4 */
->> @@ -474,6 +484,97 @@ static unsigned omap_usbhs_rev2_hostconfig(struct usbhs_hcd_omap *omap,
->>         return reg;
->>  }
->>
->
-> I'm digging in the code but as I understand this should be done by
-> omap_hwmod and
-> i660 avoid reset of the ehci module. This is done by ocp_softreset?
->
->
->> +static void omap_usbhs_rev1_reset(struct device *dev)
->> +{
->> +       struct usbhs_hcd_omap *omap = dev_get_drvdata(dev);
->> +       u32 reg;
->> +       unsigned long timeout;
->> +
->> +       reg = usbhs_read(omap->uhh_base, OMAP_UHH_SYSCONFIG);
->> +
->> +       /* Soft Reset */
->> +       usbhs_write(omap->uhh_base, OMAP_UHH_SYSCONFIG,
->> +                   reg | OMAP_UHH_SYSCONFIG_SOFTRESET);
->> +
->> +       timeout = jiffies + msecs_to_jiffies(100);
->> +       while (!(usbhs_read(omap->uhh_base, OMAP_UHH_SYSSTATUS)
->> +                       & OMAP_UHH_SYSSTATUS_RESETDONE)) {
->> +               cpu_relax();
->> +
->> +               if (time_after(jiffies, timeout)) {
->> +                       dev_err(dev, "Soft RESET operation timed out\n");
->> +                       break;
->> +               }
->> +       }
->> +
->> +       /* Set No-Standby */
->> +       reg &= ~OMAP_UHH_SYSCONFIG_MIDLEMASK;
->> +       reg |= OMAP_UHH_SYSCONFIG_MIDLE_NOSTANDBY
->> +               << OMAP_UHH_SYSCONFIG_MIDLESHIFT;
->> +
->> +       /* Set No-Idle */
->> +       reg &= ~OMAP_UHH_SYSCONFIG_SIDLEMASK;
->> +       reg |= OMAP_UHH_SYSCONFIG_SIDLE_NOIDLE
->> +               << OMAP_UHH_SYSCONFIG_SIDLESHIFT;
->> +
->> +       usbhs_write(omap->uhh_base, OMAP_UHH_SYSCONFIG, reg);
->> +}
->> +
->> +static void omap_usbhs_rev2_reset(struct device *dev)
->> +{
->> +       struct usbhs_hcd_omap *omap = dev_get_drvdata(dev);
->> +       u32 reg;
->> +       unsigned long timeout;
->> +
->> +       reg = usbhs_read(omap->uhh_base, OMAP_UHH_SYSCONFIG);
->> +
->> +       /* Soft Reset */
->> +       usbhs_write(omap->uhh_base, OMAP_UHH_SYSCONFIG,
->> +                   reg | OMAP4_UHH_SYSCONFIG_SOFTRESET);
->> +
->> +       /* OMAP4: Need to wait before SYSCONFIG can be accessed */
->> +       udelay(2);
->
-> is this the srst_udelay?
->
+On Fri, Nov 29, 2013 at 10:40:55AM -0300, Ezequiel Garcia wrote:
+> Here's my proposal, based in Pekon's latest work.
+> 
+> This patch removes the flash device bus-width configuration, prior to
+> the device detection. With this modification, a NAND driver is no longer
+> able to "force" the device width, and instead can only obtain the detected
+> bus-width after the call to nand_scan_ident().
+> 
+> Flash devices bus-width are specified either by reading an ONFI feature,
+> or through a flag in the in-kernel flash devices table. Therefore, it doesn't
+> make any sense to somehow "advise" the NAND core about this parameter.
 
-In omap_hwmod.c
+Hmm, I think there are a few factors at play here. First of all, the
+hardware driver knows the best about the physical buswidth. It should
+know if there are 8 or 16 data lines connected to the device, so it
+could, for instance, know that it does not have enough data lines to
+support x16 buswidth. (You could possibly devise hardware that can
+support x16 but not x8, I suppose.) So this is one way in which the
+driver must "advise" the NAND core about the buswidth.
 
-_write_sysconfig_raw(v, oh);
+On the other hand, the hardware/driver doesn't know what buswidth the
+flash chip is. That's nand_base's job. So in that sense, we don't need
+to "advise" the NAND core.
 
-is done after ask a reset
+But there are certainly cases where the driver should advise, and if
+there is a mismatch, bail.
 
-        if (oh->class->sysc->srst_udelay)
-                udelay(oh->class->sysc->srst_udelay);
+> In addition, the ONFI specification requires to issue the detection commands
+> using only the lower 8-bits of the data bus. The ONFI specification says:
+> 
+>   "" The Read ID and Read Parameter Page commands only use the lower 8-bits
+>      of the data bus. The host shall not issue commands that use a word
+>      data width on x16 devices until the host determines the device supports
+>      a 16-bit data bus width in the parameter page. ""
 
-Should be done after the reset completion?
+This does not really say that *all* NAND transactions must be performed
+on the lower 8 bits (a true x8 buswidth), but only that all ONFI
+transactions must be.
 
-Michael
+> IIRC, the current way of setting the device width is to set NAND_BUSWIDTH_AUTO
+> in chip->options and then let the driver set some width-specific callbacks after
+> the NAND core has detected the width.
+> 
+> However, as noticed by Pekon Gupta, this means NAND_BUSWIDTH_AUTO should be
+> always turned on (and hence the option be removed).
 
-> Michael
->
->> +       timeout = jiffies + msecs_to_jiffies(100);
->> +
->> +       /* SOFTRESET bit clears when RESET completes */
->> +       while (usbhs_read(omap->uhh_base, OMAP_UHH_SYSCONFIG)
->> +                       & OMAP4_UHH_SYSCONFIG_SOFTRESET) {
->> +               cpu_relax();
->> +
->> +               if (time_after(jiffies, timeout)) {
->> +                       dev_err(dev, "Soft RESET operation timed out\n");
->> +                       break;
->> +               }
->> +       }
->> +
->> +       /* Set No-Standby */
->> +       reg &= ~OMAP4_UHH_SYSCONFIG_MIDLEMASK;
->> +       reg |= OMAP_UHH_SYSCONFIG_MIDLE_NOSTANDBY
->> +               << OMAP4_UHH_SYSCONFIG_MIDLESHIFT;
->> +
->> +       /* Set No-Idle */
->> +       reg &= ~OMAP4_UHH_SYSCONFIG_SIDLEMASK;
->> +       reg |= OMAP_UHH_SYSCONFIG_SIDLE_NOIDLE
->> +               << OMAP4_UHH_SYSCONFIG_SIDLESHIFT;
->> +
->> +       usbhs_write(omap->uhh_base, OMAP_UHH_SYSCONFIG, reg);
->> +}
->> +
->> +static void omap_usbhs_softreset(struct device *dev)
->> +{
->> +       struct usbhs_hcd_omap *omap = dev_get_drvdata(dev);
->> +
->> +       switch (omap->usbhs_rev) {
->> +       case OMAP_USBHS_REV1:
->> +               omap_usbhs_rev1_reset(dev);
->> +               break;
->> +
->> +       default:        /* Rev 2 onwards */
->> +               omap_usbhs_rev2_reset(dev);
->> +               break;
->> +       }
->> +}
->> +
->>  static void omap_usbhs_init(struct device *dev)
->>  {
->>         struct usbhs_hcd_omap           *omap = dev_get_drvdata(dev);
->> @@ -483,6 +584,8 @@ static void omap_usbhs_init(struct device *dev)
->>
->>         pm_runtime_get_sync(dev);
->>
->> +       omap_usbhs_softreset(dev);
->> +
->>         reg = usbhs_read(omap->uhh_base, OMAP_UHH_HOSTCONFIG);
->>         /* setup ULPI bypass and burst configurations */
->>         reg |= (OMAP_UHH_HOSTCONFIG_INCR4_BURST_EN
->> --
->> 1.8.3.2
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+No, I think you can solve the x16 ONFI detection problem without
+requiring NAND_BUSWIDTH_AUTO. And in fact, NAND_BUSWIDTH_AUTO only helps
+you wil part of the problem: performing ONFI transactions during the
+initial detection, where you pretend like you're an x8 device.
+
+But what happens if a driver needs to use ONFI SET_FEATURES or
+GET_FEATURES after initial probe?
+
+So I think the problem may need to be divided into 2 parts:
+
+ 1) How do we best handle ONFI transactions, so that they are always
+    performed on the lower 8 bits of the bus **regardless of actual
+    buswidth**? (I think Uwe's patch + my response in [1] might solve
+    this.)
+
+ 2) Can/should we relax the old restrictions where drivers have to
+    configure the buswidth correctly before running nand_scan_ident(),
+    in the spirit of NAND_BUSWIDTH_AUTO? And why do we need this
+    flexibility?
+
+I think problem (1) is solvable independently of (2). So we don't
+inherently *need* BUSWIDTH_AUTO just to support ONFI correctly; we can
+just enforce that we ignore the upper 8 bits.
+
+Now, what do we have NAND_BUSWIDTH_AUTO for, anyway? It seems like its
+best use case is for a driver that (a) knows it might encounter either
+x8 or x16 flash chips and (b) is equipped to handle this change at
+runtime (e.g., it only needs to re-assign some call-backs after
+nand_scan_ident()). This means, for one, that it should have at least
+all 16 data lines connected.
+
+However, not all hardware/drivers fit (a) and (b). For such systems, we
+probably want to just indicate the expected buswidth and error out
+automatically if we detect this is incorrect.
+
+So I think we still want to support the following three configurations:
+
+  !NAND_BUSWIDTH_16 && !NAND_BUSWIDTH_AUTO: device must use 8-bit
+  buswidth
+
+  NAND_BUSWIDTH_16 && !NAND_BUSWIDTH_AUTO: device must use 16-bit
+  buswidth
+
+  NAND_BUSWIDTH_AUTO: can support either buswidth (auto-detectable)
+
+But I think these selections should only be restricted by hardware
+limitations (lack of I/O pin connections, inflexible controller) and not
+enforced because of software limitations in handling ONFI. This brings
+be back to problem (1), where I think we need resolve it along the lines
+of Uwe's + my patch (see [1]), not by forcing NAND_BUSWIDTH_AUTO on all
+drivers.
+
+> That's exactly what this patch is doing.
+
+...
+
+> Note that some driver's might need fixes to work in both 8-bit and 16-bit
+> modes, and such work should be done by respective maintainers.
+
+I think this is one problem of the NAND_BUSWIDTH_AUTO-by-default
+approach; it is better to avoid unnecessary work on old drivers. Many
+of these drivers don't re-configure their x8 vs. x16 callback methods
+automatically. So I think NAND_BUSWIDTH_AUTO should still be opt-in.
+
+> Of course, the memory controller (such as GPMC in the OMAP case) still needs
+> proper width a-prior configuration, but that's completely unrelated to the
+> flash device bus width.
+
+I would disagree.
+
+> If some driver wants (and is able to) re-configure
+> its memory controller after the device has been properly detected, it's free
+> to do so.
+
+The key point here is "if it is able to". Some hardware is unable to be
+reconfigured, and so nand_base should take that into account. Such
+inflexible systems are not good candidates for NAND_BUSWIDTH_AUTO.
+
+> Needless to say, if this work is acceptable we'll be able to finally remove/deprecate
+> any traces of the NAND bus width setting, include the devicetree nand-bus-width parameter.
+
+I think we need to leave the infrastructure in place to enforce a
+particular buswidth, since some systems may need it. How would a driver
+ever signify that it is only wired for x8 buswidth? We would have to
+wait until its BBT scan fails on an x16 device.
+
+So I think individual drivers should still opt in to using
+NAND_BUSWIDTH_AUTO.
+
+> Alexander: Could you try this patch and see if it's suitable for your needs?
+> I think you should be able to use it to set the bus-width, without any need for
+> a new DT property. You will have to split your nand_scan() call in an initial
+> call to nand_scan_ident() and a final call to nand_scan_tail().
+
+FWIW, gpio.c does not need to split nand_scan(), as it doesn't need any
+custom call-backs. nand_base should do all the work.
+
+> Typically, a driver would work like this:
+> 
+> 	/* scan NAND device connected to chip controller */
+> 	if (nand_scan_ident(mtd, 1, NULL))
+> 		return -ENODEV;
+> 
+> 	if (nand_chip->options & NAND_BUSWIDTH_16) {
+> 		nand_chip->read_buf   = xxx_read_buf16;
+> 		nand_chip->write_buf  = xxx_write_buf16;
+> 	}
+...
+
+Brian
+
+[1] http://lists.infradead.org/pipermail/linux-mtd/2013-November/050507.html
