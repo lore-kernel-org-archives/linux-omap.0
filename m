@@ -1,74 +1,87 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH 1/1] mfd: omap-usb-host: Fix USB device detection problems
- on OMAP4 Panda
-Date: Mon, 2 Dec 2013 17:12:43 +0200
-Message-ID: <529CA36B.2000900@ti.com>
-References: <1385730118-26402-1-git-send-email-rogerq@ti.com>	<1385730118-26402-2-git-send-email-rogerq@ti.com> <CAOf5uwmEkzFd=e3j8m8=qdTCAMkk_-DPw0fTm=7Vzy0PbE2oDQ@mail.gmail.com> <529C55DF.3000808@ti.com> <529C76AF.10106@linutronix.de> <529C7922.5000601@ti.com> <529C854F.3010101@linutronix.de> <529C8CBD.4070003@ti.com> <529C8D74.10007@linutronix.de> <529C8ED0.6060805@ti.com> <529C9343.3010000@linutronix.de>
+From: "Gupta, Pekon" <pekon@ti.com>
+Subject: RE: [PATCH] ARM: dts: omap3-igep00x0: Fix nand ECC to maintain
+ backward compatibility.
+Date: Mon, 2 Dec 2013 15:19:17 +0000
+Message-ID: <20980858CB6D3A4BAE95CA194937D5E73EA5099E@DBDE04.ent.ti.com>
+References: <1385896995-16803-1-git-send-email-eballetbo@gmail.com>
+	<CABxcv=mkSE2A9TLsp7pXWK=dyu6wjN0t6K2ke6NfP3G2rxaXug@mail.gmail.com>
+	<20131202115422.1f8c73f6@skate>
+	<CAFqH_53V5rOsCOLzTzm=9m1zvJpqN_ofh1jjzKAMmKqwHe28rQ@mail.gmail.com>
+	<20980858CB6D3A4BAE95CA194937D5E73EA5094C@DBDE04.ent.ti.com>
+ <20131202160219.40286dc9@skate>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <529C9343.3010000@linutronix.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Michael Trimarchi <michael@amarulasolutions.com>, Felipe Balbi <balbi@ti.com>, lee.jones@linaro.org, sameo@linux.intel.com, tomi.valkeinen@ti.com, Stefan Roese <sr@denx.de>, ljkenny.mailinglists@gmail.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, USB list <linux-usb@vger.kernel.org>, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:38910 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751578Ab3LBPT3 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Dec 2013 10:19:29 -0500
+In-Reply-To: <20131202160219.40286dc9@skate>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+Cc: Enric Balletbo Serra <eballetbo@gmail.com>, Javier Martinez Canillas <javier@dowhile0.org>, =?iso-8859-1?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Javier Martinez Canillas <martinez.javier@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, "Rini, Tom" <trini@ti.com>, "Scott Wood (scottwood@freescale.com)" <scottwood@freescale.com>
 
-On 12/02/2013 04:03 PM, Sebastian Andrzej Siewior wrote:
-> On 12/02/2013 02:44 PM, Roger Quadros wrote:
->> "Errata id: i660
->> DESCRIPTION
->> In the following configuration :
->> =95 USBHOST module is set to smart-idle mode
->> =95 PRCM asserts idle_req to the USBHOST module. (This typically hap=
-pens when the system is going to
->> a low power mode : all ports have been suspended, the master part of=
- the USBHOST module has
->> entered the standby state, and SW has cut the functional clocks.)
->> =95 an USBHOST interrupt occurs before the module is able to answer =
-idle_ack, typically a remote wakeup
->> IRQ.
->> Then the USB HOST module will enter a deadlock situation where it is=
- no more accessible nor functional.
->> The only way to recover will be to perform a software reset of the m=
-odule.
+>From: Thomas Petazzoni [mailto:thomas.petazzoni@free-electrons.com]
+>>On Mon, 2 Dec 2013 14:56:09 +0000, Gupta, Pekon wrote:
+>
+>> A query Why are you going backward from BCH8 to HAM1 ?
 >>
->> WORKAROUND
->> The best workaround consists in switching the module to force idle m=
-ode right before cutting the
->> module's FCLK.
->> =95 the bus has reached the suspend state.
->> =95 write SYSCONFIG:Idlemode=3D ForceIdle and read it back to ensure=
- the write has been taken into
->> account in case of posted writes.
->> =95 cut the FCLK
->> =95 Idle_req will be asserted and idle_ack answered within one L3 cl=
-ock cycle.
->> Upon resume or remote wakeup, switch back the module to smart-idle.
->> This workaround reduces the failure window to only one L3 clock cycl=
-e. The probability for an interrupt to
->> fire at this exact time is considered extremely low, and the case ha=
-s never been hit on board."
+>> HAM1 is just kept for legacy reasons, it's not at all recommended for new
+>> development. As some field results have shown that devices with
+>> HAM1 become un-usable very soon and start reporting uncorrectable errors
+>> because HAM1 can only handle single bit-flip, which is inadequate in field
+>> conditions and large page device wears-n-tears. (especially considering
+>> your device density is of order of 4Gb - mt29c4g96maz).
 >>
->> Based on this, I don't see anything wrong in Resetting the module at=
- probe or at boot.
->=20
-> If u-boot configured USB into something not smart-idle and the reset
-> would bring it back then the reset should remain.
-> If you could tell hwmod not use smart-idle nor smart-standby and you
-> make sure that the suspend code manually puts the device into suspend
-> via forceidle then I think could get rid of the "do-not-reset-thingy"=
-=2E
->=20
+>> Also, just to inform that BCH8_SW ecc-scheme is implemented in such
+>> a way that *only* error correction is handled using s/w library (lib/bch.c).
+>> Rest all ECC calculation is handled using GPMC hardware.
+>> So, the CPU penalty will be seen only when there are bit-flips found
+>> during Read access, which are of rare conditions, occurring only few times
+>> in multi-megabit transfers.
+>>
+>> Also, On top of that ecc-schemes implementations have been optimized.
+>> And the patch-series is under review on mainline kernel.
+>> http://lists.infradead.org/pipermail/linux-mtd/2013-November/thread.html
+>>
+>> (Apologies for long suggestion, but in summary please don't use HAM1
+>> for any new development. And with BCH8_SW you should see better
+>> bit-flip handling (longer device life) with no hit in performance).
+>
+>The crucial point here is that the interaction between the bootloader
+>and the kernel. The use case I have is that I'm flashing a filesystem
+>image from the bootloader, and mounting it from the kernel.
+>
+>Using a mainline 2013.10 U-Boot for IGEPv2 + the mainline kernel booted
+>in legacy mode (no Device Tree) works fine. Using the same 2013.10
+>U-Boot for IGEPv2 + the mainline kernel booted in DT no longer works,
+>because the kernel disagrees with the bootloader on the ECC scheme to
+>use.
+>
+>So I'm not saying that Hamming is better than BCH, certainly not. I'm
+>just saying that changing ECC scheme in the kernel without looking at
+>the more global picture of what support the bootloaders are offering is
+>not nice. At least, the bootloader should provide a command, or option,
+>to be able to use an ECC scheme that is compatible with what the kernel
+>expects.
+>
+Yes, there is a way to change ecc-scheme in u-boot..
+Also, you can modify to any ecc-scheme in u-boot using
+"CONFIG_NAND_OMAP_ECCSCHEME" as documented in doc/README.nand
 
-We are already telling hwmod to not use smart-idle or smart-standby.
-So the device is always put in no-idle,no-standby during resume and for=
-ce-idle,force-standby
-during suspend.
+Also your board should boot seamlessly from mainline u-boot in sync
+with mainline kernel. As per my knowledge following patch is already
+in mainline u-boot. And touches your board as well. (omap3_igep00x0.h)
+http://lists.denx.de/pipermail/u-boot/2013-November/167550.html
 
-I'll send a new patch to remove "do-not-reset" flag from hwmod data and=
- then we
-don't need this patch.
+AFAIK these patches should be in u-boot mainline.
 
-cheers,
--roger
+Though I have taken at-most care that no existing board should break.
+But, I'm sorry if there is something broken in between the u-boot and
+Kernel builds. Let me know if I can help in fixing that somehow.
+
+
+with regards, pekon
