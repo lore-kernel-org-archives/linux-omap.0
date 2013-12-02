@@ -1,56 +1,50 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH] mfd: twl-core: Clean up module by removing twl603x pdata
- handling
-Date: Mon, 2 Dec 2013 13:13:31 +0000
-Message-ID: <20131202131331.GE31626@lee--X1>
-References: <1385036008-1727-1-git-send-email-ruslan.ruslichenko@globallogic.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH 1/1] mfd: omap-usb-host: Fix USB device detection problems
+ on OMAP4 Panda
+Date: Mon, 2 Dec 2013 15:35:57 +0200
+Message-ID: <529C8CBD.4070003@ti.com>
+References: <1385730118-26402-1-git-send-email-rogerq@ti.com>	<1385730118-26402-2-git-send-email-rogerq@ti.com> <CAOf5uwmEkzFd=e3j8m8=qdTCAMkk_-DPw0fTm=7Vzy0PbE2oDQ@mail.gmail.com> <529C55DF.3000808@ti.com> <529C76AF.10106@linutronix.de> <529C7922.5000601@ti.com> <529C854F.3010101@linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ie0-f169.google.com ([209.85.223.169]:60672 "EHLO
-	mail-ie0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752563Ab3LBNNf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Dec 2013 08:13:35 -0500
-Received: by mail-ie0-f169.google.com with SMTP id e14so20656592iej.14
-        for <linux-omap@vger.kernel.org>; Mon, 02 Dec 2013 05:13:35 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <1385036008-1727-1-git-send-email-ruslan.ruslichenko@globallogic.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:33542 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751039Ab3LBNgP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 2 Dec 2013 08:36:15 -0500
+In-Reply-To: <529C854F.3010101@linutronix.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ruslan Ruslichenko <ruslan.ruslichenko@globallogic.com>
-Cc: Samuel Ortiz <sameo@linux.intel.com>, linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Michael Trimarchi <michael@amarulasolutions.com>, Felipe Balbi <balbi@ti.com>, lee.jones@linaro.org, sameo@linux.intel.com, tomi.valkeinen@ti.com, Stefan Roese <sr@denx.de>, ljkenny.mailinglists@gmail.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, USB list <linux-usb@vger.kernel.org>, linux-kernel@vger.kernel.org
 
-On Thu, 21 Nov 2013, Ruslan Ruslichenko wrote:
+On 12/02/2013 03:04 PM, Sebastian Andrzej Siewior wrote:
+> On 12/02/2013 01:12 PM, Roger Quadros wrote:
+>> You are right. The musb hwmod data doesn't have the HWMOD_INIT_NO_RESET
+>> flag, so hwmod should reset it during boot.
+>>
+>> Maybe I too should just remove HWMOD_INIT_NO_RESET flag from the USB Host
+>> hwmod data, then we don't need to change this driver at all.
+>>
+>> Benoit, Tony any comments?
+> 
+> Almost two years ago in commit de231388 ("ARM: OMAP: USB: EHCI and OHCI
+> hwmod structures for OMAP3") the "don't reset flag" has been added by
+> Keshava.
+> 
+> It refers to "Errata Id:i660" why it is required. Once you figured what
+> why it has been added you could have an idea if it is okay to remove it
+> and if the reset you do here might lead to it (I dunno).
+> 
 
-> Since currently nobody uses TWL603x platform data and all new
-> users will supply it through device tree, handling of these
-> data within twl-core will never be used, so remove it.
->=20
-> Signed-off-by: Ruslan Ruslichenko <ruslan.ruslichenko@globallogic.com=
->
-> ---
->=20
-> Tested on TI SDP/Tablet OMAP4460 board
-> Based on:
-> git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
-> commit 5e01dc7 Linux 3.12
->=20
->  drivers/mfd/twl-core.c | 198 ---------------------------------------=
-----------
->  1 file changed, 198 deletions(-)
+Keshava no longer works @TI. I have no other means to check why it was added
+other than doing dome tests and making sure nothing breaks if we remove it.
 
-Okay, I'm suitably happy with yours and Tony's responses.
+So far, things are going fine for about 50 or so boots divided between OMAP3 and 4
+platforms. If more people can test and give feedback it'd be great.
 
-Patch applied, thanks.
+For the present situation, omap4 panda USB host doesn't work without the reset
+with u-boot v2013.10.
 
---=20
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org =E2=94=82 Open source software for ARM SoCs
-=46ollow Linaro: Facebook | Twitter | Blog
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+cheers,
+-roger
