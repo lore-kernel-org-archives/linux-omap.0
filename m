@@ -1,75 +1,51 @@
-From: "Gupta, Pekon" <pekon@ti.com>
-Subject: RE: [PATCH] ARM: dts: omap3-igep00x0: Fix nand ECC to maintain
- backward compatibility.
-Date: Mon, 2 Dec 2013 14:56:09 +0000
-Message-ID: <20980858CB6D3A4BAE95CA194937D5E73EA5094C@DBDE04.ent.ti.com>
-References: <1385896995-16803-1-git-send-email-eballetbo@gmail.com>
-	<CABxcv=mkSE2A9TLsp7pXWK=dyu6wjN0t6K2ke6NfP3G2rxaXug@mail.gmail.com>
-	<20131202115422.1f8c73f6@skate>
- <CAFqH_53V5rOsCOLzTzm=9m1zvJpqN_ofh1jjzKAMmKqwHe28rQ@mail.gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 1/1] mfd: omap-usb-host: Fix USB device detection problems
+ on OMAP4 Panda
+Date: Mon, 2 Dec 2013 15:00:03 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1312021444530.18363@utopia.booyaka.com>
+References: <1385730118-26402-1-git-send-email-rogerq@ti.com> <1385730118-26402-2-git-send-email-rogerq@ti.com> <CAOf5uwnttvOQ26USuDK1naq1nNtVbHo4c0UAfdep64bK2wyvBA@mail.gmail.com> <529C5537.3080300@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:49627 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751432Ab3LBO4U (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 2 Dec 2013 09:56:20 -0500
-In-Reply-To: <CAFqH_53V5rOsCOLzTzm=9m1zvJpqN_ofh1jjzKAMmKqwHe28rQ@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <529C5537.3080300@ti.com>
+Sender: stable-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: Michael Trimarchi <michael@amarulasolutions.com>, Lee Jones <lee.jones@linaro.org>, sameo@linux.intel.com, tomi.valkeinen@ti.com, Felipe Balbi <balbi@ti.com>, Stefan Roese <sr@denx.de>, ljkenny.mailinglists@gmail.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, USB list <linux-usb@vger.kernel.org>, linux-kernel@vger.kernel.org, stable@vger.kernel.org, Benoit Cousson <bcousson@baylibre.com>, "tony@atomide.com" <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
-To: Enric Balletbo Serra <eballetbo@gmail.com>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
-Cc: Javier Martinez Canillas <javier@dowhile0.org>, =?utf-8?B?QmVub8OudCBDb3Vzc29u?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Javier Martinez Canillas <martinez.javier@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
 
-SGksIA0KDQo+RnJvbTogRW5yaWMgQmFsbGV0Ym8gU2VycmEgW21haWx0bzplYmFsbGV0Ym9AZ21h
-aWwuY29tXQ0KPkNDaW5nIFBla29uIEd1cHRhIDxwZWtvbkB0aS5jb20+DQo+DQo+PjIwMTMvMTIv
-MiBUaG9tYXMgUGV0YXp6b25pIDx0aG9tYXMucGV0YXp6b25pQGZyZWUtZWxlY3Ryb25zLmNvbT46
-DQo+Pj4gRGVhciBKYXZpZXIgTWFydGluZXogQ2FuaWxsYXMsDQo+Pg0KPj4+ID4gT24gU3VuLCAx
-IERlYyAyMDEzIDEzOjI3OjI1ICswMTAwLCBKYXZpZXIgTWFydGluZXogQ2FuaWxsYXMgd3JvdGU6
-DQo+Pg0KPj4+ID4gZGlmZiAtLWdpdCBhL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXAzLWlnZXAwMDIw
-LmR0cyBiL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXAzLWlnZXAwMDIwLmR0cw0KPj4+ID4gaW5kZXgg
-ZDVjYzc5Mi4uNDIyOWU5NCAxMDA2NDQNCj4+PiA+IC0tLSBhL2FyY2gvYXJtL2Jvb3QvZHRzL29t
-YXAzLWlnZXAwMDIwLmR0cw0KPj4+ID4gKysrIGIvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDMtaWdl
-cDAwMjAuZHRzDQo+Pj4gPiBAQCAtMTE2LDcgKzExNiw3IEBADQo+Pj4gPiAgICAgICAgICAgICAg
-ICAgbGludXgsbXRkLW5hbWU9ICJtaWNyb24sbXQyOWM0Zzk2bWF6IjsNCj4+PiA+ICAgICAgICAg
-ICAgICAgICByZWcgPSA8MCAwIDA+Ow0KPj4+ID4gICAgICAgICAgICAgICAgIG5hbmQtYnVzLXdp
-ZHRoID0gPDE2PjsNCj4+PiA+IC0gICAgICAgICAgICAgICB0aSxuYW5kLWVjYy1vcHQgPSAiYmNo
-OCI7DQo+Pj4gPiArICAgICAgICAgICAgICAgdGksbmFuZC1lY2Mtb3B0ID0gImhhbTEiOw0KPj4+
-ID4NCkEgcXVlcnkgV2h5IGFyZSB5b3UgZ29pbmcgYmFja3dhcmQgZnJvbSBCQ0g4IHRvIEhBTTEg
-Pw0KDQpIQU0xIGlzIGp1c3Qga2VwdCBmb3IgbGVnYWN5IHJlYXNvbnMsIGl0J3Mgbm90IGF0IGFs
-bCByZWNvbW1lbmRlZCBmb3IgbmV3DQpkZXZlbG9wbWVudC4gQXMgc29tZSBmaWVsZCByZXN1bHRz
-IGhhdmUgc2hvd24gdGhhdCBkZXZpY2VzIHdpdGgNCkhBTTEgYmVjb21lIHVuLXVzYWJsZSB2ZXJ5
-IHNvb24gYW5kIHN0YXJ0IHJlcG9ydGluZyB1bmNvcnJlY3RhYmxlIGVycm9ycw0KYmVjYXVzZSBI
-QU0xIGNhbiBvbmx5IGhhbmRsZSBzaW5nbGUgYml0LWZsaXAsIHdoaWNoIGlzIGluYWRlcXVhdGUg
-aW4gZmllbGQNCmNvbmRpdGlvbnMgYW5kIGxhcmdlIHBhZ2UgZGV2aWNlIHdlYXJzLW4tdGVhcnMu
-IChlc3BlY2lhbGx5IGNvbnNpZGVyaW5nDQp5b3VyIGRldmljZSBkZW5zaXR5IGlzIG9mIG9yZGVy
-IG9mIDRHYiAtIG10MjljNGc5Nm1heikuDQoNCkFsc28sIGp1c3QgdG8gaW5mb3JtIHRoYXQgQkNI
-OF9TVyBlY2Mtc2NoZW1lIGlzIGltcGxlbWVudGVkIGluIHN1Y2gNCmEgd2F5IHRoYXQgKm9ubHkq
-IGVycm9yIGNvcnJlY3Rpb24gaXMgaGFuZGxlZCB1c2luZyBzL3cgbGlicmFyeSAobGliL2JjaC5j
-KS4NClJlc3QgYWxsIEVDQyBjYWxjdWxhdGlvbiBpcyBoYW5kbGVkIHVzaW5nIEdQTUMgaGFyZHdh
-cmUuDQpTbywgdGhlIENQVSBwZW5hbHR5IHdpbGwgYmUgc2VlbiBvbmx5IHdoZW4gdGhlcmUgYXJl
-IGJpdC1mbGlwcyBmb3VuZA0KZHVyaW5nIFJlYWQgYWNjZXNzLCB3aGljaCBhcmUgb2YgcmFyZSBj
-b25kaXRpb25zLCBvY2N1cnJpbmcgb25seSBmZXcgdGltZXMNCmluIG11bHRpLW1lZ2FiaXQgdHJh
-bnNmZXJzLg0KDQpBbHNvLCBPbiB0b3Agb2YgdGhhdCBlY2Mtc2NoZW1lcyBpbXBsZW1lbnRhdGlv
-bnMgaGF2ZSBiZWVuIG9wdGltaXplZC4NCkFuZCB0aGUgcGF0Y2gtc2VyaWVzIGlzIHVuZGVyIHJl
-dmlldyBvbiBtYWlubGluZSBrZXJuZWwuDQpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9waXBl
-cm1haWwvbGludXgtbXRkLzIwMTMtTm92ZW1iZXIvdGhyZWFkLmh0bWwNCg0KKEFwb2xvZ2llcyBm
-b3IgbG9uZyBzdWdnZXN0aW9uLCBidXQgaW4gc3VtbWFyeSBwbGVhc2UgZG9uJ3QgdXNlIEhBTTEN
-CmZvciBhbnkgbmV3IGRldmVsb3BtZW50LiBBbmQgd2l0aCBCQ0g4X1NXIHlvdSBzaG91bGQgc2Vl
-IGJldHRlcg0KYml0LWZsaXAgaGFuZGxpbmcgKGxvbmdlciBkZXZpY2UgbGlmZSkgd2l0aCBubyBo
-aXQgaW4gcGVyZm9ybWFuY2UpLg0KDQpbLi4uXQ0KDQo+UGVrb24sIHRoZSBvbGQgdGksbmFuZC1l
-Y2Mtb3B0ID0gInN3IiBzaG91bGQgYmUgcmVwbGFjZWQgYnkNCj50aSxuYW5kLWVjYy1vcHQgPSAi
-aGFtMSIgPyBTaG91bGQgYmUgdGhlIHNhbWUgPyBJbiB0aGF0IGNhc2UsIHdoeSB0aGlzDQo+ZGlm
-ZmVyZW50IGJlaGF2aW9yID8NCj4NCkluIGFkZGl0aW9uLCBwbGVhc2UgdXNlICJIQU0xIiBlY2Mt
-c2NoZW1lIG9uIG1haW5saW5lIHUtYm9vdCBhbHNvIHRvIGZsYXNoLg0KKGZvbGxvd2luZyBwYXRj
-aGVzIHdlcmUgYWNjZXB0ZWQgYnkgZG9tYWluIG1haW50YWluZXIgJ1Njb3R0IFdvb2RzJykuDQpo
-dHRwOi8vbGlzdHMuZGVueC5kZS9waXBlcm1haWwvdS1ib290LzIwMTMtTm92ZW1iZXIvMTY3NTQ4
-Lmh0bWwNClNvLCBLZXJuZWwgImhhbTEiIGFuZCB1LWJvb3QgImhhbTEiIHNob3VsZCBiZSBpbiBz
-eW5jLi4NCg0KDQpPbmNlIGFib3ZlIGlzIGNsZWFuLCB5b3UgbWF5IGxpa2UgdG8gcHVsbCBhbm90
-aGVyIHNldCBvZiBwYXRjaGVzIGJlbG93DQoodGhlc2UgYXJlIGtlcm5lbCBlcXVpdmFsZW50IG9m
-IGRyaXZlciBvcHRpbWl6YXRpb24gZm9yIHUtYm9vdCBkcml2ZXIpDQogaHR0cDovL2xpc3RzLmRl
-bnguZGUvcGlwZXJtYWlsL3UtYm9vdC8yMDEzLU5vdmVtYmVyLzE2NzQ0NS5odG1sDQoNCg0KQWxz
-bywgZm9yIEpGRlMyLCBwbGVhc2UgZXJhc2UgdGhlIGZsYXNoIHVzaW5nIC1qIG9wdGlvbi4NCict
-aicgb3B0aW9uIGFkZHMgYSBjbGVhbiBtYXJrZXIgdG8gZXJhc2VkIGJsb2Nrcy4NCg0KDQp3aXRo
-IHJlZ2FyZHMsIHBla29uDQo=
+On Mon, 2 Dec 2013, Roger Quadros wrote:
+
+> It won't be done by omap_hwmod as we set HWMOD_INIT_NO_RESET flag in the 
+> hwmod data [1].
+> 
+> Question is do we do it in the driver of leave it to hwmod?
+
+It should be done by hwmod (or more broadly, some OMAP bus code).  That 
+way the device can be brought to a known state even if there's no driver 
+present (e.g., if the driver was built as a module).
+
+> The other concern about i660 is in this comment [1]
+> 
+> 	/*
+> 	 * During system boot; If the hwmod framework resets the module
+> 	 * the module will have smart idle settings; which can lead to deadlock
+> 	 * (above Errata Id:i660); so, dont reset the module during boot;
+> 	 * Use HWMOD_INIT_NO_RESET.
+> 	 */
+> 
+> But if you look at the errata document [2], Advisory 1.108, it doesn't 
+> say that we can't be in smart-idle, but only that we should put the 
+> module in force-idle, before cutting the module's functional clock.
+
+Yes, that looks to be correct.  There shouldn't be any problem with the 
+module being in smart-idle mode if the PRCM doesn't try to put it into a 
+low-power mode.  It already has the HWMOD_SWSUP_SIDLE flag set, so seems 
+to me it should work fine without HWMOD_INIT_NO_RESET, if i660 is the only 
+issue.
+
+Most of the IP blocks that are marked with HWMOD_INIT_NO_RESET are only 
+that way due to laziness, or lack of time, etc., and should be closely 
+reviewed.
+
+
+- Paul
