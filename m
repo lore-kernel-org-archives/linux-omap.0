@@ -1,206 +1,149 @@
-From: Michael Trimarchi <michael@amarulasolutions.com>
-Subject: Re: [PATCH 1/1] mfd: omap-usb-host: Fix USB device detection problems
- on OMAP4 Panda
-Date: Mon, 2 Dec 2013 10:51:08 +0100
-Message-ID: <CAOf5uwmpiOv_GED23hWDArcOvs6DpHNEy=OJ9vnKem1pg8jSgw@mail.gmail.com>
-References: <1385730118-26402-1-git-send-email-rogerq@ti.com>
-	<1385730118-26402-2-git-send-email-rogerq@ti.com>
-	<CAOf5uwnttvOQ26USuDK1naq1nNtVbHo4c0UAfdep64bK2wyvBA@mail.gmail.com>
-	<529C5537.3080300@ti.com>
+From: Sricharan R <r.sricharan@ti.com>
+Subject: Re: [PATCH V4 1/4] DRIVERS: IRQCHIP: IRQ-GIC: Add support for routable
+ irqs
+Date: Mon, 2 Dec 2013 15:56:47 +0530
+Message-ID: <529C6067.7010907@ti.com>
+References: <1384431530-2166-1-git-send-email-r.sricharan@ti.com> <1384431530-2166-2-git-send-email-r.sricharan@ti.com> <20131114140103.GA28328@e106331-lin.cambridge.arm.com> <5284FE6C.9040901@ti.com> <20131115112329.GE1709@e106331-lin.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-we0-f178.google.com ([74.125.82.178]:49406 "EHLO
-	mail-we0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753263Ab3LBJvL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Dec 2013 04:51:11 -0500
-Received: by mail-we0-f178.google.com with SMTP id u57so5916751wes.37
-        for <linux-omap@vger.kernel.org>; Mon, 02 Dec 2013 01:51:09 -0800 (PST)
-In-Reply-To: <529C5537.3080300@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <20131115112329.GE1709@e106331-lin.cambridge.arm.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Mark Rutland <mark.rutland@arm.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linus.walleij@linaro.org" <linus.walleij@linaro.org>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "tony@atomide.com" <tony@atomide.com>, "rnayak@ti.com" <rnayak@ti.com>, Marc Zyngier <Marc.Zyngier@arm.com>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "robherring2@gmail.com" <robherring2@gmail.com>, "tglx@linutronix.de" <tglx@linutronix.de>, "galak@codeaurora.org" <galak@codeaurora.org>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "nm@ti.com" <nm@ti.com>, "bcousson@baylibre.com" <bcousson@baylibre.com>
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: Lee Jones <lee.jones@linaro.org>, sameo@linux.intel.com, tomi.valkeinen@ti.com, Felipe Balbi <balbi@ti.com>, Stefan Roese <sr@denx.de>, ljkenny.mailinglists@gmail.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, USB list <linux-usb@vger.kernel.org>, linux-kernel@vger.kernel.org, stable@vger.kernel.org, Benoit Cousson <bcousson@baylibre.com>, "tony@atomide.com" <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
 
-Hi Roger
+Hi Mark,
 
-On Mon, Dec 2, 2013 at 10:39 AM, Roger Quadros <rogerq@ti.com> wrote:
-> +Benoit, Tony, Paul.
->
-> Hi Michael,
->
-> On 11/30/2013 06:48 AM, Michael Trimarchi wrote:
->> Hi Roger
+Sorry for delayed response. I was away for some time.
+
+On Friday 15 November 2013 04:53 PM, Mark Rutland wrote:
+> On Thu, Nov 14, 2013 at 04:46:36PM +0000, Sricharan R wrote:
+>> Hi Mark,
 >>
->> On Fri, Nov 29, 2013 at 2:01 PM, Roger Quadros <rogerq@ti.com> wrote:
->>> With u-boot 2013.10, USB devices are sometimes not detected
->>> on OMAP4 Panda. To make us independent of what bootloader does
->>> with the USB Host module, we must RESET it to get it to a known
->>> good state. This patch Soft RESETs the USB Host module.
+>> On Thursday 14 November 2013 07:31 PM, Mark Rutland wrote:
+>>> On Thu, Nov 14, 2013 at 12:18:47PM +0000, Sricharan R wrote:
+>>>> In some socs the gic can be preceded by a crossbar IP which
+>>>> routes the peripheral interrupts to the gic inputs. The peripheral
+>>>> interrupts are associated with a fixed crossbar input line and the
+>>>> crossbar routes that to one of the free gic input line.
+>>>>
+>>>> The DT entries for peripherals provides the fixed crossbar input line
+>>>> as its interrupt number and the mapping code should associate this with
+>>>> a free gic input line. This patch adds the support inside the gic irqchip
+>>>> to handle such routable irqs. The routable irqs are registered in a linear
+>>>> domain. The registered routable domain's callback should be implemented
+>>>> to get a free irq and to configure the IP to route it.
+>>>>
+>>>> Cc: Thomas Gleixner <tglx@linutronix.de>
+>>>> Cc: Linus Walleij <linus.walleij@linaro.org>
+>>>> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>>>> Cc: Russell King <linux@arm.linux.org.uk>
+>>>> Cc: Tony Lindgren <tony@atomide.com>
+>>>> Cc: Rajendra Nayak <rnayak@ti.com>
+>>>> Cc: Marc Zyngier <marc.zyngier@arm.com>
+>>>> Cc: Grant Likely <grant.likely@linaro.org>
+>>>> Cc: Rob Herring <rob.herring@calxeda.com>
+>>>> Signed-off-by: Sricharan R <r.sricharan@ti.com>
+>>>> Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>>>> ---
+>>>>  [V2] Added default routable-irqs functions to avoid
+>>>>       unnecessary if checks as per Thomas Gleixner comments
+>>>>       and renamed routable-irq binding as per
+>>>>       Kumar Gala <galak@codeaurora.org> comments.
+>>>>
+>>>>  [V3] Addressed unnecessary warn-on and updated default
+>>>>       xlate function as per Thomas Gleixner comments
+>>>>
+>>>>  Documentation/devicetree/bindings/arm/gic.txt |    6 ++
+>>>>  drivers/irqchip/irq-gic.c                     |   81 ++++++++++++++++++++++---
+>>>>  include/linux/irqchip/arm-gic.h               |    7 ++-
+>>>>  3 files changed, 83 insertions(+), 11 deletions(-)
+>>>>
+>>>> diff --git a/Documentation/devicetree/bindings/arm/gic.txt b/Documentation/devicetree/bindings/arm/gic.txt
+>>>> index 3dfb0c0..5357745 100644
+>>>> --- a/Documentation/devicetree/bindings/arm/gic.txt
+>>>> +++ b/Documentation/devicetree/bindings/arm/gic.txt
+>>>> @@ -49,6 +49,11 @@ Optional
+>>>>    regions, used when the GIC doesn't have banked registers. The offset is
+>>>>    cpu-offset * cpu-nr.
+>>>>  
+>>>> +- arm,routable-irqs : Total number of gic irq inputs which are not directly
+>>>> +		  connected from the peripherals, but are routed dynamically
+>>>> +		  by a crossbar/multiplexer preceding the GIC. The GIC irq
+>>>> +		  input line is assigned dynamically when the corresponding
+>>>> +		  peripheral's crossbar line is mapped.
+>>> I'm not keen on the design of the arm,routable-irqs property. The set of
+>>> IRQs which the crossbar IP can use is a property of which IRQ lines it
+>>> has routed to the GIC. I don't see why that should be considered a
+>>> property of the GIC; it's a property of the crossbar IP's attachment to
+>>> the GIC.
 >>>
->>> Reported-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
->>> Cc: <stable@vger.kernel.org> # 3.10+
->>> Signed-off-by: Roger Quadros <rogerq@ti.com>
->>> ---
->>>  drivers/mfd/omap-usb-host.c | 115 +++++++++++++++++++++++++++++++++++++++++---
->>>  1 file changed, 109 insertions(+), 6 deletions(-)
->>>
->>> diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
->>> index 142650f..d4bd464 100644
->>> --- a/drivers/mfd/omap-usb-host.c
->>> +++ b/drivers/mfd/omap-usb-host.c
->>> @@ -43,14 +43,18 @@
->>>  /* UHH Register Set */
->>>  #define        OMAP_UHH_REVISION                               (0x00)
->>>  #define        OMAP_UHH_SYSCONFIG                              (0x10)
->>> -#define        OMAP_UHH_SYSCONFIG_MIDLEMODE                    (1 << 12)
->>> +#define        OMAP_UHH_SYSCONFIG_MIDLEMASK                    (3 << 12)
->>> +#define OMAP_UHH_SYSCONFIG_MIDLESHIFT                  (12)
->>>  #define        OMAP_UHH_SYSCONFIG_CACTIVITY                    (1 << 8)
->>> -#define        OMAP_UHH_SYSCONFIG_SIDLEMODE                    (1 << 3)
->>> +#define        OMAP_UHH_SYSCONFIG_SIDLEMASK                    (3 << 3)
->>> +#define        OMAP_UHH_SYSCONFIG_SIDLESHIFT                   (3)
->>>  #define        OMAP_UHH_SYSCONFIG_ENAWAKEUP                    (1 << 2)
->>>  #define        OMAP_UHH_SYSCONFIG_SOFTRESET                    (1 << 1)
->>>  #define        OMAP_UHH_SYSCONFIG_AUTOIDLE                     (1 << 0)
->>>
->>>  #define        OMAP_UHH_SYSSTATUS                              (0x14)
->>> +#define OMAP_UHH_SYSSTATUS_RESETDONE                   (1 << 0)
->>> +
->>>  #define        OMAP_UHH_HOSTCONFIG                             (0x40)
->>>  #define        OMAP_UHH_HOSTCONFIG_ULPI_BYPASS                 (1 << 0)
->>>  #define        OMAP_UHH_HOSTCONFIG_ULPI_P1_BYPASS              (1 << 0)
->>> @@ -66,10 +70,10 @@
->>>  #define OMAP4_UHH_HOSTCONFIG_APP_START_CLK             (1 << 31)
->>>
->>>  /* OMAP4-specific defines */
->>> -#define OMAP4_UHH_SYSCONFIG_IDLEMODE_CLEAR             (3 << 2)
->>> -#define OMAP4_UHH_SYSCONFIG_NOIDLE                     (1 << 2)
->>> -#define OMAP4_UHH_SYSCONFIG_STDBYMODE_CLEAR            (3 << 4)
->>> -#define OMAP4_UHH_SYSCONFIG_NOSTDBY                    (1 << 4)
->>> +#define OMAP4_UHH_SYSCONFIG_MIDLEMASK                  (3 << 2)
->>> +#define OMAP4_UHH_SYSCONFIG_MIDLESHIFT                 (2)
->>> +#define OMAP4_UHH_SYSCONFIG_SIDLEMASK                  (3 << 4)
->>> +#define OMAP4_UHH_SYSCONFIG_SIDLESHIFT                 (4)
->>>  #define OMAP4_UHH_SYSCONFIG_SOFTRESET                  (1 << 0)
->>>
->>>  #define OMAP4_P1_MODE_CLEAR                            (3 << 16)
->>> @@ -81,6 +85,12 @@
->>>
->>>  #define        OMAP_UHH_DEBUG_CSR                              (0x44)
->>>
->>> +/* MIDLE modes */
->>> +#define OMAP_UHH_SYSCONFIG_MIDLE_NOSTANDBY             (1)
->>> +
->>> +/* SIDLE modes */
->>> +#define OMAP_UHH_SYSCONFIG_SIDLE_NOIDLE                        (1)
->>> +
->>>  /* Values of UHH_REVISION - Note: these are not given in the TRM */
->>>  #define OMAP_USBHS_REV1                0x00000010      /* OMAP3 */
->>>  #define OMAP_USBHS_REV2                0x50700100      /* OMAP4 */
->>> @@ -474,6 +484,97 @@ static unsigned omap_usbhs_rev2_hostconfig(struct usbhs_hcd_omap *omap,
->>>         return reg;
->>>  }
->>>
+>>> Given we already have a mechanism for describing the attachment (i.e.
+>>> the interrupts property) where the property appears on the node for the
+>>> device generating/propagating the interrupt, I don't see why we should
+>>> do differently here.
+>>  We did try using interrupts=<> property for all peripherals and
+>>  mapping them as crossbar's parent. But that approach of representing
+>>  crossbar as a interrupt parent was not accepted, since the crossbar
+>>  was just routing the interrupts from peripherals to GIC and nothing more.
+>>  Also  mapping all the interrupts using interrupt-map like property by a fixed way
+>>  in DTS itself was considered hacky
+> I'm not suggesting you should interrupt-map. I agree that that
+> interrupt-map is not suitable for a dynamically configurable device like
+> the crossbar.
+>
+> When you say that the crossbar is just routing the interrupts, at what
+> level is it doing so? Does it accept a logical interrupt and output
+> another logical interrupt, or does it just connect the two lines
+> electrically?
+As Santosh, already mentioned this just makes a physical connection
+ and thats it
+>
+> We don't necessarily have to use the interrupts property, but I still
+> think that the set of GIC input IRQ lines that the crossbar is wired to
+> should be described on the crossbar node.
+>
+>>> Listing 160 interrupts in the crossbar node is clearly something we
+>>> don't want to have to do.  If we had a property that we could use to
+>>> define a range (or multiple ranges) of interrupts, then the crossbar
+>>> driver could go and request those ranges from its interrupt-parent (the
+>>> GIC) and the GIC driver could reserve/allocate the irqdomain at that
+>>> time.
+>> Again, this kind of approach of crossbar requesting irqs from GIC
+>> was tried earlier and it did not go anywhere. Subsequently after lot of
+>> discussions this design was considered the best one.
 >>
->> I'm digging in the code but as I understand this should be done by
->> omap_hwmod and
->> i660 avoid reset of the ehci module. This is done by ocp_softreset?
->>
+>> http://www.spinics.net/lists/linux-omap/msg97085.html
+> As far as I can see, the comment there was to use irqdomains, which I am
+> not arguing against. I am arguing that the linkage of the GIC and the
+> crossbar is being described the wrong way around. The GIC input lines
+> that the crossbar is wired to should be described on the crossbar node,
+> and the crossbar driver should request the appropriate domain from the
+> GIC.
+  The comment was and there was also a code snippet suggested which
+ was to use GIC's irq domain and to use GIC xlate, map, unmap functions.
+ This patch simply does that.
+>>> This feels like a point-hack, counter in style to the vast majority of
+>>> provider/consumer bindings. It only allows for one multiplexer before
+>>> the GIC. What if we had multiple multiplexers feeding into the GIC?
+>>> Describing the attachment on the multiplexer allows that to be handled,
+>>> describing that on the GIC does not.
+>>  This is case where the interrupts to GIC is not coming from full irqchip,
+>>  but just a router and support added in the GIC helps to handle
+>>  such cases. In the case of more than one multiplexer, the crossbar
+>>  driver should really take care of handling the downward muxes and
+>>  crossbar like driver can be expanded to handle if such a scenario happens.
+> That still feels like a hack. If there are multiple instances, I see no
+> reason why they should have to know about each other. It's fundamentally
+> at odds to the generic composable model we have now.
 >
-> It won't be done by omap_hwmod as we set HWMOD_INIT_NO_RESET flag in the hwmod data [1].
->
-> Question is do we do it in the driver of leave it to hwmod?
->
-> The other concern about i660 is in this comment [1]
->
+Infact it looks like this because crossbar is not full irqchip and the
+whole aim here was to use the existing infrastructure best to support this.
+After all discussions, this was considered the ideal way. Atleast now,
+we do not have any Socs with multiple *routers* feeding in to each other.
 
-I don't find any description of this errata for omap4. Is this errata valid?
+Regards,
+ Sricharan
 
-My change was to remove the NO_INIT and add 2uS as you have done
-
->         /*
->          * During system oot; If the hwmod framework resets the module
->          * the module will have smart idle settings; which can lead to deadlock
->          * (above Errata Id:i660); so, dont reset the module during boot;
->          * Use HWMOD_INIT_NO_RESET.
->          */
->
-> But if you look at the errata document [2], Advisory 1.108, it doesn't say that we can't be in smart-idle, but
-> only that we should put the module in force-idle, before cutting the module's functional clock. It also states
-> that the only way to recover from a lockup condition is to soft reset the module. So I'm not sure if the above comment
-> in the code is really valid. What if the lockup happens in the bootloader? In that case we will have to reset the module in
-> the kernel.
-
-Michael
-
->
-> Doing the reset in probe does solve a problem for now i.e. eliminates dependency on bootloader.
->
-> [1] - http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c#n2024
-> [2] - http://www.ti.com/litv/pdf/sprz318e
->
->>
->>> +static void omap_usbhs_rev1_reset(struct device *dev)
->>> +{
->>> +       struct usbhs_hcd_omap *omap = dev_get_drvdata(dev);
->>> +       u32 reg;
->>> +       unsigned long timeout;
->>> +
->>> +       reg = usbhs_read(omap->uhh_base, OMAP_UHH_SYSCONFIG);
->>> +
->>> +       /* Soft Reset */
->>> +       usbhs_write(omap->uhh_base, OMAP_UHH_SYSCONFIG,
->>> +                   reg | OMAP_UHH_SYSCONFIG_SOFTRESET);
->>> +
->>> +       timeout = jiffies + msecs_to_jiffies(100);
->>> +       while (!(usbhs_read(omap->uhh_base, OMAP_UHH_SYSSTATUS)
->>> +                       & OMAP_UHH_SYSSTATUS_RESETDONE)) {
->>> +               cpu_relax();
->>> +
->>> +               if (time_after(jiffies, timeout)) {
->>> +                       dev_err(dev, "Soft RESET operation timed out\n");
->>> +                       break;
->>> +               }
->>> +       }
->>> +
->>> +       /* Set No-Standby */
->>> +       reg &= ~OMAP_UHH_SYSCONFIG_MIDLEMASK;
->>> +       reg |= OMAP_UHH_SYSCONFIG_MIDLE_NOSTANDBY
->>> +               << OMAP_UHH_SYSCONFIG_MIDLESHIFT;
->>> +
->>> +       /* Set No-Idle */
->>> +       reg &= ~OMAP_UHH_SYSCONFIG_SIDLEMASK;
->>> +       reg |= OMAP_UHH_SYSCONFIG_SIDLE_NOIDLE
->>> +               << OMAP_UHH_SYSCONFIG_SIDLESHIFT;
->>> +
->>> +       usbhs_write(omap->uhh_base, OMAP_UHH_SYSCONFIG, reg);
->>> +}
->>> +
->>> +static void omap_usbhs_rev2_reset(struct device *dev)
->>> +{
->>> +       struct usbhs_hcd_omap *omap = dev_get_drvdata(dev);
->>> +       u32 reg;
->>> +       unsigned long timeout;
->>> +
->>> +       reg = usbhs_read(omap->uhh_base, OMAP_UHH_SYSCONFIG);
->>> +
->>> +       /* Soft Reset */
->>> +       usbhs_write(omap->uhh_base, OMAP_UHH_SYSCONFIG,
->>> +                   reg | OMAP4_UHH_SYSCONFIG_SOFTRESET);
->>> +
->>> +       /* OMAP4: Need to wait before SYSCONFIG can be accessed */
->>> +       udelay(2);
->>
->> is this the srst_udelay?
->
-> It was supposed to be, but it doesn't seem to be necessary for the UHH module. So I'll get rid of that.
->
-
-Ok
-
-> cheers,
-> -roger
->
-
-Michael
