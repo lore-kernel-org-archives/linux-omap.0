@@ -1,42 +1,76 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: dts: omap3-beagle: Add omap-twl4030 audio support
-Date: Mon, 2 Dec 2013 11:16:53 -0800
-Message-ID: <20131202191652.GI26766@atomide.com>
-References: <1385578008-6623-1-git-send-email-jarkko.nikula@bitmer.com>
- <20131127220258.GE26766@atomide.com>
- <5297778B.7010305@bitmer.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: [PATCH] ARM: OMAP2+: hwmod: Fix usage of invalid iclk / oclk when clock node is not present
+Date: Mon, 2 Dec 2013 15:16:41 -0600
+Message-ID: <1386019001-10144-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:23185 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753204Ab3LBTQz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Dec 2013 14:16:55 -0500
-Content-Disposition: inline
-In-Reply-To: <5297778B.7010305@bitmer.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:53184 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755138Ab3LBVRI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 2 Dec 2013 16:17:08 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>
+To: Rajendra Nayak <rnayak@ti.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Nishanth Menon <nm@ti.com>
 
-* Jarkko Nikula <jarkko.nikula@bitmer.com> [131128 09:05]:
-> On 11/28/2013 12:02 AM, Tony Lindgren wrote:
-> > * Jarkko Nikula <jarkko.nikula@bitmer.com> [131127 10:48]:
-> >> This adds typical McBSP2-TWL4030 audio description to the legacy
-> >> Beagle Board.
-> > 
-> > Nice to see that work almost out of the box :)
-> > 
-> > BTW, I just noticed that sound/soc/omap/Kconfig has depends on
-> > OMAP_MUX. The OMAP_MUX option will be dropped for mach-omap2
-> > for v3.14, so you may want to take a look at that too. If there
-> > really is a dependency, that should be handled using
-> > pinctrl-single for the .dts entries.
-> > 
-> There is actually dependency but only on N810 which needs to remux 4
-> pins from EAC to McBSP2. I'll try to keep my eye on it but don't let
-> that block your cleanup work.
+commit dc75925d(OMAP: hwmod: Fix the missing braces) introduced
+missing braces, however, we just set return result if clk_get fail
+and we populate the error pointer in clk pointer and pass it along to
+clk_prepare. This is wrong. The intent seems to be retry remaining
+clocks if they are available and warn the ones we cant find clks for.
 
-Thanks, meanwhile I'll queue your beagle audio fix.
+With the current logic, we see the following crash:
+omap_hwmod: l3_main: cannot clk_get interface_clk emac_ick
+Unable to handle kernel NULL pointer dereference at virtual address 00000032
+pgd = c0004000
+[00000032] *pgd=00000000
+Internal error: Oops: 5 [#1] SMP ARM
+Modules linked in:
+CPU: 0 PID: 1 Comm: swapper/0 Not tainted 3.13.0-rc1-00044-gcc9fd5a-dirty #19
+task: ce0c3440 ti: ce0c4000 task.ti: ce0c4000
+PC is at __clk_prepare+0x10/0x74
+LR is at clk_prepare+0x14/0x24
+  <snip>
+[<c044d59c>] (__clk_prepare+0x10/0x74) from [<c044d9b0>] (clk_prepare+0x14/0x24)
+[<c044d9b0>] (clk_prepare+0x14/0x24) from [<c077d8c4>] (_init+0x24c/0x3bc)
+[<c077d8c4>] (_init+0x24c/0x3bc) from [<c0027328>] (omap_hwmod_for_each+0x34/0x5c)
+[<c0027328>] (omap_hwmod_for_each+0x34/0x5c) from [<c077dfa0>] (__omap_hwmod_setup_all+0x24/0x40)
+[<c077dfa0>] (__omap_hwmod_setup_all+0x24/0x40) from [<c0008928>] (do_one_initcall+0x38/0x168)
+[<c0008928>] (do_one_initcall+0x38/0x168) from [<c0771be8>] (kernel_init_freeable+0xfc/0x1cc)
+[<c0771be8>] (kernel_init_freeable+0xfc/0x1cc) from [<c0521064>] (kernel_init+0x8/0x110)
+[<c0521064>] (kernel_init+0x8/0x110) from [<c000e568>] (ret_from_fork+0x14/0x2c)
+Code: e92d4038 e2504000 01a05004 0a000005 (e5943034)
 
-Tony
+So, just warn and continue instead of proceeding and crashing, with
+missing clock nodes/bad data, we will eventually fail, however we
+should now have enough information to identify the culprit.
+
+Signed-off-by: Nishanth Menon <nm@ti.com>
+---
+ arch/arm/mach-omap2/omap_hwmod.c |    2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index d0cf926..411e24f 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -787,6 +787,7 @@ static int _init_interface_clks(struct omap_hwmod *oh)
+ 			pr_warning("omap_hwmod: %s: cannot clk_get interface_clk %s\n",
+ 				   oh->name, os->clk);
+ 			ret = -EINVAL;
++			continue;
+ 		}
+ 		os->_clk = c;
+ 		/*
+@@ -823,6 +824,7 @@ static int _init_opt_clks(struct omap_hwmod *oh)
+ 			pr_warning("omap_hwmod: %s: cannot clk_get opt_clk %s\n",
+ 				   oh->name, oc->clk);
+ 			ret = -EINVAL;
++			continue;
+ 		}
+ 		oc->_clk = c;
+ 		/*
+-- 
+1.7.9.5
+
