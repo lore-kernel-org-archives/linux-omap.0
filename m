@@ -1,100 +1,105 @@
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: re: mmc: omap: Fix DMA configuration to not rely on device id
-Date: Mon, 2 Dec 2013 11:06:09 +0300
-Message-ID: <20131202080608.GA3852@elgon.mountain>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH 1/1] mfd: omap-usb-host: Fix USB device detection problems
+ on OMAP4 Panda
+Date: Mon, 2 Dec 2013 10:39:02 +0200
+Message-ID: <529C4726.6080708@ti.com>
+References: <1385730118-26402-1-git-send-email-rogerq@ti.com> <1385730118-26402-2-git-send-email-rogerq@ti.com> <AE90C24D6B3A694183C094C60CF0A2F6026B744D@saturn3.aculab.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from userp1040.oracle.com ([156.151.31.81]:27955 "EHLO
-	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752190Ab3LBIGc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Dec 2013 03:06:32 -0500
-Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <AE90C24D6B3A694183C094C60CF0A2F6026B744D@saturn3.aculab.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: David Laight <David.Laight@ACULAB.COM>, lee.jones@linaro.org, sameo@linux.intel.com
+Cc: tomi.valkeinen@ti.com, balbi@ti.com, sr@denx.de, ljkenny.mailinglists@gmail.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org
 
-Hello Tony Lindgren,
+Hi David,
 
-This is a semi-automatic email about new static checker warnings.
+On 11/29/2013 03:17 PM, David Laight wrote:
+>> From: Of Roger Quadros
+>> With u-boot 2013.10, USB devices are sometimes not detected
+>> on OMAP4 Panda. To make us independent of what bootloader does
+>> with the USB Host module, we must RESET it to get it to a known
+>> good state. This patch Soft RESETs the USB Host module.
+> ...
+>> +++ b/drivers/mfd/omap-usb-host.c
+>> @@ -43,14 +43,18 @@
+>>  /* UHH Register Set */
+>>  #define	OMAP_UHH_REVISION				(0x00)
+>>  #define	OMAP_UHH_SYSCONFIG				(0x10)
+>> -#define	OMAP_UHH_SYSCONFIG_MIDLEMODE			(1 << 12)
+>> +#define	OMAP_UHH_SYSCONFIG_MIDLEMASK			(3 << 12)
+>> +#define OMAP_UHH_SYSCONFIG_MIDLESHIFT			(12)
+> 
+> (tab/space issue)
 
-The patch 31ee9181eb92: "mmc: omap: Fix DMA configuration to not rely 
-on device id" from Nov 26, 2013, leads to the following Smatch 
-complaint:
+Weird, original code seems to use a tab instead of space after #define. 
 
-drivers/mmc/host/omap.c:1468 mmc_omap_probe()
-	 error: we previously assumed 'res' could be null (see line 1410)
+> 
+> Wouldn't it be clearer to define these in the opposite order with:
+> +#define	OMAP_UHH_SYSCONFIG_MIDLEMASK			(3 << OMAP_UHH_SYSCONFIG_MIDLESHIFT)
 
-drivers/mmc/host/omap.c
-  1409		res = platform_get_resource_byname(pdev, IORESOURCE_DMA, "rx");
-  1410		if (res)
-                    ^^^
-Patch introduces a check.
+Right.
 
-  1411			sig = res->start;
-  1412		host->dma_rx = dma_request_slave_channel_compat(mask,
-  1413					omap_dma_filter_fn, &sig, &pdev->dev, "rx");
-  1414		if (!host->dma_rx)
-  1415			dev_warn(host->dev, "unable to obtain RX DMA engine channel %u\n",
-  1416				sig);
-  1417	
-  1418		ret = request_irq(host->irq, mmc_omap_irq, 0, DRIVER_NAME, host);
-  1419		if (ret)
-  1420			goto err_free_dma;
-  1421	
-  1422		if (pdata->init != NULL) {
-  1423			ret = pdata->init(&pdev->dev);
-  1424			if (ret < 0)
-  1425				goto err_free_irq;
-  1426		}
-  1427	
-  1428		host->nr_slots = pdata->nr_slots;
-  1429		host->reg_shift = (mmc_omap7xx() ? 1 : 2);
-  1430	
-  1431		host->mmc_omap_wq = alloc_workqueue("mmc_omap", 0, 0);
-  1432		if (!host->mmc_omap_wq)
-  1433			goto err_plat_cleanup;
-  1434	
-  1435		for (i = 0; i < pdata->nr_slots; i++) {
-  1436			ret = mmc_omap_new_slot(host, i);
-  1437			if (ret < 0) {
-  1438				while (--i >= 0)
-  1439					mmc_omap_remove_slot(host->slots[i]);
-  1440	
-  1441				goto err_destroy_wq;
-  1442			}
-  1443		}
-  1444	
-  1445		return 0;
-  1446	
-  1447	err_destroy_wq:
-  1448		destroy_workqueue(host->mmc_omap_wq);
-  1449	err_plat_cleanup:
-  1450		if (pdata->cleanup)
-  1451			pdata->cleanup(&pdev->dev);
-  1452	err_free_irq:
-  1453		free_irq(host->irq, host);
-  1454	err_free_dma:
-  1455		if (host->dma_tx)
-  1456			dma_release_channel(host->dma_tx);
-  1457		if (host->dma_rx)
-  1458			dma_release_channel(host->dma_rx);
-  1459		clk_put(host->fclk);
-  1460	err_free_iclk:
-  1461		clk_disable(host->iclk);
-  1462		clk_put(host->iclk);
-  1463	err_free_mmc_host:
-  1464		iounmap(host->virt_base);
-  1465	err_ioremap:
-  1466		kfree(host);
-  1467	err_free_mem_region:
-  1468		release_mem_region(res->start, resource_size(res));
-                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Existing unchecked dereferences.
+> 
+> ... 
+>> +static void omap_usbhs_rev1_reset(struct device *dev)
+>> +{
+>> +	struct usbhs_hcd_omap *omap = dev_get_drvdata(dev);
+>> +	u32 reg;
+>> +	unsigned long timeout;
+>> +
+>> +	reg = usbhs_read(omap->uhh_base, OMAP_UHH_SYSCONFIG);
+>> +
+>> +	/* Soft Reset */
+>> +	usbhs_write(omap->uhh_base, OMAP_UHH_SYSCONFIG,
+>> +		    reg | OMAP_UHH_SYSCONFIG_SOFTRESET);
+>> +
+>> +	timeout = jiffies + msecs_to_jiffies(100);
+>> +	while (!(usbhs_read(omap->uhh_base, OMAP_UHH_SYSSTATUS)
+>> +			& OMAP_UHH_SYSSTATUS_RESETDONE)) {
+>> +		cpu_relax();
 
-  1469		return ret;
-  1470	}
+You mean use msleep(1) here instead of cpu_relax()?
+Shouldn't be a problem IMO, but can you please tell me why that is better
+as the reset seems to complete usually in the first iteration.
 
-regards,
-dan carpenter
+>> +
+>> +		if (time_after(jiffies, timeout)) {
+>> +			dev_err(dev, "Soft RESET operation timed out\n");
+>> +			break;
+>> +		}
+>> +	}
+>> +
+>> +	/* Set No-Standby */
+>> +	reg &= ~OMAP_UHH_SYSCONFIG_MIDLEMASK;
+>> +	reg |= OMAP_UHH_SYSCONFIG_MIDLE_NOSTANDBY
+>> +		<< OMAP_UHH_SYSCONFIG_MIDLESHIFT;
+>> +
+>> +	/* Set No-Idle */
+>> +	reg &= ~OMAP_UHH_SYSCONFIG_SIDLEMASK;
+>> +	reg |= OMAP_UHH_SYSCONFIG_SIDLE_NOIDLE
+>> +		<< OMAP_UHH_SYSCONFIG_SIDLESHIFT;
+> 
+> Why not pass in the mask and value and avoid replicating the
+> entire function. I can't see any other significant differences,
+> the udelay(2) won't be significant.
+
+OK, I can pass the mask and value, but still there is a difference
+in the way reset complete is checked between v1 and v2. But that
+be in omap_usbhs_softreset() and the individual reset functions can be
+replaced by a single omap_usbhs_set_sysconfig().
+
+It seems the udelay() is not required for the USB Host module, so I'll
+get rid of that.
+
+> 
+> I'm not sure of the context this code runs in, but if the reset
+> is likely to take a significant portion of the 100ms timeout
+> period, why not just sleep for a few ms between status polls.
+
+covered in the related code above.
+
+cheers,
+-roger
