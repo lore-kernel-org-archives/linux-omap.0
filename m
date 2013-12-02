@@ -1,57 +1,112 @@
-From: Tom Rini <trini@ti.com>
-Subject: Re: [PATCH] ARM: dts: omap3-igep00x0: Fix nand ECC to maintain backward
- compatibility.
-Date: Mon, 2 Dec 2013 13:09:31 -0500
-Message-ID: <529CCCDB.4030904@ti.com>
-References: <1385896995-16803-1-git-send-email-eballetbo@gmail.com> <CABxcv=mkSE2A9TLsp7pXWK=dyu6wjN0t6K2ke6NfP3G2rxaXug@mail.gmail.com> <20131202115422.1f8c73f6@skate> <CAFqH_53V5rOsCOLzTzm=9m1zvJpqN_ofh1jjzKAMmKqwHe28rQ@mail.gmail.com> <20980858CB6D3A4BAE95CA194937D5E73EA5094C@DBDE04.ent.ti.com> <20131202160219.40286dc9@skate> <20980858CB6D3A4BAE95CA194937D5E73EA5099E@DBDE04.ent.ti.com> <CAFqH_52ARf44fWOP9HBwfS=AjoNm2MfEMyBBAJ7KDJO+xLPGfw@mail.gmail.com> <20131202165103.726314d9@skate>	<529CAEA3.2080808@ti.com> <20131202170606.2191fd89@skate> <20980858CB6D3A4BAE95CA194937D5E73EA50A23@DBDE04.ent.ti.com> <20131202171907.56c9300a@skate> <20980858CB6D3A4BAE95CA194937D5E73EA50AA4@DBDE04.ent.ti.com> <CAOf5uwmG=QnjPsD3MDeK3uP0_wM3f9QEqbFLJuVJ7Su6v54n1Q@mail.gmail.com> <20980858CB6D3A4BAE95CA194
- 937D5E73EA50ADE@DBDE04.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: mmc: omap: Fix DMA configuration to not rely on device id
+Date: Mon, 2 Dec 2013 11:05:54 -0800
+Message-ID: <20131202190554.GH26766@atomide.com>
+References: <20131202080608.GA3852@elgon.mountain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:60286 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753070Ab3LBSJh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Dec 2013 13:09:37 -0500
-In-Reply-To: <20980858CB6D3A4BAE95CA194937D5E73EA50ADE@DBDE04.ent.ti.com>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:48409 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752028Ab3LBTF4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Dec 2013 14:05:56 -0500
+Content-Disposition: inline
+In-Reply-To: <20131202080608.GA3852@elgon.mountain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gupta, Pekon" <pekon@ti.com>
-Cc: Michael Trimarchi <michael@amarulasolutions.com>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, "Javier Martinez Canillas (javier@dowhile0.org)" <javier@dowhile0.org>, Enric Balletbo Serra <eballetbo@gmail.com>, =?ISO-8859-1?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Javier Martinez Canillas <martinez.javier@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, "Scott Wood (scottwood@freescale.com)" <scottwood@freescale.com>
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: linux-omap@vger.kernel.org
 
-On 12/02/2013 12:46 PM, Gupta, Pekon wrote:
->>> So coming back to the specific problem here.
->>> I think we need 'nandecc' back in u-boot till atleast all systems have
->>> migrated to BCH16 or whatever highest ecc-scheme which can be
->>> supported on OMAP devices.
->>>
+* Dan Carpenter <dan.carpenter@oracle.com> [131202 00:07]:
+> Hello Tony Lindgren,
 > 
-> Forgot to mention, one more way of updating boot-loaders with
-> different ecc-scheme via kernel. This can be helpful when:
-> - you want to remotely upgrade your u-boot, but your kernel is statically
->    build with different ecc-scheme.
-> - In production environment, where you boot multiple devices in parallel
->   (using say NFS boot), and then flash multiple devices without bothering
->    about ecc-schemes..
+> This is a semi-automatic email about new static checker warnings.
 > 
-> *Method*
-> (1) Flash the u-boot image on one *sample* device selecting appropriate
->    ecc-scheme which ROM code understands.
-> (2) Dump the complete image along with OOB appended (as a binary)
-> (3) Use this binary image (with OOB included) to flash other devices
-> from kernel as *raw* data (that means kernel will not append ECC while
-> writing data, it will blindly write the image as-it-is on the partition).
+> The patch 31ee9181eb92: "mmc: omap: Fix DMA configuration to not rely 
+> on device id" from Nov 26, 2013, leads to the following Smatch 
+> complaint:
 > 
-> This way the ECC with which u-boot image was built in (1) will get
-> programmed, irrespective of what kernel supports..
-> - I have seen at-least one customer going into production this way.
-> - And I have been using this often too, though with older mtd-utils.
+> drivers/mmc/host/omap.c:1468 mmc_omap_probe()
+> 	 error: we previously assumed 'res' could be null (see line 1410)
+> 
+> drivers/mmc/host/omap.c
+>   1409		res = platform_get_resource_byname(pdev, IORESOURCE_DMA, "rx");
+>   1410		if (res)
+>                     ^^^
+> Patch introduces a check.
+> 
+>   1411			sig = res->start;
+>   1412		host->dma_rx = dma_request_slave_channel_compat(mask,
+>   1413					omap_dma_filter_fn, &sig, &pdev->dev, "rx");
+>   1414		if (!host->dma_rx)
+>   1415			dev_warn(host->dev, "unable to obtain RX DMA engine channel %u\n",
+>   1416				sig);
+>   1417	
+>   1418		ret = request_irq(host->irq, mmc_omap_irq, 0, DRIVER_NAME, host);
+>   1419		if (ret)
+>   1420			goto err_free_dma;
+>   1421	
+>   1422		if (pdata->init != NULL) {
+>   1423			ret = pdata->init(&pdev->dev);
+>   1424			if (ret < 0)
+>   1425				goto err_free_irq;
+>   1426		}
+>   1427	
+>   1428		host->nr_slots = pdata->nr_slots;
+>   1429		host->reg_shift = (mmc_omap7xx() ? 1 : 2);
+>   1430	
+>   1431		host->mmc_omap_wq = alloc_workqueue("mmc_omap", 0, 0);
+>   1432		if (!host->mmc_omap_wq)
+>   1433			goto err_plat_cleanup;
+>   1434	
+>   1435		for (i = 0; i < pdata->nr_slots; i++) {
+>   1436			ret = mmc_omap_new_slot(host, i);
+>   1437			if (ret < 0) {
+>   1438				while (--i >= 0)
+>   1439					mmc_omap_remove_slot(host->slots[i]);
+>   1440	
+>   1441				goto err_destroy_wq;
+>   1442			}
+>   1443		}
+>   1444	
+>   1445		return 0;
+>   1446	
+>   1447	err_destroy_wq:
+>   1448		destroy_workqueue(host->mmc_omap_wq);
+>   1449	err_plat_cleanup:
+>   1450		if (pdata->cleanup)
+>   1451			pdata->cleanup(&pdev->dev);
+>   1452	err_free_irq:
+>   1453		free_irq(host->irq, host);
+>   1454	err_free_dma:
+>   1455		if (host->dma_tx)
+>   1456			dma_release_channel(host->dma_tx);
+>   1457		if (host->dma_rx)
+>   1458			dma_release_channel(host->dma_rx);
+>   1459		clk_put(host->fclk);
+>   1460	err_free_iclk:
+>   1461		clk_disable(host->iclk);
+>   1462		clk_put(host->iclk);
+>   1463	err_free_mmc_host:
+>   1464		iounmap(host->virt_base);
+>   1465	err_ioremap:
+>   1466		kfree(host);
+>   1467	err_free_mem_region:
+>   1468		release_mem_region(res->start, resource_size(res));
+>                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> Existing unchecked dereferences.
+> 
+>   1469		return ret;
+>   1470	}
 
-There are many ways to in essentially work around this problem, given
-the ability to raw write (including OOB) from the kernel and from
-u-boot.  This doesn't change the general problem of "we have cases where
-we need part of the NAND with one scheme, another part of it with a
-different one".
+Oops. Thanks a lot for reporting this, I'll post a fix for it separately.
 
--- 
-Tom
+Looks like the minimal fix is to add what at least omap_hsmmc.c is doing:
+
+res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+if (res)
+	release_mem_region(res->start, resource_size(res));
+
+Regards,
+
+Tony
