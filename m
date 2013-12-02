@@ -1,54 +1,42 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] mmc: omap: Fix error introduced by fix to
- release_mem_region() path
-Date: Mon, 2 Dec 2013 11:34:59 -0800
-Message-ID: <20131202193459.GL26766@atomide.com>
+Subject: Re: [PATCH] ARM: dts: omap3-beagle: Add omap-twl4030 audio support
+Date: Mon, 2 Dec 2013 11:16:53 -0800
+Message-ID: <20131202191652.GI26766@atomide.com>
+References: <1385578008-6623-1-git-send-email-jarkko.nikula@bitmer.com>
+ <20131127220258.GE26766@atomide.com>
+ <5297778B.7010305@bitmer.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:17298 "EHLO
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:23185 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753491Ab3LBTfD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Dec 2013 14:35:03 -0500
+	with ESMTP id S1753204Ab3LBTQz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Dec 2013 14:16:55 -0500
 Content-Disposition: inline
+In-Reply-To: <5297778B.7010305@bitmer.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Chris Ball <cjb@laptop.org>
-Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, Dan Carpenter <dan.carpenter@oracle.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Jarkko Lavinen <j.lavinen@samsung.com>
+To: Jarkko Nikula <jarkko.nikula@bitmer.com>
+Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>
 
-Commit 31ee9181eb92: (mmc: omap: Fix DMA configuration to not rely
-on device id) fixed getting of the DMA resources when booted with
-device tree. This patch however changed the handling of the
-free_mem_region() error path by reusing the struct resource *res
-for the DMA resources.
+* Jarkko Nikula <jarkko.nikula@bitmer.com> [131128 09:05]:
+> On 11/28/2013 12:02 AM, Tony Lindgren wrote:
+> > * Jarkko Nikula <jarkko.nikula@bitmer.com> [131127 10:48]:
+> >> This adds typical McBSP2-TWL4030 audio description to the legacy
+> >> Beagle Board.
+> > 
+> > Nice to see that work almost out of the box :)
+> > 
+> > BTW, I just noticed that sound/soc/omap/Kconfig has depends on
+> > OMAP_MUX. The OMAP_MUX option will be dropped for mach-omap2
+> > for v3.14, so you may want to take a look at that too. If there
+> > really is a dependency, that should be handled using
+> > pinctrl-single for the .dts entries.
+> > 
+> There is actually dependency but only on N810 which needs to remux 4
+> pins from EAC to McBSP2. I'll try to keep my eye on it but don't let
+> that block your cleanup work.
 
-Fix the error the same way omap_hsmmc.c driver handles it, which
-is to restore the resource before using the values to call
-release_mem_region().
+Thanks, meanwhile I'll queue your beagle audio fix.
 
-Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-
----
-
-Chris, looks like the patch introducing this error is queued in
-arm-soc fixes branch.. Care to ack this one too and I'll merge it
-via arm-soc as well?
-
-After that, no need for me to patch this driver for my mach-omap2
-device tree conversion I hope :)
-
---- a/drivers/mmc/host/omap.c
-+++ b/drivers/mmc/host/omap.c
-@@ -1465,7 +1465,10 @@ err_free_mmc_host:
- err_ioremap:
- 	kfree(host);
- err_free_mem_region:
--	release_mem_region(res->start, resource_size(res));
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	if (res)
-+		release_mem_region(res->start, resource_size(res));
-+
- 	return ret;
- }
- 
+Tony
