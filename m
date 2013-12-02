@@ -1,70 +1,155 @@
-From: Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
-Subject: Re: [PATCH 1/1] mfd: omap-usb-host: Fix USB device detection problems
- on OMAP4 Panda
-Date: Mon, 02 Dec 2013 15:03:47 +0100
-Message-ID: <529C9343.3010000@linutronix.de>
-References: <1385730118-26402-1-git-send-email-rogerq@ti.com>	<1385730118-26402-2-git-send-email-rogerq@ti.com> <CAOf5uwmEkzFd=e3j8m8=qdTCAMkk_-DPw0fTm=7Vzy0PbE2oDQ@mail.gmail.com> <529C55DF.3000808@ti.com> <529C76AF.10106@linutronix.de> <529C7922.5000601@ti.com> <529C854F.3010101@linutronix.de> <529C8CBD.4070003@ti.com> <529C8D74.10007@linutronix.de> <529C8ED0.6060805@ti.com>
+From: Enric Balletbo Serra <eballetbo@gmail.com>
+Subject: Re: [PATCH] ARM: dts: omap3-igep00x0: Fix nand ECC to maintain
+ backward compatibility.
+Date: Mon, 2 Dec 2013 15:16:28 +0100
+Message-ID: <CAFqH_53V5rOsCOLzTzm=9m1zvJpqN_ofh1jjzKAMmKqwHe28rQ@mail.gmail.com>
+References: <1385896995-16803-1-git-send-email-eballetbo@gmail.com>
+	<CABxcv=mkSE2A9TLsp7pXWK=dyu6wjN0t6K2ke6NfP3G2rxaXug@mail.gmail.com>
+	<20131202115422.1f8c73f6@skate>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <529C8ED0.6060805-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Cc: Michael Trimarchi <michael-dyjBcgdgk7Pe9wHmmfpqLFaTQe2KTcn/@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, tomi.valkeinen-l0cyMroinI0@public.gmane.org, Stefan Roese <sr-ynQEQJNshbs@public.gmane.org>, ljkenny.mailinglists-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, USB list <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-we0-f179.google.com ([74.125.82.179]:40460 "EHLO
+	mail-we0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751515Ab3LBOQ3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Dec 2013 09:16:29 -0500
+Received: by mail-we0-f179.google.com with SMTP id q59so11837588wes.38
+        for <linux-omap@vger.kernel.org>; Mon, 02 Dec 2013 06:16:28 -0800 (PST)
+In-Reply-To: <20131202115422.1f8c73f6@skate>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+Cc: Javier Martinez Canillas <javier@dowhile0.org>, =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Javier Martinez Canillas <martinez.javier@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, pekon@ti.com
 
-On 12/02/2013 02:44 PM, Roger Quadros wrote:
-> "Errata id: i660
-> DESCRIPTION
-> In the following configuration :
-> =95 USBHOST module is set to smart-idle mode
-> =95 PRCM asserts idle_req to the USBHOST module. (This typically happ=
-ens when the system is going to
-> a low power mode : all ports have been suspended, the master part of =
-the USBHOST module has
-> entered the standby state, and SW has cut the functional clocks.)
-> =95 an USBHOST interrupt occurs before the module is able to answer i=
-dle_ack, typically a remote wakeup
-> IRQ.
-> Then the USB HOST module will enter a deadlock situation where it is =
-no more accessible nor functional.
-> The only way to recover will be to perform a software reset of the mo=
-dule.
->=20
-> WORKAROUND
-> The best workaround consists in switching the module to force idle mo=
-de right before cutting the
-> module's FCLK.
-> =95 the bus has reached the suspend state.
-> =95 write SYSCONFIG:Idlemode=3D ForceIdle and read it back to ensure =
-the write has been taken into
-> account in case of posted writes.
-> =95 cut the FCLK
-> =95 Idle_req will be asserted and idle_ack answered within one L3 clo=
-ck cycle.
-> Upon resume or remote wakeup, switch back the module to smart-idle.
-> This workaround reduces the failure window to only one L3 clock cycle=
-=2E The probability for an interrupt to
-> fire at this exact time is considered extremely low, and the case has=
- never been hit on board."
->=20
-> Based on this, I don't see anything wrong in Resetting the module at =
-probe or at boot.
+Hi,
 
-If u-boot configured USB into something not smart-idle and the reset
-would bring it back then the reset should remain.
-If you could tell hwmod not use smart-idle nor smart-standby and you
-make sure that the suspend code manually puts the device into suspend
-via forceidle then I think could get rid of the "do-not-reset-thingy".
+CCing Pekon Gupta <pekon@ti.com>
 
->=20
-> cheers,
-> -roger
->=20
+2013/12/2 Thomas Petazzoni <thomas.petazzoni@free-electrons.com>:
+> Dear Javier Martinez Canillas,
+>
+> On Sun, 1 Dec 2013 13:27:25 +0100, Javier Martinez Canillas wrote:
+>
+>> > diff --git a/arch/arm/boot/dts/omap3-igep0020.dts b/arch/arm/boot/dts/omap3-igep0020.dts
+>> > index d5cc792..4229e94 100644
+>> > --- a/arch/arm/boot/dts/omap3-igep0020.dts
+>> > +++ b/arch/arm/boot/dts/omap3-igep0020.dts
+>> > @@ -116,7 +116,7 @@
+>> >                 linux,mtd-name= "micron,mt29c4g96maz";
+>> >                 reg = <0 0 0>;
+>> >                 nand-bus-width = <16>;
+>> > -               ti,nand-ecc-opt = "bch8";
+>> > +               ti,nand-ecc-opt = "ham1";
+>> >
+>> >                 gpmc,sync-clk-ps = <0>;
+>> >                 gpmc,cs-on-ns = <0>;
+>> > diff --git a/arch/arm/boot/dts/omap3-igep0030.dts b/arch/arm/boot/dts/omap3-igep0030.dts
+>> > index 525e6d9..9043e97 100644
+>> > --- a/arch/arm/boot/dts/omap3-igep0030.dts
+>> > +++ b/arch/arm/boot/dts/omap3-igep0030.dts
+>> > @@ -59,7 +59,7 @@
+>> >                 linux,mtd-name= "micron,mt29c4g96maz";
+>> >                 reg = <0 0 0>;
+>> >                 nand-bus-width = <16>;
+>> > -               ti,nand-ecc-opt = "bch8";
+>> > +               ti,nand-ecc-opt = "ham1";
+>
+> Tested this with 3.13-rc1, and it somewhat works, but causes some ECC
+> error messages:
+>
+> # mount -t jffs2 /dev/mtdblock3 /mnt/
+> [   10.423736] jffs2: CLEANMARKER node found at 0x00000000 has totlen 0xc != normal 0x0
+> [   10.444671] jffs2: CLEANMARKER node found at 0x00020000 has totlen 0xc != normal 0x0
+> [   10.472290] jffs2: mtd->read(0x100 bytes from 0x40000) returned ECC error
+> [   10.480743] jffs2: mtd->read(0x100 bytes from 0x60000) returned ECC error
+> [   10.489013] jffs2: mtd->read(0x100 bytes from 0x80000) returned ECC error
+> [   10.497283] jffs2: mtd->read(0x100 bytes from 0xa0000) returned ECC error
+> [   10.505126] jffs2: mtd->read(0x100 bytes from 0xc0000) returned ECC error
+> [   10.513458] jffs2: mtd->read(0x100 bytes from 0xe0000) returned ECC error
+> [   10.521667] jffs2: mtd->read(0x100 bytes from 0x100000) returned ECC error
+> [   10.529968] jffs2: mtd->read(0x100 bytes from 0x120000) returned ECC error
+> [   10.538269] jffs2: mtd->read(0x100 bytes from 0x140000) returned ECC error
+> [   10.546295] jffs2: mtd->read(0x100 bytes from 0x160000) returned ECC error
+> [   10.554534] jffs2: mtd->read(0x100 bytes from 0x180000) returned ECC error
+> [   10.563323] jffs2: mtd->read(0x100 bytes from 0x1a0000) returned ECC error
+> [   10.571685] jffs2: mtd->read(0x100 bytes from 0x1c0000) returned ECC error
+> [   10.579986] jffs2: mtd->read(0x100 bytes from 0x1e0000) returned ECC error
+> [   10.588287] jffs2: mtd->read(0x100 bytes from 0x200000) returned ECC error
+> [   10.596313] jffs2: mtd->read(0x100 bytes from 0x220000) returned ECC error
+> [   10.604522] jffs2: mtd->read(0x100 bytes from 0x240000) returned ECC error
+> [   10.613037] jffs2: mtd->read(0x100 bytes from 0x260000) returned ECC error
+> [   10.621307] jffs2: mtd->read(0x100 bytes from 0x280000) returned ECC error
+> [   10.629608] jffs2: mtd->read(0x100 bytes from 0x2a0000) returned ECC error
+> [   10.637908] jffs2: mtd->read(0x100 bytes from 0x2c0000) returned ECC error
+> [   10.645843] jffs2: mtd->read(0x100 bytes from 0x2e0000) returned ECC error
+> [   10.654113] jffs2: notice: (851) jffs2_build_xattr_subsystem: complete building xattr subsystem, 0 of xdatum (0 unchecked, 0 orphan) and 0 of xref (0 dead, 0 orphan) found.
+> #
+> #
+> # cd /mnt/
+> # ls
+> MD5SUMS  foo10    foo3     foo5     foo7     foo9
+> foo1     foo2     foo4     foo6     foo8
+> # md5sum -c MD5SUMS
+> foo1: OK
+> foo10: OK
+> foo2: OK
+> foo3: OK
+> foo4: OK
+> foo5: OK
+> foo6: OK
+> foo7: OK
+> foo8: OK
+> foo9: OK
+>
+> This is with a JFFS2 image flashed after doing "nandecc sw" in U-Boot.
+>
+>> Just a note that this binding property got renamed for v3.13 on
+>>
+>> commit c66d039197e42af8867e5d0d9b904daf0fb9e6bc
+>> Author: Pekon Gupta <pekon@ti.com>
+>> Date:   Thu Oct 24 18:20:18 2013 +0530
+>>
+>>     mtd: nand: omap: combine different flavours of 1-bit hamming ecc schemes
+>>
+>> so users using current v3.12 kernel or older should use
+>>
+>> ti,nand-ecc-opt = "sw";
+>>
+>> instead.
+>
+> However, this works perfectly fine, with the same JFFS2 image, flashed
+> in the same way in U-Boot:
+>
 
-Sebastian
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Pekon, the old ti,nand-ecc-opt = "sw" should be replaced by
+ti,nand-ecc-opt = "ham1" ? Should be the same ? In that case, why this
+different behavior ?
+
+
+> # mount -t jffs2 /dev/mtdblock3 /mnt/
+> [   19.789306] jffs2: CLEANMARKER node found at 0x00000000 has totlen 0xc != normal 0x0
+> [   19.810455] jffs2: CLEANMARKER node found at 0x00020000 has totlen 0xc != normal 0x0
+> [   19.850860] jffs2: notice: (802) jffs2_build_xattr_subsystem: complete building xattr subsystem, 0 of xdatum (0 unchecked, 0 orphan) and 0 of xref (0 dead, 0 orphan) found.
+> # cd /mnt/
+> # ls
+> MD5SUMS  foo10    foo3     foo5     foo7     foo9
+> foo1     foo2     foo4     foo6     foo8
+> # md5sum -c MD5SUMS
+> foo1: OK
+> foo10: OK
+> foo2: OK
+> foo3: OK
+> foo4: OK
+> foo5: OK
+> foo6: OK
+> foo7: OK
+> foo8: OK
+> foo9: OK
+>
+> Best regards,
+>
+> Thomas
+> --
+> Thomas Petazzoni, CTO, Free Electrons
+> Embedded Linux, Kernel and Android engineering
+> http://free-electrons.com
