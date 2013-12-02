@@ -1,56 +1,50 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH 1/1] mfd: omap-usb-host: Fix USB device detection problems
- on OMAP4 Panda
-Date: Mon, 2 Dec 2013 14:12:18 +0200
-Message-ID: <529C7922.5000601@ti.com>
-References: <1385730118-26402-1-git-send-email-rogerq@ti.com>	<1385730118-26402-2-git-send-email-rogerq@ti.com> <CAOf5uwmEkzFd=e3j8m8=qdTCAMkk_-DPw0fTm=7Vzy0PbE2oDQ@mail.gmail.com> <529C55DF.3000808@ti.com> <529C76AF.10106@linutronix.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <529C76AF.10106@linutronix.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Michael Trimarchi <michael@amarulasolutions.com>, Felipe Balbi <balbi@ti.com>, lee.jones@linaro.org, sameo@linux.intel.com, tomi.valkeinen@ti.com, Stefan Roese <sr@denx.de>, ljkenny.mailinglists@gmail.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, USB list <linux-usb@vger.kernel.org>, linux-kernel@vger.kernel.org
+From: Florian Vaussard <florian.vaussard@epfl.ch>
+Subject: [PATCH] ARM: dts: Fix the name of supplies for smsc911x shared by OMAP
+Date: Mon,  2 Dec 2013 13:53:02 +0100
+Message-ID: <1385988782-21731-1-git-send-email-florian.vaussard@epfl.ch>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp5.epfl.ch ([128.178.224.8]:33832 "EHLO smtp5.epfl.ch"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751087Ab3LBMxX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 2 Dec 2013 07:53:23 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>
+Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, florian.vaussard@epfl.ch
 
-On 12/02/2013 02:01 PM, Sebastian Andrzej Siewior wrote:
-> - stable@vger.kernel.org since they probably don't care about this
->   unless the patch is merged.
-> 
-> On 12/02/2013 10:41 AM, Roger Quadros wrote:
->> Michael,
->>
->> On 11/29/2013 05:32 PM, Michael Trimarchi wrote:
->>> Hi Roger
->>>
->>> On Fri, Nov 29, 2013 at 2:01 PM, Roger Quadros <rogerq@ti.com> wrote:
->>>> With u-boot 2013.10, USB devices are sometimes not detected
->>>> on OMAP4 Panda. To make us independent of what bootloader does
->>>> with the USB Host module, we must RESET it to get it to a known
->>>> good state. This patch Soft RESETs the USB Host module.
->>>>
->>>
->>> Do you think that we need something similar of usb musb?
->>> I have seen the OTG_SYSCONFIG is touched in uboot and
->>> only readed in omap2430.c.
->>
->> I'm not sure about musb. Maybe Sebastian/Felipe have better idea.
->> In general I believe that all modules must be reset by the kernel.
->>
-> 
-> based on the code at the bottom it touches the first few register(s)
-> sysconfig. Isn't hwmod actually doing this idle stuff and resting the
-> device during boot?
-> 
+drivers/net/ethernet/smsc/smsc911x.c is expecting supplies named
+"vdd33a" and "vddvario". Currently the shared DTS file provides
+"vmmc" and "vmmc_aux", and the supply lookup will fail:
 
-You are right. The musb hwmod data doesn't have the HWMOD_INIT_NO_RESET
-flag, so hwmod should reset it during boot.
+smsc911x 2c000000.ethernet: Looking up vdd33a-supply from device tree
+smsc911x 2c000000.ethernet: Looking up vdd33a-supply property in node /ocp/gpmc@6e000000/ethernet@gpmc failed
+smsc911x 2c000000.ethernet: Looking up vddvario-supply from device tree
+smsc911x 2c000000.ethernet: Looking up vddvario-supply property in node /ocp/gpmc@6e000000/ethernet@gpmc failed
 
-Maybe I too should just remove HWMOD_INIT_NO_RESET flag from the USB Host
-hwmod data, then we don't need to change this driver at all.
+Fix it!
 
-Benoit, Tony any comments?
+Tested on OMAP3 Overo platform.
 
-cheers,
--roger
+Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
+---
+ arch/arm/boot/dts/omap-gpmc-smsc911x.dtsi | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/boot/dts/omap-gpmc-smsc911x.dtsi b/arch/arm/boot/dts/omap-gpmc-smsc911x.dtsi
+index 9c18adf..f577b7d 100644
+--- a/arch/arm/boot/dts/omap-gpmc-smsc911x.dtsi
++++ b/arch/arm/boot/dts/omap-gpmc-smsc911x.dtsi
+@@ -44,8 +44,8 @@
+ 		gpmc,wr-access-ns = <186>;
+ 		gpmc,cycle2cycle-samecsen;
+ 		gpmc,cycle2cycle-diffcsen;
+-		vmmc-supply = <&vddvario>;
+-		vmmc_aux-supply = <&vdd33a>;
++		vddvario-supply = <&vddvario>;
++		vdd33a-supply = <&vdd33a>;
+ 		reg-io-width = <4>;
+ 		smsc,save-mac-address;
+ 	};
+-- 
+1.8.1.2
+
