@@ -1,111 +1,59 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: mmc: omap: Fix DMA configuration to not rely on device id
-Date: Mon, 2 Dec 2013 11:05:54 -0800
-Message-ID: <20131202190554.GH26766@atomide.com>
-References: <20131202080608.GA3852@elgon.mountain>
+Subject: Re: [PATCH] ARM: OMAP2+: Powerdomain: Fix unchecked dereference of
+ arch_pwrdm
+Date: Mon, 2 Dec 2013 11:20:58 -0800
+Message-ID: <20131202192057.GJ26766@atomide.com>
+References: <1385553437-22568-1-git-send-email-rnayak@ti.com>
+ <5296A29C.50006@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:48409 "EHLO
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:35333 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752028Ab3LBTF4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Dec 2013 14:05:56 -0500
+	with ESMTP id S1753738Ab3LBTVA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Dec 2013 14:21:00 -0500
 Content-Disposition: inline
-In-Reply-To: <20131202080608.GA3852@elgon.mountain>
+In-Reply-To: <5296A29C.50006@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: linux-omap@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: Rajendra Nayak <rnayak@ti.com>, linux-omap@vger.kernel.org, dan.carpenter@oracle.com
 
-* Dan Carpenter <dan.carpenter@oracle.com> [131202 00:07]:
-> Hello Tony Lindgren,
-> 
-> This is a semi-automatic email about new static checker warnings.
-> 
-> The patch 31ee9181eb92: "mmc: omap: Fix DMA configuration to not rely 
-> on device id" from Nov 26, 2013, leads to the following Smatch 
-> complaint:
-> 
-> drivers/mmc/host/omap.c:1468 mmc_omap_probe()
-> 	 error: we previously assumed 'res' could be null (see line 1410)
-> 
-> drivers/mmc/host/omap.c
->   1409		res = platform_get_resource_byname(pdev, IORESOURCE_DMA, "rx");
->   1410		if (res)
->                     ^^^
-> Patch introduces a check.
-> 
->   1411			sig = res->start;
->   1412		host->dma_rx = dma_request_slave_channel_compat(mask,
->   1413					omap_dma_filter_fn, &sig, &pdev->dev, "rx");
->   1414		if (!host->dma_rx)
->   1415			dev_warn(host->dev, "unable to obtain RX DMA engine channel %u\n",
->   1416				sig);
->   1417	
->   1418		ret = request_irq(host->irq, mmc_omap_irq, 0, DRIVER_NAME, host);
->   1419		if (ret)
->   1420			goto err_free_dma;
->   1421	
->   1422		if (pdata->init != NULL) {
->   1423			ret = pdata->init(&pdev->dev);
->   1424			if (ret < 0)
->   1425				goto err_free_irq;
->   1426		}
->   1427	
->   1428		host->nr_slots = pdata->nr_slots;
->   1429		host->reg_shift = (mmc_omap7xx() ? 1 : 2);
->   1430	
->   1431		host->mmc_omap_wq = alloc_workqueue("mmc_omap", 0, 0);
->   1432		if (!host->mmc_omap_wq)
->   1433			goto err_plat_cleanup;
->   1434	
->   1435		for (i = 0; i < pdata->nr_slots; i++) {
->   1436			ret = mmc_omap_new_slot(host, i);
->   1437			if (ret < 0) {
->   1438				while (--i >= 0)
->   1439					mmc_omap_remove_slot(host->slots[i]);
->   1440	
->   1441				goto err_destroy_wq;
->   1442			}
->   1443		}
->   1444	
->   1445		return 0;
->   1446	
->   1447	err_destroy_wq:
->   1448		destroy_workqueue(host->mmc_omap_wq);
->   1449	err_plat_cleanup:
->   1450		if (pdata->cleanup)
->   1451			pdata->cleanup(&pdev->dev);
->   1452	err_free_irq:
->   1453		free_irq(host->irq, host);
->   1454	err_free_dma:
->   1455		if (host->dma_tx)
->   1456			dma_release_channel(host->dma_tx);
->   1457		if (host->dma_rx)
->   1458			dma_release_channel(host->dma_rx);
->   1459		clk_put(host->fclk);
->   1460	err_free_iclk:
->   1461		clk_disable(host->iclk);
->   1462		clk_put(host->iclk);
->   1463	err_free_mmc_host:
->   1464		iounmap(host->virt_base);
->   1465	err_ioremap:
->   1466		kfree(host);
->   1467	err_free_mem_region:
->   1468		release_mem_region(res->start, resource_size(res));
->                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-> Existing unchecked dereferences.
-> 
->   1469		return ret;
->   1470	}
+* Nishanth Menon <nm@ti.com> [131127 17:56]:
+> On 11/27/2013 05:57 AM, Rajendra Nayak wrote:
+> > Commit 'cd8abed' "ARM: OMAP2+: Powerdomain: Remove the need to
+> > always have a voltdm associated to a pwrdm" leads to the following
+> > Smatch complaint:
+> > 
+> > arch/arm/mach-omap2/powerdomain.c:131 _pwrdm_register()
+> > 	 error: we previously assumed 'arch_pwrdm' could be null (see line 105)
+> > 
+> > So, fix the unchecked dereference of arch_pwrdm.
+> > 
+> > Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+> > Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+> > ---
+> >  arch/arm/mach-omap2/powerdomain.c |    3 ++-
+> >  1 file changed, 2 insertions(+), 1 deletion(-)
+> > 
+> > diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+> > index e233dfc..93a2a6e 100644
+> > --- a/arch/arm/mach-omap2/powerdomain.c
+> > +++ b/arch/arm/mach-omap2/powerdomain.c
+> > @@ -128,7 +128,8 @@ skip_voltdm:
+> >  	for (i = 0; i < pwrdm->banks; i++)
+> >  		pwrdm->ret_mem_off_counter[i] = 0;
+> >  
+> > -	arch_pwrdm->pwrdm_wait_transition(pwrdm);
+> > +	if (arch_pwrdm && arch_pwrdm->pwrdm_wait_transition)
+> > +		arch_pwrdm->pwrdm_wait_transition(pwrdm);
+> >  	pwrdm->state = pwrdm_read_pwrst(pwrdm);
+> >  	pwrdm->state_counter[pwrdm->state] = 1;
+> >  
+> > 
+> Acked-by: Nishanth Menon <nm@ti.com>
 
-Oops. Thanks a lot for reporting this, I'll post a fix for it separately.
-
-Looks like the minimal fix is to add what at least omap_hsmmc.c is doing:
-
-res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-if (res)
-	release_mem_region(res->start, resource_size(res));
+I'll queue this into omap-for-v3.13/fixes-take4.
 
 Regards,
 
