@@ -1,60 +1,31 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] more omap dt fixes against v3.13-rc1
-Date: Mon, 2 Dec 2013 13:40:45 -0800
-Message-ID: <20388.3100570694$1386020486@news.gmane.org>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 1/1] drivers: net: cpsw: fix dt probe for one port
+ ethernet
+Date: Mon, 02 Dec 2013 16:56:15 -0500 (EST)
+Message-ID: <20131202.165615.1138261979635261767.davem@davemloft.net>
+References: <1385969019-12880-1-git-send-email-mugunthanvnm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: arm@kernel.org
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1385969019-12880-1-git-send-email-mugunthanvnm@ti.com>
+Sender: netdev-owner@vger.kernel.org
+To: mugunthanvnm@ti.com
+Cc: netdev@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-The following changes since commit 9cb238c00ba5c1ddfff2c2ed6aa66c15b962e4c3:
+From: Mugunthan V N <mugunthanvnm@ti.com>
+Date: Mon, 2 Dec 2013 12:53:39 +0530
 
-  mmc: omap: Fix I2C dependency and make driver usable with device tree (2013-11-26 15:51:16 -0800)
+> When only one port of the two port is pinned out, then dt probe is failing
+> because second port phy is not found. fixing this by checking the number of
+> slaves and breaking the loop.
+> 
+> Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
 
-are available in the git repository at:
+Of course, this patch assumes that slaves are pinned out in order.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.13/more-dt-regressions
+But, no matter, this makes more configurations work than before so
+it's a good patch.
 
-for you to fetch changes up to ac46bf3933421bde881399d9ad3d165064862cc3:
-
-  ARM: dts: Fix the name of supplies for smsc911x shared by OMAP (2013-12-02 11:38:15 -0800)
-
-----------------------------------------------------------------
-Few more legacy booting vs device tree booting fixes that people
-have noticed while booting things with device tree for things like
-omap4 WLAN, smsc911x, and beagle audio. Hopefully this will be it
-for the legacy booting vs device tree fixes for this -rc cycle.
-
-----------------------------------------------------------------
-Balaji T K (2):
-      ARM: dts: omap4-panda-common: Fix pin muxing for wl12xx
-      ARM: dts: omap4-sdp: Fix pin muxing for wl12xx
-
-Florian Vaussard (1):
-      ARM: dts: Fix the name of supplies for smsc911x shared by OMAP
-
-Jarkko Nikula (1):
-      ARM: dts: omap3-beagle: Add omap-twl4030 audio support
-
-Rajendra Nayak (1):
-      ARM: OMAP2+: Powerdomain: Fix unchecked dereference of arch_pwrdm
-
- arch/arm/boot/dts/omap-gpmc-smsc911x.dtsi |  4 ++--
- arch/arm/boot/dts/omap3-beagle.dts        | 14 ++++++++++++++
- arch/arm/boot/dts/omap4-panda-common.dtsi | 20 ++++++++++----------
- arch/arm/boot/dts/omap4-sdp.dts           | 12 ++++++------
- arch/arm/mach-omap2/powerdomain.c         |  3 ++-
- 5 files changed, 34 insertions(+), 19 deletions(-)
+Applied, thanks.
