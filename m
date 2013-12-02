@@ -1,78 +1,36 @@
-From: Tom Rini <trini@ti.com>
-Subject: Re: [PATCH] ARM: dts: omap3-igep00x0: Fix nand ECC to maintain backward
- compatibility.
-Date: Mon, 2 Dec 2013 11:24:45 -0500
-Message-ID: <529CB44D.5020800@ti.com>
-References: <1385896995-16803-1-git-send-email-eballetbo@gmail.com> <CABxcv=mkSE2A9TLsp7pXWK=dyu6wjN0t6K2ke6NfP3G2rxaXug@mail.gmail.com> <20131202115422.1f8c73f6@skate> <CAFqH_53V5rOsCOLzTzm=9m1zvJpqN_ofh1jjzKAMmKqwHe28rQ@mail.gmail.com> <20980858CB6D3A4BAE95CA194937D5E73EA5094C@DBDE04.ent.ti.com> <20131202160219.40286dc9@skate> <20980858CB6D3A4BAE95CA194937D5E73EA5099E@DBDE04.ent.ti.com> <CAFqH_52ARf44fWOP9HBwfS=AjoNm2MfEMyBBAJ7KDJO+xLPGfw@mail.gmail.com> <20131202165103.726314d9@skate> <529CAEA3.2080808@ti.com> <20131202170606.2191fd89@skate> <20980858CB6D3A4BAE95CA194937D5E73EA50A23@DBDE04.ent.ti.com> <CABxcv=nTQOW7JvCKqHwaX0CXPN6USs66jWUFthW=3CoajsHbPw@mail.gmail.com>
+From: "David Laight" <David.Laight@ACULAB.COM>
+Subject: RE: [PATCH 1/1] mfd: omap-usb-host: Fix USB device detection problems on OMAP4 Panda
+Date: Mon, 2 Dec 2013 16:28:09 -0000
+Message-ID: <AE90C24D6B3A694183C094C60CF0A2F6026B7455@saturn3.aculab.com>
+References: <1385730118-26402-1-git-send-email-rogerq@ti.com> <1385730118-26402-2-git-send-email-rogerq@ti.com> <AE90C24D6B3A694183C094C60CF0A2F6026B744D@saturn3.aculab.com> <529C4726.6080708@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:54301 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752103Ab3LBQYh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Dec 2013 11:24:37 -0500
-In-Reply-To: <CABxcv=nTQOW7JvCKqHwaX0CXPN6USs66jWUFthW=3CoajsHbPw@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain;
+	charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
+Return-path: <stable-owner@vger.kernel.org>
+Content-class: urn:content-classes:message
+In-Reply-To: <529C4726.6080708@ti.com>
+Sender: stable-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>, lee.jones@linaro.org, sameo@linux.intel.com
+Cc: tomi.valkeinen@ti.com, balbi@ti.com, sr@denx.de, ljkenny.mailinglists@gmail.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Javier Martinez Canillas <javier@dowhile0.org>
-Cc: "Gupta, Pekon" <pekon@ti.com>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Enric Balletbo Serra <eballetbo@gmail.com>, =?UTF-8?B?QmVub8OudCBDb3Vzc28=?= =?UTF-8?B?bg==?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Javier Martinez Canillas <martinez.javier@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, "Scott Wood (scottwood@freescale.com)" <scottwood@freescale.com>
 
-On 12/02/2013 11:21 AM, Javier Martinez Canillas wrote:
-> Hi Pekon,
+> From: Roger Quadros [mailto:rogerq@ti.com]
+> On 11/29/2013 03:17 PM, David Laight wrote:
+...
+> >> +	timeout = jiffies + msecs_to_jiffies(100);
+> >> +	while (!(usbhs_read(omap->uhh_base, OMAP_UHH_SYSSTATUS)
+> >> +			& OMAP_UHH_SYSSTATUS_RESETDONE)) {
+> >> +		cpu_relax();
 > 
-> On Mon, Dec 2, 2013 at 5:13 PM, Gupta, Pekon <pekon@ti.com> wrote:
->>> From: Thomas Petazzoni [mailto:thomas.petazzoni@free-electrons.com]
->>>> On Mon, 2 Dec 2013 11:00:35 -0500, Tom Rini wrote:
->>>
->>>>>> Although the new ECC schema breaks the compatibility between the board
->>>>>> files and new DT based kernel, I think we should use BCH8 scheme.
->>>>>> Sorry, because I had not realized that this was configurable in
->>>>>> u-boot, so I think, if Thomas is also agree, the better fix in that
->>>>>> case is change CONFIG_NAND_OMAP_ECCSCHEME to
->>>>>> OMAP_ECC_BCH8_CODE_HW_DETECTION_SW in u-boot. If this works we can
->>>>>> discard this patch.
->>>>>
->>>>> I theoretically don't have anything against that, but if I do this
->>>>> change in U-Boot, and then use U-Boot to reflash to NAND the SPL and
->>>>> U-Boot itself, will the OMAP ROM code still be able to read the SPL
->>>>> from NAND ? I'm not sure which ECC scheme does the OMAP ROM code
->>>>> support, and how it detects (or not) which ECC scheme to use to read
->>>>> the SPL.
->>>>
->>>> Yes, this brings us back to one of the old and long-standing problems.
->>>> The ROM on these devices will generally speak one format and that means
->>>> using NAND chips that say for the first block (or N blocks or whatever)
->>>> you only need 1bit ECC but for the rest 4/8/16/whatever.  And then
->>>> informing the kernel (and anything else) that "partitions" N need this
->>>> format and the rest need that.
->>>
->>> As long as U-Boot provides separate commands, or a "nandecc" command
->>> that allows to switch between ECC scheme, and select the ECC scheme
->>> expected by the ROM code when flashing the SPL, and then the ECC scheme
->>> expected by the SPL and the kernel to flash U-Boot itself, the kernel
->>> image, and the various filesystem images, then it's all fine, we can
->>> leave with different ECC schemes used for different things on the NAND
->>> flash.
->>>
-> 
-> Yes, we used nandecc to write data on different mtd partitions for SPL
-> (nandecc hw) and the rootfs (nandecc hw bch8).
-> 
->> Yes, at-least OMAP3 arch u-boot should still supports 'nandecc'.
->> The infrastructure is still in place, however the command 'nandecc' is
->> deprecated in newer versions.
->> References in mainline u-boot:
->> arch/arm/cpu/armv7/omap3/board.c  @@do_switch_ecc()
->> driver/mtd/nand/omap_gpmc.c @@omap_nand_switch_ecc()
->>
-> 
-> Why nandecc is being deprecated from u-boot? How are you supposed to
-> use a different ECC scheme then?
+> You mean use msleep(1) here instead of cpu_relax()?
+> Shouldn't be a problem IMO, but can you please tell me why that is better
+> as the reset seems to complete usually in the first iteration.
 
-We (I) had killed off all of the mainline users of the nandecc command,
-once everyone was using the same 1bit scheme layout.  None of the people
-that had mixed HAM1/BCH4 at the time wanted to work upstream on it.
+If it doesn't finish in the first iteration you don't want to
+spin the cpu for 100ms.
 
--- 
-Tom
+If it hasn't finished in the first millisecond, you probably expect
+it to actually time out - so you might as well look (say) every 10ms.
+
+	David
