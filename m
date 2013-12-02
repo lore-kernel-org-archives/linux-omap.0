@@ -1,60 +1,64 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP2+: Powerdomain: Fix unchecked dereference of
- arch_pwrdm
-Date: Mon, 2 Dec 2013 11:20:58 -0800
-Message-ID: <20131202192057.GJ26766@atomide.com>
-References: <1385553437-22568-1-git-send-email-rnayak@ti.com>
- <5296A29C.50006@ti.com>
+Subject: Re: [PATCH] ARM: dts: Fix the name of supplies for smsc911x shared
+ by OMAP
+Date: Mon, 2 Dec 2013 11:29:26 -0800
+Message-ID: <20131202192925.GK26766@atomide.com>
+References: <1385988782-21731-1-git-send-email-florian.vaussard@epfl.ch>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:35333 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753738Ab3LBTVA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Dec 2013 14:21:00 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:46037 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753800Ab3LBT33 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Dec 2013 14:29:29 -0500
 Content-Disposition: inline
-In-Reply-To: <5296A29C.50006@ti.com>
+In-Reply-To: <1385988782-21731-1-git-send-email-florian.vaussard@epfl.ch>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Rajendra Nayak <rnayak@ti.com>, linux-omap@vger.kernel.org, dan.carpenter@oracle.com
+To: Florian Vaussard <florian.vaussard@epfl.ch>
+Cc: Benoit Cousson <bcousson@baylibre.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
 
-* Nishanth Menon <nm@ti.com> [131127 17:56]:
-> On 11/27/2013 05:57 AM, Rajendra Nayak wrote:
-> > Commit 'cd8abed' "ARM: OMAP2+: Powerdomain: Remove the need to
-> > always have a voltdm associated to a pwrdm" leads to the following
-> > Smatch complaint:
-> > 
-> > arch/arm/mach-omap2/powerdomain.c:131 _pwrdm_register()
-> > 	 error: we previously assumed 'arch_pwrdm' could be null (see line 105)
-> > 
-> > So, fix the unchecked dereference of arch_pwrdm.
-> > 
-> > Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-> > Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-> > ---
-> >  arch/arm/mach-omap2/powerdomain.c |    3 ++-
-> >  1 file changed, 2 insertions(+), 1 deletion(-)
-> > 
-> > diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
-> > index e233dfc..93a2a6e 100644
-> > --- a/arch/arm/mach-omap2/powerdomain.c
-> > +++ b/arch/arm/mach-omap2/powerdomain.c
-> > @@ -128,7 +128,8 @@ skip_voltdm:
-> >  	for (i = 0; i < pwrdm->banks; i++)
-> >  		pwrdm->ret_mem_off_counter[i] = 0;
-> >  
-> > -	arch_pwrdm->pwrdm_wait_transition(pwrdm);
-> > +	if (arch_pwrdm && arch_pwrdm->pwrdm_wait_transition)
-> > +		arch_pwrdm->pwrdm_wait_transition(pwrdm);
-> >  	pwrdm->state = pwrdm_read_pwrst(pwrdm);
-> >  	pwrdm->state_counter[pwrdm->state] = 1;
-> >  
-> > 
-> Acked-by: Nishanth Menon <nm@ti.com>
+* Florian Vaussard <florian.vaussard@epfl.ch> [131202 04:54]:
+> drivers/net/ethernet/smsc/smsc911x.c is expecting supplies named
+> "vdd33a" and "vddvario". Currently the shared DTS file provides
+> "vmmc" and "vmmc_aux", and the supply lookup will fail:
+> 
+> smsc911x 2c000000.ethernet: Looking up vdd33a-supply from device tree
+> smsc911x 2c000000.ethernet: Looking up vdd33a-supply property in node /ocp/gpmc@6e000000/ethernet@gpmc failed
+> smsc911x 2c000000.ethernet: Looking up vddvario-supply from device tree
+> smsc911x 2c000000.ethernet: Looking up vddvario-supply property in node /ocp/gpmc@6e000000/ethernet@gpmc failed
+> 
+> Fix it!
+> 
+> Tested on OMAP3 Overo platform.
 
-I'll queue this into omap-for-v3.13/fixes-take4.
+OK, looks like we've had it wrong from the start as I just moved it from
+the omap3-igep0020.dts file :) Applying into omap-for-v3.14/fixes-take4
 
 Regards,
 
 Tony
+ 
+> Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
+> ---
+>  arch/arm/boot/dts/omap-gpmc-smsc911x.dtsi | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/arch/arm/boot/dts/omap-gpmc-smsc911x.dtsi b/arch/arm/boot/dts/omap-gpmc-smsc911x.dtsi
+> index 9c18adf..f577b7d 100644
+> --- a/arch/arm/boot/dts/omap-gpmc-smsc911x.dtsi
+> +++ b/arch/arm/boot/dts/omap-gpmc-smsc911x.dtsi
+> @@ -44,8 +44,8 @@
+>  		gpmc,wr-access-ns = <186>;
+>  		gpmc,cycle2cycle-samecsen;
+>  		gpmc,cycle2cycle-diffcsen;
+> -		vmmc-supply = <&vddvario>;
+> -		vmmc_aux-supply = <&vdd33a>;
+> +		vddvario-supply = <&vddvario>;
+> +		vdd33a-supply = <&vdd33a>;
+>  		reg-io-width = <4>;
+>  		smsc,save-mac-address;
+>  	};
+> -- 
+> 1.8.1.2
+> 
