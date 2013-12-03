@@ -1,39 +1,133 @@
-From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Subject: Re: [PATCH v2 1/7] usb: dwc3: get "usb_phy" only if the platform
- indicates the presence of PHY's
-Date: Tue, 3 Dec 2013 12:39:50 +0200
-Message-ID: <20131203103950.GB26423@xps8300>
-References: <1381866857-3861-1-git-send-email-kishon@ti.com>
- <1381866857-3861-2-git-send-email-kishon@ti.com>
- <525E8E93.9010503@ti.com>
- <525E9046.3090209@ti.com>
- <525E943E.3080706@ti.com>
- <20131017145425.GE11611@gimli>
+From: Keerthy <a0393675@ti.com>
+Subject: Re: [PATCH 1/4] mfd: DT bindings for TPS65218 PMIC
+Date: Tue, 3 Dec 2013 16:22:21 +0530
+Message-ID: <529DB7E5.8040702@ti.com>
+References: <1386053006-6480-1-git-send-email-j-keerthy@ti.com> <1386053006-6480-2-git-send-email-j-keerthy@ti.com> <20131203093637.GE11828@lee--X1>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-doc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20131017145425.GE11611@gimli>
+In-Reply-To: <20131203093637.GE11828@lee--X1>
 Sender: linux-doc-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>, Roger Quadros <rogerq@ti.com>
-Cc: Kishon Vijay Abraham I <kishon@ti.com>, gregkh@linuxfoundation.org, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ijc+devicetree@hellion.org.uk, rob@landley.net, bcousson@baylibre.com, tony@atomide.com, linux@arm.linux.org.uk, grant.likely@linaro.org, s.nawrocki@samsung.com, galak@codeaurora.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org
+To: Lee Jones <lee.jones@linaro.org>
+Cc: Keerthy <j-keerthy@ti.com>, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ijc+devicetree@hellion.org.uk, rob@landley.net, sameo@linux.intel.com, grant.likely@linaro.org, lgirdwood@gmail.com, broonie@kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+On Tuesday 03 December 2013 03:06 PM, Lee Jones wrote:
+>> Add DT bindings for TPS65218 PMIC.
+>>
+>> Signed-off-by: Keerthy <j-keerthy@ti.com>
+>> ---
+>>   Documentation/devicetree/bindings/mfd/tps65218.txt |   27 ++++++++++++++++++++
+>>   .../devicetree/bindings/regulator/tps65218.txt     |   22 ++++++++++++++++
+>>   2 files changed, 49 insertions(+)
+>>   create mode 100644 Documentation/devicetree/bindings/mfd/tps65218.txt
+>>   create mode 100644 Documentation/devicetree/bindings/regulator/tps65218.txt
+>>
+>> diff --git a/Documentation/devicetree/bindings/mfd/tps65218.txt b/Documentation/devicetree/bindings/mfd/tps65218.txt
+>> new file mode 100644
+>> index 0000000..87cb7a8
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/mfd/tps65218.txt
+>> @@ -0,0 +1,27 @@
+>> +The TPS65218 Integrated Power Management Chips.
+>> +These chips are connected to an i2c bus.
+>                                     I2C
 
-On Thu, Oct 17, 2013 at 09:54:26AM -0500, Felipe Balbi wrote:
-> On Wed, Oct 16, 2013 at 04:27:26PM +0300, Roger Quadros wrote:
-> > On 10/16/2013 04:10 PM, Kishon Vijay Abraham I wrote:
-> > Do you know if there are users of dwc3 other than exynos5250 and omap5?
-> > If not, we should get rid of the old USB PHY altogether.
-> 
-> Intel's Baytrail, at least. But they don't use DT.
+Ok.
 
-I don't see any use for the generic-phy when the device is enumerated
-from PCI. If dwc3 can live without phys, there should not be any
-problem dropping the old USB PHY support.
+>> +Required properties:
+>> +- compatible : Must be "ti,tps65218";
+>> +- interrupts : This i2c device has an IRQ line connected to the main SoC
+>                         I2C
 
-Br,
+Ok.
 
--- 
-heikki
+>> +- interrupt-controller : Since the tps65218 support several interrupts
+>                                                 support(s) (hosts?)
+
+Yes Supports multiple interrupts from the sub-modules.
+
+>> +  internally, it is considered as an interrupt controller cascaded to the SoC.
+>> +- #interrupt-cells = <2>;
+>> +- interrupt-parent : The parent interrupt controller.
+>             Phandle to ...
+>
+>> +Optional node:
+>              node(s):
+
+Ok.
+
+>
+>> +- Child nodes contain in the tps65218.
+>> +  It supports a number of features.
+> Please re-phase the above two sentences to something decipherable.
+
+Ok.
+
+>> +  The children nodes will thus depend of the capability of the variant.
+> Please, go on ...
+
+Ok.
+
+>> +Example:
+>> +/*
+>> + * Integrated Power Management Chip
+>> + */
+>> +tps@24 {
+>> +    compatible = "ti,tps65218";
+>> +    reg = <0x24>;
+>> +    interrupt-controller;
+>> +    #interrupt-cells = <2>;
+>> +    interrupt-parent = <&gic>;
+>> +};
+> Perhaps it would be better to centralise the documentation inclusive
+> of the regulator contingent. Or at least provide a _full_ example in
+> each document.
+
+Ok.
+
+>
+>> diff --git a/Documentation/devicetree/bindings/regulator/tps65218.txt b/Documentation/devicetree/bindings/regulator/tps65218.txt
+>> new file mode 100644
+>> index 0000000..1ccf170
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/regulator/tps65218.txt
+>> @@ -0,0 +1,22 @@
+>> +TPS65218 family of regulators
+>> +
+>> +Required properties:
+>> +For tps65218 regulators/LDOs
+>> +- compatible:
+>> +  - "ti,tps65218-dcdc1" for DCDC1
+>> +  - "ti,tps65218-dcdc2" for DCDC2
+>> +  - "ti,tps65218-dcdc3" for DCDC3
+>> +  - "ti,tps65218-dcdc4" for DCDC4
+>> +  - "ti,tps65218-dcdc5" for DCDC5
+>> +  - "ti,tps65218-dcdc6" for DCDC6
+>> +  - "ti,tps65218-ldo1" for LDO1 LDO
+> Why aren't you using 'regulator-compatible'?
+
+I referred tps65217.txt the predecessors and used the compatible.
+I also referred twl-regulator.txt.
+
+>
+>> +Optional properties:
+>> +- Any optional property defined in bindings/regulator/regulator.txt
+>> +
+>> +Example:
+>> +	xyz: regulator@0 {
+> Genuine question: Is the @0 meaningful?
+
+@0 is not the best example. @24 is what i use on the am43x.
+I will change it to @24.
+
+>> +		compatible = "ti,tps65218-dcdc1";
+>> +		regulator-min-microvolt  = <1000000>;
+>> +		regulator-max-microvolt  = <3000000>;
+>> +	};
+
+Thanks for reviewing.
+
+Kind Regards,
+Keerthy
