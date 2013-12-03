@@ -1,61 +1,64 @@
-From: Sricharan R <r.sricharan-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH V5 3/4] ARM: OMAP4+: Correct Wakeup-gen code to use physical irq number
-Date: Tue, 3 Dec 2013 15:57:24 +0530
-Message-ID: <1386066445-28245-4-git-send-email-r.sricharan@ti.com>
+From: Sricharan R <r.sricharan@ti.com>
+Subject: [PATCH V5 4/4] ARM: DRA: Enable Crossbar IP support for DRA7XX
+Date: Tue, 3 Dec 2013 15:57:25 +0530
+Message-ID: <1386066445-28245-5-git-send-email-r.sricharan@ti.com>
 References: <1386066445-28245-1-git-send-email-r.sricharan@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1386066445-28245-1-git-send-email-r.sricharan-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: r.sricharan-l0cyMroinI0@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org, marc.zyngier-5wv7dgnIgG8@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, robherring2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, santosh.shilimkar-l0cyMroinI0@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:33262 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752774Ab3LCK2a (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 3 Dec 2013 05:28:30 -0500
+In-Reply-To: <1386066445-28245-1-git-send-email-r.sricharan@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: r.sricharan@ti.com, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linus.walleij@linaro.org, linux@arm.linux.org.uk, tony@atomide.com, rnayak@ti.com, marc.zyngier@arm.com, grant.likely@linaro.org, mark.rutland@arm.com, robherring2@gmail.com, tglx@linutronix.de, galak@codeaurora.org, rob.herring@calxeda.com, santosh.shilimkar@ti.com, nm@ti.com, bcousson@baylibre.com
 
-The wakeup gen mask/unmask callback uses the irq element of the
-irq_data to setup. The irq is the linux virtual irq number and
-is same as the hardware irq number only when the parent irqchip
-is setup as a legacy domain. When it is used as a linear domain,
-the virtual irqs are allocated dynamically and wakeup gen code
-cannot rely on these numbers to access the irq registers. Instead
-use the hwirq element of the irq_data which represent the physical
-irq number.
+Enable the crossbar IP support for DRA7xx soc.
 
-Cc: Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
-Cc: Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Signed-off-by: Sricharan R <r.sricharan-l0cyMroinI0@public.gmane.org>
-Acked-by: Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
-Acked-by: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Rajendra Nayak <rnayak@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Sricharan R <r.sricharan@ti.com>
+Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Acked-by: Linus Walleij <linus.walleij@linaro.org>
 ---
- arch/arm/mach-omap2/omap-wakeupgen.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap2/Kconfig        |    1 +
+ arch/arm/mach-omap2/omap4-common.c |    2 ++
+ 2 files changed, 3 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/omap-wakeupgen.c b/arch/arm/mach-omap2/omap-wakeupgen.c
-index 3664562..693fe48 100644
---- a/arch/arm/mach-omap2/omap-wakeupgen.c
-+++ b/arch/arm/mach-omap2/omap-wakeupgen.c
-@@ -138,7 +138,7 @@ static void wakeupgen_mask(struct irq_data *d)
- 	unsigned long flags;
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index dc21df1..d538df6 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -135,6 +135,7 @@ config SOC_DRA7XX
+ 	select ARM_GIC
+ 	select HAVE_SMP
+ 	select COMMON_CLK
++	select IRQ_CROSSBAR
  
- 	raw_spin_lock_irqsave(&wakeupgen_lock, flags);
--	_wakeupgen_clear(d->irq, irq_target_cpu[d->irq]);
-+	_wakeupgen_clear(d->hwirq, irq_target_cpu[d->hwirq]);
- 	raw_spin_unlock_irqrestore(&wakeupgen_lock, flags);
+ comment "OMAP Core Type"
+ 	depends on ARCH_OMAP2
+diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
+index b39efd4..9880a16 100644
+--- a/arch/arm/mach-omap2/omap4-common.c
++++ b/arch/arm/mach-omap2/omap4-common.c
+@@ -22,6 +22,7 @@
+ #include <linux/of_platform.h>
+ #include <linux/export.h>
+ #include <linux/irqchip/arm-gic.h>
++#include <linux/irqchip/irq-crossbar.h>
+ #include <linux/of_address.h>
+ #include <linux/reboot.h>
+ 
+@@ -281,5 +282,6 @@ void __init omap_gic_of_init(void)
+ 
+ skip_errata_init:
+ 	omap_wakeupgen_init();
++	irqcrossbar_init();
+ 	irqchip_init();
  }
- 
-@@ -150,7 +150,7 @@ static void wakeupgen_unmask(struct irq_data *d)
- 	unsigned long flags;
- 
- 	raw_spin_lock_irqsave(&wakeupgen_lock, flags);
--	_wakeupgen_set(d->irq, irq_target_cpu[d->irq]);
-+	_wakeupgen_set(d->hwirq, irq_target_cpu[d->hwirq]);
- 	raw_spin_unlock_irqrestore(&wakeupgen_lock, flags);
- }
- 
 -- 
 1.7.9.5
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
