@@ -1,55 +1,68 @@
-From: Heikki Krogerus <heikki.krogerus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: Re: [PATCH v2 2/7] usb: dwc3: adapt dwc3 core to use Generic PHY
- Framework
-Date: Tue, 3 Dec 2013 13:59:27 +0200
-Message-ID: <20131203115927.GD26423@xps8300>
-References: <1381866857-3861-1-git-send-email-kishon@ti.com>
- <1381866857-3861-3-git-send-email-kishon@ti.com>
+From: Cliff Brake <cliff.brake@gmail.com>
+Subject: kernel mode splash screen
+Date: Tue, 3 Dec 2013 07:41:49 -0500
+Message-ID: <CAOd_LFyGVBXGBuN1bZK=n2jSnLSNkBmgbo1ZQi_s1Jj6EiK=Gw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1381866857-3861-3-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Cc: balbi-l0cyMroinI0@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, s.nawrocki-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-oa0-f47.google.com ([209.85.219.47]:58308 "EHLO
+	mail-oa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753144Ab3LCMlu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Dec 2013 07:41:50 -0500
+Received: by mail-oa0-f47.google.com with SMTP id k1so14660306oag.6
+        for <linux-omap@vger.kernel.org>; Tue, 03 Dec 2013 04:41:49 -0800 (PST)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Linux OMAP Users <linux-omap@vger.kernel.org>
 
-Hi Kishon,
+> Hello,
+>
+> We are working on an embedded system where we need immediate feedback
+> on the screen in response to power button events, etc.  We also need
+> to be able to display the splash screen whenever kernel is running.
+> User space splash screens get killed too early on shutdown, etc.
+>
+> Does anyone know of a kernel mode splash screen that will:
+>
+> 1) display an image
+> 2) display status messages
+> 3) display progress bar (nice to have, but not required)
+> 4) can be accessed from kernel and user space
+> 5) when enabled, will disable writes from user space
+> 6) FB based
 
-On Wed, Oct 16, 2013 at 01:24:12AM +0530, Kishon Vijay Abraham I wrote:
-> +	count = of_property_match_string(node, "phy-names", "usb2-phy");
-> +	if (count >= 0 || (pdata && pdata->usb2_generic_phy)) {
-> +		dwc->usb2_generic_phy = devm_phy_get(dev, "usb2-phy");
-> +		if (IS_ERR(dwc->usb2_generic_phy)) {
-> +			dev_err(dev, "no usb2 phy configured yet");
-> +			return PTR_ERR(dwc->usb2_generic_phy);
-> +		}
-> +		dwc->usb2_phy = NULL;
-> +	}
-> +
-> +	count = of_property_match_string(node, "phy-names", "usb3-phy");
-> +	if (count >= 0 || (pdata && pdata->usb3_generic_phy)) {
-> +		dwc->usb3_generic_phy = devm_phy_get(dev, "usb3-phy");
-> +		if (IS_ERR(dwc->usb3_generic_phy)) {
-> +			dev_err(dev, "no usb3 phy configured yet");
-> +			return PTR_ERR(dwc->usb3_generic_phy);
-> +		}
-> +		dwc->usb3_phy = NULL;
-> +	}
+I'm currently porting
+http://git.yoctoproject.org/cgit/cgit.cgi/psplash/ to the linux
+kernel.  So far, its going fairly well.  Psplash is fairly clean and
+minimal.  Two questions:
 
-Is there some specific reason for these checks? The driver should not
-need to care about the platform (DT, ACPI, platform based).
+1) is there kernel function to write pixels to the framebuffer?  I've
+been looking at fb_fillrect()
 
-Just get the phys and check the return value. In case ERR_PTR(-ENODEV)
-leave the phy as NULL and let the driver continue normally. With other
-errors you make the dwc3 probe fail.
+2) what is the format of the color parameter in the following data
+structure (gets passed to fb_fillrect():
+
+struct fb_fillrect {
+__u32 dx; /* screen-relative */
+__u32 dy;
+__u32 width;
+__u32 height;
+__u32 color;
+__u32 rop;
+};
+
+3) We are using the omap2 frame buffer driver.  By default its
+configured to provide 3 frame-buffers.  I'm not sure what this means,
+but I thinking that perhaps we can use one for the splash screen, and
+one for the normal frame buffer used by userspace?  The issue is I
+want to disable user space from drawing to the framebuffer instantly,
+and switch to the splash screen when the user presses the power switch
+(instant feedback).  What is the purpose of multiple frame buffers,
+and is this a reasonable use of them?
 
 Thanks,
+Cliff
 
 -- 
-heikki
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+=================
+http://bec-systems.com
