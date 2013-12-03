@@ -1,83 +1,54 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 2/5] ARM: OMAP2+: Fix the machine entry for am3517
-Date: Tue,  3 Dec 2013 15:23:16 -0800
-Message-ID: <1386112999-17271-3-git-send-email-tony@atomide.com>
-References: <1386112999-17271-1-git-send-email-tony@atomide.com>
+Subject: [PATCH 0/5] Get am3517 working with device tree
+Date: Tue,  3 Dec 2013 15:23:14 -0800
+Message-ID: <1386112999-17271-1-git-send-email-tony@atomide.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:51145 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:51098 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755399Ab3LCXXX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Dec 2013 18:23:23 -0500
-In-Reply-To: <1386112999-17271-1-git-send-email-tony@atomide.com>
+	with ESMTP id S1755399Ab3LCXXV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Dec 2013 18:23:21 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Cc: Nishanth Menon <nm@ti.com>
 
-From: Nishanth Menon <nm@ti.com>
+Hi all,
 
-The am3517 is wrongly booting as omap3 which means that the am3517
-specific devices like Ethernet won't work when booted with device
-tree. Now with the new devices defined in am3517.dtsi, let's use
-that instead of the omap3.dtsi, and add a separate machine entry
-for am3517 so am3517-evm can use it.
+Looks like I missed am3517 earlier when making mach-omap2 boot in
+device tree only mode. Here are patches to make am3517-evm bootable
+with NFSroot and MMC with device tree.
 
-Signed-off-by: Nishanth Menon <nm@ti.com>
-[tony@atomide.com: updated comments]
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/boot/dts/am3517-evm.dts    |  6 +++---
- arch/arm/mach-omap2/board-generic.c | 18 ++++++++++++++++++
- 2 files changed, 21 insertions(+), 3 deletions(-)
+This should make it easy to add further support and also to add support
+for the missing am3517 craneboard and cm-t3517 boards.
 
-diff --git a/arch/arm/boot/dts/am3517-evm.dts b/arch/arm/boot/dts/am3517-evm.dts
-index e99dfaf..03fcbf0 100644
---- a/arch/arm/boot/dts/am3517-evm.dts
-+++ b/arch/arm/boot/dts/am3517-evm.dts
-@@ -7,11 +7,11 @@
-  */
- /dts-v1/;
- 
--#include "omap34xx.dtsi"
-+#include "am3517.dtsi"
- 
- / {
--	model = "TI AM3517 EVM (AM3517/05)";
--	compatible = "ti,am3517-evm", "ti,omap3";
-+	model = "TI AM3517 EVM (AM3517/05 TMDSEVM3517)";
-+	compatible = "ti,am3517-evm", "ti,am3517", "ti,omap3";
- 
- 	memory {
- 		device_type = "memory";
-diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
-index 19f1652..e94a215 100644
---- a/arch/arm/mach-omap2/board-generic.c
-+++ b/arch/arm/mach-omap2/board-generic.c
-@@ -139,6 +139,24 @@ static const char *am33xx_boards_compat[] __initdata = {
- 	NULL,
- };
- 
-+static const char *am3517_boards_compat[] __initdata = {
-+	"ti,am3517",
-+	NULL,
-+};
-+
-+DT_MACHINE_START(AM3517_DT, "Generic AM3517 (Flattened Device Tree)")
-+	.reserve	= omap_reserve,
-+	.map_io		= omap3_map_io,
-+	.init_early	= am35xx_init_early,
-+	.init_irq	= omap_intc_of_init,
-+	.handle_irq	= omap3_intc_handle_irq,
-+	.init_machine	= omap_generic_init,
-+	.init_late	= omap3_init_late,
-+	.init_time	= omap3_gptimer_timer_init,
-+	.dt_compat	= am3517_boards_compat,
-+	.restart	= omap3xxx_restart,
-+MACHINE_END
-+
- DT_MACHINE_START(AM33XX_DT, "Generic AM33XX (Flattened Device Tree)")
- 	.reserve	= omap_reserve,
- 	.map_io		= am33xx_map_io,
+These should apply against v3.12 except for the pdata-quirks.c patch
+that depends on the earlier mach-omap2 device tree conversion patches.
+
+Regards,
+
+Tony
+
+
+Nishanth Menon (1):
+  ARM: OMAP2+: Fix the machine entry for am3517
+
+Tony Lindgren (4):
+  arm/dts: Fix missing entries for am3517
+  ARM: OMAP2+: Use pdata quirks for emac on am3517
+  ARM/dts: Add basic devices on am3517-evm
+  ARM: OMAP2+: Remove legacy emac code
+
+ arch/arm/boot/dts/am3517-evm.dts    |  35 ++++++++++-
+ arch/arm/boot/dts/am3517.dtsi       |  63 ++++++++++++++++++++
+ arch/arm/mach-omap2/Makefile        |   3 -
+ arch/arm/mach-omap2/am35xx-emac.c   | 115 ------------------------------------
+ arch/arm/mach-omap2/am35xx-emac.h   |  15 -----
+ arch/arm/mach-omap2/board-generic.c |  18 ++++++
+ arch/arm/mach-omap2/pdata-quirks.c  |  43 ++++++++++++++
+ 7 files changed, 156 insertions(+), 136 deletions(-)
+ create mode 100644 arch/arm/boot/dts/am3517.dtsi
+ delete mode 100644 arch/arm/mach-omap2/am35xx-emac.c
+ delete mode 100644 arch/arm/mach-omap2/am35xx-emac.h
+
 -- 
 1.8.1.1
 
