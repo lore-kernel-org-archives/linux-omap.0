@@ -1,40 +1,62 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH 1/1] mfd: omap-usb-host: Fix USB device detection problems
- on OMAP4 Panda
-Date: Tue, 3 Dec 2013 11:43:18 +0200
-Message-ID: <529DA7B6.4020402@ti.com>
-References: <1385730118-26402-1-git-send-email-rogerq@ti.com> <1385730118-26402-2-git-send-email-rogerq@ti.com> <AE90C24D6B3A694183C094C60CF0A2F6026B744D@saturn3.aculab.com> <529C4726.6080708@ti.com> <AE90C24D6B3A694183C094C60CF0A2F6026B7455@saturn3.aculab.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH v2 1/7] usb: dwc3: get "usb_phy" only if the platform
+ indicates the presence of PHY's
+Date: Tue, 3 Dec 2013 15:20:39 +0530
+Message-ID: <529DA96F.3000903@ti.com>
+References: <1381866857-3861-1-git-send-email-kishon@ti.com>
+ <1381866857-3861-2-git-send-email-kishon@ti.com>
+ <20131017163828.GH11611@gimli> <5280EB5C.1040001@ti.com>
+ <20131125213213.GV18046@saruman.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <AE90C24D6B3A694183C094C60CF0A2F6026B7455@saturn3.aculab.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: David Laight <David.Laight@ACULAB.COM>, lee.jones@linaro.org, sameo@linux.intel.com
-Cc: tomi.valkeinen@ti.com, balbi@ti.com, sr@denx.de, ljkenny.mailinglists@gmail.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20131125213213.GV18046@saruman.home>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: balbi@ti.com
+Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, linux-usb@vger.kernel.org, linux@arm.linux.org.uk, bcousson@baylibre.com, pawel.moll@arm.com, ijc+devicetree@hellion.org.uk, tony@atomide.com, gregkh@linuxfoundation.org, swarren@wwwdotorg.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, rob.herring@calxeda.com, rob@landley.net, galak@codeaurora.org, grant.likely@linaro.org, s.nawrocki@samsung.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 12/02/2013 06:28 PM, David Laight wrote:
->> From: Roger Quadros [mailto:rogerq@ti.com]
->> On 11/29/2013 03:17 PM, David Laight wrote:
-> ...
->>>> +	timeout = jiffies + msecs_to_jiffies(100);
->>>> +	while (!(usbhs_read(omap->uhh_base, OMAP_UHH_SYSSTATUS)
->>>> +			& OMAP_UHH_SYSSTATUS_RESETDONE)) {
->>>> +		cpu_relax();
+Hi,
+
+On Tuesday 26 November 2013 03:02 AM, Felipe Balbi wrote:
+> Hi,
+> 
+> On Mon, Nov 11, 2013 at 08:06:12PM +0530, Kishon Vijay Abraham I wrote:
+>>>> diff --git a/drivers/usb/dwc3/platform_data.h b/drivers/usb/dwc3/platform_data.h
+>>>> index 7db34f0..49ffa6d 100644
+>>>> --- a/drivers/usb/dwc3/platform_data.h
+>>>> +++ b/drivers/usb/dwc3/platform_data.h
+>>>> @@ -24,4 +24,6 @@ struct dwc3_platform_data {
+>>>>  	enum usb_device_speed maximum_speed;
+>>>>  	enum usb_dr_mode dr_mode;
+>>>>  	bool tx_fifo_resize;
+>>>> +	bool usb2_phy;
+>>>> +	bool usb3_phy;
+>>>
+>>> This would look better as a quirks flag, then we could:
+>>>
+>>> unsigned long quirks;
+>>> #define DWC3_QUIRK_NO_USB3_PHY	BIT(0)
+>>> #define DWC3_QUIRK_NO_USB2_PHY	BIT(1)
 >>
->> You mean use msleep(1) here instead of cpu_relax()?
->> Shouldn't be a problem IMO, but can you please tell me why that is better
->> as the reset seems to complete usually in the first iteration.
+>> Should this quirk be used for dt also? Currently we find if it has usb3 phy or
+>> usb2 phy from the dt data only. But if we add a quirk, we'll have to add a
+>> property to populate the quirk no?
 > 
-> If it doesn't finish in the first iteration you don't want to
-> spin the cpu for 100ms.
-> 
-> If it hasn't finished in the first millisecond, you probably expect
-> it to actually time out - so you might as well look (say) every 10ms.
-> 
+> either we use the quirk, or use the fact that no <&usb2_phy> phandle is
+> defined, would work both ways, no ?
 
-Understood now. Thanks.
+In my v3, I've made both to use quirks since we don't want to have separate
+mechanism for dt and non-dt stuff to know the presence of a particular PHY.
 
-cheers,
--roger
+Thanks
+Kishon
