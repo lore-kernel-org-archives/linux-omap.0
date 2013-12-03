@@ -1,105 +1,116 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH] omap: twl-common: Fix musb-hdrc device name.
-Date: Tue, 3 Dec 2013 14:49:40 +0530
-Message-ID: <529DA22C.6060102@ti.com>
-References: <1386059589-4030-1-git-send-email-marek.belisko@open-nandra.com>	<529D9D43.6040101@ti.com>
- <CAAfyv37Vie1vZK2XQ1cfVq6eVnSuaBLfykk6pU8fwEyqvPF4BA@mail.gmail.com>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH 2/4] MFD: TPS65218: Add driver for the TPS65218 PMIC
+Date: Tue, 3 Dec 2013 09:24:10 +0000
+Message-ID: <20131203092410.GD11828@lee--X1>
+References: <1386053006-6480-1-git-send-email-j-keerthy@ti.com>
+ <1386053006-6480-3-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <CAAfyv37Vie1vZK2XQ1cfVq6eVnSuaBLfykk6pU8fwEyqvPF4BA@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Belisko Marek <marek.belisko@gmail.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, "Dr. H.
- Nikolaus Schaller" <hns@goldelico.com>, LKML <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ie0-f177.google.com ([209.85.223.177]:63297 "EHLO
+	mail-ie0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752104Ab3LCJYV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Dec 2013 04:24:21 -0500
+Received: by mail-ie0-f177.google.com with SMTP id tp5so22373222ieb.8
+        for <linux-omap@vger.kernel.org>; Tue, 03 Dec 2013 01:24:20 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <1386053006-6480-3-git-send-email-j-keerthy@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Keerthy <j-keerthy@ti.com>
+Cc: rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ijc+devicetree@hellion.org.uk, rob@landley.net, sameo@linux.intel.com, grant.likely@linaro.org, lgirdwood@gmail.com, broonie@kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 
-Hi,
+> The TPS65218 chip is a power management IC for Portable Navigation Sy=
+stems
+> and Tablet Computing devices. It contains the following components:
+>=20
+>  - Regulators.
+>  - Over Temperature warning and Shut down.
+>=20
+> This patch adds support for tps65218 mfd device. At this time only
+> the regulator functionality is made available.
+>=20
+> Signed-off-by: Keerthy <j-keerthy@ti.com>
+> ---
+>  drivers/mfd/Kconfig          |   14 ++
+>  drivers/mfd/Makefile         |    1 +
+>  drivers/mfd/tps65218.c       |  281 ++++++++++++++++++++++++++++++++=
++++++++++
+>  include/linux/mfd/tps65218.h |  288 ++++++++++++++++++++++++++++++++=
+++++++++++
 
-On Tuesday 03 December 2013 02:38 PM, Belisko Marek wrote:
-> Hi,
-> 
-> On Tue, Dec 3, 2013 at 9:58 AM, Kishon Vijay Abraham I <kishon@ti.com> wrote:
->> Hi,
->>
->> On Tuesday 03 December 2013 02:03 PM, Marek Belisko wrote:
->>> Without this change when booting omap3 device (gta04) with board file
->>> leads to follwing errors:
->>>
->>> [    1.203308] musb-hdrc musb-hdrc.0.auto: unable to find phy
->>> [    1.209075] HS USB OTG: no transceiver configured
->>> [    1.214019] musb-hdrc musb-hdrc.0.auto: musb_init_controller failed with status -517
->>>
->>> and usb isn't working.
->>>
->>> This is probably regression caused by commit: 6c27f939
->>
->> I think a better fix would be to have this merged..
->> https://lkml.org/lkml/2013/7/26/91
-> Yes I see but how this could help with current situation? Ho you then
-> specify device number?
+<snip>
 
-With this we can for sure know the device numbering (of MUSB) starts from '0'.
-If we use PLATFORM_DEVID_AUTO, we won't know what dev number has been assigned
-to us. In your case you get "musb-hdrc.0.auto" because no one else is creating
-a device using PLATFORM_DEVID_AUTO (before your device is created).
-> This patch is fixing 3.13-rcx regression.
-> 
->>>
->>> Signed-off-by: Marek Belisko <marek.belisko@open-nandra.com>
->>> ---
->>>  arch/arm/mach-omap2/twl-common.c |    2 +-
->>>  1 file changed, 1 insertion(+), 1 deletion(-)
->>>
->>> diff --git a/arch/arm/mach-omap2/twl-common.c b/arch/arm/mach-omap2/twl-common.c
->>> index b0d54da..3640ce0 100644
->>> --- a/arch/arm/mach-omap2/twl-common.c
->>> +++ b/arch/arm/mach-omap2/twl-common.c
->>> @@ -92,7 +92,7 @@ void __init omap_pmic_late_init(void)
->>>
->>>  #if defined(CONFIG_ARCH_OMAP3)
->>>  struct phy_consumer consumers[] = {
->>> -     PHY_CONSUMER("musb-hdrc.0", "usb"),
->>> +     PHY_CONSUMER("musb-hdrc.0.auto", "usb"),
->>
->> the index '0' might vary for some boards leading it to again break musb.
-> If you run grep for musb-hdrc :
-> arch/arm/mach-omap2/board-3430sdp.c: usb_bind_phy("musb-hdrc.0.auto",
-> 0, "twl4030_usb");
-> arch/arm/mach-omap2/board-devkit8000.c:
-> usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
-> arch/arm/mach-omap2/board-overo.c: usb_bind_phy("musb-hdrc.0.auto", 0,
-> "twl4030_usb");
-> arch/arm/mach-omap2/board-omap3beagle.c:
-> usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
-> arch/arm/mach-omap2/board-omap3touchbook.c:
-> usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
-> arch/arm/mach-omap2/board-cm-t35.c: usb_bind_phy("musb-hdrc.0.auto",
-> 0, "twl4030_usb");
-> arch/arm/mach-omap2/board-omap3stalker.c:
-> usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
-> arch/arm/mach-omap2/board-omap3logic.c:
-> usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
-> arch/arm/mach-omap2/board-2430sdp.c: usb_bind_phy("musb-hdrc.0.auto",
-> 0, "twl4030_usb");
-> arch/arm/mach-omap2/board-ldp.c: usb_bind_phy("musb-hdrc.0.auto", 0,
-> "twl4030_usb");
-> arch/arm/mach-omap2/board-rx51.c: usb_bind_phy("musb-hdrc.0.auto", 0,
-> "twl4030_usb");
-> arch/arm/mach-omap2/board-omap3pandora.c:
-> usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
+> +config MFD_TPS65218
+> +	tristate "TI TPS65218 Power Management chips"
+> +	depends on I2C
+> +	select MFD_CORE
+> +	select REGMAP_I2C
+> +	help
+> +	  If you say yes here you get support for the TPS65218 series of
+> +	  Power Management chips.
+> +	  These include voltage regulators, gpio and other features
+> +	  that are often used in portable devices.
 
-hmm.. that patch was in a series that fixes this too
-https://lkml.org/lkml/2013/7/26/88
+Perhaps you should add a note that only the regulator component is
+currently supported.
 
-Thanks
-Kishon
+<snip>
+
+> new file mode 100644
+> index 0000000..8c61640
+> --- /dev/null
+> +++ b/drivers/mfd/tps65218.c
+> @@ -0,0 +1,281 @@
+> +/*
+> + * TPS65218 chip family multi-function driver
+
+Instead of calling it an MFD driver (is there such a thing?) I think
+you should mention its true purpose, as per the datasheet.
+
+<snip>
+
+> +static const struct of_device_id of_tps65218_match_table[] =3D {
+> +	{ .compatible =3D "ti,tps65218", },
+> +	{ /* end */ }
+
+I think the end comment is superfluous.
+
+However, if you _really_ want to put something in there, I dislike
+"/* Sentinel */" the least.
+
+> +static int tps65218_probe(struct i2c_client *client,
+> +				const struct i2c_device_id *ids)
+> +{
+
+<snip>
+
+> +	ret =3D of_platform_populate(client->dev.of_node, NULL, NULL,
+> +				   &client->dev);
+
+What are you trying to do here?
+
+Register each regulator as a platform device?
+
+<snip>
+
+> +static const struct i2c_device_id tps65218_id_table[] =3D {
+> +	{"tps65218", TPS65218},
+> +};
+
+This has a different structure to of_tps65218_match_table, please
+ensure they're the same. I prefer spaces after '{' and before '}'.
+
+<snip>
+
+--=20
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org =E2=94=82 Open source software for ARM SoCs
+=46ollow Linaro: Facebook | Twitter | Blog
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
