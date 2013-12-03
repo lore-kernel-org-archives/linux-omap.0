@@ -1,62 +1,33 @@
-From: Andreas Fenkart <afenkart@gmail.com>
-Subject: [PATCH v5 3/3] mmc: omap_hsmmc: Extend debugfs for SDIO IRQ, GPIO and pinmux.
-Date: Tue,  3 Dec 2013 00:21:52 +0100
-Message-ID: <1386026512-23446-4-git-send-email-afenkart@gmail.com>
-References: <1386026512-23446-1-git-send-email-afenkart@gmail.com>
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <1386026512-23446-1-git-send-email-afenkart@gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Chris Ball <cjb@laptop.org>
-Cc: Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, Felipe Balbi <balbi@ti.com>, Balaji T K <balajitk@ti.com>, zonque@gmail.com, galak@codeaurora.org, linux-doc@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, Andreas Fenkart <afenkart@gmail.com>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [GIT PULL] more omap dt fixes against v3.13-rc1
+Date: Mon, 2 Dec 2013 18:34:20 -0800
+Message-ID: <CAOesGMgdx9qX5QSCT-dUggaJFM6+ztaZNoec-CSp87a3h=vVjA@mail.gmail.com>
+References: <529cfe78.28dc420a.4c3e.ffffc57bSMTPIN_ADDED_BROKEN@mx.google.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-qa0-f53.google.com ([209.85.216.53]:49623 "EHLO
+	mail-qa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752490Ab3LCCeX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Dec 2013 21:34:23 -0500
+Received: by mail-qa0-f53.google.com with SMTP id j5so5213887qaq.19
+        for <linux-omap@vger.kernel.org>; Mon, 02 Dec 2013 18:34:22 -0800 (PST)
+In-Reply-To: <529cfe78.28dc420a.4c3e.ffffc57bSMTPIN_ADDED_BROKEN@mx.google.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "arm@kernel.org" <arm@kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>
 
-Add SDIO IRQ entries to debugfs entry. Note that PSTATE shows current
-state of data lines, incl. SDIO IRQ pending
+On Mon, Dec 2, 2013 at 1:40 PM, Tony Lindgren <tony@atomide.com> wrote:
+> The following changes since commit 9cb238c00ba5c1ddfff2c2ed6aa66c15b962e4c3:
+>
+>   mmc: omap: Fix I2C dependency and make driver usable with device tree (2013-11-26 15:51:16 -0800)
+>
+> are available in the git repository at:
+>
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.13/more-dt-regressions
 
-Signed-off-by: Andreas Fenkart <afenkart@gmail.com>
----
- drivers/mmc/host/omap_hsmmc.c |   14 +++++++++++++-
- 1 file changed, 13 insertions(+), 1 deletion(-)
+Pulled, thanks.
 
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index 2c14171..5fe3f24 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -82,6 +82,7 @@ static void apply_clk_hack(struct device *dev)
- #define OMAP_HSMMC_RSP54	0x0118
- #define OMAP_HSMMC_RSP76	0x011C
- #define OMAP_HSMMC_DATA		0x0120
-+#define OMAP_HSMMC_PSTATE	0x0124
- #define OMAP_HSMMC_HCTL		0x0128
- #define OMAP_HSMMC_SYSCTL	0x012C
- #define OMAP_HSMMC_STAT		0x0130
-@@ -1789,14 +1790,25 @@ static int omap_hsmmc_regs_show(struct seq_file *s, void *data)
- {
- 	struct mmc_host *mmc = s->private;
- 	struct omap_hsmmc_host *host = mmc_priv(mmc);
-+	bool suspended;
-+
-+	seq_puts(s, "\n");
-+	seq_printf(s, "sdio irq\t%s\n", ((host->flags & HSMMC_SDIO_IRQ_ENABLED)
-+					 ? "enabled" : "disabled"));
-+	suspended = host->dev->power.runtime_status != RPM_ACTIVE;
-+	if (host->flags & HSMMC_SWAKEUP_QUIRK)
-+		seq_printf(s, "pinmux config\t%s\n", (suspended ?
-+						      "gpio" : "sdio"));
- 
- 	seq_printf(s, "mmc%d:\n ctx_loss:\t%d\n\nregs:\n",
- 			mmc->index, host->context_loss);
- 
- 	pm_runtime_get_sync(host->dev);
--
-+	seq_puts(s, "\nregs:\n");
- 	seq_printf(s, "CON:\t\t0x%08x\n",
- 			OMAP_HSMMC_READ(host->base, CON));
-+	seq_printf(s, "PSTATE:\t\t0x%08x\n",
-+		   OMAP_HSMMC_READ(host->base, PSTATE));
- 	seq_printf(s, "HCTL:\t\t0x%08x\n",
- 			OMAP_HSMMC_READ(host->base, HCTL));
- 	seq_printf(s, "SYSCTL:\t\t0x%08x\n",
--- 
-1.7.10.4
 
+-Olof
