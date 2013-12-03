@@ -1,54 +1,58 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH v2 2/7] usb: dwc3: adapt dwc3 core to use Generic PHY
- Framework
-Date: Tue, 3 Dec 2013 19:43:37 +0530
-Message-ID: <529DE711.2090008@ti.com>
-References: <1381866857-3861-1-git-send-email-kishon@ti.com> <1381866857-3861-3-git-send-email-kishon@ti.com> <20131203115927.GD26423@xps8300>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH v2 0/3] ARM: OMAP2+: USB Host bug fixes for 3.13 rc
+Date: Tue, 3 Dec 2013 16:25:45 +0200
+Message-ID: <1386080748-17005-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20131203115927.GD26423@xps8300>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Cc: balbi@ti.com, gregkh@linuxfoundation.org, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ijc+devicetree@hellion.org.uk, rob@landley.net, bcousson@baylibre.com, tony@atomide.com, linux@arm.linux.org.uk, grant.likely@linaro.org, s.nawrocki@samsung.com, galak@codeaurora.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: bcousson@baylibre.com, paul@pwsan.com, tony@atomide.com
+Cc: michael@amarulasolutions.com, David.Laight@ACULAB.COM, bigeasy@linutronix.de, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, linux-omap@vger.kernel.org, tomi.valkeinen@ti.com, sr@denx.de, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
 Hi,
 
-On Tuesday 03 December 2013 05:29 PM, Heikki Krogerus wrote:
-> Hi Kishon,
-> 
-> On Wed, Oct 16, 2013 at 01:24:12AM +0530, Kishon Vijay Abraham I wrote:
->> +	count = of_property_match_string(node, "phy-names", "usb2-phy");
->> +	if (count >= 0 || (pdata && pdata->usb2_generic_phy)) {
->> +		dwc->usb2_generic_phy = devm_phy_get(dev, "usb2-phy");
->> +		if (IS_ERR(dwc->usb2_generic_phy)) {
->> +			dev_err(dev, "no usb2 phy configured yet");
->> +			return PTR_ERR(dwc->usb2_generic_phy);
->> +		}
->> +		dwc->usb2_phy = NULL;
->> +	}
->> +
->> +	count = of_property_match_string(node, "phy-names", "usb3-phy");
->> +	if (count >= 0 || (pdata && pdata->usb3_generic_phy)) {
->> +		dwc->usb3_generic_phy = devm_phy_get(dev, "usb3-phy");
->> +		if (IS_ERR(dwc->usb3_generic_phy)) {
->> +			dev_err(dev, "no usb3 phy configured yet");
->> +			return PTR_ERR(dwc->usb3_generic_phy);
->> +		}
->> +		dwc->usb3_phy = NULL;
->> +	}
-> 
-> Is there some specific reason for these checks? The driver should not
-> need to care about the platform (DT, ACPI, platform based).
+This is a follow up solution to the original series in [1]
 
-yeah just wanted to throw an error if a platform needs PHY but wasn't able to
-get it. Btw this has changed after my v3 of this patch series which I sent
-sometime back [1] where we use quirks to know if a PHY is needed for that
-platform or not.
+The first patch fixes the OMAP4 Panda USB detection problems on 3.13-rc1
+with u-boot v2013.10.
 
-http://www.spinics.net/lists/linux-usb/msg98077.html
+The remaining 2 patches are required if SOFTRESET needs to be done for the
+USB Host module on OMAP3 platforms.
 
-Thanks
-Kishon
+Patch 2 fixes the hwmod RESET logic to prevent multiple SOFTRESETs
+being issued to the modules. This multiple SOFTRESET was causing problems
+with OMAP3 USB Host module. On Beagleboard C4 this is seen as failure to
+mount NFS root over external USB to Ethernet device.
+
+This might be the reason why HWMOD_INIT_NO_RESET was used for the OMAP
+USB host module in OMAP3 hwmod data and just carried forward in OMAP4
+and OMAP5 hwmod data as well.
+
+cheers,
+-roger
+
+[1] - http://thread.gmane.org/gmane.linux.kernel/1603931
+
+Roger Quadros (3):
+  ARM: OMAP4+: hwmod data: Don't prevent RESET of USB Host module
+  ARM: OMAP2+: hwmod: Fix RESET logic
+  ARM: OMAP3: hwmod data: Don't prevent RESET of USB Host module
+
+ arch/arm/mach-omap2/omap_hwmod.c           | 43 +++++++++++++++++++++++++++++-
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c | 13 +++------
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c | 12 ++-------
+ arch/arm/mach-omap2/omap_hwmod_54xx_data.c | 13 +++------
+ 4 files changed, 50 insertions(+), 31 deletions(-)
+
+-- 
+1.8.3.2
