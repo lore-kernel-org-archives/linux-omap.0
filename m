@@ -1,76 +1,41 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH 4/4] ARM: dts: AM437x: Add TPS65218 device tree nodes
-Date: Tue, 3 Dec 2013 12:13:25 +0530
-Message-ID: <1386053006-6480-5-git-send-email-j-keerthy@ti.com>
-References: <1386053006-6480-1-git-send-email-j-keerthy@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <1386053006-6480-1-git-send-email-j-keerthy@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ijc+devicetree@hellion.org.uk, rob@landley.net, sameo@linux.intel.com, lee.jones@linaro.org, grant.likely@linaro.org, lgirdwood@gmail.com, broonie@kernel.org
-Cc: j-keerthy@ti.com, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+From: Marek Belisko <marek.belisko@open-nandra.com>
+Subject: [PATCH] omap: twl-common: Fix musb-hdrc device name.
+Date: Tue,  3 Dec 2013 09:33:09 +0100
+Message-ID: <1386059589-4030-1-git-send-email-marek.belisko@open-nandra.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: tony@atomide.com, linux@arm.linux.org.uk
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, kishon@ti.com, hns@goldelico.com, Marek Belisko <marek.belisko@open-nandra.com>
 List-Id: linux-omap@vger.kernel.org
 
-Add TPS65218 device tree nodes. This patch is tested on am43x-epos-evm board.
+Without this change when booting omap3 device (gta04) with board file
+leads to follwing errors:
 
-Signed-off-by: Keerthy <j-keerthy@ti.com>
+[    1.203308] musb-hdrc musb-hdrc.0.auto: unable to find phy
+[    1.209075] HS USB OTG: no transceiver configured
+[    1.214019] musb-hdrc musb-hdrc.0.auto: musb_init_controller failed with status -517
+
+and usb isn't working.
+
+This is probably regression caused by commit: 6c27f939
+
+Signed-off-by: Marek Belisko <marek.belisko@open-nandra.com>
 ---
- arch/arm/boot/dts/am43x-epos-evm.dts |   41 ++++++++++++++++++++++++++++++++++
- 1 file changed, 41 insertions(+)
+ arch/arm/mach-omap2/twl-common.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/arm/boot/dts/am43x-epos-evm.dts b/arch/arm/boot/dts/am43x-epos-evm.dts
-index fbf9c4c..ad7000a 100644
---- a/arch/arm/boot/dts/am43x-epos-evm.dts
-+++ b/arch/arm/boot/dts/am43x-epos-evm.dts
-@@ -156,6 +156,47 @@
- 		reg = <0x50>;
- 	};
+diff --git a/arch/arm/mach-omap2/twl-common.c b/arch/arm/mach-omap2/twl-common.c
+index b0d54da..3640ce0 100644
+--- a/arch/arm/mach-omap2/twl-common.c
++++ b/arch/arm/mach-omap2/twl-common.c
+@@ -92,7 +92,7 @@ void __init omap_pmic_late_init(void)
  
-+	tps65218: tps65218@24 {
-+		reg = <0x24>;
-+		compatible = "ti,tps65218";
-+		interrupts = <GIC_SPI 7 IRQ_TYPE_NONE>; /* NMIn */
-+		interrupt-parent = <&gic>;
-+		interrupt-controller;
-+		#interrupt-cells = <2>;
-+
-+		dcdc1: regulator-dcdc1 {
-+			compatible = "ti,tps65218-dcdc1";
-+			/* VDD_CORE voltage limits min of OPP50 and max of OPP100 */
-+			regulator-name = "vdd_core";
-+			regulator-min-microvolt = <912000>;
-+			regulator-max-microvolt = <1144000>;
-+			regulator-boot-on;
-+			regulator-always-on;
-+		};
-+
-+		dcdc2: regulator-dcdc2 {
-+			compatible = "ti,tps65218-dcdc2";
-+			/* VDD_MPU voltage limits min of OPP50 and max of OPP_NITRO */
-+			regulator-name = "vdd_mpu";
-+			regulator-min-microvolt = <912000>;
-+			regulator-max-microvolt = <1378000>;
-+			regulator-boot-on;
-+			regulator-always-on;
-+		};
-+
-+		dcdc3: regulator-dcdc3 {
-+			compatible = "ti,tps65218-dcdc3";
-+		};
-+
-+		ldo1: regulator-ldo1 {
-+			compatible = "ti,tps65218-ldo1";
-+			regulator-min-microvolt = <1800000>;
-+			regulator-max-microvolt = <1800000>;
-+			regulator-boot-on;
-+			regulator-always-on;
-+		};
-+	};
-+
- 	pixcir_ts@5c {
- 		compatible = "pixcir,pixcir_ts";
- 		reg = <0x5c>;
+ #if defined(CONFIG_ARCH_OMAP3)
+ struct phy_consumer consumers[] = {
+-	PHY_CONSUMER("musb-hdrc.0", "usb"),
++	PHY_CONSUMER("musb-hdrc.0.auto", "usb"),
+ };
+ 
+ struct phy_init_data init_data = {
 -- 
 1.7.9.5
-
