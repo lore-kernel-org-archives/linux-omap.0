@@ -1,55 +1,65 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH v2 14/15] mfd: menelaus: IRQ is a requirement
-Date: Mon, 2 Dec 2013 21:43:07 -0600
-Message-ID: <1386042188-12246-14-git-send-email-balbi@ti.com>
+Subject: [PATCH v2 05/15] mfd: menelaus: Use for_each_set_bit()
+Date: Mon, 2 Dec 2013 21:42:58 -0600
+Message-ID: <1386042188-12246-5-git-send-email-balbi@ti.com>
 References: <1386042188-12246-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:45173 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753750Ab3LCDop (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 2 Dec 2013 22:44:45 -0500
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1386042188-12246-1-git-send-email-balbi@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, sameo@linux.intel.com, Tony Lindgren <tony@atomide.com>, lee.jones@linaro.org, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>
+List-Id: linux-omap@vger.kernel.org
 
-this driver needs IRQ to work, if client->irq
-isn't set properly, we won't work. Remove
-check around request_threaded_irq().
+that macro just helps removing some extra
+line of code and hides ffs() calls.
+
+while at that, also fix a variable shadowing
+bug where 'int irq' was being redeclared inside
+inner loop while it was also argument to interrupt
+handler.
 
 Signed-off-by: Felipe Balbi <balbi@ti.com>
 ---
- drivers/mfd/menelaus.c | 14 ++++++--------
- 1 file changed, 6 insertions(+), 8 deletions(-)
+ drivers/mfd/menelaus.c | 16 +++++++---------
+ 1 file changed, 7 insertions(+), 9 deletions(-)
 
 diff --git a/drivers/mfd/menelaus.c b/drivers/mfd/menelaus.c
-index c0219b7..bffe978 100644
+index 11dc4d3..9ccbb79 100644
 --- a/drivers/mfd/menelaus.c
 +++ b/drivers/mfd/menelaus.c
-@@ -1271,14 +1271,12 @@ static int menelaus_probe(struct i2c_client *client,
- 	/* Set output buffer strengths */
- 	menelaus_write_reg(m, MENELAUS_MCT_CTRL1, 0x73);
+@@ -795,24 +795,22 @@ static irqreturn_t menelaus_irq(int irq, void *_menelaus)
+ {
+ 	struct menelaus_chip *menelaus = _menelaus;
+ 	void (*handler)(struct menelaus_chip *menelaus);
+-	unsigned isr;
++	unsigned long isr;
++	unsigned long i;
  
--	if (client->irq > 0) {
--		err = request_threaded_irq(client->irq, NULL, menelaus_irq,
--				IRQF_ONESHOT, DRIVER_NAME, m);
--		if (err) {
--			dev_dbg(&client->dev,  "can't get IRQ %d, err %d\n",
--					client->irq, err);
--			goto fail_free_descs;
--		}
-+	err = request_threaded_irq(client->irq, NULL, menelaus_irq,
-+			IRQF_ONESHOT, DRIVER_NAME, m);
-+	if (err) {
-+		dev_dbg(&client->dev,  "can't get IRQ %d, err %d\n",
-+				client->irq, err);
-+		goto fail_free_descs;
+ 	isr = (menelaus_read_reg(MENELAUS_INT_STATUS2)
+ 			& ~menelaus->mask2) << 8;
+ 	isr |= menelaus_read_reg(MENELAUS_INT_STATUS1)
+ 		& ~menelaus->mask1;
+ 
+-	while (isr) {
+-		int irq = fls(isr) - 1;
+-		isr &= ~(1 << irq);
+-
++	for_each_set_bit(i, &isr, 16) {
+ 		mutex_lock(&menelaus->lock);
+-		menelaus_disable_irq(irq);
+-		menelaus_ack_irq(irq);
+-		handler = menelaus->handlers[irq];
++		menelaus_disable_irq(i);
++		menelaus_ack_irq(i);
++		handler = menelaus->handlers[i];
+ 		if (handler)
+ 			handler(menelaus);
+-		menelaus_enable_irq(irq);
++		menelaus_enable_irq(i);
+ 		mutex_unlock(&menelaus->lock);
  	}
  
- 	pr_info("Menelaus rev %d.%d\n", rev >> 4, rev & 0x0f);
 -- 
 1.8.4.GIT
-
