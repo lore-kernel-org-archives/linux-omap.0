@@ -1,103 +1,75 @@
-From: Keerthy <a0393675@ti.com>
-Subject: Re: [PATCH 2/4] MFD: TPS65218: Add driver for the TPS65218 PMIC
-Date: Tue, 3 Dec 2013 15:36:35 +0530
-Message-ID: <529DAD2B.4040909@ti.com>
-References: <1386053006-6480-1-git-send-email-j-keerthy@ti.com> <1386053006-6480-3-git-send-email-j-keerthy@ti.com> <20131203092410.GD11828@lee--X1>
+From: Archit Taneja <archit@ti.com>
+Subject: Re: [PATCH 6/6] experimental: arm: dts: dra7xx: Add a DT node for
+ VPE
+Date: Tue, 3 Dec 2013 15:38:42 +0530
+Message-ID: <529DADAA.1060501@ti.com>
+References: <1375452223-30524-1-git-send-email-archit@ti.com> <1375452223-30524-7-git-send-email-archit@ti.com> <16994189.3ZRYT6i8Y5@avalon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <20131203092410.GD11828@lee--X1>
-Sender: linux-doc-owner@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>
-Cc: Keerthy <j-keerthy@ti.com>, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ijc+devicetree@hellion.org.uk, rob@landley.net, sameo@linux.intel.com, grant.likely@linaro.org, lgirdwood@gmail.com, broonie@kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:43669 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751496Ab3LCKIp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Dec 2013 05:08:45 -0500
+In-Reply-To: <16994189.3ZRYT6i8Y5@avalon>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Tuesday 03 December 2013 02:54 PM, Lee Jones wrote:
->> The TPS65218 chip is a power management IC for Portable Navigation Systems
->> and Tablet Computing devices. It contains the following components:
+Hi Laurent,
+
+On Friday 09 August 2013 03:41 AM, Laurent Pinchart wrote:
+> Hi Archit,
+>
+> Thank you for the patch.
+>
+> On Friday 02 August 2013 19:33:43 Archit Taneja wrote:
+>> Add a DT node for VPE in dra7.dtsi. This is experimental because we might
+>> need to split the VPE address space a bit more, and also because the IRQ
+>> line described is accessible the IRQ crossbar driver is added for DRA7XX.
 >>
->>   - Regulators.
->>   - Over Temperature warning and Shut down.
->>
->> This patch adds support for tps65218 mfd device. At this time only
->> the regulator functionality is made available.
->>
->> Signed-off-by: Keerthy <j-keerthy@ti.com>
+>> Cc: Rajendra Nayak <rnayak@ti.com>
+>> Cc: Sricharan R <r.sricharan@ti.com>
+>> Signed-off-by: Archit Taneja <archit@ti.com>
 >> ---
->>   drivers/mfd/Kconfig          |   14 ++
->>   drivers/mfd/Makefile         |    1 +
->>   drivers/mfd/tps65218.c       |  281 +++++++++++++++++++++++++++++++++++++++++
->>   include/linux/mfd/tps65218.h |  288 ++++++++++++++++++++++++++++++++++++++++++
-> <snip>
+>>   arch/arm/boot/dts/dra7.dtsi | 11 +++++++++++
 >
->> +config MFD_TPS65218
->> +	tristate "TI TPS65218 Power Management chips"
->> +	depends on I2C
->> +	select MFD_CORE
->> +	select REGMAP_I2C
->> +	help
->> +	  If you say yes here you get support for the TPS65218 series of
->> +	  Power Management chips.
->> +	  These include voltage regulators, gpio and other features
->> +	  that are often used in portable devices.
-> Perhaps you should add a note that only the regulator component is
-> currently supported.
-Ok. I will add it.
+> Documentation is missing :-) As this is an experimental patch you can probably
+> document the bindings later.
 
-> <snip>
->
->> new file mode 100644
->> index 0000000..8c61640
->> --- /dev/null
->> +++ b/drivers/mfd/tps65218.c
->> @@ -0,0 +1,281 @@
->> +/*
->> + * TPS65218 chip family multi-function driver
-> Instead of calling it an MFD driver (is there such a thing?) I think
-> you should mention its true purpose, as per the datasheet.
+Sorry for the late reply, I missed out on reading this message somehow.
 
-Ok.
+I'm blocked on adding the DT nodes because of some dependencies on dra7x 
+clocks, and the crossbar framework. I'll make sure to add documentation :)
 
 >
-> <snip>
+>>   1 file changed, 11 insertions(+)
+>>
+>> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+>> index ce9a0f0..3237972 100644
+>> --- a/arch/arm/boot/dts/dra7.dtsi
+>> +++ b/arch/arm/boot/dts/dra7.dtsi
+>> @@ -484,6 +484,17 @@
+>>   			dmas = <&sdma 70>, <&sdma 71>;
+>>   			dma-names = "tx0", "rx0";
+>>   		};
+>> +
+>> +		vpe {
+>> +			compatible = "ti,vpe";
+>> +			ti,hwmods = "vpe";
+>> +			reg = <0x489d0000 0xd000>, <0x489dd000 0x400>;
+>> +			reg-names = "vpe", "vpdma";
+>> +			interrupts = <0 159 0x4>;
+>> +			#address-cells = <1>;
+>> +			#size-cells = <0>;
 >
->> +static const struct of_device_id of_tps65218_match_table[] = {
->> +	{ .compatible = "ti,tps65218", },
->> +	{ /* end */ }
-> I think the end comment is superfluous.
->
-> However, if you _really_ want to put something in there, I dislike
-> "/* Sentinel */" the least.
+> Are #address-cells and #size-cells really needed ?
 
-I will remove it.
->
->> +static int tps65218_probe(struct i2c_client *client,
->> +				const struct i2c_device_id *ids)
->> +{
-> <snip>
->
->> +	ret = of_platform_populate(client->dev.of_node, NULL, NULL,
->> +				   &client->dev);
-> What are you trying to do here?
->
-> Register each regulator as a platform device?
+They aren't needed. The vpe node inherits these params from the parent 
+"ocp" node.
 
-Yeah. The probe will be called for every regulator separately.
-
-> <snip>
->
->> +static const struct i2c_device_id tps65218_id_table[] = {
->> +	{"tps65218", TPS65218},
->> +};
-> This has a different structure to of_tps65218_match_table, please
-> ensure they're the same. I prefer spaces after '{' and before '}'.
-
-Ok. I will add a space after '{' and before '}'. Sorry I did not
-follow tps65218_id_table being different than of_tps65218_match_table.
-
-One is of the type of_device_id and the other i2c_device_id.
->
-> <snip>
->
+Thanks,
+Archit
 
