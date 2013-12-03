@@ -1,105 +1,97 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] net: davinci_emac: Fix platform data handling and make
- usable for am3517
-Date: Tue, 3 Dec 2013 15:13:02 -0800
-Message-ID: <20131203231301.GN26766@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: netdev-owner@vger.kernel.org
-To: "David S. Miller" <davem@davemloft.net>
-Cc: Mugunthan V N <mugunthanvnm@ti.com>, devicetree@vger.kernel.org, netdev@vger.kernel.org, linux-omap@vger.kernel.org
+Subject: [PATCH 1/5] arm/dts: Fix missing entries for am3517
+Date: Tue,  3 Dec 2013 15:23:15 -0800
+Message-ID: <1386112999-17271-2-git-send-email-tony@atomide.com>
+References: <1386112999-17271-1-git-send-email-tony@atomide.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:51117 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755411Ab3LCXXW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Dec 2013 18:23:22 -0500
+In-Reply-To: <1386112999-17271-1-git-send-email-tony@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-When booted with device tree, we may still have platform data passed
-as auxdata. For am3517 this is needed for passing the interrupt_enable
-and interrupt_disable callbacks that access the omap system control module
-registers. These callback functions will eventually go away when we have
-a separate system control module driver.
-
-Some of the things that are currently passed as platform data we don't need
-to set up as device tree properties as they are always the same on am3517.
-So let's use a new compatible flag for those so we can get those from
-the device tree match data.
-
-Also note that we need to fix setting of phy_dev to NULL instead of an empty
-string as the code later on uses that to find the first phy on the mdio bus.
-This seems to have been caused by 5d69e0076a72 (net: davinci_emac: switch to
-new mdio).
+On am3517 there are some extra devices compared to omap3.dtsi that
+we currently have not defined. Let's fix that by adding am3517.dtsi
+file.
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/boot/dts/am3517.dtsi | 63 +++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 63 insertions(+)
+ create mode 100644 arch/arm/boot/dts/am3517.dtsi
 
---- a/Documentation/devicetree/bindings/net/davinci_emac.txt
-+++ b/Documentation/devicetree/bindings/net/davinci_emac.txt
-@@ -4,7 +4,7 @@ This file provides information, what the device node
- for the davinci_emac interface contains.
- 
- Required properties:
--- compatible: "ti,davinci-dm6467-emac";
-+- compatible: "ti,davinci-dm6467-emac" or "ti,am3517-emac"
- - reg: Offset and length of the register set for the device
- - ti,davinci-ctrl-reg-offset: offset to control register
- - ti,davinci-ctrl-mod-reg-offset: offset to control module register
---- a/drivers/net/ethernet/ti/davinci_emac.c
-+++ b/drivers/net/ethernet/ti/davinci_emac.c
-@@ -61,6 +61,7 @@
- #include <linux/davinci_emac.h>
- #include <linux/of.h>
- #include <linux/of_address.h>
-+#include <linux/of_device.h>
- #include <linux/of_irq.h>
- #include <linux/of_net.h>
- 
-@@ -1752,10 +1753,14 @@ static const struct net_device_ops emac_netdev_ops = {
- #endif
- };
- 
-+static const struct of_device_id davinci_emac_of_match[];
+diff --git a/arch/arm/boot/dts/am3517.dtsi b/arch/arm/boot/dts/am3517.dtsi
+new file mode 100644
+index 0000000..2fbe02f
+--- /dev/null
++++ b/arch/arm/boot/dts/am3517.dtsi
+@@ -0,0 +1,63 @@
++/*
++ * Device Tree Source for am3517 SoC
++ *
++ * Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.com/
++ *
++ * This file is licensed under the terms of the GNU General Public License
++ * version 2.  This program is licensed "as is" without any warranty of any
++ * kind, whether express or implied.
++ */
 +
- static struct emac_platform_data *
- davinci_emac_of_get_pdata(struct platform_device *pdev, struct emac_priv *priv)
- {
- 	struct device_node *np;
-+	const struct of_device_id *match;
-+	const struct emac_platform_data *auxdata;
- 	struct emac_platform_data *pdata = NULL;
- 	const u8 *mac_addr;
- 
-@@ -1793,7 +1798,20 @@ davinci_emac_of_get_pdata(struct platform_device *pdev, struct emac_priv *priv)
- 
- 	priv->phy_node = of_parse_phandle(np, "phy-handle", 0);
- 	if (!priv->phy_node)
--		pdata->phy_id = "";
-+		pdata->phy_id = NULL;
++#include "omap3.dtsi"
 +
-+	auxdata = pdev->dev.platform_data;
-+	if (auxdata) {
-+		pdata->interrupt_enable = auxdata->interrupt_enable;
-+		pdata->interrupt_disable = auxdata->interrupt_disable;
-+	}
++/ {
++	aliases {
++		serial3 = &uart4;
++	};
 +
-+	match = of_match_device(davinci_emac_of_match, &pdev->dev);
-+	if (match && match->data) {
-+		auxdata = match->data;
-+		pdata->version = auxdata->version;
-+		pdata->hw_ram_addr = auxdata->hw_ram_addr;
-+	}
- 
- 	pdev->dev.platform_data = pdata;
- 
-@@ -2020,8 +2038,14 @@ static const struct dev_pm_ops davinci_emac_pm_ops = {
- };
- 
- #if IS_ENABLED(CONFIG_OF)
-+static const struct emac_platform_data am3517_emac_data = {
-+	.version		= EMAC_VERSION_2,
-+	.hw_ram_addr		= 0x01e20000,
++	ocp {
++		am35x_otg_hs: am35x_otg_hs@5c040000 {
++			compatible = "ti,omap3-musb";
++			ti,hwmods = "am35x_otg_hs";
++			status = "disabled";
++			reg = <0x5c040000 0x1000>;
++			interrupts = <71>;
++			interrupt-names = "mc";
++		};
++
++		davinci_emac: ethernet@0x5c000000 {
++			compatible = "ti,am3517-emac";
++			ti,hwmods = "davinci_emac";
++			status = "disabled";
++			reg = <0x5c000000 0x30000>;
++			interrupts = <67 68 69 70>;
++			ti,davinci-ctrl-reg-offset = <0x10000>;
++			ti,davinci-ctrl-mod-reg-offset = <0>;
++			ti,davinci-ctrl-ram-offset = <0x20000>;
++			ti,davinci-ctrl-ram-size = <0x2000>;
++			ti,davinci-rmii-en = /bits/ 8 <1>;
++			local-mac-address = [ 00 00 00 00 00 00 ];
++		};
++
++		davinci_mdio: ethernet@0x5c030000 {
++			compatible = "ti,davinci_mdio";
++			ti,hwmods = "davinci_mdio";
++			status = "disabled";
++			reg = <0x5c030000 0x1000>;
++			bus_freq = <1000000>;
++			#address-cells = <1>;
++			#size-cells = <0>;
++		};
++
++		uart4: serial@4809e000 {
++			compatible = "ti,omap3-uart";
++			ti,hwmods = "uart4";
++			status = "disabled";
++			reg = <0x4809e000 0x400>;
++			interrupts = <84>;
++			dmas = <&sdma 55 &sdma 54>;
++			dma-names = "tx", "rx";
++			clock-frequency = <48000000>;
++		};
++	};
 +};
-+
- static const struct of_device_id davinci_emac_of_match[] = {
- 	{.compatible = "ti,davinci-dm6467-emac", },
-+	{.compatible = "ti,am3517-emac", .data = &am3517_emac_data, },
- 	{},
- };
- MODULE_DEVICE_TABLE(of, davinci_emac_of_match);
+-- 
+1.8.1.1
+
