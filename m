@@ -1,41 +1,103 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH v2 01/15] mfd: menelaus: Drop __exit section annotation
-Date: Tue, 3 Dec 2013 09:53:22 +0000
-Message-ID: <20131203095322.GG11828@lee--X1>
-References: <1386042188-12246-1-git-send-email-balbi@ti.com>
- <20131203095136.GF11828@lee--X1>
+From: Keerthy <a0393675@ti.com>
+Subject: Re: [PATCH 2/4] MFD: TPS65218: Add driver for the TPS65218 PMIC
+Date: Tue, 3 Dec 2013 15:36:35 +0530
+Message-ID: <529DAD2B.4040909@ti.com>
+References: <1386053006-6480-1-git-send-email-j-keerthy@ti.com> <1386053006-6480-3-git-send-email-j-keerthy@ti.com> <20131203092410.GD11828@lee--X1>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ie0-f174.google.com ([209.85.223.174]:54275 "EHLO
-	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751857Ab3LCJx1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Dec 2013 04:53:27 -0500
-Received: by mail-ie0-f174.google.com with SMTP id at1so22772680iec.19
-        for <linux-omap@vger.kernel.org>; Tue, 03 Dec 2013 01:53:27 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <20131203095136.GF11828@lee--X1>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <20131203092410.GD11828@lee--X1>
+Sender: linux-doc-owner@vger.kernel.org
+To: Lee Jones <lee.jones@linaro.org>
+Cc: Keerthy <j-keerthy@ti.com>, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ijc+devicetree@hellion.org.uk, rob@landley.net, sameo@linux.intel.com, grant.likely@linaro.org, lgirdwood@gmail.com, broonie@kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, sameo@linux.intel.com, Tony Lindgren <tony@atomide.com>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-> The code looks mostly fine, but the implementation of the commit logs
-> seems lazy. Please submit a v3 using coherent sentences with full
-> explanations and correct punctuation.
+On Tuesday 03 December 2013 02:54 PM, Lee Jones wrote:
+>> The TPS65218 chip is a power management IC for Portable Navigation Systems
+>> and Tablet Computing devices. It contains the following components:
+>>
+>>   - Regulators.
+>>   - Over Temperature warning and Shut down.
+>>
+>> This patch adds support for tps65218 mfd device. At this time only
+>> the regulator functionality is made available.
+>>
+>> Signed-off-by: Keerthy <j-keerthy@ti.com>
+>> ---
+>>   drivers/mfd/Kconfig          |   14 ++
+>>   drivers/mfd/Makefile         |    1 +
+>>   drivers/mfd/tps65218.c       |  281 +++++++++++++++++++++++++++++++++++++++++
+>>   include/linux/mfd/tps65218.h |  288 ++++++++++++++++++++++++++++++++++++++++++
+> <snip>
+>
+>> +config MFD_TPS65218
+>> +	tristate "TI TPS65218 Power Management chips"
+>> +	depends on I2C
+>> +	select MFD_CORE
+>> +	select REGMAP_I2C
+>> +	help
+>> +	  If you say yes here you get support for the TPS65218 series of
+>> +	  Power Management chips.
+>> +	  These include voltage regulators, gpio and other features
+>> +	  that are often used in portable devices.
+> Perhaps you should add a note that only the regulator component is
+> currently supported.
+Ok. I will add it.
 
-Also use the full length of the provided buffer, which I believe is 72
-chars, but happy to be correct on that one. It's certainly not 40
-chars however.
+> <snip>
+>
+>> new file mode 100644
+>> index 0000000..8c61640
+>> --- /dev/null
+>> +++ b/drivers/mfd/tps65218.c
+>> @@ -0,0 +1,281 @@
+>> +/*
+>> + * TPS65218 chip family multi-function driver
+> Instead of calling it an MFD driver (is there such a thing?) I think
+> you should mention its true purpose, as per the datasheet.
 
---=20
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org =E2=94=82 Open source software for ARM SoCs
-=46ollow Linaro: Facebook | Twitter | Blog
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Ok.
+
+>
+> <snip>
+>
+>> +static const struct of_device_id of_tps65218_match_table[] = {
+>> +	{ .compatible = "ti,tps65218", },
+>> +	{ /* end */ }
+> I think the end comment is superfluous.
+>
+> However, if you _really_ want to put something in there, I dislike
+> "/* Sentinel */" the least.
+
+I will remove it.
+>
+>> +static int tps65218_probe(struct i2c_client *client,
+>> +				const struct i2c_device_id *ids)
+>> +{
+> <snip>
+>
+>> +	ret = of_platform_populate(client->dev.of_node, NULL, NULL,
+>> +				   &client->dev);
+> What are you trying to do here?
+>
+> Register each regulator as a platform device?
+
+Yeah. The probe will be called for every regulator separately.
+
+> <snip>
+>
+>> +static const struct i2c_device_id tps65218_id_table[] = {
+>> +	{"tps65218", TPS65218},
+>> +};
+> This has a different structure to of_tps65218_match_table, please
+> ensure they're the same. I prefer spaces after '{' and before '}'.
+
+Ok. I will add a space after '{' and before '}'. Sorry I did not
+follow tps65218_id_table being different than of_tps65218_match_table.
+
+One is of the type of_device_id and the other i2c_device_id.
+>
+> <snip>
+>
+
