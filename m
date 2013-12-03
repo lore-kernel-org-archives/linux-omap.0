@@ -1,33 +1,87 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: [GIT PULL] more omap dt fixes against v3.13-rc1
-Date: Mon, 2 Dec 2013 18:34:20 -0800
-Message-ID: <CAOesGMgdx9qX5QSCT-dUggaJFM6+ztaZNoec-CSp87a3h=vVjA@mail.gmail.com>
-References: <529cfe78.28dc420a.4c3e.ffffc57bSMTPIN_ADDED_BROKEN@mx.google.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: [PATCH v2 04/15] mfd: menelaus: Remove unnecessary loop
+Date: Mon, 2 Dec 2013 21:42:57 -0600
+Message-ID: <1386042188-12246-4-git-send-email-balbi@ti.com>
+References: <1386042188-12246-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qa0-f53.google.com ([209.85.216.53]:49623 "EHLO
-	mail-qa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752490Ab3LCCeX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Dec 2013 21:34:23 -0500
-Received: by mail-qa0-f53.google.com with SMTP id j5so5213887qaq.19
-        for <linux-omap@vger.kernel.org>; Mon, 02 Dec 2013 18:34:22 -0800 (PST)
-In-Reply-To: <529cfe78.28dc420a.4c3e.ffffc57bSMTPIN_ADDED_BROKEN@mx.google.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1386042188-12246-1-git-send-email-balbi@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+Cc: sameo@linux.intel.com, Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, lee.jones@linaro.org, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "arm@kernel.org" <arm@kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>
 
-On Mon, Dec 2, 2013 at 1:40 PM, Tony Lindgren <tony@atomide.com> wrote:
-> The following changes since commit 9cb238c00ba5c1ddfff2c2ed6aa66c15b962e4c3:
->
->   mmc: omap: Fix I2C dependency and make driver usable with device tree (2013-11-26 15:51:16 -0800)
->
-> are available in the git repository at:
->
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.13/more-dt-regressions
+we can let irqs refire and give the scheduler
+a chance to choose when we should be scheduled.
 
-Pulled, thanks.
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+---
+ drivers/mfd/menelaus.c | 43 +++++++++++++++++++------------------------
+ 1 file changed, 19 insertions(+), 24 deletions(-)
 
-
--Olof
+diff --git a/drivers/mfd/menelaus.c b/drivers/mfd/menelaus.c
+index 11d7d81..11dc4d3 100644
+--- a/drivers/mfd/menelaus.c
++++ b/drivers/mfd/menelaus.c
+@@ -795,30 +795,25 @@ static irqreturn_t menelaus_irq(int irq, void *_menelaus)
+ {
+ 	struct menelaus_chip *menelaus = _menelaus;
+ 	void (*handler)(struct menelaus_chip *menelaus);
+-
+-	while (1) {
+-		unsigned isr;
+-
+-		isr = (menelaus_read_reg(MENELAUS_INT_STATUS2)
+-				& ~menelaus->mask2) << 8;
+-		isr |= menelaus_read_reg(MENELAUS_INT_STATUS1)
+-				& ~menelaus->mask1;
+-		if (!isr)
+-			break;
+-
+-		while (isr) {
+-			int irq = fls(isr) - 1;
+-			isr &= ~(1 << irq);
+-
+-			mutex_lock(&menelaus->lock);
+-			menelaus_disable_irq(irq);
+-			menelaus_ack_irq(irq);
+-			handler = menelaus->handlers[irq];
+-			if (handler)
+-				handler(menelaus);
+-			menelaus_enable_irq(irq);
+-			mutex_unlock(&menelaus->lock);
+-		}
++	unsigned isr;
++
++	isr = (menelaus_read_reg(MENELAUS_INT_STATUS2)
++			& ~menelaus->mask2) << 8;
++	isr |= menelaus_read_reg(MENELAUS_INT_STATUS1)
++		& ~menelaus->mask1;
++
++	while (isr) {
++		int irq = fls(isr) - 1;
++		isr &= ~(1 << irq);
++
++		mutex_lock(&menelaus->lock);
++		menelaus_disable_irq(irq);
++		menelaus_ack_irq(irq);
++		handler = menelaus->handlers[irq];
++		if (handler)
++			handler(menelaus);
++		menelaus_enable_irq(irq);
++		mutex_unlock(&menelaus->lock);
+ 	}
+ 
+ 	return IRQ_HANDLED;
+-- 
+1.8.4.GIT
