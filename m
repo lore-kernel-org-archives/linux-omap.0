@@ -1,133 +1,52 @@
-From: Keerthy <a0393675@ti.com>
+From: Lee Jones <lee.jones@linaro.org>
 Subject: Re: [PATCH 1/4] mfd: DT bindings for TPS65218 PMIC
-Date: Tue, 3 Dec 2013 16:22:21 +0530
-Message-ID: <529DB7E5.8040702@ti.com>
-References: <1386053006-6480-1-git-send-email-j-keerthy@ti.com> <1386053006-6480-2-git-send-email-j-keerthy@ti.com> <20131203093637.GE11828@lee--X1>
+Date: Tue, 3 Dec 2013 11:04:22 +0000
+Message-ID: <20131203110422.GO11828@lee--X1>
+References: <1386053006-6480-1-git-send-email-j-keerthy@ti.com>
+ <1386053006-6480-2-git-send-email-j-keerthy@ti.com>
+ <20131203093637.GE11828@lee--X1>
+ <529DB7E5.8040702@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <20131203093637.GE11828@lee--X1>
-Sender: linux-doc-owner@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>
-Cc: Keerthy <j-keerthy@ti.com>, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ijc+devicetree@hellion.org.uk, rob@landley.net, sameo@linux.intel.com, grant.likely@linaro.org, lgirdwood@gmail.com, broonie@kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ie0-f170.google.com ([209.85.223.170]:34010 "EHLO
+	mail-ie0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753331Ab3LCLE3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Dec 2013 06:04:29 -0500
+Received: by mail-ie0-f170.google.com with SMTP id qd12so23988111ieb.29
+        for <linux-omap@vger.kernel.org>; Tue, 03 Dec 2013 03:04:28 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <529DB7E5.8040702@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Keerthy <a0393675@ti.com>
+Cc: Keerthy <j-keerthy@ti.com>, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ijc+devicetree@hellion.org.uk, rob@landley.net, sameo@linux.intel.com, grant.likely@linaro.org, lgirdwood@gmail.com, broonie@kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 
-On Tuesday 03 December 2013 03:06 PM, Lee Jones wrote:
->> Add DT bindings for TPS65218 PMIC.
->>
->> Signed-off-by: Keerthy <j-keerthy@ti.com>
->> ---
->>   Documentation/devicetree/bindings/mfd/tps65218.txt |   27 ++++++++++++++++++++
->>   .../devicetree/bindings/regulator/tps65218.txt     |   22 ++++++++++++++++
->>   2 files changed, 49 insertions(+)
->>   create mode 100644 Documentation/devicetree/bindings/mfd/tps65218.txt
->>   create mode 100644 Documentation/devicetree/bindings/regulator/tps65218.txt
->>
->> diff --git a/Documentation/devicetree/bindings/mfd/tps65218.txt b/Documentation/devicetree/bindings/mfd/tps65218.txt
->> new file mode 100644
->> index 0000000..87cb7a8
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/mfd/tps65218.txt
->> @@ -0,0 +1,27 @@
->> +The TPS65218 Integrated Power Management Chips.
->> +These chips are connected to an i2c bus.
->                                     I2C
+> >>+- interrupt-controller : Since the tps65218 support several interr=
+upts
+> >                                                support(s) (hosts?)
+>=20
+> Yes Supports multiple interrupts from the sub-modules.
 
-Ok.
+I think 'support' should be the plural 'supports'.
 
->> +Required properties:
->> +- compatible : Must be "ti,tps65218";
->> +- interrupts : This i2c device has an IRQ line connected to the main SoC
->                         I2C
+<snip>
 
-Ok.
+> >Why aren't you using 'regulator-compatible'?
+>=20
+> I referred tps65217.txt the predecessors and used the compatible.
+> I also referred twl-regulator.txt.
 
->> +- interrupt-controller : Since the tps65218 support several interrupts
->                                                 support(s) (hosts?)
+That doesn't mean that they are correct/better. ;)
 
-Yes Supports multiple interrupts from the sub-modules.
-
->> +  internally, it is considered as an interrupt controller cascaded to the SoC.
->> +- #interrupt-cells = <2>;
->> +- interrupt-parent : The parent interrupt controller.
->             Phandle to ...
->
->> +Optional node:
->              node(s):
-
-Ok.
-
->
->> +- Child nodes contain in the tps65218.
->> +  It supports a number of features.
-> Please re-phase the above two sentences to something decipherable.
-
-Ok.
-
->> +  The children nodes will thus depend of the capability of the variant.
-> Please, go on ...
-
-Ok.
-
->> +Example:
->> +/*
->> + * Integrated Power Management Chip
->> + */
->> +tps@24 {
->> +    compatible = "ti,tps65218";
->> +    reg = <0x24>;
->> +    interrupt-controller;
->> +    #interrupt-cells = <2>;
->> +    interrupt-parent = <&gic>;
->> +};
-> Perhaps it would be better to centralise the documentation inclusive
-> of the regulator contingent. Or at least provide a _full_ example in
-> each document.
-
-Ok.
-
->
->> diff --git a/Documentation/devicetree/bindings/regulator/tps65218.txt b/Documentation/devicetree/bindings/regulator/tps65218.txt
->> new file mode 100644
->> index 0000000..1ccf170
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/regulator/tps65218.txt
->> @@ -0,0 +1,22 @@
->> +TPS65218 family of regulators
->> +
->> +Required properties:
->> +For tps65218 regulators/LDOs
->> +- compatible:
->> +  - "ti,tps65218-dcdc1" for DCDC1
->> +  - "ti,tps65218-dcdc2" for DCDC2
->> +  - "ti,tps65218-dcdc3" for DCDC3
->> +  - "ti,tps65218-dcdc4" for DCDC4
->> +  - "ti,tps65218-dcdc5" for DCDC5
->> +  - "ti,tps65218-dcdc6" for DCDC6
->> +  - "ti,tps65218-ldo1" for LDO1 LDO
-> Why aren't you using 'regulator-compatible'?
-
-I referred tps65217.txt the predecessors and used the compatible.
-I also referred twl-regulator.txt.
-
->
->> +Optional properties:
->> +- Any optional property defined in bindings/regulator/regulator.txt
->> +
->> +Example:
->> +	xyz: regulator@0 {
-> Genuine question: Is the @0 meaningful?
-
-@0 is not the best example. @24 is what i use on the am43x.
-I will change it to @24.
-
->> +		compatible = "ti,tps65218-dcdc1";
->> +		regulator-min-microvolt  = <1000000>;
->> +		regulator-max-microvolt  = <3000000>;
->> +	};
-
-Thanks for reviewing.
-
-Kind Regards,
-Keerthy
+--=20
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org =E2=94=82 Open source software for ARM SoCs
+=46ollow Linaro: Facebook | Twitter | Blog
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
