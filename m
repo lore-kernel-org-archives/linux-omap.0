@@ -1,116 +1,132 @@
 From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH 2/4] MFD: TPS65218: Add driver for the TPS65218 PMIC
-Date: Tue, 3 Dec 2013 09:24:10 +0000
-Message-ID: <20131203092410.GD11828@lee--X1>
+Subject: Re: [PATCH 1/4] mfd: DT bindings for TPS65218 PMIC
+Date: Tue, 3 Dec 2013 09:36:37 +0000
+Message-ID: <20131203093637.GE11828@lee--X1>
 References: <1386053006-6480-1-git-send-email-j-keerthy@ti.com>
- <1386053006-6480-3-git-send-email-j-keerthy@ti.com>
+ <1386053006-6480-2-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ie0-f177.google.com ([209.85.223.177]:63297 "EHLO
-	mail-ie0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752104Ab3LCJYV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Dec 2013 04:24:21 -0500
-Received: by mail-ie0-f177.google.com with SMTP id tp5so22373222ieb.8
-        for <linux-omap@vger.kernel.org>; Tue, 03 Dec 2013 01:24:20 -0800 (PST)
+Return-path: <linux-doc-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1386053006-6480-3-git-send-email-j-keerthy@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+In-Reply-To: <1386053006-6480-2-git-send-email-j-keerthy@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
 To: Keerthy <j-keerthy@ti.com>
 Cc: rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ijc+devicetree@hellion.org.uk, rob@landley.net, sameo@linux.intel.com, grant.likely@linaro.org, lgirdwood@gmail.com, broonie@kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 
-> The TPS65218 chip is a power management IC for Portable Navigation Sy=
-stems
-> and Tablet Computing devices. It contains the following components:
->=20
->  - Regulators.
->  - Over Temperature warning and Shut down.
->=20
-> This patch adds support for tps65218 mfd device. At this time only
-> the regulator functionality is made available.
+> Add DT bindings for TPS65218 PMIC.
 >=20
 > Signed-off-by: Keerthy <j-keerthy@ti.com>
 > ---
->  drivers/mfd/Kconfig          |   14 ++
->  drivers/mfd/Makefile         |    1 +
->  drivers/mfd/tps65218.c       |  281 ++++++++++++++++++++++++++++++++=
-+++++++++
->  include/linux/mfd/tps65218.h |  288 ++++++++++++++++++++++++++++++++=
+>  Documentation/devicetree/bindings/mfd/tps65218.txt |   27 ++++++++++=
 ++++++++++
-
-<snip>
-
-> +config MFD_TPS65218
-> +	tristate "TI TPS65218 Power Management chips"
-> +	depends on I2C
-> +	select MFD_CORE
-> +	select REGMAP_I2C
-> +	help
-> +	  If you say yes here you get support for the TPS65218 series of
-> +	  Power Management chips.
-> +	  These include voltage regulators, gpio and other features
-> +	  that are often used in portable devices.
-
-Perhaps you should add a note that only the regulator component is
-currently supported.
-
-<snip>
-
+>  .../devicetree/bindings/regulator/tps65218.txt     |   22 ++++++++++=
+++++++
+>  2 files changed, 49 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/mfd/tps65218.tx=
+t
+>  create mode 100644 Documentation/devicetree/bindings/regulator/tps65=
+218.txt
+>=20
+> diff --git a/Documentation/devicetree/bindings/mfd/tps65218.txt b/Doc=
+umentation/devicetree/bindings/mfd/tps65218.txt
 > new file mode 100644
-> index 0000000..8c61640
+> index 0000000..87cb7a8
 > --- /dev/null
-> +++ b/drivers/mfd/tps65218.c
-> @@ -0,0 +1,281 @@
+> +++ b/Documentation/devicetree/bindings/mfd/tps65218.txt
+> @@ -0,0 +1,27 @@
+> +The TPS65218 Integrated Power Management Chips.
+> +These chips are connected to an i2c bus.
+
+                                   I2C
+
+> +Required properties:
+> +- compatible : Must be "ti,tps65218";
+> +- interrupts : This i2c device has an IRQ line connected to the main=
+ SoC
+
+                       I2C
+
+> +- interrupt-controller : Since the tps65218 support several interrup=
+ts
+
+                                               support(s) (hosts?)
+
+> +  internally, it is considered as an interrupt controller cascaded t=
+o the SoC.
+> +- #interrupt-cells =3D <2>;
+> +- interrupt-parent : The parent interrupt controller.
+
+           Phandle to ...
+
+> +Optional node:
+
+            node(s):
+
+> +- Child nodes contain in the tps65218.
+> +  It supports a number of features.
+
+Please re-phase the above two sentences to something decipherable.
+
+> +  The children nodes will thus depend of the capability of the varia=
+nt.
+
+Please, go on ...
+
+> +Example:
 > +/*
-> + * TPS65218 chip family multi-function driver
-
-Instead of calling it an MFD driver (is there such a thing?) I think
-you should mention its true purpose, as per the datasheet.
-
-<snip>
-
-> +static const struct of_device_id of_tps65218_match_table[] =3D {
-> +	{ .compatible =3D "ti,tps65218", },
-> +	{ /* end */ }
-
-I think the end comment is superfluous.
-
-However, if you _really_ want to put something in there, I dislike
-"/* Sentinel */" the least.
-
-> +static int tps65218_probe(struct i2c_client *client,
-> +				const struct i2c_device_id *ids)
-> +{
-
-<snip>
-
-> +	ret =3D of_platform_populate(client->dev.of_node, NULL, NULL,
-> +				   &client->dev);
-
-What are you trying to do here?
-
-Register each regulator as a platform device?
-
-<snip>
-
-> +static const struct i2c_device_id tps65218_id_table[] =3D {
-> +	{"tps65218", TPS65218},
+> + * Integrated Power Management Chip
+> + */
+> +tps@24 {
+> +    compatible =3D "ti,tps65218";
+> +    reg =3D <0x24>;
+> +    interrupt-controller;
+> +    #interrupt-cells =3D <2>;
+> +    interrupt-parent =3D <&gic>;
 > +};
 
-This has a different structure to of_tps65218_match_table, please
-ensure they're the same. I prefer spaces after '{' and before '}'.
+Perhaps it would be better to centralise the documentation inclusive
+of the regulator contingent. Or at least provide a _full_ example in
+each document.
 
-<snip>
+> diff --git a/Documentation/devicetree/bindings/regulator/tps65218.txt=
+ b/Documentation/devicetree/bindings/regulator/tps65218.txt
+> new file mode 100644
+> index 0000000..1ccf170
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/regulator/tps65218.txt
+> @@ -0,0 +1,22 @@
+> +TPS65218 family of regulators
+> +
+> +Required properties:
+> +For tps65218 regulators/LDOs
+> +- compatible:
+> +  - "ti,tps65218-dcdc1" for DCDC1
+> +  - "ti,tps65218-dcdc2" for DCDC2
+> +  - "ti,tps65218-dcdc3" for DCDC3
+> +  - "ti,tps65218-dcdc4" for DCDC4
+> +  - "ti,tps65218-dcdc5" for DCDC5
+> +  - "ti,tps65218-dcdc6" for DCDC6
+> +  - "ti,tps65218-ldo1" for LDO1 LDO
+
+Why aren't you using 'regulator-compatible'?
+
+> +Optional properties:
+> +- Any optional property defined in bindings/regulator/regulator.txt
+> +
+> +Example:
+> +	xyz: regulator@0 {
+
+Genuine question: Is the @0 meaningful?
+
+> +		compatible =3D "ti,tps65218-dcdc1";
+> +		regulator-min-microvolt  =3D <1000000>;
+> +		regulator-max-microvolt  =3D <3000000>;
+> +	};
 
 --=20
 Lee Jones
 Linaro STMicroelectronics Landing Team Lead
 Linaro.org =E2=94=82 Open source software for ARM SoCs
 =46ollow Linaro: Facebook | Twitter | Blog
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
