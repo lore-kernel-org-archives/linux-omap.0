@@ -1,41 +1,77 @@
-From: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Subject: Re: [PATCH] mmc: omap: Fix error introduced by fix to release_mem_region()
- path
-Date: Tue, 03 Dec 2013 18:16:59 +0000
-Message-ID: <529E201B.6030306@bitmer.com>
-References: <20131202193459.GL26766@atomide.com>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: [PATCH v6] ARM: omap: edma: add suspend suspend/resume hooks
+Date: Tue, 03 Dec 2013 10:24:18 -0800
+Message-ID: <878uw1ssh9.fsf@linaro.org>
+References: <1384726754-27875-1-git-send-email-zonque@gmail.com>
+	<52938A12.5030100@ti.com> <5295F211.1050605@ti.com>
+	<5295F47E.7030409@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <20131202193459.GL26766@atomide.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Chris Ball <cjb@laptop.org>, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, Dan Carpenter <dan.carpenter@oracle.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Jarkko Lavinen <j.lavinen@samsung.com>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pb0-f43.google.com ([209.85.160.43]:55842 "EHLO
+	mail-pb0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753750Ab3LCSYW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Dec 2013 13:24:22 -0500
+Received: by mail-pb0-f43.google.com with SMTP id rq2so21657850pbb.30
+        for <linux-omap@vger.kernel.org>; Tue, 03 Dec 2013 10:24:21 -0800 (PST)
+In-Reply-To: <5295F47E.7030409@gmail.com> (Daniel Mack's message of "Wed, 27
+	Nov 2013 14:32:46 +0100")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Daniel Mack <zonque@gmail.com>
+Cc: Sekhar Nori <nsekhar@ti.com>, joelf@ti.com, linux-omap@vger.kernel.org, gururaja.hebbar@ti.com, balajitk@ti.com, nm@ti.com, s.neumann@raumfeld.com, Russ.Dill@ti.com, vaibhav.bedia@gmail.com, linux-arm-kernel@lists.infradead.org
 
-On 12/02/2013 07:34 PM, Tony Lindgren wrote:
-> Commit 31ee9181eb92: (mmc: omap: Fix DMA configuration to not rely
-> on device id) fixed getting of the DMA resources when booted with
-> device tree. This patch however changed the handling of the
-> free_mem_region() error path by reusing the struct resource *res
-> for the DMA resources.
-> 
-> Fix the error the same way omap_hsmmc.c driver handles it, which
-> is to restore the resource before using the values to call
-> release_mem_region().
-> 
-> Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> 
-I guess my devm_ioremap conversion would have fixed this?
+Daniel Mack <zonque@gmail.com> writes:
 
-http://www.spinics.net/lists/linux-mmc/msg23317.html
+> On 11/27/2013 02:22 PM, Sekhar Nori wrote:
+>> + Kevin
+>> 
+>> On Monday 25 November 2013 11:04 PM, Joel Fernandes wrote:
+>>> On 11/17/2013 04:19 PM, Daniel Mack wrote:
+>>>> This patch makes the edma driver resume correctly after suspend. Tested
+>>>> on an AM33xx platform with cyclic audio streams and omap_hsmmc.
+>>>>
+>>>> All information can be reconstructed by already known runtime
+>>>> information.
+>>>>
+>>>> As we now use some functions that were previously only used from __init
+>>>> context, annotations had to be dropped.
+>>>>
+>>>> [nm@ti.com: added error handling for runtime + suspend_late/early_resume]
+>>>> Signed-off-by: Nishanth Menon <nm@ti.com>
+>>>> Signed-off-by: Daniel Mack <zonque@gmail.com>
+>>>> Tested-by: Joel Fernandes <joelf@ti.com>
+>>>> Acked-by: Joel Fernandes <joelf@ti.com>
+>>>
+>>> Hi Sekhar,
+>>>
+>>> Can you consider pulling this patch? It has been tested and Acked. Thanks.
+>> 
+>> Kevin had some inputs on previous version of this patch. Were you able
+>> to make sure he is okay with this version being merged?
+>
+> I had concerns about the feedback I got, and haven't got answers yet.
+>
+> In particular, I'm not convinced that using runtime PM to suspend
+> channels would actually save any power during runtime, or have any other
+> benefit. 
 
-Does not help now but I'm thinking if queuing some of those my patches
-(3-5) on top of yours as a fix? Especially fix to NULL pointer dereference:
+/me returning from a week off
 
-http://www.spinics.net/lists/linux-mmc/msg23320.html
+The amount of power to be saved depends on the activity in the system.
+If DMA is unused, at least the clocks could be gated allowing the
+possibility of the enclosing power domain to be gated if other devices
+are also clock gated, etc. etc.
 
--- 
-Jarkko
+However, my comments were not really about power saving, they were about
+designing things in a way that are scalable and match the longer term
+goals of converting drivers to be runtime PM centric.  For example, if
+someone did want to add real runtime PM to this driver later, they would
+need to rework much of this.  So my suggestion was to do runtime PM the
+right way from the beginning.
+
+That being said, I'm not the maintainer of this driver so don't get to
+make the final call.  I will just say that from what I've seen here, I
+don't think this is the right approach.
+
+Kevin
