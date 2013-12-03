@@ -1,68 +1,61 @@
-From: Cliff Brake <cliff.brake@gmail.com>
-Subject: kernel mode splash screen
-Date: Tue, 3 Dec 2013 07:41:49 -0500
-Message-ID: <CAOd_LFyGVBXGBuN1bZK=n2jSnLSNkBmgbo1ZQi_s1Jj6EiK=Gw@mail.gmail.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH 2/4] MFD: TPS65218: Add driver for the TPS65218 PMIC
+Date: Tue, 3 Dec 2013 13:28:04 +0000
+Message-ID: <20131203132804.GU27568@sirena.org.uk>
+References: <1386053006-6480-1-git-send-email-j-keerthy@ti.com>
+ <1386053006-6480-3-git-send-email-j-keerthy@ti.com>
+ <20131203092410.GD11828@lee--X1>
+ <529DAD2B.4040909@ti.com>
+ <20131203112107.GP11828@lee--X1>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-oa0-f47.google.com ([209.85.219.47]:58308 "EHLO
-	mail-oa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753144Ab3LCMlu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Dec 2013 07:41:50 -0500
-Received: by mail-oa0-f47.google.com with SMTP id k1so14660306oag.6
-        for <linux-omap@vger.kernel.org>; Tue, 03 Dec 2013 04:41:49 -0800 (PST)
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="+OC8RVH7U83T7eJX"
+Return-path: <linux-doc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20131203112107.GP11828@lee--X1>
+Sender: linux-doc-owner@vger.kernel.org
+To: Lee Jones <lee.jones@linaro.org>
+Cc: Keerthy <a0393675@ti.com>, Keerthy <j-keerthy@ti.com>, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ijc+devicetree@hellion.org.uk, rob@landley.net, sameo@linux.intel.com, grant.likely@linaro.org, lgirdwood@gmail.com, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Linux OMAP Users <linux-omap@vger.kernel.org>
 
-> Hello,
->
-> We are working on an embedded system where we need immediate feedback
-> on the screen in response to power button events, etc.  We also need
-> to be able to display the splash screen whenever kernel is running.
-> User space splash screens get killed too early on shutdown, etc.
->
-> Does anyone know of a kernel mode splash screen that will:
->
-> 1) display an image
-> 2) display status messages
-> 3) display progress bar (nice to have, but not required)
-> 4) can be accessed from kernel and user space
-> 5) when enabled, will disable writes from user space
-> 6) FB based
 
-I'm currently porting
-http://git.yoctoproject.org/cgit/cgit.cgi/psplash/ to the linux
-kernel.  So far, its going fairly well.  Psplash is fairly clean and
-minimal.  Two questions:
+--+OC8RVH7U83T7eJX
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-1) is there kernel function to write pixels to the framebuffer?  I've
-been looking at fb_fillrect()
+On Tue, Dec 03, 2013 at 11:21:07AM +0000, Lee Jones wrote:
 
-2) what is the format of the color parameter in the following data
-structure (gets passed to fb_fillrect():
+> other is that you shouldn't be doing this at all with regulators. Mark
+> likes the idea of having a single regulator controller node which
+> contains all of these individual regulator sub-nodes and you initiate
+> a single call to for_each_child_of_node() within the driver in order
+> to register them all.
 
-struct fb_fillrect {
-__u32 dx; /* screen-relative */
-__u32 dy;
-__u32 width;
-__u32 height;
-__u32 color;
-__u32 rop;
-};
+That's not really the case, it depends on how the hardware is
+structured.  If the regulators are not laid out in a regular fashion or
+otherwise reusable then the above big bag of regulators makes sense.  If
+the hardware is reusable then things are different.
 
-3) We are using the omap2 frame buffer driver.  By default its
-configured to provide 3 frame-buffers.  I'm not sure what this means,
-but I thinking that perhaps we can use one for the splash screen, and
-one for the normal frame buffer used by userspace?  The issue is I
-want to disable user space from drawing to the framebuffer instantly,
-and switch to the splash screen when the user presses the power switch
-(instant feedback).  What is the purpose of multiple frame buffers,
-and is this a reasonable use of them?
+--+OC8RVH7U83T7eJX
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-Thanks,
-Cliff
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
 
--- 
-=================
-http://bec-systems.com
+iQIcBAEBAgAGBQJSndxgAAoJELSic+t+oim9cBUP/06WWWYrjhT9fJn2COoIxdZm
+bQmYBjMo0J2CIqBtpYmCc5bGWRYO+IY+R23mzOE1NQ2KxLlHqxbZavvG1B1y5D/8
+ypi8z+f3zib8jNacSv1wqIgajskRT6X3WPpsxtZGIk6K2j2Q9B7bVv8HFHzVjtwC
+gpFwGuC9RjsSn80PtnJ5ymE15oYj1xPIrTJHmmDsWC5HmLIayEPJ4GvAGuHO6DTy
+I+inkTPpGr1dT3nqR7R1p/wgOFFnAGtV0Wv+E0XwI+NLfWcPEesFSGSE5IKPpr6c
+F4iGuFiRZL27bccWz3PjRCozsceXdsE36oNyE4l4HE3zCgYuZTvTK9w2ExXTi5ZE
+hUZmeWcOOkJBmKTAZc7oAXGDZHSZWFq2IETxNUjfhDyM1kWUq1p24V04aWoVtkNz
+BiD1mJbPa0DTziBCtMzlp8erVnjTPJSeHmzTIrYZH6GnKkLsBbFTD/WhsqC1pMNc
+CMDyFCfUAdyF3yBF2KiyyO5XEIrcN2OBn5H7Qc4Z+KMXBaHPtQtTvCu0qwK3W4hg
+KuoqL6YV6/DmeXrNk2r/yLKC0H3Q7Al1wntu/rk+I1YdUPRVlrFSeQD5pUcltcaW
+/DH/+TOu3I115kYlgMDIK+45zwR0K3GzhJkMdCXtqiNY3keqsgTOXMQEU6JyTUHZ
+2mfX6wXcDEqAh+gkwqKR
+=fI/p
+-----END PGP SIGNATURE-----
+
+--+OC8RVH7U83T7eJX--
