@@ -1,39 +1,26 @@
-From: Belisko Marek <marek.belisko@gmail.com>
-Subject: 3.13-rc2 phy-twl4030-usb.c - Timeout setting T2 HSUSB PHY DPLL
-Date: Tue, 3 Dec 2013 22:33:43 +0100
-Message-ID: <CAAfyv37aM6SrpuU9fzKA6GKsWn=To5ANOpG_kSX509NjMjdecA@mail.gmail.com>
+From: Tobias Jakobi <tjakobi@math.uni-bielefeld.de>
+Subject: [pandaboard] audio initialization fails due to TWL6040
+Date: Tue, 03 Dec 2013 23:44:25 +0100
+Message-ID: <529E5EC9.10008@math.uni-bielefeld.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: LKML <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.math.uni-bielefeld.de ([129.70.45.10]:45966 "EHLO
+	smtp.math.uni-bielefeld.de" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755322Ab3LCWo1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Dec 2013 17:44:27 -0500
+Received: from [192.168.0.34] (ip-84-119-24-147.unity-media.net [84.119.24.147])
+	(using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+	(Client did not present a certificate)
+	by smtp.math.uni-bielefeld.de (Postfix) with ESMTPSA id A3E5A6045C
+	for <linux-omap@vger.kernel.org>; Tue,  3 Dec 2013 23:44:25 +0100 (CET)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-Hi,
+And another one!
 
-current 3.13-rcX break usb support on gta04 board (similar to
-beagleboard) when booting via board file.
+https://bugzilla.kernel.org/show_bug.cgi?id=66451
 
-In console we can see messages:
- [ 5227.287841] twl4030_usb twl4030_usb: Timeout setting T2 HSUSB PHY DPLL clock
-[ 5232.936096] omap_musb_mailbox: musb core is not yet ready
-[ 5233.958160] twl4030_usb twl4030_usb: Timeout setting T2 HSUSB PHY DPLL clock
-[ 5235.058227] twl4030_usb twl4030_usb: Timeout setting T2 HSUSB PHY DPLL clock
-
-Any pointer what could cause that? (in 3.12 usb works fine)
-
-BR,
-
-marek
-
--- 
-as simple and primitive as possible
--------------------------------------------------
-Marek Belisko - OPEN-NANDRA
-Freelance Developer
-
-Ruska Nova Ves 219 | Presov, 08005 Slovak Republic
-Tel: +421 915 052 184
-skype: marekwhite
-twitter: #opennandra
-web: http://open-nandra.com
+- Tobias
