@@ -1,75 +1,89 @@
-From: Archit Taneja <archit@ti.com>
-Subject: Re: [PATCH 6/6] experimental: arm: dts: dra7xx: Add a DT node for
- VPE
-Date: Tue, 3 Dec 2013 15:38:42 +0530
-Message-ID: <529DADAA.1060501@ti.com>
-References: <1375452223-30524-1-git-send-email-archit@ti.com> <1375452223-30524-7-git-send-email-archit@ti.com> <16994189.3ZRYT6i8Y5@avalon>
+From: Sricharan R <r.sricharan@ti.com>
+Subject: [PATCH V5 0/4] DRIVERS: IRQCHIP: Add support for crossbar IP
+Date: Tue, 3 Dec 2013 15:57:21 +0530
+Message-ID: <1386066445-28245-1-git-send-email-r.sricharan@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:43669 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751496Ab3LCKIp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Dec 2013 05:08:45 -0500
-In-Reply-To: <16994189.3ZRYT6i8Y5@avalon>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-doc-owner@vger.kernel.org>
+Sender: linux-doc-owner@vger.kernel.org
+To: r.sricharan@ti.com, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linus.walleij@linaro.org, linux@arm.linux.org.uk, tony@atomide.com, rnayak@ti.com, marc.zyngier@arm.com, grant.likely@linaro.org, mark.rutland@arm.com, robherring2@gmail.com, tglx@linutronix.de, galak@codeaurora.org, rob.herring@calxeda.com, santosh.shilimkar@ti.com, nm@ti.com, bcousson@baylibre.com
 List-Id: linux-omap@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Laurent,
+Some socs have a large number of interrupts requests to service
+the needs of its many peripherals and subsystems. All of the interrupt
+requests lines from the subsystems are not needed at the same
+time, so they have to be muxed to the controllers appropriately.
+In such places a interrupt controllers are preceded by an
+IRQ CROSSBAR that provides flexibility in muxing the device interrupt
+requests to the controller inputs.
 
-On Friday 09 August 2013 03:41 AM, Laurent Pinchart wrote:
-> Hi Archit,
->
-> Thank you for the patch.
->
-> On Friday 02 August 2013 19:33:43 Archit Taneja wrote:
->> Add a DT node for VPE in dra7.dtsi. This is experimental because we might
->> need to split the VPE address space a bit more, and also because the IRQ
->> line described is accessible the IRQ crossbar driver is added for DRA7XX.
->>
->> Cc: Rajendra Nayak <rnayak@ti.com>
->> Cc: Sricharan R <r.sricharan@ti.com>
->> Signed-off-by: Archit Taneja <archit@ti.com>
->> ---
->>   arch/arm/boot/dts/dra7.dtsi | 11 +++++++++++
->
-> Documentation is missing :-) As this is an experimental patch you can probably
-> document the bindings later.
+This series models the peripheral interrupts that can be routed through
+the crossbar to the GIC as 'routable-irqs'. The routable irqs are added
+in a separate linear domain inside the GIC. The registered routable domain's
+callback are invoked as a part of the GIC's callback, which in turn should
+allocate a free irq line and configure the IP accordingly. So every peripheral
+in the dts files mentions the fixed crossbar number as its interrupt. A free
+gic line for that gets allocated and configured when the peripheral interrupts
+are mapped.
 
-Sorry for the late reply, I missed out on reading this message somehow.
+The minimal crossbar driver to track and allocate free GIC lines and configure the
+crossbar is added here, along with the DT bindings.
 
-I'm blocked on adding the DT nodes because of some dependencies on dra7x 
-clocks, and the crossbar framework. I'll make sure to add documentation :)
+V5:
+   Addressed a comment from Mark Rutland <mark.rutland@arm.com>,
+   updated tags and rebased on 3.13-rc2
 
->
->>   1 file changed, 11 insertions(+)
->>
->> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
->> index ce9a0f0..3237972 100644
->> --- a/arch/arm/boot/dts/dra7.dtsi
->> +++ b/arch/arm/boot/dts/dra7.dtsi
->> @@ -484,6 +484,17 @@
->>   			dmas = <&sdma 70>, <&sdma 71>;
->>   			dma-names = "tx0", "rx0";
->>   		};
->> +
->> +		vpe {
->> +			compatible = "ti,vpe";
->> +			ti,hwmods = "vpe";
->> +			reg = <0x489d0000 0xd000>, <0x489dd000 0x400>;
->> +			reg-names = "vpe", "vpdma";
->> +			interrupts = <0 159 0x4>;
->> +			#address-cells = <1>;
->> +			#size-cells = <0>;
->
-> Are #address-cells and #size-cells really needed ?
+V4:
+   Addressed a couple of comments and split the DTS file updates in to
+   a separate series.
 
-They aren't needed. The vpe node inherits these params from the parent 
-"ocp" node.
+V3:
+   Addressed few more comments from Thomas Gleixner <tglx@linutronix.de>
 
-Thanks,
-Archit
+   Rebased patches 3,4,5,7 which updates the DTS file on top of below branch
+	   git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git
+	   for_3.13/dts
+
+   Rebased patches 1,2,6 on top of 3.12 mainline
+   Updated Commit tags
+
+V2:
+   Addressed Thomas Gleixner <tglx@linutronix.de> comments and
+   Kumar Gala <galak@codeaurora.org>
+
+   Split updating the DRA7.dtsi file for adding the routable-irqs
+
+Previous discussions that led to this is at
+	https://lkml.org/lkml/2013/9/18/540
+
+The V1,V2,V3,V4 post of these patches is at
+      [V1]  https://lkml.org/lkml/2013/9/30/283
+      [V2]  http://www.spinics.net/lists/linux-omap/msg99540.html
+      [V3]  http://www.kernelhub.org/?msg=356470&p=2
+      [V4]  http://www.spinics.net/lists/linux-doc/msg16726.html
+
+Sricharan R (4):
+  DRIVERS: IRQCHIP: IRQ-GIC: Add support for routable irqs
+  DRIVERS: IRQCHIP: CROSSBAR: Add support for Crossbar IP
+  ARM: OMAP4+: Correct Wakeup-gen code to use physical irq number
+  ARM: DRA: Enable Crossbar IP support for DRA7XX
+
+ Documentation/devicetree/bindings/arm/gic.txt      |    6 +
+ .../devicetree/bindings/arm/omap/crossbar.txt      |   27 +++
+ arch/arm/mach-omap2/Kconfig                        |    1 +
+ arch/arm/mach-omap2/omap-wakeupgen.c               |    4 +-
+ arch/arm/mach-omap2/omap4-common.c                 |    2 +
+ drivers/irqchip/Kconfig                            |    8 +
+ drivers/irqchip/Makefile                           |    1 +
+ drivers/irqchip/irq-crossbar.c                     |  208 ++++++++++++++++++++
+ drivers/irqchip/irq-gic.c                          |   81 +++++++-
+ include/linux/irqchip/arm-gic.h                    |    7 +-
+ include/linux/irqchip/irq-crossbar.h               |   11 ++
+ 11 files changed, 343 insertions(+), 13 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/arm/omap/crossbar.txt
+ create mode 100644 drivers/irqchip/irq-crossbar.c
+ create mode 100644 include/linux/irqchip/irq-crossbar.h
+
+-- 
+1.7.9.5
 
