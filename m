@@ -1,93 +1,40 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/1] gpio: twl4030: Fix regression for twl gpio LED
- output
-Date: Wed, 4 Dec 2013 09:37:05 -0800
-Message-ID: <20131204173705.GQ26766@atomide.com>
-References: <1386156871-7639-1-git-send-email-rogerq@ti.com>
- <1386156871-7639-2-git-send-email-rogerq@ti.com>
+Subject: Re: [PATCH 0/3] ARM: OMAP2+: Remove remaining unused legacy code
+Date: Wed, 4 Dec 2013 09:53:10 -0800
+Message-ID: <20131204175310.GR26766@atomide.com>
+References: <1385752697-13700-1-git-send-email-javier.martinez@collabora.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-gpio-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:42186 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755182Ab3LDRxO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Dec 2013 12:53:14 -0500
 Content-Disposition: inline
-In-Reply-To: <1386156871-7639-2-git-send-email-rogerq@ti.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: linus.walleij@linaro.org, peter.ujfalusi@ti.com, nm@ti.com, tomi.valkeinen@ti.com, balbi@ti.com, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <1385752697-13700-1-git-send-email-javier.martinez@collabora.co.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Roger Quadros <rogerq@ti.com> [131204 03:35]:
-> Commit 0b2aa8be introduced a regression that causes failure
-> in setting LED GPO direction to OUT.
+* Javier Martinez Canillas <javier.martinez@collabora.co.uk> [131129 11:20]:
+> Now that OMAP2+ board files are scheduled for removal for v3.14
+> there is unused code that was only used by legacy platform code
+> and can be removed.
 > 
-> This causes USB host probe failures for Beagleboard C4.
+> This patch-set depends on the series:
 > 
-> [    2.075469] platform usb_phy_gen_xceiv.2: Driver usb_phy_gen_xceiv requests probe deferral
-> [    2.090454] hsusb2_vcc: Failed to request enable GPIO510: -22
-> [    2.100982] reg-fixed-voltage reg-fixed-voltage.0.auto: Failed to register regulator: -22
-> [    2.109954] reg-fixed-voltage: probe of reg-fixed-voltage.0.auto failed with error -22
+> [PATCH 00/12] Drop omap3 board files and make mach-omap2 boot in DT only mode
 > 
-> direction_out/direction_in must return 0 if the operation succeeded.
-
-Uh, OK, sorry that was an unexpected side effect. We still should keep the
-return values though instead of just ignoring them.
- 
->  1 file changed, 9 insertions(+), 6 deletions(-)
+> and is composed of the following patches:
 > 
-> diff --git a/drivers/gpio/gpio-twl4030.c b/drivers/gpio/gpio-twl4030.c
-> index b97d6a6..0999ed1 100644
-> --- a/drivers/gpio/gpio-twl4030.c
-> +++ b/drivers/gpio/gpio-twl4030.c
-> @@ -294,13 +294,13 @@ out:
->  static int twl_direction_in(struct gpio_chip *chip, unsigned offset)
->  {
->  	struct gpio_twl4030_priv *priv = to_gpio_twl4030(chip);
-> -	int ret;
-> +	int ret = 0;
->  
->  	mutex_lock(&priv->mutex);
->  	if (offset < TWL4030_GPIO_MAX)
-> -		ret = twl4030_set_gpio_direction(offset, 1);
-> +		twl4030_set_gpio_direction(offset, 1);
->  	else
-> -		ret = -EINVAL;
-> +		ret = -EINVAL;	/* LED outputs can't be set as input */
->  
->  	if (!ret)
->  		priv->direction &= ~BIT(offset);
+> [PATCH 1/3] ARM: OMAP2+: Remove legacy smsc911x and smc91x GPMC
+> [PATCH 2/3] ARM: OMAP2+: Remove unnecesary include in GPMC driver
+> [PATCH 3/3] ARM: OMAP2+: Remove legacy board-flash.c
 
-This looks OK to me.
-
-> @@ -354,18 +354,21 @@ static void twl_set(struct gpio_chip *chip, unsigned offset, int value)
->  static int twl_direction_out(struct gpio_chip *chip, unsigned offset, int value)
->  {
->  	struct gpio_twl4030_priv *priv = to_gpio_twl4030(chip);
-> -	int ret = -EINVAL;
->  
-
-Can't you just have:
-
-	int ret = 0;
-
->  	mutex_lock(&priv->mutex);
->  	if (offset < TWL4030_GPIO_MAX)
-> -		ret = twl4030_set_gpio_direction(offset, 0);
-> +		twl4030_set_gpio_direction(offset, 0);
-> +
-> +	/*
-> +	 *  LED gpio's i.e. offset >= TWL4030_GPIO_MAX are always output
-> +	 */
->  
->  	priv->direction |= BIT(offset);
->  	mutex_unlock(&priv->mutex);
->  
->  	twl_set(chip, offset, value);
->  
-> -	return ret;
-> +	return 0;
->  }
-
-Then the rest of this change is not needed and we check the return value for
-twl4030_set_gpio_direction. Makes sense to keep the comment there though.
+Thanks looks good to me. I'll wait for -rc3 to get tagged and then
+apply all the pending mach-omap2 device tree conversion patches
+against it including these.
 
 Regards,
 
