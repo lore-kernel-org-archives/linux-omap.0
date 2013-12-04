@@ -1,15 +1,15 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 19/26] ARM: omap3-beagle-xm.dts: add display information
-Date: Wed, 4 Dec 2013 14:28:46 +0200
-Message-ID: <1386160133-24026-20-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 21/26] OMAPDSS: encoder-tfp410: Add DT support
+Date: Wed, 4 Dec 2013 14:28:48 +0200
+Message-ID: <1386160133-24026-22-git-send-email-tomi.valkeinen@ti.com>
 References: <1386160133-24026-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:52605 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932285Ab3LDMaa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Dec 2013 07:30:30 -0500
+Received: from bear.ext.ti.com ([192.94.94.41]:52232 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932285Ab3LDMaf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 4 Dec 2013 07:30:35 -0500
 In-Reply-To: <1386160133-24026-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -18,84 +18,97 @@ Cc: Archit Taneja <archit@ti.com>, Darren Etheridge <detheridge@ti.com>, Tony Li
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- arch/arm/boot/dts/omap3-beagle-xm.dts | 67 +++++++++++++++++++++++++++++++++++
- 1 file changed, 67 insertions(+)
+ drivers/video/omap2/displays-new/encoder-tfp410.c | 43 ++++++++++++++++++++++-
+ 1 file changed, 42 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm/boot/dts/omap3-beagle-xm.dts b/arch/arm/boot/dts/omap3-beagle-xm.dts
-index 31a632f7effb..baec842f4fb5 100644
---- a/arch/arm/boot/dts/omap3-beagle-xm.dts
-+++ b/arch/arm/boot/dts/omap3-beagle-xm.dts
-@@ -215,3 +215,70 @@
- &usbhsehci {
- 	phys = <0 &hsusb2_phy>;
+diff --git a/drivers/video/omap2/displays-new/encoder-tfp410.c b/drivers/video/omap2/displays-new/encoder-tfp410.c
+index 4a291e756be9..427f6880885e 100644
+--- a/drivers/video/omap2/displays-new/encoder-tfp410.c
++++ b/drivers/video/omap2/displays-new/encoder-tfp410.c
+@@ -13,6 +13,7 @@
+ #include <linux/module.h>
+ #include <linux/platform_device.h>
+ #include <linux/slab.h>
++#include <linux/of_gpio.h>
+ 
+ #include <video/omapdss.h>
+ #include <video/omap-panel-data.h>
+@@ -82,7 +83,8 @@ static int tfp410_enable(struct omap_dss_device *dssdev)
+ 		return 0;
+ 
+ 	in->ops.dpi->set_timings(in, &ddata->timings);
+-	in->ops.dpi->set_data_lines(in, ddata->data_lines);
++	if (ddata->data_lines)
++		in->ops.dpi->set_data_lines(in, ddata->data_lines);
+ 
+ 	r = in->ops.dpi->enable(in);
+ 	if (r)
+@@ -179,6 +181,33 @@ static int tfp410_probe_pdata(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
++static int tfp410_probe_of(struct platform_device *pdev)
++{
++	struct panel_drv_data *ddata = platform_get_drvdata(pdev);
++	struct device_node *node = pdev->dev.of_node;
++	struct omap_dss_device *in;
++	int gpio;
++
++	in = omapdss_of_find_source_for_first_ep(node);
++	if (IS_ERR(in)) {
++		dev_err(&pdev->dev, "failed to find video source\n");
++		return PTR_ERR(in);
++	}
++
++	ddata->in = in;
++
++	gpio = of_get_gpio(node, 0);
++
++	if (gpio_is_valid(gpio) || gpio == -ENOENT) {
++		ddata->pd_gpio = gpio;
++	} else {
++		dev_err(&pdev->dev, "failed to parse PD gpio\n");
++		return gpio;
++	}
++
++	return 0;
++}
++
+ static int tfp410_probe(struct platform_device *pdev)
+ {
+ 	struct panel_drv_data *ddata;
+@@ -195,6 +224,10 @@ static int tfp410_probe(struct platform_device *pdev)
+ 		r = tfp410_probe_pdata(pdev);
+ 		if (r)
+ 			return r;
++	} else if (pdev->dev.of_node) {
++		r = tfp410_probe_of(pdev);
++		if (r)
++			return r;
+ 	} else {
+ 		return -ENODEV;
+ 	}
+@@ -251,12 +284,20 @@ static int __exit tfp410_remove(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
++static const struct of_device_id tfp410_of_match[] = {
++	{ .compatible = "ti,tfp410", },
++	{},
++};
++
++MODULE_DEVICE_TABLE(of, tfp410_of_match);
++
+ static struct platform_driver tfp410_driver = {
+ 	.probe	= tfp410_probe,
+ 	.remove	= __exit_p(tfp410_remove),
+ 	.driver	= {
+ 		.name	= "tfp410",
+ 		.owner	= THIS_MODULE,
++		.of_match_table = tfp410_of_match,
+ 	},
  };
-+
-+&dpi {
-+	vdds_dsi-supply = <&vpll2>;
-+
-+	dpi_out: endpoint {
-+		remote-endpoint = <&tfp410_in>;
-+		data-lines = <24>;
-+	};
-+};
-+
-+&venc {
-+	vdda_dac-supply = <&vdac>;
-+
-+	venc_out: endpoint {
-+		remote-endpoint = <&tv_connector_in>;
-+	};
-+};
-+
-+/ {
-+	aliases {
-+		display0 = &dvi0;
-+		display1 = &tv0;
-+	};
-+
-+	tfp410: encoder@0 {
-+		compatible = "ti,tfp410";
-+		gpios = <&twl_gpio 2 GPIO_ACTIVE_HIGH>;
-+
-+		ports {
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+
-+			port@0 {
-+				reg = <0>;
-+
-+				tfp410_in: endpoint@0 {
-+					remote-endpoint = <&dpi_out>;
-+				};
-+			};
-+
-+			port@1 {
-+				reg = <1>;
-+
-+				tfp410_out: endpoint@1 {
-+					remote-endpoint = <&dvi_connector_in>;
-+				};
-+			};
-+		};
-+	};
-+
-+	dvi0: connector@0 {
-+		compatible = "ti,dvi-connector";
-+		i2c-bus = <&i2c3>;
-+
-+		dvi_connector_in: endpoint {
-+			remote-endpoint = <&tfp410_out>;
-+		};
-+	};
-+
-+	tv0: connector@1 {
-+		compatible = "ti,svideo-connector";
-+
-+		tv_connector_in: endpoint {
-+			remote-endpoint = <&venc_out>;
-+		};
-+	};
-+};
+ 
 -- 
 1.8.3.2
 
