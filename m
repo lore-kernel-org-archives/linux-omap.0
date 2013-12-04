@@ -1,118 +1,44 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH] ARM: OMAP2+: omap_device: add fail hook for runtime_pm
- when bad data is detected
-Date: Wed, 04 Dec 2013 05:33:08 -0600
-Message-ID: <529F12F4.70304@ti.com>
-References: <1386121153-32351-1-git-send-email-nm@ti.com> <529EE305.70001@ti.com>
-Reply-To: nm@ti.com
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH 0/1] gpio: twl4030: gpio LED regression fix for 3.13 rc
+Date: Wed, 4 Dec 2013 13:34:30 +0200
+Message-ID: <1386156871-7639-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ob0-f173.google.com ([209.85.214.173]:47821 "EHLO
-	mail-ob0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932104Ab3LDLdM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Dec 2013 06:33:12 -0500
-In-Reply-To: <529EE305.70001@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linus.walleij@linaro.org
+Cc: nm@ti.com, tony@atomide.com, linux-kernel@vger.kernel.org, balbi@ti.com, peter.ujfalusi@ti.com, linux-gpio@vger.kernel.org, tomi.valkeinen@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Joel Fernandes <joelf@ti.com>, Tony Lindgren <tony@atomide.com>
-Cc: Tobias Jakobi <tjakobi@math.uni-bielefeld.de>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 12/04/2013 02:08 AM, Joel Fernandes wrote:
-> On 12/04/2013 07:09 AM, Nishanth Menon wrote:
->> Due to the cross dependencies between hwmod for automanaged device
->> information for OMAP and dts node definitions, we can run into scenarios
->> where the dts node is defined, however it's hwmod entry is yet to be
->> added. In these cases:
->> a) omap_device does not register a pm_domain (since it cannot find
->>     hwmod entry).
->> b) driver does not know about (a), does a pm_runtime_get_sync which
->>     never fails
->> c) It then tries to do some operation on the device (such as read the
->>    revision register (as part of probe) without clock or adequate OMAP
->>    generic PM operation performed for enabling the module.
->>
->> This causes a crash such as that reported in:
->> https://bugzilla.kernel.org/show_bug.cgi?id=66441
->>
->> When 'ti,hwmod' is provided in dt node, it is expected that the device
->> will not function without the OMAP's power automanagement. Hence, when
->> we hit a fail condition (due to hwmod entries not present or other
->> similar scenario), fail at pm_domain level due to lack of data, provide
->> enough information for it to be fixed, however, it allows for the driver
->> to take appropriate measures to prevent crash.
->>
->> Reported-by: Tobias Jakobi <tjakobi@math.uni-bielefeld.de>
->> Signed-off-by: Nishanth Menon <nm@ti.com>
->> ---
->>   arch/arm/mach-omap2/omap_device.c |   24 ++++++++++++++++++++++++
->>   arch/arm/mach-omap2/omap_device.h |    1 +
->>   2 files changed, 25 insertions(+)
->>
->> diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
->> index 53f0735..e0a398c 100644
->> --- a/arch/arm/mach-omap2/omap_device.c
->> +++ b/arch/arm/mach-omap2/omap_device.c
->> @@ -183,6 +183,10 @@ static int omap_device_build_from_dt(struct platform_device *pdev)
->>   odbfd_exit1:
->>   	kfree(hwmods);
->>   odbfd_exit:
->> +	/* if data/we are at fault.. load up a fail handler */
->> +	if (ret)
->> +		pdev->dev.pm_domain = &omap_device_fail_pm_domain;
->> +
->>   	return ret;
->>   }
->>
->
-> Just wondering, can't we just print the warning here instead of registering new
-> pm_domain callbacks?
->
+Hi,
 
-I suggest you might want to read the commit message again.. but lets try 
-once again:
+Commit 0b2aa8be that went into 3.13-rc2 introduced a regression
+that causes failure in setting LED GPO direction to OUT.
 
-As you see in dmesg log 
-https://bugzilla.kernel.org/attachment.cgi?id=117311 pointed in the bug 
-https://bugzilla.kernel.org/show_bug.cgi?id=66441,
+This causes USB Host to fail probe on Beagleboard.
 
+The following patch fixes this issue.
 
-you already have
-"
-[    0.176940] platform 4b501000.aes: Cannot lookup hwmod 'aes'
-[    0.177215] platform 480a5000.des: Cannot lookup hwmod 'des'"
+I've tried to higlight the issue in the original patch here
+http://www.spinics.net/lists/linux-omap/msg100858.html
 
-Now, printing that warning does not help, as I already explained in the 
-commit log,
-"
- >> b) driver does not know about (a), does a pm_runtime_get_sync which
- >>     never fails"
+cheers,
+-roger
 
-A device node stated it will have hwmod to adequately control it, but in 
-reality, as in this case, it does not. how does printing a warning alone 
-help the driver which is not aware of these? The driver's attempt at 
-pm_runtime_sync should fail, as that is what "ti,hwmod" property controls.
+Roger Quadros (1):
+  gpio: twl4030: Fix regression for twl gpio LED output
 
+ drivers/gpio/gpio-twl4030.c | 15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
 
-> Concerned that all this LOC may end up being dead code when the "ti,hwmods"
-> property becomes obsolete anyway.
-
-we detected we have a bug with 3.13-rc2 - this is a fix for kernel 
-(probably a stable candidate too). ti,hwmod property might become 
-eventually obsolete (and we are working towards that), but the 
-functionality that it provides today is necessary for the transition 
-from mixed dt-hwmod world to pure dt world. - remember we are moving 
-from data structure which is used to describe hardware to another which 
-again describes hardware in a different form - the kind of bugs we see 
-now are expected to be fixed for transition to be smooth for everyone.
-
-without providing adequate warnings, bugs like 
-https://bugzilla.kernel.org/show_bug.cgi?id=66441 will need pretty nasty 
-debug.
-
-I hope this helps convince you that error code is worth the LoC.
-
---
-Regards,
-Nishanth Menon
+-- 
+1.8.3.2
