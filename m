@@ -1,52 +1,58 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [pandaboard] omap-aes L3 standard error
-Date: Tue, 3 Dec 2013 19:45:52 -0600
-Message-ID: <529E8950.4030209@ti.com>
-References: <529E47B5.60900@math.uni-bielefeld.de>
+From: Keerthy <a0393675-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 3/4] Regulators: TPS65218: Add Regulator driver for TPS65218
+ PMIC
+Date: Wed, 4 Dec 2013 11:29:15 +0530
+Message-ID: <529EC4B3.7030009@ti.com>
+References: <1386053006-6480-1-git-send-email-j-keerthy@ti.com> <1386053006-6480-4-git-send-email-j-keerthy@ti.com> <20131203151654.GB27568@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:37805 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754146Ab3LDBpz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 3 Dec 2013 20:45:55 -0500
-In-Reply-To: <529E47B5.60900@math.uni-bielefeld.de>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20131203151654.GB27568-GFdadSzt00ze9xe1eoZjHA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Tobias Jakobi <tjakobi@math.uni-bielefeld.de>, linux-omap@vger.kernel.org
 
-On 12/03/2013 03:05 PM, Tobias Jakobi wrote:
-> Hello,
-> 
-> here a newly introduced one:
-> https://bugzilla.kernel.org/show_bug.cgi?id=66441
+Thanks for the review Mark.
 
-[1] solves the issue
+On Tuesday 03 December 2013 08:46 PM, Mark Brown wrote:
+> On Tue, Dec 03, 2013 at 12:13:24PM +0530, Keerthy wrote:
+>
+>> +static int tps65218_ldo1_dcdc3_vsel_to_uv(unsigned int vsel)
+>> +{
+>> +	int uV = 0;
+>> +
+>> +	if (vsel <= 26)
+>> +		uV = vsel * 25000 + 900000;
+>> +	else
+>> +		uV = (vsel - 26) * 50000 + 1550000;
+>> +
+>> +	return uV;
+>> +}
+> Use regulator_map_voltage_linear_range() (and similarly for most of the
+> other functions).
 
-However, digging further, the root of the crash starts here:
-"platform 4b501000.aes: Cannot lookup hwmod 'aes'"
-with this, the following happens:
-a) omap_device does not register a pm_domain (since it cannot find
-hwmod entry).
-b) driver does not know about (a), does a pm_runtime_get_sync which
-never fails
-c) tries to read the revision register (as part of probe) without clock.
-generates the issue mentioned above.
+Ok.
 
+>> +static const struct of_device_id tps65218_of_match[] = {
+>> +	TPS65218_OF_MATCH("ti,tps65218-dcdc1", tps65218_pmic_regs[0]),
+>> +	TPS65218_OF_MATCH("ti,tps65218-dcdc2", tps65218_pmic_regs[1]),
+>> +	TPS65218_OF_MATCH("ti,tps65218-dcdc3", tps65218_pmic_regs[2]),
+>> +	TPS65218_OF_MATCH("ti,tps65218-dcdc4", tps65218_pmic_regs[3]),
+>> +	TPS65218_OF_MATCH("ti,tps65218-dcdc5", tps65218_pmic_regs[4]),
+>> +	TPS65218_OF_MATCH("ti,tps65218-dcdc6", tps65218_pmic_regs[5]),
+>> +	TPS65218_OF_MATCH("ti,tps65218-ldo1", tps65218_pmic_regs[6]),
+>> +};
+>> +MODULE_DEVICE_TABLE(of, tps65218_of_match);
+> Indexing into another array by magic number like this is both error
+> prone and hard to read.  Either use defined constants or individual
+> variables for the things being referenced.
+Okay.
 
-Now, there are three issues here:
-a) hwmod entries are not present -> this is addressed in [1]
-b) omap_device pm_domain is not handled - fixed in [2]
-c) aes driver needs to handle error case when pm_runtime_get_sync
-fails. addressed in [3].
-
-[1] http://marc.info/?l=linux-kernel&m=138541593010221&w=2 +
-http://marc.info/?l=linux-kernel&m=138541603810300&w=2
-
-[2] https://patchwork.kernel.org/patch/3280531/
-[3] https://patchwork.kernel.org/patch/3280571/
-
--- 
 Regards,
-Nishanth Menon
+Keerthy
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
