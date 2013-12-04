@@ -1,62 +1,48 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH/RFC] ARM: omap3: Split the pinmux core device
-Date: Wed, 4 Dec 2013 10:53:41 -0800
-Message-ID: <20131204185341.GV26766@atomide.com>
-References: <1386177110-26424-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <2098999.THrpfnVM6o@avalon>
- <20131204182437.GU26766@atomide.com>
- <3374611.sGfCARW7Hu@avalon>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Jarkko Nikula <jarkko.nikula@bitmer.com>
+Subject: [PATCH 0/7] mmc: omap: Fixes, cleanup and add ERASE capability
+Date: Wed,  4 Dec 2013 21:14:07 +0000
+Message-ID: <1386191654-7686-1-git-send-email-jarkko.nikula@bitmer.com>
+References: <20131202193459.GL26766@atomide.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:10836 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933010Ab3LDSxp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Dec 2013 13:53:45 -0500
-Content-Disposition: inline
-In-Reply-To: <3374611.sGfCARW7Hu@avalon>
+Received: from bitmer.com ([213.157.87.50]:48182 "EHLO bitmer.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756006Ab3LDTO3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 4 Dec 2013 14:14:29 -0500
+In-Reply-To: <20131202193459.GL26766@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, sakari.ailus@iki.fi
+To: Chris Ball <cjb@laptop.org>
+Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Dan Carpenter <dan.carpenter@oracle.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Jarkko Lavinen <j.lavinen@samsung.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>
 
-* Laurent Pinchart <laurent.pinchart@ideasonboard.com> [131204 10:45]:
-> On Wednesday 04 December 2013 10:24:37 Tony Lindgren wrote:
-> > 
-> > OK. I wonder if we should add something like this to make it easier to
-> > use the padconf values from the TRM:
-> > 
-> > #define OMAP_IOPAD_OFFSET(pa, offset)	((pa) & 0xffff) - (offset))
-> > 
-> > #define OMAP2_CORE_IOPAD(pa, val)	(OMAP_IOPAD_OFFSET((pa), 0x0030) (val))
-> > #define OMAP3_CORE1_IOPAD(pa, val)	OMAP2_CORE_IOPAD((pa), (val))
-> > #define OMAP3_CORE2_IOPAD(pa, val)	(OMAP_IOPAD_OFFSET((pa), 0x05a0) (val))
-> > #define OMAP4_CORE_IOPAD(pa, val)	(OMAP_IOPAD_OFFSET((pa), 0x0040) (val))
-> > #define OMAP4_WKUP_IOPAD(pa, val)	(OMAP_IOPAD_OFFSET((pa), 0xe040) (val))
-> > #define OMAP5_CORE_IOPAD(pa, val)	(OMAP_IOPAD_OFFSET((pa), 0x0840) (val))
-> > #define OMAP5_WKUP_IOPAD(pa, val)	(OMAP_IOPAD_OFFSET((pa), 0xc850) (val))
-> > ...
-> > 
-> > Then we would have entries like:
-> > 
-> > 	pinctrl-single,pins = <
-> > 		OMAP3_CORE1_IOPAD(0x158, PIN_INPUT_PULLUP | MUX_MODE0)
-> > 		...
-> > 	>;
-> > 
-> > instead of:
-> > 
-> > 	pinctrl-single,pins = <
-> > 		0x128 (PIN_INPUT_PULLUP | MUX_MODE0)
-> > 		...
-> > 	>;
-> 
-> That's a good idea, it would be much more readable. Would you like to submit a 
-> patch ? Should I rebase my patch on top of that, or the other way around ?
+Hi
 
-OK I'll do a patch for that later on today, then you can use that. Might
-cut down the churn a little that way.
+I've sent these patches earlier to linux-mmc list. This time set is one
+patch smaller since commit 31ee9181eb92
+("mmc: omap: Fix DMA configuration to not rely on device id") does
+practically same what one of my patch did.
 
-Regards,
+Patch 1 is an obvious fix. 2-4 are preparing for 5 which also should fix
+the error introduced by 31ee9181eb92:
+http://www.spinics.net/lists/linux-omap/msg100790.html
 
-Tony
+Patch 6 continue cleanup and 7 adds the ERASE capability to the driver so
+one could utilize discards with mkfs, mount option or with the fstrim.
+
+Set goes on top of v3.13-rc2-208-g8ecffd791448.
+
+Jarkko Nikula (7):
+  mmc: omap: Fix NULL pointer dereference due uninitialized
+    cover_tasklet
+  mmc: omap: Convert to devm_kzalloc
+  mmc: omap: Remove duplicate host->irq assignment
+  mmc: omap: Remove mem_res field from struct mmc_omap_host
+  mmc: omap: Convert to devm_ioremap_resource
+  mmc: omap: Remove always set use_dma flag from struct mmc_omap_host
+  mmc: omap: Add erase capability
+
+ drivers/mmc/host/omap.c | 93 +++++++++++++++++++------------------------------
+ 1 file changed, 36 insertions(+), 57 deletions(-)
+
+-- 
+1.8.4.3
+
