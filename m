@@ -1,50 +1,108 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 06/26] OMAPDSS: if dssdev->name==NULL, use alias
-Date: Wed, 4 Dec 2013 14:28:33 +0200
-Message-ID: <1386160133-24026-7-git-send-email-tomi.valkeinen@ti.com>
-References: <1386160133-24026-1-git-send-email-tomi.valkeinen@ti.com>
+From: Joel Fernandes <joelf@ti.com>
+Subject: Re: [PATCH] ARM: OMAP2+: omap_device: add fail hook for runtime_pm
+ when bad data is detected
+Date: Wed, 4 Dec 2013 18:14:01 +0530
+Message-ID: <529F2391.8070202@ti.com>
+References: <1386121153-32351-1-git-send-email-nm@ti.com>
+ <529EE305.70001@ti.com> <529F12F4.70304@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:52580 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932206Ab3LDMaI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Dec 2013 07:30:08 -0500
-In-Reply-To: <1386160133-24026-1-git-send-email-tomi.valkeinen@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <529F12F4.70304@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: nm@ti.com, Tony Lindgren <tony@atomide.com>
+Cc: Tobias Jakobi <tjakobi@math.uni-bielefeld.de>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org
-Cc: Archit Taneja <archit@ti.com>, Darren Etheridge <detheridge@ti.com>, Tony Lindgren <tony@atomide.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-To avoid the need for a "nickname" property for each display, change
-the display registration so that the display's alias (i.e. "display0"
-etc) will be used for the dssdev->name if the display driver didn't
-provide a name.
+On 12/04/2013 05:03 PM, Nishanth Menon wrote:
+> On 12/04/2013 02:08 AM, Joel Fernandes wrote:
+>> On 12/04/2013 07:09 AM, Nishanth Menon wrote:
+>>> Due to the cross dependencies between hwmod for automanaged device
+>>> information for OMAP and dts node definitions, we can run into scenarios
+>>> where the dts node is defined, however it's hwmod entry is yet to be
+>>> added. In these cases:
+>>> a) omap_device does not register a pm_domain (since it cannot find
+>>>     hwmod entry).
+>>> b) driver does not know about (a), does a pm_runtime_get_sync which
+>>>     never fails
+>>> c) It then tries to do some operation on the device (such as read the
+>>>    revision register (as part of probe) without clock or adequate OMAP
+>>>    generic PM operation performed for enabling the module.
+>>>
+>>> This causes a crash such as that reported in:
+>>> https://bugzilla.kernel.org/show_bug.cgi?id=66441
+>>>
+>>> When 'ti,hwmod' is provided in dt node, it is expected that the device
+>>> will not function without the OMAP's power automanagement. Hence, when
+>>> we hit a fail condition (due to hwmod entries not present or other
+>>> similar scenario), fail at pm_domain level due to lack of data, provide
+>>> enough information for it to be fixed, however, it allows for the driver
+>>> to take appropriate measures to prevent crash.
+>>>
+>>> Reported-by: Tobias Jakobi <tjakobi@math.uni-bielefeld.de>
+>>> Signed-off-by: Nishanth Menon <nm@ti.com>
+>>> ---
+>>>   arch/arm/mach-omap2/omap_device.c |   24 ++++++++++++++++++++++++
+>>>   arch/arm/mach-omap2/omap_device.h |    1 +
+>>>   2 files changed, 25 insertions(+)
+>>>
+>>> diff --git a/arch/arm/mach-omap2/omap_device.c
+>>> b/arch/arm/mach-omap2/omap_device.c
+>>> index 53f0735..e0a398c 100644
+>>> --- a/arch/arm/mach-omap2/omap_device.c
+>>> +++ b/arch/arm/mach-omap2/omap_device.c
+>>> @@ -183,6 +183,10 @@ static int omap_device_build_from_dt(struct
+>>> platform_device *pdev)
+>>>   odbfd_exit1:
+>>>       kfree(hwmods);
+>>>   odbfd_exit:
+>>> +    /* if data/we are at fault.. load up a fail handler */
+>>> +    if (ret)
+>>> +        pdev->dev.pm_domain = &omap_device_fail_pm_domain;
+>>> +
+>>>       return ret;
+>>>   }
+>>>
+>>
+>> Just wondering, can't we just print the warning here instead of registering new
+>> pm_domain callbacks?
+>>
+> 
+> I suggest you might want to read the commit message again.. but lets try once
+> again:
 
-This means that when booting with board files, we will have more
-descriptive names for displays, like "lcd1", "hdmi". With DT we'll only
-have "display0", etc. But as there are no "nicknames" for things like
-serials ports either, I hope we will do fine with this approach.
+I know what your patch does and what the problem you're trying to solve is.. Was
+just trying to see if there's a better way of doing what you're trying to do..
 
-Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
----
- drivers/video/omap2/dss/display.c | 3 +++
- 1 file changed, 3 insertions(+)
+>>> b) driver does not know about (a), does a pm_runtime_get_sync which
+>>>     never fails"
+> 
+> A device node stated it will have hwmod to adequately control it, but in
+> reality, as in this case, it does not. how does printing a warning alone help
+> the driver which is not aware of these? The driver's attempt at pm_runtime_sync
+> should fail, as that is what "ti,hwmod" property controls.
 
-diff --git a/drivers/video/omap2/dss/display.c b/drivers/video/omap2/dss/display.c
-index 669a81fdf58e..a946cf7ed00f 100644
---- a/drivers/video/omap2/dss/display.c
-+++ b/drivers/video/omap2/dss/display.c
-@@ -137,6 +137,9 @@ int omapdss_register_display(struct omap_dss_device *dssdev)
- 	snprintf(dssdev->alias, sizeof(dssdev->alias),
- 			"display%d", disp_num_counter++);
- 
-+	if (dssdev->name == NULL)
-+		dssdev->name = dssdev->alias;
-+
- 	if (drv && drv->get_resolution == NULL)
- 		drv->get_resolution = omapdss_default_get_resolution;
- 	if (drv && drv->get_recommended_bpp == NULL)
--- 
-1.8.3.2
+Why not do the following?
 
+Assign pm_domain as omap_device_pm_domain always regardless of error or not.
+
+Then in the _od_runtime_resume, check if the od or hwmods exists. If not, print
+the warning. That way you don't need to register additional special callbacks
+just to print a warning and will prolly be fewer LoC fwiw.
+
+That may be harder to do and may require additional checks in omap_device_enable
+etc, not sure. In that case, your approach is certainly the next best way. Just
+thought its worth looking into :)
+
+regards,
+
+-Joel
