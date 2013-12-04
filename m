@@ -1,34 +1,62 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: 3.13-rc2 phy-twl4030-usb.c - Timeout setting T2 HSUSB PHY DPLL
-Date: Wed, 4 Dec 2013 14:22:33 +0200
-Message-ID: <529F1E89.6080700@ti.com>
-References: <CAAfyv37aM6SrpuU9fzKA6GKsWn=To5ANOpG_kSX509NjMjdecA@mail.gmail.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: [PATCH 04/26] OMAPDSS: remove DT hacks for regulators
+Date: Wed, 4 Dec 2013 14:28:31 +0200
+Message-ID: <1386160133-24026-5-git-send-email-tomi.valkeinen@ti.com>
+References: <1386160133-24026-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAAfyv37aM6SrpuU9fzKA6GKsWn=To5ANOpG_kSX509NjMjdecA@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Belisko Marek <marek.belisko@gmail.com>, LKML <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, "ABRAHAM, KISHON VIJAY" <kishon@ti.com>, Linux USB Mailing List <linux-usb@vger.kernel.org>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:52567 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753663Ab3LDM37 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Dec 2013 07:29:59 -0500
+In-Reply-To: <1386160133-24026-1-git-send-email-tomi.valkeinen@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org
+Cc: Archit Taneja <archit@ti.com>, Darren Etheridge <detheridge@ti.com>, Tony Lindgren <tony@atomide.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-+Kishon
+For booting Panda and 4430SDP with DT, while DSS did not support DT, we
+had to had small hacks in the omapdss driver to get the regulators. With
+DT now supported in DSS, we can remove those hacks.
 
-On 12/03/2013 11:33 PM, Belisko Marek wrote:
-> Hi,
-> 
-> current 3.13-rcX break usb support on gta04 board (similar to
-> beagleboard) when booting via board file.
-> 
-> In console we can see messages:
->  [ 5227.287841] twl4030_usb twl4030_usb: Timeout setting T2 HSUSB PHY DPLL clock
-> [ 5232.936096] omap_musb_mailbox: musb core is not yet ready
-> [ 5233.958160] twl4030_usb twl4030_usb: Timeout setting T2 HSUSB PHY DPLL clock
-> [ 5235.058227] twl4030_usb twl4030_usb: Timeout setting T2 HSUSB PHY DPLL clock
-> 
-> Any pointer what could cause that? (in 3.12 usb works fine)
-> 
-> BR,
-> 
-> marek
-> 
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+---
+ drivers/video/omap2/dss/dsi.c   | 5 -----
+ drivers/video/omap2/dss/hdmi4.c | 4 ----
+ 2 files changed, 9 deletions(-)
+
+diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
+index 1cd3e47fd43f..18b5e84165bb 100644
+--- a/drivers/video/omap2/dss/dsi.c
++++ b/drivers/video/omap2/dss/dsi.c
+@@ -1124,11 +1124,6 @@ static int dsi_regulator_init(struct platform_device *dsidev)
+ 		return 0;
+ 
+ 	vdds_dsi = devm_regulator_get(&dsi->pdev->dev, "vdds_dsi");
+-
+-	/* DT HACK: try VCXIO to make omapdss work for o4 sdp/panda */
+-	if (IS_ERR(vdds_dsi))
+-		vdds_dsi = devm_regulator_get(&dsi->pdev->dev, "VCXIO");
+-
+ 	if (IS_ERR(vdds_dsi)) {
+ 		DSSERR("can't get VDDS_DSI regulator\n");
+ 		return PTR_ERR(vdds_dsi);
+diff --git a/drivers/video/omap2/dss/hdmi4.c b/drivers/video/omap2/dss/hdmi4.c
+index e14009614338..16e598787522 100644
+--- a/drivers/video/omap2/dss/hdmi4.c
++++ b/drivers/video/omap2/dss/hdmi4.c
+@@ -90,10 +90,6 @@ static int hdmi_init_regulator(void)
+ 
+ 	reg = devm_regulator_get(&hdmi.pdev->dev, "vdda_hdmi_dac");
+ 
+-	/* DT HACK: try VDAC to make omapdss work for o4 sdp/panda */
+-	if (IS_ERR(reg))
+-		reg = devm_regulator_get(&hdmi.pdev->dev, "VDAC");
+-
+ 	if (IS_ERR(reg)) {
+ 		DSSERR("can't get VDDA_HDMI_DAC regulator\n");
+ 		return PTR_ERR(reg);
+-- 
+1.8.3.2
+
