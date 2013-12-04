@@ -1,54 +1,114 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 0/5] Get am3517 working with device tree
-Date: Tue,  3 Dec 2013 15:23:14 -0800
-Message-ID: <1386112999-17271-1-git-send-email-tony@atomide.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:51098 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755399Ab3LCXXV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Dec 2013 18:23:21 -0500
-Sender: linux-omap-owner@vger.kernel.org
+From: Nishanth Menon <nm@ti.com>
+Subject: [PATCH] ARM: OMAP2+: omap_device: add fail hook for runtime_pm when
+ bad data is detected
+Date: Tue, 3 Dec 2013 19:39:13 -0600
+Message-ID: <1386121153-32351-1-git-send-email-nm@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Nishanth Menon <nm@ti.com>, Joel F <joelf@ti.com>, linux-kernel@vger.kernel.org, Tobias Jakobi <tjakobi@math.uni-bielefeld.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Hi all,
+Due to the cross dependencies between hwmod for automanaged device
+information for OMAP and dts node definitions, we can run into scenarios
+where the dts node is defined, however it's hwmod entry is yet to be
+added. In these cases:
+a) omap_device does not register a pm_domain (since it cannot find
+   hwmod entry).
+b) driver does not know about (a), does a pm_runtime_get_sync which
+   never fails
+c) It then tries to do some operation on the device (such as read the
+  revision register (as part of probe) without clock or adequate OMAP
+  generic PM operation performed for enabling the module.
 
-Looks like I missed am3517 earlier when making mach-omap2 boot in
-device tree only mode. Here are patches to make am3517-evm bootable
-with NFSroot and MMC with device tree.
+This causes a crash such as that reported in:
+https://bugzilla.kernel.org/show_bug.cgi?id=66441
 
-This should make it easy to add further support and also to add support
-for the missing am3517 craneboard and cm-t3517 boards.
+When 'ti,hwmod' is provided in dt node, it is expected that the device
+will not function without the OMAP's power automanagement. Hence, when
+we hit a fail condition (due to hwmod entries not present or other
+similar scenario), fail at pm_domain level due to lack of data, provide
+enough information for it to be fixed, however, it allows for the driver
+to take appropriate measures to prevent crash.
 
-These should apply against v3.12 except for the pdata-quirks.c patch
-that depends on the earlier mach-omap2 device tree conversion patches.
+Reported-by: Tobias Jakobi <tjakobi@math.uni-bielefeld.de>
+Signed-off-by: Nishanth Menon <nm@ti.com>
+---
+ arch/arm/mach-omap2/omap_device.c |   24 ++++++++++++++++++++++++
+ arch/arm/mach-omap2/omap_device.h |    1 +
+ 2 files changed, 25 insertions(+)
 
-Regards,
-
-Tony
-
-
-Nishanth Menon (1):
-  ARM: OMAP2+: Fix the machine entry for am3517
-
-Tony Lindgren (4):
-  arm/dts: Fix missing entries for am3517
-  ARM: OMAP2+: Use pdata quirks for emac on am3517
-  ARM/dts: Add basic devices on am3517-evm
-  ARM: OMAP2+: Remove legacy emac code
-
- arch/arm/boot/dts/am3517-evm.dts    |  35 ++++++++++-
- arch/arm/boot/dts/am3517.dtsi       |  63 ++++++++++++++++++++
- arch/arm/mach-omap2/Makefile        |   3 -
- arch/arm/mach-omap2/am35xx-emac.c   | 115 ------------------------------------
- arch/arm/mach-omap2/am35xx-emac.h   |  15 -----
- arch/arm/mach-omap2/board-generic.c |  18 ++++++
- arch/arm/mach-omap2/pdata-quirks.c  |  43 ++++++++++++++
- 7 files changed, 156 insertions(+), 136 deletions(-)
- create mode 100644 arch/arm/boot/dts/am3517.dtsi
- delete mode 100644 arch/arm/mach-omap2/am35xx-emac.c
- delete mode 100644 arch/arm/mach-omap2/am35xx-emac.h
-
+diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
+index 53f0735..e0a398c 100644
+--- a/arch/arm/mach-omap2/omap_device.c
++++ b/arch/arm/mach-omap2/omap_device.c
+@@ -183,6 +183,10 @@ static int omap_device_build_from_dt(struct platform_device *pdev)
+ odbfd_exit1:
+ 	kfree(hwmods);
+ odbfd_exit:
++	/* if data/we are at fault.. load up a fail handler */
++	if (ret)
++		pdev->dev.pm_domain = &omap_device_fail_pm_domain;
++
+ 	return ret;
+ }
+ 
+@@ -604,6 +608,19 @@ static int _od_runtime_resume(struct device *dev)
+ 
+ 	return pm_generic_runtime_resume(dev);
+ }
++
++static int _od_fail_runtime_suspend(struct device *dev)
++{
++	dev_warn(dev, "%s: FIXME: missing hwmod/omap_dev info\n", __func__);
++	return -ENODEV;
++}
++
++static int _od_fail_runtime_resume(struct device *dev)
++{
++	dev_warn(dev, "%s: FIXME: missing hwmod/omap_dev info\n", __func__);
++	return -ENODEV;
++}
++
+ #endif
+ 
+ #ifdef CONFIG_SUSPEND
+@@ -657,6 +674,13 @@ static int _od_resume_noirq(struct device *dev)
+ #define _od_resume_noirq NULL
+ #endif
+ 
++struct dev_pm_domain omap_device_fail_pm_domain = {
++	.ops = {
++		SET_RUNTIME_PM_OPS(_od_fail_runtime_suspend,
++				   _od_fail_runtime_resume, NULL)
++	}
++};
++
+ struct dev_pm_domain omap_device_pm_domain = {
+ 	.ops = {
+ 		SET_RUNTIME_PM_OPS(_od_runtime_suspend, _od_runtime_resume,
+diff --git a/arch/arm/mach-omap2/omap_device.h b/arch/arm/mach-omap2/omap_device.h
+index 17ca1ae..78c02b3 100644
+--- a/arch/arm/mach-omap2/omap_device.h
++++ b/arch/arm/mach-omap2/omap_device.h
+@@ -29,6 +29,7 @@
+ #include "omap_hwmod.h"
+ 
+ extern struct dev_pm_domain omap_device_pm_domain;
++extern struct dev_pm_domain omap_device_fail_pm_domain;
+ 
+ /* omap_device._state values */
+ #define OMAP_DEVICE_STATE_UNKNOWN	0
 -- 
-1.8.1.1
-
+1.7.9.5
