@@ -1,15 +1,15 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 21/26] OMAPDSS: encoder-tfp410: Add DT support
-Date: Wed, 4 Dec 2013 14:28:48 +0200
-Message-ID: <1386160133-24026-22-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 23/26] OMAPDSS: encoder-tpd12s015: Add DT support
+Date: Wed, 4 Dec 2013 14:28:50 +0200
+Message-ID: <1386160133-24026-24-git-send-email-tomi.valkeinen@ti.com>
 References: <1386160133-24026-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:52232 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:42916 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932285Ab3LDMaf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 4 Dec 2013 07:30:35 -0500
+	id S932285Ab3LDMaj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 4 Dec 2013 07:30:39 -0500
 In-Reply-To: <1386160133-24026-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -18,41 +18,56 @@ Cc: Archit Taneja <archit@ti.com>, Darren Etheridge <detheridge@ti.com>, Tony Li
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/omap2/displays-new/encoder-tfp410.c | 43 ++++++++++++++++++++++-
- 1 file changed, 42 insertions(+), 1 deletion(-)
+ .../video/omap2/displays-new/encoder-tpd12s015.c   | 56 ++++++++++++++++++++++
+ 1 file changed, 56 insertions(+)
 
-diff --git a/drivers/video/omap2/displays-new/encoder-tfp410.c b/drivers/video/omap2/displays-new/encoder-tfp410.c
-index 4a291e756be9..427f6880885e 100644
---- a/drivers/video/omap2/displays-new/encoder-tfp410.c
-+++ b/drivers/video/omap2/displays-new/encoder-tfp410.c
-@@ -13,6 +13,7 @@
- #include <linux/module.h>
- #include <linux/platform_device.h>
+diff --git a/drivers/video/omap2/displays-new/encoder-tpd12s015.c b/drivers/video/omap2/displays-new/encoder-tpd12s015.c
+index d5c936cb217f..6529a4ff50ca 100644
+--- a/drivers/video/omap2/displays-new/encoder-tpd12s015.c
++++ b/drivers/video/omap2/displays-new/encoder-tpd12s015.c
+@@ -15,6 +15,7 @@
  #include <linux/slab.h>
+ #include <linux/gpio.h>
+ #include <linux/platform_device.h>
 +#include <linux/of_gpio.h>
  
  #include <video/omapdss.h>
  #include <video/omap-panel-data.h>
-@@ -82,7 +83,8 @@ static int tfp410_enable(struct omap_dss_device *dssdev)
- 		return 0;
- 
- 	in->ops.dpi->set_timings(in, &ddata->timings);
--	in->ops.dpi->set_data_lines(in, ddata->data_lines);
-+	if (ddata->data_lines)
-+		in->ops.dpi->set_data_lines(in, ddata->data_lines);
- 
- 	r = in->ops.dpi->enable(in);
- 	if (r)
-@@ -179,6 +181,33 @@ static int tfp410_probe_pdata(struct platform_device *pdev)
+@@ -289,6 +290,49 @@ static int tpd_probe_pdata(struct platform_device *pdev)
  	return 0;
  }
  
-+static int tfp410_probe_of(struct platform_device *pdev)
++static int tpd_probe_of(struct platform_device *pdev)
 +{
 +	struct panel_drv_data *ddata = platform_get_drvdata(pdev);
 +	struct device_node *node = pdev->dev.of_node;
 +	struct omap_dss_device *in;
 +	int gpio;
++
++	/* CT CP HPD GPIO */
++	gpio = of_get_gpio(node, 0);
++	if (!gpio_is_valid(gpio)) {
++		dev_err(&pdev->dev, "failed to parse CT CP HPD gpio\n");
++		return gpio;
++	}
++	ddata->ct_cp_hpd_gpio = gpio;
++
++	/* LS OE GPIO */
++	gpio = of_get_gpio(node, 1);
++	if (gpio_is_valid(gpio) || gpio == -ENOENT) {
++		ddata->ls_oe_gpio = gpio;
++	} else {
++		dev_err(&pdev->dev, "failed to parse LS OE gpio\n");
++		return gpio;
++	}
++
++	/* HPD GPIO */
++	gpio = of_get_gpio(node, 2);
++	if (!gpio_is_valid(gpio)) {
++		dev_err(&pdev->dev, "failed to parse HPD gpio\n");
++		return gpio;
++	}
++	ddata->hpd_gpio = gpio;
 +
 +	in = omapdss_of_find_source_for_first_ep(node);
 +	if (IS_ERR(in)) {
@@ -62,50 +77,41 @@ index 4a291e756be9..427f6880885e 100644
 +
 +	ddata->in = in;
 +
-+	gpio = of_get_gpio(node, 0);
-+
-+	if (gpio_is_valid(gpio) || gpio == -ENOENT) {
-+		ddata->pd_gpio = gpio;
-+	} else {
-+		dev_err(&pdev->dev, "failed to parse PD gpio\n");
-+		return gpio;
-+	}
-+
 +	return 0;
 +}
 +
- static int tfp410_probe(struct platform_device *pdev)
+ static int tpd_probe(struct platform_device *pdev)
  {
- 	struct panel_drv_data *ddata;
-@@ -195,6 +224,10 @@ static int tfp410_probe(struct platform_device *pdev)
- 		r = tfp410_probe_pdata(pdev);
+ 	struct omap_dss_device *in, *dssdev;
+@@ -307,6 +351,10 @@ static int tpd_probe(struct platform_device *pdev)
+ 		r = tpd_probe_pdata(pdev);
  		if (r)
  			return r;
 +	} else if (pdev->dev.of_node) {
-+		r = tfp410_probe_of(pdev);
++		r = tpd_probe_of(pdev);
 +		if (r)
 +			return r;
  	} else {
  		return -ENODEV;
  	}
-@@ -251,12 +284,20 @@ static int __exit tfp410_remove(struct platform_device *pdev)
+@@ -379,12 +427,20 @@ static int __exit tpd_remove(struct platform_device *pdev)
  	return 0;
  }
  
-+static const struct of_device_id tfp410_of_match[] = {
-+	{ .compatible = "ti,tfp410", },
++static const struct of_device_id tpd_of_match[] = {
++	{ .compatible = "ti,tpd12s015", },
 +	{},
 +};
 +
-+MODULE_DEVICE_TABLE(of, tfp410_of_match);
++MODULE_DEVICE_TABLE(of, tpd_of_match);
 +
- static struct platform_driver tfp410_driver = {
- 	.probe	= tfp410_probe,
- 	.remove	= __exit_p(tfp410_remove),
+ static struct platform_driver tpd_driver = {
+ 	.probe	= tpd_probe,
+ 	.remove	= __exit_p(tpd_remove),
  	.driver	= {
- 		.name	= "tfp410",
+ 		.name	= "tpd12s015",
  		.owner	= THIS_MODULE,
-+		.of_match_table = tfp410_of_match,
++		.of_match_table = tpd_of_match,
  	},
  };
  
