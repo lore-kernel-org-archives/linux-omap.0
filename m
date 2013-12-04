@@ -1,37 +1,73 @@
-From: Manish Badarkhe <badarkhe.manish@gmail.com>
-Subject: Re: [PATCH 3/4] Regulators: TPS65218: Add Regulator driver for
- TPS65218 PMIC
-Date: Wed, 4 Dec 2013 13:09:20 +0530
-Message-ID: <CAKDJKT6TMHEboET4=iVEM2qbi6Bz7kCyyjutLfym2pwrwtEGVg@mail.gmail.com>
-References: <1386053006-6480-1-git-send-email-j-keerthy@ti.com>
-	<1386053006-6480-4-git-send-email-j-keerthy@ti.com>
+From: Joel Fernandes <joelf@ti.com>
+Subject: Re: [PATCH] ARM: OMAP2+: omap_device: add fail hook for runtime_pm
+ when bad data is detected
+Date: Wed, 4 Dec 2013 13:38:37 +0530
+Message-ID: <529EE305.70001@ti.com>
+References: <1386121153-32351-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1386053006-6480-4-git-send-email-j-keerthy@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Keerthy <j-keerthy@ti.com>
-Cc: Rob Herring <rob.herring@calxeda.com>, pawel.moll@arm.com, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, ijc+devicetree@hellion.org.uk, Rob Landley <rob@landley.net>, sameo@linux.intel.com, lee.jones@linaro.org, grant.likely@linaro.org, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:43655 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753735Ab3LDIJK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Dec 2013 03:09:10 -0500
+In-Reply-To: <1386121153-32351-1-git-send-email-nm@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Tobias Jakobi <tjakobi@math.uni-bielefeld.de>
 
-Hi Keerthy,
-
-> +       rdev = regulator_register(&regulators[id], &config);
-
-Can you make use of "devm_regulator_register" instead?
-
-> +       if (IS_ERR(rdev)) {
-> +               dev_err(tps->dev, "failed to register %s regulator\n",
-> +                       pdev->name);
-> +               return PTR_ERR(rdev);
-> +       }
+On 12/04/2013 07:09 AM, Nishanth Menon wrote:
+> Due to the cross dependencies between hwmod for automanaged device
+> information for OMAP and dts node definitions, we can run into scenarios
+> where the dts node is defined, however it's hwmod entry is yet to be
+> added. In these cases:
+> a) omap_device does not register a pm_domain (since it cannot find
+>    hwmod entry).
+> b) driver does not know about (a), does a pm_runtime_get_sync which
+>    never fails
+> c) It then tries to do some operation on the device (such as read the
+>   revision register (as part of probe) without clock or adequate OMAP
+>   generic PM operation performed for enabling the module.
+> 
+> This causes a crash such as that reported in:
+> https://bugzilla.kernel.org/show_bug.cgi?id=66441
+> 
+> When 'ti,hwmod' is provided in dt node, it is expected that the device
+> will not function without the OMAP's power automanagement. Hence, when
+> we hit a fail condition (due to hwmod entries not present or other
+> similar scenario), fail at pm_domain level due to lack of data, provide
+> enough information for it to be fixed, however, it allows for the driver
+> to take appropriate measures to prevent crash.
+> 
+> Reported-by: Tobias Jakobi <tjakobi@math.uni-bielefeld.de>
+> Signed-off-by: Nishanth Menon <nm@ti.com>
+> ---
+>  arch/arm/mach-omap2/omap_device.c |   24 ++++++++++++++++++++++++
+>  arch/arm/mach-omap2/omap_device.h |    1 +
+>  2 files changed, 25 insertions(+)
+> 
+> diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
+> index 53f0735..e0a398c 100644
+> --- a/arch/arm/mach-omap2/omap_device.c
+> +++ b/arch/arm/mach-omap2/omap_device.c
+> @@ -183,6 +183,10 @@ static int omap_device_build_from_dt(struct platform_device *pdev)
+>  odbfd_exit1:
+>  	kfree(hwmods);
+>  odbfd_exit:
+> +	/* if data/we are at fault.. load up a fail handler */
+> +	if (ret)
+> +		pdev->dev.pm_domain = &omap_device_fail_pm_domain;
 > +
-> +       /* Save regulator */
-> +       tps->rdev[id] = rdev;
-> +
-> +       return 0;
-> +}
+>  	return ret;
+>  }
+>  
 
+Just wondering, can't we just print the warning here instead of registering new
+pm_domain callbacks?
 
-Best Regards
-Manish Badarkhe
+Concerned that all this LOC may end up being dead code when the "ti,hwmods"
+property becomes obsolete anyway.
+
+-Joel
