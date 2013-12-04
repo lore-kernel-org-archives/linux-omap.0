@@ -1,15 +1,15 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 13/26] ARM: omap3.dtsi: add omapdss information
-Date: Wed, 4 Dec 2013 14:28:40 +0200
-Message-ID: <1386160133-24026-14-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 14/26] ARM: omap4.dtsi: add omapdss information
+Date: Wed, 4 Dec 2013 14:28:41 +0200
+Message-ID: <1386160133-24026-15-git-send-email-tomi.valkeinen@ti.com>
 References: <1386160133-24026-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:33415 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:42898 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932232Ab3LDMaS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 4 Dec 2013 07:30:18 -0500
+	id S932232Ab3LDMaU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 4 Dec 2013 07:30:20 -0500
 In-Reply-To: <1386160133-24026-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -18,58 +18,73 @@ Cc: Archit Taneja <archit@ti.com>, Darren Etheridge <detheridge@ti.com>, Tony Li
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- arch/arm/boot/dts/omap3.dtsi | 43 +++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 43 insertions(+)
+ arch/arm/boot/dts/omap4.dtsi | 58 ++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 58 insertions(+)
 
-diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
-index f3a0c26ed0c2..6fc163201cbd 100644
---- a/arch/arm/boot/dts/omap3.dtsi
-+++ b/arch/arm/boot/dts/omap3.dtsi
-@@ -588,5 +588,48 @@
- 			num-eps = <16>;
- 			ram-bits = <12>;
+diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+index a1e05853afcd..a9c0161d5368 100644
+--- a/arch/arm/boot/dts/omap4.dtsi
++++ b/arch/arm/boot/dts/omap4.dtsi
+@@ -705,5 +705,63 @@
+ 			dmas = <&sdma 117>, <&sdma 116>;
+ 			dma-names = "tx", "rx";
  		};
 +
-+		dss@48050000 {
-+			compatible = "ti,omap3-dss", "simple-bus";
-+			reg = <0x48050000 0x200>;
++		dss@58000000 {
++			compatible = "ti,omap4-dss", "simple-bus";
++			reg = <0x58000000 0x80>;
 +			ti,hwmods = "dss_core";
 +			#address-cells = <1>;
 +			#size-cells = <1>;
 +			ranges;
 +
-+			dispc@48050400 {
-+				compatible = "ti,omap3-dispc";
-+				reg = <0x48050400 0x400>;
-+				interrupts = <25>;
++			dispc@58001000 {
++				compatible = "ti,omap4-dispc";
++				reg = <0x58001000 0x1000>;
++				interrupts = <0 25 0x4>;
 +				ti,hwmods = "dss_dispc";
 +			};
 +
 +			dpi: encoder@0 {
-+				compatible = "ti,omap3-dpi";
++				compatible = "ti,omap4-dpi";
 +			};
 +
-+			sdi: encoder@1 {
-+				compatible = "ti,omap3-sdi";
-+			};
-+
-+			dsi: encoder@4804fc00 {
-+				compatible = "ti,omap3-dsi";
-+				reg = <0x4804fc00 0x400>;
-+				interrupts = <25>;
-+				ti,hwmods = "dss_dsi1";
-+			};
-+
-+			rfbi: encoder@48050800 {
-+				compatible = "ti,omap3-rfbi";
-+				reg = <0x48050800 0x100>;
++			rfbi: encoder@58002000  {
++				compatible = "ti,omap4-rfbi";
++				reg = <0x58002000 0x1000>;
 +				ti,hwmods = "dss_rfbi";
 +			};
 +
-+			venc: encoder@48050c00 {
-+				compatible = "ti,omap3-venc";
-+				reg = <0x48050c00 0x100>;
++			/*
++			 * Accessing venc registers cause a crash on omap4, so
++			 * this is disabled for now.
++			 */
++			venc: encoder@58003000 {
++				compatible = "ti,omap4-venc";
++				reg = <0x58003000 0x1000>;
 +				ti,hwmods = "dss_venc";
++				status = "disabled";
++			};
++
++			dsi1: encoder@58004000 {
++				compatible = "ti,omap4-dsi";
++				reg = <0x58004000 0x200>;
++				interrupts = <0 53 0x4>;
++				ti,hwmods = "dss_dsi1";
++			};
++
++			dsi2: encoder@58005000 {
++				compatible = "ti,omap4-dsi";
++				reg = <0x58005000 0x200>;
++				interrupts = <0 84 0x4>;
++				ti,hwmods = "dss_dsi2";
++			};
++
++			hdmi: encoder@58006000 {
++				compatible = "ti,omap4-hdmi";
++				reg = <0x58006000 0x1000>;
++				interrupts = <0 101 0x4>;
++				ti,hwmods = "dss_hdmi";
 +			};
 +		};
  	};
