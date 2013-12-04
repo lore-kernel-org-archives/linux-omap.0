@@ -1,75 +1,52 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH] crypto: omap-aes: add error check for pm_runtime_get_sync
-Date: Tue, 3 Dec 2013 19:43:13 -0600
-Message-ID: <1386121393-32464-1-git-send-email-nm@ti.com>
+Subject: Re: [pandaboard] omap-aes L3 standard error
+Date: Tue, 3 Dec 2013 19:45:52 -0600
+Message-ID: <529E8950.4030209@ti.com>
+References: <529E47B5.60900@math.uni-bielefeld.de>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-crypto-owner@vger.kernel.org>
-Sender: linux-crypto-owner@vger.kernel.org
-To: Herbert Xu <herbert@gondor.apana.org.au>, "David S. Miller" <davem@davemloft.net>
-Cc: Tobias Jakobi <tjakobi@math.uni-bielefeld.de>, Joel F <joelf@ti.com>, linux-crypto@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Nishanth Menon <nm@ti.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:37805 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754146Ab3LDBpz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 3 Dec 2013 20:45:55 -0500
+In-Reply-To: <529E47B5.60900@math.uni-bielefeld.de>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tobias Jakobi <tjakobi@math.uni-bielefeld.de>, linux-omap@vger.kernel.org
 
-The AES driver currently assumes that pm_runtime_get_sync will always
-succeed, which may not always be true, so add error handling for the
-same.
+On 12/03/2013 03:05 PM, Tobias Jakobi wrote:
+> Hello,
+> 
+> here a newly introduced one:
+> https://bugzilla.kernel.org/show_bug.cgi?id=66441
 
-This scenario was reported in the following bug:
-place.  https://bugzilla.kernel.org/show_bug.cgi?id=66441
+[1] solves the issue
 
-Reported-by: Tobias Jakobi <tjakobi@math.uni-bielefeld.de>
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
+However, digging further, the root of the crash starts here:
+"platform 4b501000.aes: Cannot lookup hwmod 'aes'"
+with this, the following happens:
+a) omap_device does not register a pm_domain (since it cannot find
+hwmod entry).
+b) driver does not know about (a), does a pm_runtime_get_sync which
+never fails
+c) tries to read the revision register (as part of probe) without clock.
+generates the issue mentioned above.
 
-Note: the bug in OMAP pm_domain layer is addressed here:
-https://patchwork.kernel.org/patch/3280531/
 
-Proper fixes required to make this work is part of the series:
-http://marc.info/?l=linux-kernel&m=138541594910233&w=2
+Now, there are three issues here:
+a) hwmod entries are not present -> this is addressed in [1]
+b) omap_device pm_domain is not handled - fixed in [2]
+c) aes driver needs to handle error case when pm_runtime_get_sync
+fails. addressed in [3].
 
- drivers/crypto/omap-aes.c |   16 ++++++++++++++--
- 1 file changed, 14 insertions(+), 2 deletions(-)
+[1] http://marc.info/?l=linux-kernel&m=138541593010221&w=2 +
+http://marc.info/?l=linux-kernel&m=138541603810300&w=2
 
-diff --git a/drivers/crypto/omap-aes.c b/drivers/crypto/omap-aes.c
-index a9ccbf1..dde41f1d 100644
---- a/drivers/crypto/omap-aes.c
-+++ b/drivers/crypto/omap-aes.c
-@@ -784,6 +784,7 @@ static int omap_aes_ctr_decrypt(struct ablkcipher_request *req)
- static int omap_aes_cra_init(struct crypto_tfm *tfm)
- {
- 	struct omap_aes_dev *dd = NULL;
-+	int err;
- 
- 	/* Find AES device, currently picks the first device */
- 	spin_lock_bh(&list_lock);
-@@ -792,7 +793,13 @@ static int omap_aes_cra_init(struct crypto_tfm *tfm)
- 	}
- 	spin_unlock_bh(&list_lock);
- 
--	pm_runtime_get_sync(dd->dev);
-+	err = pm_runtime_get_sync(dd->dev);
-+	if (err < 0) {
-+		dev_err(dd->dev, "%s: failed to get_sync(%d)\n",
-+			__func__, err);
-+		return err;
-+	}
-+
- 	tfm->crt_ablkcipher.reqsize = sizeof(struct omap_aes_reqctx);
- 
- 	return 0;
-@@ -1182,7 +1189,12 @@ static int omap_aes_probe(struct platform_device *pdev)
- 	dd->phys_base = res.start;
- 
- 	pm_runtime_enable(dev);
--	pm_runtime_get_sync(dev);
-+	err = pm_runtime_get_sync(dev);
-+	if (err < 0) {
-+		dev_err(dev, "%s: failed to get_sync(%d)\n",
-+			__func__, err);
-+		goto err_res;
-+	}
- 
- 	omap_aes_dma_stop(dd);
- 
+[2] https://patchwork.kernel.org/patch/3280531/
+[3] https://patchwork.kernel.org/patch/3280571/
+
 -- 
-1.7.9.5
+Regards,
+Nishanth Menon
