@@ -1,138 +1,101 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 20/26] OMAPDSS: panel-dsi-cm: Add DT support
-Date: Wed, 4 Dec 2013 14:28:47 +0200
-Message-ID: <1386160133-24026-21-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 19/26] ARM: omap3-beagle-xm.dts: add display information
+Date: Wed, 4 Dec 2013 14:28:46 +0200
+Message-ID: <1386160133-24026-20-git-send-email-tomi.valkeinen@ti.com>
 References: <1386160133-24026-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:52228 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932285Ab3LDMac (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 4 Dec 2013 07:30:32 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:52605 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932285Ab3LDMaa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Dec 2013 07:30:30 -0500
 In-Reply-To: <1386160133-24026-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org
 Cc: Archit Taneja <archit@ti.com>, Darren Etheridge <detheridge@ti.com>, Tony Lindgren <tony@atomide.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-XXX ULPS and backlight missing.
-
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/omap2/displays-new/panel-dsi-cm.c | 65 +++++++++++++++++++++++--
- 1 file changed, 61 insertions(+), 4 deletions(-)
+ arch/arm/boot/dts/omap3-beagle-xm.dts | 67 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 67 insertions(+)
 
-diff --git a/drivers/video/omap2/displays-new/panel-dsi-cm.c b/drivers/video/omap2/displays-new/panel-dsi-cm.c
-index b7baafe83aa3..fda7728bdfaa 100644
---- a/drivers/video/omap2/displays-new/panel-dsi-cm.c
-+++ b/drivers/video/omap2/displays-new/panel-dsi-cm.c
-@@ -22,6 +22,8 @@
- #include <linux/sched.h>
- #include <linux/slab.h>
- #include <linux/workqueue.h>
-+#include <linux/of_device.h>
-+#include <linux/of_gpio.h>
- 
- #include <video/omapdss.h>
- #include <video/omap-panel-data.h>
-@@ -595,10 +597,13 @@ static int dsicm_power_on(struct panel_drv_data *ddata)
- 		.lp_clk_max = 10000000,
- 	};
- 
--	r = in->ops.dsi->configure_pins(in, &ddata->pin_config);
--	if (r) {
--		dev_err(&ddata->pdev->dev, "failed to configure DSI pins\n");
--		goto err0;
-+	if (ddata->pin_config.num_pins > 0) {
-+		r = in->ops.dsi->configure_pins(in, &ddata->pin_config);
-+		if (r) {
-+			dev_err(&ddata->pdev->dev,
-+				"failed to configure DSI pins\n");
-+			goto err0;
-+		}
- 	}
- 
- 	r = in->ops.dsi->set_config(in, &dsi_config);
-@@ -1156,6 +1161,46 @@ static int dsicm_probe_pdata(struct platform_device *pdev)
- 	return 0;
- }
- 
-+static int dsicm_probe_of(struct platform_device *pdev)
-+{
-+	struct device_node *node = pdev->dev.of_node;
-+	struct panel_drv_data *ddata = platform_get_drvdata(pdev);
-+	struct omap_dss_device *in;
-+	int gpio;
+diff --git a/arch/arm/boot/dts/omap3-beagle-xm.dts b/arch/arm/boot/dts/omap3-beagle-xm.dts
+index 31a632f7effb..baec842f4fb5 100644
+--- a/arch/arm/boot/dts/omap3-beagle-xm.dts
++++ b/arch/arm/boot/dts/omap3-beagle-xm.dts
+@@ -215,3 +215,70 @@
+ &usbhsehci {
+ 	phys = <0 &hsusb2_phy>;
+ };
 +
-+	gpio = of_get_gpio(node, 0);
-+	if (!gpio_is_valid(gpio)) {
-+		dev_err(&pdev->dev, "failed to parse reset gpio\n");
-+		return gpio;
-+	}
-+	ddata->reset_gpio = gpio;
++&dpi {
++	vdds_dsi-supply = <&vpll2>;
 +
-+	if (of_gpio_count(node) > 1) {
-+		gpio = of_get_gpio(node, 1);
-+
-+		if (gpio_is_valid(gpio) || gpio == -ENOENT) {
-+			ddata->ext_te_gpio = gpio;
-+		} else {
-+			dev_err(&pdev->dev, "failed to parse TE gpio\n");
-+			return gpio;
-+		}
-+	} else {
-+		ddata->ext_te_gpio = -1;
-+	}
-+
-+	in = omapdss_of_find_source_for_first_ep(node);
-+	if (IS_ERR(in)) {
-+		dev_err(&pdev->dev, "failed to find video source\n");
-+		return PTR_ERR(in);
-+	}
-+
-+	ddata->in = in;
-+
-+	/* TODO: ulps, backlight */
-+
-+	return 0;
-+}
-+
- static int dsicm_probe(struct platform_device *pdev)
- {
- 	struct backlight_properties props;
-@@ -1178,6 +1223,10 @@ static int dsicm_probe(struct platform_device *pdev)
- 		r = dsicm_probe_pdata(pdev);
- 		if (r)
- 			return r;
-+	} else if (pdev->dev.of_node) {
-+		r = dsicm_probe_of(pdev);
-+		if (r)
-+			return r;
- 	} else {
- 		return -ENODEV;
- 	}
-@@ -1320,12 +1369,20 @@ static int __exit dsicm_remove(struct platform_device *pdev)
- 	return 0;
- }
- 
-+static const struct of_device_id dsicm_of_match[] = {
-+	{ .compatible = "panel-dsi-cm", },
-+	{},
++	dpi_out: endpoint {
++		remote-endpoint = <&tfp410_in>;
++		data-lines = <24>;
++	};
 +};
 +
-+MODULE_DEVICE_TABLE(of, dsicm_of_match);
++&venc {
++	vdda_dac-supply = <&vdac>;
 +
- static struct platform_driver dsicm_driver = {
- 	.probe = dsicm_probe,
- 	.remove = __exit_p(dsicm_remove),
- 	.driver = {
- 		.name = "panel-dsi-cm",
- 		.owner = THIS_MODULE,
-+		.of_match_table = dsicm_of_match,
- 	},
- };
- 
++	venc_out: endpoint {
++		remote-endpoint = <&tv_connector_in>;
++	};
++};
++
++/ {
++	aliases {
++		display0 = &dvi0;
++		display1 = &tv0;
++	};
++
++	tfp410: encoder@0 {
++		compatible = "ti,tfp410";
++		gpios = <&twl_gpio 2 GPIO_ACTIVE_HIGH>;
++
++		ports {
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			port@0 {
++				reg = <0>;
++
++				tfp410_in: endpoint@0 {
++					remote-endpoint = <&dpi_out>;
++				};
++			};
++
++			port@1 {
++				reg = <1>;
++
++				tfp410_out: endpoint@1 {
++					remote-endpoint = <&dvi_connector_in>;
++				};
++			};
++		};
++	};
++
++	dvi0: connector@0 {
++		compatible = "ti,dvi-connector";
++		i2c-bus = <&i2c3>;
++
++		dvi_connector_in: endpoint {
++			remote-endpoint = <&tfp410_out>;
++		};
++	};
++
++	tv0: connector@1 {
++		compatible = "ti,svideo-connector";
++
++		tv_connector_in: endpoint {
++			remote-endpoint = <&venc_out>;
++		};
++	};
++};
 -- 
 1.8.3.2
 
