@@ -1,65 +1,95 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] mmc: omap: Fix error introduced by fix to
- release_mem_region() path
-Date: Wed, 4 Dec 2013 10:01:56 -0800
-Message-ID: <20131204180154.GT26766@atomide.com>
-References: <20131202193459.GL26766@atomide.com>
+Subject: Re: [PATCH/RFC] ARM: omap3: Split the pinmux core device
+Date: Wed, 4 Dec 2013 10:24:37 -0800
+Message-ID: <20131204182437.GU26766@atomide.com>
+References: <1386177110-26424-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <20131204172852.GP26766@atomide.com>
+ <2098999.THrpfnVM6o@avalon>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:37360 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932309Ab3LDSYk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Dec 2013 13:24:40 -0500
 Content-Disposition: inline
-In-Reply-To: <20131202193459.GL26766@atomide.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Chris Ball <cjb@laptop.org>
-Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, Dan Carpenter <dan.carpenter@oracle.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Jarkko Lavinen <j.lavinen@samsung.com>
+In-Reply-To: <2098999.THrpfnVM6o@avalon>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, sakari.ailus@iki.fi
 
-* Tony Lindgren <tony@atomide.com> [131202 11:36]:
-> Commit 31ee9181eb92: (mmc: omap: Fix DMA configuration to not rely
-> on device id) fixed getting of the DMA resources when booted with
-> device tree. This patch however changed the handling of the
-> free_mem_region() error path by reusing the struct resource *res
-> for the DMA resources.
+* Laurent Pinchart <laurent.pinchart@ideasonboard.com> [131204 09:59]:
+> Hi Tony,
 > 
-> Fix the error the same way omap_hsmmc.c driver handles it, which
-> is to restore the resource before using the values to call
-> release_mem_region().
+> On Wednesday 04 December 2013 09:28:53 Tony Lindgren wrote:
+> > * Laurent Pinchart <laurent.pinchart@ideasonboard.com> [131204 09:12]:
+> > > The omap3_pmx_core pinmux device in the device tree handles the system
+> > > controller module (SCM) PADCONFS fonction. Its control registers are
+> > > split in two distinct areas, with other SCM registers in-between. Those
+> > > other registers can't thus be requested by other drivers as the memory
+> > > region gets reserved by the pinmux driver.
+> > > 
+> > > Split the omap3_pmx_core device tree node in two for the two memory
+> > > regions.
+> > > 
+> > > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > > ---
+> > > 
+> > >  arch/arm/boot/dts/omap3-beagle-xm.dts | 45 ++++++++++++++++++++++++------
+> > >  arch/arm/boot/dts/omap3-beagle.dts    | 28 +++++++++++++++-------
+> > >  arch/arm/boot/dts/omap3-igep0020.dts  | 26 ++++++++++----------
+> > >  arch/arm/boot/dts/omap3-zoom3.dts     | 19 ++++++++++-----
+> > >  arch/arm/boot/dts/omap3.dtsi          | 13 +++++++++-
+> > >  5 files changed, 95 insertions(+), 36 deletions(-)
+> > > 
+> > > While working on the OMAP3 ISP driver I've run into a failure to request a
+> > > memory region already requested by the pinctrl-single driver. This patch
+> > > is an attempt to fix the problem. An alternative approach would be to
+> > > support multiple reg values in the pinctrl-single driver, but that might
+> > > not be much cleaner. I'm open to suggestions.
+> > 
+> > Makes sense to me to split it into two, we can save some memory that way
+> > too.
+> > 
+> > It should not cause problems with the wake-up interrupts either as we're
+> > already using a single chained wake-up interrupt between core and wkup
+> > pins.
+> > 
+> > Do you have some perl or sed script to look for and convert the core2
+> > registers? Or do we just not have that many of them defined yet?
 > 
-> Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> 
-> ---
-> 
-> Chris, looks like the patch introducing this error is queued in
-> arm-soc fixes branch.. Care to ack this one too and I'll merge it
-> via arm-soc as well?
-> 
-> After that, no need for me to patch this driver for my mach-omap2
-> device tree conversion I hope :)
+> This patch should cover all the ones we have in mainline. As this is an RFC 
+> I've performed the conversion manually.
 
-OK the previous fixes just hit the mainline, no need for me to
-queue this any longer. Please feel free to pick this one up for
-the -rc cycle.
+OK. I wonder if we should add something like this to make it easier to
+use the padconf values from the TRM:
+
+#define OMAP_IOPAD_OFFSET(pa, offset)	((pa) & 0xffff) - (offset))
+
+#define OMAP2_CORE_IOPAD(pa, val)	(OMAP_IOPAD_OFFSET((pa), 0x0030) (val))
+#define OMAP3_CORE1_IOPAD(pa, val)	OMAP2_CORE_IOPAD((pa), (val))
+#define OMAP3_CORE2_IOPAD(pa, val)	(OMAP_IOPAD_OFFSET((pa), 0x05a0) (val))
+#define OMAP4_CORE_IOPAD(pa, val)	(OMAP_IOPAD_OFFSET((pa), 0x0040) (val))
+#define OMAP4_WKUP_IOPAD(pa, val)	(OMAP_IOPAD_OFFSET((pa), 0xe040) (val))
+#define OMAP5_CORE_IOPAD(pa, val)	(OMAP_IOPAD_OFFSET((pa), 0x0840) (val))
+#define OMAP5_WKUP_IOPAD(pa, val)	(OMAP_IOPAD_OFFSET((pa), 0xc850) (val))
+...
+
+Then we would have entries like:
+
+	pinctrl-single,pins = <
+		OMAP3_CORE1_IOPAD(0x158, PIN_INPUT_PULLUP | MUX_MODE0)
+		...
+	>;
+
+instead of:
+
+	pinctrl-single,pins = <
+		0x128 (PIN_INPUT_PULLUP | MUX_MODE0)
+		...
+	>;
 
 Regards,
 
 Tony
- 
-> --- a/drivers/mmc/host/omap.c
-> +++ b/drivers/mmc/host/omap.c
-> @@ -1465,7 +1465,10 @@ err_free_mmc_host:
->  err_ioremap:
->  	kfree(host);
->  err_free_mem_region:
-> -	release_mem_region(res->start, resource_size(res));
-> +	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> +	if (res)
-> +		release_mem_region(res->start, resource_size(res));
-> +
->  	return ret;
->  }
->  
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
