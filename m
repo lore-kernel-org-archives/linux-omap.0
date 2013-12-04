@@ -1,96 +1,79 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 02/26] OMAPDSS: DSI: fix fifosize
-Date: Wed, 4 Dec 2013 14:28:29 +0200
-Message-ID: <1386160133-24026-3-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 13/26] ARM: omap3.dtsi: add omapdss information
+Date: Wed, 4 Dec 2013 14:28:40 +0200
+Message-ID: <1386160133-24026-14-git-send-email-tomi.valkeinen@ti.com>
 References: <1386160133-24026-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:52576 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755727Ab3LDMaH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Dec 2013 07:30:07 -0500
+Received: from arroyo.ext.ti.com ([192.94.94.40]:33415 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932232Ab3LDMaS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 4 Dec 2013 07:30:18 -0500
 In-Reply-To: <1386160133-24026-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org
 Cc: Archit Taneja <archit@ti.com>, Darren Etheridge <detheridge@ti.com>, Tony Lindgren <tony@atomide.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-DSI has separate TX and RX fifos. However, the current code only has one
-field where the fifo size is stored, and the code for both TX and RX
-config write to the same field. This has not caused issues, as we've
-been using the same fifo sizes.
-
-Fix this bug by creating separate fields for TX and RX fifo sizes.
-
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/omap2/dss/dsi.c | 25 +++++++++++++------------
- 1 file changed, 13 insertions(+), 12 deletions(-)
+ arch/arm/boot/dts/omap3.dtsi | 43 +++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 43 insertions(+)
 
-diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
-index 6056b27cf73c..1cd3e47fd43f 100644
---- a/drivers/video/omap2/dss/dsi.c
-+++ b/drivers/video/omap2/dss/dsi.c
-@@ -297,7 +297,8 @@ struct dsi_data {
- 	struct {
- 		enum dsi_vc_source source;
- 		struct omap_dss_device *dssdev;
--		enum fifo_size fifo_size;
-+		enum fifo_size tx_fifo_size;
-+		enum fifo_size rx_fifo_size;
- 		int vc_id;
- 	} vc[4];
- 
-@@ -2427,14 +2428,14 @@ static void dsi_config_tx_fifo(struct platform_device *dsidev,
- 	int add = 0;
- 	int i;
- 
--	dsi->vc[0].fifo_size = size1;
--	dsi->vc[1].fifo_size = size2;
--	dsi->vc[2].fifo_size = size3;
--	dsi->vc[3].fifo_size = size4;
-+	dsi->vc[0].tx_fifo_size = size1;
-+	dsi->vc[1].tx_fifo_size = size2;
-+	dsi->vc[2].tx_fifo_size = size3;
-+	dsi->vc[3].tx_fifo_size = size4;
- 
- 	for (i = 0; i < 4; i++) {
- 		u8 v;
--		int size = dsi->vc[i].fifo_size;
-+		int size = dsi->vc[i].tx_fifo_size;
- 
- 		if (add + size > 4) {
- 			DSSERR("Illegal FIFO configuration\n");
-@@ -2460,14 +2461,14 @@ static void dsi_config_rx_fifo(struct platform_device *dsidev,
- 	int add = 0;
- 	int i;
- 
--	dsi->vc[0].fifo_size = size1;
--	dsi->vc[1].fifo_size = size2;
--	dsi->vc[2].fifo_size = size3;
--	dsi->vc[3].fifo_size = size4;
-+	dsi->vc[0].rx_fifo_size = size1;
-+	dsi->vc[1].rx_fifo_size = size2;
-+	dsi->vc[2].rx_fifo_size = size3;
-+	dsi->vc[3].rx_fifo_size = size4;
- 
- 	for (i = 0; i < 4; i++) {
- 		u8 v;
--		int size = dsi->vc[i].fifo_size;
-+		int size = dsi->vc[i].rx_fifo_size;
- 
- 		if (add + size > 4) {
- 			DSSERR("Illegal FIFO configuration\n");
-@@ -2920,7 +2921,7 @@ static int dsi_vc_send_long(struct platform_device *dsidev, int channel,
- 		DSSDBG("dsi_vc_send_long, %d bytes\n", len);
- 
- 	/* len + header */
--	if (dsi->vc[channel].fifo_size * 32 * 4 < len + 4) {
-+	if (dsi->vc[channel].tx_fifo_size * 32 * 4 < len + 4) {
- 		DSSERR("unable to send long packet: packet too long.\n");
- 		return -EINVAL;
- 	}
+diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
+index f3a0c26ed0c2..6fc163201cbd 100644
+--- a/arch/arm/boot/dts/omap3.dtsi
++++ b/arch/arm/boot/dts/omap3.dtsi
+@@ -588,5 +588,48 @@
+ 			num-eps = <16>;
+ 			ram-bits = <12>;
+ 		};
++
++		dss@48050000 {
++			compatible = "ti,omap3-dss", "simple-bus";
++			reg = <0x48050000 0x200>;
++			ti,hwmods = "dss_core";
++			#address-cells = <1>;
++			#size-cells = <1>;
++			ranges;
++
++			dispc@48050400 {
++				compatible = "ti,omap3-dispc";
++				reg = <0x48050400 0x400>;
++				interrupts = <25>;
++				ti,hwmods = "dss_dispc";
++			};
++
++			dpi: encoder@0 {
++				compatible = "ti,omap3-dpi";
++			};
++
++			sdi: encoder@1 {
++				compatible = "ti,omap3-sdi";
++			};
++
++			dsi: encoder@4804fc00 {
++				compatible = "ti,omap3-dsi";
++				reg = <0x4804fc00 0x400>;
++				interrupts = <25>;
++				ti,hwmods = "dss_dsi1";
++			};
++
++			rfbi: encoder@48050800 {
++				compatible = "ti,omap3-rfbi";
++				reg = <0x48050800 0x100>;
++				ti,hwmods = "dss_rfbi";
++			};
++
++			venc: encoder@48050c00 {
++				compatible = "ti,omap3-venc";
++				reg = <0x48050c00 0x100>;
++				ti,hwmods = "dss_venc";
++			};
++		};
+ 	};
+ };
 -- 
 1.8.3.2
 
