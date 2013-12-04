@@ -1,119 +1,367 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 00/26] OMAPDSS: DT support (Christmas edition)
-Date: Wed, 4 Dec 2013 14:28:27 +0200
-Message-ID: <1386160133-24026-1-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 03/26] ARM: OMAP: remove DSS DT hack
+Date: Wed, 4 Dec 2013 14:28:30 +0200
+Message-ID: <1386160133-24026-4-git-send-email-tomi.valkeinen@ti.com>
+References: <1386160133-24026-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:52194 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:33400 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755496Ab3LDMaG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 4 Dec 2013 07:30:06 -0500
+	id S1755729Ab3LDMaH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 4 Dec 2013 07:30:07 -0500
+In-Reply-To: <1386160133-24026-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org
-Cc: Archit Taneja <archit@ti.com>, Darren Etheridge <detheridge@ti.com>, Tony Lindgren <tony@atomide.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Stefan Roese <stefan.roese@gmail.com>, Sebastian Reichel <sre@debian.org>, Robert Nelson <robertcnelson@gmail.com>, "Dr . H . Nikolaus Schaller" <hns@goldelico.com>, Marek Belisko <marek@goldelico.com>
+Cc: Archit Taneja <archit@ti.com>, Darren Etheridge <detheridge@ti.com>, Tony Lindgren <tony@atomide.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Hi,
+As a temporary solution to enable DSS for selected boards when booting
+with DT, a hack was added to board-generic.c in
+63d5fc0c2f748e20f38a0a0ec1c8494bddf5c288 (OMAP: board-generic: enable
+DSS for panda & sdp boards).
 
-Here's a new version for DT support to OMAP Display Subsystem. See
-http://article.gmane.org/gmane.linux.ports.arm.omap/102689 for the intro of the
-previous version, which contains thoughts about the related problems.
+We're now adding proper DT support, so the hack can be removed.
 
-The major change in this version is the use of V4L2 and CDF style port/endpoint
-style in the DT data. However, note that even if the DT data contains proper
-port & endpoint data, the drivers only use the first endpoint. This is to
-simplify the patches, as adding full support for the ports and endpoints to the
-drivers will be a big task. This approach still works with more or less all the
-boards, as the only cases where the simpler model is an issue are the boards
-with multiple display devices connected to a single output.
-
-Laurent, I'd appreciate if you could have a look at the .dts changes, to see if
-there's anything that's clearly not CDF compatible.
-
-The patches can also be found from:
-git://git.kernel.org/pub/scm/linux/kernel/git/tomba/linux.git work/dss-dt
-
-A few notes:
-
-- The DT data are added separately in the end of .dts files for clarity. In the
-  final version I will move them to appropriate places in the .dts files.
-
-- No binding documentation. I will add them for the next version, if there are
-  no major changes needed. Hopefully the bindings are quite self-explanatory
-  for people with understanding of the hardware in question.
-
-- The connectors' compatible strings are "ti,xxx". As there's nothing TI
-  specific there, I think I will rename them to be without "ti".
-
- Tomi
-
-Tomi Valkeinen (26):
-  OMAPDSS: rename display-sysfs 'name' entry
-  OMAPDSS: DSI: fix fifosize
-  ARM: OMAP: remove DSS DT hack
-  OMAPDSS: remove DT hacks for regulators
-  ARM: OMAP2+: add omapdss_init_of()
-  OMAPDSS: if dssdev->name==NULL, use alias
-  OMAPDSS: get dssdev->alias from DT alias
-  OMAPFB: clean up default display search
-  OMAPFB: search for default display with DT alias
-  OMAPDSS: add of helpers
-  OMAPDSS: Add DT support to DSS, DISPC, DPI, HDMI, VENC
-  OMAPDSS: Add DT support to DSI
-  ARM: omap3.dtsi: add omapdss information
-  ARM: omap4.dtsi: add omapdss information
-  ARM: omap4-panda.dts: add display information
-  ARM: omap4-sdp.dts: add display information
-  ARM: omap3-tobi.dts: add lcd (TEST)
-  ARM: omap3-beagle.dts: add display information
-  ARM: omap3-beagle-xm.dts: add display information
-  OMAPDSS: panel-dsi-cm: Add DT support
-  OMAPDSS: encoder-tfp410: Add DT support
-  OMAPDSS: connector-dvi: Add DT support
-  OMAPDSS: encoder-tpd12s015: Add DT support
-  OMAPDSS: hdmi-connector: Add DT support
-  OMAPDSS: panel-dpi: Add DT support
-  OMAPDSS: connector-analog-tv: Add DT support
-
- arch/arm/boot/dts/omap3-beagle-xm.dts              |  67 ++++++
- arch/arm/boot/dts/omap3-beagle.dts                 |  67 ++++++
- arch/arm/boot/dts/omap3-tobi.dts                   |  40 ++++
- arch/arm/boot/dts/omap3.dtsi                       |  43 ++++
- arch/arm/boot/dts/omap4-panda-common.dtsi          | 102 ++++++++
- arch/arm/boot/dts/omap4-sdp.dts                    |  91 ++++++++
- arch/arm/boot/dts/omap4.dtsi                       |  58 +++++
- arch/arm/mach-omap2/Makefile                       |   2 +-
- arch/arm/mach-omap2/board-generic.c                |   2 +
- arch/arm/mach-omap2/common.h                       |   2 +
- arch/arm/mach-omap2/display.c                      |  62 +++++
- arch/arm/mach-omap2/dss-common.c                   | 259 ---------------------
- arch/arm/mach-omap2/dss-common.h                   |  13 --
- arch/arm/mach-omap2/pdata-quirks.c                 |   4 -
- .../video/omap2/displays-new/connector-analog-tv.c |  66 +++++-
- drivers/video/omap2/displays-new/connector-dvi.c   |  43 ++++
- drivers/video/omap2/displays-new/connector-hdmi.c  |  30 +++
- drivers/video/omap2/displays-new/encoder-tfp410.c  |  43 +++-
- .../video/omap2/displays-new/encoder-tpd12s015.c   |  56 +++++
- drivers/video/omap2/displays-new/panel-dpi.c       |  64 ++++-
- drivers/video/omap2/displays-new/panel-dsi-cm.c    |  65 +++++-
- drivers/video/omap2/dss/Makefile                   |   2 +-
- drivers/video/omap2/dss/dispc.c                    |   7 +
- drivers/video/omap2/dss/display-sysfs.c            |   4 +-
- drivers/video/omap2/dss/display.c                  |  23 +-
- drivers/video/omap2/dss/dpi.c                      |  50 ++++
- drivers/video/omap2/dss/dsi.c                      | 166 +++++++++++--
- drivers/video/omap2/dss/dss-of.c                   | 160 +++++++++++++
- drivers/video/omap2/dss/dss.c                      |  10 +
- drivers/video/omap2/dss/hdmi4.c                    |  10 +-
- drivers/video/omap2/dss/venc.c                     |  34 +++
- drivers/video/omap2/omapfb/omapfb-main.c           |  67 ++++--
- include/video/omapdss.h                            |   6 +
- 33 files changed, 1390 insertions(+), 328 deletions(-)
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+---
+ arch/arm/mach-omap2/Makefile       |   2 +-
+ arch/arm/mach-omap2/dss-common.c   | 259 -------------------------------------
+ arch/arm/mach-omap2/dss-common.h   |  13 --
+ arch/arm/mach-omap2/pdata-quirks.c |   4 -
+ 4 files changed, 1 insertion(+), 277 deletions(-)
  delete mode 100644 arch/arm/mach-omap2/dss-common.c
  delete mode 100644 arch/arm/mach-omap2/dss-common.h
- create mode 100644 drivers/video/omap2/dss/dss-of.c
 
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 1f25f3e99c05..5b6456d1d266 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -296,4 +296,4 @@ endif
+ emac-$(CONFIG_TI_DAVINCI_EMAC)		:= am35xx-emac.o
+ obj-y					+= $(emac-m) $(emac-y)
+ 
+-obj-y					+= common-board-devices.o twl-common.o dss-common.o
++obj-y					+= common-board-devices.o twl-common.o
+diff --git a/arch/arm/mach-omap2/dss-common.c b/arch/arm/mach-omap2/dss-common.c
+deleted file mode 100644
+index 365bfd3d9c68..000000000000
+--- a/arch/arm/mach-omap2/dss-common.c
++++ /dev/null
+@@ -1,259 +0,0 @@
+-/*
+- * Copyright (C) 2012 Texas Instruments, Inc..
+- * Author: Tomi Valkeinen <tomi.valkeinen@ti.com>
+- *
+- * This program is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU General Public License
+- * version 2 as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope that it will be useful, but
+- * WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+- * General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+- * 02110-1301 USA
+- *
+- */
+-
+-/*
+- * NOTE: this is a transitional file to help with DT adaptation.
+- * This file will be removed when DSS supports DT.
+- */
+-
+-#include <linux/kernel.h>
+-#include <linux/gpio.h>
+-#include <linux/platform_device.h>
+-
+-#include <video/omapdss.h>
+-#include <video/omap-panel-data.h>
+-
+-#include "soc.h"
+-#include "dss-common.h"
+-#include "mux.h"
+-
+-#define HDMI_GPIO_CT_CP_HPD 60 /* HPD mode enable/disable */
+-#define HDMI_GPIO_LS_OE 41 /* Level shifter for HDMI */
+-#define HDMI_GPIO_HPD  63 /* Hotplug detect */
+-
+-#define PANDA_DVI_TFP410_POWER_DOWN_GPIO	0
+-
+-/* DVI Connector */
+-static struct connector_dvi_platform_data omap4_panda_dvi_connector_pdata = {
+-	.name                   = "dvi",
+-	.source                 = "tfp410.0",
+-	.i2c_bus_num            = 2,
+-};
+-
+-static struct platform_device omap4_panda_dvi_connector_device = {
+-	.name                   = "connector-dvi",
+-	.id                     = 0,
+-	.dev.platform_data      = &omap4_panda_dvi_connector_pdata,
+-};
+-
+-/* TFP410 DPI-to-DVI chip */
+-static struct encoder_tfp410_platform_data omap4_panda_tfp410_pdata = {
+-	.name                   = "tfp410.0",
+-	.source                 = "dpi.0",
+-	.data_lines             = 24,
+-	.power_down_gpio        = PANDA_DVI_TFP410_POWER_DOWN_GPIO,
+-};
+-
+-static struct platform_device omap4_panda_tfp410_device = {
+-	.name                   = "tfp410",
+-	.id                     = 0,
+-	.dev.platform_data      = &omap4_panda_tfp410_pdata,
+-};
+-
+-/* HDMI Connector */
+-static struct connector_hdmi_platform_data omap4_panda_hdmi_connector_pdata = {
+-	.name                   = "hdmi",
+-	.source                 = "tpd12s015.0",
+-};
+-
+-static struct platform_device omap4_panda_hdmi_connector_device = {
+-	.name                   = "connector-hdmi",
+-	.id                     = 0,
+-	.dev.platform_data      = &omap4_panda_hdmi_connector_pdata,
+-};
+-
+-/* TPD12S015 HDMI ESD protection & level shifter chip */
+-static struct encoder_tpd12s015_platform_data omap4_panda_tpd_pdata = {
+-	.name                   = "tpd12s015.0",
+-	.source                 = "hdmi.0",
+-
+-	.ct_cp_hpd_gpio = HDMI_GPIO_CT_CP_HPD,
+-	.ls_oe_gpio = HDMI_GPIO_LS_OE,
+-	.hpd_gpio = HDMI_GPIO_HPD,
+-};
+-
+-static struct platform_device omap4_panda_tpd_device = {
+-	.name                   = "tpd12s015",
+-	.id                     = 0,
+-	.dev.platform_data      = &omap4_panda_tpd_pdata,
+-};
+-
+-static struct omap_dss_board_info omap4_panda_dss_data = {
+-	.default_display_name = "dvi",
+-};
+-
+-void __init omap4_panda_display_init_of(void)
+-{
+-	omap_display_init(&omap4_panda_dss_data);
+-
+-	platform_device_register(&omap4_panda_tfp410_device);
+-	platform_device_register(&omap4_panda_dvi_connector_device);
+-
+-	platform_device_register(&omap4_panda_tpd_device);
+-	platform_device_register(&omap4_panda_hdmi_connector_device);
+-}
+-
+-
+-/* OMAP4 Blaze display data */
+-
+-#define DISPLAY_SEL_GPIO	59	/* LCD2/PicoDLP switch */
+-#define DLP_POWER_ON_GPIO	40
+-
+-static struct panel_dsicm_platform_data dsi1_panel = {
+-	.name		= "lcd",
+-	.source		= "dsi.0",
+-	.reset_gpio	= 102,
+-	.use_ext_te	= false,
+-	.ext_te_gpio	= 101,
+-	.pin_config = {
+-		.num_pins	= 6,
+-		.pins		= { 0, 1, 2, 3, 4, 5 },
+-	},
+-};
+-
+-static struct platform_device sdp4430_lcd_device = {
+-	.name                   = "panel-dsi-cm",
+-	.id                     = 0,
+-	.dev.platform_data	= &dsi1_panel,
+-};
+-
+-static struct panel_dsicm_platform_data dsi2_panel = {
+-	.name		= "lcd2",
+-	.source		= "dsi.1",
+-	.reset_gpio	= 104,
+-	.use_ext_te	= false,
+-	.ext_te_gpio	= 103,
+-	.pin_config = {
+-		.num_pins	= 6,
+-		.pins		= { 0, 1, 2, 3, 4, 5 },
+-	},
+-};
+-
+-static struct platform_device sdp4430_lcd2_device = {
+-	.name                   = "panel-dsi-cm",
+-	.id                     = 1,
+-	.dev.platform_data	= &dsi2_panel,
+-};
+-
+-/* HDMI Connector */
+-static struct connector_hdmi_platform_data sdp4430_hdmi_connector_pdata = {
+-	.name                   = "hdmi",
+-	.source                 = "tpd12s015.0",
+-};
+-
+-static struct platform_device sdp4430_hdmi_connector_device = {
+-	.name                   = "connector-hdmi",
+-	.id                     = 0,
+-	.dev.platform_data      = &sdp4430_hdmi_connector_pdata,
+-};
+-
+-/* TPD12S015 HDMI ESD protection & level shifter chip */
+-static struct encoder_tpd12s015_platform_data sdp4430_tpd_pdata = {
+-	.name                   = "tpd12s015.0",
+-	.source                 = "hdmi.0",
+-
+-	.ct_cp_hpd_gpio = HDMI_GPIO_CT_CP_HPD,
+-	.ls_oe_gpio = HDMI_GPIO_LS_OE,
+-	.hpd_gpio = HDMI_GPIO_HPD,
+-};
+-
+-static struct platform_device sdp4430_tpd_device = {
+-	.name                   = "tpd12s015",
+-	.id                     = 0,
+-	.dev.platform_data      = &sdp4430_tpd_pdata,
+-};
+-
+-
+-static struct omap_dss_board_info sdp4430_dss_data = {
+-	.default_display_name = "lcd",
+-};
+-
+-/*
+- * we select LCD2 by default (instead of Pico DLP) by setting DISPLAY_SEL_GPIO.
+- * Setting DLP_POWER_ON gpio enables the VDLP_2V5 VDLP_1V8 and VDLP_1V0 rails
+- * used by picodlp on the 4430sdp platform. Keep this gpio disabled as LCD2 is
+- * selected by default
+- */
+-void __init omap_4430sdp_display_init_of(void)
+-{
+-	int r;
+-
+-	r = gpio_request_one(DISPLAY_SEL_GPIO, GPIOF_OUT_INIT_HIGH,
+-			"display_sel");
+-	if (r)
+-		pr_err("%s: Could not get display_sel GPIO\n", __func__);
+-
+-	r = gpio_request_one(DLP_POWER_ON_GPIO, GPIOF_OUT_INIT_LOW,
+-		"DLP POWER ON");
+-	if (r)
+-		pr_err("%s: Could not get DLP POWER ON GPIO\n", __func__);
+-
+-	omap_display_init(&sdp4430_dss_data);
+-
+-	platform_device_register(&sdp4430_lcd_device);
+-	platform_device_register(&sdp4430_lcd2_device);
+-
+-	platform_device_register(&sdp4430_tpd_device);
+-	platform_device_register(&sdp4430_hdmi_connector_device);
+-}
+-
+-
+-/* OMAP3 IGEPv2 data */
+-
+-#define IGEP2_DVI_TFP410_POWER_DOWN_GPIO	170
+-
+-/* DVI Connector */
+-static struct connector_dvi_platform_data omap3_igep2_dvi_connector_pdata = {
+-	.name                   = "dvi",
+-	.source                 = "tfp410.0",
+-	.i2c_bus_num            = 3,
+-};
+-
+-static struct platform_device omap3_igep2_dvi_connector_device = {
+-	.name                   = "connector-dvi",
+-	.id                     = 0,
+-	.dev.platform_data      = &omap3_igep2_dvi_connector_pdata,
+-};
+-
+-/* TFP410 DPI-to-DVI chip */
+-static struct encoder_tfp410_platform_data omap3_igep2_tfp410_pdata = {
+-	.name                   = "tfp410.0",
+-	.source                 = "dpi.0",
+-	.data_lines             = 24,
+-	.power_down_gpio        = IGEP2_DVI_TFP410_POWER_DOWN_GPIO,
+-};
+-
+-static struct platform_device omap3_igep2_tfp410_device = {
+-	.name                   = "tfp410",
+-	.id                     = 0,
+-	.dev.platform_data      = &omap3_igep2_tfp410_pdata,
+-};
+-
+-static struct omap_dss_board_info igep2_dss_data = {
+-	.default_display_name = "dvi",
+-};
+-
+-void __init omap3_igep2_display_init_of(void)
+-{
+-	omap_display_init(&igep2_dss_data);
+-
+-	platform_device_register(&omap3_igep2_tfp410_device);
+-	platform_device_register(&omap3_igep2_dvi_connector_device);
+-}
+diff --git a/arch/arm/mach-omap2/dss-common.h b/arch/arm/mach-omap2/dss-common.h
+deleted file mode 100644
+index a9becf0d5be8..000000000000
+--- a/arch/arm/mach-omap2/dss-common.h
++++ /dev/null
+@@ -1,13 +0,0 @@
+-#ifndef __OMAP_DSS_COMMON__
+-#define __OMAP_DSS_COMMON__
+-
+-/*
+- * NOTE: this is a transitional file to help with DT adaptation.
+- * This file will be removed when DSS supports DT.
+- */
+-
+-void __init omap4_panda_display_init_of(void);
+-void __init omap_4430sdp_display_init_of(void);
+-void __init omap3_igep2_display_init_of(void);
+-
+-#endif
+diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
+index 10c71450cf63..ff5b48eca778 100644
+--- a/arch/arm/mach-omap2/pdata-quirks.c
++++ b/arch/arm/mach-omap2/pdata-quirks.c
+@@ -18,7 +18,6 @@
+ 
+ #include "common.h"
+ #include "common-board-devices.h"
+-#include "dss-common.h"
+ #include "control.h"
+ 
+ struct pdata_init {
+@@ -80,7 +79,6 @@ static void __init hsmmc2_internal_input_clk(void)
+ 
+ static void __init omap3_igep0020_legacy_init(void)
+ {
+-	omap3_igep2_display_init_of();
+ }
+ 
+ static void __init omap3_evm_legacy_init(void)
+@@ -97,14 +95,12 @@ static void __init omap3_zoom_legacy_init(void)
+ #ifdef CONFIG_ARCH_OMAP4
+ static void __init omap4_sdp_legacy_init(void)
+ {
+-	omap_4430sdp_display_init_of();
+ 	legacy_init_wl12xx(WL12XX_REFCLOCK_26,
+ 			   WL12XX_TCXOCLOCK_26, 53);
+ }
+ 
+ static void __init omap4_panda_legacy_init(void)
+ {
+-	omap4_panda_display_init_of();
+ 	legacy_init_ehci_clk("auxclk3_ck");
+ 	legacy_init_wl12xx(WL12XX_REFCLOCK_38, 0, 53);
+ }
 -- 
 1.8.3.2
 
