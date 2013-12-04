@@ -1,78 +1,77 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 07/26] OMAPDSS: get dssdev->alias from DT alias
-Date: Wed, 4 Dec 2013 14:28:34 +0200
-Message-ID: <1386160133-24026-8-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 09/26] OMAPFB: search for default display with DT alias
+Date: Wed, 4 Dec 2013 14:28:36 +0200
+Message-ID: <1386160133-24026-10-git-send-email-tomi.valkeinen@ti.com>
 References: <1386160133-24026-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:52586 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932219Ab3LDMaK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Dec 2013 07:30:10 -0500
+Received: from bear.ext.ti.com ([192.94.94.41]:52204 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932220Ab3LDMaK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 4 Dec 2013 07:30:10 -0500
 In-Reply-To: <1386160133-24026-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org
 Cc: Archit Taneja <archit@ti.com>, Darren Etheridge <detheridge@ti.com>, Tony Lindgren <tony@atomide.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-We currently create a "displayX" style alias name for all displays,
-using a number that is incremented for each registered display. With the
-new DSS device model there is no clear order in which the displays are
-registered, and thus the numbering is somewhat random.
-
-This patch improves the behavior for DT case so that if the displays
-have been assigned DT aliases, those aliases will be used as DSS
-aliases.
-
-This means that "display0" is always the one specified in the DT alias,
-and thus display0 can be used as default display in case the user didn't
-specify a default display.
+Improve the search for the default display in two ways:
+* compare the given display name to the display's alias
+* if no display name is given, look for "display0" DT alias
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/omap2/dss/display.c | 20 ++++++++++++++++++--
- 1 file changed, 18 insertions(+), 2 deletions(-)
+ drivers/video/omap2/omapfb/omapfb-main.c | 23 ++++++++++++++++++++++-
+ 1 file changed, 22 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/video/omap2/dss/display.c b/drivers/video/omap2/dss/display.c
-index a946cf7ed00f..2f689a5fc45b 100644
---- a/drivers/video/omap2/dss/display.c
-+++ b/drivers/video/omap2/dss/display.c
-@@ -26,6 +26,7 @@
- #include <linux/module.h>
- #include <linux/jiffies.h>
- #include <linux/platform_device.h>
-+#include <linux/of.h>
+diff --git a/drivers/video/omap2/omapfb/omapfb-main.c b/drivers/video/omap2/omapfb/omapfb-main.c
+index 8bfe973e55ec..961c5c251f63 100644
+--- a/drivers/video/omap2/omapfb/omapfb-main.c
++++ b/drivers/video/omap2/omapfb/omapfb-main.c
+@@ -2413,7 +2413,10 @@ omapfb_find_default_display(struct omapfb2_device *fbdev)
+ 	const char *def_name;
+ 	int i;
  
- #include <video/omapdss.h>
- #include "dss.h"
-@@ -133,9 +134,24 @@ static int disp_num_counter;
- int omapdss_register_display(struct omap_dss_device *dssdev)
- {
- 	struct omap_dss_driver *drv = dssdev->driver;
-+	int id;
- 
--	snprintf(dssdev->alias, sizeof(dssdev->alias),
--			"display%d", disp_num_counter++);
+-	/* search with the display name from the user or the board file */
 +	/*
-+	 * Note: this presumes all the displays are either using DT or non-DT,
-+	 * which normally should be the case. This also presumes that all
-+	 * displays either have an DT alias, or none has.
++	 * Search with the display name from the user or the board file,
++	 * comparing to display names and aliases
 +	 */
+ 
+ 	def_name = omapdss_get_default_display_name();
+ 
+@@ -2425,12 +2428,30 @@ omapfb_find_default_display(struct omapfb2_device *fbdev)
+ 
+ 			if (dssdev->name && strcmp(def_name, dssdev->name) == 0)
+ 				return dssdev;
 +
-+	if (dssdev->dev->of_node) {
++			if (strcmp(def_name, dssdev->alias) == 0)
++				return dssdev;
+ 		}
+ 
+ 		/* def_name given but not found */
+ 		return NULL;
+ 	}
+ 
++	/* then look for DT alias display0 */
++	for (i = 0; i < fbdev->num_displays; ++i) {
++		struct omap_dss_device *dssdev;
++		int id;
++
++		dssdev = fbdev->displays[i].dssdev;
++
++		if (dssdev->dev->of_node == NULL)
++			continue;
++
 +		id = of_alias_get_id(dssdev->dev->of_node, "display");
-+
-+		if (id < 0)
-+			id = disp_num_counter++;
-+	} else {
-+		id = disp_num_counter++;
++		if (id == 0)
++			return dssdev;
 +	}
 +
-+	snprintf(dssdev->alias, sizeof(dssdev->alias), "display%d", id);
- 
- 	if (dssdev->name == NULL)
- 		dssdev->name = dssdev->alias;
+ 	/* return the first display we have in the list */
+ 	return fbdev->displays[0].dssdev;
+ }
 -- 
 1.8.3.2
 
