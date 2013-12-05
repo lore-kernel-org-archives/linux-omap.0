@@ -1,88 +1,104 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 1/1] gpio: twl4030: Fix regression for twl gpio LED
- output
-Date: Thu, 5 Dec 2013 08:55:49 -0800
-Message-ID: <20131205165548.GX26766@atomide.com>
-References: <1386156871-7639-2-git-send-email-rogerq@ti.com>
- <1386235415-27670-1-git-send-email-rogerq@ti.com>
+Subject: Re: [PATCH 13/26] ARM: omap3.dtsi: add omapdss information
+Date: Thu, 5 Dec 2013 09:05:15 -0800
+Message-ID: <20131205170514.GY26766@atomide.com>
+References: <1386160133-24026-1-git-send-email-tomi.valkeinen@ti.com>
+ <1386160133-24026-14-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-gpio-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:11309 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751403Ab3LERFS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Dec 2013 12:05:18 -0500
 Content-Disposition: inline
-In-Reply-To: <1386235415-27670-1-git-send-email-rogerq@ti.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: linus.walleij@linaro.org, peter.ujfalusi@ti.com, nm@ti.com, tomi.valkeinen@ti.com, balbi@ti.com, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <1386160133-24026-14-git-send-email-tomi.valkeinen@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, Archit Taneja <archit@ti.com>, Darren Etheridge <detheridge@ti.com>
 
-* Roger Quadros <rogerq@ti.com> [131205 01:24]:
-> Commit 0b2aa8be introduced a regression that causes failure
-> in setting LED GPO direction to OUT.
-> 
-> This causes USB host probe failures for Beagleboard C4.
-> 
-> [    2.075469] platform usb_phy_gen_xceiv.2: Driver usb_phy_gen_xceiv requests probe deferral
-> [    2.090454] hsusb2_vcc: Failed to request enable GPIO510: -22
-> [    2.100982] reg-fixed-voltage reg-fixed-voltage.0.auto: Failed to register regulator: -22
-> [    2.109954] reg-fixed-voltage: probe of reg-fixed-voltage.0.auto failed with error -22
-> 
-> direction_out/direction_in must return 0 if the operation succeeded.
-> 
-> Also, don't update direction flag and output data if twl4030_set_gpio_direction()
-> failed inside twl_direction_out();
-> 
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
+* Tomi Valkeinen <tomi.valkeinen@ti.com> [131204 04:31]:
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+Description missing.. But other than that can you please check that
+the latest patch I posted in thread "[PATCH] ARM: OMAP2+: Fix populating
+the hwmod data from device" works with this?
 
-Linus, commit 0b2aa8be is in mainline now, so feel free to pick this one
-up if it looks OK to you. This should be also Cc stable as 0b2aa8be has
-that.
+The test to do is to remove the related reg, interrupt and dma entries
+from omap_hwmod_*_data.c, and make sure the related hwmod data is initialized
+from DT properly.
+
+I don't know if it makes sense to have them as children of dss_core, they
+really all seem to be completely independent devices?
+
+BTW, for v3.15, I'm hoping to do patches where we deprecate ti,hwmods
+property and do the lookup based on the compatible property instead ;)
+So from that point of view we need to get the device mapping right in
+the .dtsi files, and don't want to start mixing up separate devices into
+single .dtsi entry.
 
 Regards,
 
 Tony
 
+> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 > ---
->  drivers/gpio/gpio-twl4030.c | 15 ++++++++++++---
->  1 file changed, 12 insertions(+), 3 deletions(-)
+>  arch/arm/boot/dts/omap3.dtsi | 43 +++++++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 43 insertions(+)
 > 
-> diff --git a/drivers/gpio/gpio-twl4030.c b/drivers/gpio/gpio-twl4030.c
-> index b97d6a6..f999689 100644
-> --- a/drivers/gpio/gpio-twl4030.c
-> +++ b/drivers/gpio/gpio-twl4030.c
-> @@ -300,7 +300,7 @@ static int twl_direction_in(struct gpio_chip *chip, unsigned offset)
->  	if (offset < TWL4030_GPIO_MAX)
->  		ret = twl4030_set_gpio_direction(offset, 1);
->  	else
-> -		ret = -EINVAL;
-> +		ret = -EINVAL;	/* LED outputs can't be set as input */
->  
->  	if (!ret)
->  		priv->direction &= ~BIT(offset);
-> @@ -354,11 +354,20 @@ static void twl_set(struct gpio_chip *chip, unsigned offset, int value)
->  static int twl_direction_out(struct gpio_chip *chip, unsigned offset, int value)
->  {
->  	struct gpio_twl4030_priv *priv = to_gpio_twl4030(chip);
-> -	int ret = -EINVAL;
-> +	int ret = 0;
->  
->  	mutex_lock(&priv->mutex);
-> -	if (offset < TWL4030_GPIO_MAX)
-> +	if (offset < TWL4030_GPIO_MAX) {
->  		ret = twl4030_set_gpio_direction(offset, 0);
-> +		if (ret) {
-> +			mutex_unlock(&priv->mutex);
-> +			return ret;
-> +		}
-> +	}
+> diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
+> index f3a0c26ed0c2..6fc163201cbd 100644
+> --- a/arch/arm/boot/dts/omap3.dtsi
+> +++ b/arch/arm/boot/dts/omap3.dtsi
+> @@ -588,5 +588,48 @@
+>  			num-eps = <16>;
+>  			ram-bits = <12>;
+>  		};
 > +
-> +	/*
-> +	 *  LED gpios i.e. offset >= TWL4030_GPIO_MAX are always output
-> +	 */
->  
->  	priv->direction |= BIT(offset);
->  	mutex_unlock(&priv->mutex);
+> +		dss@48050000 {
+> +			compatible = "ti,omap3-dss", "simple-bus";
+> +			reg = <0x48050000 0x200>;
+> +			ti,hwmods = "dss_core";
+> +			#address-cells = <1>;
+> +			#size-cells = <1>;
+> +			ranges;
+> +
+> +			dispc@48050400 {
+> +				compatible = "ti,omap3-dispc";
+> +				reg = <0x48050400 0x400>;
+> +				interrupts = <25>;
+> +				ti,hwmods = "dss_dispc";
+> +			};
+> +
+> +			dpi: encoder@0 {
+> +				compatible = "ti,omap3-dpi";
+> +			};
+> +
+> +			sdi: encoder@1 {
+> +				compatible = "ti,omap3-sdi";
+> +			};
+> +
+> +			dsi: encoder@4804fc00 {
+> +				compatible = "ti,omap3-dsi";
+> +				reg = <0x4804fc00 0x400>;
+> +				interrupts = <25>;
+> +				ti,hwmods = "dss_dsi1";
+> +			};
+> +
+> +			rfbi: encoder@48050800 {
+> +				compatible = "ti,omap3-rfbi";
+> +				reg = <0x48050800 0x100>;
+> +				ti,hwmods = "dss_rfbi";
+> +			};
+> +
+> +			venc: encoder@48050c00 {
+> +				compatible = "ti,omap3-venc";
+> +				reg = <0x48050c00 0x100>;
+> +				ti,hwmods = "dss_venc";
+> +			};
+> +		};
+>  	};
+>  };
 > -- 
 > 1.8.3.2
 > 
