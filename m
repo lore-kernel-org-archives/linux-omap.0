@@ -1,37 +1,88 @@
-From: Peter Meerwald <pmeerw@pmeerw.net>
-Subject: Re: OMAP3 NAND ECC selection
-Date: Thu, 5 Dec 2013 17:12:23 +0100 (CET)
-Message-ID: <alpine.DEB.2.01.1312051711410.20976@pmeerw.net>
-References: <alpine.DEB.2.01.1312051000270.17561@pmeerw.net> <CAFqH_50vhgJ=ktqmYRo+ZO1bbRmiME+kXVt6sLJL91q9A2S7TA@mail.gmail.com> <52A04E75.3010609@corscience.de>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2 1/1] gpio: twl4030: Fix regression for twl gpio LED
+ output
+Date: Thu, 5 Dec 2013 08:55:49 -0800
+Message-ID: <20131205165548.GX26766@atomide.com>
+References: <1386156871-7639-2-git-send-email-rogerq@ti.com>
+ <1386235415-27670-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns.pmeerw.net ([87.118.82.44]:42409 "EHLO pmeerw.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932402Ab3LEQM0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 5 Dec 2013 11:12:26 -0500
-In-Reply-To: <52A04E75.3010609@corscience.de>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-gpio-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1386235415-27670-1-git-send-email-rogerq@ti.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: linus.walleij@linaro.org, peter.ujfalusi@ti.com, nm@ti.com, tomi.valkeinen@ti.com, balbi@ti.com, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: =?UTF-8?Q?Andreas_Bie=C3=9Fmann?= <andreas.biessmann@corscience.de>
-Cc: Enric Balletbo Serra <eballetbo@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-mtd@lists.infradead.org
 
-> >> I'd like to be able to update MLO and u-boot from within a booted Linux
-> >> system on the device (I have to resort to u-boot for that where I can
-> >> control the ECC scheme used)
+* Roger Quadros <rogerq@ti.com> [131205 01:24]:
+> Commit 0b2aa8be introduced a regression that causes failure
+> in setting LED GPO direction to OUT.
+> 
+> This causes USB host probe failures for Beagleboard C4.
+> 
+> [    2.075469] platform usb_phy_gen_xceiv.2: Driver usb_phy_gen_xceiv requests probe deferral
+> [    2.090454] hsusb2_vcc: Failed to request enable GPIO510: -22
+> [    2.100982] reg-fixed-voltage reg-fixed-voltage.0.auto: Failed to register regulator: -22
+> [    2.109954] reg-fixed-voltage: probe of reg-fixed-voltage.0.auto failed with error -22
+> 
+> direction_out/direction_in must return 0 if the operation succeeded.
+> 
+> Also, don't update direction flag and output data if twl4030_set_gpio_direction()
+> failed inside twl_direction_out();
+> 
+> Signed-off-by: Roger Quadros <rogerq@ti.com>
 
-> > Meanwhile, to do this we use a small userspace program created by
-> > Javier Martinez in order to flash the MLO in our OMAP3 boards. See
-> > http://git.isee.biz/?p=pub/scm/writeloader.git;a=summary
+Acked-by: Tony Lindgren <tony@atomide.com>
 
-> we used another aproach here. See
-> http://article.gmane.org/gmane.linux.drivers.mtd/43804
+Linus, commit 0b2aa8be is in mainline now, so feel free to pick this one
+up if it looks OK to you. This should be also Cc stable as 0b2aa8be has
+that.
 
-pretty much what I have been looking for, thanks!
+Regards,
 
-p.
+Tony
 
--- 
-
-Peter Meerwald
-+43-664-2444418 (mobile)
+> ---
+>  drivers/gpio/gpio-twl4030.c | 15 ++++++++++++---
+>  1 file changed, 12 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/gpio/gpio-twl4030.c b/drivers/gpio/gpio-twl4030.c
+> index b97d6a6..f999689 100644
+> --- a/drivers/gpio/gpio-twl4030.c
+> +++ b/drivers/gpio/gpio-twl4030.c
+> @@ -300,7 +300,7 @@ static int twl_direction_in(struct gpio_chip *chip, unsigned offset)
+>  	if (offset < TWL4030_GPIO_MAX)
+>  		ret = twl4030_set_gpio_direction(offset, 1);
+>  	else
+> -		ret = -EINVAL;
+> +		ret = -EINVAL;	/* LED outputs can't be set as input */
+>  
+>  	if (!ret)
+>  		priv->direction &= ~BIT(offset);
+> @@ -354,11 +354,20 @@ static void twl_set(struct gpio_chip *chip, unsigned offset, int value)
+>  static int twl_direction_out(struct gpio_chip *chip, unsigned offset, int value)
+>  {
+>  	struct gpio_twl4030_priv *priv = to_gpio_twl4030(chip);
+> -	int ret = -EINVAL;
+> +	int ret = 0;
+>  
+>  	mutex_lock(&priv->mutex);
+> -	if (offset < TWL4030_GPIO_MAX)
+> +	if (offset < TWL4030_GPIO_MAX) {
+>  		ret = twl4030_set_gpio_direction(offset, 0);
+> +		if (ret) {
+> +			mutex_unlock(&priv->mutex);
+> +			return ret;
+> +		}
+> +	}
+> +
+> +	/*
+> +	 *  LED gpios i.e. offset >= TWL4030_GPIO_MAX are always output
+> +	 */
+>  
+>  	priv->direction |= BIT(offset);
+>  	mutex_unlock(&priv->mutex);
+> -- 
+> 1.8.3.2
+> 
