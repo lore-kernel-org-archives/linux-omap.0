@@ -1,78 +1,58 @@
-From: =?ISO-8859-1?Q?Andreas_Bie=DFmann?=
-	<andreas.biessmann@corscience.de>
-Subject: Re: OMAP3 NAND ECC selection
-Date: Thu, 05 Dec 2013 10:59:17 +0100
-Message-ID: <52A04E75.3010609@corscience.de>
-References: <alpine.DEB.2.01.1312051000270.17561@pmeerw.net> <CAFqH_50vhgJ=ktqmYRo+ZO1bbRmiME+kXVt6sLJL91q9A2S7TA@mail.gmail.com>
+From: Christoph Fritz <chf.fritz@googlemail.com>
+Subject: [Bug] am33xx: Basic suspend resume support: Doesn't resume
+Date: Thu, 05 Dec 2013 14:42:56 +0100
+Message-ID: <1386250976.3880.91.camel@mars>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="qVx4k1UPMsU5E761B1hTjnwQ1HoP5mE2I"
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:59800 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751926Ab3LEJ71 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Dec 2013 04:59:27 -0500
-In-Reply-To: <CAFqH_50vhgJ=ktqmYRo+ZO1bbRmiME+kXVt6sLJL91q9A2S7TA@mail.gmail.com>
+Received: from mail-bk0-f50.google.com ([209.85.214.50]:36480 "EHLO
+	mail-bk0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756679Ab3LENnA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Dec 2013 08:43:00 -0500
+Received: by mail-bk0-f50.google.com with SMTP id e11so7239828bkh.9
+        for <linux-omap@vger.kernel.org>; Thu, 05 Dec 2013 05:42:59 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Enric Balletbo Serra <eballetbo@gmail.com>, Peter Meerwald <pmeerw@pmeerw.net>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-mtd@lists.infradead.org
+To: t-kristo@ti.com, Russ Dill <Russ.Dill@ti.com>, Vaibhav Bedia <vaibhav.bedia@ti.com>
+Cc: linux-omap@vger.kernel.org, Daniel Mack <zonque@gmail.com>
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---qVx4k1UPMsU5E761B1hTjnwQ1HoP5mE2I
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Hi,
 
-Hi Peter,
+ I'm having here a custom am335x board with DDR3 equipped trying to
+setup suspend/resume support. I have tested this with the ancient
+TI-PSP-3.2 Kernel and current 3.13-rc plus some pm patches.
 
-On 12/05/2013 10:47 AM, Enric Balletbo Serra wrote:
-> 2013/12/5 Peter Meerwald <pmeerw@pmeerw.net>:
+Problem: After suspending the device, it doesn't resume (freeze):
 
-<snip>
+echo "mem" > /sys/power/state
+[  103.020845] PM: Syncing filesystems ... done.
+[  103.055549] Freezing user space processes ... (elapsed 0.003 seconds) done.
+[  103.066696] Freezing remaining freezable tasks ... (elapsed 0.002 seconds) done.
+[  103.077506] PM: Sending message for entering DeepSleep mode
+[  103.099896] PM: suspend of devices complete after 11.951 msecs
+[  103.110894] PM: late suspend of devices complete after 4.659 msecs
+[  103.122599] PM: noirq suspend of devices complete after 5.032 msecs
 
->> I'd like to be able to update MLO and u-boot from within a booted Linu=
-x
->> system on the device (I have to resort to u-boot for that where I can
->> control the ECC scheme used)
->>
->=20
-> Meanwhile, to do this we use a small userspace program created by
-> Javier Martinez in order to flash the MLO in our OMAP3 boards. See
->=20
-> http://git.isee.biz/?p=3Dpub/scm/writeloader.git;a=3Dsummary
+As a wakeup source I'm currently using gpio0_12.
 
-we used another aproach here. See
+Triggering the reset button (am335x-pin: WARMRSTn) in suspend-mode has
+no effect, which is fine. But after changing the signal on the wakeup
+source (here gpio0_12), triggering a reset works fine again.
 
-http://article.gmane.org/gmane.linux.drivers.mtd/43804
+So it seems to me that somewhere in the wakeup-process is a bug.
 
-Best regards
+Could this be related to DDR3? Apart from that, this custom board here
+is pretty similar to the ti-evm board wich works fine.
 
-Andreas Bie=DFmann
+In oder to test, I've shrunken the kernel to minimal driver support to
+sort out as much as possible segfaults in resume functions.
 
+With a view to be able to debug this further, I just ordered an openocd
+jtag adapter.
 
---qVx4k1UPMsU5E761B1hTjnwQ1HoP5mE2I
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+Any comments, ideas, tips, ..?
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.19 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+Thanks
+ -- Christoph
 
-iQIcBAEBCAAGBQJSoE56AAoJEHPlkEBPIQBj2yQP+wUceDc8iTs/uXQpsHv3oMh2
-mVF6BWi1HZuGf20XLn+VPVpytk5kHw1VQUmrnv7xz05fVYodo56Tyhdd7rm3/7Ci
-o9FqzHpJmOQ1CaJqlKtxZhrbNik3AMvVgkSG2So5Sf1Tnt6nQM7ob2Rvj+jdlvkR
-JVd1vO228+kWMiKCerVQLxTM4tms93GyUFtDO6VFiEkwc2G7htZU0VCZTC6uBW7L
-mUs9YyB1uw7w++NrnwULclrASTC+DIjwk/f2uFMsYm28O6wZ/33imB5BAmnWxP5Y
-vtddzPbLBJxBbuiMAlTKJseEapIh1TqIkYij12G0pVkB1nKKCK0598Gre9AA/ja/
-iEj9TYNFd+Y39DcQCt4gCHh6bu4z8LBJjw+jGvDYUbAoDmd2T4MA8m+XmqGtaNvL
-//tiwbluEHYRMoYQ2Vs+oUHvdt5LjMYzbsaiDXcJT4skylcQRRmHswKb4BT5yrZs
-LUkULii6CWmYuvXcJZSYFfYi4wi3/vEDVg5TjsW8edaVFhTdY0I5ew3vAeB8qb+E
-w0qunwsmnbdvmifMIshL5W89SXuQWQ1Ykr3w6vZ29EnOKc+CrH5rmVRbQ8zg7wxz
-hczmd25k/Adtc3OFeje1fWGJoO6Mvxe8TYUPGvJB6udVuPde/KTqYokQKliyEWdf
-TkEFS3lka/T9jIeHaC8+
-=hd4+
------END PGP SIGNATURE-----
-
---qVx4k1UPMsU5E761B1hTjnwQ1HoP5mE2I--
