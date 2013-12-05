@@ -1,53 +1,47 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] omap: twl-common: Fix musb-hdrc device name.
-Date: Thu, 5 Dec 2013 10:43:23 -0800
-Message-ID: <20131205184323.GF26766@atomide.com>
-References: <1386059589-4030-1-git-send-email-marek.belisko@open-nandra.com>
- <529D9D43.6040101@ti.com>
- <CAAfyv37Vie1vZK2XQ1cfVq6eVnSuaBLfykk6pU8fwEyqvPF4BA@mail.gmail.com>
- <CAAfyv35gVVNydrk8vifSyidpFjEXjGiT4-i2dgN5Un2=FuHaqQ@mail.gmail.com>
+Subject: Re: [PATCH v2 0/3] ARM: OMAP2+: USB Host bug fixes for 3.13 rc
+Date: Thu, 5 Dec 2013 10:48:32 -0800
+Message-ID: <20131205184832.GG26766@atomide.com>
+References: <1386080748-17005-1-git-send-email-rogerq@ti.com>
+ <529EFD42.9070507@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAAfyv35gVVNydrk8vifSyidpFjEXjGiT4-i2dgN5Un2=FuHaqQ@mail.gmail.com>
+In-Reply-To: <529EFD42.9070507@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Belisko Marek <marek.belisko@gmail.com>
-Cc: Kishon Vijay Abraham I <kishon@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Roger Quadros <rogerq@ti.com>, bcousson@baylibre.com, paul@pwsan.com, balbi@ti.com, sr@denx.de, David.Laight@ACULAB.COM, michael@amarulasolutions.com, bigeasy@linutronix.de, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Belisko Marek <marek.belisko@gmail.com> [131203 01:21]:
-> On Tue, Dec 3, 2013 at 10:08 AM, Belisko Marek <marek.belisko@gmail.com> wrote:
+* Tomi Valkeinen <tomi.valkeinen@ti.com> [131204 02:01]:
+> On 2013-12-03 16:25, Roger Quadros wrote:
 > > Hi,
-> >
-> > On Tue, Dec 3, 2013 at 9:58 AM, Kishon Vijay Abraham I <kishon@ti.com> wrote:
-> >> Hi,
-> >>
-> >> On Tuesday 03 December 2013 02:03 PM, Marek Belisko wrote:
-> >>> Without this change when booting omap3 device (gta04) with board file
-> >>> leads to follwing errors:
-> >>>
-> >>> [    1.203308] musb-hdrc musb-hdrc.0.auto: unable to find phy
-> >>> [    1.209075] HS USB OTG: no transceiver configured
-> >>> [    1.214019] musb-hdrc musb-hdrc.0.auto: musb_init_controller failed with status -517
-> >>>
-> >>> and usb isn't working.
-> >>>
-> >>> This is probably regression caused by commit: 6c27f939
-> >>
-> >> I think a better fix would be to have this merged..
-> >> https://lkml.org/lkml/2013/7/26/91
-> > Yes I see but how this could help with current situation? Ho you then
-> > specify device number?
-> I was too fast with reply sorry. I can see whole series and it is of
-> course correct solution. But as I said
-> can we except to be merged to 3.13. If not Tony can you pick my patch.
+> > 
+> > This is a follow up solution to the original series in [1]
+> > 
+> > The first patch fixes the OMAP4 Panda USB detection problems on 3.13-rc1
+> > with u-boot v2013.10.
+> > 
+> > The remaining 2 patches are required if SOFTRESET needs to be done for the
+> > USB Host module on OMAP3 platforms.
+> > 
+> > Patch 2 fixes the hwmod RESET logic to prevent multiple SOFTRESETs
+> > being issued to the modules. This multiple SOFTRESET was causing problems
+> > with OMAP3 USB Host module. On Beagleboard C4 this is seen as failure to
+> > mount NFS root over external USB to Ethernet device.
+> > 
+> > This might be the reason why HWMOD_INIT_NO_RESET was used for the OMAP
+> > USB host module in OMAP3 hwmod data and just carried forward in OMAP4
+> > and OMAP5 hwmod data as well.
+> > 
+> > cheers,
+> > -roger
+> 
+> Tested on Panda and Beagle xM. Works fine for me.
 
-If it's a regression, then let's get it merged for the -rc cycle.
-
-So please try to follow up on getting the proper fix merged, meanwhile
-I'll mark this thread as read. If you need this one merged for some
-reason, then please report to get it back to my radar.
+Looks like we should merge these as regression fixes during the -rc
+cycle. Paul should take a look at these first though.
 
 Regards,
 
