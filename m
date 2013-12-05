@@ -1,31 +1,47 @@
-From: Herbert Xu <herbert@gondor.apana.org.au>
-Subject: Re: [PATCH] crypto: omap-aes: add error check for pm_runtime_get_sync
-Date: Thu, 5 Dec 2013 22:36:32 +0800
-Message-ID: <20131205143632.GF1976@gondor.apana.org.au>
-References: <1386121393-32464-1-git-send-email-nm@ti.com>
+From: Balaji T K <balajitk@ti.com>
+Subject: Re: [RFC PATCH v3 6/8] ARM: dts: add pbias-supply
+Date: Thu, 5 Dec 2013 20:25:01 +0530
+Message-ID: <52A093C5.9030402@ti.com>
+References: <20130613174554.GB1403@sirena.org.uk> <1385043627-30439-1-git-send-email-balajitk@ti.com> <1385043627-30439-7-git-send-email-balajitk@ti.com> <20131121170351.GN10317@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-crypto-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1386121393-32464-1-git-send-email-nm@ti.com>
-Sender: linux-crypto-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: "David S. Miller" <davem@davemloft.net>, Tobias Jakobi <tjakobi@math.uni-bielefeld.de>, Joel F <joelf@ti.com>, linux-crypto@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:33221 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932278Ab3LEOzK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 5 Dec 2013 09:55:10 -0500
+In-Reply-To: <20131121170351.GN10317@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, bcousson@baylibre.com, devicetree@vger.kernel.org, linux-mmc@vger.kernel.org, cjb@laptop.org, broonie@kernel.org
 
-On Tue, Dec 03, 2013 at 07:43:13PM -0600, Nishanth Menon wrote:
-> The AES driver currently assumes that pm_runtime_get_sync will always
-> succeed, which may not always be true, so add error handling for the
-> same.
-> 
-> This scenario was reported in the following bug:
-> place.  https://bugzilla.kernel.org/show_bug.cgi?id=66441
-> 
-> Reported-by: Tobias Jakobi <tjakobi@math.uni-bielefeld.de>
-> Signed-off-by: Nishanth Menon <nm@ti.com>
+On Thursday 21 November 2013 10:33 PM, Tony Lindgren wrote:
+> * Balaji T K <balajitk@ti.com> [131121 06:21]:
+>> Add pbias-supply to mmc1/sd card.
+> ...
+>
+>> --- a/arch/arm/boot/dts/dra7-evm.dts
+>> +++ b/arch/arm/boot/dts/dra7-evm.dts
+>> @@ -261,6 +261,7 @@
+>>   &mmc1 {
+>>   	status = "okay";
+>>   	vmmc-supply = <&ldo1_reg>;
+>> +	pbias-supply = <&pbias_regulator>;
+>>   	bus-width = <4>;
+>>   };
+>
+> You may not need to patch this in at all. I think the PBIAS is there
+> only for the first slot and it's hardwired so it's always there. If
+> that's the case, then you can just always request it. Or use the
+> compatible flag if needed.
 
-Patch applied.
--- 
-Email: Herbert Xu <herbert@gondor.apana.org.au>
-Home Page: http://gondor.apana.org.au/~herbert/
-PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
+pbias is not applicable for mmc1 on am33xx and is applicable for
+only for OMAP2-OMAP5, so I can add pbias-supply to omapx.dtsi files
+
+>
+> Regards,
+>
+> Tony
+>
