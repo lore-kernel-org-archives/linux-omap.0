@@ -1,41 +1,116 @@
-From: "Gupta, Pekon" <pekon@ti.com>
-Subject: RE: OMAP3 NAND ECC selection
-Date: Thu, 5 Dec 2013 19:02:22 +0000
-Message-ID: <20980858CB6D3A4BAE95CA194937D5E73EA5222E@DBDE04.ent.ti.com>
-References: <alpine.DEB.2.01.1312051000270.17561@pmeerw.net>
- <CAFqH_50vhgJ=ktqmYRo+ZO1bbRmiME+kXVt6sLJL91q9A2S7TA@mail.gmail.com>
- <52A04E75.3010609@corscience.de>
- <alpine.DEB.2.01.1312051711410.20976@pmeerw.net>
- <20131205171326.GA26766@atomide.com>
- <CABxcv=mtqkpyup0y-zv53YRvdgKH0bNXeCWf9mxPFoUTRQ=Gew@mail.gmail.com>
- <20131205182628.GF2345@localhost>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: OMAP2+: omap_device: add fail hook for runtime_pm
+ when bad data is detected
+Date: Thu, 5 Dec 2013 11:03:43 -0800
+Message-ID: <20131205190343.GI26766@atomide.com>
+References: <1386121153-32351-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:46187 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751224Ab3LETDC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Dec 2013 14:03:02 -0500
-In-Reply-To: <20131205182628.GF2345@localhost>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1386121153-32351-1-git-send-email-nm@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Tobias Jakobi <tjakobi@math.uni-bielefeld.de>, Joel F <joelf@ti.com>, Kevin Hilman <khilman@linaro.org>
 List-Id: linux-omap@vger.kernel.org
-To: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, Javier Martinez Canillas <javier@dowhile0.org>
-Cc: Tony Lindgren <tony@atomide.com>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Enric Balletbo Serra <eballetbo@gmail.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, =?utf-8?B?QW5kcmVhcyBCaWXDn21hbm4=?= <andreas.biessmann@corscience.de>, Peter Meerwald <pmeerw@pmeerw.net>, Brian Norris <computersforpeace@gmail.com>
 
-SGkgRXplcXVpZWwsDQoNCg0KPkZyb206IEV6ZXF1aWVsIEdhcmNpYSBbbWFpbHRvOmV6ZXF1aWVs
-LmdhcmNpYUBmcmVlLWVsZWN0cm9ucy5jb21dDQpbLi4uXQ0KPkFGQUlLLCB0aGVyZSdzIG5vIGhh
-cmR3YXJlIGxpbWl0YXRpb24gdGhhdCB3b3VsZCBwcmV2ZW50IHVzIGZyb20gc2V0dGluZw0KPmEg
-cGVyLXBhcnRpdGlvbiBFQ0MsIGtlZXAgaW4gbWluZCB0aGlzIGVmZm9ydCBpcyBub3QgcmVkdWNl
-ZCB0byBtYWtlDQo+ZGV2aWNldHJlZSBhY2NlcHQgRUNDIG9uIHRoZSBwYXJ0aXRpb25zLg0KPg0K
-SSBoYWQgc29tZSByZXNlcnZhdGlvbnMgaW4gZG9pbmcgc28uLiAoYXMgbWVudGlvbmVkIGluIHBy
-ZXZpb3VzIGVtYWlsIGFsc28gWzJdKQ0KSSB3b3VsZCByYXRoZXIgbGlrZSB0byB1bmRlcnN0YW5k
-IGxvbmcgdGVybSBiZW5lZml0cyBvZiBzdWNoIGltcGxlbWVudGF0aW9uLg0KDQpBbHNvLCBhbnkg
-Y29uc3RyYWluIGR1ZSB0byBST00gY29kZSwgb3IgdXBncmFkaW5nIGZyb20gcmVtb3RlIGNhbiBi
-ZQ0KaGFuZGxlZCB1c2luZyB2YXJpb3VzIGFsdGVybmF0aXZlIGFwcHJvYWNoZXMgbGlrZSBbYV0g
-YW5kIFtiXS4NCg0KWzJdOiBodHRwOi8vcGVybWFsaW5rLmdtYW5lLm9yZy9nbWFuZS5saW51eC5w
-b3J0cy5hcm0ub21hcC8xMDgxMzYNCg0KW2FdOiBodHRwOi8vd3d3Lm1haWwtYXJjaGl2ZS5jb20v
-bGludXgtb21hcEB2Z2VyLmtlcm5lbC5vcmcvbXNnOTkwMjUuaHRtbA0KW2JdOiBodHRwOi8vZ2l0
-LmlzZWUuYml6Lz9wPXB1Yi9zY20vd3JpdGVsb2FkZXIuZ2l0O2E9c3VtbWFyeQ0KDQoNCndpdGgg
-cmVnYXJkcywgcGVrb24NCg==
+* Nishanth Menon <nm@ti.com> [131203 17:40]:
+> Due to the cross dependencies between hwmod for automanaged device
+> information for OMAP and dts node definitions, we can run into scenarios
+> where the dts node is defined, however it's hwmod entry is yet to be
+> added. In these cases:
+> a) omap_device does not register a pm_domain (since it cannot find
+>    hwmod entry).
+> b) driver does not know about (a), does a pm_runtime_get_sync which
+>    never fails
+> c) It then tries to do some operation on the device (such as read the
+>   revision register (as part of probe) without clock or adequate OMAP
+>   generic PM operation performed for enabling the module.
+> 
+> This causes a crash such as that reported in:
+> https://bugzilla.kernel.org/show_bug.cgi?id=66441
+> 
+> When 'ti,hwmod' is provided in dt node, it is expected that the device
+> will not function without the OMAP's power automanagement. Hence, when
+> we hit a fail condition (due to hwmod entries not present or other
+> similar scenario), fail at pm_domain level due to lack of data, provide
+> enough information for it to be fixed, however, it allows for the driver
+> to take appropriate measures to prevent crash.
+
+Kevin, any comments on this one?
+
+Regards,
+
+Tony
+ 
+> Reported-by: Tobias Jakobi <tjakobi@math.uni-bielefeld.de>
+> Signed-off-by: Nishanth Menon <nm@ti.com>
+> ---
+>  arch/arm/mach-omap2/omap_device.c |   24 ++++++++++++++++++++++++
+>  arch/arm/mach-omap2/omap_device.h |    1 +
+>  2 files changed, 25 insertions(+)
+> 
+> diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
+> index 53f0735..e0a398c 100644
+> --- a/arch/arm/mach-omap2/omap_device.c
+> +++ b/arch/arm/mach-omap2/omap_device.c
+> @@ -183,6 +183,10 @@ static int omap_device_build_from_dt(struct platform_device *pdev)
+>  odbfd_exit1:
+>  	kfree(hwmods);
+>  odbfd_exit:
+> +	/* if data/we are at fault.. load up a fail handler */
+> +	if (ret)
+> +		pdev->dev.pm_domain = &omap_device_fail_pm_domain;
+> +
+>  	return ret;
+>  }
+>  
+> @@ -604,6 +608,19 @@ static int _od_runtime_resume(struct device *dev)
+>  
+>  	return pm_generic_runtime_resume(dev);
+>  }
+> +
+> +static int _od_fail_runtime_suspend(struct device *dev)
+> +{
+> +	dev_warn(dev, "%s: FIXME: missing hwmod/omap_dev info\n", __func__);
+> +	return -ENODEV;
+> +}
+> +
+> +static int _od_fail_runtime_resume(struct device *dev)
+> +{
+> +	dev_warn(dev, "%s: FIXME: missing hwmod/omap_dev info\n", __func__);
+> +	return -ENODEV;
+> +}
+> +
+>  #endif
+>  
+>  #ifdef CONFIG_SUSPEND
+> @@ -657,6 +674,13 @@ static int _od_resume_noirq(struct device *dev)
+>  #define _od_resume_noirq NULL
+>  #endif
+>  
+> +struct dev_pm_domain omap_device_fail_pm_domain = {
+> +	.ops = {
+> +		SET_RUNTIME_PM_OPS(_od_fail_runtime_suspend,
+> +				   _od_fail_runtime_resume, NULL)
+> +	}
+> +};
+> +
+>  struct dev_pm_domain omap_device_pm_domain = {
+>  	.ops = {
+>  		SET_RUNTIME_PM_OPS(_od_runtime_suspend, _od_runtime_resume,
+> diff --git a/arch/arm/mach-omap2/omap_device.h b/arch/arm/mach-omap2/omap_device.h
+> index 17ca1ae..78c02b3 100644
+> --- a/arch/arm/mach-omap2/omap_device.h
+> +++ b/arch/arm/mach-omap2/omap_device.h
+> @@ -29,6 +29,7 @@
+>  #include "omap_hwmod.h"
+>  
+>  extern struct dev_pm_domain omap_device_pm_domain;
+> +extern struct dev_pm_domain omap_device_fail_pm_domain;
+>  
+>  /* omap_device._state values */
+>  #define OMAP_DEVICE_STATE_UNKNOWN	0
+> -- 
+> 1.7.9.5
+> 
