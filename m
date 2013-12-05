@@ -1,72 +1,125 @@
-From: Javier Martinez Canillas <javier@dowhile0.org>
-Subject: Re: OMAP3 NAND ECC selection
-Date: Thu, 5 Dec 2013 18:39:10 +0100
-Message-ID: <CABxcv=mtqkpyup0y-zv53YRvdgKH0bNXeCWf9mxPFoUTRQ=Gew@mail.gmail.com>
-References: <alpine.DEB.2.01.1312051000270.17561@pmeerw.net>
-	<CAFqH_50vhgJ=ktqmYRo+ZO1bbRmiME+kXVt6sLJL91q9A2S7TA@mail.gmail.com>
-	<52A04E75.3010609@corscience.de>
-	<alpine.DEB.2.01.1312051711410.20976@pmeerw.net>
-	<20131205171326.GA26766@atomide.com>
+From: Olof Johansson <olof@lixom.net>
+Subject: [HACK] remotely powering on a OMAP5 uEVM over the debug port
+Date: Thu, 5 Dec 2013 09:56:25 -0800
+Message-ID: <20131205175625.GA15019@quad.lixom.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-we0-f179.google.com ([74.125.82.179]:46949 "EHLO
-	mail-we0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756771Ab3LERjM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Dec 2013 12:39:12 -0500
-Received: by mail-we0-f179.google.com with SMTP id q59so16666835wes.24
-        for <linux-omap@vger.kernel.org>; Thu, 05 Dec 2013 09:39:10 -0800 (PST)
-In-Reply-To: <20131205171326.GA26766@atomide.com>
+Received: from mail-pb0-f44.google.com ([209.85.160.44]:60269 "EHLO
+	mail-pb0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757338Ab3LER6k (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Dec 2013 12:58:40 -0500
+Received: by mail-pb0-f44.google.com with SMTP id rq2so26366529pbb.31
+        for <linux-omap@vger.kernel.org>; Thu, 05 Dec 2013 09:58:39 -0800 (PST)
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, "Gupta, Pekon" <pekon@ti.com>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
-Cc: Peter Meerwald <pmeerw@pmeerw.net>, =?UTF-8?Q?Andreas_Bie=C3=9Fmann?= <andreas.biessmann@corscience.de>, Enric Balletbo Serra <eballetbo@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-mtd@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: olof@lixom.net
 
-[adding Pekon and Thomas as cc]
+Here's a tiny hack I came up with to remote-power on an OMAP5 uEVM. I
+have mine in an unattended setup where I can cycle power, but it still
+needs a power button press to start.
 
-On Thu, Dec 5, 2013 at 6:13 PM, Tony Lindgren <tony@atomide.com> wrote:
-> * Peter Meerwald <pmeerw@pmeerw.net> [131205 08:13]:
->> > >> I'd like to be able to update MLO and u-boot from within a booted Linux
->> > >> system on the device (I have to resort to u-boot for that where I can
->> > >> control the ECC scheme used)
->>
->> > > Meanwhile, to do this we use a small userspace program created by
->> > > Javier Martinez in order to flash the MLO in our OMAP3 boards. See
->> > > http://git.isee.biz/?p=pub/scm/writeloader.git;a=summary
->>
->> > we used another aproach here. See
->> > http://article.gmane.org/gmane.linux.drivers.mtd/43804
->>
->> pretty much what I have been looking for, thanks!
->
-> Hmm well both methods should work, but is there anything stopping us
-> merging the module param patch to the mainline tree?
->
+Luckily two GPIO lines on the secondary FTDI channel are routed to the same
+buttons, so it can be done via software. It requires your board to have U37
+populated though, so make sure you have it (mine did already).
 
-Hi Tony,
+The below little hack uses libmpsse, available at
+https://code.google.com/p/libmpsse/.
 
-In the another thread [0] pointed out by Enric we were discussing the
-same issue. Thomas suggested [1] that ideally we should be able to set
-a per MTD partition ECC scheme. That way we can set 1 bit hamming for
-the first MTD partition that has the SPL that the boot ROM needs to
-read and the other partitions can use a more secure ECC scheme. I
-completely agree with him.
+To use it, give it the path of the FTDI device. I.e. on my system the uEVM is
+at 3-1.3.3. Check dmesg and lsusb (it's bus number + path).
 
-In fact the data-sheet for the NAND device used on the IGEPv2 board says:
 
-"Minimum required ECC 4-bit ECC per 528 bytes || Minimum required ECC
-for block 0  1-bit ECC per 528 byte"
+Anyway, I figured this could be useful for others as well, so I'm posting just
+for that purpose. No warranties, don't come to me if you break your board with
+this, etc, etc.
 
-so I don't think we should impose a software limitation by having a
-global ECC scheme and we should expand the GPMC NAND DT binding so
-partitions support the "ti,nand-ecc-opt". I'll see if I can get some
-free time to try to implement that.
 
-Pekon does not agree with this solution though [2]
 
-Thanks a lot and best regards,
-Javier
+This pulses the power button for 1 second (GPIOH5). If you want to pulse
+the reset instead, use GPIOH6.
 
-[0]: http://www.mail-archive.com/linux-omap@vger.kernel.org/msg98969.html
-[1]: http://www.mail-archive.com/linux-omap@vger.kernel.org/msg99008.html
-[2]: http://permalink.gmane.org/gmane.linux.ports.arm.omap/108136
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <usb.h>
+#include <mpsse.h>
+
+void usage(char *p)
+{
+	printf("Usage: %s <busnr>-<devpath>\n", p);
+}
+
+void fill_busdev(char *usbpath, int *bus, int *dev)
+{
+	char udir[PATH_MAX+1];
+	FILE *fp;
+
+	sprintf(udir, "/sys/bus/usb/devices/%s/busnum", usbpath);
+	
+	fp = fopen(udir, "r");
+	if (!fp) {
+		printf("can't open %s to find usb info\n", udir);
+		exit(1);
+	}
+	fscanf(fp, "%d", bus);
+	fclose(fp);
+
+	sprintf(udir, "/sys/bus/usb/devices/%s/devnum", usbpath);
+	
+	fp = fopen(udir, "r");
+	if (!fp) {
+		printf("can't open %s to find usb info\n", udir);
+		exit(1);
+	}
+	fscanf(fp, "%d", dev);
+	fclose(fp);
+
+}
+int main(int argc, char **argv)
+{
+	struct mpsse_context *io = NULL;
+	int i = 0;
+	int bus, dev;
+
+	if (argc < 1) {
+		usage(argv[0]);
+		exit(1);
+	}
+
+	fill_busdev(argv[1], &bus, &dev);
+
+	while (1) {
+		struct usb_device *ud;
+		io = OpenIndex(0x0403, 0x6010, GPIO, 0, 0, 2, NULL, NULL, i++);
+		if (!io || !io->open) {
+			printf("Failed to open device %s\n", argv[1]);
+			exit(1);
+		}
+		ud = usb_device(io->ftdi.usb_dev);
+		if (ud->devnum == dev && ud->bus->location == bus) {
+			printf("found: %s/%s %d\n", ud->bus->dirname, ud->filename, ud->bus->location);
+			break;
+		} else {
+			printf("skipped: %s/%s %d\n", ud->bus->dirname, ud->filename, ud->bus->location);
+		}
+		Close(io);
+	}
+
+	/* Default is high */
+	PinHigh(io, GPIOH5);
+	PinHigh(io, GPIOH6);
+
+	sleep(1);
+	/* Pulse power */
+	PinLow(io, GPIOH5);
+	sleep(1);
+	PinHigh(io, GPIOH5);
+
+	Close(io);
+
+	exit(0);
+}
