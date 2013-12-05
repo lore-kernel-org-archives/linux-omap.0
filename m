@@ -1,61 +1,103 @@
-From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Subject: Re: [PATCH v3 04/10] usb: dwc3: use quirks to know if a particualr
- platform doesn't have PHY
-Date: Thu, 5 Dec 2013 09:58:28 +0200
-Message-ID: <20131205075828.GA32583@xps8300>
-References: <1385373690-12170-1-git-send-email-kishon@ti.com>
- <1385373690-12170-5-git-send-email-kishon@ti.com>
- <20131204144027.GB21055@xps8300>
- <52A01E86.50406@ti.com>
+From: Sourav Poddar <sourav.poddar@ti.com>
+Subject: Re: [PATCH 00/17] Add memory mapped support for ti qspi, m25p80 serial
+ flash.
+Date: Thu, 5 Dec 2013 14:39:54 +0530
+Message-ID: <52A042E2.509@ti.com>
+References: <1385451313-1875-1-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-doc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <52A01E86.50406@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: balbi@ti.com, bcousson@baylibre.com, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ijc+devicetree@hellion.org.uk, rob@landley.net, tony@atomide.com, linux@arm.linux.org.uk, gregkh@linuxfoundation.org, grant.likely@linaro.org, s.nawrocki@samsung.com, galak@codeaurora.org
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
+In-Reply-To: <1385451313-1875-1-git-send-email-sourav.poddar@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
+List-Post: <mailto:linux-mtd@lists.infradead.org>
+List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
+Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
+To: computersforpeace@gmail.com
+Cc: devicetree@vger.kernel.org, balbi@ti.com, linux-spi@vger.kernel.org, broonie@kernel.org, linux-mtd@lists.infradead.org, bcousson@baylibre.com, Sourav Poddar <sourav.poddar@ti.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Hi Brian,
+On Tuesday 26 November 2013 01:04 PM, Sourav Poddar wrote:
+> The patch series aims to add memory mapped support for TI qspi
+> contoller and also add support for the same in serial flash driver(m25p80).
+>
+> These feature was added as a part of the series[1]:
+> The series[1] add support for quad and memory mapped feature in spi and
+> flash driver. Based on Brian Norris suggestion on splitting the quad and
+> memory mapped feature, I had sent a seperate series for quad support which
+> has beed accepted by Brian.
+>
+> The $subject patch series takes care of the memory mapped part.
+>
+> Overview of memory mapped support in qspi:
+>   TI qspi controller supports memory mapped read support, switching to which
+>   requires  register modifications(qspi registers, control module register for
+>   DRA, qspi register for am43x). Once switched, the flash data can be available
+>   at a soc specific memory mapped address. For operations in normal mode, we need
+>   to keep memory mapped disable.
+>
+>   Flow of the patch is to keep the memory mapped enable by default in the driver.
+>   Whenever Normal spi mode operations are desired, we switch to configuration mode
+>   and at the end of it memory mapped is again enabled. There are few function pointers
+>   added to fecilitate easy communication between the flash and spi controllers.
+>
+> Major changes in the $subject patch based on discussion in [1]:
+>
+> - Feature has been broken down into small meaningfl patches.
+> - memcpy is done in flash driver and spi framework is bypassed.
+> - configuration of memory mapped spi controller regsiters is done
+>    through function calls from flash side.
+>
+> [1]: http://lists.infradead.org/pipermail/linux-mtd/2013-October/049058.html
+>
+>
+> Tested on DRA7 board with spansion S25FL256S flash along with some
+> internal irq crossbar patches.
+> Tested on AM437x epos evm with macronix MX66l51235l flash.
+>
+> Testing done:
+> -Erase the whole flash.
+> -write to the flash
+> -read back the flash
+> - compare the data
+>
+> Sourav Poddar (17):
+>    spi/spi.h: Add get_buf/put_buf support in spi master..
+>    spi/spi.h: Add configure from slave support.
+>    spi/qspi: parse register by name.
+>    spi/qspi: parse control module register.
+>    spi/qspi: parse memory map register.
+>    spi/qspi: Add support to switc to memory mapped operation.
+>    spi/qspi: configure set up register for memory map..
+>    spi/qspi: Add api for get_buf/put_buf.
+>    spi/spi.h: Add "mem" variable in spi master.
+>    spi/spi.h: Add mmap flag in spi master.
+>    spi/qspi: set "mmap" flag to true.
+>    spi/qspi: convert driver to enable/disable memory mapped..
+>    drivers: mtd: m25p80: Add api to configure master register .
+>    drivers: mtd: m25p80: Adapt driver to support memory mapped read.
+>    arm: dts: dra7: Add qspi device.
+>    arm: dts: am43x-epos: Add qspi device.
+>    Documentation: bindings: ti-qspi: update binding information.
+>
+>   Documentation/devicetree/bindings/spi/ti_qspi.txt |    2 +
+>   arch/arm/boot/dts/am4372.dtsi                     |   12 ++
+>   arch/arm/boot/dts/am43x-epos-evm.dts              |   28 +++++
+>   arch/arm/boot/dts/dra7-evm.dts                    |   32 ++++++
+>   arch/arm/boot/dts/dra7.dtsi                       |   13 +++
+>   drivers/mtd/devices/m25p80.c                      |   30 ++++++
+>   drivers/spi/spi-ti-qspi.c                         |  115 ++++++++++++++++++++-
+>   include/linux/spi/spi.h                           |   16 +++
+>   8 files changed, 246 insertions(+), 2 deletions(-)
+>
+Gentle ping on this series on mtd side...
 
-On Thu, Dec 05, 2013 at 12:04:46PM +0530, Kishon Vijay Abraham I wrote:
-> On Wednesday 04 December 2013 08:10 PM, Heikki Krogerus wrote:
-> > On Mon, Nov 25, 2013 at 03:31:24PM +0530, Kishon Vijay Abraham I wrote:
-> >> There can be systems which does not have an external phy, so get
-> >> phy only if no quirks are added that indicates the PHY is not present.
-> >> Introduced two quirk flags to indicate the *absence* of usb2 phy and
-> >> usb3 phy. Also remove checking if return value is -ENXIO since it's now
-> >> changed to always enable usb_phy layer.
-> > 
-> > Can you guys explain why is something like this needed? Like with
-> > clocks and gpios, the device drivers shouldn't need to care any more
-> > if the platform has the phys or not. -ENODEV tells you your platform
-> 
-> Shouldn't we report if a particular platform needs a PHY and not able to get
-> it. How will a user know if a particular controller is not working because it's
-> not able to get and initialize the PHYs? Don't you think in such cases it's
-> better to fail (and return from probe) because the controller will not work
-> anyway without the PHY?
-
-My point is that you do not need to separately tell this to the driver
-like you do with the quirks (if you did, then you would need to fix
-your framework and not hack the drivers).
-
-Like I said, ENODEV tells you that there is no phy on this platform
-for you, allowing you to safely continue. If your phy driver is not
-loaded, the framework already returns EPROBE_DEFER, right. Any other
-error when getting the phy you can consider critical. They are the
-errors telling you that you do need a phy on this platform, but
-something actually went wrong when getting it.
-
-Those "quirks" should always be avoided, and I don't see any use for
-them here.
-
-> Thanks
-> Kishon
-
-Thanks,
-
--- 
-heikki
+______________________________________________________
+Linux MTD discussion mailing list
+http://lists.infradead.org/mailman/listinfo/linux-mtd/
