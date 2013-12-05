@@ -1,77 +1,65 @@
-From: Sebastian Reichel <sre@debian.org>
-Subject: [PATCH 2/2] Documentation: dt: Document TSC2005 DT binding
-Date: Fri,  6 Dec 2013 00:09:39 +0100
-Message-ID: <1386284979-9680-3-git-send-email-sre@debian.org>
-References: <1386284979-9680-1-git-send-email-sre@debian.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1386284979-9680-1-git-send-email-sre@debian.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@ring0.de>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Dmitry Torokhov <dtor@mail.ru>, linux-input@vger.kernel.org
-Cc: Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Rob Landley <rob@landley.net>, Grant Likely <grant.likely@linaro.org>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Sebastian Reichel <sre@debian.org>
+From: Christoph Fritz <chf.fritz@googlemail.com>
+Subject: Re: [Bug] am33xx: Basic suspend resume support: Doesn't resume
+Date: Fri, 06 Dec 2013 00:43:51 +0100
+Message-ID: <1386287031.3749.2.camel@mars>
+References: <1386250976.3880.91.camel@mars>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-bk0-f45.google.com ([209.85.214.45]:59707 "EHLO
+	mail-bk0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756005Ab3LEXnz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Dec 2013 18:43:55 -0500
+Received: by mail-bk0-f45.google.com with SMTP id mx13so32547bkb.32
+        for <linux-omap@vger.kernel.org>; Thu, 05 Dec 2013 15:43:54 -0800 (PST)
+In-Reply-To: <1386250976.3880.91.camel@mars>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: t-kristo@ti.com
+Cc: Russ Dill <Russ.Dill@ti.com>, Vaibhav Bedia <vaibhav.bedia@ti.com>, linux-omap@vger.kernel.org, Daniel Mack <zonque@gmail.com>
 
-Add devicetree binding documentation for TSC2005 touchscreen.
+On Thu, 2013-12-05 at 14:42 +0100, Christoph Fritz wrote:
+> Hi,
+> 
+>  I'm having here a custom am335x board with DDR3 equipped trying to
+> setup suspend/resume support. I have tested this with the ancient
+> TI-PSP-3.2 Kernel and current 3.13-rc plus some pm patches.
+> 
+> Problem: After suspending the device, it doesn't resume (freeze):
+> 
+> echo "mem" > /sys/power/state
+> [  103.020845] PM: Syncing filesystems ... done.
+> [  103.055549] Freezing user space processes ... (elapsed 0.003 seconds) done.
+> [  103.066696] Freezing remaining freezable tasks ... (elapsed 0.002 seconds) done.
+> [  103.077506] PM: Sending message for entering DeepSleep mode
+> [  103.099896] PM: suspend of devices complete after 11.951 msecs
+> [  103.110894] PM: late suspend of devices complete after 4.659 msecs
+> [  103.122599] PM: noirq suspend of devices complete after 5.032 msecs
+> 
+> As a wakeup source I'm currently using gpio0_12.
+> 
+> Triggering the reset button (am335x-pin: WARMRSTn) in suspend-mode has
+> no effect, which is fine. But after changing the signal on the wakeup
+> source (here gpio0_12), triggering a reset works fine again.
+> 
+> So it seems to me that somewhere in the wakeup-process is a bug.
+> 
+> Could this be related to DDR3? Apart from that, this custom board here
+> is pretty similar to the ti-evm board wich works fine.
+> 
+> In oder to test, I've shrunken the kernel to minimal driver support to
+> sort out as much as possible segfaults in resume functions.
+> 
+> With a view to be able to debug this further, I just ordered an openocd
+> jtag adapter.
+> 
+> Any comments, ideas, tips, ..?
 
-Signed-off-by: Sebastian Reichel <sre@debian.org>
----
- .../bindings/input/touchscreen/tsc2005.txt         | 49 ++++++++++++++++++++++
- 1 file changed, 49 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/input/touchscreen/tsc2005.txt
+Update: It has definitely something to do with DDR3. I'll investigate
+this further. By the way, is there a TI-Board with DDR3 and working
+suspend-resume?
 
-diff --git a/Documentation/devicetree/bindings/input/touchscreen/tsc2005.txt b/Documentation/devicetree/bindings/input/touchscreen/tsc2005.txt
-new file mode 100644
-index 0000000..4e7df0b
---- /dev/null
-+++ b/Documentation/devicetree/bindings/input/touchscreen/tsc2005.txt
-@@ -0,0 +1,49 @@
-+* TSC2005 Touchscreen
-+
-+Required properties:
-+ - compatible		      : "ti,tsc2005"
-+ - reg			      : SPI device address
-+ - spi-max-frequency	      : Maximal SPI speed
-+ - interrupts		      : IRQ specifier
-+ - reset-gpio		      : GPIO specifier
-+
-+Optional properties:
-+ - ti,fuzz-x		      : integer, X noise value of the touchscreen
-+				(defaults to 4)
-+ - ti,fuzz-y		      : integer, Y noise value of the touchscreen
-+				(defaults to 8)
-+ - ti,fuzz-pressure	      : integer, pressure noise value of the touchscreen
-+				(defaults to 2)
-+ - ti,max-x		      : integer, maximum reported x value
-+				(defaults to 4096)
-+ - ti,max-y		      : integer, maximum reported y value
-+				(defaults to 4096)
-+ - ti,max-pressure	      : integer, maximum reported pressure
-+				(defaults to 4096)
-+ - ti,x-plate-resistance      : integer, resistance of the touchscreen's X plates
-+				in ohm (defaults to 280)
-+ - ti,esd-recovery-timeout-ms : integer, if the touchscreen does not respond after
-+				the configured time (in milli seconds), the driver
-+				will reset it. This is disabled by default.
-+
-+Example:
-+
-+&mcspi1 {
-+	tsc2005@0 {
-+		compatible = "ti,tsc2005";
-+		spi-max-frequency = <6000000>;
-+		reg = <0>;
-+		reset-gpio = <&gpio4 8 GPIO_ACTIVE_HIGH>; /* 104 */
-+		interrupt-parent = <&gpio4>;
-+		interrupts = <4 IRQ_TYPE_NONE>; /* gpio line 100 */
-+
-+		ti,fuzz-x = <4>;
-+		ti,fuzz-y = <7>;
-+		ti,fuzz-pressure = <2>;
-+		ti,max-x = <4096>;
-+		ti,max-y = <4096>;
-+		ti,max-pressure = <2048>;
-+		ti,x-plate-resistance = <280>;
-+		ti,esd-recovery-timeout-ms = <8000>;
-+	};
-+}
--- 
-1.8.4.3
+Thanks
+  -- Christoph
+
