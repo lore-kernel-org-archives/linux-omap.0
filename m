@@ -1,33 +1,28 @@
 From: Herbert Xu <herbert@gondor.apana.org.au>
-Subject: Re: [PATCH] crypto: omap-sham - Only release DMA channel if
- successfully requested
-Date: Thu, 5 Dec 2013 22:35:29 +0800
-Message-ID: <20131205143529.GB1976@gondor.apana.org.au>
-References: <1384287147-19656-1-git-send-email-mgreer@animalcreek.com>
+Subject: Re: [PATCH] crypto: omap-aes: add error check for pm_runtime_get_sync
+Date: Thu, 5 Dec 2013 22:36:32 +0800
+Message-ID: <20131205143632.GF1976@gondor.apana.org.au>
+References: <1386121393-32464-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-crypto-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1384287147-19656-1-git-send-email-mgreer@animalcreek.com>
+In-Reply-To: <1386121393-32464-1-git-send-email-nm@ti.com>
 Sender: linux-crypto-owner@vger.kernel.org
-To: "Mark A. Greer" <mgreer@animalcreek.com>
-Cc: linux-crypto@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, "David S. Miller" <davem@davemloft.net>, Dan Carpenter <dan.carpenter@oracle.com>, Joel Fernandes <joelf@ti.com>
+To: Nishanth Menon <nm@ti.com>
+Cc: "David S. Miller" <davem@davemloft.net>, Tobias Jakobi <tjakobi@math.uni-bielefeld.de>, Joel F <joelf@ti.com>, linux-crypto@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Nov 12, 2013 at 01:12:27PM -0700, Mark A. Greer wrote:
-> In omap_sham_probe() and omap_sham_remove(), 'dd->dma_lch'
-> is released without checking to see if it was successfully
-> requested or not.  This is a bug and was identified and
-> reported by Dan Carpenter here:
+On Tue, Dec 03, 2013 at 07:43:13PM -0600, Nishanth Menon wrote:
+> The AES driver currently assumes that pm_runtime_get_sync will always
+> succeed, which may not always be true, so add error handling for the
+> same.
 > 
-> 	http://www.spinics.net/lists/devicetree/msg11023.html
+> This scenario was reported in the following bug:
+> place.  https://bugzilla.kernel.org/show_bug.cgi?id=66441
 > 
-> Add code to only release 'dd->dma_lch' when its not NULL
-> (that is, when it was successfully requested).
-> 
-> Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-> CC: Joel Fernandes <joelf@ti.com>
-> Signed-off-by: Mark A. Greer <mgreer@animalcreek.com>
+> Reported-by: Tobias Jakobi <tjakobi@math.uni-bielefeld.de>
+> Signed-off-by: Nishanth Menon <nm@ti.com>
 
 Patch applied.
 -- 
