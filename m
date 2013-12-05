@@ -1,116 +1,60 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP2+: omap_device: add fail hook for runtime_pm
- when bad data is detected
-Date: Thu, 5 Dec 2013 11:03:43 -0800
-Message-ID: <20131205190343.GI26766@atomide.com>
-References: <1386121153-32351-1-git-send-email-nm@ti.com>
+From: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+Subject: Re: OMAP3 NAND ECC selection
+Date: Thu, 5 Dec 2013 20:06:18 +0100
+Message-ID: <20131205200618.19b33ee2@skate>
+References: <alpine.DEB.2.01.1312051000270.17561@pmeerw.net>
+	<CAFqH_50vhgJ=ktqmYRo+ZO1bbRmiME+kXVt6sLJL91q9A2S7TA@mail.gmail.com>
+	<52A04E75.3010609@corscience.de>
+	<alpine.DEB.2.01.1312051711410.20976@pmeerw.net>
+	<20131205171326.GA26766@atomide.com>
+	<CABxcv=mtqkpyup0y-zv53YRvdgKH0bNXeCWf9mxPFoUTRQ=Gew@mail.gmail.com>
+	<20131205182628.GF2345@localhost>
+	<20980858CB6D3A4BAE95CA194937D5E73EA5222E@DBDE04.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1386121153-32351-1-git-send-email-nm@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Tobias Jakobi <tjakobi@math.uni-bielefeld.de>, Joel F <joelf@ti.com>, Kevin Hilman <khilman@linaro.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from top.free-electrons.com ([176.31.233.9]:48878 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750723Ab3LETGV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Dec 2013 14:06:21 -0500
+In-Reply-To: <20980858CB6D3A4BAE95CA194937D5E73EA5222E@DBDE04.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Gupta, Pekon" <pekon@ti.com>
+Cc: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, Javier Martinez Canillas <javier@dowhile0.org>, Tony Lindgren <tony@atomide.com>, Enric Balletbo Serra <eballetbo@gmail.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Andreas =?UTF-8?B?Qmllw59tYW5u?= <andreas.biessmann@corscience.de>, Peter Meerwald <pmeerw@pmeerw.net>, Brian Norris <computersforpeace@gmail.com>
 
-* Nishanth Menon <nm@ti.com> [131203 17:40]:
-> Due to the cross dependencies between hwmod for automanaged device
-> information for OMAP and dts node definitions, we can run into scenarios
-> where the dts node is defined, however it's hwmod entry is yet to be
-> added. In these cases:
-> a) omap_device does not register a pm_domain (since it cannot find
->    hwmod entry).
-> b) driver does not know about (a), does a pm_runtime_get_sync which
->    never fails
-> c) It then tries to do some operation on the device (such as read the
->   revision register (as part of probe) without clock or adequate OMAP
->   generic PM operation performed for enabling the module.
-> 
-> This causes a crash such as that reported in:
-> https://bugzilla.kernel.org/show_bug.cgi?id=66441
-> 
-> When 'ti,hwmod' is provided in dt node, it is expected that the device
-> will not function without the OMAP's power automanagement. Hence, when
-> we hit a fail condition (due to hwmod entries not present or other
-> similar scenario), fail at pm_domain level due to lack of data, provide
-> enough information for it to be fixed, however, it allows for the driver
-> to take appropriate measures to prevent crash.
+Dear Gupta, Pekon,
 
-Kevin, any comments on this one?
+On Thu, 5 Dec 2013 19:02:22 +0000, Gupta, Pekon wrote:
 
-Regards,
+> >From: Ezequiel Garcia [mailto:ezequiel.garcia@free-electrons.com]
+> [...]
+> >AFAIK, there's no hardware limitation that would prevent us from setting
+> >a per-partition ECC, keep in mind this effort is not reduced to make
+> >devicetree accept ECC on the partitions.
+> >
+> I had some reservations in doing so.. (as mentioned in previous email also [2])
+> I would rather like to understand long term benefits of such implementation.
 
-Tony
- 
-> Reported-by: Tobias Jakobi <tjakobi@math.uni-bielefeld.de>
-> Signed-off-by: Nishanth Menon <nm@ti.com>
-> ---
->  arch/arm/mach-omap2/omap_device.c |   24 ++++++++++++++++++++++++
->  arch/arm/mach-omap2/omap_device.h |    1 +
->  2 files changed, 25 insertions(+)
-> 
-> diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
-> index 53f0735..e0a398c 100644
-> --- a/arch/arm/mach-omap2/omap_device.c
-> +++ b/arch/arm/mach-omap2/omap_device.c
-> @@ -183,6 +183,10 @@ static int omap_device_build_from_dt(struct platform_device *pdev)
->  odbfd_exit1:
->  	kfree(hwmods);
->  odbfd_exit:
-> +	/* if data/we are at fault.. load up a fail handler */
-> +	if (ret)
-> +		pdev->dev.pm_domain = &omap_device_fail_pm_domain;
-> +
->  	return ret;
->  }
->  
-> @@ -604,6 +608,19 @@ static int _od_runtime_resume(struct device *dev)
->  
->  	return pm_generic_runtime_resume(dev);
->  }
-> +
-> +static int _od_fail_runtime_suspend(struct device *dev)
-> +{
-> +	dev_warn(dev, "%s: FIXME: missing hwmod/omap_dev info\n", __func__);
-> +	return -ENODEV;
-> +}
-> +
-> +static int _od_fail_runtime_resume(struct device *dev)
-> +{
-> +	dev_warn(dev, "%s: FIXME: missing hwmod/omap_dev info\n", __func__);
-> +	return -ENODEV;
-> +}
-> +
->  #endif
->  
->  #ifdef CONFIG_SUSPEND
-> @@ -657,6 +674,13 @@ static int _od_resume_noirq(struct device *dev)
->  #define _od_resume_noirq NULL
->  #endif
->  
-> +struct dev_pm_domain omap_device_fail_pm_domain = {
-> +	.ops = {
-> +		SET_RUNTIME_PM_OPS(_od_fail_runtime_suspend,
-> +				   _od_fail_runtime_resume, NULL)
-> +	}
-> +};
-> +
->  struct dev_pm_domain omap_device_pm_domain = {
->  	.ops = {
->  		SET_RUNTIME_PM_OPS(_od_runtime_suspend, _od_runtime_resume,
-> diff --git a/arch/arm/mach-omap2/omap_device.h b/arch/arm/mach-omap2/omap_device.h
-> index 17ca1ae..78c02b3 100644
-> --- a/arch/arm/mach-omap2/omap_device.h
-> +++ b/arch/arm/mach-omap2/omap_device.h
-> @@ -29,6 +29,7 @@
->  #include "omap_hwmod.h"
->  
->  extern struct dev_pm_domain omap_device_pm_domain;
-> +extern struct dev_pm_domain omap_device_fail_pm_domain;
->  
->  /* omap_device._state values */
->  #define OMAP_DEVICE_STATE_UNKNOWN	0
-> -- 
-> 1.7.9.5
-> 
+The long term benefits is simply to properly handle the hardware
+constraints. We have hardware platforms were parts of the NAND *MUST*
+use 1-bit ECC to be compatible with the ROM code, and other parts of
+the NAND *MUST* use stronger 4-bits or 8-bits ECC to comply with the
+NAND requirements.
+
+Isn't handling hardware constraints properly not a sufficient
+motivation for doing something?
+
+> Also, any constrain due to ROM code, or upgrading from remote can be
+> handled using various alternative approaches like [a] and [b].
+
+And you're not realizing that these solutions are ugly and impractical?
+
+Best regards,
+
+Thomas
+-- 
+Thomas Petazzoni, CTO, Free Electrons
+Embedded Linux, Kernel and Android engineering
+http://free-electrons.com
