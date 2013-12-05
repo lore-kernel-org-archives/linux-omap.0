@@ -1,67 +1,37 @@
-From: Balaji T K <balajitk@ti.com>
-Subject: Re: [RFC PATCH v3 1/8] mmc: omap_hsmmc: use devm_regulator API
-Date: Thu, 5 Dec 2013 20:59:15 +0530
-Message-ID: <52A09BCB.4080409@ti.com>
-References: <20130613174554.GB1403@sirena.org.uk> <1385043627-30439-1-git-send-email-balajitk@ti.com> <1385043627-30439-2-git-send-email-balajitk@ti.com> <CAPDyKFoS3i3eMKy817emRWoZ5OMKr7LgP3mjj2ePBBGcN5ZB2w@mail.gmail.com>
+From: Peter Meerwald <pmeerw@pmeerw.net>
+Subject: Re: OMAP3 NAND ECC selection
+Date: Thu, 5 Dec 2013 17:12:23 +0100 (CET)
+Message-ID: <alpine.DEB.2.01.1312051711410.20976@pmeerw.net>
+References: <alpine.DEB.2.01.1312051000270.17561@pmeerw.net> <CAFqH_50vhgJ=ktqmYRo+ZO1bbRmiME+kXVt6sLJL91q9A2S7TA@mail.gmail.com> <52A04E75.3010609@corscience.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <CAPDyKFoS3i3eMKy817emRWoZ5OMKr7LgP3mjj2ePBBGcN5ZB2w@mail.gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Ulf Hansson <ulf.hansson@linaro.org>
-Cc: linux-omap <linux-omap@vger.kernel.org>, bcousson@baylibre.com, devicetree@vger.kernel.org, linux-mmc <linux-mmc@vger.kernel.org>, Chris Ball <cjb@laptop.org>, Mark Brown <broonie@kernel.org>, Tony Lindgren <tony@atomide.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from ns.pmeerw.net ([87.118.82.44]:42409 "EHLO pmeerw.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932402Ab3LEQM0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 5 Dec 2013 11:12:26 -0500
+In-Reply-To: <52A04E75.3010609@corscience.de>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: =?UTF-8?Q?Andreas_Bie=C3=9Fmann?= <andreas.biessmann@corscience.de>
+Cc: Enric Balletbo Serra <eballetbo@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-mtd@lists.infradead.org
 
-On Thursday 21 November 2013 08:38 PM, Ulf Hansson wrote:
-> On 21 November 2013 15:20, Balaji T K <balajitk@ti.com> wrote:
->> Use devm_regulator API, while at it use
->> devm_regulator_get_optional for optional vmmc_aux supply
->>
->> Signed-off-by: Balaji T K <balajitk@ti.com>
->> ---
->>   drivers/mmc/host/omap_hsmmc.c |    6 ++----
->>   1 files changed, 2 insertions(+), 4 deletions(-)
->>
->> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
->> index dbd32ad..1eb4350 100644
->> --- a/drivers/mmc/host/omap_hsmmc.c
->> +++ b/drivers/mmc/host/omap_hsmmc.c
->> @@ -316,7 +316,7 @@ static int omap_hsmmc_reg_get(struct omap_hsmmc_host *host)
->>          struct regulator *reg;
->>          int ocr_value = 0;
->>
->> -       reg = regulator_get(host->dev, "vmmc");
->> +       reg = devm_regulator_get(host->dev, "vmmc");
->>          if (IS_ERR(reg)) {
->>                  dev_err(host->dev, "vmmc regulator missing\n");
->>                  return PTR_ERR(reg);
->> @@ -336,7 +336,7 @@ static int omap_hsmmc_reg_get(struct omap_hsmmc_host *host)
->>                  }
->>
->>                  /* Allow an aux regulator */
->> -               reg = regulator_get(host->dev, "vmmc_aux");
->> +               reg = devm_regulator_get_optional(host->dev, "vmmc_aux");
->>                  host->vcc_aux = IS_ERR(reg) ? NULL : reg;
->>
->>                  /* For eMMC do not power off when not in sleep state */
->> @@ -366,8 +366,6 @@ static int omap_hsmmc_reg_get(struct omap_hsmmc_host *host)
->>
->>   static void omap_hsmmc_reg_put(struct omap_hsmmc_host *host)
->>   {
->> -       regulator_put(host->vcc);
->> -       regulator_put(host->vcc_aux);
->>          mmc_slot(host).set_power = NULL;
->>   }
->
-> While you are touching this code I would suggest to convert to
-> mmc_regulator_get_supply instead. That mean the vmmc_aux change name
-> to vqmmc though, so you need to adapt for this as well then.
->
+> >> I'd like to be able to update MLO and u-boot from within a booted Linux
+> >> system on the device (I have to resort to u-boot for that where I can
+> >> control the ECC scheme used)
 
-Hi Ulf,
+> > Meanwhile, to do this we use a small userspace program created by
+> > Javier Martinez in order to flash the MLO in our OMAP3 boards. See
+> > http://git.isee.biz/?p=pub/scm/writeloader.git;a=summary
 
-Thanks for the comments, I will address it on separate series.
+> we used another aproach here. See
+> http://article.gmane.org/gmane.linux.drivers.mtd/43804
 
-Thanks and Regards,
-Balaji T K
+pretty much what I have been looking for, thanks!
+
+p.
+
+-- 
+
+Peter Meerwald
++43-664-2444418 (mobile)
