@@ -1,62 +1,45 @@
-From: Enric Balletbo Serra <eballetbo@gmail.com>
-Subject: Re: OMAP3 NAND ECC selection
-Date: Thu, 5 Dec 2013 10:47:10 +0100
-Message-ID: <CAFqH_50vhgJ=ktqmYRo+ZO1bbRmiME+kXVt6sLJL91q9A2S7TA@mail.gmail.com>
-References: <alpine.DEB.2.01.1312051000270.17561@pmeerw.net>
+From: Sourav Poddar <sourav.poddar@ti.com>
+Subject: Re: [PATCH 0/3] Add more device nodes for am43x gp evm.
+Date: Thu, 5 Dec 2013 15:18:41 +0530
+Message-ID: <52A04BF9.5030604@ti.com>
+References: <1385537479-6959-1-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f177.google.com ([209.85.212.177]:47564 "EHLO
-	mail-wi0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752658Ab3LEJrN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Dec 2013 04:47:13 -0500
-Received: by mail-wi0-f177.google.com with SMTP id cc10so9518312wib.4
-        for <linux-omap@vger.kernel.org>; Thu, 05 Dec 2013 01:47:11 -0800 (PST)
-In-Reply-To: <alpine.DEB.2.01.1312051000270.17561@pmeerw.net>
+Received: from bear.ext.ti.com ([192.94.94.41]:50559 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751926Ab3LEJsu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 5 Dec 2013 04:48:50 -0500
+In-Reply-To: <1385537479-6959-1-git-send-email-sourav.poddar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Meerwald <pmeerw@pmeerw.net>
-Cc: linux-mtd@lists.infradead.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Sourav Poddar <sourav.poddar@ti.com>, bcousson@baylibre.com
+Cc: rob.herring@calxeda.com, mark.rutland@arm.com, swarren@wwwdotorg.org, devicetree@vger.kernel.org, tony@atomide.com, balbi@ti.com, linux-omap@vger.kernel.org, nsekhar@ti.com
 
-Hi Peter,
-
-2013/12/5 Peter Meerwald <pmeerw@pmeerw.net>:
-> Hello,
+Hi Benoit,
+On Wednesday 27 November 2013 01:01 PM, Sourav Poddar wrote:
+> The patch series adds support for enabling gpio, pwm backlight and
+> matrix gpio keys on am43x-gp-evm.
 >
-> on OMAP3, the NAND area holding MLO and u-boot need a different ECC scheme
-> (hw) than the rootfs (sw)
+> Done on top of 3.13-rc1 + tero clock series(1) + Afzal's basic gp support(2).
 >
-
-There is some discussion around this, please take a look at this thread,
-
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg98969.html
-
-> is there a way to tell the kernel which ECC scheme to use on a
-> per-partition basis?
+> [1]: https://patchwork.kernel.org/patch/3009541/
+> [2]: https://patchwork.kernel.org/patch/3171761/
 >
-
-At this moment this is not possible.
-
-> I'd like to be able to update MLO and u-boot from within a booted Linux
-> system on the device (I have to resort to u-boot for that where I can
-> control the ECC scheme used)
+> Tested on am43x-gp-evm.
 >
-
-Meanwhile, to do this we use a small userspace program created by
-Javier Martinez in order to flash the MLO in our OMAP3 boards. See
-
-http://git.isee.biz/?p=pub/scm/writeloader.git;a=summary
-
-Hope it helps you. Regards,
-   Enric
-
-> thanks, regards, p.
+> There is a some bug while using regulators through backlight
+> driver on 3.13-rc1. So, tested pwm part with this patch[3].
 >
-> --
+> [3]: http://www.spinics.net/lists/arm-kernel/msg288215.html
 >
-> Peter Meerwald
-> +43-664-2444418 (mobile)
+> Sourav Poddar (3):
+>    arm: dts: am437x-gp-evm: Enable gpio.
+>    ARM: dts: am43x-gp-evm: Add matrix gpio keys.
+>    ARM: dts: am437x-gp-evm: Add pwm backlight support.
 >
-> ______________________________________________________
-> Linux MTD discussion mailing list
-> http://lists.infradead.org/mailman/listinfo/linux-mtd/
+>   arch/arm/boot/dts/am437x-gp-evm.dts |   53 +++++++++++++++++++++++++++++++++++
+>   1 files changed, 53 insertions(+), 0 deletions(-)
+>
+Gentle pIng on this.
