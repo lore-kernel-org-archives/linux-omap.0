@@ -1,72 +1,56 @@
-From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-Subject: Re: OMAP3 NAND ECC selection
-Date: Thu, 5 Dec 2013 15:26:29 -0300
-Message-ID: <20131205182628.GF2345@localhost>
-References: <alpine.DEB.2.01.1312051000270.17561@pmeerw.net>
- <CAFqH_50vhgJ=ktqmYRo+ZO1bbRmiME+kXVt6sLJL91q9A2S7TA@mail.gmail.com>
- <52A04E75.3010609@corscience.de>
- <alpine.DEB.2.01.1312051711410.20976@pmeerw.net>
- <20131205171326.GA26766@atomide.com>
- <CABxcv=mtqkpyup0y-zv53YRvdgKH0bNXeCWf9mxPFoUTRQ=Gew@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: DTS: omap4-sdp: Add regulator for LCD backlight
+ (pwm-backlight)
+Date: Thu, 5 Dec 2013 10:40:07 -0800
+Message-ID: <20131205184007.GE26766@atomide.com>
+References: <1385630924-16392-1-git-send-email-peter.ujfalusi@ti.com>
+ <5297164D.9060400@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from top.free-electrons.com ([176.31.233.9]:48611 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752009Ab3LES0Z (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Dec 2013 13:26:25 -0500
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:21581 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1757154Ab3LESkN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Dec 2013 13:40:13 -0500
 Content-Disposition: inline
-In-Reply-To: <CABxcv=mtqkpyup0y-zv53YRvdgKH0bNXeCWf9mxPFoUTRQ=Gew@mail.gmail.com>
+In-Reply-To: <5297164D.9060400@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Javier Martinez Canillas <javier@dowhile0.org>
-Cc: Tony Lindgren <tony@atomide.com>, "Gupta, Pekon" <pekon@ti.com>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Enric Balletbo Serra <eballetbo@gmail.com>, linux-mtd@lists.infradead.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Andreas =?utf-8?B?Qmllw59tYW5u?= <andreas.biessmann@corscience.de>, Peter Meerwald <pmeerw@pmeerw.net>, Brian Norris <computersforpeace@gmail.com>
+To: Sourav Poddar <sourav.poddar@ti.com>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Benoit Cousson <bcousson@baylibre.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, tomi.valkeinen@ti.com
 
-Hi Javier,
+* Sourav Poddar <sourav.poddar@ti.com> [131128 02:10]:
+> On Thursday 28 November 2013 02:58 PM, Peter Ujfalusi wrote:
+> >Since in DT booted kernel dummy regulators are no longer supported we need
+> >to provide valid phandle for the regulator needed by the backlight.
+> >On the board VBAT is used to power the LCD backlight(s).
+> >
+> >Signed-off-by: Peter Ujfalusi<peter.ujfalusi@ti.com>
+> >---
+> >Hi,
+> >
+> >This patch is needed for 3.13 to get the LCD backlight to work again.
+> Is this usage of power supply a mandatory requirement?
+> 
+> There is a thread which discusses this issue[1]:
+> http://www.spinics.net/lists/arm-kernel/msg288215.html
+> 
+> According to the above, regulator framework have support in 3.13-rc1
+> to returns
+> a dummy  regulator if there is none specified in the dts data.
+> Thierry told that there seems to be a bug in regulator in handling
+> these case.
+> 
+> Though, I also posted a patch on pwm a couple of days ago[2]
+> [2]: https://patchwork.kernel.org/patch/3246711/
+> 
+> I posted it without "power-supply" by testing it with the
+> solution proposed in [1].
+> If I dont use the solution[1], it fails for me also.
 
-(CCing Brian: What do you think about this?)
+Hmm so if this is not needed, I'll mark this thread as read in
+my inbox. If you guys need it please repost.
 
-On Thu, Dec 05, 2013 at 06:39:10PM +0100, Javier Martinez Canillas wrot=
-e:
-> On Thu, Dec 5, 2013 at 6:13 PM, Tony Lindgren <tony@atomide.com> wrot=
-e:
->=20
-> In the another thread [0] pointed out by Enric we were discussing the
-> same issue. Thomas suggested [1] that ideally we should be able to se=
-t
-> a per MTD partition ECC scheme. That way we can set 1 bit hamming for
-> the first MTD partition that has the SPL that the boot ROM needs to
-> read and the other partitions can use a more secure ECC scheme. I
-> completely agree with him.
->=20
-[..]
-> global ECC scheme and we should expand the GPMC NAND DT binding so
-> partitions support the "ti,nand-ecc-opt". I'll see if I can get some
-> free time to try to implement that.
->=20
+Regards,
 
-AFAIK, there's no hardware limitation that would prevent us from settin=
-g
-a per-partition ECC, keep in mind this effort is not reduced to make
-devicetree accept ECC on the partitions.
-
-While there are some per MTD device (which model each partition), the
-ECC mode is present in the, nand_chip structure. My understanding is th=
-at
-the NAND core hasn't been designed for this use case, and thus some
-major re-work is needed to accomplish it.
-
-Therefore, it's a much short-term solution to implement the OMAP
-module parameter to fix the issue.
-
-Of course, feel free to prove me wrong :-)
---=20
-Ezequiel Garc=C3=ADa, Free Electrons
-Embedded Linux, Kernel and Android Engineering
-http://free-electrons.com
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tony
