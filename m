@@ -1,57 +1,42 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP2+: enable EHCI by default
-Date: Thu, 5 Dec 2013 09:11:04 -0800
-Message-ID: <20131205171104.GZ26766@atomide.com>
-References: <1386205695-26191-1-git-send-email-thomas@cozybit.com>
+Subject: Re: OMAP3 NAND ECC selection
+Date: Thu, 5 Dec 2013 09:13:26 -0800
+Message-ID: <20131205171326.GA26766@atomide.com>
+References: <alpine.DEB.2.01.1312051000270.17561@pmeerw.net>
+ <CAFqH_50vhgJ=ktqmYRo+ZO1bbRmiME+kXVt6sLJL91q9A2S7TA@mail.gmail.com>
+ <52A04E75.3010609@corscience.de>
+ <alpine.DEB.2.01.1312051711410.20976@pmeerw.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:35223 "EHLO
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:43134 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752131Ab3LERLH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Dec 2013 12:11:07 -0500
+	with ESMTP id S1756945Ab3LERNb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Dec 2013 12:13:31 -0500
 Content-Disposition: inline
-In-Reply-To: <1386205695-26191-1-git-send-email-thomas@cozybit.com>
+In-Reply-To: <alpine.DEB.2.01.1312051711410.20976@pmeerw.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Thomas Pedersen <thomas@cozybit.com>
-Cc: linux-omap@vger.kernel.org, linux@arm.linux.org.uk, Roger Quadros <rogerq@ti.com>
+To: Peter Meerwald <pmeerw@pmeerw.net>
+Cc: Andreas =?utf-8?B?Qmllw59tYW5u?= <andreas.biessmann@corscience.de>, Enric Balletbo Serra <eballetbo@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-mtd@lists.infradead.org
 
-* Thomas Pedersen <thomas@cozybit.com> [131204 17:09]:
-> This is needed for the pandaboard (ES) kernel to detect
-> the ethernet device during boot. Useful for NFS root etc.
+* Peter Meerwald <pmeerw@pmeerw.net> [131205 08:13]:
+> > >> I'd like to be able to update MLO and u-boot from within a booted Linux
+> > >> system on the device (I have to resort to u-boot for that where I can
+> > >> control the ECC scheme used)
+> 
+> > > Meanwhile, to do this we use a small userspace program created by
+> > > Javier Martinez in order to flash the MLO in our OMAP3 boards. See
+> > > http://git.isee.biz/?p=pub/scm/writeloader.git;a=summary
+> 
+> > we used another aproach here. See
+> > http://article.gmane.org/gmane.linux.drivers.mtd/43804
+> 
+> pretty much what I have been looking for, thanks!
 
-Thanks for the patch, just to clarify why we have not been able
-to apply this is EHCI blocks deeper PM states for at least omap3
-currently. And this means the PM related tests won't run properly
-out of the box..
-
-Roger has been working to get EHCI working properly with PM,
-and the recent interrupts-extended binding and the addition of
-wake-up interrupts to pinctrl-single.c should allow us to do that
-soon. Maybe Roger can summarize what else might still be missing?
+Hmm well both methods should work, but is there anything stopping us
+merging the module param patch to the mainline tree?
 
 Regards,
 
 Tony
- 
-> Signed-off-by: Thomas Pedersen <thomas@cozybit.com>
-> ---
->  arch/arm/configs/omap2plus_defconfig | 1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
-> index bfa80a1..a236a2b 100644
-> --- a/arch/arm/configs/omap2plus_defconfig
-> +++ b/arch/arm/configs/omap2plus_defconfig
-> @@ -212,6 +212,7 @@ CONFIG_SND_OMAP_SOC_OMAP_TWL4030=m
->  CONFIG_SND_OMAP_SOC_OMAP_ABE_TWL6040=m
->  CONFIG_SND_OMAP_SOC_OMAP3_PANDORA=m
->  CONFIG_USB=y
-> +CONFIG_USB_EHCI_HCD=y
->  CONFIG_USB_DEBUG=y
->  CONFIG_USB_ANNOUNCE_NEW_DEVICES=y
->  CONFIG_USB_MON=y
-> -- 
-> 1.8.4.3
-> 
