@@ -1,91 +1,102 @@
-From: Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>
-Subject: [PATCHv2 07/10] drivers: mtd: m25p80: Adapt driver to support memory mapped read.
-Date: Fri, 6 Dec 2013 19:54:48 +0530
-Message-ID: <1386339891-32717-8-git-send-email-sourav.poddar@ti.com>
+From: Sourav Poddar <sourav.poddar@ti.com>
+Subject: [PATCHv2 09/10] arm: dts: dra7: Add qspi device.
+Date: Fri, 6 Dec 2013 19:54:50 +0530
+Message-ID: <1386339891-32717-10-git-send-email-sourav.poddar@ti.com>
 References: <1386339891-32717-1-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1386339891-32717-1-git-send-email-sourav.poddar-l0cyMroinI0@public.gmane.org>
-Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, marex-ynQEQJNshbs@public.gmane.org
-Cc: dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:50987 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759230Ab3LFO0K (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 6 Dec 2013 09:26:10 -0500
+In-Reply-To: <1386339891-32717-1-git-send-email-sourav.poddar@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: broonie@kernel.org, linux-spi@vger.kernel.org, computersforpeace@gmail.com, marex@denx.de
+Cc: dwmw2@infradead.org, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, bcousson@baylibre.com, balbi@ti.com, Sourav Poddar <sourav.poddar@ti.com>
 
-Adapt driver to do a memory mapped read.
+These add device tree entry for qspi controller driver on dra7.
 
-Signed-off-by: Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
 ---
 v1->v2:
- - Add a check to Wait for the previous erase/write to
-   finish.
- - Ensure proper locking
- drivers/mtd/devices/m25p80.c |   20 ++++++++++++++++++++
- 1 files changed, 20 insertions(+), 0 deletions(-)
+use "MUX_MODE1" instead of numeric value
+ arch/arm/boot/dts/dra7-evm.dts |   32 ++++++++++++++++++++++++++++++++
+ arch/arm/boot/dts/dra7.dtsi    |   13 +++++++++++++
+ 2 files changed, 45 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/mtd/devices/m25p80.c b/drivers/mtd/devices/m25p80.c
-index b90c7e5..eb75d84 100644
---- a/drivers/mtd/devices/m25p80.c
-+++ b/drivers/mtd/devices/m25p80.c
-@@ -109,6 +109,7 @@ struct m25p {
- 	u8			program_opcode;
- 	u8			*command;
- 	enum read_type		flash_read;
-+	void __iomem *mem_addr;
+diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
+index 5babba0..4a57fdf 100644
+--- a/arch/arm/boot/dts/dra7-evm.dts
++++ b/arch/arm/boot/dts/dra7-evm.dts
+@@ -93,6 +93,21 @@
+ 			0x24c (PIN_INPUT_SLEW | MUX_MODE0) /* uart3_txd */
+ 		>;
+ 	};
++
++	qspi1_pins: pinmux_qspi1_pins {
++		pinctrl-single,pins = <
++			0x4c (PIN_INPUT | MUX_MODE1)  /* gpmc_a3.qspi1_cs2 */
++			0x50 (PIN_INPUT | MUX_MODE1)  /* gpmc_a4.qspi1_cs3 */
++			0x74 (PIN_INPUT | MUX_MODE1)  /* gpmc_a13.qspi1_rtclk */
++			0x78 (PIN_INPUT | MUX_MODE1)  /* gpmc_a14.qspi1_d3 */
++			0x7c (PIN_INPUT | MUX_MODE1)  /* gpmc_a15.qspi1_d2 */
++			0x80 (PIN_INPUT | MUX_MODE1) /* gpmc_a16.qspi1_d1 */
++			0x84 (PIN_INPUT | MUX_MODE1)  /* gpmc_a17.qspi1_d0 */
++			0x88 (PIN_INPUT | MUX_MODE1)  /* qpmc_a18.qspi1_sclk */
++			0xb8 (PIN_INPUT_PULLUP | MUX_MODE1)  /* gpmc_cs2.qspi1_cs0 */
++			0xbc (PIN_INPUT_PULLUP | MUX_MODE1)  /* gpmc_cs3.qspi1_cs1 */
++		>;
++	};
  };
  
- static inline struct m25p *mtd_to_m25p(struct mtd_info *mtd)
-@@ -515,6 +516,7 @@ static int m25p80_read(struct mtd_info *mtd, loff_t from, size_t len,
- 	size_t *retlen, u_char *buf)
- {
- 	struct m25p *flash = mtd_to_m25p(mtd);
-+	struct spi_master *master = flash->spi->master;
- 	struct spi_transfer t[2];
- 	struct spi_message m;
- 	uint8_t opcode;
-@@ -523,6 +525,20 @@ static int m25p80_read(struct mtd_info *mtd, loff_t from, size_t len,
- 	pr_debug("%s: %s from 0x%08x, len %zd\n", dev_name(&flash->spi->dev),
- 			__func__, (u32)from, len);
- 
-+	if (master->mmap) {
-+		mutex_lock(&flash->lock);
-+		/* Wait till previous write/erase is done. */
-+		if (wait_till_ready(flash)) {
-+			mutex_unlock(&flash->lock);
-+			return 1;
-+		}
-+		flash->mem_addr = master->get_buf(master);
-+		memcpy(buf, flash->mem_addr + from, len);
-+		master->put_buf(master);
-+		*retlen = len;
-+		goto out;
-+	}
+ &i2c1 {
+@@ -273,3 +288,20 @@
+ &cpu0 {
+ 	cpu0-supply = <&smps123_reg>;
+ };
 +
- 	spi_message_init(&m);
- 	memset(t, 0, (sizeof t));
- 
-@@ -558,6 +574,7 @@ static int m25p80_read(struct mtd_info *mtd, loff_t from, size_t len,
- 
- 	*retlen = m.actual_length - m25p_cmdsz(flash) - dummy;
- 
-+out:
- 	mutex_unlock(&flash->lock);
- 
- 	return 0;
-@@ -1286,6 +1303,9 @@ static int m25p_probe(struct spi_device *spi)
- 		flash->addr_width = 3;
- 	}
- 
-+	if (spi->master->configure_from_slave)
-+		m25p80_fill_flash_information(flash);
++&qspi {
++	status = "okay";
++	pinctrl-names = "default";
++	pinctrl-0 = <&qspi1_pins>;
 +
- 	dev_info(&spi->dev, "%s (%lld Kbytes)\n", id->name,
- 			(long long)flash->mtd.size >> 10);
++	spi-max-frequency = <48000000>;
++	m25p80@0 {
++		compatible = "s25fl256s1";
++		spi-max-frequency = <48000000>;
++		reg = <0>;
++		spi-tx-bus-width = <1>;
++		spi-rx-bus-width = <4>;
++		spi-cpol;
++		spi-cpha;
++	};
++};
+diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+index 67275c8..b06d899 100644
+--- a/arch/arm/boot/dts/dra7.dtsi
++++ b/arch/arm/boot/dts/dra7.dtsi
+@@ -582,6 +582,19 @@
+ 			dma-names = "tx0", "rx0";
+ 			status = "disabled";
+ 		};
++
++		qspi: qspi@4b300000 {
++			compatible = "ti,dra7xxx-qspi";
++			reg = <0x4b300000 0x100>, <0x4a002558 0x4>,
++					<0x5c000000 0x3ffffff>;
++			reg-names = "qspi_base", "qspi_ctrlmod", "qspi_mmap";
++			#address-cells = <1>;
++			#size-cells = <0>;
++			ti,hwmods = "qspi";
++			num-cs = <4>;
++			interrupts = <0 124 0x4>;
++			status = "disabled";
++		};
+ 	};
  
+ 	clocks {
 -- 
 1.7.1
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-spi" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
