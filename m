@@ -1,65 +1,79 @@
-From: Scott Wood <scottwood@freescale.com>
-Subject: Re: [PATCH] ARM: dts: omap3-igep00x0: Fix nand ECC to maintain
- backward compatibility.
-Date: Fri, 6 Dec 2013 13:52:31 -0600
-Message-ID: <1386359551.7375.141.camel@snotra.buserror.net>
-References: <1385896995-16803-1-git-send-email-eballetbo@gmail.com>
-	 <CABxcv=mkSE2A9TLsp7pXWK=dyu6wjN0t6K2ke6NfP3G2rxaXug@mail.gmail.com>
-	 <20131202115422.1f8c73f6@skate>
-	 <CAFqH_53V5rOsCOLzTzm=9m1zvJpqN_ofh1jjzKAMmKqwHe28rQ@mail.gmail.com>
-	 <20980858CB6D3A4BAE95CA194937D5E73EA5094C@DBDE04.ent.ti.com>
-	 <20131202160219.40286dc9@skate>
-	 <20980858CB6D3A4BAE95CA194937D5E73EA5099E@DBDE04.ent.ti.com>
-	 <CAFqH_52ARf44fWOP9HBwfS=AjoNm2MfEMyBBAJ7KDJO+xLPGfw@mail.gmail.com>
-	 <20131202165103.726314d9@skate>	<529CAEA3.2080808@ti.com>
-	 <20131202170606.2191fd89@skate>
-	 <20980858CB6D3A4BAE95CA194937D5E73EA50A23@DBDE04.ent.ti.com>
-	 <20131202171907.56c9300a@skate>
-	 <20980858CB6D3A4BAE95CA194937D5E73EA50AA4@DBDE04.ent.ti.com>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v2 1/7] usb: dwc3: get "usb_phy" only if the platform
+ indicates the presence of PHY's
+Date: Fri, 6 Dec 2013 14:15:30 -0600
+Message-ID: <20131206201530.GA21086@saruman.home>
+References: <1381866857-3861-1-git-send-email-kishon@ti.com>
+ <1381866857-3861-2-git-send-email-kishon@ti.com>
+ <525E8E93.9010503@ti.com>
+ <525E9046.3090209@ti.com>
+ <525E943E.3080706@ti.com>
+ <20131017145425.GE11611@gimli>
+ <20131203103950.GB26423@xps8300>
+Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from am1ehsobe005.messaging.microsoft.com ([213.199.154.208]:13880
-	"EHLO am1outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753208Ab3LFTwq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Dec 2013 14:52:46 -0500
-In-Reply-To: <20980858CB6D3A4BAE95CA194937D5E73EA50AA4@DBDE04.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="uAKRQypu60I7Lcqm"
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20131203103950.GB26423@xps8300>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Heikki Krogerus <heikki.krogerus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, s.nawrocki-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gupta, Pekon" <pekon@ti.com>
-Cc: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, "Javier Martinez Canillas (javier@dowhile0.org)" <javier@dowhile0.org>, "Rini, Tom" <trini@ti.com>, Enric Balletbo Serra <eballetbo@gmail.com>, =?ISO-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Javier Martinez Canillas <martinez.javier@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
 
-On Mon, 2013-12-02 at 17:05 +0000, Gupta, Pekon wrote:
-> (2) Also selection of ecc-scheme mainly depends on NAND device parameter
->      (like density, page-size, oobsize) which remain constant for a device
->     (all NAND partitions). Thus all partitions should use *same* ecc-scheme
->     preferable highest possible available with NAND device & kernel.
+--uAKRQypu60I7Lcqm
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-It was pointed out earlier in the thread that there are chips for which
-it is not constant throughout the device (i.e. the boot block is
-special, presumably implemented differently in hardware).
+On Tue, Dec 03, 2013 at 12:39:50PM +0200, Heikki Krogerus wrote:
+> Hi,
+>=20
+> On Thu, Oct 17, 2013 at 09:54:26AM -0500, Felipe Balbi wrote:
+> > On Wed, Oct 16, 2013 at 04:27:26PM +0300, Roger Quadros wrote:
+> > > On 10/16/2013 04:10 PM, Kishon Vijay Abraham I wrote:
+> > > Do you know if there are users of dwc3 other than exynos5250 and omap=
+5?
+> > > If not, we should get rid of the old USB PHY altogether.
+> >=20
+> > Intel's Baytrail, at least. But they don't use DT.
+>=20
+> I don't see any use for the generic-phy when the device is enumerated
+> from PCI. If dwc3 can live without phys, there should not be any
+> problem dropping the old USB PHY support.
 
-> (3) Kernel uses same driver instance to handle all MTD partitions, so if one
->    partition uses HAM1 while other uses BCH8, and both are simultaneously
->    mounted, then it would be difficult for driver to switch ecc-schemes while
->   doing interleaved Read/Write between the partitions.
->   (though it can be added in framework, but then it's too much over-head).
+yeah, I don't want to drop PHY support, I want to require everybody to
+provide a PHY, otherwise we have too many options to handle and that's
+never clean.
 
-Don't think of it as switching back and forth for every access, but
-rather having dynamic dispatch to the proper code for any given access.
+--=20
+balbi
 
-I'm not sure that partitions are the right place to implement this, as
-they're a higher level abstraction.  If the NAND chip says that 1-bit
-correction is good enough for certain blocks but not others, then that's
-chip-level information that the driver ought to know about independently
-of partitioning.  OTOH, that doesn't provide the ability to manage
-compatibility with entities that use stronger correction than is needed
-(or different ways of achieving the same level of correction), but it
-could be a simpler way to solve the basic problem of boot blocks being
-special.
+--uAKRQypu60I7Lcqm
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
--Scott
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.15 (GNU/Linux)
 
+iQIcBAEBAgAGBQJSojBhAAoJEIaOsuA1yqREUR4QALLZQaPF8HS/RvsATcqHZ/Ez
+Uay3F7tSpIuxcQsJFoQVkXiS8Me49/I3fTUx6DIV84B68cVBqtpWq5+MMRZxt9dP
+5XBZgk+NWcfTto9q/4bU0BTRu3N6qNttL3bpH7jtofSV3k/zDfeNiKaQABSt9qfs
+/Mt66wLuIoh1e3qBmE1+b1BrBpBkVAn0uw4kWrCulG0mGdhtyh8GeaMDej3XE9eI
+xWEmX6uy0xhq2v7coFvAGjv1pyOBiovzKVeIazwLmfHEtT0QrR4JBZ9dRcrtV7IF
+Ay7N7ZSPR9wSuGB91e/Vb8qvAJIIi8birHMCIeRJ4DRo9x+cIYkThBUzQyl8MYSg
+1LtI2+8Jcn/YpEbHg/9ZFNni3ZdOgVVllCwsWKJ4aIfuEzkLtC9/8OYRux9y4CT9
+1+4rrM5LwnHBuLfIwNlfAcOddxakPMTbv0JFnuxvykIT6z1OwqDHUURkQ0k/zvFu
+hjeamvA8wa+IkEmVb+ya3n+VMEEPbXN4AjfBTYelSl6ElpxQchO6Xna+mW8jZVf+
+uowmIVoLIeMh0i61xsjNb+7WyKhS3o6ZG3wMwPNjwYAEJs78wWTt4OvqhnLuYZUm
+bLph99N4cwtANHtbfNvS68RfHSatjhSjjNkXKMYIt0zEQgW0qgsaSVx7NnClJdOV
+J6zOq19aM9RG+Ycc+BPa
+=Bozc
+-----END PGP SIGNATURE-----
 
-
+--uAKRQypu60I7Lcqm--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
