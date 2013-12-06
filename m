@@ -1,61 +1,59 @@
-From: Wei Yongjun <weiyj.lk@gmail.com>
-Subject: [PATCH] ARM: OMAPFB: panel-sony-acx565akm: fix missing unlock in acx565akm_panel_power_on()
-Date: Fri, 6 Dec 2013 20:55:12 +0800
-Message-ID: <CAPgLHd_asZkqBEXyx611=NOMfcaR18jZ8Yxkt5yhg7Lbng93MA@mail.gmail.com>
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
+Subject: Re: [PATCH v2 2/3] bq2415x_charger: Use power_supply notifier for automode
+Date: Fri, 6 Dec 2013 14:32:08 +0100
+Message-ID: <201312061432.09120@pali>
+References: <1378630239-10006-1-git-send-email-pali.rohar@gmail.com> <1384856285-19593-1-git-send-email-pali.rohar@gmail.com> <1384856285-19593-3-git-send-email-pali.rohar@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bk0-f42.google.com ([209.85.214.42]:55345 "EHLO
-	mail-bk0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753588Ab3LFMzN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Dec 2013 07:55:13 -0500
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed;
+  boundary="nextPart10426763.o6OPnWeIKB";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1384856285-19593-3-git-send-email-pali.rohar@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Anton Vorontsov <anton@enomsg.org>
+Cc: David Woodhouse <dwmw2@infradead.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, freemangordon@abv.bg, aaro.koskinen@iki.fi, pavel@ucw.cz
 List-Id: linux-omap@vger.kernel.org
-To: tomi.valkeinen@ti.com, plagnioj@jcrosoft.com, aaro.koskinen@iki.fi
-Cc: yongjun_wei@trendmicro.com.cn, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
-From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+--nextPart10426763.o6OPnWeIKB
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-Add the missing unlock before return from function
-acx565akm_panel_power_on() in the error handling case.
+On Tuesday 19 November 2013 11:18:04 Pali Roh=C3=A1r wrote:
+> This patch removing set_mode_hook function from board data and
+> replacing it with new string variable of notifier power
+> supply device. After this change it is possible to add DT
+> support because driver does not need specific board function
+> anymore. Only static data and name of power supply device is
+> required.
+>=20
+> Signed-off-by: Pali Roh=C3=A1r <pali.rohar@gmail.com>
+> ---
+>  drivers/power/bq2415x_charger.c       |   77
+> +++++++++++++++++++++++++--------
+> include/linux/power/bq2415x_charger.h |   48
+> +++----------------- 2 files changed, 65 insertions(+), 60
+> deletions(-)
+>=20
 
-Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
----
- drivers/video/omap2/displays-new/panel-sony-acx565akm.c | 9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+Hi Anton, is there any problem with this patch?
 
-diff --git a/drivers/video/omap2/displays-new/panel-sony-acx565akm.c b/drivers/video/omap2/displays-new/panel-sony-acx565akm.c
-index d94f35d..69aa4a1 100644
---- a/drivers/video/omap2/displays-new/panel-sony-acx565akm.c
-+++ b/drivers/video/omap2/displays-new/panel-sony-acx565akm.c
-@@ -536,7 +536,7 @@ static int acx565akm_panel_power_on(struct omap_dss_device *dssdev)
- 	r = in->ops.sdi->enable(in);
- 	if (r) {
- 		pr_err("%s sdi enable failed\n", __func__);
--		return r;
-+		goto out;
- 	}
- 
- 	/*FIXME tweak me */
-@@ -547,7 +547,8 @@ static int acx565akm_panel_power_on(struct omap_dss_device *dssdev)
- 
- 	if (ddata->enabled) {
- 		dev_dbg(&ddata->spi->dev, "panel already enabled\n");
--		return 0;
-+		r = 0;
-+		goto out;
- 	}
- 
- 	/*
-@@ -571,6 +572,10 @@ static int acx565akm_panel_power_on(struct omap_dss_device *dssdev)
- 	mutex_unlock(&ddata->mutex);
- 
- 	return acx565akm_bl_update_status(ddata->bl_dev);
-+
-+out:
-+	mutex_unlock(&ddata->mutex);
-+	return r;
- }
- 
- static void acx565akm_panel_power_off(struct omap_dss_device *dssdev)
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
 
+--nextPart10426763.o6OPnWeIKB
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iEYEABECAAYFAlKh0dkACgkQi/DJPQPkQ1KyNACeJCZNwvkQRCE7Orj5omrpiiuN
+4K0AnRHZe+UkOlkAHRIIHWGW8X8vXY/e
+=rBpn
+-----END PGP SIGNATURE-----
+
+--nextPart10426763.o6OPnWeIKB--
