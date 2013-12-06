@@ -1,59 +1,43 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: Re: [PATCH v2 2/3] bq2415x_charger: Use power_supply notifier for automode
-Date: Fri, 6 Dec 2013 14:32:08 +0100
-Message-ID: <201312061432.09120@pali>
-References: <1378630239-10006-1-git-send-email-pali.rohar@gmail.com> <1384856285-19593-1-git-send-email-pali.rohar@gmail.com> <1384856285-19593-3-git-send-email-pali.rohar@gmail.com>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: Re: [PATCH 0/7] mmc: omap: Fixes, cleanup and add ERASE capability
+Date: Fri, 6 Dec 2013 15:41:04 +0200
+Message-ID: <20131206134104.GJ30823@blackmetal.musicnaut.iki.fi>
+References: <20131202193459.GL26766@atomide.com>
+ <1386191654-7686-1-git-send-email-jarkko.nikula@bitmer.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart10426763.o6OPnWeIKB";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1384856285-19593-3-git-send-email-pali.rohar@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Anton Vorontsov <anton@enomsg.org>
-Cc: David Woodhouse <dwmw2@infradead.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, freemangordon@abv.bg, aaro.koskinen@iki.fi, pavel@ucw.cz
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from filtteri2.pp.htv.fi ([213.243.153.185]:57138 "EHLO
+	filtteri2.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1161322Ab3LFNlL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Dec 2013 08:41:11 -0500
+Content-Disposition: inline
+In-Reply-To: <1386191654-7686-1-git-send-email-jarkko.nikula@bitmer.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jarkko Nikula <jarkko.nikula@bitmer.com>
+Cc: Chris Ball <cjb@laptop.org>, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Dan Carpenter <dan.carpenter@oracle.com>, Jarkko Lavinen <j.lavinen@samsung.com>
 
---nextPart10426763.o6OPnWeIKB
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+Hi,
 
-On Tuesday 19 November 2013 11:18:04 Pali Roh=C3=A1r wrote:
-> This patch removing set_mode_hook function from board data and
-> replacing it with new string variable of notifier power
-> supply device. After this change it is possible to add DT
-> support because driver does not need specific board function
-> anymore. Only static data and name of power supply device is
-> required.
->=20
-> Signed-off-by: Pali Roh=C3=A1r <pali.rohar@gmail.com>
-> ---
->  drivers/power/bq2415x_charger.c       |   77
-> +++++++++++++++++++++++++--------
-> include/linux/power/bq2415x_charger.h |   48
-> +++----------------- 2 files changed, 65 insertions(+), 60
-> deletions(-)
->=20
+On Wed, Dec 04, 2013 at 09:14:07PM +0000, Jarkko Nikula wrote:
+> I've sent these patches earlier to linux-mmc list. This time set is one
+> patch smaller since commit 31ee9181eb92
+> ("mmc: omap: Fix DMA configuration to not rely on device id") does
+> practically same what one of my patch did.
+> 
+> Patch 1 is an obvious fix. 2-4 are preparing for 5 which also should fix
+> the error introduced by 31ee9181eb92:
+> http://www.spinics.net/lists/linux-omap/msg100790.html
+> 
+> Patch 6 continue cleanup and 7 adds the ERASE capability to the driver so
+> one could utilize discards with mkfs, mount option or with the fstrim.
+> 
+> Set goes on top of v3.13-rc2-208-g8ecffd791448.
 
-Hi Anton, is there any problem with this patch?
+Patch 5 had some fuzz with plain 3.13-rc2. Otherwise these look fine.
+I tested these on 770 and N800, so for all patches:
 
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
+Tested-by: Aaro Koskinen <aaro.koskinen@iki.fi>
 
---nextPart10426763.o6OPnWeIKB
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEABECAAYFAlKh0dkACgkQi/DJPQPkQ1KyNACeJCZNwvkQRCE7Orj5omrpiiuN
-4K0AnRHZe+UkOlkAHRIIHWGW8X8vXY/e
-=rBpn
------END PGP SIGNATURE-----
-
---nextPart10426763.o6OPnWeIKB--
+A.
