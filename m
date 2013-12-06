@@ -1,72 +1,63 @@
-From: Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>
-Subject: [PATCHv2 05/10] spi/qspi: Add api for get_buf/put_buf.
-Date: Fri, 6 Dec 2013 19:54:46 +0530
-Message-ID: <1386339891-32717-6-git-send-email-sourav.poddar@ti.com>
+From: Sourav Poddar <sourav.poddar@ti.com>
+Subject: [PATCHv2 06/10] drivers: mtd: m25p80: Add api to configure master register.
+Date: Fri, 6 Dec 2013 19:54:47 +0530
+Message-ID: <1386339891-32717-7-git-send-email-sourav.poddar@ti.com>
 References: <1386339891-32717-1-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1386339891-32717-1-git-send-email-sourav.poddar-l0cyMroinI0@public.gmane.org>
-Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, marex-ynQEQJNshbs@public.gmane.org
-Cc: dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:50966 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754486Ab3LFOZ4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 6 Dec 2013 09:25:56 -0500
+In-Reply-To: <1386339891-32717-1-git-send-email-sourav.poddar@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: broonie@kernel.org, linux-spi@vger.kernel.org, computersforpeace@gmail.com, marex@denx.de
+Cc: dwmw2@infradead.org, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, bcousson@baylibre.com, balbi@ti.com, Sourav Poddar <sourav.poddar@ti.com>
 
-Adapt qspi driver to use (get_buf/put_buf) pointers added
-earlier.
-These can be called just before the memcpy operations to get hold
-of the memory mapped address and to turn on the controller clocks.
+These can be used to fill information needed to configure
+master controller registers.
 
-Signed-off-by: Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
 ---
 v1->v2:
- enable/disable memory mapped only when get_buf/put_buf is
- called (basicaaly only when memory mapped read operation is
- desired).
- drivers/spi/spi-ti-qspi.c |   19 +++++++++++++++++++
- 1 files changed, 19 insertions(+), 0 deletions(-)
+ instead of a u8 *val, use a struct (slave_info)  already defined 
+ in the first patch of the series. This will allow us to add more
+ parameters into the struct.
 
-diff --git a/drivers/spi/spi-ti-qspi.c b/drivers/spi/spi-ti-qspi.c
-index e4a8afc..b83583c 100644
---- a/drivers/spi/spi-ti-qspi.c
-+++ b/drivers/spi/spi-ti-qspi.c
-@@ -248,6 +248,23 @@ static void ti_qspi_configure_from_slave(struct spi_device *spi)
- 	ti_qspi_write(qspi, memval, QSPI_SPI_SETUP0_REG);
+ drivers/mtd/devices/m25p80.c |   18 ++++++++++++++++++
+ 1 files changed, 18 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/mtd/devices/m25p80.c b/drivers/mtd/devices/m25p80.c
+index 7dc2c14..b90c7e5 100644
+--- a/drivers/mtd/devices/m25p80.c
++++ b/drivers/mtd/devices/m25p80.c
+@@ -490,6 +490,24 @@ static inline int m25p80_dummy_cycles_read(struct m25p *flash)
  }
  
-+static inline int  __iomem *ti_qspi_get_mem_buf(struct spi_master *master)
+ /*
++ * This API can be used to transfer flash information to
++ * SPI controller which needs some of its registers to get
++ * configured on flash information.
++ */
++static void m25p80_fill_flash_information(struct m25p *flash)
 +{
-+	struct ti_qspi *qspi = spi_master_get_devdata(master);
++	struct spi_device *spi = flash->spi;
++	struct spi_master *master = spi->master;
 +
-+	pm_runtime_get_sync(qspi->dev);
-+	enable_qspi_memory_mapped(qspi);
-+	return qspi->mmap_base;
++	spi->info.read_opcode = flash->read_opcode;
++	spi->info.program_opcode = flash->program_opcode;
++	spi->info.addr_width = flash->addr_width;
++	spi->info.dummy_cycles = m25p80_dummy_cycles_read(flash);
++
++	master->configure_from_slave(flash->spi);
 +}
 +
-+static void ti_qspi_put_mem_buf(struct spi_master *master)
-+{
-+	struct ti_qspi *qspi = spi_master_get_devdata(master);
-+
-+	disable_qspi_memory_mapped(qspi);
-+	pm_runtime_put(qspi->dev);
-+}
-+
- static void ti_qspi_restore_ctx(struct ti_qspi *qspi)
- {
- 	struct ti_qspi_regs *ctx_reg = &qspi->ctx_reg;
-@@ -517,6 +534,8 @@ static int ti_qspi_probe(struct platform_device *pdev)
- 	master->bits_per_word_mask = BIT(32 - 1) | BIT(16 - 1) | BIT(8 - 1);
- 	master->mmap = true;
- 	master->configure_from_slave = ti_qspi_configure_from_slave;
-+	master->get_buf = ti_qspi_get_mem_buf;
-+	master->put_buf = ti_qspi_put_mem_buf;
- 
- 	if (!of_property_read_u32(np, "num-cs", &num_cs))
- 		master->num_chipselect = num_cs;
++/*
+  * Read an address range from the flash chip.  The address range
+  * may be any size provided it is within the physical boundaries.
+  */
 -- 
 1.7.1
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-spi" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
