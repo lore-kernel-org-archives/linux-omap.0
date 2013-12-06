@@ -1,135 +1,102 @@
 From: Sourav Poddar <sourav.poddar@ti.com>
-Subject: [PATCHv2 02/10] spi/qspi: parse register by name.
-Date: Fri, 6 Dec 2013 19:54:43 +0530
-Message-ID: <1386339891-32717-3-git-send-email-sourav.poddar@ti.com>
+Subject: [PATCHv2 01/10] spi/spi.h: Add get_buf/put_buf support in spi master.
+Date: Fri, 6 Dec 2013 19:54:42 +0530
+Message-ID: <1386339891-32717-2-git-send-email-sourav.poddar@ti.com>
 References: <1386339891-32717-1-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:60022 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751740Ab3LFOZf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Dec 2013 09:25:35 -0500
 In-Reply-To: <1386339891-32717-1-git-send-email-sourav.poddar@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
-To: broonie@kernel.org, linux-spi@vger.kernel.org, computersforpeace@gmail.com, marex@denx.de
-Cc: devicetree@vger.kernel.org, balbi@ti.com, linux-mtd@lists.infradead.org, bcousson@baylibre.com, Sourav Poddar <sourav.poddar@ti.com>, linux-omap@vger.kernel.org, dwmw2@infradead.org
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: broonie@kernel.org, linux-spi@vger.kernel.org, computersforpeace@gmail.com, marex@denx.de
+Cc: dwmw2@infradead.org, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, bcousson@baylibre.com, balbi@ti.com, Sourav Poddar <sourav.poddar@ti.com>
 
-Modify the qspi driver to parse reg information by name.
-If "reg names" is not found, then revert back to normal
-get resource.
+Add get_buf, put_buf api support in spi master.
+This can be used in a scenario where spi controller
+supports memory mapped operations(typically with flash devices).
+So, the memcpy needs top be done in slave devices which need the
+required memory mapped address. These api can be used to get that
+master address.
+
+These can also be used to turm the master controller clock, as usually
+the clocks get turned in spi core. But, in memory mapped case, we will
+bypass the spi core and hence needa way out to turn on the controller clock.
+
+Add configure from slave api, which can be used to configure the master
+controller with slave specific information.
+
+Add slave info struct, that can be filled with slave  properties required by
+master controller for its register configuration.
 
 Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
 ---
 v1->v2:
-- if __byname variant is not found, go for standard 
-  api. If both are not found, then the resource is considered
-  to be optional and is not required for the given SOC.
- drivers/spi/spi-ti-qspi.c |   53 +++++++++++++++++++++++++++++++++++++++++++-
- 1 files changed, 51 insertions(+), 2 deletions(-)
+- Added a slave info structure.
+- Merge all other header related patches into this.
+ include/linux/spi/spi.h |   22 ++++++++++++++++++++++
+ 1 files changed, 22 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/spi/spi-ti-qspi.c b/drivers/spi/spi-ti-qspi.c
-index 033ef8d..a0cee08 100644
---- a/drivers/spi/spi-ti-qspi.c
-+++ b/drivers/spi/spi-ti-qspi.c
-@@ -46,6 +46,8 @@ struct ti_qspi {
+diff --git a/include/linux/spi/spi.h b/include/linux/spi/spi.h
+index 8c62ba7..c91d883 100644
+--- a/include/linux/spi/spi.h
++++ b/include/linux/spi/spi.h
+@@ -31,6 +31,14 @@
+  */
+ extern struct bus_type spi_bus_type;
  
- 	struct spi_master	*master;
- 	void __iomem            *base;
-+	void __iomem            *ctrl_base;
-+	void __iomem            *mmap_base;
- 	struct clk		*fclk;
- 	struct device           *dev;
- 
-@@ -54,6 +56,8 @@ struct ti_qspi {
- 	u32 spi_max_frequency;
- 	u32 cmd;
- 	u32 dc;
++/* For SPI flash */
++struct slave_info {
++	u8 read_opcode;
++	u8 program_opcode;
++	u8 addr_width;
++	u8 dummy_cycles;
++};
 +
-+	bool ctrl_mod;
+ /**
+  * struct spi_device - Master side proxy for an SPI slave device
+  * @dev: Driver model representation of the device.
+@@ -73,6 +81,7 @@ extern struct bus_type spi_bus_type;
+ struct spi_device {
+ 	struct device		dev;
+ 	struct spi_master	*master;
++	struct slave_info	info;		/* flash devices */
+ 	u32			max_speed_hz;
+ 	u8			chip_select;
+ 	u16			mode;
+@@ -291,6 +300,14 @@ static inline void spi_unregister_driver(struct spi_driver *sdrv)
+  *	number. Any individual value may be -ENOENT for CS lines that
+  *	are not GPIOs (driven by the SPI controller itself).
+  *
++ * @get_buf: used for memory mapped cases, when the slave device wants to
++ *       know the address to be used for memcopy.
++ * @put_buf: Used for memory mapped cases after get_buf, after the memcpy
++ *       has finished.
++ * @configure_from_slave: Used when SPI controller has registers which need
++ *      to be configured from slave specifics information(typical use case for
++ *      SPI flash device).
++ * @mmap: Used to show that controller supports memory mapped operation.
+  * Each SPI master controller can communicate with one or more @spi_device
+  * children.  These make a small bus, sharing MOSI, MISO and SCK signals
+  * but not chip select signals.  Each device may be configured to use a
+@@ -421,8 +438,13 @@ struct spi_master {
+ 	int (*transfer_one)(struct spi_master *master, struct spi_device *spi,
+ 			    struct spi_transfer *transfer);
+ 
++	int	__iomem *(*get_buf)(struct spi_master *master);
++	void	(*put_buf)(struct spi_master *master);
++	void	(*configure_from_slave)(struct spi_device *spi);
++
+ 	/* gpio chip select */
+ 	int			*cs_gpios;
++	bool	mmap;
  };
  
- #define QSPI_PID			(0x0)
-@@ -437,7 +441,7 @@ static int ti_qspi_probe(struct platform_device *pdev)
- {
- 	struct  ti_qspi *qspi;
- 	struct spi_master *master;
--	struct resource         *r;
-+	struct resource         *r, *res_ctrl, *res_mmap;
- 	struct device_node *np = pdev->dev.of_node;
- 	u32 max_freq;
- 	int ret = 0, num_cs, irq;
-@@ -465,7 +469,35 @@ static int ti_qspi_probe(struct platform_device *pdev)
- 	qspi->master = master;
- 	qspi->dev = &pdev->dev;
- 
--	r = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	r = platform_get_resource_byname(pdev, IORESOURCE_MEM, "qspi_base");
-+	if (r == NULL) {
-+		r = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+		if (r == NULL) {
-+			dev_err(&pdev->dev, "missing platform data\n");
-+			return -ENODEV;
-+		}
-+	}
-+
-+	res_mmap = platform_get_resource_byname(pdev,
-+			IORESOURCE_MEM, "qspi_mmap");
-+	if (res_mmap == NULL) {
-+		res_mmap = platform_get_resource(pdev, IORESOURCE_MEM, 1);
-+		if (res_mmap == NULL) {
-+			dev_err(&pdev->dev,
-+				"memory mapped resource not required\n");
-+			return -ENODEV;
-+		}
-+	}
-+
-+	res_ctrl = platform_get_resource_byname(pdev,
-+			IORESOURCE_MEM, "qspi_ctrlmod");
-+	if (res_ctrl == NULL) {
-+		res_ctrl = platform_get_resource(pdev, IORESOURCE_MEM, 2);
-+		if (res_ctrl == NULL) {
-+			dev_dbg(&pdev->dev,
-+				"control module resources not required\n");
-+		}
-+	}
- 
- 	irq = platform_get_irq(pdev, 0);
- 	if (irq < 0) {
-@@ -481,6 +513,23 @@ static int ti_qspi_probe(struct platform_device *pdev)
- 		goto free_master;
- 	}
- 
-+	if (res_ctrl) {
-+		qspi->ctrl_mod = true;
-+		qspi->ctrl_base = devm_ioremap_resource(&pdev->dev, res_ctrl);
-+		if (IS_ERR(qspi->ctrl_base)) {
-+			ret = PTR_ERR(qspi->ctrl_base);
-+			goto free_master;
-+		}
-+	}
-+
-+	if (res_mmap) {
-+		qspi->mmap_base = devm_ioremap_resource(&pdev->dev, res_mmap);
-+		if (IS_ERR(qspi->mmap_base)) {
-+			ret = PTR_ERR(qspi->mmap_base);
-+			goto free_master;
-+		}
-+	}
-+
- 	ret = devm_request_irq(&pdev->dev, irq, ti_qspi_isr, 0,
- 			dev_name(&pdev->dev), qspi);
- 	if (ret < 0) {
+ static inline void *spi_master_get_devdata(struct spi_master *master)
 -- 
 1.7.1
 
-
-______________________________________________________
-Linux MTD discussion mailing list
-http://lists.infradead.org/mailman/listinfo/linux-mtd/
