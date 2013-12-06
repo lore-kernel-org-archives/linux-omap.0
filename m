@@ -1,38 +1,76 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH] net: davinci_emac: Fix platform data handling and make
- usable for am3517
-Date: Thu, 05 Dec 2013 20:39:55 -0500 (EST)
-Message-ID: <20131205.203955.1282361417309480469.davem@davemloft.net>
-References: <20131203231301.GN26766@atomide.com>
+From: Mugunthan V N <mugunthanvnm@ti.com>
+Subject: [PATCH 1/1] drivers: net : cpsw: Use netdev_name while requesting irq
+Date: Fri, 6 Dec 2013 12:28:27 +0530
+Message-ID: <1386313107-8597-1-git-send-email-mugunthanvnm@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20131203231301.GN26766@atomide.com>
-Sender: netdev-owner@vger.kernel.org
-To: tony@atomide.com
-Cc: mugunthanvnm@ti.com, devicetree@vger.kernel.org, netdev@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:43858 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751294Ab3LFG6j (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 6 Dec 2013 01:58:39 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: netdev@vger.kernel.org
+Cc: davem@davemloft.net, linux-omap@vger.kernel.org, George Cherian <george.cherian@ti.com>, Mugunthan V N <mugunthanvnm@ti.com>
 
-From: Tony Lindgren <tony@atomide.com>
-Date: Tue, 3 Dec 2013 15:13:02 -0800
+From: George Cherian <george.cherian@ti.com>
 
-> When booted with device tree, we may still have platform data passed
-> as auxdata. For am3517 this is needed for passing the interrupt_enable
-> and interrupt_disable callbacks that access the omap system control module
-> registers. These callback functions will eventually go away when we have
-> a separate system control module driver.
-> 
-> Some of the things that are currently passed as platform data we don't need
-> to set up as device tree properties as they are always the same on am3517.
-> So let's use a new compatible flag for those so we can get those from
-> the device tree match data.
-> 
-> Also note that we need to fix setting of phy_dev to NULL instead of an empty
-> string as the code later on uses that to find the first phy on the mdio bus.
-> This seems to have been caused by 5d69e0076a72 (net: davinci_emac: switch to
-> new mdio).
-> 
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
+Use netdev_name while requesting irq so that eth* name is shown
+in /proc/interrupts. Previously it was showing device name as (null)
+for cpsw interrupts. For using netdev_name register_netdev and then
+call devm_request_irq.
 
-Applied, thanks.
+Signed-off-by: George Cherian <george.cherian@ti.com>
+Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
+---
+ drivers/net/ethernet/ti/cpsw.c | 26 +++++++++++++-------------
+ 1 file changed, 13 insertions(+), 13 deletions(-)
+
+diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+index a91f0c9..61ae17f 100644
+--- a/drivers/net/ethernet/ti/cpsw.c
++++ b/drivers/net/ethernet/ti/cpsw.c
+@@ -2090,19 +2090,6 @@ static int cpsw_probe(struct platform_device *pdev)
+ 		goto clean_ale_ret;
+ 	}
+ 
+-	while ((res = platform_get_resource(priv->pdev, IORESOURCE_IRQ, k))) {
+-		for (i = res->start; i <= res->end; i++) {
+-			if (devm_request_irq(&pdev->dev, i, cpsw_interrupt, 0,
+-					     dev_name(priv->dev), priv)) {
+-				dev_err(priv->dev, "error attaching irq\n");
+-				goto clean_ale_ret;
+-			}
+-			priv->irqs_table[k] = i;
+-			priv->num_irqs = k + 1;
+-		}
+-		k++;
+-	}
+-
+ 	ndev->features |= NETIF_F_HW_VLAN_CTAG_FILTER;
+ 
+ 	ndev->netdev_ops = &cpsw_netdev_ops;
+@@ -2118,6 +2105,19 @@ static int cpsw_probe(struct platform_device *pdev)
+ 		goto clean_ale_ret;
+ 	}
+ 
++	while ((res = platform_get_resource(priv->pdev, IORESOURCE_IRQ, k))) {
++		for (i = res->start; i <= res->end; i++) {
++			if (devm_request_irq(&pdev->dev, i, cpsw_interrupt, 0,
++					     netdev_name(ndev), priv)) {
++				dev_err(priv->dev, "error attaching irq\n");
++				goto clean_ale_ret;
++			}
++			priv->irqs_table[k] = i;
++			priv->num_irqs = k + 1;
++		}
++		k++;
++	}
++
+ 	if (cpts_register(&pdev->dev, priv->cpts,
+ 			  data->cpts_clock_mult, data->cpts_clock_shift))
+ 		dev_err(priv->dev, "error registering cpts device\n");
+-- 
+1.8.5.rc3.2.gc302941
+
