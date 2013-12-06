@@ -1,91 +1,108 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v2 2/2] arm: omap: remove *.auto* from device names given
- in usb_bind_phy
-Date: Fri, 6 Dec 2013 15:08:35 -0600
-Message-ID: <20131206210835.GM21086@saruman.home>
-References: <1386331571-30903-1-git-send-email-kishon@ti.com>
- <1386331571-30903-3-git-send-email-kishon@ti.com>
- <CABxcv=n67gNq6ayx+t_mfZ0++UBKkXpH9avXvRKFEH4VUrwy0g@mail.gmail.com>
-Reply-To: <balbi@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL] one regression fix and two more omap dt fixes
+ against v3.13-rc2
+Date: Fri, 6 Dec 2013 13:30:41 -0800
+Message-ID: <20131206213041.GL26766@atomide.com>
+References: <pull-1386293533-80127>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="fDP66DSfTvWAYVew"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CABxcv=n67gNq6ayx+t_mfZ0++UBKkXpH9avXvRKFEH4VUrwy0g@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Javier Martinez Canillas <javier@dowhile0.org>
-Cc: Kishon Vijay Abraham I <kishon@ti.com>, Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>, Linux Kernel <linux-kernel@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-usb@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
-
---fDP66DSfTvWAYVew
 Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:47882 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753872Ab3LFVas (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Dec 2013 16:30:48 -0500
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <pull-1386293533-80127>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+To: arm@kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Hi,
+* Tony Lindgren <tony@atomide.com> [131205 17:33]:
+> The following changes since commit dc1ccc48159d63eca5089e507c82c7d22ef60839:
+> 
+>   Linux 3.13-rc2 (2013-11-29 12:57:14 -0800)
+> 
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.13/yet-more-dt-regressions
+> 
+> for you to fetch changes up to 341ba42e76723f2c39da7e288703896ae3d85620:
+> 
+>   ARM: OMAP2+: Fix the machine entry for am3517 (2013-12-05 16:25:30 -0800)
+> 
+> ----------------------------------------------------------------
+> A rather big fix for a regression where we have dropped omap4 hwmod
+> data earlier but are not initializing it from device tree. In addition
+> to this fix we eventually also be fix the issues in the .dts files
+> and drivers, but that's too intrusive for the -rc cycle and must be
+> done later on.
+> 
+> Also two more legacy booting vs device tree based booting fixes for
+> am3517 that I did not notice earlier until Nishant Menon reported
+> these to me few days ago. With these we're good to go having v3.13
+> working both for legacy booting and device tree based booting, and we
+> can then go ahed and drop the legacy booting for mach-omap2 for v3.14.
+> 
+> ----------------------------------------------------------------
+> Nishanth Menon (1):
+>       ARM: OMAP2+: Fix the machine entry for am3517
 
-On Fri, Dec 06, 2013 at 01:14:38PM +0100, Javier Martinez Canillas wrote:
-> On Fri, Dec 6, 2013 at 1:06 PM, Kishon Vijay Abraham I <kishon@ti.com> wr=
-ote:
-> > Previously MUSB wrapper (OMAP) device used PLATFORM_DEVID_AUTO while cr=
-eating
-> > MUSB core device. So in usb_bind_phy (binds the controller with the PHY=
-), the
-> > device name of the controller had *.auto* in it. Since with using
-> > PLATFORM_DEVID_AUTO, there is no way to know the exact device name in a=
-dvance,
-> > the data given in usb_bind_phy became obsolete and usb_get_phy was fail=
-ing.
-> > So MUSB wrapper was modified not to use PLATFORM_DEVID_AUTO. Correspond=
-ing
-> > change is done in board file here.
-> >
-> > Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> > ---
-> >  arch/arm/mach-omap2/board-2430sdp.c        |    2 +-
-> >  arch/arm/mach-omap2/board-3430sdp.c        |    2 +-
-> >  arch/arm/mach-omap2/board-cm-t35.c         |    2 +-
-> >  arch/arm/mach-omap2/board-devkit8000.c     |    2 +-
-> >  arch/arm/mach-omap2/board-ldp.c            |    2 +-
-> >  arch/arm/mach-omap2/board-omap3beagle.c    |    2 +-
-> >  arch/arm/mach-omap2/board-omap3logic.c     |    2 +-
-> >  arch/arm/mach-omap2/board-omap3pandora.c   |    2 +-
-> >  arch/arm/mach-omap2/board-omap3stalker.c   |    2 +-
-> >  arch/arm/mach-omap2/board-omap3touchbook.c |    2 +-
-> >  arch/arm/mach-omap2/board-overo.c          |    2 +-
-> >  arch/arm/mach-omap2/board-rx51.c           |    2 +-
-> >  12 files changed, 12 insertions(+), 12 deletions(-)
-> >
->=20
-> You can drop this patch since boards files are being removed for v3.14
+Looks like this needs the following patch folded in.
 
-if we can drop this patch, the whole series is invalid, since we'll be
-using DT phandles to find PHYs going forward, no ?
+Please ignore this pull request if not yet pulled, I'll post a new one
+shortly.
 
---=20
-balbi
+Regards,
 
---fDP66DSfTvWAYVew
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Tony
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.15 (GNU/Linux)
+8< ----------------------------------
 
-iQIcBAEBAgAGBQJSojzTAAoJEIaOsuA1yqRE8T4P/jwAf8Yb/jDL7Gu68Agv5e0m
-m2jINigFPqU3yhRFH5G6LG31N9d8VqjkLBILwxronUE9FI6Bq/QXzpYMgLvtFLQ+
-G9+DurB4aNRBa4zfkN96zDwlUInyb9TaTpOp9Qf7bPxXWuBpmZnoG/46C5Rq+Mac
-oPQApXbgiB279VwlWog/pzX2sqs2FfT6mrT9Jtreto5kI2MF7Ki4dmkdqFaSss5e
-DgOn4eWQspjjEEg2useOxqdEWPWPSchyRo9cGypQbLLqKjoGD8IYCr6fsW2fCXjo
-IBhJV2OyDzwQckLfm7Bg0nvvXtVRTkV4DSjXBNoyt4M1YysYan98LwkjjAnODRBx
-belP32PVXD+pAEEMuGc1CfQYMwO9XAX/WpiXasvi5rStD/b+j/CBxLtyrXk84SbZ
-uMWqr5LA1/TSz+5M2ust82bfjdWJo6NfaCCC9D/KUGJPqy3LqRbIBsW84pllJBbG
-+247WszTbNfwjHrBSI8swhpMSTC47pTHO4OOvGIscLmNfRY9/aJ5hYlgCVA7rfDo
-npe+KcRvJGpsjEjm2fGgXjYxtrqc+r6m9iwL91LhEh55KVIgRAemE8kHlboDSRHD
-jnG7QaD7Q808kHPuhPF/ri2eDO6h/vR2Vrp4Vb2N4ZP4L7pNP7yRvdczeYcxbcQ0
-+f2gmtglpZeVgSzP0xqj
-=f4a+
------END PGP SIGNATURE-----
+From: Tony Lindgren <tony@atomide.com>
+Date: Fri, 6 Dec 2013 13:21:03 -0800
+Subject: [PATCH] ARM: OMAP2+: Fix build when am3517 is selected without omap3
 
---fDP66DSfTvWAYVew--
+We should have the am3517 related entry under ARCH_OMAP3, not
+under CONFIG_SOC_AM33XX.
+
+Otherwise we can get build errors like this:
+
+undefined reference to `omap3_map_io'
+undefined reference to `am35xx_init_early'
+undefined reference to `omap3_init_late'
+
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
+index e94a215..8d972ff1 100644
+--- a/arch/arm/mach-omap2/board-generic.c
++++ b/arch/arm/mach-omap2/board-generic.c
+@@ -131,13 +131,6 @@ DT_MACHINE_START(OMAP3_GP_DT, "Generic OMAP3-GP (Flattened Device Tree)")
+ 	.dt_compat	= omap3_gp_boards_compat,
+ 	.restart	= omap3xxx_restart,
+ MACHINE_END
+-#endif
+-
+-#ifdef CONFIG_SOC_AM33XX
+-static const char *am33xx_boards_compat[] __initdata = {
+-	"ti,am33xx",
+-	NULL,
+-};
+ 
+ static const char *am3517_boards_compat[] __initdata = {
+ 	"ti,am3517",
+@@ -156,6 +149,13 @@ DT_MACHINE_START(AM3517_DT, "Generic AM3517 (Flattened Device Tree)")
+ 	.dt_compat	= am3517_boards_compat,
+ 	.restart	= omap3xxx_restart,
+ MACHINE_END
++#endif
++
++#ifdef CONFIG_SOC_AM33XX
++static const char *am33xx_boards_compat[] __initdata = {
++	"ti,am33xx",
++	NULL,
++};
+ 
+ DT_MACHINE_START(AM33XX_DT, "Generic AM33XX (Flattened Device Tree)")
+ 	.reserve	= omap_reserve,
