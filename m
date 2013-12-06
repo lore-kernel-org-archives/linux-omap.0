@@ -1,65 +1,51 @@
-From: Christoph Fritz <chf.fritz@googlemail.com>
-Subject: Re: [Bug] am33xx: Basic suspend resume support: Doesn't resume
-Date: Fri, 06 Dec 2013 00:43:51 +0100
-Message-ID: <1386287031.3749.2.camel@mars>
-References: <1386250976.3880.91.camel@mars>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] ARM: OMAP2+: Fix populating the hwmod data from device
+ tree
+Date: Fri, 6 Dec 2013 00:07:50 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1312060006510.26450@utopia.booyaka.com>
+References: <20131120025620.GF10317@atomide.com> <20131120181255.GG10317@atomide.com> <20131120192209.GI10317@atomide.com> <alpine.DEB.2.02.1311202148160.30143@utopia.booyaka.com> <20131121000533.GJ10317@atomide.com> <20131121014555.GL10317@atomide.com>
+ <20131121204814.GC10023@atomide.com> <20131205172909.GB26766@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bk0-f45.google.com ([209.85.214.45]:59707 "EHLO
-	mail-bk0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756005Ab3LEXnz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Dec 2013 18:43:55 -0500
-Received: by mail-bk0-f45.google.com with SMTP id mx13so32547bkb.32
-        for <linux-omap@vger.kernel.org>; Thu, 05 Dec 2013 15:43:54 -0800 (PST)
-In-Reply-To: <1386250976.3880.91.camel@mars>
+Received: from utopia.booyaka.com ([74.50.51.50]:45469 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751181Ab3LFAHv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Dec 2013 19:07:51 -0500
+In-Reply-To: <20131205172909.GB26766@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: t-kristo@ti.com
-Cc: Russ Dill <Russ.Dill@ti.com>, Vaibhav Bedia <vaibhav.bedia@ti.com>, linux-omap@vger.kernel.org, Daniel Mack <zonque@gmail.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, =?ISO-8859-15?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>
 
-On Thu, 2013-12-05 at 14:42 +0100, Christoph Fritz wrote:
-> Hi,
-> 
->  I'm having here a custom am335x board with DDR3 equipped trying to
-> setup suspend/resume support. I have tested this with the ancient
-> TI-PSP-3.2 Kernel and current 3.13-rc plus some pm patches.
-> 
-> Problem: After suspending the device, it doesn't resume (freeze):
-> 
-> echo "mem" > /sys/power/state
-> [  103.020845] PM: Syncing filesystems ... done.
-> [  103.055549] Freezing user space processes ... (elapsed 0.003 seconds) done.
-> [  103.066696] Freezing remaining freezable tasks ... (elapsed 0.002 seconds) done.
-> [  103.077506] PM: Sending message for entering DeepSleep mode
-> [  103.099896] PM: suspend of devices complete after 11.951 msecs
-> [  103.110894] PM: late suspend of devices complete after 4.659 msecs
-> [  103.122599] PM: noirq suspend of devices complete after 5.032 msecs
-> 
-> As a wakeup source I'm currently using gpio0_12.
-> 
-> Triggering the reset button (am335x-pin: WARMRSTn) in suspend-mode has
-> no effect, which is fine. But after changing the signal on the wakeup
-> source (here gpio0_12), triggering a reset works fine again.
-> 
-> So it seems to me that somewhere in the wakeup-process is a bug.
-> 
-> Could this be related to DDR3? Apart from that, this custom board here
-> is pretty similar to the ti-evm board wich works fine.
-> 
-> In oder to test, I've shrunken the kernel to minimal driver support to
-> sort out as much as possible segfaults in resume functions.
-> 
-> With a view to be able to debug this further, I just ordered an openocd
-> jtag adapter.
-> 
-> Any comments, ideas, tips, ..?
+On Thu, 5 Dec 2013, Tony Lindgren wrote:
 
-Update: It has definitely something to do with DDR3. I'll investigate
-this further. By the way, is there a TI-Board with DDR3 and working
-suspend-resume?
+> * Tony Lindgren <tony@atomide.com> [131121 12:49]:
+> > * Tony Lindgren <tony@atomide.com> [131120 17:46]:
+> > > * Tony Lindgren <tony@atomide.com> [131120 16:06]:
+> > > > 
+> > > > They at least had interrupts listed looking at commit 3b9b10. Probably
+> > > > the thing to do for now is to revert those changes, and see if we can
+> > > > just remove the L3 entries from the .dtsi files.
+> > > 
+> > > Actually the patch I posted should be able to handle also the
+> > > ti,hwmods = "l3_main_1", "l3_main_2", "l3_main_3" property in omap4.dtsi,
+> > > but we're not currently parsing that as we only look at the children
+> > > and not the properties of the OCP bus. Should be fixable, will take a look
+> > > tomorrow if this approach makes sense to you.
+> > 
+> > OK this one seems to do the right thing for me.
+> 
+> No comments? I'll queue the patch below to the fixes, please yell
+> if you see any issues with that.
 
-Thanks
-  -- Christoph
+Looks reasonable to me based on a quick glance:
 
+Acked-by: Paul Walmsley <paul@pwsan.com>
+
+Have not tested it though.
+
+I like the warning message for the bad data.
+
+
+- Paul
