@@ -1,108 +1,116 @@
-From: Sebastian Reichel <sre@ring0.de>
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
 Subject: Re: 3.13-rc3 (commit 7ce93f3) breaks Nokia N900 DT boot
-Date: Sat, 7 Dec 2013 14:48:20 +0100
-Message-ID: <20131207134818.GA933@earth.universe>
-References: <20131206213613.GA19648@earth.universe>
- <20131206222725.GM26766@atomide.com>
- <20131207000026.GA26921@earth.universe>
- <201312070918.32471@pali>
+Date: Sat, 7 Dec 2013 14:57:38 +0100
+Message-ID: <201312071457.38836@pali>
+References: <20131206213613.GA19648@earth.universe> <201312070918.32471@pali> <20131207134818.GA933@earth.universe>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="W/nzBZO5zC0uMSeA"
+Content-Type: multipart/signed;
+  boundary="nextPart5953588.dK7fkiQxgt";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ring0.de ([91.143.88.219]:47965 "EHLO smtp.ring0.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758432Ab3LGNs2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 7 Dec 2013 08:48:28 -0500
-Content-Disposition: inline
-In-Reply-To: <201312070918.32471@pali>
+Received: from mail-bk0-f47.google.com ([209.85.214.47]:37436 "EHLO
+	mail-bk0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754902Ab3LGN5m (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 7 Dec 2013 08:57:42 -0500
+Received: by mail-bk0-f47.google.com with SMTP id mx12so716025bkb.20
+        for <linux-omap@vger.kernel.org>; Sat, 07 Dec 2013 05:57:41 -0800 (PST)
+In-Reply-To: <20131207134818.GA933@earth.universe>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
+To: Sebastian Reichel <sre@ring0.de>
 Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>
 
-
---W/nzBZO5zC0uMSeA
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
+--nextPart5953588.dK7fkiQxgt
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Sat, Dec 07, 2013 at 09:18:32AM +0100, Pali Roh=E1r wrote:
-> On Saturday 07 December 2013 01:00:27 Sebastian Reichel wrote:
-> > On Fri, Dec 06, 2013 at 02:27:25PM -0800, Tony Lindgren wrote:
-> > > * Sebastian Reichel <sre@debian.org> [131206 13:37]:
-> > > > Nokia N900 DT boot breaks for me using 3.13-rc3. You can
-> > > > see the relevant kernel output below. Disabling the AES
-> > > > module in the omap3-n900.dts with status =3D "disabled"
-> > > > fixed the boot for me.
+On Saturday 07 December 2013 14:48:20 Sebastian Reichel wrote:
+> On Sat, Dec 07, 2013 at 09:18:32AM +0100, Pali Roh=C3=A1r wrote:
+> > On Saturday 07 December 2013 01:00:27 Sebastian Reichel=20
+wrote:
+> > > On Fri, Dec 06, 2013 at 02:27:25PM -0800, Tony Lindgren=20
+wrote:
+> > > > * Sebastian Reichel <sre@debian.org> [131206 13:37]:
+> > > > > Nokia N900 DT boot breaks for me using 3.13-rc3. You
+> > > > > can see the relevant kernel output below. Disabling
+> > > > > the AES module in the omap3-n900.dts with status =3D
+> > > > > "disabled" fixed the boot for me.
+> > > >=20
+> > > > OK thanks for letting me know. How about the following
+> > > > patch to fix it?
 > > >=20
-> > > OK thanks for letting me know. How about the following patch
-> > > to fix it?
+> > > That's basically what I did to fix the problem.
+> > >=20
+> > > I guess the proper fix would be a runtime check if the
+> > > device can be accessed (if that's possible). AFAIK it is
+> > > possible to use the AES module on the N900 if the
+> > > bootloader is slightly patched.
+> > >=20
+> > > Pali, can you elaborate more about this? I've seen, that
+> > > you added a section about this on [0].
+> > >=20
+> > > [0] http://elinux.org/N900#M-Shield
+> > >=20
+> > > -- Sebastian
 > >=20
-> > That's basically what I did to fix the problem.
+> > Yes, if you want to use M-Shield on Nokia N900, you need to
+> > use new version of signed Nokia X-Loader which enable
+> > M-Shield usage outside secure world.
 > >=20
-> > I guess the proper fix would be a runtime check if the device
-> > can be accessed (if that's possible). AFAIK it is possible to
-> > use the AES module on the N900 if the bootloader is slightly
-> > patched.
-> >=20
-> > Pali, can you elaborate more about this? I've seen, that you
-> > added a section about this on [0].
-> >=20
-> > [0] http://elinux.org/N900#M-Shield
-> >=20
-> > -- Sebastian
-> >=20
+> > Because this updated X-Loader is not official and I think
+> > nobody has it in n900, please disable using these M-Shield
+> > crypto modules on n900.
 >=20
-> Yes, if you want to use M-Shield on Nokia N900, you need to use=20
-> new version of signed Nokia X-Loader which enable M-Shield usage=20
-> outside secure world.
+> Is the updated X-Loader available somewhere?
 >=20
-> Because this updated X-Loader is not official and I think nobody=20
-> has it in n900, please disable using these M-Shield crypto=20
-> modules on n900.
 
-Is the updated X-Loader available somewhere?
+It was on mediafire server linked from this thread:=20
+http://maemo.org/community/maemo-developers/n900_aes_and_sha1-md5_hw_accele=
+ration_drivers/
 
-> Without patched updated X-Loader kernel will crash.
+Now it is deleted from that server, but I have copy on my HDD.
 
-That's what this thread is about :) It might be better to have a
-runtime check for the crypto hw's accessability by adding something
-like this to the driver's probe function:
+> > Without patched updated X-Loader kernel will crash.
+>=20
+> That's what this thread is about :) It might be better to have
+> a runtime check for the crypto hw's accessability by adding
+> something like this to the driver's probe function:
+>=20
+> if (!aes_module_is_accessible()) {
+>     dev_err(&pdev->dev, "Usage of OMAP's AES module is
+> blocked\n"); return -ENODEV;
+> }
+>=20
+> That would require, that aes_module_is_accessible() can
+> actually be implemented.
+>=20
 
-if (!aes_module_is_accessible()) {
-    dev_err(&pdev->dev, "Usage of OMAP's AES module is blocked\n");
-    return -ENODEV;
-}
+You need to ask that question to somebody who has 1) access to=20
+secure M-Shield documentation or 2) author who created that M-
+Shield driver if your check is possible...
 
-That would require, that aes_module_is_accessible() can actually be
-implemented.
+> P.S.: I fixed the mail address of Aaro Koskinen. His nokia
+> mail address doesn't work anymore.
+>=20
+> -- Sebastian
 
-P.S.: I fixed the mail address of Aaro Koskinen. His nokia mail
-address doesn't work anymore.
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
 
--- Sebastian
-
---W/nzBZO5zC0uMSeA
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+--nextPart5953588.dK7fkiQxgt
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.15 (GNU/Linux)
+Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQIcBAEBCAAGBQJSoyciAAoJENju1/PIO/qatr8P/0mxlRKf3txFxvbfManS5EMc
-InVCyjTp61ldnvigGE4AWseOXZkv7Zg27QZTzxAXNaY5HjibLNnqoYV0YwfsF4Lk
-w0wKumsY900A5Gj5482qktQroJuoHmedl0eFv3wKwon6vF7mFoWc9peZK98+e0Wm
-X7ICckb9Ld8A5LJroPfeItgfumBvj2N2LviuzZQPrSTNKZn5oNUFIUwKs6+WIaQv
-qToklFSA2yi1zfoXwmYiMq/A0a5y2UjVMYd8OA/HVeu4YzgbHpr4YvJ61epMHbMl
-825kc3Cp66Wb1mm9JEO6TodI41o1GH79vkMvdARp8pSxRhjtvvA3YNuyTk+O1SGa
-6B9maG52ybTX4SzpB8kAdTcOkyL33yvDj0S3Z0vmAfmDUhGMPKOlCl0FakCOob1D
-wa7/CD5iCmIYD0hbcDozeF/7Wcr85yHMBGQB2AxVc54Q+SwfwePM+rqjAJ4B01h2
-Fknx8hPRpoeOEG4AvOed1ffUrEKcyv7zxUoFcNJBPnlEpUi0yI7C1K0GNwM82Fha
-B4+Ou17f21bmN/+JajySaYGPe05vkDhxTsAxmgyWyE9gEiqDD1bhPLc3LfLLASRU
-mIFPCzxgXLBCzljxdT27qOJvZie2raznjPbtPGd4+hA8ByWZeWvrgGinNRpnEN7Q
-fcRj3UXscOD7vdzAg4/h
-=W6XM
+iEYEABECAAYFAlKjKVIACgkQi/DJPQPkQ1IuPwCfTewjUTk0RM1Np2twA3MZw4mz
+ifAAni0zmMn1ZQ4uwZFbRiZ3ZNZG5mJx
+=ykUS
 -----END PGP SIGNATURE-----
 
---W/nzBZO5zC0uMSeA--
+--nextPart5953588.dK7fkiQxgt--
