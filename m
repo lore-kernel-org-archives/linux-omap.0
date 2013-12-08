@@ -1,84 +1,69 @@
-From: Mike Dunn <mikedunn@newsguy.com>
-Subject: Re: OMAP3 NAND ECC selection
-Date: Sun, 08 Dec 2013 12:59:59 -0800
-Message-ID: <52A4DDCF.60400@newsguy.com>
-References: <CAFqH_50vhgJ=ktqmYRo+ZO1bbRmiME+kXVt6sLJL91q9A2S7TA@mail.gmail.com>
- <52A04E75.3010609@corscience.de>
- <alpine.DEB.2.01.1312051711410.20976@pmeerw.net>
- <20131205171326.GA26766@atomide.com>
- <CABxcv=mtqkpyup0y-zv53YRvdgKH0bNXeCWf9mxPFoUTRQ=Gew@mail.gmail.com>
- <20131205182628.GF2345@localhost>
- <20980858CB6D3A4BAE95CA194937D5E73EA5222E@DBDE04.ent.ti.com>
- <20131205200618.19b33ee2@skate>
- <CAN8TOE-cv5ppz0Q_asK=6WdRPaK9SAd1ccZF0Ax7QCdGOE7Fjw@mail.gmail.com>
- <20131205203237.047cfbb9@skate> <20131205193834.GJ26766@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL] two regression fixes and two more omap dt fixes against v3.13-rc2
+Date: Sun, 8 Dec 2013 15:09:40 -0800
+Message-ID: <17087.957627564$1386544193@news.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
-In-Reply-To: <20131205193834.GJ26766@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Brian Norris <computersforpeace@gmail.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, Enric Balletbo Serra <eballetbo@gmail.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "Gupta,
- Pekon" <pekon@ti.com>, Peter Meerwald <pmeerw@pmeerw.net>, Javier Martinez Canillas <javier@dowhile0.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, =?ISO-8859-1?Q?Andreas_Bie?= =?ISO-8859-1?Q?=DFmann?= <andreas.biessmann@corscience.de>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:65228 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755510Ab3LHXJp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 8 Dec 2013 18:09:45 -0500
+Content-Disposition: inline
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: arm@kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On 12/05/2013 11:38 AM, Tony Lindgren wrote:
-> * Thomas Petazzoni <thomas.petazzoni@free-electrons.com> [131205 11:33]:
->> Dear Brian Norris,
->>
->> On Thu, 5 Dec 2013 11:24:18 -0800, Brian Norris wrote:
->>
->>>> The long term benefits is simply to properly handle the hardware
->>>> constraints. We have hardware platforms were parts of the NAND *MUST*
->>>> use 1-bit ECC to be compatible with the ROM code, and other parts of
->>>> the NAND *MUST* use stronger 4-bits or 8-bits ECC to comply with the
->>>> NAND requirements.
->>>
->>> Using 1-bit ECC on NAND is not a long-term solution. Given that fact,
->>> I think your ROM code is what may need to change, not the entire MTD
->>> subsystem.
->>
->> As someone (Tom Rini maybe?) pointed out, today the shift is 1-bit ECC
->> supported by ROM code vs. 4 or 8 bits required by NAND. But we can very
->> well imagine that tomorrow ROM code will support BCH4 (and the NAND
->> will ensure block 0 is OK for use with BCH4) but the rest of the NAND
->> will require BCH16 or something like that.
->>
->> I'm not designing ROM code, and the fact that they today have this
->> limitation, should be an indication that Linux should be capable of
->> handling different ECC schemes to handle those hardware constraints.
-> 
-> Yeah and it seems that for the bootloader partition we need to be able
-> to specify the ECC scheme in the .dts file to avoid having people trash
-> their system unless they really want to do it.
-> 
-> /me at least has rebooted and reflashed way too many times unnecessarily
-> while trying to update MLO or u-boot from the kernel.
+The following changes since commit 374b105797c3d4f29c685f3be535c35f5689b30e:
 
+  Linux 3.13-rc3 (2013-12-06 09:34:04 -0800)
 
-The M-Sys/Sandisk docg4 flash chip has a similiar issue, but is even more
-esoteric than merely a different ecc scheme for the SPL/u-boot partition.  Not
-only is a different ecc scheme used for the SPL (actually it uses no ecc at
-all), but the flash controller must be placed into a special (proprietary) mode
-("reliable mode") before the SPL is written.  Like the omap2 solution, the docg4
-driver can be loaded with a special module parameter that enables writing the
-SPL partition in this mode.
+are available in the git repository at:
 
-The docg4 is kind of a special case, though, because it is a nand flash wrapped
-inside a proprietary non-standard flash controller.
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.13/yet-more-dt-regressions-take2
 
-Mike
+for you to fetch changes up to f2e2c9d9b4087b74eb9e00d8dfac148354cb0b71:
 
+  ARM: dts: Fix booting for secure omaps (2013-12-06 15:30:43 -0800)
 
-______________________________________________________
-Linux MTD discussion mailing list
-http://lists.infradead.org/mailman/listinfo/linux-mtd/
+----------------------------------------------------------------
+A rather big fix for a regression where we have dropped omap4 hwmod
+data earlier but are not initializing it from device tree. In addition
+to this fix we eventually also be fix the issues in the .dts files
+and drivers, but that's too intrusive for the -rc cycle and must be
+done later on.
+
+Also a fix for a regression where we now are wrongly trying to initialize
+devices on secure omaps like n900 and n9* when booted using device tree.
+We need to set aes, sham and timer12 to disabled mode for secure
+devices as they are claimed by the firmware running in the secure mode.
+
+And two more legacy booting vs device tree based booting fixes for
+am3517 that I did not notice earlier until Nishant Menon reported
+these to me few days ago. With these we're good to go having v3.13
+working both for legacy booting and device tree based booting, and we
+can then go ahed and drop the legacy booting for mach-omap2 for v3.14.
+
+----------------------------------------------------------------
+Nishanth Menon (1):
+      ARM: OMAP2+: Fix the machine entry for am3517
+
+Tony Lindgren (3):
+      ARM: OMAP2+: Fix overwriting hwmod data with data from device tree
+      ARM: dts: Fix missing entries for am3517
+      ARM: dts: Fix booting for secure omaps
+
+ arch/arm/boot/dts/am3517-evm.dts     |  6 +--
+ arch/arm/boot/dts/am3517.dtsi        | 63 +++++++++++++++++++++++
+ arch/arm/boot/dts/omap3-n900.dts     |  2 +-
+ arch/arm/boot/dts/omap3-n950-n9.dtsi |  2 +-
+ arch/arm/boot/dts/omap34xx-hs.dtsi   | 16 ++++++
+ arch/arm/boot/dts/omap36xx-hs.dtsi   | 16 ++++++
+ arch/arm/mach-omap2/board-generic.c  | 18 +++++++
+ arch/arm/mach-omap2/omap_hwmod.c     | 98 ++++++++++++++++++++++++++++--------
+ 8 files changed, 196 insertions(+), 25 deletions(-)
+ create mode 100644 arch/arm/boot/dts/am3517.dtsi
+ create mode 100644 arch/arm/boot/dts/omap34xx-hs.dtsi
+ create mode 100644 arch/arm/boot/dts/omap36xx-hs.dtsi
