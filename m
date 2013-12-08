@@ -1,274 +1,333 @@
 From: Jyri Sarha <jsarha@ti.com>
-Subject: [RFC v2 3/8] ASoC: davinci-evm: HDMI audio support for TDA998x trough McASP I2S bus
-Date: Sun, 8 Dec 2013 14:16:46 +0200
-Message-ID: <d3c3f645d39338df0ee9686cb030255ce36a249d.1386503348.git.jsarha@ti.com>
+Subject: [RFC v2 1/8] clk: add gpio controlled clock
+Date: Sun, 8 Dec 2013 14:16:44 +0200
+Message-ID: <cfed65bb023a075d3b9cd985876ac771143a6c79.1386503348.git.jsarha@ti.com>
 References: <cover.1386503347.git.jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:36798 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753823Ab3LHMRl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 8 Dec 2013 07:17:41 -0500
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
 In-Reply-To: <cover.1386503347.git.jsarha@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
 To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, dri-devel@lists.freedesktop.org
-Cc: broonie@kernel.org, peter.ujfalusi@ti.com, detheridge@ti.com, Jyri Sarha <jsarha@ti.com>, bcousson@baylibre.com
+Cc: detheridge@ti.com, mturquette@linaro.org, Jyri Sarha <jsarha@ti.com>, peter.ujfalusi@ti.com, broonie@kernel.org, bcousson@baylibre.com
+List-Id: linux-omap@vger.kernel.org
 
-Add machine driver support for BeagleBone-Black and other boards with
-tilcdc support and NXP TDA998X HDMI transmitter connected to McASP
-port in I2S mode. The 44100 Hz sample-rate and it's multiples can not
-be supported on Beaglebone-Black because of limited clock-rate
-support. The only supported sample format is SNDRV_PCM_FORMAT_S32_LE.
-The 8 least significant bits are ignored.
+The added clk-gpio is a basic clock that can be enabled and disabled
+trough a gpio output. The DT binding document for the clock is also
+added. For EPROBE_DEFER handling the registering of the clock has to
+be delayed until of_clk_get() call time.
 
 Signed-off-by: Jyri Sarha <jsarha@ti.com>
+cc: mturquette@linaro.org
 cc: bcousson@baylibre.com
 ---
- .../bindings/sound/davinci-evm-audio.txt           |    4 +-
- sound/soc/davinci/davinci-evm.c                    |  167 +++++++++++++++++++-
- 2 files changed, 168 insertions(+), 3 deletions(-)
+ .../devicetree/bindings/clock/gpio-clock.txt       |   21 ++
+ drivers/clk/Makefile                               |    1 +
+ drivers/clk/clk-gpio.c                             |  210 ++++++++++++++++++++
+ include/linux/clk-provider.h                       |   25 +++
+ 4 files changed, 257 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/clock/gpio-clock.txt
+ create mode 100644 drivers/clk/clk-gpio.c
 
-diff --git a/Documentation/devicetree/bindings/sound/davinci-evm-audio.txt b/Documentation/devicetree/bindings/sound/davinci-evm-audio.txt
-index 4aa00f6..f1e1031 100644
---- a/Documentation/devicetree/bindings/sound/davinci-evm-audio.txt
-+++ b/Documentation/devicetree/bindings/sound/davinci-evm-audio.txt
-@@ -1,7 +1,9 @@
- * Texas Instruments SoC audio setups with TLV320AIC3X Codec
- 
- Required properties:
--- compatible : "ti,da830-evm-audio" : forDM365/DA8xx/OMAPL1x/AM33xx
-+- compatible :
-+  "ti,da830-evm-audio" : for DM365/DA8xx/OMAPL1x/AM33xx
-+  "ti,am33xx-beaglebone-black-audio" : for Beaglebone-black HDMI audio
- - ti,model : The user-visible name of this sound complex.
- - ti,audio-codec : The phandle of the TLV320AIC3x audio codec
- - ti,mcasp-controller : The phandle of the McASP controller
-diff --git a/sound/soc/davinci/davinci-evm.c b/sound/soc/davinci/davinci-evm.c
-index b28c9fd..3d3138d 100644
---- a/sound/soc/davinci/davinci-evm.c
-+++ b/sound/soc/davinci/davinci-evm.c
-@@ -21,6 +21,7 @@
- #include <sound/core.h>
- #include <sound/pcm.h>
- #include <sound/soc.h>
-+#include <sound/pcm_params.h>
- 
- #include <asm/dma.h>
- #include <asm/mach-types.h>
-@@ -33,8 +34,13 @@
- struct snd_soc_card_drvdata_davinci {
- 	struct clk *mclk;
- 	unsigned sysclk;
-+	struct snd_pcm_hw_constraint_list *rate_constraint;
- };
- 
-+/* If changing sample format the tda998x configuration (REG_CTS_N) needs
-+   to be changed. */
-+#define TDA998X_SAMPLE_FORMAT SNDRV_PCM_FORMAT_S32_LE
+diff --git a/Documentation/devicetree/bindings/clock/gpio-clock.txt b/Documentation/devicetree/bindings/clock/gpio-clock.txt
+new file mode 100644
+index 0000000..54fea39
+--- /dev/null
++++ b/Documentation/devicetree/bindings/clock/gpio-clock.txt
+@@ -0,0 +1,21 @@
++Binding for simple gpio controlled clock.
 +
- static int evm_startup(struct snd_pcm_substream *substream)
- {
- 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
-@@ -80,12 +86,80 @@ static int evm_hw_params(struct snd_pcm_substream *substream,
- 	return 0;
- }
++This binding uses the common clock binding[1].
++
++[1] Documentation/devicetree/bindings/clock/clock-bindings.txt
++
++Required properties:
++- compatible : shall be "gpio-clock".
++- #clock-cells : from common clock binding; shall be set to 0.
++- enable-gpios : GPIO reference for enabling and disabling the clock.
++
++Optional properties:
++- clocks: Maximum of one parent clock is supported.
++
++Example:
++	clock {
++		compatible = "gpio-clock";
++		clocks = <&parentclk>;
++		#clock-cells = <0>;
++		enable-gpios = <&gpio 1 GPIO_ACTIVE_HIGH>;
++	};
+diff --git a/drivers/clk/Makefile b/drivers/clk/Makefile
+index 7b11106..568b7be 100644
+--- a/drivers/clk/Makefile
++++ b/drivers/clk/Makefile
+@@ -8,6 +8,7 @@ obj-$(CONFIG_COMMON_CLK)	+= clk-fixed-rate.o
+ obj-$(CONFIG_COMMON_CLK)	+= clk-gate.o
+ obj-$(CONFIG_COMMON_CLK)	+= clk-mux.o
+ obj-$(CONFIG_COMMON_CLK)	+= clk-composite.o
++obj-$(CONFIG_COMMON_CLK)	+= clk-gpio.o
  
-+static int evm_tda998x_startup(struct snd_pcm_substream *substream)
+ # SoCs specific
+ obj-$(CONFIG_ARCH_BCM2835)	+= clk-bcm2835.o
+diff --git a/drivers/clk/clk-gpio.c b/drivers/clk/clk-gpio.c
+new file mode 100644
+index 0000000..e04b0e1
+--- /dev/null
++++ b/drivers/clk/clk-gpio.c
+@@ -0,0 +1,210 @@
++/*
++ * Copyright (C) 2013 Texas Instruments
++ * Author: Jyri Sarha <jsarha@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * Gpio controlled clock implementation
++ */
++
++#include <linux/clk-provider.h>
++#include <linux/module.h>
++#include <linux/slab.h>
++#include <linux/gpio.h>
++#include <linux/of_gpio.h>
++#include <linux/err.h>
++#include <linux/device.h>
++
++/**
++ * DOC: basic gpio controlled clock which can be enabled and disabled
++ *      with gpio output
++ * Traits of this clock:
++ * prepare - clk_(un)prepare only ensures parent is (un)prepared
++ * enable - clk_enable and clk_disable are functional & control gpio
++ * rate - inherits rate from parent.  No clk_set_rate support
++ * parent - fixed parent.  No clk_set_parent support
++ */
++
++#define to_clk_gpio(_hw) container_of(_hw, struct clk_gpio, hw)
++
++static int clk_gpio_enable(struct clk_hw *hw)
 +{
-+	struct snd_pcm_runtime *runtime = substream->runtime;
-+	struct snd_soc_pcm_runtime *rtd = substream->private_data;
-+	struct snd_soc_card *soc_card = rtd->codec->card;
-+	struct snd_soc_card_drvdata_davinci *drvdata =
-+		(struct snd_soc_card_drvdata_davinci *)
-+		snd_soc_card_get_drvdata(soc_card);
-+	struct snd_mask *fmt = constrs_mask(&runtime->hw_constraints,
-+					    SNDRV_PCM_HW_PARAM_FORMAT);
-+	snd_mask_none(fmt);
-+	snd_mask_set(fmt, TDA998X_SAMPLE_FORMAT);
++	struct clk_gpio *gpio = to_clk_gpio(hw);
++	int value = gpio->active_low ? 0 : 1;
 +
-+	runtime->hw.rate_min = drvdata->rate_constraint->list[0];
-+	runtime->hw.rate_max = drvdata->rate_constraint->list[
-+		drvdata->rate_constraint->count - 1];
-+	runtime->hw.rates = SNDRV_PCM_RATE_KNOT;
-+
-+	snd_pcm_hw_constraint_list(runtime, 0, SNDRV_PCM_HW_PARAM_RATE,
-+				   drvdata->rate_constraint);
-+	snd_pcm_hw_constraint_minmax(runtime, SNDRV_PCM_HW_PARAM_CHANNELS,
-+				     2, 2);
-+
-+	return evm_startup(substream);
-+}
-+
-+static unsigned int evm_get_bclk(struct snd_pcm_hw_params *params)
-+{
-+	int sample_size = snd_pcm_format_width(params_format(params));
-+	int rate = params_rate(params);
-+	int channels = params_channels(params);
-+
-+	return sample_size * channels * rate;
-+}
-+
-+static int evm_tda998x_hw_params(struct snd_pcm_substream *substream,
-+				 struct snd_pcm_hw_params *params)
-+{
-+	struct snd_soc_pcm_runtime *rtd = substream->private_data;
-+	struct snd_soc_dai *cpu_dai = rtd->cpu_dai;
-+	struct snd_soc_codec *codec = rtd->codec;
-+	struct snd_soc_card *soc_card = codec->card;
-+	struct platform_device *pdev = to_platform_device(soc_card->dev);
-+	unsigned int bclk_freq = evm_get_bclk(params);
-+	unsigned sysclk = ((struct snd_soc_card_drvdata_davinci *)
-+			   snd_soc_card_get_drvdata(soc_card))->sysclk;
-+	int ret;
-+
-+	ret = snd_soc_dai_set_clkdiv(cpu_dai, 1, sysclk / bclk_freq);
-+	if (ret < 0) {
-+		dev_err(&pdev->dev, "can't set CPU DAI clock divider %d\n",
-+			ret);
-+		return ret;
-+	}
-+
-+	ret = snd_soc_dai_set_sysclk(cpu_dai, 0, sysclk, SND_SOC_CLOCK_IN);
-+	if (ret < 0)
-+		return ret;
-+
-+	return ret;
-+}
-+
- static struct snd_soc_ops evm_ops = {
- 	.startup = evm_startup,
- 	.shutdown = evm_shutdown,
- 	.hw_params = evm_hw_params,
- };
- 
-+static struct snd_soc_ops evm_tda998x_ops = {
-+	.startup = evm_tda998x_startup,
-+	.shutdown = evm_shutdown,
-+	.hw_params = evm_tda998x_hw_params,
-+};
-+
- /* davinci-evm machine dapm widgets */
- static const struct snd_soc_dapm_widget aic3x_dapm_widgets[] = {
- 	SND_SOC_DAPM_HP("Headphone Jack", NULL),
-@@ -152,6 +226,81 @@ static int evm_aic3x_init(struct snd_soc_pcm_runtime *rtd)
- 	return 0;
- }
- 
-+static unsigned int tda998x_hdmi_rates[] = {
-+	32000,
-+	44100,
-+	48000,
-+	88200,
-+	96000,
-+};
-+
-+static struct snd_pcm_hw_constraint_list *evm_tda998x_rate_constraint(
-+	struct snd_soc_card *soc_card)
-+{
-+	struct platform_device *pdev = to_platform_device(soc_card->dev);
-+	unsigned sysclk = ((struct snd_soc_card_drvdata_davinci *)
-+			   snd_soc_card_get_drvdata(soc_card))->sysclk;
-+	struct snd_pcm_hw_constraint_list *ret;
-+	unsigned int *rates;
-+	int i = 0, j = 0;
-+
-+	ret = devm_kzalloc(soc_card->dev, sizeof(*ret) +
-+			   sizeof(tda998x_hdmi_rates), GFP_KERNEL);
-+	if (!ret) {
-+		dev_err(&pdev->dev, "Unable to allocate rate constraint!\n");
-+		return NULL;
-+	}
-+
-+	rates = (unsigned int *)&ret[1];
-+	ret->list = rates;
-+	ret->mask = 0;
-+	for (; i < ARRAY_SIZE(tda998x_hdmi_rates); i++) {
-+		unsigned int bclk_freq = tda998x_hdmi_rates[i] * 2 *
-+			snd_pcm_format_width(TDA998X_SAMPLE_FORMAT);
-+		if (sysclk % bclk_freq == 0) {
-+			rates[j++] = tda998x_hdmi_rates[i];
-+			dev_dbg(soc_card->dev, "Allowing rate %u\n",
-+				tda998x_hdmi_rates[i]);
-+		}
-+	}
-+	ret->count = j;
-+	return ret;
-+}
-+
-+static const struct snd_soc_dapm_widget tda998x_dapm_widgets[] = {
-+	SND_SOC_DAPM_OUTPUT("HDMI Out"),
-+};
-+
-+static int evm_tda998x_init(struct snd_soc_pcm_runtime *rtd)
-+{
-+	struct snd_soc_dai *cpu_dai = rtd->cpu_dai;
-+	struct snd_soc_dapm_context *dapm = &rtd->codec->dapm;
-+	struct snd_soc_card *soc_card = rtd->codec->card;
-+	struct snd_soc_card_drvdata_davinci *drvdata =
-+		(struct snd_soc_card_drvdata_davinci *)
-+		snd_soc_card_get_drvdata(soc_card);
-+	int ret;
-+
-+	ret = snd_soc_dai_set_clkdiv(cpu_dai, 0, 1);
-+	if (ret < 0)
-+		return ret;
-+
-+	drvdata->rate_constraint = evm_tda998x_rate_constraint(soc_card);
-+
-+	snd_soc_dapm_new_controls(dapm, tda998x_dapm_widgets,
-+				  ARRAY_SIZE(tda998x_dapm_widgets));
-+
-+	ret = snd_soc_of_parse_audio_routing(soc_card, "ti,audio-routing");
-+
-+	/* not connected */
-+	snd_soc_dapm_disable_pin(dapm, "RX");
-+
-+	/* always connected */
-+	snd_soc_dapm_enable_pin(dapm, "HDMI Out");
++	gpio_set_value(gpio->gpio, value);
 +
 +	return 0;
 +}
 +
- /* davinci-evm digital audio interface glue - connects codec <--> CPU */
- static struct snd_soc_dai_link dm6446_evm_dai = {
- 	.name = "TLV320AIC3X",
-@@ -337,7 +486,7 @@ static struct snd_soc_card da850_snd_soc_card = {
- #if defined(CONFIG_OF)
- 
- /*
-- * The struct is used as place holder. It will be completely
-+ * The structs are used as place holders. They will be completely
-  * filled with data from dt node.
-  */
- static struct snd_soc_dai_link evm_dai_tlv320aic3x = {
-@@ -350,10 +499,24 @@ static struct snd_soc_dai_link evm_dai_tlv320aic3x = {
- 		   SND_SOC_DAIFMT_IB_NF,
- };
- 
-+static struct snd_soc_dai_link evm_dai_tda998x_hdmi = {
-+	.name		= "NXP TDA998x HDMI Chip",
-+	.stream_name	= "HDMI",
-+	.codec_dai_name	= "hdmi-hifi",
-+	.ops		= &evm_tda998x_ops,
-+	.init           = evm_tda998x_init,
-+	.dai_fmt	= (SND_SOC_DAIFMT_CBS_CFS | SND_SOC_DAIFMT_I2S |
-+			   SND_SOC_DAIFMT_IB_NF),
++static void clk_gpio_disable(struct clk_hw *hw)
++{
++	struct clk_gpio *gpio = to_clk_gpio(hw);
++	int value = gpio->active_low ? 1 : 0;
++
++	gpio_set_value(gpio->gpio, value);
++}
++
++static int clk_gpio_is_enabled(struct clk_hw *hw)
++{
++	struct clk_gpio *gpio = to_clk_gpio(hw);
++	int value = gpio_get_value(gpio->gpio);
++
++	return gpio->active_low ? !value : value;
++}
++
++const struct clk_ops clk_gpio_ops = {
++	.enable = clk_gpio_enable,
++	.disable = clk_gpio_disable,
++	.is_enabled = clk_gpio_is_enabled,
++};
++EXPORT_SYMBOL_GPL(clk_gpio_ops);
++
++/**
++ * clk_register_gpio - register a gpip clock with the clock framework
++ * @dev: device that is registering this clock
++ * @name: name of this clock
++ * @parent_name: name of this clock's parent
++ * @flags: framework-specific flags for this clock
++ * @gpio: gpio to control this clock
++ * @active_low: gpio polarity
++ */
++struct clk *clk_register_gpio(struct device *dev, const char *name,
++		const char *parent_name, unsigned long flags,
++		unsigned int gpio, bool active_low)
++{
++	struct clk_gpio *clk_gpio;
++	struct clk *clk = ERR_PTR(-EINVAL);
++	struct clk_init_data init = { NULL };
++	unsigned long gpio_flags;
++	int err;
++
++	if (active_low)
++		gpio_flags = GPIOF_OUT_INIT_LOW;
++	else
++		gpio_flags = GPIOF_OUT_INIT_HIGH;
++
++	err = gpio_request_one(gpio, gpio_flags, name);
++
++	if (err) {
++		pr_err("%s: %s: Error requesting clock control gpio %u\n",
++		       __func__, name, gpio);
++		clk = ERR_PTR(err);
++		goto clk_register_gpio_err;
++	}
++
++	clk_gpio = kzalloc(sizeof(*clk_gpio), GFP_KERNEL);
++
++	if (!clk_gpio) {
++		pr_err("%s: %s: could not allocate gpio clk\n", __func__, name);
++		clk = ERR_PTR(-ENOMEM);
++		goto clk_register_gpio_err;
++	}
++
++	init.name = name;
++	init.ops = &clk_gpio_ops;
++	init.flags = flags | CLK_IS_BASIC;
++	init.parent_names = (parent_name ? &parent_name : NULL);
++	init.num_parents = (parent_name ? 1 : 0);
++
++	clk_gpio->gpio = gpio;
++	clk_gpio->active_low = active_low;
++	clk_gpio->hw.init = &init;
++
++	clk = clk_register(dev, &clk_gpio->hw);
++
++	if (!IS_ERR(clk))
++		return clk;
++
++	kfree(clk_gpio);
++
++clk_register_gpio_err:
++	gpio_free(gpio);
++
++	return clk;
++}
++EXPORT_SYMBOL_GPL(clk_register_gpio);
++
++#ifdef CONFIG_OF
++/**
++ * The clk_register_gpio has to be delayed, because the EPROBE_DEFER
++ * can not be handled properly at of_clk_init() call time.
++ */
++
++struct clk_gpio_delayed_register_data {
++	struct device_node *node;
++	struct mutex lock; /* Protect delayed clk registering */
++	struct clk *clk;
 +};
 +
- static const struct of_device_id davinci_evm_dt_ids[] = {
- 	{
- 		.compatible = "ti,da830-evm-audio",
--		.data = (void *) &evm_dai_tlv320aic3x,
-+		.data = &evm_dai_tlv320aic3x,
-+	},
-+	{
-+		.compatible = "ti,am33xx-beaglebone-black-audio",
-+		.data = &evm_dai_tda998x_hdmi,
- 	},
- 	{ /* sentinel */ }
- };
++static
++struct clk *of_clk_gpio_delayed_register_get(struct of_phandle_args *clkspec,
++					     void *_data)
++{
++	struct clk_gpio_delayed_register_data *data =
++		(struct clk_gpio_delayed_register_data *)_data;
++	struct clk *clk;
++	const char *clk_name = data->node->name;
++	const char *parent_name;
++	enum of_gpio_flags gpio_flags;
++	int gpio;
++	bool active_low;
++
++	mutex_lock(&data->lock);
++
++	if (data->clk) {
++		mutex_unlock(&data->lock);
++		return data->clk;
++	}
++
++	gpio = of_get_named_gpio_flags(data->node, "enable-gpios", 0,
++				       &gpio_flags);
++
++	if (gpio < 0) {
++		mutex_unlock(&data->lock);
++		if (gpio != -EPROBE_DEFER)
++			pr_err("%s: %s: Can't get 'enable-gpios' DT property\n",
++			       __func__, clk_name);
++		return ERR_PTR(gpio);
++	}
++
++	active_low = gpio_flags & OF_GPIO_ACTIVE_LOW;
++
++	parent_name = of_clk_get_parent_name(data->node, 0);
++
++	clk = clk_register_gpio(NULL, clk_name, parent_name, 0,
++				gpio, active_low);
++	if (IS_ERR(clk)) {
++		mutex_unlock(&data->lock);
++		return clk;
++	}
++
++	data->clk = clk;
++	mutex_unlock(&data->lock);
++
++	return clk;
++}
++
++/**
++ * of_gpio_clk_setup() - Setup function for gpio controlled clock
++ */
++void __init of_gpio_clk_setup(struct device_node *node)
++{
++	struct clk_gpio_delayed_register_data *data;
++
++	data = kzalloc(sizeof(*data), GFP_KERNEL);
++	if (!data) {
++		pr_err("%s: could not allocate gpio clk\n", __func__);
++		return;
++	}
++
++	data->node = node;
++	mutex_init(&data->lock);
++
++	of_clk_add_provider(node, of_clk_gpio_delayed_register_get, data);
++}
++EXPORT_SYMBOL_GPL(of_gpio_clk_setup);
++CLK_OF_DECLARE(gpio_clk, "gpio-clock", of_gpio_clk_setup);
++#endif
+diff --git a/include/linux/clk-provider.h b/include/linux/clk-provider.h
+index 73bdb69..9d433f7 100644
+--- a/include/linux/clk-provider.h
++++ b/include/linux/clk-provider.h
+@@ -407,6 +407,31 @@ struct clk *clk_register_composite(struct device *dev, const char *name,
+ 		struct clk_hw *gate_hw, const struct clk_ops *gate_ops,
+ 		unsigned long flags);
+ 
++/***
++ * struct clk_gpio - gpio controlled clock
++ *
++ * @hw:		handle between common and hardware-specific interfaces
++ * @gpio:	gpio
++ * @active_low:	gpio polarity
++ *
++ * Clock with a gpio control for enabling and disabling the parent clock.
++ * Implements .enable, .disable and .is_enabled
++ */
++
++struct clk_gpio {
++	struct clk_hw	hw;
++	unsigned int	gpio;
++	bool		active_low;
++};
++
++extern const struct clk_ops clk_gpio_ops;
++
++struct clk *clk_register_gpio(struct device *dev, const char *name,
++		const char *parent_name, unsigned long flags,
++		unsigned int gpio, bool active_low);
++
++void of_gpio_clk_setup(struct device_node *node);
++
+ /**
+  * clk_register - allocate a new clock, register it and return an opaque cookie
+  * @dev: device that is registering this clock
 -- 
 1.7.9.5
-
