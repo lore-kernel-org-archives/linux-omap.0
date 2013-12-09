@@ -1,56 +1,73 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 1/3] ARM: OMAP4+: hwmod data: Don't prevent RESET of USB
- Host module
-Date: Mon, 9 Dec 2013 02:15:44 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1312090213210.32309@utopia.booyaka.com>
-References: <1386080748-17005-1-git-send-email-rogerq@ti.com> <1386080748-17005-2-git-send-email-rogerq@ti.com> <alpine.DEB.2.02.1312090125170.32309@utopia.booyaka.com> <20131209015838.GA11433@atomide.com>
+From: "Gupta, Pekon" <pekon@ti.com>
+Subject: RE: OMAP3 NAND ECC selection
+Date: Mon, 9 Dec 2013 04:33:51 +0000
+Message-ID: <20980858CB6D3A4BAE95CA194937D5E73EA52ADF@DBDE04.ent.ti.com>
+References: <alpine.DEB.2.01.1312051000270.17561@pmeerw.net>
+	<CAFqH_50vhgJ=ktqmYRo+ZO1bbRmiME+kXVt6sLJL91q9A2S7TA@mail.gmail.com>
+	<52A04E75.3010609@corscience.de>
+	<alpine.DEB.2.01.1312051711410.20976@pmeerw.net>
+	<20131205171326.GA26766@atomide.com>
+	<CABxcv=mtqkpyup0y-zv53YRvdgKH0bNXeCWf9mxPFoUTRQ=Gew@mail.gmail.com>
+	<20131205182628.GF2345@localhost>
+	<20980858CB6D3A4BAE95CA194937D5E73EA5222E@DBDE04.ent.ti.com>
+	<20131205200618.19b33ee2@skate>
+	<CAN8TOE-cv5ppz0Q_asK=6WdRPaK9SAd1ccZF0Ax7QCdGOE7Fjw@mail.gmail.com>
+ <20131205203237.047cfbb9@skate>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="843723315-894948885-1386555344=:32309"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20131209015838.GA11433@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: bcousson@baylibre.com, Roger Quadros <rogerq@ti.com>, tomi.valkeinen@ti.com, balbi@ti.com, sr@denx.de, David.Laight@ACULAB.COM, michael@amarulasolutions.com, bigeasy@linutronix.de, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:56904 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755614Ab3LIEed convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 8 Dec 2013 23:34:33 -0500
+In-Reply-To: <20131205203237.047cfbb9@skate>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Brian Norris <computersforpeace@gmail.com>, Mike Dunn <mikedunn@newsguy.com>
+Cc: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, Javier Martinez Canillas <javier@dowhile0.org>, Tony Lindgren <tony@atomide.com>, Enric Balletbo Serra <eballetbo@gmail.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, =?iso-8859-1?Q?Andreas_Bie=DFmann?= <andreas.biessmann@corscience.de>, Peter Meerwald <pmeerw@pmeerw.net>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Hi,
 
---843723315-894948885-1386555344=:32309
-Content-Type: TEXT/PLAIN; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+>From: Thomas Petazzoni [mailto:thomas.petazzoni@free-electrons.com]
+>>On Thu, 5 Dec 2013 11:24:18 -0800, Brian Norris wrote:
+[...]
 
-On Sun, 8 Dec 2013, Tony Lindgren wrote:
+>> Using 1-bit ECC on NAND is not a long-term solution. Given that fact,
+>> I think your ROM code is what may need to change, not the entire MTD
+>> subsystem.
+>
+>As someone (Tom Rini maybe?) pointed out, today the shift is 1-bit ECC
+>supported by ROM code vs. 4 or 8 bits required by NAND. But we can very
+>well imagine that tomorrow ROM code will support BCH4 (and the NAND
+>will ensure block 0 is OK for use with BCH4) but the rest of the NAND
+>will require BCH16 or something like that.
+>
+>I'm not designing ROM code, and the fact that they today have this
+>limitation, should be an indication that Linux should be capable of
+>handling different ECC schemes to handle those hardware constraints.
+>
+Just to highlight few more points:
+(1) ROM code on newer OMAP platforms like AM33xx do have the ability
+to select ECC scheme by reading a specific location from EEPROM
+connected to I2C0. 
+Reference:
+	http://www.ti.com/product/am3359
+	http://www.ti.com/litv/pdf/spruh73i 
+	Chapter 26: Initialization  
+	Section: 26.1.7.4  Memory Booting > NAND
+  	Table 26-17. NAND Geometry Information on I2C EEPROM
 
-> * Paul Walmsley <paul@pwsan.com> [131208 17:27]:
-> > On Tue, 3 Dec 2013, Roger Quadros wrote:
-> >=20
-> > > Without this, the USB devices are sometimes not detected on OMAP4 Pan=
-da
-> > > with u-boot v2013.10.
-> > >=20
-> > > Unlike what the comment states, errata i660 does not state that we
-> > > can't RESET the USB host module. Instead it states that RESET is the
-> > > only way to recover from a deadlock situation.
-> > >=20
-> > > RESET ensures that the module is in a known good state irrespective
-> > > of what bootloader does with the module, so it must be done at boot.
-> > >=20
-> > > Reported-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> > > Signed-off-by: Roger Quadros <rogerq@ti.com>
-> >=20
-> > Acked-by: Paul Walmsley <paul@pwsan.com>
-> >=20
-> > Will you pick this up for the -rc series, or do you want me or Tony to?=
- =20
-> > Roger writes that this one's pretty important.
->=20
-> I suggest that you just queue this with your other fixes so we get
-> things working.
+(2) And going forward, ECC based NAND devices may be phased out,
+and BE-NAND (Built-in) NAND devices are becoming popular. As both
+cost and density wise they are same to SLC NANDs today.  Thus issue
+of un-compatibility of ecc-scheme with ROM code, will not hold true.
+We already have some BE-NAND support in our generic driver.
+http://patchwork.ozlabs.org/patch/222186/
 
-I'm going to wait until tomorrow anyway to see if Sathya responds to my=20
-other E-mail, so maybe Beno=C3=AEt will let us know by then.
+However, I also support user space tool approach rather than having
+this included in NAND driver.
 
 
-- Paul
---843723315-894948885-1386555344=:32309--
+with regards, pekon
