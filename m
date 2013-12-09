@@ -1,91 +1,46 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 15/26] ARM: omap4-panda.dts: add display information
-Date: Mon, 9 Dec 2013 17:30:56 +0200
-Message-ID: <52A5E230.4010901@ti.com>
-References: <1386160133-24026-1-git-send-email-tomi.valkeinen@ti.com>	<1386160133-24026-16-git-send-email-tomi.valkeinen@ti.com>	<CABxcv=m+-9V2qwvuQgJavQ3qOb2+fBcAoW9G_Mi33BTHCWE85g@mail.gmail.com>	<52A5BDF4.2070304@ti.com> <CABxcv==-aknRfzybA6ify5JSHeiquS9bqAEXumJwhnS6PT0MfA@mail.gmail.com>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: [RFC/RFT/PATCH V3] gpio: omap: refresh patch "be more aggressive with pm_runtime" against v3.12-rc5
+Date: Mon, 09 Dec 2013 08:03:21 -0800
+Message-ID: <87r49m8112.fsf@linaro.org>
+References: <1385506004-14943-1-git-send-email-caesarxuchao@gmail.com>
+	<1386477638-6331-1-git-send-email-caesarxuchao@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="4duuXIeLVqLNCRgn2UfVTAoLsmpupwcJF"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:48025 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1761105Ab3LIPbD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 9 Dec 2013 10:31:03 -0500
-In-Reply-To: <CABxcv==-aknRfzybA6ify5JSHeiquS9bqAEXumJwhnS6PT0MfA@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <1386477638-6331-1-git-send-email-caesarxuchao@gmail.com> (Chao
+	Xu's message of "Sat, 7 Dec 2013 22:40:38 -0600")
+Sender: linux-gpio-owner@vger.kernel.org
+To: Chao Xu <caesarxuchao@gmail.com>
+Cc: linux-omap@vger.kernel.org, santosh.shilimkar@ti.com, linus.walleij@linaro.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, tony@atomide.com, balbi@ti.com, nm@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: Javier Martinez Canillas <javier@dowhile0.org>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-fbdev@vger.kernel.org, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Archit Taneja <archit@ti.com>, Darren Etheridge <detheridge@ti.com>, Tony Lindgren <tony@atomide.com>, Enric Balletbo Serra <eballetbo@gmail.com>
 
---4duuXIeLVqLNCRgn2UfVTAoLsmpupwcJF
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Chao Xu <caesarxuchao@gmail.com> writes:
 
-On 2013-12-09 17:09, Javier Martinez Canillas wrote:
-> Hi Tomi,
->=20
-> On Mon, Dec 9, 2013 at 1:56 PM, Tomi Valkeinen <tomi.valkeinen@ti.com> =
-wrote:
->> On 2013-12-06 10:57, Javier Martinez Canillas wrote:
->>
->>>> +       tfp410: encoder@0 {
->>>> +               compatible =3D "ti,tfp410";
->>>> +               gpios =3D <&gpio1 0 0>;   /* 0, power-down */
->>>> +
->>>
->>> Please use the constants from include/dt-bindings/ instead of magic
->>> numbers, i.e:
->>>
->>> gpios =3D <&gpio1 0 GPIO_ACTIVE_HIGH>;   /* 0, power-down */
->>
->> Thanks, fixed now (for all .dts files)
->>
->> However... The TFP410 gpio is "power-down". I think we should actually=
+> From: Felipe Balbi <balbi@ti.com>
+>
+> try to keep gpio block suspended as much as possible.
 
->> mark it as GPIO_ACTIVE_LOW, as setting it to 0 powers down the device.=
+> Tested with pandaboard and a sysfs exported gpio.
+>
+> Signed-off-by: Felipe Balbi <balbi at ti.com>
+>
+> [caesarxuchao@gmail.com : Refreshed against v3.12-rc5, and added
+> revision check to enable aggressive pm_runtime on OMAP4-only. Because
+> am33xx_gpio_sysc.idlemodes seems to be wrongly marked as
+> SIDLE_SMART_WKUP, which might cause missed interrupts with this patch.
+> Tested on Pandaboard rev A2.]
+> Signed-off-by: Chao Xu <caesarxuchao@gmail.com>
 
->>
->=20
-> yes, I looked at the TFP410 datasheet [0] and the Power Down pin is
-> indeed an active-low, I just replaced to GPIO_ACTIVE_HIGH since you
-> were using a constant 0 and include/dt-bindings/gpio/gpio.h defines
-> GPIO_ACTIVE_HIGH  as 0.
->=20
-> I just asked to Enric why we use GPIO_ACTIVE_HIGH for the PD pin on
-> the IGEPv2 DTS instad and is because the IGEP board uses a hardware
-> signal inverter but that is a special case. I don't know about the
-> Panda board since I haven't looked at its datasheet.
+I have several problems with this patch.
 
-Oh. Does it work on igep? The TFP410 driver always handles the PD GPIO
-as it were active-low. The flag is ignored.
+First, the changelog is missing a lot of information.  In particular, nowhere
+is it described what problem is this patch addressing  and how this
+patch addresses that problem.
 
- Tomi
+Second, I don't see any mention of off-mode, and I suspect there are
+issues with off-mode here that are not being addressed.
 
+Also, I *really* don't like any approach that is targetted at a single
+SoC.
 
-
---4duuXIeLVqLNCRgn2UfVTAoLsmpupwcJF
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJSpeIwAAoJEPo9qoy8lh712vwP/junXGTfx4TuqekJmb/Ku/Bv
-BmKGuZ8RmHKhLpvOU+byZycjgYLpW0GNhc3VBb311Sya8KUlg94Q9RNBiwfnx5Tv
-xkiAkkOVuQaV5RxztR9uATIGmbFsrZWP8Ksx+CSE7eBGRDvtqxOJ8NjYMzxEkwEQ
-0XbxMEV8rfFPMmMC3HeAqy6YSVwi+K0F7vvPyJ9ljW0XjmBEHqZmHC3H3O1ip/06
-n7dsn63rkTCx0SJ7JVxI1VzIIcDFEHx1tFh1ghUQ4iLFlPpXxiTNCJDKqhQrxLBA
-nDFxvP2pDBAH9YC4mWazzo6CXJhBXmvBdgHenhnFpn9uuzF3cdbbvWQ3BZennzbn
-B2DTPPc6nQYKZPUerVhtGFFI/w5TVt7llbksApAov8fSr+cVqJhs+epxvNslvGp7
-vz98w0zggQuCyVAKdEUdT0QJpYGmpH8k6rJpJiZJofBejA+XPmXsxb+esE+aBfkI
-kN5r/KRTttQ2oO7VBD7Um2aa7C06cJ2TGbUJIKBJAKC+wqDgo7rPjXk3MPfPjhSS
-El5f9nokc7/fZ/IMZ149/BBeaKyhEEuA3Fp9dEIfy2obSr1QIdbEH0gfN8PEQJ2L
-Hs27jlcVc6ik0OQ7GW5iZDgkIkZC8VGCadRu3edMT9YISL+sYMQHF1VqbZ3/9IQc
-g791tyWvg05eP1vg4O14
-=uMAt
------END PGP SIGNATURE-----
-
---4duuXIeLVqLNCRgn2UfVTAoLsmpupwcJF--
+Kevin
