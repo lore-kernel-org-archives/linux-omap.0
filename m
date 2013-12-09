@@ -1,69 +1,75 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH v3 04/10] usb: dwc3: use quirks to know if a particualr
- platform doesn't have PHY
-Date: Mon, 9 Dec 2013 12:43:37 +0530
-Message-ID: <52A56DA1.1010808@ti.com>
-References: <1385373690-12170-1-git-send-email-kishon@ti.com>
- <1385373690-12170-5-git-send-email-kishon@ti.com>
- <20131204144027.GB21055@xps8300> <52A01E86.50406@ti.com>
- <20131205075828.GA32583@xps8300>
+From: Belisko Marek <marek.belisko@gmail.com>
+Subject: Re: [PATCH] omap: twl-common: Fix musb-hdrc device name.
+Date: Mon, 9 Dec 2013 08:35:11 +0100
+Message-ID: <CAAfyv37e9+OLH-KegPCEhc0sbBS7UVnaSGU0mBw2AxAN9D7Akw@mail.gmail.com>
+References: <1386059589-4030-1-git-send-email-marek.belisko@open-nandra.com>
+	<529D9D43.6040101@ti.com>
+	<CAAfyv37Vie1vZK2XQ1cfVq6eVnSuaBLfykk6pU8fwEyqvPF4BA@mail.gmail.com>
+	<CAAfyv35gVVNydrk8vifSyidpFjEXjGiT4-i2dgN5Un2=FuHaqQ@mail.gmail.com>
+	<20131205184323.GF26766@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20131205075828.GA32583@xps8300>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, ijc+devicetree@hellion.org.uk, linux@arm.linux.org.uk, rob@landley.net, pawel.moll@arm.com, linux-doc@vger.kernel.org, tony@atomide.com, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, grant.likely@linaro.org, rob.herring@calxeda.com, bcousson@baylibre.com, galak@codeaurora.org, swarren@wwwdotorg.org, s.nawrocki@samsung.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20131205184323.GF26766@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Kishon Vijay Abraham I <kishon@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Hi Tony,
 
-On Thursday 05 December 2013 01:28 PM, Heikki Krogerus wrote:
-> Hi,
+On Thu, Dec 5, 2013 at 7:43 PM, Tony Lindgren <tony@atomide.com> wrote:
+> * Belisko Marek <marek.belisko@gmail.com> [131203 01:21]:
+>> On Tue, Dec 3, 2013 at 10:08 AM, Belisko Marek <marek.belisko@gmail.com> wrote:
+>> > Hi,
+>> >
+>> > On Tue, Dec 3, 2013 at 9:58 AM, Kishon Vijay Abraham I <kishon@ti.com> wrote:
+>> >> Hi,
+>> >>
+>> >> On Tuesday 03 December 2013 02:03 PM, Marek Belisko wrote:
+>> >>> Without this change when booting omap3 device (gta04) with board file
+>> >>> leads to follwing errors:
+>> >>>
+>> >>> [    1.203308] musb-hdrc musb-hdrc.0.auto: unable to find phy
+>> >>> [    1.209075] HS USB OTG: no transceiver configured
+>> >>> [    1.214019] musb-hdrc musb-hdrc.0.auto: musb_init_controller failed with status -517
+>> >>>
+>> >>> and usb isn't working.
+>> >>>
+>> >>> This is probably regression caused by commit: 6c27f939
+>> >>
+>> >> I think a better fix would be to have this merged..
+>> >> https://lkml.org/lkml/2013/7/26/91
+>> > Yes I see but how this could help with current situation? Ho you then
+>> > specify device number?
+>> I was too fast with reply sorry. I can see whole series and it is of
+>> course correct solution. But as I said
+>> can we except to be merged to 3.13. If not Tony can you pick my patch.
 >
-> On Thu, Dec 05, 2013 at 12:04:46PM +0530, Kishon Vijay Abraham I wrote:
->> On Wednesday 04 December 2013 08:10 PM, Heikki Krogerus wrote:
->>> On Mon, Nov 25, 2013 at 03:31:24PM +0530, Kishon Vijay Abraham I wrote:
->>>> There can be systems which does not have an external phy, so get
->>>> phy only if no quirks are added that indicates the PHY is not present.
->>>> Introduced two quirk flags to indicate the *absence* of usb2 phy and
->>>> usb3 phy. Also remove checking if return value is -ENXIO since it's now
->>>> changed to always enable usb_phy layer.
->>>
->>> Can you guys explain why is something like this needed? Like with
->>> clocks and gpios, the device drivers shouldn't need to care any more
->>> if the platform has the phys or not. -ENODEV tells you your platform
->>
->> Shouldn't we report if a particular platform needs a PHY and not able to get
->> it. How will a user know if a particular controller is not working because it's
->> not able to get and initialize the PHYs? Don't you think in such cases it's
->> better to fail (and return from probe) because the controller will not work
->> anyway without the PHY?
+> If it's a regression, then let's get it merged for the -rc cycle.
+Yes it is regression and without that usb on most omap3 based boards
+without DT will not work.
 >
-> My point is that you do not need to separately tell this to the driver
-> like you do with the quirks (if you did, then you would need to fix
-> your framework and not hack the drivers).
+> So please try to follow up on getting the proper fix merged, meanwhile
+> I'll mark this thread as read. If you need this one merged for some
+> reason, then please report to get it back to my radar.
 >
-> Like I said, ENODEV tells you that there is no phy on this platform
-> for you, allowing you to safely continue. If your phy driver is not
-> loaded, the framework already returns EPROBE_DEFER, right. Any other
+> Regards,
+>
+> Tony
 
-right. but that doesn't consider broken dt data. With quirks we'll able 
-to tell if a controller in a particular platform has PHY or not without 
-depending on the dt data.
-> error when getting the phy you can consider critical. They are the
-> errors telling you that you do need a phy on this platform, but
-> something actually went wrong when getting it.
-Not on all scenarios though :-s
+BR,
 
-Thanks
-Kishon
+marek
+
+-- 
+as simple and primitive as possible
+-------------------------------------------------
+Marek Belisko - OPEN-NANDRA
+Freelance Developer
+
+Ruska Nova Ves 219 | Presov, 08005 Slovak Republic
+Tel: +421 915 052 184
+skype: marekwhite
+twitter: #opennandra
+web: http://open-nandra.com
