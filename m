@@ -1,85 +1,81 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 13/26] ARM: omap3.dtsi: add omapdss information
-Date: Mon, 9 Dec 2013 10:04:25 -0800
-Message-ID: <20131209180424.GE12527@atomide.com>
-References: <1386160133-24026-1-git-send-email-tomi.valkeinen@ti.com>
- <1386160133-24026-14-git-send-email-tomi.valkeinen@ti.com>
- <20131205170514.GY26766@atomide.com>
- <52A5BB65.5050109@ti.com>
+From: Sebastian Reichel <sre@debian.org>
+Subject: Re: [PATCH 2/2] Documentation: dt: Document TSC2005 DT binding
+Date: Mon, 9 Dec 2013 19:24:10 +0100
+Message-ID: <20131209182409.GA7626@earth.universe>
+References: <1386284979-9680-1-git-send-email-sre@debian.org>
+ <1386284979-9680-3-git-send-email-sre@debian.org>
+ <20131209174638.GC12527@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:19786 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760412Ab3LISE1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Dec 2013 13:04:27 -0500
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="jI8keyz6grp/JLjh"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <52A5BB65.5050109@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20131209174638.GC12527@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Dmitry Torokhov <dtor@mail.ru>, linux-input@vger.kernel.org, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Rob Landley <rob@landley.net>, Grant Likely <grant.likely@linaro.org>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, Archit Taneja <archit@ti.com>, Darren Etheridge <detheridge@ti.com>
 
-* Tomi Valkeinen <tomi.valkeinen@ti.com> [131209 04:46]:
-> On 2013-12-05 19:05, Tony Lindgren wrote:
-> > * Tomi Valkeinen <tomi.valkeinen@ti.com> [131204 04:31]:
-> > 
-> > Description missing.. But other than that can you please check that
-> > the latest patch I posted in thread "[PATCH] ARM: OMAP2+: Fix populating
-> > the hwmod data from device" works with this?
-> >
-> > The test to do is to remove the related reg, interrupt and dma entries
-> > from omap_hwmod_*_data.c, and make sure the related hwmod data is initialized
-> > from DT properly.
-> 
-> I made a quick test with panda, by applying your patch and reverting
-> b38911f3472be89551bfca740adf0009562b9873. That only effectively tests
-> the DISPC IRQ, but that worked fine.
 
-OK I've finally pushed a real branch for the mach-omap2 board-*.c file
-removal patches at omap-for-v3.14/omap3-board-removal so you can use
-that as a base for testing. I did not apply the dpi panel pdata-quirks.c
-patch as we discussed earlier.
- 
-> > I don't know if it makes sense to have them as children of dss_core, they
-> > really all seem to be completely independent devices?
-> 
-> The DSS subdevices depend on the dss_core. dss_core has to be powered up
-> for any of the subdevices to work. This is done automatically by the
-> runtime PM when the subdevices are children of the dss_core.
+--jI8keyz6grp/JLjh
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-OK thanks. Care to also check that it plays along nicely with the comments
-starting at line 3222 in omap_hwmod_3xxx_data.c? We should set up things
-so we can eventually remove those kind of hwmod workarounds.
- 
-> > BTW, for v3.15, I'm hoping to do patches where we deprecate ti,hwmods
-> > property and do the lookup based on the compatible property instead ;)
-> > So from that point of view we need to get the device mapping right in
-> > the .dtsi files, and don't want to start mixing up separate devices into
-> > single .dtsi entry.
-> 
-> Hmm, was that just a general comment, or something that affects the DSS
-> DT data I have in my patch? As far as I understand, the DSS nodes
-> reflect the current hwmods correctly.
+On Mon, Dec 09, 2013 at 09:46:38AM -0800, Tony Lindgren wrote:
+> > +Optional properties:
+> > + - ti,fuzz-x		      : integer, X noise value of the touchscreen
+> > +				(defaults to 4)
+> > + - ti,fuzz-y		      : integer, Y noise value of the touchscreen
+> > +				(defaults to 8)
+> > + - ti,fuzz-pressure	      : integer, pressure noise value of the touch=
+screen
+> > +				(defaults to 2)
+> > + - ti,max-x		      : integer, maximum reported x value
+> > +				(defaults to 4096)
+> > + - ti,max-y		      : integer, maximum reported y value
+> > +				(defaults to 4096)
+> > + - ti,max-pressure	      : integer, maximum reported pressure
+> > +				(defaults to 4096)
+> > + - ti,x-plate-resistance      : integer, resistance of the touchscreen=
+'s X plates
+> > +				in ohm (defaults to 280)
+> > + - ti,esd-recovery-timeout-ms : integer, if the touchscreen does not r=
+espond after
+> > +				the configured time (in milli seconds), the driver
+> > +				will reset it. This is disabled by default.
+>=20
+> Instead of adding these optional ti,* properties you can set them in the
+> driver directly in the of_match table based on the compatible flag. Then
+> you can pass compatible flag like ti,tsc2005-nokia-n900, or the name of
+> the LCD panel. Most likely these depend on the LCD panel selected.
 
-Yes that's what we want if there is a dependency to the dss_core at the
-hardware level and the children cannot be used independently. However,
-if the children can be enabled and clocked independently, then they
-should not be children of the dss_core.
- 
-> With the exception that DPI and SDI do not have a matching hwmod, as
-> they are really part of dss_core/dispc. They are separate nodes as they
-> are "video outputs" the same way as the other subnodes.
-> 
-> I could perhaps remove the DPI and SDI nodes, and have them as direct
-> video ports from DISPC, but... That's easier said than done.
+I could certainly do this, but it would move the board specific data
+=66rom the boardcode into the driver. That looks contra-productive to
+me. Is there a good reason to do it this way?
 
-If you need a dev entry created for those where the phandle of that dev
-is used to select the output for a board, then it makes sense to have
-them. I guess you could also set them as a pinctrl mux controller and
-then the board specific .dts file could request those outputs. But there
-may be more than just mux involved like regulators.
+-- Sebastian
 
-Regards,
+--jI8keyz6grp/JLjh
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-Tony
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.15 (GNU/Linux)
+
+iQIcBAEBCAAGBQJSpgrJAAoJENju1/PIO/qapvsQAI7qV3JzrBekXuf88/1YRqxz
+bICnIQPP552wly+wEceIX5xm11RaTuOe8jNsZqZRNyxm0Sjfpd1dPxHkDdwSgiLq
+qgK+MC6jliaFmmStoBX6//cE2t6Hl21rYrnBfLFTcdP0sxIFlIzYeq7mdLEBKtgq
+PftysW2UMB+VZyM0sHnTt2xKztQpiAFaZDZROeI7Xe7mrzKKwN+JLVFGY6zW1fF7
+k4+Ra0hLfTnQpIQgkJBKCOKZh3Imjom4NjPRxcVcPb8HdlFe02+kRVp0V3mNUYay
+E8X8rW77cXRwGwqRXNSk4BJ1HPY3/g/q5wDNIaoSS9elgiSbv2K+NFPGnf7ug4yF
+Ir+YTa7cCv846zP5UJw8ksPPtOfCkSUQKYEUXVxBphjqMsdey2n6iaETwoxzOJkx
+HdK9caKzpoZSW0fDO8ZjR/5JaP35q+tFIST3GmxCO7bBtLfVHv6U1gDIJ8tvYXmI
+FPzcDcUrKvPbcydySCuMH4U4OQrp1pEG+K+18W2xQe05JiPb2RlF3vbcqjxFMiJq
+B1gaPZagmAv0DruGekd13zcNbuaYsp1dOuYmVDZftUiVnf6smSif7PtN3lP3c4pM
+hMD3q2g4Z3dKx3n/f4RCQlclsUVMqwWKuViz6Nm20603OfcRBPaUHZ4aYPJTlGgQ
+WN0DKYg64STqw+HRCMRT
+=grQi
+-----END PGP SIGNATURE-----
+
+--jI8keyz6grp/JLjh--
