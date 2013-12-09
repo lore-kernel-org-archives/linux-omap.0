@@ -1,96 +1,90 @@
-From: "Gupta, Pekon" <pekon@ti.com>
-Subject: RE: OMAP3 NAND ECC selection
-Date: Mon, 9 Dec 2013 11:50:37 +0000
-Message-ID: <20980858CB6D3A4BAE95CA194937D5E73EA52D51@DBDE04.ent.ti.com>
-References: <alpine.DEB.2.01.1312051000270.17561@pmeerw.net>
-	<CAFqH_50vhgJ=ktqmYRo+ZO1bbRmiME+kXVt6sLJL91q9A2S7TA@mail.gmail.com>
-	<52A04E75.3010609@corscience.de>
-	<alpine.DEB.2.01.1312051711410.20976@pmeerw.net>
-	<20131205171326.GA26766@atomide.com>
-	<CABxcv=mtqkpyup0y-zv53YRvdgKH0bNXeCWf9mxPFoUTRQ=Gew@mail.gmail.com>
-	<20131205182628.GF2345@localhost>
-	<20980858CB6D3A4BAE95CA194937D5E73EA5222E@DBDE04.ent.ti.com>
-	<20131205200618.19b33ee2@skate>
-	<CAN8TOE-cv5ppz0Q_asK=6WdRPaK9SAd1ccZF0Ax7QCdGOE7Fjw@mail.gmail.com>
-	<20131205203237.047cfbb9@skate>
-	<20980858CB6D3A4BAE95CA194937D5E73EA52ADF@DBDE04.ent.ti.com>
- <20131209120609.08e62b40@parrot.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 00/26] OMAPDSS: DT support (Christmas edition)
+Date: Mon, 9 Dec 2013 14:01:21 +0200
+Message-ID: <52A5B111.3010307@ti.com>
+References: <52A29A82.106@collabora.co.uk> <52A2A3EF.1030306@collabora.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="x2a9SnsX5VohohiFsHTB4kjLHJXkNvABV"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:48530 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933374Ab3LILvT convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Dec 2013 06:51:19 -0500
-In-Reply-To: <20131209120609.08e62b40@parrot.com>
-Content-Language: en-US
+Received: from comal.ext.ti.com ([198.47.26.152]:40028 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932604Ab3LIMBm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 9 Dec 2013 07:01:42 -0500
+In-Reply-To: <52A2A3EF.1030306@collabora.co.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Matthieu CASTET <matthieu.castet@parrot.com>
-Cc: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Brian Norris <computersforpeace@gmail.com>, Mike Dunn <mikedunn@newsguy.com>, Peter Meerwald <pmeerw@pmeerw.net>, Tony Lindgren <tony@atomide.com>, Enric Balletbo Serra <eballetbo@gmail.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, Javier Martinez Canillas <javier@dowhile0.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, =?iso-8859-1?Q?Andreas_Bie=DFmann?= <andreas.biessmann@corscience.de>
+To: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-fbdev@vger.kernel.org, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Archit Taneja <archit@ti.com>, Darren Etheridge <detheridge@ti.com>, Tony Lindgren <tony@atomide.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Stefan Roese <stefan.roese@gmail.com>, Sebastian Reichel <sre@debian.org>, Robert Nelson <robertcnelson@gmail.com>, "Dr . H . Nikolaus Schaller" <hns@goldelico.com>, Marek Belisko <marek@goldelico.com>
 
->From: Matthieu CASTET [mailto:matthieu.castet@parrot.com]
->> From: Pekon Gupta [mailto: pekon@ti.com]
->> >From: Thomas Petazzoni [mailto:thomas.petazzoni@free-electrons.com]
->> >>On Thu, 5 Dec 2013 11:24:18 -0800, Brian Norris wrote:
-[...]
->> >> Using 1-bit ECC on NAND is not a long-term solution. Given that
->> >> fact, I think your ROM code is what may need to change, not the
->> >> entire MTD subsystem.
->> >
->> >As someone (Tom Rini maybe?) pointed out, today the shift is 1-bit
->> >ECC supported by ROM code vs. 4 or 8 bits required by NAND. But we
->> >can very well imagine that tomorrow ROM code will support BCH4 (and
->> >the NAND will ensure block 0 is OK for use with BCH4) but the rest
->> >of the NAND will require BCH16 or something like that.
->> >
->> >I'm not designing ROM code, and the fact that they today have this
->> >limitation, should be an indication that Linux should be capable of
->> >handling different ECC schemes to handle those hardware constraints.
->> >
->> Just to highlight few more points:
->> (1) ROM code on newer OMAP platforms like AM33xx do have the ability
->> to select ECC scheme by reading a specific location from EEPROM
->> connected to I2C0.
->> 
->AFAIK on omap3, the rom code first try to read data with bch and if it
->doesn't work it fallback on haming 1 bit ecc.
->
-I'm afraid, the OMAP35xx TRM does give much information about BCH
-ecc-scheme being used by ROM code. Though it says that BCH4 ecc-scheme
-would be selected for booting in cases when NAND_ID2 matches a
-particular value. But nothing much is clear (Reference [1]).
-Can you please point me to any other document or link which gives more
-info about the same ?
+--x2a9SnsX5VohohiFsHTB4kjLHJXkNvABV
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+On 2013-12-07 06:28, Javier Martinez Canillas wrote:
+
+> Actually, I looked at drivers/video/omap2/connector-dvi.c and it does t=
+he right
+> thing for legacy platform data probing but no for DT probing:
+>=20
+> static int dvic_probe_pdata(struct platform_device *pdev)
+> {
+> ..
+> 		adapter =3D i2c_get_adapter(i2c_bus_num);
+> 		if (!adapter) {
+> 			dev_err(&pdev->dev,
+> 					"Failed to get I2C adapter, bus %d\n",
+> 					i2c_bus_num);
+> 			return -EPROBE_DEFER;
+> 		}
+> ..
+> }
+>=20
+> static int dvic_probe_of(struct platform_device *pdev)
+> {
+> ..
+>                adapter =3D of_find_i2c_adapter_by_node(adapter_node);
+>                 if (adapter =3D=3D NULL) {
+>                         dev_err(&pdev->dev, "failed to parse i2c-bus\n"=
+);
+>                         omap_dss_put_device(ddata->in);
+>                         return -EINVAL;
+>                 }
+> ..
+> }
+>=20
+> The following patch solves the issue if you want to include in your pat=
+ch-set:
+
+Thanks, I'll add this and the omap3-igep0020 support to my DT branch.
+
+ Tomi
 
 
->> (2) And going forward, ECC based NAND devices may be phased out,
->> and BE-NAND (Built-in) NAND devices are becoming popular. As both
->> cost and density wise they are same to SLC NANDs today.  Thus issue
->> of un-compatibility of ecc-scheme with ROM code, will not hold true.
->> We already have some BE-NAND support in our generic driver.
->> http://patchwork.ozlabs.org/patch/222186/
->>
->Yes but these flash are not always compatible with the ROM.
->
->If the rom is expecting some ECC and the internal controller expect
->other ecc you are stuck.
->
-For AM33xx and newer DRA7xx platforms, allows user to explicitly select
-between no ECC, BCH8 or BCH16. Thus ROM code of newer OMAP devices
-supports BE-NAND. (refer [2]).
 
-[1]	http://www.ti.com/product/omap3530
-	http://www.ti.com/litv/pdf/spruf98x
-	Chapter 25: Initialization
-	 Section 25.4.7.4 NAND
-	Table 25-34. ID2 Byte Description
+--x2a9SnsX5VohohiFsHTB4kjLHJXkNvABV
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
-[2] 	http://www.ti.com/product/am3359
-	http://www.ti.com/litv/pdf/spruh73i 
-	Chapter 26: Initialization  
-	Section: 26.1.7.4  Memory Booting > NAND
-  	Table 26-17. NAND Geometry Information on I2C EEPROM
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.14 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-with regards, pekon
+iQIcBAEBAgAGBQJSpbERAAoJEPo9qoy8lh71wG4QAIBSCuEU8CfFAhDUcipbXYbp
+frdhNEUr+HsQP/7UlCNInPh6bntuz6KRFDVpxSGNhJxXxGr5xg5PIL4EdYMAGgt+
+4Ke/8c9ejRLOh+HzUsdao2ssBFmmbZFVE2HZ6GqaZ4AfCx6h7/B8WQD93Ar9kIUu
+emdaI8rZGt3mA53w9bTfuHTZdddZTbwrdDbZLd0muk7dLLfJgHgA0eoOdpO+Lslw
+mDFrVtE28iF0QXoIuGwsWNYyPOprCX8uEkY9QkUZDSrLnY/UpxN42XzhGx0iE2sR
+Cy1ZQdTa6GppvejtDqmrBReL16wVJlKpQsbv7VDtk3y8yrtxBmuz/9cBmk63SLt4
+eVar4h4H1R2Ge2v7Qo954GijaVh0BZCAUGLrwrMdYkhtlRlY9Be/uydrVsrE+Uhq
+yuSMi2+nLfxYXKX/1EatevpFLpQ19Z0TfPmetcL5A7SPPp32WdrQpqC+GLs9eqp0
+IBBRTAxXDV2eKj9GILnaKGjWMkZIWeQCmVh5SaLRqlZ/VNqU4ZY33zfRKIXqNs/u
+SEzWa2yeGsmO9i1uY42A8Lh2Fkcyds3K/KqlmvHlg7gxw/bgKH5rc8bjqX63l+3y
+7w0xHR89d4vFGyPMHuRX/AsAZqwleN4TYZepLm3LGnf3rWCsKt9FT52+06Zfzsme
+Kpwg0yJ37CGfqCZ16VbR
+=rGoT
+-----END PGP SIGNATURE-----
+
+--x2a9SnsX5VohohiFsHTB4kjLHJXkNvABV--
