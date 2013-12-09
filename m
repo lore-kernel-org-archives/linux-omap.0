@@ -1,75 +1,49 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 13/26] ARM: omap3.dtsi: add omapdss information
-Date: Mon, 9 Dec 2013 14:45:25 +0200
-Message-ID: <52A5BB65.5050109@ti.com>
-References: <1386160133-24026-1-git-send-email-tomi.valkeinen@ti.com> <1386160133-24026-14-git-send-email-tomi.valkeinen@ti.com> <20131205170514.GY26766@atomide.com>
+Subject: Re: [PATCH 15/26] ARM: omap4-panda.dts: add display information
+Date: Mon, 9 Dec 2013 14:56:20 +0200
+Message-ID: <52A5BDF4.2070304@ti.com>
+References: <1386160133-24026-1-git-send-email-tomi.valkeinen@ti.com>	<1386160133-24026-16-git-send-email-tomi.valkeinen@ti.com> <CABxcv=m+-9V2qwvuQgJavQ3qOb2+fBcAoW9G_Mi33BTHCWE85g@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
 	protocol="application/pgp-signature";
-	boundary="QgnhERorJXNshAFWBnctmteRIgR9QI0eD"
+	boundary="sweC9I40gClxwW27U3q7MX5Ud9fwMgckI"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:41266 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:41596 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933060Ab3LIMp3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 9 Dec 2013 07:45:29 -0500
-In-Reply-To: <20131205170514.GY26766@atomide.com>
+	id S933133Ab3LIM4Y (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 9 Dec 2013 07:56:24 -0500
+In-Reply-To: <CABxcv=m+-9V2qwvuQgJavQ3qOb2+fBcAoW9G_Mi33BTHCWE85g@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, Archit Taneja <archit@ti.com>, Darren Etheridge <detheridge@ti.com>
+To: Javier Martinez Canillas <javier@dowhile0.org>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-fbdev@vger.kernel.org, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Archit Taneja <archit@ti.com>, Darren Etheridge <detheridge@ti.com>, Tony Lindgren <tony@atomide.com>
 
---QgnhERorJXNshAFWBnctmteRIgR9QI0eD
+--sweC9I40gClxwW27U3q7MX5Ud9fwMgckI
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: quoted-printable
 
-On 2013-12-05 19:05, Tony Lindgren wrote:
-> * Tomi Valkeinen <tomi.valkeinen@ti.com> [131204 04:31]:
+On 2013-12-06 10:57, Javier Martinez Canillas wrote:
+
+>> +       tfp410: encoder@0 {
+>> +               compatible =3D "ti,tfp410";
+>> +               gpios =3D <&gpio1 0 0>;   /* 0, power-down */
+>> +
 >=20
-> Description missing.. But other than that can you please check that
-> the latest patch I posted in thread "[PATCH] ARM: OMAP2+: Fix populatin=
-g
-> the hwmod data from device" works with this?
->
-> The test to do is to remove the related reg, interrupt and dma entries
-> from omap_hwmod_*_data.c, and make sure the related hwmod data is initi=
-alized
-> from DT properly.
+> Please use the constants from include/dt-bindings/ instead of magic
+> numbers, i.e:
+>=20
+> gpios =3D <&gpio1 0 GPIO_ACTIVE_HIGH>;   /* 0, power-down */
 
-I made a quick test with panda, by applying your patch and reverting
-b38911f3472be89551bfca740adf0009562b9873. That only effectively tests
-the DISPC IRQ, but that worked fine.
+Thanks, fixed now (for all .dts files)
 
-> I don't know if it makes sense to have them as children of dss_core, th=
-ey
-> really all seem to be completely independent devices?
-
-The DSS subdevices depend on the dss_core. dss_core has to be powered up
-for any of the subdevices to work. This is done automatically by the
-runtime PM when the subdevices are children of the dss_core.
-
-> BTW, for v3.15, I'm hoping to do patches where we deprecate ti,hwmods
-> property and do the lookup based on the compatible property instead ;)
-> So from that point of view we need to get the device mapping right in
-> the .dtsi files, and don't want to start mixing up separate devices int=
-o
-> single .dtsi entry.
-
-Hmm, was that just a general comment, or something that affects the DSS
-DT data I have in my patch? As far as I understand, the DSS nodes
-reflect the current hwmods correctly.
-
-With the exception that DPI and SDI do not have a matching hwmod, as
-they are really part of dss_core/dispc. They are separate nodes as they
-are "video outputs" the same way as the other subnodes.
-
-I could perhaps remove the DPI and SDI nodes, and have them as direct
-video ports from DISPC, but... That's easier said than done.
+However... The TFP410 gpio is "power-down". I think we should actually
+mark it as GPIO_ACTIVE_LOW, as setting it to 0 powers down the device.
 
  Tomi
 
 
 
---QgnhERorJXNshAFWBnctmteRIgR9QI0eD
+--sweC9I40gClxwW27U3q7MX5Ud9fwMgckI
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -78,19 +52,19 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v1.4.14 (GNU/Linux)
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBAgAGBQJSpbtlAAoJEPo9qoy8lh71ABsP/3TW6mOQZ6N0kA8QnXQUEWsp
-/VDur2BydFJK4iaUFPloVHeJX9tMGTvxNDkUQyi4NflmjrscDet8KpFO8577UW8C
-DglOw6ZunlXvba/7dAshNvfgR+Zc+nYcK8rm2uM/qauhcmJLequQzwBO3kKtQy+4
-S6+sQtMJdD60HWiuT44+Unia+Fp5QpYg3/H455SWuUGh59tSDqe9W9cpqkyV/3jv
-LsZhU9L+y5T3MWQ1pe6uAwEG2bDZAFRBDx4ENaLhDDpB6x2fVcdYqGFRNKKsNwlI
-7n10He+NvpydOE7gZ2WIjxRxCcK46X97l0G1oYwr+HzWqEITG/Qtv4mcllPRCsCt
-Rm+/wttmN3SZPJ5RDaQRUDUFW/2nAfUYeJY0lkAYjAiuXzbQsZ47q5gD5m4WtwPX
-yLVBxh0LPY0sxleSw6i5+n0b8p7bBJ5pflIB1oMQgR5j2B4Al1dTdBJLFbImXxr4
-g7/nKieqko78Tkg14zG9ERqrNgj/AUGyRx4W1Akxbup+OvW7bTbCAm2aO0/SX8OJ
-mrLEnurOhEdYu830nJivzhl2wjXEdu4GAh2uJNn/Snbjgm9h62I5i1BlaOXf0GnJ
-kP33YwqIVGZEqq5c3CdScWONLK9zxyhNwe5gbuOnt7VXDqBQy2CxeQY8actVUIMM
-GK7AHKZXk2XCDkbrawNJ
-=BSuC
+iQIcBAEBAgAGBQJSpb30AAoJEPo9qoy8lh71nU0QAKXbwnH5YsMsNEZwCQWu6gTt
+J4QMj9/LP/Dcm7PMdT7Y+Acuqnen4v2zYbNeiYflOPlT02XAmk+QqmMTUeI74R6o
+l1xlqXD4NZbAy7m3BQERQFQ3uBTmrKdtnlePKm/4MpXN6d0Sdxbg1CYiFv7AetaK
+U5ES0+N6CiCb5dq1AlaAG/qAxMu28EiJQ2xRyrmThHM5jDsg29N4+zY1+Io/nlqj
+D0G/9tSUUQdLzKmPzLbDSaSnX8MAYuh8DqD3gIoQZfbaqSmTPwmwk2iIuyEQtRCs
+bpNPGP9lSkvqLWQK6o6j2eyNv/fmcRlD4nbCJhTyAcl39kWhtfO+W5Uh7zXtgioG
+mgeWiLozKbRLwtwfwrDIs2C1RzuIzrfxRoG7pQLzuMTU8dFtru1yhLwe3UfZkQPt
+B1RAc77QsbvaAfZ9UKX1/iy8JOEqOj2FyI6+QgaBVrcHduTKPOU9Lq1BZYtgnwqg
+WKQtqY+Qr8+HynjUg3eaH0wIIP+s2ZswUq34pFpVP3LuA8u9tqwkOinVaPDpLfRt
+p4FyOxMCMsqyBrGbnSyCoyCtQaGw2lc7jSgugDUBPQSX6syssxocgFBKD8NCA6fO
+Cp/0obq5q+7TSwXD4OlFdIAfySaN/FeGXeITnupGQ7jNBt/T73uN/zFZClvysTdl
+fPQHb59QlPhsA1W70Mev
+=1HkV
 -----END PGP SIGNATURE-----
 
---QgnhERorJXNshAFWBnctmteRIgR9QI0eD--
+--sweC9I40gClxwW27U3q7MX5Ud9fwMgckI--
