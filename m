@@ -1,185 +1,62 @@
-From: Javier Martinez Canillas <javier@dowhile0.org>
-Subject: Re: [PATCH 18/26] ARM: omap3-beagle.dts: add display information
-Date: Mon, 9 Dec 2013 13:16:31 +0100
-Message-ID: <CABxcv=nZCrNpfmhHd8JaAD4CPg9E2wPuL8HgSCzfDeidHCCi6Q@mail.gmail.com>
-References: <1386160133-24026-1-git-send-email-tomi.valkeinen@ti.com>
-	<1386160133-24026-19-git-send-email-tomi.valkeinen@ti.com>
-	<CABxcv=mgQM6oHf7=-EbryAcmgJm3vf+xXqHW6BCdW8ovS29O0g@mail.gmail.com>
-	<52A5B248.5050303@ti.com>
+From: Jean Delvare <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>
+Subject: Re: Problem with a hih6130 sensor in a OMAP I2C bus
+Date: Mon, 9 Dec 2013 13:22:39 +0100
+Message-ID: <20131209132239.3c0f6402@endymion.delvare>
+References: <52A5AC95.3050803@inov.pt>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f178.google.com ([209.85.212.178]:33485 "EHLO
-	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933272Ab3LIMQe (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Dec 2013 07:16:34 -0500
-Received: by mail-wi0-f178.google.com with SMTP id bz8so3494307wib.17
-        for <linux-omap@vger.kernel.org>; Mon, 09 Dec 2013 04:16:32 -0800 (PST)
-In-Reply-To: <52A5B248.5050303@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <52A5AC95.3050803-ojS98SfuVkU@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: =?ISO-8859-1?B?Sm9z6Q==?= Miguel =?ISO-8859-1?B?R29u52FsdmVz?= <jose.goncalves-ojS98SfuVkU@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, Guenter Roeck <linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-fbdev@vger.kernel.org, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Archit Taneja <archit@ti.com>, Darren Etheridge <detheridge@ti.com>, Tony Lindgren <tony@atomide.com>
 
-Hi Tomi,
+Hi Jos=E9,
 
-On Mon, Dec 9, 2013 at 1:06 PM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
-> On 2013-12-06 10:41, Javier Martinez Canillas wrote:
->> Hi Tomi,
->>
->> On Wed, Dec 4, 2013 at 1:28 PM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
->>> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
->>> ---
->>>  arch/arm/boot/dts/omap3-beagle.dts | 67 ++++++++++++++++++++++++++++++++++++++
->>>  1 file changed, 67 insertions(+)
->>>
->>> diff --git a/arch/arm/boot/dts/omap3-beagle.dts b/arch/arm/boot/dts/omap3-beagle.dts
->>> index fa532aaacc68..1ca1932d02aa 100644
->>> --- a/arch/arm/boot/dts/omap3-beagle.dts
->>> +++ b/arch/arm/boot/dts/omap3-beagle.dts
->>> @@ -178,3 +178,70 @@
->>>         mode = <3>;
->>>         power = <50>;
->>>  };
->>> +
->>> +&dpi {
->>> +       vdds_dsi-supply = <&vpll2>;
->>> +
->>> +       dpi_out: endpoint {
->>> +               remote-endpoint = <&tfp410_in>;
->>> +               data-lines = <24>;
->>> +       };
->>> +};
->>> +
->>> +&venc {
->>> +       vdda_dac-supply = <&vdac>;
->>> +
->>> +       venc_out: endpoint {
->>> +               remote-endpoint = <&tv_connector_in>;
->>> +       };
->>> +};
->>> +
->>> +/ {
->>> +       aliases {
->>> +               display0 = &dvi0;
->>> +               display1 = &tv0;
->>> +       };
->>> +
->>> +       tfp410: encoder@0 {
->>> +               compatible = "ti,tfp410";
->>> +               gpios = <&gpio5 10 0>;  /* 170, power-down */
->>> +
->>
->> Shouldn't this be gpio6 instead since OMAP GPIO banks start counting
->> from 1 so gpio5 + 10 is GPIO 138.
->
-> Yes, you're right. Good catch.
->
->>> +               ports {
->>> +                       #address-cells = <1>;
->>> +                       #size-cells = <0>;
->>> +
->>> +                       port@0 {
->>> +                               reg = <0>;
->>> +
->>> +                               tfp410_in: endpoint@0 {
->>> +                                       remote-endpoint = <&dpi_out>;
->>> +                               };
->>> +                       };
->>> +
->>> +                       port@1 {
->>> +                               reg = <1>;
->>> +
->>> +                               tfp410_out: endpoint@1 {
->>> +                                       remote-endpoint = <&dvi_connector_in>;
->>> +                               };
->>> +                       };
->>> +               };
->>> +       };
->>> +
->>> +       dvi0: connector@0 {
->>> +               compatible = "ti,dvi_connector";
->>> +               i2c-bus = <&i2c3>;
->>> +
->>> +               dvi_connector_in: endpoint {
->>> +                       remote-endpoint = <&tfp410_out>;
->>> +               };
->>> +       };
->>> +
->>> +       tv0: connector@1 {
->>> +               compatible = "ti,svideo_connector";
->>> +
->>> +               tv_connector_in: endpoint {
->>> +                       remote-endpoint = <&venc_out>;
->>> +               };
->>> +       };
->>> +};
->>> --
->>> 1.8.3.2
->>>
->>
->> Also I don't see the DSS pinmux set for this board. I guess you need
->> something like the following on top:
->>
->> 0x0a4 (PIN_OUTPUT | MUX_MODE0)   /* dss_pclk.dss_pclk */
->> 0x0a6 (PIN_OUTPUT | MUX_MODE0)   /* dss_hsync.dss_hsync */
->> 0x0a8 (PIN_OUTPUT | MUX_MODE0)   /* dss_vsync.dss_vsync */
->> 0x0aa (PIN_OUTPUT | MUX_MODE0)   /* dss_acbias.dss_acbias */
->> 0x0ac (PIN_OUTPUT | MUX_MODE0)   /* dss_data0.dss_data0 */
->> 0x0ae (PIN_OUTPUT | MUX_MODE0)   /* dss_data1.dss_data1 */
->> 0x0b0 (PIN_OUTPUT | MUX_MODE0)   /* dss_data2.dss_data2 */
->> 0x0b2 (PIN_OUTPUT | MUX_MODE0)   /* dss_data3.dss_data3 */
->> 0x0b4 (PIN_OUTPUT | MUX_MODE0)   /* dss_data4.dss_data4 */
->> 0x0b6 (PIN_OUTPUT | MUX_MODE0)   /* dss_data5.dss_data5 */
->> 0x0b8 (PIN_OUTPUT | MUX_MODE0)   /* dss_data6.dss_data6 */
->> 0x0ba (PIN_OUTPUT | MUX_MODE0)   /* dss_data7.dss_data7 */
->> 0x0bc (PIN_OUTPUT | MUX_MODE0)   /* dss_data8.dss_data8 */
->> 0x0be (PIN_OUTPUT | MUX_MODE0)   /* dss_data9.dss_data9 */
->> 0x0c0 (PIN_OUTPUT | MUX_MODE0)   /* dss_data10.dss_data10 */
->> 0x0c2 (PIN_OUTPUT | MUX_MODE0)   /* dss_data11.dss_data11 */
->> 0x0c4 (PIN_OUTPUT | MUX_MODE0)   /* dss_data12.dss_data12 */
->> 0x0c6 (PIN_OUTPUT | MUX_MODE0)   /* dss_data13.dss_data13 */
->> 0x0c8 (PIN_OUTPUT | MUX_MODE0)   /* dss_data14.dss_data14 */
->> 0x0ca (PIN_OUTPUT | MUX_MODE0)   /* dss_data15.dss_data15 */
->> 0x0cc (PIN_OUTPUT | MUX_MODE0)   /* dss_data16.dss_data16 */
->> 0x0ce (PIN_OUTPUT | MUX_MODE0)   /* dss_data17.dss_data17 */
->> 0x0d0 (PIN_OUTPUT | MUX_MODE0)   /* dss_data18.dss_data18 */
->> 0x0d2 (PIN_OUTPUT | MUX_MODE0)   /* dss_data19.dss_data19 */
->> 0x0d4 (PIN_OUTPUT | MUX_MODE0)   /* dss_data20.dss_data20 */
->> 0x0d6 (PIN_OUTPUT | MUX_MODE0)   /* dss_data21.dss_data21 */
->> 0x0d8 (PIN_OUTPUT | MUX_MODE0)   /* dss_data22.dss_data22 */
->> 0x0da (PIN_OUTPUT | MUX_MODE0)   /* dss_data23.dss_data23 */
->
-> True. I need to add something like this to all the dts files.
->
-> You didn't have muxing in the omap3-igep0020 patch you gave. Is the
-> muxing already set in some other patch?
->
+On Mon, 09 Dec 2013 11:42:13 +0000, Jos=E9 Miguel Gon=E7alves wrote:
+> While testing an HIH6130 humidity and temperature sensor with I2C=20
+> interface in a BeagleBone board I've found that I was unable to read =
+it=20
+> because the driver always returned EINVAL. With some debugging I've=20
+> found that the error was due to a test on omap_i2c_xfer_msg() in OMAP=
+=20
+> I2C driver that invalidates zero length writes. The hwmon hih6130 dri=
+ver=20
+> issues such kind of request in hih6130_update_measurements() to issue=
+ a=20
+> measurement request to the sensor.
+>=20
+> I was able to get measurements from the sensor by hacking the hih6130=
+=20
+> driver replacing the following line in hih6130_update_measurements();
+>=20
+>          ret =3D i2c_master_send(client, tmp, 0);
+>=20
+> by
+>=20
+>          tmp[0] =3D 0;
+>          ret =3D i2c_master_send(client, tmp, 1);
+>=20
+> Is this the correct way to fix this issue, or should the fix be in th=
+e=20
+> I2C OMAP driver to accept zero length transfers?
 
-Your patch-set is based on v3.13-rc1 but I sent a patch-set [0] to fix
-a few regressions for IGEPv2 when we moved to DT-only boot. One of
-these patches added the needed DSS pinmuxing and these were included
-in v3.13-rc2.
+Ideally it should be fixed in the i2c-omap bus driver. However, if
+zero-length transfers are explicitly prohibited, it may mean that the
+hardware itself can't do it (in which case adding a comment saying so
+in the source code would be great.) You'll have to check. The driver
+supports several generations of OMAP chipsets so you'll have to check
+them all, maybe some can handle zero-length messages and some do not.
 
-So to test your branch I cherry-picked:
+If fixing it in the i2c-omap driver is not possible, then working
+around it in the hih6130 driver would be acceptable. You'll have to
+make sure there is no side effect to sending a single byte to the chip.
+If performance is a concern, you may have to enable the workaround only
+when zero-byte messages aren't supported. You can check with:
 
-d526daeb ("ARM: dts: omap3-igep0020: Add pinmux setup for i2c devices")
-50592dc3 ("ARM: dts: omap3-igep0020: Add pinmuxing for DVI output")
+i2c_get_functionality(i2c_adapter) & I2C_FUNC_SMBUS_QUICK
 
-Also, for 3.13 I added a DT hack to make dpi_init_regulator() succeed
-and find the VDDS_DSI regulator. That patch is mainline comit
-
-2f2befd82 ("ARM: dts: omap3-igep0020: name twl4030 VPLL2 regulator as vdds_dsi")
-
-Now that I think about it, you may want to add a revert for that patch
-on your series too since this hack is not needed anymore with your DSS
-bindings.
-
->  Tomi
->
-
-Thanks a lot and best regards,
-Javier
->
-
-[0]: http://www.spinics.net/lists/linux-omap/msg99970.html
+--=20
+Jean Delvare
