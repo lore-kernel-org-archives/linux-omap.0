@@ -1,116 +1,97 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCHv2 09/10] arm: dts: dra7: Add qspi device.
-Date: Mon, 9 Dec 2013 09:42:04 -0800
-Message-ID: <20131209174203.GB12527@atomide.com>
-References: <1386339891-32717-1-git-send-email-sourav.poddar@ti.com>
- <1386339891-32717-10-git-send-email-sourav.poddar@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 2/2] Documentation: dt: Document TSC2005 DT binding
+Date: Mon, 9 Dec 2013 09:46:38 -0800
+Message-ID: <20131209174638.GC12527@atomide.com>
+References: <1386284979-9680-1-git-send-email-sre@debian.org>
+ <1386284979-9680-3-git-send-email-sre@debian.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1386339891-32717-10-git-send-email-sourav.poddar-l0cyMroinI0@public.gmane.org>
-Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>
-Cc: broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, marex-ynQEQJNshbs@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org
+In-Reply-To: <1386284979-9680-3-git-send-email-sre@debian.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Reichel <sre@debian.org>
+Cc: Sebastian Reichel <sre@ring0.de>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Dmitry Torokhov <dtor@mail.ru>, linux-input@vger.kernel.org, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Rob Landley <rob@landley.net>, Grant Likely <grant.likely@linaro.org>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org> [131206 06:29]:
-> These add device tree entry for qspi controller driver on dra7.
+* Sebastian Reichel <sre@debian.org> [131205 15:11]:
+> Add devicetree binding documentation for TSC2005 touchscreen.
+> 
+> Signed-off-by: Sebastian Reichel <sre@debian.org>
+> ---
+>  .../bindings/input/touchscreen/tsc2005.txt         | 49 ++++++++++++++++++++++
+>  1 file changed, 49 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/input/touchscreen/tsc2005.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/input/touchscreen/tsc2005.txt b/Documentation/devicetree/bindings/input/touchscreen/tsc2005.txt
+> new file mode 100644
+> index 0000000..4e7df0b
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/input/touchscreen/tsc2005.txt
+> @@ -0,0 +1,49 @@
+> +* TSC2005 Touchscreen
+> +
+> +Required properties:
+> + - compatible		      : "ti,tsc2005"
+> + - reg			      : SPI device address
+> + - spi-max-frequency	      : Maximal SPI speed
+> + - interrupts		      : IRQ specifier
+> + - reset-gpio		      : GPIO specifier
+> +
+> +Optional properties:
+> + - ti,fuzz-x		      : integer, X noise value of the touchscreen
+> +				(defaults to 4)
+> + - ti,fuzz-y		      : integer, Y noise value of the touchscreen
+> +				(defaults to 8)
+> + - ti,fuzz-pressure	      : integer, pressure noise value of the touchscreen
+> +				(defaults to 2)
+> + - ti,max-x		      : integer, maximum reported x value
+> +				(defaults to 4096)
+> + - ti,max-y		      : integer, maximum reported y value
+> +				(defaults to 4096)
+> + - ti,max-pressure	      : integer, maximum reported pressure
+> +				(defaults to 4096)
+> + - ti,x-plate-resistance      : integer, resistance of the touchscreen's X plates
+> +				in ohm (defaults to 280)
+> + - ti,esd-recovery-timeout-ms : integer, if the touchscreen does not respond after
+> +				the configured time (in milli seconds), the driver
+> +				will reset it. This is disabled by default.
 
-FYI these .dts changes need to be queued separately by Benoit and
-should be posted as a seprate series in general to avoid confusion.
+Instead of adding these optional ti,* properties you can set them in the
+driver directly in the of_match table based on the compatible flag. Then
+you can pass compatible flag like ti,tsc2005-nokia-n900, or the name of
+the LCD panel. Most likely these depend on the LCD panel selected.
 
 Regards,
 
 Tony
- 
-> Signed-off-by: Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>
-> ---
-> v1->v2:
-> use "MUX_MODE1" instead of numeric value
->  arch/arm/boot/dts/dra7-evm.dts |   32 ++++++++++++++++++++++++++++++++
->  arch/arm/boot/dts/dra7.dtsi    |   13 +++++++++++++
->  2 files changed, 45 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
-> index 5babba0..4a57fdf 100644
-> --- a/arch/arm/boot/dts/dra7-evm.dts
-> +++ b/arch/arm/boot/dts/dra7-evm.dts
-> @@ -93,6 +93,21 @@
->  			0x24c (PIN_INPUT_SLEW | MUX_MODE0) /* uart3_txd */
->  		>;
->  	};
+
+
+> +Example:
 > +
-> +	qspi1_pins: pinmux_qspi1_pins {
-> +		pinctrl-single,pins = <
-> +			0x4c (PIN_INPUT | MUX_MODE1)  /* gpmc_a3.qspi1_cs2 */
-> +			0x50 (PIN_INPUT | MUX_MODE1)  /* gpmc_a4.qspi1_cs3 */
-> +			0x74 (PIN_INPUT | MUX_MODE1)  /* gpmc_a13.qspi1_rtclk */
-> +			0x78 (PIN_INPUT | MUX_MODE1)  /* gpmc_a14.qspi1_d3 */
-> +			0x7c (PIN_INPUT | MUX_MODE1)  /* gpmc_a15.qspi1_d2 */
-> +			0x80 (PIN_INPUT | MUX_MODE1) /* gpmc_a16.qspi1_d1 */
-> +			0x84 (PIN_INPUT | MUX_MODE1)  /* gpmc_a17.qspi1_d0 */
-> +			0x88 (PIN_INPUT | MUX_MODE1)  /* qpmc_a18.qspi1_sclk */
-> +			0xb8 (PIN_INPUT_PULLUP | MUX_MODE1)  /* gpmc_cs2.qspi1_cs0 */
-> +			0xbc (PIN_INPUT_PULLUP | MUX_MODE1)  /* gpmc_cs3.qspi1_cs1 */
-> +		>;
-> +	};
->  };
->  
->  &i2c1 {
-> @@ -273,3 +288,20 @@
->  &cpu0 {
->  	cpu0-supply = <&smps123_reg>;
->  };
-> +
-> +&qspi {
-> +	status = "okay";
-> +	pinctrl-names = "default";
-> +	pinctrl-0 = <&qspi1_pins>;
-> +
-> +	spi-max-frequency = <48000000>;
-> +	m25p80@0 {
-> +		compatible = "s25fl256s1";
-> +		spi-max-frequency = <48000000>;
+> +&mcspi1 {
+> +	tsc2005@0 {
+> +		compatible = "ti,tsc2005";
+> +		spi-max-frequency = <6000000>;
 > +		reg = <0>;
-> +		spi-tx-bus-width = <1>;
-> +		spi-rx-bus-width = <4>;
-> +		spi-cpol;
-> +		spi-cpha;
-> +	};
-> +};
-> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-> index 67275c8..b06d899 100644
-> --- a/arch/arm/boot/dts/dra7.dtsi
-> +++ b/arch/arm/boot/dts/dra7.dtsi
-> @@ -582,6 +582,19 @@
->  			dma-names = "tx0", "rx0";
->  			status = "disabled";
->  		};
+> +		reset-gpio = <&gpio4 8 GPIO_ACTIVE_HIGH>; /* 104 */
+> +		interrupt-parent = <&gpio4>;
+> +		interrupts = <4 IRQ_TYPE_NONE>; /* gpio line 100 */
 > +
-> +		qspi: qspi@4b300000 {
-> +			compatible = "ti,dra7xxx-qspi";
-> +			reg = <0x4b300000 0x100>, <0x4a002558 0x4>,
-> +					<0x5c000000 0x3ffffff>;
-> +			reg-names = "qspi_base", "qspi_ctrlmod", "qspi_mmap";
-> +			#address-cells = <1>;
-> +			#size-cells = <0>;
-> +			ti,hwmods = "qspi";
-> +			num-cs = <4>;
-> +			interrupts = <0 124 0x4>;
-> +			status = "disabled";
-> +		};
->  	};
->  
->  	clocks {
+> +		ti,fuzz-x = <4>;
+> +		ti,fuzz-y = <7>;
+> +		ti,fuzz-pressure = <2>;
+> +		ti,max-x = <4096>;
+> +		ti,max-y = <4096>;
+> +		ti,max-pressure = <2048>;
+> +		ti,x-plate-resistance = <280>;
+> +		ti,esd-recovery-timeout-ms = <8000>;
+> +	};
+> +}
 > -- 
-> 1.7.1
+> 1.8.4.3
 > 
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-spi" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
