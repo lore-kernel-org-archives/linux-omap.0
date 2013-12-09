@@ -1,97 +1,66 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/2] Documentation: dt: Document TSC2005 DT binding
-Date: Mon, 9 Dec 2013 09:46:38 -0800
-Message-ID: <20131209174638.GC12527@atomide.com>
-References: <1386284979-9680-1-git-send-email-sre@debian.org>
- <1386284979-9680-3-git-send-email-sre@debian.org>
+Subject: Re: [PATCH] omap: twl-common: Fix musb-hdrc device name.
+Date: Mon, 9 Dec 2013 09:50:06 -0800
+Message-ID: <20131209175006.GD12527@atomide.com>
+References: <1386059589-4030-1-git-send-email-marek.belisko@open-nandra.com>
+ <529D9D43.6040101@ti.com>
+ <CAAfyv37Vie1vZK2XQ1cfVq6eVnSuaBLfykk6pU8fwEyqvPF4BA@mail.gmail.com>
+ <CAAfyv35gVVNydrk8vifSyidpFjEXjGiT4-i2dgN5Un2=FuHaqQ@mail.gmail.com>
+ <20131205184323.GF26766@atomide.com>
+ <CAAfyv37e9+OLH-KegPCEhc0sbBS7UVnaSGU0mBw2AxAN9D7Akw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1386284979-9680-3-git-send-email-sre@debian.org>
+In-Reply-To: <CAAfyv37e9+OLH-KegPCEhc0sbBS7UVnaSGU0mBw2AxAN9D7Akw@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@debian.org>
-Cc: Sebastian Reichel <sre@ring0.de>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Dmitry Torokhov <dtor@mail.ru>, linux-input@vger.kernel.org, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Rob Landley <rob@landley.net>, Grant Likely <grant.likely@linaro.org>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Belisko Marek <marek.belisko@gmail.com>
+Cc: Kishon Vijay Abraham I <kishon@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Sebastian Reichel <sre@debian.org> [131205 15:11]:
-> Add devicetree binding documentation for TSC2005 touchscreen.
+* Belisko Marek <marek.belisko@gmail.com> [131208 23:36]:
+> Hi Tony,
 > 
-> Signed-off-by: Sebastian Reichel <sre@debian.org>
-> ---
->  .../bindings/input/touchscreen/tsc2005.txt         | 49 ++++++++++++++++++++++
->  1 file changed, 49 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/input/touchscreen/tsc2005.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/input/touchscreen/tsc2005.txt b/Documentation/devicetree/bindings/input/touchscreen/tsc2005.txt
-> new file mode 100644
-> index 0000000..4e7df0b
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/input/touchscreen/tsc2005.txt
-> @@ -0,0 +1,49 @@
-> +* TSC2005 Touchscreen
-> +
-> +Required properties:
-> + - compatible		      : "ti,tsc2005"
-> + - reg			      : SPI device address
-> + - spi-max-frequency	      : Maximal SPI speed
-> + - interrupts		      : IRQ specifier
-> + - reset-gpio		      : GPIO specifier
-> +
-> +Optional properties:
-> + - ti,fuzz-x		      : integer, X noise value of the touchscreen
-> +				(defaults to 4)
-> + - ti,fuzz-y		      : integer, Y noise value of the touchscreen
-> +				(defaults to 8)
-> + - ti,fuzz-pressure	      : integer, pressure noise value of the touchscreen
-> +				(defaults to 2)
-> + - ti,max-x		      : integer, maximum reported x value
-> +				(defaults to 4096)
-> + - ti,max-y		      : integer, maximum reported y value
-> +				(defaults to 4096)
-> + - ti,max-pressure	      : integer, maximum reported pressure
-> +				(defaults to 4096)
-> + - ti,x-plate-resistance      : integer, resistance of the touchscreen's X plates
-> +				in ohm (defaults to 280)
-> + - ti,esd-recovery-timeout-ms : integer, if the touchscreen does not respond after
-> +				the configured time (in milli seconds), the driver
-> +				will reset it. This is disabled by default.
+> On Thu, Dec 5, 2013 at 7:43 PM, Tony Lindgren <tony@atomide.com> wrote:
+> > * Belisko Marek <marek.belisko@gmail.com> [131203 01:21]:
+> >> On Tue, Dec 3, 2013 at 10:08 AM, Belisko Marek <marek.belisko@gmail.com> wrote:
+> >> > Hi,
+> >> >
+> >> > On Tue, Dec 3, 2013 at 9:58 AM, Kishon Vijay Abraham I <kishon@ti.com> wrote:
+> >> >> Hi,
+> >> >>
+> >> >> On Tuesday 03 December 2013 02:03 PM, Marek Belisko wrote:
+> >> >>> Without this change when booting omap3 device (gta04) with board file
+> >> >>> leads to follwing errors:
+> >> >>>
+> >> >>> [    1.203308] musb-hdrc musb-hdrc.0.auto: unable to find phy
+> >> >>> [    1.209075] HS USB OTG: no transceiver configured
+> >> >>> [    1.214019] musb-hdrc musb-hdrc.0.auto: musb_init_controller failed with status -517
+> >> >>>
+> >> >>> and usb isn't working.
+> >> >>>
+> >> >>> This is probably regression caused by commit: 6c27f939
+> >> >>
+> >> >> I think a better fix would be to have this merged..
+> >> >> https://lkml.org/lkml/2013/7/26/91
+> >> > Yes I see but how this could help with current situation? Ho you then
+> >> > specify device number?
+> >> I was too fast with reply sorry. I can see whole series and it is of
+> >> course correct solution. But as I said
+> >> can we except to be merged to 3.13. If not Tony can you pick my patch.
+> >
+> > If it's a regression, then let's get it merged for the -rc cycle.
+> Yes it is regression and without that usb on most omap3 based boards
+> without DT will not work.
+> >
+> > So please try to follow up on getting the proper fix merged, meanwhile
+> > I'll mark this thread as read. If you need this one merged for some
+> > reason, then please report to get it back to my radar.
 
-Instead of adding these optional ti,* properties you can set them in the
-driver directly in the of_match table based on the compatible flag. Then
-you can pass compatible flag like ti,tsc2005-nokia-n900, or the name of
-the LCD panel. Most likely these depend on the LCD panel selected.
+I'm still clueless which USB regression fix to apply for the -rc cycle
+though.. Hoping to see a single patch which clearly states the issue
+and has acks.
 
 Regards,
 
 Tony
-
-
-> +Example:
-> +
-> +&mcspi1 {
-> +	tsc2005@0 {
-> +		compatible = "ti,tsc2005";
-> +		spi-max-frequency = <6000000>;
-> +		reg = <0>;
-> +		reset-gpio = <&gpio4 8 GPIO_ACTIVE_HIGH>; /* 104 */
-> +		interrupt-parent = <&gpio4>;
-> +		interrupts = <4 IRQ_TYPE_NONE>; /* gpio line 100 */
-> +
-> +		ti,fuzz-x = <4>;
-> +		ti,fuzz-y = <7>;
-> +		ti,fuzz-pressure = <2>;
-> +		ti,max-x = <4096>;
-> +		ti,max-y = <4096>;
-> +		ti,max-pressure = <2048>;
-> +		ti,x-plate-resistance = <280>;
-> +		ti,esd-recovery-timeout-ms = <8000>;
-> +	};
-> +}
-> -- 
-> 1.8.4.3
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
