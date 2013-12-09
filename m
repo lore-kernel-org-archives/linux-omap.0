@@ -1,91 +1,96 @@
-From: Javier Martinez Canillas <javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org>
-Subject: Re: [PATCH v2 2/2] arm: omap: remove *.auto* from device names given
- in usb_bind_phy
-Date: Mon, 9 Dec 2013 12:50:35 +0100
-Message-ID: <CABxcv=kYAB5MKtW0O1RLZUXPxiTmoSDD0nuHB=Bjy2gy+wzvhQ@mail.gmail.com>
-References: <1386331571-30903-1-git-send-email-kishon@ti.com>
-	<1386331571-30903-3-git-send-email-kishon@ti.com>
-	<CABxcv=n67gNq6ayx+t_mfZ0++UBKkXpH9avXvRKFEH4VUrwy0g@mail.gmail.com>
-	<20131206210835.GM21086@saruman.home>
-	<52A55E2C.7070500@ti.com>
+From: "Gupta, Pekon" <pekon@ti.com>
+Subject: RE: OMAP3 NAND ECC selection
+Date: Mon, 9 Dec 2013 11:50:37 +0000
+Message-ID: <20980858CB6D3A4BAE95CA194937D5E73EA52D51@DBDE04.ent.ti.com>
+References: <alpine.DEB.2.01.1312051000270.17561@pmeerw.net>
+	<CAFqH_50vhgJ=ktqmYRo+ZO1bbRmiME+kXVt6sLJL91q9A2S7TA@mail.gmail.com>
+	<52A04E75.3010609@corscience.de>
+	<alpine.DEB.2.01.1312051711410.20976@pmeerw.net>
+	<20131205171326.GA26766@atomide.com>
+	<CABxcv=mtqkpyup0y-zv53YRvdgKH0bNXeCWf9mxPFoUTRQ=Gew@mail.gmail.com>
+	<20131205182628.GF2345@localhost>
+	<20980858CB6D3A4BAE95CA194937D5E73EA5222E@DBDE04.ent.ti.com>
+	<20131205200618.19b33ee2@skate>
+	<CAN8TOE-cv5ppz0Q_asK=6WdRPaK9SAd1ccZF0Ax7QCdGOE7Fjw@mail.gmail.com>
+	<20131205203237.047cfbb9@skate>
+	<20980858CB6D3A4BAE95CA194937D5E73EA52ADF@DBDE04.ent.ti.com>
+ <20131209120609.08e62b40@parrot.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <52A55E2C.7070500-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linux Kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:48530 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933374Ab3LILvT convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Dec 2013 06:51:19 -0500
+In-Reply-To: <20131209120609.08e62b40@parrot.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Matthieu CASTET <matthieu.castet@parrot.com>
+Cc: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Brian Norris <computersforpeace@gmail.com>, Mike Dunn <mikedunn@newsguy.com>, Peter Meerwald <pmeerw@pmeerw.net>, Tony Lindgren <tony@atomide.com>, Enric Balletbo Serra <eballetbo@gmail.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, Javier Martinez Canillas <javier@dowhile0.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, =?iso-8859-1?Q?Andreas_Bie=DFmann?= <andreas.biessmann@corscience.de>
 
-Hi Kishon,
-
-On Mon, Dec 9, 2013 at 7:07 AM, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org> wrote:
-> Hi,
+>From: Matthieu CASTET [mailto:matthieu.castet@parrot.com]
+>> From: Pekon Gupta [mailto: pekon@ti.com]
+>> >From: Thomas Petazzoni [mailto:thomas.petazzoni@free-electrons.com]
+>> >>On Thu, 5 Dec 2013 11:24:18 -0800, Brian Norris wrote:
+[...]
+>> >> Using 1-bit ECC on NAND is not a long-term solution. Given that
+>> >> fact, I think your ROM code is what may need to change, not the
+>> >> entire MTD subsystem.
+>> >
+>> >As someone (Tom Rini maybe?) pointed out, today the shift is 1-bit
+>> >ECC supported by ROM code vs. 4 or 8 bits required by NAND. But we
+>> >can very well imagine that tomorrow ROM code will support BCH4 (and
+>> >the NAND will ensure block 0 is OK for use with BCH4) but the rest
+>> >of the NAND will require BCH16 or something like that.
+>> >
+>> >I'm not designing ROM code, and the fact that they today have this
+>> >limitation, should be an indication that Linux should be capable of
+>> >handling different ECC schemes to handle those hardware constraints.
+>> >
+>> Just to highlight few more points:
+>> (1) ROM code on newer OMAP platforms like AM33xx do have the ability
+>> to select ECC scheme by reading a specific location from EEPROM
+>> connected to I2C0.
+>> 
+>AFAIK on omap3, the rom code first try to read data with bch and if it
+>doesn't work it fallback on haming 1 bit ecc.
 >
+I'm afraid, the OMAP35xx TRM does give much information about BCH
+ecc-scheme being used by ROM code. Though it says that BCH4 ecc-scheme
+would be selected for booting in cases when NAND_ID2 matches a
+particular value. But nothing much is clear (Reference [1]).
+Can you please point me to any other document or link which gives more
+info about the same ?
+
+
+>> (2) And going forward, ECC based NAND devices may be phased out,
+>> and BE-NAND (Built-in) NAND devices are becoming popular. As both
+>> cost and density wise they are same to SLC NANDs today.  Thus issue
+>> of un-compatibility of ecc-scheme with ROM code, will not hold true.
+>> We already have some BE-NAND support in our generic driver.
+>> http://patchwork.ozlabs.org/patch/222186/
+>>
+>Yes but these flash are not always compatible with the ROM.
 >
-> On Saturday 07 December 2013 02:38 AM, Felipe Balbi wrote:
->>
->> Hi,
->>
->> On Fri, Dec 06, 2013 at 01:14:38PM +0100, Javier Martinez Canillas wrote:
->>>
->>> On Fri, Dec 6, 2013 at 1:06 PM, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
->>> wrote:
->>>>
->>>> Previously MUSB wrapper (OMAP) device used PLATFORM_DEVID_AUTO while
->>>> creating
->>>> MUSB core device. So in usb_bind_phy (binds the controller with the
->>>> PHY), the
->>>> device name of the controller had *.auto* in it. Since with using
->>>> PLATFORM_DEVID_AUTO, there is no way to know the exact device name in
->>>> advance,
->>>> the data given in usb_bind_phy became obsolete and usb_get_phy was
->>>> failing.
->>>> So MUSB wrapper was modified not to use PLATFORM_DEVID_AUTO.
->>>> Corresponding
->>>> change is done in board file here.
->>>>
->>>> Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
->>>> ---
->>>>   arch/arm/mach-omap2/board-2430sdp.c        |    2 +-
->>>>   arch/arm/mach-omap2/board-3430sdp.c        |    2 +-
->>>>   arch/arm/mach-omap2/board-cm-t35.c         |    2 +-
->>>>   arch/arm/mach-omap2/board-devkit8000.c     |    2 +-
->>>>   arch/arm/mach-omap2/board-ldp.c            |    2 +-
->>>>   arch/arm/mach-omap2/board-omap3beagle.c    |    2 +-
->>>>   arch/arm/mach-omap2/board-omap3logic.c     |    2 +-
->>>>   arch/arm/mach-omap2/board-omap3pandora.c   |    2 +-
->>>>   arch/arm/mach-omap2/board-omap3stalker.c   |    2 +-
->>>>   arch/arm/mach-omap2/board-omap3touchbook.c |    2 +-
->>>>   arch/arm/mach-omap2/board-overo.c          |    2 +-
->>>>   arch/arm/mach-omap2/board-rx51.c           |    2 +-
->>>>   12 files changed, 12 insertions(+), 12 deletions(-)
->>>>
->>>
->>> You can drop this patch since boards files are being removed for v3.14
->>
->>
->> if we can drop this patch, the whole series is invalid, since we'll be
->> using DT phandles to find PHYs going forward, no ?
->>
-> yeah. But in one of the other threads, Tony seemed ok to take a patch that
-> fixes the same issue in mach-omap2/twl-common.c. So it's better to confirm
-> with Tony.
+>If the rom is expecting some ECC and the internal controller expect
+>other ecc you are stuck.
 >
+For AM33xx and newer DRA7xx platforms, allows user to explicitly select
+between no ECC, BCH8 or BCH16. Thus ROM code of newer OMAP devices
+supports BE-NAND. (refer [2]).
 
-Yes, I just read the other thread ("[PATCH] omap: twl-common: Fix
-musb-hdrc device name") and I see that these patches are fixing a
-v3.13 regression and are meant for the -rc cycle and not for v3.14.
+[1]	http://www.ti.com/product/omap3530
+	http://www.ti.com/litv/pdf/spruf98x
+	Chapter 25: Initialization
+	 Section 25.4.7.4 NAND
+	Table 25-34. ID2 Byte Description
 
-Sorry for the noise then.
+[2] 	http://www.ti.com/product/am3359
+	http://www.ti.com/litv/pdf/spruh73i 
+	Chapter 26: Initialization  
+	Section: 26.1.7.4  Memory Booting > NAND
+  	Table 26-17. NAND Geometry Information on I2C EEPROM
 
-Best regards,
-Javier
-
-
-> Thanks
-> Kishon
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+with regards, pekon
