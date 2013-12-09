@@ -1,7 +1,7 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH v3 13/15] mfd: menelaus: Remove unnecessary definition
-Date: Mon, 9 Dec 2013 10:21:23 -0600
-Message-ID: <1386606085-26838-13-git-send-email-balbi@ti.com>
+Subject: [PATCH v3 02/15] mfd: menelaus: Switch over to module_i2c_driver
+Date: Mon, 9 Dec 2013 10:21:12 -0600
+Message-ID: <1386606085-26838-2-git-send-email-balbi@ti.com>
 References: <20131209161422.GC24047@saruman.home>
  <1386606085-26838-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
@@ -22,27 +22,48 @@ To: lee.jones@linaro.org
 Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-menelaus_i2c_driver isn't referenced on probe, just remove that
-unnecessary line. No functional changes.
+Just a macro to remove some boilerplate code, no functional changes.
 
 Tested-by: Aaro Koskinen <aaro.koskinen@iki.fi>
 Signed-off-by: Felipe Balbi <balbi@ti.com>
 ---
- drivers/mfd/menelaus.c | 2 --
- 1 file changed, 2 deletions(-)
+ drivers/mfd/menelaus.c | 23 +----------------------
+ 1 file changed, 1 insertion(+), 22 deletions(-)
 
 diff --git a/drivers/mfd/menelaus.c b/drivers/mfd/menelaus.c
-index 74eae19..c0219b7 100644
+index 975ff9e..8bd97ca 100644
 --- a/drivers/mfd/menelaus.c
 +++ b/drivers/mfd/menelaus.c
-@@ -1206,8 +1206,6 @@ static inline void menelaus_rtc_init(struct menelaus_chip *m)
+@@ -1287,29 +1287,8 @@ static struct i2c_driver menelaus_i2c_driver = {
+ 	.id_table	= menelaus_id,
+ };
  
- /*-----------------------------------------------------------------------*/
- 
--static struct i2c_driver menelaus_i2c_driver;
+-static int __init menelaus_init(void)
+-{
+-	int res;
 -
- static int menelaus_probe(struct i2c_client *client,
- 			  const struct i2c_device_id *id)
- {
+-	res = i2c_add_driver(&menelaus_i2c_driver);
+-	if (res < 0) {
+-		pr_err(DRIVER_NAME ": driver registration failed\n");
+-		return res;
+-	}
+-
+-	return 0;
+-}
+-
+-static void __exit menelaus_exit(void)
+-{
+-	i2c_del_driver(&menelaus_i2c_driver);
+-
+-	/* FIXME: Shutdown menelaus parts that can be shut down */
+-}
++module_i2c_driver(menelaus_i2c_driver);
+ 
+ MODULE_AUTHOR("Texas Instruments, Inc. (and others)");
+ MODULE_DESCRIPTION("I2C interface for Menelaus.");
+ MODULE_LICENSE("GPL");
+-
+-module_init(menelaus_init);
+-module_exit(menelaus_exit);
 -- 
 1.8.4.GIT
