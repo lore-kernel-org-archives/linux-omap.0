@@ -1,145 +1,85 @@
-From: Benoit Cousson <bcousson@baylibre.com>
-Subject: Re: [PATCH 1/3] ARM: OMAP4+: hwmod data: Don't prevent RESET of USB
- Host module
-Date: Mon, 09 Dec 2013 09:52:26 -0800
-Message-ID: <52A6035A.3070804@baylibre.com>
-References: <1386080748-17005-1-git-send-email-rogerq@ti.com> <1386080748-17005-2-git-send-email-rogerq@ti.com> <alpine.DEB.2.02.1312090125170.32309@utopia.booyaka.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 13/26] ARM: omap3.dtsi: add omapdss information
+Date: Mon, 9 Dec 2013 10:04:25 -0800
+Message-ID: <20131209180424.GE12527@atomide.com>
+References: <1386160133-24026-1-git-send-email-tomi.valkeinen@ti.com>
+ <1386160133-24026-14-git-send-email-tomi.valkeinen@ti.com>
+ <20131205170514.GY26766@atomide.com>
+ <52A5BB65.5050109@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.02.1312090125170.32309@utopia.booyaka.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>, Roger Quadros <rogerq@ti.com>
-Cc: tony@atomide.com, tomi.valkeinen@ti.com, balbi@ti.com, sr@denx.de, David.Laight@ACULAB.COM, michael@amarulasolutions.com, bigeasy@linutronix.de, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:19786 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760412Ab3LISE1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Dec 2013 13:04:27 -0500
+Content-Disposition: inline
+In-Reply-To: <52A5BB65.5050109@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, Archit Taneja <archit@ti.com>, Darren Etheridge <detheridge@ti.com>
 
-Salut Paul,
+* Tomi Valkeinen <tomi.valkeinen@ti.com> [131209 04:46]:
+> On 2013-12-05 19:05, Tony Lindgren wrote:
+> > * Tomi Valkeinen <tomi.valkeinen@ti.com> [131204 04:31]:
+> > 
+> > Description missing.. But other than that can you please check that
+> > the latest patch I posted in thread "[PATCH] ARM: OMAP2+: Fix populating
+> > the hwmod data from device" works with this?
+> >
+> > The test to do is to remove the related reg, interrupt and dma entries
+> > from omap_hwmod_*_data.c, and make sure the related hwmod data is initialized
+> > from DT properly.
+> 
+> I made a quick test with panda, by applying your patch and reverting
+> b38911f3472be89551bfca740adf0009562b9873. That only effectively tests
+> the DISPC IRQ, but that worked fine.
 
-On 08/12/2013 17:26, Paul Walmsley wrote:
-> Hi Beno=EEt,
->
-> On Tue, 3 Dec 2013, Roger Quadros wrote:
->
->> Without this, the USB devices are sometimes not detected on OMAP4 Pa=
-nda
->> with u-boot v2013.10.
->>
->> Unlike what the comment states, errata i660 does not state that we
->> can't RESET the USB host module. Instead it states that RESET is the
->> only way to recover from a deadlock situation.
->>
->> RESET ensures that the module is in a known good state irrespective
->> of what bootloader does with the module, so it must be done at boot.
->>
->> Reported-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
->> Signed-off-by: Roger Quadros <rogerq@ti.com>
->
-> Acked-by: Paul Walmsley <paul@pwsan.com>
->
-> Will you pick this up for the -rc series, or do you want me or Tony t=
-o?
-> Roger writes that this one's pretty important.
+OK I've finally pushed a real branch for the mach-omap2 board-*.c file
+removal patches at omap-for-v3.14/omap3-board-removal so you can use
+that as a base for testing. I did not apply the dpi panel pdata-quirks.c
+patch as we discussed earlier.
+ 
+> > I don't know if it makes sense to have them as children of dss_core, they
+> > really all seem to be completely independent devices?
+> 
+> The DSS subdevices depend on the dss_core. dss_core has to be powered up
+> for any of the subdevices to work. This is done automatically by the
+> runtime PM when the subdevices are children of the dss_core.
 
-I guess, it is better for you to take it. I don't have anything queued=20
-for -rc.
+OK thanks. Care to also check that it plays along nicely with the comments
+starting at line 3222 in omap_hwmod_3xxx_data.c? We should set up things
+so we can eventually remove those kind of hwmod workarounds.
+ 
+> > BTW, for v3.15, I'm hoping to do patches where we deprecate ti,hwmods
+> > property and do the lookup based on the compatible property instead ;)
+> > So from that point of view we need to get the device mapping right in
+> > the .dtsi files, and don't want to start mixing up separate devices into
+> > single .dtsi entry.
+> 
+> Hmm, was that just a general comment, or something that affects the DSS
+> DT data I have in my patch? As far as I understand, the DSS nodes
+> reflect the current hwmods correctly.
 
-Acked-by: Benoit Cousson <bcousson@baylibre.com>
+Yes that's what we want if there is a dependency to the dss_core at the
+hardware level and the children cannot be used independently. However,
+if the children can be enabled and clocked independently, then they
+should not be children of the dss_core.
+ 
+> With the exception that DPI and SDI do not have a matching hwmod, as
+> they are really part of dss_core/dispc. They are separate nodes as they
+> are "video outputs" the same way as the other subnodes.
+> 
+> I could perhaps remove the DPI and SDI nodes, and have them as direct
+> video ports from DISPC, but... That's easier said than done.
 
-Thanks,
-Benoit
+If you need a dev entry created for those where the phandle of that dev
+is used to select the output for a board, then it makes sense to have
+them. I guess you could also set them as a pinctrl mux controller and
+then the board specific .dts file could request those outputs. But there
+may be more than just mux involved like regulators.
 
->
->
-> - Paul
->
->
->> ---
->>   arch/arm/mach-omap2/omap_hwmod_44xx_data.c | 12 ++----------
->>   arch/arm/mach-omap2/omap_hwmod_54xx_data.c | 13 +++----------
->>   2 files changed, 5 insertions(+), 20 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/m=
-ach-omap2/omap_hwmod_44xx_data.c
->> index 1e5b12c..3318cae9 100644
->> --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
->> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
->> @@ -2937,7 +2937,7 @@ static struct omap_hwmod_class_sysconfig omap4=
-4xx_usb_host_hs_sysc =3D {
->>   	.sysc_offs	=3D 0x0010,
->>   	.syss_offs	=3D 0x0014,
->>   	.sysc_flags	=3D (SYSC_HAS_MIDLEMODE | SYSC_HAS_SIDLEMODE |
->> -			   SYSC_HAS_SOFTRESET),
->> +			   SYSC_HAS_SOFTRESET | SYSC_HAS_RESET_STATUS),
->>   	.idlemodes	=3D (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
->>   			   SIDLE_SMART_WKUP | MSTANDBY_FORCE | MSTANDBY_NO |
->>   			   MSTANDBY_SMART | MSTANDBY_SMART_WKUP),
->> @@ -3001,15 +3001,7 @@ static struct omap_hwmod omap44xx_usb_host_hs=
-_hwmod =3D {
->>   	 * hence HWMOD_SWSUP_MSTANDBY
->>   	 */
->>
->> -	/*
->> -	 * During system boot; If the hwmod framework resets the module
->> -	 * the module will have smart idle settings; which can lead to dea=
-dlock
->> -	 * (above Errata Id:i660); so, dont reset the module during boot;
->> -	 * Use HWMOD_INIT_NO_RESET.
->> -	 */
->> -
->> -	.flags		=3D HWMOD_SWSUP_SIDLE | HWMOD_SWSUP_MSTANDBY |
->> -			  HWMOD_INIT_NO_RESET,
->> +	.flags		=3D HWMOD_SWSUP_SIDLE | HWMOD_SWSUP_MSTANDBY,
->>   };
->>
->>   /*
->> diff --git a/arch/arm/mach-omap2/omap_hwmod_54xx_data.c b/arch/arm/m=
-ach-omap2/omap_hwmod_54xx_data.c
->> index 9e08d69..e297d62 100644
->> --- a/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
->> +++ b/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
->> @@ -1544,7 +1544,8 @@ static struct omap_hwmod_class_sysconfig omap5=
-4xx_usb_host_hs_sysc =3D {
->>   	.rev_offs	=3D 0x0000,
->>   	.sysc_offs	=3D 0x0010,
->>   	.sysc_flags	=3D (SYSC_HAS_MIDLEMODE | SYSC_HAS_RESET_STATUS |
->> -			   SYSC_HAS_SIDLEMODE | SYSC_HAS_SOFTRESET),
->> +			   SYSC_HAS_SIDLEMODE | SYSC_HAS_SOFTRESET |
->> +			   SYSC_HAS_RESET_STATUS),
->>   	.idlemodes	=3D (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
->>   			   SIDLE_SMART_WKUP | MSTANDBY_FORCE | MSTANDBY_NO |
->>   			   MSTANDBY_SMART | MSTANDBY_SMART_WKUP),
->> @@ -1598,15 +1599,7 @@ static struct omap_hwmod omap54xx_usb_host_hs=
-_hwmod =3D {
->>   	 * hence HWMOD_SWSUP_MSTANDBY
->>   	 */
->>
->> -	/*
->> -	 * During system boot; If the hwmod framework resets the module
->> -	 * the module will have smart idle settings; which can lead to dea=
-dlock
->> -	 * (above Errata Id:i660); so, dont reset the module during boot;
->> -	 * Use HWMOD_INIT_NO_RESET.
->> -	 */
->> -
->> -	.flags		=3D HWMOD_SWSUP_SIDLE | HWMOD_SWSUP_MSTANDBY |
->> -			  HWMOD_INIT_NO_RESET,
->> +	.flags		=3D HWMOD_SWSUP_SIDLE | HWMOD_SWSUP_MSTANDBY,
->>   	.main_clk	=3D "l3init_60m_fclk",
->>   	.prcm =3D {
->>   		.omap4 =3D {
->> --
->> 1.8.3.2
->>
->
->
-> - Paul
->
+Regards,
 
-
---=20
-Beno=EEt Cousson
-BayLibre
-Embedded Linux Technology Lab
-www.baylibre.com
+Tony
