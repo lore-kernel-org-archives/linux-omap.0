@@ -1,55 +1,67 @@
 From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Subject: Re: [PATCH v2 1/7] usb: dwc3: get "usb_phy" only if the platform
- indicates the presence of PHY's
-Date: Mon, 9 Dec 2013 10:52:45 +0200
-Message-ID: <20131209085245.GB5231@xps8300>
-References: <1381866857-3861-1-git-send-email-kishon@ti.com>
- <1381866857-3861-2-git-send-email-kishon@ti.com>
- <525E8E93.9010503@ti.com>
- <525E9046.3090209@ti.com>
- <525E943E.3080706@ti.com>
- <20131017145425.GE11611@gimli>
- <20131203103950.GB26423@xps8300>
- <20131206201530.GA21086@saruman.home>
+Subject: Re: [PATCH v3 04/10] usb: dwc3: use quirks to know if a particualr
+ platform doesn't have PHY
+Date: Mon, 9 Dec 2013 11:26:04 +0200
+Message-ID: <20131209092604.GC5231@xps8300>
+References: <1385373690-12170-1-git-send-email-kishon@ti.com>
+ <1385373690-12170-5-git-send-email-kishon@ti.com>
+ <20131204144027.GB21055@xps8300>
+ <52A01E86.50406@ti.com>
+ <20131205075828.GA32583@xps8300>
+ <52A56DA1.1010808@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-doc-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20131206201530.GA21086@saruman.home>
-Sender: linux-doc-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Roger Quadros <rogerq@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>, gregkh@linuxfoundation.org, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ijc+devicetree@hellion.org.uk, rob@landley.net, bcousson@baylibre.com, tony@atomide.com, linux@arm.linux.org.uk, grant.likely@linaro.org, s.nawrocki@samsung.com, galak@codeaurora.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org
+In-Reply-To: <52A56DA1.1010808@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: balbi@ti.com, bcousson@baylibre.com, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ijc+devicetree@hellion.org.uk, rob@landley.net, tony@atomide.com, linux@arm.linux.org.uk, gregkh@linuxfoundation.org, grant.likely@linaro.org, s.nawrocki@samsung.com, galak@codeaurora.org
 List-Id: linux-omap@vger.kernel.org
 
 Hi,
 
-On Fri, Dec 06, 2013 at 02:15:30PM -0600, Felipe Balbi wrote:
-> On Tue, Dec 03, 2013 at 12:39:50PM +0200, Heikki Krogerus wrote:
-> > On Thu, Oct 17, 2013 at 09:54:26AM -0500, Felipe Balbi wrote:
-> > > On Wed, Oct 16, 2013 at 04:27:26PM +0300, Roger Quadros wrote:
-> > > > On 10/16/2013 04:10 PM, Kishon Vijay Abraham I wrote:
-> > > > Do you know if there are users of dwc3 other than exynos5250 and omap5?
-> > > > If not, we should get rid of the old USB PHY altogether.
-> > > 
-> > > Intel's Baytrail, at least. But they don't use DT.
-> > 
-> > I don't see any use for the generic-phy when the device is enumerated
-> > from PCI. If dwc3 can live without phys, there should not be any
-> > problem dropping the old USB PHY support.
+On Mon, Dec 09, 2013 at 12:43:37PM +0530, Kishon Vijay Abraham I wrote:
+> On Thursday 05 December 2013 01:28 PM, Heikki Krogerus wrote:
+> >On Thu, Dec 05, 2013 at 12:04:46PM +0530, Kishon Vijay Abraham I wrote:
+> >>On Wednesday 04 December 2013 08:10 PM, Heikki Krogerus wrote:
+> >>>On Mon, Nov 25, 2013 at 03:31:24PM +0530, Kishon Vijay Abraham I wrote:
+> >>>>There can be systems which does not have an external phy, so get
+> >>>>phy only if no quirks are added that indicates the PHY is not present.
+> >>>>Introduced two quirk flags to indicate the *absence* of usb2 phy and
+> >>>>usb3 phy. Also remove checking if return value is -ENXIO since it's now
+> >>>>changed to always enable usb_phy layer.
+> >>>
+> >>>Can you guys explain why is something like this needed? Like with
+> >>>clocks and gpios, the device drivers shouldn't need to care any more
+> >>>if the platform has the phys or not. -ENODEV tells you your platform
+> >>
+> >>Shouldn't we report if a particular platform needs a PHY and not able to get
+> >>it. How will a user know if a particular controller is not working because it's
+> >>not able to get and initialize the PHYs? Don't you think in such cases it's
+> >>better to fail (and return from probe) because the controller will not work
+> >>anyway without the PHY?
+> >
+> >My point is that you do not need to separately tell this to the driver
+> >like you do with the quirks (if you did, then you would need to fix
+> >your framework and not hack the drivers).
+> >
+> >Like I said, ENODEV tells you that there is no phy on this platform
+> >for you, allowing you to safely continue. If your phy driver is not
+> >loaded, the framework already returns EPROBE_DEFER, right. Any other
 > 
-> yeah, I don't want to drop PHY support, I want to require everybody to
-> provide a PHY, otherwise we have too many options to handle and that's
-> never clean.
+> right. but that doesn't consider broken dt data. With quirks we'll
+> able to tell if a controller in a particular platform has PHY or not
+> without depending on the dt data.
 
-I have to clarify in case there was a misunderstanding. When I said
-generic-phy I meant drivers/usb/phy/phy-generic.c and I was not
-talking about Kishon's new generic PHY framework.
+Broken dt data? What kind of scenario are you thinking here? Do you
+mean case where the dt does not describe the phy on a platform that
+depends on it? Shouldn't that problem be fixed in the dt and not
+hacked in the drivers? Or are you thinking about something else?
 
-So I was only saying that if the dwc3-pci.c is the only thing that
-needs the old usb phy support, then there should not be any problem
-dropping the support for it.
+Is there a case where something like that is actually happening?
 
-Thanks,
+Br,
 
 -- 
 heikki
