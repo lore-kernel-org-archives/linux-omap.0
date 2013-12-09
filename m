@@ -1,17 +1,17 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH v2 2/2] arm: omap: remove *.auto* from device names given
- in usb_bind_phy
-Date: Mon, 9 Dec 2013 11:37:40 +0530
-Message-ID: <52A55E2C.7070500@ti.com>
-References: <1386331571-30903-1-git-send-email-kishon@ti.com>
- <1386331571-30903-3-git-send-email-kishon@ti.com>
- <CABxcv=n67gNq6ayx+t_mfZ0++UBKkXpH9avXvRKFEH4VUrwy0g@mail.gmail.com>
- <20131206210835.GM21086@saruman.home>
+Subject: Re: [PATCH v3 04/10] usb: dwc3: use quirks to know if a particualr
+ platform doesn't have PHY
+Date: Mon, 9 Dec 2013 12:43:37 +0530
+Message-ID: <52A56DA1.1010808@ti.com>
+References: <1385373690-12170-1-git-send-email-kishon@ti.com>
+ <1385373690-12170-5-git-send-email-kishon@ti.com>
+ <20131204144027.GB21055@xps8300> <52A01E86.50406@ti.com>
+ <20131205075828.GA32583@xps8300>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20131206210835.GM21086@saruman.home>
+In-Reply-To: <20131205075828.GA32583@xps8300>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -21,50 +21,49 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: balbi@ti.com, Tony Lindgren <tony@atomide.com>, Linux Kernel <linux-kernel@vger.kernel.org>
-Cc: Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, Javier Martinez Canillas <javier@dowhile0.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, ijc+devicetree@hellion.org.uk, linux@arm.linux.org.uk, rob@landley.net, pawel.moll@arm.com, linux-doc@vger.kernel.org, tony@atomide.com, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, grant.likely@linaro.org, rob.herring@calxeda.com, bcousson@baylibre.com, galak@codeaurora.org, swarren@wwwdotorg.org, s.nawrocki@samsung.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
 Hi,
 
-On Saturday 07 December 2013 02:38 AM, Felipe Balbi wrote:
+On Thursday 05 December 2013 01:28 PM, Heikki Krogerus wrote:
 > Hi,
 >
-> On Fri, Dec 06, 2013 at 01:14:38PM +0100, Javier Martinez Canillas wrote:
->> On Fri, Dec 6, 2013 at 1:06 PM, Kishon Vijay Abraham I <kishon@ti.com> wrote:
->>> Previously MUSB wrapper (OMAP) device used PLATFORM_DEVID_AUTO while creating
->>> MUSB core device. So in usb_bind_phy (binds the controller with the PHY), the
->>> device name of the controller had *.auto* in it. Since with using
->>> PLATFORM_DEVID_AUTO, there is no way to know the exact device name in advance,
->>> the data given in usb_bind_phy became obsolete and usb_get_phy was failing.
->>> So MUSB wrapper was modified not to use PLATFORM_DEVID_AUTO. Corresponding
->>> change is done in board file here.
+> On Thu, Dec 05, 2013 at 12:04:46PM +0530, Kishon Vijay Abraham I wrote:
+>> On Wednesday 04 December 2013 08:10 PM, Heikki Krogerus wrote:
+>>> On Mon, Nov 25, 2013 at 03:31:24PM +0530, Kishon Vijay Abraham I wrote:
+>>>> There can be systems which does not have an external phy, so get
+>>>> phy only if no quirks are added that indicates the PHY is not present.
+>>>> Introduced two quirk flags to indicate the *absence* of usb2 phy and
+>>>> usb3 phy. Also remove checking if return value is -ENXIO since it's now
+>>>> changed to always enable usb_phy layer.
 >>>
->>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
->>> ---
->>>   arch/arm/mach-omap2/board-2430sdp.c        |    2 +-
->>>   arch/arm/mach-omap2/board-3430sdp.c        |    2 +-
->>>   arch/arm/mach-omap2/board-cm-t35.c         |    2 +-
->>>   arch/arm/mach-omap2/board-devkit8000.c     |    2 +-
->>>   arch/arm/mach-omap2/board-ldp.c            |    2 +-
->>>   arch/arm/mach-omap2/board-omap3beagle.c    |    2 +-
->>>   arch/arm/mach-omap2/board-omap3logic.c     |    2 +-
->>>   arch/arm/mach-omap2/board-omap3pandora.c   |    2 +-
->>>   arch/arm/mach-omap2/board-omap3stalker.c   |    2 +-
->>>   arch/arm/mach-omap2/board-omap3touchbook.c |    2 +-
->>>   arch/arm/mach-omap2/board-overo.c          |    2 +-
->>>   arch/arm/mach-omap2/board-rx51.c           |    2 +-
->>>   12 files changed, 12 insertions(+), 12 deletions(-)
->>>
+>>> Can you guys explain why is something like this needed? Like with
+>>> clocks and gpios, the device drivers shouldn't need to care any more
+>>> if the platform has the phys or not. -ENODEV tells you your platform
 >>
->> You can drop this patch since boards files are being removed for v3.14
+>> Shouldn't we report if a particular platform needs a PHY and not able to get
+>> it. How will a user know if a particular controller is not working because it's
+>> not able to get and initialize the PHYs? Don't you think in such cases it's
+>> better to fail (and return from probe) because the controller will not work
+>> anyway without the PHY?
 >
-> if we can drop this patch, the whole series is invalid, since we'll be
-> using DT phandles to find PHYs going forward, no ?
+> My point is that you do not need to separately tell this to the driver
+> like you do with the quirks (if you did, then you would need to fix
+> your framework and not hack the drivers).
 >
-yeah. But in one of the other threads, Tony seemed ok to take a patch 
-that fixes the same issue in mach-omap2/twl-common.c. So it's better to 
-confirm with Tony.
+> Like I said, ENODEV tells you that there is no phy on this platform
+> for you, allowing you to safely continue. If your phy driver is not
+> loaded, the framework already returns EPROBE_DEFER, right. Any other
+
+right. but that doesn't consider broken dt data. With quirks we'll able 
+to tell if a controller in a particular platform has PHY or not without 
+depending on the dt data.
+> error when getting the phy you can consider critical. They are the
+> errors telling you that you do need a phy on this platform, but
+> something actually went wrong when getting it.
+Not on all scenarios though :-s
 
 Thanks
 Kishon
