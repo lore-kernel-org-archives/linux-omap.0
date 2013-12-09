@@ -1,82 +1,39 @@
-From: =?ISO-8859-1?Q?Jos=E9_Miguel_Gon=E7alves?= <jose.goncalves-ojS98SfuVkU@public.gmane.org>
-Subject: Re: Problem with a hih6130 sensor in a OMAP I2C bus
-Date: Mon, 09 Dec 2013 13:19:48 +0000
-Message-ID: <52A5C374.1040609@inov.pt>
-References: <52A5AC95.3050803@inov.pt> <20131209132239.3c0f6402@endymion.delvare>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20131209132239.3c0f6402-R0o5gVi9kd7kN2dkZ6Wm7A@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jean Delvare <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, Guenter Roeck <linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org
+From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Subject: [PATCH 0/5] phy: remove the need for the phys to know about their users
+Date: Mon,  9 Dec 2013 17:08:52 +0200
+Message-ID: <1386601737-8735-1-git-send-email-heikki.krogerus@linux.intel.com>
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-samsung-soc@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Jean,
+Hi,
 
-On 09-12-2013 12:22, Jean Delvare wrote:
-> Hi Jos=E9,
->
-> On Mon, 09 Dec 2013 11:42:13 +0000, Jos=E9 Miguel Gon=E7alves wrote:
->> While testing an HIH6130 humidity and temperature sensor with I2C
->> interface in a BeagleBone board I've found that I was unable to read=
- it
->> because the driver always returned EINVAL. With some debugging I've
->> found that the error was due to a test on omap_i2c_xfer_msg() in OMA=
-P
->> I2C driver that invalidates zero length writes. The hwmon hih6130 dr=
-iver
->> issues such kind of request in hih6130_update_measurements() to issu=
-e a
->> measurement request to the sensor.
->>
->> I was able to get measurements from the sensor by hacking the hih613=
-0
->> driver replacing the following line in hih6130_update_measurements()=
-;
->>
->>           ret =3D i2c_master_send(client, tmp, 0);
->>
->> by
->>
->>           tmp[0] =3D 0;
->>           ret =3D i2c_master_send(client, tmp, 1);
->>
->> Is this the correct way to fix this issue, or should the fix be in t=
-he
->> I2C OMAP driver to accept zero length transfers?
-> Ideally it should be fixed in the i2c-omap bus driver. However, if
-> zero-length transfers are explicitly prohibited, it may mean that the
-> hardware itself can't do it (in which case adding a comment saying so
-> in the source code would be great.) You'll have to check. The driver
-> supports several generations of OMAP chipsets so you'll have to check
-> them all, maybe some can handle zero-length messages and some do not.
->
-> If fixing it in the i2c-omap driver is not possible, then working
-> around it in the hih6130 driver would be acceptable. You'll have to
-> make sure there is no side effect to sending a single byte to the chi=
-p.
-> If performance is a concern, you may have to enable the workaround on=
-ly
-> when zero-byte messages aren't supported. You can check with:
->
-> i2c_get_functionality(i2c_adapter) & I2C_FUNC_SMBUS_QUICK
->
+This replaces the consumer & init_data structures with a lookup table
+that contains complete associations with the phys and their users,
+removing the need for the phy drivers themselves to care about their
+users even when not using DT.
 
-I am by no means an expert on OMAP platforms and/or I2C drivers so, if=20
-anyone else with more knowledge of them has a better suggestion, I will=
-=20
-follow your suggestion and submit my workaround patch for the hih6130=20
-driver with the added check for support of zero-byte messages by the=20
-underlying I2C driver. From my understanding of the technical note for=20
-I2C communication on this chip;
+The lookup method is copied from the way the gpio descriptor lookup is
+now handled in gpiolib.c.
 
-http://www.mouser.com/pdfdocs/I2CCommunications.pdf
 
-I see no problems on writing that dummy byte to it and my tests on a=20
-real hardware also show that.
+Heikki Krogerus (5):
+  phy: unify the phy name parameters
+  phy: add support for indexed lookup
+  phy: improved lookup method
+  arm: omap3: twl: use the new lookup method with usb phy
+  phy: remove the old lookup method
 
-Best regards,
-Jos=E9 Gon=E7alves
+ arch/arm/mach-omap2/twl-common.c    |  15 ++-
+ drivers/phy/phy-core.c              | 209 ++++++++++++++++++++++++++----------
+ drivers/phy/phy-exynos-dp-video.c   |   2 +-
+ drivers/phy/phy-exynos-mipi-video.c |   2 +-
+ drivers/phy/phy-omap-usb2.c         |   2 +-
+ drivers/phy/phy-twl4030-usb.c       |   4 +-
+ include/linux/phy/phy.h             |  86 ++++++++++-----
+ 7 files changed, 221 insertions(+), 99 deletions(-)
+
+-- 
+1.8.5.1
