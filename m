@@ -1,50 +1,61 @@
-From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: Re: [PATCH 1/1] drivers: net : cpsw: Use netdev_name while requesting
- irq
-Date: Mon, 9 Dec 2013 14:59:05 +0530
-Message-ID: <52A58D61.9060404@ti.com>
-References: <1386313107-8597-1-git-send-email-mugunthanvnm@ti.com> <20131206.154640.2274056773488827363.davem@davemloft.net>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH v2 01/15] mfd: menelaus: Drop __exit section annotation
+Date: Mon, 9 Dec 2013 09:37:48 +0000
+Message-ID: <20131209093748.GA12675@lee--X1>
+References: <1386042188-12246-1-git-send-email-balbi@ti.com>
+ <20131203095136.GF11828@lee--X1>
+ <20131208190739.GA18977@saruman.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:38702 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753921Ab3LIJ3N (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 9 Dec 2013 04:29:13 -0500
-In-Reply-To: <20131206.154640.2274056773488827363.davem@davemloft.net>
+Received: from mail-oa0-f49.google.com ([209.85.219.49]:64376 "EHLO
+	mail-oa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751346Ab3LIJhy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Dec 2013 04:37:54 -0500
+Received: by mail-oa0-f49.google.com with SMTP id i4so3537452oah.22
+        for <linux-omap@vger.kernel.org>; Mon, 09 Dec 2013 01:37:53 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <20131208190739.GA18977@saruman.home>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Miller <davem@davemloft.net>
-Cc: netdev@vger.kernel.org, linux-omap@vger.kernel.org, george.cherian@ti.com
+To: Felipe Balbi <balbi@ti.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, sameo@linux.intel.com, Tony Lindgren <tony@atomide.com>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Saturday 07 December 2013 02:16 AM, David Miller wrote:
-> From: Mugunthan V N <mugunthanvnm@ti.com>
-> Date: Fri, 6 Dec 2013 12:28:27 +0530
->
->> From: George Cherian <george.cherian@ti.com>
->>
->> Use netdev_name while requesting irq so that eth* name is shown
->> in /proc/interrupts. Previously it was showing device name as (null)
->> for cpsw interrupts. For using netdev_name register_netdev and then
->> call devm_request_irq.
->>
->> Signed-off-by: George Cherian <george.cherian@ti.com>
->> Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
-> Why is it showing "(null)" as the name, is dev_name() not working
-> properly for this device?
->
-> The only change you are making is passing netdev_name() instead
-> of dev_name().  dev_name() giving NULL doesn't make much sense
-> to me.
-priv->dev is a network device which is registered to network stack after
-request interrupt, so dev name is null, with this patch request
-interrupt is moved below after registering the network device with the
-network
+> > The code looks mostly fine, but the implementation of the commit lo=
+gs
+> > seems lazy. Please submit a v3 using coherent sentences with full
+> > explanations and correct punctuation.
+>=20
+> example ?
 
-Initial driver was using DT node name for the interrupts, but with the
-devm changes by Daniel Mack in commit 50a5fb068 it was changed to ndev
-name which introduced this issue.
+All of your commit messages.
 
-Regards
-Mugunthan V N
+> that macro just helps removing some extra
+
+  ^- Sentences start with an uppercase character.
+
+> line of code and hides ffs() calls.
+>=20
+> while at that, also fix a variable shadowing
+
+  ^- Sentences start with an uppercase character.
+
+> bug where 'int irq' was being redeclared inside
+> inner loop while it was also argument to interrupt
+> handler.
+
+  < ---------------   50 chars   ----------------- >
+
+Please use the full 72 char (or there abouts) width of the buffer.
+
+--=20
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org =E2=94=82 Open source software for ARM SoCs
+=46ollow Linaro: Facebook | Twitter | Blog
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
