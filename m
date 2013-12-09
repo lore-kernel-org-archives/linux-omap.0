@@ -1,75 +1,57 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [GIT PULL] ARM: OMAP2+: hwmod code/data: fixes for v3.13-rc
-Date: Mon, 9 Dec 2013 19:07:41 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1312091906150.32309@utopia.booyaka.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: OMAP baseline test results for v3.13-rc1 (toolchain Debian
+ 4.7.2-5)
+Date: Mon, 9 Dec 2013 11:14:53 -0800
+Message-ID: <20131209191452.GA13171@atomide.com>
+References: <alpine.DEB.2.02.1311250731410.1364@utopia.booyaka.com>
+ <alpine.DEB.2.02.1311251514330.1364@utopia.booyaka.com>
+ <alpine.DEB.2.02.1312090936530.32309@utopia.booyaka.com>
+ <20131209171618.GC11433@atomide.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:36791 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932243Ab3LITHm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Dec 2013 14:07:42 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:42150 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932483Ab3LITOz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Dec 2013 14:14:55 -0500
+Content-Disposition: inline
+In-Reply-To: <20131209171618.GC11433@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+* Tony Lindgren <tony@atomide.com> [131209 09:17]:
+> * Paul Walmsley <paul@pwsan.com> [131209 01:55]:
+> > On Mon, 25 Nov 2013, Paul Walmsley wrote:
+> > 
+> > > On Mon, 25 Nov 2013, Paul Walmsley wrote:
+> > > 
+> > > > Boot to userspace:
+> > > >     FAIL ( 1/11): 37xxevm
+> > > 
+> > > So looks like this is due to the switchover to DT-based booting for 37xx 
+> > > EVM.  Will plug that in here and re-test.
+> > 
+> > Here's the updated test report.  Looks like dynamic idle PM tests are 
+> > failing on the 37xxevm now.
+> 
+> Off-idle and wake-up events work but need these two pending patches:
+> 
+> 1. [PATCH] of/platform: Fix no irq domain found errors when populating interrupts
+>    http://lkml.org/lkml/2013/11/22/520
 
-Hi Tony,
+Oops, this is the wrong patch, it should be:
 
-The following changes since commit 6ce4eac1f600b34f2f7f58f9cd8f0503d79e42ae:
-
-  Linux 3.13-rc1 (2013-11-22 11:30:55 -0800)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/for-v3.13-rc/hwmod-fixes-a
-
-for you to fetch changes up to 0e7dc862cf687234ed1b01a6b2461b782ea0bca0:
-
-  ARM: OMAP2+: hwmod: Fix usage of invalid iclk / oclk when clock node is not present (2013-12-09 11:51:30 -0700)
-
-- ----------------------------------------------------------------
-ARM: OMAP2+: hwmod code/data: fixes for v3.13-rc
-
-Fix a few hwmod code problems involving recovery with bad data and bad
-IP block OCP reset handling.  Also, fix the hwmod data to enable IP
-block OCP reset for the OMAP USBHOST devices on OMAP3+.
-
-Basic build, boot, and PM tests are available here:
-
-http://www.pwsan.com/omap/testlogs/prcm_fixes_a_v3.13-rc/20131209030611/
-
-- ----------------------------------------------------------------
-Nishanth Menon (1):
-      ARM: OMAP2+: hwmod: Fix usage of invalid iclk / oclk when clock node is not present
-
-Roger Quadros (3):
-      ARM: OMAP4+: hwmod data: Don't prevent RESET of USB Host module
-      ARM: OMAP2+: hwmod: Fix SOFTRESET logic
-      ARM: OMAP3: hwmod data: Don't prevent RESET of USB Host module
-
- arch/arm/mach-omap2/omap_hwmod.c           | 45 +++++++++++++++++++++++++++++-
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c | 13 ++-------
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c | 12 ++------
- arch/arm/mach-omap2/omap_hwmod_54xx_data.c | 13 ++-------
- 4 files changed, 52 insertions(+), 31 deletions(-)
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.15 (GNU/Linux)
-
-iQIcBAEBAgAGBQJSphSWAAoJEMePsQ0LvSpLBGwP/19ygCpEptuQk3AKY411jgXl
-rGEkdGlYcoHSd03ci2LjKds7iJgDnWdpCbrtfcRBmqSChlTk1AKqs8bnkQqYpY9P
-j5g3aacwROsutc74xCDJFHY0mAIQ1wfIoj5oUmM3mgX4ftKpNyYZ0gRxfPX/29eO
-YwOjzXEyHeRJ20UwL41Tp24Q1O6hziCDc1N0iMa+Yzbaf1Lwbq8la7FxOdmj+6la
-ex06qt0VELv9B3gQATR8lvDoFIlJ+3AVDnR5z1ODRvZqE1XKMZ7koF/La6fBqfqd
-pk7Nq7x3sN3TtDQb1dkvIrCOVwqYZnjkLXZ5UNam6tTnmDkB50ttoaJIoO0t+BA5
-ALRkC9ni1StKKInTCJr1ncSmzaY1xCU1ePOrcxVDOvsxvmcUBtX50d9kRAssfkze
-eanyJoCBAKIgSR82vpaS4qwGsiPRU4NPPIcKvtsWzd9Oot84QvDOGvVv5730l9iU
-csJWay8rba9THbBNoghg2y5P4MBtsXFxCif1kXGyp9JZCek4wQZJAiHzXxqu/DIO
-QcK2uHwVNWS/vlyvoUmu3BB0p08sy5xKHm/eqwAS3bUag42vK4YI1Q6bfulXmt5W
-dslDMwVf/BbbbKO8Tee3vIWVc6NNVV5NHKTRvRtL85vt2+X63Ld1oZvOBq5A/hoF
-x4Gdw6dkexIhE+5YsuHN
-=hGE8
------END PGP SIGNATURE-----
+1. [PATCH] of/platform: Fix no irq domain found errors when populating interrupts
+   http://lkml.org/lkml/2013/11/22/520
+ 
+> 2. [PATCH] ARM: dts: Fix omap serial wake-up when booted with device tree
+>    http://www.spinics.net/lists/devicetree/msg13374.html
+> 
+> Without the first one we get some nasty looking harmless warnings, so I've
+> been holding off to merging #2 until #1 is fixed.
+> 
+> Regards,
+> 
+> Tony
