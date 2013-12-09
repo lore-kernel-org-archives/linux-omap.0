@@ -1,46 +1,52 @@
 From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [RFC/RFT/PATCH V3] gpio: omap: refresh patch "be more aggressive with pm_runtime" against v3.12-rc5
-Date: Mon, 09 Dec 2013 08:03:21 -0800
-Message-ID: <87r49m8112.fsf@linaro.org>
-References: <1385506004-14943-1-git-send-email-caesarxuchao@gmail.com>
-	<1386477638-6331-1-git-send-email-caesarxuchao@gmail.com>
+Subject: Re: [PATCH] ARM: OMAP2+: omap_device: add fail hook for runtime_pm when bad data is detected
+Date: Mon, 09 Dec 2013 08:06:29 -0800
+Message-ID: <87mwka80vu.fsf@linaro.org>
+References: <1386121153-32351-1-git-send-email-nm@ti.com>
+	<20131205190343.GI26766@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <1386477638-6331-1-git-send-email-caesarxuchao@gmail.com> (Chao
-	Xu's message of "Sat, 7 Dec 2013 22:40:38 -0600")
-Sender: linux-gpio-owner@vger.kernel.org
-To: Chao Xu <caesarxuchao@gmail.com>
-Cc: linux-omap@vger.kernel.org, santosh.shilimkar@ti.com, linus.walleij@linaro.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, tony@atomide.com, balbi@ti.com, nm@ti.com
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pb0-f53.google.com ([209.85.160.53]:45917 "EHLO
+	mail-pb0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932609Ab3LIQGb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Dec 2013 11:06:31 -0500
+Received: by mail-pb0-f53.google.com with SMTP id ma3so5673105pbc.40
+        for <linux-omap@vger.kernel.org>; Mon, 09 Dec 2013 08:06:31 -0800 (PST)
+In-Reply-To: <20131205190343.GI26766@atomide.com> (Tony Lindgren's message of
+	"Thu, 5 Dec 2013 11:03:43 -0800")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Tobias Jakobi <tjakobi@math.uni-bielefeld.de>, Joel F <joelf@ti.com>
 
-Chao Xu <caesarxuchao@gmail.com> writes:
+Tony Lindgren <tony@atomide.com> writes:
 
-> From: Felipe Balbi <balbi@ti.com>
+> * Nishanth Menon <nm@ti.com> [131203 17:40]:
+>> Due to the cross dependencies between hwmod for automanaged device
+>> information for OMAP and dts node definitions, we can run into scenarios
+>> where the dts node is defined, however it's hwmod entry is yet to be
+>> added. In these cases:
+>> a) omap_device does not register a pm_domain (since it cannot find
+>>    hwmod entry).
+>> b) driver does not know about (a), does a pm_runtime_get_sync which
+>>    never fails
+>> c) It then tries to do some operation on the device (such as read the
+>>   revision register (as part of probe) without clock or adequate OMAP
+>>   generic PM operation performed for enabling the module.
+>> 
+>> This causes a crash such as that reported in:
+>> https://bugzilla.kernel.org/show_bug.cgi?id=66441
+>> 
+>> When 'ti,hwmod' is provided in dt node, it is expected that the device
+>> will not function without the OMAP's power automanagement. Hence, when
+>> we hit a fail condition (due to hwmod entries not present or other
+>> similar scenario), fail at pm_domain level due to lack of data, provide
+>> enough information for it to be fixed, however, it allows for the driver
+>> to take appropriate measures to prevent crash.
 >
-> try to keep gpio block suspended as much as possible.
+> Kevin, any comments on this one?
 
-> Tested with pandaboard and a sysfs exported gpio.
->
-> Signed-off-by: Felipe Balbi <balbi at ti.com>
->
-> [caesarxuchao@gmail.com : Refreshed against v3.12-rc5, and added
-> revision check to enable aggressive pm_runtime on OMAP4-only. Because
-> am33xx_gpio_sysc.idlemodes seems to be wrongly marked as
-> SIDLE_SMART_WKUP, which might cause missed interrupts with this patch.
-> Tested on Pandaboard rev A2.]
-> Signed-off-by: Chao Xu <caesarxuchao@gmail.com>
+Looks like a good approach to catch these corner cases.
 
-I have several problems with this patch.
-
-First, the changelog is missing a lot of information.  In particular, nowhere
-is it described what problem is this patch addressing  and how this
-patch addresses that problem.
-
-Second, I don't see any mention of off-mode, and I suspect there are
-issues with off-mode here that are not being addressed.
-
-Also, I *really* don't like any approach that is targetted at a single
-SoC.
-
-Kevin
+Acked-by: Kevin Hilman <khilman@linaro.org>
