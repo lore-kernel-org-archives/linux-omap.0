@@ -1,62 +1,69 @@
-From: Jean Delvare <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>
-Subject: Re: Problem with a hih6130 sensor in a OMAP I2C bus
-Date: Mon, 9 Dec 2013 13:22:39 +0100
-Message-ID: <20131209132239.3c0f6402@endymion.delvare>
-References: <52A5AC95.3050803@inov.pt>
+From: Javier Martinez Canillas <javier@dowhile0.org>
+Subject: Re: [PATCH 00/26] OMAPDSS: DT support (Christmas edition)
+Date: Mon, 9 Dec 2013 13:23:31 +0100
+Message-ID: <CABxcv=mTnAcYz3H4CzqJ8McwhxpP8aaSxOH3FFEADUiSaqd8=w@mail.gmail.com>
+References: <52A29A82.106@collabora.co.uk>
+	<52A2A3EF.1030306@collabora.co.uk>
+	<52A5B111.3010307@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <52A5AC95.3050803-ojS98SfuVkU@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: =?ISO-8859-1?B?Sm9z6Q==?= Miguel =?ISO-8859-1?B?R29u52FsdmVz?= <jose.goncalves-ojS98SfuVkU@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, Guenter Roeck <linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wi0-f173.google.com ([209.85.212.173]:60413 "EHLO
+	mail-wi0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933415Ab3LIMXc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Dec 2013 07:23:32 -0500
+Received: by mail-wi0-f173.google.com with SMTP id hn9so3663310wib.0
+        for <linux-omap@vger.kernel.org>; Mon, 09 Dec 2013 04:23:31 -0800 (PST)
+In-Reply-To: <52A5B111.3010307@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Javier Martinez Canillas <javier.martinez@collabora.co.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-fbdev@vger.kernel.org, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Archit Taneja <archit@ti.com>, Darren Etheridge <detheridge@ti.com>, Tony Lindgren <tony@atomide.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Stefan Roese <stefan.roese@gmail.com>, Sebastian Reichel <sre@debian.org>, Robert Nelson <robertcnelson@gmail.com>, "Dr . H . Nikolaus Schaller" <hns@goldelico.com>, Marek Belisko <marek@goldelico.com>
 
-Hi Jos=E9,
+On Mon, Dec 9, 2013 at 1:01 PM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
+> On 2013-12-07 06:28, Javier Martinez Canillas wrote:
+>
+>> Actually, I looked at drivers/video/omap2/connector-dvi.c and it does the right
+>> thing for legacy platform data probing but no for DT probing:
+>>
+>> static int dvic_probe_pdata(struct platform_device *pdev)
+>> {
+>> ..
+>>               adapter = i2c_get_adapter(i2c_bus_num);
+>>               if (!adapter) {
+>>                       dev_err(&pdev->dev,
+>>                                       "Failed to get I2C adapter, bus %d\n",
+>>                                       i2c_bus_num);
+>>                       return -EPROBE_DEFER;
+>>               }
+>> ..
+>> }
+>>
+>> static int dvic_probe_of(struct platform_device *pdev)
+>> {
+>> ..
+>>                adapter = of_find_i2c_adapter_by_node(adapter_node);
+>>                 if (adapter == NULL) {
+>>                         dev_err(&pdev->dev, "failed to parse i2c-bus\n");
+>>                         omap_dss_put_device(ddata->in);
+>>                         return -EINVAL;
+>>                 }
+>> ..
+>> }
+>>
+>> The following patch solves the issue if you want to include in your patch-set:
+>
+> Thanks, I'll add this and the omap3-igep0020 support to my DT branch.
+>
 
-On Mon, 09 Dec 2013 11:42:13 +0000, Jos=E9 Miguel Gon=E7alves wrote:
-> While testing an HIH6130 humidity and temperature sensor with I2C=20
-> interface in a BeagleBone board I've found that I was unable to read =
-it=20
-> because the driver always returned EINVAL. With some debugging I've=20
-> found that the error was due to a test on omap_i2c_xfer_msg() in OMAP=
-=20
-> I2C driver that invalidates zero length writes. The hwmon hih6130 dri=
-ver=20
-> issues such kind of request in hih6130_update_measurements() to issue=
- a=20
-> measurement request to the sensor.
->=20
-> I was able to get measurements from the sensor by hacking the hih6130=
-=20
-> driver replacing the following line in hih6130_update_measurements();
->=20
->          ret =3D i2c_master_send(client, tmp, 0);
->=20
-> by
->=20
->          tmp[0] =3D 0;
->          ret =3D i2c_master_send(client, tmp, 1);
->=20
-> Is this the correct way to fix this issue, or should the fix be in th=
-e=20
-> I2C OMAP driver to accept zero length transfers?
+Great, thanks a lot for working on this!
 
-Ideally it should be fixed in the i2c-omap bus driver. However, if
-zero-length transfers are explicitly prohibited, it may mean that the
-hardware itself can't do it (in which case adding a comment saying so
-in the source code would be great.) You'll have to check. The driver
-supports several generations of OMAP chipsets so you'll have to check
-them all, maybe some can handle zero-length messages and some do not.
+I'm very happy that we will have proper display support for IGEPv2 on
+v3.14 without any DT hacks or pdata-quirks :-)
 
-If fixing it in the i2c-omap driver is not possible, then working
-around it in the hih6130 driver would be acceptable. You'll have to
-make sure there is no side effect to sending a single byte to the chip.
-If performance is a concern, you may have to enable the workaround only
-when zero-byte messages aren't supported. You can check with:
+>  Tomi
 
-i2c_get_functionality(i2c_adapter) & I2C_FUNC_SMBUS_QUICK
-
---=20
-Jean Delvare
+Best regards,
+Javier
+>
+>
