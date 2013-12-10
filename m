@@ -1,67 +1,103 @@
-From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCHv2 00/10] Add memory mapped support for ti qspi, m25p80
- serial flash.
-Date: Tue, 10 Dec 2013 16:11:43 +0000
-Message-ID: <20131210161143.GK29268@sirena.org.uk>
-References: <1386339891-32717-1-git-send-email-sourav.poddar@ti.com>
- <201312101349.13564.marex@denx.de>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH v3 03/15] mfd: menelaus: Convert to threaded irq
+Date: Tue, 10 Dec 2013 10:31:24 -0600
+Message-ID: <20131210163124.GD22750@saruman.home>
+References: <20131209161422.GC24047@saruman.home>
+ <1386606085-26838-1-git-send-email-balbi@ti.com>
+ <1386606085-26838-3-git-send-email-balbi@ti.com>
+ <20131210093213.GV12675@lee--X1>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="jWPLtjN/TlbXOuX3"
-Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <201312101349.13564.marex-ynQEQJNshbs@public.gmane.org>
-Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Marek Vasut <marex-ynQEQJNshbs@public.gmane.org>
-Cc: Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org
+Content-Type: multipart/mixed; boundary="===============3175884464229240193=="
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20131210093213.GV12675@lee--X1>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Lee Jones <lee.jones@linaro.org>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
+--===============3175884464229240193==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="9dgjiU4MmWPVapMU"
+Content-Disposition: inline
 
---jWPLtjN/TlbXOuX3
+--9dgjiU4MmWPVapMU
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Dec 10, 2013 at 01:49:13PM +0100, Marek Vasut wrote:
+Hi,
 
-> My question is, shall we not wait for the new SPI NOR framework to be wel=
-l=20
-> fleshed out and only then implement this controller driver on top of it ?
+On Tue, Dec 10, 2013 at 09:32:13AM +0000, Lee Jones wrote:
+> On Mon, 09 Dec 2013, Felipe Balbi wrote:
+>=20
+> > We don't need that extra workqueue when we have generic threaded irq
+> > handlers support. This patch just moves over to threaded irqs and
+> > deletes the unnecessary workqueue.
+> >=20
+> > Tested-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+> > Signed-off-by: Felipe Balbi <balbi@ti.com>
+> > ---
+> >  drivers/mfd/menelaus.c | 29 ++++-------------------------
+> >  1 file changed, 4 insertions(+), 25 deletions(-)
+>=20
+> <snip>
+>=20
+> > -		err =3D request_irq(client->irq, menelaus_irq, 0,
+> > -				  DRIVER_NAME, menelaus);
+> > +		err =3D request_threaded_irq(client->irq, NULL, menelaus_irq,
+> > +				IRQF_ONESHOT, DRIVER_NAME, menelaus);
+>=20
+> devm_* managed resources please.
 
-> I have a feeling this patchset adds quite a lot of ad-hoc hacks into the =
-m25p80=20
-> driver, which would become dead code once converted to the SPI NOR framew=
-ork.
+that would be subject to another patch. One that converts to devm_* on
+the entire driver.
 
-There is some stuff that pushes up into the controller in that while the
-device is in memory mapped mode as far as I can tell it's not safe to do
-other accesses so if someone's put more than one device on the SPI bus
-we need to handle interactions there.
+--=20
+balbi
 
---jWPLtjN/TlbXOuX3
+--9dgjiU4MmWPVapMU
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
+Version: GnuPG v1.4.15 (GNU/Linux)
 
-iQIcBAEBAgAGBQJSpz08AAoJELSic+t+oim9CsgP/RKihfzVyXn4iAdbIi35lGk+
-UIp4ZMCB8ZhcKnuYZ/h3IskvxE2uscwSjyrZCSSB1ftuz5gSZftK1++duadAP6nU
-BztSGxPK1W74Nd2q+ogY1sfJsj5ICzH21PFw/M7gWS6JT0hczjbFhHFN7OLLYXye
-uoSVGlsKKhXvx/csPaPjjn2n/LkGMGhVOHyKNzDPcyPPfA2vKwzNckDJW1JHWx0K
-eXCDKkG6jczb1qKPvW1wfXzIy1arYlsxMwSMd/QrPhVziBSPPS7/7mCZGCl6QahI
-bUnYMY8gdNxFZi8d1JPk/ZDCScdHEAJihe+IpZ5YXGlwSVHztGe2ebydz5Z5IcTq
-pYjTIZWPeJYtrIkpOBpFTUX/O5EmO6EyE2bloqn75AoJov+DyhhZE+9wZszeZD+7
-oOy/AV89eQn3xlzmgm79KeKzxA/OrstreA/K1djS7vx5EtR5YlUL9N1Y/uhAiV5G
-//BufIYsX3zGQmKHA8e2C/ZB99d6AJIIyH2FoBBh+zhUadR/1HSpqoLa8AfuVNEz
-ByDlG4UJH5maHldkcYu09WQyEVg2qGVmFbBT5p1V39+ECFGvzCAmed0R1XfVRaZD
-frjPzzzmeRo+Vd1XmLkkwxPH98rsSLtr+lS9tCJnnw38IzcOV1r8dlkJrDaNwXrp
-lt1fWSzEK3EIBwlBkIu4
-=xR23
+iQIcBAEBAgAGBQJSp0HcAAoJEIaOsuA1yqREVtIP/A6dvkfZjLgRH0nFlRectd3C
+zIus1jKv6TPfbtM6HRRO5B7adTgrXULFLEQAWdB6JHhdrFBRh4xQC6897Hr7/vIt
+3r/4YqXlI0MYVVsgIpumHngkZcbCsxUHBj8xatfjp62AcVhtduxofMilP9DDh+qf
+AJ/PHif4q0bLjbc66UB1RCUtFP1gT20nfCafsbWZHJR2OmcpHurpSQT1r9YV3lwP
+CTpeEyvct7yJsCN+PdPl6y7J53+GjhihixCtU9h4Ylzd9qy8twCotSoK1Vg/PMHB
+92HPoqWB2wYrbZTFd122Ae3JhMJAsYjoxeaXQaCuHsHR3DYqTeDb8SnS+TxrGzVS
+nsWWLRQ9gWPGAeceL6Vz/wm726oUeenFPEwROcqnqIC+xq2AYp9UQLKDmoHbhGE5
+itsk3aqZnojkbGIp1CMx5YLU+bIUiomvU51iVP7w7GZw0IOB8uu9JKghVnL6sGl/
+0xDrDGZDX8bZK4Q/PF7ezgaq+1qzlbahYRBP/bWDaJ2tv/lf/wh51YhaMQmxUDX0
+oHlLQjJvPRFbDUSzFoEpM0IkR2g9ZMwhscq3knUrutvYe4CcVadOS8xoeJ81NWJA
+8KCMTyjPc2sbBCE1xWqwLjxpLb/do+5iRMy11YxWESH8WwiOKRF3uKAsz7jN0Vzd
+SkT8a5tW3ybdBQnW1Snk
+=iLfe
 -----END PGP SIGNATURE-----
 
---jWPLtjN/TlbXOuX3--
---
-To unsubscribe from this list: send the line "unsubscribe linux-spi" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--9dgjiU4MmWPVapMU--
+
+
+--===============3175884464229240193==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+--===============3175884464229240193==--
