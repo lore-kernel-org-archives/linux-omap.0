@@ -1,44 +1,45 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH v3 03/15] mfd: menelaus: Convert to threaded irq
-Date: Tue, 10 Dec 2013 09:32:13 +0000
-Message-ID: <20131210093213.GV12675@lee--X1>
-References: <20131209161422.GC24047@saruman.home>
- <1386606085-26838-1-git-send-email-balbi@ti.com>
- <1386606085-26838-3-git-send-email-balbi@ti.com>
+From: Balaji T K <balajitk@ti.com>
+Subject: [PATCH v4 0/7] mmc: omap_hsmmc: pbias dt and cleanup
+Date: Tue, 10 Dec 2013 15:46:10 +0530
+Message-ID: <1386670577-3530-1-git-send-email-balajitk@ti.com>
+References: <1385043627-30439-1-git-send-email-balajitk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1386606085-26838-3-git-send-email-balbi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <1385043627-30439-1-git-send-email-balajitk@ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: linux-omap@vger.kernel.org, bcousson@baylibre.com, devicetree@vger.kernel.org, linux-mmc@vger.kernel.org, cjb@laptop.org, broonie@kernel.org
+Cc: tony@atomide.com, Balaji T K <balajitk@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, 09 Dec 2013, Felipe Balbi wrote:
+Few cleanups to reduce code indent,
+Add pbias_regulator support and adapt omap_hsmmc to use pbias regulator
+to configure required voltage on mmc1 pad(SD card) i/o rails on OMAP SoCs.
 
-> We don't need that extra workqueue when we have generic threaded irq
-> handlers support. This patch just moves over to threaded irqs and
-> deletes the unnecessary workqueue.
->=20
-> Tested-by: Aaro Koskinen <aaro.koskinen@iki.fi>
-> Signed-off-by: Felipe Balbi <balbi@ti.com>
-> ---
->  drivers/mfd/menelaus.c | 29 ++++-------------------------
->  1 file changed, 4 insertions(+), 25 deletions(-)
+Balaji T K (7):
+  mmc: omap_hsmmc: use devm_regulator API
+  mmc: omap_hsmmc: handle vcc and vcc_aux independently
+  regulator: add pbias regulator support
+  mmc: omap_hsmmc: adapt hsmmc to use pbias regulator
+  ARM: dts: add pbias dt node
+  ARM: OMAP: enable SYSCON and REGULATOR_PBIAS in omap2plus_defconfig
+  mmc: omap_hsmmc: remove pbias workaround
 
-<snip>
+ .../bindings/regulator/pbias-regulator.txt         |   21 ++
+ arch/arm/boot/dts/dra7.dtsi                        |   14 ++
+ arch/arm/boot/dts/omap2430.dtsi                    |   14 ++
+ arch/arm/boot/dts/omap3.dtsi                       |   14 ++
+ arch/arm/boot/dts/omap4.dtsi                       |   14 ++
+ arch/arm/boot/dts/omap5.dtsi                       |   14 ++
+ arch/arm/configs/omap2plus_defconfig               |    2 +
+ drivers/mmc/host/omap_hsmmc.c                      |  113 ++++++----
+ drivers/regulator/Kconfig                          |    9 +
+ drivers/regulator/Makefile                         |    1 +
+ drivers/regulator/pbias-regulator.c                |  232 ++++++++++++++++++++
+ 11 files changed, 399 insertions(+), 49 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/regulator/pbias-regulator.txt
+ create mode 100644 drivers/regulator/pbias-regulator.c
 
-> -		err =3D request_irq(client->irq, menelaus_irq, 0,
-> -				  DRIVER_NAME, menelaus);
-> +		err =3D request_threaded_irq(client->irq, NULL, menelaus_irq,
-> +				IRQF_ONESHOT, DRIVER_NAME, menelaus);
+-- 
+1.7.5.4
 
-devm_* managed resources please.
-
---=20
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org =E2=94=82 Open source software for ARM SoCs
-=46ollow Linaro: Facebook | Twitter | Blog
