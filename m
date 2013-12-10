@@ -1,43 +1,40 @@
-From: Marek Vasut <marex@denx.de>
-Subject: Re: [PATCHv2 00/10] Add memory mapped support for ti qspi, m25p80 serial flash.
-Date: Tue, 10 Dec 2013 19:34:01 +0100
-Message-ID: <201312101934.01300.marex@denx.de>
-References: <1386339891-32717-1-git-send-email-sourav.poddar@ti.com> <201312101922.10618.marex@denx.de> <20131210182904.GG11468@sirena.org.uk>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL] make mach-omap2 boot with device tree only for v3.14
+Date: Tue, 10 Dec 2013 10:43:49 -0800
+Message-ID: <20131210184349.GM13171@atomide.com>
+References: <pull-1386643347-596413>
+ <20131210143547.GA32243@n2100.arm.linux.org.uk>
+ <20131210160144.GG13171@atomide.com>
+ <201312101936.54483.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-out.m-online.net ([212.18.0.10]:56887 "EHLO
-	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752305Ab3LJSmb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Dec 2013 13:42:31 -0500
-In-Reply-To: <20131210182904.GG11468@sirena.org.uk>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:26769 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750917Ab3LJSn6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Dec 2013 13:43:58 -0500
+Content-Disposition: inline
+In-Reply-To: <201312101936.54483.arnd@arndb.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: Sourav Poddar <sourav.poddar@ti.com>, linux-spi@vger.kernel.org, computersforpeace@gmail.com, dwmw2@infradead.org, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, bcousson@baylibre.com, balbi@ti.com
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, arm@kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Tuesday, December 10, 2013 at 07:29:04 PM, Mark Brown wrote:
-> On Tue, Dec 10, 2013 at 07:22:10PM +0100, Marek Vasut wrote:
-> > On Tuesday, December 10, 2013 at 05:11:43 PM, Mark Brown wrote:
-> > > There is some stuff that pushes up into the controller in that while
-> > > the device is in memory mapped mode as far as I can tell it's not safe
-> > > to do other accesses so if someone's put more than one device on the
-> > > SPI bus we need to handle interactions there.
+* Arnd Bergmann <arnd@arndb.de> [131210 10:38]:
+> On Tuesday 10 December 2013, Tony Lindgren wrote:
+> > The crappy part here is the fact that we need to build the kernel with
+> > appended DTB. Maybe there's something more we can do to make it easier.
 > > 
-> > OK, so it's either-or . That seems OK, you might want to have two drivers
-> > for this ip block, one to handle it as a SPI block and one to handle it
-> > as a SPI-NOR block. ... that is of course, if these two modes can't work
-> > together.
 > 
-> Or the client disables the memory map when it's not actively being used
-> and the stops other transfers starting while the mapping is in place.
-> I'd expect we'll have to cope with shared use at some point, hardware
-> engineers will probably build such systems.
+> You are aware of the impedence matcher project [1], right?
 
-Aren't we fixing the problem at the wrong place ? Maybe it's about time to fix 
-the engineers ;-)
+Oh OK cool :) AFAIK the only omaps we're currently supporting in the
+mainline tree where the bootloader cannot be updated easily are the
+n9* that require a signed bootloader. But I think those already have
+some kind of 3rd stage bootloaders available for them.
 
-Best regards,
-Marek Vasut
+Regards,
+
+Tony
+ 
+> [1] https://github.com/zonque/pxa-impedance-matcher
