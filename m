@@ -1,34 +1,70 @@
-From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: Re: [PATCH 1/1] drivers: net : cpsw: Use netdev_name while requesting
- irq
-Date: Tue, 10 Dec 2013 14:02:55 +0530
-Message-ID: <52A6D1B7.60308@ti.com>
-References: <1386313107-8597-1-git-send-email-mugunthanvnm@ti.com>	<20131206.154640.2274056773488827363.davem@davemloft.net>	<52A58D61.9060404@ti.com> <20131209.195706.1978243618769759438.davem@davemloft.net>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH v2 01/15] mfd: menelaus: Drop __exit section annotation
+Date: Tue, 10 Dec 2013 08:50:07 +0000
+Message-ID: <20131210085007.GO12675@lee--X1>
+References: <1386042188-12246-1-git-send-email-balbi@ti.com>
+ <20131203095136.GF11828@lee--X1>
+ <20131208190739.GA18977@saruman.home>
+ <20131209093748.GA12675@lee--X1>
+ <20131209161422.GC24047@saruman.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20131209.195706.1978243618769759438.davem@davemloft.net>
-Sender: netdev-owner@vger.kernel.org
-To: David Miller <davem@davemloft.net>
-Cc: netdev@vger.kernel.org, linux-omap@vger.kernel.org, george.cherian@ti.com
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20131209161422.GC24047@saruman.home>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, sameo@linux.intel.com, Tony Lindgren <tony@atomide.com>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Tuesday 10 December 2013 06:27 AM, David Miller wrote:
-> From: Mugunthan V N <mugunthanvnm@ti.com>
-> Date: Mon, 9 Dec 2013 14:59:05 +0530
->
->> commit 50a5fb068
-> This commit doesn't appear in any tree.
->
-> And any change which makes a real "struct device" return NULL
-> for dev_name() is broken.
->
-> I'm not applying this patch, you have completely failed to
-> provide any information necessary to support and justify
-> your change.
-Oops, the commit ID is wrong my mistake, since you have dropped this
-patch, I will submit the patch again with more details.
+> > > > The code looks mostly fine, but the implementation of the commi=
+t logs
+> > > > seems lazy. Please submit a v3 using coherent sentences with fu=
+ll
+> > > > explanations and correct punctuation.
+> > >=20
+> > > example ?
+> >=20
+> > All of your commit messages.
+> >=20
+> > > that macro just helps removing some extra
+> >=20
+> >   ^- Sentences start with an uppercase character.
+> >=20
+> > > line of code and hides ffs() calls.
+> > >=20
+> > > while at that, also fix a variable shadowing
+> >=20
+> >   ^- Sentences start with an uppercase character.
+> >=20
+> > > bug where 'int irq' was being redeclared inside
+> > > inner loop while it was also argument to interrupt
+> > > handler.
+> >=20
+> >   < ---------------   50 chars   ----------------- >
+> >=20
+> > Please use the full 72 char (or there abouts) width of the buffer.
+>=20
+> I don't see any mention of punctuation problems, however. Also, you'r=
+e
+> not complaining about the content at all, which tells me those senten=
+ces
+> aren't as incoherent as you claimed before.
 
-Regards
-Mugunthan V N
+I didn't read them in any detail. I traversed through the patches and
+saw that the formatting looked obscure on all of them. As I have come
+to expect more of your submissions, I provided a generic reply
+detailing how I expected the commit logs to be. I wasn't insinuated
+that you failed to meet all of the criteria, but they definitely fell
+short of the mark.
+
+> But fair enough, I'll fix those up and add Aaro's Tested-by
+
+Thank you.
+
+--=20
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org =E2=94=82 Open source software for ARM SoCs
+=46ollow Linaro: Facebook | Twitter | Blog
