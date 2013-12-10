@@ -1,55 +1,52 @@
 From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH v3 11/15] mfd: menelaus: Start to use irqdomain
-Date: Tue, 10 Dec 2013 09:20:50 +0000
-Message-ID: <20131210092050.GT12675@lee--X1>
+Subject: Re: [PATCH v3 15/15] mfd: menelaus: Use devm_request_threaded_irq()
+Date: Tue, 10 Dec 2013 09:30:42 +0000
+Message-ID: <20131210093042.GU12675@lee--X1>
 References: <20131209161422.GC24047@saruman.home>
  <1386606085-26838-1-git-send-email-balbi@ti.com>
- <1386606085-26838-11-git-send-email-balbi@ti.com>
+ <1386606085-26838-15-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1386606085-26838-11-git-send-email-balbi@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+In-Reply-To: <1386606085-26838-15-git-send-email-balbi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Felipe Balbi <balbi@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-PiBJbnRyb2R1Y2UgYW4gaXJxX2NoaXAgYW5kIGlycV9kb21haW4gZm9yIG1lbmVsYXVzIGRyaXZl
-ci4gRm9sbG93aW5nCj4gcGF0Y2hlcyB3aWxsIGNvbnZlcnQgdXNlcyB0byB0cmFkaXRpb25hbCBy
-ZXF1ZXN0X3RocmVhZGVkX2lycSgpLgo+IAo+IFdoaWxlIGF0IHRoYXQsIHNvbWUgYmV0dGVyIGVy
-cm9yIGhhbmRsaW5nIGhhZCB0byBiZSBhZGRlZCwgc28gd2UgY291bGQKPiBmcmVlIGlycSBkZXNj
-cyB3ZSBhbGxvY2F0ZWQuCj4gCj4gVGVzdGVkLWJ5OiBBYXJvIEtvc2tpbmVuIDxhYXJvLmtvc2tp
-bmVuQGlraS5maT4KPiBTaWduZWQtb2ZmLWJ5OiBGZWxpcGUgQmFsYmkgPGJhbGJpQHRpLmNvbT4K
-PiAtLS0KPiAgZHJpdmVycy9tZmQvbWVuZWxhdXMuYyB8IDEyNyArKysrKysrKysrKysrKysrKysr
-KysrKysrKysrKysrKysrKysrKysrKysrKysrLS0tCgo8c25pcD4KCj4gKwlpcnFfZG9tYWluX2Fk
-ZF9sZWdhY3kobm9kZSwgTUVORUxBVVNfTlJfSVJRUywgaXJxX2Jhc2UsIDAsCj4gKwkJCSZpcnFf
-ZG9tYWluX3NpbXBsZV9vcHMsIG0pOwoKV2hlbiB3aWxsIHRoaXMgZHJpdmVyIGJlY29tZSBEVCBj
-b21wbGlhbnQ/CgpJIHRoaW5rIHlvdSBzaG91bGQgdXNlIGlycV9kb21haW5fYWRkX3NpbXBsZSgp
-IHRvIGZ1dHVyZSBwcm9vZgp5b3Vyc2VsZiBhIGxpdHRsZS4KCj4gKwltLT5pcnFfYmFzZSA9IGly
-cV9iYXNlOwo+ICsKPiArCWZvciAoaSA9IGlycV9iYXNlOyBpIDwgaXJxX2Jhc2UgKyBNRU5FTEFV
-U19OUl9JUlFTOyBpKyspIHsKPiArCQlpcnFfc2V0X2NoaXBfZGF0YShpLCBtKTsKPiArCQlpcnFf
-c2V0X2NoaXBfYW5kX2hhbmRsZXIoaSwgJm1lbmVsYXVzX2lycV9jaGlwLAo+ICsJCQkJaGFuZGxl
-X3NpbXBsZV9pcnEpOwo+ICsJCWlycV9zZXRfbmVzdGVkX3RocmVhZChpLCAxKTsKPiArCQlzZXRf
-aXJxX2ZsYWdzKGksIElSUUZfVkFMSUQpOwoKVGhpcyBhc3N1bWVzIHRoYXQgdGhpcyBoL3cgb25s
-eSBleGlzdHMgb24gQVJNIHBsYXRmb3Jtcy4gSXMgdGhhdCB0cnVlPwoKPiArCX0KClRoaXMgaXMg
-dXN1YWxseSBjb21wbGV0ZWQgaW4gYW4gKl9pcnFfbWFwKCkgb3BlcmF0aW9uIGNhbGwtYmFjay4K
-CkkgY2FuJ3Qgc2VlIHdoZXJlIHlvdSByZXZlcnNlIHRoaXMgcHJvY2VzcyBlaXRoZXIgKHVzdWFs
-bHkgKl9pcnFfdW5tYXAoKSkKCjxzbmlwPgoKPiAtCW11dGV4X2luaXQoJm0tPmxvY2spOwo+IC0K
-ClRoaXMgZG9lc24ndCBiZWxvbmcgaW4gdGhpcyBwYXRjaC4KCkl0IHNob3VsZCBoYXZlIGJlZW4g
-cmVtb3ZlZCB3aXRoIHRoZSBmaW5hbCB1c2Ugb2YgdGhlIGxvY2sgd2FzLgoKPHNuaXA+CgotLSAK
-TGVlIEpvbmVzCkxpbmFybyBTVE1pY3JvZWxlY3Ryb25pY3MgTGFuZGluZyBUZWFtIExlYWQKTGlu
-YXJvLm9yZyDilIIgT3BlbiBzb3VyY2Ugc29mdHdhcmUgZm9yIEFSTSBTb0NzCkZvbGxvdyBMaW5h
-cm86IEZhY2Vib29rIHwgVHdpdHRlciB8IEJsb2cKCl9fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4
-LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9y
-Zy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
+On Mon, 09 Dec 2013, Felipe Balbi wrote:
+
+> By using devm_request_threaded_irq() we can drop a few extra lines of
+> code and rely on device managed resources layer to free our IRQ for u=
+s.
+>=20
+> Tested-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+> Signed-off-by: Felipe Balbi <balbi@ti.com>
+> ---
+>  drivers/mfd/menelaus.c | 11 ++++-------
+>  1 file changed, 4 insertions(+), 7 deletions(-)
+>=20
+> diff --git a/drivers/mfd/menelaus.c b/drivers/mfd/menelaus.c
+> index bffe978..b87c2bd 100644
+> --- a/drivers/mfd/menelaus.c
+> +++ b/drivers/mfd/menelaus.c
+> @@ -1271,8 +1271,8 @@ static int menelaus_probe(struct i2c_client *cl=
+ient,
+>  	/* Set output buffer strengths */
+>  	menelaus_write_reg(m, MENELAUS_MCT_CTRL1, 0x73);
+> =20
+> -	err =3D request_threaded_irq(client->irq, NULL, menelaus_irq,
+> -			IRQF_ONESHOT, DRIVER_NAME, m);
+> +	err =3D devm_request_threaded_irq(&client->dev, client->irq,
+> +			NULL, menelaus_irq, IRQF_ONESHOT, DRIVER_NAME, m);
+
+No need for a separate patch here. Convert straight from request_irq()
+to devm_request_threaded_irq() in patch 3.
+
+--=20
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org =E2=94=82 Open source software for ARM SoCs
+=46ollow Linaro: Facebook | Twitter | Blog
