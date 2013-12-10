@@ -1,24 +1,26 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [GIT PULL] make mach-omap2 boot with device tree only for
- v3.14
-Date: Tue, 10 Dec 2013 19:44:48 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1312101941090.32309@utopia.booyaka.com>
-References: <pull-1386643347-596413> <20131210185902.GO13171@atomide.com> <20131210192726.GR13171@atomide.com> <201312102039.42933.arnd@arndb.de>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL] make mach-omap2 boot with device tree only for v3.14
+Date: Tue, 10 Dec 2013 11:50:54 -0800
+Message-ID: <20131210195054.GS13171@atomide.com>
+References: <pull-1386643347-596413>
+ <20131210185902.GO13171@atomide.com>
+ <20131210192726.GR13171@atomide.com>
+ <201312102039.42933.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:45597 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751145Ab3LJTot (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Dec 2013 14:44:49 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:22282 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750757Ab3LJTvB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Dec 2013 14:51:01 -0500
+Content-Disposition: inline
 In-Reply-To: <201312102039.42933.arnd@arndb.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Arnd Bergmann <arnd@arndb.de>
-Cc: Tony Lindgren <tony@atomide.com>, arm@kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, aida.mynzhasova@skitlab.ru
+Cc: Paul Walmsley <paul@pwsan.com>, arm@kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Aida Mynzhasova <aida.mynzhasova@skitlab.ru>
 
-On Tue, 10 Dec 2013, Arnd Bergmann wrote:
-
+* Arnd Bergmann <arnd@arndb.de> [131210 11:41]:
 > On Tuesday 10 December 2013, Tony Lindgren wrote:
 > > board-ti8168evm.c
 > > 
@@ -30,12 +32,20 @@ On Tue, 10 Dec 2013, Arnd Bergmann wrote:
 > that board specifically? It seems to be the only board file that
 > ever got merged.
 
-We don't really support in mainline for 8148/8168 chips, so this is not 
-much of a regression.  TI gave up trying to upstream it several years ago.
+It's an omap3 variant and it's still waiting for the clock patches 
+that now unfortunately have a dependency to the the omap clock
+move to drivers/clk. Aida Mynzhasova posted some patches few months
+ago here:
 
-Aida Mynzhasova <aida.mynzhasova@skitlab.ru> has done some work on this 
-recently, but I don't know what the current status is.  Maybe she can 
-comment.
+http://www.spinics.net/lists/linux-omap/msg96341.html
 
+Since it's an omap3 variant, we should be able to make it usable
+quite easily, so no need to remove the whole support at least
+yet. Plus it seems to be an active TI part, so people are still it.
 
-- Paul
+But it's definitely not a show stopper for making omap3 to boot in
+device tree only mode.
+
+Regards,
+
+Tony
