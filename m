@@ -1,63 +1,85 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH v3 15/15] mfd: menelaus: Use devm_request_threaded_irq()
-Date: Tue, 10 Dec 2013 18:32:14 +0000
-Message-ID: <20131210183214.GB2390@lee--X1>
-References: <20131209161422.GC24047@saruman.home>
- <1386606085-26838-1-git-send-email-balbi@ti.com>
- <1386606085-26838-15-git-send-email-balbi@ti.com>
- <20131210093042.GU12675@lee--X1>
- <20131210163446.GH22750@saruman.home>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v5 3/7] regulator: add pbias regulator support
+Date: Tue, 10 Dec 2013 10:33:30 -0800
+Message-ID: <20131210183330.GK13171@atomide.com>
+References: <20131210104005.GB29268@sirena.org.uk>
+ <1386686098-7779-1-git-send-email-balajitk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:55934 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754806Ab3LJSde (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Dec 2013 13:33:34 -0500
 Content-Disposition: inline
-In-Reply-To: <20131210163446.GH22750@saruman.home>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+In-Reply-To: <1386686098-7779-1-git-send-email-balajitk@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Balaji T K <balajitk@ti.com>
+Cc: linux-omap@vger.kernel.org, bcousson@baylibre.com, devicetree@vger.kernel.org, linux-mmc@vger.kernel.org, cjb@laptop.org, broonie@kernel.org
 
-On Tue, 10 Dec 2013, Felipe Balbi wrote:
+* Balaji T K <balajitk@ti.com> [131210 06:36]:
+> pbias register controls internal power supply to sd card i/o pads
+> in most OMAPs (OMAP2-5, DRA7).
+> Control bits for selecting voltage level and
+> enabling/disabling are in the same PBIAS register.
 
-> On Tue, Dec 10, 2013 at 09:30:42AM +0000, Lee Jones wrote:
-> > On Mon, 09 Dec 2013, Felipe Balbi wrote:
-> >=20
-> > > By using devm_request_threaded_irq() we can drop a few extra line=
-s of
-> > > code and rely on device managed resources layer to free our IRQ f=
-or us.
-> > >=20
-> > > Tested-by: Aaro Koskinen <aaro.koskinen@iki.fi>
-> > > Signed-off-by: Felipe Balbi <balbi@ti.com>
-> > > ---
-> > >  drivers/mfd/menelaus.c | 11 ++++-------
-> > >  1 file changed, 4 insertions(+), 7 deletions(-)
-> > >=20
-> > > diff --git a/drivers/mfd/menelaus.c b/drivers/mfd/menelaus.c
-> > > index bffe978..b87c2bd 100644
-> > > --- a/drivers/mfd/menelaus.c
-> > > +++ b/drivers/mfd/menelaus.c
-> > > @@ -1271,8 +1271,8 @@ static int menelaus_probe(struct i2c_client=
- *client,
-> > >  	/* Set output buffer strengths */
-> > >  	menelaus_write_reg(m, MENELAUS_MCT_CTRL1, 0x73);
-> > > =20
-> > > -	err =3D request_threaded_irq(client->irq, NULL, menelaus_irq,
-> > > -			IRQF_ONESHOT, DRIVER_NAME, m);
-> > > +	err =3D devm_request_threaded_irq(&client->dev, client->irq,
-> > > +			NULL, menelaus_irq, IRQF_ONESHOT, DRIVER_NAME, m);
-> >=20
-> > No need for a separate patch here. Convert straight from request_ir=
-q()
-> > to devm_request_threaded_irq() in patch 3.
->=20
-> that would be 2 changes in a single patch.
+Good to see this, few comments below.
 
-I think it's the right thing to do.
+> +++ lo/Documentation/devicetree/bindings/regulator/pbias-regulator.txt	2013-12-10 16:58:28.907927745 +0530
+> @@ -0,0 +1,21 @@
+> +PBIAS internal regulator for SD card i/o pads on OMAP SoCs.
+> +
+> +Required properties:
+> +- compatible:
+> +  - "regulator-pbias-omap2" for OMAP2
+> +  - "regulator-pbias-omap3" for OMAP3
+> +  - "regulator-pbias-omap4" for OMAP4
+> +  - "regulator-pbias-omap5" for OMAP5, DRA7
+> +- pbias-reg-offset: PBIAS control register offset from syscon base address
+> +
+> +Optional properties:
+> +- Any optional property defined in bindings/regulator/regulator.txt
+> +
+> +Example:
+> +
+> +		pbias_regulator: pbias_regulator {
+> +			pbias-reg-offset = <0>;
+> +			regulator-name = "pbias_regulator";
+> +			regulator-min-microvolt = <1800000>;
+> +			regulator-max-microvolt = <3000000>;
+> +	};
 
---=20
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org =E2=94=82 Open source software for ARM SoCs
-=46ollow Linaro: Facebook | Twitter | Blog
+This does not seem to support the other PBIAS controls the same
+register has?
+
+> @@ -369,6 +369,15 @@ config REGULATOR_PALMAS
+>  	  on the muxing. This is handled automatically in the driver by
+>  	  reading the mux info from OTP.
+>  
+> +config REGULATOR_PBIAS
+> +	tristate "PBIAS OMAP regulator driver"
+> +	depends on (ARCH_OMAP || COMPILE_TEST) && MFD_SYSCON
+> +	help
+> +	 Say y here to support pbias regulator for mmc1:SD card i/o
+> +	 on OMAP SoCs.
+> +	 This driver provides support for OMAP pbias modelled
+> +	 regulators.
+> +
+
+The PBIAS register is not just for MMC. Depending on the SoC revision,
+you may also have 2 - 3 PBIAS devices in the same register. Please check
+the 2430 TRM, it has also I2C secondary pulls in this same register. And
+on 3430, there PBIAS register has also SIM voltage bits.
+
+Certainly nothing stops from intially implementing the MMC pieces
+as those are needed badly, but it should be done in a way where adding
+support for the other PBIAS bits can be done easily.
+
+You're also missing the PBIAS interrupts, so it might be worth checking
+the code from that point of view also to make sure adding the support
+for interrupts won't require massive changes to the driver.
+
+Regards,
+
+Tony
