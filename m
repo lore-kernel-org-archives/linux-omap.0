@@ -1,71 +1,128 @@
-From: Vivek Gautam <gautam.vivek@samsung.com>
-Subject: [PATCH RFC 2/4] xhci: Add quirk for DWC3-Exynos controller
-Date: Tue, 10 Dec 2013 16:25:24 +0530
-Message-ID: <1386672926-26885-3-git-send-email-gautam.vivek@samsung.com>
-References: <1386672926-26885-1-git-send-email-gautam.vivek@samsung.com>
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-In-reply-to: <1386672926-26885-1-git-send-email-gautam.vivek@samsung.com>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: linux-usb@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, balbi@ti.com, sarah.a.sharp@linux.intel.com, kgene.kim@samsung.com, kishon@ti.com, jg1.han@samsung.com, jwerner@chromium.org
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: Re: [RFC PATCH v3 2/8] mmc: omap_hsmmc: handle vcc and vcc_aux independently
+Date: Tue, 10 Dec 2013 12:09:46 +0100
+Message-ID: <CAPDyKFqAT+Zd4LmAJ91g603LXx2rAfoRhF1UK4XNzSUVNS0X9w@mail.gmail.com>
+References: <20130613174554.GB1403@sirena.org.uk>
+	<1385043627-30439-1-git-send-email-balajitk@ti.com>
+	<1385043627-30439-3-git-send-email-balajitk@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <1385043627-30439-3-git-send-email-balajitk@ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Balaji T K <balajitk@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Benoit Cousson <bcousson@baylibre.com>, devicetree@vger.kernel.org, linux-mmc <linux-mmc@vger.kernel.org>, Chris Ball <cjb@laptop.org>, Mark Brown <broonie@kernel.org>, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
 
-The DWC3-exynos eXtensible host controller on Exynos5420 SoC
-is quirky in a way that the PHY needs to be tuned to get it
-working at SuperSpeed.
-By default this PHY works as High-speed phy and therefore
-detects even Super-speed devices as high-speed ones.
-So, the PHY needs to be tuned after controller has been reset.
+On 21 November 2013 15:20, Balaji T K <balajitk@ti.com> wrote:
+> handle vcc and vcc_aux independently to reduce indent.
+>
+> Signed-off-by: Balaji T K <balajitk@ti.com>
+> ---
+>  drivers/mmc/host/omap_hsmmc.c |   54 +++++++++++++++++++----------------------
+>  1 files changed, 25 insertions(+), 29 deletions(-)
+>
+> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+> index 1eb4350..342be25 100644
+> --- a/drivers/mmc/host/omap_hsmmc.c
+> +++ b/drivers/mmc/host/omap_hsmmc.c
+> @@ -286,11 +286,12 @@ static int omap_hsmmc_set_power(struct device *dev, int slot, int power_on,
+>          * chips/cards need an interface voltage rail too.
+>          */
+>         if (power_on) {
+> -               ret = mmc_regulator_set_ocr(host->mmc, host->vcc, vdd);
+> +               if (host->vcc)
+> +                       ret = mmc_regulator_set_ocr(host->mmc, host->vcc, vdd);
+>                 /* Enable interface voltage rail, if needed */
+>                 if (ret == 0 && host->vcc_aux) {
+>                         ret = regulator_enable(host->vcc_aux);
+> -                       if (ret < 0)
+> +                       if (ret < 0 && host->vcc)
+>                                 ret = mmc_regulator_set_ocr(host->mmc,
+>                                                         host->vcc, 0);
+>                 }
+> @@ -298,7 +299,7 @@ static int omap_hsmmc_set_power(struct device *dev, int slot, int power_on,
+>                 /* Shut down the rail */
+>                 if (host->vcc_aux)
+>                         ret = regulator_disable(host->vcc_aux);
+> -               if (!ret) {
+> +               if (host->vcc) {
+>                         /* Then proceed to shut down the local regulator */
+>                         ret = mmc_regulator_set_ocr(host->mmc,
+>                                                 host->vcc, 0);
+> @@ -318,10 +319,10 @@ static int omap_hsmmc_reg_get(struct omap_hsmmc_host *host)
+>
+>         reg = devm_regulator_get(host->dev, "vmmc");
+>         if (IS_ERR(reg)) {
+> -               dev_err(host->dev, "vmmc regulator missing\n");
+> +               dev_err(host->dev, "unable to get vmmc regulator %ld\n",
+> +                       PTR_ERR(reg));
+>                 return PTR_ERR(reg);
+>         } else {
+> -               mmc_slot(host).set_power = omap_hsmmc_set_power;
+>                 host->vcc = reg;
+>                 ocr_value = mmc_regulator_get_ocrmask(reg);
+>                 if (!mmc_slot(host).ocr_mask) {
+> @@ -334,31 +335,26 @@ static int omap_hsmmc_reg_get(struct omap_hsmmc_host *host)
+>                                 return -EINVAL;
+>                         }
+>                 }
+> +       }
+> +       mmc_slot(host).set_power = omap_hsmmc_set_power;
+>
+> -               /* Allow an aux regulator */
+> -               reg = devm_regulator_get_optional(host->dev, "vmmc_aux");
+> -               host->vcc_aux = IS_ERR(reg) ? NULL : reg;
+> +       /* Allow an aux regulator */
+> +       reg = devm_regulator_get_optional(host->dev, "vmmc_aux");
+> +       host->vcc_aux = IS_ERR(reg) ? NULL : reg;
+>
+> -               /* For eMMC do not power off when not in sleep state */
+> -               if (mmc_slot(host).no_regulator_off_init)
+> -                       return 0;
+> -               /*
+> -               * UGLY HACK:  workaround regulator framework bugs.
+> -               * When the bootloader leaves a supply active, it's
+> -               * initialized with zero usecount ... and we can't
+> -               * disable it without first enabling it.  Until the
+> -               * framework is fixed, we need a workaround like this
+> -               * (which is safe for MMC, but not in general).
+> -               */
 
-Adding a xHCI quirk for this purpose.
+The above problem is handled by the mmc core layer. I certainly think
+you shall adopt your code to it.
 
-Signed-off-by: Vivek Gautam <gautam.vivek@samsung.com>
----
- drivers/usb/host/xhci-plat.c |   19 +++++++++++++++++++
- drivers/usb/host/xhci.h      |    1 +
- 2 files changed, 20 insertions(+), 0 deletions(-)
+Kind regards
+Ulf Hansson
 
-diff --git a/drivers/usb/host/xhci-plat.c b/drivers/usb/host/xhci-plat.c
-index d9c169f..395c9e9 100644
---- a/drivers/usb/host/xhci-plat.c
-+++ b/drivers/usb/host/xhci-plat.c
-@@ -21,6 +21,25 @@
- 
- static void xhci_plat_quirks(struct device *dev, struct xhci_hcd *xhci)
- {
-+	struct device *parent_dev;
-+	struct device *vendor_parent_dev;
-+
-+	parent_dev = dev->parent;
-+	vendor_parent_dev = parent_dev->parent;
-+
-+	/*
-+	 * The DWC3-exynos host controller on Exynos5420 SoC is quirky
-+	 * in a way that the PHY needs to be tuned to get it working
-+	 * at SuperSpeed. By default this PHY works as High-speed phy
-+	 * and so detects even Super-speed devices as high-speed ones.
-+	 * Therefor the PHY needs to be tuned after controller
-+	 * has been reset, since a controller reset actually forces the
-+	 * PHY to fall back to its default state wherein it works as
-+	 * High-Speed PHY only.
-+	 */
-+	if (!strstr(dev_name(vendor_parent_dev), "exynos"))
-+		xhci->quirks |= XHCI_DWC3_EXYNOS;
-+
- 	/*
- 	 * As of now platform drivers don't provide MSI support so we ensure
- 	 * here that the generic code does not try to make a pci_dev from our
-diff --git a/drivers/usb/host/xhci.h b/drivers/usb/host/xhci.h
-index 7807f62..f69af8c 100644
---- a/drivers/usb/host/xhci.h
-+++ b/drivers/usb/host/xhci.h
-@@ -1560,6 +1560,7 @@ struct xhci_hcd {
- #define XHCI_PLAT		(1 << 16)
- #define XHCI_SLOW_SUSPEND	(1 << 17)
- #define XHCI_SPURIOUS_WAKEUP	(1 << 18)
-+#define XHCI_DWC3_EXYNOS	(1 << 19)
- 	unsigned int		num_active_eps;
- 	unsigned int		limit_active_eps;
- 	/* There are two roothubs to keep track of bus suspend info for */
--- 
-1.7.6.5
+> -               if (regulator_is_enabled(host->vcc) > 0 ||
+> -                   (host->vcc_aux && regulator_is_enabled(host->vcc_aux))) {
+> -                       int vdd = ffs(mmc_slot(host).ocr_mask) - 1;
+> +       /* For eMMC do not power off when not in sleep state */
+> +       if (mmc_slot(host).no_regulator_off_init)
+> +               return 0;
+> +       /*
+> +        * To disable boot_on regulator, enable regulator
+> +        * to increase usecount and then disable it.
+> +        */
+> +       if ((host->vcc && regulator_is_enabled(host->vcc) > 0) ||
+> +           (host->vcc_aux && regulator_is_enabled(host->vcc_aux))) {
+> +               int vdd = ffs(mmc_slot(host).ocr_mask) - 1;
+>
+> -                       mmc_slot(host).set_power(host->dev, host->slot_id,
+> -                                                1, vdd);
+> -                       mmc_slot(host).set_power(host->dev, host->slot_id,
+> -                                                0, 0);
+> -               }
+> +               mmc_slot(host).set_power(host->dev, host->slot_id, 1, vdd);
+> +               mmc_slot(host).set_power(host->dev, host->slot_id, 0, 0);
+>         }
+>
+>         return 0;
+> --
+> 1.7.5.4
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-mmc" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
