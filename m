@@ -1,52 +1,53 @@
 From: Paul Walmsley <pwalmsley@nvidia.com>
-Subject: [PATCH] thermal: ti-soc-thermal: clk_round_rate() can return a zero
- upon error
-Date: Mon, 9 Dec 2013 18:09:22 -0800
-Message-ID: <alpine.DEB.2.02.1312091803260.4127@tamien>
+Subject: [PATCH] cpufreq: omap: clk_round_rate() can return a zero upon
+ error
+Date: Mon, 9 Dec 2013 18:18:22 -0800
+Message-ID: <alpine.DEB.2.02.1312091812440.4127@tamien>
 Mime-Version: 1.0
 Content-Type: text/plain; format=flowed; charset="US-ASCII"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Eduardo Valentin <eduardo.valentin@ti.com>, Zhang Rui <rui.zhang@intel.com>
-Cc: linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Return-path: <cpufreq-owner@vger.kernel.org>
+Sender: cpufreq-owner@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>, Viresh Kumar <viresh.kumar@linaro.org>
+Cc: linux-omap@vger.kernel.org, cpufreq@vger.kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 
-Treat both negative and zero return values from clk_round_rate() as
-errors.  This is needed since subsequent patches will convert
-clk_round_rate()'s return value to be an unsigned type, rather than a
-signed type, since some clock sources can generate rates higher than
+Treat both negative and zero return values from clk_round_rate() as 
+errors.  This is needed since subsequent patches will convert 
+clk_round_rate()'s return value to be an unsigned type, rather than a 
+signed type, since some clock sources can generate rates higher than 
 (2^31)-1 Hz.
 
-Eventually, when calling clk_round_rate(), only a return value of zero
-will be considered a error.  All other values will be considered valid
-rates.  The comparison against values less than 0 is kept to preserve
-the correct behavior in the meantime.
+Eventually, when calling clk_round_rate(), only a return value of
+zero will be considered a error.  All other values will be
+considered valid rates.  The comparison against values less than
+0 is kept to preserve the correct behavior in the meantime.
 
-This patch also gets rid of a comparison between unsigned and signed 
-values; a side-benefit.
+This patch also removes a bogus usage of IS_ERR_VALUE(), which is intended 
+to be used only on combination pointer/error code return values; a 
+side-benefit.
 
 Signed-off-by: Paul Walmsley <pwalmsley@nvidia.com>
-Cc: Eduardo Valentin <eduardo.valentin@ti.com>
-Cc: Zhang Rui <rui.zhang@intel.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Viresh Kumar <viresh.kumar@linaro.org>
 ---
 Applies on v3.13-rc3.  See also:
 
 http://marc.info/?l=linux-arm-kernel&m=138542591313620&w=2
 
-  drivers/thermal/ti-soc-thermal/ti-bandgap.c |    2 +-
+  drivers/cpufreq/omap-cpufreq.c |    2 +-
   1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/thermal/ti-soc-thermal/ti-bandgap.c b/drivers/thermal/ti-soc-thermal/ti-bandgap.c
-index 74c0e3474d6e..8fe46dbc0c6f 100644
---- a/drivers/thermal/ti-soc-thermal/ti-bandgap.c
-+++ b/drivers/thermal/ti-soc-thermal/ti-bandgap.c
-@@ -1248,7 +1248,7 @@ int ti_bandgap_probe(struct platform_device *pdev)
-  	clk_rate = clk_round_rate(bgp->div_clk,
-  				  bgp->conf->sensors[0].ts_data->max_freq);
-  	if (clk_rate < bgp->conf->sensors[0].ts_data->min_freq ||
--	    clk_rate == 0xffffffff) {
-+	    clk_rate <= 0) {
-  		ret = -ENODEV;
-  		dev_err(&pdev->dev, "wrong clock rate (%d)\n", clk_rate);
-  		goto put_clks;
+diff --git a/drivers/cpufreq/omap-cpufreq.c b/drivers/cpufreq/omap-cpufreq.c
+index a0acd0bfba40..0f41eb2609f3 100644
+--- a/drivers/cpufreq/omap-cpufreq.c
++++ b/drivers/cpufreq/omap-cpufreq.c
+@@ -63,7 +63,7 @@ static int omap_target(struct cpufreq_policy *policy, unsigned int index)
+
+  	freq = new_freq * 1000;
+  	ret = clk_round_rate(mpu_clk, freq);
+-	if (IS_ERR_VALUE(ret)) {
++	if (ret <= 0) {
+  		dev_warn(mpu_dev,
+  			 "CPUfreq: Cannot find matching frequency for %lu\n",
+  			 freq);
