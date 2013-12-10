@@ -1,77 +1,59 @@
-From: Balaji T K <balajitk@ti.com>
-Subject: [PATCH v4 7/7] mmc: omap_hsmmc: remove pbias workaround
-Date: Tue, 10 Dec 2013 15:46:17 +0530
-Message-ID: <1386670577-3530-8-git-send-email-balajitk@ti.com>
-References: <1385043627-30439-1-git-send-email-balajitk@ti.com>
- <1386670577-3530-1-git-send-email-balajitk@ti.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCHv2 09/10] arm: dts: dra7: Add qspi device.
+Date: Tue, 10 Dec 2013 10:31:08 +0000
+Message-ID: <20131210103108.GA29268@sirena.org.uk>
+References: <1386339891-32717-1-git-send-email-sourav.poddar@ti.com>
+ <1386339891-32717-10-git-send-email-sourav.poddar@ti.com>
+ <20131209174203.GB12527@atomide.com>
+ <52A697AB.1060404@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <1386670577-3530-1-git-send-email-balajitk@ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org, bcousson@baylibre.com, devicetree@vger.kernel.org, linux-mmc@vger.kernel.org, cjb@laptop.org, broonie@kernel.org
-Cc: tony@atomide.com, Balaji T K <balajitk@ti.com>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="iz7pcATjcRly4pHm"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:58102 "EHLO
+	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750885Ab3LJKcC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Dec 2013 05:32:02 -0500
+Content-Disposition: inline
+In-Reply-To: <52A697AB.1060404@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Sourav Poddar <sourav.poddar@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-spi@vger.kernel.org, computersforpeace@gmail.com, marex@denx.de, dwmw2@infradead.org, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, bcousson@baylibre.com, balbi@ti.com
 
-remove pbias workaround
 
-Signed-off-by: Balaji T K <balajitk@ti.com>
----
- drivers/mmc/host/omap_hsmmc.c |   20 +-------------------
- 1 files changed, 1 insertions(+), 19 deletions(-)
+--iz7pcATjcRly4pHm
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index 0a390f8..0f0aa5d 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -170,7 +170,6 @@ struct omap_hsmmc_host {
- 	struct	regulator	*vcc_aux;
- 	struct	regulator	*pbias;
- 	bool			pbias_enabled;
--	int			pbias_disable;
- 	void	__iomem		*base;
- 	resource_size_t		mapbase;
- 	spinlock_t		irq_lock; /* Prevent races with irq handler */
-@@ -267,13 +266,6 @@ static int omap_hsmmc_set_power(struct device *dev, int slot, int power_on,
- 	 */
- 	if (!host->vcc)
- 		return 0;
--	/*
--	 * With DT, never turn OFF the regulator for MMC1. This is because
--	 * the pbias cell programming support is still missing when
--	 * booting with Device tree
--	 */
--	if (host->pbias_disable && !vdd)
--		return 0;
- 
- 	if (mmc_slot(host).before_set_reg)
- 		mmc_slot(host).before_set_reg(dev, slot, power_on, vdd);
-@@ -1541,13 +1533,7 @@ static void omap_hsmmc_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
- 		 * of external transceiver; but they all handle 1.8V.
- 		 */
- 		if ((OMAP_HSMMC_READ(host->base, HCTL) & SDVSDET) &&
--			(ios->vdd == DUAL_VOLT_OCR_BIT) &&
--			/*
--			 * With pbias cell programming missing, this
--			 * can't be allowed on MMC1 when booting with device
--			 * tree.
--			 */
--			!host->pbias_disable) {
-+			(ios->vdd == DUAL_VOLT_OCR_BIT)) {
- 				/*
- 				 * The mmc_select_voltage fn of the core does
- 				 * not seem to set the power_mode to
-@@ -1880,10 +1866,6 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
- 
- 	omap_hsmmc_context_save(host);
- 
--	/* This can be removed once we support PBIAS with DT */
--	if (host->dev->of_node && res->start == 0x4809c000)
--		host->pbias_disable = 1;
--
- 	host->dbclk = clk_get(&pdev->dev, "mmchsdb_fck");
- 	/*
- 	 * MMC can still work without debounce clock.
--- 
-1.7.5.4
+On Tue, Dec 10, 2013 at 09:55:15AM +0530, Sourav Poddar wrote:
 
+> I posted this for review along with other code changes.
+
+> I will post them seperately to Benoit.
+
+Please wait until the driver updates have been reviewed.
+
+--iz7pcATjcRly4pHm
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
+
+iQIcBAEBAgAGBQJSpu1pAAoJELSic+t+oim9vlcP/3IxIxqtuqJ3324l/ueFzfRh
+7JOnVOCII8exuMR+Cq8rqI975lleWUH7n9GRXOQWXrqh8Q3G4IKJQbMbzG6IWREN
+uRZuRzaEx2zFUU8H3SnYWEc5xzEyt6sLXa06aTAQIGWf/rIvdB8DK/wAYwQoF1V2
+5ynV7l5HICUcm/O1WRl5nSbsBl/22ay1tlmOVtPGBz1St5DZaoAoCAv5d2uOKkJr
+MLLiCtG+bj3Lio/lKw9bQqxDDPPYx99vTVWKtkSsWsuGQc8Cra1EoSrbBV2MWTUQ
++ZPXSHJ1SaJ/QUmIZod7Q1fF5O9Aj9yuzEulL59LFOl2eMUGSkQxkHAts9YzYKlF
+lrJ4JL80Q/aXghJZMhKcfQX77ndOw2IQvr8Nda3jobauPjlSCw26kLJabyNrnP8m
+mwQv5t9EazPQz8SzE5S9I2VIB+H3pqmPZEeDFEV0ULc6tLWV/K4M2R2rbsDvBR8t
+c5TmZavO6pWxDPhniQEKvlCqqJ2p8NCzAmKIEKsNr0QI08ZBRYhqMXvKeMNtiDOR
+1DrgIenrj0ZGuDVRPDRp6N38t3A1TW8PWfuGugFS5+3Hq7CnNyO/Sjl+wWtdlr2k
+adDwuVPAVuSDBKf+Ah/w7DMXJToss2ru+CIBVXuJULkPBaQ5dJEwjJbJvpMhzwnd
+HFlmTSJq4Kmz20jPV2vm
+=xjqI
+-----END PGP SIGNATURE-----
+
+--iz7pcATjcRly4pHm--
