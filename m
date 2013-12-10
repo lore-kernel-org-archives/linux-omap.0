@@ -1,69 +1,120 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] of/platform: Fix no irq domain found errors when populating
- interrupts
-Date: Tue, 10 Dec 2013 03:39:02 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1312100331460.32309@utopia.booyaka.com>
-References: <20131123004334.GJ10023@atomide.com> <20131123005509.GJ16735@ n2100.arm.linux.org.uk> <20131123010850.GN10023@atomide.com> < 20131123011515.GO10023@atomide.com> <20131123015034.GP10023@atomide.com>
- <20131124212757.7D224C402A3@trevor.secretlab.ca>
+From: Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCHv2 09/10] arm: dts: dra7: Add qspi device.
+Date: Tue, 10 Dec 2013 09:55:15 +0530
+Message-ID: <52A697AB.1060404@ti.com>
+References: <1386339891-32717-1-git-send-email-sourav.poddar@ti.com> <1386339891-32717-10-git-send-email-sourav.poddar@ti.com> <20131209174203.GB12527@atomide.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20131124212757.7D224C402A3@trevor.secretlab.ca>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Grant Likely <grant.likely@linaro.org>, Rob Herring <rob.herring@calxeda.com>
-Cc: Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20131209174203.GB12527-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, marex-ynQEQJNshbs@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Grant, Rob,
+On Monday 09 December 2013 11:12 PM, Tony Lindgren wrote:
+> * Sourav Poddar<sourav.poddar-l0cyMroinI0@public.gmane.org>  [131206 06:29]:
+>> These add device tree entry for qspi controller driver on dra7.
+> FYI these .dts changes need to be queued separately by Benoit and
+> should be posted as a seprate series in general to avoid confusion.
+>
+Ok, thanks!
+I posted this for review along with other code changes.
 
-On Sun, 24 Nov 2013, Grant Likely wrote:
+I will post them seperately to Benoit.
+> Regards,
+>
+> Tony
+>
+>> Signed-off-by: Sourav Poddar<sourav.poddar-l0cyMroinI0@public.gmane.org>
+>> ---
+>> v1->v2:
+>> use "MUX_MODE1" instead of numeric value
+>>   arch/arm/boot/dts/dra7-evm.dts |   32 ++++++++++++++++++++++++++++++++
+>>   arch/arm/boot/dts/dra7.dtsi    |   13 +++++++++++++
+>>   2 files changed, 45 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
+>> index 5babba0..4a57fdf 100644
+>> --- a/arch/arm/boot/dts/dra7-evm.dts
+>> +++ b/arch/arm/boot/dts/dra7-evm.dts
+>> @@ -93,6 +93,21 @@
+>>   			0x24c (PIN_INPUT_SLEW | MUX_MODE0) /* uart3_txd */
+>>   		>;
+>>   	};
+>> +
+>> +	qspi1_pins: pinmux_qspi1_pins {
+>> +		pinctrl-single,pins =<
+>> +			0x4c (PIN_INPUT | MUX_MODE1)  /* gpmc_a3.qspi1_cs2 */
+>> +			0x50 (PIN_INPUT | MUX_MODE1)  /* gpmc_a4.qspi1_cs3 */
+>> +			0x74 (PIN_INPUT | MUX_MODE1)  /* gpmc_a13.qspi1_rtclk */
+>> +			0x78 (PIN_INPUT | MUX_MODE1)  /* gpmc_a14.qspi1_d3 */
+>> +			0x7c (PIN_INPUT | MUX_MODE1)  /* gpmc_a15.qspi1_d2 */
+>> +			0x80 (PIN_INPUT | MUX_MODE1) /* gpmc_a16.qspi1_d1 */
+>> +			0x84 (PIN_INPUT | MUX_MODE1)  /* gpmc_a17.qspi1_d0 */
+>> +			0x88 (PIN_INPUT | MUX_MODE1)  /* qpmc_a18.qspi1_sclk */
+>> +			0xb8 (PIN_INPUT_PULLUP | MUX_MODE1)  /* gpmc_cs2.qspi1_cs0 */
+>> +			0xbc (PIN_INPUT_PULLUP | MUX_MODE1)  /* gpmc_cs3.qspi1_cs1 */
+>> +		>;
+>> +	};
+>>   };
+>>
+>>   &i2c1 {
+>> @@ -273,3 +288,20 @@
+>>   &cpu0 {
+>>   	cpu0-supply =<&smps123_reg>;
+>>   };
+>> +
+>> +&qspi {
+>> +	status = "okay";
+>> +	pinctrl-names = "default";
+>> +	pinctrl-0 =<&qspi1_pins>;
+>> +
+>> +	spi-max-frequency =<48000000>;
+>> +	m25p80@0 {
+>> +		compatible = "s25fl256s1";
+>> +		spi-max-frequency =<48000000>;
+>> +		reg =<0>;
+>> +		spi-tx-bus-width =<1>;
+>> +		spi-rx-bus-width =<4>;
+>> +		spi-cpol;
+>> +		spi-cpha;
+>> +	};
+>> +};
+>> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+>> index 67275c8..b06d899 100644
+>> --- a/arch/arm/boot/dts/dra7.dtsi
+>> +++ b/arch/arm/boot/dts/dra7.dtsi
+>> @@ -582,6 +582,19 @@
+>>   			dma-names = "tx0", "rx0";
+>>   			status = "disabled";
+>>   		};
+>> +
+>> +		qspi: qspi@4b300000 {
+>> +			compatible = "ti,dra7xxx-qspi";
+>> +			reg =<0x4b300000 0x100>,<0x4a002558 0x4>,
+>> +					<0x5c000000 0x3ffffff>;
+>> +			reg-names = "qspi_base", "qspi_ctrlmod", "qspi_mmap";
+>> +			#address-cells =<1>;
+>> +			#size-cells =<0>;
+>> +			ti,hwmods = "qspi";
+>> +			num-cs =<4>;
+>> +			interrupts =<0 124 0x4>;
+>> +			status = "disabled";
+>> +		};
+>>   	};
+>>
+>>   	clocks {
+>> -- 
+>> 1.7.1
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-> On Fri, 22 Nov 2013 17:50:35 -0800, Tony Lindgren <tony@atomide.com> wrote:
-> > * Tony Lindgren <tony@atomide.com> [131122 17:16]:
-> > > * Tony Lindgren <tony@atomide.com> [131122 17:09]:
-> > > > * Russell King - ARM Linux <linux@arm.linux.org.uk> [131122 16:56]:
-> > > > > On Fri, Nov 22, 2013 at 04:43:35PM -0800, Tony Lindgren wrote:
-> > > > > > +		/* See of_device_resource_notify for populating interrupts */
-> > > > > > +		for (i = 0; i < num_irq; i++, res++) {
-> > > > > > +			res->flags = IORESOURCE_IRQ;
-> > > > > > +			res->start = -EPROBE_DEFER;
-> > > > > > +			res->end = -EPROBE_DEFER;
-> > > > > 
-> > > > > NAK.  Definitely a bad idea to start introducing magic values other into
-> > > > > resources.  Please don't do this.
-> > > > 
-> > > > Do you have any better ideas on how to sort out this issue then?
-> > > 
-> > > I guess we could allocate all the resources lazily here, I'll take a look
-> > > at that.
-> > 
-> > Here's a version that allocates the resources lazily with the notifier.
-> > Seems to boot, need to play with it a bit more though to make sure we're
-> > not overwriting resources for any legacy devices.
-> 
-> Blurg. Using a notifier really feels like we don't have a good handle on
-> a reasonable solution yet. Basically it means we're hooking into the
-> driver core without /looking/ like we're hooking into the driver core. I
-> don't think this is any better, but I don't have a better suggestion at
-> the moment.   :-(
-
-Unfortunately this patch, or something that accomplishes the same results, 
-is somewhat high-priority for us on OMAP.  OMAP37xx got prematurely 
-converted to DT booting, and now dynamic power management is broken:
-
-    http://marc.info/?l=linux-arm-kernel&m=138658294830408&w=2
-
-Tony writes that this patch is one of the two patches needed to get things 
-working again:
-
-    http://marc.info/?l=linux-arm-kernel&m=138660942506846&w=2
-
-Is it possible to get this patch, or something similar, merged for 
-v3.13-rc?
-
-Once something like PM is broken, it's pretty easy for other broken 
-patches to make it into the tree, since it becomes very difficult to test 
-without turning into a maintainer denial-of-service attack.
-
-
-- Paul
+--
+To unsubscribe from this list: send the line "unsubscribe linux-spi" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
