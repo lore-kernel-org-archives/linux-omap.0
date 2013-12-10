@@ -1,79 +1,66 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] make mach-omap2 boot with device tree only for v3.14
-Date: Tue, 10 Dec 2013 08:01:44 -0800
-Message-ID: <20131210160144.GG13171@atomide.com>
-References: <pull-1386643347-596413>
- <20131210143547.GA32243@n2100.arm.linux.org.uk>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: [GIT PULL] wl1251 platform data changes for v3.14
+Date: Tue, 10 Dec 2013 08:02:40 -0800
+Message-ID: <87bo0oae3j.fsf@linaro.org>
+References: <52a69d42.0722440a.102e.ffffa0e3SMTPIN_ADDED_BROKEN@mx.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:44374 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750789Ab3LJQBu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Dec 2013 11:01:50 -0500
-Content-Disposition: inline
-In-Reply-To: <20131210143547.GA32243@n2100.arm.linux.org.uk>
+Received: from mail-pb0-f45.google.com ([209.85.160.45]:53059 "EHLO
+	mail-pb0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752710Ab3LJQCn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Dec 2013 11:02:43 -0500
+Received: by mail-pb0-f45.google.com with SMTP id rp16so7927940pbb.32
+        for <linux-omap@vger.kernel.org>; Tue, 10 Dec 2013 08:02:42 -0800 (PST)
+In-Reply-To: <52a69d42.0722440a.102e.ffffa0e3SMTPIN_ADDED_BROKEN@mx.google.com>
+	(Tony Lindgren's message of "Mon, 9 Dec 2013 20:49:00 -0800")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Tony Lindgren <tony@atomide.com>
 Cc: arm@kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [131210 06:37]:
-> On Mon, Dec 09, 2013 at 06:42:27PM -0800, Tony Lindgren wrote:
-> > We can now finally make mach-omap2 to boot with device tree only and get
-> > rid of over 20k lines of platform init code that way.
-> > 
-> > Most basic devices already work using device tree based initialization
-> > and the remaining devices can be initialized using platform data
-> > with pdata-quirks.c.
-> > 
-> > So for most missing boards it's just a question of adding a .dts file
-> > that should be fairly similar to one of the existing .dts files as
-> > we've tried to cover all basic omap3 board types.
-> > 
-> > For people getting started updating their board files to for device
-> > tree, there are some basic instructions in commit 8dc8b3ddf5d7
-> > (ARM: OMAP2+: Remove legacy omap3 board-*.c files and make mach-omap2
-> > DT only for booting).
-> > 
-> > Please also note that there are also some related fixes making their way
-> > into the mainline kernel that are needed for some use cases:
-> > 
-> > PM off-idle for omap3 and wake-up events need the following two patches:
-> 
-> While this is good, what seems to be happening is a complete switch
-> from one method of booting to a different method of booting with no
-> compatibility inbetween.  We're going from only supporting the ATAG
-> booting protocol for these platforms in v3.12 to only supporting the
-> DT booting protocol in v3.13.  There's no forward or backwards
-> compatibility - it's one or the other.
+Hi Tony,
 
-Hmm hey this is for v3.14, not for v3.13.
+Tony Lindgren <tony@atomide.com> writes:
 
-The reason why I've been sending fixes all over the place is to have them
-out of the way for v3.13 so we have v3.13 work reasonably the same way
-with both legacy booting and device tree based booting. Of course some
-.dts files will not be there for v3.13 though.
+> The following changes since commit 736e812636ea72be444b85fa7e92554967459069:
+>
+>   ARM: OMAP2+: Remove unused platform init code and headers (2013-12-08 14:15:46 -0800)
+>
+> are available in the git repository at:
+>
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.14/omap3-board-removal-wl1251
+>
+> for you to fetch changes up to ce226391aec803a49b39c22d3385057c9db02f30:
+>
+>   Merge branch 'wl1251-pdata' into omap-for-v3.14/omap3-board-removal (2013-12-09 19:39:51 -0800)
+>
+> ----------------------------------------------------------------
+>
+> Minimal changes for the wl151 platform data that would otherwise
+> cause merge conflicts between the wireless tree and linux-omap
+> tree. This was discussed on the mailing lists here:
+>
+> http://www.spinics.net/lists/linux-omap/msg99906.html
+>
+> ----------------------------------------------------------------
+> Luciano Coelho (1):
+>       wl1251: split wl251 platform data to a separate structure
+>
+> Sebastian Reichel (1):
+>       wl1251: move power GPIO handling into the driver
+>
+> Tony Lindgren (1):
+>       Merge branch 'wl1251-pdata' into omap-for-v3.14/omap3-board-removal
+>
+>  drivers/net/wireless/ti/wilink_platform_data.c | 37 +++++++++++++++++++++-----
+>  drivers/net/wireless/ti/wl1251/sdio.c          | 31 ++++++++++++++-------
+>  drivers/net/wireless/ti/wl1251/spi.c           | 35 +++++++++++++++---------
+>  drivers/net/wireless/ti/wl1251/wl1251.h        |  2 +-
+>  include/linux/wl12xx.h                         | 24 +++++++++++++++--
+>  5 files changed, 97 insertions(+), 32 deletions(-)
 
-> This is bad: this is the kind of "flag day" change which Linus hates -
-> and I hate it because it means I need to update my build test system
-> at the same time that arm-soc merges this stuff.
+This was sent as a pull request to arm-soc, but looks like it should be
+going through the net tree.
 
-Unfortunately there's no way around that unless we carry the legacy
-booting setup for longer. We can certainly postpone the flip over if
-if there's a real neeed to do it.
-
-But if the issue is just building an appended DTB image, I'd rather just
-get done with it as that problem we're always going to have no matter
-how much we delay the flip over.
-
-> This is utterly crap - it's crap not only from the point of view of the
-> user perspective, but also from the development methodology point of
-> view.
-
-The crappy part here is the fact that we need to build the kernel with
-appended DTB. Maybe there's something more we can do to make it easier.
-
-Regards,
-
-Tony
+Kevin
