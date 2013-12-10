@@ -1,93 +1,93 @@
-From: Julius Werner <jwerner@chromium.org>
-Subject: Re: [PATCH RFC 2/4] xhci: Add quirk for DWC3-Exynos controller
-Date: Tue, 10 Dec 2013 10:25:31 -0800
-Message-ID: <CAODwPW8XMESHi=_ovcTRcyxv6zS6fMuTmSW2qrE-fbQvtHks=g@mail.gmail.com>
-References: <1386672926-26885-1-git-send-email-gautam.vivek@samsung.com>
-	<1386672926-26885-3-git-send-email-gautam.vivek@samsung.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCHv2 00/10] Add memory mapped support for ti qspi, m25p80
+ serial flash.
+Date: Tue, 10 Dec 2013 18:29:04 +0000
+Message-ID: <20131210182904.GG11468@sirena.org.uk>
+References: <1386339891-32717-1-git-send-email-sourav.poddar@ti.com>
+ <201312101349.13564.marex@denx.de>
+ <20131210161143.GK29268@sirena.org.uk>
+ <201312101922.10618.marex@denx.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-oa0-f51.google.com ([209.85.219.51]:56594 "EHLO
-	mail-oa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754525Ab3LJSZc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Dec 2013 13:25:32 -0500
-Received: by mail-oa0-f51.google.com with SMTP id i7so5985707oag.24
-        for <linux-omap@vger.kernel.org>; Tue, 10 Dec 2013 10:25:32 -0800 (PST)
-In-Reply-To: <1386672926-26885-3-git-send-email-gautam.vivek@samsung.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/mixed; boundary="===============4392418581915827359=="
+Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
+In-Reply-To: <201312101922.10618.marex@denx.de>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
+List-Post: <mailto:linux-mtd@lists.infradead.org>
+List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
+Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
+To: Marek Vasut <marex@denx.de>
+Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, balbi@ti.com, linux-spi@vger.kernel.org, linux-mtd@lists.infradead.org, bcousson@baylibre.com, Sourav Poddar <sourav.poddar@ti.com>, computersforpeace@gmail.com, dwmw2@infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Vivek Gautam <gautam.vivek@samsung.com>
-Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, linux-omap@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Felipe Balbi <balbi@ti.com>, Sarah Sharp <sarah.a.sharp@linux.intel.com>, Kukjin Kim <kgene.kim@samsung.com>, kishon <kishon@ti.com>, Jingoo Han <jg1.han@samsung.com>, Julius Werner <jwerner@chromium.org>
 
-On Tue, Dec 10, 2013 at 2:55 AM, Vivek Gautam <gautam.vivek@samsung.com> wrote:
-> The DWC3-exynos eXtensible host controller on Exynos5420 SoC
-> is quirky in a way that the PHY needs to be tuned to get it
-> working at SuperSpeed.
-> By default this PHY works as High-speed phy and therefore
-> detects even Super-speed devices as high-speed ones.
-> So, the PHY needs to be tuned after controller has been reset.
->
-> Adding a xHCI quirk for this purpose.
->
-> Signed-off-by: Vivek Gautam <gautam.vivek@samsung.com>
-> ---
->  drivers/usb/host/xhci-plat.c |   19 +++++++++++++++++++
->  drivers/usb/host/xhci.h      |    1 +
->  2 files changed, 20 insertions(+), 0 deletions(-)
->
-> diff --git a/drivers/usb/host/xhci-plat.c b/drivers/usb/host/xhci-plat.c
-> index d9c169f..395c9e9 100644
-> --- a/drivers/usb/host/xhci-plat.c
-> +++ b/drivers/usb/host/xhci-plat.c
-> @@ -21,6 +21,25 @@
->
->  static void xhci_plat_quirks(struct device *dev, struct xhci_hcd *xhci)
->  {
-> +       struct device *parent_dev;
-> +       struct device *vendor_parent_dev;
-> +
-> +       parent_dev = dev->parent;
-> +       vendor_parent_dev = parent_dev->parent;
 
-Is this guaranteed to exist for all current and future xhci-plat
-controllers or should you maybe check one or both for NULL?
+--===============4392418581915827359==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="m972NQjnE83KvVa/"
+Content-Disposition: inline
 
-> +
-> +       /*
-> +        * The DWC3-exynos host controller on Exynos5420 SoC is quirky
-> +        * in a way that the PHY needs to be tuned to get it working
-> +        * at SuperSpeed. By default this PHY works as High-speed phy
-> +        * and so detects even Super-speed devices as high-speed ones.
-> +        * Therefor the PHY needs to be tuned after controller
-> +        * has been reset, since a controller reset actually forces the
-> +        * PHY to fall back to its default state wherein it works as
-> +        * High-Speed PHY only.
-> +        */
-> +       if (!strstr(dev_name(vendor_parent_dev), "exynos"))
-> +               xhci->quirks |= XHCI_DWC3_EXYNOS;
-> +
->         /*
->          * As of now platform drivers don't provide MSI support so we ensure
->          * here that the generic code does not try to make a pci_dev from our
-> diff --git a/drivers/usb/host/xhci.h b/drivers/usb/host/xhci.h
-> index 7807f62..f69af8c 100644
-> --- a/drivers/usb/host/xhci.h
-> +++ b/drivers/usb/host/xhci.h
-> @@ -1560,6 +1560,7 @@ struct xhci_hcd {
->  #define XHCI_PLAT              (1 << 16)
->  #define XHCI_SLOW_SUSPEND      (1 << 17)
->  #define XHCI_SPURIOUS_WAKEUP   (1 << 18)
-> +#define XHCI_DWC3_EXYNOS       (1 << 19)
 
-I think in general it's better to name quirks after what they do
-rather than a specific device, that way you might be able to reuse
-them. How about XHCI_TUNE_AFTER_RESET? (Or you could leave out the
-quirk completely and just differentiate by whether the PHY implements
-the tune() method or not.)
+--m972NQjnE83KvVa/
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
->         unsigned int            num_active_eps;
->         unsigned int            limit_active_eps;
->         /* There are two roothubs to keep track of bus suspend info for */
-> --
-> 1.7.6.5
->
+On Tue, Dec 10, 2013 at 07:22:10PM +0100, Marek Vasut wrote:
+> On Tuesday, December 10, 2013 at 05:11:43 PM, Mark Brown wrote:
+
+> > There is some stuff that pushes up into the controller in that while the
+> > device is in memory mapped mode as far as I can tell it's not safe to do
+> > other accesses so if someone's put more than one device on the SPI bus
+> > we need to handle interactions there.
+
+> OK, so it's either-or . That seems OK, you might want to have two drivers=
+ for=20
+> this ip block, one to handle it as a SPI block and one to handle it as a =
+SPI-NOR=20
+> block. ... that is of course, if these two modes can't work together.
+
+Or the client disables the memory map when it's not actively being used
+and the stops other transfers starting while the mapping is in place.
+I'd expect we'll have to cope with shared use at some point, hardware
+engineers will probably build such systems.
+
+--m972NQjnE83KvVa/
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
+
+iQIcBAEBAgAGBQJSp11tAAoJELSic+t+oim9U8cQAJAVjZ2XhqRvvnydfHYWdmvb
+zBXaj0rmK1LWxO8gEeDQ6dE+oOnZvFD7inV+lX7vgvReAho9cIAtQfIHRlzlhqh0
+RhoEIETcu6vCUebJuTCU6U6XHt9xhBTzqpqr2BWmmRQEqwp6200+fJ0oAhG6WkfC
+j2SIUqoBkqxG+1gSE9SN42RXbXw6euKY7WP7NFfoBX4lG2x6/ADSsydy3RPTUKnX
+MGsKzp21ycN90KeGv1T7Bc3MSKfbKQ5mmwhFF/zXBMxLr++ZFhPgRSKk8UKwdloW
++Rk9FdqQXwqkEA6sDW8bqx+0w9e8qPVcUCXfWy1rTSqTOIqSUJGgj2U9xQvVhb8M
+1iJlWX52G0gv/9S0nhCR2NEZzoCrXfTd9AtiS2cg4YSYt2cVzZQzLGk4MqU7ct1A
+ZlsqMaItbbM4JRRKYLuIPLy4VN5wxv7fTmad89WQwnV0DJazgL87KnDzaqrBHWt7
+B5WVsrXryhuXssl9MzWOzVxyfpnuo5NWjw6P8FkQfjqwtt7YXjPu7UOEV35GTvwu
+uBhl7RCwgIujDq2FTq1TjtXY1X1wS/gSTLp9TgDWVWLBCyZbtt9byg/+zyA8uHGK
+kI7L7K+N23Sxz0K5JMBCcnaxIsERooi6C84N3o6JxjfpG4eEsygcBXCCq4QXbdli
+F1NW2d4tzoIpWs1xkKgR
+=PObm
+-----END PGP SIGNATURE-----
+
+--m972NQjnE83KvVa/--
+
+
+--===============4392418581915827359==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+______________________________________________________
+Linux MTD discussion mailing list
+http://lists.infradead.org/mailman/listinfo/linux-mtd/
+
+--===============4392418581915827359==--
