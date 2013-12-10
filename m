@@ -1,231 +1,62 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH] ARM: dts: Add basic devices for AM3517-craneboard
-Date: Mon, 9 Dec 2013 15:55:50 -0600
-Message-ID: <1386626150-23504-1-git-send-email-nm@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 2/2] Documentation: dt: Document TSC2005 DT binding
+Date: Mon, 9 Dec 2013 16:06:01 -0800
+Message-ID: <20131210000600.GC13171@atomide.com>
+References: <1386284979-9680-1-git-send-email-sre@debian.org>
+ <1386284979-9680-3-git-send-email-sre@debian.org>
+ <20131209174638.GC12527@atomide.com>
+ <20131209182409.GA7626@earth.universe>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:43648 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1761591Ab3LIV4U (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 9 Dec 2013 16:56:20 -0500
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-input-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20131209182409.GA7626@earth.universe>
+Sender: linux-input-owner@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Dmitry Torokhov <dtor@mail.ru>, linux-input@vger.kernel.org, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Rob Landley <rob@landley.net>, Grant Likely <grant.likely@linaro.org>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>
-Cc: devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Nishanth Menon <nm@ti.com>
 
-Craneboard is a hardware development platform based on the Sitara
-AM3517 ARM Cortex - A8 microprocessor device - see [1] for more
-details. Add basic devices for craneboard as replacement for the board
-file scheduled for removal as part of device tree conversion
+* Sebastian Reichel <sre@debian.org> [131209 10:25]:
+> On Mon, Dec 09, 2013 at 09:46:38AM -0800, Tony Lindgren wrote:
+> > > +Optional properties:
+> > > + - ti,fuzz-x		      : integer, X noise value of the touchscreen
+> > > +				(defaults to 4)
+> > > + - ti,fuzz-y		      : integer, Y noise value of the touchscreen
+> > > +				(defaults to 8)
+> > > + - ti,fuzz-pressure	      : integer, pressure noise value of the touchscreen
+> > > +				(defaults to 2)
+> > > + - ti,max-x		      : integer, maximum reported x value
+> > > +				(defaults to 4096)
+> > > + - ti,max-y		      : integer, maximum reported y value
+> > > +				(defaults to 4096)
+> > > + - ti,max-pressure	      : integer, maximum reported pressure
+> > > +				(defaults to 4096)
+> > > + - ti,x-plate-resistance      : integer, resistance of the touchscreen's X plates
+> > > +				in ohm (defaults to 280)
+> > > + - ti,esd-recovery-timeout-ms : integer, if the touchscreen does not respond after
+> > > +				the configured time (in milli seconds), the driver
+> > > +				will reset it. This is disabled by default.
+> > 
+> > Instead of adding these optional ti,* properties you can set them in the
+> > driver directly in the of_match table based on the compatible flag. Then
+> > you can pass compatible flag like ti,tsc2005-nokia-n900, or the name of
+> > the LCD panel. Most likely these depend on the LCD panel selected.
+> 
+> I could certainly do this, but it would move the board specific data
+> from the boardcode into the driver. That looks contra-productive to
+> me. Is there a good reason to do it this way?
 
-[1] http://craneboard.org
+You can leave out the custom properties that way for something that probably
+should be grouped by the touchpanel type connected as the values are the
+same.
 
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
-Based on:
-git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.git
-branch: omap-for-v3.14/omap3-board-removal 736e812 ARM: OMAP2+: Remove unused platform init code and headers
+So for example just a few compatible flags like ti,tsc2005-panel-abc and
+ti,tsc2005-panel-xyz we could potentially cover all the configurations
+we're aware of without any need for custom properties. And this is way
+easier to support in the long run assuming we don't end up with tons of
+compatible flags. Of course if we end up with a new compatible flag for
+each configuration, then it makes sense to set up the custom properties,
+but I doubt that's the case here.
 
-Bootlog: http://pastebin.mozilla.org/3744412
+Regards,
 
- arch/arm/boot/dts/Makefile              |    1 +
- arch/arm/boot/dts/am3517-craneboard.dts |  174 +++++++++++++++++++++++++++++++
- 2 files changed, 175 insertions(+)
- create mode 100644 arch/arm/boot/dts/am3517-craneboard.dts
-
-diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
-index fc37bca..ad155fc 100644
---- a/arch/arm/boot/dts/Makefile
-+++ b/arch/arm/boot/dts/Makefile
-@@ -205,6 +205,7 @@ dtb-$(CONFIG_ARCH_OMAP2PLUS) += omap2420-h4.dtb \
- 	am335x-boneblack.dtb \
- 	am335x-nano.dtb \
- 	am335x-base0033.dtb \
-+	am3517-craneboard.dtb \
- 	am3517-evm.dtb \
- 	am3517_mt_ventoux.dtb \
- 	am43x-epos-evm.dtb \
-diff --git a/arch/arm/boot/dts/am3517-craneboard.dts b/arch/arm/boot/dts/am3517-craneboard.dts
-new file mode 100644
-index 0000000..2d40b3f
---- /dev/null
-+++ b/arch/arm/boot/dts/am3517-craneboard.dts
-@@ -0,0 +1,174 @@
-+/*
-+ * See craneboard.org for more details
-+ *
-+ * Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.com/
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+/dts-v1/;
-+
-+#include "am3517.dtsi"
-+
-+/ {
-+	model = "TI AM3517 CraneBoard (TMDSEVM3517)";
-+	compatible = "ti,am3517-craneboard", "ti,am3517", "ti,omap3";
-+
-+	memory {
-+		device_type = "memory";
-+		reg = <0x80000000 0x10000000>;	/* 256 MB */
-+	};
-+
-+	vbat: fixedregulator@0 {
-+		compatible = "regulator-fixed";
-+		regulator-name = "vbat";
-+		regulator-min-microvolt = <5000000>;
-+		regulator-max-microvolt = <5000000>;
-+		regulator-boot-on;
-+	};
-+};
-+
-+&davinci_emac {
-+	status = "okay";
-+};
-+
-+&davinci_mdio {
-+	status = "okay";
-+};
-+
-+&i2c1 {
-+	clock-frequency = <2600000>;
-+
-+	tps: tps@2d {
-+		reg = <0x2d>;
-+	};
-+};
-+
-+&i2c2 {
-+	clock-frequency = <400000>;
-+	/* goes to expansion connector */
-+	status = "disabled";
-+};
-+
-+&i2c3 {
-+	clock-frequency = <400000>;
-+	/* goes to expansion connector */
-+	status = "disabled";
-+};
-+
-+&mmc1 {
-+	vmmc-supply = <&vdd2_reg>;
-+	bus-width = <8>;
-+};
-+
-+&mmc2 {
-+	/* goes to expansion connector */
-+	status = "disabled";
-+};
-+
-+&mmc3 {
-+	/* goes to expansion connector */
-+	status = "disabled";
-+};
-+
-+#include "tps65910.dtsi"
-+
-+&omap3_pmx_core {
-+	tps_pins: pinmux_tps_pins {
-+		pinctrl-single,pins = <
-+			0x1b0 (PIN_INPUT_PULLUP | MUX_MODE0) /* sys_nirq.sys_nirq */
-+		>;
-+	};
-+};
-+
-+&tps {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&tps_pins>;
-+
-+	interrupts = <7>; /* SYS_NIRQ cascaded to intc */
-+	interrupt-parent = <&intc>;
-+
-+	ti,en-ck32k-xtal;
-+
-+	vcc1-supply = <&vbat>;
-+	vcc2-supply = <&vbat>;
-+	vcc3-supply = <&vbat>;
-+	vcc4-supply = <&vbat>;
-+	vcc5-supply = <&vbat>;
-+	vcc6-supply = <&vbat>;
-+	vcc7-supply = <&vbat>;
-+	vccio-supply = <&vbat>;
-+
-+	regulators {
-+		vrtc_reg: regulator@0 {
-+			regulator-always-on;
-+		};
-+
-+		vio_reg: regulator@1 {
-+			regulator-always-on;
-+		};
-+
-+		/*
-+		 * Unused:
-+		 * VDIG1=2.7V,300mA max
-+		 * VDIG2=1.8V,300mA max
-+		 */
-+
-+		vpll_reg: regulator@7 {
-+			/* VDDS_DPLL_1V8 */
-+			regulator-min-microvolt = <1800000>;
-+			regulator-max-microvolt = <1800000>;
-+			regulator-always-on;
-+		};
-+
-+		vaux1_reg: regulator@9 {
-+			/* VDDS_SRAM_1V8 */
-+			regulator-min-microvolt = <1800000>;
-+			regulator-max-microvolt = <1800000>;
-+			regulator-always-on;
-+		};
-+
-+		vaux2_reg: regulator@10 {
-+			/* VDDA1P8V_USBPHY */
-+			regulator-min-microvolt = <1800000>;
-+			regulator-max-microvolt = <1800000>;
-+			regulator-always-on;
-+		};
-+
-+		/* VAUX33 unused */
-+
-+		vdac_reg: regulator@8 {
-+			/* VDDA_DAC_1V8 */
-+			regulator-min-microvolt = <1800000>;
-+			regulator-max-microvolt = <1800000>;
-+			regulator-always-on;
-+		};
-+
-+		vmmc_reg: regulator@12 {
-+			/* VDDA3P3V_USBPHY */
-+			regulator-min-microvolt = <3300000>;
-+			regulator-max-microvolt = <3300000>;
-+			regulator-always-on;
-+		};
-+
-+		vdd1_reg: regulator@2 {
-+			/* VDD_CORE */
-+			regulator-name = "vdd_core";
-+			regulator-min-microvolt = <1200000>;
-+			regulator-max-microvolt = <1200000>;
-+			regulator-boot-on;
-+			regulator-always-on;
-+		};
-+
-+		vdd2_reg: regulator@3 {
-+			/* VDDSHV_3V3 */
-+			regulator-name = "vdd_shv";
-+			regulator-min-microvolt = <3300000>;
-+			regulator-max-microvolt = <3300000>;
-+			regulator-always-on;
-+		};
-+
-+		/* VDD3 unused */
-+	};
-+};
--- 
-1.7.9.5
-
+Tony
