@@ -1,70 +1,112 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v3 08/15] mfd: menelaus: Pass menelaus_chip pointer to
- add/remove irq functions
-Date: Tue, 10 Dec 2013 10:32:49 -0600
-Message-ID: <20131210163249.GF22750@saruman.home>
+Subject: Re: [PATCH v3 11/15] mfd: menelaus: Start to use irqdomain
+Date: Tue, 10 Dec 2013 10:34:30 -0600
+Message-ID: <20131210163430.GG22750@saruman.home>
 References: <20131209161422.GC24047@saruman.home>
  <1386606085-26838-1-git-send-email-balbi@ti.com>
- <1386606085-26838-8-git-send-email-balbi@ti.com>
- <20131210090021.GQ12675@lee--X1>
-Reply-To: <balbi@ti.com>
+ <1386606085-26838-11-git-send-email-balbi@ti.com>
+ <20131210092050.GT12675@lee--X1>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="vA66WO2vHvL/CRSR"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20131210090021.GQ12675@lee--X1>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: multipart/mixed; boundary="===============0074697113478000972=="
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20131210092050.GT12675@lee--X1>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Lee Jones <lee.jones@linaro.org>
-Cc: Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
---vA66WO2vHvL/CRSR
+--===============0074697113478000972==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="vJguvTgX93MxBIIe"
+Content-Disposition: inline
+
+--vJguvTgX93MxBIIe
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Dec 10, 2013 at 09:00:21AM +0000, Lee Jones wrote:
-> On Mon, 09 Dec 2013, Felipe Balbi wrote:
->=20
-> > Those functions are static and can receive a menelaus_chip pointer very
-> > easily.
+On Tue, Dec 10, 2013 at 09:20:50AM +0000, Lee Jones wrote:
+> > Introduce an irq_chip and irq_domain for menelaus driver. Following
+> > patches will convert uses to traditional request_threaded_irq().
+> >=20
+> > While at that, some better error handling had to be added, so we could
+> > free irq descs we allocated.
 > >=20
 > > Tested-by: Aaro Koskinen <aaro.koskinen@iki.fi>
 > > Signed-off-by: Felipe Balbi <balbi@ti.com>
 > > ---
-> >  drivers/mfd/menelaus.c | 57 ++++++++++++++++++++++++++----------------=
---------
-> >  1 file changed, 30 insertions(+), 27 deletions(-)
+> >  drivers/mfd/menelaus.c | 127 +++++++++++++++++++++++++++++++++++++++++=
++++++---
 >=20
-> Same here. I think this should be done in one fell swoop.
+> <snip>
+>=20
+> > +	irq_domain_add_legacy(node, MENELAUS_NR_IRQS, irq_base, 0,
+> > +			&irq_domain_simple_ops, m);
+>=20
+> When will this driver become DT compliant?
 
-then it would become a much, much larger patch which would become a pain
-to review.
+when OMAP2 becomes DT-compliant. It still boots with legacy board-file +
+platform_data.
+
+> > +	m->irq_base =3D irq_base;
+> > +
+> > +	for (i =3D irq_base; i < irq_base + MENELAUS_NR_IRQS; i++) {
+> > +		irq_set_chip_data(i, m);
+> > +		irq_set_chip_and_handler(i, &menelaus_irq_chip,
+> > +				handle_simple_irq);
+> > +		irq_set_nested_thread(i, 1);
+> > +		set_irq_flags(i, IRQF_VALID);
+>=20
+> This assumes that this h/w only exists on ARM platforms. Is that true?
+
+it was made *only* for Nokia to use on their ARM-only internet tablets.
 
 --=20
 balbi
 
---vA66WO2vHvL/CRSR
+--vJguvTgX93MxBIIe
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.15 (GNU/Linux)
 
-iQIcBAEBAgAGBQJSp0IxAAoJEIaOsuA1yqREUe0P/1gySk6TH9X9EPDRqQ2G5SVF
-w4QNBiZAUuX6JmKh5Im27q0mrSmFn+QhVV57tNi9Y5PkhDhcuvN7qd4D9X5aFKVY
-M4D/JllahafLXCvJ6ZPeSVdR6QnApK1nIpZSgackPrhNQ0StklRq/NLIiIWDQf/7
-/VHN2iUahsPBgfyqTEsAQQaHVeOI5Q6KdJztDa6sderTNQPFX49pi0+mPuk5liUB
-i4vjGWrSLQKnRiZvtsOl+1l7T3N6eOQxs5LDHupMrod5dy6LWj/45bMp4sOWiQoj
-rMEDQdiyxSjQLQY1d5Brz0wkRgKJC36TFfPL8N054MOW0u+lkChmSWGCh066QoD6
-XlclR2VTSdk8ZNlwm3sYhauHX6RD4+ppuZbyQJyh73MD7/BU6hsvupZEI1yp9cK4
-SeOda2PVNxUGMVdR3EVgnGY1nSeQnxc8WuOv8R7kDXEjEkehMFFFcMVZl4NKgESd
-ggz8o/DqK6ydIZ6uttDjJ8WjsMWc7c8GGxeLUPSwYRnorN8vKrQ9cgOytJkt1kcv
-up2FtjNtGW+aZbzzj5IxjVRjoQXek5wC6tktPFWNpOLGd7e8PXTSc6q6Wzek416D
-4EXQcUqYtuZv9WFJchHNx++rzT7fCVy5+22Xp9pCQdiENUEfuPbR5gU8OGVZbm3z
-ZC5tsSQN+YlxzoTi3o5b
-=ex5f
+iQIcBAEBAgAGBQJSp0KWAAoJEIaOsuA1yqRELeMP/3vnmiN4TrDab5alk8KN5CfW
+d6WcI6vFBahkeePlZssHfu5687RqBy3U0ucwCJxFOCOY+ooWivZO6paGr/m8zh1t
+oxj3aM0TvbIZKN875UiVinDl8RrvqhWvycdpbBZNVUIm310HsFY7pYav5pUN57Ve
+GqD6yNw+++kuHonl3DAy/d4oRREzm6zkEKPxXm/1IbmNTkg/vuuudsWIrO6mjIG/
+hdcmFdzAh9w02A1RzHyMrdqAEWGNGCy9hxnXAzUmyMm4crxKIncEeUHA41Jl0RWl
+T20TFZOHj96ffLikEAXXej73BgH+DDk5Qgq0u1aWEoDdtsQ/TwK7P3wtWjddnEO2
+gzZeiw7Fu2DdUvyzDhbQy8mbiqoCdsBxFIaTxj3bBtX4XEE3ZD79G5oj2yFLc6Yu
+uHprF8H5hdGptRuE5a29V2B+lbPikMU4O4T27kCN4ZxbJ+3du81qasdvmcIRuSIQ
++tShmQ2PUtyU5WaZHxdZhFrhjy07rspjuHIeHqtd0/8UWLFRQuHSkYNOJjXqnSqC
+857mfDCrGjx9zS7RzhwvkVx8aR3KqKDqjCrWii3S+vgMUAnsxaYBJ+d/F7tXhCvK
+uGB4AkDyFVqd6mh62k7fhmavVFdX50O5OtcMR4oArXn/DdX6OwKGNluMkWBs+eey
+Y2cs0MW/Dz951jsQkm9l
+=vtgS
 -----END PGP SIGNATURE-----
 
---vA66WO2vHvL/CRSR--
+--vJguvTgX93MxBIIe--
+
+
+--===============0074697113478000972==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+--===============0074697113478000972==--
