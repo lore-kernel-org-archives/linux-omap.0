@@ -1,57 +1,43 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH v3 08/15] mfd: menelaus: Pass menelaus_chip pointer to
- add/remove irq functions
-Date: Tue, 10 Dec 2013 18:42:16 +0000
-Message-ID: <20131210184216.GD2390@lee--X1>
-References: <20131209161422.GC24047@saruman.home>
- <1386606085-26838-1-git-send-email-balbi@ti.com>
- <1386606085-26838-8-git-send-email-balbi@ti.com>
- <20131210090021.GQ12675@lee--X1>
- <20131210163249.GF22750@saruman.home>
+From: Marek Vasut <marex@denx.de>
+Subject: Re: [PATCHv2 00/10] Add memory mapped support for ti qspi, m25p80 serial flash.
+Date: Tue, 10 Dec 2013 19:34:01 +0100
+Message-ID: <201312101934.01300.marex@denx.de>
+References: <1386339891-32717-1-git-send-email-sourav.poddar@ti.com> <201312101922.10618.marex@denx.de> <20131210182904.GG11468@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20131210163249.GF22750@saruman.home>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-out.m-online.net ([212.18.0.10]:56887 "EHLO
+	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752305Ab3LJSmb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Dec 2013 13:42:31 -0500
+In-Reply-To: <20131210182904.GG11468@sirena.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Mark Brown <broonie@kernel.org>
+Cc: Sourav Poddar <sourav.poddar@ti.com>, linux-spi@vger.kernel.org, computersforpeace@gmail.com, dwmw2@infradead.org, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, bcousson@baylibre.com, balbi@ti.com
 
-On Tue, 10 Dec 2013, Felipe Balbi wrote:
+On Tuesday, December 10, 2013 at 07:29:04 PM, Mark Brown wrote:
+> On Tue, Dec 10, 2013 at 07:22:10PM +0100, Marek Vasut wrote:
+> > On Tuesday, December 10, 2013 at 05:11:43 PM, Mark Brown wrote:
+> > > There is some stuff that pushes up into the controller in that while
+> > > the device is in memory mapped mode as far as I can tell it's not safe
+> > > to do other accesses so if someone's put more than one device on the
+> > > SPI bus we need to handle interactions there.
+> > 
+> > OK, so it's either-or . That seems OK, you might want to have two drivers
+> > for this ip block, one to handle it as a SPI block and one to handle it
+> > as a SPI-NOR block. ... that is of course, if these two modes can't work
+> > together.
+> 
+> Or the client disables the memory map when it's not actively being used
+> and the stops other transfers starting while the mapping is in place.
+> I'd expect we'll have to cope with shared use at some point, hardware
+> engineers will probably build such systems.
 
-> On Tue, Dec 10, 2013 at 09:00:21AM +0000, Lee Jones wrote:
-> > On Mon, 09 Dec 2013, Felipe Balbi wrote:
-> >=20
-> > > Those functions are static and can receive a menelaus_chip pointe=
-r very
-> > > easily.
-> > >=20
-> > > Tested-by: Aaro Koskinen <aaro.koskinen@iki.fi>
-> > > Signed-off-by: Felipe Balbi <balbi@ti.com>
-> > > ---
-> > >  drivers/mfd/menelaus.c | 57 ++++++++++++++++++++++++++----------=
---------------
-> > >  1 file changed, 30 insertions(+), 27 deletions(-)
-> >=20
-> > Same here. I think this should be done in one fell swoop.
->=20
-> then it would become a much, much larger patch which would become a p=
-ain
-> to review.
+Aren't we fixing the problem at the wrong place ? Maybe it's about time to fix 
+the engineers ;-)
 
-If the patch was doing lots of different things then I'd be inclined
-to agree, but although large, the changes here are pretty trivial.
-
-I tend to break up patches based on; subsystem, file, device (for
-platform/dts adaptions) and functionality. Rather than just because
-the 'lines changed' count is large.
-
-Please squash them and I'll review it.
-
---=20
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org =E2=94=82 Open source software for ARM SoCs
-=46ollow Linaro: Facebook | Twitter | Blog
+Best regards,
+Marek Vasut
