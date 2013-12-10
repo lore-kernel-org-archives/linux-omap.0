@@ -1,120 +1,54 @@
-From: Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCHv2 09/10] arm: dts: dra7: Add qspi device.
-Date: Tue, 10 Dec 2013 09:55:15 +0530
-Message-ID: <52A697AB.1060404@ti.com>
-References: <1386339891-32717-1-git-send-email-sourav.poddar@ti.com> <1386339891-32717-10-git-send-email-sourav.poddar@ti.com> <20131209174203.GB12527@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL] wl1251 platform data changes for v3.14
+Date: Mon, 9 Dec 2013 20:49:00 -0800
+Message-ID: <14628.4249880866$1386650954@news.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20131209174203.GB12527-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, marex-ynQEQJNshbs@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:33113 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750754Ab3LJEtG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Dec 2013 23:49:06 -0500
+Content-Disposition: inline
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: arm@kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Monday 09 December 2013 11:12 PM, Tony Lindgren wrote:
-> * Sourav Poddar<sourav.poddar-l0cyMroinI0@public.gmane.org>  [131206 06:29]:
->> These add device tree entry for qspi controller driver on dra7.
-> FYI these .dts changes need to be queued separately by Benoit and
-> should be posted as a seprate series in general to avoid confusion.
->
-Ok, thanks!
-I posted this for review along with other code changes.
+The following changes since commit 736e812636ea72be444b85fa7e92554967459069:
 
-I will post them seperately to Benoit.
-> Regards,
->
-> Tony
->
->> Signed-off-by: Sourav Poddar<sourav.poddar-l0cyMroinI0@public.gmane.org>
->> ---
->> v1->v2:
->> use "MUX_MODE1" instead of numeric value
->>   arch/arm/boot/dts/dra7-evm.dts |   32 ++++++++++++++++++++++++++++++++
->>   arch/arm/boot/dts/dra7.dtsi    |   13 +++++++++++++
->>   2 files changed, 45 insertions(+), 0 deletions(-)
->>
->> diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
->> index 5babba0..4a57fdf 100644
->> --- a/arch/arm/boot/dts/dra7-evm.dts
->> +++ b/arch/arm/boot/dts/dra7-evm.dts
->> @@ -93,6 +93,21 @@
->>   			0x24c (PIN_INPUT_SLEW | MUX_MODE0) /* uart3_txd */
->>   		>;
->>   	};
->> +
->> +	qspi1_pins: pinmux_qspi1_pins {
->> +		pinctrl-single,pins =<
->> +			0x4c (PIN_INPUT | MUX_MODE1)  /* gpmc_a3.qspi1_cs2 */
->> +			0x50 (PIN_INPUT | MUX_MODE1)  /* gpmc_a4.qspi1_cs3 */
->> +			0x74 (PIN_INPUT | MUX_MODE1)  /* gpmc_a13.qspi1_rtclk */
->> +			0x78 (PIN_INPUT | MUX_MODE1)  /* gpmc_a14.qspi1_d3 */
->> +			0x7c (PIN_INPUT | MUX_MODE1)  /* gpmc_a15.qspi1_d2 */
->> +			0x80 (PIN_INPUT | MUX_MODE1) /* gpmc_a16.qspi1_d1 */
->> +			0x84 (PIN_INPUT | MUX_MODE1)  /* gpmc_a17.qspi1_d0 */
->> +			0x88 (PIN_INPUT | MUX_MODE1)  /* qpmc_a18.qspi1_sclk */
->> +			0xb8 (PIN_INPUT_PULLUP | MUX_MODE1)  /* gpmc_cs2.qspi1_cs0 */
->> +			0xbc (PIN_INPUT_PULLUP | MUX_MODE1)  /* gpmc_cs3.qspi1_cs1 */
->> +		>;
->> +	};
->>   };
->>
->>   &i2c1 {
->> @@ -273,3 +288,20 @@
->>   &cpu0 {
->>   	cpu0-supply =<&smps123_reg>;
->>   };
->> +
->> +&qspi {
->> +	status = "okay";
->> +	pinctrl-names = "default";
->> +	pinctrl-0 =<&qspi1_pins>;
->> +
->> +	spi-max-frequency =<48000000>;
->> +	m25p80@0 {
->> +		compatible = "s25fl256s1";
->> +		spi-max-frequency =<48000000>;
->> +		reg =<0>;
->> +		spi-tx-bus-width =<1>;
->> +		spi-rx-bus-width =<4>;
->> +		spi-cpol;
->> +		spi-cpha;
->> +	};
->> +};
->> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
->> index 67275c8..b06d899 100644
->> --- a/arch/arm/boot/dts/dra7.dtsi
->> +++ b/arch/arm/boot/dts/dra7.dtsi
->> @@ -582,6 +582,19 @@
->>   			dma-names = "tx0", "rx0";
->>   			status = "disabled";
->>   		};
->> +
->> +		qspi: qspi@4b300000 {
->> +			compatible = "ti,dra7xxx-qspi";
->> +			reg =<0x4b300000 0x100>,<0x4a002558 0x4>,
->> +					<0x5c000000 0x3ffffff>;
->> +			reg-names = "qspi_base", "qspi_ctrlmod", "qspi_mmap";
->> +			#address-cells =<1>;
->> +			#size-cells =<0>;
->> +			ti,hwmods = "qspi";
->> +			num-cs =<4>;
->> +			interrupts =<0 124 0x4>;
->> +			status = "disabled";
->> +		};
->>   	};
->>
->>   	clocks {
->> -- 
->> 1.7.1
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+  ARM: OMAP2+: Remove unused platform init code and headers (2013-12-08 14:15:46 -0800)
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-spi" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.14/omap3-board-removal-wl1251
+
+for you to fetch changes up to ce226391aec803a49b39c22d3385057c9db02f30:
+
+  Merge branch 'wl1251-pdata' into omap-for-v3.14/omap3-board-removal (2013-12-09 19:39:51 -0800)
+
+----------------------------------------------------------------
+
+Minimal changes for the wl151 platform data that would otherwise
+cause merge conflicts between the wireless tree and linux-omap
+tree. This was discussed on the mailing lists here:
+
+http://www.spinics.net/lists/linux-omap/msg99906.html
+
+----------------------------------------------------------------
+Luciano Coelho (1):
+      wl1251: split wl251 platform data to a separate structure
+
+Sebastian Reichel (1):
+      wl1251: move power GPIO handling into the driver
+
+Tony Lindgren (1):
+      Merge branch 'wl1251-pdata' into omap-for-v3.14/omap3-board-removal
+
+ drivers/net/wireless/ti/wilink_platform_data.c | 37 +++++++++++++++++++++-----
+ drivers/net/wireless/ti/wl1251/sdio.c          | 31 ++++++++++++++-------
+ drivers/net/wireless/ti/wl1251/spi.c           | 35 +++++++++++++++---------
+ drivers/net/wireless/ti/wl1251/wl1251.h        |  2 +-
+ include/linux/wl12xx.h                         | 24 +++++++++++++++--
+ 5 files changed, 97 insertions(+), 32 deletions(-)
