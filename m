@@ -1,93 +1,63 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCHv2 00/10] Add memory mapped support for ti qspi, m25p80
- serial flash.
-Date: Tue, 10 Dec 2013 18:29:04 +0000
-Message-ID: <20131210182904.GG11468@sirena.org.uk>
-References: <1386339891-32717-1-git-send-email-sourav.poddar@ti.com>
- <201312101349.13564.marex@denx.de>
- <20131210161143.GK29268@sirena.org.uk>
- <201312101922.10618.marex@denx.de>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH v3 15/15] mfd: menelaus: Use devm_request_threaded_irq()
+Date: Tue, 10 Dec 2013 18:32:14 +0000
+Message-ID: <20131210183214.GB2390@lee--X1>
+References: <20131209161422.GC24047@saruman.home>
+ <1386606085-26838-1-git-send-email-balbi@ti.com>
+ <1386606085-26838-15-git-send-email-balbi@ti.com>
+ <20131210093042.GU12675@lee--X1>
+ <20131210163446.GH22750@saruman.home>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============4392418581915827359=="
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
-In-Reply-To: <201312101922.10618.marex@denx.de>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
-To: Marek Vasut <marex@denx.de>
-Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, balbi@ti.com, linux-spi@vger.kernel.org, linux-mtd@lists.infradead.org, bcousson@baylibre.com, Sourav Poddar <sourav.poddar@ti.com>, computersforpeace@gmail.com, dwmw2@infradead.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20131210163446.GH22750@saruman.home>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
+On Tue, 10 Dec 2013, Felipe Balbi wrote:
 
---===============4392418581915827359==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="m972NQjnE83KvVa/"
-Content-Disposition: inline
+> On Tue, Dec 10, 2013 at 09:30:42AM +0000, Lee Jones wrote:
+> > On Mon, 09 Dec 2013, Felipe Balbi wrote:
+> >=20
+> > > By using devm_request_threaded_irq() we can drop a few extra line=
+s of
+> > > code and rely on device managed resources layer to free our IRQ f=
+or us.
+> > >=20
+> > > Tested-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+> > > Signed-off-by: Felipe Balbi <balbi@ti.com>
+> > > ---
+> > >  drivers/mfd/menelaus.c | 11 ++++-------
+> > >  1 file changed, 4 insertions(+), 7 deletions(-)
+> > >=20
+> > > diff --git a/drivers/mfd/menelaus.c b/drivers/mfd/menelaus.c
+> > > index bffe978..b87c2bd 100644
+> > > --- a/drivers/mfd/menelaus.c
+> > > +++ b/drivers/mfd/menelaus.c
+> > > @@ -1271,8 +1271,8 @@ static int menelaus_probe(struct i2c_client=
+ *client,
+> > >  	/* Set output buffer strengths */
+> > >  	menelaus_write_reg(m, MENELAUS_MCT_CTRL1, 0x73);
+> > > =20
+> > > -	err =3D request_threaded_irq(client->irq, NULL, menelaus_irq,
+> > > -			IRQF_ONESHOT, DRIVER_NAME, m);
+> > > +	err =3D devm_request_threaded_irq(&client->dev, client->irq,
+> > > +			NULL, menelaus_irq, IRQF_ONESHOT, DRIVER_NAME, m);
+> >=20
+> > No need for a separate patch here. Convert straight from request_ir=
+q()
+> > to devm_request_threaded_irq() in patch 3.
+>=20
+> that would be 2 changes in a single patch.
 
+I think it's the right thing to do.
 
---m972NQjnE83KvVa/
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Tue, Dec 10, 2013 at 07:22:10PM +0100, Marek Vasut wrote:
-> On Tuesday, December 10, 2013 at 05:11:43 PM, Mark Brown wrote:
-
-> > There is some stuff that pushes up into the controller in that while the
-> > device is in memory mapped mode as far as I can tell it's not safe to do
-> > other accesses so if someone's put more than one device on the SPI bus
-> > we need to handle interactions there.
-
-> OK, so it's either-or . That seems OK, you might want to have two drivers=
- for=20
-> this ip block, one to handle it as a SPI block and one to handle it as a =
-SPI-NOR=20
-> block. ... that is of course, if these two modes can't work together.
-
-Or the client disables the memory map when it's not actively being used
-and the stops other transfers starting while the mapping is in place.
-I'd expect we'll have to cope with shared use at some point, hardware
-engineers will probably build such systems.
-
---m972NQjnE83KvVa/
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
-
-iQIcBAEBAgAGBQJSp11tAAoJELSic+t+oim9U8cQAJAVjZ2XhqRvvnydfHYWdmvb
-zBXaj0rmK1LWxO8gEeDQ6dE+oOnZvFD7inV+lX7vgvReAho9cIAtQfIHRlzlhqh0
-RhoEIETcu6vCUebJuTCU6U6XHt9xhBTzqpqr2BWmmRQEqwp6200+fJ0oAhG6WkfC
-j2SIUqoBkqxG+1gSE9SN42RXbXw6euKY7WP7NFfoBX4lG2x6/ADSsydy3RPTUKnX
-MGsKzp21ycN90KeGv1T7Bc3MSKfbKQ5mmwhFF/zXBMxLr++ZFhPgRSKk8UKwdloW
-+Rk9FdqQXwqkEA6sDW8bqx+0w9e8qPVcUCXfWy1rTSqTOIqSUJGgj2U9xQvVhb8M
-1iJlWX52G0gv/9S0nhCR2NEZzoCrXfTd9AtiS2cg4YSYt2cVzZQzLGk4MqU7ct1A
-ZlsqMaItbbM4JRRKYLuIPLy4VN5wxv7fTmad89WQwnV0DJazgL87KnDzaqrBHWt7
-B5WVsrXryhuXssl9MzWOzVxyfpnuo5NWjw6P8FkQfjqwtt7YXjPu7UOEV35GTvwu
-uBhl7RCwgIujDq2FTq1TjtXY1X1wS/gSTLp9TgDWVWLBCyZbtt9byg/+zyA8uHGK
-kI7L7K+N23Sxz0K5JMBCcnaxIsERooi6C84N3o6JxjfpG4eEsygcBXCCq4QXbdli
-F1NW2d4tzoIpWs1xkKgR
-=PObm
------END PGP SIGNATURE-----
-
---m972NQjnE83KvVa/--
-
-
---===============4392418581915827359==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-______________________________________________________
-Linux MTD discussion mailing list
-http://lists.infradead.org/mailman/listinfo/linux-mtd/
-
---===============4392418581915827359==--
+--=20
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org =E2=94=82 Open source software for ARM SoCs
+=46ollow Linaro: Facebook | Twitter | Blog
