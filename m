@@ -1,84 +1,68 @@
-From: Balaji T K <balajitk@ti.com>
-Subject: Re: [PATCH v4 3/7] regulator: add pbias regulator support
-Date: Tue, 10 Dec 2013 17:52:06 +0530
-Message-ID: <52A7076E.3000505@ti.com>
-References: <1385043627-30439-1-git-send-email-balajitk@ti.com> <1386670577-3530-1-git-send-email-balajitk@ti.com> <1386670577-3530-4-git-send-email-balajitk@ti.com> <20131210104005.GB29268@sirena.org.uk>
+From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Subject: Re: [PATCH RFC 3/4] xhci: Tune PHY for the DWC3-Exynos host
+ controller
+Date: Tue, 10 Dec 2013 15:55:48 +0200
+Message-ID: <20131210135548.GA28456@xps8300>
+References: <1386672926-26885-1-git-send-email-gautam.vivek@samsung.com>
+ <1386672926-26885-4-git-send-email-gautam.vivek@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <20131210104005.GB29268@sirena.org.uk>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: linux-omap@vger.kernel.org, bcousson@baylibre.com, devicetree@vger.kernel.org, linux-mmc@vger.kernel.org, cjb@laptop.org, tony@atomide.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1386672926-26885-4-git-send-email-gautam.vivek@samsung.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Vivek Gautam <gautam.vivek@samsung.com>
+Cc: linux-usb@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, balbi@ti.com, sarah.a.sharp@linux.intel.com, kgene.kim@samsung.com, kishon@ti.com, jg1.han@samsung.com, jwerner@chromium.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tuesday 10 December 2013 04:10 PM, Mark Brown wrote:
-> On Tue, Dec 10, 2013 at 03:46:13PM +0530, Balaji T K wrote:
->
->> +config REGULATOR_PBIAS
->> +	tristate "PBIAS OMAP regulator driver"
->> +	depends on ARCH_OMAP && MFD_SYSCON
->
-> That should be (ARCH_OMAP || COMPILE_TEST) && MFD_SYSCON
->
+Hi,
 
-Ok
+On Tue, Dec 10, 2013 at 04:25:25PM +0530, Vivek Gautam wrote:
+> @@ -170,6 +189,15 @@ static int xhci_plat_probe(struct platform_device *pdev)
+>  	}
+>  
+>  	/*
+> +	 * The parent of the xhci-plat device may pass in a PHY via
+> +	 * platform data.  If it exists, store it in our struct usb_hcd
+> +	 * so that we can use it later.
+> +	 */
+> +	phy_generic = dev_get_platdata(&pdev->dev);
+> +	if (phy_generic)
+> +		xhci->shared_hcd->phy_generic = *phy_generic;
 
->> +static int pbias_regulator_set_voltage(struct regulator_dev *dev,
->> +			int min_uV, int max_uV, unsigned *selector)
->> +{
->> +	struct pbias_regulator_data *data = rdev_get_drvdata(dev);
->> +	const struct pbias_reg_info *info = data->info;
->> +	int ret, vmode;
->> +
->> +	if (min_uV <= 1800000)
->> +		vmode = 0;
->> +	else if (min_uV > 1800000)
->> +		vmode = info->vmode;
->> +
->> +	ret = regmap_update_bits(data->syscon, data->pbias_reg,
->> +						info->vmode, vmode);
->> +	data->voltage = min_uV;
->
-> This is exactly the same as it was the first time it was posted and is
-> still buggy.  To repeat the get and set voltage functions should reflect
-> the actual voltage set in the hardware.
->
+Getting the handle to the phy from platform data like this is not
+going to work for long. It should be possible to get it normally with
+phy_get(). It's not going to be possible to get the handle from the
+platform data like this if the xhci-hcd platform device is created
+from ACPI or DT. You are also not considering case where you have two
+phys.
 
-my bad, will fix it.
+Vivek, I have made a patch set for the phy framework allowing
+associations between the phys and their users to be made in same way
+gpios and clk make them. With those you should be able to create a
+lookup entry to the phy framework in drivers/usb/dwc3/host.c. Then we
+could use phy_get() here already. Please check them. Subject of the
+thread:
 
->> +static int pbias_regulator_is_enable(struct regulator_dev *rdev)
->> +{
->> +	struct pbias_regulator_data *data = rdev_get_drvdata(rdev);
->> +	const struct pbias_reg_info *info = data->info;
->> +	int value;
->> +
->> +	regmap_read(data->syscon, data->pbias_reg, &value);
->> +
->> +	return value & info->enable_mask;
->> +}
->
-> If the enable mask really can have multiple bits this won't do the right
-> thing - it'll return true if any bits are set.  It needs to make sure
-> all the bits are set.
->
+"phy: remove the need for the phys to know about their users"
 
-True, will fix it.
+The lookup table can then be added in drivers/usb/dwc3/host.c with
+something like this:
 
->> +#if CONFIG_OF
->
-> Why?
+int dwc3_host_init(struct dwc3 *dwc)
+{
+        struct platform_device  *xhci;
+        struct phy_lookup_table *table;
+        ...
+        table->dev_id = dev_name(&xhci->dev);
+        if (dwc->usb2_generic_phy)
+                table->table[0].phy_name = dev_name(&dwc->usb2_generic_phy->dev);
+        if (dwc->usb3_generic_phy)
+                table->table[1].phy_name = dev_name(&dwc->usb3_generic_phy->dev);
+        phy_add_lookup_table(table);
+        ...
 
-Driver is DT only, Will remove it.
+Br,
 
->
->> +	drvdata->desc.n_voltages = 3;
->
-> This doesn't match your implementation which can only set two voltages.
->
-
-I considered power-off too, will make it 2 then.
-
-Thanks and Regards,
-Balaji T K
+-- 
+heikki
