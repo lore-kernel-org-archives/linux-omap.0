@@ -1,60 +1,68 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [GIT PULL] two regression fixes and two more omap dt fixes against v3.13-rc2
-Date: Mon, 09 Dec 2013 16:06:58 -0800
-Message-ID: <87bo0p602l.fsf@linaro.org>
-References: <52a4fc3b.6494420a.5e2f.7338SMTPIN_ADDED_BROKEN@mx.google.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL] ARM: OMAP2+: hwmod code/data: fixes for v3.13-rc
+Date: Mon, 9 Dec 2013 16:26:16 -0800
+Message-ID: <20131210002616.GD13171@atomide.com>
+References: <alpine.DEB.2.02.1312091906150.32309@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pd0-f178.google.com ([209.85.192.178]:64193 "EHLO
-	mail-pd0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750902Ab3LJAHA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Dec 2013 19:07:00 -0500
-Received: by mail-pd0-f178.google.com with SMTP id y10so6187395pdj.9
-        for <linux-omap@vger.kernel.org>; Mon, 09 Dec 2013 16:07:00 -0800 (PST)
-In-Reply-To: <52a4fc3b.6494420a.5e2f.7338SMTPIN_ADDED_BROKEN@mx.google.com>
-	(Tony Lindgren's message of "Sun, 8 Dec 2013 15:09:40 -0800")
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:11619 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751123Ab3LJA0V (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Dec 2013 19:26:21 -0500
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.02.1312091906150.32309@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: arm@kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: arm@kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>
 
-Tony Lindgren <tony@atomide.com> writes:
+Arnd, Kevin, Olof,
 
-> The following changes since commit 374b105797c3d4f29c685f3be535c35f5689b30e:
->
->   Linux 3.13-rc3 (2013-12-06 09:34:04 -0800)
->
+Care to pull this one from Paul into the fixes too?
+
+Regards,
+
+Tony
+
+* Paul Walmsley <paul@pwsan.com> [131209 11:08]:
+> Hi Tony,
+> 
+> The following changes since commit 6ce4eac1f600b34f2f7f58f9cd8f0503d79e42ae:
+> 
+>   Linux 3.13-rc1 (2013-11-22 11:30:55 -0800)
+> 
 > are available in the git repository at:
->
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.13/yet-more-dt-regressions-take2
->
-> for you to fetch changes up to f2e2c9d9b4087b74eb9e00d8dfac148354cb0b71:
->
->   ARM: dts: Fix booting for secure omaps (2013-12-06 15:30:43 -0800)
->
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/for-v3.13-rc/hwmod-fixes-a
+> 
+> for you to fetch changes up to 0e7dc862cf687234ed1b01a6b2461b782ea0bca0:
+> 
+>   ARM: OMAP2+: hwmod: Fix usage of invalid iclk / oclk when clock node is not present (2013-12-09 11:51:30 -0700)
+> 
 > ----------------------------------------------------------------
-> A rather big fix for a regression where we have dropped omap4 hwmod
-> data earlier but are not initializing it from device tree. In addition
-> to this fix we eventually also be fix the issues in the .dts files
-> and drivers, but that's too intrusive for the -rc cycle and must be
-> done later on.
->
-> Also a fix for a regression where we now are wrongly trying to initialize
-> devices on secure omaps like n900 and n9* when booted using device tree.
-> We need to set aes, sham and timer12 to disabled mode for secure
-> devices as they are claimed by the firmware running in the secure mode.
->
-> And two more legacy booting vs device tree based booting fixes for
-> am3517 that I did not notice earlier until Nishant Menon reported
-> these to me few days ago. With these we're good to go having v3.13
-> working both for legacy booting and device tree based booting, and we
-> can then go ahed and drop the legacy booting for mach-omap2 for v3.14.
->
+> ARM: OMAP2+: hwmod code/data: fixes for v3.13-rc
+> 
+> Fix a few hwmod code problems involving recovery with bad data and bad
+> IP block OCP reset handling.  Also, fix the hwmod data to enable IP
+> block OCP reset for the OMAP USBHOST devices on OMAP3+.
+> 
+> Basic build, boot, and PM tests are available here:
+> 
+> http://www.pwsan.com/omap/testlogs/prcm_fixes_a_v3.13-rc/20131209030611/
+> 
 > ----------------------------------------------------------------
-
-Pulled into fixes,
-
-Thanks,
-
-Kevin
+> Nishanth Menon (1):
+>       ARM: OMAP2+: hwmod: Fix usage of invalid iclk / oclk when clock node is not present
+> 
+> Roger Quadros (3):
+>       ARM: OMAP4+: hwmod data: Don't prevent RESET of USB Host module
+>       ARM: OMAP2+: hwmod: Fix SOFTRESET logic
+>       ARM: OMAP3: hwmod data: Don't prevent RESET of USB Host module
+> 
+>  arch/arm/mach-omap2/omap_hwmod.c           | 45 +++++++++++++++++++++++++++++-
+>  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c | 13 ++-------
+>  arch/arm/mach-omap2/omap_hwmod_44xx_data.c | 12 ++------
+>  arch/arm/mach-omap2/omap_hwmod_54xx_data.c | 13 ++-------
+>  4 files changed, 52 insertions(+), 31 deletions(-)
+> 
