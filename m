@@ -1,46 +1,40 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [GIT PULL] make mach-omap2 boot with device tree only for
- v3.14
-Date: Tue, 10 Dec 2013 23:56:32 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1312102353170.20154@utopia.booyaka.com>
-References: <pull-1386643347-596413> <alpine.DEB.2.02.1312101034360.32309@utopia.booyaka.com> <20131210185902.GO13171@atomide.com>
+From: "Mrs.Rose carlos" <rizvistock@shakilrizvistock.com>
+Subject: pick up your $5000 today
+Date: Tue, 10 Dec 2013 23:04:05 +0600 (BDT)
+Message-ID: <908853229.16290.1386695045096.JavaMail.root__11970.1887401336$1386720382$gmane$org@shakilrizvistock.com>
+References: <1075315916.16038.1386694693921.JavaMail.root@shakilrizvistock.com>
+Reply-To: "Mrs.Rose carlos" <westernunion_moneytransfer2010@kimo.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:47267 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750724Ab3LJX4d (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Dec 2013 18:56:33 -0500
-In-Reply-To: <20131210185902.GO13171@atomide.com>
+Received: from mail.shakilrizvistock.com ([202.40.182.197]:40877 "EHLO
+	mail.shakilrizvistock.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750806Ab3LKAGM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Dec 2013 19:06:12 -0500
+In-Reply-To: <1075315916.16038.1386694693921.JavaMail.root@shakilrizvistock.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: arm@kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Tue, 10 Dec 2013, Tony Lindgren wrote:
+This is to inform you that your $2.5 M USD will be send to you via western
+union money transfer. The total amount mentioned above is with western
+union out let and they will send the money via western union to you. Note
+they will be sending $5000 every day to you.
 
-> * Paul Walmsley <paul@pwsan.com> [131210 10:47]:
->
-> > - The N800 isn't booting here with a concatenated uImage+dtb - but
-> >   maybe I'm doing something wrong with this one.
-> 
-> Hmm n800 works for me here for sure, I can n-uple check today.
+Provide your full information to them below.
 
-The N800 here is booting now with this series.  My mistake, as 
-suspected...
+Your Receiver Name..........
+Tel;....................
+Country..............
+Address. .
+PERMANENT ADDRESS:. ...........
+Occuption  ..........
+text Question..  .............
+Answer...................
 
-> > Best if the pull request were to explicitly state the known 
-> > regressions with this series, in terms of specific boards and 
-> > configurations.  That way, people will know what to expect.
-> 
-> Well ideally we would have no regressions when doing this, but I've
-> been chasing people and bugs for few years now on this DT conversion
-> and we still always find something. In most cases it should be just
-> a question of configuring a board specific .dts file. I don't have
-> all the boards though, so I've only done the ones I have naturally.
+Contact him now on this webmail address: (
+westernunion_moneytransfer2010@kimo.com) +229 68810421. Contact person Mr.FRANK
+THOMAS,
 
-Yeah some level of regression is expected with this, for sure.  It's just 
-good to have it documented if it's known.
-
-
-- Paul
+Thanks,
+Mrs.Rose carlos
