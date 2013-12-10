@@ -1,62 +1,60 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/2] Documentation: dt: Document TSC2005 DT binding
-Date: Mon, 9 Dec 2013 16:06:01 -0800
-Message-ID: <20131210000600.GC13171@atomide.com>
-References: <1386284979-9680-1-git-send-email-sre@debian.org>
- <1386284979-9680-3-git-send-email-sre@debian.org>
- <20131209174638.GC12527@atomide.com>
- <20131209182409.GA7626@earth.universe>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: [GIT PULL] two regression fixes and two more omap dt fixes against v3.13-rc2
+Date: Mon, 09 Dec 2013 16:06:58 -0800
+Message-ID: <87bo0p602l.fsf@linaro.org>
+References: <52a4fc3b.6494420a.5e2f.7338SMTPIN_ADDED_BROKEN@mx.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-input-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20131209182409.GA7626@earth.universe>
-Sender: linux-input-owner@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Dmitry Torokhov <dtor@mail.ru>, linux-input@vger.kernel.org, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Rob Landley <rob@landley.net>, Grant Likely <grant.likely@linaro.org>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pd0-f178.google.com ([209.85.192.178]:64193 "EHLO
+	mail-pd0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750902Ab3LJAHA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Dec 2013 19:07:00 -0500
+Received: by mail-pd0-f178.google.com with SMTP id y10so6187395pdj.9
+        for <linux-omap@vger.kernel.org>; Mon, 09 Dec 2013 16:07:00 -0800 (PST)
+In-Reply-To: <52a4fc3b.6494420a.5e2f.7338SMTPIN_ADDED_BROKEN@mx.google.com>
+	(Tony Lindgren's message of "Sun, 8 Dec 2013 15:09:40 -0800")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: arm@kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Sebastian Reichel <sre@debian.org> [131209 10:25]:
-> On Mon, Dec 09, 2013 at 09:46:38AM -0800, Tony Lindgren wrote:
-> > > +Optional properties:
-> > > + - ti,fuzz-x		      : integer, X noise value of the touchscreen
-> > > +				(defaults to 4)
-> > > + - ti,fuzz-y		      : integer, Y noise value of the touchscreen
-> > > +				(defaults to 8)
-> > > + - ti,fuzz-pressure	      : integer, pressure noise value of the touchscreen
-> > > +				(defaults to 2)
-> > > + - ti,max-x		      : integer, maximum reported x value
-> > > +				(defaults to 4096)
-> > > + - ti,max-y		      : integer, maximum reported y value
-> > > +				(defaults to 4096)
-> > > + - ti,max-pressure	      : integer, maximum reported pressure
-> > > +				(defaults to 4096)
-> > > + - ti,x-plate-resistance      : integer, resistance of the touchscreen's X plates
-> > > +				in ohm (defaults to 280)
-> > > + - ti,esd-recovery-timeout-ms : integer, if the touchscreen does not respond after
-> > > +				the configured time (in milli seconds), the driver
-> > > +				will reset it. This is disabled by default.
-> > 
-> > Instead of adding these optional ti,* properties you can set them in the
-> > driver directly in the of_match table based on the compatible flag. Then
-> > you can pass compatible flag like ti,tsc2005-nokia-n900, or the name of
-> > the LCD panel. Most likely these depend on the LCD panel selected.
-> 
-> I could certainly do this, but it would move the board specific data
-> from the boardcode into the driver. That looks contra-productive to
-> me. Is there a good reason to do it this way?
+Tony Lindgren <tony@atomide.com> writes:
 
-You can leave out the custom properties that way for something that probably
-should be grouped by the touchpanel type connected as the values are the
-same.
+> The following changes since commit 374b105797c3d4f29c685f3be535c35f5689b30e:
+>
+>   Linux 3.13-rc3 (2013-12-06 09:34:04 -0800)
+>
+> are available in the git repository at:
+>
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.13/yet-more-dt-regressions-take2
+>
+> for you to fetch changes up to f2e2c9d9b4087b74eb9e00d8dfac148354cb0b71:
+>
+>   ARM: dts: Fix booting for secure omaps (2013-12-06 15:30:43 -0800)
+>
+> ----------------------------------------------------------------
+> A rather big fix for a regression where we have dropped omap4 hwmod
+> data earlier but are not initializing it from device tree. In addition
+> to this fix we eventually also be fix the issues in the .dts files
+> and drivers, but that's too intrusive for the -rc cycle and must be
+> done later on.
+>
+> Also a fix for a regression where we now are wrongly trying to initialize
+> devices on secure omaps like n900 and n9* when booted using device tree.
+> We need to set aes, sham and timer12 to disabled mode for secure
+> devices as they are claimed by the firmware running in the secure mode.
+>
+> And two more legacy booting vs device tree based booting fixes for
+> am3517 that I did not notice earlier until Nishant Menon reported
+> these to me few days ago. With these we're good to go having v3.13
+> working both for legacy booting and device tree based booting, and we
+> can then go ahed and drop the legacy booting for mach-omap2 for v3.14.
+>
+> ----------------------------------------------------------------
 
-So for example just a few compatible flags like ti,tsc2005-panel-abc and
-ti,tsc2005-panel-xyz we could potentially cover all the configurations
-we're aware of without any need for custom properties. And this is way
-easier to support in the long run assuming we don't end up with tons of
-compatible flags. Of course if we end up with a new compatible flag for
-each configuration, then it makes sense to set up the custom properties,
-but I doubt that's the case here.
+Pulled into fixes,
 
-Regards,
+Thanks,
 
-Tony
+Kevin
