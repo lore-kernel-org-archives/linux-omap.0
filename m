@@ -1,17 +1,17 @@
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 06/26] OMAPDSS: if dssdev->name==NULL, use alias
-Date: Thu, 12 Dec 2013 00:13:01 +0100
-Message-ID: <37483030.ghHfzYFSnL@avalon>
-References: <1386160133-24026-1-git-send-email-tomi.valkeinen@ti.com> <1386160133-24026-7-git-send-email-tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 10/26] OMAPDSS: add of helpers
+Date: Thu, 12 Dec 2013 00:19:56 +0100
+Message-ID: <4533892.HJaRcDt4Q8@avalon>
+References: <1386160133-24026-1-git-send-email-tomi.valkeinen@ti.com> <1386160133-24026-11-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:46246 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:46285 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751230Ab3LKXMs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Dec 2013 18:12:48 -0500
-In-Reply-To: <1386160133-24026-7-git-send-email-tomi.valkeinen@ti.com>
+	with ESMTP id S1750873Ab3LKXTo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Dec 2013 18:19:44 -0500
+In-Reply-To: <1386160133-24026-11-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tomi Valkeinen <tomi.valkeinen@ti.com>
@@ -19,44 +19,221 @@ Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.ker
 
 Hi Tomi,
 
-On Wednesday 04 December 2013 14:28:33 Tomi Valkeinen wrote:
-> To avoid the need for a "nickname" property for each display, change
-> the display registration so that the display's alias (i.e. "display0"
-> etc) will be used for the dssdev->name if the display driver didn't
-> provide a name.
+On Wednesday 04 December 2013 14:28:37 Tomi Valkeinen wrote:
+> Add helpers to get ports and endpoints from DT data.
 > 
-> This means that when booting with board files, we will have more
-> descriptive names for displays, like "lcd1", "hdmi".
+> While all the functions in dss-of.c might be useful for panel drivers if
+> they need to parse full port/endpoint data, at the moment we only need a
+> few of them outside dss-of.c, so only those functions are exported.
 
-Where are those names used ? Are they reported to userspace, or limited to 
-kernel internal use only ?
-
-> With DT we'll only have "display0", etc. But as there are no "nicknames" for
-> things like serials ports either, I hope we will do fine with this approach.
-
-Just a random thought, maybe the aliases node could help here. I'm not sure 
-what rules govern its usage. Adding labels to display DT nodes could be an 
-option too.
+I totally understand that it was easier to add this code to the OMAP DSS 
+driver, but I believe we should refactor the existing drivers/media/v4l2-
+core/v4l2-of.c and move it to a non V4L2-specific location (what about 
+drivers/media ?) sooner rather than later. That's on my to-do list for 
+Saturday.
 
 > Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 > ---
->  drivers/video/omap2/dss/display.c | 3 +++
->  1 file changed, 3 insertions(+)
+>  drivers/video/omap2/dss/Makefile |   2 +-
+>  drivers/video/omap2/dss/dss-of.c | 160 ++++++++++++++++++++++++++++++++++++
+>  include/video/omapdss.h          |   6 ++
+>  3 files changed, 167 insertions(+), 1 deletion(-)
+>  create mode 100644 drivers/video/omap2/dss/dss-of.c
 > 
-> diff --git a/drivers/video/omap2/dss/display.c
-> b/drivers/video/omap2/dss/display.c index 669a81fdf58e..a946cf7ed00f 100644
-> --- a/drivers/video/omap2/dss/display.c
-> +++ b/drivers/video/omap2/dss/display.c
-> @@ -137,6 +137,9 @@ int omapdss_register_display(struct omap_dss_device
-> *dssdev) snprintf(dssdev->alias, sizeof(dssdev->alias),
->  			"display%d", disp_num_counter++);
-> 
-> +	if (dssdev->name == NULL)
-> +		dssdev->name = dssdev->alias;
+> diff --git a/drivers/video/omap2/dss/Makefile
+> b/drivers/video/omap2/dss/Makefile index d3aa91bdd6a8..8aec8bda27cc 100644
+> --- a/drivers/video/omap2/dss/Makefile
+> +++ b/drivers/video/omap2/dss/Makefile
+> @@ -1,7 +1,7 @@
+>  obj-$(CONFIG_OMAP2_DSS) += omapdss.o
+>  # Core DSS files
+>  omapdss-y := core.o dss.o dss_features.o dispc.o dispc_coefs.o display.o \
+> -	output.o
+> +	output.o dss-of.o
+>  # DSS compat layer files
+>  omapdss-y += manager.o manager-sysfs.o overlay.o overlay-sysfs.o apply.o \
+>  	dispc-compat.o display-sysfs.o
+> diff --git a/drivers/video/omap2/dss/dss-of.c
+> b/drivers/video/omap2/dss/dss-of.c new file mode 100644
+> index 000000000000..9aa61d4bdb3d
+> --- /dev/null
+> +++ b/drivers/video/omap2/dss/dss-of.c
+> @@ -0,0 +1,160 @@
+> +/*
+> + * Copyright (C) 2013 Texas Instruments
+> + * Author: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify it
+> + * under the terms of the GNU General Public License version 2 as published
+> by + * the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful, but
+> WITHOUT + * ANY WARRANTY; without even the implied warranty of
+> MERCHANTABILITY or + * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> General Public License for + * more details.
+> + */
 > +
->  	if (drv && drv->get_resolution == NULL)
->  		drv->get_resolution = omapdss_default_get_resolution;
->  	if (drv && drv->get_recommended_bpp == NULL)
+> +#include <linux/device.h>
+> +#include <linux/err.h>
+> +#include <linux/module.h>
+> +#include <linux/of.h>
+> +#include <linux/seq_file.h>
+> +
+> +#include <video/omapdss.h>
+> +
+> +#include "dss.h"
+> +#include "dss_features.h"
+> +
+> +static struct device_node *
+> +omapdss_of_get_next_port(const struct device_node *parent,
+> +			 struct device_node *prev)
+> +{
+> +	struct device_node *port = NULL;
+> +
+> +	if (!parent)
+> +		return NULL;
+> +
+> +	if (!prev) {
+> +		struct device_node *ports;
+> +		/*
+> +		 * It's the first call, we have to find a port subnode
+> +		 * within this node or within an optional 'ports' node.
+> +		 */
+> +		ports = of_get_child_by_name(parent, "ports");
+> +		if (ports)
+> +			parent = ports;
+> +
+> +		port = of_get_child_by_name(parent, "port");
+> +
+> +		/* release the 'ports' node */
+> +		of_node_put(ports);
+> +	} else {
+> +		struct device_node *ports;
+> +
+> +		ports = of_get_parent(prev);
+> +		if (!ports)
+> +			return NULL;
+> +
+> +		do {
+> +			port = of_get_next_child(ports, prev);
+> +			if (!port) {
+> +				of_node_put(ports);
+> +				return NULL;
+> +			}
+> +			prev = port;
+> +		} while (of_node_cmp(port->name, "port") != 0);
+> +	}
+> +
+> +	return port;
+> +}
+> +
+> +static struct device_node *
+> +omapdss_of_get_next_endpoint(const struct device_node *parent,
+> +			     struct device_node *prev)
+> +{
+> +	struct device_node *ep = NULL;
+> +
+> +	if (!parent)
+> +		return NULL;
+> +
+> +	do {
+> +		ep = of_get_next_child(parent, prev);
+> +		if (!ep)
+> +			return NULL;
+> +		prev = ep;
+> +	} while (of_node_cmp(ep->name, "endpoint") != 0);
+> +
+> +	return ep;
+> +}
+> +
+> +static struct device_node *
+> +omapdss_of_get_remote_device_node(const struct device_node *node)
+> +{
+> +	struct device_node *np;
+> +	int i;
+> +
+> +	np = of_parse_phandle(node, "remote-endpoint", 0);
+> +
+> +	if (!np)
+> +		return NULL;
+> +
+> +	np = of_get_next_parent(np);
+> +
+> +	for (i = 0; i < 3 && np; ++i) {
+> +		struct property *prop;
+> +
+> +		prop = of_find_property(np, "compatible", NULL);
+> +
+> +		if (prop)
+> +			return np;
+> +
+> +		np = of_get_next_parent(np);
+> +	}
+> +
+> +	return NULL;
+> +}
+> +
+> +struct device_node *
+> +omapdss_of_get_first_endpoint(const struct device_node *parent)
+> +{
+> +	struct device_node *port;
+> +	struct device_node *ep;
+> +
+> +	port = omapdss_of_get_next_port(parent, NULL);
+> +	if (port) {
+> +		ep = omapdss_of_get_next_endpoint(port, NULL);
+> +		of_node_put(port);
+> +	} else {
+> +		ep = omapdss_of_get_next_endpoint(parent, NULL);
+> +	}
+> +
+> +	return ep;
+> +}
+> +EXPORT_SYMBOL_GPL(omapdss_of_get_first_endpoint);
+> +
+> +struct omap_dss_device *
+> +omapdss_of_find_source_for_first_ep(struct device_node *node)
+> +{
+> +	struct device_node *ep;
+> +	struct device_node *src_node;
+> +	struct omap_dss_device *src;
+> +
+> +	ep = omapdss_of_get_first_endpoint(node);
+> +	if (!ep)
+> +		return ERR_PTR(-EINVAL);
+> +
+> +	src_node = omapdss_of_get_remote_device_node(ep);
+> +
+> +	of_node_put(ep);
+> +
+> +	if (!src_node)
+> +		return ERR_PTR(-EINVAL);
+> +
+> +	src = omap_dss_find_output_by_node(src_node);
+> +
+> +	of_node_put(src_node);
+> +
+> +	if (!src)
+> +		return ERR_PTR(-EPROBE_DEFER);
+> +
+> +	return src;
+> +}
+> +EXPORT_SYMBOL_GPL(omapdss_of_find_source_for_first_ep);
+> diff --git a/include/video/omapdss.h b/include/video/omapdss.h
+> index 3d7c51a6f9ff..c510591df1b8 100644
+> --- a/include/video/omapdss.h
+> +++ b/include/video/omapdss.h
+> @@ -1019,4 +1019,10 @@ static inline bool omapdss_device_is_enabled(struct
+> omap_dss_device *dssdev) return dssdev->state == OMAP_DSS_DISPLAY_ACTIVE;
+>  }
+> 
+> +struct device_node *
+> +omapdss_of_get_first_endpoint(const struct device_node *parent);
+> +
+> +struct omap_dss_device *
+> +omapdss_of_find_source_for_first_ep(struct device_node *node);
+> +
+>  #endif
 -- 
 Regards,
 
