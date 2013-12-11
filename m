@@ -1,54 +1,68 @@
-From: Denis CIOCCA <denis.ciocca@st.com>
-Subject: need help to configure IRQ on gpio 139 pandaboard using device tree
-Date: Wed, 11 Dec 2013 15:28:28 +0100
-Message-ID: <52A8768C.5070103@st.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH] ARM: OMAPFB: panel-sony-acx565akm: fix missing unlock
+ in acx565akm_panel_power_on()
+Date: Wed, 11 Dec 2013 16:29:57 +0200
+Message-ID: <52A876E5.4040000@ti.com>
+References: <CAPgLHd_asZkqBEXyx611=NOMfcaR18jZ8Yxkt5yhg7Lbng93MA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="8bgXEdsHRc9nknWSsucea5neatCfi8K5s"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from eu1sys200aog101.obsmtp.com ([207.126.144.111]:35368 "EHLO
-	eu1sys200aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751294Ab3LKO2e convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 11 Dec 2013 09:28:34 -0500
-Received: from zeta.dmz-eu.st.com (zeta.dmz-eu.st.com [164.129.230.9])
-	by beta.dmz-eu.st.com (STMicroelectronics) with ESMTP id 479D3BB
-	for <linux-omap@vger.kernel.org>; Wed, 11 Dec 2013 14:27:53 +0000 (GMT)
-Received: from Webmail-eu.st.com (safex1hubcas1.st.com [10.75.90.14])
-	by zeta.dmz-eu.st.com (STMicroelectronics) with ESMTP id 39738595B
-	for <linux-omap@vger.kernel.org>; Wed, 11 Dec 2013 14:14:56 +0000 (GMT)
-Content-Language: en-US
+Received: from comal.ext.ti.com ([198.47.26.152]:52683 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751498Ab3LKOaS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 11 Dec 2013 09:30:18 -0500
+In-Reply-To: <CAPgLHd_asZkqBEXyx611=NOMfcaR18jZ8Yxkt5yhg7Lbng93MA@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Wei Yongjun <weiyj.lk@gmail.com>, plagnioj@jcrosoft.com, aaro.koskinen@iki.fi
+Cc: yongjun_wei@trendmicro.com.cn, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
-Hi everybody,
+--8bgXEdsHRc9nknWSsucea5neatCfi8K5s
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-I'm trying to configure an IRQ on pandaboard using device tree but I'm 
-not able to understand how I can do it.
-I want to configure the the gpio_139 pin and without device tree my 
-command was:
+Hi,
 
-OMAP4_MUX(MCSPI1_SIMO, OMAP_MUX_MODE3 | OMAP_PIN_INPUT_PULLUP),
+On 2013-12-06 14:55, Wei Yongjun wrote:
+> From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+>=20
+> Add the missing unlock before return from function
+> acx565akm_panel_power_on() in the error handling case.
+>=20
+> Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 
-I need to associate it to a i2c device, declared in this way:
+A fix for this has already been merged:
+c37dd677988ca50bc8bc60ab5ab053720583c168 (ARM: OMAPFB:
+panel-sony-acx565akm: fix bad unlock balance)
 
-&i2c4 {
-     pinctrl-names = "default";
-     pinctrl-0 = <&i2c4_pins>;
-
-     clock-frequency = <400000>;
-
-     lsm303d@03 {
-         compatible = "st,lsm303d";
-         reg = <0x03>;
-     };
-};
-
-and it works, but I don't know how I can set the interrupt using:
-interrupts = <GIC_SPI 119 IRQ_TYPE_LEVEL_HIGH>; /* example */
+ Tomi
 
 
-Thanks,
 
-Denis
+--8bgXEdsHRc9nknWSsucea5neatCfi8K5s
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.14 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJSqHblAAoJEPo9qoy8lh7194AQAJAr1ScbIjsXKGM8YuwF3QW+
+V/TNCRw+XYZN4fxXeu8Q9QFJbmEvcZZ77onTRWX6JqiL9IqkxCJenyhff5OU2+Zr
+tPwrYsHhCQVob+mTHuEVQpaz7WhcT7ruVql2MlXsh/IvBH9Anwp6mdEOI/sgiATt
+7lALlsHkYT3q+u73idbQDzD+PjSOS9SSsx83eqXnGxZrTQNrycpj5hX/kbYFPUTC
+0qstqSMNTsDIMgJ7nXQ604Wt7X3mi2MyASeHQBbbN3CHIC6rj+96WW2xMECo1bLn
+ccyXUy/k2W120BWzULlTdNql3WSq+//AEW3nHZu3VgU/yperhXTPpdR/mmuhL9hG
+edr9XZjB/8p2zi8H0epf73CDDGo5oW7qkhJeONZNk71IBxRdc5d2gBPkocFWpl7V
+B5h6x0nOYEEfm2fj6xdfA1lJ7GtHvV0J5Qs3QnVc0H3/059TydPOlyqRrO7xSmbp
+K9n8wcaVtbMaPKATIHCDIpZyxT1WakmXnSb6oQH0tUVYSItKzEjCQDy46XYXPb4C
+XB5S8dmty+oj7LifL43/yZHPtRedHfo8zF6+9jc2mIfK54hbFovqjoNv1kEyb1mP
+BfS9HD7W8bWtrwB3/q8KammFIrVFV1rvPRdH2xaFvhLd2+1dirTYcjeGgM5zG+WA
+sU6SOS/ZZS897sGBljN5
+=mzSG
+-----END PGP SIGNATURE-----
+
+--8bgXEdsHRc9nknWSsucea5neatCfi8K5s--
