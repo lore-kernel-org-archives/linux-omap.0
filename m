@@ -1,17 +1,17 @@
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 05/26] ARM: OMAP2+: add omapdss_init_of()
-Date: Thu, 12 Dec 2013 00:10:18 +0100
-Message-ID: <2199639.FbGhznOLP9@avalon>
-References: <1386160133-24026-1-git-send-email-tomi.valkeinen@ti.com> <1386160133-24026-6-git-send-email-tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 06/26] OMAPDSS: if dssdev->name==NULL, use alias
+Date: Thu, 12 Dec 2013 00:13:01 +0100
+Message-ID: <37483030.ghHfzYFSnL@avalon>
+References: <1386160133-24026-1-git-send-email-tomi.valkeinen@ti.com> <1386160133-24026-7-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:46229 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:46246 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751592Ab3LKXKF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Dec 2013 18:10:05 -0500
-In-Reply-To: <1386160133-24026-6-git-send-email-tomi.valkeinen@ti.com>
+	with ESMTP id S1751230Ab3LKXMs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Dec 2013 18:12:48 -0500
+In-Reply-To: <1386160133-24026-7-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tomi Valkeinen <tomi.valkeinen@ti.com>
@@ -19,127 +19,44 @@ Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.ker
 
 Hi Tomi,
 
-On Wednesday 04 December 2013 14:28:32 Tomi Valkeinen wrote:
-> omapdss driver uses a omapdss platform device to pass platform specific
-> function pointers and DSS hardware version from the arch code to the
-> driver. This device is needed also when booting with DT.
+On Wednesday 04 December 2013 14:28:33 Tomi Valkeinen wrote:
+> To avoid the need for a "nickname" property for each display, change
+> the display registration so that the display's alias (i.e. "display0"
+> etc) will be used for the dssdev->name if the display driver didn't
+> provide a name.
 > 
-> This patch adds omapdss_init_of() function, called from board-generic at
-> init time, which creates the omapdss device.
+> This means that when booting with board files, we will have more
+> descriptive names for displays, like "lcd1", "hdmi".
 
-Is this a temporary solution that you plan to later replace with DT-only 
-device instantiation ?
+Where are those names used ? Are they reported to userspace, or limited to 
+kernel internal use only ?
+
+> With DT we'll only have "display0", etc. But as there are no "nicknames" for
+> things like serials ports either, I hope we will do fine with this approach.
+
+Just a random thought, maybe the aliases node could help here. I'm not sure 
+what rules govern its usage. Adding labels to display DT nodes could be an 
+option too.
 
 > Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 > ---
->  arch/arm/mach-omap2/board-generic.c |  2 ++
->  arch/arm/mach-omap2/common.h        |  2 ++
->  arch/arm/mach-omap2/display.c       | 62 ++++++++++++++++++++++++++++++++++
->  3 files changed, 66 insertions(+)
+>  drivers/video/omap2/dss/display.c | 3 +++
+>  1 file changed, 3 insertions(+)
 > 
-> diff --git a/arch/arm/mach-omap2/board-generic.c
-> b/arch/arm/mach-omap2/board-generic.c index 19f1652e94cf..0e06771d7bee
-> 100644
-> --- a/arch/arm/mach-omap2/board-generic.c
-> +++ b/arch/arm/mach-omap2/board-generic.c
-> @@ -36,6 +36,8 @@ static struct of_device_id omap_dt_match_table[]
-> __initdata = { static void __init omap_generic_init(void)
->  {
->  	pdata_quirks_init(omap_dt_match_table);
-> +
-> +	omapdss_init_of();
->  }
+> diff --git a/drivers/video/omap2/dss/display.c
+> b/drivers/video/omap2/dss/display.c index 669a81fdf58e..a946cf7ed00f 100644
+> --- a/drivers/video/omap2/dss/display.c
+> +++ b/drivers/video/omap2/dss/display.c
+> @@ -137,6 +137,9 @@ int omapdss_register_display(struct omap_dss_device
+> *dssdev) snprintf(dssdev->alias, sizeof(dssdev->alias),
+>  			"display%d", disp_num_counter++);
 > 
->  #ifdef CONFIG_SOC_OMAP2420
-> diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
-> index f7644febee81..48e9cd34cae0 100644
-> --- a/arch/arm/mach-omap2/common.h
-> +++ b/arch/arm/mach-omap2/common.h
-> @@ -308,5 +308,7 @@ extern int omap_dss_reset(struct omap_hwmod *);
->  /* SoC specific clock initializer */
->  extern int (*omap_clk_init)(void);
-> 
-> +int __init omapdss_init_of(void);
+> +	if (dssdev->name == NULL)
+> +		dssdev->name = dssdev->alias;
 > +
->  #endif /* __ASSEMBLER__ */
->  #endif /* __ARCH_ARM_MACH_OMAP2PLUS_COMMON_H */
-> diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
-> index a4e536b11ec9..3279afc5f0b5 100644
-> --- a/arch/arm/mach-omap2/display.c
-> +++ b/arch/arm/mach-omap2/display.c
-> @@ -23,6 +23,8 @@
->  #include <linux/clk.h>
->  #include <linux/err.h>
->  #include <linux/delay.h>
-> +#include <linux/of.h>
-> +#include <linux/of_platform.h>
-> 
->  #include <video/omapdss.h>
->  #include "omap_hwmod.h"
-> @@ -592,3 +594,63 @@ int omap_dss_reset(struct omap_hwmod *oh)
-> 
->  	return r;
->  }
-> +
-> +int __init omapdss_init_of(void)
-> +{
-> +	int r;
-> +	enum omapdss_version ver;
-> +
-> +	static struct omap_dss_board_info board_data = {
-> +		.dsi_enable_pads = omap_dsi_enable_pads,
-> +		.dsi_disable_pads = omap_dsi_disable_pads,
-> +		.get_context_loss_count = omap_pm_get_dev_context_loss_count,
-> +		.set_min_bus_tput = omap_dss_set_min_bus_tput,
-> +	};
-> +
-> +	ver = omap_display_get_version();
-> +
-> +	if (ver == OMAPDSS_VER_UNKNOWN) {
-> +		pr_err("DSS not supported on this SoC\n");
-> +		return -ENODEV;
-> +	}
-> +
-> +	board_data.version = ver;
-> +
-> +	omap_display_device.dev.platform_data = &board_data;
-> +
-> +	r = platform_device_register(&omap_display_device);
-> +	if (r < 0) {
-> +		pr_err("Unable to register omapdss device\n");
-> +		return r;
-> +	}
-> +
-> +	/* create DRM device */
-> +	r = omap_init_drm();
-> +	if (r < 0) {
-> +		pr_err("Unable to register omapdrm device\n");
-> +		return r;
-> +	}
-> +
-> +	/* create vrfb device */
-> +	r = omap_init_vrfb();
-> +	if (r < 0) {
-> +		pr_err("Unable to register omapvrfb device\n");
-> +		return r;
-> +	}
-> +
-> +	/* create FB device */
-> +	r = omap_init_fb();
-> +	if (r < 0) {
-> +		pr_err("Unable to register omapfb device\n");
-> +		return r;
-> +	}
-> +
-> +	/* create V4L2 display device */
-> +	r = omap_init_vout();
-> +	if (r < 0) {
-> +		pr_err("Unable to register omap_vout device\n");
-> +		return r;
-> +	}
-> +
-> +	return 0;
-> +}
+>  	if (drv && drv->get_resolution == NULL)
+>  		drv->get_resolution = omapdss_default_get_resolution;
+>  	if (drv && drv->get_recommended_bpp == NULL)
 -- 
 Regards,
 
