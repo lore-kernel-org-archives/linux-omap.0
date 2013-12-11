@@ -1,60 +1,54 @@
-From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 1/2] net: smc91x: Read hardware behavior flags from device tree
-Date: Wed, 11 Dec 2013 12:27:55 -0600
-Message-ID: <CAGo_u6oHPJSfDF=9WVTb2ukmwxDoasho=4L7qJmnYng6-84N0Q@mail.gmail.com>
-References: <1386757305-12545-1-git-send-email-nm@ti.com>
-	<1386757305-12545-2-git-send-email-nm@ti.com>
-	<20131211160440.GA13171@atomide.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH v5 3/7] regulator: add pbias regulator support
+Date: Wed, 11 Dec 2013 22:46:52 +0000
+Message-ID: <20131211224652.GB11044@sirena.org.uk>
+References: <20131210104005.GB29268@sirena.org.uk>
+ <1386686098-7779-1-git-send-email-balajitk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20131211160440.GA13171-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: dt list <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, =?ISO-8859-1?Q?Beno=EEt_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="p4qYPpj5QlsIQJ0K"
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1386686098-7779-1-git-send-email-balajitk@ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Balaji T K <balajitk@ti.com>
+Cc: linux-omap@vger.kernel.org, bcousson@baylibre.com, devicetree@vger.kernel.org, linux-mmc@vger.kernel.org, cjb@laptop.org, tony@atomide.com
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Dec 11, 2013 at 10:04 AM, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
-> * Nishanth Menon <nm-l0cyMroinI0@public.gmane.org> [131211 02:23]:
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/net/smsc91x.txt
->> @@ -0,0 +1,45 @@
->> +* Smart Mixed-Signal Connectivity (SMSC) LAN91c94/91c111 Controller
->> +
->> +Required properties:
->> +- compatible : Should be one of:
->> +     "smsc,lan91c94"
->> +     "smsc,lan91c111"
->> +- reg : Address and length of the io space for SMSC LAN
->> +- interrupts : Should contain SMSC LAN interrupt line
->> +- interrupt-parent : Should be the phandle for the interrupt controller
->> +  that services interrupts for this device
->> +
->> +Optional properties:
->> +- reg-shift : Specify the quantity to shift the register offsets by
->> +- reg-io-width : Specify the size (in bytes) of the IO accesses that
->> +  should be performed on the device.  Valid value for SMSC LAN is
->> +  1, 2 or 4.
->
-> I posted a minimal regression fix for this a few weeks ago that we
-> should merge to the v3.13-rc cycle:
->
-> http://www.spinics.net/lists/netdev/msg258913.html
->
-> Care to ack that one?
-Done.
 
-> Then if that works for you, maybe rebase these on
-> that one for the upcoming merge window?
-it seems like omap is the only folks who are currently using this
-driver in dt form, I kinda proposed to do these as add on changes to
-your patch, lets see if anyone cares about it.
+--p4qYPpj5QlsIQJ0K
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-but I agree to drop my series at this point,
+On Tue, Dec 10, 2013 at 08:04:58PM +0530, Balaji T K wrote:
+> pbias register controls internal power supply to sd card i/o pads
+> in most OMAPs (OMAP2-5, DRA7).
+> Control bits for selecting voltage level and
+> enabling/disabling are in the same PBIAS register.
 
-Regards,
-Nishanth Menon
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This looks OK from a regulator API point of view but I expect a new
+version is required to address Tony's concerns.
+
+--p4qYPpj5QlsIQJ0K
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
+
+iQIcBAEBAgAGBQJSqOtZAAoJELSic+t+oim9cA0P/iA283lESfe07m7rzjtqnHx5
+BK/WJeoCdWrfw7NI3mIZq6baFef9xOPUy1eWoPCCJTCuhRNCxsYjmEngb2jDryMa
+iXsbmmtXV8YQvQQTvLc01YhJSwPEjEsoTOgGtaoJyFpMscgZsNOyJDsj3ykGGQFt
+jj7IzBtQTrdpuhAfvAsfUzYyvEzDyJzFKY9eUExoVFcT/zov6mjBaegbP71Wro5T
+jm/WgaEEsnksTyryg3acRw0J/Sk9Iwgskb6pTcfQsA3jeHGyZesHrEweGI4Zgk9w
+EhiskmLjjua+eTFRdpTexW10IuFQdjrDhIy6vz7EqTZHxJLsOmczaSV5jW60/Sfu
+c6PPVM81vqTN4di4lRG8JPAz6lHBdde1ud/yffMdUa9CYCqOoMnRwOChsywmsDJ/
+JIFR2XkkqOVABftCQw/OVCjbO3NfaI4ayf1174AyOQjIVK2aeWxBATIqIKKy7yQv
+TmI07McdCG3BP2LY7bA4kL7Fy6fKZKpQXAjsw6PnLxubD3Lk3YdlLrzaynPv1jmF
+mK9yUCZUHjCstGRWLoyv3JS1t8WBDmYcG3m2AAVzr+3uL+Pnd3+vEktxU6hrxIV+
+19GcK8VABVm8htKPykWcOLvqaafEXO5DtvrxrEsFdArM14S3eVJZt+P/WWE1WlOE
+1uTS+UhRORFH7l653f/o
+=wwgm
+-----END PGP SIGNATURE-----
+
+--p4qYPpj5QlsIQJ0K--
