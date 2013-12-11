@@ -1,66 +1,61 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH v3 07/15] mfd: menelaus: Limit the usage of the_menelaus
-Date: Wed, 11 Dec 2013 09:17:39 +0000
-Message-ID: <20131211091739.GB16780@lee--X1>
-References: <20131209161422.GC24047@saruman.home>
- <1386606085-26838-1-git-send-email-balbi@ti.com>
- <1386606085-26838-7-git-send-email-balbi@ti.com>
- <20131210085701.GP12675@lee--X1>
- <20131210163220.GE22750@saruman.home>
+From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
+	<u.kleine-koenig@pengutronix.de>
+Subject: Re: [PATCH v2 01/15] mfd: menelaus: Drop __exit section annotation
+Date: Wed, 11 Dec 2013 10:44:40 +0100
+Message-ID: <20131211094440.GG18888@pengutronix.de>
+References: <1386042188-12246-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yh0-f53.google.com ([209.85.213.53]:54016 "EHLO
-	mail-yh0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750873Ab3LKJRp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Dec 2013 04:17:45 -0500
-Received: by mail-yh0-f53.google.com with SMTP id b20so4811466yha.12
-        for <linux-omap@vger.kernel.org>; Wed, 11 Dec 2013 01:17:44 -0800 (PST)
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20131210163220.GE22750@saruman.home>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+In-Reply-To: <1386042188-12246-1-git-send-email-balbi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Felipe Balbi <balbi@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, sameo@linux.intel.com, Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, lee.jones@linaro.org, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+List-Id: linux-omap@vger.kernel.org
 
-On Tue, 10 Dec 2013, Felipe Balbi wrote:
+On Mon, Dec 02, 2013 at 09:42:54PM -0600, Felipe Balbi wrote:
+> we could build that as a driver.
+What is "that". How can it not be a driver? Do you mean modular? In tha=
+t
+case there is no problem, the only thing that doesn't work is unloading
+the module.
 
-> On Tue, Dec 10, 2013 at 08:57:01AM +0000, Lee Jones wrote:
-> > > Pass a menelaus_chip pointer as argument to most functions so we =
-can
-> > > minimize the usage of the global the_menelaus pointer.
-> > >=20
-> > > Tested-by: Aaro Koskinen <aaro.koskinen@iki.fi>
-> > > Signed-off-by: Felipe Balbi <balbi@ti.com>
-> > > ---
-> > >  drivers/mfd/menelaus.c | 265 ++++++++++++++++++++++++++---------=
---------------
-> > >  1 file changed, 142 insertions(+), 123 deletions(-)
-> >=20
-> > How is this different from patch 6?
+Best regards
+Uwe
+=20
+> Signed-off-by: Felipe Balbi <balbi@ti.com>
+> ---
+>  drivers/mfd/menelaus.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
 >=20
-> have you read the patch ? patch 6 converts *only* enable/disable irq
-> functions.
-
-Well it actually converts menelaus_ack_irq() too, but that's not the
-point I was making.
-
-I can see that the 'code' is different, but the functionality of the
-patch is the same i.e. converting functions to pass around the
-menelaus_chip pointer for eradication of the_menelaus global pointer.
-
-I'm not concerned about the 'lines changed' count. The change your
-making is trivial, thus there is no requirement to split unnecessarily
-over 5 patches. Please squash them into a single functionality patch.
+> diff --git a/drivers/mfd/menelaus.c b/drivers/mfd/menelaus.c
+> index ad25bfa..975ff9e 100644
+> --- a/drivers/mfd/menelaus.c
+> +++ b/drivers/mfd/menelaus.c
+> @@ -1262,7 +1262,7 @@ fail:
+>  	return err;
+>  }
+> =20
+> -static int __exit menelaus_remove(struct i2c_client *client)
+> +static int menelaus_remove(struct i2c_client *client)
+>  {
+>  	struct menelaus_chip	*menelaus =3D i2c_get_clientdata(client);
+> =20
+> @@ -1283,7 +1283,7 @@ static struct i2c_driver menelaus_i2c_driver =3D=
+ {
+>  		.name		=3D DRIVER_NAME,
+>  	},
+>  	.probe		=3D menelaus_probe,
+> -	.remove		=3D __exit_p(menelaus_remove),
+> +	.remove		=3D menelaus_remove,
+>  	.id_table	=3D menelaus_id,
+>  };
+> =20
 
 --=20
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org =E2=94=82 Open source software for ARM SoCs
-=46ollow Linaro: Facebook | Twitter | Blog
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Pengutronix e.K.                           | Uwe Kleine-K=F6nig        =
+    |
+Industrial Linux Solutions                 | http://www.pengutronix.de/=
+  |
