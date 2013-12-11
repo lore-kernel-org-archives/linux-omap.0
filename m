@@ -1,73 +1,60 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 06/26] OMAPDSS: if dssdev->name==NULL, use alias
-Date: Thu, 12 Dec 2013 00:56:07 +0100
-Message-ID: <10507960.9DXH4TSv2E@avalon>
-References: <1386160133-24026-1-git-send-email-tomi.valkeinen@ti.com> <1386160133-24026-7-git-send-email-tomi.valkeinen@ti.com> <37483030.ghHfzYFSnL@avalon>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:46456 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751678Ab3LKXzy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Dec 2013 18:55:54 -0500
-In-Reply-To: <37483030.ghHfzYFSnL@avalon>
-Sender: linux-omap-owner@vger.kernel.org
+From: Olof Johansson <olof@lixom.net>
+Subject: [PATCH] net: eth: cpsw: 64-bit phys_addr_t and sparse cleanup
+Date: Wed, 11 Dec 2013 15:58:07 -0800
+Message-ID: <1386806287-6564-1-git-send-email-olof@lixom.net>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: davem@davemloft.net
+Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Olof Johansson <olof@lixom.net>
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, Archit Taneja <archit@ti.com>, Darren Etheridge <detheridge@ti.com>, Tony Lindgren <tony@atomide.com>
 
-Hi Tomi,
+Minor fix for printk format of a phys_addr_t, and the switch of two local
+functions to static since they're not used outside of the file.
 
-On Thursday 12 December 2013 00:13:01 Laurent Pinchart wrote:
-> On Wednesday 04 December 2013 14:28:33 Tomi Valkeinen wrote:
-> > To avoid the need for a "nickname" property for each display, change
-> > the display registration so that the display's alias (i.e. "display0"
-> > etc) will be used for the dssdev->name if the display driver didn't
-> > provide a name.
-> > 
-> > This means that when booting with board files, we will have more
-> > descriptive names for displays, like "lcd1", "hdmi".
-> 
-> Where are those names used ? Are they reported to userspace, or limited to
-> kernel internal use only ?
-> 
-> > With DT we'll only have "display0", etc. But as there are no "nicknames"
-> > for things like serials ports either, I hope we will do fine with this
->
-> Just a random thought, maybe the aliases node could help here.
+Signed-off-by: Olof Johansson <olof@lixom.net>
+---
 
-I should have read the next patches before replying, sorry :-)
+Missed this one with the previous 64-bit phys_addr_t fix. Feel free to
+fold it in, or apply separately.
 
-> I'm not sure what rules govern its usage. Adding labels to display DT nodes
-> could be an option too.
 
-A label property is still an option.
+-Olof
 
-> > Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> > ---
-> > 
-> >  drivers/video/omap2/dss/display.c | 3 +++
-> >  1 file changed, 3 insertions(+)
-> > 
-> > diff --git a/drivers/video/omap2/dss/display.c
-> > b/drivers/video/omap2/dss/display.c index 669a81fdf58e..a946cf7ed00f
-> > 100644
-> > --- a/drivers/video/omap2/dss/display.c
-> > +++ b/drivers/video/omap2/dss/display.c
-> > @@ -137,6 +137,9 @@ int omapdss_register_display(struct omap_dss_device
-> > *dssdev)
-> >  	snprintf(dssdev->alias, sizeof(dssdev->alias),
-> >  			"display%d", disp_num_counter++);
-> > 
-> > +	if (dssdev->name == NULL)
-> > +		dssdev->name = dssdev->alias;
-> > +
-> >  	if (drv && drv->get_resolution == NULL)
-> >  		drv->get_resolution = omapdss_default_get_resolution;
-> >  	if (drv && drv->get_recommended_bpp == NULL)
+ drivers/net/ethernet/ti/cpsw.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+index c8a54f9..915eca9 100644
+--- a/drivers/net/ethernet/ti/cpsw.c
++++ b/drivers/net/ethernet/ti/cpsw.c
+@@ -582,7 +582,7 @@ static void cpsw_intr_disable(struct cpsw_priv *priv)
+ 	return;
+ }
+ 
+-void cpsw_tx_handler(void *token, int len, int status)
++static void cpsw_tx_handler(void *token, int len, int status)
+ {
+ 	struct sk_buff		*skb = token;
+ 	struct net_device	*ndev = skb->dev;
+@@ -599,7 +599,7 @@ void cpsw_tx_handler(void *token, int len, int status)
+ 	dev_kfree_skb_any(skb);
+ }
+ 
+-void cpsw_rx_handler(void *token, int len, int status)
++static void cpsw_rx_handler(void *token, int len, int status)
+ {
+ 	struct sk_buff		*skb = token;
+ 	struct sk_buff		*new_skb;
+@@ -2142,8 +2142,8 @@ static int cpsw_probe(struct platform_device *pdev)
+ 			  data->cpts_clock_mult, data->cpts_clock_shift))
+ 		dev_err(priv->dev, "error registering cpts device\n");
+ 
+-	cpsw_notice(priv, probe, "initialized device (regs %x, irq %d)\n",
+-		    ss_res->start, ndev->irq);
++	cpsw_notice(priv, probe, "initialized device (regs %pa, irq %d)\n",
++		    &ss_res->start, ndev->irq);
+ 
+ 	if (priv->data.dual_emac) {
+ 		ret = cpsw_probe_dual_emac(pdev, priv);
 -- 
-Regards,
-
-Laurent Pinchart
-
+1.7.10.4
