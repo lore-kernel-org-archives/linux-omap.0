@@ -1,87 +1,54 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCHv2 00/10] Add memory mapped support for ti qspi, m25p80
- serial flash.
-Date: Wed, 11 Dec 2013 12:01:57 +0000
-Message-ID: <20131211120157.GS11468@sirena.org.uk>
-References: <1386339891-32717-1-git-send-email-sourav.poddar@ti.com>
- <201312101349.13564.marex@denx.de> <52A7E7A5.5000909@ti.com>
- <201312111144.23012.marex@denx.de>
+From: Denis CIOCCA <denis.ciocca@st.com>
+Subject: need help to configure IRQ on gpio 139 pandaboard using device tree
+Date: Wed, 11 Dec 2013 15:28:28 +0100
+Message-ID: <52A8768C.5070103@st.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0473629712568931535=="
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
-In-Reply-To: <201312111144.23012.marex@denx.de>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
-To: Marek Vasut <marex@denx.de>
-Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, balbi@ti.com, linux-spi@vger.kernel.org, linux-mtd@lists.infradead.org, bcousson@baylibre.com, Sourav Poddar <sourav.poddar@ti.com>, computersforpeace@gmail.com, dwmw2@infradead.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from eu1sys200aog101.obsmtp.com ([207.126.144.111]:35368 "EHLO
+	eu1sys200aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751294Ab3LKO2e convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 11 Dec 2013 09:28:34 -0500
+Received: from zeta.dmz-eu.st.com (zeta.dmz-eu.st.com [164.129.230.9])
+	by beta.dmz-eu.st.com (STMicroelectronics) with ESMTP id 479D3BB
+	for <linux-omap@vger.kernel.org>; Wed, 11 Dec 2013 14:27:53 +0000 (GMT)
+Received: from Webmail-eu.st.com (safex1hubcas1.st.com [10.75.90.14])
+	by zeta.dmz-eu.st.com (STMicroelectronics) with ESMTP id 39738595B
+	for <linux-omap@vger.kernel.org>; Wed, 11 Dec 2013 14:14:56 +0000 (GMT)
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+
+Hi everybody,
+
+I'm trying to configure an IRQ on pandaboard using device tree but I'm 
+not able to understand how I can do it.
+I want to configure the the gpio_139 pin and without device tree my 
+command was:
+
+OMAP4_MUX(MCSPI1_SIMO, OMAP_MUX_MODE3 | OMAP_PIN_INPUT_PULLUP),
+
+I need to associate it to a i2c device, declared in this way:
+
+&i2c4 {
+     pinctrl-names = "default";
+     pinctrl-0 = <&i2c4_pins>;
+
+     clock-frequency = <400000>;
+
+     lsm303d@03 {
+         compatible = "st,lsm303d";
+         reg = <0x03>;
+     };
+};
+
+and it works, but I don't know how I can set the interrupt using:
+interrupts = <GIC_SPI 119 IRQ_TYPE_LEVEL_HIGH>; /* example */
 
 
---===============0473629712568931535==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="4ZVTVymsHR1TEBjP"
-Content-Disposition: inline
+Thanks,
 
-
---4ZVTVymsHR1TEBjP
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Wed, Dec 11, 2013 at 11:44:22AM +0100, Marek Vasut wrote:
-> On Wednesday, December 11, 2013 at 05:18:45 AM, Sourav Poddar wrote:
-
-> > I did a quad mode support for m25p80 which easily got cloned into the
-> > new spi framework.
-> > Same can be done for the memory mapped support too
-
-> The quad mode didn't need any new hooks in the m25p80, did it ? That's th=
-e=20
-> difference here.
-
-It did, there's explicit code in the flash driver for it.  However it's
-rather more generic than this.
-
---4ZVTVymsHR1TEBjP
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
-
-iQIcBAEBAgAGBQJSqFQyAAoJELSic+t+oim9HKEQAJ0wkfL4oYPQ+BpyWVEIsX9V
-tN9obu/c2zl+UGQlVMsaX3bfBt9r6wiNNr8g63qE7Osouoq0QD012BMfB6bMXo6H
-KprLjBBgooiYfNZwPqESa7m20f5oPJ3Zf8gTQVkT1tmD2o/nuWDl5B1tNvxmYv06
-5EDrVSRXbRgwA7WnUwziVJoYgy68EAZOIzUBIqVrXrpWbsWU40QGBUROhNr/9lqI
-7cWxuZtXu5KAFrhPizQ9edP9m/ZT6eHQVHe1hQcJA1fSbbvSVlzQz9154qg25pUj
-0cSVHscm/QqQNZF037RNO5pIhdKYIpVzMQ5JkjsVPNaM0ALbhzv3kDi4d99peXBP
-YdvEAbcmjRKwxO0hTM95kUvHI0NibeGQMmjH9hvhcufPzIM8Dap06sNvxM91IfS2
-sC47Oq3MXuEM1Uocxv0Ys0Bj9shOVDesIwpma/IW80rq15AzC0yas53duBfK5GG/
-fZFe8ioTUzguFFRvZceZLuRt7fgRmU84sFjE99Q00+e1cohBv/hVSRLgt7mxMs33
-le5LGwHEQQYPNO3njN86DfYwJo4wn8G+oC8F99SuPphFzU6VQ2hQHyMjUNRaqzXM
-/iSYIN21TkZD//EMiDzvc6IwI5u1GKQATCRdghQu9zvOa5MyU6ZLOJw9Y12vPdVt
-Fnkp22832HBo+uK1OIak
-=SqgG
------END PGP SIGNATURE-----
-
---4ZVTVymsHR1TEBjP--
-
-
---===============0473629712568931535==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-______________________________________________________
-Linux MTD discussion mailing list
-http://lists.infradead.org/mailman/listinfo/linux-mtd/
-
---===============0473629712568931535==--
+Denis
