@@ -1,110 +1,70 @@
-From: Vivek Gautam <gautamvivek1987@gmail.com>
-Subject: Re: [PATCH RFC 1/4] phy: Add provision for tuning phy.
-Date: Wed, 11 Dec 2013 14:03:42 +0530
-Message-ID: <CAFp+6iHkZJ9xVaS6ksp_zMR3332uxZpPohTiRUrbCJr+Gm0gvA@mail.gmail.com>
-References: <1386672926-26885-1-git-send-email-gautam.vivek@samsung.com>
-	<1386672926-26885-2-git-send-email-gautam.vivek@samsung.com>
-	<20131210140142.GB28456@xps8300>
-	<CAFp+6iENkrSUT=_iv+uZnVpDSGDQGOzF_oyZ6Dmzr8VcQfjztw@mail.gmail.com>
-	<52A81F89.4010603@ti.com>
+From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Subject: Re: [PATCH v3 04/10] usb: dwc3: use quirks to know if a particualr
+ platform doesn't have PHY
+Date: Wed, 11 Dec 2013 10:53:20 +0200
+Message-ID: <20131211085320.GD28456@xps8300>
+References: <1385373690-12170-1-git-send-email-kishon@ti.com>
+ <1385373690-12170-5-git-send-email-kishon@ti.com>
+ <20131204144027.GB21055@xps8300>
+ <52A01E86.50406@ti.com>
+ <20131205075828.GA32583@xps8300>
+ <52A56DA1.1010808@ti.com>
+ <20131209092604.GC5231@xps8300>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-In-Reply-To: <52A81F89.4010603@ti.com>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: Heikki Krogerus <heikki.krogerus@linux.intel.com>, Vivek Gautam <gautam.vivek@samsung.com>, Linux USB Mailing List <linux-usb@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, linux-omap@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Greg KH <gregkh@linuxfoundation.org>, Felipe Balbi <balbi@ti.com>, Sarah Sharp <sarah.a.sharp@linux.intel.com>, Kukjin Kim <kgene.kim@samsung.com>, Jingoo Han <jg1.han@samsung.com>, Julius Werner <jwerner@chromium.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:63819 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750800Ab3LKIxf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 11 Dec 2013 03:53:35 -0500
+Content-Disposition: inline
+In-Reply-To: <20131209092604.GC5231@xps8300>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>, balbi@ti.com
+Cc: bcousson@baylibre.com, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ijc+devicetree@hellion.org.uk, rob@landley.net, tony@atomide.com, linux@arm.linux.org.uk, gregkh@linuxfoundation.org, grant.likely@linaro.org, s.nawrocki@samsung.com, galak@codeaurora.org
 
-Hi Kishon,
+Hi,
 
+On Mon, Dec 09, 2013 at 11:26:04AM +0200, Heikki Krogerus wrote:
+> > >>>Can you guys explain why is something like this needed? Like with
+> > >>>clocks and gpios, the device drivers shouldn't need to care any more
+> > >>>if the platform has the phys or not. -ENODEV tells you your platform
+> > >>
+> > >>Shouldn't we report if a particular platform needs a PHY and not able to get
+> > >>it. How will a user know if a particular controller is not working because it's
+> > >>not able to get and initialize the PHYs? Don't you think in such cases it's
+> > >>better to fail (and return from probe) because the controller will not work
+> > >>anyway without the PHY?
+> > >
+> > >My point is that you do not need to separately tell this to the driver
+> > >like you do with the quirks (if you did, then you would need to fix
+> > >your framework and not hack the drivers).
+> > >
+> > >Like I said, ENODEV tells you that there is no phy on this platform
+> > >for you, allowing you to safely continue. If your phy driver is not
+> > >loaded, the framework already returns EPROBE_DEFER, right. Any other
+> > 
+> > right. but that doesn't consider broken dt data. With quirks we'll
+> > able to tell if a controller in a particular platform has PHY or not
+> > without depending on the dt data.
+> 
+> Broken dt data? What kind of scenario are you thinking here? Do you
+> mean case where the dt does not describe the phy on a platform that
+> depends on it? Shouldn't that problem be fixed in the dt and not
+> hacked in the drivers? Or are you thinking about something else?
+> 
+> Is there a case where something like that is actually happening?
 
-On Wed, Dec 11, 2013 at 1:47 PM, Kishon Vijay Abraham I <kishon@ti.com> wrote:
-> On Wednesday 11 December 2013 12:08 PM, Vivek Gautam wrote:
->> Hi,
->>
->>
->> On Tue, Dec 10, 2013 at 7:31 PM, Heikki Krogerus
->> <heikki.krogerus@linux.intel.com> wrote:
->>> Hi,
->>
->> Thanks for reviewing this.
->>
->>>
->>> On Tue, Dec 10, 2013 at 04:25:23PM +0530, Vivek Gautam wrote:
->>>> Some PHY controllers may need to tune PHY post-initialization,
->>>> so that the PHY consumers can call phy-tuning at appropriate
->>>> point of time.
->>>>
->>>> Signed-off-by: vivek Gautam <gautam.vivek@samsung.com>
->>>> ---
->>>>  drivers/phy/phy-core.c  |   20 ++++++++++++++++++++
->>>>  include/linux/phy/phy.h |    7 +++++++
->>>>  2 files changed, 27 insertions(+), 0 deletions(-)
->>>>
->>>> diff --git a/drivers/phy/phy-core.c b/drivers/phy/phy-core.c
->>>> index 03cf8fb..68dbb90 100644
->>>> --- a/drivers/phy/phy-core.c
->>>> +++ b/drivers/phy/phy-core.c
->>>> @@ -239,6 +239,26 @@ out:
->>>>  }
->>>>  EXPORT_SYMBOL_GPL(phy_power_off);
->>>>
->>>> +int phy_tune(struct phy *phy)
->>>> +{
->>>> +     int ret = -ENOTSUPP;
->>>> +
->>>> +     mutex_lock(&phy->mutex);
->>>> +     if (phy->ops->tune) {
->>>> +             ret =  phy->ops->tune(phy);
->>>> +             if (ret < 0) {
->>>> +                     dev_err(&phy->dev, "phy tuning failed --> %d\n", ret);
->>>> +                     goto out;
->>>> +             }
->>>> +     }
->>>> +
->>>> +out:
->>>> +     mutex_unlock(&phy->mutex);
->>>> +
->>>> +     return ret;
->>>> +}
->>>> +EXPORT_SYMBOL_GPL(phy_tune);
->>>
->>> I think "setup" instead of "tune" is much more clear and reusable.
->>
->> I think "setup" will look more like first time setting up the phy,
->> which is rather served by "init" callback.
->> This i thought would serve the purpose of over-riding certain PHY
->> parameters, which would not have been
->> possible at "init" time.
->> Please correct my thinking if i am unable to understand your point here.
->
-> how about 'calibrate'?
+I'm guessing I'm not getting an answer to this one.
 
-Hmm, seems like a better name :-)
-
->
-> Thanks
-> Kishon
->>
->>>
->>> Thanks,
->>>
->>> --
->>> heikki
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-samsung-soc" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
->>
->>
->
+Look, this patch will not work with ACPI enumerated devices. We will
+have a platform providing a single ACPI id, but there is a whole bunch
+of boards based on it and we have no way of telling which of them
+need/have phys to deal with and which ones don't.
 
 
+Thanks,
 
 -- 
-Best Regards
-Vivek Gautam
-Samsung R&D Institute, Bangalore
-India
+heikki
