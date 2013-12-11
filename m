@@ -1,54 +1,147 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH v5 3/7] regulator: add pbias regulator support
-Date: Wed, 11 Dec 2013 22:46:52 +0000
-Message-ID: <20131211224652.GB11044@sirena.org.uk>
-References: <20131210104005.GB29268@sirena.org.uk>
- <1386686098-7779-1-git-send-email-balajitk@ti.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 05/26] ARM: OMAP2+: add omapdss_init_of()
+Date: Thu, 12 Dec 2013 00:10:18 +0100
+Message-ID: <2199639.FbGhznOLP9@avalon>
+References: <1386160133-24026-1-git-send-email-tomi.valkeinen@ti.com> <1386160133-24026-6-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="p4qYPpj5QlsIQJ0K"
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1386686098-7779-1-git-send-email-balajitk@ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Balaji T K <balajitk@ti.com>
-Cc: linux-omap@vger.kernel.org, bcousson@baylibre.com, devicetree@vger.kernel.org, linux-mmc@vger.kernel.org, cjb@laptop.org, tony@atomide.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:46229 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751592Ab3LKXKF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Dec 2013 18:10:05 -0500
+In-Reply-To: <1386160133-24026-6-git-send-email-tomi.valkeinen@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, Archit Taneja <archit@ti.com>, Darren Etheridge <detheridge@ti.com>, Tony Lindgren <tony@atomide.com>
 
+Hi Tomi,
 
---p4qYPpj5QlsIQJ0K
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+On Wednesday 04 December 2013 14:28:32 Tomi Valkeinen wrote:
+> omapdss driver uses a omapdss platform device to pass platform specific
+> function pointers and DSS hardware version from the arch code to the
+> driver. This device is needed also when booting with DT.
+> 
+> This patch adds omapdss_init_of() function, called from board-generic at
+> init time, which creates the omapdss device.
 
-On Tue, Dec 10, 2013 at 08:04:58PM +0530, Balaji T K wrote:
-> pbias register controls internal power supply to sd card i/o pads
-> in most OMAPs (OMAP2-5, DRA7).
-> Control bits for selecting voltage level and
-> enabling/disabling are in the same PBIAS register.
+Is this a temporary solution that you plan to later replace with DT-only 
+device instantiation ?
 
-This looks OK from a regulator API point of view but I expect a new
-version is required to address Tony's concerns.
+> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> ---
+>  arch/arm/mach-omap2/board-generic.c |  2 ++
+>  arch/arm/mach-omap2/common.h        |  2 ++
+>  arch/arm/mach-omap2/display.c       | 62 ++++++++++++++++++++++++++++++++++
+>  3 files changed, 66 insertions(+)
+> 
+> diff --git a/arch/arm/mach-omap2/board-generic.c
+> b/arch/arm/mach-omap2/board-generic.c index 19f1652e94cf..0e06771d7bee
+> 100644
+> --- a/arch/arm/mach-omap2/board-generic.c
+> +++ b/arch/arm/mach-omap2/board-generic.c
+> @@ -36,6 +36,8 @@ static struct of_device_id omap_dt_match_table[]
+> __initdata = { static void __init omap_generic_init(void)
+>  {
+>  	pdata_quirks_init(omap_dt_match_table);
+> +
+> +	omapdss_init_of();
+>  }
+> 
+>  #ifdef CONFIG_SOC_OMAP2420
+> diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
+> index f7644febee81..48e9cd34cae0 100644
+> --- a/arch/arm/mach-omap2/common.h
+> +++ b/arch/arm/mach-omap2/common.h
+> @@ -308,5 +308,7 @@ extern int omap_dss_reset(struct omap_hwmod *);
+>  /* SoC specific clock initializer */
+>  extern int (*omap_clk_init)(void);
+> 
+> +int __init omapdss_init_of(void);
+> +
+>  #endif /* __ASSEMBLER__ */
+>  #endif /* __ARCH_ARM_MACH_OMAP2PLUS_COMMON_H */
+> diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
+> index a4e536b11ec9..3279afc5f0b5 100644
+> --- a/arch/arm/mach-omap2/display.c
+> +++ b/arch/arm/mach-omap2/display.c
+> @@ -23,6 +23,8 @@
+>  #include <linux/clk.h>
+>  #include <linux/err.h>
+>  #include <linux/delay.h>
+> +#include <linux/of.h>
+> +#include <linux/of_platform.h>
+> 
+>  #include <video/omapdss.h>
+>  #include "omap_hwmod.h"
+> @@ -592,3 +594,63 @@ int omap_dss_reset(struct omap_hwmod *oh)
+> 
+>  	return r;
+>  }
+> +
+> +int __init omapdss_init_of(void)
+> +{
+> +	int r;
+> +	enum omapdss_version ver;
+> +
+> +	static struct omap_dss_board_info board_data = {
+> +		.dsi_enable_pads = omap_dsi_enable_pads,
+> +		.dsi_disable_pads = omap_dsi_disable_pads,
+> +		.get_context_loss_count = omap_pm_get_dev_context_loss_count,
+> +		.set_min_bus_tput = omap_dss_set_min_bus_tput,
+> +	};
+> +
+> +	ver = omap_display_get_version();
+> +
+> +	if (ver == OMAPDSS_VER_UNKNOWN) {
+> +		pr_err("DSS not supported on this SoC\n");
+> +		return -ENODEV;
+> +	}
+> +
+> +	board_data.version = ver;
+> +
+> +	omap_display_device.dev.platform_data = &board_data;
+> +
+> +	r = platform_device_register(&omap_display_device);
+> +	if (r < 0) {
+> +		pr_err("Unable to register omapdss device\n");
+> +		return r;
+> +	}
+> +
+> +	/* create DRM device */
+> +	r = omap_init_drm();
+> +	if (r < 0) {
+> +		pr_err("Unable to register omapdrm device\n");
+> +		return r;
+> +	}
+> +
+> +	/* create vrfb device */
+> +	r = omap_init_vrfb();
+> +	if (r < 0) {
+> +		pr_err("Unable to register omapvrfb device\n");
+> +		return r;
+> +	}
+> +
+> +	/* create FB device */
+> +	r = omap_init_fb();
+> +	if (r < 0) {
+> +		pr_err("Unable to register omapfb device\n");
+> +		return r;
+> +	}
+> +
+> +	/* create V4L2 display device */
+> +	r = omap_init_vout();
+> +	if (r < 0) {
+> +		pr_err("Unable to register omap_vout device\n");
+> +		return r;
+> +	}
+> +
+> +	return 0;
+> +}
+-- 
+Regards,
 
---p4qYPpj5QlsIQJ0K
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Laurent Pinchart
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
-
-iQIcBAEBAgAGBQJSqOtZAAoJELSic+t+oim9cA0P/iA283lESfe07m7rzjtqnHx5
-BK/WJeoCdWrfw7NI3mIZq6baFef9xOPUy1eWoPCCJTCuhRNCxsYjmEngb2jDryMa
-iXsbmmtXV8YQvQQTvLc01YhJSwPEjEsoTOgGtaoJyFpMscgZsNOyJDsj3ykGGQFt
-jj7IzBtQTrdpuhAfvAsfUzYyvEzDyJzFKY9eUExoVFcT/zov6mjBaegbP71Wro5T
-jm/WgaEEsnksTyryg3acRw0J/Sk9Iwgskb6pTcfQsA3jeHGyZesHrEweGI4Zgk9w
-EhiskmLjjua+eTFRdpTexW10IuFQdjrDhIy6vz7EqTZHxJLsOmczaSV5jW60/Sfu
-c6PPVM81vqTN4di4lRG8JPAz6lHBdde1ud/yffMdUa9CYCqOoMnRwOChsywmsDJ/
-JIFR2XkkqOVABftCQw/OVCjbO3NfaI4ayf1174AyOQjIVK2aeWxBATIqIKKy7yQv
-TmI07McdCG3BP2LY7bA4kL7Fy6fKZKpQXAjsw6PnLxubD3Lk3YdlLrzaynPv1jmF
-mK9yUCZUHjCstGRWLoyv3JS1t8WBDmYcG3m2AAVzr+3uL+Pnd3+vEktxU6hrxIV+
-19GcK8VABVm8htKPykWcOLvqaafEXO5DtvrxrEsFdArM14S3eVJZt+P/WWE1WlOE
-1uTS+UhRORFH7l653f/o
-=wwgm
------END PGP SIGNATURE-----
-
---p4qYPpj5QlsIQJ0K--
