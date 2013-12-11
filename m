@@ -1,64 +1,95 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH] phy: omap_usb2: fix module dependency
-Date: Wed, 11 Dec 2013 11:14:45 +0530
-Message-ID: <52A7FBCD.4030101@ti.com>
-References: <1386707097-25650-1-git-send-email-balbi@ti.com>
+From: Vivek Gautam <gautamvivek1987-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH RFC 1/4] phy: Add provision for tuning phy.
+Date: Wed, 11 Dec 2013 12:08:04 +0530
+Message-ID: <CAFp+6iENkrSUT=_iv+uZnVpDSGDQGOzF_oyZ6Dmzr8VcQfjztw@mail.gmail.com>
+References: <1386672926-26885-1-git-send-email-gautam.vivek@samsung.com>
+	<1386672926-26885-2-git-send-email-gautam.vivek@samsung.com>
+	<20131210140142.GB28456@xps8300>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:59201 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750719Ab3LKFpM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 11 Dec 2013 00:45:12 -0500
-In-Reply-To: <1386707097-25650-1-git-send-email-balbi@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20131210140142.GB28456@xps8300>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Heikki Krogerus <heikki.krogerus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Cc: Vivek Gautam <gautam.vivek-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Sarah Sharp <sarah.a.sharp-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Kukjin Kim <kgene.kim-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, kishon <kishon-l0cyMroinI0@public.gmane.org>, Jingoo Han <jg1.han-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Julius Werner <jwerner-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Linux USB Mailing List <linux-usb@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
 
-Hi Felipe,
+Hi,
 
-On Wednesday 11 December 2013 01:54 AM, Felipe Balbi wrote:
-> Due to over-use of select statements, we could
-> fall into a situation where CONFIG_USB_PHY would
-> be enabled while CONFIG_USB_SUPPORT wouldn't.
-> 
-> This would generate a situation where usb_bind_phy()
-> would not be defined and kernel build for some
-> OMAP2PLUS platforms would fail.
-> 
-> Fix this by replacing a 'select' with a more proper
-> 'depends on'.
 
-last week I sent a patch changing it to depends on USB_PHY and Greg has merged
-it yesterday so it should come in -rc4. Do you think this patch will also be
-needed?
+On Tue, Dec 10, 2013 at 7:31 PM, Heikki Krogerus
+<heikki.krogerus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org> wrote:
+> Hi,
 
-Thanks
-Kishon
+Thanks for reviewing this.
 
-> 
-> Reported-by: Russell King <rmk+kernel@arm.linux.org.uk>
-> Signed-off-by: Felipe Balbi <balbi@ti.com>
-> ---
->  drivers/phy/Kconfig | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/phy/Kconfig b/drivers/phy/Kconfig
-> index a344f3d..d8b1a9a 100644
-> --- a/drivers/phy/Kconfig
-> +++ b/drivers/phy/Kconfig
-> @@ -24,9 +24,9 @@ config PHY_EXYNOS_MIPI_VIDEO
->  config OMAP_USB2
->  	tristate "OMAP USB2 PHY Driver"
->  	depends on ARCH_OMAP2PLUS
-> +	depends on OMAP_CONTROL_USB
->  	select GENERIC_PHY
->  	select USB_PHY
-> -	select OMAP_CONTROL_USB
->  	help
->  	  Enable this to support the transceiver that is part of SOC. This
->  	  driver takes care of all the PHY functionality apart from comparator.
-> 
+>
+> On Tue, Dec 10, 2013 at 04:25:23PM +0530, Vivek Gautam wrote:
+>> Some PHY controllers may need to tune PHY post-initialization,
+>> so that the PHY consumers can call phy-tuning at appropriate
+>> point of time.
+>>
+>> Signed-off-by: vivek Gautam <gautam.vivek-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+>> ---
+>>  drivers/phy/phy-core.c  |   20 ++++++++++++++++++++
+>>  include/linux/phy/phy.h |    7 +++++++
+>>  2 files changed, 27 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/drivers/phy/phy-core.c b/drivers/phy/phy-core.c
+>> index 03cf8fb..68dbb90 100644
+>> --- a/drivers/phy/phy-core.c
+>> +++ b/drivers/phy/phy-core.c
+>> @@ -239,6 +239,26 @@ out:
+>>  }
+>>  EXPORT_SYMBOL_GPL(phy_power_off);
+>>
+>> +int phy_tune(struct phy *phy)
+>> +{
+>> +     int ret = -ENOTSUPP;
+>> +
+>> +     mutex_lock(&phy->mutex);
+>> +     if (phy->ops->tune) {
+>> +             ret =  phy->ops->tune(phy);
+>> +             if (ret < 0) {
+>> +                     dev_err(&phy->dev, "phy tuning failed --> %d\n", ret);
+>> +                     goto out;
+>> +             }
+>> +     }
+>> +
+>> +out:
+>> +     mutex_unlock(&phy->mutex);
+>> +
+>> +     return ret;
+>> +}
+>> +EXPORT_SYMBOL_GPL(phy_tune);
+>
+> I think "setup" instead of "tune" is much more clear and reusable.
 
+I think "setup" will look more like first time setting up the phy,
+which is rather served by "init" callback.
+This i thought would serve the purpose of over-riding certain PHY
+parameters, which would not have been
+possible at "init" time.
+Please correct my thinking if i am unable to understand your point here.
+
+>
+> Thanks,
+>
+> --
+> heikki
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-samsung-soc" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+
+-- 
+Best Regards
+Vivek Gautam
+Samsung R&D Institute, Bangalore
+India
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
