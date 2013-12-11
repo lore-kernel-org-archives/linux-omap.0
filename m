@@ -1,63 +1,70 @@
-From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Subject: Re: [PATCH RFC 1/4] phy: Add provision for tuning phy.
-Date: Wed, 11 Dec 2013 10:54:52 +0200
-Message-ID: <20131211085452.GE28456@xps8300>
-References: <1386672926-26885-1-git-send-email-gautam.vivek@samsung.com>
- <1386672926-26885-2-git-send-email-gautam.vivek@samsung.com>
- <20131210140142.GB28456@xps8300>
- <CAFp+6iENkrSUT=_iv+uZnVpDSGDQGOzF_oyZ6Dmzr8VcQfjztw@mail.gmail.com>
- <20131211080906.GC28456@xps8300>
- <CAFp+6iFHO6Nr1KRzNqsZpY29czmvTXqPaVbUz9JRdc8QmPziYQ@mail.gmail.com>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH v3 11/15] mfd: menelaus: Start to use irqdomain
+Date: Wed, 11 Dec 2013 09:06:45 +0000
+Message-ID: <20131211090645.GA16780@lee--X1>
+References: <20131209161422.GC24047@saruman.home>
+ <1386606085-26838-1-git-send-email-balbi@ti.com>
+ <1386606085-26838-11-git-send-email-balbi@ti.com>
+ <20131210092050.GT12675@lee--X1>
+ <20131210163430.GG22750@saruman.home>
+ <20131210183749.GC2390@lee--X1>
+ <20131210184653.GN13171@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:37566 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751065Ab3LKIzT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 11 Dec 2013 03:55:19 -0500
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAFp+6iFHO6Nr1KRzNqsZpY29czmvTXqPaVbUz9JRdc8QmPziYQ@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20131210184653.GN13171@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Felipe Balbi <balbi@ti.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Vivek Gautam <gautamvivek1987@gmail.com>
-Cc: Vivek Gautam <gautam.vivek@samsung.com>, Linux USB Mailing List <linux-usb@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, linux-omap@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Greg KH <gregkh@linuxfoundation.org>, Felipe Balbi <balbi@ti.com>, Sarah Sharp <sarah.a.sharp@linux.intel.com>, Kukjin Kim <kgene.kim@samsung.com>, kishon <kishon@ti.com>, Jingoo Han <jg1.han@samsung.com>, Julius Werner <jwerner@chromium.org>
 
-Hi again,
+On Tue, 10 Dec 2013, Tony Lindgren wrote:
 
-On Wed, Dec 11, 2013 at 02:02:43PM +0530, Vivek Gautam wrote:
-> On Wed, Dec 11, 2013 at 1:39 PM, Heikki Krogerus
-> <heikki.krogerus@linux.intel.com> wrote:
-> > On Wed, Dec 11, 2013 at 12:08:04PM +0530, Vivek Gautam wrote:
-> >> On Tue, Dec 10, 2013 at 7:31 PM, Heikki Krogerus
-> >> > I think "setup" instead of "tune" is much more clear and reusable.
-> >>
-> >> I think "setup" will look more like first time setting up the phy,
-> >> which is rather served by "init" callback.
-> >> This i thought would serve the purpose of over-riding certain PHY
-> >> parameters, which would not have been
-> >> possible at "init" time.
-> >> Please correct my thinking if i am unable to understand your point here.
-> >
-> > OK, sorry I was not clear on this. I'm thinking the same, that this is
-> > something that is called later, for example when the controller is
-> > ready. Some ULPI phys need to be initialized, but since the controller
-> > provides the interface, it's usually not possible during init time.
-> > This hook could be used in that case as well.
-> >
-> > All I'm saying is that "tune" is a poor expression. You will need to
-> > add a comment explaining what the hook does in any case, so you'll
-> > have something like "this is something that is called when the
-> > controller is ready" or something similar. That will make it clear
-> > what it's meant for.
-> 
-> Ok, i think i should have kept a comment atleast :-(
-> I will add proper comments above, and as suggested in the mail by
-> Kishon, may be name it calibrate ?
-> What do you think ?
+> * Lee Jones <lee.jones@linaro.org> [131210 10:39]:
+> > > > > Introduce an irq_chip and irq_domain for menelaus driver. Fol=
+lowing
+> > > > > patches will convert uses to traditional request_threaded_irq=
+().
+> > > > >=20
+> > > > > While at that, some better error handling had to be added, so=
+ we could
+> > > > > free irq descs we allocated.
+> > > > >=20
+> > > > > Tested-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+> > > > > Signed-off-by: Felipe Balbi <balbi@ti.com>
+> > > > > ---
+> > > > >  drivers/mfd/menelaus.c | 127 +++++++++++++++++++++++++++++++=
++++++++++++++++---
+> > > >=20
+> > > > <snip>
+> > > >=20
+> > > > > +	irq_domain_add_legacy(node, MENELAUS_NR_IRQS, irq_base, 0,
+> > > > > +			&irq_domain_simple_ops, m);
+> > > >=20
+> > > > When will this driver become DT compliant?
+> > >=20
+> > > when OMAP2 becomes DT-compliant. It still boots with legacy board=
+-file +
+> > > platform_data.
+> >=20
+> > Really? Tony, are there any plans to DT the platform?
+>=20
+> Yeah and what Felipe is doing here is an important step towards that.
+> We'll be booting omap2 in DT only mode with v3.14
 
-Sure, I'm fine with that.
+Okay, sounds good. Thanks for the clarification.
 
-Thanks,
+> but we still need
+> to rely on some pdata quirks at least for the MMC because Menelaus
+> does not provide the needed regulator phandles for the .dts files for
+> the driver to use.
 
--- 
-heikki
+I'll take your word for it. :)
+
+--=20
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org =E2=94=82 Open source software for ARM SoCs
+=46ollow Linaro: Facebook | Twitter | Blog
