@@ -1,66 +1,112 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [RFC/RFT/PATCH V3] gpio: omap: refresh patch "be more aggressive
- with pm_runtime" against v3.12-rc5
-Date: Thu, 12 Dec 2013 19:19:35 +0100
-Message-ID: <CACRpkdaD13JnGetD-GLpxSoaf_LkRKYFjis7Tftc6U38E1ES5A@mail.gmail.com>
-References: <1385506004-14943-1-git-send-email-caesarxuchao@gmail.com>
-	<1386477638-6331-1-git-send-email-caesarxuchao@gmail.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH v2 1/7] usb: dwc3: get "usb_phy" only if the platform
+ indicates the presence of PHY's
+Date: Thu, 12 Dec 2013 12:27:21 -0600
+Message-ID: <20131212182721.GL1939@saruman.home>
+References: <1381866857-3861-1-git-send-email-kishon@ti.com>
+ <1381866857-3861-2-git-send-email-kishon@ti.com>
+ <525E8E93.9010503@ti.com> <525E9046.3090209@ti.com>
+ <525E943E.3080706@ti.com> <20131017145425.GE11611@gimli>
+ <20131203103950.GB26423@xps8300>
+ <20131206201530.GA21086@saruman.home>
+ <20131209085245.GB5231@xps8300>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ob0-f180.google.com ([209.85.214.180]:56693 "EHLO
-	mail-ob0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751611Ab3LLSTg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Dec 2013 13:19:36 -0500
-Received: by mail-ob0-f180.google.com with SMTP id wo20so805830obc.25
-        for <linux-omap@vger.kernel.org>; Thu, 12 Dec 2013 10:19:35 -0800 (PST)
-In-Reply-To: <1386477638-6331-1-git-send-email-caesarxuchao@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/mixed; boundary="===============7566498481379945954=="
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20131209085245.GB5231@xps8300>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Cc: mark.rutland@arm.com, linux-doc@vger.kernel.org, tony@atomide.com, s.nawrocki@samsung.com, linux@arm.linux.org.uk, ijc+devicetree@hellion.org.uk, Kishon Vijay Abraham I <kishon@ti.com>, grant.likely@linaro.org, devicetree@vger.kernel.org, rob@landley.net, pawel.moll@arm.com, swarren@wwwdotorg.org, rob.herring@calxeda.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>, bcousson@baylibre.com, galak@codeaurora.org
 List-Id: linux-omap@vger.kernel.org
-To: Chao Xu <caesarxuchao@gmail.com>
-Cc: Linux-OMAP <linux-omap@vger.kernel.org>, "santosh.shilimkar@ti.com" <santosh.shilimkar@ti.com>, ext Kevin Hilman <khilman@deeprootsystems.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ext Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>, Kevin Hilman <khilman@linaro.org>, Nishanth Menon <nm@ti.com>
 
-On Sun, Dec 8, 2013 at 5:40 AM, Chao Xu <caesarxuchao@gmail.com> wrote:
+--===============7566498481379945954==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="GeDkoc8jIzHasOdk"
+Content-Disposition: inline
 
-> From: Felipe Balbi <balbi@ti.com>
->
-> try to keep gpio block suspended as much as possible.
->
-> Tested with pandaboard and a sysfs exported gpio.
->
-> Signed-off-by: Felipe Balbi <balbi at ti.com>
->
-> [caesarxuchao@gmail.com : Refreshed against v3.12-rc5, and added
-> revision check to enable aggressive pm_runtime on OMAP4-only. Because
-> am33xx_gpio_sysc.idlemodes seems to be wrongly marked as
-> SIDLE_SMART_WKUP, which might cause missed interrupts with this patch.
-> Tested on Pandaboard rev A2.]
-> Signed-off-by: Chao Xu <caesarxuchao@gmail.com>
-> ---
-> changes since v2:
-> *add wrapper function to avoid 'is_aggressive_pm' check everywhere, as
-> suggested by Santosh Shilimkar
-> *fix format issue in commit log
+--GeDkoc8jIzHasOdk
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I'm dropping this until you convince Kevin/Tony that this is
-the way to go.
+On Mon, Dec 09, 2013 at 10:52:45AM +0200, Heikki Krogerus wrote:
+> Hi,
+>=20
+> On Fri, Dec 06, 2013 at 02:15:30PM -0600, Felipe Balbi wrote:
+> > On Tue, Dec 03, 2013 at 12:39:50PM +0200, Heikki Krogerus wrote:
+> > > On Thu, Oct 17, 2013 at 09:54:26AM -0500, Felipe Balbi wrote:
+> > > > On Wed, Oct 16, 2013 at 04:27:26PM +0300, Roger Quadros wrote:
+> > > > > On 10/16/2013 04:10 PM, Kishon Vijay Abraham I wrote:
+> > > > > Do you know if there are users of dwc3 other than exynos5250 and =
+omap5?
+> > > > > If not, we should get rid of the old USB PHY altogether.
+> > > >=20
+> > > > Intel's Baytrail, at least. But they don't use DT.
+> > >=20
+> > > I don't see any use for the generic-phy when the device is enumerated
+> > > from PCI. If dwc3 can live without phys, there should not be any
+> > > problem dropping the old USB PHY support.
+> >=20
+> > yeah, I don't want to drop PHY support, I want to require everybody to
+> > provide a PHY, otherwise we have too many options to handle and that's
+> > never clean.
+>=20
+> I have to clarify in case there was a misunderstanding. When I said
+> generic-phy I meant drivers/usb/phy/phy-generic.c and I was not
+> talking about Kishon's new generic PHY framework.
+>=20
+> So I was only saying that if the dwc3-pci.c is the only thing that
+> needs the old usb phy support, then there should not be any problem
+> dropping the support for it.
 
-One thing caught my eye, you add:
+oh, ok. Got it now, thanks.
 
-> +static void _aggressive_pm_runtime_get_sync(struct gpio_bank *bank)
-> +static void _aggressive_pm_runtime_put(struct gpio_bank *bank)
-(..)
+--=20
+balbi
 
-Then everywhere:
+--GeDkoc8jIzHasOdk
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-> +       _aggressive_pm_runtime_get_sync(bank);
-(...)
-> +       _aggressive_pm_runtime_put(bank);
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.15 (GNU/Linux)
 
-Aggressive, argh, runtime PM is agressive by definition. If you
-want to switch this on and off use the compile option
-to enable/disable runtime PM altogether and do not wrap it
-like this.
+iQIcBAEBAgAGBQJSqgAJAAoJEIaOsuA1yqREoOQP+gJQBKXpkv0Ur3mbIBZaR7c0
+8tjGKhK4W2ExAu5GGBTxzkH+KA8fXwlCQm4JTw2fR6cOtU12KFlZcRyP3w6jiggQ
+SjnyxQlE7rXtCSPiH3M8uVWwPkD8pTN2BpJ4n+RFiQtYcImVyoL4LBO3iLvBMmJq
+/n8QcFbyBhPmOgSphMVAAillqAWOmLTDNx+WMKkVv8Sko89tyiqmTNTymvqM0Vvq
+Y+rmsUjYCbUju9tduPSaVrq3cCFOiX7Nbq7irUGN//hRJ4xVb6+gkDM2x6RE2+JZ
+yHvYLepMxMiuNAC2F7ueqSNBPPQzRavWXrwyCZITRIgVhkUzKDe8pQbru74ZGkqh
+h664alV7VrkZ/1c2ws0LgDS/GqPHKm4f2KoL+3od5n6v2PO40A2hKLxLHeBz/cQR
+pf1BUDMddb05+Vu16Xk+afl2Oj+zp7oCTp1CrZKWDh/ZyFTPUhTcFQwIEXfsBoyF
+MgWKZi4mahJx4jMwG7ex5lxAI+3sjiEzPnmfK6DU4alJNPa+OM++Ej1DDSQO03qZ
+6GGOuTN+qHWrq3FfeqmdAKVWtgAhFVk3WylkYZaLBKkjBMnlCVSVLEFHuVA5cCMv
+K7CDQ4xVv9TXXmGPFDnF463wwanW/dfo+dfDs10AXgOeAYIaEGwAsyp+3YkUOHOk
+xwxT7EK2pdBzVXoz99+c
+=4U/D
+-----END PGP SIGNATURE-----
 
-Yours,
-Linus Walleij
+--GeDkoc8jIzHasOdk--
+
+
+--===============7566498481379945954==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+--===============7566498481379945954==--
