@@ -1,71 +1,87 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/3] arm: omap2: Export devconf1 bypass and acbias.
-Date: Thu, 12 Dec 2013 19:19:08 +0000
-Message-ID: <20131212191908.GA29072@muru.com>
-References: <1381784555-18344-1-git-send-email-marek@goldelico.com>
- <1381784555-18344-2-git-send-email-marek@goldelico.com>
- <20131111164917.GN15154@atomide.com>
- <CAAfyv37LRb_Q=UZVgtKdOAz_r6_qThewAU90W7nrqHdB5fDA_g@mail.gmail.com>
- <20131111233152.GR15154@atomide.com>
- <CAAfyv36MaVqrmQxpqDu-ciO9GNJK3pJkFZohEvd1BOLOWWEOhw@mail.gmail.com>
- <20131210224659.GY13171@atomide.com>
- <CAAfyv35wKAK2PNjcXcNan9GC0x-MmH5k4xmzj_vKKhPeztHV-A@mail.gmail.com>
+From: Andreas Naumann <dev-c3EzeJ48v2U@public.gmane.org>
+Subject: Re: WG: [PATCH] usb: musb: omap2430: fix occasional musb breakage
+ on boot
+Date: Thu, 12 Dec 2013 22:29:12 +0100
+Message-ID: <52AA2AA8.4090402@andin.de>
+References: <EE4E4767751A8B40949306E403F4DDD8032AA82A@sv03ultra002.ultratronik.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <CAAfyv35wKAK2PNjcXcNan9GC0x-MmH5k4xmzj_vKKhPeztHV-A@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Belisko Marek <marek.belisko@gmail.com>
-Cc: linux-fbdev@vger.kernel.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>, LKML <linux-kernel@vger.kernel.org>, NeilBrown <neilb@suse.de>, Tomi Valkeinen <tomi.valkeinen@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <EE4E4767751A8B40949306E403F4DDD8032AA82A-zDU4f0UzlK41cL/Vr7vMjYWky2maIgj/G9Ur7JDdleE@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: fbalbi-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Dec 12, 2013 at 09:31:02AM +0100, Belisko Marek wrote:
-> Hi Tony,
-> 
-> On Tue, Dec 10, 2013 at 11:46 PM, Tony Lindgren <tony@atomide.com> wrote:
-> > * Belisko Marek <marek.belisko@gmail.com> [131210 14:13]:
-> >> On Tue, Nov 12, 2013 at 12:31 AM, Tony Lindgren <tony@atomide.com> wrote:
-> >> >
-> >> > It would be best to set it up as omap-ctrl.c driver under drivers
-> >> > somewhere with few functions exported for DSS and MMC drivers.
-> >>
-> >> I create small dummy driver based on phy-omap-control which can be
-> >> used but before sending patch (with more updates) I would like to get
-> >> some feedback if my direction is correct.
-> >
-> > Cool thanks. Yeah what you have can easily be combined with the patches
-> > Balaji has posted to make HSMMC use drivers/mfd/syscon.c via regmap
-> > for the SCM register access. Maybe take a look at the work in progress
-> > patches in thread:
-> >
-> > [PATCH v4 0/7] mmc: omap_hsmmc: pbias dt and cleanup
-> >
-> > And also see my comments regarding using the SCM GENERAL register area
-> > as base for the syscon.c driver. That should work for your driver too,
-> > right? And then you can access the SYSCON1 register that way from your
-> > consumer driver ;)
+Hi Grazvydas,
+
+> Von: Grazvydas Ignotas [mailto:notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org]
+> Gesendet: Donnerstag, 12. Dezember 2013 01:21
+> An: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Cc: Felipe Balbi; linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Naumann Andreas; Grazvydas Ignotas; stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Betreff: [PATCH] usb: musb: omap2430: fix occasional musb breakage on boot
 >
-> If I understand correclty I can use syscon driver (it will have in
-> range also devconf1 register) ad get rid of my custom driver
-> and then get regmap from syscon and update bits that I need for venc, right?
+> This is a hard to reproduce problem which leads to non-functional
+> USB-OTG port in 0.1%-1% of all boots. Tracked it down to commit
+> e25bec160158abe86c "omap2+: save and restore OTG_INTERFSEL",
+> which introduces save/restore of OTG_INTERFSEL over suspend.
+>
+> Since the resume function is also called early in driver init, it uses a
+> non-initialized value (which is 0 and a non-supported setting in DM37xx
+> for INTERFSEL). Shortly after the correct value is set. Apparently this
+> works most time, but not always.
+>
+> Fix it by not writing the value on runtime resume if it is 0
+> (0 should never be saved in the context as it's invalid value,
+> so we use it as an indicator that context hasn't been saved yet).
+>
+> This issue was originally found by Andreas Naumann:
+> http://marc.info/?l=linux-usb&m=138562574719654&w=2
+>
+> Reported-and-bisected-by: Andreas Naumann <anaumann-ZKHRqZ6+gQUX0D0ZMPkEVw@public.gmane.org>
+> Signed-off-by: Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+> ---
+> This is a regression from 3.2, so should go to -rc and stable, IMO.
+> It's really annoying issue if you want to have a stable OTG behavior,
+> I've burned quite a lot of time on it myself over a year ago and gave up
+> eventually. Good thing Andreas finally found it, many thanks to him!
+>
+>   drivers/usb/musb/omap2430.c |    3 ++-
+>   1 file changed, 2 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+> index 2a408cd..737b3da 100644
+> --- a/drivers/usb/musb/omap2430.c
+> +++ b/drivers/usb/musb/omap2430.c
+> @@ -672,7 +672,8 @@ static int omap2430_runtime_resume(struct device *dev)
+>
+>   	if (musb) {
+>   		omap2430_low_level_init(musb);
+> -		musb_writel(musb->mregs, OTG_INTERFSEL,
+> +		if (musb->context.otg_interfsel != 0)
+> +			musb_writel(musb->mregs, OTG_INTERFSEL,
+>   				musb->context.otg_interfsel);
+>   		phy_power_on(musb->phy);
+>   	}
+>
 
-Yeah something like that. Or since the sysconf1 register is shared, it might
-be best to still provide specific functions to access it if we cannot map
-just specific bits of it separately for drivers using regmap.
+Oh, easy way out. I like it but I've also been thinking about your 
+comment on my original post, which was that initializing otg_interfsel 
+to the PHYSEL bits only might be dangerous because we cant be sure that 
+there are other bits in the register.
+However, isnt assuming that 0 is invalid on all OMAPs just as dangerous?
 
-But anyways this should for most part remove the need for a custom driver(s)
-unless the register is a regulator or a clock.
+After thinking about my patch again, I would propose to change 
+otg_interfsel into otg_physel and read-modify-write only those bits in 
+resume() as you suggested in your first answer. That way I could discard 
+the problematic first read in probe() while leaving other bits 
+untouched. If you agree I post a patch for this tomorrow.
 
-Regards,
-
-Tony
+cheers,
+Andreas
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
