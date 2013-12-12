@@ -1,61 +1,83 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 05/26] ARM: OMAP2+: add omapdss_init_of()
-Date: Thu, 12 Dec 2013 09:30:11 +0200
-Message-ID: <52A96603.5030709@ti.com>
-References: <1386160133-24026-1-git-send-email-tomi.valkeinen@ti.com> <1386160133-24026-6-git-send-email-tomi.valkeinen@ti.com> <2199639.FbGhznOLP9@avalon>
+Subject: Re: [PATCH 06/26] OMAPDSS: if dssdev->name==NULL, use alias
+Date: Thu, 12 Dec 2013 09:41:49 +0200
+Message-ID: <52A968BD.20304@ti.com>
+References: <1386160133-24026-1-git-send-email-tomi.valkeinen@ti.com> <1386160133-24026-7-git-send-email-tomi.valkeinen@ti.com> <37483030.ghHfzYFSnL@avalon> <10507960.9DXH4TSv2E@avalon>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
 	protocol="application/pgp-signature";
-	boundary="tf4jdftRMQf6xiCtGVqaeWIgKXg8NW1RL"
+	boundary="gEHOISIgkbGVOedRu7O4LsTjO1i6XkUlO"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:42904 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:43334 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751469Ab3LLHaR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 12 Dec 2013 02:30:17 -0500
-In-Reply-To: <2199639.FbGhznOLP9@avalon>
+	id S1752445Ab3LLHlz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 12 Dec 2013 02:41:55 -0500
+In-Reply-To: <10507960.9DXH4TSv2E@avalon>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, Archit Taneja <archit@ti.com>, Darren Etheridge <detheridge@ti.com>, Tony Lindgren <tony@atomide.com>
 
---tf4jdftRMQf6xiCtGVqaeWIgKXg8NW1RL
+--gEHOISIgkbGVOedRu7O4LsTjO1i6XkUlO
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 
-On 2013-12-12 01:10, Laurent Pinchart wrote:
+On 2013-12-12 01:56, Laurent Pinchart wrote:
 > Hi Tomi,
 >=20
-> On Wednesday 04 December 2013 14:28:32 Tomi Valkeinen wrote:
->> omapdss driver uses a omapdss platform device to pass platform specifi=
-c
->> function pointers and DSS hardware version from the arch code to the
->> driver. This device is needed also when booting with DT.
+> On Thursday 12 December 2013 00:13:01 Laurent Pinchart wrote:
+>> On Wednesday 04 December 2013 14:28:33 Tomi Valkeinen wrote:
+>>> To avoid the need for a "nickname" property for each display, change
+>>> the display registration so that the display's alias (i.e. "display0"=
+
+>>> etc) will be used for the dssdev->name if the display driver didn't
+>>> provide a name.
+>>>
+>>> This means that when booting with board files, we will have more
+>>> descriptive names for displays, like "lcd1", "hdmi".
 >>
->> This patch adds omapdss_init_of() function, called from board-generic =
-at
->> init time, which creates the omapdss device.
+>> Where are those names used ? Are they reported to userspace, or limite=
+d to
+>> kernel internal use only ?
+
+They are visible via omapdss's sysfs, when using omapfb. They are used
+for debug prints and by the user for selecting the default display and
+display modes via kernel cmdline, and when he sets the video pipeline
+routing. So changing them could be considered breaking the API, but...
+
+With omapdrm the sysfs files do not exist, and I think omapdrm doesn't
+use them (except maybe for some debug prints).
+
+>>> With DT we'll only have "display0", etc. But as there are no "nicknam=
+es"
+>>> for things like serials ports either, I hope we will do fine with thi=
+s
+>>
+>> Just a random thought, maybe the aliases node could help here.
 >=20
-> Is this a temporary solution that you plan to later replace with DT-onl=
-y=20
-> device instantiation ?
+> I should have read the next patches before replying, sorry :-)
+>=20
+>> I'm not sure what rules govern its usage. Adding labels to display DT =
+nodes
+>> could be an option too.
 
-It's a long term task to remove the "virtual" omapdss device. Removing
-the platform data that we pass has been very difficult.
+Using of_alias_get_id() means that the alias is in the form "nameX"
+where X is a number.
 
-For example, we need to get the OMAP revision to know which OMAP DSS
-hardware we have. We can't get that information from the DSS hardware
-(thank you, HW designers! ;).
+> A label property is still an option.
 
-Another is DSI pin muxing. I think we need a new pinmuxing driver for
-that, or maybe change pinmux-single quite a bit. The DSI pinmuxing is
-very simple, but the register fields are varying lengths and at varying
-positions, so pinmux-single doesn't work for it.
+Hmm, what do you mean? Label as in:
+
+foo : node {
+};
+
+Isn't that 'foo' label only visible in DT itself, as a shortcut?
 
  Tomi
 
 
 
---tf4jdftRMQf6xiCtGVqaeWIgKXg8NW1RL
+--gEHOISIgkbGVOedRu7O4LsTjO1i6XkUlO
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -64,19 +86,19 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v1.4.14 (GNU/Linux)
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBAgAGBQJSqWYDAAoJEPo9qoy8lh71SWIP/AqkGhWSp32KXMkbsWL/TOx6
-6+ER37WHhW0i9IUBsA1xuTKXMa/T2Cw2wz+0zlMD5FXB6AUlMFe2GwccPmrDwhG5
-H7FNWjNLU4XgtqwuoAz7jQtfakOHcnz1BnNyFih7OJ1UIdoxtDv7KhpW0Pn9u4W+
-iycTvgiLx8WTg319SVUhVX2W6y8MZKpADRqby51scteo+OJnuyPcnZrdt1Y7Xnux
-mbx2HSFnJ7pV86ERHhz2VClgqHk/fvMe07cBvPBE40dMxJVy4jT9YtAsVFe8LIAA
-2sE0Ve9EPzWJCd+AzN2aGaNu7tz6/03Hzu8k4sx+pARkfpR+D6wRS4vRA7uZtq4z
-SJckEjcmuRIIux3of0KLnrLyxUgYvX5dVNJzVCtSNM5dIlhfqDfYQ/9gS5dsMbQ4
-6eilfziWni2vPFoAy/zGUjdmS6mvByMEVvICGxGnJMSclc0eQ7kM0PYbwqPItMEC
-N4ayOQbjsWXUfrGxqei9jd/TgcgVTXek+k4Yj1nx7epYhlzy9GvPi4ETjugPTx+V
-oCT4/XJp/jv8TziLP9maYW6ihAB4A3PFU3VWObO4Tzbff79cUXclMSJSZS9SIfq7
-CbTWPCHAbggOALStHNFj21Qfa6aFoY+8G5fuJ4B5+UViaZxpynwjZGxQ6y5o7XvI
-F0y1QTzUfcaTMpEbbQ8v
-=ZjTZ
+iQIcBAEBAgAGBQJSqWi9AAoJEPo9qoy8lh71PTkQAJtoVilfqDUk/dZqMQRD70SH
+wnLlQr6nykppWo05kzGCvPDJiu7y5LU000cXClojehXrnq3Cu0ztUMo/naqRgt33
+7uyiynCxt22WIUS8QGD6NXvOtGRw2HrALsSV/MGVXGeyBZAegrkSiEtkrWuuupwI
+WJ/PmQ7EUTvvV8huy3GWKiu6+klSEPc/b0rt/ffCUKCETbgR/8gm24uoGQp2KdbF
+tbPXqAZFxKJakjhzwPUK/cUkvVrobxsFxXa5nVunH6j/2ZCDG3NYvqJ7Z3RckhBa
+fnXao/OQtnhKoHPc9wWwgkTkYj9MqSy/Pt7pbhY/mNzGbwlRGKhi+Ui+0KC5vESU
+D7USQduSQID/TtRt5U44bfk71pO2LAwYg2DiH73ZshIQdq/pB/0G5F91SbfieuoW
+AKIQ2uNB7mKZEsdJXKtoD3fe3MXt1GcVLoQTTFJzYduFiuqLKzDYW1JKAxa0MSzZ
+gG1D9myGrpyvtKuybrv8R4Rsy1yElPb3JA9MMU9o3VLFv6uG7ijuYN2mIRugvB1b
+fkSNDNK3vHElYQoKPHbuN+bQSq+2snhgb1uOhhRg5giT2Ri17MDmIuZR1sbsi5JL
+ouUNooKmuXd/iXW1I/QIaTLxhnW9T/OojnxzSi+MRnR6PZ2OkgaNI+rJTjhz5Mur
+rVwnSB91ItSBESqpKMXv
+=ayRZ
 -----END PGP SIGNATURE-----
 
---tf4jdftRMQf6xiCtGVqaeWIgKXg8NW1RL--
+--gEHOISIgkbGVOedRu7O4LsTjO1i6XkUlO--
