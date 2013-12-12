@@ -1,77 +1,86 @@
-From: David Cohen <david.a.cohen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: Re: [PATCH] usb: musb: omap2430: fix occasional musb breakage on boot
-Date: Wed, 11 Dec 2013 16:38:43 -0800
-Message-ID: <20131212003843.GA17760@psi-dev26.jf.intel.com>
-References: <1386807659-5505-1-git-send-email-notasas@gmail.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 00/26] OMAPDSS: DT support (Christmas edition)
+Date: Thu, 12 Dec 2013 01:39:14 +0100
+Message-ID: <1824203.Ui6fpnZVmO@avalon>
+References: <1386160133-24026-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1386807659-5505-1-git-send-email-notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andreas Naumann <anaumann-ZKHRqZ6+gQUX0D0ZMPkEVw@public.gmane.org>, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:46663 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751335Ab3LLAjC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Dec 2013 19:39:02 -0500
+In-Reply-To: <1386160133-24026-1-git-send-email-tomi.valkeinen@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, Archit Taneja <archit@ti.com>, Darren Etheridge <detheridge@ti.com>, Tony Lindgren <tony@atomide.com>, Stefan Roese <stefan.roese@gmail.com>, Sebastian Reichel <sre@debian.org>, Robert Nelson <robertcnelson@gmail.com>, "Dr . H . Nikolaus Schaller" <hns@goldelico.com>, Marek Belisko <marek@goldelico.com>
 
-On Thu, Dec 12, 2013 at 02:20:59AM +0200, Grazvydas Ignotas wrote:
-> This is a hard to reproduce problem which leads to non-functional
-> USB-OTG port in 0.1%-1% of all boots. Tracked it down to commit
-> e25bec160158abe86c "omap2+: save and restore OTG_INTERFSEL",
-> which introduces save/restore of OTG_INTERFSEL over suspend.
-> 
-> Since the resume function is also called early in driver init, it uses a
-> non-initialized value (which is 0 and a non-supported setting in DM37xx
-> for INTERFSEL). Shortly after the correct value is set. Apparently this
-> works most time, but not always.
-> 
-> Fix it by not writing the value on runtime resume if it is 0
-> (0 should never be saved in the context as it's invalid value,
-> so we use it as an indicator that context hasn't been saved yet).
-> 
-> This issue was originally found by Andreas Naumann:
-> http://marc.info/?l=linux-usb&m=138562574719654&w=2
-> 
-> Reported-and-bisected-by: Andreas Naumann <anaumann-ZKHRqZ6+gQUX0D0ZMPkEVw@public.gmane.org>
-> Signed-off-by: Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-> ---
-> This is a regression from 3.2, so should go to -rc and stable, IMO.
-> It's really annoying issue if you want to have a stable OTG behavior,
-> I've burned quite a lot of time on it myself over a year ago and gave up
-> eventually. Good thing Andreas finally found it, many thanks to him!
-> 
->  drivers/usb/musb/omap2430.c |    3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
-> index 2a408cd..737b3da 100644
-> --- a/drivers/usb/musb/omap2430.c
-> +++ b/drivers/usb/musb/omap2430.c
-> @@ -672,7 +672,8 @@ static int omap2430_runtime_resume(struct device *dev)
->  
->  	if (musb) {
->  		omap2430_low_level_init(musb);
-> -		musb_writel(musb->mregs, OTG_INTERFSEL,
-> +		if (musb->context.otg_interfsel != 0)
+Hi Tomi,
 
-You might want to write an inline comment explaining why you're checking
-otg_interfsel for 0 here (as you explained 0 is not a valid value to be
-found).
-
-Br, David
-
-> +			musb_writel(musb->mregs, OTG_INTERFSEL,
->  				musb->context.otg_interfsel);
->  		phy_power_on(musb->phy);
->  	}
-> -- 
-> 1.7.9.5
+On Wednesday 04 December 2013 14:28:27 Tomi Valkeinen wrote:
+> Hi,
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Here's a new version for DT support to OMAP Display Subsystem. See
+> http://article.gmane.org/gmane.linux.ports.arm.omap/102689 for the intro of
+> the previous version, which contains thoughts about the related problems.
+> 
+> The major change in this version is the use of V4L2 and CDF style
+> port/endpoint style in the DT data.
+
+That's great, and I fully support that. This also calls for refactoring the 
+V4L2 DT bindings and support code to share them with display devices. A 
+bikeshedding question is where to put the common code.
+
+> However, note that even if the DT data contains proper port & endpoint data,
+> the drivers only use the first endpoint. This is to simplify the patches, as
+> adding full support for the ports and endpoints to the drivers will be a big
+> task.
+
+That's perfectly fine, there's no need to implement unused features just for 
+the sake of it, as long as the bindings are forward-compatible in that 
+respect.
+
+> This approach still works with more or less all the boards, as the only
+> cases where the simpler model is an issue are the boards with multiple
+> display devices connected to a single output.
+> 
+> Laurent, I'd appreciate if you could have a look at the .dts changes, to see
+> if there's anything that's clearly not CDF compatible.
+
+I've quickly reviewed the patch set, concentrating on the .dts changes. 
+Overall it looks good to me, but I suspect that we will need quite some time 
+to finalize standard bindings as there's lots of small details that need to be 
+taken care of.
+
+The major point that bothers we, as explained in my reply to one of the 
+patches, is that I feel like the multi-device model (virtual DSS core + DSS 
+modules) might not accurately represent the hardware. Departing from it 
+probably sounds scary but might not be such a large change.
+
+> The patches can also be found from:
+> git://git.kernel.org/pub/scm/linux/kernel/git/tomba/linux.git work/dss-dt
+> 
+> A few notes:
+> 
+> - The DT data are added separately in the end of .dts files for clarity. In
+>   the final version I will move them to appropriate places in the .dts
+>   files.
+> 
+> - No binding documentation. I will add them for the next version, if there
+>   are no major changes needed. Hopefully the bindings are quite self-
+>   explanatory for people with understanding of the hardware in question.
+
+My plan is to split the connection information from the V4L2 bindings and make 
+that a separate document. If all goes well I should be able to spend Saturday 
+on this.
+
+> - The connectors' compatible strings are "ti,xxx". As there's nothing TI
+>   specific there, I think I will rename them to be without "ti".
+
+-- 
+Regards,
+
+Laurent Pinchart
+
