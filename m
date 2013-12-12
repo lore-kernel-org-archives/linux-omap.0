@@ -1,343 +1,197 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [PATCH 5/8] v4l: ti-vpe: create a color space converter block library
-Date: Thu, 12 Dec 2013 14:06:01 +0530
-Message-ID: <1386837364-1264-6-git-send-email-archit@ti.com>
+Subject: [PATCH 7/8] v4l: ti-vpe: enable CSC support for VPE
+Date: Thu, 12 Dec 2013 14:06:03 +0530
+Message-ID: <1386837364-1264-8-git-send-email-archit@ti.com>
 References: <1386837364-1264-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:53156 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:53163 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751458Ab3LLIgi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Dec 2013 03:36:38 -0500
+	with ESMTP id S1751458Ab3LLIgp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Dec 2013 03:36:45 -0500
 In-Reply-To: <1386837364-1264-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-media@vger.kernel.org, k.debski@samsung.com, hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com
 Cc: linux-omap@vger.kernel.org, tomi.valkeinen@ti.com, Archit Taneja <archit@ti.com>
 
-VPE and VIP IPs in DAR7x contain a color space converter(CSC) sub block. Create
-a library which will perform CSC related configurations and hold CSC register
-definitions. The functions provided by this library will be called by the vpe
-and vip drivers using a csc_data handle.
+Use the csc library functions to configure the CSC block in VPE.
 
-The vpe_dev holds the csc_data handle. The handle represents an instance of the
-CSC hardware, and the vpe driver uses it to access the CSC register offsets or
-helper functions to configure these registers.
+Some changes are required in try_fmt to handle the pix->colorspace parameter
+more correctly. Previously, we copied the source queue colorspace to the
+destination queue colorspace as we didn't support RGB formats. Now, we configure
+pix->colorspace based on the color format set(and the height of the image if
+it's a YUV format).
 
-The CSC register offsets are now relative to the CSC block itself, so we need
-to use the macro GET_OFFSET_TOP to get the CSC register offset relative to the
-VPE IP in the vpe driver.
+Add basic RGB color formats to the list of supported vpe formats.
+
+If the destination format is RGB colorspace, we also need to use the RGB output
+port instead of the Luma and Chroma output ports. This requires configuring the
+output data descriptors differently.
+
+Also, make the default colorspace V4L2_COLORSPACE_SMPTE170M as that resembles
+the Standard Definition colorspace more closely.
 
 Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- drivers/media/platform/ti-vpe/Makefile   |  2 +-
- drivers/media/platform/ti-vpe/csc.c      | 76 ++++++++++++++++++++++++++++++++
- drivers/media/platform/ti-vpe/csc.h      | 65 +++++++++++++++++++++++++++
- drivers/media/platform/ti-vpe/vpe.c      | 31 ++++++-------
- drivers/media/platform/ti-vpe/vpe_regs.h | 38 ----------------
- 5 files changed, 155 insertions(+), 57 deletions(-)
- create mode 100644 drivers/media/platform/ti-vpe/csc.c
- create mode 100644 drivers/media/platform/ti-vpe/csc.h
+ drivers/media/platform/ti-vpe/vpe.c | 95 ++++++++++++++++++++++++++++---------
+ 1 file changed, 72 insertions(+), 23 deletions(-)
 
-diff --git a/drivers/media/platform/ti-vpe/Makefile b/drivers/media/platform/ti-vpe/Makefile
-index 54c30b3..be680f8 100644
---- a/drivers/media/platform/ti-vpe/Makefile
-+++ b/drivers/media/platform/ti-vpe/Makefile
-@@ -1,5 +1,5 @@
- obj-$(CONFIG_VIDEO_TI_VPE) += ti-vpe.o
- 
--ti-vpe-y := vpe.o sc.o vpdma.o
-+ti-vpe-y := vpe.o sc.o csc.o vpdma.o
- 
- ccflags-$(CONFIG_VIDEO_TI_VPE_DEBUG) += -DDEBUG
-diff --git a/drivers/media/platform/ti-vpe/csc.c b/drivers/media/platform/ti-vpe/csc.c
-new file mode 100644
-index 0000000..62e2fec
---- /dev/null
-+++ b/drivers/media/platform/ti-vpe/csc.c
-@@ -0,0 +1,76 @@
-+/*
-+ * Color space converter library
-+ *
-+ * Copyright (c) 2013 Texas Instruments Inc.
-+ *
-+ * David Griego, <dagriego@biglakesoftware.com>
-+ * Dale Farnsworth, <dale@farnsworth.org>
-+ * Archit Taneja, <archit@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License version 2 as published by
-+ * the Free Software Foundation.
-+ */
-+
-+#include <linux/err.h>
-+#include <linux/io.h>
-+#include <linux/platform_device.h>
-+#include <linux/slab.h>
-+
-+#include "csc.h"
-+
-+void csc_dump_regs(struct csc_data *csc)
-+{
-+	struct device *dev = &csc->pdev->dev;
-+
-+	u32 read_reg(struct csc_data *csc, int offset)
-+	{
-+		return ioread32(csc->base + offset);
-+	}
-+
-+#define DUMPREG(r) dev_dbg(dev, "%-35s %08x\n", #r, read_reg(csc, CSC_##r))
-+
-+	DUMPREG(CSC00);
-+	DUMPREG(CSC01);
-+	DUMPREG(CSC02);
-+	DUMPREG(CSC03);
-+	DUMPREG(CSC04);
-+	DUMPREG(CSC05);
-+
-+#undef DUMPREG
-+}
-+
-+void csc_set_coeff_bypass(struct csc_data *csc, u32 *csc_reg5)
-+{
-+	*csc_reg5 |= CSC_BYPASS;
-+}
-+
-+struct csc_data *csc_create(struct platform_device *pdev)
-+{
-+	struct csc_data *csc;
-+
-+	dev_dbg(&pdev->dev, "csc_create\n");
-+
-+	csc = devm_kzalloc(&pdev->dev, sizeof(*csc), GFP_KERNEL);
-+	if (!csc) {
-+		dev_err(&pdev->dev, "couldn't alloc csc_data\n");
-+		return ERR_PTR(-ENOMEM);
-+	}
-+
-+	csc->pdev = pdev;
-+
-+	csc->res = platform_get_resource_byname(pdev, IORESOURCE_MEM,
-+			"vpe_csc");
-+	if (csc->res == NULL) {
-+		dev_err(&pdev->dev, "missing platform resources data\n");
-+		return ERR_PTR(-ENODEV);
-+	}
-+
-+	csc->base = devm_ioremap_resource(&pdev->dev, csc->res);
-+	if (!csc->base) {
-+		dev_err(&pdev->dev, "failed to ioremap\n");
-+		return ERR_PTR(-ENOMEM);
-+	}
-+
-+	return csc;
-+}
-diff --git a/drivers/media/platform/ti-vpe/csc.h b/drivers/media/platform/ti-vpe/csc.h
-new file mode 100644
-index 0000000..57b5ed6
---- /dev/null
-+++ b/drivers/media/platform/ti-vpe/csc.h
-@@ -0,0 +1,65 @@
-+/*
-+ * Copyright (c) 2013 Texas Instruments Inc.
-+ *
-+ * David Griego, <dagriego@biglakesoftware.com>
-+ * Dale Farnsworth, <dale@farnsworth.org>
-+ * Archit Taneja, <archit@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License version 2 as published by
-+ * the Free Software Foundation.
-+ */
-+#ifndef TI_CSC_H
-+#define TI_CSC_H
-+
-+/* VPE color space converter regs */
-+#define CSC_CSC00		0x00
-+#define CSC_A0_MASK		0x1fff
-+#define CSC_A0_SHIFT		0
-+#define CSC_B0_MASK		0x1fff
-+#define CSC_B0_SHIFT		16
-+
-+#define CSC_CSC01		0x04
-+#define CSC_C0_MASK		0x1fff
-+#define CSC_C0_SHIFT		0
-+#define CSC_A1_MASK		0x1fff
-+#define CSC_A1_SHIFT		16
-+
-+#define CSC_CSC02		0x08
-+#define CSC_B1_MASK		0x1fff
-+#define CSC_B1_SHIFT		0
-+#define CSC_C1_MASK		0x1fff
-+#define CSC_C1_SHIFT		16
-+
-+#define CSC_CSC03		0x0c
-+#define CSC_A2_MASK		0x1fff
-+#define CSC_A2_SHIFT		0
-+#define CSC_B2_MASK		0x1fff
-+#define CSC_B2_SHIFT		16
-+
-+#define CSC_CSC04		0x10
-+#define CSC_C2_MASK		0x1fff
-+#define CSC_C2_SHIFT		0
-+#define CSC_D0_MASK		0x0fff
-+#define CSC_D0_SHIFT		16
-+
-+#define CSC_CSC05		0x14
-+#define CSC_D1_MASK		0x0fff
-+#define CSC_D1_SHIFT		0
-+#define CSC_D2_MASK		0x0fff
-+#define CSC_D2_SHIFT		16
-+
-+#define CSC_BYPASS		(1 << 28)
-+
-+struct csc_data {
-+	void __iomem		*base;
-+	struct resource		*res;
-+
-+	struct platform_device	*pdev;
-+};
-+
-+void csc_dump_regs(struct csc_data *csc);
-+void csc_set_coeff_bypass(struct csc_data *csc, u32 *csc_reg5);
-+struct csc_data *csc_create(struct platform_device *pdev);
-+
-+#endif
 diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
-index dc2b94c..6c4db57 100644
+index 6c4db57..1296c53 100644
 --- a/drivers/media/platform/ti-vpe/vpe.c
 +++ b/drivers/media/platform/ti-vpe/vpe.c
-@@ -44,6 +44,7 @@
- #include "vpdma.h"
- #include "vpe_regs.h"
- #include "sc.h"
-+#include "csc.h"
- 
- #define VPE_MODULE_NAME "vpe"
- 
-@@ -330,6 +331,7 @@ struct vpe_dev {
- 	struct vb2_alloc_ctx	*alloc_ctx;
- 	struct vpdma_data	*vpdma;		/* vpdma data handle */
- 	struct sc_data		*sc;		/* scaler data handle */
-+	struct csc_data		*csc;		/* csc data handle */
+@@ -267,6 +267,38 @@ static struct vpe_fmt vpe_formats[] = {
+ 		.vpdma_fmt	= { &vpdma_yuv_fmts[VPDMA_DATA_FMT_CY422],
+ 				  },
+ 	},
++	{
++		.name		= "RGB888 packed",
++		.fourcc		= V4L2_PIX_FMT_RGB24,
++		.types		= VPE_FMT_TYPE_CAPTURE,
++		.coplanar	= 0,
++		.vpdma_fmt	= { &vpdma_rgb_fmts[VPDMA_DATA_FMT_RGB24],
++				  },
++	},
++	{
++		.name		= "ARGB32",
++		.fourcc		= V4L2_PIX_FMT_RGB32,
++		.types		= VPE_FMT_TYPE_CAPTURE,
++		.coplanar	= 0,
++		.vpdma_fmt	= { &vpdma_rgb_fmts[VPDMA_DATA_FMT_ARGB32],
++				  },
++	},
++	{
++		.name		= "BGR888 packed",
++		.fourcc		= V4L2_PIX_FMT_BGR24,
++		.types		= VPE_FMT_TYPE_CAPTURE,
++		.coplanar	= 0,
++		.vpdma_fmt	= { &vpdma_rgb_fmts[VPDMA_DATA_FMT_BGR24],
++				  },
++	},
++	{
++		.name		= "ABGR32",
++		.fourcc		= V4L2_PIX_FMT_BGR32,
++		.types		= VPE_FMT_TYPE_CAPTURE,
++		.coplanar	= 0,
++		.vpdma_fmt	= { &vpdma_rgb_fmts[VPDMA_DATA_FMT_ABGR32],
++				  },
++	},
  };
  
  /*
-@@ -475,7 +477,8 @@ static void init_adb_hdrs(struct vpe_ctx *ctx)
- 		GET_OFFSET_TOP(ctx, ctx->dev->sc, CFG_SC8));
- 	VPE_SET_MMR_ADB_HDR(ctx, sc_hdr17, sc_regs17,
- 		GET_OFFSET_TOP(ctx, ctx->dev->sc, CFG_SC17));
--	VPE_SET_MMR_ADB_HDR(ctx, csc_hdr, csc_regs, VPE_CSC_CSC00);
-+	VPE_SET_MMR_ADB_HDR(ctx, csc_hdr, csc_regs,
-+		GET_OFFSET_TOP(ctx, ctx->dev->csc, CSC_CSC00));
- };
+@@ -689,17 +721,20 @@ static void set_src_registers(struct vpe_ctx *ctx)
+ static void set_dst_registers(struct vpe_ctx *ctx)
+ {
+ 	struct vpe_mmr_adb *mmr_adb = ctx->mmr_adb.addr;
++	enum v4l2_colorspace clrspc = ctx->q_data[Q_DATA_DST].colorspace;
+ 	struct vpe_fmt *fmt = ctx->q_data[Q_DATA_DST].fmt;
+ 	u32 val = 0;
  
- /*
-@@ -758,16 +761,6 @@ static void set_dei_shadow_registers(struct vpe_ctx *ctx)
- 	ctx->load_mmrs = true;
- }
+-	/* select RGB path when color space conversion is supported in future */
+-	if (fmt->fourcc == V4L2_PIX_FMT_RGB24)
+-		val |= VPE_RGB_OUT_SELECT | VPE_CSC_SRC_DEI_SCALER;
++	if (clrspc == V4L2_COLORSPACE_SRGB)
++		val |= VPE_RGB_OUT_SELECT;
+ 	else if (fmt->fourcc == V4L2_PIX_FMT_NV16)
+ 		val |= VPE_COLOR_SEPARATE_422;
  
--static void set_csc_coeff_bypass(struct vpe_ctx *ctx)
--{
--	struct vpe_mmr_adb *mmr_adb = ctx->mmr_adb.addr;
--	u32 *shadow_csc_reg5 = &mmr_adb->csc_regs[5];
--
--	*shadow_csc_reg5 |= VPE_CSC_BYPASS;
--
--	ctx->load_mmrs = true;
--}
--
- /*
-  * Set the shadow registers whose values are modified when either the
-  * source or destination format is changed.
-@@ -819,7 +812,8 @@ static int set_srcdst_params(struct vpe_ctx *ctx)
+-	/* The source of CHR_DS is always the scaler, whether it's used or not */
+-	val |= VPE_DS_SRC_DEI_SCALER;
++	/*
++	 * the source of CHR_DS and CSC is always the scaler, irrespective of
++	 * whether it's used or not
++	 */
++	val |= VPE_DS_SRC_DEI_SCALER | VPE_CSC_SRC_DEI_SCALER;
  
+ 	if (fmt->fourcc != V4L2_PIX_FMT_NV12)
+ 		val |= VPE_DS_BYPASS;
+@@ -813,7 +848,8 @@ static int set_srcdst_params(struct vpe_ctx *ctx)
  	set_cfg_and_line_modes(ctx);
  	set_dei_regs(ctx);
--	set_csc_coeff_bypass(ctx);
-+
-+	csc_set_coeff_bypass(ctx->dev->csc, &mmr_adb->csc_regs[5]);
+ 
+-	csc_set_coeff_bypass(ctx->dev->csc, &mmr_adb->csc_regs[5]);
++	csc_set_coeff(ctx->dev->csc, &mmr_adb->csc_regs[0],
++		s_q_data->colorspace, d_q_data->colorspace);
  
  	sc_set_hs_coeffs(ctx->dev->sc, ctx->sc_coeff_h.addr, src_w, dst_w);
  	sc_set_vs_coeffs(ctx->dev->sc, ctx->sc_coeff_v.addr, src_h, dst_h);
-@@ -942,15 +936,10 @@ static void vpe_dump_regs(struct vpe_dev *dev)
- 	DUMPREG(DEI_FMD_STATUS_R0);
- 	DUMPREG(DEI_FMD_STATUS_R1);
- 	DUMPREG(DEI_FMD_STATUS_R2);
--	DUMPREG(CSC_CSC00);
--	DUMPREG(CSC_CSC01);
--	DUMPREG(CSC_CSC02);
--	DUMPREG(CSC_CSC03);
--	DUMPREG(CSC_CSC04);
--	DUMPREG(CSC_CSC05);
- #undef DUMPREG
+@@ -1095,9 +1131,13 @@ static void device_run(void *priv)
+ 	if (ctx->deinterlacing)
+ 		add_out_dtd(ctx, VPE_PORT_MV_OUT);
  
- 	sc_dump_regs(dev->sc);
-+	csc_dump_regs(dev->csc);
- }
+-	add_out_dtd(ctx, VPE_PORT_LUMA_OUT);
+-	if (d_q_data->fmt->coplanar)
+-		add_out_dtd(ctx, VPE_PORT_CHROMA_OUT);
++	if (d_q_data->colorspace == V4L2_COLORSPACE_SRGB) {
++		add_out_dtd(ctx, VPE_PORT_RGB_OUT);
++	} else {
++		add_out_dtd(ctx, VPE_PORT_LUMA_OUT);
++		if (d_q_data->fmt->coplanar)
++			add_out_dtd(ctx, VPE_PORT_CHROMA_OUT);
++	}
  
- static void add_out_dtd(struct vpe_ctx *ctx, int port)
-@@ -2074,6 +2063,12 @@ static int vpe_probe(struct platform_device *pdev)
- 		goto runtime_put;
+ 	/* input data descriptors */
+ 	if (ctx->deinterlacing) {
+@@ -1133,9 +1173,16 @@ static void device_run(void *priv)
  	}
  
-+	dev->csc = csc_create(pdev);
-+	if (IS_ERR(dev->csc)) {
-+		ret = PTR_ERR(dev->csc);
-+		goto runtime_put;
+ 	/* sync on channel control descriptors for output ports */
+-	vpdma_add_sync_on_channel_ctd(&ctx->desc_list, VPE_CHAN_LUMA_OUT);
+-	if (d_q_data->fmt->coplanar)
+-		vpdma_add_sync_on_channel_ctd(&ctx->desc_list, VPE_CHAN_CHROMA_OUT);
++	if (d_q_data->colorspace == V4L2_COLORSPACE_SRGB) {
++		vpdma_add_sync_on_channel_ctd(&ctx->desc_list,
++			VPE_CHAN_RGB_OUT);
++	} else {
++		vpdma_add_sync_on_channel_ctd(&ctx->desc_list,
++			VPE_CHAN_LUMA_OUT);
++		if (d_q_data->fmt->coplanar)
++			vpdma_add_sync_on_channel_ctd(&ctx->desc_list,
++				VPE_CHAN_CHROMA_OUT);
 +	}
-+
- 	dev->vpdma = vpdma_create(pdev);
- 	if (IS_ERR(dev->vpdma)) {
- 		ret = PTR_ERR(dev->vpdma);
-diff --git a/drivers/media/platform/ti-vpe/vpe_regs.h b/drivers/media/platform/ti-vpe/vpe_regs.h
-index d8dbdd3..74283d7 100644
---- a/drivers/media/platform/ti-vpe/vpe_regs.h
-+++ b/drivers/media/platform/ti-vpe/vpe_regs.h
-@@ -306,42 +306,4 @@
- #define VPE_FMD_FRAME_DIFF_MASK		0x000fffff
- #define VPE_FMD_FRAME_DIFF_SHIFT	0
  
--/* VPE color space converter regs */
--#define VPE_CSC_CSC00			0x5700
--#define VPE_CSC_A0_MASK			0x1fff
--#define VPE_CSC_A0_SHIFT		0
--#define VPE_CSC_B0_MASK			0x1fff
--#define VPE_CSC_B0_SHIFT		16
+ 	if (ctx->deinterlacing)
+ 		vpdma_add_sync_on_channel_ctd(&ctx->desc_list, VPE_CHAN_MV_OUT);
+@@ -1413,16 +1460,18 @@ static int __vpe_try_fmt(struct vpe_ctx *ctx, struct v4l2_format *f,
+ 	pix->num_planes = fmt->coplanar ? 2 : 1;
+ 	pix->pixelformat = fmt->fourcc;
+ 
+-	if (type == VPE_FMT_TYPE_CAPTURE) {
+-		struct vpe_q_data *s_q_data;
 -
--#define VPE_CSC_CSC01			0x5704
--#define VPE_CSC_C0_MASK			0x1fff
--#define VPE_CSC_C0_SHIFT		0
--#define VPE_CSC_A1_MASK			0x1fff
--#define VPE_CSC_A1_SHIFT		16
+-		/* get colorspace from the source queue */
+-		s_q_data = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE);
 -
--#define VPE_CSC_CSC02			0x5708
--#define VPE_CSC_B1_MASK			0x1fff
--#define VPE_CSC_B1_SHIFT		0
--#define VPE_CSC_C1_MASK			0x1fff
--#define VPE_CSC_C1_SHIFT		16
--
--#define VPE_CSC_CSC03			0x570c
--#define VPE_CSC_A2_MASK			0x1fff
--#define VPE_CSC_A2_SHIFT		0
--#define VPE_CSC_B2_MASK			0x1fff
--#define VPE_CSC_B2_SHIFT		16
--
--#define VPE_CSC_CSC04			0x5710
--#define VPE_CSC_C2_MASK			0x1fff
--#define VPE_CSC_C2_SHIFT		0
--#define VPE_CSC_D0_MASK			0x0fff
--#define VPE_CSC_D0_SHIFT		16
--
--#define VPE_CSC_CSC05			0x5714
--#define VPE_CSC_D1_MASK			0x0fff
--#define VPE_CSC_D1_SHIFT		0
--#define VPE_CSC_D2_MASK			0x0fff
--#define VPE_CSC_D2_SHIFT		16
--#define VPE_CSC_BYPASS			(1 << 28)
--
- #endif
+-		pix->colorspace = s_q_data->colorspace;
+-	} else {
+-		if (!pix->colorspace)
+-			pix->colorspace = V4L2_COLORSPACE_SMPTE240M;
++	if (!pix->colorspace) {
++		if (fmt->fourcc == V4L2_PIX_FMT_RGB24 ||
++				fmt->fourcc == V4L2_PIX_FMT_BGR24 ||
++				fmt->fourcc == V4L2_PIX_FMT_RGB32 ||
++				fmt->fourcc == V4L2_PIX_FMT_BGR32) {
++			pix->colorspace = V4L2_COLORSPACE_SRGB;
++		} else {
++			if (pix->height > 1280)	/* HD */
++				pix->colorspace = V4L2_COLORSPACE_REC709;
++			else			/* SD */
++				pix->colorspace = V4L2_COLORSPACE_SMPTE170M;
++		}
+ 	}
+ 
+ 	for (i = 0; i < pix->num_planes; i++) {
+@@ -1817,7 +1866,7 @@ static int vpe_open(struct file *file)
+ 	s_q_data->height = 1080;
+ 	s_q_data->sizeimage[VPE_LUMA] = (s_q_data->width * s_q_data->height *
+ 			s_q_data->fmt->vpdma_fmt[VPE_LUMA]->depth) >> 3;
+-	s_q_data->colorspace = V4L2_COLORSPACE_SMPTE240M;
++	s_q_data->colorspace = V4L2_COLORSPACE_SMPTE170M;
+ 	s_q_data->field = V4L2_FIELD_NONE;
+ 	s_q_data->c_rect.left = 0;
+ 	s_q_data->c_rect.top = 0;
 -- 
 1.8.3.2
 
