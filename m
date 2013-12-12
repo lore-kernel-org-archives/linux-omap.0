@@ -1,100 +1,61 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH 2/7] usb: dwc3: omap: add basic pm_runtime support
-Date: Thu, 12 Dec 2013 15:38:40 -0600
-Message-ID: <1386884325-11440-3-git-send-email-balbi@ti.com>
+Subject: [PATCH 6/7] usb: dwc3: exynos: remove DEV_PM_OPS hackery
+Date: Thu, 12 Dec 2013 15:38:44 -0600
+Message-ID: <1386884325-11440-7-git-send-email-balbi@ti.com>
 References: <1386884325-11440-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:50152 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751535Ab3LLVjs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 12 Dec 2013 16:39:48 -0500
 In-Reply-To: <1386884325-11440-1-git-send-email-balbi@ti.com>
-Sender: linux-samsung-soc-owner@vger.kernel.org
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: Linux USB Mailing List <linux-usb@vger.kernel.org>
 Cc: kgene.kim@samsung.com, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, linux-samsung-soc@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, w-kwok2@ti.com, Santosh Shilimkar <santosh.shilimkar@ti.com>, Felipe Balbi <balbi@ti.com>
-List-Id: linux-omap@vger.kernel.org
 
-If we want to suspend/runtime in runtime, we
-can do so, in OMAP's case at least, with the
-same implementation we use for system pm.
-
-This patch adds basic pm_runtime support with
-that in mind.
+it's best to just remove all ifdefs and always
+define our dev_pm_ops structure.
 
 Signed-off-by: Felipe Balbi <balbi@ti.com>
 ---
- drivers/usb/dwc3/dwc3-omap.c | 39 +++++++++++++++++++++++++++++++++++----
- 1 file changed, 35 insertions(+), 4 deletions(-)
+ drivers/usb/dwc3/dwc3-exynos.c | 8 +-------
+ 1 file changed, 1 insertion(+), 7 deletions(-)
 
-diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
-index b269dbd..aea305d 100644
---- a/drivers/usb/dwc3/dwc3-omap.c
-+++ b/drivers/usb/dwc3/dwc3-omap.c
-@@ -617,20 +617,35 @@ static void dwc3_omap_complete(struct device *dev)
- 	dwc3_omap_enable_irqs(omap);
- }
+diff --git a/drivers/usb/dwc3/dwc3-exynos.c b/drivers/usb/dwc3/dwc3-exynos.c
+index 8b20c70..6ccfc64 100644
+--- a/drivers/usb/dwc3/dwc3-exynos.c
++++ b/drivers/usb/dwc3/dwc3-exynos.c
+@@ -184,7 +184,6 @@ static const struct of_device_id exynos_dwc3_match[] = {
+ MODULE_DEVICE_TABLE(of, exynos_dwc3_match);
+ #endif
  
--static int dwc3_omap_suspend(struct device *dev)
-+static int __dwc3_omap_suspend(struct dwc3_omap *omap)
+-#ifdef CONFIG_PM_SLEEP
+ static int dwc3_exynos_suspend(struct device *dev)
  {
--	struct dwc3_omap	*omap = dev_get_drvdata(dev);
--
- 	omap->utmi_otg_status = dwc3_omap_read_utmi_status(omap);
- 
- 	return 0;
- }
- 
-+static int __dwc3_omap_resume(struct dwc3_omap *omap)
-+{
-+	dwc3_omap_write_utmi_status(omap, omap->utmi_otg_status);
-+
-+	return 0;
-+}
-+
-+static int dwc3_omap_suspend(struct device *dev)
-+{
-+	struct dwc3_omap	*omap = dev_get_drvdata(dev);
-+
-+	return __dwc3_omap_suspend(omap);
-+}
-+
- static int dwc3_omap_resume(struct device *dev)
- {
- 	struct dwc3_omap	*omap = dev_get_drvdata(dev);
-+	int			ret;
- 
--	dwc3_omap_write_utmi_status(omap, omap->utmi_otg_status);
-+	ret = __dwc3_omap_resume(omap);
-+	if (ret)
-+		return ret;
- 
- 	pm_runtime_disable(dev);
- 	pm_runtime_set_active(dev);
-@@ -639,11 +654,27 @@ static int dwc3_omap_resume(struct device *dev)
- 	return 0;
- }
- 
-+static int dwc3_omap_runtime_suspend(struct device *dev)
-+{
-+	struct dwc3_omap	*omap = dev_get_drvdata(dev);
-+
-+	return __dwc3_omap_suspend(omap);
-+}
-+
-+static int dwc3_omap_runtime_resume(struct device *dev)
-+{
-+	struct dwc3_omap	*omap = dev_get_drvdata(dev);
-+
-+	return __dwc3_omap_resume(omap);
-+}
-+
- static const struct dev_pm_ops dwc3_omap_dev_pm_ops = {
- 	.prepare	= dwc3_omap_prepare,
- 	.complete	= dwc3_omap_complete,
- 
- 	SET_SYSTEM_SLEEP_PM_OPS(dwc3_omap_suspend, dwc3_omap_resume)
-+	SET_RUNTIME_PM_OPS(dwc3_omap_runtime_suspend, dwc3_omap_runtime_resume,
-+			NULL)
+ 	struct dwc3_exynos *exynos = dev_get_drvdata(dev);
+@@ -212,18 +211,13 @@ static const struct dev_pm_ops dwc3_exynos_dev_pm_ops = {
+ 	SET_SYSTEM_SLEEP_PM_OPS(dwc3_exynos_suspend, dwc3_exynos_resume)
  };
  
- #define DEV_PM_OPS	(&dwc3_omap_dev_pm_ops)
+-#define DEV_PM_OPS	(&dwc3_exynos_dev_pm_ops)
+-#else
+-#define DEV_PM_OPS	NULL
+-#endif /* CONFIG_PM_SLEEP */
+-
+ static struct platform_driver dwc3_exynos_driver = {
+ 	.probe		= dwc3_exynos_probe,
+ 	.remove		= dwc3_exynos_remove,
+ 	.driver		= {
+ 		.name	= "exynos-dwc3",
+ 		.of_match_table = of_match_ptr(exynos_dwc3_match),
+-		.pm	= DEV_PM_OPS,
++		.pm	= &dwc3_exynos_dev_pm_ops,
+ 	},
+ };
+ 
 -- 
 1.8.4.GIT
+
