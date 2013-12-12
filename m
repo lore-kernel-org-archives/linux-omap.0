@@ -1,78 +1,55 @@
-From: Sebastian Reichel <sre-GFxCN5SEZAc@public.gmane.org>
-Subject: Re: [PATCH 06/26] OMAPDSS: if dssdev->name==NULL, use alias
-Date: Thu, 12 Dec 2013 11:05:28 +0100
-Message-ID: <20131212100527.GA860@earth.universe>
-References: <1386160133-24026-1-git-send-email-tomi.valkeinen@ti.com>
- <1386160133-24026-7-git-send-email-tomi.valkeinen@ti.com>
- <37483030.ghHfzYFSnL@avalon>
- <10507960.9DXH4TSv2E@avalon>
- <52A968BD.20304@ti.com>
+From: Lokesh Vutla <lokeshvutla@ti.com>
+Subject: Re: [PATCH] ARM: DRA7: hwmod: Fix boot crash with DEBUG_LL
+Date: Thu, 12 Dec 2013 15:40:34 +0530
+Message-ID: <52A98B9A.4080804@ti.com>
+References: <1386841969-765-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="0OAP2g/MAC+5xKAE"
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <52A968BD.20304-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
-Cc: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Archit Taneja <archit-l0cyMroinI0@public.gmane.org>, Darren Etheridge <detheridge-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:50577 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751311Ab3LLKLC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 12 Dec 2013 05:11:02 -0500
+In-Reply-To: <1386841969-765-1-git-send-email-rnayak@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, bcousson@baylibre.com, paul@pwsan.com
 
+Hi Rajendra,
+On Thursday 12 December 2013 03:22 PM, Rajendra Nayak wrote:
+> With commit '7dedd34: ARM: OMAP2+: hwmod: Fix a crash in _setup_reset() with
+>  DEBUG_LL' we moved from parsing cmdline to identify uart used for earlycon
+> to using the requsite hwmod CONFIG_DEBUG_OMAPxUARTy FLAGS.
+> 
+> On DRA7 though, we seem to be missing this flag, and atleast on the DRA7 EVM
+> where we use uart1 for console, boot fails with DEBUG_LL enabled.
+> 
+> Reported-by: Lokesh Vutla <lokeshvutla@ti.com>
+> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+Tested on DRA7 evm using Tero's V10 clock series.
 
---0OAP2g/MAC+5xKAE
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Tested-by:  Lokesh Vutla <lokeshvutla@ti.com>
 
-On Thu, Dec 12, 2013 at 09:41:49AM +0200, Tomi Valkeinen wrote:
-> > A label property is still an option.
->=20
-> Hmm, what do you mean? Label as in:
->=20
-> foo : node {
-> };
->=20
-> Isn't that 'foo' label only visible in DT itself, as a shortcut?
+Thanks and regards,
+Lokesh 
+> ---
+>  arch/arm/mach-omap2/omap_hwmod_7xx_data.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+> index db32d53..18f333c 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+> @@ -1637,7 +1637,7 @@ static struct omap_hwmod dra7xx_uart1_hwmod = {
+>  	.class		= &dra7xx_uart_hwmod_class,
+>  	.clkdm_name	= "l4per_clkdm",
+>  	.main_clk	= "uart1_gfclk_mux",
+> -	.flags		= HWMOD_SWSUP_SIDLE_ACT,
+> +	.flags		= HWMOD_SWSUP_SIDLE_ACT | DEBUG_OMAP2UART1_FLAGS,
+>  	.prcm = {
+>  		.omap4 = {
+>  			.clkctrl_offs = DRA7XX_CM_L4PER_UART1_CLKCTRL_OFFSET,
+> 
 
-Some driver use a "label" property like this:
-
-foo : node {
-    label =3D "lcd";
-
-    ...
-};
-
-See for example
-
-Documentation/devicetree/bindings/leds/common.txt
-Documentation/devicetree/bindings/mtd/partition.txt
-
--- Sebastian
-
---0OAP2g/MAC+5xKAE
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.15 (GNU/Linux)
-
-iQIcBAEBCAAGBQJSqYpnAAoJENju1/PIO/qaqe8P/2OoKAQ6jjpZ2Nmj8vIEQzYI
-Hxc+sKN05/IH/Qr8nkBIM9syFWZZEXPYrlRUh8VvlHeAVEYPSgL1J/7h12losPkj
-6bO+StU7T46dpUUvE8XUjmVeYkbPmX/+XLydKXlsfB8umBOE7eQ2QLyMHmR0oLlw
-sbwIvkMkOEZTNJNvnI3GOFc6i8L1dsKdhmzwnKPsDX4rUU/n0B276VZ6RzoPsFnP
-mzwlouTMQTFHdutR5AfLpEDNIKNfZN7SxfsFepMKo5dzI5ED/6vBXkpJ7bRT5Lmw
-Hx8crPFf93BtgKlAVEpL9pHcvOjtslduijg451ZsRTJrt+8ugPW1zTMzhj8+CErQ
-sMYh5afSX57fY+2cGehpOHGSVYEt7Fm/5qJ0y21DZA7qimtWrV/WpLeEPZl52BTx
-TZy5up/OZm5OaikKcTTOVUGz5slYtsS6OO4rJddTv1xAynnh/S5HO1PmhnfG+ngR
-kn20slG0cIhvqAlGI4HbjeFEjRJWVaics58yr6QkfR4L/xDtXKNPQAXj5Ju6jhX9
-47Pibgy900mn1X/jdOBledZy7d/VvhhrS/lzTGx8pJ4o6juJz0Udby79S32XGBaa
-StFtKR8xibbauJi6y4E9QuRg9yxLFHmAOQCJiIYO/p/20x+oYrVsacc7kpHhAMRr
-z9hYoP+J8enmRhDkSI8W
-=kfza
------END PGP SIGNATURE-----
-
---0OAP2g/MAC+5xKAE--
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
