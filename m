@@ -1,64 +1,70 @@
-From: Huang Shijie <shijie8@gmail.com>
-Subject: Re: [PATCHv2 07/10] drivers: mtd: m25p80: Adapt driver to support
- memory mapped read.
-Date: Thu, 12 Dec 2013 16:31:46 +0800
-Message-ID: <20131212083143.GB1596@gmail.com>
-References: <1386339891-32717-1-git-send-email-sourav.poddar@ti.com>
- <1386339891-32717-8-git-send-email-sourav.poddar@ti.com>
- <20131212075536.GA1596@gmail.com>
- <52A9709C.4010606@ti.com>
+From: Archit Taneja <archit@ti.com>
+Subject: [PATCH 0/8] v4l: ti-vpe: Add support for scaling and color conversion
+Date: Thu, 12 Dec 2013 14:05:56 +0530
+Message-ID: <1386837364-1264-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pb0-f42.google.com ([209.85.160.42]:37479 "EHLO
-	mail-pb0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751402Ab3LLIby (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Dec 2013 03:31:54 -0500
-Content-Disposition: inline
-In-Reply-To: <52A9709C.4010606@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-media-owner@vger.kernel.org>
+Sender: linux-media-owner@vger.kernel.org
+To: linux-media@vger.kernel.org, k.debski@samsung.com, hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com
+Cc: linux-omap@vger.kernel.org, tomi.valkeinen@ti.com, Archit Taneja <archit@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Sourav Poddar <sourav.poddar@ti.com>
-Cc: broonie@kernel.org, linux-spi@vger.kernel.org, computersforpeace@gmail.com, marex@denx.de, devicetree@vger.kernel.org, balbi@ti.com, linux-mtd@lists.infradead.org, bcousson@baylibre.com, linux-omap@vger.kernel.org, dwmw2@infradead.org
 
-On Thu, Dec 12, 2013 at 01:45:24PM +0530, Sourav Poddar wrote:
-> On Thursday 12 December 2013 01:25 PM, Huang Shijie wrote:
-> >>
-> >>+	if (spi->master->configure_from_slave)
-> >>+		m25p80_fill_flash_information(flash);
-> >>+
-> >You have add a configure_from_slave hook in the SPI, why you also need
-> >a same hook in the SPI-NOR framework?
-> >
-> We need a way to provoke this, currently it is placed in m25p80. If m25p80
-> is removed, for where should I handle these in nor framework?
+The VPE and VIP IPs in DRA7x contain common scaler and color conversion hardware
+blocks. We create libraries for these components such that the vpe driver and
+the vip driver(in future) can use these library funcs to configure the blocks.
 
-The m25p80 is not removed. it is easy to move your code in the
-m25p_read.
+There are some points for which I would like comments:
 
-Please read the patch 4.
+- For VPE, setting the format and colorspace for the source and destination
+  queues is enough to determine how these blocks need to be configured and
+  whether they need to be bypassed or not. So it didn't make sense to represent
+  them as media controller entities. For VIP(driver not upstream yet), it's
+  possible that there are multiple data paths which may or may not include these
+  blocks. However, the current use cases don't require such flexibility. There
+  may be a need to re-consider a media controller like setup once we work on the
+  VIP driver. Is it a good idea in terms of user-space compatibilty if we use
+  media controller framework in the future.
 
-> >And i think the enable_mmap/disable_mmap is not needed too.
-> >
-> >All the three hooks are used to set the SPI bus controller.
-> 
-> >And the SPI-NOR framework only handles the issues between the
-> >SPI bus controller and the SPI-NOR, or the SPI-NOR controller and the
-> >SPI-NOR.
-> My controller can be used as spi flash controller as well as a spi
-> controller.
-> 
-If you really think we need to do something before the do the real work.
-we can add two hooks : prepare/unprepare.
+- These blocks will also require some custom control commands later on. For
+  example, we may want to tell the scaler later on to perform bi-linear
+  scaling, or perform peaking at a particular frequency.
 
-   for you, you can put the the enable_mmap/disable_mmap in the
-   prepare/unprepare separately.
+- The current series keeps the default scaler coefficients in a header file.
+  These coefficients add a lot of lines of code in the kernel. Does it make more
+  sense for the user application to pass the co-efficients to the kernel using
+  an ioctl? Is there any driver which currenlty does this?
 
-   for other driver, we can put the enable/disable clocks in the
-   prepare/unprepare hooks.
+The series is based on the branch:
 
-thanks
-Huang Shijie 
-   
+git://linuxtv.org/media_tree.git master
 
+Archit Taneja (8):
+  v4l: ti-vpe: create a scaler block library
+  v4l: ti-vpe: support loading of scaler coefficients
+  v4l: ti-vpe: make vpe driver load scaler coefficients
+  v4l: ti-vpe: enable basic scaler support
+  v4l: ti-vpe: create a color space converter block library
+  v4l: ti-vpe: Add helper to perform color conversion
+  v4l: ti-vpe: enable CSC support for VPE
+  v4l: ti-vpe: Add a type specifier to describe vpdma data format type
 
+ drivers/media/platform/ti-vpe/Makefile   |    2 +-
+ drivers/media/platform/ti-vpe/csc.c      |  196 +++++
+ drivers/media/platform/ti-vpe/csc.h      |   68 ++
+ drivers/media/platform/ti-vpe/sc.c       |  311 +++++++
+ drivers/media/platform/ti-vpe/sc.h       |  208 +++++
+ drivers/media/platform/ti-vpe/sc_coeff.h | 1342 ++++++++++++++++++++++++++++++
+ drivers/media/platform/ti-vpe/vpdma.c    |   36 +-
+ drivers/media/platform/ti-vpe/vpdma.h    |    7 +
+ drivers/media/platform/ti-vpe/vpe.c      |  251 ++++--
+ drivers/media/platform/ti-vpe/vpe_regs.h |  187 -----
+ 10 files changed, 2335 insertions(+), 273 deletions(-)
+ create mode 100644 drivers/media/platform/ti-vpe/csc.c
+ create mode 100644 drivers/media/platform/ti-vpe/csc.h
+ create mode 100644 drivers/media/platform/ti-vpe/sc.c
+ create mode 100644 drivers/media/platform/ti-vpe/sc.h
+ create mode 100644 drivers/media/platform/ti-vpe/sc_coeff.h
+
+-- 
+1.8.3.2
