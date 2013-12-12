@@ -1,83 +1,70 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 06/26] OMAPDSS: if dssdev->name==NULL, use alias
-Date: Thu, 12 Dec 2013 09:41:49 +0200
-Message-ID: <52A968BD.20304@ti.com>
-References: <1386160133-24026-1-git-send-email-tomi.valkeinen@ti.com> <1386160133-24026-7-git-send-email-tomi.valkeinen@ti.com> <37483030.ghHfzYFSnL@avalon> <10507960.9DXH4TSv2E@avalon>
+Subject: Re: [PATCH 10/26] OMAPDSS: add of helpers
+Date: Thu, 12 Dec 2013 09:48:30 +0200
+Message-ID: <52A96A4E.1010006@ti.com>
+References: <1386160133-24026-1-git-send-email-tomi.valkeinen@ti.com> <1386160133-24026-11-git-send-email-tomi.valkeinen@ti.com> <4533892.HJaRcDt4Q8@avalon>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
 	protocol="application/pgp-signature";
-	boundary="gEHOISIgkbGVOedRu7O4LsTjO1i6XkUlO"
+	boundary="OHLOcccQebkoPWMTKxeuttuxGt4anx9xb"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:43334 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752445Ab3LLHlz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 12 Dec 2013 02:41:55 -0500
-In-Reply-To: <10507960.9DXH4TSv2E@avalon>
+Received: from devils.ext.ti.com ([198.47.26.153]:51305 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751452Ab3LLHsg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Dec 2013 02:48:36 -0500
+In-Reply-To: <4533892.HJaRcDt4Q8@avalon>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, Archit Taneja <archit@ti.com>, Darren Etheridge <detheridge@ti.com>, Tony Lindgren <tony@atomide.com>
 
---gEHOISIgkbGVOedRu7O4LsTjO1i6XkUlO
+--OHLOcccQebkoPWMTKxeuttuxGt4anx9xb
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 
-On 2013-12-12 01:56, Laurent Pinchart wrote:
+On 2013-12-12 01:19, Laurent Pinchart wrote:
 > Hi Tomi,
 >=20
-> On Thursday 12 December 2013 00:13:01 Laurent Pinchart wrote:
->> On Wednesday 04 December 2013 14:28:33 Tomi Valkeinen wrote:
->>> To avoid the need for a "nickname" property for each display, change
->>> the display registration so that the display's alias (i.e. "display0"=
-
->>> etc) will be used for the dssdev->name if the display driver didn't
->>> provide a name.
->>>
->>> This means that when booting with board files, we will have more
->>> descriptive names for displays, like "lcd1", "hdmi".
+> On Wednesday 04 December 2013 14:28:37 Tomi Valkeinen wrote:
+>> Add helpers to get ports and endpoints from DT data.
 >>
->> Where are those names used ? Are they reported to userspace, or limite=
-d to
->> kernel internal use only ?
-
-They are visible via omapdss's sysfs, when using omapfb. They are used
-for debug prints and by the user for selecting the default display and
-display modes via kernel cmdline, and when he sets the video pipeline
-routing. So changing them could be considered breaking the API, but...
-
-With omapdrm the sysfs files do not exist, and I think omapdrm doesn't
-use them (except maybe for some debug prints).
-
->>> With DT we'll only have "display0", etc. But as there are no "nicknam=
-es"
->>> for things like serials ports either, I hope we will do fine with thi=
-s
->>
->> Just a random thought, maybe the aliases node could help here.
+>> While all the functions in dss-of.c might be useful for panel drivers =
+if
+>> they need to parse full port/endpoint data, at the moment we only need=
+ a
+>> few of them outside dss-of.c, so only those functions are exported.
 >=20
-> I should have read the next patches before replying, sorry :-)
->=20
->> I'm not sure what rules govern its usage. Adding labels to display DT =
-nodes
->> could be an option too.
+> I totally understand that it was easier to add this code to the OMAP DS=
+S=20
+> driver, but I believe we should refactor the existing drivers/media/v4l=
+2-
+> core/v4l2-of.c and move it to a non V4L2-specific location (what about =
 
-Using of_alias_get_id() means that the alias is in the form "nameX"
-where X is a number.
+> drivers/media ?) sooner rather than later. That's on my to-do list for =
 
-> A label property is still an option.
+> Saturday.
 
-Hmm, what do you mean? Label as in:
+I agree. I just didn't want to go that way yet =3D).
 
-foo : node {
-};
+Have you thought of the API? You had one version in your CDF series, but
+I think that was a bit too limited (I don't remember right now how), so
+I wrote my own versions.
 
-Isn't that 'foo' label only visible in DT itself, as a shortcut?
+What I tried to do here is to add simple ways for the drivers to iterate
+the ports and endpoints with omapdss_of_get_next_port and
+omapdss_of_get_next_endpoint.
+
+But I'm not sure what the use pattern would be. If in most of the cases
+the driver always goes through all the ports and all the endpoints, we
+could as well have a helper function that goes through all the endpoints
+in all the ports, and returns both the port and endpoint for each iterati=
+on.
 
  Tomi
 
 
 
---gEHOISIgkbGVOedRu7O4LsTjO1i6XkUlO
+--OHLOcccQebkoPWMTKxeuttuxGt4anx9xb
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -86,19 +73,19 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v1.4.14 (GNU/Linux)
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBAgAGBQJSqWi9AAoJEPo9qoy8lh71PTkQAJtoVilfqDUk/dZqMQRD70SH
-wnLlQr6nykppWo05kzGCvPDJiu7y5LU000cXClojehXrnq3Cu0ztUMo/naqRgt33
-7uyiynCxt22WIUS8QGD6NXvOtGRw2HrALsSV/MGVXGeyBZAegrkSiEtkrWuuupwI
-WJ/PmQ7EUTvvV8huy3GWKiu6+klSEPc/b0rt/ffCUKCETbgR/8gm24uoGQp2KdbF
-tbPXqAZFxKJakjhzwPUK/cUkvVrobxsFxXa5nVunH6j/2ZCDG3NYvqJ7Z3RckhBa
-fnXao/OQtnhKoHPc9wWwgkTkYj9MqSy/Pt7pbhY/mNzGbwlRGKhi+Ui+0KC5vESU
-D7USQduSQID/TtRt5U44bfk71pO2LAwYg2DiH73ZshIQdq/pB/0G5F91SbfieuoW
-AKIQ2uNB7mKZEsdJXKtoD3fe3MXt1GcVLoQTTFJzYduFiuqLKzDYW1JKAxa0MSzZ
-gG1D9myGrpyvtKuybrv8R4Rsy1yElPb3JA9MMU9o3VLFv6uG7ijuYN2mIRugvB1b
-fkSNDNK3vHElYQoKPHbuN+bQSq+2snhgb1uOhhRg5giT2Ri17MDmIuZR1sbsi5JL
-ouUNooKmuXd/iXW1I/QIaTLxhnW9T/OojnxzSi+MRnR6PZ2OkgaNI+rJTjhz5Mur
-rVwnSB91ItSBESqpKMXv
-=ayRZ
+iQIcBAEBAgAGBQJSqWpOAAoJEPo9qoy8lh71N7AP/jY9D9qYgfWTZbfUrJ6GQIK6
+Tken/0aGCgvkU/gpW8Nwgru2jcaCcAcRBGWQiyyzLnz7B2dH/SEmRJdyw6cdMVLK
+P6LKuabAQ1lmjPToQxBwH8oMbY9TT8ZPy1DvvnDSDL0f3jf6yYNQ2JkuPLc/Zxpb
+knSgh/gveOdUS8XCrJwctzXO4CBRMkAE/TRR/pNFPxR/WMQX4TYph9FzHnYLlaj6
+voyJDcGFaccWBb/o4wdLttZfmzG+LuRdBBVejWcWRB5NcBDMHPZx0pK5cfl8TkFI
+DDE8I+WOaNM/2xf3dasQ1STE5Wkcac3O1fUEF+Qen+MGuk1k7UedSYfxeNXmTvSn
+D665nc9CQgwAaqjXab6YZSSsugW8IXZUjeOfTMMHCvq0jquN/eFYYKKP9whEiHbF
+goYB7pnCTw2sUc/L6/RPEslMwuzz37V48WzWy8W/INw9G2apH9eXTFIZtmwep85k
+mJyMY1vEq335Ph7XAMSJEQCfLDVIAWKsgJ6fnKU6wgHw1w1wkjH+sBwG338oIbH6
+A8nuWsYEUAB/RQQpQ3e27rSkBH/hD8KUYOgMd0Fqf1InzAbSG2VeLj5cRShHIKtT
+QSVwtJwQjHZZF61RoR3X++GVP6G1FFGYLzXzZ7t6rFTKPu6C23JKHfCzd2AwptpZ
+rqCbVUnCO8/9WMaPKCWk
+=bydW
 -----END PGP SIGNATURE-----
 
---gEHOISIgkbGVOedRu7O4LsTjO1i6XkUlO--
+--OHLOcccQebkoPWMTKxeuttuxGt4anx9xb--
