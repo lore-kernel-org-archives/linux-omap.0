@@ -1,45 +1,82 @@
-From: Sourav Poddar <sourav.poddar@ti.com>
-Subject: Re: [PATCHv2 09/10] arm: dts: dra7: Add qspi device.
-Date: Thu, 12 Dec 2013 09:50:44 +0530
-Message-ID: <52A9399C.80006@ti.com>
-References: <1386339891-32717-1-git-send-email-sourav.poddar@ti.com>
- <1386339891-32717-10-git-send-email-sourav.poddar@ti.com>
- <20131209174203.GB12527@atomide.com> <52A697AB.1060404@ti.com>
- <20131210103108.GA29268@sirena.org.uk>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 05/26] ARM: OMAP2+: add omapdss_init_of()
+Date: Thu, 12 Dec 2013 09:30:11 +0200
+Message-ID: <52A96603.5030709@ti.com>
+References: <1386160133-24026-1-git-send-email-tomi.valkeinen@ti.com> <1386160133-24026-6-git-send-email-tomi.valkeinen@ti.com> <2199639.FbGhznOLP9@avalon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
-In-Reply-To: <20131210103108.GA29268@sirena.org.uk>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
-To: Mark Brown <broonie@kernel.org>
-Cc: marex@denx.de, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, balbi@ti.com, linux-spi@vger.kernel.org, linux-mtd@lists.infradead.org, bcousson@baylibre.com, computersforpeace@gmail.com, dwmw2@infradead.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="tf4jdftRMQf6xiCtGVqaeWIgKXg8NW1RL"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:42904 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751469Ab3LLHaR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 12 Dec 2013 02:30:17 -0500
+In-Reply-To: <2199639.FbGhznOLP9@avalon>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, Archit Taneja <archit@ti.com>, Darren Etheridge <detheridge@ti.com>, Tony Lindgren <tony@atomide.com>
 
-Hi Mark,
-On Tuesday 10 December 2013 04:01 PM, Mark Brown wrote:
-> On Tue, Dec 10, 2013 at 09:55:15AM +0530, Sourav Poddar wrote:
->
->> I posted this for review along with other code changes.
->> I will post them seperately to Benoit.
-> Please wait until the driver updates have been reviewed.
-I was thinking of sending this dts patches seperately to benoit, so that we
-can enable atleast 1/4 bit mode for our controller. Anyways, there is no
-memory mapped specific binding used. Once, we get our driver updates
-reviewed and *if* there is anything memory mapped specific added, I can
-send them as a seperate patch. Anyways with spi nor  framework in sight the
-driver uodates can go anyewhere and might take some time.
-.
-Does this sound Ok to you?
+--tf4jdftRMQf6xiCtGVqaeWIgKXg8NW1RL
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-______________________________________________________
-Linux MTD discussion mailing list
-http://lists.infradead.org/mailman/listinfo/linux-mtd/
+On 2013-12-12 01:10, Laurent Pinchart wrote:
+> Hi Tomi,
+>=20
+> On Wednesday 04 December 2013 14:28:32 Tomi Valkeinen wrote:
+>> omapdss driver uses a omapdss platform device to pass platform specifi=
+c
+>> function pointers and DSS hardware version from the arch code to the
+>> driver. This device is needed also when booting with DT.
+>>
+>> This patch adds omapdss_init_of() function, called from board-generic =
+at
+>> init time, which creates the omapdss device.
+>=20
+> Is this a temporary solution that you plan to later replace with DT-onl=
+y=20
+> device instantiation ?
+
+It's a long term task to remove the "virtual" omapdss device. Removing
+the platform data that we pass has been very difficult.
+
+For example, we need to get the OMAP revision to know which OMAP DSS
+hardware we have. We can't get that information from the DSS hardware
+(thank you, HW designers! ;).
+
+Another is DSI pin muxing. I think we need a new pinmuxing driver for
+that, or maybe change pinmux-single quite a bit. The DSI pinmuxing is
+very simple, but the register fields are varying lengths and at varying
+positions, so pinmux-single doesn't work for it.
+
+ Tomi
+
+
+
+--tf4jdftRMQf6xiCtGVqaeWIgKXg8NW1RL
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.14 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJSqWYDAAoJEPo9qoy8lh71SWIP/AqkGhWSp32KXMkbsWL/TOx6
+6+ER37WHhW0i9IUBsA1xuTKXMa/T2Cw2wz+0zlMD5FXB6AUlMFe2GwccPmrDwhG5
+H7FNWjNLU4XgtqwuoAz7jQtfakOHcnz1BnNyFih7OJ1UIdoxtDv7KhpW0Pn9u4W+
+iycTvgiLx8WTg319SVUhVX2W6y8MZKpADRqby51scteo+OJnuyPcnZrdt1Y7Xnux
+mbx2HSFnJ7pV86ERHhz2VClgqHk/fvMe07cBvPBE40dMxJVy4jT9YtAsVFe8LIAA
+2sE0Ve9EPzWJCd+AzN2aGaNu7tz6/03Hzu8k4sx+pARkfpR+D6wRS4vRA7uZtq4z
+SJckEjcmuRIIux3of0KLnrLyxUgYvX5dVNJzVCtSNM5dIlhfqDfYQ/9gS5dsMbQ4
+6eilfziWni2vPFoAy/zGUjdmS6mvByMEVvICGxGnJMSclc0eQ7kM0PYbwqPItMEC
+N4ayOQbjsWXUfrGxqei9jd/TgcgVTXek+k4Yj1nx7epYhlzy9GvPi4ETjugPTx+V
+oCT4/XJp/jv8TziLP9maYW6ihAB4A3PFU3VWObO4Tzbff79cUXclMSJSZS9SIfq7
+CbTWPCHAbggOALStHNFj21Qfa6aFoY+8G5fuJ4B5+UViaZxpynwjZGxQ6y5o7XvI
+F0y1QTzUfcaTMpEbbQ8v
+=ZjTZ
+-----END PGP SIGNATURE-----
+
+--tf4jdftRMQf6xiCtGVqaeWIgKXg8NW1RL--
