@@ -1,240 +1,190 @@
-From: Archit Taneja <archit@ti.com>
-Subject: [PATCH 8/8] v4l: ti-vpe: Add a type specifier to describe vpdma data format type
-Date: Thu, 12 Dec 2013 14:06:04 +0530
-Message-ID: <1386837364-1264-9-git-send-email-archit@ti.com>
-References: <1386837364-1264-1-git-send-email-archit@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 13/26] ARM: omap3.dtsi: add omapdss information
+Date: Thu, 12 Dec 2013 10:38:34 +0200
+Message-ID: <52A9760A.3000801@ti.com>
+References: <1386160133-24026-1-git-send-email-tomi.valkeinen@ti.com> <20131205170514.GY26766@atomide.com> <52A5BB65.5050109@ti.com> <2364383.8GWpsWSoJu@avalon>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="mWFFWcicMRwCvQ5w2jVMLqKEcbjWdXraL"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:47137 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:47189 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751458Ab3LLIgt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 12 Dec 2013 03:36:49 -0500
-In-Reply-To: <1386837364-1264-1-git-send-email-archit@ti.com>
+	id S1750873Ab3LLIik (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 12 Dec 2013 03:38:40 -0500
+In-Reply-To: <2364383.8GWpsWSoJu@avalon>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-media@vger.kernel.org, k.debski@samsung.com, hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com
-Cc: linux-omap@vger.kernel.org, tomi.valkeinen@ti.com, Archit Taneja <archit@ti.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, Archit Taneja <archit@ti.com>, Darren Etheridge <detheridge@ti.com>
 
-The struct vpdma_data_format holds the color format depth and the data_type
-value needed to be programmed in the data descriptors. However, it doesn't
-tell what type of color format is it, i.e, whether it is RGB, YUV or Misc.
+--mWFFWcicMRwCvQ5w2jVMLqKEcbjWdXraL
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-This information is needed when by vpdma library when forming descriptors. We
-modify the depth parameter for the chroma portion of the NV12 format. For this,
-we check if the data_type value is C420. This isn't sufficient as there are
-many YUV and RGB vpdma formats which have the same data_type value. Hence, we
-need to hold the type of the color format for the above case, and possibly more
-cases in the future.
+On 2013-12-12 01:44, Laurent Pinchart wrote:
 
-Signed-off-by: Archit Taneja <archit@ti.com>
----
- drivers/media/platform/ti-vpe/vpdma.c | 36 +++++++++++++++++++++++++++++++++--
- drivers/media/platform/ti-vpe/vpdma.h |  7 +++++++
- 2 files changed, 41 insertions(+), 2 deletions(-)
+>> The DSS subdevices depend on the dss_core. dss_core has to be powered =
+up
+>> for any of the subdevices to work. This is done automatically by the
+>> runtime PM when the subdevices are children of the dss_core.
+>=20
+> I'd like to get a clearer picture of the hardware here. The OMAP3 ISP i=
+s=20
+> organized in a seemingly similar way, with the hardware subdivided in h=
+igh-
+> level more-or-less independent modules. However, from a system point of=
+ view,=20
+> the ISP submodules are not standalone: they're part of the same power d=
+omain=20
+> as the ISP core, with subclocks management and interrupts being handled=
+ by the=20
+> ISP core. For those reasons we've modeled the ISP as a single platform =
+device.
+>=20
+> Are the DSS submodules really independent, or are they organized simila=
+rly ?=20
+> For instance do they each have a clock handled by the OMAP core clock I=
+P, or=20
+> are the clocks gated by the DSS core ? Do they have interrupts routed t=
+o the=20
+> GIC, or does the DSS core driver demux the interrupts ?
 
-diff --git a/drivers/media/platform/ti-vpe/vpdma.c b/drivers/media/platform/ti-vpe/vpdma.c
-index f97253f..a268f68 100644
---- a/drivers/media/platform/ti-vpe/vpdma.c
-+++ b/drivers/media/platform/ti-vpe/vpdma.c
-@@ -30,38 +30,47 @@
- 
- const struct vpdma_data_format vpdma_yuv_fmts[] = {
- 	[VPDMA_DATA_FMT_Y444] = {
-+		.type		= VPDMA_DATA_FMT_TYPE_YUV,
- 		.data_type	= DATA_TYPE_Y444,
- 		.depth		= 8,
- 	},
- 	[VPDMA_DATA_FMT_Y422] = {
-+		.type		= VPDMA_DATA_FMT_TYPE_YUV,
- 		.data_type	= DATA_TYPE_Y422,
- 		.depth		= 8,
- 	},
- 	[VPDMA_DATA_FMT_Y420] = {
-+		.type		= VPDMA_DATA_FMT_TYPE_YUV,
- 		.data_type	= DATA_TYPE_Y420,
- 		.depth		= 8,
- 	},
- 	[VPDMA_DATA_FMT_C444] = {
-+		.type		= VPDMA_DATA_FMT_TYPE_YUV,
- 		.data_type	= DATA_TYPE_C444,
- 		.depth		= 8,
- 	},
- 	[VPDMA_DATA_FMT_C422] = {
-+		.type		= VPDMA_DATA_FMT_TYPE_YUV,
- 		.data_type	= DATA_TYPE_C422,
- 		.depth		= 8,
- 	},
- 	[VPDMA_DATA_FMT_C420] = {
-+		.type		= VPDMA_DATA_FMT_TYPE_YUV,
- 		.data_type	= DATA_TYPE_C420,
- 		.depth		= 4,
- 	},
- 	[VPDMA_DATA_FMT_YC422] = {
-+		.type		= VPDMA_DATA_FMT_TYPE_YUV,
- 		.data_type	= DATA_TYPE_YC422,
- 		.depth		= 16,
- 	},
- 	[VPDMA_DATA_FMT_YC444] = {
-+		.type		= VPDMA_DATA_FMT_TYPE_YUV,
- 		.data_type	= DATA_TYPE_YC444,
- 		.depth		= 24,
- 	},
- 	[VPDMA_DATA_FMT_CY422] = {
-+		.type		= VPDMA_DATA_FMT_TYPE_YUV,
- 		.data_type	= DATA_TYPE_CY422,
- 		.depth		= 16,
- 	},
-@@ -69,82 +78,102 @@ const struct vpdma_data_format vpdma_yuv_fmts[] = {
- 
- const struct vpdma_data_format vpdma_rgb_fmts[] = {
- 	[VPDMA_DATA_FMT_RGB565] = {
-+		.type		= VPDMA_DATA_FMT_TYPE_RGB,
- 		.data_type	= DATA_TYPE_RGB16_565,
- 		.depth		= 16,
- 	},
- 	[VPDMA_DATA_FMT_ARGB16_1555] = {
-+		.type		= VPDMA_DATA_FMT_TYPE_RGB,
- 		.data_type	= DATA_TYPE_ARGB_1555,
- 		.depth		= 16,
- 	},
- 	[VPDMA_DATA_FMT_ARGB16] = {
-+		.type		= VPDMA_DATA_FMT_TYPE_RGB,
- 		.data_type	= DATA_TYPE_ARGB_4444,
- 		.depth		= 16,
- 	},
- 	[VPDMA_DATA_FMT_RGBA16_5551] = {
-+		.type		= VPDMA_DATA_FMT_TYPE_RGB,
- 		.data_type	= DATA_TYPE_RGBA_5551,
- 		.depth		= 16,
- 	},
- 	[VPDMA_DATA_FMT_RGBA16] = {
-+		.type		= VPDMA_DATA_FMT_TYPE_RGB,
- 		.data_type	= DATA_TYPE_RGBA_4444,
- 		.depth		= 16,
- 	},
- 	[VPDMA_DATA_FMT_ARGB24] = {
-+		.type		= VPDMA_DATA_FMT_TYPE_RGB,
- 		.data_type	= DATA_TYPE_ARGB24_6666,
- 		.depth		= 24,
- 	},
- 	[VPDMA_DATA_FMT_RGB24] = {
-+		.type		= VPDMA_DATA_FMT_TYPE_RGB,
- 		.data_type	= DATA_TYPE_RGB24_888,
- 		.depth		= 24,
- 	},
- 	[VPDMA_DATA_FMT_ARGB32] = {
-+		.type		= VPDMA_DATA_FMT_TYPE_RGB,
- 		.data_type	= DATA_TYPE_ARGB32_8888,
- 		.depth		= 32,
- 	},
- 	[VPDMA_DATA_FMT_RGBA24] = {
-+		.type		= VPDMA_DATA_FMT_TYPE_RGB,
- 		.data_type	= DATA_TYPE_RGBA24_6666,
- 		.depth		= 24,
- 	},
- 	[VPDMA_DATA_FMT_RGBA32] = {
-+		.type		= VPDMA_DATA_FMT_TYPE_RGB,
- 		.data_type	= DATA_TYPE_RGBA32_8888,
- 		.depth		= 32,
- 	},
- 	[VPDMA_DATA_FMT_BGR565] = {
-+		.type		= VPDMA_DATA_FMT_TYPE_RGB,
- 		.data_type	= DATA_TYPE_BGR16_565,
- 		.depth		= 16,
- 	},
- 	[VPDMA_DATA_FMT_ABGR16_1555] = {
-+		.type		= VPDMA_DATA_FMT_TYPE_RGB,
- 		.data_type	= DATA_TYPE_ABGR_1555,
- 		.depth		= 16,
- 	},
- 	[VPDMA_DATA_FMT_ABGR16] = {
-+		.type		= VPDMA_DATA_FMT_TYPE_RGB,
- 		.data_type	= DATA_TYPE_ABGR_4444,
- 		.depth		= 16,
- 	},
- 	[VPDMA_DATA_FMT_BGRA16_5551] = {
-+		.type		= VPDMA_DATA_FMT_TYPE_RGB,
- 		.data_type	= DATA_TYPE_BGRA_5551,
- 		.depth		= 16,
- 	},
- 	[VPDMA_DATA_FMT_BGRA16] = {
-+		.type		= VPDMA_DATA_FMT_TYPE_RGB,
- 		.data_type	= DATA_TYPE_BGRA_4444,
- 		.depth		= 16,
- 	},
- 	[VPDMA_DATA_FMT_ABGR24] = {
-+		.type		= VPDMA_DATA_FMT_TYPE_RGB,
- 		.data_type	= DATA_TYPE_ABGR24_6666,
- 		.depth		= 24,
- 	},
- 	[VPDMA_DATA_FMT_BGR24] = {
-+		.type		= VPDMA_DATA_FMT_TYPE_RGB,
- 		.data_type	= DATA_TYPE_BGR24_888,
- 		.depth		= 24,
- 	},
- 	[VPDMA_DATA_FMT_ABGR32] = {
-+		.type		= VPDMA_DATA_FMT_TYPE_RGB,
- 		.data_type	= DATA_TYPE_ABGR32_8888,
- 		.depth		= 32,
- 	},
- 	[VPDMA_DATA_FMT_BGRA24] = {
-+		.type		= VPDMA_DATA_FMT_TYPE_RGB,
- 		.data_type	= DATA_TYPE_BGRA24_6666,
- 		.depth		= 24,
- 	},
- 	[VPDMA_DATA_FMT_BGRA32] = {
-+		.type		= VPDMA_DATA_FMT_TYPE_RGB,
- 		.data_type	= DATA_TYPE_BGRA32_8888,
- 		.depth		= 32,
- 	},
-@@ -152,6 +181,7 @@ const struct vpdma_data_format vpdma_rgb_fmts[] = {
- 
- const struct vpdma_data_format vpdma_misc_fmts[] = {
- 	[VPDMA_DATA_FMT_MV] = {
-+		.type		= VPDMA_DATA_FMT_TYPE_MISC,
- 		.data_type	= DATA_TYPE_MV,
- 		.depth		= 4,
- 	},
-@@ -599,7 +629,8 @@ void vpdma_add_out_dtd(struct vpdma_desc_list *list, struct v4l2_rect *c_rect,
- 
- 	channel = next_chan = chan_info[chan].num;
- 
--	if (fmt->data_type == DATA_TYPE_C420)
-+	if (fmt->type == VPDMA_DATA_FMT_TYPE_YUV &&
-+			fmt->data_type == DATA_TYPE_C420)
- 		depth = 8;
- 
- 	stride = ALIGN((depth * c_rect->width) >> 3, VPDMA_STRIDE_ALIGN);
-@@ -649,7 +680,8 @@ void vpdma_add_in_dtd(struct vpdma_desc_list *list, int frame_width,
- 
- 	channel = next_chan = chan_info[chan].num;
- 
--	if (fmt->data_type == DATA_TYPE_C420) {
-+	if (fmt->type == VPDMA_DATA_FMT_TYPE_YUV &&
-+			fmt->data_type == DATA_TYPE_C420) {
- 		height >>= 1;
- 		frame_height >>= 1;
- 		depth = 8;
-diff --git a/drivers/media/platform/ti-vpe/vpdma.h b/drivers/media/platform/ti-vpe/vpdma.h
-index 62dd143..cf40f11 100644
---- a/drivers/media/platform/ti-vpe/vpdma.h
-+++ b/drivers/media/platform/ti-vpe/vpdma.h
-@@ -39,7 +39,14 @@ struct vpdma_data {
- 	bool ready;
- };
- 
-+enum vpdma_data_format_type {
-+	VPDMA_DATA_FMT_TYPE_YUV,
-+	VPDMA_DATA_FMT_TYPE_RGB,
-+	VPDMA_DATA_FMT_TYPE_MISC,
-+};
-+
- struct vpdma_data_format {
-+	enum vpdma_data_format_type type;
- 	int data_type;
- 	u8 depth;
- };
--- 
-1.8.3.2
+The DSS is "interesting". The TRM for various OMAP versions are the best
+source of information, there's integration section in the very beginning
+of the DSS chapter.
 
+We have the main dss_core (just DSS in the TRM, but for clarity we use
+dss_core) module, which is kind of a wrapper/glue for all the
+submodules. dss_core contains things like controlling muxes for signals
+between submodules, or clocks coming from outside. And there's the DSS
+power domain, containing all the DSS modules.
+
+Then we have DISPC, which reads the pixel data, manipulates it, and
+outputs raw RGB data to encoder submodules.
+
+Then we have DSI, HDMI, RFBI, VENC encoder submodules. They all have
+separate address spaces, some have dedicated PLLs, PHYs, and interrupts.
+
+Then DPI, which I think is mostly just level shifters. It's really just
+a port, as you say.
+
+SDI is a bit unclear to me. The registers for it are in the dss_core.
+There's only a few registers, but it does have a PHY and a PLL. But I
+guess it's also more of a port than a separate module.
+
+As for the clocks, I'm not sure what the actual point is that you want
+to clarify. DSS gets one "main" func clock from PRCM, which is used by
+DISPC and in some cases other submodules. But then we have dedicated DSI
+and HDMI PLLs, which, at least in DSI's case, can be used to fully
+satisfy DSI's clock needs. The PLLs can also be used for DISPC, so the
+PRCM clock is not needed in all cases.
+
+The interrupts, then. In OMAP4, DISPC, DSI1, DSI2 and HDMI each have
+their own interrupt line. In OMAP3, DISPC and DSI shared the same
+interrupt line. But in both OMAP4 and OMAP3 DISPC and DSI interrupt
+status/enable is handled via the respective IP.
+
+The DSS submodules also are not really designed together. For example,
+the HDMI IP is from one vendor, not TI. And the HDMI IP is different in
+OMAP4 and OMAP5. Most of the DSS IPs are, I believe, from TI. But it's
+not like all the IPs were designed to work together, that's why we have
+wrappers/glue blocks (e.g. around HDMI).
+
+So, are they independent? I don't know =3D). I think they lean on the
+independent side. dss_core is always needed for the submodules to work,
+but for example DSI could be used without DISPC, using system DMA to
+transfer data from memory to DSI. Not a very useful thing to do, but
+still, there are dedicated DMA channels for that.
+
+> If the submodules are not independent, would it make sense to have a si=
+ngle DT=20
+> node that would be matched with the DSS core driver ? You could list=20
+> information about the submodules in subnodes, and possibly create platf=
+orm=20
+> devices internally in the DSS core, but a single platform device would =
+be=20
+> instantiated from DT, and the DSS core wouldn't need a "simple-bus" com=
+patible=20
+> string. My gut feeling is that this would be a better representation of=
+ the=20
+> hardware, but I might not known enough about the DSS and be completely =
+wrong.
+
+I have been wondering about this for a long time. The DSS modules have
+dependencies, and splitting them into separate devices/drivers brings
+the issue of probe order. We side-step that by having the virtual
+omapdss driver add the drivers for DSS modules in proper order.
+
+But then, I feel that they are quite independent and probably should be
+separate devices. And we've had omap hwmods, which I believe force us to
+have separate devices (although afaik hwmods are going away).
+
+>>> BTW, for v3.15, I'm hoping to do patches where we deprecate ti,hwmods=
+
+>>> property and do the lookup based on the compatible property instead ;=
+)
+>>> So from that point of view we need to get the device mapping right in=
+
+>>> the .dtsi files, and don't want to start mixing up separate devices i=
+nto
+>>> single .dtsi entry.
+>>
+>> Hmm, was that just a general comment, or something that affects the DS=
+S
+>> DT data I have in my patch? As far as I understand, the DSS nodes
+>> reflect the current hwmods correctly.
+>>
+>> With the exception that DPI and SDI do not have a matching hwmod, as
+>> they are really part of dss_core/dispc. They are separate nodes as the=
+y
+>> are "video outputs" the same way as the other subnodes.
+>>
+>> I could perhaps remove the DPI and SDI nodes, and have them as direct
+>> video ports from DISPC, but... That's easier said than done.
+>=20
+> DPI and SDI indeed seem like ports to me, node devices. Have you given =
+the=20
+> implementation a thought ? How difficult would it be ?
+
+I have not though too much about the implementation. I'll spend some
+time on that to see how it goes.
+
+There's also the question where do the ports belong to. DISPC outputs
+the pixels.
+
+For DPI, I don't see dss_core really doing anything.
+
+For SDI, the dss_core contains the control for the SDI PLL and PHY. But
+SDI PLL and PHY are not parts of dss_core, just the control is done via
+dss_core.
+
+ Tomi
+
+
+
+--mWFFWcicMRwCvQ5w2jVMLqKEcbjWdXraL
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.14 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJSqXYKAAoJEPo9qoy8lh71HhcQAIG4mRfIIwDYnhMbujMmJCeb
+whY8HzeepMxYB++y9SZdtIDUgFmjZVxfSkJ3Hx/qJz2HUK5/yo7mgh6UKKL0kOjR
+t4wba25xwfBFeVNsd5qjOEORaz8qhqgKzXTOGHS9eYEt5OUtoe3nigCRqlqbg93p
+UZZULBcklMolxxLbIHwcwYuZbILP37DqAscfsDwKKMi5hpq7l//JuOTT6BYr7sWx
+0UIsBNVEPBVVNQ0Ib3aEHrcXz0r8801CPkqsjl2RfAGI4SrfyC9t5cQoWROW4dQA
+a5fHpfsU1mJuwsW5eH1swpsx30BB5+80BwOWeOEqVA3SyHHccSe4sZUVnwRcktLO
+52woTU47Ih7O27VGG0nsX03IH0dOAk1ypTHGdDC+cAWZ0lRKoXFPdhXSR1BXIi8A
+wzVd7Ag6RqjmbxDuBLDw+KS3c+aQTRwE1+IHG6hp/Qs7ABsHece/SpDzGoN9IDZ/
+62W/Z3mC+QiqFvmgTcGRPRJ9YB63z1Dwnw3tFVa2s3SMwIxDwa9RyQ20DCTs8sh2
+pUqPuZMVaBhs7Nd0dHn962eofOK0BQrvHKzYpFagSB+sGYIIOq5HWWnW62x3vuRC
+xH5e/VwydUbYu9uUwLKti1wjFuI6VU14RcvZ9fLkK3eaNTPLx0SVVbM2paaNfLZu
+ApUA1Jft/r3w+zcciRTA
+=hjAB
+-----END PGP SIGNATURE-----
+
+--mWFFWcicMRwCvQ5w2jVMLqKEcbjWdXraL--
