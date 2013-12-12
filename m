@@ -1,97 +1,71 @@
-From: Sourav Poddar <sourav.poddar@ti.com>
-Subject: Re: [PATCHv2 07/10] drivers: mtd: m25p80: Adapt driver to support
- memory mapped read.
-Date: Thu, 12 Dec 2013 13:45:24 +0530
-Message-ID: <52A9709C.4010606@ti.com>
-References: <1386339891-32717-1-git-send-email-sourav.poddar@ti.com> <1386339891-32717-8-git-send-email-sourav.poddar@ti.com> <20131212075536.GA1596@gmail.com>
+From: Belisko Marek <marek.belisko@gmail.com>
+Subject: Re: [PATCH 1/3] arm: omap2: Export devconf1 bypass and acbias.
+Date: Thu, 12 Dec 2013 09:31:02 +0100
+Message-ID: <CAAfyv35wKAK2PNjcXcNan9GC0x-MmH5k4xmzj_vKKhPeztHV-A@mail.gmail.com>
+References: <1381784555-18344-1-git-send-email-marek@goldelico.com>
+	<1381784555-18344-2-git-send-email-marek@goldelico.com>
+	<20131111164917.GN15154@atomide.com>
+	<CAAfyv37LRb_Q=UZVgtKdOAz_r6_qThewAU90W7nrqHdB5fDA_g@mail.gmail.com>
+	<20131111233152.GR15154@atomide.com>
+	<CAAfyv36MaVqrmQxpqDu-ciO9GNJK3pJkFZohEvd1BOLOWWEOhw@mail.gmail.com>
+	<20131210224659.GY13171@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:46392 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751399Ab3LLIP6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 12 Dec 2013 03:15:58 -0500
-In-Reply-To: <20131212075536.GA1596@gmail.com>
+Received: from mail-ob0-f181.google.com ([209.85.214.181]:49769 "EHLO
+	mail-ob0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751402Ab3LLIbE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Dec 2013 03:31:04 -0500
+In-Reply-To: <20131210224659.GY13171@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Huang Shijie <shijie8@gmail.com>
-Cc: broonie@kernel.org, linux-spi@vger.kernel.org, computersforpeace@gmail.com, marex@denx.de, devicetree@vger.kernel.org, balbi@ti.com, linux-mtd@lists.infradead.org, bcousson@baylibre.com, linux-omap@vger.kernel.org, dwmw2@infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, linux-fbdev@vger.kernel.org, NeilBrown <neilb@suse.de>, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>
 
-On Thursday 12 December 2013 01:25 PM, Huang Shijie wrote:
-> On Fri, Dec 06, 2013 at 07:54:48PM +0530, Sourav Poddar wrote:
->> Adapt driver to do a memory mapped read.
->> @@ -109,6 +109,7 @@ struct m25p {
->>   	u8			program_opcode;
->>   	u8			*command;
->>   	enum read_type		flash_read;
->> +	void __iomem *mem_addr;
-> I think we can remove this field.
-> You can use a local variable in the m25p80_read.
->
->>   };
->>
->>   static inline struct m25p *mtd_to_m25p(struct mtd_info *mtd)
->> @@ -515,6 +516,7 @@ static int m25p80_read(struct mtd_info *mtd, loff_t from, size_t len,
->>   	size_t *retlen, u_char *buf)
->>   {
->>   	struct m25p *flash = mtd_to_m25p(mtd);
->> +	struct spi_master *master = flash->spi->master;
->>   	struct spi_transfer t[2];
->>   	struct spi_message m;
->>   	uint8_t opcode;
->> @@ -523,6 +525,20 @@ static int m25p80_read(struct mtd_info *mtd, loff_t from, size_t len,
->>   	pr_debug("%s: %s from 0x%08x, len %zd\n", dev_name(&flash->spi->dev),
->>   			__func__, (u32)from, len);
->>
->> +	if (master->mmap) {
->> +		mutex_lock(&flash->lock);
->> +		/* Wait till previous write/erase is done. */
->> +		if (wait_till_ready(flash)) {
->> +			mutex_unlock(&flash->lock);
->> +			return 1;
->> +		}
->> +		flash->mem_addr = master->get_buf(master);
->> +		memcpy(buf, flash->mem_addr + from, len);
->> +		master->put_buf(master);
->> +		*retlen = len;
->> +		goto out;
->> +	}
->> +
->>   	spi_message_init(&m);
->>   	memset(t, 0, (sizeof t));
->>
->> @@ -558,6 +574,7 @@ static int m25p80_read(struct mtd_info *mtd, loff_t from, size_t len,
->>
->>   	*retlen = m.actual_length - m25p_cmdsz(flash) - dummy;
->>
->> +out:
->>   	mutex_unlock(&flash->lock);
->>
->>   	return 0;
->> @@ -1286,6 +1303,9 @@ static int m25p_probe(struct spi_device *spi)
->>   		flash->addr_width = 3;
->>   	}
->>
->> +	if (spi->master->configure_from_slave)
->> +		m25p80_fill_flash_information(flash);
->> +
-> You have add a configure_from_slave hook in the SPI, why you also need
-> a same hook in the SPI-NOR framework?
->
-We need a way to provoke this, currently it is placed in m25p80. If m25p80
-is removed, for where should I handle these in nor framework?
-> And i think the enable_mmap/disable_mmap is not needed too.
->
-> All the three hooks are used to set the SPI bus controller.
+Hi Tony,
 
-> And the SPI-NOR framework only handles the issues between the
-> SPI bus controller and the SPI-NOR, or the SPI-NOR controller and the
-> SPI-NOR.
-My controller can be used as spi flash controller as well as a spi
-controller.
-> thanks
-> Huang Shijie
+On Tue, Dec 10, 2013 at 11:46 PM, Tony Lindgren <tony@atomide.com> wrote:
+> * Belisko Marek <marek.belisko@gmail.com> [131210 14:13]:
+>> On Tue, Nov 12, 2013 at 12:31 AM, Tony Lindgren <tony@atomide.com> wrote:
+>> >
+>> > It would be best to set it up as omap-ctrl.c driver under drivers
+>> > somewhere with few functions exported for DSS and MMC drivers.
+>>
+>> I create small dummy driver based on phy-omap-control which can be
+>> used but before sending patch (with more updates) I would like to get
+>> some feedback if my direction is correct.
 >
+> Cool thanks. Yeah what you have can easily be combined with the patches
+> Balaji has posted to make HSMMC use drivers/mfd/syscon.c via regmap
+> for the SCM register access. Maybe take a look at the work in progress
+> patches in thread:
 >
+> [PATCH v4 0/7] mmc: omap_hsmmc: pbias dt and cleanup
+>
+> And also see my comments regarding using the SCM GENERAL register area
+> as base for the syscon.c driver. That should work for your driver too,
+> right? And then you can access the SYSCON1 register that way from your
+> consumer driver ;)
+If I understand correclty I can use syscon driver (it will have in
+range also devconf1 register) ad get rid of my custom driver
+and then get regmap from syscon and update bits that I need for venc, right?
+>
+> Regards,
+>
+> Tony
 
+BR,
+
+marek
+
+-- 
+as simple and primitive as possible
+-------------------------------------------------
+Marek Belisko - OPEN-NANDRA
+Freelance Developer
+
+Ruska Nova Ves 219 | Presov, 08005 Slovak Republic
+Tel: +421 915 052 184
+skype: marekwhite
+twitter: #opennandra
+web: http://open-nandra.com
