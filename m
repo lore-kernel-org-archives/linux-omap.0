@@ -1,91 +1,94 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 10/26] OMAPDSS: add of helpers
-Date: Thu, 12 Dec 2013 09:48:30 +0200
-Message-ID: <52A96A4E.1010006@ti.com>
-References: <1386160133-24026-1-git-send-email-tomi.valkeinen@ti.com> <1386160133-24026-11-git-send-email-tomi.valkeinen@ti.com> <4533892.HJaRcDt4Q8@avalon>
+From: Huang Shijie <shijie8-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCHv2 07/10] drivers: mtd: m25p80: Adapt driver to support
+ memory mapped read.
+Date: Thu, 12 Dec 2013 15:55:37 +0800
+Message-ID: <20131212075536.GA1596@gmail.com>
+References: <1386339891-32717-1-git-send-email-sourav.poddar@ti.com>
+ <1386339891-32717-8-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="OHLOcccQebkoPWMTKxeuttuxGt4anx9xb"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:51305 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751452Ab3LLHsg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Dec 2013 02:48:36 -0500
-In-Reply-To: <4533892.HJaRcDt4Q8@avalon>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1386339891-32717-8-git-send-email-sourav.poddar-l0cyMroinI0@public.gmane.org>
+Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>
+Cc: broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, marex-ynQEQJNshbs@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, Archit Taneja <archit@ti.com>, Darren Etheridge <detheridge@ti.com>, Tony Lindgren <tony@atomide.com>
 
---OHLOcccQebkoPWMTKxeuttuxGt4anx9xb
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+On Fri, Dec 06, 2013 at 07:54:48PM +0530, Sourav Poddar wrote:
+> Adapt driver to do a memory mapped read.
+> @@ -109,6 +109,7 @@ struct m25p {
+>  	u8			program_opcode;
+>  	u8			*command;
+>  	enum read_type		flash_read;
+> +	void __iomem *mem_addr;
 
-On 2013-12-12 01:19, Laurent Pinchart wrote:
-> Hi Tomi,
->=20
-> On Wednesday 04 December 2013 14:28:37 Tomi Valkeinen wrote:
->> Add helpers to get ports and endpoints from DT data.
->>
->> While all the functions in dss-of.c might be useful for panel drivers =
-if
->> they need to parse full port/endpoint data, at the moment we only need=
- a
->> few of them outside dss-of.c, so only those functions are exported.
->=20
-> I totally understand that it was easier to add this code to the OMAP DS=
-S=20
-> driver, but I believe we should refactor the existing drivers/media/v4l=
-2-
-> core/v4l2-of.c and move it to a non V4L2-specific location (what about =
+I think we can remove this field.
+You can use a local variable in the m25p80_read.
 
-> drivers/media ?) sooner rather than later. That's on my to-do list for =
+>  };
+>  
+>  static inline struct m25p *mtd_to_m25p(struct mtd_info *mtd)
+> @@ -515,6 +516,7 @@ static int m25p80_read(struct mtd_info *mtd, loff_t from, size_t len,
+>  	size_t *retlen, u_char *buf)
+>  {
+>  	struct m25p *flash = mtd_to_m25p(mtd);
+> +	struct spi_master *master = flash->spi->master;
+>  	struct spi_transfer t[2];
+>  	struct spi_message m;
+>  	uint8_t opcode;
+> @@ -523,6 +525,20 @@ static int m25p80_read(struct mtd_info *mtd, loff_t from, size_t len,
+>  	pr_debug("%s: %s from 0x%08x, len %zd\n", dev_name(&flash->spi->dev),
+>  			__func__, (u32)from, len);
+>  
+> +	if (master->mmap) {
+> +		mutex_lock(&flash->lock);
+> +		/* Wait till previous write/erase is done. */
+> +		if (wait_till_ready(flash)) {
+> +			mutex_unlock(&flash->lock);
+> +			return 1;
+> +		}
+> +		flash->mem_addr = master->get_buf(master);
+> +		memcpy(buf, flash->mem_addr + from, len);
+> +		master->put_buf(master);
+> +		*retlen = len;
+> +		goto out;
+> +	}
+> +
+>  	spi_message_init(&m);
+>  	memset(t, 0, (sizeof t));
+>  
+> @@ -558,6 +574,7 @@ static int m25p80_read(struct mtd_info *mtd, loff_t from, size_t len,
+>  
+>  	*retlen = m.actual_length - m25p_cmdsz(flash) - dummy;
+>  
+> +out:
+>  	mutex_unlock(&flash->lock);
+>  
+>  	return 0;
+> @@ -1286,6 +1303,9 @@ static int m25p_probe(struct spi_device *spi)
+>  		flash->addr_width = 3;
+>  	}
+>  
+> +	if (spi->master->configure_from_slave)
+> +		m25p80_fill_flash_information(flash);
+> +
+You have add a configure_from_slave hook in the SPI, why you also need 
+a same hook in the SPI-NOR framework?
 
-> Saturday.
+And i think the enable_mmap/disable_mmap is not needed too.
 
-I agree. I just didn't want to go that way yet =3D).
+All the three hooks are used to set the SPI bus controller.
 
-Have you thought of the API? You had one version in your CDF series, but
-I think that was a bit too limited (I don't remember right now how), so
-I wrote my own versions.
+And the SPI-NOR framework only handles the issues between the 
+SPI bus controller and the SPI-NOR, or the SPI-NOR controller and the
+SPI-NOR.
 
-What I tried to do here is to add simple ways for the drivers to iterate
-the ports and endpoints with omapdss_of_get_next_port and
-omapdss_of_get_next_endpoint.
-
-But I'm not sure what the use pattern would be. If in most of the cases
-the driver always goes through all the ports and all the endpoints, we
-could as well have a helper function that goes through all the endpoints
-in all the ports, and returns both the port and endpoint for each iterati=
-on.
-
- Tomi
+thanks
+Huang Shijie
 
 
-
---OHLOcccQebkoPWMTKxeuttuxGt4anx9xb
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJSqWpOAAoJEPo9qoy8lh71N7AP/jY9D9qYgfWTZbfUrJ6GQIK6
-Tken/0aGCgvkU/gpW8Nwgru2jcaCcAcRBGWQiyyzLnz7B2dH/SEmRJdyw6cdMVLK
-P6LKuabAQ1lmjPToQxBwH8oMbY9TT8ZPy1DvvnDSDL0f3jf6yYNQ2JkuPLc/Zxpb
-knSgh/gveOdUS8XCrJwctzXO4CBRMkAE/TRR/pNFPxR/WMQX4TYph9FzHnYLlaj6
-voyJDcGFaccWBb/o4wdLttZfmzG+LuRdBBVejWcWRB5NcBDMHPZx0pK5cfl8TkFI
-DDE8I+WOaNM/2xf3dasQ1STE5Wkcac3O1fUEF+Qen+MGuk1k7UedSYfxeNXmTvSn
-D665nc9CQgwAaqjXab6YZSSsugW8IXZUjeOfTMMHCvq0jquN/eFYYKKP9whEiHbF
-goYB7pnCTw2sUc/L6/RPEslMwuzz37V48WzWy8W/INw9G2apH9eXTFIZtmwep85k
-mJyMY1vEq335Ph7XAMSJEQCfLDVIAWKsgJ6fnKU6wgHw1w1wkjH+sBwG338oIbH6
-A8nuWsYEUAB/RQQpQ3e27rSkBH/hD8KUYOgMd0Fqf1InzAbSG2VeLj5cRShHIKtT
-QSVwtJwQjHZZF61RoR3X++GVP6G1FFGYLzXzZ7t6rFTKPu6C23JKHfCzd2AwptpZ
-rqCbVUnCO8/9WMaPKCWk
-=bydW
------END PGP SIGNATURE-----
-
---OHLOcccQebkoPWMTKxeuttuxGt4anx9xb--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-spi" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
