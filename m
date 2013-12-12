@@ -1,197 +1,191 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [PATCH 7/8] v4l: ti-vpe: enable CSC support for VPE
-Date: Thu, 12 Dec 2013 14:06:03 +0530
-Message-ID: <1386837364-1264-8-git-send-email-archit@ti.com>
+Subject: [PATCH 6/8] v4l: ti-vpe: Add helper to perform color conversion
+Date: Thu, 12 Dec 2013 14:06:02 +0530
+Message-ID: <1386837364-1264-7-git-send-email-archit@ti.com>
 References: <1386837364-1264-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:53163 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751458Ab3LLIgp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Dec 2013 03:36:45 -0500
+Return-path: <linux-media-owner@vger.kernel.org>
 In-Reply-To: <1386837364-1264-1-git-send-email-archit@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: linux-media-owner@vger.kernel.org
 To: linux-media@vger.kernel.org, k.debski@samsung.com, hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com
 Cc: linux-omap@vger.kernel.org, tomi.valkeinen@ti.com, Archit Taneja <archit@ti.com>
+List-Id: linux-omap@vger.kernel.org
 
-Use the csc library functions to configure the CSC block in VPE.
+The CSC block can be used for color space conversion between YUV and RGB
+formats.
 
-Some changes are required in try_fmt to handle the pix->colorspace parameter
-more correctly. Previously, we copied the source queue colorspace to the
-destination queue colorspace as we didn't support RGB formats. Now, we configure
-pix->colorspace based on the color format set(and the height of the image if
-it's a YUV format).
+It is configurable via a programmable set of coefficients. Add functionality to
+choose the appropriate CSC coefficients and program them in the CSC registers.
+We take the source and destination colorspace formats as the arguments, and
+choose the coefficient table accordingly.
 
-Add basic RGB color formats to the list of supported vpe formats.
-
-If the destination format is RGB colorspace, we also need to use the RGB output
-port instead of the Luma and Chroma output ports. This requires configuring the
-output data descriptors differently.
-
-Also, make the default colorspace V4L2_COLORSPACE_SMPTE170M as that resembles
-the Standard Definition colorspace more closely.
+YUV to RGB coefficients are provided for standard and high definition
+colorspaces. The coefficients can also be limited or full range. For now, only
+full range coefficients are chosen. We would need some sort of control ioctl for
+the user to specify the range needed. Not sure if there is a generic control
+ioctl for this already?
 
 Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- drivers/media/platform/ti-vpe/vpe.c | 95 ++++++++++++++++++++++++++++---------
- 1 file changed, 72 insertions(+), 23 deletions(-)
+ drivers/media/platform/ti-vpe/csc.c | 120 ++++++++++++++++++++++++++++++++++++
+ drivers/media/platform/ti-vpe/csc.h |   3 +
+ 2 files changed, 123 insertions(+)
 
-diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
-index 6c4db57..1296c53 100644
---- a/drivers/media/platform/ti-vpe/vpe.c
-+++ b/drivers/media/platform/ti-vpe/vpe.c
-@@ -267,6 +267,38 @@ static struct vpe_fmt vpe_formats[] = {
- 		.vpdma_fmt	= { &vpdma_yuv_fmts[VPDMA_DATA_FMT_CY422],
- 				  },
- 	},
-+	{
-+		.name		= "RGB888 packed",
-+		.fourcc		= V4L2_PIX_FMT_RGB24,
-+		.types		= VPE_FMT_TYPE_CAPTURE,
-+		.coplanar	= 0,
-+		.vpdma_fmt	= { &vpdma_rgb_fmts[VPDMA_DATA_FMT_RGB24],
-+				  },
-+	},
-+	{
-+		.name		= "ARGB32",
-+		.fourcc		= V4L2_PIX_FMT_RGB32,
-+		.types		= VPE_FMT_TYPE_CAPTURE,
-+		.coplanar	= 0,
-+		.vpdma_fmt	= { &vpdma_rgb_fmts[VPDMA_DATA_FMT_ARGB32],
-+				  },
-+	},
-+	{
-+		.name		= "BGR888 packed",
-+		.fourcc		= V4L2_PIX_FMT_BGR24,
-+		.types		= VPE_FMT_TYPE_CAPTURE,
-+		.coplanar	= 0,
-+		.vpdma_fmt	= { &vpdma_rgb_fmts[VPDMA_DATA_FMT_BGR24],
-+				  },
-+	},
-+	{
-+		.name		= "ABGR32",
-+		.fourcc		= V4L2_PIX_FMT_BGR32,
-+		.types		= VPE_FMT_TYPE_CAPTURE,
-+		.coplanar	= 0,
-+		.vpdma_fmt	= { &vpdma_rgb_fmts[VPDMA_DATA_FMT_ABGR32],
-+				  },
-+	},
- };
+diff --git a/drivers/media/platform/ti-vpe/csc.c b/drivers/media/platform/ti-vpe/csc.c
+index 62e2fec..acfea50 100644
+--- a/drivers/media/platform/ti-vpe/csc.c
++++ b/drivers/media/platform/ti-vpe/csc.c
+@@ -16,9 +16,79 @@
+ #include <linux/io.h>
+ #include <linux/platform_device.h>
+ #include <linux/slab.h>
++#include <linux/videodev2.h>
  
- /*
-@@ -689,17 +721,20 @@ static void set_src_registers(struct vpe_ctx *ctx)
- static void set_dst_registers(struct vpe_ctx *ctx)
+ #include "csc.h"
+ 
++/*
++ * 16 coefficients in the order:
++ * a0, b0, c0, a1, b1, c1, a2, b2, c2, d0, d1, d2
++ * (we may need to pass non-default values from user space later on, we might
++ * need to make the coefficient struct more easy to populate)
++ */
++struct colorspace_coeffs {
++	u16	sd[12];
++	u16	hd[12];
++};
++
++/* VIDEO_RANGE: limited range, GRAPHICS_RANGE: full range */
++#define	CSC_COEFFS_VIDEO_RANGE_Y2R	0
++#define	CSC_COEFFS_GRAPHICS_RANGE_Y2R	1
++#define	CSC_COEFFS_VIDEO_RANGE_R2Y	2
++#define	CSC_COEFFS_GRAPHICS_RANGE_R2Y	3
++
++/* default colorspace coefficients */
++static struct colorspace_coeffs colorspace_coeffs[4] = {
++	[CSC_COEFFS_VIDEO_RANGE_Y2R] = {
++		{
++			/* SDTV */
++			0x0400, 0x0000, 0x057D, 0x0400, 0x1EA7, 0x1D35,
++			0x0400, 0x06EF, 0x1FFE, 0x0D40, 0x0210, 0x0C88,
++		},
++		{
++			/* HDTV */
++			0x0400, 0x0000, 0x0629, 0x0400, 0x1F45, 0x1E2B,
++			0x0400, 0x0742, 0x0000, 0x0CEC, 0x0148, 0x0C60,
++		},
++	},
++	[CSC_COEFFS_GRAPHICS_RANGE_Y2R] = {
++		{
++			/* SDTV */
++			0x04A8, 0x1FFE, 0x0662, 0x04A8, 0x1E6F, 0x1CBF,
++			0x04A8, 0x0812, 0x1FFF, 0x0C84, 0x0220, 0x0BAC,
++		},
++		{
++			/* HDTV */
++			0x04A8, 0x0000, 0x072C, 0x04A8, 0x1F26, 0x1DDE,
++			0x04A8, 0x0873, 0x0000, 0x0C20, 0x0134, 0x0B7C,
++		},
++	},
++	[CSC_COEFFS_VIDEO_RANGE_R2Y] = {
++		{
++			/* SDTV */
++			0x0132, 0x0259, 0x0075, 0x1F50, 0x1EA5, 0x020B,
++			0x020B, 0x1E4A, 0x1FAB, 0x0000, 0x0200, 0x0200,
++		},
++		{
++			/* HDTV */
++			0x00DA, 0x02DC, 0x004A, 0x1F88, 0x1E6C, 0x020C,
++			0x020C, 0x1E24, 0x1FD0, 0x0000, 0x0200, 0x0200,
++		},
++	},
++	[CSC_COEFFS_GRAPHICS_RANGE_R2Y] = {
++		{
++			/* SDTV */
++			0x0107, 0x0204, 0x0064, 0x1F68, 0x1ED6, 0x01C2,
++			0x01C2, 0x1E87, 0x1FB7, 0x0040, 0x0200, 0x0200,
++		},
++		{
++			/* HDTV */
++			0x04A8, 0x0000, 0x072C, 0x04A8, 0x1F26, 0x1DDE,
++			0x04A8, 0x0873, 0x0000, 0x0C20, 0x0134, 0x0B7C,
++		},
++	},
++};
++
+ void csc_dump_regs(struct csc_data *csc)
  {
- 	struct vpe_mmr_adb *mmr_adb = ctx->mmr_adb.addr;
-+	enum v4l2_colorspace clrspc = ctx->q_data[Q_DATA_DST].colorspace;
- 	struct vpe_fmt *fmt = ctx->q_data[Q_DATA_DST].fmt;
- 	u32 val = 0;
+ 	struct device *dev = &csc->pdev->dev;
+@@ -45,6 +115,56 @@ void csc_set_coeff_bypass(struct csc_data *csc, u32 *csc_reg5)
+ 	*csc_reg5 |= CSC_BYPASS;
+ }
  
--	/* select RGB path when color space conversion is supported in future */
--	if (fmt->fourcc == V4L2_PIX_FMT_RGB24)
--		val |= VPE_RGB_OUT_SELECT | VPE_CSC_SRC_DEI_SCALER;
-+	if (clrspc == V4L2_COLORSPACE_SRGB)
-+		val |= VPE_RGB_OUT_SELECT;
- 	else if (fmt->fourcc == V4L2_PIX_FMT_NV16)
- 		val |= VPE_COLOR_SEPARATE_422;
- 
--	/* The source of CHR_DS is always the scaler, whether it's used or not */
--	val |= VPE_DS_SRC_DEI_SCALER;
++/*
++ * set the color space converter coefficient shadow register values
++ */
++void csc_set_coeff(struct csc_data *csc, u32 *csc_reg0,
++		enum v4l2_colorspace src_colorspace,
++		enum v4l2_colorspace dst_colorspace)
++{
++	u32 *csc_reg5 = csc_reg0 + 5;
++	u32 *shadow_csc = csc_reg0;
++	struct colorspace_coeffs *sd_hd_coeffs;
++	u16 *coeff, *end_coeff;
++	enum v4l2_colorspace yuv_colorspace;
++	int sel = 0;
++
 +	/*
-+	 * the source of CHR_DS and CSC is always the scaler, irrespective of
-+	 * whether it's used or not
++	 * support only graphics data range(full range) for now, a control ioctl
++	 * would be nice here
 +	 */
-+	val |= VPE_DS_SRC_DEI_SCALER | VPE_CSC_SRC_DEI_SCALER;
- 
- 	if (fmt->fourcc != V4L2_PIX_FMT_NV12)
- 		val |= VPE_DS_BYPASS;
-@@ -813,7 +848,8 @@ static int set_srcdst_params(struct vpe_ctx *ctx)
- 	set_cfg_and_line_modes(ctx);
- 	set_dei_regs(ctx);
- 
--	csc_set_coeff_bypass(ctx->dev->csc, &mmr_adb->csc_regs[5]);
-+	csc_set_coeff(ctx->dev->csc, &mmr_adb->csc_regs[0],
-+		s_q_data->colorspace, d_q_data->colorspace);
- 
- 	sc_set_hs_coeffs(ctx->dev->sc, ctx->sc_coeff_h.addr, src_w, dst_w);
- 	sc_set_vs_coeffs(ctx->dev->sc, ctx->sc_coeff_v.addr, src_h, dst_h);
-@@ -1095,9 +1131,13 @@ static void device_run(void *priv)
- 	if (ctx->deinterlacing)
- 		add_out_dtd(ctx, VPE_PORT_MV_OUT);
- 
--	add_out_dtd(ctx, VPE_PORT_LUMA_OUT);
--	if (d_q_data->fmt->coplanar)
--		add_out_dtd(ctx, VPE_PORT_CHROMA_OUT);
-+	if (d_q_data->colorspace == V4L2_COLORSPACE_SRGB) {
-+		add_out_dtd(ctx, VPE_PORT_RGB_OUT);
++	/* Y2R */
++	if (dst_colorspace == V4L2_COLORSPACE_SRGB &&
++			(src_colorspace == V4L2_COLORSPACE_SMPTE170M ||
++			src_colorspace == V4L2_COLORSPACE_REC709)) {
++		/* Y2R */
++		sel = 1;
++		yuv_colorspace = src_colorspace;
++	} else if ((dst_colorspace == V4L2_COLORSPACE_SMPTE170M ||
++			dst_colorspace == V4L2_COLORSPACE_REC709) &&
++			src_colorspace == V4L2_COLORSPACE_SRGB) {
++		/* R2Y */
++		sel = 3;
++		yuv_colorspace = dst_colorspace;
 +	} else {
-+		add_out_dtd(ctx, VPE_PORT_LUMA_OUT);
-+		if (d_q_data->fmt->coplanar)
-+			add_out_dtd(ctx, VPE_PORT_CHROMA_OUT);
++		*csc_reg5 |= CSC_BYPASS;
++		return;
 +	}
++
++	sd_hd_coeffs = &colorspace_coeffs[sel];
++
++	/* select between SD or HD coefficients */
++	if (yuv_colorspace == V4L2_COLORSPACE_SMPTE170M)
++		coeff = sd_hd_coeffs->sd;
++	else
++		coeff = sd_hd_coeffs->hd;
++
++	end_coeff = coeff + 12;
++
++	for (; coeff < end_coeff; coeff += 2)
++		*shadow_csc++ = (*(coeff + 1) << 16) | *coeff;
++}
++
+ struct csc_data *csc_create(struct platform_device *pdev)
+ {
+ 	struct csc_data *csc;
+diff --git a/drivers/media/platform/ti-vpe/csc.h b/drivers/media/platform/ti-vpe/csc.h
+index 57b5ed6..1ad2b6d 100644
+--- a/drivers/media/platform/ti-vpe/csc.h
++++ b/drivers/media/platform/ti-vpe/csc.h
+@@ -60,6 +60,9 @@ struct csc_data {
  
- 	/* input data descriptors */
- 	if (ctx->deinterlacing) {
-@@ -1133,9 +1173,16 @@ static void device_run(void *priv)
- 	}
+ void csc_dump_regs(struct csc_data *csc);
+ void csc_set_coeff_bypass(struct csc_data *csc, u32 *csc_reg5);
++void csc_set_coeff(struct csc_data *csc, u32 *csc_reg0,
++		enum v4l2_colorspace src_colorspace,
++		enum v4l2_colorspace dst_colorspace);
+ struct csc_data *csc_create(struct platform_device *pdev);
  
- 	/* sync on channel control descriptors for output ports */
--	vpdma_add_sync_on_channel_ctd(&ctx->desc_list, VPE_CHAN_LUMA_OUT);
--	if (d_q_data->fmt->coplanar)
--		vpdma_add_sync_on_channel_ctd(&ctx->desc_list, VPE_CHAN_CHROMA_OUT);
-+	if (d_q_data->colorspace == V4L2_COLORSPACE_SRGB) {
-+		vpdma_add_sync_on_channel_ctd(&ctx->desc_list,
-+			VPE_CHAN_RGB_OUT);
-+	} else {
-+		vpdma_add_sync_on_channel_ctd(&ctx->desc_list,
-+			VPE_CHAN_LUMA_OUT);
-+		if (d_q_data->fmt->coplanar)
-+			vpdma_add_sync_on_channel_ctd(&ctx->desc_list,
-+				VPE_CHAN_CHROMA_OUT);
-+	}
- 
- 	if (ctx->deinterlacing)
- 		vpdma_add_sync_on_channel_ctd(&ctx->desc_list, VPE_CHAN_MV_OUT);
-@@ -1413,16 +1460,18 @@ static int __vpe_try_fmt(struct vpe_ctx *ctx, struct v4l2_format *f,
- 	pix->num_planes = fmt->coplanar ? 2 : 1;
- 	pix->pixelformat = fmt->fourcc;
- 
--	if (type == VPE_FMT_TYPE_CAPTURE) {
--		struct vpe_q_data *s_q_data;
--
--		/* get colorspace from the source queue */
--		s_q_data = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE);
--
--		pix->colorspace = s_q_data->colorspace;
--	} else {
--		if (!pix->colorspace)
--			pix->colorspace = V4L2_COLORSPACE_SMPTE240M;
-+	if (!pix->colorspace) {
-+		if (fmt->fourcc == V4L2_PIX_FMT_RGB24 ||
-+				fmt->fourcc == V4L2_PIX_FMT_BGR24 ||
-+				fmt->fourcc == V4L2_PIX_FMT_RGB32 ||
-+				fmt->fourcc == V4L2_PIX_FMT_BGR32) {
-+			pix->colorspace = V4L2_COLORSPACE_SRGB;
-+		} else {
-+			if (pix->height > 1280)	/* HD */
-+				pix->colorspace = V4L2_COLORSPACE_REC709;
-+			else			/* SD */
-+				pix->colorspace = V4L2_COLORSPACE_SMPTE170M;
-+		}
- 	}
- 
- 	for (i = 0; i < pix->num_planes; i++) {
-@@ -1817,7 +1866,7 @@ static int vpe_open(struct file *file)
- 	s_q_data->height = 1080;
- 	s_q_data->sizeimage[VPE_LUMA] = (s_q_data->width * s_q_data->height *
- 			s_q_data->fmt->vpdma_fmt[VPE_LUMA]->depth) >> 3;
--	s_q_data->colorspace = V4L2_COLORSPACE_SMPTE240M;
-+	s_q_data->colorspace = V4L2_COLORSPACE_SMPTE170M;
- 	s_q_data->field = V4L2_FIELD_NONE;
- 	s_q_data->c_rect.left = 0;
- 	s_q_data->c_rect.top = 0;
+ #endif
 -- 
 1.8.3.2
-
