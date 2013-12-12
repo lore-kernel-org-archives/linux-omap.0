@@ -1,191 +1,240 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [PATCH 6/8] v4l: ti-vpe: Add helper to perform color conversion
-Date: Thu, 12 Dec 2013 14:06:02 +0530
-Message-ID: <1386837364-1264-7-git-send-email-archit@ti.com>
+Subject: [PATCH 8/8] v4l: ti-vpe: Add a type specifier to describe vpdma data format type
+Date: Thu, 12 Dec 2013 14:06:04 +0530
+Message-ID: <1386837364-1264-9-git-send-email-archit@ti.com>
 References: <1386837364-1264-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-media-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:47137 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751458Ab3LLIgt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 12 Dec 2013 03:36:49 -0500
 In-Reply-To: <1386837364-1264-1-git-send-email-archit@ti.com>
-Sender: linux-media-owner@vger.kernel.org
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: linux-media@vger.kernel.org, k.debski@samsung.com, hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com
 Cc: linux-omap@vger.kernel.org, tomi.valkeinen@ti.com, Archit Taneja <archit@ti.com>
-List-Id: linux-omap@vger.kernel.org
 
-The CSC block can be used for color space conversion between YUV and RGB
-formats.
+The struct vpdma_data_format holds the color format depth and the data_type
+value needed to be programmed in the data descriptors. However, it doesn't
+tell what type of color format is it, i.e, whether it is RGB, YUV or Misc.
 
-It is configurable via a programmable set of coefficients. Add functionality to
-choose the appropriate CSC coefficients and program them in the CSC registers.
-We take the source and destination colorspace formats as the arguments, and
-choose the coefficient table accordingly.
-
-YUV to RGB coefficients are provided for standard and high definition
-colorspaces. The coefficients can also be limited or full range. For now, only
-full range coefficients are chosen. We would need some sort of control ioctl for
-the user to specify the range needed. Not sure if there is a generic control
-ioctl for this already?
+This information is needed when by vpdma library when forming descriptors. We
+modify the depth parameter for the chroma portion of the NV12 format. For this,
+we check if the data_type value is C420. This isn't sufficient as there are
+many YUV and RGB vpdma formats which have the same data_type value. Hence, we
+need to hold the type of the color format for the above case, and possibly more
+cases in the future.
 
 Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- drivers/media/platform/ti-vpe/csc.c | 120 ++++++++++++++++++++++++++++++++++++
- drivers/media/platform/ti-vpe/csc.h |   3 +
- 2 files changed, 123 insertions(+)
+ drivers/media/platform/ti-vpe/vpdma.c | 36 +++++++++++++++++++++++++++++++++--
+ drivers/media/platform/ti-vpe/vpdma.h |  7 +++++++
+ 2 files changed, 41 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/platform/ti-vpe/csc.c b/drivers/media/platform/ti-vpe/csc.c
-index 62e2fec..acfea50 100644
---- a/drivers/media/platform/ti-vpe/csc.c
-+++ b/drivers/media/platform/ti-vpe/csc.c
-@@ -16,9 +16,79 @@
- #include <linux/io.h>
- #include <linux/platform_device.h>
- #include <linux/slab.h>
-+#include <linux/videodev2.h>
+diff --git a/drivers/media/platform/ti-vpe/vpdma.c b/drivers/media/platform/ti-vpe/vpdma.c
+index f97253f..a268f68 100644
+--- a/drivers/media/platform/ti-vpe/vpdma.c
++++ b/drivers/media/platform/ti-vpe/vpdma.c
+@@ -30,38 +30,47 @@
  
- #include "csc.h"
+ const struct vpdma_data_format vpdma_yuv_fmts[] = {
+ 	[VPDMA_DATA_FMT_Y444] = {
++		.type		= VPDMA_DATA_FMT_TYPE_YUV,
+ 		.data_type	= DATA_TYPE_Y444,
+ 		.depth		= 8,
+ 	},
+ 	[VPDMA_DATA_FMT_Y422] = {
++		.type		= VPDMA_DATA_FMT_TYPE_YUV,
+ 		.data_type	= DATA_TYPE_Y422,
+ 		.depth		= 8,
+ 	},
+ 	[VPDMA_DATA_FMT_Y420] = {
++		.type		= VPDMA_DATA_FMT_TYPE_YUV,
+ 		.data_type	= DATA_TYPE_Y420,
+ 		.depth		= 8,
+ 	},
+ 	[VPDMA_DATA_FMT_C444] = {
++		.type		= VPDMA_DATA_FMT_TYPE_YUV,
+ 		.data_type	= DATA_TYPE_C444,
+ 		.depth		= 8,
+ 	},
+ 	[VPDMA_DATA_FMT_C422] = {
++		.type		= VPDMA_DATA_FMT_TYPE_YUV,
+ 		.data_type	= DATA_TYPE_C422,
+ 		.depth		= 8,
+ 	},
+ 	[VPDMA_DATA_FMT_C420] = {
++		.type		= VPDMA_DATA_FMT_TYPE_YUV,
+ 		.data_type	= DATA_TYPE_C420,
+ 		.depth		= 4,
+ 	},
+ 	[VPDMA_DATA_FMT_YC422] = {
++		.type		= VPDMA_DATA_FMT_TYPE_YUV,
+ 		.data_type	= DATA_TYPE_YC422,
+ 		.depth		= 16,
+ 	},
+ 	[VPDMA_DATA_FMT_YC444] = {
++		.type		= VPDMA_DATA_FMT_TYPE_YUV,
+ 		.data_type	= DATA_TYPE_YC444,
+ 		.depth		= 24,
+ 	},
+ 	[VPDMA_DATA_FMT_CY422] = {
++		.type		= VPDMA_DATA_FMT_TYPE_YUV,
+ 		.data_type	= DATA_TYPE_CY422,
+ 		.depth		= 16,
+ 	},
+@@ -69,82 +78,102 @@ const struct vpdma_data_format vpdma_yuv_fmts[] = {
  
-+/*
-+ * 16 coefficients in the order:
-+ * a0, b0, c0, a1, b1, c1, a2, b2, c2, d0, d1, d2
-+ * (we may need to pass non-default values from user space later on, we might
-+ * need to make the coefficient struct more easy to populate)
-+ */
-+struct colorspace_coeffs {
-+	u16	sd[12];
-+	u16	hd[12];
+ const struct vpdma_data_format vpdma_rgb_fmts[] = {
+ 	[VPDMA_DATA_FMT_RGB565] = {
++		.type		= VPDMA_DATA_FMT_TYPE_RGB,
+ 		.data_type	= DATA_TYPE_RGB16_565,
+ 		.depth		= 16,
+ 	},
+ 	[VPDMA_DATA_FMT_ARGB16_1555] = {
++		.type		= VPDMA_DATA_FMT_TYPE_RGB,
+ 		.data_type	= DATA_TYPE_ARGB_1555,
+ 		.depth		= 16,
+ 	},
+ 	[VPDMA_DATA_FMT_ARGB16] = {
++		.type		= VPDMA_DATA_FMT_TYPE_RGB,
+ 		.data_type	= DATA_TYPE_ARGB_4444,
+ 		.depth		= 16,
+ 	},
+ 	[VPDMA_DATA_FMT_RGBA16_5551] = {
++		.type		= VPDMA_DATA_FMT_TYPE_RGB,
+ 		.data_type	= DATA_TYPE_RGBA_5551,
+ 		.depth		= 16,
+ 	},
+ 	[VPDMA_DATA_FMT_RGBA16] = {
++		.type		= VPDMA_DATA_FMT_TYPE_RGB,
+ 		.data_type	= DATA_TYPE_RGBA_4444,
+ 		.depth		= 16,
+ 	},
+ 	[VPDMA_DATA_FMT_ARGB24] = {
++		.type		= VPDMA_DATA_FMT_TYPE_RGB,
+ 		.data_type	= DATA_TYPE_ARGB24_6666,
+ 		.depth		= 24,
+ 	},
+ 	[VPDMA_DATA_FMT_RGB24] = {
++		.type		= VPDMA_DATA_FMT_TYPE_RGB,
+ 		.data_type	= DATA_TYPE_RGB24_888,
+ 		.depth		= 24,
+ 	},
+ 	[VPDMA_DATA_FMT_ARGB32] = {
++		.type		= VPDMA_DATA_FMT_TYPE_RGB,
+ 		.data_type	= DATA_TYPE_ARGB32_8888,
+ 		.depth		= 32,
+ 	},
+ 	[VPDMA_DATA_FMT_RGBA24] = {
++		.type		= VPDMA_DATA_FMT_TYPE_RGB,
+ 		.data_type	= DATA_TYPE_RGBA24_6666,
+ 		.depth		= 24,
+ 	},
+ 	[VPDMA_DATA_FMT_RGBA32] = {
++		.type		= VPDMA_DATA_FMT_TYPE_RGB,
+ 		.data_type	= DATA_TYPE_RGBA32_8888,
+ 		.depth		= 32,
+ 	},
+ 	[VPDMA_DATA_FMT_BGR565] = {
++		.type		= VPDMA_DATA_FMT_TYPE_RGB,
+ 		.data_type	= DATA_TYPE_BGR16_565,
+ 		.depth		= 16,
+ 	},
+ 	[VPDMA_DATA_FMT_ABGR16_1555] = {
++		.type		= VPDMA_DATA_FMT_TYPE_RGB,
+ 		.data_type	= DATA_TYPE_ABGR_1555,
+ 		.depth		= 16,
+ 	},
+ 	[VPDMA_DATA_FMT_ABGR16] = {
++		.type		= VPDMA_DATA_FMT_TYPE_RGB,
+ 		.data_type	= DATA_TYPE_ABGR_4444,
+ 		.depth		= 16,
+ 	},
+ 	[VPDMA_DATA_FMT_BGRA16_5551] = {
++		.type		= VPDMA_DATA_FMT_TYPE_RGB,
+ 		.data_type	= DATA_TYPE_BGRA_5551,
+ 		.depth		= 16,
+ 	},
+ 	[VPDMA_DATA_FMT_BGRA16] = {
++		.type		= VPDMA_DATA_FMT_TYPE_RGB,
+ 		.data_type	= DATA_TYPE_BGRA_4444,
+ 		.depth		= 16,
+ 	},
+ 	[VPDMA_DATA_FMT_ABGR24] = {
++		.type		= VPDMA_DATA_FMT_TYPE_RGB,
+ 		.data_type	= DATA_TYPE_ABGR24_6666,
+ 		.depth		= 24,
+ 	},
+ 	[VPDMA_DATA_FMT_BGR24] = {
++		.type		= VPDMA_DATA_FMT_TYPE_RGB,
+ 		.data_type	= DATA_TYPE_BGR24_888,
+ 		.depth		= 24,
+ 	},
+ 	[VPDMA_DATA_FMT_ABGR32] = {
++		.type		= VPDMA_DATA_FMT_TYPE_RGB,
+ 		.data_type	= DATA_TYPE_ABGR32_8888,
+ 		.depth		= 32,
+ 	},
+ 	[VPDMA_DATA_FMT_BGRA24] = {
++		.type		= VPDMA_DATA_FMT_TYPE_RGB,
+ 		.data_type	= DATA_TYPE_BGRA24_6666,
+ 		.depth		= 24,
+ 	},
+ 	[VPDMA_DATA_FMT_BGRA32] = {
++		.type		= VPDMA_DATA_FMT_TYPE_RGB,
+ 		.data_type	= DATA_TYPE_BGRA32_8888,
+ 		.depth		= 32,
+ 	},
+@@ -152,6 +181,7 @@ const struct vpdma_data_format vpdma_rgb_fmts[] = {
+ 
+ const struct vpdma_data_format vpdma_misc_fmts[] = {
+ 	[VPDMA_DATA_FMT_MV] = {
++		.type		= VPDMA_DATA_FMT_TYPE_MISC,
+ 		.data_type	= DATA_TYPE_MV,
+ 		.depth		= 4,
+ 	},
+@@ -599,7 +629,8 @@ void vpdma_add_out_dtd(struct vpdma_desc_list *list, struct v4l2_rect *c_rect,
+ 
+ 	channel = next_chan = chan_info[chan].num;
+ 
+-	if (fmt->data_type == DATA_TYPE_C420)
++	if (fmt->type == VPDMA_DATA_FMT_TYPE_YUV &&
++			fmt->data_type == DATA_TYPE_C420)
+ 		depth = 8;
+ 
+ 	stride = ALIGN((depth * c_rect->width) >> 3, VPDMA_STRIDE_ALIGN);
+@@ -649,7 +680,8 @@ void vpdma_add_in_dtd(struct vpdma_desc_list *list, int frame_width,
+ 
+ 	channel = next_chan = chan_info[chan].num;
+ 
+-	if (fmt->data_type == DATA_TYPE_C420) {
++	if (fmt->type == VPDMA_DATA_FMT_TYPE_YUV &&
++			fmt->data_type == DATA_TYPE_C420) {
+ 		height >>= 1;
+ 		frame_height >>= 1;
+ 		depth = 8;
+diff --git a/drivers/media/platform/ti-vpe/vpdma.h b/drivers/media/platform/ti-vpe/vpdma.h
+index 62dd143..cf40f11 100644
+--- a/drivers/media/platform/ti-vpe/vpdma.h
++++ b/drivers/media/platform/ti-vpe/vpdma.h
+@@ -39,7 +39,14 @@ struct vpdma_data {
+ 	bool ready;
+ };
+ 
++enum vpdma_data_format_type {
++	VPDMA_DATA_FMT_TYPE_YUV,
++	VPDMA_DATA_FMT_TYPE_RGB,
++	VPDMA_DATA_FMT_TYPE_MISC,
 +};
 +
-+/* VIDEO_RANGE: limited range, GRAPHICS_RANGE: full range */
-+#define	CSC_COEFFS_VIDEO_RANGE_Y2R	0
-+#define	CSC_COEFFS_GRAPHICS_RANGE_Y2R	1
-+#define	CSC_COEFFS_VIDEO_RANGE_R2Y	2
-+#define	CSC_COEFFS_GRAPHICS_RANGE_R2Y	3
-+
-+/* default colorspace coefficients */
-+static struct colorspace_coeffs colorspace_coeffs[4] = {
-+	[CSC_COEFFS_VIDEO_RANGE_Y2R] = {
-+		{
-+			/* SDTV */
-+			0x0400, 0x0000, 0x057D, 0x0400, 0x1EA7, 0x1D35,
-+			0x0400, 0x06EF, 0x1FFE, 0x0D40, 0x0210, 0x0C88,
-+		},
-+		{
-+			/* HDTV */
-+			0x0400, 0x0000, 0x0629, 0x0400, 0x1F45, 0x1E2B,
-+			0x0400, 0x0742, 0x0000, 0x0CEC, 0x0148, 0x0C60,
-+		},
-+	},
-+	[CSC_COEFFS_GRAPHICS_RANGE_Y2R] = {
-+		{
-+			/* SDTV */
-+			0x04A8, 0x1FFE, 0x0662, 0x04A8, 0x1E6F, 0x1CBF,
-+			0x04A8, 0x0812, 0x1FFF, 0x0C84, 0x0220, 0x0BAC,
-+		},
-+		{
-+			/* HDTV */
-+			0x04A8, 0x0000, 0x072C, 0x04A8, 0x1F26, 0x1DDE,
-+			0x04A8, 0x0873, 0x0000, 0x0C20, 0x0134, 0x0B7C,
-+		},
-+	},
-+	[CSC_COEFFS_VIDEO_RANGE_R2Y] = {
-+		{
-+			/* SDTV */
-+			0x0132, 0x0259, 0x0075, 0x1F50, 0x1EA5, 0x020B,
-+			0x020B, 0x1E4A, 0x1FAB, 0x0000, 0x0200, 0x0200,
-+		},
-+		{
-+			/* HDTV */
-+			0x00DA, 0x02DC, 0x004A, 0x1F88, 0x1E6C, 0x020C,
-+			0x020C, 0x1E24, 0x1FD0, 0x0000, 0x0200, 0x0200,
-+		},
-+	},
-+	[CSC_COEFFS_GRAPHICS_RANGE_R2Y] = {
-+		{
-+			/* SDTV */
-+			0x0107, 0x0204, 0x0064, 0x1F68, 0x1ED6, 0x01C2,
-+			0x01C2, 0x1E87, 0x1FB7, 0x0040, 0x0200, 0x0200,
-+		},
-+		{
-+			/* HDTV */
-+			0x04A8, 0x0000, 0x072C, 0x04A8, 0x1F26, 0x1DDE,
-+			0x04A8, 0x0873, 0x0000, 0x0C20, 0x0134, 0x0B7C,
-+		},
-+	},
-+};
-+
- void csc_dump_regs(struct csc_data *csc)
- {
- 	struct device *dev = &csc->pdev->dev;
-@@ -45,6 +115,56 @@ void csc_set_coeff_bypass(struct csc_data *csc, u32 *csc_reg5)
- 	*csc_reg5 |= CSC_BYPASS;
- }
- 
-+/*
-+ * set the color space converter coefficient shadow register values
-+ */
-+void csc_set_coeff(struct csc_data *csc, u32 *csc_reg0,
-+		enum v4l2_colorspace src_colorspace,
-+		enum v4l2_colorspace dst_colorspace)
-+{
-+	u32 *csc_reg5 = csc_reg0 + 5;
-+	u32 *shadow_csc = csc_reg0;
-+	struct colorspace_coeffs *sd_hd_coeffs;
-+	u16 *coeff, *end_coeff;
-+	enum v4l2_colorspace yuv_colorspace;
-+	int sel = 0;
-+
-+	/*
-+	 * support only graphics data range(full range) for now, a control ioctl
-+	 * would be nice here
-+	 */
-+	/* Y2R */
-+	if (dst_colorspace == V4L2_COLORSPACE_SRGB &&
-+			(src_colorspace == V4L2_COLORSPACE_SMPTE170M ||
-+			src_colorspace == V4L2_COLORSPACE_REC709)) {
-+		/* Y2R */
-+		sel = 1;
-+		yuv_colorspace = src_colorspace;
-+	} else if ((dst_colorspace == V4L2_COLORSPACE_SMPTE170M ||
-+			dst_colorspace == V4L2_COLORSPACE_REC709) &&
-+			src_colorspace == V4L2_COLORSPACE_SRGB) {
-+		/* R2Y */
-+		sel = 3;
-+		yuv_colorspace = dst_colorspace;
-+	} else {
-+		*csc_reg5 |= CSC_BYPASS;
-+		return;
-+	}
-+
-+	sd_hd_coeffs = &colorspace_coeffs[sel];
-+
-+	/* select between SD or HD coefficients */
-+	if (yuv_colorspace == V4L2_COLORSPACE_SMPTE170M)
-+		coeff = sd_hd_coeffs->sd;
-+	else
-+		coeff = sd_hd_coeffs->hd;
-+
-+	end_coeff = coeff + 12;
-+
-+	for (; coeff < end_coeff; coeff += 2)
-+		*shadow_csc++ = (*(coeff + 1) << 16) | *coeff;
-+}
-+
- struct csc_data *csc_create(struct platform_device *pdev)
- {
- 	struct csc_data *csc;
-diff --git a/drivers/media/platform/ti-vpe/csc.h b/drivers/media/platform/ti-vpe/csc.h
-index 57b5ed6..1ad2b6d 100644
---- a/drivers/media/platform/ti-vpe/csc.h
-+++ b/drivers/media/platform/ti-vpe/csc.h
-@@ -60,6 +60,9 @@ struct csc_data {
- 
- void csc_dump_regs(struct csc_data *csc);
- void csc_set_coeff_bypass(struct csc_data *csc, u32 *csc_reg5);
-+void csc_set_coeff(struct csc_data *csc, u32 *csc_reg0,
-+		enum v4l2_colorspace src_colorspace,
-+		enum v4l2_colorspace dst_colorspace);
- struct csc_data *csc_create(struct platform_device *pdev);
- 
- #endif
+ struct vpdma_data_format {
++	enum vpdma_data_format_type type;
+ 	int data_type;
+ 	u8 depth;
+ };
 -- 
 1.8.3.2
+
