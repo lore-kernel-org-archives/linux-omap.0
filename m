@@ -1,57 +1,53 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH] usb: dwc3: omap: remove DEV_PM_OPS trickery
-Date: Thu, 12 Dec 2013 15:50:11 -0600
-Message-ID: <1386885011-13792-1-git-send-email-balbi@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 13/26] ARM: omap3.dtsi: add omapdss information
+Date: Thu, 12 Dec 2013 21:59:13 +0000
+Message-ID: <20131212215913.GB29072@muru.com>
+References: <1386160133-24026-1-git-send-email-tomi.valkeinen@ti.com>
+ <20131205170514.GY26766@atomide.com>
+ <52A5BB65.5050109@ti.com>
+ <2364383.8GWpsWSoJu@avalon>
+ <52A9760A.3000801@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Linux USB Mailing List <linux-usb@vger.kernel.org>
-Cc: kgene.kim@samsung.com, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, linux-samsung-soc@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, w-kwok2@ti.com, Santosh Shilimkar <santosh.shilimkar@ti.com>, Felipe Balbi <balbi@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from muru.com ([72.249.23.125]:34959 "EHLO muru.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751469Ab3LLV6E (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 12 Dec 2013 16:58:04 -0500
+Content-Disposition: inline
+In-Reply-To: <52A9760A.3000801@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, Archit Taneja <archit@ti.com>, Darren Etheridge <detheridge@ti.com>
 
-it's best to just remove all ifdefs and always
-define our dev_pm_ops structure.
+On Thu, Dec 12, 2013 at 10:38:34AM +0200, Tomi Valkeinen wrote:
+> On 2013-12-12 01:44, Laurent Pinchart wrote:
+> 
+> So, are they independent? I don't know =). I think they lean on the
+> independent side. dss_core is always needed for the submodules to work,
+> but for example DSI could be used without DISPC, using system DMA to
+> transfer data from memory to DSI. Not a very useful thing to do, but
+> still, there are dedicated DMA channels for that.
 
-Signed-off-by: Felipe Balbi <balbi@ti.com>
----
+If they have separate hwmod entries, they should be considered separate
+independent devices for sure.
 
-one more patch
+To summarize, here are few reasons why they need to be treated as
+separate devices:
 
- drivers/usb/dwc3/dwc3-omap.c | 8 +-------
- 1 file changed, 1 insertion(+), 7 deletions(-)
+1. The modules maybe clocked/powered/idled separately and can have their
+   own idle configuration so they can do the hardware based idling
+   separately.
 
-diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
-index a9090a1..14a53ba 100644
---- a/drivers/usb/dwc3/dwc3-omap.c
-+++ b/drivers/usb/dwc3/dwc3-omap.c
-@@ -598,7 +598,6 @@ static const struct of_device_id of_dwc3_match[] = {
- };
- MODULE_DEVICE_TABLE(of, of_dwc3_match);
- 
--#ifdef CONFIG_PM_SLEEP
- static int dwc3_omap_prepare(struct device *dev)
- {
- 	struct dwc3_omap	*omap = dev_get_drvdata(dev);
-@@ -675,18 +674,13 @@ static const struct dev_pm_ops dwc3_omap_dev_pm_ops = {
- 			NULL)
- };
- 
--#define DEV_PM_OPS	(&dwc3_omap_dev_pm_ops)
--#else
--#define DEV_PM_OPS	NULL
--#endif /* CONFIG_PM_SLEEP */
--
- static struct platform_driver dwc3_omap_driver = {
- 	.probe		= dwc3_omap_probe,
- 	.remove		= dwc3_omap_remove,
- 	.driver		= {
- 		.name	= "omap-dwc3",
- 		.of_match_table	= of_dwc3_match,
--		.pm	= DEV_PM_OPS,
-+		.pm	= &dwc3_omap_dev_pm_ops,
- 	},
- };
- 
--- 
-1.8.4.GIT
+2. Doing a readback after a write to one module will not flush the write
+   to the other modules on the (bus depending on the SoC version AFAIK).
+   That can lead to nasty bugs caused by the ordering.
+
+3. If the devices are described in a different way in the .dts files
+   from the hwmod data, we will not have 1-to-1 mapping and will never
+   be able to replace ti,hwmods with just the compatible string.
+
+Regards,
+
+Tony
