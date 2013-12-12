@@ -1,53 +1,47 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 13/26] ARM: omap3.dtsi: add omapdss information
-Date: Thu, 12 Dec 2013 21:59:13 +0000
-Message-ID: <20131212215913.GB29072@muru.com>
-References: <1386160133-24026-1-git-send-email-tomi.valkeinen@ti.com>
- <20131205170514.GY26766@atomide.com>
- <52A5BB65.5050109@ti.com>
- <2364383.8GWpsWSoJu@avalon>
- <52A9760A.3000801@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: debugfs pinctrl crash on beagle-xm
+Date: Thu, 12 Dec 2013 17:36:52 -0600
+Message-ID: <52AA4894.4040901@ti.com>
+References: <52A6EFE5.2040706@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from muru.com ([72.249.23.125]:34959 "EHLO muru.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751469Ab3LLV6E (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 12 Dec 2013 16:58:04 -0500
-Content-Disposition: inline
-In-Reply-To: <52A9760A.3000801@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:33898 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751715Ab3LLXgx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Dec 2013 18:36:53 -0500
+In-Reply-To: <52A6EFE5.2040706@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, Archit Taneja <archit@ti.com>, Darren Etheridge <detheridge@ti.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
 
-On Thu, Dec 12, 2013 at 10:38:34AM +0200, Tomi Valkeinen wrote:
-> On 2013-12-12 01:44, Laurent Pinchart wrote:
+On 12/10/2013 04:41 AM, Tomi Valkeinen wrote:
+> Hi,
 > 
-> So, are they independent? I don't know =). I think they lean on the
-> independent side. dss_core is always needed for the submodules to work,
-> but for example DSI could be used without DISPC, using system DMA to
-> transfer data from memory to DSI. Not a very useful thing to do, but
-> still, there are dedicated DMA channels for that.
+> On beagle-xm, v3.13-rc3, I see the following crash if I use the pinctrl
+> debugfs:
+> 
+> # cat /debug/pinctrl/48002030.pinmux/pins
+> [   16.464233] Unhandled fault: external abort on non-linefetch (0x1028)
+> at 0xfa002268
 
-If they have separate hwmod entries, they should be considered separate
-independent devices for sure.
+in 3630 TRM, There is a hole in the memory map between
+0x48002264(CONTROL_PADCONF_SDRC_CKE1) and
+0x480025A0(CONTROL_PADCONF_SDRC_BA0) which obviously generates abort
+when read at 0x48002268
 
-To summarize, here are few reasons why they need to be treated as
-separate devices:
+on 3430, we should also see a crash in the hole region
+0x48002264(CONTROL_PADCONF_SDRC_CKE1) to
+0x480025D8(CONTROL_PADCONF_ETK_CLK).
 
-1. The modules maybe clocked/powered/idled separately and can have their
-   own idle configuration so they can do the hardware based idling
-   separately.
+in dts, omap3_pmx_core: pinmux@48002030 describes the range as reg =
+<0x48002030 0x05cc> (which is the max range for the module)
 
-2. Doing a readback after a write to one module will not flush the write
-   to the other modules on the (bus depending on the SoC version AFAIK).
-   That can lead to nasty bugs caused by the ordering.
+wish pinctrl-single driver could support handle multiple address ranges?
 
-3. If the devices are described in a different way in the .dts files
-   from the hwmod data, we will not have 1-to-1 mapping and will never
-   be able to replace ti,hwmods with just the compatible string.
+[...]
 
+-- 
 Regards,
-
-Tony
+Nishanth Menon
