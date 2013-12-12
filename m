@@ -1,71 +1,64 @@
-From: Belisko Marek <marek.belisko@gmail.com>
-Subject: Re: [PATCH 1/3] arm: omap2: Export devconf1 bypass and acbias.
-Date: Thu, 12 Dec 2013 09:31:02 +0100
-Message-ID: <CAAfyv35wKAK2PNjcXcNan9GC0x-MmH5k4xmzj_vKKhPeztHV-A@mail.gmail.com>
-References: <1381784555-18344-1-git-send-email-marek@goldelico.com>
-	<1381784555-18344-2-git-send-email-marek@goldelico.com>
-	<20131111164917.GN15154@atomide.com>
-	<CAAfyv37LRb_Q=UZVgtKdOAz_r6_qThewAU90W7nrqHdB5fDA_g@mail.gmail.com>
-	<20131111233152.GR15154@atomide.com>
-	<CAAfyv36MaVqrmQxpqDu-ciO9GNJK3pJkFZohEvd1BOLOWWEOhw@mail.gmail.com>
-	<20131210224659.GY13171@atomide.com>
+From: Huang Shijie <shijie8@gmail.com>
+Subject: Re: [PATCHv2 07/10] drivers: mtd: m25p80: Adapt driver to support
+ memory mapped read.
+Date: Thu, 12 Dec 2013 16:31:46 +0800
+Message-ID: <20131212083143.GB1596@gmail.com>
+References: <1386339891-32717-1-git-send-email-sourav.poddar@ti.com>
+ <1386339891-32717-8-git-send-email-sourav.poddar@ti.com>
+ <20131212075536.GA1596@gmail.com>
+ <52A9709C.4010606@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ob0-f181.google.com ([209.85.214.181]:49769 "EHLO
-	mail-ob0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751402Ab3LLIbE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Dec 2013 03:31:04 -0500
-In-Reply-To: <20131210224659.GY13171@atomide.com>
+Received: from mail-pb0-f42.google.com ([209.85.160.42]:37479 "EHLO
+	mail-pb0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751402Ab3LLIby (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Dec 2013 03:31:54 -0500
+Content-Disposition: inline
+In-Reply-To: <52A9709C.4010606@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, linux-fbdev@vger.kernel.org, NeilBrown <neilb@suse.de>, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>
+To: Sourav Poddar <sourav.poddar@ti.com>
+Cc: broonie@kernel.org, linux-spi@vger.kernel.org, computersforpeace@gmail.com, marex@denx.de, devicetree@vger.kernel.org, balbi@ti.com, linux-mtd@lists.infradead.org, bcousson@baylibre.com, linux-omap@vger.kernel.org, dwmw2@infradead.org
 
-Hi Tony,
+On Thu, Dec 12, 2013 at 01:45:24PM +0530, Sourav Poddar wrote:
+> On Thursday 12 December 2013 01:25 PM, Huang Shijie wrote:
+> >>
+> >>+	if (spi->master->configure_from_slave)
+> >>+		m25p80_fill_flash_information(flash);
+> >>+
+> >You have add a configure_from_slave hook in the SPI, why you also need
+> >a same hook in the SPI-NOR framework?
+> >
+> We need a way to provoke this, currently it is placed in m25p80. If m25p80
+> is removed, for where should I handle these in nor framework?
 
-On Tue, Dec 10, 2013 at 11:46 PM, Tony Lindgren <tony@atomide.com> wrote:
-> * Belisko Marek <marek.belisko@gmail.com> [131210 14:13]:
->> On Tue, Nov 12, 2013 at 12:31 AM, Tony Lindgren <tony@atomide.com> wrote:
->> >
->> > It would be best to set it up as omap-ctrl.c driver under drivers
->> > somewhere with few functions exported for DSS and MMC drivers.
->>
->> I create small dummy driver based on phy-omap-control which can be
->> used but before sending patch (with more updates) I would like to get
->> some feedback if my direction is correct.
->
-> Cool thanks. Yeah what you have can easily be combined with the patches
-> Balaji has posted to make HSMMC use drivers/mfd/syscon.c via regmap
-> for the SCM register access. Maybe take a look at the work in progress
-> patches in thread:
->
-> [PATCH v4 0/7] mmc: omap_hsmmc: pbias dt and cleanup
->
-> And also see my comments regarding using the SCM GENERAL register area
-> as base for the syscon.c driver. That should work for your driver too,
-> right? And then you can access the SYSCON1 register that way from your
-> consumer driver ;)
-If I understand correclty I can use syscon driver (it will have in
-range also devconf1 register) ad get rid of my custom driver
-and then get regmap from syscon and update bits that I need for venc, right?
->
-> Regards,
->
-> Tony
+The m25p80 is not removed. it is easy to move your code in the
+m25p_read.
 
-BR,
+Please read the patch 4.
 
-marek
+> >And i think the enable_mmap/disable_mmap is not needed too.
+> >
+> >All the three hooks are used to set the SPI bus controller.
+> 
+> >And the SPI-NOR framework only handles the issues between the
+> >SPI bus controller and the SPI-NOR, or the SPI-NOR controller and the
+> >SPI-NOR.
+> My controller can be used as spi flash controller as well as a spi
+> controller.
+> 
+If you really think we need to do something before the do the real work.
+we can add two hooks : prepare/unprepare.
 
--- 
-as simple and primitive as possible
--------------------------------------------------
-Marek Belisko - OPEN-NANDRA
-Freelance Developer
+   for you, you can put the the enable_mmap/disable_mmap in the
+   prepare/unprepare separately.
 
-Ruska Nova Ves 219 | Presov, 08005 Slovak Republic
-Tel: +421 915 052 184
-skype: marekwhite
-twitter: #opennandra
-web: http://open-nandra.com
+   for other driver, we can put the enable/disable clocks in the
+   prepare/unprepare hooks.
+
+thanks
+Huang Shijie 
+   
+
+
