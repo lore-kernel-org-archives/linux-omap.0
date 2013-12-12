@@ -1,93 +1,66 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
 Subject: Re: [PATCH 06/26] OMAPDSS: if dssdev->name==NULL, use alias
-Date: Thu, 12 Dec 2013 15:15:23 +0100
-Message-ID: <1793565.XC2oCqQxA8@avalon>
-References: <1386160133-24026-1-git-send-email-tomi.valkeinen@ti.com> <20131212100527.GA860@earth.universe> <52A9C470.2030102@ti.com>
+Date: Thu, 12 Dec 2013 16:19:01 +0200
+Message-ID: <52A9C5D5.80801@ti.com>
+References: <1386160133-24026-1-git-send-email-tomi.valkeinen@ti.com> <20131212100527.GA860@earth.universe> <52A9C470.2030102@ti.com> <1793565.XC2oCqQxA8@avalon>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="nextPart1474008.kAl6g8zjds"; micalg="pgp-sha1"; protocol="application/pgp-signature"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="2Qo9jq6WDJNwb26CuPg2bro1D0mI2XJ04"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:50696 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750826Ab3LLOPP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Dec 2013 09:15:15 -0500
-In-Reply-To: <52A9C470.2030102@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:36756 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751512Ab3LLOTJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Dec 2013 09:19:09 -0500
+In-Reply-To: <1793565.XC2oCqQxA8@avalon>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 Cc: Sebastian Reichel <sre@ring0.de>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, Archit Taneja <archit@ti.com>, Darren Etheridge <detheridge@ti.com>, Tony Lindgren <tony@atomide.com>
 
+--2Qo9jq6WDJNwb26CuPg2bro1D0mI2XJ04
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
---nextPart1474008.kAl6g8zjds
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+On 2013-12-12 16:15, Laurent Pinchart wrote:
 
-Hi Tomi,
+> As you mentioned in your previous e-mail, if the labels are used by oma=
+pfb=20
+> only, I won't strongly push to keep them. I wonder, however, when using=
+=20
+> DRM/KMS, where do the connector labels that are displayed by xrandr for=
+=20
+> instance come from ?
 
-On Thursday 12 December 2013 16:13:04 Tomi Valkeinen wrote:
-> On 2013-12-12 12:05, Sebastian Reichel wrote:
-> > On Thu, Dec 12, 2013 at 09:41:49AM +0200, Tomi Valkeinen wrote:
-> >>> A label property is still an option.
-> >> 
-> >> Hmm, what do you mean? Label as in:
-> >> 
-> >> foo : node {
-> >> };
-> >> 
-> >> Isn't that 'foo' label only visible in DT itself, as a shortcut?
-> > 
-> > Some driver use a "label" property like this:
-> > 
-> > foo : node {
-> > 
-> >     label = "lcd";
-> >     
-> >     ...
-> > 
-> > };
-> > 
-> > See for example
-> > 
-> > Documentation/devicetree/bindings/leds/common.txt
-> > Documentation/devicetree/bindings/mtd/partition.txt
-> 
-> Ah, I see. That kind of label was actually the first thing I did when
-> starting to work on DSS DT. But I removed it, as it didn't describe the
-> hardware and I didn't see others using anything similar.
-> 
-> But I guess one could argue it does describe hardware, not in electrical
-> level but in conceptual level.
-> 
-> The question is, do we need labeling for displays? For backward
-> compatibility omapdss would need it, but in general? I'm quite content
-> with having just display0, display1 etc. Using the alias node, those can
-> be fixed and display0 is always the same display.
+drivers/gpu/drm/drm_crtc.c has lists, with names like "DVI-D", "HDMI-A",
+for connectors and encoders. Maybe from those.
 
-As you mentioned in your previous e-mail, if the labels are used by omapfb 
-only, I won't strongly push to keep them. I wonder, however, when using 
-DRM/KMS, where do the connector labels that are displayed by xrandr for 
-instance come from ?
+ Tomi
 
--- 
-Regards,
 
-Laurent Pinchart
 
---nextPart1474008.kAl6g8zjds
+--2Qo9jq6WDJNwb26CuPg2bro1D0mI2XJ04
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part.
-Content-Transfer-Encoding: 7Bit
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
+Version: GnuPG v1.4.14 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQEcBAABAgAGBQJSqcUAAAoJEIkPb2GL7hl18EoH/0X2GUNOUOMqkGg9wUoOAXsx
-7SX9D3RRfPTHh18PwieEldhb2Mczz4XIjBAqq2D24yv2lkQBSljWX9197WlxKhfs
-BrvAqBDMdooe4eL/RlroCugHOfMbO14UB+q17/o71ltjniXEyFWIqbf3N3kr5Ggv
-rnjBiB1gBc4fgpLsCPZSLIcUH+uPkQfTOqhUqsFph5OS4GhJc+6uGE0ljX4uGpzM
-/DQtNDrw32nYLhe0hDhxWozUG8eQ/uffUnTGjpEtRkYGcCqhwlmGRXBl7cFrETFy
-vduZahGg1/Ha3xkR0IvBN88+1450k6HX+hhHCkODkHIJfYz/Z1A2Gs2RE5QPZ1U=
-=8Hui
+iQIcBAEBAgAGBQJSqcXVAAoJEPo9qoy8lh71iOgQAJgn/kX6+ErjCTHyze/P41RT
+OhwUsZHTwpH9C6lSmAaGJ8Mm7pO7/h08V0OTNMXfb/OA6fKiuJBJFl92NYjD+79q
+/Af6j7MYdPQIo7+XGul+3jqfH5oDfM0+CSu/ipih9RoNqHaQSVOqrRtY4EJHUMvs
+OGYasP7+0nLWFFbfSfat+4b+waUX8unCMiZRGe0MnaCGlKLaXocJq2sJdbJSGxFM
+g5SXMS87TT64YwhTYeqIlwB+nCm+iNfERH451h9VMdbtYLsmEW9B3OhcS6ChgOpE
+4XvGGZgdTjxX7Ks6UiwYxIYhTeL2DWIsAJKeipxmLmRJ/8wcG/5hV9NetFvNOPlZ
+3CjQkUH5FH8Du7wAt2Ph9zjQ5/ItWV8dSP8VJupWrhAhmIsxtmLrg4qSRZTJMIp8
+6wzkF1Chg37E7Q062XcGfun1K2c45eGd2ej7n9C3DSnoy0O0/7iLYQFus3wi9mPP
+BrTyQL2j5HX8b2Izzr9yHqqv4jVPn130cWw3awuZTSVhyYIvOl9SfnxUFdtJcxWU
+couXER+airm/GVULo8VjBBehKVbVtutW5e2KUCSvSuUozb4+jBvocJomE9czPPv4
+HAMmFshaoNJ/iO8icMxmRHl7xLN5QmxcKopCfEUslE1nbPxxaYABe9bKHwi36Hja
+M9DPd7xRS/HN9kbVlEBT
+=kzgG
 -----END PGP SIGNATURE-----
 
---nextPart1474008.kAl6g8zjds--
-
+--2Qo9jq6WDJNwb26CuPg2bro1D0mI2XJ04--
