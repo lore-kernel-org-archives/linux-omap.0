@@ -1,42 +1,77 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: need help to configure IRQ on gpio 139 pandaboard using device
- tree
-Date: Thu, 12 Dec 2013 10:15:25 -0600
-Message-ID: <52A9E11D.6050403@ti.com>
-References: <52A8768C.5070103@st.com> <CAGo_u6p9D_rkzte_nxy9EsNyW1ouDPt2eP4zhrYBRjmd8+VHUA@mail.gmail.com> <52A89206.8080605@st.com> <52A8A1A1.9090104@ti.com> <52A9BC8E.9090007@st.com> <52A9C7B6.3020905@st.com> <52A9CCEB.3050308@ti.com> <52A9D0D2.7080907@st.com>
-Reply-To: nm@ti.com
+From: Sebastian Reichel <sre@ring0.de>
+Subject: Re: [PATCH 06/26] OMAPDSS: if dssdev->name==NULL, use alias
+Date: Thu, 12 Dec 2013 18:31:33 +0100
+Message-ID: <20131212173131.GA9607@earth.universe>
+References: <1386160133-24026-1-git-send-email-tomi.valkeinen@ti.com>
+ <20131212100527.GA860@earth.universe>
+ <52A9C470.2030102@ti.com>
+ <1793565.XC2oCqQxA8@avalon>
+ <52A9C5D5.80801@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="ZPt4rx8FFjLCG7dd"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-oa0-f51.google.com ([209.85.219.51]:38578 "EHLO
-	mail-oa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751474Ab3LLQP3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Dec 2013 11:15:29 -0500
-Received: by mail-oa0-f51.google.com with SMTP id i7so663636oag.38
-        for <linux-omap@vger.kernel.org>; Thu, 12 Dec 2013 08:15:27 -0800 (PST)
-In-Reply-To: <52A9D0D2.7080907@st.com>
+Received: from ring0.de ([91.143.88.219]:53449 "EHLO smtp.ring0.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750773Ab3LLRbj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 12 Dec 2013 12:31:39 -0500
+Content-Disposition: inline
+In-Reply-To: <52A9C5D5.80801@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Denis CIOCCA <denis.ciocca@st.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, Archit Taneja <archit@ti.com>, Darren Etheridge <detheridge@ti.com>, Tony Lindgren <tony@atomide.com>
 
-On 12/12/2013 09:05 AM, Denis CIOCCA wrote:
->> why is mcspi1 your interrupt parent when you did a padconf for GPIO?
->> you want GPIO136, so you need the right gpio block as the interrupt
->> parent and map interrupts in the correct map.
->> see [1] for an example (omap2).
-> Oh my god! Now I've understand how device tree works...I'm sorry
-> Nishanth but the dt it's new for me...ok I'm using gpio5 and now it works!
->
-> +interrupt-parent = <&gpio5>;
-> +       interrupts = <8 IRQ_TYPE_LEVEL_HIGH>; /* gpio line 136 */
->
-> Thank you very much for your patience...;)
 
-glad to hear it worked, yeah, device tree is a little different, but 
-logical in it's own way.
+--ZPt4rx8FFjLCG7dd
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Regards,
-Nishanth Menon
+On Thu, Dec 12, 2013 at 04:19:01PM +0200, Tomi Valkeinen wrote:
+> On 2013-12-12 16:15, Laurent Pinchart wrote:
+>=20
+> > As you mentioned in your previous e-mail, if the labels are used by oma=
+pfb=20
+> > only, I won't strongly push to keep them. I wonder, however, when using=
+=20
+> > DRM/KMS, where do the connector labels that are displayed by xrandr for=
+=20
+> > instance come from ?
+>=20
+> drivers/gpu/drm/drm_crtc.c has lists, with names like "DVI-D", "HDMI-A",
+> for connectors and encoders. Maybe from those.
 
+The xrandr names are generated from the list Tomi mentioned.
+=3D> drm_connector_enum_list
+
+This requires a mapping from omapdss types to DRM types, which is
+done in drivers/gpu/drm/omapdrm/omap_drv.c:get_connector_type().
+
+Currently only HDMI and DVI are handled properly.
+
+-- Sebastian
+
+--ZPt4rx8FFjLCG7dd
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.15 (GNU/Linux)
+
+iQIcBAEBCAAGBQJSqfLzAAoJENju1/PIO/qaaEIP/14Nd/ItIxLpvt/CP5CJCggD
+34JNSDVwUqXf8M+hxkTsgE70vo38OHCAmnCAJJZVx4lwCzFr8shr9pDBnW6LUiRB
+kuAqtfOczlqYvKdxy6bn58c2rU93v+V1agtBbub+R0K/+WKZFGJFRDhrsS4Xu43O
++rhpxLf2wh71jTMfy99iEm7h/+RL+6qtQO8i4C9rq+ExwNjAi+fW8UCh5XASHmTB
+ej4brQeNsgfkMuOkrxRLNZfz/rPZ4E/9r5X+HMA9DRmKrhfXUVrxrtXql7r6DdlH
+i8R8glIzi4c/dD5ygzhRdN/BwaL/ToxaWldmZYOpd3Y9SHxf9j3PlVz3dRTas3un
+oIFSrnpUh76LnHSkN1QFR8pywVkADk1vH81lFYeeqYl1AsYfEWCbAIksBMBimnW5
+C0mQjhDWHeNJnaYXh3Q5cBZdjWXoZG6fW28YuvUGuk48Lak2XMK/qY611zwnOyQG
+WbBC29hCp1BrXznYJrrmrm3BMoZLQHLyJnxQaXvXl5WjLb/PiCUg6pem91IFWj3S
+XXzk+AUQb940Ju8IZjVsJ/hTr9L1RHO9cLTMmE7cCHfbNLjlqiKaK15bgpQBJfXL
+H9BMrnn9Jd08h40k/E76L36gSquImqOBZU25FTDQETkIeT3WA2cGJIEcBSSzY2fC
+LlyUpsF4rTiyzm3HGrN8
+=JW9A
+-----END PGP SIGNATURE-----
+
+--ZPt4rx8FFjLCG7dd--
