@@ -1,73 +1,80 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 06/26] OMAPDSS: if dssdev->name==NULL, use alias
-Date: Thu, 12 Dec 2013 14:22:58 +0100
-Message-ID: <1845981.KyH0yMBnPe@avalon>
-References: <1386160133-24026-1-git-send-email-tomi.valkeinen@ti.com> <52A968BD.20304@ti.com> <20131212100527.GA860@earth.universe>
+From: Denis CIOCCA <denis.ciocca@st.com>
+Subject: Re: need help to configure IRQ on gpio 139 pandaboard using device
+ tree
+Date: Thu, 12 Dec 2013 14:39:26 +0100
+Message-ID: <52A9BC8E.9090007@st.com>
+References: <52A8768C.5070103@st.com>
+ <CAGo_u6p9D_rkzte_nxy9EsNyW1ouDPt2eP4zhrYBRjmd8+VHUA@mail.gmail.com>
+ <52A89206.8080605@st.com> <52A8A1A1.9090104@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="nextPart6031562.SWKSuiVqNS"; micalg="pgp-sha1"; protocol="application/pgp-signature"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:50391 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751445Ab3LLNWu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Dec 2013 08:22:50 -0500
-In-Reply-To: <20131212100527.GA860@earth.universe>
+Received: from eu1sys200aog111.obsmtp.com ([207.126.144.131]:36907 "EHLO
+	eu1sys200aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751807Ab3LLNjs convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 12 Dec 2013 08:39:48 -0500
+In-Reply-To: <52A8A1A1.9090104@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sebastian Reichel <sre@ring0.de>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, Archit Taneja <archit@ti.com>, Darren Etheridge <detheridge@ti.com>, Tony Lindgren <tony@atomide.com>
+To: Nishanth Menon <nm@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+
+Hi Nishant,
+
+I've configured the device tree as you told me. Now, my device tree code 
+is that:
+
+diff --git a/arch/arm/boot/dts/omap4-panda-es.dts 
+b/arch/arm/boot/dts/omap4-panda-es.dts
+index 816d1c9..5644260 100644
+--- a/arch/arm/boot/dts/omap4-panda-es.dts
++++ b/arch/arm/boot/dts/omap4-panda-es.dts
+@@ -41,6 +41,12 @@
+              0xb6 (PIN_OUTPUT | MUX_MODE3)    /* gpio_110 */
+          >;
+      };
++
++    lsm6db0_pins: lsm6db0_pins {
++        pinctrl-single,pins = <
++            0xfc (PIN_INPUT | MUX_MODE3) /* mcspi1_cs2.gpio_139 */
++        >;
++    };
+  };
+
+  &led_wkgpio_pins {
+@@ -49,6 +55,22 @@
+      >;
+  };
+
++&i2c4 {
++    pinctrl-names = "default";
++    pinctrl-0 = <&i2c4_pins>;
++
++    clock-frequency = <400000>;
++
++    lsm6db0@03 {
++        pinctrl-names = "default";
++        pinctrl-0 = <&lsm6db0_pins>;
++        compatible = "st,lsm6db0";
++        reg = <0x03>;
++        interrupts = <139 0x1>;
++        interrupt-parent = <&lsm6db0_pins>;
++    };
++};
++
+  &leds {
+      pinctrl-0 = <
+          &led_gpio_pins
 
 
---nextPart6031562.SWKSuiVqNS
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+I've also read the documentation file 
+Documentation/devicetree/bindings/interrupt-controller/interrupts.txt 
+but I'm confused about the gpio muxed with mcspi1.
+Do you think my patch is correct?
 
-On Thursday 12 December 2013 11:05:28 Sebastian Reichel wrote:
-> On Thu, Dec 12, 2013 at 09:41:49AM +0200, Tomi Valkeinen wrote:
-> > > A label property is still an option.
-> > 
-> > Hmm, what do you mean? Label as in:
-> > 
-> > foo : node {
-> > };
-> > 
-> > Isn't that 'foo' label only visible in DT itself, as a shortcut?
-> 
-> Some driver use a "label" property like this:
-> 
-> foo : node {
->     label = "lcd";
-> 
->     ...
-> };
 
-Yes, that's what I meant.
-
-> See for example
-> 
-> Documentation/devicetree/bindings/leds/common.txt
-> Documentation/devicetree/bindings/mtd/partition.txt
-
--- 
-Regards,
-
-Laurent Pinchart
-
---nextPart6031562.SWKSuiVqNS
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part.
-Content-Transfer-Encoding: 7Bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
-
-iQEcBAABAgAGBQJSqbi3AAoJEIkPb2GL7hl1gSQIAKAv07hkv9LDKGqns3K+2rIK
-dRQq9eWEobQbHbw56lL5W4x1dak9mKXXFuRcA779fnH8Ys1loH5cw15QjBcpLBtx
-FB8OS5rOGNgRD6efDUcbIC6RVw8G3Z+6fr0Qjo588SHZIypufLsnass0OZgBJBxk
-nkZaQV6Ju8Jb1gH0HvfX2kqSYwMdVg44VeRoziga82I6qaVj0H86dWrlsXHriugF
-Yu9a4wtmwhDpYYLLfUL+NVLNqjiZtZCsC4MdSOnB+QNXAjpMVhc+JXYD3QRGeibc
-dAniXF7+bosBP0xXoXHaWWNYbYM+ppxbBXtGktp01k87VKfwi8scNmlmXOEnDcA=
-=cD+F
------END PGP SIGNATURE-----
-
---nextPart6031562.SWKSuiVqNS--
-
+Thanks,
+Denis
