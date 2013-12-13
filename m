@@ -1,66 +1,74 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 13/26] ARM: omap3.dtsi: add omapdss information
-Date: Fri, 13 Dec 2013 09:10:25 -0800
-Message-ID: <20131213171025.GC28184@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 00/26] OMAPDSS: DT support (Christmas edition)
+Date: Fri, 13 Dec 2013 09:22:35 -0800
+Message-ID: <20131213172234.GD28184@atomide.com>
 References: <1386160133-24026-1-git-send-email-tomi.valkeinen@ti.com>
- <52A9760A.3000801@ti.com>
- <20131212215913.GB29072@muru.com>
- <1933495.zHe4JMYZyB@avalon>
- <52AADEF3.9040808@ti.com>
+ <1703598.NbqXAMAFOI@avalon>
+ <52AADBE0.3030203@ti.com>
+ <3426377.keoaFgiZkl@avalon>
+ <52AB2C25.6000507@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:40847 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752746Ab3LMRWj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Dec 2013 12:22:39 -0500
 Content-Disposition: inline
-In-Reply-To: <52AADEF3.9040808-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
-Cc: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Archit Taneja <archit-l0cyMroinI0@public.gmane.org>, Darren Etheridge <detheridge-l0cyMroinI0@public.gmane.org>
+In-Reply-To: <52AB2C25.6000507@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, Archit Taneja <archit@ti.com>, Darren Etheridge <detheridge@ti.com>, Stefan Roese <stefan.roese@gmail.com>, Sebastian Reichel <sre@debian.org>, Robert Nelson <robertcnelson@gmail.com>, "Dr . H . Nikolaus Schaller" <hns@goldelico.com>, Marek Belisko <marek@goldelico.com>
 
-* Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org> [131213 02:19]:
-> On 2013-12-13 05:27, Laurent Pinchart wrote:
-> > Hi Tony,
-> > 
-> > On Thursday 12 December 2013 21:59:13 Tony Lindgren wrote:
-> >> On Thu, Dec 12, 2013 at 10:38:34AM +0200, Tomi Valkeinen wrote:
-> >>> On 2013-12-12 01:44, Laurent Pinchart wrote:
-> >>>
-> >>> So, are they independent? I don't know =). I think they lean on the
-> >>> independent side. dss_core is always needed for the submodules to work,
-> >>> but for example DSI could be used without DISPC, using system DMA to
-> >>> transfer data from memory to DSI. Not a very useful thing to do, but
-> >>> still, there are dedicated DMA channels for that.
-> >>
-> >> If they have separate hwmod entries, they should be considered separate
-> >> independent devices for sure.
-> >>
-> >> To summarize, here are few reasons why they need to be treated as
-> >> separate devices:
-> > 
-> > Are you talking generally here, or about the DSS modules in particular ?
-> > 
-> >> 1. The modules maybe clocked/powered/idled separately and can have their
-> >>    own idle configuration so they can do the hardware based idling
-> >>    separately.
-> > 
-> > I don't think this applies to the DSS modules.
+* Tomi Valkeinen <tomi.valkeinen@ti.com> [131213 07:49]:
+> Hi Laurent, Tony,
 > 
-> The DSS submodules have their own SYSCONFIG register, and idle settings
-> can be set per module. So I think they idle separately, even if they are
-> in a common power domain.
+> On 2013-12-13 16:37, Laurent Pinchart wrote:
+> 
+> >>> - dsi_enable_pads, dsi_disable_pads: Those don't seem to be used in
+> >>> mainline. What's their purpose, and how are they implemented on platforms
+> >>> that make use of them ? Is the pinmux API an option ?
+> >>
+> >> They are used in mainline, grep again =).
+> > 
+> > The only implementations I can find in arch/arm/mach-omap2/display.c are
+> > 
+> > static int omap_dsi_enable_pads(int dsi_id, unsigned lane_mask)
+> > {
+> >         return 0;
+> > }
+> > 
+> > static void omap_dsi_disable_pads(int dsi_id, unsigned lane_mask)
+> > {
+> > }
+> 
+> Yep. It seems Tony removed the muxing for -rc2 in
+> e30b06f4d5f000c31a7747a7e7ada78a5fd419a1 ARM: OMAP2+: Remove legacy mux
+> code for display.c
+> 
+> Tony, that patch removes DSI muxing, which is not done via DT. I can't
+> test right now, but I presume DSI displays don't work at all after -rc2.
 
-Yes. Please see the current omap_hwmod_*_data.c files, if they are separate
-entries there, that means we need to treat them as separate devices to
-avoid the issues I listed.
+Hmm I suggest you test against commit adfe9361b236 (ARM: dts: Add basic
+devices on am3517-evm) as it does not yet remove the legacy data and
+that's what's heading to linux next soonish.
 
-We do have some entries still missing from omap_hwmod_*_data.c files, like
-the SSI entries as they are undocumented. But for the existing ones there
-please follow the same layout for the .dts entries.
+With the DT configured displays that muxing needs to be done in the
+DSS driver(s) using pinctrl-single.
+
+BTW, I suspect quite a few of the DSI using boards have been broken a
+while before 0b2aa8bed3e1 (gpio: twl4030: Fix regression for twl gpio
+output) as at least the following have been using TWL GPIO to enable
+the panel:
+
+board-3430sdp.c
+board-devkit8000.c
+board-ldp.c
+board-omap3stalker.c
+
+This was the case at least for LDP.
 
 Regards,
 
 Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
