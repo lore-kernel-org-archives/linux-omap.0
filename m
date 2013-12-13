@@ -1,113 +1,92 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] make mach-omap2 boot with device tree only for v3.14
-Date: Fri, 13 Dec 2013 11:26:23 -0800
-Message-ID: <20131213192622.GI28184@atomide.com>
-References: <pull-1386643347-596413>
- <alpine.DEB.2.02.1312101034360.32309@utopia.booyaka.com>
- <20131210185902.GO13171@atomide.com>
- <20131210192726.GR13171@atomide.com>
- <20131210230722.GZ13171@atomide.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH v2 1/7] usb: dwc3: keystone: add basic PM support
+Date: Fri, 13 Dec 2013 13:54:31 -0600
+Message-ID: <20131213195431.GF5292@saruman.home>
+References: <20131212214306.GS1939@saruman.home>
+ <1386884755-12366-1-git-send-email-balbi@ti.com>
+ <52AA54E4.5000606@ti.com>
+ <230CBA6E4B6B6B418E8730AC28E6FC7E0415C786@DFLE11.ent.ti.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="4f28nU6agdXSinmL"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:53935 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751602Ab3LMT01 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Dec 2013 14:26:27 -0500
+Received: from comal.ext.ti.com ([198.47.26.152]:42387 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752673Ab3LMTza (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 13 Dec 2013 14:55:30 -0500
 Content-Disposition: inline
-In-Reply-To: <20131210230722.GZ13171@atomide.com>
+In-Reply-To: <230CBA6E4B6B6B418E8730AC28E6FC7E0415C786@DFLE11.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: arm@kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: "Kwok, WingMan" <w-kwok2@ti.com>
+Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Balbi, Felipe" <balbi@ti.com>, Linux USB Mailing List <linux-usb@vger.kernel.org>, "kgene.kim@samsung.com" <kgene.kim@samsung.com>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-* Tony Lindgren <tony@atomide.com> [131210 15:08]:
-> * Tony Lindgren <tony@atomide.com> [131210 11:28]:
-> > * Tony Lindgren <tony@atomide.com> [131210 11:00]:
-> > > * Paul Walmsley <paul@pwsan.com> [131210 10:47]:
-> > > > On Mon, 9 Dec 2013, Tony Lindgren wrote:
-> > > > 
-> > > > > The following changes since commit f2e2c9d9b4087b74eb9e00d8dfac148354cb0b71:
-> > > > > 
-> > > > >   ARM: dts: Fix booting for secure omaps (2013-12-06 15:30:43 -0800)
-> > > > > 
-> > > > > are available in the git repository at:
-> > > > > 
-> > > > >   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.14/omap3-board-removal-signed
-> > > > > 
-> > > > > for you to fetch changes up to 736e812636ea72be444b85fa7e92554967459069:
-> > > > > 
-> > > > >   ARM: OMAP2+: Remove unused platform init code and headers (2013-12-08 14:15:46 -0800)
-> > > > 
-> > > > The description in Tony's pull request below alludes to what regressions 
-> > > > will occur when this is pulled.  But just to state it in terms of what 
-> > > > happened on the local testbed here when I tried it:
-> > > > 
-> > > > - CM-T3517 booting will break since there's no .dts file for it.  Are
-> > > >   there other boards that will be affected here too?
-> > > 
-> > > Yeah the cm-t3770 is on my todo list, but I've left it last as it's my
-> > > home router and has been behaving quite nicely.
-> > > 
-> > > That should then cover:
-> > > 
-> > > SBC-T3530
-> > > http://compulab.co.il/products/sbcs/sbc-t3530/
-> > > 
-> > > SBC-T3517
-> > > http://compulab.co.il/products/sbcs/sbc-t3517/
-> > > 
-> > > SBC-T3730
-> > > http://compulab.co.il/products/sbcs/sbc-t3730/
-> > > 
-> > > They all seem to have the same baseboard, and the CPU module is
-> > > different. So getting the 3530 and 3517 variants working should
-> > > be trivial. I don't have 3530 or 3517 variants, so somebody else
-> > > will need to do those two.
+--4f28nU6agdXSinmL
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-OK posted a patch for the SBC-T3730 with minimal support also for
-SBC-3530 and SBC-3517 that should boot far enough to start adding
-more devices. Paul, care to try it on the CM-T3517, the patch is:
+On Fri, Dec 13, 2013 at 10:04:38AM -0600, Kwok, WingMan wrote:
+> Hello
+>=20
+> > -----Original Message-----
+> > From: Shilimkar, Santosh
+> > Sent: Thursday, December 12, 2013 7:29 PM
+> > To: Balbi, Felipe
+> > Cc: Linux USB Mailing List; kgene.kim@samsung.com; Linux ARM Kernel
+> > Mailing List; linux-samsung-soc@vger.kernel.org; Linux OMAP Mailing Lis=
+t;
+> > Kwok, WingMan
+> > Subject: Re: [PATCH v2 1/7] usb: dwc3: keystone: add basic PM support
+> >=20
+> > On Thursday 12 December 2013 04:45 PM, Felipe Balbi wrote:
+> > > A bare-minimum PM implementation which will server as building block
+> > > for more complex
+> > s/server/serve ;-)
+> > > PM implementation in the future.
+> > >
+> > > At the least will not leave clocks on unnecessarily when e.g.  a user
+> > > write mem to /sys/power/state.
+> > >
+> > > Signed-off-by: Felipe Balbi <balbi@ti.com>
+> > > ---
+> > >
+> > > improve error path a little bit.
+> > >
+> > We will test this out. Thanks for the
+> > patch Felipe.
+> >=20
+>=20
+> I have tested the patch and the keystone usb driver continues to function,
+> though I can't test suspend at this time as the rest of the system does
+> not that functionality yet.
 
-[PATCH] ARM: dts: Add support for sbc-3xxx with cm-t3730
+Thanks, should I add your Tested-by ?
 
-Let's hope there's two smsc911x devices also on the 3517 based board,
-otherwise it should have a completely separate .dts file.
+--=20
+balbi
 
-> > > And Nishant just posted a .dts file for the 3517 craneboard.
-> > 
-> > And here's a list of other boards we don't have .dts file for if
-> > people have these:
-> > 
-> > board-devkit8000.c		omap3-ldp.dts or omap3-beagle.dts is a good starting point
-> 
-> Oops, sorry this one we already have covered with omap3-devkit8000.dts.
-> And please ignore the multiple comments, they all are pretty close to
-> omap3-ldp and omap3-beagle.
-> 
-> > board-omap3logic.c		omap3-ldp.dts or omap3-beagle.dts is a good starting point
-> > board-omap3pandora.c		omap3-ldp.dts or omap3-beagle.dts is a good starting point
-> > board-omap3stalker.c
-> > board-omap3touchbook.c
-> > 
-> > For the ones above, omap3-ldp.dts or omap3-beagle.dts are good starting
-> > points. There's the DPI display pdata patch too, but it seems we want to
-> > wait to see if Tomi gets his display changes done before applying that.
-> > 
-> > I don't have any of the ones above, so people using those please
-> > do the .dts files ASAP.
-> > 
-> > Or send me those boards with working boot loaders and I'll do them at
-> > a rate of one board per day or so.. And then you're stuck with my
-> > criteria of "usable" which is usually serial port and NFS root unless
-> > I really like the board, mhuwahuaaaahh!
-> > 
-> > board-ti8168evm.c
-> > 
-> > I doubt ti8168evm has even worked for a long time.. It's in pretty
-> > sorry state unfortunately with missing clock support and missing
-> > handle_irq entry in the board-ti8168evm.c.
-> > 
-> > Regards,
-> > 
-> > Tony
+--4f28nU6agdXSinmL
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.15 (GNU/Linux)
+
+iQIcBAEBAgAGBQJSq2X3AAoJEIaOsuA1yqREADAP/1jTut0bkrOALf/F8WuN6q5o
+tYjjBgaFeiKhmuD0cweEk6ftROlSIggIxmEoxovcCARVjnPdb2bxpGuFlFEd+NdB
+ljvU2nL8xLHvmhHhAjUegvWs1UwYO9xJb4l/Dlco//30lVm6uSKwpOgcGVYY1l2K
+oASStflYavHYyPfAbg6yzNGYaZwFGs5MuAz2cDDogQWD8AJa0OZ3gZYNjwzhbePC
+8P3IPfm0K6GakkSvKBHweZDFFq0Xqtv2BIV+OrYHsQLlbedySiwBqFFpiHrFA5be
+yN9TiFNhFPpuPZkHic2YfLMj1GE82dSzTbrH7JYbAVoN61Q1HBxKhP5cyUNIzpUK
+3nsgmyNBNTAzIBdMcLnjwRCicOJpq3MBMWOvzPJhsAL5GdS6KwoeWxDAy1kqf8RW
+eY0XOfDGiGXmaUjQpmYERxNjMfZtTu95dKyMGa59U9kh5Y0B6A7ncvTJGEr0sD/F
+mFh4AQrqbxL6Dbjijx3LM67qmVcqYHgf1tBy7ze8ZwNAkkjXJl98kAPHDpnDg8w/
+H+gCMN/vOXQZXlWOPKQZmfKwqCDIaJMYgSFmaZFy8c6IJfTFKfDVgEnCBgU6qzgO
+w0SpYQumUOspcaKP80haY6CdOsPQf2471WE07dXLZbM+1NPNmhk+sVDwQFxiqBkI
+nHpOw3pghiid9V6vnNtx
+=7dy4
+-----END PGP SIGNATURE-----
+
+--4f28nU6agdXSinmL--
