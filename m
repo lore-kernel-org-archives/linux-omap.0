@@ -1,63 +1,61 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] omap: twl-common: Fix musb-hdrc device name.
-Date: Fri, 13 Dec 2013 09:36:36 -0800
-Message-ID: <20131213173636.GG28184@atomide.com>
-References: <1386059589-4030-1-git-send-email-marek.belisko@open-nandra.com>
- <529D9D43.6040101@ti.com>
- <CAAfyv37Vie1vZK2XQ1cfVq6eVnSuaBLfykk6pU8fwEyqvPF4BA@mail.gmail.com>
- <CAAfyv35gVVNydrk8vifSyidpFjEXjGiT4-i2dgN5Un2=FuHaqQ@mail.gmail.com>
- <20131205184323.GF26766@atomide.com>
- <CAAfyv37e9+OLH-KegPCEhc0sbBS7UVnaSGU0mBw2AxAN9D7Akw@mail.gmail.com>
- <20131209175006.GD12527@atomide.com>
- <CAAfyv36P7DDcdaLWtXnZXPfQWPL20shE3kOHWtD0mSmH7aixdg@mail.gmail.com>
- <52AAF5E6.1050900@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: debugfs pinctrl crash on beagle-xm
+Date: Fri, 13 Dec 2013 11:10:20 -0600
+Message-ID: <52AB3F7C.9050201@ti.com>
+References: <52A6EFE5.2040706@ti.com> <52AA4894.4040901@ti.com> <20131213170438.GA28184@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <52AAF5E6.1050900@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Belisko Marek <marek.belisko@gmail.com>, LKML <linux-kernel@vger.kernel.org>, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:42680 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752579Ab3LMRKY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 13 Dec 2013 12:10:24 -0500
+In-Reply-To: <20131213170438.GA28184@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap <linux-omap@vger.kernel.org>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-* Kishon Vijay Abraham I <kishon@ti.com> [131213 03:57]:
-> On Friday 13 December 2013 04:57 PM, Belisko Marek wrote:
-> > Kishon can you please comment on that? Would be possible to get your
-> > patch to 3.13 (I seen some comments from Felipe).
+On 12/13/2013 11:04 AM, Tony Lindgren wrote:
+> * Nishanth Menon <nm@ti.com> [131212 15:38]:
+>> On 12/10/2013 04:41 AM, Tomi Valkeinen wrote:
+>>> Hi,
+>>>
+>>> On beagle-xm, v3.13-rc3, I see the following crash if I use the pinctrl
+>>> debugfs:
+>>>
+>>> # cat /debug/pinctrl/48002030.pinmux/pins
+>>> [   16.464233] Unhandled fault: external abort on non-linefetch (0x1028)
+>>> at 0xfa002268
+>>
+>> in 3630 TRM, There is a hole in the memory map between
+>> 0x48002264(CONTROL_PADCONF_SDRC_CKE1) and
+>> 0x480025A0(CONTROL_PADCONF_SDRC_BA0) which obviously generates abort
+>> when read at 0x48002268
+>>
+>> on 3430, we should also see a crash in the hole region
+>> 0x48002264(CONTROL_PADCONF_SDRC_CKE1) to
+>> 0x480025D8(CONTROL_PADCONF_ETK_CLK).
+>>
+>> in dts, omap3_pmx_core: pinmux@48002030 describes the range as reg =
+>> <0x48002030 0x05cc> (which is the max range for the module)
+>>
+>> wish pinctrl-single driver could support handle multiple address ranges?
+>>
+>> [...]
 > 
-> I'm not sure as my patch modifies all the board files. There was initially some
-> confusion w.r.t when the board files will be dropped. But since board files
-> will still be there in 3.13, I'd recommend my patch  [1] to be taken. Anyways
-> if you have tested my patch (series), pls give your Tested-by.
+> There's an RFC patch from Laurent to split the pmx_core into two instances
+> that should take care of this issue:
 > 
-> Tony, summary of the issue..
-> After the platform devices are created using PLATFORM_DEVID_AUTO, the
-> device names given in usb_bind_phy (in board file) does not match with
-> the actual device name causing the USB PHY library not to return the
-> PHY reference when the MUSB controller request for the PHY in the non-dt boot
-> case. So removed creating platform devices using PLATFORM_DEVID_AUTO in
-> omap2430.c. So had to make the corresponding changes in board files.
+> [PATCH/RFC] ARM: omap3: Split the pinmux core device
 
-OK. Can you please repost with a proper commit id for what caused the
-regression and summararize why it should be fixed this way. Something like:
 
-Commit abcd1234 (usb: blah foo bar) caused blah blah blah. Fix the issue
-with blah blah blah. Note that the board-*.c files will be removed soon,
-but for v3.13 we still support both legacy booting and device tree based
-booting and need to fix it.
+Arggh.. yet again, I missed that :( grr...
+https://patchwork.kernel.org/patch/3335341/ follows the similar
+direction Laurent took for https://patchwork.kernel.org/patch/3283781/
 
+
+-- 
 Regards,
-
-Tony
- 
-> [1] -> http://lists.scusting.com/index.php?t=msg&th=375579&start=0&S=Google
+Nishanth Menon
