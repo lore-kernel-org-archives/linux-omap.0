@@ -1,56 +1,136 @@
-From: "Kwok, WingMan" <w-kwok2-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH v2 1/7] usb: dwc3: keystone: add basic PM support
-Date: Fri, 13 Dec 2013 16:04:38 +0000
-Message-ID: <230CBA6E4B6B6B418E8730AC28E6FC7E0415C786@DFLE11.ent.ti.com>
-References: <20131212214306.GS1939@saruman.home>
- <1386884755-12366-1-git-send-email-balbi@ti.com> <52AA54E4.5000606@ti.com>
+From: Andreas Naumann <dev@andin.de>
+Subject: Re: WG: [PATCH] usb: musb: omap2430: fix occasional musb breakage
+ on boot
+Date: Fri, 13 Dec 2013 17:27:53 +0100
+Message-ID: <52AB3589.6010606@andin.de>
+References: <EE4E4767751A8B40949306E403F4DDD8032AA82A@sv03ultra002.ultratronik.de>	<52AA2AA8.4090402@andin.de> <CANOLnON65xu0HKBzmhWOnoEoXscguBuozwKUV5FZAYObt=tP5w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <52AA54E4.5000606-l0cyMroinI0@public.gmane.org>
-Content-Language: en-US
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Shilimkar, Santosh" <santosh.shilimkar-l0cyMroinI0@public.gmane.org>, "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>
-Cc: Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "kgene.kim-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org" <kgene.kim-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Linux ARM Kernel Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-13;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from dd5612.kasserver.com ([85.13.130.143]:33821 "EHLO
+	dd5612.kasserver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751872Ab3LMQ16 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Dec 2013 11:27:58 -0500
+In-Reply-To: <CANOLnON65xu0HKBzmhWOnoEoXscguBuozwKUV5FZAYObt=tP5w@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Grazvydas Ignotas <notasas@gmail.com>
+Cc: Linux USB Mailing List <linux-usb@vger.kernel.org>, fbalbi@ti.com, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hello
+On 13.12.2013 13:34, Grazvydas Ignotas wrote:
+> On Thu, Dec 12, 2013 at 11:29 PM, Andreas Naumann <dev@andin.de> wrot=
+e:
+>> Hi Grazvydas,
+>>
+>>> Von: Grazvydas Ignotas [mailto:notasas@gmail.com]
+>>> Gesendet: Donnerstag, 12. Dezember 2013 01:21
+>>> An: linux-usb@vger.kernel.org
+>>> Cc: Felipe Balbi; linux-omap@vger.kernel.org; Naumann Andreas; Graz=
+vydas
+>>> Ignotas; stable@vger.kernel.org
+>>> Betreff: [PATCH] usb: musb: omap2430: fix occasional musb breakage =
+on boot
+>>>
+>>>
+>>> This is a hard to reproduce problem which leads to non-functional
+>>> USB-OTG port in 0.1%-1% of all boots. Tracked it down to commit
+>>> e25bec160158abe86c "omap2+: save and restore OTG_INTERFSEL",
+>>> which introduces save/restore of OTG_INTERFSEL over suspend.
+>>>
+>>> Since the resume function is also called early in driver init, it u=
+ses a
+>>> non-initialized value (which is 0 and a non-supported setting in DM=
+37xx
+>>> for INTERFSEL). Shortly after the correct value is set. Apparently =
+this
+>>> works most time, but not always.
+>>>
+>>> Fix it by not writing the value on runtime resume if it is 0
+>>> (0 should never be saved in the context as it's invalid value,
+>>> so we use it as an indicator that context hasn't been saved yet).
+>>>
+>>> This issue was originally found by Andreas Naumann:
+>>> http://marc.info/?l=3Dlinux-usb&m=3D138562574719654&w=3D2
+>>>
+>>> Reported-and-bisected-by: Andreas Naumann <anaumann@ultratronik.de>
+>>> Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
+>>> Cc: <stable@vger.kernel.org>
+>>> ---
+>>> This is a regression from 3.2, so should go to -rc and stable, IMO.
+>>> It's really annoying issue if you want to have a stable OTG behavio=
+r,
+>>> I've burned quite a lot of time on it myself over a year ago and ga=
+ve up
+>>> eventually. Good thing Andreas finally found it, many thanks to him=
+!
+>>>
+>>>    drivers/usb/musb/omap2430.c |    3 ++-
+>>>    1 file changed, 2 insertions(+), 1 deletion(-)
+>>>
+>>> diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap243=
+0.c
+>>> index 2a408cd..737b3da 100644
+>>> --- a/drivers/usb/musb/omap2430.c
+>>> +++ b/drivers/usb/musb/omap2430.c
+>>> @@ -672,7 +672,8 @@ static int omap2430_runtime_resume(struct devic=
+e *dev)
+>>>
+>>>          if (musb) {
+>>>                  omap2430_low_level_init(musb);
+>>> -               musb_writel(musb->mregs, OTG_INTERFSEL,
+>>> +               if (musb->context.otg_interfsel !=3D 0)
+>>> +                       musb_writel(musb->mregs, OTG_INTERFSEL,
+>>>                                  musb->context.otg_interfsel);
+>>>                  phy_power_on(musb->phy);
+>>>          }
+>>>
+>>
+>> Oh, easy way out. I like it but I've also been thinking about your c=
+omment
+>> on my original post, which was that initializing otg_interfsel to th=
+e PHYSEL
+>> bits only might be dangerous because we cant be sure that there are =
+other
+>> bits in the register.
+>> However, isnt assuming that 0 is invalid on all OMAPs just as danger=
+ous?
+>
+> Well I was trying to do a minimal fix so that it could be suitable fo=
+r
+> merging to stable kernels. But yes you're right, I've just checked
+> OMAP4 TRM and 0 is actually valid value there..
+>
+>> After thinking about my patch again, I would propose to change otg_i=
+nterfsel
+>> into otg_physel and read-modify-write only those bits in resume() as=
+ you
+>> suggested in your first answer. That way I could discard the problem=
+atic
+>> first read in probe() while leaving other bits untouched. If you agr=
+ee I
+>> post a patch for this tomorrow.
+>
+> Hmm I don't know about that, this would be inconsistent with what all
+> other OMAP drivers do. Maybe we should do what musb_core.c does just
 
-> -----Original Message-----
-> From: Shilimkar, Santosh
-> Sent: Thursday, December 12, 2013 7:29 PM
-> To: Balbi, Felipe
-> Cc: Linux USB Mailing List; kgene.kim-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org; Linux ARM Kernel
-> Mailing List; linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Linux OMAP Mailing List;
-> Kwok, WingMan
-> Subject: Re: [PATCH v2 1/7] usb: dwc3: keystone: add basic PM support
-> 
-> On Thursday 12 December 2013 04:45 PM, Felipe Balbi wrote:
-> > A bare-minimum PM implementation which will server as building block
-> > for more complex
-> s/server/serve ;-)
-> > PM implementation in the future.
-> >
-> > At the least will not leave clocks on unnecessarily when e.g.  a user
-> > write mem to /sys/power/state.
-> >
-> > Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-> > ---
-> >
-> > improve error path a little bit.
-> >
-> We will test this out. Thanks for the
-> patch Felipe.
-> 
+Ok, thats cool.
 
-I have tested the patch and the keystone usb driver continues to function,
-though I can't test suspend at this time as the rest of the system does
-not that functionality yet.
+> to be consistent and add a similar comment. Only the static variable
+> could be avoided in favor of struct omap2430_glue member.
 
-Thanks
-WingMan
+Whats wrong with the static?
+
+cheers,
+Andreas
+
+>
+> Gra=FEvydas
+>
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
