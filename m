@@ -1,74 +1,81 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 00/26] OMAPDSS: DT support (Christmas edition)
-Date: Fri, 13 Dec 2013 09:22:35 -0800
-Message-ID: <20131213172234.GD28184@atomide.com>
-References: <1386160133-24026-1-git-send-email-tomi.valkeinen@ti.com>
- <1703598.NbqXAMAFOI@avalon>
- <52AADBE0.3030203@ti.com>
- <3426377.keoaFgiZkl@avalon>
- <52AB2C25.6000507@ti.com>
+Subject: Re: [PATCH] gpio: twl4030: fix regression for twl gpio outputs for
+ led pins
+Date: Fri, 13 Dec 2013 09:28:11 -0800
+Message-ID: <20131213172810.GE28184@atomide.com>
+References: <1386953222-26396-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:40847 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752746Ab3LMRWj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Dec 2013 12:22:39 -0500
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <52AB2C25.6000507@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1386953222-26396-1-git-send-email-nm@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Roger Quadros <rogerq@ti.com>, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, Archit Taneja <archit@ti.com>, Darren Etheridge <detheridge@ti.com>, Stefan Roese <stefan.roese@gmail.com>, Sebastian Reichel <sre@debian.org>, Robert Nelson <robertcnelson@gmail.com>, "Dr . H . Nikolaus Schaller" <hns@goldelico.com>, Marek Belisko <marek@goldelico.com>
 
-* Tomi Valkeinen <tomi.valkeinen@ti.com> [131213 07:49]:
-> Hi Laurent, Tony,
+* Nishanth Menon <nm@ti.com> [131213 08:48]:
+> Commit 0b2aa8b (gpio: twl4030: Fix regression for twl gpio output)
+> introduces yet another regression by ignoring the fact that we use twl
+> gpio even for LED. For example, leda (offset 18) is used for USB port2
+> power on beagleboard-xm.
 > 
-> On 2013-12-13 16:37, Laurent Pinchart wrote:
+> The original logic was supposed to setup the TWL4030 GPIO direction
+> if the offset was < TWL4030_GPIO_MAX, and anything greater used
+> twl4030_led_set_value as part of twl_set to setup the LED pin. However,
+> with the commit mentioned above, LEDa pin request will result in fail
+> as the GPIO number for LEDa is equal to TWL4030_GPIO_MAX and USB fails
+> to function on beagleboard-xm. This is reported in the log as:
+> hsusb2_vbus: Failed to request enable GPIO510: -22
 > 
-> >>> - dsi_enable_pads, dsi_disable_pads: Those don't seem to be used in
-> >>> mainline. What's their purpose, and how are they implemented on platforms
-> >>> that make use of them ? Is the pinmux API an option ?
-> >>
-> >> They are used in mainline, grep again =).
-> > 
-> > The only implementations I can find in arch/arm/mach-omap2/display.c are
-> > 
-> > static int omap_dsi_enable_pads(int dsi_id, unsigned lane_mask)
-> > {
-> >         return 0;
-> > }
-> > 
-> > static void omap_dsi_disable_pads(int dsi_id, unsigned lane_mask)
-> > {
-> > }
-> 
-> Yep. It seems Tony removed the muxing for -rc2 in
-> e30b06f4d5f000c31a7747a7e7ada78a5fd419a1 ARM: OMAP2+: Remove legacy mux
-> code for display.c
-> 
-> Tony, that patch removes DSI muxing, which is not done via DT. I can't
-> test right now, but I presume DSI displays don't work at all after -rc2.
+> To fix this, we should handle the fail case of
+> twl4030_set_gpio_direction independent of the offset < TWL4030_GPIO_MAX
+> check.
 
-Hmm I suggest you test against commit adfe9361b236 (ARM: dts: Add basic
-devices on am3517-evm) as it does not yet remove the legacy data and
-that's what's heading to linux next soonish.
-
-With the DT configured displays that muxing needs to be done in the
-DSS driver(s) using pinctrl-single.
-
-BTW, I suspect quite a few of the DSI using boards have been broken a
-while before 0b2aa8bed3e1 (gpio: twl4030: Fix regression for twl gpio
-output) as at least the following have been using TWL GPIO to enable
-the panel:
-
-board-3430sdp.c
-board-devkit8000.c
-board-ldp.c
-board-omap3stalker.c
-
-This was the case at least for LDP.
+Heh again :) Linus has already queued a similar fix, see
+"[PATCH v2 1/1] gpio: twl4030: Fix regression for twl gpio LED output".
 
 Regards,
 
 Tony
+
+
+
+ 
+> Signed-off-by: Nishanth Menon <nm@ti.com>
+> ---
+> Applies on v3.13-rc3
+> 
+> Tested on beagleboard-xm which uses ethernet over usb:
+> before the patch (USB regression): http://pastebin.mozilla.org/3769443
+> After this patch: http://pastebin.mozilla.org/3769454
+> 
+>  drivers/gpio/gpio-twl4030.c |    9 +++++++--
+>  1 file changed, 7 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/gpio/gpio-twl4030.c b/drivers/gpio/gpio-twl4030.c
+> index b97d6a6..9242276 100644
+> --- a/drivers/gpio/gpio-twl4030.c
+> +++ b/drivers/gpio/gpio-twl4030.c
+> @@ -354,11 +354,16 @@ static void twl_set(struct gpio_chip *chip, unsigned offset, int value)
+>  static int twl_direction_out(struct gpio_chip *chip, unsigned offset, int value)
+>  {
+>  	struct gpio_twl4030_priv *priv = to_gpio_twl4030(chip);
+> -	int ret = -EINVAL;
+> +	int ret = 0;
+>  
+>  	mutex_lock(&priv->mutex);
+> -	if (offset < TWL4030_GPIO_MAX)
+> +	if (offset < TWL4030_GPIO_MAX) {
+>  		ret = twl4030_set_gpio_direction(offset, 0);
+> +		if (ret) {
+> +			mutex_unlock(&priv->mutex);
+> +			return ret;
+> +		}
+> +	}
+>  
+>  	priv->direction |= BIT(offset);
+>  	mutex_unlock(&priv->mutex);
+> -- 
+> 1.7.9.5
+> 
