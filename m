@@ -1,116 +1,120 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 06/26] OMAPDSS: if dssdev->name==NULL, use alias
-Date: Fri, 13 Dec 2013 14:01:22 +0200
-Message-ID: <52AAF712.1030209@ti.com>
-References: <1386160133-24026-1-git-send-email-tomi.valkeinen@ti.com> <1386160133-24026-7-git-send-email-tomi.valkeinen@ti.com> <37483030.ghHfzYFSnL@avalon> <10507960.9DXH4TSv2E@avalon> <52A968BD.20304@ti.com> <20131212100527.GA860@earth.universe> <52A9C470.2030102@ti.com>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Re: WG: [PATCH] usb: musb: omap2430: fix occasional musb breakage on boot
+Date: Fri, 13 Dec 2013 14:34:39 +0200
+Message-ID: <CANOLnON65xu0HKBzmhWOnoEoXscguBuozwKUV5FZAYObt=tP5w@mail.gmail.com>
+References: <EE4E4767751A8B40949306E403F4DDD8032AA82A@sv03ultra002.ultratronik.de>
+	<52AA2AA8.4090402@andin.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="CFkjO4ePuWtN8J1mDv5nXEpmwWoN6BJtO"
+Content-Type: text/plain; charset=ISO-8859-13
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:60037 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752358Ab3LMMBf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 13 Dec 2013 07:01:35 -0500
-In-Reply-To: <52A9C470.2030102@ti.com>
+Received: from mail-oa0-f52.google.com ([209.85.219.52]:56932 "EHLO
+	mail-oa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751602Ab3LMMek convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Dec 2013 07:34:40 -0500
+In-Reply-To: <52AA2AA8.4090402@andin.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sebastian Reichel <sre@ring0.de>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, Archit Taneja <archit@ti.com>, Darren Etheridge <detheridge@ti.com>, Tony Lindgren <tony@atomide.com>, Florian Vaussard <florian.vaussard@epfl.ch>
+To: Andreas Naumann <dev@andin.de>
+Cc: Linux USB Mailing List <linux-usb@vger.kernel.org>, fbalbi@ti.com, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
---CFkjO4ePuWtN8J1mDv5nXEpmwWoN6BJtO
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+On Thu, Dec 12, 2013 at 11:29 PM, Andreas Naumann <dev@andin.de> wrote:
+> Hi Grazvydas,
+>
+>> Von: Grazvydas Ignotas [mailto:notasas@gmail.com]
+>> Gesendet: Donnerstag, 12. Dezember 2013 01:21
+>> An: linux-usb@vger.kernel.org
+>> Cc: Felipe Balbi; linux-omap@vger.kernel.org; Naumann Andreas; Grazv=
+ydas
+>> Ignotas; stable@vger.kernel.org
+>> Betreff: [PATCH] usb: musb: omap2430: fix occasional musb breakage o=
+n boot
+>>
+>>
+>> This is a hard to reproduce problem which leads to non-functional
+>> USB-OTG port in 0.1%-1% of all boots. Tracked it down to commit
+>> e25bec160158abe86c "omap2+: save and restore OTG_INTERFSEL",
+>> which introduces save/restore of OTG_INTERFSEL over suspend.
+>>
+>> Since the resume function is also called early in driver init, it us=
+es a
+>> non-initialized value (which is 0 and a non-supported setting in DM3=
+7xx
+>> for INTERFSEL). Shortly after the correct value is set. Apparently t=
+his
+>> works most time, but not always.
+>>
+>> Fix it by not writing the value on runtime resume if it is 0
+>> (0 should never be saved in the context as it's invalid value,
+>> so we use it as an indicator that context hasn't been saved yet).
+>>
+>> This issue was originally found by Andreas Naumann:
+>> http://marc.info/?l=3Dlinux-usb&m=3D138562574719654&w=3D2
+>>
+>> Reported-and-bisected-by: Andreas Naumann <anaumann@ultratronik.de>
+>> Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
+>> Cc: <stable@vger.kernel.org>
+>> ---
+>> This is a regression from 3.2, so should go to -rc and stable, IMO.
+>> It's really annoying issue if you want to have a stable OTG behavior=
+,
+>> I've burned quite a lot of time on it myself over a year ago and gav=
+e up
+>> eventually. Good thing Andreas finally found it, many thanks to him!
+>>
+>>   drivers/usb/musb/omap2430.c |    3 ++-
+>>   1 file changed, 2 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430=
+=2Ec
+>> index 2a408cd..737b3da 100644
+>> --- a/drivers/usb/musb/omap2430.c
+>> +++ b/drivers/usb/musb/omap2430.c
+>> @@ -672,7 +672,8 @@ static int omap2430_runtime_resume(struct device=
+ *dev)
+>>
+>>         if (musb) {
+>>                 omap2430_low_level_init(musb);
+>> -               musb_writel(musb->mregs, OTG_INTERFSEL,
+>> +               if (musb->context.otg_interfsel !=3D 0)
+>> +                       musb_writel(musb->mregs, OTG_INTERFSEL,
+>>                                 musb->context.otg_interfsel);
+>>                 phy_power_on(musb->phy);
+>>         }
+>>
+>
+> Oh, easy way out. I like it but I've also been thinking about your co=
+mment
+> on my original post, which was that initializing otg_interfsel to the=
+ PHYSEL
+> bits only might be dangerous because we cant be sure that there are o=
+ther
+> bits in the register.
+> However, isnt assuming that 0 is invalid on all OMAPs just as dangero=
+us?
 
-On 2013-12-12 16:13, Tomi Valkeinen wrote:
-> On 2013-12-12 12:05, Sebastian Reichel wrote:
->> On Thu, Dec 12, 2013 at 09:41:49AM +0200, Tomi Valkeinen wrote:
->>>> A label property is still an option.
->>>
->>> Hmm, what do you mean? Label as in:
->>>
->>> foo : node {
->>> };
->>>
->>> Isn't that 'foo' label only visible in DT itself, as a shortcut?
->>
->> Some driver use a "label" property like this:
->>
->> foo : node {
->>     label =3D "lcd";
->>
->>     ...
->> };
->>
->> See for example
->>
->> Documentation/devicetree/bindings/leds/common.txt
->> Documentation/devicetree/bindings/mtd/partition.txt
->=20
-> Ah, I see. That kind of label was actually the first thing I did when
-> starting to work on DSS DT. But I removed it, as it didn't describe the=
+Well I was trying to do a minimal fix so that it could be suitable for
+merging to stable kernels. But yes you're right, I've just checked
+OMAP4 TRM and 0 is actually valid value there..
 
-> hardware and I didn't see others using anything similar.
->=20
-> But I guess one could argue it does describe hardware, not in electrica=
-l
-> level but in conceptual level.
->=20
-> The question is, do we need labeling for displays? For backward
-> compatibility omapdss would need it, but in general? I'm quite content
-> with having just display0, display1 etc. Using the alias node, those ca=
+> After thinking about my patch again, I would propose to change otg_in=
+terfsel
+> into otg_physel and read-modify-write only those bits in resume() as =
+you
+> suggested in your first answer. That way I could discard the problema=
+tic
+> first read in probe() while leaving other bits untouched. If you agre=
+e I
+> post a patch for this tomorrow.
+
+Hmm I don't know about that, this would be inconsistent with what all
+other OMAP drivers do. Maybe we should do what musb_core.c does just
+to be consistent and add a similar comment. Only the static variable
+could be avoided in favor of struct omap2430_glue member.
+
+Gra=FEvydas
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
-> be fixed and display0 is always the same display.
-
-I came to the conclusion that it's better to add the label to keep
-backward compatibility, especially as it was very easy to add.
-
-So we'll have 'name' and 'alias' for each display (as we have already).
-
-In the current non-DT boot (which is going away):
-
-- 'alias' is created by omapdss dynamically (first display to be
-registered is display0, etc.)
-- 'name' comes from platform data
-
-In the DT boot:
-
-- 'alias' comes from the DT aliases node, or if there are no display
-aliases, it's created the same way as to non-DT. The code presumes that
-there either is a DT alias for all displays, or there are none.
-- 'name' comes from 'label' property
-
-In both non-DT and DT cases, if 'name' is NULL (i.e. not set in platform
-data or no 'label' property), the alias is used as a name.
-
-I think this works fine, and was a trivial change.
-
- Tomi
-
-
-
---CFkjO4ePuWtN8J1mDv5nXEpmwWoN6BJtO
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJSqvcSAAoJEPo9qoy8lh71upcQAIG+Xj8jlNkjZx9AdeRaASCQ
-Pg9N8vVRoAtyFEa5iJ5uL1RVwLNBKd/4RkS7iPNY8dXhNNetC3sL7VLEBCy4laPg
-i1vepR5cku+z651eue6mm4K/T4iEZMJY0HI1Vd34Jspek+5OZJVN2YKNLTy2Fg62
-X7GjZ42ZppFSMOqQ6oghy8DsmZNwa9QjATg8kOFbsA2QAFt1VD2QzDFS6p2mjLNh
-naVqntcPLi2v2ApUbvzxDsmtqgwCX68ZbfSJy4w+P1giNtjsnJMj/mWSHXMhonrM
-Pq984byBPbra76YdFibeQmKaMmz/F4Xu6C6En5/yUwzOwzPK/U3YqG1pfYT75yvG
-xpLHGZvOWk6gZwsbGLQt92D43MM4QtbDXiUKX5Yslhle0gnEjhRZAhTYV76P+Zna
-j8KEI42HKEz3A+DAQOEEEKsViIXHOJ6dGy1UC0VUvQ1DQYTLMGo5ElhoMPqcEDvG
-IY4xw5woYfoch03q9DIVuTdVR1QyHDs4lSYxxA628UIix+4+jzfXkbHEqjAXKm+A
-qFGhGpkXbcKGWgk3CP8lJo8iRSFY0wVBJHKsOx6ICfF7/9iz51/VFZVWMCcW6gPI
-mkGfhGF3bRMD4OHoIJ0OKVwd/pCoT14P4Coa686EiSG1IOnGDoxO9dCImvSoh4ST
-L0hEflg5NkRi5niI5gb7
-=DT6L
------END PGP SIGNATURE-----
-
---CFkjO4ePuWtN8J1mDv5nXEpmwWoN6BJtO--
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
