@@ -1,61 +1,66 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: debugfs pinctrl crash on beagle-xm
-Date: Fri, 13 Dec 2013 11:10:20 -0600
-Message-ID: <52AB3F7C.9050201@ti.com>
-References: <52A6EFE5.2040706@ti.com> <52AA4894.4040901@ti.com> <20131213170438.GA28184@atomide.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 13/26] ARM: omap3.dtsi: add omapdss information
+Date: Fri, 13 Dec 2013 09:10:25 -0800
+Message-ID: <20131213171025.GC28184@atomide.com>
+References: <1386160133-24026-1-git-send-email-tomi.valkeinen@ti.com>
+ <52A9760A.3000801@ti.com>
+ <20131212215913.GB29072@muru.com>
+ <1933495.zHe4JMYZyB@avalon>
+ <52AADEF3.9040808@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:42680 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752579Ab3LMRKY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 13 Dec 2013 12:10:24 -0500
-In-Reply-To: <20131213170438.GA28184@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <52AADEF3.9040808-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
+Cc: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Archit Taneja <archit-l0cyMroinI0@public.gmane.org>, Darren Etheridge <detheridge-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap <linux-omap@vger.kernel.org>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-On 12/13/2013 11:04 AM, Tony Lindgren wrote:
-> * Nishanth Menon <nm@ti.com> [131212 15:38]:
->> On 12/10/2013 04:41 AM, Tomi Valkeinen wrote:
->>> Hi,
->>>
->>> On beagle-xm, v3.13-rc3, I see the following crash if I use the pinctrl
->>> debugfs:
->>>
->>> # cat /debug/pinctrl/48002030.pinmux/pins
->>> [   16.464233] Unhandled fault: external abort on non-linefetch (0x1028)
->>> at 0xfa002268
->>
->> in 3630 TRM, There is a hole in the memory map between
->> 0x48002264(CONTROL_PADCONF_SDRC_CKE1) and
->> 0x480025A0(CONTROL_PADCONF_SDRC_BA0) which obviously generates abort
->> when read at 0x48002268
->>
->> on 3430, we should also see a crash in the hole region
->> 0x48002264(CONTROL_PADCONF_SDRC_CKE1) to
->> 0x480025D8(CONTROL_PADCONF_ETK_CLK).
->>
->> in dts, omap3_pmx_core: pinmux@48002030 describes the range as reg =
->> <0x48002030 0x05cc> (which is the max range for the module)
->>
->> wish pinctrl-single driver could support handle multiple address ranges?
->>
->> [...]
+* Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org> [131213 02:19]:
+> On 2013-12-13 05:27, Laurent Pinchart wrote:
+> > Hi Tony,
+> > 
+> > On Thursday 12 December 2013 21:59:13 Tony Lindgren wrote:
+> >> On Thu, Dec 12, 2013 at 10:38:34AM +0200, Tomi Valkeinen wrote:
+> >>> On 2013-12-12 01:44, Laurent Pinchart wrote:
+> >>>
+> >>> So, are they independent? I don't know =). I think they lean on the
+> >>> independent side. dss_core is always needed for the submodules to work,
+> >>> but for example DSI could be used without DISPC, using system DMA to
+> >>> transfer data from memory to DSI. Not a very useful thing to do, but
+> >>> still, there are dedicated DMA channels for that.
+> >>
+> >> If they have separate hwmod entries, they should be considered separate
+> >> independent devices for sure.
+> >>
+> >> To summarize, here are few reasons why they need to be treated as
+> >> separate devices:
+> > 
+> > Are you talking generally here, or about the DSS modules in particular ?
+> > 
+> >> 1. The modules maybe clocked/powered/idled separately and can have their
+> >>    own idle configuration so they can do the hardware based idling
+> >>    separately.
+> > 
+> > I don't think this applies to the DSS modules.
 > 
-> There's an RFC patch from Laurent to split the pmx_core into two instances
-> that should take care of this issue:
-> 
-> [PATCH/RFC] ARM: omap3: Split the pinmux core device
+> The DSS submodules have their own SYSCONFIG register, and idle settings
+> can be set per module. So I think they idle separately, even if they are
+> in a common power domain.
 
+Yes. Please see the current omap_hwmod_*_data.c files, if they are separate
+entries there, that means we need to treat them as separate devices to
+avoid the issues I listed.
 
-Arggh.. yet again, I missed that :( grr...
-https://patchwork.kernel.org/patch/3335341/ follows the similar
-direction Laurent took for https://patchwork.kernel.org/patch/3283781/
+We do have some entries still missing from omap_hwmod_*_data.c files, like
+the SSI entries as they are undocumented. But for the existing ones there
+please follow the same layout for the .dts entries.
 
-
--- 
 Regards,
-Nishanth Menon
+
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
