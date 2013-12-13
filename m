@@ -1,14 +1,33 @@
-From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH] ARM: dts: omap3: split pinctrl for core into two parts
-Date: Thu, 12 Dec 2013 19:02:39 -0600
-Message-ID: <1386896559-24376-1-git-send-email-nm@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH] ARM: dts: omap3: split pinctrl for core into two parts
+Date: Thu, 12 Dec 2013 19:18:49 -0600
+Message-ID: <20131213011849.GA29839@kahuna>
+References: <1386896559-24376-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Javier Martinez Canillas <javier.martinez-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:58316 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751736Ab3LMBTV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 12 Dec 2013 20:19:21 -0500
+Content-Disposition: inline
+In-Reply-To: <1386896559-24376-1-git-send-email-nm@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+
+On 19:02-20131212, Nishanth Menon wrote:
+> 3430 TRM(SWPU222W) states that control core module padconf
+missed a typo in beagle-xm.dts which i failed to
+commit --amend :( grr.. Apologies on the noise..
+Fixed version below:
+
+8< --------------------------------
+>From f291c8f65e4bfe6c65eb5a485cec4cfb9fcb5e21 Mon Sep 17 00:00:00 2001
+From: Nishanth Menon <nm@ti.com>
+Date: Mon, 9 Dec 2013 11:23:42 -0600
+Subject: [PATCH v2] ARM: dts: omap3: split pinctrl for core into two parts
 
 3430 TRM(SWPU222W) states that control core module padconf
 registers have ranges:
@@ -33,9 +52,12 @@ change to ensure bisectability is maintained.
 
 [1] http://marc.info/?l=linux-omap&m=138689141531466&w=2
 
-Reported-by: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
-Signed-off-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Reported-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Signed-off-by: Nishanth Menon <nm@ti.com>
 ---
+v2: fix typo in beagle-xm.dts which i missed to commit :(
+v1: http://marc.info/?l=linux-omap&m=138689661332699&w=2
+
 Applies on v3.13-rc3
 Tested on the following platform:
 Beagle-XM (OMAP3630): http://pastebin.mozilla.org/3764783
@@ -46,9 +68,6 @@ I have not been able to test function impacted by this, but I applied
 the following delta for the impacted padconfs I could find:
 3430: -0x5A8
 3630: -0x570
-
-The other option would be to modify pinctrl-single driver to accept multiple
-reg ranges for the same device, which I think was not the intent
 
  arch/arm/boot/dts/omap3-beagle-xm.dts |   24 +++++++++++++++-----
  arch/arm/boot/dts/omap3-beagle.dts    |   24 +++++++++++++++-----
@@ -61,7 +80,7 @@ reg ranges for the same device, which I think was not the intent
  8 files changed, 88 insertions(+), 31 deletions(-)
 
 diff --git a/arch/arm/boot/dts/omap3-beagle-xm.dts b/arch/arm/boot/dts/omap3-beagle-xm.dts
-index df33a50..2a9508b 100644
+index df33a50..f5f349b 100644
 --- a/arch/arm/boot/dts/omap3-beagle-xm.dts
 +++ b/arch/arm/boot/dts/omap3-beagle-xm.dts
 @@ -96,6 +96,24 @@
@@ -74,7 +93,7 @@ index df33a50..2a9508b 100644
 +			&hsusbb2_pins2
 +	>;
 +
-+	hsusbb2_pins: pinmux_hsusbb2_pins {
++	hsusbb2_pins2: pinmux_hsusbb2_pins {
 +		pinctrl-single,pins = <
 +			0x050 (PIN_OUTPUT | MUX_MODE3)		/* etk_d10.hsusb2_clk */
 +			0x052 (PIN_OUTPUT | MUX_MODE3)		/* etk_d11.hsusb2_stp */
@@ -294,7 +313,6 @@ index 380c22e..b7c7bd9 100644
 -- 
 1.7.9.5
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Regards,
+Nishanth Menon
