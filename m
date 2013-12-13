@@ -1,98 +1,300 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v2 1/7] usb: dwc3: keystone: add basic PM support
-Date: Thu, 12 Dec 2013 18:43:37 -0600
-Message-ID: <20131213004337.GA31622@saruman.home>
-References: <20131212214306.GS1939@saruman.home>
- <1386884755-12366-1-git-send-email-balbi@ti.com>
- <52AA54E4.5000606@ti.com>
-Reply-To: balbi@ti.com
+From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH] ARM: dts: omap3: split pinctrl for core into two parts
+Date: Thu, 12 Dec 2013 19:02:39 -0600
+Message-ID: <1386896559-24376-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============7925730510994812129=="
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <52AA54E4.5000606@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: kgene.kim@samsung.com, w-kwok2@ti.com, Linux USB Mailing List <linux-usb@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, linux-samsung-soc@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Javier Martinez Canillas <javier.martinez-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
---===============7925730510994812129==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="lrZ03NoBR/3+SXJZ"
-Content-Disposition: inline
+3430 TRM(SWPU222W) states that control core module padconf
+registers have ranges:
+0x48002030 to 0x48002264(CONTROL_PADCONF_SDRC_CKE1)
+0x480025D8(CONTROL_PADCONF_ETK_CLK) to 0x480025F8.
 
---lrZ03NoBR/3+SXJZ
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+AM3517 TRM(SPRUGR0C) states that control core module padconf
+registers has a single range:
+0x48002030 to 0x48002264(CONTROL_PADCONF_SDRC_CKE1)
 
-On Thu, Dec 12, 2013 at 07:29:24PM -0500, Santosh Shilimkar wrote:
-> On Thursday 12 December 2013 04:45 PM, Felipe Balbi wrote:
-> > A bare-minimum PM implementation which will
-> > server as building block for more complex
-> s/server/serve ;-)
+3630 TRM(SWPU176AB) states that control core module padconf
+registers have ranges:
+0x48002030 to 0x48002264(CONTROL_PADCONF_SDRC_CKE1)
+0x480025A0(CONTROL_PADCONF_SDRC_BA0) to 0x480025F8
 
-hah! :-) will fix in my branch.
+We currently map 0x48002030 to 0x480025F8 resulting in the bug
+reported in [1].
 
-> > PM implementation in the future.
-> >=20
-> > At the least will not leave clocks on unnecessarily
-> > when e.g.  a user write mem to /sys/power/state.
-> >=20
-> > Signed-off-by: Felipe Balbi <balbi@ti.com>
-> > ---
-> >=20
-> > improve error path a little bit.
-> >=20
-> We will test this out. Thanks for the
-> patch Felipe.
+To fix this, we split this into a another pinctrl device region
+specific to the SoC. update board files that get impacted with this
+change to ensure bisectability is maintained.
 
-thanks.
+[1] http://marc.info/?l=linux-omap&m=138689141531466&w=2
 
---=20
-balbi
+Reported-by: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+---
+Applies on v3.13-rc3
+Tested on the following platform:
+Beagle-XM (OMAP3630): http://pastebin.mozilla.org/3764783
+CraneBoard(AM3517): http://pastebin.mozilla.org/3764784
+SDP3430 (OMAP3430): http://pastebin.mozilla.org/3764786
 
---lrZ03NoBR/3+SXJZ
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+I have not been able to test function impacted by this, but I applied
+the following delta for the impacted padconfs I could find:
+3430: -0x5A8
+3630: -0x570
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.15 (GNU/Linux)
+The other option would be to modify pinctrl-single driver to accept multiple
+reg ranges for the same device, which I think was not the intent
 
-iQIcBAEBAgAGBQJSqlg5AAoJEIaOsuA1yqRE+fAP/i2RxpvgdyheMjCsssmyaADO
-Gb+PY9x1ZPQsoAUuX72erdEfdTF27uJoSKOrxVIjEO23Ahn5CB3/5XxAxo5xPHeM
-KiXXp6loqprlvMwNs56Fb1HRNR26PGJ6hYIPZ4KFEm2s9VJAdCbmMKjUIYoIZZSb
-dAyo3RO/2nikVADJqltpXpDuXuksOuLzZ/2k3S3f0HLBCiGphR3ZWBh7vwmgWOgp
-OmrpZbEaOd2YgrLOAqhO3JX2S6S3sokjEkssDiC/Ge52MFNNBazj2SfaEey+X7LX
-35HnoV1pY6Qg6dOA+ONUUgZPo2iOWEkko/1gBXy5PiB9fhAkCzMCPTNNQaSHfOTK
-8pOo9me+IstU3HriGnIgytmSZ5EqyXDS38v7LodGi4D5yrCisfcKtxaiOjUjtpad
-CNyjA6AEgfaYNtE5+lVd+8VPRzFHo/6cgmCt+WRjzacevHJgG8uVQxBThAI5uiud
-WaiQPZStDFxNwmqKiHhgfm/b2RZxLMZeB87MpfeEm53Dop+wmIoqQD0Hq193nfe+
-Ho2AOS11SqsgyRRmAc7uF2XKQlDR3fT2OM2/6EzdNvmooz+zXZsVOd42atVfMtgy
-NEJuPmf/rJtTxpNNELCpTBf0YQKNVshNijgK7knbAwvElfaWYNPOeRa8Uig9W+Sp
-o2lvEE9TYDtNcMLyEZK+
-=GDcV
------END PGP SIGNATURE-----
+ arch/arm/boot/dts/omap3-beagle-xm.dts |   24 +++++++++++++++-----
+ arch/arm/boot/dts/omap3-beagle.dts    |   24 +++++++++++++++-----
+ arch/arm/boot/dts/omap3-igep.dtsi     |    3 +++
+ arch/arm/boot/dts/omap3-igep0020.dts  |   40 +++++++++++++++++++--------------
+ arch/arm/boot/dts/omap3-igep0030.dts  |    2 +-
+ arch/arm/boot/dts/omap3.dtsi          |    2 +-
+ arch/arm/boot/dts/omap34xx.dtsi       |   13 +++++++++++
+ arch/arm/boot/dts/omap36xx.dtsi       |   11 +++++++++
+ 8 files changed, 88 insertions(+), 31 deletions(-)
 
---lrZ03NoBR/3+SXJZ--
+diff --git a/arch/arm/boot/dts/omap3-beagle-xm.dts b/arch/arm/boot/dts/omap3-beagle-xm.dts
+index df33a50..2a9508b 100644
+--- a/arch/arm/boot/dts/omap3-beagle-xm.dts
++++ b/arch/arm/boot/dts/omap3-beagle-xm.dts
+@@ -96,6 +96,24 @@
+ 	};
+ };
+ 
++&omap3_pmx_core2 {
++	pinctrl-names = "default";
++	pinctrl-0 = <
++			&hsusbb2_pins2
++	>;
++
++	hsusbb2_pins: pinmux_hsusbb2_pins {
++		pinctrl-single,pins = <
++			0x050 (PIN_OUTPUT | MUX_MODE3)		/* etk_d10.hsusb2_clk */
++			0x052 (PIN_OUTPUT | MUX_MODE3)		/* etk_d11.hsusb2_stp */
++			0x054 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d12.hsusb2_dir */
++			0x056 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d13.hsusb2_nxt */
++			0x058 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d14.hsusb2_data0 */
++			0x05a (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d15.hsusb2_data1 */
++		>;
++	};
++};
++
+ &omap3_pmx_core {
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <
+@@ -111,12 +129,6 @@
+ 
+ 	hsusbb2_pins: pinmux_hsusbb2_pins {
+ 		pinctrl-single,pins = <
+-			0x5c0 (PIN_OUTPUT | MUX_MODE3)		/* etk_d10.hsusb2_clk */
+-			0x5c2 (PIN_OUTPUT | MUX_MODE3)		/* etk_d11.hsusb2_stp */
+-			0x5c4 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d12.hsusb2_dir */
+-			0x5c6 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d13.hsusb2_nxt */
+-			0x5c8 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d14.hsusb2_data0 */
+-			0x5cA (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d15.hsusb2_data1 */
+ 			0x1a4 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi1_cs3.hsusb2_data2 */
+ 			0x1a6 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_clk.hsusb2_data7 */
+ 			0x1a8 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_simo.hsusb2_data4 */
+diff --git a/arch/arm/boot/dts/omap3-beagle.dts b/arch/arm/boot/dts/omap3-beagle.dts
+index 3ba4a62..7b9e418 100644
+--- a/arch/arm/boot/dts/omap3-beagle.dts
++++ b/arch/arm/boot/dts/omap3-beagle.dts
+@@ -90,6 +90,24 @@
+ 	};
+ };
+ 
++&omap3_pmx_core2 {
++	pinctrl-names = "default";
++	pinctrl-0 = <
++			&hsusbb2_pins2
++	>;
++
++	hsusbb2_pins2: pinmux_hsusbb2_pins2 {
++		pinctrl-single,pins = <
++			0x018 (PIN_OUTPUT | MUX_MODE3)		/* etk_d10.hsusb2_clk */
++			0x01a (PIN_OUTPUT | MUX_MODE3)		/* etk_d11.hsusb2_stp */
++			0x01c (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d12.hsusb2_dir */
++			0x01e (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d13.hsusb2_nxt */
++			0x020 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d14.hsusb2_data0 */
++			0x022 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d15.hsusb2_data1 */
++		>;
++	};
++};
++
+ &omap3_pmx_core {
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <
+@@ -98,12 +116,6 @@
+ 
+ 	hsusbb2_pins: pinmux_hsusbb2_pins {
+ 		pinctrl-single,pins = <
+-			0x5c0 (PIN_OUTPUT | MUX_MODE3)		/* etk_d10.hsusb2_clk */
+-			0x5c2 (PIN_OUTPUT | MUX_MODE3)		/* etk_d11.hsusb2_stp */
+-			0x5c4 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d12.hsusb2_dir */
+-			0x5c6 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d13.hsusb2_nxt */
+-			0x5c8 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d14.hsusb2_data0 */
+-			0x5cA (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d15.hsusb2_data1 */
+ 			0x1a4 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi1_cs3.hsusb2_data2 */
+ 			0x1a6 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_clk.hsusb2_data7 */
+ 			0x1a8 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_simo.hsusb2_data4 */
+diff --git a/arch/arm/boot/dts/omap3-igep.dtsi b/arch/arm/boot/dts/omap3-igep.dtsi
+index 165aaf7..e608b46 100644
+--- a/arch/arm/boot/dts/omap3-igep.dtsi
++++ b/arch/arm/boot/dts/omap3-igep.dtsi
+@@ -134,6 +134,9 @@
+ 		>;
+ 	};
+ 
++};
++
++&omap3_pmx_core2 {
+ 	leds_pins: pinmux_leds_pins { };
+ };
+ 
+diff --git a/arch/arm/boot/dts/omap3-igep0020.dts b/arch/arm/boot/dts/omap3-igep0020.dts
+index 1c7e74d..e6723c5 100644
+--- a/arch/arm/boot/dts/omap3-igep0020.dts
++++ b/arch/arm/boot/dts/omap3-igep0020.dts
+@@ -67,26 +67,32 @@
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <
+ 		&hsusbb1_pins
+-		&tfp410_pins
+-		&dss_pins
+ 	>;
+ 
+ 	hsusbb1_pins: pinmux_hsusbb1_pins {
+ 		pinctrl-single,pins = <
+-			0x5aa (PIN_OUTPUT | MUX_MODE3)		/* etk_ctl.hsusb1_clk */
+-			0x5a8 (PIN_OUTPUT | MUX_MODE3)		/* etk_clk.hsusb1_stp */
+-			0x5bc (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d8.hsusb1_dir */
+-			0x5be (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d9.hsusb1_nxt */
+-			0x5ac (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d0.hsusb1_data0 */
+-			0x5ae (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d1.hsusb1_data1 */
+-			0x5b0 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d2.hsusb1_data2 */
+-			0x5b2 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d3.hsusb1_data7 */
+-			0x5b4 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d4.hsusb1_data4 */
+-			0x5b6 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d5.hsusb1_data5 */
+-			0x5b8 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d6.hsusb1_data6 */
+-			0x5ba (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d7.hsusb1_data3 */
++			0x03a (PIN_OUTPUT | MUX_MODE3)		/* etk_ctl.hsusb1_clk */
++			0x038 (PIN_OUTPUT | MUX_MODE3)		/* etk_clk.hsusb1_stp */
++			0x04c (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d8.hsusb1_dir */
++			0x04e (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d9.hsusb1_nxt */
++			0x03c (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d0.hsusb1_data0 */
++			0x03e (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d1.hsusb1_data1 */
++			0x040 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d2.hsusb1_data2 */
++			0x042 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d3.hsusb1_data7 */
++			0x044 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d4.hsusb1_data4 */
++			0x046 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d5.hsusb1_data5 */
++			0x048 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d6.hsusb1_data6 */
++			0x04a (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d7.hsusb1_data3 */
+ 		>;
+ 	};
++};
++
++&omap3_pmx_core {
++	pinctrl-names = "default";
++	pinctrl-0 = <
++		&tfp410_pins
++		&dss_pins
++	>;
+ 
+ 	tfp410_pins: tfp410_dvi_pins {
+ 		pinctrl-single,pins = <
+@@ -130,9 +136,9 @@
+ 
+ &leds_pins {
+ 	pinctrl-single,pins = <
+-		0x5c4 (PIN_OUTPUT | MUX_MODE4) /* etk_d12.gpio_26 */
+-		0x5c6 (PIN_OUTPUT | MUX_MODE4) /* etk_d13.gpio_27 */
+-		0x5c8 (PIN_OUTPUT | MUX_MODE4) /* etk_d14.gpio_28 */
++		0x054 (PIN_OUTPUT | MUX_MODE4) /* etk_d12.gpio_26 */
++		0x056 (PIN_OUTPUT | MUX_MODE4) /* etk_d13.gpio_27 */
++		0x058 (PIN_OUTPUT | MUX_MODE4) /* etk_d14.gpio_28 */
+ 	>;
+ };
+ 
+diff --git a/arch/arm/boot/dts/omap3-igep0030.dts b/arch/arm/boot/dts/omap3-igep0030.dts
+index 02a23f8..e9372f3 100644
+--- a/arch/arm/boot/dts/omap3-igep0030.dts
++++ b/arch/arm/boot/dts/omap3-igep0030.dts
+@@ -48,7 +48,7 @@
+ 
+ &leds_pins {
+ 	pinctrl-single,pins = <
+-		0x5b0 (PIN_OUTPUT | MUX_MODE4) /* etk_d2.gpio_16 */
++		0x040 (PIN_OUTPUT | MUX_MODE4) /* etk_d2.gpio_16 */
+ 	>;
+ };
+ 
+diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
+index daabf99..427395c 100644
+--- a/arch/arm/boot/dts/omap3.dtsi
++++ b/arch/arm/boot/dts/omap3.dtsi
+@@ -117,7 +117,7 @@
+ 
+ 		omap3_pmx_core: pinmux@48002030 {
+ 			compatible = "ti,omap3-padconf", "pinctrl-single";
+-			reg = <0x48002030 0x05cc>;
++			reg = <0x48002030 0x0238>;
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
+ 			#interrupt-cells = <1>;
+diff --git a/arch/arm/boot/dts/omap34xx.dtsi b/arch/arm/boot/dts/omap34xx.dtsi
+index 5355d61..77d1246 100644
+--- a/arch/arm/boot/dts/omap34xx.dtsi
++++ b/arch/arm/boot/dts/omap34xx.dtsi
+@@ -25,4 +25,17 @@
+ 			clock-latency = <300000>; /* From legacy driver */
+ 		};
+ 	};
++
++	ocp {
++		omap3_pmx_core2: pinmux@480025d8 {
++			compatible = "ti,omap3-padconf", "pinctrl-single";
++			reg = <0x480025d8 0x24>;
++			#address-cells = <1>;
++			#size-cells = <0>;
++			#interrupt-cells = <1>;
++			interrupt-controller;
++			pinctrl-single,register-width = <16>;
++			pinctrl-single,function-mask = <0xff1f>;
++		};
++	};
+ };
+diff --git a/arch/arm/boot/dts/omap36xx.dtsi b/arch/arm/boot/dts/omap36xx.dtsi
+index 380c22e..b7c7bd9 100644
+--- a/arch/arm/boot/dts/omap36xx.dtsi
++++ b/arch/arm/boot/dts/omap36xx.dtsi
+@@ -38,5 +38,16 @@
+ 			ti,hwmods = "uart4";
+ 			clock-frequency = <48000000>;
+ 		};
++
++		omap3_pmx_core2: pinmux@480025a0 {
++			compatible = "ti,omap3-padconf", "pinctrl-single";
++			reg = <0x480025a0 0x5c>;
++			#address-cells = <1>;
++			#size-cells = <0>;
++			#interrupt-cells = <1>;
++			interrupt-controller;
++			pinctrl-single,register-width = <16>;
++			pinctrl-single,function-mask = <0xff1f>;
++		};
+ 	};
+ };
+-- 
+1.7.9.5
 
-
---===============7925730510994812129==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-arm-kernel mailing list
-linux-arm-kernel@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-
---===============7925730510994812129==--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
