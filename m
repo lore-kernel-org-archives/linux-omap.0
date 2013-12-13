@@ -1,15 +1,22 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 0/3] OMAP2+: hwmod: Add support to parse clock info
- from DT
-Date: Fri, 13 Dec 2013 09:31:10 -0800
-Message-ID: <20131213173110.GF28184@atomide.com>
-References: <1386848309-14076-1-git-send-email-rnayak@ti.com>
+Subject: Re: [PATCH] omap: twl-common: Fix musb-hdrc device name.
+Date: Fri, 13 Dec 2013 09:36:36 -0800
+Message-ID: <20131213173636.GG28184@atomide.com>
+References: <1386059589-4030-1-git-send-email-marek.belisko@open-nandra.com>
+ <529D9D43.6040101@ti.com>
+ <CAAfyv37Vie1vZK2XQ1cfVq6eVnSuaBLfykk6pU8fwEyqvPF4BA@mail.gmail.com>
+ <CAAfyv35gVVNydrk8vifSyidpFjEXjGiT4-i2dgN5Un2=FuHaqQ@mail.gmail.com>
+ <20131205184323.GF26766@atomide.com>
+ <CAAfyv37e9+OLH-KegPCEhc0sbBS7UVnaSGU0mBw2AxAN9D7Akw@mail.gmail.com>
+ <20131209175006.GD12527@atomide.com>
+ <CAAfyv36P7DDcdaLWtXnZXPfQWPL20shE3kOHWtD0mSmH7aixdg@mail.gmail.com>
+ <52AAF5E6.1050900@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <1386848309-14076-1-git-send-email-rnayak@ti.com>
+In-Reply-To: <52AAF5E6.1050900@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -19,49 +26,38 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: nm@ti.com, mark.rutland@arm.com, paul@pwsan.com, mturquette@linaro.org, bcousson@baylibre.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Belisko Marek <marek.belisko@gmail.com>, LKML <linux-kernel@vger.kernel.org>, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Rajendra Nayak <rnayak@ti.com> [131212 03:40]:
-> v1 of this series was posted a while back [1] but there wasn't much that
-> was concluded if the approach used in the series was acceptable or if there
-> are better alternatives. So I am just doing a repost of these to see if we
-> can conclude this time around.
+* Kishon Vijay Abraham I <kishon@ti.com> [131213 03:57]:
+> On Friday 13 December 2013 04:57 PM, Belisko Marek wrote:
+> > Kishon can you please comment on that? Would be possible to get your
+> > patch to 3.13 (I seen some comments from Felipe).
 > 
-> Needless to say, patches are based off Teros omap-clocks-to-dt v10 series [2]
-> and I also pulled in Tonys fix to handle DT nodes with multiple 'ti,hwmod'
-> values [3]. The approach taken in the series *does not* work for cases with
-> multiple 'ti,hwmod' values and hence [3] helps me skip those instances
-> for now. But based on some of the recent discussions on multiple 'ti-hwmod'
-> values [4] it looks like its generally agreed upon that having DT nodes with
-> multiple 'ti-hwmod' property is wrong and that those instances need to be
-> fixed up anyway.
+> I'm not sure as my patch modifies all the board files. There was initially some
+> confusion w.r.t when the board files will be dropped. But since board files
+> will still be there in 3.13, I'd recommend my patch  [1] to be taken. Anyways
+> if you have tested my patch (series), pls give your Tested-by.
+> 
+> Tony, summary of the issue..
+> After the platform devices are created using PLATFORM_DEVID_AUTO, the
+> device names given in usb_bind_phy (in board file) does not match with
+> the actual device name causing the USB PHY library not to return the
+> PHY reference when the MUSB controller request for the PHY in the non-dt boot
+> case. So removed creating platform devices using PLATFORM_DEVID_AUTO in
+> omap2430.c. So had to make the corresponding changes in board files.
 
-Yeah we need to have 1-to-1 mapping of device entries in the .dtsi files
-to the device entries in the omap_hwmod_*_data.c files. And then we can
-just deprecate "ti,hwmods" property and start parsing the standard compatible
-flag instead.
+OK. Can you please repost with a proper commit id for what caused the
+regression and summararize why it should be fixed this way. Something like:
+
+Commit abcd1234 (usb: blah foo bar) caused blah blah blah. Fix the issue
+with blah blah blah. Note that the board-*.c files will be removed soon,
+but for v3.13 we still support both legacy booting and device tree based
+booting and need to fix it.
 
 Regards,
 
 Tony
  
-> [1] http://www.spinics.net/lists/linux-omap/msg95746.html
-> [2] http://www.spinics.net/lists/devicetree/msg13455.html
-> [3] http://www.spinics.net/lists/arm-kernel/msg288036.html
-> [4] http://www.spinics.net/lists/arm-kernel/msg288023.html
-> 
-> Rajendra Nayak (3):
->   ARM: OMAP2+: Add support to parse 'main_clk' info from DT
->   ARM: OMAP2+: Add support to parse optional clk info from DT
->   ARM: OMAP4: dts: Add main and optional clock data into DT
-> 
->  arch/arm/boot/dts/omap4.dtsi               |  100 +++++++++++++++++++++++
->  arch/arm/mach-omap2/omap_hwmod.c           |   88 ++++++++++++++++++--
->  arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  122 ----------------------------
->  3 files changed, 180 insertions(+), 130 deletions(-)
-> 
-> -- 
-> 1.7.9.5
-> 
+> [1] -> http://lists.scusting.com/index.php?t=msg&th=375579&start=0&S=Google
