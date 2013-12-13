@@ -1,89 +1,80 @@
-From: "Kwok, WingMan" <w-kwok2@ti.com>
-Subject: RE: [PATCH v2 1/7] usb: dwc3: keystone: add basic PM support
-Date: Fri, 13 Dec 2013 21:26:51 +0000
-Message-ID: <230CBA6E4B6B6B418E8730AC28E6FC7E0415C89F@DFLE11.ent.ti.com>
-References: <20131212214306.GS1939@saruman.home>
- <1386884755-12366-1-git-send-email-balbi@ti.com> <52AA54E4.5000606@ti.com>
- <230CBA6E4B6B6B418E8730AC28E6FC7E0415C786@DFLE11.ent.ti.com>
- <20131213195431.GF5292@saruman.home>
- <230CBA6E4B6B6B418E8730AC28E6FC7E0415C84D@DFLE11.ent.ti.com>
- <20131213202240.GK5292@saruman.home>
+From: Sebastian Reichel <sre@ring0.de>
+Subject: OMAP3: Pinmux: DT: missing irq domain
+Date: Fri, 13 Dec 2013 22:28:44 +0100
+Message-ID: <20131213212843.GA25312@earth.universe>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-In-Reply-To: <20131213202240.GK5292@saruman.home>
-Content-Language: en-US
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: "Balbi, Felipe" <balbi@ti.com>
-Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Linux USB Mailing List <linux-usb@vger.kernel.org>, "kgene.kim@samsung.com" <kgene.kim@samsung.com>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="IS0zKkzwUGydFO0o"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from ring0.de ([91.143.88.219]:60620 "EHLO smtp.ring0.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751592Ab3LMV2u (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 13 Dec 2013 16:28:50 -0500
+Received: from comu.ring0.de (unknown [127.0.0.1])
+	by smtp.ring0.de (Postfix) with ESMTP id C67E62C58F98
+	for <linux-omap@vger.kernel.org>; Fri, 13 Dec 2013 22:28:48 +0100 (CET)
+Received: (from spamd@localhost)
+	by comu.ring0.de (8.13.8/8.13.8/Submit) id rBDLSmR0031352
+	for linux-omap@vger.kernel.org; Fri, 13 Dec 2013 22:28:48 +0100
+Content-Disposition: inline
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Linux-OMAP <linux-omap@vger.kernel.org>
 
 
+--IS0zKkzwUGydFO0o
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-> -----Original Message-----
-> From: Balbi, Felipe
-> Sent: Friday, December 13, 2013 3:23 PM
-> To: Kwok, WingMan
-> Cc: Balbi, Felipe; Shilimkar, Santosh; Linux USB Mailing List;
-> kgene.kim@samsung.com; Linux ARM Kernel Mailing List; linux-samsung-
-> soc@vger.kernel.org; Linux OMAP Mailing List
-> Subject: Re: [PATCH v2 1/7] usb: dwc3: keystone: add basic PM support
-> 
-> On Fri, Dec 13, 2013 at 02:18:42PM -0600, Kwok, WingMan wrote:
-> >
-> > > -----Original Message-----
-> > > From: Balbi, Felipe
-> > > Sent: Friday, December 13, 2013 2:55 PM
-> > > To: Kwok, WingMan
-> > > Cc: Shilimkar, Santosh; Balbi, Felipe; Linux USB Mailing List;
-> > > kgene.kim@samsung.com; Linux ARM Kernel Mailing List; linux-
-> samsung-
-> > > soc@vger.kernel.org; Linux OMAP Mailing List
-> > > Subject: Re: [PATCH v2 1/7] usb: dwc3: keystone: add basic PM
-> > > support
-> > >
-> > > On Fri, Dec 13, 2013 at 10:04:38AM -0600, Kwok, WingMan wrote:
-> > > > Hello
-> > > >
-> > > > > -----Original Message-----
-> > > > > From: Shilimkar, Santosh
-> > > > > Sent: Thursday, December 12, 2013 7:29 PM
-> > > > > To: Balbi, Felipe
-> > > > > Cc: Linux USB Mailing List; kgene.kim@samsung.com; Linux ARM
-> > > > > Kernel Mailing List; linux-samsung-soc@vger.kernel.org; Linux
-> > > > > OMAP Mailing List; Kwok, WingMan
-> > > > > Subject: Re: [PATCH v2 1/7] usb: dwc3: keystone: add basic PM
-> > > > > support
-> > > > >
-> > > > > On Thursday 12 December 2013 04:45 PM, Felipe Balbi wrote:
-> > > > > > A bare-minimum PM implementation which will server as building
-> > > > > > block for more complex
-> > > > > s/server/serve ;-)
-> > > > > > PM implementation in the future.
-> > > > > >
-> > > > > > At the least will not leave clocks on unnecessarily when e.g.
-> > > > > > a user write mem to /sys/power/state.
-> > > > > >
-> > > > > > Signed-off-by: Felipe Balbi <balbi@ti.com>
-> > > > > > ---
-> > > > > >
-> > > > > > improve error path a little bit.
-> > > > > >
-> > > > > We will test this out. Thanks for the patch Felipe.
-> > > > >
-> > > >
-> > > > I have tested the patch and the keystone usb driver continues to
-> > > > function, though I can't test suspend at this time as the rest of
-> > > > the system does not that functionality yet.
-> > >
-> > > Thanks, should I add your Tested-by ?
-> >
-> > Yes please.
-> 
-> you need to reply with Tested-by: Your Name <your.email@domain.com>
-> just to make it all official. Sorry
-> 
+Hi,
 
-Yes, you can add
-Tested-by: WingMan Kwok <w-kwok2@ti.com>
+I get the stacktrace from below two times during booting my Nokia N900 via DT.
+Everything seems to work, but its annoying.
+
+[    0.279571] irq: no irq domain found for /ocp/pinmux@48002030 !
+[    0.285827] ------------[ cut here ]------------
+[    0.290710] WARNING: CPU: 0 PID: 1 at drivers/of/platform.c:171 of_device_alloc+0x114/0x158()
+[    0.299621] Modules linked in:
+[    0.302856] CPU: 0 PID: 1 Comm: swapper/0 Not tainted 3.13.0-rc2+ #477
+[    0.309753] [<c00158b4>] (unwind_backtrace+0x0/0xe0) from [<c0011b24>] (show_stack+0x10/0x14)
+[    0.318695] [<c0011b24>] (show_stack+0x10/0x14) from [<c051e9f8>] (dump_stack+0x68/0x84)
+[    0.327178] [<c051e9f8>] (dump_stack+0x68/0x84) from [<c003db64>] (warn_slowpath_common+0x64/0x88)
+[    0.336547] [<c003db64>] (warn_slowpath_common+0x64/0x88) from [<c003dba0>] (warn_slowpath_null+0x18/0x1c)
+[    0.346618] [<c003dba0>] (warn_slowpath_null+0x18/0x1c) from [<c03b4254>] (of_device_alloc+0x114/0x158)
+[    0.356445] [<c03b4254>] (of_device_alloc+0x114/0x158) from [<c03b42c8>] (of_platform_device_create_pdata+0x30/0x8c)
+[    0.367401] [<c03b42c8>] (of_platform_device_create_pdata+0x30/0x8c) from [<c03b440c>] (of_platform_bus_create+0xe8/0x168)
+[    0.378936] [<c03b440c>] (of_platform_bus_create+0xe8/0x168) from [<c03b4458>] (of_platform_bus_create+0x134/0x168)
+[    0.389801] [<c03b4458>] (of_platform_bus_create+0x134/0x168) from [<c03b44e8>] (of_platform_populate+0x5c/0x8c)
+[    0.400451] [<c03b44e8>] (of_platform_populate+0x5c/0x8c) from [<c075b5c0>] (pdata_quirks_init+0x2c/0x70)
+[    0.410430] [<c075b5c0>] (pdata_quirks_init+0x2c/0x70) from [<c074e648>] (customize_machine+0x1c/0x40)
+[    0.420166] [<c074e648>] (customize_machine+0x1c/0x40) from [<c0008920>] (do_one_initcall+0x98/0x140)
+[    0.429779] [<c0008920>] (do_one_initcall+0x98/0x140) from [<c074cc64>] (kernel_init_freeable+0x16c/0x23c)
+[    0.439880] [<c074cc64>] (kernel_init_freeable+0x16c/0x23c) from [<c051a520>] (kernel_init+0x8/0x100)
+[    0.449523] [<c051a520>] (kernel_init+0x8/0x100) from [<c000dfb8>] (ret_from_fork+0x14/0x3c)
+[    0.458374] ---[ end trace 9ca308e4d03a2990 ]---
+
+-- Sebastian
+
+--IS0zKkzwUGydFO0o
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.15 (GNU/Linux)
+
+iQIcBAEBCAAGBQJSq3wLAAoJENju1/PIO/qahDsQAJx5KTL6KdUB0tbisFStR+tZ
+lCXZu2rBA6nFe0lI95BtRYxB7KgytLcHxsKRuom//M5CRjz5+eHcqg/bhYxI61vu
+poZbRx0Fw676puted5jNmu/0hMk+HD2a6AEAAGws+1KaQ0SuOi8sANUmh3OSAvit
+Akq+GHkQ+Y4xsOObOvIgkboj07HFOl5OIbX1kvRSp/DHWcm9QUrStJ5tdkXuKl5B
+00YPfCTViDUhz7ACk565iQxcy9eluqRAGAf/BQZ66g7O4sHti8qDhC2PI2Li/lQI
+5rxEgvnGgApM0lUse0/TuhCkCOwQtOfzliC41M2WuqvMdm2sljtc6cLQH7WKN0hY
+feuFqe0ci/QQvJD1W7R5CeN/h+22tdFJ4g8SZObjY/yQTkLnxVQWHAkcSzsW52re
+MVGjlx0aybFXh71dEK0vdimXZRi8sYzsMWsDHFPE86n8NEJbSbDBuR6WuyXX7Ql/
+8D+qBu9LYFKOkZOIiFKeeNVc3jzqTURgNzUwuKZibGppt/WDP0pVEZtnzNCge6fV
+GWsBNwDaCDxQdaniaveJIFU30vh99idGwiZnKfoziKak7/eT8EUahuQRkfVqDNTa
+wLPwYFgQxu/GSW8kFaqN4rlh3PD8VT6luAQvy7/Qg5vl82s9XXk95T8apKlS9ZcL
++/wSf+0aD3jL3eC2NMN9
+=5nwt
+-----END PGP SIGNATURE-----
+
+--IS0zKkzwUGydFO0o--
