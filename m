@@ -1,93 +1,116 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH] omap: twl-common: Fix musb-hdrc device name.
-Date: Fri, 13 Dec 2013 17:26:22 +0530
-Message-ID: <52AAF5E6.1050900@ti.com>
-References: <1386059589-4030-1-git-send-email-marek.belisko@open-nandra.com>	<529D9D43.6040101@ti.com>	<CAAfyv37Vie1vZK2XQ1cfVq6eVnSuaBLfykk6pU8fwEyqvPF4BA@mail.gmail.com>	<CAAfyv35gVVNydrk8vifSyidpFjEXjGiT4-i2dgN5Un2=FuHaqQ@mail.gmail.com>	<20131205184323.GF26766@atomide.com>	<CAAfyv37e9+OLH-KegPCEhc0sbBS7UVnaSGU0mBw2AxAN9D7Akw@mail.gmail.com>	<20131209175006.GD12527@atomide.com> <CAAfyv36P7DDcdaLWtXnZXPfQWPL20shE3kOHWtD0mSmH7aixdg@mail.gmail.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 06/26] OMAPDSS: if dssdev->name==NULL, use alias
+Date: Fri, 13 Dec 2013 14:01:22 +0200
+Message-ID: <52AAF712.1030209@ti.com>
+References: <1386160133-24026-1-git-send-email-tomi.valkeinen@ti.com> <1386160133-24026-7-git-send-email-tomi.valkeinen@ti.com> <37483030.ghHfzYFSnL@avalon> <10507960.9DXH4TSv2E@avalon> <52A968BD.20304@ti.com> <20131212100527.GA860@earth.universe> <52A9C470.2030102@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAAfyv36P7DDcdaLWtXnZXPfQWPL20shE3kOHWtD0mSmH7aixdg@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Belisko Marek <marek.belisko@gmail.com>, Tony Lindgren <tony@atomide.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="CFkjO4ePuWtN8J1mDv5nXEpmwWoN6BJtO"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:60037 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752358Ab3LMMBf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 13 Dec 2013 07:01:35 -0500
+In-Reply-To: <52A9C470.2030102@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Sebastian Reichel <sre@ring0.de>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, Archit Taneja <archit@ti.com>, Darren Etheridge <detheridge@ti.com>, Tony Lindgren <tony@atomide.com>, Florian Vaussard <florian.vaussard@epfl.ch>
 
-Hi,
+--CFkjO4ePuWtN8J1mDv5nXEpmwWoN6BJtO
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-On Friday 13 December 2013 04:57 PM, Belisko Marek wrote:
-> On Mon, Dec 9, 2013 at 6:50 PM, Tony Lindgren <tony@atomide.com> wrote:
->> * Belisko Marek <marek.belisko@gmail.com> [131208 23:36]:
->>> Hi Tony,
+On 2013-12-12 16:13, Tomi Valkeinen wrote:
+> On 2013-12-12 12:05, Sebastian Reichel wrote:
+>> On Thu, Dec 12, 2013 at 09:41:49AM +0200, Tomi Valkeinen wrote:
+>>>> A label property is still an option.
 >>>
->>> On Thu, Dec 5, 2013 at 7:43 PM, Tony Lindgren <tony@atomide.com> wrote:
->>>> * Belisko Marek <marek.belisko@gmail.com> [131203 01:21]:
->>>>> On Tue, Dec 3, 2013 at 10:08 AM, Belisko Marek <marek.belisko@gmail.com> wrote:
->>>>>> Hi,
->>>>>>
->>>>>> On Tue, Dec 3, 2013 at 9:58 AM, Kishon Vijay Abraham I <kishon@ti.com> wrote:
->>>>>>> Hi,
->>>>>>>
->>>>>>> On Tuesday 03 December 2013 02:03 PM, Marek Belisko wrote:
->>>>>>>> Without this change when booting omap3 device (gta04) with board file
->>>>>>>> leads to follwing errors:
->>>>>>>>
->>>>>>>> [    1.203308] musb-hdrc musb-hdrc.0.auto: unable to find phy
->>>>>>>> [    1.209075] HS USB OTG: no transceiver configured
->>>>>>>> [    1.214019] musb-hdrc musb-hdrc.0.auto: musb_init_controller failed with status -517
->>>>>>>>
->>>>>>>> and usb isn't working.
->>>>>>>>
->>>>>>>> This is probably regression caused by commit: 6c27f939
->>>>>>>
->>>>>>> I think a better fix would be to have this merged..
->>>>>>> https://lkml.org/lkml/2013/7/26/91
->>>>>> Yes I see but how this could help with current situation? Ho you then
->>>>>> specify device number?
->>>>> I was too fast with reply sorry. I can see whole series and it is of
->>>>> course correct solution. But as I said
->>>>> can we except to be merged to 3.13. If not Tony can you pick my patch.
->>>>
->>>> If it's a regression, then let's get it merged for the -rc cycle.
->>> Yes it is regression and without that usb on most omap3 based boards
->>> without DT will not work.
->>>>
->>>> So please try to follow up on getting the proper fix merged, meanwhile
->>>> I'll mark this thread as read. If you need this one merged for some
->>>> reason, then please report to get it back to my radar.
+>>> Hmm, what do you mean? Label as in:
+>>>
+>>> foo : node {
+>>> };
+>>>
+>>> Isn't that 'foo' label only visible in DT itself, as a shortcut?
 >>
->> I'm still clueless which USB regression fix to apply for the -rc cycle
->> though.. Hoping to see a single patch which clearly states the issue
->> and has acks.
-> Kishon can you please comment on that? Would be possible to get your
-> patch to 3.13 (I seen some comments from Felipe).
-
-I'm not sure as my patch modifies all the board files. There was initially some
-confusion w.r.t when the board files will be dropped. But since board files
-will still be there in 3.13, I'd recommend my patch  [1] to be taken. Anyways
-if you have tested my patch (series), pls give your Tested-by.
-
-Tony, summary of the issue..
-After the platform devices are created using PLATFORM_DEVID_AUTO, the
-device names given in usb_bind_phy (in board file) does not match with
-the actual device name causing the USB PHY library not to return the
-PHY reference when the MUSB controller request for the PHY in the non-dt boot
-case. So removed creating platform devices using PLATFORM_DEVID_AUTO in
-omap2430.c. So had to make the corresponding changes in board files.
-
-[1] -> http://lists.scusting.com/index.php?t=msg&th=375579&start=0&S=Google
-
-Thanks
-Kishon
-
-> Otherwise I think only possible option to avoid non-working usb in
-> 3.13 for omap is took my patch. Thanks.
+>> Some driver use a "label" property like this:
 >>
->> Regards,
+>> foo : node {
+>>     label =3D "lcd";
 >>
->> Tony
-> 
-> BR,
-> 
-> marek
-> 
+>>     ...
+>> };
+>>
+>> See for example
+>>
+>> Documentation/devicetree/bindings/leds/common.txt
+>> Documentation/devicetree/bindings/mtd/partition.txt
+>=20
+> Ah, I see. That kind of label was actually the first thing I did when
+> starting to work on DSS DT. But I removed it, as it didn't describe the=
+
+> hardware and I didn't see others using anything similar.
+>=20
+> But I guess one could argue it does describe hardware, not in electrica=
+l
+> level but in conceptual level.
+>=20
+> The question is, do we need labeling for displays? For backward
+> compatibility omapdss would need it, but in general? I'm quite content
+> with having just display0, display1 etc. Using the alias node, those ca=
+n
+> be fixed and display0 is always the same display.
+
+I came to the conclusion that it's better to add the label to keep
+backward compatibility, especially as it was very easy to add.
+
+So we'll have 'name' and 'alias' for each display (as we have already).
+
+In the current non-DT boot (which is going away):
+
+- 'alias' is created by omapdss dynamically (first display to be
+registered is display0, etc.)
+- 'name' comes from platform data
+
+In the DT boot:
+
+- 'alias' comes from the DT aliases node, or if there are no display
+aliases, it's created the same way as to non-DT. The code presumes that
+there either is a DT alias for all displays, or there are none.
+- 'name' comes from 'label' property
+
+In both non-DT and DT cases, if 'name' is NULL (i.e. not set in platform
+data or no 'label' property), the alias is used as a name.
+
+I think this works fine, and was a trivial change.
+
+ Tomi
+
+
+
+--CFkjO4ePuWtN8J1mDv5nXEpmwWoN6BJtO
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.14 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJSqvcSAAoJEPo9qoy8lh71upcQAIG+Xj8jlNkjZx9AdeRaASCQ
+Pg9N8vVRoAtyFEa5iJ5uL1RVwLNBKd/4RkS7iPNY8dXhNNetC3sL7VLEBCy4laPg
+i1vepR5cku+z651eue6mm4K/T4iEZMJY0HI1Vd34Jspek+5OZJVN2YKNLTy2Fg62
+X7GjZ42ZppFSMOqQ6oghy8DsmZNwa9QjATg8kOFbsA2QAFt1VD2QzDFS6p2mjLNh
+naVqntcPLi2v2ApUbvzxDsmtqgwCX68ZbfSJy4w+P1giNtjsnJMj/mWSHXMhonrM
+Pq984byBPbra76YdFibeQmKaMmz/F4Xu6C6En5/yUwzOwzPK/U3YqG1pfYT75yvG
+xpLHGZvOWk6gZwsbGLQt92D43MM4QtbDXiUKX5Yslhle0gnEjhRZAhTYV76P+Zna
+j8KEI42HKEz3A+DAQOEEEKsViIXHOJ6dGy1UC0VUvQ1DQYTLMGo5ElhoMPqcEDvG
+IY4xw5woYfoch03q9DIVuTdVR1QyHDs4lSYxxA628UIix+4+jzfXkbHEqjAXKm+A
+qFGhGpkXbcKGWgk3CP8lJo8iRSFY0wVBJHKsOx6ICfF7/9iz51/VFZVWMCcW6gPI
+mkGfhGF3bRMD4OHoIJ0OKVwd/pCoT14P4Coa686EiSG1IOnGDoxO9dCImvSoh4ST
+L0hEflg5NkRi5niI5gb7
+=DT6L
+-----END PGP SIGNATURE-----
+
+--CFkjO4ePuWtN8J1mDv5nXEpmwWoN6BJtO--
