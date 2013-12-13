@@ -1,66 +1,55 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH] gpio: twl4030: fix regression for twl gpio outputs for led pins
-Date: Fri, 13 Dec 2013 10:47:02 -0600
-Message-ID: <1386953222-26396-1-git-send-email-nm@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: debugfs pinctrl crash on beagle-xm
+Date: Fri, 13 Dec 2013 09:04:39 -0800
+Message-ID: <20131213170438.GA28184@atomide.com>
+References: <52A6EFE5.2040706@ti.com>
+ <52AA4894.4040901@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-gpio-owner@vger.kernel.org>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Roger Quadros <rogerq@ti.com>, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Nishanth Menon <nm@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:53649 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753122Ab3LMREl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Dec 2013 12:04:41 -0500
+Content-Disposition: inline
+In-Reply-To: <52AA4894.4040901@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap <linux-omap@vger.kernel.org>
 
-Commit 0b2aa8b (gpio: twl4030: Fix regression for twl gpio output)
-introduces yet another regression by ignoring the fact that we use twl
-gpio even for LED. For example, leda (offset 18) is used for USB port2
-power on beagleboard-xm.
+* Nishanth Menon <nm@ti.com> [131212 15:38]:
+> On 12/10/2013 04:41 AM, Tomi Valkeinen wrote:
+> > Hi,
+> > 
+> > On beagle-xm, v3.13-rc3, I see the following crash if I use the pinctrl
+> > debugfs:
+> > 
+> > # cat /debug/pinctrl/48002030.pinmux/pins
+> > [   16.464233] Unhandled fault: external abort on non-linefetch (0x1028)
+> > at 0xfa002268
+> 
+> in 3630 TRM, There is a hole in the memory map between
+> 0x48002264(CONTROL_PADCONF_SDRC_CKE1) and
+> 0x480025A0(CONTROL_PADCONF_SDRC_BA0) which obviously generates abort
+> when read at 0x48002268
+> 
+> on 3430, we should also see a crash in the hole region
+> 0x48002264(CONTROL_PADCONF_SDRC_CKE1) to
+> 0x480025D8(CONTROL_PADCONF_ETK_CLK).
+> 
+> in dts, omap3_pmx_core: pinmux@48002030 describes the range as reg =
+> <0x48002030 0x05cc> (which is the max range for the module)
+> 
+> wish pinctrl-single driver could support handle multiple address ranges?
+> 
+> [...]
 
-The original logic was supposed to setup the TWL4030 GPIO direction
-if the offset was < TWL4030_GPIO_MAX, and anything greater used
-twl4030_led_set_value as part of twl_set to setup the LED pin. However,
-with the commit mentioned above, LEDa pin request will result in fail
-as the GPIO number for LEDa is equal to TWL4030_GPIO_MAX and USB fails
-to function on beagleboard-xm. This is reported in the log as:
-hsusb2_vbus: Failed to request enable GPIO510: -22
+There's an RFC patch from Laurent to split the pmx_core into two instances
+that should take care of this issue:
 
-To fix this, we should handle the fail case of
-twl4030_set_gpio_direction independent of the offset < TWL4030_GPIO_MAX
-check.
+[PATCH/RFC] ARM: omap3: Split the pinmux core device
 
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
-Applies on v3.13-rc3
+Regards,
 
-Tested on beagleboard-xm which uses ethernet over usb:
-before the patch (USB regression): http://pastebin.mozilla.org/3769443
-After this patch: http://pastebin.mozilla.org/3769454
-
- drivers/gpio/gpio-twl4030.c |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/gpio/gpio-twl4030.c b/drivers/gpio/gpio-twl4030.c
-index b97d6a6..9242276 100644
---- a/drivers/gpio/gpio-twl4030.c
-+++ b/drivers/gpio/gpio-twl4030.c
-@@ -354,11 +354,16 @@ static void twl_set(struct gpio_chip *chip, unsigned offset, int value)
- static int twl_direction_out(struct gpio_chip *chip, unsigned offset, int value)
- {
- 	struct gpio_twl4030_priv *priv = to_gpio_twl4030(chip);
--	int ret = -EINVAL;
-+	int ret = 0;
- 
- 	mutex_lock(&priv->mutex);
--	if (offset < TWL4030_GPIO_MAX)
-+	if (offset < TWL4030_GPIO_MAX) {
- 		ret = twl4030_set_gpio_direction(offset, 0);
-+		if (ret) {
-+			mutex_unlock(&priv->mutex);
-+			return ret;
-+		}
-+	}
- 
- 	priv->direction |= BIT(offset);
- 	mutex_unlock(&priv->mutex);
--- 
-1.7.9.5
-
+Tony
