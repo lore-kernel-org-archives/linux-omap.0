@@ -1,100 +1,131 @@
-From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: [net PATCH v2 1/1] drivers: net : cpsw: pass proper device name while requesting irq
-Date: Fri, 13 Dec 2013 14:35:27 +0530
-Message-ID: <1386925527-6706-1-git-send-email-mugunthanvnm@ti.com>
+From: Pekon Gupta <pekon@ti.com>
+Subject: [PATCH v1 0/2] mtd: nand: omap: booting from NAND using u-boot
+Date: Fri, 13 Dec 2013 14:42:56 +0530
+Message-ID: <1386925978-23705-1-git-send-email-pekon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: netdev@vger.kernel.org
-Cc: davem@davemloft.net, linux-omap@vger.kernel.org, George Cherian <george.cherian@ti.com>, Mugunthan V N <mugunthanvnm@ti.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
+List-Post: <mailto:linux-mtd@lists.infradead.org>
+List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
+Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
+To: Brian Norris <computersforpeace@gmail.com>, Artem Bityutskiy <dedekind1@gmail.com>, Scott Wood <scottwood@freescale.com>, Tom Rini <trini@ti.com>
+Cc: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Stefan Roese <sr@denx.de>, Michael Trimarchi <michael@amarulasolutions.com>, r-woodruff2@ti.com, avinashphilipk@gmail.com, jp.francois@cynove.com, Pekon Gupta <pekon@ti.com>, r.meier@siemens.com, balbi@ti.com, u-boot@lists.denx.de, Enric Balletbo Serra <eballetbo@iseebcn.com>, linux-mtd@lists.infradead.org, Igor Grinberg <grinberg@compulab.co.il>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, Javier Martinez Canillas <javier@dowhile0.org>, linux-omap <linux-omap@vger.kernel.org>, ivan.djelic@parrot.com, Nikita Kiryanov <nikita@compulab.co.il>
 List-Id: linux-omap@vger.kernel.org
 
-From: George Cherian <george.cherian@ti.com>
+As there were parallel set of patches running between u-boot and kernel.
+hence, some patch-sets caused regression for OMAP3x platforms when booting
+using u-boot specifically for ecc-schemes (like BCH4_SW).
 
-During checking the interrupts with "cat /proc/interrupts", it is showing
-device name as (null), this change was done with commit id aa1a15e2d where
-request_irq is changed to devm_request_irq also changing the irq name from
-platform device name to net device name, but the net device is not
-registered at this point with the network frame work, so devm_request_irq
-is called with device name as NULL, by which it is showed as "(null)" in
-"cat /proc/interrupts". So this patch moved the devm_request_irq after
-the net device register so that the device name shows as eth*.
+Hence this patch series fixes those regressions, and tests complete
+NAND boot sequence for multiple ecc-schemes on AM335x-EVM board.
+(following configurations are required for building u-boot driver which is
+ compatible to kernel ecclayout for selected ecc-scheme)
 
-Previous to this patch
-root@am335x-evm:~# cat /proc/interrupts
-           CPU0
- 28:       2265      INTC  12  edma
- 30:         80      INTC  14  edma_error
- 44:        345      INTC  28  mmc1
- 56:          0      INTC  40  (null)
- 57:       1794      INTC  41  (null)
- 58:          7      INTC  42  (null)
- 59:          0      INTC  43  (null)
 
-With this patch
-root@am335x-evm:~# cat /proc/interrupts
-           CPU0
- 28:       2254      INTC  12  edma
- 30:         69      INTC  14  edma_error
- 44:        324      INTC  28  mmc1
- 56:          0      INTC  40  eth0
- 57:        271      INTC  41  eth0
- 58:          7      INTC  42  eth0
- 59:          0      INTC  43  eth0
+    (BCH8_HW)      (HAM1_HW)         (HAM1_HW)         (HAM1_HW)  (UBIFS)
+ROM ---------> SPL ---------> U-Boot ---------> Kernel ---------> File-System
 
-Signed-off-by: George Cherian <george.cherian@ti.com>
-Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
+    (BCH8_HW)      (BCH8_SW)         (BCH8_SW)         (BCH8_SW)  (UBIFS)
+ROM ---------> SPL ---------> U-Boot ---------> Kernel ---------> File-System
+
+    (BCH8_HW)      (BCH8_HW)         (BCH8_HW)         (BCH8_HW)  (UBIFS)
+ROM ---------> SPL ---------> U-Boot ---------> Kernel ---------> File-System
+
+*Configurations used to build u-boot and kernel for end-to-end NAND boot*
++------------+--------------------------------------------+------------------+
+| ecc-scheme |  u-boot/SPL configs                        | kernel DTS       |
++------------+--------------------------------------------+------------------+
+|            |                                            |                  |
+| HAM1_HW    | #define CONFIG_NAND_OMAP_ECCSCHEME     \   |ti,nand-ecc-opts= |
+|            |         OMAP_ECC_HAM1_CODE_HW              |    "ham1"        |
+| (1-bit     | #define CONFIG_SYS_NAND_ECCBYTES       3   |                  |
+| Hamming    | #define CONFIG_SYS_NAND_ECCPOS \           |                  |
+| using h/w) |      { 1, 2, 3, 4, 5, 6, 7, 8, 9, \        |                  |
+|            |        10, 11, 12 }                        |                  |
+|            | (for NAND page-size=2048)                  |                  |
+|            |                                            |                  |
++------------+--------------------------------------------+------------------+
+|            |                                            |                  |
+| BCH8_SW    | #define CONFIG_NAND_OMAP_ECCSCHEME    \    |ti,nand-ecc-opts= |
+|            |         OMAP_ECC_BCH8_CODE_HW_DETECTION_SW |    "bch8"        |
+|(8-bit BCH  | #define CONFIG_SYS_NAND_ECCBYTES       13  |(without ELM node)|
+| using s/w  | #define CONFIG_BCH                         |                  |
+|library for | #undef CONFIG_SPL_NAND_AM33XX_BCH          |                  |
+|for ECC     | #define CONFIG_SPL_NAND_SIMPLE             |                  |
+| error      | #define CONFIG_SYS_NAND_ECCPOS \           |                  |
+|correction) |     {2,  3,  4,  5,  6,  7,  8,  9, 10, \  |                  |
+|            |     11, 12, 13, 14, \                      |                  |
+|            |     16, 17, 18, 19, 20, 21, 22, 23, 24, \  |                  |
+|            |     25, 26, 27, 28, \                      |                  |
+|            |     30, 31, 32, 33, 34, 35, 36, 37, 38, \  |                  |
+|            |     39, 40, 41, 42, \                      |                  |
+|            |     44, 45, 46, 47, 48, 49, 50, 51, 52, \  |                  |
+|            |     53, 54, 55, 56, }                      |                  |
+|            | (for NAND page-size=2048)                  |                  |
+|            | #define CONFIG_SYS_NAND_ECCSIZE       512  |                  |
+|            |                                            |                  |
++------------+--------------------------------------------+------------------+
+|            |                                            |                  |
+| BCH8_HW    | #define CONFIG_NAND_OMAP_ECCSCHEME    \    |ti,nand-ecc-opts= |
+|            |         OMAP_ECC_BCH8_CODE_HW              |    "bch8"        |
+|(8-bit BCH  | #define CONFIG_SYS_NAND_ECCBYTES       14  |                  |
+| using ELM  | #define CONFIG_SPL_NAND_AM33XX_BCH         |(with ELM node)   |
+| h/w engine | #define CONFIG_SYS_NAND_ECCPOS  \          |ti,elm-id=<&elm>  |
+|for ECC     |       {2,  3,  4,  5,  6,  7,  8,  9, \    |                  |
+| error      |       10, 11, 12, 13, 14, 15, 16, 17, \    |                  |
+|correction) |       18, 19, 20, 21, 22, 23, 24, 25, \    |                  |
+|            |       26, 27, 28, 29, 30, 31, 32, 33, \    |                  |
+|            |       34, 35, 36, 37, 38, 39, 40, 41, \    |                  |
+|            |       42, 43, 44, 45, 46, 47, 48, 49, \    |                  |
+|            |       50, 51, 52, 53, 54, 55, 56, 57, }    |                  |
+|            | (for NAND page-size=2048)                  |                  |
+|            | #define CONFIG_SYS_NAND_ECCSIZE       512  |                  |
+|            |                                            |                  |
++------------+--------------------------------------------+------------------+
+
+#* In addition following patches need to be pulled for u-boot:
+   http://lists.denx.de/pipermail/u-boot/2013-December/168506.html
+   http://lists.denx.de/pipermail/u-boot/2013-December/169021.html
+
+
+Test1: flash ubi image from u-boot and boot the kernel
+   U-boot> mw 0x82000000 0xff <u-boot.img size aligned to NAND block boundary>
+   U-boot> fatload mmc 0 0x82000000 u-boot.img
+   U-boot> nand erase <u-boot_offset> <u-boot.img size>
+   U-boot> nand write 0x82000000  <u-boot_offset> <u-boot.img size>
+   U-boot> setenv bootargs 'console=ttyO0,115200n8 noinitrd mem=256M \
+                root=ubi0 rw rootfstype=ubifs ubi.mtd=<mtdpart-of-rootfs>,\
+                <page-size> ip=off init=/init'
+   U-boot> bootm <kernel_offset>
+
+Test2: update u-boot.img from kernel and re-boot
+   Kernel> flash_erase /dev/<mtdpart-of-u-boot>  0 0
+   Kernel> nandwrite -s 0  /dev/<mtdpart-of-u-boot>   u-boot.img
+   Kernel> reboot
+
+Signed-off-by: Pekon Gupta <pekon@ti.com>
 ---
-Changes from Initial version
-* Changed the commit message to hold more details of the commit changes
----
- drivers/net/ethernet/ti/cpsw.c | 26 +++++++++++++-------------
- 1 file changed, 13 insertions(+), 13 deletions(-)
+ drivers/mtd/nand/omap2.c | 33 +++++++++++++++++++++++++--------
+ 1 file changed, 25 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-index 5120d9c..d80dfce 100644
---- a/drivers/net/ethernet/ti/cpsw.c
-+++ b/drivers/net/ethernet/ti/cpsw.c
-@@ -2103,19 +2103,6 @@ static int cpsw_probe(struct platform_device *pdev)
- 		goto clean_ale_ret;
- 	}
- 
--	while ((res = platform_get_resource(priv->pdev, IORESOURCE_IRQ, k))) {
--		for (i = res->start; i <= res->end; i++) {
--			if (devm_request_irq(&pdev->dev, i, cpsw_interrupt, 0,
--					     dev_name(priv->dev), priv)) {
--				dev_err(priv->dev, "error attaching irq\n");
--				goto clean_ale_ret;
--			}
--			priv->irqs_table[k] = i;
--			priv->num_irqs = k + 1;
--		}
--		k++;
--	}
--
- 	ndev->features |= NETIF_F_HW_VLAN_CTAG_FILTER;
- 
- 	ndev->netdev_ops = &cpsw_netdev_ops;
-@@ -2131,6 +2118,19 @@ static int cpsw_probe(struct platform_device *pdev)
- 		goto clean_ale_ret;
- 	}
- 
-+	while ((res = platform_get_resource(priv->pdev, IORESOURCE_IRQ, k))) {
-+		for (i = res->start; i <= res->end; i++) {
-+			if (devm_request_irq(&pdev->dev, i, cpsw_interrupt, 0,
-+					     dev_name(priv->dev), priv)) {
-+				dev_err(priv->dev, "error attaching irq\n");
-+				goto clean_ale_ret;
-+			}
-+			priv->irqs_table[k] = i;
-+			priv->num_irqs = k + 1;
-+		}
-+		k++;
-+	}
-+
- 	if (cpts_register(&pdev->dev, priv->cpts,
- 			  data->cpts_clock_mult, data->cpts_clock_shift))
- 		dev_err(priv->dev, "error registering cpts device\n");
+Pekon Gupta (2):
+  mtd: nand: omap: fix ecclayout->oobfree->offset
+  mtd: nand: omap: fix ecclayout to be in sync with u-boot NAND driver
+
+ drivers/mtd/nand/omap2.c | 50 ++++++++++++++++++++++++++++--------------------
+ 1 file changed, 29 insertions(+), 21 deletions(-)
+
 -- 
-1.8.5.1.93.g077f434
+1.8.1
+
+
+______________________________________________________
+Linux MTD discussion mailing list
+http://lists.infradead.org/mailman/listinfo/linux-mtd/
