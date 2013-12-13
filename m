@@ -1,42 +1,76 @@
-From: David Cohen <david.a.cohen@linux.intel.com>
-Subject: Re: [PATCH 3/7] usb: dwc3: pci: add pm_runtime support
-Date: Thu, 12 Dec 2013 20:29:19 -0800
-Message-ID: <20131213042919.GB31992@psi-dev26.jf.intel.com>
+From: Anton Tikhomirov <av.tikhomirov@samsung.com>
+Subject: RE: [PATCH 7/7] usb: dwc3: exynos: add pm_runtime support
+Date: Fri, 13 Dec 2013 14:01:32 +0900
+Message-ID: <000301cef7c0$640c1ce0$2c2456a0$%tikhomirov@samsung.com>
 References: <1386884325-11440-1-git-send-email-balbi@ti.com>
- <1386884325-11440-4-git-send-email-balbi@ti.com>
- <20131213015605.GC29964@psi-dev26.jf.intel.com>
- <20131213041719.GB867@saruman.home>
+ <1386884325-11440-8-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=Windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20131213041719.GB867@saruman.home>
+In-reply-to: <1386884325-11440-8-git-send-email-balbi@ti.com>
+Content-language: en-us
 Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Linux USB Mailing List <linux-usb@vger.kernel.org>, kgene.kim@samsung.com, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, linux-samsung-soc@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, w-kwok2@ti.com, Santosh Shilimkar <santosh.shilimkar@ti.com>
+To: 'Felipe Balbi' <balbi@ti.com>, 'Linux USB Mailing List' <linux-usb@vger.kernel.org>
+Cc: kgene.kim@samsung.com, 'Linux ARM Kernel Mailing List' <linux-arm-kernel@lists.infradead.org>, linux-samsung-soc@vger.kernel.org, 'Linux OMAP Mailing List' <linux-omap@vger.kernel.org>, w-kwok2@ti.com, 'Santosh Shilimkar' <santosh.shilimkar@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Dec 12, 2013 at 10:17:19PM -0600, Felipe Balbi wrote:
-> On Thu, Dec 12, 2013 at 05:56:05PM -0800, David Cohen wrote:
-> > On Thu, Dec 12, 2013 at 03:38:41PM -0600, Felipe Balbi wrote:
-> > > teach the PCI glue about pm_runtime so that
-> > > it's easier to teach dwc3 core about it
-> > > later.
-> > > 
-> > > No functional changes otherwise.
-> > > 
-> > > Signed-off-by: Felipe Balbi <balbi@ti.com>
-> > 
-> > I was able to test this one with Intel Merrifield:
-> > Acked-by: David Cohen <david.a.cohen@linux.intel.com>
+Hi Felipe,
+
+> -static int dwc3_exynos_suspend(struct device *dev)
+> +static int __dwc3_exynos_suspend(struct dwc3_exynos *exynos)
+>  {
+> -	struct dwc3_exynos *exynos = dev_get_drvdata(dev);
+> -
+>  	clk_disable(exynos->clk);
 > 
-> cool, thanks. Although that'd be a Tested-by. Is it ok to add your name
-> as Tested-by instead ?
-
-Yeah :)
-
-Br, David
-
+>  	return 0;
+>  }
 > 
-> -- 
-> balbi
+> +static int __dwc3_exynos_resume(struct dwc3_exynos *exynos)
+> +{
+> +	return clk_enable(exynos->clk);
+> +}
+> +
+> +static int dwc3_exynos_suspend(struct device *dev)
+> +{
+> +	struct dwc3_exynos *exynos = dev_get_drvdata(dev);
+> +
+> +	return __dwc3_exynos_suspend(exynos);
+
+If dwc3-exynos is runtime suspended, the clock will be disabled
+second time here (unbalanced clk_enable/clk_disable).
+
+> +}
+> +
+>  static int dwc3_exynos_resume(struct device *dev)
+>  {
+>  	struct dwc3_exynos *exynos = dev_get_drvdata(dev);
+> +	int ret;	
+> 
+> -	clk_enable(exynos->clk);
+> +	ret = __dwc3_exynos_resume(exynos);
+> +	if (ret)
+> +		return ret;
+> 
+>  	/* runtime set active to reflect active state. */
+>  	pm_runtime_disable(dev);
+> @@ -207,8 +238,24 @@ static int dwc3_exynos_resume(struct device *dev)
+>  	return 0;
+>  }
+> 
+> +static int dwc3_exynos_runtime_suspend(struct device *dev)
+> +{
+> +	struct dwc3_exynos *exynos = dev_get_drvdata(dev);
+> +
+> +	return __dwc3_exynos_suspend(exynos);
+> +}
+> +
+> +static int dwc3_exynos_runtime_resume(struct device *dev)
+> +{
+> +	struct dwc3_exynos *exynos = dev_get_drvdata(dev);
+> +
+> +	return __dwc3_exynos_resume(exynos);
+> +}
+
+Thanks
