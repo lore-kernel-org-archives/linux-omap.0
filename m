@@ -1,89 +1,87 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 13/26] ARM: omap3.dtsi: add omapdss information
-Date: Fri, 13 Dec 2013 12:18:27 +0200
-Message-ID: <52AADEF3.9040808@ti.com>
-References: <1386160133-24026-1-git-send-email-tomi.valkeinen@ti.com> <52A9760A.3000801@ti.com> <20131212215913.GB29072@muru.com> <1933495.zHe4JMYZyB@avalon>
+From: Belisko Marek <marek.belisko@gmail.com>
+Subject: Re: [PATCH] omap: twl-common: Fix musb-hdrc device name.
+Date: Fri, 13 Dec 2013 12:27:11 +0100
+Message-ID: <CAAfyv36P7DDcdaLWtXnZXPfQWPL20shE3kOHWtD0mSmH7aixdg@mail.gmail.com>
+References: <1386059589-4030-1-git-send-email-marek.belisko@open-nandra.com>
+	<529D9D43.6040101@ti.com>
+	<CAAfyv37Vie1vZK2XQ1cfVq6eVnSuaBLfykk6pU8fwEyqvPF4BA@mail.gmail.com>
+	<CAAfyv35gVVNydrk8vifSyidpFjEXjGiT4-i2dgN5Un2=FuHaqQ@mail.gmail.com>
+	<20131205184323.GF26766@atomide.com>
+	<CAAfyv37e9+OLH-KegPCEhc0sbBS7UVnaSGU0mBw2AxAN9D7Akw@mail.gmail.com>
+	<20131209175006.GD12527@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="5aVIQkVg1o8jbUKfOcRFKlB17XSEOj5G9"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:56533 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752319Ab3LMKSf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Dec 2013 05:18:35 -0500
-In-Reply-To: <1933495.zHe4JMYZyB@avalon>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20131209175006.GD12527@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Kishon Vijay Abraham I <kishon@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>
 List-Id: linux-omap@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, Archit Taneja <archit@ti.com>, Darren Etheridge <detheridge@ti.com>
 
---5aVIQkVg1o8jbUKfOcRFKlB17XSEOj5G9
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-On 2013-12-13 05:27, Laurent Pinchart wrote:
-> Hi Tony,
->=20
-> On Thursday 12 December 2013 21:59:13 Tony Lindgren wrote:
->> On Thu, Dec 12, 2013 at 10:38:34AM +0200, Tomi Valkeinen wrote:
->>> On 2013-12-12 01:44, Laurent Pinchart wrote:
->>>
->>> So, are they independent? I don't know =3D). I think they lean on the=
-
->>> independent side. dss_core is always needed for the submodules to wor=
-k,
->>> but for example DSI could be used without DISPC, using system DMA to
->>> transfer data from memory to DSI. Not a very useful thing to do, but
->>> still, there are dedicated DMA channels for that.
+On Mon, Dec 9, 2013 at 6:50 PM, Tony Lindgren <tony@atomide.com> wrote:
+> * Belisko Marek <marek.belisko@gmail.com> [131208 23:36]:
+>> Hi Tony,
 >>
->> If they have separate hwmod entries, they should be considered separat=
-e
->> independent devices for sure.
->>
->> To summarize, here are few reasons why they need to be treated as
->> separate devices:
->=20
-> Are you talking generally here, or about the DSS modules in particular =
-?
->=20
->> 1. The modules maybe clocked/powered/idled separately and can have the=
-ir
->>    own idle configuration so they can do the hardware based idling
->>    separately.
->=20
-> I don't think this applies to the DSS modules.
+>> On Thu, Dec 5, 2013 at 7:43 PM, Tony Lindgren <tony@atomide.com> wrote:
+>> > * Belisko Marek <marek.belisko@gmail.com> [131203 01:21]:
+>> >> On Tue, Dec 3, 2013 at 10:08 AM, Belisko Marek <marek.belisko@gmail.com> wrote:
+>> >> > Hi,
+>> >> >
+>> >> > On Tue, Dec 3, 2013 at 9:58 AM, Kishon Vijay Abraham I <kishon@ti.com> wrote:
+>> >> >> Hi,
+>> >> >>
+>> >> >> On Tuesday 03 December 2013 02:03 PM, Marek Belisko wrote:
+>> >> >>> Without this change when booting omap3 device (gta04) with board file
+>> >> >>> leads to follwing errors:
+>> >> >>>
+>> >> >>> [    1.203308] musb-hdrc musb-hdrc.0.auto: unable to find phy
+>> >> >>> [    1.209075] HS USB OTG: no transceiver configured
+>> >> >>> [    1.214019] musb-hdrc musb-hdrc.0.auto: musb_init_controller failed with status -517
+>> >> >>>
+>> >> >>> and usb isn't working.
+>> >> >>>
+>> >> >>> This is probably regression caused by commit: 6c27f939
+>> >> >>
+>> >> >> I think a better fix would be to have this merged..
+>> >> >> https://lkml.org/lkml/2013/7/26/91
+>> >> > Yes I see but how this could help with current situation? Ho you then
+>> >> > specify device number?
+>> >> I was too fast with reply sorry. I can see whole series and it is of
+>> >> course correct solution. But as I said
+>> >> can we except to be merged to 3.13. If not Tony can you pick my patch.
+>> >
+>> > If it's a regression, then let's get it merged for the -rc cycle.
+>> Yes it is regression and without that usb on most omap3 based boards
+>> without DT will not work.
+>> >
+>> > So please try to follow up on getting the proper fix merged, meanwhile
+>> > I'll mark this thread as read. If you need this one merged for some
+>> > reason, then please report to get it back to my radar.
+>
+> I'm still clueless which USB regression fix to apply for the -rc cycle
+> though.. Hoping to see a single patch which clearly states the issue
+> and has acks.
+Kishon can you please comment on that? Would be possible to get your
+patch to 3.13 (I seen some comments from Felipe).
+Otherwise I think only possible option to avoid non-working usb in
+3.13 for omap is took my patch. Thanks.
+>
+> Regards,
+>
+> Tony
 
-The DSS submodules have their own SYSCONFIG register, and idle settings
-can be set per module. So I think they idle separately, even if they are
-in a common power domain.
+BR,
 
- Tomi
+marek
 
+-- 
+as simple and primitive as possible
+-------------------------------------------------
+Marek Belisko - OPEN-NANDRA
+Freelance Developer
 
-
---5aVIQkVg1o8jbUKfOcRFKlB17XSEOj5G9
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJSqt7zAAoJEPo9qoy8lh71MM0P/2TFaj5hR7AbBT+4MTlnettS
-CivDSUs6NxyEybhIb+9WpkVuEouUiQZfuYMr2AE77+/S0V/kymQBOV/eN7c1V8e+
-76I4aI4UB5K9FIAohbdoLXBOlJ4koUUBPDH2YKlavnYRAUrZzv33DooGml0Aw5t0
-LOpEmsJOdljKaQDgK4gbbcJAHsB+se8q/i8uygGwpPCMi8rgimhobecGZYQtwVvU
-Uqpyl1rjLtkb/blxTjGPPfPsUlK6pLwOlaDrIQOO8hPoaD5nIRPlCRsUf0hI2auo
-EcnzxODMGp/D3VWaXmp3X1gitvbEALJlTE4einE+x5Y4BP39XphFJdStDM/kdZYF
-DD6KYHQQQzXXs2Kyh/XOEoXGCkDd8SklWV6EqUtAeoZtmT+qxkrLTFrm7GkeXoYN
-hKpGA57/yMGPNQJCSwSVfc3RsfAJEiPK8BCi43T1WJiVeAx7xQhIHW9MnhAzsirB
-sH2Y6xuATR3zrbHpU94TUo9U2SRRLlgHXcrVelUxbg4S5cKEtwnDrrxqR03XnrpN
-SQGj9TfEO3YbVdqu0ToXBJWfUr5u6wY2uoo8SyGYMUQW63Ogv/E8G/Y3cz3oDWLK
-FggsefdhHRqRa1RhO3/K1WG4SyXgvT2Nb+QoY7uBB54AgWO1YezrtafuGFwDZObW
-0YJD3aI82EU8fQjnXLD4
-=a/CY
------END PGP SIGNATURE-----
-
---5aVIQkVg1o8jbUKfOcRFKlB17XSEOj5G9--
+Ruska Nova Ves 219 | Presov, 08005 Slovak Republic
+Tel: +421 915 052 184
+skype: marekwhite
+twitter: #opennandra
+web: http://open-nandra.com
