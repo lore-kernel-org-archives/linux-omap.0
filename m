@@ -1,136 +1,66 @@
-From: Andreas Naumann <dev@andin.de>
-Subject: Re: WG: [PATCH] usb: musb: omap2430: fix occasional musb breakage
- on boot
-Date: Fri, 13 Dec 2013 17:27:53 +0100
-Message-ID: <52AB3589.6010606@andin.de>
-References: <EE4E4767751A8B40949306E403F4DDD8032AA82A@sv03ultra002.ultratronik.de>	<52AA2AA8.4090402@andin.de> <CANOLnON65xu0HKBzmhWOnoEoXscguBuozwKUV5FZAYObt=tP5w@mail.gmail.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: [PATCH] gpio: twl4030: fix regression for twl gpio outputs for led pins
+Date: Fri, 13 Dec 2013 10:47:02 -0600
+Message-ID: <1386953222-26396-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-13;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from dd5612.kasserver.com ([85.13.130.143]:33821 "EHLO
-	dd5612.kasserver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751872Ab3LMQ16 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Dec 2013 11:27:58 -0500
-In-Reply-To: <CANOLnON65xu0HKBzmhWOnoEoXscguBuozwKUV5FZAYObt=tP5w@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-gpio-owner@vger.kernel.org>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Roger Quadros <rogerq@ti.com>, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Nishanth Menon <nm@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Grazvydas Ignotas <notasas@gmail.com>
-Cc: Linux USB Mailing List <linux-usb@vger.kernel.org>, fbalbi@ti.com, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On 13.12.2013 13:34, Grazvydas Ignotas wrote:
-> On Thu, Dec 12, 2013 at 11:29 PM, Andreas Naumann <dev@andin.de> wrot=
-e:
->> Hi Grazvydas,
->>
->>> Von: Grazvydas Ignotas [mailto:notasas@gmail.com]
->>> Gesendet: Donnerstag, 12. Dezember 2013 01:21
->>> An: linux-usb@vger.kernel.org
->>> Cc: Felipe Balbi; linux-omap@vger.kernel.org; Naumann Andreas; Graz=
-vydas
->>> Ignotas; stable@vger.kernel.org
->>> Betreff: [PATCH] usb: musb: omap2430: fix occasional musb breakage =
-on boot
->>>
->>>
->>> This is a hard to reproduce problem which leads to non-functional
->>> USB-OTG port in 0.1%-1% of all boots. Tracked it down to commit
->>> e25bec160158abe86c "omap2+: save and restore OTG_INTERFSEL",
->>> which introduces save/restore of OTG_INTERFSEL over suspend.
->>>
->>> Since the resume function is also called early in driver init, it u=
-ses a
->>> non-initialized value (which is 0 and a non-supported setting in DM=
-37xx
->>> for INTERFSEL). Shortly after the correct value is set. Apparently =
-this
->>> works most time, but not always.
->>>
->>> Fix it by not writing the value on runtime resume if it is 0
->>> (0 should never be saved in the context as it's invalid value,
->>> so we use it as an indicator that context hasn't been saved yet).
->>>
->>> This issue was originally found by Andreas Naumann:
->>> http://marc.info/?l=3Dlinux-usb&m=3D138562574719654&w=3D2
->>>
->>> Reported-and-bisected-by: Andreas Naumann <anaumann@ultratronik.de>
->>> Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
->>> Cc: <stable@vger.kernel.org>
->>> ---
->>> This is a regression from 3.2, so should go to -rc and stable, IMO.
->>> It's really annoying issue if you want to have a stable OTG behavio=
-r,
->>> I've burned quite a lot of time on it myself over a year ago and ga=
-ve up
->>> eventually. Good thing Andreas finally found it, many thanks to him=
-!
->>>
->>>    drivers/usb/musb/omap2430.c |    3 ++-
->>>    1 file changed, 2 insertions(+), 1 deletion(-)
->>>
->>> diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap243=
-0.c
->>> index 2a408cd..737b3da 100644
->>> --- a/drivers/usb/musb/omap2430.c
->>> +++ b/drivers/usb/musb/omap2430.c
->>> @@ -672,7 +672,8 @@ static int omap2430_runtime_resume(struct devic=
-e *dev)
->>>
->>>          if (musb) {
->>>                  omap2430_low_level_init(musb);
->>> -               musb_writel(musb->mregs, OTG_INTERFSEL,
->>> +               if (musb->context.otg_interfsel !=3D 0)
->>> +                       musb_writel(musb->mregs, OTG_INTERFSEL,
->>>                                  musb->context.otg_interfsel);
->>>                  phy_power_on(musb->phy);
->>>          }
->>>
->>
->> Oh, easy way out. I like it but I've also been thinking about your c=
-omment
->> on my original post, which was that initializing otg_interfsel to th=
-e PHYSEL
->> bits only might be dangerous because we cant be sure that there are =
-other
->> bits in the register.
->> However, isnt assuming that 0 is invalid on all OMAPs just as danger=
-ous?
->
-> Well I was trying to do a minimal fix so that it could be suitable fo=
-r
-> merging to stable kernels. But yes you're right, I've just checked
-> OMAP4 TRM and 0 is actually valid value there..
->
->> After thinking about my patch again, I would propose to change otg_i=
-nterfsel
->> into otg_physel and read-modify-write only those bits in resume() as=
- you
->> suggested in your first answer. That way I could discard the problem=
-atic
->> first read in probe() while leaving other bits untouched. If you agr=
-ee I
->> post a patch for this tomorrow.
->
-> Hmm I don't know about that, this would be inconsistent with what all
-> other OMAP drivers do. Maybe we should do what musb_core.c does just
+Commit 0b2aa8b (gpio: twl4030: Fix regression for twl gpio output)
+introduces yet another regression by ignoring the fact that we use twl
+gpio even for LED. For example, leda (offset 18) is used for USB port2
+power on beagleboard-xm.
 
-Ok, thats cool.
+The original logic was supposed to setup the TWL4030 GPIO direction
+if the offset was < TWL4030_GPIO_MAX, and anything greater used
+twl4030_led_set_value as part of twl_set to setup the LED pin. However,
+with the commit mentioned above, LEDa pin request will result in fail
+as the GPIO number for LEDa is equal to TWL4030_GPIO_MAX and USB fails
+to function on beagleboard-xm. This is reported in the log as:
+hsusb2_vbus: Failed to request enable GPIO510: -22
 
-> to be consistent and add a similar comment. Only the static variable
-> could be avoided in favor of struct omap2430_glue member.
+To fix this, we should handle the fail case of
+twl4030_set_gpio_direction independent of the offset < TWL4030_GPIO_MAX
+check.
 
-Whats wrong with the static?
+Signed-off-by: Nishanth Menon <nm@ti.com>
+---
+Applies on v3.13-rc3
 
-cheers,
-Andreas
+Tested on beagleboard-xm which uses ethernet over usb:
+before the patch (USB regression): http://pastebin.mozilla.org/3769443
+After this patch: http://pastebin.mozilla.org/3769454
 
->
-> Gra=FEvydas
->
+ drivers/gpio/gpio-twl4030.c |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/gpio/gpio-twl4030.c b/drivers/gpio/gpio-twl4030.c
+index b97d6a6..9242276 100644
+--- a/drivers/gpio/gpio-twl4030.c
++++ b/drivers/gpio/gpio-twl4030.c
+@@ -354,11 +354,16 @@ static void twl_set(struct gpio_chip *chip, unsigned offset, int value)
+ static int twl_direction_out(struct gpio_chip *chip, unsigned offset, int value)
+ {
+ 	struct gpio_twl4030_priv *priv = to_gpio_twl4030(chip);
+-	int ret = -EINVAL;
++	int ret = 0;
+ 
+ 	mutex_lock(&priv->mutex);
+-	if (offset < TWL4030_GPIO_MAX)
++	if (offset < TWL4030_GPIO_MAX) {
+ 		ret = twl4030_set_gpio_direction(offset, 0);
++		if (ret) {
++			mutex_unlock(&priv->mutex);
++			return ret;
++		}
++	}
+ 
+ 	priv->direction |= BIT(offset);
+ 	mutex_unlock(&priv->mutex);
+-- 
+1.7.9.5
+
