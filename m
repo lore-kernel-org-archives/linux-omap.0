@@ -1,61 +1,61 @@
-From: Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>
-Subject: Re: [PATCH 00/26] OMAPDSS: DT support (Christmas edition)
-Date: Fri, 13 Dec 2013 09:16:45 +0100
-Message-ID: <CAMuHMdUZ6enS0cuGL_OxV+ak3PwOkWVXAaxGxjLRXP-A7FmvYg@mail.gmail.com>
-References: <1386160133-24026-1-git-send-email-tomi.valkeinen@ti.com>
-	<1824203.Ui6fpnZVmO@avalon>
-	<52A979D8.3040604@ti.com>
-	<1703598.NbqXAMAFOI@avalon>
+From: Archit Taneja <archit@ti.com>
+Subject: Re: [PATCH 05/26] ARM: OMAP2+: add omapdss_init_of()
+Date: Fri, 13 Dec 2013 14:02:21 +0530
+Message-ID: <52AAC615.504@ti.com>
+References: <1386160133-24026-1-git-send-email-tomi.valkeinen@ti.com> <1386160133-24026-6-git-send-email-tomi.valkeinen@ti.com> <2199639.FbGhznOLP9@avalon> <52A96603.5030709@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1703598.NbqXAMAFOI@avalon>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
-Cc: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Fbdev development list <linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Archit Taneja <archit-l0cyMroinI0@public.gmane.org>, Darren Etheridge <detheridge-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Stefan Roese <stefan.roese-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sebastian Reichel <sre-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>, Robert Nelson <robertcnelson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Dr . H . Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>, Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:45125 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750926Ab3LMIc0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 13 Dec 2013 03:32:26 -0500
+In-Reply-To: <52A96603.5030709@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, Darren Etheridge <detheridge@ti.com>, Tony Lindgren <tony@atomide.com>
 
-On Fri, Dec 13, 2013 at 4:45 AM, Laurent Pinchart
-<laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org> wrote:
->> > That's great, and I fully support that. This also calls for refactoring
->> > the V4L2 DT bindings and support code to share them with display devices.
->> > A bikeshedding question is where to put the common code.
+On Thursday 12 December 2013 01:00 PM, Tomi Valkeinen wrote:
+> On 2013-12-12 01:10, Laurent Pinchart wrote:
+>> Hi Tomi,
 >>
->> Thanks very much for review!
+>> On Wednesday 04 December 2013 14:28:32 Tomi Valkeinen wrote:
+>>> omapdss driver uses a omapdss platform device to pass platform specific
+>>> function pointers and DSS hardware version from the arch code to the
+>>> driver. This device is needed also when booting with DT.
+>>>
+>>> This patch adds omapdss_init_of() function, called from board-generic at
+>>> init time, which creates the omapdss device.
 >>
->> I know drivers/video is in practice "fbdev", but drivers/video (the
->> words) sound like the best place for things related to video.
+>> Is this a temporary solution that you plan to later replace with DT-only
+>> device instantiation ?
 >
-> That's an option as well, but I'm not sure I like the idea of mixing fbdev and
-> generic video in a single directory. We could use a subdirectory of
-> drivers/video.
+> It's a long term task to remove the "virtual" omapdss device. Removing
+> the platform data that we pass has been very difficult.
 
-Or reshuffle the various graphics/video/fb/console directories (more
-bikeshedding). With git it's not that painful.
+Even if we remove the platform data, what would be the right place to 
+register the drm, fb and vout devices? We need to make sure their 
+drivers are probed only after omapdss is initialised.
 
-Frame buffer devices ended up in drivers/video because at that time, graphics
-cards were called video cards. Moving video only entered the picture later.
+>
+> For example, we need to get the OMAP revision to know which OMAP DSS
+> hardware we have. We can't get that information from the DSS hardware
+> (thank you, HW designers! ;).
+>
 
-drivers/fb/ (currently most of drivers/video/)
-drivers/console/  (currently drivers/video/console/)
-...
+> Another is DSI pin muxing. I think we need a new pinmuxing driver for
+> that, or maybe change pinmux-single quite a bit. The DSI pinmuxing is
+> very simple, but the register fields are varying lengths and at varying
+> positions, so pinmux-single doesn't work for it.
 
-Or should fb be under gpu?
-What about drivers/media? Video and audio are multi-media, too...
+I have seen other OMAP drivers passing control module register info to 
+their DT node. Instead of having a pinmux driver for a single register, 
+we might want to consider just passing the control module register, and 
+take care of the reg fields and masks in the OMAP DSI driver itself.
 
-Baah, bad idea... too much bikeshedding ;-)
+The parsing of the DSI pins from DT, however, can be kept generic.
 
-Gr{oetje,eeting}s,
+Archit
 
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
