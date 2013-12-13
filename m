@@ -1,47 +1,34 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: debugfs pinctrl crash on beagle-xm
-Date: Thu, 12 Dec 2013 17:36:52 -0600
-Message-ID: <52AA4894.4040901@ti.com>
-References: <52A6EFE5.2040706@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH v2 1/7] usb: dwc3: keystone: add basic PM support
+Date: Thu, 12 Dec 2013 19:29:24 -0500
+Message-ID: <52AA54E4.5000606@ti.com>
+References: <20131212214306.GS1939@saruman.home> <1386884755-12366-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:33898 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751715Ab3LLXgx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Dec 2013 18:36:53 -0500
-In-Reply-To: <52A6EFE5.2040706@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+In-Reply-To: <1386884755-12366-1-git-send-email-balbi@ti.com>
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Linux USB Mailing List <linux-usb@vger.kernel.org>, kgene.kim@samsung.com, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, linux-samsung-soc@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, w-kwok2@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
 
-On 12/10/2013 04:41 AM, Tomi Valkeinen wrote:
-> Hi,
+On Thursday 12 December 2013 04:45 PM, Felipe Balbi wrote:
+> A bare-minimum PM implementation which will
+> server as building block for more complex
+s/server/serve ;-)
+> PM implementation in the future.
 > 
-> On beagle-xm, v3.13-rc3, I see the following crash if I use the pinctrl
-> debugfs:
+> At the least will not leave clocks on unnecessarily
+> when e.g.  a user write mem to /sys/power/state.
 > 
-> # cat /debug/pinctrl/48002030.pinmux/pins
-> [   16.464233] Unhandled fault: external abort on non-linefetch (0x1028)
-> at 0xfa002268
+> Signed-off-by: Felipe Balbi <balbi@ti.com>
+> ---
+> 
+> improve error path a little bit.
+> 
+We will test this out. Thanks for the
+patch Felipe.
 
-in 3630 TRM, There is a hole in the memory map between
-0x48002264(CONTROL_PADCONF_SDRC_CKE1) and
-0x480025A0(CONTROL_PADCONF_SDRC_BA0) which obviously generates abort
-when read at 0x48002268
-
-on 3430, we should also see a crash in the hole region
-0x48002264(CONTROL_PADCONF_SDRC_CKE1) to
-0x480025D8(CONTROL_PADCONF_ETK_CLK).
-
-in dts, omap3_pmx_core: pinmux@48002030 describes the range as reg =
-<0x48002030 0x05cc> (which is the max range for the module)
-
-wish pinctrl-single driver could support handle multiple address ranges?
-
-[...]
-
--- 
 Regards,
-Nishanth Menon
+Santosh
