@@ -1,51 +1,23 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH v2 1/7] usb: dwc3: keystone: add basic PM support
-Date: Fri, 13 Dec 2013 18:15:15 -0500
-Message-ID: <52AB9503.2090801@ti.com>
-References: <20131212214306.GS1939@saruman.home>
- <1386884755-12366-1-git-send-email-balbi@ti.com> <52AA54E4.5000606@ti.com>
- <20131213004337.GA31622@saruman.home>
+From: Daniel Santos <danielfsantos@att.net>
+Subject: [SOLVED] Re: "Cannot obtain needed commit" when trying to clone?
+Date: Fri, 13 Dec 2013 18:38:51 -0600
+Message-ID: <52ABA89B.9090901@att.net>
+References: <52ABA763.2050705@att.net>
+Reply-To: Daniel Santos <daniel.santos@pobox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20131213004337.GA31622@saruman.home>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: balbi@ti.com
-Cc: kgene.kim@samsung.com, w-kwok2@ti.com, Linux USB Mailing List <linux-usb@vger.kernel.org>, linux-samsung-soc@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from nm21-vm2.access.bullet.mail.gq1.yahoo.com ([216.39.63.49]:33739
+	"HELO nm21-vm2.access.bullet.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753011Ab3LNAhc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 13 Dec 2013 19:37:32 -0500
+In-Reply-To: <52ABA763.2050705@att.net>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap <linux-omap@vger.kernel.org>
+Cc: Daniel Santos <daniel.santos@pobox.com>
 
-On Thursday 12 December 2013 07:43 PM, Felipe Balbi wrote:
-> On Thu, Dec 12, 2013 at 07:29:24PM -0500, Santosh Shilimkar wrote:
->> On Thursday 12 December 2013 04:45 PM, Felipe Balbi wrote:
->>> A bare-minimum PM implementation which will
->>> server as building block for more complex
->> s/server/serve ;-)
-> 
-> hah! :-) will fix in my branch.
-> 
->>> PM implementation in the future.
->>>
->>> At the least will not leave clocks on unnecessarily
->>> when e.g.  a user write mem to /sys/power/state.
->>>
->>> Signed-off-by: Felipe Balbi <balbi@ti.com>
->>> ---
->>>
->>> improve error path a little bit.
->>>
->> We will test this out. Thanks for the
->> patch Felipe.
-> 
-I see Wingman already tested the patch.
-Feel free add, my ack if you need one...
+oops, I'm very sorry. I had the wrong URL. Problem solved!
 
-Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
