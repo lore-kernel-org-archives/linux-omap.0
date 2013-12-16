@@ -1,156 +1,87 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCHv2 18/27] ARM: omap3-beagle.dts: add display information
-Date: Mon, 16 Dec 2013 16:56:25 +0200
-Message-ID: <1387205794-32246-19-git-send-email-tomi.valkeinen@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
+Subject: [PATCHv2 17/27] ARM: omap3-tobi.dts: add lcd (TEST)
+Date: Mon, 16 Dec 2013 16:56:24 +0200
+Message-ID: <1387205794-32246-18-git-send-email-tomi.valkeinen@ti.com>
 References: <1387205794-32246-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:55741 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754488Ab3LPO60 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 16 Dec 2013 09:58:26 -0500
-In-Reply-To: <1387205794-32246-1-git-send-email-tomi.valkeinen@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1387205794-32246-1-git-send-email-tomi.valkeinen-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+This is a test for Overo with Palo43 expansion, _not_ Tobi. Palo43
+doesn't have a dts, but seems to work ok with omap3-tobi.dts, so I used
+it as a test.
+
+Not to be merged.
+
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/boot/dts/omap3-beagle.dts | 115 +++++++++++++++++++++++++++++++++++++
- 1 file changed, 115 insertions(+)
+ arch/arm/boot/dts/omap3-tobi.dts | 47 ++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 47 insertions(+)
 
-diff --git a/arch/arm/boot/dts/omap3-beagle.dts b/arch/arm/boot/dts/omap3-beagle.dts
-index 3ba4a625ea5b..b4057762cedd 100644
---- a/arch/arm/boot/dts/omap3-beagle.dts
-+++ b/arch/arm/boot/dts/omap3-beagle.dts
-@@ -119,6 +119,45 @@
- 			0x170 (PIN_OUTPUT | MUX_MODE0) /* uart3_tx_irtx.uart3_tx_irtx */
- 		>;
- 	};
-+
-+	tfp410_pins: pinmux_tfp410_pins {
-+		pinctrl-single,pins = <
-+			0x194 (PIN_OUTPUT | MUX_MODE4)	/* hdq_sio.gpio_170 */
-+		>;
-+	};
-+
-+	dss_dpi_pins: pinmux_dss_dpi_pins {
-+		pinctrl-single,pins = <
-+			0x0a4 (PIN_OUTPUT | MUX_MODE0)   /* dss_pclk.dss_pclk */
-+			0x0a6 (PIN_OUTPUT | MUX_MODE0)   /* dss_hsync.dss_hsync */
-+			0x0a8 (PIN_OUTPUT | MUX_MODE0)   /* dss_vsync.dss_vsync */
-+			0x0aa (PIN_OUTPUT | MUX_MODE0)   /* dss_acbias.dss_acbias */
-+			0x0ac (PIN_OUTPUT | MUX_MODE0)   /* dss_data0.dss_data0 */
-+			0x0ae (PIN_OUTPUT | MUX_MODE0)   /* dss_data1.dss_data1 */
-+			0x0b0 (PIN_OUTPUT | MUX_MODE0)   /* dss_data2.dss_data2 */
-+			0x0b2 (PIN_OUTPUT | MUX_MODE0)   /* dss_data3.dss_data3 */
-+			0x0b4 (PIN_OUTPUT | MUX_MODE0)   /* dss_data4.dss_data4 */
-+			0x0b6 (PIN_OUTPUT | MUX_MODE0)   /* dss_data5.dss_data5 */
-+			0x0b8 (PIN_OUTPUT | MUX_MODE0)   /* dss_data6.dss_data6 */
-+			0x0ba (PIN_OUTPUT | MUX_MODE0)   /* dss_data7.dss_data7 */
-+			0x0bc (PIN_OUTPUT | MUX_MODE0)   /* dss_data8.dss_data8 */
-+			0x0be (PIN_OUTPUT | MUX_MODE0)   /* dss_data9.dss_data9 */
-+			0x0c0 (PIN_OUTPUT | MUX_MODE0)   /* dss_data10.dss_data10 */
-+			0x0c2 (PIN_OUTPUT | MUX_MODE0)   /* dss_data11.dss_data11 */
-+			0x0c4 (PIN_OUTPUT | MUX_MODE0)   /* dss_data12.dss_data12 */
-+			0x0c6 (PIN_OUTPUT | MUX_MODE0)   /* dss_data13.dss_data13 */
-+			0x0c8 (PIN_OUTPUT | MUX_MODE0)   /* dss_data14.dss_data14 */
-+			0x0ca (PIN_OUTPUT | MUX_MODE0)   /* dss_data15.dss_data15 */
-+			0x0cc (PIN_OUTPUT | MUX_MODE0)   /* dss_data16.dss_data16 */
-+			0x0ce (PIN_OUTPUT | MUX_MODE0)   /* dss_data17.dss_data17 */
-+			0x0d0 (PIN_OUTPUT | MUX_MODE0)   /* dss_data18.dss_data18 */
-+			0x0d2 (PIN_OUTPUT | MUX_MODE0)   /* dss_data19.dss_data19 */
-+			0x0d4 (PIN_OUTPUT | MUX_MODE0)   /* dss_data20.dss_data20 */
-+			0x0d6 (PIN_OUTPUT | MUX_MODE0)   /* dss_data21.dss_data21 */
-+			0x0d8 (PIN_OUTPUT | MUX_MODE0)   /* dss_data22.dss_data22 */
-+			0x0da (PIN_OUTPUT | MUX_MODE0)   /* dss_data23.dss_data23 */
-+		>;
-+	};
- };
- 
- &i2c1 {
-@@ -199,3 +238,79 @@
- 	regulator-max-microvolt = <1800000>;
- 	regulator-always-on;
+diff --git a/arch/arm/boot/dts/omap3-tobi.dts b/arch/arm/boot/dts/omap3-tobi.dts
+index 7e4ad2aec37a..3baf3a286435 100644
+--- a/arch/arm/boot/dts/omap3-tobi.dts
++++ b/arch/arm/boot/dts/omap3-tobi.dts
+@@ -81,3 +81,50 @@
+ &mmc3 {
+ 	status = "disabled";
  };
 +
 +&dss {
++	/* XXX add pinctrl */
++	/*
 +	pinctrl-names = "default";
 +	pinctrl-0 = <&dss_dpi_pins>;
++	*/
 +
 +	vdds_dsi-supply = <&vpll2>;
 +
 +	dpi_out: endpoint {
-+		remote-endpoint = <&tfp410_in>;
++		remote-endpoint = <&lcd_in>;
 +		data-lines = <24>;
-+	};
-+};
-+
-+&venc {
-+	vdda_dac-supply = <&vdac>;
-+
-+	venc_out: endpoint {
-+		remote-endpoint = <&tv_connector_in>;
 +	};
 +};
 +
 +/ {
 +	aliases {
-+		display0 = &dvi0;
-+		display1 = &tv0;
++		display0 = &lcd0;
 +	};
 +
-+	tfp410: encoder@0 {
-+		compatible = "ti,tfp410";
-+		gpios = <&gpio6 10 GPIO_ACTIVE_LOW>;	/* 170, power-down */
++	lcd0: display@0 {
++		compatible = "samsung,lte430wq-f0c", "panel-dpi";
++		label = "lcd";
 +
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&tfp410_pins>;
-+
-+		ports {
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+
-+			port@0 {
-+				reg = <0>;
-+
-+				tfp410_in: endpoint@0 {
-+					remote-endpoint = <&dpi_out>;
-+				};
-+			};
-+
-+			port@1 {
-+				reg = <1>;
-+
-+				tfp410_out: endpoint@0 {
-+					remote-endpoint = <&dvi_connector_in>;
-+				};
-+			};
++		lcd_in: endpoint {
++			remote-endpoint = <&dpi_out>;
 +		};
-+	};
 +
-+	dvi0: connector@0 {
-+		compatible = "dvi-connector";
-+		label = "dvi";
++		panel-timing {
++			clock-frequency = <9200000>;
++			hactive = <480>;
++			vactive = <272>;
++			hfront-porch = <8>;
++			hback-porch = <4>;
++			hsync-len = <41>;
++			vback-porch = <2>;
++			vfront-porch = <4>;
++			vsync-len = <10>;
 +
-+		i2c-bus = <&i2c3>;
-+
-+		dvi_connector_in: endpoint {
-+			remote-endpoint = <&tfp410_out>;
-+		};
-+	};
-+
-+	tv0: connector@1 {
-+		compatible = "svideo-connector";
-+		label = "tv";
-+
-+		tv_connector_in: endpoint {
-+			remote-endpoint = <&venc_out>;
++			hsync-active = <0>;
++			vsync-active = <0>;
++			de-active = <1>;
++			pixelclk-active = <1>;
 +		};
 +	};
 +};
 -- 
 1.8.3.2
 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
