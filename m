@@ -1,87 +1,138 @@
-From: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
-Subject: [PATCHv2 17/27] ARM: omap3-tobi.dts: add lcd (TEST)
-Date: Mon, 16 Dec 2013 16:56:24 +0200
-Message-ID: <1387205794-32246-18-git-send-email-tomi.valkeinen@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: [PATCHv2 21/27] OMAPDSS: panel-dsi-cm: Add DT support
+Date: Mon, 16 Dec 2013 16:56:28 +0200
+Message-ID: <1387205794-32246-22-git-send-email-tomi.valkeinen@ti.com>
 References: <1387205794-32246-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1387205794-32246-1-git-send-email-tomi.valkeinen-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:55748 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754395Ab3LPO6b (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 16 Dec 2013 09:58:31 -0500
+In-Reply-To: <1387205794-32246-1-git-send-email-tomi.valkeinen@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-This is a test for Overo with Palo43 expansion, _not_ Tobi. Palo43
-doesn't have a dts, but seems to work ok with omap3-tobi.dts, so I used
-it as a test.
+XXX ULPS and backlight missing.
 
-Not to be merged.
-
-Signed-off-by: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- arch/arm/boot/dts/omap3-tobi.dts | 47 ++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 47 insertions(+)
+ drivers/video/omap2/displays-new/panel-dsi-cm.c | 65 +++++++++++++++++++++++--
+ 1 file changed, 61 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap3-tobi.dts b/arch/arm/boot/dts/omap3-tobi.dts
-index 7e4ad2aec37a..3baf3a286435 100644
---- a/arch/arm/boot/dts/omap3-tobi.dts
-+++ b/arch/arm/boot/dts/omap3-tobi.dts
-@@ -81,3 +81,50 @@
- &mmc3 {
- 	status = "disabled";
+diff --git a/drivers/video/omap2/displays-new/panel-dsi-cm.c b/drivers/video/omap2/displays-new/panel-dsi-cm.c
+index b7baafe83aa3..fda7728bdfaa 100644
+--- a/drivers/video/omap2/displays-new/panel-dsi-cm.c
++++ b/drivers/video/omap2/displays-new/panel-dsi-cm.c
+@@ -22,6 +22,8 @@
+ #include <linux/sched.h>
+ #include <linux/slab.h>
+ #include <linux/workqueue.h>
++#include <linux/of_device.h>
++#include <linux/of_gpio.h>
+ 
+ #include <video/omapdss.h>
+ #include <video/omap-panel-data.h>
+@@ -595,10 +597,13 @@ static int dsicm_power_on(struct panel_drv_data *ddata)
+ 		.lp_clk_max = 10000000,
+ 	};
+ 
+-	r = in->ops.dsi->configure_pins(in, &ddata->pin_config);
+-	if (r) {
+-		dev_err(&ddata->pdev->dev, "failed to configure DSI pins\n");
+-		goto err0;
++	if (ddata->pin_config.num_pins > 0) {
++		r = in->ops.dsi->configure_pins(in, &ddata->pin_config);
++		if (r) {
++			dev_err(&ddata->pdev->dev,
++				"failed to configure DSI pins\n");
++			goto err0;
++		}
+ 	}
+ 
+ 	r = in->ops.dsi->set_config(in, &dsi_config);
+@@ -1156,6 +1161,46 @@ static int dsicm_probe_pdata(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
++static int dsicm_probe_of(struct platform_device *pdev)
++{
++	struct device_node *node = pdev->dev.of_node;
++	struct panel_drv_data *ddata = platform_get_drvdata(pdev);
++	struct omap_dss_device *in;
++	int gpio;
++
++	gpio = of_get_gpio(node, 0);
++	if (!gpio_is_valid(gpio)) {
++		dev_err(&pdev->dev, "failed to parse reset gpio\n");
++		return gpio;
++	}
++	ddata->reset_gpio = gpio;
++
++	if (of_gpio_count(node) > 1) {
++		gpio = of_get_gpio(node, 1);
++
++		if (gpio_is_valid(gpio) || gpio == -ENOENT) {
++			ddata->ext_te_gpio = gpio;
++		} else {
++			dev_err(&pdev->dev, "failed to parse TE gpio\n");
++			return gpio;
++		}
++	} else {
++		ddata->ext_te_gpio = -1;
++	}
++
++	in = omapdss_of_find_source_for_first_ep(node);
++	if (IS_ERR(in)) {
++		dev_err(&pdev->dev, "failed to find video source\n");
++		return PTR_ERR(in);
++	}
++
++	ddata->in = in;
++
++	/* TODO: ulps, backlight */
++
++	return 0;
++}
++
+ static int dsicm_probe(struct platform_device *pdev)
+ {
+ 	struct backlight_properties props;
+@@ -1178,6 +1223,10 @@ static int dsicm_probe(struct platform_device *pdev)
+ 		r = dsicm_probe_pdata(pdev);
+ 		if (r)
+ 			return r;
++	} else if (pdev->dev.of_node) {
++		r = dsicm_probe_of(pdev);
++		if (r)
++			return r;
+ 	} else {
+ 		return -ENODEV;
+ 	}
+@@ -1320,12 +1369,20 @@ static int __exit dsicm_remove(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
++static const struct of_device_id dsicm_of_match[] = {
++	{ .compatible = "panel-dsi-cm", },
++	{},
++};
++
++MODULE_DEVICE_TABLE(of, dsicm_of_match);
++
+ static struct platform_driver dsicm_driver = {
+ 	.probe = dsicm_probe,
+ 	.remove = __exit_p(dsicm_remove),
+ 	.driver = {
+ 		.name = "panel-dsi-cm",
+ 		.owner = THIS_MODULE,
++		.of_match_table = dsicm_of_match,
+ 	},
  };
-+
-+&dss {
-+	/* XXX add pinctrl */
-+	/*
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&dss_dpi_pins>;
-+	*/
-+
-+	vdds_dsi-supply = <&vpll2>;
-+
-+	dpi_out: endpoint {
-+		remote-endpoint = <&lcd_in>;
-+		data-lines = <24>;
-+	};
-+};
-+
-+/ {
-+	aliases {
-+		display0 = &lcd0;
-+	};
-+
-+	lcd0: display@0 {
-+		compatible = "samsung,lte430wq-f0c", "panel-dpi";
-+		label = "lcd";
-+
-+		lcd_in: endpoint {
-+			remote-endpoint = <&dpi_out>;
-+		};
-+
-+		panel-timing {
-+			clock-frequency = <9200000>;
-+			hactive = <480>;
-+			vactive = <272>;
-+			hfront-porch = <8>;
-+			hback-porch = <4>;
-+			hsync-len = <41>;
-+			vback-porch = <2>;
-+			vfront-porch = <4>;
-+			vsync-len = <10>;
-+
-+			hsync-active = <0>;
-+			vsync-active = <0>;
-+			de-active = <1>;
-+			pixelclk-active = <1>;
-+		};
-+	};
-+};
+ 
 -- 
 1.8.3.2
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
