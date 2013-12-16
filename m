@@ -1,202 +1,99 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: dts: Add support for sbc-3xxx with cm-t3730
-Date: Mon, 16 Dec 2013 11:17:54 -0800
-Message-ID: <20131216191754.GD26293@atomide.com>
-References: <1386962541-18498-1-git-send-email-tony@atomide.com>
- <52AF065A.4010205@compulab.co.il>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH v3 0/2] usb: fix controller-PHY binding for OMAP3 platform
+Date: Mon, 16 Dec 2013 15:29:18 -0600
+Message-ID: <20131216212918.GH12896@saruman.home>
+References: <1387209225-11520-1-git-send-email-kishon@ti.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:35334 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754897Ab3LPTSC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Dec 2013 14:18:02 -0500
-Content-Disposition: inline
-In-Reply-To: <52AF065A.4010205@compulab.co.il>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/mixed; boundary="===============0758101830684558018=="
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1387209225-11520-1-git-send-email-kishon@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: linux@arm.linux.org.uk, tony@atomide.com, marek.belisko@gmail.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, hns@goldelico.com, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Igor Grinberg <grinberg@compulab.co.il>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Dmitry Lifshitz <lifshitz@compulab.co.il>
 
-* Igor Grinberg <grinberg@compulab.co.il> [131216 05:57]:
-> On 12/13/13 21:22, Tony Lindgren wrote:
-> 
-> SB-T35 has only one SMSC Ethernet on-board (smsc2),
-> while the first one is on the cm-t3530 and cm-t3730 modules.
-> SBC-T3517 has only one _SMSC_ Ethernet and it is on the SB-T35 base board.
-> cm-t3517 has EMAC Ethernet on-board instead of the SMSC.
+--===============0758101830684558018==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="ISKrrfpKsPiF35CV"
+Content-Disposition: inline
 
-OK, I'll move that.
- 
-> There is also another base board - CB-T3, which turns into
-> EM-T3530 and EM-T3730 once you plug the cm-t3530 or cm-t3730 into CB-T3.
-> 
-> http://compulab.co.il/products/handheld-computers/em-t3730/
-> http://compulab.co.il/products/handheld-computers/em-t3530/
-> 
-> The CB-T3 base board does not have any Ethernet controllers on it,
-> so the EM-T3x systems have only one Ethernet controller - the one on the
-> CPU board - SMSC.
+--ISKrrfpKsPiF35CV
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-OK
- 
-> This makes it four boards:
-> sb-t35 - base board has only one Ethernet controller (SMSC)
-> cb-t3 - base board has no Ethernet controllers
-> cm-t3530 - CPU board (plugged into sb-t35) has only one Ethernet controller (SMSC)
-> cm-t3730 - CPU board (plugged into sb-t35) has only one Ethernet controller (SMSC)
-> cm-t3537 - CPU board (plugged into sb-t35) has only one Ethernet controller (EMAC)
-> 
-> The SBC-Txxx and EM-Txxx- means both boards connected (base board with CPU board).
+Hi,
 
-OK
- 
-> > +
-> > +	cpus {
-> > +		cpu@0 {
-> > +			cpu0-supply = <&vcc>;
-> > +		};
-> > +	};
-> > +
-> > +	leds {
-> > +		compatible = "gpio-leds";
-> > +		ledb {
-> > +			label = "cm-t35:green";
-> > +			gpios = <&gpio6 26 GPIO_ACTIVE_HIGH>;  /* gpio186 */
-> > +			linux,default-trigger = "heartbeat";
-> 
-> Although all CPU boards have the same GPIO routed to the heartbeat LED,
-> this property is related to the CPU board and not to the base (mother) board.
-> The same GPIO is used intensionally for s/w simplicity.
-> If we are about to save code duplication, I'd like to have a common
-> to CPU boards file, say omap3-cm-t3x.dtsi - that way it will better reflect
-> the actual hardware.
+On Mon, Dec 16, 2013 at 09:23:43PM +0530, Kishon Vijay Abraham I wrote:
+> After the platform devices are created using PLATFORM_DEVID_AUTO, the
+> device names given in usb_bind_phy (in board file) does not match with
+> the actual device name causing the USB PHY library not to return the
+> PHY reference when the MUSB controller request for the PHY in the non-dt =
+boot
+> case.
+> So removed creating platform devices using PLATFORM_DEVID_AUTO in omap243=
+0.c.
+>=20
+> Did enumeration testing in omap3 beagle.
+>=20
+> Changes from v2:
+> * Fixed the commit log
+>=20
+> Changes from v1:
+> * refreshed to the latested mainline kernel
+> * added musb_put_id from omap2430 remove.
 
-OK will move.
- 
-> > +&i2c1 {
-> > +	clock-frequency = <2600000>;
-> > +
-> > +	twl: twl@48 {
-> > +		reg = <0x48>;
-> > +		interrupts = <7>; /* SYS_NIRQ cascaded to intc */
-> > +		interrupt-parent = <&intc>;
-> > +	};
-> > +};
-> 
-> This one should be a part of the common file.
+Tony, how do you want to handle this ? You want me to provide you a
+branch which we both merge ?
 
-OK 
+cheers
 
-> > +#include "twl4030.dtsi"
-> > +#include "twl4030_omap3.dtsi"
-> > +
-> > +&i2c3 {
-> > +	clock-frequency = <400000>;
-> > +};
-> > +
-> > +&mmc1 {
-> > +	vmmc-supply = <&vmmc1>;
-> > +	vmmc_aux-supply = <&vsim>;
-> 
-> Is it essential to always provide vmmc_aux-supply property?
-> In fact, the TPS65930 does not have the VSIM supply...
-> It is a mistake in the upstream board file.
+--=20
+balbi
 
-OK
+--ISKrrfpKsPiF35CV
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-> I fixed this locally a while ago, but haven't submitted upstream...
-> So we should either leave this property unpopulated (if we can...) or
-> provide a fixed regulator to populate it.
-> 
-> > +	bus-width = <8>;
-> 
-> I'm not sure what this property should reflect.
-> Both cm-t3530 and cm-t3730 use 4 bit MMC1 bus.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.15 (GNU/Linux)
 
-Hmm except with the muxing it seems to work just fine with 8-bit :)
-I noticed that by accident as I copied the entry from omap3-evm.
+iQIcBAEBAgAGBQJSr3CuAAoJEIaOsuA1yqREC0YP/R7P/n5V6R0lELGcGUKIRjtL
+08SAdLef33pjgvO7Pns2KcFO2xwdkWHG13KpWqhHWzvDjYt9iLGSqUpUGRWFK9UI
+4mfez+A7LWGmz/MQ/RtOKwpJhnXVcGZY8Lf3mCxTiAOa9Hs25aVjhgO9nUDqqz8u
+avaEA+m99uDf+3JDIb1zFk4Wq7+/+AGg4BAm9RJCgXW2YAv5BFVCsjGcbMq9eN9i
+LYw6gbbERFGlpSuGB5/7kGaWXSPDXDMHFFLiYWmPDAmVnqphaGpkkPImRbUzuEY6
+USYrs/QHtHpKaisMmpanRGRvUNr4FV7k8+b6T2s4pKTtFzyADoZaDBe6v5GNsa4z
+ViNMcONNNxfsS7ow8xCW3g9IWnNw5My4S2tS4Vzi3U+HkBCEGHHpGtrnH1gll/sV
+F3JGGvGU8Nymjco6x9g/LB7BxlvjDVhsTrz4ccT6fp8HQdfwsXtuzSy+1hzdvtJK
+fphHvd7lB40C0hUwXCGpx/y7qBsHVLoM8zbBZI/OKH3XWAlfOUYAHYTGEO+bQHG+
+46NioHARsHAKq8TPysbgnRIc8Uld5F9ggTbvRfczMvjQS7ew7a1bRbYk3dFv/XFB
+ZsdG/W/H8dRCeR9nGwyMIpYh6AGhd2Ab41gA5gUb9OJEgJETt6+XH3RN8TxdHVeq
+VPpprMtaI0jXom+Woe4m
+=qqMW
+-----END PGP SIGNATURE-----
 
-So it seems that all the 8 lines are available for the MMC1, but can
-be optionally also routed somewhere else?
- 
-> > +++ b/arch/arm/boot/dts/omap3-sbc-t3517.dts
-> > @@ -0,0 +1,18 @@
-> > +/*
-> > + * Suppport for CompuLab SBC-T3517 with CM-T3517
-> > + */
-> > +/dts-v1/;
-> > +
-> > +#include "am3517.dtsi"
-> > +#include "omap3-sb-t35.dtsi"
-> > +
-> > +
-> > +/ {
-> > +	model = "CompuLab SBC-T3517 with CM-T3517";
-> > +	compatible = "compulab,omap3-sbc-t3517", "ti,am3517", "ti,omap3";
-> > +
-> > +	memory {
-> > +		device_type = "memory";
-> > +		reg = <0x80000000 0x10000000>; /* 256 MB */
-> 
-> Can we support multiple memory sizes through static DT, or
-> the only way is to update this property in the bootloader?
+--ISKrrfpKsPiF35CV--
 
-Well we should probably have a minimal .dts file for the variants
-too that can include omap3-cm-t37.dts and so on. I guess some
-bootloaders are capable of rewriting the .dtb too.
- 
-> > +	mmc1_pins: pinmux_mmc1_pins {
-> > +		pinctrl-single,pins = <
-> > +			0x114 (PIN_OUTPUT_PULLUP | MUX_MODE0)	/* sdmmc1_clk.sdmmc1_clk */
-> > +			0x116 (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc1_cmd.sdmmc1_cmd */
-> > +			0x118 (PIN_INPUT_PULLUP | MUX_MODE0) 	/* sdmmc1_dat0.sdmmc1_dat0 */
-> > +			0x11a (PIN_INPUT_PULLUP | MUX_MODE0) 	/* sdmmc1_dat1.sdmmc1_dat1 */
-> > +			0x11c (PIN_INPUT_PULLUP | MUX_MODE0) 	/* sdmmc1_dat2.sdmmc1_dat2 */
-> > +			0x11e (PIN_INPUT_PULLUP | MUX_MODE0) 	/* sdmmc1_dat3.sdmmc1_dat3 */
-> > +			0x120 (PIN_INPUT_PULLUP | MUX_MODE0) 	/* sdmmc1_dat4.sdmmc1_dat4 */
-> > +			0x122 (PIN_INPUT_PULLUP | MUX_MODE0) 	/* sdmmc1_dat5.sdmmc1_dat5 */
-> > +			0x124 (PIN_INPUT_PULLUP | MUX_MODE0) 	/* sdmmc1_dat6.sdmmc1_dat6 */
-> > +			0x126 (PIN_INPUT_PULLUP | MUX_MODE0) 	/* sdmmc1_dat7.sdmmc1_dat7 */
-> 
-> The dat{4,5,6,7} pins are not used either on cm-t3530, or cm-t3730.
 
-But it seems to work and makes MMC1 faster :) Might be worth checking
-though, maybe those pins have multiple optional routings available?
- 
-> > +	mmc2_pins: pinmux_mmc2_pins {
-> > +		pinctrl-single,pins = <
-> > +			0x128 (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc2_clk.sdmmc2_clk */
-> > +			0x12a (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc2_cmd.sdmmc2_cmd */
-> > +			0x12c (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc2_dat0.sdmmc2_dat0 */
-> > +			0x12e (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc2_dat1.sdmmc2_dat1 */
-> > +			0x130 (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc2_dat2.sdmmc2_dat2 */
-> > +			0x132 (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc2_dat3.sdmmc2_dat3 */
-> 
-> Here the following is missing:
-> 0x134 (PIN_OUTPUT | MUX_MODE1)	/* sdmmc2_dat4.sdmmc2_dir_dat0 */
+--===============0758101830684558018==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-That seems to be used for the wl12xx GPIO, so it's listed at
-wl12xx_gpio below.
- 
-> > +			0x136 (PIN_OUTPUT | MUX_MODE1)		/* sdmmc2_dat5.sdmmc2_dir_dat1 */
-> > +			0x138 (PIN_OUTPUT | MUX_MODE1)		/* sdmmc2_dat6.sdmmc2_dir_cmd */
-> > +			0x13a (PIN_INPUT | MUX_MODE1)		/* sdmmc2_dat7.sdmmc2_clkin */
-> 
-> All four above pins (dat{4,5,6,7}) should be muxed only on cm-t3530.
-> cm-t3730 uses the sdmmc2_dat4 (gpio136) for wl12xx irq,
-> and does nor use the rest (dat{5,6,7}) at all.
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
 
-Hmm OK, maybe those extra pins also have alternative routings available?
- 
-> > +	wl12xx_gpio: pinmux_wl12xx_gpio {
-> > +		pinctrl-single,pins = <
-> > +			0xb2 (PIN_OUTPUT | MUX_MODE4)		/* dss_data3.gpio_73 */
-> > +			0x134 (PIN_INPUT | MUX_MODE4)		/* sdmmc2_dat4.gpio_136 */
-> > +		>;
-> > +	};
-> > +};
-
-Regards,
-
-Tony
+--===============0758101830684558018==--
