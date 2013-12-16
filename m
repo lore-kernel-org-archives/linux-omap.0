@@ -1,77 +1,44 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH 4/5] arm: omap3: twl: use the new lookup method with usb
- phy
-Date: Mon, 16 Dec 2013 16:34:35 +0530
-Message-ID: <52AEDE43.8030005@ti.com>
-References: <1386601737-8735-1-git-send-email-heikki.krogerus@linux.intel.com> <1386601737-8735-5-git-send-email-heikki.krogerus@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-In-Reply-To: <1386601737-8735-5-git-send-email-heikki.krogerus@linux.intel.com>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-samsung-soc@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+From: Andreas Fenkart <afenkart@gmail.com>
+Subject: [PATCH v6 0/3] mmc: omap_hsmmc: Enable SDIO IRQ.
+Date: Mon, 16 Dec 2013 12:24:48 +0100
+Message-ID: <1387193091-23218-1-git-send-email-afenkart@gmail.com>
+Return-path: <linux-doc-owner@vger.kernel.org>
+Sender: linux-doc-owner@vger.kernel.org
+To: Chris Ball <cjb@laptop.org>
+Cc: Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, Felipe Balbi <balbi@ti.com>, Balaji T K <balajitk@ti.com>, zonque@gmail.com, galak@codeaurora.org, linux-doc@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, Andreas Fenkart <afenkart@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+v6
+- rebase on Linux 3.13-rc3
+- reformatting debugfs
 
-On Monday 09 December 2013 08:38 PM, Heikki Krogerus wrote:
-> Provide a complete association for the phy and it's user
-> (musb) with the new phy_lookup_table.
-> 
-> Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-> ---
->  arch/arm/mach-omap2/twl-common.c | 15 ++++++---------
->  1 file changed, 6 insertions(+), 9 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/twl-common.c b/arch/arm/mach-omap2/twl-common.c
-> index b0d54da..972430b 100644
-> --- a/arch/arm/mach-omap2/twl-common.c
-> +++ b/arch/arm/mach-omap2/twl-common.c
-> @@ -91,18 +91,13 @@ void __init omap_pmic_late_init(void)
->  }
->  
->  #if defined(CONFIG_ARCH_OMAP3)
-> -struct phy_consumer consumers[] = {
-> -	PHY_CONSUMER("musb-hdrc.0", "usb"),
-> -};
-> -
-> -struct phy_init_data init_data = {
-> -	.consumers = consumers,
-> -	.num_consumers = ARRAY_SIZE(consumers),
-> +static struct phy_lookup_table twl4030_usb_lookup = {
-> +	.dev_id = "musb-hdrc.0",
-> +	.table = PHY_LOOKUP("phy-twl4030_usb.0", NULL),
->  };
+v5
+- fix compile error introduced by last minute one line fix
 
-had a similar approach during the initial version of phy framework [1] (see
-phy_bind) but changed it later [2] . Here you should know the device names of
-two devices and even if one of them started using DEVID_AUTO, it'll start
-breaking. Such an approach needs to reviewed carefully.
+v4:
+- switch to interrupts-extended format
+- drop ti,swakeup-missing flag convert to comaptible section
 
-[1] -> https://lkml.org/lkml/2013/4/3/258
-[2] -> http://www.spinics.net/lists/linux-usb/msg85299.html (removed phy_bind)
+v3:
+- removed gpio_irq from platform_data
 
-Cheers
-Kishon
->  
->  static struct twl4030_usb_data omap3_usb_pdata = {
->  	.usb_mode	= T2_USB_MODE_ULPI,
-> -	.init_data	= &init_data,
->  };
->  
->  static int omap3_batt_table[] = {
-> @@ -225,8 +220,10 @@ void __init omap3_pmic_get_config(struct twl4030_platform_data *pmic_data,
->  	}
->  
->  	/* Common platform data configurations */
-> -	if (pdata_flags & TWL_COMMON_PDATA_USB && !pmic_data->usb)
-> +	if (pdata_flags & TWL_COMMON_PDATA_USB && !pmic_data->usb) {
-> +		phy_add_lookup_table(&twl4030_usb_lookup);
->  		pmic_data->usb = &omap3_usb_pdata;
-> +	}
->  
->  	if (pdata_flags & TWL_COMMON_PDATA_BCI && !pmic_data->bci)
->  		pmic_data->bci = &omap3_bci_pdata;
-> 
+v2:
+- incorparated changes as suggested by reviewers
+- simplified workaround for am335x, gpio will now only wake
+  the module from runtime suspend, not handle the sdio irq
+  itself 
+
+Andreas Fenkart (3):
+  mmc: omap_hsmmc: Enable SDIO IRQ.
+  mmc: omap_hsmmc: Pin remux workaround to support SDIO interrupt on
+    AM335x.
+  mmc: omap_hsmmc: Extend debugfs for SDIO IRQ, GPIO and pinmux.
+
+ .../devicetree/bindings/mmc/ti-omap-hsmmc.txt      |   50 ++++
+ drivers/mmc/host/omap_hsmmc.c                      |  306 ++++++++++++++++++--
+ include/linux/platform_data/mmc-omap.h             |    1 +
+ 3 files changed, 331 insertions(+), 26 deletions(-)
+
+-- 
+1.7.10.4
+
