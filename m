@@ -1,505 +1,212 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [PATCH] ARM: dts: Add support for sbc-3xxx with cm-t3730
-Date: Mon, 16 Dec 2013 15:55:38 +0200
-Message-ID: <52AF065A.4010205@compulab.co.il>
-References: <1386962541-18498-1-git-send-email-tony@atomide.com>
+From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Subject: Re: [PATCH 2/5] phy: add support for indexed lookup
+Date: Mon, 16 Dec 2013 16:32:27 +0200
+Message-ID: <20131216143227.GA22944@xps8300>
+References: <1386601737-8735-1-git-send-email-heikki.krogerus@linux.intel.com>
+ <1386601737-8735-3-git-send-email-heikki.krogerus@linux.intel.com>
+ <52AEDDE2.8060406@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from softlayer.compulab.co.il ([50.23.254.55]:38441 "EHLO
-	compulab.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753982Ab3LPN4a (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 16 Dec 2013 08:56:30 -0500
-In-Reply-To: <1386962541-18498-1-git-send-email-tony@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <52AEDDE2.8060406@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-samsung-soc@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Cc: devicetree@vger.kernel.org, Dmitry Lifshitz <lifshitz@compulab.co.il>
 
-Hi Tony,
+Hi Kishon,
 
-On 12/13/13 21:22, Tony Lindgren wrote:
-> This adds support for CompuLab SBC-T3530, also known as cm-t3730:
+On Mon, Dec 16, 2013 at 04:32:58PM +0530, Kishon Vijay Abraham I wrote:
+> On Monday 09 December 2013 08:38 PM, Heikki Krogerus wrote:
+> > Removes the need for the consumer drivers requesting the
+> > phys to provide name for the phy. This should ease the use
+> > of the framework considerable when using only one phy, which
+> > is usually the case when except with USB, but it can also
+> > be useful with multiple phys.
 > 
-> http://compulab.co.il/products/sbcs/sbc-t3530/
+> If index has to be used with multiple PHYs, the controller should be aware of
+> the order in which it is populated in dt data. That's not good.
+
+The Idea is not to replace the name based lookup. Just to provide
+possibility for index based lookup.
+
+With ACPI, if we get the device entries for PHYs, the order will be
+fixed and we will not have any other reference to the phys. In case
+of USB, the first one should always be USB2 PHY and the second the
+USB3 PHY.
+
+> > This will also reduce noise from the framework when there is
+> > no phy by changing warnings to debug messages.
+> > 
+> > Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+> > ---
+> >  drivers/phy/phy-core.c  | 106 ++++++++++++++++++++++++++++++++++--------------
+> >  include/linux/phy/phy.h |  14 +++++++
+> >  2 files changed, 89 insertions(+), 31 deletions(-)
+> > 
+> > diff --git a/drivers/phy/phy-core.c b/drivers/phy/phy-core.c
+> > index 1102aef..99dc046 100644
+> > --- a/drivers/phy/phy-core.c
+> > +++ b/drivers/phy/phy-core.c
+> > @@ -53,7 +53,8 @@ static int devm_phy_match(struct device *dev, void *res, void *match_data)
+> >  	return res == match_data;
+> >  }
+> >  
+> > -static struct phy *phy_lookup(struct device *device, const char *con_id)
+> > +static struct phy *phy_lookup(struct device *device, const char *con_id,
+> > +			      unsigned int idx)
+> >  {
+> >  	unsigned int count;
+> >  	struct phy *phy;
+> > @@ -67,6 +68,10 @@ static struct phy *phy_lookup(struct device *device, const char *con_id)
+> >  		count = phy->init_data->num_consumers;
+> >  		consumers = phy->init_data->consumers;
+> >  		while (count--) {
+> > +			/* index must always match exactly */
+> > +			if (!con_id)
+> > +				if (idx != count)
+> > +					continue;
+> >  			if (!strcmp(consumers->dev_name, dev_name(device)) &&
+> >  					!strcmp(consumers->port, con_id)) {
+> >  				class_dev_iter_exit(&iter);
+> > @@ -242,7 +247,8 @@ EXPORT_SYMBOL_GPL(phy_power_off);
+> >  /**
+> >   * of_phy_get() - lookup and obtain a reference to a phy by phandle
+> >   * @dev: device that requests this phy
+> > - * @index: the index of the phy
+> > + * @con_id: name of the phy from device's point of view
+> > + * @idx: the index of the phy if name is not used
+> >   *
+> >   * Returns the phy associated with the given phandle value,
+> >   * after getting a refcount to it or -ENODEV if there is no such phy or
+> > @@ -250,12 +256,20 @@ EXPORT_SYMBOL_GPL(phy_power_off);
+> >   * not yet loaded. This function uses of_xlate call back function provided
+> >   * while registering the phy_provider to find the phy instance.
+> >   */
+> > -static struct phy *of_phy_get(struct device *dev, int index)
+> > +static struct phy *of_phy_get(struct device *dev, const char *con_id,
+> > +			      unsigned int idx)
+> >  {
+> >  	int ret;
+> >  	struct phy_provider *phy_provider;
+> >  	struct phy *phy = NULL;
+> >  	struct of_phandle_args args;
+> > +	int index;
+> > +
+> > +	if (!con_id)
+> > +		index = idx;
+> > +	else
+> > +		index = of_property_match_string(dev->of_node, "phy-names",
+> > +						 con_id);
+> >  
+> >  	ret = of_parse_phandle_with_args(dev->of_node, "phys", "#phy-cells",
+> >  		index, &args);
+> > @@ -348,38 +362,36 @@ struct phy *of_phy_simple_xlate(struct device *dev, struct of_phandle_args
+> >  EXPORT_SYMBOL_GPL(of_phy_simple_xlate);
+> >  
+> >  /**
+> > - * phy_get() - lookup and obtain a reference to a phy.
+> > + * phy_get_index() - obtain a phy based on index
 > 
-> It seems that with the sbc-3xxx mainboard is also used on
-> SBC-T3517 and SBC-T3730 with just a different CPU module:
+> NAK. It still takes a 'char' argument and the name is misleading.
+> Btw are you replacing phy_get() or adding a new API in addition to phy_get()?
+
+Additional API. The phy_get() would in practice act as a wrapper after
+this. It could actually be just a #define macro in the include file.
+The function naming I just copied straight from gpiolib.c. I did not
+have the imagination for anything fancier.
+
+I would like to be able to use some function like phy_get_index() and
+be able to deliver it both the name and the index. With DT you guys
+will always be able to use the name (and the string will always
+supersede the index if we do it like this), but with ACPI, and possibly
+the platform lookup tables, the index can be used...
+
+phy2 = phy_get_index(dev, "usb2-phy", 0);
+phy3 = phy_get_index(dev, "usb3-phy", 1);
+
+> >   * @dev: device that requests this phy
+> >   * @con_id: name of the phy from device's point of view
+> > + * @idx: index of the phy to obtain in the consumer
+> >   *
+> > - * Returns the phy driver, after getting a refcount to it; or
+> > - * -ENODEV if there is no such phy.  The caller is responsible for
+> > - * calling phy_put() to release that count.
+> > + * This variant of phy_get() allows to access PHYs other than the first
+> > + * defined one for functions that define several PHYs.
+> >   */
+> > -struct phy *phy_get(struct device *dev, const char *con_id)
+> > +struct phy *phy_get_index(struct device *dev, const char *con_id,
+> > +			  unsigned int idx)
+> >  {
+> > -	int index = 0;
+> >  	struct phy *phy = NULL;
+> >  
+> > -	if (con_id == NULL) {
+> > -		dev_WARN(dev, "missing string\n");
+> > -		return ERR_PTR(-EINVAL);
+> > +	if (dev->of_node) {
+> > +		dev_dbg(dev, "using device tree for PHY lookup\n");
+> > +		phy = of_phy_get(dev, con_id, idx);
+> >  	}
+> >  
+> > -	if (dev->of_node) {
+> > -		index = of_property_match_string(dev->of_node, "phy-names",
+> > -						 con_id);
+> > -		phy = of_phy_get(dev, index);
+> > -		if (IS_ERR(phy)) {
+> > -			dev_err(dev, "unable to find phy\n");
+> > -			return phy;
+> > -		}
+> > -	} else {
+> > -		phy = phy_lookup(dev, con_id);
+> > -		if (IS_ERR(phy)) {
+> > -			dev_err(dev, "unable to find phy\n");
+> > -			return phy;
+> > -		}
+> > +	/**
+> > +	 * Either we are not using DT, or their lookup did not return
+> > +	 * a result. In that case, use platform lookup as a fallback.
+> > +	 */
 > 
-> http://compulab.co.il/products/sbcs/sbc-t3517/
-> http://compulab.co.il/products/sbcs/sbc-t3730/
+> In a dt boot, if it has not returned a result how will platform lookup help
+> since there wouldn't be be any board file in the case of dt boot (to populate
+> PHY consumers). Maybe your later patch will handle that.
+
+This is something that I copy pasted from gpiolib.c. It felt like a
+good idea to have possibility to create lookup tables even when the
+device has of_node. I don't have strong feelings about this, so we can
+drop it if you like.
+
+> > +	if (!phy || IS_ERR(phy)) {
+> > +		dev_dbg(dev, "using lookup tables for PHY lookup");
+> > +		phy = phy_lookup(dev, con_id, idx);
+> > +	}
+> > +
+> > +	if (IS_ERR(phy)) {
+> > +		dev_dbg(dev, "unable to find phy\n");
+> > +		return phy;
+> >  	}
+> >  
+> >  	if (!try_module_get(phy->ops->owner))
+> > @@ -389,18 +401,20 @@ struct phy *phy_get(struct device *dev, const char *con_id)
+> >  
+> >  	return phy;
+> >  }
+> > -EXPORT_SYMBOL_GPL(phy_get);
+> > +EXPORT_SYMBOL_GPL(phy_get_index);
+> >  
+> >  /**
+> > - * devm_phy_get() - lookup and obtain a reference to a phy.
+> > + * devm_phy_get_index() - obtain a phy based on index
 > 
-> So let's add a common omap3-sb-t35.dtsi and then separate SoC
-> specific omap3-sbc-t3730.dts, omap3-sbc-t3530.dts and
-> omap3-sbc-t3517.dts.
-> 
-> I've tested this with SBC-T3730 as that's the only one I have.
-> At least serial, both Ethernet controllers, MMC, and wl12xx WLAN
-> work.
-> 
-> Note that WLAN seems to be different for SBC-T3530.
+> I don't see the need of these 2 APIs.
 
-Yes, it is Marvell 8686 chipset using the libertas driver.
+My goal is really just to prepare for ACPI with this one. I don't know
+if my commit message was not clear enough.
 
-> And SBC-T3517
-> may need some changes for the EMAC Ethernet if that's used
-> instead of the smsc911x.
-> 
-> Cc: devicetree@vger.kernel.org
-> Cc: Igor Grinberg <grinberg@compulab.co.il>
-> Cc: Mike Rapoport <mike@compulab.co.il>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-
-Great job!
-I'm sorry I couldn't make it in time with the conversion... :-(
-
-> ---
->  arch/arm/boot/dts/Makefile            |   3 +
->  arch/arm/boot/dts/omap3-sb-t35.dtsi   | 135 ++++++++++++++++++++++++++++++++++
->  arch/arm/boot/dts/omap3-sbc-t3517.dts |  18 +++++
->  arch/arm/boot/dts/omap3-sbc-t3530.dts |  18 +++++
->  arch/arm/boot/dts/omap3-sbc-t3730.dts | 130 ++++++++++++++++++++++++++++++++
->  arch/arm/mach-omap2/pdata-quirks.c    |   7 ++
->  6 files changed, 311 insertions(+)
->  create mode 100644 arch/arm/boot/dts/omap3-sb-t35.dtsi
->  create mode 100644 arch/arm/boot/dts/omap3-sbc-t3517.dts
->  create mode 100644 arch/arm/boot/dts/omap3-sbc-t3530.dts
->  create mode 100644 arch/arm/boot/dts/omap3-sbc-t3730.dts
-> 
-> diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
-> index fc37bca..41370d2 100644
-> --- a/arch/arm/boot/dts/Makefile
-> +++ b/arch/arm/boot/dts/Makefile
-> @@ -179,6 +179,9 @@ dtb-$(CONFIG_ARCH_OMAP2PLUS) += omap2420-h4.dtb \
->  	omap2420-n810-wimax.dtb \
->  	omap3430-sdp.dtb \
->  	omap3-beagle.dtb \
-> +	omap3-sbc-t3530.dtb \
-> +	omap3-sbc-t3730.dtb \
-> +	omap3-sbc-t3517.dtb \
->  	omap3-devkit8000.dtb \
->  	omap3-beagle-xm.dtb \
->  	omap3-evm.dtb \
-> diff --git a/arch/arm/boot/dts/omap3-sb-t35.dtsi b/arch/arm/boot/dts/omap3-sb-t35.dtsi
-> new file mode 100644
-> index 0000000..fc676c5
-> --- /dev/null
-> +++ b/arch/arm/boot/dts/omap3-sb-t35.dtsi
-> @@ -0,0 +1,135 @@
-> +/*
-> + * Common support for CompuLab SB-T35 used on SBC-T3530, SBC-T3517 and SBC-T3730
-> + */
-> +
-> +/ {
-> +	aliases {
-> +		ethernet0 = &smsc1;
-> +		ethernet1 = &smsc2;
-> +	};
-
-SB-T35 has only one SMSC Ethernet on-board (smsc2),
-while the first one is on the cm-t3530 and cm-t3730 modules.
-SBC-T3517 has only one _SMSC_ Ethernet and it is on the SB-T35 base board.
-cm-t3517 has EMAC Ethernet on-board instead of the SMSC.
-
-There is also another base board - CB-T3, which turns into
-EM-T3530 and EM-T3730 once you plug the cm-t3530 or cm-t3730 into CB-T3.
-
-http://compulab.co.il/products/handheld-computers/em-t3730/
-http://compulab.co.il/products/handheld-computers/em-t3530/
-
-The CB-T3 base board does not have any Ethernet controllers on it,
-so the EM-T3x systems have only one Ethernet controller - the one on the
-CPU board - SMSC.
-
-This makes it four boards:
-sb-t35 - base board has only one Ethernet controller (SMSC)
-cb-t3 - base board has no Ethernet controllers
-cm-t3530 - CPU board (plugged into sb-t35) has only one Ethernet controller (SMSC)
-cm-t3730 - CPU board (plugged into sb-t35) has only one Ethernet controller (SMSC)
-cm-t3537 - CPU board (plugged into sb-t35) has only one Ethernet controller (EMAC)
-
-The SBC-Txxx and EM-Txxx- means both boards connected (base board with CPU board).
-
-> +
-> +	cpus {
-> +		cpu@0 {
-> +			cpu0-supply = <&vcc>;
-> +		};
-> +	};
-> +
-> +	leds {
-> +		compatible = "gpio-leds";
-> +		ledb {
-> +			label = "cm-t35:green";
-> +			gpios = <&gpio6 26 GPIO_ACTIVE_HIGH>;  /* gpio186 */
-> +			linux,default-trigger = "heartbeat";
-
-Although all CPU boards have the same GPIO routed to the heartbeat LED,
-this property is related to the CPU board and not to the base (mother) board.
-The same GPIO is used intensionally for s/w simplicity.
-If we are about to save code duplication, I'd like to have a common
-to CPU boards file, say omap3-cm-t3x.dtsi - that way it will better reflect
-the actual hardware.
-
-> +		};
-> +	};
-> +
-> +	vddvario: regulator-vddvario {
-> +		compatible = "regulator-fixed";
-> +		regulator-name = "vddvario";
-> +		regulator-always-on;
-> +	};
-> +
-> +	vdd33a: regulator-vdd33a {
-> +		compatible = "regulator-fixed";
-> +		regulator-name = "vdd33a";
-> +		regulator-always-on;
-> +	};
-> +};
-> +
-> +&gpmc {
-> +	ranges = <5 0 0x2c000000 0x01000000>,
-> +		 <4 0 0x2d000000 0x01000000>;
-> +
-> +	smsc1: ethernet@5,0 {
-> +		compatible = "smsc,lan9221", "smsc,lan9115";
-> +		interrupt-parent = <&gpio6>;
-> +		interrupts = <3 IRQ_TYPE_LEVEL_LOW>;
-> +		reg = <5 0 0xff>;
-> +		bank-width = <2>;
-> +		gpmc,mux-add-data;
-> +		gpmc,cs-on-ns = <0>;
-> +		gpmc,cs-rd-off-ns = <186>;
-> +		gpmc,cs-wr-off-ns = <186>;
-> +		gpmc,adv-on-ns = <12>;
-> +		gpmc,adv-rd-off-ns = <48>;
-> +		gpmc,adv-wr-off-ns = <48>;
-> +		gpmc,oe-on-ns = <54>;
-> +		gpmc,oe-off-ns = <168>;
-> +		gpmc,we-on-ns = <54>;
-> +		gpmc,we-off-ns = <168>;
-> +		gpmc,rd-cycle-ns = <186>;
-> +		gpmc,wr-cycle-ns = <186>;
-> +		gpmc,access-ns = <114>;
-> +		gpmc,page-burst-access-ns = <6>;
-> +		gpmc,bus-turnaround-ns = <12>;
-> +		gpmc,cycle2cycle-delay-ns = <18>;
-> +		gpmc,wr-data-mux-bus-ns = <90>;
-> +		gpmc,wr-access-ns = <186>;
-> +		gpmc,cycle2cycle-samecsen;
-> +		gpmc,cycle2cycle-diffcsen;
-> +		vddvario-supply = <&vddvario>;
-> +		vdd33a-supply = <&vdd33a>;
-> +		reg-io-width = <4>;
-> +		smsc,save-mac-address;
-> +	};
-
-This one also should be a part of CPU board file or the common file.
-
-> +
-> +	smsc2: ethernet@4,0 {
-> +		compatible = "smsc,lan9221", "smsc,lan9115";
-> +		interrupt-parent = <&gpio3>;
-> +		interrupts = <1 IRQ_TYPE_LEVEL_LOW>;
-> +		reg = <4 0 0xff>;
-> +		bank-width = <2>;
-> +		gpmc,mux-add-data;
-> +		gpmc,cs-on-ns = <0>;
-> +		gpmc,cs-rd-off-ns = <186>;
-> +		gpmc,cs-wr-off-ns = <186>;
-> +		gpmc,adv-on-ns = <12>;
-> +		gpmc,adv-rd-off-ns = <48>;
-> +		gpmc,adv-wr-off-ns = <48>;
-> +		gpmc,oe-on-ns = <54>;
-> +		gpmc,oe-off-ns = <168>;
-> +		gpmc,we-on-ns = <54>;
-> +		gpmc,we-off-ns = <168>;
-> +		gpmc,rd-cycle-ns = <186>;
-> +		gpmc,wr-cycle-ns = <186>;
-> +		gpmc,access-ns = <114>;
-> +		gpmc,page-burst-access-ns = <6>;
-> +		gpmc,bus-turnaround-ns = <12>;
-> +		gpmc,cycle2cycle-delay-ns = <18>;
-> +		gpmc,wr-data-mux-bus-ns = <90>;
-> +		gpmc,wr-access-ns = <186>;
-> +		gpmc,cycle2cycle-samecsen;
-> +		gpmc,cycle2cycle-diffcsen;
-> +		vddvario-supply = <&vddvario>;
-> +		vdd33a-supply = <&vdd33a>;
-> +		reg-io-width = <4>;
-> +		smsc,save-mac-address;
-> +	};
-> +};
-> +
-> +&i2c1 {
-> +	clock-frequency = <2600000>;
-> +
-> +	twl: twl@48 {
-> +		reg = <0x48>;
-> +		interrupts = <7>; /* SYS_NIRQ cascaded to intc */
-> +		interrupt-parent = <&intc>;
-> +	};
-> +};
-
-This one should be a part of the common file.
-
-> +
-> +#include "twl4030.dtsi"
-> +#include "twl4030_omap3.dtsi"
-> +
-> +&i2c3 {
-> +	clock-frequency = <400000>;
-> +};
-> +
-> +&mmc1 {
-> +	vmmc-supply = <&vmmc1>;
-> +	vmmc_aux-supply = <&vsim>;
-
-Is it essential to always provide vmmc_aux-supply property?
-In fact, the TPS65930 does not have the VSIM supply...
-It is a mistake in the upstream board file.
-I fixed this locally a while ago, but haven't submitted upstream...
-So we should either leave this property unpopulated (if we can...) or
-provide a fixed regulator to populate it.
-
-> +	bus-width = <8>;
-
-I'm not sure what this property should reflect.
-Both cm-t3530 and cm-t3730 use 4 bit MMC1 bus.
-
-> +};
-> +
-> +&twl_gpio {
-> +	ti,use-leds;
-> +};
-> diff --git a/arch/arm/boot/dts/omap3-sbc-t3517.dts b/arch/arm/boot/dts/omap3-sbc-t3517.dts
-> new file mode 100644
-> index 0000000..2df885b
-> --- /dev/null
-> +++ b/arch/arm/boot/dts/omap3-sbc-t3517.dts
-> @@ -0,0 +1,18 @@
-> +/*
-> + * Suppport for CompuLab SBC-T3517 with CM-T3517
-> + */
-> +/dts-v1/;
-> +
-> +#include "am3517.dtsi"
-> +#include "omap3-sb-t35.dtsi"
-> +
-> +
-> +/ {
-> +	model = "CompuLab SBC-T3517 with CM-T3517";
-> +	compatible = "compulab,omap3-sbc-t3517", "ti,am3517", "ti,omap3";
-> +
-> +	memory {
-> +		device_type = "memory";
-> +		reg = <0x80000000 0x10000000>; /* 256 MB */
-
-Can we support multiple memory sizes through static DT, or
-the only way is to update this property in the bootloader?
-
-> +	};
-> +};
-> diff --git a/arch/arm/boot/dts/omap3-sbc-t3530.dts b/arch/arm/boot/dts/omap3-sbc-t3530.dts
-> new file mode 100644
-> index 0000000..5156147
-> --- /dev/null
-> +++ b/arch/arm/boot/dts/omap3-sbc-t3530.dts
-> @@ -0,0 +1,18 @@
-> +/*
-> + * Suppport for CompuLab SBC-T3530 with CM-T3530
-> + */
-> +/dts-v1/;
-> +
-> +#include "omap34xx.dtsi"
-> +#include "omap3-sb-t35.dtsi"
-> +
-> +
-> +/ {
-> +	model = "CompuLab SBC-T3530 with CM-T3530";
-> +	compatible = "compulab,omap3-sbc-t3530", "ti,omap34xx", "ti,omap3";
-> +
-> +	memory {
-> +		device_type = "memory";
-> +		reg = <0x80000000 0x10000000>; /* 256 MB */
-> +	};
-> +};
-> diff --git a/arch/arm/boot/dts/omap3-sbc-t3730.dts b/arch/arm/boot/dts/omap3-sbc-t3730.dts
-> new file mode 100644
-> index 0000000..836f742
-> --- /dev/null
-> +++ b/arch/arm/boot/dts/omap3-sbc-t3730.dts
-> @@ -0,0 +1,130 @@
-> +/*
-> + * Suppport for CompuLab SBC-T3730 with CM-T3730
-> + */
-> +/dts-v1/;
-> +
-> +#include "omap36xx.dtsi"
-> +#include "omap3-sb-t35.dtsi"
-> +
-> +
-> +/ {
-> +	model = "CompuLab SBC-T3730 with CM-T3730";
-> +	compatible = "compulab,omap3-sbc-t3730", "ti,omap36xx", "ti,omap3";
-> +
-> +	memory {
-> +		device_type = "memory";
-> +		reg = <0x80000000 0x10000000>; /* 256 MB */
-> +	};
-> +
-> +	wl12xx_vmmc2: wl12xx_vmmc2 {
-> +		compatible = "regulator-fixed";
-> +		regulator-name = "vw1271";
-> +		pinctrl-names = "default";
-> +		pinctrl-0 = <&wl12xx_gpio>;
-> +		regulator-min-microvolt = <1800000>;
-> +		regulator-max-microvolt = <1800000>;
-> +		gpio = <&gpio3 9 GPIO_ACTIVE_HIGH>;   /* gpio73 */
-> +		startup-delay-us = <20000>;
-> +		enable-active-high;
-> +	};
-> +
-> +	wl12xx_vaux2: wl12xx_vaux2 {
-> +		compatible = "regulator-fixed";
-> +		regulator-name = "vwl1271_vaux2";
-> +		regulator-min-microvolt = <1800000>;
-> +		regulator-max-microvolt = <1800000>;
-> +		gpio = <&twl_gpio 2 GPIO_ACTIVE_HIGH>;
-> +		startup-delay-us = <70000>;
-> +		enable-active-high;
-> +		vin-supply = <&vaux2>;
-> +	};
-> +};
-> +
-> +&omap3_pmx_core {
-> +	mmc1_pins: pinmux_mmc1_pins {
-> +		pinctrl-single,pins = <
-> +			0x114 (PIN_OUTPUT_PULLUP | MUX_MODE0)	/* sdmmc1_clk.sdmmc1_clk */
-> +			0x116 (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc1_cmd.sdmmc1_cmd */
-> +			0x118 (PIN_INPUT_PULLUP | MUX_MODE0) 	/* sdmmc1_dat0.sdmmc1_dat0 */
-> +			0x11a (PIN_INPUT_PULLUP | MUX_MODE0) 	/* sdmmc1_dat1.sdmmc1_dat1 */
-> +			0x11c (PIN_INPUT_PULLUP | MUX_MODE0) 	/* sdmmc1_dat2.sdmmc1_dat2 */
-> +			0x11e (PIN_INPUT_PULLUP | MUX_MODE0) 	/* sdmmc1_dat3.sdmmc1_dat3 */
-> +			0x120 (PIN_INPUT_PULLUP | MUX_MODE0) 	/* sdmmc1_dat4.sdmmc1_dat4 */
-> +			0x122 (PIN_INPUT_PULLUP | MUX_MODE0) 	/* sdmmc1_dat5.sdmmc1_dat5 */
-> +			0x124 (PIN_INPUT_PULLUP | MUX_MODE0) 	/* sdmmc1_dat6.sdmmc1_dat6 */
-> +			0x126 (PIN_INPUT_PULLUP | MUX_MODE0) 	/* sdmmc1_dat7.sdmmc1_dat7 */
-
-The dat{4,5,6,7} pins are not used either on cm-t3530, or cm-t3730.
-
-> +		>;
-> +	};
-> +
-> +	mmc2_pins: pinmux_mmc2_pins {
-> +		pinctrl-single,pins = <
-> +			0x128 (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc2_clk.sdmmc2_clk */
-> +			0x12a (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc2_cmd.sdmmc2_cmd */
-> +			0x12c (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc2_dat0.sdmmc2_dat0 */
-> +			0x12e (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc2_dat1.sdmmc2_dat1 */
-> +			0x130 (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc2_dat2.sdmmc2_dat2 */
-> +			0x132 (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc2_dat3.sdmmc2_dat3 */
-
-Here the following is missing:
-0x134 (PIN_OUTPUT | MUX_MODE1)	/* sdmmc2_dat4.sdmmc2_dir_dat0 */
-
-> +			0x136 (PIN_OUTPUT | MUX_MODE1)		/* sdmmc2_dat5.sdmmc2_dir_dat1 */
-> +			0x138 (PIN_OUTPUT | MUX_MODE1)		/* sdmmc2_dat6.sdmmc2_dir_cmd */
-> +			0x13a (PIN_INPUT | MUX_MODE1)		/* sdmmc2_dat7.sdmmc2_clkin */
-
-All four above pins (dat{4,5,6,7}) should be muxed only on cm-t3530.
-cm-t3730 uses the sdmmc2_dat4 (gpio136) for wl12xx irq,
-and does nor use the rest (dat{5,6,7}) at all.
-
-> +		>;
-> +	};
-> +
-> +	smsc1_pins: pinmux_smsc1_pins {
-> +		pinctrl-single,pins = <
-> +			0x88 (PIN_OUTPUT | MUX_MODE0)		/* gpmc_ncs5.gpmc_ncs5 */
-> +			0x16a (PIN_INPUT_PULLUP | MUX_MODE4)	/* uart3_cts_rctx.gpio_163 */
-> +		>;
-> +	};
-> +
-> +	smsc2_pins: pinmux_smsc2_pins {
-> +		pinctrl-single,pins = <
-> +			0x86 (PIN_OUTPUT | MUX_MODE0)		/* gpmc_ncs4.gpmc_ncs4 */
-> +			0xa2 (PIN_INPUT_PULLUP | MUX_MODE4)	/* gpmc_wait3.gpio_65 */
-> +		>;
-> +	};
-> +
-> +	uart3_pins: pinmux_uart3_pins {
-> +		pinctrl-single,pins = <
-> +			0x16e (PIN_INPUT | MUX_MODE0)		/* uart3_rx_irrx.uart3_rx_irrx */
-> +			0x170 (PIN_OUTPUT | MUX_MODE0)		/* uart3_tx_irtx.uart3_tx_irtx */
-> +		>;
-> +	};
-> +
-> +	wl12xx_gpio: pinmux_wl12xx_gpio {
-> +		pinctrl-single,pins = <
-> +			0xb2 (PIN_OUTPUT | MUX_MODE4)		/* dss_data3.gpio_73 */
-> +			0x134 (PIN_INPUT | MUX_MODE4)		/* sdmmc2_dat4.gpio_136 */
-> +		>;
-> +	};
-> +};
-> +
-> +&mmc1 {
-> +	pinctrl-names = "default";
-> +	pinctrl-0 = <&mmc1_pins>;
-> +};
-> +
-> +&mmc2 {
-> +	pinctrl-names = "default";
-> +	pinctrl-0 = <&mmc2_pins>;
-> +	vmmc-supply = <&wl12xx_vmmc2>;
-> +	vmmc_aux-supply = <&wl12xx_vaux2>;
-> +	non-removable;
-> +	bus-width = <4>;
-> +	cap-power-off-card;
-> +};
-> +
-> +&smsc1 {
-> +	pinctrl-names = "default";
-> +	pinctrl-0 = <&smsc1_pins>;
-> +};
-> +
-> +&smsc2 {
-> +	pinctrl-names = "default";
-> +	pinctrl-0 = <&smsc2_pins>;
-> +};
-> +
-> +&uart3 {
-> +	pinctrl-names = "default";
-> +	pinctrl-0 = <&uart3_pins>;
-> +};
-> diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
-> index 78c6233..1a1bfc0 100644
-> --- a/arch/arm/mach-omap2/pdata-quirks.c
-> +++ b/arch/arm/mach-omap2/pdata-quirks.c
-> @@ -93,6 +93,12 @@ static void __init hsmmc2_internal_input_clk(void)
->  	omap_ctrl_writel(reg, OMAP343X_CONTROL_DEVCONF1);
->  }
->  
-> +static void __init omap3_sbc_t3730_legacy_init(void)
-> +{
-> +	legacy_init_wl12xx(WL12XX_REFCLOCK_38, 0, 136);
-> +	omap_ads7846_init(1, 57, 0, NULL);
-> +}
-> +
->  static void __init omap3_igep0020_legacy_init(void)
->  {
->  	omap3_igep2_display_init_of();
-> @@ -229,6 +235,7 @@ struct of_dev_auxdata omap_auxdata_lookup[] __initdata = {
->   */
->  static struct pdata_init pdata_quirks[] __initdata = {
->  #ifdef CONFIG_ARCH_OMAP3
-> +	{ "compulab,omap3-sbc-t3730", omap3_sbc_t3730_legacy_init, },
->  	{ "nokia,omap3-n900", hsmmc2_internal_input_clk, },
->  	{ "nokia,omap3-n9", hsmmc2_internal_input_clk, },
->  	{ "nokia,omap3-n950", hsmmc2_internal_input_clk, },
-> 
+Thanks,
 
 -- 
-Regards,
-Igor.
+heikki
