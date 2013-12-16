@@ -1,15 +1,15 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCHv2 13/27] ARM: omap3.dtsi: add omapdss information
-Date: Mon, 16 Dec 2013 16:56:20 +0200
-Message-ID: <1387205794-32246-14-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCHv2 15/27] ARM: omap4-panda.dts: add display information
+Date: Mon, 16 Dec 2013 16:56:22 +0200
+Message-ID: <1387205794-32246-16-git-send-email-tomi.valkeinen@ti.com>
 References: <1387205794-32246-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:55725 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:33055 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754456Ab3LPO6S (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 16 Dec 2013 09:58:18 -0500
+	id S1754395Ab3LPO6V (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 16 Dec 2013 09:58:21 -0500
 In-Reply-To: <1387205794-32246-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -18,54 +18,145 @@ Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- arch/arm/boot/dts/omap3.dtsi | 35 +++++++++++++++++++++++++++++++++++
- 1 file changed, 35 insertions(+)
+ arch/arm/boot/dts/omap4-panda-common.dtsi | 121 +++++++++++++++++++++++++++++-
+ 1 file changed, 117 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
-index daabf99d402a..c646fa9ae5d3 100644
---- a/arch/arm/boot/dts/omap3.dtsi
-+++ b/arch/arm/boot/dts/omap3.dtsi
-@@ -630,5 +630,40 @@
- 			num-eps = <16>;
- 			ram-bits = <12>;
- 		};
+diff --git a/arch/arm/boot/dts/omap4-panda-common.dtsi b/arch/arm/boot/dts/omap4-panda-common.dtsi
+index 88c6a05cab41..dc71645dee9b 100644
+--- a/arch/arm/boot/dts/omap4-panda-common.dtsi
++++ b/arch/arm/boot/dts/omap4-panda-common.dtsi
+@@ -112,10 +112,6 @@
+ 			&twl6040_pins
+ 			&mcpdm_pins
+ 			&mcbsp1_pins
+-			&dss_dpi_pins
+-			&tfp410_pins
+-			&dss_hdmi_pins
+-			&tpd12s015_pins
+ 			&hsusbb1_pins
+ 	>;
+ 
+@@ -409,3 +405,120 @@
+ &usbhsehci {
+ 	phys = <&hsusb1_phy>;
+ };
 +
-+		dss: dss@48050000 {
-+			compatible = "ti,omap3-dss", "simple-bus";
-+			reg = <0x48050000 0x200>;
-+			ti,hwmods = "dss_core";
++&dss {
++	pinctrl-names = "default";
++	pinctrl-0 = <&dss_dpi_pins>;
++
++	dpi_out: endpoint {
++		remote-endpoint = <&tfp410_in>;
++		data-lines = <24>;
++	};
++};
++
++&dsi1 {
++	vdds_dsi-supply = <&vcxio>;
++};
++
++&dsi2 {
++	vdds_dsi-supply = <&vcxio>;
++};
++
++&hdmi {
++	vdda_hdmi_dac-supply = <&vdac>;
++
++	pinctrl-names = "default";
++	pinctrl-0 = <&dss_hdmi_pins>;
++
++	hdmi_out: endpoint {
++		remote-endpoint = <&tpd12s015_in>;
++	};
++};
++
++/ {
++	aliases {
++		display0 = &dvi0;
++		display1 = &hdmi0;
++	};
++
++	tfp410: encoder@0 {
++		compatible = "ti,tfp410";
++		gpios = <&gpio1 0 GPIO_ACTIVE_LOW>;	/* 0, power-down */
++
++		pinctrl-names = "default";
++		pinctrl-0 = <&tfp410_pins>;
++
++		ports {
 +			#address-cells = <1>;
-+			#size-cells = <1>;
-+			ranges;
++			#size-cells = <0>;
 +
-+			dispc@48050400 {
-+				compatible = "ti,omap3-dispc";
-+				reg = <0x48050400 0x400>;
-+				interrupts = <25>;
-+				ti,hwmods = "dss_dispc";
++			port@0 {
++				reg = <0>;
++
++				tfp410_in: endpoint@0 {
++					remote-endpoint = <&dpi_out>;
++				};
 +			};
 +
-+			dsi: encoder@4804fc00 {
-+				compatible = "ti,omap3-dsi";
-+				reg = <0x4804fc00 0x400>;
-+				interrupts = <25>;
-+				ti,hwmods = "dss_dsi1";
-+			};
++			port@1 {
++				reg = <1>;
 +
-+			rfbi: encoder@48050800 {
-+				compatible = "ti,omap3-rfbi";
-+				reg = <0x48050800 0x100>;
-+				ti,hwmods = "dss_rfbi";
-+			};
-+
-+			venc: encoder@48050c00 {
-+				compatible = "ti,omap3-venc";
-+				reg = <0x48050c00 0x100>;
-+				ti,hwmods = "dss_venc";
++				tfp410_out: endpoint@0 {
++					remote-endpoint = <&dvi_connector_in>;
++				};
 +			};
 +		};
- 	};
- };
++	};
++
++	dvi0: connector@0 {
++		compatible = "dvi-connector";
++		label = "dvi";
++
++		i2c-bus = <&i2c3>;
++
++		dvi_connector_in: endpoint {
++			remote-endpoint = <&tfp410_out>;
++		};
++	};
++
++	tpd12s015: encoder@1 {
++		compatible = "ti,tpd12s015";
++
++		pinctrl-names = "default";
++		pinctrl-0 = <&tpd12s015_pins>;
++
++		gpios = <&gpio2 28 GPIO_ACTIVE_HIGH>,	/* 60, CT CP HPD */
++			<&gpio2 9 GPIO_ACTIVE_HIGH>,	/* 41, LS OE */
++			<&gpio2 31 GPIO_ACTIVE_HIGH>;	/* 63, HPD */
++
++		ports {
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			port@0 {
++				reg = <0>;
++
++				tpd12s015_in: endpoint@0 {
++					remote-endpoint = <&hdmi_out>;
++				};
++			};
++
++			port@1 {
++				reg = <1>;
++
++				tpd12s015_out: endpoint@0 {
++					remote-endpoint = <&hdmi_connector_in>;
++				};
++			};
++		};
++	};
++
++	hdmi0: connector@1 {
++		compatible = "hdmi-connector";
++		label = "hdmi";
++
++		hdmi_connector_in: endpoint {
++			remote-endpoint = <&tpd12s015_out>;
++		};
++	};
++};
 -- 
 1.8.3.2
 
