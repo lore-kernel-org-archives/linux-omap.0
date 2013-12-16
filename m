@@ -1,198 +1,123 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v3 2/2] arm: omap: remove *.auto* from device names given in usb_bind_phy
-Date: Mon, 16 Dec 2013 21:23:45 +0530
-Message-ID: <1387209225-11520-3-git-send-email-kishon@ti.com>
-References: <1387209225-11520-1-git-send-email-kishon@ti.com>
+From: Sebastian Reichel <sre@ring0.de>
+Subject: Re: [RFCv4 06/11] misc: Introduce Nokia CMT driver
+Date: Mon, 16 Dec 2013 19:34:50 +0100
+Message-ID: <20131216183448.GA10614@earth.universe>
+References: <1387150085-23173-1-git-send-email-sre@debian.org>
+ <1387150085-23173-7-git-send-email-sre@debian.org>
+ <CACRpkdYjjXgE_W8gq1e6z=nGMF=r-m+o2kkvrBFrEMm3o0=RwQ@mail.gmail.com>
+ <20131216121524.GA6177@earth.universe>
+ <CACRpkdbx=Ye8xo4wMkyntME45xv15DeyqV32aeCAcSaa+vDpfA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1387209225-11520-1-git-send-email-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: tony@atomide.com, balbi@ti.com, linux-kernel@vger.kernel.org, kishon@ti.com, marek.belisko@gmail.com
-Cc: linux@arm.linux.org.uk, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, hns@goldelico.com
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="OgqxwSJOaUobr8KG"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from ring0.de ([91.143.88.219]:44384 "EHLO smtp.ring0.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755183Ab3LPSe4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 16 Dec 2013 13:34:56 -0500
+Content-Disposition: inline
+In-Reply-To: <CACRpkdbx=Ye8xo4wMkyntME45xv15DeyqV32aeCAcSaa+vDpfA@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: Shubhrajyoti Datta <omaplinuxkernel@gmail.com>, Carlos Chinea <cch.devel@gmail.com>, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@linaro.org>, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Rob Landley <rob@landley.net>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, =?utf-8?B?0JjQstCw0LnQu9C+INCU0LjQvNC40YLRgNC+0LI=?= <freemangordon@abv.bg>, Joni Lapilainen <joni.lapilainen@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>
 
-commit 2f7711 (usb: musb: remove hand-crafted id handling) used
-PLATFORM_DEVID_AUTO while creating MUSB core device. So commit 51482b
-(ARM: OMAP: USB: Add phy binding information) added usb_bind_phy
-(binds the controller with the PHY) in the board files, with *.auto* in
-the device name of the controller. Since other devices started using
-PLATFORM_DEVID_AUTO, the index in the device name given in usb_bind_phy
-changed making the data given in usb_bind_phy obsolete and usb_get_phy
-started failing. So MUSB wrapper was modified not to use PLATFORM_DEVID_AUTO.
-Corresponding change is done in board file here.
 
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
----
- arch/arm/mach-omap2/board-2430sdp.c        |    2 +-
- arch/arm/mach-omap2/board-3430sdp.c        |    2 +-
- arch/arm/mach-omap2/board-cm-t35.c         |    2 +-
- arch/arm/mach-omap2/board-devkit8000.c     |    2 +-
- arch/arm/mach-omap2/board-ldp.c            |    2 +-
- arch/arm/mach-omap2/board-omap3beagle.c    |    2 +-
- arch/arm/mach-omap2/board-omap3logic.c     |    2 +-
- arch/arm/mach-omap2/board-omap3pandora.c   |    2 +-
- arch/arm/mach-omap2/board-omap3stalker.c   |    2 +-
- arch/arm/mach-omap2/board-omap3touchbook.c |    2 +-
- arch/arm/mach-omap2/board-overo.c          |    2 +-
- arch/arm/mach-omap2/board-rx51.c           |    2 +-
- 12 files changed, 12 insertions(+), 12 deletions(-)
+--OgqxwSJOaUobr8KG
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/arch/arm/mach-omap2/board-2430sdp.c b/arch/arm/mach-omap2/board-2430sdp.c
-index c711ad6..cc679c6 100644
---- a/arch/arm/mach-omap2/board-2430sdp.c
-+++ b/arch/arm/mach-omap2/board-2430sdp.c
-@@ -246,7 +246,7 @@ static void __init omap_2430sdp_init(void)
- 	omap_hsmmc_init(mmc);
- 
- 	omap_mux_init_signal("usb0hs_stp", OMAP_PULL_ENA | OMAP_PULL_UP);
--	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
-+	usb_bind_phy("musb-hdrc.0", 0, "twl4030_usb");
- 	usb_musb_init(NULL);
- 
- 	board_smc91x_init();
-diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
-index d95d0ef..873e463 100644
---- a/arch/arm/mach-omap2/board-3430sdp.c
-+++ b/arch/arm/mach-omap2/board-3430sdp.c
-@@ -607,7 +607,7 @@ static void __init omap_3430sdp_init(void)
- 	omap_ads7846_init(1, gpio_pendown, 310, NULL);
- 	omap_serial_init();
- 	omap_sdrc_init(hyb18m512160af6_sdrc_params, NULL);
--	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
-+	usb_bind_phy("musb-hdrc.0", 0, "twl4030_usb");
- 	usb_musb_init(NULL);
- 	board_smc91x_init();
- 	board_flash_init(sdp_flash_partitions, chip_sel_3430, 0);
-diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
-index 8dd0ec8..ddcadfa 100644
---- a/arch/arm/mach-omap2/board-cm-t35.c
-+++ b/arch/arm/mach-omap2/board-cm-t35.c
-@@ -725,7 +725,7 @@ static void __init cm_t3x_common_init(void)
- 	cm_t35_init_display();
- 	omap_twl4030_audio_init("cm-t3x", NULL);
- 
--	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
-+	usb_bind_phy("musb-hdrc.0", 0, "twl4030_usb");
- 	usb_musb_init(NULL);
- 	cm_t35_init_usbh();
- 	cm_t35_init_camera();
-diff --git a/arch/arm/mach-omap2/board-devkit8000.c b/arch/arm/mach-omap2/board-devkit8000.c
-index cdc4fb9..bb589f1 100644
---- a/arch/arm/mach-omap2/board-devkit8000.c
-+++ b/arch/arm/mach-omap2/board-devkit8000.c
-@@ -628,7 +628,7 @@ static void __init devkit8000_init(void)
- 
- 	omap_ads7846_init(2, OMAP3_DEVKIT_TS_GPIO, 0, NULL);
- 
--	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
-+	usb_bind_phy("musb-hdrc.0", 0, "twl4030_usb");
- 	usb_musb_init(NULL);
- 	usbhs_init(&usbhs_bdata);
- 	board_nand_init(devkit8000_nand_partitions,
-diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
-index 4ec8d82..ec9b349 100644
---- a/arch/arm/mach-omap2/board-ldp.c
-+++ b/arch/arm/mach-omap2/board-ldp.c
-@@ -402,7 +402,7 @@ static void __init omap_ldp_init(void)
- 	omap_ads7846_init(1, 54, 310, NULL);
- 	omap_serial_init();
- 	omap_sdrc_init(NULL, NULL);
--	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
-+	usb_bind_phy("musb-hdrc.0", 0, "twl4030_usb");
- 	usb_musb_init(NULL);
- 	board_nand_init(ldp_nand_partitions, ARRAY_SIZE(ldp_nand_partitions),
- 			0, 0, nand_default_timings);
-diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index d6ed819..0cba5eb 100644
---- a/arch/arm/mach-omap2/board-omap3beagle.c
-+++ b/arch/arm/mach-omap2/board-omap3beagle.c
-@@ -561,7 +561,7 @@ static void __init omap3_beagle_init(void)
- 	omap_sdrc_init(mt46h32m32lf6_sdrc_params,
- 				  mt46h32m32lf6_sdrc_params);
- 
--	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
-+	usb_bind_phy("musb-hdrc.0", 0, "twl4030_usb");
- 	usb_musb_init(NULL);
- 
- 	usbhs_init(&usbhs_bdata);
-diff --git a/arch/arm/mach-omap2/board-omap3logic.c b/arch/arm/mach-omap2/board-omap3logic.c
-index bab51e6..d9a6c38 100644
---- a/arch/arm/mach-omap2/board-omap3logic.c
-+++ b/arch/arm/mach-omap2/board-omap3logic.c
-@@ -216,7 +216,7 @@ static void __init omap3logic_init(void)
- 	board_mmc_init();
- 	board_smsc911x_init();
- 
--	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
-+	usb_bind_phy("musb-hdrc.0", 0, "twl4030_usb");
- 	usb_musb_init(NULL);
- 
- 	/* Ensure SDRC pins are mux'd for self-refresh */
-diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-omap2/board-omap3pandora.c
-index de1bc6b..3826af6 100644
---- a/arch/arm/mach-omap2/board-omap3pandora.c
-+++ b/arch/arm/mach-omap2/board-omap3pandora.c
-@@ -607,7 +607,7 @@ static void __init omap3pandora_init(void)
- 	usbhs_init_phys(phy_data, ARRAY_SIZE(phy_data));
- 	usbhs_init(&usbhs_bdata);
- 
--	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
-+	usb_bind_phy("musb-hdrc.0", 0, "twl4030_usb");
- 	usb_musb_init(NULL);
- 	gpmc_nand_init(&pandora_nand_data, NULL);
- 
-diff --git a/arch/arm/mach-omap2/board-omap3stalker.c b/arch/arm/mach-omap2/board-omap3stalker.c
-index 119efaf..9421987 100644
---- a/arch/arm/mach-omap2/board-omap3stalker.c
-+++ b/arch/arm/mach-omap2/board-omap3stalker.c
-@@ -407,7 +407,7 @@ static void __init omap3_stalker_init(void)
- 
- 	omap_serial_init();
- 	omap_sdrc_init(mt46h32m32lf6_sdrc_params, NULL);
--	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
-+	usb_bind_phy("musb-hdrc.0", 0, "twl4030_usb");
- 	usb_musb_init(NULL);
- 
- 	usbhs_init_phys(phy_data, ARRAY_SIZE(phy_data));
-diff --git a/arch/arm/mach-omap2/board-omap3touchbook.c b/arch/arm/mach-omap2/board-omap3touchbook.c
-index 7da48bc..e8e053d 100644
---- a/arch/arm/mach-omap2/board-omap3touchbook.c
-+++ b/arch/arm/mach-omap2/board-omap3touchbook.c
-@@ -367,7 +367,7 @@ static void __init omap3_touchbook_init(void)
- 
- 	/* Touchscreen and accelerometer */
- 	omap_ads7846_init(4, OMAP3_TS_GPIO, 310, &ads7846_pdata);
--	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
-+	usb_bind_phy("musb-hdrc.0", 0, "twl4030_usb");
- 	usb_musb_init(NULL);
- 
- 	usbhs_init_phys(phy_data, ARRAY_SIZE(phy_data));
-diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
-index f6d3841..c69e049 100644
---- a/arch/arm/mach-omap2/board-overo.c
-+++ b/arch/arm/mach-omap2/board-overo.c
-@@ -511,7 +511,7 @@ static void __init overo_init(void)
- 				  mt46h32m32lf6_sdrc_params);
- 	board_nand_init(overo_nand_partitions,
- 			ARRAY_SIZE(overo_nand_partitions), NAND_CS, 0, NULL);
--	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
-+	usb_bind_phy("musb-hdrc.0", 0, "twl4030_usb");
- 	usb_musb_init(NULL);
- 
- 	usbhs_init_phys(phy_data, ARRAY_SIZE(phy_data));
-diff --git a/arch/arm/mach-omap2/board-rx51.c b/arch/arm/mach-omap2/board-rx51.c
-index db168c9..31d218f 100644
---- a/arch/arm/mach-omap2/board-rx51.c
-+++ b/arch/arm/mach-omap2/board-rx51.c
-@@ -103,7 +103,7 @@ static void __init rx51_init(void)
- 	sdrc_params = nokia_get_sdram_timings();
- 	omap_sdrc_init(sdrc_params, sdrc_params);
- 
--	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
-+	usb_bind_phy("musb-hdrc.0", 0, "twl4030_usb");
- 	usb_musb_init(&musb_board_data);
- 	rx51_peripherals_init();
- 
--- 
-1.7.10.4
+Hi,
+
+On Mon, Dec 16, 2013 at 02:31:53PM +0100, Linus Walleij wrote:
+> I am very reluctant in letting device trees specify exports of GPIOs
+> to userspace, not so much because it's Linux-specific but for
+> the fact that people are doing things in userspace that should not
+> be done in userspace.
+>=20
+> Last time it was proposed I asked to the specific usecase,
+> exactly why userspace needed this handle on a physical
+> GPIO line, and why it can't use another userspace interface
+> (example: leds, keys etc.)
+
+There are a couple of lines ("cmt_apeslpx", "cmt_rst_rq", "cmt_en",
+"cmt_rst", "cmt_bsi"), which are handled by ofono to do the correct
+power sequence for the modem. The relevant ofono code is here:
+
+https://git.kernel.org/cgit/network/ofono/ofono.git/tree/plugins/nokia-gpio=
+=2Ec
+
+In MeeGo etc. they have a little board specific init script, which
+exports the gpio lines and setups some symlinks. IMHO at least the
+board specific stuff should be handled by the kernel, thus I added
+this code to the driver. I guess you prefer to move the power
+sequencing completly to the kernel?
+
+> > What do you think about the following?
+> >
+> > /*
+> >  * driver, which provides generic reset notifications
+> >  */
+> > cmt_reset: reset-notifier {
+> >     compatible =3D "linux,reset-notification";
+> >
+> >     interrupts =3D <gpio>;
+> > };
+>=20
+> Looks good to me.
+
+Ok :) I will prepare something for the next patch.
+
+> > /*
+> >  * driver, which exports the specified gpios in sysfs with the
+> >  * supplied names. The device will be named according to the
+> >  * label
+> >  */
+> > cmt_gpios: gpio-sysfs-export {
+> >     compatible =3D "linux,gpio-sysfs-export";
+> >     label =3D "nokia-cmt";
+> >
+> >     gpios =3D <A>, <B>, ...;
+> >     gpio-names =3D "A", "B", ...;
+> > };
+>=20
+> Please follow the discussion on this topic:
+> http://marc.info/?l=3Dlinux-gpio&m=3D138201170431416&w=3D2
+
+Ok.
+
+> >> Why are you using a tasklet rather than a work
+> >> for this?
+> >
+> > No particular reason. I just took this over from Nokia's code.
+>=20
+> Can you try to use a work instead?
+
+Yes. I will have a look at this.
+
+-- Sebastian
+
+--OgqxwSJOaUobr8KG
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.15 (GNU/Linux)
+
+iQIcBAEBCAAGBQJSr0fIAAoJENju1/PIO/qabycP/AkF3r6cMXP4ws0yNciC4oUm
+ciIG8wl9GVsERgkw7JNDKElpQEnAwfO2WkYLnTJmy/3s12jSqAUPj+12AwB56Oqk
+8Nnnx93n8aGIe5QDu3NH9kj9Y0anhJN0hBgBz1emKZH4HXbWoZJsYRHndLTy6bgf
+YTik0VsWxChGFrcoIAVHB+LZZ0GwI+nmhmmODk2li1ZHbB3dP04ZzYlmH8ekA31l
+kjJrv+XQIwlVS+IkHFxVZbw1XTuU7q9vUFuWVj/wsDx0vL6q1WYpSwSPcH7G+/jT
+iRNE+pAUdGxkkaz9Rom5GH3S1Bj2jrRzR4XxIt3QY0uyeTIX95Yq/uDa0epq+oEu
+nJ6hUgOsDivNyAr5/9tvBk1u89AgFrmBLjJR7BpwWc1pjf7qM1jKEyp7LbnqmfjL
+9tUTdz7Y4GFT2XA38BsLzu6NNG7QY+/klTvfiqrmrNLHyyPd+VoWg03C9ZzPI6mg
+pa8KjJjiNfHwcgWuhTSW//qH2ljM5yyQHhcaJnQRmVqzlnI6jBymtUvYr2VZbIC5
+2khMxehoxPNTi7QUZAwtssSZwvrk5hRODtxJ0ImsRs4lq6NeM+ncED9pPAa+gSaB
+oOQI3Ka81yyqBvsxlSSX9gPkNV0clijbtAeQaeaPxAGEL74Zi4q2eYLLZBK4Wq9H
+gVSlG22gFY06ifNi9nqA
+=EBrD
+-----END PGP SIGNATURE-----
+
+--OgqxwSJOaUobr8KG--
