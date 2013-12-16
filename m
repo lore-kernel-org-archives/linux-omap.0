@@ -1,137 +1,72 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCHv2 03/27] ARM: OMAP2+: add omapdss_init_of()
-Date: Mon, 16 Dec 2013 16:56:10 +0200
-Message-ID: <1387205794-32246-4-git-send-email-tomi.valkeinen@ti.com>
-References: <1387205794-32246-1-git-send-email-tomi.valkeinen@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH] omap: twl-common: Fix musb-hdrc device name.
+Date: Mon, 16 Dec 2013 20:56:55 +0530
+Message-ID: <52AF1BBF.9010802@ti.com>
+References: <1386059589-4030-1-git-send-email-marek.belisko@open-nandra.com> <529D9D43.6040101@ti.com> <CAAfyv37Vie1vZK2XQ1cfVq6eVnSuaBLfykk6pU8fwEyqvPF4BA@mail.gmail.com> <CAAfyv35gVVNydrk8vifSyidpFjEXjGiT4-i2dgN5Un2=FuHaqQ@mail.gmail.com> <20131205184323.GF26766@atomide.com> <CAAfyv37e9+OLH-KegPCEhc0sbBS7UVnaSGU0mBw2AxAN9D7Akw@mail.gmail.com> <20131209175006.GD12527@atomide.com> <CAAfyv36P7DDcdaLWtXnZXPfQWPL20shE3kOHWtD0mSmH7aixdg@mail.gmail.com> <52AAF5E6.1050900@ti.com> <20131213173636.GG28184@atomide.com> <52AEBF36.9010400@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:33038 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:34661 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754182Ab3LPO6D (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 16 Dec 2013 09:58:03 -0500
-In-Reply-To: <1387205794-32246-1-git-send-email-tomi.valkeinen@ti.com>
+	id S1754092Ab3LPP1a (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 16 Dec 2013 10:27:30 -0500
+In-Reply-To: <52AEBF36.9010400@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
+To: Tony Lindgren <tony@atomide.com>, "balbi@ti.com" <balbi@ti.com>
+Cc: Belisko Marek <marek.belisko@gmail.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>
 
-omapdss driver uses a omapdss platform device to pass platform specific
-function pointers and DSS hardware version from the arch code to the
-driver. This device is needed also when booting with DT.
+On Monday 16 December 2013 02:22 PM, Kishon Vijay Abraham I wrote:
+> Hi,
+> 
+> On Friday 13 December 2013 11:06 PM, Tony Lindgren wrote:
+>> * Kishon Vijay Abraham I <kishon@ti.com> [131213 03:57]:
+>>> On Friday 13 December 2013 04:57 PM, Belisko Marek wrote:
+>>>> Kishon can you please comment on that? Would be possible to get your
+>>>> patch to 3.13 (I seen some comments from Felipe).
+>>>
+>>> I'm not sure as my patch modifies all the board files. There was initially some
+>>> confusion w.r.t when the board files will be dropped. But since board files
+>>> will still be there in 3.13, I'd recommend my patch  [1] to be taken. Anyways
+>>> if you have tested my patch (series), pls give your Tested-by.
+>>>
+>>> Tony, summary of the issue..
+>>> After the platform devices are created using PLATFORM_DEVID_AUTO, the
+>>> device names given in usb_bind_phy (in board file) does not match with
+>>> the actual device name causing the USB PHY library not to return the
+>>> PHY reference when the MUSB controller request for the PHY in the non-dt boot
+>>> case. So removed creating platform devices using PLATFORM_DEVID_AUTO in
+>>> omap2430.c. So had to make the corresponding changes in board files.
+>>
+>> OK. Can you please repost with a proper commit id for what caused the
+>> regression and summararize why it should be fixed this way. Something like:
+>>
+>> Commit abcd1234 (usb: blah foo bar) caused blah blah blah. Fix the issue
+>> with blah blah blah. Note that the board-*.c files will be removed soon,
+>> but for v3.13 we still support both legacy booting and device tree based
+>> booting and need to fix it.
+> 
+> huh.. I think we can have a much simpler fix. All this binding in board file
+> was introduced to support platforms that has multiple PHYs of the same type.
+> But musb/omap2430.c serves platforms that has only one PHY of a particular
+> type. We can just go back to usb_get_phy(enum usb_phy_type type) instead of
+> 'usb_get_phy_dev' in omap2430.c. Felipe, what do you think?
 
-This patch adds omapdss_init_of() function, called from board-generic at
-init time, which creates the omapdss device.
+Never-mind, that doesn't work. I'll just re-send the patch the way you suggested.
 
-Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
----
- arch/arm/mach-omap2/board-generic.c |  2 ++
- arch/arm/mach-omap2/common.h        |  2 ++
- arch/arm/mach-omap2/display.c       | 62 +++++++++++++++++++++++++++++++++++++
- 3 files changed, 66 insertions(+)
+Cheers
+Kishon
 
-diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
-index 8d972ff18c56..842e4f21ab09 100644
---- a/arch/arm/mach-omap2/board-generic.c
-+++ b/arch/arm/mach-omap2/board-generic.c
-@@ -36,6 +36,8 @@ static struct of_device_id omap_dt_match_table[] __initdata = {
- static void __init omap_generic_init(void)
- {
- 	pdata_quirks_init(omap_dt_match_table);
-+
-+	omapdss_init_of();
- }
- 
- #ifdef CONFIG_SOC_OMAP2420
-diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
-index e30ef6797c63..04a4d360dd20 100644
---- a/arch/arm/mach-omap2/common.h
-+++ b/arch/arm/mach-omap2/common.h
-@@ -307,5 +307,7 @@ extern int omap_dss_reset(struct omap_hwmod *);
- /* SoC specific clock initializer */
- extern int (*omap_clk_init)(void);
- 
-+int __init omapdss_init_of(void);
-+
- #endif /* __ASSEMBLER__ */
- #endif /* __ARCH_ARM_MACH_OMAP2PLUS_COMMON_H */
-diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
-index 58347bb874a0..197f431ae279 100644
---- a/arch/arm/mach-omap2/display.c
-+++ b/arch/arm/mach-omap2/display.c
-@@ -23,6 +23,8 @@
- #include <linux/clk.h>
- #include <linux/err.h>
- #include <linux/delay.h>
-+#include <linux/of.h>
-+#include <linux/of_platform.h>
- 
- #include <video/omapdss.h>
- #include "omap_hwmod.h"
-@@ -514,3 +516,63 @@ int omap_dss_reset(struct omap_hwmod *oh)
- 
- 	return r;
- }
-+
-+int __init omapdss_init_of(void)
-+{
-+	int r;
-+	enum omapdss_version ver;
-+
-+	static struct omap_dss_board_info board_data = {
-+		.dsi_enable_pads = omap_dsi_enable_pads,
-+		.dsi_disable_pads = omap_dsi_disable_pads,
-+		.get_context_loss_count = omap_pm_get_dev_context_loss_count,
-+		.set_min_bus_tput = omap_dss_set_min_bus_tput,
-+	};
-+
-+	ver = omap_display_get_version();
-+
-+	if (ver == OMAPDSS_VER_UNKNOWN) {
-+		pr_err("DSS not supported on this SoC\n");
-+		return -ENODEV;
-+	}
-+
-+	board_data.version = ver;
-+
-+	omap_display_device.dev.platform_data = &board_data;
-+
-+	r = platform_device_register(&omap_display_device);
-+	if (r < 0) {
-+		pr_err("Unable to register omapdss device\n");
-+		return r;
-+	}
-+
-+	/* create DRM device */
-+	r = omap_init_drm();
-+	if (r < 0) {
-+		pr_err("Unable to register omapdrm device\n");
-+		return r;
-+	}
-+
-+	/* create vrfb device */
-+	r = omap_init_vrfb();
-+	if (r < 0) {
-+		pr_err("Unable to register omapvrfb device\n");
-+		return r;
-+	}
-+
-+	/* create FB device */
-+	r = omap_init_fb();
-+	if (r < 0) {
-+		pr_err("Unable to register omapfb device\n");
-+		return r;
-+	}
-+
-+	/* create V4L2 display device */
-+	r = omap_init_vout();
-+	if (r < 0) {
-+		pr_err("Unable to register omap_vout device\n");
-+		return r;
-+	}
-+
-+	return 0;
-+}
--- 
-1.8.3.2
+> 
+> Cheers
+> Kishon
+> 
+>>
+>> Regards,
+>>
+>> Tony
+>>  
+>>> [1] -> http://lists.scusting.com/index.php?t=msg&th=375579&start=0&S=Google
+> 
 
