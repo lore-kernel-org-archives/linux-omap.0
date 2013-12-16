@@ -1,84 +1,367 @@
-From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Subject: Re: [PATCH 4/5] arm: omap3: twl: use the new lookup method with usb
- phy
-Date: Mon, 16 Dec 2013 16:43:14 +0200
-Message-ID: <20131216144314.GB22944@xps8300>
-References: <1386601737-8735-1-git-send-email-heikki.krogerus@linux.intel.com>
- <1386601737-8735-5-git-send-email-heikki.krogerus@linux.intel.com>
- <52AEDE43.8030005@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: [PATCHv2 01/27] ARM: OMAP: remove DSS DT hack
+Date: Mon, 16 Dec 2013 16:56:08 +0200
+Message-ID: <1387205794-32246-2-git-send-email-tomi.valkeinen@ti.com>
+References: <1387205794-32246-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:13744 "EHLO mga02.intel.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:54748 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753574Ab3LPOng (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 16 Dec 2013 09:43:36 -0500
-Content-Disposition: inline
-In-Reply-To: <52AEDE43.8030005@ti.com>
+	id S1753898Ab3LPO6A (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 16 Dec 2013 09:58:00 -0500
+In-Reply-To: <1387205794-32246-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-samsung-soc@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Hi,
+As a temporary solution to enable DSS for selected boards when booting
+with DT, a hack was added to board-generic.c in
+63d5fc0c2f748e20f38a0a0ec1c8494bddf5c288 (OMAP: board-generic: enable
+DSS for panda & sdp boards).
 
-On Mon, Dec 16, 2013 at 04:34:35PM +0530, Kishon Vijay Abraham I wrote:
-> On Monday 09 December 2013 08:38 PM, Heikki Krogerus wrote:
-> > Provide a complete association for the phy and it's user
-> > (musb) with the new phy_lookup_table.
-> > 
-> > Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-> > ---
-> >  arch/arm/mach-omap2/twl-common.c | 15 ++++++---------
-> >  1 file changed, 6 insertions(+), 9 deletions(-)
-> > 
-> > diff --git a/arch/arm/mach-omap2/twl-common.c b/arch/arm/mach-omap2/twl-common.c
-> > index b0d54da..972430b 100644
-> > --- a/arch/arm/mach-omap2/twl-common.c
-> > +++ b/arch/arm/mach-omap2/twl-common.c
-> > @@ -91,18 +91,13 @@ void __init omap_pmic_late_init(void)
-> >  }
-> >  
-> >  #if defined(CONFIG_ARCH_OMAP3)
-> > -struct phy_consumer consumers[] = {
-> > -	PHY_CONSUMER("musb-hdrc.0", "usb"),
-> > -};
-> > -
-> > -struct phy_init_data init_data = {
-> > -	.consumers = consumers,
-> > -	.num_consumers = ARRAY_SIZE(consumers),
-> > +static struct phy_lookup_table twl4030_usb_lookup = {
-> > +	.dev_id = "musb-hdrc.0",
-> > +	.table = PHY_LOOKUP("phy-twl4030_usb.0", NULL),
-> >  };
-> 
-> had a similar approach during the initial version of phy framework [1] (see
-> phy_bind) but changed it later [2] . Here you should know the device names of
-> two devices and even if one of them started using DEVID_AUTO, it'll start
-> breaking. Such an approach needs to reviewed carefully.
+We're now adding proper DT support, so the hack can be removed.
 
-If somebody creates a regression by changing something like the
-platform device id without checking all the users, he deserves to get
-into big trouble. I don't see why an individual framework should
-provide protection against such cases.
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+---
+ arch/arm/mach-omap2/Makefile       |   2 +-
+ arch/arm/mach-omap2/dss-common.c   | 259 -------------------------------------
+ arch/arm/mach-omap2/dss-common.h   |  13 --
+ arch/arm/mach-omap2/pdata-quirks.c |   4 -
+ 4 files changed, 1 insertion(+), 277 deletions(-)
+ delete mode 100644 arch/arm/mach-omap2/dss-common.c
+ delete mode 100644 arch/arm/mach-omap2/dss-common.h
 
-In any case, having two device names to deal with does not add any
-more risk. These associations should always be made in the place where
-the phy device is created so you will always know it's device name.
-Normally the platform code creates these associations in the same
-place it creates the platform devices, so you definitely know what the
-device names will be.
-
-In this case it's actually created in drivers/mfd/twl-core.c, so I do
-need to update this and move the lookup table there. We can still
-deliver the user name as platform data, though I believe it's always
-"musb". Maybe we could actually skip that and just hard code the name?
-The name of the phy we will of course know as the platform device is
-created there and then, so the two device names don't create any more
-risk even in this case.
-
-
-Thanks,
-
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index adcef406ff0a..e81dbf202a6d 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -296,4 +296,4 @@ endif
+ emac-$(CONFIG_TI_DAVINCI_EMAC)		:= am35xx-emac.o
+ obj-y					+= $(emac-m) $(emac-y)
+ 
+-obj-y					+= common-board-devices.o twl-common.o dss-common.o
++obj-y					+= common-board-devices.o twl-common.o
+diff --git a/arch/arm/mach-omap2/dss-common.c b/arch/arm/mach-omap2/dss-common.c
+deleted file mode 100644
+index dadccc91488c..000000000000
+--- a/arch/arm/mach-omap2/dss-common.c
++++ /dev/null
+@@ -1,259 +0,0 @@
+-/*
+- * Copyright (C) 2012 Texas Instruments, Inc..
+- * Author: Tomi Valkeinen <tomi.valkeinen@ti.com>
+- *
+- * This program is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU General Public License
+- * version 2 as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope that it will be useful, but
+- * WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+- * General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+- * 02110-1301 USA
+- *
+- */
+-
+-/*
+- * NOTE: this is a transitional file to help with DT adaptation.
+- * This file will be removed when DSS supports DT.
+- */
+-
+-#include <linux/kernel.h>
+-#include <linux/gpio.h>
+-#include <linux/platform_device.h>
+-
+-#include <video/omapdss.h>
+-#include <video/omap-panel-data.h>
+-
+-#include "soc.h"
+-#include "dss-common.h"
+-#include "mux.h"
+-
+-#define HDMI_GPIO_CT_CP_HPD 60 /* HPD mode enable/disable */
+-#define HDMI_GPIO_LS_OE 41 /* Level shifter for HDMI */
+-#define HDMI_GPIO_HPD  63 /* Hotplug detect */
+-
+-#define PANDA_DVI_TFP410_POWER_DOWN_GPIO	0
+-
+-/* DVI Connector */
+-static struct connector_dvi_platform_data omap4_panda_dvi_connector_pdata = {
+-	.name                   = "dvi",
+-	.source                 = "tfp410.0",
+-	.i2c_bus_num            = 2,
+-};
+-
+-static struct platform_device omap4_panda_dvi_connector_device = {
+-	.name                   = "connector-dvi",
+-	.id                     = 0,
+-	.dev.platform_data      = &omap4_panda_dvi_connector_pdata,
+-};
+-
+-/* TFP410 DPI-to-DVI chip */
+-static struct encoder_tfp410_platform_data omap4_panda_tfp410_pdata = {
+-	.name                   = "tfp410.0",
+-	.source                 = "dpi.0",
+-	.data_lines             = 24,
+-	.power_down_gpio        = PANDA_DVI_TFP410_POWER_DOWN_GPIO,
+-};
+-
+-static struct platform_device omap4_panda_tfp410_device = {
+-	.name                   = "tfp410",
+-	.id                     = 0,
+-	.dev.platform_data      = &omap4_panda_tfp410_pdata,
+-};
+-
+-/* HDMI Connector */
+-static struct connector_hdmi_platform_data omap4_panda_hdmi_connector_pdata = {
+-	.name                   = "hdmi",
+-	.source                 = "tpd12s015.0",
+-};
+-
+-static struct platform_device omap4_panda_hdmi_connector_device = {
+-	.name                   = "connector-hdmi",
+-	.id                     = 0,
+-	.dev.platform_data      = &omap4_panda_hdmi_connector_pdata,
+-};
+-
+-/* TPD12S015 HDMI ESD protection & level shifter chip */
+-static struct encoder_tpd12s015_platform_data omap4_panda_tpd_pdata = {
+-	.name                   = "tpd12s015.0",
+-	.source                 = "hdmi.0",
+-
+-	.ct_cp_hpd_gpio = HDMI_GPIO_CT_CP_HPD,
+-	.ls_oe_gpio = HDMI_GPIO_LS_OE,
+-	.hpd_gpio = HDMI_GPIO_HPD,
+-};
+-
+-static struct platform_device omap4_panda_tpd_device = {
+-	.name                   = "tpd12s015",
+-	.id                     = 0,
+-	.dev.platform_data      = &omap4_panda_tpd_pdata,
+-};
+-
+-static struct omap_dss_board_info omap4_panda_dss_data = {
+-	.default_display_name = "dvi",
+-};
+-
+-void __init omap4_panda_display_init_of(void)
+-{
+-	omap_display_init(&omap4_panda_dss_data);
+-
+-	platform_device_register(&omap4_panda_tfp410_device);
+-	platform_device_register(&omap4_panda_dvi_connector_device);
+-
+-	platform_device_register(&omap4_panda_tpd_device);
+-	platform_device_register(&omap4_panda_hdmi_connector_device);
+-}
+-
+-
+-/* OMAP4 Blaze display data */
+-
+-#define DISPLAY_SEL_GPIO	59	/* LCD2/PicoDLP switch */
+-#define DLP_POWER_ON_GPIO	40
+-
+-static struct panel_dsicm_platform_data dsi1_panel = {
+-	.name		= "lcd",
+-	.source		= "dsi.0",
+-	.reset_gpio	= 102,
+-	.use_ext_te	= false,
+-	.ext_te_gpio	= 101,
+-	.pin_config = {
+-		.num_pins	= 6,
+-		.pins		= { 0, 1, 2, 3, 4, 5 },
+-	},
+-};
+-
+-static struct platform_device sdp4430_lcd_device = {
+-	.name                   = "panel-dsi-cm",
+-	.id                     = 0,
+-	.dev.platform_data	= &dsi1_panel,
+-};
+-
+-static struct panel_dsicm_platform_data dsi2_panel = {
+-	.name		= "lcd2",
+-	.source		= "dsi.1",
+-	.reset_gpio	= 104,
+-	.use_ext_te	= false,
+-	.ext_te_gpio	= 103,
+-	.pin_config = {
+-		.num_pins	= 6,
+-		.pins		= { 0, 1, 2, 3, 4, 5 },
+-	},
+-};
+-
+-static struct platform_device sdp4430_lcd2_device = {
+-	.name                   = "panel-dsi-cm",
+-	.id                     = 1,
+-	.dev.platform_data	= &dsi2_panel,
+-};
+-
+-/* HDMI Connector */
+-static struct connector_hdmi_platform_data sdp4430_hdmi_connector_pdata = {
+-	.name                   = "hdmi",
+-	.source                 = "tpd12s015.0",
+-};
+-
+-static struct platform_device sdp4430_hdmi_connector_device = {
+-	.name                   = "connector-hdmi",
+-	.id                     = 0,
+-	.dev.platform_data      = &sdp4430_hdmi_connector_pdata,
+-};
+-
+-/* TPD12S015 HDMI ESD protection & level shifter chip */
+-static struct encoder_tpd12s015_platform_data sdp4430_tpd_pdata = {
+-	.name                   = "tpd12s015.0",
+-	.source                 = "hdmi.0",
+-
+-	.ct_cp_hpd_gpio = HDMI_GPIO_CT_CP_HPD,
+-	.ls_oe_gpio = HDMI_GPIO_LS_OE,
+-	.hpd_gpio = HDMI_GPIO_HPD,
+-};
+-
+-static struct platform_device sdp4430_tpd_device = {
+-	.name                   = "tpd12s015",
+-	.id                     = 0,
+-	.dev.platform_data      = &sdp4430_tpd_pdata,
+-};
+-
+-
+-static struct omap_dss_board_info sdp4430_dss_data = {
+-	.default_display_name = "lcd",
+-};
+-
+-/*
+- * we select LCD2 by default (instead of Pico DLP) by setting DISPLAY_SEL_GPIO.
+- * Setting DLP_POWER_ON gpio enables the VDLP_2V5 VDLP_1V8 and VDLP_1V0 rails
+- * used by picodlp on the 4430sdp platform. Keep this gpio disabled as LCD2 is
+- * selected by default
+- */
+-void __init omap_4430sdp_display_init_of(void)
+-{
+-	int r;
+-
+-	r = gpio_request_one(DISPLAY_SEL_GPIO, GPIOF_OUT_INIT_HIGH,
+-			"display_sel");
+-	if (r)
+-		pr_err("%s: Could not get display_sel GPIO\n", __func__);
+-
+-	r = gpio_request_one(DLP_POWER_ON_GPIO, GPIOF_OUT_INIT_LOW,
+-		"DLP POWER ON");
+-	if (r)
+-		pr_err("%s: Could not get DLP POWER ON GPIO\n", __func__);
+-
+-	omap_display_init(&sdp4430_dss_data);
+-
+-	platform_device_register(&sdp4430_lcd_device);
+-	platform_device_register(&sdp4430_lcd2_device);
+-
+-	platform_device_register(&sdp4430_tpd_device);
+-	platform_device_register(&sdp4430_hdmi_connector_device);
+-}
+-
+-
+-/* OMAP3 IGEPv2 data */
+-
+-#define IGEP2_DVI_TFP410_POWER_DOWN_GPIO	170
+-
+-/* DVI Connector */
+-static struct connector_dvi_platform_data omap3_igep2_dvi_connector_pdata = {
+-	.name                   = "dvi",
+-	.source                 = "tfp410.0",
+-	.i2c_bus_num            = 2,
+-};
+-
+-static struct platform_device omap3_igep2_dvi_connector_device = {
+-	.name                   = "connector-dvi",
+-	.id                     = 0,
+-	.dev.platform_data      = &omap3_igep2_dvi_connector_pdata,
+-};
+-
+-/* TFP410 DPI-to-DVI chip */
+-static struct encoder_tfp410_platform_data omap3_igep2_tfp410_pdata = {
+-	.name                   = "tfp410.0",
+-	.source                 = "dpi.0",
+-	.data_lines             = 24,
+-	.power_down_gpio        = IGEP2_DVI_TFP410_POWER_DOWN_GPIO,
+-};
+-
+-static struct platform_device omap3_igep2_tfp410_device = {
+-	.name                   = "tfp410",
+-	.id                     = 0,
+-	.dev.platform_data      = &omap3_igep2_tfp410_pdata,
+-};
+-
+-static struct omap_dss_board_info igep2_dss_data = {
+-	.default_display_name = "dvi",
+-};
+-
+-void __init omap3_igep2_display_init_of(void)
+-{
+-	omap_display_init(&igep2_dss_data);
+-
+-	platform_device_register(&omap3_igep2_tfp410_device);
+-	platform_device_register(&omap3_igep2_dvi_connector_device);
+-}
+diff --git a/arch/arm/mach-omap2/dss-common.h b/arch/arm/mach-omap2/dss-common.h
+deleted file mode 100644
+index a9becf0d5be8..000000000000
+--- a/arch/arm/mach-omap2/dss-common.h
++++ /dev/null
+@@ -1,13 +0,0 @@
+-#ifndef __OMAP_DSS_COMMON__
+-#define __OMAP_DSS_COMMON__
+-
+-/*
+- * NOTE: this is a transitional file to help with DT adaptation.
+- * This file will be removed when DSS supports DT.
+- */
+-
+-void __init omap4_panda_display_init_of(void);
+-void __init omap_4430sdp_display_init_of(void);
+-void __init omap3_igep2_display_init_of(void);
+-
+-#endif
+diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
+index 39f020c982e8..acc72a002316 100644
+--- a/arch/arm/mach-omap2/pdata-quirks.c
++++ b/arch/arm/mach-omap2/pdata-quirks.c
+@@ -18,7 +18,6 @@
+ 
+ #include "common.h"
+ #include "common-board-devices.h"
+-#include "dss-common.h"
+ #include "control.h"
+ 
+ struct pdata_init {
+@@ -80,7 +79,6 @@ static void __init hsmmc2_internal_input_clk(void)
+ 
+ static void __init omap3_igep0020_legacy_init(void)
+ {
+-	omap3_igep2_display_init_of();
+ }
+ 
+ static void __init omap3_evm_legacy_init(void)
+@@ -97,14 +95,12 @@ static void __init omap3_zoom_legacy_init(void)
+ #ifdef CONFIG_ARCH_OMAP4
+ static void __init omap4_sdp_legacy_init(void)
+ {
+-	omap_4430sdp_display_init_of();
+ 	legacy_init_wl12xx(WL12XX_REFCLOCK_26,
+ 			   WL12XX_TCXOCLOCK_26, 53);
+ }
+ 
+ static void __init omap4_panda_legacy_init(void)
+ {
+-	omap4_panda_display_init_of();
+ 	legacy_init_ehci_clk("auxclk3_ck");
+ 	legacy_init_wl12xx(WL12XX_REFCLOCK_38, 0, 53);
+ }
 -- 
-heikki
+1.8.3.2
+
