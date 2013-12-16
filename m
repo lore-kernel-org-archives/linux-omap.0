@@ -1,15 +1,15 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCHv2 25/27] OMAPDSS: hdmi-connector: Add DT support
-Date: Mon, 16 Dec 2013 16:56:32 +0200
-Message-ID: <1387205794-32246-26-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCHv2 22/27] OMAPDSS: encoder-tfp410: Add DT support
+Date: Mon, 16 Dec 2013 16:56:29 +0200
+Message-ID: <1387205794-32246-23-git-send-email-tomi.valkeinen@ti.com>
 References: <1387205794-32246-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:55754 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:54792 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754444Ab3LPO6h (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 16 Dec 2013 09:58:37 -0500
+	id S1754369Ab3LPO6c (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 16 Dec 2013 09:58:32 -0500
 In-Reply-To: <1387205794-32246-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -18,30 +18,50 @@ Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/omap2/displays-new/connector-hdmi.c | 30 +++++++++++++++++++++++
- 1 file changed, 30 insertions(+)
+ drivers/video/omap2/displays-new/encoder-tfp410.c | 43 ++++++++++++++++++++++-
+ 1 file changed, 42 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/video/omap2/displays-new/connector-hdmi.c b/drivers/video/omap2/displays-new/connector-hdmi.c
-index 9abe2c039ae9..12246b5841c0 100644
---- a/drivers/video/omap2/displays-new/connector-hdmi.c
-+++ b/drivers/video/omap2/displays-new/connector-hdmi.c
-@@ -12,6 +12,7 @@
- #include <linux/slab.h>
+diff --git a/drivers/video/omap2/displays-new/encoder-tfp410.c b/drivers/video/omap2/displays-new/encoder-tfp410.c
+index 4a291e756be9..2c664d476788 100644
+--- a/drivers/video/omap2/displays-new/encoder-tfp410.c
++++ b/drivers/video/omap2/displays-new/encoder-tfp410.c
+@@ -13,6 +13,7 @@
  #include <linux/module.h>
  #include <linux/platform_device.h>
-+#include <linux/of.h>
+ #include <linux/slab.h>
++#include <linux/of_gpio.h>
  
- #include <drm/drm_edid.h>
+ #include <video/omapdss.h>
+ #include <video/omap-panel-data.h>
+@@ -82,7 +83,8 @@ static int tfp410_enable(struct omap_dss_device *dssdev)
+ 		return 0;
  
-@@ -301,6 +302,23 @@ static int hdmic_probe_pdata(struct platform_device *pdev)
+ 	in->ops.dpi->set_timings(in, &ddata->timings);
+-	in->ops.dpi->set_data_lines(in, ddata->data_lines);
++	if (ddata->data_lines)
++		in->ops.dpi->set_data_lines(in, ddata->data_lines);
+ 
+ 	r = in->ops.dpi->enable(in);
+ 	if (r)
+@@ -179,6 +181,33 @@ static int tfp410_probe_pdata(struct platform_device *pdev)
  	return 0;
  }
  
-+static int hdmic_probe_of(struct platform_device *pdev)
++static int tfp410_probe_of(struct platform_device *pdev)
 +{
 +	struct panel_drv_data *ddata = platform_get_drvdata(pdev);
 +	struct device_node *node = pdev->dev.of_node;
 +	struct omap_dss_device *in;
++	int gpio;
++
++	gpio = of_get_gpio(node, 0);
++
++	if (gpio_is_valid(gpio) || gpio == -ENOENT) {
++		ddata->pd_gpio = gpio;
++	} else {
++		dev_err(&pdev->dev, "failed to parse PD gpio\n");
++		return gpio;
++	}
 +
 +	in = omapdss_of_find_source_for_first_ep(node);
 +	if (IS_ERR(in)) {
@@ -54,38 +74,38 @@ index 9abe2c039ae9..12246b5841c0 100644
 +	return 0;
 +}
 +
- static int hdmic_probe(struct platform_device *pdev)
+ static int tfp410_probe(struct platform_device *pdev)
  {
  	struct panel_drv_data *ddata;
-@@ -318,6 +336,10 @@ static int hdmic_probe(struct platform_device *pdev)
- 		r = hdmic_probe_pdata(pdev);
+@@ -195,6 +224,10 @@ static int tfp410_probe(struct platform_device *pdev)
+ 		r = tfp410_probe_pdata(pdev);
  		if (r)
  			return r;
 +	} else if (pdev->dev.of_node) {
-+		r = hdmic_probe_of(pdev);
++		r = tfp410_probe_of(pdev);
 +		if (r)
 +			return r;
  	} else {
  		return -ENODEV;
  	}
-@@ -359,12 +381,20 @@ static int __exit hdmic_remove(struct platform_device *pdev)
+@@ -251,12 +284,20 @@ static int __exit tfp410_remove(struct platform_device *pdev)
  	return 0;
  }
  
-+static const struct of_device_id hdmic_of_match[] = {
-+	{ .compatible = "hdmi-connector", },
++static const struct of_device_id tfp410_of_match[] = {
++	{ .compatible = "ti,tfp410", },
 +	{},
 +};
 +
-+MODULE_DEVICE_TABLE(of, hdmic_of_match);
++MODULE_DEVICE_TABLE(of, tfp410_of_match);
 +
- static struct platform_driver hdmi_connector_driver = {
- 	.probe	= hdmic_probe,
- 	.remove	= __exit_p(hdmic_remove),
+ static struct platform_driver tfp410_driver = {
+ 	.probe	= tfp410_probe,
+ 	.remove	= __exit_p(tfp410_remove),
  	.driver	= {
- 		.name	= "connector-hdmi",
+ 		.name	= "tfp410",
  		.owner	= THIS_MODULE,
-+		.of_match_table = hdmic_of_match,
++		.of_match_table = tfp410_of_match,
  	},
  };
  
