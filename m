@@ -1,35 +1,77 @@
-From: Sebastian Reichel <sre@debian.org>
-Subject: [RFCv4 03/11] HSI: hsi-char: fix driver for multiport scenarios
-Date: Mon, 16 Dec 2013 00:27:56 +0100
-Message-ID: <1387150085-23173-4-git-send-email-sre@debian.org>
-References: <1387150085-23173-1-git-send-email-sre@debian.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1387150085-23173-1-git-send-email-sre@debian.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@ring0.de>, Linus Walleij <linus.walleij@linaro.org>, Shubhrajyoti Datta <omaplinuxkernel@gmail.com>, Carlos Chinea <cch.devel@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@linaro.org>, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Rob Landley <rob@landley.net>, =?UTF-8?q?=27Beno=C3=AEt=20Cousson=27?= <bcousson@baylibre.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>, =?UTF-8?q?=D0=98=D0=B2=D0=B0=D0=B9=D0=BB=D0=BE=20=D0=94=D0=B8=D0=BC=D0=B8=D1=82=D1=80=D0=BE=D0=B2?= <freemangordon@abv.bg>, Joni Lapilainen <joni.lapilainen@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Sebastian Reichel <sre@debian.org>
+From: Anton Tikhomirov <av.tikhomirov-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+Subject: RE: [PATCH 7/7] usb: dwc3: exynos: add pm_runtime support
+Date: Mon, 16 Dec 2013 11:31:50 +0900
+Message-ID: <00a001cefa06$f9ab3d60$ed01b820$%tikhomirov@samsung.com>
+References: <1386884325-11440-1-git-send-email-balbi@ti.com>
+ <1386884325-11440-8-git-send-email-balbi@ti.com>
+ <000301cef7c0$640c1ce0$2c2456a0$%tikhomirov@samsung.com>
+ <20131213195618.GG5292@saruman.home>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=Windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-reply-to: <20131213195618.GG5292-HgARHv6XitL9zxVx7UNMDg@public.gmane.org>
+Content-language: en-us
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: balbi-l0cyMroinI0@public.gmane.org
+Cc: 'Linux USB Mailing List' <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, kgene.kim-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, 'Linux ARM Kernel Mailing List' <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Linux OMAP Mailing List' <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, w-kwok2-l0cyMroinI0@public.gmane.org, 'Santosh Shilimkar' <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Fix return code check of alloc_chrdev_region, which
-returns 0 on success.
+Hi Felipe,
 
-Signed-off-by: Sebastian Reichel <sre@debian.org>
----
- drivers/hsi/clients/hsi_char.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+> On Fri, Dec 13, 2013 at 02:01:32PM +0900, Anton Tikhomirov wrote:
+> > Hi Felipe,
+> >
+> > > -static int dwc3_exynos_suspend(struct device *dev)
+> > > +static int __dwc3_exynos_suspend(struct dwc3_exynos *exynos)
+> > >  {
+> > > -	struct dwc3_exynos *exynos = dev_get_drvdata(dev);
+> > > -
+> > >  	clk_disable(exynos->clk);
+> > >
+> > >  	return 0;
+> > >  }
+> > >
+> > > +static int __dwc3_exynos_resume(struct dwc3_exynos *exynos)
+> > > +{
+> > > +	return clk_enable(exynos->clk);
+> > > +}
+> > > +
+> > > +static int dwc3_exynos_suspend(struct device *dev)
+> > > +{
+> > > +	struct dwc3_exynos *exynos = dev_get_drvdata(dev);
+> > > +
+> > > +	return __dwc3_exynos_suspend(exynos);
+> >
+> > If dwc3-exynos is runtime suspended, the clock will be disabled
+> > second time here (unbalanced clk_enable/clk_disable).
+> 
+> I don't get what you mean but there is something that probably needs
+> fixing, I guess below makes it better:
+> 
+> diff --git a/drivers/usb/dwc3/dwc3-exynos.c b/drivers/usb/dwc3/dwc3-
+> exynos.c
+> index c93919a..1e5720a 100644
+> --- a/drivers/usb/dwc3/dwc3-exynos.c
+> +++ b/drivers/usb/dwc3/dwc3-exynos.c
+> @@ -218,6 +218,9 @@ static int dwc3_exynos_suspend(struct device *dev)
+>  {
+>  	struct dwc3_exynos *exynos = dev_get_drvdata(dev);
+> 
+> +	if (pm_runtime_suspended(dev))
+> +		return 0;
+> +
+>  	return __dwc3_exynos_suspend(exynos);
+>  }
+> 
+> 
+> Is that what you meant ?
 
-diff --git a/drivers/hsi/clients/hsi_char.c b/drivers/hsi/clients/hsi_char.c
-index 7f64bed..f51cf45 100644
---- a/drivers/hsi/clients/hsi_char.c
-+++ b/drivers/hsi/clients/hsi_char.c
-@@ -706,7 +706,7 @@ static int hsc_probe(struct device *dev)
- 	if (!hsc_major) {
- 		ret = alloc_chrdev_region(&hsc_dev, hsc_baseminor,
- 						HSC_DEVS, devname);
--		if (ret > 0)
-+		if (ret == 0)
- 			hsc_major = MAJOR(hsc_dev);
- 	} else {
- 		hsc_dev = MKDEV(hsc_major, hsc_baseminor);
--- 
-1.8.5.1
+Yes, this is exactly what I meant.
+
+Thanks.
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
