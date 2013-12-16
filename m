@@ -1,113 +1,105 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCHv2 00/27] OMAPDSS: DT support v2
-Date: Mon, 16 Dec 2013 16:56:07 +0200
-Message-ID: <1387205794-32246-1-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCHv2 11/27] OMAPDSS: Add DT support to VENC
+Date: Mon, 16 Dec 2013 16:56:18 +0200
+Message-ID: <1387205794-32246-12-git-send-email-tomi.valkeinen@ti.com>
+References: <1387205794-32246-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:54774 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:33047 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754466Ab3LPO6U (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 16 Dec 2013 09:58:20 -0500
+	id S1754427Ab3LPO6P (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 16 Dec 2013 09:58:15 -0500
+In-Reply-To: <1387205794-32246-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, Archit Taneja <archit@ti.com>, Darren Etheridge <detheridge@ti.com>, Tony Lindgren <tony@atomide.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Stefan Roese <stefan.roese@gmail.com>, Sebastian Reichel <sre@debian.org>, Robert Nelson <robertcnelson@gmail.com>, "Dr . H . Nikolaus Schaller" <hns@goldelico.com>, Marek Belisko <marek@goldelico.com>, Sebastian Reichel <sre@ring0.de>, Javier Martinez Canillas <javier@dowhile0.org>, Enric Balletbo Serra <eballetbo@gmail.com>, Florian Vaussard <florian.vaussard@epfl.ch>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Hi,
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+---
+ drivers/video/omap2/dss/venc.c | 34 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 34 insertions(+)
 
-Here's version 2 of the DSS DT series. Hopefully I have fixed all the issues
-that were found with v1
-(http://article.gmane.org/gmane.linux.ports.arm.omap/108249), except missing
-binding documentation and lacking patch descriptions.
-
-The main changes are:
-
-- DPI and SDI are no longer dummy devices, but ports on the DSS node. This
-  reflects better the actual hardware.
-- Pinmuxing
-- Labels for displays
-
-Additionally smaller changes, like using symbolic names in the .dts files,
-fixing endpoint numbering, etc.
-
-This series can also be found from:
-
-git://git.kernel.org/pub/scm/linux/kernel/git/tomba/linux.git work/dss-dt-review-2
-
- Tomi
-
-Javier Martinez Canillas (1):
-  ARM: omap3-igep0020.dts: add display information
-
-Tomi Valkeinen (26):
-  ARM: OMAP: remove DSS DT hack
-  OMAPDSS: remove DT hacks for regulators
-  ARM: OMAP2+: add omapdss_init_of()
-  OMAPDSS: add 'label' support for DT
-  OMAPDSS: get dssdev->alias from DT alias
-  OMAPFB: clean up default display search
-  OMAPFB: search for default display with DT alias
-  OMAPDSS: add of helpers
-  OMAPDSS: Add DT support to DSS, DISPC, DPI and SDI.
-  OMAPDSS: Add DT support to HDMI
-  OMAPDSS: Add DT support to VENC
-  OMAPDSS: Add DT support to DSI
-  ARM: omap3.dtsi: add omapdss information
-  ARM: omap4.dtsi: add omapdss information
-  ARM: omap4-panda.dts: add display information
-  ARM: omap4-sdp.dts: add display information
-  ARM: omap3-tobi.dts: add lcd (TEST)
-  ARM: omap3-beagle.dts: add display information
-  ARM: omap3-beagle-xm.dts: add display information
-  OMAPDSS: panel-dsi-cm: Add DT support
-  OMAPDSS: encoder-tfp410: Add DT support
-  OMAPDSS: connector-dvi: Add DT support
-  OMAPDSS: encoder-tpd12s015: Add DT support
-  OMAPDSS: hdmi-connector: Add DT support
-  OMAPDSS: panel-dpi: Add DT support
-  OMAPDSS: connector-analog-tv: Add DT support
-
- arch/arm/boot/dts/omap3-beagle-xm.dts              | 118 ++++++++++
- arch/arm/boot/dts/omap3-beagle.dts                 | 115 +++++++++
- arch/arm/boot/dts/omap3-igep0020.dts               |  64 ++++-
- arch/arm/boot/dts/omap3-tobi.dts                   |  47 ++++
- arch/arm/boot/dts/omap3.dtsi                       |  35 +++
- arch/arm/boot/dts/omap4-panda-common.dtsi          | 121 +++++++++-
- arch/arm/boot/dts/omap4-sdp.dts                    | 116 +++++++++
- arch/arm/boot/dts/omap4.dtsi                       |  54 +++++
- arch/arm/mach-omap2/Makefile                       |   2 +-
- arch/arm/mach-omap2/board-generic.c                |   2 +
- arch/arm/mach-omap2/common.h                       |   2 +
- arch/arm/mach-omap2/display.c                      |  62 +++++
- arch/arm/mach-omap2/dss-common.c                   | 259 ---------------------
- arch/arm/mach-omap2/dss-common.h                   |  13 --
- arch/arm/mach-omap2/pdata-quirks.c                 |   4 -
- .../video/omap2/displays-new/connector-analog-tv.c |  66 +++++-
- drivers/video/omap2/displays-new/connector-dvi.c   |  43 ++++
- drivers/video/omap2/displays-new/connector-hdmi.c  |  30 +++
- drivers/video/omap2/displays-new/encoder-tfp410.c  |  43 +++-
- .../video/omap2/displays-new/encoder-tpd12s015.c   |  56 +++++
- drivers/video/omap2/displays-new/panel-dpi.c       |  64 ++++-
- drivers/video/omap2/displays-new/panel-dsi-cm.c    |  65 +++++-
- drivers/video/omap2/dss/Makefile                   |   2 +-
- drivers/video/omap2/dss/dispc.c                    |   7 +
- drivers/video/omap2/dss/display.c                  |  28 ++-
- drivers/video/omap2/dss/dpi.c                      |  47 ++++
- drivers/video/omap2/dss/dsi.c                      | 141 ++++++++++-
- drivers/video/omap2/dss/dss-of.c                   | 162 +++++++++++++
- drivers/video/omap2/dss/dss.c                      |  63 +++++
- drivers/video/omap2/dss/dss.h                      |   6 +
- drivers/video/omap2/dss/hdmi4.c                    |  10 +-
- drivers/video/omap2/dss/sdi.c                      |  45 ++++
- drivers/video/omap2/dss/venc.c                     |  34 +++
- drivers/video/omap2/omapfb/omapfb-main.c           |  67 ++++--
- include/video/omapdss.h                            |  14 ++
- 35 files changed, 1685 insertions(+), 322 deletions(-)
- delete mode 100644 arch/arm/mach-omap2/dss-common.c
- delete mode 100644 arch/arm/mach-omap2/dss-common.h
- create mode 100644 drivers/video/omap2/dss/dss-of.c
-
+diff --git a/drivers/video/omap2/dss/venc.c b/drivers/video/omap2/dss/venc.c
+index 5f88ac47b7fa..12185fb6da0e 100644
+--- a/drivers/video/omap2/dss/venc.c
++++ b/drivers/video/omap2/dss/venc.c
+@@ -34,6 +34,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/regulator/consumer.h>
+ #include <linux/pm_runtime.h>
++#include <linux/of.h>
+ 
+ #include <video/omapdss.h>
+ 
+@@ -804,6 +805,22 @@ static void __exit venc_uninit_output(struct platform_device *pdev)
+ 	omapdss_unregister_output(out);
+ }
+ 
++static int venc_probe_of(struct platform_device *pdev)
++{
++	struct device_node *node = pdev->dev.of_node;
++	struct device_node *ep;
++
++	ep = omapdss_of_get_first_endpoint(node);
++	if (!ep)
++		return 0;
++
++	venc.invert_polarity = of_property_read_bool(ep, "invert-polarity");
++
++	of_node_put(ep);
++
++	return 0;
++}
++
+ /* VENC HW IP initialisation */
+ static int omap_venchw_probe(struct platform_device *pdev)
+ {
+@@ -845,12 +862,21 @@ static int omap_venchw_probe(struct platform_device *pdev)
+ 
+ 	venc_runtime_put();
+ 
++	if (pdev->dev.of_node) {
++		r = venc_probe_of(pdev);
++		if (r) {
++			DSSERR("Invalid DT data\n");
++			goto err_probe_of;
++		}
++	}
++
+ 	dss_debugfs_create_file("venc", venc_dump_regs);
+ 
+ 	venc_init_output(pdev);
+ 
+ 	return 0;
+ 
++err_probe_of:
+ err_runtime_get:
+ 	pm_runtime_disable(&pdev->dev);
+ 	return r;
+@@ -894,6 +920,13 @@ static const struct dev_pm_ops venc_pm_ops = {
+ 	.runtime_resume = venc_runtime_resume,
+ };
+ 
++
++static const struct of_device_id venc_of_match[] = {
++	{ .compatible = "ti,omap3-venc", },
++	{ .compatible = "ti,omap4-venc", },
++	{},
++};
++
+ static struct platform_driver omap_venchw_driver = {
+ 	.probe		= omap_venchw_probe,
+ 	.remove         = __exit_p(omap_venchw_remove),
+@@ -901,6 +934,7 @@ static struct platform_driver omap_venchw_driver = {
+ 		.name   = "omapdss_venc",
+ 		.owner  = THIS_MODULE,
+ 		.pm	= &venc_pm_ops,
++		.of_match_table = venc_of_match,
+ 	},
+ };
+ 
 -- 
 1.8.3.2
 
