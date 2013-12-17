@@ -1,100 +1,67 @@
-From: David Cohen <david.a.cohen@linux.intel.com>
-Subject: Re: [PATCH V3] usb: musb: Fix unstable init of OTG_INTERFSEL.
-Date: Tue, 17 Dec 2013 09:22:33 -0800
-Message-ID: <20131217172233.GA29638@psi-dev26.jf.intel.com>
-References: <1387298913-18823-1-git-send-email-anaumann@ultratronik.de>
+From: Ivajlo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Subject: Re: Re: [RFCv4 06/11] misc: Introduce Nokia CMT driver
+Date: Tue, 17 Dec 2013 19:58:56 +0200
+Message-ID: <52B090E0.5040006@gmail.com>
+References: <1387150085-23173-1-git-send-email-sre@debian.org> <1387150085-23173-7-git-send-email-sre@debian.org> <CACRpkdYjjXgE_W8gq1e6z=nGMF=r-m+o2kkvrBFrEMm3o0=RwQ@mail.gmail.com> <20131216121524.GA6177@earth.universe> <CACRpkdbx=Ye8xo4wMkyntME45xv15DeyqV32aeCAcSaa+vDpfA@mail.gmail.com> <20131216183448.GA10614@earth.universe>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:55996 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754554Ab3LQRck (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 17 Dec 2013 12:32:40 -0500
-Content-Disposition: inline
-In-Reply-To: <1387298913-18823-1-git-send-email-anaumann@ultratronik.de>
+Received: from mail-ee0-f50.google.com ([74.125.83.50]:34392 "EHLO
+	mail-ee0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753361Ab3LQR76 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Dec 2013 12:59:58 -0500
+In-Reply-To: <20131216183448.GA10614@earth.universe>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: anaumann@ultratronik.de
-Cc: notasas@gmail.com, linux-usb@vger.kernel.org, balbi@ti.com, linux-omap@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>, Shubhrajyoti Datta <omaplinuxkernel@gmail.com>, Carlos Chinea <cch.devel@gmail.com>, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@linaro.org>, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Rob Landley <rob@landley.net>, =?UTF-8?B?QmVub8OudCBDb3Vzc29u?= <bcousson@baylibre.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, =?UTF-8?B?UGFsaSBSb2jDoXI=?= <pali.rohar@gmail.com>, =?UTF-8?B?0JjQstCw0Lk=?= =?UTF-8?B?0LvQviDQlNC40LzQuNGC0YDQvtCy?= <freemangordon@abv.bg>, Joni Lapilainen <joni.lapilainen@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>
 
-On Tue, Dec 17, 2013 at 05:48:33PM +0100, anaumann@ultratronik.de wrote:
-> From: Andreas Naumann <anaumann@ultratronik.de>
-> 
-> This is a hard to reproduce problem which leads to non-functional
-> USB-OTG port in 0.1%-1% of all boots. Tracked it down to commit
-> e25bec160158abe86c276d7d206264afc3646281, which introduces save/restore
-> of OTG_INTERFSEL over suspend.
-> Since the resume function is also called early in driver init, it uses a
-> non-initialized value (which is 0 and a non-supported setting in DM37xx
-> for INTERFSEL). Shortly after the correct value is set. Apparently this
-> works most time, but not always.
-> 
-> Fix it by not writing the value on runtime resume if it has not been
-> initialized yet.
-> 
-> Signed-off-by: Andreas Naumann <anaumann@ultratronik.de>
-> ---
-> Even though I find the implementation a bit awkward this should fix
-> the issue without breaking anything else. Hope everyone is happy 
-> with this.
-> 
->  drivers/usb/musb/omap2430.c | 6 +++++-
->  1 file changed, 5 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
-> index 4315d35..fbe2c08 100644
-> --- a/drivers/usb/musb/omap2430.c
-> +++ b/drivers/usb/musb/omap2430.c
-> @@ -48,6 +48,7 @@ struct omap2430_glue {
->  	enum omap_musb_vbus_id_status status;
->  	struct work_struct	omap_musb_mailbox_work;
->  	struct device		*control_otghs;
-> +	u8 	initialized;
->  };
->  #define glue_to_musb(g)		platform_get_drvdata(g->musb)
->  
-> @@ -383,6 +384,7 @@ static int omap2430_musb_init(struct musb *musb)
->  	}
->  
->  	musb_writel(musb->mregs, OTG_INTERFSEL, l);
-> +	glue->initialized = 1;
->  
->  	pr_debug("HS USB OTG: revision 0x%x, sysconfig 0x%02x, "
->  			"sysstatus 0x%x, intrfsel 0x%x, simenable  0x%x\n",
-> @@ -509,6 +511,7 @@ static int omap2430_probe(struct platform_device *pdev)
->  	glue->dev			= &pdev->dev;
->  	glue->musb			= musb;
->  	glue->status			= OMAP_MUSB_UNKNOWN;
-> +	glue->initialized	= 0;
 
-You don't need to do this. 'glue' was already allocated with kzalloc().
+On 16.12.2013 20:34, Sebastian Reichel wrote:
+> Hi,
+>
+> On Mon, Dec 16, 2013 at 02:31:53PM +0100, Linus Walleij wrote:
+>> I am very reluctant in letting device trees specify exports of GPIOs
+>> to userspace, not so much because it's Linux-specific but for
+>> the fact that people are doing things in userspace that should not
+>> be done in userspace.
+>>
+>> Last time it was proposed I asked to the specific usecase,
+>> exactly why userspace needed this handle on a physical
+>> GPIO line, and why it can't use another userspace interface
+>> (example: leds, keys etc.)
+> There are a couple of lines ("cmt_apeslpx", "cmt_rst_rq", "cmt_en",
+> "cmt_rst", "cmt_bsi"), which are handled by ofono to do the correct
+> power sequence for the modem. The relevant ofono code is here:
+>
+> https://git.kernel.org/cgit/network/ofono/ofono.git/tree/plugins/nokia-gpio.c
+>
+> In MeeGo etc. they have a little board specific init script, which
+> exports the gpio lines and setups some symlinks. IMHO at least the
+> board specific stuff should be handled by the kernel, thus I added
+> this code to the driver. I guess you prefer to move the power
+> sequencing completly to the kernel?
 
->  
->  	if (np) {
->  		pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
-> @@ -646,7 +649,8 @@ static int omap2430_runtime_resume(struct device *dev)
->  
->  	if (musb) {
->  		omap2430_low_level_init(musb);
-> -		musb_writel(musb->mregs, OTG_INTERFSEL,
-> +		if(glue->initialized)
+Don't forget there is not only ofono, but rtcom-call-ui and all the 
+telephony stack in Maemo 5 :). However, power sequencing and control is 
+specific not only to the modem model, but to the firmware version the 
+modem is running as well (afaik). IMO you can't simply move the modem 
+power/reset/sleep control to the kernel and hope for the best, I am not 
+sure there is enough documentation (if any) for this to be done 
+reliably, esp on n900 with its BB5 modem. The point is that those gpios 
+are used not only for the initial power-up, but for control of the modem 
+state and reset (if needed) during normal usage. The APE reset line is 
+an example of stuff that can't be moved to the kernel without providing 
+some interface/feedback to/from the userspace IMO - what if she is 
+dialing 112 at the moment the modem decides it is too hot and wants a 
+device reset (or whatever reason there could be for a modem to request a 
+device reset)? The same goes for the APE sleep request line 
+(cmt_apeslpx) - based on what should the kernel decide whether to put 
+the modem in sleep?
 
-Are you sure this is thread safe?
-If you're sending this patch it means runtime_resume can be called
-before omap2430_must_init(), but how about at the same time?
-You defined 'initialized' as u8 type, then read/write operations won't
-be atomic in ARM.
+Sure, exporting gpios to userspace might not be the best way to achieve 
+the required functionality, but every way could be argued if it is the 
+best. And for sure labeling a modem "LED" won't make it such.
 
-Br, David Cohen
-
-> +			musb_writel(musb->mregs, OTG_INTERFSEL,
->  				musb->context.otg_interfsel);
->  
->  		usb_phy_set_suspend(musb->xceiv, 0);
-> -- 
-> 1.8.4.1
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+Ivo
