@@ -1,78 +1,88 @@
-From: anaumann-ZKHRqZ6+gQUX0D0ZMPkEVw@public.gmane.org
-Subject: [PATCH V3] usb: musb: Fix unstable init of OTG_INTERFSEL.
-Date: Tue, 17 Dec 2013 17:48:33 +0100
-Message-ID: <1387298913-18823-1-git-send-email-anaumann@ultratronik.de>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andreas Naumann <anaumann-ZKHRqZ6+gQUX0D0ZMPkEVw@public.gmane.org>
+From: Sebastian Reichel <sre@debian.org>
+Subject: Re: [PATCH 0/4] OMAPDSS: DT support for N900 panel
+Date: Tue, 17 Dec 2013 18:14:14 +0100
+Message-ID: <20131217171412.GA10442@earth.universe>
+References: <1386958650-2404-1-git-send-email-sre@debian.org>
+ <52AFFF3F.7020807@ti.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="IS0zKkzwUGydFO0o"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from ring0.de ([91.143.88.219]:49727 "EHLO smtp.ring0.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753694Ab3LQROl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 17 Dec 2013 12:14:41 -0500
+Content-Disposition: inline
+In-Reply-To: <52AFFF3F.7020807@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Rob Landley <rob@landley.net>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org
 
-From: Andreas Naumann <anaumann-ZKHRqZ6+gQUX0D0ZMPkEVw@public.gmane.org>
 
-This is a hard to reproduce problem which leads to non-functional
-USB-OTG port in 0.1%-1% of all boots. Tracked it down to commit
-e25bec160158abe86c276d7d206264afc3646281, which introduces save/restore
-of OTG_INTERFSEL over suspend.
-Since the resume function is also called early in driver init, it uses a
-non-initialized value (which is 0 and a non-supported setting in DM37xx
-for INTERFSEL). Shortly after the correct value is set. Apparently this
-works most time, but not always.
+--IS0zKkzwUGydFO0o
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Fix it by not writing the value on runtime resume if it has not been
-initialized yet.
+On Tue, Dec 17, 2013 at 09:37:35AM +0200, Tomi Valkeinen wrote:
+> Hi,
+>=20
+> On 2013-12-13 20:17, Sebastian Reichel wrote:
+> > Hi,
+> >=20
+> > This patchset adds DT support for the N900 panel. The patchset is based=
+ on
+> > Tomi's work/dss-dt-2 branch [0]. I suggest to send the DT changes throu=
+gh
+> > Benoits queue, since I have more N900 DT changes for 3.14. Also the pat=
+ch
+> > editing the rx51 boardcode can be dropped, since the file is removed in=
+ 3.14.
+> > I included those two with this patchset, since they are needed to test =
+the
+> > other two patches.
+> >=20
+> > I did not include a documentation for the DT API, since the omapdss
+> > documentation is still missing.
+> >=20
+> > I have successfully tested this on the N900.
+> >=20
+> > [0] https://git.kernel.org/cgit/linux/kernel/git/tomba/linux.git/log/?h=
+=3Dwork/dss-dt-2
+>=20
+> I added N900 display DT support on top of my v2 series, including
+> pinmuxing. Can you check if it looks right and works?
+>=20
+> git://git.kernel.org/pub/scm/linux/kernel/git/tomba/linux.git work/dss-dt
 
-Signed-off-by: Andreas Naumann <anaumann-ZKHRqZ6+gQUX0D0ZMPkEVw@public.gmane.org>
----
-Even though I find the implementation a bit awkward this should fix
-the issue without breaking anything else. Hope everyone is happy 
-with this.
+I just tried it and it does not work. On a first look the pinmuxing
+looks fishy: 0x0d4 is muxed two times.
 
- drivers/usb/musb/omap2430.c | 6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+I will have a more detailed look into this later.
 
-diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
-index 4315d35..fbe2c08 100644
---- a/drivers/usb/musb/omap2430.c
-+++ b/drivers/usb/musb/omap2430.c
-@@ -48,6 +48,7 @@ struct omap2430_glue {
- 	enum omap_musb_vbus_id_status status;
- 	struct work_struct	omap_musb_mailbox_work;
- 	struct device		*control_otghs;
-+	u8 	initialized;
- };
- #define glue_to_musb(g)		platform_get_drvdata(g->musb)
- 
-@@ -383,6 +384,7 @@ static int omap2430_musb_init(struct musb *musb)
- 	}
- 
- 	musb_writel(musb->mregs, OTG_INTERFSEL, l);
-+	glue->initialized = 1;
- 
- 	pr_debug("HS USB OTG: revision 0x%x, sysconfig 0x%02x, "
- 			"sysstatus 0x%x, intrfsel 0x%x, simenable  0x%x\n",
-@@ -509,6 +511,7 @@ static int omap2430_probe(struct platform_device *pdev)
- 	glue->dev			= &pdev->dev;
- 	glue->musb			= musb;
- 	glue->status			= OMAP_MUSB_UNKNOWN;
-+	glue->initialized	= 0;
- 
- 	if (np) {
- 		pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
-@@ -646,7 +649,8 @@ static int omap2430_runtime_resume(struct device *dev)
- 
- 	if (musb) {
- 		omap2430_low_level_init(musb);
--		musb_writel(musb->mregs, OTG_INTERFSEL,
-+		if(glue->initialized)
-+			musb_writel(musb->mregs, OTG_INTERFSEL,
- 				musb->context.otg_interfsel);
- 
- 		usb_phy_set_suspend(musb->xceiv, 0);
--- 
-1.8.4.1
+-- Sebastian
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--IS0zKkzwUGydFO0o
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.15 (GNU/Linux)
+
+iQIcBAEBCAAGBQJSsIZkAAoJENju1/PIO/qa/LYP/iyrGFxaTaZwmkcavWq+J9U/
+TMBJwwXy1z5GYqE1egJ5/3f21tzfjlLuCKiEtZteNdv7U45urBGLdX+434iox0br
+LcNgiXo8GSfnmbYio/GDSgceOyoGefCHo2/HubNp/jfwM6MeUkFj6yVq60m+8Wwr
+GgYvX6zZIcxSiCI3/0oBMozHfHQhf+rmqgpQT0966pXpx/K/Q2kVgadpQm5S65h4
+UcYLG4R/s6hLDBRqGVbHRCiotuCxGlQ04hodgjpzf9zLeX05RKOdRLy7Mjzz5KA1
+cpRwBt7t0zLvtzrjY06PwZGVPbu66SpECmNw6C5s69S8taOOuW4Bdl5luqdMpL92
+itjJGuHRvtBMLa7fdgyY/ptL7oRey5ulzmwyxOZh00mYxEREKZWwnI3Kh3qnwm11
+FDLJBGq3/XBXTCYhBC5ikAJrtR/Ms6c/Z1/t6vqL5lJgo5rOTazX9KP6mCgFciGU
+tEXlghXJqg0TFdHXE4vf4IcNPtDVWsqgh8ly2Pw1UPfaXFk9oMX28tvfSwNjaSth
+SJvrHP4b3kyRb1r2e4ChJGHOVAuSJ+QgNdP0OrHaEoJ9ABreNsBAW3K8L5q0ikIj
+zVnGOA8NFSEc22IIIaNkMLDUlZEmsCLc4UHDKjYifMn8/cL0M9QilKMDPdsEwpFt
+fSuyYgCj0efJpT/v3MW2
+=jmf4
+-----END PGP SIGNATURE-----
+
+--IS0zKkzwUGydFO0o--
