@@ -1,46 +1,52 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCHv2 02/27] OMAPDSS: remove DT hacks for regulators
-Date: Tue, 17 Dec 2013 08:42:58 +0200
-Message-ID: <52AFF272.5080205@ti.com>
-References: <1387205794-32246-1-git-send-email-tomi.valkeinen@ti.com> <1387205794-32246-3-git-send-email-tomi.valkeinen@ti.com> <20131216184247.GB26293@atomide.com>
+Subject: Re: [PATCHv2 01/27] ARM: OMAP: remove DSS DT hack
+Date: Tue, 17 Dec 2013 08:45:48 +0200
+Message-ID: <52AFF31C.6010100@ti.com>
+References: <1387205794-32246-1-git-send-email-tomi.valkeinen@ti.com> <1387205794-32246-2-git-send-email-tomi.valkeinen@ti.com> <20131216184157.GA26293@atomide.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
 	protocol="application/pgp-signature";
-	boundary="4AcoMNAo11RCkhiGJFV1sVj27CaQm5vPu"
+	boundary="L7tc5BHMFuONgTjmDO199RGA3ssmT0f0c"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:38547 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:38611 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751824Ab3LQGnC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 17 Dec 2013 01:43:02 -0500
-In-Reply-To: <20131216184247.GB26293@atomide.com>
+	id S1751725Ab3LQGpv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 17 Dec 2013 01:45:51 -0500
+In-Reply-To: <20131216184157.GA26293@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org
 
---4AcoMNAo11RCkhiGJFV1sVj27CaQm5vPu
+--L7tc5BHMFuONgTjmDO199RGA3ssmT0f0c
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 
-On 2013-12-16 20:42, Tony Lindgren wrote:
+On 2013-12-16 20:41, Tony Lindgren wrote:
 > * Tomi Valkeinen <tomi.valkeinen@ti.com> [131216 06:59]:
->> For booting Panda and 4430SDP with DT, while DSS did not support DT, w=
-e
->> had to had small hacks in the omapdss driver to get the regulators. Wi=
-th
->> DT now supported in DSS, we can remove those hacks.
->=20
-> This too we should probably keep for a while and remove after we've
-> converted DSS over to DT?
+>> As a temporary solution to enable DSS for selected boards when booting=
 
-Hmm, yes, this one can be moved at the end of the series, as at that
-point the DT is supported for Panda and 4430SDP.
+>> with DT, a hack was added to board-generic.c in
+>> 63d5fc0c2f748e20f38a0a0ec1c8494bddf5c288 (OMAP: board-generic: enable
+>> DSS for panda & sdp boards).
+>>
+>> We're now adding proper DT support, so the hack can be removed.
+>=20
+> I guess this patch should be merged later on after we have the DT suppo=
+rt
+> working?
+
+I'll move this patch also to the end of the series.
+
+"Merged later" sounds like you mean this could be merged in a separate
+series. I think this and the other removal can be in this series, they
+just need to be at the end.
 
  Tomi
 
 
 
---4AcoMNAo11RCkhiGJFV1sVj27CaQm5vPu
+--L7tc5BHMFuONgTjmDO199RGA3ssmT0f0c
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -49,19 +55,19 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v1.4.14 (GNU/Linux)
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBAgAGBQJSr/JyAAoJEPo9qoy8lh71BpsP/12zRXe8w/3WjQDMb9tZqs9u
-p9beQXhB7xYw8i5LicOYaKd2yrMzvMOPufrRetwSSxjmBtJI3cKKHBa5Mxxp64It
-1P9uxlLn3tPD14tnBFF7Bbl9oD3WtMsfBW1/1SWW8XthrxCf9ySvkJfjYmwam/Kg
-R5PO+uC5t5x31BJeq1mnzhJIbJrGq7JPeXhTvkLR+TEJ06P42hmKbSk/EPTejWxo
-b1okVfMx+CB9kDyYpFnLnQwFpODDjgxXHU+Pjwhz9JK+OqkYR+c04q0Shuf4gFWS
-sJDsoAcu2Q5567ptPlpFLbk4XBA4NsSBAW9ecBBwox/ISJJlZsNJWimNaCq0jp0w
-A2Mv/kz/w+3MuWJ+OkM9x2lBH4bO+7fA2tASyDVizJP1SU1FVa89jVjgT90+YMPN
-SXT3ZJZ5jogkBsX2mLGCrvke+xGMWGdJyKT7jqAKvOujUc3205EyHk2kJpAAK1pP
-4810iCBUKONXbg9gO1Fi1z9MB/baM8ZQ8ljAWUcIc+IweF9ZyylvWNhoc+S+md2H
-O/dF7z8kO/q7sICW+St/njzO1jf+glBlE5iilcN1Nf/QnW7bibCaTiy2V4kZPCI5
-Wx3YtAXQvVVRgT/83yWd+gvXgMVittz0Ml0+oqQULDeTRk9TutLrxHN0RY+umo+b
-mTT78bOsoeiJFvIM6VpZ
-=JdHE
+iQIcBAEBAgAGBQJSr/McAAoJEPo9qoy8lh71SyYQAIWE90zT9o1FErOK/zLFdxhP
+cIIGy5B7zR6ec+D4KTAqNU7qwx/ZtVGr0LoRZz4wA1D05SoKC0Www48Ds01bKDPs
+Q/T3rVCRkFfPbWwGUBJp3xnftIU6gkFr7PsKRSfRRMW+sFYX8zA9EQHHMVEMhfpG
+qIUkMuJilgJ6e4UAOmKYPLkkwqwe7lEaggyxp5r7LJg6NZ3b3q3E8987SCfV5MH8
+u1LLL35sorg596cBJL72z+l8OG9caeY21fCy64wN+QDD539yiHYkQBwzaAXTfrkG
+O2U0b7IKg9jbrX+GLKWE9BffkVMKlXulRqu2Ux9pzTC/kNsVhHdZC0CPIHiCJ+SW
+gsezirnD5v7cEWDb50PX13bBEJqnaVENzMpksobV5Eyge2WQMr4Ajx9PDgSfyI74
+MKRsu9KSRj8LrzJ/Qw+z2KDSqf0NmLM48PHrGRBV9Am7ZS24LZb3J9AdGMtwsqwL
+GzsasN85O2n/9/AKPl0HIbbP3OdDdhalEUJiDVAnk/IM7/qix0HWtdi+s2BYEGSW
+mOMXpjWj9y0NAl0CXwI/7DDC7km9jjlLoFmphiHXAERolz2CSReWMmBkDkfCfa0G
+D2hE3GqyZxrii90oeCHjcHPVq8UN5qBV3AyjRu06Azie5suOdqpJ/N2m/ewi0Mwk
+l/HRigoG2GeqxjvFLsrl
+=qZpj
 -----END PGP SIGNATURE-----
 
---4AcoMNAo11RCkhiGJFV1sVj27CaQm5vPu--
+--L7tc5BHMFuONgTjmDO199RGA3ssmT0f0c--
