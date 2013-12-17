@@ -1,53 +1,61 @@
 From: Florian Vaussard <florian.vaussard@epfl.ch>
-Subject: [PATCH 6/7] ARM: OMAP2+: Remove legacy data from hwmod for omap3 isp iommu
-Date: Tue, 17 Dec 2013 13:53:37 +0100
-Message-ID: <1387284818-28739-7-git-send-email-florian.vaussard@epfl.ch>
+Subject: [PATCH 4/7] iommu/omap: Allow enable/disable even without pdata
+Date: Tue, 17 Dec 2013 13:53:35 +0100
+Message-ID: <1387284818-28739-5-git-send-email-florian.vaussard@epfl.ch>
 References: <1387284818-28739-1-git-send-email-florian.vaussard@epfl.ch>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp5.epfl.ch ([128.178.224.8]:36800 "EHLO smtp5.epfl.ch"
+Received: from smtp5.epfl.ch ([128.178.224.8]:36760 "EHLO smtp5.epfl.ch"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753430Ab3LQMyR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 17 Dec 2013 07:54:17 -0500
+	id S1753185Ab3LQMyO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 17 Dec 2013 07:54:14 -0500
 In-Reply-To: <1387284818-28739-1-git-send-email-florian.vaussard@epfl.ch>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Joerg Roedel <joro@8bytes.org>, Tony Lindgren <tony@atomide.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>
 Cc: Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Rob Landley <rob@landley.net>, Grant Likely <grant.likely@linaro.org>, Hiroshi Doyu <hdoyu@nvidia.com>, Florian Vaussard <florian.vaussard@epfl.ch>, iommu@lists.linux-foundation.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-The data are now passed using the devicetree.
+When booting with a devietree, no platform data is provided. Do not prematurely
+exit iommu_enable() and iommu_disable() in such a case.
 
 Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
 ---
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c | 8 --------
- 1 file changed, 8 deletions(-)
+ drivers/iommu/omap-iommu.c | 10 ++--------
+ 1 file changed, 2 insertions(+), 8 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-index 0477131..6dccd46 100644
---- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-@@ -2469,15 +2469,8 @@ static struct omap_hwmod_class omap3xxx_mmu_hwmod_class = {
+diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
+index 51efcc4..0a9854d 100644
+--- a/drivers/iommu/omap-iommu.c
++++ b/drivers/iommu/omap-iommu.c
+@@ -149,13 +149,10 @@ static int iommu_enable(struct omap_iommu *obj)
+ 	struct platform_device *pdev = to_platform_device(obj->dev);
+ 	struct iommu_platform_data *pdata = pdev->dev.platform_data;
  
- /* mmu isp */
- 
--static struct omap_mmu_dev_attr mmu_isp_dev_attr = {
--	.da_start	= 0x0,
--	.da_end		= 0xfffff000,
--	.nr_tlb_entries = 8,
--};
+-	if (!pdata)
+-		return -EINVAL;
 -
- static struct omap_hwmod omap3xxx_mmu_isp_hwmod;
+ 	if (!arch_iommu)
+ 		return -ENODEV;
  
+-	if (pdata->deassert_reset) {
++	if (pdata && pdata->deassert_reset) {
+ 		err = pdata->deassert_reset(pdev, pdata->reset_name);
+ 		if (err) {
+ 			dev_err(obj->dev, "deassert_reset failed: %d\n", err);
+@@ -175,14 +172,11 @@ static void iommu_disable(struct omap_iommu *obj)
+ 	struct platform_device *pdev = to_platform_device(obj->dev);
+ 	struct iommu_platform_data *pdata = pdev->dev.platform_data;
+ 
+-	if (!pdata)
+-		return;
 -
- /* l4_core -> mmu isp */
- static struct omap_hwmod_ocp_if omap3xxx_l4_core__mmu_isp = {
- 	.master		= &omap3xxx_l4_core_hwmod,
-@@ -2489,7 +2482,6 @@ static struct omap_hwmod omap3xxx_mmu_isp_hwmod = {
- 	.name		= "mmu_isp",
- 	.class		= &omap3xxx_mmu_hwmod_class,
- 	.main_clk	= "cam_ick",
--	.dev_attr	= &mmu_isp_dev_attr,
- 	.flags		= HWMOD_NO_IDLEST,
- };
+ 	arch_iommu->disable(obj);
+ 
+ 	pm_runtime_put_sync(obj->dev);
+ 
+-	if (pdata->assert_reset)
++	if (pdata && pdata->assert_reset)
+ 		pdata->assert_reset(pdev, pdata->reset_name);
+ }
  
 -- 
 1.8.1.2
