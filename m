@@ -1,45 +1,42 @@
-From: Sascha Hauer <s.hauer@pengutronix.de>
-Subject: Re: [PATCHv2 23/27] OMAPDSS: connector-dvi: Add DT support
-Date: Tue, 17 Dec 2013 08:05:52 +0100
-Message-ID: <20131217070551.GR24559@pengutronix.de>
-References: <1387205794-32246-1-git-send-email-tomi.valkeinen@ti.com>
- <1387205794-32246-24-git-send-email-tomi.valkeinen@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [GIT PULL] make mach-omap2 boot with device tree only for
+ v3.14
+Date: Tue, 17 Dec 2013 07:14:57 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1312170707140.14039@utopia.booyaka.com>
+References: <pull-1386643347-596413> <alpine.DEB.2.02.1312101034360.32309@utopia.booyaka.com> <20131210185902.GO13171@atomide.com> <20131210192726.GR13171@atomide.com> <20131210230722.GZ13171@atomide.com> <20131213192622.GI28184@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:45945 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752083Ab3LQHFx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Dec 2013 02:05:53 -0500
-Content-Disposition: inline
-In-Reply-To: <1387205794-32246-24-git-send-email-tomi.valkeinen@ti.com>
+Received: from utopia.booyaka.com ([74.50.51.50]:53641 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750839Ab3LQHO6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Dec 2013 02:14:58 -0500
+In-Reply-To: <20131213192622.GI28184@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: arm@kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Hi Tomi,
+On Fri, 13 Dec 2013, Tony Lindgren wrote:
 
-On Mon, Dec 16, 2013 at 04:56:30PM +0200, Tomi Valkeinen wrote:
-> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> ---
->  drivers/video/omap2/displays-new/connector-dvi.c | 43 ++++++++++++++++++++++++
->  1 file changed, 43 insertions(+)
+> OK posted a patch for the SBC-T3730 with minimal support also for
+> SBC-3530 and SBC-3517 that should boot far enough to start adding
+> more devices. Paul, care to try it on the CM-T3517, the patch is:
 > 
-> diff --git a/drivers/video/omap2/displays-new/connector-dvi.c b/drivers/video/omap2/displays-new/connector-dvi.c
-> index b6c50904038e..d1204b1c5182 100644
->  
-> +static const struct of_device_id dvic_of_match[] = {
-> +	{ .compatible = "dvi-connector", },
+> [PATCH] ARM: dts: Add support for sbc-3xxx with cm-t3730
 
-Either the driver is too specific or the binding is too generic, but
-having such a generic name for an omap specific driver seems wrong. Same
-for panel-dpi, svideo-connector, composite-video-connector and hdmi-connector,
+Didn't get anything out of the serial port:
 
-Sascha
+http://www.pwsan.com/omap/testlogs/test_tonys_conversion_v3.14/20131215235827/boot/cmt3517/cmt3517_log.txt
 
--- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+As a partial sanity check, AM3517 EVM was included as part of the run 
+(with a separate uImage+dtb of course) and that seems to boot OK:
+
+http://www.pwsan.com/omap/testlogs/test_tonys_conversion_v3.14/20131215235827/boot/3517evm/3517evm_log.txt
+
+In case it's useful, here's a CM-T3517 boot log from v3.13-rc4:
+
+http://www.pwsan.com/omap/testlogs/test_v3.13-rc4/20131215195251/boot/cmt3517/cmt3517_log.txt
+
+
+- Paul
