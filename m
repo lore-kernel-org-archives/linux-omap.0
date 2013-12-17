@@ -1,66 +1,101 @@
-From: Stefan Roese <stefan.roese@gmail.com>
-Subject: Re: mmc only working when used in U-Boot
-Date: Tue, 17 Dec 2013 15:01:16 +0100
-Message-ID: <52B0592C.6010608@gmail.com>
-References: <52B05478.1040606@gmail.com> <52B0561C.5050300@ti.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCHv2 23/27] OMAPDSS: connector-dvi: Add DT support
+Date: Tue, 17 Dec 2013 16:15:09 +0100
+Message-ID: <1651476.iaILztiDEi@avalon>
+References: <1387205794-32246-1-git-send-email-tomi.valkeinen@ti.com> <20131217070551.GR24559@pengutronix.de> <52AFFA2E.5050702@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; boundary="nextPart1731693.kbOFvpTmyz"; micalg="pgp-sha1"; protocol="application/pgp-signature"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mo-p05-ob.rzone.de ([81.169.146.180]:22412 "EHLO
-	mo-p05-ob.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752755Ab3LQOBW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Dec 2013 09:01:22 -0500
-In-Reply-To: <52B0561C.5050300@ti.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:59063 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753736Ab3LQPOv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Dec 2013 10:14:51 -0500
+In-Reply-To: <52AFFA2E.5050702@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Balaji T K <balajitk@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Sascha Hauer <s.hauer@pengutronix.de>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 
-On 17.12.2013 14:48, Balaji T K wrote:
-> On Tuesday 17 December 2013 07:11 PM, Stefan Roese wrote:
->> Hi!
->>
->> I've noticed on a custom OMAP3530 board, that the SDcard (mmc1) is only
->> detected, when its previously used in U-Boot (e.g. by "mmc rescan"). So
->> I tested on beagleboard and it behaved identical.
->>
->> Here the boot log with U-Boot scanning mmc before Linux booting:
->>
->> root@generic-armv7a:~# dmesg | grep mmc
->> [    2.225006] of_get_named_gpiod_flags: can't parse gpios property of node '/ocp/mmc@4809c000[0]'
->> [    2.234100] of_get_named_gpiod_flags: can't parse gpios property of node '/ocp/mmc@4809c000[0]'
->> [    2.260040] omap_hsmmc 4809c000.mmc: pins are not configured from the driver
->> [    2.398071] mmc0: host does not support reading read-only switch. assuming write-enable.
->> [    2.408416] mmc0: new high speed SD card at address 0007
->> [    2.419128] mmcblk0: mmc0:0007 SD02G 1.90 GiB
->> [    2.426025]  mmcblk0: p1 p2
->> [   10.241638] EXT4-fs (mmcblk0p2): mounted filesystem with ordered data mode. Opts: (null)
->> [   10.256011] FAT-fs (mmcblk0p1): Volume was not properly unmounted. Some data may be corrupt. Please run fsck.
->>
->> Here the boot log without U-Boot touching mmc before Linux booting:
->>
->> root@generic-armv7a:~# dmesg | grep mmc
->> [    2.162689] of_get_named_gpiod_flags: can't parse gpios property of node '/ocp/mmc@4809c000[0]'
->> [    2.171936] of_get_named_gpiod_flags: can't parse gpios property of node '/ocp/mmc@4809c000[0]'
->> [    2.197906] omap_hsmmc 4809c000.mmc: pins are not configured from the driver
->>
->> I also added the pin mux'es for the mmc to the dts and the last message
->> is gone. But this doesn't help with mmc detection.
->>
->> BTW: This is on latest mainline Linux.
->>
->> Somehow U-Boot configured/enables something that is missing in the
->> Linux driver. Is this a known issue? Any ideas?
->>
+
+--nextPart1731693.kbOFvpTmyz
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
+
+Hi Tomi,
+
+On Tuesday 17 December 2013 09:15:58 Tomi Valkeinen wrote:
+> On 2013-12-17 09:05, Sascha Hauer wrote:
+> > On Mon, Dec 16, 2013 at 04:56:30PM +0200, Tomi Valkeinen wrote:
+> >> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> >> ---
+> >> 
+> >>  drivers/video/omap2/displays-new/connector-dvi.c | 43 ++++++++++++++++++
+> >>  1 file changed, 43 insertions(+)
+> >> 
+> >> diff --git a/drivers/video/omap2/displays-new/connector-dvi.c
+> >> b/drivers/video/omap2/displays-new/connector-dvi.c index
+> >> b6c50904038e..d1204b1c5182 100644
+> >> 
+> >> +static const struct of_device_id dvic_of_match[] = {
+> >> +	{ .compatible = "dvi-connector", },
+> > 
+> > Either the driver is too specific or the binding is too generic, but
+> > having such a generic name for an omap specific driver seems wrong. Same
+> > for panel-dpi, svideo-connector, composite-video-connector and
+> > hdmi-connector,
+>
+> Hmm. Good point. I was thinking that the driver is only used on OMAP, but of
+> course that's not true, the driver is there for all platforms if the kernel
+> just happens to be compiled with the driver.
 > 
-> If you are using dt boot, mostly likely it is because of missing pbias
-> configuration.
+> And it's not just about those drivers you mention. The same issue is there
+> for, say, "ti,tpd12s015". I have an omapdss specific driver for that, but if
+> some other platform uses the same chip, they'll have a driver for it also...
+> 
+> Sigh. I wonder how this should be handled... The only solution that comes to
+> my mind is to have all the compatible strings as "ti,...". But that's not
+> correct, as they are not TI components, but some are generic ones and some
+> from another vendor.
+> 
+> And even "ti,..." is not good, as there are other TI SoCs with other display
+> drivers. So I'd need to prepend the compatible strings with "omapdss,...",
+> making the hardware components driver specific.
+> 
+> The long term plan is to make the drivers generic (or implement the same
+> driver for common display framework). But for now I need to have future
+> proof DT bindings with omapdss specific drivers...
 
-Ah, yes. I had already tried with your 7 patches series (v4). But it
-seems that I forgot to add CONFIG_MFD_SYSCON and CONFIG_REGULATOR_PBIAS.
-With this now, the SD card is detected even without any U-Boot activity.
+I'll refrain from mentioning that the problem has been identified more than a 
+year ago. Oh, wait, I've metioned it, sorry :-D
 
-Thanks,
-Stefan
+We really want to make drivers generic enough to be shared by multiple display 
+controllers. I would vote for making the DT bindings generic now already, 
+which would be enough to buy some time to fix the problem properly. If we 
+start prepending driver-specific prefixes such as "omapdss," to compatible 
+string we'll just make the mess even larger and reduce the incentive to fix 
+it. It would be the worst decision we could make.
+
+-- 
+Regards,
+
+Laurent Pinchart
+
+--nextPart1731693.kbOFvpTmyz
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part.
+Content-Transfer-Encoding: 7Bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
+
+iQEcBAABAgAGBQJSsGp9AAoJEIkPb2GL7hl1SDcIAJdKUYEX1g7EKvaI4BD05rsl
+pttWKQc3mhjSwFKpmwp67kc3AiHeNZNJ6mkQuUGuxwYD2R7ci8cCUq1EwomDGWAH
+EayjugLuJHvrooV+OPEI4ueCpCGEtNCOwbMWh7NM9ee18Xp7zvDNKAHoZSrUYZ4V
+puJnPqWThy1g63WLabzhgICbBTHgn3zaEx8/woKdQW/XtafTxKiEnluwPgFfkGJ8
+PTExnNMtjoZCnG0pykDh/mpF21SADdIGn/wgPYEq05kZ/Z3nOm96FP2uXB5w18Rn
+WL7uNnEIOl8gVLs+w2Oq2YpUrh2laakWYvgxJQfvecHKToqocVl4MsbjPQN3i1U=
+=FbPT
+-----END PGP SIGNATURE-----
+
+--nextPart1731693.kbOFvpTmyz--
 
