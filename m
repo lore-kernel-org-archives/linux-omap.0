@@ -1,56 +1,49 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] make mach-omap2 boot with device tree only for v3.14
-Date: Tue, 17 Dec 2013 07:26:54 -0800
-Message-ID: <20131217152653.GM12324@atomide.com>
-References: <pull-1386643347-596413>
- <alpine.DEB.2.02.1312101034360.32309@utopia.booyaka.com>
- <20131210185902.GO13171@atomide.com>
- <20131210192726.GR13171@atomide.com>
- <20131210230722.GZ13171@atomide.com>
- <20131213192622.GI28184@atomide.com>
- <alpine.DEB.2.02.1312170707140.14039@utopia.booyaka.com>
+Subject: Re: [PATCHv2 01/27] ARM: OMAP: remove DSS DT hack
+Date: Tue, 17 Dec 2013 07:30:02 -0800
+Message-ID: <20131217153001.GN12324@atomide.com>
+References: <1387205794-32246-1-git-send-email-tomi.valkeinen@ti.com>
+ <1387205794-32246-2-git-send-email-tomi.valkeinen@ti.com>
+ <20131216184157.GA26293@atomide.com>
+ <52AFF31C.6010100@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:64269 "EHLO
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:16918 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753325Ab3LQP1B (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Dec 2013 10:27:01 -0500
+	with ESMTP id S1753453Ab3LQPaG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Dec 2013 10:30:06 -0500
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.02.1312170707140.14039@utopia.booyaka.com>
+In-Reply-To: <52AFF31C.6010100@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: arm@kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org
 
-* Paul Walmsley <paul@pwsan.com> [131216 23:16]:
-> On Fri, 13 Dec 2013, Tony Lindgren wrote:
-> 
-> > OK posted a patch for the SBC-T3730 with minimal support also for
-> > SBC-3530 and SBC-3517 that should boot far enough to start adding
-> > more devices. Paul, care to try it on the CM-T3517, the patch is:
+* Tomi Valkeinen <tomi.valkeinen@ti.com> [131216 22:47]:
+> On 2013-12-16 20:41, Tony Lindgren wrote:
+> > * Tomi Valkeinen <tomi.valkeinen@ti.com> [131216 06:59]:
+> >> As a temporary solution to enable DSS for selected boards when booting
+> >> with DT, a hack was added to board-generic.c in
+> >> 63d5fc0c2f748e20f38a0a0ec1c8494bddf5c288 (OMAP: board-generic: enable
+> >> DSS for panda & sdp boards).
+> >>
+> >> We're now adding proper DT support, so the hack can be removed.
 > > 
-> > [PATCH] ARM: dts: Add support for sbc-3xxx with cm-t3730
+> > I guess this patch should be merged later on after we have the DT support
+> > working?
 > 
-> Didn't get anything out of the serial port:
+> I'll move this patch also to the end of the series.
 > 
-> http://www.pwsan.com/omap/testlogs/test_tonys_conversion_v3.14/20131215235827/boot/cmt3517/cmt3517_log.txt
+> "Merged later" sounds like you mean this could be merged in a separate
+> series. I think this and the other removal can be in this series, they
+> just need to be at the end.
 
-OK thanks for testing. Looks like the CompuLab guys will need to
-take a look at it. I'll update my patch for SBC-T3730 only with the
-comments from Igor.
- 
-> As a partial sanity check, AM3517 EVM was included as part of the run 
-> (with a separate uImage+dtb of course) and that seems to boot OK:
-> 
-> http://www.pwsan.com/omap/testlogs/test_tonys_conversion_v3.14/20131215235827/boot/3517evm/3517evm_log.txt
+Well yeah let's keep those separate still as at least Russell needed
+some more time with the legacy booting. The point we can drop the
+legacy booting for omap3 may still need to wait a bit, maybe even
+until v3.15 to keep things working.
 
-Hmm OK, weird that the 3517 EVM boots but not the CM-T3517.
- 
-> In case it's useful, here's a CM-T3517 boot log from v3.13-rc4:
-> 
-> http://www.pwsan.com/omap/testlogs/test_v3.13-rc4/20131215195251/boot/cmt3517/cmt3517_log.txt
-
-OK thanks.
+Regards,
 
 Tony
