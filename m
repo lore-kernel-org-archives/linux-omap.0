@@ -1,49 +1,78 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv2 01/27] ARM: OMAP: remove DSS DT hack
-Date: Tue, 17 Dec 2013 07:30:02 -0800
-Message-ID: <20131217153001.GN12324@atomide.com>
-References: <1387205794-32246-1-git-send-email-tomi.valkeinen@ti.com>
- <1387205794-32246-2-git-send-email-tomi.valkeinen@ti.com>
- <20131216184157.GA26293@atomide.com>
- <52AFF31C.6010100@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:16918 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753453Ab3LQPaG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Dec 2013 10:30:06 -0500
-Content-Disposition: inline
-In-Reply-To: <52AFF31C.6010100@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: anaumann-ZKHRqZ6+gQUX0D0ZMPkEVw@public.gmane.org
+Subject: [PATCH V3] usb: musb: Fix unstable init of OTG_INTERFSEL.
+Date: Tue, 17 Dec 2013 17:48:33 +0100
+Message-ID: <1387298913-18823-1-git-send-email-anaumann@ultratronik.de>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andreas Naumann <anaumann-ZKHRqZ6+gQUX0D0ZMPkEVw@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org
 
-* Tomi Valkeinen <tomi.valkeinen@ti.com> [131216 22:47]:
-> On 2013-12-16 20:41, Tony Lindgren wrote:
-> > * Tomi Valkeinen <tomi.valkeinen@ti.com> [131216 06:59]:
-> >> As a temporary solution to enable DSS for selected boards when booting
-> >> with DT, a hack was added to board-generic.c in
-> >> 63d5fc0c2f748e20f38a0a0ec1c8494bddf5c288 (OMAP: board-generic: enable
-> >> DSS for panda & sdp boards).
-> >>
-> >> We're now adding proper DT support, so the hack can be removed.
-> > 
-> > I guess this patch should be merged later on after we have the DT support
-> > working?
-> 
-> I'll move this patch also to the end of the series.
-> 
-> "Merged later" sounds like you mean this could be merged in a separate
-> series. I think this and the other removal can be in this series, they
-> just need to be at the end.
+From: Andreas Naumann <anaumann-ZKHRqZ6+gQUX0D0ZMPkEVw@public.gmane.org>
 
-Well yeah let's keep those separate still as at least Russell needed
-some more time with the legacy booting. The point we can drop the
-legacy booting for omap3 may still need to wait a bit, maybe even
-until v3.15 to keep things working.
+This is a hard to reproduce problem which leads to non-functional
+USB-OTG port in 0.1%-1% of all boots. Tracked it down to commit
+e25bec160158abe86c276d7d206264afc3646281, which introduces save/restore
+of OTG_INTERFSEL over suspend.
+Since the resume function is also called early in driver init, it uses a
+non-initialized value (which is 0 and a non-supported setting in DM37xx
+for INTERFSEL). Shortly after the correct value is set. Apparently this
+works most time, but not always.
 
-Regards,
+Fix it by not writing the value on runtime resume if it has not been
+initialized yet.
 
-Tony
+Signed-off-by: Andreas Naumann <anaumann-ZKHRqZ6+gQUX0D0ZMPkEVw@public.gmane.org>
+---
+Even though I find the implementation a bit awkward this should fix
+the issue without breaking anything else. Hope everyone is happy 
+with this.
+
+ drivers/usb/musb/omap2430.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+index 4315d35..fbe2c08 100644
+--- a/drivers/usb/musb/omap2430.c
++++ b/drivers/usb/musb/omap2430.c
+@@ -48,6 +48,7 @@ struct omap2430_glue {
+ 	enum omap_musb_vbus_id_status status;
+ 	struct work_struct	omap_musb_mailbox_work;
+ 	struct device		*control_otghs;
++	u8 	initialized;
+ };
+ #define glue_to_musb(g)		platform_get_drvdata(g->musb)
+ 
+@@ -383,6 +384,7 @@ static int omap2430_musb_init(struct musb *musb)
+ 	}
+ 
+ 	musb_writel(musb->mregs, OTG_INTERFSEL, l);
++	glue->initialized = 1;
+ 
+ 	pr_debug("HS USB OTG: revision 0x%x, sysconfig 0x%02x, "
+ 			"sysstatus 0x%x, intrfsel 0x%x, simenable  0x%x\n",
+@@ -509,6 +511,7 @@ static int omap2430_probe(struct platform_device *pdev)
+ 	glue->dev			= &pdev->dev;
+ 	glue->musb			= musb;
+ 	glue->status			= OMAP_MUSB_UNKNOWN;
++	glue->initialized	= 0;
+ 
+ 	if (np) {
+ 		pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
+@@ -646,7 +649,8 @@ static int omap2430_runtime_resume(struct device *dev)
+ 
+ 	if (musb) {
+ 		omap2430_low_level_init(musb);
+-		musb_writel(musb->mregs, OTG_INTERFSEL,
++		if(glue->initialized)
++			musb_writel(musb->mregs, OTG_INTERFSEL,
+ 				musb->context.otg_interfsel);
+ 
+ 		usb_phy_set_suspend(musb->xceiv, 0);
+-- 
+1.8.4.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
