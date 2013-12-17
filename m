@@ -1,73 +1,110 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCHv2 01/27] ARM: OMAP: remove DSS DT hack
-Date: Tue, 17 Dec 2013 08:45:48 +0200
-Message-ID: <52AFF31C.6010100@ti.com>
-References: <1387205794-32246-1-git-send-email-tomi.valkeinen@ti.com> <1387205794-32246-2-git-send-email-tomi.valkeinen@ti.com> <20131216184157.GA26293@atomide.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: OMAP baseline test results for v3.13-rc4
+Date: Tue, 17 Dec 2013 06:54:36 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1312170653140.14039@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="L7tc5BHMFuONgTjmDO199RGA3ssmT0f0c"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:38611 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751725Ab3LQGpv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 17 Dec 2013 01:45:51 -0500
-In-Reply-To: <20131216184157.GA26293@atomide.com>
+Received: from utopia.booyaka.com ([74.50.51.50]:53580 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752066Ab3LQGyg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Dec 2013 01:54:36 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org
-
---L7tc5BHMFuONgTjmDO199RGA3ssmT0f0c
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-On 2013-12-16 20:41, Tony Lindgren wrote:
-> * Tomi Valkeinen <tomi.valkeinen@ti.com> [131216 06:59]:
->> As a temporary solution to enable DSS for selected boards when booting=
-
->> with DT, a hack was added to board-generic.c in
->> 63d5fc0c2f748e20f38a0a0ec1c8494bddf5c288 (OMAP: board-generic: enable
->> DSS for panda & sdp boards).
->>
->> We're now adding proper DT support, so the hack can be removed.
->=20
-> I guess this patch should be merged later on after we have the DT suppo=
-rt
-> working?
-
-I'll move this patch also to the end of the series.
-
-"Merged later" sounds like you mean this could be merged in a separate
-series. I think this and the other removal can be in this series, they
-just need to be at the end.
-
- Tomi
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org
 
 
+Here are some basic OMAP test results for Linux v3.13-rc4.
+Logs and other details at:
 
---L7tc5BHMFuONgTjmDO199RGA3ssmT0f0c
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+    http://www.pwsan.com/omap/testlogs/test_v3.13-rc4/20131215195251/
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBAgAGBQJSr/McAAoJEPo9qoy8lh71SyYQAIWE90zT9o1FErOK/zLFdxhP
-cIIGy5B7zR6ec+D4KTAqNU7qwx/ZtVGr0LoRZz4wA1D05SoKC0Www48Ds01bKDPs
-Q/T3rVCRkFfPbWwGUBJp3xnftIU6gkFr7PsKRSfRRMW+sFYX8zA9EQHHMVEMhfpG
-qIUkMuJilgJ6e4UAOmKYPLkkwqwe7lEaggyxp5r7LJg6NZ3b3q3E8987SCfV5MH8
-u1LLL35sorg596cBJL72z+l8OG9caeY21fCy64wN+QDD539yiHYkQBwzaAXTfrkG
-O2U0b7IKg9jbrX+GLKWE9BffkVMKlXulRqu2Ux9pzTC/kNsVhHdZC0CPIHiCJ+SW
-gsezirnD5v7cEWDb50PX13bBEJqnaVENzMpksobV5Eyge2WQMr4Ajx9PDgSfyI74
-MKRsu9KSRj8LrzJ/Qw+z2KDSqf0NmLM48PHrGRBV9Am7ZS24LZb3J9AdGMtwsqwL
-GzsasN85O2n/9/AKPl0HIbbP3OdDdhalEUJiDVAnk/IM7/qix0HWtdi+s2BYEGSW
-mOMXpjWj9y0NAl0CXwI/7DDC7km9jjlLoFmphiHXAERolz2CSReWMmBkDkfCfa0G
-D2hE3GqyZxrii90oeCHjcHPVq8UN5qBV3AyjRu06Azie5suOdqpJ/N2m/ewi0Mwk
-l/HRigoG2GeqxjvFLsrl
-=qZpj
------END PGP SIGNATURE-----
+Test summary
+------------
 
---L7tc5BHMFuONgTjmDO199RGA3ssmT0f0c--
+Build: uImage:
+    Pass (14/14): omap1_defconfig, omap1_defconfig_1510innovator_only,
+		  omap1_defconfig_5912osk_only, omap2plus_defconfig,
+		  omap2plus_defconfig_2430sdp_only,
+		  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm,
+		  omap2plus_defconfig_n800_only_a,
+		  omap2plus_defconfig_n800_multi_omap2xxx,
+		  omap2plus_defconfig_omap2_4_only,
+		  omap2plus_defconfig_omap3_4_only,
+		  rmk_omap3430_ldp_allnoconfig,
+		  rmk_omap3430_ldp_oldconfig,
+		  rmk_omap4430_sdp_allnoconfig
+
+Build: zImage:
+    Pass ( 2/ 2): omap2plus_defconfig, omap2plus_defconfig_am33xx_only
+
+Build: uImage+dtb:
+    Pass ( 3/ 3): omap2plus_defconfig_am33xx_only/am335x-bone,
+		  omap2plus_defconfig/omap4-panda,
+		  omap2plus_defconfig/omap4-panda-es
+
+Boot to userspace:
+    skip ( 1/ 1): 5912osk
+    Pass (11/11): 2430sdp, 3517evm, 3530es3beagle, 3730beaglexm,
+		  37xxevm, 4430es2panda, 4460pandaes, am335xbone,
+		  am335xbonelt, cmt3517, 4460varsomom
+
+PM: chip retention via suspend:
+    FAIL ( 3/ 7): 2430sdp, 4430es2panda, 4460varsomom
+    Pass ( 4/ 7): 3530es3beagle, 3730beaglexm, 37xxevm, 4460pandaes
+
+PM: chip retention via dynamic idle:
+    FAIL ( 5/ 7): 2430sdp, 37xxevm, 4430es2panda, 4460pandaes,
+		  4460varsomom
+    Pass ( 2/ 7): 3530es3beagle, 3730beaglexm
+
+PM: chip off except CORE via suspend:
+    Pass ( 1/ 1): 3730beaglexm
+
+PM: chip off except CORE via dynamic idle:
+    Pass ( 1/ 1): 3730beaglexm
+
+PM: chip off via suspend:
+    FAIL ( 4/ 5): 37xxevm, 4430es2panda, 4460pandaes, 4460varsomom
+    Pass ( 1/ 5): 3530es3beagle
+
+PM: chip off via dynamic idle:
+    FAIL ( 4/ 5): 37xxevm, 4430es2panda, 4460pandaes, 4460varsomom
+    Pass ( 1/ 5): 3530es3beagle
+
+
+vmlinux object size
+(delta in bytes from test_v3.13-rc3 (374b105797c3d4f29c685f3be535c35f5689b30e)):
+   text     data      bss    total  kernel
+   -220        0        0     -220  omap1_defconfig
+   -228        0        0     -228  omap1_defconfig_1510innovator_only
+   -156        0        0     -156  omap1_defconfig_5912osk_only
+  +2372      +80      +64    +2516  omap2plus_defconfig
+  +1564      +32        0    +1596  omap2plus_defconfig_2430sdp_only
+  +2300     +208      +64    +2572  omap2plus_defconfig_cpupm
+   +908     +112      +32    +1052  omap2plus_defconfig_n800_multi_omap2xxx
+   +876     +112      +32    +1020  omap2plus_defconfig_n800_only_a
+  +2372     +112        0    +2484  omap2plus_defconfig_no_pm
+  +2348     +104      +64    +2516  omap2plus_defconfig_omap2_4_only
+  +2372      +80      +64    +2516  omap2plus_defconfig_omap3_4_only
+  +2908     +240     -688    +2460  rmk_omap3430_ldp_allnoconfig
+   +828      +64        0     +892  rmk_omap3430_ldp_oldconfig
+  +2740     +168     -608    +2300  rmk_omap4430_sdp_allnoconfig
+   -352        0        0     -352  rmk_omap4430_sdp_oldnoconfig
+
+Boot-time memory difference
+(delta in bytes from test_v3.13-rc3 (374b105797c3d4f29c685f3be535c35f5689b30e))
+  avail  rsrvd   high  freed  board          kconfig
+    -8k     8k      .      .  2430sdp        omap2plus_defconfig
+    -8k     8k      .      .  3517evm        omap2plus_defconfig
+    -8k     8k      .      .  3530es3beagle  omap2plus_defconfig
+    -8k     8k      .      .  3730beaglexm   omap2plus_defconfig
+    -8k     8k      .      .  37xxevm        omap2plus_defconfig
+    -8k     8k      .      .  4430es2panda   omap2plus_defconfig
+    -8k     8k      .      .  4460pandaes    omap2plus_defconfig
+    -8k     8k      .      .  4460varsomom   omap2plus_defconfig
+    -8k     8k      .      .  am335xbone     omap2plus_defconfig_am33xx_only
+    -8k     8k      .      .  am335xbonelt   omap2plus_defconfig
+
