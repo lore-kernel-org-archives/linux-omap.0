@@ -1,50 +1,242 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [net PATCH v2 1/1] drivers: net : cpsw: pass proper device
- name while requesting irq
-Date: Tue, 17 Dec 2013 14:39:19 -0500 (EST)
-Message-ID: <20131217.143919.986923631175327534.davem@davemloft.net>
-References: <1386925527-6706-1-git-send-email-mugunthanvnm@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH] ARM: dts: Add basic devices for AM3517-craneboard
+Date: Tue, 17 Dec 2013 13:45:12 -0600
+Message-ID: <52B0A9C8.7070201@ti.com>
+References: <1386626150-23504-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1386925527-6706-1-git-send-email-mugunthanvnm@ti.com>
-Sender: netdev-owner@vger.kernel.org
-To: mugunthanvnm@ti.com
-Cc: netdev@vger.kernel.org, linux-omap@vger.kernel.org, george.cherian@ti.com
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:59102 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753051Ab3LQTpi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Dec 2013 14:45:38 -0500
+In-Reply-To: <1386626150-23504-1-git-send-email-nm@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: =?ISO-8859-1?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>
+Cc: devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Nishanth Menon <nm@ti.com>
 
-From: Mugunthan V N <mugunthanvnm@ti.com>
-Date: Fri, 13 Dec 2013 14:35:27 +0530
+On 12/09/2013 03:55 PM, Nishanth Menon wrote:
+> Craneboard is a hardware development platform based on the Sitara
+> AM3517 ARM Cortex - A8 microprocessor device - see [1] for more
+> details. Add basic devices for craneboard as replacement for the board
+> file scheduled for removal as part of device tree conversion
+> 
+> [1] http://craneboard.org
+> 
+> Signed-off-by: Nishanth Menon <nm@ti.com>
+> ---
 
-> During checking the interrupts with "cat /proc/interrupts", it is showing
-> device name as (null), this change was done with commit id aa1a15e2d where
-> request_irq is changed to devm_request_irq also changing the irq name from
-> platform device name to net device name, but the net device is not
-> registered at this point with the network frame work, so devm_request_irq
-> is called with device name as NULL, by which it is showed as "(null)" in
-> "cat /proc/interrupts". So this patch moved the devm_request_irq after
-> the net device register so that the device name shows as eth*.
+gentle ping.. had'nt seen a response on this patch. Could we queue
+this up for v3.14-rc1?
 
-This change is buggy.
+> Based on:
+> git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.git
+> branch: omap-for-v3.14/omap3-board-removal 736e812 ARM: OMAP2+: Remove unused platform init code and headers
+> 
+> Bootlog: http://pastebin.mozilla.org/3744412
+> 
+>  arch/arm/boot/dts/Makefile              |    1 +
+>  arch/arm/boot/dts/am3517-craneboard.dts |  174 +++++++++++++++++++++++++++++++
+>  2 files changed, 175 insertions(+)
+>  create mode 100644 arch/arm/boot/dts/am3517-craneboard.dts
+> 
+> diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
+> index fc37bca..ad155fc 100644
+> --- a/arch/arm/boot/dts/Makefile
+> +++ b/arch/arm/boot/dts/Makefile
+> @@ -205,6 +205,7 @@ dtb-$(CONFIG_ARCH_OMAP2PLUS) += omap2420-h4.dtb \
+>  	am335x-boneblack.dtb \
+>  	am335x-nano.dtb \
+>  	am335x-base0033.dtb \
+> +	am3517-craneboard.dtb \
+>  	am3517-evm.dtb \
+>  	am3517_mt_ventoux.dtb \
+>  	am43x-epos-evm.dtb \
+> diff --git a/arch/arm/boot/dts/am3517-craneboard.dts b/arch/arm/boot/dts/am3517-craneboard.dts
+> new file mode 100644
+> index 0000000..2d40b3f
+> --- /dev/null
+> +++ b/arch/arm/boot/dts/am3517-craneboard.dts
+> @@ -0,0 +1,174 @@
+> +/*
+> + * See craneboard.org for more details
+> + *
+> + * Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.com/
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +/dts-v1/;
+> +
+> +#include "am3517.dtsi"
+> +
+> +/ {
+> +	model = "TI AM3517 CraneBoard (TMDSEVM3517)";
+> +	compatible = "ti,am3517-craneboard", "ti,am3517", "ti,omap3";
+> +
+> +	memory {
+> +		device_type = "memory";
+> +		reg = <0x80000000 0x10000000>;	/* 256 MB */
+> +	};
+> +
+> +	vbat: fixedregulator@0 {
+> +		compatible = "regulator-fixed";
+> +		regulator-name = "vbat";
+> +		regulator-min-microvolt = <5000000>;
+> +		regulator-max-microvolt = <5000000>;
+> +		regulator-boot-on;
+> +	};
+> +};
+> +
+> +&davinci_emac {
+> +	status = "okay";
+> +};
+> +
+> +&davinci_mdio {
+> +	status = "okay";
+> +};
+> +
+> +&i2c1 {
+> +	clock-frequency = <2600000>;
+> +
+> +	tps: tps@2d {
+> +		reg = <0x2d>;
+> +	};
+> +};
+> +
+> +&i2c2 {
+> +	clock-frequency = <400000>;
+> +	/* goes to expansion connector */
+> +	status = "disabled";
+> +};
+> +
+> +&i2c3 {
+> +	clock-frequency = <400000>;
+> +	/* goes to expansion connector */
+> +	status = "disabled";
+> +};
+> +
+> +&mmc1 {
+> +	vmmc-supply = <&vdd2_reg>;
+> +	bus-width = <8>;
+> +};
+> +
+> +&mmc2 {
+> +	/* goes to expansion connector */
+> +	status = "disabled";
+> +};
+> +
+> +&mmc3 {
+> +	/* goes to expansion connector */
+> +	status = "disabled";
+> +};
+> +
+> +#include "tps65910.dtsi"
+> +
+> +&omap3_pmx_core {
+> +	tps_pins: pinmux_tps_pins {
+> +		pinctrl-single,pins = <
+> +			0x1b0 (PIN_INPUT_PULLUP | MUX_MODE0) /* sys_nirq.sys_nirq */
+> +		>;
+> +	};
+> +};
+> +
+> +&tps {
+> +	pinctrl-names = "default";
+> +	pinctrl-0 = <&tps_pins>;
+> +
+> +	interrupts = <7>; /* SYS_NIRQ cascaded to intc */
+> +	interrupt-parent = <&intc>;
+> +
+> +	ti,en-ck32k-xtal;
+> +
+> +	vcc1-supply = <&vbat>;
+> +	vcc2-supply = <&vbat>;
+> +	vcc3-supply = <&vbat>;
+> +	vcc4-supply = <&vbat>;
+> +	vcc5-supply = <&vbat>;
+> +	vcc6-supply = <&vbat>;
+> +	vcc7-supply = <&vbat>;
+> +	vccio-supply = <&vbat>;
+> +
+> +	regulators {
+> +		vrtc_reg: regulator@0 {
+> +			regulator-always-on;
+> +		};
+> +
+> +		vio_reg: regulator@1 {
+> +			regulator-always-on;
+> +		};
+> +
+> +		/*
+> +		 * Unused:
+> +		 * VDIG1=2.7V,300mA max
+> +		 * VDIG2=1.8V,300mA max
+> +		 */
+> +
+> +		vpll_reg: regulator@7 {
+> +			/* VDDS_DPLL_1V8 */
+> +			regulator-min-microvolt = <1800000>;
+> +			regulator-max-microvolt = <1800000>;
+> +			regulator-always-on;
+> +		};
+> +
+> +		vaux1_reg: regulator@9 {
+> +			/* VDDS_SRAM_1V8 */
+> +			regulator-min-microvolt = <1800000>;
+> +			regulator-max-microvolt = <1800000>;
+> +			regulator-always-on;
+> +		};
+> +
+> +		vaux2_reg: regulator@10 {
+> +			/* VDDA1P8V_USBPHY */
+> +			regulator-min-microvolt = <1800000>;
+> +			regulator-max-microvolt = <1800000>;
+> +			regulator-always-on;
+> +		};
+> +
+> +		/* VAUX33 unused */
+> +
+> +		vdac_reg: regulator@8 {
+> +			/* VDDA_DAC_1V8 */
+> +			regulator-min-microvolt = <1800000>;
+> +			regulator-max-microvolt = <1800000>;
+> +			regulator-always-on;
+> +		};
+> +
+> +		vmmc_reg: regulator@12 {
+> +			/* VDDA3P3V_USBPHY */
+> +			regulator-min-microvolt = <3300000>;
+> +			regulator-max-microvolt = <3300000>;
+> +			regulator-always-on;
+> +		};
+> +
+> +		vdd1_reg: regulator@2 {
+> +			/* VDD_CORE */
+> +			regulator-name = "vdd_core";
+> +			regulator-min-microvolt = <1200000>;
+> +			regulator-max-microvolt = <1200000>;
+> +			regulator-boot-on;
+> +			regulator-always-on;
+> +		};
+> +
+> +		vdd2_reg: regulator@3 {
+> +			/* VDDSHV_3V3 */
+> +			regulator-name = "vdd_shv";
+> +			regulator-min-microvolt = <3300000>;
+> +			regulator-max-microvolt = <3300000>;
+> +			regulator-always-on;
+> +		};
+> +
+> +		/* VDD3 unused */
+> +	};
+> +};
+> 
 
-If the request irq fails, you have to unregister the network device,
-branching to clean_ale_ret is insufficient.
 
-And this shows the more fundamental problem with your change, you
-cannot register the network device before you request the IRQs
-if your ->open() method assumes that the IRQs are registered already.
-
-Which this driver does.
-
-The very moment you call request_irq(), the interface can be brought
-up and then ->open() method invoked.
-
-Therefore, register_netdevice() absolutely must be the very last
-action during the probe function.
-
-Why don't you just use the platform device name as the interrupt
-name?  The other alternative is to only register the IRQs in the
-->open() routine and free the IRQ in the ->close() method.
-
-I can't apply this, sorry.
+-- 
+Regards,
+Nishanth Menon
