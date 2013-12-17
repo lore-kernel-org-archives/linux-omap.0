@@ -1,88 +1,195 @@
-From: Sebastian Reichel <sre@debian.org>
-Subject: Re: [PATCH 0/4] OMAPDSS: DT support for N900 panel
-Date: Tue, 17 Dec 2013 18:14:14 +0100
-Message-ID: <20131217171412.GA10442@earth.universe>
-References: <1386958650-2404-1-git-send-email-sre@debian.org>
- <52AFFF3F.7020807@ti.com>
+From: Florian Vaussard <florian.vaussard@epfl.ch>
+Subject: Re: [PATCHv2 17/27] ARM: omap3-tobi.dts: add lcd (TEST)
+Date: Tue, 17 Dec 2013 18:17:28 +0100
+Message-ID: <52B08728.8050105@epfl.ch>
+References: <1387205794-32246-1-git-send-email-tomi.valkeinen@ti.com> <1387205794-32246-18-git-send-email-tomi.valkeinen@ti.com>
+Reply-To: florian.vaussard@epfl.ch
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="IS0zKkzwUGydFO0o"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ring0.de ([91.143.88.219]:49727 "EHLO smtp.ring0.de"
+Received: from smtp5.epfl.ch ([128.178.224.8]:35116 "EHLO smtp5.epfl.ch"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753694Ab3LQROl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 17 Dec 2013 12:14:41 -0500
-Content-Disposition: inline
-In-Reply-To: <52AFFF3F.7020807@ti.com>
+	id S1753453Ab3LQRRc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 17 Dec 2013 12:17:32 -0500
+In-Reply-To: <1387205794-32246-18-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Rob Landley <rob@landley.net>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org
+
+Hello
+
+On 12/16/2013 03:56 PM, Tomi Valkeinen wrote:
+> This is a test for Overo with Palo43 expansion, _not_ Tobi. Palo43
+> doesn't have a dts, but seems to work ok with omap3-tobi.dts, so I used
+> it as a test.
+> 
+> Not to be merged.
+> 
+
+FYI, I got the DVI (HDMI connector) on the Overo/Tobi to work with the patch
+below (not to be merged, and probably corrupted by our mail server), until a
+framebuffer console. So for me:
+
+Tested-by: Florian Vaussard <florian.vaussard@epfl.ch>
+
+Regards,
+Florian
+
+8< --------------------------------
+>From 29237c38d35b833efe304b1a58463127555c4748 Mon Sep 17 00:00:00 2001
+From: Florian Vaussard <florian.vaussard@epfl.ch>
+Date: Tue, 17 Dec 2013 17:47:04 +0100
+Subject: [PATCH] ARM: omap3-tobi.dts: add dvi output
+
+Add DVI output to Overo/Tobi board.
+
+Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
+---
+ arch/arm/boot/dts/omap3-overo.dtsi | 33 +++++++++++++++++++++++
+ arch/arm/boot/dts/omap3-tobi.dts   | 54
+++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 87 insertions(+)
+
+diff --git a/arch/arm/boot/dts/omap3-overo.dtsi
+b/arch/arm/boot/dts/omap3-overo.dtsi
+index a461d2f..90b08f6 100644
+--- a/arch/arm/boot/dts/omap3-overo.dtsi
++++ b/arch/arm/boot/dts/omap3-overo.dtsi
+@@ -89,6 +89,39 @@
+                        0x170 (PIN_OUTPUT | MUX_MODE0) /*
+uart3_tx_irtx.uart3_tx_irtx */
+                >;
+        };
++
++       dss_dpi_pins: pinmux_dss_dpi_pins {
++               pinctrl-single,pins = <
++                       0x0a4 (PIN_OUTPUT | MUX_MODE0)   /*
+dss_pclk.dss_pclk */
++                       0x0a6 (PIN_OUTPUT | MUX_MODE0)   /*
+dss_hsync.dss_hsync */
++                       0x0a8 (PIN_OUTPUT | MUX_MODE0)   /*
+dss_vsync.dss_vsync */
++                       0x0aa (PIN_OUTPUT | MUX_MODE0)   /*
+dss_acbias.dss_acbias */
++                       0x0ac (PIN_OUTPUT | MUX_MODE0)   /*
+dss_data0.dss_data0 */
++                       0x0ae (PIN_OUTPUT | MUX_MODE0)   /*
+dss_data1.dss_data1 */
++                       0x0b0 (PIN_OUTPUT | MUX_MODE0)   /*
+dss_data2.dss_data2 */
++                       0x0b2 (PIN_OUTPUT | MUX_MODE0)   /*
+dss_data3.dss_data3 */
++                       0x0b4 (PIN_OUTPUT | MUX_MODE0)   /*
+dss_data4.dss_data4 */
++                       0x0b6 (PIN_OUTPUT | MUX_MODE0)   /*
+dss_data5.dss_data5 */
++                       0x0b8 (PIN_OUTPUT | MUX_MODE0)   /*
+dss_data6.dss_data6 */
++                       0x0ba (PIN_OUTPUT | MUX_MODE0)   /*
+dss_data7.dss_data7 */
++                       0x0bc (PIN_OUTPUT | MUX_MODE0)   /*
+dss_data8.dss_data8 */
++                       0x0be (PIN_OUTPUT | MUX_MODE0)   /*
+dss_data9.dss_data9 */
++                       0x0c0 (PIN_OUTPUT | MUX_MODE0)   /*
+dss_data10.dss_data10 */
++                       0x0c2 (PIN_OUTPUT | MUX_MODE0)   /*
+dss_data11.dss_data11 */
++                       0x0c4 (PIN_OUTPUT | MUX_MODE0)   /*
+dss_data12.dss_data12 */
++                       0x0c6 (PIN_OUTPUT | MUX_MODE0)   /*
+dss_data13.dss_data13 */
++                       0x0c8 (PIN_OUTPUT | MUX_MODE0)   /*
+dss_data14.dss_data14 */
++                       0x0ca (PIN_OUTPUT | MUX_MODE0)   /*
+dss_data15.dss_data15 */
++                       0x0cc (PIN_OUTPUT | MUX_MODE0)   /*
+dss_data16.dss_data16 */
++                       0x0ce (PIN_OUTPUT | MUX_MODE0)   /*
+dss_data17.dss_data17 */
++                       0x0d0 (PIN_OUTPUT | MUX_MODE0)   /*
+dss_data18.dss_data18 */
++                       0x0d2 (PIN_OUTPUT | MUX_MODE0)   /*
+dss_data19.dss_data19 */
++                       0x0d4 (PIN_OUTPUT | MUX_MODE0)   /*
+dss_data20.dss_data20 */
++                       0x0d6 (PIN_OUTPUT | MUX_MODE0)   /*
+dss_data21.dss_data21 */
++                       0x0d8 (PIN_OUTPUT | MUX_MODE0)   /*
+dss_data22.dss_data22 */
++                       0x0da (PIN_OUTPUT | MUX_MODE0)   /*
+dss_data23.dss_data23 */
++               >;
++       };
+ };
+
+ &uart3 {
+diff --git a/arch/arm/boot/dts/omap3-tobi.dts
+b/arch/arm/boot/dts/omap3-tobi.dts
+index 7e4ad2a..bfb1a1d 100644
+--- a/arch/arm/boot/dts/omap3-tobi.dts
++++ b/arch/arm/boot/dts/omap3-tobi.dts
+@@ -81,3 +81,57 @@
+ &mmc3 {
+        status = "disabled";
+ };
++
++&dss {
++       pinctrl-names = "default";
++       pinctrl-0 = <&dss_dpi_pins>;
++
++       vdds_dsi-supply = <&vpll2>;
++
++       dpi_out: endpoint {
++               remote-endpoint = <&tfp410_in>;
++               data-lines = <24>;
++       };
++};
++
++/ {
++       aliases {
++               display0 = &dvi0;
++       };
++
++       tfp410: encoder@0 {
++               compatible = "ti,tfp410";
++
++               ports {
++                       #address-cells = <1>;
++                       #size-cells = <0>;
++
++                       port@0 {
++                               reg = <0>;
++
++                               tfp410_in: endpoint@0 {
++                                       remote-endpoint = <&dpi_out>;
++                               };
++                       };
++
++                       port@1 {
++                               reg = <1>;
++
++                               tfp410_out: endpoint@0 {
++                                       remote-endpoint =
+<&dvi_connector_in>;
++                               };
++                       };
++               };
++       };
++
++       dvi0: connector@0 {
++               compatible = "dvi-connector";
++               label = "dvi";
++
++               i2c-bus = <&i2c3>;
++
++               dvi_connector_in: endpoint {
++                       remote-endpoint = <&tfp410_out>;
++               };
++       };
++};
+-- 
+1.8.1.2
 
 
---IS0zKkzwUGydFO0o
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Tue, Dec 17, 2013 at 09:37:35AM +0200, Tomi Valkeinen wrote:
-> Hi,
->=20
-> On 2013-12-13 20:17, Sebastian Reichel wrote:
-> > Hi,
-> >=20
-> > This patchset adds DT support for the N900 panel. The patchset is based=
- on
-> > Tomi's work/dss-dt-2 branch [0]. I suggest to send the DT changes throu=
-gh
-> > Benoits queue, since I have more N900 DT changes for 3.14. Also the pat=
-ch
-> > editing the rx51 boardcode can be dropped, since the file is removed in=
- 3.14.
-> > I included those two with this patchset, since they are needed to test =
-the
-> > other two patches.
-> >=20
-> > I did not include a documentation for the DT API, since the omapdss
-> > documentation is still missing.
-> >=20
-> > I have successfully tested this on the N900.
-> >=20
-> > [0] https://git.kernel.org/cgit/linux/kernel/git/tomba/linux.git/log/?h=
-=3Dwork/dss-dt-2
->=20
-> I added N900 display DT support on top of my v2 series, including
-> pinmuxing. Can you check if it looks right and works?
->=20
-> git://git.kernel.org/pub/scm/linux/kernel/git/tomba/linux.git work/dss-dt
-
-I just tried it and it does not work. On a first look the pinmuxing
-looks fishy: 0x0d4 is muxed two times.
-
-I will have a more detailed look into this later.
-
--- Sebastian
-
---IS0zKkzwUGydFO0o
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.15 (GNU/Linux)
-
-iQIcBAEBCAAGBQJSsIZkAAoJENju1/PIO/qa/LYP/iyrGFxaTaZwmkcavWq+J9U/
-TMBJwwXy1z5GYqE1egJ5/3f21tzfjlLuCKiEtZteNdv7U45urBGLdX+434iox0br
-LcNgiXo8GSfnmbYio/GDSgceOyoGefCHo2/HubNp/jfwM6MeUkFj6yVq60m+8Wwr
-GgYvX6zZIcxSiCI3/0oBMozHfHQhf+rmqgpQT0966pXpx/K/Q2kVgadpQm5S65h4
-UcYLG4R/s6hLDBRqGVbHRCiotuCxGlQ04hodgjpzf9zLeX05RKOdRLy7Mjzz5KA1
-cpRwBt7t0zLvtzrjY06PwZGVPbu66SpECmNw6C5s69S8taOOuW4Bdl5luqdMpL92
-itjJGuHRvtBMLa7fdgyY/ptL7oRey5ulzmwyxOZh00mYxEREKZWwnI3Kh3qnwm11
-FDLJBGq3/XBXTCYhBC5ikAJrtR/Ms6c/Z1/t6vqL5lJgo5rOTazX9KP6mCgFciGU
-tEXlghXJqg0TFdHXE4vf4IcNPtDVWsqgh8ly2Pw1UPfaXFk9oMX28tvfSwNjaSth
-SJvrHP4b3kyRb1r2e4ChJGHOVAuSJ+QgNdP0OrHaEoJ9ABreNsBAW3K8L5q0ikIj
-zVnGOA8NFSEc22IIIaNkMLDUlZEmsCLc4UHDKjYifMn8/cL0M9QilKMDPdsEwpFt
-fSuyYgCj0efJpT/v3MW2
-=jmf4
------END PGP SIGNATURE-----
-
---IS0zKkzwUGydFO0o--
