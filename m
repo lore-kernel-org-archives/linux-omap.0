@@ -1,40 +1,76 @@
-From: Sourav Poddar <sourav.poddar@ti.com>
-Subject: [PATCH 2/3] driver: pwm: ti-ecap: Remove duplicate put_sync call.
-Date: Wed, 18 Dec 2013 17:06:54 +0530
-Message-ID: <1387366615-23182-3-git-send-email-sourav.poddar@ti.com>
-References: <1387366615-23182-1-git-send-email-sourav.poddar@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: OMAP display subsystem - does it work?
+Date: Wed, 18 Dec 2013 12:00:23 +0000
+Message-ID: <20131218120023.GG4360@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:38644 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752785Ab3LRLhG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Dec 2013 06:37:06 -0500
-In-Reply-To: <1387366615-23182-1-git-send-email-sourav.poddar@ti.com>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:55367 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751293Ab3LRMBM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Dec 2013 07:01:12 -0500
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: thierry.reding@gmail.com
-Cc: linux-pwm@vger.kernel.org, linux-omap@vger.kernel.org, balbi@ti.com, Sourav Poddar <sourav.poddar@ti.com>
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, Tony Lindgren <tony@atomide.com>
 
-Remove duplicate 'pm_runtime_put_sync' in the remove path.
+In my continuing woes with having the OMAP boards I have produce output,
+where things used to work on the LDP, they now do not.  And on the SDP4430
+board, where things were detected, they're no longer detected.
 
-Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
----
- drivers/pwm/pwm-tiecap.c |    1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
+I thought this was just a matter of adjusting the configuration, but it
+seems there's much more wrong than just that - so I wasn't too worried.
+Last night, I updated the configuration to ensure that the appropriate
+connector configuration symbols were enabled (see the changelog in the
+configuration seeds.)
 
-diff --git a/drivers/pwm/pwm-tiecap.c b/drivers/pwm/pwm-tiecap.c
-index 4e5c3d1..032092c 100644
---- a/drivers/pwm/pwm-tiecap.c
-+++ b/drivers/pwm/pwm-tiecap.c
-@@ -279,7 +279,6 @@ static int ecap_pwm_remove(struct platform_device *pdev)
- 	pwmss_submodule_state_change(pdev->dev.parent, PWMSS_ECAPCLK_STOP_REQ);
- 	pm_runtime_put_sync(&pdev->dev);
- 
--	pm_runtime_put_sync(&pdev->dev);
- 	pm_runtime_disable(&pdev->dev);
- 	return pwmchip_remove(&pc->chip);
- }
--- 
-1.7.1
+All the time that stuff on OMAP gets broken and/or doesn't work (inspite
+of repeated attempts at reporting problems - I've never seen the displays
+on the SDP4430 board ever work with a mainline kernel in all the years
+I've had the platform - but they have worked with the originally supplied
+TI kernels) I really find myself not really caring very much about OMAP
+and whether it works or not.
 
+Quite honestly, I regard OMAP as nothing more than an overly complex toy
+implementation rather than a serious architecture because of this kind
+of stuff - unlike every other ARM platform where stuff like this "just
+works", OMAP stuff is always seems to be much harder to make work, and
+more prone to stuff breaking.
+
+So, here goes.  LDP3430:
+
+OMAP DSS rev 2.0
+omapdss DPI error: can't get VDDS_DSI regulator
+omapfb omapfb: failed to connect default display
+omapfb omapfb: failed to init overlay connections
+omapfb omapfb: failed to setup omapfb
+platform omapfb: Driver omapfb requests probe deferral
+
+I don't see evidence of it being re-probed, but I do see this during boot
+which implies that there's nothing there:
+
+XIO:  fatal IO error 104 (Connection reset by peer) on X server ":0.0"
+      after 0 requests (0 known processed) with 0 events remaining.
+
+
+
+For the SDP4430, it used to detect the displays, even though nothing has
+ever been displayed on them.  Now it just spits out this:
+
+OMAP DSS rev 4.0
+omapdss DSI error: can't get VDDS_DSI regulator
+panel-dsi-cm panel-dsi-cm.0: Failed to connect to video source
+omapfb omapfb: failed to connect default display
+omapfb omapfb: failed to init overlay connections
+omapfb omapfb: failed to setup omapfb
+platform omapfb: Driver omapfb requests probe deferral
+...
+omapdss DSI error: failed to set complexio power state to 1
+panel-dsi-cm panel-dsi-cm.0: failed to enable DSI
+omapfb omapfb: Failed to enable display 'lcd'
+omapfb omapfb: failed to initialize default display
+omapfb omapfb: failed to setup omapfb
+
+Configurations, build and boot logs are all on
+http://www.arm.linux.org.uk/developer/build/
