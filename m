@@ -1,104 +1,58 @@
-From: Sebastian Reichel <sre@debian.org>
-Subject: Re: [PATCH 0/4] OMAPDSS: DT support for N900 panel
-Date: Wed, 18 Dec 2013 22:55:37 +0100
-Message-ID: <20131218215536.GA23674@earth.universe>
-References: <1386958650-2404-1-git-send-email-sre@debian.org>
- <52AFFF3F.7020807@ti.com>
- <20131217171412.GA10442@earth.universe>
- <52B089FE.8060704@ti.com>
+From: Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH V3] usb: musb: Fix unstable init of OTG_INTERFSEL.
+Date: Thu, 19 Dec 2013 01:40:11 +0200
+Message-ID: <CANOLnOOP8bh2OuajnCE7P-VpSvH_u7-wk5bHuWEfXhALHCBk4w@mail.gmail.com>
+References: <1387298913-18823-1-git-send-email-anaumann@ultratronik.de>
+	<20131218153545.GA1593@saruman.home>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="+QahgC5+KEYLbs62"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ring0.de ([91.143.88.219]:56953 "EHLO smtp.ring0.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753907Ab3LRVzm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 18 Dec 2013 16:55:42 -0500
-Content-Disposition: inline
-In-Reply-To: <52B089FE.8060704@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20131218153545.GA1593-HgARHv6XitL9zxVx7UNMDg@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Cc: anaumann-ZKHRqZ6+gQUX0D0ZMPkEVw@public.gmane.org, Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Rob Landley <rob@landley.net>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org
+
+On Wed, Dec 18, 2013 at 5:35 PM, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> wrote:
+> Hi,
+>
+> On Tue, Dec 17, 2013 at 05:48:33PM +0100, anaumann-ZKHRqZ6+gQUX0D0ZMPkEVw@public.gmane.org wro=
+te:
+>> From: Andreas Naumann <anaumann-ZKHRqZ6+gQUX0D0ZMPkEVw@public.gmane.org>
+>>
+>> This is a hard to reproduce problem which leads to non-functional
+>> USB-OTG port in 0.1%-1% of all boots. Tracked it down to commit
+>> e25bec160158abe86c276d7d206264afc3646281, which introduces save/rest=
+ore
+>> of OTG_INTERFSEL over suspend.
+>> Since the resume function is also called early in driver init, it us=
+es a
+>> non-initialized value (which is 0 and a non-supported setting in DM3=
+7xx
+>> for INTERFSEL). Shortly after the correct value is set. Apparently t=
+his
+>> works most time, but not always.
+>
+> yeah, but the problem is not on the glue layer. The bug is omap_devic=
+e
+> and pm_runtime not agreeing on device's state. I suppose there was a =
+fix
+> for that recently in linux-omap@vger mailing list.
+
+You mean this: http://marc.info/?t=3D138444882600003&r=3D1&w=3D2 ?
+
+This looks like a different issue during suspend, this problem is at
+startup. Both musb_core and omap2430.c expect hardware to be disabled
+on startup, and that works as expected. The problem is on first
+pm_runtime_get_sync(), which results in first runtime_resume() call,
+musb_core checks for first resume and doesn't load yet-unset context
+in that case, however glue does and breaks things. We have this
+problem since 3.2.
 
 
---+QahgC5+KEYLbs62
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Tue, Dec 17, 2013 at 07:29:34PM +0200, Tomi Valkeinen wrote:
-> >> I added N900 display DT support on top of my v2 series, including
-> >> pinmuxing. Can you check if it looks right and works?
-> >>
-> >> git://git.kernel.org/pub/scm/linux/kernel/git/tomba/linux.git work/dss=
--dt
-> >=20
-> > I just tried it and it does not work. On a first look the pinmuxing
-> > looks fishy: 0x0d4 is muxed two times.
->=20
-> Hmm, so it is.
->=20
-> I'm not really familiar with SDI, I just muxed all the SDI pins, except
-> datapair3. I previously thought that there's only the data and clock
-> pairs for SDI, but the TRM revealed more sdi pins, so I included them.
-> It is well possible that these can be removed:
->=20
-> 0x0d0 (PIN_OUTPUT | MUX_MODE1)   /* dss_data18.sdi_vsync */
-> 0x0d2 (PIN_OUTPUT | MUX_MODE1)   /* dss_data19.sdi_hsync */
-> 0x0d4 (PIN_OUTPUT | MUX_MODE1)   /* dss_data20.sdi_den */
-> 0x0d6 (PIN_OUTPUT | MUX_MODE1)   /* dss_data21.sdi_stp */
-
-Just removing the dss_data20.sdi_den pin was enough to get a working displa=
-y. I
-don't know if the other pins are needed, because the display pins are alrea=
-dy
-muxed correctly by the bootloader.
-
--- Sebastian
-
-diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n90=
-0.dts
-index 39e5e50..33f29ac 100644
---- a/arch/arm/boot/dts/omap3-n900.dts
-+++ b/arch/arm/boot/dts/omap3-n900.dts
-@@ -163,7 +163,7 @@
-=20
-                        0x0d0 (PIN_OUTPUT | MUX_MODE1)   /* dss_data18.sdi_=
-vsync */
-                        0x0d2 (PIN_OUTPUT | MUX_MODE1)   /* dss_data19.sdi_=
-hsync */
--                       0x0d4 (PIN_OUTPUT | MUX_MODE1)   /* dss_data20.sdi_=
-den */
-+                       //0x0d4 (PIN_OUTPUT | MUX_MODE1)   /* dss_data20.sd=
-i_den */
-                        0x0d6 (PIN_OUTPUT | MUX_MODE1)   /* dss_data21.sdi_=
-stp */
-                        0x0d8 (PIN_OUTPUT | MUX_MODE1)   /* dss_data22.sdi_=
-clkp */
-                        0x0da (PIN_OUTPUT | MUX_MODE1)   /* dss_data23.sdi_=
-clkn */
-
---+QahgC5+KEYLbs62
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.15 (GNU/Linux)
-
-iQIcBAEBCAAGBQJSshnXAAoJENju1/PIO/qaGLcQAJSHbXZGr154ETfkOy7NXugx
-GrZrxqVMqlvPuYI+N4tOry2n0LkJpZFqi0Yyjdle+2rPheP7Tkfm8RWO/aioQMjY
-1PDvgHCEfRuuV9o91ZsN6IuPwW0sO3aBjjHmiMO1u6xGFyxwgi/774Yp67j72UjW
-cY7/P0w/jAis1XLV5y34Fas6YZIqeOtiRKpF5++iosozh3xWpWLMj/1N+oR9TrA8
-hcGgpnhCPWsWCWl9U6GzRqNUS+FNDE8+WVJFsKR6Q5BOvRBmbo9SFWQjZA2Lnj2F
-s71m7cdaSCq/Ers3BxV1TjiRHYHYTAGHz7u2egWDCXAFqkER9wUeA6k4TdfbZv1g
-d+DH+i7j32H+jraRPq3ILwAk0KY6OuPjrwPC5HRACiAOevJXJbq1ItT2t5qOed9Q
-0wIPeWoTaQiH8fId6HIsI0fd++wir9as51L6QiFzFddMqcif3KANLlFYdFo6H8MP
-GQZP6LW5XpErNQ4IGHO/gO1FnQhEdwEEn6qz4BwG8cEhUwes2JHKtZCT9KbRw1hu
-zHaO/mLPuhQ1vkIV3mJKb4CIA+JMG3F9p31jewZYqrR02Fhc3thWoCgNtyqO/yd0
-77Py4n9QVdYvHulOP1Mtxewe2no37PTF3DAqPGp68nMHaITCOCBhHdcbUM7olNyH
-p/rnWVxCge68nlJMumBC
-=W9Qm
------END PGP SIGNATURE-----
-
---+QahgC5+KEYLbs62--
+Gra=C5=BEvydas
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
