@@ -1,70 +1,99 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH V3] usb: musb: Fix unstable init of OTG_INTERFSEL.
-Date: Wed, 18 Dec 2013 09:35:45 -0600
-Message-ID: <20131218153545.GA1593@saruman.home>
-References: <1387298913-18823-1-git-send-email-anaumann@ultratronik.de>
-Reply-To: <balbi@ti.com>
+Subject: Re: [PATCH 0/7] usb: dwc3: pm_runtime implementation
+Date: Wed, 18 Dec 2013 09:36:14 -0600
+Message-ID: <20131218153614.GB1593@saruman.home>
+References: <1386884325-11440-1-git-send-email-balbi@ti.com>
+ <20131217233140.GA21267@psi-dev26.jf.intel.com>
+ <20131217233554.GB21267@psi-dev26.jf.intel.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="VS++wcV0S1rZb1Fb"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:53639 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754774Ab3LRPgb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 18 Dec 2013 10:36:31 -0500
-Content-Disposition: inline
-In-Reply-To: <1387298913-18823-1-git-send-email-anaumann@ultratronik.de>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/mixed; boundary="===============3525671993730475100=="
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20131217233554.GB21267@psi-dev26.jf.intel.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: David Cohen <david.a.cohen@linux.intel.com>
+Cc: kgene.kim@samsung.com, w-kwok2@ti.com, Linux USB Mailing List <linux-usb@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, linux-samsung-soc@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: anaumann@ultratronik.de
-Cc: notasas@gmail.com, linux-usb@vger.kernel.org, balbi@ti.com, linux-omap@vger.kernel.org
 
---VS++wcV0S1rZb1Fb
+--===============3525671993730475100==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="LyciRD1jyfeSSjG0"
+Content-Disposition: inline
+
+--LyciRD1jyfeSSjG0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Tue, Dec 17, 2013 at 05:48:33PM +0100, anaumann@ultratronik.de wrote:
-> From: Andreas Naumann <anaumann@ultratronik.de>
+On Tue, Dec 17, 2013 at 03:35:54PM -0800, David Cohen wrote:
+> On Tue, Dec 17, 2013 at 03:31:40PM -0800, David Cohen wrote:
+> > On Thu, Dec 12, 2013 at 03:38:38PM -0600, Felipe Balbi wrote:
+> > > hi all,
+> > >=20
+> > > these patches add pm_runtime support for all glue layers.
+> > >=20
+> > > I plan to add pm_runtime support for dwc3 after these
+> > > patches are merged upstream.
+> > >=20
+> > > Please test.
+> >=20
+> > At first time I failed to notice you were removing #ifdef's around pm
+> > callback functions. Instead of saying DWC3 will start to have warnings
+> > when CONFIG_PM is not selected, I'd say your patch set is now a
+> > dependence of my RFC :)
 >=20
-> This is a hard to reproduce problem which leads to non-functional
-> USB-OTG port in 0.1%-1% of all boots. Tracked it down to commit
-> e25bec160158abe86c276d7d206264afc3646281, which introduces save/restore
-> of OTG_INTERFSEL over suspend.
-> Since the resume function is also called early in driver init, it uses a
-> non-initialized value (which is 0 and a non-supported setting in DM37xx
-> for INTERFSEL). Shortly after the correct value is set. Apparently this
-> works most time, but not always.
+> I guess I said it in wrong order :P
+> Your patch set depends on my RFC.
 
-yeah, but the problem is not on the glue layer. The bug is omap_device
-and pm_runtime not agreeing on device's state. I suppose there was a fix
-for that recently in linux-omap@vger mailing list.
+Or I just modify my patchset a little bit for now ;-)
 
 --=20
 balbi
 
---VS++wcV0S1rZb1Fb
+--LyciRD1jyfeSSjG0
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.15 (GNU/Linux)
 
-iQIcBAEBAgAGBQJSscDQAAoJEIaOsuA1yqREfWoQAIh8aqHSN3PMvW3C2f8hKO5o
-7HNOiXMfjvDcapscrLJ3BfNRX29mgXQh8cYQV/a0Gsy0XmiGms3ffD/4SDbd7enw
-DO30Fq4MBpLrYfe5QBkImn69sKxfBc6aY8jHqeuA8OeNeJL+0wvopFIpQk1P8YJS
-12qRFlHNOV2SzicTfHgOi6+cuABCOVENjvXGZIyDWoxzhxB4bgoQsnc2hXLMULV+
-IAFGi+yk8NPJ4YKudDL8btq20AXm3kHb96P+1IStMh3BP4qFmj5OA4AJBWUs4nuE
-gPV5SeB4AeDmJ2i8RRLw98xg0uBwrirBxxD8W/hT+7Qw1UwZjONwFFya0jyoT961
-qChhb3DzHze4oMrlbMTDXa72IDzVIyn+GejtbAeBMtSJHF3FdKWLy7xZaGjpDQ0j
-VAMHe4DiWjNgB8pzRTedUH+OyP2+jNfi+eWdXyjIQiszorfAS1Vi8/ZFW7kA+s37
-m6RE9p7PCnj1JQMRABZ/GiQcKhckMLPa1B61/vk1K38LIu6GztS1XkfkC8UyEZDr
-1KH29l31v5U4qtA71LnkS2NUxQz0WHkzPAi78BtQ3JqKUJiCmeUpYFAZzMOgaxq8
-qS2YZLIEUjuFyoMac6daCJzbrqvP/+tDGIZSb7c4mEW2cdQ2v3UvqP+EWtmQ5llB
-/ChYLDuqta2/Ug5R/rgi
-=u5sT
+iQIcBAEBAgAGBQJSscDuAAoJEIaOsuA1yqREumMP/29DtHPYLle6cj0DBD936nqL
+8BHCCqWQNNUQeoZUJRdnbNDr5GATT4y6vop7RjBnmKEURLYmGjk0h6E3XtzRbVh5
+Q7dujpivXAEKkCMcKmNOgR2E5fzcCGQtISAumFoaF9wjDwCPoeHT7Vv1PMiqASN7
+ElBs/0LWZsFYcs65rjkrBiWcVjmiSiGAzUW+uuD0W/K8BWZTW+e18w/txYd/+n8Y
+t47upOIXv5cfxAX5jqo683GvItn/Za80bPPlOm7ZX4W66kRxm7kYkH75aQe/PEps
+EDk6ncr4SWCRmJsrwAKaSKcpdCp8a3tgDib9HSwIKIOHsTR6k2J7qsw0VTzXitXN
+ZJXfG/fo0OKsGp7z3wdX4NdxpNUFZO2p8tN0LYeSPVP8lwt74KAuj/x8jqwgREXg
+Xy6mOzQf1aaw9RLxY47dXVND6eYIukjN+23JX9DnKSP14R5edzsUxo8+Hh172SCA
+PbVAEpwodZmLxyNvJRgxDv6UbyW01LPFk1p5eFeKRTMViCU6oQrNJMTZ8uLQtR5h
+PsHi5/eTkC5Sugy2K+97DzojwcVEDakd+eAlh8rLPm7+TuTOxX9RGJucTBdbFvEb
+We1yjbUaMroKRz1iKbxFuuReiJdV6PluDFtf8CwMSlglt7wTncfy7PfWQZGvjRXU
+/QZ5nBCkm+gvEhPCypun
+=Kmfo
 -----END PGP SIGNATURE-----
 
---VS++wcV0S1rZb1Fb--
+--LyciRD1jyfeSSjG0--
+
+
+--===============3525671993730475100==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+--===============3525671993730475100==--
