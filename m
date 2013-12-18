@@ -1,116 +1,146 @@
-From: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCHv2 23/27] OMAPDSS: connector-dvi: Add DT support
-Date: Wed, 18 Dec 2013 16:02:28 +0200
-Message-ID: <52B1AAF4.3020509@ti.com>
-References: <1387205794-32246-1-git-send-email-tomi.valkeinen@ti.com> <20131217070551.GR24559@pengutronix.de> <52AFFA2E.5050702@ti.com> <1651476.iaILztiDEi@avalon> <52B17BBF.8090003@ti.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="DjNsiUb5Mm2cRkPMn7ljkAwtB4p2p3Glh"
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <52B17BBF.8090003-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Sascha Hauer <s.hauer-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Markus Pargmann <mpa@pengutronix.de>
+Subject: [PATCH 1/2] regulator: tps65910: Add backup battery regulator
+Date: Wed, 18 Dec 2013 15:50:07 +0100
+Message-ID: <1387378208-26841-1-git-send-email-mpa@pengutronix.de>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:44604 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754607Ab3LROuw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Dec 2013 09:50:52 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Mark Brown <broonie@kernel.org>
+Cc: Liam Girdwood <lgirdwood@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel@pengutronix.de, Markus Pargmann <mpa@pengutronix.de>
 
---DjNsiUb5Mm2cRkPMn7ljkAwtB4p2p3Glh
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+tps65910 has a backup battery charger with a configurable voltage. This
+patch adds a regulator for the backup battery.
 
-On 2013-12-18 12:41, Tomi Valkeinen wrote:
+Signed-off-by: Markus Pargmann <mpa@pengutronix.de>
+---
+ drivers/regulator/tps65910-regulator.c | 32 ++++++++++++++++++++++++++++++--
+ include/linux/mfd/tps65910.h           |  3 ++-
+ 2 files changed, 32 insertions(+), 3 deletions(-)
 
-> 3. Have correct DT data, but at init time, in omap arch code, go throug=
-h
-> the DT data and change the compat strings for the display nodes to
-> include "omapdss,". This way the drivers would only work for omap
-> platforms. Like a combination of 1. and 2. I'm not sure if the DT-code
-> allows this at the moment, though.
-
-This wasn't actually too hard. It says "hack" all over it, but the code
-was quite compact. I call the omapdss_early_init_of() as the first thing
-in omap_generic_init(), before the devices are created:
-
-+static const char* const dss_compat_conv_list[] =3D {
-+       "hdmi-connector",
-+       "dvi-connector",
-+       "ti,tpd12s015",
-+       "panel-dsi-cm",
+diff --git a/drivers/regulator/tps65910-regulator.c b/drivers/regulator/tps65910-regulator.c
+index a00132e..74f5e05 100644
+--- a/drivers/regulator/tps65910-regulator.c
++++ b/drivers/regulator/tps65910-regulator.c
+@@ -88,6 +88,11 @@ static const unsigned int VMMC_VSEL_table[] = {
+ 	1800000, 2800000, 3000000, 3300000,
+ };
+ 
++/* supported BBCH voltages in microvolts */
++static const unsigned int VBB_VSEL_table[] = {
++	3000000, 2520000, 3150000, 5000000,
 +};
 +
-+static void omapdss_omapify_node(struct device_node *node, const char
-*compat)
-+{
-+       char *new_compat;
-+       struct property *prop;
-+
-+       new_compat =3D kasprintf(GFP_KERNEL, "omapdss,%s", compat);
-+
-+       prop =3D kzalloc(sizeof(*prop), GFP_KERNEL);
-+       prop->name =3D "compatible";
-+       prop->value =3D new_compat;
-+       prop->length =3D strlen(new_compat) + 1;
-+
-+       of_update_property(node, prop);
-+}
-+
-+void __init omapdss_early_init_of(void)
-+{
-+       int i;
-+
-+       for (i =3D 0; i < ARRAY_SIZE(dss_compat_conv_list); ++i) {
-+               const char *compat =3D dss_compat_conv_list[i];
-+               struct device_node *node =3D NULL;
-+
-+               while ((node =3D of_find_compatible_node(node, NULL,
-compat))) {
-+                       if (!of_device_is_available(node))
-+                               continue;
-+
-+                       omapdss_omapify_node(node, compat);
-+               }
-+       }
-+}
+ struct tps_info {
+ 	const char *name;
+ 	const char *vin_name;
+@@ -183,6 +188,12 @@ static struct tps_info tps65910_regs[] = {
+ 		.voltage_table = VMMC_VSEL_table,
+ 		.enable_time_us = 100,
+ 	},
++	{
++		.name = "vbb",
++		.vin_name = "vcc7",
++		.n_voltages = ARRAY_SIZE(VBB_VSEL_table),
++		.voltage_table = VBB_VSEL_table,
++	},
+ };
+ 
+ static struct tps_info tps65911_regs[] = {
+@@ -339,6 +350,8 @@ static int tps65910_get_ctrl_register(int id)
+ 		return TPS65910_VAUX33;
+ 	case TPS65910_REG_VMMC:
+ 		return TPS65910_VMMC;
++	case TPS65910_REG_VBB:
++		return TPS65910_BBCH;
+ 	default:
+ 		return -EINVAL;
+ 	}
+@@ -528,6 +541,10 @@ static int tps65910_get_voltage_sel(struct regulator_dev *dev)
+ 		value &= LDO_SEL_MASK;
+ 		value >>= LDO_SEL_SHIFT;
+ 		break;
++	case TPS65910_REG_VBB:
++		value &= BBCH_BBSEL_MASK;
++		value >>= BBCH_BBSEL_SHIFT;
++		break;
+ 	default:
+ 		return -EINVAL;
+ 	}
+@@ -638,6 +655,9 @@ static int tps65910_set_voltage_sel(struct regulator_dev *dev,
+ 	case TPS65910_REG_VMMC:
+ 		return tps65910_reg_update_bits(pmic->mfd, reg, LDO_SEL_MASK,
+ 						selector << LDO_SEL_SHIFT);
++	case TPS65910_REG_VBB:
++		return tps65910_reg_update_bits(pmic->mfd, reg, BBCH_BBSEL_MASK,
++						selector << BBCH_BBSEL_SHIFT);
+ 	}
+ 
+ 	return -EINVAL;
+@@ -669,6 +689,9 @@ static int tps65911_set_voltage_sel(struct regulator_dev *dev,
+ 	case TPS65910_REG_VIO:
+ 		return tps65910_reg_update_bits(pmic->mfd, reg, LDO_SEL_MASK,
+ 						selector << LDO_SEL_SHIFT);
++	case TPS65910_REG_VBB:
++		return tps65910_reg_update_bits(pmic->mfd, reg, BBCH_BBSEL_MASK,
++						selector << BBCH_BBSEL_SHIFT);
+ 	}
+ 
+ 	return -EINVAL;
+@@ -771,7 +794,7 @@ static struct regulator_ops tps65910_ops = {
+ 	.get_voltage_sel	= tps65910_get_voltage_sel,
+ 	.set_voltage_sel	= tps65910_set_voltage_sel,
+ 	.list_voltage		= regulator_list_voltage_table,
+-	.map_voltage		= regulator_map_voltage_ascend,
++	.map_voltage		= regulator_map_voltage_iterate,
+ };
+ 
+ static struct regulator_ops tps65911_ops = {
+@@ -944,6 +967,7 @@ static struct of_regulator_match tps65910_matches[] = {
+ 	{ .name = "vaux2",	.driver_data = (void *) &tps65910_regs[10] },
+ 	{ .name = "vaux33",	.driver_data = (void *) &tps65910_regs[11] },
+ 	{ .name = "vmmc",	.driver_data = (void *) &tps65910_regs[12] },
++	{ .name = "vbb",	.driver_data = (void *) &tps65910_regs[13] },
+ };
+ 
+ static struct of_regulator_match tps65911_matches[] = {
+@@ -1167,7 +1191,11 @@ static int tps65910_probe(struct platform_device *pdev)
+ 		pmic->desc[i].type = REGULATOR_VOLTAGE;
+ 		pmic->desc[i].owner = THIS_MODULE;
+ 		pmic->desc[i].enable_reg = pmic->get_ctrl_reg(i);
+-		pmic->desc[i].enable_mask = TPS65910_SUPPLY_STATE_ENABLED;
++		if (tps65910_chip_id(tps65910) == TPS65910 &&
++				i == TPS65910_REG_VBB)
++			pmic->desc[i].enable_mask = BBCH_BBCHEN_MASK;
++		else
++			pmic->desc[i].enable_mask = TPS65910_SUPPLY_STATE_ENABLED;
+ 
+ 		config.dev = tps65910->dev;
+ 		config.init_data = reg_data;
+diff --git a/include/linux/mfd/tps65910.h b/include/linux/mfd/tps65910.h
+index 20e433e..1adeee1 100644
+--- a/include/linux/mfd/tps65910.h
++++ b/include/linux/mfd/tps65910.h
+@@ -833,6 +833,7 @@
+ #define TPS65910_REG_VAUX2				10
+ #define TPS65910_REG_VAUX33				11
+ #define TPS65910_REG_VMMC				12
++#define TPS65910_REG_VBB				13
+ 
+ #define TPS65911_REG_VDDCTRL				4
+ #define TPS65911_REG_LDO1				5
+@@ -845,7 +846,7 @@
+ #define TPS65911_REG_LDO8				12
+ 
+ /* Max number of TPS65910/11 regulators */
+-#define TPS65910_NUM_REGS				13
++#define TPS65910_NUM_REGS				14
+ 
+ /* External sleep controls through EN1/EN2/EN3/SLEEP inputs */
+ #define TPS65910_SLEEP_CONTROL_EXT_INPUT_EN1		0x1
+-- 
+1.8.5.1
 
-The list has just part of the devices, and I've so far only tested on
-OMAP 4430sdp board, but it seemed to work fine.
-
-So with this, I can have "hdmi-connector" in the .dts file, and
-"omapdss,hdmi-connector" as a compat string in the omap specific driver.
-
-Does it make your eyes bleed, or is it maybe something that could be
-fine for the time being?
-
- Tomi
-
-
-
---DjNsiUb5Mm2cRkPMn7ljkAwtB4p2p3Glh
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJSsar0AAoJEPo9qoy8lh71m8IP/jEk/2ZRxHpiBknUc6b1LW0p
-g0UwpT1orlzdUjqFD1JBvXaZ0F63gPlwZO4DSVeIhTSuXt1/9i/uYytevwMwa29A
-3I1hEiE6e1Ajt73hzyZgzPmzzhXriyZe7sj9mNfNZ09B5KVtLKOJQ88EMcBzSfbs
-spBYUXpFZ8EKWj8Q9MXyXyvPj23bPXN0Ph/R+BItN7LOD5t1/39H6KYu3Xz07N9A
-jK2DzHjr2dnlcKfxHInlyHBQDuOpQt0Esj3NOCEbZVGHUR3uXXb/lBduQdfna3GF
-uW3blTV/Yh05Ie7wUrY1n4iNHoSuMcLG6iVS7VxRm6PPRiOzY/Ea+5V4R5XEH/Qi
-n//mfAHxKHGpCtcwdzPOvjYxJjXQhbbo2wAk2HvuX9x4zKGUaRMtzN1aDExuFVqm
-507HMbq5BZSBwlkuQsoqRrkVrmYA6xYljcrK8VTlyxT5N3tJIZmWEHJHXOOVhRc2
-WAWAEWXdvE5BoRsPJCuFkj4rsNwjVYQUsGc1ZKMt+hF/TfY/aylN6vObGJiNqrYL
-+YpPTq76Rn+s97YW38Lx99l+Fr2XBDP5ESsIpnCg3z5LQcViMsZXS4nEHuOo1eqv
-N2KKx6UFjacLkITc6B5zPqtlQQ2ziKeCji8HWJLvQIAOOkwLHWFSywyWd14ECIAm
-Zmruw2mQpTIndZm2OVZo
-=nv1o
------END PGP SIGNATURE-----
-
---DjNsiUb5Mm2cRkPMn7ljkAwtB4p2p3Glh--
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
