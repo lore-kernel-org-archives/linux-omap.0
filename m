@@ -1,198 +1,106 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [PATCH] ARM: dts: Add support for sbc-3xxx with cm-t3730
-Date: Wed, 18 Dec 2013 10:45:00 +0200
-Message-ID: <52B1608C.3010709@compulab.co.il>
-References: <1386962541-18498-1-git-send-email-tony@atomide.com> <52AF065A.4010205@compulab.co.il> <20131216191754.GD26293@atomide.com> <52AFF9D0.5080400@compulab.co.il> <20131217193134.GB27438@atomide.com>
+From: Sricharan R <r.sricharan@ti.com>
+Subject: Re: [PATCH V5 0/4] DRIVERS: IRQCHIP: Add support for crossbar IP
+Date: Wed, 18 Dec 2013 14:49:33 +0530
+Message-ID: <52B168A5.4010202@ti.com>
+References: <1386066445-28245-1-git-send-email-r.sricharan@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from softlayer.compulab.co.il ([50.23.254.55]:34111 "EHLO
-	compulab.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752915Ab3LRIps (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 18 Dec 2013 03:45:48 -0500
-In-Reply-To: <20131217193134.GB27438@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1386066445-28245-1-git-send-email-r.sricharan@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Sricharan R <r.sricharan@ti.com>
+Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, nm@ti.com, linux@arm.linux.org.uk, linux-doc@vger.kernel.org, tony@atomide.com, linus.walleij@linaro.org, rnayak@ti.com, linux-kernel@vger.kernel.org, rob.herring@calxeda.com, marc.zyngier@arm.com, bcousson@baylibre.com, galak@codeaurora.org, grant.likely@linaro.org, santosh.shilimkar@ti.com, tglx@linutronix.de, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Dmitry Lifshitz <lifshitz@compulab.co.il>, Nikita Kiryanov <nikita@compulab.co.il>
 
-On 12/17/13 21:31, Tony Lindgren wrote:
-> * Igor Grinberg <grinberg@compulab.co.il> [131216 23:16]:
->> On 12/16/13 21:17, Tony Lindgren wrote:
->>> * Igor Grinberg <grinberg@compulab.co.il> [131216 05:57]:
->>>> On 12/13/13 21:22, Tony Lindgren wrote:
+Hi Thomas,
 
-[...]
-
->  
->> I think we can drop the different memory sizes and
->> let boot loader adjust the blob. This will make the list shorter:
->> omap3-cm-t3x.dtsi	- common to cm-t3x cpu boards
->> omap3-cm-t3x30.dtsi	- common to cm-t3730 and cm-t3530
->> omap3-cm-t3730.dtsi	- cm-t3730 specific
->> omap3-cm-t3530.dtsi	- cm-t3530 specific
->> omap3-cm-t3517.dtsi	- cm-t3517 specific
->> omap3-sb-t35.dtsi	- sb-t35 specific
->> omap3-cb-t3.dtsi	- cb-t3 specific
->> omap3-sbc-t3730.dts	- sb-t35 with cm-t3730 and default memory size
->> omap3-sbc-t3530.dts	- sb-t35 with cm-t3530 and default memory size
->> omap3-sbc-t3517.dts	- sb-t35 with cm-t3517 and default memory size
->> omap3-em-t3730.dts	- cb-t3 with cm-t3730 and default memory size
->> omap3-em-t3530.dts	- cb-t3 with cm-t3530 and default memory size
->>
->> So what do you think?
->  
-> Makes sense to me. I've updated the patch below to use the following:
+On Tuesday 03 December 2013 03:57 PM, Sricharan R wrote:
+> Some socs have a large number of interrupts requests to service
+> the needs of its many peripherals and subsystems. All of the interrupt
+> requests lines from the subsystems are not needed at the same
+> time, so they have to be muxed to the controllers appropriately.
+> In such places a interrupt controllers are preceded by an
+> IRQ CROSSBAR that provides flexibility in muxing the device interrupt
+> requests to the controller inputs.
 > 
-> omap3-cm-t3x30.dtsi	- common to cm-t3730 and cm-t3530
-> omap3-cm-t3730.dts	- cm-t3730 specific, should work on it's own too, not a .dtsi
-> omap3-sb-t35.dtsi	- sb-t35 specific
-> omap3-sbc-t3730.dts	- sb-t35 with cm-t3730 and default memory size
+> This series models the peripheral interrupts that can be routed through
+> the crossbar to the GIC as 'routable-irqs'. The routable irqs are added
+> in a separate linear domain inside the GIC. The registered routable domain's
+> callback are invoked as a part of the GIC's callback, which in turn should
+> allocate a free irq line and configure the IP accordingly. So every peripheral
+> in the dts files mentions the fixed crossbar number as its interrupt. A free
+> gic line for that gets allocated and configured when the peripheral interrupts
+> are mapped.
 > 
-> So the only changes compared to your naming are to not use .dtsi
-> extension for omap3-cm-t3730.dts, and I did not add omap3-cm-t3x.dtsi
-> as I don't know the details.
-
-Ok.
-
+> The minimal crossbar driver to track and allocate free GIC lines and configure the
+> crossbar is added here, along with the DT bindings.
 > 
-> It's probably best that you guys take over this patch from here and
-> add omap3-cm-t3x30.dtsi if needed.
-
-Ok.
-
+> V5:
+>    Addressed a comment from Mark Rutland <mark.rutland@arm.com>,
+>    updated tags and rebased on 3.13-rc2
 > 
-> I got the basic stuff working for what I need right now for my router
-> to work, which is MMC, both Ethernet controllers and wl12xx. So I'm
-> not going to tweak this patch further. Of course having the battery
-> charging working would be nice for a router to have a backup battery :)
+> V4:
+>    Addressed a couple of comments and split the DTS file updates in to
+>    a separate series.
 > 
-> There are still some issues I've noticed:
+> V3:
+>    Addressed few more comments from Thomas Gleixner <tglx@linutronix.de>
 > 
-> 1. Removing and reinserting the wl12xx modules seems to kill the
->    WLAN
+>    Rebased patches 3,4,5,7 which updates the DTS file on top of below branch
+> 	   git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git
+> 	   for_3.13/dts
 > 
-> 2. Ethernet interfaces only come up if there's a cable connected
-
-I see. Ok then, we'll try to figure those things out.
-
-[...]
-
->>>>> +	mmc2_pins: pinmux_mmc2_pins {
->>>>> +		pinctrl-single,pins = <
->>>>> +			0x128 (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc2_clk.sdmmc2_clk */
->>>>> +			0x12a (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc2_cmd.sdmmc2_cmd */
->>>>> +			0x12c (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc2_dat0.sdmmc2_dat0 */
->>>>> +			0x12e (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc2_dat1.sdmmc2_dat1 */
->>>>> +			0x130 (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc2_dat2.sdmmc2_dat2 */
->>>>> +			0x132 (PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc2_dat3.sdmmc2_dat3 */
->>>>
->>>> Here the following is missing:
->>>> 0x134 (PIN_OUTPUT | MUX_MODE1)	/* sdmmc2_dat4.sdmmc2_dir_dat0 */
->>>
->>> That seems to be used for the wl12xx GPIO, so it's listed at
->>> wl12xx_gpio below.
->>
->> Yes, but only on cm-t3730 (and actually starting from revision 1.2),
->> not cm-t3530...
+>    Rebased patches 1,2,6 on top of 3.12 mainline
+>    Updated Commit tags
 > 
-> Sounds like that needs another set of .dts files, or patching in the
-> bootloader. 
-
-Yep, IMO, .dts will be better, as I think pinmux is something
-the kernel should be aware of...
-
-[...]
-
-> 8< ----------------------------------
-> From: Tony Lindgren <tony@atomide.com>
-> Date: Tue, 10 Dec 2013 15:03:34 -0800
-> Subject: [PATCH] ARM: dts: Add support for sbc-3xxx with cm-t3730
+> V2:
+>    Addressed Thomas Gleixner <tglx@linutronix.de> comments and
+>    Kumar Gala <galak@codeaurora.org>
 > 
-> This adds support for CompuLab SBC-T3530, also known as cm-t3730:
+>    Split updating the DRA7.dtsi file for adding the routable-irqs
 > 
-> http://compulab.co.il/products/sbcs/sbc-t3530/
+> Previous discussions that led to this is at
+> 	https://lkml.org/lkml/2013/9/18/540
 > 
-> It seems that with the sbc-3xxx mainboard is also used on
-> SBC-T3517 and SBC-T3730 with just a different CPU module:
+> The V1,V2,V3,V4 post of these patches is at
+>       [V1]  https://lkml.org/lkml/2013/9/30/283
+>       [V2]  http://www.spinics.net/lists/linux-omap/msg99540.html
+>       [V3]  http://www.kernelhub.org/?msg=356470&p=2
+>       [V4]  http://www.spinics.net/lists/linux-doc/msg16726.html
 > 
-> http://compulab.co.il/products/sbcs/sbc-t3517/
-> http://compulab.co.il/products/sbcs/sbc-t3730/
+> Sricharan R (4):
+>   DRIVERS: IRQCHIP: IRQ-GIC: Add support for routable irqs
+>   DRIVERS: IRQCHIP: CROSSBAR: Add support for Crossbar IP
+>   ARM: OMAP4+: Correct Wakeup-gen code to use physical irq number
+>   ARM: DRA: Enable Crossbar IP support for DRA7XX
 > 
-> So let's add a common omap3-sb-t35.dtsi and then separate SoC
-> specific omap3-sbc-t3730.dts, omap3-sbc-t3530.dts and
-> omap3-sbc-t3517.dts.
+>  Documentation/devicetree/bindings/arm/gic.txt      |    6 +
+>  .../devicetree/bindings/arm/omap/crossbar.txt      |   27 +++
+>  arch/arm/mach-omap2/Kconfig                        |    1 +
+>  arch/arm/mach-omap2/omap-wakeupgen.c               |    4 +-
+>  arch/arm/mach-omap2/omap4-common.c                 |    2 +
+>  drivers/irqchip/Kconfig                            |    8 +
+>  drivers/irqchip/Makefile                           |    1 +
+>  drivers/irqchip/irq-crossbar.c                     |  208 ++++++++++++++++++++
+>  drivers/irqchip/irq-gic.c                          |   81 +++++++-
+>  include/linux/irqchip/arm-gic.h                    |    7 +-
+>  include/linux/irqchip/irq-crossbar.h               |   11 ++
+>  11 files changed, 343 insertions(+), 13 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/arm/omap/crossbar.txt
+>  create mode 100644 drivers/irqchip/irq-crossbar.c
+>  create mode 100644 include/linux/irqchip/irq-crossbar.h
 > 
-> I've tested this with SBC-T3730 as that's the only one I have.
-> At least serial, both Ethernet controllers, MMC, and wl12xx WLAN
-> work.
-> 
-> Note that WLAN seems to be different for SBC-T3530. And SBC-T3517
-> may need some changes for the EMAC Ethernet if that's used
-> instead of the smsc911x.
-> 
-> Cc: devicetree@vger.kernel.org
-> Cc: Igor Grinberg <grinberg@compulab.co.il>
-> Cc: Mike Rapoport <mike@compulab.co.il>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-Acked-by: Igor Grinberg <grinberg@compulab.co.il>
+I have addressed all the comments on this series, can this be merged now ?
 
-This one looks great!
-Really minor comments below (we can fix those later)
-
-[...]
-
-> diff --git a/arch/arm/boot/dts/omap3-cm-t3730.dts b/arch/arm/boot/dts/omap3-cm-t3730.dts
-> new file mode 100644
-> index 0000000..80cf668
-> --- /dev/null
-> +++ b/arch/arm/boot/dts/omap3-cm-t3730.dts
-
-[...]
-
-> +&mmc1 {
-> +	vmmc-supply = <&vmmc1>;
-> +	vmmc_aux-supply = <&vsim>;
-
-vsim is not present in TPS65930...
-can be just left empty or set to a fixed voltage regulator.
-
-> +	bus-width = <4>;
-> +	pinctrl-names = "default";
-> +	pinctrl-0 = <&mmc1_pins>;
-> +};
-
-[...]
-
-> diff --git a/arch/arm/boot/dts/omap3-cm-t3x30.dtsi b/arch/arm/boot/dts/omap3-cm-t3x30.dtsi
-> new file mode 100644
-> index 0000000..bf1b72c
-> --- /dev/null
-> +++ b/arch/arm/boot/dts/omap3-cm-t3x30.dtsi
-
-[...]
-
-> +&i2c1 {
-> +	clock-frequency = <2600000>;
-
-There is also an EEPROM on this bus, although we still don't
-have it registered in the dts, but it can be registered from
-userspace and is also accessible using i2c-tools.
-This should be 400KHz max for the EEPROM to work.
-
-> +
-> +	twl: twl@48 {
-> +		reg = <0x48>;
-> +		interrupts = <7>; /* SYS_NIRQ cascaded to intc */
-> +		interrupt-parent = <&intc>;
-> +	};
-> +};
-
-[...]
-
-
--- 
 Regards,
-Igor.
+ Sricharan
