@@ -1,7 +1,7 @@
 From: Yuvaraj Kumar C D <yuvaraj.cd@gmail.com>
-Subject: [RFC 4/5] usb: dwc3-exynos: enable async suspend/resume
-Date: Wed, 18 Dec 2013 16:09:33 +0530
-Message-ID: <1387363174-25942-4-git-send-email-yuvaraj.cd@samsung.com>
+Subject: [RFC 3/5] usb: xhci-plat: enable async suspend/resume
+Date: Wed, 18 Dec 2013 16:09:32 +0530
+Message-ID: <1387363174-25942-3-git-send-email-yuvaraj.cd@samsung.com>
 References: <1387363174-25942-1-git-send-email-yuvaraj.cd@samsung.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1387363174-25942-1-git-send-email-yuvaraj.cd@samsung.com>
@@ -12,31 +12,31 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Andrew Bresticker <abrestic@chromium.org>
 
-In addition to enabling async suspend/resume on the xhci-plat device,
-we must enable it for the dwc3-exynos platform device in order to make
-the full USB stack resume asynchronously.  Like the xhci-plat, ehci-s5p,
-and ohci-exynos drivers, there are no outside dependencies which would
-make resuming the dwc3-exynos driver asynchronously unsafe.
+USB host controllers can take a significant amount of time to suspend
+and resume, adding several hundred miliseconds to the kernel resume
+time. Since the XHCI controller has no outside dependencies (other than
+clocks, which are suspended late/resumed early), allow it to suspend and
+resume asynchronously.
 
 Signed-off-by: Andrew Bresticker <abrestic@chromium.org>
 Reviewed-by: Julius Werner <jwerner@chromium.org>
 Signed-off-by: Yuvaraj Kumar C D <yuvaraj.cd@samsung.com>
 ---
- drivers/usb/dwc3/dwc3-exynos.c |    2 ++
+ drivers/usb/host/xhci-plat.c |    2 ++
  1 file changed, 2 insertions(+)
 
-diff --git a/drivers/usb/dwc3/dwc3-exynos.c b/drivers/usb/dwc3/dwc3-exynos.c
-index 8b20c70..57431b7 100644
---- a/drivers/usb/dwc3/dwc3-exynos.c
-+++ b/drivers/usb/dwc3/dwc3-exynos.c
-@@ -155,6 +155,8 @@ static int dwc3_exynos_probe(struct platform_device *pdev)
- 		goto err2;
- 	}
+diff --git a/drivers/usb/host/xhci-plat.c b/drivers/usb/host/xhci-plat.c
+index 8abda5c..1bc1565 100644
+--- a/drivers/usb/host/xhci-plat.c
++++ b/drivers/usb/host/xhci-plat.c
+@@ -162,6 +162,8 @@ static int xhci_plat_probe(struct platform_device *pdev)
+ 	if (ret)
+ 		goto put_usb3_hcd;
  
-+	device_enable_async_suspend(dev);
++	device_enable_async_suspend(&pdev->dev);
 +
  	return 0;
  
- err2:
+ put_usb3_hcd:
 -- 
 1.7.9.5
