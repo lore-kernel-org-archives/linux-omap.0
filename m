@@ -1,74 +1,45 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv2 01/27] ARM: OMAP: remove DSS DT hack
-Date: Wed, 18 Dec 2013 09:33:15 -0800
-Message-ID: <20131218173315.GE27438@atomide.com>
-References: <1387205794-32246-1-git-send-email-tomi.valkeinen@ti.com>
- <1387205794-32246-2-git-send-email-tomi.valkeinen@ti.com>
- <20131216184157.GA26293@atomide.com>
- <52AFF31C.6010100@ti.com>
- <20131217153001.GN12324@atomide.com>
- <52B14AEE.8090807@ti.com>
- <52B17729.3040807@ti.com>
+From: Sourav Poddar <sourav.poddar@ti.com>
+Subject: Re: [PATCH 0/3] Add more device nodes for am43x gp evm.
+Date: Wed, 18 Dec 2013 23:13:08 +0530
+Message-ID: <52B1DEAC.4000509@ti.com>
+References: <1385537479-6959-1-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:30782 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752031Ab3LRRdT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Dec 2013 12:33:19 -0500
-Content-Disposition: inline
-In-Reply-To: <52B17729.3040807@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:45965 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755580Ab3LRRnU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 18 Dec 2013 12:43:20 -0500
+In-Reply-To: <1385537479-6959-1-git-send-email-sourav.poddar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org
+To: Sourav Poddar <sourav.poddar@ti.com>, bcousson@baylibre.com
+Cc: rob.herring@calxeda.com, mark.rutland@arm.com, swarren@wwwdotorg.org, devicetree@vger.kernel.org, tony@atomide.com, balbi@ti.com, linux-omap@vger.kernel.org, nsekhar@ti.com
 
-* Tomi Valkeinen <tomi.valkeinen@ti.com> [131218 02:22]:
-> On 2013-12-18 09:12, Tomi Valkeinen wrote:
-> 
-> >> Well yeah let's keep those separate still as at least Russell needed
-> >> some more time with the legacy booting. The point we can drop the
-> >> legacy booting for omap3 may still need to wait a bit, maybe even
-> >> until v3.15 to keep things working.
-> > 
-> > They can't be separate. Once I add DT support for a board, I have to
-> > remove the legacy support for that board. This patch removes legacy
-> > support for the boards that are converted in the series.
-> > 
-> > If I don't remove the legacy support, both DT and legacy side will be
-> > ran, and both create the DSS devices...
-> > 
-> > But, it's true that this patch removes the whole file, as all the boards
-> > currently there are converted. But if new boards are added to the DSS
-> > quirks, then I can't remove the file. So I'll change this patch to only
-> > remove the parts for the converted boards, not the whole file.
-> > 
-> > But but... If I understand right, the plan is to remove all omap3 board
-> > files for the next merge window. I'm not totally familiar with the
-> > quirks system, but how should this be handled:
-> > 
-> > omap3.dtsi will contain the SoC's DSS nodes. This means that DSS devices
-> > are created via DT code. But if the display (i.e. panels) for a
-> > particular omap3 board has not been converted to DT, we should still use
-> > the legacy DSS initialization. But the DSS is already initialized via DT.
-> > 
-> > I guess I can set the status for all the DSS nodes to "disabled" in
-> > omap3.dtsi, and that should prevent DT code from creating the DSS
-> > devices. Then, each omap3-board.dts that has been converted to DSS DT,
-> > can override those to "enabled".
-> > 
-> > That way the DT code should not create DSS devices by default, and the
-> > quirks system would probably work fine.
-> 
-> I changed the DSS DT nodes to be disabled by default, and I think this
-> works nicely. It's actually better this way in any case, as we can leave
-> blocks like DSI out for boards that don't need it.
-> 
-> Also, I now remove the quirks only for the boards that are converted to
-> DT, not the whole dss-common.c file. So I think we can now add new
-> boards to dss-common.c, if and when there are ones that cannot be
-> converted to use DSS DT yet.
-
-OK
-
-Tony
+Benoit,
+On Wednesday 27 November 2013 01:01 PM, Sourav Poddar wrote:
+> The patch series adds support for enabling gpio, pwm backlight and
+> matrix gpio keys on am43x-gp-evm.
+>
+> Done on top of 3.13-rc1 + tero clock series(1) + Afzal's basic gp support(2).
+>
+> [1]: https://patchwork.kernel.org/patch/3009541/
+> [2]: https://patchwork.kernel.org/patch/3171761/
+>
+> Tested on am43x-gp-evm.
+>
+> There is a some bug while using regulators through backlight
+> driver on 3.13-rc1. So, tested pwm part with this patch[3].
+>
+> [3]: http://www.spinics.net/lists/arm-kernel/msg288215.html
+>
+> Sourav Poddar (3):
+>    arm: dts: am437x-gp-evm: Enable gpio.
+>    ARM: dts: am43x-gp-evm: Add matrix gpio keys.
+>    ARM: dts: am437x-gp-evm: Add pwm backlight support.
+>
+>   arch/arm/boot/dts/am437x-gp-evm.dts |   53 +++++++++++++++++++++++++++++++++++
+>   1 files changed, 53 insertions(+), 0 deletions(-)
+>
+Ping on this?
