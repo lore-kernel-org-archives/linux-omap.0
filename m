@@ -1,83 +1,101 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 0/7] usb: dwc3: pm_runtime implementation
-Date: Wed, 18 Dec 2013 09:40:21 -0600
-Message-ID: <20131218154021.GC1593@saruman.home>
-References: <1386884325-11440-1-git-send-email-balbi@ti.com>
- <20131217233140.GA21267@psi-dev26.jf.intel.com>
- <20131217233554.GB21267@psi-dev26.jf.intel.com>
- <20131218153614.GB1593@saruman.home>
-Reply-To: <balbi@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: OMAP display subsystem - does it work?
+Date: Wed, 18 Dec 2013 18:03:11 +0200
+Message-ID: <52B1C73F.40604@ti.com>
+References: <20131218120023.GG4360@n2100.arm.linux.org.uk> <52B1A922.6020901@ti.com> <20131218152927.GC32243@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="jy6Sn24JjFx/iggw"
+	protocol="application/pgp-signature";
+	boundary="9oJmoC0EiGVdfx9GoANlf3XqIxqpN5Tgv"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:37782 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:38920 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755155Ab3LRPlZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 18 Dec 2013 10:41:25 -0500
-Content-Disposition: inline
-In-Reply-To: <20131218153614.GB1593@saruman.home>
+	id S1751443Ab3LRQDl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 18 Dec 2013 11:03:41 -0500
+In-Reply-To: <20131218152927.GC32243@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: David Cohen <david.a.cohen@linux.intel.com>, Linux USB Mailing List <linux-usb@vger.kernel.org>, kgene.kim@samsung.com, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, linux-samsung-soc@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, w-kwok2@ti.com, Santosh Shilimkar <santosh.shilimkar@ti.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 
---jy6Sn24JjFx/iggw
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+--9oJmoC0EiGVdfx9GoANlf3XqIxqpN5Tgv
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Dec 18, 2013 at 09:36:14AM -0600, Felipe Balbi wrote:
-> Hi,
+On 2013-12-18 17:29, Russell King - ARM Linux wrote:
+> On Wed, Dec 18, 2013 at 03:54:42PM +0200, Tomi Valkeinen wrote:
+>> On 2013-12-18 14:00, Russell King - ARM Linux wrote:
+>>> For the SDP4430, it used to detect the displays, even though nothing =
+has
+>>> ever been displayed on them.  Now it just spits out this:
+>>
+>> Those particular LCDs are supposed to be updated manually using custom=
+ ioctl,
+>> so normal software using fb won't put anything on the display. For tes=
+ting
+>> purposes, a SW based automatic update (~20 fps) can be enabled by kern=
+el
+>> cmdline parameter "omapfb.auto_update" or via sysfs:
+>>
+>> echo 1 > /sys/class/graphics/fb0/update_mode
 >=20
-> On Tue, Dec 17, 2013 at 03:35:54PM -0800, David Cohen wrote:
-> > On Tue, Dec 17, 2013 at 03:31:40PM -0800, David Cohen wrote:
-> > > On Thu, Dec 12, 2013 at 03:38:38PM -0600, Felipe Balbi wrote:
-> > > > hi all,
-> > > >=20
-> > > > these patches add pm_runtime support for all glue layers.
-> > > >=20
-> > > > I plan to add pm_runtime support for dwc3 after these
-> > > > patches are merged upstream.
-> > > >=20
-> > > > Please test.
-> > >=20
-> > > At first time I failed to notice you were removing #ifdef's around pm
-> > > callback functions. Instead of saying DWC3 will start to have warnings
-> > > when CONFIG_PM is not selected, I'd say your patch set is now a
-> > > dependence of my RFC :)
-> >=20
-> > I guess I said it in wrong order :P
-> > Your patch set depends on my RFC.
+> I'm confused.  How then can the original kernel which came with the boa=
+rd
+> run two gstreamer videos on these displays by just talking to the
+> framebuffers and play it back smoothly given that we're talking about
+> video at normal fps settings?
 >=20
-> Or I just modify my patchset a little bit for now ;-)
+> When I received the board, that's exactly what it did at boot up - it
+> played back two different video trailers, one on each LCD, and the
+> playback was smooth, just like you'd expect from watching a DVD on your=
 
-nah, it looks horrible with all those ifdefs around. I'll delay my
-patch series.
+> TV.  No missing frames, which is what you'd get if you tried to update
+> at 20fps.
 
---=20
-balbi
+We once had auto-update support in omapdss in the early versions. It was
+removed quite a while ago, as it was a burden to maintain. Either the
+kernel you talk about had the auto-update support, or the userspace has
+support for manual-update displays.
 
---jy6Sn24JjFx/iggw
+The thing is, these LCDs are not meant to be used in auto-update mode.
+The main point with LCDs with their own framebuffer is that they are
+only updated when needed. So a production device would not need
+auto-update support. Furthermore, as these LCDs are quite rare, and
+4430SDP is the only one we support having these displays, and that board
+itself is not exactly a common one, it was decided that the maintenance
+burden is not worth it.
+
+I have been thinking of improving the auto-update in omapfb, but it has
+never been on the top of my list (or even middle). The current code
+basically does just queue_delayed_work() 20 times per second, so it's
+just a hack for testing.
+
+ Tomi
+
+
+
+--9oJmoC0EiGVdfx9GoANlf3XqIxqpN5Tgv
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.15 (GNU/Linux)
+Version: GnuPG v1.4.14 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBAgAGBQJSscHlAAoJEIaOsuA1yqREYqkQAJQ+hA19XxDmBOP9VagIcuVF
-RA6X/UoKVHyx5M6g8I2w8sJt/ClZlWvEIpuglnjPWRPA0JqHi/Y7xtYwL0oF4fGk
-q+W7dxwRMrq54Kb6l/BIpvKIYIpuGia4+yUoTYHOhdXPS80Yo/p4LFjvFgWzc5kZ
-BfYnj7JiL1zqGYLk6RFU43bjc3jODYxoYNGNEo5olKtK/9KrDaxQqPw0CNc9P5qb
-iQsALnDJIEB5RmcU3sA3JUIvSSZEB98UjVseQBi5ubvyGVGttWbrkjtFQiv5KnXz
-ffI1ruyDxDB4a3IgJN1cDtnJUEOf2lIW7cA9G00GvB6pDyWDgvfe51xcsp6u/XvP
-Vs1k29Eh5ttPVU1ruYybCOekCjbnmRCGhNTJ1F3XygbNsXoxbPxkBJMi1cIZmq+c
-3nanL6MTiiULgNnYsq7xQRsT+9d3GdkIdM07TqJikEreSs7EaH0v5cZha0vQZ3hE
-+wsxYaTCOEjD95ooKVAiQhmuDi0ExZudVoY9cjWAXo/78QGmuk7cPYqDEfiz5mZc
-KeJix6qzt2pDtWCut/52zFbFwSzy+ABeVB3KI1t9YmUuw0zziWophsSPMa6sWQpC
-Wd3yqTMpsjI4I3+fvUTUVXn4CPEBCx2vRRgqSbEtPeJSF/+aE2uTiC2oFTcdgUMs
-ddCQTHpR6A7ekGyJ8olN
-=Ba4m
+iQIcBAEBAgAGBQJSscc/AAoJEPo9qoy8lh71XGMP/3TD2nle6lP3V95zJT5R1LPq
+Y/SK5wC0p2pXYzoZ0KOixUa580cysGWB0DYqthVUCiqrUuRJwghaVYJZAOJTwdIc
+1uRo+RAQ62o4mmxOz6G0wPXQ+lv8GzZoaMSy4LDyn1MaOh8TyFfzLr53FA+T9Y2w
+D/fe0YfoTx7KrH65S/Pjwq5yGuSYdwhL/Z7/JHlkb6yH95IOz0FoXv1nWw5Vp6VS
+qMBpplUQYKKfPwykYv1zIkNbhH8E6ZZdEl8q+rJQKlKm1wCuEdBTQoEcwXKtoOSE
+I48rAYRKPH2uvyMrJN+HkcKDE0qHDYt2X7VKz+g13BfJ0a6wh6u9WlSwpXDhyckO
+bPDddgTaw+lwgQhBcKjfOryvV1IGduCeiz3T9uCiglfaiqdGbcgxaqc3HGWLfMFU
+4cEmuvj24Sgxa5Fupv/u2aJDmZvZQVRsK0U0ECY6pmjbMAzx7nquYlpWxY1iWo2K
+ta9esJxaIveLIuDRKl5rdqfsZ9p1bMb+pVHYvNu1Vsuex5Pd0VzzXWIbo9XzZbrO
+1HoQiT4uYM4bP3a7qGPhZwRc7Fh5/MuCQs7W/O3sn+xGyvMRTKsJizwkVj1WSvGO
+4CQ3A4iraDaAzOpK2Yi7xkHD7zS4uy77fwdJuCUnJAmzP/EHMW4LmLIG7Gr2Kovz
+zfl6EUS/MtEQoSrKp2Mc
+=zddX
 -----END PGP SIGNATURE-----
 
---jy6Sn24JjFx/iggw--
+--9oJmoC0EiGVdfx9GoANlf3XqIxqpN5Tgv--
