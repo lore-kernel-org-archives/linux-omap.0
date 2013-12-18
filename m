@@ -1,76 +1,86 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: OMAP display subsystem - does it work?
-Date: Wed, 18 Dec 2013 12:00:23 +0000
-Message-ID: <20131218120023.GG4360@n2100.arm.linux.org.uk>
+From: Lokesh Vutla <lokeshvutla@ti.com>
+Subject: [PATCH] crypto: omap-sham: Fix Polling mode for larger blocks
+Date: Wed, 18 Dec 2013 19:03:33 +0530
+Message-ID: <1387373613-1718-1-git-send-email-lokeshvutla@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:55367 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751293Ab3LRMBM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Dec 2013 07:01:12 -0500
-Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-crypto-owner@vger.kernel.org>
+Sender: linux-crypto-owner@vger.kernel.org
+To: linux-crypto@vger.kernel.org, linux-omap@vger.kernel.org, herbert@gondor.apana.org.au
+Cc: rnayak@ti.com, lokeshvutla@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, Tony Lindgren <tony@atomide.com>
 
-In my continuing woes with having the OMAP boards I have produce output,
-where things used to work on the LDP, they now do not.  And on the SDP4430
-board, where things were detected, they're no longer detected.
+Command "tcrypt sec=1 mode=403" give the follwoing error for Polling
+mode:
+root@am335x-evm:/# insmod tcrypt.ko sec=1 mode=403
+[...]
 
-I thought this was just a matter of adjusting the configuration, but it
-seems there's much more wrong than just that - so I wasn't too worried.
-Last night, I updated the configuration to ensure that the appropriate
-connector configuration symbols were enabled (see the changelog in the
-configuration seeds.)
+[  346.982754] test 15 ( 4096 byte blocks, 1024 bytes per update,   4 updates):   4352 opers/sec,  17825792 bytes/sec
+[  347.992661] test 16 ( 4096 byte blocks, 4096 bytes per update,   1 updates):   7095 opers/sec,  29061120 bytes/sec
+[  349.002667] test 17 ( 8192 byte blocks,   16 bytes per update, 512 updates):
+[  349.010882] Unable to handle kernel NULL pointer dereference at virtual address 00000000
+[  349.020037] pgd = ddeac000
+[  349.022884] [00000000] *pgd=9dcb4831, *pte=00000000, *ppte=00000000
+[  349.029816] Internal error: Oops: 17 [#1] PREEMPT SMP ARM
+[  349.035482] Modules linked in: tcrypt(+)
+[  349.039617] CPU: 0 PID: 1473 Comm: insmod Not tainted 3.12.4-01566-g6279006-dirty #38
+[  349.047832] task: dda91540 ti: ddcd2000 task.ti: ddcd2000
+[  349.053517] PC is at omap_sham_xmit_dma+0x6c/0x238
+[  349.058544] LR is at omap_sham_xmit_dma+0x38/0x238
+[  349.063570] pc : [<c04eb7cc>]    lr : [<c04eb798>]    psr: 20000013
+[  349.063570] sp : ddcd3c78  ip : 00000000  fp : 9d8980b8
+[  349.075610] r10: 00000000  r9 : 00000000  r8 : 00000000
+[  349.081090] r7 : 00001000  r6 : dd898000  r5 : 00000040  r4 : ddb10550
+[  349.087935] r3 : 00000004  r2 : 00000010  r1 : 53100080  r0 : 00000000
+[  349.094783] Flags: nzCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment user
+[  349.102268] Control: 10c5387d  Table: 9deac019  DAC: 00000015
+[  349.108294] Process insmod (pid: 1473, stack limit = 0xddcd2248)
 
-All the time that stuff on OMAP gets broken and/or doesn't work (inspite
-of repeated attempts at reporting problems - I've never seen the displays
-on the SDP4430 board ever work with a mainline kernel in all the years
-I've had the platform - but they have worked with the originally supplied
-TI kernels) I really find myself not really caring very much about OMAP
-and whether it works or not.
+[...]
 
-Quite honestly, I regard OMAP as nothing more than an overly complex toy
-implementation rather than a serious architecture because of this kind
-of stuff - unlike every other ARM platform where stuff like this "just
-works", OMAP stuff is always seems to be much harder to make work, and
-more prone to stuff breaking.
+This is because polling_mode is not enabled for ctx without FLAGS_FINUP.
 
-So, here goes.  LDP3430:
+For polling mode the bufcnt is made 0 unconditionally. But it should be made 0
+only if it is a final update or a total is not zero(This condition is similar
+to what is done in DMA case). Because of this wrong hashes are produced.
 
-OMAP DSS rev 2.0
-omapdss DPI error: can't get VDDS_DSI regulator
-omapfb omapfb: failed to connect default display
-omapfb omapfb: failed to init overlay connections
-omapfb omapfb: failed to setup omapfb
-platform omapfb: Driver omapfb requests probe deferral
+Fixing the same.
 
-I don't see evidence of it being re-probed, but I do see this during boot
-which implies that there's nothing there:
+Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+---
+ drivers/crypto/omap-sham.c |   12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
-XIO:  fatal IO error 104 (Connection reset by peer) on X server ":0.0"
-      after 0 requests (0 known processed) with 0 events remaining.
-
-
-
-For the SDP4430, it used to detect the displays, even though nothing has
-ever been displayed on them.  Now it just spits out this:
-
-OMAP DSS rev 4.0
-omapdss DSI error: can't get VDDS_DSI regulator
-panel-dsi-cm panel-dsi-cm.0: Failed to connect to video source
-omapfb omapfb: failed to connect default display
-omapfb omapfb: failed to init overlay connections
-omapfb omapfb: failed to setup omapfb
-platform omapfb: Driver omapfb requests probe deferral
-...
-omapdss DSI error: failed to set complexio power state to 1
-panel-dsi-cm panel-dsi-cm.0: failed to enable DSI
-omapfb omapfb: Failed to enable display 'lcd'
-omapfb omapfb: failed to initialize default display
-omapfb omapfb: failed to setup omapfb
-
-Configurations, build and boot logs are all on
-http://www.arm.linux.org.uk/developer/build/
+diff --git a/drivers/crypto/omap-sham.c b/drivers/crypto/omap-sham.c
+index e45aaaf..a47094a 100644
+--- a/drivers/crypto/omap-sham.c
++++ b/drivers/crypto/omap-sham.c
+@@ -789,10 +789,13 @@ static int omap_sham_update_cpu(struct omap_sham_dev *dd)
+ 	dev_dbg(dd->dev, "cpu: bufcnt: %u, digcnt: %d, final: %d\n",
+ 		ctx->bufcnt, ctx->digcnt, final);
+ 
+-	bufcnt = ctx->bufcnt;
+-	ctx->bufcnt = 0;
++	if (final || (ctx->bufcnt == ctx->buflen && ctx->total)) {
++		bufcnt = ctx->bufcnt;
++		ctx->bufcnt = 0;
++		return omap_sham_xmit_cpu(dd, ctx->buffer, bufcnt, final);
++	}
+ 
+-	return omap_sham_xmit_cpu(dd, ctx->buffer, bufcnt, final);
++	return 0;
+ }
+ 
+ static int omap_sham_update_dma_stop(struct omap_sham_dev *dd)
+@@ -1103,6 +1106,9 @@ static int omap_sham_update(struct ahash_request *req)
+ 		return 0;
+ 	}
+ 
++	if (dd->polling_mode)
++		ctx->flags |= BIT(FLAGS_CPU);
++
+ 	return omap_sham_enqueue(req, OP_UPDATE);
+ }
+ 
+-- 
+1.7.9.5
