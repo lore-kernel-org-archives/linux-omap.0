@@ -1,72 +1,41 @@
-From: Benoit Cousson <bcousson@baylibre.com>
-Subject: Re: [PATCH 0/3] Add more device nodes for am43x gp evm.
-Date: Wed, 18 Dec 2013 18:49:01 +0100
-Message-ID: <52B1E00D.30403@baylibre.com>
-References: <1385537479-6959-1-git-send-email-sourav.poddar@ti.com> <52B1DEAC.4000509@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL] omap display regression fix against v3.13-rc4
+Date: Wed, 18 Dec 2013 09:50:58 -0800
+Message-ID: <20131218175057.GF27438@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pb0-f44.google.com ([209.85.160.44]:51452 "EHLO
-	mail-pb0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752203Ab3LRRtG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Dec 2013 12:49:06 -0500
-Received: by mail-pb0-f44.google.com with SMTP id rq2so8766452pbb.3
-        for <linux-omap@vger.kernel.org>; Wed, 18 Dec 2013 09:49:05 -0800 (PST)
-In-Reply-To: <52B1DEAC.4000509@ti.com>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:15670 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753242Ab3LRRvL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Dec 2013 12:51:11 -0500
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sourav Poddar <sourav.poddar@ti.com>
-Cc: rob.herring@calxeda.com, mark.rutland@arm.com, swarren@wwwdotorg.org, devicetree@vger.kernel.org, tony@atomide.com, balbi@ti.com, linux-omap@vger.kernel.org, nsekhar@ti.com
+To: arm@kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Hi Sourav,
+The following changes since commit 319e2e3f63c348a9b66db4667efa73178e18b17d:
 
-On 18/12/2013 18:43, Sourav Poddar wrote:
-> Benoit,
-> On Wednesday 27 November 2013 01:01 PM, Sourav Poddar wrote:
->> The patch series adds support for enabling gpio, pwm backlight and
->> matrix gpio keys on am43x-gp-evm.
->>
->> Done on top of 3.13-rc1 + tero clock series(1) + Afzal's basic gp
->> support(2).
->>
->> [1]: https://patchwork.kernel.org/patch/3009541/
->> [2]: https://patchwork.kernel.org/patch/3171761/
->>
->> Tested on am43x-gp-evm.
->>
->> There is a some bug while using regulators through backlight
->> driver on 3.13-rc1. So, tested pwm part with this patch[3].
->>
->> [3]: http://www.spinics.net/lists/arm-kernel/msg288215.html
->>
->> Sourav Poddar (3):
->>    arm: dts: am437x-gp-evm: Enable gpio.
->>    ARM: dts: am43x-gp-evm: Add matrix gpio keys.
->>    ARM: dts: am437x-gp-evm: Add pwm backlight support.
->>
->>   arch/arm/boot/dts/am437x-gp-evm.dts |   53
->> +++++++++++++++++++++++++++++++++++
->>   1 files changed, 53 insertions(+), 0 deletions(-)
->>
-> Ping on this?
+  Linux 3.13-rc4 (2013-12-15 12:31:33 -0800)
 
-The series looks good, but you should rebase it on top of for_3.14/dts=20
-that is based on the big cleanup branch Tony has done.
-I cannot apply it right now.
+are available in the git repository at:
 
-Thanks,
-Benoit
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.13/display-fix
 
+for you to fetch changes up to 130f769e81fc472beb2211320777e26050e3fa15:
 
---=20
-Beno=EEt Cousson
-BayLibre
-Embedded Linux Technology Lab
-www.baylibre.com
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+  Revert "ARM: OMAP2+: Remove legacy mux code for display.c" (2013-12-17 16:28:34 -0800)
+
+----------------------------------------------------------------
+I accidentally removed some mux code for omap4 that I thought was
+dead code as omap4 has been booting with device tree only since
+v3.10. Turns out I also removed some display related mux code,
+so let's revert that except for the dead code parts.
+
+----------------------------------------------------------------
+Tomi Valkeinen (1):
+      Revert "ARM: OMAP2+: Remove legacy mux code for display.c"
+
+ arch/arm/mach-omap2/display.c | 38 ++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 38 insertions(+)
