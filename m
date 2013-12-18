@@ -1,105 +1,82 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [RFC 4/5] usb: dwc3-exynos: enable async suspend/resume
-Date: Wed, 18 Dec 2013 10:07:36 -0600
-Message-ID: <20131218160736.GD4970@saruman.home>
-References: <1387363174-25942-1-git-send-email-yuvaraj.cd@samsung.com>
- <1387363174-25942-4-git-send-email-yuvaraj.cd@samsung.com>
-Reply-To: balbi@ti.com
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH 1/2] regulator: tps65910: Add backup battery regulator
+Date: Wed, 18 Dec 2013 16:24:52 +0000
+Message-ID: <20131218162452.GX28455@sirena.org.uk>
+References: <1387378208-26841-1-git-send-email-mpa@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============1344540164359493099=="
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1387363174-25942-4-git-send-email-yuvaraj.cd@samsung.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Yuvaraj Kumar C D <yuvaraj.cd@gmail.com>
-Cc: Yuvaraj Kumar C D <yuvaraj.cd@samsung.com>, kgene.kim@samsung.com, sarah.a.sharp@linux.intel.com, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, joshi@samsung.com, balbi@ti.com, linux-kernel@vger.kernel.org, Andrew Bresticker <abrestic@chromium.org>, linux-samsung-soc@vger.kernel.org, stern@rowland.harvard.edu, gautam.vivek@samsung.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-List-Id: linux-omap@vger.kernel.org
-
---===============1344540164359493099==
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="SNIs70sCzqvszXB4"
+	protocol="application/pgp-signature"; boundary="3xHYp4KIwhE2rfeC"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:34159 "EHLO
+	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751896Ab3LRQYz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Dec 2013 11:24:55 -0500
 Content-Disposition: inline
+In-Reply-To: <1387378208-26841-1-git-send-email-mpa@pengutronix.de>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+To: Markus Pargmann <mpa@pengutronix.de>
+Cc: Liam Girdwood <lgirdwood@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel@pengutronix.de
 
---SNIs70sCzqvszXB4
+
+--3xHYp4KIwhE2rfeC
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Wed, Dec 18, 2013 at 04:09:33PM +0530, Yuvaraj Kumar C D wrote:
-> From: Andrew Bresticker <abrestic@chromium.org>
->=20
-> In addition to enabling async suspend/resume on the xhci-plat device,
-> we must enable it for the dwc3-exynos platform device in order to make
-> the full USB stack resume asynchronously.  Like the xhci-plat, ehci-s5p,
-> and ohci-exynos drivers, there are no outside dependencies which would
-> make resuming the dwc3-exynos driver asynchronously unsafe.
->=20
-> Signed-off-by: Andrew Bresticker <abrestic@chromium.org>
-> Reviewed-by: Julius Werner <jwerner@chromium.org>
-> Signed-off-by: Yuvaraj Kumar C D <yuvaraj.cd@samsung.com>
-> ---
->  drivers/usb/dwc3/dwc3-exynos.c |    2 ++
->  1 file changed, 2 insertions(+)
->=20
-> diff --git a/drivers/usb/dwc3/dwc3-exynos.c b/drivers/usb/dwc3/dwc3-exyno=
-s.c
-> index 8b20c70..57431b7 100644
-> --- a/drivers/usb/dwc3/dwc3-exynos.c
-> +++ b/drivers/usb/dwc3/dwc3-exynos.c
-> @@ -155,6 +155,8 @@ static int dwc3_exynos_probe(struct platform_device *=
-pdev)
->  		goto err2;
->  	}
-> =20
-> +	device_enable_async_suspend(dev);
+On Wed, Dec 18, 2013 at 03:50:07PM +0100, Markus Pargmann wrote:
 
-sure that clk_disable() in your ->suspend() callback will cause no
-issues at all ?
+> @@ -771,7 +794,7 @@ static struct regulator_ops tps65910_ops = {
+>  	.get_voltage_sel	= tps65910_get_voltage_sel,
+>  	.set_voltage_sel	= tps65910_set_voltage_sel,
+>  	.list_voltage		= regulator_list_voltage_table,
+> -	.map_voltage		= regulator_map_voltage_ascend,
+> +	.map_voltage		= regulator_map_voltage_iterate,
+>  };
 
---=20
-balbi
+You should make separate ops for this rather than make all the other
+regulators take the performance hit.
 
---SNIs70sCzqvszXB4
+>  static struct regulator_ops tps65911_ops = {
+> @@ -944,6 +967,7 @@ static struct of_regulator_match tps65910_matches[] = {
+>  	{ .name = "vaux2",	.driver_data = (void *) &tps65910_regs[10] },
+>  	{ .name = "vaux33",	.driver_data = (void *) &tps65910_regs[11] },
+>  	{ .name = "vmmc",	.driver_data = (void *) &tps65910_regs[12] },
+> +	{ .name = "vbb",	.driver_data = (void *) &tps65910_regs[13] },
+>  };
+
+Ugh, these numbered tables aren't good.  Not a problem from this patch
+though.
+
+> -		pmic->desc[i].enable_mask = TPS65910_SUPPLY_STATE_ENABLED;
+> +		if (tps65910_chip_id(tps65910) == TPS65910 &&
+> +				i == TPS65910_REG_VBB)
+> +			pmic->desc[i].enable_mask = BBCH_BBCHEN_MASK;
+> +		else
+> +			pmic->desc[i].enable_mask = TPS65910_SUPPLY_STATE_ENABLED;
+
+switch statements please - it means if additional things need
+customising they can drop right in.
+
+--3xHYp4KIwhE2rfeC
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.15 (GNU/Linux)
+Version: GnuPG v2.0.22 (GNU/Linux)
 
-iQIcBAEBAgAGBQJSschIAAoJEIaOsuA1yqREYusQAJfVrxxgIcgYQH6bGbXJwFFw
-tq2PyAV1NOPY7pyIAKkovhsObwYQmWbYwCw21sBFR4pDoWmZOS6ev/qkTFJiKRGn
-ChG0YCUg/X24kUlxdMK6m6wJ4p2WEOssG4jneRvDLwFmY6d2aSVj7qipaX+JgzFH
-Nan28Ho6nbxAwLq22gi8BKVm0Eb9j37HYnsB51AY5wAnPNefRPvgNE83ItUoczhy
-37LXrLFw/EQ+qvZ0n1CwMvS04+XqX+VZP5VVI9Ab/b0VV8HuMuKGy6HjFQ42HuIe
-09zXUh5CtGtzx7LhnAO1EpB3qN0+XOpFyhuApdAwPooINnR9iL/IO/crgd6h1+kG
-MOTaHuJSbnuXXY2sM+jwvk381xZ6ITvCQWnESrD5G3hLZgvuvHmT+UE3AbBOksGB
-cKXhHANqrxvbY+F4AxejSySpckpydNiqmn0nAaXojZdghZ4l9Lq9OvG/qzMKVq8w
-KwV4W1YHio3pcXL6Q3rMJxGfhKcIvuWJxxTZBNEyHH6onF591EYPjprKi7pdYYYF
-ZQ0h7DBW+nEg3g5I3tPyrfrsjKrfbeEnCTZoKASB76vENH+qUwVmYEPEzGmXNUAW
-uDsJo85WD/6tQWZU5UMuw+nwSQGr/e1YmQWrSgQ196sdG4kts/RH2uaniNNJlf2R
-RXHzNF4Qd5mV6BkdyROx
-=f4Pp
+iQIcBAEBAgAGBQJSscxRAAoJELSic+t+oim9m4AP/0JRrHvbk5qCqwcjPJl94riS
+Akr1Hhz/uyug5ZpeVjPKjtfxBNf80/PtOWNp0TxjTtLK+2w1GN/4yZ8rqvjlYgG+
+xl5moNL+/ZnW5ycZnfIYlGxLg6s2Ozz+PoF7Fkjy4HcP+abJhYa8ppjkWo1+Z2s/
+lrl2YGVGXDNcxC+fYR4m2M7pjHgeyx/hpBXXpcsocjEK9H1PyJTElGVKOQXs45X6
+Lz4SbMCwE69sQMrkCL4Forde0Bbx1PxL5oM1kMAlWzb8OinQgcfA2sei+BYFlrZe
+klH+oWwOyXbYSVSAWDtcDD31JTZbVrupc2DW2lECZonL/vIHeD+yCKp6MM3+yxIq
+6qZ6o33a83ZBg7qFcTBmyLkvp31HBLqCk4+x8bCV0Eo1/kPyl6rowP+xiU/06uiG
+MRz+4ikxdFcNWvHf/YTZ2D7spwH/WtJNMiOWlxU3D9GI6ZImBAMSSp0AxU4SU+3i
+nQtfsoiOaXJ/ETRmL5JmdugbMuMLqWSbXt+9z4NbjgBFlr5ImXnRNU2TGzzWNhlj
+pgar0CfBv++u8GQmdwZ8m2lyN4/xGbAwNK9ayfHzr/wihgfIPFWJKbwnMX3TCXXH
+sVM+I5dD4TsEtTGFAdrnXDHLg401F8rDes3YAXZ1pbwchFIQvtFBh+//yOxGUAVo
+Uc5C0EspqWxxq0qvrblT
+=OR1K
 -----END PGP SIGNATURE-----
 
---SNIs70sCzqvszXB4--
-
-
---===============1344540164359493099==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-arm-kernel mailing list
-linux-arm-kernel@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-
---===============1344540164359493099==--
+--3xHYp4KIwhE2rfeC--
