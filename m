@@ -1,113 +1,112 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCHv2 01/27] ARM: OMAP: remove DSS DT hack
-Date: Wed, 18 Dec 2013 09:12:46 +0200
-Message-ID: <52B14AEE.8090807@ti.com>
-References: <1387205794-32246-1-git-send-email-tomi.valkeinen@ti.com> <1387205794-32246-2-git-send-email-tomi.valkeinen@ti.com> <20131216184157.GA26293@atomide.com> <52AFF31C.6010100@ti.com> <20131217153001.GN12324@atomide.com>
+From: Andreas Naumann <dev@andin.de>
+Subject: Re: [PATCH V3] usb: musb: Fix unstable init of OTG_INTERFSEL.
+Date: Wed, 18 Dec 2013 08:41:14 +0100
+Message-ID: <52B1519A.4030503@andin.de>
+References: <1387298913-18823-1-git-send-email-anaumann@ultratronik.de> <20131217172233.GA29638@psi-dev26.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="pgoHnlmr06EIN3mLq6CsetL7moAIbSWjd"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:38666 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750949Ab3LRHMx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 18 Dec 2013 02:12:53 -0500
-In-Reply-To: <20131217153001.GN12324@atomide.com>
+Received: from dd5612.kasserver.com ([85.13.130.143]:39839 "EHLO
+	dd5612.kasserver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750949Ab3LRHlK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Dec 2013 02:41:10 -0500
+In-Reply-To: <20131217172233.GA29638@psi-dev26.jf.intel.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org
+To: David Cohen <david.a.cohen@linux.intel.com>
+Cc: notasas@gmail.com, linux-usb@vger.kernel.org, balbi@ti.com, linux-omap@vger.kernel.org
 
---pgoHnlmr06EIN3mLq6CsetL7moAIbSWjd
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-On 2013-12-17 17:30, Tony Lindgren wrote:
-> * Tomi Valkeinen <tomi.valkeinen@ti.com> [131216 22:47]:
->> On 2013-12-16 20:41, Tony Lindgren wrote:
->>> * Tomi Valkeinen <tomi.valkeinen@ti.com> [131216 06:59]:
->>>> As a temporary solution to enable DSS for selected boards when booti=
-ng
->>>> with DT, a hack was added to board-generic.c in
->>>> 63d5fc0c2f748e20f38a0a0ec1c8494bddf5c288 (OMAP: board-generic: enabl=
-e
->>>> DSS for panda & sdp boards).
->>>>
->>>> We're now adding proper DT support, so the hack can be removed.
->>>
->>> I guess this patch should be merged later on after we have the DT sup=
-port
->>> working?
+Am 17.12.2013 18:22, schrieb David Cohen:
+> On Tue, Dec 17, 2013 at 05:48:33PM +0100, anaumann@ultratronik.de wrote:
+>> From: Andreas Naumann <anaumann@ultratronik.de>
 >>
->> I'll move this patch also to the end of the series.
+>> This is a hard to reproduce problem which leads to non-functional
+>> USB-OTG port in 0.1%-1% of all boots. Tracked it down to commit
+>> e25bec160158abe86c276d7d206264afc3646281, which introduces save/restore
+>> of OTG_INTERFSEL over suspend.
+>> Since the resume function is also called early in driver init, it uses a
+>> non-initialized value (which is 0 and a non-supported setting in DM37xx
+>> for INTERFSEL). Shortly after the correct value is set. Apparently this
+>> works most time, but not always.
 >>
->> "Merged later" sounds like you mean this could be merged in a separate=
+>> Fix it by not writing the value on runtime resume if it has not been
+>> initialized yet.
+>>
+>> Signed-off-by: Andreas Naumann <anaumann@ultratronik.de>
+>> ---
+>> Even though I find the implementation a bit awkward this should fix
+>> the issue without breaking anything else. Hope everyone is happy
+>> with this.
+>>
+>>   drivers/usb/musb/omap2430.c | 6 +++++-
+>>   1 file changed, 5 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+>> index 4315d35..fbe2c08 100644
+>> --- a/drivers/usb/musb/omap2430.c
+>> +++ b/drivers/usb/musb/omap2430.c
+>> @@ -48,6 +48,7 @@ struct omap2430_glue {
+>>   	enum omap_musb_vbus_id_status status;
+>>   	struct work_struct	omap_musb_mailbox_work;
+>>   	struct device		*control_otghs;
+>> +	u8 	initialized;
+>>   };
+>>   #define glue_to_musb(g)		platform_get_drvdata(g->musb)
+>>
+>> @@ -383,6 +384,7 @@ static int omap2430_musb_init(struct musb *musb)
+>>   	}
+>>
+>>   	musb_writel(musb->mregs, OTG_INTERFSEL, l);
+>> +	glue->initialized = 1;
+>>
+>>   	pr_debug("HS USB OTG: revision 0x%x, sysconfig 0x%02x, "
+>>   			"sysstatus 0x%x, intrfsel 0x%x, simenable  0x%x\n",
+>> @@ -509,6 +511,7 @@ static int omap2430_probe(struct platform_device *pdev)
+>>   	glue->dev			= &pdev->dev;
+>>   	glue->musb			= musb;
+>>   	glue->status			= OMAP_MUSB_UNKNOWN;
+>> +	glue->initialized	= 0;
+>
+> You don't need to do this. 'glue' was already allocated with kzalloc().
 
->> series. I think this and the other removal can be in this series, they=
+ok
 
->> just need to be at the end.
->=20
-> Well yeah let's keep those separate still as at least Russell needed
-> some more time with the legacy booting. The point we can drop the
-> legacy booting for omap3 may still need to wait a bit, maybe even
-> until v3.15 to keep things working.
+>
+>>
+>>   	if (np) {
+>>   		pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
+>> @@ -646,7 +649,8 @@ static int omap2430_runtime_resume(struct device *dev)
+>>
+>>   	if (musb) {
+>>   		omap2430_low_level_init(musb);
+>> -		musb_writel(musb->mregs, OTG_INTERFSEL,
+>> +		if(glue->initialized)
+>
+> Are you sure this is thread safe?
+> If you're sending this patch it means runtime_resume can be called
+> before omap2430_must_init(), but how about at the same time?
+> You defined 'initialized' as u8 type, then read/write operations won't
+> be atomic in ARM.
 
-They can't be separate. Once I add DT support for a board, I have to
-remove the legacy support for that board. This patch removes legacy
-support for the boards that are converted in the series.
+You're right, wasnt thinking of that. Shall I use atomic_t and helpers?
 
-If I don't remove the legacy support, both DT and legacy side will be
-ran, and both create the DSS devices...
-
-But, it's true that this patch removes the whole file, as all the boards
-currently there are converted. But if new boards are added to the DSS
-quirks, then I can't remove the file. So I'll change this patch to only
-remove the parts for the converted boards, not the whole file.
-
-But but... If I understand right, the plan is to remove all omap3 board
-files for the next merge window. I'm not totally familiar with the
-quirks system, but how should this be handled:
-
-omap3.dtsi will contain the SoC's DSS nodes. This means that DSS devices
-are created via DT code. But if the display (i.e. panels) for a
-particular omap3 board has not been converted to DT, we should still use
-the legacy DSS initialization. But the DSS is already initialized via DT.=
-
-
-I guess I can set the status for all the DSS nodes to "disabled" in
-omap3.dtsi, and that should prevent DT code from creating the DSS
-devices. Then, each omap3-board.dts that has been converted to DSS DT,
-can override those to "enabled".
-
-That way the DT code should not create DSS devices by default, and the
-quirks system would probably work fine.
-
- Tomi
-
-
-
---pgoHnlmr06EIN3mLq6CsetL7moAIbSWjd
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJSsUryAAoJEPo9qoy8lh71ZsAQAIXIpRSWzygR+RLNV0EXcH2v
-brJP4w7oD6EjTMJMcQHVa2+6sjIEPy8/UMIUl9XXTLyEuDnW+FXNbHZSerSBbGav
-tAEXA47NgkrTERIzNo5w9S3jSLWW2Xx1x3jT1BOKf3ZBXuL4k+iJOFoMsOHDPa5q
-kHuc7YOAnPjZ3aUqpnD8P+oiubau3neSSIvjcssYrz21iLEvWlq+YBH3X98YWhIW
-OM41bcl5Ru8E3z4vHTntYDPsE3pHWhgkr9I7sHMYKI5BdaqawJLlVEM5uqIAQWZR
-Hdq8GM7LHBFH7DTh0RbSSsU7KNCFcNsjAOd6qfuAG5OKot9w712C+a+RPb3dpIx/
-6qRaMgOV/SR33uVXzSivO87geQtXrpuOyMx0exA39TCn0K5zL6UpmkyFgTgrTBR2
-F3ek9ToI1tSt+1sawQT0GxMwRtxJVGIDq1y9bY34FL1l2tF5pv742RVCaUOFbUBR
-sRPt3gDLciq6Onvj+0Z0C83+nBO9N+6NYG56PImCBQcIr0k+WP0T5nDFvRzaeY93
-qe2zyXP8HvUVjWOdFKEvn4GrfynnxYxMHQv05WZWlk8la7nhzbfjgK4RA5ejJ3AD
-UX+yaQhWUWMHEQrhYWGhUuH5x+xR2eDK1Nt8tMh3B5FHteLW7Z73vDlnaFhKVkrb
-F6aHzY7fZ+VYbdWHI41M
-=vl37
------END PGP SIGNATURE-----
-
---pgoHnlmr06EIN3mLq6CsetL7moAIbSWjd--
+>
+> Br, David Cohen
+>
+>> +			musb_writel(musb->mregs, OTG_INTERFSEL,
+>>   				musb->context.otg_interfsel);
+>>
+>>   		usb_phy_set_suspend(musb->xceiv, 0);
+>> --
+>> 1.8.4.1
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
