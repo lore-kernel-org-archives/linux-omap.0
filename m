@@ -1,220 +1,56 @@
-From: Mike Turquette <mturquette@linaro.org>
-Subject: Re: [PATCHv10 10/41] CLK: TI: add support for clockdomain binding
-Date: Tue, 17 Dec 2013 19:07:58 -0800
-Message-ID: <20131218030758.23538.19971@quantum>
-References: <1385453182-24421-1-git-send-email-t-kristo@ti.com>
- <1385453182-24421-11-git-send-email-t-kristo@ti.com>
- <20131215042303.23538.19248@quantum> <52AEB614.3080705@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCHv10 01/41] clk: add support for platform specific clock
+ I/O wrapper functions
+Date: Wed, 18 Dec 2013 03:33:53 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1312180332380.14039@utopia.booyaka.com>
+References: <1385453182-24421-1-git-send-email-t-kristo@ti.com> <1385453182-24421-2-git-send-email-t-kristo@ti.com> <alpine.DEB.2.02.1312171212170.14039@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yh0-f47.google.com ([209.85.213.47]:62655 "EHLO
-	mail-yh0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751443Ab3LRDIF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Dec 2013 22:08:05 -0500
-Received: by mail-yh0-f47.google.com with SMTP id 29so5063192yhl.6
-        for <linux-omap@vger.kernel.org>; Tue, 17 Dec 2013 19:08:04 -0800 (PST)
-In-Reply-To: <52AEB614.3080705@ti.com>
+Received: from utopia.booyaka.com ([74.50.51.50]:60695 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752391Ab3LRDdy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Dec 2013 22:33:54 -0500
+In-Reply-To: <alpine.DEB.2.02.1312171212170.14039@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, nm@ti.com, rnayak@ti.com, bcousson@baylibre.com
-Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, nm@ti.com, rnayak@ti.com, bcousson@baylibre.com, mturquette@linaro.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-Quoting Tero Kristo (2013-12-16 00:13:08)
-> On 12/15/2013 06:23 AM, Mike Turquette wrote:
-> > Quoting Tero Kristo (2013-11-26 00:05:51)
-> >> Some OMAP clocks require knowledge about their parent clockdomain for
-> >> book keeping purposes. This patch creates a new DT binding for TI
-> >> clockdomains, which act as a collection of device clocks.
-> >>
-> >> Signed-off-by: Tero Kristo <t-kristo@ti.com>
-> >> ---
-> >>   .../devicetree/bindings/clock/ti/clockdomain.txt   |   21 ++++++
-> >>   arch/arm/mach-omap2/clock.h                        |    1 -
-> >>   drivers/clk/ti/Makefile                            |    3 +-
-> >>   drivers/clk/ti/clockdomain.c                       |   70 ++++++++++++++++++++
-> >>   include/linux/clk/ti.h                             |    3 +
-> >>   5 files changed, 96 insertions(+), 2 deletions(-)
-> >>   create mode 100644 Documentation/devicetree/bindings/clock/ti/clockdomain.txt
-> >>   create mode 100644 drivers/clk/ti/clockdomain.c
-> >>
-> >> diff --git a/Documentation/devicetree/bindings/clock/ti/clockdomain.txt b/Documentation/devicetree/bindings/clock/ti/clockdomain.txt
-> >> new file mode 100644
-> >> index 0000000..45e6f7c
-> >> --- /dev/null
-> >> +++ b/Documentation/devicetree/bindings/clock/ti/clockdomain.txt
-> >> @@ -0,0 +1,21 @@
-> >> +Binding for Texas Instruments clockdomain.
-> >> +
-> >> +Binding status: Unstable - ABI compatibility may be broken in the future
-> >> +
-> >> +This binding uses the common clock binding[1]. Every clock on
-> >
-> > The patch looks fine to me but I think that the binding description
-> > should capture the fact that you are re-using the common clock binding
-> > but that this binding definition does not define any new clocks or clock
-> > controllers in the way that a typical clock binding would.
-> >
-> > This code uses the 'clocks' property the same way that any other
-> > consumer binding definition would, such as an MMC controller or UART.
-> > Those bindings do not say that they are based on the common clock
-> > binding AFAIK.
-> >
-> 
-> Ok, will modify the doc accordingly.
+On Tue, 17 Dec 2013, Paul Walmsley wrote:
 
-Just to clarify: I think it is great to reference clock-bindings.txt,
-but somehow make sure that someone reading this doesn't mistake it for a
-clock controller binding or a new clock type binding. This ip sort of
-"consumes" clocks in the usual way as an IO controller.
+> On Tue, 26 Nov 2013, Tero Kristo wrote:
+> 
+> > Current clock wrappers assume simple and direct mapped hardware register
+> > access. Improve this support by adding functionality for registering
+> > platform specific clock I/O wrappers, which can be used to support
+> > various features needed like endianess conversions, indexed regmap support,
+> > etc. Default I/O wrapper provided also which uses the existing direct
+> > I/O mapped behavior.
+> 
+> I think it makes more sense to define per-SoC register read and write 
+> functions,
 
-Regards,
-Mike
+Sorry, this should have read "per-IP block register read and write 
+functions".
 
+> for the same reason that I think it makes more sense to define clock 
+> data as part of the IP blocks that contain the clocks' registers.  The 
+> register read and write functions should be implemented by the drivers 
+> for the IP blocks that the clocks are contained in.  That way the 
+> register read and write functions can take whatever steps are necessary 
+> to ensure that the IP block registers are accessible before performing 
+> the read/write; can implement non-MMIO register accesses if needed; and 
+> can operate on register offsets, rather than absolute addresses.
 > 
-> -Tero
-> 
-> > Regards,
-> > Mike
-> >
-> >> +TI SoC belongs to one clockdomain, but software only needs this
-> >> +information for specific clocks which require their parent
-> >> +clockdomain to be controlled when the clock is enabled/disabled.
-> >> +
-> >> +[1] Documentation/devicetree/bindings/clock/clock-bindings.txt
-> >> +
-> >> +Required properties:
-> >> +- compatible : shall be "ti,clockdomain"
-> >> +- #clock-cells : from common clock binding; shall be set to 0.
-> >> +- clocks : link phandles of clocks within this domain
-> >> +
-> >> +Examples:
-> >> +       dss_clkdm: dss_clkdm {
-> >> +               compatible = "ti,clockdomain";
-> >> +               clocks = <&dss1_alwon_fck_3430es2>, <&dss_ick_3430es2>;
-> >> +       };
-> >> diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
-> >> index bc0f9fc..6bd72b5 100644
-> >> --- a/arch/arm/mach-omap2/clock.h
-> >> +++ b/arch/arm/mach-omap2/clock.h
-> >> @@ -38,7 +38,6 @@ struct omap_clk {
-> >>          }
-> >>
-> >>   struct clockdomain;
-> >> -#define to_clk_hw_omap(_hw) container_of(_hw, struct clk_hw_omap, hw)
-> >>
-> >>   #define DEFINE_STRUCT_CLK(_name, _parent_array_name, _clkops_name)     \
-> >>          static struct clk _name = {                             \
-> >> diff --git a/drivers/clk/ti/Makefile b/drivers/clk/ti/Makefile
-> >> index 7cba389..67056fb 100644
-> >> --- a/drivers/clk/ti/Makefile
-> >> +++ b/drivers/clk/ti/Makefile
-> >> @@ -1,4 +1,5 @@
-> >>   ifneq ($(CONFIG_OF),)
-> >>   obj-y                                  += clk.o dpll.o autoidle.o divider.o \
-> >> -                                          fixed-factor.o gate.o composite.o
-> >> +                                          fixed-factor.o gate.o clockdomain.o \
-> >> +                                          composite.o
-> >>   endif
-> >> diff --git a/drivers/clk/ti/clockdomain.c b/drivers/clk/ti/clockdomain.c
-> >> new file mode 100644
-> >> index 0000000..f1e0038
-> >> --- /dev/null
-> >> +++ b/drivers/clk/ti/clockdomain.c
-> >> @@ -0,0 +1,70 @@
-> >> +/*
-> >> + * OMAP clockdomain support
-> >> + *
-> >> + * Copyright (C) 2013 Texas Instruments, Inc.
-> >> + *
-> >> + * Tero Kristo <t-kristo@ti.com>
-> >> + *
-> >> + * This program is free software; you can redistribute it and/or modify
-> >> + * it under the terms of the GNU General Public License version 2 as
-> >> + * published by the Free Software Foundation.
-> >> + *
-> >> + * This program is distributed "as is" WITHOUT ANY WARRANTY of any
-> >> + * kind, whether express or implied; without even the implied warranty
-> >> + * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> >> + * GNU General Public License for more details.
-> >> + */
-> >> +
-> >> +#include <linux/clk-provider.h>
-> >> +#include <linux/slab.h>
-> >> +#include <linux/of.h>
-> >> +#include <linux/of_address.h>
-> >> +#include <linux/clk/ti.h>
-> >> +
-> >> +#undef pr_fmt
-> >> +#define pr_fmt(fmt) "%s: " fmt, __func__
-> >> +
-> >> +static void __init of_ti_clockdomain_setup(struct device_node *node)
-> >> +{
-> >> +       struct clk *clk;
-> >> +       struct clk_hw *clk_hw;
-> >> +       const char *clkdm_name = node->name;
-> >> +       int i;
-> >> +       int num_clks;
-> >> +
-> >> +       num_clks = of_count_phandle_with_args(node, "clocks", "#clock-cells");
-> >> +
-> >> +       for (i = 0; i < num_clks; i++) {
-> >> +               clk = of_clk_get(node, i);
-> >> +               if (__clk_get_flags(clk) & CLK_IS_BASIC) {
-> >> +                       pr_warn("can't setup clkdm for basic clk %s\n",
-> >> +                               __clk_get_name(clk));
-> >> +                       continue;
-> >> +               }
-> >> +               clk_hw = __clk_get_hw(clk);
-> >> +               to_clk_hw_omap(clk_hw)->clkdm_name = clkdm_name;
-> >> +               omap2_init_clk_clkdm(clk_hw);
-> >> +       }
-> >> +}
-> >> +
-> >> +static struct of_device_id ti_clkdm_match_table[] __initdata = {
-> >> +       { .compatible = "ti,clockdomain" },
-> >> +       { }
-> >> +};
-> >> +
-> >> +/**
-> >> + * ti_dt_clockdomains_setup - setup device tree clockdomains
-> >> + *
-> >> + * Initializes clockdomain nodes for a SoC. This parses through all the
-> >> + * nodes with compatible = "ti,clockdomain", and add the clockdomain
-> >> + * info for all the clocks listed under these. This function shall be
-> >> + * called after rest of the DT clock init has completed and all
-> >> + * clock nodes have been registered.
-> >> + */
-> >> +void __init ti_dt_clockdomains_setup(void)
-> >> +{
-> >> +       struct device_node *np;
-> >> +       for_each_matching_node(np, ti_clkdm_match_table) {
-> >> +               of_ti_clockdomain_setup(np);
-> >> +       }
-> >> +}
-> >> diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
-> >> index 872ff2a..231b071 100644
-> >> --- a/include/linux/clk/ti.h
-> >> +++ b/include/linux/clk/ti.h
-> >> @@ -204,6 +204,8 @@ struct clk_omap_reg {
-> >>          u16 index;
-> >>   };
-> >>
-> >> +#define to_clk_hw_omap(_hw) container_of(_hw, struct clk_hw_omap, hw)
-> >> +
-> >>   void omap2_init_clk_hw_omap_clocks(struct clk *clk);
-> >>   int omap3_noncore_dpll_enable(struct clk_hw *hw);
-> >>   void omap3_noncore_dpll_disable(struct clk_hw *hw);
-> >> @@ -232,6 +234,7 @@ int omap2_dflt_clk_is_enabled(struct clk_hw *hw);
-> >>   void __iomem *ti_clk_get_reg_addr(struct device_node *node, int index);
-> >>   void ti_dt_clocks_register(struct ti_dt_clk *oclks);
-> >>   void ti_dt_clk_init_provider(struct device_node *np, int index);
-> >> +void ti_dt_clockdomains_setup(void);
-> >>   int of_ti_clk_autoidle_setup(struct device_node *node);
-> >>   int ti_clk_add_component(struct device_node *node, struct clk_hw *hw, int type);
-> >>
-> >> --
-> >> 1.7.9.5
-> >>
-> 
+> Something like the following draft implementation.  Also needed would be a 
+> way for clock providers that rely on the common clock providers (e.g., 
+> divider, mux, etc.) to pass in the struct clk_ll_ops pointer.  I guess the 
+> simplest way to implement this would be to add another set of registration 
+> functions - e.g., clk_register_divider_ipb() or clk_register_divider2() or 
+> something similar.  These functions would be similar to 
+> clk_register_divider(), but would take a pointer to a struct clk_ll_ops 
+> and pass that along to the CCF core.
+
+
+- Paul
