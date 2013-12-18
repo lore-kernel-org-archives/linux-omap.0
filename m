@@ -1,70 +1,46 @@
-From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: Re: [PATCH 0/6] net: cpsw: Support for am335x chip MACIDs
-Date: Wed, 18 Dec 2013 22:30:55 +0530
-Message-ID: <52B1D4C7.6030004@ti.com>
-References: <1387385242-1161-1-git-send-email-mpa@pengutronix.de>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH] ARM: dts: Add basic devices for AM3517-craneboard
+Date: Wed, 18 Dec 2013 11:02:02 -0600
+Message-ID: <52B1D50A.50406@ti.com>
+References: <1386626150-23504-1-git-send-email-nm@ti.com> <52B0A9C8.7070201@ti.com> <52B1D3DC.1010304@baylibre.com>
+Reply-To: nm@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1387385242-1161-1-git-send-email-mpa@pengutronix.de>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Markus Pargmann <mpa@pengutronix.de>, "David S. Miller" <davem@davemloft.net>, =?ISO-8859-1?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>
-Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, kernel@pengutronix.de, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ob0-f179.google.com ([209.85.214.179]:42450 "EHLO
+	mail-ob0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751718Ab3LRRCI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Dec 2013 12:02:08 -0500
+In-Reply-To: <52B1D3DC.1010304@baylibre.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Benoit Cousson <bcousson@baylibre.com>
+Cc: Tony Lindgren <tony@atomide.com>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Wednesday 18 December 2013 10:17 PM, Markus Pargmann wrote:
-> Hi,
+On 12/18/2013 10:57 AM, Benoit Cousson wrote:
+> On 17/12/2013 20:45, Nishanth Menon wrote:
+>> On 12/09/2013 03:55 PM, Nishanth Menon wrote:
+>>> Craneboard is a hardware development platform based on the Sitara
+>>> AM3517 ARM Cortex - A8 microprocessor device - see [1] for more
+>>> details. Add basic devices for craneboard as replacement for the board
+>>> file scheduled for removal as part of device tree conversion
+>>>
+>>> [1] http://craneboard.org
+>>>
+>>> Signed-off-by: Nishanth Menon <nm@ti.com>
+>>> ---
+>>
+>> gentle ping.. had'nt seen a response on this patch. Could we queue
+>> this up for v3.14-rc1?
 >
-> This series introduces a driver to read and use the MACIDs stored in the am335x
-> control module. These are read-only registers for a unique MACID. At the moment
-> the MACIDs are generated randomly or they are set by the bootloader.
->
-> A device node is added in am33xx dtsi and used by the cpsw slaves in the bone
-> board files.
->
-> Regards,
->
-> Markus
->
->
-> Markus Pargmann (6):
->   DT doc: net: cpsw mac-address is optional
->   net: cpsw: header, Add missing include
->   net: cpsw: Add control-module macid driver
->   net: cpsw: Use cpsw-ctrl-macid driver
->   arm: dts: am33xx, Add device node for cpsw-ctrl-macid
->   arm: dts: am335x beagle bone use processor macids
->
->  .../devicetree/bindings/net/cpsw-ctrl-macid.txt    |  31 +++++
->  Documentation/devicetree/bindings/net/cpsw.txt     |   7 +-
->  arch/arm/boot/dts/am335x-bone.dts                  |   8 ++
->  arch/arm/boot/dts/am335x-boneblack.dts             |   8 ++
->  arch/arm/boot/dts/am33xx.dtsi                      |   7 ++
->  drivers/net/ethernet/ti/Kconfig                    |   8 ++
->  drivers/net/ethernet/ti/Makefile                   |   1 +
->  drivers/net/ethernet/ti/cpsw-ctrl-macid.c          | 138 +++++++++++++++++++++
->  drivers/net/ethernet/ti/cpsw.c                     |  18 ++-
->  drivers/net/ethernet/ti/cpsw.h                     |   3 +
->  10 files changed, 224 insertions(+), 5 deletions(-)
->  create mode 100644 Documentation/devicetree/bindings/net/cpsw-ctrl-macid.txt
->  create mode 100644 drivers/net/ethernet/ti/cpsw-ctrl-macid.c
->
-Mac ID is to be filled by U-Boot and this kind of approach is already
-rejected in linux-omap list.
+> Yep, it looks good to me.
+Thanks benoit.
 
-If proper ethaddr/eth*addr is populated in U-boot environment variable
-then mac-address dt property in ethernet* device nodes will be populated
-before boot kernel in U-boot. So I don't think this patch series is
-required.
+> But if you don't mind I'll start pushing my branch after Xmas :-).
 
-Regards
-Mugunthan V N
+As long as Tony is ok with it, I have no issues either - will be great 
+to have dt only boot in .14-rc1 though.
+Regards,
+Nishanth Menon
+
