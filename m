@@ -1,65 +1,53 @@
-From: Markus Pargmann <mpa@pengutronix.de>
-Subject: [PATCH 6/6] arm: dts: am335x beagle bone use processor macids
-Date: Wed, 18 Dec 2013 17:47:22 +0100
-Message-ID: <1387385242-1161-7-git-send-email-mpa@pengutronix.de>
-References: <1387385242-1161-1-git-send-email-mpa@pengutronix.de>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:42039 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755199Ab3LRQs2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Dec 2013 11:48:28 -0500
-In-Reply-To: <1387385242-1161-1-git-send-email-mpa@pengutronix.de>
-Sender: linux-omap-owner@vger.kernel.org
+From: Markus Pargmann <mpa-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+Subject: [PATCH 0/6] net: cpsw: Support for am335x chip MACIDs
+Date: Wed, 18 Dec 2013 17:47:16 +0100
+Message-ID: <1387385242-1161-1-git-send-email-mpa@pengutronix.de>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, kernel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, Markus Pargmann <mpa-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: "David S. Miller" <davem@davemloft.net>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>
-Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel@pengutronix.de, Markus Pargmann <mpa@pengutronix.de>
 
-Use macids stored in the am335x chip.
+Hi,
 
-Signed-off-by: Markus Pargmann <mpa@pengutronix.de>
----
- arch/arm/boot/dts/am335x-bone.dts      | 8 ++++++++
- arch/arm/boot/dts/am335x-boneblack.dts | 8 ++++++++
- 2 files changed, 16 insertions(+)
+This series introduces a driver to read and use the MACIDs stored in the am335x
+control module. These are read-only registers for a unique MACID. At the moment
+the MACIDs are generated randomly or they are set by the bootloader.
 
-diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
-index 94ee427..9b65a62 100644
---- a/arch/arm/boot/dts/am335x-bone.dts
-+++ b/arch/arm/boot/dts/am335x-bone.dts
-@@ -10,6 +10,14 @@
- #include "am33xx.dtsi"
- #include "am335x-bone-common.dtsi"
- 
-+&cpsw_emac0 {
-+	ti,mac-address-ctrl = <&cpsw_ctrl_macid 0>;
-+};
-+
-+&cpsw_emac1 {
-+	ti,mac-address-ctrl = <&cpsw_ctrl_macid 1>;
-+};
-+
- &ldo3_reg {
- 	regulator-min-microvolt = <1800000>;
- 	regulator-max-microvolt = <3300000>;
-diff --git a/arch/arm/boot/dts/am335x-boneblack.dts b/arch/arm/boot/dts/am335x-boneblack.dts
-index 6b71ad9..f6f0b40 100644
---- a/arch/arm/boot/dts/am335x-boneblack.dts
-+++ b/arch/arm/boot/dts/am335x-boneblack.dts
-@@ -10,6 +10,14 @@
- #include "am33xx.dtsi"
- #include "am335x-bone-common.dtsi"
- 
-+&cpsw_emac0 {
-+	ti,mac-address-ctrl = <&cpsw_ctrl_macid 0>;
-+};
-+
-+&cpsw_emac1 {
-+	ti,mac-address-ctrl = <&cpsw_ctrl_macid 1>;
-+};
-+
- &ldo3_reg {
- 	regulator-min-microvolt = <1800000>;
- 	regulator-max-microvolt = <1800000>;
+A device node is added in am33xx dtsi and used by the cpsw slaves in the bone
+board files.
+
+Regards,
+
+Markus
+
+
+Markus Pargmann (6):
+  DT doc: net: cpsw mac-address is optional
+  net: cpsw: header, Add missing include
+  net: cpsw: Add control-module macid driver
+  net: cpsw: Use cpsw-ctrl-macid driver
+  arm: dts: am33xx, Add device node for cpsw-ctrl-macid
+  arm: dts: am335x beagle bone use processor macids
+
+ .../devicetree/bindings/net/cpsw-ctrl-macid.txt    |  31 +++++
+ Documentation/devicetree/bindings/net/cpsw.txt     |   7 +-
+ arch/arm/boot/dts/am335x-bone.dts                  |   8 ++
+ arch/arm/boot/dts/am335x-boneblack.dts             |   8 ++
+ arch/arm/boot/dts/am33xx.dtsi                      |   7 ++
+ drivers/net/ethernet/ti/Kconfig                    |   8 ++
+ drivers/net/ethernet/ti/Makefile                   |   1 +
+ drivers/net/ethernet/ti/cpsw-ctrl-macid.c          | 138 +++++++++++++++++++++
+ drivers/net/ethernet/ti/cpsw.c                     |  18 ++-
+ drivers/net/ethernet/ti/cpsw.h                     |   3 +
+ 10 files changed, 224 insertions(+), 5 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/net/cpsw-ctrl-macid.txt
+ create mode 100644 drivers/net/ethernet/ti/cpsw-ctrl-macid.c
+
 -- 
 1.8.5.1
 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
