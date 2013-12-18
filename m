@@ -1,7 +1,7 @@
 From: Yuvaraj Kumar C D <yuvaraj.cd@gmail.com>
-Subject: [RFC 2/5] usb: ehci-s5p: enable async suspend/resume
-Date: Wed, 18 Dec 2013 16:09:31 +0530
-Message-ID: <1387363174-25942-2-git-send-email-yuvaraj.cd@samsung.com>
+Subject: [RFC 4/5] usb: dwc3-exynos: enable async suspend/resume
+Date: Wed, 18 Dec 2013 16:09:33 +0530
+Message-ID: <1387363174-25942-4-git-send-email-yuvaraj.cd@samsung.com>
 References: <1387363174-25942-1-git-send-email-yuvaraj.cd@samsung.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1387363174-25942-1-git-send-email-yuvaraj.cd@samsung.com>
@@ -12,31 +12,31 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Andrew Bresticker <abrestic@chromium.org>
 
-USB host controllers can take a significant amount of time to suspend
-and resume, adding several hundred miliseconds to the kernel resume
-time. Since the Exynos EHCI controller has no outside dependencies
-(other than clocks, which are suspended late/resumed early), allow it to
-suspend and resume asynchronously.
+In addition to enabling async suspend/resume on the xhci-plat device,
+we must enable it for the dwc3-exynos platform device in order to make
+the full USB stack resume asynchronously.  Like the xhci-plat, ehci-s5p,
+and ohci-exynos drivers, there are no outside dependencies which would
+make resuming the dwc3-exynos driver asynchronously unsafe.
 
 Signed-off-by: Andrew Bresticker <abrestic@chromium.org>
 Reviewed-by: Julius Werner <jwerner@chromium.org>
 Signed-off-by: Yuvaraj Kumar C D <yuvaraj.cd@samsung.com>
 ---
- drivers/usb/host/ehci-exynos.c |    2 ++
+ drivers/usb/dwc3/dwc3-exynos.c |    2 ++
  1 file changed, 2 insertions(+)
 
-diff --git a/drivers/usb/host/ehci-exynos.c b/drivers/usb/host/ehci-exynos.c
-index f7ce8e2..e5125cd 100644
---- a/drivers/usb/host/ehci-exynos.c
-+++ b/drivers/usb/host/ehci-exynos.c
-@@ -165,6 +165,8 @@ skip_phy:
+diff --git a/drivers/usb/dwc3/dwc3-exynos.c b/drivers/usb/dwc3/dwc3-exynos.c
+index 8b20c70..57431b7 100644
+--- a/drivers/usb/dwc3/dwc3-exynos.c
++++ b/drivers/usb/dwc3/dwc3-exynos.c
+@@ -155,6 +155,8 @@ static int dwc3_exynos_probe(struct platform_device *pdev)
+ 		goto err2;
  	}
- 	device_wakeup_enable(hcd->self.controller);
  
-+	device_enable_async_suspend(&pdev->dev);
++	device_enable_async_suspend(dev);
 +
- 	platform_set_drvdata(pdev, hcd);
- 
  	return 0;
+ 
+ err2:
 -- 
 1.7.9.5
