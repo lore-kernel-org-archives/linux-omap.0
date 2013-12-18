@@ -1,70 +1,46 @@
-From: David Cohen <david.a.cohen@linux.intel.com>
-Subject: Re: [PATCH 0/7] usb: dwc3: pm_runtime implementation
-Date: Tue, 17 Dec 2013 15:35:54 -0800
-Message-ID: <20131217233554.GB21267@psi-dev26.jf.intel.com>
-References: <1386884325-11440-1-git-send-email-balbi@ti.com>
- <20131217233140.GA21267@psi-dev26.jf.intel.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 00/26] OMAPDSS: DT support (Christmas edition)
+Date: Tue, 17 Dec 2013 16:30:56 -0800
+Message-ID: <20131218003055.GC27438@atomide.com>
+References: <1386160133-24026-1-git-send-email-tomi.valkeinen@ti.com>
+ <1703598.NbqXAMAFOI@avalon>
+ <52AADBE0.3030203@ti.com>
+ <3426377.keoaFgiZkl@avalon>
+ <52AB2C25.6000507@ti.com>
+ <20131213172234.GD28184@atomide.com>
+ <52AC0A18.30405@ti.com>
+ <20131214140913.GA12324@atomide.com>
+ <52AEAAB7.7010308@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:33690 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751016Ab3LQXbC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 17 Dec 2013 18:31:02 -0500
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:42140 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752007Ab3LRAbH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Dec 2013 19:31:07 -0500
 Content-Disposition: inline
-In-Reply-To: <20131217233140.GA21267@psi-dev26.jf.intel.com>
+In-Reply-To: <52AEAAB7.7010308@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Linux USB Mailing List <linux-usb@vger.kernel.org>, kgene.kim@samsung.com, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, linux-samsung-soc@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, w-kwok2@ti.com, Santosh Shilimkar <santosh.shilimkar@ti.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, Archit Taneja <archit@ti.com>, Darren Etheridge <detheridge@ti.com>, Stefan Roese <stefan.roese@gmail.com>, Sebastian Reichel <sre@debian.org>, Robert Nelson <robertcnelson@gmail.com>, "Dr . H . Nikolaus Schaller" <hns@goldelico.com>, Marek Belisko <marek@goldelico.com>
 
-On Tue, Dec 17, 2013 at 03:31:40PM -0800, David Cohen wrote:
-> On Thu, Dec 12, 2013 at 03:38:38PM -0600, Felipe Balbi wrote:
-> > hi all,
-> > 
-> > these patches add pm_runtime support for all glue layers.
-> > 
-> > I plan to add pm_runtime support for dwc3 after these
-> > patches are merged upstream.
-> > 
-> > Please test.
+* Tomi Valkeinen <tomi.valkeinen@ti.com> [131215 23:26]:
+> On 2013-12-14 16:09, Tony Lindgren wrote:
 > 
-> At first time I failed to notice you were removing #ifdef's around pm
-> callback functions. Instead of saying DWC3 will start to have warnings
-> when CONFIG_PM is not selected, I'd say your patch set is now a
-> dependence of my RFC :)
+> >> Why was e30b06f4d5f000c31a7747a7e7ada78a5fd419a1 merged into -rc2? It's
+> >> not a fix, just a cleanup.
+> > 
+> > Hmm OK sorry looks like I removed some non-legacy mux framework code
+> > by accident. The omap_mux_* parts clearly are dead code for omap4 as
+> > it's been DT only since v3.10, but the omap4_dsi_mux_pads() is not
+> > using omap_mux_* functions.
+> > 
+> > Yes, let's revert e30b06f4d5f0 except for the dead code parts, which
+> > seems to be omap4_tpd12s015_mux_pads(), right?
+> 
+> Yes. I tested the below patch on 4430SDP, both DSI and HDMI works.
 
-I guess I said it in wrong order :P
-Your patch set depends on my RFC.
+OK thanks applying for the -rc cycle.
 
-> https://lkml.org/lkml/2013/12/13/4
-> 
-> Br, David Cohen
-> 
-> > 
-> > Felipe Balbi (7):
-> >   usb: dwc3: keystone: add basic PM support
-> >   usb: dwc3: omap: add basic pm_runtime support
-> >   usb: dwc3: pci: add pm_runtime support
-> >   usb: dwc3: omap: fix pm_runtime usage
-> >   usb: dwc3: omap: fix order of pm_runtime vs child removal
-> >   usb: dwc3: exynos: remove DEV_PM_OPS hackery
-> >   usb: dwc3: exynos: add pm_runtime support
-> > 
-> >  drivers/usb/dwc3/dwc3-exynos.c   | 73 +++++++++++++++++++++++-------
-> >  drivers/usb/dwc3/dwc3-keystone.c | 97 ++++++++++++++++++++++++++++++++++++++--
-> >  drivers/usb/dwc3/dwc3-omap.c     | 45 +++++++++++++++----
-> >  drivers/usb/dwc3/dwc3-pci.c      | 66 ++++++++++++++++++++-------
-> >  4 files changed, 239 insertions(+), 42 deletions(-)
-> > 
-> > -- 
-> > 1.8.4.GIT
-> > 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tony
