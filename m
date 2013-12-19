@@ -1,76 +1,100 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCHv2 08/10] Documentation: bindings: ti-qspi: update binding
- information.
-Date: Thu, 19 Dec 2013 13:34:34 +0000
-Message-ID: <20131219133434.GE31886@sirena.org.uk>
-References: <1386339891-32717-1-git-send-email-sourav.poddar@ti.com>
- <1386339891-32717-9-git-send-email-sourav.poddar@ti.com>
+From: Sebastian Reichel <sre-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 0/4] OMAPDSS: DT support for N900 panel
+Date: Thu, 19 Dec 2013 14:56:09 +0100
+Message-ID: <20131219135608.GA11654@earth.universe>
+References: <1386958650-2404-1-git-send-email-sre@debian.org>
+ <52AFFF3F.7020807@ti.com>
+ <20131217171412.GA10442@earth.universe>
+ <52B089FE.8060704@ti.com>
+ <20131218215536.GA23674@earth.universe>
+ <20131219005151.GA27928@earth.universe>
+ <52B2848A.80807@ti.com>
+ <20131219100840.GA923@earth.universe>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============7768495376128911801=="
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
-In-Reply-To: <1386339891-32717-9-git-send-email-sourav.poddar@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
-To: Sourav Poddar <sourav.poddar@ti.com>
-Cc: marex@denx.de, devicetree@vger.kernel.org, computersforpeace@gmail.com, balbi@ti.com, linux-spi@vger.kernel.org, linux-mtd@lists.infradead.org, bcousson@baylibre.com, linux-omap@vger.kernel.org, dwmw2@infradead.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="pWyiEgJYm5f9v55/"
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20131219100840.GA923-SfvFxonMDyemK9LvCR3Hrw@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Rob Landley <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
 
---===============7768495376128911801==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="z3ND3gJe4e1E4uwh"
-Content-Disposition: inline
-
-
---z3ND3gJe4e1E4uwh
+--pWyiEgJYm5f9v55/
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Fri, Dec 06, 2013 at 07:54:49PM +0530, Sourav Poddar wrote:
-> These update binding information for ti qspi controller.
+On Thu, Dec 19, 2013 at 11:08:40AM +0100, Sebastian Reichel wrote:
+> > Are you able to check if the bootloader muxes dat3 to SDI mode?
+>=20
+> The bootloader's source code is not available as far as i know.
+>=20
+> [...], but I get an external abort on non-linefetch.
+> So I can't check it :(
 
-Applied, thanks.
+Ok. This is fixed by applying [0] (Thanks for the hint, Tomi!).
+This is the mux configuration from the bootloader:
 
---z3ND3gJe4e1E4uwh
+=2E..
+pin 96 (480020f0.0) 00000001 pinctrl-single     // sdi dat1n
+pin 97 (480020f2.0) 00000001 pinctrl-single     // sdi dat1p
+pin 98 (480020f4.0) 00000001 pinctrl-single     // sdi dat2n
+pin 99 (480020f6.0) 00000001 pinctrl-single     // sdi dat2p
+pin 100 (480020f8.0) 00000007 pinctrl-single    // sdi dat3n
+pin 101 (480020fa.0) 00000007 pinctrl-single    // sdi dat3p
+pin 102 (480020fc.0) 00000004 pinctrl-single=20
+pin 103 (480020fe.0) 00000004 pinctrl-single=20
+pin 104 (48002100.0) 00000004 pinctrl-single    // sdi vsync
+pin 105 (48002102.0) 00004104 pinctrl-single    // sdi hsync
+pin 106 (48002104.0) 00000004 pinctrl-single    // sdi den
+pin 107 (48002106.0) 00000004 pinctrl-single    // sdi stp
+pin 108 (48002108.0) 00000001 pinctrl-single    // sdi clkp
+pin 109 (4800210a.0) 00000001 pinctrl-single    // sdi clkn
+=2E..
+
+I guess the following entry should be added to the omap3-n900.dts file:
+
+	dss_sdi_pins: pinmux_dss_sdi_pins {
+		pinctrl-single,pins =3D <
+			0x0c0 (PIN_OUTPUT | MUX_MODE1)   /* dss_data10.sdi_dat1n */
+			0x0c2 (PIN_OUTPUT | MUX_MODE1)   /* dss_data11.sdi_dat1p */
+			0x0c4 (PIN_OUTPUT | MUX_MODE1)   /* dss_data12.sdi_dat2n */
+			0x0c6 (PIN_OUTPUT | MUX_MODE1)   /* dss_data13.sdi_dat2p */
+			0x0d8 (PIN_OUTPUT | MUX_MODE1)   /* dss_data22.sdi_clkp */
+			0x0da (PIN_OUTPUT | MUX_MODE1)   /* dss_data23.sdi_clkn */
+		>;
+	};
+
+[0] https://patchwork.kernel.org/patch/3283781/
+
+-- Sebastian
+
+--pWyiEgJYm5f9v55/
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
+Version: GnuPG v1.4.15 (GNU/Linux)
 
-iQIcBAEBAgAGBQJSsvXnAAoJELSic+t+oim9EdMP/iweRZkhyJ3Q26jQo8USAS0G
-6LL+BRAjAov3sUL1op13vGZ0E/4BOzXIamO2LzdqrPSwbHYzGE95hdlH56Gmnz41
-/bfmW00+ulbSCmXrYdlUNdXHh10L7TwXc9cNHzajOfEB/Lmng9/Hq30sYSiJ1oWO
-DO/4zMtQ7vhpcvt65cYFWaDGXgwKZjFdxG40D30WdkzzElhS6vSM+g6GQzjv9xsV
-7qU9bG+QQIFSfXogbvXUNKC5/i6+aDHpJ0mfpL6fQtajrSp63uV5r+7vW28922x4
-Il6mJUNpL7stXgm32M1Tqe8Mka6+S7JlMtMdM6/yZHsV3nu2/XDoS/+KcdbOiJ8m
-8C7RVM30qkUuZNZi+J3NyggYpsOWP9HCcrJGXtrRwU2sWhf4dOGGn6Uwn7E6YQkk
-pIffsyeEh5kFDWDkgC+puUFMo7EqhlTc+5VmT6ag7HxC17+YYnwv4IhXfH4BpUr4
-F0UlYzntAy8vXiQXCMO7b2TxkwfoNVSSQTRdOJAXyCJUhuUR4EWtgf3kfD4s7+7H
-OBcuJQFGN9IljJdnifYWyVpTWmmn7A+lKKgvN2aWNcebY/NJ8z863/boeBN/qjjg
-WbMiaQ8YfV6pi0XysHS5d0DFdAe2rapZMtPreC8KiXnuJTgc8ARlqnufHTPLyj52
-6dPnT1VF1y/zizwPYqX6
-=ABZw
+iQIcBAEBCAAGBQJSsvr4AAoJENju1/PIO/qaEJwP/3IrY8rv8mYjj81OR9/S9j+T
+h0+LyESGrjM+UNwl9iG5xKbq3S1/4MYfj13CdMDaLPpYtvtXZR+P5mi5Jkfn9Z4p
+yaeXZqoo0PYStg+DYrcRNzpqJwFY9nQUcL+EnSX2pBhoNaSEbdPF/4gjF05I9H8d
+tixxFkk/dFneDtYpZaE08mX5jKy/NAoer1kSVniILvTps/8x+YUF9bxvDdB/MPZo
+Vp7qtpORyBBNYZ7DG56sgnqnt+BnfRK8jqHOq+AvayFT4nGcdzmKEXKtYo4J9CvA
+XLOkdCYHn3KKMVRgoQRC3pj2xwG6RJB3G+lDoRpQEg3Mt4mLhiV2axqWhzblHrgC
+O6+htgErNnBkoMfP96tg1y1rXfn7AlNd2UNMXuSPCz4bY5smN39UkB9889i1Q3iW
+ZCEWigCpKtOvsaAvhPG7Fp0FufjXviCf3/KbV0i5VROHki60CTvyCTg7Mz+HuRed
+3aboQGfZTah+HKgsw+YmGdvYRWpBM3vCOxvBoVq8gEXl6SdgWAE7G5l89DXc9M9f
+ylH7BLwUXdKu8wYDItfhqTS3CFvrOemHqzuN0XZjIPgaghm6Myb2u5mFJsfKOzZG
+svPVwhQx9BIpU7qarrjvDS0G2vrS4MWx4rHgpQBVpNY73GAw9ND2J3yjLXDBQ8wp
+4GNMnEBqOwmzLxi1ZkK7
+=JRaT
 -----END PGP SIGNATURE-----
 
---z3ND3gJe4e1E4uwh--
-
-
---===============7768495376128911801==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-______________________________________________________
-Linux MTD discussion mailing list
-http://lists.infradead.org/mailman/listinfo/linux-mtd/
-
---===============7768495376128911801==--
+--pWyiEgJYm5f9v55/--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
