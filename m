@@ -1,47 +1,91 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCHv11 00/49] ARM: TI SoC clock DT conversion
-Date: Thu, 19 Dec 2013 09:07:20 -0600
-Message-ID: <52B30BA8.2060108@ti.com>
-References: <1387452260-23276-1-git-send-email-t-kristo@ti.com>
-Reply-To: nm@ti.com
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v6 3/7] regulator: add pbias regulator support
+Date: Thu, 19 Dec 2013 08:33:01 -0800
+Message-ID: <20131219163300.GK27438@atomide.com>
+References: <1386670577-3530-1-git-send-email-balajitk@ti.com>
+ <1387456720-7202-1-git-send-email-balajitk@ti.com>
+ <1387456720-7202-4-git-send-email-balajitk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-oa0-f50.google.com ([209.85.219.50]:48827 "EHLO
-	mail-oa0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752877Ab3LSPHZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Dec 2013 10:07:25 -0500
-In-Reply-To: <1387452260-23276-1-git-send-email-t-kristo@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1387456720-7202-4-git-send-email-balajitk@ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Balaji T K <balajitk@ti.com>
+Cc: linux-omap@vger.kernel.org, bcousson@baylibre.com, devicetree@vger.kernel.org, linux-mmc@vger.kernel.org, cjb@laptop.org, broonie@kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, rnayak@ti.com, bcousson@baylibre.com, mturquette@linaro.org
-Cc: devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 12/19/2013 05:23 AM, Tero Kristo wrote:
-[...]
+Looks good to me, just few minor comments below.
+
+* Balaji T K <balajitk@ti.com> [131219 04:40]:
+> --- /dev/null
+> +++ b/drivers/regulator/pbias-regulator.c
+> @@ -0,0 +1,255 @@
+> +/*
+> + * pbias-regulator.c
+> + *
+> + * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/
+> + * Author: Balaji T K <balajitk@ti.com>
+
+Maybe use 2013 here instead?
+
+> +static int pbias_regulator_enable(struct regulator_dev *rdev)
+> +{
+> +	struct pbias_regulator_data *data = rdev_get_drvdata(rdev);
+> +	const struct pbias_reg_info *info = data->info;
+> +	int ret;
+> +
+> +	ret = regmap_update_bits(data->syscon, data->pbias_reg,
+> +					info->enable_mask, info->enable);
+> +
+> +	return ret;
+> +}
+
+Do we need need to check the values after enable here? AFAIK setting
+the PBIAS voltage change can also fail and that's probably why it has
+also the interrupt available.
+
+> +static const struct pbias_reg_info pbias_mmc_omap3 = {
+> +	.enable = BIT(1),
+> +	.enable_mask = BIT(1),
+> +	.vmode = BIT(0),
+> +	.name = "pbias_mmc_omap3"
+> +};
+> +
+> +static const struct pbias_reg_info pbias_sim_omap3 = {
+> +	.enable = BIT(9),
+> +	.enable_mask = BIT(9),
+> +	.vmode = BIT(8),
+> +	.name = "pbias_sim_omap3"
+> +};
+> +
+> +static const struct pbias_reg_info pbias_mmc_omap4 = {
+> +	.enable = BIT(26) | BIT(22),
+> +	.enable_mask = BIT(26) | BIT(25) | BIT(22),
+> +	.vmode = BIT(21),
+> +	.name = "pbias_mmc_omap4"
+> +};
+> +
+> +static const struct pbias_reg_info pbias_mmc_omap5 = {
+> +	.enable = BIT(27) | BIT(26),
+> +	.enable_mask = BIT(27) | BIT(25) | BIT(26),
+> +	.vmode = BIT(21),
+> +	.name = "pbias_mmc_omap5"
+> +};
 >
-> branch: 3.13-rc4-dt-clks-v11 : contains everything, shall me merged last
+> +static struct of_regulator_match pbias_matches[] = {
+> +	{ .name = "pbias_mmc_omap3", .driver_data = (void *)&pbias_mmc_omap3},
+> +	{ .name = "pbias_sim_omap3", .driver_data = (void *)&pbias_sim_omap3},
+> +	{ .name = "pbias_mmc_omap4", .driver_data = (void *)&pbias_mmc_omap4},
+> +	{ .name = "pbias_mmc_omap5", .driver_data = (void *)&pbias_mmc_omap5},
+> +};
 
+We probably need also pbias_mmc_omap2430 as that regiter mapping is
+separate from omap3?
 
-Tero,
-Considering Pauls'  concerns with v10 last time, I ran
-[1] and got a few sparse, smatch and checkpatch warnings:
-http://pastebin.mozilla.org/3810314
-
-I think we can ignore sparse spam about "__ksymtab" for the moment.
-but stuff like:
-+drivers/clk/ti/clk.c:88 ti_clk_retry_init() error: potential null 
-dereference 'retry'.  (kzalloc returns null)
-
-the checkpatch warn that Paul stated:"extern struct of_device_id 
-__clk_of_table" still remain should be fixed IMHO.
-
-I am unfortunately on vacation right now, and will not be able to test 
-until second week of jan on platforms - thanks to my completely messed 
-up vpn setup.
-
-[1] https://github.com/nmenon/kernel_patch_verify
+Other than that, good to see this finally happen. This should allow us to
+get rid of most of the platform data callbacks for omap_hsmmc.c driver.
 
 Regards,
-Nishanth Menon
+
+Tony
