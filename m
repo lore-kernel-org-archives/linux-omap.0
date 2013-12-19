@@ -1,77 +1,40 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv11 49/49] ARM: OMAP3: use DT clock init if DT data is available
-Date: Thu, 19 Dec 2013 13:24:20 +0200
-Message-ID: <1387452260-23276-50-git-send-email-t-kristo@ti.com>
+From: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
+Subject: [PATCHv11 46/49] ARM: OMAP: DRA7: Enable clock init
+Date: Thu, 19 Dec 2013 13:24:17 +0200
+Message-ID: <1387452260-23276-47-git-send-email-t-kristo@ti.com>
 References: <1387452260-23276-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:42582 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753263Ab3LSL1p (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 19 Dec 2013 06:27:45 -0500
-In-Reply-To: <1387452260-23276-1-git-send-email-t-kristo@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1387452260-23276-1-git-send-email-t-kristo-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, mturquette-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, nm@ti.com, rnayak@ti.com, bcousson@baylibre.com, mturquette@linaro.org
-Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-OMAP3 platforms support both DT and non-DT boot at the moment, make
-the clock init work according to the used setup.
+Initializes clock data from device tree.
 
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
-Tested-by: Nishanth Menon <nm@ti.com>
-Acked-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/mach-omap2/io.c |   13 ++++++++++++-
- 1 file changed, 12 insertions(+), 1 deletion(-)
+ arch/arm/mach-omap2/io.c |    1 +
+ 1 file changed, 1 insertion(+)
 
 diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index 8aa34ee..f76355c 100644
+index 5854677..628a7f5 100644
 --- a/arch/arm/mach-omap2/io.c
 +++ b/arch/arm/mach-omap2/io.c
-@@ -488,21 +488,29 @@ void __init omap3_init_early(void)
- void __init omap3430_init_early(void)
- {
- 	omap3_init_early();
-+	if (of_have_populated_dt())
-+		omap_clk_soc_init = omap3430_dt_clk_init;
- }
- 
- void __init omap35xx_init_early(void)
- {
- 	omap3_init_early();
-+	if (of_have_populated_dt())
-+		omap_clk_soc_init = omap3430_dt_clk_init;
- }
- 
- void __init omap3630_init_early(void)
- {
- 	omap3_init_early();
-+	if (of_have_populated_dt())
-+		omap_clk_soc_init = omap3630_dt_clk_init;
- }
- 
- void __init am35xx_init_early(void)
- {
- 	omap3_init_early();
-+	if (of_have_populated_dt())
-+		omap_clk_soc_init = am35xx_dt_clk_init;
- }
- 
- void __init ti81xx_init_early(void)
-@@ -520,7 +528,10 @@ void __init ti81xx_init_early(void)
- 	omap3xxx_clockdomains_init();
- 	omap3xxx_hwmod_init();
+@@ -692,6 +692,7 @@ void __init dra7xx_init_early(void)
+ 	dra7xx_clockdomains_init();
+ 	dra7xx_hwmod_init();
  	omap_hwmod_init_postsetup();
--	omap_clk_soc_init = omap3xxx_clk_init;
-+	if (of_have_populated_dt())
-+		omap_clk_soc_init = ti81xx_dt_clk_init;
-+	else
-+		omap_clk_soc_init = omap3xxx_clk_init;
++	omap_clk_soc_init = dra7xx_dt_clk_init;
  }
  
- void __init omap3_init_late(void)
+ void __init dra7xx_init_late(void)
 -- 
 1.7.9.5
 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
