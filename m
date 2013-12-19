@@ -1,52 +1,38 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFT/RFC/PATCH 00/31] arm: omap: irq: cleanup INTC driver
-Date: Thu, 19 Dec 2013 10:48:15 -0800
-Message-ID: <20131219184815.GU27438@atomide.com>
-References: <1384970958-4118-1-git-send-email-balbi@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv11 07/49] clk: divider: add support for low level ops
+Date: Thu, 19 Dec 2013 21:02:42 +0200
+Message-ID: <52B342D2.1010301@ti.com>
+References: <1387452260-23276-1-git-send-email-t-kristo@ti.com>
+ <1387452260-23276-8-git-send-email-t-kristo@ti.com>
+ <20131219182620.GQ27438@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:15718 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753547Ab3LSSsT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Dec 2013 13:48:19 -0500
-Content-Disposition: inline
-In-Reply-To: <1384970958-4118-1-git-send-email-balbi@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20131219182620.GQ27438@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: nm@ti.com, devicetree@vger.kernel.org, paul@pwsan.com, mturquette@linaro.org, rnayak@ti.com, bcousson@baylibre.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
-* Felipe Balbi <balbi@ti.com> [131120 10:10]:
-> Afte these patches, we're very close to being able
-> to move arch/arm/mach-omap2/irq.c to drivers/irqchip/irq-intc.c
+On 12/19/2013 08:26 PM, Tony Lindgren wrote:
+> * Tero Kristo <t-kristo@ti.com> [131219 03:26]:
+>> Divider clock can now be registered to use low level register access ops.
+>> Preferred initialization method is via clock description.
+>
+> This seems to make omap2 not boot for me. No output whatsoever even with
+> DEBUG_LL and earlyprintk.
 
-That would be nice :)
-=20
-> All which would be missing is for Tony to drop all OMAP2/3 board
-> files so we remove the few pending bits and pieces left in
-> for legacy boot.
+Thats weird... I was kind of afraid something like this might happen 
+though as these patches touch the clock low level routines globally, but 
+I can't see what could be broken...
 
-That may still need to wait a while, but let's see.
-=20
-> Note that I have only boot tested these on AM335x Bone Black
-> (with a small fix for fixed regulator which should be in
-> the mailing list already), so I'd need help testing all
-> other impacted platforms, specially when it comes to PM.
-
-Sorry have not had much of a chance to test these with PM with
-all the fixes needed for omap3 DT mode. Tried testing these
-just now, but I get:
-
-arch/arm/mach-omap2/board-generic.c:134: error: =E2=80=98omap_intc_of_i=
-nit=E2=80=99 undeclared here (not in a function)
-
-Regards,
-
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-Tero
