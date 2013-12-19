@@ -1,44 +1,59 @@
 From: Sourav Poddar <sourav.poddar@ti.com>
-Subject: [PATCHv2 3/9] pinctrl: am43xx: dt-bindings: add MUX_MODE8
-Date: Thu, 19 Dec 2013 18:03:35 +0530
-Message-ID: <1387456421-21379-4-git-send-email-sourav.poddar@ti.com>
+Subject: [PATCHv2 4/9] arm: dts: am43x-epos-evm: Add I2C2 data.
+Date: Thu, 19 Dec 2013 18:03:36 +0530
+Message-ID: <1387456421-21379-5-git-send-email-sourav.poddar@ti.com>
 References: <1387456421-21379-1-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:58724 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:51993 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757008Ab3LSMeH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 19 Dec 2013 07:34:07 -0500
+	id S1757010Ab3LSMeL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 19 Dec 2013 07:34:11 -0500
 In-Reply-To: <1387456421-21379-1-git-send-email-sourav.poddar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: bcousson@baylibre.com
-Cc: balbi@ti.com, devicetree@vger.kernel.org, tony@atomide.com, linux-omap@vger.kernel.org, mark.rutland@arm.com, afzal@ti.com, lokeshvutla@ti.com, Darren Etheridge <detheridge@ti.com>, Sourav Poddar <sourav.poddar@ti.com>
+Cc: balbi@ti.com, devicetree@vger.kernel.org, tony@atomide.com, linux-omap@vger.kernel.org, mark.rutland@arm.com, afzal@ti.com, lokeshvutla@ti.com, Sourav Poddar <sourav.poddar@ti.com>
 
-From: Darren Etheridge <detheridge@ti.com>
+Add I2C2 dts data.
 
-AM43xx devices have an extra MUX_MODE for certain pins.
-Updating dt include to have MUX_MODE8 which maps to 0x8.
-
-Signed-off-by: Darren Etheridge <detheridge@ti.com>
 Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
 ---
- include/dt-bindings/pinctrl/am43xx.h |    1 +
- 1 file changed, 1 insertion(+)
+ arch/arm/boot/dts/am43x-epos-evm.dts |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-diff --git a/include/dt-bindings/pinctrl/am43xx.h b/include/dt-bindings/pinctrl/am43xx.h
-index eb6c366a..9c2e4f8 100644
---- a/include/dt-bindings/pinctrl/am43xx.h
-+++ b/include/dt-bindings/pinctrl/am43xx.h
-@@ -13,6 +13,7 @@
- #define MUX_MODE5	5
- #define MUX_MODE6	6
- #define MUX_MODE7	7
-+#define MUX_MODE8	8
+diff --git a/arch/arm/boot/dts/am43x-epos-evm.dts b/arch/arm/boot/dts/am43x-epos-evm.dts
+index 0899c5f..d781a69 100644
+--- a/arch/arm/boot/dts/am43x-epos-evm.dts
++++ b/arch/arm/boot/dts/am43x-epos-evm.dts
+@@ -86,6 +86,13 @@
+ 				0x164 MUX_MODE0         /* eCAP0_in_PWM0_out.eCAP0_in_PWM0_out MODE0 */
+ 			>;
+ 		};
++
++		i2c2_pins: pinmux_i2c2_pins {
++			pinctrl-single,pins = <
++				0x1c0 (PIN_INPUT_PULLUP | SLEWCTRL_FAST | MUX_MODE8)    /* i2c2_sda.i2c2_sda */
++				0x1c4 (PIN_INPUT_PULLUP | SLEWCTRL_FAST | MUX_MODE8)    /* i2c2_scl.i2c2_scl */
++			>;
++		};
+ 	};
  
- #define PULL_DISABLE		(1 << 16)
- #define PULL_UP			(1 << 17)
+ 	matrix_keypad: matrix_keypad@0 {
+@@ -183,6 +190,12 @@
+ 	};
+ };
+ 
++&i2c2 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&i2c2_pins>;
++	status = "okay";
++};
++
+ &gpio0 {
+ 	status = "okay";
+ };
 -- 
 1.7.9.5
 
