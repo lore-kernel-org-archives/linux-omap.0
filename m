@@ -1,92 +1,87 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFCv4 05/11] Documentation: DT: omap-ssi binding documentation
-Date: Thu, 19 Dec 2013 11:03:44 -0800
-Message-ID: <20131219190344.GW27438@atomide.com>
-References: <1387150085-23173-1-git-send-email-sre@debian.org>
- <1387150085-23173-6-git-send-email-sre@debian.org>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [RFT/RFC/PATCH 00/31] arm: omap: irq: cleanup INTC driver
+Date: Thu, 19 Dec 2013 17:21:53 -0600
+Message-ID: <20131219232153.GE707@saruman.home>
+References: <1384970958-4118-1-git-send-email-balbi@ti.com>
+ <20131219184815.GU27438@atomide.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="zaRBsRFn0XYhEU69"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:41226 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755800Ab3LSXWz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Dec 2013 18:22:55 -0500
 Content-Disposition: inline
-In-Reply-To: <1387150085-23173-6-git-send-email-sre@debian.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@debian.org>
-Cc: Sebastian Reichel <sre@ring0.de>, Linus Walleij <linus.walleij@linaro.org>, Shubhrajyoti Datta <omaplinuxkernel@gmail.com>, Carlos Chinea <cch.devel@gmail.com>, Grant Likely <grant.likely@linaro.org>, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Rob Landley <rob@landley.net>, =?utf-8?Q?'Beno=C3=AEt?= Cousson' <bcousson@baylibre.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>, =?utf-8?B?0JjQstCw0LnQu9C+INCU0LjQvNC40YLRgNC+0LI=?= <freemangordon@abv.bg>, Joni Lapilainen <joni.lapilainen@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>
+In-Reply-To: <20131219184815.GU27438@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Felipe Balbi <balbi@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
-* Sebastian Reichel <sre@debian.org> [131215 15:30]:
-> Create device tree binding documentation for
-> OMAP Synchronous Serial Interface (SSI) device.
-> 
-> Signed-off-by: Sebastian Reichel <sre@debian.org>
-> ---
->  Documentation/devicetree/bindings/hsi/omap_ssi.txt | 69 ++++++++++++++++++++++
->  1 file changed, 69 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/hsi/omap_ssi.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/hsi/omap_ssi.txt b/Documentation/devicetree/bindings/hsi/omap_ssi.txt
-> new file mode 100644
-> index 0000000..0a9efd8
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/hsi/omap_ssi.txt
-> @@ -0,0 +1,69 @@
-> +OMAP SSI controller bindings
-> +
-> +Required properties:
-> +- compatible:		Should include "ti,omap3-ssi".
-> +- reg-names:		Contains the values "sys" and "gdd".
+--zaRBsRFn0XYhEU69
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Do you need the reg-names? The order won't change so you can just
-document the order in the binding?
+On Thu, Dec 19, 2013 at 10:48:15AM -0800, Tony Lindgren wrote:
+> * Felipe Balbi <balbi@ti.com> [131120 10:10]:
+> > Afte these patches, we're very close to being able
+> > to move arch/arm/mach-omap2/irq.c to drivers/irqchip/irq-intc.c
+>=20
+> That would be nice :)
+> =20
+> > All which would be missing is for Tony to drop all OMAP2/3 board
+> > files so we remove the few pending bits and pieces left in
+> > for legacy boot.
+>=20
+> That may still need to wait a while, but let's see.
+> =20
+> > Note that I have only boot tested these on AM335x Bone Black
+> > (with a small fix for fixed regulator which should be in
+> > the mailing list already), so I'd need help testing all
+> > other impacted platforms, specially when it comes to PM.
+>=20
+> Sorry have not had much of a chance to test these with PM with
+> all the fixes needed for omap3 DT mode. Tried testing these
+> just now, but I get:
+>=20
+> arch/arm/mach-omap2/board-generic.c:134: error: =E2=80=98omap_intc_of_ini=
+t=E2=80=99 undeclared here (not in a function)
 
-> +- reg:			Contains a register specifier for each entry in
-> +			reg-names.
-> +- interrupt-names:      Contains the value "gdd_mpu".
+some of your other changes messed it up, I have not references of
+omap_intc_of_init() in my branch, because that's one of the things I'm
+dropping from DT-based boots.
 
-Maybe interrupt-names are not needed either?
+Can you see which patch added a new omap_intc_of_init() call ? Or maybe
+tell me which branch I should rebase on top of ?
 
-> +- interrupts: 		Contains interrupt information for each entry in
-> +			interrupt-names.
-> +- ranges		Represents the bus address mapping between the main
-> +			controller node and the child nodes below.
-> +- #address-cells	Should be set to <1>
-> +- #size-cells		Should be set to <1>
-> +
-> +Each port is represented as a sub-node of the ti,omap3-ssi device.
-> +
-> +Required Port sub-node properties:
-> +- compatible:		Should be set to the following value
-> +                        ti,omap3-ssi-port (applicable to OMAP34xx devices)
-> +- reg-names:		Contains the values "rx" and "tx".
+cheers
 
-Here too?
+--=20
+balbi
 
-> +- reg:			Contains a register specifier for each entry in
-> +			reg-names.
-> +- interrupt-parent	Should be a phandle for the interrupt controller
-> +- interrupt-names:	Contains the values "mpu_irq0" and "mpu_irq1".
+--zaRBsRFn0XYhEU69
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-And here?
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.15 (GNU/Linux)
 
-> +- interrupts:		Contains interrupt information for each entry in
-> +			interrupt-names.
-> +- ti,ssi-cawake-gpio:	Defines which GPIO pin is used to signify CAWAKE
-> +			events for the port. This is an optional board-specific
-> +			property. If it's missing the port will not be
-> +			enabled.
+iQIcBAEBAgAGBQJSs3+RAAoJEIaOsuA1yqRERmQP/3NI6cnSby6yANkDMEQIjrUE
+40+GvIHI+tJwRGBRW4+DLlJZ4fOy1zthpZYWMAvceynXnSibp5w8zeaI51N0GuIx
+J7OIdwQ7zNj0M/EWjiWnGBfRpLo0cQ/T3nkw5qXn5gCNPaY096PlG5mMEGvWveKh
+1TU15oPlDQtc2U+egJP2oPoAfatbPLkY0oDRkc7Lh6DrZlqzdM4XMpUsMF5ZWxhv
+RKZLw58yL7M+irWhLvvb/N1TiLyzoU/XI95xgE7pHihc+L//qjp0izeY/hywo/Mh
+wysc6k8geJljjgYSGby86rmsSIyfg//zLR1qB8hox8LmoxCeoqTuDE/Ki0FOllEF
+ROcjn7D/elVfb6PYBQ4Qvbm3GleaognCTpKeccswTssjgJ1IgW96u9VULB61Rraf
+O7IRFaqVabe51Vu5m/3jXFCkLjLOT9drrQFg5tIPFhssN8xHcG0aWr85ZbuJO1W6
+K12wB6ZZT47pW1qOnwKx8ERxe4QIwUZJHVXM8atzwX/fzG43oFSqBRIowRqt2TCm
+/x36J5anYlB8TNPywWRkv9GTr3xOCVSVA1wehPfTnHrBBSQ+tbLlli7podmH9IUv
+n1+AIOlkUsNx6MOh8tsC15S9usruBv9DhVL99qeoaA6XNymkoMdfH+d8EOnF/MGO
+ctAshwy3vx+4LeCs/hUe
+=FpAM
+-----END PGP SIGNATURE-----
 
-Hmm this might be just a wake-up GPIO? If so, you should be able to
-just set it up as an interrupt and do a request_irq on the pinctrl-single
-entry for it.
-
-It might even be one of the already mapped interrupt lines that the code is
-remuxing to a GPIO for idle? If so, then you can just use the new binding
-for interrupts-extended to handle the wake-up events.
-
-If you post the GPIO number for ti,ssi-cawake-gpio and the interrupt
-numbers I can check if there's a need to handle it separately as a GPIO
-pin or if it already can be automatically handled for the wake-up events.
-
-Regards,
-
-Tony
+--zaRBsRFn0XYhEU69--
