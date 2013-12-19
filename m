@@ -1,38 +1,92 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv11 07/49] clk: divider: add support for low level ops
-Date: Thu, 19 Dec 2013 21:02:42 +0200
-Message-ID: <52B342D2.1010301@ti.com>
-References: <1387452260-23276-1-git-send-email-t-kristo@ti.com>
- <1387452260-23276-8-git-send-email-t-kristo@ti.com>
- <20131219182620.GQ27438@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [RFCv4 05/11] Documentation: DT: omap-ssi binding documentation
+Date: Thu, 19 Dec 2013 11:03:44 -0800
+Message-ID: <20131219190344.GW27438@atomide.com>
+References: <1387150085-23173-1-git-send-email-sre@debian.org>
+ <1387150085-23173-6-git-send-email-sre@debian.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20131219182620.GQ27438@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: nm@ti.com, devicetree@vger.kernel.org, paul@pwsan.com, mturquette@linaro.org, rnayak@ti.com, bcousson@baylibre.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1387150085-23173-6-git-send-email-sre@debian.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Reichel <sre@debian.org>
+Cc: Sebastian Reichel <sre@ring0.de>, Linus Walleij <linus.walleij@linaro.org>, Shubhrajyoti Datta <omaplinuxkernel@gmail.com>, Carlos Chinea <cch.devel@gmail.com>, Grant Likely <grant.likely@linaro.org>, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Rob Landley <rob@landley.net>, =?utf-8?Q?'Beno=C3=AEt?= Cousson' <bcousson@baylibre.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>, =?utf-8?B?0JjQstCw0LnQu9C+INCU0LjQvNC40YLRgNC+0LI=?= <freemangordon@abv.bg>, Joni Lapilainen <joni.lapilainen@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>
 List-Id: linux-omap@vger.kernel.org
 
-On 12/19/2013 08:26 PM, Tony Lindgren wrote:
-> * Tero Kristo <t-kristo@ti.com> [131219 03:26]:
->> Divider clock can now be registered to use low level register access ops.
->> Preferred initialization method is via clock description.
->
-> This seems to make omap2 not boot for me. No output whatsoever even with
-> DEBUG_LL and earlyprintk.
+* Sebastian Reichel <sre@debian.org> [131215 15:30]:
+> Create device tree binding documentation for
+> OMAP Synchronous Serial Interface (SSI) device.
+> 
+> Signed-off-by: Sebastian Reichel <sre@debian.org>
+> ---
+>  Documentation/devicetree/bindings/hsi/omap_ssi.txt | 69 ++++++++++++++++++++++
+>  1 file changed, 69 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/hsi/omap_ssi.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/hsi/omap_ssi.txt b/Documentation/devicetree/bindings/hsi/omap_ssi.txt
+> new file mode 100644
+> index 0000000..0a9efd8
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/hsi/omap_ssi.txt
+> @@ -0,0 +1,69 @@
+> +OMAP SSI controller bindings
+> +
+> +Required properties:
+> +- compatible:		Should include "ti,omap3-ssi".
+> +- reg-names:		Contains the values "sys" and "gdd".
 
-Thats weird... I was kind of afraid something like this might happen 
-though as these patches touch the clock low level routines globally, but 
-I can't see what could be broken...
+Do you need the reg-names? The order won't change so you can just
+document the order in the binding?
 
--Tero
+> +- reg:			Contains a register specifier for each entry in
+> +			reg-names.
+> +- interrupt-names:      Contains the value "gdd_mpu".
+
+Maybe interrupt-names are not needed either?
+
+> +- interrupts: 		Contains interrupt information for each entry in
+> +			interrupt-names.
+> +- ranges		Represents the bus address mapping between the main
+> +			controller node and the child nodes below.
+> +- #address-cells	Should be set to <1>
+> +- #size-cells		Should be set to <1>
+> +
+> +Each port is represented as a sub-node of the ti,omap3-ssi device.
+> +
+> +Required Port sub-node properties:
+> +- compatible:		Should be set to the following value
+> +                        ti,omap3-ssi-port (applicable to OMAP34xx devices)
+> +- reg-names:		Contains the values "rx" and "tx".
+
+Here too?
+
+> +- reg:			Contains a register specifier for each entry in
+> +			reg-names.
+> +- interrupt-parent	Should be a phandle for the interrupt controller
+> +- interrupt-names:	Contains the values "mpu_irq0" and "mpu_irq1".
+
+And here?
+
+> +- interrupts:		Contains interrupt information for each entry in
+> +			interrupt-names.
+> +- ti,ssi-cawake-gpio:	Defines which GPIO pin is used to signify CAWAKE
+> +			events for the port. This is an optional board-specific
+> +			property. If it's missing the port will not be
+> +			enabled.
+
+Hmm this might be just a wake-up GPIO? If so, you should be able to
+just set it up as an interrupt and do a request_irq on the pinctrl-single
+entry for it.
+
+It might even be one of the already mapped interrupt lines that the code is
+remuxing to a GPIO for idle? If so, then you can just use the new binding
+for interrupts-extended to handle the wake-up events.
+
+If you post the GPIO number for ti,ssi-cawake-gpio and the interrupt
+numbers I can check if there's a need to handle it separately as a GPIO
+pin or if it already can be automatically handled for the wake-up events.
+
+Regards,
+
+Tony
