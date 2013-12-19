@@ -1,102 +1,193 @@
-From: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
-Subject: [PATCHv11 02/49] clk: fixed-rate: add support for registering fixed-rate clock from descriptor
-Date: Thu, 19 Dec 2013 13:23:33 +0200
-Message-ID: <1387452260-23276-3-git-send-email-t-kristo@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: [PATCHv11 11/49] CLK: ti: add init support for clock IP blocks
+Date: Thu, 19 Dec 2013 13:23:42 +0200
+Message-ID: <1387452260-23276-12-git-send-email-t-kristo@ti.com>
 References: <1387452260-23276-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1387452260-23276-1-git-send-email-t-kristo-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, mturquette-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
-Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:38905 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753427Ab3LSLZ3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Dec 2013 06:25:29 -0500
+In-Reply-To: <1387452260-23276-1-git-send-email-t-kristo@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, nm@ti.com, rnayak@ti.com, bcousson@baylibre.com, mturquette@linaro.org
+Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-From: Mike Turquette <mturquette-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+ti_dt_clk_init_provider() can now be used to initialize the contents of
+a single clock IP block. This parses all the clocks under the IP block
+and calls the corresponding init function for them.
 
-New clk_register_desc() call can be used to register this clock type now.
+This patch also introduces a helper function for the TI clock drivers
+to get register info from DT and append the master IP info to this.
 
-Signed-off-by: Mike Turquette <mturquette-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Signed-off-by: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- drivers/clk/clk-fixed-rate.c |   24 ++++++++++++++++++++++++
- include/linux/clk-provider.h |   15 +++++++++++++++
- 2 files changed, 39 insertions(+)
+ drivers/clk/ti/clk.c   |  108 ++++++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/clk/ti.h |   20 +++++++++
+ 2 files changed, 128 insertions(+)
 
-diff --git a/drivers/clk/clk-fixed-rate.c b/drivers/clk/clk-fixed-rate.c
-index 1ed591a..d7aa01e 100644
---- a/drivers/clk/clk-fixed-rate.c
-+++ b/drivers/clk/clk-fixed-rate.c
-@@ -26,8 +26,12 @@
-  * parent - fixed parent.  No clk_set_parent support
-  */
+diff --git a/drivers/clk/ti/clk.c b/drivers/clk/ti/clk.c
+index ef1a7cd..32a65d0 100644
+--- a/drivers/clk/ti/clk.c
++++ b/drivers/clk/ti/clk.c
+@@ -19,10 +19,16 @@
+ #include <linux/clkdev.h>
+ #include <linux/clk/ti.h>
+ #include <linux/of.h>
++#include <linux/of_address.h>
++#include <linux/list.h>
  
-+/* resolve struct clk_fixed_rate from inner struct clk_hw member */
- #define to_clk_fixed_rate(_hw) container_of(_hw, struct clk_fixed_rate, hw)
+ #undef pr_fmt
+ #define pr_fmt(fmt) "%s: " fmt, __func__
  
-+/* resolve struct clk_fixed_rate_desc from inner struct clk_desc member */
-+#define to_hw_desc(_desc) container_of(_desc, struct clk_fixed_rate_desc, desc)
++extern struct of_device_id __clk_of_table[];
++static int ti_dt_clk_memmap_index;
++struct clk_ll_ops *ti_clk_ll_ops;
 +
- static unsigned long clk_fixed_rate_recalc_rate(struct clk_hw *hw,
- 		unsigned long parent_rate)
- {
-@@ -82,6 +86,26 @@ struct clk *clk_register_fixed_rate(struct device *dev, const char *name,
- }
- EXPORT_SYMBOL_GPL(clk_register_fixed_rate);
- 
-+struct clk_hw *clk_register_fixed_rate_desc(struct device *dev,
-+					    struct clk_desc *desc)
-+{
-+	struct clk_fixed_rate *fixed;
-+	struct clk_fixed_rate_desc *hw_desc;
-+
-+	hw_desc = to_hw_desc(desc);
-+
-+	/* allocate fixed-rate clock */
-+	fixed = kzalloc(sizeof(*fixed), GFP_KERNEL);
-+	if (!fixed)
-+		return ERR_PTR(-ENOMEM);
-+
-+	/* populate struct clk_fixed_rate assignments */
-+	fixed->fixed_rate = hw_desc->fixed_rate;
-+
-+	return &fixed->hw;
-+}
-+EXPORT_SYMBOL_GPL(clk_register_fixed_rate_desc);
-+
- #ifdef CONFIG_OF
  /**
-  * of_fixed_clk_setup() - Setup function for simple fixed rate clock
-diff --git a/include/linux/clk-provider.h b/include/linux/clk-provider.h
-index 7fddcb3..82dfe84 100644
---- a/include/linux/clk-provider.h
-+++ b/include/linux/clk-provider.h
-@@ -219,6 +219,21 @@ struct clk_fixed_rate {
- 	u8		flags;
- };
- 
-+/**
-+ * struct clk_fixed_rate_desc - fixed-rate clock description
-+ * @desc:	handle between common and hardware-specific interfaces
-+ * @fixed_rate: constant frequency of clock
-+ * @flags:	hardware-specific flags
-+ */
-+struct clk_fixed_rate_desc {
-+	struct clk_desc	desc;
-+	unsigned long	fixed_rate;
-+	u8		flags;
+  * ti_dt_clocks_register - register DT alias clocks during boot
+  * @oclks: list of clocks to register
+@@ -53,3 +59,105 @@ void __init ti_dt_clocks_register(struct ti_dt_clk oclks[])
+ 		}
+ 	}
+ }
++
++struct clk_init_item {
++	struct device_node *node;
++	struct clk_hw *hw;
++	ti_of_clk_init_cb_t func;
++	struct list_head link;
 +};
 +
-+struct clk_hw *clk_register_fixed_rate_desc(struct device *dev,
-+					    struct clk_desc *desc);
++static LIST_HEAD(retry_list);
 +
- extern const struct clk_ops clk_fixed_rate_ops;
- struct clk *clk_register_fixed_rate(struct device *dev, const char *name,
- 		const char *parent_name, unsigned long flags,
++/**
++ * ti_clk_retry_init - retries a failed clock init at later phase
++ * @node: device not for the clock
++ * @hw: partially initialized clk_hw struct for the clock
++ * @func: init function to be called for the clock
++ *
++ * Adds a failed clock init to the retry list. The retry list is parsed
++ * once all the other clocks have been initialized.
++ */
++void __init ti_clk_retry_init(struct device_node *node, struct clk_hw *hw,
++			      ti_of_clk_init_cb_t func)
++{
++	struct clk_init_item *retry;
++
++	pr_debug("%s: adding to retry list...\n", node->name);
++	retry = kzalloc(sizeof(*retry), GFP_KERNEL);
++	retry->node = node;
++	retry->func = func;
++	retry->hw = hw;
++	list_add(&retry->link, &retry_list);
++}
++
++/**
++ * ti_clk_get_reg_addr - get register address for a clock register
++ * @node: device node for the clock
++ * @index: register index from the clock node
++ *
++ * Builds clock register address from device tree information. This
++ * is a struct of type clk_omap_reg.
++ */
++void __iomem *ti_clk_get_reg_addr(struct device_node *node, int index)
++{
++	struct clk_omap_reg *reg;
++	u32 val;
++	u32 tmp;
++
++	reg = (struct clk_omap_reg *)&tmp;
++	reg->index = ti_dt_clk_memmap_index;
++
++	if (of_property_read_u32_index(node, "reg", index, &val)) {
++		pr_err("%s must have reg[%d]!\n", node->name, index);
++		return NULL;
++	}
++
++	reg->offset = val;
++
++	return (void __iomem *)tmp;
++}
++
++/**
++ * ti_dt_clk_init_provider - init master clock provider
++ * @parent: master node
++ * @index: internal index for clk_reg_ops
++ *
++ * Initializes a master clock IP block and its child clock nodes.
++ * Regmap is provided for accessing the register space for the
++ * IP block and all the clocks under it.
++ */
++void ti_dt_clk_init_provider(struct device_node *parent, int index)
++{
++	const struct of_device_id *match;
++	struct device_node *np;
++	struct device_node *clocks;
++	of_clk_init_cb_t clk_init_cb;
++	struct clk_init_item *retry;
++	struct clk_init_item *tmp;
++
++	ti_dt_clk_memmap_index = index;
++
++	/* get clocks for this parent */
++	clocks = of_get_child_by_name(parent, "clocks");
++	if (!clocks) {
++		pr_err("%s missing 'clocks' child node.\n", parent->name);
++		return;
++	}
++
++	for_each_child_of_node(clocks, np) {
++		match = of_match_node(__clk_of_table, np);
++		if (!match)
++			continue;
++		clk_init_cb = (of_clk_init_cb_t)match->data;
++		pr_debug("%s: initializing: %s\n", __func__, np->name);
++		clk_init_cb(np);
++	}
++
++	list_for_each_entry_safe(retry, tmp, &retry_list, link) {
++		pr_debug("retry-init: %s\n", retry->node->name);
++		retry->func(retry->hw, retry->node);
++		list_del(&retry->link);
++		kfree(retry);
++	}
++}
+diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
+index df94c24..6a2e497 100644
+--- a/include/linux/clk/ti.h
++++ b/include/linux/clk/ti.h
+@@ -36,7 +36,27 @@ struct ti_dt_clk {
+ 		.node_name = name,	\
+ 	}
+ 
++/* Maximum number of clock memmaps */
++#define CLK_MAX_MEMMAPS			4
+ 
++typedef void (*ti_of_clk_init_cb_t)(struct clk_hw *, struct device_node *);
++
++/**
++ * struct clk_omap_reg - OMAP register declaration
++ * @offset: offset from the master IP module base address
++ * @index: index of the master IP module
++ */
++struct clk_omap_reg {
++	u16 offset;
++	u16 index;
++};
++
++extern struct clk_ll_ops *ti_clk_ll_ops;
++
++void __iomem *ti_clk_get_reg_addr(struct device_node *node, int index);
+ void ti_dt_clocks_register(struct ti_dt_clk *oclks);
++void ti_dt_clk_init_provider(struct device_node *np, int index);
++void ti_clk_retry_init(struct device_node *node, struct clk_hw *hw,
++		       ti_of_clk_init_cb_t func);
+ 
+ #endif
 -- 
 1.7.9.5
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
