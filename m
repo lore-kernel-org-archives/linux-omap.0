@@ -1,59 +1,61 @@
 From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v6 3/7] regulator: add pbias regulator support
-Date: Thu, 19 Dec 2013 12:51:20 +0000
-Message-ID: <20131219125120.GY31886@sirena.org.uk>
-References: <1386670577-3530-1-git-send-email-balajitk@ti.com>
- <1387456720-7202-1-git-send-email-balajitk@ti.com>
- <1387456720-7202-4-git-send-email-balajitk@ti.com>
+Subject: Re: [PATCHv2 01/10] spi/spi.h: Add get_buf/put_buf support in spi
+ master.
+Date: Thu, 19 Dec 2013 13:31:05 +0000
+Message-ID: <20131219133105.GC31886@sirena.org.uk>
+References: <1386339891-32717-1-git-send-email-sourav.poddar@ti.com>
+ <1386339891-32717-2-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="iIOavGAISvUeFFLW"
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+	protocol="application/pgp-signature"; boundary="aHyShe78FfJzbeER"
+Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1387456720-7202-4-git-send-email-balajitk-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, cjb-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
+In-Reply-To: <1386339891-32717-2-git-send-email-sourav.poddar-l0cyMroinI0@public.gmane.org>
+Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>
+Cc: linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, marex-ynQEQJNshbs@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
 
---iIOavGAISvUeFFLW
+--aHyShe78FfJzbeER
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Thu, Dec 19, 2013 at 06:08:36PM +0530, Balaji T K wrote:
-> pbias register controls internal power supply to sd card i/o pads
-> in most OMAPs (OMAP2-5, DRA7).
-> Control bits for selecting voltage level and
-> enabling/disabling are in the same PBIAS register.
+On Fri, Dec 06, 2013 at 07:54:42PM +0530, Sourav Poddar wrote:
+> Add get_buf, put_buf api support in spi master.
 
-This is basically fine from a regulator point of view but I'd like to
-see some review from the OMAP side given the concerns raised last time.
+Please add this stuff along with the code implementing it.
 
---iIOavGAISvUeFFLW
+> +	void	(*configure_from_slave)(struct spi_device *spi);
+> +
+
+I don't understand this API at all - it takes no parameters and doesn't
+have a possibility of returning any error codes?
+
+--aHyShe78FfJzbeER
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2.0.22 (GNU/Linux)
 
-iQIcBAEBAgAGBQJSsuvFAAoJELSic+t+oim910YP/1dfYxYr0UTlh3sg30KaUxhO
-oK74gdd45pZKtAcsn7ClQLQufv8MBE3CbgWiJRB00X9KBa77Ua0kwPlkUl6LAp+o
-U6rCaF2WaFeyAkICVdGqfWz5Z52rPMVu9TxRilwD8ABRIGxl37JXsIMHWniDtGPq
-6AKm3riTvsqbtvz/oN2M/qq+EuW931J7eyyWZA/jcr1kJAfh49/O7+CqHWAFymaA
-hdlaYAbaNywK3aq89U5l/i2uOkYCfRq205L9WcZXZSobG/CRPzERboXi9bF0hyDC
-cEUwOQzl7SlnK4KOyBDEo3596ebieO5HRajOTKAdY+SrI6h+zEfiAZlfjARTjqJZ
-byA1NtZtk1R3CYwt0OFwH/yeEkzyhwm71Y2IBjy4UvOXSu/a7K2q89Sf5XmSESWm
-W0NI7zFYSVHvxuQQ7j+MtQ7F7y6h0KOCnsxaKWjVoLV+GEnKfUUlzJvFGiSBJc4m
-Lns8PKYrj+bif545XHk6omUDWxJzMKbi9cbYsfeI+u2TRihCWoun+Evs2WgnH944
-RacNUdAN17mfZ7MviG/j0+h0qy0TW2hoy0LVVAyM+0vHqB4crNCs+NVYcaplXUeW
-zTB3/PSS+T4WeVJLqv/ElxX+YnZb8D5RaRcklEY/veOqZfN88c/3onGYNffxOt3q
-kmwlJG9orNVu0FA5fqDH
-=EmBq
+iQIcBAEBAgAGBQJSsvUVAAoJELSic+t+oim9CuwP/1XVVgzLmTUrm8IIC25COg2Y
+/9TZrDHMotVIOK33eL0Xx7hp2C5Ks1qmJKIoUj6qPzjfzKryS0niM/SGAmTf/zNO
+FhgCvwMY/GVUxKwI8sxBgpDTkQSn+gxtHPIvoKcjJMJTpJiodE1QXO5rJtSPX0QF
+BHZS24nQaJmxTzcgh8d3dZnvVAAYi5dEqRR8BgilOd0sjHALyRFdngVePY4cWKqG
+XxeNMNlr5U8s9WyACa1Dd4SvMpX4Ytb70lSaO6g2+0FqML7zvmEbyoE6ZyVLm8f0
+6TiQFCqGDxfRNxoSkJUFmTmh9rd04w5jXZii2aR9aAbUC0sZiaw8UuBolnxg3769
+FWD9wb0vxnExrBvGjGqwOR8F21aODIjYCjW3RFi5wmJAFuYD77TTQkx5NgkZseG+
+GO0DcO78Jh3nxuMiz2Qqzw8e2hOwCFgtXz3uQLAnyDPDEeJPO0ylvrQWTD47BMrW
+7XquP0R2JBlgwXhsSQsP6MUy00KPtaNp66UW9SiI8iNl4fE4No1ZmP9PStmRqUTU
+7XPFn7rTWsbfs21AwacGjb/e0k3MDcGKCja/lsnMNLnUSTNmaObMPCrEXThbQyL3
+T40sRJqyAjohgJNmpncVLT3nAx8Rt7w0Tff2GK56636J0CVnT/8fHIbwPwZx9gbl
+xS+mGxAk4H0y5zkcztEy
+=3NTq
 -----END PGP SIGNATURE-----
 
---iIOavGAISvUeFFLW--
+--aHyShe78FfJzbeER--
 --
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
+To unsubscribe from this list: send the line "unsubscribe linux-spi" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
