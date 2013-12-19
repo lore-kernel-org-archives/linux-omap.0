@@ -1,15 +1,15 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv11 04/49] clk: mux: add support for registering mux clock from descriptor
-Date: Thu, 19 Dec 2013 13:23:35 +0200
-Message-ID: <1387452260-23276-5-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv11 05/49] clk: gate: add support for registering gate clock from descriptor
+Date: Thu, 19 Dec 2013 13:23:36 +0200
+Message-ID: <1387452260-23276-6-git-send-email-t-kristo@ti.com>
 References: <1387452260-23276-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:38888 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:38894 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752852Ab3LSLZJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Dec 2013 06:25:09 -0500
+	with ESMTP id S1752852Ab3LSLZN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Dec 2013 06:25:13 -0500
 In-Reply-To: <1387452260-23276-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -20,103 +20,92 @@ New clk_register_desc() call can be used to register this clock type now.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- drivers/clk/clk-mux.c        |   37 +++++++++++++++++++++++++++++++++++++
- include/linux/clk-provider.h |   21 +++++++++++++++++++++
- 2 files changed, 58 insertions(+)
+ drivers/clk/clk-gate.c       |   31 +++++++++++++++++++++++++++++++
+ include/linux/clk-provider.h |   19 +++++++++++++++++++
+ 2 files changed, 50 insertions(+)
 
-diff --git a/drivers/clk/clk-mux.c b/drivers/clk/clk-mux.c
-index 4f96ff3..2cbed08 100644
---- a/drivers/clk/clk-mux.c
-+++ b/drivers/clk/clk-mux.c
-@@ -27,8 +27,12 @@
-  * parent - parent is adjustable through clk_set_parent
+diff --git a/drivers/clk/clk-gate.c b/drivers/clk/clk-gate.c
+index 4a58c55..3ec61d2 100644
+--- a/drivers/clk/clk-gate.c
++++ b/drivers/clk/clk-gate.c
+@@ -26,8 +26,12 @@
+  * parent - fixed parent.  No clk_set_parent support
   */
  
-+/* resolve struct clk_mux from inner struct clk_hw member */
- #define to_clk_mux(_hw) container_of(_hw, struct clk_mux, hw)
++/* resolve struct clk_gate from inner struct clk_hw member */
+ #define to_clk_gate(_hw) container_of(_hw, struct clk_gate, hw)
  
-+/* resolve struct clk_mux_desc from inner struct clk_desc member */
-+#define to_hw_desc(_desc) container_of(_desc, struct clk_mux_desc, desc)
++/* resolve struct clk_gate_desc from inner struct clk_desc member */
++#define to_hw_desc(_desc) container_of(_desc, struct clk_gate_desc, desc)
 +
- static u8 clk_mux_get_parent(struct clk_hw *hw)
- {
- 	struct clk_mux *mux = to_clk_mux(hw);
-@@ -177,3 +181,36 @@ struct clk *clk_register_mux(struct device *dev, const char *name,
- 				      NULL, lock);
+ /*
+  * It works on following logic:
+  *
+@@ -162,3 +166,30 @@ struct clk *clk_register_gate(struct device *dev, const char *name,
+ 	return clk;
  }
- EXPORT_SYMBOL_GPL(clk_register_mux);
+ EXPORT_SYMBOL_GPL(clk_register_gate);
 +
-+struct clk_hw *clk_register_mux_desc(struct device *dev, struct clk_desc *desc)
++struct clk_hw *clk_register_gate_desc(struct device *dev, struct clk_desc *desc)
 +{
-+	struct clk_mux *mux;
-+	struct clk_mux_desc *hw_desc;
++	struct clk_gate *gate;
++	struct clk_gate_desc *hw_desc;
 +
 +	hw_desc = to_hw_desc(desc);
 +
 +	/* allocate mux clock */
-+	mux = kzalloc(sizeof(*mux), GFP_KERNEL);
-+	if (!mux)
++	gate = kzalloc(sizeof(*gate), GFP_KERNEL);
++	if (!gate)
 +		return ERR_PTR(-ENOMEM);
 +
-+	/* populate struct clk_mux assignments */
-+	mux->reg = hw_desc->reg;
-+	mux->table = hw_desc->table;
-+	mux->mask = hw_desc->mask;
-+	mux->shift = hw_desc->shift;
-+	mux->flags = hw_desc->flags;
-+	mux->lock = hw_desc->lock;
++	/* populate struct clk_gate assignments */
++	gate->reg = hw_desc->reg;
++	gate->bit_idx = hw_desc->bit_idx;
++	gate->flags = hw_desc->flags;
++	gate->lock = hw_desc->lock;
 +
-+	if (!desc->ops) {
-+		if (mux->flags & CLK_MUX_READ_ONLY)
-+			desc->ops = &clk_mux_ro_ops;
-+		else
-+			desc->ops = &clk_mux_ops;
-+	}
++	if (!desc->ops)
++		desc->ops = &clk_gate_ops;
 +
 +	desc->flags |= CLK_IS_BASIC;
 +
-+	return &mux->hw;
++	return &gate->hw;
 +}
-+EXPORT_SYMBOL_GPL(clk_register_mux_desc);
++EXPORT_SYMBOL_GPL(clk_register_gate_desc);
 diff --git a/include/linux/clk-provider.h b/include/linux/clk-provider.h
-index 9fa279d..7dd6842 100644
+index 7dd6842..27a9765 100644
 --- a/include/linux/clk-provider.h
 +++ b/include/linux/clk-provider.h
-@@ -393,6 +393,26 @@ struct clk_mux {
+@@ -269,10 +269,29 @@ struct clk_gate {
  	spinlock_t	*lock;
  };
  
 +/**
-+ * struct clk_mux_desc - init descriptor for multiplexer clock
++ * struct clk_gate_desc - init descriptor for gating clock
 + *
 + * @desc:	handle between common and hardware-specific interfaces
-+ * @reg:	register controlling multiplexer
-+ * @shift:	shift to multiplexer bit field
-+ * @width:	width of multiplexer bit field
++ * @reg:	register controlling gate
++ * @bit_idx:	single bit controlling gate
 + * @flags:	hardware-specific flags
 + * @lock:	register lock
 + */
-+struct clk_mux_desc {
++struct clk_gate_desc {
 +	struct clk_desc	desc;
 +	void __iomem	*reg;
-+	u32		*table;
-+	u32		mask;
-+	u8		shift;
++	u8		bit_idx;
 +	u8		flags;
 +	spinlock_t	*lock;
 +};
 +
- #define CLK_MUX_INDEX_ONE		BIT(0)
- #define CLK_MUX_INDEX_BIT		BIT(1)
- #define CLK_MUX_HIWORD_MASK		BIT(2)
-@@ -401,6 +421,7 @@ struct clk_mux {
- extern const struct clk_ops clk_mux_ops;
- extern const struct clk_ops clk_mux_ro_ops;
+ #define CLK_GATE_SET_TO_DISABLE		BIT(0)
+ #define CLK_GATE_HIWORD_MASK		BIT(1)
  
-+struct clk_hw *clk_register_mux_desc(struct device *dev, struct clk_desc *desc);
- struct clk *clk_register_mux(struct device *dev, const char *name,
- 		const char **parent_names, u8 num_parents, unsigned long flags,
- 		void __iomem *reg, u8 shift, u8 width,
+ extern const struct clk_ops clk_gate_ops;
++struct clk_hw *clk_register_gate_desc(struct device *dev,
++				      struct clk_desc *desc);
+ struct clk *clk_register_gate(struct device *dev, const char *name,
+ 		const char *parent_name, unsigned long flags,
+ 		void __iomem *reg, u8 bit_idx,
 -- 
 1.7.9.5
 
