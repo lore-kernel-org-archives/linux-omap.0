@@ -1,58 +1,113 @@
-From: Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH V3] usb: musb: Fix unstable init of OTG_INTERFSEL.
-Date: Thu, 19 Dec 2013 01:40:11 +0200
-Message-ID: <CANOLnOOP8bh2OuajnCE7P-VpSvH_u7-wk5bHuWEfXhALHCBk4w@mail.gmail.com>
-References: <1387298913-18823-1-git-send-email-anaumann@ultratronik.de>
-	<20131218153545.GA1593@saruman.home>
+From: Sebastian Reichel <sre@debian.org>
+Subject: Re: [PATCH 0/4] OMAPDSS: DT support for N900 panel
+Date: Thu, 19 Dec 2013 01:51:52 +0100
+Message-ID: <20131219005151.GA27928@earth.universe>
+References: <1386958650-2404-1-git-send-email-sre@debian.org>
+ <52AFFF3F.7020807@ti.com>
+ <20131217171412.GA10442@earth.universe>
+ <52B089FE.8060704@ti.com>
+ <20131218215536.GA23674@earth.universe>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20131218153545.GA1593-HgARHv6XitL9zxVx7UNMDg@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Cc: anaumann-ZKHRqZ6+gQUX0D0ZMPkEVw@public.gmane.org, Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="6c2NcOVqGQ03X4Wi"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from ring0.de ([91.143.88.219]:57673 "EHLO smtp.ring0.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751877Ab3LSAv7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 18 Dec 2013 19:51:59 -0500
+Content-Disposition: inline
+In-Reply-To: <20131218215536.GA23674@earth.universe>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-
-On Wed, Dec 18, 2013 at 5:35 PM, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> wrote:
-> Hi,
->
-> On Tue, Dec 17, 2013 at 05:48:33PM +0100, anaumann-ZKHRqZ6+gQUX0D0ZMPkEVw@public.gmane.org wro=
-te:
->> From: Andreas Naumann <anaumann-ZKHRqZ6+gQUX0D0ZMPkEVw@public.gmane.org>
->>
->> This is a hard to reproduce problem which leads to non-functional
->> USB-OTG port in 0.1%-1% of all boots. Tracked it down to commit
->> e25bec160158abe86c276d7d206264afc3646281, which introduces save/rest=
-ore
->> of OTG_INTERFSEL over suspend.
->> Since the resume function is also called early in driver init, it us=
-es a
->> non-initialized value (which is 0 and a non-supported setting in DM3=
-7xx
->> for INTERFSEL). Shortly after the correct value is set. Apparently t=
-his
->> works most time, but not always.
->
-> yeah, but the problem is not on the glue layer. The bug is omap_devic=
-e
-> and pm_runtime not agreeing on device's state. I suppose there was a =
-fix
-> for that recently in linux-omap@vger mailing list.
-
-You mean this: http://marc.info/?t=3D138444882600003&r=3D1&w=3D2 ?
-
-This looks like a different issue during suspend, this problem is at
-startup. Both musb_core and omap2430.c expect hardware to be disabled
-on startup, and that works as expected. The problem is on first
-pm_runtime_get_sync(), which results in first runtime_resume() call,
-musb_core checks for first resume and doesn't load yet-unset context
-in that case, however glue does and breaks things. We have this
-problem since 3.2.
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Stephen Warren <swarren@wwwdotorg.org>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Rob Landley <rob@landley.net>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org
 
 
-Gra=C5=BEvydas
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--6c2NcOVqGQ03X4Wi
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Wed, Dec 18, 2013 at 10:55:37PM +0100, Sebastian Reichel wrote:
+> On Tue, Dec 17, 2013 at 07:29:34PM +0200, Tomi Valkeinen wrote:
+> > >> I added N900 display DT support on top of my v2 series, including
+> > >> pinmuxing. Can you check if it looks right and works?
+> > >>
+> > >> git://git.kernel.org/pub/scm/linux/kernel/git/tomba/linux.git work/d=
+ss-dt
+> > >=20
+> > > I just tried it and it does not work. On a first look the pinmuxing
+> > > looks fishy: 0x0d4 is muxed two times.
+> >=20
+> > Hmm, so it is.
+> >=20
+> > I'm not really familiar with SDI, I just muxed all the SDI pins, except
+> > datapair3. I previously thought that there's only the data and clock
+> > pairs for SDI, but the TRM revealed more sdi pins, so I included them.
+> > It is well possible that these can be removed:
+> >=20
+> > 0x0d0 (PIN_OUTPUT | MUX_MODE1)   /* dss_data18.sdi_vsync */
+> > 0x0d2 (PIN_OUTPUT | MUX_MODE1)   /* dss_data19.sdi_hsync */
+> > 0x0d4 (PIN_OUTPUT | MUX_MODE1)   /* dss_data20.sdi_den */
+> > 0x0d6 (PIN_OUTPUT | MUX_MODE1)   /* dss_data21.sdi_stp */
+>=20
+> Just removing the dss_data20.sdi_den pin was enough to get a working disp=
+lay. I
+> don't know if the other pins are needed, because the display pins are alr=
+eady
+> muxed correctly by the bootloader.
+
+I just had a look in the leaked n900 schematics. According to it the
+following pins are connected to the display:
+
+DSS_DATA20 (E28)     GPIO 90         LCD_RST
+DSS_DATA10 (AD28)    SDI_DAT1N       CDP 0
+DSS_DATA11 (AD27)    SDI_DAT1P       CDP 1
+DSS_DATA12 (AB28)    SDI_DAT2N       CDP 2
+DSS_DATA13 (AB27)    SDI_DAT2P       CDP 3
+DSS_DATA14 (AA28)    SDI_DAT3N       CDP 4
+DSS_DATA15 (AA27)    SDI_DAT3P       CDP 5
+DSS_DATA22 (AC27)    SDI_CLKP        CDP 6
+DSS_DATA23 (AC28)    SDI_CLKN        CDP 7
+
+I also noticed that dss_data19.sdi_hsync is used as gpio 89 for the
+N900's proximity sensor. Thus I suggest the following SDI pin muxing:
+
+	dss_sdi_pins: pinmux_dss_sdi_pins {
+		pinctrl-single,pins =3D <
+			0x0c0 (PIN_OUTPUT | MUX_MODE1)   /* dss_data10.sdi_dat1n */
+			0x0c2 (PIN_OUTPUT | MUX_MODE1)   /* dss_data11.sdi_dat1p */
+			0x0c4 (PIN_OUTPUT | MUX_MODE1)   /* dss_data12.sdi_dat2n */
+			0x0c6 (PIN_OUTPUT | MUX_MODE1)   /* dss_data13.sdi_dat2p */
+			0x0c8 (PIN_OUTPUT | MUX_MODE1)   /* dss_data14.sdi_dat3n */
+			0x0ca (PIN_OUTPUT | MUX_MODE1)   /* dss_data15.sdi_dat3p */
+
+			0x0d8 (PIN_OUTPUT | MUX_MODE1)   /* dss_data22.sdi_clkp */
+			0x0da (PIN_OUTPUT | MUX_MODE1)   /* dss_data23.sdi_clkn */
+		>;
+	};
+
+-- Sebastian
+
+--6c2NcOVqGQ03X4Wi
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.15 (GNU/Linux)
+
+iQIcBAEBCAAGBQJSskMnAAoJENju1/PIO/qa8KkP/1H+MvRaRnJ5HMUMrHV2VEEB
+CG34CHu5wUNCbqGRsUup11j/BqRJOTDRGAZp7Qu13KRp7gN7ZcmlI52TF/UlC35N
+KKJWkaVSLA4I8y5q/1VwZlUIsD8sBVahDIzcBzZSd7T4LzpEGD8U+5mvXpwiB324
+5CjSw10nJ6zS/5yJhya/VWILbhf4mSOBQsBONhMiiPoJUtEk4RHyDDG8ljI2xf9n
+cyfaVlcPf/ftaZ0wXeozzdq3EVGmngMc698ZQmWxjnb9NklguJUQJVYpDQClTy5X
+wVah3flyqG2d/32dLJJLGyIiaIqvEcVIXidWGqayHUtC208pNVHDVbSuyeVo0LAg
+3iF5P99E2SwdnC9BOFQoo2KGppskv97MN7qXkp/MMM8DGYgi+gWj8jX8/LmVlZUd
+T8CBS08AekLsf4UQr9lqh8INLWCRYoLwtsXqZ1OVjySshVayQJgoYWR+XVweuX52
+LDGxBgHVG3SwxhFJxHZu2CkCVcM66xrQHDNynL+evXr614f6mZdzL8+qzmj0S6Dz
+Cbrp+HGy9Hg1u37Rn8am73i3UsBgln/no49ggqC/3ntuLTZYu82xscrcWENs/7fd
+3YrtlPZO4kqSvPJOgYecDk+Fpr5nbXuy5wcFVF1/IHn3yPMfG6mKWPQWH7k4lyZV
+sP8Jdpc4jzFgnb0LsIxY
+=JEsS
+-----END PGP SIGNATURE-----
+
+--6c2NcOVqGQ03X4Wi--
