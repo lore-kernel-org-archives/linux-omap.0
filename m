@@ -1,100 +1,78 @@
-From: Sebastian Reichel <sre-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 0/4] OMAPDSS: DT support for N900 panel
-Date: Thu, 19 Dec 2013 14:56:09 +0100
-Message-ID: <20131219135608.GA11654@earth.universe>
-References: <1386958650-2404-1-git-send-email-sre@debian.org>
- <52AFFF3F.7020807@ti.com>
- <20131217171412.GA10442@earth.universe>
- <52B089FE.8060704@ti.com>
- <20131218215536.GA23674@earth.universe>
- <20131219005151.GA27928@earth.universe>
- <52B2848A.80807@ti.com>
- <20131219100840.GA923@earth.universe>
+From: Andreas Naumann <dev@andin.de>
+Subject: Re: [PATCH V3] usb: musb: Fix unstable init of OTG_INTERFSEL.
+Date: Thu, 19 Dec 2013 15:06:55 +0100
+Message-ID: <52B2FD7F.2070604@andin.de>
+References: <1387298913-18823-1-git-send-email-anaumann@ultratronik.de>	<20131218153545.GA1593@saruman.home> <CANOLnOOP8bh2OuajnCE7P-VpSvH_u7-wk5bHuWEfXhALHCBk4w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="pWyiEgJYm5f9v55/"
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20131219100840.GA923-SfvFxonMDyemK9LvCR3Hrw@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Rob Landley <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from dd5612.kasserver.com ([85.13.130.143]:41816 "EHLO
+	dd5612.kasserver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753649Ab3LSOGu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Dec 2013 09:06:50 -0500
+In-Reply-To: <CANOLnOOP8bh2OuajnCE7P-VpSvH_u7-wk5bHuWEfXhALHCBk4w@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Grazvydas Ignotas <notasas@gmail.com>, Felipe Balbi <balbi@ti.com>
+Cc: anaumann@ultratronik.de, Linux USB Mailing List <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
 
---pWyiEgJYm5f9v55/
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Thu, Dec 19, 2013 at 11:08:40AM +0100, Sebastian Reichel wrote:
-> > Are you able to check if the bootloader muxes dat3 to SDI mode?
->=20
-> The bootloader's source code is not available as far as i know.
->=20
-> [...], but I get an external abort on non-linefetch.
-> So I can't check it :(
+Am 19.12.2013 00:40, schrieb Grazvydas Ignotas:
+> On Wed, Dec 18, 2013 at 5:35 PM, Felipe Balbi <balbi@ti.com> wrote:
+>> Hi,
+>>
+>> On Tue, Dec 17, 2013 at 05:48:33PM +0100, anaumann@ultratronik.de wr=
+ote:
+>>> From: Andreas Naumann <anaumann@ultratronik.de>
+>>>
+>>> This is a hard to reproduce problem which leads to non-functional
+>>> USB-OTG port in 0.1%-1% of all boots. Tracked it down to commit
+>>> e25bec160158abe86c276d7d206264afc3646281, which introduces save/res=
+tore
+>>> of OTG_INTERFSEL over suspend.
+>>> Since the resume function is also called early in driver init, it u=
+ses a
+>>> non-initialized value (which is 0 and a non-supported setting in DM=
+37xx
+>>> for INTERFSEL). Shortly after the correct value is set. Apparently =
+this
+>>> works most time, but not always.
+>>
+>> yeah, but the problem is not on the glue layer. The bug is omap_devi=
+ce
+>> and pm_runtime not agreeing on device's state. I suppose there was a=
+ fix
+>> for that recently in linux-omap@vger mailing list.
+>
+> You mean this: http://marc.info/?t=3D138444882600003&r=3D1&w=3D2 ?
+>
+> This looks like a different issue during suspend, this problem is at
+> startup. Both musb_core and omap2430.c expect hardware to be disabled
+> on startup, and that works as expected. The problem is on first
+> pm_runtime_get_sync(), which results in first runtime_resume() call,
+> musb_core checks for first resume and doesn't load yet-unset context
+> in that case, however glue does and breaks things. We have this
+> problem since 3.2.
 
-Ok. This is fixed by applying [0] (Thanks for the hint, Tomi!).
-This is the mux configuration from the bootloader:
+I'm a bit short on time at the moment, but shall I have a go on another=
+=20
+version of the patch with the init-variable as atomic_t?
 
-=2E..
-pin 96 (480020f0.0) 00000001 pinctrl-single     // sdi dat1n
-pin 97 (480020f2.0) 00000001 pinctrl-single     // sdi dat1p
-pin 98 (480020f4.0) 00000001 pinctrl-single     // sdi dat2n
-pin 99 (480020f6.0) 00000001 pinctrl-single     // sdi dat2p
-pin 100 (480020f8.0) 00000007 pinctrl-single    // sdi dat3n
-pin 101 (480020fa.0) 00000007 pinctrl-single    // sdi dat3p
-pin 102 (480020fc.0) 00000004 pinctrl-single=20
-pin 103 (480020fe.0) 00000004 pinctrl-single=20
-pin 104 (48002100.0) 00000004 pinctrl-single    // sdi vsync
-pin 105 (48002102.0) 00004104 pinctrl-single    // sdi hsync
-pin 106 (48002104.0) 00000004 pinctrl-single    // sdi den
-pin 107 (48002106.0) 00000004 pinctrl-single    // sdi stp
-pin 108 (48002108.0) 00000001 pinctrl-single    // sdi clkp
-pin 109 (4800210a.0) 00000001 pinctrl-single    // sdi clkn
-=2E..
+Andreas
 
-I guess the following entry should be added to the omap3-n900.dts file:
-
-	dss_sdi_pins: pinmux_dss_sdi_pins {
-		pinctrl-single,pins =3D <
-			0x0c0 (PIN_OUTPUT | MUX_MODE1)   /* dss_data10.sdi_dat1n */
-			0x0c2 (PIN_OUTPUT | MUX_MODE1)   /* dss_data11.sdi_dat1p */
-			0x0c4 (PIN_OUTPUT | MUX_MODE1)   /* dss_data12.sdi_dat2n */
-			0x0c6 (PIN_OUTPUT | MUX_MODE1)   /* dss_data13.sdi_dat2p */
-			0x0d8 (PIN_OUTPUT | MUX_MODE1)   /* dss_data22.sdi_clkp */
-			0x0da (PIN_OUTPUT | MUX_MODE1)   /* dss_data23.sdi_clkn */
-		>;
-	};
-
-[0] https://patchwork.kernel.org/patch/3283781/
-
--- Sebastian
-
---pWyiEgJYm5f9v55/
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.15 (GNU/Linux)
-
-iQIcBAEBCAAGBQJSsvr4AAoJENju1/PIO/qaEJwP/3IrY8rv8mYjj81OR9/S9j+T
-h0+LyESGrjM+UNwl9iG5xKbq3S1/4MYfj13CdMDaLPpYtvtXZR+P5mi5Jkfn9Z4p
-yaeXZqoo0PYStg+DYrcRNzpqJwFY9nQUcL+EnSX2pBhoNaSEbdPF/4gjF05I9H8d
-tixxFkk/dFneDtYpZaE08mX5jKy/NAoer1kSVniILvTps/8x+YUF9bxvDdB/MPZo
-Vp7qtpORyBBNYZ7DG56sgnqnt+BnfRK8jqHOq+AvayFT4nGcdzmKEXKtYo4J9CvA
-XLOkdCYHn3KKMVRgoQRC3pj2xwG6RJB3G+lDoRpQEg3Mt4mLhiV2axqWhzblHrgC
-O6+htgErNnBkoMfP96tg1y1rXfn7AlNd2UNMXuSPCz4bY5smN39UkB9889i1Q3iW
-ZCEWigCpKtOvsaAvhPG7Fp0FufjXviCf3/KbV0i5VROHki60CTvyCTg7Mz+HuRed
-3aboQGfZTah+HKgsw+YmGdvYRWpBM3vCOxvBoVq8gEXl6SdgWAE7G5l89DXc9M9f
-ylH7BLwUXdKu8wYDItfhqTS3CFvrOemHqzuN0XZjIPgaghm6Myb2u5mFJsfKOzZG
-svPVwhQx9BIpU7qarrjvDS0G2vrS4MWx4rHgpQBVpNY73GAw9ND2J3yjLXDBQ8wp
-4GNMnEBqOwmzLxi1ZkK7
-=JRaT
------END PGP SIGNATURE-----
-
---pWyiEgJYm5f9v55/--
+>
+> Gra=C5=BEvydas
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 --
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
