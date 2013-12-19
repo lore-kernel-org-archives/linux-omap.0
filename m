@@ -1,72 +1,103 @@
-From: Sourav Poddar <sourav.poddar@ti.com>
-Subject: Re: [PATCH 0/3] Add more device nodes for am43x gp evm.
-Date: Thu, 19 Dec 2013 08:51:10 +0530
-Message-ID: <52B26626.9020507@ti.com>
-References: <1385537479-6959-1-git-send-email-sourav.poddar@ti.com> <52B1DEAC.4000509@ti.com> <52B1E00D.30403@baylibre.com> <52B1E627.20409@ti.com> <52B1EEAC.2010109@baylibre.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: OMAP display subsystem - does it work?
+Date: Thu, 19 Dec 2013 07:23:10 +0200
+Message-ID: <52B282BE.9050705@ti.com>
+References: <20131218120023.GG4360@n2100.arm.linux.org.uk>
+ <52B1A922.6020901@ti.com> <20131218180240.GG27438@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:60582 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751140Ab3LSDVT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 18 Dec 2013 22:21:19 -0500
-In-Reply-To: <52B1EEAC.2010109@baylibre.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/mixed; boundary="===============8868221790544860231=="
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20131218180240.GG27438@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <bcousson@baylibre.com>
-Cc: rob.herring@calxeda.com, mark.rutland@arm.com, swarren@wwwdotorg.org, devicetree@vger.kernel.org, tony@atomide.com, balbi@ti.com, linux-omap@vger.kernel.org, nsekhar@ti.com
 
-On Thursday 19 December 2013 12:21 AM, Benoit Cousson wrote:
-> On 18/12/2013 19:15, Sourav Poddar wrote:
->> On Wednesday 18 December 2013 11:19 PM, Benoit Cousson wrote:
->>> Hi Sourav,
->>>
->>> On 18/12/2013 18:43, Sourav Poddar wrote:
->>>> Benoit,
->>>> On Wednesday 27 November 2013 01:01 PM, Sourav Poddar wrote:
->>>>> The patch series adds support for enabling gpio, pwm backlight and
->>>>> matrix gpio keys on am43x-gp-evm.
->>>>>
->>>>> Done on top of 3.13-rc1 + tero clock series(1) + Afzal's basic gp
->>>>> support(2).
->>>>>
->>>>> [1]: https://patchwork.kernel.org/patch/3009541/
->>>>> [2]: https://patchwork.kernel.org/patch/3171761/
->>>>>
->>>>> Tested on am43x-gp-evm.
->>>>>
->>>>> There is a some bug while using regulators through backlight
->>>>> driver on 3.13-rc1. So, tested pwm part with this patch[3].
->>>>>
->>>>> [3]: http://www.spinics.net/lists/arm-kernel/msg288215.html
->>>>>
->>>>> Sourav Poddar (3):
->>>>>    arm: dts: am437x-gp-evm: Enable gpio.
->>>>>    ARM: dts: am43x-gp-evm: Add matrix gpio keys.
->>>>>    ARM: dts: am437x-gp-evm: Add pwm backlight support.
->>>>>
->>>>>   arch/arm/boot/dts/am437x-gp-evm.dts |   53
->>>>> +++++++++++++++++++++++++++++++++++
->>>>>   1 files changed, 53 insertions(+), 0 deletions(-)
->>>>>
->>>> Ping on this?
->>>
->>> The series looks good, but you should rebase it on top of for_3.14/dts
->>> that is based on the big cleanup branch Tony has done.
->>> I cannot apply it right now.
->>>
->> Ok. I will rebase it and send you the series, As you can see there is
->> one dependency on afzal  basic support patch, as mentioned in
->> the cover letter. If you are ok with that patch, it has to go first. So,
->> if you wish I can work with afzal and send you this
->> series and afzal patch together.
->
-> Yes, go ahead and repost the whole series with the depency.
->
-> BTW, could you do that as well with your other series?
->
-Yes, I will do that.
-> Thanks,
-> Benoit
+--===============8868221790544860231==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="aqwuPDCj8gXnM1KqGpJsKhrA9md4a2HKE"
 
+--aqwuPDCj8gXnM1KqGpJsKhrA9md4a2HKE
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+On 2013-12-18 20:23, Tony Lindgren wrote:
+
+> Hmm I had the framebuffer working with DT on LDP after fixing the twl40=
+30
+> gpio regression with 0b2aa8bed3e1 (gpio: twl4030: Fix regression for tw=
+l
+> gpio output) using this pdata quirks patch:
+>=20
+> [PATCH 3/5] ARM: OMAP2+: Add DT init code for DPI displays and make oma=
+p3 LDP to use it
+>=20
+> AFAIK the pdata hack above should not be needed now, but I have not tri=
+ed
+> with Tomi's DSS DT patches yet.
+>=20
+> Tomi do you have some sample panel dpi .dts entry somewhere for the LDP=
+ I
+> could try at some point?
+
+Hmm, I thought this was about legacy booting on v3.14-rc4. That still
+uses the board files for omap3.
+
+> Russell, maybe all you're missing is just omapfb.vram=3D0:2M,1:5M or si=
+milar
+> from your kernel cmdline?
+
+Nothing like that should be required for normal operation.
+
+ Tomi
+
+
+
+--aqwuPDCj8gXnM1KqGpJsKhrA9md4a2HKE
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.14 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJSsoLCAAoJEPo9qoy8lh71G88QAKF43u/4olMYAZeGptR/dxHF
+UHcLKvGRxi6x7wlkFg70nshHokhnd+aiC8FJ48uDFnO/091/22qQaGoLM44nQ/B8
+74PYhGYvJUOJDZCkrq/8lSziyYrwQBy0DEI/RrSU8D6KbGzRzSsszyrETG/CFqPC
+v5+nSfUZiCQZFp6xmBiFMsA38tcXeVpo2LQRM8EZ9zYErqqeynC5IhDkpN7IW2ca
+i4VmZkpyWwYlEs0tK2fDEM2HF0M0QsvQVwRxCxa1PGyQs/AYJpGfJN9dzy1HYWej
+tfqey4gGy8Mb85Yvb9tivb0wnArJI0P9lZMo6s8ebwIfQg3naFzIYnHzb/R3/MqW
+an33zqVV0XjcMlZ835yPYIP3rgd4fhiKFXKK1aoF2yPgrDnZCgvpIZHf2cp40CVe
+GuPn12XMC91C0KxpOsMGnhfE9KwbI+dOmNcMjF48gf2x7OyhDVlyU6NzFb4bT0zs
+3upREhXZXWJ7cuagKi5zGt11kiBvJvvIzO2/OHVf8GLJxuGVUAnm20otNRq4Xu8q
+zi3Gzg0FmYAayfny8YDuQQ/RSRCqn+ZJXNRkVDZ80+nJUUpr16M6RE7qi0RoYC7J
+j/16Zh46c54aAhp3JxVXNNeya6hEwR/jb3g303rzgyaZBgl+SAq/2Ckwo+lSD1UM
+YyUgJ7BvMODkxhzK+qaG
+=SmSS
+-----END PGP SIGNATURE-----
+
+--aqwuPDCj8gXnM1KqGpJsKhrA9md4a2HKE--
+
+
+--===============8868221790544860231==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+--===============8868221790544860231==--
