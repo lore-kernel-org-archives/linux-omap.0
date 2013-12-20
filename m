@@ -1,125 +1,80 @@
-From: Balaji T K <balajitk@ti.com>
-Subject: Re: [PATCH v6 3/7] regulator: add pbias regulator support
-Date: Fri, 20 Dec 2013 15:17:59 +0530
-Message-ID: <52B4124F.8010903@ti.com>
-References: <1386670577-3530-1-git-send-email-balajitk@ti.com> <1387456720-7202-1-git-send-email-balajitk@ti.com> <1387456720-7202-4-git-send-email-balajitk@ti.com> <20131219163300.GK27438@atomide.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [PATCHv11 07/49] clk: divider: add support for low level ops
+Date: Fri, 20 Dec 2013 15:37:36 +0530
+Message-ID: <52B416E8.8070006@ti.com>
+References: <1387452260-23276-1-git-send-email-t-kristo@ti.com>
+ <1387452260-23276-8-git-send-email-t-kristo@ti.com>
+ <20131219182620.GQ27438@atomide.com> <52B342D2.1010301@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <20131219163300.GK27438@atomide.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, bcousson@baylibre.com, devicetree@vger.kernel.org, linux-mmc@vger.kernel.org, cjb@laptop.org, broonie@kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <52B342D2.1010301@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: nm@ti.com, devicetree@vger.kernel.org, paul@pwsan.com, mturquette@linaro.org, Tony Lindgren <tony@atomide.com>, bcousson@baylibre.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thursday 19 December 2013 10:03 PM, Tony Lindgren wrote:
-> Looks good to me, just few minor comments below.
->
-> * Balaji T K <balajitk@ti.com> [131219 04:40]:
->> --- /dev/null
->> +++ b/drivers/regulator/pbias-regulator.c
->> @@ -0,0 +1,255 @@
->> +/*
->> + * pbias-regulator.c
->> + *
->> + * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/
->> + * Author: Balaji T K <balajitk@ti.com>
->
-> Maybe use 2013 here instead?
-
-yes
-
->
->> +static int pbias_regulator_enable(struct regulator_dev *rdev)
->> +{
->> +	struct pbias_regulator_data *data = rdev_get_drvdata(rdev);
->> +	const struct pbias_reg_info *info = data->info;
->> +	int ret;
->> +
->> +	ret = regmap_update_bits(data->syscon, data->pbias_reg,
->> +					info->enable_mask, info->enable);
->> +
->> +	return ret;
->> +}
->
-> Do we need need to check the values after enable here? AFAIK setting
-> the PBIAS voltage change can also fail and that's probably why it has
-
-failure due to mismatch in input voltage, should to be avoided and should
-be taken care in s/w by the caller before pbias regulator set voltage/enable.
-
-> also the interrupt available.
->
-
-But interrupt was never used/tested AFAIK, there is some settling time
-before the generated interrupt status is truely valid, so pbias interrupt is not
-reliable.
-
->> +static const struct pbias_reg_info pbias_mmc_omap3 = {
->> +	.enable = BIT(1),
->> +	.enable_mask = BIT(1),
->> +	.vmode = BIT(0),
->> +	.name = "pbias_mmc_omap3"
->> +};
->> +
->> +static const struct pbias_reg_info pbias_sim_omap3 = {
->> +	.enable = BIT(9),
->> +	.enable_mask = BIT(9),
->> +	.vmode = BIT(8),
->> +	.name = "pbias_sim_omap3"
->> +};
->> +
->> +static const struct pbias_reg_info pbias_mmc_omap4 = {
->> +	.enable = BIT(26) | BIT(22),
->> +	.enable_mask = BIT(26) | BIT(25) | BIT(22),
->> +	.vmode = BIT(21),
->> +	.name = "pbias_mmc_omap4"
->> +};
->> +
->> +static const struct pbias_reg_info pbias_mmc_omap5 = {
->> +	.enable = BIT(27) | BIT(26),
->> +	.enable_mask = BIT(27) | BIT(25) | BIT(26),
->> +	.vmode = BIT(21),
->> +	.name = "pbias_mmc_omap5"
->> +};
+On Friday 20 December 2013 12:32 AM, Tero Kristo wrote:
+> On 12/19/2013 08:26 PM, Tony Lindgren wrote:
+>> * Tero Kristo <t-kristo@ti.com> [131219 03:26]:
+>>> Divider clock can now be registered to use low level register access ops.
+>>> Preferred initialization method is via clock description.
 >>
->> +static struct of_regulator_match pbias_matches[] = {
->> +	{ .name = "pbias_mmc_omap3", .driver_data = (void *)&pbias_mmc_omap3},
->> +	{ .name = "pbias_sim_omap3", .driver_data = (void *)&pbias_sim_omap3},
->> +	{ .name = "pbias_mmc_omap4", .driver_data = (void *)&pbias_mmc_omap4},
->> +	{ .name = "pbias_mmc_omap5", .driver_data = (void *)&pbias_mmc_omap5},
->> +};
->
-> We probably need also pbias_mmc_omap2430 as that regiter mapping is
-> separate from omap3?
->
+>> This seems to make omap2 not boot for me. No output whatsoever even with
+>> DEBUG_LL and earlyprintk.
+> 
+> Thats weird... I was kind of afraid something like this might happen though as these patches touch the clock low level routines globally, but I can't see what could be broken...
 
-between omap2430 and omap3430, 3460 pbias register address are different,
-other than that enable,enable_mask and vmode are
-one and the same, so re-used "pbias_mmc_omap3" name and struct pbias_reg_info pbias_mmc_omap3
-for omap2430 too, save one entry in of_regulator_match!
+I got hold of a 2430sdp and saw the same behavior, however DEBUG_LL and earlyprintk worked and this is
+what I see
 
-If separate name is needed for omap2430, I can add one for 2430,
-and reuse the "const struct pbias_reg_info pbias_mmc_omap3" of omap3
-since the bit map for enable/disable and voltage configuration will be same.
-Then pbias_matches will look like.
+[    0.000000] Unable to handle kernel NULL pointer dereference at virtual address 00000000
+[    0.000000] pgd = c0004000
+[    0.000000] [00000000] *pgd=00000000
+[    0.000000] Internal error: Oops: 5 [#1] SMP ARM
+[    0.000000] Modules linked in:
+[    0.000000] CPU: 0 PID: 0 Comm: swapper/0 Not tainted 3.13.0-rc4-00056-ga9fa93e #2
+[    0.000000] task: c07dfcb8 ti: c07d4000 task.ti: c07d4000
+[    0.000000] PC is at clk_mux_get_parent+0x14/0xcc
+[    0.000000] LR is at clk_mux_get_parent+0x10/0xcc
+[    0.000000] pc : [<c044a234>]    lr : [<c044a230>]    psr: a00001d3
+[    0.000000] sp : c07d5f40  ip : 00000000  fp : 00000000
+[    0.000000] r10: c07dc880  r9 : 4107b366  r8 : c07f46a4
+[    0.000000] r7 : c0edfa80  r6 : ffffffff  r5 : c07f6810  r4 : 00000002
+[    0.000000] r3 : 00000000  r2 : 00000000  r1 : c069da67  r0 : 00000002
+[    0.000000] Flags: NzCv  IRQs off  FIQs off  Mode SVC_32  ISA ARM  Segment kernel
+[    0.000000] Control: 00c5387d  Table: 80004000  DAC: 00000017
+[    0.000000] Process swapper/0 (pid: 0, stack limit = 0xc07d4248)
+[    0.000000] Stack: (0xc07d5f40 to 0xc07d6000)
+[    0.000000] 5f40: c044a220 00000002 c6001f40 c0448e54 c07dfcb8 c0862f7c c07f3600 c07f4368
+[    0.000000] 5f60: ffffffff c0edfa80 c07b6b80 4107b366 c07dc880 c077edf4 c0531008 c07f4380
+[    0.000000] 5f80: c07f34d4 c077f20c c0878964 c0edfa80 c07b6b80 c0877ac4 c0877640 ffffffff
+[    0.000000] 5fa0: c0edfa80 c0777268 00000001 c07792ac c07b5250 c077221c 00000002 c076e974
+[    0.000000] 5fc0: ffffffff ffffffff c076e57c 00000000 00000000 c07b6b80 00000000 00c5387d
+[    0.000000] 5fe0: c07dc928 c07b6b7c c07e1474 80004008 8052c544 80008074 00000000 00000000
+[    0.000000] [<c044a234>] (clk_mux_get_parent+0x14/0xcc) from [<c0448e54>] (__clk_init+0xe4/0x3f0)
+[    0.000000] [<c0448e54>] (__clk_init+0xe4/0x3f0) from [<c077edf4>] (omap_clocks_register+0x24/0x48)
+[    0.000000] [<c077edf4>] (omap_clocks_register+0x24/0x48) from [<c077f20c>] (omap2430_clk_init+0x4c/0x124)
+[    0.000000] [<c077f20c>] (omap2430_clk_init+0x4c/0x124) from [<c0777268>] (omap_clk_init+0x28/0x30)
+[    0.000000] [<c0777268>] (omap_clk_init+0x28/0x30) from [<c07792ac>] (omap2_sync32k_timer_init+0x8/0x58)
+[    0.000000] [<c07792ac>] (omap2_sync32k_timer_init+0x8/0x58) from [<c077221c>] (time_init+0x1c/0x30)
+[    0.000000] [<c077221c>] (time_init+0x1c/0x30) from [<c076e974>] (start_kernel+0x1d4/0x360)
+[    0.000000] [<c076e974>] (start_kernel+0x1d4/0x360) from [<80008074>] (0x80008074)
+[    0.000000] Code: e1a05000 e5900000 ebfff7f5 e595300c (e5933000) 
+[    0.000000] ---[ end trace 3406ff24bd97382e ]---
+[    0.000000] Kernel panic - not syncing: Attempted to kill the idle task!
 
- >> +static struct of_regulator_match pbias_matches[] = {
- >> +	{ .name = "pbias_mmc_omap2430", .driver_data = (void *)&pbias_mmc_omap3},
- >> +	{ .name = "pbias_mmc_omap3", .driver_data = (void *)&pbias_mmc_omap3},
- >> +	{ .name = "pbias_sim_omap3", .driver_data = (void *)&pbias_sim_omap3},
- >> +	{ .name = "pbias_mmc_omap4", .driver_data = (void *)&pbias_mmc_omap4},
- >> +	{ .name = "pbias_mmc_omap5", .driver_data = (void *)&pbias_mmc_omap5},
- >> +};
+I'll try and debug further but any quick thoughts on what could be wrong?
 
-Let me know if you still think that separate regulator name is needed for 2430,
-I can respin this series.
-
-> Other than that, good to see this finally happen. This should allow us to
-> get rid of most of the platform data callbacks for omap_hsmmc.c driver.
->
-> Regards,
->
-> Tony
->
+> 
+> -Tero
+> 
