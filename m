@@ -1,63 +1,79 @@
 From: Jyri Sarha <jsarha@ti.com>
-Subject: [PATCH RFC v2 REPOST 5/8] ASoC: davinci: HDMI audio build for AM33XX and TDA998x
-Date: Fri, 20 Dec 2013 12:40:54 +0200
-Message-ID: <aa27717c56f024eb2f381fd5ee3fcd0938e7c0bd.1387535303.git.jsarha@ti.com>
+Subject: [PATCH RFC v2 REPOST 6/8] drm/tilcdc: Add I2C HDMI
+	audio config for tda998x
+Date: Fri, 20 Dec 2013 12:41:44 +0200
+Message-ID: <72b68761b5dfae5c09ba0c95541a36d9010f0b88.1387535303.git.jsarha@ti.com>
 References: <cover.1387535299.git.jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:36356 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755957Ab3LTKlX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Dec 2013 05:41:23 -0500
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
 In-Reply-To: <cover.1387535299.git.jsarha@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, dri-devel@lists.freedesktop.org, devicetree@vger.kernel.org
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, dri-devel@lists.freedesktop.org, devicetree@vger.kernel.org, airlied@linux.ie
 Cc: broonie@kernel.org, Jyri Sarha <jsarha@ti.com>
+List-Id: linux-omap@vger.kernel.org
 
-Adds configuration option for HDMI audio support for AM33XX based
-boards with NXP TDA998x HDMI transmitter. The audio is connected to
-NXP TDA998x trough McASP running in i2s mode.
+The configuration is needed for HDMI audio. The "swap" and "mirr"
+parameters have to be correctly set in the configuration in order to
+have proper colors in the HDMI picture.
 
 Signed-off-by: Jyri Sarha <jsarha@ti.com>
+cc: airlied@linux.ie
 ---
- sound/soc/davinci/Kconfig  |   12 ++++++++++++
- sound/soc/davinci/Makefile |    1 +
- 2 files changed, 13 insertions(+)
+ drivers/gpu/drm/tilcdc/tilcdc_slave.c |   24 +++++++++++++++++++++++-
+ 1 file changed, 23 insertions(+), 1 deletion(-)
 
-diff --git a/sound/soc/davinci/Kconfig b/sound/soc/davinci/Kconfig
-index a8ec1fc..40dd5d1 100644
---- a/sound/soc/davinci/Kconfig
-+++ b/sound/soc/davinci/Kconfig
-@@ -26,6 +26,18 @@ config SND_AM33XX_SOC_EVM
- 	  AM335X-EVMSK, and BeagelBone with AudioCape boards have this
- 	  setup.
+diff --git a/drivers/gpu/drm/tilcdc/tilcdc_slave.c b/drivers/gpu/drm/tilcdc/tilcdc_slave.c
+index 595068b..e43240a 100644
+--- a/drivers/gpu/drm/tilcdc/tilcdc_slave.c
++++ b/drivers/gpu/drm/tilcdc/tilcdc_slave.c
+@@ -19,6 +19,7 @@
+ #include <linux/pinctrl/pinmux.h>
+ #include <linux/pinctrl/consumer.h>
+ #include <drm/drm_encoder_slave.h>
++#include <drm/i2c/tda998x.h>
  
-+config SND_AM335X_SOC_NXPTDA_EVM
-+	tristate "HDMI Audio for the AM33XX chip based boards with TDA998x"
-+	depends on SND_DAVINCI_SOC && SOC_AM33XX
-+	depends on DRM_TILCDC && DRM_I2C_NXP_TDA998X
-+	select SND_SOC_HDMI_CODEC
-+	select SND_DAVINCI_SOC_MCASP
-+	help
-+	  Say Y or M if you want to add support for HDMI SoC audio on
-+	  AM33XX boards with NXP TDA998x HDMI transmitter. For example
-+	  BeagleBoneBack. The audio is connected to NXP TDA998x trough
-+	  McASP running in i2s mode.
+ #include "tilcdc_drv.h"
+ 
+@@ -111,8 +112,29 @@ static const struct drm_encoder_helper_funcs slave_encoder_helper_funcs = {
+ 		.restore        = drm_i2c_encoder_restore,
+ };
+ 
++static struct tda998x_encoder_params tda998x_pdata = {
++	.swap_b = 0x3,
++	.mirr_b = 0x0,
++	.swap_a = 0x2,
++	.mirr_a = 0x0,
++	.swap_d = 0x1,
++	.mirr_d = 0x0,
++	.swap_c = 0x0,
++	.mirr_c = 0x0,
++	.swap_f = 0x5,
++	.mirr_f = 0x0,
++	.swap_e = 0x4,
++	.mirr_e = 0x0,
++	.audio_cfg = 0x3,	/* I2S mode */
++	.audio_clk_cfg = 1,	/* select clock pin */
++	.audio_frame[1] = 1,	/* channels - 1 */
++	.audio_format = AFMT_I2S,
++	.audio_sample_rate = 48000,
++};
 +
- config SND_DAVINCI_SOC_EVM
- 	tristate "SoC Audio support for DaVinci DM6446, DM355 or DM365 EVM"
- 	depends on SND_DAVINCI_SOC
-diff --git a/sound/soc/davinci/Makefile b/sound/soc/davinci/Makefile
-index 744d4d9..7587a70 100644
---- a/sound/soc/davinci/Makefile
-+++ b/sound/soc/davinci/Makefile
-@@ -13,3 +13,4 @@ obj-$(CONFIG_SND_DAVINCI_SOC_VCIF) += snd-soc-davinci-vcif.o
- snd-soc-evm-objs := davinci-evm.o
+ static const struct i2c_board_info info = {
+-		I2C_BOARD_INFO("tda998x", 0x70)
++		I2C_BOARD_INFO("tda998x", 0x70),
++		.platform_data = &tda998x_pdata,
+ };
  
- obj-$(CONFIG_SND_DAVINCI_SOC_GENERIC_EVM) += snd-soc-evm.o
-+obj-$(CONFIG_SND_AM335X_SOC_NXPTDA_EVM) += snd-soc-evm.o
+ static struct drm_encoder *slave_encoder_create(struct drm_device *dev,
 -- 
 1.7.9.5
-
