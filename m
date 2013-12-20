@@ -1,176 +1,83 @@
-From: Jyri Sarha <jsarha@ti.com>
-Subject: [PATCH RFC v2 REPOST 2/8] ASoC: davinci-evm: Add named clock
- reference to DT bindings
-Date: Fri, 20 Dec 2013 12:38:27 +0200
-Message-ID: <c1ae738c9b6cd9f2e595eed1f4981378ded46925.1387535302.git.jsarha@ti.com>
-References: <cover.1387535299.git.jsarha@ti.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [PATCHv11 07/49] clk: divider: add support for low level ops
+Date: Fri, 20 Dec 2013 16:09:07 +0530
+Message-ID: <52B41E4B.8040808@ti.com>
+References: <1387452260-23276-1-git-send-email-t-kristo@ti.com> <1387452260-23276-8-git-send-email-t-kristo@ti.com> <20131219182620.GQ27438@atomide.com> <52B342D2.1010301@ti.com> <52B416E8.8070006@ti.com> <52B41C15.8040304@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <cover.1387535299.git.jsarha@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, dri-devel@lists.freedesktop.org, devicetree@vger.kernel.org, bcousson@baylibre.com
-Cc: broonie@kernel.org, Jyri Sarha <jsarha@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:54684 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755855Ab3LTKjf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 20 Dec 2013 05:39:35 -0500
+In-Reply-To: <52B41C15.8040304@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, paul@pwsan.com, nm@ti.com, bcousson@baylibre.com, mturquette@linaro.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-The referenced clock is used to get codec clock rate and the clock is
-disabled and enabled in startup and shutdown snd_soc_ops call
-backs. The change is also documented in DT bindigs document.
+On Friday 20 December 2013 03:59 PM, Tero Kristo wrote:
+> On 12/20/2013 12:07 PM, Rajendra Nayak wrote:
+>> On Friday 20 December 2013 12:32 AM, Tero Kristo wrote:
+>>> On 12/19/2013 08:26 PM, Tony Lindgren wrote:
+>>>> * Tero Kristo <t-kristo@ti.com> [131219 03:26]:
+>>>>> Divider clock can now be registered to use low level register access ops.
+>>>>> Preferred initialization method is via clock description.
+>>>>
+>>>> This seems to make omap2 not boot for me. No output whatsoever even with
+>>>> DEBUG_LL and earlyprintk.
+>>>
+>>> Thats weird... I was kind of afraid something like this might happen though as these patches touch the clock low level routines globally, but I can't see what could be broken...
+>>
+>> I got hold of a 2430sdp and saw the same behavior, however DEBUG_LL and earlyprintk worked and this is
+>> what I see
+>>
+>> [    0.000000] Unable to handle kernel NULL pointer dereference at virtual address 00000000
+>> [    0.000000] pgd = c0004000
+>> [    0.000000] [00000000] *pgd=00000000
+>> [    0.000000] Internal error: Oops: 5 [#1] SMP ARM
+>> [    0.000000] Modules linked in:
+>> [    0.000000] CPU: 0 PID: 0 Comm: swapper/0 Not tainted 3.13.0-rc4-00056-ga9fa93e #2
+>> [    0.000000] task: c07dfcb8 ti: c07d4000 task.ti: c07d4000
+>> [    0.000000] PC is at clk_mux_get_parent+0x14/0xcc
+>> [    0.000000] LR is at clk_mux_get_parent+0x10/0xcc
+>> [    0.000000] pc : [<c044a234>]    lr : [<c044a230>]    psr: a00001d3
+>> [    0.000000] sp : c07d5f40  ip : 00000000  fp : 00000000
+>> [    0.000000] r10: c07dc880  r9 : 4107b366  r8 : c07f46a4
+>> [    0.000000] r7 : c0edfa80  r6 : ffffffff  r5 : c07f6810  r4 : 00000002
+>> [    0.000000] r3 : 00000000  r2 : 00000000  r1 : c069da67  r0 : 00000002
+>> [    0.000000] Flags: NzCv  IRQs off  FIQs off  Mode SVC_32  ISA ARM  Segment kernel
+>> [    0.000000] Control: 00c5387d  Table: 80004000  DAC: 00000017
+>> [    0.000000] Process swapper/0 (pid: 0, stack limit = 0xc07d4248)
+>> [    0.000000] Stack: (0xc07d5f40 to 0xc07d6000)
+>> [    0.000000] 5f40: c044a220 00000002 c6001f40 c0448e54 c07dfcb8 c0862f7c c07f3600 c07f4368
+>> [    0.000000] 5f60: ffffffff c0edfa80 c07b6b80 4107b366 c07dc880 c077edf4 c0531008 c07f4380
+>> [    0.000000] 5f80: c07f34d4 c077f20c c0878964 c0edfa80 c07b6b80 c0877ac4 c0877640 ffffffff
+>> [    0.000000] 5fa0: c0edfa80 c0777268 00000001 c07792ac c07b5250 c077221c 00000002 c076e974
+>> [    0.000000] 5fc0: ffffffff ffffffff c076e57c 00000000 00000000 c07b6b80 00000000 00c5387d
+>> [    0.000000] 5fe0: c07dc928 c07b6b7c c07e1474 80004008 8052c544 80008074 00000000 00000000
+>> [    0.000000] [<c044a234>] (clk_mux_get_parent+0x14/0xcc) from [<c0448e54>] (__clk_init+0xe4/0x3f0)
+>> [    0.000000] [<c0448e54>] (__clk_init+0xe4/0x3f0) from [<c077edf4>] (omap_clocks_register+0x24/0x48)
+>> [    0.000000] [<c077edf4>] (omap_clocks_register+0x24/0x48) from [<c077f20c>] (omap2430_clk_init+0x4c/0x124)
+>> [    0.000000] [<c077f20c>] (omap2430_clk_init+0x4c/0x124) from [<c0777268>] (omap_clk_init+0x28/0x30)
+>> [    0.000000] [<c0777268>] (omap_clk_init+0x28/0x30) from [<c07792ac>] (omap2_sync32k_timer_init+0x8/0x58)
+>> [    0.000000] [<c07792ac>] (omap2_sync32k_timer_init+0x8/0x58) from [<c077221c>] (time_init+0x1c/0x30)
+>> [    0.000000] [<c077221c>] (time_init+0x1c/0x30) from [<c076e974>] (start_kernel+0x1d4/0x360)
+>> [    0.000000] [<c076e974>] (start_kernel+0x1d4/0x360) from [<80008074>] (0x80008074)
+>> [    0.000000] Code: e1a05000 e5900000 ebfff7f5 e595300c (e5933000)
+>> [    0.000000] ---[ end trace 3406ff24bd97382e ]---
+>> [    0.000000] Kernel panic - not syncing: Attempted to kill the idle task!
+>>
+>> I'll try and debug further but any quick thoughts on what could be wrong?
+> 
+> I have a fix for this already and will be posting v12 today. I will just re-post the drivers/clk part of the series though, rest of the patches should be fine.
+> 
+> This bug was silly actually, I didn't think of the static clock data initialization through the macros from clk-private.h... This caused the resulting clock structures to have NULL for clk_ll_ops as it bypassed the init function where I set it up. So, I will need to check against NULL every time I do anything with ll_ops.
 
-Signed-off-by: Jyri Sarha <jsarha@ti.com>
-cc: bcousson@baylibre.com
----
- .../bindings/sound/davinci-evm-audio.txt           |    9 ++-
- sound/soc/davinci/davinci-evm.c                    |   60 +++++++++++++++++++-
- 2 files changed, 66 insertions(+), 3 deletions(-)
+yeah, the crash was indeed when ll_ops was dereferenced despite being NULL.
 
-diff --git a/Documentation/devicetree/bindings/sound/davinci-evm-audio.txt b/Documentation/devicetree/bindings/sound/davinci-evm-audio.txt
-index 865178d..4aa00f6 100644
---- a/Documentation/devicetree/bindings/sound/davinci-evm-audio.txt
-+++ b/Documentation/devicetree/bindings/sound/davinci-evm-audio.txt
-@@ -5,12 +5,19 @@ Required properties:
- - ti,model : The user-visible name of this sound complex.
- - ti,audio-codec : The phandle of the TLV320AIC3x audio codec
- - ti,mcasp-controller : The phandle of the McASP controller
--- ti,codec-clock-rate : The Codec Clock rate (in Hz) applied to the Codec
- - ti,audio-routing : A list of the connections between audio components.
-   Each entry is a pair of strings, the first being the connection's sink,
-   the second being the connection's source. Valid names for sources and
-   sinks are the codec's pins, and the jacks on the board:
- 
-+Optional properties:
-+- ti,codec-clock-rate : The Codec Clock rate (in Hz) applied to the Codec.
-+- clocks : Reference to the clock used as codec clock
-+- clock-names : The codec clock should be named "ti,codec-clock"
-+- Either codec-clock-rate or the codec-clock reference has to be defined. If
-+  the both are defined the driver attempts to set referenced clock to the
-+  defined rate and takes the rate from the clock reference.
-+
-   Board connectors:
- 
-   * Headphone Jack
-diff --git a/sound/soc/davinci/davinci-evm.c b/sound/soc/davinci/davinci-evm.c
-index 70ff377..b28c9fd 100644
---- a/sound/soc/davinci/davinci-evm.c
-+++ b/sound/soc/davinci/davinci-evm.c
-@@ -17,6 +17,7 @@
- #include <linux/platform_data/edma.h>
- #include <linux/i2c.h>
- #include <linux/of_platform.h>
-+#include <linux/clk.h>
- #include <sound/core.h>
- #include <sound/pcm.h>
- #include <sound/soc.h>
-@@ -30,9 +31,30 @@
- #include "davinci-i2s.h"
- 
- struct snd_soc_card_drvdata_davinci {
-+	struct clk *mclk;
- 	unsigned sysclk;
- };
- 
-+static int evm_startup(struct snd_pcm_substream *substream)
-+{
-+	struct snd_soc_pcm_runtime *rtd = substream->private_data;
-+	struct snd_soc_card *soc_card = rtd->codec->card;
-+	struct clk *mclk = ((struct snd_soc_card_drvdata_davinci *)
-+			    snd_soc_card_get_drvdata(soc_card))->mclk;
-+
-+	return clk_prepare_enable(mclk);
-+}
-+
-+static void evm_shutdown(struct snd_pcm_substream *substream)
-+{
-+	struct snd_soc_pcm_runtime *rtd = substream->private_data;
-+	struct snd_soc_card *soc_card = rtd->codec->card;
-+	struct clk *mclk = ((struct snd_soc_card_drvdata_davinci *)
-+			    snd_soc_card_get_drvdata(soc_card))->mclk;
-+
-+	clk_disable_unprepare(mclk);
-+}
-+
- static int evm_hw_params(struct snd_pcm_substream *substream,
- 			 struct snd_pcm_hw_params *params)
- {
-@@ -59,6 +81,8 @@ static int evm_hw_params(struct snd_pcm_substream *substream,
- }
- 
- static struct snd_soc_ops evm_ops = {
-+	.startup = evm_startup,
-+	.shutdown = evm_shutdown,
- 	.hw_params = evm_hw_params,
- };
- 
-@@ -348,6 +372,7 @@ static int davinci_evm_probe(struct platform_device *pdev)
- 		of_match_device(of_match_ptr(davinci_evm_dt_ids), &pdev->dev);
- 	struct snd_soc_dai_link *dai = (struct snd_soc_dai_link *) match->data;
- 	struct snd_soc_card_drvdata_davinci *drvdata = NULL;
-+	struct clk *mclk;
- 	int ret = 0;
- 
- 	evm_soc_card.dai_link = dai;
-@@ -367,13 +392,38 @@ static int davinci_evm_probe(struct platform_device *pdev)
- 	if (ret)
- 		return ret;
- 
-+	mclk = of_clk_get_by_name(np, "ti,codec-clock");
-+	if (PTR_ERR(mclk) == -EPROBE_DEFER) {
-+		return -EPROBE_DEFER;
-+	} else if (IS_ERR(mclk)) {
-+		dev_dbg(&pdev->dev, "Codec clock not found.\n");
-+		mclk = NULL;
-+	}
-+
- 	drvdata = devm_kzalloc(&pdev->dev, sizeof(*drvdata), GFP_KERNEL);
- 	if (!drvdata)
- 		return -ENOMEM;
- 
-+	drvdata->mclk = mclk;
-+
- 	ret = of_property_read_u32(np, "ti,codec-clock-rate", &drvdata->sysclk);
--	if (ret < 0)
--		return -EINVAL;
-+
-+	if (ret < 0) {
-+		if (!drvdata->mclk) {
-+			dev_err(&pdev->dev,
-+				"No clock or clock rate defined.\n");
-+			return -EINVAL;
-+		}
-+		drvdata->sysclk = clk_get_rate(drvdata->mclk);
-+	} else if (drvdata->mclk) {
-+		unsigned int requestd_rate = drvdata->sysclk;
-+		clk_set_rate(drvdata->mclk, drvdata->sysclk);
-+		drvdata->sysclk = clk_get_rate(drvdata->mclk);
-+		if (drvdata->sysclk != requestd_rate)
-+			dev_warn(&pdev->dev,
-+				 "Could not get requested rate %u using %u.\n",
-+				 requestd_rate, drvdata->sysclk);
-+	}
- 
- 	snd_soc_card_set_drvdata(&evm_soc_card, drvdata);
- 	ret = devm_snd_soc_register_card(&pdev->dev, &evm_soc_card);
-@@ -387,6 +437,12 @@ static int davinci_evm_probe(struct platform_device *pdev)
- static int davinci_evm_remove(struct platform_device *pdev)
- {
- 	struct snd_soc_card *card = platform_get_drvdata(pdev);
-+	struct snd_soc_card_drvdata_davinci *drvdata =
-+		(struct snd_soc_card_drvdata_davinci *)
-+		snd_soc_card_get_drvdata(card);
-+
-+	if (drvdata->mclk)
-+		clk_put(drvdata->mclk);
- 
- 	snd_soc_unregister_card(card);
- 
--- 
-1.7.9.5
+> 
+> -Tero
+> 
+
