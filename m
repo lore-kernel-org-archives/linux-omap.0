@@ -1,45 +1,150 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: OMAP display subsystem - does it work?
-Date: Fri, 20 Dec 2013 11:48:37 +0000
-Message-ID: <20131220114837.GH32243@n2100.arm.linux.org.uk>
-References: <20131218120023.GG4360@n2100.arm.linux.org.uk> <52B1A922.6020901@ti.com> <20131218180240.GG27438@atomide.com> <20131219175644.GE32243@n2100.arm.linux.org.uk> <20131219182252.GP27438@atomide.com> <20131220112700.GF32243@n2100.arm.linux.org.uk>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCHv11 43/49] ARM: OMAP2+: PRM: add support for initializing
+ PRCM clock modules from DT
+Date: Fri, 20 Dec 2013 11:49:52 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1312201147060.20802@utopia.booyaka.com>
+References: <1387452260-23276-1-git-send-email-t-kristo@ti.com> <1387452260-23276-44-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:55432 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755863Ab3LTLsp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Dec 2013 06:48:45 -0500
-Content-Disposition: inline
-In-Reply-To: <20131220112700.GF32243@n2100.arm.linux.org.uk>
+Received: from utopia.booyaka.com ([74.50.51.50]:52597 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756251Ab3LTLtx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Dec 2013 06:49:53 -0500
+In-Reply-To: <1387452260-23276-44-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-arm-kernel@lists.infradead.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, nm@ti.com, rnayak@ti.com, bcousson@baylibre.com, mturquette@linaro.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-On Fri, Dec 20, 2013 at 11:27:01AM +0000, Russell King - ARM Linux wrote:
-> Maybe, but that's the problem - finding out what is missing.  This is the
-> endless problem where things keep changing - it's very difficult to keep
-> a "working configuration" working because the config symbols keep changing.
+On Thu, 19 Dec 2013, Tero Kristo wrote:
+
+> This patch provides top level functionality for the DT clock initialization.
+> Clock tree is initialized hierarchically starting from IP modules (CM/PRM/PRCM)
+> going down towards individual clock nodes, and finally initializing
+> clockdomains once all the clocks are ready.
+
+So just to flag this as something we'll want to deal with later.  
+The low-level CM* drivers should be responsible for registering CM* clocks 
+and clockdomains.  Similarly the PRM* low-level drivers should only 
+register PRM* clocks and clockdomains.  But it looks to me like we can 
+rearrange this code later without any significant impact, unless you 
+foresee any issues with that?  If not, in the interests of expediency, 
+let's take that up in future patches.
+
+
+- Paul
+
 > 
-> Also, bear in mind that there's many different variants of the LDP hardware
-> with stuff connected up in different ways (I'm aware that the keypad is
-> just randomly allocated).  I wouldn't be surprised if this also applied
-> to how the backlight on the LCD was done.
+> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> ---
+>  arch/arm/mach-omap2/prm.h        |    1 +
+>  arch/arm/mach-omap2/prm_common.c |   66 ++++++++++++++++++++++++++++++++++++++
+>  2 files changed, 67 insertions(+)
+> 
+> diff --git a/arch/arm/mach-omap2/prm.h b/arch/arm/mach-omap2/prm.h
+> index ac25ae6..623db40 100644
+> --- a/arch/arm/mach-omap2/prm.h
+> +++ b/arch/arm/mach-omap2/prm.h
+> @@ -18,6 +18,7 @@
+>  # ifndef __ASSEMBLER__
+>  extern void __iomem *prm_base;
+>  extern void omap2_set_globals_prm(void __iomem *prm);
+> +int of_prcm_init(void);
+>  # endif
+>  
+>  
+> diff --git a/arch/arm/mach-omap2/prm_common.c b/arch/arm/mach-omap2/prm_common.c
+> index a2e1174..835eb7d 100644
+> --- a/arch/arm/mach-omap2/prm_common.c
+> +++ b/arch/arm/mach-omap2/prm_common.c
+> @@ -23,6 +23,10 @@
+>  #include <linux/irq.h>
+>  #include <linux/interrupt.h>
+>  #include <linux/slab.h>
+> +#include <linux/of.h>
+> +#include <linux/of_address.h>
+> +#include <linux/clk-provider.h>
+> +#include <linux/clk/ti.h>
+>  
+>  #include "soc.h"
+>  #include "prm2xxx_3xxx.h"
+> @@ -30,6 +34,7 @@
+>  #include "prm3xxx.h"
+>  #include "prm44xx.h"
+>  #include "common.h"
+> +#include "clock.h"
+>  
+>  /*
+>   * OMAP_PRCM_MAX_NR_PENDING_REG: maximum number of PRM_IRQ*_MPU regs
+> @@ -464,3 +469,64 @@ int prm_unregister(struct prm_ll_data *pld)
+>  
+>  	return 0;
+>  }
+> +
+> +static struct of_device_id omap_prcm_dt_match_table[] = {
+> +	{ .compatible = "ti,am3-prcm" },
+> +	{ .compatible = "ti,am3-scrm" },
+> +	{ .compatible = "ti,am4-prcm" },
+> +	{ .compatible = "ti,am4-scrm" },
+> +	{ .compatible = "ti,omap3-prm" },
+> +	{ .compatible = "ti,omap3-cm" },
+> +	{ .compatible = "ti,omap3-scrm" },
+> +	{ .compatible = "ti,omap4-cm1" },
+> +	{ .compatible = "ti,omap4-prm" },
+> +	{ .compatible = "ti,omap4-cm2" },
+> +	{ .compatible = "ti,omap4-scrm" },
+> +	{ .compatible = "ti,omap5-prm" },
+> +	{ .compatible = "ti,omap5-cm-core-aon" },
+> +	{ .compatible = "ti,omap5-scrm" },
+> +	{ .compatible = "ti,omap5-cm-core" },
+> +	{ .compatible = "ti,dra7-prm" },
+> +	{ .compatible = "ti,dra7-cm-core-aon" },
+> +	{ .compatible = "ti,dra7-cm-core" },
+> +	{ }
+> +};
+> +
+> +static struct clk_hw_omap memmap_dummy_ck = {
+> +	.flags = MEMMAP_ADDRESSING,
+> +};
+> +
+> +static u32 prm_clk_readl(u32 *reg)
+> +{
+> +	return omap2_clk_readl(&memmap_dummy_ck, reg);
+> +}
+> +
+> +static void prm_clk_writel(u32 val, u32 *reg)
+> +{
+> +	omap2_clk_writel(val, &memmap_dummy_ck, reg);
+> +}
+> +
+> +static struct clk_ll_ops omap_clk_ll_ops = {
+> +	.clk_readl = prm_clk_readl,
+> +	.clk_writel = prm_clk_writel,
+> +};
+> +
+> +int __init of_prcm_init(void)
+> +{
+> +	struct device_node *np;
+> +	void __iomem *mem;
+> +	int memmap_index = 0;
+> +
+> +	ti_clk_ll_ops = &omap_clk_ll_ops;
+> +
+> +	for_each_matching_node(np, omap_prcm_dt_match_table) {
+> +		mem = of_iomap(np, 0);
+> +		clk_memmaps[memmap_index] = mem;
+> +		ti_dt_clk_init_provider(np, memmap_index);
+> +		memmap_index++;
+> +	}
+> +
+> +	ti_dt_clockdomains_setup();
+> +
+> +	return 0;
+> +}
+> -- 
+> 1.7.9.5
+> 
 
-Or maybe this is getting buggered by the idiotic deferred probing...  It
-seems that the GPIOs for controlling the LCD and backlight aren't even
-getting claimed if the DSS modules are built in:
 
-# cat /sys/kernel/debug/gpio
-...
-GPIOs 238-255, platform/twl4030_gpio, twl4030, can sleep:
-# echo panel-dpi.0 > /sys/bus/platform/drivers/panel-dpi/unbind
-# echo panel-dpi.0 > /sys/bus/platform/drivers/panel-dpi/bind
-# cat /sys/kernel/debug/gpio
-...
-GPIOs 238-255, platform/twl4030_gpio, twl4030, can sleep:
- gpio-245 (panel enable        ) out lo
- gpio-253 (panel backlight     ) out lo
-
-Tony, try this with the stuff not as modules but built-in.
+- Paul
