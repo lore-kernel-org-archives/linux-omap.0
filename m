@@ -1,156 +1,98 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv12 01/49] clk: add support for registering clocks from description
-Date: Fri, 20 Dec 2013 18:34:20 +0200
-Message-ID: <1387557274-22583-2-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv12 06/49] clk: add support for low level register ops
+Date: Fri, 20 Dec 2013 18:34:24 +0200
+Message-ID: <1387557274-22583-6-git-send-email-t-kristo@ti.com>
 References: <1387557274-22583-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:42636 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755446Ab3LTQfQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 20 Dec 2013 11:35:16 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:51652 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755789Ab3LTQf3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Dec 2013 11:35:29 -0500
 In-Reply-To: <1387557274-22583-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, nm@ti.com, rnayak@ti.com, bcousson@baylibre.com, mturquette@linaro.org
 Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-From: Mike Turquette <mturquette@linaro.org>
+Low level register ops are needed for providing SoC or IP block specific
+access routines to clock registers. Subsequent patches add support for
+the low level ops for the individual clock drivers.
 
-clk_register_desc is the primary interface for populating the clock tree
-with new clock nodes. In time, this will replace the various hardware-specific
-registration functions (e.g. clk_register_gate).
-
-Signed-off-by: Mike Turquette <mturquette@linaro.org>
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- drivers/clk/clk.c            |   71 ++++++++++++++++++++++++++++++++++++++++++
- include/linux/clk-provider.h |   22 +++++++++++++
- 2 files changed, 93 insertions(+)
+ drivers/clk/clk.c            |   28 ++++++++++++++++++++++++++++
+ include/linux/clk-provider.h |   17 +++++++++++++++++
+ 2 files changed, 45 insertions(+)
 
 diff --git a/drivers/clk/clk.c b/drivers/clk/clk.c
-index 2cf2ea6..29281f6 100644
+index 29281f6..8bcd1e0 100644
 --- a/drivers/clk/clk.c
 +++ b/drivers/clk/clk.c
-@@ -1905,6 +1905,77 @@ fail_out:
- EXPORT_SYMBOL_GPL(clk_register);
+@@ -34,6 +34,34 @@ static HLIST_HEAD(clk_root_list);
+ static HLIST_HEAD(clk_orphan_list);
+ static LIST_HEAD(clk_notifier_list);
  
- /**
-+ * clk_register_desc - register a new clock from its description
-+ * @dev: device that is registering this clock
-+ * @desc: description of the clock, may be __initdata or otherwise discarded
++/**
++ * clk_readl_default - default clock register read support function
++ * @reg: register to read
 + *
-+ * clk_register_desc is the primary interface for populating the clock tree
-+ * with new clock nodes. In time it will replace the various hardware-specific
-+ * registration functions (e.g. clk_register_gate). clk_register_desc returns a
-+ * pointer to the newly allocated struct clk which is an opaque cookie. Drivers
-+ * must not dereference it except to check with IS_ERR.
++ * Default implementation for reading a clock register.
 + */
-+struct clk *clk_register_desc(struct device *dev, struct clk_desc *desc)
++static u32 clk_readl_default(void __iomem *reg)
 +{
-+	int ret, i;
-+	struct clk *clk;
-+
-+	clk = kzalloc(sizeof(*clk), GFP_KERNEL);
-+
-+	if (!clk)
-+		return ERR_PTR(-ENOMEM);
-+
-+	clk->hw = desc->register_func(dev, desc);
-+	clk->hw->clk = clk;
-+
-+	/* _clk_register */
-+	clk->name = kstrdup(desc->name, GFP_KERNEL);
-+	if (!clk->name) {
-+		ret = -ENOMEM;
-+		goto fail_name;
-+	}
-+
-+	clk->ops = desc->ops;
-+	clk->flags = desc->flags;
-+	clk->num_parents = desc->num_parents;
-+
-+	/* allocate local copy in case parent_names is __initdata */
-+	clk->parent_names = kcalloc(clk->num_parents, sizeof(char *),
-+				    GFP_KERNEL);
-+
-+	if (!clk->parent_names) {
-+		ret = -ENOMEM;
-+		goto fail_parent_names;
-+	}
-+
-+	/* copy each string name in case parent_names is __initdata */
-+	for (i = 0; i < clk->num_parents; i++) {
-+		clk->parent_names[i] = kstrdup(desc->parent_names[i],
-+					       GFP_KERNEL);
-+
-+		if (!clk->parent_names[i]) {
-+			ret = -ENOMEM;
-+			goto fail_parent_names_copy;
-+		}
-+	}
-+
-+	ret = __clk_init(dev, clk);
-+
-+	if (!ret)
-+		return clk;
-+
-+fail_parent_names_copy:
-+	while (--i >= 0)
-+		kfree(clk->parent_names[i]);
-+	kfree(clk->parent_names);
-+fail_parent_names:
-+	kfree(clk->name);
-+fail_name:
-+	kfree(clk);
-+	return ERR_PTR(ret);
++	return readl(reg);
 +}
 +
 +/**
-  * clk_unregister - unregister a currently registered clock
-  * @clk: clock to unregister
-  *
-diff --git a/include/linux/clk-provider.h b/include/linux/clk-provider.h
-index 7e59253..08a0da0 100644
---- a/include/linux/clk-provider.h
-+++ b/include/linux/clk-provider.h
-@@ -161,6 +161,27 @@ struct clk_init_data {
- };
- 
- /**
-+ * struct clk_desc - clock init descriptor for providing init time parameters
-+ * for a clock.
-+ * @name: clock name
-+ * @ops: clock ops
-+ * @parent_names: array of string names for all possible parents
-+ * @num_parents: number of possible parents
-+ * @flags: framework-level hints and quirks
-+ * @register_func: function for parsing the clock descriptor and providing
-+ *		   ready-to-register clk_hw
++ * clk_writel_default - default clock register write support function
++ * @val: value to write
++ * @reg: register to write to
++ *
++ * Default implementation for writing a clock register.
 + */
-+struct clk_desc {
-+	const char		*name;
-+	const struct clk_ops	*ops;
-+	const char		**parent_names;
-+	u8			num_parents;
-+	unsigned long		flags;
-+	struct clk_hw *(*register_func)(struct device *dev,
-+					struct clk_desc *desc);
++static void clk_writel_default(u32 val, void __iomem *reg)
++{
++	writel(val, reg);
++}
++
++struct clk_ll_ops clk_ll_ops_default = {
++	.clk_readl = clk_readl_default,
++	.clk_writel = clk_writel_default
 +};
 +
-+/**
-  * struct clk_hw - handle for traversing from a struct clk to its corresponding
-  * hardware-specific structure.  struct clk_hw should be declared within struct
-  * clk_foo and then referenced by the struct clk instance that uses struct
-@@ -419,6 +440,7 @@ struct clk *clk_register_composite(struct device *dev, const char *name,
-  * error code; drivers must test for an error code after calling clk_register.
-  */
- struct clk *clk_register(struct device *dev, struct clk_hw *hw);
-+struct clk *clk_register_desc(struct device *dev, struct clk_desc *desc);
- struct clk *devm_clk_register(struct device *dev, struct clk_hw *hw);
+ /***           locking             ***/
+ static void clk_prepare_lock(void)
+ {
+diff --git a/include/linux/clk-provider.h b/include/linux/clk-provider.h
+index a4f14ae..671dff4 100644
+--- a/include/linux/clk-provider.h
++++ b/include/linux/clk-provider.h
+@@ -198,6 +198,23 @@ struct clk_hw {
+ 	const struct clk_init_data *init;
+ };
  
- void clk_unregister(struct clk *clk);
++/**
++ * struct clk_ll_ops - low-level register access ops for a clock
++ * @clk_readl: pointer to register read function
++ * @clk_writel: pointer to register write function
++ *
++ * Low-level register access ops are generally used by the basic clock types
++ * (clk-gate, clk-mux, clk-divider etc.) to provide support for various
++ * low-level hardware interfaces (direct MMIO, regmap etc.), but can also be
++ * used by other hardware-specific clock drivers if needed.
++ */
++struct clk_ll_ops {
++	u32	(*clk_readl)(void __iomem *reg);
++	void	(*clk_writel)(u32 val, void __iomem *reg);
++};
++
++extern struct clk_ll_ops clk_ll_ops_default;
++
+ /*
+  * DOC: Basic clock implementations common to many platforms
+  *
 -- 
 1.7.9.5
 
