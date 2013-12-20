@@ -1,87 +1,63 @@
 From: Jyri Sarha <jsarha@ti.com>
-Subject: [PATCH RFC v2 REPOST 4/8] ASoC: hdmi-codec: Add devicetree binding with documentation
-Date: Fri, 20 Dec 2013 12:40:16 +0200
-Message-ID: <16c91c4504cd5fa699f04236ef17e84bd23459d6.1387535303.git.jsarha@ti.com>
+Subject: [PATCH RFC v2 REPOST 5/8] ASoC: davinci: HDMI audio build for AM33XX and TDA998x
+Date: Fri, 20 Dec 2013 12:40:54 +0200
+Message-ID: <aa27717c56f024eb2f381fd5ee3fcd0938e7c0bd.1387535303.git.jsarha@ti.com>
 References: <cover.1387535299.git.jsarha@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:46070 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755831Ab3LTKkr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 20 Dec 2013 05:40:47 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:36356 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755957Ab3LTKlX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Dec 2013 05:41:23 -0500
 In-Reply-To: <cover.1387535299.git.jsarha@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, dri-devel@lists.freedesktop.org, devicetree@vger.kernel.org, bcousson@baylibre.com
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, dri-devel@lists.freedesktop.org, devicetree@vger.kernel.org
 Cc: broonie@kernel.org, Jyri Sarha <jsarha@ti.com>
 
-Signed-off-by: Jyri Sarha <jsarha@ti.com>
-cc: bcousson@baylibre.com
----
- Documentation/devicetree/bindings/sound/hdmi.txt |   17 +++++++++++++++++
- sound/soc/codecs/hdmi.c                          |   10 ++++++++++
- 2 files changed, 27 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/sound/hdmi.txt
+Adds configuration option for HDMI audio support for AM33XX based
+boards with NXP TDA998x HDMI transmitter. The audio is connected to
+NXP TDA998x trough McASP running in i2s mode.
 
-diff --git a/Documentation/devicetree/bindings/sound/hdmi.txt b/Documentation/devicetree/bindings/sound/hdmi.txt
-new file mode 100644
-index 0000000..31af7bc
---- /dev/null
-+++ b/Documentation/devicetree/bindings/sound/hdmi.txt
-@@ -0,0 +1,17 @@
-+Device-Tree bindings for dummy HDMI codec
-+
-+Required properties:
-+	- compatible: should be "linux,hdmi-audio".
-+
-+CODEC output pins:
-+  * TX
-+
-+CODEC input pins:
-+  * RX
-+
-+Example node:
-+
-+	hdmi_audio: hdmi_audio@0 {
-+		compatible = "linux,hdmi-audio";
-+		status = "okay";
-+	};
-diff --git a/sound/soc/codecs/hdmi.c b/sound/soc/codecs/hdmi.c
-index 32797a8..9cb1c7d 100644
---- a/sound/soc/codecs/hdmi.c
-+++ b/sound/soc/codecs/hdmi.c
-@@ -20,6 +20,7 @@
-  */
- #include <linux/module.h>
- #include <sound/soc.h>
-+#include <linux/of_device.h>
+Signed-off-by: Jyri Sarha <jsarha@ti.com>
+---
+ sound/soc/davinci/Kconfig  |   12 ++++++++++++
+ sound/soc/davinci/Makefile |    1 +
+ 2 files changed, 13 insertions(+)
+
+diff --git a/sound/soc/davinci/Kconfig b/sound/soc/davinci/Kconfig
+index a8ec1fc..40dd5d1 100644
+--- a/sound/soc/davinci/Kconfig
++++ b/sound/soc/davinci/Kconfig
+@@ -26,6 +26,18 @@ config SND_AM33XX_SOC_EVM
+ 	  AM335X-EVMSK, and BeagelBone with AudioCape boards have this
+ 	  setup.
  
- #define DRV_NAME "hdmi-audio-codec"
- 
-@@ -60,6 +61,14 @@ static struct snd_soc_dai_driver hdmi_codec_dai = {
- 
- };
- 
-+#ifdef CONFIG_OF
-+static const struct of_device_id hdmi_audio_codec_ids[] = {
-+	{ .compatible = "linux,hdmi-audio", },
-+	{ }
-+};
-+MODULE_DEVICE_TABLE(of, hdmi_audio_codec_ids);
-+#endif
++config SND_AM335X_SOC_NXPTDA_EVM
++	tristate "HDMI Audio for the AM33XX chip based boards with TDA998x"
++	depends on SND_DAVINCI_SOC && SOC_AM33XX
++	depends on DRM_TILCDC && DRM_I2C_NXP_TDA998X
++	select SND_SOC_HDMI_CODEC
++	select SND_DAVINCI_SOC_MCASP
++	help
++	  Say Y or M if you want to add support for HDMI SoC audio on
++	  AM33XX boards with NXP TDA998x HDMI transmitter. For example
++	  BeagleBoneBack. The audio is connected to NXP TDA998x trough
++	  McASP running in i2s mode.
 +
- static struct snd_soc_codec_driver hdmi_codec = {
- 	.dapm_widgets = hdmi_widgets,
- 	.num_dapm_widgets = ARRAY_SIZE(hdmi_widgets),
-@@ -83,6 +92,7 @@ static struct platform_driver hdmi_codec_driver = {
- 	.driver		= {
- 		.name	= DRV_NAME,
- 		.owner	= THIS_MODULE,
-+		.of_match_table = of_match_ptr(hdmi_audio_codec_ids),
- 	},
+ config SND_DAVINCI_SOC_EVM
+ 	tristate "SoC Audio support for DaVinci DM6446, DM355 or DM365 EVM"
+ 	depends on SND_DAVINCI_SOC
+diff --git a/sound/soc/davinci/Makefile b/sound/soc/davinci/Makefile
+index 744d4d9..7587a70 100644
+--- a/sound/soc/davinci/Makefile
++++ b/sound/soc/davinci/Makefile
+@@ -13,3 +13,4 @@ obj-$(CONFIG_SND_DAVINCI_SOC_VCIF) += snd-soc-davinci-vcif.o
+ snd-soc-evm-objs := davinci-evm.o
  
- 	.probe		= hdmi_codec_probe,
+ obj-$(CONFIG_SND_DAVINCI_SOC_GENERIC_EVM) += snd-soc-evm.o
++obj-$(CONFIG_SND_AM335X_SOC_NXPTDA_EVM) += snd-soc-evm.o
 -- 
 1.7.9.5
 
