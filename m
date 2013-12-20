@@ -1,72 +1,87 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: OMAP display subsystem - does it work?
-Date: Fri, 20 Dec 2013 09:45:18 +0200
-Message-ID: <52B3F58E.8060806@ti.com>
-References: <20131218120023.GG4360@n2100.arm.linux.org.uk> <52B1A922.6020901@ti.com> <20131218180240.GG27438@atomide.com> <52B282BE.9050705@ti.com> <20131219165607.GN27438@atomide.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="Upui4NUgjcIhNr3ClDBAi0sw2C7kousBU"
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: [PATCH 3/8] ARM: Convert boot_lock to raw_lock [omap]
+Date: Fri, 20 Dec 2013 10:47:41 +0100
+Message-ID: <1387532866-22601-4-git-send-email-bigeasy@linutronix.de>
+References: <1387532866-22601-1-git-send-email-bigeasy@linutronix.de>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:39172 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754099Ab3LTHqO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 20 Dec 2013 02:46:14 -0500
-In-Reply-To: <20131219165607.GN27438@atomide.com>
+Received: from www.linutronix.de ([62.245.132.108]:59768 "EHLO
+	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754950Ab3LTJr6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Dec 2013 04:47:58 -0500
+In-Reply-To: <1387532866-22601-1-git-send-email-bigeasy@linutronix.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: Frank Rowand <frank.rowand@am.sony.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Frank Rowand <frank.rowand@sonymobile.com>, Thomas Gleixner <tglx@linutronix.de>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 
---Upui4NUgjcIhNr3ClDBAi0sw2C7kousBU
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+From: Frank Rowand <frank.rowand@am.sony.com>
 
-On 2013-12-19 18:56, Tony Lindgren wrote:
+The arm boot_lock is used by the secondary processor startup code.  The locking
+task is the idle thread, which has idle->sched_class == &idle_sched_class.
+idle_sched_class->enqueue_task == NULL, so if the idle task blocks on the
+lock, the attempt to wake it when the lock becomes available will fail:
 
->>> Russell, maybe all you're missing is just omapfb.vram=3D0:2M,1:5M or =
-similar
->>> from your kernel cmdline?
->>
->> Nothing like that should be required for normal operation.
->=20
-> Hmm maybe these instructions need some updating then:
->=20
-> http://omappedia.org/wiki/Bootargs_for_enabling_display
+try_to_wake_up()
+   ...
+      activate_task()
+         enqueue_task()
+            p->sched_class->enqueue_task(rq, p, flags)
 
-The page says omapfb.vram "can" be used, and "If the size is not
-specified, frame buffers with default size are created". You only need
-omapfb.vram option if you want to allocate extra memory for the fb.
+Fix by converting boot_lock to a raw spin lock.
 
-The plain 'vram' option has no function anymore, now that we're using
-normal dma alloc. So that part should be updated.
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
+Cc: Frank Rowand <frank.rowand@sonymobile.com>
+Signed-off-by: Frank Rowand <frank.rowand@am.sony.com>
+Link: http://lkml.kernel.org/r/4E77B952.3010606@am.sony.com
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+---
+ arch/arm/mach-omap2/omap-smp.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
- Tomi
+diff --git a/arch/arm/mach-omap2/omap-smp.c b/arch/arm/mach-omap2/omap-smp.c
+index 75e95d4..1ddafec 100644
+--- a/arch/arm/mach-omap2/omap-smp.c
++++ b/arch/arm/mach-omap2/omap-smp.c
+@@ -44,7 +44,7 @@ u16 pm44xx_errata;
+ /* SCU base address */
+ static void __iomem *scu_base;
+ 
+-static DEFINE_SPINLOCK(boot_lock);
++static DEFINE_RAW_SPINLOCK(boot_lock);
+ 
+ void __iomem *omap4_get_scu_base(void)
+ {
+@@ -75,8 +75,8 @@ static void omap4_secondary_init(unsigned int cpu)
+ 	/*
+ 	 * Synchronise with the boot thread.
+ 	 */
+-	spin_lock(&boot_lock);
+-	spin_unlock(&boot_lock);
++	raw_spin_lock(&boot_lock);
++	raw_spin_unlock(&boot_lock);
+ }
+ 
+ static int omap4_boot_secondary(unsigned int cpu, struct task_struct *idle)
+@@ -90,7 +90,7 @@ static int omap4_boot_secondary(unsigned int cpu, struct task_struct *idle)
+ 	 * Set synchronisation state between this boot processor
+ 	 * and the secondary one
+ 	 */
+-	spin_lock(&boot_lock);
++	raw_spin_lock(&boot_lock);
+ 
+ 	/*
+ 	 * Update the AuxCoreBoot0 with boot state for secondary core.
+@@ -167,7 +167,7 @@ static int omap4_boot_secondary(unsigned int cpu, struct task_struct *idle)
+ 	 * Now the secondary core is starting up let it run its
+ 	 * calibrations, then wait for it to finish
+ 	 */
+-	spin_unlock(&boot_lock);
++	raw_spin_unlock(&boot_lock);
+ 
+ 	return 0;
+ }
+-- 
+1.8.5.1
 
-
-
---Upui4NUgjcIhNr3ClDBAi0sw2C7kousBU
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJSs/WOAAoJEPo9qoy8lh71vdQP/1+08Ss2MgngSSQZ2y4b0HZ0
-fdcLqKwZgGv9WwPaR7VrhuHhVafDknLQWEPdj5KExpgYrXqgWiUK4GYPRBh8znq+
-9+vDBcv/XCJr3KNLUqfLm9AgJc5+BVOoSfWeBOXn5ujo3o/79jpy8pvRzflb3jT0
-7AKYm0vE3mKMZ8W9A0dkvQSieD318XPXhBOR1uRc2lKB6vrFcSGAchkE1tBKzCD5
-W4ICf6sFRGLhyiR3eM68cMq3pzrOaILA+BJnXhN3ZaBvHviFtN/16IcQL66RHA1b
-xjvo/eh2F/8B/75EnMKtWk6YY+okYpHnBx42PA9p1k6uSxkDnAvbpQJmrao8KGRy
-MUbxT1bE7q0N1Bt41Q8dU2gaBe8EWqYNp1m5k3zJc6YS5nsbaBw0QFanWumtiFfH
-CF1f8/JUHhiyBDJjyNA7QnJws8CQpRJM+WA36u29p7w6UMRh4vRNWNsYgQbOsTdy
-epIXlhjOr2b0xhBniQ5CWaFsBEnOOXnTqErj2FMlyT/zECQ4N6QttZ6S4xE+FkSd
-GwiIRNGi8NcFcShPA/+RfCKn+xLILhVoP+X9A2pTGE4alwhgmv8idWryxG/JkJum
-hLKz9c03HH1licVkZ3M088Oto9kPManerAbeHNtQCcLheS7QvHD9CoHUwTb7/quM
-i4TqlJn+16JMQkL7Mp35
-=tKxO
------END PGP SIGNATURE-----
-
---Upui4NUgjcIhNr3ClDBAi0sw2C7kousBU--
