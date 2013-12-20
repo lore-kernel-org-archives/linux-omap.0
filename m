@@ -1,125 +1,123 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv12 08/49] clk: gate: add support for low level ops
-Date: Fri, 20 Dec 2013 18:34:26 +0200
-Message-ID: <1387557274-22583-8-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv12 07/49] clk: divider: add support for low level ops
+Date: Fri, 20 Dec 2013 18:34:25 +0200
+Message-ID: <1387557274-22583-7-git-send-email-t-kristo@ti.com>
 References: <1387557274-22583-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:50849 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:50850 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755810Ab3LTQfb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 20 Dec 2013 11:35:31 -0500
+	id S1755911Ab3LTQfc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 20 Dec 2013 11:35:32 -0500
 In-Reply-To: <1387557274-22583-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, nm@ti.com, rnayak@ti.com, bcousson@baylibre.com, mturquette@linaro.org
 Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-Gate clock can now be registered to use low level register access ops.
+Divider clock can now be registered to use low level register access ops.
 Preferred initialization method is via clock description.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- drivers/clk/clk-gate.c       |   20 +++++++++++++++++---
+ drivers/clk/clk-divider.c    |   22 +++++++++++++++++++---
  include/linux/clk-provider.h |    4 ++++
- 2 files changed, 21 insertions(+), 3 deletions(-)
+ 2 files changed, 23 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/clk/clk-gate.c b/drivers/clk/clk-gate.c
-index 3ec61d2..d4c94a7 100644
---- a/drivers/clk/clk-gate.c
-+++ b/drivers/clk/clk-gate.c
-@@ -62,7 +62,10 @@ static void clk_gate_endisable(struct clk_hw *hw, int enable)
- 		if (set)
- 			reg |= BIT(gate->bit_idx);
- 	} else {
--		reg = clk_readl(gate->reg);
-+		if (gate->ll_ops)
-+			reg = gate->ll_ops->clk_readl(gate->reg);
-+		else
-+			reg = clk_readl(gate->reg);
+diff --git a/drivers/clk/clk-divider.c b/drivers/clk/clk-divider.c
+index 8cfed5c..887e2d8 100644
+--- a/drivers/clk/clk-divider.c
++++ b/drivers/clk/clk-divider.c
+@@ -108,7 +108,12 @@ static unsigned long clk_divider_recalc_rate(struct clk_hw *hw,
+ 	struct clk_divider *divider = to_clk_divider(hw);
+ 	unsigned int div, val;
  
- 		if (set)
- 			reg |= BIT(gate->bit_idx);
-@@ -70,7 +73,10 @@ static void clk_gate_endisable(struct clk_hw *hw, int enable)
- 			reg &= ~BIT(gate->bit_idx);
- 	}
- 
--	clk_writel(reg, gate->reg);
-+	if (gate->ll_ops)
-+		gate->ll_ops->clk_writel(reg, gate->reg);
+-	val = clk_readl(divider->reg) >> divider->shift;
++	if (divider->ll_ops)
++		val = divider->ll_ops->clk_readl(divider->reg);
 +	else
-+		clk_writel(reg, gate->reg);
- 
- 	if (gate->lock)
- 		spin_unlock_irqrestore(gate->lock, flags);
-@@ -93,7 +99,10 @@ static int clk_gate_is_enabled(struct clk_hw *hw)
- 	u32 reg;
- 	struct clk_gate *gate = to_clk_gate(hw);
- 
--	reg = clk_readl(gate->reg);
-+	if (gate->ll_ops)
-+		reg = gate->ll_ops->clk_readl(gate->reg);
-+	else
-+		reg = clk_readl(gate->reg);
- 
- 	/* if a set bit disables this clk, flip it before masking */
- 	if (gate->flags & CLK_GATE_SET_TO_DISABLE)
-@@ -157,6 +166,7 @@ struct clk *clk_register_gate(struct device *dev, const char *name,
- 	gate->flags = clk_gate_flags;
- 	gate->lock = lock;
- 	gate->hw.init = &init;
-+	gate->ll_ops = &clk_ll_ops_default;
- 
- 	clk = clk_register(dev, &gate->hw);
- 
-@@ -184,6 +194,10 @@ struct clk_hw *clk_register_gate_desc(struct device *dev, struct clk_desc *desc)
- 	gate->bit_idx = hw_desc->bit_idx;
- 	gate->flags = hw_desc->flags;
- 	gate->lock = hw_desc->lock;
-+	gate->ll_ops = hw_desc->ll_ops;
++		val = clk_readl(divider->reg);
 +
-+	if (!gate->ll_ops)
-+		gate->ll_ops = &clk_ll_ops_default;
++	val >>= divider->shift;
+ 	val &= div_mask(divider);
+ 
+ 	div = _get_div(divider, val);
+@@ -234,11 +239,17 @@ static int clk_divider_set_rate(struct clk_hw *hw, unsigned long rate,
+ 	if (divider->flags & CLK_DIVIDER_HIWORD_MASK) {
+ 		val = div_mask(divider) << (divider->shift + 16);
+ 	} else {
+-		val = clk_readl(divider->reg);
++		if (divider->ll_ops)
++			val = divider->ll_ops->clk_readl(divider->reg);
++		else
++			val = clk_readl(divider->reg);
+ 		val &= ~(div_mask(divider) << divider->shift);
+ 	}
+ 	val |= value << divider->shift;
+-	clk_writel(val, divider->reg);
++	if (divider->ll_ops)
++		divider->ll_ops->clk_writel(val, divider->reg);
++	else
++		clk_writel(val, divider->reg);
+ 
+ 	if (divider->lock)
+ 		spin_unlock_irqrestore(divider->lock, flags);
+@@ -291,6 +302,7 @@ static struct clk *_register_divider(struct device *dev, const char *name,
+ 	div->lock = lock;
+ 	div->hw.init = &init;
+ 	div->table = table;
++	div->ll_ops = &clk_ll_ops_default;
+ 
+ 	/* register the clock */
+ 	clk = clk_register(dev, &div->hw);
+@@ -368,6 +380,10 @@ struct clk_hw *clk_register_divider_desc(struct device *dev,
+ 	divider->flags = hw_desc->flags;
+ 	divider->table = hw_desc->table;
+ 	divider->lock = hw_desc->lock;
++	divider->ll_ops = hw_desc->ll_ops;
++
++	if (!divider->ll_ops)
++		divider->ll_ops = &clk_ll_ops_default;
  
  	if (!desc->ops)
- 		desc->ops = &clk_gate_ops;
+ 		desc->ops = &clk_divider_ops;
 diff --git a/include/linux/clk-provider.h b/include/linux/clk-provider.h
-index f082a89..3923d46 100644
+index 671dff4..f082a89 100644
 --- a/include/linux/clk-provider.h
 +++ b/include/linux/clk-provider.h
-@@ -262,6 +262,7 @@ void of_fixed_clk_setup(struct device_node *np);
+@@ -322,6 +322,7 @@ struct clk_div_table {
   *
   * @hw:		handle between common and hardware-specific interfaces
-  * @reg:	register controlling gate
+  * @reg:	register containing the divider
 + * @ll_ops:	low-level ops for accessing the register
-  * @bit_idx:	single bit controlling gate
-  * @flags:	hardware-specific flags
-  * @lock:	register lock
-@@ -280,6 +281,7 @@ void of_fixed_clk_setup(struct device_node *np);
- struct clk_gate {
- 	struct clk_hw hw;
+  * @shift:	shift to the divider bit field
+  * @width:	width of the divider bit field
+  * @table:	array of value/divider pairs, last entry should have div = 0
+@@ -350,6 +351,7 @@ struct clk_div_table {
+ struct clk_divider {
+ 	struct clk_hw	hw;
  	void __iomem	*reg;
 +	struct clk_ll_ops	*ll_ops;
- 	u8		bit_idx;
+ 	u8		shift;
+ 	u8		width;
  	u8		flags;
- 	spinlock_t	*lock;
-@@ -289,6 +291,7 @@ struct clk_gate {
-  * struct clk_gate_desc - init descriptor for gating clock
+@@ -361,6 +363,7 @@ struct clk_divider {
+  * struct clk_divider_desc - init descriptor for divider clock
   * @desc:	handle between common and hardware-specific interfaces
-  * @reg:	register controlling gate
+  * @reg:	register containing the divider
 + * @ll_ops:	low-level ops for accessing the register
-  * @bit_idx:	single bit controlling gate
-  * @flags:	hardware-specific flags
-  * @lock:	register lock
-@@ -296,6 +299,7 @@ struct clk_gate {
- struct clk_gate_desc {
+  * @shift:	shift to the divider bit field
+  * @width:	width of the divider bit field
+  * @table:	array of value/divider pairs, last entry should have div = 0
+@@ -369,6 +372,7 @@ struct clk_divider {
+ struct clk_divider_desc {
  	struct clk_desc	desc;
  	void __iomem	*reg;
 +	struct clk_ll_ops	*ll_ops;
- 	u8		bit_idx;
+ 	u8		shift;
+ 	u8		width;
  	u8		flags;
- 	spinlock_t	*lock;
 -- 
 1.7.9.5
 
