@@ -1,129 +1,70 @@
-From: Michael Trimarchi <michael@amarulasolutions.com>
-Subject: Re: [PATCH v7 4/7] mmc: omap_hsmmc: adapt hsmmc to use pbias regulator
-Date: Fri, 20 Dec 2013 19:15:56 +0100
-Message-ID: <CAOf5uw=QO9ePDxQfZYpJPd9Fa4Cud54+NL2CtkJvsF5dz3MXvA@mail.gmail.com>
-References: <1387560955-6547-1-git-send-email-balajitk@ti.com>
-	<1387560955-6547-5-git-send-email-balajitk@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCHv12 00/49] ARM: TI SoC clock DT conversion
+Date: Fri, 20 Dec 2013 10:37:05 -0800
+Message-ID: <20131220183703.GA26054@atomide.com>
+References: <1387557274-22583-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <1387560955-6547-5-git-send-email-balajitk@ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Balaji T K <balajitk@ti.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Benoit Cousson <bcousson@baylibre.com>, devicetree@vger.kernel.org, linux-mmc@vger.kernel.org, Chris Ball <cjb@laptop.org>, Mark Brown <broonie@kernel.org>, Tony Lindgren <tony@atomide.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:58346 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750817Ab3LTSh4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Dec 2013 13:37:56 -0500
+Content-Disposition: inline
+In-Reply-To: <1387557274-22583-1-git-send-email-t-kristo@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, nm@ti.com, rnayak@ti.com, bcousson@baylibre.com, mturquette@linaro.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-Hi
+* Tero Kristo <t-kristo@ti.com> [131220 08:36]:
+> Hi,
+> 
+> Hopefully final post of this series. At least this is going to be the last
+> post this year as I will be going to x-mas vacation and won't be back before
+> Jan 2nd. This time I just sent the patches that have changes in them,
+> the missing ones are exactly the same as in v11.
+> 
+> Changes done:
+>  - most of the patches:
+>    * Some cosmetic documentation fixes
+>  - patch 06:
+>    * Changed register pointer types from 'u32 __iomem *' to 'void __iomem *'
+>  - patch 07,08,09:
+>    * Added check for clk->ll_ops being NULL (happens with statically built
+>      clock data), fixes the boot time crash issue noticed by Tony
+>  - patch 11:
+>    * Moved __clk_of_table extern declaration to clk-provider.h header file...
+>      Got flamed about this enough times now. :)
+>    * Type for the declaration changed also from array to single entry,
+>      and address for this used in code. This prevents compile time error:
+>      "array type has incomplete element type". Can't use pointer here either
+>      as this messes the address of the table.
+>    * ti_clk_retry_init() now has int return type, and checks for kzalloc
+>      failure
+>  - patch 12, 14, 23:
+>    * Added cleanup in case ti_clk_retry_init() fails
+>  - patch 17:
+>    * Fixed potential memory leak in failed init detected by sparse
+>  - patch 18:
+>    * Modified commit message to add some details about clockdomains
+>  - patch 43:
+>    * Changed register pointer types from 'u32 *' to 'void __iomem *'
+> 
+> Testing done:
+> - omap3-beagle: boot, suspend/resume (ret), suspend/resume (off)
+> - omap4-panda-es: boot, suspend/resume (ret)
+> - omap5-uevm: boot
+> - am335x-bone: boot
+> - dra7-evm: boot
+> 
+> Branches available at https://github.com/t-kristo/linux-pm.git:
+> - branch: 3.13-rc4-dt-clks-v12 : contains everything, shall me merged last
+> - branch: 3.13-rc4-dt-clks-v12-for-mike : drivers/clk changes
+> - branch: 3.13-rc4-dt-clks-v11-for-benoit : DT data only (from v11, no changes)
 
-On Fri, Dec 20, 2013 at 6:35 PM, Balaji T K <balajitk@ti.com> wrote:
-> In DT case, PBAIS registers are programmed via regulator,
-> use regulator APIs to control PBIAS.
->
-> Signed-off-by: Balaji T K <balajitk@ti.com>
-> ---
->  drivers/mmc/host/omap_hsmmc.c |   39 +++++++++++++++++++++++++++++++++++++++
->  1 files changed, 39 insertions(+), 0 deletions(-)
->
-> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-> index 342be25..0a390f8 100644
-> --- a/drivers/mmc/host/omap_hsmmc.c
-> +++ b/drivers/mmc/host/omap_hsmmc.c
-> @@ -126,6 +126,10 @@
->  #define OMAP_MMC_MAX_CLOCK     52000000
->  #define DRIVER_NAME            "omap_hsmmc"
->
-> +#define VDD_1V8                        1800000         /* 180000 uV */
-> +#define VDD_3V0                        3000000         /* 300000 uV */
-> +#define VDD_165_195            (ffs(MMC_VDD_165_195) - 1)
-> +
->  /*
->   * One controller can have multiple slots, like on some omap boards using
->   * omap.c controller driver. Luckily this is not currently done on any known
-> @@ -164,6 +168,8 @@ struct omap_hsmmc_host {
->          */
->         struct  regulator       *vcc;
->         struct  regulator       *vcc_aux;
-> +       struct  regulator       *pbias;
-> +       bool                    pbias_enabled;
->         int                     pbias_disable;
->         void    __iomem         *base;
->         resource_size_t         mapbase;
-> @@ -272,6 +278,15 @@ static int omap_hsmmc_set_power(struct device *dev, int slot, int power_on,
->         if (mmc_slot(host).before_set_reg)
->                 mmc_slot(host).before_set_reg(dev, slot, power_on, vdd);
->
-> +       if (host->pbias) {
-> +               if (host->pbias_enabled == 1) {
-> +                       ret = regulator_disable(host->pbias);
-> +                       if (!ret)
-> +                               host->pbias_enabled = 0;
+Boots now for me on omap2/3/4, and off-idle works on omap3. So as far as
+I'm concerned, please feel free to add my ack to the new and updated patches
+still missing it:
 
-you should return error?
-
-> +               }
-> +               regulator_set_voltage(host->pbias, VDD_3V0, VDD_3V0);
-> +       }
-> +
->         /*
->          * Assume Vcc regulator is used only to power the card ... OMAP
->          * VDDS is used to power the pins, optionally with a transceiver to
-> @@ -306,9 +321,29 @@ static int omap_hsmmc_set_power(struct device *dev, int slot, int power_on,
->                 }
->         }
->
-> +       if (host->pbias) {
-> +               if (vdd <= VDD_165_195)
-> +                       ret = regulator_set_voltage(host->pbias, VDD_1V8,
-> +                                                               VDD_1V8);
-> +               else
-> +                       ret = regulator_set_voltage(host->pbias, VDD_3V0,
-> +                                                               VDD_3V0);
-> +               if (ret < 0)
-> +                       goto error_set_power;
-> +
-> +               if (host->pbias_enabled == 0) {
-> +                       ret = regulator_enable(host->pbias);
-> +                       if (!ret) {
-> +                               host->pbias_enabled = 1;
-> +                               goto error_set_power;
-
-Is this an error condition? Do you need this flag?
-
-Mcihael
-
-> +                       }
-> +               }
-> +       }
-> +
->         if (mmc_slot(host).after_set_reg)
->                 mmc_slot(host).after_set_reg(dev, slot, power_on, vdd);
->
-> +error_set_power:
->         return ret;
->  }
->
-> @@ -342,6 +377,9 @@ static int omap_hsmmc_reg_get(struct omap_hsmmc_host *host)
->         reg = devm_regulator_get_optional(host->dev, "vmmc_aux");
->         host->vcc_aux = IS_ERR(reg) ? NULL : reg;
->
-> +       reg = devm_regulator_get_optional(host->dev, "pbias");
-> +       host->pbias = IS_ERR(reg) ? NULL : reg;
-> +
->         /* For eMMC do not power off when not in sleep state */
->         if (mmc_slot(host).no_regulator_off_init)
->                 return 0;
-> @@ -1808,6 +1846,7 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
->         host->base      = ioremap(host->mapbase, SZ_4K);
->         host->power_mode = MMC_POWER_OFF;
->         host->next_data.cookie = 1;
-> +       host->pbias_enabled = 0;
->
->         platform_set_drvdata(pdev, host);
->
-> --
-> 1.7.5.4
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Acked-by: Tony Lindgren <tony@atomide.com>
