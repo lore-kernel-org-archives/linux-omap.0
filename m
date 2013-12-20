@@ -1,329 +1,176 @@
 From: Jyri Sarha <jsarha@ti.com>
-Subject: [PATCH RFC v2 REPOST 1/8] clk: add gpio controlled clock
-Date: Fri, 20 Dec 2013 12:37:30 +0200
-Message-ID: <cfed65bb023a075d3b9cd985876ac771143a6c79.1387535302.git.jsarha@ti.com>
+Subject: [PATCH RFC v2 REPOST 2/8] ASoC: davinci-evm: Add named clock
+ reference to DT bindings
+Date: Fri, 20 Dec 2013 12:38:27 +0200
+Message-ID: <c1ae738c9b6cd9f2e595eed1f4981378ded46925.1387535302.git.jsarha@ti.com>
 References: <cover.1387535299.git.jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:54623 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756477Ab3LTKiF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 20 Dec 2013 05:38:05 -0500
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <cover.1387535299.git.jsarha@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, dri-devel@lists.freedesktop.org, devicetree@vger.kernel.org, bcousson@baylibre.com, mturquette@linaro.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, dri-devel@lists.freedesktop.org, devicetree@vger.kernel.org, bcousson@baylibre.com
 Cc: broonie@kernel.org, Jyri Sarha <jsarha@ti.com>
+List-Id: linux-omap@vger.kernel.org
 
-The added clk-gpio is a basic clock that can be enabled and disabled
-trough a gpio output. The DT binding document for the clock is also
-added. For EPROBE_DEFER handling the registering of the clock has to
-be delayed until of_clk_get() call time.
+The referenced clock is used to get codec clock rate and the clock is
+disabled and enabled in startup and shutdown snd_soc_ops call
+backs. The change is also documented in DT bindigs document.
 
 Signed-off-by: Jyri Sarha <jsarha@ti.com>
-cc: mturquette@linaro.org
 cc: bcousson@baylibre.com
 ---
- .../devicetree/bindings/clock/gpio-clock.txt       |   21 ++
- drivers/clk/Makefile                               |    1 +
- drivers/clk/clk-gpio.c                             |  210 ++++++++++++++++++++
- include/linux/clk-provider.h                       |   25 +++
- 4 files changed, 257 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/clock/gpio-clock.txt
- create mode 100644 drivers/clk/clk-gpio.c
+ .../bindings/sound/davinci-evm-audio.txt           |    9 ++-
+ sound/soc/davinci/davinci-evm.c                    |   60 +++++++++++++++++++-
+ 2 files changed, 66 insertions(+), 3 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/clock/gpio-clock.txt b/Documentation/devicetree/bindings/clock/gpio-clock.txt
-new file mode 100644
-index 0000000..54fea39
---- /dev/null
-+++ b/Documentation/devicetree/bindings/clock/gpio-clock.txt
-@@ -0,0 +1,21 @@
-+Binding for simple gpio controlled clock.
-+
-+This binding uses the common clock binding[1].
-+
-+[1] Documentation/devicetree/bindings/clock/clock-bindings.txt
-+
-+Required properties:
-+- compatible : shall be "gpio-clock".
-+- #clock-cells : from common clock binding; shall be set to 0.
-+- enable-gpios : GPIO reference for enabling and disabling the clock.
-+
+diff --git a/Documentation/devicetree/bindings/sound/davinci-evm-audio.txt b/Documentation/devicetree/bindings/sound/davinci-evm-audio.txt
+index 865178d..4aa00f6 100644
+--- a/Documentation/devicetree/bindings/sound/davinci-evm-audio.txt
++++ b/Documentation/devicetree/bindings/sound/davinci-evm-audio.txt
+@@ -5,12 +5,19 @@ Required properties:
+ - ti,model : The user-visible name of this sound complex.
+ - ti,audio-codec : The phandle of the TLV320AIC3x audio codec
+ - ti,mcasp-controller : The phandle of the McASP controller
+-- ti,codec-clock-rate : The Codec Clock rate (in Hz) applied to the Codec
+ - ti,audio-routing : A list of the connections between audio components.
+   Each entry is a pair of strings, the first being the connection's sink,
+   the second being the connection's source. Valid names for sources and
+   sinks are the codec's pins, and the jacks on the board:
+ 
 +Optional properties:
-+- clocks: Maximum of one parent clock is supported.
++- ti,codec-clock-rate : The Codec Clock rate (in Hz) applied to the Codec.
++- clocks : Reference to the clock used as codec clock
++- clock-names : The codec clock should be named "ti,codec-clock"
++- Either codec-clock-rate or the codec-clock reference has to be defined. If
++  the both are defined the driver attempts to set referenced clock to the
++  defined rate and takes the rate from the clock reference.
 +
-+Example:
-+	clock {
-+		compatible = "gpio-clock";
-+		clocks = <&parentclk>;
-+		#clock-cells = <0>;
-+		enable-gpios = <&gpio 1 GPIO_ACTIVE_HIGH>;
-+	};
-diff --git a/drivers/clk/Makefile b/drivers/clk/Makefile
-index 7b11106..568b7be 100644
---- a/drivers/clk/Makefile
-+++ b/drivers/clk/Makefile
-@@ -8,6 +8,7 @@ obj-$(CONFIG_COMMON_CLK)	+= clk-fixed-rate.o
- obj-$(CONFIG_COMMON_CLK)	+= clk-gate.o
- obj-$(CONFIG_COMMON_CLK)	+= clk-mux.o
- obj-$(CONFIG_COMMON_CLK)	+= clk-composite.o
-+obj-$(CONFIG_COMMON_CLK)	+= clk-gpio.o
+   Board connectors:
  
- # SoCs specific
- obj-$(CONFIG_ARCH_BCM2835)	+= clk-bcm2835.o
-diff --git a/drivers/clk/clk-gpio.c b/drivers/clk/clk-gpio.c
-new file mode 100644
-index 0000000..e04b0e1
---- /dev/null
-+++ b/drivers/clk/clk-gpio.c
-@@ -0,0 +1,210 @@
-+/*
-+ * Copyright (C) 2013 Texas Instruments
-+ * Author: Jyri Sarha <jsarha@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * Gpio controlled clock implementation
-+ */
-+
-+#include <linux/clk-provider.h>
-+#include <linux/module.h>
-+#include <linux/slab.h>
-+#include <linux/gpio.h>
-+#include <linux/of_gpio.h>
-+#include <linux/err.h>
-+#include <linux/device.h>
-+
-+/**
-+ * DOC: basic gpio controlled clock which can be enabled and disabled
-+ *      with gpio output
-+ * Traits of this clock:
-+ * prepare - clk_(un)prepare only ensures parent is (un)prepared
-+ * enable - clk_enable and clk_disable are functional & control gpio
-+ * rate - inherits rate from parent.  No clk_set_rate support
-+ * parent - fixed parent.  No clk_set_parent support
-+ */
-+
-+#define to_clk_gpio(_hw) container_of(_hw, struct clk_gpio, hw)
-+
-+static int clk_gpio_enable(struct clk_hw *hw)
-+{
-+	struct clk_gpio *gpio = to_clk_gpio(hw);
-+	int value = gpio->active_low ? 0 : 1;
-+
-+	gpio_set_value(gpio->gpio, value);
-+
-+	return 0;
-+}
-+
-+static void clk_gpio_disable(struct clk_hw *hw)
-+{
-+	struct clk_gpio *gpio = to_clk_gpio(hw);
-+	int value = gpio->active_low ? 1 : 0;
-+
-+	gpio_set_value(gpio->gpio, value);
-+}
-+
-+static int clk_gpio_is_enabled(struct clk_hw *hw)
-+{
-+	struct clk_gpio *gpio = to_clk_gpio(hw);
-+	int value = gpio_get_value(gpio->gpio);
-+
-+	return gpio->active_low ? !value : value;
-+}
-+
-+const struct clk_ops clk_gpio_ops = {
-+	.enable = clk_gpio_enable,
-+	.disable = clk_gpio_disable,
-+	.is_enabled = clk_gpio_is_enabled,
-+};
-+EXPORT_SYMBOL_GPL(clk_gpio_ops);
-+
-+/**
-+ * clk_register_gpio - register a gpip clock with the clock framework
-+ * @dev: device that is registering this clock
-+ * @name: name of this clock
-+ * @parent_name: name of this clock's parent
-+ * @flags: framework-specific flags for this clock
-+ * @gpio: gpio to control this clock
-+ * @active_low: gpio polarity
-+ */
-+struct clk *clk_register_gpio(struct device *dev, const char *name,
-+		const char *parent_name, unsigned long flags,
-+		unsigned int gpio, bool active_low)
-+{
-+	struct clk_gpio *clk_gpio;
-+	struct clk *clk = ERR_PTR(-EINVAL);
-+	struct clk_init_data init = { NULL };
-+	unsigned long gpio_flags;
-+	int err;
-+
-+	if (active_low)
-+		gpio_flags = GPIOF_OUT_INIT_LOW;
-+	else
-+		gpio_flags = GPIOF_OUT_INIT_HIGH;
-+
-+	err = gpio_request_one(gpio, gpio_flags, name);
-+
-+	if (err) {
-+		pr_err("%s: %s: Error requesting clock control gpio %u\n",
-+		       __func__, name, gpio);
-+		clk = ERR_PTR(err);
-+		goto clk_register_gpio_err;
-+	}
-+
-+	clk_gpio = kzalloc(sizeof(*clk_gpio), GFP_KERNEL);
-+
-+	if (!clk_gpio) {
-+		pr_err("%s: %s: could not allocate gpio clk\n", __func__, name);
-+		clk = ERR_PTR(-ENOMEM);
-+		goto clk_register_gpio_err;
-+	}
-+
-+	init.name = name;
-+	init.ops = &clk_gpio_ops;
-+	init.flags = flags | CLK_IS_BASIC;
-+	init.parent_names = (parent_name ? &parent_name : NULL);
-+	init.num_parents = (parent_name ? 1 : 0);
-+
-+	clk_gpio->gpio = gpio;
-+	clk_gpio->active_low = active_low;
-+	clk_gpio->hw.init = &init;
-+
-+	clk = clk_register(dev, &clk_gpio->hw);
-+
-+	if (!IS_ERR(clk))
-+		return clk;
-+
-+	kfree(clk_gpio);
-+
-+clk_register_gpio_err:
-+	gpio_free(gpio);
-+
-+	return clk;
-+}
-+EXPORT_SYMBOL_GPL(clk_register_gpio);
-+
-+#ifdef CONFIG_OF
-+/**
-+ * The clk_register_gpio has to be delayed, because the EPROBE_DEFER
-+ * can not be handled properly at of_clk_init() call time.
-+ */
-+
-+struct clk_gpio_delayed_register_data {
-+	struct device_node *node;
-+	struct mutex lock; /* Protect delayed clk registering */
-+	struct clk *clk;
-+};
-+
-+static
-+struct clk *of_clk_gpio_delayed_register_get(struct of_phandle_args *clkspec,
-+					     void *_data)
-+{
-+	struct clk_gpio_delayed_register_data *data =
-+		(struct clk_gpio_delayed_register_data *)_data;
-+	struct clk *clk;
-+	const char *clk_name = data->node->name;
-+	const char *parent_name;
-+	enum of_gpio_flags gpio_flags;
-+	int gpio;
-+	bool active_low;
-+
-+	mutex_lock(&data->lock);
-+
-+	if (data->clk) {
-+		mutex_unlock(&data->lock);
-+		return data->clk;
-+	}
-+
-+	gpio = of_get_named_gpio_flags(data->node, "enable-gpios", 0,
-+				       &gpio_flags);
-+
-+	if (gpio < 0) {
-+		mutex_unlock(&data->lock);
-+		if (gpio != -EPROBE_DEFER)
-+			pr_err("%s: %s: Can't get 'enable-gpios' DT property\n",
-+			       __func__, clk_name);
-+		return ERR_PTR(gpio);
-+	}
-+
-+	active_low = gpio_flags & OF_GPIO_ACTIVE_LOW;
-+
-+	parent_name = of_clk_get_parent_name(data->node, 0);
-+
-+	clk = clk_register_gpio(NULL, clk_name, parent_name, 0,
-+				gpio, active_low);
-+	if (IS_ERR(clk)) {
-+		mutex_unlock(&data->lock);
-+		return clk;
-+	}
-+
-+	data->clk = clk;
-+	mutex_unlock(&data->lock);
-+
-+	return clk;
-+}
-+
-+/**
-+ * of_gpio_clk_setup() - Setup function for gpio controlled clock
-+ */
-+void __init of_gpio_clk_setup(struct device_node *node)
-+{
-+	struct clk_gpio_delayed_register_data *data;
-+
-+	data = kzalloc(sizeof(*data), GFP_KERNEL);
-+	if (!data) {
-+		pr_err("%s: could not allocate gpio clk\n", __func__);
-+		return;
-+	}
-+
-+	data->node = node;
-+	mutex_init(&data->lock);
-+
-+	of_clk_add_provider(node, of_clk_gpio_delayed_register_get, data);
-+}
-+EXPORT_SYMBOL_GPL(of_gpio_clk_setup);
-+CLK_OF_DECLARE(gpio_clk, "gpio-clock", of_gpio_clk_setup);
-+#endif
-diff --git a/include/linux/clk-provider.h b/include/linux/clk-provider.h
-index 73bdb69..9d433f7 100644
---- a/include/linux/clk-provider.h
-+++ b/include/linux/clk-provider.h
-@@ -407,6 +407,31 @@ struct clk *clk_register_composite(struct device *dev, const char *name,
- 		struct clk_hw *gate_hw, const struct clk_ops *gate_ops,
- 		unsigned long flags);
+   * Headphone Jack
+diff --git a/sound/soc/davinci/davinci-evm.c b/sound/soc/davinci/davinci-evm.c
+index 70ff377..b28c9fd 100644
+--- a/sound/soc/davinci/davinci-evm.c
++++ b/sound/soc/davinci/davinci-evm.c
+@@ -17,6 +17,7 @@
+ #include <linux/platform_data/edma.h>
+ #include <linux/i2c.h>
+ #include <linux/of_platform.h>
++#include <linux/clk.h>
+ #include <sound/core.h>
+ #include <sound/pcm.h>
+ #include <sound/soc.h>
+@@ -30,9 +31,30 @@
+ #include "davinci-i2s.h"
  
-+/***
-+ * struct clk_gpio - gpio controlled clock
-+ *
-+ * @hw:		handle between common and hardware-specific interfaces
-+ * @gpio:	gpio
-+ * @active_low:	gpio polarity
-+ *
-+ * Clock with a gpio control for enabling and disabling the parent clock.
-+ * Implements .enable, .disable and .is_enabled
-+ */
+ struct snd_soc_card_drvdata_davinci {
++	struct clk *mclk;
+ 	unsigned sysclk;
+ };
+ 
++static int evm_startup(struct snd_pcm_substream *substream)
++{
++	struct snd_soc_pcm_runtime *rtd = substream->private_data;
++	struct snd_soc_card *soc_card = rtd->codec->card;
++	struct clk *mclk = ((struct snd_soc_card_drvdata_davinci *)
++			    snd_soc_card_get_drvdata(soc_card))->mclk;
 +
-+struct clk_gpio {
-+	struct clk_hw	hw;
-+	unsigned int	gpio;
-+	bool		active_low;
-+};
++	return clk_prepare_enable(mclk);
++}
 +
-+extern const struct clk_ops clk_gpio_ops;
++static void evm_shutdown(struct snd_pcm_substream *substream)
++{
++	struct snd_soc_pcm_runtime *rtd = substream->private_data;
++	struct snd_soc_card *soc_card = rtd->codec->card;
++	struct clk *mclk = ((struct snd_soc_card_drvdata_davinci *)
++			    snd_soc_card_get_drvdata(soc_card))->mclk;
 +
-+struct clk *clk_register_gpio(struct device *dev, const char *name,
-+		const char *parent_name, unsigned long flags,
-+		unsigned int gpio, bool active_low);
++	clk_disable_unprepare(mclk);
++}
 +
-+void of_gpio_clk_setup(struct device_node *node);
+ static int evm_hw_params(struct snd_pcm_substream *substream,
+ 			 struct snd_pcm_hw_params *params)
+ {
+@@ -59,6 +81,8 @@ static int evm_hw_params(struct snd_pcm_substream *substream,
+ }
+ 
+ static struct snd_soc_ops evm_ops = {
++	.startup = evm_startup,
++	.shutdown = evm_shutdown,
+ 	.hw_params = evm_hw_params,
+ };
+ 
+@@ -348,6 +372,7 @@ static int davinci_evm_probe(struct platform_device *pdev)
+ 		of_match_device(of_match_ptr(davinci_evm_dt_ids), &pdev->dev);
+ 	struct snd_soc_dai_link *dai = (struct snd_soc_dai_link *) match->data;
+ 	struct snd_soc_card_drvdata_davinci *drvdata = NULL;
++	struct clk *mclk;
+ 	int ret = 0;
+ 
+ 	evm_soc_card.dai_link = dai;
+@@ -367,13 +392,38 @@ static int davinci_evm_probe(struct platform_device *pdev)
+ 	if (ret)
+ 		return ret;
+ 
++	mclk = of_clk_get_by_name(np, "ti,codec-clock");
++	if (PTR_ERR(mclk) == -EPROBE_DEFER) {
++		return -EPROBE_DEFER;
++	} else if (IS_ERR(mclk)) {
++		dev_dbg(&pdev->dev, "Codec clock not found.\n");
++		mclk = NULL;
++	}
 +
- /**
-  * clk_register - allocate a new clock, register it and return an opaque cookie
-  * @dev: device that is registering this clock
+ 	drvdata = devm_kzalloc(&pdev->dev, sizeof(*drvdata), GFP_KERNEL);
+ 	if (!drvdata)
+ 		return -ENOMEM;
+ 
++	drvdata->mclk = mclk;
++
+ 	ret = of_property_read_u32(np, "ti,codec-clock-rate", &drvdata->sysclk);
+-	if (ret < 0)
+-		return -EINVAL;
++
++	if (ret < 0) {
++		if (!drvdata->mclk) {
++			dev_err(&pdev->dev,
++				"No clock or clock rate defined.\n");
++			return -EINVAL;
++		}
++		drvdata->sysclk = clk_get_rate(drvdata->mclk);
++	} else if (drvdata->mclk) {
++		unsigned int requestd_rate = drvdata->sysclk;
++		clk_set_rate(drvdata->mclk, drvdata->sysclk);
++		drvdata->sysclk = clk_get_rate(drvdata->mclk);
++		if (drvdata->sysclk != requestd_rate)
++			dev_warn(&pdev->dev,
++				 "Could not get requested rate %u using %u.\n",
++				 requestd_rate, drvdata->sysclk);
++	}
+ 
+ 	snd_soc_card_set_drvdata(&evm_soc_card, drvdata);
+ 	ret = devm_snd_soc_register_card(&pdev->dev, &evm_soc_card);
+@@ -387,6 +437,12 @@ static int davinci_evm_probe(struct platform_device *pdev)
+ static int davinci_evm_remove(struct platform_device *pdev)
+ {
+ 	struct snd_soc_card *card = platform_get_drvdata(pdev);
++	struct snd_soc_card_drvdata_davinci *drvdata =
++		(struct snd_soc_card_drvdata_davinci *)
++		snd_soc_card_get_drvdata(card);
++
++	if (drvdata->mclk)
++		clk_put(drvdata->mclk);
+ 
+ 	snd_soc_unregister_card(card);
+ 
 -- 
 1.7.9.5
-
