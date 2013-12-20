@@ -1,160 +1,78 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv11 43/49] ARM: OMAP2+: PRM: add support for initializing
- PRCM clock modules from DT
-Date: Fri, 20 Dec 2013 15:12:42 +0200
-Message-ID: <52B4424A.8040003@ti.com>
-References: <1387452260-23276-1-git-send-email-t-kristo@ti.com> <1387452260-23276-44-git-send-email-t-kristo@ti.com> <alpine.DEB.2.02.1312201147060.20802@utopia.booyaka.com>
+Subject: Re: [PATCHv11 01/49] clk: add support for registering clocks from
+ description
+Date: Fri, 20 Dec 2013 15:14:35 +0200
+Message-ID: <52B442BB.6060701@ti.com>
+References: <1387452260-23276-1-git-send-email-t-kristo@ti.com> <1387452260-23276-2-git-send-email-t-kristo@ti.com> <alpine.DEB.2.02.1312201046510.20802@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:41165 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:41251 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932089Ab3LTNNN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Dec 2013 08:13:13 -0500
-In-Reply-To: <alpine.DEB.2.02.1312201147060.20802@utopia.booyaka.com>
+	with ESMTP id S932321Ab3LTNPE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Dec 2013 08:15:04 -0500
+In-Reply-To: <alpine.DEB.2.02.1312201046510.20802@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, nm@ti.com, rnayak@ti.com, bcousson@baylibre.com, mturquette@linaro.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, nm@ti.com, rnayak@ti.com, bcousson@baylibre.com, mturquette@linaro.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, Mike Turquette <mturquetter@linaro.org>
 
-On 12/20/2013 01:49 PM, Paul Walmsley wrote:
+On 12/20/2013 12:53 PM, Paul Walmsley wrote:
 > On Thu, 19 Dec 2013, Tero Kristo wrote:
 >
->> This patch provides top level functionality for the DT clock initialization.
->> Clock tree is initialized hierarchically starting from IP modules (CM/PRM/PRCM)
->> going down towards individual clock nodes, and finally initializing
->> clockdomains once all the clocks are ready.
+>> From: Mike Turquette <mturquetter@linaro.org>
 >
-> So just to flag this as something we'll want to deal with later.
-> The low-level CM* drivers should be responsible for registering CM* clocks
-> and clockdomains.  Similarly the PRM* low-level drivers should only
-> register PRM* clocks and clockdomains.  But it looks to me like we can
-> rearrange this code later without any significant impact, unless you
-> foresee any issues with that?  If not, in the interests of expediency,
-> let's take that up in future patches.
+> Is this E-mail address correct?  It's one byte off of the Signed-off-by:
+> address.
 
-Yeah, this can be split under cm/prm later on once we implement proper 
-drivers for each block. DT data won't be changed, just kernel side 
-implementation will be modified, and this modification is relatively 
-simple to do also.
+No it is not, just my typo there. :P Will fix that for next rev.
+
+>
+>> clk_register_desc is the primary interface for populating the clock tree
+>> with new clock nodes. In time, this will replace the various hardware-specific
+>> registration functions (e.g. clk_register_gate).
+>>
+>> Signed-off-by: Mike Turquette <mturquette@linaro.org>
+>> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+>> ---
+>
+> ...
+>
+>>
+>> diff --git a/drivers/clk/clk.c b/drivers/clk/clk.c
+>> index 2cf2ea6..29281f6 100644
+>> --- a/drivers/clk/clk.c
+>> +++ b/drivers/clk/clk.c
+>> @@ -1905,6 +1905,77 @@ fail_out:
+>> diff --git a/include/linux/clk-provider.h b/include/linux/clk-provider.h
+>> index 7e59253..7fddcb3 100644
+>> --- a/include/linux/clk-provider.h
+>> +++ b/include/linux/clk-provider.h
+>> @@ -161,6 +161,28 @@ struct clk_init_data {
+>>   };
+>>
+>>   /**
+>> + * struct clk_desc - clock init descriptor for providing init time parameters
+>> + * for a clock.
+>> + *
+>> + * @name: clock name
+>
+> As mentioned in
+>
+> http://patchwork.ozlabs.org/patch/294253/
+>
+> please remove the blank line between the summary line and the arguments.
+> Documentation/kernel-doc-nano.txt says:
+
+Yeah, will do similar changes to other patches also.
 
 -Tero
 
 >
->
-> - Paul
->
->>
->> Signed-off-by: Tero Kristo <t-kristo@ti.com>
->> ---
->>   arch/arm/mach-omap2/prm.h        |    1 +
->>   arch/arm/mach-omap2/prm_common.c |   66 ++++++++++++++++++++++++++++++++++++++
->>   2 files changed, 67 insertions(+)
->>
->> diff --git a/arch/arm/mach-omap2/prm.h b/arch/arm/mach-omap2/prm.h
->> index ac25ae6..623db40 100644
->> --- a/arch/arm/mach-omap2/prm.h
->> +++ b/arch/arm/mach-omap2/prm.h
->> @@ -18,6 +18,7 @@
->>   # ifndef __ASSEMBLER__
->>   extern void __iomem *prm_base;
->>   extern void omap2_set_globals_prm(void __iomem *prm);
->> +int of_prcm_init(void);
->>   # endif
->>
->>
->> diff --git a/arch/arm/mach-omap2/prm_common.c b/arch/arm/mach-omap2/prm_common.c
->> index a2e1174..835eb7d 100644
->> --- a/arch/arm/mach-omap2/prm_common.c
->> +++ b/arch/arm/mach-omap2/prm_common.c
->> @@ -23,6 +23,10 @@
->>   #include <linux/irq.h>
->>   #include <linux/interrupt.h>
->>   #include <linux/slab.h>
->> +#include <linux/of.h>
->> +#include <linux/of_address.h>
->> +#include <linux/clk-provider.h>
->> +#include <linux/clk/ti.h>
->>
->>   #include "soc.h"
->>   #include "prm2xxx_3xxx.h"
->> @@ -30,6 +34,7 @@
->>   #include "prm3xxx.h"
->>   #include "prm44xx.h"
->>   #include "common.h"
->> +#include "clock.h"
->>
->>   /*
->>    * OMAP_PRCM_MAX_NR_PENDING_REG: maximum number of PRM_IRQ*_MPU regs
->> @@ -464,3 +469,64 @@ int prm_unregister(struct prm_ll_data *pld)
->>
->>   	return 0;
->>   }
->> +
->> +static struct of_device_id omap_prcm_dt_match_table[] = {
->> +	{ .compatible = "ti,am3-prcm" },
->> +	{ .compatible = "ti,am3-scrm" },
->> +	{ .compatible = "ti,am4-prcm" },
->> +	{ .compatible = "ti,am4-scrm" },
->> +	{ .compatible = "ti,omap3-prm" },
->> +	{ .compatible = "ti,omap3-cm" },
->> +	{ .compatible = "ti,omap3-scrm" },
->> +	{ .compatible = "ti,omap4-cm1" },
->> +	{ .compatible = "ti,omap4-prm" },
->> +	{ .compatible = "ti,omap4-cm2" },
->> +	{ .compatible = "ti,omap4-scrm" },
->> +	{ .compatible = "ti,omap5-prm" },
->> +	{ .compatible = "ti,omap5-cm-core-aon" },
->> +	{ .compatible = "ti,omap5-scrm" },
->> +	{ .compatible = "ti,omap5-cm-core" },
->> +	{ .compatible = "ti,dra7-prm" },
->> +	{ .compatible = "ti,dra7-cm-core-aon" },
->> +	{ .compatible = "ti,dra7-cm-core" },
->> +	{ }
->> +};
->> +
->> +static struct clk_hw_omap memmap_dummy_ck = {
->> +	.flags = MEMMAP_ADDRESSING,
->> +};
->> +
->> +static u32 prm_clk_readl(u32 *reg)
->> +{
->> +	return omap2_clk_readl(&memmap_dummy_ck, reg);
->> +}
->> +
->> +static void prm_clk_writel(u32 val, u32 *reg)
->> +{
->> +	omap2_clk_writel(val, &memmap_dummy_ck, reg);
->> +}
->> +
->> +static struct clk_ll_ops omap_clk_ll_ops = {
->> +	.clk_readl = prm_clk_readl,
->> +	.clk_writel = prm_clk_writel,
->> +};
->> +
->> +int __init of_prcm_init(void)
->> +{
->> +	struct device_node *np;
->> +	void __iomem *mem;
->> +	int memmap_index = 0;
->> +
->> +	ti_clk_ll_ops = &omap_clk_ll_ops;
->> +
->> +	for_each_matching_node(np, omap_prcm_dt_match_table) {
->> +		mem = of_iomap(np, 0);
->> +		clk_memmaps[memmap_index] = mem;
->> +		ti_dt_clk_init_provider(np, memmap_index);
->> +		memmap_index++;
->> +	}
->> +
->> +	ti_dt_clockdomains_setup();
->> +
->> +	return 0;
->> +}
->> --
->> 1.7.9.5
->>
+> "The @argument descriptions must begin on the very next line following
+> this opening short function description line, with no intervening
+> empty comment lines."
 >
 >
 > - Paul
