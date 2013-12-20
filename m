@@ -1,77 +1,55 @@
-From: Balaji T K <balajitk@ti.com>
-Subject: Re: [PATCH v6 5/7] ARM: dts: add pbias dt node
-Date: Fri, 20 Dec 2013 21:38:06 +0530
-Message-ID: <52B46B66.6010703@ti.com>
-References: <1386670577-3530-1-git-send-email-balajitk@ti.com> <1387456720-7202-1-git-send-email-balajitk@ti.com> <1387456720-7202-6-git-send-email-balajitk@ti.com> <20131219163356.GL27438@atomide.com> <52B42C90.2080004@ti.com> <20131220155812.GY27438@atomide.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCHv11 06/49] clk: add support for low level register ops
+Date: Fri, 20 Dec 2013 16:09:40 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1312201603340.16798@utopia.booyaka.com>
+References: <1387452260-23276-1-git-send-email-t-kristo@ti.com> <1387452260-23276-7-git-send-email-t-kristo@ti.com> <alpine.DEB.2.02.1312201056560.20802@utopia.booyaka.com> <52B42747.8090408@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:60552 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753454Ab3LTQIY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 20 Dec 2013 11:08:24 -0500
-In-Reply-To: <20131220155812.GY27438@atomide.com>
+Received: from utopia.booyaka.com ([74.50.51.50]:54037 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753467Ab3LTQJl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Dec 2013 11:09:41 -0500
+In-Reply-To: <52B42747.8090408@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, bcousson@baylibre.com, devicetree@vger.kernel.org, linux-mmc@vger.kernel.org, cjb@laptop.org, broonie@kernel.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, nm@ti.com, rnayak@ti.com, bcousson@baylibre.com, mturquette@linaro.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-On Friday 20 December 2013 09:28 PM, Tony Lindgren wrote:
-> * Balaji T K <balajitk@ti.com> [131220 03:41]:
->> On Thursday 19 December 2013 10:03 PM, Tony Lindgren wrote:
->>> * Balaji T K <balajitk@ti.com> [131219 04:40]:
->>>> @@ -485,6 +503,7 @@
->>>>   			dmas = <&sdma 61>, <&sdma 62>;
->>>>   			dma-names = "tx", "rx";
->>>>   			status = "disabled";
->>>> +			pbias-supply = <&pbias_mmc_reg>;
->>>>   		};
->>>>
->>>>   		mmc2: mmc@480b4000 {
->>>> diff --git a/arch/arm/boot/dts/omap2430.dtsi b/arch/arm/boot/dts/omap2430.dtsi
->>>> index d624345..f127901 100644
->>>> --- a/arch/arm/boot/dts/omap2430.dtsi
->>>> +++ b/arch/arm/boot/dts/omap2430.dtsi
->>>> @@ -29,6 +29,24 @@
->>>>   			pinctrl-single,function-mask = <0x3f>;
->>>>   		};
->>>>
->>>> +		omap2_scm_general: tisyscon@49002270 {
->>>> +			compatible = "ti,control-syscon", "syscon", "simple-bus";
->>>> +			reg = <0x49002270 0x240>;
->>>> +			#address-cells = <1>;
->>>> +			#size-cells = <1>;
->>>> +			ranges;
->>>> +			pbias_regulator: pbias_regulator {
->>>> +				compatible = "ti,pbias-omap";
->>>> +				reg = <0x230 0x4>;
->>>> +				pbias_mmc_reg: pbias_mmc_omap3 {
->>>> +					regulator-name = "pbias_mmc_omap3";
->>>> +					regulator-min-microvolt = <1800000>;
->>>> +					regulator-max-microvolt = <3000000>;
->>>> +					regulator-enable-ramp-delay = <100>;
->>>> +				};
->>>> +			};
->>>> +		};
->>>> +
->>>>   		gpio1: gpio@4900c000 {
->>>>   			compatible = "ti,omap2-gpio";
->>>>   			reg = <0x4900c000 0x200>;
->>>
->>> Here too you may need to set up pbias_mmc_omap2430?
->>>
->>
->> 2430 pbias reg config is same as 3430/3630 w.r.t to mmc pbias i/o,
->> hence using the same name, if you think regulator name needs to be changed
->> let me know the more appropriate one.
->
-> If they are compatible then we should use the earliest revision number
-> which would be 2430 instead of omap3 :)
+On Fri, 20 Dec 2013, Tero Kristo wrote:
 
-I went with most commonly used omap SoC :-)
+> On 12/20/2013 01:00 PM, Paul Walmsley wrote:
+> > On Thu, 19 Dec 2013, Tero Kristo wrote:
+> > > +/**
+> > > + * clk_readl_default - default clock register read support function
+> > > + * @reg: register to read
+> > > + *
+> > > + * Default implementation for reading a clock register.
+> > > + */
+> > > +static u32 clk_readl_default(u32 __iomem *reg)
+> > 
+> > Why u32 __iomem rather than void *?  Not that this will affect OMAP, but
+> > will this need to be changed later to support 64-bit addresses?
+> > __raw_writel() and __raw_readl() are defined with "void __iomem *" as
+> > their address argument, which will be 64 bits on arm64, correct?
+> 
+> Just copy pasting the current implementation from the clk-provider.h file.
+> 
+> However, pointer is pointer no? This is just used to refer to a 32bit value,
+> the pointer itself can be either 32bit or 64bit. 
 
->
-> Tony
->
+Yes I think you're right that the impact is simply cosmetic.  That
+argument winds up as the address argument to __raw_readl/writel()
+which is a void __iomem *, so the type there will be ignored.
 
+> If the registers are changed to be 64 bit though.... but that will
+> require changing most of the clock code as it is littered with 'u32
+> val;' type declarations. 
+
+Yes, we can count on readl/writel to operate on 32-bit values.
+
+> Anyway, I can change this to be void __iomem.
+
+OK
+
+- Paul
