@@ -1,87 +1,125 @@
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: [PATCH 3/8] ARM: Convert boot_lock to raw_lock [omap]
-Date: Fri, 20 Dec 2013 10:47:41 +0100
-Message-ID: <1387532866-22601-4-git-send-email-bigeasy@linutronix.de>
-References: <1387532866-22601-1-git-send-email-bigeasy@linutronix.de>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from www.linutronix.de ([62.245.132.108]:59768 "EHLO
-	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754950Ab3LTJr6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Dec 2013 04:47:58 -0500
-In-Reply-To: <1387532866-22601-1-git-send-email-bigeasy@linutronix.de>
-Sender: linux-omap-owner@vger.kernel.org
+From: Balaji T K <balajitk@ti.com>
+Subject: Re: [PATCH v6 3/7] regulator: add pbias regulator support
+Date: Fri, 20 Dec 2013 15:17:59 +0530
+Message-ID: <52B4124F.8010903@ti.com>
+References: <1386670577-3530-1-git-send-email-balajitk@ti.com> <1387456720-7202-1-git-send-email-balajitk@ti.com> <1387456720-7202-4-git-send-email-balajitk@ti.com> <20131219163300.GK27438@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <20131219163300.GK27438@atomide.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, bcousson@baylibre.com, devicetree@vger.kernel.org, linux-mmc@vger.kernel.org, cjb@laptop.org, broonie@kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Frank Rowand <frank.rowand@am.sony.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Frank Rowand <frank.rowand@sonymobile.com>, Thomas Gleixner <tglx@linutronix.de>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 
-From: Frank Rowand <frank.rowand@am.sony.com>
+On Thursday 19 December 2013 10:03 PM, Tony Lindgren wrote:
+> Looks good to me, just few minor comments below.
+>
+> * Balaji T K <balajitk@ti.com> [131219 04:40]:
+>> --- /dev/null
+>> +++ b/drivers/regulator/pbias-regulator.c
+>> @@ -0,0 +1,255 @@
+>> +/*
+>> + * pbias-regulator.c
+>> + *
+>> + * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/
+>> + * Author: Balaji T K <balajitk@ti.com>
+>
+> Maybe use 2013 here instead?
 
-The arm boot_lock is used by the secondary processor startup code.  The locking
-task is the idle thread, which has idle->sched_class == &idle_sched_class.
-idle_sched_class->enqueue_task == NULL, so if the idle task blocks on the
-lock, the attempt to wake it when the lock becomes available will fail:
+yes
 
-try_to_wake_up()
-   ...
-      activate_task()
-         enqueue_task()
-            p->sched_class->enqueue_task(rq, p, flags)
+>
+>> +static int pbias_regulator_enable(struct regulator_dev *rdev)
+>> +{
+>> +	struct pbias_regulator_data *data = rdev_get_drvdata(rdev);
+>> +	const struct pbias_reg_info *info = data->info;
+>> +	int ret;
+>> +
+>> +	ret = regmap_update_bits(data->syscon, data->pbias_reg,
+>> +					info->enable_mask, info->enable);
+>> +
+>> +	return ret;
+>> +}
+>
+> Do we need need to check the values after enable here? AFAIK setting
+> the PBIAS voltage change can also fail and that's probably why it has
 
-Fix by converting boot_lock to a raw spin lock.
+failure due to mismatch in input voltage, should to be avoided and should
+be taken care in s/w by the caller before pbias regulator set voltage/enable.
 
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org
-Cc: Frank Rowand <frank.rowand@sonymobile.com>
-Signed-off-by: Frank Rowand <frank.rowand@am.sony.com>
-Link: http://lkml.kernel.org/r/4E77B952.3010606@am.sony.com
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
----
- arch/arm/mach-omap2/omap-smp.c | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+> also the interrupt available.
+>
 
-diff --git a/arch/arm/mach-omap2/omap-smp.c b/arch/arm/mach-omap2/omap-smp.c
-index 75e95d4..1ddafec 100644
---- a/arch/arm/mach-omap2/omap-smp.c
-+++ b/arch/arm/mach-omap2/omap-smp.c
-@@ -44,7 +44,7 @@ u16 pm44xx_errata;
- /* SCU base address */
- static void __iomem *scu_base;
- 
--static DEFINE_SPINLOCK(boot_lock);
-+static DEFINE_RAW_SPINLOCK(boot_lock);
- 
- void __iomem *omap4_get_scu_base(void)
- {
-@@ -75,8 +75,8 @@ static void omap4_secondary_init(unsigned int cpu)
- 	/*
- 	 * Synchronise with the boot thread.
- 	 */
--	spin_lock(&boot_lock);
--	spin_unlock(&boot_lock);
-+	raw_spin_lock(&boot_lock);
-+	raw_spin_unlock(&boot_lock);
- }
- 
- static int omap4_boot_secondary(unsigned int cpu, struct task_struct *idle)
-@@ -90,7 +90,7 @@ static int omap4_boot_secondary(unsigned int cpu, struct task_struct *idle)
- 	 * Set synchronisation state between this boot processor
- 	 * and the secondary one
- 	 */
--	spin_lock(&boot_lock);
-+	raw_spin_lock(&boot_lock);
- 
- 	/*
- 	 * Update the AuxCoreBoot0 with boot state for secondary core.
-@@ -167,7 +167,7 @@ static int omap4_boot_secondary(unsigned int cpu, struct task_struct *idle)
- 	 * Now the secondary core is starting up let it run its
- 	 * calibrations, then wait for it to finish
- 	 */
--	spin_unlock(&boot_lock);
-+	raw_spin_unlock(&boot_lock);
- 
- 	return 0;
- }
--- 
-1.8.5.1
+But interrupt was never used/tested AFAIK, there is some settling time
+before the generated interrupt status is truely valid, so pbias interrupt is not
+reliable.
 
+>> +static const struct pbias_reg_info pbias_mmc_omap3 = {
+>> +	.enable = BIT(1),
+>> +	.enable_mask = BIT(1),
+>> +	.vmode = BIT(0),
+>> +	.name = "pbias_mmc_omap3"
+>> +};
+>> +
+>> +static const struct pbias_reg_info pbias_sim_omap3 = {
+>> +	.enable = BIT(9),
+>> +	.enable_mask = BIT(9),
+>> +	.vmode = BIT(8),
+>> +	.name = "pbias_sim_omap3"
+>> +};
+>> +
+>> +static const struct pbias_reg_info pbias_mmc_omap4 = {
+>> +	.enable = BIT(26) | BIT(22),
+>> +	.enable_mask = BIT(26) | BIT(25) | BIT(22),
+>> +	.vmode = BIT(21),
+>> +	.name = "pbias_mmc_omap4"
+>> +};
+>> +
+>> +static const struct pbias_reg_info pbias_mmc_omap5 = {
+>> +	.enable = BIT(27) | BIT(26),
+>> +	.enable_mask = BIT(27) | BIT(25) | BIT(26),
+>> +	.vmode = BIT(21),
+>> +	.name = "pbias_mmc_omap5"
+>> +};
+>>
+>> +static struct of_regulator_match pbias_matches[] = {
+>> +	{ .name = "pbias_mmc_omap3", .driver_data = (void *)&pbias_mmc_omap3},
+>> +	{ .name = "pbias_sim_omap3", .driver_data = (void *)&pbias_sim_omap3},
+>> +	{ .name = "pbias_mmc_omap4", .driver_data = (void *)&pbias_mmc_omap4},
+>> +	{ .name = "pbias_mmc_omap5", .driver_data = (void *)&pbias_mmc_omap5},
+>> +};
+>
+> We probably need also pbias_mmc_omap2430 as that regiter mapping is
+> separate from omap3?
+>
+
+between omap2430 and omap3430, 3460 pbias register address are different,
+other than that enable,enable_mask and vmode are
+one and the same, so re-used "pbias_mmc_omap3" name and struct pbias_reg_info pbias_mmc_omap3
+for omap2430 too, save one entry in of_regulator_match!
+
+If separate name is needed for omap2430, I can add one for 2430,
+and reuse the "const struct pbias_reg_info pbias_mmc_omap3" of omap3
+since the bit map for enable/disable and voltage configuration will be same.
+Then pbias_matches will look like.
+
+ >> +static struct of_regulator_match pbias_matches[] = {
+ >> +	{ .name = "pbias_mmc_omap2430", .driver_data = (void *)&pbias_mmc_omap3},
+ >> +	{ .name = "pbias_mmc_omap3", .driver_data = (void *)&pbias_mmc_omap3},
+ >> +	{ .name = "pbias_sim_omap3", .driver_data = (void *)&pbias_sim_omap3},
+ >> +	{ .name = "pbias_mmc_omap4", .driver_data = (void *)&pbias_mmc_omap4},
+ >> +	{ .name = "pbias_mmc_omap5", .driver_data = (void *)&pbias_mmc_omap5},
+ >> +};
+
+Let me know if you still think that separate regulator name is needed for 2430,
+I can respin this series.
+
+> Other than that, good to see this finally happen. This should allow us to
+> get rid of most of the platform data callbacks for omap_hsmmc.c driver.
+>
+> Regards,
+>
+> Tony
+>
