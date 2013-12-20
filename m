@@ -1,125 +1,110 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv12 09/49] clk: mux: add support for low level ops
-Date: Fri, 20 Dec 2013 18:34:27 +0200
-Message-ID: <1387557274-22583-9-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv12 05/49] clk: gate: add support for registering gate clock from descriptor
+Date: Fri, 20 Dec 2013 18:34:23 +0200
+Message-ID: <1387557274-22583-5-git-send-email-t-kristo@ti.com>
 References: <1387557274-22583-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:50854 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755810Ab3LTQfd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 20 Dec 2013 11:35:33 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:51653 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755810Ab3LTQf3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Dec 2013 11:35:29 -0500
 In-Reply-To: <1387557274-22583-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, nm@ti.com, rnayak@ti.com, bcousson@baylibre.com, mturquette@linaro.org
 Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-Multiplexer clock can now be registered to use low level register access ops.
-Preferred initialization method is via clock description.
+New clk_register_desc() call can be used to register this clock type now.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- drivers/clk/clk-mux.c        |   24 +++++++++++++++++++++---
- include/linux/clk-provider.h |    4 ++++
- 2 files changed, 25 insertions(+), 3 deletions(-)
+ drivers/clk/clk-gate.c       |   31 +++++++++++++++++++++++++++++++
+ include/linux/clk-provider.h |   18 ++++++++++++++++++
+ 2 files changed, 49 insertions(+)
 
-diff --git a/drivers/clk/clk-mux.c b/drivers/clk/clk-mux.c
-index 2cbed08..ed3bc36 100644
---- a/drivers/clk/clk-mux.c
-+++ b/drivers/clk/clk-mux.c
-@@ -46,7 +46,12 @@ static u8 clk_mux_get_parent(struct clk_hw *hw)
- 	 * OTOH, pmd_trace_clk_mux_ck uses a separate bit for each clock, so
- 	 * val = 0x4 really means "bit 2, index starts at bit 0"
- 	 */
--	val = clk_readl(mux->reg) >> mux->shift;
-+	if (mux->ll_ops)
-+		val = mux->ll_ops->clk_readl(mux->reg);
-+	else
-+		val = clk_readl(mux->reg);
+diff --git a/drivers/clk/clk-gate.c b/drivers/clk/clk-gate.c
+index 4a58c55..3ec61d2 100644
+--- a/drivers/clk/clk-gate.c
++++ b/drivers/clk/clk-gate.c
+@@ -26,8 +26,12 @@
+  * parent - fixed parent.  No clk_set_parent support
+  */
+ 
++/* resolve struct clk_gate from inner struct clk_hw member */
+ #define to_clk_gate(_hw) container_of(_hw, struct clk_gate, hw)
+ 
++/* resolve struct clk_gate_desc from inner struct clk_desc member */
++#define to_hw_desc(_desc) container_of(_desc, struct clk_gate_desc, desc)
 +
-+	val >>= mux->shift;
- 	val &= mux->mask;
- 
- 	if (mux->table) {
-@@ -93,11 +98,19 @@ static int clk_mux_set_parent(struct clk_hw *hw, u8 index)
- 	if (mux->flags & CLK_MUX_HIWORD_MASK) {
- 		val = mux->mask << (mux->shift + 16);
- 	} else {
--		val = clk_readl(mux->reg);
-+		if (mux->ll_ops)
-+			val = mux->ll_ops->clk_readl(mux->reg);
-+		else
-+			val = clk_readl(mux->reg);
+ /*
+  * It works on following logic:
+  *
+@@ -162,3 +166,30 @@ struct clk *clk_register_gate(struct device *dev, const char *name,
+ 	return clk;
+ }
+ EXPORT_SYMBOL_GPL(clk_register_gate);
 +
- 		val &= ~(mux->mask << mux->shift);
- 	}
- 	val |= index << mux->shift;
--	clk_writel(val, mux->reg);
++struct clk_hw *clk_register_gate_desc(struct device *dev, struct clk_desc *desc)
++{
++	struct clk_gate *gate;
++	struct clk_gate_desc *hw_desc;
 +
-+	if (mux->ll_ops)
-+		mux->ll_ops->clk_writel(val, mux->reg);
-+	else
-+		clk_writel(val, mux->reg);
- 
- 	if (mux->lock)
- 		spin_unlock_irqrestore(mux->lock, flags);
-@@ -159,6 +172,7 @@ struct clk *clk_register_mux_table(struct device *dev, const char *name,
- 	mux->lock = lock;
- 	mux->table = table;
- 	mux->hw.init = &init;
-+	mux->ll_ops = &clk_ll_ops_default;
- 
- 	clk = clk_register(dev, &mux->hw);
- 
-@@ -201,6 +215,10 @@ struct clk_hw *clk_register_mux_desc(struct device *dev, struct clk_desc *desc)
- 	mux->shift = hw_desc->shift;
- 	mux->flags = hw_desc->flags;
- 	mux->lock = hw_desc->lock;
-+	mux->ll_ops = hw_desc->ll_ops;
++	hw_desc = to_hw_desc(desc);
 +
-+	if (!mux->ll_ops)
-+		mux->ll_ops = &clk_ll_ops_default;
- 
- 	if (!desc->ops) {
- 		if (mux->flags & CLK_MUX_READ_ONLY)
++	/* allocate mux clock */
++	gate = kzalloc(sizeof(*gate), GFP_KERNEL);
++	if (!gate)
++		return ERR_PTR(-ENOMEM);
++
++	/* populate struct clk_gate assignments */
++	gate->reg = hw_desc->reg;
++	gate->bit_idx = hw_desc->bit_idx;
++	gate->flags = hw_desc->flags;
++	gate->lock = hw_desc->lock;
++
++	if (!desc->ops)
++		desc->ops = &clk_gate_ops;
++
++	desc->flags |= CLK_IS_BASIC;
++
++	return &gate->hw;
++}
++EXPORT_SYMBOL_GPL(clk_register_gate_desc);
 diff --git a/include/linux/clk-provider.h b/include/linux/clk-provider.h
-index 3923d46..629163c 100644
+index ea5281c..a4f14ae 100644
 --- a/include/linux/clk-provider.h
 +++ b/include/linux/clk-provider.h
-@@ -408,6 +408,7 @@ struct clk *clk_register_divider_table(struct device *dev, const char *name,
-  *
-  * @hw:		handle between common and hardware-specific interfaces
-  * @reg:	register controlling multiplexer
-+ * @ll_ops:	low-level ops for accessing the register
-  * @shift:	shift to multiplexer bit field
-  * @width:	width of mutliplexer bit field
-  * @flags:	hardware-specific flags
-@@ -427,6 +428,7 @@ struct clk *clk_register_divider_table(struct device *dev, const char *name,
- struct clk_mux {
- 	struct clk_hw	hw;
- 	void __iomem	*reg;
-+	struct clk_ll_ops	*ll_ops;
- 	u32		*table;
- 	u32		mask;
- 	u8		shift;
-@@ -438,6 +440,7 @@ struct clk_mux {
-  * struct clk_mux_desc - init descriptor for multiplexer clock
-  * @desc:	handle between common and hardware-specific interfaces
-  * @reg:	register controlling multiplexer
-+ * @ll_ops:	low-level ops for accesing the register
-  * @shift:	shift to multiplexer bit field
-  * @width:	width of multiplexer bit field
-  * @flags:	hardware-specific flags
-@@ -446,6 +449,7 @@ struct clk_mux {
- struct clk_mux_desc {
- 	struct clk_desc	desc;
- 	void __iomem	*reg;
-+	struct clk_ll_ops	*ll_ops;
- 	u32		*table;
- 	u32		mask;
- 	u8		shift;
+@@ -268,10 +268,28 @@ struct clk_gate {
+ 	spinlock_t	*lock;
+ };
+ 
++/**
++ * struct clk_gate_desc - init descriptor for gating clock
++ * @desc:	handle between common and hardware-specific interfaces
++ * @reg:	register controlling gate
++ * @bit_idx:	single bit controlling gate
++ * @flags:	hardware-specific flags
++ * @lock:	register lock
++ */
++struct clk_gate_desc {
++	struct clk_desc	desc;
++	void __iomem	*reg;
++	u8		bit_idx;
++	u8		flags;
++	spinlock_t	*lock;
++};
++
+ #define CLK_GATE_SET_TO_DISABLE		BIT(0)
+ #define CLK_GATE_HIWORD_MASK		BIT(1)
+ 
+ extern const struct clk_ops clk_gate_ops;
++struct clk_hw *clk_register_gate_desc(struct device *dev,
++				      struct clk_desc *desc);
+ struct clk *clk_register_gate(struct device *dev, const char *name,
+ 		const char *parent_name, unsigned long flags,
+ 		void __iomem *reg, u8 bit_idx,
 -- 
 1.7.9.5
 
