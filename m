@@ -1,59 +1,72 @@
-From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-Subject: Re: [PATCH] ARM: configs: Select USB PHY for AM335x SoC
-Date: Thu, 19 Dec 2013 21:47:55 -0300
-Message-ID: <20131220004754.GB12803@localhost>
-References: <1386861269-28949-1-git-send-email-ezequiel.garcia@free-electrons.com>
+From: Keerthy <a0393675@ti.com>
+Subject: Re: [PATCHv11 00/49] ARM: TI SoC clock DT conversion
+Date: Fri, 20 Dec 2013 12:22:16 +0530
+Message-ID: <52B3E920.5090305@ti.com>
+References: <1387452260-23276-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from top.free-electrons.com ([176.31.233.9]:36765 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1756580Ab3LTAro (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Dec 2013 19:47:44 -0500
-Content-Disposition: inline
-In-Reply-To: <1386861269-28949-1-git-send-email-ezequiel.garcia@free-electrons.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:56594 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752004Ab3LTGws (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 20 Dec 2013 01:52:48 -0500
+In-Reply-To: <1387452260-23276-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, nm@ti.com, rnayak@ti.com, bcousson@baylibre.com, mturquette@linaro.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-On Thu, Dec 12, 2013 at 12:14:29PM -0300, Ezequiel Garcia wrote:
-> Enable this option as it's required to use USB on AM335x SoC.
->=20
-> Signed-off-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-> ---
->  arch/arm/configs/omap2plus_defconfig | 1 +
->  1 file changed, 1 insertion(+)
->=20
-> diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/=
-omap2plus_defconfig
-> index 12c848e..e427b95 100644
-> --- a/arch/arm/configs/omap2plus_defconfig
-> +++ b/arch/arm/configs/omap2plus_defconfig
-> @@ -223,6 +223,7 @@ CONFIG_USB_TEST=3Dy
->  CONFIG_NOP_USB_XCEIV=3Dy
->  CONFIG_OMAP_USB2=3Dy
->  CONFIG_OMAP_USB3=3Dy
-> +CONFIG_AM335X_PHY_USB=3Dy
->  CONFIG_USB_GADGET=3Dy
->  CONFIG_USB_GADGET_DEBUG=3Dy
->  CONFIG_USB_GADGET_DEBUG_FILES=3Dy
-> --=20
-> 1.8.1.5
->=20
+Hi Tero,
 
-Ping?
+On Thursday 19 December 2013 04:53 PM, Tero Kristo wrote:
+> Hi,
+>
+> So, once again new series. I guess I should have addressed all comments
+> for v10 except the extern sharing of __clk_of_table. Based on discussion
+> with Mike, this should be fine to fix later.
+>
+> Main changes compared to v10:
+> - rebased on top of 3.13-rc4
+> - applied clk_desc support from Mike, did some cleanups and additions to that
+>    * needed for below item, clk_ll_ops
+> - added support for clk_ll_ops, and removed SoC wide clock ops
+>    * used for wrapping the IP block specific register access routines now
+> - removed need for separate init function types because of above two points,
+>    TI clocks also use the standard prototype now, no return value needed
+> - cleaned up the init retry logic for TI clocks a bit (DPLL/APLL)
+> - added clocks {} and clockdomains {} nodes under the master clock IP nodes,
+>    which are used to group clocks and domains accordingly
+> - changed compatible strings for clock master IPs from ti,clock-master to
+>    something of form ti,omap4-prm etc.
+>
+> omap3 legacy clock data is not removed with this series, this can be done
+> later (basically I want someone to test all the possible omap3 boards out
+> there with DT boot before attempting this.)
+>
+> Testing done:
+> - omap3-beagle: boot, suspend-resume (ret), suspend-resume (off)
+> - omap4-panda-es: boot, suspend-resume (ret)
+> - omap5-uevm: boot
+> - dra7-evm: boot
+> - am335x-bone: boot
 
-This is just a simple fix, is it possible to merge it for v3.14?
+I boot tested the branch '3.13-rc4-dt-clks-v11' on am43x-epos-evm
+and it boots fine after enabling am43x system type.
 
-Thanks!
---=20
-Ezequiel Garc=C3=ADa, Free Electrons
-Embedded Linux, Kernel and Android Engineering
-http://free-electrons.com
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Branches again available here:
+> https://github.com/t-kristo/linux-pm.git
+>
+> branch: 3.13-rc4-dt-clks-v11 : contains everything, shall me merged last
+> branch: 3.13-rc4-dt-clks-v11-for-mike : drivers/clk changes
+> branch: 3.13-rc4-dt-clks-v11-for-benoit : DT data only
+>
+> -Tero
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+Regards,
+Keerthy
