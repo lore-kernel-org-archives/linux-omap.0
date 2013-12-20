@@ -1,80 +1,100 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv11 01/49] clk: add support for registering clocks from
- description
-Date: Fri, 20 Dec 2013 15:14:35 +0200
-Message-ID: <52B442BB.6060701@ti.com>
-References: <1387452260-23276-1-git-send-email-t-kristo@ti.com> <1387452260-23276-2-git-send-email-t-kristo@ti.com> <alpine.DEB.2.02.1312201046510.20802@utopia.booyaka.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: OMAP display subsystem - does it work?
+Date: Fri, 20 Dec 2013 15:43:30 +0200
+Message-ID: <52B44982.4020501@ti.com>
+References: <20131218120023.GG4360@n2100.arm.linux.org.uk> <52B1A922.6020901@ti.com> <20131218180240.GG27438@atomide.com> <20131219175644.GE32243@n2100.arm.linux.org.uk> <20131219182252.GP27438@atomide.com> <20131220112700.GF32243@n2100.arm.linux.org.uk> <20131220114837.GH32243@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="lAFC4fG5COs3MtX9wV5QcaplmI6bAuEMR"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:41251 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932321Ab3LTNPE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Dec 2013 08:15:04 -0500
-In-Reply-To: <alpine.DEB.2.02.1312201046510.20802@utopia.booyaka.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:52322 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1030186Ab3LTNo0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 20 Dec 2013 08:44:26 -0500
+In-Reply-To: <20131220114837.GH32243@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, nm@ti.com, rnayak@ti.com, bcousson@baylibre.com, mturquette@linaro.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, Mike Turquette <mturquetter@linaro.org>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 12/20/2013 12:53 PM, Paul Walmsley wrote:
-> On Thu, 19 Dec 2013, Tero Kristo wrote:
->
->> From: Mike Turquette <mturquetter@linaro.org>
->
-> Is this E-mail address correct?  It's one byte off of the Signed-off-by:
-> address.
+--lAFC4fG5COs3MtX9wV5QcaplmI6bAuEMR
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-No it is not, just my typo there. :P Will fix that for next rev.
-
->
->> clk_register_desc is the primary interface for populating the clock tree
->> with new clock nodes. In time, this will replace the various hardware-specific
->> registration functions (e.g. clk_register_gate).
+On 2013-12-20 13:48, Russell King - ARM Linux wrote:
+> On Fri, Dec 20, 2013 at 11:27:01AM +0000, Russell King - ARM Linux wrot=
+e:
+>> Maybe, but that's the problem - finding out what is missing.  This is =
+the
+>> endless problem where things keep changing - it's very difficult to ke=
+ep
+>> a "working configuration" working because the config symbols keep chan=
+ging.
 >>
->> Signed-off-by: Mike Turquette <mturquette@linaro.org>
->> Signed-off-by: Tero Kristo <t-kristo@ti.com>
->> ---
->
+>> Also, bear in mind that there's many different variants of the LDP har=
+dware
+>> with stuff connected up in different ways (I'm aware that the keypad i=
+s
+>> just randomly allocated).  I wouldn't be surprised if this also applie=
+d
+>> to how the backlight on the LCD was done.
+
+I need to cook up a patch for the gpio active-low problem. I tried to
+figure out how to do it with the old GPIO API, but as far as I
+understand, I have to do it manually in the driver (as it was done in
+the old driver).
+
+> Or maybe this is getting buggered by the idiotic deferred probing...  I=
+t
+> seems that the GPIOs for controlling the LCD and backlight aren't even
+> getting claimed if the DSS modules are built in:
+>=20
+> # cat /sys/kernel/debug/gpio
 > ...
->
->>
->> diff --git a/drivers/clk/clk.c b/drivers/clk/clk.c
->> index 2cf2ea6..29281f6 100644
->> --- a/drivers/clk/clk.c
->> +++ b/drivers/clk/clk.c
->> @@ -1905,6 +1905,77 @@ fail_out:
->> diff --git a/include/linux/clk-provider.h b/include/linux/clk-provider.h
->> index 7e59253..7fddcb3 100644
->> --- a/include/linux/clk-provider.h
->> +++ b/include/linux/clk-provider.h
->> @@ -161,6 +161,28 @@ struct clk_init_data {
->>   };
->>
->>   /**
->> + * struct clk_desc - clock init descriptor for providing init time parameters
->> + * for a clock.
->> + *
->> + * @name: clock name
->
-> As mentioned in
->
-> http://patchwork.ozlabs.org/patch/294253/
->
-> please remove the blank line between the summary line and the arguments.
-> Documentation/kernel-doc-nano.txt says:
+> GPIOs 238-255, platform/twl4030_gpio, twl4030, can sleep:
+> # echo panel-dpi.0 > /sys/bus/platform/drivers/panel-dpi/unbind
+> # echo panel-dpi.0 > /sys/bus/platform/drivers/panel-dpi/bind
+> # cat /sys/kernel/debug/gpio
+> ...
+> GPIOs 238-255, platform/twl4030_gpio, twl4030, can sleep:
+>  gpio-245 (panel enable        ) out lo
+>  gpio-253 (panel backlight     ) out lo
 
-Yeah, will do similar changes to other patches also.
+This looks odd... Presuming the panel device was probed successfully, it
+should always get the gpios or return an error. Only if gpio_is_valid()
+returns false for the gpio, it skips it and continues. But in this case,
+the gpio number comes from the platform data, so it should always be vali=
+d.
 
--Tero
+And if it wasn't probed successfully, then there shouldn't be a fb0.
 
->
-> "The @argument descriptions must begin on the very next line following
-> this opening short function description line, with no intervening
-> empty comment lines."
->
->
-> - Paul
->
+ Tomi
 
+
+
+--lAFC4fG5COs3MtX9wV5QcaplmI6bAuEMR
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.14 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJStEmCAAoJEPo9qoy8lh71W0wQAIAM0Zngr1IW/Y75p3w26tgV
+xSuD+J+Q2JdLBQgvBc/0awkqlzRoSfqMXKJjOC8zHoxflVquo5XYSrb3/jf4Vchw
+TOYoNuinBnVC+UExlHrT5BEW8OsNd7MO475+V5LynIF5AzK5CeZZwqd9yx2e35Qh
+VgcClcugMmbb1CPd1PQ/RUCjCMypkkUoWv+i/i3QmXbk8yOth7Kk7dVhyakwaCxs
+HsIRIBNsqAmDEKnvXVpmwvo46rpmh0dFUmwgO9IanaVU6EKM5jUsgOWwCv10rdy2
+hsMkUrrsB/6Lc0tHs+8tnFSmoNMGtz03f9uOFRrpRvRYGsSNNxR1hX6G9yTKXmn+
+FeVs3s5ColuuPXDgXmdF3NHR0tVt/Redz4NQ7h9Qe3HrF2nbnWSmfQ7/pZWkw2XY
+1nFl+mmQDU7ekUdcz2xG3u85RFNLIjX9UANqU4Q9EZleuFei14gL3Knhe6QoMwIZ
+0VQZPMbYvmZlbF5IeayP9tPvx9FpeCJ2TSmH7wICmrNiJW6UZAAU7ydRRBn/KD05
+wrZweQeG/K1JwqZLtwfshWc4DhLv3pOFtoSWy2AZYzruS5dsuvxQBjQnyLhg4Be3
+zzE/P5Hx3MNq52LR2LMah1okuOuK+CwIOBbRAS72BXcnZJyd/vM4QElRmjWVUL4f
+a8M8b/3jlDTeUvkVHmTs
+=29rt
+-----END PGP SIGNATURE-----
+
+--lAFC4fG5COs3MtX9wV5QcaplmI6bAuEMR--
