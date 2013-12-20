@@ -1,44 +1,68 @@
-From: Jyri Sarha <jsarha@ti.com>
-Subject: [PATCH RFC v2 REPOST 8/8] ARM: OMAP2+: omap2plus_defconfig: Enable BeagleBone Black HDMI audio support
-Date: Fri, 20 Dec 2013 12:43:07 +0200
-Message-ID: <e278754ab32a2fdd25e2a7e90cedbdbcd146c1e4.1387535303.git.jsarha@ti.com>
-References: <cover.1387535299.git.jsarha@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCHv11 01/49] clk: add support for registering clocks from
+ description
+Date: Fri, 20 Dec 2013 10:53:50 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1312201046510.20802@utopia.booyaka.com>
+References: <1387452260-23276-1-git-send-email-t-kristo@ti.com> <1387452260-23276-2-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:36418 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755963Ab3LTKng (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Dec 2013 05:43:36 -0500
-In-Reply-To: <cover.1387535299.git.jsarha@ti.com>
+Received: from utopia.booyaka.com ([74.50.51.50]:52242 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755811Ab3LTKxu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Dec 2013 05:53:50 -0500
+In-Reply-To: <1387452260-23276-2-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, dri-devel@lists.freedesktop.org, devicetree@vger.kernel.org, tony@atomide.com
-Cc: broonie@kernel.org, Jyri Sarha <jsarha@ti.com>
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, nm@ti.com, rnayak@ti.com, bcousson@baylibre.com, mturquette@linaro.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, Mike Turquette <mturquetter@linaro.org>
 
-Select following:
-CONFIG_SND_DAVINCI_SOC=m
-CONFIG_SND_AM335X_SOC_NXPTDA_EVM=m
+On Thu, 19 Dec 2013, Tero Kristo wrote:
 
-Signed-off-by: Jyri Sarha <jsarha@ti.com>
-cc: tony@atomide.com
----
- arch/arm/configs/omap2plus_defconfig |    2 ++
- 1 file changed, 2 insertions(+)
+> From: Mike Turquette <mturquetter@linaro.org>
 
-diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
-index 52b0d92..c1a9730 100644
---- a/arch/arm/configs/omap2plus_defconfig
-+++ b/arch/arm/configs/omap2plus_defconfig
-@@ -216,6 +216,8 @@ CONFIG_SND_OMAP_SOC=m
- CONFIG_SND_OMAP_SOC_OMAP_TWL4030=m
- CONFIG_SND_OMAP_SOC_OMAP_ABE_TWL6040=m
- CONFIG_SND_OMAP_SOC_OMAP3_PANDORA=m
-+CONFIG_SND_DAVINCI_SOC=m
-+CONFIG_SND_AM335X_SOC_NXPTDA_EVM=m
- CONFIG_USB=y
- CONFIG_USB_DEBUG=y
- CONFIG_USB_ANNOUNCE_NEW_DEVICES=y
--- 
-1.7.9.5
+Is this E-mail address correct?  It's one byte off of the Signed-off-by: 
+address.
 
+> clk_register_desc is the primary interface for populating the clock tree
+> with new clock nodes. In time, this will replace the various hardware-specific
+> registration functions (e.g. clk_register_gate).
+> 
+> Signed-off-by: Mike Turquette <mturquette@linaro.org>
+> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> ---
+
+...
+
+> 
+> diff --git a/drivers/clk/clk.c b/drivers/clk/clk.c
+> index 2cf2ea6..29281f6 100644
+> --- a/drivers/clk/clk.c
+> +++ b/drivers/clk/clk.c
+> @@ -1905,6 +1905,77 @@ fail_out:
+> diff --git a/include/linux/clk-provider.h b/include/linux/clk-provider.h
+> index 7e59253..7fddcb3 100644
+> --- a/include/linux/clk-provider.h
+> +++ b/include/linux/clk-provider.h
+> @@ -161,6 +161,28 @@ struct clk_init_data {
+>  };
+>  
+>  /**
+> + * struct clk_desc - clock init descriptor for providing init time parameters
+> + * for a clock.
+> + *
+> + * @name: clock name
+
+As mentioned in 
+
+http://patchwork.ozlabs.org/patch/294253/
+
+please remove the blank line between the summary line and the arguments.  
+Documentation/kernel-doc-nano.txt says:
+
+"The @argument descriptions must begin on the very next line following
+this opening short function description line, with no intervening
+empty comment lines."
+
+
+- Paul
