@@ -1,49 +1,33 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v6 3/7] regulator: add pbias regulator support
-Date: Fri, 20 Dec 2013 08:13:08 -0800
-Message-ID: <20131220161307.GB27438@atomide.com>
-References: <1386670577-3530-1-git-send-email-balajitk@ti.com>
- <1387456720-7202-1-git-send-email-balajitk@ti.com>
- <1387456720-7202-4-git-send-email-balajitk@ti.com>
- <20131219163300.GK27438@atomide.com>
- <52B4124F.8010903@ti.com>
- <20131220155721.GX27438@atomide.com>
- <20131220160917.GY31886@sirena.org.uk>
+Subject: Re: [PATCHv11 07/49] clk: divider: add support for low level ops
+Date: Fri, 20 Dec 2013 08:16:22 -0800
+Message-ID: <20131220161622.GC27438@atomide.com>
+References: <1387452260-23276-1-git-send-email-t-kristo@ti.com>
+ <1387452260-23276-8-git-send-email-t-kristo@ti.com>
+ <20131219182620.GQ27438@atomide.com>
+ <52B342D2.1010301@ti.com>
+ <52B416E8.8070006@ti.com>
+ <52B41C15.8040304@ti.com>
+ <52B41E4B.8040808@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:53112 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752700Ab3LTQNN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Dec 2013 11:13:13 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:41295 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752700Ab3LTQQ3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Dec 2013 11:16:29 -0500
 Content-Disposition: inline
-In-Reply-To: <20131220160917.GY31886@sirena.org.uk>
+In-Reply-To: <52B41E4B.8040808@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: Balaji T K <balajitk@ti.com>, linux-omap@vger.kernel.org, bcousson@baylibre.com, devicetree@vger.kernel.org, linux-mmc@vger.kernel.org, cjb@laptop.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, paul@pwsan.com, nm@ti.com, bcousson@baylibre.com, mturquette@linaro.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-* Mark Brown <broonie@kernel.org> [131220 08:10]:
-> On Fri, Dec 20, 2013 at 07:57:21AM -0800, Tony Lindgren wrote:
-> > * Balaji T K <balajitk@ti.com> [131220 01:49]:
+* Rajendra Nayak <rnayak@ti.com> [131220 02:40]:
 > 
-> > > But interrupt was never used/tested AFAIK, there is some settling time
-> > > before the generated interrupt status is truely valid, so pbias interrupt is not
-> > > reliable.
-> 
-> > OK. Do we need the standard regulator property startup-delay-us for the
-> > PBIAS regulator then? Or if it's always fixed, I guess it could be done
-> > in the pbias_regulator_enable()?
-> 
-> That delay is supposed to be the time for the startup of the supply
-> rather than any detection code.  It should be set using enable_time in
-> the driver if it's not system dependent - the property is there for
-> cases where the delay depends on system configuration (eg, due to the
-> capacitor values).
+> yeah, the crash was indeed when ll_ops was dereferenced despite being NULL.
 
-OK thanks. Let's try enable_time first then as we've had a fixed value
-for years for it. If there's some difference based on the card
-capacitance etc that can be added if needed.
+Might be also worth checking if the gate and mux patches have a similar issue.
 
 Regards,
 
