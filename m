@@ -1,123 +1,234 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv12 07/49] clk: divider: add support for low level ops
-Date: Fri, 20 Dec 2013 18:34:25 +0200
-Message-ID: <1387557274-22583-7-git-send-email-t-kristo@ti.com>
+From: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
+Subject: [PATCHv12 11/49] CLK: ti: add init support for clock IP blocks
+Date: Fri, 20 Dec 2013 18:34:28 +0200
+Message-ID: <1387557274-22583-10-git-send-email-t-kristo@ti.com>
 References: <1387557274-22583-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:50850 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755911Ab3LTQfc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 20 Dec 2013 11:35:32 -0500
-In-Reply-To: <1387557274-22583-1-git-send-email-t-kristo@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1387557274-22583-1-git-send-email-t-kristo-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, mturquette-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, nm@ti.com, rnayak@ti.com, bcousson@baylibre.com, mturquette@linaro.org
-Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-Divider clock can now be registered to use low level register access ops.
-Preferred initialization method is via clock description.
+ti_dt_clk_init_provider() can now be used to initialize the contents of
+a single clock IP block. This parses all the clocks under the IP block
+and calls the corresponding init function for them.
 
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
+This patch also introduces a helper function for the TI clock drivers
+to get register info from DT and append the master IP info to this.
+
+Signed-off-by: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
 ---
- drivers/clk/clk-divider.c    |   22 +++++++++++++++++++---
- include/linux/clk-provider.h |    4 ++++
- 2 files changed, 23 insertions(+), 3 deletions(-)
+ drivers/clk/clk.c            |    4 +-
+ drivers/clk/ti/clk.c         |  112 ++++++++++++++++++++++++++++++++++++++++++
+ include/linux/clk-provider.h |    2 +
+ include/linux/clk/ti.h       |   20 ++++++++
+ 4 files changed, 135 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/clk/clk-divider.c b/drivers/clk/clk-divider.c
-index 8cfed5c..887e2d8 100644
---- a/drivers/clk/clk-divider.c
-+++ b/drivers/clk/clk-divider.c
-@@ -108,7 +108,12 @@ static unsigned long clk_divider_recalc_rate(struct clk_hw *hw,
- 	struct clk_divider *divider = to_clk_divider(hw);
- 	unsigned int div, val;
+diff --git a/drivers/clk/clk.c b/drivers/clk/clk.c
+index 8bcd1e0..c0521be 100644
+--- a/drivers/clk/clk.c
++++ b/drivers/clk/clk.c
+@@ -2203,8 +2203,6 @@ struct of_clk_provider {
+ 	void *data;
+ };
  
--	val = clk_readl(divider->reg) >> divider->shift;
-+	if (divider->ll_ops)
-+		val = divider->ll_ops->clk_readl(divider->reg);
-+	else
-+		val = clk_readl(divider->reg);
+-extern struct of_device_id __clk_of_table[];
+-
+ static const struct of_device_id __clk_of_table_sentinel
+ 	__used __section(__clk_of_table_end);
+ 
+@@ -2344,7 +2342,7 @@ void __init of_clk_init(const struct of_device_id *matches)
+ 	struct device_node *np;
+ 
+ 	if (!matches)
+-		matches = __clk_of_table;
++		matches = &__clk_of_table;
+ 
+ 	for_each_matching_node_and_match(np, matches, &match) {
+ 		of_clk_init_cb_t clk_init_cb = match->data;
+diff --git a/drivers/clk/ti/clk.c b/drivers/clk/ti/clk.c
+index ef1a7cd..e16da3a 100644
+--- a/drivers/clk/ti/clk.c
++++ b/drivers/clk/ti/clk.c
+@@ -19,10 +19,15 @@
+ #include <linux/clkdev.h>
+ #include <linux/clk/ti.h>
+ #include <linux/of.h>
++#include <linux/of_address.h>
++#include <linux/list.h>
+ 
+ #undef pr_fmt
+ #define pr_fmt(fmt) "%s: " fmt, __func__
+ 
++static int ti_dt_clk_memmap_index;
++struct clk_ll_ops *ti_clk_ll_ops;
 +
-+	val >>= divider->shift;
- 	val &= div_mask(divider);
- 
- 	div = _get_div(divider, val);
-@@ -234,11 +239,17 @@ static int clk_divider_set_rate(struct clk_hw *hw, unsigned long rate,
- 	if (divider->flags & CLK_DIVIDER_HIWORD_MASK) {
- 		val = div_mask(divider) << (divider->shift + 16);
- 	} else {
--		val = clk_readl(divider->reg);
-+		if (divider->ll_ops)
-+			val = divider->ll_ops->clk_readl(divider->reg);
-+		else
-+			val = clk_readl(divider->reg);
- 		val &= ~(div_mask(divider) << divider->shift);
+ /**
+  * ti_dt_clocks_register - register DT alias clocks during boot
+  * @oclks: list of clocks to register
+@@ -53,3 +58,110 @@ void __init ti_dt_clocks_register(struct ti_dt_clk oclks[])
+ 		}
  	}
- 	val |= value << divider->shift;
--	clk_writel(val, divider->reg);
-+	if (divider->ll_ops)
-+		divider->ll_ops->clk_writel(val, divider->reg);
-+	else
-+		clk_writel(val, divider->reg);
- 
- 	if (divider->lock)
- 		spin_unlock_irqrestore(divider->lock, flags);
-@@ -291,6 +302,7 @@ static struct clk *_register_divider(struct device *dev, const char *name,
- 	div->lock = lock;
- 	div->hw.init = &init;
- 	div->table = table;
-+	div->ll_ops = &clk_ll_ops_default;
- 
- 	/* register the clock */
- 	clk = clk_register(dev, &div->hw);
-@@ -368,6 +380,10 @@ struct clk_hw *clk_register_divider_desc(struct device *dev,
- 	divider->flags = hw_desc->flags;
- 	divider->table = hw_desc->table;
- 	divider->lock = hw_desc->lock;
-+	divider->ll_ops = hw_desc->ll_ops;
+ }
 +
-+	if (!divider->ll_ops)
-+		divider->ll_ops = &clk_ll_ops_default;
- 
- 	if (!desc->ops)
- 		desc->ops = &clk_divider_ops;
++struct clk_init_item {
++	struct device_node *node;
++	struct clk_hw *hw;
++	ti_of_clk_init_cb_t func;
++	struct list_head link;
++};
++
++static LIST_HEAD(retry_list);
++
++/**
++ * ti_clk_retry_init - retries a failed clock init at later phase
++ * @node: device not for the clock
++ * @hw: partially initialized clk_hw struct for the clock
++ * @func: init function to be called for the clock
++ *
++ * Adds a failed clock init to the retry list. The retry list is parsed
++ * once all the other clocks have been initialized.
++ */
++int __init ti_clk_retry_init(struct device_node *node, struct clk_hw *hw,
++			      ti_of_clk_init_cb_t func)
++{
++	struct clk_init_item *retry;
++
++	pr_debug("%s: adding to retry list...\n", node->name);
++	retry = kzalloc(sizeof(*retry), GFP_KERNEL);
++	if (!retry)
++		return -ENOMEM;
++
++	retry->node = node;
++	retry->func = func;
++	retry->hw = hw;
++	list_add(&retry->link, &retry_list);
++
++	return 0;
++}
++
++/**
++ * ti_clk_get_reg_addr - get register address for a clock register
++ * @node: device node for the clock
++ * @index: register index from the clock node
++ *
++ * Builds clock register address from device tree information. This
++ * is a struct of type clk_omap_reg.
++ */
++void __iomem *ti_clk_get_reg_addr(struct device_node *node, int index)
++{
++	struct clk_omap_reg *reg;
++	u32 val;
++	u32 tmp;
++
++	reg = (struct clk_omap_reg *)&tmp;
++	reg->index = ti_dt_clk_memmap_index;
++
++	if (of_property_read_u32_index(node, "reg", index, &val)) {
++		pr_err("%s must have reg[%d]!\n", node->name, index);
++		return NULL;
++	}
++
++	reg->offset = val;
++
++	return (void __iomem *)tmp;
++}
++
++/**
++ * ti_dt_clk_init_provider - init master clock provider
++ * @parent: master node
++ * @index: internal index for clk_reg_ops
++ *
++ * Initializes a master clock IP block and its child clock nodes.
++ * Regmap is provided for accessing the register space for the
++ * IP block and all the clocks under it.
++ */
++void ti_dt_clk_init_provider(struct device_node *parent, int index)
++{
++	const struct of_device_id *match;
++	struct device_node *np;
++	struct device_node *clocks;
++	of_clk_init_cb_t clk_init_cb;
++	struct clk_init_item *retry;
++	struct clk_init_item *tmp;
++
++	ti_dt_clk_memmap_index = index;
++
++	/* get clocks for this parent */
++	clocks = of_get_child_by_name(parent, "clocks");
++	if (!clocks) {
++		pr_err("%s missing 'clocks' child node.\n", parent->name);
++		return;
++	}
++
++	for_each_child_of_node(clocks, np) {
++		match = of_match_node(&__clk_of_table, np);
++		if (!match)
++			continue;
++		clk_init_cb = (of_clk_init_cb_t)match->data;
++		pr_debug("%s: initializing: %s\n", __func__, np->name);
++		clk_init_cb(np);
++	}
++
++	list_for_each_entry_safe(retry, tmp, &retry_list, link) {
++		pr_debug("retry-init: %s\n", retry->node->name);
++		retry->func(retry->hw, retry->node);
++		list_del(&retry->link);
++		kfree(retry);
++	}
++}
 diff --git a/include/linux/clk-provider.h b/include/linux/clk-provider.h
-index 671dff4..f082a89 100644
+index 629163c..2d2c03d 100644
 --- a/include/linux/clk-provider.h
 +++ b/include/linux/clk-provider.h
-@@ -322,6 +322,7 @@ struct clk_div_table {
-  *
-  * @hw:		handle between common and hardware-specific interfaces
-  * @reg:	register containing the divider
-+ * @ll_ops:	low-level ops for accessing the register
-  * @shift:	shift to the divider bit field
-  * @width:	width of the divider bit field
-  * @table:	array of value/divider pairs, last entry should have div = 0
-@@ -350,6 +351,7 @@ struct clk_div_table {
- struct clk_divider {
- 	struct clk_hw	hw;
- 	void __iomem	*reg;
-+	struct clk_ll_ops	*ll_ops;
- 	u8		shift;
- 	u8		width;
- 	u8		flags;
-@@ -361,6 +363,7 @@ struct clk_divider {
-  * struct clk_divider_desc - init descriptor for divider clock
-  * @desc:	handle between common and hardware-specific interfaces
-  * @reg:	register containing the divider
-+ * @ll_ops:	low-level ops for accessing the register
-  * @shift:	shift to the divider bit field
-  * @width:	width of the divider bit field
-  * @table:	array of value/divider pairs, last entry should have div = 0
-@@ -369,6 +372,7 @@ struct clk_divider {
- struct clk_divider_desc {
- 	struct clk_desc	desc;
- 	void __iomem	*reg;
-+	struct clk_ll_ops	*ll_ops;
- 	u8		shift;
- 	u8		width;
- 	u8		flags;
+@@ -584,6 +584,8 @@ struct clk_onecell_data {
+ 	unsigned int clk_num;
+ };
+ 
++extern struct of_device_id __clk_of_table;
++
+ #define CLK_OF_DECLARE(name, compat, fn)			\
+ 	static const struct of_device_id __clk_of_table_##name	\
+ 		__used __section(__clk_of_table)		\
+diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
+index df94c24..6750d25 100644
+--- a/include/linux/clk/ti.h
++++ b/include/linux/clk/ti.h
+@@ -36,7 +36,27 @@ struct ti_dt_clk {
+ 		.node_name = name,	\
+ 	}
+ 
++/* Maximum number of clock memmaps */
++#define CLK_MAX_MEMMAPS			4
+ 
++typedef void (*ti_of_clk_init_cb_t)(struct clk_hw *, struct device_node *);
++
++/**
++ * struct clk_omap_reg - OMAP register declaration
++ * @offset: offset from the master IP module base address
++ * @index: index of the master IP module
++ */
++struct clk_omap_reg {
++	u16 offset;
++	u16 index;
++};
++
++extern struct clk_ll_ops *ti_clk_ll_ops;
++
++void __iomem *ti_clk_get_reg_addr(struct device_node *node, int index);
+ void ti_dt_clocks_register(struct ti_dt_clk *oclks);
++void ti_dt_clk_init_provider(struct device_node *np, int index);
++int ti_clk_retry_init(struct device_node *node, struct clk_hw *hw,
++		      ti_of_clk_init_cb_t func);
+ 
+ #endif
 -- 
 1.7.9.5
 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
