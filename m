@@ -1,39 +1,56 @@
 From: Balaji T K <balajitk@ti.com>
-Subject: [PATCH v7 0/7] mmc: omap_hsmmc: pbias dt and cleanup
-Date: Fri, 20 Dec 2013 23:05:48 +0530
-Message-ID: <1387560955-6547-1-git-send-email-balajitk@ti.com>
+Subject: [PATCH v7 1/7] mmc: omap_hsmmc: use devm_regulator API
+Date: Fri, 20 Dec 2013 23:05:49 +0530
+Message-ID: <1387560955-6547-2-git-send-email-balajitk@ti.com>
+References: <1387560955-6547-1-git-send-email-balajitk@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <1387560955-6547-1-git-send-email-balajitk@ti.com>
 Sender: linux-mmc-owner@vger.kernel.org
 To: linux-omap@vger.kernel.org, bcousson@baylibre.com, devicetree@vger.kernel.org, linux-mmc@vger.kernel.org, cjb@laptop.org, broonie@kernel.org, tony@atomide.com
 Cc: Balaji T K <balajitk@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Balaji T K (7):
-  mmc: omap_hsmmc: use devm_regulator API
-  mmc: omap_hsmmc: handle vcc and vcc_aux independently
-  regulator: add pbias regulator support
-  mmc: omap_hsmmc: adapt hsmmc to use pbias regulator
-  ARM: dts: add pbias dt node
-  ARM: OMAP: enable SYSCON and REGULATOR_PBIAS in omap2plus_defconfig
-  mmc: omap_hsmmc: remove pbias workaround
+Use devm_regulator API, while at it use
+devm_regulator_get_optional for optional vmmc_aux supply
 
- .../bindings/regulator/pbias-regulator.txt         |   16 ++
- arch/arm/boot/dts/dra7.dtsi                        |   18 ++
- arch/arm/boot/dts/omap2430.dtsi                    |   18 ++
- arch/arm/boot/dts/omap3.dtsi                       |   18 ++
- arch/arm/boot/dts/omap4.dtsi                       |   18 ++
- arch/arm/boot/dts/omap5.dtsi                       |   18 ++
- arch/arm/configs/omap2plus_defconfig               |    2 +
- drivers/mmc/host/omap_hsmmc.c                      |  113 +++++----
- drivers/regulator/Kconfig                          |    9 +
- drivers/regulator/Makefile                         |    1 +
- drivers/regulator/pbias-regulator.c                |  261 ++++++++++++++++++++
- 11 files changed, 443 insertions(+), 49 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/regulator/pbias-regulator.txt
- create mode 100644 drivers/regulator/pbias-regulator.c
+Signed-off-by: Balaji T K <balajitk@ti.com>
+---
+ drivers/mmc/host/omap_hsmmc.c |    6 ++----
+ 1 files changed, 2 insertions(+), 4 deletions(-)
 
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index dbd32ad..1eb4350 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -316,7 +316,7 @@ static int omap_hsmmc_reg_get(struct omap_hsmmc_host *host)
+ 	struct regulator *reg;
+ 	int ocr_value = 0;
+ 
+-	reg = regulator_get(host->dev, "vmmc");
++	reg = devm_regulator_get(host->dev, "vmmc");
+ 	if (IS_ERR(reg)) {
+ 		dev_err(host->dev, "vmmc regulator missing\n");
+ 		return PTR_ERR(reg);
+@@ -336,7 +336,7 @@ static int omap_hsmmc_reg_get(struct omap_hsmmc_host *host)
+ 		}
+ 
+ 		/* Allow an aux regulator */
+-		reg = regulator_get(host->dev, "vmmc_aux");
++		reg = devm_regulator_get_optional(host->dev, "vmmc_aux");
+ 		host->vcc_aux = IS_ERR(reg) ? NULL : reg;
+ 
+ 		/* For eMMC do not power off when not in sleep state */
+@@ -366,8 +366,6 @@ static int omap_hsmmc_reg_get(struct omap_hsmmc_host *host)
+ 
+ static void omap_hsmmc_reg_put(struct omap_hsmmc_host *host)
+ {
+-	regulator_put(host->vcc);
+-	regulator_put(host->vcc_aux);
+ 	mmc_slot(host).set_power = NULL;
+ }
+ 
 -- 
 1.7.5.4
 
