@@ -1,63 +1,118 @@
-From: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
-Subject: [PATCHv12 00/49] ARM: TI SoC clock DT conversion
-Date: Fri, 20 Dec 2013 18:34:19 +0200
-Message-ID: <1387557274-22583-1-git-send-email-t-kristo@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: [PATCHv12 03/49] clk: divider: add support for registering divider clock from descriptor
+Date: Fri, 20 Dec 2013 18:34:21 +0200
+Message-ID: <1387557274-22583-3-git-send-email-t-kristo@ti.com>
+References: <1387557274-22583-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, mturquette-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
-Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:42634 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755425Ab3LTQfP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 20 Dec 2013 11:35:15 -0500
+In-Reply-To: <1387557274-22583-1-git-send-email-t-kristo@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, nm@ti.com, rnayak@ti.com, bcousson@baylibre.com, mturquette@linaro.org
+Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-Hi,
+New clk_register_desc() call can be used to register this clock type now.
 
-Hopefully final post of this series. At least this is going to be the last
-post this year as I will be going to x-mas vacation and won't be back before
-Jan 2nd. This time I just sent the patches that have changes in them,
-the missing ones are exactly the same as in v11.
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+---
+ drivers/clk/clk-divider.c    |   34 ++++++++++++++++++++++++++++++++++
+ include/linux/clk-provider.h |   22 ++++++++++++++++++++++
+ 2 files changed, 56 insertions(+)
 
-Changes done:
- - most of the patches:
-   * Some cosmetic documentation fixes
- - patch 06:
-   * Changed register pointer types from 'u32 __iomem *' to 'void __iomem *'
- - patch 07,08,09:
-   * Added check for clk->ll_ops being NULL (happens with statically built
-     clock data), fixes the boot time crash issue noticed by Tony
- - patch 11:
-   * Moved __clk_of_table extern declaration to clk-provider.h header file...
-     Got flamed about this enough times now. :)
-   * Type for the declaration changed also from array to single entry,
-     and address for this used in code. This prevents compile time error:
-     "array type has incomplete element type". Can't use pointer here either
-     as this messes the address of the table.
-   * ti_clk_retry_init() now has int return type, and checks for kzalloc
-     failure
- - patch 12, 14, 23:
-   * Added cleanup in case ti_clk_retry_init() fails
- - patch 17:
-   * Fixed potential memory leak in failed init detected by sparse
- - patch 18:
-   * Modified commit message to add some details about clockdomains
- - patch 43:
-   * Changed register pointer types from 'u32 *' to 'void __iomem *'
+diff --git a/drivers/clk/clk-divider.c b/drivers/clk/clk-divider.c
+index 8d3009e..8cfed5c 100644
+--- a/drivers/clk/clk-divider.c
++++ b/drivers/clk/clk-divider.c
+@@ -28,8 +28,12 @@
+  * parent - fixed parent.  No clk_set_parent support
+  */
+ 
++/* resolve struct clk_divider from inner struct clk_hw member */
+ #define to_clk_divider(_hw) container_of(_hw, struct clk_divider, hw)
+ 
++/* resolve struct clk_divider_desc from inner struct clk_desc member */
++#define to_hw_desc(_desc) container_of(_desc, struct clk_divider_desc, desc)
++
+ #define div_mask(d)	((1 << ((d)->width)) - 1)
+ 
+ static unsigned int _get_table_maxdiv(const struct clk_div_table *table)
+@@ -343,3 +347,33 @@ struct clk *clk_register_divider_table(struct device *dev, const char *name,
+ 			width, clk_divider_flags, table, lock);
+ }
+ EXPORT_SYMBOL_GPL(clk_register_divider_table);
++
++struct clk_hw *clk_register_divider_desc(struct device *dev,
++					 struct clk_desc *desc)
++{
++	struct clk_divider *divider;
++	struct clk_divider_desc *hw_desc;
++
++	hw_desc = to_hw_desc(desc);
++
++	/* allocate divider clock */
++	divider = kzalloc(sizeof(*divider), GFP_KERNEL);
++	if (!divider)
++		return ERR_PTR(-ENOMEM);
++
++	/* populate struct clk_divider assignments */
++	divider->reg = hw_desc->reg;
++	divider->shift = hw_desc->shift;
++	divider->width = hw_desc->width;
++	divider->flags = hw_desc->flags;
++	divider->table = hw_desc->table;
++	divider->lock = hw_desc->lock;
++
++	if (!desc->ops)
++		desc->ops = &clk_divider_ops;
++
++	desc->flags |= CLK_IS_BASIC;
++
++	return &divider->hw;
++}
++EXPORT_SYMBOL_GPL(clk_register_divider_desc);
+diff --git a/include/linux/clk-provider.h b/include/linux/clk-provider.h
+index 232623d..bf89ab4 100644
+--- a/include/linux/clk-provider.h
++++ b/include/linux/clk-provider.h
+@@ -322,11 +322,33 @@ struct clk_divider {
+ 	spinlock_t	*lock;
+ };
+ 
++/**
++ * struct clk_divider_desc - init descriptor for divider clock
++ * @desc:	handle between common and hardware-specific interfaces
++ * @reg:	register containing the divider
++ * @shift:	shift to the divider bit field
++ * @width:	width of the divider bit field
++ * @table:	array of value/divider pairs, last entry should have div = 0
++ * @lock:	register lock
++ */
++struct clk_divider_desc {
++	struct clk_desc	desc;
++	void __iomem	*reg;
++	u8		shift;
++	u8		width;
++	u8		flags;
++	const struct clk_div_table	*table;
++	spinlock_t	*lock;
++};
++
+ #define CLK_DIVIDER_ONE_BASED		BIT(0)
+ #define CLK_DIVIDER_POWER_OF_TWO	BIT(1)
+ #define CLK_DIVIDER_ALLOW_ZERO		BIT(2)
+ #define CLK_DIVIDER_HIWORD_MASK		BIT(3)
+ 
++struct clk_hw *clk_register_divider_desc(struct device *dev,
++					 struct clk_desc *desc);
++
+ extern const struct clk_ops clk_divider_ops;
+ struct clk *clk_register_divider(struct device *dev, const char *name,
+ 		const char *parent_name, unsigned long flags,
+-- 
+1.7.9.5
 
-Testing done:
-- omap3-beagle: boot, suspend/resume (ret), suspend/resume (off)
-- omap4-panda-es: boot, suspend/resume (ret)
-- omap5-uevm: boot
-- am335x-bone: boot
-- dra7-evm: boot
-
-Branches available at https://github.com/t-kristo/linux-pm.git:
-- branch: 3.13-rc4-dt-clks-v12 : contains everything, shall me merged last
-- branch: 3.13-rc4-dt-clks-v12-for-mike : drivers/clk changes
-- branch: 3.13-rc4-dt-clks-v11-for-benoit : DT data only (from v11, no changes)
-
--Tero
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
