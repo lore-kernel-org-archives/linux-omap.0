@@ -1,25 +1,39 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH v2 1/2] regulator: tps65910: Add backup battery regulator
-Date: Sat, 21 Dec 2013 14:49:38 +0000
-Message-ID: <20131221144938.GO30815@sirena.org.uk>
-References: <1387539808-24910-1-git-send-email-mpa@pengutronix.de>
- <1387539808-24910-2-git-send-email-mpa@pengutronix.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cassiel.sirena.org.uk ([80.68.93.111]:53675 "EHLO
-	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753960Ab3LUOtv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 21 Dec 2013 09:49:51 -0500
-Content-Disposition: inline
-In-Reply-To: <1387539808-24910-2-git-send-email-mpa@pengutronix.de>
-Sender: linux-omap-owner@vger.kernel.org
+From: Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Subject: [PATCH] ARM: dts: omap3-gta04: Add EOC irq gpio line handling.
+Date: Sat, 21 Dec 2013 16:12:23 +0100
+Message-ID: <1387638743-12278-1-git-send-email-marek@goldelico.com>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org, Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Markus Pargmann <mpa@pengutronix.de>
-Cc: Liam Girdwood <lgirdwood@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel@pengutronix.de
 
-On Fri, Dec 20, 2013 at 12:43:27PM +0100, Markus Pargmann wrote:
-> tps65910 has a backup battery charger with a configurable voltage. This
-> patch adds a regulator for the backup battery.
+BMP085 EOC (End Of Conversion) irq line is connected to
+gpio113 on gta04. Set irq properties to have driver using irq
+instead polling for EOC.
 
-Applied, thanks.
+Signed-off-by: Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+---
+ arch/arm/boot/dts/omap3-gta04.dts | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/arch/arm/boot/dts/omap3-gta04.dts b/arch/arm/boot/dts/omap3-gta04.dts
+index b9b55c9..7a8e37d 100644
+--- a/arch/arm/boot/dts/omap3-gta04.dts
++++ b/arch/arm/boot/dts/omap3-gta04.dts
+@@ -92,6 +92,8 @@
+ 	bmp085@77 {
+ 		compatible = "bosch,bmp085";
+ 		reg = <0x77>;
++		interrupt-parent = <&gpio4>;
++		interrupts = <17 IRQ_TYPE_EDGE_RISING>;
+ 	};
+ 
+ 	/* leds */
+-- 
+1.8.4.2
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
