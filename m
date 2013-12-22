@@ -1,62 +1,32 @@
-From: Gerhard Sittig <gsi@denx.de>
-Subject: Re: [PATCHv12 07/49] clk: divider: add support for low level ops
-Date: Sun, 22 Dec 2013 18:52:35 +0100
-Message-ID: <20131222175235.GC8064@book.gsilab.sittig.org>
-References: <1387557274-22583-1-git-send-email-t-kristo@ti.com>
- <1387557274-22583-7-git-send-email-t-kristo@ti.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [net PATCH v3 1/1] drivers: net : cpsw: pass proper device
+ name while requesting irq
+Date: Sun, 22 Dec 2013 18:22:43 -0500 (EST)
+Message-ID: <20131222.182243.37050518449066904.davem@davemloft.net>
+References: <1387382630-3683-1-git-send-email-mugunthanvnm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-out.m-online.net ([212.18.0.9]:45882 "EHLO
-	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754136Ab3LVRwj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 22 Dec 2013 12:52:39 -0500
-Content-Disposition: inline
-In-Reply-To: <1387557274-22583-7-git-send-email-t-kristo@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1387382630-3683-1-git-send-email-mugunthanvnm@ti.com>
+Sender: netdev-owner@vger.kernel.org
+To: mugunthanvnm@ti.com
+Cc: netdev@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, nm@ti.com, rnayak@ti.com, bcousson@baylibre.com, mturquette@linaro.org, linux-arm-kernel@lists.infradead.org
 
-[ dropped devicetree, we're clock specific here ]
+From: Mugunthan V N <mugunthanvnm@ti.com>
+Date: Wed, 18 Dec 2013 21:33:50 +0530
 
-On Fri, Dec 20, 2013 at 18:34 +0200, Tero Kristo wrote:
-> 
-> Divider clock can now be registered to use low level register access ops.
-> Preferred initialization method is via clock description.
-> 
-> Signed-off-by: Tero Kristo <t-kristo@ti.com>
-> ---
->  drivers/clk/clk-divider.c    |   22 +++++++++++++++++++---
->  include/linux/clk-provider.h |    4 ++++
->  2 files changed, 23 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/clk/clk-divider.c b/drivers/clk/clk-divider.c
-> index 8cfed5c..887e2d8 100644
-> --- a/drivers/clk/clk-divider.c
-> +++ b/drivers/clk/clk-divider.c
-> @@ -108,7 +108,12 @@ static unsigned long clk_divider_recalc_rate(struct clk_hw *hw,
->  	struct clk_divider *divider = to_clk_divider(hw);
->  	unsigned int div, val;
->  
-> -	val = clk_readl(divider->reg) >> divider->shift;
-> +	if (divider->ll_ops)
-> +		val = divider->ll_ops->clk_readl(divider->reg);
-> +	else
-> +		val = clk_readl(divider->reg);
+> During checking the interrupts with "cat /proc/interrupts", it is showing
+> device name as (null), this change was done with commit id aa1a15e2d where
+> request_irq is changed to devm_request_irq also changing the irq name from
+> platform device name to net device name, but the net device is not
+> registered at this point with the network frame work, so devm_request_irq
+> is called with device name as NULL, by which it is showed as "(null)" in
+> "cat /proc/interrupts". So this patch changes back irq name to platform
+> device name itself in devm_request_irq so that the device name shows as
+> below.
+ ...
+> Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
 
-Should this not better always use an ll_ops structure, which
-either is individual to the clock item, or is "global" for a
-platform, yet can get re-registered at runtime (see the comment
-on 06/49)?  And why are you referencing clk_readl() instead of
-clk_readl_default() which you specifically have introduced in the
-previous patch?  Adding a copy of the routine and using both the
-copy and the original doesn't look right.
-
-
-virtually yours
-Gerhard Sittig
--- 
-DENX Software Engineering GmbH,     MD: Wolfgang Denk & Detlev Zundel
-HRB 165235 Munich, Office: Kirchenstr. 5, D-82194 Groebenzell, Germany
-Phone: +49-8142-66989-0 Fax: +49-8142-66989-80  Email: office@denx.de
+This looks a lot better, thanks.
