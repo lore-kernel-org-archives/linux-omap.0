@@ -1,14 +1,15 @@
 From: "Anna, Suman" <s-anna-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 4/7] iommu/omap: Allow enable/disable even without pdata
-Date: Mon, 23 Dec 2013 13:05:52 -0600
-Message-ID: <52B88990.5020807@ti.com>
+Subject: Re: [PATCH 6/7] ARM: OMAP2+: Remove legacy data from hwmod for omap3
+	isp iommu
+Date: Mon, 23 Dec 2013 13:08:57 -0600
+Message-ID: <52B88A49.9020402@ti.com>
 References: <1387284818-28739-1-git-send-email-florian.vaussard@epfl.ch>
-	<1387284818-28739-5-git-send-email-florian.vaussard@epfl.ch>
+	<1387284818-28739-7-git-send-email-florian.vaussard@epfl.ch>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
 Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <1387284818-28739-5-git-send-email-florian.vaussard-p8DiymsW2f8@public.gmane.org>
+In-Reply-To: <1387284818-28739-7-git-send-email-florian.vaussard-p8DiymsW2f8@public.gmane.org>
 List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
 	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
@@ -25,13 +26,10 @@ List-Id: linux-omap@vger.kernel.org
 Hi Florian,
 
 On 12/17/2013 06:53 AM, Florian Vaussard wrote:
-> When booting with a devietree, no platform data is provided. Do not prematurely
-> exit iommu_enable() and iommu_disable() in such a case.
+> The data are now passed using the devicetree.
 
-Platform data may still be needed if we were to go with the pdata quirks 
-approach for handling resets. You may need to revise the patch 
-description then, but the change itself may be ok if supporting only DT 
-devices.
+Patch is good by itself. A similar change is needed for the IVA
+MMU as well.
 
 regards
 Suman
@@ -39,42 +37,35 @@ Suman
 >
 > Signed-off-by: Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
 > ---
->   drivers/iommu/omap-iommu.c | 10 ++--------
->   1 file changed, 2 insertions(+), 8 deletions(-)
+>   arch/arm/mach-omap2/omap_hwmod_3xxx_data.c | 8 --------
+>   1 file changed, 8 deletions(-)
 >
-> diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
-> index 51efcc4..0a9854d 100644
-> --- a/drivers/iommu/omap-iommu.c
-> +++ b/drivers/iommu/omap-iommu.c
-> @@ -149,13 +149,10 @@ static int iommu_enable(struct omap_iommu *obj)
->   	struct platform_device *pdev = to_platform_device(obj->dev);
->   	struct iommu_platform_data *pdata = pdev->dev.platform_data;
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+> index 0477131..6dccd46 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+> @@ -2469,15 +2469,8 @@ static struct omap_hwmod_class omap3xxx_mmu_hwmod_class = {
 >
-> -	if (!pdata)
-> -		return -EINVAL;
+>   /* mmu isp */
+>
+> -static struct omap_mmu_dev_attr mmu_isp_dev_attr = {
+> -	.da_start	= 0x0,
+> -	.da_end		= 0xfffff000,
+> -	.nr_tlb_entries = 8,
+> -};
 > -
->   	if (!arch_iommu)
->   		return -ENODEV;
+>   static struct omap_hwmod omap3xxx_mmu_isp_hwmod;
 >
-> -	if (pdata->deassert_reset) {
-> +	if (pdata && pdata->deassert_reset) {
->   		err = pdata->deassert_reset(pdev, pdata->reset_name);
->   		if (err) {
->   			dev_err(obj->dev, "deassert_reset failed: %d\n", err);
-> @@ -175,14 +172,11 @@ static void iommu_disable(struct omap_iommu *obj)
->   	struct platform_device *pdev = to_platform_device(obj->dev);
->   	struct iommu_platform_data *pdata = pdev->dev.platform_data;
->
-> -	if (!pdata)
-> -		return;
 > -
->   	arch_iommu->disable(obj);
->
->   	pm_runtime_put_sync(obj->dev);
->
-> -	if (pdata->assert_reset)
-> +	if (pdata && pdata->assert_reset)
->   		pdata->assert_reset(pdev, pdata->reset_name);
->   }
+>   /* l4_core -> mmu isp */
+>   static struct omap_hwmod_ocp_if omap3xxx_l4_core__mmu_isp = {
+>   	.master		= &omap3xxx_l4_core_hwmod,
+> @@ -2489,7 +2482,6 @@ static struct omap_hwmod omap3xxx_mmu_isp_hwmod = {
+>   	.name		= "mmu_isp",
+>   	.class		= &omap3xxx_mmu_hwmod_class,
+>   	.main_clk	= "cam_ick",
+> -	.dev_attr	= &mmu_isp_dev_attr,
+>   	.flags		= HWMOD_NO_IDLEST,
+>   };
 >
 >
