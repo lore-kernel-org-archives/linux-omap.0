@@ -1,96 +1,64 @@
-From: Taras Kondratiuk <taras.kondratiuk@linaro.org>
-Subject: Re: [PATCH 0/4] ARM: OMAP: raw read and write endian fix
-Date: Mon, 23 Dec 2013 20:18:44 +0200
-Message-ID: <CAArO44vC4WKGHSqHX3+Mo5+jcNuyJLkh94+SPd4H+aZYAroYzw@mail.gmail.com>
-References: <1387822234-11167-1-git-send-email-taras.kondratiuk@linaro.org>
+From: "Anna, Suman" <s-anna-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 2/7] iommu/omap: omap_iommu_attach() should return ENODEV,
+	not NULL
+Date: Mon, 23 Dec 2013 12:45:26 -0600
+Message-ID: <52B884C6.7030600@ti.com>
+References: <1387284818-28739-1-git-send-email-florian.vaussard@epfl.ch>
+	<1387284818-28739-3-git-send-email-florian.vaussard@epfl.ch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bk0-f48.google.com ([209.85.214.48]:64045 "EHLO
-	mail-bk0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752324Ab3LWSSq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Dec 2013 13:18:46 -0500
-Received: by mail-bk0-f48.google.com with SMTP id r7so2089793bkg.21
-        for <linux-omap@vger.kernel.org>; Mon, 23 Dec 2013 10:18:44 -0800 (PST)
-In-Reply-To: <1387822234-11167-1-git-send-email-taras.kondratiuk@linaro.org>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <1387284818-28739-3-git-send-email-florian.vaussard-p8DiymsW2f8@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>, Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, =?ISO-8859-1?Q?Beno=EEt_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Cc: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, "linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, "iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, Rob Landley <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Patch Tracking <patches@linaro.org>, Linaro Networking <linaro-networking@linaro.org>, Linaro Kernel <linaro-kernel@lists.linaro.org>, Taras Kondratiuk <taras.kondratiuk@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, open list <linux-kernel@vger.kernel.org>
 
-On 23 December 2013 20:10, Taras Kondratiuk <taras.kondratiuk@linaro.org> wrote:
-> This series does trivial replacement of __raw_xxx functions with xxx_relaxed
-> endian-neutral variants in 'mach-omap2' and 'plat-omap' directories.
-> Some code here most probably won't be used in BE mode (like debug-leds for
-> OMAP1 boards), but changes are made anyway to remove __raw_xxx() functions
-> completely and simplify future grep'ing for new __raw_xxx() entries.
+On 12/17/2013 06:53 AM, Florian Vaussard wrote:
+> omap_iommu_attach() returns NULL or ERR_PTR in case of error, but
+> omap_iommu_attach_dev() only checks for IS_ERR. Thus a NULL return value (in
+> case driver_find_device fails) will cause the kernel to panic when
+> omap_iommu_attach_dev() dereferences the pointer.
 >
-> This is a part of RFC series [1].
-> Based on v3.13-rc5.
+> In such case, omap_iommu_attach() should return ENODEV, not NULL.
 >
-> [1] http://www.spinics.net/lists/linux-omap/msg99927.html
->
-> Victor Kamensky (4):
->   ARM: OMAP2+: raw read and write endian fix
->   ARM: OMAP: dmtimer: raw read and write endian fix
->   ARM: OMAP: counter-32k: raw read and write endian fix
->   ARM: OMAP: debug-leds: raw read and write endian fix
->
->  arch/arm/mach-omap2/board-flash.c         |    4 +--
->  arch/arm/mach-omap2/clkt2xxx_dpllcore.c   |    2 +-
->  arch/arm/mach-omap2/clkt2xxx_osc.c        |    8 +++---
->  arch/arm/mach-omap2/clkt2xxx_sys.c        |    2 +-
->  arch/arm/mach-omap2/clkt_clksel.c         |   10 +++----
->  arch/arm/mach-omap2/clkt_dpll.c           |    6 ++---
->  arch/arm/mach-omap2/clkt_iclk.c           |    8 +++---
->  arch/arm/mach-omap2/clock.c               |   16 +++++------
->  arch/arm/mach-omap2/clock36xx.c           |    6 ++---
->  arch/arm/mach-omap2/cm2xxx_3xxx.h         |    4 +--
->  arch/arm/mach-omap2/cm33xx.c              |    4 +--
->  arch/arm/mach-omap2/cm3xxx.c              |    8 +++---
->  arch/arm/mach-omap2/cm44xx.c              |    8 +++---
->  arch/arm/mach-omap2/cminst44xx.c          |    4 +--
->  arch/arm/mach-omap2/control.c             |   20 +++++++-------
->  arch/arm/mach-omap2/dma.c                 |    4 +--
->  arch/arm/mach-omap2/dpll3xxx.c            |   32 +++++++++++-----------
->  arch/arm/mach-omap2/dpll44xx.c            |   12 ++++-----
->  arch/arm/mach-omap2/gpmc.c                |    8 +++---
->  arch/arm/mach-omap2/id.c                  |    2 +-
->  arch/arm/mach-omap2/irq.c                 |    4 +--
->  arch/arm/mach-omap2/mux.c                 |    8 +++---
->  arch/arm/mach-omap2/omap-hotplug.c        |    4 +--
->  arch/arm/mach-omap2/omap-mpuss-lowpower.c |   18 ++++++-------
->  arch/arm/mach-omap2/omap-smp.c            |    4 +--
->  arch/arm/mach-omap2/omap-wakeupgen.c      |   42 ++++++++++++++---------------
->  arch/arm/mach-omap2/omap4-common.c        |   16 +++++------
->  arch/arm/mach-omap2/omap_hwmod.c          |   10 +++----
->  arch/arm/mach-omap2/omap_phy_internal.c   |    6 ++---
->  arch/arm/mach-omap2/prcm_mpu44xx.c        |    4 +--
->  arch/arm/mach-omap2/prm2xxx.h             |    2 +-
->  arch/arm/mach-omap2/prm2xxx_3xxx.h        |    4 +--
->  arch/arm/mach-omap2/prm33xx.c             |    4 +--
->  arch/arm/mach-omap2/prm3xxx.h             |    2 +-
->  arch/arm/mach-omap2/prm44xx.c             |    4 +--
->  arch/arm/mach-omap2/prminst44xx.c         |    4 +--
->  arch/arm/mach-omap2/sdrc.h                |    8 +++---
->  arch/arm/mach-omap2/sdrc2xxx.c            |    4 +--
->  arch/arm/mach-omap2/sr_device.c           |    2 +-
->  arch/arm/mach-omap2/sram.c                |   16 +++++------
->  arch/arm/mach-omap2/timer.c               |    8 +++---
->  arch/arm/mach-omap2/vc.c                  |    4 +--
->  arch/arm/mach-omap2/wd_timer.c            |    8 +++---
->  arch/arm/plat-omap/counter_32k.c          |    6 ++---
->  arch/arm/plat-omap/debug-leds.c           |   14 +++++-----
->  arch/arm/plat-omap/dmtimer.c              |    8 +++---
->  arch/arm/plat-omap/include/plat/dmtimer.h |   16 +++++------
->  47 files changed, 199 insertions(+), 199 deletions(-)
->
-> --
-> 1.7.9.5
->
+> Signed-off-by: Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
 
-+lists
+Acked-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
 
--- 
-Regards,
-Taras Kondratiuk
+> ---
+>   drivers/iommu/omap-iommu.c | 4 ++--
+>   1 file changed, 2 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
+> index ee83bcc..385bf5e 100644
+> --- a/drivers/iommu/omap-iommu.c
+> +++ b/drivers/iommu/omap-iommu.c
+> @@ -863,7 +863,7 @@ static int device_match_by_alias(struct device *dev, void *data)
+>    **/
+>   static struct omap_iommu *omap_iommu_attach(const char *name, u32 *iopgd)
+>   {
+> -	int err = -ENOMEM;
+> +	int err = -ENODEV;
+>   	struct device *dev;
+>   	struct omap_iommu *obj;
+>
+> @@ -871,7 +871,7 @@ static struct omap_iommu *omap_iommu_attach(const char *name, u32 *iopgd)
+>   				(void *)name,
+>   				device_match_by_alias);
+>   	if (!dev)
+> -		return NULL;
+> +		return ERR_PTR(err);
+>
+>   	obj = to_iommu(dev);
+>
+>
