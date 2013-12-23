@@ -1,16 +1,17 @@
 From: Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
-Subject: Re: [PATCH 4/7] iommu/omap: Allow enable/disable even without pdata
-Date: Mon, 23 Dec 2013 22:19:45 +0100
-Message-ID: <52B8A8F1.4040906@epfl.ch>
+Subject: Re: [PATCH 6/7] ARM: OMAP2+: Remove legacy data from hwmod for omap3
+	isp iommu
+Date: Mon, 23 Dec 2013 22:36:45 +0100
+Message-ID: <52B8ACED.1030209@epfl.ch>
 References: <1387284818-28739-1-git-send-email-florian.vaussard@epfl.ch>
-	<1387284818-28739-5-git-send-email-florian.vaussard@epfl.ch>
-	<52B88990.5020807@ti.com>
+	<1387284818-28739-7-git-send-email-florian.vaussard@epfl.ch>
+	<52B88A49.9020402@ti.com>
 Reply-To: florian.vaussard-p8DiymsW2f8@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <52B88990.5020807-l0cyMroinI0@public.gmane.org>
+In-Reply-To: <52B88A49.9020402-l0cyMroinI0@public.gmane.org>
 List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
 	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
@@ -26,22 +27,19 @@ List-Id: linux-omap@vger.kernel.org
 
 Hi Suman,
 
-On 12/23/2013 08:05 PM, Anna, Suman wrote:
+On 12/23/2013 08:08 PM, Anna, Suman wrote:
 > Hi Florian,
 > 
 > On 12/17/2013 06:53 AM, Florian Vaussard wrote:
->> When booting with a devietree, no platform data is provided. Do not
->> prematurely
->> exit iommu_enable() and iommu_disable() in such a case.
+>> The data are now passed using the devicetree.
 > 
-> Platform data may still be needed if we were to go with the pdata quirks
-> approach for handling resets. You may need to revise the patch
-> description then, but the change itself may be ok if supporting only DT
-> devices.
+> Patch is good by itself. A similar change is needed for the IVA
+> MMU as well.
 > 
 
-Indeed, this should be mentioned in the commit message. I would go for
-a pdata-quirk until we have a proper reset-controller.
+As I understood, the IVA MMU is still not integrated into the iommu
+core, as its implementation lives under staging/tidspbridge/. But
+correct me if I am wrong.
 
 Regards,
 
