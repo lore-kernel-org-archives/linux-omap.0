@@ -1,15 +1,17 @@
 From: Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
-Subject: Re: [PATCH 0/7] Fix omap-iommu probe and convert to DT for 3.14
-Date: Mon, 23 Dec 2013 21:51:54 +0100
-Message-ID: <52B8A26A.3000905@epfl.ch>
+Subject: Re: [PATCH 1/7] iommu/omap: Do bus_set_iommu() only if probe()
+	succeeds
+Date: Mon, 23 Dec 2013 22:07:04 +0100
+Message-ID: <52B8A5F8.3000706@epfl.ch>
 References: <1387284818-28739-1-git-send-email-florian.vaussard@epfl.ch>
-	<52B8866D.9060100@ti.com>
+	<1387284818-28739-2-git-send-email-florian.vaussard@epfl.ch>
+	<52B888C2.8040303@ti.com>
 Reply-To: florian.vaussard-p8DiymsW2f8@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <52B8866D.9060100-l0cyMroinI0@public.gmane.org>
+In-Reply-To: <52B888C2.8040303-l0cyMroinI0@public.gmane.org>
 List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
 	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
@@ -25,60 +27,49 @@ List-Id: linux-omap@vger.kernel.org
 
 Hi Suman,
 
-On 12/23/2013 07:52 PM, Anna, Suman wrote:
+On 12/23/2013 08:02 PM, Anna, Suman wrote:
 > Hi Florian,
->
+> 
 > On 12/17/2013 06:53 AM, Florian Vaussard wrote:
->> OMAP2+ is heading towards a full device tree boot for 3.14. Currently,
->> the iommu used by the OMAP3 camera subsystem is not yet converted. It
->> cannot be probed as necessary data are only passed through device tree.
->>
->> Patches 1 and 2 are small fixes for problems encountered while developing
->> this series.
->>
->> Patches 3 to 5 add the device tree logic to omap-iommu, and complete
->> iommu
->> data in omap3.dtsi. Patches 6 and 7 remove unused iommu hwmod data and
->> platform code from OMAP2+.
->
-> This is a good starting patch series for the OMAP iommu DT conversion,
-> but it only handles OMAP3 ISP MMU. The OMAP3 ISP MMU is not the only MMU
-> handled by the OMAP iommu driver. There is also an OMAP3 IVA MMU and
-> MMUs associated with DSP and IPU in OMAP4/OMAP5. The conversion is
-> simpler just with the OMAP3 ISP MMU, as it doesn't have any reset lines
-> associated with it. But all the other MMUs would require
-> asserting/deasserting the resets (performed currently through the pdata
-> function pointers). Your patch series removes that functionality
-> completely, and if this were to go into 3.14, this has to be handled
-> through some pdata quirks until all the resets in hwmod data are
-> converted to a reset driver.
->
+>> Currently, bus_set_iommu() is done in omap_iommu_init(). However,
+>> omap_iommu_probe() can fail in a number of ways, leaving the platform
+>> bus with a dangling reference to a non-initialized iommu. Perform
+>> bus_set_iommu() only if omap_iommu_probe() succeed.
+> 
+> Can you clarify a bit more on what kind of issues you were seeing
+> specifically? In general, there can be multiple instances of the iommu,
+> so setting it in probe may not be fixing whatever issue you were seeing.
+> The current OMAP3 code has only the ISP MMU enabled, but there is also
+> another one for the IVA MMU (currently not configured by default).
+> Moving the bus_set_iommu to probe makes sense if only one iommu is
+> present, so this patch may not be needed at all.
+> 
 
-Indeed, this patchset currently addresses only the OMAP ISP IOMMU.
-For the OMAP3 IVA, the current implementation looks completely
-different (inside drivers/staging/tidspbridge/). And to the best of
-my knowledge, the current omap-iommu driver can handle only one
-instance. By calling
+If omap_iommu_probe() fails, the init will have called bus_set_iommu()
+anyways. Thus, when a driver request the iommu by calling
+iommu_domain_alloc(), it will succeed (but iommu_attach_device() will
+fail if I remember). Leaving a driver with a dangling reference to
+a phantom iommu is not good IMHO. It will lead to strange behaviours
+one day or another.
 
-bus_set_iommu(&platform_bus_type, &omap_iommu_ops);
+As for the multiple iommu case, as I do not think it is currently
+possible, as bus_type (in this case &platform_bus_type) has only
+one struct iommu_ops. bus_set_iommu() will return EBUSY on the
+second call. Am I missing something?
 
-the driver register the iommu on the platform bus (which is maybe
-not the best choice). This call will fill the struct iommu_ops of
-the bus_type, but if an iommu is already present, it will fail
-and return EBUSY. Thus only one iommu can be set on the same bus.
+> Also, the main change in this patch is moving the bus_set_iommu from
+> omap_iommu_init to omap_iommu_probe, so you should probably leave out
+> moving the function. The omap_iommu_probe function would anyway need
+> conversion to using devm_ functions.
+> 
 
-But for the OMAP4 and OMAP5, I understand your concern. If a reset
-is needed for these IPs, then a solution must be found. pdata-quirks
-can be a temporary solution for 3.14. Otherwise a proper reset
-controller should be devised from the current PRM module. Even if
-I already looked at the reset core, I do not know the amount of work
-necessary for this solution. And I do not have the hardware to
-test the solution. But I can have a look after the XMAS break.
+This was my first try also, but as bus_set_iommu() needs omap_iommu_ops
+(itself depending on several functions), its call must come after the
+declaration of omap_iommu_ops. Thus I moved omap_iommu_probe() after
+the declaration of omap_iommu_ops. But I can probably use a forward
+declaration for omap_iommu_ops, this would be better.
 
-> I have provided some more comments directly in the respective patches.
->
-
-And I will answer inline. Thank you very much!
+Indeed, we can also convert to devm_.
 
 Regards,
 
