@@ -1,88 +1,96 @@
 From: Taras Kondratiuk <taras.kondratiuk@linaro.org>
-Subject: [PATCH 4/4] ARM: OMAP: debug-leds: raw read and write endian fix
-Date: Mon, 23 Dec 2013 20:10:34 +0200
-Message-ID: <1387822234-11167-5-git-send-email-taras.kondratiuk@linaro.org>
+Subject: Re: [PATCH 0/4] ARM: OMAP: raw read and write endian fix
+Date: Mon, 23 Dec 2013 20:18:44 +0200
+Message-ID: <CAArO44vC4WKGHSqHX3+Mo5+jcNuyJLkh94+SPd4H+aZYAroYzw@mail.gmail.com>
 References: <1387822234-11167-1-git-send-email-taras.kondratiuk@linaro.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-bk0-f48.google.com ([209.85.214.48]:64045 "EHLO
+	mail-bk0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752324Ab3LWSSq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Dec 2013 13:18:46 -0500
+Received: by mail-bk0-f48.google.com with SMTP id r7so2089793bkg.21
+        for <linux-omap@vger.kernel.org>; Mon, 23 Dec 2013 10:18:44 -0800 (PST)
 In-Reply-To: <1387822234-11167-1-git-send-email-taras.kondratiuk@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: patches@linaro.org, linaro-networking@linaro.org, linaro-kernel@lists.linaro.org, Victor Kamensky <victor.kamensky@linaro.org>, Taras Kondratiuk <taras.kondratiuk@linaro.org>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Patch Tracking <patches@linaro.org>, Linaro Networking <linaro-networking@linaro.org>, Linaro Kernel <linaro-kernel@lists.linaro.org>, Taras Kondratiuk <taras.kondratiuk@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, open list <linux-kernel@vger.kernel.org>
 
-From: Victor Kamensky <victor.kamensky@linaro.org>
+On 23 December 2013 20:10, Taras Kondratiuk <taras.kondratiuk@linaro.org> wrote:
+> This series does trivial replacement of __raw_xxx functions with xxx_relaxed
+> endian-neutral variants in 'mach-omap2' and 'plat-omap' directories.
+> Some code here most probably won't be used in BE mode (like debug-leds for
+> OMAP1 boards), but changes are made anyway to remove __raw_xxx() functions
+> completely and simplify future grep'ing for new __raw_xxx() entries.
+>
+> This is a part of RFC series [1].
+> Based on v3.13-rc5.
+>
+> [1] http://www.spinics.net/lists/linux-omap/msg99927.html
+>
+> Victor Kamensky (4):
+>   ARM: OMAP2+: raw read and write endian fix
+>   ARM: OMAP: dmtimer: raw read and write endian fix
+>   ARM: OMAP: counter-32k: raw read and write endian fix
+>   ARM: OMAP: debug-leds: raw read and write endian fix
+>
+>  arch/arm/mach-omap2/board-flash.c         |    4 +--
+>  arch/arm/mach-omap2/clkt2xxx_dpllcore.c   |    2 +-
+>  arch/arm/mach-omap2/clkt2xxx_osc.c        |    8 +++---
+>  arch/arm/mach-omap2/clkt2xxx_sys.c        |    2 +-
+>  arch/arm/mach-omap2/clkt_clksel.c         |   10 +++----
+>  arch/arm/mach-omap2/clkt_dpll.c           |    6 ++---
+>  arch/arm/mach-omap2/clkt_iclk.c           |    8 +++---
+>  arch/arm/mach-omap2/clock.c               |   16 +++++------
+>  arch/arm/mach-omap2/clock36xx.c           |    6 ++---
+>  arch/arm/mach-omap2/cm2xxx_3xxx.h         |    4 +--
+>  arch/arm/mach-omap2/cm33xx.c              |    4 +--
+>  arch/arm/mach-omap2/cm3xxx.c              |    8 +++---
+>  arch/arm/mach-omap2/cm44xx.c              |    8 +++---
+>  arch/arm/mach-omap2/cminst44xx.c          |    4 +--
+>  arch/arm/mach-omap2/control.c             |   20 +++++++-------
+>  arch/arm/mach-omap2/dma.c                 |    4 +--
+>  arch/arm/mach-omap2/dpll3xxx.c            |   32 +++++++++++-----------
+>  arch/arm/mach-omap2/dpll44xx.c            |   12 ++++-----
+>  arch/arm/mach-omap2/gpmc.c                |    8 +++---
+>  arch/arm/mach-omap2/id.c                  |    2 +-
+>  arch/arm/mach-omap2/irq.c                 |    4 +--
+>  arch/arm/mach-omap2/mux.c                 |    8 +++---
+>  arch/arm/mach-omap2/omap-hotplug.c        |    4 +--
+>  arch/arm/mach-omap2/omap-mpuss-lowpower.c |   18 ++++++-------
+>  arch/arm/mach-omap2/omap-smp.c            |    4 +--
+>  arch/arm/mach-omap2/omap-wakeupgen.c      |   42 ++++++++++++++---------------
+>  arch/arm/mach-omap2/omap4-common.c        |   16 +++++------
+>  arch/arm/mach-omap2/omap_hwmod.c          |   10 +++----
+>  arch/arm/mach-omap2/omap_phy_internal.c   |    6 ++---
+>  arch/arm/mach-omap2/prcm_mpu44xx.c        |    4 +--
+>  arch/arm/mach-omap2/prm2xxx.h             |    2 +-
+>  arch/arm/mach-omap2/prm2xxx_3xxx.h        |    4 +--
+>  arch/arm/mach-omap2/prm33xx.c             |    4 +--
+>  arch/arm/mach-omap2/prm3xxx.h             |    2 +-
+>  arch/arm/mach-omap2/prm44xx.c             |    4 +--
+>  arch/arm/mach-omap2/prminst44xx.c         |    4 +--
+>  arch/arm/mach-omap2/sdrc.h                |    8 +++---
+>  arch/arm/mach-omap2/sdrc2xxx.c            |    4 +--
+>  arch/arm/mach-omap2/sr_device.c           |    2 +-
+>  arch/arm/mach-omap2/sram.c                |   16 +++++------
+>  arch/arm/mach-omap2/timer.c               |    8 +++---
+>  arch/arm/mach-omap2/vc.c                  |    4 +--
+>  arch/arm/mach-omap2/wd_timer.c            |    8 +++---
+>  arch/arm/plat-omap/counter_32k.c          |    6 ++---
+>  arch/arm/plat-omap/debug-leds.c           |   14 +++++-----
+>  arch/arm/plat-omap/dmtimer.c              |    8 +++---
+>  arch/arm/plat-omap/include/plat/dmtimer.h |   16 +++++------
+>  47 files changed, 199 insertions(+), 199 deletions(-)
+>
+> --
+> 1.7.9.5
+>
 
-All OMAP IP blocks expect LE data, but CPU may operate in BE mode.
-Need to use endian neutral functions to read/write h/w registers.
-I.e instead of __raw_read[lw] and __raw_write[lw] functions code
-need to use read[lw]_relaxed and write[lw]_relaxed functions.
-If the first simply reads/writes register, the second will byteswap
-it if host operates in BE mode.
++lists
 
-Changes are trivial sed like replacement of __raw_xxx functions
-with xxx_relaxed variant.
-
-Signed-off-by: Victor Kamensky <victor.kamensky@linaro.org>
-Signed-off-by: Taras Kondratiuk <taras.kondratiuk@linaro.org>
----
- arch/arm/plat-omap/debug-leds.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
-
-diff --git a/arch/arm/plat-omap/debug-leds.c b/arch/arm/plat-omap/debug-leds.c
-index aa7ebc6..48b69de 100644
---- a/arch/arm/plat-omap/debug-leds.c
-+++ b/arch/arm/plat-omap/debug-leds.c
-@@ -85,12 +85,12 @@ static void dbg_led_set(struct led_classdev *cdev,
- 	struct dbg_led *led = container_of(cdev, struct dbg_led, cdev);
- 	u16 reg;
- 
--	reg = __raw_readw(&fpga->leds);
-+	reg = readw_relaxed(&fpga->leds);
- 	if (b != LED_OFF)
- 		reg |= led->mask;
- 	else
- 		reg &= ~led->mask;
--	__raw_writew(reg, &fpga->leds);
-+	writew_relaxed(reg, &fpga->leds);
- }
- 
- static enum led_brightness dbg_led_get(struct led_classdev *cdev)
-@@ -98,7 +98,7 @@ static enum led_brightness dbg_led_get(struct led_classdev *cdev)
- 	struct dbg_led *led = container_of(cdev, struct dbg_led, cdev);
- 	u16 reg;
- 
--	reg = __raw_readw(&fpga->leds);
-+	reg = readw_relaxed(&fpga->leds);
- 	return (reg & led->mask) ? LED_FULL : LED_OFF;
- }
- 
-@@ -112,7 +112,7 @@ static int fpga_probe(struct platform_device *pdev)
- 		return -ENODEV;
- 
- 	fpga = ioremap(iomem->start, resource_size(iomem));
--	__raw_writew(0xff, &fpga->leds);
-+	writew_relaxed(0xff, &fpga->leds);
- 
- 	for (i = 0; i < ARRAY_SIZE(dbg_leds); i++) {
- 		struct dbg_led *led;
-@@ -138,15 +138,15 @@ static int fpga_probe(struct platform_device *pdev)
- 
- static int fpga_suspend_noirq(struct device *dev)
- {
--	fpga_led_state = __raw_readw(&fpga->leds);
--	__raw_writew(0xff, &fpga->leds);
-+	fpga_led_state = readw_relaxed(&fpga->leds);
-+	writew_relaxed(0xff, &fpga->leds);
- 
- 	return 0;
- }
- 
- static int fpga_resume_noirq(struct device *dev)
- {
--	__raw_writew(~fpga_led_state, &fpga->leds);
-+	writew_relaxed(~fpga_led_state, &fpga->leds);
- 	return 0;
- }
- 
 -- 
-1.7.9.5
+Regards,
+Taras Kondratiuk
