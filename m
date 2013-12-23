@@ -1,44 +1,47 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: [PATCH] ARM: dts: OMAP2: fix interrupt number for rng
-Date: Mon, 23 Dec 2013 16:59:39 -0600
-Message-ID: <1387839579-58292-1-git-send-email-s-anna@ti.com>
+From: "Anna, Suman" <s-anna-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 6/7] ARM: OMAP2+: Remove legacy data from hwmod for omap3
+	isp iommu
+Date: Mon, 23 Dec 2013 17:28:13 -0600
+Message-ID: <52B8C70D.3040103@ti.com>
+References: <1387284818-28739-1-git-send-email-florian.vaussard@epfl.ch>
+	<1387284818-28739-7-git-send-email-florian.vaussard@epfl.ch>
+	<52B88A49.9020402@ti.com> <52B8ACED.1030209@epfl.ch>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:46178 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932309Ab3LWW7w (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 23 Dec 2013 17:59:52 -0500
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <52B8ACED.1030209-p8DiymsW2f8@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: florian.vaussard-p8DiymsW2f8@public.gmane.org, Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, =?ISO-8859-1?Q?Beno=EEt_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Cc: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, "linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, "iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, Rob Landley <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>
-Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, Suman Anna <s-anna@ti.com>
 
-The irq data for rng module defined in hwmod data previously
-missed the OMAP_INTC_START relative offset, so the interrupt
-number is probably misconfigured during the DT node addition
-adjusting for this OMAP_INTC_START. Interrupt #36 is associated
-with a watchdog timer, so fix the rng module's interrupt to the
-appropriate interrupt #52.
+Hi Florian,
 
-Signed-off-by: Suman Anna <s-anna@ti.com>
----
- arch/arm/boot/dts/omap2.dtsi | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ >>
+>> On 12/17/2013 06:53 AM, Florian Vaussard wrote:
+>>> The data are now passed using the devicetree.
+>>
+>> Patch is good by itself. A similar change is needed for the IVA
+>> MMU as well.
+>>
+>
+> As I understood, the IVA MMU is still not integrated into the iommu
+> core, as its implementation lives under staging/tidspbridge/. But
+> correct me if I am wrong.
+>
 
-diff --git a/arch/arm/boot/dts/omap2.dtsi b/arch/arm/boot/dts/omap2.dtsi
-index d0c5b37..5377ddf 100644
---- a/arch/arm/boot/dts/omap2.dtsi
-+++ b/arch/arm/boot/dts/omap2.dtsi
-@@ -145,7 +145,7 @@
- 			compatible = "ti,omap2-rng";
- 			ti,hwmods = "rng";
- 			reg = <0x480a0000 0x50>;
--			interrupts = <36>;
-+			interrupts = <52>;
- 		};
- 
- 		sham: sham@480a4000 {
--- 
-1.8.4.3
+Yes, that is correct. That shouldn't stop us though from adding the IVA 
+MMU node to the DT file and the associated cleanup. To begin with, we 
+can have the DT node added with status=disabled.
 
+regards
+Suman
