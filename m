@@ -1,96 +1,103 @@
-From: Balaji T K <balajitk@ti.com>
-Subject: Re: [PATCH v7 4/7] mmc: omap_hsmmc: adapt hsmmc to use pbias regulator
-Date: Mon, 23 Dec 2013 19:12:48 +0530
-Message-ID: <52B83DD8.1060402@ti.com>
-References: <1387560955-6547-1-git-send-email-balajitk@ti.com> <1387560955-6547-5-git-send-email-balajitk@ti.com> <CAOf5uw=QO9ePDxQfZYpJPd9Fa4Cud54+NL2CtkJvsF5dz3MXvA@mail.gmail.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [RFT/RFC/PATCH 00/31] arm: omap: irq: cleanup INTC driver
+Date: Mon, 23 Dec 2013 11:34:09 -0600
+Message-ID: <20131223173409.GA10536@saruman.home>
+References: <1384970958-4118-1-git-send-email-balbi@ti.com>
+ <20131219184815.GU27438@atomide.com>
+ <20131219232153.GE707@saruman.home>
+ <20131221005309.GH26054@atomide.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <CAOf5uw=QO9ePDxQfZYpJPd9Fa4Cud54+NL2CtkJvsF5dz3MXvA@mail.gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Michael Trimarchi <michael@amarulasolutions.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Benoit Cousson <bcousson@baylibre.com>, devicetree@vger.kernel.org, linux-mmc@vger.kernel.org, Chris Ball <cjb@laptop.org>, Mark Brown <broonie@kernel.org>, Tony Lindgren <tony@atomide.com>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="r5Pyd7+fXNt84Ff3"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:35974 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757827Ab3LWRfS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 23 Dec 2013 12:35:18 -0500
+Content-Disposition: inline
+In-Reply-To: <20131221005309.GH26054@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Felipe Balbi <balbi@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
-On Friday 20 December 2013 11:45 PM, Michael Trimarchi wrote:
-> Hi
->
-> On Fri, Dec 20, 2013 at 6:35 PM, Balaji T K <balajitk@ti.com> wrote:
->> In DT case, PBAIS registers are programmed via regulator,
->> use regulator APIs to control PBIAS.
->>
->> Signed-off-by: Balaji T K <balajitk@ti.com>
->> ---
->>   drivers/mmc/host/omap_hsmmc.c |   39 +++++++++++++++++++++++++++++++++++++++
->>   1 files changed, 39 insertions(+), 0 deletions(-)
->>
->> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
->> index 342be25..0a390f8 100644
->> --- a/drivers/mmc/host/omap_hsmmc.c
->> +++ b/drivers/mmc/host/omap_hsmmc.c
->> @@ -126,6 +126,10 @@
->>   #define OMAP_MMC_MAX_CLOCK     52000000
->>   #define DRIVER_NAME            "omap_hsmmc"
->>
->> +#define VDD_1V8                        1800000         /* 180000 uV */
->> +#define VDD_3V0                        3000000         /* 300000 uV */
->> +#define VDD_165_195            (ffs(MMC_VDD_165_195) - 1)
->> +
->>   /*
->>    * One controller can have multiple slots, like on some omap boards using
->>    * omap.c controller driver. Luckily this is not currently done on any known
->> @@ -164,6 +168,8 @@ struct omap_hsmmc_host {
->>           */
->>          struct  regulator       *vcc;
->>          struct  regulator       *vcc_aux;
->> +       struct  regulator       *pbias;
->> +       bool                    pbias_enabled;
->>          int                     pbias_disable;
->>          void    __iomem         *base;
->>          resource_size_t         mapbase;
->> @@ -272,6 +278,15 @@ static int omap_hsmmc_set_power(struct device *dev, int slot, int power_on,
->>          if (mmc_slot(host).before_set_reg)
->>                  mmc_slot(host).before_set_reg(dev, slot, power_on, vdd);
->>
->> +       if (host->pbias) {
->> +               if (host->pbias_enabled == 1) {
->> +                       ret = regulator_disable(host->pbias);
->> +                       if (!ret)
->> +                               host->pbias_enabled = 0;
->
-> you should return error?
->
->> +               }
->> +               regulator_set_voltage(host->pbias, VDD_3V0, VDD_3V0);
->> +       }
->> +
->>          /*
->>           * Assume Vcc regulator is used only to power the card ... OMAP
->>           * VDDS is used to power the pins, optionally with a transceiver to
->> @@ -306,9 +321,29 @@ static int omap_hsmmc_set_power(struct device *dev, int slot, int power_on,
->>                  }
->>          }
->>
->> +       if (host->pbias) {
->> +               if (vdd <= VDD_165_195)
->> +                       ret = regulator_set_voltage(host->pbias, VDD_1V8,
->> +                                                               VDD_1V8);
->> +               else
->> +                       ret = regulator_set_voltage(host->pbias, VDD_3V0,
->> +                                                               VDD_3V0);
->> +               if (ret < 0)
->> +                       goto error_set_power;
->> +
->> +               if (host->pbias_enabled == 0) {
->> +                       ret = regulator_enable(host->pbias);
->> +                       if (!ret) {
->> +                               host->pbias_enabled = 1;
->> +                               goto error_set_power;
->
-> Is this an error condition? Do you need this flag?
->
-Hi,
+--r5Pyd7+fXNt84Ff3
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-pbias_enabled flag is used to balance regulator_enable/regulator_disable, otherwise
-regulator might be kept enabled base on to use count.
+On Fri, Dec 20, 2013 at 04:53:09PM -0800, Tony Lindgren wrote:
+> * Felipe Balbi <balbi@ti.com> [131219 15:23]:
+> > On Thu, Dec 19, 2013 at 10:48:15AM -0800, Tony Lindgren wrote:
+> > > * Felipe Balbi <balbi@ti.com> [131120 10:10]:
+> > > > Afte these patches, we're very close to being able
+> > > > to move arch/arm/mach-omap2/irq.c to drivers/irqchip/irq-intc.c
+> > >=20
+> > > That would be nice :)
+> > > =20
+> > > > All which would be missing is for Tony to drop all OMAP2/3 board
+> > > > files so we remove the few pending bits and pieces left in
+> > > > for legacy boot.
+> > >=20
+> > > That may still need to wait a while, but let's see.
+> > > =20
+> > > > Note that I have only boot tested these on AM335x Bone Black
+> > > > (with a small fix for fixed regulator which should be in
+> > > > the mailing list already), so I'd need help testing all
+> > > > other impacted platforms, specially when it comes to PM.
+> > >=20
+> > > Sorry have not had much of a chance to test these with PM with
+> > > all the fixes needed for omap3 DT mode. Tried testing these
+> > > just now, but I get:
+> > >=20
+> > > arch/arm/mach-omap2/board-generic.c:134: error: =E2=80=98omap_intc_of=
+_init=E2=80=99 undeclared here (not in a function)
+> >=20
+> > some of your other changes messed it up, I have not references of
+> > omap_intc_of_init() in my branch, because that's one of the things I'm
+> > dropping from DT-based boots.
+> >=20
+> > Can you see which patch added a new omap_intc_of_init() call ? Or maybe
+> > tell me which branch I should rebase on top of ?
+>=20
+> OK I tried against v3.13-rc4, it's the 3517 changes that caused
+> it. Looks like that can be just removed, and then there are some
+> trivial n8x0 merge conflicts. And n8x0 boots too.
+>=20
+> But looks like omap3 off-idle hangs after hitting idle with these,
+
+could it be we're racing between irq_chip.suspend() and hwmod's
+_disable() calls ?
+
+> so a bit more work is needed. Maybe also rebase these against
+> omap-for-v3.14/dt too?
+
+Will do.
+
+--=20
+balbi
+
+--r5Pyd7+fXNt84Ff3
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.15 (GNU/Linux)
+
+iQIcBAEBAgAGBQJSuHQQAAoJEIaOsuA1yqRE2IwP/0595Dm+FdF9J55j1Qt2d2rR
+8L268FSlzKdtJvZuH0s7epXCgs0tXmFmVUVuWLWpIDfWvW3VQQMaoiUsEe+wpRzs
+wXuMOS+GsMqSHDNs4V3HMQKizRoFozgmYy2bbp9H0ljVeWIQVNnP0t/emPjfolPc
+zUdpE48J0L3zzkpLxn+D996Vr5M/UY6NrAy6jjBXynAgPpy3lcLxWnblAsUUp+/g
+R+pxHpYEDB3NemVUDRuNXOYWVSp5J29mHWjaCGByB6f0aVm6NLcCDf/yNTT4D2Ec
+Qck+lA+BEoxT3S9Cs7txGTkZxj0dK96zb5UU2/nWWQ6J97SnsZw17NkQX/wiZ811
+GBkumrkO1sjzmwViVgxXzGnmhvjP7q/kyVOB7nP4Iz5UXwcqHzyqMPd8gxJKJ7RX
+mbcqIrkX30qCHdimVPm32Wppcz41Uo/b27/aNAgr/IqM4INhN5EFk/hIYw284Oyr
+6wS/mvxduFuzvJUYO/pmYk+zaaf/IOzudU6HYbb3hYTxBqO1mTapY8vYhMQ7hmg7
+aZ491z39nWTBXs6nxR2UI4mpHtc3N9SzoSOk3oFxgtVnoSYoSUtC4x6APQNoT6rE
+3Yjyn2vc9huJwfGlcSEBWpKrSfzHKzblzs41YSV3OchZKm0lZCOh7kK6+jI/N0nq
+idFxwpWL/Oq/W0O7qfA+
+=bZxx
+-----END PGP SIGNATURE-----
+
+--r5Pyd7+fXNt84Ff3--
