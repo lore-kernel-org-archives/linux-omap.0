@@ -1,16 +1,16 @@
 From: "Anna, Suman" <s-anna-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 6/7] ARM: OMAP2+: Remove legacy data from hwmod for omap3
-	isp iommu
-Date: Mon, 23 Dec 2013 17:28:13 -0600
-Message-ID: <52B8C70D.3040103@ti.com>
+Subject: Re: [PATCH 1/7] iommu/omap: Do bus_set_iommu() only if probe()
+	succeeds
+Date: Mon, 23 Dec 2013 17:35:29 -0600
+Message-ID: <52B8C8C1.8080101@ti.com>
 References: <1387284818-28739-1-git-send-email-florian.vaussard@epfl.ch>
-	<1387284818-28739-7-git-send-email-florian.vaussard@epfl.ch>
-	<52B88A49.9020402@ti.com> <52B8ACED.1030209@epfl.ch>
+	<1387284818-28739-2-git-send-email-florian.vaussard@epfl.ch>
+	<52B888C2.8040303@ti.com> <52B8A5F8.3000706@epfl.ch>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
 Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <52B8ACED.1030209-p8DiymsW2f8@public.gmane.org>
+In-Reply-To: <52B8A5F8.3000706-p8DiymsW2f8@public.gmane.org>
 List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
 	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
@@ -26,22 +26,62 @@ List-Id: linux-omap@vger.kernel.org
 
 Hi Florian,
 
- >>
+>>
 >> On 12/17/2013 06:53 AM, Florian Vaussard wrote:
->>> The data are now passed using the devicetree.
+>>> Currently, bus_set_iommu() is done in omap_iommu_init(). However,
+>>> omap_iommu_probe() can fail in a number of ways, leaving the platform
+>>> bus with a dangling reference to a non-initialized iommu. Perform
+>>> bus_set_iommu() only if omap_iommu_probe() succeed.
 >>
->> Patch is good by itself. A similar change is needed for the IVA
->> MMU as well.
+>> Can you clarify a bit more on what kind of issues you were seeing
+>> specifically? In general, there can be multiple instances of the iommu,
+>> so setting it in probe may not be fixing whatever issue you were seeing.
+>> The current OMAP3 code has only the ISP MMU enabled, but there is also
+>> another one for the IVA MMU (currently not configured by default).
+>> Moving the bus_set_iommu to probe makes sense if only one iommu is
+>> present, so this patch may not be needed at all.
 >>
 >
-> As I understood, the IVA MMU is still not integrated into the iommu
-> core, as its implementation lives under staging/tidspbridge/. But
-> correct me if I am wrong.
->
+> If omap_iommu_probe() fails, the init will have called bus_set_iommu()
+> anyways. Thus, when a driver request the iommu by calling
+> iommu_domain_alloc(), it will succeed (but iommu_attach_device() will
+> fail if I remember).
 
-Yes, that is correct. That shouldn't stop us though from adding the IVA 
-MMU node to the DT file and the associated cleanup. To begin with, we 
-can have the DT node added with status=disabled.
+Yeah, thats the behavior I expected anyway.
+
+> Leaving a driver with a dangling reference to
+> a phantom iommu is not good IMHO. It will lead to strange behaviours
+> one day or another.
+>
+> As for the multiple iommu case, as I do not think it is currently
+> possible, as bus_type (in this case &platform_bus_type) has only
+> one struct iommu_ops. bus_set_iommu() will return EBUSY on the
+> second call. Am I missing something?
+
+What I meant was the problem you cited will still exist, say if ISP MMU 
+probe failed, but the IVA MMU probe succeeded. The bus_set_iommu() can 
+only be called once anyway, so moving it from init to probe would not 
+help much.
 
 regards
 Suman
+
+>
+>> Also, the main change in this patch is moving the bus_set_iommu from
+>> omap_iommu_init to omap_iommu_probe, so you should probably leave out
+>> moving the function. The omap_iommu_probe function would anyway need
+>> conversion to using devm_ functions.
+>>
+>
+> This was my first try also, but as bus_set_iommu() needs omap_iommu_ops
+> (itself depending on several functions), its call must come after the
+> declaration of omap_iommu_ops. Thus I moved omap_iommu_probe() after
+> the declaration of omap_iommu_ops. But I can probably use a forward
+> declaration for omap_iommu_ops, this would be better.
+>
+> Indeed, we can also convert to devm_.
+>
+> Regards,
+>
+> Florian
+>
