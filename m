@@ -1,58 +1,38 @@
-From: "Anna, Suman" <s-anna@ti.com>
-Subject: Re: [PATCH 5/7] ARM: dts: Complete data for isp iommu
-Date: Mon, 23 Dec 2013 18:10:27 -0600
-Message-ID: <52B8D0F3.5060508@ti.com>
-References: <1387284818-28739-1-git-send-email-florian.vaussard@epfl.ch> <1387284818-28739-6-git-send-email-florian.vaussard@epfl.ch> <52B88B1A.40506@ti.com> <52B8AC55.70205@epfl.ch>
+From: Anton Vorontsov <anton@enomsg.org>
+Subject: Re: [PATCH v2 2/3] bq2415x_charger: Use power_supply notifier for
+ automode
+Date: Mon, 23 Dec 2013 17:58:28 -0800
+Message-ID: <20131224015828.GB10223@lizard>
+References: <1378630239-10006-1-git-send-email-pali.rohar@gmail.com>
+ <1384856285-19593-1-git-send-email-pali.rohar@gmail.com>
+ <1384856285-19593-3-git-send-email-pali.rohar@gmail.com>
+ <20131119132416.GE14587@amd.pavel.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <52B8AC55.70205@epfl.ch>
-Sender: linux-doc-owner@vger.kernel.org
-To: florian.vaussard@epfl.ch, Joerg Roedel <joro@8bytes.org>, Tony Lindgren <tony@atomide.com>, =?ISO-8859-1?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>
-Cc: Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Rob Landley <rob@landley.net>, Grant Likely <grant.likely@linaro.org>, Hiroshi Doyu <hdoyu@nvidia.com>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20131119132416.GE14587@amd.pavel.ucw.cz>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>, David Woodhouse <dwmw2@infradead.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, freemangordon@abv.bg, aaro.koskinen@iki.fi
 List-Id: linux-omap@vger.kernel.org
 
-Hi Florian,
+On Tue, Nov 19, 2013 at 02:24:16PM +0100, Pavel Machek wrote:
+> On Tue 2013-11-19 11:18:04, Pali Roh=C3=A1r wrote:
+> > This patch removing set_mode_hook function from board data and repl=
+acing it with
+> > new string variable of notifier power supply device. After this cha=
+nge it is
+> > possible to add DT support because driver does not need specific bo=
+ard function
+> > anymore. Only static data and name of power supply device is requir=
+ed.
+> >=20
+> > Signed-off-by: Pali Roh=C3=A1r <pali.rohar@gmail.com>
+>=20
+> Reviewed-by: Pavel Machek <pavel@ucw.cz>
 
-On 12/23/2013 03:34 PM, Florian Vaussard wrote:
-> Hi Suman,
->
-> On 12/23/2013 08:12 PM, Anna, Suman wrote:
->> Hi Florian,
->>
->> On 12/17/2013 06:53 AM, Florian Vaussard wrote:
->>> Add missing information required to probe the iommu for the camera
->>> subsystem.
->>>
->>> Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
->>> ---
->>>    arch/arm/boot/dts/omap3.dtsi | 4 +++-
->>>    1 file changed, 3 insertions(+), 1 deletion(-)
->>>
->>> diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
->>> index daabf99..610d084 100644
->>> --- a/arch/arm/boot/dts/omap3.dtsi
->>> +++ b/arch/arm/boot/dts/omap3.dtsi
->>> @@ -371,11 +371,13 @@
->>>                dma-names = "tx", "rx";
->>>            };
->>>
->>> -        mmu_isp: mmu@480bd400 {
->>> +        mmu_isp: mmu_isp@480bd400 {
->>
->> Any reason for switching the name to mmu_isp?
->>
->
-> The name of the hwmod is "mmu_isp". This was not working otherwise,
-> but I cannot tell you for sure why without getting back at my office.
+Applied, thanks!
 
-Ok, did a bit of digging, this is due to the name tie-in for iommu arch 
-data (look at the omap3_camera_init in mach-omap2/devices.c), and the 
-obj->name assignment of of->name. This is another thing that needs to be 
-looked into since it would be preferable to move away from the name 
-based lookup towards using a phandle approach by the iommu consumer drivers.
-
-regards
-Suman
-
+Anton
