@@ -1,60 +1,120 @@
-From: Balaji T K <balajitk@ti.com>
-Subject: Re: [PATCH v7 3/7] regulator: add pbias regulator support
-Date: Tue, 24 Dec 2013 21:41:13 +0530
-Message-ID: <52B9B221.40004@ti.com>
-References: <1387560955-6547-1-git-send-email-balajitk@ti.com> <1387560955-6547-4-git-send-email-balajitk@ti.com> <20131220184451.GD26054@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <20131220184451.GD26054@atomide.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, bcousson@baylibre.com, devicetree@vger.kernel.org, linux-mmc@vger.kernel.org, cjb@laptop.org, broonie@kernel.org
+From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Subject: [PATCH] ARM: omapfb: Add early framebuffer memory allocator
+Date: Thu, 26 Dec 2013 01:12:39 +0200
+Message-ID: <1388013159-3036-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+References: <52A062A0.3070005@ti.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <52A062A0.3070005@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: tomi.valkeinen@ti.com
+Cc: tony@atomide.com, linux@arm.linux.org.uk, pali.rohar@gmail.com, pavel@ucw.cz, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Ivaylo Dimitrov <freemangordon@abv.bg>
 List-Id: linux-omap@vger.kernel.org
 
-On Saturday 21 December 2013 05:09 AM, Tony Lindgren wrote:
-> * Balaji T K <balajitk@ti.com> [131220 09:37]:
->> +static const struct pbias_reg_info pbias_mmc_omap2430 = {
->> +	.enable = BIT(1),
->> +	.enable_mask = BIT(1),
->> +	.vmode = BIT(0),
->> +	.enable_time = 100,
->> +	.name = "pbias_mmc_omap2430"
->> +};
->> +
->> +static const struct pbias_reg_info pbias_sim_omap3 = {
->> +	.enable = BIT(9),
->> +	.enable_mask = BIT(9),
->> +	.vmode = BIT(8),
->> +	.enable_time = 100,
->> +	.name = "pbias_sim_omap3"
->> +};
->> +
->> +static const struct pbias_reg_info pbias_mmc_omap4 = {
->> +	.enable = BIT(26) | BIT(22),
->> +	.enable_mask = BIT(26) | BIT(25) | BIT(22),
->> +	.vmode = BIT(21),
->> +	.enable_time = 10,
->> +	.name = "pbias_mmc_omap4"
->> +};
->> +
->> +static const struct pbias_reg_info pbias_mmc_omap5 = {
->> +	.enable = BIT(27) | BIT(26),
->> +	.enable_mask = BIT(27) | BIT(25) | BIT(26),
->> +	.vmode = BIT(21),
->> +	.enable_time = 100,
->> +	.name = "pbias_mmc_omap5"
->> +};
->
-> Should the enable_time be 100 for omap4 like for the others?
->
+From: Ivaylo Dimitrov <freemangordon@abv.bg>
 
-enable_time of 10 is fine for omap4
+On memory limited devices, CMA fails easily when asked to allocate big
+chunks of memory like framebuffer memory needed for video playback.
 
-> Other than that:
->
-> Acked-by: Tony Lindgren <tony@atomide.com>
->
+Add boot parameter "omapfb_memsize" which allocates memory to be used
+as dma coherent memory, so dma_alloc_attrs won't hit CMA allocator when
+trying to allocate memory for the framebuffers
 
-Thanks Tony
+Signed-off-by: Ivaylo Dimitrov <freemangordon@abv.bg>
+---
+ arch/arm/mach-omap2/common.c |    1 +
+ arch/arm/mach-omap2/common.h |    2 +
+ arch/arm/mach-omap2/fb.c     |   46 +++++++++++++++++++++++++++++++++++++++++-
+ 3 files changed, 48 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/common.c b/arch/arm/mach-omap2/common.c
+index 2dabb9e..9beecde 100644
+--- a/arch/arm/mach-omap2/common.c
++++ b/arch/arm/mach-omap2/common.c
+@@ -33,4 +33,5 @@ void __init omap_reserve(void)
+ 	omap_dsp_reserve_sdram_memblock();
+ 	omap_secure_ram_reserve_memblock();
+ 	omap_barrier_reserve_memblock();
++	omap_fb_reserve_memblock();
+ }
+diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
+index e30ef67..21afdc0 100644
+--- a/arch/arm/mach-omap2/common.h
++++ b/arch/arm/mach-omap2/common.h
+@@ -304,6 +304,8 @@ extern void omap_reserve(void);
+ struct omap_hwmod;
+ extern int omap_dss_reset(struct omap_hwmod *);
+ 
++extern void omap_fb_reserve_memblock(void);
++
+ /* SoC specific clock initializer */
+ extern int (*omap_clk_init)(void);
+ 
+diff --git a/arch/arm/mach-omap2/fb.c b/arch/arm/mach-omap2/fb.c
+index 26e28e9..0eacbe9 100644
+--- a/arch/arm/mach-omap2/fb.c
++++ b/arch/arm/mach-omap2/fb.c
+@@ -30,6 +30,7 @@
+ #include <linux/dma-mapping.h>
+ 
+ #include <asm/mach/map.h>
++#include <asm/memblock.h>
+ 
+ #include "soc.h"
+ #include "display.h"
+@@ -106,10 +107,53 @@ static struct platform_device omap_fb_device = {
+ 	.num_resources = 0,
+ };
+ 
++static phys_addr_t omapfb_mem_base __initdata;
++static phys_addr_t omapfb_mem_size __initdata;
++
++void __init omap_fb_reserve_memblock(void)
++{
++	if (omapfb_mem_size) {
++		omapfb_mem_base = arm_memblock_steal(omapfb_mem_size, SZ_1M);
++		if (omapfb_mem_base)
++			pr_info("omapfb: reserved %u bytes at %x\n",
++				omapfb_mem_size, omapfb_mem_base);
++		else
++			pr_err("omapfb: arm_memblock_steal failed\n");
++	}
++}
++
+ int __init omap_init_fb(void)
+ {
+-	return platform_device_register(&omap_fb_device);
++	int ret;
++
++	ret = platform_device_register(&omap_fb_device);
++
++	if (ret)
++		return ret;
++
++	if (!omapfb_mem_base)
++		return 0;
++
++	ret = dma_declare_coherent_memory(&omap_fb_device.dev,
++					  omapfb_mem_base, omapfb_mem_base,
++					  omapfb_mem_size, DMA_MEMORY_MAP |
++					  DMA_MEMORY_EXCLUSIVE);
++	if (!(ret & DMA_MEMORY_MAP))
++		pr_err("omapfb: dma_declare_coherent_memory failed\n");
++
++	return 0;
++}
++
++static int __init early_omapfb_memsize(char *p)
++{
++	omapfb_mem_size = ALIGN(memparse(p, &p), SZ_1M);
++
++	if(!omapfb_mem_size)
++		pr_err("omapfb: bad memsize parameter\n");
++
++	return 0;
+ }
++early_param("omapfb_memsize", early_omapfb_memsize);
+ #else
+ int __init omap_init_fb(void) { return 0; }
+ #endif
+-- 
+1.5.6.1
