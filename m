@@ -1,72 +1,67 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH V5 2/4] DRIVERS: IRQCHIP: CROSSBAR: Add support for
- Crossbar IP
-Date: Thu, 26 Dec 2013 14:01:06 -0600
-Message-ID: <20131226200106.GA30559@saruman.home>
-References: <1386066445-28245-1-git-send-email-r.sricharan@ti.com>
- <1386066445-28245-3-git-send-email-r.sricharan@ti.com>
-Reply-To: <balbi@ti.com>
+From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+Subject: Re: [PATCH] ARM: configs: Select USB PHY for AM335x SoC
+Date: Thu, 26 Dec 2013 20:21:06 -0300
+Message-ID: <20131226232105.GA2456@localhost>
+References: <1386861269-28949-1-git-send-email-ezequiel.garcia@free-electrons.com>
+ <20131226120833.GA24645@localhost>
+ <20131226155555.GA3937@saruman.home>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="45Z9DzgjV8m4Oswq"
-Return-path: <linux-doc-owner@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from top.free-electrons.com ([176.31.233.9]:58141 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753853Ab3LZXUr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Dec 2013 18:20:47 -0500
 Content-Disposition: inline
-In-Reply-To: <1386066445-28245-3-git-send-email-r.sricharan@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Sricharan R <r.sricharan@ti.com>
-Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linus.walleij@linaro.org, linux@arm.linux.org.uk, tony@atomide.com, rnayak@ti.com, marc.zyngier@arm.com, grant.likely@linaro.org, mark.rutland@arm.com, robherring2@gmail.com, tglx@linutronix.de, galak@codeaurora.org, rob.herring@calxeda.com, santosh.shilimkar@ti.com, nm@ti.com, bcousson@baylibre.com
+In-Reply-To: <20131226155555.GA3937@saruman.home>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Felipe Balbi <balbi@ti.com>
 
---45Z9DzgjV8m4Oswq
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Thu, Dec 26, 2013 at 09:55:55AM -0600, Felipe Balbi wrote:
+> On Thu, Dec 26, 2013 at 09:08:34AM -0300, Ezequiel Garcia wrote:
+> > Felipe,
+> >=20
+> > On Thu, Dec 12, 2013 at 12:14:29PM -0300, Ezequiel Garcia wrote:
+> > > Enable this option as it's required to use USB on AM335x SoC.
+> > >=20
+> > > Signed-off-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.co=
+m>
+> > > ---
+> > >  arch/arm/configs/omap2plus_defconfig | 1 +
+> > >  1 file changed, 1 insertion(+)
+> > >=20
+> > > diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/conf=
+igs/omap2plus_defconfig
+> > > index 12c848e..e427b95 100644
+> > > --- a/arch/arm/configs/omap2plus_defconfig
+> > > +++ b/arch/arm/configs/omap2plus_defconfig
+> > > @@ -223,6 +223,7 @@ CONFIG_USB_TEST=3Dy
+> > >  CONFIG_NOP_USB_XCEIV=3Dy
+> > >  CONFIG_OMAP_USB2=3Dy
+> > >  CONFIG_OMAP_USB3=3Dy
+> > > +CONFIG_AM335X_PHY_USB=3Dy
+> > >  CONFIG_USB_GADGET=3Dy
+> > >  CONFIG_USB_GADGET_DEBUG=3Dy
+> > >  CONFIG_USB_GADGET_DEBUG_FILES=3Dy
+> > > --=20
+> > > 1.8.1.5
+> > >=20
+> >=20
+> > Maybe you can take this through your tree?
+>=20
+> sorry, no. This should go through Tony to avoid conflicting.
+>=20
 
-Hi,
-
-On Tue, Dec 03, 2013 at 03:57:23PM +0530, Sricharan R wrote:
-> +static const struct of_device_id crossbar_match[] __initconst =3D {
-> +	{ .compatible =3D "ti,irq-crossbar" },
-> +	{}
-> +};
-> +
-> +int irqcrossbar_init(void)
-> +{
-> +	struct device_node *np;
-> +	np =3D of_find_matching_node(NULL, crossbar_match);
-> +	if (!np)
-> +		return -ENODEV;
-> +
-> +	crossbar_of_init(np);
-> +	return 0;
-> +}
-
-instead, please use IRQCHIP_DECLARE() then you won't need to expose this
-symbol to be used by arch/arm/ code.
-
+Tony?
 --=20
-balbi
-
---45Z9DzgjV8m4Oswq
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.15 (GNU/Linux)
-
-iQIcBAEBAgAGBQJSvIsCAAoJEIaOsuA1yqREoGEP/3GFpG5Hsh/dUlQEidzogeXz
-b8m1nmUnGOP/FsXE2oEXpnDnh/yGL37Kp84guIpHawKwXKqHvuUC1IZQrwRZngQC
-LahlYvUMoITTPonPNpIUcXwRQekknhYRrbRvxt8i8aj9bAkYGI5AdS2bY/MqEB/8
-0TuwXNFJSzbDzat+c1uWNFJs+EwRyuiWHa+VsQ1mOTH1E8gaPxD6yNUKpomDDqB+
-5O8piuEmadf8sS0bF1ER4IYDe+5ZNUn08wO+Brt9WmDYbvB3LvCwhR8K/qYYgPad
-IZaMgSKkdudYJkgrMqoU1t6tuk63dWJAdUPZ+mGhaJsqakP+cod2N3M2PZxPI6PC
-IQY4mory1E8dYwOEGvT6MvZARcqK3Bz/hCu2/eYYdaakGL8rcqLxSITgFWnHG8jT
-IotmQadDKH3vwGRgYIOY7loAvglecmBtszJ8HnILJ1vLm9e5mMiNhxYUDg7j3CbW
-1DOomKcjcpJ5D4fX6XgOzIJZ9qhVik4ypGOC3+hugaQBfOHNZvfPlITktvln7SO2
-1uCFGCXj1BmY8NOTRVdhINWZ0U1lLaya08N59cjOC9/SedtwIl5wvNf07+CjASoa
-2AmJCmm5QbF6hJ5YmrOBckF+pKaNRUghbY8O0FVSq+GGhTitQWeCIHk/Qoj4XtFC
-FKHJWls6EbMxszX6SjWo
-=CY58
------END PGP SIGNATURE-----
-
---45Z9DzgjV8m4Oswq--
+Ezequiel Garc=C3=ADa, Free Electrons
+Embedded Linux, Kernel and Android Engineering
+http://free-electrons.com
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
