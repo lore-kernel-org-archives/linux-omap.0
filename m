@@ -1,73 +1,85 @@
-From: Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
-Subject: Re: [PATCH 2/2] usb: musb: Rework USB and USB_GADGET dependency
-Date: Thu, 26 Dec 2013 16:40:19 +0400
-Message-ID: <52BC23B3.4080107@cogentembedded.com>
-References: <1388060693-2716-1-git-send-email-ezequiel.garcia@free-electrons.com> <1388060693-2716-3-git-send-email-ezequiel.garcia@free-electrons.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH] ARM: configs: Select USB PHY for AM335x SoC
+Date: Thu, 26 Dec 2013 09:55:55 -0600
+Message-ID: <20131226155555.GA3937@saruman.home>
+References: <1386861269-28949-1-git-send-email-ezequiel.garcia@free-electrons.com>
+ <20131226120833.GA24645@localhost>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1388060693-2716-3-git-send-email-ezequiel.garcia-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ezequiel Garcia <ezequiel.garcia-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="zYM0uCDKw75PZbzx"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:35874 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753386Ab3LZP5G (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Dec 2013 10:57:06 -0500
+Content-Disposition: inline
+In-Reply-To: <20131226120833.GA24645@localhost>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>
 
-Hello.
+--zYM0uCDKw75PZbzx
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On 26-12-2013 16:24, Ezequiel Garcia wrote:
+On Thu, Dec 26, 2013 at 09:08:34AM -0300, Ezequiel Garcia wrote:
+> Felipe,
+>=20
+> On Thu, Dec 12, 2013 at 12:14:29PM -0300, Ezequiel Garcia wrote:
+> > Enable this option as it's required to use USB on AM335x SoC.
+> >=20
+> > Signed-off-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+> > ---
+> >  arch/arm/configs/omap2plus_defconfig | 1 +
+> >  1 file changed, 1 insertion(+)
+> >=20
+> > diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/om=
+ap2plus_defconfig
+> > index 12c848e..e427b95 100644
+> > --- a/arch/arm/configs/omap2plus_defconfig
+> > +++ b/arch/arm/configs/omap2plus_defconfig
+> > @@ -223,6 +223,7 @@ CONFIG_USB_TEST=3Dy
+> >  CONFIG_NOP_USB_XCEIV=3Dy
+> >  CONFIG_OMAP_USB2=3Dy
+> >  CONFIG_OMAP_USB3=3Dy
+> > +CONFIG_AM335X_PHY_USB=3Dy
+> >  CONFIG_USB_GADGET=3Dy
+> >  CONFIG_USB_GADGET_DEBUG=3Dy
+> >  CONFIG_USB_GADGET_DEBUG_FILES=3Dy
+> > --=20
+> > 1.8.1.5
+> >=20
+>=20
+> Maybe you can take this through your tree?
 
-> This USB controller can work in as host-only, gadget-only or dual-role
-> modes. Rework the dependency on the USB and USB_GADGET configs in order
-> to allow building the driver when !USB or !USG_GADGET.
+sorry, no. This should go through Tony to avoid conflicting.
 
-> Signed-off-by: Ezequiel Garcia <ezequiel.garcia-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
-[...]
+--=20
+balbi
 
-> diff --git a/drivers/usb/musb/Kconfig b/drivers/usb/musb/Kconfig
-> index 57dfc0c..a1d805f 100644
-> --- a/drivers/usb/musb/Kconfig
-> +++ b/drivers/usb/musb/Kconfig
-> @@ -6,7 +6,7 @@
->   # (M)HDRC = (Multipoint) Highspeed Dual-Role Controller
->   config USB_MUSB_HDRC
->   	tristate 'Inventra Highspeed Dual Role Controller (TI, ADI, ...)'
-> -	depends on USB_GADGET
-> +	depends on (USB || USB_GADGET)
+--zYM0uCDKw75PZbzx
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-    Parens are not needed here. Be consistent with other entries MUSB please.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.15 (GNU/Linux)
 
->   	help
->   	  Say Y here if your system has a dual role high speed USB
->   	  controller based on the Mentor Graphics silicon IP.  Then
-> @@ -35,21 +35,21 @@ choice
->
->   config USB_MUSB_HOST
->   	bool "Host only mode"
-> -	depends on USB
-> +	depends on USB=y || USB=USB_MUSB_HDRC
->   	help
->   	  Select this when you want to use MUSB in host mode only,
->   	  thereby the gadget feature will be regressed.
->
->   config USB_MUSB_GADGET
->   	bool "Gadget only mode"
-> -	depends on USB_GADGET
-> +	depends on USB_GADGET=y || USB_GADGET=USB_MUSB_HDRC
->   	help
->   	  Select this when you want to use MUSB in gadget mode only,
->   	  thereby the host feature will be regressed.
->
->   config USB_MUSB_DUAL_ROLE
->   	bool "Dual Role mode"
-> -	depends on (USB && USB_GADGET)
-> +	depends on ((USB=y || USB=USB_MUSB_HDRC) && (USB_GADGET=y || USB_GADGET=USB_MUSB_HDRC))
+iQIcBAEBAgAGBQJSvFGLAAoJEIaOsuA1yqREfNQP+wVqDOAAbbZkEKM9AFeO3nhN
+pmvx/llWC67o4IiITLDXJgTGBRSndh/h8DoHpvb/4G8FT1a+a9PO/A5T8ABW6ZBe
+tsT0UMVGOrHi6gfYwG84YOPbc5XaGcAZeNz5/dgvyDSj7UoHlPo/RLvPQtEpDUSf
+MoVL0nVXrkm4nT8GlbiM7KJJr90kqL6tvdlPuhpFO4rE+Zd7A+Z056/50i/qYl6N
+TmXhytWTnjjQO1Rr2d+JWNbxPxc/Qe/fjL0nZM5jR9inscLGIll0OhSOY5R8Bauh
+qmE6pvWWdDKSlKiWXkFPx41kJZCuVHxR8lM5Bb5U+gsGAPu0yHs/qcZL+ZpMeMfD
+rin+yTEs0OZa3qAvm76zOYQkwUFpr3VQIGN0uINhdw44ZwMPONeuNz06ihqEKCPd
+vTteH942ry+bO3UfEU2sOCt7CEfRxtGe5Xp8fVB2nelMt1b0e41SrgsZ/b1lhLgs
+NC260nTR3b1SmtgSvJFaUtTk6gwx+CV3RsbG8dSB8bnBU11JW8uKKRAZGfo1hbyn
+rBS285xtpOHVh2mfvnzHAtJTXGB42ZgqQdt0AqamMiJgqpAIVnQmKUDnrcyaB62m
+zryviwOhaw0nMOINnuccQrD/KgRpvDy3GqT5JmTLRsr+7s7kZUdfyCgoh0FFJrrl
+hzaattqrklieCcXCKu1Y
+=BABk
+-----END PGP SIGNATURE-----
 
-    Outer parens are not needed either...
-
-WBR, Sergei
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--zYM0uCDKw75PZbzx--
