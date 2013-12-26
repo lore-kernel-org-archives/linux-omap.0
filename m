@@ -1,56 +1,41 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] ARM: OMAP2+: hwmod_data: fix missing OMAP_INTC_START in
- irq data
-Date: Thu, 26 Dec 2013 04:20:15 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1312260417180.15949@utopia.booyaka.com>
-References: <1387839191-57886-1-git-send-email-s-anna@ti.com>
+Subject: Re: [PATCH] ARM: DRA7: hwmod: Fix boot crash with DEBUG_LL
+Date: Thu, 26 Dec 2013 04:41:18 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1312260421060.15949@utopia.booyaka.com>
+References: <1386841969-765-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:41792 "EHLO
+Received: from utopia.booyaka.com ([74.50.51.50]:41818 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752477Ab3LZEUQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Dec 2013 23:20:16 -0500
-In-Reply-To: <1387839191-57886-1-git-send-email-s-anna@ti.com>
+	with ESMTP id S1752477Ab3LZElT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Dec 2013 23:41:19 -0500
+In-Reply-To: <1386841969-765-1-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Suman Anna <s-anna@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Afzal Mohammed <afzal@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, bcousson@baylibre.com, lokeshvutla@ti.com
 
-On Mon, 23 Dec 2013, Suman Anna wrote:
+On Thu, 12 Dec 2013, Rajendra Nayak wrote:
 
-> Commit 7d7e1eb (ARM: OMAP2+: Prepare for irqs.h removal) and commit
-> ec2c082 (ARM: OMAP2+: Remove hardcoded IRQs and enable SPARSE_IRQ)
-> updated the way interrupts for OMAP2/3 devices are defined in the
-> HWMOD data structures to being an index plus a fixed offset (defined
-> by OMAP_INTC_START).
+> With commit '7dedd34: ARM: OMAP2+: hwmod: Fix a crash in _setup_reset() with
+>  DEBUG_LL' we moved from parsing cmdline to identify uart used for earlycon
+> to using the requsite hwmod CONFIG_DEBUG_OMAPxUARTy FLAGS.
 > 
-> Couple of irqs in the OMAP2/3 hwmod data were misconfigured completely
-> as they were missing this OMAP_INTC_START relative offset. Add this
-> offset back to fix the incorrect irq data for the following modules:
-> 	OMAP2 - GPMC, RNG
-> 	OMAP3 - GPMC, ISP MMU & IVA MMU
+> On DRA7 though, we seem to be missing this flag, and atleast on the DRA7 EVM
+> where we use uart1 for console, boot fails with DEBUG_LL enabled.
 > 
-> Signed-off-by: Suman Anna <s-anna@ti.com>
-> ---
-> This patch is applicable to only current 3.13 and past kernels (from
-> 3.7 onwards), it is not needed for 3.14 as this IRQ data has already
-> been cleaned up in Tony's omap-for-v3.14/omap3-board-removal branch.
+> Reported-by: Lokesh Vutla <lokeshvutla@ti.com>
+> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 
-Please don't forget to Cc the linux-arm-kernel mailing list.  I've done it 
-for you this time.
+By the way, for future patches that fix previous commits, please put 
+"Fixes:" lines along with your signoffs, and Cc: lines for the original 
+patch authors (if they're not you).  I've added the following line in this 
+case:
 
-Also, for fixes patches, please start adding "Fixes:" lines, and Cc: lines 
-for the original patch authors.  For example, I've added these to the 
-patch:
+    Fixes: 7dedd346941d ("ARM: OMAP2+: hwmod: Fix a crash in _setup_reset() with DEBUG_LL")
 
-    Fixes: 7d7e1eba7e92 ("ARM: OMAP2+: Prepare for irqs.h removal")
-    Fixes: ec2c0825ca31 ("ARM: OMAP2+: Remove hardcoded IRQs and enable SPARSE_IRQ")
-    Cc: Tony Lindgren <tony@atomide.com>
 
-But it would be much better if you could do this.
-
-Queued.
-
+regards,
 
 - Paul
