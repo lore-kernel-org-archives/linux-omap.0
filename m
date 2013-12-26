@@ -1,85 +1,121 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] ARM: configs: Select USB PHY for AM335x SoC
-Date: Thu, 26 Dec 2013 09:55:55 -0600
-Message-ID: <20131226155555.GA3937@saruman.home>
-References: <1386861269-28949-1-git-send-email-ezequiel.garcia@free-electrons.com>
- <20131226120833.GA24645@localhost>
-Reply-To: <balbi@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH V5 0/4] DRIVERS: IRQCHIP: Add support for crossbar IP
+Date: Thu, 26 Dec 2013 12:44:54 -0500
+Message-ID: <52BC6B16.80507@ti.com>
+References: <1386066445-28245-1-git-send-email-r.sricharan@ti.com>
+ <52B168A5.4010202@ti.com> <52BBB614.5010707@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="zYM0uCDKw75PZbzx"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:35874 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753386Ab3LZP5G (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Dec 2013 10:57:06 -0500
-Content-Disposition: inline
-In-Reply-To: <20131226120833.GA24645@localhost>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <52BBB614.5010707@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Sricharan R <r.sricharan@ti.com>, tony@atomide.com
+Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, nm@ti.com, linux@arm.linux.org.uk, linux-doc@vger.kernel.org, marc.zyngier@arm.com, linus.walleij@linaro.org, rnayak@ti.com, linux-kernel@vger.kernel.org, rob.herring@calxeda.com, bcousson@baylibre.com, galak@codeaurora.org, grant.likely@linaro.org, tglx@linutronix.de, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>
 
---zYM0uCDKw75PZbzx
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Sricharan,
 
-On Thu, Dec 26, 2013 at 09:08:34AM -0300, Ezequiel Garcia wrote:
-> Felipe,
->=20
-> On Thu, Dec 12, 2013 at 12:14:29PM -0300, Ezequiel Garcia wrote:
-> > Enable this option as it's required to use USB on AM335x SoC.
-> >=20
-> > Signed-off-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-> > ---
-> >  arch/arm/configs/omap2plus_defconfig | 1 +
-> >  1 file changed, 1 insertion(+)
-> >=20
-> > diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/om=
-ap2plus_defconfig
-> > index 12c848e..e427b95 100644
-> > --- a/arch/arm/configs/omap2plus_defconfig
-> > +++ b/arch/arm/configs/omap2plus_defconfig
-> > @@ -223,6 +223,7 @@ CONFIG_USB_TEST=3Dy
-> >  CONFIG_NOP_USB_XCEIV=3Dy
-> >  CONFIG_OMAP_USB2=3Dy
-> >  CONFIG_OMAP_USB3=3Dy
-> > +CONFIG_AM335X_PHY_USB=3Dy
-> >  CONFIG_USB_GADGET=3Dy
-> >  CONFIG_USB_GADGET_DEBUG=3Dy
-> >  CONFIG_USB_GADGET_DEBUG_FILES=3Dy
-> > --=20
-> > 1.8.1.5
-> >=20
->=20
-> Maybe you can take this through your tree?
+On Wednesday 25 December 2013 11:52 PM, Sricharan R wrote:
+> Hi Thomas,
+> On Wednesday 18 December 2013 02:49 PM, Sricharan R wrote:
+>> Hi Thomas,
+>>
+>> On Tuesday 03 December 2013 03:57 PM, Sricharan R wrote:
+>>> Some socs have a large number of interrupts requests to service
+>>> the needs of its many peripherals and subsystems. All of the interrupt
+>>> requests lines from the subsystems are not needed at the same
+>>> time, so they have to be muxed to the controllers appropriately.
+>>> In such places a interrupt controllers are preceded by an
+>>> IRQ CROSSBAR that provides flexibility in muxing the device interrupt
+>>> requests to the controller inputs.
+>>>
+>>> This series models the peripheral interrupts that can be routed through
+>>> the crossbar to the GIC as 'routable-irqs'. The routable irqs are added
+>>> in a separate linear domain inside the GIC. The registered routable domain's
+>>> callback are invoked as a part of the GIC's callback, which in turn should
+>>> allocate a free irq line and configure the IP accordingly. So every peripheral
+>>> in the dts files mentions the fixed crossbar number as its interrupt. A free
+>>> gic line for that gets allocated and configured when the peripheral interrupts
+>>> are mapped.
+>>>
+>>> The minimal crossbar driver to track and allocate free GIC lines and configure the
+>>> crossbar is added here, along with the DT bindings.
+>>>
+>>> V5:
+>>>    Addressed a comment from Mark Rutland <mark.rutland@arm.com>,
+>>>    updated tags and rebased on 3.13-rc2
+>>>
+>>> V4:
+>>>    Addressed a couple of comments and split the DTS file updates in to
+>>>    a separate series.
+>>>
+>>> V3:
+>>>    Addressed few more comments from Thomas Gleixner <tglx@linutronix.de>
+>>>
+>>>    Rebased patches 3,4,5,7 which updates the DTS file on top of below branch
+>>> 	   git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git
+>>> 	   for_3.13/dts
+>>>
+>>>    Rebased patches 1,2,6 on top of 3.12 mainline
+>>>    Updated Commit tags
+>>>
+>>> V2:
+>>>    Addressed Thomas Gleixner <tglx@linutronix.de> comments and
+>>>    Kumar Gala <galak@codeaurora.org>
+>>>
+>>>    Split updating the DRA7.dtsi file for adding the routable-irqs
+>>>
+>>> Previous discussions that led to this is at
+>>> 	https://lkml.org/lkml/2013/9/18/540
+>>>
+>>> The V1,V2,V3,V4 post of these patches is at
+>>>       [V1]  https://lkml.org/lkml/2013/9/30/283
+>>>       [V2]  http://www.spinics.net/lists/linux-omap/msg99540.html
+>>>       [V3]  http://www.kernelhub.org/?msg=356470&p=2
+>>>       [V4]  http://www.spinics.net/lists/linux-doc/msg16726.html
+>>>
+>>> Sricharan R (4):
+>>>   DRIVERS: IRQCHIP: IRQ-GIC: Add support for routable irqs
+>>>   DRIVERS: IRQCHIP: CROSSBAR: Add support for Crossbar IP
+>>>   ARM: OMAP4+: Correct Wakeup-gen code to use physical irq number
+>>>   ARM: DRA: Enable Crossbar IP support for DRA7XX
+>>>
+>>>  Documentation/devicetree/bindings/arm/gic.txt      |    6 +
+>>>  .../devicetree/bindings/arm/omap/crossbar.txt      |   27 +++
+>>>  arch/arm/mach-omap2/Kconfig                        |    1 +
+>>>  arch/arm/mach-omap2/omap-wakeupgen.c               |    4 +-
+>>>  arch/arm/mach-omap2/omap4-common.c                 |    2 +
+>>>  drivers/irqchip/Kconfig                            |    8 +
+>>>  drivers/irqchip/Makefile                           |    1 +
+>>>  drivers/irqchip/irq-crossbar.c                     |  208 ++++++++++++++++++++
+>>>  drivers/irqchip/irq-gic.c                          |   81 +++++++-
+>>>  include/linux/irqchip/arm-gic.h                    |    7 +-
+>>>  include/linux/irqchip/irq-crossbar.h               |   11 ++
+>>>  11 files changed, 343 insertions(+), 13 deletions(-)
+>>>  create mode 100644 Documentation/devicetree/bindings/arm/omap/crossbar.txt
+>>>  create mode 100644 drivers/irqchip/irq-crossbar.c
+>>>  create mode 100644 include/linux/irqchip/irq-crossbar.h
+>>>
+>>
+>> I have addressed all the comments on this series, can this be merged now ?
+>>
+>   Ping..
+> 
+Thomas has already given his reviewed-by tag so the patches can be
+taken via arm-soc tree considering OMAP and GIC changes. Can you
+create a branch with all these patches applied and send it
+to Tony ?
 
-sorry, no. This should go through Tony to avoid conflicting.
+Tony, Will you able to pull this and send it up to arm-soc ?
 
---=20
-balbi
-
---zYM0uCDKw75PZbzx
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.15 (GNU/Linux)
-
-iQIcBAEBAgAGBQJSvFGLAAoJEIaOsuA1yqREfNQP+wVqDOAAbbZkEKM9AFeO3nhN
-pmvx/llWC67o4IiITLDXJgTGBRSndh/h8DoHpvb/4G8FT1a+a9PO/A5T8ABW6ZBe
-tsT0UMVGOrHi6gfYwG84YOPbc5XaGcAZeNz5/dgvyDSj7UoHlPo/RLvPQtEpDUSf
-MoVL0nVXrkm4nT8GlbiM7KJJr90kqL6tvdlPuhpFO4rE+Zd7A+Z056/50i/qYl6N
-TmXhytWTnjjQO1Rr2d+JWNbxPxc/Qe/fjL0nZM5jR9inscLGIll0OhSOY5R8Bauh
-qmE6pvWWdDKSlKiWXkFPx41kJZCuVHxR8lM5Bb5U+gsGAPu0yHs/qcZL+ZpMeMfD
-rin+yTEs0OZa3qAvm76zOYQkwUFpr3VQIGN0uINhdw44ZwMPONeuNz06ihqEKCPd
-vTteH942ry+bO3UfEU2sOCt7CEfRxtGe5Xp8fVB2nelMt1b0e41SrgsZ/b1lhLgs
-NC260nTR3b1SmtgSvJFaUtTk6gwx+CV3RsbG8dSB8bnBU11JW8uKKRAZGfo1hbyn
-rBS285xtpOHVh2mfvnzHAtJTXGB42ZgqQdt0AqamMiJgqpAIVnQmKUDnrcyaB62m
-zryviwOhaw0nMOINnuccQrD/KgRpvDy3GqT5JmTLRsr+7s7kZUdfyCgoh0FFJrrl
-hzaattqrklieCcXCKu1Y
-=BABk
------END PGP SIGNATURE-----
-
---zYM0uCDKw75PZbzx--
+Regards,
+Santosh
