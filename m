@@ -1,120 +1,103 @@
-From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Subject: [PATCH] ARM: omapfb: Add early framebuffer memory allocator
-Date: Thu, 26 Dec 2013 01:12:39 +0200
-Message-ID: <1388013159-3036-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
-References: <52A062A0.3070005@ti.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <52A062A0.3070005@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: tomi.valkeinen@ti.com
-Cc: tony@atomide.com, linux@arm.linux.org.uk, pali.rohar@gmail.com, pavel@ucw.cz, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Ivaylo Dimitrov <freemangordon@abv.bg>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: OMAP baseline test results for v3.13-rc5
+Date: Thu, 26 Dec 2013 04:04:11 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1312260402460.15949@utopia.booyaka.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:41744 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752477Ab3LZEEM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Dec 2013 23:04:12 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: kernel-build-reports@lists.linaro.org, linux-arm-kernel@lists.infradead.org
 
-From: Ivaylo Dimitrov <freemangordon@abv.bg>
 
-On memory limited devices, CMA fails easily when asked to allocate big
-chunks of memory like framebuffer memory needed for video playback.
+Here are some basic OMAP test results for Linux v3.13-rc5.
+Logs and other details at:
 
-Add boot parameter "omapfb_memsize" which allocates memory to be used
-as dma coherent memory, so dma_alloc_attrs won't hit CMA allocator when
-trying to allocate memory for the framebuffers
+    http://www.pwsan.com/omap/testlogs/test_v3.13-rc5/20131223031812/
 
-Signed-off-by: Ivaylo Dimitrov <freemangordon@abv.bg>
----
- arch/arm/mach-omap2/common.c |    1 +
- arch/arm/mach-omap2/common.h |    2 +
- arch/arm/mach-omap2/fb.c     |   46 +++++++++++++++++++++++++++++++++++++++++-
- 3 files changed, 48 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/common.c b/arch/arm/mach-omap2/common.c
-index 2dabb9e..9beecde 100644
---- a/arch/arm/mach-omap2/common.c
-+++ b/arch/arm/mach-omap2/common.c
-@@ -33,4 +33,5 @@ void __init omap_reserve(void)
- 	omap_dsp_reserve_sdram_memblock();
- 	omap_secure_ram_reserve_memblock();
- 	omap_barrier_reserve_memblock();
-+	omap_fb_reserve_memblock();
- }
-diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
-index e30ef67..21afdc0 100644
---- a/arch/arm/mach-omap2/common.h
-+++ b/arch/arm/mach-omap2/common.h
-@@ -304,6 +304,8 @@ extern void omap_reserve(void);
- struct omap_hwmod;
- extern int omap_dss_reset(struct omap_hwmod *);
- 
-+extern void omap_fb_reserve_memblock(void);
-+
- /* SoC specific clock initializer */
- extern int (*omap_clk_init)(void);
- 
-diff --git a/arch/arm/mach-omap2/fb.c b/arch/arm/mach-omap2/fb.c
-index 26e28e9..0eacbe9 100644
---- a/arch/arm/mach-omap2/fb.c
-+++ b/arch/arm/mach-omap2/fb.c
-@@ -30,6 +30,7 @@
- #include <linux/dma-mapping.h>
- 
- #include <asm/mach/map.h>
-+#include <asm/memblock.h>
- 
- #include "soc.h"
- #include "display.h"
-@@ -106,10 +107,53 @@ static struct platform_device omap_fb_device = {
- 	.num_resources = 0,
- };
- 
-+static phys_addr_t omapfb_mem_base __initdata;
-+static phys_addr_t omapfb_mem_size __initdata;
-+
-+void __init omap_fb_reserve_memblock(void)
-+{
-+	if (omapfb_mem_size) {
-+		omapfb_mem_base = arm_memblock_steal(omapfb_mem_size, SZ_1M);
-+		if (omapfb_mem_base)
-+			pr_info("omapfb: reserved %u bytes at %x\n",
-+				omapfb_mem_size, omapfb_mem_base);
-+		else
-+			pr_err("omapfb: arm_memblock_steal failed\n");
-+	}
-+}
-+
- int __init omap_init_fb(void)
- {
--	return platform_device_register(&omap_fb_device);
-+	int ret;
-+
-+	ret = platform_device_register(&omap_fb_device);
-+
-+	if (ret)
-+		return ret;
-+
-+	if (!omapfb_mem_base)
-+		return 0;
-+
-+	ret = dma_declare_coherent_memory(&omap_fb_device.dev,
-+					  omapfb_mem_base, omapfb_mem_base,
-+					  omapfb_mem_size, DMA_MEMORY_MAP |
-+					  DMA_MEMORY_EXCLUSIVE);
-+	if (!(ret & DMA_MEMORY_MAP))
-+		pr_err("omapfb: dma_declare_coherent_memory failed\n");
-+
-+	return 0;
-+}
-+
-+static int __init early_omapfb_memsize(char *p)
-+{
-+	omapfb_mem_size = ALIGN(memparse(p, &p), SZ_1M);
-+
-+	if(!omapfb_mem_size)
-+		pr_err("omapfb: bad memsize parameter\n");
-+
-+	return 0;
- }
-+early_param("omapfb_memsize", early_omapfb_memsize);
- #else
- int __init omap_init_fb(void) { return 0; }
- #endif
--- 
-1.5.6.1
+Test summary
+------------
+
+Build: zImage:
+    Pass ( 2/ 2): omap2plus_defconfig, omap2plus_defconfig_am33xx_only
+
+Build: uImage:
+    Pass (14/14): omap1_defconfig, omap1_defconfig_1510innovator_only,
+		  omap1_defconfig_5912osk_only, omap2plus_defconfig,
+		  omap2plus_defconfig_2430sdp_only,
+		  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm,
+		  omap2plus_defconfig_n800_only_a,
+		  omap2plus_defconfig_n800_multi_omap2xxx,
+		  omap2plus_defconfig_omap2_4_only,
+		  omap2plus_defconfig_omap3_4_only,
+		  rmk_omap3430_ldp_allnoconfig,
+		  rmk_omap3430_ldp_oldconfig,
+		  rmk_omap4430_sdp_allnoconfig
+
+Build: uImage+dtb:
+    Pass ( 3/ 3): omap2plus_defconfig_am33xx_only/am335x-bone,
+		  omap2plus_defconfig/omap4-panda,
+		  omap2plus_defconfig/omap4-panda-es
+
+Boot to userspace:
+    skip ( 1/ 1): 5912osk
+    Pass (11/11): 2430sdp, 3517evm, 3530es3beagle, 3730beaglexm,
+		  37xxevm, 4430es2panda, 4460pandaes, am335xbone,
+		  am335xbonelt, cmt3517, 4460varsomom
+
+PM: chip retention via suspend:
+    FAIL ( 3/ 7): 2430sdp, 4430es2panda, 4460varsomom
+    Pass ( 4/ 7): 3530es3beagle, 3730beaglexm, 37xxevm, 4460pandaes
+
+PM: chip retention via dynamic idle:
+    FAIL ( 5/ 7): 2430sdp, 37xxevm, 4430es2panda, 4460pandaes,
+		  4460varsomom
+    Pass ( 2/ 7): 3530es3beagle, 3730beaglexm
+
+PM: chip off except CORE via suspend:
+    Pass ( 1/ 1): 3730beaglexm
+
+PM: chip off except CORE via dynamic idle:
+    Pass ( 1/ 1): 3730beaglexm
+
+PM: chip off via suspend:
+    FAIL ( 4/ 5): 37xxevm, 4430es2panda, 4460pandaes, 4460varsomom
+    Pass ( 1/ 5): 3530es3beagle
+
+PM: chip off via dynamic idle:
+    FAIL ( 4/ 5): 37xxevm, 4430es2panda, 4460pandaes, 4460varsomom
+    Pass ( 1/ 5): 3530es3beagle
+
+
+vmlinux object size
+(delta in bytes from test_v3.13-rc4 (319e2e3f63c348a9b66db4667efa73178e18b17d)):
+   text     data      bss    total  kernel
+  +7036        0        0    +7036  omap1_defconfig
+  +8060        0        0    +8060  omap1_defconfig_1510innovator_only
+  +7004        0        0    +7004  omap1_defconfig_5912osk_only
+   -664      -24        0     -688  omap2plus_defconfig
+  -1040        0        0    -1040  omap2plus_defconfig_2430sdp_only
+   -664       +8        0     -656  omap2plus_defconfig_cpupm
+   +276       +8        0     +284  omap2plus_defconfig_n800_multi_omap2xxx
+   +340      +40        0     +380  omap2plus_defconfig_n800_only_a
+   -600       +8        0     -592  omap2plus_defconfig_no_pm
+   -728        0        0     -728  omap2plus_defconfig_omap2_4_only
+   -664        0        0     -664  omap2plus_defconfig_omap3_4_only
+   +228        0      -16     +212  rmk_omap3430_ldp_allnoconfig
+  +6304        0        0    +6304  rmk_omap3430_ldp_oldconfig
+   +536        0        0     +536  rmk_omap4430_sdp_allnoconfig
+    -96        0        0      -96  rmk_omap4430_sdp_oldnoconfig
+
+Boot-time memory difference
+(delta in bytes from test_v3.13-rc4 (319e2e3f63c348a9b66db4667efa73178e18b17d))
+  avail  rsrvd   high  freed  board          kconfig
+  (no differences)
+
+
+Ho ho ho
