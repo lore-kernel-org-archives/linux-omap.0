@@ -1,111 +1,97 @@
-From: Sricharan R <r.sricharan@ti.com>
-Subject: Re: [PATCH V5 0/4] DRIVERS: IRQCHIP: Add support for crossbar IP
-Date: Thu, 26 Dec 2013 10:22:36 +0530
-Message-ID: <52BBB614.5010707@ti.com>
-References: <1386066445-28245-1-git-send-email-r.sricharan@ti.com>
- <52B168A5.4010202@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [GIT PULL] ARM: OMAP2+: hwmod data: a few more fixes for v3.13-rc
+Date: Thu, 26 Dec 2013 10:26:37 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1312261025340.15949@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <52B168A5.4010202@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Sricharan R <r.sricharan@ti.com>
-Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, nm@ti.com, linux@arm.linux.org.uk, linux-doc@vger.kernel.org, tony@atomide.com, linus.walleij@linaro.org, rnayak@ti.com, linux-kernel@vger.kernel.org, rob.herring@calxeda.com, marc.zyngier@arm.com, bcousson@baylibre.com, galak@codeaurora.org, grant.likely@linaro.org, santosh.shilimkar@ti.com, tglx@linutronix.de, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:42240 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751783Ab3LZK0i (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Dec 2013 05:26:38 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Thomas,
-On Wednesday 18 December 2013 02:49 PM, Sricharan R wrote:
-> Hi Thomas,
-> 
-> On Tuesday 03 December 2013 03:57 PM, Sricharan R wrote:
->> Some socs have a large number of interrupts requests to service
->> the needs of its many peripherals and subsystems. All of the interrupt
->> requests lines from the subsystems are not needed at the same
->> time, so they have to be muxed to the controllers appropriately.
->> In such places a interrupt controllers are preceded by an
->> IRQ CROSSBAR that provides flexibility in muxing the device interrupt
->> requests to the controller inputs.
->>
->> This series models the peripheral interrupts that can be routed through
->> the crossbar to the GIC as 'routable-irqs'. The routable irqs are added
->> in a separate linear domain inside the GIC. The registered routable domain's
->> callback are invoked as a part of the GIC's callback, which in turn should
->> allocate a free irq line and configure the IP accordingly. So every peripheral
->> in the dts files mentions the fixed crossbar number as its interrupt. A free
->> gic line for that gets allocated and configured when the peripheral interrupts
->> are mapped.
->>
->> The minimal crossbar driver to track and allocate free GIC lines and configure the
->> crossbar is added here, along with the DT bindings.
->>
->> V5:
->>    Addressed a comment from Mark Rutland <mark.rutland@arm.com>,
->>    updated tags and rebased on 3.13-rc2
->>
->> V4:
->>    Addressed a couple of comments and split the DTS file updates in to
->>    a separate series.
->>
->> V3:
->>    Addressed few more comments from Thomas Gleixner <tglx@linutronix.de>
->>
->>    Rebased patches 3,4,5,7 which updates the DTS file on top of below branch
->> 	   git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git
->> 	   for_3.13/dts
->>
->>    Rebased patches 1,2,6 on top of 3.12 mainline
->>    Updated Commit tags
->>
->> V2:
->>    Addressed Thomas Gleixner <tglx@linutronix.de> comments and
->>    Kumar Gala <galak@codeaurora.org>
->>
->>    Split updating the DRA7.dtsi file for adding the routable-irqs
->>
->> Previous discussions that led to this is at
->> 	https://lkml.org/lkml/2013/9/18/540
->>
->> The V1,V2,V3,V4 post of these patches is at
->>       [V1]  https://lkml.org/lkml/2013/9/30/283
->>       [V2]  http://www.spinics.net/lists/linux-omap/msg99540.html
->>       [V3]  http://www.kernelhub.org/?msg=356470&p=2
->>       [V4]  http://www.spinics.net/lists/linux-doc/msg16726.html
->>
->> Sricharan R (4):
->>   DRIVERS: IRQCHIP: IRQ-GIC: Add support for routable irqs
->>   DRIVERS: IRQCHIP: CROSSBAR: Add support for Crossbar IP
->>   ARM: OMAP4+: Correct Wakeup-gen code to use physical irq number
->>   ARM: DRA: Enable Crossbar IP support for DRA7XX
->>
->>  Documentation/devicetree/bindings/arm/gic.txt      |    6 +
->>  .../devicetree/bindings/arm/omap/crossbar.txt      |   27 +++
->>  arch/arm/mach-omap2/Kconfig                        |    1 +
->>  arch/arm/mach-omap2/omap-wakeupgen.c               |    4 +-
->>  arch/arm/mach-omap2/omap4-common.c                 |    2 +
->>  drivers/irqchip/Kconfig                            |    8 +
->>  drivers/irqchip/Makefile                           |    1 +
->>  drivers/irqchip/irq-crossbar.c                     |  208 ++++++++++++++++++++
->>  drivers/irqchip/irq-gic.c                          |   81 +++++++-
->>  include/linux/irqchip/arm-gic.h                    |    7 +-
->>  include/linux/irqchip/irq-crossbar.h               |   11 ++
->>  11 files changed, 343 insertions(+), 13 deletions(-)
->>  create mode 100644 Documentation/devicetree/bindings/arm/omap/crossbar.txt
->>  create mode 100644 drivers/irqchip/irq-crossbar.c
->>  create mode 100644 include/linux/irqchip/irq-crossbar.h
->>
-> 
-> I have addressed all the comments on this series, can this be merged now ?
-> 
-  Ping..
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-Regards,
- Sricharan
+Hi Tony,
+
+The following changes since commit 374b105797c3d4f29c685f3be535c35f5689b30e:
+
+  Linux 3.13-rc3 (2013-12-06 09:34:04 -0800)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/for-v3.13-rc/hwmod-fixes-b
+
+for you to fetch changes up to 6d4c88304794442055eaea1c07f3c7b988b8c924:
+
+  ARM: OMAP2+: hwmod_data: fix missing OMAP_INTC_START in irq data (2013-12-25 21:41:27 -0700)
+
+- ----------------------------------------------------------------
+A few OMAP hwmod fixes for v3.13-rc.  One patch fixes some IRQ
+problems with GPMC, RNG, and ISP/IVA MMUs on OMAP2/3.  The other fixes
+some problems with DEBUG_LL on DRA7xx.
+
+Basic build, boot, and PM test logs are available here:
+
+http://www.pwsan.com/omap/testlogs/hwmod_fixes_b_v3.13-rc/20131226021920/
+
+- ----------------------------------------------------------------
+Rajendra Nayak (1):
+      ARM: DRA7: hwmod: Fix boot crash with DEBUG_LL
+
+Suman Anna (1):
+      ARM: OMAP2+: hwmod_data: fix missing OMAP_INTC_START in irq data
+
+ arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c | 4 ++--
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         | 6 +++---
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c          | 2 +-
+ 3 files changed, 6 insertions(+), 6 deletions(-)
+
+
+
+vmlinux object size
+(delta in bytes from test_v3.13-rc3 (374b105797c3d4f29c685f3be535c35f5689b30e)):
+   text     data      bss    total  kernel
+      0        0        0        0  omap1_defconfig
+      0        0        0        0  omap1_defconfig_1510innovator_only
+      0        0        0        0  omap1_defconfig_5912osk_only
+      0        0        0        0  omap2plus_defconfig
+      0        0        0        0  omap2plus_defconfig_2430sdp_only
+      0        0        0        0  omap2plus_defconfig_cpupm
+      0        0        0        0  omap2plus_defconfig_n800_multi_omap2xxx
+      0        0        0        0  omap2plus_defconfig_n800_only_a
+      0        0        0        0  omap2plus_defconfig_no_pm
+      0        0        0        0  omap2plus_defconfig_omap2_4_only
+      0        0        0        0  omap2plus_defconfig_omap3_4_only
+      0        0        0        0  rmk_omap3430_ldp_allnoconfig
+      0        0        0        0  rmk_omap3430_ldp_oldconfig
+      0        0        0        0  rmk_omap4430_sdp_allnoconfig
+      0        0        0        0  rmk_omap4430_sdp_oldnoconfig
+
+Boot-time memory difference
+(delta in bytes from test_v3.13-rc3 (374b105797c3d4f29c685f3be535c35f5689b30e))
+  avail  rsrvd   high  freed  board          kconfig
+  (no differences)
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.15 (GNU/Linux)
+
+iQIcBAEBAgAGBQJSvAQQAAoJEMePsQ0LvSpLGJQP/2A1HM+I/Wy5Qe8q1yt9yCfj
+tkurkBgHUsdJv0rZjHN7cbLlyBV0yZ2OmKVi813drOeVo6/YfkFHwloJTLDe9h67
+VLher5mFQmvB0IaSxpFmiRSg5UPtEovAMDs7jf6RD4woU4/8CQi9Jgbp04GnO6ro
+PVIDpKZFZG7ce/JR7pab5rNsx8i59KxdquHJWJeOVynY9BZvhB9Sx7EdRMV6uqYm
+9rVYU35uSeS4M7sUuEm44LZtcs8VoSLRINS3j0B2JROR29q57FCb0PRL7fW0kGOF
+0ixNmXuWm5STKe7JnDjw9RwanV9XR0spGkdHUUEsvY1o55il+TouHJvTEPsrutoC
+l/CaezQrzQldr7JdSgKIdkJDnBPFD+Ri4Bt8zZzMVI+/Xj/BvBU54k+9RihXJPUZ
+BZz7KE9N/iAJ7uDuQITY5BlmaGLo3mXXEBtG5ws8hQcaOqZ/wQbKAB6e8qM71FTU
+VhJ5WAA5uP84gkh/hJ2pZZYtJLslG9QHPjLg8NzuYwC/WCnsTkyrVG68Ns/j8Vbo
+FP01VfkGZsV2zA6vvWadXmqseN1jq6lg89pKwp31aZziqmz76cD6kV+CPCataYPq
+BcNDbQZ21mtnRLUdM2NldrV44U/Lk7GDVZUM+2L+JNBZGpE22UdcIwc4JJPvuOsx
+xGnYkOgdtP5ZblgY0ioB
+=z30o
+-----END PGP SIGNATURE-----
