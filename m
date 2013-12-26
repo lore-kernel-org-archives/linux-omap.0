@@ -1,41 +1,56 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] ARM: DRA7: hwmod: Fix boot crash with DEBUG_LL
-Date: Thu, 26 Dec 2013 04:41:18 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1312260421060.15949@utopia.booyaka.com>
-References: <1386841969-765-1-git-send-email-rnayak@ti.com>
+Subject: Re: [PATCH] ARM: OMAP4: hwmod data: correct the idlemodes for
+ spinlock
+Date: Thu, 26 Dec 2013 04:49:26 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1312260447320.15949@utopia.booyaka.com>
+References: <1387838928-57745-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: MULTIPART/MIXED; BOUNDARY="843723315-886352108-1388033366=:15949"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:41818 "EHLO
+Received: from utopia.booyaka.com ([74.50.51.50]:41837 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752477Ab3LZElT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Dec 2013 23:41:19 -0500
-In-Reply-To: <1386841969-765-1-git-send-email-rnayak@ti.com>
+	with ESMTP id S1752532Ab3LZEt1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Dec 2013 23:49:27 -0500
+In-Reply-To: <1387838928-57745-1-git-send-email-s-anna@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, bcousson@baylibre.com, lokeshvutla@ti.com
+To: Suman Anna <s-anna@ti.com>, bcousson@baylibre.com
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 
-On Thu, 12 Dec 2013, Rajendra Nayak wrote:
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-> With commit '7dedd34: ARM: OMAP2+: hwmod: Fix a crash in _setup_reset() with
->  DEBUG_LL' we moved from parsing cmdline to identify uart used for earlycon
-> to using the requsite hwmod CONFIG_DEBUG_OMAPxUARTy FLAGS.
-> 
-> On DRA7 though, we seem to be missing this flag, and atleast on the DRA7 EVM
-> where we use uart1 for console, boot fails with DEBUG_LL enabled.
-> 
-> Reported-by: Lokesh Vutla <lokeshvutla@ti.com>
-> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+--843723315-886352108-1388033366=:15949
+Content-Type: TEXT/PLAIN; charset=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-By the way, for future patches that fix previous commits, please put 
-"Fixes:" lines along with your signoffs, and Cc: lines for the original 
-patch authors (if they're not you).  I've added the following line in this 
-case:
+(cc Beno=EEt)
 
-    Fixes: 7dedd346941d ("ARM: OMAP2+: hwmod: Fix a crash in _setup_reset() with DEBUG_LL")
+On Mon, 23 Dec 2013, Suman Anna wrote:
 
+> The spinlock module's SYSCONFIG register does not support
+> smart wakeup, so remove this flag from the idle modes in
+> the spinlock hwmod definition.
+>=20
+> Signed-off-by: Suman Anna <s-anna@ti.com>
 
-regards,
+Beno=EEt Cousson is the primary maintainer of this file that you're=20
+changing:
+
+$ scripts/get_maintainer.pl -f arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+"Beno=EEt Cousson" <bcousson@baylibre.com> (maintainer:OMAP HWMOD DATA F...=
+)
+Tony Lindgren <tony@atomide.com> (maintainer:OMAP SUPPORT)
+Russell King <linux@arm.linux.org.uk> (maintainer:ARM PORT)
+linux-omap@vger.kernel.org (open list:OMAP HWMOD DATA F...)
+linux-arm-kernel@lists.infradead.org (moderated list:ARM SUB-ARCHITECT...)
+linux-kernel@vger.kernel.org (open list)
+$
+
+Please make sure that he's part of the address list when patches are sent=
+=20
+that apply against this file. =20
+
 
 - Paul
+--843723315-886352108-1388033366=:15949--
