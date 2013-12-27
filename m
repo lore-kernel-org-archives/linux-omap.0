@@ -1,52 +1,35 @@
-From: Sricharan R <r.sricharan@ti.com>
-Subject: Re: [PATCH V5 2/4] DRIVERS: IRQCHIP: CROSSBAR: Add support for Crossbar
- IP
-Date: Fri, 27 Dec 2013 14:07:03 +0530
-Message-ID: <52BD3C2F.9010409@ti.com>
-References: <1386066445-28245-1-git-send-email-r.sricharan@ti.com> <1386066445-28245-3-git-send-email-r.sricharan@ti.com> <20131226200106.GA30559@saruman.home>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH] ARM: omapfb: Add early framebuffer memory allocator
+Date: Fri, 27 Dec 2013 10:48:01 +0100
+Message-ID: <20131227094801.GB17143@amd.pavel.ucw.cz>
+References: <52A062A0.3070005@ti.com>
+ <1388013159-3036-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <20131226200106.GA30559@saruman.home>
-Sender: linux-doc-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linus.walleij@linaro.org, linux@arm.linux.org.uk, tony@atomide.com, rnayak@ti.com, marc.zyngier@arm.com, grant.likely@linaro.org, mark.rutland@arm.com, robherring2@gmail.com, tglx@linutronix.de, galak@codeaurora.org, rob.herring@calxeda.com, santosh.shilimkar@ti.com, nm@ti.com, bcousson@baylibre.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1388013159-3036-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Cc: tomi.valkeinen@ti.com, tony@atomide.com, linux@arm.linux.org.uk, pali.rohar@gmail.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Ivaylo Dimitrov <freemangordon@abv.bg>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Felipe,
-
-On Friday 27 December 2013 01:31 AM, Felipe Balbi wrote:
-> Hi,
+On Thu 2013-12-26 01:12:39, Ivaylo Dimitrov wrote:
+> From: Ivaylo Dimitrov <freemangordon@abv.bg>
 > 
-> On Tue, Dec 03, 2013 at 03:57:23PM +0530, Sricharan R wrote:
->> +static const struct of_device_id crossbar_match[] __initconst = {
->> +	{ .compatible = "ti,irq-crossbar" },
->> +	{}
->> +};
->> +
->> +int irqcrossbar_init(void)
->> +{
->> +	struct device_node *np;
->> +	np = of_find_matching_node(NULL, crossbar_match);
->> +	if (!np)
->> +		return -ENODEV;
->> +
->> +	crossbar_of_init(np);
->> +	return 0;
->> +}
+> On memory limited devices, CMA fails easily when asked to allocate big
+> chunks of memory like framebuffer memory needed for video playback.
 > 
-> instead, please use IRQCHIP_DECLARE() then you won't need to expose this
-> symbol to be used by arch/arm/ code.
+> Add boot parameter "omapfb_memsize" which allocates memory to be used
+> as dma coherent memory, so dma_alloc_attrs won't hit CMA allocator when
+> trying to allocate memory for the framebuffers
 > 
+> Signed-off-by: Ivaylo Dimitrov <freemangordon@abv.bg>
 
-Crossbar node does not have a "interrupt-controller" property and
-not a regular Interrupt controller. This was added in here
-after all below discussions
-
- https://lkml.org/lkml/2013/9/18/540
-
-So IRQCHIP_DECLARE() macro cannot be used here.
-
-Regards,
- Sricharan
+Hmm, would it make sense to add a parameter to reserve certain ammount
+of memory for CMA? omapfb is probably not the only user hitting
+this...?
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
