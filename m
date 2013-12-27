@@ -1,67 +1,89 @@
 From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-Subject: Re: [PATCH] ARM: configs: Select USB PHY for AM335x SoC
-Date: Thu, 26 Dec 2013 20:21:06 -0300
-Message-ID: <20131226232105.GA2456@localhost>
-References: <1386861269-28949-1-git-send-email-ezequiel.garcia@free-electrons.com>
- <20131226120833.GA24645@localhost>
- <20131226155555.GA3937@saruman.home>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Subject: [PATCH v2] usb: musb: Rework USB and USB_GADGET dependency
+Date: Thu, 26 Dec 2013 21:22:32 -0300
+Message-ID: <1388103752-3884-1-git-send-email-ezequiel.garcia@free-electrons.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from top.free-electrons.com ([176.31.233.9]:58141 "EHLO
+Received: from top.free-electrons.com ([176.31.233.9]:58229 "EHLO
 	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753853Ab3LZXUr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Dec 2013 18:20:47 -0500
-Content-Disposition: inline
-In-Reply-To: <20131226155555.GA3937@saruman.home>
+	with ESMTP id S1751831Ab3L0AWT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Dec 2013 19:22:19 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Felipe Balbi <balbi@ti.com>
+To: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: Felipe Balbi <balbi@ti.com>, sergei.shtylyov@cogentembedded.com, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
 
-On Thu, Dec 26, 2013 at 09:55:55AM -0600, Felipe Balbi wrote:
-> On Thu, Dec 26, 2013 at 09:08:34AM -0300, Ezequiel Garcia wrote:
-> > Felipe,
-> >=20
-> > On Thu, Dec 12, 2013 at 12:14:29PM -0300, Ezequiel Garcia wrote:
-> > > Enable this option as it's required to use USB on AM335x SoC.
-> > >=20
-> > > Signed-off-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.co=
-m>
-> > > ---
-> > >  arch/arm/configs/omap2plus_defconfig | 1 +
-> > >  1 file changed, 1 insertion(+)
-> > >=20
-> > > diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/conf=
-igs/omap2plus_defconfig
-> > > index 12c848e..e427b95 100644
-> > > --- a/arch/arm/configs/omap2plus_defconfig
-> > > +++ b/arch/arm/configs/omap2plus_defconfig
-> > > @@ -223,6 +223,7 @@ CONFIG_USB_TEST=3Dy
-> > >  CONFIG_NOP_USB_XCEIV=3Dy
-> > >  CONFIG_OMAP_USB2=3Dy
-> > >  CONFIG_OMAP_USB3=3Dy
-> > > +CONFIG_AM335X_PHY_USB=3Dy
-> > >  CONFIG_USB_GADGET=3Dy
-> > >  CONFIG_USB_GADGET_DEBUG=3Dy
-> > >  CONFIG_USB_GADGET_DEBUG_FILES=3Dy
-> > > --=20
-> > > 1.8.1.5
-> > >=20
-> >=20
-> > Maybe you can take this through your tree?
->=20
-> sorry, no. This should go through Tony to avoid conflicting.
->=20
+This USB controller can work in as host-only, gadget-only or dual-role
+modes. Rework the dependency on the USB and USB_GADGET configs in order
+to allow building the driver when !USB or !USG_GADGET.
 
-Tony?
---=20
-Ezequiel Garc=C3=ADa, Free Electrons
-Embedded Linux, Kernel and Android Engineering
-http://free-electrons.com
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+---
+Changes from v1: Remove unneeded parenthesis
+
+ drivers/usb/Kconfig      | 4 ++--
+ drivers/usb/musb/Kconfig | 8 ++++----
+ 2 files changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/usb/Kconfig b/drivers/usb/Kconfig
+index 2642b8a..a34fb98 100644
+--- a/drivers/usb/Kconfig
++++ b/drivers/usb/Kconfig
+@@ -94,8 +94,6 @@ source "drivers/usb/wusbcore/Kconfig"
+ 
+ source "drivers/usb/host/Kconfig"
+ 
+-source "drivers/usb/musb/Kconfig"
+-
+ source "drivers/usb/renesas_usbhs/Kconfig"
+ 
+ source "drivers/usb/class/Kconfig"
+@@ -106,6 +104,8 @@ source "drivers/usb/image/Kconfig"
+ 
+ endif
+ 
++source "drivers/usb/musb/Kconfig"
++
+ source "drivers/usb/dwc3/Kconfig"
+ 
+ source "drivers/usb/chipidea/Kconfig"
+diff --git a/drivers/usb/musb/Kconfig b/drivers/usb/musb/Kconfig
+index 57dfc0c..fff30b9 100644
+--- a/drivers/usb/musb/Kconfig
++++ b/drivers/usb/musb/Kconfig
+@@ -6,7 +6,7 @@
+ # (M)HDRC = (Multipoint) Highspeed Dual-Role Controller
+ config USB_MUSB_HDRC
+ 	tristate 'Inventra Highspeed Dual Role Controller (TI, ADI, ...)'
+-	depends on USB_GADGET
++	depends on USB || USB_GADGET
+ 	help
+ 	  Say Y here if your system has a dual role high speed USB
+ 	  controller based on the Mentor Graphics silicon IP.  Then
+@@ -35,21 +35,21 @@ choice
+ 
+ config USB_MUSB_HOST
+ 	bool "Host only mode"
+-	depends on USB
++	depends on USB=y || USB=USB_MUSB_HDRC
+ 	help
+ 	  Select this when you want to use MUSB in host mode only,
+ 	  thereby the gadget feature will be regressed.
+ 
+ config USB_MUSB_GADGET
+ 	bool "Gadget only mode"
+-	depends on USB_GADGET
++	depends on USB_GADGET=y || USB_GADGET=USB_MUSB_HDRC
+ 	help
+ 	  Select this when you want to use MUSB in gadget mode only,
+ 	  thereby the host feature will be regressed.
+ 
+ config USB_MUSB_DUAL_ROLE
+ 	bool "Dual Role mode"
+-	depends on (USB && USB_GADGET)
++	depends on (USB=y || USB=USB_MUSB_HDRC) && (USB_GADGET=y || USB_GADGET=USB_MUSB_HDRC)
+ 	help
+ 	  This is the default mode of working of MUSB controller where
+ 	  both host and gadget features are enabled.
+-- 
+1.8.1.5
+
