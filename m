@@ -1,89 +1,52 @@
-From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-Subject: [PATCH v2] usb: musb: Rework USB and USB_GADGET dependency
-Date: Thu, 26 Dec 2013 21:22:32 -0300
-Message-ID: <1388103752-3884-1-git-send-email-ezequiel.garcia@free-electrons.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from top.free-electrons.com ([176.31.233.9]:58229 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751831Ab3L0AWT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Dec 2013 19:22:19 -0500
-Sender: linux-omap-owner@vger.kernel.org
+From: Sricharan R <r.sricharan@ti.com>
+Subject: Re: [PATCH V5 2/4] DRIVERS: IRQCHIP: CROSSBAR: Add support for Crossbar
+ IP
+Date: Fri, 27 Dec 2013 14:07:03 +0530
+Message-ID: <52BD3C2F.9010409@ti.com>
+References: <1386066445-28245-1-git-send-email-r.sricharan@ti.com> <1386066445-28245-3-git-send-email-r.sricharan@ti.com> <20131226200106.GA30559@saruman.home>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <20131226200106.GA30559@saruman.home>
+Sender: linux-doc-owner@vger.kernel.org
+To: balbi@ti.com
+Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linus.walleij@linaro.org, linux@arm.linux.org.uk, tony@atomide.com, rnayak@ti.com, marc.zyngier@arm.com, grant.likely@linaro.org, mark.rutland@arm.com, robherring2@gmail.com, tglx@linutronix.de, galak@codeaurora.org, rob.herring@calxeda.com, santosh.shilimkar@ti.com, nm@ti.com, bcousson@baylibre.com
 List-Id: linux-omap@vger.kernel.org
-To: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: Felipe Balbi <balbi@ti.com>, sergei.shtylyov@cogentembedded.com, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
 
-This USB controller can work in as host-only, gadget-only or dual-role
-modes. Rework the dependency on the USB and USB_GADGET configs in order
-to allow building the driver when !USB or !USG_GADGET.
+Hi Felipe,
 
-Signed-off-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
----
-Changes from v1: Remove unneeded parenthesis
+On Friday 27 December 2013 01:31 AM, Felipe Balbi wrote:
+> Hi,
+> 
+> On Tue, Dec 03, 2013 at 03:57:23PM +0530, Sricharan R wrote:
+>> +static const struct of_device_id crossbar_match[] __initconst = {
+>> +	{ .compatible = "ti,irq-crossbar" },
+>> +	{}
+>> +};
+>> +
+>> +int irqcrossbar_init(void)
+>> +{
+>> +	struct device_node *np;
+>> +	np = of_find_matching_node(NULL, crossbar_match);
+>> +	if (!np)
+>> +		return -ENODEV;
+>> +
+>> +	crossbar_of_init(np);
+>> +	return 0;
+>> +}
+> 
+> instead, please use IRQCHIP_DECLARE() then you won't need to expose this
+> symbol to be used by arch/arm/ code.
+> 
 
- drivers/usb/Kconfig      | 4 ++--
- drivers/usb/musb/Kconfig | 8 ++++----
- 2 files changed, 6 insertions(+), 6 deletions(-)
+Crossbar node does not have a "interrupt-controller" property and
+not a regular Interrupt controller. This was added in here
+after all below discussions
 
-diff --git a/drivers/usb/Kconfig b/drivers/usb/Kconfig
-index 2642b8a..a34fb98 100644
---- a/drivers/usb/Kconfig
-+++ b/drivers/usb/Kconfig
-@@ -94,8 +94,6 @@ source "drivers/usb/wusbcore/Kconfig"
- 
- source "drivers/usb/host/Kconfig"
- 
--source "drivers/usb/musb/Kconfig"
--
- source "drivers/usb/renesas_usbhs/Kconfig"
- 
- source "drivers/usb/class/Kconfig"
-@@ -106,6 +104,8 @@ source "drivers/usb/image/Kconfig"
- 
- endif
- 
-+source "drivers/usb/musb/Kconfig"
-+
- source "drivers/usb/dwc3/Kconfig"
- 
- source "drivers/usb/chipidea/Kconfig"
-diff --git a/drivers/usb/musb/Kconfig b/drivers/usb/musb/Kconfig
-index 57dfc0c..fff30b9 100644
---- a/drivers/usb/musb/Kconfig
-+++ b/drivers/usb/musb/Kconfig
-@@ -6,7 +6,7 @@
- # (M)HDRC = (Multipoint) Highspeed Dual-Role Controller
- config USB_MUSB_HDRC
- 	tristate 'Inventra Highspeed Dual Role Controller (TI, ADI, ...)'
--	depends on USB_GADGET
-+	depends on USB || USB_GADGET
- 	help
- 	  Say Y here if your system has a dual role high speed USB
- 	  controller based on the Mentor Graphics silicon IP.  Then
-@@ -35,21 +35,21 @@ choice
- 
- config USB_MUSB_HOST
- 	bool "Host only mode"
--	depends on USB
-+	depends on USB=y || USB=USB_MUSB_HDRC
- 	help
- 	  Select this when you want to use MUSB in host mode only,
- 	  thereby the gadget feature will be regressed.
- 
- config USB_MUSB_GADGET
- 	bool "Gadget only mode"
--	depends on USB_GADGET
-+	depends on USB_GADGET=y || USB_GADGET=USB_MUSB_HDRC
- 	help
- 	  Select this when you want to use MUSB in gadget mode only,
- 	  thereby the host feature will be regressed.
- 
- config USB_MUSB_DUAL_ROLE
- 	bool "Dual Role mode"
--	depends on (USB && USB_GADGET)
-+	depends on (USB=y || USB=USB_MUSB_HDRC) && (USB_GADGET=y || USB_GADGET=USB_MUSB_HDRC)
- 	help
- 	  This is the default mode of working of MUSB controller where
- 	  both host and gadget features are enabled.
--- 
-1.8.1.5
+ https://lkml.org/lkml/2013/9/18/540
 
+So IRQCHIP_DECLARE() macro cannot be used here.
+
+Regards,
+ Sricharan
