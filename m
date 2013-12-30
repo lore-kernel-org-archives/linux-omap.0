@@ -1,124 +1,65 @@
 From: Sricharan R <r.sricharan@ti.com>
-Subject: Re: [PATCH V5 0/4] DRIVERS: IRQCHIP: Add support for crossbar IP
-Date: Mon, 30 Dec 2013 11:58:20 +0530
-Message-ID: <52C11284.2030500@ti.com>
-References: <1386066445-28245-1-git-send-email-r.sricharan@ti.com> <52B168A5.4010202@ti.com> <52BBB614.5010707@ti.com> <52BC6B16.80507@ti.com> <52BD856E.7010609@ti.com>
+Subject: Re: [PATCH V4 0/3] ARM: DTS: DRA7: Updates for adding crossbar device
+Date: Mon, 30 Dec 2013 12:28:02 +0530
+Message-ID: <52C1197A.5010701@ti.com>
+References: <1384431928-2328-1-git-send-email-r.sricharan@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <52BD856E.7010609@ti.com>
+In-Reply-To: <1384431928-2328-1-git-send-email-r.sricharan@ti.com>
 Sender: linux-doc-owner@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: tony@atomide.com, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linus.walleij@linaro.org, linux@arm.linux.org.uk, rnayak@ti.com, marc.zyngier@arm.com, grant.likely@linaro.org, mark.rutland@arm.com, robherring2@gmail.com, tglx@linutronix.de, galak@codeaurora.org, rob.herring@calxeda.com, nm@ti.com, bcousson@baylibre.com
+To: Sricharan R <r.sricharan@ti.com>
+Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linus.walleij@linaro.org, linux@arm.linux.org.uk, tony@atomide.com, rnayak@ti.com, marc.zyngier@arm.com, grant.likely@linaro.org, mark.rutland@arm.com, robherring2@gmail.com, tglx@linutronix.de, galak@codeaurora.org, rob.herring@calxeda.com, santosh.shilimkar@ti.com, nm@ti.com, bcousson@baylibre.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tony,
+Hi Benoit,
 
-On Friday 27 December 2013 07:19 PM, Sricharan R wrote:
-> On Thursday 26 December 2013 11:14 PM, Santosh Shilimkar wrote:
->> Sricharan,
->>
->> On Wednesday 25 December 2013 11:52 PM, Sricharan R wrote:
->>> Hi Thomas,
->>> On Wednesday 18 December 2013 02:49 PM, Sricharan R wrote:
->>>> Hi Thomas,
->>>>
->>>> On Tuesday 03 December 2013 03:57 PM, Sricharan R wrote:
->>>>> Some socs have a large number of interrupts requests to service
->>>>> the needs of its many peripherals and subsystems. All of the interrupt
->>>>> requests lines from the subsystems are not needed at the same
->>>>> time, so they have to be muxed to the controllers appropriately.
->>>>> In such places a interrupt controllers are preceded by an
->>>>> IRQ CROSSBAR that provides flexibility in muxing the device interrupt
->>>>> requests to the controller inputs.
->>>>>
->>>>> This series models the peripheral interrupts that can be routed through
->>>>> the crossbar to the GIC as 'routable-irqs'. The routable irqs are added
->>>>> in a separate linear domain inside the GIC. The registered routable domain's
->>>>> callback are invoked as a part of the GIC's callback, which in turn should
->>>>> allocate a free irq line and configure the IP accordingly. So every peripheral
->>>>> in the dts files mentions the fixed crossbar number as its interrupt. A free
->>>>> gic line for that gets allocated and configured when the peripheral interrupts
->>>>> are mapped.
->>>>>
->>>>> The minimal crossbar driver to track and allocate free GIC lines and configure the
->>>>> crossbar is added here, along with the DT bindings.
->>>>>
->>>>> V5:
->>>>>    Addressed a comment from Mark Rutland <mark.rutland@arm.com>,
->>>>>    updated tags and rebased on 3.13-rc2
->>>>>
->>>>> V4:
->>>>>    Addressed a couple of comments and split the DTS file updates in to
->>>>>    a separate series.
->>>>>
->>>>> V3:
->>>>>    Addressed few more comments from Thomas Gleixner <tglx@linutronix.de>
->>>>>
->>>>>    Rebased patches 3,4,5,7 which updates the DTS file on top of below branch
->>>>> 	   git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git
->>>>> 	   for_3.13/dts
->>>>>
->>>>>    Rebased patches 1,2,6 on top of 3.12 mainline
->>>>>    Updated Commit tags
->>>>>
->>>>> V2:
->>>>>    Addressed Thomas Gleixner <tglx@linutronix.de> comments and
->>>>>    Kumar Gala <galak@codeaurora.org>
->>>>>
->>>>>    Split updating the DRA7.dtsi file for adding the routable-irqs
->>>>>
->>>>> Previous discussions that led to this is at
->>>>> 	https://lkml.org/lkml/2013/9/18/540
->>>>>
->>>>> The V1,V2,V3,V4 post of these patches is at
->>>>>       [V1]  https://lkml.org/lkml/2013/9/30/283
->>>>>       [V2]  http://www.spinics.net/lists/linux-omap/msg99540.html
->>>>>       [V3]  http://www.kernelhub.org/?msg=356470&p=2
->>>>>       [V4]  http://www.spinics.net/lists/linux-doc/msg16726.html
->>>>>
->>>>> Sricharan R (4):
->>>>>   DRIVERS: IRQCHIP: IRQ-GIC: Add support for routable irqs
->>>>>   DRIVERS: IRQCHIP: CROSSBAR: Add support for Crossbar IP
->>>>>   ARM: OMAP4+: Correct Wakeup-gen code to use physical irq number
->>>>>   ARM: DRA: Enable Crossbar IP support for DRA7XX
->>>>>
->>>>>  Documentation/devicetree/bindings/arm/gic.txt      |    6 +
->>>>>  .../devicetree/bindings/arm/omap/crossbar.txt      |   27 +++
->>>>>  arch/arm/mach-omap2/Kconfig                        |    1 +
->>>>>  arch/arm/mach-omap2/omap-wakeupgen.c               |    4 +-
->>>>>  arch/arm/mach-omap2/omap4-common.c                 |    2 +
->>>>>  drivers/irqchip/Kconfig                            |    8 +
->>>>>  drivers/irqchip/Makefile                           |    1 +
->>>>>  drivers/irqchip/irq-crossbar.c                     |  208 ++++++++++++++++++++
->>>>>  drivers/irqchip/irq-gic.c                          |   81 +++++++-
->>>>>  include/linux/irqchip/arm-gic.h                    |    7 +-
->>>>>  include/linux/irqchip/irq-crossbar.h               |   11 ++
->>>>>  11 files changed, 343 insertions(+), 13 deletions(-)
->>>>>  create mode 100644 Documentation/devicetree/bindings/arm/omap/crossbar.txt
->>>>>  create mode 100644 drivers/irqchip/irq-crossbar.c
->>>>>  create mode 100644 include/linux/irqchip/irq-crossbar.h
->>>>>
->>>>
->>>> I have addressed all the comments on this series, can this be merged now ?
->>>>
->>>   Ping..
->>>
->> Thomas has already given his reviewed-by tag so the patches can be
->> taken via arm-soc tree considering OMAP and GIC changes. Can you
->> create a branch with all these patches applied and send it
->> to Tony ?
->>
-> Ok, i will send out a branch for this.
+On Thursday 14 November 2013 05:55 PM, Sricharan R wrote:
+> Some socs have a large number of interrupts requests to service
+> the needs of its many peripherals and subsystems. All of the interrupt
+> requests lines from the subsystems are not needed at the same
+> time, so they have to be muxed to the controllers appropriately.
+> In such places a interrupt controllers are preceded by an
+> IRQ CROSSBAR that provides flexibility in muxing the device interrupt
+> requests to the controller inputs.
 > 
- 
- I have pushed the below branch
+> The driver support for the same was added here.
+> 	http://marc.info/?l=linux-omap&m=138443167321614&w=2
+> 
+> The dts file update to support the crossbar device and convert
+> peripheral irq numbers to crossbar number are added here.
+> This series was originally a part of the series [1] and now split
+> to keep the DTS updates separately as per comments from
+> Santosh Shilimkar <santosh.shilimkar@ti.com>
+> 
+> Applied this series on top of
+>   git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git
+>   for_3.13/dts
+> 
+> [1] http://www.kernelhub.org/?msg=356470&p=2
+> 
+> Sricharan R (3):
+>   ARM: DTS: DRA: Add crossbar device binding
+>   ARM: DTS: DRA: Replace peripheral interrupt numbers with crossbar
+>     inputs
+>   ARM: DTS: DRA7: Add routable-irqs property for gic node
+> 
+>  arch/arm/boot/dts/dra7.dtsi |   95 +++++++++++++++++++++++--------------------
+>  1 file changed, 52 insertions(+), 43 deletions(-)
+> 
+
+I have pushed a branch with this series here
 
 git://github.com/Sricharanti/sricharan.git
-branch: crossbar
+branch: crossbar_dts
 
-This is on top of Tony's linux-omap master branch
+This is on top of your for_3.14/dts branch
+
+This series has a dependency with crossbar driver functional changes, which is yet
+to be pulled
+
+https://lkml.org/lkml/2013/12/30/9
 
 Regards,
  Sricharan
