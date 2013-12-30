@@ -1,65 +1,57 @@
-From: Sricharan R <r.sricharan@ti.com>
-Subject: Re: [PATCH V4 0/3] ARM: DTS: DRA7: Updates for adding crossbar device
-Date: Mon, 30 Dec 2013 12:28:02 +0530
-Message-ID: <52C1197A.5010701@ti.com>
-References: <1384431928-2328-1-git-send-email-r.sricharan@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [pandaboard] audio initialization fails due to TWL6040
+Date: Mon, 30 Dec 2013 09:35:02 +0200
+Message-ID: <52C12226.6010404@ti.com>
+References: <529E5EC9.10008@math.uni-bielefeld.de> <20131205185349.GH26766@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <1384431928-2328-1-git-send-email-r.sricharan@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Sricharan R <r.sricharan@ti.com>
-Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linus.walleij@linaro.org, linux@arm.linux.org.uk, tony@atomide.com, rnayak@ti.com, marc.zyngier@arm.com, grant.likely@linaro.org, mark.rutland@arm.com, robherring2@gmail.com, tglx@linutronix.de, galak@codeaurora.org, rob.herring@calxeda.com, santosh.shilimkar@ti.com, nm@ti.com, bcousson@baylibre.com
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:52667 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751375Ab3L3HfK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 30 Dec 2013 02:35:10 -0500
+In-Reply-To: <20131205185349.GH26766@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Tobias Jakobi <tjakobi@math.uni-bielefeld.de>
+Cc: linux-omap@vger.kernel.org
 
-Hi Benoit,
+Hi Tony,
 
-On Thursday 14 November 2013 05:55 PM, Sricharan R wrote:
-> Some socs have a large number of interrupts requests to service
-> the needs of its many peripherals and subsystems. All of the interrupt
-> requests lines from the subsystems are not needed at the same
-> time, so they have to be muxed to the controllers appropriately.
-> In such places a interrupt controllers are preceded by an
-> IRQ CROSSBAR that provides flexibility in muxing the device interrupt
-> requests to the controller inputs.
-> 
-> The driver support for the same was added here.
-> 	http://marc.info/?l=linux-omap&m=138443167321614&w=2
-> 
-> The dts file update to support the crossbar device and convert
-> peripheral irq numbers to crossbar number are added here.
-> This series was originally a part of the series [1] and now split
-> to keep the DTS updates separately as per comments from
-> Santosh Shilimkar <santosh.shilimkar@ti.com>
-> 
-> Applied this series on top of
->   git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git
->   for_3.13/dts
-> 
-> [1] http://www.kernelhub.org/?msg=356470&p=2
-> 
-> Sricharan R (3):
->   ARM: DTS: DRA: Add crossbar device binding
->   ARM: DTS: DRA: Replace peripheral interrupt numbers with crossbar
->     inputs
->   ARM: DTS: DRA7: Add routable-irqs property for gic node
-> 
->  arch/arm/boot/dts/dra7.dtsi |   95 +++++++++++++++++++++++--------------------
->  1 file changed, 52 insertions(+), 43 deletions(-)
-> 
+I have missed this mail...
 
-I have pushed a branch with this series here
+On 12/05/2013 08:53 PM, Tony Lindgren wrote:
+> * Tobias Jakobi <tjakobi@math.uni-bielefeld.de> [131203 14:45]:
+>> And another one!
+>>
+>> https://bugzilla.kernel.org/show_bug.cgi?id=3D66451
+>=20
+> Maybe Peter can take a look at this one?
 
-git://github.com/Sricharanti/sricharan.git
-branch: crossbar_dts
+It has been already fixed (bug in the arch/arm/mm/dma-mapping.c)
 
-This is on top of your for_3.14/dts branch
+> FYI, Peter, only slightly related to this, but can you also please
+> unravel the mcbsp and sidetone .dtsi entries to be separate
+> devices? I'm hoping to deprecate ti,hwmods for v3.15 and use
+> the compatible property instead, so we need to have 1-to-1
+> mapping of devices defined in the .dtsi files compared to the
+> real hardware devices mapped in the omap_hwmod_*_data.c files.
+>=20
+> There's some more info regarding that in thread:
+>=20
+> http://www.spinics.net/lists/arm-kernel/msg288036.html
 
-This series has a dependency with crossbar driver functional changes, which is yet
-to be pulled
+How urgent this is?
+Due to a 'hw feature' around the sidetone this is not as straight forwa=
+rd as
+it sounds...
+I can put this to my to do list.
 
-https://lkml.org/lkml/2013/12/30/9
-
-Regards,
- Sricharan
+--=20
+P=E9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
