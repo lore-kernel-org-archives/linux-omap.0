@@ -1,45 +1,87 @@
-From: STALLION@vger.kernel.org, MEGA@vger.kernel.org
-Subject: Viimeinen ilmoitus
-Date: Tue, 31 Dec 2013 05:29:27 -0800
-Message-ID: <MAILLPke3fzk76oJDEI000007d2__19627.5217379027$1388421460$gmane$org@mail.inu.edu.jo>
-Reply-To: infostallion@aol.com
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] of/platform: Fix no irq domain found errors when
+ populating interrupts
+Date: Mon, 30 Dec 2013 22:10:09 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1312302209200.8869@utopia.booyaka.com>
+References: <20131123004334.GJ10023@atomide.com> <20131123005509.GJ16735@
+ n2100.arm.linux.org.uk> <20131123010850.GN10023@atomide.com> <
+ 20131123011515.GO10023@atomide.com> <20131123015034.GP10023@atomide.com>
+ <20131124212757.7D224C402A3@trevor.secretlab.ca>
+ <alpine.DEB.2.02.1312100331460.32309@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from [213.186.176.85] ([213.186.176.85]:6613 "EHLO mail.inu.edu.jo"
-	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1756010Ab3L3QhJ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Dec 2013 11:37:09 -0500
-Content-Description: Mail message body
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <alpine.DEB.2.02.1312100331460.32309@utopia.booyaka.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Grant Likely <grant.likely@linaro.org>, Rob Herring <rob.herring@calxeda.com>
+Cc: devicetree@vger.kernel.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Recipients <STALLION@vger.kernel.org>
 
-Viimeinen ilmoitus
-S=E4hk=F6postiosoitteesi ID on voittanut (450,000.00 euroa) Espanjan "E=
-l Gordo"
-Kansainv=E4linen E-mail arpajaisvoittoluettelot oli onnekas numeroita 9=
-/11/13/24/43 ja
-Ref: ES/9420X2/68.
-Suunnittelua ja hallintaa Yhteystiedot:
-STALLION MEGA KORVAUSVAATIMUKSEN AGENCY
-Juan Carlos
-=20
-E-mail infostallion@aol.com
-Tel :0034-632 361 467 (puhuu Englanti ja Espanja)
-Teid=E4n koko nimi, osoite, ik=E4, ammatti, puhelinnumero,
-L=E4het=E4 replay t=E4h=E4n e-mail: infostallion@aol.com
-Onneksi olkoon.
-Yst=E4v=E4llisin terveisin,
+Hi Grant, Rob,
 
----
-This email is free from viruses and malware because avast! Antivirus pr=
-otection is active.
-http://www.avast.com
+On Tue, 10 Dec 2013, Paul Walmsley wrote:
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> On Sun, 24 Nov 2013, Grant Likely wrote:
+> 
+> > On Fri, 22 Nov 2013 17:50:35 -0800, Tony Lindgren <tony@atomide.com> wrote:
+> > > * Tony Lindgren <tony@atomide.com> [131122 17:16]:
+> > > > * Tony Lindgren <tony@atomide.com> [131122 17:09]:
+> > > > > * Russell King - ARM Linux <linux@arm.linux.org.uk> [131122 16:56]:
+> > > > > > On Fri, Nov 22, 2013 at 04:43:35PM -0800, Tony Lindgren wrote:
+> > > > > > > +		/* See of_device_resource_notify for populating interrupts */
+> > > > > > > +		for (i = 0; i < num_irq; i++, res++) {
+> > > > > > > +			res->flags = IORESOURCE_IRQ;
+> > > > > > > +			res->start = -EPROBE_DEFER;
+> > > > > > > +			res->end = -EPROBE_DEFER;
+> > > > > > 
+> > > > > > NAK.  Definitely a bad idea to start introducing magic values other into
+> > > > > > resources.  Please don't do this.
+> > > > > 
+> > > > > Do you have any better ideas on how to sort out this issue then?
+> > > > 
+> > > > I guess we could allocate all the resources lazily here, I'll take a look
+> > > > at that.
+> > > 
+> > > Here's a version that allocates the resources lazily with the notifier.
+> > > Seems to boot, need to play with it a bit more though to make sure we're
+> > > not overwriting resources for any legacy devices.
+> > 
+> > Blurg. Using a notifier really feels like we don't have a good handle on
+> > a reasonable solution yet. Basically it means we're hooking into the
+> > driver core without /looking/ like we're hooking into the driver core. I
+> > don't think this is any better, but I don't have a better suggestion at
+> > the moment.   :-(
+> 
+> Unfortunately this patch, or something that accomplishes the same results, 
+> is somewhat high-priority for us on OMAP.  OMAP37xx got prematurely 
+> converted to DT booting, and now dynamic power management is broken:
+> 
+>     http://marc.info/?l=linux-arm-kernel&m=138658294830408&w=2
+> 
+> Tony writes that this patch is one of the two patches needed to get things 
+> working again:
+> 
+>     http://marc.info/?l=linux-arm-kernel&m=138660942506846&w=2
+> 
+> Is it possible to get this patch, or something similar, merged for 
+> v3.13-rc?
+> 
+> Once something like PM is broken, it's pretty easy for other broken 
+> patches to make it into the tree, since it becomes very difficult to test 
+> without turning into a maintainer denial-of-service attack.
+
+Ping.  Could you please provide some guidance here about what you'd need 
+to get this solved for v3.13-rc?
+
+
+
+- Paul
