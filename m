@@ -1,120 +1,172 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 2/2] omapfb: add support to reserve fb at specified phys address
-Date: Mon, 30 Dec 2013 15:19:10 +0200
-Message-ID: <1388409550-10720-3-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 1/2] ARM: omapfb: add coherent dma memory support
+Date: Mon, 30 Dec 2013 15:19:09 +0200
+Message-ID: <1388409550-10720-2-git-send-email-tomi.valkeinen@ti.com>
 References: <1388409550-10720-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:44692 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755487Ab3L3NUG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 30 Dec 2013 08:20:06 -0500
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1388409550-10720-1-git-send-email-tomi.valkeinen@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Ivaylo Dimitrov <freemangordon@abv.bg>, Vaibhav Hiremath <hvaibhav@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org
 Cc: Tony Lindgren <tony@atomide.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
+List-Id: linux-omap@vger.kernel.org
 
-The previous patch added support to reserve an exclusive coherent area
-for omapfb. This patch adds support to allocate a fb from a specified
-physical address inside that coherent area.
+The omapfb driver uses dma_alloc to reserve memory for the framebuffers.
+However, on some use cases, even when CMA is in use, it's quite probable
+that omapfb fails to allocate the fb, either due to not enough free dma
+memory, fragmented dma memory, or CMA failing to make enough contiguous
+space.
 
-This can be used to "pass" a framebuffer from the bootloader to the
-kernel: the bootloader sets up the DSS hardware to display a piece of
-memory, and gives the address and size of the used piece of memory to
-the kernel via omapfb_vram and omapfb.vram cmdline parameters.
+This patch adds a kernel cmdline parameter 'omapfb_vram' which can be
+used to give the size of a memory area reserved exclusively for omapfb,
+and optionally a physical address where the memory area is reserved.
 
-Note that the DSS driver itself does not yet support this, and the DSS
-hardware is reset at kernel init. This means that the display will be
-off until later omapfb is started, which will set up the DSS again.
+The memory area is reserved with memblock, and assigned to omapfb with
+dma_declare_coherent_memory. The dma_alloc function will first try to
+allocate the fb from the coherent memory area, and if that fails, it'll
+use the normal method of allocation.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Vaibhav Hiremath <hvaibhav@ti.com>
+Cc: Ivaylo Dimitrov <freemangordon@abv.bg>
 ---
- drivers/video/omap2/omapfb/omapfb-main.c | 36 ++++++++++++++++++++++++--------
- drivers/video/omap2/omapfb/omapfb.h      |  1 +
- 2 files changed, 28 insertions(+), 9 deletions(-)
+ arch/arm/mach-omap2/common.c |  1 +
+ arch/arm/mach-omap2/common.h |  2 ++
+ arch/arm/mach-omap2/fb.c     | 77 +++++++++++++++++++++++++++++++++++++++++++-
+ 3 files changed, 79 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/video/omap2/omapfb/omapfb-main.c b/drivers/video/omap2/omapfb/omapfb-main.c
-index 27d6905683f3..88c1fe92d2c6 100644
---- a/drivers/video/omap2/omapfb/omapfb-main.c
-+++ b/drivers/video/omap2/omapfb/omapfb-main.c
-@@ -1383,18 +1383,36 @@ static int omapfb_alloc_fbmem(struct fb_info *fbi, unsigned long size,
- 	rg->type = 0;
- 	rg->alloc = false;
- 	rg->map = false;
-+	rg->noclear = 0;
+diff --git a/arch/arm/mach-omap2/common.c b/arch/arm/mach-omap2/common.c
+index 2dabb9ecb986..9beecded0380 100644
+--- a/arch/arm/mach-omap2/common.c
++++ b/arch/arm/mach-omap2/common.c
+@@ -33,4 +33,5 @@ void __init omap_reserve(void)
+ 	omap_dsp_reserve_sdram_memblock();
+ 	omap_secure_ram_reserve_memblock();
+ 	omap_barrier_reserve_memblock();
++	omap_fb_reserve_memblock();
+ }
+diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
+index e30ef6797c63..21afdc0fe15e 100644
+--- a/arch/arm/mach-omap2/common.h
++++ b/arch/arm/mach-omap2/common.h
+@@ -304,6 +304,8 @@ extern void omap_reserve(void);
+ struct omap_hwmod;
+ extern int omap_dss_reset(struct omap_hwmod *);
  
- 	size = PAGE_ALIGN(size);
- 
--	dma_set_attr(DMA_ATTR_WRITE_COMBINE, &attrs);
-+	if (paddr) {
-+		DBG("reserving %#lx bytes at %#lx\n", size, paddr);
- 
--	if (ofbi->rotation_type == OMAP_DSS_ROT_VRFB)
--		dma_set_attr(DMA_ATTR_NO_KERNEL_MAPPING, &attrs);
-+		token = dma_mark_declared_memory_occupied(fbdev->dev,
-+			paddr, size);
++extern void omap_fb_reserve_memblock(void);
 +
-+		if (IS_ERR(token)) {
-+			dev_err(fbdev->dev,
-+				"dma_mark_declared_memory_occupied failed: %ld\n",
-+				PTR_ERR(token));
-+			return PTR_ERR(token);
-+		}
-+
-+		dma_handle = paddr;
-+		rg->noclear = 1;
-+	} else {
-+		dma_set_attr(DMA_ATTR_WRITE_COMBINE, &attrs);
+ /* SoC specific clock initializer */
+ extern int (*omap_clk_init)(void);
  
--	DBG("allocating %lu bytes for fb %d\n", size, ofbi->id);
-+		if (ofbi->rotation_type == OMAP_DSS_ROT_VRFB)
-+			dma_set_attr(DMA_ATTR_NO_KERNEL_MAPPING, &attrs);
+diff --git a/arch/arm/mach-omap2/fb.c b/arch/arm/mach-omap2/fb.c
+index 26e28e94f625..80630329e508 100644
+--- a/arch/arm/mach-omap2/fb.c
++++ b/arch/arm/mach-omap2/fb.c
+@@ -30,9 +30,11 @@
+ #include <linux/dma-mapping.h>
  
--	token = dma_alloc_attrs(fbdev->dev, size, &dma_handle,
--			GFP_KERNEL, &attrs);
-+		DBG("allocating %lu bytes for fb %d\n", size, ofbi->id);
-+
-+		token = dma_alloc_attrs(fbdev->dev, size, &dma_handle,
-+				GFP_KERNEL, &attrs);
-+	}
+ #include <asm/mach/map.h>
++#include <asm/memblock.h>
  
- 	if (token == NULL) {
- 		dev_err(fbdev->dev, "failed to allocate framebuffer\n");
-@@ -1513,9 +1531,6 @@ static int omapfb_parse_vram_param(const char *param, int max_entries,
+ #include "soc.h"
+ #include "display.h"
++#include "common.h"
  
- 		}
+ #ifdef CONFIG_OMAP2_VRFB
  
--		WARN_ONCE(paddr,
--			"reserving memory at predefined address not supported\n");
--
- 		paddrs[fbnum] = paddr;
- 		sizes[fbnum] = size;
- 
-@@ -1950,6 +1965,9 @@ static int omapfb_create_framebuffers(struct omapfb2_device *fbdev)
- 		if (ofbi->region->size == 0)
- 			continue;
- 
-+		if (ofbi->region->noclear)
-+			continue;
-+
- 		omapfb_clear_fb(fbi);
- 	}
- 
-diff --git a/drivers/video/omap2/omapfb/omapfb.h b/drivers/video/omap2/omapfb/omapfb.h
-index 623cd872a367..69642944f453 100644
---- a/drivers/video/omap2/omapfb/omapfb.h
-+++ b/drivers/video/omap2/omapfb/omapfb.h
-@@ -64,6 +64,7 @@ struct omapfb2_mem_region {
- 	atomic_t	map_count;
- 	struct rw_semaphore lock;
- 	atomic_t	lock_count;
-+	bool		noclear;	/* don't clear the fb on alloc */
+@@ -106,10 +108,83 @@ static struct platform_device omap_fb_device = {
+ 	.num_resources = 0,
  };
  
- /* appended to fb_info */
++static phys_addr_t omapfb_mem_base __initdata;
++static phys_addr_t omapfb_mem_size __initdata;
++
++static int __init early_omapfb_vram(char *p)
++{
++	omapfb_mem_size = memparse(p, &p);
++
++	if (!omapfb_mem_size) {
++		pr_err("omapfb: bad size for 'omapfb_vram' param\n");
++		return 0;
++	}
++
++	if (*p == '@') {
++		omapfb_mem_base = memparse(p + 1, NULL);
++
++		if (!omapfb_mem_base) {
++			pr_err("omapfb: bad addr for 'omapfb_vram' param\n");
++			omapfb_mem_size = 0;
++			return 0;
++		}
++	}
++
++	return 0;
++}
++early_param("omapfb_vram", early_omapfb_vram);
++
++void __init omap_fb_reserve_memblock(void)
++{
++	int r;
++
++	if (!omapfb_mem_size)
++		return;
++
++	if (omapfb_mem_base) {
++		r = memblock_reserve(omapfb_mem_base, omapfb_mem_size);
++
++		if (r) {
++			pr_err("omapfb: memblock_reserve failed: %d\n", r);
++			return;
++		}
++	} else {
++		omapfb_mem_base = memblock_alloc(omapfb_mem_size, SZ_1M);
++
++		if (!omapfb_mem_base) {
++			pr_err("omapfb: memblock_alloc failed\n");
++			return;
++		}
++	}
++
++	memblock_free(omapfb_mem_base, omapfb_mem_size);
++	memblock_remove(omapfb_mem_base, omapfb_mem_size);
++
++	pr_info("omapfb: reserved %pa bytes at %pa\n",
++			&omapfb_mem_size, &omapfb_mem_base);
++}
++
+ int __init omap_init_fb(void)
+ {
+-	return platform_device_register(&omap_fb_device);
++	int r;
++
++	r = platform_device_register(&omap_fb_device);
++
++	if (r)
++		return r;
++
++	if (!omapfb_mem_base)
++		return 0;
++
++	r = dma_declare_coherent_memory(&omap_fb_device.dev,
++					  omapfb_mem_base, omapfb_mem_base,
++					  omapfb_mem_size, DMA_MEMORY_MAP);
++	if (!(r & DMA_MEMORY_MAP))
++		pr_err("omapfb: dma_declare_coherent_memory failed\n");
++
++	return 0;
+ }
++
+ #else
+ int __init omap_init_fb(void) { return 0; }
+ #endif
 -- 
 1.8.3.2
-
