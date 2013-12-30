@@ -1,66 +1,124 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: OMAP display subsystem - does it work?
-Date: Sat, 28 Dec 2013 23:30:53 +0000
-Message-ID: <20131228233053.GJ32243@n2100.arm.linux.org.uk>
-References: <52B1A922.6020901@ti.com> <20131218180240.GG27438@atomide.com> <20131219175644.GE32243@n2100.arm.linux.org.uk> <20131219182252.GP27438@atomide.com> <20131220112700.GF32243@n2100.arm.linux.org.uk> <20131220114837.GH32243@n2100.arm.linux.org.uk> <52B44982.4020501@ti.com> <20131220160432.GZ27438@atomide.com> <20131220165456.GD27438@atomide.com> <20131221005941.GI32243@n2100.arm.linux.org.uk>
+From: Sricharan R <r.sricharan@ti.com>
+Subject: Re: [PATCH V5 0/4] DRIVERS: IRQCHIP: Add support for crossbar IP
+Date: Mon, 30 Dec 2013 11:58:20 +0530
+Message-ID: <52C11284.2030500@ti.com>
+References: <1386066445-28245-1-git-send-email-r.sricharan@ti.com> <52B168A5.4010202@ti.com> <52BBB614.5010707@ti.com> <52BC6B16.80507@ti.com> <52BD856E.7010609@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:54973 "EHLO
-	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751037Ab3L1XbD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Sat, 28 Dec 2013 18:31:03 -0500
-Content-Disposition: inline
-In-Reply-To: <20131221005941.GI32243@n2100.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <52BD856E.7010609@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: tony@atomide.com, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linus.walleij@linaro.org, linux@arm.linux.org.uk, rnayak@ti.com, marc.zyngier@arm.com, grant.likely@linaro.org, mark.rutland@arm.com, robherring2@gmail.com, tglx@linutronix.de, galak@codeaurora.org, rob.herring@calxeda.com, nm@ti.com, bcousson@baylibre.com
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-arm-kernel@lists.infradead.org
 
-On Sat, Dec 21, 2013 at 12:59:41AM +0000, Russell King - ARM Linux wrote:
-> On Fri, Dec 20, 2013 at 08:55:03AM -0800, Tony Lindgren wrote:
-> > Yeah this seems to do the trick for me for the built-in DSS on LDP.
-> > 
-> > Tony
-> > 
-> > 8< -----------------------------------
-> > From: Tony Lindgren <tony@atomide.com>
-> > Date: Fri, 20 Dec 2013 08:53:27 -0800
-> > Subject: [PATCH] ARM: OMAP2+: Fix LCD panel backlight regression for LDP legacy booting
-> > 
-> > Looks like the LCD panel on LDP has been broken quite a while, and
-> > recently got fixed. However, there's still an issue where the panel
-> > backlight does not come on if the LCD drivers are built into the
-> > kernel.
-> > 
-> > Fix the issue by registering the DPI LCD panel only after the twl4030
-> > GPIO has probed.
-> > 
-> > Reported-by: Russell King <rmk+kernel@arm.linux.org.uk>
-> > Signed-off-by: Tony Lindgren <tony@atomide.com>
-> > 
-> > --- a/arch/arm/mach-omap2/board-ldp.c
-> > +++ b/arch/arm/mach-omap2/board-ldp.c
-> > @@ -248,7 +248,7 @@ static int ldp_twl_gpio_setup(struct device *dev, unsigned gpio, unsigned ngpio)
-> >  	/* Backlight enable GPIO */
-> >  	ldp_lcd_pdata.backlight_gpio = gpio + 15;
-> >  
-> > -	return 0;
-> > +	return platform_device_register(&ldp_lcd_device);
-> >  }
-> >  
-> >  static struct twl4030_gpio_platform_data ldp_gpio_data = {
-> > @@ -346,7 +346,6 @@ static struct omap2_hsmmc_info mmc[] __initdata = {
-> >  
-> >  static struct platform_device *ldp_devices[] __initdata = {
-> >  	&ldp_gpio_keys_device,
-> > -	&ldp_lcd_device,
-> >  };
-> >  
-> >  #ifdef CONFIG_OMAP_MUX
+Hi Tony,
+
+On Friday 27 December 2013 07:19 PM, Sricharan R wrote:
+> On Thursday 26 December 2013 11:14 PM, Santosh Shilimkar wrote:
+>> Sricharan,
+>>
+>> On Wednesday 25 December 2013 11:52 PM, Sricharan R wrote:
+>>> Hi Thomas,
+>>> On Wednesday 18 December 2013 02:49 PM, Sricharan R wrote:
+>>>> Hi Thomas,
+>>>>
+>>>> On Tuesday 03 December 2013 03:57 PM, Sricharan R wrote:
+>>>>> Some socs have a large number of interrupts requests to service
+>>>>> the needs of its many peripherals and subsystems. All of the interrupt
+>>>>> requests lines from the subsystems are not needed at the same
+>>>>> time, so they have to be muxed to the controllers appropriately.
+>>>>> In such places a interrupt controllers are preceded by an
+>>>>> IRQ CROSSBAR that provides flexibility in muxing the device interrupt
+>>>>> requests to the controller inputs.
+>>>>>
+>>>>> This series models the peripheral interrupts that can be routed through
+>>>>> the crossbar to the GIC as 'routable-irqs'. The routable irqs are added
+>>>>> in a separate linear domain inside the GIC. The registered routable domain's
+>>>>> callback are invoked as a part of the GIC's callback, which in turn should
+>>>>> allocate a free irq line and configure the IP accordingly. So every peripheral
+>>>>> in the dts files mentions the fixed crossbar number as its interrupt. A free
+>>>>> gic line for that gets allocated and configured when the peripheral interrupts
+>>>>> are mapped.
+>>>>>
+>>>>> The minimal crossbar driver to track and allocate free GIC lines and configure the
+>>>>> crossbar is added here, along with the DT bindings.
+>>>>>
+>>>>> V5:
+>>>>>    Addressed a comment from Mark Rutland <mark.rutland@arm.com>,
+>>>>>    updated tags and rebased on 3.13-rc2
+>>>>>
+>>>>> V4:
+>>>>>    Addressed a couple of comments and split the DTS file updates in to
+>>>>>    a separate series.
+>>>>>
+>>>>> V3:
+>>>>>    Addressed few more comments from Thomas Gleixner <tglx@linutronix.de>
+>>>>>
+>>>>>    Rebased patches 3,4,5,7 which updates the DTS file on top of below branch
+>>>>> 	   git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git
+>>>>> 	   for_3.13/dts
+>>>>>
+>>>>>    Rebased patches 1,2,6 on top of 3.12 mainline
+>>>>>    Updated Commit tags
+>>>>>
+>>>>> V2:
+>>>>>    Addressed Thomas Gleixner <tglx@linutronix.de> comments and
+>>>>>    Kumar Gala <galak@codeaurora.org>
+>>>>>
+>>>>>    Split updating the DRA7.dtsi file for adding the routable-irqs
+>>>>>
+>>>>> Previous discussions that led to this is at
+>>>>> 	https://lkml.org/lkml/2013/9/18/540
+>>>>>
+>>>>> The V1,V2,V3,V4 post of these patches is at
+>>>>>       [V1]  https://lkml.org/lkml/2013/9/30/283
+>>>>>       [V2]  http://www.spinics.net/lists/linux-omap/msg99540.html
+>>>>>       [V3]  http://www.kernelhub.org/?msg=356470&p=2
+>>>>>       [V4]  http://www.spinics.net/lists/linux-doc/msg16726.html
+>>>>>
+>>>>> Sricharan R (4):
+>>>>>   DRIVERS: IRQCHIP: IRQ-GIC: Add support for routable irqs
+>>>>>   DRIVERS: IRQCHIP: CROSSBAR: Add support for Crossbar IP
+>>>>>   ARM: OMAP4+: Correct Wakeup-gen code to use physical irq number
+>>>>>   ARM: DRA: Enable Crossbar IP support for DRA7XX
+>>>>>
+>>>>>  Documentation/devicetree/bindings/arm/gic.txt      |    6 +
+>>>>>  .../devicetree/bindings/arm/omap/crossbar.txt      |   27 +++
+>>>>>  arch/arm/mach-omap2/Kconfig                        |    1 +
+>>>>>  arch/arm/mach-omap2/omap-wakeupgen.c               |    4 +-
+>>>>>  arch/arm/mach-omap2/omap4-common.c                 |    2 +
+>>>>>  drivers/irqchip/Kconfig                            |    8 +
+>>>>>  drivers/irqchip/Makefile                           |    1 +
+>>>>>  drivers/irqchip/irq-crossbar.c                     |  208 ++++++++++++++++++++
+>>>>>  drivers/irqchip/irq-gic.c                          |   81 +++++++-
+>>>>>  include/linux/irqchip/arm-gic.h                    |    7 +-
+>>>>>  include/linux/irqchip/irq-crossbar.h               |   11 ++
+>>>>>  11 files changed, 343 insertions(+), 13 deletions(-)
+>>>>>  create mode 100644 Documentation/devicetree/bindings/arm/omap/crossbar.txt
+>>>>>  create mode 100644 drivers/irqchip/irq-crossbar.c
+>>>>>  create mode 100644 include/linux/irqchip/irq-crossbar.h
+>>>>>
+>>>>
+>>>> I have addressed all the comments on this series, can this be merged now ?
+>>>>
+>>>   Ping..
+>>>
+>> Thomas has already given his reviewed-by tag so the patches can be
+>> taken via arm-soc tree considering OMAP and GIC changes. Can you
+>> create a branch with all these patches applied and send it
+>> to Tony ?
+>>
+> Ok, i will send out a branch for this.
 > 
-> I've added it to the test build for tonight (only as an uncommitted
-> modification) so we'll see what happens tomorrow morning.
+ 
+ I have pushed the below branch
 
-BTW, yes, this does result in the display working again on the LDP.
+git://github.com/Sricharanti/sricharan.git
+branch: crossbar
+
+This is on top of Tony's linux-omap master branch
+
+Regards,
+ Sricharan
