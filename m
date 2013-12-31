@@ -1,76 +1,45 @@
-From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Subject: [PATCH] ARM: OMAPFB: panel-sony-acx565akm: fix missing mutex unlocks
-Date: Mon, 30 Dec 2013 18:17:52 +0200
-Message-ID: <1388420272-5132-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: tomi.valkeinen@ti.com
-Cc: plagnioj@jcrosoft.com, pali.rohar@gmail.com, pavel@ucw.cz, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org, Ivaylo Dimitrov <freemangordon@abv.bg>
+From: STALLION@vger.kernel.org, MEGA@vger.kernel.org
+Subject: Viimeinen ilmoitus
+Date: Tue, 31 Dec 2013 05:29:27 -0800
+Message-ID: <MAILLPke3fzk76oJDEI000007d2__19627.5217379027$1388421460$gmane$org@mail.inu.edu.jo>
+Reply-To: infostallion@aol.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from [213.186.176.85] ([213.186.176.85]:6613 "EHLO mail.inu.edu.jo"
+	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1756010Ab3L3QhJ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Dec 2013 11:37:09 -0500
+Content-Description: Mail message body
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Recipients <STALLION@vger.kernel.org>
 
-From: Ivaylo Dimitrov <freemangordon@abv.bg>
+Viimeinen ilmoitus
+S=E4hk=F6postiosoitteesi ID on voittanut (450,000.00 euroa) Espanjan "E=
+l Gordo"
+Kansainv=E4linen E-mail arpajaisvoittoluettelot oli onnekas numeroita 9=
+/11/13/24/43 ja
+Ref: ES/9420X2/68.
+Suunnittelua ja hallintaa Yhteystiedot:
+STALLION MEGA KORVAUSVAATIMUKSEN AGENCY
+Juan Carlos
+=20
+E-mail infostallion@aol.com
+Tel :0034-632 361 467 (puhuu Englanti ja Espanja)
+Teid=E4n koko nimi, osoite, ik=E4, ammatti, puhelinnumero,
+L=E4het=E4 replay t=E4h=E4n e-mail: infostallion@aol.com
+Onneksi olkoon.
+Yst=E4v=E4llisin terveisin,
 
-Commit c37dd677988ca50bc8bc60ab5ab053720583c168 fixes the unbalanced
-unlock in acx565akm_enable but introduces another problem - if
-acx565akm_panel_power_on exits early, the mutex is not unlocked. Fix
-that by unlocking the mutex on early return. Also add mutex protection in
-acx565akm_panel_power_off and remove an unused variable
-
-Signed-off-by: Ivaylo Dimitrov <freemangordon@abv.bg>
 ---
- .../omap2/displays-new/panel-sony-acx565akm.c      |   12 ++++++++++--
- 1 files changed, 10 insertions(+), 2 deletions(-)
+This email is free from viruses and malware because avast! Antivirus pr=
+otection is active.
+http://www.avast.com
 
-diff --git a/drivers/video/omap2/displays-new/panel-sony-acx565akm.c b/drivers/video/omap2/displays-new/panel-sony-acx565akm.c
-index d94f35d..a093d3a 100644
---- a/drivers/video/omap2/displays-new/panel-sony-acx565akm.c
-+++ b/drivers/video/omap2/displays-new/panel-sony-acx565akm.c
-@@ -535,6 +535,7 @@ static int acx565akm_panel_power_on(struct omap_dss_device *dssdev)
- 
- 	r = in->ops.sdi->enable(in);
- 	if (r) {
-+		mutex_unlock(&ddata->mutex);
- 		pr_err("%s sdi enable failed\n", __func__);
- 		return r;
- 	}
-@@ -546,6 +547,7 @@ static int acx565akm_panel_power_on(struct omap_dss_device *dssdev)
- 		gpio_set_value(ddata->reset_gpio, 1);
- 
- 	if (ddata->enabled) {
-+		mutex_unlock(&ddata->mutex);
- 		dev_dbg(&ddata->spi->dev, "panel already enabled\n");
- 		return 0;
- 	}
-@@ -578,10 +580,14 @@ static void acx565akm_panel_power_off(struct omap_dss_device *dssdev)
- 	struct panel_drv_data *ddata = to_panel_data(dssdev);
- 	struct omap_dss_device *in = ddata->in;
- 
-+	mutex_lock(&ddata->mutex);
-+
- 	dev_dbg(dssdev->dev, "%s\n", __func__);
- 
--	if (!ddata->enabled)
-+	if (!ddata->enabled) {
-+		mutex_unlock(&ddata->mutex);
- 		return;
-+	}
- 
- 	set_display_state(ddata, 0);
- 	set_sleep_mode(ddata, 1);
-@@ -601,11 +607,13 @@ static void acx565akm_panel_power_off(struct omap_dss_device *dssdev)
- 	msleep(100);
- 
- 	in->ops.sdi->disable(in);
-+
-+	mutex_unlock(&ddata->mutex);
-+
- }
- 
- static int acx565akm_enable(struct omap_dss_device *dssdev)
- {
--	struct panel_drv_data *ddata = to_panel_data(dssdev);
- 	int r;
- 
- 	dev_dbg(dssdev->dev, "%s\n", __func__);
--- 
-1.5.6.1
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
