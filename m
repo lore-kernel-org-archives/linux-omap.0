@@ -1,45 +1,97 @@
-From: STALLION@vger.kernel.org, MEGA@vger.kernel.org
-Subject: Viimeinen ilmoitus
-Date: Tue, 31 Dec 2013 16:14:17 -0800
-Message-ID: <MAILNHi9u5tojwl1uSf000014c1@mail.inu.edu.jo>
-Reply-To: infostallion@aol.com
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH RFC v2 REPOST 2/8] ASoC: davinci-evm: Add
+ named clock reference to DT bindings
+Date: Tue, 31 Dec 2013 13:16:17 +0000
+Message-ID: <20131231131617.GZ31886@sirena.org.uk>
+References: <cover.1387535299.git.jsarha@ti.com>
+ <c1ae738c9b6cd9f2e595eed1f4981378ded46925.1387535302.git.jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from [213.186.176.85] ([213.186.176.85]:60629 "EHLO mail.inu.edu.jo"
-	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1751762Ab3LaHhr convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 31 Dec 2013 02:37:47 -0500
-Content-Description: Mail message body
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/mixed; boundary="===============1451494275712135355=="
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <c1ae738c9b6cd9f2e595eed1f4981378ded46925.1387535302.git.jsarha@ti.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Jyri Sarha <jsarha@ti.com>
+Cc: devicetree@vger.kernel.org, alsa-devel@alsa-project.org, dri-devel@lists.freedesktop.org, bcousson@baylibre.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Recipients <STALLION@vger.kernel.org>
 
-Viimeinen ilmoitus
-S=E4hk=F6postiosoitteesi ID on voittanut (450,000.00 euroa) Espanjan "E=
-l Gordo"
-Kansainv=E4linen E-mail arpajaisvoittoluettelot oli onnekas numeroita 9=
-/11/13/24/43 ja
-Ref: ES/9420X2/68.
-Suunnittelua ja hallintaa Yhteystiedot:
-STALLION MEGA KORVAUSVAATIMUKSEN AGENCY
-Juan Carlos
+
+--===============1451494275712135355==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="J8ZfMsDg90ddfAv1"
+Content-Disposition: inline
+
+
+--J8ZfMsDg90ddfAv1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Fri, Dec 20, 2013 at 12:38:27PM +0200, Jyri Sarha wrote:
+
+> +static int evm_startup(struct snd_pcm_substream *substream)
+> +{
+> +	struct snd_soc_pcm_runtime *rtd =3D substream->private_data;
+> +	struct snd_soc_card *soc_card =3D rtd->codec->card;
+> +	struct clk *mclk =3D ((struct snd_soc_card_drvdata_davinci *)
+> +			    snd_soc_card_get_drvdata(soc_card))->mclk;
+
+Why do you need to cast away void?  Ths indicates something is going
+wrong here though I can't see what.
+
+> +	mclk =3D of_clk_get_by_name(np, "ti,codec-clock");
+> +	if (PTR_ERR(mclk) =3D=3D -EPROBE_DEFER) {
+> +		return -EPROBE_DEFER;
+> +	} else if (IS_ERR(mclk)) {
+> +		dev_dbg(&pdev->dev, "Codec clock not found.\n");
+> +		mclk =3D NULL;
+> +	}
+
+The driver will unconditionally enable and disable the clock which I'd
+not expect to work well if we got an error, I'd expect either NULL checks=
 =20
-E-mail infostallion@aol.com
-Tel :0034-632 361 467 (puhuu Englanti ja Espanja)
-Teid=E4n koko nimi, osoite, ik=E4, ammatti, puhelinnumero,
-L=E4het=E4 replay t=E4h=E4n e-mail: infostallion@aol.com
-Onneksi olkoon.
-Yst=E4v=E4llisin terveisin,
+on use or a fixed clock to be registered from code in the case where
+we're using the old binding.
 
----
-This email is free from viruses and malware because avast! Antivirus pr=
-otection is active.
-http://www.avast.com
+I'd also expect to see devm_clk_get() used here, with the standard
+clock-names based lookup from DT.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--J8ZfMsDg90ddfAv1
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
+
+iQIcBAEBAgAGBQJSwsOeAAoJELSic+t+oim9TvYP/2lw1WlGV/oGkMjoMdVkMFbo
+ZafydcLIL6kzYNuC3K3rTb4ZF+EXPnYOJYArw+tqpSs5mglhAzYYL9hjNum0G/Ol
+D8HyxixvzSovodizKvsnBjg65izmJxeIG0YEGhS4fuYReecltZjveuBiPS8prRdi
+L16vmhLbavyFHIPMXjay0pGu5d/DSgnyq+r9gd7fOnBmUL/LV05fgWyHhql0Q/sG
+87lnSjKzxcEtjHiBRF3SnGNNieOoLMGy9/YtivRJqajkxyEeJX9AB7dga1hN+dHh
+f97HIn16m3ZOv8Zv3GE0fbbV5xuLTzy38VUU74nh3J7XgtQj4SH4O900VA2ZWVZT
++q18wi3UKvoc2bmEFt5Z7Gd7gFUUYI+a2k4ZiKo3UuHctTtN8c/gATEtenqxQtLH
+3UQW8HGmfkht0tmpae1KIPa0tPN4q4RiG9IfNRu7tKX2aVzJPmbreGzSR8nChUhI
+O5KXARuiGpJgFpaLYIuzEhW/WL52Vx5iVjaMOo0xAS0+D9z7qE3WWdMsa+f0GnZ+
+ddAlU/9vm36lie1s0e37P1+4agChSVyBwu7hBR+sC3X5AvMYAGt9fzuff4kvTwbr
+jkU+aq6Q0bkZcaHEveU1sdrRfrfQxy8DWTfN8MLoSOo3robOxsf4cgZkBraZr70d
+wzQ+4PeGJdn0rPF6kI17
+=hA/O
+-----END PGP SIGNATURE-----
+
+--J8ZfMsDg90ddfAv1--
+
+--===============1451494275712135355==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--===============1451494275712135355==--
