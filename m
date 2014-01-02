@@ -1,64 +1,64 @@
-From: Sebastian Reichel <sre@ring0.de>
-Subject: Re: [PATCH 3/7] iommu/omap: Convert to devicetree
-Date: Thu, 2 Jan 2014 02:01:52 +0100
-Message-ID: <20140102010150.GA9933@earth.universe>
-References: <1387284818-28739-1-git-send-email-florian.vaussard@epfl.ch>
- <1387284818-28739-4-git-send-email-florian.vaussard@epfl.ch>
- <1764051.JiGg1d3s1L@avalon>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [PATCH] thermal: ti-soc-thermal: clk_round_rate() can return a
+ zero upon error
+Date: Thu, 02 Jan 2014 10:51:08 +0800
+Message-ID: <1388631068.3739.73.camel@rzhang1-mobl4>
+References: <alpine.DEB.2.02.1312091803260.4127@tamien>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="GvXjxJ+pjyke8COw"
-Return-path: <linux-doc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1764051.JiGg1d3s1L@avalon>
-Sender: linux-doc-owner@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Florian Vaussard <florian.vaussard@epfl.ch>, Joerg Roedel <joro@8bytes.org>, Tony Lindgren <tony@atomide.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Rob Landley <rob@landley.net>, Grant Likely <grant.likely@linaro.org>, Hiroshi Doyu <hdoyu@nvidia.com>, iommu@lists.linux-foundation.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.02.1312091803260.4127@tamien>
+Sender: linux-pm-owner@vger.kernel.org
+To: Paul Walmsley <pwalmsley@nvidia.com>
+Cc: Eduardo Valentin <eduardo.valentin@ti.com>, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+On Mon, 2013-12-09 at 18:09 -0800, Paul Walmsley wrote:
+> Treat both negative and zero return values from clk_round_rate() as
+> errors.  This is needed since subsequent patches will convert
+> clk_round_rate()'s return value to be an unsigned type, rather than a
+> signed type, since some clock sources can generate rates higher than
+> (2^31)-1 Hz.
+> 
+> Eventually, when calling clk_round_rate(), only a return value of zero
+> will be considered a error.  All other values will be considered valid
+> rates.  The comparison against values less than 0 is kept to preserve
+> the correct behavior in the meantime.
+> 
+> This patch also gets rid of a comparison between unsigned and signed 
+> values; a side-benefit.
+> 
+> Signed-off-by: Paul Walmsley <pwalmsley@nvidia.com>
+> Cc: Eduardo Valentin <eduardo.valentin@ti.com>
+> Cc: Zhang Rui <rui.zhang@intel.com>
 
---GvXjxJ+pjyke8COw
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Eduardo,
 
-Hi,
+will you take this patch?
 
-On Thu, Jan 02, 2014 at 01:13:42AM +0100, Laurent Pinchart wrote:
-> > +		.of_match_table =3D omap_iommu_of_match,
->=20
-> If CONFIG_OF isn't defined (pretty unlikely I agree, but a possibility yo=
-u=20
-> seem to be prepared for nonetheless given the above #if), this will fail =
-to=20
-> compile.
+thanks,
+rui
+> ---
+> Applies on v3.13-rc3.  See also:
+> 
+> http://marc.info/?l=linux-arm-kernel&m=138542591313620&w=2
+> 
+>   drivers/thermal/ti-soc-thermal/ti-bandgap.c |    2 +-
+>   1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/thermal/ti-soc-thermal/ti-bandgap.c b/drivers/thermal/ti-soc-thermal/ti-bandgap.c
+> index 74c0e3474d6e..8fe46dbc0c6f 100644
+> --- a/drivers/thermal/ti-soc-thermal/ti-bandgap.c
+> +++ b/drivers/thermal/ti-soc-thermal/ti-bandgap.c
+> @@ -1248,7 +1248,7 @@ int ti_bandgap_probe(struct platform_device *pdev)
+>   	clk_rate = clk_round_rate(bgp->div_clk,
+>   				  bgp->conf->sensors[0].ts_data->max_freq);
+>   	if (clk_rate < bgp->conf->sensors[0].ts_data->min_freq ||
+> -	    clk_rate == 0xffffffff) {
+> +	    clk_rate <= 0) {
+>   		ret = -ENODEV;
+>   		dev_err(&pdev->dev, "wrong clock rate (%d)\n", clk_rate);
+>   		goto put_clks;
 
-FYI: This is avoided in other drivers by using
-of_match_ptr(omap_iommu_of_match), which is replaced with NULL by
-the preprocessor if CONFIG_OF is not defined.
 
--- Sebastian
-
---GvXjxJ+pjyke8COw
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.15 (GNU/Linux)
-
-iQIcBAEBCAAGBQJSxLp9AAoJENju1/PIO/qa8TMQAJyNOJApiYO7fM7mlYaWa7hZ
-YQOdv3vPoDfgOBakYlaDcVomeAHfl/LvFYCH5aWpR26EE25v9+NvNzFv8uQJdkkI
-ZSjrbGprU6Tdv174XkuQNYSZm4APOHbdke8fQjB0nw5UlHGefqkh3Sen1EQHmsHC
-NH8f4ssoXGgMuHxMPRwo29XV28Ms+BsPBBwYZ5An0caAQaI3O9DSaWbyBfI8Bz2T
-St2kRa0kcxeARR7sAO1hd45wCulnPXN/X9vR7Tb8n70UIq04RMw9xrJzoEGTtW+L
-8H4aazq0cNjpSs/pTmcjRVbA1ezta2peoh7cpRMcwjwCLYeN3VS46vRJzpJAfRVC
-oath3JxYOzwwpdtXYWR+53x6Enu4r61DP6hgIBtTek/n+svsIC0PNVvusjnNbrle
-lGzDS3/wV/qhYZnd6YT3xUlHcXoFfo1P10uahNNc286eCA5OSb141KYPLturuSw0
-lMkHTIuYyomb+FqiR0zuAKytcF6hte49N09I6rKvQWEwZPnfLmiiYZLz//BGfLbE
-iJ8vDCcEZ9sJ6d56NDMUg0Od/NQz0H6IdwrLQczSpLo4Aw+dNY/jdK8yMBv8Ploj
-ebMGJV/YxmMizy5Vn+45spNw4cS742+FuzM7INkI0+rmrEqsE0hb9ytdEeT3l760
-jWBNdGZBqgbiPBrbZS1X
-=/DGs
------END PGP SIGNATURE-----
-
---GvXjxJ+pjyke8COw--
