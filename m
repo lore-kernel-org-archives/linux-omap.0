@@ -1,108 +1,81 @@
 From: Russell King <rmk+kernel@arm.linux.org.uk>
-Subject: [PATCH RFC 17/26] dmaengine: omap-dma: cleanup errata 3.3 handling
-Date: Thu, 02 Jan 2014 15:11:41 +0000
-Message-ID: <E1Vyjvx-0005F4-Gd@rmk-PC.arm.linux.org.uk>
+Subject: [PATCH RFC 18/26] ARM: omap: remove references to disable_irq_lch
+Date: Thu, 02 Jan 2014 15:11:51 +0000
+Message-ID: <E1Vyjw7-0005F8-KL@rmk-PC.arm.linux.org.uk>
 References: <20140102150836.GA3826@n2100.arm.linux.org.uk>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:54127 "EHLO
+Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:54133 "EHLO
 	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751136AbaABPMK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Jan 2014 10:12:10 -0500
+	by vger.kernel.org with ESMTP id S1751136AbaABPMS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Jan 2014 10:12:18 -0500
 In-Reply-To: <20140102150836.GA3826@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: dmaengine@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Cc: Vinod Koul <vinod.koul@intel.com>, Dan Williams <dan.j.williams@intel.com>
+Cc: Tony Lindgren <tony@atomide.com>
+
+The disable_irq_lch method is never actually used, so there's not much
+point it existing; remove it.
 
 Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 ---
- drivers/dma/omap-dma.c |   52 ++++++++++++++++++++++++++---------------------
- 1 files changed, 29 insertions(+), 23 deletions(-)
+ arch/arm/mach-omap1/dma.c |    1 -
+ arch/arm/mach-omap2/dma.c |   10 ----------
+ include/linux/omap-dma.h  |    1 -
+ 3 files changed, 0 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
-index a1aefe9fe3fe..04631e6732c4 100644
---- a/drivers/dma/omap-dma.c
-+++ b/drivers/dma/omap-dma.c
-@@ -451,28 +451,39 @@ static size_t omap_dma_desc_size_pos(struct omap_desc *d, dma_addr_t addr)
- 	return size;
+diff --git a/arch/arm/mach-omap1/dma.c b/arch/arm/mach-omap1/dma.c
+index 5bb8ce86d54b..d292055d3117 100644
+--- a/arch/arm/mach-omap1/dma.c
++++ b/arch/arm/mach-omap1/dma.c
+@@ -363,7 +363,6 @@ static int __init omap1_system_dma_init(void)
+ 	p->clear_dma		= omap1_clear_dma;
+ 	p->dma_write		= dma_write;
+ 	p->dma_read		= dma_read;
+-	p->disable_irq_lch	= NULL;
+ 
+ 	p->errata = configure_dma_errata();
+ 
+diff --git a/arch/arm/mach-omap2/dma.c b/arch/arm/mach-omap2/dma.c
+index 49fd0d501c9b..81c2d3383bc5 100644
+--- a/arch/arm/mach-omap2/dma.c
++++ b/arch/arm/mach-omap2/dma.c
+@@ -112,15 +112,6 @@ static inline u32 dma_read(int reg, int lch)
+ 	return val;
  }
  
-+/*
-+ * OMAP 3.2/3.3 erratum: sometimes 0 is returned if CSAC/CDAC is
-+ * read before the DMA controller finished disabling the channel.
-+ */
-+static uint32_t omap_dma_chan_read_3_3(struct omap_chan *c, unsigned reg)
-+{
-+	struct omap_dmadev *od = to_omap_dma_dev(c->vc.chan.device);
-+	uint32_t val;
-+
-+	val = omap_dma_chan_read(c, reg);
-+	if (val == 0 && od->plat->errata & DMA_ERRATA_3_3)
-+		val = omap_dma_chan_read(c, reg);
-+
-+	return val;
-+}
-+
- static dma_addr_t omap_dma_get_src_pos(struct omap_chan *c)
- {
- 	struct omap_dmadev *od = to_omap_dma_dev(c->vc.chan.device);
--	dma_addr_t addr;
-+	dma_addr_t addr, cdac;
- 
--	if (__dma_omap15xx(od->plat->dma_attr))
-+	if (__dma_omap15xx(od->plat->dma_attr)) {
- 		addr = omap_dma_chan_read(c, CPC);
--	else
--		addr = omap_dma_chan_read(c, CSAC);
+-static inline void omap2_disable_irq_lch(int lch)
+-{
+-	u32 val;
 -
--	if (od->plat->errata & DMA_ERRATA_3_3 && addr == 0)
--		addr = omap_dma_chan_read(c, CSAC);
-+	} else {
-+		addr = omap_dma_chan_read_3_3(c, CSAC);
-+		cdac = omap_dma_chan_read_3_3(c, CDAC);
- 
--	if (!__dma_omap15xx(od->plat->dma_attr)) {
- 		/*
- 		 * CDAC == 0 indicates that the DMA transfer on the channel has
- 		 * not been started (no data has been transferred so far).
- 		 * Return the programmed source start address in this case.
- 		 */
--		if (omap_dma_chan_read(c, CDAC))
--			addr = omap_dma_chan_read(c, CSAC);
--		else
-+		if (cdac == 0)
- 			addr = omap_dma_chan_read(c, CSSA);
+-	val = dma_read(IRQENABLE_L0, lch);
+-	val &= ~(1 << lch);
+-	dma_write(val, IRQENABLE_L0, lch);
+-}
+-
+ static void omap2_clear_dma(int lch)
+ {
+ 	int i = dma_common_ch_start;
+@@ -239,7 +230,6 @@ static int __init omap2_system_dma_init_dev(struct omap_hwmod *oh, void *unused)
  	}
  
-@@ -487,21 +498,16 @@ static dma_addr_t omap_dma_get_dst_pos(struct omap_chan *c)
- 	struct omap_dmadev *od = to_omap_dma_dev(c->vc.chan.device);
- 	dma_addr_t addr;
- 
--	if (__dma_omap15xx(od->plat->dma_attr))
-+	if (__dma_omap15xx(od->plat->dma_attr)) {
- 		addr = omap_dma_chan_read(c, CPC);
--	else
--		addr = omap_dma_chan_read(c, CDAC);
-+	} else {
-+		addr = omap_dma_chan_read_3_3(c, CDAC);
- 
--	/*
--	 * omap 3.2/3.3 erratum: sometimes 0 is returned if CSAC/CDAC is
--	 * read before the DMA controller finished disabling the channel.
--	 */
--	if (!__dma_omap15xx(od->plat->dma_attr) && addr == 0) {
--		addr = omap_dma_chan_read(c, CDAC);
- 		/*
--		 * CDAC == 0 indicates that the DMA transfer on the channel has
--		 * not been started (no data has been transferred so far).
--		 * Return the programmed destination start address in this case.
-+		 * CDAC == 0 indicates that the DMA transfer on the channel
-+		 * has not been started (no data has been transferred so
-+		 * far).  Return the programmed destination start address in
-+		 * this case.
- 		 */
- 		if (addr == 0)
- 			addr = omap_dma_chan_read(c, CDSA);
+ 	p->dma_attr		= (struct omap_dma_dev_attr *)oh->dev_attr;
+-	p->disable_irq_lch	= omap2_disable_irq_lch;
+ 	p->show_dma_caps	= omap2_show_dma_caps;
+ 	p->clear_dma		= omap2_clear_dma;
+ 	p->dma_write		= dma_write;
+diff --git a/include/linux/omap-dma.h b/include/linux/omap-dma.h
+index d631658e2237..0bb7de77d478 100644
+--- a/include/linux/omap-dma.h
++++ b/include/linux/omap-dma.h
+@@ -275,7 +275,6 @@ struct omap_dma_dev_attr {
+ struct omap_system_dma_plat_info {
+ 	struct omap_dma_dev_attr *dma_attr;
+ 	u32 errata;
+-	void (*disable_irq_lch)(int lch);
+ 	void (*show_dma_caps)(void);
+ 	void (*clear_lch_regs)(int lch);
+ 	void (*clear_dma)(int lch);
 -- 
 1.7.4.4
 
