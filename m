@@ -1,8 +1,7 @@
 From: Russell King <rmk+kernel@arm.linux.org.uk>
-Subject: [PATCH RFC 02/26] dmaengine: omap-dma: provide a hook to get the
- underlying DMA platform ops
-Date: Thu, 02 Jan 2014 15:09:09 +0000
-Message-ID: <E1VyjtV-0005E1-No@rmk-PC.arm.linux.org.uk>
+Subject: [PATCH RFC 03/26] dmaengine: omap-dma: program hardware directly
+Date: Thu, 02 Jan 2014 15:09:19 +0000
+Message-ID: <E1Vyjtf-0005E5-Vw@rmk-PC.arm.linux.org.uk>
 References: <20140102150836.GA3826@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -19,86 +18,212 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: dmaengine@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Vinod Koul <vinod.koul@intel.com>, Dan Williams <dan.j.williams@intel.com>
+Cc: Vinod Koul <vinod.koul@intel.com>, Dan Williams <dan.j.williams@intel.com>
 List-Id: linux-omap@vger.kernel.org
 
-Provide and use a hook to obtain the underlying DMA platform operations
-so that omap-dma.c can access the hardware more directly without
-involving the legacy DMA driver.
+Program the transfer parameters directly into the hardware, rather
+than using the functions in arch/arm/plat-omap/dma.c.
 
 Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 ---
- arch/arm/plat-omap/dma.c |    6 ++++++
- drivers/dma/omap-dma.c   |    7 +++++++
- include/linux/omap-dma.h |    2 ++
- 3 files changed, 15 insertions(+), 0 deletions(-)
+ drivers/dma/omap-dma.c   |  144 ++++++++++++++++++++++++++++++++++++++++-----
+ include/linux/omap-dma.h |    6 +-
+ 2 files changed, 132 insertions(+), 18 deletions(-)
 
-diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
-index 01619c2910e3..d4d9a5e62152 100644
---- a/arch/arm/plat-omap/dma.c
-+++ b/arch/arm/plat-omap/dma.c
-@@ -2000,6 +2000,12 @@ void omap_dma_global_context_restore(void)
- 			omap_clear_dma(ch);
- }
- 
-+struct omap_system_dma_plat_info *omap_get_plat_info(void)
-+{
-+	return p;
-+}
-+EXPORT_SYMBOL_GPL(omap_get_plat_info);
-+
- static int omap_system_dma_probe(struct platform_device *pdev)
- {
- 	int ch, ret = 0;
 diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
-index d9349be33bdf..3c1bb34aad0a 100644
+index 3c1bb34aad0a..dd233ca2cf5a 100644
 --- a/drivers/dma/omap-dma.c
 +++ b/drivers/dma/omap-dma.c
-@@ -26,11 +26,13 @@ struct omap_dmadev {
- 	spinlock_t lock;
- 	struct tasklet_struct task;
- 	struct list_head pending;
-+	struct omap_system_dma_plat_info *plat;
- };
- 
- struct omap_chan {
- 	struct virt_dma_chan vc;
- 	struct list_head node;
-+	struct omap_system_dma_plat_info *plat;
- 
- 	struct dma_slave_config	cfg;
- 	unsigned dma_sig;
-@@ -573,6 +575,7 @@ static int omap_dma_chan_init(struct omap_dmadev *od, int dma_sig)
- 	if (!c)
- 		return -ENOMEM;
- 
-+	c->plat = od->plat;
- 	c->dma_sig = dma_sig;
- 	c->vc.desc_free = omap_dma_desc_free;
- 	vchan_init(&c->vc, &od->ddev);
-@@ -605,6 +608,10 @@ static int omap_dma_probe(struct platform_device *pdev)
- 	if (!od)
- 		return -ENOMEM;
- 
-+	od->plat = omap_get_plat_info();
-+	if (!od->plat)
-+		return -EPROBE_DEFER;
+@@ -99,16 +99,96 @@ static void omap_dma_start_sg(struct omap_chan *c, struct omap_desc *d,
+ 	unsigned idx)
+ {
+ 	struct omap_sg *sg = d->sg + idx;
++	uint32_t val;
 +
- 	dma_cap_set(DMA_SLAVE, od->ddev.cap_mask);
- 	dma_cap_set(DMA_CYCLIC, od->ddev.cap_mask);
- 	od->ddev.device_alloc_chan_resources = omap_dma_alloc_chan_resources;
++	if (d->dir == DMA_DEV_TO_MEM) {
++		if (dma_omap1()) {
++			val = c->plat->dma_read(CSDP, c->dma_ch);
++			val &= ~(0x1f << 9);
++			val |= OMAP_DMA_PORT_EMIFF << 9;
++			c->plat->dma_write(val, CSDP, c->dma_ch);
++		}
+ 
+-	if (d->dir == DMA_DEV_TO_MEM)
+-		omap_set_dma_dest_params(c->dma_ch, OMAP_DMA_PORT_EMIFF,
+-			OMAP_DMA_AMODE_POST_INC, sg->addr, 0, 0);
+-	else
+-		omap_set_dma_src_params(c->dma_ch, OMAP_DMA_PORT_EMIFF,
+-			OMAP_DMA_AMODE_POST_INC, sg->addr, 0, 0);
++		val = c->plat->dma_read(CCR, c->dma_ch);
++		val &= ~(0x03 << 14);
++		val |= OMAP_DMA_AMODE_POST_INC << 14;
++		c->plat->dma_write(val, CCR, c->dma_ch);
++
++		c->plat->dma_write(sg->addr, CDSA, c->dma_ch);
++		c->plat->dma_write(0, CDEI, c->dma_ch);
++		c->plat->dma_write(0, CDFI, c->dma_ch);
++	} else {
++		if (dma_omap1()) {
++			val = c->plat->dma_read(CSDP, c->dma_ch);
++			val &= ~(0x1f << 2);
++			val |= OMAP_DMA_PORT_EMIFF << 2;
++			c->plat->dma_write(val, CSDP, c->dma_ch);
++		}
++
++		val = c->plat->dma_read(CCR, c->dma_ch);
++		val &= ~(0x03 << 12);
++		val |= OMAP_DMA_AMODE_POST_INC << 12;
++		c->plat->dma_write(val, CCR, c->dma_ch);
++
++		c->plat->dma_write(sg->addr, CSSA, c->dma_ch);
++		c->plat->dma_write(0, CSEI, c->dma_ch);
++		c->plat->dma_write(0, CSFI, c->dma_ch);
++	}
++
++	val = c->plat->dma_read(CSDP, c->dma_ch);
++	val &= ~0x03;
++	val |= d->es;
++	c->plat->dma_write(val, CSDP, c->dma_ch);
++
++	if (dma_omap1()) {
++		val = c->plat->dma_read(CCR, c->dma_ch);
++		val &= ~(1 << 5);
++		if (d->sync_mode == OMAP_DMA_SYNC_FRAME)
++			val |= 1 << 5;
++		c->plat->dma_write(val, CCR, c->dma_ch);
++
++		val = c->plat->dma_read(CCR2, c->dma_ch);
++		val &= ~(1 << 2);
++		if (d->sync_mode == OMAP_DMA_SYNC_BLOCK)
++			val |= 1 << 2;
++		c->plat->dma_write(val, CCR2, c->dma_ch);
++	}
++
++	if (dma_omap2plus() && c->dma_sig) {
++		val = c->plat->dma_read(CCR, c->dma_ch);
++
++		/* DMA_SYNCHRO_CONTROL_UPPER depends on the channel number */
++		val &= ~((1 << 23) | (3 << 19) | 0x1f);
++		val |= (c->dma_sig & ~0x1f) << 14;
++		val |= c->dma_sig & 0x1f;
++
++		if (d->sync_mode & OMAP_DMA_SYNC_FRAME)
++			val |= 1 << 5;
++		else
++			val &= ~(1 << 5);
+ 
+-	omap_set_dma_transfer_params(c->dma_ch, d->es, sg->en, sg->fn,
+-		d->sync_mode, c->dma_sig, d->sync_type);
++		if (d->sync_mode & OMAP_DMA_SYNC_BLOCK)
++			val |= 1 << 18;
++		else
++			val &= ~(1 << 18);
++
++		switch (d->sync_type) {
++		case OMAP_DMA_DST_SYNC_PREFETCH:
++			val &= ~(1 << 24);	/* dest synch */
++			val |= 1 << 23;		/* Prefetch */
++			break;
++		case 0:
++			val &= ~(1 << 24);	/* dest synch */
++			break;
++		default:
++			val |= 1 << 24;		/* source synch */
++			break;
++		}
++		c->plat->dma_write(val, CCR, c->dma_ch);
++	}
++
++	c->plat->dma_write(sg->en, CEN, c->dma_ch);
++	c->plat->dma_write(sg->fn, CFN, c->dma_ch);
+ 
+ 	omap_start_dma(c->dma_ch);
+ }
+@@ -117,6 +197,7 @@ static void omap_dma_start_desc(struct omap_chan *c)
+ {
+ 	struct virt_dma_desc *vd = vchan_next_desc(&c->vc);
+ 	struct omap_desc *d;
++	uint32_t val;
+ 
+ 	if (!vd) {
+ 		c->desc = NULL;
+@@ -128,12 +209,39 @@ static void omap_dma_start_desc(struct omap_chan *c)
+ 	c->desc = d = to_omap_dma_desc(&vd->tx);
+ 	c->sgidx = 0;
+ 
+-	if (d->dir == DMA_DEV_TO_MEM)
+-		omap_set_dma_src_params(c->dma_ch, d->periph_port,
+-			OMAP_DMA_AMODE_CONSTANT, d->dev_addr, 0, d->fi);
+-	else
+-		omap_set_dma_dest_params(c->dma_ch, d->periph_port,
+-			OMAP_DMA_AMODE_CONSTANT, d->dev_addr, 0, d->fi);
++	if (d->dir == DMA_DEV_TO_MEM) {
++		if (dma_omap1()) {
++			val = c->plat->dma_read(CSDP, c->dma_ch);
++			val &= ~(0x1f << 2);
++			val |= d->periph_port << 2;
++			c->plat->dma_write(val, CSDP, c->dma_ch);
++		}
++
++		val = c->plat->dma_read(CCR, c->dma_ch);
++		val &= ~(0x03 << 12);
++		val |= OMAP_DMA_AMODE_CONSTANT << 12;
++		c->plat->dma_write(val, CCR, c->dma_ch);
++
++		c->plat->dma_write(d->dev_addr, CSSA, c->dma_ch);
++		c->plat->dma_write(0, CSEI, c->dma_ch);
++		c->plat->dma_write(d->fi, CSFI, c->dma_ch);
++	} else {
++		if (dma_omap1()) {
++			val = c->plat->dma_read(CSDP, c->dma_ch);
++			val &= ~(0x1f << 9);
++			val |= d->periph_port << 9;
++			c->plat->dma_write(val, CSDP, c->dma_ch);
++		}
++
++		val = c->plat->dma_read(CCR, c->dma_ch);
++		val &= ~(0x03 << 14);
++		val |= OMAP_DMA_AMODE_CONSTANT << 14;
++		c->plat->dma_write(val, CCR, c->dma_ch);
++
++		c->plat->dma_write(d->dev_addr, CDSA, c->dma_ch);
++		c->plat->dma_write(0, CDEI, c->dma_ch);
++		c->plat->dma_write(d->fi, CDFI, c->dma_ch);
++	}
+ 
+ 	omap_dma_start_sg(c, d, 0);
+ }
+@@ -452,8 +560,12 @@ static struct dma_async_tx_descriptor *omap_dma_prep_dma_cyclic(
+ 	}
+ 
+ 	if (dma_omap2plus()) {
+-		omap_set_dma_src_burst_mode(c->dma_ch, OMAP_DMA_DATA_BURST_16);
+-		omap_set_dma_dest_burst_mode(c->dma_ch, OMAP_DMA_DATA_BURST_16);
++		uint32_t val;
++
++		val = c->plat->dma_read(CSDP, c->dma_ch);
++		val |= 0x03 << 7; /* src burst mode 16 */
++		val |= 0x03 << 14; /* dst burst mode 16 */
++		c->plat->dma_write(val, CSDP, c->dma_ch);
+ 	}
+ 
+ 	return vchan_tx_prep(&c->vc, &d->vd, flags);
 diff --git a/include/linux/omap-dma.h b/include/linux/omap-dma.h
-index 7af25a9c9c51..14742fc2aefe 100644
+index 14742fc2aefe..d631658e2237 100644
 --- a/include/linux/omap-dma.h
 +++ b/include/linux/omap-dma.h
-@@ -292,6 +292,8 @@ struct omap_system_dma_plat_info {
- #define dma_omap15xx()	((dma_omap1() && (d->dev_caps & ENABLE_1510_MODE)))
- #define dma_omap16xx()	((dma_omap1() && (d->dev_caps & ENABLE_16XX_MODE)))
+@@ -289,8 +289,10 @@ struct omap_system_dma_plat_info {
+ #define dma_omap2plus()	0
+ #endif
+ #define dma_omap1()	(!dma_omap2plus())
+-#define dma_omap15xx()	((dma_omap1() && (d->dev_caps & ENABLE_1510_MODE)))
+-#define dma_omap16xx()	((dma_omap1() && (d->dev_caps & ENABLE_16XX_MODE)))
++#define __dma_omap15xx(d) (dma_omap1() && (d)->dev_caps & ENABLE_1510_MODE)
++#define __dma_omap16xx(d) (dma_omap1() && (d)->dev_caps & ENABLE_16XX_MODE)
++#define dma_omap15xx()	__dma_omap15xx(d)
++#define dma_omap16xx()	__dma_omap16xx(d)
  
-+extern struct omap_system_dma_plat_info *omap_get_plat_info(void);
-+
- extern void omap_set_dma_priority(int lch, int dst_port, int priority);
- extern int omap_request_dma(int dev_id, const char *dev_name,
- 			void (*callback)(int lch, u16 ch_status, void *data),
+ extern struct omap_system_dma_plat_info *omap_get_plat_info(void);
+ 
 -- 
 1.7.4.4
