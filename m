@@ -1,119 +1,335 @@
 From: Russell King <rmk+kernel@arm.linux.org.uk>
-Subject: [PATCH RFC 06/26] dmaengine: omap-dma: move reading of dma position
- to omap-dma.c
-Date: Thu, 02 Jan 2014 15:09:50 +0000
-Message-ID: <E1VyjuA-0005EI-AA@rmk-PC.arm.linux.org.uk>
+Subject: [PATCH RFC 20/26] ARM: omap: clean up DMA register accesses
+Date: Thu, 02 Jan 2014 15:12:11 +0000
+Message-ID: <E1VyjwR-0005FH-RH@rmk-PC.arm.linux.org.uk>
 References: <20140102150836.GA3826@n2100.arm.linux.org.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:54142 "EHLO
+	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751675AbaABPMj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Jan 2014 10:12:39 -0500
 In-Reply-To: <20140102150836.GA3826@n2100.arm.linux.org.uk>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: dmaengine@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Cc: Vinod Koul <vinod.koul@intel.com>, Dan Williams <dan.j.williams@intel.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: dmaengine@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>
 
-Read the current DMA position from the hardware directly rather than via
-arch/arm/plat-omap/dma.c.
+We can do much better with this by using a structure to describe each
+register, rather than code.
 
 Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 ---
- drivers/dma/omap-dma.c |   66 ++++++++++++++++++++++++++++++++++++++++++++++-
- 1 files changed, 64 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap1/dma.c |  121 +++++++++++++++++++++------------------------
+ arch/arm/mach-omap2/dma.c |   99 ++++++++++++++++++-------------------
+ include/linux/omap-dma.h  |   13 +++++
+ 3 files changed, 117 insertions(+), 116 deletions(-)
 
-diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
-index 8e2dd4f658d5..7e6cdc39725c 100644
---- a/drivers/dma/omap-dma.c
-+++ b/drivers/dma/omap-dma.c
-@@ -430,6 +430,68 @@ static size_t omap_dma_desc_size_pos(struct omap_desc *d, dma_addr_t addr)
- 	return size;
+diff --git a/arch/arm/mach-omap1/dma.c b/arch/arm/mach-omap1/dma.c
+index 11f0b0ee67a3..de30e28ff487 100644
+--- a/arch/arm/mach-omap1/dma.c
++++ b/arch/arm/mach-omap1/dma.c
+@@ -32,53 +32,52 @@
+ 
+ #define OMAP1_DMA_BASE			(0xfffed800)
+ #define OMAP1_LOGICAL_DMA_CH_COUNT	17
+-#define OMAP1_DMA_STRIDE		0x40
+ 
+ static u32 errata;
+ static u32 enable_1510_mode;
+ 
+-static u16 reg_map[] = {
+-	[GCR]		= 0x400,
+-	[GSCR]		= 0x404,
+-	[GRST1]		= 0x408,
+-	[HW_ID]		= 0x442,
+-	[PCH2_ID]	= 0x444,
+-	[PCH0_ID]	= 0x446,
+-	[PCH1_ID]	= 0x448,
+-	[PCHG_ID]	= 0x44a,
+-	[PCHD_ID]	= 0x44c,
+-	[CAPS_0]	= 0x44e,
+-	[CAPS_1]	= 0x452,
+-	[CAPS_2]	= 0x456,
+-	[CAPS_3]	= 0x458,
+-	[CAPS_4]	= 0x45a,
+-	[PCH2_SR]	= 0x460,
+-	[PCH0_SR]	= 0x480,
+-	[PCH1_SR]	= 0x482,
+-	[PCHD_SR]	= 0x4c0,
++static const struct omap_dma_reg reg_map[] = {
++	[GCR]		= { 0x0400, 0x00, OMAP_DMA_REG_16BIT },
++	[GSCR]		= { 0x0404, 0x00, OMAP_DMA_REG_16BIT },
++	[GRST1]		= { 0x0408, 0x00, OMAP_DMA_REG_16BIT },
++	[HW_ID]		= { 0x0442, 0x00, OMAP_DMA_REG_16BIT },
++	[PCH2_ID]	= { 0x0444, 0x00, OMAP_DMA_REG_16BIT },
++	[PCH0_ID]	= { 0x0446, 0x00, OMAP_DMA_REG_16BIT },
++	[PCH1_ID]	= { 0x0448, 0x00, OMAP_DMA_REG_16BIT },
++	[PCHG_ID]	= { 0x044a, 0x00, OMAP_DMA_REG_16BIT },
++	[PCHD_ID]	= { 0x044c, 0x00, OMAP_DMA_REG_16BIT },
++	[CAPS_0]	= { 0x044e, 0x00, OMAP_DMA_REG_2X16BIT },
++	[CAPS_1]	= { 0x0452, 0x00, OMAP_DMA_REG_2X16BIT },
++	[CAPS_2]	= { 0x0456, 0x00, OMAP_DMA_REG_16BIT },
++	[CAPS_3]	= { 0x0458, 0x00, OMAP_DMA_REG_16BIT },
++	[CAPS_4]	= { 0x045a, 0x00, OMAP_DMA_REG_16BIT },
++	[PCH2_SR]	= { 0x0460, 0x00, OMAP_DMA_REG_16BIT },
++	[PCH0_SR]	= { 0x0480, 0x00, OMAP_DMA_REG_16BIT },
++	[PCH1_SR]	= { 0x0482, 0x00, OMAP_DMA_REG_16BIT },
++	[PCHD_SR]	= { 0x04c0, 0x00, OMAP_DMA_REG_16BIT },
+ 
+ 	/* Common Registers */
+-	[CSDP]		= 0x00,
+-	[CCR]		= 0x02,
+-	[CICR]		= 0x04,
+-	[CSR]		= 0x06,
+-	[CEN]		= 0x10,
+-	[CFN]		= 0x12,
+-	[CSFI]		= 0x14,
+-	[CSEI]		= 0x16,
+-	[CPC]		= 0x18,	/* 15xx only */
+-	[CSAC]		= 0x18,
+-	[CDAC]		= 0x1a,
+-	[CDEI]		= 0x1c,
+-	[CDFI]		= 0x1e,
+-	[CLNK_CTRL]	= 0x28,
++	[CSDP]		= { 0x0000, 0x40, OMAP_DMA_REG_16BIT },
++	[CCR]		= { 0x0002, 0x40, OMAP_DMA_REG_16BIT },
++	[CICR]		= { 0x0004, 0x40, OMAP_DMA_REG_16BIT },
++	[CSR]		= { 0x0006, 0x40, OMAP_DMA_REG_16BIT },
++	[CEN]		= { 0x0010, 0x40, OMAP_DMA_REG_16BIT },
++	[CFN]		= { 0x0012, 0x40, OMAP_DMA_REG_16BIT },
++	[CSFI]		= { 0x0014, 0x40, OMAP_DMA_REG_16BIT },
++	[CSEI]		= { 0x0016, 0x40, OMAP_DMA_REG_16BIT },
++	[CPC]		= { 0x0018, 0x40, OMAP_DMA_REG_16BIT },	/* 15xx only */
++	[CSAC]		= { 0x0018, 0x40, OMAP_DMA_REG_16BIT },
++	[CDAC]		= { 0x001a, 0x40, OMAP_DMA_REG_16BIT },
++	[CDEI]		= { 0x001c, 0x40, OMAP_DMA_REG_16BIT },
++	[CDFI]		= { 0x001e, 0x40, OMAP_DMA_REG_16BIT },
++	[CLNK_CTRL]	= { 0x0028, 0x40, OMAP_DMA_REG_16BIT },
+ 
+ 	/* Channel specific register offsets */
+-	[CSSA]		= 0x08,
+-	[CDSA]		= 0x0c,
+-	[COLOR]		= 0x20,
+-	[CCR2]		= 0x24,
+-	[LCH_CTRL]	= 0x2a,
++	[CSSA]		= { 0x0008, 0x40, OMAP_DMA_REG_2X16BIT },
++	[CDSA]		= { 0x000c, 0x40, OMAP_DMA_REG_2X16BIT },
++	[COLOR]		= { 0x0020, 0x40, OMAP_DMA_REG_2X16BIT },
++	[CCR2]		= { 0x0024, 0x40, OMAP_DMA_REG_16BIT },
++	[LCH_CTRL]	= { 0x002a, 0x40, OMAP_DMA_REG_16BIT },
+ };
+ 
+ static struct resource res[] __initdata = {
+@@ -179,36 +178,28 @@ static struct resource res[] __initdata = {
+ static void __iomem *dma_base;
+ static inline void dma_write(u32 val, int reg, int lch)
+ {
+-	u8  stride;
+-	u32 offset;
++	void __iomem *addr = dma_base;
+ 
+-	stride = (reg >= CPC) ? OMAP1_DMA_STRIDE : 0;
+-	offset = reg_map[reg] + (stride * lch);
++	addr += reg_map[reg].offset;
++	addr += reg_map[reg].stride * lch;
+ 
+-	__raw_writew(val, dma_base + offset);
+-	if ((reg > CLNK_CTRL && reg < CCEN) ||
+-			(reg > PCHD_ID && reg < CAPS_2)) {
+-		u32 offset2 = reg_map[reg] + 2 + (stride * lch);
+-		__raw_writew(val >> 16, dma_base + offset2);
+-	}
++	__raw_writew(val, addr);
++	if (reg_map[reg].size == OMAP_DMA_REG_2X16BIT)
++		__raw_writew(val >> 16, addr + 2);
  }
  
-+static dma_addr_t omap_dma_get_src_pos(struct omap_chan *c)
-+{
-+	struct omap_dmadev *od = to_omap_dma_dev(c->vc.chan.device);
-+	dma_addr_t addr;
-+
-+	if (__dma_omap15xx(od->plat->dma_attr))
-+		addr = c->plat->dma_read(CPC, c->dma_ch);
-+	else
-+		addr = c->plat->dma_read(CSAC, c->dma_ch);
-+
-+	if (od->plat->errata & DMA_ERRATA_3_3 && addr == 0)
-+		addr = c->plat->dma_read(CSAC, c->dma_ch);
-+
-+	if (!__dma_omap15xx(od->plat->dma_attr)) {
-+		/*
-+		 * CDAC == 0 indicates that the DMA transfer on the channel has
-+		 * not been started (no data has been transferred so far).
-+		 * Return the programmed source start address in this case.
-+		 */
-+		if (c->plat->dma_read(CDAC, c->dma_ch))
-+			addr = c->plat->dma_read(CSAC, c->dma_ch);
-+		else
-+			addr = c->plat->dma_read(CSSA, c->dma_ch);
-+	}
-+
-+	if (dma_omap1())
-+		addr |= c->plat->dma_read(CSSA, c->dma_ch) & 0xffff0000;
-+
-+	return addr;
-+}
-+
-+static dma_addr_t omap_dma_get_dst_pos(struct omap_chan *c)
-+{
-+	struct omap_dmadev *od = to_omap_dma_dev(c->vc.chan.device);
-+	dma_addr_t addr;
-+
-+	if (__dma_omap15xx(od->plat->dma_attr))
-+		addr = c->plat->dma_read(CPC, c->dma_ch);
-+	else
-+		addr = c->plat->dma_read(CDAC, c->dma_ch);
-+
-+	/*
-+	 * omap 3.2/3.3 erratum: sometimes 0 is returned if CSAC/CDAC is
-+	 * read before the DMA controller finished disabling the channel.
-+	 */
-+	if (!__dma_omap15xx(od->plat->dma_attr) && addr == 0) {
-+		addr = c->plat->dma_read(CDAC, c->dma_ch);
-+		/*
-+		 * CDAC == 0 indicates that the DMA transfer on the channel has
-+		 * not been started (no data has been transferred so far).
-+		 * Return the programmed destination start address in this case.
-+		 */
-+		if (addr == 0)
-+			addr = c->plat->dma_read(CDSA, c->dma_ch);
-+	}
-+
-+	if (dma_omap1())
-+		addr |= c->plat->dma_read(CDSA, c->dma_ch) & 0xffff0000;
-+
-+	return addr;
-+}
-+
- static enum dma_status omap_dma_tx_status(struct dma_chan *chan,
- 	dma_cookie_t cookie, struct dma_tx_state *txstate)
+ static inline u32 dma_read(int reg, int lch)
  {
-@@ -451,9 +513,9 @@ static enum dma_status omap_dma_tx_status(struct dma_chan *chan,
- 		dma_addr_t pos;
+-	u8 stride;
+-	u32 offset, val;
+-
+-	stride = (reg >= CPC) ? OMAP1_DMA_STRIDE : 0;
+-	offset = reg_map[reg] + (stride * lch);
+-
+-	val = __raw_readw(dma_base + offset);
+-	if ((reg > CLNK_CTRL && reg < CCEN) ||
+-			(reg > PCHD_ID && reg < CAPS_2)) {
+-		u16 upper;
+-		u32 offset2 = reg_map[reg] + 2 + (stride * lch);
+-		upper = __raw_readw(dma_base + offset2);
+-		val |= (upper << 16);
+-	}
++	void __iomem *addr = dma_base;
++	uint32_t val;
++
++	addr += reg_map[reg].offset;
++	addr += reg_map[reg].stride * lch;
++
++	val = __raw_readw(addr);
++	if (reg_map[reg].size == OMAP_DMA_REG_2X16BIT)
++		val |= __raw_readw(addr + 2) << 16;
++
+ 	return val;
+ }
  
- 		if (d->dir == DMA_MEM_TO_DEV)
--			pos = omap_get_dma_src_pos(c->dma_ch);
-+			pos = omap_dma_get_src_pos(c);
- 		else if (d->dir == DMA_DEV_TO_MEM)
--			pos = omap_get_dma_dst_pos(c->dma_ch);
-+			pos = omap_dma_get_dst_pos(c);
- 		else
- 			pos = 0;
+diff --git a/arch/arm/mach-omap2/dma.c b/arch/arm/mach-omap2/dma.c
+index e4ac7ac9a228..e633b48a3fcb 100644
+--- a/arch/arm/mach-omap2/dma.c
++++ b/arch/arm/mach-omap2/dma.c
+@@ -35,80 +35,77 @@
+ #include "omap_hwmod.h"
+ #include "omap_device.h"
  
+-#define OMAP2_DMA_STRIDE	0x60
+-
+ static u32 errata;
+ 
+ static struct omap_dma_dev_attr *d;
+ 
+ static enum omap_reg_offsets dma_common_ch_end;
+ 
+-static u16 reg_map[] = {
+-	[REVISION]		= 0x00,
+-	[GCR]			= 0x78,
+-	[IRQSTATUS_L0]		= 0x08,
+-	[IRQSTATUS_L1]		= 0x0c,
+-	[IRQSTATUS_L2]		= 0x10,
+-	[IRQSTATUS_L3]		= 0x14,
+-	[IRQENABLE_L0]		= 0x18,
+-	[IRQENABLE_L1]		= 0x1c,
+-	[IRQENABLE_L2]		= 0x20,
+-	[IRQENABLE_L3]		= 0x24,
+-	[SYSSTATUS]		= 0x28,
+-	[OCP_SYSCONFIG]		= 0x2c,
+-	[CAPS_0]		= 0x64,
+-	[CAPS_2]		= 0x6c,
+-	[CAPS_3]		= 0x70,
+-	[CAPS_4]		= 0x74,
++static const struct omap_dma_reg reg_map[] = {
++	[REVISION]	= { 0x0000, 0x00, OMAP_DMA_REG_32BIT },
++	[GCR]		= { 0x0078, 0x00, OMAP_DMA_REG_32BIT },
++	[IRQSTATUS_L0]	= { 0x0008, 0x00, OMAP_DMA_REG_32BIT },
++	[IRQSTATUS_L1]	= { 0x000c, 0x00, OMAP_DMA_REG_32BIT },
++	[IRQSTATUS_L2]	= { 0x0010, 0x00, OMAP_DMA_REG_32BIT },
++	[IRQSTATUS_L3]	= { 0x0014, 0x00, OMAP_DMA_REG_32BIT },
++	[IRQENABLE_L0]	= { 0x0018, 0x00, OMAP_DMA_REG_32BIT },
++	[IRQENABLE_L1]	= { 0x001c, 0x00, OMAP_DMA_REG_32BIT },
++	[IRQENABLE_L2]	= { 0x0020, 0x00, OMAP_DMA_REG_32BIT },
++	[IRQENABLE_L3]	= { 0x0024, 0x00, OMAP_DMA_REG_32BIT },
++	[SYSSTATUS]	= { 0x0028, 0x00, OMAP_DMA_REG_32BIT },
++	[OCP_SYSCONFIG]	= { 0x002c, 0x00, OMAP_DMA_REG_32BIT },
++	[CAPS_0]	= { 0x0064, 0x00, OMAP_DMA_REG_32BIT },
++	[CAPS_2]	= { 0x006c, 0x00, OMAP_DMA_REG_32BIT },
++	[CAPS_3]	= { 0x0070, 0x00, OMAP_DMA_REG_32BIT },
++	[CAPS_4]	= { 0x0074, 0x00, OMAP_DMA_REG_32BIT },
+ 
+ 	/* Common register offsets */
+-	[CCR]			= 0x80,
+-	[CLNK_CTRL]		= 0x84,
+-	[CICR]			= 0x88,
+-	[CSR]			= 0x8c,
+-	[CSDP]			= 0x90,
+-	[CEN]			= 0x94,
+-	[CFN]			= 0x98,
+-	[CSEI]			= 0xa4,
+-	[CSFI]			= 0xa8,
+-	[CDEI]			= 0xac,
+-	[CDFI]			= 0xb0,
+-	[CSAC]			= 0xb4,
+-	[CDAC]			= 0xb8,
++	[CCR]		= { 0x0080, 0x60, OMAP_DMA_REG_32BIT },
++	[CLNK_CTRL]	= { 0x0084, 0x60, OMAP_DMA_REG_32BIT },
++	[CICR]		= { 0x0088, 0x60, OMAP_DMA_REG_32BIT },
++	[CSR]		= { 0x008c, 0x60, OMAP_DMA_REG_32BIT },
++	[CSDP]		= { 0x0090, 0x60, OMAP_DMA_REG_32BIT },
++	[CEN]		= { 0x0094, 0x60, OMAP_DMA_REG_32BIT },
++	[CFN]		= { 0x0098, 0x60, OMAP_DMA_REG_32BIT },
++	[CSEI]		= { 0x00a4, 0x60, OMAP_DMA_REG_32BIT },
++	[CSFI]		= { 0x00a8, 0x60, OMAP_DMA_REG_32BIT },
++	[CDEI]		= { 0x00ac, 0x60, OMAP_DMA_REG_32BIT },
++	[CDFI]		= { 0x00b0, 0x60, OMAP_DMA_REG_32BIT },
++	[CSAC]		= { 0x00b4, 0x60, OMAP_DMA_REG_32BIT },
++	[CDAC]		= { 0x00b8, 0x60, OMAP_DMA_REG_32BIT },
+ 
+ 	/* Channel specific register offsets */
+-	[CSSA]			= 0x9c,
+-	[CDSA]			= 0xa0,
+-	[CCEN]			= 0xbc,
+-	[CCFN]			= 0xc0,
+-	[COLOR]			= 0xc4,
++	[CSSA]		= { 0x009c, 0x60, OMAP_DMA_REG_32BIT },
++	[CDSA]		= { 0x00a0, 0x60, OMAP_DMA_REG_32BIT },
++	[CCEN]		= { 0x00bc, 0x60, OMAP_DMA_REG_32BIT },
++	[CCFN]		= { 0x00c0, 0x60, OMAP_DMA_REG_32BIT },
++	[COLOR]		= { 0x00c4, 0x60, OMAP_DMA_REG_32BIT },
+ 
+ 	/* OMAP4 specific registers */
+-	[CDP]			= 0xd0,
+-	[CNDP]			= 0xd4,
+-	[CCDN]			= 0xd8,
++	[CDP]		= { 0x00d0, 0x60, OMAP_DMA_REG_32BIT },
++	[CNDP]		= { 0x00d4, 0x60, OMAP_DMA_REG_32BIT },
++	[CCDN]		= { 0x00d8, 0x60, OMAP_DMA_REG_32BIT },
+ };
+ 
+ static void __iomem *dma_base;
+ static inline void dma_write(u32 val, int reg, int lch)
+ {
+-	u8  stride;
+-	u32 offset;
++	void __iomem *addr = dma_base;
++
++	addr += reg_map[reg].offset;
++	addr += reg_map[reg].stride * lch;
+ 
+-	stride = (reg >= CSDP) ? OMAP2_DMA_STRIDE : 0;
+-	offset = reg_map[reg] + (stride * lch);
+-	__raw_writel(val, dma_base + offset);
++	__raw_writel(val, addr);
+ }
+ 
+ static inline u32 dma_read(int reg, int lch)
+ {
+-	u8 stride;
+-	u32 offset, val;
++	void __iomem *addr = dma_base;
++
++	addr += reg_map[reg].offset;
++	addr += reg_map[reg].stride * lch;
+ 
+-	stride = (reg >= CSDP) ? OMAP2_DMA_STRIDE : 0;
+-	offset = reg_map[reg] + (stride * lch);
+-	val = __raw_readl(dma_base + offset);
+-	return val;
++	return __raw_readl(addr);
+ }
+ 
+ static void omap2_clear_dma(int lch)
+diff --git a/include/linux/omap-dma.h b/include/linux/omap-dma.h
+index 0bb7de77d478..41328725721a 100644
+--- a/include/linux/omap-dma.h
++++ b/include/linux/omap-dma.h
+@@ -271,6 +271,19 @@ struct omap_dma_dev_attr {
+ 	struct omap_dma_lch *chan;
+ };
+ 
++enum {
++	OMAP_DMA_REG_NONE,
++	OMAP_DMA_REG_16BIT,
++	OMAP_DMA_REG_2X16BIT,
++	OMAP_DMA_REG_32BIT,
++};
++
++struct omap_dma_reg {
++	u16	offset;
++	u8	stride;
++	u8	type;
++};
++
+ /* System DMA platform data structure */
+ struct omap_system_dma_plat_info {
+ 	struct omap_dma_dev_attr *dma_attr;
 -- 
 1.7.4.4
+
