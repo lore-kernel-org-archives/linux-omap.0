@@ -1,85 +1,64 @@
-From: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+From: Sebastian Reichel <sre@ring0.de>
 Subject: Re: [PATCH 3/7] iommu/omap: Convert to devicetree
-Date: Thu, 02 Jan 2014 01:13:42 +0100
-Message-ID: <1764051.JiGg1d3s1L@avalon>
+Date: Thu, 2 Jan 2014 02:01:52 +0100
+Message-ID: <20140102010150.GA9933@earth.universe>
 References: <1387284818-28739-1-git-send-email-florian.vaussard@epfl.ch>
-	<1387284818-28739-4-git-send-email-florian.vaussard@epfl.ch>
+ <1387284818-28739-4-git-send-email-florian.vaussard@epfl.ch>
+ <1764051.JiGg1d3s1L@avalon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <1387284818-28739-4-git-send-email-florian.vaussard-p8DiymsW2f8@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
-Cc: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Landley <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, =?ISO-8859-1?Q?Beno=EEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="GvXjxJ+pjyke8COw"
+Return-path: <linux-doc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1764051.JiGg1d3s1L@avalon>
+Sender: linux-doc-owner@vger.kernel.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Florian Vaussard <florian.vaussard@epfl.ch>, Joerg Roedel <joro@8bytes.org>, Tony Lindgren <tony@atomide.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Rob Herring <rob.herring@calxeda.com>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Rob Landley <rob@landley.net>, Grant Likely <grant.likely@linaro.org>, Hiroshi Doyu <hdoyu@nvidia.com>, iommu@lists.linux-foundation.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Florian,
 
-Thank you for the patch.
+--GvXjxJ+pjyke8COw
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Tuesday 17 December 2013 13:53:34 Florian Vaussard wrote:
-> As OMAP2+ is moving to a full DT boot for 3.14, commit 7ce93f3
-> "ARM: OMAP2+: Fix more missing data for omap3.dtsi file" adds
-> basic DT bits. But the driver is not yet converted, so this will
-> not work and driver will not be probed. Convert it!
-> 
-> Apart from standard bindings, this patch uses 'dma-window' (already
-> used by Tegra SMMU) and adds a custom 'ti,#tlb-entries' binding.
-> 
-> Signed-off-by: Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
-> ---
->  .../devicetree/bindings/iommu/ti,omap-iommu.txt    | 19 ++++++++++++
->  arch/arm/mach-omap2/omap-iommu.c                   |  5 +++
->  drivers/iommu/omap-iommu.c                         | 36 ++++++++++++++++---
->  3 files changed, 55 insertions(+), 5 deletions(-)
->  create mode 100644
-> Documentation/devicetree/bindings/iommu/ti,omap-iommu.txt
+Hi,
 
-[snip]
+On Thu, Jan 02, 2014 at 01:13:42AM +0100, Laurent Pinchart wrote:
+> > +		.of_match_table =3D omap_iommu_of_match,
+>=20
+> If CONFIG_OF isn't defined (pretty unlikely I agree, but a possibility yo=
+u=20
+> seem to be prepared for nonetheless given the above #if), this will fail =
+to=20
+> compile.
 
-> diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
-> index 385bf5e..51efcc4 100644
-> --- a/drivers/iommu/omap-iommu.c
-> +++ b/drivers/iommu/omap-iommu.c
+FYI: This is avoided in other drivers by using
+of_match_ptr(omap_iommu_of_match), which is replaced with NULL by
+the preprocessor if CONFIG_OF is not defined.
 
-[snip]
+-- Sebastian
 
-> @@ -1260,11 +1277,20 @@ static int omap_iommu_remove(struct platform_device
-> *pdev) return 0;
->  }
-> 
-> +#if defined(CONFIG_OF)
-> +static struct of_device_id omap_iommu_of_match[] = {
-> +	{ .compatible = "ti,omap3-mmu-isp" },
-> +	{},
-> +};
-> +MODULE_DEVICE_TABLE(of, omap_iommu_of_match);
-> +#endif
-> +
->  static struct platform_driver omap_iommu_driver = {
->  	.probe	= omap_iommu_probe,
->  	.remove	= omap_iommu_remove,
->  	.driver	= {
->  		.name	= "omap-iommu",
-> +		.of_match_table = omap_iommu_of_match,
+--GvXjxJ+pjyke8COw
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-If CONFIG_OF isn't defined (pretty unlikely I agree, but a possibility you 
-seem to be prepared for nonetheless given the above #if), this will fail to 
-compile.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.15 (GNU/Linux)
 
->  	},
->  };
+iQIcBAEBCAAGBQJSxLp9AAoJENju1/PIO/qa8TMQAJyNOJApiYO7fM7mlYaWa7hZ
+YQOdv3vPoDfgOBakYlaDcVomeAHfl/LvFYCH5aWpR26EE25v9+NvNzFv8uQJdkkI
+ZSjrbGprU6Tdv174XkuQNYSZm4APOHbdke8fQjB0nw5UlHGefqkh3Sen1EQHmsHC
+NH8f4ssoXGgMuHxMPRwo29XV28Ms+BsPBBwYZ5An0caAQaI3O9DSaWbyBfI8Bz2T
+St2kRa0kcxeARR7sAO1hd45wCulnPXN/X9vR7Tb8n70UIq04RMw9xrJzoEGTtW+L
+8H4aazq0cNjpSs/pTmcjRVbA1ezta2peoh7cpRMcwjwCLYeN3VS46vRJzpJAfRVC
+oath3JxYOzwwpdtXYWR+53x6Enu4r61DP6hgIBtTek/n+svsIC0PNVvusjnNbrle
+lGzDS3/wV/qhYZnd6YT3xUlHcXoFfo1P10uahNNc286eCA5OSb141KYPLturuSw0
+lMkHTIuYyomb+FqiR0zuAKytcF6hte49N09I6rKvQWEwZPnfLmiiYZLz//BGfLbE
+iJ8vDCcEZ9sJ6d56NDMUg0Od/NQz0H6IdwrLQczSpLo4Aw+dNY/jdK8yMBv8Ploj
+ebMGJV/YxmMizy5Vn+45spNw4cS742+FuzM7INkI0+rmrEqsE0hb9ytdEeT3l760
+jWBNdGZBqgbiPBrbZS1X
+=/DGs
+-----END PGP SIGNATURE-----
 
--- 
-Regards,
-
-Laurent Pinchart
+--GvXjxJ+pjyke8COw--
