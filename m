@@ -1,71 +1,68 @@
 From: Russell King <rmk+kernel@arm.linux.org.uk>
-Subject: [PATCH RFC 26/26] ARM: omap2: ensure dma platform device has
- resources
-Date: Thu, 02 Jan 2014 15:13:12 +0000
-Message-ID: <E1VyjxQ-0005Fg-GA@rmk-PC.arm.linux.org.uk>
+Subject: [PATCH RFC 10/26] dmaengine: omap-dma: move CCR buffering disable
+ errata out of the fast path
+Date: Thu, 02 Jan 2014 15:10:30 +0000
+Message-ID: <E1Vyjuo-0005Ea-O5@rmk-PC.arm.linux.org.uk>
 References: <20140102150836.GA3826@n2100.arm.linux.org.uk>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:54165 "EHLO
+Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:54168 "EHLO
 	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751949AbaABPNh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Jan 2014 10:13:37 -0500
+	by vger.kernel.org with ESMTP id S1751790AbaABPPB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Jan 2014 10:15:01 -0500
 In-Reply-To: <20140102150836.GA3826@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: dmaengine@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>
+Cc: Vinod Koul <vinod.koul@intel.com>, Dan Williams <dan.j.williams@intel.com>
+
+Since we record the CCR register in the dma transaction, we can move the
+processing of the iframe buffering errata out of the omap_dma_start().
+Move it to the preparation functions.
 
 Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 ---
- arch/arm/mach-omap2/dma.c |   16 ++++++++++------
- 1 files changed, 10 insertions(+), 6 deletions(-)
+ drivers/dma/omap-dma.c |    7 +++++--
+ 1 files changed, 5 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/dma.c b/arch/arm/mach-omap2/dma.c
-index e08e55a173b6..5689c88d986d 100644
---- a/arch/arm/mach-omap2/dma.c
-+++ b/arch/arm/mach-omap2/dma.c
-@@ -213,6 +213,12 @@ static struct omap_system_dma_plat_info dma_plat_info __initdata = {
- 	.dma_read	= dma_read,
- };
+diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
+index 13dca8e0ef32..ba0e10db5185 100644
+--- a/drivers/dma/omap-dma.c
++++ b/drivers/dma/omap-dma.c
+@@ -200,8 +200,6 @@ static void omap_dma_start(struct omap_chan *c, struct omap_desc *d)
+ 	c->plat->dma_write(d->cicr, CICR, c->dma_ch);
  
-+static struct platform_device_info omap_dma_dev_info = {
-+	.name = "omap-dma-engine",
-+	.id = -1,
-+	.dma_mask = DMA_BIT_MASK(32),
-+};
-+
- /* One time initializations */
- static int __init omap2_system_dma_init_dev(struct omap_hwmod *oh, void *unused)
+ 	val = c->plat->dma_read(CCR, c->dma_ch);
+-	if (od->plat->errata & DMA_ERRATA_IFRAME_BUFFERING)
+-		val |= CCR_BUFFERING_DISABLE;
+ 	val |= CCR_ENABLE;
+ 	mb();
+ 	c->plat->dma_write(val, CCR, c->dma_ch);
+@@ -558,6 +556,7 @@ static struct dma_async_tx_descriptor *omap_dma_prep_slave_sg(
+ 	struct dma_chan *chan, struct scatterlist *sgl, unsigned sglen,
+ 	enum dma_transfer_direction dir, unsigned long tx_flags, void *context)
  {
-@@ -233,11 +239,15 @@ static int __init omap2_system_dma_init_dev(struct omap_hwmod *oh, void *unused)
- 		return PTR_ERR(pdev);
- 	}
++	struct omap_dmadev *od = to_omap_dma_dev(chan->device);
+ 	struct omap_chan *c = to_omap_dma_chan(chan);
+ 	enum dma_slave_buswidth dev_width;
+ 	struct scatterlist *sgent;
+@@ -628,6 +627,8 @@ static struct dma_async_tx_descriptor *omap_dma_prep_slave_sg(
  
-+	omap_dma_dev_info.res = pdev->resource;
-+	omap_dma_dev_info.num_res = pdev->num_resources;
-+
- 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	if (!mem) {
- 		dev_err(&pdev->dev, "%s: no mem resource\n", __func__);
- 		return -EINVAL;
+ 		d->cicr |= CICR_MISALIGNED_ERR_IE | CICR_TRANS_ERR_IE;
  	}
-+
- 	dma_base = ioremap(mem->start, resource_size(mem));
- 	if (!dma_base) {
- 		dev_err(&pdev->dev, "%s: ioremap fail\n", __func__);
-@@ -258,12 +268,6 @@ static int __init omap2_system_dma_init_dev(struct omap_hwmod *oh, void *unused)
- 	return 0;
- }
++	if (od->plat->errata & DMA_ERRATA_IFRAME_BUFFERING)
++		d->ccr |= CCR_BUFFERING_DISABLE;
  
--static const struct platform_device_info omap_dma_dev_info = {
--	.name = "omap-dma-engine",
--	.id = -1,
--	.dma_mask = DMA_BIT_MASK(32),
--};
--
- static int __init omap2_system_dma_init(void)
- {
- 	struct platform_device *pdev;
+ 	/*
+ 	 * Build our scatterlist entries: each contains the address,
+@@ -744,6 +745,8 @@ static struct dma_async_tx_descriptor *omap_dma_prep_dma_cyclic(
+ 
+ 		d->csdp |= CSDP_DST_BURST_64 | CSDP_SRC_BURST_64;
+ 	}
++	if (od->plat->errata & DMA_ERRATA_IFRAME_BUFFERING)
++		d->ccr |= CCR_BUFFERING_DISABLE;
+ 
+ 	c->cyclic = true;
+ 
 -- 
 1.7.4.4
 
