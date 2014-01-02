@@ -1,18 +1,18 @@
 From: Russell King - ARM Linux <linux@arm.linux.org.uk>
 Subject: [PATCH RFC 00/26] Migrate more OMAP DMA code to DMA engine
-Date: Thu, 2 Jan 2014 15:06:21 +0000
-Message-ID: <20140102150621.GJ16456@n2100.arm.linux.org.uk>
+Date: Thu, 2 Jan 2014 15:08:36 +0000
+Message-ID: <20140102150836.GA3826@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:53995 "EHLO
+Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:54033 "EHLO
 	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1750914AbaABPGb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Jan 2014 10:06:31 -0500
+	by vger.kernel.org with ESMTP id S1751136AbaABPJT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Jan 2014 10:09:19 -0500
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: dmaengine@vger.kernel.org, linux-arm-kernel@lists.infradead, org@arm.linux.org.uk, linux-omap@vger.kernel.org
+To: dmaengine@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 Cc: Dan Williams <dan.j.williams@intel.com>, Tony Lindgren <tony@atomide.com>, Vinod Koul <vinod.koul@intel.com>
 
 The following patch series moves code to setup the DMA hardware and
