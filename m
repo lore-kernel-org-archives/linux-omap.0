@@ -1,223 +1,71 @@
 From: Russell King <rmk+kernel@arm.linux.org.uk>
-Subject: [PATCH RFC 25/26] dmaengine: omap-dma: move IRQ handling to omap-dma
-Date: Thu, 02 Jan 2014 15:13:02 +0000
-Message-ID: <E1VyjxG-0005Fc-Cr@rmk-PC.arm.linux.org.uk>
+Subject: [PATCH RFC 26/26] ARM: omap2: ensure dma platform device has
+ resources
+Date: Thu, 02 Jan 2014 15:13:12 +0000
+Message-ID: <E1VyjxQ-0005Fg-GA@rmk-PC.arm.linux.org.uk>
 References: <20140102150836.GA3826@n2100.arm.linux.org.uk>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:54162 "EHLO
+Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:54165 "EHLO
 	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751949AbaABPN2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Jan 2014 10:13:28 -0500
+	by vger.kernel.org with ESMTP id S1751949AbaABPNh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Jan 2014 10:13:37 -0500
 In-Reply-To: <20140102150836.GA3826@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: dmaengine@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Cc: Vinod Koul <vinod.koul@intel.com>, Dan Williams <dan.j.williams@intel.com>
+Cc: Tony Lindgren <tony@atomide.com>
 
 Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 ---
- drivers/dma/omap-dma.c |  121 +++++++++++++++++++++++++++++++++++++++++++++--
- 1 files changed, 115 insertions(+), 6 deletions(-)
+ arch/arm/mach-omap2/dma.c |   16 ++++++++++------
+ 1 files changed, 10 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
-index 611963e82623..f219c9a4dab7 100644
---- a/drivers/dma/omap-dma.c
-+++ b/drivers/dma/omap-dma.c
-@@ -30,6 +30,10 @@ struct omap_dmadev {
- 	void __iomem *base;
- 	const struct omap_dma_reg *reg_map;
- 	struct omap_system_dma_plat_info *plat;
-+	bool legacy;
-+	spinlock_t irq_lock;
-+	uint32_t irq_enable_mask;
-+	struct omap_chan *lch_map[32];
+diff --git a/arch/arm/mach-omap2/dma.c b/arch/arm/mach-omap2/dma.c
+index e08e55a173b6..5689c88d986d 100644
+--- a/arch/arm/mach-omap2/dma.c
++++ b/arch/arm/mach-omap2/dma.c
+@@ -213,6 +213,12 @@ static struct omap_system_dma_plat_info dma_plat_info __initdata = {
+ 	.dma_read	= dma_read,
  };
  
- struct omap_chan {
-@@ -253,10 +257,22 @@ static void omap_dma_clear_csr(struct omap_chan *c)
- 		omap_dma_chan_write(c, CSR, ~0);
- }
- 
-+static unsigned omap_dma_get_csr(struct omap_chan *c)
-+{
-+	unsigned val = omap_dma_chan_read(c, CSR);
++static struct platform_device_info omap_dma_dev_info = {
++	.name = "omap-dma-engine",
++	.id = -1,
++	.dma_mask = DMA_BIT_MASK(32),
++};
 +
-+	if (!dma_omap1())
-+		omap_dma_chan_write(c, CSR, val);
-+
-+	return val;
-+}
-+
- static void omap_dma_assign(struct omap_dmadev *od, struct omap_chan *c,
- 	unsigned lch)
+ /* One time initializations */
+ static int __init omap2_system_dma_init_dev(struct omap_hwmod *oh, void *unused)
  {
- 	c->channel_base = od->base + od->plat->channel_stride * lch;
-+
-+	od->lch_map[lch] = c;
- }
- 
- static void omap_dma_start(struct omap_chan *c, struct omap_desc *d)
-@@ -460,32 +476,103 @@ static void omap_dma_sched(unsigned long data)
- 	}
- }
- 
-+static irqreturn_t omap_dma_irq(int irq, void *devid)
-+{
-+	struct omap_dmadev *od = devid;
-+	unsigned status, channel;
-+
-+	spin_lock(&od->irq_lock);
-+
-+	status = omap_dma_glbl_read(od, IRQSTATUS_L1);
-+	status &= od->irq_enable_mask;
-+	if (status == 0) {
-+		spin_unlock(&od->irq_lock);
-+		return IRQ_NONE;
-+	}
-+
-+	while ((channel = ffs(status)) != 0) {
-+		unsigned mask, csr;
-+		struct omap_chan *c;
-+
-+		channel -= 1;
-+		mask = BIT(channel);
-+		status &= ~mask;
-+
-+		c = od->lch_map[channel];
-+		if (c == NULL) {
-+			/* This should never happen */
-+			dev_err(od->ddev.dev, "invalid channel %u\n", channel);
-+			continue;
-+		}
-+
-+		csr = omap_dma_get_csr(c);
-+		omap_dma_glbl_write(od, IRQSTATUS_L1, mask);
-+
-+		omap_dma_callback(channel, csr, c);
-+	}
-+
-+	spin_unlock(&od->irq_lock);
-+
-+	return IRQ_HANDLED;
-+}
-+
- static int omap_dma_alloc_chan_resources(struct dma_chan *chan)
- {
- 	struct omap_dmadev *od = to_omap_dma_dev(chan->device);
- 	struct omap_chan *c = to_omap_dma_chan(chan);
- 	int ret;
- 
--	dev_info(od->ddev.dev, "allocating channel for %u\n", c->dma_sig);
-+	if (od->legacy) {
-+		ret = omap_request_dma(c->dma_sig, "DMA engine",
-+				       omap_dma_callback, c, &c->dma_ch);
-+	} else {
-+		ret = omap_request_dma(c->dma_sig, "DMA engine", NULL, NULL,
-+				       &c->dma_ch);
-+	}
- 
--	ret = omap_request_dma(c->dma_sig, "DMA engine", omap_dma_callback,
--			       c, &c->dma_ch);
-+	dev_info(od->ddev.dev, "allocating channel %u for %u\n",
-+		 c->dma_ch, c->dma_sig);
- 
--	if (ret >= 0)
-+	if (ret >= 0) {
- 		omap_dma_assign(od, c, c->dma_ch);
- 
-+		if (!od->legacy) {
-+			unsigned val;
-+
-+			spin_lock_irq(&od->irq_lock);
-+			val = BIT(c->dma_ch);
-+			omap_dma_glbl_write(od, IRQSTATUS_L1, val);
-+			od->irq_enable_mask |= val;
-+			omap_dma_glbl_write(od, IRQENABLE_L1, od->irq_enable_mask);
-+
-+			val = omap_dma_glbl_read(od, IRQENABLE_L0);
-+			val &= ~BIT(c->dma_ch);
-+			omap_dma_glbl_write(od, IRQENABLE_L0, val);
-+			spin_unlock_irq(&od->irq_lock);
-+		}
-+	}
-+
- 	return ret;
- }
- 
- static void omap_dma_free_chan_resources(struct dma_chan *chan)
- {
-+	struct omap_dmadev *od = to_omap_dma_dev(chan->device);
- 	struct omap_chan *c = to_omap_dma_chan(chan);
- 
-+	if (!od->legacy) {
-+		spin_lock_irq(&od->irq_lock);
-+		od->irq_enable_mask &= ~BIT(c->dma_ch);
-+		omap_dma_glbl_write(od, IRQENABLE_L1, od->irq_enable_mask);
-+		spin_unlock_irq(&od->irq_lock);
-+	}
-+
- 	c->channel_base = NULL;
-+	od->lch_map[c->dma_ch] = NULL;
- 	vchan_free_chan_resources(&c->vc);
- 	omap_free_dma(c->dma_ch);
- 
--	dev_info(c->vc.chan.device->dev, "freeing channel for %u\n", c->dma_sig);
-+	dev_info(od->ddev.dev, "freeing channel for %u\n", c->dma_sig);
- }
- 
- static size_t omap_dma_sg_size(struct omap_sg *sg)
-@@ -999,7 +1086,7 @@ static int omap_dma_probe(struct platform_device *pdev)
- {
- 	struct omap_dmadev *od;
- 	struct resource *res;
--	int rc, i;
-+	int rc, i, irq;
- 
- 	od = devm_kzalloc(&pdev->dev, sizeof(*od), GFP_KERNEL);
- 	if (!od)
-@@ -1029,6 +1116,7 @@ static int omap_dma_probe(struct platform_device *pdev)
- 	INIT_LIST_HEAD(&od->ddev.channels);
- 	INIT_LIST_HEAD(&od->pending);
- 	spin_lock_init(&od->lock);
-+	spin_lock_init(&od->irq_lock);
- 
- 	tasklet_init(&od->task, omap_dma_sched, (unsigned long)od);
- 
-@@ -1040,6 +1128,21 @@ static int omap_dma_probe(struct platform_device *pdev)
- 		}
+@@ -233,11 +239,15 @@ static int __init omap2_system_dma_init_dev(struct omap_hwmod *oh, void *unused)
+ 		return PTR_ERR(pdev);
  	}
  
-+	irq = platform_get_irq(pdev, 1);
-+	if (irq <= 0) {
-+		dev_info(&pdev->dev, "failed to get L1 IRQ: %d\n", irq);
-+		od->legacy = true;
-+	} else {
-+		/* Disable all interrupts */
-+		od->irq_enable_mask = 0;
-+		omap_dma_glbl_write(od, IRQENABLE_L1, 0);
++	omap_dma_dev_info.res = pdev->resource;
++	omap_dma_dev_info.num_res = pdev->num_resources;
 +
-+		rc = devm_request_irq(&pdev->dev, irq, omap_dma_irq,
-+				      IRQF_SHARED, "omap-dma-engine", od);
-+		if (rc)
-+			return rc;
-+	}
+ 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	if (!mem) {
+ 		dev_err(&pdev->dev, "%s: no mem resource\n", __func__);
+ 		return -EINVAL;
+ 	}
 +
- 	rc = dma_async_device_register(&od->ddev);
- 	if (rc) {
- 		pr_warn("OMAP-DMA: failed to register slave DMA engine device: %d\n",
-@@ -1076,6 +1179,12 @@ static int omap_dma_remove(struct platform_device *pdev)
- 		of_dma_controller_free(pdev->dev.of_node);
- 
- 	dma_async_device_unregister(&od->ddev);
-+
-+	if (!od->legacy) {
-+		/* Disable all interrupts */
-+		omap_dma_glbl_write(od, IRQENABLE_L0, 0);
-+	}
-+
- 	omap_dma_free(od);
- 
+ 	dma_base = ioremap(mem->start, resource_size(mem));
+ 	if (!dma_base) {
+ 		dev_err(&pdev->dev, "%s: ioremap fail\n", __func__);
+@@ -258,12 +268,6 @@ static int __init omap2_system_dma_init_dev(struct omap_hwmod *oh, void *unused)
  	return 0;
+ }
+ 
+-static const struct platform_device_info omap_dma_dev_info = {
+-	.name = "omap-dma-engine",
+-	.id = -1,
+-	.dma_mask = DMA_BIT_MASK(32),
+-};
+-
+ static int __init omap2_system_dma_init(void)
+ {
+ 	struct platform_device *pdev;
 -- 
 1.7.4.4
 
