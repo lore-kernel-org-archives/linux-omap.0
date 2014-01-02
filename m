@@ -1,140 +1,119 @@
 From: Russell King <rmk+kernel@arm.linux.org.uk>
-Subject: [PATCH RFC 19/26] ARM: omap: remove almost-const variables
-Date: Thu, 02 Jan 2014 15:12:01 +0000
-Message-ID: <E1VyjwH-0005FD-Na@rmk-PC.arm.linux.org.uk>
+Subject: [PATCH RFC 06/26] dmaengine: omap-dma: move reading of dma position
+ to omap-dma.c
+Date: Thu, 02 Jan 2014 15:09:50 +0000
+Message-ID: <E1VyjuA-0005EI-AA@rmk-PC.arm.linux.org.uk>
 References: <20140102150836.GA3826@n2100.arm.linux.org.uk>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:54137 "EHLO
-	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751675AbaABPM2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Jan 2014 10:12:28 -0500
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <20140102150836.GA3826@n2100.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: dmaengine@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>
+Cc: Vinod Koul <vinod.koul@intel.com>, Dan Williams <dan.j.williams@intel.com>
+List-Id: linux-omap@vger.kernel.org
 
-dma_stride and dma_common_ch_start are only ever initialised to one
-known value at initialisation, and are private to each of these files.
-There's no point these being variables at all.
+Read the current DMA position from the hardware directly rather than via
+arch/arm/plat-omap/dma.c.
 
 Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 ---
- arch/arm/mach-omap1/dma.c |   14 ++++----------
- arch/arm/mach-omap2/dma.c |   14 +++++---------
- 2 files changed, 9 insertions(+), 19 deletions(-)
+ drivers/dma/omap-dma.c |   66 ++++++++++++++++++++++++++++++++++++++++++++++-
+ 1 files changed, 64 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap1/dma.c b/arch/arm/mach-omap1/dma.c
-index d292055d3117..11f0b0ee67a3 100644
---- a/arch/arm/mach-omap1/dma.c
-+++ b/arch/arm/mach-omap1/dma.c
-@@ -36,8 +36,6 @@
+diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
+index 8e2dd4f658d5..7e6cdc39725c 100644
+--- a/drivers/dma/omap-dma.c
++++ b/drivers/dma/omap-dma.c
+@@ -430,6 +430,68 @@ static size_t omap_dma_desc_size_pos(struct omap_desc *d, dma_addr_t addr)
+ 	return size;
+ }
  
- static u32 errata;
- static u32 enable_1510_mode;
--static u8 dma_stride;
--static enum omap_reg_offsets dma_common_ch_start, dma_common_ch_end;
- 
- static u16 reg_map[] = {
- 	[GCR]		= 0x400,
-@@ -184,7 +182,7 @@ static inline void dma_write(u32 val, int reg, int lch)
- 	u8  stride;
- 	u32 offset;
- 
--	stride = (reg >= dma_common_ch_start) ? dma_stride : 0;
-+	stride = (reg >= CPC) ? OMAP1_DMA_STRIDE : 0;
- 	offset = reg_map[reg] + (stride * lch);
- 
- 	__raw_writew(val, dma_base + offset);
-@@ -200,7 +198,7 @@ static inline u32 dma_read(int reg, int lch)
- 	u8 stride;
- 	u32 offset, val;
- 
--	stride = (reg >= dma_common_ch_start) ? dma_stride : 0;
-+	stride = (reg >= CPC) ? OMAP1_DMA_STRIDE : 0;
- 	offset = reg_map[reg] + (stride * lch);
- 
- 	val = __raw_readw(dma_base + offset);
-@@ -216,9 +214,9 @@ static inline u32 dma_read(int reg, int lch)
- 
- static void omap1_clear_lch_regs(int lch)
++static dma_addr_t omap_dma_get_src_pos(struct omap_chan *c)
++{
++	struct omap_dmadev *od = to_omap_dma_dev(c->vc.chan.device);
++	dma_addr_t addr;
++
++	if (__dma_omap15xx(od->plat->dma_attr))
++		addr = c->plat->dma_read(CPC, c->dma_ch);
++	else
++		addr = c->plat->dma_read(CSAC, c->dma_ch);
++
++	if (od->plat->errata & DMA_ERRATA_3_3 && addr == 0)
++		addr = c->plat->dma_read(CSAC, c->dma_ch);
++
++	if (!__dma_omap15xx(od->plat->dma_attr)) {
++		/*
++		 * CDAC == 0 indicates that the DMA transfer on the channel has
++		 * not been started (no data has been transferred so far).
++		 * Return the programmed source start address in this case.
++		 */
++		if (c->plat->dma_read(CDAC, c->dma_ch))
++			addr = c->plat->dma_read(CSAC, c->dma_ch);
++		else
++			addr = c->plat->dma_read(CSSA, c->dma_ch);
++	}
++
++	if (dma_omap1())
++		addr |= c->plat->dma_read(CSSA, c->dma_ch) & 0xffff0000;
++
++	return addr;
++}
++
++static dma_addr_t omap_dma_get_dst_pos(struct omap_chan *c)
++{
++	struct omap_dmadev *od = to_omap_dma_dev(c->vc.chan.device);
++	dma_addr_t addr;
++
++	if (__dma_omap15xx(od->plat->dma_attr))
++		addr = c->plat->dma_read(CPC, c->dma_ch);
++	else
++		addr = c->plat->dma_read(CDAC, c->dma_ch);
++
++	/*
++	 * omap 3.2/3.3 erratum: sometimes 0 is returned if CSAC/CDAC is
++	 * read before the DMA controller finished disabling the channel.
++	 */
++	if (!__dma_omap15xx(od->plat->dma_attr) && addr == 0) {
++		addr = c->plat->dma_read(CDAC, c->dma_ch);
++		/*
++		 * CDAC == 0 indicates that the DMA transfer on the channel has
++		 * not been started (no data has been transferred so far).
++		 * Return the programmed destination start address in this case.
++		 */
++		if (addr == 0)
++			addr = c->plat->dma_read(CDSA, c->dma_ch);
++	}
++
++	if (dma_omap1())
++		addr |= c->plat->dma_read(CDSA, c->dma_ch) & 0xffff0000;
++
++	return addr;
++}
++
+ static enum dma_status omap_dma_tx_status(struct dma_chan *chan,
+ 	dma_cookie_t cookie, struct dma_tx_state *txstate)
  {
--	int i = dma_common_ch_start;
-+	int i;
+@@ -451,9 +513,9 @@ static enum dma_status omap_dma_tx_status(struct dma_chan *chan,
+ 		dma_addr_t pos;
  
--	for (; i <= dma_common_ch_end; i += 1)
-+	for (i = CPC; i <= COLOR; i += 1)
- 		dma_write(0, i, lch);
- }
+ 		if (d->dir == DMA_MEM_TO_DEV)
+-			pos = omap_get_dma_src_pos(c->dma_ch);
++			pos = omap_dma_get_src_pos(c);
+ 		else if (d->dir == DMA_DEV_TO_MEM)
+-			pos = omap_get_dma_dst_pos(c->dma_ch);
++			pos = omap_dma_get_dst_pos(c);
+ 		else
+ 			pos = 0;
  
-@@ -380,10 +378,6 @@ static int __init omap1_system_dma_init(void)
- 		goto exit_release_chan;
- 	}
- 
--	dma_stride		= OMAP1_DMA_STRIDE;
--	dma_common_ch_start	= CPC;
--	dma_common_ch_end	= COLOR;
--
- 	dma_pdev = platform_device_register_full(&omap_dma_dev_info);
- 	if (IS_ERR(dma_pdev)) {
- 		ret = PTR_ERR(dma_pdev);
-diff --git a/arch/arm/mach-omap2/dma.c b/arch/arm/mach-omap2/dma.c
-index 81c2d3383bc5..e4ac7ac9a228 100644
---- a/arch/arm/mach-omap2/dma.c
-+++ b/arch/arm/mach-omap2/dma.c
-@@ -38,11 +38,10 @@
- #define OMAP2_DMA_STRIDE	0x60
- 
- static u32 errata;
--static u8 dma_stride;
- 
- static struct omap_dma_dev_attr *d;
- 
--static enum omap_reg_offsets dma_common_ch_start, dma_common_ch_end;
-+static enum omap_reg_offsets dma_common_ch_end;
- 
- static u16 reg_map[] = {
- 	[REVISION]		= 0x00,
-@@ -96,7 +95,7 @@ static inline void dma_write(u32 val, int reg, int lch)
- 	u8  stride;
- 	u32 offset;
- 
--	stride = (reg >= dma_common_ch_start) ? dma_stride : 0;
-+	stride = (reg >= CSDP) ? OMAP2_DMA_STRIDE : 0;
- 	offset = reg_map[reg] + (stride * lch);
- 	__raw_writel(val, dma_base + offset);
- }
-@@ -106,7 +105,7 @@ static inline u32 dma_read(int reg, int lch)
- 	u8 stride;
- 	u32 offset, val;
- 
--	stride = (reg >= dma_common_ch_start) ? dma_stride : 0;
-+	stride = (reg >= CSDP) ? OMAP2_DMA_STRIDE : 0;
- 	offset = reg_map[reg] + (stride * lch);
- 	val = __raw_readl(dma_base + offset);
- 	return val;
-@@ -114,9 +113,9 @@ static inline u32 dma_read(int reg, int lch)
- 
- static void omap2_clear_dma(int lch)
- {
--	int i = dma_common_ch_start;
-+	int i;
- 
--	for (; i <= dma_common_ch_end; i += 1)
-+	for (i = CSDP; i <= dma_common_ch_end; i += 1)
- 		dma_write(0, i, lch);
- }
- 
-@@ -219,9 +218,6 @@ static int __init omap2_system_dma_init_dev(struct omap_hwmod *oh, void *unused)
- 	struct resource				*mem;
- 	char					*name = "omap_dma_system";
- 
--	dma_stride		= OMAP2_DMA_STRIDE;
--	dma_common_ch_start	= CSDP;
--
- 	p = kzalloc(sizeof(struct omap_system_dma_plat_info), GFP_KERNEL);
- 	if (!p) {
- 		pr_err("%s: Unable to allocate pdata for %s:%s\n",
 -- 
 1.7.4.4
-
