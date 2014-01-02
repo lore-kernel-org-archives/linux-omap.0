@@ -1,90 +1,337 @@
 From: Russell King <rmk+kernel@arm.linux.org.uk>
-Subject: [PATCH RFC 12/26] dmaengine: omap-dma: improve efficiency loading
- C.SA/C.EI/C.FI registers
-Date: Thu, 02 Jan 2014 15:10:50 +0000
-Message-ID: <E1Vyjv8-0005Ej-VN@rmk-PC.arm.linux.org.uk>
+Subject: [PATCH RFC 09/26] dmaengine: omap-dma: provide register definitions
+Date: Thu, 02 Jan 2014 15:10:20 +0000
+Message-ID: <E1Vyjue-0005EV-KN@rmk-PC.arm.linux.org.uk>
 References: <20140102150836.GA3826@n2100.arm.linux.org.uk>
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:54169 "EHLO
 	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751987AbaABPPM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Jan 2014 10:15:12 -0500
+	by vger.kernel.org with ESMTP id S1752148AbaABPPQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Jan 2014 10:15:16 -0500
 In-Reply-To: <20140102150836.GA3826@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: dmaengine@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 Cc: Vinod Koul <vinod.koul@intel.com>, Dan Williams <dan.j.williams@intel.com>
 
+Provide our own set of more complete register definitions; this allows
+us to get rid of the meaningless 1 << n constants scattered throughout
+this code.
+
 Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 ---
- drivers/dma/omap-dma.c |   32 ++++++++++++++++++++------------
- 1 files changed, 20 insertions(+), 12 deletions(-)
+ drivers/dma/omap-dma.c |  166 +++++++++++++++++++++++++++++++++---------------
+ 1 files changed, 114 insertions(+), 52 deletions(-)
 
 diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
-index 574f38e3fead..b4700e1f7c57 100644
+index 796f882da03c..13dca8e0ef32 100644
 --- a/drivers/dma/omap-dma.c
 +++ b/drivers/dma/omap-dma.c
-@@ -275,17 +275,21 @@ static void omap_dma_start_sg(struct omap_chan *c, struct omap_desc *d,
- 	unsigned idx)
- {
- 	struct omap_sg *sg = d->sg + idx;
-+	unsigned cxsa, cxei, cxfi;
+@@ -57,7 +57,7 @@ struct omap_desc {
+ 	dma_addr_t dev_addr;
  
- 	if (d->dir == DMA_DEV_TO_MEM) {
--		c->plat->dma_write(sg->addr, CDSA, c->dma_ch);
--		c->plat->dma_write(0, CDEI, c->dma_ch);
--		c->plat->dma_write(0, CDFI, c->dma_ch);
-+		cxsa = CDSA;
-+		cxei = CDEI;
-+		cxfi = CDFI;
+ 	int16_t fi;		/* for OMAP_DMA_SYNC_PACKET */
+-	uint8_t es;		/* OMAP_DMA_DATA_TYPE_xxx */
++	uint8_t es;		/* CSDP_DATA_TYPE_xxx */
+ 	uint32_t ccr;		/* CCR value */
+ 	uint16_t cicr;		/* CICR value */
+ 	uint32_t csdp;		/* CSDP value */
+@@ -66,10 +66,82 @@ struct omap_desc {
+ 	struct omap_sg sg[0];
+ };
+ 
++enum {
++	CCR_FS			= BIT(5),
++	CCR_READ_PRIORITY	= BIT(6),
++	CCR_ENABLE		= BIT(7),
++	CCR_AUTO_INIT		= BIT(8),	/* OMAP1 only */
++	CCR_REPEAT		= BIT(9),	/* OMAP1 only */
++	CCR_SUSPEND_SENSITIVE	= BIT(8),	/* OMAP2+ only */
++	CCR_RD_ACTIVE		= BIT(9),	/* OMAP2+ only */
++	CCR_WR_ACTIVE		= BIT(10),	/* OMAP2+ only */
++	CCR_SRC_AMODE_CONSTANT	= 0 << 12,
++	CCR_SRC_AMODE_POSTINC	= 1 << 12,
++	CCR_SRC_AMODE_SGLIDX	= 2 << 12,
++	CCR_SRC_AMODE_DBLIDX	= 3 << 12,
++	CCR_DST_AMODE_CONSTANT	= 0 << 14,
++	CCR_DST_AMODE_POSTINC	= 1 << 14,
++	CCR_DST_AMODE_SGLIDX	= 2 << 14,
++	CCR_DST_AMODE_DBLIDX	= 3 << 14,
++	CCR_CONSTANT_FILL	= BIT(16),
++	CCR_TRANSPARENT_COPY	= BIT(17),
++	CCR_BS			= BIT(18),
++	CCR_SUPERVISOR		= BIT(22),
++	CCR_PREFETCH		= BIT(23),
++	CCR_TRIGGER_SRC		= BIT(24),
++	CCR_BUFFERING_DISABLE	= BIT(25),
++	CCR_WRITE_PRIORITY	= BIT(26),
++	CCR_SYNC_ELEMENT	= 0,
++	CCR_SYNC_FRAME		= CCR_FS,
++	CCR_SYNC_BLOCK		= CCR_BS,
++	CCR_SYNC_PACKET		= CCR_BS | CCR_FS,
++
++	CSDP_DATA_TYPE_8	= 0,
++	CSDP_DATA_TYPE_16	= 1,
++	CSDP_DATA_TYPE_32	= 2,
++	CSDP_SRC_PORT_EMIFF	= 0 << 2, /* OMAP1 only */
++	CSDP_SRC_PORT_EMIFS	= 1 << 2, /* OMAP1 only */
++	CSDP_SRC_PORT_OCP_T1	= 2 << 2, /* OMAP1 only */
++	CSDP_SRC_PORT_TIPB	= 3 << 2, /* OMAP1 only */
++	CSDP_SRC_PORT_OCP_T2	= 4 << 2, /* OMAP1 only */
++	CSDP_SRC_PORT_MPUI	= 5 << 2, /* OMAP1 only */
++	CSDP_SRC_PACKED		= BIT(6),
++	CSDP_SRC_BURST_1	= 0 << 7,
++	CSDP_SRC_BURST_16	= 1 << 7,
++	CSDP_SRC_BURST_32	= 2 << 7,
++	CSDP_SRC_BURST_64	= 3 << 7,
++	CSDP_DST_PORT_EMIFF	= 0 << 9, /* OMAP1 only */
++	CSDP_DST_PORT_EMIFS	= 1 << 9, /* OMAP1 only */
++	CSDP_DST_PORT_OCP_T1	= 2 << 9, /* OMAP1 only */
++	CSDP_DST_PORT_TIPB	= 3 << 9, /* OMAP1 only */
++	CSDP_DST_PORT_OCP_T2	= 4 << 9, /* OMAP1 only */
++	CSDP_DST_PORT_MPUI	= 5 << 9, /* OMAP1 only */
++	CSDP_DST_PACKED		= BIT(13),
++	CSDP_DST_BURST_1	= 0 << 14,
++	CSDP_DST_BURST_16	= 1 << 14,
++	CSDP_DST_BURST_32	= 2 << 14,
++	CSDP_DST_BURST_64	= 3 << 14,
++
++	CICR_TOUT_IE		= BIT(0),	/* OMAP1 only */
++	CICR_DROP_IE		= BIT(1),
++	CICR_HALF_IE		= BIT(2),
++	CICR_FRAME_IE		= BIT(3),
++	CICR_LAST_IE		= BIT(4),
++	CICR_BLOCK_IE		= BIT(5),
++	CICR_PKT_IE		= BIT(7),	/* OMAP2+ only */
++	CICR_TRANS_ERR_IE	= BIT(8),	/* OMAP2+ only */
++	CICR_SUPERVISOR_ERR_IE	= BIT(10),	/* OMAP2+ only */
++	CICR_MISALIGNED_ERR_IE	= BIT(11),	/* OMAP2+ only */
++	CICR_DRAIN_IE		= BIT(12),	/* OMAP2+ only */
++	CICR_SUPER_BLOCK_IE	= BIT(14),	/* OMAP2+ only */
++
++	CLNK_CTRL_ENABLE_LNK	= BIT(15),
++};
++
+ static const unsigned es_bytes[] = {
+-	[OMAP_DMA_DATA_TYPE_S8] = 1,
+-	[OMAP_DMA_DATA_TYPE_S16] = 2,
+-	[OMAP_DMA_DATA_TYPE_S32] = 4,
++	[CSDP_DATA_TYPE_8] = 1,
++	[CSDP_DATA_TYPE_16] = 2,
++	[CSDP_DATA_TYPE_32] = 4,
+ };
+ 
+ static struct of_dma_filter_info omap_dma_info = {
+@@ -112,7 +184,7 @@ static void omap_dma_start(struct omap_chan *c, struct omap_desc *d)
+ 		if (dma_omap1())
+ 			val &= ~(1 << 14);
+ 
+-		val |= c->dma_ch | 1 << 15;
++		val |= c->dma_ch | CLNK_CTRL_ENABLE_LNK;
+ 
+ 		c->plat->dma_write(val, CLNK_CTRL, c->dma_ch);
+ 	} else if (od->plat->errata & DMA_ERRATA_PARALLEL_CHANNELS)
+@@ -129,8 +201,8 @@ static void omap_dma_start(struct omap_chan *c, struct omap_desc *d)
+ 
+ 	val = c->plat->dma_read(CCR, c->dma_ch);
+ 	if (od->plat->errata & DMA_ERRATA_IFRAME_BUFFERING)
+-		val |= OMAP_DMA_CCR_BUFFERING_DISABLE;
+-	val |= OMAP_DMA_CCR_EN;
++		val |= CCR_BUFFERING_DISABLE;
++	val |= CCR_ENABLE;
+ 	mb();
+ 	c->plat->dma_write(val, CCR, c->dma_ch);
+ }
+@@ -150,8 +222,7 @@ static void omap_dma_stop(struct omap_chan *c)
+ 		c->plat->dma_write(~0, CSR, c->dma_ch);
+ 
+ 	val = c->plat->dma_read(CCR, c->dma_ch);
+-	if (od->plat->errata & DMA_ERRATA_i541 &&
+-	    val & OMAP_DMA_CCR_SEL_SRC_DST_SYNC) {
++	if (od->plat->errata & DMA_ERRATA_i541 && val & CCR_TRIGGER_SRC) {
+ 		uint32_t sysconfig;
+ 		unsigned i;
+ 
+@@ -161,13 +232,13 @@ static void omap_dma_stop(struct omap_chan *c)
+ 		c->plat->dma_write(val, OCP_SYSCONFIG, c->dma_ch);
+ 
+ 		val = c->plat->dma_read(CCR, c->dma_ch);
+-		val &= ~OMAP_DMA_CCR_EN;
++		val &= ~CCR_ENABLE;
+ 		c->plat->dma_write(val, CCR, c->dma_ch);
+ 
+ 		/* Wait for sDMA FIFO to drain */
+ 		for (i = 0; ; i++) {
+ 			val = c->plat->dma_read(CCR, c->dma_ch);
+-			if (!(val & (OMAP_DMA_CCR_RD_ACTIVE | OMAP_DMA_CCR_WR_ACTIVE)))
++			if (!(val & (CCR_RD_ACTIVE | CCR_WR_ACTIVE)))
+ 				break;
+ 
+ 			if (i > 100)
+@@ -176,14 +247,14 @@ static void omap_dma_stop(struct omap_chan *c)
+ 			udelay(5);
+ 		}
+ 
+-		if (val & (OMAP_DMA_CCR_RD_ACTIVE | OMAP_DMA_CCR_WR_ACTIVE))
++		if (val & (CCR_RD_ACTIVE | CCR_WR_ACTIVE))
+ 			dev_err(c->vc.chan.device->dev,
+ 				"DMA drain did not complete on lch %d\n",
+ 			        c->dma_ch);
+ 
+ 		c->plat->dma_write(sysconfig, OCP_SYSCONFIG, c->dma_ch);
  	} else {
--		c->plat->dma_write(sg->addr, CSSA, c->dma_ch);
--		c->plat->dma_write(0, CSEI, c->dma_ch);
--		c->plat->dma_write(0, CSFI, c->dma_ch);
-+		cxsa = CSSA;
-+		cxei = CSEI;
-+		cxfi = CSFI;
+-		val &= ~OMAP_DMA_CCR_EN;
++		val &= ~CCR_ENABLE;
+ 		c->plat->dma_write(val, CCR, c->dma_ch);
  	}
  
-+	c->plat->dma_write(sg->addr, cxsa, c->dma_ch);
-+	c->plat->dma_write(0, cxei, c->dma_ch);
-+	c->plat->dma_write(0, cxfi, c->dma_ch);
- 	c->plat->dma_write(sg->en, CEN, c->dma_ch);
- 	c->plat->dma_write(sg->fn, CFN, c->dma_ch);
+@@ -196,7 +267,7 @@ static void omap_dma_stop(struct omap_chan *c)
+ 			val |= 1 << 14; /* set the STOP_LNK bit */
  
-@@ -296,6 +300,7 @@ static void omap_dma_start_desc(struct omap_chan *c)
- {
- 	struct virt_dma_desc *vd = vchan_next_desc(&c->vc);
- 	struct omap_desc *d;
-+	unsigned cxsa, cxei, cxfi;
+ 		if (dma_omap2plus())
+-			val &= ~(1 << 15); /* Clear the ENABLE_LNK bit */
++			val &= ~CLNK_CTRL_ENABLE_LNK;
  
- 	if (!vd) {
- 		c->desc = NULL;
-@@ -312,15 +317,18 @@ static void omap_dma_start_desc(struct omap_chan *c)
- 		c->plat->dma_write(d->ccr >> 16, CCR2, c->dma_ch);
+ 		c->plat->dma_write(val, CLNK_CTRL, c->dma_ch);
+ 	}
+@@ -511,13 +582,13 @@ static struct dma_async_tx_descriptor *omap_dma_prep_slave_sg(
+ 	/* Bus width translates to the element size (ES) */
+ 	switch (dev_width) {
+ 	case DMA_SLAVE_BUSWIDTH_1_BYTE:
+-		es = OMAP_DMA_DATA_TYPE_S8;
++		es = CSDP_DATA_TYPE_8;
+ 		break;
+ 	case DMA_SLAVE_BUSWIDTH_2_BYTES:
+-		es = OMAP_DMA_DATA_TYPE_S16;
++		es = CSDP_DATA_TYPE_16;
+ 		break;
+ 	case DMA_SLAVE_BUSWIDTH_4_BYTES:
+-		es = OMAP_DMA_DATA_TYPE_S32;
++		es = CSDP_DATA_TYPE_32;
+ 		break;
+ 	default: /* not reached */
+ 		return NULL;
+@@ -532,36 +603,30 @@ static struct dma_async_tx_descriptor *omap_dma_prep_slave_sg(
+ 	d->dev_addr = dev_addr;
+ 	d->es = es;
  
- 	if (d->dir == DMA_DEV_TO_MEM) {
--		c->plat->dma_write(d->dev_addr, CSSA, c->dma_ch);
--		c->plat->dma_write(0, CSEI, c->dma_ch);
--		c->plat->dma_write(d->fi, CSFI, c->dma_ch);
-+		cxsa = CSSA;
-+		cxei = CSEI;
-+		cxfi = CSFI;
- 	} else {
--		c->plat->dma_write(d->dev_addr, CDSA, c->dma_ch);
--		c->plat->dma_write(0, CDEI, c->dma_ch);
--		c->plat->dma_write(d->fi, CDFI, c->dma_ch);
-+		cxsa = CDSA;
-+		cxei = CDEI;
-+		cxfi = CDFI;
+-	d->ccr = 0;
++	d->ccr = CCR_SYNC_FRAME;
+ 	if (dir == DMA_DEV_TO_MEM)
+-		d->ccr |= OMAP_DMA_AMODE_POST_INC << 14 |
+-			  OMAP_DMA_AMODE_CONSTANT << 12;
++		d->ccr |= CCR_DST_AMODE_POSTINC | CCR_SRC_AMODE_CONSTANT;
+ 	else
+-		d->ccr |= OMAP_DMA_AMODE_CONSTANT << 14 |
+-			  OMAP_DMA_AMODE_POST_INC << 12;
++		d->ccr |= CCR_DST_AMODE_CONSTANT | CCR_SRC_AMODE_POSTINC;
+ 
+-	d->cicr = OMAP_DMA_DROP_IRQ | OMAP_DMA_BLOCK_IRQ;
++	d->cicr = CICR_DROP_IE | CICR_BLOCK_IE;
+ 	d->csdp = es;
+ 
+ 	if (dma_omap1()) {
+-		d->ccr |= 1 << 5; /* frame sync */
+-		d->cicr |= OMAP1_DMA_TOUT_IRQ;
++		d->cicr |= CICR_TOUT_IE;
+ 
+ 		if (dir == DMA_DEV_TO_MEM)
+-			d->csdp |= OMAP_DMA_PORT_EMIFF << 9 |
+-				   OMAP_DMA_PORT_TIPB << 2;
++			d->csdp |= CSDP_DST_PORT_EMIFF | CSDP_SRC_PORT_TIPB;
+ 		else
+-			d->csdp |= OMAP_DMA_PORT_TIPB << 9 |
+-				   OMAP_DMA_PORT_EMIFF << 2;
++			d->csdp |= CSDP_DST_PORT_TIPB | CSDP_SRC_PORT_EMIFF;
+ 	} else if (dma_omap2plus()) {
+ 		d->ccr |= (c->dma_sig & ~0x1f) << 14;
+ 		d->ccr |= c->dma_sig & 0x1f;
+-		d->ccr |= 1 << 5; /* frame sync */
+ 
+ 		if (dir == DMA_DEV_TO_MEM)
+-			d->ccr |= 1 << 24; /* source synch */
++			d->ccr |= CCR_TRIGGER_SRC;
+ 
+-		d->cicr |= OMAP2_DMA_MISALIGNED_ERR_IRQ | OMAP2_DMA_TRANS_ERR_IRQ;
++		d->cicr |= CICR_MISALIGNED_ERR_IE | CICR_TRANS_ERR_IE;
  	}
  
-+	c->plat->dma_write(d->dev_addr, cxsa, c->dma_ch);
-+	c->plat->dma_write(0, cxei, c->dma_ch);
-+	c->plat->dma_write(d->fi, cxfi, c->dma_ch);
- 	c->plat->dma_write(d->csdp, CSDP, c->dma_ch);
+ 	/*
+@@ -616,13 +681,13 @@ static struct dma_async_tx_descriptor *omap_dma_prep_dma_cyclic(
+ 	/* Bus width translates to the element size (ES) */
+ 	switch (dev_width) {
+ 	case DMA_SLAVE_BUSWIDTH_1_BYTE:
+-		es = OMAP_DMA_DATA_TYPE_S8;
++		es = CSDP_DATA_TYPE_8;
+ 		break;
+ 	case DMA_SLAVE_BUSWIDTH_2_BYTES:
+-		es = OMAP_DMA_DATA_TYPE_S16;
++		es = CSDP_DATA_TYPE_16;
+ 		break;
+ 	case DMA_SLAVE_BUSWIDTH_4_BYTES:
+-		es = OMAP_DMA_DATA_TYPE_S32;
++		es = CSDP_DATA_TYPE_32;
+ 		break;
+ 	default: /* not reached */
+ 		return NULL;
+@@ -644,43 +709,40 @@ static struct dma_async_tx_descriptor *omap_dma_prep_dma_cyclic(
  
- 	omap_dma_start_sg(c, d, 0);
+ 	d->ccr = 0;
+ 	if (__dma_omap15xx(od->plat->dma_attr))
+-		d->ccr = 3 << 8;
++		d->ccr = CCR_AUTO_INIT | CCR_REPEAT;
+ 	if (dir == DMA_DEV_TO_MEM)
+-		d->ccr |= OMAP_DMA_AMODE_POST_INC << 14 |
+-			  OMAP_DMA_AMODE_CONSTANT << 12;
++		d->ccr |= CCR_DST_AMODE_POSTINC | CCR_SRC_AMODE_CONSTANT;
+ 	else
+-		d->ccr |= OMAP_DMA_AMODE_CONSTANT << 14 |
+-			  OMAP_DMA_AMODE_POST_INC << 12;
++		d->ccr |= CCR_DST_AMODE_CONSTANT | CCR_SRC_AMODE_POSTINC;
+ 
+-	d->cicr = OMAP_DMA_DROP_IRQ;
++	d->cicr = CICR_DROP_IE;
+ 	if (flags & DMA_PREP_INTERRUPT)
+-		d->cicr |= OMAP_DMA_FRAME_IRQ;
++		d->cicr |= CICR_FRAME_IE;
+ 
+ 	d->csdp = es;
+ 
+ 	if (dma_omap1()) {
+-		d->cicr |= OMAP1_DMA_TOUT_IRQ;
++		d->cicr |= CICR_TOUT_IE;
+ 
+ 		if (dir == DMA_DEV_TO_MEM)
+-			d->csdp |= OMAP_DMA_PORT_EMIFF << 9 |
+-				   OMAP_DMA_PORT_MPUI << 2;
++			d->csdp |= CSDP_DST_PORT_EMIFF | CSDP_SRC_PORT_MPUI;
+ 		else
+-			d->csdp |= OMAP_DMA_PORT_MPUI << 9 |
+-				   OMAP_DMA_PORT_EMIFF << 2;
++			d->csdp |= CSDP_DST_PORT_MPUI | CSDP_SRC_PORT_EMIFF;
+ 	} else if (dma_omap2plus()) {
+ 		d->ccr |= (c->dma_sig & ~0x1f) << 14;
+ 		d->ccr |= c->dma_sig & 0x1f;
+ 
+ 		if (burst)
+-			d->ccr |= 1 << 18 | 1 << 5; /* packet */
++			d->ccr |= CCR_SYNC_PACKET;
++		else
++			d->ccr |= CCR_SYNC_ELEMENT;
+ 
+ 		if (dir == DMA_DEV_TO_MEM)
+-			d->ccr |= 1 << 24; /* source synch */
++			d->ccr |= CCR_TRIGGER_SRC;
+ 
+-		d->cicr |= OMAP2_DMA_MISALIGNED_ERR_IRQ | OMAP2_DMA_TRANS_ERR_IRQ;
++		d->cicr |= CICR_MISALIGNED_ERR_IE | CICR_TRANS_ERR_IE;
+ 
+-		/* src and dst burst mode 16 */
+-		d->csdp |= 3 << 14 | 3 << 7;
++		d->csdp |= CSDP_DST_BURST_64 | CSDP_SRC_BURST_64;
+ 	}
+ 
+ 	c->cyclic = true;
 -- 
 1.7.4.4
 
