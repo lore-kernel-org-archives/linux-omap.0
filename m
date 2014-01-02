@@ -1,14 +1,14 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [PATCH v3 1/4] drm/omap: fix: Defer probe if an omapdss device requests for it at connect
-Date: Thu, 2 Jan 2014 14:49:51 +0530
-Message-ID: <1388654394-5708-2-git-send-email-archit@ti.com>
+Subject: [PATCH v3 2/4] drm/omap: fix: disconnect devices when omapdrm module is removed
+Date: Thu, 2 Jan 2014 14:49:52 +0530
+Message-ID: <1388654394-5708-3-git-send-email-archit@ti.com>
 References: <1388654394-5708-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:32888 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:32889 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751030AbaABJUH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1751065AbaABJUH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Thu, 2 Jan 2014 04:20:07 -0500
 In-Reply-To: <1388654394-5708-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
@@ -16,187 +16,64 @@ List-Id: linux-omap@vger.kernel.org
 To: dri-devel@lists.freedesktop.org, robdclark@gmail.com
 Cc: linux-omap@vger.kernel.org, tomi.valkeinen@ti.com, Archit Taneja <archit@ti.com>
 
-With the omapdss device model changes. omapdrm is required to call dssdriver's
-connect() op to register a panel. This is currently done in omap_modeset_init()
+At omapdrm probe, we install manager ops and connect omapdss devices. This
+needs to be undone when omapdrm module is removed so that omapdss is in a
+clean state. This ensures that we can re-insert omapdrm module, or some other
+module which uses omapdss(like omapfb/omap_vout).
 
-A call to connect() can fail if the omapdss panels or the encoders(HDMI/DPI)
-they connect to have some resource(like regulators, I2C adapter) missing. If
-this happens, the correct approach is to defer omapdrm's probe.
+Currently, omapdrm's remove neither uninstalls manager ops, or disconnects
+omapdss devices. We make sure that this is done in pdev_remove.
 
-omapdrm currently ignores those panels which return a non zero value when
-connected. This could result in omapdrm ignoring all panels on an omap board.
-
-The right approach would be for omapdrm to request for probe deferral when a
-panel's connect op returns -EPROBE_DEFER.
-
-In order to do this, we need to call connect() much earlier during omapdrm's
-probe to prevent too many things are already done by then. We now connect the
-panels during pdev_probe(), before anything else is initialized, so that we
-don't need to undo too many things if a defer was requested.
-
-Now when we enter omap_modeset_init(), we have a set of panels that have been
-connected. We now proceed with registering only those panels that are already
-connected.
-
-A special case has to be considered when no panels are available to connect when
-omapdrm probes. In this case too, we defer probe and expect that a panel will be
-available to connect the next time.
-
-Checking whether the panel has a driver or whether it has get_timing/read_edid
-ops in omap_modeset_init() are redundant with the new display model. These can
-be removed since a dssdev device will always have a driver associated with it,
-and all dssdev drivers have a get_timings op.
-
-This will mainly fix cases when omapdrm is built-in the kernel, since that's
-generally where resources like regulators or I2C are unavailable because of
-probe order dependencies.
-
-In particular this fixes boot with omapdrm built-in on an omap4 panda ES board.
-The regulators used by HDMI(provided by I2C based TWL regulators) aren't
-initialized because I2C isn't initialized, I2C isn't initialized as it's pins
-are not configured because pinctrl is yet to probe.
+omapdrm establishes connections for omap_dss_device devices when probed. It
+should also be responsible to disconnect the devices. Keeping the devices
+connected can prevent the panel driver modules from unloading, it also causes
+issues when we try to remove or re-insert omapdrm module.
 
 Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- drivers/gpu/drm/omapdrm/omap_crtc.c |  5 +++
- drivers/gpu/drm/omapdrm/omap_drv.c  | 70 +++++++++++++++++++++++++------------
- drivers/gpu/drm/omapdrm/omap_drv.h  |  1 +
- 3 files changed, 54 insertions(+), 22 deletions(-)
+ drivers/gpu/drm/omapdrm/omap_drv.c | 15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/gpu/drm/omapdrm/omap_crtc.c b/drivers/gpu/drm/omapdrm/omap_crtc.c
-index 0fd2eb1..9c01311 100644
---- a/drivers/gpu/drm/omapdrm/omap_crtc.c
-+++ b/drivers/gpu/drm/omapdrm/omap_crtc.c
-@@ -623,6 +623,11 @@ void omap_crtc_pre_init(void)
- 	dss_install_mgr_ops(&mgr_ops);
- }
- 
-+void omap_crtc_pre_uninit(void)
-+{
-+	dss_uninstall_mgr_ops();
-+}
-+
- /* initialize crtc */
- struct drm_crtc *omap_crtc_init(struct drm_device *dev,
- 		struct drm_plane *plane, enum omap_channel channel, int id)
 diff --git a/drivers/gpu/drm/omapdrm/omap_drv.c b/drivers/gpu/drm/omapdrm/omap_drv.c
-index e7fa3cd..651f902 100644
+index 651f902..fca5667 100644
 --- a/drivers/gpu/drm/omapdrm/omap_drv.c
 +++ b/drivers/gpu/drm/omapdrm/omap_drv.c
-@@ -87,6 +87,43 @@ static bool channel_used(struct drm_device *dev, enum omap_channel channel)
+@@ -86,6 +86,13 @@ static bool channel_used(struct drm_device *dev, enum omap_channel channel)
+ 
  	return false;
  }
- 
-+static int omap_connect_dssdevs(void)
++static void omap_disconnect_dssdevs(void)
 +{
-+	int r;
 +	struct omap_dss_device *dssdev = NULL;
-+	bool no_displays = true;
-+
-+	for_each_dss_dev(dssdev) {
-+		r = dssdev->driver->connect(dssdev);
-+		if (r == -EPROBE_DEFER) {
-+			omap_dss_put_device(dssdev);
-+			goto cleanup;
-+		} else if (r) {
-+			dev_warn(dssdev->dev, "could not connect display: %s\n",
-+				dssdev->name);
-+		} else {
-+			no_displays = false;
-+		}
-+	}
-+
-+	if (no_displays)
-+		return -EPROBE_DEFER;
-+
-+	return 0;
-+
-+cleanup:
-+	/*
-+	 * if we are deferring probe, we disconnect the devices we previously
-+	 * connected
-+	 */
-+	dssdev = NULL;
 +
 +	for_each_dss_dev(dssdev)
 +		dssdev->driver->disconnect(dssdev);
-+
-+	return r;
 +}
-+
- static int omap_modeset_init(struct drm_device *dev)
+ 
+ static int omap_connect_dssdevs(void)
  {
- 	struct omap_drm_private *priv = dev->dev_private;
-@@ -95,9 +132,6 @@ static int omap_modeset_init(struct drm_device *dev)
- 	int num_mgrs = dss_feat_get_num_mgrs();
- 	int num_crtcs;
- 	int i, id = 0;
--	int r;
+@@ -116,10 +123,7 @@ cleanup:
+ 	 * if we are deferring probe, we disconnect the devices we previously
+ 	 * connected
+ 	 */
+-	dssdev = NULL;
 -
--	omap_crtc_pre_init();
+-	for_each_dss_dev(dssdev)
+-		dssdev->driver->disconnect(dssdev);
++	omap_disconnect_dssdevs();
  
- 	drm_mode_config_init(dev);
- 
-@@ -119,26 +153,8 @@ static int omap_modeset_init(struct drm_device *dev)
- 		enum omap_channel channel;
- 		struct omap_overlay_manager *mgr;
- 
--		if (!dssdev->driver) {
--			dev_warn(dev->dev, "%s has no driver.. skipping it\n",
--					dssdev->name);
--			continue;
--		}
--
--		if (!(dssdev->driver->get_timings ||
--					dssdev->driver->read_edid)) {
--			dev_warn(dev->dev, "%s driver does not support "
--				"get_timings or read_edid.. skipping it!\n",
--				dssdev->name);
--			continue;
--		}
--
--		r = dssdev->driver->connect(dssdev);
--		if (r) {
--			dev_err(dev->dev, "could not connect display: %s\n",
--					dssdev->name);
-+		if (!omapdss_device_is_connected(dssdev))
- 			continue;
--		}
- 
- 		encoder = omap_encoder_init(dev, dssdev);
- 
-@@ -655,9 +671,19 @@ static void pdev_shutdown(struct platform_device *device)
- 
- static int pdev_probe(struct platform_device *device)
- {
-+	int r;
-+
- 	if (omapdss_is_initialized() == false)
- 		return -EPROBE_DEFER;
- 
-+	omap_crtc_pre_init();
-+
-+	r = omap_connect_dssdevs();
-+	if (r) {
-+		omap_crtc_pre_uninit();
-+		return r;
-+	}
-+
- 	DBG("%s", device->name);
- 	return drm_platform_init(&omap_drm_driver, device);
+ 	return r;
  }
-diff --git a/drivers/gpu/drm/omapdrm/omap_drv.h b/drivers/gpu/drm/omapdrm/omap_drv.h
-index 0784769..f6c2236 100644
---- a/drivers/gpu/drm/omapdrm/omap_drv.h
-+++ b/drivers/gpu/drm/omapdrm/omap_drv.h
-@@ -158,6 +158,7 @@ enum omap_channel omap_crtc_channel(struct drm_crtc *crtc);
- int omap_crtc_apply(struct drm_crtc *crtc,
- 		struct omap_drm_apply *apply);
- void omap_crtc_pre_init(void);
-+void omap_crtc_pre_uninit(void);
- struct drm_crtc *omap_crtc_init(struct drm_device *dev,
- 		struct drm_plane *plane, enum omap_channel channel, int id);
+@@ -693,6 +697,9 @@ static int pdev_remove(struct platform_device *device)
+ 	DBG("");
+ 	drm_platform_exit(&omap_drm_driver, device);
  
++	omap_disconnect_dssdevs();
++	omap_crtc_pre_uninit();
++
+ 	platform_driver_unregister(&omap_dmm_driver);
+ 	return 0;
+ }
 -- 
 1.8.3.2
 
