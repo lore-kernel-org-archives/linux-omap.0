@@ -1,53 +1,90 @@
 From: Russell King <rmk+kernel@arm.linux.org.uk>
-Subject: [PATCH RFC 15/26] dmaengine: omap-dma: use cached CCR value when
- enabling DMA
-Date: Thu, 02 Jan 2014 15:11:21 +0000
-Message-ID: <E1Vyjvd-0005Ew-9c@rmk-PC.arm.linux.org.uk>
+Subject: [PATCH RFC 12/26] dmaengine: omap-dma: improve efficiency loading
+ C.SA/C.EI/C.FI registers
+Date: Thu, 02 Jan 2014 15:10:50 +0000
+Message-ID: <E1Vyjv8-0005Ej-VN@rmk-PC.arm.linux.org.uk>
 References: <20140102150836.GA3826@n2100.arm.linux.org.uk>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:54168 "EHLO
+Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:54169 "EHLO
 	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751773AbaABPPW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Jan 2014 10:15:22 -0500
+	by vger.kernel.org with ESMTP id S1751987AbaABPPM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Jan 2014 10:15:12 -0500
 In-Reply-To: <20140102150836.GA3826@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: dmaengine@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 Cc: Vinod Koul <vinod.koul@intel.com>, Dan Williams <dan.j.williams@intel.com>
 
-We don't need to read-modify-write the CCR register; we already know
-what value it should contain at this point.  Use the cached CCR value
-when setting the enable bit.
-
 Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 ---
- drivers/dma/omap-dma.c |    6 ++----
- 1 files changed, 2 insertions(+), 4 deletions(-)
+ drivers/dma/omap-dma.c |   32 ++++++++++++++++++++------------
+ 1 files changed, 20 insertions(+), 12 deletions(-)
 
 diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
-index e212e0df9b42..98e77adeaeb3 100644
+index 574f38e3fead..b4700e1f7c57 100644
 --- a/drivers/dma/omap-dma.c
 +++ b/drivers/dma/omap-dma.c
-@@ -180,7 +180,6 @@ static void omap_dma_clear_csr(struct omap_chan *c)
- static void omap_dma_start(struct omap_chan *c, struct omap_desc *d)
+@@ -275,17 +275,21 @@ static void omap_dma_start_sg(struct omap_chan *c, struct omap_desc *d,
+ 	unsigned idx)
  {
- 	struct omap_dmadev *od = to_omap_dma_dev(c->vc.chan.device);
--	uint32_t val;
+ 	struct omap_sg *sg = d->sg + idx;
++	unsigned cxsa, cxei, cxfi;
  
- 	if (__dma_omap15xx(od->plat->dma_attr))
- 		c->plat->dma_write(0, CPC, c->dma_ch);
-@@ -192,9 +191,8 @@ static void omap_dma_start(struct omap_chan *c, struct omap_desc *d)
- 	/* Enable interrupts */
- 	c->plat->dma_write(d->cicr, CICR, c->dma_ch);
+ 	if (d->dir == DMA_DEV_TO_MEM) {
+-		c->plat->dma_write(sg->addr, CDSA, c->dma_ch);
+-		c->plat->dma_write(0, CDEI, c->dma_ch);
+-		c->plat->dma_write(0, CDFI, c->dma_ch);
++		cxsa = CDSA;
++		cxei = CDEI;
++		cxfi = CDFI;
+ 	} else {
+-		c->plat->dma_write(sg->addr, CSSA, c->dma_ch);
+-		c->plat->dma_write(0, CSEI, c->dma_ch);
+-		c->plat->dma_write(0, CSFI, c->dma_ch);
++		cxsa = CSSA;
++		cxei = CSEI;
++		cxfi = CSFI;
+ 	}
  
--	val = c->plat->dma_read(CCR, c->dma_ch);
--	val |= CCR_ENABLE;
--	c->plat->dma_write(val, CCR, c->dma_ch);
-+	/* Enable channel */
-+	c->plat->dma_write(d->ccr | CCR_ENABLE, CCR, c->dma_ch);
- }
++	c->plat->dma_write(sg->addr, cxsa, c->dma_ch);
++	c->plat->dma_write(0, cxei, c->dma_ch);
++	c->plat->dma_write(0, cxfi, c->dma_ch);
+ 	c->plat->dma_write(sg->en, CEN, c->dma_ch);
+ 	c->plat->dma_write(sg->fn, CFN, c->dma_ch);
  
- static void omap_dma_stop(struct omap_chan *c)
+@@ -296,6 +300,7 @@ static void omap_dma_start_desc(struct omap_chan *c)
+ {
+ 	struct virt_dma_desc *vd = vchan_next_desc(&c->vc);
+ 	struct omap_desc *d;
++	unsigned cxsa, cxei, cxfi;
+ 
+ 	if (!vd) {
+ 		c->desc = NULL;
+@@ -312,15 +317,18 @@ static void omap_dma_start_desc(struct omap_chan *c)
+ 		c->plat->dma_write(d->ccr >> 16, CCR2, c->dma_ch);
+ 
+ 	if (d->dir == DMA_DEV_TO_MEM) {
+-		c->plat->dma_write(d->dev_addr, CSSA, c->dma_ch);
+-		c->plat->dma_write(0, CSEI, c->dma_ch);
+-		c->plat->dma_write(d->fi, CSFI, c->dma_ch);
++		cxsa = CSSA;
++		cxei = CSEI;
++		cxfi = CSFI;
+ 	} else {
+-		c->plat->dma_write(d->dev_addr, CDSA, c->dma_ch);
+-		c->plat->dma_write(0, CDEI, c->dma_ch);
+-		c->plat->dma_write(d->fi, CDFI, c->dma_ch);
++		cxsa = CDSA;
++		cxei = CDEI;
++		cxfi = CDFI;
+ 	}
+ 
++	c->plat->dma_write(d->dev_addr, cxsa, c->dma_ch);
++	c->plat->dma_write(0, cxei, c->dma_ch);
++	c->plat->dma_write(d->fi, cxfi, c->dma_ch);
+ 	c->plat->dma_write(d->csdp, CSDP, c->dma_ch);
+ 
+ 	omap_dma_start_sg(c, d, 0);
 -- 
 1.7.4.4
 
