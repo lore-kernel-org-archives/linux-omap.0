@@ -1,62 +1,68 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv12 07/49] clk: divider: add support for low level ops
-Date: Fri, 3 Jan 2014 11:17:03 +0200
-Message-ID: <52C6800F.3090303@ti.com>
-References: <1387557274-22583-1-git-send-email-t-kristo@ti.com> <1387557274-22583-7-git-send-email-t-kristo@ti.com> <20131222175235.GC8064@book.gsilab.sittig.org>
+From: "Tc, Jenny" <jenny.tc@intel.com>
+Subject: RE: [PATCH v2 1/3] power_supply: Add power_supply notifier
+Date: Fri, 3 Jan 2014 11:09:49 +0000
+Message-ID: <20ADAB092842284E95860F279283C56422D1AD1E@BGSMSX104.gar.corp.intel.com>
+References: <1378630239-10006-1-git-send-email-pali.rohar@gmail.com>
+ <1384856285-19593-1-git-send-email-pali.rohar@gmail.com>
+ <1384856285-19593-2-git-send-email-pali.rohar@gmail.com>
+ <20131201222330.GB6271@lizard>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:55181 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751096AbaACJRc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 3 Jan 2014 04:17:32 -0500
-In-Reply-To: <20131222175235.GC8064@book.gsilab.sittig.org>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20131201222330.GB6271@lizard>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Anton Vorontsov <anton@enomsg.org>, =?utf-8?B?UGFsaSBSb2jDoXI=?= <pali.rohar@gmail.com>
+Cc: David Woodhouse <dwmw2@infradead.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "freemangordon@abv.bg" <freemangordon@abv.bg>, "aaro.koskinen@iki.fi" <aaro.koskinen@iki.fi>, "pavel@ucw.cz" <pavel@ucw.cz>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, nm@ti.com, rnayak@ti.com, bcousson@baylibre.com, mturquette@linaro.org, linux-arm-kernel@lists.infradead.org
 
-On 12/22/2013 07:52 PM, Gerhard Sittig wrote:
-> [ dropped devicetree, we're clock specific here ]
->
-> On Fri, Dec 20, 2013 at 18:34 +0200, Tero Kristo wrote:
->>
->> Divider clock can now be registered to use low level register access ops.
->> Preferred initialization method is via clock description.
->>
->> Signed-off-by: Tero Kristo <t-kristo@ti.com>
->> ---
->>   drivers/clk/clk-divider.c    |   22 +++++++++++++++++++---
->>   include/linux/clk-provider.h |    4 ++++
->>   2 files changed, 23 insertions(+), 3 deletions(-)
->>
->> diff --git a/drivers/clk/clk-divider.c b/drivers/clk/clk-divider.c
->> index 8cfed5c..887e2d8 100644
->> --- a/drivers/clk/clk-divider.c
->> +++ b/drivers/clk/clk-divider.c
->> @@ -108,7 +108,12 @@ static unsigned long clk_divider_recalc_rate(struct clk_hw *hw,
->>   	struct clk_divider *divider = to_clk_divider(hw);
->>   	unsigned int div, val;
->>
->> -	val = clk_readl(divider->reg) >> divider->shift;
->> +	if (divider->ll_ops)
->> +		val = divider->ll_ops->clk_readl(divider->reg);
->> +	else
->> +		val = clk_readl(divider->reg);
->
-> Should this not better always use an ll_ops structure, which
-> either is individual to the clock item, or is "global" for a
-> platform, yet can get re-registered at runtime (see the comment
-> on 06/49)?  And why are you referencing clk_readl() instead of
-> clk_readl_default() which you specifically have introduced in the
-> previous patch?  Adding a copy of the routine and using both the
-> copy and the original doesn't look right.
-
-In some cases, the clock data is defined statically during compile time 
-and here, ll_ops can be (and for OMAP cases at least is) NULL. I had 
-kind of a global ll_ops definition in some of the earlier versions of 
-this series, but it was frowned upon by some of the maintainers thus I 
-dropped it.
-
--Tero
-
+QW50b24sDQoNCkkgZG9uJ3Qgc2VlIHRoaXMgcGF0Y2ggaW4gTGludXggdHJlZS4gQW55IHVwZGF0
+ZSBvbiB0aGlzIHdvdWxkIGJlIGhlbHBmdWwNCg0KVGhhbmtzDQpKZW5ueQ0KDQo+IC0tLS0tT3Jp
+Z2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IEFudG9uIFZvcm9udHNvdiBbbWFpbHRvOmFudG9u
+QHNjYXJ5YnVncy5vcmddIE9uIEJlaGFsZiBPZiBBbnRvbg0KPiBWb3JvbnRzb3YNCj4gU2VudDog
+TW9uZGF5LCBEZWNlbWJlciAwMiwgMjAxMyAzOjU0IEFNDQo+IFRvOiBQYWxpIFJvaMOhcg0KPiBD
+YzogRGF2aWQgV29vZGhvdXNlOyBUb255IExpbmRncmVuOyBSdXNzZWxsIEtpbmc7IGxpbnV4LWtl
+cm5lbEB2Z2VyLmtlcm5lbC5vcmc7DQo+IGxpbnV4LW9tYXBAdmdlci5rZXJuZWwub3JnOyBmcmVl
+bWFuZ29yZG9uQGFidi5iZzsgYWFyby5rb3NraW5lbkBpa2kuZmk7DQo+IHBhdmVsQHVjdy5jejsg
+VGMsIEplbm55DQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0ggdjIgMS8zXSBwb3dlcl9zdXBwbHk6IEFk
+ZCBwb3dlcl9zdXBwbHkgbm90aWZpZXINCj4gDQo+IE9uIFR1ZSwgTm92IDE5LCAyMDEzIGF0IDEx
+OjE4OjAzQU0gKzAxMDAsIFBhbGkgUm9ow6FyIHdyb3RlOg0KPiA+IFRoaXMgcGF0Y2ggYWRkcyBh
+IG5vdGlmaWVyIGNoYWluIHRvIHRoZSBwb3dlcl9zdXBwbHkuDQo+ID4gVGhpcyBub3RpZmllciBo
+ZWxwcyBkcml2ZXJzIGluIG90aGVyIHN1YnN5c3RlbSB0byBsaXN0ZW4gdG8gY2hhbmdlcyBpbg0K
+PiA+IHBvd2VyIHN1cHBseSBzdWJzeXN0ZW0uIFRoaXMgd291bGQgaGVscCB0byB0YWtlIHNvbWUg
+YWN0aW9ucyBpbiB0aG9zZQ0KPiA+IGRyaXZlcnMgb24gY2hhbmdpbmcgdGhlIHBvd2VyIHN1cHBs
+eSBwcm9wZXJ0aWVzLg0KPiA+IE9uZSBzdWNoIHNjZW5hcmlvIGlzIHRvIGluY3JlYXNlL2RlY3Jl
+YXNlIHN5c3RlbSBwZXJmb3JtYW5jZSBiYXNlZCBvbg0KPiA+IHRoZSBiYXR0ZXJ5IGNhcGFjaXR5
+L3ZvbHRhZ2UuIEFub3RoZXIgc2NlbmFyaW8gaXMgdG8gYWRqdXN0IHRoZSBoL3cNCj4gPiBwZWFr
+IGN1cnJlbnQgZGV0ZWN0aW9uIHZvbHRhZ2UvY3VycmVudCB0aHJlc2hvbGRzIGJhc2VkIG9uIGJh
+dHRlcnkNCj4gPiB2b2x0YWdlL2NhcGFjaXR5LiBUaGUgbm90aWZpZXIgaGVscHMgZHJpdmVycyB0
+byBsaXN0ZW4gdG8gY2hhbmdlcyBpbg0KPiA+IHBvd2VyX3N1cHB5IHN1c2J5c3RlbSB3aXRob3V0
+IHBvbGxpbmcgdGhlIHBvd2VyX3N1cHBseSBwcm9wZXJ0aWVzDQo+ID4NCj4gPiBTaWduZWQtb2Zm
+LWJ5OiBKZW5ueSBUQyA8amVubnkudGNAaW50ZWwuY29tPg0KPiA+IFNpZ25lZC1vZmYtYnk6IFBh
+bGkgUm9ow6FyIDxwYWxpLnJvaGFyQGdtYWlsLmNvbT4NCj4gLi4uDQo+ID4gK2VudW0gcG93ZXJf
+c3VwcGx5X25vdGlmaWVyX2V2ZW50cyB7DQo+ID4gKwlQU1lfRVZFTlRfTk9ORSwNCj4gDQo+IFRo
+aXMgb25lIGlzIG5vdCBuZWVkZWQuDQo+IA0KPiA+ICsJUFNZX0VWRU5UX1BST1BfQ0hBTkdFRCwN
+Cj4gPiArCVBTWV9FVkVOVF9CQVRURVJZLA0KPiA+ICsJUFNZX0VWRU5UX0NBQkxFLA0KPiA+ICt9
+Ow0KPiANCj4gVGhlIG9ubHkgZXZlbnQgdGhhdCBpcyBjdXJyZW50bHkgdXNlZCBpbiB5b3VyIHBh
+dGNoIHNlcmllcyBpcw0KPiBFVkVOVF9QUk9QX0NIQU5HRUQuLi4gU28sIEkgYXBwbGllZCB0aGUg
+cGF0Y2ggd2l0aCB0aGUgZm9sbG93aW5nIGNoYW5nZXM6DQo+IA0KPiBkaWZmIC0tZ2l0IGEvaW5j
+bHVkZS9saW51eC9wb3dlcl9zdXBwbHkuaCBiL2luY2x1ZGUvbGludXgvcG93ZXJfc3VwcGx5Lmgg
+aW5kZXgNCj4gYzZmNTJjMC4uMGMyYTI2MCAxMDA2NDQNCj4gLS0tIGEvaW5jbHVkZS9saW51eC9w
+b3dlcl9zdXBwbHkuaA0KPiArKysgYi9pbmNsdWRlL2xpbnV4L3Bvd2VyX3N1cHBseS5oDQo+IEBA
+IC0xNSw2ICsxNSw3IEBADQo+ICAjaW5jbHVkZSA8bGludXgvaW5pdC5oPg0KPiAgI2luY2x1ZGUg
+PGxpbnV4L3NsYWIuaD4NCj4gICNpbmNsdWRlIDxsaW51eC9kZXZpY2UuaD4NCj4gKyNpbmNsdWRl
+IDxsaW51eC9ub3RpZmllci5oPg0KPiAgI2luY2x1ZGUgPGxpbnV4L2Vyci5oPg0KPiAgI2luY2x1
+ZGUgPGxpbnV4L3Bvd2VyX3N1cHBseS5oPg0KPiAgI2luY2x1ZGUgPGxpbnV4L3RoZXJtYWwuaD4N
+Cj4gQEAgLTE1OSwxMCArMTU5LDcgQEAgZW51bSBwb3dlcl9zdXBwbHlfdHlwZSB7ICB9Ow0KPiAN
+Cj4gIGVudW0gcG93ZXJfc3VwcGx5X25vdGlmaWVyX2V2ZW50cyB7DQo+IC0JUFNZX0VWRU5UX05P
+TkUsDQo+ICAJUFNZX0VWRU5UX1BST1BfQ0hBTkdFRCwNCj4gLQlQU1lfRVZFTlRfQkFUVEVSWSwN
+Cj4gLQlQU1lfRVZFTlRfQ0FCTEUsDQo+ICB9Ow0KPiANCj4gIHVuaW9uIHBvd2VyX3N1cHBseV9w
+cm9wdmFsIHsNCj4gQEAgLTI0Miw3ICsyMzksNyBAQCBzdHJ1Y3QgcG93ZXJfc3VwcGx5X2luZm8g
+ew0KPiAgCWludCB1c2VfZm9yX2FwbTsNCj4gIH07DQo+IA0KPiAtZXh0ZXJuIHN0cnVjdCBhdG9t
+aWNfbm90aWZpZXJfaGVhZCAgICBwb3dlcl9zdXBwbHlfbm90aWZpZXI7DQo+ICtleHRlcm4gc3Ry
+dWN0IGF0b21pY19ub3RpZmllcl9oZWFkIHBvd2VyX3N1cHBseV9ub3RpZmllcjsNCj4gIGV4dGVy
+biBpbnQgcG93ZXJfc3VwcGx5X3JlZ19ub3RpZmllcihzdHJ1Y3Qgbm90aWZpZXJfYmxvY2sgKm5i
+KTsgIGV4dGVybiB2b2lkDQo+IHBvd2VyX3N1cHBseV91bnJlZ19ub3RpZmllcihzdHJ1Y3Qgbm90
+aWZpZXJfYmxvY2sgKm5iKTsgIGV4dGVybiBzdHJ1Y3QNCj4gcG93ZXJfc3VwcGx5ICpwb3dlcl9z
+dXBwbHlfZ2V0X2J5X25hbWUoY29uc3QgY2hhciAqbmFtZSk7DQo=
