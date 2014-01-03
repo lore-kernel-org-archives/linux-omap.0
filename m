@@ -1,58 +1,27 @@
-From: Archit Taneja <archit@ti.com>
-Subject: Re: [PATCH v5 0/2] DMM DT adaptation
-Date: Fri, 3 Jan 2014 18:04:59 +0530
-Message-ID: <52C6AE73.9020303@ti.com>
-References: <1379063679-4869-1-git-send-email-archit@ti.com> <1387274542-29645-1-git-send-email-archit@ti.com>
+From: Anton Vorontsov <anton@enomsg.org>
+Subject: Re: [PATCH v2 1/3] power_supply: Add power_supply notifier
+Date: Fri, 3 Jan 2014 08:02:07 -0800
+Message-ID: <20140103160207.GA19308@teo>
+References: <1378630239-10006-1-git-send-email-pali.rohar@gmail.com>
+ <1384856285-19593-1-git-send-email-pali.rohar@gmail.com>
+ <1384856285-19593-2-git-send-email-pali.rohar@gmail.com>
+ <20131201222330.GB6271@lizard>
+ <20ADAB092842284E95860F279283C56422D1AD1E@BGSMSX104.gar.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <1387274542-29645-1-git-send-email-archit@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: bcousson@baylibre.com, tony@atomide.com, mark.rutland@arm.com
-Cc: robdclark@gmail.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20ADAB092842284E95860F279283C56422D1AD1E@BGSMSX104.gar.corp.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Tc, Jenny" <jenny.tc@intel.com>
+Cc: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>, David Woodhouse <dwmw2@infradead.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "freemangordon@abv.bg" <freemangordon@abv.bg>, "aaro.koskinen@iki.fi" <aaro.koskinen@iki.fi>, "pavel@ucw.cz" <pavel@ucw.cz>
 List-Id: linux-omap@vger.kernel.org
 
-Hullo,
+On Fri, Jan 03, 2014 at 11:09:49AM +0000, Tc, Jenny wrote:
+> Anton,
+> 
+> I don't see this patch in Linux tree. Any update on this would be helpful
 
-On Tuesday 17 December 2013 03:32 PM, Archit Taneja wrote:
-> The DMM/Tiler block can used by omapdrm to allocate frame buffers. With the
-> removal of address and irq data from the omap4 hwmods, the probe of DMM driver
-> fails and omapdrm isn't able to utilize the DMM hardware.
->
-> Add DMM bindings for OMAP4 and OMAP5 and DRA7x.
+http://git.infradead.org/battery-2.6.git/commit/d36240d26025bec95f3499e2401a56db98d9f01c
 
-Can this be pulled for 3.14? I've incorporated comments from Mark and 
-other folks.
-
-Thanks,
-Archit
-
->
-> Changes in v5:
-> - Use of_match_ptr() in the dmm driver.
-> - Add DT node for DRA7x as dra7.dtsi is now in mainline.
->
-> Changes in v4:
-> - Clean up documentation further.
->
-> Changes in v3:
-> - Fix mistakes in documentation and remove aliases for dmm nodes.
->
-> Changes in v2:
-> - No changes, split out into a separate series containing only DT related parts.
->
->
-> Archit Taneja (2):
->    arm: dts: omap4+: Add DMM bindings
->    drm: omap: Enable DT support for DMM
->
->   Documentation/devicetree/bindings/arm/omap/dmm.txt | 22 ++++++++++++++++++++++
->   arch/arm/boot/dts/dra7.dtsi                        |  7 +++++++
->   arch/arm/boot/dts/omap4.dtsi                       |  7 +++++++
->   arch/arm/boot/dts/omap5.dtsi                       |  7 +++++++
->   drivers/gpu/drm/omapdrm/omap_dmm_tiler.c           |  7 +++++++
->   5 files changed, 50 insertions(+)
->   create mode 100644 Documentation/devicetree/bindings/arm/omap/dmm.txt
->
-
+?..
