@@ -1,68 +1,61 @@
-From: "Tc, Jenny" <jenny.tc@intel.com>
-Subject: RE: [PATCH v2 1/3] power_supply: Add power_supply notifier
-Date: Fri, 3 Jan 2014 11:09:49 +0000
-Message-ID: <20ADAB092842284E95860F279283C56422D1AD1E@BGSMSX104.gar.corp.intel.com>
-References: <1378630239-10006-1-git-send-email-pali.rohar@gmail.com>
- <1384856285-19593-1-git-send-email-pali.rohar@gmail.com>
- <1384856285-19593-2-git-send-email-pali.rohar@gmail.com>
- <20131201222330.GB6271@lizard>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [RFT/RFC/PATCH 00/31] arm: omap: irq: cleanup INTC driver
+Date: Fri, 3 Jan 2014 17:42:41 +0530
+Message-ID: <52C6A939.70708@ti.com>
+References: <1384970958-4118-1-git-send-email-balbi@ti.com> <20131219184815.GU27438@atomide.com> <20131219232153.GE707@saruman.home> <20131221005309.GH26054@atomide.com> <20131223173409.GA10536@saruman.home> <20140102220101.GA8652@saruman.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20131201222330.GB6271@lizard>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Anton Vorontsov <anton@enomsg.org>, =?utf-8?B?UGFsaSBSb2jDoXI=?= <pali.rohar@gmail.com>
-Cc: David Woodhouse <dwmw2@infradead.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "freemangordon@abv.bg" <freemangordon@abv.bg>, "aaro.koskinen@iki.fi" <aaro.koskinen@iki.fi>, "pavel@ucw.cz" <pavel@ucw.cz>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:46256 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751099AbaACMNM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 3 Jan 2014 07:13:12 -0500
+In-Reply-To: <20140102220101.GA8652@saruman.home>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: balbi@ti.com
+Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
-QW50b24sDQoNCkkgZG9uJ3Qgc2VlIHRoaXMgcGF0Y2ggaW4gTGludXggdHJlZS4gQW55IHVwZGF0
-ZSBvbiB0aGlzIHdvdWxkIGJlIGhlbHBmdWwNCg0KVGhhbmtzDQpKZW5ueQ0KDQo+IC0tLS0tT3Jp
-Z2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IEFudG9uIFZvcm9udHNvdiBbbWFpbHRvOmFudG9u
-QHNjYXJ5YnVncy5vcmddIE9uIEJlaGFsZiBPZiBBbnRvbg0KPiBWb3JvbnRzb3YNCj4gU2VudDog
-TW9uZGF5LCBEZWNlbWJlciAwMiwgMjAxMyAzOjU0IEFNDQo+IFRvOiBQYWxpIFJvaMOhcg0KPiBD
-YzogRGF2aWQgV29vZGhvdXNlOyBUb255IExpbmRncmVuOyBSdXNzZWxsIEtpbmc7IGxpbnV4LWtl
-cm5lbEB2Z2VyLmtlcm5lbC5vcmc7DQo+IGxpbnV4LW9tYXBAdmdlci5rZXJuZWwub3JnOyBmcmVl
-bWFuZ29yZG9uQGFidi5iZzsgYWFyby5rb3NraW5lbkBpa2kuZmk7DQo+IHBhdmVsQHVjdy5jejsg
-VGMsIEplbm55DQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0ggdjIgMS8zXSBwb3dlcl9zdXBwbHk6IEFk
-ZCBwb3dlcl9zdXBwbHkgbm90aWZpZXINCj4gDQo+IE9uIFR1ZSwgTm92IDE5LCAyMDEzIGF0IDEx
-OjE4OjAzQU0gKzAxMDAsIFBhbGkgUm9ow6FyIHdyb3RlOg0KPiA+IFRoaXMgcGF0Y2ggYWRkcyBh
-IG5vdGlmaWVyIGNoYWluIHRvIHRoZSBwb3dlcl9zdXBwbHkuDQo+ID4gVGhpcyBub3RpZmllciBo
-ZWxwcyBkcml2ZXJzIGluIG90aGVyIHN1YnN5c3RlbSB0byBsaXN0ZW4gdG8gY2hhbmdlcyBpbg0K
-PiA+IHBvd2VyIHN1cHBseSBzdWJzeXN0ZW0uIFRoaXMgd291bGQgaGVscCB0byB0YWtlIHNvbWUg
-YWN0aW9ucyBpbiB0aG9zZQ0KPiA+IGRyaXZlcnMgb24gY2hhbmdpbmcgdGhlIHBvd2VyIHN1cHBs
-eSBwcm9wZXJ0aWVzLg0KPiA+IE9uZSBzdWNoIHNjZW5hcmlvIGlzIHRvIGluY3JlYXNlL2RlY3Jl
-YXNlIHN5c3RlbSBwZXJmb3JtYW5jZSBiYXNlZCBvbg0KPiA+IHRoZSBiYXR0ZXJ5IGNhcGFjaXR5
-L3ZvbHRhZ2UuIEFub3RoZXIgc2NlbmFyaW8gaXMgdG8gYWRqdXN0IHRoZSBoL3cNCj4gPiBwZWFr
-IGN1cnJlbnQgZGV0ZWN0aW9uIHZvbHRhZ2UvY3VycmVudCB0aHJlc2hvbGRzIGJhc2VkIG9uIGJh
-dHRlcnkNCj4gPiB2b2x0YWdlL2NhcGFjaXR5LiBUaGUgbm90aWZpZXIgaGVscHMgZHJpdmVycyB0
-byBsaXN0ZW4gdG8gY2hhbmdlcyBpbg0KPiA+IHBvd2VyX3N1cHB5IHN1c2J5c3RlbSB3aXRob3V0
-IHBvbGxpbmcgdGhlIHBvd2VyX3N1cHBseSBwcm9wZXJ0aWVzDQo+ID4NCj4gPiBTaWduZWQtb2Zm
-LWJ5OiBKZW5ueSBUQyA8amVubnkudGNAaW50ZWwuY29tPg0KPiA+IFNpZ25lZC1vZmYtYnk6IFBh
-bGkgUm9ow6FyIDxwYWxpLnJvaGFyQGdtYWlsLmNvbT4NCj4gLi4uDQo+ID4gK2VudW0gcG93ZXJf
-c3VwcGx5X25vdGlmaWVyX2V2ZW50cyB7DQo+ID4gKwlQU1lfRVZFTlRfTk9ORSwNCj4gDQo+IFRo
-aXMgb25lIGlzIG5vdCBuZWVkZWQuDQo+IA0KPiA+ICsJUFNZX0VWRU5UX1BST1BfQ0hBTkdFRCwN
-Cj4gPiArCVBTWV9FVkVOVF9CQVRURVJZLA0KPiA+ICsJUFNZX0VWRU5UX0NBQkxFLA0KPiA+ICt9
-Ow0KPiANCj4gVGhlIG9ubHkgZXZlbnQgdGhhdCBpcyBjdXJyZW50bHkgdXNlZCBpbiB5b3VyIHBh
-dGNoIHNlcmllcyBpcw0KPiBFVkVOVF9QUk9QX0NIQU5HRUQuLi4gU28sIEkgYXBwbGllZCB0aGUg
-cGF0Y2ggd2l0aCB0aGUgZm9sbG93aW5nIGNoYW5nZXM6DQo+IA0KPiBkaWZmIC0tZ2l0IGEvaW5j
-bHVkZS9saW51eC9wb3dlcl9zdXBwbHkuaCBiL2luY2x1ZGUvbGludXgvcG93ZXJfc3VwcGx5Lmgg
-aW5kZXgNCj4gYzZmNTJjMC4uMGMyYTI2MCAxMDA2NDQNCj4gLS0tIGEvaW5jbHVkZS9saW51eC9w
-b3dlcl9zdXBwbHkuaA0KPiArKysgYi9pbmNsdWRlL2xpbnV4L3Bvd2VyX3N1cHBseS5oDQo+IEBA
-IC0xNSw2ICsxNSw3IEBADQo+ICAjaW5jbHVkZSA8bGludXgvaW5pdC5oPg0KPiAgI2luY2x1ZGUg
-PGxpbnV4L3NsYWIuaD4NCj4gICNpbmNsdWRlIDxsaW51eC9kZXZpY2UuaD4NCj4gKyNpbmNsdWRl
-IDxsaW51eC9ub3RpZmllci5oPg0KPiAgI2luY2x1ZGUgPGxpbnV4L2Vyci5oPg0KPiAgI2luY2x1
-ZGUgPGxpbnV4L3Bvd2VyX3N1cHBseS5oPg0KPiAgI2luY2x1ZGUgPGxpbnV4L3RoZXJtYWwuaD4N
-Cj4gQEAgLTE1OSwxMCArMTU5LDcgQEAgZW51bSBwb3dlcl9zdXBwbHlfdHlwZSB7ICB9Ow0KPiAN
-Cj4gIGVudW0gcG93ZXJfc3VwcGx5X25vdGlmaWVyX2V2ZW50cyB7DQo+IC0JUFNZX0VWRU5UX05P
-TkUsDQo+ICAJUFNZX0VWRU5UX1BST1BfQ0hBTkdFRCwNCj4gLQlQU1lfRVZFTlRfQkFUVEVSWSwN
-Cj4gLQlQU1lfRVZFTlRfQ0FCTEUsDQo+ICB9Ow0KPiANCj4gIHVuaW9uIHBvd2VyX3N1cHBseV9w
-cm9wdmFsIHsNCj4gQEAgLTI0Miw3ICsyMzksNyBAQCBzdHJ1Y3QgcG93ZXJfc3VwcGx5X2luZm8g
-ew0KPiAgCWludCB1c2VfZm9yX2FwbTsNCj4gIH07DQo+IA0KPiAtZXh0ZXJuIHN0cnVjdCBhdG9t
-aWNfbm90aWZpZXJfaGVhZCAgICBwb3dlcl9zdXBwbHlfbm90aWZpZXI7DQo+ICtleHRlcm4gc3Ry
-dWN0IGF0b21pY19ub3RpZmllcl9oZWFkIHBvd2VyX3N1cHBseV9ub3RpZmllcjsNCj4gIGV4dGVy
-biBpbnQgcG93ZXJfc3VwcGx5X3JlZ19ub3RpZmllcihzdHJ1Y3Qgbm90aWZpZXJfYmxvY2sgKm5i
-KTsgIGV4dGVybiB2b2lkDQo+IHBvd2VyX3N1cHBseV91bnJlZ19ub3RpZmllcihzdHJ1Y3Qgbm90
-aWZpZXJfYmxvY2sgKm5iKTsgIGV4dGVybiBzdHJ1Y3QNCj4gcG93ZXJfc3VwcGx5ICpwb3dlcl9z
-dXBwbHlfZ2V0X2J5X25hbWUoY29uc3QgY2hhciAqbmFtZSk7DQo=
+[]..
+
+>>> so a bit more work is needed. Maybe also rebase these against
+>>> omap-for-v3.14/dt too?
+>>
+>> Will do.
+> 
+> Rebased on top of omap-for-v3.14/omap3-board-removal. Patches are on my
+> k.org tree:
+> 
+> git://git.kernel.org/pub/scm/linux/kernel/git/balbi/usb.git wip/omap-fix-intc
+
+It needs a minor build fix though..
+
+diff --git a/drivers/irqchip/irq-omap-intc.c b/drivers/irqchip/irq-omap-intc.c
+index b58c5d5..d03b5a3 100644
+--- a/drivers/irqchip/irq-omap-intc.c
++++ b/drivers/irqchip/irq-omap-intc.c
+@@ -151,7 +151,7 @@ static void omap_mask_ack_irq(struct irq_data *d)
+ static void omap_suspend_irq(struct irq_data *d)
+ {
+        omap_intc_save_context();
+-       omap3_intc_prepare_idle();
++       omap_intc_prepare_idle();
+ 
+        /* A pending interrupt would prevent OMAP from entering suspend */
+        omap_ack_irq(NULL);
+
+regards,
+Rajendra
+
+> 
+> cheers
+> 
+> 
+> 
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+> 
+
