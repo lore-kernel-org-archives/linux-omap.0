@@ -1,61 +1,58 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [RFT/RFC/PATCH 00/31] arm: omap: irq: cleanup INTC driver
-Date: Fri, 3 Jan 2014 17:42:41 +0530
-Message-ID: <52C6A939.70708@ti.com>
-References: <1384970958-4118-1-git-send-email-balbi@ti.com> <20131219184815.GU27438@atomide.com> <20131219232153.GE707@saruman.home> <20131221005309.GH26054@atomide.com> <20131223173409.GA10536@saruman.home> <20140102220101.GA8652@saruman.home>
+From: Archit Taneja <archit@ti.com>
+Subject: Re: [PATCH v5 0/2] DMM DT adaptation
+Date: Fri, 3 Jan 2014 18:04:59 +0530
+Message-ID: <52C6AE73.9020303@ti.com>
+References: <1379063679-4869-1-git-send-email-archit@ti.com> <1387274542-29645-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:46256 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751099AbaACMNM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 3 Jan 2014 07:13:12 -0500
-In-Reply-To: <20140102220101.GA8652@saruman.home>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <1387274542-29645-1-git-send-email-archit@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: bcousson@baylibre.com, tony@atomide.com, mark.rutland@arm.com
+Cc: robdclark@gmail.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
-[]..
+Hullo,
 
->>> so a bit more work is needed. Maybe also rebase these against
->>> omap-for-v3.14/dt too?
->>
->> Will do.
-> 
-> Rebased on top of omap-for-v3.14/omap3-board-removal. Patches are on my
-> k.org tree:
-> 
-> git://git.kernel.org/pub/scm/linux/kernel/git/balbi/usb.git wip/omap-fix-intc
+On Tuesday 17 December 2013 03:32 PM, Archit Taneja wrote:
+> The DMM/Tiler block can used by omapdrm to allocate frame buffers. With the
+> removal of address and irq data from the omap4 hwmods, the probe of DMM driver
+> fails and omapdrm isn't able to utilize the DMM hardware.
+>
+> Add DMM bindings for OMAP4 and OMAP5 and DRA7x.
 
-It needs a minor build fix though..
+Can this be pulled for 3.14? I've incorporated comments from Mark and 
+other folks.
 
-diff --git a/drivers/irqchip/irq-omap-intc.c b/drivers/irqchip/irq-omap-intc.c
-index b58c5d5..d03b5a3 100644
---- a/drivers/irqchip/irq-omap-intc.c
-+++ b/drivers/irqchip/irq-omap-intc.c
-@@ -151,7 +151,7 @@ static void omap_mask_ack_irq(struct irq_data *d)
- static void omap_suspend_irq(struct irq_data *d)
- {
-        omap_intc_save_context();
--       omap3_intc_prepare_idle();
-+       omap_intc_prepare_idle();
- 
-        /* A pending interrupt would prevent OMAP from entering suspend */
-        omap_ack_irq(NULL);
+Thanks,
+Archit
 
-regards,
-Rajendra
-
-> 
-> cheers
-> 
-> 
-> 
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-> 
+>
+> Changes in v5:
+> - Use of_match_ptr() in the dmm driver.
+> - Add DT node for DRA7x as dra7.dtsi is now in mainline.
+>
+> Changes in v4:
+> - Clean up documentation further.
+>
+> Changes in v3:
+> - Fix mistakes in documentation and remove aliases for dmm nodes.
+>
+> Changes in v2:
+> - No changes, split out into a separate series containing only DT related parts.
+>
+>
+> Archit Taneja (2):
+>    arm: dts: omap4+: Add DMM bindings
+>    drm: omap: Enable DT support for DMM
+>
+>   Documentation/devicetree/bindings/arm/omap/dmm.txt | 22 ++++++++++++++++++++++
+>   arch/arm/boot/dts/dra7.dtsi                        |  7 +++++++
+>   arch/arm/boot/dts/omap4.dtsi                       |  7 +++++++
+>   arch/arm/boot/dts/omap5.dtsi                       |  7 +++++++
+>   drivers/gpu/drm/omapdrm/omap_dmm_tiler.c           |  7 +++++++
+>   5 files changed, 50 insertions(+)
+>   create mode 100644 Documentation/devicetree/bindings/arm/omap/dmm.txt
+>
 
