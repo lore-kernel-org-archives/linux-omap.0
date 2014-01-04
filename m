@@ -1,41 +1,35 @@
-From: Stephen Boyd <sboyd@codeaurora.org>
-Subject: Re: [PATCHv12 06/49] clk: add support for low level register ops
-Date: Fri, 03 Jan 2014 11:48:47 -0800
-Message-ID: <52C7141F.2020901@codeaurora.org>
-References: <1387557274-22583-1-git-send-email-t-kristo@ti.com> <1387557274-22583-6-git-send-email-t-kristo@ti.com> <20131222173926.GB8064@book.gsilab.sittig.org> <52C67F53.6000402@ti.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH] ARM: OMAPFB: panel-sony-acx565akm: fix missing mutex
+ unlocks
+Date: Sat, 4 Jan 2014 13:51:08 +0100
+Message-ID: <20140104125108.GA22339@amd.pavel.ucw.cz>
+References: <1388420272-5132-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.11.231]:50407 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751681AbaACTst (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Jan 2014 14:48:49 -0500
-In-Reply-To: <52C67F53.6000402@ti.com>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:52879 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751943AbaADMvK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 4 Jan 2014 07:51:10 -0500
+Content-Disposition: inline
+In-Reply-To: <1388420272-5132-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, nm@ti.com, rnayak@ti.com, bcousson@baylibre.com, mturquette@linaro.org, linux-arm-kernel@lists.infradead.org, Anatolij Gustschin <agust@denx.de>
+To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Cc: tomi.valkeinen@ti.com, plagnioj@jcrosoft.com, pali.rohar@gmail.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org, Ivaylo Dimitrov <freemangordon@abv.bg>
 
-On 01/03/14 01:13, Tero Kristo wrote:
-> On 12/22/2013 07:39 PM, Gerhard Sittig wrote:
->>
->>
->> Further I'd suggest to split this register access aspect out of
->> the TI clock series, and to prepare it already for regmap style
->> access to the hardware registers.  See the next comment below.
->
-> This sounds like a good idea to me, seeing it is blocking lots of
-> other things.
+On Mon 2013-12-30 18:17:52, Ivaylo Dimitrov wrote:
+> From: Ivaylo Dimitrov <freemangordon@abv.bg>
+> 
+> Commit c37dd677988ca50bc8bc60ab5ab053720583c168 fixes the unbalanced
+> unlock in acx565akm_enable but introduces another problem - if
+> acx565akm_panel_power_on exits early, the mutex is not unlocked. Fix
+> that by unlocking the mutex on early return. Also add mutex protection in
+> acx565akm_panel_power_off and remove an unused variable
+> 
+> Signed-off-by: Ivaylo Dimitrov <freemangordon@abv.bg>
 
-This ll_ops struct looks like a simplified regmap. Have you seen my
-series that adds regmap support to the common clock framework[1]? Is
-there any reason why you can't use those patches and layer some patches
-on top to add support for regmap to the basic clock types?
-
-[1] https://lkml.org/lkml/2013/12/23/461
-
+Reviewed-by: Pavel Machek <pavel@ucw.cz>
 -- 
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
-hosted by The Linux Foundation
-
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
