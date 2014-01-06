@@ -1,46 +1,107 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [RFC] drivers: irq-chip: Enable SGI's for Secure-to-NonSecure
-	communication use-cases
-Date: Mon, 6 Jan 2014 13:25:36 +0000
-Message-ID: <20140106132536.GA27282@n2100.arm.linux.org.uk>
-References: <79CD15C6BA57404B839C016229A409A83EDAD1B8@DBDE04.ent.ti.com>
+From: Mark Rutland <mark.rutland@arm.com>
+Subject: Re: [RFC PATCH v1 2/5] misc: tda8026: Add NXP TDA8026 PHY driver
+Date: Mon, 6 Jan 2014 15:30:33 +0000
+Message-ID: <20140106153033.GB24664@e106331-lin.cambridge.arm.com>
+References: <1389010062-17185-1-git-send-email-satish.patel@ti.com>
+ <1389010062-17185-3-git-send-email-satish.patel@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:57294 "EHLO
-	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751095AbaAFNZl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Jan 2014 08:25:41 -0500
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <79CD15C6BA57404B839C016229A409A83EDAD1B8@DBDE04.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1389010062-17185-3-git-send-email-satish.patel@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Satish Patel <satish.patel@ti.com>
+Cc: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "arnd@arndb.de" <arnd@arndb.de>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "rob@landley.net" <rob@landley.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
 
-On Mon, Jan 06, 2014 at 05:09:04AM +0000, Hiremath, Vaibhav wrote:
-> The idea behind this RFC (or rather query) is, to get feedback or 
-> comments on the use-case of using SGI for secure-to-nonsecure communication 
-> on non-SMP architecture or SMP architecture with uniprocessor.
-> I understand that, lot of things I need to take care from SMP architecture perspective. 
-> Based on the feedback I can spend more time to make below changes more generic to handle 
-> both uniprocessor and multi-processor architectures including more validation.
+On Mon, Jan 06, 2014 at 12:07:39PM +0000, Satish Patel wrote:
+> TDA8026 is a SmartCard PHY from NXP.
+> 
+> The PHY interfaces with the main processor over the
+> I2C interface and acts as a slave device.
+> 
+> The driver also exposes the phy interface
+> (defined@include/linux/sc_phy.h) for SmartCard controller.
+> Controller uses this interface to communicate with smart card
+> inserted to the phy's slot.
+> 
+> Note: gpio irq is not validated as I do not have device with that.
+> I have validated interrupt with dedicated interrupt line on my device.
+> 
+> Signed-off-by: Maulik Mankad <maulik@ti.com>
+> Signed-off-by: Satish Patel <satish.patel@ti.com>
+> ---
+>  Documentation/devicetree/bindings/misc/tda8026.txt |   14 +
+>  drivers/misc/Kconfig                               |    7 +
+>  drivers/misc/Makefile                              |    1 +
+>  drivers/misc/tda8026.c                             | 1271 ++++++++++++++++++++
+>  4 files changed, 1293 insertions(+), 0 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/misc/tda8026.txt
+>  create mode 100644 drivers/misc/tda8026.c
+> 
+> diff --git a/Documentation/devicetree/bindings/misc/tda8026.txt b/Documentation/devicetree/bindings/misc/tda8026.txt
+> new file mode 100644
+> index 0000000..d3083bf
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/misc/tda8026.txt
+> @@ -0,0 +1,14 @@
+> +TDA8026 smart card slot interface
+> +
+> +Required properties:
+> +- compatible: nxp,tda8026
 
-So it seems that your intention is to use the existing infrastructure
-for this by directing SGIs through the normal IRQ processing.
+Please quote strings:
 
-To that idea, I say no way.
+- compatible: should contain "nxp,tda8026"
 
-I also think you need to think more about the changes you're making in
-your patch - several of them seem to have just been a case of s/32/0/
-without any further thought whether that change is actually appropriate.
-Really, I'd suggest reading the GIC documentation, especially the bits
-about the first register being banked between each CPU.
+> +- shutdown-gpio = GPIO pin mapping for SDWNN pin
+> +- reg = i2c interface address
 
-So changing the setup in the distributor initialisation is only going to
-hit the register on the CPU it's running on...
+It's probably worth mentioning at the start that this is an i2c device.
 
--- 
-FTTC broadband for 0.8mile line: 5.8Mbps down 500kbps up.  Estimation
-in database were 13.1 to 19Mbit for a good line, about 7.5+ for a bad.
-Estimate before purchase was "up to 13.2Mbit".
+[...]
+
+> +static int tda8026_parse_dt(struct device *dev, struct tda8026 *pdata)
+> +{
+> +       struct device_node *np = dev->of_node;
+> +       const struct of_device_id *match;
+> +       int ret = 0;
+> +
+> +       match = of_match_device(of_match_ptr(tda8026_id_table), dev);
+> +       if (!match)
+> +               return -EINVAL;
+
+Why do this? The of_device_id table contains one entry with no
+additional data. If you just want to see if this was probed via DT,
+dev->of_node not being NULL would tell you that.
+
+Is this going to be used without DT anywhere?
+
+[...]
+
+> +       if (pdata->irq == 0) {
+> +               /* look for the field irq-gpio in DT */
+> +               irq_gpio = of_get_named_gpio(np, "irq-gpio", 0);
+> +               if (!gpio_is_valid(irq_gpio)) {
+> +                       dev_err(dev, "Failed to get irq gpio,\n");
+> +                       return -EIO;
+> +               }
+
+This is horrible. If the gpio controller can act as an irq controller
+then it should be annotated as such, with #interrupt-cells, and you
+should just describe the interrupt. The smart card controller cares
+about having an interrupt line, not a GPIO.
+
+Additionally, this was not described in the binding.
+
+Thanks,
+Mark.
