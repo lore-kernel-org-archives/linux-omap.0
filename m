@@ -1,121 +1,163 @@
-From: Sid Boyce <sboyce@blueyonder.co.uk>
-Subject: Problems with double, qreal and float porting an application - Help
- please!
-Date: Mon, 06 Jan 2014 01:54:02 +0000
-Message-ID: <52CA0CBA.8070503@blueyonder.co.uk>
-Reply-To: sboyce@blueyonder.co.uk
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: [RFC] drivers: irq-chip: Enable SGI's for Secure-to-NonSecure
+ communication use-cases
+Date: Mon, 6 Jan 2014 05:09:04 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A83EDAD1B8@DBDE04.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from know-smtprelay-omc-3.server.virginmedia.net ([80.0.253.67]:45239
-	"EHLO know-smtprelay-omc-3.server.virginmedia.net"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:51218 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751460AbaAFB7r (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 5 Jan 2014 20:59:47 -0500
+	id S1750810AbaAFFJn convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Jan 2014 00:09:43 -0500
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
 
-System is an ODROID-X.
-root@odroid:/1/cuSDR32# uname -a
-Linux odroid 3.8.13.14 #1 SMP PREEMPT Sat Dec 21 22:14:31 UTC 2013=20
-armv7l armv7l armv7l GNU/Linux
+Hi,
 
-root@odroid:/1/cuSDR32# cat /etc/os-release
-NAME=3D"Ubuntu"
-VERSION=3D"13.10, Saucy Salamander"
-ID=3Dubuntu
-ID_LIKE=3Ddebian
-PRETTY_NAME=3D"Ubuntu 13.10"
-VERSION_ID=3D"13.10"
-HOME_URL=3D"http://www.ubuntu.com/"
-SUPPORT_URL=3D"http://help.ubuntu.com/"
-BUG_REPORT_URL=3D"http://bugs.launchpad.net/ubuntu/"
+Currently the Software Generated Interrupts (SGI) are restricted to use only
+for SMP architecture for inter-processor communication as rightly documented 
+in ARM GIC spec V1.
 
-The failures and the offending lines below.
--------------------------------------------------------
-g++ -c -pipe -g -Wall -W -D_REENTRANT -DQT_MULTIMEDIA_LIB=20
--DQT_OPENGL_LIB -DQT_GUI_LIB -DQT_NETWORK_LIB -DQT_CORE_LIB -DQT_SHARED=
-=20
--I/usr/share/qt4/mkspecs/linux-g++ -I. -I/usr/include/qt4/QtCore=20
--I/usr/include/qt4/QtNetwork -I/usr/include/qt4/QtGui=20
--I/usr/include/qt4/QtOpenGL -I/usr/include/qt4/QtMultimedia=20
--I/usr/include/qt4 -I/usr/include/QtMultimediaKit=20
--I/usr/include/QtMobility -I. -Isrc -Isrc/AudioEngine -Isrc/CL=20
--Isrc/DataEngine -Isrc/GL -Isrc/QtDSP -Isrc/Util -I/usr/X11R6/include=20
--Ibld/moc -o bld/o/qtdsp_wpagc.o src/QtDSP/qtdsp_wpagc.cpp
-src/QtDSP/qtdsp_wpagc.cpp: In member function =91void=20
-QWPAGC::ProcessAGC(CPX&, CPX&, int)=92:
-src/QtDSP/qtdsp_wpagc.cpp:290:88: error: no matching function for call=20
-to =91qMin(double, float)=92
-mult =3D (m_out_target - m_slope_constant * qMin(0.0, log10=20
-(m_inv_max_input * m_volts))) / m_volts;
-^
-src/QtDSP/qtdsp_wpagc.cpp:290:88: note: candidate is:
-In file included from /usr/include/qt4/QtCore/qiterator.h:45:0,
-from /usr/include/qt4/QtCore/qvector.h:45,
-from /usr/include/qt4/QtCore/QVector:1,
-from src/QtDSP/qtdsp_qComplex.h:34,
-from src/QtDSP/qtdsp_wpagc.h:36,
-from src/QtDSP/qtdsp_wpagc.cpp:34:
-/usr/include/qt4/QtCore/qglobal.h:1213:34: note: template<class T> cons=
-t=20
-T& qMin(const T&, const T&)
-Q_DECL_CONSTEXPR inline const T &qMin(const T &a, const T &b) { return=20
-(a < b) ? a : b; }
-^
-/usr/include/qt4/QtCore/qglobal.h:1213:34: note: template argument=20
-deduction/substitution failed:
-src/QtDSP/qtdsp_wpagc.cpp:290:88: note: deduced conflicting types for=20
-parameter =91const T=92 (=91double=92 and =91float=92)
-mult =3D (m_out_target - m_slope_constant * qMin(0.0, log10=20
-(m_inv_max_input * m_volts))) / m_volts;
-^
-src/QtDSP/qtdsp_wpagc.cpp: In member function =91void=20
-QWPAGC::setHangLevelDb(qreal)=92:
-src/QtDSP/qtdsp_wpagc.cpp:588:78: error: no matching function for call=20
-to =91qMax(double, qreal)=92
-qreal tmp =3D qMax(1.0e-8, (convert - m_minVolts) / (m_maxInput -=20
-m_minVolts));
-^
-src/QtDSP/qtdsp_wpagc.cpp:588:78: note: candidate is:
-In file included from /usr/include/qt4/QtCore/qiterator.h:45:0,
-from /usr/include/qt4/QtCore/qvector.h:45,
-from /usr/include/qt4/QtCore/QVector:1,
-from src/QtDSP/qtdsp_qComplex.h:34,
-from src/QtDSP/qtdsp_wpagc.h:36,
-from src/QtDSP/qtdsp_wpagc.cpp:34:
-/usr/include/qt4/QtCore/qglobal.h:1215:34: note: template<class T> cons=
-t=20
-T& qMax(const T&, const T&)
-Q_DECL_CONSTEXPR inline const T &qMax(const T &a, const T &b) { return=20
-(a < b) ? b : a; }
-^
-/usr/include/qt4/QtCore/qglobal.h:1215:34: note: template argument=20
-deduction/substitution failed:
-src/QtDSP/qtdsp_wpagc.cpp:588:78: note: deduced conflicting types for=20
-parameter =91const T=92 (=91double=92 and =91qreal {aka float}=92)
-qreal tmp =3D qMax(1.0e-8, (convert - m_minVolts) / (m_maxInput -=20
-m_minVolts));
-^
-make: *** [bld/o/qtdsp_wpagc.o] Error 1
-root@odroid:/1/cuSDR32#
-svn co http://svn.tapr.org/repos_sdr_hpsdr/trunk/DL3HVH/cuSDR32/ for th=
-e=20
-source.
-Regards
-Sid.
+In the system with the uniprocessor (and/or multiprocessor variants) architecture with 
+TRUSTZONE enabled device (like, AM43xx device), the SGI can be used for 
+communication between secure-to-nonsecure world.
+And in order to enable SGI event from secure world to non-secure world,
+GIC driver __must__ support registration of interrupt service routines for SGI's;
+which is currently restricted by GIC driver.
 
---=20
-Sid Boyce ... Hamradio License G3VBV, Licensed Private Pilot
-Emeritus IBM/Amdahl Mainframes and Sun/Fujitsu Servers Tech Support
-Senior Staff Specialist, Cricket Coach
-Microsoft Windows Free Zone - Linux used for all Computing Tasks
+The usecase is something like,
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On any asynchronous HW or SW events, certain secure functionality gets triggered 
+and SGI will be used to notify to the public world on the completion and/or result of operation.
+
+Non Secure           |           Secure (TrustZone)
+ (Linux Booted      |         (Secure software init happed 
+   To prompt)         |          and trusted code getting executed)
+                                |
+    (On any secure operation Where we would
+          like public world communication)
+                                |
+                                |         - Use SGI to trigger event to public Linux code
+                                |         - And share the public info/data with public world for further processing
+                          <=====      
+  Public code         |
+  handles it            |
+
+In order to prototype and to make sure that it works, 
+I did change the GIC driver to allow registration of SGI interrupts (interrupts 0 - 16) and 
+tried it on AM43xx EVM and pasted the diff of the changes below.
+I have also validated using SGI for secure to non-secure communication.
+
+The idea behind this RFC (or rather query) is, to get feedback or 
+comments on the use-case of using SGI for secure-to-nonsecure communication 
+on non-SMP architecture or SMP architecture with uniprocessor.
+I understand that, lot of things I need to take care from SMP architecture perspective. 
+Based on the feedback I can spend more time to make below changes more generic to handle 
+both uniprocessor and multi-processor architectures including more validation.
+
+Also, please note that, this requires change in all the DT files using GIC interrupt controller.
+
+Any pointers and suggestions are welcome here.
+
+Thanks,
+Vaibhav
+
+diff --git a/drivers/irqchip/irq-gic.c b/drivers/irqchip/irq-gic.c
+index d0e9480..135385a 100644
+--- a/drivers/irqchip/irq-gic.c
++++ b/drivers/irqchip/irq-gic.c
+@@ -290,7 +290,7 @@ static asmlinkage void __exception_irq_entry gic_handle_irq(struct pt_regs *regs
+                irqstat = readl_relaxed(cpu_base + GIC_CPU_INTACK);
+                irqnr = irqstat & ~0x1c00;
+
+-               if (likely(irqnr > 15 && irqnr < 1021)) {
++               if (likely(irqnr >= 0 && irqnr < 1021)) {
+                        irqnr = irq_find_mapping(gic->domain, irqnr);
+                        handle_IRQ(irqnr, regs);
+                        continue;
+@@ -324,7 +324,7 @@ static void gic_handle_cascade_irq(unsigned int irq, struct irq_desc *desc)
+                goto out;
+
+        cascade_irq = irq_find_mapping(chip_data->domain, gic_irq);
+-       if (unlikely(gic_irq < 32 || gic_irq > 1020))
++       if (unlikely(gic_irq > 1020))
+                handle_bad_irq(cascade_irq, desc);
+        else
+                generic_handle_irq(cascade_irq);
+@@ -395,20 +395,20 @@ static void __init gic_dist_init(struct gic_chip_data *gic)
+        cpumask = gic_get_cpumask(gic);
+        cpumask |= cpumask << 8;
+        cpumask |= cpumask << 16;
+-       for (i = 32; i < gic_irqs; i += 4)
++       for (i = 0; i < gic_irqs; i += 4)
+                writel_relaxed(cpumask, base + GIC_DIST_TARGET + i * 4 / 4);
+
+        /*
+         * Set priority on all global interrupts.
+         */
+-       for (i = 32; i < gic_irqs; i += 4)
++       for (i = 0; i < gic_irqs; i += 4)
+                writel_relaxed(0xa0a0a0a0, base + GIC_DIST_PRI + i * 4 / 4);
+
+        /*
+         * Disable all interrupts.  Leave the PPI and SGIs alone
+         * as these enables are banked registers.
+         */
+-       for (i = 32; i < gic_irqs; i += 32)
++       for (i = 0; i < gic_irqs; i += 32)
+                writel_relaxed(0xffffffff, base + GIC_DIST_ENABLE_CLEAR + i * 4 / 32);
+
+        writel_relaxed(1, base + GIC_DIST_CTRL);
+@@ -672,7 +672,7 @@ void gic_raise_softirq(const struct cpumask *mask, unsigned int irq)
+ static int gic_irq_domain_map(struct irq_domain *d, unsigned int irq,
+                                irq_hw_number_t hw)
+ {
+-       if (hw < 32) {
++       if (hw < 0) {
+                irq_set_percpu_devid(irq);
+                irq_set_chip_and_handler(irq, &gic_chip,
+                                         handle_percpu_devid_irq);
+@@ -696,8 +696,11 @@ static int gic_irq_domain_xlate(struct irq_domain *d,
+			if (intsize < 3)
+                return -EINVAL;
+
+-        /* Get the interrupt number and add 16 to skip over SGIs */
+-       *out_hwirq = intspec[1] + 16;
+-
+-       /* For SPIs, we need to add 16 more to get the GIC irq ID number */
+-       if (!intspec[0])
+-               *out_hwirq += 16;
+-
++       *out_hwirq = intspec[1];
+        *out_type = intspec[2] & IRQ_TYPE_SENSE_MASK;
+        return 0;
+ }
+@@ -785,11 +780,11 @@ void __init gic_init_bases(unsigned int gic_nr, int irq_start,
+         * For secondary GICs, skip over PPIs, too.
+         */
+        if (gic_nr == 0 && (irq_start & 31) > 0) {
+-               hwirq_base = 16;
++               hwirq_base = 0;
+                if (irq_start != -1)
+                        irq_start = (irq_start & ~31) + 16;
+        } else {
+-               hwirq_base = 32;
++               hwirq_base = 0;
+        }
+
+        /*
+@@ -803,7 +798,7 @@ void __init gic_init_bases(unsigned int gic_nr, int irq_start,
+        gic->gic_irqs = gic_irqs;
+
+        gic_irqs -= hwirq_base; /* calculate # of irqs to allocate */
+-       irq_base = irq_alloc_descs(irq_start, 16, gic_irqs, numa_node_id());
++       irq_base = irq_alloc_descs(irq_start, 0, gic_irqs, numa_node_id());
+        if (IS_ERR_VALUE(irq_base)) {
+                WARN(1, "Cannot allocate irq_descs @ IRQ%d, assuming pre-allocated\n",
+                     irq_start);
+
