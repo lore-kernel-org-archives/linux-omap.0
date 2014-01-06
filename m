@@ -1,69 +1,84 @@
-From: Benoit Cousson <bcousson@baylibre.com>
-Subject: Re: [PATCH] ARM: dts: omap3430-sdp: add dip switch information for
- MMC operation
-Date: Mon, 06 Jan 2014 23:43:23 +0100
-Message-ID: <52CB318B.4030603@baylibre.com>
-References: <1389047853-26375-1-git-send-email-nm@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: omap4 and cpufreq
+Date: Mon, 6 Jan 2014 16:43:33 -0600
+Message-ID: <52CB3195.6030109@ti.com>
+References: <CAGhQ9Vzx-WyCHUurK-2vxS0i_T3SCGGnhq3FfKGhGzbMCeYAqA@mail.gmail.com>	<52CAD9C2.2020307@ti.com>	<CAGhQ9Vy1mja7-F0a4v9gBQ5naPmRoxNv6GZgjqZ30dhVfD7q8w@mail.gmail.com>	<52CB27E0.6080408@ti.com> <CAGhQ9VztnCPWpyN-yMkjLMPuW3Nk1PR5mEzVdjaAKbmwkW+3Lg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f176.google.com ([209.85.212.176]:45489 "EHLO
-	mail-wi0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933521AbaAFWn2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Jan 2014 17:43:28 -0500
-Received: by mail-wi0-f176.google.com with SMTP id hq4so3430648wib.15
-        for <linux-omap@vger.kernel.org>; Mon, 06 Jan 2014 14:43:27 -0800 (PST)
-In-Reply-To: <1389047853-26375-1-git-send-email-nm@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:37756 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932243AbaAFWnf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 6 Jan 2014 17:43:35 -0500
+In-Reply-To: <CAGhQ9VztnCPWpyN-yMkjLMPuW3Nk1PR5mEzVdjaAKbmwkW+3Lg@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>, Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Joachim Eastwood <manabian@gmail.com>
+Cc: linux-omap@vger.kernel.org
 
-Hi Nishanth,
+On 01/06/2014 04:24 PM, Joachim Eastwood wrote:
+> On 6 January 2014 23:02, Nishanth Menon <nm@ti.com> wrote:
+>> On 01/06/2014 03:51 PM, Joachim Eastwood wrote:
+>>> On 6 January 2014 17:28, Nishanth Menon <nm@ti.com> wrote:
+>>>> On 01/01/2014 04:37 PM, Joachim Eastwood wrote:
+>> [...]
+>>>>> I assume this would work but I don't have a 4430 board to test it on.
+>>>>> Unsure about voltage range, but at least 1.0 to 1.4V covers the operation
+>>>>> points for cpu in omap443xx.dtsi.
+>>>> This will not work. 6030 does not allow voltage to be set over i2c1,
+>>>> needs voltage controller/processor to work.
+>>>
+>>> Well, it allows the LDO regulators to be changed over i2c, but I guess
+>>> the SMPS regulators are different.
+>>
+>> yes, they are different control paths. To give a relative history:
+>>
+>> (OMAP3)TWL5030 -> we can control SMPS from either i2c1 OR i2c_SR by
+>> flipping a control bit - but only one path at a time.
+>> (OMAP4)TWL6030 -> only i2c_SR control allowed for SMPS
+>> (OMAP5)Palmas family -> we can control using i2c1 or i2c_SR -> so no
+>> real need for using voltage controller for SMPS.
+>>
+>> that said, it is necessary to use SR path to ensure that AVS also
+>> functions. which requires on OMAP4,3 to use i2c_SR.
+> 
+> I see.
+> 
+> Just one question regarding the tps63261 on 4460.
+> What good is the gpio pin most boards have connected to the tps
+> regulator (vsel1) when it can be controlled with i2c_SR?
 
-On 06/01/2014 23:37, Nishanth Menon wrote:
-> MMC 8 bit mode operation depends on dip switch setting which is not
-> obvious - The current board file has this description. However, with
-> removal of the board file in the future, this information will be los=
-t
-> and has to be rediscovered.
 
-Thanks for that. I've just applied it.
+TPS63261 has two registers that could be used for voltage selection -
+VSEL0, VSEL1. the reason for using GPIO to force select VSEL1 and do
+dvfs using that register is as follows:
+* MPU supports OPP50 which uses voltage lower than necessary for
+booting the device up.
+* boot voltage for vdd_mpu is hardcoded by default into VSEL0.
+* if we were to use VSEL0 register for DVFS and then do a reboot OR
+have a watchdog trigger at OPP50, the device will not boot up since
+the voltage will be at OPP50 voltage.
+* if we were to use VSEL1 register selected by GPIO for DVFS and then
+do a reboot OR have a watchdog trigger at OPP50, GPIO is reset back to
+selecting VSEL0 on TPS and the device will boot up since the voltage
+will be at OPP_BOOT voltage.
 
+Now, with additional discrete circuitry, it is possible to ensure that
+TPS is also reset on a warm_reset trigger, but the additional cost for
+discretes were not... umm... attractive for customer board designs.
+(yet another instance of "if you can do it in software, why add
+hardware cost?)..
+
+
+> 
+> I have seen the pin being used in the u-boot code. So is it just for
+> initial boot or would Linux also use it as well?
+
+eventually, yes - our product kernels have these ofcourse for reason
+mentioned above - and when we get this code eventually in upstream, it
+will have to support VSEL1 based operation.
+
+-- 
 Regards,
-Benoit
-
-
-> Signed-off-by: Nishanth Menon <nm@ti.com>
-> ---
->   arch/arm/boot/dts/omap3430-sdp.dts |    4 ++++
->   1 file changed, 4 insertions(+)
->
-> diff --git a/arch/arm/boot/dts/omap3430-sdp.dts b/arch/arm/boot/dts/o=
-map3430-sdp.dts
-> index 281914e..cd3d047 100644
-> --- a/arch/arm/boot/dts/omap3430-sdp.dts
-> +++ b/arch/arm/boot/dts/omap3430-sdp.dts
-> @@ -34,6 +34,10 @@
->   &mmc1 {
->   	vmmc-supply =3D <&vmmc1>;
->   	vmmc_aux-supply =3D <&vsim>;
-> +	/*
-> +	 * S6-3 must be in ON position for 8 bit mode to function
-> +	 * Else, use 4 bit mode
-> +	 */
->   	bus-width =3D <8>;
->   };
-
---=20
-Beno=EEt Cousson
-BayLibre
-Embedded Linux Technology Lab
-www.baylibre.com
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Nishanth Menon
