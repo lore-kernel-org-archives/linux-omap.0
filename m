@@ -1,73 +1,76 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [RFC] drivers: irq-chip: Enable SGI's for Secure-to-NonSecure
-	communication use-cases
-Date: Mon, 6 Jan 2014 16:12:20 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83EDAD85E@DBDE04.ent.ti.com>
-References: <79CD15C6BA57404B839C016229A409A83EDAD1B8@DBDE04.ent.ti.com>
- <20140106132536.GA27282@n2100.arm.linux.org.uk>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: omap4 and cpufreq
+Date: Mon, 6 Jan 2014 10:28:50 -0600
+Message-ID: <52CAD9C2.2020307@ti.com>
+References: <CAGhQ9Vzx-WyCHUurK-2vxS0i_T3SCGGnhq3FfKGhGzbMCeYAqA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:48494 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:49542 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754588AbaAFQMy convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Jan 2014 11:12:54 -0500
-In-Reply-To: <20140106132536.GA27282@n2100.arm.linux.org.uk>
-Content-Language: en-US
+	with ESMTP id S1755256AbaAFQ2w (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Jan 2014 11:28:52 -0500
+In-Reply-To: <CAGhQ9Vzx-WyCHUurK-2vxS0i_T3SCGGnhq3FfKGhGzbMCeYAqA@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
+To: Joachim Eastwood <manabian@gmail.com>, linux-omap@vger.kernel.org
 
-> -----Original Message-----
-> From: Russell King - ARM Linux [mailto:linux@arm.linux.org.uk]
-> Sent: Monday, January 06, 2014 6:56 PM
-> To: Hiremath, Vaibhav
-> Cc: linux-arm-kernel@lists.infradead.org; linux-omap@vger.kernel.org; Tony
-> Lindgren
-> Subject: Re: [RFC] drivers: irq-chip: Enable SGI's for Secure-to-NonSecure
-> communication use-cases
+On 01/01/2014 04:37 PM, Joachim Eastwood wrote:
+> Hi,
 > 
-> On Mon, Jan 06, 2014 at 05:09:04AM +0000, Hiremath, Vaibhav wrote:
-> > The idea behind this RFC (or rather query) is, to get feedback or
-> > comments on the use-case of using SGI for secure-to-nonsecure
-> > communication on non-SMP architecture or SMP architecture with
-> uniprocessor.
-> > I understand that, lot of things I need to take care from SMP architecture
-> perspective.
-> > Based on the feedback I can spend more time to make below changes more
-> > generic to handle both uniprocessor and multi-processor architectures
-> including more validation.
+> I am bringing up a OMAP4460 board on dt and I saw the following messages
+> in the kernel log from "cpufreq-cpu0".
+> [ 2.373352] cpufreq_cpu0: failed to get cpu0 regulator: -19
+> [ 2.379302] cpufreq_cpu0: failed to get cpu0 clock: -2
+> [ 2.384704] cpufreq-cpu0: probe of cpufreq-cpu0.0 failed with error -2
 > 
-> So it seems that your intention is to use the existing infrastructure for this by
-> directing SGIs through the normal IRQ processing.
+> Failure to get the clock is because OMAP4 seems to be lacking a "cpu0" entry
+> in cclock44xx_data.c. Adding "CLK("cpu0", NULL, &dpll_mpu_ck)," to
+> "omap44xx_clks" seems to do the trick. This is what OMAP3 has anyways. Think
+> this failure was caused by commit 60c5fc86d which switched from
+> "omap-cpufreq" to "cpufreq-cpu0" driver on dt boot.
+
+This is part of the transition to device tree based clock nodes. See:
+https://bugzilla.kernel.org/show_bug.cgi?id=58541
+
+for details.
 > 
-> To that idea, I say no way.
+> As far as I can see it makes cpufreq work again. I at least get the
+> cpufreq nodes in sysfs and can play around with them.
 > 
+> Should I submit a patch for cclock44xx_data.c adding "cpu0"?
+No. cclock44xx_data is on the way to be dead.
 
-You have any other alternative?
-
-> I also think you need to think more about the changes you're making in your
-> patch - several of them seem to have just been a case of s/32/0/ without any
-> further thought whether that change is actually appropriate.
-> Really, I'd suggest reading the GIC documentation, especially the bits about the
-> first register being banked between each CPU.
 > 
-> So changing the setup in the distributor initialisation is only going to hit the
-> register on the CPU it's running on...
+> Next up is the regulator. Since my board is a 4460 and it seems that
+> tps63261 support for 4460 never made it to mainline I guess I am out of
+> luck here?
+> 
+> But for all 4430 boards in mainline I guess it would be nice to add:
+> &twl {
+>     vdd1: regulator-vdd1 {
+>         compatible = "ti,twl6030-vdd1";
+>         regulator-min-microvolt = <1000000>;
+>         regulator-max-microvolt = <1400000>;
+>     };
+> };
+> cpus {
+>     cpu@0 {
+>         cpu0-supply = <&vdd1>;
+>     };
+> };
+> 
+> I assume this would work but I don't have a 4430 board to test it on.
+> Unsure about voltage range, but at least 1.0 to 1.4V covers the operation
+> points for cpu in omap443xx.dtsi.
+This will not work. 6030 does not allow voltage to be set over i2c1,
+needs voltage controller/processor to work.
 
-I completely agree with you and I am willing to spend time to have more generic implementation,
-which will also handle banked registers. The changes were just to prove the secure-to-nonsecure 
- communication concept which I wanted to introduce here as part of this RFC.
 
-I will quote my statement again 
 
-"I understand that, lot of things I need to take care from SMP architecture
-perspective.
-Based on the feedback I can spend more time to make below changes more
-generic to handle both uniprocessor and multi-processor architectures
-including more validation."
 
-Thanks,
-Vaibhav
+
+-- 
+Regards,
+Nishanth Menon
