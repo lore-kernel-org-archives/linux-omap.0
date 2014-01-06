@@ -1,109 +1,132 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [RFC] drivers: irq-chip: Enable SGI's for Secure-to-NonSecure
- communication use-cases
-Date: Mon, 6 Jan 2014 06:31:01 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83EDAD2A9@DBDE04.ent.ti.com>
-References: <79CD15C6BA57404B839C016229A409A83EDAD1B8@DBDE04.ent.ti.com>
- <cd2a9d32529543958b2fe2a7ab252850@BY2PR03MB222.namprd03.prod.outlook.com>
+From: "Gupta, Pekon" <pekon@ti.com>
+Subject: RE: [PATCH v1 0/2] mtd: nand: omap: booting from NAND using u-boot
+Date: Mon, 6 Jan 2014 07:40:42 +0000
+Message-ID: <20980858CB6D3A4BAE95CA194937D5E73EA5E07C@DBDE04.ent.ti.com>
+References: <1386925978-23705-1-git-send-email-pekon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:57021 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750875AbaAFGbg convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Jan 2014 01:31:36 -0500
-In-Reply-To: <cd2a9d32529543958b2fe2a7ab252850@BY2PR03MB222.namprd03.prod.outlook.com>
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
+In-Reply-To: <1386925978-23705-1-git-send-email-pekon@ti.com>
 Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
+List-Post: <mailto:linux-mtd@lists.infradead.org>
+List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
+Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
+To: Enric Balletbo Serra <eballetbo@iseebcn.com>, Stefan Roese <sr@denx.de>, Javier Martinez Canillas <javier@dowhile0.org>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Igor Grinberg <grinberg@compulab.co.il>, Michael Trimarchi <michael@amarulasolutions.com>, Nikita Kiryanov <nikita@compulab.co.il>, "jp.francois@cynove.com" <jp.francois@cynove.com>, "ivan.djelic@parrot.com" <ivan.djelic@parrot.com>
+Cc: "Woodruff, Richard" <r-woodruff2@ti.com>, Artem Bityutskiy <dedekind1@gmail.com>, Brian Norris <computersforpeace@gmail.com>, "Rini, Tom" <trini@ti.com>, "avinashphilipk@gmail.com" <avinashphilipk@gmail.com>, "r.meier@siemens.com" <r.meier@siemens.com>, "u-boot@lists.denx.de" <u-boot@lists.denx.de>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "Balbi,
+ Felipe" <balbi@ti.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, Scott Wood <scottwood@freescale.com>, linux-omap <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: "bhupesh.sharma@freescale.com" <bhupesh.sharma@freescale.com>, "'linux-arm-kernel@lists.infradead.org'" <linux-arm-kernel@lists.infradead.org>
-Cc: 'Tony Lindgren' <tony@atomide.com>, "'linux-omap@vger.kernel.org'" <linux-omap@vger.kernel.org>, 'Russell King' <linux@arm.linux.org.uk>
 
-> -----Original Message-----
-> From: bhupesh.sharma@freescale.com
-> [mailto:bhupesh.sharma@freescale.com]
-> Sent: Monday, January 06, 2014 11:02 AM
-> To: Hiremath, Vaibhav; 'linux-arm-kernel@lists.infradead.org'
-> Cc: 'Tony Lindgren'; 'linux-omap@vger.kernel.org'; 'Russell King'
-> Subject: RE: [RFC] drivers: irq-chip: Enable SGI's for Secure-to-NonSecure
-> communication use-cases
-> 
-> > -----Original Message-----
-> > From: linux-arm-kernel [mailto:linux-arm-kernel-
-> > bounces@lists.infradead.org] On Behalf Of Hiremath, Vaibhav
-> > Sent: Monday, January 06, 2014 10:39 AM
-> > To: linux-arm-kernel@lists.infradead.org
-> > Cc: Tony Lindgren; linux-omap@vger.kernel.org; Russell King
-> > Subject: [RFC] drivers: irq-chip: Enable SGI's for Secure-to-NonSecure
-> > communication use-cases
-> >
-> > Hi,
-> >
-> > Currently the Software Generated Interrupts (SGI) are restricted to
-> > use only for SMP architecture for inter-processor communication as
-> > rightly documented in ARM GIC spec V1.
-> >
-> > In the system with the uniprocessor (and/or multiprocessor variants)
-> > architecture with TRUSTZONE enabled device (like, AM43xx device), the
-> > SGI can be used for communication between secure-to-nonsecure world.
-> > And in order to enable SGI event from secure world to non-secure
-> > world, GIC driver __must__ support registration of interrupt service
-> > routines for SGI's; which is currently restricted by GIC driver.
-> 
-> I am not an expert on this, but as per my understanding the model
-> recommended by ARM is the use of IRQ as a Normal world interrupt source, and
-> FIQ as the Secure world source.
-> 
-[Hiremath, Vaibhav] Absolutely and I also follow same recommendation here.
+Hello Enric, Nikita, and other OMAP3 users,
 
-> If IRQ is received by the Secure world, it should cause a hardware trap to the
-> monitor and the monitor mode should cause a context switch and jumps to the
-> normal world, where the interrupt handler should execute (see reference [1]).
-> 
+>
+>As there were parallel set of patches running between u-boot and kernel.
+>hence, some patch-sets caused regression for OMAP3x platforms when booting
+>using u-boot specifically for ecc-schemes (like BCH4_SW).
+>
+>Hence this patch series fixes those regressions, and tests complete
+>NAND boot sequence for multiple ecc-schemes on AM335x-EVM board.
+>(following configurations are required for building u-boot driver which is
+> compatible to kernel ecclayout for selected ecc-scheme)
+>
+>
+>    (BCH8_HW)      (HAM1_HW)         (HAM1_HW)         (HAM1_HW)  (UBIFS)
+>ROM ---------> SPL ---------> U-Boot ---------> Kernel ---------> File-System
+>
+>    (BCH8_HW)      (BCH8_SW)         (BCH8_SW)         (BCH8_SW)  (UBIFS)
+>ROM ---------> SPL ---------> U-Boot ---------> Kernel ---------> File-System
+>
+>    (BCH8_HW)      (BCH8_HW)         (BCH8_HW)         (BCH8_HW)  (UBIFS)
+>ROM ---------> SPL ---------> U-Boot ---------> Kernel ---------> File-System
+>
+>*Configurations used to build u-boot and kernel for end-to-end NAND boot*
+>+------------+--------------------------------------------+------------------+
+>| ecc-scheme |  u-boot/SPL configs                        | kernel DTS       |
+>+------------+--------------------------------------------+------------------+
+>|            |                                            |                  |
+>| HAM1_HW    | #define CONFIG_NAND_OMAP_ECCSCHEME     \   |ti,nand-ecc-opts= |
+>|            |         OMAP_ECC_HAM1_CODE_HW              |    "ham1"        |
+>| (1-bit     | #define CONFIG_SYS_NAND_ECCBYTES       3   |                  |
+>| Hamming    | #define CONFIG_SYS_NAND_ECCPOS \           |                  |
+>| using h/w) |      { 1, 2, 3, 4, 5, 6, 7, 8, 9, \        |                  |
+>|            |        10, 11, 12 }                        |                  |
+>|            | (for NAND page-size=2048)                  |                  |
+>|            |                                            |                  |
+>+------------+--------------------------------------------+------------------+
+>|            |                                            |                  |
+>| BCH8_SW    | #define CONFIG_NAND_OMAP_ECCSCHEME    \    |ti,nand-ecc-opts= |
+>|            |         OMAP_ECC_BCH8_CODE_HW_DETECTION_SW |    "bch8"        |
+>|(8-bit BCH  | #define CONFIG_SYS_NAND_ECCBYTES       13  |(without ELM node)|
+>| using s/w  | #define CONFIG_BCH                         |                  |
+>|library for | #undef CONFIG_SPL_NAND_AM33XX_BCH          |                  |
+>|for ECC     | #define CONFIG_SPL_NAND_SIMPLE             |                  |
+>| error      | #define CONFIG_SYS_NAND_ECCPOS \           |                  |
+>|correction) |     {2,  3,  4,  5,  6,  7,  8,  9, 10, \  |                  |
+>|            |     11, 12, 13, 14, \                      |                  |
+>|            |     16, 17, 18, 19, 20, 21, 22, 23, 24, \  |                  |
+>|            |     25, 26, 27, 28, \                      |                  |
+>|            |     30, 31, 32, 33, 34, 35, 36, 37, 38, \  |                  |
+>|            |     39, 40, 41, 42, \                      |                  |
+>|            |     44, 45, 46, 47, 48, 49, 50, 51, 52, \  |                  |
+>|            |     53, 54, 55, 56, }                      |                  |
+>|            | (for NAND page-size=2048)                  |                  |
+>|            | #define CONFIG_SYS_NAND_ECCSIZE       512  |                  |
+>|            |                                            |                  |
+>+------------+--------------------------------------------+------------------+
+>|            |                                            |                  |
+>| BCH8_HW    | #define CONFIG_NAND_OMAP_ECCSCHEME    \    |ti,nand-ecc-opts= |
+>|            |         OMAP_ECC_BCH8_CODE_HW              |    "bch8"        |
+>|(8-bit BCH  | #define CONFIG_SYS_NAND_ECCBYTES       14  |                  |
+>| using ELM  | #define CONFIG_SPL_NAND_AM33XX_BCH         |(with ELM node)   |
+>| h/w engine | #define CONFIG_SYS_NAND_ECCPOS  \          |ti,elm-id=<&elm>  |
+>|for ECC     |       {2,  3,  4,  5,  6,  7,  8,  9, \    |                  |
+>| error      |       10, 11, 12, 13, 14, 15, 16, 17, \    |                  |
+>|correction) |       18, 19, 20, 21, 22, 23, 24, 25, \    |                  |
+>|            |       26, 27, 28, 29, 30, 31, 32, 33, \    |                  |
+>|            |       34, 35, 36, 37, 38, 39, 40, 41, \    |                  |
+>|            |       42, 43, 44, 45, 46, 47, 48, 49, \    |                  |
+>|            |       50, 51, 52, 53, 54, 55, 56, 57, }    |                  |
+>|            | (for NAND page-size=2048)                  |                  |
+>|            | #define CONFIG_SYS_NAND_ECCSIZE       512  |                  |
+>|            |                                            |                  |
+>+------------+--------------------------------------------+------------------+
+>
+>#* In addition following patches need to be pulled for u-boot:
+>   http://lists.denx.de/pipermail/u-boot/2013-December/168506.html
+>   http://lists.denx.de/pipermail/u-boot/2013-December/169021.html
+>
+>
+>Test1: flash ubi image from u-boot and boot the kernel
+>   U-boot> mw 0x82000000 0xff <u-boot.img size aligned to NAND block boundary>
+>   U-boot> fatload mmc 0 0x82000000 u-boot.img
+>   U-boot> nand erase <u-boot_offset> <u-boot.img size>
+>   U-boot> nand write 0x82000000  <u-boot_offset> <u-boot.img size>
+>   U-boot> setenv bootargs 'console=ttyO0,115200n8 noinitrd mem=256M \
+>                root=ubi0 rw rootfstype=ubifs ubi.mtd=<mtdpart-of-rootfs>,\
+>                <page-size> ip=off init=/init'
+>   U-boot> bootm <kernel_offset>
+>
+>Test2: update u-boot.img from kernel and re-boot
+>   Kernel> flash_erase /dev/<mtdpart-of-u-boot>  0 0
+>   Kernel> nandwrite -s 0  /dev/<mtdpart-of-u-boot>   u-boot.img
+>   Kernel> reboot
+>
+>Signed-off-by: Pekon Gupta <pekon@ti.com>
+>---
 
-I think I missed to explicitly talk about FIQ in the RFC, sorry for the confusion.
-Yes, IRQ received by secure world should cause HW trap to monitor mode and 
-Further should cause context switch to public world to handle the interrupt.
+Though I have done initial level of testing on AM335x as mentioned above,
+But will it be possible for you to test and confirm if these set of patches
+solve regressions on your OMAP3 boards ?
 
-And this RFC wants to leverage this, where, any operations on secure world,
 
-        - Functional operation (entered through monitor mode) which want to pass on the 
-          event to public world
-        - Any FIQ (secure interrupts) wants to pass on certain events or information to
-           Public world - It could be any secure peripheral interrupt causing FIQ
+with regards, pekon
 
-Secure world can use IRQ, which is generated by software to pass on the event information
-to public world. Please note that, the SGI is non-secure, so if you raise and SGI from secure 
-world it will follow the execution mentioned above.
-
-So this RFC enables asynchronous communication channel between secure world to 
-Non-secure world using SGI.
-
-> For making a transition from the secure world to the normal world and vice-
-> versa, the core should transition via the monitor mode. Assuming a
-> Uniprocessor system running both Normal and Secure world - thus providing a
-> view of two virtual processors running in a time-sliced fashion, the world in
-> which the processor is executing should be indicated by the NS-bit in the Secure
-> Configuration Register (SCR) in CP15. The IRQ, FIQ, Abort exceptions can all be
-> configured to cause the processor to switch into monitor mode.
-> 
-> The software that executes within monitor mode is implementation defined, but
-> it generally saves the state of the current world and restores the state of the
-> world being switched to.
-> It then performs a return-from-exception to restart processing in the restored
-> world. (see reference [2]).
-> 
-> Does this RFC implementation take into account the monitor mode switch while
-> switching/passing information b/w the two worlds?
-> 
-
-Yes, as recommended by ARM, this RFC is also based on the recommendation, where,
-monitor mode is responsible for saving and restoring contexts.
-RFC doesn't handle the monitor mode implementation which lacks context save/restore.
-
-Please let me know if you still have any confusion on the usecase and on this RFC
-
-Thanks,
-Vaibhav
-
+______________________________________________________
+Linux MTD discussion mailing list
+http://lists.infradead.org/mailman/listinfo/linux-mtd/
