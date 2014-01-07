@@ -1,90 +1,84 @@
-From: Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [PATCH v7 5/7] ARM: dts: add pbias dt node
-Date: Tue, 7 Jan 2014 10:57:38 +0000
-Message-ID: <20140107105738.GA4180@e106331-lin.cambridge.arm.com>
-References: <1387560955-6547-1-git-send-email-balajitk@ti.com>
- <1387560955-6547-6-git-send-email-balajitk@ti.com>
- <20140106181928.GK24664@e106331-lin.cambridge.arm.com>
- <52CBD467.6060909@ti.com>
+From: Sebastian Reichel <sre-GFxCN5SEZAc@public.gmane.org>
+Subject: Re: [RFC PATCH v1 2/5] misc: tda8026: Add NXP TDA8026 PHY driver
+Date: Tue, 7 Jan 2014 12:45:53 +0100
+Message-ID: <20140107114552.GA900@earth.universe>
+References: <1389010062-17185-1-git-send-email-satish.patel@ti.com>
+ <1389010062-17185-3-git-send-email-satish.patel@ti.com>
+ <20140106153033.GB24664@e106331-lin.cambridge.arm.com>
+ <52CBA075.8080506@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:51489 "EHLO
-	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750951AbaAGK5w (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Jan 2014 05:57:52 -0500
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="Qxx1br4bt0+wmkIi"
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <52CBD467.6060909@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <52CBA075.8080506-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Satish Patel <satish.patel-l0cyMroinI0@public.gmane.org>
+Cc: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "arnd-r2nGTMty4D4@public.gmane.org" <arnd-r2nGTMty4D4@public.gmane.org>, "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org" <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Balaji T K <balajitk@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "bcousson@baylibre.com" <bcousson@baylibre.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "cjb@laptop.org" <cjb@laptop.org>, "broonie@kernel.org" <broonie@kernel.org>, "tony@atomide.com" <tony@atomide.com>
 
-On Tue, Jan 07, 2014 at 10:18:15AM +0000, Balaji T K wrote:
-> On Monday 06 January 2014 11:49 PM, Mark Rutland wrote:
-> > On Fri, Dec 20, 2013 at 05:35:53PM +0000, Balaji T K wrote:
-> >> Add pbias regulator node as a child of system control
-> >> module - syscon.
-> >>
-> >> Signed-off-by: Balaji T K <balajitk@ti.com>
-> >> ---
-> >>   arch/arm/boot/dts/dra7.dtsi     |   18 ++++++++++++++++++
-> >>   arch/arm/boot/dts/omap2430.dtsi |   18 ++++++++++++++++++
-> >>   arch/arm/boot/dts/omap3.dtsi    |   18 ++++++++++++++++++
-> >>   arch/arm/boot/dts/omap4.dtsi    |   18 ++++++++++++++++++
-> >>   arch/arm/boot/dts/omap5.dtsi    |   18 ++++++++++++++++++
-> >>   5 files changed, 90 insertions(+), 0 deletions(-)
-> >>
-> >> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-> >> index d0df4c4..4e68df1 100644
-> >> --- a/arch/arm/boot/dts/dra7.dtsi
-> >> +++ b/arch/arm/boot/dts/dra7.dtsi
-> >> @@ -110,6 +110,23 @@
-> >>   			ti,hwmods = "counter_32k";
-> >>   		};
-> >>
-> >> +		dra7_ctrl_general: tisyscon@4a002e00 {
-> >> +			compatible = "ti,control-syscon", "syscon", "simple-bus";
-> >
-> > Please, don't use simple-bus like that. The components below this node
-> > depend on it. It is _NOT_ a simple bus. Make the ti,control-syscon
-> > driver probe it's children.
-> 
-> Hi Mark,
-> 
-> Actually ti,control-syscon driver does not exist, so I can remove it,
-> and simple-bus is needed for child creation.
 
-This still shows up as a syscon node, with a reg property, and syscon is
-not an extension of simple-bus.
+--Qxx1br4bt0+wmkIi
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-There are properties in the parent node that children depend on, and
-that makes me wary of describing it as a simple bus. I'd expect to be
-able to move child nodes out of a simple-bus if ranges provided an
-idmap, and I can't do that here.
+On Tue, Jan 07, 2014 at 12:06:37PM +0530, Satish Patel wrote:
+> >> +       if (pdata->irq =3D=3D 0) {
+> >> +               /* look for the field irq-gpio in DT */
+> >> +               irq_gpio =3D of_get_named_gpio(np, "irq-gpio", 0);
+> >> +               if (!gpio_is_valid(irq_gpio)) {
+> >> +                       dev_err(dev, "Failed to get irq gpio,\n");
+> >> +                       return -EIO;
+> >> +               }
+> >=20
+> > This is horrible. If the gpio controller can act as an irq controller
+>=20
+> No it's not true. Let me clarify the signal flow,
+>=20
+> Pins =3D> GPIO =3D> GPIO BANK =3D> Interrupt controller =3D> CPU/MPU
 
-Thanks,
-Mark.
+This is done automatically if you use the gpio controller as
+interrupt source (here with GPIO line 22 as example):
 
-> 
-> >
-> >> +			reg = <0x4a002e00 0x7c>;
-> >> +			#address-cells = <1>;
-> >> +			#size-cells = <1>;
-> >> +			ranges;
-> >> +			pbias_regulator: pbias_regulator {
-> >> +				compatible = "ti,pbias-omap";
-> >> +				reg = <0 0x4>;
-> >> +				pbias_mmc_reg: pbias_mmc_omap5 {
-> >> +					regulator-name = "pbias_mmc_omap5";
-> >> +					regulator-min-microvolt = <1800000>;
-> >> +					regulator-max-microvolt = <3000000>;
-> >> +				};
-> >> +			};
-> >> +		};
-> >> +
-> >
-> > Thanks,
-> > Mark.
-> >
-> 
+device-tree-node {
+    interrupts-extended =3D <&gpio1 22>;
+};
+
+alternatively, but then the irqs from the normal irq controller
+can't be used:
+
+device-tree-node {
+    interrupt-parent =3D <&gpio1>;
+    interrupts =3D <22>;
+};
+
+-- Sebastian
+
+--Qxx1br4bt0+wmkIi
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.15 (GNU/Linux)
+
+iQIcBAEBCAAGBQJSy+jwAAoJENju1/PIO/qaOIoP/0tsaStyDB2S3j3R6eoEEiST
+rytQS559jkb5Q37AOXKuc+4+oNqkGj8y/26VppiefRZnKlYHQ8cesPs2USh0Xhkq
+agd43W6Oha7iPZajrbc0pmx7Wc/xq4vKHNJEQ8KiQLOLOm6zDAPDenTH3SUJoVzw
+Eq8ms/a0at/hAo8sLy+yH+ugaX9QeE9c9/QA9vx1wtkxfY4D/83PwjiRmUDoB1NS
+QE4Iaulf3/Vit4YdJWpj2BJhPiyhBmF3+xi2ePGJ5zIlT/nIABi4JxhhemSYcO5h
+14cFQnBpkG/rzekBav2vRL62f5QIagQOI1PhQ5Vz9qWTyftWW4ZEl6liJf9Sj3c0
+gcmxnk914WzNwK47smryCt5B/juAS+njSlVLbaiuNglUb3JVbzmG7M3X/d9XB15V
+ZNPvfyqy6juEKEjudXF1kcKAm9GGLXMCdrWDoVl4dbemC+eDP7U6C3581jOgTlNV
+o73nQd2SdWEPy3qBIebq4hqWCA45aSJXg4nu4s9M4d0cZvL1TYpAcciSYFOxpVSN
+r9Gao3vrWNhatA7R4mvuEwJXFkYFvxXjFXPVZJ0JQYUKoSeizg78qTlZLpfj+cv9
+NkLpqmYJ6W8Jkevex8EjDkUW2sCbAT9ErEsMs2Skbe+HXaGqNqhCJMcr9UkvEaM2
+07oTIH9E+Yq5sVVRm0aS
+=H4KI
+-----END PGP SIGNATURE-----
+
+--Qxx1br4bt0+wmkIi--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
