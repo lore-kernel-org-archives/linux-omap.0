@@ -1,52 +1,146 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH 0/2] ARM: DTS: am335x-evmsk: Audio and MMC1 fix (for 3.13?)
-Date: Tue, 7 Jan 2014 10:15:04 +0200
-Message-ID: <52CBB788.9070404@ti.com>
-References: <1387790915-7217-1-git-send-email-peter.ujfalusi@ti.com>
+From: Balaji T K <balajitk@ti.com>
+Subject: Re: [PATCH v7 3/7] regulator: add pbias regulator support
+Date: Tue, 7 Jan 2014 15:39:29 +0530
+Message-ID: <52CBD259.90804@ti.com>
+References: <1387560955-6547-1-git-send-email-balajitk@ti.com> <1387560955-6547-4-git-send-email-balajitk@ti.com> <20140106181647.GJ24664@e106331-lin.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:57780 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751063AbaAGIPg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Jan 2014 03:15:36 -0500
-In-Reply-To: <1387790915-7217-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <20140106181647.GJ24664@e106331-lin.cambridge.arm.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Mark Rutland <mark.rutland@arm.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "bcousson@baylibre.com" <bcousson@baylibre.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "cjb@laptop.org" <cjb@laptop.org>, "broonie@kernel.org" <broonie@kernel.org>, "tony@atomide.com" <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, rogerq@ti.com, balbi@ti.com
 
-Hi Benoit,
+On Monday 06 January 2014 11:46 PM, Mark Rutland wrote:
+> On Fri, Dec 20, 2013 at 05:35:51PM +0000, Balaji T K wrote:
+>> pbias register controls internal power supply to sd card i/o pads
+>> in most OMAPs (OMAP2-5, DRA7).
+>> Control bits for selecting voltage level and
+>> enabling/disabling are in the same PBIAS register.
+>>
+>> Signed-off-by: Balaji T K <balajitk@ti.com>
+>> ---
+>>   .../bindings/regulator/pbias-regulator.txt         |   16 ++
+>>   drivers/regulator/Kconfig                          |    9 +
+>>   drivers/regulator/Makefile                         |    1 +
+>>   drivers/regulator/pbias-regulator.c                |  261 ++++++++++++++++++++
+>>   4 files changed, 287 insertions(+), 0 deletions(-)
+>>   create mode 100644 Documentation/devicetree/bindings/regulator/pbias-regulator.txt
+>>   create mode 100644 drivers/regulator/pbias-regulator.c
+>>
+>> diff --git a/Documentation/devicetree/bindings/regulator/pbias-regulator.txt b/Documentation/devicetree/bindings/regulator/pbias-regulator.txt
+>> new file mode 100644
+>> index 0000000..359d3f9
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/regulator/pbias-regulator.txt
+>> @@ -0,0 +1,16 @@
+>> +PBIAS internal regulator for SD card dual voltage i/o pads on OMAP SoCs.
+>> +
+>> +Required properties:
+>> +- compatible:
+>> +  - "ti,pbias-omap" for OMAP2, OMAP3, OMAP4, OMAP5, DRA7
+>> +
+>> +Optional properties:
+>> +- Any optional property defined in bindings/regulator/regulator.txt
+>> +
+>> +Example:
+>> +
+>> +		pbias_regulator: pbias_regulator {
+>> +			regulator-name = "pbias_mmc_omap4";
+>> +			regulator-min-microvolt = <1800000>;
+>> +			regulator-max-microvolt = <3000000>;
+>> +	};
+>
+> This doesn't look like a full example. I don't see the required
+> compatible string.
+>
 
-On 12/23/2013 11:28 AM, Peter Ujfalusi wrote:
-> Hi,
->=20
-> The audio frequency has been incorrectly set in the DTS file which re=
-sults
-> incorrect playback frequency on EVM-SK.
->=20
-> The SD card can not be used without the second patch on 3.13-rc5.
+Thanks for pointing, I missed it, will add to example.
 
-Can you take a look at these and if it is possible send it for 3.13?
+> [...]
+>
+>> +static struct of_regulator_match pbias_matches[] = {
+>> +	{ .name = "pbias_mmc_omap2430", .driver_data = (void *)&pbias_mmc_omap2430},
+>> +	{ .name = "pbias_sim_omap3", .driver_data = (void *)&pbias_sim_omap3},
+>> +	{ .name = "pbias_mmc_omap4", .driver_data = (void *)&pbias_mmc_omap4},
+>> +	{ .name = "pbias_mmc_omap5", .driver_data = (void *)&pbias_mmc_omap5},
+>> +};
+>
+> These weren't documented.
 
->=20
-> Regards,
-> Peter
-> ---
-> Peter Ujfalusi (2):
->   ARM: DTS: am335x-evmsk: Correct audio clock frequency
->   ARM: dts: am335x-evmsk: Fix mmc1 support
->=20
->  arch/arm/boot/dts/am335x-evmsk.dts | 11 ++++++++++-
->  1 file changed, 10 insertions(+), 1 deletion(-)
->=20
+Ok, will add it
 
+>
+> [...]
+>
+>> +static int pbias_regulator_probe(struct platform_device *pdev)
+>> +{
+>> +	struct device_node *np = pdev->dev.of_node;
+>> +	struct device_node *dev_node;
+>> +	struct pbias_regulator_data *drvdata;
+>> +	struct resource *res;
+>> +	struct regulator_config cfg = { };
+>> +	struct regmap *syscon;
+>> +	const struct pbias_reg_info *info;
+>> +	int ret = 0;
+>> +	int count, idx, data_idx = 0;
+>> +
+>> +	count = of_regulator_match(&pdev->dev, np, pbias_matches,
+>> +						PBIAS_NUM_REGS);
+>> +	if (count < 0)
+>> +		return count;
+>> +
+>> +	drvdata = devm_kzalloc(&pdev->dev, sizeof(struct pbias_regulator_data)
+>> +			       * count, GFP_KERNEL);
+>> +	if (drvdata == NULL) {
+>> +		dev_err(&pdev->dev, "Failed to allocate device data\n");
+>> +		return -ENOMEM;
+>> +	}
+>> +
+>> +	dev_node = of_get_parent(np);
+>> +	if (!dev_node)
+>> +		return -ENODEV;
+>> +
+>> +	syscon = syscon_node_to_regmap(dev_node);
+>
+> If we're relying on a particular parent node, that _must_ be described
+> in the binding.
 
---=20
-P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Ok
+>
+>> +	of_node_put(dev_node);
+>> +	if (IS_ERR(syscon))
+>> +		return PTR_ERR(syscon);
+>> +
+>> +	cfg.dev = &pdev->dev;
+>> +
+>> +	for (idx = 0; idx < PBIAS_NUM_REGS, data_idx < count; idx++) {
+>> +		if (!pbias_matches[idx].init_data ||
+>> +			!pbias_matches[idx].of_node)
+>> +			continue;
+>> +
+>> +		info = pbias_matches[idx].driver_data;
+>> +		if (!info)
+>> +			return -ENODEV;
+>> +
+>> +		res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+>
+> A reg entry was not mentioned in the binding.
+
+Ok, will add it
+
+>
+> Why is this inside the loop? It's grabbing the reg from the parent, not
+> each of the children it's walking over.
+>
+
+The reg property is same for each children and is needed for each regulator.
+It is for the case where a single register can control 2
+regulators as in OMAP3 (mmc and sim). In other SoCs, only one regulator
+of "ti,pbias-omap" compatible exists in the pbias register.
+
+> Thanks,
+> Mark.
+>
