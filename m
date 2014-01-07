@@ -1,44 +1,52 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv12 06/49] clk: add support for low level register ops
-Date: Tue, 7 Jan 2014 09:44:56 +0200
-Message-ID: <52CBB078.7000607@ti.com>
-References: <1387557274-22583-1-git-send-email-t-kristo@ti.com> <1387557274-22583-6-git-send-email-t-kristo@ti.com> <20131222173926.GB8064@book.gsilab.sittig.org> <52C67F53.6000402@ti.com> <52C7141F.2020901@codeaurora.org>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH 0/2] ARM: DTS: am335x-evmsk: Audio and MMC1 fix (for 3.13?)
+Date: Tue, 7 Jan 2014 10:15:04 +0200
+Message-ID: <52CBB788.9070404@ti.com>
+References: <1387790915-7217-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:60240 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754662AbaAGHpe (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 7 Jan 2014 02:45:34 -0500
-In-Reply-To: <52C7141F.2020901@codeaurora.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:57780 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751063AbaAGIPg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Jan 2014 03:15:36 -0500
+In-Reply-To: <1387790915-7217-1-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Stephen Boyd <sboyd@codeaurora.org>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, nm@ti.com, rnayak@ti.com, bcousson@baylibre.com, mturquette@linaro.org, linux-arm-kernel@lists.infradead.org, Anatolij Gustschin <agust@denx.de>
+To: Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, rogerq@ti.com, balbi@ti.com
 
-On 01/03/2014 09:48 PM, Stephen Boyd wrote:
-> On 01/03/14 01:13, Tero Kristo wrote:
->> On 12/22/2013 07:39 PM, Gerhard Sittig wrote:
->>>
->>>
->>> Further I'd suggest to split this register access aspect out of
->>> the TI clock series, and to prepare it already for regmap style
->>> access to the hardware registers.  See the next comment below.
->>
->> This sounds like a good idea to me, seeing it is blocking lots of
->> other things.
->
-> This ll_ops struct looks like a simplified regmap. Have you seen my
-> series that adds regmap support to the common clock framework[1]? Is
-> there any reason why you can't use those patches and layer some patches
-> on top to add support for regmap to the basic clock types?
->
-> [1] https://lkml.org/lkml/2013/12/23/461
+Hi Benoit,
 
-Yea I've seen that. I also used regmap myself on some earlier rev, but 
-it is rather an overkill solution to my purposes, and it also adds 
-additional latencies to the register access.
+On 12/23/2013 11:28 AM, Peter Ujfalusi wrote:
+> Hi,
+>=20
+> The audio frequency has been incorrectly set in the DTS file which re=
+sults
+> incorrect playback frequency on EVM-SK.
+>=20
+> The SD card can not be used without the second patch on 3.13-rc5.
 
--Tero
+Can you take a look at these and if it is possible send it for 3.13?
 
+>=20
+> Regards,
+> Peter
+> ---
+> Peter Ujfalusi (2):
+>   ARM: DTS: am335x-evmsk: Correct audio clock frequency
+>   ARM: dts: am335x-evmsk: Fix mmc1 support
+>=20
+>  arch/arm/boot/dts/am335x-evmsk.dts | 11 ++++++++++-
+>  1 file changed, 10 insertions(+), 1 deletion(-)
+>=20
+
+
+--=20
+P=E9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
