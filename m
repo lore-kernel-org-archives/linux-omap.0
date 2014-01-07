@@ -1,83 +1,75 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 1/2] ARM: dts: Add omap specific pinctrl defines to
- use padconf addresses
-Date: Tue, 7 Jan 2014 15:33:12 -0800
-Message-ID: <20140107233312.GF5074@atomide.com>
-References: <1387554677-21100-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <1562680.iFW31kAxBU@avalon>
- <20140107232018.GE5074@atomide.com>
- <4726809.ZkNbraKLQU@avalon>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH V5 0/4] DRIVERS: IRQCHIP: Add support for crossbar IP
+Date: Tue, 7 Jan 2014 15:55:15 -0800
+Message-ID: <20140107235514.GG5074@atomide.com>
+References: <1386066445-28245-1-git-send-email-r.sricharan@ti.com>
+ <52B168A5.4010202@ti.com>
+ <52BBB614.5010707@ti.com>
+ <52BC6B16.80507@ti.com>
+ <52BD856E.7010609@ti.com>
+ <52C11284.2030500@ti.com>
+ <20140107230733.GD5074@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:53603 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753380AbaAGXdS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Jan 2014 18:33:18 -0500
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <4726809.ZkNbraKLQU@avalon>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20140107230733.GD5074-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sricharan R <r.sricharan-l0cyMroinI0@public.gmane.org>
+Cc: Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org, marc.zyngier-5wv7dgnIgG8@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, robherring2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Sebastian Reichel <sre@debian.org>, Sakari Ailus <sakari.ailus@iki.fi>
 
-* Laurent Pinchart <laurent.pinchart@ideasonboard.com> [140107 15:26]:
-> Hi Tony,
-> 
-> On Tuesday 07 January 2014 15:20:18 Tony Lindgren wrote:
-> > * Laurent Pinchart <laurent.pinchart@ideasonboard.com> [140107 15:10]:
-> > > On Tuesday 07 January 2014 14:30:21 Tony Lindgren wrote:
-> > > > * Laurent Pinchart <laurent.pinchart@ideasonboard.com> [131220 07:52]:
-> > > > > From: Tony Lindgren <tony@atomide.com>
-> > > > > +/*
-> > > > > + * Macros to allow using the absolute physical address instead of the
-> > > > > + * padconf registers instead of the offset from padconf base.
-> > > > > + */
-> > > > > +#define OMAP_IOPAD_OFFSET(pa, offset)	(((pa) & 0xffff) - (offset))
-> > > > > +
-> > > > > +#define OMAP2420_CORE_IOPAD(pa, val)	OMAP_IOPAD_OFFSET((pa), 0x0030)
-> > > > > (val)
-> > > > > +#define OMAP2430_CORE_IOPAD(pa, val)	OMAP_IOPAD_OFFSET((pa), 0x2030)
-> > > > > (val)
-> > > > > +#define OMAP3_CORE1_IOPAD(pa, val)	OMAP_IOPAD_OFFSET((pa), 0x2030)
-> > > > > (val)
-> > > > > +#define OMAP3_CORE2_IOPAD(pa, val)	OMAP_IOPAD_OFFSET((pa), 0x25a0)
-> > > > > (val)
-> > > > 
-> > > > Sorry for the delay on these, I'm only now getting back to looking
-> > > > at all the emails since the holidays :)
-> > > > 
-> > > > After looking at Nishant's omap3 pinctrl core2 patch, looks like we need
-> > > > to have separate OMAP3430_CORE2_IOPAD and OMAP3630_CORE2_IOPAD defines.
+* Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [140107 15:10]:
+> * Sricharan R <r.sricharan-l0cyMroinI0@public.gmane.org> [131229 22:30]:
+> > On Friday 27 December 2013 07:19 PM, Sricharan R wrote:
+> > > On Thursday 26 December 2013 11:14 PM, Santosh Shilimkar wrote:
+> > >> On Wednesday 25 December 2013 11:52 PM, Sricharan R wrote:
+> > >>> On Wednesday 18 December 2013 02:49 PM, Sricharan R wrote:
+> > >>>> I have addressed all the comments on this series, can this be merged now ?
+> > >>>>
+> > >>>   Ping..
+> > >>>
+> > >> Thomas has already given his reviewed-by tag so the patches can be
+> > >> taken via arm-soc tree considering OMAP and GIC changes. Can you
+> > >> create a branch with all these patches applied and send it
+> > >> to Tony ?
+> > >>
+> > > Ok, i will send out a branch for this.
 > > > 
-> > > That was my first impression as well, but I think we actually don't need
-> > > to. The OMAP3430 just has no useful registers in the 0x25a0 - 0x25d7
-> > > area, so we can make the CORE2 macro span that for both 3430 and 3630.
+> >  
+> >  I have pushed the below branch
 > > 
-> > Hmm well I already did it :)
-> 
-> Haven't you been taught that you should send patches for review before 
-> applying them ? ;-)
-
-Using the "trivial change to an earlier patch" clause here ;)
- 
-> > In general my gut feeling is along the lines what you're saying, I think the
-> > padconf registers are all there on all omap3 SoCs, but only some of the
-> > padconf registers are used depending on the SoC revision and package.
+> > git://github.com/Sricharanti/sricharan.git
+> > branch: crossbar
 > > 
-> > Anyways, it should not hurt to have the padconf registers defined the
-> > same way as the documentation has them, at least we may get some extra
-> > warnings if people try to configure unused registers for 3430.
+> > This is on top of Tony's linux-omap master branch
 > 
-> As long as the bug is fixed in a reasonably clean way I'm fine with that. This 
-> seems to count as a reasonably clean way, so no complaint :-)
+> The linux-omap master branch cannot be used as a base as it
+> contains tons of commit history not in mainline. So I'll
+> manually applied these patches into omap-for-v3.14/crosbar
+> branch.
 
-Thanks :)
+Oops, I noticed some errors on these:
 
-BTW, I'm queueing these for v3.14, hopefully everybody is fine
-with that as these changes are getting pretty intrusive for v3.13.
-If people really need these for v3.13, please yell.
+WARNING: drivers/built-in.o(.text+0xcd0): Section mismatch in reference from the function irqcrossbar_init() to the function .init.text:crossbar_of_init()
+The function irqcrossbar_init() references
+the function __init crossbar_of_init().
+This is often because irqcrossbar_init lacks a __init 
+annotation or the annotation of crossbar_of_init is wrong.
+
+WARNING: drivers/built-in.o(.text+0xcdc): Section mismatch in reference from the function irqcrossbar_init() to the (unknown reference) .init.rodata:(unknown)
+The function irqcrossbar_init() references
+the (unknown reference) __initconst (unknown).
+This is often because irqcrossbar_init lacks a __initconst 
+annotation or the annotation of (unknown) is wrong.
+
+So I've dropped them for now. Care to fix up those errors and
+base your patches against let's say v3.13-rc5?
 
 Regards,
 
 Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
