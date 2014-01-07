@@ -1,52 +1,133 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH V5 0/4] DRIVERS: IRQCHIP: Add support for crossbar IP
-Date: Tue, 7 Jan 2014 15:07:34 -0800
-Message-ID: <20140107230733.GD5074@atomide.com>
-References: <1386066445-28245-1-git-send-email-r.sricharan@ti.com>
- <52B168A5.4010202@ti.com>
- <52BBB614.5010707@ti.com>
- <52BC6B16.80507@ti.com>
- <52BD856E.7010609@ti.com>
- <52C11284.2030500@ti.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH v2 1/2] ARM: dts: Add omap specific pinctrl defines to use padconf addresses
+Date: Wed, 08 Jan 2014 00:09:37 +0100
+Message-ID: <1562680.iFW31kAxBU@avalon>
+References: <1387554677-21100-1-git-send-email-laurent.pinchart@ideasonboard.com> <1387554677-21100-2-git-send-email-laurent.pinchart@ideasonboard.com> <20140107223021.GA5074@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <52C11284.2030500@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sricharan R <r.sricharan@ti.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linus.walleij@linaro.org, linux@arm.linux.org.uk, rnayak@ti.com, marc.zyngier@arm.com, grant.likely@linaro.org, mark.rutland@arm.com, robherring2@gmail.com, tglx@linutronix.de, galak@codeaurora.org, rob.herring@calxeda.com, nm@ti.com, bcousson@baylibre.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:44064 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753007AbaAGXI7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Jan 2014 18:08:59 -0500
+In-Reply-To: <20140107223021.GA5074@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Sebastian Reichel <sre@debian.org>, Sakari Ailus <sakari.ailus@iki.fi>
 
-* Sricharan R <r.sricharan@ti.com> [131229 22:30]:
-> On Friday 27 December 2013 07:19 PM, Sricharan R wrote:
-> > On Thursday 26 December 2013 11:14 PM, Santosh Shilimkar wrote:
-> >> On Wednesday 25 December 2013 11:52 PM, Sricharan R wrote:
-> >>> On Wednesday 18 December 2013 02:49 PM, Sricharan R wrote:
-> >>>> I have addressed all the comments on this series, can this be merged now ?
-> >>>>
-> >>>   Ping..
-> >>>
-> >> Thomas has already given his reviewed-by tag so the patches can be
-> >> taken via arm-soc tree considering OMAP and GIC changes. Can you
-> >> create a branch with all these patches applied and send it
-> >> to Tony ?
-> >>
-> > Ok, i will send out a branch for this.
-> > 
->  
->  I have pushed the below branch
+Hi Tony,
+
+On Tuesday 07 January 2014 14:30:21 Tony Lindgren wrote:
+> * Laurent Pinchart <laurent.pinchart@ideasonboard.com> [131220 07:52]:
+> > From: Tony Lindgren <tony@atomide.com>
+> > +/*
+> > + * Macros to allow using the absolute physical address instead of the
+> > + * padconf registers instead of the offset from padconf base.
+> > + */
+> > +#define OMAP_IOPAD_OFFSET(pa, offset)	(((pa) & 0xffff) - (offset))
+> > +
+> > +#define OMAP2420_CORE_IOPAD(pa, val)	OMAP_IOPAD_OFFSET((pa), 0x0030)
+> > (val)
+> > +#define OMAP2430_CORE_IOPAD(pa, val)	OMAP_IOPAD_OFFSET((pa), 0x2030)
+> > (val)
+> > +#define OMAP3_CORE1_IOPAD(pa, val)	OMAP_IOPAD_OFFSET((pa), 0x2030) (val)
+> > +#define OMAP3_CORE2_IOPAD(pa, val)	OMAP_IOPAD_OFFSET((pa), 0x25a0) (val)
 > 
-> git://github.com/Sricharanti/sricharan.git
-> branch: crossbar
+> Sorry for the delay on these, I'm only now getting back to looking
+> at all the emails since the holidays :)
 > 
-> This is on top of Tony's linux-omap master branch
+> After looking at Nishant's omap3 pinctrl core2 patch, looks like we need
+> to have separate OMAP3430_CORE2_IOPAD and OMAP3630_CORE2_IOPAD defines.
 
-The linux-omap master branch cannot be used as a base as it
-contains tons of commit history not in mainline. So I'll
-manually applied these patches into omap-for-v3.14/crosbar
-branch.
+That was my first impression as well, but I think we actually don't need to. 
+The OMAP3430 just has no useful registers in the 0x25a0 - 0x25d7 area, so we 
+can make the CORE2 macro span that for both 3430 and 3630.
 
+> I've committed the following updated version of this patch into
+> omap-for-v3.14/dt branch.
+> 
+> Regards,
+> 
+> Tony
+> 
+> 8< ----------------------
+> From: Tony Lindgren <tony@atomide.com>
+> Date: Tue, 7 Jan 2014 14:01:38 -0800
+> Subject: [PATCH] ARM: dts: Add omap specific pinctrl defines to use padconf
+> addresses
+> 
+> As we have one to three pinctrl-single instances for each SoC it is
+> a bit confusing to configure the padconf register offset from the
+> base of the padconf register base.
+> 
+> Let's add macros that allow using the physical address of the
+> padconf register directly, or in most cases, just the last 16-bits
+> of the address as they are shown in the documentation.
+> 
+> Note that most documentation shows two padconf registers for each
+> 32-bit address, so adding 2 to the documentation address is needed for
+> the second padconf register as we treat them as 16-bit registers
+> for omap3+.
+> 
+> For example, omap36xx documentation shows sdmmc2_clk at 0x48002158,
+> so we can just use the last 16-bits of that value:
+> 
+> 	pinctrl-single,pins = <
+> 		OMAP3_CORE1_IOPAD(0x2158, PIN_INPUT_PULLUP | MUX_MODE0)
+> 		...
+> 
+> 	>;
+> 
+> And we don't need to separately calculate the offset from the 0x2030
+> base:
+> 
+> 	pinctrl-single,pins = <
+> 		0x128 (PIN_INPUT_PULLUP | MUX_MODE0)
+> 		...
+> 
+> 	>;
+> 
+> Naturally both ways of defining the registers can be used, and I'm
+> not saying we should replace all the existing defines. But it may
+> be handy to use these macros for new entries and when doing other
+> related .dts file clean-up.
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> [tony@atomide.com: updated for 3430 vs 3630 core2 range]
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> 
+> --- a/include/dt-bindings/pinctrl/omap.h
+> +++ b/include/dt-bindings/pinctrl/omap.h
+> @@ -49,5 +49,25 @@
+>  #define PIN_OFF_INPUT_PULLDOWN	(OFF_EN | OFF_PULL_EN)
+>  #define PIN_OFF_WAKEUPENABLE	WAKEUP_EN
+> 
+> +/*
+> + * Macros to allow using the absolute physical address instead of the
+> + * padconf registers instead of the offset from padconf base.
+> + */
+> +#define OMAP_IOPAD_OFFSET(pa, offset)	(((pa) & 0xffff) - (offset))
+> +
+> +#define OMAP2420_CORE_IOPAD(pa, val)	OMAP_IOPAD_OFFSET((pa), 0x0030) (val)
+> +#define OMAP2430_CORE_IOPAD(pa, val)	OMAP_IOPAD_OFFSET((pa), 0x2030) (val)
+> +#define OMAP3_CORE1_IOPAD(pa, val)	OMAP_IOPAD_OFFSET((pa), 0x2030) (val)
+> +#define OMAP3430_CORE2_IOPAD(pa, val)	OMAP_IOPAD_OFFSET((pa), 0x25d8) (val)
+> +#define OMAP3630_CORE2_IOPAD(pa, val)	OMAP_IOPAD_OFFSET((pa), 0x25a0)
+> (val) +#define OMAP3_WKUP_IOPAD(pa, val)	OMAP_IOPAD_OFFSET((pa), 0x2a00)
+> (val) +#define AM33XX_IOPAD(pa, val)		OMAP_IOPAD_OFFSET((pa), 0x0800) 
+(val)
+> +#define OMAP4_CORE_IOPAD(pa, val)	OMAP_IOPAD_OFFSET((pa), 0x0040) (val)
+> +#define OMAP4_WKUP_IOPAD(pa, val)	OMAP_IOPAD_OFFSET((pa), 0xe040) (val)
+> +#define AM4372_IOPAD(pa, val)		OMAP_IOPAD_OFFSET((pa), 0x0800) (val)
+> +#define OMAP5_CORE_IOPAD(pa, val)	OMAP_IOPAD_OFFSET((pa), 0x2840) (val)
+> +#define OMAP5_WKUP_IOPAD(pa, val)	OMAP_IOPAD_OFFSET((pa), 0xc840) (val)
+> +#define DRA7XX_CORE_IOPAD(pa, val)	OMAP_IOPAD_OFFSET((pa), 0x3400) (val) 
++
+>  #endif
+-- 
 Regards,
 
-Tony
+Laurent Pinchart
+
