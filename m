@@ -1,140 +1,44 @@
-From: Satish Patel <satish.patel@ti.com>
-Subject: Re: [RFC PATCH v1 2/5] misc: tda8026: Add NXP TDA8026 PHY driver
-Date: Tue, 7 Jan 2014 12:06:37 +0530
-Message-ID: <52CBA075.8080506@ti.com>
-References: <1389010062-17185-1-git-send-email-satish.patel@ti.com>
- <1389010062-17185-3-git-send-email-satish.patel@ti.com>
- <20140106153033.GB24664@e106331-lin.cambridge.arm.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv12 06/49] clk: add support for low level register ops
+Date: Tue, 7 Jan 2014 09:44:56 +0200
+Message-ID: <52CBB078.7000607@ti.com>
+References: <1387557274-22583-1-git-send-email-t-kristo@ti.com> <1387557274-22583-6-git-send-email-t-kristo@ti.com> <20131222173926.GB8064@book.gsilab.sittig.org> <52C67F53.6000402@ti.com> <52C7141F.2020901@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20140106153033.GB24664@e106331-lin.cambridge.arm.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "arnd@arndb.de" <arnd@arndb.de>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "rob@landley.net" <rob@landley.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:60240 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754662AbaAGHpe (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 7 Jan 2014 02:45:34 -0500
+In-Reply-To: <52C7141F.2020901@codeaurora.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Stephen Boyd <sboyd@codeaurora.org>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, nm@ti.com, rnayak@ti.com, bcousson@baylibre.com, mturquette@linaro.org, linux-arm-kernel@lists.infradead.org, Anatolij Gustschin <agust@denx.de>
 
-
-
-On 1/6/2014 9:00 PM, Mark Rutland wrote:
-> On Mon, Jan 06, 2014 at 12:07:39PM +0000, Satish Patel wrote:
->> TDA8026 is a SmartCard PHY from NXP.
+On 01/03/2014 09:48 PM, Stephen Boyd wrote:
+> On 01/03/14 01:13, Tero Kristo wrote:
+>> On 12/22/2013 07:39 PM, Gerhard Sittig wrote:
+>>>
+>>>
+>>> Further I'd suggest to split this register access aspect out of
+>>> the TI clock series, and to prepare it already for regmap style
+>>> access to the hardware registers.  See the next comment below.
 >>
->> The PHY interfaces with the main processor over the
->> I2C interface and acts as a slave device.
->>
->> The driver also exposes the phy interface
->> (defined@include/linux/sc_phy.h) for SmartCard controller.
->> Controller uses this interface to communicate with smart card
->> inserted to the phy's slot.
->>
->> Note: gpio irq is not validated as I do not have device with that.
->> I have validated interrupt with dedicated interrupt line on my device.
->>
->> Signed-off-by: Maulik Mankad <maulik@ti.com>
->> Signed-off-by: Satish Patel <satish.patel@ti.com>
->> ---
->>  Documentation/devicetree/bindings/misc/tda8026.txt |   14 +
->>  drivers/misc/Kconfig                               |    7 +
->>  drivers/misc/Makefile                              |    1 +
->>  drivers/misc/tda8026.c                             | 1271 ++++++++++++++++++++
->>  4 files changed, 1293 insertions(+), 0 deletions(-)
->>  create mode 100644 Documentation/devicetree/bindings/misc/tda8026.txt
->>  create mode 100644 drivers/misc/tda8026.c
->>
->> diff --git a/Documentation/devicetree/bindings/misc/tda8026.txt b/Documentation/devicetree/bindings/misc/tda8026.txt
->> new file mode 100644
->> index 0000000..d3083bf
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/misc/tda8026.txt
->> @@ -0,0 +1,14 @@
->> +TDA8026 smart card slot interface
->> +
->> +Required properties:
->> +- compatible: nxp,tda8026
-> 
-> Please quote strings:
-> 
-> - compatible: should contain "nxp,tda8026"
-ok
-> 
->> +- shutdown-gpio = GPIO pin mapping for SDWNN pin
->> +- reg = i2c interface address
-> 
-> It's probably worth mentioning at the start that this is an i2c device.
-> 
-> [...]
-ok
-> 
->> +static int tda8026_parse_dt(struct device *dev, struct tda8026 *pdata)
->> +{
->> +       struct device_node *np = dev->of_node;
->> +       const struct of_device_id *match;
->> +       int ret = 0;
->> +
->> +       match = of_match_device(of_match_ptr(tda8026_id_table), dev);
->> +       if (!match)
->> +               return -EINVAL;
-> 
-> Why do this? The of_device_id table contains one entry with no
-> additional data. If you just want to see if this was probed via DT,
-> dev->of_node not being NULL would tell you that.
-> 
-agree..
-> Is this going to be used without DT anywhere?
-> 
-> [...]
-> 
->> +       if (pdata->irq == 0) {
->> +               /* look for the field irq-gpio in DT */
->> +               irq_gpio = of_get_named_gpio(np, "irq-gpio", 0);
->> +               if (!gpio_is_valid(irq_gpio)) {
->> +                       dev_err(dev, "Failed to get irq gpio,\n");
->> +                       return -EIO;
->> +               }
-> 
-> This is horrible. If the gpio controller can act as an irq controller
+>> This sounds like a good idea to me, seeing it is blocking lots of
+>> other things.
+>
+> This ll_ops struct looks like a simplified regmap. Have you seen my
+> series that adds regmap support to the common clock framework[1]? Is
+> there any reason why you can't use those patches and layer some patches
+> on top to add support for regmap to the basic clock types?
+>
+> [1] https://lkml.org/lkml/2013/12/23/461
 
-No it's not true. Let me clarify the signal flow,
+Yea I've seen that. I also used regmap myself on some earlier rev, but 
+it is rather an overkill solution to my purposes, and it also adds 
+additional latencies to the register access.
 
-Pins => GPIO => GPIO BANK => Interrupt controller => CPU/MPU
+-Tero
 
-> then it should be annotated as such, with #interrupt-cells, and you
-> should just describe the interrupt. The smart card controller cares
-> about having an interrupt line, not a GPIO.
-> 
-
-Let me quote MMC card-detect example here,
-File: drivers/mmc/host/omap_hsmmc.c
-
-Card detection is happening through GPIO (same as what this patch is
-doing). Please refer to the probe sequence, you will find exactly same
-thing there too.
-
-
-AM437x device has a special feature for the USIM Phy, where the PHY
-interrupt automatically gets hooked up to interrupt-controller and
-the driver gets interrupt number from DT using #interrupt-cells, exactly
-what you had mentioned.
-But if same PHY gets interfaced to other SoC's over GPIO, then in order
-to handle that scenario you __must__ go through gpio_to_irq().
-
-Let me add another important point here,
-You can not determine irq number for the given GPIO, as it gets
-allocated dynamically based on GPIO banks supported on the device and on
-the board.
-
-> Additionally, this was not described in the binding.
-> 
-> Thanks,
-> Mark.
-> 
