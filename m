@@ -1,91 +1,56 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] of/platform: Fix no irq domain found errors when populating
- interrupts
-Date: Mon, 6 Jan 2014 23:41:40 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1401062340240.31394@utopia.booyaka.com>
-References: <20131123004334.GJ10023@atomide.com> <20131123010850.GN10023@atomide.com> <20131123015034.GP10023@atomide.com> <20131124212757.7D224C402A3@trevor.secretlab.ca> <alpine.DEB.2.02.1312100331460.32309@utopia.booyaka.com>
- <alpine.DEB.2.02.1312302209200.8869@utopia.booyaka.com> <CAL_Jsq+X5G94DUn-zFKQkhEy91cdjCyeciny+kDjr=V6EiBHfQ@mail.gmail.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH V2 0/2] ARM: OMAP2+/dts: standardize SoC naming
+Date: Mon, 6 Jan 2014 18:47:33 -0600
+Message-ID: <CAGo_u6o+Lcf0wzmsSir1APd4T3A4D+GPtdRmkBM79mjW2aEGHA@mail.gmail.com>
+References: <1386204578-6018-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:53588 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757635AbaAFXlm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Jan 2014 18:41:42 -0500
-In-Reply-To: <CAL_Jsq+X5G94DUn-zFKQkhEy91cdjCyeciny+kDjr=V6EiBHfQ@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <1386204578-6018-1-git-send-email-nm@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Rob Herring <rob.herring@calxeda.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>
+Cc: Mark Rutland <mark.rutland@arm.com>, dt list <devicetree@vger.kernel.org>, Nishanth Menon <nm@ti.com>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, Stephen Warren <swarren@wwwdotorg.org>, lkml <linux-kernel@vger.kernel.org>, Rob Landley <rob@landley.net>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Rob Herring <robherring2@gmail.com>
-Cc: Grant Likely <grant.likely@linaro.org>, Rob Herring <rob.herring@calxeda.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi Tony, Rob,
+Hi Benoit, Tony,
 
-On Tue, 31 Dec 2013, Rob Herring wrote:
+On Wed, Dec 4, 2013 at 6:49 PM, Nishanth Menon <nm@ti.com> wrote:
+> Originally attempted partially in [1], the missing binding were
+> reported as part of Rob's report in [2].
 
-> On Mon, Dec 30, 2013 at 4:10 PM, Paul Walmsley <paul@pwsan.com> wrote:
-> > Hi Grant, Rob,
-> >
-> > On Tue, 10 Dec 2013, Paul Walmsley wrote:
-> >
-> >> On Sun, 24 Nov 2013, Grant Likely wrote:
-> >>
-> >> > On Fri, 22 Nov 2013 17:50:35 -0800, Tony Lindgren <tony@atomide.com> wrote:
-> >> > > * Tony Lindgren <tony@atomide.com> [131122 17:16]:
-> >> > > > * Tony Lindgren <tony@atomide.com> [131122 17:09]:
-> >> > > > > * Russell King - ARM Linux <linux@arm.linux.org.uk> [131122 16:56]:
-> >> > > > > > On Fri, Nov 22, 2013 at 04:43:35PM -0800, Tony Lindgren wrote:
-> >> > > > > > > +         /* See of_device_resource_notify for populating interrupts */
-> >> > > > > > > +         for (i = 0; i < num_irq; i++, res++) {
-> >> > > > > > > +                 res->flags = IORESOURCE_IRQ;
-> >> > > > > > > +                 res->start = -EPROBE_DEFER;
-> >> > > > > > > +                 res->end = -EPROBE_DEFER;
-> >> > > > > >
-> >> > > > > > NAK.  Definitely a bad idea to start introducing magic values other into
-> >> > > > > > resources.  Please don't do this.
-> >> > > > >
-> >> > > > > Do you have any better ideas on how to sort out this issue then?
-> >> > > >
-> >> > > > I guess we could allocate all the resources lazily here, I'll take a look
-> >> > > > at that.
-> >> > >
-> >> > > Here's a version that allocates the resources lazily with the notifier.
-> >> > > Seems to boot, need to play with it a bit more though to make sure we're
-> >> > > not overwriting resources for any legacy devices.
-> >> >
-> >> > Blurg. Using a notifier really feels like we don't have a good handle on
-> >> > a reasonable solution yet. Basically it means we're hooking into the
-> >> > driver core without /looking/ like we're hooking into the driver core. I
-> >> > don't think this is any better, but I don't have a better suggestion at
-> >> > the moment.   :-(
-> >>
-> >> Unfortunately this patch, or something that accomplishes the same results,
-> >> is somewhat high-priority for us on OMAP.  OMAP37xx got prematurely
-> >> converted to DT booting, and now dynamic power management is broken:
-> >>
-> >>     http://marc.info/?l=linux-arm-kernel&m=138658294830408&w=2
-> >>
-> >> Tony writes that this patch is one of the two patches needed to get things
-> >> working again:
-> >>
-> >>     http://marc.info/?l=linux-arm-kernel&m=138660942506846&w=2
-> >>
-> >> Is it possible to get this patch, or something similar, merged for
-> >> v3.13-rc?
-> >>
-> >> Once something like PM is broken, it's pretty easy for other broken
-> >> patches to make it into the tree, since it becomes very difficult to test
-> >> without turning into a maintainer denial-of-service attack.
-> >
-> > Ping.  Could you please provide some guidance here about what you'd need
-> > to get this solved for v3.13-rc?
-> 
-> I agree with doing the platform_get_irq modification and feel free to
-> add my ack. I'm going to be offline for the next week.
+Would you like me to send this series again since I do not see this in:
+https://git.kernel.org/cgit/linux/kernel/git/bcousson/linux-omap-dt.git/log/?h=for_3.14/dts
 
-Thanks Rob!
+patchwork links:
+https://patchwork.kernel.org/patch/3286051/
+https://patchwork.kernel.org/patch/3286061/
 
-Tony, would you consider sending this patch upstream for v3.13-rc along 
-with your 37xxevm fix patches?
-
-
-- Paul
+>
+> So, here is take two of the series, lacking an standard causes issues
+> that was fixed such as [3]. Ideally, we should never again introduce a
+> board file without a exact compatible SoC match.
+>
+> I have stayed a bit away from updating board and SoC dts files yet
+> to look at the direction we'd like to go here. If we feel things are
+> good, I would gladly try to clean our mess up.
+>
+> Nishanth Menon (2):
+>   Documentation: dt: OMAP: explicitly state SoC compatible strings
+>   ARM: OMAP2+: board-generic: update SoC compatibility strings
+>
+>  .../devicetree/bindings/arm/omap/omap.txt          |   53 ++++++++++++++++++++
+>  arch/arm/mach-omap2/board-generic.c                |    7 +++
+>  2 files changed, 60 insertions(+)
+>
+> [1] https://patchwork.kernel.org/patch/2998201/
+> [2] http://marc.info/?l=linux-arm-kernel&m=138378029113665&w=2
+> [3] https://patchwork.kernel.org/patch/3279281/
+>
+> --
+> 1.7.9.5
+>
+>
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
