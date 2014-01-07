@@ -1,130 +1,140 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCHv12 00/49] ARM: TI SoC clock DT conversion
-Date: Mon, 6 Jan 2014 21:21:23 -0600
-Message-ID: <52CB72B3.6070709@ti.com>
-References: <1387557274-22583-1-git-send-email-t-kristo@ti.com>
+From: Satish Patel <satish.patel@ti.com>
+Subject: Re: [RFC PATCH v1 2/5] misc: tda8026: Add NXP TDA8026 PHY driver
+Date: Tue, 7 Jan 2014 12:06:37 +0530
+Message-ID: <52CBA075.8080506@ti.com>
+References: <1389010062-17185-1-git-send-email-satish.patel@ti.com>
+ <1389010062-17185-3-git-send-email-satish.patel@ti.com>
+ <20140106153033.GB24664@e106331-lin.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:47621 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752108AbaAGDVu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Jan 2014 22:21:50 -0500
-In-Reply-To: <1387557274-22583-1-git-send-email-t-kristo@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20140106153033.GB24664@e106331-lin.cambridge.arm.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Mark Rutland <mark.rutland@arm.com>
+Cc: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "arnd@arndb.de" <arnd@arndb.de>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "rob@landley.net" <rob@landley.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, rnayak@ti.com, bcousson@baylibre.com, mturquette@linaro.org
-Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-Hi Tero,
-On 12/20/2013 10:34 AM, Tero Kristo wrote:
-> Hopefully final post of this series. At least this is going to be the last
-> post this year as I will be going to x-mas vacation and won't be back before
-> Jan 2nd. This time I just sent the patches that have changes in them,
-> the missing ones are exactly the same as in v11.
+
+
+On 1/6/2014 9:00 PM, Mark Rutland wrote:
+> On Mon, Jan 06, 2014 at 12:07:39PM +0000, Satish Patel wrote:
+>> TDA8026 is a SmartCard PHY from NXP.
+>>
+>> The PHY interfaces with the main processor over the
+>> I2C interface and acts as a slave device.
+>>
+>> The driver also exposes the phy interface
+>> (defined@include/linux/sc_phy.h) for SmartCard controller.
+>> Controller uses this interface to communicate with smart card
+>> inserted to the phy's slot.
+>>
+>> Note: gpio irq is not validated as I do not have device with that.
+>> I have validated interrupt with dedicated interrupt line on my device.
+>>
+>> Signed-off-by: Maulik Mankad <maulik@ti.com>
+>> Signed-off-by: Satish Patel <satish.patel@ti.com>
+>> ---
+>>  Documentation/devicetree/bindings/misc/tda8026.txt |   14 +
+>>  drivers/misc/Kconfig                               |    7 +
+>>  drivers/misc/Makefile                              |    1 +
+>>  drivers/misc/tda8026.c                             | 1271 ++++++++++++++++++++
+>>  4 files changed, 1293 insertions(+), 0 deletions(-)
+>>  create mode 100644 Documentation/devicetree/bindings/misc/tda8026.txt
+>>  create mode 100644 drivers/misc/tda8026.c
+>>
+>> diff --git a/Documentation/devicetree/bindings/misc/tda8026.txt b/Documentation/devicetree/bindings/misc/tda8026.txt
+>> new file mode 100644
+>> index 0000000..d3083bf
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/misc/tda8026.txt
+>> @@ -0,0 +1,14 @@
+>> +TDA8026 smart card slot interface
+>> +
+>> +Required properties:
+>> +- compatible: nxp,tda8026
+> 
+> Please quote strings:
+> 
+> - compatible: should contain "nxp,tda8026"
+ok
+> 
+>> +- shutdown-gpio = GPIO pin mapping for SDWNN pin
+>> +- reg = i2c interface address
+> 
+> It's probably worth mentioning at the start that this is an i2c device.
+> 
+> [...]
+ok
+> 
+>> +static int tda8026_parse_dt(struct device *dev, struct tda8026 *pdata)
+>> +{
+>> +       struct device_node *np = dev->of_node;
+>> +       const struct of_device_id *match;
+>> +       int ret = 0;
+>> +
+>> +       match = of_match_device(of_match_ptr(tda8026_id_table), dev);
+>> +       if (!match)
+>> +               return -EINVAL;
+> 
+> Why do this? The of_device_id table contains one entry with no
+> additional data. If you just want to see if this was probed via DT,
+> dev->of_node not being NULL would tell you that.
+> 
+agree..
+> Is this going to be used without DT anywhere?
+> 
+> [...]
+> 
+>> +       if (pdata->irq == 0) {
+>> +               /* look for the field irq-gpio in DT */
+>> +               irq_gpio = of_get_named_gpio(np, "irq-gpio", 0);
+>> +               if (!gpio_is_valid(irq_gpio)) {
+>> +                       dev_err(dev, "Failed to get irq gpio,\n");
+>> +                       return -EIO;
+>> +               }
+> 
+> This is horrible. If the gpio controller can act as an irq controller
+
+No it's not true. Let me clarify the signal flow,
+
+Pins => GPIO => GPIO BANK => Interrupt controller => CPU/MPU
+
+> then it should be annotated as such, with #interrupt-cells, and you
+> should just describe the interrupt. The smart card controller cares
+> about having an interrupt line, not a GPIO.
 > 
 
-There are still a few issues that I see
-[...]
+Let me quote MMC card-detect example here,
+File: drivers/mmc/host/omap_hsmmc.c
 
-> Branches available at https://github.com/t-kristo/linux-pm.git:
-> - branch: 3.13-rc4-dt-clks-v12 : contains everything, shall me merged last
-> - branch: 3.13-rc4-dt-clks-v12-for-mike : drivers/clk changes
-> - branch: 3.13-rc4-dt-clks-v11-for-benoit : DT data only (from v11, no changes)
-
-For easy maintainer merging, you may want to make this as three branches:
-
-1. for-mike based on
-git://git.linaro.org/people/mturquette/linux.git clk-next
-
-2. for-benoit based on
-git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git
-for_3.14/dts
-
-3. for-tony based on
-git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.git
-omap-for-v3.14/board-removal or on a clean k.org tag
-
-4. A testing branch for the rest of us which consolidates all of these
-together.
-
-Testing with a rebase of 3.13-rc4-dt-clks-v12 to v3.13-rc7:
-
-Here is my test platforms and logs (boot only - omap2plus_defconfig +
-common_clk_debug - all boots to sd card based filesystem):
-
-AM335x Family:
-
-AM335x-EVMSK:
-        http://pastebin.mozilla.org/3955459
-AM335x-EVM:
-        http://pastebin.mozilla.org/3955460
-AM335x-BeagleBone Black:
-        http://pastebin.mozilla.org/3955476
-
-OMAP3 family:
-OMAP3430: SDP3430:
-        http://pastebin.mozilla.org/3955475
-AM3517-evm: (requires a bootargs fix - remote board - no regressions seen)
-        http://pastebin.mozilla.org/3955461
-AM3517-CraneBoard:
-        http://pastebin.mozilla.org/3955477
-OMAP3630/DM3730 BeagleBoard-XM:
-        http://pastebin.mozilla.org/3955474
-AM37xx-evm:
-        http://pastebin.mozilla.org/3955472
-
-OMAP4 Family:
-OMAP4460: PandaBoard-ES:
-        http://pastebin.mozilla.org/3955478
-	NOTE: trace_clk_div_ck seems orphan clock here?
-
-OMAP5 Family:
-OMAP5432: OMAP5uEVM:
-        http://pastebin.mozilla.org/3955479
-
-DRA7 Family:
-
-DRA7: DRA7-evm:
-        http://pastebin.mozilla.org/3955480
+Card detection is happening through GPIO (same as what this patch is
+doing). Please refer to the probe sequence, you will find exactly same
+thing there too.
 
 
-Patch autoverification report: http://pastebin.mozilla.org/3955695
+AM437x device has a special feature for the USIM Phy, where the PHY
+interrupt automatically gets hooked up to interrupt-controller and
+the driver gets interrupt number from DT using #interrupt-cells, exactly
+what you had mentioned.
+But if same PHY gets interfaced to other SoC's over GPIO, then in order
+to handle that scenario you __must__ go through gpio_to_irq().
 
-The following issues need fixes I suppose:
-* CHECK: spinlock_t definition without comment
-	[PATCH 03/49] clk: divider: add support for registering divider
-	[PATCH 04/49] clk: mux: add support for registering mux clock from
-	[PATCH 05/49] clk: gate: add support for registering gate clock from
+Let me add another important point here,
+You can not determine irq number for the given GPIO, as it gets
+allocated dynamically based on GPIO banks supported on the device and on
+the board.
 
-* [PATCH 23/49] CLK: TI: DRA7: Add APLL support
-	"parent_names = kzalloc(sizeof(char *) * init->num_parents, GFP_KERNEL);"
-	* kzalloc without check for NULL
-	* will also be good to add some kerneldoc documentation (same with
-interface.c)
-* WARNING: static const char * array should probably be static const
-char * const
-	[PATCH 25/49] CLK: TI: add am33xx clock init file
-	[PATCH 27/49] CLK: TI: add omap3 clock init file
-* [PATCH 40/49] ARM: OMAP2+: clock: use driver API instead of direct
-	adds a new kernel doc warning "Warning(arch/arm/mach-omap2/clock.c:
-No description found for parameter 'clk'"
-* [PATCH 44/49] ARM: OMAP2+: io: use new clock init API
-	introduces warning for
-		"arch/arm/mach-omap2/io.c: warning: symbol 'omap_clk_soc_init' was
-not declared. Should it be static?"
-	which seems squashed with "[PATCH 45/49] ARM: OMAP4: remove old clock
-data and link in new"
-	will be good to have it not appear in patch 44 itself.
-
-
-Also pending is OMAP5 only build failure that Felipe reported and does
-not seem fixed in V12 as well:
-http://marc.info/?l=linux-arm-kernel&m=138757010619274&w=2
-and
-http://marc.info/?l=linux-arm-kernel&m=138755595914796&w=2
-
--- 
-Regards,
-Nishanth Menon
+> Additionally, this was not described in the binding.
+> 
+> Thanks,
+> Mark.
+> 
